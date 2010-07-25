@@ -1,0 +1,38 @@
+[Template]
+Code=BGL
+Name=BGL Simple Fund Template File
+[Tax Starts]
+1|01/07/00
+2|
+3|
+4|
+5|
+
+[Tax Table]
+1|0|(N/A)  Not Applicable|0|0|0|0|0||0
+2|1|(100%) GST applicable to 100% of purchase/supply|1000|0|0|0|0||0
+3|2|(75%) 75% Credit available on purchase|1000|0|0|0|0||0
+4|3|(46.5%)  No ABN provided or exemption certificate|0|0|0|0|0||0
+5|4|(0% ITD) Purchase includes GST. No CR available|0|0|0|0|0||0
+6|5|(0% ITA) Purchase includes GST. Proportional CR available|0|0|0|0|0||0
+7|6|GST Free|0|0|0|0|0||0
+8|1G1|Total sales|1000|0|0|0|0||0
+9|1G10|Capital purchases|1000|0|0|0|0||0
+10|1G11|Non-capital purchases|1000|0|0|0|0||0
+11|6G3|GST free sales|0|0|0|0|0||0
+12|6C14|Capital purchases with no GST|0|0|0|0|0||0
+13|6G14|Non-capital purchases with no GST|0|0|0|0|0||0
+
+[Chart]
+
+[BAS Rules]
+1|8||0|10000
+1|11||0|10000
+3|11||0|10000
+6|9||0|10000
+6|12||0|10000
+7|10||0|10000
+7|13||0|10000
+9|12||0|10000
+9|13||0|10000
+

@@ -1,0 +1,343 @@
+unit QuickBooks;
+//------------------------------------------------------------------------------
+{
+   Title:        Quickbooks Chart Refresh
+
+   Description:
+
+   Remarks:     Imports chart from Quickbooks 5,6,7
+
+   Author:      Modified Oct 2000  Matthew Hopkins
+
+   Revisions:   Jun 2004 - expanded the list of account types that can be recognised
+}
+//------------------------------------------------------------------------------
+
+interface
+//------------------------------------------------------------------------------
+
+procedure RefreshChart;
+
+//******************************************************************************
+implementation
+//------------------------------------------------------------------------------
+
+uses
+   Globals,
+   SysUtils,
+   chList32,
+   bkchio,
+   BK5Except,
+   BKConst,
+   bkdefs,
+   ovcDate,
+   InfoMoreFrm,
+   ErrorMoreFrm,
+   Classes,
+   LogUtil,
+   ChartUtils,
+   GenUtils,
+   Windows,
+   Templates,
+   gstCalc32,
+   WinUtils;
+
+Const
+   UnitName = 'QuickBooks';
+   DebugMe  : Boolean = False;
+
+//------------------------------------------------------------------------------
+function LoadQBWChart( FileName : string ) : TChart;
+
+const
+   ThisMethodName = 'LoadQBWChart';
+   Tab = #09;
+(*
+
+Version 7.4 added the TAXCODE column to the chart export
+
+!ACCNT	NAME	REFNUM	TIMESTAMP	ACCNTTYPE	OBAMOUNT	DESC	ACCNUM	TAXCODE	SCD	BANKNUM	EXTRA	HIDDEN	DELCOUNT	USEID
+ACCNT	Cash	3	935027837	BANK	0.00	Cash	1-7801		0			N	0	N
+
+*)
+   qbTypeMin = 1;
+   qbTypeMax = 17;
+
+
+   StdTypeNames : array[ qbTypeMin..qbTypeMax ] of string[10] =
+      ( 'AP','AR','BANK','CCARD','COGS','EQUITY','EXEXP','EXINC','FIXASSET','INC',
+        'LTLIAB','NONPOSTING','OASSET','OCASSET', 'EXP', 'OCLIAB', 'SUSPENSE' );
+
+   StdTypeCodes : array[ qbTypeMin..qbTypeMax ] of Byte =
+      ( { 'AP'         } atCreditors       ,
+        { 'AR'	       } atDebtors         ,
+        { 'BANK'       } atBankAccount     ,
+        { 'CCARD'      } atBankAccount     ,
+        { 'COGS'       } atPurchases       ,
+        { 'EQUITY'     } atEquity          ,
+        { 'EXEXP'      } atExpense         ,
+        { 'EXINC'      } atIncome          ,
+        { 'FIXASSET'   } atFixedAssets     ,
+        { 'INC'        } atIncome          ,
+        { 'LTLIAB'     } atLongTermLiability,
+        { 'NONPOSTING' } atNone            ,
+        { 'OASSET'     } atFixedAssets     ,
+        { 'OCASSET'    } atCurrentAsset,
+        { 'EXP'}         atExpense,
+        { 'OCLIAB' }     atCurrentLiability,
+        { 'SUSPENSE' }   atNone);
+
+Var
+   L          : ShortString;
+   fStart     : array[ 1..50 ] of Byte;
+   fLen	     : array[ 1..50 ] of Byte;
+   fCount	  : Byte;
+
+   //--------------------------------------------------------------
+   procedure FindFields;
+   Var
+      i : Integer;
+   Begin
+      FillChar( fStart, SizeOf( fStart ), 0 );
+      FillChar( fLen, SizeOf( fLen ), 0 );
+
+      fCount := 1;
+      for i := 1 to Length( L ) do
+      Begin
+         if ( L[i] = Tab ) then
+            Inc( fCount )
+         else
+         Begin
+            if fStart[ fCount ] = 0 then fStart[ fCount ] := i;
+            Inc( fLen[ fCount ] );
+         end;
+      end;
+   end;
+
+   //--------------------------------------------------------------
+   Function GetField( n : Byte ): ShortString;
+   Var
+      S : ShortString;
+      Starts : Byte;
+      Len	 : Byte;
+   Begin
+      Result := '';
+      Starts := fStart[ n ];
+      Len	 := fLen[ n ];
+      If ( Starts > 0 ) and ( Len > 0 ) then
+      Begin
+         S[0] := Char( Len );
+         Move( L[Starts], S[1], Len );
+         Result := S;
+      end;
+   end;
+   //--------------------------------------------------------------
+   Function GSTCodesInChart( ChtFileName : String ): Boolean;
+   var
+      F          : TextFile;
+      B          : array[ 1..8192 ] of Byte;
+      S          : ShortString;
+   Begin
+      Result := False;
+      try
+         AssignFile( F, FileName );
+         SetTextBuf( F, B );
+         Reset( F );
+
+         while not EOF( F ) do begin
+            Readln( F, L );
+            FindFields;
+            if fCount >= 8 then begin
+               S := GetField( 1);
+               //look at acct header line to see if contains TAXCODE field
+               if S = '!ACCNT' then begin
+                  S := GetField( 9);
+                  if S <> 'TAXCODE' then exit;
+               end;
+               //read subsequent lines to see if tax code field is used
+               if S='ACCNT' then begin
+                  S := GetField( 9);
+                  if S <> '' then begin
+                     result := true;
+                     exit;
+                  end;
+               end;
+            end;
+         end;
+      finally
+         CloseFile( F );
+      end;
+   end;
+   //--------------------------------------------------------------
+
+Var
+   F          : TextFile;
+   B          : array[ 1..8192 ] of Byte;
+   ACode      : Bk5CodeStr;
+   ADesc      : string[50];
+   AGSTCode   : ShortString;
+   AChart     : TChart;
+   OK         : Boolean;
+   Msg	     : string;
+   S			  : ShortString;
+   NewAccount : pAccount_Rec;
+   i          : Byte;
+   TemplateFileName : string;
+Begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+   if not BKFileExists( FileName ) then begin
+      Msg := Format( 'The file %s does not exist', [ FileName ] );
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+      Raise ERefreshFailed.Create( Msg );
+   end;
+
+   If ( MyClient.clFields.clCountry = whAustralia ) and GSTCodesInChart( FileName ) and not ( MyClient.GSTHasBeenSetup ) then
+   begin
+      TemplateFileName := GLOBALS.TemplateDir + 'QUICKBKS.TPM';
+      If BKFileExists( TemplateFileName ) then Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+   end;
+
+   OK     := False;
+   AChart := TChart.Create;
+   Try
+      Try
+         AssignFile( F, FileName );
+         SetTextBuf( F, B );
+         Reset( F );
+
+         while not EOF( F ) do Begin
+            Readln( F, L );
+            FindFields;
+            if fCount >= 8 then
+            Begin
+               S := GetField( 1 );
+               if S='ACCNT' then
+               Begin
+                  ACode := GetField( 8 );
+                  ADesc := GetField( 2 );
+                  AGSTCode := GetField( 9);
+
+                  if ( ACode<>'' ) and ( ADesc<>'' ) then
+                  Begin
+                     if ( AChart.FindCode( ACode )<> NIL ) then Begin
+                        LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+ACode+' found in '+FileName );
+                     end
+                     else Begin
+                        NewAccount := New_Account_Rec;
+                        with NewAccount^ do begin
+                           chAccount_Code        := aCode;
+                           chAccount_Description := aDesc;
+                           chGST_Class           := GSTCalc32.GetGSTClassNo( MyClient, AGSTCode );
+                           chPosting_Allowed     := true;
+
+                           S := GetField( 5 );
+                           for i := qbTypeMin to qbTypeMax do
+                           Begin
+                              if ( S = StdTypeNames[ i ] ) then chAccount_Type := stdTypeCodes[ i ];
+                           end;
+
+                        end;
+                        AChart.Insert(NewAccount);
+                     end;
+                  end;
+               end;
+            end;
+         end;
+         OK := True;
+      finally
+         CloseFile( F );
+      end;
+   Finally
+      if not OK then Begin
+         if Assigned( AChart ) then Begin
+            AChart.Free;
+            AChart := nil;
+         end;
+      end;
+   end;
+
+   if Assigned( AChart ) and ( AChart.ItemCount = 0 ) then
+   Begin
+      AChart.Free;
+      Msg := Format( 'BankLink couldn''t find any accounts in the file %s', [ FileName ] );
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+      Raise ERefreshFailed.Create( Msg );
+   end;      
+   
+   Result := AChart;
+   
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure RefreshChart;
+
+const
+   ThisMethodName    = 'RefreshChart';
+var
+   QBWFileName       : String;
+   ChartFilePath     : string;
+   NewChart          : TChart;
+   Msg               : string;
+begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+   if not Assigned( MyClient ) then exit;
+   
+   with MyClient.clFields do begin
+   
+      QBWFileName := clLoad_Client_Files_From;
+
+      if DirectoryExists(QBWFileName) then // User only specified a directory - we need a filename
+      begin
+        QBWFileName := '';
+        ChartFilePath := AddSlash(clLoad_Client_Files_From);
+      end
+      else
+        ChartFilePath := RemoveSlash(clLoad_Client_Files_From);
+
+      if not BKFileExists( QBWFileName ) then
+      Begin
+         QBWFileName := ChartUtils.GetChartFileName(
+            clCode,
+            ExtractFilePath(ChartFilePath),
+            'QuickBooks Files|*.IIF',
+            'IIF',
+             0 );
+         if QBWFileName = '' then Exit;
+      end;
+      
+      try
+         NewChart := LoadQBWChart( QBWFileName );
+         MergeCharts( NewChart, MyClient); { Frees NewChart }
+         clLoad_Client_Files_From := QBWFileName;
+         clChart_Last_Updated     := CurrentDate;
+         
+         HelpfulInfoMsg( 'The client''s chart of accounts has been refreshed.', 0 );
+         
+      except
+         on E : ERefreshFailed do begin
+            Msg := Format( 'Error Refreshing Chart: %s', [ E.Message ] );
+            LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+            HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
+            exit;
+         end;
+         on E : EInOutError do begin //Normally EExtractData but File I/O only
+            Msg := Format( 'Error Refreshing Chart %s. %s', [ QBWFileName, E.Message ] );
+            LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+            HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
+            exit;
+         end;
+      end; {except}
+   end; {with}
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+//------------------------------------------------------------------------------
+
+Initialization
+   DebugMe := LogUtil.DebugUnit( UnitName );
+end.
+

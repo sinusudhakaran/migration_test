@@ -1,0 +1,435 @@
+$|SY_FILE_VERSION   = 121;  (* Current Version counter for files
+$|                           Changes if structure or method of storing a value would cause
+$|                           data to be represented incorrectly, or an exception to be raised *)
+$|
+$|(*
+$|     History :     33   GST Class Codes field now stored as delimited
+$|                   36   GST Class Codes now stored in array
+$|                   37   MAX_GST_CLASS up to 99 (was 20).
+$|                   38   Added Computer name string to user record
+$|                   39   New fields for determining how the BAS fields are calculated
+$|                   40   No structure change, increase because memorised transaction def changed
+$|                        if BKDEFS.  Version change need to force rebuild of master memorised files
+$|                   41   Added Reports last printed date for use in scheduled reporting
+$|                   42   Added Last Entry Date and Date of Last Entry Printed to bank accounts
+$|                        Now stores Include email settings for sched reports
+$|                        Renamed
+$|                   43   Added Mark_As_Deleted to bank accounts.
+$|      5.1.60.1     44   Added Enhanced Software Options Flag
+$|      5.1.62.9     45   Added ECoding and FAxing vars
+$|                   46   Added Ansi String values for email message and cover page message
+$|      5.1.62.13    47   No structure change, want to force copying of the proxy ini settings
+$|      5.1.62.25    48   No structure change, want to force upgrade of master memorised files
+$|      5.1.64.1     49   No structure change, want to force renaming of master memorised files
+$|      5.1.64.2     50   No structure change, want to force upgrade of master memorised files
+$|      5.1.65.1     51   Added File Access List structure
+$|                        Added Remote User checkbox to user record
+$|      5.2.0.5      52   No structure change, want to force upgrade of master mem files
+$|           .42     53   Added flag to store detailed download
+$|                   54   MAJOR!!! no structure change to system db, FORCES UPGRADE of TRX Files
+$|                   55   Added flag to enable CSV Export and associated settings
+$|                   56   Added fields to store tax interface settings
+$|                   57   Added field to store file version of last disk image
+$|      5.2.0.74     58   Added field to store web site address
+$|      5.2.1.97     59   Added field to store path to practice logo
+$|                        Store Users direct dial number
+$|                   60   Added Headers and Footers for reports
+$|                        Added Report Date Type Style
+$|                        Added Scheduled Reports Header and BNotes messages
+$|      5.3.0.104    61   Added contact type field to client details cache
+$|                        Added Fin Year Starts to client details cache
+$|                        Added Schedule Reports method to cache
+$|      5.3.0.105    62   Added field to indicate that contact details cache has changed
+$|                        Added fields to store Task Tracking Settings
+$|      5.3.0.121    63   Added header and footer display flags
+$|                   64   Added user field to set show client manager
+$|      5.3.0.131    65   Store date of last transaction printed during schedule reports at client level
+$|            142    66   Force upgrade of master mem files
+$|                   67   Added Last Print Reports Up To
+$|      5.4.0.338/341    68   Master Memorisation file structure changed
+$|      5.4.0.342    69   For master mem files to be reupgraded if missed in 5.4.0.338
+$|      5.4.1        70   Store fax transport method
+$|      5.5.0        71   Add Acclipse WebXOffice to Scheduled Reports
+$|      5.5.0        72   Add Web Export Format
+$|      5.6.0        73   Add Practice Marketing
+$|      5.6.0        74   Move some prac ini settings to admin db
+$|      5.6.0        75   Add setting for maximum narration length when extracting
+$|      5.6.0        76   Add CheckOut to Scheduled Reports
+$|                        Add Client Account Map list
+$|      5.8.0        77   Add QID and OFX support
+$|                        Add option for replacing narration with payee
+$|      5.9          78   Add user printer choice when printing
+$|                        Add system bank account fields for export charges
+$|                        Add last export charges saved to
+$|      5.9          79   Add XML field for sennding manual account info to BConnect
+$|                        Add system bank account type (used for offsite accounts in export charges)
+$|      5.9          80   Increase version for upgrading master mems to have payee per line
+$|      5.9          81   Add field to store "upgrades pending flag" so can decide when to show button
+$|      5.9          82   Add field for collection of usage data
+$|      5.9          83   Add EULA acceptance per user
+$|      5.11 (2007)  84   Add flags for processing status, Increase length of all email fields
+$|                   85   Add export charges options for increasing charges, job code column, rename 'cm show legend' to spare, store numer of d.p's to extract in qty
+$|                   86   Need a seperate sched rep method for use in filtering - don't want to mess with the Scheduled Reports one!
+$|                   87   Version number change so we can upgrade quantities, gst rates and percentages to 4 decimal places
+$|                   88   Edit mode settings now stored in client file, System Report Password
+$|                   89   Add export charges options for HandiSoft, Add Archive option, Usage Counters
+$|                   90   Force update of archive to fix duplicate tx bug
+$|      5.12         91   Add bkmap code to upgrade (now in version 98)
+$|                   93   Last run date for a bank account in scheduled reports in map
+$|                   94   Option to auto-import new txns. Add downloaded processing stats.
+$|      5.13 (2008)  95   Configurable CES font, Sched Rep using a selection instead of range, Auto-purge
+$|                   96   System groups and client types
+$|                   97   Remove Report headers and footers
+$|                   98   Just increase version number os we can bkmap on upgrade
+$|                   99   Usage counters for client files with Jobs and divisions
+$|      5.14 (SMSF) 100   Add Tax Types
+$|                  101   Add fields for separate superfund system
+$|      5.15 (2009) 102   Add First Available Date field to system bank account
+$|                  103   Add Earliest Download Date to Client Account Map
+$|                  104   Create fd "Sort Reports By" to replace "Sort Reports By Staff Member" to allow Client Type and Group options to be used
+$|                  105   Add Suppress Header and Footers option to User Record
+$|                  106   Add Set Fixed Export Charge to Practice Details Record for Exporting Charges (Case 8013)
+$|                  107   Added Print Group Header Page and Print Client Type Header Page to Pratice Details (Case 8563)
+$|                  108   Add Practice Management System
+$|                  109   Add Marking of an Account as No Charge (Case 6342)
+$|                  110   Added Array of Settings for Automatic Task Creation (Case 1210)
+$|                  111   Add Show Practice Logo option to User Record
+$|                  112   Added GST Period Type and GST Start Month
+$|                  113   Updated Precessing cashe to 36 months
+$|                  114   Practice Management
+$|                  115   Bulk Extract Code per Client
+$|      5.16 (2009) 116   MultiCurrency
+$|                  117   System Bankaccount Inactive, Institution and Practice code, Repurposed Spare-Integer-1 to Last-ChargeFile-Date
+$|                  118   Repurposed Spare Text 1 and Spare Byte 1 for custom documents
+$|    5.16.8 (2010) 119   Add frequency column to system bank account
+$|                  120   Add frequency change pending column to system bank account
+$|    5.17.1 (WebNotes) 121   Add Custom Document for Webnotes email
+$|                        Add Webnotes Email Notification flags.
+$|                        Add WebNotes available status
+$|*)
+
+N|Practice Details|fd|10
+F|Practice Name for Reports|S|60
+F|Practice EMail Address|S|80
+F|Accounting System Used|B
+F|Country|B
+F|Load Client Files From|S|128
+F|Save Client Files To|S|128
+F|Short Name|BS0|100|10
+F|Long Name|BS0|100|30
+F|GST Class Names|BS|99|60
+F|GST Class Types|BB|99
+F|GST Account Codes|BS|99|20
+F|GST Rates|BB$|99|5
+F|GST Applies From|BD|5
+F|Date of Last Entry Received|D
+F|Print Reports Up To|D
+F|Spare Boolean 3|Y
+F|Print Staff Member Header Page|Y
+F|Print Client Header Page|Y
+F|PIN Number|L
+F|BankLink Code|S|8
+F|Disk Sequence No|L
+F|Magic Number|L
+F|Coding Report Style|B
+F|Coding Report Sort Order|B
+F|Coding Report Entry Selection|B
+F|Coding Report Blank Lines|B
+F|Coding Report Rule Line|Y
+F|Bank Account LRN Counter|L
+F|User LRN Counter|L
+F|Transaction LRN Counter|L
+F|Client File LRN Counter|L
+F|BankLink Connect Password|S|60
+F|Old GST Class Codes|S|255
+F|Account Code Mask|S|20
+F|File_Version|L
+F|Sched Rep Email Subject|S|128
+F|Old Sched Rep Email Line1|S|255
+F|Old Sched Rep Email Line2|S|255
+F|OLD BAS Special Accounts|BS|10|20
+F|GST Class Codes|BS|99|5
+F|BAS Field Number|BB|100
+F|BAS Field Source|BB|100
+F|BAS Field Account Code|BS|100|20
+F|BAS Field Balance|BB|100
+F|Sched Rep Include Email|Y
+F|Sched Rep Email Only|Y
+F|Sched Rep Include Printer|Y
+F|Sched Rep Include Fax|Y
+F|Sched Rep Send Fax Off Peak|Y
+F|Enhanced Software Options|BY|20
+F|Sched Rep Include ECoding|Y
+F|Sched Rep Cover Page Name|AS
+F|Sched Rep Cover Page Subject|S|128
+F|Sched Rep Cover Page Message|AS
+F|Sched Rep Email Message|AS
+F|Download Report Options|L
+F|Download Report Hide Deleted|Y
+F|Bulk Export Enabled|Y
+F|Spare Byte 0|B
+F|Bulk Export Code|AS
+F|Sched Rep Include CSV Export|Y
+F|Tax Interface Used|B
+F|Save Tax Files To|AS
+F|Last Disk Image Version|L
+F|Practice Web Site|AS
+F|Practice Phone|S|20
+F|Practice Logo Filename|AS
+F|Sched Rep Print Custom Doc GUID|AS
+F|Sched Rep Print Custom Doc|B
+F|Last ChargeFile Date|L
+F|Spare Integer 2|L
+F|Sched Rep Fax Custom Doc GUID|AS
+F|Sched Rep Fax Custom Doc|B
+F|Spare Text 3|AS
+F|Sched Rep Email Custom Doc GUID|AS
+F|Sched Rep Email Custom Doc|B
+F|Spare Text 5|AS
+F|Sched Rep Books Custom Doc GUID|AS
+F|Sched Rep Books Custom Doc|B
+F|Spare Integer 3|L
+F|Spare Integer 4|L
+F|Sched Rep Notes Custom Doc GUID|AS
+F|Sched Rep Notes Custom Doc|B
+F|Spare Text 8|AS
+F|Sched Rep WebNotes Custom Doc GUID|AS
+F|Sched Rep WebNotes Custom Doc|B
+F|Spare Integer 5|L
+F|Spare Integer 6|L
+F|Spare Text 10|AS
+F|Spare Byte 7|B
+F|Spare Text 11|AS
+F|Spare Text 12|AS
+F|Spare Byte 8|B
+F|Spare Text 13|AS
+F|Spare Text 14|AS
+F|Spare Byte 9|B
+F|Spare Integer 7|L
+F|Spare Integer 8|L
+F|Sched Rep WebNotes Subject|AS
+F|Spare Byte 10|B
+F|Sched Rep webNotes Message|AS
+F|Spare Byte 11|B
+F|Sched Rep Header Message|AS
+F|Sched Rep BNotes Subject|S|128
+F|Sched Rep BNotes Message|AS
+F|Spare Boolean 4|Y
+F|Task Tracking Prompt Type|B
+F|Spare Bool 1|Y
+F|Spare Bool 2|Y
+F|Spare Integer 9|L
+F|Sched Rep Fax Transport|B
+F|Sched Rep Include WebX|Y
+F|Web Export Format|B
+F|Force Login|Y
+F|Login Bitmap Filename|S|255
+F|Auto Print Sched Rep Summary|Y
+F|Ignore Quantity In Download|Y
+F|Spare Boolean 1|B
+F|spare Boolean 2|B
+F|Copy Dissection Narration|Y
+F|Round Cashflow Reports|Y
+F|Use Xlon Chart Order|Y
+F|Extract Multiple Accounts PA|Y
+F|Extract Journal Accounts PA|Y
+F|Extract Quantity|Y
+F|Reports New Page|Y
+F|Print Merge Report Summary|B
+F|Email Merge Report Summary|B
+F|Maximum Narration Extract|L
+F|Sched Rep Include CheckOut|Y
+F|Sched Rep CheckOut Subject|S|128
+F|Sched Rep CheckOut Message|AS
+F|Sched Rep Include Business Products|Y
+F|Sched Rep Business Products Subject|S|128
+F|Sched Rep Business Products Message|AS
+F|Replace Narration With Payee|Y
+F|Last Export Charges Saved To|AS
+F|Manual Account XML|AS
+F|Updates Pending|Y
+F|Update Server For Offsites|AS
+F|Collect Usage Data|Y
+F|Fixed Charge Increase|Y
+F|Percentage Charge Increase|Y
+F|Fixed Dollar Amount|$
+F|Distributed Dollar Amount|$
+F|Percentage Increase Amount|$
+F|Extract Quantity Decimal Places|B
+F|Export Charges Remarks|AS
+F|System Report Password|S|8
+F|Print Reports From|D
+F|Highest Date Ever Downloaded|D
+F|Auto Retrieve New Transactions|Y
+F|Coding Font|AS
+F|Sort Reports Option|B
+F|Spare Byte 12|B
+F|Group LRN Counter|L
+F|Client Type LRN Counter|L
+F|TAX Applies From|BBD|99|5
+F|TAX Rates|BB$|99|5
+F|Superfund System|B
+F|Superfund Code Mask|S|20
+F|Load Client Super Files From|S|128
+F|Save Client Super Files To|S|128
+F|Sort Reports By|L
+F|Set Fixed Dollar Amount|$
+F|Print Group Header Page|Y
+F|Print Client Type Header Page|Y
+F|Practice Management System|B
+F|Automatic Task Creation Flags|BY|7
+F|Automatic Task Reminder Delay|BL|7
+F|Automatic Task Closing Flags|BY|7
+E
+
+N|System Disk Log|dl|40
+F|Disk ID|S|20
+F|Date Downloaded|D
+F|No of Accounts|L
+F|No of Entries|L
+F|Was In Last Download|Y
+E
+
+N|User|us|60
+F|Code|S|8
+F|Name|S|60
+F|Password|S|8
+F|EMail Address|S|80
+F|System Access|Y
+F|Dialog Colour|B
+F|Logged In|Y
+F|Reverse Mouse Buttons|Y
+F|MASTER Access|Y
+F|LRN|L
+F|Spare String|S|40
+F|Workstation Logged In At|S|20
+F|Is Remote User|Y
+F|Direct Dial|S|20
+F|Show CM on open|Y
+F|Show Printer Choice|Y
+F|EULA Version|AS
+F|Spare Boolean|Y
+F|Login Count|L
+F|Reset Count|L
+F|Suppress HF|B
+F|Show Practice Logo|Y
+E
+
+N|System Bank Account|sb|50
+F|Account Number|S|20
+F|Account Name|S|60
+F|Account Password|S|20
+F|LRN|L
+F|Client|L
+F|Current Balance|$
+F|Last Transaction LRN|L
+F|New This Month|Y
+F|No of Entries This Month|L
+F|From Date This Month|L
+F|To Date This Month|L
+F|Cost Code|S|10
+F|Charges This Month|$
+F|Opening Balance from Disk|$
+F|Closing Balance from Disk|$
+F|Attach Required|Y
+F|Was On Latest Disk|Y
+F|Last Entry Date|L
+F|Date Of Last Entry Printed|L
+F|Mark As Deleted|Y
+F|File Code|AS
+F|Client ID|AS
+F|Matter ID|AS
+F|Assignment ID|AS
+F|Disbursement ID|AS
+F|Account Type|B
+F|Job Code|S|8
+F|Activity Code|S|2
+F|Unused|L
+F|First Available Date|D
+F|No Charge Account|Y
+F|Currency Code|S|3
+F|Institution|S|40
+F|InActive|Y
+F|BankLink Code|S|8
+F|Frequency|B
+F|Frequency Change Pending|B
+E
+
+N|Client File|cf|80
+F|File Code|S|10
+F|File Name|S|60
+F|File Type|B
+F|File Status|B
+F|File Password|S|8
+F|Date Last Accessed|D
+F|File Save Count|L
+F|User Responsible|L
+F|Current User|L
+F|LRN|L
+F|Report Start Date|D
+F|Reporting Period|B
+F|Foreign File|Y
+F|Unused Date Field|D
+F|Reports Due|Y
+F|Contact Details To Show|B
+F|Financial Year Starts|L
+F|Schd Rep Method|B
+F|SpareBoolean|Y
+F|Pending ToDo Count|L
+F|Next ToDo Desc|S|80
+F|Next ToDo Rem Date|L
+F|Has Client Notes|Y
+F|Overdue ToDo Count|L
+F|Sched Rep Reports To Send|L
+F|Contact Details Edit Date|L
+F|Contact Details Edit Time|L
+F|Bank Accounts|AS
+F|Date Of Last Entry Printed|L
+F|Last Print Reports Up To|D
+F|Client Type|B
+F|Coded|BB|36
+F|Finalized|BB|36
+F|Transferred|BB|36
+F|Last Processing Status Date|D
+F|Schd Rep Method Filter|B
+F|Archived|Y
+F|Payee Count|L
+F|Bank Account Count|L
+F|Manual Account Count|L
+F|Mem Count|L
+F|Accounting System|AS
+F|Downloaded|BB|36
+F|Group LRN|L
+F|Client Type LRN|L
+F|Job Count|L
+F|Division Count|L
+F|GST Period|B
+F|GST Start Month|B
+F|Bulk Extract Code|S|8
+F|WebNotesAvailable|BB|36
+F|WebNotes Email Notifications|L
+E
+
+N|File Access Mapping|ac|100
+F|User LRN|L
+F|Client File LRN|L
+E
+
+N|Client Account Map|am|90
+F|Client LRN|L
+F|Account LRN|L
+F|Last Date Printed|D
+F|Temp Last Date Printed|L
+F|Earliest Download Date|D
+E
+
+N|Group|gr|110
+F|LRN|L
+F|Name|S|60
+E
+
+N|Client Type|ct|120
+F|LRN|L
+F|Name|S|60
+E
+
