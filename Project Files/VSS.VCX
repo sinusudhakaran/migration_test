@@ -1,6 +1,0 @@
-[Default]
-SCDB=I:\SrcSafe\srcsafe.ini
-SCPATH=$/BankLink 5/Win32
-[BK5WIN.DPR]
-SCPATH=$/BankLink 5/Win32
-SCDB=I:\SrcSafe\srcsafe.ini
