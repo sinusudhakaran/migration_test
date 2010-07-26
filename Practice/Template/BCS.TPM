@@ -1,0 +1,38 @@
+[Template]
+Code=BCS
+Name=BCS Accounting Standard Template
+[Tax Starts]
+1|01/07/00
+2|
+3|
+4|
+5|
+
+[Tax Table]
+1|GSTI|Income|1000|0|0|0|0|777701|0
+2|GSTE|Expenses|1000|0|0|0|0|777711|0
+3|NON|No GST Applicable|0|0|0|0|0|777714|0
+4|INP|Input Taxed Purchases|0|0|0|0|0|777713|0
+5|ITS|Input Taxed Supplies|0|0|0|0|0|777704|0
+6|PRI|Private Purchases|0|0|0|0|0|777715|0
+7|FRE|GST Free|0|0|0|0|0|777703|0
+8|GCA|Capital Acquisitions|1000|0|0|0|0|777710|0
+9|EXP|Exports|0|0|0|0|0|777702|0
+
+[BAS Rules]
+1|1||0|10000
+1|5||0|10000
+1|9||0|10000
+1|7||0|10000
+2|9||0|10000
+3|7||0|10000
+4|5||0|10000
+6|8||0|10000
+7|2||0|10000
+7|4||0|10000
+7|6||0|10000
+7|3||0|10000
+8|4||0|10000
+9|3||0|10000
+10|6||0|10000
+

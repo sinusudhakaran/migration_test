@@ -1,0 +1,35 @@
+;
+;File for saving coding statistics
+;
+
+$|CS_FILE_VERSION  = 101;  (* Current Version counter for files
+$|                           Changes if structure or method of storing a value would cause
+$|                           data to be represented incorrectly, or an exception to be raised *)
+$|
+$|
+$|(*
+$|    History            : 100     Introduction
+$|    5.18.1 (2010 SMSF) : 101     Additional Categories
+$|*)
+
+
+
+N|Coding Stat Fields|sf|20
+F|File Version|L
+F|Read Version|L
+E
+
+
+N|Coding Statistics|cs|10
+F|Client LRN|L
+F|Month|D
+F|Updated|Y
+F|Memorization Count|L
+F|Analysis Count|L
+F|Payee Count|L
+F|Manual Count|L
+F|Uncoded Count|L
+F|Master Mem Count|L
+F|Man Super Count|L
+F|Notes Count|L
+E

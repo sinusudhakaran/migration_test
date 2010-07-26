@@ -1,0 +1,63 @@
+[Template]
+Code=HL
+Name=Handiledger BAS Settings
+[Tax Starts]
+1|01/07/00
+2|
+3|
+4|
+5|
+
+[Tax Table]
+1|ADA|Input tax credit adjustment|1000|0|0|0|0|3386
+2|ADS|GST payable adjustment|1000|0|0|0|0|3382
+3|CAP|Capital acquisitions|1000|0|0|0|0|3384
+4|EXP|Exports (GST Free)|0|0|0|0|0|
+5|FCA|GST free capital acquisitions|0|0|0|0|0|
+6|FOA|GST free other acquisitions|0|0|0|0|0|
+7|FRE|Other GST free supplies|0|0|0|0|0|
+8|GST|Goods and services tax|1000|0|0|0|0|3380
+9|ICA|Input taxed capital acquisitions|0|0|0|0|0|
+10|INP|Other acquisitions|1000|0|0|0|0|3384
+11|IOA|Input taxed other acquisitions|0|0|0|0|0
+12|ITS|Input taxed sales & supplies|0|0|0|0|0|
+13|LCP|Luxury car tax payable|2500|0|0|0|0|3398
+14|LCR|Luxury car tax refundable|2500|0|0|0|0|3398
+15|PCA|Private use capital acquisitions|0|0|0|0|0|
+16|POA|Private use other acquisitions|0|0|0|0|0|
+17|WEP|Wine equalisation tax payable|2900|0|0|0|0|3396
+18|WER|Wine equalisation tax refundable|2900|0|0|0|0|3396
+
+[Chart]
+
+[BAS Rules]
+1|8||0|10000
+1|4||0|10000
+1|7||0|10000
+1|12||0|10000
+2|4||0|10000
+3|7||0|10000
+4|12||0|10000
+5|1||0|10000
+5|2||0|10000
+6|3||0|10000
+6|5||0|10000
+6|15||0|10000
+6|9||0|10000
+7|10||0|10000
+7|6||0|10000
+7|16||0|10000
+7|11||0|10000
+8|9||0|10000
+8|11||0|10000
+9|5||0|10000
+9|6||0|10000
+10|16||0|10000
+10|15||0|10000
+11|1||0|10000
+11|2||0|10000
+16|17||2|10000
+17|18||2|10000
+18|13||2|10000
+19|14||0|10000
+

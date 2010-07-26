@@ -1,0 +1,693 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{bd243017-c546-4300-ba01-e768aad603db}</ProjectGuid>
+    <MainSource>BK5WIN.DPR</MainSource>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+    <DCC_DependencyCheckOutputName>D:\Testing\MILSROS\BK5WIN.exe</DCC_DependencyCheckOutputName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_DebugInformation>False</DCC_DebugInformation>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+    <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
+    <DCC_StrictVarStrings>False</DCC_StrictVarStrings>
+    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    <DCC_MapFile>3</DCC_MapFile>
+    <DCC_UnitSearchPath>..\shared\;orpheus\;printing\;crypto\;internet\;forex\;extract\;download\;bconnect\;lists\;import\;component\;ecoding\;ecoding\database\;Extended MAPI\;C:\Components\D7\Raize\RC3\Source;C:\Components\D6\TurboPower\SysTools;C:\Components\D7\VirtualTreeview;C:\Components\D6\BankLink\bkQuickReport;C:\Components\D7\wPDF\D7;C:\Components\D7\TeeChart Pro v5.03 Full Source Code\Sources;C:\Components\D7\NWFax\Source\Delphi7;C:\Components\D7\SourceForge Officepartner\source</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\shared\;orpheus\;printing\;crypto\;internet\;forex\;extract\;download\;bconnect\;lists\;import\;component\;ecoding\;ecoding\database\;Extended MAPI\;C:\Components\D7\Raize\RC3\Source;C:\Components\D6\TurboPower\SysTools;C:\Components\D7\VirtualTreeview;C:\Components\D6\BankLink\bkQuickReport;C:\Components\D7\wPDF\D7;C:\Components\D7\TeeChart Pro v5.03 Full Source Code\Sources;C:\Components\D7\NWFax\Source\Delphi7;C:\Components\D7\SourceForge Officepartner\source</DCC_ResourcePath>
+    <DCC_ObjPath>..\shared\;orpheus\;printing\;crypto\;internet\;forex\;extract\;download\;bconnect\;lists\;import\;component\;ecoding\;ecoding\database\;Extended MAPI\;C:\Components\D7\Raize\RC3\Source;C:\Components\D6\TurboPower\SysTools;C:\Components\D7\VirtualTreeview;C:\Components\D6\BankLink\bkQuickReport;C:\Components\D7\wPDF\D7;C:\Components\D7\TeeChart Pro v5.03 Full Source Code\Sources;C:\Components\D7\NWFax\Source\Delphi7;C:\Components\D7\SourceForge Officepartner\source</DCC_ObjPath>
+    <DCC_IncludePath>..\shared\;orpheus\;printing\;crypto\;internet\;forex\;extract\;download\;bconnect\;lists\;import\;component\;ecoding\;ecoding\database\;Extended MAPI\;C:\Components\D7\Raize\RC3\Source;C:\Components\D6\TurboPower\SysTools;C:\Components\D7\VirtualTreeview;C:\Components\D6\BankLink\bkQuickReport;C:\Components\D7\wPDF\D7;C:\Components\D7\TeeChart Pro v5.03 Full Source Code\Sources;C:\Components\D7\NWFax\Source\Delphi7;C:\Components\D7\SourceForge Officepartner\source</DCC_IncludePath>
+    <DCC_Define>RELEASE</DCC_Define>
+    <DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+    <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
+    <DCC_StrictVarStrings>False</DCC_StrictVarStrings>
+    <DCC_MapFile>3</DCC_MapFile>
+    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\shared\;orpheus\;printing\;crypto\;internet\;forex\;extract\;download\;bconnect\;lists\;import\;component\;ecoding\;ecoding\database\;Extended MAPI\;Graphs\;WebNotes\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\shared\;orpheus\;printing\;crypto\;internet\;forex\;extract\;download\;bconnect\;lists\;import\;component\;ecoding\;ecoding\database\;Extended MAPI\;Graphs\;WebNotes\</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\shared\;orpheus\;printing\;crypto\;internet\;forex\;extract\;download\;bconnect\;lists\;import\;component\;ecoding\;ecoding\database\;Extended MAPI\;Graphs\;WebNotes\</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\shared\;orpheus\;printing\;crypto\;internet\;forex\;extract\;download\;bconnect\;lists\;import\;component\;ecoding\;ecoding\database\;Extended MAPI\;Graphs\;WebNotes\</DCC_IncludePath>
+    <DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
+    <DCC_ExeOutput>D:\Testing\MILSROS</DCC_ExeOutput>
+    <DCC_DcuOutput>C:\DCUFiles\BK5</DCC_DcuOutput>
+    <DCC_ObjOutput>C:\DCUFiles\BK5</DCC_ObjOutput>
+    <DCC_HppOutput>C:\DCUFiles\BK5</DCC_HppOutput>
+    <DCC_Define>SSLV6;madExcept;CodingStatsToXls;Debug</DCC_Define>
+    <DCC_DcpOutput>C:\DCUFiles\BK5</DCC_DcpOutput>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Delphi.Personality</Borland.Personality>
+    <Borland.ProjectType>VCLApplication</Borland.ProjectType>
+    <BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="DebugSourceDirs">$(DELPHI)\source\win32\vcl</Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">True</VersionInfo><VersionInfo Name="MajorVer">5</VersionInfo><VersionInfo Name="MinorVer">3</VersionInfo><VersionInfo Name="Release">4</VersionInfo><VersionInfo Name="Build">1006</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">BankLink Limited</VersionInfoKeys><VersionInfoKeys Name="FileDescription">BankLink 5 for Windows® application</VersionInfoKeys><VersionInfoKeys Name="FileVersion">5.3.4.1006</VersionInfoKeys><VersionInfoKeys Name="InternalName">BK5</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">(C) BankLink Limited 1999, 2002</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks">Windows® is a registered trademark of Microsoft Corporation.</VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">BK5WIN.EXE</VersionInfoKeys><VersionInfoKeys Name="ProductName">BankLink 5 for Windows®</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Source><Source Name="MainSource">BK5WIN.DPR</Source></Source><Excluded_Packages>
+      
+      
+      <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+    </Excluded_Packages></Delphi.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
+  <ItemGroup>
+    <DelphiCompile Include="BK5WIN.DPR">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+    <DCCReference Include="..\Shared\BalanceSheetHeadings.pas" />
+    <DCCReference Include="..\SHARED\Bk5Except.pas" />
+    <DCCReference Include="..\SHARED\bkConst.pas" />
+    <DCCReference Include="..\Shared\BKDbExcept.pas" />
+    <DCCReference Include="..\SHARED\BKDEFS.PAS" />
+    <DCCReference Include="..\SHARED\SYDEFS.PAS" />
+    <DCCReference Include="About.pas">
+      <Form>frmAbout</Form>
+    </DCCReference>
+    <DCCReference Include="AccountInfoObj.pas" />
+    <DCCReference Include="AccountSelectorFme.pas">
+      <Form>fmeAccountSelector</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="AccsDlg.pas">
+      <Form>dlgAccounts</Form>
+    </DCCReference>
+    <DCCReference Include="AcctSystemDlg.pas">
+      <Form>dlgAcctSystem</Form>
+    </DCCReference>
+    <DCCReference Include="Admin32.pas" />
+    <DCCReference Include="AdminNotesForClient.pas" />
+    <DCCReference Include="AdminOptionsDlg.pas">
+      <Form>dlgAdminOptions</Form>
+    </DCCReference>
+    <DCCReference Include="AdvanceAccountOptionsFrm.pas">
+      <Form>frmAdvanceAccountOptions</Form>
+    </DCCReference>
+    <DCCReference Include="ApplicationStartupAndShutDown.pas" />
+    <DCCReference Include="ApplicationUtils.pas" />
+    <DCCReference Include="AppTime.pas" />
+    <DCCReference Include="AppUserObj.pas" />
+    <DCCReference Include="ArchiveCheck.pas" />
+    <DCCReference Include="ARCHUTIL32.PAS" />
+    <DCCReference Include="AttachNewDlg.pas">
+      <Form>dlgAttachNew</Form>
+    </DCCReference>
+    <DCCReference Include="Authority Forms\AuthorityUtils.pas" />
+    <DCCReference Include="Authority Forms\CAFfrm.pas" />
+    <DCCReference Include="Authority Forms\TPAfrm.pas" />
+    <DCCReference Include="Autocode32.pas" />
+    <DCCReference Include="AutoSaveUtils.pas" />
+    <DCCReference Include="Backup.pas" />
+    <DCCReference Include="BackupRestoreDlg.pas">
+      <Form>dlgBackupRestore</Form>
+    </DCCReference>
+    <DCCReference Include="BalancesForward.pas" />
+    <DCCReference Include="BalancesForwardWiz.pas">
+      <Form>wizBalancesForward</Form>
+    </DCCReference>
+    <DCCReference Include="BalanceSheetNamesDlg.pas">
+      <Form>dlgBSNames</Form>
+    </DCCReference>
+    <DCCReference Include="BalanceSheetOptionsDlg.pas">
+      <Form>dlgBalanceSheet</Form>
+    </DCCReference>
+    <DCCReference Include="BaList32.pas" />
+    <DCCReference Include="baObj32.pas" />
+    <DCCReference Include="BASFORM\BasCalc.pas" />
+    <DCCReference Include="BasForm\BasExport.pas" />
+    <DCCReference Include="BasForm\BasFieldLookup.pas">
+      <Form>dlgBasFieldLookup</Form>
+    </DCCReference>
+    <DCCReference Include="BasForm\BASFRM.PAS">
+      <Form>frmBAS</Form>
+    </DCCReference>
+    <DCCReference Include="BasForm\BASUTILS.PAS" />
+    <DCCReference Include="BConnect\BankLinkConnect.pas" />
+    <DCCReference Include="BConnect\formBConnect.pas">
+      <Form>frmBConnect</Form>
+    </DCCReference>
+    <DCCReference Include="bdList32.pas" />
+    <DCCReference Include="BKHelp.pas" />
+    <DCCReference Include="bkOKCancelDlg.pas">
+      <Form>bkOKCancelDlgForm</Form>
+    </DCCReference>
+    <DCCReference Include="bkXPThemes.pas" />
+    <DCCReference Include="blList32.pas" />
+    <DCCReference Include="BNotesInterface.pas" />
+    <DCCReference Include="BudgetDetailDlg.pas">
+      <Form>dlgBudgetDetail</Form>
+    </DCCReference>
+    <DCCReference Include="BudgetFrm.pas">
+      <Form>frmBudget</Form>
+    </DCCReference>
+    <DCCReference Include="BudgetLookup.pas">
+      <Form>frmBudgetLook</Form>
+    </DCCReference>
+    <DCCReference Include="BudgetPercentageChangeDlg.pas">
+      <Form>dlgBudgetPercentageChange</Form>
+    </DCCReference>
+    <DCCReference Include="BudgetReportOptionsDlg.pas">
+      <Form>dlgBudgetReportOptions</Form>
+    </DCCReference>
+    <DCCReference Include="BUDOBJ32.pas" />
+    <DCCReference Include="Buffstrm.pas" />
+    <DCCReference Include="bugfixes.pas" />
+    <DCCReference Include="buList32.pas" />
+    <DCCReference Include="CalculateAccountTotals.pas" />
+    <DCCReference Include="CanvasUtils.pas" />
+    <DCCReference Include="CashflowOptionsDlg.pas">
+      <Form>dlgCashflowOptions</Form>
+    </DCCReference>
+    <DCCReference Include="cfList32.pas" />
+    <DCCReference Include="CFNamesDlg.pas">
+      <Form>dlgCFNames</Form>
+    </DCCReference>
+    <DCCReference Include="CheckInOutFrm.pas">
+      <Form>frmCheckoutDir</Form>
+    </DCCReference>
+    <DCCReference Include="ChkProgressFrm.pas">
+      <Form>frmChkProgress</Form>
+    </DCCReference>
+    <DCCReference Include="chList32.pas" />
+    <DCCReference Include="Cinfofrm.pas">
+      <Form>frmCinfo</Form>
+    </DCCReference>
+    <DCCReference Include="ClientDetailCacheObj.pas" />
+    <DCCReference Include="ClientDetailsFrm.pas">
+      <Form>frmClientDetails</Form>
+    </DCCReference>
+    <DCCReference Include="ClientLookupExFrm.pas">
+      <Form>frmClientLookup</Form>
+    </DCCReference>
+    <DCCReference Include="ClientLookupFme.pas">
+      <Form>fmeClientLookup</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="clientmanagerfrm.pas">
+      <Form>frmClientManager</Form>
+    </DCCReference>
+    <DCCReference Include="ClientManagerOptionsFrm.pas">
+      <Form>frmClientManagerOptions</Form>
+    </DCCReference>
+    <DCCReference Include="ClientNotesFrm.pas">
+      <Form>frmClientNotes</Form>
+    </DCCReference>
+    <DCCReference Include="ClientReportScheduleDlg.pas">
+      <Form>dlgClientReportSchedule</Form>
+    </DCCReference>
+    <DCCReference Include="ClientSelectFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>FmeClientSelect</Form>
+    </DCCReference>
+    <DCCReference Include="clObj32.pas" />
+    <DCCReference Include="CodeDateDlg.pas">
+      <Form>dlgCodeDate</Form>
+    </DCCReference>
+    <DCCReference Include="CodingFormCommands.pas" />
+    <DCCReference Include="codingfrm.pas">
+      <Form>frmCoding</Form>
+    </DCCReference>
+    <DCCReference Include="CodingRepDlg.pas">
+      <Form>dlgCodingRep</Form>
+    </DCCReference>
+    <DCCReference Include="CodingStatsList32.pas" />
+    <DCCReference Include="ColFmtListObj.pas" />
+    <DCCReference Include="ComboUtils.pas" />
+    <DCCReference Include="ConfigColumnsFrm.pas">
+      <Form>frmConfigure</Form>
+    </DCCReference>
+    <DCCReference Include="ConfirmDlg.pas">
+      <Form>dlgConfirm</Form>
+    </DCCReference>
+    <DCCReference Include="contradlg.pas">
+      <Form>dlgContra</Form>
+    </DCCReference>
+    <DCCReference Include="CopyFromDlg.pas">
+      <Form>dlgCopyFrom</Form>
+    </DCCReference>
+    <DCCReference Include="CRCFileUtils.pas" />
+    <DCCReference Include="CustomHeadingsListObj.pas" />
+    <DCCReference Include="DateSelectorFme.pas">
+      <Form>fmeDateSelector</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="DBaseReader.pas" />
+    <DCCReference Include="dbcreate.pas">
+      <Form>frmDBCreate</Form>
+    </DCCReference>
+    <DCCReference Include="DelChequeDlg.pas">
+      <Form>dlgDelCheque</Form>
+    </DCCReference>
+    <DCCReference Include="DelUnCheqDlg.pas">
+      <Form>dlgDelUnCheque</Form>
+    </DCCReference>
+    <DCCReference Include="DirUtils.pas" />
+    <DCCReference Include="DissectionDlg.pas">
+      <Form>dlgDissection</Form>
+    </DCCReference>
+    <DCCReference Include="DivisionFrm.pas">
+      <Form>DivisionDlg</Form>
+    </DCCReference>
+    <DCCReference Include="DivisionSelectorFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeDivisionSelector</Form>
+    </DCCReference>
+    <DCCReference Include="dlgNewBank.pas">
+      <Form>dlgAddNewBank</Form>
+    </DCCReference>
+    <DCCReference Include="DosPrn.pas" />
+    <DCCReference Include="DownloadEx.pas" />
+    <DCCReference Include="DownloadFloppy.pas" />
+    <DCCReference Include="DownloadReportOptionsDlg.pas">
+      <Form>dlgDownloadReportOptions</Form>
+    </DCCReference>
+    <DCCReference Include="DownloadUtils.pas" />
+    <DCCReference Include="download\BaseDisk.pas" />
+    <DCCReference Include="Download\DiskUtils.pas" />
+    <DCCReference Include="download\NFDiskObj.pas" />
+    <DCCReference Include="Download\NFUtils.pas" />
+    <DCCReference Include="Download\NZDiskObj.pas" />
+    <DCCReference Include="Download\OZDiskObj.pas" />
+    <DCCReference Include="ECodingExportFme.pas">
+      <Form>fmeECodingExport</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="ECodingImportResultsFrm.pas">
+      <Form>frmEcodingImportResults</Form>
+    </DCCReference>
+    <DCCReference Include="ECodingOptionsFrm.pas">
+      <Form>frmECodingOptions</Form>
+    </DCCReference>
+    <DCCReference Include="ECoding\ecObj.pas" />
+    <DCCReference Include="ecollect.pas" />
+    <DCCReference Include="EditAccountDlg.pas">
+      <Form>dlgEditAccount</Form>
+    </DCCReference>
+    <DCCReference Include="EditBankDlg.pas">
+      <Form>dlgEditBank</Form>
+    </DCCReference>
+    <DCCReference Include="EditBudgetBalanceDlg.pas">
+      <Form>dlgEditBudgetBalance</Form>
+    </DCCReference>
+    <DCCReference Include="editgstdlg.pas">
+      <Form>dlgEditGST</Form>
+    </DCCReference>
+    <DCCReference Include="EditPracBankDlg.pas">
+      <Form>dlgEditPracBank</Form>
+    </DCCReference>
+    <DCCReference Include="EditPracGSTDlg.pas">
+      <Form>dlgEditPracGST</Form>
+    </DCCReference>
+    <DCCReference Include="EditSageHandisoftSuperFieldsDlg.pas">
+      <Form>dlgEditSageHandisoftSuperFields</Form>
+    </DCCReference>
+    <DCCReference Include="EditSuperFieldsDlg.pas">
+      <Form>dlgEditSuperFields</Form>
+    </DCCReference>
+    <DCCReference Include="EditUserDlg.pas">
+      <Form>dlgEditUser</Form>
+    </DCCReference>
+    <DCCReference Include="EnterPINdlg.pas">
+      <Form>dlgEnterPIN</Form>
+    </DCCReference>
+    <DCCReference Include="EnterPwdDlg.pas">
+      <Form>dlgEnterPwd</Form>
+    </DCCReference>
+    <DCCReference Include="Errorlog.pas" />
+    <DCCReference Include="ErrorMoreFrm.pas">
+      <Form>frmErrorMore</Form>
+    </DCCReference>
+    <DCCReference Include="Excepth.pas" />
+    <DCCReference Include="ExceptRepDlg.pas">
+      <Form>dlgExceptRpt</Form>
+    </DCCReference>
+    <DCCReference Include="ExistingChequesFme.pas">
+      <Form>fmeExistingCheques</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="ExportToECodingdlg.pas">
+      <Form>dlgExportToECoding</Form>
+    </DCCReference>
+    <DCCReference Include="ExtractDlg.pas">
+      <Form>dlgExtract</Form>
+    </DCCReference>
+    <DCCReference Include="Extract\ConceptCashManager2000X.pas" />
+    <DCCReference Include="EXTRACT\extract32.pas" />
+    <DCCReference Include="Extract\ProSuperX.pas" />
+    <DCCReference Include="Extract\SageHandisoftSuperConst.pas" />
+    <DCCReference Include="Extract\SageHandisoftSuperX.pas" />
+    <DCCReference Include="Extract\XMLX.pas" />
+    <DCCReference Include="Files.pas" />
+    <DCCReference Include="Finalise32.pas" />
+    <DCCReference Include="FindDlg.pas">
+      <Form>dlgFind</Form>
+    </DCCReference>
+    <DCCReference Include="FrequencyRequestFrm.pas">
+      <Form>frmFrequencyRequest</Form>
+    </DCCReference>
+    <DCCReference Include="GenBudgetDlg.pas">
+      <Form>dlgGenBudget</Form>
+    </DCCReference>
+    <DCCReference Include="GenUtils.pas" />
+    <DCCReference Include="glConst.pas" />
+    <DCCReference Include="GlobalClientSetupRoutines.pas" />
+    <DCCReference Include="GlobalDirectories.pas" />
+    <DCCReference Include="Globals.pas" />
+    <DCCReference Include="GRAPHHEAD.pas" />
+    <DCCReference Include="GraphNamesDlg.pas">
+      <Form>dlgGraphNames</Form>
+    </DCCReference>
+    <DCCReference Include="GRAPHS\Chartfrm.pas">
+      <Form>frmChart</Form>
+    </DCCReference>
+    <DCCReference Include="GRAPHS\Graphs.pas" />
+    <DCCReference Include="GST101frm.pas">
+      <Form>frmGST101</Form>
+    </DCCReference>
+    <DCCReference Include="HistChequesDlg.pas">
+      <Form>dlgHistCheques</Form>
+    </DCCReference>
+    <DCCReference Include="HistoricalDlg.pas">
+      <Form>dlgHistorical</Form>
+    </DCCReference>
+    <DCCReference Include="Holidays.pas" />
+    <DCCReference Include="imagesfrm.pas">
+      <Form>AppImages</Form>
+    </DCCReference>
+    <DCCReference Include="ImportExtra.pas" />
+    <DCCReference Include="ImportExtraDlg.pas">
+      <Form>dlgImportUpdate</Form>
+    </DCCReference>
+    <DCCReference Include="ImportFromECodingDlg.pas">
+      <Form>dlgImportBNotes</Form>
+    </DCCReference>
+    <DCCReference Include="IMPORT\AccountSoft.pas" />
+    <DCCReference Include="IMPORT\AccPacPlus.pas" />
+    <DCCReference Include="IMPORT\AccPacWin.pas" />
+    <DCCReference Include="IMPORT\APSAdvance.pas" />
+    <DCCReference Include="IMPORT\AttacheBPOZ.pas" />
+    <DCCReference Include="IMPORT\AttacheNZ.pas" />
+    <DCCReference Include="IMPORT\AttacheOZ.pas" />
+    <DCCReference Include="IMPORT\Beyond.pas" />
+    <DCCReference Include="IMPORT\Caseware.pas" />
+    <DCCReference Include="IMPORT\CASystems.pas" />
+    <DCCReference Include="IMPORT\CeeData.pas" />
+    <DCCReference Include="IMPORT\CeeDataIni.pas" />
+    <DCCReference Include="IMPORT\CharterQX.pas" />
+    <DCCReference Include="IMPORT\Concept.pas" />
+    <DCCReference Include="Import\ConceptCashManager2000.pas" />
+    <DCCReference Include="IMPORT\Global.pas" />
+    <DCCReference Include="IMPORT\Handiledger.pas" />
+    <DCCReference Include="IMPORT\Import32.pas" />
+    <DCCReference Include="IMPORT\Intech.pas" />
+    <DCCReference Include="IMPORT\Intersoft.pas" />
+    <DCCReference Include="IMPORT\Master2000.pas" />
+    <DCCReference Include="IMPORT\Myob.pas" />
+    <DCCReference Include="IMPORT\MYOBAO.pas" />
+    <DCCReference Include="Import\MYOBGen.PAS" />
+    <DCCReference Include="IMPORT\Proflex.pas" />
+    <DCCReference Include="Import\ProSuper.pas" />
+    <DCCReference Include="IMPORT\QuickBooks.pas" />
+    <DCCReference Include="IMPORT\SimpleFund.pas" />
+    <DCCReference Include="IMPORT\Solution6.pas" />
+    <DCCReference Include="InfoMoreFrm.pas">
+      <Form>frmInfoMore</Form>
+    </DCCReference>
+    <DCCReference Include="INISettings.pas" />
+    <DCCReference Include="InitCheqDlg.pas">
+      <Form>dlgInitCheq</Form>
+    </DCCReference>
+    <DCCReference Include="InsertTrans.pas" />
+    <DCCReference Include="JNLUTILS32.PAS" />
+    <DCCReference Include="JournalDlg.pas">
+      <Form>dlgJournal</Form>
+    </DCCReference>
+    <DCCReference Include="Journals.pas" />
+    <DCCReference Include="LedgerRepDlg.pas">
+      <Form>dlgLedgerRep</Form>
+    </DCCReference>
+    <DCCReference Include="ListPayeeOptionsDlg.pas">
+      <Form>dlgListPayeeOptions</Form>
+    </DCCReference>
+    <DCCReference Include="LISTS\GSTSL.pas" />
+    <DCCReference Include="LockUtils.pas" />
+    <DCCReference Include="login32.pas">
+      <Form>frmLogin</Form>
+    </DCCReference>
+    <DCCReference Include="LogUtil.pas" />
+    <DCCReference Include="MailFrm.pas">
+      <Form>frmMail</Form>
+    </DCCReference>
+    <DCCReference Include="MAINFRM.PAS">
+      <Form>frmMain</Form>
+    </DCCReference>
+    <DCCReference Include="MaintainBankFrm.pas">
+      <Form>frmMaintainBank</Form>
+    </DCCReference>
+    <DCCReference Include="MaintainChartfrm.pas">
+      <Form>frmMaintainChart</Form>
+    </DCCReference>
+    <DCCReference Include="MaintainMemFrm.pas">
+      <Form>frmMaintainMem</Form>
+    </DCCReference>
+    <DCCReference Include="MaintainPayeesFrm.pas">
+      <Form>frmMaintainPayees</Form>
+    </DCCReference>
+    <DCCReference Include="MaintainPracBankFrm.pas">
+      <Form>frmMaintainPracBank</Form>
+    </DCCReference>
+    <DCCReference Include="MaintainUsersFrm.pas">
+      <Form>frmMaintainUsers</Form>
+    </DCCReference>
+    <DCCReference Include="malist32.pas" />
+    <DCCReference Include="malloc.pas" />
+    <DCCReference Include="Matchdlg.pas">
+      <Form>dlgMatch</Form>
+    </DCCReference>
+    <DCCReference Include="MatchedItemsList.pas" />
+    <DCCReference Include="MemoriseDlg.pas">
+      <Form>dlgMemorise</Form>
+    </DCCReference>
+    <DCCReference Include="MERGE32.PAS" />
+    <DCCReference Include="MimeUtils.pas" />
+    <DCCReference Include="ModalProcessorDlg.pas">
+      <Form>dlgModalProcessor</Form>
+    </DCCReference>
+    <DCCReference Include="MonitorUtils.pas" />
+    <DCCReference Include="MultiGraphfrm.pas">
+      <Form>frmMultiGraph</Form>
+    </DCCReference>
+    <DCCReference Include="mxFiles32.pas" />
+    <DCCReference Include="mxList32.pas" />
+    <DCCReference Include="mxUpgrade.pas" />
+    <DCCReference Include="NewAmountDlg.pas">
+      <Form>dlgNewAmount</Form>
+    </DCCReference>
+    <DCCReference Include="NewClientWiz.pas">
+      <Form>wizNewClient</Form>
+    </DCCReference>
+    <DCCReference Include="OffsiteBackup.pas" />
+    <DCCReference Include="OffsiteDownload.pas" />
+    <DCCReference Include="OneInst.pas" />
+    <DCCReference Include="OpeningBalancesDlg.pas">
+      <Form>dlgOpeningBalances</Form>
+    </DCCReference>
+    <DCCReference Include="Optionsfrm.pas">
+      <Form>frmOptions</Form>
+    </DCCReference>
+    <DCCReference Include="OutDepositDlg.pas">
+      <Form>dlgDeposit</Form>
+    </DCCReference>
+    <DCCReference Include="Outstand.pas" />
+    <DCCReference Include="PayeeRecodeDlg.pas">
+      <Form>dlgPayeeRecode</Form>
+    </DCCReference>
+    <DCCReference Include="PeriodUtils.pas" />
+    <DCCReference Include="PracDetailsFrm.pas">
+      <Form>frmPracticeDetails</Form>
+    </DCCReference>
+    <DCCReference Include="PracticeLogo.pas" />
+    <DCCReference Include="PrintDestDlg.pas">
+      <Form>DlgPrintDest</Form>
+    </DCCReference>
+    <DCCReference Include="PRINTING\AdvReportFrm.pas">
+      <Form>frmAdvReport</Form>
+    </DCCReference>
+    <DCCReference Include="PRINTING\BKPrintController.pas" />
+    <DCCReference Include="PRINTING\BKPrintJob.pas" />
+    <DCCReference Include="Printing\dlgFaxDetails.pas">
+      <Form>FaxDetailsDlg</Form>
+    </DCCReference>
+    <DCCReference Include="Printing\FaxParametersObj.pas" />
+    <DCCReference Include="PRINTING\NewReportObj.pas" />
+    <DCCReference Include="PRINTING\NewReportUtils.pas" />
+    <DCCReference Include="PRINTING\Prdiag.pas">
+      <Form>PrnDialog</Form>
+    </DCCReference>
+    <DCCReference Include="PRINTING\Prevform.pas">
+      <Form>PreviewForm</Form>
+    </DCCReference>
+    <DCCReference Include="PRINTING\RenderEngineObj.pas" />
+    <DCCReference Include="PRINTING\ReportCashflowBase.pas" />
+    <DCCReference Include="PRINTING\ReportDefs.pas" />
+    <DCCReference Include="Printing\Reports.pas" />
+    <DCCReference Include="PRINTING\ReportToCanvas.pas" />
+    <DCCReference Include="PRINTING\ReportToFile.pas" />
+    <DCCReference Include="PRINTING\rptAdmin.pas" />
+    <DCCReference Include="Printing\rptBalanceSheet.pas" />
+    <DCCReference Include="PRINTING\rptBankRec.pas" />
+    <DCCReference Include="PRINTING\RPTBAS.PAS" />
+    <DCCReference Include="PRINTING\rptBudget.pas" />
+    <DCCReference Include="Printing\rptCAF.pas" />
+    <DCCReference Include="PRINTING\rptCashflow.pas" />
+    <DCCReference Include="PRINTING\rptCoding.pas" />
+    <DCCReference Include="PRINTING\rptCodingScheduled.pas" />
+    <DCCReference Include="PRINTING\rptException.pas" />
+    <DCCReference Include="PRINTING\rptGST.pas" />
+    <DCCReference Include="Printing\rptGST101.pas" />
+    <DCCReference Include="Printing\rptLedgerReport.pas" />
+    <DCCReference Include="PRINTING\rptListings.pas" />
+    <DCCReference Include="PRINTING\rptOffsite.pas" />
+    <DCCReference Include="PRINTING\rptPayee.pas" />
+    <DCCReference Include="PRINTING\rptProfit.pas" />
+    <DCCReference Include="PRINTING\rptScheduled.pas" />
+    <DCCReference Include="Printing\RptTrialBalance.pas" />
+    <DCCReference Include="PRINTING\UserReportSettings.pas" />
+    <DCCReference Include="PrintMgrObj.pas" />
+    <DCCReference Include="PrintScheduledDlg.pas">
+      <Form>dlgPrintScheduled</Form>
+    </DCCReference>
+    <DCCReference Include="ProfitAndLossOptionsDlg.pas">
+      <Form>dlgProfitAndLossOptions</Form>
+    </DCCReference>
+    <DCCReference Include="PurgeClientEntriesDlg.pas">
+      <Form>dlgPurgeClientEntries</Form>
+    </DCCReference>
+    <DCCReference Include="PwdSeed.pas" />
+    <DCCReference Include="pyList32.pas" />
+    <DCCReference Include="RecombineEntriesFrm.pas">
+      <Form>frmRecombineEntries</Form>
+    </DCCReference>
+    <DCCReference Include="RegistryUtils.pas" />
+    <DCCReference Include="ReportSettingObj.pas" />
+    <DCCReference Include="Resync.pas" />
+    <DCCReference Include="ResyncClient.pas" />
+    <DCCReference Include="ResyncDlg.pas">
+      <Form>dlgResync</Form>
+    </DCCReference>
+    <DCCReference Include="ReversingEntryDetailsFrm.pas">
+      <Form>frmReversingEntryDetails</Form>
+    </DCCReference>
+    <DCCReference Include="RTFEditFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeEditRTF</Form>
+    </DCCReference>
+    <DCCReference Include="SaveAsDlg.pas">
+      <Form>dlgSaveAs</Form>
+    </DCCReference>
+    <DCCReference Include="SaveReportToDlg.pas">
+      <Form>dlgSaveReportTo</Form>
+    </DCCReference>
+    <DCCReference Include="SBAList32.pas" />
+    <DCCReference Include="SchedRepEmailDlg.pas">
+      <Form>dlgSchedReportEmail</Form>
+    </DCCReference>
+    <DCCReference Include="scheduled.pas" />
+    <DCCReference Include="ScheduledCodingReportDlg.pas">
+      <Form>dlgSchedCodingReportSettings</Form>
+    </DCCReference>
+    <DCCReference Include="SelectCheckoutDirDlg.pas">
+      <Form>dlgSelectCheckoutDir</Form>
+    </DCCReference>
+    <DCCReference Include="SelectDate.pas" />
+    <DCCReference Include="SelectGSTPeriodDlg.pas">
+      <Form>dlgSelectGSTPeriod</Form>
+    </DCCReference>
+    <DCCReference Include="SelectJournalDlg.pas">
+      <Form>dlgSelectJournal</Form>
+    </DCCReference>
+    <DCCReference Include="SelectListDlg.pas">
+      <Form>dlgSelectList</Form>
+    </DCCReference>
+    <DCCReference Include="SendEmail.pas">
+      <Form>MailModule</Form>
+      <DesignClass>TDataModule</DesignClass>
+    </DCCReference>
+    <DCCReference Include="SetClearTransferFlags.pas" />
+    <DCCReference Include="SetCriteriaDlg.pas">
+      <Form>dlgSetCriteria</Form>
+    </DCCReference>
+    <DCCReference Include="Setup.pas" />
+    <DCCReference Include="SetupSubgroupsFrm.pas">
+      <Form>frmSetupSubGroups</Form>
+    </DCCReference>
+    <DCCReference Include="splash.pas">
+      <Form>frmSplash</Form>
+    </DCCReference>
+    <DCCReference Include="StatsFrm.pas">
+      <Form>frmStatistics</Form>
+    </DCCReference>
+    <DCCReference Include="StatusFrm.pas">
+      <Form>frmStatus</Form>
+    </DCCReference>
+    <DCCReference Include="StatusReportRangeDlg.pas">
+      <Form>dlgStatusReportRange</Form>
+    </DCCReference>
+    <DCCReference Include="StdHints.pas" />
+    <DCCReference Include="SuperFieldsUtils.pas" />
+    <DCCReference Include="SysDList32.pas" />
+    <DCCReference Include="SysObj32.pas" />
+    <DCCReference Include="TasksFrm.pas">
+      <Form>frmTasks</Form>
+    </DCCReference>
+    <DCCReference Include="templates.pas" />
+    <DCCReference Include="TextStream.pas" />
+    <DCCReference Include="ToDoHandler.pas" />
+    <DCCReference Include="ToDoListUnit.pas" />
+    <DCCReference Include="TransactionNotesFrm.pas">
+      <Form>frmTransactionNotes</Form>
+    </DCCReference>
+    <DCCReference Include="TransactionUtils.pas" />
+    <DCCReference Include="TransferEntriesDlg.pas">
+      <Form>dlgTransferEntries</Form>
+    </DCCReference>
+    <DCCReference Include="TransTypeDlg.pas">
+      <Form>dlgTransTypes</Form>
+    </DCCReference>
+    <DCCReference Include="TravList.pas" />
+    <DCCReference Include="TrialBalanceOptionsDlg.pas">
+      <Form>dlgTrialBalanceOptions</Form>
+    </DCCReference>
+    <DCCReference Include="trxList32.pas" />
+    <DCCReference Include="TSUtils.pas" />
+    <DCCReference Include="Txsl.pas" />
+    <DCCReference Include="txul.pas" />
+    <DCCReference Include="ueList32.pas" />
+    <DCCReference Include="UpdateClientDetailsDlg.pas">
+      <Form>ContactDetailsFrm</Form>
+    </DCCReference>
+    <DCCReference Include="updatemf.pas" />
+    <DCCReference Include="UPGRADE.PAS" />
+    <DCCReference Include="UseBudgetedDataDlg.pas">
+      <Form>dlgUseBudgetedData</Form>
+    </DCCReference>
+    <DCCReference Include="usrlist32.pas" />
+    <DCCReference Include="WarningMoreFrm.pas">
+      <Form>frmWarnMore</Form>
+    </DCCReference>
+    <DCCReference Include="WINUTILS.PAS" />
+    <DCCReference Include="WorkRecDefs.pas" />
+    <DCCReference Include="XPAUtils.pas" />
+    <DCCReference Include="Yesnodlg.pas">
+      <Form>dlgYesNo</Form>
+    </DCCReference>
+    <DCCReference Include="YesNoWithListDlg.pas">
+      <Form>dlgYesNoWithList</Form>
+    </DCCReference>
+    <DCCReference Include="ZipUtils.pas" />
+  </ItemGroup>
+</Project>

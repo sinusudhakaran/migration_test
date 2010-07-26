@@ -1,0 +1,915 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{d63e5250-54a4-45a2-94bf-343fc21c9d89}</ProjectGuid>
+    <MainSource>ParseBK5Win.dpr</MainSource>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+    <DCC_DependencyCheckOutputName>ParseBK5Win.dll</DCC_DependencyCheckOutputName>
+    <DCC_UsePackage>vcl</DCC_UsePackage>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_DebugInformation>False</DCC_DebugInformation>
+    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    <DCC_Define>RELEASE;parserDll</DCC_Define>
+    <DCC_UnitSearchPath>C:\Local code\BK5\Shared;C:\Local code\Components\Turbopower\SysTools for BK5;C:\Local code\Components\VCLZip;C:\Components\D7\LockBox\source</DCC_UnitSearchPath>
+    <DCC_ResourcePath>C:\Local code\BK5\Shared;C:\Local code\Components\Turbopower\SysTools for BK5;C:\Local code\Components\VCLZip;C:\Components\D7\LockBox\source</DCC_ResourcePath>
+    <DCC_ObjPath>C:\Local code\BK5\Shared;C:\Local code\Components\Turbopower\SysTools for BK5;C:\Local code\Components\VCLZip;C:\Components\D7\LockBox\source</DCC_ObjPath>
+    <DCC_IncludePath>C:\Local code\BK5\Shared;C:\Local code\Components\Turbopower\SysTools for BK5;C:\Local code\Components\VCLZip;C:\Components\D7\LockBox\source</DCC_IncludePath>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_Define>DEBUG</DCC_Define>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Delphi.Personality</Borland.Personality>
+    <Borland.ProjectType>VCLApplication</Borland.ProjectType>
+    <BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <Excluded_Packages Name="$(BDS)\bin\dclstd100.bpl">CodeGear Standard Components</Excluded_Packages>
+      <Excluded_Packages Name="C:\WINDOWS\system32\vclimg100.bpl">CodeGear Delphi image support library</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dcldb100.bpl">CodeGear Database Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclmid100.bpl">CodeGear MyBase DataAccess Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dcldbx4100.bpl">CodeGear dbExpress Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclIndyCore100.bpl">Indy 10 Core Design Time</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclwbm100.bpl">CodeGear InternetExpress Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclnet100.bpl">CodeGear Internet Components</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\tb2kdsgn_d9.bpl">Toolbar2000 Design Package (Jordan Russell)</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\tb2k_d9.bpl">Toolbar2000 Components (Jordan Russell)</Excluded_Packages>
+      <Excluded_Packages Name="C:\Program Files\Raize\RC4\Bin\RaizeComponentsVcl_Design100.bpl">Raize Components 4.3.1</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxLibraryD11.bpl">Express Cross Platform Library by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxEditorsD11.bpl">ExpressEditors Library 5 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxExtEditorsD11.bpl">ExpressExtendedEditors Library 5 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxPageControlD11.bpl">Express Cross Platform PageControl by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxBarD11.bpl">ExpressBars by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxPivotGridD11.bpl">ExpressPivotGrid (VCL Edition) by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxOrgCD11.bpl">ExpressOrgChart by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxPSCoreD11.bpl">ExpressPrinting System by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSLnksD11.bpl">ExpressPrinting System ReportLinks (Standard) by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxCommonD11.bpl">ExpressPrinting System Cross Platform Library by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSTeeChartD11.bpl">ExpressPrinting System ReportLink for TeeChart by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSdxOCLnkD11.bpl">ExpressPrinting System ReportLinks for ExpressOrgChart by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\RaveReports\Lib\dclRave.bpl">Rave Reports 7.5 BE Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\bcbie100.bpl">CodeGear C++Builder Internet Explorer 5 Components Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclbcbsmp100.bpl">Borland Sample Controls Design Time Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\applet100.bpl">CodeGear Control Panel Applet Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dcl31w100.bpl">Delphi 1.0 Compatibility Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclact100.bpl">CodeGear ActionBar Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclbde100.bpl">CodeGear BDE DB Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dbx100.bpl">CodeGear SQL Explorer UI Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclemacsedit100.bpl">CodeGear Editor Emacs Enhancements</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclmlwiz100.bpl">CodeGear Markup Language Wizards</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclsmpedit100.bpl">CodeGear Editor Script Enhancements</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclmcn100.bpl">CodeGear DataSnap Connection Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dcltee7100.bpl">TeeChart Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\Bin\dclib100.bpl">Borland InterBase Express Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclado100.bpl">CodeGear ADO DB Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dcldbxcds4100.bpl">CodeGear SimpleDataset Component (DBX)</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\Bin\dclIndyProtocols100.bpl">Indy 10 Protocols Design Time</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclIntraweb_90_100.bpl">VCL for the Web 9.0 Design Package for CodeGear RAD Studio</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclsmp100.bpl">CodeGear Sample Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclie100.bpl">Internet Explorer Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclwebsnap100.bpl">CodeGear WebSnap Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclsoap100.bpl">CodeGear SOAP Components</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\tmsd2006.bpl">TMS Component Pack</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\wPDF2_D2005.bpl">(untitled)</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\tbxdsgn_2005.bpl">Toolbar2000 -- TBX Extensions Design Package (Alex Denisov)</Excluded_Packages>
+      <Excluded_Packages Name="C:\Program Files\Raize\RC4\Bin\RaizeComponentsVclDB_Design100.bpl">Raize Components 4.3.1 (Data-Aware)</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\P164_D2005.bpl">TurboPower OfficePartner 1.64 Design-time package - VCL</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxSBD11.bpl">ExpressSideBar by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxBarEditItemD11.bpl">ExpressBars cxEditor item by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxBarDBNavD11.bpl">ExpressBars DBNavigator by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxBarExtDBItemsD11.bpl">ExpressBars extended DB items by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxBarExtItemsD11.bpl">ExpressBars extended items by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxRibbonD11.bpl">ExpressBars Ribbon controls by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxGridD11.bpl">ExpressQuantumGrid 6 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxSchedulerD11.bpl">ExpressScheduler 2 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxTreeListD11.bpl">ExpressQuantumTreeList 4 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxVerticalGridD11.bpl">ExpressVerticalGrid by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dclcxSpreadSheetD11.bpl">ExpressSpreadSheet by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxDockingD11.bpl">ExpressDocking Library by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxNavBarD11.bpl">ExpressNavBar by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxLayoutControlD11.bpl">ExpressLayout Control by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxLayoutControlcxEditAdaptersD11.bpl">ExpressLayoutControl Adapters for ExpressEditors Library 5 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxMasterViewD11.bpl">ExpressMasterView by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxmdsD11.bpl">ExpressMemData by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxdbtrD11.bpl">ExpressDBTree by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxtrmdD11.bpl">ExpressTreePrintedDataSet by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxDBOrD11.bpl">ExpressDBOrgChart by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dcldxFlowChartD11.bpl">ExpressFlowChart by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxGrid6LnkD11.bpl">ExpressPrinting System ReportLink for ExpressQuantumGrid 6 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxPCProdD11.bpl">ExpressPrinting System ContainerProducer for ExpressPageControl 2 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxPivotGridLnkD11.bpl">ExpressPrinting System ReportLink for ExpressPivotGrid by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxScheduler2LnkD11.bpl">ExpressPrinting System ReportLink for ExpressScheduler 2 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxSSLnkD11.bpl">ExpressPrinting System ReportLink for ExpressSpreadSheet by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxTLLnkD11.bpl">ExpressPrinting System ReportLink for ExpressQuantumTreeList 4 by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxVGridLnkD11.bpl">ExpressPrinting System ReportLink for ExpressVerticalGrid by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSdxDBTVLnkD11.bpl">ExpressPrinting System ReportLink for ExpressDBTree by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSdxFCLnkD11.bpl">ExpressPrinting System ReportLinks for ExpressFlowChart by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSdxLCLnkD11.bpl">ExpressPrinting System ReportLink for ExpressLayoutControl by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSdxMVLnkD11.bpl">ExpressPrinting System ReportLink for ExpressMasterView by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSdxDBOCLnkD11.bpl">ExpressPrinting System ReportLinks for ExpressDBOrgChart by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPScxExtCommonD11.bpl">ExpressPrinting System Extended Cross Platform Library by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSPrVwAdvD11.bpl">ExpressPrinting System Advanced Preview Window by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Components\Developer Express.VCL\Library\Delphi11\dxPSDBTeeChartD11.bpl">ExpressPrinting System ReportLink for DBTeeChart by Developer Express Inc.</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\Temp.bpl">(untitled)</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\osgdcld7.bpl">ObjectSight TopGrid Components</Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\OmniXML_d2005.bpl">OmniXML - www.omnixml.com</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\\bin\dclipwssl6.bpl">/n software - IPWorks! SSL V6 - www.nsoftware.com</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\bcboffice2k100.bpl">CodeGear C++Builder Office 2000 Servers Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\bcbofficexp100.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+    </Excluded_Packages><Source><Source Name="MainSource">ParseBK5Win.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
+  <ItemGroup>
+    <DelphiCompile Include="ParseBK5Win.dpr">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,56 @@
+[Template]
+Code=APS
+Name=APS Template File
+[Tax Starts]
+1|01/07/00
+2|
+3|
+4|
+5|
+
+[Tax Table]
+1|1|Income subject to GST|1000|0|0|0|0|895/000|0
+2|2|Exports (not subject to GST)|0|0|0|0|0|895/900|0
+3|3|Sales not subject to GST|0|0|0|0|0|895/900|0
+4|4|Input taxed sales|0|0|0|0|0|895/000|0
+5|10|Capital Purchases|1000|0|0|0|0|895/100|0
+6|11|Purchases subject to GST|1000|0|0|0|0|895/100|0
+7|13|Capital GST free supplies|0|0|0|0|0|895/900|0
+8|14|Other GST free supplies|0|0|0|0|0|895/900|0
+9|15|Private use/non deductible - capital (purchases)|0|0|0|0|0|895/900|0
+10|16|Private use/non deductible - other (purchases)|0|0|0|0|0|895/900|0
+11|18|Adjustments - income|0|0|0|0|0|895/001|0
+12|19|Adjustments - purchases|0|0|0|0|0|895/101|0
+13|20|Capital purchases for input taxed supplies|0|0|0|0|0|895/100|0
+14|21|Other purchases for input taxed supplies|0|0|0|0|0|895/100|0
+15|99|Items not reported|0|0|0|0|0|895/900|0
+
+[Chart]
+
+[BAS Rules]
+1|1||0|10000
+1|2||0|10000
+1|3||0|10000
+1|4||0|10000
+2|2||0|10000
+3|3||0|10000
+4|4||0|10000
+5|11||0|10000
+5|12||0|10000
+6|5||0|10000
+6|7||0|10000
+6|9||0|10000
+6|13||0|10000
+7|6||0|10000
+7|8||0|10000
+7|10||0|10000
+7|14||0|10000
+8|13||0|10000
+8|14||0|10000
+9|7||0|10000
+9|8||0|10000
+10|9||0|10000
+10|10||0|10000
+11|11||0|10000
+11|12||0|10000
+
