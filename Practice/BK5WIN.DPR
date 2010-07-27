@@ -15,7 +15,6 @@ uses
   Windows,
   dialogs,
   SysUtils,
-  SQASrvr,
   ApplicationStartupAndShutDown,
   MAINFRM,
   StatusFrm,
