@@ -22,10 +22,10 @@
     <DCC_DcuOutput>C:\DCUFiles\BK5</DCC_DcuOutput>
     <DCC_ObjOutput>C:\DCUFiles\BK5</DCC_ObjOutput>
     <DCC_HppOutput>C:\DCUFiles\BK5</DCC_HppOutput>
-    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;Win32\;Authority Forms\;BASForm\;bconnect\;component\;crypto\;ecoding\;ecoding\database\;Extended MAPI\;extract\;forex\;Graphs\;import\;lists\;orpheus\;printing\;WebNotes\</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;Win32\;Authority Forms\;BASForm\;bconnect\;component\;crypto\;ecoding\;ecoding\database\;Extended MAPI\;extract\;forex\;Graphs\;import\;lists\;orpheus\;printing\;WebNotes\</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;Win32\;Authority Forms\;BASForm\;bconnect\;component\;crypto\;ecoding\;ecoding\database\;Extended MAPI\;extract\;forex\;Graphs\;import\;lists\;orpheus\;printing\;WebNotes\</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;Win32\;Authority Forms\;BASForm\;bconnect\;component\;crypto\;ecoding\;ecoding\database\;Extended MAPI\;extract\;forex\;Graphs\;import\;lists\;orpheus\;printing\;WebNotes\</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOLUTIONROOT)Authority Forms\;$(SOLUTIONROOT)BASForm\;$(SOLUTIONROOT)Bconnect\;$(SOLUTIONROOT)Component\;$(SOLUTIONROOT)Crypto\;$(SOLUTIONROOT)Ecoding\;$(SOLUTIONROOT)Ecoding\database\;$(SOLUTIONROOT)Extended MAPI\;$(SOLUTIONROOT)Extract\;$(SOLUTIONROOT)Forex\;$(SOLUTIONROOT)Graphs\;$(SOLUTIONROOT)Import\;$(SOLUTIONROOT)Lists\;$(SOLUTIONROOT)Orpheus\;$(SOLUTIONROOT)Printing\;$(SOLUTIONROOT)WebNotes\;$(SOLUTIONROOT)Win32\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOLUTIONROOT)Authority Forms\;$(SOLUTIONROOT)BASForm\;$(SOLUTIONROOT)Bconnect\;$(SOLUTIONROOT)Component\;$(SOLUTIONROOT)Crypto\;$(SOLUTIONROOT)Ecoding\;$(SOLUTIONROOT)Ecoding\database\;$(SOLUTIONROOT)Extended MAPI\;$(SOLUTIONROOT)Extract\;$(SOLUTIONROOT)Forex\;$(SOLUTIONROOT)Graphs\;$(SOLUTIONROOT)Import\;$(SOLUTIONROOT)Lists\;$(SOLUTIONROOT)Orpheus\;$(SOLUTIONROOT)Printing\;$(SOLUTIONROOT)WebNotes\;$(SOLUTIONROOT)Win32\</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOLUTIONROOT)Authority Forms\;$(SOLUTIONROOT)BASForm\;$(SOLUTIONROOT)Bconnect\;$(SOLUTIONROOT)Component\;$(SOLUTIONROOT)Crypto\;$(SOLUTIONROOT)Ecoding\;$(SOLUTIONROOT)Ecoding\database\;$(SOLUTIONROOT)Extended MAPI\;$(SOLUTIONROOT)Extract\;$(SOLUTIONROOT)Forex\;$(SOLUTIONROOT)Graphs\;$(SOLUTIONROOT)Import\;$(SOLUTIONROOT)Lists\;$(SOLUTIONROOT)Orpheus\;$(SOLUTIONROOT)Printing\;$(SOLUTIONROOT)WebNotes\;$(SOLUTIONROOT)Win32\</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOLUTIONROOT)Authority Forms\;$(SOLUTIONROOT)BASForm\;$(SOLUTIONROOT)Bconnect\;$(SOLUTIONROOT)Component\;$(SOLUTIONROOT)Crypto\;$(SOLUTIONROOT)Ecoding\;$(SOLUTIONROOT)Ecoding\database\;$(SOLUTIONROOT)Extended MAPI\;$(SOLUTIONROOT)Extract\;$(SOLUTIONROOT)Forex\;$(SOLUTIONROOT)Graphs\;$(SOLUTIONROOT)Import\;$(SOLUTIONROOT)Lists\;$(SOLUTIONROOT)Orpheus\;$(SOLUTIONROOT)Printing\;$(SOLUTIONROOT)WebNotes\;$(SOLUTIONROOT)Win32\</DCC_IncludePath>
     <DCC_MapFile>3</DCC_MapFile>
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
   </PropertyGroup>
@@ -34,17 +34,6 @@
     <Borland.ProjectType>VCLApplication</Borland.ProjectType>
     <BorlandProject>
 <BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">5</VersionInfo><VersionInfo Name="MinorVer">18</VersionInfo><VersionInfo Name="Release">2</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">BankLink Limited</VersionInfoKeys><VersionInfoKeys Name="FileDescription">BankLink 5 for Windows® application</VersionInfoKeys><VersionInfoKeys Name="FileVersion">5.18.2.0</VersionInfoKeys><VersionInfoKeys Name="InternalName">BK5</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">(C) BankLink Limited 2010</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks">Windows® is a registered trademark of Microsoft Corporation.</VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">BK5WIN.EXE</VersionInfoKeys><VersionInfoKeys Name="ProductName">BankLink 5 for Windows®</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       
       
       
