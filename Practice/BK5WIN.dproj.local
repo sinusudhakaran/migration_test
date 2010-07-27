@@ -1,2 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject/>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2010/07/27 15:25:18.065.pas,C:\TFS\Practice\Dev\Practice\Win32\ApplicationStartupAndShutDown.pas=</Transaction>
+  </Transactions>
+</BorlandProject>

@@ -9,17 +9,16 @@ uses
   madListHardware,
   madListProcesses,
   madListModules,
-  GraphicEx,
-  HTMLHelpViewer,
   Forms,
   Windows,
   dialogs,
   SysUtils,
-  ApplicationStartupAndShutDown,
-  MAINFRM,
-  StatusFrm,
-  imagesfrm,
-  splash;
+  ApplicationStartupAndShutDown in 'Win32\ApplicationStartupAndShutDown.pas',
+  SPLASH in 'Win32\SPLASH.PAS' {frmSplash},
+  StatusFrm in 'Win32\StatusFrm.pas' {frmStatus},
+  MAINFRM in 'Win32\MAINFRM.PAS' {frmMain},
+  imagesfrm in 'Win32\imagesfrm.pas' {AppImages},
+  BudgetFrm in 'Win32\BudgetFrm.pas' {frmBudget};
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

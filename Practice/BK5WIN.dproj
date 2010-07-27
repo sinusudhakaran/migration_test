@@ -38,6 +38,19 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
     </Excluded_Packages><Source><Source Name="MainSource">BK5WIN.DPR</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
   </ProjectExtensions>
@@ -46,5 +59,22 @@
     <DelphiCompile Include="BK5WIN.DPR">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="Win32" />
+    <DCCReference Include="Win32\ApplicationStartupAndShutDown.pas" />
+    <DCCReference Include="Win32\BudgetFrm.pas">
+      <Form>frmBudget</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\imagesfrm.pas">
+      <Form>AppImages</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\MAINFRM.PAS">
+      <Form>frmMain</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\SPLASH.PAS">
+      <Form>frmSplash</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\StatusFrm.pas">
+      <Form>frmStatus</Form>
+    </DCCReference>
   </ItemGroup>
 </Project>

@@ -1,41 +1,46 @@
 [Closed Files]
-File_0=TSourceModule,'C:\LocalCode\BankLink Practice 2010\Win32\SQASrvr.pas',0,1,85,33,8,0,0,,
-File_1=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\TSUtils.pas',0,1,1,40,15,0,0,,
-File_2=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\CMFilterForm.pas',0,1,55,23,76,0,0,,
-File_3=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\CLOBJ32.PAS',0,1,120,4,141,0,0,,
-File_4=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\PrintMgrObj.pas',0,1,1,16,37,0,0,,
-File_5=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\ERRORLOG.PAS',0,1,36,10,57,0,0,,
-File_6=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\BALIST32.PAS',0,1,1,12,7,0,0,,
-File_7=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\ApplicationStartupAndShutDown.pas',0,1,325,1,346,0,0,,
-File_8=TSourceModule,'C:\TFS\Practice\Dev\Practice\BConnect\BankLinkConnect.pas',0,1,1,1,1,0,0,,
-File_9=TSourceModule,'C:\TFS\Practice\Dev\Practice\ECoding\ecObj.pas',0,1,1,1,1,0,0,,
+File_0=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\imagesfrm.pas',0,1,1,8,12,0,0,,
+File_1=TSourceModule,'C:\Components\Madcollection3i\madExcept\Sources\madExcept.pas',0,1,365,1,386,0,0,,
+File_2=TSourceModule,'C:\Components\Madcollection3i\madExcept\Sources\madListHardware.pas',0,1,1,31,14,0,0,,
+File_3=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\StatusFrm.pas',0,1,1,1,1,0,0,,
+File_4=TSourceModule,'C:\LocalCode\BankLink Practice 2010\Win32\SQASrvr.pas',0,1,85,33,8,0,0,,
+File_5=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\TSUtils.pas',0,1,1,40,15,0,0,,
+File_6=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\CMFilterForm.pas',0,1,55,23,76,0,0,,
+File_7=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\CLOBJ32.PAS',0,1,120,4,141,0,0,,
 
 [Modules]
 Module0=C:\TFS\Practice\Dev\Practice\BK5WIN.dproj
-Module1=C:\Components\Madcollection3i\madExcept\Sources\madListHardware.pas
-Module2=C:\Components\Madcollection3i\madExcept\Sources\madExcept.pas
-Count=3
+Module1=C:\TFS\Practice\Dev\Practice\Win32\imagesfrm.pas
+Module2=C:\TFS\Practice\Dev\Practice\Win32\MAINFRM.PAS
+Module3=C:\TFS\Practice\Dev\Practice\Win32\BudgetFrm.pas
+Count=4
 EditWindowCount=1
 
 [C:\TFS\Practice\Dev\Practice\BK5WIN.dproj]
 ModuleType=TBaseProject
 
-[C:\Components\Madcollection3i\madExcept\Sources\madListHardware.pas]
+[C:\TFS\Practice\Dev\Practice\Win32\imagesfrm.pas]
 ModuleType=TSourceModule
-FormState=0
+FormState=1
 FormOnTop=0
 
-[C:\Components\Madcollection3i\madExcept\Sources\madExcept.pas]
+[C:\TFS\Practice\Dev\Practice\Win32\MAINFRM.PAS]
 ModuleType=TSourceModule
-FormState=0
+FormState=1
+FormOnTop=0
+
+[C:\TFS\Practice\Dev\Practice\Win32\BudgetFrm.pas]
+ModuleType=TSourceModule
+FormState=1
 FormOnTop=0
 
 [EditWindow0]
-ViewCount=3
+ViewCount=4
 CurrentEditView=C:\TFS\Practice\Dev\Practice\BK5WIN.DPR
 View0=0
 View1=1
 View2=2
+View3=3
 PercentageSizes=1
 Create=1
 Visible=1
@@ -67,9 +72,9 @@ BottomMiddelPanelData=0000080001000100000009000000446F636B5369746530301900000000
 [View0]
 CustomEditViewType=TEditView
 Module=C:\TFS\Practice\Dev\Practice\BK5WIN.DPR
-CursorX=8
-CursorY=22
-TopLine=1
+CursorX=48
+CursorY=21
+TopLine=3
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -77,25 +82,36 @@ EditViewName=C:\TFS\Practice\Dev\Practice\BK5WIN.DPR
 
 [View1]
 CustomEditViewType=TEditView
-Module=C:\Components\Madcollection3i\madExcept\Sources\madListHardware.pas
-CursorX=31
-CursorY=14
+Module=C:\TFS\Practice\Dev\Practice\Win32\imagesfrm.pas
+CursorX=55
+CursorY=23
 TopLine=1
 LeftCol=1
 Elisions=
 Bookmarks=
-EditViewName=C:\Components\Madcollection3i\madExcept\Sources\madListHardware.pas
+EditViewName=C:\TFS\Practice\Dev\Practice\Win32\imagesfrm.pas
 
 [View2]
 CustomEditViewType=TEditView
-Module=C:\Components\Madcollection3i\madExcept\Sources\madExcept.pas
-CursorX=1
-CursorY=386
-TopLine=365
+Module=C:\TFS\Practice\Dev\Practice\Win32\MAINFRM.PAS
+CursorX=54
+CursorY=3972
+TopLine=3951
 LeftCol=1
 Elisions=
 Bookmarks=
-EditViewName=C:\Components\Madcollection3i\madExcept\Sources\madExcept.pas
+EditViewName=C:\TFS\Practice\Dev\Practice\Win32\MAINFRM.PAS
+
+[View3]
+CustomEditViewType=TEditView
+Module=C:\TFS\Practice\Dev\Practice\Win32\BudgetFrm.pas
+CursorX=13
+CursorY=44
+TopLine=16
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\TFS\Practice\Dev\Practice\Win32\BudgetFrm.pas
 
 [Watches]
 Count=0
@@ -380,11 +396,11 @@ State=0
 Left=0
 Top=0
 Width=2000
-Height=4804
+Height=8784
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=2000
-ClientHeight=4804
+ClientHeight=8784
 TBDockHeight=4873
 LRDockWidth=7149
 Dockable=1
@@ -404,11 +420,11 @@ MaxLeft=-1
 MaxTop=-1
 ClientWidth=1893
 ClientHeight=3951
-TBDockHeight=412
+TBDockHeight=9029
 LRDockWidth=1893
 Dockable=1
 StayOnTop=0
-SplitPos=111
+SplitPos=107
 
 [ModelViewTool]
 PercentageSizes=1
@@ -419,11 +435,11 @@ State=0
 Left=0
 Top=0
 Width=2000
-Height=4804
+Height=8784
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=2000
-ClientHeight=4804
+ClientHeight=8784
 TBDockHeight=4873
 LRDockWidth=5304
 Dockable=1
@@ -457,11 +473,11 @@ State=0
 Left=-321
 Top=-851
 Width=13607
-Height=980
+Height=206
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=13607
-ClientHeight=980
+ClientHeight=206
 TBDockHeight=206
 LRDockWidth=13607
 Dockable=1
@@ -821,7 +837,7 @@ Dockable=1
 StayOnTop=0
 TabPosition=1
 ActiveTabID=RefactoringForm
-TabDockClients=RefactoringForm,FindReferencsForm,ToDo List,QAView,MetricsView,RefactoringsView,UsagesView
+TabDockClients=RefactoringForm,FindReferencsForm,ToDo List,RefactoringsView,UsagesView,QAView,MetricsView
 
 [DockSite1]
 HostDockSite=DockLeftPanel
@@ -839,7 +855,7 @@ MaxLeft=-1
 MaxTop=-1
 ClientWidth=1893
 ClientHeight=1745
-TBDockHeight=1588
+TBDockHeight=9029
 LRDockWidth=1893
 Dockable=1
 StayOnTop=0
