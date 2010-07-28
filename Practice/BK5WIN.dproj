@@ -10,10 +10,8 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
-    <DCC_DebugInformation>False</DCC_DebugInformation>
-    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
     <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    <DCC_Define>RELEASE;madExcept</DCC_Define>
+    <DCC_Define>RELEASE;SSLV6;madExcept</DCC_Define>
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_ExeOutput>$(SOURCECODE)\..\Binaries</DCC_ExeOutput>
     <DCC_DcuOutput>$(SOURCECODE)\..\DCU</DCC_DcuOutput>
@@ -25,6 +23,7 @@
     <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_ResourcePath>
     <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_ObjPath>
     <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_IncludePath>
+    <DCC_MapFile>3</DCC_MapFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
@@ -59,6 +58,21 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
     </Excluded_Packages><Source><Source Name="MainSource">BK5WIN.DPR</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
   </ProjectExtensions>
@@ -68,24 +82,37 @@
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
     <DCCReference Include="Win32" />
+    <DCCReference Include="Win32\acList32.pas" />
+    <DCCReference Include="Win32\amList32.pas" />
     <DCCReference Include="Win32\ApplicationStartupAndShutDown.pas" />
+    <DCCReference Include="Win32\AppUserObj.pas" />
+    <DCCReference Include="Win32\bkBranding.pas" />
     <DCCReference Include="Win32\BudgetFrm.pas">
       <Form>frmBudget</Form>
     </DCCReference>
+    <DCCReference Include="Win32\CFLIST32.PAS" />
+    <DCCReference Include="Win32\ctypelist32.pas" />
+    <DCCReference Include="Win32\GlobalDirectories.pas" />
+    <DCCReference Include="Win32\GLOBALS.PAS" />
+    <DCCReference Include="Win32\grplist32.pas" />
     <DCCReference Include="Win32\imagesfrm.pas">
       <Form>AppImages</Form>
     </DCCReference>
     <DCCReference Include="Win32\MAINFRM.PAS">
       <Form>frmMain</Form>
     </DCCReference>
+    <DCCReference Include="Win32\ONEINST.PAS" />
     <DCCReference Include="Win32\OSFont.pas" />
+    <DCCReference Include="Win32\SBAList32.pas" />
     <DCCReference Include="Win32\SPLASH.PAS">
       <Form>frmSplash</Form>
     </DCCReference>
     <DCCReference Include="Win32\StatusFrm.pas">
       <Form>frmStatus</Form>
     </DCCReference>
+    <DCCReference Include="Win32\SYSOBJ32.PAS" />
     <DCCReference Include="Win32\TSUtils.pas" />
+    <DCCReference Include="Win32\UELIST32.PAS" />
     <DCCReference Include="Win32\winutils.pas" />
   </ItemGroup>
 </Project>

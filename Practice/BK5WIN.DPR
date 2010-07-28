@@ -21,7 +21,20 @@ uses
   BudgetFrm in 'Win32\BudgetFrm.pas' {frmBudget},
   OSFont in 'Win32\OSFont.pas',
   winutils in 'Win32\winutils.pas',
-  TSUtils in 'Win32\TSUtils.pas';
+  TSUtils in 'Win32\TSUtils.pas',
+  GLOBALS in 'Win32\GLOBALS.PAS',
+  bkBranding in 'Win32\bkBranding.pas',
+  GlobalDirectories in 'Win32\GlobalDirectories.pas',
+  ONEINST in 'Win32\ONEINST.PAS',
+  AppUserObj in 'Win32\AppUserObj.pas',
+  SYSOBJ32 in 'Win32\SYSOBJ32.PAS',
+  acList32 in 'Win32\acList32.pas',
+  amList32 in 'Win32\amList32.pas',
+  CFLIST32 in 'Win32\CFLIST32.PAS',
+  ctypelist32 in 'Win32\ctypelist32.pas',
+  grplist32 in 'Win32\grplist32.pas',
+  SBAList32 in 'Win32\SBAList32.pas',
+  UELIST32 in 'Win32\UELIST32.PAS';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
