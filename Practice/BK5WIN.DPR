@@ -28,13 +28,28 @@ uses
   ONEINST in 'Win32\ONEINST.PAS',
   AppUserObj in 'Win32\AppUserObj.pas',
   SYSOBJ32 in 'Win32\SYSOBJ32.PAS',
+  CLOBJ32 in 'Win32\CLOBJ32.PAS',
   acList32 in 'Win32\acList32.pas',
   amList32 in 'Win32\amList32.pas',
+  BALIST32 in 'Win32\BALIST32.PAS',
+  BDLIST32 in 'Win32\BDLIST32.PAS',
+  BLLIST32 in 'Win32\BLLIST32.PAS',
+  BULIST32 in 'Win32\BULIST32.PAS',
   CFLIST32 in 'Win32\CFLIST32.PAS',
+  CHLIST32 in 'Win32\CHLIST32.PAS',
+  CodingStatsList32 in 'Win32\CodingStatsList32.pas',
   ctypelist32 in 'Win32\ctypelist32.pas',
+  DLLIST32 in 'Win32\DLLIST32.PAS',
   grplist32 in 'Win32\grplist32.pas',
+  MALIST32 in 'Win32\MALIST32.PAS',
+  MXLIST32 in 'Win32\MXLIST32.PAS',
+  PYLIST32 in 'Win32\PYLIST32.PAS',
   SBAList32 in 'Win32\SBAList32.pas',
-  UELIST32 in 'Win32\UELIST32.PAS';
+  SysDList32 in 'Win32\SysDList32.pas',
+  trxList32 in 'Win32\trxList32.pas',
+  UELIST32 in 'Win32\UELIST32.PAS',
+  usrlist32 in 'Win32\usrlist32.pas',
+  LOGUTIL in 'Win32\LOGUTIL.PAS';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

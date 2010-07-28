@@ -73,6 +73,7 @@
       
       
       
+      
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
     </Excluded_Packages><Source><Source Name="MainSource">BK5WIN.DPR</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
   </ProjectExtensions>
@@ -86,23 +87,35 @@
     <DCCReference Include="Win32\amList32.pas" />
     <DCCReference Include="Win32\ApplicationStartupAndShutDown.pas" />
     <DCCReference Include="Win32\AppUserObj.pas" />
+    <DCCReference Include="Win32\BALIST32.PAS" />
+    <DCCReference Include="Win32\BDLIST32.PAS" />
     <DCCReference Include="Win32\bkBranding.pas" />
+    <DCCReference Include="Win32\BLLIST32.PAS" />
     <DCCReference Include="Win32\BudgetFrm.pas">
       <Form>frmBudget</Form>
     </DCCReference>
+    <DCCReference Include="Win32\BULIST32.PAS" />
     <DCCReference Include="Win32\CFLIST32.PAS" />
+    <DCCReference Include="Win32\CHLIST32.PAS" />
+    <DCCReference Include="Win32\CLOBJ32.PAS" />
+    <DCCReference Include="Win32\CodingStatsList32.pas" />
     <DCCReference Include="Win32\ctypelist32.pas" />
+    <DCCReference Include="Win32\DLLIST32.PAS" />
     <DCCReference Include="Win32\GlobalDirectories.pas" />
     <DCCReference Include="Win32\GLOBALS.PAS" />
     <DCCReference Include="Win32\grplist32.pas" />
     <DCCReference Include="Win32\imagesfrm.pas">
       <Form>AppImages</Form>
     </DCCReference>
+    <DCCReference Include="Win32\LOGUTIL.PAS" />
     <DCCReference Include="Win32\MAINFRM.PAS">
       <Form>frmMain</Form>
     </DCCReference>
+    <DCCReference Include="Win32\MALIST32.PAS" />
+    <DCCReference Include="Win32\MXLIST32.PAS" />
     <DCCReference Include="Win32\ONEINST.PAS" />
     <DCCReference Include="Win32\OSFont.pas" />
+    <DCCReference Include="Win32\PYLIST32.PAS" />
     <DCCReference Include="Win32\SBAList32.pas" />
     <DCCReference Include="Win32\SPLASH.PAS">
       <Form>frmSplash</Form>
@@ -110,9 +123,12 @@
     <DCCReference Include="Win32\StatusFrm.pas">
       <Form>frmStatus</Form>
     </DCCReference>
+    <DCCReference Include="Win32\SysDList32.pas" />
     <DCCReference Include="Win32\SYSOBJ32.PAS" />
+    <DCCReference Include="Win32\trxList32.pas" />
     <DCCReference Include="Win32\TSUtils.pas" />
     <DCCReference Include="Win32\UELIST32.PAS" />
+    <DCCReference Include="Win32\usrlist32.pas" />
     <DCCReference Include="Win32\winutils.pas" />
   </ItemGroup>
 </Project>
