@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ProjectGuid>{9dd598ec-7281-4345-ac93-bb1ba1a1f3e2}</ProjectGuid>
     <MainSource>BK5WIN.DPR</MainSource>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
     <DCC_DependencyCheckOutputName>..\Binaries\BK5WIN.exe</DCC_DependencyCheckOutputName>
@@ -11,7 +11,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    <DCC_Define>RELEASE;SSLV6;madExcept</DCC_Define>
+    <DCC_Define>SSLV6;madExcept</DCC_Define>
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_ExeOutput>$(SOURCECODE)\..\Binaries</DCC_ExeOutput>
     <DCC_DcuOutput>$(SOURCECODE)\DCU</DCC_DcuOutput>
@@ -46,6 +46,12 @@
     <Borland.ProjectType>VCLApplication</Borland.ProjectType>
     <BorlandProject>
 <BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">5</VersionInfo><VersionInfo Name="MinorVer">18</VersionInfo><VersionInfo Name="Release">2</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">BankLink Limited</VersionInfoKeys><VersionInfoKeys Name="FileDescription">BankLink 5 for Windows® application</VersionInfoKeys><VersionInfoKeys Name="FileVersion">5.18.2.0</VersionInfoKeys><VersionInfoKeys Name="InternalName">BK5</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">(C) BankLink Limited 2010</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks">Windows® is a registered trademark of Microsoft Corporation.</VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">BK5WIN.EXE</VersionInfoKeys><VersionInfoKeys Name="ProductName">BankLink 5 for Windows®</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
+      
+      
+      
+      
       
       
       
