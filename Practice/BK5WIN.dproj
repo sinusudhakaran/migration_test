@@ -19,11 +19,10 @@
     <DCC_HppOutput>$(SOURCECODE)\DCU</DCC_HppOutput>
     <DCC_BplOutput>$(SOURCECODE)\..\Binaries</DCC_BplOutput>
     <DCC_DcpOutput>$(SOURCECODE)\DCU</DCC_DcpOutput>
-    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_IncludePath>
-    <DCC_MapFile>3</DCC_MapFile>
+    <DCC_UnitSearchPath>$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_ResourcePath>
+    <DCC_ObjPath>$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_ObjPath>
+    <DCC_IncludePath>$(COMMON);$(COMMON)\Core\;$(COMMON)\Core\Download\;$(COMMON)\Database\;$(COMMON)\Lib\;$(SOURCECODE)\Authority Forms\;$(SOURCECODE)\BASForm\;$(SOURCECODE)\Bconnect\;$(SOURCECODE)\Component\;$(SOURCECODE)\Crypto\;$(SOURCECODE)\Ecoding\;$(SOURCECODE)\Ecoding\database\;$(SOURCECODE)\Extended MAPI\;$(SOURCECODE)\Extract\;$(SOURCECODE)\Forex\;$(SOURCECODE)\Graphs\;$(SOURCECODE)\Import\;$(SOURCECODE)\Lists\;$(SOURCECODE)\Orpheus\;$(SOURCECODE)\Printing\;$(SOURCECODE)\WebNotes\;$(SOURCECODE)\Win32\</DCC_IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
@@ -46,6 +45,23 @@
     <Borland.ProjectType>VCLApplication</Borland.ProjectType>
     <BorlandProject>
 <BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">5</VersionInfo><VersionInfo Name="MinorVer">18</VersionInfo><VersionInfo Name="Release">2</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">BankLink Limited</VersionInfoKeys><VersionInfoKeys Name="FileDescription">BankLink 5 for Windows® application</VersionInfoKeys><VersionInfoKeys Name="FileVersion">5.18.2.0</VersionInfoKeys><VersionInfoKeys Name="InternalName">BK5</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">(C) BankLink Limited 2010</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks">Windows® is a registered trademark of Microsoft Corporation.</VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">BK5WIN.EXE</VersionInfoKeys><VersionInfoKeys Name="ProductName">BankLink 5 for Windows®</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       
       
