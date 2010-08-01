@@ -3,7 +3,7 @@ program bkmap;
 uses
   Forms,
   frmMapChecker in 'frmMapChecker.pas' {MainForm},
-  imagesfrm in '..\imagesfrm.pas' {AppImages};
+  imagesfrm in '..\Win32\imagesfrm.pas' {AppImages};
 
 {$R *.res}
 
