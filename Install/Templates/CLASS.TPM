@@ -1,0 +1,15 @@
+[Template]
+Code=CLASS
+Name=Class Super BAS Template
+Version=2
+[Tax Starts]
+1|01/07/00
+2|
+3|
+4|
+5|
+
+[Tax Table]
+1|C|C Description|100000|0|0|0|0||0
+2|RC|RC Description|100000|0|0|0|0||0
+3|NC|NC Description|0|0|0|0|0||0

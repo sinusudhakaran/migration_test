@@ -1,0 +1,6 @@
+; AppID should never change, so the installer knows it just a new version, not a new programe
+; Appname and Version Name can changed on the release naming
+
+AppID=BankLinkPractice
+AppName=BankLink Practice 2010
+AppVerName=BankLink Practice 2010

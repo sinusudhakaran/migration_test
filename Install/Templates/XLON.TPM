@@ -1,0 +1,65 @@
+[Template]
+Code=XLON
+Name=Cee-Data BAS Settings
+[Tax Starts]
+1|01/07/00
+2|
+3|
+4|
+5|
+
+[Tax Table]
+1|A1|Acquisitions subject to GST (other)|1000|0|0|0|0|892-1
+2|A1C|Acquisitions subject to GST (capital)|1000|0|0|0|0|892-1
+3|A2|Acquisitions used to make input taxed income (other)|0|0|0|0|0|
+4|A2C|Acquisitions used to make input taxed income (capital)|0|0|0|0|0|
+5|A3|Acquisitions with no GST in the price (other)|0|0|0|0|0|
+6|A3C|Acquisitions with no GST in the price (capital)|0|0|0|0|0|
+7|A4|Acquisitions used for private use/non deductible  (other)|0|0|0|0|0|
+8|A4C|Acquisitions used for private use/non deductible  (capital)|0|0|0|0|0|
+9|A5|Acquisition adjustment to Increasing Adjustment account|1000|0|0|0|0|940-3
+10|A6|Acquisition adjustment to Decreasing Adjustment account|1000|0|0|0|0|892-3
+11|A7|Acquisitions invoiced, GST to Acquisitions suspense account|1000|0|0|0|0|892-2
+12|A8|Acquisitions paid, t'fer GST to GST acquisitions account|1000|0|0|0|0|892-1
+13|S1|Supplies subject to GST (normal)|1000|0|0|0|0|940-1
+14|S2|Input taxed sales and income|0|0|0|0|0|
+15|S3|Export sales and income|0|0|0|0|0|
+16|S4|Other GST Free supplies|0|0|0|0|0|
+17|S5|Supplies adjustment to GST increasing adjustment account|1000|0|0|0|0|940-3
+18|S6|Supplies adjustment to GST decreasing adjustment account|1000|0|0|0|0|892-3
+19|S7|Supplies invoiced, GST to suspense account|1000|0|0|0|0|940-2
+20|S8|Supplies paid, transfer GST to GST Supplies account|1000|0|0|0|0|940-1
+
+[Chart]
+
+[BAS Rules]
+4|14||0|10000
+3|16||0|10000
+2|15||0|10000
+1|13||0|10000
+1|14||0|10000
+1|15||0|10000
+1|16||0|10000
+5|9||0|10000
+5|10||0|10000
+5|17||0|10000
+5|18||0|10000
+6|2||0|10000
+6|4||0|10000
+6|6||0|10000
+6|8||0|10000
+7|1||0|10000
+7|3||0|10000
+7|5||0|10000
+7|7||0|10000
+8|3||0|10000
+8|4||0|10000
+9|5||0|10000
+9|6||0|10000
+10|7||0|10000
+10|8||0|10000
+11|9||0|10000
+11|10||0|10000
+11|17||0|10000
+11|18||0|10000
+
