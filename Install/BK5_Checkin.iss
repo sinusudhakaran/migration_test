@@ -13,11 +13,11 @@ Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
 AppendDefaultDirName=no
-OutputDir=Release
+OutputDir=..\Binaries\BKHandler
 MinVersion=4.1,5
 
 [Files]
-Source: "Bin\bkhandlr.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\Binaries\bkhandlr.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

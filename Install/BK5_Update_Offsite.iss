@@ -19,8 +19,9 @@ Uninstallable=no
 InfoBeforeFile=Books Files\infoBOOKS.txt
 
 [Files]
-Source: "Bin\BK5WIN.EXE"; DestDir: "{app}"
-Source: "Bin\bkhandlr.exe"; DestDir: "{app}"
+Source: "..\Binaries\BK5WIN.EXE"; DestDir: "{app}"
+Source: "..\Binaries\bkhandlr.exe"; DestDir: "{app}"
+
 Source: "Bin\BK5WIN.EXE.Manifest"; DestDir: "{app}"
 Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"

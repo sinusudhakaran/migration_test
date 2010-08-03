@@ -20,10 +20,11 @@ InfoBeforeFile=Practice Files\infoPRAC.txt
 
 [Files]
 ;*Application files*
-Source: "Bin\BK5WIN.EXE"; DestDir: "{app}"
-Source: "Bin\bkLookup.dll"; DestDir: "{app}"
+Source: "..\Binaries\BK5WIN.EXE"; DestDir: "{app}"
+Source: "..\Binaries\bkLookup.dll"; DestDir: "{app}"
+Source: "..\Binaries\BKHandler\bkHandlerSetup.exe"; DestDir: "{app}"; Flags: ignoreversion
+
 Source: "Bin\bkExtMapi.dll"; DestDir: "{app}"
-Source: "Bin\bkHandlerSetup.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Bin\BK5WIN.EXE.Manifest"; DestDir: "{app}"
 Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
