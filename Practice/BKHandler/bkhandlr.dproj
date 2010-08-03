@@ -1,0 +1,84 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{c1a63aa5-7963-400d-a7db-4b59fde7c1c0}</ProjectGuid>
+    <MainSource>bkhandlr.dpr</MainSource>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+    <DCC_DependencyCheckOutputName>..\..\Binaries\bkhandlr.exe</DCC_DependencyCheckOutputName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_DebugInformation>False</DCC_DebugInformation>
+    <DCC_IOChecking>False</DCC_IOChecking>
+    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    <DCC_OutputXMLDocumentation>True</DCC_OutputXMLDocumentation>
+    <DCC_UnitSearchPath>..\$(COMMON)\Core\;..\Win32\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\$(COMMON)\Core\;..\Win32\</DCC_ResourcePath>
+    <DCC_ObjPath>..\$(COMMON)\Core\;..\Win32\</DCC_ObjPath>
+    <DCC_IncludePath>..\$(COMMON)\Core\;..\Win32\</DCC_IncludePath>
+    <DCC_Define>RELEASE</DCC_Define>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+    <DCC_ExeOutput>..\..\Binaries</DCC_ExeOutput>
+    <DCC_DcuOutput>..\..\DCU</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\DCU</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\DCU</DCC_HppOutput>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_IOChecking>False</DCC_IOChecking>
+    <DCC_OutputXMLDocumentation>True</DCC_OutputXMLDocumentation>
+    <DCC_Define>DEBUG</DCC_Define>
+    <DCC_UnitSearchPath>..\$(COMMON)\Core\;..\Win32\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\$(COMMON)\Core\;..\Win32\</DCC_ResourcePath>
+    <DCC_ObjPath>..\$(COMMON)\Core\;..\Win32\</DCC_ObjPath>
+    <DCC_IncludePath>..\$(COMMON)\Core\;..\Win32\</DCC_IncludePath>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+    <DCC_ExeOutput>..\..\Binaries</DCC_ExeOutput>
+    <DCC_DcuOutput>..\..\DCU</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\DCU</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\DCU</DCC_HppOutput>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Delphi.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">True</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">723</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">BankLink Ltd</VersionInfoKeys><VersionInfoKeys Name="FileDescription">BankLink Client File Handler</VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.723</VersionInfoKeys><VersionInfoKeys Name="InternalName">BKHandlr</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">Copyright (C) BankLink Ltd 2005 </VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName">BankLink Client</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">5.6</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <Excluded_Packages Name="C:\Documents and Settings\ajooster\My Documents\Borland Studio Projects\Bpl\G113_R70.bpl">TurboPower OnGuard 1.13 Runtime package - VCL70</Excluded_Packages>
+    </Excluded_Packages><Source><Source Name="MainSource">bkhandlr.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
+  <ItemGroup>
+    <DelphiCompile Include="bkhandlr.dpr">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+    <DCCReference Include="bkhandlr_main.pas">
+      <Form>frmMain</Form>
+    </DCCReference>
+    <DCCReference Include="RegistryUtils.pas" />
+    <DCCReference Include="selectbkfolderfrm.pas">
+      <Form>frmSelectBK5Folder</Form>
+    </DCCReference>
+  </ItemGroup>
+</Project>
