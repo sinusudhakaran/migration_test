@@ -13,6 +13,7 @@ uses
   Windows,
   dialogs,
   SysUtils,
+  HTMLHelpViewer,
   ApplicationStartupAndShutDown in 'Win32\ApplicationStartupAndShutDown.pas',
   SPLASH in 'Win32\SPLASH.PAS' {frmSplash},
   StatusFrm in 'Win32\StatusFrm.pas' {frmStatus},
@@ -49,7 +50,8 @@ uses
   trxList32 in 'Win32\trxList32.pas',
   UELIST32 in 'Win32\UELIST32.PAS',
   usrlist32 in 'Win32\usrlist32.pas',
-  LOGUTIL in 'Win32\LOGUTIL.PAS';
+  LOGUTIL in 'Win32\LOGUTIL.PAS',
+  BKHelp in 'Win32\BKHelp.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -71,7 +73,7 @@ begin
 
       //********************************************
       //delphi generated code
-      Application.CreateForm(TfrmMain, frmMain);
+  Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TAppImages, AppImages);
   Application.CreateForm(TfrmStatus, frmStatus);
   //********************************************
