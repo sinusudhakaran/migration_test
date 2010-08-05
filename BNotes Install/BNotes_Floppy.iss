@@ -7,10 +7,9 @@ ChangesAssociations=yes
 DefaultDirName={sd}\BNotes
 DefaultGroupName=BankLink
 DisableStartupPrompt=yes
-LicenseFile=bnotes_eula.txt
+LicenseFile=OtherFiles\bnotes_eula.txt
 MinVersion=4.1,5
-SourceDir=G:\BNotes\Testing Release
-OutputDir=G:\BNotes\Testing Release\FloppyInstall
+OutputDir=..\Binaries\BNotes FloppyInstall
 OutputBaseFilename=disk_setupbnotes
 DiskSpanning=yes
 
@@ -24,11 +23,11 @@ Root: HKCR; Subkey: "BankLinkBNotesFile\DefaultIcon"; ValueType: string; ValueNa
 Root: HKCR; Subkey: "BankLinkBNotesFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\BNOTES.EXE"" ""%1"""
 
 [Files]
-Source: "BNOTES.EXE"; DestDir: "{app}"
+Source: "..\Binaries\BNOTES.EXE"; DestDir: "{app}"
 Source: "HelpGuide\Notes_guide_au.chm"; DestDir: "{app}"; DestName: "NOTES_GUIDE.CHM"
-Source: "bkinstall.exe"; DestDir: "{app}"
-Source: "bkupgcor.dll"; DestDir: "{app}"
-Source: "ipwssl6.dll"; DestDir: "{app}"
+Source: "OtherFiles\bkinstall.exe"; DestDir: "{app}"
+Source: "OtherFiles\bkupgcor.dll"; DestDir: "{app}"
+Source: "OtherFiles\ipwssl6.dll"; DestDir: "{app}"
 
 [Icons]
 Name: "{group}\BankLink Notes"; Filename: "{app}\BNOTES.EXE"
