@@ -14,10 +14,10 @@
     <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
     <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     <DCC_Define>RELEASE</DCC_Define>
-    <DCC_UnitSearchPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;Help;Reporting;Win32</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;Help;Reporting;Win32</DCC_ResourcePath>
-    <DCC_ObjPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;Help;Reporting;Win32</DCC_ObjPath>
-    <DCC_IncludePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;Help;Reporting;Win32</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\BNotes;$(COMMON)\BNotes\Database;Help;Reporting;Win32</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\BNotes;$(COMMON)\BNotes\Database;Help;Reporting;Win32</DCC_ResourcePath>
+    <DCC_ObjPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\BNotes;$(COMMON)\BNotes\Database;Help;Reporting;Win32</DCC_ObjPath>
+    <DCC_IncludePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\BNotes;$(COMMON)\BNotes\Database;Help;Reporting;Win32</DCC_IncludePath>
     <DCC_ExeOutput>..\Binaries</DCC_ExeOutput>
     <DCC_DcuOutput>..\DCU</DCC_DcuOutput>
     <DCC_ObjOutput>..\DCU</DCC_ObjOutput>
@@ -28,10 +28,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_Define>DEBUG</DCC_Define>
-    <DCC_UnitSearchPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\Notes;$(COMMON)\Notes\Database;Help;Reporting;Win32</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\Notes;$(COMMON)\Notes\Database;Help;Reporting;Win32</DCC_ResourcePath>
-    <DCC_ObjPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\Notes;$(COMMON)\Notes\Database;Help;Reporting;Win32</DCC_ObjPath>
-    <DCC_IncludePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\Notes;$(COMMON)\Notes\Database;Help;Reporting;Win32</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\BNotes;$(COMMON)\BNotes\Database;Help;Reporting;Win32</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\BNotes;$(COMMON)\BNotes\Database;Help;Reporting;Win32</DCC_ResourcePath>
+    <DCC_ObjPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\BNotes;$(COMMON)\BNotes\Database;Help;Reporting;Win32</DCC_ObjPath>
+    <DCC_IncludePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(COMMON)\BNotes;$(COMMON)\BNotes\Database;Help;Reporting;Win32</DCC_IncludePath>
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_ExeOutput>..\Binaries</DCC_ExeOutput>
     <DCC_DcuOutput>..\DCU</DCC_DcuOutput>
