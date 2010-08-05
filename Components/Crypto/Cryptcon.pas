@@ -263,6 +263,7 @@ var
  TempPtr: PByte;
  i: BYTE;
 begin
+{$HINTS OFF}
  TempPtr := pIV; Inc(TempPtr, Pos);
  For i:= 1 To (FBLOCKSIZE - Pos) do
   pIV^ := TempPtr^; Inc(pIV); Inc(TempPtr);
@@ -270,6 +271,7 @@ begin
   pIV^ := pNewData^; Inc(pIV); Inc(pNewData);
   Dec(Pos);
  Until Pos = 0;
+{$HINTS ON}
 end;{TCrypto.ShiftLeft}
 
 Procedure TCrypto.GenIVector;
