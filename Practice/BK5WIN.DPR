@@ -21,8 +21,6 @@ uses
   imagesfrm in 'Win32\imagesfrm.pas' {AppImages},
   BudgetFrm in 'Win32\BudgetFrm.pas' {frmBudget},
   OSFont in 'Win32\OSFont.pas',
-  winutils in 'Win32\winutils.pas',
-  TSUtils in 'Win32\TSUtils.pas',
   GLOBALS in 'Win32\GLOBALS.PAS',
   bkBranding in 'Win32\bkBranding.pas',
   GlobalDirectories in 'Win32\GlobalDirectories.pas',
