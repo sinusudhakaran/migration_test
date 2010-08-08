@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 610;
-   BK_IOLIB_Date    = '19/07/10';
+   BK_IOLIB_Version : Integer = 611;
+   BK_IOLIB_Date    = '03/08/10';
    BK_FILE_VERSION  = 161;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -607,6 +607,7 @@ Type
       plSF_Other_Tax_Credit              : Money;       { Stored }
       plSF_Non_Resident_Tax              : Money;       { Stored }
       plSF_Foreign_Capital_Gains_Credit  : Money;       { Stored }
+      plSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
       plTemp_Tag                         : Integer;
       plEOR                              : Byte;
    end;
@@ -719,6 +720,7 @@ Type
       mlSF_Other_Tax_Credit              : Money;       { Stored }
       mlSF_Non_Resident_Tax              : Money;       { Stored }
       mlSF_Foreign_Capital_Gains_Credit  : Money;       { Stored }
+      mlSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
       mlTemp_Tag                         : Integer;
       mlEOR                              : Byte;
    end;

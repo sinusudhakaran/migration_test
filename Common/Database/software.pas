@@ -374,7 +374,7 @@ begin
                                       saSageHandisoftSuperfund, saClassSuperIP];
   end;
   if Result then
-     if (sdMode in [sfMem, sfPayee])
+     if (sdMode in [sfMem])
      and (aType = saSageHandisoftSuperfund) then
         Result := False;
 

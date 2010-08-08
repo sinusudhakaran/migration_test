@@ -41,8 +41,12 @@ CONST
    tkBeginSystem_Group_List            = 36;
    tkBeginSystem_Client_Type_List      = 37;
 
-   // 40 Is jused by ClientExtra
+   // 40 Is used by ClientExtra
 
+   tkBeginExchangeRateHeader           = 50; //Just the header on its own
+   tkBeginExchangeRateList             = 51; //List of sources
+   tkBeginExchangeRateSource           = 52; //Source in the list
+   tkBeginExchangeRates                = 53; //The Rates after the header for a Source
 
    tkBeginPrinter_List                 = 60;
    tkBeginForm_List                    = 61;

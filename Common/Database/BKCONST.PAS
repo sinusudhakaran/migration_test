@@ -1780,7 +1780,7 @@ const
        '',
        '',
        'Undeducted Contrib',
-       'Withholding Credit',
+       'ABN credit',
        '',
        'Foreign Tax Credit',
        'Member Account', 'Investment Code', 'Transaction Type');

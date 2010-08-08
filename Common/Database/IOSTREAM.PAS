@@ -55,9 +55,11 @@ Type
     Function ReadBBMoneyValue(Var Index1, Index2: Byte) : Money;
     Function ReadBBooleanValue(Var Index: Byte) : Boolean;
     Function ReadDoubleValue : Double;
+    Function ReadBDoubleValue (Var Index: Byte): Double;
     Function ReadBIntegerValue(Var Index: Byte) : Integer;
     Function ReadBB_BooleanValue(Var Index1, Index2: Byte) : Boolean;
     Function ReadBBStringValue(Var Index1, Index2: Byte) : ShortString;
+
     Procedure WriteToken(CONST AToken: Byte);
     Procedure WriteBooleanValue(CONST AToken: Byte; CONST AValue: Boolean);
     Procedure WriteByteValue(CONST AToken: Byte; CONST AValue: Byte);
@@ -74,6 +76,7 @@ Type
     Procedure WriteBBMoneyValue(CONST AToken: Byte; CONST AIndex1, AIndex2: Byte; CONST AValue: Money);
     Procedure WriteBBooleanValue(CONST AToken: Byte; CONST AIndex: Byte; CONST AValue: Boolean);
     Procedure WriteDoubleValue(CONST AToken: Byte; CONST AValue: Double);
+    Procedure WriteBDoubleValue(CONST AToken: Byte; CONST AIndex: Byte; CONST AValue: Double);
     Procedure WriteBIntegerValue(CONST AToken: Byte; CONST AIndex: Byte; CONST AValue: Integer);
     Procedure WriteBB_BooleanValue(CONST AToken: Byte; CONST AIndex1, AIndex2: Byte; CONST AValue: Boolean);
     Procedure WriteBBStringValue(CONST AToken: Byte; CONST AIndex1, AIndex2: Byte; CONST AValue: ShortString);
@@ -115,6 +118,7 @@ Const
   ftPString : Byte = 16;
   ftBBString : Byte = 17;
   ftBBDate : Byte = 18;
+  ftBDouble : byte = 19;
 
 CONST
   flInteger     = 4;
@@ -334,6 +338,16 @@ Begin
    CheckType( ftDouble, SProcName );
    Read( Result, flDouble );
 End;
+
+Function TIOStream.ReadBDoubleValue (Var Index: Byte): Double;
+Const
+   SProcName = 'ReadBDoubleValue';
+Begin
+   CheckType( ftBDouble, SProcName );
+   Read(Index, flByte );
+   Read(Result, flDouble );
+End;
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -560,6 +574,18 @@ Begin
     Write(AToken, flByte );
     Write(ftDouble, flByte );
     Write(AValue, flDouble );
+  End
+End;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Procedure TIOStream.WriteBDoubleValue(CONST AToken: Byte; CONST AIndex: Byte; CONST AValue: Double);
+Begin
+  If AValue <> 0.0 Then Begin
+    Write(AToken, flByte );
+    Write(ftBDouble, flByte);
+    Write(AIndex, flByte );
+    Write(AValue, flDouble);
   End
 End;
 

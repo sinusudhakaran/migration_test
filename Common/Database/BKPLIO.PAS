@@ -80,6 +80,7 @@ CONST
    tkplSF_Other_Tax_Credit              = 131 ;
    tkplSF_Non_Resident_Tax              = 132 ;
    tkplSF_Foreign_Capital_Gains_Credit  = 133 ;
+   tkplSF_Capital_Gains_Fraction_Half   = 134 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -142,6 +143,7 @@ Begin
       F.WriteMoneyValue( tkplSF_Other_Tax_Credit , plSF_Other_Tax_Credit );
       F.WriteMoneyValue( tkplSF_Non_Resident_Tax , plSF_Non_Resident_Tax );
       F.WriteMoneyValue( tkplSF_Foreign_Capital_Gains_Credit , plSF_Foreign_Capital_Gains_Credit );
+      F.WriteBooleanValue( tkplSF_Capital_Gains_Fraction_Half , plSF_Capital_Gains_Fraction_Half );
       F.WriteToken( tkEnd_Payee_Line );
    end;
 end; { of Write_Payee_Line_Rec }
@@ -201,6 +203,7 @@ Begin
          tkplSF_Other_Tax_Credit              : plSF_Other_Tax_Credit := F.ReadMoneyValue;
          tkplSF_Non_Resident_Tax              : plSF_Non_Resident_Tax := F.ReadMoneyValue;
          tkplSF_Foreign_Capital_Gains_Credit  : plSF_Foreign_Capital_Gains_Credit := F.ReadMoneyValue;
+         tkplSF_Capital_Gains_Fraction_Half   : plSF_Capital_Gains_Fraction_Half := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
