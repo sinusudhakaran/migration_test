@@ -319,9 +319,14 @@ begin
          if Trim(PayeeDetail) = '' then
              PayeeDetail := bkPayee.pdName;
       end else begin
+         // Check the disection for Payee
+         ImportPayee(DNode,BKD,True);
+
+
          //set gst information based on the chart
          //payee not found or dissection too long, use default gst
          //calculate gst using information from the chart codes
+
          CalculateGST(Client, BKT.txDate_Effective, BKD.dsAccount, BKD.dsAmount, BKD.dsGST_Class, BKD.dsGST_Amount);
          PayeeDetail := '';
          BKD.dsGST_Has_Been_Edited := False;
@@ -1595,7 +1600,7 @@ end;
 procedure TWebNotesImportForm.FormCreate(Sender: TObject);
 begin
     bkXPThemes.ThemeForm( Self);
-    BKHelpSetUp(Self, BHK_Importing_a_BankLink_Notes_Online_file_into_BankLink_Practice);
+    BKHelpSetUp(Self, BKH_Importing_a_BankLink_Notes_Online_file_into_BankLink_Practice);
     self.Caption := Format('Import from %s',[WebNotesName]);
     ImportedCount := 0;
     NewCount := 0;
