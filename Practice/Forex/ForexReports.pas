@@ -361,10 +361,10 @@ begin
         begin
           // Get the Details..
           Lparams.ReportType := ord( REPORT_FOREIGN_EXCHANGE ) ;
-          LParams.AccountFilter := [btBank];
+          LParams.AccountFilter := [btForeign];
           if not EnterPrintDateAccountRange( 'List Foreign Currency Entries',
             'Enter the starting and finishing date for the entries you want to list.',
-            [btBank],
+            [btForeign],
             LParams,
             BKH_List_entries,
             true,
