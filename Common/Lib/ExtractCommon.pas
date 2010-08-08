@@ -150,6 +150,7 @@ const
   f_OtherParty   = 'OtherParty';
   f_Particulars  = 'Particulars';
   f_Narration    = 'Narration';
+  f_Notes        = 'Notes';
   f_Quantity     = 'Quantity';
   f_Tax          = 'Tax'; //GST or VAT...
   f_TaxCode      = 'TaxCode';
