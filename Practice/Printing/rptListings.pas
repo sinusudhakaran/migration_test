@@ -3397,7 +3397,7 @@ begin
                  if not AccountHeaderDone then
                  begin
                    RenderTitleLine( ba.baFields.baBank_Account_Number + ' ' +
-                                    ba.baFields.baBank_Account_Name + ' ');
+                                    ba.AccountName + ' ');
                    RenderTitleLine('Memorisations');
                    AccountHeaderDone := true;
                  end;
@@ -3464,7 +3464,7 @@ begin
                         if not AccountHeaderDone then
                         begin
                           RenderTitleLine( ba.baFields.baBank_Account_Number + ' ' +
-                                           ba.baFields.baBank_Account_Name + ' ');
+                                           ba.AccountName + ' ');
                           AccountHeaderDone := true;
                         end;
                         //make sure that we have written a header for master mems

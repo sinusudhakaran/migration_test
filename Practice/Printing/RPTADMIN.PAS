@@ -1719,6 +1719,8 @@ begin
            end;
            PutString( S);
            PutString( sbAccount_Name);
+           if Adminsystem.HasMultiCurrency then
+              PutString(sbCurrency_Code);
 
            //look for account in admin account list to see what clients are attached
            ClientsList := nil;
@@ -1754,6 +1756,8 @@ begin
               for j := 1 to Pred(ClientsList.Count) do begin
                  SkipColumn;  //account number
                  SkipColumn;  //account name
+                 if Adminsystem.HasMultiCurrency then
+                    SkipColumn;  //Currency
 
                  PutString( ClientsList[j] );
 
@@ -1833,6 +1837,10 @@ begin
            cLeft := GcLeft;
            AddColAuto( Job,cLeft,18.6,GcGap,'Account No'   ,jtLeft );
            AddColAuto( Job,cLeft,30.0,GcGap,'Account Name' ,jtLeft );
+
+           if Adminsystem.HasMultiCurrency then
+               AddColAuto( Job,cLeft,8,GcGap,'Currency'  ,jtLeft );
+
            AddColAuto( Job,cLeft,12.5,GcGap,'Client Code'  ,jtLeft );
            if Job.NotActiveSince = 0 then begin
               AddColAuto( Job,cLeft,10.0,GcGap,'Entries From' ,jtLeft );

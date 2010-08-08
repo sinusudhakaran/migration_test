@@ -1236,6 +1236,9 @@ begin
 
         RenderTitleLine( sAccountDesc);
 
+
+
+
         //------ Opening Balance
         PutString( GetHeading( hdOpening_Balance));
         //Print Periodic Information
@@ -1243,6 +1246,10 @@ begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
             //GetValues
             GetOpeningBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
+
+            if MyClient.HasForeignCurrencyAccounts then
+               SetCurrencyFormatForPeriod(ValuesArray,MyClient.FmtMoneyStrBrackets);
+
             //PrintValues
             PrintValuesForPeriod( ValuesArray, Debit);
           end
@@ -1254,6 +1261,10 @@ begin
         if ClientForReport.clFields.clFRS_Show_YTD then begin
            //GetYTDValues
            GetOpeningBalancesForPeriod( pAcct, 1, ValuesArray);
+
+           if MyClient.HasForeignCurrencyAccounts then
+               SetCurrencyFormatForPeriod(ValuesArray,MyClient.FmtMoneyStrBrackets);
+
            //PrintValues
            PrintValuesForPeriod( ValuesArray, Debit);
         end;
@@ -1755,7 +1766,7 @@ begin
              lParams.ToDate := clTemp_Period_Details_This_Year[clTemp_FRS_Last_Period_To_Show].Period_End_Date;
           end;
 
-          AddJobHeader(Job,siTitle,S,true);
+          AddJobHeader(Job,siTitle,S,true,jtCenter, True);
 
           if clTemp_FRS_Job_To_Use <> '' then begin
              S :=  MyClient.clJobs.JobName(clTemp_FRS_Job_To_Use);

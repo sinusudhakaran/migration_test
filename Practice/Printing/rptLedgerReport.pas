@@ -2426,7 +2426,7 @@ begin
   else
      S := 'LEDGER REPORT WITH SUPER DETAILS ' + S;
 
-  AddJobHeader(Job,siTitle, S, true);
+  AddJobHeader(Job,siTitle, S, true,jtCenter,True);
 
   AddJobHeader(Job,SiSubTitle,'', true);
 

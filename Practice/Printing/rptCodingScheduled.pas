@@ -131,7 +131,7 @@ begin
       TScheduledCodingReport(Mgr.ReportJob).FirstAccountPrinted := True;
       if (not TScheduledCodingReport(Mgr.ReportJob).AccountTitle) then
       begin
-        S := baFields.baBank_Account_Number + ' : '+baFields.baBank_Account_Name;
+        S := baFields.baBank_Account_Number + ' : '+AccountName;
         RenderTitleLine(S);
         TScheduledCodingReport(Mgr.ReportJob).AccountTitle := True;
       end;
@@ -1505,7 +1505,7 @@ begin
   if (Assigned(CurrentBankAccount)) then
   begin
     //render the acccount details at the top of each page
-    s := CurrentBankAccount.baFields.baBank_Account_Number + ' : '+CurrentBankAccount.baFields.baBank_Account_Name;
+    s := CurrentBankAccount.baFields.baBank_Account_Number + ' : '+CurrentBankAccount.AccountName;
     RenderTitleLine(s);
     AccountTitle := True;
   end;

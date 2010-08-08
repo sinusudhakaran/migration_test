@@ -933,7 +933,7 @@ begin
   end;
 
   S := 'Account ' + Mgr.Bank_Account.baFields.baBank_Account_Number +
-       ': ' + Mgr.Bank_Account.baFields.baBank_Account_Name;
+       ': ' + Mgr.Bank_Account.AccountName;
 
   Mgr.ReportJob.RenderTitleLine( S);
   PrintTitle := False;
@@ -1691,7 +1691,7 @@ var
                         If ( txGST_Class = GST_Class ) and ( txGST_Has_Been_Edited) then
                         Begin { It's what we want }
                            If not DoneHeader then Begin  //has a header been shown for this account
-                              S := 'Account '+ baBank_Account_Number + ': '+baBank_Account_Name;
+                              S := 'Account '+ baBank_Account_Number + ': '+AccountName;
                               DoHeader( S);
                            end;
 
@@ -1729,7 +1729,7 @@ var
                            If ( dsGST_Class = GST_Class ) and ( dsGST_Has_Been_Edited) then
                            Begin
                               If not DoneHeader then Begin //has a header been shown for this account
-                                 S := 'Account '+ baBank_Account_Number + ': '+baBank_Account_Name;
+                                 S := 'Account '+ baBank_Account_Number + ': '+ baBank_Account_Name;
                                  DoHeader( S);
                               end;
                               { Print the Entry }

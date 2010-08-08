@@ -1246,7 +1246,7 @@ begin
             s := 'BUDGETED ' + s;
 
           s := s + ' ' + StDateToDateString('NNN yyyy', clTemp_Period_Details_This_Year[clTemp_FRS_Last_Period_To_Show].Period_End_Date, true);
-          AddJobHeader(Job,siTitle,S,true);
+          AddJobHeader(Job,siTitle,S,true,jtCenter,True);
 
           if clTemp_FRS_Job_To_Use <> '' then begin
              S :=  MyClient.clJobs.JobName(clTemp_FRS_Job_To_Use);

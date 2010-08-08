@@ -61,6 +61,7 @@ type
     function  AccountNeedsPrinting( pAcct : pAccount_Rec) : boolean; virtual;
     procedure PrintControlAccountTitle( aAccount: pAccount_Rec);
     procedure PrintValuesForPeriod( const Values : TValuesArray; DefaultSign : TSign);
+    procedure SetCurrencyFormatForPeriod(const Values : TValuesArray; NewFormat: string);
     procedure SkipPeriod;
 
     function  GetHeading( No : Integer): string; virtual; abstract;
@@ -1087,6 +1088,18 @@ end;
 procedure TFinancialReportBase.SetClientForReport(const Value: TClientObj);
 begin
   FClientForReport := Value;
+end;
+
+procedure TFinancialReportBase.SetCurrencyFormatForPeriod(const Values : TValuesArray; NewFormat: string);
+var
+  i : integer;
+begin
+  Assert( Length( FColumnTypes) = Length( Values), 'SetCurrencyFormatForPeriod : failed Length( ColumnTypes) = Length( Values)');
+
+  for i := Low(Values) to High(Values) do begin
+     if not (FColumnTypes[i] in [ ftQuantity, ftBudgetQuantity,ftPercentage]) then
+        Columns.Report_Column_At(FCurrDetail.Count + i ).FormatString := NewFormat;
+  end;
 end;
 
 procedure TFinancialReportBase.SetMinAndMaxPeriods;

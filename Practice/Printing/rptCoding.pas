@@ -1376,7 +1376,7 @@ begin
   if (Assigned(CurrentBankAccount)) then
   begin
     //render the acccount details at the top of each page
-    s := CurrentBankAccount.baFields.baBank_Account_Number + ' : '+CurrentBankAccount.baFields.baBank_Account_Name;
+    s := CurrentBankAccount.baFields.baBank_Account_Number + ' : '+CurrentBankAccount.AccountName;
     RenderTitleLine(s);
     AccountTitle := True;
   end;
