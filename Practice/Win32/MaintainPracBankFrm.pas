@@ -31,6 +31,8 @@ type
     btnOK: TButton;
     pmGrid: TPopupMenu;
     actSendFrequencyRequest: TAction;
+    acCurrencies: TAction;
+    acExchangRates: TAction;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
@@ -50,6 +52,8 @@ type
     procedure SysAccountsAccountTreeDblClick(Sender: TObject);
     procedure pmGridPopup(Sender: TObject);
     procedure actSendFrequencyRequestExecute(Sender: TObject);
+    procedure acCurrenciesExecute(Sender: TObject);
+    procedure acExchangRatesExecute(Sender: TObject);
   private
     { Private declarations }
     fChanged : boolean;
@@ -72,6 +76,8 @@ function MaintainPracticeBankAccounts(Mode: Integer) : boolean;
 implementation
 
 uses
+  frmCurrencies,
+  frmExchangeRates,
   bkBranding,
   rptSysAccounts,
   reportDefs,
@@ -266,6 +272,16 @@ begin
   end;
 end;
 
+
+procedure TfrmMaintainPracBank.acCurrenciesExecute(Sender: TObject);
+begin
+   MaintainCurrencies;
+end;
+
+procedure TfrmMaintainPracBank.acExchangRatesExecute(Sender: TObject);
+begin
+   MaintainExchangeRates;
+end;
 
 procedure TfrmMaintainPracBank.actChargeExecute(Sender: TObject);
 var Selected: TStringList;

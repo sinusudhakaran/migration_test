@@ -13,7 +13,10 @@ procedure SendUncodedTransactions;
 
 implementation
 
-uses Windows, Classes, sysUtils, Globals, AccsDlg, BKUtil32, InfoMoreFrm,
+uses
+  ForexHelpers,
+  MoneyUtils,
+  Windows, Classes, sysUtils, Globals, AccsDlg, BKUtil32, InfoMoreFrm,
   BKDefs, BKDateUtils, GenUtils, MailFrm, StDate, caUtils, ComObj, WinUtils,
   MainFrm, CodingFrm, bkConst, ToDoHandler;
 
@@ -134,13 +137,15 @@ begin
 end;
 
 // Create a text block for a transaction
-function BuildTransactionBlock(T: pTransaction_Rec): string; overload;
+function BuildTransactionBlock(T: pTransaction_Rec; B: TBank_Account ): string; overload;
 begin
   Result := #13#13;
   if Trim(bkDate2Str(T.txDate_Effective)) <> '' then
     Result := Result + 'Date: ' + bkDate2Str(T.txDate_Effective) + #13;
+
   if Trim(MakeAmount(T.txAmount)) <> '' then
-    Result := Result + 'Amount: ' + MakeAmount(T.txAmount) + #13;
+        Result := Result + 'Amount: ' + MoneyStrBrackets(T.Statement_Amount,B.baFields.baCurrency_Code) + #13;
+
   if Trim(T.txReference) <> '' then
     Result := Result + 'Reference: ' + T.txReference + #13;
   if Trim(T.txGL_Narration) <> '' then
@@ -150,11 +155,11 @@ begin
 end;
 
 // Create a text block for a dissection
-function BuildTransactionBlock(D: pDissection_Rec): string; overload;
+function BuildTransactionBlock(D: pDissection_Rec; B: TBank_Account): string; overload;
 begin
   Result := #9 + 'DISSECTED' + #13;
   if Trim(MakeAmount(D.dsAmount)) <> '' then
-    Result := Result + #9 + 'Amount: ' + MakeAmount(D.dsAmount) + #13;
+    Result := Result + #9 + 'Amount: ' + MoneyStrBrackets(D.Statement_Amount,B.baFields.baCurrency_Code) + #13;
   if Trim(D.dsReference) <> '' then
     Result := Result + #9 + 'Reference: ' + D.dsReference + #13;
   if Trim(D.dsGL_Narration) <> '' then
@@ -231,7 +236,7 @@ begin
         s := s + #13#13#13 + '------------------------------------------------------------' + #13;
 {$ENDIF}
         s := s + 'Bank Account Number: ' + B.baFields.baBank_Account_Number + #13 +
-                 'Bank Account Name: ' + B.baFields.baBank_Account_Name;
+                 'Bank Account Name: ' + B.AccountName;
 {$IFDEF USEWORD}
         wrdSelection.ParagraphFormat.Alignment := wdAlignParagraphCenter;
         wrdSelection.Font.Bold := True;
@@ -283,7 +288,7 @@ begin
                 WordFillRow(wrddoc, wrdSelection, Row, bkDate2Str(T.txDate_Effective),
                   MakeAmount(T.txAmount), T.txReference, T.txGL_Narration, T.txNotes);
 {$ELSE}
-                s := s + BuildTransactionBlock(T);
+                s := s + BuildTransactionBlock(T, B);
 {$ENDIF}
                 D := T.txFirst_Dissection;
                 while D <> nil do // Check every dissection line
@@ -299,7 +304,7 @@ begin
                     WordFillRow(wrddoc, wrdSelection, Row, 'DISSECT', MakeAmount(D.dsAmount),
                       D.dsReference, D.dsGL_Narration, D.dsNotes);
 {$ELSE}
-                    s := s + BuildTransactionBlock(D);
+                    s := s + BuildTransactionBlock(D, B);
 {$ENDIF}
                   end;
                   D := D.dsNext;
@@ -310,7 +315,7 @@ begin
                 WordFillRow(wrddoc, wrdSelection, Row, bkDate2Str(T.txDate_Effective),
                   MakeAmount(T.txAmount), T.txReference, T.txGL_Narration, T.txNotes);
 {$ELSE}
-                s := s + BuildTransactionBlock(T);
+                s := s + BuildTransactionBlock(T,B);
 {$ENDIF}
             end;
           end;

@@ -684,10 +684,8 @@ end;
 
 procedure TdlgEditSuperFields.nfUnfrankedChange(Sender: TObject);
 begin
-   if FFrankPercentage then begin
-       nfFrankedChange(nfUnfranked)
-   end else
-      UFModified := True;
+
+   UFModified := True;
 end;
 
 procedure TdlgEditSuperFields.nfUnitsKeyDown(Sender: TObject; var Key: Word;

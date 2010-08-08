@@ -31,7 +31,9 @@ uses clObj32, BKdefs, payeeObj;
    function CheckOutstandingEcodingFiles(aClient: TClientObj) : boolean;
 implementation
 
-uses Classes, SysUtils, GenUtils, moneydef, bkconst, gstcalc32, ecObj,
+uses
+   UsageUtils,
+    Classes, SysUtils, GenUtils, moneydef, bkconst, gstcalc32, ecObj,
      InfoMoreFrm, ErrorMoreFrm, WebXOffice, WebXUtils, glConst, WinUtils,
      ImportFromECodingDlg, ExportToECodingDlg, bkDateUtils, YesNoDlg,
      BNotesInterface, LogUtil, baObj32, GlobalDirectories, Globals,
@@ -316,7 +318,7 @@ begin
   if (Dest = ecDestWebX) then
      case aClient.clFields.clWeb_Export_Format of
      wfWebX : begin
-
+        IncUsage('Acclipse Import');
          // If there is no WebXOffice installed then tell the user
         WebXFile := WebXOffice.GetWebXDataPath;
         if (WebXFile = '') then begin
@@ -332,9 +334,11 @@ begin
                 exit;
            end;
         end;
+
      end;//wfWebX
 
      wfWebNotes : begin
+          IncUsage('WebNotes Import');
           ImportWebNotesFile(aClient);
           Exit;
        end;
@@ -567,7 +571,9 @@ begin
 
    // If there is no WebXOffice installed then tell the user
    case Dest of
-   ecDestWebX: if aClient.clFields.clWeb_Export_Format = wfWebX then begin
+   ecDestWebX: case aClient.clFields.clWeb_Export_Format of
+      wfWebX : begin
+      IncUsage('Acclipse Export');
       WebXFile := WebXOffice.GetWebXDataPath;
       if (WebXFile = '') then
       begin
@@ -596,7 +602,9 @@ begin
        S.Free;
       end;
     end;
-   
+     wfWebNotes : IncUsage('WebNote Export');
+   end;
+
    end;
 
    //make sure all relative paths are relative to data dir after browse

@@ -5202,14 +5202,17 @@ begin
                //set editable state
                if cRec.cdFieldID in [ ceAmount, ceAccount ] then
                   eDITState := EsAlwaysEditable
-               ELSE if (( cRec.cdFieldID in [ ceGSTAmount]) and ( MyClient.clFields.clCountry = whAustralia )
-                                                        and ( MyClient.clFields.clBAS_Calculation_Method = bmFull)) then
-                  EditState := esNeverEditable
+               else if ( cRec.cdFieldID in [ceGSTAmount])
+                    and ( MyClient.clFields.clCountry = whAustralia )
+                    and ( MyClient.clFields.clBAS_Calculation_Method = bmFull) then
+                       EditState := esNeverEditable
                else
                if ( cRec.cdFieldID in [ ceGSTClass] ) then
-               Begin
-                 If not Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
-                   EditState := esNeverEditable
+               begin
+                 If Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
+                    EditState := esEditable
+                 else
+                    EditState := esNeverEditable;
                End
                else if cRec.cdFieldId in [ceDescription, cePayeeName, ceJobName, ceAltChartCode] then
                   EditState := esNeverEditable

@@ -424,14 +424,8 @@ begin
 end;
 
 procedure TdlgEditSupervisorFields.nfImputedCreditChange(Sender: TObject);
-var Frank: Double;
 begin
-   if FrankPercentage then
-      Frank := nfFranked.asFloat {* Money2Double(FActualAmount) / 100}
-   else
-      Frank := nfFranked.asFloat;
-
-   crModified := CheckFrankingCredit(Frank,fDate,nfImputedCredit, not((Sender = nfImputedCredit) or crModified));
+   crModified := CheckFrankingCredit(nfFranked.asFloat, fDate, nfImputedCredit, not((Sender = nfImputedCredit) or crModified));
 end;
 
 
@@ -452,7 +446,7 @@ begin
   if Key = '=' then
   begin
     Key := #0;
-    if FrankPercentage then
+    if not UFModified then
        Exit;
     nf := Sender as TOvcNumericField;
     if nf.Parent = gbRevenue then
@@ -471,10 +465,7 @@ end;
 
 procedure TdlgEditSupervisorFields.nfUnfrankedChange(Sender: TObject);
 begin
-   if FrankPercentage then
-      nffrankedChange(nfUnfranked)
-   else
-      UFModified := True;   
+   UFModified := True;
 end;
 
 procedure TdlgEditSupervisorFields.nfUnitsKeyDown(Sender: TObject;
@@ -978,10 +969,8 @@ var
 begin
   CalcControlTotals( Count, Total, Remain );
   if FrankPercentage then begin
-     //lblTotal.Caption  := Format( '%0.4f', [Total]  ) + '%';
      lblRemain.Caption := Format( '%0.4f', [Remain] ) + '%';
   end else begin
-     //lblTotal.Caption  := Format( '%0.2m', [Total]  );
      lblRemain.Caption := Format( '%0.2m', [Remain] );
   end;
 end;

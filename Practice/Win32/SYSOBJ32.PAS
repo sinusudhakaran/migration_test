@@ -13,7 +13,7 @@ uses
 {$IFDEF ParserDll}
 {$ELSE}
   usrList32, cflist32, sysDList32, sbaList32, acList32, amList32,
-  grplist32, ctypelist32,
+  grplist32, ctypelist32, ExchangeRateList,mcDefs,
 {$ENDIF}
   moneydef;
 
@@ -31,6 +31,7 @@ type
       fdSystem_Group_List        : TSystem_Group_List;
       fdSystem_Client_Type_List  : TSystem_Client_Type_List;
       fCurrencyCode              : string[3];
+      fCurrencyList              : tExchange_Rates_Header_Rec;
 {$ENDIF}
       constructor Create;
       destructor  Destroy; override;
@@ -58,6 +59,7 @@ type
       function MoneyStr(const Amount: Money): string;
       property CurrencyCode: string read GetCurrencyCode;
       function HasMultiCurrency: Boolean;
+      procedure SyncCurrenciesToSystemAccounts;
       function NewSystemAccount(AccNumber: string; Delivered: Boolean):pSystem_Bank_Account_Rec;
 {$ENDIF}
   end;
@@ -137,6 +139,7 @@ begin
   fdSystem_Client_Account_Map:= TSystem_Client_Account_Map.Create;
   fdSystem_Group_List        := TSystem_Group_List.Create;
   fdSystem_Client_Type_List  := TSystem_Client_Type_List.Create;
+  fillChar(fCurrencyList, Sizeof(fCurrencyList), 0);
 {$ENDIF}  
   LogDebugMsg(ThisMethodName + ' Ends' );
 end;
@@ -151,8 +154,8 @@ begin
 {$IFDEF ParserDll}
 {$ELSE}
   {free lists}
-  FreeAndNil( fdSystem_Bank_Account_List);
-  FreeAndNil( fdSystem_Disk_Log);
+  FreeAndNil(fdSystem_Bank_Account_List);
+  FreeAndNil(fdSystem_Disk_Log);
   FreeAndNil(fdSystem_Client_File_List);
   FreeAndNil(fdSystem_User_List);
   FreeAndNil(fdSystem_File_Access_List);
@@ -194,6 +197,7 @@ Begin
          tkBeginSystem_Client_Account_Map : fdSystem_Client_Account_Map.LoadFromFile( S );
          tkBeginSystem_Group_List        : fdSystem_Group_List.LoadFromFile( S );
          tkBeginSystem_Client_Type_List  : fdSystem_Client_Type_List.LoadFromFile( S );
+         tkBeginExchangeRateHeader       : ReadCurrencyList(fCurrencyList,S);
          else
          begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -278,7 +282,8 @@ begin
    fdSystem_Client_Account_Map.SaveToFile( S );
    fdSystem_Group_List.SaveToFile( S );
    fdSystem_Client_Type_List.SaveToFile( S );
-   S.WriteToken( tkEndSection );
+   WriteCurrencyList(fCurrencyList, S);
+
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;
 
@@ -429,6 +434,33 @@ begin
   end;
   Result := False;
 end;
+
+procedure TSystemObj.SyncCurrenciesToSystemAccounts;
+var I: Integer;
+
+    procedure ForceCurrency(ISO: shortstring; CurType: Byte);
+    var c: Integer;
+    begin
+       for C := low(fCurrencyList .ehISO_Codes) to high(fCurrencyList.ehISO_Codes) do
+          if SameText(fCurrencyList.ehISO_Codes[C],ISO) then begin
+             fCurrencyList.ehCur_Type[C] := CurType;
+             Exit; // Im done..
+          end else if fCurrencyList.ehISO_Codes[C] = '' then begin
+             fCurrencyList.ehISO_Codes[C] := Uppercase(ISO);
+             fCurrencyList.ehCur_Type[C] := CurType;
+             Exit;
+          end;
+    end;
+begin
+   ForceCurrency(CurrencyCode,ct_Base);
+   for I := fdSystem_Bank_Account_List.First to fdSystem_Bank_Account_List.Last do
+      with fdSystem_Bank_Account_List.System_Bank_Account_At(I)^ do
+         if sbCurrency_Code <> CurrencyCode then
+            ForceCurrency(sbCurrency_Code,ct_System);
+
+end;
+
+
 
 function TSystemObj.NewSystemAccount(AccNumber: string; Delivered: Boolean):pSystem_Bank_Account_Rec;
 begin

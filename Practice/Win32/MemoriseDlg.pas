@@ -2138,7 +2138,7 @@ begin
                SplitData[ i+1].SF_Other_Tax_Credit := MemLine.mlSF_Other_Tax_Credit;
                SplitData[ i+1].SF_Non_Resident_Tax := MemLine.mlSF_Non_Resident_Tax;
                SplitData[ i+1].SF_Foreign_Capital_Gains_Credit := MemLine.mlSF_Foreign_Capital_Gains_Credit;
-
+               SplitData[ i+1].SF_Capital_Gains_Fraction_Half := MemLine.mlSF_Capital_Gains_Fraction_Half;
                SplitData[ i+1].SF_Edited := MemLine^.mlSF_Edited;
             end;
          end;
@@ -2616,7 +2616,7 @@ begin
            mlSF_Other_Tax_Credit := SplitData[i].SF_Other_Tax_Credit;
            mlSF_Non_Resident_Tax := SplitData[i].SF_Non_Resident_Tax;
            mlSF_Foreign_Capital_Gains_Credit := SplitData[i].SF_Foreign_Capital_Gains_Credit;
-
+           mlSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
 
 
 
@@ -3094,6 +3094,7 @@ begin
           }
           tblSplit.AllowRedraw := false;
           try
+             UpdateFields(tblSplit.ActiveRow);
              tblSplit.InvalidateRow(ActiveRow);
           finally
              tblSplit.AllowRedraw := true;

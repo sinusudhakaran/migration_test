@@ -217,7 +217,7 @@ begin
             ToBa.baMemorisations_List.Insert_Memorisation(MemTo);
           end;
           // Delete the From account
-          AcctName := FromBa.baFields.baBank_Account_Name;
+          AcctName := FromBa.AccountName;
           AcctNo := FromBa.baFields.baBank_Account_Number;
           if LoadAdminSystem(true, 'TDlgCombineAccounts.CombineAccounts' ) then
           begin
@@ -251,7 +251,7 @@ begin
           ClearStatus;
         end;
         aMsg := 'Successfully combined system bank account "' + AcctNo + ' ' + AcctName +
-                    '" with "' + ToBa.baFields.baBank_Account_Number + ' ' + ToBa.baFields.baBank_Account_Name + '".';
+                    '" with "' + ToBa.Title+ '".';
         LogUtil.LogMsg( lmInfo, UnitName, aMsg + ' ' + IntToStr(TransferCount) + ' transactions were combined.');
         HelpfulInfoMsg( aMsg, 0);
       end;

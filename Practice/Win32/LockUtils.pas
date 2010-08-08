@@ -34,7 +34,9 @@ const
    ltCodingStats         = 15;
    ltWebNotesupdate      = 16;
    ltWebNotesdata        = 17;
-   ltMax                 = 17;
+   ltExchangeRates       = 18;
+
+   ltMax                 = 18;
 
 const
    TimeToWaitForPracINI  = 60;
@@ -86,7 +88,8 @@ const
        'Custom Documents',
        'Coding Statistics',
        'WebNotes Update',
-       'WebNotes Data' );
+       'WebNotes Data',
+       'Exchange Rates' );
 
  var
     FLockFileName: string;

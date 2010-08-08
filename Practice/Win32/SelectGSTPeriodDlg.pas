@@ -550,7 +550,9 @@ begin
   myDlg := tdlgSelectGstPeriod.Create(Application);
   try
     MyDlg.Caption := 'Select VAT Period';
-    MyDlg.FHelpID := BKH_GST_Return_GST_101;
+    MyDlg.BtnAdd.Hide; // Not Used for VAT
+    MyDlg.btnClear.Hide;
+    MyDlg.FHelpID := BKH_GST_Return_GST_101; // ????
     MyDlg.rptParams := Params;
     if myDlg.execute(Ad1) then begin
       Ad1 := MyDlg.SelectedPeriod.FromDate;

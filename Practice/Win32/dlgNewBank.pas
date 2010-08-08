@@ -83,8 +83,23 @@ var
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAddNewBank.FormCreate(Sender: TObject);
 begin
-  bkXPThemes.ThemeForm( Self);
-  Width := Round(Screen.WorkAreawidth * 0.9);  //90% of avail width
+  bkXPThemes.ThemeForm(Self);
+  Width := Round(Application.Mainform.Monitor.Width * 0.9);  //90% of avail width
+
+  if RefreshAdmin then begin
+     if Adminsystem.HasMultiCurrency then
+        with lvAdminBank.Columns.Add do begin
+           Caption := 'Currency';
+           Width := 80;
+        end;
+
+        with lvBank.Columns.Add do begin
+           Caption := 'Currency';
+           Width := 80;
+        end;
+       
+  end;
+
   SetUpHelp;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -172,6 +187,7 @@ begin
           end;
 
           NewItem.SubItems.Add(BankAcct.sbAccount_Name);
+          NewItem.SubItems.Add(BankAcct.sbCurrency_Code );
         end;
      end;
    finally
@@ -200,8 +216,9 @@ begin
         NewItem := lvBank.Items.Add;
         NewItem.Caption := BankAcct.baFields.baBank_Account_Number;
         NewItem.ImageIndex := MAINTAIN_PAGE_NORMAL_BMP;
-        NewItem.SubItems.AddObject(BankAcct.AccountName,BankAcct);
-        NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+        NewItem.SubItems.AddObject(BankAcct.baFields.baBank_Account_Name ,BankAcct);
+        NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code  );
+        //NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
       end;
    end;
    finally

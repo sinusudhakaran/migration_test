@@ -65,6 +65,7 @@ type
     RptHeaderFooters : array [TReportType] of TReportTypeParams;
     FInSetup: Boolean;
     FHFSection: Integer;
+    FCountry: Byte;
     procedure GetHeaderFooter(var Value: TReportTypeParams);
     procedure SetHeaderFooter(const Value: TReportTypeParams);
     procedure SetReportType(const Value: TReportType);
@@ -89,6 +90,8 @@ implementation
 {$R *.dfm}
 
 uses
+  CountryUtils,
+  bkConst,
   MoneyUtils,
   GlobalMergeFields,
   Globals,
@@ -262,6 +265,7 @@ begin
 
   Job := TBKReport.Create(FReportType); // Reads the file version
   TempClient := TClientObj.Create;
+
   KeepClient := MyClient;
   try
   Job.ReportTypeParams := (RptHeaderFooters[FReportType]);// Not saved yet...
@@ -279,7 +283,7 @@ begin
      rptFinancial : Job.ReportTitle := 'Cash Flow, P & L and Balance Sheet Reports Preview';
      rptCoding    : Job.ReportTitle := 'Coding Report Preview';
      rptLedger    : Job.ReportTitle := 'Ledger Report Preview';
-     rptGst       : Job.ReportTitle := 'GST Report Preview';
+     rptGst       : Job.ReportTitle := Localise(FCountry,'GST Report Preview');
      rptListings  : Job.ReportTitle := 'Listings Report Preview';
      else           Job.ReportTitle := 'General Report Preview';
   end;
@@ -288,6 +292,8 @@ begin
 
   TempClient.clFields.clCode := 'Cl_Code';
   TempClient.clFields.clName := 'Client Name';
+  TempClient.clFields.clCountry := FCountry;
+
   MyClient := TempClient;
 
   AddCommonHeader(Job);
@@ -305,8 +311,7 @@ begin
   AddColAuto(Job,cLeft,10,gcgap,'Entries To', jtLeft);
   AddFormatColAuto(Job,cLeft,10,gcgap,'No. Entries',jtRight,'#,##0','#,##0',true);
   AddFormatColAuto(Job,cLeft,17,gcgap,'Current Balance',jtRight,'#,##0.00" OD";#,##0.00" IF";#,##0.00 IF',
-                    MoneyUtils.FmtBalanceStr( Adminsystem.CurrencyCode ),true);
-
+                    MoneyUtils.FmtBalanceStr(  whCurrencyCodes[FCountry] ),true);
 
   AddJobFooter(Job,siFootnote,'Preview footnote',true);
 
@@ -369,6 +374,7 @@ procedure TReportOptionDlg.FormCreate(Sender: TObject);
 
    end;
 var kc: TCursor;
+const TaxTab = 3;
 begin
    kc := Screen.Cursor;
    Screen.Cursor := crHourGlass;
@@ -379,6 +385,13 @@ begin
       Editor.EditMode := True;
       Editor.LoadGlobalMergeMenues;
       Editor.AddMergeMenuItem('Page Num' ,Integer(Document_Page));
+
+      if Assigned(Adminsystem) then //Practice
+         FCountry := Adminsystem.fdFields.fdCountry
+      else if assigned(MyClient) then //Books must have a client open to get here...
+         FCountry := MyClient.clFields.clCountry;
+
+      tcReportType.Tabs[TaxTab] := whTaxSystemNamesUC[fCountry];
 
       lh1.Font.name := Font.name;
       lh2.Font.name := Font.Name;

@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 //
-// BKHelp.inc
+// bkHelp.inc
 //
 //------------------------------------------------------------------------------
 
@@ -576,7 +576,6 @@ const
   BKH_Find_and_replace_a_chart_of_accounts_code = 2066;
   BKH_Adding_and_editing_your_practice_email_signature = 2067;
   BKH_Custom_Documents = 2068;
-  BKH_Interfacing_with_Class_Super_Super_IP_ = 2069;
   BKH_Interfacing_with_superMate = 2070;
   BKH_Interfacing_with_ProSuper = 2071;
   BKH_Interfacing_with_RewardSuper = 2072;
@@ -592,7 +591,6 @@ const
   BKH_Summary_of_the_interface_with_superMate = 2082;
   BKH_Summary_of_the_interface_with_XPA_Version_8 = 2083;
   BKH_Summary_of_the_interface_with_MYOB_Accounting_General_Journals_ = 2084;
-  BKH_Setting_up_the_link_to_Class_Super = 2085;
   BKH_Setting_up_the_link_to_RewardSuper = 2086;
   BKH_Copying_a_chart_from_BGL_Simple_Ledger_into_BankLink_Practice = 2087;
   BKH_Copying_a_chart_from_Desktop_Super_into_BankLink_Practice = 2088;
@@ -620,10 +618,11 @@ const
   BKH_Setting_up_the_link_to_Sage_Handisoft_Superfund = 2110;
   BKH_Transferring_transactions_to_Sage_Handisoft_Superfund = 2111;
   BKH_Differences_between_data_frequencies = 2112;
-
-  //Not generated...
-  BKH_Creating_a_BankLink_Notes_Online_file_to_send_to_a_client = 2113;
-  BHK_Importing_a_BankLink_Notes_Online_file_into_BankLink_Practice  = 2114;
+  BKH_Creating_a_BankLink_Notes_Online_file_for_a_client_to_access = 2113;
+  BKH_Importing_a_BankLink_Notes_Online_file_into_BankLink_Practice = 2114;
+  BKH_Interfacing_with_Class_Super = 2069;
+  BKH_Copying_a_chart_from_Class_Super_into_BankLink_Practice = 2115;
+  BKH_GST_Return_Transitional = 2116;
 
 var
   //filename of HTML help file

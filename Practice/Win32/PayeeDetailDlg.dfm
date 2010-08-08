@@ -72,12 +72,15 @@ object dlgPayeeDetail: TdlgPayeeDetail
       OnGetCellAttributes = tblSplitGetCellAttributes
       OnMouseDown = tblSplitMouseDown
       OnUserCommand = tblSplitUserCommand
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 622
-      ExplicitHeight = 132
       CellData = (
-        'dlgPayeeDetail.Header')
+        'dlgPayeeDetail.Header'
+        'dlgPayeeDetail.colLineType'
+        'dlgPayeeDetail.colPercent'
+        'dlgPayeeDetail.ColAmount'
+        'dlgPayeeDetail.ColGSTCode'
+        'dlgPayeeDetail.colNarration'
+        'dlgPayeeDetail.ColDesc'
+        'dlgPayeeDetail.ColAcct')
       RowData = (
         21)
       ColData = (
@@ -118,9 +121,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitLeft = 0
-      ExplicitTop = 132
-      ExplicitWidth = 622
       object sbtnChart: TSpeedButton
         AlignWithMargins = True
         Left = 3

@@ -77,7 +77,7 @@ type
      SF_Other_Tax_Credit: Money;
      SF_Non_Resident_Tax: Money;
      SF_Foreign_Capital_Gains_Credit: Money;
-
+     SF_Capital_Gains_Fraction_Half: Boolean;
      JobCode       : string [8];
   end;
 
@@ -344,7 +344,7 @@ begin
      SF_Other_Tax_Credit := 0;
      SF_Non_Resident_Tax := 0;
      SF_Foreign_Capital_Gains_Credit := 0;
-
+     SF_Capital_Gains_Fraction_Half := False;
    end;
 end;
 
@@ -853,6 +853,8 @@ end;
 //   Sage Handisoft Superfund
 //
 //*****************************************************************************************
+
+// Transaction
 function EditSageHandisoftFields( pT : pTransaction_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm: TdlgEditSageHandisoftSuperFields;
@@ -862,6 +864,7 @@ begin
   try
     //Setup
     SuperForm.SetInfo( pT^.txDate_Effective, pT^.txGL_Narration, pT^.txAmount );
+    SuperForm.FrankPercentage := False;
     SuperForm.SetFields( pT^.txSF_Transaction_ID,
                          pT^.txSF_Transaction_Code,
                          pT^.txQuantity,
@@ -905,6 +908,7 @@ begin
   end;
 end;
 
+// Dissection
 function EditSageHandisoftFields( ParentTrans : pTransaction_Rec; pWD : pWorkDissect_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm: TdlgEditSageHandisoftSuperFields;
@@ -914,6 +918,7 @@ begin
   try
     //Setup
     SuperForm.SetInfo( ParentTrans.txDate_Effective, pWD^.dtNarration, pWD^.dtAmount );
+    SuperForm.FrankPercentage := False;
     SuperForm.SetFields( pWD^.dtSF_Transaction_Type_ID,
                          pWD^.dtSF_Transaction_Type_Code,
                          pWD^.dtQuantity,
@@ -950,6 +955,8 @@ begin
   end;
 end;
 
+
+// Journal
 function EditSageHandisoftFields( ParentTrans : pTransaction_Rec; pWJ : pWorkJournal_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditSageHandisoftSuperFields;
@@ -958,6 +965,7 @@ begin
   SuperForm := TdlgEditSageHandisoftSuperFields.Create( Application.Mainform);
   try
     SuperForm.SetInfo( ParentTrans.txDate_Effective, pWJ^.dtNarration, pWJ^.dtAmount);
+    SuperForm.FrankPercentage := False;
     SuperForm.SetFields( pWJ^.dtSF_Transaction_Type_ID,
                          pWJ^.dtSF_Transaction_Type_Code,
                          pWJ^.dtQuantity,
@@ -994,6 +1002,87 @@ begin
     SuperForm.Release;
   end;
 end;
+
+//SageHandisoft Memorization
+function EditSageHandisoftFields( ParentTrans : pTransaction_Rec; var Mem : TmemSplitRec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
+var
+   SuperForm: TdlgEditSageHandisoftSuperFields;
+   ForDate: Integer;
+   Narration: string;
+   Amount: Money;
+begin
+  Result := false;
+  SuperForm := TdlgEditSageHandisoftSuperFields.Create( Application.Mainform);
+  try
+    if Assigned(ParentTrans) then begin
+       ForDate := ParentTrans.txDate_Effective;
+       Narration := ParentTrans.txGL_Narration;
+
+       case Mem.LineType of
+          mltPercentage :  begin
+             Amount := Double2Money  (Mem.Amount * Money2Double(ParentTrans.txAmount) / 100);
+          end;
+          else begin
+             Amount := Double2Money(Mem.Amount);
+          end;
+       end;
+
+    end else begin
+       ForDate := 0;
+       Narration := '';
+       case Mem.LineType of
+          mltPercentage :  begin
+             Amount := Double2Percent(Mem.Amount);
+          end
+          else begin
+             Amount := Double2Money(Mem.Amount);
+          end;
+       end;
+    end;
+
+    SuperForm.SetInfo(Fordate, Narration, Amount );
+    SuperForm.FrankPercentage := True;
+    Amount := 0;
+    SuperForm.SetFields( mem.SF_Trans_ID,
+                         mem.SF_Trans_Code,
+                         mem.Quantity,
+                         mem.SF_PCFranked,
+                         mem.SF_PCUNFranked,
+                         Amount);
+
+   // SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
+    SuperForm.MoveDirection := Move;
+    if T > -999 then
+    begin
+      SuperForm.FormTop := T;
+      SuperForm.FormLeft := L;
+    end
+    else
+      SuperForm.Position := poScreenCenter;
+    if SuperForm.ShowModal = mrOK then
+      begin
+        Move := SuperForm.MoveDirection;
+
+        mem.SF_Edited := SuperForm.GetFields(mem.SF_Trans_ID,
+                         mem.SF_Trans_Code,
+                         mem.Quantity,
+                         mem.SF_PCFranked,
+                         mem.SF_PCUNFranked,
+                         Amount);
+
+        if Move in [fnGoForward, fnGoBack] then
+        begin
+          T := SuperForm.Top;
+          L := SuperForm.Left;
+        end;
+        Result := true;
+      end;
+  finally
+    SuperForm.Release;
+  end;
+end;
+
+
 
 //*****************************************************************************************
 //
@@ -1146,7 +1235,7 @@ begin
 end;
 
 
-// Supervisor Disection
+// Supervisor Dissection
 function EditSupervisorFields( ParentTrans : pTransaction_Rec; pWD : pWorkDissect_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditSupervisorFields;
@@ -1380,12 +1469,15 @@ begin
                          pT^.txSF_TFN_Credits,
                          pT^.txSF_Foreign_Capital_Gains_Credit,
                          pT^.txSF_Other_Tax_Credit,
-                         pT^.txSF_CGT_Date, pT^.txSF_Member_Account_ID,
-                         pT^.txSF_Fund_ID, pT^.txAccount,
+                         pT^.txSF_CGT_Date,
+                         pT^.txSF_Member_Account_ID,
+                         pT^.txSF_Fund_ID,
+                         pT^.txAccount,
                          pT^.txSF_Fund_Code,
                          pt^.txSF_Member_Account_Code,
                          pT^.txQuantity,
-                         pT^.txSF_Transaction_ID, pT^.txSF_Capital_Gains_Fraction_Half);
+                         pT^.txSF_Transaction_ID,
+                         pT^.txSF_Capital_Gains_Fraction_Half);
 
     SuperForm.ReadOnly := ( pT^.txLocked) or ( pT^.txDate_Transferred <> 0);
     SuperForm.MoveDirection := Move;
@@ -1480,9 +1572,14 @@ begin
                          pWJ^.dtSF_TFN_Credits,
                          pWJ^.dtSF_Foreign_Capital_Gains_Credit,
                          pWJ^.dtSF_Other_Tax_Credit,
-                         pWJ^.dtSF_CGT_Date,  pWJ^.dtSF_Member_Account_ID, pWJ^.dtSF_Fund_ID,
-                         pWJ^.dtAccount, pWJ^.dtSF_Fund_Code, pWJ^.dtSF_Member_Account_Code,
-                         pWJ^.dtQuantity, pWJ^.dtSF_Transaction_Type_ID,
+                         pWJ^.dtSF_CGT_Date,
+                         pWJ^.dtSF_Member_Account_ID,
+                         pWJ^.dtSF_Fund_ID,
+                         pWJ^.dtAccount,
+                         pWJ^.dtSF_Fund_Code,
+                         pWJ^.dtSF_Member_Account_Code,
+                         pWJ^.dtQuantity,
+                         pWJ^.dtSF_Transaction_Type_ID,
                          pWJ^.dtSF_Capital_Gains_Fraction_Half);
 
     SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
@@ -1512,9 +1609,15 @@ begin
                          pWJ^.dtSF_TFN_Credits,
                          pWJ^.dtSF_Foreign_Capital_Gains_Credit,
                          pWJ^.dtSF_Other_Tax_Credit,
-                         pWJ^.dtSF_CGT_Date,  pWJ^.dtSF_Member_Account_ID, pWJ^.dtSF_Fund_ID,
-                         pWJ^.dtSF_Fund_Code, pWJ^.dtSF_Member_Account_Code,
-                         pWJ^.dtAccount, pWJ^.dtQuantity, pWJ^.dtSF_Transaction_Type_ID, pWJ^.dtSF_Transaction_Type_Code,
+                         pWJ^.dtSF_CGT_Date,
+                         pWJ^.dtSF_Member_Account_ID,
+                         pWJ^.dtSF_Fund_ID,
+                         pWJ^.dtSF_Fund_Code,
+                         pWJ^.dtSF_Member_Account_Code,
+                         pWJ^.dtAccount,
+                         pWJ^.dtQuantity,
+                         pWJ^.dtSF_Transaction_Type_ID,
+                         pWJ^.dtSF_Transaction_Type_Code,
                          pWJ^.dtSF_Capital_Gains_Fraction_Half);
         Result := true;
         if Move in [fnGoForward, fnGoBack] then
@@ -1563,8 +1666,14 @@ begin
                          pWD^.dtSF_TFN_Credits,
                          pWD^.dtSF_Foreign_Capital_Gains_Credit,
                          pWD^.dtSF_Other_Tax_Credit,
-                         pWD^.dtSF_CGT_Date,  pWD^.dtSF_Member_Account_ID, pWD^.dtSF_Fund_ID,pWD^.dtSF_Member_Account_Code,
-                         pWD^.dtAccount,pWD^.dtSF_Fund_Code, pWD^.dtQuantity, pWD^.dtSF_Transaction_Type_ID,
+                         pWD^.dtSF_CGT_Date,
+                         pWD^.dtSF_Member_Account_ID,
+                         pWD^.dtSF_Fund_ID,
+                         pWD^.dtAccount,
+                         pWD^.dtSF_Fund_Code,
+                         pWD^.dtSF_Member_Account_Code,
+                         pWD^.dtQuantity,
+                         pWD^.dtSF_Transaction_Type_ID,
                          pWD^.dtSF_Capital_Gains_Fraction_Half);
     SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
     SuperForm.MoveDirection := Move;
@@ -1593,10 +1702,16 @@ begin
                          pWD^.dtSF_TFN_Credits,
                          pWD^.dtSF_Foreign_Capital_Gains_Credit,
                          pWD^.dtSF_Other_Tax_Credit,
-                         pWD^.dtSF_CGT_Date,  pWD^.dtSF_Member_Account_ID, pWD^.dtSF_Fund_ID,
-                         pWD^.dtSF_Fund_Code, pWD^.dtSF_Member_Account_Code,
-                         pWD^.dtAccount, pWD^.dtQuantity, pWD^.dtSF_Transaction_Type_ID,
-                         pWD^.dtSF_Transaction_Type_Code, pWD^.dtSF_Capital_Gains_Fraction_Half);
+                         pWD^.dtSF_CGT_Date,
+                         pWD^.dtSF_Member_Account_ID,
+                         pWD^.dtSF_Fund_ID,
+                         pWD^.dtSF_Fund_Code,
+                         pWD^.dtSF_Member_Account_Code,
+                         pWD^.dtAccount,
+                         pWD^.dtQuantity,
+                         pWD^.dtSF_Transaction_Type_ID,
+                         pWD^.dtSF_Transaction_Type_Code,
+                         pWD^.dtSF_Capital_Gains_Fraction_Half);
         if Move in [fnGoForward, fnGoBack] then
         begin
           T := superForm.Top;
@@ -1701,7 +1816,7 @@ begin
 
                          Mem.Quantity,
                          Mem.SF_Trans_ID,
-                         lb
+                         mem.SF_Capital_Gains_Fraction_Half
                          );
 
 
@@ -1715,7 +1830,8 @@ begin
 
     if SuperForm.ShowModal = mrOK then begin
        Move := SuperForm.MoveDirection;
-       Mem.SF_Edited := SuperForm.GetFields( Mem.SF_Special_Income,
+       Mem.SF_Edited := SuperForm.GetFields(
+                         Mem.SF_Special_Income,
                          Mem.SF_PCFranked,
                          Mem.SF_PCUnFranked,
                          Mem.SF_foreign_Income,
@@ -1739,8 +1855,8 @@ begin
                          Mem.AcctCode,
                          Mem.Quantity,
                          Mem.SF_Trans_ID,
-                         Narration,
-                         lb
+                         Mem.SF_Trans_Code,
+                         Mem.SF_Capital_Gains_Fraction_Half
                          );
 
 
@@ -1810,11 +1926,16 @@ function EditSuperFields(ParentTrans : pTransaction_Rec; var Mem : TmemSplitRec;
 
 begin
   Result := false;
-  IncUsage('Edit Superfund Memorisation');
+  case aSDMode of
+     sfMem : IncUsage('Edit Superfund Payee');
+     sfPayee : IncUsage('Edit Superfund Memorisation');
+  end;
   case MyClient.clFields.clAccounting_System_Used of
      saBGLSimpleFund, saBGLSimpleLedger: result := EditBGLFields(ParentTrans, Mem, Move, T, L);
      saSupervisor, saSolution6SuperFund, saSuperMate: result := EditSupervisorFields(ParentTrans,Mem, Move, T, L);
      saDesktopSuper, saClassSuperIP: result := EditDesktopFields(ParentTrans, Mem, BA, Move, T, L, MyClient.clFields.clAccounting_System_Used, aSDMode);
+
+     saSageHandisoftSuperfund: Result := EditSageHandisoftFields(ParentTrans, mem, Move, T, L);
   end;
 end;
 

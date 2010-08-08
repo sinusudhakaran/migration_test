@@ -50,6 +50,7 @@ Type
 
   TDissection_Helper = record helper for TDissection_Rec
   private
+    function Bank_Account : TBank_Account;
     procedure SetLocal_Amount(const Value: Money);
     procedure SetForex_Rate(const Value: Double);
     function GetForex_Rate: Double;
@@ -57,6 +58,7 @@ Type
     function Client : TClientObj;
     function GetForeign_Amount: Money;
     procedure SetForeign_Amount(const Value: Money);
+    function GetStatement_Amount: Money;
     function GetDefault_Forex_Rate: Double;
     function GetDate_Effective: Integer;
   public
@@ -64,6 +66,7 @@ Type
     property Foreign_Amount : Money read GetForeign_Amount write SetForeign_Amount;
     property Local_Amount : Money read GetLocal_Amount write SetLocal_Amount;
     property Forex_Rate : Double read GetForex_Rate write SetForex_Rate;
+    property Statement_Amount : Money read GetStatement_Amount;
     property Default_Forex_Rate : Double read GetDefault_Forex_Rate;
     property Date_Effective: Integer  read GetDate_Effective;
   end;
@@ -347,6 +350,11 @@ end;
 
 { TDissection_Helper }
 
+function TDissection_Helper.Bank_Account: TBank_Account;
+begin
+   Result := TBank_Account(dsBank_Account);
+end;
+
 function TDissection_Helper.Client: TClientObj;
 begin
   Result := TClientObj( dsClient );
@@ -377,6 +385,14 @@ end;
 function TDissection_Helper.GetLocal_Amount: Money;
 begin
   Result := dsAmount;
+end;
+
+function TDissection_Helper.GetStatement_Amount: Money;
+begin
+  if  Bank_Account.IsAForexAccount then
+     Result := dsForeign_Currency_Amount
+  else
+     Result := dsAmount;
 end;
 
 function TDissection_Helper.Locked: Boolean;

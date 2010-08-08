@@ -4587,14 +4587,12 @@ end;
 // Acclipse Export
 procedure TfrmMain.mniExportWebXClick(Sender: TObject);
 begin
-  IncUsage('Acclipse File');
   DoMainFormCommand( mf_mcExportWebX);
 end;
 
 // Acclipse Import
 procedure TfrmMain.mniImportWebXClick(Sender: TObject);
 begin
-  IncUsage('Acclipse Import');
   DoMainFormCommand( mf_mcImportWebX);
 end;
 

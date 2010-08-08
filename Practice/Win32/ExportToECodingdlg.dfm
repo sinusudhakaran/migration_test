@@ -83,14 +83,6 @@ object dlgExportToECoding: TdlgExportToECoding
           ExplicitTop = 5
           ExplicitWidth = 508
           ExplicitHeight = 329
-          inherited edtPassword: TEdit
-            Height = 19
-            ExplicitHeight = 19
-          end
-          inherited edtConfirm: TEdit
-            Height = 19
-            ExplicitHeight = 19
-          end
         end
       end
       object GroupBox2: TGroupBox

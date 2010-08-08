@@ -1638,21 +1638,18 @@ const
   Form6 = 'Zero rated supplies in Box %s';
   Form7 = 'Subtract Box %s from Box %s';
   form8 = 'Divide Box %s by nine';
-
   Form16 = 'Enter total sales and income from Box %s';
-
   Form25 = 'If Box %s is a refund, enter the amount you would like to transfer to provisional tax, otherwise enter zero (0)';
-
   Form27 = 'If Box %s is GST to pay enter the amount here, otherwise enter zero (0)';
-
-
 
 begin
   FFormPeriod := Value;
   case FFormPeriod of
+
      PreOct2010: begin
              TsPart1B.TabVisible := False;
          end;
+
      Transitional: begin
            tsPart1.Caption := 'Part 1A - GST upto 30/09/10';
            // Update form1
@@ -1667,7 +1664,7 @@ begin
            LI12.Caption := '12A';
            LI13.Caption := '13A';
            LI14.Caption := '14A';
-           
+
            l6.Caption := Format(Form6,[LI5.Caption]);
            l7.Caption := Format(Form7,[LI5.Caption,LI5.Caption]);
            l8.Caption  := format(Form8,[LI7.Caption]);
@@ -1681,22 +1678,23 @@ begin
            LI16.Caption := '18';
            P17.Visible := False;
            P18.Visible := False;
+
+           BKHelpSetUp(Self,BKH_GST_Return_Transitional);
+           lblSubmit.Visible := False;
         end;
+
      PostOct2010: begin
            TsPart1B.TabVisible := False;
+           // Update the formulas
            l8.Caption := format(NewGSTRateText,[LI7.Caption]);
            l12.Caption := format(NewGSTRateText,[LI11.caption]);
-
         end;
   end;
-  if FFormPeriod >= Transitional then begin
 
-
-
-  end;
 end;
 
 procedure TfrmGST101.SetFormType(const Value: TFormType);
+
   procedure SetLabletext(const Main, Small : string);
   begin
      LSmall1.Caption := Small;
@@ -1709,6 +1707,7 @@ procedure TfrmGST101.SetFormType(const Value: TFormType);
      LMain3.Caption := Main;
      Self.Caption := Main;
   end;
+
   function PeriodText: string;
   begin
      if FormPeriod = transitional then
@@ -1716,6 +1715,7 @@ procedure TfrmGST101.SetFormType(const Value: TFormType);
      else
         Result := '';
   end;
+
 begin
   FFormType := Value;
 
@@ -1730,17 +1730,20 @@ begin
           pnlPurchases.Color := $00DBEEFF;
           pnlTotalGST.Color := $00DBEEFF;
         end;
+
      GST101A: begin
           SetLabletext(Format('Goods and services tax%s return',[PeriodText]), 'GST 101A');
           TSPart2.TabVisible := False;
           TSPart3.TabVisible := False;
           TSPart1.TabVisible := TSPart1B.TabVisible;
         end;
+
      GST103Bc: begin
           SetLabletext(Format('GST and provisional tax%s return',[PeriodText]), 'GST 103B');
           DoPart2 := True;
           DoPart3 := True;
         end;
+
      GST103Bv: begin
           SetLabletext(Format('GST and provisional tax%s return',[PeriodText]), 'GST 103B');
           DoPart3 := True;

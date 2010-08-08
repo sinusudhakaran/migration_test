@@ -3959,8 +3959,15 @@ begin
              txSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
              txSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
              txSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
              if PayeeLine.plQuantity <> 0 then
                 txQuantity := PayeeLine.plQuantity;
+
+             if PayeeLine.plSF_GDT_Date <> 0 then
+                txSF_CGT_Date := PayeeLine.plSF_GDT_Date;
+
+             txSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
+
              SplitRevenue(txAmount,
                           txSF_Tax_Free_Dist,
                           txSF_Tax_Exempt_Dist,
@@ -4055,8 +4062,14 @@ begin
                   dsSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
                   dsSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
                   dsSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
                   if PayeeLine.plQuantity <> 0 then
                      dsQuantity := PayeeLine.plQuantity;
+                  if PayeeLine.plSF_GDT_Date <> 0 then
+                     dsSF_CGT_Date := PayeeLine.plSF_GDT_Date;
+
+                  dsSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
+
                   SplitRevenue(dsAmount,
                                dsSF_Tax_Free_Dist,
                                dsSF_Tax_Exempt_Dist,

@@ -23,7 +23,7 @@ type
     Label10: TLabel;
     lblDate: TLabel;
     lblAmount: TLabel;
-    Label11: TLabel;
+    lbAmountlbl: TLabel;
     Label12: TLabel;
     lblNarration: TLabel;
     pnlFooters: TPanel;
@@ -46,6 +46,8 @@ type
     cxComboBox1: TcxComboBox;
     cxComboBox2: TcxComboBox;
     nfNumberIssued: TOvcNumericField;
+    lp1: TLabel;
+    lp2: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -67,12 +69,14 @@ type
     FDate: Integer;
     crModified: Boolean;
     UFModified: Boolean;
+    FFrankPercentage: boolean;
     function ValidForm: boolean;
     function ListedCompanyDividend: boolean;
     procedure LoadTypes;
     procedure SetupHelp;
     procedure SetMoveDirection(const Value: TFundNavigation);
     procedure SetReadOnly(const Value: boolean);
+    procedure SetFrankPercentage(const Value: boolean);
   public
     { Public declarations }
     function GetFields(var AType: integer; var ATransaction: string; var ANumberIssued,
@@ -84,14 +88,15 @@ type
     property FormTop: Integer read FTop write FTop;
     property FormLeft: Integer read FLeft write FLeft;
     property ReadOnly : boolean read FReadOnly write SetReadOnly;
+    property FrankPercentage: boolean read FFrankPercentage write SetFrankPercentage;
   end;
 
-var
-  dlgEditSageHandisoftSuperFields: TdlgEditSageHandisoftSuperFields;
+
 
 implementation
 
 uses
+  bkHelp,
   Globals, bkXPThemes, ImagesFrm, bkDateUtils, GenUtils, SuperFieldsUtils,
   WarningMoreFrm;
 
@@ -273,15 +278,42 @@ begin
   nfImputedCredit.AsFloat := Money2Double(AFrankingCredit);
 end;
 
+procedure TdlgEditSageHandisoftSuperFields.SetFrankPercentage(
+  const Value: boolean);
+begin
+   FFrankPercentage := Value;
+   SetPercentLabel(lp1, FFrankPercentage);
+   SetPercentLabel(lp2, FFrankPercentage);
+
+
+   btnCalc.Visible := not FFrankPercentage;
+
+   if FFrankPercentage then begin
+      lblfrankedAmount.Caption := 'Percentage Franked';
+      lblUnFrankedAmount.Caption := 'Percentage Unfranked';
+
+      FTranAmount := 100;
+      nfImputedCredit.Enabled := False;
+
+      lblAmount.Caption := '100%'
+   end else begin
+      lblfrankedAmount.Caption := 'Franked';
+      lblUnFrankedAmount.Caption := 'Unfranked';
+      nfImputedCredit.Enabled := (not FReadOnly);
+      lblAmount.Caption := Money2Str(FActualAmount);
+   end;
+
+end;
+
 procedure TdlgEditSageHandisoftSuperFields.SetInfo(iDate: integer;
   sNarration: string; mAmount: Money);
 begin
   FDate := iDate;
+
   FActualAmount := mAmount;
   FTranAmount := Abs(mAmount/100.0);
 
   lblDate.Caption := BkDate2Str(FDate);
-  lblAmount.Caption := Money2Str(FActualAmount);
   lblNarration.Caption := sNarration;
 end;
 
@@ -306,7 +338,7 @@ end;
 
 procedure TdlgEditSageHandisoftSuperFields.SetupHelp;
 begin
-    Self.ShowHint    := INI_ShowFormHints;
+    Self.ShowHint := INI_ShowFormHints;
     btnBack.Hint := 'Goto previous line|' +
                     'Goto previous line';
 
@@ -315,6 +347,7 @@ begin
 
     btnCalc.Hint := 'Calculate the Franking Credit|' +
                     'Calculate the Franking Credit';
+    BKHelpSetUp(Self, BKH_Transferring_transactions_to_Sage_Handisoft_Superfund);
 end;
 
 function TdlgEditSageHandisoftSuperFields.ValidForm: boolean;

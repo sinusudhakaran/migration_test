@@ -597,14 +597,9 @@ begin
 
       //setup bank account details
 
-      with BankAccount.baFields do begin
-         with lblAcctDetails do begin
-            Caption := Format( 'A/C  %s  %s',[ baBank_Account_Number, baBank_Account_Name ]);
-            if BankAccount.IsAForexAccount then
-                 Caption := Caption + ' (' + baCurrency_Code + ')';
-
-            Hint    := Caption;  //set so user can see the full details even if form width small
-         end;
+      with lblAcctDetails do begin
+         Caption := Format( 'A/C  %',[ BankAccount.Title ]);
+         Hint    := Caption;  //set so user can see the full details even if form width small
       end;
 
 
@@ -4618,7 +4613,7 @@ begin
    if (SelectedBA.baFields.baManual_Account_Institution = '') or
       (SelectedBA.baFields.baManual_Account_Type = -1) then
    begin
-     if AskYesNo('Temporary Account Upgrade', 'The Temporary Account "' + SelectedBA.baFields.baBank_Account_Name + ' : ' +
+     if AskYesNo('Temporary Account Upgrade', 'The Temporary Account "' + SelectedBA.AccountName + ' : ' +
        SelectedBA.baFields.baBank_Account_Number + '" has been upgraded to a Manual Account.'#13#13 +
        'The manual account type and institution are required.'#13#13 +
        'Would you like to enter this information now?', DLG_YES, 0) <> DLG_YES then exit;

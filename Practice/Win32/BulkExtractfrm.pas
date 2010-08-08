@@ -140,7 +140,7 @@ type
      function AccountToText(anAccount: TBank_Account): string;
      function ClientToText(aClient: TClientObj): string;
      function TransactionToText(aTrans: pTransaction_Rec): string;
-     function DissectionToText(const Index: Integer; aDiss: tDissection_Rec): string;
+     function DissectionToText(const Index: Integer; aDiss: pDissection_Rec): string;
      function ClientStatustext(aClient: pClient_File_Rec): string;
      function SessionText(Session: TExtractSession): string;
      // Field helpers
@@ -1330,7 +1330,7 @@ begin
   inherited;
 end;
 
-function TBulkExtractor.DissectionToText(const Index: Integer; aDiss: tDissection_Rec): string;
+function TBulkExtractor.DissectionToText(const Index: Integer; aDiss: pDissection_Rec): string;
 begin
    FFields.Clear;
    AddNumberField(f_Line,FlineCount);
@@ -1357,6 +1357,7 @@ begin
    AddField(f_OtherParty, aDiss.dsTransaction.txOther_Party);
    AddField(f_Particulars, aDiss.dsTransaction.txParticulars);
    AddField(f_Narration, aDiss.dsGL_Narration);
+   AddField(f_Notes, GetFullNotes(aDiss));
 
    // Coding
    AddField(f_Code,aDiss.dsAccount);
@@ -1666,7 +1667,7 @@ begin
          end;
 
          Inc(FLineCount);
-         Result := DoExport(Session,ef_Dissection,DissectionToText(LDissCount,LDiss^));
+         Result := DoExport(Session,ef_Dissection,DissectionToText(LDissCount,LDiss));
          if not Result then
             Exit;
          lDiss := LDiss.dsNext;
@@ -1949,6 +1950,7 @@ begin
    AddField(f_OtherParty,  aTrans.txOther_Party);
    AddField(f_Particulars, aTrans.txParticulars);
    AddField(f_Narration,   aTrans.txGL_Narration);
+   AddField(f_Notes,       GetFullNotes(aTrans));
 
    // Coding
    AddField(f_Code,aTrans.txAccount);

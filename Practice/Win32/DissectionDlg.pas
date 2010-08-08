@@ -4379,8 +4379,15 @@ begin
              dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
              dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
              dtSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
              if PayeeLine.plQuantity <> 0 then
                 dtQuantity := PayeeLine.plQuantity;
+
+             if PayeeLine.plSF_GDT_Date <> 0 then
+                dtSF_CGT_Date := PayeeLine.plSF_GDT_Date;
+
+             dtSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
+
              SplitRevenue(dtAmount,
                           dtSF_Tax_Free_Dist,
                           dtSF_Tax_Exempt_Dist,
@@ -4499,8 +4506,15 @@ begin
                 pDissectRec.dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
                 pDissectRec.dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
                 pDissectRec.dtSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
                 if PayeeLine.plQuantity <> 0 then
                     pDissectRec.dtQuantity := PayeeLine.plQuantity;
+
+                if PayeeLine.plSF_GDT_Date <> 0 then
+                   pDissectRec.dtSF_CGT_Date := PayeeLine.plSF_GDT_Date;
+
+                pDissectRec.dtSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
+
                 SplitRevenue(pDissectRec.dtAmount,
                           pDissectRec.dtSF_Tax_Free_Dist,
                           pDissectRec.dtSF_Tax_Exempt_Dist,

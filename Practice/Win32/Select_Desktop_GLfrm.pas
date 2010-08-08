@@ -18,7 +18,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, OSFont;
 
 type
   TDS_GL_Rec = record
@@ -42,6 +42,7 @@ type
     procedure cmbLedgerDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure cmbLedgerDropDown(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     GLArray : TGLArray;
@@ -56,7 +57,9 @@ procedure SelectLedgerCode( var LedgerCode : ShortString; const ListOfGLs : stri
 
 implementation
 
-uses StStrS, GenUtils;
+uses
+ bkXPThemes,
+ StStrS, GenUtils;
 
 {$R *.dfm}
 
@@ -152,6 +155,11 @@ begin
   try
     S.Text := List;
     // Note start at '1' to skip headers
+    if S.Count < 1 then begin
+       SetLength( GLArray,0);
+       Exit;
+    end;
+
     SetLength( GLArray, S.Count - 1);
     for i := 1 to Pred(S.Count) do
     begin
@@ -163,6 +171,11 @@ begin
   finally
     S.Free;
   end;
+end;
+
+procedure TfrmSelect_Desktop_GL.FormCreate(Sender: TObject);
+begin
+   bkXPThemes.ThemeForm(Self);
 end;
 
 procedure TfrmSelect_Desktop_GL.FormDestroy(Sender: TObject);

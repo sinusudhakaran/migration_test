@@ -275,8 +275,8 @@ begin
                              EntryWord( TempEntries),
                              BkDate2Str( TempFromDate),
                              BkDate2Str( TempToDate),
-                             TempBa.bafields.baBank_Account_Number + ' ' + TempBa.BaFields.baBank_Account_Name,
-                             BankBa.baFields.baBank_Account_Number + ' ' + BankBa.baFields.baBank_Account_Name]);
+                             TempBa.bafields.baBank_Account_Number + ' ' + TempBa.AccountName,
+                             BankBa.baFields.baBank_Account_Number + ' ' + BankBa.AccountName]);
 
      if BankEntries > 0 then begin
         aMsg := aMsg + #13#13'%d existing %s will be deleted from Bank Account "%s".';
@@ -331,11 +331,11 @@ begin
                   if baAccount_Type = btBank then begin
                      if ba.baFields.baIs_A_Manual_Account then begin
                         //add to temp list
-                        cmbTempAccount.Items.AddObject( baBank_Account_Number + '  ' + baBank_Account_Name, ba);
+                        cmbTempAccount.Items.AddObject( ba.Title, ba);
                      end
                      else begin
                         //add to accounts list
-                        cmbBankAccount.Items.AddObject( baBank_Account_Number + '  ' + baBank_Account_Name, ba);
+                        cmbBankAccount.Items.AddObject( ba.Title, ba);
                      end;
                   end;
                end;

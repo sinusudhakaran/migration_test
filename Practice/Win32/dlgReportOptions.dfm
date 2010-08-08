@@ -195,7 +195,7 @@ object ReportOptionDlg: TReportOptionDlg
       Width = 207
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 3
     end

@@ -633,6 +633,7 @@ begin
   nfUnits.AsFloat := mUnits / 10000;
 
   cmbFund.ItemIndex := -1;
+  cmbFund.Text := '';
   cmbMember.ItemIndex := -1;
   cmbTrans.ItemIndex := -1;
 
@@ -991,6 +992,7 @@ begin
   eCGTDate.AsString := '';
   cmbMember.ItemIndex := -1;
   cmbFund.ItemIndex := -1;
+  cmbFund.Text := '';
   cmbTrans.ItemIndex := -1;
   btnThird.Caption := '2/3';
   UFModified := False;
@@ -1135,6 +1137,8 @@ begin
    nfForeignCGCredit.Enabled := (FSDMode in [sftrans]) and  (not FReadOnly);
    nfOtherTaxCredit.Enabled := (FSDMode in [sftrans]) and  (not FReadOnly);
    nfImputedCredit.Enabled := (FSDMode in [sftrans]) and  (not FReadOnly);
+
+   nfContrib.Enabled := (FSDMode in [sftrans]) and  (not FReadOnly);
 
    cmbTrans.Enabled := (FSDMode in [sftrans, sfMem]) and  (not FReadOnly);
    cmbfund.Enabled := (FSDMode in [sftrans, sfMem]) and  (not FReadOnly);

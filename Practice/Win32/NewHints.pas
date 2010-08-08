@@ -687,9 +687,9 @@ begin
     //super hints
     if pWD^.dtSuper_Fields_Edited then
       begin
-        if (MyClient.clFields.clAccounting_System_Used = saSupervisor) or
-           (MyClient.clFields.clAccounting_System_Used = saSuperMate) or
-           (MyClient.clFields.clAccounting_System_Used = saSolution6SuperFund) then
+        case MyClient.clFields.clAccounting_System_Used of
+        saSupervisor,
+        saSuperMate,saSolution6SuperFund :
         begin
           AddIfNotBlank( sffNamesSupervis[ sff_Member_ID],                pWD^.dtSF_Member_ID, HintSL);
           AddIfNotZero( sffNamesSupervis[ sff_Franked],                   pWD^.dtSF_Franked, HintSL);
@@ -712,8 +712,9 @@ begin
           AddIfNotZero( sffNamesSupervis[ sff_TFN_Credits] ,              pWD^.dtSF_TFN_Credits, HintSL);
           AddIfNotZero( sffNamesSupervis[ sff_Other_Tax_Credit],          pWD^.dtSF_Other_Tax_Credit, HintSL);
           AddIfNotZero( sffNamesSupervis[ sff_Non_Resident_Tax],          pWD^.dtSF_Non_Resident_Tax, HintSL);
-        end
-        else if MyClient.clFields.clAccounting_System_Used = saDesktopSuper then
+        end;
+        saDesktopSuper,
+        saClassSuperIP:
         begin
           AddIfNotBlank(sffNamesDesktop[ sff_Transaction_Type], pWD^.dtSF_Transaction_Type_Code, HintSL);
           AddIfNotBlank(sffNamesDesktop[ sff_Member_Component], pWD^.dtSF_Fund_Code, HintSL);
@@ -740,8 +741,9 @@ begin
           AddIfNotZero( sffNamesDesktop[ sff_Foreign_Tax_Credits] ,      pWD^.dtSF_Foreign_Tax_Credits, HintSL);
           AddIfNotZero( sffNamesDesktop[ sff_Foreign_CG_Credits] ,       pWD^.dtSF_Foreign_Capital_Gains_Credit, HintSL);
           AddIfNotZero( sffNamesDesktop[ sff_Other_Tax_Credit],          pWD^.dtSF_Other_Tax_Credit, HintSL);
-        end
-        else if MyClient.clFields.clAccounting_System_Used = saSageHandisoftSuperfund then
+        end;
+
+        saSageHandisoftSuperfund :
         begin
           //Type
           if pWD^.dtSF_Transaction_Type_ID >= 0 then
@@ -755,7 +757,8 @@ begin
           AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Unfranked],       pWD^.dtSF_Unfranked, HintSL);
           AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Franked],         pWD^.dtSF_Franked, HintSL);
           AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Imputed_Credit],  pWD^.dtSF_Imputed_Credit, HintSL);
-        end
+        end;
+
         else
         begin
           if pWD^.dtSF_CGT_Date <> 0 then
@@ -775,6 +778,7 @@ begin
           AddIfNotZero( sffNames[ sff_Capital_Gains_Other],       pWD^.dtSF_Capital_Gains_Other, HintSL);
           AddIfNotBlank (sffNames[ sff_Member_Component],         GetSFMemberText(pWD.dtDate,  pWD^.dtSF_Member_Component, false), HintSL);
         end;
+       end;//Case
       end;
 
     if HintSL.Count = 0 then exit;

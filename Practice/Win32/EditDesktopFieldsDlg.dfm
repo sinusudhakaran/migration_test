@@ -933,7 +933,8 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Top = 62
       Width = 145
       Height = 21
-      ItemHeight = 0
+      ItemHeight = 13
+      MaxLength = 20
       TabOrder = 1
       Text = '1212'
       OnCloseUp = cmbFundCloseUp

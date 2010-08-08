@@ -8,31 +8,32 @@ object frmSelect_Desktop_GL: TfrmSelect_Desktop_GL
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -13
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -11
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   Scaled = False
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
     419
     121)
   PixelsPerInch = 96
-  TextHeight = 16
+  TextHeight = 13
   object Label1: TLabel
     Left = 16
     Top = 24
-    Width = 71
-    Height = 16
+    Width = 56
+    Height = 13
     Caption = 'Select &Fund'
     FocusControl = cmbLedger
   end
   object Label2: TLabel
     Left = 16
     Top = 56
-    Width = 66
-    Height = 16
+    Width = 52
+    Height = 13
     Caption = 'Fund Code'
   end
   object lblLedgerPath: TLabel

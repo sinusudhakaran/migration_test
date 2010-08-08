@@ -341,8 +341,14 @@ Begin
                          txSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
                          txSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
                          txSF_Member_Component     := MemorisationLine.mlSF_Member_Component;
+
                          if MemorisationLine.mlQuantity <> 0 then
                             txQuantity := MemorisationLine.mlQuantity;
+                         if MemorisationLine.mlSF_GDT_Date <> 0 then
+                            txSF_CGT_Date := MemorisationLine.mlSF_GDT_Date;
+
+                         txSF_Capital_Gains_Fraction_Half := MemorisationLine.mlSF_Capital_Gains_Fraction_Half;
+
                          SplitRevenue(txAmount,
                                        txSF_Tax_Free_Dist,
                                        txSF_Tax_Exempt_Dist,
@@ -448,8 +454,14 @@ Begin
                                  dsSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
                                  dsSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
                                  dsSF_Member_Component     := MemorisationLine.mlSF_Member_Component;
+
                                  if MemorisationLine.mlQuantity <> 0 then
                                     dsQuantity := MemorisationLine.mlQuantity;
+
+                                 if MemorisationLine.mlSF_GDT_Date <> 0 then
+                                    dsSF_CGT_Date := MemorisationLine.mlSF_GDT_Date;
+
+                                 dsSF_Capital_Gains_Fraction_Half := MemorisationLine.mlSF_Capital_Gains_Fraction_Half;
                                  SplitRevenue(dsAmount,
                                        dsSF_Tax_Free_Dist,
                                        dsSF_Tax_Exempt_Dist,

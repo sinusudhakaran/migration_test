@@ -483,7 +483,9 @@ begin
 
           tblSplit.AllowRedraw := false;
           try
+              UpdateFields(tblSplit.ActiveRow);
              tblSplit.InvalidateRow(ActiveRow);
+
           finally
              tblSplit.AllowRedraw := true;
           end;
@@ -1107,6 +1109,7 @@ begin
         SplitData[SplitIndex].SF_Other_Tax_Credit := PayeeLine.plSF_Other_Tax_Credit;
         SplitData[SplitIndex].SF_Non_Resident_Tax := PayeeLine.plSF_Non_Resident_Tax;
         SplitData[SplitIndex].SF_Foreign_Capital_Gains_Credit := PayeeLine.plSF_Foreign_Capital_Gains_Credit;
+        SplitData[SplitIndex].SF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
 
         SplitData[SplitIndex].SF_Edited := PayeeLine.plSF_Edited;
 
@@ -1395,6 +1398,7 @@ begin
       PayeeLine.plSF_Other_Tax_Credit := SplitData[i].SF_Other_Tax_Credit;
       PayeeLine.plSF_Non_Resident_Tax := SplitData[i].SF_Non_Resident_Tax;
       PayeeLine.plSF_Foreign_Capital_Gains_Credit := SplitData[i].SF_Foreign_Capital_Gains_Credit;
+      PayeeLine.plSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
 
       aPayee.pdLines.Insert(PayeeLine);
     end;

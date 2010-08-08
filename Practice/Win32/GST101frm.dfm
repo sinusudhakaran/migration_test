@@ -138,10 +138,6 @@ object frmGST101: TfrmGST101
     TabOrder = 1
     object TSPart1: TTabSheet
       Caption = 'Part 1 - GST'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object sbGST: TScrollBox
         Left = 0
         Top = 0
@@ -2419,10 +2415,6 @@ object frmGST101: TfrmGST101
     object TsPart1B: TTabSheet
       Caption = 'Part 1B - GST after  01/10/10'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
@@ -4797,9 +4789,6 @@ object frmGST101: TfrmGST101
                 Align = alTop
                 BevelOuter = bvNone
                 TabOrder = 0
-                ExplicitLeft = 1
-                ExplicitTop = 1
-                ExplicitWidth = 488
                 object I16: TImage
                   Left = 338
                   Top = 0

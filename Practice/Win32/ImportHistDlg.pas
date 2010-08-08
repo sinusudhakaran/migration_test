@@ -1899,8 +1899,7 @@ begin
   if FBankAccount = nil then
      Exit; // ??
 
-  Caption := Format('Import Historical Transactions into Bank Account: %s, %s',
-        [FBankAccount.baFields.baBank_Account_Number, FBankAccount.baFields.baBank_Account_Name]);
+  Caption := Format('Import Historical Transactions into Bank Account: %s',[FBankAccount.Title]);
   lMaxHistDate := FBankAccount.MaxHistoricalDate;
   FValidDateRange := FBankAccount.Default_Forex_Concersion_DateRange;
 
