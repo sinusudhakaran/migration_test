@@ -488,15 +488,15 @@ object dlgMemorise: TdlgMemorise
       OnUserCommand = tblSplitUserCommand
       CellData = (
         'dlgMemorise.Header'
-        'dlgMemorise.ColAcct'
-        'dlgMemorise.ColDesc'
-        'dlgMemorise.colNarration'
-        'dlgMemorise.ColPayee'
-        'dlgMemorise.colJob'
-        'dlgMemorise.ColGSTCode'
-        'dlgMemorise.ColAmount'
+        'dlgMemorise.colLineType'
         'dlgMemorise.ColPercent'
-        'dlgMemorise.colLineType')
+        'dlgMemorise.ColAmount'
+        'dlgMemorise.ColGSTCode'
+        'dlgMemorise.colJob'
+        'dlgMemorise.ColPayee'
+        'dlgMemorise.colNarration'
+        'dlgMemorise.ColDesc'
+        'dlgMemorise.ColAcct')
       RowData = (
         21)
       ColData = (
