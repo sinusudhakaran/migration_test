@@ -198,7 +198,7 @@ begin
 
   s :=  GetNodeTextStr(Value,'Sort_by',psNames[SortBy]);
   for i := low(psNames) to High(psNames) do
-     if SameText(s,csNames[i]) then begin
+     if SameText(s,psNames[i]) then begin
         SortBy := i;
         Break;
      end;
