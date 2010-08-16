@@ -1664,7 +1664,10 @@ begin
 
          end;
       if S > '' then
-         Result := sysutils.StrToCurr(s);
+         if S = '-' then
+           Result := 0
+         else
+           Result := sysutils.StrToCurr(s);
       if IsNeg then
          Result := -Result;
    end;
