@@ -11,7 +11,7 @@ library BBE_BBtech;
   using PChar or ShortString parameters. }
 
 uses
-  ExtractCommon in 'ExtractCommon.pas',
+  ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
   ExtractHelpers in 'ExtractHelpers.pas',
   ExtractBBTech in 'ExtractBBTech.pas',
   frmXMLConfig in 'frmXMLConfig.pas' {XMLConfig};

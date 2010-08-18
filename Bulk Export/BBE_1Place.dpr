@@ -11,7 +11,7 @@ library BBE_1Place;
   using PChar or ShortString parameters. }
 
 uses
-  ExtractCommon in 'ExtractCommon.pas',
+  ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
   ExtractHelpers in 'ExtractHelpers.pas',
   frm1PlaceConfig in 'frm1PlaceConfig.pas' {OnePlaceConfig},
   Extract1Place in 'Extract1Place.pas';
