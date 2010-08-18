@@ -1,4 +1,5 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{cdf0fc8c-3a52-46aa-bcf8-80e5de00e898}</ProjectGuid>
     <MainSource>BBE_1Place.dpr</MainSource>
@@ -17,10 +18,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_Define>DEBUG</DCC_Define>
-    <DCC_UnitSearchPath>C:\Work\Delphi\Components\OmniXML</DCC_UnitSearchPath>
-    <DCC_ResourcePath>C:\Work\Delphi\Components\OmniXML</DCC_ResourcePath>
-    <DCC_ObjPath>C:\Work\Delphi\Components\OmniXML</DCC_ObjPath>
-    <DCC_IncludePath>C:\Work\Delphi\Components\OmniXML</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\Common;..\Common\Lib</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\Common;..\Common\Lib</DCC_ResourcePath>
+    <DCC_ObjPath>..\Common;..\Common\Lib</DCC_ObjPath>
+    <DCC_IncludePath>..\Common;..\Common\Lib</DCC_IncludePath>
     <DCC_ExeOutput>I:\Andre\AU</DCC_ExeOutput>
   </PropertyGroup>
   <ProjectExtensions>
@@ -28,6 +29,18 @@
     <Borland.ProjectType>VCLApplication</Borland.ProjectType>
     <BorlandProject>
 <BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       
       
