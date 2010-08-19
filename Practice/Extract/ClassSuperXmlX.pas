@@ -1,4 +1,4 @@
-unit XMLX;
+unit ClassSuperXmlX;
 
 interface
 
@@ -127,17 +127,9 @@ begin
   AddFieldNode(FAccountNode, 'Account_Type', btNames[Bank_Account.baFields.baAccount_Type]);
   AddFieldNode(FAccountNode, 'Account_Name', Bank_Account.baFields.baBank_Account_Name);
   AddFieldNode(FAccountNode, 'Account_Contra_Code', Bank_Account.baFields.baContra_Account_Code);
+  AddFieldNode(FAccountNode, 'Fund_Code', Bank_Account.baFields.baSuperFund_Ledger_Code );
+  AddFieldNode(FAccountNode, 'Opening_Date', Date2Str(Traverse_From, FdateMask ));
   AddFieldNode(FAccountNode, 'Opening_Balance', FormatFloatForXml(OpenBalance));
-
-  case MyClient.clFields.clAccounting_System_Used of
-     saClassSuperIP : begin
-         AddFieldNode(FAccountNode, 'Fund_Code', Bank_Account.baFields.baSuperFund_Ledger_Code );
-         AddFieldNode(FAccountNode, 'Opening_Date', Date2Str(Traverse_From, FdateMask ));
-         AddFieldNode(FAccountNode, 'Closing_Date', Date2Str(Traverse_To, FdateMask ));
-     end;
-  end;
-
-
 
   if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Ends');
 end;
@@ -148,62 +140,8 @@ const
 begin
   if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Begins');
 
+  AddFieldNode(FAccountNode, 'Closing_Date', Date2Str(Traverse_To, FdateMask ));
   AddFieldNode(FAccountNode, 'Closing_Balance', FormatFloatForXml(FCloseBalance));
-
-  if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Ends');
-end;
-
-
-procedure DoRewardSuperTransaction;
-const
-  ThisMethodName = 'DoRewardSuperTransaction';
-begin
-  if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Begins');
-  Transaction.txDate_Transferred := CurrentDate;
-  if SkipZeroAmountExport(Transaction) then
-     Exit; // Im done...
-
-  FTransactionNode := OutputDocument.CreateElement('Transaction');
-  FAccountNode.AppendChild(FTransactionNode);
-
-  TransactionUtils.CheckExternalGUID(Transaction);
-  AddGuid(FTransactionNode, Transaction^.txExternal_GUID);
-
-  AddFieldNode(FTransactionNode, 'Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
-  AddFieldNode(FTransactionNode, 'Narration', Transaction^.txGL_Narration);
-  AddFieldNode(FTransactionNode, 'Reference', Transaction^.txReference);
-  if Assigned(Transaction^.txFirst_Dissection) then begin
-    //Can't output code if dissected
-    AddFieldNode(FTransactionNode, 'Code', '');
-    AddFieldNode(FTransactionNode, 'Code_Desc', '');
-  end else begin
-    AddFieldNode(FTransactionNode, 'Code', Transaction^.txAccount);
-    AddFieldNode(FTransactionNode, 'Code_Desc', LookupChart(Transaction^.txAccount));
-  end;
-  AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
-  AddFieldNode(FTransactionNode, 'GST', FormatFloatForXml(Transaction^.txGST_Amount));
-  AddFieldNode(FTransactionNode, 'GST_Class', LookupGSTClassCode(Transaction^.txGST_Class));
-  AddFieldNode(FTransactionNode, 'GST_Desc', LookupGSTClassName(Transaction^.txGST_Class));
-  AddFieldNode(FTransactionNode, 'Quantity', FormatFloatForXml(Transaction^.txQuantity, 4, 10000));
-  // Supper fields
-  AddFieldNode(FTransactionNode, 'CGT_Transaction_Date', Date2Str(Transaction^.txSF_CGT_Date, FdateMask ));
-  AddFieldNode(FTransactionNode, 'Franked_Dividend', FormatFloatForXml(Transaction^.txSF_Franked));
-  AddFieldNode(FTransactionNode, 'UnFranked_Dividend', FormatFloatForXml(Transaction^.txSF_Unfranked));
-  AddFieldNode(FTransactionNode, 'Imputation_Credit', FormatFloatForXml(Transaction^.txSF_Imputed_Credit));
-  AddFieldNode(FTransactionNode, 'Tax_Free_Distribution', FormatFloatForXml(Transaction^.txSF_Tax_Free_Dist));
-  AddFieldNode(FTransactionNode, 'Tax_Exempt_Distribution', FormatFloatForXml(Transaction^.txSF_Tax_Exempt_Dist));
-  AddFieldNode(FTransactionNode, 'Tax_Defered_Distribution', FormatFloatForXml(Transaction^.txSF_Tax_Deferred_Dist));
-  AddFieldNode(FTransactionNode, 'TFN_Credit', FormatFloatForXml(Transaction^.txSF_TFN_Credits));
-  AddFieldNode(FTransactionNode, 'Foreign_Income', FormatFloatForXml(Transaction^.txSF_Foreign_Income));
-  AddFieldNode(FTransactionNode, 'Foreign_Credit', FormatFloatForXml(Transaction^.txSF_Foreign_Capital_Gains_Credit));
-  AddFieldNode(FTransactionNode, 'Other_Expenses', FormatFloatForXml(Transaction^.txSF_Other_Expenses));
-  AddFieldNode(FTransactionNode, 'Indexed_Capital_Gain', FormatFloatForXml(Transaction^.txSF_Capital_Gains_Indexed));
-  AddFieldNode(FTransactionNode, 'Discount_Capital_Gain', FormatFloatForXml(Transaction^.txSF_Capital_Gains_Disc));
-  AddFieldNode(FTransactionNode, 'Other_Capital_Gain', FormatFloatForXml(Transaction^.txSF_Capital_Gains_Other));
-  if Transaction^.txSF_Member_Component > 0 then
-    AddFieldNode(FTransactionNode, 'Member_Component', IntToStr(Transaction^.txSF_Member_Component));
-
-  Inc(FNoOfEntries);
 
   if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Ends');
 end;
@@ -226,8 +164,8 @@ begin
   AddGuid(FTransactionNode, Transaction^.txExternal_GUID);
 
   AddFieldNode(FTransactionNode, 'Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
-  AddFieldNode(FTransactionNode, 'Narration', Transaction^.txGL_Narration);
   AddFieldNode(FTransactionNode, 'Reference', Transaction^.txReference);
+  AddFieldNode(FTransactionNode, 'Narration', Transaction^.txGL_Narration);
 
   AddFieldNode(FTransactionNode, 'Code', Transaction^.txAccount);
   AddFieldNode(FTransactionNode, 'Code_Desc', LookupChart(Transaction^.txAccount));
@@ -254,9 +192,9 @@ begin
   AddFieldNode(FTransactionNode, 'Capital_Gain_Disc', FormatFloatForXml(Transaction^.txSF_Capital_Gains_Disc));
 
   if Transaction.txSF_Capital_Gains_Fraction_Half then
-     AddFieldNode(FTransactionNode, 'Capital_Gain_Fraction', '1/2')
+    AddFieldNode(FTransactionNode, 'Capital_Gain_Fraction', '1/2')
   else
-     AddFieldNode(FTransactionNode, 'Capital_Gain_Fraction', '2/3');
+    AddFieldNode(FTransactionNode, 'Capital_Gain_Fraction', '2/3');
 
   AddFieldNode(FTransactionNode, 'Capital_Gain_Conc', FormatFloatForXml(Transaction^.txSF_Capital_Gains_Indexed));
   AddFieldNode(FTransactionNode, 'Tax_Deferred', FormatFloatForXml(Transaction^.txSF_Tax_Deferred_Dist));
@@ -287,8 +225,8 @@ begin
   AddGuid(FTransactionNode, Dissection^.dsExternal_GUID);
 
   AddFieldNode(FTransactionNode, 'Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
+  AddFieldNode(FTransactionNode, 'Reference', TransactionUtils.getDsctReference(Dissection, Bank_Account.baFields.baAccount_Type));
   AddFieldNode(FTransactionNode, 'Narration', Dissection^.dsGL_Narration);
-  AddFieldNode(FTransactionNode, 'Reference', Dissection^.dsReference);
 
   AddFieldNode(FTransactionNode, 'Code', Dissection^.dsAccount);
   AddFieldNode(FTransactionNode, 'Code_Desc', LookupChart(Dissection^.dsAccount));
@@ -364,6 +302,7 @@ begin
     FClientNode := nil;
     FAccountNode := nil;
     FTransactionNode := nil;
+    FNoOfEntries := 0;
     OutputDocument.LoadXML(''); // Clear
     FRootNode := EnsureNode(OutputDocument, 'BankLink');
     SetNodeTextStr(FRootNode, 'Version', '1');
@@ -409,10 +348,7 @@ begin
       SetNodeTextStr(FClientNode, 'Client_Name', MyClient.clFields.clName);
 
       // OK for now but this may become Country specific
-      case MyClient.clFields.clAccounting_System_Used of
-        saRewardSuper  : FDateMask := 'dd/mm/YYYY';
-        saClassSuperIP : FDateMask := 'YYYY-mm-dd';
-      end;
+      FDateMask := 'YYYY-mm-dd';
 
       for No := 0 to Pred( Selected.Count ) do begin
         BA := TBank_Account(Selected.Objects[ No ]);
@@ -421,16 +357,8 @@ begin
         Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
         Traverse.SetOnAHProc(DoAccountHeader);
         Traverse.SetOnATProc(DoAccountTrailer);
-        case MyClient.clFields.clAccounting_System_Used of
-        saRewardSuper  : begin
-               Traverse.SetOnEHProc(DoRewardSuperTransaction);
-           end;
-        saClassSuperIP : begin
-               Traverse.SetOnEHProc(DoClassSuperIPTransaction);
-               Traverse.SetOnDSProc(DoClassSuperIPDissection);
-           end;
-        end;
-
+        Traverse.SetOnEHProc(DoClassSuperIPTransaction);
+        Traverse.SetOnDSProc(DoClassSuperIPDissection);
         Traverse.TraverseEntriesForAnAccount(BA, FromDate, ToDate);
       end;
       //Write XML file
