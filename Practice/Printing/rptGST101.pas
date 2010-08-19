@@ -665,7 +665,7 @@ begin
    end;
 
    if GSTForm.FormPeriod = Transitional then with GSTForm, Figures^, FormB do begin
-      //********************   Do Part 1B **************************************
+      //********************   Do Part 2 **************************************
       CanvasRenderEng.ReportNewPage;
       myCanvas.Font.Name := 'Arial';
 
@@ -712,7 +712,7 @@ begin
 
       Box1Bottom := CurrYPos + CurrLineSize div 2;
       DrawBox(XYSizeRect(ColBoxLeft,Box1Top,ColBoxRight,Box1Bottom));
-      DrawBox(XYSizeRect(ColOfficeBoxLeft,OfficeBoxTop,ColOfficeBoxRight,OfficeBoxBottom));
+      //DrawBox(XYSizeRect(ColOfficeBoxLeft,OfficeBoxTop,ColOfficeBoxRight,OfficeBoxBottom));
 
       //left side text
       RenderWrapText(myCanvas,'Goods and services tax on your sales and income.',XYSizeRect(ColOfficeBoxLeft,LeftTextTop,ColOfficeBoxRight,LeftTextBot),true);
@@ -739,7 +739,16 @@ begin
       RenderUnderLine;
       RenderAmountLine(L14B.Caption,true,true,LongIDs, LI14B.Caption,rGST_Credit);
 
+      RenderWrapText(myCanvas,'Goods and services tax on your purchases and expenses.',XYSizeRect(ColOfficeBoxLeft,LeftTextTop,ColOfficeBoxRight,LeftTextBot),true);
+      Box2Bottom := CurrYPos;
+      DrawBox(XYSizeRect(ColBoxLeft,Box2Top,ColBoxRight,Box2Bottom));
+      Box2Top := Box2Bottom;
+      // Totals..
+
       NewLine;
+      LeftTextTop := CurrYPos;
+
+      newLine;
       RenderAmountLine(L15B.Caption,true,true, LongIDs, LI15B.Caption,rGST_Collected + FormA.rGST_Collected);
       RenderAmountLine(L16B.Caption,true,true, LongIDs, LI16B.Caption,rGST_Credit + FormA.rGST_Credit);
       RenderUnderLine;
@@ -748,17 +757,16 @@ begin
       DrawRadio(myCanvas,XYSizeRect(ColArrowLeft,CurrYPos,ColArrowLeft+(ColAmountsRight-ColArrowLeft) div 10*4,CurrYPos+CurrLineSize),'Refund',false,rGST_To_Pay <=0);
       DrawRadio(myCanvas,XYSizeRect(ColAmountsRight - (ColAmountsRight-ColArrowLeft) div 2,CurrYPos,ColAmountsRight,CurrYPos+CurrLineSize),'GST to pay',false,rGST_To_Pay >0);
 
-      Box2Bottom := CurrYPos + CurrLineSize *2;
+      LeftTextBot := CurrYPos;
+      RenderWrapText(myCanvas,lPart2Total.Caption,XYSizeRect(ColOfficeBoxLeft,LeftTextTop,ColOfficeBoxRight,LeftTextBot),true);
+      Box2Bottom := CurrYPos + 2 * CurrLineSize;
       DrawBox(XYSizeRect(ColBoxLeft,Box2Top,ColBoxRight,Box2Bottom));
-
-      RenderWrapText(myCanvas,'Goods and services tax on your purchases and expenses.',XYSizeRect(ColOfficeBoxLeft,LeftTextTop,ColOfficeBoxRight,LeftTextBot),true);
-
 
    end;
 
 
    if GSTForm.Figures.rFormType > GST101A then with GSTForm do begin
-      // Do Part 2 and 3.
+      // Do 'Provisional tax' and 'Payment calculation'
       CanvasRenderEng.ReportNewPage;
       myCanvas.Font.Name := 'Arial';
 
@@ -773,8 +781,7 @@ begin
       //left side text
       Box1Top := CurrYPos - CurrLineSize div 2;
 
-      RenderText('Part 2 –',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft);
-      NewLine;
+
       RenderText('Provisional tax',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft);
       NewLine;
       RenderText('calculation when',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft);
@@ -815,8 +822,8 @@ begin
 
       CurrYPos :=  Box1Top + CurrLineSize div 2;
       myCanvas.Font.Style := [fsbold];
-      RenderText('Part 3 –',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft);
-      NewLine;
+      //RenderText('Part 3 –',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft);
+      //NewLine;
       RenderText('Payment calculation',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft);
 
       CurrYPos :=  Box1Top + CurrLineSize div 2;
