@@ -89,7 +89,7 @@ begin
       case DataCol of
          GlyphCol  : if baIs_Selected then Value := BitMapToVariant( AppImages.imgTick.Picture.Bitmap );
          CodeCol   : Value := baBank_Account_Number;
-         DescCol   : Value := baBank_Account_Name;
+         DescCol   : Value := BA.AccountName;
          CountCol  : Value := Format( '%10d', [ baEntries_Available ] );
       end;
    end;
