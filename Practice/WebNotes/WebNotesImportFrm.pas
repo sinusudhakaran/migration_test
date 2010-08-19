@@ -743,7 +743,7 @@ begin
   //Notes
   UpdateNotes(BKT, GetStringAttr(FromNode,nNotes));
 
-  lint := GetIntAttr(FromNode,nCodedBy);
+  lint := GetCodeByAttr(FromNode,nCodedBy);
   case lint of
     cbManual      : BKT^.txCoded_By := bkconst.cbECodingManual;
     cbManualPayee : BKT^.txCoded_By := bkconst.cbECodingManualPayee;
@@ -963,10 +963,10 @@ begin
      //payee is different, add a note
      if Result <> 0 then begin
         bkPayee := Client.clPayee_List.Find_Payee_Number(Result);
-        if Assigned(bkPayee) then
+        if Assigned(bkPayee) then begin
            if not IsNew then
               AddToImportNotes( BKT, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', WebNotesName)
-        else
+        end else
            AddToImportNotes( BKT, format('Unkown payee (%d)',[Result])  , WebNotesName);
      end else begin
         // Diffrent but zero, i.e was somthing before..
@@ -1005,7 +1005,11 @@ begin
      if Result <> 0 then begin
         bkPayee := Client.clPayee_List.Find_Payee_Number(Result);
         if Assigned(bkPayee) then begin
-           if not isNew then
+           if isNew then
+              // Just add it now
+              BKD.dsPayee_Number := bkPayee.pdFields.pdNumber
+           else
+              // Add as note..
               AddToImportNotes( BKD, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', WebNotesName)
         end else
            AddToImportNotes( BKD, format('Unkown payee (%d)',[Result])  , WebNotesName);
@@ -1080,7 +1084,7 @@ begin
          BKT.txAccount := LString;
          BKT.txHas_Been_Edited := True;
 
-         if Sametext(cbNames[cbManual], GetStringAttr(FromNode,nCodedBy)) then
+         if GetCodeByAttr(FromNode,nCodedBy) in [cbManual] then
             NeedToUpdateGST := true;
       end else begin
          AddToImportNotes( BKT, 'Account Code ' + LString, WebNotesName);
@@ -1373,12 +1377,14 @@ var AccountNo: string;
           end;
 
           //check the presentation dates match
+          (* TFS Bug 3115, Webnotes does not set Presented date, cannot Test for it...
           lDate := GetDateAttr(FromNode, nDateEffective);
           if not (( lDate = 0 ) or ( lDate = Trans.txDate_Presented)) then begin
              //rejected transaction found, pres dates different
-             aMsg := 'Pres Date Mismatch  expected ' + bkDate2Str( Trans.txDate_Presented);
+             aMsg := 'Pres Date Mismatch, expected ' + bkDate2Str( Trans.txDate_Presented);
              Exit;
           end;
+          *)
 
           //check for finalised or transferred in bk5
           if ( Trans.txLocked) then begin
