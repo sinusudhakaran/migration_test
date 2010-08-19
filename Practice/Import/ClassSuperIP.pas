@@ -17,6 +17,8 @@ function SetLedger(Current: ShortString): ShortString;
 implementation
 
 uses
+   GlobalDirectories,
+   Dialogs,
    WinUtils,
    Templates,
    Select_Desktop_GLfrm,
@@ -64,6 +66,46 @@ const
     if Assigned(LNode) then
        Result := LNode.NodeValue;
  end;
+
+
+function GetDataFile(var FilePath: string; const aFilename: string): IXMLDocument;
+var OpenDlg: TOpenDialog;
+begin
+   Result := XMLDoc.NewXMLDocument;
+   Result.Active := true;
+   FilePath := IncludeTrailingPathDelimiter(MyClient.clFields.clLoad_Client_Files_From) + aFilename;
+
+   if not BKFileExists(FilePath) then begin
+      OpenDlg := TOpenDialog.Create(Nil);
+      try
+         with OpenDlg do begin
+            DefaultExt := '*.XML';;
+            Filename := aFilename;
+            Filter := 'Exported Fund Data (*.XML)|*.XML|All Files|*.*';
+            HelpContext := 0;
+            Options := [ofHideReadOnly, ofFileMustExist, ofEnableSizing, ofNoChangeDir ];
+            Title := 'Load Class Super Fund Data';
+            InitialDir := MyClient.clFields.clLoad_Client_Files_From;
+         end;
+         if OpenDlg.Execute then
+            FilePath := OpenDlg.Filename
+         else begin
+            raise exception.Create('Cannot find file');
+         end;
+      finally
+         OpenDlg.Free;
+         //make sure all relative paths are relative to data dir after browse
+         SysUtils.SetCurrentDir( GlobalDirectories.glDataDir);
+      end;
+      MyClient.clFields.clLoad_Client_Files_From := SysUtils.ExtractFileDir(FilePath);
+   end;
+   // try read the file
+   Result.LoadFromFile(FilePath);
+end;
+
+
+
+
 
 
 //******************************** RefreshChart ******************************
@@ -137,13 +179,7 @@ begin
             Templates.LoadTemplate(Chartfile, tpl_DontCreateChart);
       end;
 
-
-      lXMLDoc := XMLDoc.NewXMLDocument;
-      lXMLDoc.Active := true;
-      Chartfile := IncludeTrailingPathDelimiter(MyClient.clFields.clLoad_Client_Files_From) + ChartFilename;
-      // try read the file
-      lXMLDoc.LoadFromFile(Chartfile);
-
+      lXMLDoc := GetDataFile(Chartfile,ChartFilename);
 
       CNode := lXMLDoc.DocumentElement;
       if not SameText(CNode.NodeName,nBankLinkChartOfAccounts) then
@@ -186,6 +222,8 @@ const
      nCashCodingFundData = 'CashCodingFundData';
      csnames : array[ClassSuperIPList] of shortstring = ('Fund', 'Investments', 'Members');
 
+
+
 function GetLedgerName(const LedgerCode: string): string;
 const
    ThisMethodName = 'GetLedgerName';
@@ -223,11 +261,7 @@ begin
       if not Assigned(MyClient) then
          Exit;
 
-      lXMLDoc := XMLDoc.NewXMLDocument;
-      lXMLDoc.Active := true;
-      FilePath := IncludeTrailingPathDelimiter(MyClient.clFields.clLoad_Client_Files_From) + ClassFundData;
-      // try read the file
-      lXMLDoc.LoadFromFile(FilePath);
+      lXMLDoc := GetDataFile(FilePath, ClassFundData);
 
       CNode := lXMLDoc.DocumentElement;
       if not SameText(CNode.NodeName,nCashCodingFundData) then
@@ -355,16 +389,11 @@ begin //ImportClassSuperList
 
       LList.Add('Header'); // Desktop skips the first line, so just add a dummy..
 
-      lXMLDoc := XMLDoc.NewXMLDocument;
-      lXMLDoc.Active := true;
-      FilePath := IncludeTrailingPathDelimiter(MyClient.clFields.clLoad_Client_Files_From) + ClassFundData;
-      // try read the file
-      lXMLDoc.LoadFromFile(FilePath);
+      lXMLDoc := GetDataFile(FilePath,ClassFundData);
 
       CNode := lXMLDoc.DocumentElement;
       if not SameText(CNode.NodeName,nCashCodingFundData) then
          raise exception.Create('Wrong file format');
-
 
       for I := 0 to CNode.ChildNodes.Count - 1 do
          if TestFund(CNode.ChildNodes[I]) then
