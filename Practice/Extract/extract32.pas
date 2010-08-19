@@ -72,7 +72,8 @@ uses
   XlonX,
   BusinessProductsExport,
   ComObj, bk5Except,
-  SupervisorX, DesktopSuperX, XMLX, ProSuperX, SageHandisoftSuperX;
+  SupervisorX, DesktopSuperX, ProSuperX, SageHandisoftSuperX,
+  RewardSuperXmlX, ClassSuperXmlX;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -131,7 +132,7 @@ begin
                Begin
                   Contra_Code := '';
                   Msg := SHORTAPPNAME + ' needs to know the account code in your client''s chart for the bank account '
-                         + baBank_Account_Name + '.'+#13+#13
+                         + BA.AccountName + '.'+#13+#13
                          + 'This account code will be used when the bank account contra entry is generated.';
 
                   if ContraDlg.GetContra( 'Enter Bank Account Contra Code', Msg, Contra_Code ) then
@@ -241,8 +242,8 @@ begin
                   saOFXV2           : DoExtractBusinessProduct(FD, TD, Path);
                   saDesktopSuper    : DesktopSuperX.ExtractData( FD, TD, Path );
                   saIRESSXplan      : CSVX.ExtractData( FD, TD, Path, true, true); //7587
-                  saRewardSuper,
-                  saClassSuperIP    : XMLX.ExtractData( FD, TD, Path, True, True );
+                  saRewardSuper     : RewardSuperXmlX.ExtractData( FD, TD, Path, True, True );
+                  saClassSuperIP    : ClassSuperXmlX.ExtractData( FD, TD, Path, True, True );
                   saProSuper        : ProSuperX.ExtractData( FD, TD, Path, True, True );
                   saSageHandisoftSuperfund : SageHandisoftSuperX.ExtractData( FD, TD, Path, True, True );
                end;

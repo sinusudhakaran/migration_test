@@ -233,6 +233,7 @@ begin
     FClientNode := nil;
     FAccountNode := nil;
     FTransactionNode := nil;
+    FNoOfEntries := 0;
     OutputDocument.LoadXML(''); // Clear
     FRootNode := EnsureNode(OutputDocument, 'BankLink');
     SetNodeTextStr(FRootNode, 'Version', '1');
