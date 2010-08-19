@@ -433,10 +433,10 @@ var
          if CFRec.cfArchived then
             Continue; // Dont care much
 
-         {$IFNDEF ExportTest}
+
          if Extractor.Code <> CFRec.cfBulk_Extract_Code then
             Continue; // Not in this extract...
-         {$ENDIF}
+
 
          if Assigned(LSelected) then
             if LSelected.IndexOf(CFRec.cfFile_Code) < 0 then
@@ -1352,7 +1352,7 @@ begin
    AddNumberField(f_TransType, aDiss.dsTransaction.txType);
 
    // Naratives
-   AddField(f_Reference, aDiss.dsTransaction.txReference);
+   AddField(f_Reference, TransactionUtils.getDsctReference(aDiss, BankAccount.baFields.baAccount_Type));
    AddField(f_Analysis, aDiss.dsTransaction.txAnalysis);
    AddField(f_OtherParty, aDiss.dsTransaction.txOther_Party);
    AddField(f_Particulars, aDiss.dsTransaction.txParticulars);
@@ -2016,11 +2016,9 @@ begin
            end;
 
          saClassSuperIp: begin
-
                AddField(f_FundID, aTrans.txSF_Fund_Code);
                AddField(f_MemID, aTrans.txSF_Member_Account_Code);
-               if aTrans.txSF_Capital_Gains_Foreign_Disc <> 0 then
-                  AddFractionField(f_CGFraction, aTrans.txSF_Capital_Gains_Fraction_Half);
+               AddFractionField(f_CGFraction, aTrans.txSF_Capital_Gains_Fraction_Half);
             end;
 
          saSageHandisoftSuperfund:
@@ -2106,7 +2104,7 @@ begin
       Exit;
    // Test the adminSystem
    lExtract.ClearStatus;
-
+   lExtract.CanConfig;//Make sure this get called for sa_BulkExport
    RefreshAdmin;
    for i := AdminSystem.fdSystem_Client_File_List.First to AdminSystem.fdSystem_Client_File_List.Last do begin
       CFRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(i);
