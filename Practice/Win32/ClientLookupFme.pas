@@ -3109,6 +3109,7 @@ begin
     CodesList := TStringList.Create;
     try
       CodesList.Delimiter := ClientCodeDelimiter;
+      CodesList.StrictDelimiter := true;
       CodesList.DelimitedText := Value;
 
       //search through the nodes for the specified code

@@ -328,6 +328,7 @@ type
     Bevel2: TBevel;
     L25: TLabel;
     L27: TLabel;
+    lPart2Total: TLabel;
     procedure btnOKClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -1137,8 +1138,11 @@ begin
                rClosing_Creditors := Money2Double(blClosing_Creditors_Balance);
                rClosing_Debtors := Money2Double(blClosing_Debtors_Balance);
 
+               //This field should be renamed blBAS_G23_Other_Adjustments
+               rOther_Adjust := Money2Double(blBAS_G23);
+
                rAdj_Private := Money2Double(blBAS_6B_GST_Adj_PrivUse);
-               rAdj_Private := Money2Double(blBAS_7_VAT4_GST_Adj_BAssets);
+               rAdj_Bassets := Money2Double(blBAS_7_VAT4_GST_Adj_BAssets);
                rAdj_Assets := Money2Double(blBAS_G7_GST_Adj_Assets );
                rAdj_Entertain := Money2Double(blBAS_G18_GST_Adj_Entertain);
                rAdj_Change := Money2Double(blBAS_W1_GST_Adj_Change);
@@ -1494,6 +1498,9 @@ begin
           blClosing_Creditors_Balance := Double2Money( rClosing_Creditors);
           blClosing_Debtors_Balance := Double2Money( rClosing_Debtors);
 
+          //This field should be renamed blBAS_G23_Other_Adjustments
+          blBAS_G23                     := Double2Money( rOther_Adjust);
+
           blBAS_6B_GST_Adj_PrivUse      := Double2Money( rAdj_Private);
           blBAS_7_VAT4_GST_Adj_BAssets  := Double2Money( rAdj_Bassets);
           blBAS_G7_GST_Adj_Assets       := Double2Money( rAdj_Assets);
@@ -1640,7 +1647,7 @@ const
   form8 = 'Divide Box %s by nine';
   Form16 = 'Enter total sales and income from Box %s';
   Form25 = 'If Box %s is a refund, enter the amount you would like to transfer to provisional tax, otherwise enter zero (0)';
-  Form27 = 'If Box %s is GST to pay enter the amount here, otherwise enter zero (0)';
+  Form27 = 'If Box %s is GST to pay, enter the amount here, otherwise enter zero (0)';
 
 begin
   FFormPeriod := Value;
@@ -1651,7 +1658,7 @@ begin
          end;
 
      Transitional: begin
-           tsPart1.Caption := 'Part 1A - GST upto 30/09/10';
+           tsPart1.Caption := 'Part 1 - GST ending 30/09/10';
            // Update form1
            p15A.Visible := False;
            LI5.Caption := '5A';
@@ -1666,14 +1673,14 @@ begin
            LI14.Caption := '14A';
 
            l6.Caption := Format(Form6,[LI5.Caption]);
-           l7.Caption := Format(Form7,[LI5.Caption,LI5.Caption]);
+           l7.Caption := Format(Form7,[LI6.Caption,LI5.Caption]);
            l8.Caption  := format(Form8,[LI7.Caption]);
            l12.Caption := format(Form8,[LI11.caption]);
 
            // Provisional Tax
            L16.Caption := Format(Form16,['5A and Box 5B']);
-           L25.Caption := Format(Form25,['Box 17 from page 2']);
-           L27.Caption := Format(Form27,['Box 15 from page 2']);
+           L25.Caption := Format(Form25,['17']);
+           L27.Caption := Format(Form27,['17']);
 
            LI16.Caption := '18';
            P17.Visible := False;
@@ -1708,44 +1715,52 @@ procedure TfrmGST101.SetFormType(const Value: TFormType);
      Self.Caption := Main;
   end;
 
-  function PeriodText: string;
-  begin
-     if FormPeriod = transitional then
-        Result := ' transitional'
-     else
-        Result := '';
-  end;
-
 begin
   FFormType := Value;
-
 
   case FFormType of
      GST101: begin
           TSPart2.TabVisible := False;
           TSPart3.TabVisible := False;
           TSPart1.TabVisible := TSPart1B.TabVisible;
-          SetLabletext(Format('Goods and services tax%s return',[PeriodText]), 'GST 101');
+          // Cannot be transitional ??
+          SetLabletext('Goods and services tax return', 'GST 101');
           pnlsales.Color := $00DBEEFF;
           pnlPurchases.Color := $00DBEEFF;
           pnlTotalGST.Color := $00DBEEFF;
         end;
 
      GST101A: begin
-          SetLabletext(Format('Goods and services tax%s return',[PeriodText]), 'GST 101A');
+
+          case Formperiod of
+          PreOct2010 : SetLabletext('Goods and services tax return', 'GST 101A');
+          Transitional : SetLabletext('GST transitional return', 'GST 104A');
+          PostOct2010 :  SetLabletext('Goods and services tax return', 'GST 101A');
+          end;
+
           TSPart2.TabVisible := False;
           TSPart3.TabVisible := False;
           TSPart1.TabVisible := TSPart1B.TabVisible;
         end;
 
      GST103Bc: begin
-          SetLabletext(Format('GST and provisional tax%s return',[PeriodText]), 'GST 103B');
+          case Formperiod of
+          PreOct2010 : SetLabletext('GST and provisional tax return', 'GST 103B');
+          Transitional : SetLabletext('GST transitional and provisional return', 'GST 104B');
+          PostOct2010 :  SetLabletext('GST and provisional return', 'GST 103B');
+          end;
+
           DoPart2 := True;
           DoPart3 := True;
         end;
 
      GST103Bv: begin
-          SetLabletext(Format('GST and provisional tax%s return',[PeriodText]), 'GST 103B');
+          case Formperiod of
+          PreOct2010 : SetLabletext('GST and provisional tax return', 'GST 103B');
+          Transitional : SetLabletext('GST transitional and provisional return', 'GST 104B');
+          PostOct2010 :  SetLabletext('GST and provisional return', 'GST 103B');
+          end;
+
           DoPart3 := True;
           DoPart2 := False;
           TSPart2.TabVisible := False;
