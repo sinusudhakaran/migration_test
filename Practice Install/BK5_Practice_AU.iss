@@ -78,6 +78,7 @@ Source: "Templates\TAXASST.TPM"; DestDir : "{app}\TEMPLATE"
 Source: "Templates\ELITE.TPM"; DestDir : "{app}\TEMPLATE"
 Source: "Templates\GENERIC.TPM"; DestDir : "{app}\TEMPLATE"
 Source: "Templates\MYOBACC.TPM"; DestDir : "{app}\TEMPLATE"
+Source: "Templates\CLASS.TPM"; DestDir : "{app}\TEMPLATE"
 
 [Icons]
 Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"

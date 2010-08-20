@@ -15,7 +15,7 @@ Compression=lzma
 SolidCompression=yes
 DirExistsWarning=false
 AppendDefaultDirName=no
-InfoBeforeFile=Practice Files\infoPRAC.txt
+InfoBeforeFile=Master CD Files\infoPRAC.txt
 
 [Files]
 ;*Application files*

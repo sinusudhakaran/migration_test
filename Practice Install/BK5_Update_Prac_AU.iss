@@ -15,7 +15,7 @@ Compression=lzma
 SolidCompression=yes
 DirExistsWarning=false
 AppendDefaultDirName=no
-InfoBeforeFile=Practice Files\infoPRAC.txt
+InfoBeforeFile=Master CD Files\infoPRAC.txt
 
 [Files]
 ;*Application files*
@@ -55,6 +55,7 @@ Source: "Templates\BGL.TPM"; DestDir: "{app}\TEMPLATE"
 Source: "Templates\GENERIC.TPM"; DestDir : "{app}\TEMPLATE"
 Source: "Templates\ELITE.TPM"; DestDir : "{app}\TEMPLATE"
 Source: "Templates\MYOBACC.TPM"; DestDir : "{app}\TEMPLATE"
+Source: "Templates\CLASS.TPM"; DestDir : "{app}\TEMPLATE"
 
 Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\CAF_Generator.xlt"; DestDir: "{app}"
