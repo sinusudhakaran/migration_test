@@ -6,7 +6,7 @@
 #include "Bin\BankLinkCopyRight.txt"
 DefaultDirName={sd}\BK5
 DisableStartupPrompt=yes
-LicenseFile=Bin\BK5_EULA.TXT
+LicenseFile=Bin\BK5_EULA.RTF
 MinVersion=4.1,5
 Uninstallable=no
 OutputDir=..\Binaries\Prac_Update_UK

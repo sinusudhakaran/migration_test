@@ -7,7 +7,7 @@
 DefaultDirName={sd}\BK5
 DefaultGroupName=BankLink
 DisableStartupPrompt=yes
-LicenseFile=Bin\BK5_EULA.TXT
+LicenseFile=Bin\BK5_EULA.RTF
 MinVersion=4.1,5
 OutputDir=..\Binaries\OffsiteInstall_Update
 OutputBaseFilename=setup_update_books
