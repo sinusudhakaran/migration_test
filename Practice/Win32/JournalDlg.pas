@@ -5207,13 +5207,10 @@ begin
                     and ( MyClient.clFields.clBAS_Calculation_Method = bmFull) then
                        EditState := esNeverEditable
                else
-               if ( cRec.cdFieldID in [ ceGSTClass] ) then
-               begin
-                 If Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
-                    EditState := esEditable
-                 else
-                    EditState := esNeverEditable;
-               End
+               //TFS 1573
+               if ( cRec.cdFieldID in [ ceGSTClass] )
+                  and (not Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used )) then
+                    EditState := esNeverEditable
                else if cRec.cdFieldId in [ceDescription, cePayeeName, ceJobName, ceAltChartCode] then
                   EditState := esNeverEditable
                else
