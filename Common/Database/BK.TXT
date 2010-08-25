@@ -548,6 +548,7 @@ F|SF Special Income|$
 F|SF Other Tax Credit|$
 F|SF Non Resident Tax|$
 F|SF Foreign Capital Gains Credit|$
+F|SF Capital Gains Fraction Half|Y
 C|Temp Tag|L
 E
 
@@ -640,7 +641,7 @@ F|SF Special Income|$
 F|SF Other Tax Credit|$
 F|SF Non Resident Tax|$
 F|SF Foreign Capital Gains Credit|$
-
+F|SF Capital Gains Fraction Half|Y
 C|Temp Tag|L
 E
 
