@@ -1,0 +1,62 @@
+ 0³Cheque                    ³Cheque
+ 1³Dishonoured Item          ³Unpaid Itm
+ 2³Cheque Clearance Fee      ³Clrnce Fee
+ 3³Counter Cheque            ³Cntr Chqs
+ 4³Cheque                    ³Cheque
+ 5³Cheque                    ³Cheque
+ 6³Cheque (DUX)              ³DUX Cheque
+ 7³Cheque (DUX)              ³DUX Cheque
+ 8³Cheque                    ³Cheque
+ 9³Cheque                    ³Cheque
+10³Cheque Book Duty          ³ChqBk Duty
+11³New Account Debit         ³Bank Chgs
+12³Bill or Draft             ³Bill/Draft
+13³Sundry Bank Charges       ³Bank Chgs
+14³Group Assurance           ³Insurance
+15³Automatic Payment         ³Auto Pymt
+16³Base/Activity Fee         ³Bank Chgs
+17³Interest Charged          ³Int Chgd
+18³Travellers Cheques        ³Trav Chq
+19³Visa Overdraft Fee        ³Visa Fee
+20³Unused Limit Fee          ³U/Lmt Fee
+21³Databank Charges          ³DBK Chgs
+22³Safe Custody Charge       ³S/Cus Chgs
+23³Tolls                     ³Tolls
+24³Service Committment Fee   ³Bank Chgs
+25³Deposit Adjustment        ³Dr Adj
+28³BNZ Telephone Transfer    ³BNZ TTxfr
+30³Reversed Credit           ³Rev Cr
+32³Stopped MTS Payment       ³Stop Pymt
+34³Savings A/C Withdrawal    ³Sav Wdrl
+35³ATM Withdrawal            ³ATM Wdrl
+36³ATM Debit Transfer        ³ATM Trxfr
+37³ATM Debit Transfer        ³ATM Trxfr
+38³Deposit at Counter        ³C/Deposit
+39³Commercial Bill A/C       ³C/Bill
+40³Teller Generated          ³Teller Gen
+47³Supplier Statement        ³SS Memo
+48³AnchorMart Purchases      ³Purchases
+49³Withdrawal                ³Withdrawal
+50³Deposits                  ³Deposits
+51³Credit Transfers          ³Cr Trxfr
+52³Deposits                  ³Deposits
+55³Direct Input              ³Dir Input
+56³Deposits (DUX)            ³DUX Deposit
+57³Deposits (DUX)            ³DUX Deposit
+60³Govt Salaries             ³Govt Sal
+61³Dividends                 ³Dividends
+62³Telegraphic Transfers     ³TTxfer
+63³Unapplied Funds           ³Unapplied
+64³Deposits w S/No           ³Deposit
+65³Direct Deposit            ³D/Deposit
+67³Interest Earned           ³Int Earned
+72³Interest from Govt Stock  ³Int GovtSt
+75³Error                     ³Error
+79³Cheque Fee Reversed       ³Chq Fee Rv
+80³Reversal of Debit         ³Rev of Dr
+82³Stopped MTS Payment       ³Stop Pymnt
+83³Telegraphic Transfers     ³T/Trxfr
+84³Savings Account Deposit   ³Sav Deposit
+85³ATM Deposit               ³ATM Deposit
+86³ATM Credit Transfer       ³ATM Cr Txfr
+89³Commercial Bill A/C       ³C/Bill

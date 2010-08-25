@@ -1,0 +1,39 @@
+object dlgModalProcessor: TdlgModalProcessor
+  Left = 434
+  Top = 311
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsNone
+  Caption = 'Processing'
+  ClientHeight = 56
+  ClientWidth = 274
+  Color = clBtnFace
+  DefaultMonitor = dmMainForm
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poMainFormCenter
+  Scaled = False
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Shape1: TShape
+    Left = 0
+    Top = 0
+    Width = 274
+    Height = 56
+    Align = alClient
+    Brush.Color = clBtnFace
+  end
+  object lblDescription: TLabel
+    Left = 16
+    Top = 16
+    Width = 63
+    Height = 13
+    Caption = 'Processing...'
+  end
+end

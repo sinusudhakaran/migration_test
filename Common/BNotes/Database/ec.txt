@@ -1,0 +1,173 @@
+$|EC_FILE_VERSION  = 11;  (* Current Version counter for files
+$|                           Changes if structure or method of storing a value would cause
+$|                           data to be represented incorrectly, or an exception to be raised *)
+$|
+$|(*
+$|    History  :     01  Initial Version
+$|                   02  Added export flags and branding
+$|                       Extended Narration to 200 char
+$|                   03  New payee list object and records added
+$|                       Extended Dissection Narration to 200 char
+$|                   04  Add basic chart of accounts
+$|                   05  Add update server
+$|                   06  Upgrade to 4 decimal places
+$|                   07  Change UpdateServer to Practice Code
+$|                   08  Add Superfund fields
+$|                   09  Added GL Narration Fields
+$|                   10  Added Tax Invoice Fields
+$|                   11  Added Job list
+$|*)
+
+N|ECoding File Details|ec|20
+F|Code|S|8
+F|Name|S|60
+F|Contact Name|S|60
+F|File Password|S|8
+F|Practice Name|S|60
+F|Contact Person|S|60
+F|Contact EMail Address|S|80
+F|Contact Phone Number|S|40
+F|Country|B
+F|File Save Count|L
+F|Account Code Mask|S|20
+F|Magic Number|L
+F|GST Applies From|BD|5
+F|GST Rates|BB$|99|5
+F|Hide Quantity Col|Y
+F|Date Range From|L
+F|Date Range To|L
+F|First Save Done|Y
+F|File Number|L
+F|Hide GST Col|Y
+F|Hide Tax Invoice Col|Y
+F|Hide Account Col|Y
+F|Hide Payee Col|Y
+F|Restrict UPIs|Y
+F|Practice Logo|AS
+F|Practice Web Site|AS
+F|Notes|AS
+F|Show Notes On Open|Y
+F|File Version|L
+F|Practice Code|AS
+F|Super Fund System|B
+F|TAX Applies From|BBD|99|5
+F|TAX Rates|BB$|99|5
+F|Hide Job Col|Y
+C|Filename|AS
+C|Current CRC|L
+C|File Opened Read Only|Y
+
+E
+
+N|Account|ch|80
+F|Account Code|S|20
+F|Account Description|S|60
+F|GST Class|B
+F|Posting Allowed|Y
+F|Hide In Basic Chart|Y
+E
+
+N|Payee|py|100
+F|Number|L
+F|Name|S|40
+F|Account|BS|50|20
+F|Percentage|B$|50
+F|GST Class|BB|50
+F|GST Has Been Edited|BY|50
+F|Added By ECoding|Y
+F|GL Narration|BS|50|40
+E
+
+N|Payee Detail|pd|90
+F|Number|L
+F|Name|S|40
+F|Added By ECoding|Y
+E
+
+N|Payee_Line|pl|95
+F|Account|S|20
+F|Percentage|$
+F|GST Class|B
+F|GST Has Been Edited|Y
+F|Line Type|B
+F|GL Narration|AS
+E
+
+N|Bank Account Details|ba|150
+F|Bank Account Number|S|20
+F|Bank Account Name|S|60
+F|Bank Account Password|S|20
+F|Current Balance|$
+F|Account Type|B
+C|Number|L
+E
+
+N|Transaction|tx|160
+F|Auto Sequence No|L
+F|Type|B
+F|Source|B
+F|Date Presented|D
+F|Date Effective|D
+F|Amount|$
+F|GST Class|B
+F|GST Amount|$
+F|Has Been Edited|Y
+F|Quantity|$
+F|Cheque Number|L
+F|Reference|S|12
+F|Particulars|S|12
+F|Analysis|S|12
+F|OrigBB|S|6
+F|Other Party|S|20
+F|Narration|S|200
+F|Account|S|20
+F|Coded By|B
+F|Payee Number|L
+F|Locked|Y
+F|GST Has Been Edited|Y
+F|Notes|AS
+F|ECoding_ID|L
+F|Tax Invoice Available|Y
+F|UPI State|B
+F|Code Locked|Y
+F|UPI Can Delete|Y
+F|SF Edited|Y
+F|SF Franked|$
+F|SF Unfranked|$
+F|SF Franking Credit|$
+C|Bank Seq|L
+C|First Dissection|P|Dissection_Rec
+C|Last Dissection|P|Dissection_Rec
+F|Old Narration|S|200
+F|Job Code|S|8
+E
+
+N|Dissection|ds|180
+F|Auto Sequence No|L
+F|Account|S|20
+F|Amount|$
+F|GST Class|B
+F|GST Amount|$
+F|Quantity|$
+F|Narration|S|200
+F|Has Been Edited|Y
+F|GST Has Been Edited|Y
+F|Payee Number|L
+F|Notes|AS
+F|SF Edited|Y
+F|SF Franked|$
+F|SF Unfranked|$
+F|SF Franking Credit|$
+C|Transaction|P|Transaction_Rec
+C|Next|P|Dissection_Rec
+F|Tax Invoice|Y
+F|Job Code|S|8
+E
+
+N|Job Heading|jh|210
+F|Heading|S|60
+F|LRN|L
+F|Code|S|8
+F|IsCompleted|Y
+F|Added By ECoding|Y
+E

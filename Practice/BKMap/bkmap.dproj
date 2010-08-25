@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{f5af26dd-d157-40ea-a6d2-199d37450e2a}</ProjectGuid>
+    <MainSource>bkmap.dpr</MainSource>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+    <DCC_DependencyCheckOutputName>..\..\Install\Bin\bkmap.exe</DCC_DependencyCheckOutputName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_DebugInformation>False</DCC_DebugInformation>
+    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    <DCC_Define>RELEASE;SSLV6</DCC_Define>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+    <DCC_ExeOutput>..\..\Install\Bin</DCC_ExeOutput>
+    <DCC_DcuOutput>..\..\DCU</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\DCU</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\DCU</DCC_HppOutput>
+    <DCC_UnitSearchPath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms;..\BASForm;..\Bconnect;..\Component;..\Crypto;..\Ecoding;..\Ecoding\database;..\Extended MAPI;..\Extract;..\Forex;..\Graphs;..\Import;..\Lists;..\Orpheus;..\Printing;..\WebNotes;..\Win32</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms;..\BASForm;..\Bconnect;..\Component;..\Crypto;..\Ecoding;..\Ecoding\database;..\Extended MAPI;..\Extract;..\Forex;..\Graphs;..\Import;..\Lists;..\Orpheus;..\Printing;..\WebNotes;..\Win32</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms;..\BASForm;..\Bconnect;..\Component;..\Crypto;..\Ecoding;..\Ecoding\database;..\Extended MAPI;..\Extract;..\Forex;..\Graphs;..\Import;..\Lists;..\Orpheus;..\Printing;..\WebNotes;..\Win32</DCC_ObjPath>
+    <DCC_IncludePath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms;..\BASForm;..\Bconnect;..\Component;..\Crypto;..\Ecoding;..\Ecoding\database;..\Extended MAPI;..\Extract;..\Forex;..\Graphs;..\Import;..\Lists;..\Orpheus;..\Printing;..\WebNotes;..\Win32</DCC_IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_Define>DEBUG;SSLV6</DCC_Define>
+    <DCC_ExeOutput>..\..\Install\Bin</DCC_ExeOutput>
+    <DCC_DcuOutput>..\..\DCU</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\DCU</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\DCU</DCC_HppOutput>
+    <DCC_UnitSearchPath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms;..\BASForm;..\Bconnect;..\Component;..\Crypto;..\Ecoding;..\Ecoding\database;..\Extended MAPI;..\Extract;..\Forex;..\Graphs;..\Import;..\Lists;..\Orpheus;..\Printing;..\WebNotes;..\Win32</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms;..\BASForm;..\Bconnect;..\Component;..\Crypto;..\Ecoding;..\Ecoding\database;..\Extended MAPI;..\Extract;..\Forex;..\Graphs;..\Import;..\Lists;..\Orpheus;..\Printing;..\WebNotes;..\Win32</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms;..\BASForm;..\Bconnect;..\Component;..\Crypto;..\Ecoding;..\Ecoding\database;..\Extended MAPI;..\Extract;..\Forex;..\Graphs;..\Import;..\Lists;..\Orpheus;..\Printing;..\WebNotes;..\Win32</DCC_ObjPath>
+    <DCC_IncludePath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms;..\BASForm;..\Bconnect;..\Component;..\Crypto;..\Ecoding;..\Ecoding\database;..\Extended MAPI;..\Extract;..\Forex;..\Graphs;..\Import;..\Lists;..\Orpheus;..\Printing;..\WebNotes;..\Win32</DCC_IncludePath>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Delphi.Personality</Borland.Personality>
+    <Borland.ProjectType>VCLApplication</Borland.ProjectType>
+    <BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription">BK Map Verification</VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName">BKMAP</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">© 2010 BankLink Limited</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName">BankLink Practice</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+    </Excluded_Packages><Source><Source Name="MainSource">bkmap.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
+  <ItemGroup>
+    <DelphiCompile Include="bkmap.dpr">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+    <DCCReference Include="..\Win32\imagesfrm.pas">
+      <Form>AppImages</Form>
+    </DCCReference>
+    <DCCReference Include="frmMapChecker.pas">
+      <Form>MainForm</Form>
+    </DCCReference>
+  </ItemGroup>
+</Project>

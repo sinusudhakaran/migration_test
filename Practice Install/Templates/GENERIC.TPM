@@ -1,0 +1,50 @@
+[Template]
+Code=GENERIC
+Name=Generic BAS Template
+Version=2
+[Tax Starts]
+1|01/07/00
+2|
+3|
+4|
+5|
+
+[Tax Table]
+1|G1|Taxable Supplies|100000|0|0|0|0||0
+2|G2|Export Supplies|0|0|0|0|0||0
+3|G3|Other GST free Supplies|0|0|0|0|0||0
+4|G4|Input-taxed Sales & Income & other Supplies|0|0|0|0|0||0
+5|G10|Capital Purchases|100000|0|0|0|0||0
+6|G11|Non-capital Purchases|100000|0|0|0|0||0
+7|G13|Purchases for making input-taxed sales|0|0|0|0|0||0
+8|G13C|Purchases for making input-taxed sales (capital)|0|0|0|0|0||0
+9|G14|GST-free purchases|0|0|0|0|0||0
+10|G14C|GST-free purchases (capital)|0|0|0|0|0||0
+11|G15|Estimated purchases for private use/non-deductible|0|0|0|0|0||0
+12|G15C|Estimated purchases for private use/non-deductible (capital)|0|0|0|0|0||0
+
+[Chart]
+
+[BAS Rules]
+1|1||0|1000000
+1|2||0|1000000
+1|3||0|1000000
+1|4||0|1000000
+2|2||0|1000000
+3|3||0|1000000
+4|4||0|1000000
+6|5||0|1000000
+6|8||0|1000000
+6|10||0|1000000
+6|12||0|1000000
+7|6||0|1000000
+7|7||0|1000000
+7|9||0|1000000
+7|11||0|1000000
+8|7||0|1000000
+8|8||0|1000000
+9|9||0|1000000
+9|10||0|1000000
+10|11||0|1000000
+10|12||0|1000000
+
