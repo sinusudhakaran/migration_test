@@ -11,10 +11,10 @@ library BBE_CSV;
   using PChar or ShortString parameters. }
 
 uses
-  ExtractCommon in 'ExtractCommon.pas',
   frmCSVConfig in 'frmCSVConfig.pas' {CSVConfig},
   ExtractCSV in 'ExtractCSV.pas',
-  ExtractHelpers in 'ExtractHelpers.pas';
+  ExtractHelpers in 'ExtractHelpers.pas',
+  ExtractCommon in '..\Common\Lib\ExtractCommon.pas';
 
 {$R *.res}
 

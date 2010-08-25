@@ -11,10 +11,10 @@ library BBE_SageHandisoftSuperXML;
   using PChar or ShortString parameters. }
 
 uses
-  ExtractCommon in 'ExtractCommon.pas',
   ExtractHelpers in 'ExtractHelpers.pas',
   frmXMLConfig in 'frmXMLConfig.pas' {XMLConfig},
-  ExtractSageHandisoftSuperXML in 'ExtractSageHandisoftSuperXML.pas';
+  ExtractSageHandisoftSuperXML in 'ExtractSageHandisoftSuperXML.pas',
+  ExtractCommon in '..\Common\Lib\ExtractCommon.pas';
 
 {$R *.res}
 

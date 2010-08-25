@@ -11,10 +11,10 @@ library BBE_Praemium;
   using PChar or ShortString parameters. }
 
 uses
-  ExtractCommon in 'ExtractCommon.pas',
   ExtractHelpers in 'ExtractHelpers.pas',
   frmPraemiumConfig in 'frmPraemiumConfig.pas' {PraemiumConfig},
-  ExtractPraemium in 'ExtractPraemium.pas';
+  ExtractPraemium in 'ExtractPraemium.pas',
+  ExtractCommon in '..\Common\Lib\ExtractCommon.pas';
 
 {$R *.res}
 

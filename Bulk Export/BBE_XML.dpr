@@ -11,10 +11,10 @@ library BBE_XML;
   using PChar or ShortString parameters. }
 
 uses
-  ExtractCommon in 'ExtractCommon.pas',
   ExtractHelpers in 'ExtractHelpers.pas',
   ExtractXML in 'ExtractXML.pas',
-  frmXMLConfig in 'frmXMLConfig.pas' {XMLConfig};
+  frmXMLConfig in 'frmXMLConfig.pas' {XMLConfig},
+  ExtractCommon in '..\Common\Lib\ExtractCommon.pas';
 
 {$R *.res}
 
