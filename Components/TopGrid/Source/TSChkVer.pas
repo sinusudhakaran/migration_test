@@ -1,5 +1,0 @@
-procedure CheckVersion;
-begin
-end;
-
-

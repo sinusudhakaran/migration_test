@@ -1,6 +1,0 @@
-; AppID should never change, so the installer knows it just a new version, not a new programe
-; Appname and Version Name can changed on the release naming
-
-AppID=BankLinkBooks
-AppName=BankLink Books 2010
-AppVerName=BankLink Books 2010
