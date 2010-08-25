@@ -53,7 +53,9 @@
     </DelphiCompile>
     <DCCReference Include="..\Common\Lib\ExtractCommon.pas" />
     <DCCReference Include="ExtractBGL.pas" />
-    <DCCReference Include="ExtractHelpers.pas" />
+    <DCCReference Include="ExtractHelpers.pas">
+      <Form>$R *.res</Form>
+    </DCCReference>
     <DCCReference Include="frmBGLConfig.pas">
       <Form>BGLXMLConfig</Form>
     </DCCReference>

@@ -11,10 +11,10 @@ library BBE_ClassSuper;
   using PChar or ShortString parameters. }
 
 uses
+  ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
   ExtractHelpers in 'ExtractHelpers.pas',
   ExtractClassSuper in 'ExtractClassSuper.pas',
-  frmXMLConfig in 'frmXMLConfig.pas' {XMLConfig},
-  ExtractCommon in '..\Common\Lib\ExtractCommon.pas';
+  frmXMLConfig in 'frmXMLConfig.pas' {XMLConfig};
 
 {$R *.res}
 

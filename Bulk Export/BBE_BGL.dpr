@@ -11,10 +11,10 @@ library BBE_BGL;
   using PChar or ShortString parameters. }
 
 uses
+  ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
   frmBGLConfig in 'frmBGLConfig.pas' {BGLXMLConfig},
   ExtractBGL in 'ExtractBGL.pas',
-  ExtractHelpers in 'ExtractHelpers.pas',
-  ExtractCommon in '..\Common\Lib\ExtractCommon.pas';
+  ExtractHelpers in 'ExtractHelpers.pas';
 
 {$R *.res}
 
