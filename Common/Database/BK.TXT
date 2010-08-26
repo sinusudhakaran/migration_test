@@ -2,7 +2,7 @@ $|BK_FILE_VERSION  = 161;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.16';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.18';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -180,6 +180,7 @@ $|                         Add SF Ledger Code to Bank account
 $|                         Add Super Report Titles
 $|                         Add Super fields to Payee, as per Mem, there are some extra fields not used(yet)
 $|                         Add Extra GST fields for Transitional return, spanning 1 Oct 2010.
+$|                         Add Simple UI status flags and period start    
 $|*)
 
 N|Client|cl|20
@@ -1057,4 +1058,8 @@ F|List Payees Detailed|Y
 F|List Payees SortBy|B
 F|List Payees Rule_Line|Y
 F|Custom SFLedger Titles|BS|1|60
+F|SUI Period Start|D
+F|SUI Period End|D
+F|SUI Period Status|L
+F|SUI Step Done|BY0|32
 E

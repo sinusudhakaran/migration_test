@@ -74,6 +74,10 @@ CONST
    tkceList_Payees_SortBy               = 70 ;
    tkceList_Payees_Rule_Line            = 71 ;
    tkceCustom_SFLedger_Titles           = 72 ;
+   tkceSUI_Period_Start                 = 73 ;
+   tkceSUI_Period_End                   = 74 ;
+   tkceSUI_Period_Status                = 75 ;
+   tkceSUI_Step_Done                    = 76 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -139,6 +143,10 @@ Begin
       F.WriteByteValue( tkceList_Payees_SortBy , ceList_Payees_SortBy );
       F.WriteBooleanValue( tkceList_Payees_Rule_Line , ceList_Payees_Rule_Line );
       For i := 1 to 1 do F.WriteBStringValue( tkceCustom_SFLedger_Titles , i, ceCustom_SFLedger_Titles[ i ] );
+      F.WriteDateValue( tkceSUI_Period_Start , ceSUI_Period_Start );
+      F.WriteDateValue( tkceSUI_Period_End , ceSUI_Period_End );
+      F.WriteIntegerValue( tkceSUI_Period_Status , ceSUI_Period_Status );
+      For i := 0 to 32 do F.WriteBBooleanValue( tkceSUI_Step_Done , i, ceSUI_Step_Done[ i ] );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -154,6 +162,7 @@ Var
    I2    : Byte;
    M     : Money;
    D     : Integer;
+   Y     : Boolean;
    S     : ShortString;
 
 Begin
@@ -219,6 +228,15 @@ Begin
                S := F.ReadBStringValue( I );
                CheckBounds( I, 1, 1, 'ceCustom_SFLedger_Titles' );
                ceCustom_SFLedger_Titles[ I ] := S;
+            end;
+         tkceSUI_Period_Start                 : ceSUI_Period_Start := F.ReadDateValue;
+         tkceSUI_Period_End                   : ceSUI_Period_End := F.ReadDateValue;
+         tkceSUI_Period_Status                : ceSUI_Period_Status := F.ReadIntegerValue;
+         tkceSUI_Step_Done                    : 
+            Begin
+               Y := F.ReadBBooleanValue( I );
+               CheckBounds( I, 0, 32, 'ceSUI_Step_Done' );
+               ceSUI_Step_Done[ I ] := Y;
             end;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );

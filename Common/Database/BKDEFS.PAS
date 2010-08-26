@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 611;
-   BK_IOLIB_Date    = '03/08/10';
+   BK_IOLIB_Version : Integer = 612;
+   BK_IOLIB_Date    = '27/08/10';
    BK_FILE_VERSION  = 161;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.16';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.18';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -193,6 +193,7 @@ Const
                             Add Super Report Titles
                             Add Super fields to Payee, as per Mem, there are some extra fields not used(yet)
                             Add Extra GST fields for Transitional return, spanning 1 Oct 2010.
+                            Add Simple UI status flags and period start    
    *)
 
 {  -------------------------------------------------------------------  }
@@ -1188,6 +1189,10 @@ Type
       ceList_Payees_SortBy               : Byte;       { Stored }
       ceList_Payees_Rule_Line            : Boolean;       { Stored }
       ceCustom_SFLedger_Titles           : Array[ 1..1 ] of String[ 60 ];       { Stored }
+      ceSUI_Period_Start                 : Integer;       { Stored }
+      ceSUI_Period_End                   : Integer;       { Stored }
+      ceSUI_Period_Status                : Integer;       { Stored }
+      ceSUI_Step_Done                    : Array[ 0..32 ] of Boolean;       { Stored }
       ceEOR                              : Byte;
    end;
 
