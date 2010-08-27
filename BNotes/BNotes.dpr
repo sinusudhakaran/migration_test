@@ -36,9 +36,8 @@ begin
       INISettings.INI_DefaultFileLocation := ExtractFilePath(Application.ExeName);
 
     Application.Initialize;
-    Application.CreateForm(TfrmBase, frmBase);
+    Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TAppImages, AppImages);
-  Application.CreateForm(TfrmMain, frmMain);
   Application.Run;
 
     //write local ini file
