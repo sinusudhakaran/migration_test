@@ -1686,7 +1686,7 @@ begin
 
         ceForexAmount :
           begin
-             tmpPaintShortStr := BankAcct.MoneyStrBrackets( pD^.dtForeign_Currency_Amount );
+             tmpPaintShortStr := BankAcct.MoneyStr( pD^.dtForeign_Currency_Amount );
              data := @(tmpPaintShortStr);
            end;
 
@@ -1703,7 +1703,7 @@ begin
 
         ceLocalAmount :
           begin
-            tmpPaintShortStr := MyClient.MoneyStrBrackets( pD.dtAmount );
+            tmpPaintShortStr := MyClient.MoneyStr( pD.dtAmount );
             Data := @tmpPaintShortStr;
            end;
 
