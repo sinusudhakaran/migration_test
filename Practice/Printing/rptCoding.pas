@@ -563,6 +563,14 @@ begin
           RenderRuledLineWithColLines(0, psSolid, vcTopHalf) //Ruled line after last detail line for account
         else
           RenderRuledLine;
+
+      if Assigned(Col1) then
+        Col1.TotalFormat := Mgr.Bank_Account.FmtMoneyStrBrackets;
+      if Assigned(Col2) then
+        Col2.TotalFormat := Mgr.Bank_Account.FmtMoneyStrBrackets;
+      if Assigned(ColAmt) then
+        ColAmt.TotalFormat := Mgr.Bank_Account.FmtMoneyStrBrackets;
+
       RenderDetailSubTotal('');
       If Settings.Style in [ rsTwoColumn, rsTwoColumnWithNotes] then
       Begin

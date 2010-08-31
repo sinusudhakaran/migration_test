@@ -18,7 +18,7 @@ interface
 uses
    Graphics,
    OfficeDM, OpExcel,
-   ReportToFile;
+   ReportToFile, ReportTypes;
 
 type
    TRenderToFileExcel = class( TRenderToFileBase)
@@ -29,7 +29,7 @@ type
       MyDataModule : TDataModuleOffice;
 
       ExcelRange   : TOpExcelRange;
-
+      FUseTotalFormat: boolean;
       function ExcelAddress( const Value : integer; Row : integer) : string;
       function FixFormat(const Value: string): string;
    protected
@@ -43,6 +43,8 @@ type
       procedure RenderPageFooter;
       procedure RenderDetailHeader;               override;
       procedure RenderDetailLine;                 override;
+      procedure RenderDetailSubTotal(const TotalName : string; NewLine: Boolean = True;
+        KeepTotals: Boolean = False; TotalSubName: string = ''; Style: TStyleTypes = siSectionTotal); override;
       procedure RenderTitleLine(Text : string);   override;
       procedure RenderTextLine(Text:string; Underlined : boolean; AddLineIfUnderlined: boolean = True);      override;
       procedure RenderRuledLine;                  overload; override;
@@ -241,6 +243,13 @@ begin
               AsRange.Font.Name := aCol.CustomFont.Name;
               AsRange.Font.Size := aCol.CustomFont.Size;
             end;
+            if FUseTotalFormat and (aCol.TotalFormat <> '' ) then begin
+              //cell has numeric formatting
+              try
+                 AsRange.NumberFormat :=  FixFormat(aCol.TotalFormat);
+              except // at least we tried...
+              end;
+            end else
             if aCol.FormatString <> '' then begin
               //cell has numeric formatting
               try
@@ -264,6 +273,18 @@ begin
    end;
    NewDetailLine;
 end;
+
+procedure TRenderToFileExcel.RenderDetailSubTotal(const TotalName: string;
+  NewLine, KeepTotals: Boolean; TotalSubName: string; Style: TStyleTypes);
+begin
+  FUseTotalFormat := True;
+  try
+    inherited RenderDetailSubTotal(TotalName, NewLine, KeepTotals, TotalSubName, Style);
+  finally
+    FUseTotalFormat := False;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileExcel.RenderPageHeader;
 var
