@@ -527,8 +527,14 @@ procedure TfrmGST101.WMAfterShow(var Message: TMessage);
 begin
     ShowMessage('The calculated IR372 adjustment amounts do not match the GST Return adjustment amounts. The GST Return amounts have been moved to the IR372.');
     case Message.WParam of
-    1: Open372(True, true);
-    2: Open372(False, true);
+    1: begin
+         pgForm.ActivePage := TsPart1;
+         Open372(True, true);
+       end;
+    2: begin
+         pgForm.ActivePage := TsPart1B;
+         Open372(False, true);
+       end;
     end;
 
 end;
@@ -902,7 +908,6 @@ var
   GSTInfoA,
   GSTInfoB : TGSTInfo;
   d, m, y : integer;
-  HasManualCreditAdjustment : Boolean;
 
   function ComplusoryPeriod: Boolean;
   var I: Integer;
@@ -974,6 +979,22 @@ var
         + Money2Double(Prev.blClosing_Debtors_Balance)
         - Money2Double(Prev.blOpening_Debtors_Balance);
 
+  end;
+
+  function CalculatedCreditAdjustment(AGstWorkRec: TGSTForm): Double;
+  var
+    TempVal: Money;
+  begin
+    TempVal := Double2Money(AGstWorkRec.rAcrt_Use + AGstWorkRec.rAcrt_Private +
+                            AGstWorkRec.rAcrt_Change + AGstWorkRec.rAcrt_Customs +
+                            AGstWorkRec.rAcrt_Other);
+    Result := Money2Double(TempVal);
+  end;
+
+  function HasManualCreditAdjustment(AGstWorkRec: TGSTForm): boolean;
+  begin
+    Result := (AGstWorkRec.rAcrt_Use + AGstWorkRec.rAcrt_Private +
+               AGstWorkRec.rAcrt_Change + AGstWorkRec.rAcrt_Other) <> 0;
   end;
 
 begin
@@ -1140,6 +1161,8 @@ begin
 
                //This field should be renamed blBAS_G23_Other_Adjustments
                rOther_Adjust := Money2Double(blBAS_G23);
+               //This field should be renamed blBAS_T7_VAT7_Customs
+               rAcrt_Customs := Money2Double(blBAS_T7_VAT7);
 
                rAdj_Private := Money2Double(blBAS_6B_GST_Adj_PrivUse);
                rAdj_Bassets := Money2Double(blBAS_7_VAT4_GST_Adj_BAssets);
@@ -1190,56 +1213,50 @@ begin
         FormA.rIncome_Ledger := Money2Double( -IncomeA  ) + Money2Double( -ZeroRatedA);
         FormA.rZ_Rated_Sup := Money2Double( -ZeroRatedA);
         FormA.rExendature_Ledger  := Money2Double( ExpenditureA  );
-        //Case 11771 - Recalculate the Customs GST
-        //Manual credit adjustment (without using IR372 if the values do not add up to the box)
-        HasManualCreditAdjustment := (not IsZero(FormA.rCredit_Adjust))
-                                  and (FormA.rCredit_Adjust  <> FormA.rAcrt_Use + FormA.rAcrt_Private +
-                                       FormA.rAcrt_Change + FormA.rAcrt_Customs + FormA.rAcrt_Other);
 
-        if not HasManualCreditAdjustment then //if no manual credit adjustments we can just update as normal
-        begin
-          FormA.rAcrt_Customs := Money2Double(GST_CA);
-          FormA.rCredit_Adjust  := FormA.rAcrt_Use + FormA.rAcrt_Private + FormA.rAcrt_Change + FormA.rAcrt_Customs + FormA.rAcrt_Other;
-        end
-        else if not IsZero(GST_CA) then
-        begin
-          //manual credit adjustment, but now the calculated customs GST isn't zero
-          //so we need to tell the user about it and then display the IR372.
+        //Case 11771 - Recalculate the Customs GST
+        if (GST_CA <> Double2Money(FormA.rAcrt_Customs)) then begin
+          //Display a warning dialog if the customs GST amount has changed.
+          //We need to tell the user about it and then display the IR372.
           //however we want to do this after the 101 form is displayed
           //So post a message that is handled after the form has been shown.
           PostMessage(Handle, WM_AFTERSHOW, 1, 0);
-          //The current manual entry is copied to the other field in the IR372
-          FormA.rAcrt_Other := FormA.rCredit_Adjust;
+          //move the credit ajustment amouint into 'Other' IR372 if there are
+          //no existing IR372 credit adjustments and the Customs amount has changed from 0
+          if not HasManualCreditAdjustment(FormA) and (Double2Money(FormA.rAcrt_Customs) = 0) then
+            FormA.rAcrt_Other := FormA.rCredit_Adjust;
+          //Set the IR372 customs amount
           FormA.rAcrt_Customs := Money2Double(GST_CA);
-          FormA.rCredit_Adjust := FormA.rAcrt_Use + FormA.rAcrt_Private + FormA.rAcrt_Change + FormA.rAcrt_Customs + FormA.rAcrt_Other;
+        end else begin
+          //If nothing has changed on the IR372 then re-calculate and save to Box 13
+          if HasManualCreditAdjustment(FormA) then
+            FormA.rCredit_Adjust := CalculatedCreditAdjustment(FormA);
         end;
 
         if FormPeriod = Transitional then begin
-           FormB.rIncome_Ledger := Money2Double( -IncomeB  ) + Money2Double( -ZeroRatedB);
-           FormB.rZ_Rated_Sup := Money2Double( -ZeroRatedB);
-           FormB.rExendature_Ledger  := Money2Double( ExpenditureB  );
+          FormB.rIncome_Ledger := Money2Double( -IncomeB  ) + Money2Double( -ZeroRatedB);
+          FormB.rZ_Rated_Sup := Money2Double( -ZeroRatedB);
+          FormB.rExendature_Ledger  := Money2Double( ExpenditureB  );
 
-           HasManualCreditAdjustment := (not IsZero(FormB.rCredit_Adjust))
-                                  and (FormB.rCredit_Adjust  <> FormB.rAcrt_Use + FormB.rAcrt_Private +
-                                       FormB.rAcrt_Change + FormB.rAcrt_Customs + FormB.rAcrt_Other);
-
-           if not HasManualCreditAdjustment then //if no manual credit adjustments we can just update as normal
-           begin
-              FormB.rAcrt_Customs := Money2Double(GST_CB);
-              FormB.rCredit_Adjust  := FormB.rAcrt_Use + FormB.rAcrt_Private + FormB.rAcrt_Change + FormB.rAcrt_Customs + FormB.rAcrt_Other;
-           end
-           else if not IsZero(GST_CB) then begin
-              //manual credit adjustment, but now the calculated customs GST isn't zero
-              //so we need to tell the user about it and then display the IR372.
-              //however we want to do this after the 101 form is displayed
-              //So post a message that is handled after the form has been shown.
-              PostMessage(Handle, WM_AFTERSHOW, 2, 0);
-              //The current manual entry is copied to the other field in the IR372
+          //Case 11771 - Recalculate the Customs GST
+          if (GST_CB <> Double2Money(FormB.rAcrt_Customs)) then begin
+            //Display a warning dialog if the customs GST amount has changed.
+            //We need to tell the user about it and then display the IR372.
+            //however we want to do this after the 101 form is displayed
+            //So post a message that is handled after the form has been shown.
+            PostMessage(Handle, WM_AFTERSHOW, 2, 0);
+            //move the credit ajustment amouint into 'Other' IR372 if there are
+            //no existing IR372 credit adjustments and the Customs amount has changed from 0
+            if not HasManualCreditAdjustment(FormB) and (Double2Money(FormB.rAcrt_Customs) = 0) then
               FormB.rAcrt_Other := FormB.rCredit_Adjust;
-              FormB.rAcrt_Customs := Money2Double(GST_CB);
-              FormB.rCredit_Adjust := FormB.rAcrt_Use + FormB.rAcrt_Private + FormB.rAcrt_Change + FormB.rAcrt_Customs + FormB.rAcrt_Other;
-           end;
-
+            //Set the IR372 customs amount
+            FormB.rAcrt_Customs := Money2Double(GST_CB);
+          end else begin
+            //If nothing has changed on the IR372 then re-calculate and save to Box 13
+            if HasManualCreditAdjustment(FormB) then
+              FormB.rCredit_Adjust := CalculatedCreditAdjustment(FormB);
+          end;
+          
         end;
 
         //check to see if the client using payments basis for gst, if so then
@@ -1500,6 +1517,8 @@ begin
 
           //This field should be renamed blBAS_G23_Other_Adjustments
           blBAS_G23                     := Double2Money( rOther_Adjust);
+          //This field should be renamed blBAS_T7_VAT7_Customs
+          blBAS_T7_VAT7                 := Double2Money( rAcrt_Customs);
 
           blBAS_6B_GST_Adj_PrivUse      := Double2Money( rAdj_Private);
           blBAS_7_VAT4_GST_Adj_BAssets  := Double2Money( rAdj_Bassets);
