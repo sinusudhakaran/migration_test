@@ -1210,13 +1210,31 @@ var
   var
     i: integer;
     ba : TBank_Account;
+    CS: string;
   begin
     Result := MyClient.FmtMoneyStrBrackets;
     for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
       ba := TBank_Account(ClientForReport.clBank_Account_List.Bank_Account_At(i));
       if Assigned(ba) then begin
         if (ba.baFields.baContra_Account_Code = AContraCode) then
-          Result := ba.FmtMoneyStrBrackets;
+          CS := ba.CurrencySymbol;
+          if ClientForReport.clFields.clFRS_Report_Style in [crsSinglePeriod, crsBudgetRemaining] then
+          begin
+            if ReportTypeParams.RoundValues then
+            begin
+              Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]);
+              Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]); //note:sign is reversed
+            end else
+            begin
+              Result := Format('%s#,##0.00;%s(#,##0.00);-',[CS, CS]);
+              Result := Format('%s#,##0.00;%s(#,##0.00);-',[CS, CS]); //note:sign is reversed
+            end;
+          end else
+          begin
+             Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]);
+             Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]); //note:sign is reversed
+          end;
+
       end;
     end;                                 
   end;
