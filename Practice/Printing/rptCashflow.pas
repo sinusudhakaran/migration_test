@@ -1205,6 +1205,22 @@ var
   BudgetedOpeningBalance : Money;
 
   ShowThisAccount : boolean;
+
+  function GetFormatForBankAccount(AContraCode: string): string;
+  var
+    i: integer;
+    ba : TBank_Account;
+  begin
+    Result := MyClient.FmtMoneyStrBrackets;
+    for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
+      ba := TBank_Account(ClientForReport.clBank_Account_List.Bank_Account_At(i));
+      if Assigned(ba) then begin
+        if (ba.baFields.baContra_Account_Code = AContraCode) then
+          Result := ba.FmtMoneyStrBrackets;
+      end;
+    end;                                 
+  end;
+
 begin
   if ClientForReport.clFields.clCflw_Cash_On_Hand_Style = cflCash_On_Hand_None then Exit;
 
@@ -1248,7 +1264,7 @@ begin
             GetOpeningBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
 
             if MyClient.HasForeignCurrencyAccounts then
-               SetCurrencyFormatForPeriod(ValuesArray,MyClient.FmtMoneyStrBrackets);
+               SetCurrencyFormatForPeriod(ValuesArray, GetFormatForBankAccount(pAcct^.chAccount_Code));
 
             //PrintValues
             PrintValuesForPeriod( ValuesArray, Debit);
@@ -1263,7 +1279,7 @@ begin
            GetOpeningBalancesForPeriod( pAcct, 1, ValuesArray);
 
            if MyClient.HasForeignCurrencyAccounts then
-               SetCurrencyFormatForPeriod(ValuesArray,MyClient.FmtMoneyStrBrackets);
+              SetCurrencyFormatForPeriod(ValuesArray, GetFormatForBankAccount(pAcct^.chAccount_Code));
 
            //PrintValues
            PrintValuesForPeriod( ValuesArray, Debit);
