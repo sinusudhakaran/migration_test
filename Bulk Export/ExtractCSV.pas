@@ -96,7 +96,7 @@ begin
    Writeln(OutputFile, '"Account Number","Date","Type","Reference",' +
                         '"Analysis","Amount","Other Party","Particulars",'+
                         '"GST Amount","GST Class","Quantity","Code",'+
-                        '"Narration","Contra","ClientCode","Closing Balance"' );
+                        '"Narration","Contra","ClientCode","Closing Balance","Notes"' );
 
 end;
 
@@ -297,7 +297,8 @@ begin
      CleanTextField(GetField(f_Narration)), ',',
      CurrentContra, ',',
      CurrentClientCode, ',',
-     ForceQuotes(GetField(f_Balance,'0.00'))
+     ForceQuotes(GetField(f_Balance,'0.00')), ',',
+     ExtractFieldHelper.RemoveCRLF(CleanTextField(GetField(f_Notes)))
    );
 
 end;

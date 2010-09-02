@@ -44,6 +44,7 @@ type
      function ReplaceQuotesAndCommas(Value: string): string;
      function ForceQuotes(const Value: string): string;
      function RemoveQuotes(const Value: string): string;
+     function RemoveCRLF(const Value: string): string;
   end;
 
 function MakeFilePath(const Path, Filename: string):string;
@@ -95,6 +96,11 @@ var s: string;
 begin
    s := GetField(Value,'0.0');
    Result := StrToCurr(S);
+end;
+
+function TExtractFieldHelper.RemoveCRLF(const Value: string): string;
+begin
+  Result := StringReplace(Value, #13#10, ' ', [rfReplaceAll]);
 end;
 
 function TExtractFieldHelper.RemoveQuotes(const Value: string): string;
