@@ -127,7 +127,7 @@ object frmGST101: TfrmGST101
     Top = 0
     Width = 633
     Height = 685
-    ActivePage = TSPart3
+    ActivePage = TSPart1
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -2079,81 +2079,15 @@ object frmGST101: TfrmGST101
               Height = 6
               Shape = bsBottomLine
             end
-            object lblTotalPurch: TStaticText
-              Left = 478
-              Top = 10
-              Width = 110
-              Height = 20
-              Alignment = taRightJustify
-              AutoSize = False
-              BevelInner = bvNone
-              BevelKind = bkFlat
-              BevelOuter = bvRaised
-              Caption = '$000,000,000.00'
-              Color = clWhite
-              ParentColor = False
-              ShowAccelChar = False
-              TabOrder = 1
-            end
-            object lblDivide12: TStaticText
-              Left = 478
-              Top = 37
-              Width = 110
-              Height = 20
-              Alignment = taRightJustify
-              AutoSize = False
-              BevelInner = bvNone
-              BevelKind = bkFlat
-              BevelOuter = bvRaised
-              Caption = '$000,000,000.00'
-              Color = clWhite
-              ParentColor = False
-              ShowAccelChar = False
-              TabOrder = 2
-            end
-            object lblTotalGSTCredit: TStaticText
-              Left = 478
-              Top = 89
-              Width = 110
-              Height = 20
-              Alignment = taRightJustify
-              AutoSize = False
-              BevelInner = bvNone
-              BevelKind = bkFlat
-              BevelOuter = bvRaised
-              Caption = '$000,000,000.00'
-              Color = clWhite
-              ParentColor = False
-              ShowAccelChar = False
-              TabOrder = 3
-            end
-            object nCRAdjust: TOvcNumericField
-              Left = 478
-              Top = 60
-              Width = 110
-              Height = 19
-              Cursor = crIBeam
-              DataType = nftDouble
-              AutoSize = False
-              BorderStyle = bsNone
-              CaretOvr.Shape = csBlock
-              Color = clWhite
-              Controller = OvcController1
-              Ctl3D = False
-              EFColors.Disabled.BackColor = clWindow
-              EFColors.Disabled.TextColor = clGrayText
-              EFColors.Error.BackColor = clRed
-              EFColors.Error.TextColor = clBlack
-              EFColors.Highlight.BackColor = clHighlight
-              EFColors.Highlight.TextColor = clHighlightText
-              Options = []
-              ParentCtl3D = False
-              PictureMask = '###,###,###.##'
-              TabOrder = 0
-              OnChange = nDrAdjustChange
-              OnKeyDown = nClosingDebtKeyDown
-              RangeHigh = {0090C2F5FF276BEE1C40}
-              RangeLow = {00000000000000000000}
+            object lblLinkToGST105: TLabel
+              Left = 126
+              Top = 140
+              Width = 90
+              Height = 16
+              Cursor = crHandPoint
+              Caption = 'Link to GST105'
+              Visible = False
+              OnClick = lblLinkToGST105Click
             end
             object p15A: TPanel
               Left = 2
@@ -2338,6 +2272,82 @@ object frmGST101: TfrmGST101
                 ShowAccelChar = False
                 TabOrder = 0
               end
+            end
+            object lblTotalPurch: TStaticText
+              Left = 478
+              Top = 10
+              Width = 110
+              Height = 20
+              Alignment = taRightJustify
+              AutoSize = False
+              BevelInner = bvNone
+              BevelKind = bkFlat
+              BevelOuter = bvRaised
+              Caption = '$000,000,000.00'
+              Color = clWhite
+              ParentColor = False
+              ShowAccelChar = False
+              TabOrder = 1
+            end
+            object lblDivide12: TStaticText
+              Left = 478
+              Top = 37
+              Width = 110
+              Height = 20
+              Alignment = taRightJustify
+              AutoSize = False
+              BevelInner = bvNone
+              BevelKind = bkFlat
+              BevelOuter = bvRaised
+              Caption = '$000,000,000.00'
+              Color = clWhite
+              ParentColor = False
+              ShowAccelChar = False
+              TabOrder = 2
+            end
+            object lblTotalGSTCredit: TStaticText
+              Left = 478
+              Top = 89
+              Width = 110
+              Height = 20
+              Alignment = taRightJustify
+              AutoSize = False
+              BevelInner = bvNone
+              BevelKind = bkFlat
+              BevelOuter = bvRaised
+              Caption = '$000,000,000.00'
+              Color = clWhite
+              ParentColor = False
+              ShowAccelChar = False
+              TabOrder = 3
+            end
+            object nCRAdjust: TOvcNumericField
+              Left = 478
+              Top = 60
+              Width = 110
+              Height = 19
+              Cursor = crIBeam
+              DataType = nftDouble
+              AutoSize = False
+              BorderStyle = bsNone
+              CaretOvr.Shape = csBlock
+              Color = clWhite
+              Controller = OvcController1
+              Ctl3D = False
+              EFColors.Disabled.BackColor = clWindow
+              EFColors.Disabled.TextColor = clGrayText
+              EFColors.Error.BackColor = clRed
+              EFColors.Error.TextColor = clBlack
+              EFColors.Highlight.BackColor = clHighlight
+              EFColors.Highlight.TextColor = clHighlightText
+              Options = []
+              ParentCtl3D = False
+              PictureMask = '###,###,###.##'
+              TabOrder = 0
+              OnChange = nDrAdjustChange
+              OnKeyDown = nClosingDebtKeyDown
+              RangeHigh = {0090C2F5FF276BEE1C40}
+              RangeLow = {00000000000000000000}
             end
           end
           object GBAddress: TGroupBox

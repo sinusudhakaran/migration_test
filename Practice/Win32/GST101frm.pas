@@ -329,6 +329,7 @@ type
     L25: TLabel;
     L27: TLabel;
     lPart2Total: TLabel;
+    lblLinkToGST105: TLabel;
     procedure btnOKClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -349,6 +350,7 @@ type
     procedure E25Change(Sender: TObject);
     procedure nClosingDebtChange(Sender: TObject);
     procedure nOpeningDebtBChange(Sender: TObject);
+    procedure lblLinkToGST105Click(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -448,6 +450,8 @@ begin
   GetMem(Figures,Sizeof(rGSTWorkRec));
   Panel1.Font := Application.MainForm.Font;
   SetHyperlinkFont(LBLSubmit.Font);
+   SetHyperlinkFont(lblLinkToGST105.Font);
+  
                       //800
   CustomFormHeight := 800;  //done leave this to windows or it will mess it up
 
@@ -1230,7 +1234,9 @@ begin
         end else begin
           //If nothing has changed on the IR372 then re-calculate and save to Box 13
           if HasManualCreditAdjustment(FormA) then
-            FormA.rCredit_Adjust := CalculatedCreditAdjustment(FormA);
+            FormA.rCredit_Adjust := CalculatedCreditAdjustment(FormA)
+          else if (FormA.rAcrt_Customs <> 0) then
+            FormA.rCredit_Adjust := FormA.rAcrt_Customs; //Customs ajustment only
         end;
 
         if FormPeriod = Transitional then begin
@@ -1254,9 +1260,11 @@ begin
           end else begin
             //If nothing has changed on the IR372 then re-calculate and save to Box 13
             if HasManualCreditAdjustment(FormB) then
-              FormB.rCredit_Adjust := CalculatedCreditAdjustment(FormB);
+              FormB.rCredit_Adjust := CalculatedCreditAdjustment(FormB)
+            else if (FormB.rAcrt_Customs <> 0) then
+              FormB.rCredit_Adjust := FormB.rAcrt_Customs; //Customs ajustment only
           end;
-          
+          lblLinkToGST105.Visible := True;
         end;
 
         //check to see if the client using payments basis for gst, if so then
@@ -1645,6 +1653,13 @@ begin
    // See if there is a refund...
    E25manual := False;
    DisplayFigures;
+end;
+
+procedure TfrmGST101.lblLinkToGST105Click(Sender: TObject);
+const
+  GST105_LINK = 'http://www.ird.govt.nz/resources/6/c/6cfd0080439f6fa39eec9e4e9c145ab7/gst105.pdf';
+begin
+  ShellExecute(0, 'open', PChar(GST105_LINK), nil, nil, SW_NORMAL);
 end;
 
 procedure TfrmGST101.SetDoPart2(const Value: Boolean);
