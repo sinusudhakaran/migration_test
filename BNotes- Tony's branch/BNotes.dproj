@@ -39,6 +39,7 @@
     <DCC_HppOutput>..\DCU</DCC_HppOutput>
     <DCC_BplOutput>..\Binaries</DCC_BplOutput>
     <DCC_DcpOutput>..\DCU</DCC_DcpOutput>
+    <DCC_Optimize>False</DCC_Optimize>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

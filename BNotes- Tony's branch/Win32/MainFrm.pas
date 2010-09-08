@@ -333,6 +333,7 @@ type
     KeyIsDown             : boolean;
     KeyIsCopy             : boolean;
     BasicChartMap         : TStringList;
+    CurrencySymbol        : char; // $, £, etc. depending on the country
 
     procedure CMFocusChanged(var Msg: TCMFocusChanged); message CM_FocusChanged;
 
@@ -417,6 +418,8 @@ type
     { Public declarations }
     Is256Color : Boolean;
     property BasicChart: TStringList read BasicChartMap;
+    procedure SetCurrencySymbol;
+    function GetCurrencySymbol: char;
   end;
 
 var
@@ -761,6 +764,7 @@ begin
     lblOpenFile.Caption := 'Click here to open a ' + APP_NAME + ' file';
   end;
   LockWindowUpdate(Handle);
+  SetCurrencySymbol;
   try
   if not Assigned( MyClientFile) then begin
      if ShowError then
@@ -2787,6 +2791,19 @@ begin
   CloseAndSaveCurrentFile(SAVE_AUTOMSG);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.SetCurrencySymbol;
+begin
+  if Assigned(MyClientFile) then
+  begin
+    case MyClientFile.ecFields.ecCountry of
+      whUK                      : CurrencySymbol := '£';
+      whNewZealand, whAustralia : CurrencySymbol := '$';
+      else CurrencySymbol := '$';
+    end;
+  end else
+    CurrencySymbol := '$';
+end;
+
 procedure TfrmMain.SetSortOrder( NewSortOrder : integer);
 begin
    TranSortOrder  := NewSortOrder;
@@ -4983,6 +5000,11 @@ begin
     HintSL.Free;
   end;
 end ;
+
+function TfrmMain.GetCurrencySymbol: char;
+begin
+  Result:=CurrencySymbol;
+end;
 
 procedure TfrmMain.HideCustomHint;
 var

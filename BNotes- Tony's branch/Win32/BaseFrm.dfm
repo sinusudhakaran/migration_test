@@ -1,7 +1,6 @@
 object frmBase: TfrmBase
   Left = 119
   Top = 73
-  AutoScroll = False
   Caption = 'frmBase'
   ClientHeight = 563
   ClientWidth = 788

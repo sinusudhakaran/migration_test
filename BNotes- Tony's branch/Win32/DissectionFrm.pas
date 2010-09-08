@@ -263,6 +263,8 @@ type
       var Value: Variant);
     procedure JobLookupKeyPress(Sender: TObject; var Key: Char);
     procedure JobEdited(NewValue: string; DataRow: Integer);
+    Function MoneyStr( Const Amount : Money): String;
+    Function FmtMoneyStr: String;
   public
     { Public declarations }
   end;
@@ -283,7 +285,8 @@ uses
    ecTransactionListObj,
    ecColors,
    ecMessageBoxUtils, ECpyIO, FormUtils,
-   ECollect, mxUtils, NotesHelp, ecJobObj;
+   ECollect, mxUtils, NotesHelp, ecJobObj,
+   Dialogs;
 
 {$R *.DFM}
 const
@@ -381,7 +384,7 @@ begin
        begin
          lblDate.Caption   := bkDate2Str( txDate_Effective );
          lblRef.Caption    := GetFormattedReference( ParentTransaction);
-         lblAmount.Caption := Format( '%0.2m', [txAmount / 100] );
+         lblAmount.Caption := MoneyStr(txAmount / 100);
          if txPayee_Number <> 0 then begin
            APayee := MyClientFile.ecPayees.Find_Payee_Number( txPayee_Number);
            if Assigned(APayee) then
@@ -1362,6 +1365,23 @@ begin
   else
     Key := 'A';
 end;
+
+function TfrmDissection.MoneyStr(const Amount: Money): String;
+begin
+  if Amount = Unknown then
+    Result := 'Unknown'
+  else
+    Result := FormatFloat( FmtMoneyStr, Amount/100.0 );
+end;
+
+function TfrmDissection.FmtMoneyStr: String;
+var
+  CurrencySymbol : char;
+Begin
+  CurrencySymbol := frmMain.GetCurrencySymbol;
+  Result := CurrencySymbol + '#,##0.00;' + '-' + CurrencySymbol + '#,##0.00';
+End;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.tgDissectEndCellEdit(Sender: TObject; DataCol,
   DataRow: Integer; var Cancel: Boolean);
@@ -1495,8 +1515,8 @@ var
    Total, Remain : Double;
 begin
    CalcControlTotals( Count, Total, Remain );
-   lblTotal.Caption  := Format( '%0.2m', [Total/100]  );
-   lblRemain.Caption := Format( '%0.2m', [Remain] );
+   lblTotal.Caption  := MoneyStr(Total/100);
+   lblRemain.Caption := MoneyStr(Remain);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.AmountEdited(NewValue: double; DataRow: integer);

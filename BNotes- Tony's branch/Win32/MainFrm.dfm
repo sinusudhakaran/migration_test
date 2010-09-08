@@ -23,7 +23,7 @@ inherited frmMain: TfrmMain
   OnShortCut = FormShortCut
   OnShow = FormShow
   ExplicitWidth = 1162
-  ExplicitHeight = 732
+  ExplicitHeight = 734
   PixelsPerInch = 96
   TextHeight = 20
   object pnlBackground: TPanel
@@ -50,7 +50,7 @@ inherited frmMain: TfrmMain
     object imgBankLinkB: TImage
       Left = 0
       Top = 0
-      Width = 180
+      Width = 178
       Height = 120
       Anchors = [akLeft, akTop, akRight]
       AutoSize = True
@@ -23052,7 +23052,7 @@ inherited frmMain: TfrmMain
     Left = 2
     Top = 172
     Bitmap = {
-      494C010108000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010108000900080010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

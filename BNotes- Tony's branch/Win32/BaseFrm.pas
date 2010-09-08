@@ -7,6 +7,7 @@ uses
 
 type
   TfrmBase = class(TForm)
+
   private
     { Private declarations }
   public
