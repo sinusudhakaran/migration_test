@@ -1264,6 +1264,17 @@ begin
             else if (FormB.rAcrt_Customs <> 0) then
               FormB.rCredit_Adjust := FormB.rAcrt_Customs; //Customs ajustment only
           end;
+        end;
+
+        //TFS 3582 link to GST105 for any GST return that covers Sep 2010
+        if (FormPeriod = Transitional) or
+           (CompareDates(d1,bkStr2Date('01/09/10'),bkStr2Date('30/09/10')) = Within) or
+           (CompareDates(d2,bkStr2Date('01/09/10'),bkStr2Date('30/09/10')) = Within) then begin
+          if (FormPeriod <> Transitional) then begin
+            lblLinkToGST105.Parent := p15A;
+            lblLinkToGST105.Left := L15.Left;
+            lblLinkToGST105.Top := lblRefund.Top;
+          end;
           lblLinkToGST105.Visible := True;
         end;
 
