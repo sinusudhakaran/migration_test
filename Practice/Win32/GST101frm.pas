@@ -1159,34 +1159,39 @@ begin
                rAcrt_Customs   := Money2Double( blGST_Cdj_Customs );
             end;
 
-            if FormPeriod = Transitional then with FormB do begin
-               rClosing_Creditors := Money2Double(blClosing_Creditors_Balance);
-               rClosing_Debtors := Money2Double(blClosing_Debtors_Balance);
+            if FormPeriod = Transitional then begin
+               FormA.rClosing_Creditors := Money2Double(blBAS_G21_GST_Closing_Creditors_BalanceA);
+               FormA.rClosing_Debtors := Money2Double(blBAS_F1_GST_Closing_Debtors_BalanceA );
+
+               FormB.rClosing_Creditors := Money2Double(blClosing_Creditors_Balance);
+               FormB.rClosing_Debtors := Money2Double(blClosing_Debtors_Balance);
 
                //This field should be renamed blBAS_G23_Other_Adjustments
-               rOther_Adjust := Money2Double(blBAS_G23);
+               FormB.rOther_Adjust := Money2Double(blBAS_G23);
                //This field should be renamed blBAS_T7_VAT7_Customs
-               rAcrt_Customs := Money2Double(blBAS_T7_VAT7);
+               FormB.rAcrt_Customs := Money2Double(blBAS_T7_VAT7);
+               //This field should be renamed blBAS_T8_VAT8_rCredit_Adjust
+               FormB.rCredit_Adjust := Money2Double(blBAS_T8_VAT8);
 
-               rAdj_Private := Money2Double(blBAS_6B_GST_Adj_PrivUse);
-               rAdj_Bassets := Money2Double(blBAS_7_VAT4_GST_Adj_BAssets);
-               rAdj_Assets := Money2Double(blBAS_G7_GST_Adj_Assets );
-               rAdj_Entertain := Money2Double(blBAS_G18_GST_Adj_Entertain);
-               rAdj_Change := Money2Double(blBAS_W1_GST_Adj_Change);
-               rAdj_Exempt := Money2Double(blBAS_W2_GST_Adj_Exempt);
-               rAdj_Other := Money2Double(blBAS_W3_GST_Adj_Other);
-               rAcrt_Use := Money2Double(blBAS_W4_GST_Cdj_BusUse);
-               rAcrt_Private := Money2Double(blBAS_T1_VAT1_GST_Cdj_PAssets);
-               rAcrt_Change := Money2Double(blBAS_T2_VAT2_GST_Cdj_Change);
-               rAcrt_Other := Money2Double(blBAS_T3_VAT3_GST_Cdj_Other);
+               FormB.rAdj_Private := Money2Double(blBAS_6B_GST_Adj_PrivUse);
+               FormB.rAdj_Bassets := Money2Double(blBAS_7_VAT4_GST_Adj_BAssets);
+               FormB.rAdj_Assets := Money2Double(blBAS_G7_GST_Adj_Assets );
+               FormB.rAdj_Entertain := Money2Double(blBAS_G18_GST_Adj_Entertain);
+               FormB.rAdj_Change := Money2Double(blBAS_W1_GST_Adj_Change);
+               FormB.rAdj_Exempt := Money2Double(blBAS_W2_GST_Adj_Exempt);
+               FormB.rAdj_Other := Money2Double(blBAS_W3_GST_Adj_Other);
+               FormB.rAcrt_Use := Money2Double(blBAS_W4_GST_Cdj_BusUse);
+               FormB.rAcrt_Private := Money2Double(blBAS_T1_VAT1_GST_Cdj_PAssets);
+               FormB.rAcrt_Change := Money2Double(blBAS_T2_VAT2_GST_Cdj_Change);
+               FormB.rAcrt_Other := Money2Double(blBAS_T3_VAT3_GST_Cdj_Other);
 
-               rOpening_Debtors := Money2Double(blBAS_F2_GST_Opening_Debtors_BalanceB);
+               FormB.rOpening_Debtors := Money2Double(blBAS_F2_GST_Opening_Debtors_BalanceB);
                FormBOpeningDebitChanged := blBAS_F2_GST_Opening_Debtors_BalanceB <> 0;
-               rOpening_Creditors := Money2Double(blBAS_G22_GST_Opening_Creditors_BalanceB);
+               FormB.rOpening_Creditors := Money2Double(blBAS_G22_GST_Opening_Creditors_BalanceB);
                FormBOpeningCreditChanged := blBAS_G22_GST_Opening_Creditors_BalanceB <> 0;
-            end else with FormA do begin
-               rClosing_Creditors := Money2Double(blBAS_G21_GST_Closing_Creditors_BalanceA);
-               rClosing_Debtors := Money2Double(blBAS_F1_GST_Closing_Debtors_BalanceA )
+            end else begin
+               FormA.rClosing_Creditors := Money2Double(blClosing_Creditors_Balance);
+               FormA.rClosing_Debtors := Money2Double(blClosing_Debtors_Balance);
             end;
 
             rpt_LastMonthIncome := Money2Double(blBAS_1C_PT_Last_Months_Income);
@@ -1538,6 +1543,8 @@ begin
           blBAS_G23                     := Double2Money( rOther_Adjust);
           //This field should be renamed blBAS_T7_VAT7_Customs
           blBAS_T7_VAT7                 := Double2Money( rAcrt_Customs);
+          //This field should be renamed blBAS_T8_VAT8_Customs
+          blBAS_T8_VAT8                 := Double2Money( rCredit_Adjust);
 
           blBAS_6B_GST_Adj_PrivUse      := Double2Money( rAdj_Private);
           blBAS_7_VAT4_GST_Adj_BAssets  := Double2Money( rAdj_Bassets);
@@ -1819,7 +1826,7 @@ end;
 
 procedure TfrmGST101.SetGST_PaymentBasis(const Value: Boolean);
 
-   procedure ResetBal(Value: TGSTForm);
+   procedure ResetBal(var Value: TGSTForm);
    begin with Value do begin
       rOpening_Debtors      := 0;
       rOpening_Creditors    := 0;
