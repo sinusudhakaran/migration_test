@@ -9,7 +9,7 @@ inherited frmAbout: TfrmAbout
   OldCreateOrder = True
   OnShow = FormShow
   ExplicitWidth = 598
-  ExplicitHeight = 398
+  ExplicitHeight = 400
   PixelsPerInch = 96
   TextHeight = 16
   object lblTitle: TLabel

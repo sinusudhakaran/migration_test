@@ -264,7 +264,6 @@ type
     procedure JobLookupKeyPress(Sender: TObject; var Key: Char);
     procedure JobEdited(NewValue: string; DataRow: Integer);
     Function MoneyStr( Const Amount : Money): String;
-    Function FmtMoneyStr: String;
   public
     { Public declarations }
   end;
@@ -539,6 +538,7 @@ var
   i : integer;
 begin
   tgDissect.Cols  := ccMax;
+  ccNames[5]:=MyClientFile.SalesTaxNameFromCountry(MyClientFile.ecFields.ecCountry);
 
   for i := ccMin to ccMax do begin
      tgDissect.Col[ i].Heading        := ccNames[ i];
@@ -647,6 +647,8 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.BuildPanel;
+var
+  STax: string;
 begin
   //setup tags
   rzAmount.Tag    := ccAmount;
@@ -686,6 +688,9 @@ begin
     lblQuantity.Visible := (not ecHide_Quantity_Col);
     rzQuantity.Visible  := (not ecHide_Quantity_Col);
     chkTaxInv.Visible := (not ecHide_Tax_Invoice_Col);
+
+    STax:=MyClientFile.SalesTaxNameFromCountry(ecCountry);
+    lblGST.Caption := STax;
   end;
 
   SetEditState(rzQuantity, True);
@@ -1371,16 +1376,8 @@ begin
   if Amount = Unknown then
     Result := 'Unknown'
   else
-    Result := FormatFloat( FmtMoneyStr, Amount/100.0 );
+    Result := FormatFloat( MyClientFile.ActiveBankAccount.FmtMoneyStr, Amount/100.0 );
 end;
-
-function TfrmDissection.FmtMoneyStr: String;
-var
-  CurrencySymbol : char;
-Begin
-  CurrencySymbol := frmMain.GetCurrencySymbol;
-  Result := CurrencySymbol + '#,##0.00;' + '-' + CurrencySymbol + '#,##0.00';
-End;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.tgDissectEndCellEdit(Sender: TObject; DataCol,

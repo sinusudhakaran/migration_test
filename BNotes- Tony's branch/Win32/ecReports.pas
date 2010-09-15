@@ -144,7 +144,6 @@ var
       end; //with
    end;
 
-
 begin
    ThisReport := TECTransactionReport( Sender);
    with ThisReport do begin
@@ -152,8 +151,7 @@ begin
       for i := 0 to Pred( ForClient.ecBankAccounts.ItemCount) do begin
          ba := ForClient.ecBankAccounts.Bank_Account_At(i);
 
-         RenderTitleLine( ba.baFields.baBank_Account_Number + ' ' +
-                          ba.baFields.baBank_Account_Name);
+         RenderTitleLine( ForClient.GetAccountDetails(ba, ForClient.ecFields.ecCountry));
 
          WorkTranList := tSorted_Transaction_List.Create( ForClient.ecFields.ecCountry,
                                                           TranSortOrder);
@@ -314,6 +312,7 @@ var
    CGap           : double;
    S              : string;
    Line           : Boolean;
+
 begin
    if GetReportOptions(Line) = mrCancel then
      exit; // Cancel
@@ -367,6 +366,24 @@ begin
                   else
                     AddColAuto(Job,cLeft,50,cGap, 'Narration',jtLeft);
                end;
+            whUK :
+               Begin
+                  AddColAuto(Job,cleft,6.0 ,cGap,'Date', jtLeft);
+                  AddColAuto(Job,cleft,13.0 ,cGap,'Reference',jtLeft);
+                  AddColAuto(Job,cleft,7.0,cGap,'Code To',jtLeft);
+                  AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,'#,##0.00','£#,##0.00',true);
+                  AddColAuto(Job, cLeft, 4.5, cGap, 'Tax Inv', jtCenter);
+                  AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight, '#,##0.00','£#,##0.00', true);
+                  if HasQuantity then
+                    AddColAuto(Job,cleft,5.5,cGap,'Quantity', jtLeft);
+                  if HasPayee then
+                  begin
+                    AddColAuto(Job,cleft,15.0 ,cGap,'Payee',jtLeft);
+                    AddColAuto(Job,cLeft,25,cGap, 'Narration',jtLeft);
+                  end
+                  else
+                    AddColAuto(Job,cLeft,50,cGap, 'Narration',jtLeft);
+               end;
          end; { of Case clCountry }
       end
       else begin
@@ -402,6 +419,28 @@ begin
                   AddFormatColAuto(Job,cleft,8,cGap,'Amount',jtRight,'#,##0.00','$#,##0.00',true);
                   AddColAuto(Job, cLeft, 4.5, cGap, 'Tax Inv', jtCenter);
                   AddFormatColAuto( Job, cLeft, 6.75, cGap, 'GST Amt', jtRight, '#,##0.00','$#,##0.00', true);
+                  if HasQuantity then
+                    AddColAuto(Job,cleft,5.5,cGap,'Quantity', jtLeft);                  
+                  if HasPayee then
+                  begin
+                    AddColAuto(Job,cleft,10.0 ,cGap,'Payee',jtLeft);
+                    AddColAuto(Job,cLeft,20,cGap, 'Narration',jtLeft);
+                    AddColAuto(Job,cLeft, 23,  cGap,'Notes', jtLeft);
+                  end
+                  else
+                  begin
+                    AddColAuto(Job,cLeft,23,cGap, 'Narration',jtLeft);
+                    AddColAuto(Job,cLeft, 40,  cGap,'Notes', jtLeft);
+                  end;
+               end;
+            whUK :
+               Begin
+                  AddColAuto(Job,cleft,6.0 ,cGap,'Date', jtLeft);
+                  AddColAuto(Job,cleft,9.76 ,cGap,'Reference',jtLeft);
+                  AddColAuto(Job,cleft,6.0,cGap,'Code To',jtLeft);
+                  AddFormatColAuto(Job,cleft,8,cGap,'Amount',jtRight,'#,##0.00','£#,##0.00',true);
+                  AddColAuto(Job, cLeft, 4.5, cGap, 'Tax Inv', jtCenter);
+                  AddFormatColAuto( Job, cLeft, 6.75, cGap, 'VAT Amt', jtRight, '#,##0.00','£#,##0.00', true);
                   if HasQuantity then
                     AddColAuto(Job,cleft,5.5,cGap,'Quantity', jtLeft);                  
                   if HasPayee then
