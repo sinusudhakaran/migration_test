@@ -31,6 +31,7 @@ type
       procedure    UpdateSequenceNumbers;
 
       procedure    UpdateCRC( var CRC : LongWord);
+      function     FmtMoneyStr: String;
    end;
 
 //******************************************************************************
@@ -39,7 +40,8 @@ uses
    ecbaio,
    ecTokens,
    bkDBExcept,
-   ecCRC;
+   ecCRC,
+   SysUtils;
 
 { TEcBankAccount }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -59,6 +61,15 @@ begin
    ecbaio.Free_Bank_Account_Details_Rec_Dynamic_Fields( baFields);
    inherited;
 end;
+
+function TEcBank_Account.FmtMoneyStr: String;
+var
+  CS : string;
+Begin
+  CS := trim(self.baFields.baCurrency_Symbol);
+  Result := CS + '#,##0.00;' + '-' + CS + '#,##0.00';
+End;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TEcBank_Account.LoadFromFile(var s: TIOStream);
 var
