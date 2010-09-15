@@ -31,6 +31,18 @@ procedure UpgradeClientToLatestVersion( aClient : TEcClient );
 const
   MethodName = 'UpgradeClientToLatestVersion';
 
+  procedure UpgradeToVersion12;
+  var
+    i: integer;
+    BankAccount : TEcBank_Account;
+  begin
+    for i := 0 to aClient.ecBankAccounts.ItemCount - 1 do
+    begin
+      BankAccount := aClient.ecBankAccounts.Bank_Account_At(i);
+      BankAccount.baFields.baCurrency_Code:=whCurrencyCodes[aClient.ecFields.ecCountry];
+    end;
+  end;
+
   procedure UpgradeToVersion11;
   begin
     aClient.ecFields.ecHide_Job_Col := true; //hide by default since there will be no data.
@@ -180,6 +192,12 @@ begin
   begin
     UpgradeToVersion11;
     aClient.ecFields.ecFile_Version := 11;
+  end;
+
+  if (aClient.ecFields.ecFile_Version < 12) then
+  begin
+    UpgradeToVersion12;
+    aClient.ecFields.ecFile_Version := 12;
   end;
   
 
