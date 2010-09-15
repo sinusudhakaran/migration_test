@@ -48,6 +48,8 @@ CONST
    tkbaBank_Account_Password            = 154 ;
    tkbaCurrent_Balance                  = 155 ;
    tkbaAccount_Type                     = 156 ;
+   tkbaCurrency_Code                    = 157 ;
+   tkbaCurrency_Symbol                  = 158 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -78,6 +80,8 @@ Begin
       F.WriteStringValue( tkbaBank_Account_Password , baBank_Account_Password );
       F.WriteMoneyValue( tkbaCurrent_Balance , baCurrent_Balance );
       F.WriteByteValue( tkbaAccount_Type , baAccount_Type );
+      F.WriteStringValue( tkbaCurrency_Code , baCurrency_Code );
+      F.WriteStringValue( tkbaCurrency_Symbol , baCurrency_Symbol );
       F.WriteToken( tkEnd_Bank_Account_Details );
    end;
 end; { of Write_Bank_Account_Details_Rec }
@@ -105,6 +109,8 @@ Begin
          tkbaBank_Account_Password            : baBank_Account_Password := F.ReadStringValue;
          tkbaCurrent_Balance                  : baCurrent_Balance := F.ReadMoneyValue;
          tkbaAccount_Type                     : baAccount_Type := F.ReadByteValue;
+         tkbaCurrency_Code                    : baCurrency_Code := F.ReadStringValue;
+         tkbaCurrency_Symbol                  : baCurrency_Symbol := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }

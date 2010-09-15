@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   EC_IOLIB_Version : Integer = 163;
-   EC_IOLIB_Date    = '30/01/09';
-   EC_FILE_VERSION  = 11;  (* Current Version counter for files
+   EC_IOLIB_Version : Integer = 166;
+   EC_IOLIB_Date    = '14/09/10';
+   EC_FILE_VERSION  = 12;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -29,6 +29,7 @@ Const
                       09  Added GL Narration Fields
                       10  Added Tax Invoice Fields
                       11  Added Job list
+                      12  Added CurrencyCode
    *)
 
 {  -------------------------------------------------------------------  }
@@ -147,6 +148,8 @@ Type
       baBank_Account_Password            : String[ 20 ];       { Stored }
       baCurrent_Balance                  : Money;       { Stored }
       baAccount_Type                     : Byte;       { Stored }
+      baCurrency_Code                    : String[ 3 ];       { Stored }
+      baCurrency_Symbol                  : String[ 5 ];       { Stored }
       baNumber                           : Integer;
       baEOR                              : Byte;
    end;

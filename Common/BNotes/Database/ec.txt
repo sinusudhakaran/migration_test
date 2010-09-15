@@ -1,4 +1,4 @@
-$|EC_FILE_VERSION  = 11;  (* Current Version counter for files
+$|EC_FILE_VERSION  = 12;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -16,6 +16,8 @@ $|                   08  Add Superfund fields
 $|                   09  Added GL Narration Fields
 $|                   10  Added Tax Invoice Fields
 $|                   11  Added Job list
+$|                   12  Added CurrencyCode
+                         Added CurrencySymbol
 $|*)
 
 N|ECoding File Details|ec|20
@@ -99,6 +101,8 @@ F|Bank Account Name|S|60
 F|Bank Account Password|S|20
 F|Current Balance|$
 F|Account Type|B
+F|Currency Code|S|3
+F|Currency Symbol|S|5
 C|Number|L
 E
 
