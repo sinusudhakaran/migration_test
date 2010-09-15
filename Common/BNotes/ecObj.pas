@@ -34,10 +34,12 @@ uses
   ecPayeeListObj,
   ecPayeeObj,
   ecJobObj,
+  bkConst,
 {$ENDIF}
   IOStream,
   VCLZip,
-  FileWrapper;
+  FileWrapper,
+  ecBankAccountObj;
 
 type
   TEcClient = class
@@ -53,7 +55,7 @@ type
     constructor Create;
     destructor  Destroy; override;
   private
-
+    FActiveBankAccount: TEcBank_Account;
     procedure OpenFromDataStream(var S : TIOStream);
     function GetZipStream(const Filename: string; const ZipStream: TMemoryStream; aHandle: Cardinal): Boolean;
 
@@ -62,14 +64,19 @@ type
     procedure IntegrityCheck;
     procedure WriteFileFromZipStream(const Filename: string; const ZipStream: TMemoryStream);
     procedure SaveToDataStream(var S : TIOStream);
+    procedure SetActiveBankAccount(const Value: TEcBank_Account);
 {$ENDIF}
   public
     function LoadFromFile(FileName: String; aHandle: Cardinal ): Boolean;
+    function GetCurrencySymbol(ecCountry: byte): string;
 {$IFDEF ParserDll}
 {$ELSE}
     procedure SaveToFile(FileName: String );
     function  GetCurrentCRC : Integer;
     procedure UpdateRefs;
+    function SalesTaxNameFromCountry(ecCountry: byte): string;
+    function GetAccountDetails(ba: TEcBank_Account; ClientCountry: byte): string;
+    property ActiveBankAccount: TEcBank_Account read FActiveBankAccount write SetActiveBankAccount;
 {$ENDIF}
   end;
 
@@ -381,6 +388,14 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+function TEcClient.SalesTaxNameFromCountry(ecCountry: byte): string;
+begin
+  case ecCountry of
+    whNewZealand, whAustralia : Result := 'GST';
+    whUK                      : Result := 'VAT';
+  end;
+end;
+
 procedure TEcClient.SaveToDataStream(var S: TIOStream);
 var
   CRC : LongWord;
@@ -465,7 +480,33 @@ begin
     FreeAndNil( DataStream);
   end;
 end;
+
+procedure TEcClient.SetActiveBankAccount(const Value: TEcBank_Account);
+begin
+  FActiveBankAccount := Value;
+end;
+
+function TEcClient.GetAccountDetails(ba: TEcBank_Account; ClientCountry: byte): string;
+begin
+  Result := ba.bafields.baBank_Account_Number + '   ' +
+            ba.baFields.baBank_Account_Name;
+  if (whCurrencyCodes[ClientCountry]<>ba.baFields.baCurrency_Code) then
+    Result := Result + '   ' +
+              ba.baFields.baCurrency_Code + ' ' +
+              ba.baFields.baCurrency_Symbol;
+end;
+
+function TEcClient.GetCurrencySymbol(ecCountry: byte): string;
+begin
+  case ecCountry of
+    whUK                      : Result := '£';
+    whNewZealand, whAustralia : Result := '$';
+    else Result := '$';
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function TEcClient.GetCurrentCRC: Integer;
 var
    CRC : LongWord;
@@ -491,6 +532,7 @@ begin
             UpdateSequenceNumbers;  //txBank_Seq := baFields.baNumber
          end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TEcClient.IntegrityCheck;
 var
