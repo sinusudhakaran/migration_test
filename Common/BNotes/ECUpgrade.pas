@@ -40,6 +40,7 @@ const
     begin
       BankAccount := aClient.ecBankAccounts.Bank_Account_At(i);
       BankAccount.baFields.baCurrency_Code:=whCurrencyCodes[aClient.ecFields.ecCountry];
+      BankAccount.baFields.baCurrency_Symbol:=whCurrencySymbols[aClient.ecFields.ecCountry];
     end;
   end;
 
