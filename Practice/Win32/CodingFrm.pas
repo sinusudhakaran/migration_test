@@ -1628,10 +1628,12 @@ begin
          IntCode := TOvcNumericField(celPayee.CellEditor).AsInteger;
 
          if PickPayee(IntCode) then begin
+           if BankAccount.ValidPayeeCode(IntCode) then begin
              //if get here then have a code which can be posted to from picklist
              TOvcNumericField(celPayee.CellEditor).AsInteger := IntCode;
              Msg.CharCode := VK_RIGHT;
              celPayee.SendKeyToTable(Msg);
+           end;
          end
          else begin
              if not InEditOnEntry then begin
@@ -1649,16 +1651,18 @@ begin
          IntCode := pT^.txPayee_Number;
          OldPayeeNo := pT^.txPayee_Number;
          if PickPayee(IntCode) then begin
-            //if get here then have a valid payee from the picklist, so edit
-            //the fields in the transaction
-            pT^.txPayee_Number := IntCode;
-            if not PayeeEdited(pT) then
-               pT^.txPayee_Number := OldPayeeNo;
+            if BankAccount.ValidPayeeCode(IntCode) then begin
+              //if get here then have a valid payee from the picklist, so edit
+              //the fields in the transaction
+              pT^.txPayee_Number := IntCode;
+              if not PayeeEdited(pT) then
+                 pT^.txPayee_Number := OldPayeeNo;
 
-            RedrawRow;
-            
-            Msg.CharCode := VK_RIGHT;
-            celPayee.SendKeyToTable(Msg);
+              RedrawRow;
+
+              Msg.CharCode := VK_RIGHT;
+              celPayee.SendKeyToTable(Msg);
+            end;
          end;
       end;
    end;
@@ -3853,6 +3857,11 @@ begin
   result := true;  //assume success
 
   if pT^.txPayee_Number = 0 then exit;  //don't need to do anything
+
+  if (not BankAccount.ValidPayeeCode(pT^.txPayee_Number)) then begin
+    Result := False;
+    Exit;
+  end;
 
   APayee := MyClient.clPayee_List.Find_Payee_Number(pT^.txPayee_Number);
   with pT^, APayee do begin

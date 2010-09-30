@@ -857,7 +857,7 @@ begin
    LastCode := '';
    with clChart do Begin
       for i := 0 to Pred( ItemCount ) do with Account_At( i )^ do Begin
-         if STStrS.CompUCStringS(chAccount_Code , LastCode)  < 0 then Begin
+         if STStrS.CompStringS(chAccount_Code , LastCode)  < 0 then Begin
             RaiseIntegrityException(Format('Chart Sequence, %s < %s',[chAccount_Code, LastCode]));
          end;
          LastCode := chAccount_Code;

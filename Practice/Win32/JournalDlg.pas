@@ -3324,10 +3324,30 @@ var
    LinesRequired  : integer;
    pJournalRec    : pWorkJournal_Rec;
    PayeeLine      : pPayee_Line_Rec;
+
+
+   function DoSuperFund: Boolean;
+   begin
+      if PayeeLine.plSF_Edited
+      and CanUseSuperFundFields (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used ) then begin
+
+         Result := (not (MyClient.clFields.clAccounting_System_Used in [saBGLSimpleFund, saBGLSimpleLedger]))
+                or (pTran.txDate_Effective >= mcSwitchDate); // cannot do new and Old list
+
+      end else
+         Result := False
+   end;
+
+
 begin
   result := true;
 
   if pJ^.dtPayee_Number = 0 then exit;  //don't need to do anything
+
+  if (not Bank_Account.ValidPayeeCode(pj^.dtPayee_Number)) then begin
+    Result := False;
+    Exit;
+  end;
 
   APayee := MyClient.clPayee_List.Find_Payee_Number(pJ^.dtPayee_Number);
   with pJ^, APayee do begin
@@ -3335,16 +3355,16 @@ begin
      isPayeeDissected := APayee.IsDissected;
      //see if user want to override existing fields.  Don't ask if nothing would
      //be changed.
-     if (dtAccount <> '') then
-     begin
+     if (dtAccount <> '') then begin
        RecodeRequired := false;
        //account code must be there already
        PayeeLine := APayee.FirstLine;
        if ( PayeeLine <> nil) then
        begin
          //compare with payee details
-         if IsPayeeDissected or ( dtAccount <> PayeeLine.plAccount) or (( dtNarration <> PayeeLine.plGL_Narration)
-                                                                           and ( PayeeLine.plGL_Narration <> '')) then
+         if IsPayeeDissected
+         or ( dtAccount <> PayeeLine.plAccount)
+         or (( dtNarration <> PayeeLine.plGL_Narration) and ( PayeeLine.plGL_Narration <> '')) then
            RecodeRequired := true;
        end;
 
@@ -3382,10 +3402,10 @@ begin
      //code the entry with the details from the payee
      if not (isPayeeDissected) then
      begin
+       //payee is a single line so alter existing transaction
        PayeeLine := APayee.FirstLine;
        if (PayeeLine <> nil) then
        begin
-         //payee is a single line so alter existing transaction
          dtAccount     := PayeeLine.plAccount;
          if ( PayeeLine.plGL_Narration <> '') then
            dtNarration   := PayeeLine.plGL_Narration;
@@ -3406,13 +3426,62 @@ begin
            dtGST_Amount          := 0;
          end;
 
+         if DoSuperFund then begin
+            if PayeeLine.plSF_PCFranked <> 0 then begin
+                dtSF_Franked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCFranked) * Money2Double(dtAmount)/100));
+                dtSF_Imputed_Credit := FrankingCredit(dtSF_Franked,pTran.txDate_Effective);
+             end;
+             if PayeeLine.plSF_PCUnFranked <> 0 then begin
+                if (PayeeLine.plSF_PCUnFranked + PayeeLine.plSF_PCFranked) = 1000000 then
+                   dtSF_UnFranked := Abs(dtAmount) - dtSF_Franked  // No Rounding Isues
+                else
+                   dtSF_UnFranked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCUnFranked) * Money2Double(dtAmount)/100));
+             end;
+             dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
+             dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
+             dtSF_Fund_ID              := PayeeLine.plSF_Fund_ID;
+             dtSF_Fund_Code            := PayeeLine.plSF_Fund_Code;
+             dtSF_Member_ID            := PayeeLine.plSF_Member_ID;
+             dtSF_Transaction_type_ID  := PayeeLine.plSF_Trans_ID;
+             dtSF_Transaction_Type_Code := PayeeLine.plSF_Trans_Code;
+             dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
+             dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
+             dtSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
+             if PayeeLine.plQuantity <> 0 then
+                dtQuantity := PayeeLine.plQuantity;
+
+             if PayeeLine.plSF_GDT_Date <> 0 then
+                dtSF_CGT_Date := PayeeLine.plSF_GDT_Date;
+
+             dtSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
+
+             SplitRevenue(dtAmount,
+                          dtSF_Tax_Free_Dist,
+                          dtSF_Tax_Exempt_Dist,
+                          dtSF_Tax_Deferred_Dist,
+                          dtSF_Foreign_Income,
+                          dtSF_Capital_Gains_Indexed,
+                          dtSF_Capital_Gains_Disc,
+                          dtSF_Capital_Gains_Other,
+                          dtSF_Capital_Gains_Foreign_Disc,
+                          dtSF_Other_Expenses,
+                          dtSF_Interest,
+                          dtSF_Rent,
+                          dtSF_Special_Income,
+                          PayeeLine);
+
+             dtSF_Super_Fields_Edited := True;
+         end else begin
+            WorkRecDefs.ClearSuperfundDetails(pJ);
+         end;
+
          CopyActionType(pj);
        end;
      end
      else begin
         //payee is dissected, so dissect the transaction
         LinesRequired := APayee.pdLines.ItemCount;
-
         //check something to do
         if LinesRequired = 0 then exit;
 
@@ -3440,8 +3509,8 @@ begin
            for i := aPayee.pdLines.First to aPayee.pdLines.Last do
            begin
              PayeeLine := aPayee.pdLines.PayeeLine_At(i);
-
              pJournalRec := WorkJournal.Items[ LineNo -1];
+
              pJournalRec^.dtPayee_Number := pdNumber;
              pJournalRec^.dtNarration    := PayeeLine.plGL_Narration;
              pJournalRec^.dtAccount      := PayeeLine.plAccount;
@@ -3468,6 +3537,56 @@ begin
              if Bank_Account.baFields.baAccount_Type in Bkconst.JournalsWithNoGSTSet then begin
                pJournalRec^.dtGST_Has_Been_Edited := pJournalRec^.dtGST_Amount <> 0;
                pJournalRec^.dtGST_Amount          := 0;
+             end;
+
+             if DoSuperFund then begin
+                if PayeeLine.plSF_PCFranked <> 0 then begin
+                   pJournalRec^.dtSF_Franked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCFranked) * Money2Double(pJournalRec^.dtAmount)/100));
+                   pJournalRec^.dtSF_Imputed_Credit := FrankingCredit(pJournalRec^.dtSF_Franked,pTran.txDate_Effective);
+                end;
+                if PayeeLine.plSF_PCUnFranked <> 0 then begin
+                   if (PayeeLine.plSF_PCUnFranked + PayeeLine.plSF_PCFranked) = 1000000 then
+                      pJournalRec^.dtSF_UnFranked := Abs(pJournalRec^.dtAmount) - pJournalRec^.dtSF_Franked  // No Rounding Isues
+                   else
+                       pJournalRec^.dtSF_UnFranked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCUnFranked) * Money2Double(pJournalRec^.dtAmount)/100));
+                end;
+                pJournalRec^.dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
+                pJournalRec^.dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
+                pJournalRec^.dtSF_Fund_ID              := PayeeLine.plSF_Fund_ID;
+                pJournalRec^.dtSF_Fund_Code            := PayeeLine.plSF_Fund_Code;
+                pJournalRec^.dtSF_Member_ID            := PayeeLine.plSF_Member_ID;
+                pJournalRec^.dtSF_Transaction_type_ID  := PayeeLine.plSF_Trans_ID;
+                pJournalRec^.dtSF_Transaction_Type_Code := PayeeLine.plSF_Trans_Code;
+                pJournalRec^.dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
+                pJournalRec^.dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
+                pJournalRec^.dtSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
+                if PayeeLine.plQuantity <> 0 then
+                    pJournalRec^.dtQuantity := PayeeLine.plQuantity;
+
+                if PayeeLine.plSF_GDT_Date <> 0 then
+                   pJournalRec^.dtSF_CGT_Date := PayeeLine.plSF_GDT_Date;
+
+                pJournalRec^.dtSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
+
+                SplitRevenue(pJournalRec^.dtAmount,
+                          pJournalRec^.dtSF_Tax_Free_Dist,
+                          pJournalRec^.dtSF_Tax_Exempt_Dist,
+                          pJournalRec^.dtSF_Tax_Deferred_Dist,
+                          pJournalRec^.dtSF_Foreign_Income,
+                          pJournalRec^.dtSF_Capital_Gains_Indexed,
+                          pJournalRec^.dtSF_Capital_Gains_Disc,
+                          pJournalRec^.dtSF_Capital_Gains_Other,
+                          pJournalRec^.dtSF_Capital_Gains_Foreign_Disc,
+                          pJournalRec^.dtSF_Other_Expenses,
+                          pJournalRec^.dtSF_Interest,
+                          pJournalRec^.dtSF_Rent,
+                          pJournalRec^.dtSF_Special_Income,
+                          PayeeLine);
+
+                pJournalRec^.dtSF_Super_Fields_Edited  := True;
+             end else begin
+                WorkRecDefs.ClearSuperfundDetails(pJournalRec);
              end;
 
              CopyActionType(pJournalRec);
@@ -5202,15 +5321,15 @@ begin
                //set editable state
                if cRec.cdFieldID in [ ceAmount, ceAccount ] then
                   eDITState := EsAlwaysEditable
-               else if ( cRec.cdFieldID in [ceGSTAmount])
-                    and ( MyClient.clFields.clCountry = whAustralia )
-                    and ( MyClient.clFields.clBAS_Calculation_Method = bmFull) then
-                       EditState := esNeverEditable
+               ELSE if (( cRec.cdFieldID in [ ceGSTAmount]) and ( MyClient.clFields.clCountry = whAustralia )
+                                                        and ( MyClient.clFields.clBAS_Calculation_Method = bmFull)) then
+                  EditState := esNeverEditable
                else
-               //TFS 1573
-               if ( cRec.cdFieldID in [ ceGSTClass] )
-                  and (not Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used )) then
-                    EditState := esNeverEditable
+               if ( cRec.cdFieldID in [ ceGSTClass] ) then
+               Begin
+                 If not Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
+                   EditState := esNeverEditable
+               End
                else if cRec.cdFieldId in [ceDescription, cePayeeName, ceJobName, ceAltChartCode] then
                   EditState := esNeverEditable
                else

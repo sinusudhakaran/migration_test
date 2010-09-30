@@ -894,8 +894,14 @@ Begin
    M2R(M, Figures.FormB);
 
   //  mGST_To_Pay         := mGST_Collected - mGST_Credit;
-   Figures.rGST_To_Pay := Figures.FormA.rGST_Collected - Figures.FormA.rGST_Credit
-                       +  Figures.FormB.rGST_Collected - Figures.FormB.rGST_Credit;
+   Figures.rGST_To_Pay := Figures.FormA.rGST_Collected - Figures.FormA.rGST_Credit;
+
+   //TFS 4031 Only use the FormB figures if this is a transitional GST return
+   //because the Closing Creditors and Closing Debtors balances are carried
+   //forward to from FormA and they will negate each other in the GST calculation.
+   if FormPeriod = Transitional then
+     Figures.rGST_To_Pay := Figures.rGST_To_Pay + Figures.FormB.rGST_Collected -
+                            Figures.FormB.rGST_Credit;
 end;
 //------------------------------------------------------------------------------
 function TfrmGST101.Execute: boolean;
@@ -1202,12 +1208,12 @@ begin
             rpt_RefundUsed      := Money2Double(blBAS_1G_PT_Refund_Used);
             rFormType           := TFormType(blPT_Form_Type);
          end else begin
+            // Get the Opening Bal from Prev
             if ( Prev<>NIL ) then with Prev^ do begin
-               // Get the Opening Bal from Prev
                Forma.rOpening_Debtors      := Money2Double(blClosing_Debtors_Balance);
                Forma.rOpening_Creditors    := Money2Double(blClosing_Creditors_Balance);
-            end else //Do we need this "else" ???
-
+            end;
+            // Get the Closing Bal from Next
             if ( Next<>NIL ) then with Next^ do begin
                if FormPeriod = Transitional then with FormB do begin
                   rClosing_Debtors := Money2Double(blOpening_Debtors_Balance);

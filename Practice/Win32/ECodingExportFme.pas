@@ -286,6 +286,10 @@ begin
   edtPassword.Text         := aClient.clFields.clECoding_Default_Password;
   edtConfirm.Text          := aClient.clFields.clECoding_Default_Password;
   WebExportFormat          := aClient.clFields.clWeb_Export_Format;
+
+  if cmbWebSpace.Visible then
+    ComboUtils.SetComboIndexByIntObject(aClient.clFields.clECoding_WebSpace, cmbWebspace);
+
   if not SetAdmin(AClient.clFields.clCode) then begin
      // Via NewClientWiz, Not in admin yet, so do it myself...
      chkNotifyMe.Checked := (aClient.clFields.clTemp_FRS_From_Date and wnDontNotifyMe) = 0;
@@ -331,6 +335,10 @@ begin
 
     if FExportDestination = ecDestWebX then begin
        WebExportFormat := Options.WebFormat;
+
+       if cmbWebSpace.Visible then
+         ComboUtils.SetComboIndexByIntObject(Options.WebSpace, cmbWebspace);
+
        if not SetAdmin(Options.Code) then begin
            // Via NewClientWiz, Not in admin yet, so do it myself...
            chkNotifyMe.Checked := (Options.WebNotify and wnDontNotifyMe) = 0;

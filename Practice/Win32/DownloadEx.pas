@@ -847,19 +847,21 @@ begin //ProcessDiskImages
                Inc( NumAccounts);
          end;
 
-         aMsg := 'Download Complete.  ' +
-             inttoStr( ImagesProcessed) + ' disk image(s). ' +
-             inttoStr( NumAccounts) + ' accounts received. ' +
-             inttoStr( NumEntries)  + ' entries from ' +
-             bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate) + '.';
-         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + aMsg);
+         if (StartupParam_Action <> sa_Connect) then begin //Don't do if command line download
+           aMsg := 'Download Complete.  ' +
+               inttoStr( ImagesProcessed) + ' disk image(s). ' +
+               inttoStr( NumAccounts) + ' accounts received. ' +
+               inttoStr( NumEntries)  + ' entries from ' +
+               bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate) + '.';
+           LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + aMsg);
 
-         aMsg := 'Download Complete.  '#13#13 +
-             inttoStr( ImagesProcessed) + ' file(s) downloaded. '#13 +
-             inttoStr( NumAccounts) + ' accounts received. '#13 +
-             inttoStr( NumEntries)  + ' entries from ' +
-             bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate) + '.';
-         HelpfulInfoMsg(aMsg,0);
+           aMsg := 'Download Complete.  '#13#13 +
+               inttoStr( ImagesProcessed) + ' file(s) downloaded. '#13 +
+               inttoStr( NumAccounts) + ' accounts received. '#13 +
+               inttoStr( NumEntries)  + ' entries from ' +
+               bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate) + '.';
+           HelpfulInfoMsg(aMsg,0);
+         end;
       end;
     end
     else //if load admin

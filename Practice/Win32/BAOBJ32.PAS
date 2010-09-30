@@ -75,6 +75,7 @@ type
       Function Local_Currency_Equivalent( Const Foreign_Currency_Amount : Money; Const AsAt : Integer; Out Rate : Double ): Money;
       Function Title : String;
       function AccountName: string;
+      function ValidPayeeCode(PayeeNumber: integer): Boolean;
    end;
 
 const
@@ -94,7 +95,9 @@ uses
    MoneyUtils,
    clObj32,
    bkdbExcept,
-   bkcrc;
+   bkcrc,
+   PayeeObj,
+   InfoMoreFrm;
 
 const
   UnitName = 'BAOBJ32';
@@ -696,12 +699,9 @@ function TBank_Account.Title: String;
 begin
   With baFields do
   Begin
-    if IsAJournalAccount then begin
-       if IsAForexAccount then
-          Result := Format( '%s (%s)', [baBank_Account_Name, baCurrency_Code ] )
-       else
-          Result := baBank_Account_Name;
-    end else if IsAForexAccount then
+    if IsAJournalAccount then
+       Result := baBank_Account_Name
+    else if IsAForexAccount then
        Result := Format( '%s %s (%s)', [ baBank_Account_Number, baBank_Account_Name, baCurrency_Code ] )
     else
        Result := Format( '%s %s', [ baBank_Account_Number, baBank_Account_Name ] )
@@ -743,6 +743,29 @@ begin
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
+function TBank_Account.ValidPayeeCode(PayeeNumber: integer): Boolean;
+const
+  DESKTOP_SUPER_PAYEE_FUND_MISMATCH = 'This payee cannot be used because the ' +
+                                      'bank account and payee fund types do not match';
+var
+  Payee: TPayee;
+  PayeeLedgerID: integer;
+begin
+  Result := True;
+  //TFS 3557
+  if (MyClient.clFields.clAccounting_System_Used = saDesktopSuper) then begin
+    Payee := MyClient.clPayee_List.Find_Payee_Number(PayeeNumber);
+    if Assigned(Payee) and (Payee.pdLines.ItemCount > 0) then
+      PayeeLedgerID := Payee.pdLines.PayeeLine_At(0).plSF_Desktop_Super_Ledger_ID;
+      if (PayeeLedgerID <> -1) and
+         (baFields.baDesktop_Super_Ledger_ID <> PayeeLedgerID) then begin
+        HelpfulInfoMsg( DESKTOP_SUPER_PAYEE_FUND_MISMATCH, 0 );
+        Result := False;
+      end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 function TBank_Account.FindOriginalItem(Match_ID: integer): pTransaction_Rec;

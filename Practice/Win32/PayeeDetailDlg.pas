@@ -464,7 +464,10 @@ begin
     end;
 end;
 procedure TdlgPayeeDetail.DoSuperEdit;
-var Move: TFundNavigation;
+var
+  i: integer;
+  Move: TFundNavigation;
+  DefaultDesktopSuperFund: integer;
 begin
    with tblSplit do begin
       if not StopEditingState(True) then
@@ -480,6 +483,24 @@ begin
 
        if SuperFieldsUtils.EditSuperFields( nil,SplitData[ActiveRow] , Move, FSuperTop, FSuperLeft, sfpayee) then
        begin
+
+          //If DesktopSuper and has Ledger ID in Payee Line then all Ledger ID's must be the same
+          if MyClient.clFields.clAccounting_System_Used = saDesktopSuper then begin
+            DefaultDesktopSuperFund := SplitData[ActiveRow].SF_Desktop_Super_Ledger_ID;
+            if DefaultDesktopSuperFund <> -1 then begin
+              for i := 1 to GLCONST.Max_py_Lines do
+                SplitData[ i].SF_Desktop_Super_Ledger_ID := DefaultDesktopSuperFund;
+            end else begin
+              //Check if DefaultDesktopSuperFund already set and make this Payee line the same
+              for i := 1 to GLCONST.Max_py_Lines do begin
+                if SplitLineIsValid(i) and (SplitData[i].SF_Desktop_Super_Ledger_ID <> -1) then begin
+                  SplitData[ActiveRow].SF_Desktop_Super_Ledger_ID := SplitData[ i].SF_Desktop_Super_Ledger_ID;
+                  Break;
+                end else
+                  SplitData[ i].SF_Desktop_Super_Ledger_ID := -1;
+              end;
+            end;
+          end;
 
           tblSplit.AllowRedraw := false;
           try
@@ -1038,15 +1059,31 @@ var
   NewPayee : integer;
   PayeeLine : pPayee_Line_Rec;
   pAcct    : pAccount_Rec;
+  DefaultDesktopSuperFund: integer;
 begin
    okPressed := false;
    EditMode  := false;
 
    {set init values}
 
+   //If DesktopSuper and has Ledger ID in Payee Line then all Ledger ID's must be the same
+   DefaultDesktopSuperFund := -1;
+   if MyClient.clFields.clAccounting_System_Used = saDesktopSuper then begin
+     if Assigned(Payee) then begin
+       for i := 0 to Payee.pdLines.ItemCount - 1 do begin
+         if Payee.pdLines.PayeeLine_At(i).plSF_Desktop_Super_Ledger_ID <> -1 then begin
+           DefaultDesktopSuperFund := Payee.pdLines.PayeeLine_At(i).plSF_Desktop_Super_Ledger_ID;
+           Break;
+         end;
+       end;
+     end;
+   end;
+
    FillChar(SplitData,Sizeof(SplitData),#0);
-   for i := 1 to GLCONST.Max_py_Lines do
+   for i := 1 to GLCONST.Max_py_Lines do begin
       SplitData[ i].LineType := pltPercentage;
+      SplitData[ i].SF_Desktop_Super_Ledger_ID := DefaultDesktopSuperFund;
+   end;
    SplitData[1].Amount := 100.0;
    SplitData[1].LineType := BKCONST.pltPercentage;
 
@@ -1399,6 +1436,7 @@ begin
       PayeeLine.plSF_Non_Resident_Tax := SplitData[i].SF_Non_Resident_Tax;
       PayeeLine.plSF_Foreign_Capital_Gains_Credit := SplitData[i].SF_Foreign_Capital_Gains_Credit;
       PayeeLine.plSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
+      PayeeLine.plSF_Desktop_Super_Ledger_ID := SplitData[i].SF_Desktop_Super_Ledger_ID;      
 
       aPayee.pdLines.Insert(PayeeLine);
     end;

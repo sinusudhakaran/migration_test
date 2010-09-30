@@ -104,6 +104,7 @@ Begin
    inherited Create;
    Duplicates := false;
    FAltChart := TAltChart.Create;
+   FAltChart.Duplicates := True;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -121,12 +122,12 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TChartBase.CompareCode(Code1, Code2: string): integer;
 begin
-  Result := STStrS.CompUCStringS(Code1, Code2);
+  Result := STStrS.CompStringS(Code1, Code2);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TChartBase.GetCode(Item: pointer): ShortString;
 begin
-   result := pAccount_Rec(Item).chAccount_Code
+   result := pAccount_Rec(Item).chAccount_Code;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -188,7 +189,12 @@ Begin
             Begin
                pCh := New_Account_Rec;
                Read_Account_Rec ( pCH^, S );
-               Insert( pCH );
+               if Self.FindCode(pCh^.chAccount_Code) = nil then
+                 Insert( pCH )
+               else begin
+                 Msg := Format( 'Duplicate account code in chart: %s', [pCh^.chAccount_Code] );
+                 LogUtil.LogMsg(lmError,UnitName, Msg );
+               end;
             end;
          else
          begin { Should never happen }
@@ -372,7 +378,7 @@ begin
     repeat
       pCh := pAccount_Rec(At(i));
       if not PostingOnly then // Get first
-      begin
+      begin                                      
         Result := pCh;
         Exit;
       end;
@@ -577,9 +583,9 @@ Begin
    if i >=0  then begin
 
       If i < Pred(FAltChart.ItemCount) then begin
-         // Check if the the next one has the same start.
-         if pos(Acode, FAltChart.GetCode(FAltChart.Items[i+1])) = 1 then
-            exit;
+         // If there are duplicate alternate codes then don't return a chart code
+         if (CompareCode(Acode, FAltChart.GetCode(FAltChart.Items[i+1])) = 0) then
+            Exit;
       end;
       Result := FAltChart.Account_At(i).chPosting_Allowed;
       if Result then
@@ -722,13 +728,22 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function TChart.MatchAltCode(ACode: string): string;
-var i: integer;
+var
+  i, j: integer;
+  Duplicate: boolean;
 begin
-   Result := ACode;
-   i := FAltChart.SearchForCode(ACode);
-   if i >= 0 then // Found one
-      if FAltChart.Account_At(i).chPosting_Allowed then //Can use it
-         Result := {Self}GetCode(FAltChart.Items[i]); // so do so
+  Result := ACode;
+  Duplicate := False;
+  i := FAltChart.SearchForCode(ACode);
+  if i >= 0 then begin// Found one
+    //Check for duplicates if not the last item
+    if (i < FAltChart.ItemCount - 1) then
+      if FAltChart.Compare(FAltChart.Account_At(i + 1), FAltChart.Account_At(i)) = 0 then
+        Duplicate := True;
+
+    if (FAltChart.Account_At(i).chPosting_Allowed) and (not Duplicate) then //Can use it
+      Result := {Self}GetCode(FAltChart.Items[i]); // so do so
+  end;    
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

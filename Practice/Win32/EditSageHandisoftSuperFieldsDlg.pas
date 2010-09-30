@@ -59,6 +59,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btnNextClick(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
+    procedure nfUnfrankedKeyPress(Sender: TObject; var Key: Char);
   private
     { Private declarations }
     FReadOnly: boolean;
@@ -91,7 +92,8 @@ type
     property FrankPercentage: boolean read FFrankPercentage write SetFrankPercentage;
   end;
 
-
+var
+  dlgEditSageHandisoftSuperFields: TdlgEditSageHandisoftSuperFields;
 
 implementation
 
@@ -122,7 +124,10 @@ procedure TdlgEditSageHandisoftSuperFields.btnCalcClick(Sender: TObject);
 var
   Frank: Double;
 begin
-  Frank := nfFranked.asFloat;
+  if FFrankPercentage then
+    Frank := 0
+  else
+    Frank := nfFranked.asFloat;
   crModified := CheckFrankingCredit(Frank, fDate, nfImputedCredit,
                                     not((Sender = nfImputedCredit) or crModified));
 end;
@@ -224,8 +229,11 @@ begin
   TempInt64 := nfNumberIssued.AsInteger;
   ANumberIssued := (TempInt64 * 10000);
 
-  AFrankedAmount := Double2Money(nfFranked.AsFloat);
-  AUnfrankedAmount := Double2Money(nfUnFranked.AsFloat);
+//  AFrankedAmount := Double2Money(nfFranked.AsFloat);
+  AFrankedAmount := GetNumericValue(nfFranked, FFrankPercentage);
+//  AUnfrankedAmount := Double2Money(nfUnFranked.AsFloat);
+  AUnfrankedAmount := GetNumericValue(nfUnFranked, FFrankPercentage);
+
   AFrankingCredit := Double2Money(nfImputedCredit.AsFloat);
 
   Result := ((cxComboBox1.ItemIndex <> -1) or
@@ -253,15 +261,48 @@ end;
 procedure TdlgEditSageHandisoftSuperFields.nfFrankedChange(Sender: TObject);
 begin
   if (nfFranked.AsFloat <> 0) and (FActualAmount < 0) then begin
+    //Validate franked amount
+    if nfFranked.asFloat > FTranAmount then
+      nfFranked.asFloat := FTranAmount;
     nfUnFranked.AsFloat := (FTranAmount - nfFranked.AsFloat);
-    btnCalcClick(Sender);
+  end else if FFrankPercentage then begin
+    //Validate franked percentage
+    if nfFranked.asFloat > 100 then
+      nfFranked.asFloat := 100;
+    nfUnFranked.AsFloat := (FTranAmount - nfFranked.AsFloat);
   end;
+  btnCalcClick(Sender);
 end;
 
 procedure TdlgEditSageHandisoftSuperFields.nfUnfrankedChange(Sender: TObject);
 begin
   if (nfUnFranked.AsFloat <> 0) and (FActualAmount < 0) then begin
+    //Validate unfranked amount
+    if nfUnfranked.asFloat > FTranAmount then
+      nfUnfranked.asFloat := FTranAmount;
     nfFranked.AsFloat := (FTranAmount - nfUnfranked.AsFloat);
+  end else if FFrankPercentage then begin
+    //Validate unfranked percentage
+    if nfUnfranked.asFloat > 100 then
+      nfUnfranked.asFloat := 100;
+    nfFranked.AsFloat := (FTranAmount - nfUnfranked.AsFloat);
+  end;
+  btnCalcClick(Sender);
+end;
+
+procedure TdlgEditSageHandisoftSuperFields.nfUnfrankedKeyPress(Sender: TObject;
+  var Key: Char);
+var
+  nf: TOvcNumericField;
+begin
+  if Key = '=' then
+  begin
+    Key := #0;
+    nf := Sender as TOvcNumericField;
+    if nf = nfFranked then
+      nfFranked.asFloat := (FTranAmount - nfUnFranked.asFloat)
+    else if nf = nfUnFranked then
+      nfUnFranked.asFloat := (FTranAmount - nfFranked.asFloat);
     btnCalcClick(Sender);
   end;
 end;
@@ -273,8 +314,9 @@ begin
   cxComboBox2.ItemIndex := cxComboBox2.Properties.Items.IndexOf(ATransaction);
   nfNumberIssued.AsInteger := Trunc(ANumberIssued / 10000);
 
-  nfFranked.AsFloat := Money2Double(AFrankedAmount);
-  nfUnfranked.AsFloat := Money2Double(AUnfrankedAmount);
+  SetNumericValue(nfFranked, AFrankedAmount, FrankPercentage);
+  SetNumericValue(nfUnfranked, AUnfrankedAmount, FrankPercentage);
+
   nfImputedCredit.AsFloat := Money2Double(AFrankingCredit);
 end;
 

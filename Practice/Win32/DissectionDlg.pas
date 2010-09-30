@@ -1686,7 +1686,7 @@ begin
 
         ceForexAmount :
           begin
-             tmpPaintShortStr := BankAcct.MoneyStr( pD^.dtForeign_Currency_Amount );
+             tmpPaintShortStr := BankAcct.MoneyStrBrackets( pD^.dtForeign_Currency_Amount );
              data := @(tmpPaintShortStr);
            end;
 
@@ -1703,7 +1703,7 @@ begin
 
         ceLocalAmount :
           begin
-            tmpPaintShortStr := MyClient.MoneyStr( pD.dtAmount );
+            tmpPaintShortStr := MyClient.MoneyStrBrackets( pD.dtAmount );
             Data := @tmpPaintShortStr;
            end;
 
@@ -4217,10 +4217,12 @@ begin
          IntCode := TOvcNumericField(celPayee.CellEditor).AsInteger;
 
          if PickPayee(IntCode) then begin
+           if BankAcct.ValidPayeeCode(IntCode) then begin
              //if get here then have a code which can be posted to from picklist
              TOvcNumericField(celPayee.CellEditor).AsInteger := IntCode;
              Msg.CharCode := VK_RIGHT;
              celPayee.SendKeyToTable(Msg);
+           end;
          end
          else begin
              if not InEditOnEntry then begin
@@ -4237,15 +4239,17 @@ begin
          IntCode := pD^.dtPayee_Number;
          OldPayeeNo := pD^.dtPayee_Number;
          if PickPayee(IntCode) then begin
-            //if get here then have a valid payee from the picklist, so edit
-            //the fields in the transaction
-            pD^.dtPayee_Number := IntCode;
-            if not PayeeEdited(pD,ActiveRow) then
+           if BankAcct.ValidPayeeCode(IntCode) then begin
+             //if get here then have a valid payee from the picklist, so edit
+             //the fields in the transaction
+             pD^.dtPayee_Number := IntCode;
+             if not PayeeEdited(pD,ActiveRow) then
                pD^.dtPayee_Number := OldPayeeNo;
 
-            InvalidateRow(ActiveRow);  //forces repaint of row
-            Msg.CharCode := VK_RIGHT;
-            celPayee.SendKeyToTable(Msg);
+             InvalidateRow(ActiveRow);  //forces repaint of row
+             Msg.CharCode := VK_RIGHT;
+             celPayee.SendKeyToTable(Msg);
+           end;
          end;
       end;
    end;
@@ -4284,6 +4288,11 @@ begin
   result := true;
 
   if pD^.dtPayee_Number = 0 then exit;  //don't need to do anything
+
+  if (not BankAcct.ValidPayeeCode(pD^.dtPayee_Number)) then begin
+    Result := False;
+    Exit;
+  end;
 
   APayee := MyClient.clPayee_List.Find_Payee_Number(pD^.dtPayee_Number);
   with pD^, APayee do begin
