@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 612;
-   BK_IOLIB_Date    = '27/08/10';
-   BK_FILE_VERSION  = 161;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 614;
+   BK_IOLIB_Date    = '20/09/10';
+   BK_FILE_VERSION  = 162;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -193,7 +193,8 @@ Const
                             Add Super Report Titles
                             Add Super fields to Payee, as per Mem, there are some extra fields not used(yet)
                             Add Extra GST fields for Transitional return, spanning 1 Oct 2010.
-                            Add Simple UI status flags and period start    
+                            Add Simple UI status flags and period start
+     5.20 (2010SMSF) 162    Add SF_Desktop_Super_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
    *)
 
 {  -------------------------------------------------------------------  }
@@ -497,6 +498,7 @@ Type
       clCompressed_Data_Size             : Integer;
       clUncompressed_Data_Size           : Integer;
       clTemp_FRS_Use_Budget_Quantities   : Boolean;
+      clTemp_CRC_at_Last_Backup          : Integer;
       clEOR                              : Byte;
    end;
 
@@ -609,6 +611,7 @@ Type
       plSF_Non_Resident_Tax              : Money;       { Stored }
       plSF_Foreign_Capital_Gains_Credit  : Money;       { Stored }
       plSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
+      plSF_Desktop_Super_Ledger_ID       : Integer;       { Stored }
       plTemp_Tag                         : Integer;
       plEOR                              : Byte;
    end;
@@ -722,6 +725,7 @@ Type
       mlSF_Non_Resident_Tax              : Money;       { Stored }
       mlSF_Foreign_Capital_Gains_Credit  : Money;       { Stored }
       mlSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
+      mlSF_Desktop_Super_Ledger_ID       : Integer;       { Stored }
       mlTemp_Tag                         : Integer;
       mlEOR                              : Byte;
    end;
