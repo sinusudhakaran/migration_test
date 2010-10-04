@@ -7,7 +7,7 @@ ChangesAssociations=yes
 DefaultDirName={sd}\BNotes
 DefaultGroupName=BankLink
 DisableStartupPrompt=yes
-LicenseFile=bnotes_eula.txt
+LicenseFile=OtherFiles\bnotes_eula.rtf
 MinVersion=4,4
 
 [Tasks]
@@ -20,8 +20,11 @@ Root: HKCR; Subkey: "BankLinkBNotesFile\DefaultIcon"; ValueType: string; ValueNa
 Root: HKCR; Subkey: "BankLinkBNotesFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\BNOTES.EXE"" ""%1"""
 
 [Files]
-Source: "BNOTES.EXE"; DestDir: "{app}"
-;Source: "BNOTES.HLP"; DestDir: "{app}"
+Source: "..\Binaries\BNOTES.EXE"; DestDir: "{app}"
+Source: "HelpGuide\Notes_guide_au.chm"; DestDir: "{app}"; DestName: "NOTES_GUIDE.CHM"
+Source: "OtherFiles\bkinstall.exe"; DestDir: "{app}"
+Source: "OtherFiles\bkupgcor.dll"; DestDir: "{app}"
+Source: "OtherFiles\ipwssl6.dll"; DestDir: "{app}"
 
 ; PlusCountry dll
 Source: "PlusCountry.dll"; Flags: dontcopy
@@ -82,4 +85,3 @@ begin
   CountryPage.Add('New Zealand');
   CountryPage.Add('United Kingdom');
 end;
-

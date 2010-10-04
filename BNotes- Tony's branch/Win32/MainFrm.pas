@@ -3512,10 +3512,7 @@ begin
             //not there at all, so !! ADD !! the missing Cheques}
             Transaction := ECTXIO.New_Transaction_Rec;
             with Transaction^ do begin
-               case MyClientFile.ecFields.ecCountry of
-                  whNewZealand : txType := 0;
-                  whAustralia  : txType := 1;
-               end;
+               txType           := whChequeEntryType[MyClientFile.ecFields.ecCountry];
                txSource         := orGenerated;
                txDate_Effective := MyClientFile.ecFields.ecDate_Range_To;
                txCheque_Number  := number;
@@ -3560,20 +3557,9 @@ begin
    //create new transaction
    Transaction := ECTXIO.New_Transaction_Rec;
    with Transaction^ do begin
-      if upi = upUPD then
-      begin
-        case MyClientFile.ecFields.ecCountry of
-           whNewZealand : txType := 50;
-           whAustralia  : txType := 10;
-        end;    // case
-      end
-      else // upw
-      begin
-        case MyClientFile.ecFields.ecCountry of
-           whNewZealand : txType := 49;
-           whAustralia  : txType := 9;
-        end;
-      end;
+      if upi = upUPD
+        then txType := whDepositEntryType[MyClientFile.ecFields.ecCountry]
+        else txType := whWithdrawalEntryType[MyClientFile.ecFields.ecCountry]; // upw
       txSource           := orGenerated;
       txDate_Effective   := MyClientFile.ecFields.ecDate_Range_To;
       txBank_Seq         := MyClientFile.ActiveBankAccount.baFields.baNumber;

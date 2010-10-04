@@ -194,7 +194,7 @@ begin
                               PutNotes( txNotes);
                            end;
                         end;
-                     whAustralia :
+                     whAustralia, whUK :
                         Begin
                            PutString(bkDate2Str(txDate_Effective));
                            PutString( GetFormattedReference( pT));
@@ -259,7 +259,7 @@ begin
                                  PutNotes( dsNotes);
                               end;
                            end;
-                        whAustralia :
+                        whAustralia, whUK :
                            Begin
                               SkipColumn; //date
                               PutString(' /'+inttostr(dsAuto_Sequence_No));

@@ -226,7 +226,7 @@ inherited frmDissection: TfrmDissection
         Transparent = True
       end
       object btnOK: TButton
-        Left = 554
+        Left = 552
         Top = -4
         Width = 81
         Height = 29
@@ -241,10 +241,9 @@ inherited frmDissection: TfrmDissection
         ModalResult = 1
         ParentFont = False
         TabOrder = 0
-        ExplicitLeft = 556
       end
       object btnCancel: TButton
-        Left = 641
+        Left = 639
         Top = -4
         Width = 81
         Height = 29
@@ -259,7 +258,6 @@ inherited frmDissection: TfrmDissection
         ModalResult = 2
         ParentFont = False
         TabOrder = 1
-        ExplicitLeft = 643
       end
     end
     object pnlPanel: TPanel
