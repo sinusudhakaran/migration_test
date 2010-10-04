@@ -69,7 +69,8 @@ uses
    ecJobObj,
    pyList32,
    SuperfieldsUtils,
-   ECodingUtils, ClientUtils, SchedRepUtils, Globals;
+   ECodingUtils, ClientUtils, SchedRepUtils, Globals,
+   ISO_4217;
 
 const
    UnitName = 'BNotesInterface';
@@ -268,6 +269,8 @@ begin
             NewECBA := TECBank_Account.Create;
             NewECBA.baFields.baBank_Account_Number    := BA.baFields.baBank_Account_Number;
             NewECBA.baFields.baBank_Account_Name      := BA.baFields.baBank_Account_Name;
+            NewECBA.baFields.baCurrency_Code          := BA.baFields.baCurrency_Code;
+            NewECBA.baFields.baCurrency_Symbol        := Get_ISO_4217_Symbol(BA.baFields.baCurrency_Code);
 
             //copy transactions
             for TNo := 0 to Pred( BA.baTransaction_List.ItemCount) do begin
