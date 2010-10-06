@@ -13,7 +13,7 @@ uses
    BaList32, chList32, pyList32, maList32, dlList32,
    buList32, blList32, jobobj,
    PayeeObj,
-   CustomHeadingsListObj,
+   CustomHeadingsListObj, ExchangeRateList, mcDefs,
 {$ENDIF}
    sysutils, MoneyDef;
 
@@ -40,6 +40,7 @@ type
     constructor Create;
     destructor Destroy; override;
   private
+    FExchangeSource: TExchangeSource;
     procedure LoadFromStream( var s:TIOStream);
     procedure GetZipStreamFromFile( const Filename : String; const ZipStream : TBigMemoryStream);
     procedure OpenFromDataStream( var S : TIOStream);
@@ -56,6 +57,7 @@ type
     procedure Open(FileCode, FileExtension : String);
 {$IFDEF ParserDll}
 {$ELSE}
+    property ExchangeSource: TExchangeSource read FExchangeSource;
     property  clExtendedName : string read GetLongName;   //used in reports
     property  clAccountingSystemName : string read GetAccountingSystemName;
     procedure UpdateRefs;
@@ -199,6 +201,8 @@ begin
    clJobs                 := TClient_Job_List.Create;
    clCustom_Headings_List := TNew_Custom_Headings_List.Create;
 
+   //Exchange rate source
+   FExchangeSource := TExchangeSource.Create;
 {$ENDIF}
    LogDebugMsg(ThisMethodName + ' Ends');
 end;
@@ -229,6 +233,8 @@ begin
    BKCLIO.Free_Client_Rec_Dynamic_Fields( clFields);
 {$IFDEF ParserDll}
 {$ELSE}
+   FreeAndNil(FExchangeSource);
+
    clBank_Account_List.Free;
    clChart.Free;
    clPayee_List_V53.Free;
@@ -328,6 +334,7 @@ begin
        tkBegin_MoreClient        : Read_MoreClient_Rec(clMoreFields,s);
        tkBeginJobList            : clJobs.LoadFromFile(S);
        tkBegin_ClientExtra       : Read_ClientExtra_Rec (clExtra,s);
+       tkBeginExchangeRateHeader : FExchangeSource.LoadFromStream( S );
     else
        begin { Should never happen }
           Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -630,6 +637,7 @@ begin
    BKMCIO.Write_MoreClient_Rec( clMoreFields, S );
    clJobs.SaveToFile(S);
    BKCEIO.Write_ClientExtra_Rec(clExtra,S);
+   FExchangeSource.SaveToStream( S );
    S.WriteToken( tkEndSection );
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;
