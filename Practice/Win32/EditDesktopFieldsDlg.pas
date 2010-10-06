@@ -124,6 +124,7 @@ type
     lp10: TLabel;
     lp11: TLabel;
     cmbSelectedFund: TComboBox;
+    cmbClassSuperFund: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -160,6 +161,9 @@ type
     procedure cmbFundCloseUp(Sender: TObject);
     procedure cmbSelectedFundDropDown(Sender: TObject);
     procedure cmbSelectedFundChange(Sender: TObject);
+    procedure cmbClassSuperFundChange(Sender: TObject);
+    procedure cmbClassSuperFundDropDown(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
 
   private
     { Private declarations }
@@ -178,7 +182,10 @@ type
     FRevenuePercentage: boolean;
     FSDMode: TSuperDialogMode;
     SuperSystem: Byte;
+    FClassSuperFundList: TStringList;
     function IsAllCleared(DoClear: boolean = False): boolean;
+    function GetClassSuperFundCode(ClassSuperFundID: integer; AClassSuperFundName: string): string;
+    Function ValidFundCode(AFundCode: string): boolean;
     procedure FillArray(var GLArray: TDSArray; List: string);
     procedure FillTransArray(var GLArray: TDSArray; List: string);
     procedure SetReadOnly(const Value: boolean);
@@ -261,7 +268,7 @@ type
                           var mAccount: Shortstring;
                           var mFundID: Integer;
                           var mFundCode: Shortstring): boolean;}
-    procedure AddFund(AFundID: integer);
+    procedure AddFund(AFundID: string; aSuperSystem: byte);
 
     property ReadOnly : boolean read FReadOnly write SetReadOnly;
     property MoveDirection : TFundNavigation read FMoveDirection write SetMoveDirection;
@@ -293,6 +300,14 @@ uses
 {$R *.dfm}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TdlgEditDesktopFields.GetClassSuperFundCode(ClassSuperFundID: integer;
+  AClassSuperFundName: string): string;
+begin
+  Result := '';
+  if (FClassSuperFundList.ValueFromIndex[ClassSuperFundID] = AClassSuperFundName) then
+    Result := FClassSuperFundList.Names[ClassSuperFundID];
+end;
+
 function TdlgEditDesktopFields.GetFields( var mContrib: Money;
                          var mFranked : Money;
                          var mUnfranked : Money;
@@ -461,8 +476,18 @@ begin
     btnThird.Caption := '2/3';
     UFModified := False;
     FLedgerCode := IntToStr(-1);
-    cmbSelectedFund.ItemIndex := -1;
-    cmbSelectedFundChange(nil);
+    case SuperSystem of
+      saDesktopSuper:
+        begin
+          cmbSelectedFund.ItemIndex := -1;
+          cmbSelectedFundChange(nil);
+        end;
+      saClassSuperIP:
+        begin
+          cmbClassSuperFund.ItemIndex := -1;
+          cmbClassSuperFundChange(nil);
+        end;
+    end;
     Result := True;
   end else begin
     Result := (nfContrib.AsFloat = 0);
@@ -488,7 +513,7 @@ begin
     Result := Result and (cmbTrans.ItemIndex = -1);
     Result := Result and (cmbSelectedFund.ItemIndex = -1);
     Result := Result and (btnThird.Caption = '2/3');
-    Result := Result and (StrToIntDef(FLedgerCode,-1) = -1);
+    Result := Result and ((StrToIntDef(FLedgerCode,-1) = -1) or (FLedgerCode = ''));
   end;
 end;
 
@@ -908,6 +933,14 @@ begin
   FDepositStartIndex := 0;
 
   FSkip := 0;
+
+  //Temporary list to store ClassSuper Fund codes
+  FClassSuperFundList := TStringList.Create;  
+end;
+
+procedure TdlgEditDesktopFields.FormDestroy(Sender: TObject);
+begin
+  FClassSuperFundList.Free;
 end;
 
 procedure TdlgEditDesktopFields.FormKeyDown(Sender: TObject; var Key: Word;
@@ -927,12 +960,26 @@ begin
     Left := FLeft;
   end;
 
-  if (SuperSystem = saDesktopSuper) and (cmbSelectedFund.Items.Count > 1) then begin
-    lblLedger.Visible := False;
-    cmbSelectedFund.Left := cmbTrans.Left;
-    cmbSelectedFund.Visible := True;
-    LedgerName := DesktopSuper_Utils.GetLedgerName(StrToIntDef(FLedgerCode,-1));
-    cmbSelectedFund.ItemIndex := cmbSelectedFund.Items.IndexOf(LedgerName);
+  case SuperSystem of
+    saDesktopSuper:
+      if (cmbSelectedFund.Items.Count > 1) then begin
+        lblLedger.Visible := False;
+        cmbClassSuperFund.Visible := False;
+        cmbSelectedFund.Left := cmbTrans.Left;
+        cmbSelectedFund.Visible := True;
+        LedgerName := DesktopSuper_Utils.GetLedgerName(StrToIntDef(FLedgerCode,-1));
+        cmbSelectedFund.ItemIndex := cmbSelectedFund.Items.IndexOf(LedgerName);
+      end;
+    saClassSuperIP:
+      if (cmbClassSuperFund.Items.Count > 1) then begin
+        lblLedger.Visible := False;
+        cmbSelectedFund.Visible := False;
+        cmbClassSuperFund.Top := cmbxAccount.Top;
+        cmbClassSuperFund.Left := cmbTrans.Left;
+        cmbClassSuperFund.Visible := True;
+        LedgerName := ClassSuperIP.GetLedgerName(FLedgerCode);
+        cmbClassSuperFund.ItemIndex := cmbClassSuperFund.Items.IndexOf(LedgerName);
+      end;
   end;
 
   UpdateDisplayTotals;
@@ -980,48 +1027,56 @@ begin
 
   SuperSystem := aSuperSystem;
 
-//  if SDMode <> sfPayee then begin
 
   case SuperSystem of
-  saDesktopSuper: begin
-        FillArray(FundArray, ImportDesktopCSV(DESKTOP_SUPER_INVESTMENT_FILENAME, 'Investment Code List'));
-        FillArray(MemberArray, ImportDesktopCSV(DESKTOP_SUPER_MEMBER_FILENAME, 'Member Account List'));
-        lblLedger.Caption := DesktopSuper_Utils.GetLedgerName(StrToIntDef(FLedgerCode,-1));
-        if lblLedger.Caption = '' then
-           lblLedger.Caption := '<none>';
+    saDesktopSuper:
+       begin
+          FillArray(FundArray, ImportDesktopCSV(DESKTOP_SUPER_INVESTMENT_FILENAME, 'Investment Code List'));
+          FillArray(MemberArray, ImportDesktopCSV(DESKTOP_SUPER_MEMBER_FILENAME, 'Member Account List'));
+          lblLedger.Caption := DesktopSuper_Utils.GetLedgerName(StrToIntDef(FLedgerCode,-1));
+          if lblLedger.Caption = '' then
+             lblLedger.Caption := '<none>';
 
-        FillTransArray(TransArray, ImportDesktopCSV(DESKTOP_SUPER_TRANS_FILENAME, 'Transaction Types List'));
-     end;
-
-  saClassSuperIP: begin
-        // Sort out the U.I
-
-        lblLedger.Caption := ClassSuperIP.GetLedgerName(FLedgerCode);
-        if lblLedger.Caption = '' then
-           lblLedger.Caption := '<none>';
-
-        Label18.Visible := False;
-        cmbTrans.Visible := False;
-
-        FillArray(FundArray, ImportClassSuperList(fLedgerCode,cs_Investments));
-        FillArray(MemberArray, ImportClassSuperList(fLedgerCode,cs_Members));
-
-
-     end;
+          FillTransArray(TransArray, ImportDesktopCSV(DESKTOP_SUPER_TRANS_FILENAME, 'Transaction Types List'));
+       end;
+    saClassSuperIP:
+       begin
+          FillArray(FundArray, ImportClassSuperList(fLedgerCode,cs_Investments));
+          FillArray(MemberArray, ImportClassSuperList(fLedgerCode,cs_Members));
+          lblLedger.Caption := ClassSuperIP.GetLedgerName(FLedgerCode);
+          if lblLedger.Caption = '' then
+             lblLedger.Caption := '<none>';
+          Label18.Visible := False;
+          cmbTrans.Visible := False;
+       end;
   end;
-//  end else begin
-//      lblLedger.Caption := '<NA>';
-//  end;
-
 
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TdlgEditDesktopFields.AddFund(AFundID: integer);
+procedure TdlgEditDesktopFields.AddFund(AFundID: string; aSuperSystem: byte);
+var
+  DesktopFundID: integer;
+  ClassSuperFundName: string;
 begin
-  if (AFundID <> -1) then
-    if cmbSelectedFund.Items.IndexOf(DesktopSuper_Utils.GetLedgerName(AFundID)) = -1 then
-      cmbSelectedFund.Items.AddObject(DesktopSuper_Utils.GetLedgerName(AFundID), TObject(AFundID));
+  if (AFundID <> '') then begin
+    case aSuperSystem of
+      saDesktopSuper:
+        begin
+          DesktopFundID := StrToIntDef(AFundID, -1);
+          if (DesktopFundID <> -1) and (cmbSelectedFund.Items.IndexOf(DesktopSuper_Utils.GetLedgerName(DesktopFundID)) = -1) then
+            cmbSelectedFund.Items.AddObject(DesktopSuper_Utils.GetLedgerName(DesktopFundID), TObject(DesktopFundID));
+        end;
+      saClassSuperIP:
+        begin
+          ClassSuperFundName := ClassSuperIP.GetLedgerName(AFundID);
+          if cmbClassSuperFund.Items.IndexOf(ClassSuperFundName) = -1 then begin
+            cmbClassSuperFund.Items.Add(ClassSuperFundName);
+            FClassSuperFundList.Add(AFundID + '=' + ClassSuperFundName);
+          end;
+        end;
+    end;
+  end;
 end;
 
 procedure TdlgEditDesktopFields.btnBackClick(Sender: TObject);
@@ -1339,7 +1394,10 @@ begin
     HelpfulWarningMsg( 'Please enter a valid CGT/Tax date.', 0);
     CanClose := False;
   end
-  else if (ModalResult = mrOk) and (StrToIntDef(FLedgerCode,-1) = -1) and (not IsAllCleared) then begin
+  else if (ModalResult = mrOk)
+       and (not ValidFundCode(FLedgerCode))
+       and (not IsAllCleared)
+       and (SDMode = sfPayee) then begin
     HelpfulWarningMsg( 'You cannot save this Payee as you have added Superfund ' +
                        'coding details, but you have not selected a Fund.  ' +
                        'Please select a Fund, or remove the Superfund details ' +
@@ -1370,6 +1428,46 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TdlgEditDesktopFields.cmbClassSuperFundChange(Sender: TObject);
+var
+  i: integer;
+begin
+  FLedgerCode := '';
+  if cmbClassSuperFund.ItemIndex <> -1 then
+    FLedgerCode := GetClassSuperFundCode(cmbClassSuperFund.ItemIndex,
+                                         cmbClassSuperFund.Items[cmbClassSuperFund.ItemIndex]);
+
+  //Fill arrays
+  FillArray(FundArray, ImportClassSuperList(fLedgerCode, cs_Investments));
+  FillArray(MemberArray, ImportClassSuperList(fLedgerCode, cs_Members));
+
+  //Reload combo boxes
+  cmbFund.Clear;
+  cmbMember.Clear;
+
+  //Reload Funds
+  cmbFund.Items.Add('');
+  for i := Low(FundArray) to High(FundArray) do begin
+    if FundArray[i].cl_ID <> -1 then
+      cmbFund.Items.Add(Format ('%s : (%s)', [FundArray[i].cl_Code,   FundArray[i].cl_Description]));
+  end;
+  cmbFund.ItemIndex := -1;
+
+  //reload member
+  cmbMember.Items.Add('');
+  for i := Low(MemberArray) to High(MemberArray) do
+  begin
+    if MemberArray[i].cl_ID <> -1 then
+      cmbMember.Items.Add(MemberArray[i].cl_Description);
+  end;
+  cmbMember.ItemIndex := -1;
+end;
+
+procedure TdlgEditDesktopFields.cmbClassSuperFundDropDown(Sender: TObject);
+begin
+  SendMessage(TComboBox(Sender).Handle, CB_SETDROPPEDWIDTH, cmbClassSuperFund.Width + 100, 0);
 end;
 
 procedure TdlgEditDesktopFields.cmbFundCloseUp(Sender: TObject);
@@ -1570,7 +1668,15 @@ begin
   end;
 end;
 
-
+function TdlgEditDesktopFields.ValidFundCode(AFundCode: string): boolean;
+begin
+  Result := False;
+  case SuperSystem of
+    saDesktopSuper: Result := (StrToIntDef(AFundCode,-1) <> -1);
+    saClassSuperIP: Result := (FClassSuperFundList.Count = 0) or
+                              (FClassSuperFundList.IndexOfName(AFundCode) <> -1);
+  end;
+end;
 
 end.
 

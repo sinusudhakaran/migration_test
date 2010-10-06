@@ -746,22 +746,42 @@ end;
 
 function TBank_Account.ValidPayeeCode(PayeeNumber: integer): Boolean;
 const
-  DESKTOP_SUPER_PAYEE_FUND_MISMATCH = 'This payee cannot be used because the ' +
-                                      'bank account and payee fund types do not match';
+  SUPER_PAYEE_FUND_MISMATCH = 'This payee cannot be used because the ' +
+                              '%s and payee fund types do not match';
 var
   Payee: TPayee;
   PayeeLedgerID: integer;
+  PayeeLedgerName: string;
+  AccountType: string;
+  procedure DoMessage;
+  begin
+    AccountType := 'bank account';
+    if IsAJournalAccount  then
+      AccountType := 'journal';
+    HelpfulInfoMsg( Format(SUPER_PAYEE_FUND_MISMATCH,[AccountType]), 0 );
+    Result := False;
+  end;
 begin
   Result := True;
   //TFS 3557
-  if (MyClient.clFields.clAccounting_System_Used = saDesktopSuper) then begin
-    Payee := MyClient.clPayee_List.Find_Payee_Number(PayeeNumber);
-    if Assigned(Payee) and (Payee.pdLines.ItemCount > 0) then
-      PayeeLedgerID := Payee.pdLines.PayeeLine_At(0).plSF_Desktop_Super_Ledger_ID;
-      if (PayeeLedgerID <> -1) and
-         (baFields.baDesktop_Super_Ledger_ID <> PayeeLedgerID) then begin
-        HelpfulInfoMsg( DESKTOP_SUPER_PAYEE_FUND_MISMATCH, 0 );
-        Result := False;
+  case MyClient.clFields.clAccounting_System_Used of
+    saDesktopSuper:
+      begin
+        Payee := MyClient.clPayee_List.Find_Payee_Number(PayeeNumber);
+        if Assigned(Payee) and (Payee.pdLines.ItemCount > 0) then
+          PayeeLedgerID := Payee.pdLines.PayeeLine_At(0).plSF_Ledger_ID;
+          if (PayeeLedgerID <> -1) and
+             (baFields.baDesktop_Super_Ledger_ID <> PayeeLedgerID) then
+            DoMessage;
+      end;
+    saClassSuperIP:
+      begin
+        Payee := MyClient.clPayee_List.Find_Payee_Number(PayeeNumber);
+        if Assigned(Payee) and (Payee.pdLines.ItemCount > 0) then
+          PayeeLedgerName := Payee.pdLines.PayeeLine_At(0).plSF_Ledger_Name;
+          if (PayeeLedgerName <> '') and
+             (baFields.baSuperFund_Ledger_Code <> PayeeLedgerName) then
+            DoMessage;
       end;
   end;
 end;

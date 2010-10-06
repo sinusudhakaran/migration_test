@@ -78,7 +78,8 @@ type
      SF_Non_Resident_Tax: Money;
      SF_Foreign_Capital_Gains_Credit: Money;
      SF_Capital_Gains_Fraction_Half: Boolean;
-     SF_Desktop_Super_Ledger_ID: Integer;
+     SF_Ledger_ID: Integer;
+     SF_Ledger_Name: AnsiString;
      JobCode       : string [8];
   end;
 
@@ -346,7 +347,8 @@ begin
      SF_Non_Resident_Tax := 0;
      SF_Foreign_Capital_Gains_Credit := 0;
      SF_Capital_Gains_Fraction_Half := False;
-     SF_Desktop_Super_Ledger_ID := -1;
+     SF_Ledger_ID := -1;
+     SF_Ledger_Name := '';
    end;
 end;
 
@@ -1735,7 +1737,8 @@ function EditDesktopFields(ParentTrans : pTransaction_Rec;
                            aSuperSystem: byte;
                            aSDMode: TSuperDialogMode) : boolean; overload;
 var
-  i, FundID: integer;
+  i: integer;
+  FundID, BAFundID: string;
   SameFund: boolean;
   FundBA: TBank_Account;
   SuperForm: TdlgEditDesktopFields;
@@ -1753,35 +1756,44 @@ begin
     LLedger := '';
     if Assigned(BA) then
         case aSuperSystem of
-        saDesktopSuper : LLedger := IntToStr(BA.baFields.baDesktop_Super_Ledger_ID);
-        saClassSuperIP : LLedger :=  BA.baFields.baSuperFund_Ledger_Code ;
+          saDesktopSuper : LLedger := IntToStr(BA.baFields.baDesktop_Super_Ledger_ID);
+          saClassSuperIP : LLedger :=  BA.baFields.baSuperFund_Ledger_Code ;
         end
     //TFS 3557
-    else if (aSuperSystem = saDesktopSuper) and (aSDMode = sfPayee) and
+    else if (aSDMode = sfPayee) and
             (MyClient.clBank_Account_List.ItemCount > 0) then begin
        SameFund := True;
-       if (Mem.SF_Desktop_Super_Ledger_ID <> -1) then
-         LLedger := IntToStr(Mem.SF_Desktop_Super_Ledger_ID)
+       if (aSuperSystem = saDesktopSuper) and (Mem.SF_Ledger_ID <> -1) then
+         LLedger := IntToStr(Mem.SF_Ledger_ID)
+       else if (aSuperSystem = saClassSuperIP) and (Mem.SF_Ledger_Name <> '') then
+         LLedger := Mem.SF_Ledger_Name
        else begin
          FundBA := MyClient.clBank_Account_List.Bank_Account_At(0);
-         FundID := FundBA.baFields.baDesktop_Super_Ledger_ID;
-         SuperForm.AddFund(FundID);
+         case aSuperSystem of
+           saDesktopSuper: FundID := IntToStr(FundBA.baFields.baDesktop_Super_Ledger_ID);
+           saClassSuperIP: FundID := FundBA.baFields.baSuperFund_Ledger_Code;
+         end;
+         SuperForm.AddFund(FundID, aSuperSystem);
          if (MyClient.clBank_Account_List.ItemCount > 1) then begin
            for i := 1 to MyClient.clBank_Account_List.ItemCount - 1 do begin
-             FundBA := MyClient.clBank_Account_List.Bank_Account_At(i);
-             if (FundID <> -1) and
-                (FundBA.baFields.baDesktop_Super_Ledger_ID <> -1) and
-                (FundID <> FundBA.baFields.baDesktop_Super_Ledger_ID) then begin
+            case aSuperSystem of
+              saDesktopSuper: BAFundID := IntToStr(MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baDesktop_Super_Ledger_ID);
+              saClassSuperIP: BAFundID := MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baSuperFund_Ledger_Code;
+            end;
+             if (FundID <> '-1') and (FundID <> '') and
+                (BAFundID <> '-1') and (BAFundID <> '') and
+                (FundID <> BAFundID) then begin
                SameFund := False;
-               SuperForm.AddFund(FundBA.baFields.baDesktop_Super_Ledger_ID);
+               SuperForm.AddFund(BAFundID, aSuperSystem);
              end;
-             if (FundID = -1) then
-               FundID := FundBA.baFields.baDesktop_Super_Ledger_ID;
+             if (FundID = '-1') or (FundID = '') then
+               FundID := BAFundID;
            end;
          end;
 
          if SameFund then
-           LLedger := IntToStr(FundID); //must use this one
+           LLedger := FundID; //must use this one
+
        end;
     end;
 
@@ -1816,8 +1828,11 @@ begin
           end;
        end;
        //TFS 3557
-       if (aSuperSystem = saDesktopSuper) and (LLedger = '') and (Mem.SF_Desktop_Super_Ledger_ID <> -1) then
-         LLedger := IntToStr(Mem.SF_Desktop_Super_Ledger_ID);
+       if (aSuperSystem = saDesktopSuper) and (LLedger = '') and (Mem.SF_Ledger_ID <> -1) then
+         LLedger := IntToStr(Mem.SF_Ledger_ID)
+       else if (aSuperSystem = saClassSuperIP) and (LLedger = '') and (Mem.SF_Ledger_Name <> '') then
+         LLedger := Mem.SF_Ledger_Name;
+
     end;
     SuperForm.RevenuePercentage := True;
     SuperForm.SetInfo(Fordate, Narration, Amount,Qty, LLedger, aSuperSystem, aSDMode);
@@ -1896,7 +1911,9 @@ begin
 
        //TFS 3557
        if (not Assigned(BA)) and (aSuperSystem = saDesktopSuper) and (aSDMode = sfPayee) then
-         Mem.SF_Desktop_Super_Ledger_ID := StrToIntDef(superForm.LedgerCode,-1);
+         Mem.SF_Ledger_ID := StrToIntDef(superForm.LedgerCode,-1)
+       else if (not Assigned(BA)) and (aSuperSystem = saClassSuperIP) and (aSDMode = sfPayee) then
+         Mem.SF_Ledger_Name := superForm.LedgerCode;
 
        if Move in [fnGoForward, fnGoBack] then begin
            T := superForm.Top;

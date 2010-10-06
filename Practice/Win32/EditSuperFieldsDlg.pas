@@ -6,8 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ovcbase, ovcef, ovcpb, ovcnf, MoneyDef,
   ovcpf, bkconst, Buttons, cxGraphics, cxControls, cxContainer, cxEdit,
-  cxTextEdit, cxMaskEdit, cxDropDownEdit, OsFont, dxSkinsCore,
-  dxSkinsDefaultPainters;
+  cxTextEdit, cxMaskEdit, cxDropDownEdit, OsFont;
 
 type
   TdlgEditSuperFields = class(TForm)

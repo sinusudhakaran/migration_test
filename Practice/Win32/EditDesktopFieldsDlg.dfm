@@ -13,6 +13,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
   Scaled = False
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
@@ -344,7 +345,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Width = 604
       Height = 77
       Caption = 'Tax Credits'
-      TabOrder = 10
+      TabOrder = 11
       object Label19: TLabel
         Left = 16
         Top = 52
@@ -448,7 +449,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Width = 605
       Height = 169
       Caption = 'Gross Breakdown'
-      TabOrder = 8
+      TabOrder = 9
       DesignSize = (
         605
         169)
@@ -903,7 +904,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       MaxLength = 8
       Options = [efoCaretToEnd]
       PictureMask = 'DD/mm/yy'
-      TabOrder = 6
+      TabOrder = 7
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
     end
@@ -925,7 +926,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
       PictureMask = '#,###,###,###.##'
-      TabOrder = 7
+      TabOrder = 8
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
@@ -936,7 +937,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Height = 21
       ItemHeight = 13
       MaxLength = 20
-      TabOrder = 2
+      TabOrder = 3
       Text = '1212'
       OnCloseUp = cmbFundCloseUp
       OnDropDown = cmbMemberDropDown
@@ -948,7 +949,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Height = 22
       Style = csOwnerDrawFixed
       ItemHeight = 16
-      TabOrder = 3
+      TabOrder = 4
       OnDrawItem = cmbMemberDrawItem
       OnDropDown = cmbMemberDropDown
     end
@@ -959,7 +960,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Height = 22
       Style = csOwnerDrawFixed
       ItemHeight = 16
-      TabOrder = 1
+      TabOrder = 2
       OnDrawItem = cmbTransDrawItem
       OnDropDown = cmbTransDropDown
     end
@@ -981,7 +982,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
       PictureMask = '###,###,###.####'
-      TabOrder = 5
+      TabOrder = 6
       OnKeyDown = nfUnitsKeyDown
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
@@ -991,7 +992,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Top = 296
       Width = 604
       Height = 49
-      TabOrder = 9
+      TabOrder = 10
       object lblGrosstext: TLabel
         Left = 16
         Top = 17
@@ -1105,7 +1106,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       StyleFocused.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.Kind = lfStandard
       StyleHot.LookAndFeel.NativeStyle = True
-      TabOrder = 4
+      TabOrder = 5
       OnKeyDown = cmbxAccountKeyDown
       Width = 129
     end
@@ -1116,10 +1117,22 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Height = 22
       Style = csOwnerDrawFixed
       ItemHeight = 16
-      TabOrder = 0
+      TabOrder = 1
       Visible = False
       OnChange = cmbSelectedFundChange
       OnDropDown = cmbSelectedFundDropDown
+    end
+    object cmbClassSuperFund: TComboBox
+      Left = 214
+      Top = -4
+      Width = 145
+      Height = 22
+      Style = csOwnerDrawFixed
+      ItemHeight = 16
+      TabOrder = 0
+      Visible = False
+      OnChange = cmbClassSuperFundChange
+      OnDropDown = cmbClassSuperFundDropDown
     end
   end
 end
