@@ -24,7 +24,7 @@ object BGLXMLConfig: TBGLXMLConfig
   object Label2: TLabel
     Left = 8
     Top = 16
-    Width = 68
+    Width = 54
     Height = 13
     Caption = 'File options'
   end
@@ -67,8 +67,6 @@ object BGLXMLConfig: TBGLXMLConfig
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitTop = 90
-    ExplicitWidth = 486
     DesignSize = (
       506
       41)
@@ -81,7 +79,6 @@ object BGLXMLConfig: TBGLXMLConfig
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 1
-      ExplicitLeft = 401
     end
     object btnOK: TButton
       Left = 340
@@ -92,7 +89,6 @@ object BGLXMLConfig: TBGLXMLConfig
       Caption = 'OK'
       TabOrder = 0
       OnClick = btnOKClick
-      ExplicitLeft = 320
     end
   end
   object eClearing: TEdit
@@ -131,7 +127,7 @@ object BGLXMLConfig: TBGLXMLConfig
     TabOrder = 6
   end
   object SaveDlg: TSaveDialog
-    Filter = 'Comma Seperated Variables file|*.csv'
+    Filter = 'XML file|*.xml'
     Options = [ofHideReadOnly, ofPathMustExist, ofEnableSizing]
     Left = 472
     Top = 32
