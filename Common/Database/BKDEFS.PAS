@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 614;
-   BK_IOLIB_Date    = '20/09/10';
+   BK_IOLIB_Version : Integer = 615;
+   BK_IOLIB_Date    = '05/10/10';
    BK_FILE_VERSION  = 162;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -194,7 +194,8 @@ Const
                             Add Super fields to Payee, as per Mem, there are some extra fields not used(yet)
                             Add Extra GST fields for Transitional return, spanning 1 Oct 2010.
                             Add Simple UI status flags and period start
-     5.20 (2010SMSF) 162    Add SF_Desktop_Super_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
+     5.20 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
+                            Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
    *)
 
 {  -------------------------------------------------------------------  }
@@ -611,7 +612,8 @@ Type
       plSF_Non_Resident_Tax              : Money;       { Stored }
       plSF_Foreign_Capital_Gains_Credit  : Money;       { Stored }
       plSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
-      plSF_Desktop_Super_Ledger_ID       : Integer;       { Stored }
+      plSF_Ledger_ID                     : Integer;       { Stored }
+      plSF_Ledger_Name                   : AnsiString;       { Stored }
       plTemp_Tag                         : Integer;
       plEOR                              : Byte;
    end;

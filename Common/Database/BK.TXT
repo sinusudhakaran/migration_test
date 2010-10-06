@@ -1,4 +1,4 @@
-$|BK_FILE_VERSION  = 161;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 162;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -180,7 +180,9 @@ $|                         Add SF Ledger Code to Bank account
 $|                         Add Super Report Titles
 $|                         Add Super fields to Payee, as per Mem, there are some extra fields not used(yet)
 $|                         Add Extra GST fields for Transitional return, spanning 1 Oct 2010.
-$|                         Add Simple UI status flags and period start    
+$|                         Add Simple UI status flags and period start
+$|  5.20 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
+$|                         Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
 $|*)
 
 N|Client|cl|20
@@ -454,6 +456,7 @@ C|Temp FRS Budget To Use Date|L
 C|Compressed Data Size|L
 C|Uncompressed Data Size|L
 C|Temp FRS Use Budget Quantities|Y
+C|Temp CRC at Last Backup|L
 E
 
 N|Account|ch|80
@@ -550,6 +553,8 @@ F|SF Other Tax Credit|$
 F|SF Non Resident Tax|$
 F|SF Foreign Capital Gains Credit|$
 F|SF Capital Gains Fraction Half|Y
+F|SF Ledger ID|L
+F|SF Ledger Name|AS
 C|Temp Tag|L
 E
 
@@ -643,6 +648,7 @@ F|SF Other Tax Credit|$
 F|SF Non Resident Tax|$
 F|SF Foreign Capital Gains Credit|$
 F|SF Capital Gains Fraction Half|Y
+F|SF Desktop Super Ledger ID|L
 C|Temp Tag|L
 E
 

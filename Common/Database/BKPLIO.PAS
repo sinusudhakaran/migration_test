@@ -81,7 +81,8 @@ CONST
    tkplSF_Non_Resident_Tax              = 132 ;
    tkplSF_Foreign_Capital_Gains_Credit  = 133 ;
    tkplSF_Capital_Gains_Fraction_Half   = 134 ;
-   tkplSF_Desktop_Super_Ledger_ID       = 135 ;
+   tkplSF_Ledger_ID                     = 135 ;
+   tkplSF_Ledger_Name                   = 136 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -145,7 +146,8 @@ Begin
       F.WriteMoneyValue( tkplSF_Non_Resident_Tax , plSF_Non_Resident_Tax );
       F.WriteMoneyValue( tkplSF_Foreign_Capital_Gains_Credit , plSF_Foreign_Capital_Gains_Credit );
       F.WriteBooleanValue( tkplSF_Capital_Gains_Fraction_Half , plSF_Capital_Gains_Fraction_Half );
-      F.WriteIntegerValue( tkplSF_Desktop_Super_Ledger_ID , plSF_Desktop_Super_Ledger_ID );
+      F.WriteIntegerValue( tkplSF_Ledger_ID , plSF_Ledger_ID );
+      F.WriteAnsiStringValue( tkplSF_Ledger_Name , plSF_Ledger_Name );
       F.WriteToken( tkEnd_Payee_Line );
    end;
 end; { of Write_Payee_Line_Rec }
@@ -206,7 +208,8 @@ Begin
          tkplSF_Non_Resident_Tax              : plSF_Non_Resident_Tax := F.ReadMoneyValue;
          tkplSF_Foreign_Capital_Gains_Credit  : plSF_Foreign_Capital_Gains_Credit := F.ReadMoneyValue;
          tkplSF_Capital_Gains_Fraction_Half   : plSF_Capital_Gains_Fraction_Half := F.ReadBooleanValue;
-         tkplSF_Desktop_Super_Ledger_ID       : plSF_Desktop_Super_Ledger_ID := F.ReadIntegerValue;
+         tkplSF_Ledger_ID                     : plSF_Ledger_ID := F.ReadIntegerValue;
+         tkplSF_Ledger_Name                   : plSF_Ledger_Name := F.ReadAnsiStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -243,6 +246,7 @@ Begin
       { Free any dynamically allocated memory }
       plGL_Narration := '' ;
       plSF_Trans_Code := '' ;
+      plSF_Ledger_Name := '' ;
    end;
 end;
 

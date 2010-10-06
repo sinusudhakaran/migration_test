@@ -136,6 +136,8 @@ Begin
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( plGL_Narration )^, Len );
       Len := Length( plSF_Trans_Code );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( plSF_Trans_Code )^, Len );
+      Len := Length( plSF_Ledger_Name );
+      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( plSF_Ledger_Name )^, Len );
    end;
 end;
 
