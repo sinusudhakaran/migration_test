@@ -425,8 +425,23 @@ end;
 procedure RemoveFile(const FileName : string);
 const
   SDeleteError = 'Cannot delete %0:s: %1:s';
+  RETRY_COUNT = 20;
+var
+  Tries: integer;
+  Error: integer;
 begin
-  if not DeleteFile(FileName) then
+  Sleep(10);
+  if BKFileExists(FileName) then
+  begin
+    Tries := 0;
+    repeat
+      Inc(Tries);
+      if not DeleteFile(FileName) then
+        Error := GetLastError;
+      Sleep(10 * Tries);
+    until (not BKFileExists(FileName) or (Tries > RETRY_COUNT));
+  end;
+  if Tries > RETRY_COUNT then
     raise Exception.CreateFmt(SDeleteError, [FileName, SysErrorMessage(GetLastError)]);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
