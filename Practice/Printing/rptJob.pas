@@ -281,6 +281,9 @@ begin
                    or (not Assigned(ReportAccount) and (dsAccountCode = ''));
   Result := (txJobMatches)
          and (txAccountMatches or dsAccountMatches);
+  //Check that account codes are not assigned for Uncoded (TFS 4396)
+  if Result and (not Assigned(ReportAccount)) then
+    Result :=  (txAccountCode = '') and (dsAccountCode = '');
 end;
 
 procedure TJobSpendingReport.AddTransactionAndDissection(Job: pJob_Heading_Rec;
@@ -297,6 +300,11 @@ begin
   if Assigned(Dissection) then
   begin
     IncludeAllDissectionLines := IsTransactionIncluded(Job, Account, Transaction.txJob_Code, Transaction.txAccount);
+
+    //Check that dissection account = transaction account TFS 4396
+    if IncludeAllDissectionLines and (not Assigned(Account)) then
+      IncludeAllDissectionLines := (Dissection^.dsAccount =  Transaction.txAccount);
+
     //show main transaction if all lines are coded to job
     if IncludeAllDissectionLines then
     begin
