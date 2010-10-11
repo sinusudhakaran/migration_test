@@ -143,6 +143,7 @@ type
     procedure ChartGridKeyPress(Sender: TObject; var Key: Char);
     procedure GSTGridKeyPress(Sender: TObject; var Key: Char);
     procedure ChartGridDblClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 
   private
     FNewChart: TNewChart;
@@ -287,7 +288,8 @@ end;}
 
 
 procedure RemapChart;
-var lDlg: TfrmRemapChart;
+var
+  lDlg: TfrmRemapChart;
 begin
    if not Assigned(MyClient) then
       Exit; // Savety Net..
@@ -298,9 +300,7 @@ begin
    lDlg := TfrmRemapChart.Create(Application.MainForm);
    try
       case ldlg.ShowModal of
-         mrOK: begin
-            RefreshHomepage;
-         end;
+         mrOK    : RefreshHomepage;
       end;
    finally
       LDlg.Free;
@@ -709,6 +709,14 @@ begin
       Grid.FocusedNode := Grid.GetFirst;
    if Grid.FocusedColumn < 0 then
       Grid.FocusedColumn := 0;
+end;
+
+procedure TfrmRemapChart.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+const
+  CANCEL_PROMPT = 'All changes will be lost. Are you sure want to exit?';
+begin
+  if not (ModalResult = mrOK) and btnOK.Enabled then
+    CanClose :=  (AskYesNo('Confirm Cancel', CANCEL_PROMPT, Dlg_No, 0) <> mrCancel);
 end;
 
 procedure TfrmRemapChart.FormCreate(Sender: TObject);
