@@ -35,7 +35,7 @@ Type
      procedure loadFromExchange_Rate_Rec(Value: pExchange_Rate_Rec);
      procedure SaveToExchange_Rate_Rec(Value: pExchange_Rate_Rec);
      property Rates [index: Integer]: Double read GetRates write SetRates;
-     property Width: integer read Getwidth;
+     property Width: integer read Getwidth; 
    end;
 
    PExchangeSource = ^TExchangeSource;
@@ -364,13 +364,13 @@ function SwapRates(Container: TstContainer; Node: TstNode; OtherData: Pointer): 
 var
   Data : RemapArray;
   Keep: Double;
-  ExchangeRecord: TExchangeRecord;
 begin
   Data := RemapArray(OtherData^);
-  ExchangeRecord := TExchangeRecord(Node.Data);
-  Keep := ExchangeRecord.Rates[Data[1]];
-  ExchangeRecord.Rates[Data[1]] := ExchangeRecord.Rates[Data[2]];
-  ExchangeRecord.Rates[Data[2]] := Keep;
+  with  TExchangeRecord(Node.Data) do begin
+     Keep := Rates[Data[1]];
+     Rates[Data[1]] := Rates[Data[2]];
+     Rates[Data[2]] := Keep;
+  end;
   Result := True;
 end;
 
