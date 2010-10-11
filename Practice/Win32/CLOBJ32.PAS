@@ -40,7 +40,10 @@ type
     constructor Create;
     destructor Destroy; override;
   private
+{$IFDEF ParserDll}
+{$ELSE}
     FExchangeSource: TExchangeSource;
+{$ENDIF}
     procedure LoadFromStream( var s:TIOStream);
     procedure GetZipStreamFromFile( const Filename : String; const ZipStream : TBigMemoryStream);
     procedure OpenFromDataStream( var S : TIOStream);
