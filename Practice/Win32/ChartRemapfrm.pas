@@ -716,7 +716,7 @@ const
   CANCEL_PROMPT = 'All changes will be lost. Are you sure want to exit?';
 begin
   if not (ModalResult = mrOK) and btnOK.Enabled then
-    CanClose :=  (AskYesNo('Confirm Cancel', CANCEL_PROMPT, Dlg_No, 0) <> mrCancel);
+    CanClose :=  (AskYesNo('Confirm Cancel', CANCEL_PROMPT, Dlg_No, 0) = DLG_YES);
 end;
 
 procedure TfrmRemapChart.FormCreate(Sender: TObject);
