@@ -120,6 +120,8 @@ type
     btnWebNotesMsg: TButton;
     ckCDwebNotes: TCheckBox;
     cbCDwebNotes: TComboBox;
+    btnFaxJobs: TButton;
+    btnJobs: TButton;
 
     procedure rbStaffMemberClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -157,6 +159,8 @@ type
     procedure chkUseCustomDocClick(Sender: TObject);
     procedure ckCDClick(Sender: TObject);
     procedure btnWebNotesMsgClick(Sender: TObject);
+    procedure btnFaxJobsClick(Sender: TObject);
+    procedure btnJobsClick(Sender: TObject);
   private
     { Private declarations }
     ButtonPressed : integer;
@@ -1416,6 +1420,21 @@ begin
   end;
 end;
 
+procedure TdlgPrintScheduled.btnJobsClick(Sender: TObject);
+begin
+  SetupScheduledReport(REPORT_LIST_JOBS);
+end;
+
+procedure TdlgPrintScheduled.btnFaxJobsClick(Sender: TObject);
+begin
+  SavePrinter(cmbPrinter.Items[cmbPrinter.ItemIndex]);
+  try
+    SetupScheduledFax( REPORT_LIST_JOBS);
+  finally
+    SavePrinter(FaxPrinter);
+  end;
+end;
+
 procedure TdlgPrintScheduled.btnWebNotesMsgClick(Sender: TObject);
 begin
     EditScheduledReportsMessage( Format ('%s Message', [bkconst.WebNotesName] ),
@@ -1492,6 +1511,7 @@ begin
       // All reports use the same fax printer
       SetPrinterForJob(FaxSchedulePRS, Job, PName, REPORT_CODING);
       SetPrinterForJob(FaxSchedulePRS, Job, PName, REPORT_LIST_PAYEE);
+      SetPrinterForJob(FaxSchedulePRS, Job, PName, REPORT_LIST_JOBS);
       SetPrinterForJob(FaxSchedulePRS, Job, PName, REPORT_LIST_CHART);
       SetPrinterForJob(FaxSchedulePRS, Job, PName, REPORT_TEST_FAX);
       SetPrinterForJob(FaxSchedulePRS, Job, PName, Report_Custom_Document);

@@ -477,7 +477,7 @@ begin
   Result := True;
   srOptions.srAttachment := '';
   RequiresClient := ReportType in [REPORT_LIST_CHART, REPORT_LIST_PAYEE, REPORT_CODING,
-                                   REPORT_CLIENT_HEADER];
+                                   REPORT_CLIENT_HEADER, REPORT_LIST_JOBS];
 
   RequiresAdmin  := ReportType in [REPORT_STAFF_MEMBER_HEADER, REPORT_GROUP_HEADER, REPORT_CODING];
 
@@ -494,6 +494,7 @@ begin
     case ReportType of
       REPORT_LIST_CHART          : DoChartListReport( Destination, SchedulePRS, true);
       REPORT_LIST_PAYEE          : DoListPayeesReport( Destination, SchedulePRS, true);
+      REPORT_LIST_JOBS           : DoListJobsReport( Destination, SchedulePRS, true);
       REPORT_CODING              : begin
          Result := DoScheduledCodingReport( Destination, srOptions, SchedulePRS);
       end;
@@ -647,7 +648,7 @@ var
    ClientCode : string;
 begin
    Result := True;
-   RequiresClient := ReportType in [ REPORT_LIST_CHART, REPORT_LIST_PAYEE, REPORT_CODING ];
+   RequiresClient := ReportType in [ REPORT_LIST_CHART, REPORT_LIST_PAYEE, REPORT_LIST_JOBS, REPORT_CODING ];
    RequiresAdmin  := ReportType in [ REPORT_CODING];
 
    if RequiresClient and (not Assigned(MyClient))then exit;
@@ -732,6 +733,7 @@ begin
                    Case ReportType of
                       REPORT_LIST_CHART : DoChartListReport( rdFax, Globals.FaxPrintSettings, true);
                       REPORT_LIST_PAYEE : DoListPayeesReport( rdFax, Globals.FaxPrintSettings, true);
+                      REPORT_LIST_JOBS  : DoListJobsReport( rdFax, Globals.FaxPrintSettings, true);
                       REPORT_CODING     : DoScheduledCodingReport( rdFax, srOptions, Globals.FaxPrintSettings );
                       REPORT_TEST_FAX   : DoTestFax( rdFax, Globals.FaxPrintSettings, nil);
                    end;
@@ -784,10 +786,10 @@ var
 begin
    result := true;
    //make sure this is a scheduled report
-   if not ( ReportType in [Report_Custom_Document, REPORT_LIST_CHART, REPORT_LIST_PAYEE, REPORT_CODING, REPORT_TEST_FAX ]) then
+   if not ( ReportType in [Report_Custom_Document, REPORT_LIST_CHART, REPORT_LIST_PAYEE, REPORT_LIST_JOBS, REPORT_CODING, REPORT_TEST_FAX ]) then
      Exit;
 
-   RequiresClient := ReportType in [ REPORT_LIST_CHART, REPORT_LIST_PAYEE, REPORT_CODING, Report_Custom_Document ];
+   RequiresClient := ReportType in [ REPORT_LIST_CHART, REPORT_LIST_PAYEE, REPORT_LIST_JOBS, REPORT_CODING, Report_Custom_Document ];
    RequiresAdmin  := ReportType in [ REPORT_CODING, Report_Custom_Document];
 
    if RequiresClient and (not Assigned(MyClient))then
@@ -851,6 +853,7 @@ begin
        Case ReportType of
          REPORT_LIST_CHART : result := DoChartListReport( rdFax, Globals.FaxPrintSettings, true, fp );
          REPORT_LIST_PAYEE : result := DoListPayeesReport( rdFax, Globals.FaxPrintSettings, true, fp );
+         REPORT_LIST_JOBS  : result := DoListJobsReport( rdFax, Globals.FaxPrintSettings, true, fp );
          REPORT_CODING     : result := DoScheduledCodingReport( rdFax, srOptions, Globals.FaxPrintSettings, fp );
          REPORT_TEST_FAX :   result := DoTestFax( rdFax, Globals.FaxPrintSettings, fp);
          Report_Custom_Document : Result := 
@@ -928,7 +931,7 @@ begin
   try
     FaxSchedulePRS.FileName := DATADIR + SCHEDULED_FAX_ID + USERPRINTEXTN;
 
-    for Report in [REPORT_CODING,REPORT_LIST_PAYEE,REPORT_LIST_CHART,REPORT_TEST_FAX,REPORT_CUSTOM_DOCUMENT] do begin
+    for Report in [REPORT_CODING,REPORT_LIST_PAYEE,REPORT_LIST_JOBS,REPORT_LIST_CHART,REPORT_TEST_FAX,REPORT_CUSTOM_DOCUMENT] do begin
         UserReportSettings := FaxSchedulePRS.pmWindows_Report_Setting_List.Find_Windows_Report_Setting(Report_List_Names[Report]);
         if not assigned(UserReportSettings) then begin
            UserReportSettings := GetDefaultReportSettings(Report_List_Names[Report]);

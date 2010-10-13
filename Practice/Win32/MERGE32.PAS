@@ -816,6 +816,9 @@ begin
 
          if clSend_Payee_List then
            cfSched_Rep_Reports_To_Send := cfSched_Rep_Reports_To_Send or srsPayee;
+
+         if aClient.clExtra.ceSend_Job_List then
+           cfSched_Rep_Reports_To_Send := cfSched_Rep_Reports_To_Send or srsJob;
        end;
      end;
 

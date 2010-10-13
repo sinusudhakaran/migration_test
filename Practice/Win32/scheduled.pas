@@ -650,7 +650,8 @@ begin { DoScheduledReportsForClient }
    With MyClient, clFields, AdminSystem.fdFields Do
    Begin
       //make sure something is selected for this client
-      if not (clSend_Coding_Report or clSend_Chart_of_Accounts or clSend_Payee_List) then begin
+      if not (clSend_Coding_Report or clSend_Chart_of_Accounts
+              or clSend_Payee_List or clExtra.ceSend_Job_List) then begin
          exit;
       end;
 
@@ -828,6 +829,11 @@ begin { DoScheduledReportsForClient }
          if (clSend_Payee_List)
          and (clPayee_List.ItemCount > 0) then
             DoScheduledFax( REPORT_LIST_PAYEE, ClientDest, srOptions);
+
+         if (clExtra.ceSend_Job_List)
+         and (clJobs.ItemCount > 0) then
+            DoScheduledFax( REPORT_LIST_JOBS, ClientDest, srOptions);
+
       end else begin
         // Do the Non Fax Bits
         // First actula have to do the coding report
@@ -854,6 +860,9 @@ begin { DoScheduledReportsForClient }
 
         if (clSend_Payee_List) and (clPayee_List.ItemCount > 0) then
             DoScheduledReport( REPORT_LIST_PAYEE, GetOutputDest, srOptions);
+
+        if (clExtra.ceSend_Job_List) and (clJobs.ItemCount > 0) then
+            DoScheduledReport( REPORT_LIST_JOBS, GetOutputDest, srOptions);
 
       end;
 

@@ -8,7 +8,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
   OnCloseQuery = FormCloseQuery
   OnDestroy = FormDestroy
   ExplicitWidth = 638
-  ExplicitHeight = 520
+  ExplicitHeight = 522
   PixelsPerInch = 96
   TextHeight = 13
   inherited btnOK: TButton
@@ -31,12 +31,16 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     Top = 0
     Width = 632
     Height = 449
-    ActivePage = tbsOptions
+    ActivePage = tbsAdvanced
     Align = alTop
     TabOrder = 0
     OnChange = PageControl1Change
     object tbsOptions: TTabSheet
       Caption = '&Options'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label1: TLabel
         Left = 5
         Top = 2
@@ -72,7 +76,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Width = 305
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 0
         OnChange = cmbPeriodChange
       end
@@ -82,7 +86,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Width = 305
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 1
         OnChange = cmbPeriodChange
       end
@@ -126,6 +130,14 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Caption = 'Current &Report Setup'
           TabOrder = 1
           OnClick = btnReportSettingsClick
+        end
+        object chkJobReport: TCheckBox
+          Left = 171
+          Top = 80
+          Width = 105
+          Height = 17
+          Caption = '&Job List'
+          TabOrder = 4
         end
       end
       object lvReports: TListView
@@ -192,7 +204,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Width = 175
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 3
           Items.Strings = (
             'Text File '
@@ -255,7 +267,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Font.Height = -11
           Font.Name = 'MS Sans Serif'
           Font.Style = []
-          ItemHeight = 13
+          ItemHeight = 0
           ParentFont = False
           TabOrder = 10
           Visible = False
@@ -348,7 +360,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Width = 143
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnDropDown = cmbCustomDocListDropDown
         end
@@ -357,6 +369,10 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsMessage: TTabSheet
       Caption = 'Messa&ge'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         624
         421)
@@ -373,6 +389,10 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsAttachments: TTabSheet
       Caption = 'A&ttachments'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         624
         421)

@@ -42,8 +42,15 @@ uses
   procedure DoListDivisions( Dest : TReportDest;
                               RptBatch : TReportBase = nil);
 
+  function  DoListJobsReport(Dest : TReportDest;
+                             Settings : TPrintManagerObj;
+                             Scheduled : boolean;
+                             FaxParams : TFaxParameters = nil;
+                             RptBatch : TReportBase = nil
+                             ) : boolean; overload;
+
   procedure DoListJobs( Dest : TReportDest;
-                           RptBatch : TReportBase = nil);
+                           RptBatch : TReportBase = nil); overload;
 
   procedure DoListSubGroups( Dest : TReportDest;
                               RptBatch : TReportBase = nil);
@@ -3644,44 +3651,10 @@ begin
    end;
 end;
 
-procedure DoListJobs( Dest : TReportDest;
-                           RptBatch : TReportBase = nil);
-var
-   Job : TBKReport;
-   Param : TRPTParameters;
-   cLeft: Double;
-Begin
-   With MyClient, clFields do Begin
-     if Dest = rdNone then
-        Dest := rdScreen;
-
-     Param := TRPTParameters.Create(ord(Report_List_jobs),MyClient,RptBatch);
-     Job := TBKReport.Create(ReportTypes.rptListings);
-     try
-       Job.LoadReportSettings(UserPrintSettings,
-           Param.MakeRptName ( Report_List_Names[ Report_List_Jobs]));
-
-       //Add Headers
-       AddCommonHeader(Job);
-       AddJobHeader(Job,siTitle,'LIST JOBS',true);
-       AddJobHeader(Job,siSubTitle,'',true);
-
-       //Build columns
-       cLeft := GcLeft;
-       AddColAuto(Job, cLeft, 12,Gcgap, 'Code', jtLeft);
-       AddColAuto(Job, cLeft, 65,GcGap, 'Name', jtLeft);
-       AddColAuto(Job, cLeft, 10,Gcgap, 'Completed', jtLeft);
-
-       //Add Footers
-       AddCommonFooter(Job);
-
-       Job.OnBKPrint := ListJobDetail;
-       Job.Generate(Dest, Param);
-     finally
-      Job.Free;
-      Param.Free;
-     end;
-   end;
+procedure DoListJobs(Dest: TReportDest; RptBatch: TReportBase = nil);
+begin
+  //Standard report call
+  DoListJobsReport( Dest, UserPrintSettings, False, nil, RptBatch);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3903,5 +3876,72 @@ begin
     PayeeList.Free;
   end;
 end;
+
+function DoListJobsReport(Dest : TReportDest;
+                          Settings : TPrintManagerObj;
+                          Scheduled : boolean;
+                          FaxParams : TFaxParameters = nil;
+                          RptBatch : TReportBase = nil) : boolean; overload;
+var
+  Job : TBKReport;
+  Param : TRPTParameters;
+  cLeft: Double;
+begin
+  Result := false;
+  with MyClient, clFields do begin
+    if Dest = rdNone then
+      Dest := rdScreen;
+
+    Param := TRPTParameters.Create(ord(Report_List_jobs),MyClient,RptBatch);
+    try
+      Param.Scheduled := Scheduled;
+
+      Job := TBKReport.Create(ReportTypes.rptListings);
+      try
+//        Job.LoadReportSettings(UserPrintSettings, Param.MakeRptName(Report_List_Names[Report_List_Jobs]));
+        Job.LoadReportSettings(Settings, Param.MakeRptName(Report_List_Names[Report_List_Jobs]));
+
+        //Add Headers
+        AddCommonHeader(Job);
+        AddJobHeader(Job,siTitle,'LIST JOBS',true);
+        AddJobHeader(Job,siSubTitle,'',true);
+
+        //Build columns
+        cLeft := GcLeft;
+        AddColAuto(Job, cLeft, 12,Gcgap, 'Code', jtLeft);
+        AddColAuto(Job, cLeft, 65,GcGap, 'Name', jtLeft);
+        AddColAuto(Job, cLeft, 10,Gcgap, 'Completed', jtLeft);
+
+        //Add Footers
+        AddCommonFooter(Job);
+
+        Job.OnBKPrint := ListJobDetail;
+        if (Dest = rdEmail) then begin
+          //special case for scheduled reports.  Don't want the user to be asked
+          //what file name to use
+          case MyClient.clFields.clEmail_Report_Format of
+            rfCSV :
+              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBC', rfCSV, Param);
+            rfFixedWidth :
+              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBY', rfFixedWidth, Param);
+            rfPDF :
+              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBP', rfPDF, Param);
+            rfExcel :
+              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBX', rfExcel, Param);
+          end
+        end else if (Dest = rdFax) then begin
+          Result := Job.GenerateToFax( FaxParams, AdminSystem.fdFields.fdSched_Rep_Fax_Transport, Param)
+        end else begin
+          Job.Generate(Dest, Param);
+        end;
+      finally
+        Job.Free;
+      end;
+    finally
+      Param.Free;
+    end;
+  end;
+end;
+
 
 end.

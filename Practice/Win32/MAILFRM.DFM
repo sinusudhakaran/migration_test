@@ -233,6 +233,10 @@ object frmMail: TfrmMail
     TabOrder = 3
     object TSEMail: TTabSheet
       Caption = 'TSEMail'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pnlHeader: TPanel
         Left = 0
         Top = 0

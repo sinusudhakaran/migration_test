@@ -75,6 +75,7 @@ type
     GroupBox1: TGroupBox;
     chkUseCustomDoc: TCheckBox;
     cmbCustomDocList: TComboBox;
+    chkJobReport: TCheckBox;
 
     procedure lvReportsEnter(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -211,6 +212,7 @@ begin
     chkCodingReport.Checked    := clSend_Coding_Report;
     chkChartReport.checked     := clSend_Chart_of_Accounts;
     chkPayeeReport.checked     := clSend_Payee_List;
+    chkJobReport.checked       := aClient.clExtra.ceSend_Job_List;
     //Only allow one custom doc for now
     chkUseCustomDoc.Checked    := aClient.clExtra.ceSend_Custom_Documents;
     if (aClient.clExtra.ceSend_Custom_Documents_List[1] <> '') then begin
@@ -222,6 +224,7 @@ begin
     //disable if coding report no selected
     chkChartReport.Enabled     := chkCodingReport.Checked;
     chkPayeeReport.Enabled     := chkCodingReport.Checked;
+    chkJobReport.Enabled       := chkCodingReport.Checked;    
     chkUseCustomDoc.Enabled    := chkCodingReport.Checked;
     cmbCustomDocList.Enabled   := chkCodingReport.Checked
                                and chkUseCustomDoc.Checked;
@@ -333,6 +336,7 @@ begin
     clSend_Coding_report      := chkCodingReport.Checked;
     clSend_Chart_of_Accounts  := chkChartReport.Checked and chkCodingReport.Checked;
     clSend_Payee_List         := chkPayeeReport.Checked and chkCodingReport.Checked;
+    aClient.clExtra.ceSend_Job_List := chkJobReport.Checked and chkCodingReport.Checked;
     aClient.clExtra.ceSend_Custom_Documents := chkUseCustomDoc.Checked and chkCodingReport.Checked;
     //Only allow one custom doc for now
     aClient.clExtra.ceSend_Custom_Documents_List[1] := '';
@@ -544,6 +548,9 @@ begin
    chkPayeeReport.Hint  :=
                         'Produce the Payee List Report automatically|' +
                         'Produce the Payee List Report automatically';
+   chkJobReport.Hint  :=
+                        'Produce the Job List Report automatically|' +
+                        'Produce the Job List Report automatically';
    rbToEmail.Hint :=
                         'Send any reports generated via E-mail|'+
                         'Send any reports generated via E-mail';
@@ -755,6 +762,7 @@ procedure TdlgClientReportSchedule.chkCodingReportClick(Sender: TObject);
 begin
   chkChartReport.Enabled := chkCodingReport.Checked;
   chkPayeeReport.Enabled := chkCodingReport.Checked;
+  chkJobReport.Enabled   := chkCodingReport.Checked;
   chkUseCustomDoc.Enabled := chkCodingReport.Checked;
   cmbCustomDocList.Enabled := chkCodingReport.Checked
                            and  chkUseCustomDoc.Checked;
@@ -833,12 +841,14 @@ begin
     chkCodingReport.Enabled := True;
     chkChartReport.Enabled := chkCodingReport.Checked;
     chkPayeeReport.Enabled := chkCodingReport.Checked;
+    chkJobReport.Enabled := chkCodingReport.Checked;
   end else
   begin
     chkCodingReport.Enabled := False;
     chkCodingReport.Checked := True;
     chkChartReport.Enabled := false;
     chkPayeeReport.Enabled := false;
+    chkJobReport.Enabled := false;
   end;
 
 

@@ -818,6 +818,11 @@ const
         else
           PutString('');
 
+        if ( cdReportsToSend and srsJob) = srsJob then
+          PutString('Yes')
+        else
+          PutString('');
+
         if AdminSystem.fdFields.fdSort_Reports_By <> srsoStaffMember then
           PutString(cdUser_Name);
 
@@ -1290,12 +1295,14 @@ begin
           AddColAuto(Job,cLeft,10.0,GcGap,'Coding',jtLeft);
           AddColAuto(Job,cLeft,8.0,GcGap,'Chart',jtLeft);
           AddColAuto(Job,cLeft,8.0,GcGap,'Payees',jtLeft);
+          AddColAuto(Job,cLeft,6.0,GcGap,'Jobs',jtLeft);
         end
         else
         begin
           AddColAuto(Job,cLeft,6.0,GcGap,'Coding',jtLeft);
           AddColAuto(Job,cLeft,4.0,GcGap,'Chart',jtLeft);
           AddColAuto(Job,cLeft,4.0,GcGap,'Payees',jtLeft);
+          AddColAuto(Job,cLeft,4.0,GcGap,'Jobs',jtLeft);
           AddColAuto(Job,cLeft,10,GcGap,'Staff Member', jtLeft);
         end;
         AddColAuto(Job,cLeft,9.9,GcGap,'Send To',jtLeft);

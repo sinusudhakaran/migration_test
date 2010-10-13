@@ -7,7 +7,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
   OldCreateOrder = True
   OnDestroy = FormDestroy
   ExplicitWidth = 638
-  ExplicitHeight = 567
+  ExplicitHeight = 569
   PixelsPerInch = 96
   TextHeight = 13
   object Bevel1: TBevel [0]
@@ -59,7 +59,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     Top = 0
     Width = 632
     Height = 504
-    ActivePage = tsMessages
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 0
     object tbsOptions: TTabSheet
@@ -375,10 +375,6 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object tsMessages: TTabSheet
       Caption = '&Message Setup'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox6: TGroupBox
         Left = 0
         Top = 6
@@ -445,7 +441,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 6
         end
       end
@@ -484,7 +480,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
         end
       end
@@ -511,7 +507,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
         end
         object ckCDEmail: TCheckBox
@@ -556,7 +552,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
         end
       end
@@ -583,7 +579,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
         end
         object ckCDBooks: TCheckBox
@@ -628,7 +624,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
         end
       end
@@ -636,15 +632,11 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object tbsReportSetup: TTabSheet
       Caption = '&Report Setup'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox2: TGroupBox
         Left = 0
         Top = 6
         Width = 621
-        Height = 219
+        Height = 251
         Caption = ' Set up the report settings for each Scheduled Report '
         TabOrder = 0
         object btnCoding: TButton
@@ -658,7 +650,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         end
         object btnPayee: TButton
           Left = 17
-          Top = 55
+          Top = 54
           Width = 145
           Height = 25
           Caption = '&List Payees'
@@ -667,7 +659,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         end
         object btnChart: TButton
           Left = 17
-          Top = 86
+          Top = 116
           Width = 145
           Height = 25
           Caption = 'List Chart of &Accounts'
@@ -676,7 +668,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         end
         object btnSort: TButton
           Left = 17
-          Top = 148
+          Top = 178
           Width = 145
           Height = 25
           Caption = 'Sort Header'
@@ -685,7 +677,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         end
         object btnClient: TButton
           Left = 17
-          Top = 117
+          Top = 147
           Width = 145
           Height = 25
           Caption = '&Client Header'
@@ -694,22 +686,27 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         end
         object btnSummary: TButton
           Left = 17
-          Top = 179
+          Top = 209
           Width = 145
           Height = 25
           Caption = 'S&ummary'
           TabOrder = 5
           OnClick = btnSummaryClick
         end
+        object btnJobs: TButton
+          Left = 17
+          Top = 85
+          Width = 145
+          Height = 25
+          Caption = 'List &Jobs'
+          TabOrder = 6
+          OnClick = btnJobsClick
+        end
       end
     end
     object TabSheet1: TTabSheet
       Caption = 'Fa&x Setup'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox3: TGroupBox
         Left = 0
         Top = 253
@@ -728,7 +725,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           OnClick = btnFaxCodingClick
         end
         object btnFaxPayees: TButton
-          Left = 240
+          Left = 165
           Top = 23
           Width = 145
           Height = 25
@@ -756,6 +753,16 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           TabOrder = 3
           Visible = False
           OnClick = Button1Click
+        end
+        object btnFaxJobs: TButton
+          Left = 314
+          Top = 23
+          Width = 145
+          Height = 25
+          Hint = 'Edit the Reports Settings for the List Payees Report'
+          Caption = 'List &Jobs'
+          TabOrder = 4
+          OnClick = btnFaxJobsClick
         end
       end
       object GroupBox4: TGroupBox
@@ -884,7 +891,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Hint = 'Select the fax printer'
           Style = csDropDownList
           Ctl3D = True
-          ItemHeight = 0
+          ItemHeight = 13
           ParentCtl3D = False
           Sorted = True
           TabOrder = 1

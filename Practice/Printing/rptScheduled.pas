@@ -131,6 +131,11 @@ begin
        RenderTextLine('');
      end;
 
+     if MyClient.clExtra.ceSend_Job_List then begin
+       RenderTextLine('JOB LIST');
+       RenderTextLine('');
+     end;
+
      if (clScheduled_Client_Note_Message <> '') or
         (fdFields.fdSched_Rep_Header_Message <> '') then
      begin

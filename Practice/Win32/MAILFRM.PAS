@@ -652,7 +652,7 @@ begin
    btnAttach.Hint        :=
                          'Attach a file to this E-mail|' +
                          'Attach a file to this E-mail';
-    Editor.ERTF.Hint      :=
+   Editor.ERTF.Hint      :=
                          'Enter your message here|' +
                          'Enter your message here';
    btnAttachClient.Hint        :=
@@ -1866,6 +1866,17 @@ begin //SendSceduledEmail
                 RenameAttachment( EmailOutboxDir + ClientCode + '.PYX',
                                   EmailOutboxDir + 'PAYEES.XLS');
 
+                RenameAttachment( EmailOutboxDir + ClientCode + '.JBY',
+                                  EmailOutboxDir + 'JOBS.TXT');
+
+                RenameAttachment( EmailOutboxDir + ClientCode + '.JBC',
+                                  EmailOutboxDir + 'JOBS.CSV');
+
+                RenameAttachment( EmailOutboxDir + ClientCode + '.JBP',
+                                  EmailOutboxDir + 'JOBS.PDF');
+
+                RenameAttachment( EmailOutboxDir + ClientCode + '.JBX',
+                                  EmailOutboxDir + 'JOBS.XLS');
 
                 if ECodingFilename <> '' then
                    SendDlg.MailObj.Attachments.Add( EmailOutboxDir + EcodingFilename);
