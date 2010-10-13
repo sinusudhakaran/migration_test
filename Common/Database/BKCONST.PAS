@@ -1650,6 +1650,7 @@ const
    srsCoding    = 1;
    srsPayee     = 2;
    srsChart     = 4;
+   srsJob       = 5;   
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //Schedule Reports Sort By Options

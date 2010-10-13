@@ -83,6 +83,7 @@ CONST
    tkmlSF_Non_Resident_Tax              = 184 ;
    tkmlSF_Foreign_Capital_Gains_Credit  = 185 ;
    tkmlSF_Capital_Gains_Fraction_Half   = 186 ;
+   tkmlSpare_Boolean                    = 187 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -148,6 +149,7 @@ Begin
       F.WriteMoneyValue( tkmlSF_Non_Resident_Tax , mlSF_Non_Resident_Tax );
       F.WriteMoneyValue( tkmlSF_Foreign_Capital_Gains_Credit , mlSF_Foreign_Capital_Gains_Credit );
       F.WriteBooleanValue( tkmlSF_Capital_Gains_Fraction_Half , mlSF_Capital_Gains_Fraction_Half );
+      F.WriteIntegerValue( tkmlSpare_Boolean , mlSpare_Boolean );
       F.WriteToken( tkEnd_Memorisation_Line );
    end;
 end; { of Write_Memorisation_Line_Rec }
@@ -210,6 +212,7 @@ Begin
          tkmlSF_Non_Resident_Tax              : mlSF_Non_Resident_Tax := F.ReadMoneyValue;
          tkmlSF_Foreign_Capital_Gains_Credit  : mlSF_Foreign_Capital_Gains_Credit := F.ReadMoneyValue;
          tkmlSF_Capital_Gains_Fraction_Half   : mlSF_Capital_Gains_Fraction_Half := F.ReadBooleanValue;
+         tkmlSpare_Boolean                    : mlSpare_Boolean := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }

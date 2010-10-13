@@ -78,6 +78,7 @@ CONST
    tkceSUI_Period_End                   = 74 ;
    tkceSUI_Period_Status                = 75 ;
    tkceSUI_Step_Done                    = 76 ;
+   tkceSend_Job_List                    = 77 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -147,6 +148,7 @@ Begin
       F.WriteDateValue( tkceSUI_Period_End , ceSUI_Period_End );
       F.WriteIntegerValue( tkceSUI_Period_Status , ceSUI_Period_Status );
       For i := 0 to 32 do F.WriteBBooleanValue( tkceSUI_Step_Done , i, ceSUI_Step_Done[ i ] );
+      F.WriteBooleanValue( tkceSend_Job_List , ceSend_Job_List );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -238,6 +240,7 @@ Begin
                CheckBounds( I, 0, 32, 'ceSUI_Step_Done' );
                ceSUI_Step_Done[ I ] := Y;
             end;
+         tkceSend_Job_List                    : ceSend_Job_List := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }

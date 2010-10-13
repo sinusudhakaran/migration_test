@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 615;
-   BK_IOLIB_Date    = '05/10/10';
-   BK_FILE_VERSION  = 162;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 617;
+   BK_IOLIB_Date    = '13/10/10';
+   BK_FILE_VERSION  = 163;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.18';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.20';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -196,6 +196,7 @@ Const
                             Add Simple UI status flags and period start
      5.20 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
                             Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
+     5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
    *)
 
 {  -------------------------------------------------------------------  }
@@ -727,7 +728,7 @@ Type
       mlSF_Non_Resident_Tax              : Money;       { Stored }
       mlSF_Foreign_Capital_Gains_Credit  : Money;       { Stored }
       mlSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
-      mlSF_Desktop_Super_Ledger_ID       : Integer;       { Stored }
+      mlSpare_Boolean                    : Integer;       { Stored }
       mlTemp_Tag                         : Integer;
       mlEOR                              : Byte;
    end;
@@ -1199,6 +1200,7 @@ Type
       ceSUI_Period_End                   : Integer;       { Stored }
       ceSUI_Period_Status                : Integer;       { Stored }
       ceSUI_Step_Done                    : Array[ 0..32 ] of Boolean;       { Stored }
+      ceSend_Job_List                    : Boolean;       { Stored }
       ceEOR                              : Byte;
    end;
 

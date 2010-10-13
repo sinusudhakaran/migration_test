@@ -1,8 +1,8 @@
-$|BK_FILE_VERSION  = 162;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 163;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.18';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.20';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -183,6 +183,7 @@ $|                         Add Extra GST fields for Transitional return, spannin
 $|                         Add Simple UI status flags and period start
 $|  5.20 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
 $|                         Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
+$|  5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
 $|*)
 
 N|Client|cl|20
@@ -648,7 +649,7 @@ F|SF Other Tax Credit|$
 F|SF Non Resident Tax|$
 F|SF Foreign Capital Gains Credit|$
 F|SF Capital Gains Fraction Half|Y
-F|SF Desktop Super Ledger ID|L
+F|Spare Boolean|L
 C|Temp Tag|L
 E
 
@@ -1068,4 +1069,5 @@ F|SUI Period Start|D
 F|SUI Period End|D
 F|SUI Period Status|L
 F|SUI Step Done|BY0|32
+F|Send Job List|Y
 E
