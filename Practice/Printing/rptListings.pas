@@ -3895,48 +3895,49 @@ begin
     Param := TRPTParameters.Create(ord(Report_List_jobs),MyClient,RptBatch);
     try
       Param.Scheduled := Scheduled;
+      repeat
+        Job := TBKReport.Create(ReportTypes.rptListings);
+        try
+  //        Job.LoadReportSettings(UserPrintSettings, Param.MakeRptName(Report_List_Names[Report_List_Jobs]));
+          Job.LoadReportSettings(Settings, Param.MakeRptName(Report_List_Names[Report_List_Jobs]));
 
-      Job := TBKReport.Create(ReportTypes.rptListings);
-      try
-//        Job.LoadReportSettings(UserPrintSettings, Param.MakeRptName(Report_List_Names[Report_List_Jobs]));
-        Job.LoadReportSettings(Settings, Param.MakeRptName(Report_List_Names[Report_List_Jobs]));
+          //Add Headers
+          AddCommonHeader(Job);
+          AddJobHeader(Job,siTitle,'LIST JOBS',true);
+          AddJobHeader(Job,siSubTitle,'',true);
 
-        //Add Headers
-        AddCommonHeader(Job);
-        AddJobHeader(Job,siTitle,'LIST JOBS',true);
-        AddJobHeader(Job,siSubTitle,'',true);
+          //Build columns
+          cLeft := GcLeft;
+          AddColAuto(Job, cLeft, 12,Gcgap, 'Code', jtLeft);
+          AddColAuto(Job, cLeft, 65,GcGap, 'Name', jtLeft);
+          AddColAuto(Job, cLeft, 10,Gcgap, 'Completed', jtLeft);
 
-        //Build columns
-        cLeft := GcLeft;
-        AddColAuto(Job, cLeft, 12,Gcgap, 'Code', jtLeft);
-        AddColAuto(Job, cLeft, 65,GcGap, 'Name', jtLeft);
-        AddColAuto(Job, cLeft, 10,Gcgap, 'Completed', jtLeft);
+          //Add Footers
+          AddCommonFooter(Job);
 
-        //Add Footers
-        AddCommonFooter(Job);
-
-        Job.OnBKPrint := ListJobDetail;
-        if (Dest = rdEmail) then begin
-          //special case for scheduled reports.  Don't want the user to be asked
-          //what file name to use
-          case MyClient.clFields.clEmail_Report_Format of
-            rfCSV :
-              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBC', rfCSV, Param);
-            rfFixedWidth :
-              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBY', rfFixedWidth, Param);
-            rfPDF :
-              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBP', rfPDF, Param);
-            rfExcel :
-              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBX', rfExcel, Param);
-          end
-        end else if (Dest = rdFax) then begin
-          Result := Job.GenerateToFax( FaxParams, AdminSystem.fdFields.fdSched_Rep_Fax_Transport, Param)
-        end else begin
-          Job.Generate(Dest, Param);
+          Job.OnBKPrint := ListJobDetail;
+          if (Dest = rdEmail) then begin
+            //special case for scheduled reports.  Don't want the user to be asked
+            //what file name to use
+            case MyClient.clFields.clEmail_Report_Format of
+              rfCSV :
+                Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBC', rfCSV, Param);
+              rfFixedWidth :
+                Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBY', rfFixedWidth, Param);
+              rfPDF :
+                Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBP', rfPDF, Param);
+              rfExcel :
+                Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.JBX', rfExcel, Param);
+            end
+          end else if (Dest = rdFax) then begin
+            Result := Job.GenerateToFax( FaxParams, AdminSystem.fdFields.fdSched_Rep_Fax_Transport, Param)
+          end else begin
+            Job.Generate(Dest, Param);
+          end;
+        finally
+          Job.Free;
         end;
-      finally
-        Job.Free;
-      end;
+      until Param.RunExit(Dest);
     finally
       Param.Free;
     end;
