@@ -281,9 +281,9 @@ begin
                    or (not Assigned(ReportAccount) and (dsAccountCode = ''));
   Result := (txJobMatches)
          and (txAccountMatches or dsAccountMatches);
-  //Check that account codes are not assigned for Uncoded (TFS 4396)
+  //Check that account code is not assigned for Uncoded (TFS 4396)
   if Result and (not Assigned(ReportAccount)) then
-    Result :=  (txAccountCode = '') and (dsAccountCode = '');
+    Result := (dsAccountCode = '');
 end;
 
 procedure TJobSpendingReport.AddTransactionAndDissection(Job: pJob_Heading_Rec;
