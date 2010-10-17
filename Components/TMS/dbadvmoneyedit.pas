@@ -4,7 +4,7 @@
 { version 1.0                                                                }
 {                                                                            }
 { written by TMS Software                                                    }
-{            copyright © 2000 - 2006                                         }
+{            copyright © 2000 - 2007                                         }
 {            Email : info@tmssoftware.com                                    }
 {            Web : http://www.tmssoftware.com                                }
 {                                                                            }
@@ -144,7 +144,7 @@ end;
 
 procedure TDBAdvMoneyEdit.CMExit(var Message: TWMNoParams);
 begin
- if not FDataLink.ReadOnly then
+  if not FDataLink.ReadOnly then
   begin
    try
       FDataLink.UpdateRecord;                          { tell data link to update database }
@@ -157,8 +157,8 @@ end;
 
 procedure TDBAdvMoneyEdit.CMEnter(var Message: TWMNoParams);
 begin
- inherited;
- if FDataLink.CanModify then inherited ReadOnly := False;
+  inherited;
+  if FDataLink.CanModify then inherited ReadOnly := False;
 end;
 
 constructor TDBAdvMoneyEdit.Create(aOwner: TComponent);
@@ -168,7 +168,7 @@ begin
   FDataLink.Control := Self;
   FDataLink.OnDataChange := DataChange;
   FDataLink.OnUpdateData := DataUpdate;
-  ControlStyle:=ControlStyle+[csReplicatable];
+  ControlStyle := ControlStyle+[csReplicatable];
   FClearOnInsert := False;
 end;
 
@@ -197,7 +197,7 @@ was  if Assigned(FDataLink.Field) {$IFDEF DELPHI4_LVL}and not (fDataLink.BOF and
         begin
           if (FDataLink.Field.DataType in [ftString {$IFDEF DELPHI4_LVL}, ftWideString{$ENDIF}]) and (MaxLength=0) then
             MaxLength := FDataLink.Field.Size;
-            self.Text := FDataLink.Field.AsString;
+            SetTextDirect(FDataLink.Field.DisplayText);
         end;
       etFloat, etMoney:
         begin
@@ -205,6 +205,9 @@ was  if Assigned(FDataLink.Field) {$IFDEF DELPHI4_LVL}and not (fDataLink.BOF and
             self.FloatValue := 0.0
           else
             self.FloatValue := FDataLink.Field.AsFloat;
+
+          if AllowNumericNullValue and (FDataLink.Field.DisplayText = '') then
+            SetTextDirect(FDataLink.Field.DisplayText);
         end;
       etNumeric:
         begin
@@ -212,6 +215,9 @@ was  if Assigned(FDataLink.Field) {$IFDEF DELPHI4_LVL}and not (fDataLink.BOF and
             self.IntValue := 0
           else
             self.IntValue := FDataLink.Field.AsInteger;
+
+          if AllowNumericNullValue and (FDataLink.Field.DisplayText = '') then
+            SetTextDirect(FDataLink.Field.DisplayText);
         end;
     else
       self.Text := FDataLink.Field.AsString;
@@ -228,6 +234,7 @@ was  if Assigned(FDataLink.Field) {$IFDEF DELPHI4_LVL}and not (fDataLink.BOF and
       self.Text := '';
   end;
   FOldState := FDataLink.DataSet.State;
+
 (* was
 {$IFDEF DELPHI4_LVL}
  if (fDataLink.BOF and fDataLink.EOF) then
@@ -247,11 +254,17 @@ begin
     case self.EditType of
       etMoney, etFloat:
         begin
-          FDataLink.Field.AsFloat := self.FloatValue;
+          if AllowNumericNullValue and (self.Text = '') then
+            FDataLink.Field.AsString := ''
+          else
+            FDataLink.Field.AsFloat := self.FloatValue;
         end;
       etNumeric:
         begin
-          FDataLink.Field.AsInteger := self.IntValue;
+          if AllowNumericNullValue and (self.Text = '') then
+            FDataLink.Field.AsString := ''
+          else
+            FDataLink.Field.AsInteger := self.IntValue;
         end;
     else
       begin
@@ -331,7 +344,8 @@ begin
     inherited;
     Exit;
   end;
-  if (Key=VK_DELETE) or (Key=VK_BACK) or ((Key=VK_INSERT) and (ssShift in Shift)) then
+  
+  if (Key = VK_DELETE) or (Key = VK_BACK) or ((Key = VK_INSERT) and (ssShift in Shift)) then
   begin
     if not EditCanModify then
     begin
@@ -340,12 +354,12 @@ begin
     end;
   end;
 
-  if FDataLink.ReadOnly and (Key=VK_DELETE) then
+  if FDataLink.ReadOnly and (Key = VK_DELETE) then
     Key := 0;
 
   inherited KeyDown(Key, Shift);
 
-  if (Key=VK_DELETE) or ((Key=VK_INSERT) and (ssShift in Shift)) then
+  if (Key = VK_DELETE) or ((Key = VK_INSERT) and (ssShift in Shift)) then
     FDataLink.Edit;
 end;
 
@@ -361,13 +375,18 @@ begin
     if not EditCanModify then
       Exit;
 
-  if (Key=#8) then
+  if (Key = #8) then
     if not EditCanModify then
       Exit;
 
   inherited KeyPress(Key);
 
+  {$IFNDEF DELPHI_UNICODE}
   if (Key in [#32..#255]) and (FDataLink.Field <> nil) and
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if (Key >= #32) and (FDataLink.Field <> nil) and
+  {$ENDIF}
     not FDataLink.Field.IsValidChar(Key) or (FDataLink.ReadOnly) then
   begin
     MessageBeep(0);

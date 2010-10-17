@@ -5,7 +5,7 @@
 { version 2.5                                                           }
 {                                                                       }
 { written by TMS Software                                               }
-{            copyright © 1999-2006                                      }
+{            copyright © 1999-2007                                      }
 {            Email: info@tmssoftware.com                                }
 {            Web: http://www.tmssoftware.com                            }
 {                                                                       }
@@ -346,6 +346,11 @@ begin
           end
           else
           begin
+            if 1 in rh.Days then 
+            begin
+              cDay.ItemIndex := 8;
+              cWeekNum.ItemIndex := rh.DayNum[1] - 1;
+            end;
             if 2 in rh.Days then
             begin
               cDay.ItemIndex := 2;
@@ -370,6 +375,11 @@ begin
             begin
               cDay.ItemIndex := 6;
               cWeekNum.ItemIndex := rh.DayNum[6] - 1;
+            end;
+            if 7 in rh.Days then
+            begin
+              cDay.ItemIndex := 7;
+              cWeekNum.ItemIndex := rh.DayNum[7] - 1;
             end;
           end;
 
@@ -398,6 +408,11 @@ begin
           end
           else
           begin
+            if 1 in rh.Days then 
+            begin
+              cYearDay.ItemIndex := 8;
+              cYearWeekNum.ItemIndex := rh.DayNum[1] - 1;
+            end;
             if 2 in rh.Days then
             begin
               cYearDay.ItemIndex := 2;
@@ -422,6 +437,11 @@ begin
             begin
               cYearDay.ItemIndex := 6;
               cYearWeekNum.ItemIndex := rh.DayNum[6] - 1;
+            end;
+            if 7 in rh.Days then 
+            begin
+              cYearDay.ItemIndex := 7;
+              cYearWeekNum.ItemIndex := rh.DayNum[7] - 1;
             end;
           end;
       end;
@@ -578,6 +598,15 @@ begin
           rh.Days := [6];
           dn[6] := cWeekNum.ItemIndex + 1;
         end;
+      7:begin
+          rh.Days := [7];
+          dn[7] := cWeekNum.ItemIndex + 1;
+        end;
+      8:begin
+          rh.Days := [1];
+          dn[1] := cWeekNum.ItemIndex + 1;
+        end;
+
       end;
       for i := 1 to 7 do
         rh.DayNum[i] := dn[i];
@@ -624,6 +653,15 @@ begin
           rh.Days := [6];
           dn[6] := cYearWeekNum.ItemIndex + 1;
         end;
+      7:begin
+          rh.Days := [7];
+          dn[7] := cYearWeekNum.ItemIndex + 1;
+        end;
+      8:begin
+          rh.Days := [1];
+          dn[1] := cYearWeekNum.ItemIndex + 1;
+        end;
+        
       end;
       for i := 1 to 7 do
         rh.DayNum[i] := dn[i];

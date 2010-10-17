@@ -1,10 +1,9 @@
 {*************************************************************************}
 { THTMLStaticText component                                               }
 { for Delphi & C++Builder                                                 }
-{ version 1.2                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{            copyright © 1999-2004                                        }
+{            copyright © 1999-2007                                        }
 {            Email : info@tmssoftware.com                                 }
 {            Website : http://www.tmssoftware.com/                        }
 {                                                                         }
@@ -35,22 +34,20 @@ uses
   {$ENDIF}
   ;
 
-{$IFNDEF DELPHI3_LVL}
-const
-  crHandPoint = crUpArrow;
-  MAJ_VER = 1; // Major version nr.
-  MIN_VER = 2; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
-{$ELSE}
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 2; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
-{$ENDIF}
+  BLD_VER = 1; // Build nr.
+
+  // version history
+  // v1.2.0.1 : Fixed issue with mouse hovering background color painting
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
 
   {$IFNDEF DELPHI4_LVL}
   PPaintStruct = ^TPaintStruct;
@@ -659,12 +656,13 @@ begin
 
   Canvas := TCanvas.Create;
   Canvas.Handle := GetDC(self.Handle);
+
   if Assigned(self.Font) then
     Canvas.Font.Assign(self.Font);
 
   if (FVAlignment in [tvaCenter,tvaBottom]) then
   begin
-    HTMLDrawEx(Canvas,s,r,FImages,pt.x,pt.y,-1,-1,FShadowOffset,True,False,False,False,false,FHover,not FEllipsis,1.0,
+    HTMLDrawEx(Canvas,s,r,FImages,pt.x,pt.y,-1,-1,FShadowOffset,True,False,False,False,False,FHover,not FEllipsis,1.0,
       FURLColor,FHoverColor,FHoverFontColor,FShadowColor,Anchor,Stripped,FocusAnchor,xsize,ysize,hl,ml,HR,FImageCache,FContainer,0);
 
     if ysize < Height then
@@ -675,7 +673,7 @@ begin
   end;
 
 
-  if HTMLDrawEx(Canvas,s,r,FImages,x,y,-1,-1,FShadowOffset,True,False,False,False,false,FHover,not FEllipsis,1.0,
+  if HTMLDrawEx(Canvas,s,r,FImages,x,y,-1,-1,FShadowOffset,True,False,False,False,False,FHover,not FEllipsis,1.0,
     clWhite,clNone,clNone,clNone,Anchor,Stripped,FocusAnchor,xsize,ysize,hl,FHoverHyperlink,HoverRect,FImageCache,FContainer,0) then
   begin
     Result := Anchor;
@@ -698,7 +696,7 @@ begin
   if Anchor <> '' then
   begin
     if hr.Left = -1 then
-      DoPaint(False);
+      DoPaint(True);
 
     FFocusHyperlink := -1;
 
@@ -1062,7 +1060,7 @@ end;
 procedure THTMLStaticText.Keypress(var Key: Char);
 begin
   inherited;
-  if Key in [#13,#32] then
+  if (Key = #13) or (Key = #32) then
   begin
     if (Pos('://',FFocusAnchor) > 0) or (Pos('mailto:',FFocusAnchor) > 0) then
     {$IFNDEF TMSDOTNET}

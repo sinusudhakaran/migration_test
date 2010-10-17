@@ -1,9 +1,8 @@
 {************************************************************************}
 { THTMLComboBox component                                                }
 { for Delphi & C++Builder                                                }
-{ version 1.5                                                            }
 {                                                                        }
-{ Copyright © 1999-2006                                                  }
+{ Copyright © 1999-2008                                                  }
 {   TMS Software                                                         }
 {   Email : info@tmssoftware.com                                         }
 {   Web : http://www.tmssoftware.com                                     }
@@ -39,6 +38,11 @@ const
   // 1.5.0.1 : Fixed issue with EditHeight
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   EHTMLComboBoxError = class(Exception);
 
   TAnchorClick = procedure(Sender:TObject;index:integer;anchor:string) of object;

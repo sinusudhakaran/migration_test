@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvStyleIF interface                                                     }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -37,6 +36,27 @@ type
     procedure SetComponentStyle(AStyle: TTMSStyle);
   end;
 
+function IsVista: boolean;  
+
 implementation
+
+uses
+  Windows;
+
+//------------------------------------------------------------------------------
+
+function IsVista: boolean;
+var
+  hKernel32: HMODULE;
+begin
+  hKernel32 := GetModuleHandle('kernel32');
+  if (hKernel32 > 0) then
+  begin
+    Result := GetProcAddress(hKernel32, 'GetLocaleInfoEx') <> nil;
+  end
+  else
+    Result := false;
+end;
+
 
 end.

@@ -2,10 +2,9 @@
 {***********************************************************************}
 { TPlanner component                                                    }
 { for Delphi & C++Builder                                               }
-{ version 2.5, 2007                                                     }
 {                                                                       }
 { written by TMS Software                                               }
-{            copyright © 1999-2007                                      }
+{            copyright © 1999-2008                                      }
 {            Email: info@tmssoftware.com                                }
 {            Web: http://www.tmssoftware.com                            }
 {                                                                       }
@@ -52,7 +51,10 @@ uses
   Printers, ClipBrd, PlanUtil, PlanObj, PlanCheck, PlanHTML, PlanCombo,
   PictureContainer, ComObj, CommCtrl, IniFiles, ActnList, AdvStyleIF
 {$IFNDEF TMSDOTNET}
-  , PlanXPVS, PlanUni
+  , PlanXPVS
+{$IFNDEF DELPHI_UNICODE}
+  , PlanUni
+{$ENDIF}  
 {$ENDIF}
 {$IFDEF TMSDOTNET}
   , uxTheme, FlatSB, WinUtils, Types, System.Text
@@ -69,9 +71,9 @@ const
 
   MAJ_VER = 2; // Major version nr.
   MIN_VER = 5; // Minor version nr.
-  REL_VER = 3; // Release nr.
-  BLD_VER = 3; // Build nr.
-  DATE_VER = 'Feb, 2007'; // Month version
+  REL_VER = 6; // Release nr.
+  BLD_VER = 13; // Build nr.
+  DATE_VER = 'Jul, 2008'; // Month version
 
   // version history
   // 2.2.1.0 : New PlannerHeader.ResizeAll property added
@@ -123,7 +125,46 @@ const
   // 2.5.3.2 : Fixed : issue with multipage printing
   // 2.5.3.3 : Fixed : issue with apNextToTime & rightaligned sidebar
   //         : Fixed : issue with scrolling & position resizing
-
+  // 2.5.3.4 : Fixed : issue with ShowCurrentItem := true
+  // 2.5.3.5 : Fixed : issue with OnItemImageClick event for items in header
+  // 2.5.3.6 : Fixed : issue with recurrency editor
+  //         : Fixed : issue with InHeader item painting
+  //         : Fixed : issue with cursor with PositionZoomWidth > 0
+  // 2.5.3.7 : Fixed : issue with item hint for items in Planner Header
+  // 2.5.3.8 : Fixed : issue with header activecolor for vertically scroll grid
+  // 2.5.4.0 : New : exposed OnTimer as public event
+  //         : Fixed : issue with child item moving/sizing
+  // 2.5.4.1 : Fixed : issue with proportional trackbar drawing
+  //         : Fixed : issue with active display in sidebar with FullHalfday mode
+  // 2.5.4.2 : Fixed : issue with hyperlink in Notes & items without captions
+  // 2.5.4.3 : Fixed : issue with printing of transparent background items
+  //         : Fixed : issue with HandPoint mouse cursor for header item links
+  // 2.5.4.4 : Fixed : issue with PrintOptions.HeaderSize in horizontal printing
+  // 2.5.5.0 : Improved : support for printing custom groups added
+  // 2.5.5.1 : Fixed : issue with printing multiple pages
+  // 2.5.5.2 : Fixed : issue with drag cursor on resizable header
+  // 2.5.5.3 : Improved : sidebar drawing in day mode with small display scales
+  // 2.5.5.4 : Fixed : painting issue with D2007 for GridControl.DoubleBuffered := true
+  //         : Fixed : issue with tab key handling on pagecontrol
+  // 2.5.5.5 : Fixed : issue with painting on not rotated top sidebar
+  // 2.5.5.6 : Fixed : issue with setting ItemEndTime with uninitialized ItemRealStartTime
+  // 2.5.5.7 : Fixed : issue with rotated header painting
+  // 2.5.6.0 : Improved : added capability to show multiline text in left rotated header text
+  // 2.5.6.1 : Fixed : issue with DisplayText > 1 and showing current time indicator in sidebar
+  // 2.5.6.2 : Fixed : header alignment with rotated text
+  // 2.5.6.3 : Fixed : issue with completion display for spRight sidebar
+  //         : Fixed : issue with item times when setting Planner.Display.DisplayText
+  // 2.5.6.4 : Fixed : issue with rotated header drawing for top sidebar Planner
+  // 2.5.6.5 : Improved : Assign method
+  // 2.5.6.6 : Fixed : issues with specific yearly recurrence types
+  // 2.5.6.7 : Fixed : issue with hint hiding after cancelled item move/size
+  // 2.5.6.8 : Fixed : issue with SelectionToAbsTime for mode plDay with full day selection
+  // 2.5.6.9 : Improved : printing with sidebar right, leftright
+  // 2.5.6.10: Fixed : issue with auto delete of recurrent items
+  // 2.5.6.11: Fixed : issue with footer font
+  //         : Fixed : issue with footer printing
+  // 2.5.6.12: Fixed : issue with Planner.SideBar.Visible = false for top position sidebar
+  // 2.5.6.13: Fixed : issue with DBDisjunctDaySource when Dates collection is empty
 
   s_QuickConfig = 'Quick config';
   s_HTimeAxis = 'Horizontal time axis';
@@ -134,8 +175,6 @@ const
   s_Modes : array[0..5] of string = ('Select day mode','Select month mode','Select day period mode',
     'Select half day period mode','Select multimonth mode','Select timeline mode');
 
-  // theme changed notifier
-  WM_THEMECHANGED = $031A;
 
   {$IFNDEF DELPHI6_LVL}
   WS_EX_LAYERED  = $00080000;
@@ -164,6 +203,7 @@ const
 var
   CF_PLANNERITEM: Word;
 
+
 const
   crZoomIn = 100;
   crZoomOut = 101;
@@ -181,11 +221,16 @@ const
   CORNER_EFFECT = 10;
 
 {$IFDEF FREEWARE}
-  COPYRIGHT = 'Printed by %s © 2006 by TMS software';
+  COPYRIGHT = 'Printed by %s © 2008 by TMS software';
 {$ENDIF}
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TCustomPlanner = class;
 
   TPlannerGrid = class;
@@ -389,6 +434,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
     procedure Changed;
   published
     property Level0Color: TColor read FLevel0Color write SetLevel0Color default clLime;
@@ -769,6 +815,7 @@ type
   end;
 
   {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI_UNICODE}
   TPlannerUniMemo = class(TPlanUniMemo)
   private
     FPlannerItem: TPlannerItem;
@@ -786,6 +833,7 @@ type
     property PlannerItem: TPlannerItem read FPlannerItem write FPlannerItem;
     property Planner: TCustomPlanner read FPlanner write FPlanner;
   end;
+  {$ENDIF}
   {$ENDIF}
 
   TPlannerRichEdit = class(TRichEdit)
@@ -945,6 +993,7 @@ type
   public
     constructor Create(AOwner: TCustomPlanner);
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;    
     property CompletionValue[Index: Integer]: Integer read GetCompletionValue write SetCompletionValue;
   published
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
@@ -1108,6 +1157,8 @@ type
     procedure MergeHeader(FromSection,ToSection: Integer);
     procedure UnMergeHeader(FromSection,ToSection: Integer);
     property GroupSpan: TPlannerIntList read FGroupSpan write FGroupSpan;
+    function GroupSplit(pos: integer): integer;
+    function GetGroupCaption(pos: integer): string;
     {$IFNDEF TMSDOTNET}
     //property WideCaptions: TWideStrings read FWideCaptions write SetWideCaptions;
     //property WideGroupCaptions: TWideStrings read FWideGroupCaptions write SetWideGroupCaptions;
@@ -1168,7 +1219,6 @@ type
     {$ELSE}
     procedure Clear;
     {$ENDIF}
-  published
     property OnChange: TImageChangeEvent read FOnChange write FOnChange;
   end;
 
@@ -1234,7 +1284,6 @@ type
     destructor Destroy; override;
     property Items[Index: Integer]: TPlannerBarItem read GetItem; default;
     property Owner: TPlannerItem read FOwner write FOwner;
-  published
   end;
 
   TPlannerAlarmHandler = class(TComponent)
@@ -1474,6 +1523,7 @@ type
     FShowLinks: Boolean;
     FLinkSelect: Boolean;
     FDesignChange: TNotifyEvent;
+    FPreview: boolean;
     {$IFNDEF TMSDOTNET}
     FWideCaption: widestring;
     FWideText: widestring;
@@ -1481,7 +1531,7 @@ type
     {$ENDIF}
     procedure SetColor(const Value: TColor);
     procedure SetColorTo(const Value: TColor);
-    procedure SetBorderColor(const Value: TColor);    
+    procedure SetBorderColor(const Value: TColor);
     procedure SetTrackColor(const Value: TColor);
     procedure SetTrackSelectColor(const Value: TColor);
     procedure SetLayer(const Value: Integer);
@@ -1544,6 +1594,7 @@ type
     procedure SetCompletion(const Value: Integer);
     procedure SetCompletionDisplay(const Value: TCompletionDisplay);
     procedure CompletionAdapt(var R:TRect);
+    procedure ImageListAdapt(var R:TRect);
     function GetNotes: string;
     {$IFNDEF TMSDOTNET}
     procedure SetWideText(const Value: widestring);
@@ -1615,6 +1666,7 @@ type
     property Conflicts: Integer read FConflicts;
     property ConflictPos: Integer read FConflictPos;
     property ControlValue[index: string]: string read GetControlVal write SetControlVal;
+    property Preview: boolean read FPreview write FPreview;
     property Focus: Boolean read FFocus write SetFocus;
     property ImageIndexList: TPlannerIntList read FImageIndexList write FImageIndexList;
     property ItemBeginPrecis: Integer read FItemBeginPrecis write SetItemBeginPrecis;
@@ -1954,7 +2006,9 @@ type
     FUpdateCount: Integer;
     FPlanner: TCustomPlanner;
     {$IFNDEF TMSDOTNET}
+    {$IFNDEF DELPHI_UNICODE}
     FUniMemo: TPlannerUniMemo;
+    {$ENDIF}
     {$ENDIF}
     FMemo: TPlannerMemo;
     FMaskEdit: TPlannerMaskEdit;
@@ -1988,6 +2042,7 @@ type
     FInplaceCombo: TPlanCombobox;
     FHToolTip: THandle;
     FToolTipBuffer: array[0..4096] of char;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     {$IFNDEF TMSDOTNET}
     procedure WMNotify(var Message: TWMNOTIFY); message WM_NOTIFY;
     {$ENDIF}
@@ -2698,6 +2753,7 @@ type
     FOnItemControlComboSelect: TItemComboControlEvent;
     {$IFDEF TMSSKINS}
     FSkin: TPlannerSkin;
+    FOnTimer: TNotifyEvent;
     procedure SetPlannerSkin(AValue: TPlannerSkin);
     {$ENDIF}
     procedure WMTimer(var Message: TWMTimer); message WM_TIMER;
@@ -2920,6 +2976,7 @@ type
     procedure RemoveClones(Item: TPlannerItem);
     function CreateItemAtSelection:TPlannerItem; virtual;
     function CloneItemAtSelection(Item: TPlannerItem): TPlannerItem; virtual;
+    procedure StopEditing;
     procedure UpdateItem(APlannerItem:TPlannerItem); virtual;
     procedure RefreshItem(APlannerItem:TPlannerItem); virtual;
     procedure FreeItem(APlannerItem:TPlannerItem); virtual;
@@ -2943,7 +3000,7 @@ type
     procedure ExportClear;
     procedure UpdateNVI;
     procedure SetStyle(StyleIndex: Integer);
-    procedure SetComponentStyle(AStyle: TTMSStyle);    
+    procedure SetComponentStyle(AStyle: TTMSStyle);
     procedure ZoomPosition(Pos: Integer);
     procedure UnZoomPosition(Pos: Integer);
     property VersionNr: Integer read GetVersionNr;
@@ -3166,6 +3223,7 @@ type
     property OnHeaderSized: TPlannerHeaderSizeEvent read FOnHeaderSized write FOnHeaderSized;
     property OnFooterHint: THeaderHintEvent read FOnFooterHint write FOnFooterHint;
     property OnSideBarHint: TSideBarHintEvent read FOnSideBarHint write FOnSideBarHint;
+    property OnTimer: TNotifyEvent read FOnTimer write FOnTimer;
     property OnTopLeftChanged: TPlannerBtnEvent read FOnTopLeftChanged write FOnTopLeftChanged;
     property OnPrintStart: TPlannerPrintEvent read FOnPrintStart write FOnPrintStart;
     property OnPrintHeader: TPlannerPrintHFEvent read FOnPrintHeader write FOnPrintHeader;
@@ -3425,6 +3483,8 @@ type
 
 implementation
 
+
+
 uses
   ShellApi
 {$IFDEF DELPHI4_LVL}
@@ -3432,7 +3492,7 @@ uses
 {$ENDIF}
 {$IFDEF DELPHI7_LVL}
   , DateUtils
-{$ENDIF}  
+{$ENDIF}
 
 {$IFDEF TMSDOTNET}
   , System.Runtime.InteropServices
@@ -3447,6 +3507,9 @@ uses
 
 const
   ComCtrl = 'comctl32.dll';
+
+  // theme changed notifier
+  WM_THEMECHANGED = $031A;
 
   BtnWidth = 16;
   DaysPerWeek = 7;
@@ -3523,6 +3586,7 @@ end;
 
 procedure TCustomPlanner.SetComponentStyle(AStyle: TTMSStyle);
 begin
+
   case AStyle of
     tsOffice2003Blue: SetStyle(2);
     tsOffice2003Olive: SetStyle(3);
@@ -4194,7 +4258,8 @@ begin
   FDefaultItems := CreateItems;
   FBackground := TBackground.Create(Self);
   FDefaultItem := FDefaultItems.Add;
-  if (csDesigning in ComponentState) then
+
+  if (csDesigning in ComponentState) and not (csLoading in ComponentState) then
     FDefaultItem.OnDesignChange := ItemDesignChange;
     
   FInactiveDays.OnChanged := InactiveChanged;
@@ -4404,6 +4469,7 @@ begin
     Display.Assign((Source as TCustomPlanner).Display);
     SideBar.Assign((Source as TCustomPlanner).SideBar);
     Header.Assign((Source as TCustomPlanner).Header);
+    Footer.Assign((Source as TCustomPlanner).Footer);
     Caption.Assign((Source as TCustomPlanner).Caption);
   end;
 end;
@@ -4770,7 +4836,7 @@ var
   DateTime: TDateTime;
   ActiveStart,ActiveEnd,M,Y: Integer;
   UsePP: Boolean;
-
+  dbl: double;
 begin
   UsePP := (PositionProps.Count > APosition) and (APosition >= 0);
   if UsePP then
@@ -4829,7 +4895,13 @@ begin
     end;
   plTimeLine:
     begin
-      DateTime := Mode.TimeLineStart + Trunc(AIndex * Display.DisplayUnit / (MinInDay - (Mode.TimeLineNVUEnd + Mode.TimeLineNVUBegin) * Display.DisplayUnit));
+      dbl := AIndex * Display.DisplayUnit / (MinInDay - (Mode.TimeLineNVUEnd + Mode.TimeLineNVUBegin) * Display.DisplayUnit);
+      {$IFDEF TMSDOTNET}
+      DateTime := Mode.TimeLineStart + TDateTime(Trunc(dbl));
+      {$ENDIF}
+      {$IFNDEF TMSDOTNET}
+      DateTime := Mode.TimeLineStart + Trunc(dbl);      
+      {$ENDIF}
       Result := DayOfWeek(DateTime) in FInactive;
     end;
   end;
@@ -4845,6 +4917,7 @@ var
   ActiveStart,ActiveEnd,M,Y: Integer;
   ColorActive,ColorNonActive: TColor;
   UsePP: Boolean;
+  dbl: double;
 
 begin
   UsePP := (PositionProps.Count > Pos) and (Pos >= 0);
@@ -4932,7 +5005,14 @@ begin
       end;
     plTimeLine:
       begin
-        DateTime := Mode.TimeLineStart + Trunc(Index * Display.DisplayUnit / (MinInDay - (Mode.TimeLineNVUEnd + Mode.TimeLineNVUBegin) * Display.DisplayUnit));
+        dbl := Index * Display.DisplayUnit / (MinInDay - (Mode.TimeLineNVUEnd + Mode.TimeLineNVUBegin) * Display.DisplayUnit);
+        {$IFDEF TMSDOTNET}
+        DateTime := Mode.TimeLineStart + TDateTime(Trunc(dbl));
+        {$ENDIF}
+        {$IFNDEF TMSDOTNET}
+        DateTime := Mode.TimeLineStart + Trunc(dbl);
+        {$ENDIF}
+
         if DayOfWeek(DateTime) in FInactive then
           ABrush.Color := ColorNonActive;
       end;
@@ -4991,7 +5071,7 @@ begin
   if NrOfPages <= 0 then
     Exit;
 
-  ItemsPerPage := (Display.DisplayEnd - Display.DisplayStart) div NrOfPages;
+  ItemsPerPage := (Display.DisplayEnd - Display.DisplayStart + 1) div NrOfPages;
 
   with Printer do
   begin
@@ -5013,13 +5093,10 @@ begin
       LastItem := LastItem + ItemsPerPage;
 
       if i = NrOfPages - 1 then
-        LastItem := Display.DisplayEnd;
+        LastItem := (Display.DisplayEnd - Display.DisplayStart);
       
-
       if i < NrOfPages then
         NewPage;
-
-
     end;
     EndDoc;
   end;
@@ -5109,7 +5186,7 @@ var
   NumberOfConflicts: TPoint;
   DrawRect, ARect, NRect, SRect: TRect;
   APlannerItem: TPlannerItem;
-  SideBarWidth, HeaderHeight, GroupHeight, Side: Integer;
+  SideBarWidth, HeaderHeight, FooterHeight, GroupHeight, Side: Integer;
   LeftIndent, TopIndent: Integer;
   ColumnWidth, ColumnHeight, GapWidth: Integer;
   PrintPositions, NumCols: Integer;
@@ -5122,6 +5199,8 @@ var
   CID,CV,CT:string;
   AColorTo: TColor;
   Occupied: Boolean;
+  gs: integer;
+  gc: string;
 
 begin
   PrintPositions := (ToPos - FromPos) + 1;
@@ -5143,6 +5222,7 @@ begin
 
   SideBarWidth := 0;
   HeaderHeight := 0;
+  FooterHeight := 0;
   GroupHeight := 0;
 
   if PositionGroup > 0 then
@@ -5152,9 +5232,14 @@ begin
 
   Side := 0;
 
-  // Column Width
+  // Column width
   if FSidebar.Visible then
-    NumCols := PrintPositions + 1
+  begin
+    if (FSideBar.Position = spLeftRight) then
+      NumCols := PrintPositions + 2
+    else
+      NumCols := PrintPositions + 1;
+  end
   else
     NumCols := PrintPositions;
 
@@ -5175,6 +5260,10 @@ begin
     HeaderHeight := Round(YSize * (Header.Height / (FGrid.RowHeights[0] *
       (ToRow - FromRow + 1))));
 
+  if FFooter.Visible then
+    FooterHeight := Round(YSize * (Footer.Height / (FGrid.RowHeights[0] *
+      (ToRow - FromRow + 1))));
+
   // Double header size when group captions need to be printed
 //  if FHeader.Visible and (PositionGroup > 0) then
 //    GroupHeight := HeaderHeight;
@@ -5182,7 +5271,7 @@ begin
   if FHeader.Visible and (PositionGroup > 0) then
     GroupHeight := Round(Header.TextHeight / Header.Height * HeaderHeight);
 
-  YSize := YSize - HeaderHeight - GroupHeight;
+  YSize := YSize - HeaderHeight - GroupHeight - FooterHeight;
 
   ColumnHeight := YSize div (ToRow - FromRow + 1);
 
@@ -5245,15 +5334,18 @@ begin
     end;
   end;
 
-  // Draw the SideBar
-  if FSidebar.Visible then
+  // Draw the left sidebar
+  if FSidebar.Visible and (FSideBar.Position in [spLeft, spLeftRight]) then
   begin
     if SizedCols or FPrintOptions.FFitToPage then
     begin
       SideBarWidth := Round(XSize *
         (FGrid.ColWidths[0] / (FGrid.ColWidths[1] * (PrintPositions))));
 
-      ColumnWidth := Trunc((XSize - SideBarWidth)/PrintPositions);
+      if FSideBar.Position = spLeftRight then
+        ColumnWidth := Trunc((XSize - 2 * SideBarWidth)/PrintPositions)
+      else
+        ColumnWidth := Trunc((XSize - SideBarWidth)/PrintPositions);
     end
     else
       SideBarWidth := Round(FGrid.ColWidths[0] {* FHTMLFactor});
@@ -5331,6 +5423,101 @@ begin
     end;
   end;
 
+  // Draw the right sidebar
+  if FSidebar.Visible and (FSideBar.Position in [spRight, spLeftRight]) then
+  begin
+    if SizedCols or FPrintOptions.FFitToPage then
+    begin
+      SideBarWidth := Round(XSize *
+        (FGrid.ColWidths[FGrid.ColCount - 1] / (FGrid.ColWidths[1] * (PrintPositions))));
+
+      if FSideBar.Position = spLeftRight then
+        ColumnWidth := Trunc((XSize - 2 * SideBarWidth)/PrintPositions)
+      else
+        ColumnWidth := Trunc((XSize - SideBarWidth)/PrintPositions);
+    end
+    else
+      SideBarWidth := Round(FGrid.ColWidths[FGrid.ColCount - 1] {* FHTMLFactor});
+
+    if FPrintOptions.SidebarWidth > 0 then
+      SidebarWidth := FPrintOptions.SidebarWidth;
+
+    Side := 1;
+
+    for PositionIndex := FromRow to ToRow do
+    begin
+      DrawRect.Left := LeftIndent + (PrintPositions * ColumnWidth);
+      if (FSideBar.Position in [spLeft, spLeftRight]) then
+        DrawRect.Left := DrawRect.Left + SideBarWidth;
+
+      DrawRect.Top := TopIndent + HeaderHeight + GroupHeight + ColumnHeight * (PositionIndex - FromRow);
+      DrawRect.Right := DrawRect.Left + SideBarWidth;
+      DrawRect.Bottom := DrawRect.Top + ColumnHeight;
+
+      ACanvas.Font.Assign(Sidebar.Font);
+      ACanvas.Brush.Color := Sidebar.Background;
+
+      ACanvas.Font.Assign(Sidebar.Font);
+
+      if (Assigned(FOnPlannerSideProp)) then
+        FOnPlannerSideProp(Self, PositionIndex, ACanvas.Brush, ACanvas.Font, AColorTo);
+
+      ACanvas.Pen.Color := ACanvas.Brush.Color;
+
+      if PositionIndex = FromRow then
+      begin
+        ACanvas.MoveTo(DrawRect.Left, DrawRect.Top);
+        ACanvas.LineTo(DrawRect.Right, DrawRect.Top);
+      end;
+
+      APlannerItem := Items.FindItemIdx(PositionIndex);
+
+      Occupied := (APlannerItem <> nil) and Sidebar.ShowOccupied;
+
+      if Occupied then
+      begin
+        ACanvas.Brush.Color := Sidebar.Occupied;
+        if SideBar.OccupiedTo <> clNone then
+          DrawGradient(ACanvas,ACanvas.Brush.Color,SideBar.OccupiedTo, 64, DrawRect, true)
+        else
+          ACanvas.Rectangle(DrawRect.Left, DrawRect.Top, DrawRect.Right, DrawRect.Bottom);
+      end
+      else
+      begin
+        if SideBar.BackGroundTo <> clNone then
+          DrawGradient(ACanvas,ACanvas.Brush.Color,SideBar.BackgroundTo, 64, DrawRect, true)
+        else
+          ACanvas.Rectangle(DrawRect.Left, DrawRect.Top, DrawRect.Right, DrawRect.Bottom);
+      end;
+
+      ACanvas.Pen.Color := SideBar.SeparatorLineColor;
+
+      if PositionIndex = FromRow then
+      begin
+        ACanvas.MoveTo(DrawRect.Left, DrawRect.Top);
+        ACanvas.LineTo(DrawRect.Right, DrawRect.Top);
+      end;
+
+      InflateRect(DrawRect, -1, -1);
+
+      if (Assigned(FOnPlannerSideDraw)) then
+        FOnPlannerSideDraw(Self, ACanvas, DrawRect, PositionIndex)
+      else
+      begin
+        FGrid.PaintSideCol(ACanvas, DrawRect, PositionIndex, 0, 0, False, True);
+
+        if Assigned(FOnPlannerSideDrawAfter) then
+          FOnPlannerSideDrawAfter(Self, ACanvas, DrawRect, PositionIndex);
+      end;
+
+      ACanvas.Brush.Color := Color;
+      ACanvas.Font.Assign(Font);
+    end;
+  end;
+
+  if FSidebar.Visible and (FSideBar.Position = spRight) then
+    SideBarWidth := 0;
+
   // Draw the Header
   if FHeader.Visible then
   begin
@@ -5341,7 +5528,54 @@ begin
       ACanvas.Font.Assign(Header.Font);
       ACanvas.Brush.Color := FColor;
 
-      if PositionGroup > 0 then
+      if (PositionGroup = 1) and (Header.CustomGroups.Count > 0) then
+      begin
+        gs := Header.GroupSplit(PositionIndex);
+        gc := Header.GetGroupCaption(PositionIndex);
+
+        if (gs <> - 1) then
+        begin
+          DrawRect.Left := LeftIndent + SideBarWidth + (ColumnWidth * (PositionIndex - FromPos));
+          DrawRect.Top := 1 + TopIndent;
+          DrawRect.Right := DrawRect.Left + ColumnWidth * gs;
+
+          if DrawRect.Right > LeftIndent + SideBarWidth + ColumnWidth * (1 + ToPos - FromPos) then
+            DrawRect.Right := LeftIndent + SideBarWidth + ColumnWidth * (1 + ToPos - FromPos);
+
+          DrawRect.Bottom := GroupHeight + TopIndent;
+
+          RectLine(ACanvas, DrawRect, GridLineColor, 1);
+
+          InflateRect(DrawRect, -1, -1);
+
+          ACanvas.Font.Assign(Header.GroupFont);
+
+          hdr := gc;
+
+          if pos('</',hdr) > 0 then
+          begin
+            HTMLDrawEx(ACanvas, hdr, DrawRect, PlannerImages, 0, 0, -1, -1, 1, False, False,
+            True, False, True, False, False
+            ,False
+            , FHTMLFactor, URLColor, clNone, clNone, clGray, a, sa, fa, XS, YS, ml, hl, hr
+            , cr, CID, CV, CT, FImageCache, FContainer, Handle
+            );
+          end
+          else
+            PrinterDrawString(ACanvas,CLFToLF(hdr), DrawRect,
+              AlignToFlag(Header.Alignment));
+
+          ACanvas.Font.Assign(Header.Font);
+
+          hdr := '';
+
+          ACanvas.Font.Assign(Header.Font);
+
+        end;
+      end;
+
+
+      if PositionGroup > 1 then
       begin
         if (PositionIndex mod PositionGroup = 0) or (PositionIndex = FromPos) then
         begin
@@ -5575,6 +5809,62 @@ begin
     end;
 
 
+  // Draw the Footer
+  if FFooter.Visible then
+  begin
+    SetBkMode(ACanvas.Handle,TRANSPARENT);
+
+    for PositionIndex := FromPos to ToPos do
+    begin
+      ACanvas.Font.Assign(Footer.Font);
+      ACanvas.Brush.Color := FColor;
+
+      DrawRect.Left := LeftIndent + SideBarWidth + (ColumnWidth * (PositionIndex - FromPos));
+      DrawRect.Top := TopIndent + HeaderHeight + GroupHeight + ColumnHeight * (ToRow - FromRow + 1);
+      DrawRect.Right := DrawRect.Left + ColumnWidth;
+      DrawRect.Bottom := DrawRect.Top + FooterHeight;
+
+      RectLine(ACanvas, DrawRect, GridLineColor, 1);
+
+      InflateRect(DrawRect, -1, -1);
+
+      DoDraw := True;
+      ACanvas.Brush.Color := FColor;
+
+      if Assigned(FOnPlannerFooterDraw) then
+      begin
+        Font := Self.Font;
+        ACanvas.Brush.Color := FColor;
+        ACanvas.Pen.Color := FFooter.FLineColor;
+        ACanvas.Pen.Width := 1;
+        FOnPlannerFooterDraw(Self, ACanvas, DrawRect, PositionIndex + 1, DoDraw);
+      end;
+
+      if DoDraw then
+      begin
+        DrawRect.Bottom := DrawRect.Top + FooterHeight;
+
+        if Footer.Captions.Count > PositionIndex + Side then
+        begin
+          hdr := Footer.Captions[PositionIndex + 1];
+          if pos('</',hdr) > 0 then
+          begin
+            HTMLDrawEx(ACanvas, hdr, DrawRect, PlannerImages, 0, 0, -1, -1, 1, False, False,
+            True, False, True, False, False
+            ,False
+            , FHTMLFactor, URLColor, clNone, clNone, clGray, a, sa, fa, XS, YS, ml, hl, hr
+            , cr, CID, CV, CT, FImageCache, FContainer, Handle
+            );
+          end
+          else
+            PrinterDrawString(ACanvas,CLFToLF(hdr), DrawRect,
+              AlignToFlag(Footer.Alignment));
+        end;
+      end;
+    end;
+  end;
+
+
   FHTMLFactor := 1.0;
 
 {$IFDEF FREEWARE}
@@ -5602,7 +5892,9 @@ var
   cr,hr: TRect;
   CID,CV,CT:string;
   AColorTo: TColor;
-  
+  gs: integer;
+  gc: string;
+
 begin
   PrintPositions := (ToPos - FromPos) + 1;
 
@@ -5693,8 +5985,8 @@ begin
   HeaderHeight := Round(XSize * (Header.Height / (FGrid.ColWidths[0] *
     (ToCol - FromCol + 1))));
 
-  if PrintOptions.HeaderSize > 0 then
-    HeaderHeight := PrintOptions.HeaderSize;
+  //if PrintOptions.HeaderSize > 0 then
+  //  HeaderHeight := PrintOptions.HeaderSize;
 
   if FHeader.Visible and (PositionGroup > 0) then
     GroupHeight := HeaderHeight;
@@ -5766,7 +6058,52 @@ begin
     begin
       ACanvas.Font.Assign(Header.Font);
 
-      if PositionGroup > 0 then
+      if (PositionGroup = 1) and (Header.CustomGroups.Count > 0) then
+      begin
+        gs := Header.GroupSplit(PositionIndex);
+        gc := Header.GetGroupCaption(PositionIndex);
+
+        if gs <> - 1 then
+        begin
+          DrawRect.Top := TopIndent + SideBarWidth + (ColumnHeight * (PositionIndex - FromPos));
+          DrawRect.Left := 1 + LeftIndent;
+          DrawRect.Right := (GroupHeight div 2) + LeftIndent;
+          DrawRect.Bottom := DrawRect.Top + ColumnHeight * gs;
+
+          if DrawRect.Bottom > TopIndent + SideBarWidth + ColumnHeight * (1 + ToPos - FromPos) then
+            DrawRect.Bottom := TopIndent + SideBarWidth + ColumnHeight * (1 + ToPos - FromPos);
+
+          RectLine(ACanvas, DrawRect, GridLineColor, 1);
+
+          InflateRect(DrawRect, -1, -1);
+
+          ACanvas.Font.Assign(Header.GroupFont);
+
+          hdr := gc;
+
+          if pos('</',hdr) > 0 then
+          begin
+            HTMLDrawEx(ACanvas, hdr, DrawRect, PlannerImages, 0, 0, -1, -1, 1, False, False,
+            True, False, True, False, False
+            ,False
+            , FHTMLFactor, URLColor, clNone, clNone, clGray, a, sa, fa, XS, YS, ml, hl, hr
+            , cr, CID, CV, CT, FImageCache, FContainer, Handle
+            );
+          end
+          else
+          begin
+            PrinterDrawString(ACanvas,CLFToLF(hdr), DrawRect,
+              AlignToFlag(Header.Alignment));
+          end;
+
+          hdr := '';
+
+          ACanvas.Font.Assign(Header.Font);
+
+        end;
+      end;
+
+      if PositionGroup > 1 then
       begin
         if (PositionIndex mod PositionGroup = 0) or (PositionIndex = FromPos) then
         begin
@@ -5807,7 +6144,7 @@ begin
 
             hdr := '';
             
-            ACanvas.Font.Assign(Header.Font);    
+            ACanvas.Font.Assign(Header.Font);
           end;
           inc(GroupIndex);
         end;
@@ -8030,10 +8367,16 @@ var
   tdt: TDateTime;
 begin
   CellToAbsTime(SelItemBegin, dtStart, dtEnd);
+  
   if (Mode.PlannerType in [plDay, plHalfDayPeriod]) then
     CellToAbsTime(SelItemEnd, dtEnd, tdt)
   else
     CellToAbsTime(SelItemEnd - 1, dtEnd, tdt);
+
+  if (Mode.PlannerType = plDay) and (SelItemBegin <> SelItemEnd) and (dtEnd = dtStart) then
+  begin
+    dtEnd := dtEnd + 1;
+  end;
 end;
 
 procedure TCustomPlanner.CellToAbsTime(X: Integer; var dtStart, dtEnd: TDateTime);
@@ -8041,6 +8384,7 @@ var
   res: Integer;
   ANow: TDateTime;
   dday, dx: Integer;
+  flg: boolean;
 begin
   case Mode.PlannerType of
     plDay:
@@ -8051,17 +8395,29 @@ begin
 
         res := ((X + Display.DisplayStart) * Display.DisplayUnit) + Display.DisplayOffset;
 
-        while res >= 1440 do res := res - 1440;
+        flg := false;
+        while res >= 1440 do
+        begin
+          res := res - 1440;
+          flg := true;
+        end;
 
         if (res div 60 < 24) then
-          dtStart := int(ANow) + EncodeTime(res div 60, res mod 60, 0, 0);
+          dtStart := PosToDay(SelPosition) + EncodeTime(res div 60, res mod 60, 0, 0);
 
         res := res + Display.DisplayUnit;
 
         while res >= 1440 do res := res - 1440;
 
         if (res div 60 < 24) then
-          dtEnd := int(ANow) + EncodeTime(res div 60, res mod 60, 0, 0);
+          dtEnd := PosToDay(SelPosition) + EncodeTime(res div 60, res mod 60, 0, 0);
+
+        if flg then
+        begin
+          dtStart := dtStart + 1;
+          dtEnd := dtEnd + 1;
+        end;
+
       end;
     plWeek:
       begin
@@ -8234,11 +8590,11 @@ begin
   if Assigned(OnPlannerUpdateCompletion) then
     OnPlannerUpdateCompletion(Self);
 
+  while (Footer.Captions.Count <= Positions) do
+    Footer.Captions.Add('');
+
   for i := 1 to Positions do
   begin
-    while (Footer.Captions.Count <= i) do
-      Footer.Captions.Add('');
-
     if Sidebar.Position = spRight then
       j := i - 1
     else
@@ -8545,6 +8901,9 @@ var
 begin
   inherited;
 
+  if Assigned(FOnTimer) then
+    FOnTimer(self);
+
   ANow := Now;
   if Assigned(FOnGetCurrentTime) then
     FOnGetCurrentTime(Self, ANow);
@@ -8658,9 +9017,11 @@ begin
       {$ENDIF}
     end;
   end;
-  Exit;
+
   if FDisplay.ShowCurrentItem then
+  begin
     Items.SetCurrent(ac);
+  end;
 
   if FSideBar.TimeIndicator and (Mode.PlannerType = plDay) then
   begin
@@ -8942,7 +9303,7 @@ begin
           NewPos := Items[i].ItemPos + ToPos - FromPos;
 
           if (NewPos < 0) or (NewPos >= Positions) or
-             (NewBegin < Display.DisplayStart) or (NewEnd > Display.DisplayEnd)  then
+             (NewBegin < Display.DisplayStart) or (NewEnd > Display.DisplayEnd + 1)  then
           begin
             if Items[i].RelationShip = irParent then
               APlannerItem.RelationShip := irParent;
@@ -8982,6 +9343,7 @@ begin
                 ToBegin, ToEnd);
 
   Items.Changing := True;
+  
   if Assigned(APlannerItem) then
   begin
     if APlannerItem.ParentIndex >= 0 then
@@ -8991,10 +9353,12 @@ begin
       begin
         if (Items[i] <> APlannerItem) and (Items[i].ParentIndex = APlannerItem.ParentIndex) then
         begin
+
           NewBegin := Items[i].ItemBegin + ToBegin - FromBegin;
+
           NewEnd := Items[i].ItemEnd + ToEnd - FromEnd;
 
-          if (NewBegin < Display.DisplayStart) or (NewEnd > Display.DisplayEnd)  then
+          if (NewBegin < Display.DisplayStart) or (NewEnd > Display.DisplayEnd + 1)  then
           begin
             if Items[i].RelationShip = irParent then
               Items.Selected.RelationShip := irChild;
@@ -9075,11 +9439,30 @@ begin
 end;
 
 procedure TCustomPlanner.FreeItem(APlannerItem: TPlannerItem);
+var
+  i: integer;
+  dbkey: string;
 begin
+  if (APlannerItem.Recurrent) and (APlannerItem.DBKey <> '') then
+  begin
+    dbkey := APlannerItem.DBKey;
+
+    for i := Items.Count - 1 downto 0 do
+    begin
+      if (Items[i].DBKey = dbkey) and (Items[i] <> APlannerItem) then
+        Items[i].Free;
+    end;
+  end;
+
   if Items.FSelected = APlannerItem then
     Items.FSelected := nil;
   APlannerItem.ParentItem.Free;
   FGrid.UpdateNVI;
+end;
+
+procedure TCustomPlanner.StopEditing;
+begin
+  FGrid.SetFocus;
 end;
 
 procedure TCustomPlanner.UpdateItem(APlannerItem: TPlannerItem);
@@ -9622,6 +10005,12 @@ begin
   SelItemBegin := SelBegin;
 
   FGrid.FOldSelection := FGrid.Selection;
+
+  if SideBar.ActiveColor <> clNone then
+    FGrid.Invalidate;
+  if Header.ActiveColor <> clNone then
+    FHeader.Invalidate;
+
 end;
 
 function TCustomPlanner.GetSelMinMax(Pos: Integer; var SelMin,
@@ -9815,6 +10204,7 @@ begin
   FMaskEdit.Height := 0;
 
   {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI_UNICODE}
   FUniMemo := TPlannerUniMemo.Create(Self);
   FUniMemo.Parent := Self;
   FUniMemo.Visible := False;
@@ -9822,7 +10212,8 @@ begin
   FUniMemo.Height := 0;
   FUniMemo.Planner := FPlanner;
   {$ENDIF}
-
+  {$ENDIF}
+  
 
   FMouseDownMove := False;
   FMouseDownSizeUp := False;
@@ -9863,7 +10254,9 @@ begin
   FColorList.Free;
   FScrollHintWindow.Free;
   {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI_UNICODE}
   FUniMemo.Free;
+  {$ENDIF}
   {$ENDIF}
   FInplaceEdit.Free;
   FInplaceCombo.Free;
@@ -9876,6 +10269,42 @@ begin
   Invalidate;
 end;
 
+procedure TPlannerGrid.WMPaint(var Message: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+begin
+  if not FDoubleBuffered or (Message.DC <> 0) then
+  begin
+    if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+      inherited
+    else
+      PaintHandler(Message);
+  end
+  else
+  begin
+    DC := GetDC(0);
+    MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+    ReleaseDC(0, DC);
+    MemDC := CreateCompatibleDC(0);
+    OldBitmap := SelectObject(MemDC, MemBitmap);
+    try
+      DC := BeginPaint(Handle, PS);
+      Perform(WM_ERASEBKGND, MemDC, MemDC);
+      Message.DC := MemDC;
+      WMPaint(Message);
+      Message.DC := 0;
+      BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+      EndPaint(Handle, PS);
+    finally
+      SelectObject(MemDC, OldBitmap);
+      DeleteDC(MemDC);
+      DeleteObject(MemBitmap);
+    end;
+  end;
+end;
+
 {$IFDEF DELPHI4_LVL}
 procedure TPlannerGrid.Resize;
 {$ENDIF}
@@ -9884,6 +10313,7 @@ procedure TPlannerGrid.WMSize(var WMSize: TWMSize);
 {$ENDIF}
 begin
   inherited;
+  
   if not Assigned(FPlanner) then
     Exit;
 
@@ -9891,10 +10321,12 @@ begin
     Exit;
 
 //  FPlanner.FNoPositionSize := True;
+
   if FPlanner.PositionWidth = 0 then
     UpdatePositions;
+    
 //  FPlanner.FNoPositionSize := True;
-  
+
   if FPlanner.Display.ScaleToFit then
     FPlanner.Display.AutoScale;
 end;
@@ -10245,7 +10677,8 @@ begin
   if APlannerItem.Repainted then
     Exit;
 
-  if APlannerItem.ItemBegin = APlannerItem.ItemEnd then
+
+  if (APlannerItem.ItemBegin = APlannerItem.ItemEnd) and not APlannerItem.InHeader then
     Exit;
 
   CellColor := Canvas.Brush.Color;
@@ -10350,8 +10783,9 @@ begin
       rr := r.Bottom - r.Top;
     end;
 
+    r.Bottom := r.Top + rr;    
     r.Top := r.Top + dr;
-    r.Bottom := r.Top + rr;
+
 
     if APlannerItem.Focus then
       Canvas.Brush.Color := APlannerItem.TrackSelectColor
@@ -10588,11 +11022,13 @@ begin
       Canvas.Brush.Color := BlendColor(CellColor,APlannerItem.Color,FPlanner.SelectBlend);
     end;
 
-    Canvas.FillRect(r);
-    Canvas.Pen.Color := APlannerItem.FPlanner.GridLineColor;
-
-    Canvas.Moveto(r.Left,r.Bottom);
-    Canvas.Lineto(r.Right - 1,r.Bottom);
+    if not (Print and APlannerItem.Transparent) then
+    begin
+      Canvas.FillRect(r);
+      Canvas.Pen.Color := APlannerItem.FPlanner.GridLineColor;
+      Canvas.Moveto(r.Left,r.Bottom);
+      Canvas.Lineto(r.Right - 1,r.Bottom);
+    end;
   end;
 
   ch := 0;
@@ -11016,13 +11452,17 @@ begin
 
     if IsHtml(APlannerItem,PaintString,false) then
     begin
+
       PaintString := ConcatenateTextStrings(APlannerItem.Text);
 
       GetCursorPos(pt);
       pt := ScreenToClient(pt);
 
-      HRGN := CreateRectRgn(ARect.Left,ARect.Top,ARect.Right,ARect.Bottom);
-      SelectClipRgn(Canvas.Handle,HRGN);
+      if not APlannerItem.Preview then
+      begin
+        HRGN := CreateRectRgn(ARect.Left,ARect.Top,ARect.Right,ARect.Bottom);
+        SelectClipRgn(Canvas.Handle,HRGN);
+      end;
 
       HTMLDrawEx(Canvas, PaintString, ARect, FPlanner.PlannerImages, pt.X, pt.Y, -1, -1, 1, False, False,
         Print, False, True, False, APlannerItem.FWordWrap
@@ -11032,8 +11472,11 @@ begin
         , cr, CID, CV, CT, FPlanner.FImageCache, FPlanner.FContainer, Handle
         );
 
-       SelectClipRgn(Canvas.Handle,0);
-       DeleteObject(HRGN);
+       if not APlannerItem.Preview then
+       begin
+         SelectClipRgn(Canvas.Handle,0);
+         DeleteObject(HRGN);
+       end;
 
        APlannerItem.FClipped := YSize > (ARect.Bottom - ARect.Top);
     end
@@ -11108,7 +11551,7 @@ begin
   if APlannerItem.Repainted then
     Exit;
 
-  if APlannerItem.ItemBegin = APlannerItem.ItemEnd then
+  if (APlannerItem.ItemBegin = APlannerItem.ItemEnd) and not APlannerItem.InHeader then
     Exit;
 
   if not (csDesigning in FPlanner.ComponentState) and not Print then
@@ -11195,8 +11638,10 @@ begin
     begin
       Canvas.Brush.Color := FPlanner.Display.ColorActive;
       Canvas.FillRect(r);
+
       dr := APlannerItem.FItemBeginPrecis - (APlannerItem.FItemBegin +
         FPlanner.Display.DisplayStart) * FPlanner.Display.DisplayUnit -  FPlanner.Display.DisplayOffset;
+
       dr := Round(dr / FPlanner.Display.DisplayUnit *
         FPlanner.Display.DisplayScale);
 
@@ -11212,8 +11657,9 @@ begin
       rr := r.Right - r.Left;
     end;
 
-    r.Left := r.Left + dr;
     r.Right := r.Left + rr;
+    r.Left := r.Left + dr;
+
 
     if APlannerItem.Selected then
       Canvas.Brush.Color := APlannerItem.TrackSelectColor
@@ -11221,7 +11667,7 @@ begin
       Canvas.Brush.Color := APlannerItem.TrackColor;
 
     if APlannerItem.LinkSelect then
-      Canvas.Brush.Color := APlannerItem.TrackLinkColor;  
+      Canvas.Brush.Color := APlannerItem.TrackLinkColor;
 
     Canvas.FillRect(r);
 
@@ -11446,10 +11892,13 @@ begin
     if APlannerItem.Transparent and SelColor then
       Canvas.Brush.Color := BlendColor(CellColor, APlannerItem.Color, FPlanner.SelectBlend);
 
-    Canvas.FillRect(r);
-    Canvas.Pen.Color := APlannerItem.FPlanner.GridLineColor;
-    Canvas.MoveTo(r.Right - 1, r.Top);
-    Canvas.LineTo(r.Right - 1, r.Bottom);
+    if not (Print and APlannerItem.Transparent) then
+    begin
+      Canvas.FillRect(r);
+      Canvas.Pen.Color := APlannerItem.FPlanner.GridLineColor;
+      Canvas.MoveTo(r.Right - 1, r.Top);
+      Canvas.LineTo(r.Right - 1, r.Bottom);
+    end;
   end;
 
   ColumnHeight := 0;
@@ -11953,7 +12402,7 @@ var
   OldSize: Integer;
   OnTheHour: Boolean;
   HS,IsDay: Boolean;
-  DNum,delta: Integer;
+  DNum, delta: Integer;
   DRect: TRect;
   HOldFont, HNewFont: THandle;
   LFont: TLogFont;
@@ -11961,22 +12410,28 @@ var
   BTM: DWORD;
   t1,t2: TDateTime;
   p: double;
+  PRect: TRect;
+  ORow: integer;
 
 begin
   // Initialize
   HS := False;
 
+  PRect := ARect;
+  ORow := ARow;
 
   if (FPlanner.Display.DisplayText > 0) then
   begin
     delta := (FPlanner.Display.DisplayStart + ARow) mod FPlanner.Display.DisplayText;
+
     if (delta <> 0) then
     begin
       ARow := ARow - delta;
+
       if Print then
         ARect.Top := ARect.Top - delta * (ARect.Bottom - ARect.Top + 2)
       else
-      ARect.Top := ARect.Top - delta * FPlanner.Display.DisplayScale;
+        ARect.Top := ARect.Top - delta * FPlanner.Display.DisplayScale;
     end;
   end;
 
@@ -12022,9 +12477,10 @@ begin
     Line3 := '';
   end;
 
+
   if (FPlanner.FMode.FPlannerType = plTimeLine) then
   begin
-    dday := (MININDAY div FPlanner.Display.DisplayUnit) - (FPlanner.Mode.TimeLineNVUBegin + FPlanner.Mode.TimeLineNVUEnd);
+    dday := (MININDAY div FPlanner.Display.DisplayUnit) - (FPlanner.Mode.TimeLineNVUEnd + FPlanner.Mode.TimeLineNVUBegin);
 
     if dday = 0 then
       dday := 1;
@@ -12033,58 +12489,72 @@ begin
     DNum := ARow div dday;
 
     {
-    delta := ARow mod ((MININDAY div (FPlanner.Display.DisplayUnit));
+    delta := ARow mod ((MININDAY div (FPlanner.Display.DisplayUnit)));
     DNum := ((ARow * FPlanner.Display.DisplayUnit) div MININDAY);
     }
 
-    if FPlanner.Sidebar.DateTimeFormat <> '' then
-      DT := FormatDateTime(FPlanner.Sidebar.DateTimeFormat,FPlanner.Mode.TimeLineStart + DNum)
-    else
-      DT := DateToStr(FPlanner.Mode.TimeLineStart + DNum);
-
-    DRect := ARect;
-
-    DRect.Top := ARect.Top - Delta * DefaultRowHeight;
-
-    //DRect.Bottom := DRect.Top + (MININDAY div (FPlanner.Display.DisplayUnit)) * DefaultRowHeight;
-    DRect.Bottom := DRect.Top + dday * DefaultRowHeight;
-
-    SetBkMode(Canvas.Handle,TRANSPARENT);
-
-    // do font rotation here
-    {$IFNDEF TMSDOTNET}
-    GetObject(Canvas.Font.Handle, SizeOf(LFont), Addr(LFont));
-    {$ENDIF}
-    {$IFDEF TMSDOTNET}
-    GetObject(Canvas.Font.Handle, Marshal.SizeOf(TypeOf(LFont)), LFont);
-    {$ENDIF}
-
-    LFont.lfEscapement := 90 * 10;
-    LFont.lfOrientation := 90 * 10;
-
-    if Print and FPlanner.FPrinterDriverFix then
     begin
-      LFont.lfEscapement  := -LFont.lfEscapement;
-      LFont.lfOrientation := -LFont.lfEscapement;
+      if FPlanner.Sidebar.DateTimeFormat <> '' then
+        DT := FormatDateTime(FPlanner.Sidebar.DateTimeFormat,FPlanner.Mode.TimeLineStart + DNum)
+      else
+        DT := DateToStr(FPlanner.Mode.TimeLineStart + DNum);
+
+      DRect := ARect;
+
+      if Print then
+        DRect.Top := ARect.Top - Delta * (PRect.Bottom - PRect.Top + 2)
+      else
+        DRect.Top := ARect.Top - Delta * DefaultRowHeight;
+
+      //DRect.Bottom := DRect.Top + (MININDAY div (FPlanner.Display.DisplayUnit)) * DefaultRowHeight;
+
+      if Print then
+        DRect.Bottom := DRect.Top + dday * (PRect.Bottom - PRect.Top + 2)
+      else
+        DRect.Bottom := DRect.Top + dday * DefaultRowHeight;
+
+      SetBkMode(Canvas.Handle,TRANSPARENT);
+
+      // do font rotation here
+      {$IFNDEF TMSDOTNET}
+      GetObject(Canvas.Font.Handle, SizeOf(LFont), Addr(LFont));
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      GetObject(Canvas.Font.Handle, Marshal.SizeOf(TypeOf(LFont)), LFont);
+      {$ENDIF}
+
+      LFont.lfEscapement := 90 * 10;
+      LFont.lfOrientation := 90 * 10;
+
+      if Print and FPlanner.FPrinterDriverFix then
+      begin
+        LFont.lfEscapement  := -LFont.lfEscapement;
+        LFont.lfOrientation := -LFont.lfEscapement;
+      end;
+
+      HNewFont := CreateFontIndirect(LFont);
+      HOldFont := SelectObject(Canvas.Handle, HNewFont);
+
+      if Print then
+        Canvas.TextOut(DRect.Left, DRect.Bottom, DT)
+      else
+        {$IFNDEF TMSDOTNET}
+        DrawText(Canvas.Handle,PChar(DT),Length(DT),DRect,
+           DT_NOPREFIX or DT_WORDBREAK or DT_VCENTER or DT_LEFT or DT_SINGLELINE);
+        {$ENDIF}
+
+        {$IFDEF TMSDOTNET}
+        DrawText(Canvas.Handle,DT,Length(DT),DRect,
+           DT_NOPREFIX or DT_WORDBREAK or DT_VCENTER or DT_LEFT or DT_SINGLELINE);
+        {$ENDIF}
+
+
+
+      HNewFont := SelectObject(Canvas.Handle, HOldFont);
+      DeleteObject(HNewFont);
+
+
     end;
-
-    HNewFont := CreateFontIndirect(LFont);
-    HOldFont := SelectObject(Canvas.Handle, HNewFont);
-
-    {$IFNDEF TMSDOTNET}
-    DrawText(Canvas.Handle,PChar(DT),Length(DT),DRect,
-       DT_NOPREFIX or DT_WORDBREAK or DT_VCENTER or DT_LEFT or DT_SINGLELINE);
-    {$ENDIF}
-
-    {$IFDEF TMSDOTNET}
-    DrawText(Canvas.Handle,DT,Length(DT),DRect,
-       DT_NOPREFIX or DT_WORDBREAK or DT_VCENTER or DT_LEFT or DT_SINGLELINE);
-    {$ENDIF}
-
-
-
-    HNewFont := SelectObject(Canvas.Handle, HOldFont);
-    DeleteObject(HNewFont);
 
     if (delta = 0) and (ARow > 0) then
     begin
@@ -12113,7 +12583,7 @@ begin
 
     if (FPlanner.Sidebar.TimeIndicator) then
     begin
-      FPlanner.CellToAbsTime(arow, t1,t2);
+      FPlanner.CellToAbsTime(orow, t1,t2);
 
       if (Frac(Now) >= Frac(t1)) and (Frac(Now) <= Frac(t2)) then
       begin
@@ -12121,11 +12591,11 @@ begin
 
         Canvas.Pen.Color := FPlanner.SideBar.TimeIndicatorColor;
         Canvas.Pen.Width := 4;
-        Canvas.MoveTo(ARect.Left, ARect.Top + round(p));
-        Canvas.LineTo(ARect.Right, ARect.Top + round(p));
+        Canvas.MoveTo(PRect.Left, PRect.Top + round(p));
+        Canvas.LineTo(PRect.Right, PRect.Top + round(p));
         Canvas.Pen.Width := 1;
       end;
-    end;  
+    end;
 
     HS := HS or not IsDay;
 
@@ -12268,19 +12738,22 @@ var
   MajorLineWidth: Integer;
   HS: Boolean;
   DNum,delta: Integer;
-  DRect: TRect;
+  DRect,HRect,PRect: TRect;
   dday: Integer;
   p: double;
   t1,t2: TDateTime;
+  Mins: integer;
+  OCol: integer;
 
 begin
-
   { Initialize }
   GetSideBarLines(AColumn, APos, Line1, Line2, Line3, HS);
   MinorLineWidth := Canvas.TextHeight(Line2);
   // Canvas.Font.Assign(FPlanner.Sidebar.Font);
 
-
+  PRect := ARect;
+  OCol := AColumn;
+  
   HorizontalAlign := AlignToFlag(FPlanner.Sidebar.Alignment);
 
   HOldFont := 0;
@@ -12393,6 +12866,7 @@ begin
     Line1 := '';
   end;
 
+
   { Special painting in case there is a Line1 }
   if (FPlanner.FMode.FPlannerType = plDay) or
      ((Line1 <> '') and not FPlanner.SideBar.RotateOnTop) then
@@ -12410,19 +12884,32 @@ begin
           Line2 := Line2 + RegularCRLF + Line3;
       end;
 
-      if OnTheOur or HS then
+      HRect := ARect;
+
+      if (FPlanner.FMode.FPlannerType = plDay) then
+      begin
+        Mins := (AColumn + FPlanner.Display.DisplayStart) * FPlanner.Display.DisplayUnit + FPlanner.Display.DisplayOffset;
+
+        delta := round(((mins mod 60)/FPlanner.Display.DisplayUnit));
+
+        if (delta > 0) then
+          HRect.Left := HRect.Left - delta * DefaultColWidth;
+      end;
+
+      //if OnTheOur or HS then
       begin
 
         {$IFNDEF TMSDOTNET}
-        DrawText(Canvas.Handle, PChar(Line1), Length(Line1), ARect,
+        DrawText(Canvas.Handle, PChar(Line1), Length(Line1), HRect,
           DT_NOPREFIX or DT_WORDBREAK or HorizontalAlign);
         {$ENDIF}
         {$IFDEF TMSDOTNET}
-        DrawText(Canvas.Handle, Line1, Length(Line1), ARect,
+        DrawText(Canvas.Handle, Line1, Length(Line1), HRect,
           DT_NOPREFIX or DT_WORDBREAK or HorizontalAlign);
         {$ENDIF}
 
       end;
+
 
       if (AColumn > 0) and (AColumn <= ColCount - 1) and
         (FPlanner.FMode.FPlannerType = plDay) then
@@ -12448,7 +12935,7 @@ begin
 
       if (FPlanner.Sidebar.TimeIndicator) then
       begin
-        FPlanner.CellToAbsTime(acolumn, t1,t2);
+        FPlanner.CellToAbsTime(OCol, t1,t2);
 
         if (Frac(Now) >= Frac(t1)) and (Frac(Now) <= Frac(t2)) then
         begin
@@ -12456,8 +12943,8 @@ begin
 
           Canvas.Pen.Color := FPlanner.SideBar.TimeIndicatorColor;
           Canvas.Pen.Width := 4;
-          Canvas.MoveTo(ARect.Left + round(p), ARect.Top);
-          Canvas.LineTo(ARect.Left + round(p), ARect.Bottom);
+          Canvas.MoveTo(PRect.Left + round(p), PRect.Top);
+          Canvas.LineTo(PRect.Left + round(p), PRect.Bottom);
           Canvas.Pen.Width := 1;
         end;
       end;
@@ -12536,6 +13023,7 @@ begin
               ARect.Left := ARect.Left + Canvas.TextHeight('gh');
               if Line3 <> '' then
                 Canvas.TextRect(ARect, ARect.Left + MinorLineWidth, ARect.Bottom - 4, Line3);
+
             end
             else
             begin
@@ -12549,6 +13037,7 @@ begin
               DrawText(Canvas.Handle, Line2, Length(Line2), ARect,
                 DT_NOPREFIX or DT_WORDBREAK or HorizontalAlign);
               {$ENDIF}
+
 
             end;
 
@@ -12845,7 +13334,7 @@ begin
     end;
 
     if not FPlanner.SideBar.Flat then
-      Frame3D(Canvas,r,clWhite,clGray,1);
+      Frame3D(Canvas, r, clWhite, clGray,1);
 
     if FPlanner.SideBar.Border then
     begin
@@ -12983,7 +13472,7 @@ begin
       UseColor := True;
     end;  
     
-    { Custom cell Color }
+    { Custom cell color }
     if (AColumn - ColOffset < FColorList.Count) and (AColumn - ColOffset >= 0) and FPlanner.ShowSelection and
       (ARow < NumColors) then
     begin
@@ -13067,7 +13556,6 @@ begin
         selbkg := FPlanner.Selected[AColumn - 1, ARow]
       else
         selbkg := false;
-
 
       PaintItemCol(Canvas, NRect, APlannerItem, False, (gdSelected in AState) or selbkg);
 
@@ -13201,7 +13689,7 @@ begin
           SelectClipRgn(Canvas.Handle,RGN);
         end;
 
-        PaintItemCol(Canvas, NRect, APlannerItem, False, False);
+        PaintItemCol(Canvas, NRect, APlannerItem, False, True);
 
         if APlannerItem.Shape = psTool then
         begin
@@ -13424,7 +13912,7 @@ begin
   OldBrush := TBrush.Create;
   OldBrush.Assign(Canvas.Brush);
 
-  if (ARow = FixRow) then
+  if (ARow = FixRow) and (FPlanner.SideBar.Visible) then
   begin
     Canvas.Brush.Color := FPlanner.Sidebar.Background;
     AColorTo := FPlanner.Sidebar.BackgroundTo;
@@ -14129,7 +14617,11 @@ begin
   begin
     if RowOffset = 1 then
     begin
-      RowHeights[0] := FPlanner.FSidebar.Width;
+      if FPlanner.FSidebar.Visible then
+        RowHeights[0] := FPlanner.FSidebar.Width
+      else
+        RowHeights[0] := 0;
+
       ColumnWidth := Self.Height - RowHeights[0] - GetVScrollSize - bw;
       ColumnWidth := ColumnWidth div FPlanner.Positions;
     end
@@ -14822,6 +15314,7 @@ begin
           SetEditDirectSelection(ARect, X, Y);
         end;
       {$IFNDEF TMSDOTNET}
+      {$IFNDEF DELPHI_UNICODE}
       peUniMemo:
         begin
           FUniMemo.Parent := Self;
@@ -14854,6 +15347,7 @@ begin
           FUniMemo.SetFocus;
           SetEditDirectSelection(ARect, X, Y);
         end;
+      {$ENDIF}
       {$ENDIF}
 
       peCustom:
@@ -15067,6 +15561,7 @@ begin
           SetEditDirectSelection(ARect, X, Y);
         end;
       {$IFNDEF TMSDOTNET}
+      {$IFNDEF DELPHI_UNICODE}
       peUniMemo:
         begin
           FUniMemo.Parent := Self;
@@ -15098,6 +15593,7 @@ begin
           FUniMemo.SetFocus;
           SetEditDirectSelection(ARect, X, Y);
         end;
+      {$ENDIF}
       {$ENDIF}
 
       peCustom:
@@ -15141,7 +15637,6 @@ begin
          else
            FPlanner.SideBar.Position := spLeft;
       2: begin
-
            if FPlanner.items.Count = 0 then
            begin
              with FPlanner.Items.Add do
@@ -15200,7 +15695,6 @@ begin
     FMouseXY := Point(X,Y);
     GridCoord := MouseCoord(X,Y);
     FMouseRCD := MouseCoord(X,Y);
-
 
     if not (ssCtrl in Shift) and (FPlanner.Selections.Count > 0) and FPlanner.DisjunctSelect then
     begin
@@ -15288,7 +15782,11 @@ begin
       inherited;
 
       if FPlanner.Mode.FullHalfDay then
+      begin
         CorrectSelection;
+        InvalidateRow(0);
+        InvalidateCol(0);
+      end;
 
       if FPlanner.ItemSelection.AutoUnSelect then
       begin
@@ -15547,6 +16045,7 @@ begin
             r.Left := r.Left + 2;
 
             APlannerItem.CompletionAdapt(r);
+            APlannerItem.ImageListAdapt(r);
 
             if HTMLDrawEx(Canvas, s, r, FPlanner.PlannerImages, X, Y,
               -1, -1, 1, True, False, False, True, True, False, APlannerItem.WordWrap
@@ -15863,6 +16362,7 @@ begin
             r.Left := r.Left + 2;
 
             APlannerItem.CompletionAdapt(r);
+            APlannerItem.ImageListAdapt(r);
 
             if HTMLDrawEx(Canvas, s, r, FPlanner.PlannerImages, X, Y,
               -1, -1, 1, True, False, False, True, True, False, APlannerItem.WordWrap
@@ -16007,6 +16507,7 @@ begin
             GridRect.Left := GridRect.Left + 2;
 
             APlannerItem.CompletionAdapt(GridRect);
+            APlannerItem.ImageListAdapt(GridRect);            
 
             if HTMLDrawEx(Canvas, s, GridRect, FPlanner.PlannerImages, X, Y,
               -1, -1, 1, True, False, False, True, True, False, APlannerItem.WordWrap
@@ -16340,14 +16841,14 @@ begin
         i := 1;
         while i < len1 do
         begin
-          if AText[i] = #9 then
+          if (AText[i] = #9) then
             AText[i] := #32;
           inc(i);
         end;
 
         i := 1;
         if AText <> '' then
-          while AText[i] in [#13, #10, #9] do
+          while ( (AText[i] = #13) or (AText[i] = #10) or (AText[i] = #9) ) do
             inc(i);
 
         if len1 > len2 then
@@ -16443,7 +16944,7 @@ begin
   end;
 
   if FPlanner.SideBar.Visible and
-     (FPlanner.SideBar.Position in [spLeft,spTop]) then
+     (FPlanner.SideBar.Position in [spLeft, spTop]) then
     SideCorr := 1
   else
     SideCorr := 0;
@@ -16558,6 +17059,7 @@ begin
 
           if not Allow then
           begin
+            FMouseRelease := true;
             SendMessage(Handle,WM_LBUTTONUP,0,0);
             Exit;
           end;
@@ -16631,6 +17133,7 @@ begin
 
           if not Allow then
           begin
+            FMouseRelease := true;
             SendMessage(Handle,WM_LBUTTONUP,0,0);
             Exit;
           end;
@@ -16642,7 +17145,6 @@ begin
 
           FPlanner.FGrid.InvalidateCellRect(ir);
           FPlanner.Items.Selected.Repaint;
-
 
           { Check here if scroll required }
           if (ItemBegin <= TopRow) and (TopRow > 0) then
@@ -16680,6 +17182,7 @@ begin
 
           if not Allow then
           begin
+            FMouseRelease := true;
             SendMessage(Handle,WM_LBUTTONUP,0,0);
             Exit;
           end;
@@ -16754,6 +17257,7 @@ begin
 
           if not Allow then
           begin
+            FMouseRelease := true;
             SendMessage(Handle,WM_LBUTTONUP,0,0);
             Exit;
           end;
@@ -16829,6 +17333,7 @@ begin
 
           if not Allow then
           begin
+            FMouseRelease := true;
             SendMessage(Handle,WM_LBUTTONUP,0,0);
             Exit;
           end;
@@ -16878,6 +17383,7 @@ begin
 
           if not Allow then
           begin
+            FMouseRelease := true;
             SendMessage(Handle,WM_LBUTTONUP,0,0);
             Exit;
           end;
@@ -16888,7 +17394,6 @@ begin
           FPlanner.Items.ResetUpdate;
           FPlanner.FGrid.InvalidateCellRect(ir);
           FPlanner.Items.Selected.Repaint;
-
 
           { Check here if scroll required }
           if (ItemEnd - LeftCol >= VisibleColCount) and (LeftCol +
@@ -17059,6 +17564,11 @@ begin
             end;
           end;
           r.Top := r.Top + APlannerItem.FCaptionHeight;
+        end
+        else
+        begin
+          if (APlannerItem.ImageID >= 0) and Assigned(FPlanner.PlannerImages) then
+            r.Left := r.Left + ImgSize;
         end;
 
         if IsHtml(APlannerItem,s,false) then
@@ -17079,6 +17589,7 @@ begin
           r.Left := r.Left + 2;
 
           APlannerItem.CompletionAdapt(r);
+          APlannerItem.ImageListAdapt(r);          
 
           if HTMLDrawEx(Canvas, s, r, FPlanner.PlannerImages, X, Y,
             -1, -1, 1, True, False, False, True, False, False, APlannerItem.WordWrap
@@ -17363,6 +17874,7 @@ begin
           r.Left := r.Left + 2;
 
           APlannerItem.CompletionAdapt(r);
+          APlannerItem.ImageListAdapt(r);          
 
           if HTMLDrawEx(Canvas, s, r, FPlanner.PlannerImages, X, Y,
             -1, -1, 1, True, False, False, True, True, False, APlannerItem.WordWrap
@@ -17668,6 +18180,7 @@ begin
     if IsHtml(APlannerItem,s,false) then
     begin
       {Change ? if HTML Hint is enabled ?}
+      if APlannerItem.Hint = '' then
       s := ConcatenateTextStrings(APlannerItem.Text);
       cr := ClientRect;
       if not FPlanner.HTMLHint then
@@ -17840,6 +18353,13 @@ var
   APlannerItem: TPlannerItem;
 begin
   APlannerItem := nil;
+
+  if (GetKeyState(VK_CONTROL) and $8000 = $8000) then
+  begin
+    inherited;
+    Exit;
+  end;
+
   if (Message.CharCode = VK_TAB) then
   begin
     if (GetKeyState(VK_SHIFT) and $8000 > 0) then
@@ -17952,20 +18472,22 @@ begin
 
     VK_DELETE:
       begin
-        if Assigned(APlannerItem) then
+        if not (ssShift in ShiftState) then
         begin
-          if Assigned(FPlanner.OnItemDelete) then
-            FPlanner.OnItemDelete(FPlanner, APlannerItem);
-
-          if FPlanner.AutoInsDel then
+          if Assigned(APlannerItem) then
           begin
-            if Assigned(FPlanner.OnItemDeleted) then
-              FPlanner.OnItemDeleted(FPlanner, APlannerItem);
-            FPlanner.FreeItem(APlannerItem);
-          end
-          else
+            if Assigned(FPlanner.OnItemDelete) then
+              FPlanner.OnItemDelete(FPlanner, APlannerItem);
+
+            if FPlanner.AutoInsDel then
+            begin
+              if Assigned(FPlanner.OnItemDeleted) then
+                FPlanner.OnItemDeleted(FPlanner, APlannerItem);
+              FPlanner.FreeItem(APlannerItem);
+            end
+            else
+          end;
         end;
-        Exit;
       end;
 
     VK_RIGHT:
@@ -18435,7 +18957,7 @@ begin
     Canvas.Brush.Style := bsClear;
 
     r := CellRect(1,RowCount -1);
-    Canvas.TextOut(r.Left + 4,r.Top + 4,FPlanner.ClassName + ' : Copyright © 2006 by TMS software');
+    Canvas.TextOut(r.Left + 4,r.Top + 4,FPlanner.ClassName + ' : Copyright © 2007 by TMS software');
   end;
   {$ENDIF}
 
@@ -18658,7 +19180,7 @@ end;
 
 function TPlannerGrid.RowHeightEx(ItemPos: Integer): Integer;
 begin
-  if FPlanner.FSideBar.Visible then
+  //if not FPlanner.FSideBar.Visible then
     Inc(ItemPos);
 
 //  Result := RowHeights[ItemPos] - FPlanner.FPositionGap;
@@ -18672,6 +19194,7 @@ var
   Mins: Integer;
   dt,dte: TDatetime;
   h,m,s,s100: Word;
+  dbl: double;
 begin
   Line1 := '';
   Line2 := '';
@@ -18735,7 +19258,15 @@ begin
     plHalfDayPeriod:
     begin
       if FPlanner.SideBar.ShowDayName then
-        Line1 := FPlanner.GetDayName(DayOfWeek(Trunc(Index / 2) + FPlanner.FMode.PeriodStartDate));
+      begin
+        dbl := Index / 2;
+        {$IFDEF TMSDOTNET}
+        Line1 := FPlanner.GetDayName(DayOfWeek(TDateTime(Trunc(dbl)) + FPlanner.FMode.PeriodStartDate));
+        {$ENDIF}
+        {$IFNDEF TMSDOTNET}
+        Line1 := FPlanner.GetDayName(DayOfWeek(Trunc(dbl) + FPlanner.FMode.PeriodStartDate));
+        {$ENDIF}
+      end;
       Line2 := FormatDateTime(FPlanner.SideBar.DateTimeFormat,
         Trunc(FPlanner.Mode.PeriodStartDate + Index / 2));
       if Odd(Index) then
@@ -20235,10 +20766,12 @@ begin
     TopRowPrecis := FDisplayUnit * FOwner.FGrid.LeftCol + FDisplayOffset;
 
     { Rescale everything }
-    FActiveStart := FActiveStartPrecis div FDisplayUnit;
-    FActiveEnd := FActiveEndPrecis div FDisplayUnit;
+    //FActiveStart := FActiveStartPrecis div FDisplayUnit;
+    //FActiveEnd := FActiveEndPrecis div FDisplayUnit;
     FDisplayStart := FDisplayStartPrecis div FDisplayUnit;
     FDisplayEnd := ((FDisplayEndPrecis - FDisplayOffset) div FDisplayUnit) - 1;
+    FActiveStart := FActiveStartPrecis div FDisplayUnit - FDisplayStart;
+    FActiveEnd := FActiveEndPrecis div FDisplayUnit - FDisplayStart;
 
     FOwner.FGrid.LeftCol := TopRowPrecis div FDisplayUnit;
   end
@@ -20252,10 +20785,12 @@ begin
       Exit;
 
     { Rescale everything }
-    FActiveStart := FActiveStartPrecis div FDisplayUnit;
-    FActiveEnd := FActiveEndPrecis div FDisplayUnit;
+    //FActiveStart := FActiveStartPrecis div FDisplayUnit;
+    //FActiveEnd := FActiveEndPrecis div FDisplayUnit;
     FDisplayStart := FDisplayStartPrecis div FDisplayUnit;
     FDisplayEnd := ((FDisplayEndPrecis - FDisplayOffset) div FDisplayUnit) - 1;
+    FActiveStart  := FActiveStartPrecis div FDisplayUnit - FDisplayStart;
+    FActiveEnd    := FActiveEndPrecis div FDisplayUnit - FDisplayStart;
 
     FOwner.FGrid.TopRow := TopRowPrecis div FDisplayUnit;
   end;
@@ -20275,7 +20810,7 @@ begin
     FUpdateUnit := True;
     FDisplayOffset := Value;
     UpdatePlanner;
-    FUpdateUnit := False;    
+    FUpdateUnit := False;
   end;
 end;
 
@@ -20439,7 +20974,9 @@ begin
   if (FDisplayText <> Value) then
   begin
     FDisplayText := Value;
+    FUpdateUnit := True;
     UpdatePlanner;
+    FUpdateUnit := False;
   end;
 end;
 
@@ -20556,6 +21093,7 @@ begin
   FBarItems := TPlannerBarItemList.Create(Self);
   FPopupEdit := False;
   FVisible := true;
+  FPreview := false;
   DefOrganize;
 
   if Assigned(FPlanner.DefaultItem) then
@@ -21290,6 +21828,7 @@ begin
     BrushStyle := TPlannerItem(Source).BrushStyle;
     InHeader := TPlannerItem(Source).InHeader;
     OwnsItemObject := TPlannerItem(Source).OwnsItemObject;
+    ItemObject := TPlannerItem(Source).ItemObject;
     ShowDeleteButton := TPlannerItem(Source).ShowDeleteButton;
     Selected := TPlannerItem(Source).Selected;
     SelectColor := TPlannerItem(Source).SelectColor;
@@ -21363,6 +21902,7 @@ begin
     BrushStyle := TPlannerItem(Source).BrushStyle;
     InHeader := TPlannerItem(Source).InHeader;
     OwnsItemObject := TPlannerItem(Source).OwnsItemObject;
+    ItemObject := TPlannerItem(Source).ItemObject;
     Selected := TPlannerItem(Source).Selected;
     SelectColor := TPlannerItem(Source).SelectColor;
     Shape := TPlannerItem(Source).Shape;
@@ -21405,11 +21945,14 @@ begin
           BeginOffset := 0;
           EndOffset := 0;
 
-          if Int(Value) > Int(FItemRealStartTime) then
-            delta := 24 * 60;
+         // if FItemRealStartTime <> 0 then
+          begin
+            if Int(Value) > Int(FItemRealStartTime) then
+              delta := 24 * 60;
 
-          if Int(Value) < Int(FItemRealStartTime) then
-            delta := - 24 * 60;
+            if Int(Value) < Int(FItemRealStartTime) then
+              delta := - 24 * 60;
+          end;
 
           DecodeTime(Value, Hour, Minute, Second, Second100);
 
@@ -21659,7 +22202,6 @@ var
   Da, Mo, Ye: Word;
   dts,dte: TDateTime;
   Res: Integer;
-  //DInc: integer;
 
 begin
   FItemStartTime := Value;
@@ -21675,7 +22217,7 @@ begin
           if (((Minute div Display.DisplayUnit) - Display.DisplayStart) < 0) and (Display.DisplayStart > 0) and (Display.DisplayEnd * Display.DisplayUnit > 1440) then
             Minute := Minute + 1440;
           // end 1.6.0.2 fix to display items on day crossing views
-          
+
           if FRoundTime then
             ItemBegin := Round(Minute / Display.DisplayUnit) - Display.DisplayStart
           else
@@ -21720,7 +22262,12 @@ begin
             ItemBegin := Trunc(Value - dts)
           else
           begin
+          {$IFDEF TMSDOTNET}
+            BeginOffset := Trunc(dts- TDateTime(Trunc(Value)));
+          {$ENDIF}
+          {$IFNDEF TMSDOTNET}
             BeginOffset := Trunc(dts- Trunc(Value));
+          {$ENDIF}
 
             ItemBegin := 0;
             if Trunc(Value) > dte then
@@ -22682,6 +23229,7 @@ end;
 procedure TPlannerItem.Changed;
 begin
   FPlanner.Items.ItemChanged(Self);
+
   if Assigned(OnDesignChange) then
     OnDesignChange(Self);
 end;
@@ -22825,6 +23373,17 @@ begin
     Repaint;
   end;
 
+end;
+
+procedure TPlannerItem.ImageListAdapt(var R: TRect);
+begin
+  if ImageIndexList.Count > 0 then
+  begin
+    if ImagePosition = ipHorizontal then
+      r.Top := r.Top + FPlanner.PlannerImages.Height
+    else
+      r.Left := r.Left + FPlanner.PlannerImages.Width + 4;
+  end;
 end;
 
 procedure TPlannerItem.CompletionAdapt(var R:TRect);
@@ -23064,6 +23623,7 @@ begin
   for ItemIndex := 1 to Self.Count do
   begin
     APlannerItem := Self.Items[ItemIndex - 1];
+
     if (
       ((APlannerItem.ItemBegin <= ItemBegin) and (APlannerItem.ItemEnd > ItemBegin)) or
       ((APlannerItem.ItemBegin < ItemEnd) and (APlannerItem.ItemEnd >= ItemEnd)) or
@@ -24790,6 +25350,7 @@ begin
 end;
 
 {$IFNDEF TMSDOTNET}
+{$IFNDEF DELPHI_UNICODE}
 
 { TPlannerUniMemo }
 
@@ -24881,6 +25442,7 @@ begin
     FPlanner.OnItemDblClick(FPlanner, FPlannerItem);
 end;
 
+{$ENDIF}
 {$ENDIF}
 
 { TPlannerMaskEdit }
@@ -25206,6 +25768,49 @@ procedure TPlannerHeader.SetAllowPositionResize(const Value: Boolean);
 begin
   FAllowPositionResize := Value;
   FOwner.FHeader.AllowResize := Value;
+end;
+
+function TPlannerHeader.GroupSplit(pos: integer): integer;
+var
+  i,gs: integer;
+begin
+  i := 0;
+  gs := 0;
+  Result := -1;
+
+  while (gs <= pos) and (i < CustomGroups.Count) do
+  begin
+    if (gs = pos) then
+    begin
+      Result := CustomGroups[i].Span;
+      Exit;
+    end;
+
+    gs := gs + CustomGroups[i].Span;
+    inc(i);
+  end;
+end;
+
+function TPlannerHeader.GetGroupCaption(pos: integer): string;
+var
+  i,gs: integer;
+begin
+  i := 0;
+  gs := 0;
+  Result := '';
+
+  while (gs <= pos) and (i < CustomGroups.Count) do
+  begin
+    if (gs = pos) then
+    begin
+      Result := CustomGroups[i].Caption;
+      Exit;
+    end;
+
+    gs := gs + CustomGroups[i].Span;
+    inc(i);
+  end;
+
 end;
 
 
@@ -26140,7 +26745,7 @@ begin
   begin
     while (spanidx < Planner.Header.GroupSpan.Count) and (FLeftPos >= Planner.Header.GroupSpan[spanidx]) do
       inc(spanidx);
-  end;    
+  end;
 
   SideOffset := 2;
 
@@ -26313,7 +26918,7 @@ begin
       end
       else
       begin
-        if (Planner.Header.ActiveColor <> clNone) and (SectionIndex - SideOffset = Planner.SelPosition) then
+        if (Planner.Header.ActiveColor <> clNone) and (SectionIndex + FLeftPos - SideOffset = Planner.SelPosition) then
         begin
           Canvas.Brush.Color := Planner.Header.ActiveColor;
           if Planner.Header.ActiveColorTo <> clNone then
@@ -26347,8 +26952,8 @@ begin
       end;
 
       LastRow := false;
-      
-      if (Orientation = hoVertical) and (SectionIndex >= Planner.GridControl.VisibleRowCount + 2) then
+
+      if (Orientation = hoVertical) and (SectionIndex > Planner.GridControl.VisibleRowCount + 2) then
         LastRow := true;
 
       if DoDraw then
@@ -26432,7 +27037,7 @@ begin
           begin
             Canvas.Brush.Style := bsClear;
 
-            if Rotate {and (Planner.SideBar.Position = spTop)} then
+            if Rotate or (Planner.Header.RotateOnLeft and (Planner.SideBar.Position = spTop)) then
             begin
               tf := TFont.Create;
               try
@@ -26448,7 +27053,25 @@ begin
                 lf.lfOrientation := 900;
                 tf.Handle := CreateFontIndirect(lf);
                 Canvas.Font.Assign(tf);
-                TextOut(pr.Left,r.Bottom - 4,s);
+
+                while pos(#13, s) > 0 do
+                begin
+                  case Planner.Header.Alignment of
+                  taLeftJustify: TextRect(pr,pr.Left,r.Bottom - 4,copy(s,1,pos(#13,s)-1));
+                  taCenter: TextRect(pr,pr.Left,r.Bottom - ((r.Bottom - r.Top - TextWidth(copy(s,1,pos(#13,s)))) div 2),copy(s,1,pos(#13,s)-1));
+                  taRightJustify: TextRect(pr,pr.Left, r.Top + TextWidth(copy(s,1,pos(#13,s))),copy(s,1,pos(#13,s)));
+                  end;
+
+                  delete(s,1,pos(#13,s)+1);
+                  pr.Left  := pr.Left + TextHeight('gh');
+                end;
+
+                case Planner.Header.Alignment of
+                taLeftJustify: TextRect(pr,pr.Left,r.Bottom - 4,s);
+                taCenter: TextRect(pr,pr.Left,r.Bottom - ((r.Bottom - r.Top -  TextWidth(s)) div 2),s);
+                taRightJustify: TextRect(pr,pr.Left,r.Top + TextWidth(s) + 4,s);
+                end;
+
               finally
                 tf.Free;
               end;
@@ -26702,7 +27325,16 @@ begin
                   tf.Handle := CreateFontIndirect(lf);
                   Canvas.Font.Assign(tf);
                   Canvas.Brush.Style := bsClear;
+
+                  while pos(#13, s) > 0 do
+                  begin
+                    TextRect(r,r.Left,r.Bottom - 4,copy(s,1,pos(#13,s)-1));
+                    delete(s,1,pos(#13,s)+1);
+                    r.Left  := r.Left + TextHeight('gh');
+                  end;
                   TextRect(r,r.Left,r.Bottom - 4,s);
+
+                  //TextRect(r,r.Left,r.Bottom - 4,s);
                 finally
                   tf.Free;
                 end;
@@ -26870,7 +27502,9 @@ begin
 
   if Assigned(APlannerItem) and FPlanner.Header.ShowHint then
   begin
-    s := APlannerItem.Hint;
+    s := APlannerItem.ItemText;
+    if APlannerItem.Hint <> '' then
+      s := APlannerItem.Hint;
 
     if IsRtf(s) then
     begin
@@ -27006,14 +27640,14 @@ begin
         i := 1;
         while i < len1 do
         begin
-          if AText[i] = #9 then
+          if (AText[i] = #9) then
             AText[i] := #32;
           inc(i);
         end;
 
         i := 1;
         if AText <> '' then
-          while AText[i] in [#13, #10, #9] do
+          while ( (AText[i] = #13) or (AText[i] = #10) or (AText[i] = #9)) do
             inc(i);
 
         if len1 > len2 then
@@ -27178,6 +27812,12 @@ var
   Y: Integer;
 
 begin
+  if (Cursor = crHandPoint) or (FDragging) then
+  begin
+    inherited;
+    Exit;
+  end;
+
   if Orientation = hoVertical then
   begin
     Cur := 0;
@@ -27202,15 +27842,18 @@ begin
           end;
         end;
       end;
+
     FCanResize := (AllowResize or (csDesigning in ComponentState)) and (Cur <> 0);
+
     if FCanResize then
       SetCursor(Cur)
     else
     begin
       FMouseOffset := Self.width - (FHitTest.X + 2);
-      if Abs(FMouseOffset) >= 4 then
+      if (Abs(FMouseOffset) >= 4) and ((Owner as TCustomPlanner).PositionZoomWidth = 0) then
       begin
-        Msg.HitTest := Windows.HTNOWHERE;
+        if AllowResize then
+          Msg.HitTest := Windows.HTNOWHERE;
         inherited;
       end
       else
@@ -27223,6 +27866,7 @@ begin
     FResizeSection := 0;
     FHitTest := ScreenToClient(FHitTest);
     Y := 2;
+
     with Msg do
       if HitTest = HTCLIENT then
       begin
@@ -27241,15 +27885,20 @@ begin
           end;
         end;
       end;
+
+
     FCanResize := (AllowResize or (csDesigning in ComponentState)) and (Cur <> 0);
+
     if FCanResize then
       SetCursor(Cur)
     else
     begin
-      FMouseOffset := Self.width - (FHitTest.X + 2);
-      if Abs(FMouseOffset) >= 4 then
+      FMouseOffset := Self.Width - (FHitTest.X + 2);
+
+      if (Abs(FMouseOffset) >= 4) and ((Owner as TCustomPlanner).PositionZoomWidth = 0) then
       begin
-        Msg.HitTest := Windows.HTNOWHERE;
+        if AllowResize then
+          Msg.HitTest := Windows.HTNOWHERE;
         inherited;
       end
       else
@@ -27274,7 +27923,7 @@ var
   hr,tr: TRect;
   XSize, YSize: Integer;
   Allow: Boolean;
-  ImgSize: Integer;
+  ImgSize,iw: Integer;
   AutoHandle: boolean;
 
 begin
@@ -27431,10 +28080,40 @@ begin
         end;
       end;
 
+      ImgSize := 0;
+
+      if Assigned(FPlanner.PlannerImages) and
+         ((APlannerItem.ImageID >= 0) or (APlannerItem.FImageIndexList.Count > 0)) then
+        begin
+          iw := FPlanner.PlannerImages.Width;
+          if APlannerItem.ImagePosition = ipHorizontal then
+            ImgSize := (iw * APlannerItem.FImageIndexList.Count) + iw
+          else
+            ImgSize := iw;
+        end;
+
+      if Assigned(FPlanner.PlannerImages) and
+         Assigned(FPlanner.FOnItemImageClick) then
+      begin
+        if (Y > pr.Top) and (Y < pr.Top + FPlanner.PlannerImages.Height + 3) and
+           (X >= pr.Left) and (X < pr.Left + ImgSize) and
+          ((APlannerItem.ImageID >= 0) or (APlannerItem.FImageIndexList.Count > 0)) then
+        begin
+          iw := FPlanner.PlannerImages.Width;
+
+          if (X < pr.Left + ImgSize) and (iw > 0) then
+          begin
+            if (((X - pr.Left + 8) div iw) <= APlannerItem.FImageIndexList.Count) or (APlannerItem.ImageID >= 0) then
+              FPlanner.FOnItemImageClick(FPlanner, APlannerItem, ((X - pr.Left + 8) div iw) - 1);
+          end;
+          Exit;
+        end;
+      end;
 
       if IsHTML(APlannerItem,APlannerItem.ItemText,false) and APlannerItem.Selected then
       begin
         pr.Top := pr.Top + 4 + APlannerItem.FCaptionHeight;
+        pr.Left := pr.Left + FPlanner.TrackWidth;
 
         {$IFDEF TMSDEBUG}
         outputdebugstring(pchar('height:'+inttostr(APlannerItem.FCaptionHeight)));
@@ -27763,9 +28442,9 @@ begin
       HdrYStart := TextHeight shr 1;
 
     if FPlanner.SideBar.Orientation = soVertical then
-      PosOK := (Y < TextHeight) and (Y > HdrYStart) and (SectionIdx < FPlanner.FGrid.ColCount)
+      PosOK := (Y < TextHeight) and (Y >= HdrYStart) and (SectionIdx < FPlanner.FGrid.ColCount)
     else
-      PosOK := (X < TextHeight) and (X > HdrYStart) and (SectionIdx < FPlanner.FGrid.RowCount);
+      PosOK := (X < TextHeight) and (X >= HdrYStart) and (SectionIdx < FPlanner.FGrid.RowCount);
 
     if PosOk and (SectionIdx > 0) then
     begin
@@ -27775,11 +28454,13 @@ begin
         Cursor := crZoomOut;
 
       Exit;
-    end
+    end{
     else
       if (Cursor <> crDefault) and not FDragging then
         Cursor := crDefault;
+        }
   end;
+
 
   r := GetSectionRect(SectionIdx);
 
@@ -27798,6 +28479,7 @@ begin
     if IsHTML(APlannerItem,APlannerItem.ItemText,false) and APlannerItem.Selected then
     begin
       pr.Top := pr.Top + 4 + APlannerItem.FCaptionHeight;
+      pr.Left := pr.Left + FPlanner.TrackWidth;
 
       {$IFDEF TMSDEBUG}
       outputdebugstring(pchar('height:'+inttostr(APlannerItem.FCaptionHeight)));
@@ -27921,6 +28603,7 @@ begin
   end
   else
     Cursor := crDefault;
+
 end;
 
 procedure TAdvHeader.SetItemHeight(const Value: Integer);
@@ -28280,7 +28963,7 @@ var
   gs: TGaugeSettings;
   txtdraw: boolean;
   paintcompl: boolean;
-
+  startsection:  integer;
 begin
   if FUpdateCount > 0 then
     Exit;
@@ -28288,7 +28971,7 @@ begin
   Planner := Owner as TCustomPlanner;
   with Canvas do
   begin
-    Font := Self.Font;
+    Font.Assign(Planner.Footer.Font);
     Brush.Color := FColor;
 
     if FLineColor = clNone then
@@ -28315,7 +28998,7 @@ begin
     repeat
       MergeNum := 1;
       PaintCompl := true;
-      
+
       s := '';
       if (SectionIndex + FLeftPos < Sections.Count) and (SectionIndex + FLeftPos <= Planner.Positions) then
       begin
@@ -28459,14 +29142,19 @@ begin
 
       if Assigned(Planner.FOnPlannerFooterDraw) then
       begin
-        Font := Self.Font;
+        Font := Planner.Footer.Font;
         Brush.Color := FColor;
         Pen.Color := FLineColor;
         Pen.Width := 1;
         Planner.FOnPlannerFooterDraw(TCustomPlanner(Owner), Canvas, r, AIdx, DoDraw);
       end;
 
-      if (Planner.Footer.ShowCompletion) and ((s <> '') and (SectionIndex > 1)) and paintcompl then
+      if Planner.Sidebar.Position = spRight then
+        StartSection := 0
+      else
+        StartSection := 1;
+
+      if (Planner.Footer.ShowCompletion) and ((s <> '') and (SectionIndex > StartSection)) and paintcompl then
       begin
         pr := r;
         val(s,GPos,err);
@@ -28634,7 +29322,7 @@ begin
           r.Right := r.Right + FFixedHeight;
         end;
 
-        Font := Self.Font;
+        Font := Planner.Footer.Font;
         Brush.Color := FColor;
         Pen.Color := FLineColor;
         Pen.Width := 1;
@@ -29803,6 +30491,31 @@ end;
 
 { TPlannerFooter }
 
+procedure TPlannerFooter.Assign(Source: TPersistent);
+begin
+  if (Source is TPlannerFooter) then
+  begin
+    FAlignment := (Source as TPlannerFooter).Alignment;
+    FCaptions.Assign((Source as TPlannerFooter).Captions);
+    FCompletionFormat := (Source as TPlannerFooter).CompletionFormat;
+    FCompletionType := (Source as TPlannerFooter).CompletionType;
+    FColor := (Source as TPlannerFooter).Color;
+    FColorTo := (Source as TPlannerFooter).ColorTo;
+    FCompletion.Assign((Source as TPlannerFooter).Completion);
+    FCustomCompletionValue := (Source as TPlannerFooter).CustomCompletionValue;
+    FHeight := (Source as TPlannerFooter).Height;
+    FFlat := (Source as TPlannerFooter).Flat;
+    FFont.Assign((Source as TPlannerFooter).Font);
+    FImages.Assign((Source as TPlannerFooter).Images);
+    FImagePosition := (Source as TPlannerFooter).ImagePosition;
+    FLineColor := (Source as TPlannerFooter).LineColor;
+    FShowCompletion := (Source as TPlannerFooter).ShowCompletion;
+    FVAlignment := (Source as TPlannerFooter).VAlignment;
+    FVisible := (Source as TPlannerFooter).Visible;
+  end;
+
+end;
+
 constructor TPlannerFooter.Create(AOwner: TCustomPlanner);
 begin
   inherited Create;
@@ -29992,6 +30705,32 @@ begin
 end;
 
 { TCompletion }
+
+procedure TCompletion.Assign(Source: TPersistent);
+begin
+  if (Source is TCompletion) then
+  begin
+    FLevel0Color := (Source as TCompletion).Level0Color;
+    FLevel0ColorTo := (Source as TCompletion).Level0ColorTo;
+    FLevel1Color := (Source as TCompletion).Level1Color;
+    FLevel1ColorTo := (Source as TCompletion).Level1ColorTo;
+    FLevel2Color := (Source as TCompletion).Level2Color;
+    FLevel2ColorTo := (Source as TCompletion).Level2ColorTo;
+    FLevel3Color := (Source as TCompletion).Level3Color;
+    FLevel3ColorTo := (Source as TCompletion).Level3ColorTo;
+    FLevel1Perc := (Source as TCompletion).Level1Perc;
+    FLevel2Perc := (Source as TCompletion).Level2Perc;
+    FBorderColor := (Source as TCompletion).BorderColor;
+    FShowBorder := (Source as TCompletion).ShowBorder;
+    FStacked := (Source as TCompletion).Stacked;
+    FShowPercentage := (Source as TCompletion).ShowPercentage;
+    FFont.Assign((Source as TCompletion).Font);
+    FCompletionSmooth := (Source as TCompletion).CompletionSmooth;
+    FShowGradient := (Source as TCompletion).ShowGradient;
+    FSteps := (Source as TCompletion).Steps;
+    FBackgroundColor := (Source as TCompletion).BackgroundColor;
+  end;
+end;
 
 procedure TCompletion.Changed;
 begin

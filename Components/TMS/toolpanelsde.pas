@@ -81,11 +81,19 @@ begin
     end;
   1: TAdvToolPanelTab(Component).PrevPanel;
   2: TAdvToolPanelTab(Component).NextPanel;
-  3..7:
+  3..8:
     begin
       TAdvToolPanelTab(Component).Style := TToolPanelStyle(Index - 3);
       Designer.Modified;
     end;
+  9:begin
+      TAdvToolPanelTab(Component).Style := esOffice2007Silver;
+      Designer.Modified;
+    end;
+  10:begin
+      TAdvToolPanelTab(Component).Style := esWhidbey;
+      Designer.Modified;
+     end;
   end;
 end;
 
@@ -99,13 +107,16 @@ begin
   4: Result := 'Outlook 2003 Silver look';
   5: Result := 'Outlook 2003 Olive look';
   6: Result := 'Outlook 2003 Classic look';
-  7: Result := 'Whidbey look (VS.NET 2005)';
+  7: Result := 'Outlook 2007 Blue look';
+  8: Result := 'Outlook 2007 Black look';
+  9: Result := 'Outlook 2007 Silver look';
+  10: Result := 'Whidbey look (VS.NET 2005)';
   end;
 end;
 
 function TAdvToolPanelTabEditor.GetVerbCount: Integer;
 begin
-  Result := 8; //3;
+  Result := 11; //3;
 end;
 
 { TToolPanelEditor }
@@ -116,7 +127,7 @@ begin
   
   //if not ((Component as TAdvToolPanel).Parent is TAdvToolPanelTab) then
   //  Index := Index + 3;
-    
+
   case Index of
   0:
     begin
@@ -131,11 +142,19 @@ begin
     end;
   1: TAdvToolPanelTab(TCustomPanel(Component).Parent).PrevPanel;
   2: TAdvToolPanelTab(TCustomPanel(Component).Parent).NextPanel;
-  3..7:
+  3..8:
     begin
       TAdvToolPanelTab(TCustomPanel(Component).Parent).Style := TToolPanelStyle(Index - 3);
       Designer.Modified;
     end;
+  9:begin
+      TAdvToolPanelTab(TCustomPanel(Component).Parent).Style := esOffice2007Silver;
+      Designer.Modified;
+    end;
+  10:begin
+      TAdvToolPanelTab(TCustomPanel(Component).Parent).Style := esWhidbey;
+      Designer.Modified;
+     end;
   end;
 end;
 
@@ -171,7 +190,10 @@ begin
     4: Result := 'Outlook 2003 Silver look';
     5: Result := 'Outlook 2003 Olive look';
     6: Result := 'Outlook 2003 Classic look';
-    7: Result := 'Whidbey look';
+    7: Result := 'Outlook 2007 Blue look';
+    8: Result := 'Outlook 2007 Black look';
+    9: Result := 'Outlook 2007 Silver look';
+    10: Result := 'Whidbey look';
     end;
   end;
   {
@@ -190,7 +212,7 @@ end;
 function TAdvToolPanelEditor.GetVerbCount: Integer;
 begin
   if (Component as TAdvToolPanel).Parent is TAdvToolPanelTab then
-    Result := 8//3
+    Result := 11//3
   else
     Result := 0; //4
 end;

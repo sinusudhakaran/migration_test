@@ -1,10 +1,9 @@
 {*************************************************************************}
 { THotSpotImage component                                                 }
 { for Delphi & C++Builder                                                 }
-{ version 1.2                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 2002 - 2006                                       }
+{           copyright © 2002 - 2008                                       }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -34,14 +33,21 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 2; // Minor version nr.
   REL_VER = 3; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 1; // Build nr.
 
   // revision history
   // 1.2.1.1 : fixed issue with Transparency
   // 1.2.2.0 : fixed issue with very large image support
   // 1.2.3.0 : added OnPaint event
+  // 1.2.3.1 : Fixed issue with clearing hotspots during mouse events
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
+  
   THotSpotImage = class;
 
   THoverPosition = (hpNone, hpInside, hpBorder);
@@ -214,6 +220,7 @@ type
   protected
     function GetHotSpotImage: THotSpotImage;
   public
+    procedure EndUpdate; override;
     procedure Assign(Source: TPersistent); override;
     constructor Create(AOwner: THotSpotImage);
     procedure SetDimensions(W,H: integer);
@@ -486,6 +493,7 @@ begin
   Items[Index].Free;
 end;
 {$ENDIF}
+
 //------------------------------------------------------------------------------
 procedure THotSpots.Assign(Source: TPersistent);
 var
@@ -506,6 +514,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure THotSpots.EndUpdate;
+begin
+  inherited;
+  if Assigned(FOwner) then
+  begin
+    FOwner.FHoveredItem := -1;
+    FOwner.FClickedItem := -1;
+  end;
+end;
+
 constructor THotSpots.Create(AOwner: THotSpotImage);
 begin
   inherited Create(THotSpot);
@@ -568,7 +586,7 @@ begin
      Exit;
 
   if (FOwner <> nil) then
-    if (csLoading in FOwner.ComponentState)or (csReading	in FOwner.ComponentState) then
+    if (csLoading in FOwner.ComponentState)or (csReading in FOwner.ComponentState) then
       Exit;
 
   deltaX := newWidth/ oldWidth;
@@ -588,8 +606,6 @@ begin
         Y1 := Round(c*deltaY);
         X2 := Round(b*deltaX);
         Y2 := Round(d*deltaY);
-
-        outputdebugstring(pchar(inttostr(x1)+':'+inttostr(y1)+':'+inttostr(x2)+':'+inttostr(y2)));
 
       end
       else
@@ -1957,14 +1973,14 @@ begin
     // the hotspot is clicked only when the mouse button is released within it's bounds
     if FHotSpots[FClickedItem].GetHoverPos(X, Y) <> hpNone then
     begin
-      if Assigned(FOnHotSpotClick)
-        then FOnHotSpotClick(Self, FHotSpots[FClickedItem]);
-      FClickedItem := -1;
       if FHoveredItem <> -1 then
       begin
         if not HotSpots[FHoveredItem].FShowClick then
           DrawHoverImage(FHoveredItem);
-      end
+      end;
+      if Assigned(FOnHotSpotClick) then
+        FOnHotSpotClick(Self, FHotSpots[FClickedItem]);
+      FClickedItem := -1;
     end
     else
     begin

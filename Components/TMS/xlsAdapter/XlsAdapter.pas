@@ -1,4 +1,3 @@
-{$DEFINE INTERNAL_ACCESS}
 unit XLSAdapter;
 {$IFDEF LINUX}{$INCLUDE ../FLXCOMPILER.INC}{$ELSE}{$INCLUDE ..\FLXCOMPILER.INC}{$ENDIF}
 {$IFDEF LINUX}{$INCLUDE ../FLXCONFIG.INC}{$ELSE}{$INCLUDE ..\FLXCONFIG.INC}{$ENDIF}
@@ -38,6 +37,7 @@ type
   private
     FTemplateStore: TXlsBaseTemplateStore;
     FSaveFormat: TSetOfExcelSaveFormatNative;
+    FAllowOverwritingFiles: boolean;
     procedure SetTemplateStore(const Value: TXLSBaseTemplateStore);
     { Private declarations }
   protected
@@ -50,6 +50,8 @@ type
   published
     property SaveFormat: TSetOfExcelSaveFormatNative read FSaveFormat write FSaveFormat default [snXLS];
     property TemplateStore: TXLSBaseTemplateStore read FTemplateStore write SetTemplateStore;
+    property AllowOverwritingFiles:boolean read FAllowOverwritingFiles write FAllowOverwritingFiles;
+
     { Published declarations }
   end;
 
@@ -63,6 +65,9 @@ type
     FTmpTemplate: TXlsStorageList;
 
     FirstColumn,LastColumn: integer;
+    AllowOverwritingFiles: boolean;
+
+    IsFileModified: boolean;
 
     RowPictures: TRowComments;
     procedure ParsePictures;
@@ -77,6 +82,7 @@ type
     procedure InternalSetCellString(const aRow, aCol: integer; const Text: Widestring; const Fm: PFlxFormat; const DateFormat, TimeFormat: widestring);
     procedure SetCellValueAndFmt(const aRow, aCol: integer; const v: variant; const Fm: PFlxFormat);
     function SkipThousands(const s: string): string;
+    procedure RestoreObjectSizes;
 
   protected
     function GetActiveSheet: integer; override;
@@ -89,7 +95,9 @@ type
     procedure SetActiveSheetVisible(const Value: TXlsSheetVisible); override;
 
     function GetColumnWidth(aCol: integer): integer;override;
+    function GetColumnWidthHiddenIsZero(aCol: integer): integer;override;
     function GetRowHeight(aRow: integer): integer;override;
+    function GetRowHeightHiddenIsZero(aRow: integer): integer;override;
     procedure SetColumnWidth(aCol: integer; const Value: integer);override;
     procedure SetRowHeight(aRow: integer; const Value: integer);override;
 
@@ -188,16 +196,25 @@ type
     function GetOptionsPrecisionAsDisplayed: boolean;override;
     procedure SetOptionsPrecisionAsDisplayed(const Value: boolean);override;
 
+    function GetOutlineSummaryColsRightOfDetail: boolean; override;
+    function GetOutlineSummaryRowsBelowDetail: boolean; override;
+    function GetOutlineAutomaticStyles: boolean;override;
+    procedure SetOutlineSummaryColsRightOfDetail(const Value: boolean); override;
+    procedure SetOutlineSummaryRowsBelowDetail(const Value: boolean); override;
+    procedure SetOutlineAutomaticStyles(const Value: boolean);override;
+
+    function GetInvalidateFormulas: boolean; override;
+    procedure SetInvalidateFormulas(const Value: boolean); override;
+
   public
-    constructor Create(const aAdapter: TXLSAdapter );
+    constructor Create(const aAdapter: TXLSAdapter);overload;
+    constructor Create(const aAdapter: TXLSAdapter; const aAllowOverwritingFiles: boolean);overload;
     destructor Destroy; override;
 
     procedure Connect;override;
     procedure Disconnect;override;
 
-{$IFDEF INTERNAL_ACCESS}
     function GetTWorkbook: TWorkbook;
-{$ENDIF}
 
     procedure NewFile(const SheetCount: integer=3);override;
     procedure OpenFile(const FileName: TFileName);override;
@@ -224,7 +241,9 @@ type
     procedure Save(const AutoClose: boolean; const FileName: string; const OnGetFileName: TOnGetFileNameEvent; const OnGetOutStream: TOnGetOutStreamEvent=nil; const DataStream: TStream=nil);override;
 
     procedure InsertAndCopyRows(const FirstRow, LastRow, DestRow, aCount: integer; const OnlyFormulas: boolean);override;
+    procedure InsertAndCopyCols(const FirstCol, LastCol, DestCol, aCount: integer; const OnlyFormulas: boolean);override;
     procedure DeleteRows(const aRow, aCount: integer);override;
+    procedure DeleteCols(const aCol, aCount: integer);override;
 
     procedure BeginSheet;override;
     procedure EndSheet(const RowOffset: integer);override;
@@ -326,10 +345,15 @@ type
     procedure GetFrozenPanes(var Row, Col: integer);override;
     procedure SplitWindow(const xOffset, yOffset: integer);override;
     procedure GetSplitWindow(var xOffset, yOffset: integer);override;
+
+    procedure AutofitRow(const row1, row2: integer; const AutofitNotAutofittingRows: Boolean; const keepHeightAutomatic: Boolean; const adjustment: extended);override;
+    procedure AutofitCol(const Col1, Col2: integer; const IgnoreStrings: Boolean; const Adjustment: extended);override;
+    procedure AutofitRowsOnWorkbook(const AutofitNotAutofittingRows: Boolean; const KeepSizesAutomatic: Boolean; const Adjustment: extended);override;
+
   end;
 
 
-{$IFNDEF TMSASG}
+{$IFDEF FLEXCEL}
   procedure Register;
 {$ENDIF}
 implementation
@@ -354,7 +378,7 @@ end;
 
 function TXLSAdapter.GetWorkbook: TExcelFile;
 begin
-  Result:= TXLSFile.Create(Self);
+  Result:= TXLSFile.Create(Self, AllowOverwritingFiles);
 end;
 
 procedure TXLSAdapter.Notification(AComponent: TComponent;
@@ -375,6 +399,11 @@ end;
 
 { TXLSFile }
 
+procedure TXLSFile.RestoreObjectSizes;
+begin
+	FWorkbook.RestoreObjectCoords(FActiveSheet - 1);
+end;
+
 procedure TXLSFile.AssignCellData(const aRow, aColOffset: integer; const Value: variant);
 var
   V: TXlsCellValue;
@@ -382,6 +411,7 @@ begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
     V.Value:=Value; V.XF:=-1;
     FWorkbook.WorkSheets[FActiveSheet-1].Cells.CellList.Value[aRow-1, FirstColumn + aColOffset]:=V;
+    IsFileModified := true;
 end;
 
 procedure TXLSFile.SetCellValueAndFmt(const aRow, aCol: integer; const v: variant; const Fm: PFlxFormat);
@@ -487,6 +517,7 @@ procedure TXLSFile.AssignCellDataX(const aRow, aColOffset: integer; const Value:
 begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   FWorkbook.WorkSheets[FActiveSheet-1].Cells.CellList.Value[aRow-1, FirstColumn + aColOffset]:=Value;
+  IsFileModified := true;
 end;
 
 procedure TXLSFile.AssignComment(const Row, aPos: integer;
@@ -595,10 +626,17 @@ begin
   FWorkbook:= TWorkbook.Create;
 end;
 
-constructor TXLSFile.Create(const aAdapter: TXLSAdapter);
+constructor TXLSFile.Create(const aAdapter: TXLSAdapter; const aAllowOverwritingFiles: boolean);
 begin
   inherited Create;
   FAdapter:= aAdapter;
+  AllowOverwritingFiles:=aAllowOverwritingFiles;
+  IsFileModified := false;
+end;
+
+constructor TXLSFile.Create(const aAdapter: TXLSAdapter);
+begin
+  Create(aAdapter, false);
 end;
 
 procedure TXLSFile.DeleteMarkedRows(const Mark: widestring);
@@ -609,6 +647,7 @@ var
 begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   Cl:=FWorkbook.WorkSheets[FActiveSheet-1].Cells.CellList;
+  IsFileModified := true;
   for i:=Cl.Count -1 downto 0 do
   try
     s:= Cl.Value[i,0].Value;
@@ -645,7 +684,14 @@ end;
 procedure TXLSFile.DeleteRows(const aRow, aCount: integer);
 begin
   FWorkbook.DeleteRowsAndCols(FActiveSheet-1, aRow-1, aCount,0,0);
+  IsFileModified := true;
 end;
+
+procedure TXLSFile.DeleteCols(const aCol, aCount: integer);
+begin
+  FWorkbook.DeleteRowsAndCols(FActiveSheet-1, 0, 0, aCol-1, aCount);
+  IsFileModified := true;
+ end;
 
 destructor TXLSFile.Destroy;
 begin
@@ -767,13 +813,22 @@ end;
 procedure TXLSFile.InsertAndCopyRows(const FirstRow, LastRow, DestRow,
   aCount: integer; const OnlyFormulas: boolean);
 begin
-  FWorkbook.InsertAndCopyRowsAndCols(FActiveSheet-1, FirstRow-1, LastRow-1, DestRow-1, aCount, 0,0,0,0, OnlyFormulas)
+  FWorkbook.InsertAndCopyRowsAndCols(FActiveSheet-1, FirstRow-1, LastRow-1, DestRow-1, aCount, 0,0,0,0, OnlyFormulas);
+  IsFileModified := true;
+end;
+
+procedure TXLSFile.InsertAndCopyCols(const FirstCol, LastCol, DestCol,
+  aCount: integer; const OnlyFormulas: boolean);
+begin
+  FWorkbook.InsertAndCopyRowsAndCols(FActiveSheet-1, 0,0,0,0, FirstCol-1, LastCol-1, DestCol-1, aCount, OnlyFormulas);
+  IsFileModified := true;
 end;
 
 procedure TXLSFile.InsertAndCopySheets(const CopyFrom, InsertBefore,
   SheetCount: integer);
 begin
   FWorkbook.InsertSheets(CopyFrom-1, InsertBefore-1, SheetCount);
+  IsFileModified := true;
 end;
 
 procedure TXLSFile.OpenFileOrStream(const FileName: TFileName; const aStream: TStream);
@@ -797,7 +852,7 @@ begin
     FTmpTemplate:=TXlsStorageList.Create;
     if Trim(FileName)<>'' then Fn:=SearchPathStr(FileName) else Fn:='';
     //This is to load all storages except workbook. For reading big files, makes no sense to keep workbook on memory 2 times
-    DocIN:= TOle2Storage.Create(Fn, Ole2_Read, aStream);
+    DocIN:= TOle2Storage.Create(Fn, Ole2_Read, false, aStream);
     try
       FTmpTemplate.LoadStorage(DocIN, false);
       StreamIn:=  TOle2Stream.Create( DocIN, WorkbookStr);
@@ -813,6 +868,7 @@ begin
 
   end;
   FActiveSheet:=FWorkbook.ActiveSheet+1;
+  IsFileModified := false;
 end;
 
 procedure TXLSFile.OpenFile(const FileName: TFileName);
@@ -842,7 +898,7 @@ var
 begin
   WorkbookStr:=WorkbookStrS;
   //Create output file
-  DocOUT:= TOle2Storage.Create(FileName, Ole2_Write, DataStream);
+  DocOUT:= TOle2Storage.Create(FileName, Ole2_Write, AllowOverwritingFiles, DataStream);
   try
     for i:=0 to FTemplate.Count-1 do
       if FTemplate[i].Name<>WorkbookStr then
@@ -852,7 +908,7 @@ begin
 
     StreamOUT:= TOle2Stream.Create(DocOUT, WorkbookStr);
     try
-      FWorkbook.SaveToStream(StreamOUT);
+      FWorkbook.SaveToStream(StreamOUT, IsFileModified);
     finally
       FreeAndNil(StreamOut);
     end; //finally
@@ -910,7 +966,7 @@ begin
       begin
         //SaveToFile
         if Assigned (OnGetFileName) then OnGetFileName(Self,integer(SF),aFilename);
-        if FileExists(aFileName) then raise Exception.CreateFmt(ErrCantWriteToFile, [aFileName]);  //this is to avoid a criptic ole xxxx error...
+        if (not AllowOverwritingFiles) and FileExists(aFileName) then raise Exception.CreateFmt(ErrCantWriteToFile, [aFileName]);  //this is to avoid a criptic ole xxxx error...
       end;
 
       case SF of
@@ -1036,22 +1092,36 @@ begin
   Result:= FWorkbook.WorkSheets[FActiveSheet-1].GetColWidth(aCol-1);
 end;
 
+function TXLSFile.GetColumnWidthHiddenIsZero(aCol: integer): integer;
+begin
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then begin; Result:=0;exit;end;
+  Result:= FWorkbook.WorkSheets[FActiveSheet-1].GetColWidth(aCol-1, true);
+end;
+
 function TXLSFile.GetRowHeight(aRow: integer): integer;
 begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then begin; Result:=0;exit;end;
   Result:= FWorkbook.WorkSheets[FActiveSheet-1].GetRowHeight(aRow-1);
 end;
 
+function TXLSFile.GetRowHeightHiddenIsZero(aRow: integer): integer;
+begin
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then begin; Result:=0;exit;end;
+  Result:= FWorkbook.WorkSheets[FActiveSheet-1].GetRowHeight(aRow-1, true);
+end;
+
 procedure TXLSFile.SetColumnWidth(aCol: integer; const Value: integer);
 begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   FWorkbook.WorkSheets[FActiveSheet-1].SetColWidth(aCol-1, Value);
+	RestoreObjectSizes();
 end;
 
 procedure TXLSFile.SetRowHeight(aRow: integer; const Value: integer);
 begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   FWorkbook.WorkSheets[FActiveSheet-1].SetRowHeight(aRow-1, Value);
+	RestoreObjectSizes();
 end;
 
 function TXLSFile.GetColumnHidden(const aCol: integer): boolean;
@@ -1072,12 +1142,14 @@ begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   if (aCol<1)or (aCol>Max_Columns+1) then exit;
   FWorkbook.WorkSheets[FActiveSheet-1].SetColHidden(aCol-1, Value);
+	RestoreObjectSizes();
 end;
 
 procedure TXLSFile.SetRowHidden(const aRow: integer; const Value: boolean);
 begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   FWorkbook.WorkSheets[FActiveSheet-1].SetRowHidden(aRow-1, Value);
+	RestoreObjectSizes();
 end;
 
 function TXLSFile.GetFirstColumn: integer;
@@ -1304,7 +1376,7 @@ end;
 
 {$IFDEF FLX_VCL}
 procedure TXLSFile.CopyToClipboard(const Range: TXlsCellRange);
-{$IFNDEF TMSASGx}
+{$IFDEF FLEXCEL}
 var
   MyHandle: THandle;
   BiffPtr: pointer;
@@ -1318,7 +1390,7 @@ var
   Range0: TXlsCellRange;
 {$ENDIF}
 begin
-{$IFNDEF TMSASGx}
+{$IFDEF FLEXCEL}
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   WorkbookStr:=WorkbookStrS;
 
@@ -1332,11 +1404,11 @@ begin
 
     MemStream:=TMemoryStream.Create;
     try
-      DocOUT:= TOle2Storage.Create('', Ole2_Write, MemStream);
+      DocOUT:= TOle2Storage.Create('', Ole2_Write, false, MemStream);
       try
         StreamOUT:= TOle2Stream.Create(DocOUT, WorkbookStr);
         try
-          FWorkbook.SaveRangeToStream(StreamOUT, FActiveSheet-1, Range0);
+          FWorkbook.SaveRangeToStream(StreamOUT, FActiveSheet-1, Range0, IsFileModified);
         finally
           FreeAndNil(StreamOut);
         end; //finally
@@ -1406,7 +1478,7 @@ begin
 
     MemStream:=TMemoryStream.Create;
     try
-      DocOUT:= TOle2Storage.Create('', Ole2_Write, MemStream);
+      DocOUT:= TOle2Storage.Create('', Ole2_Write, false, MemStream);
       try
         StreamOUT:= TOle2Stream.Create(DocOUT, WorkbookStr);
         try
@@ -1459,13 +1531,14 @@ begin
 
   TempWorkbook:=TWorkbook.Create;
   try
-    DocIN:= TOle2Storage.Create('', Ole2_Read, Stream);
+    DocIN:= TOle2Storage.Create('', Ole2_Read, false, Stream);
     try
       StreamIn:= TOle2Stream.Create( DocIN, WorkbookStr);
       try
         TempWorkbook.LoadFromStream(StreamIn);
         if (TempWorkbook.Sheets.Count<=0) or (not TempWorkbook.IsWorksheet(0)) then exit; //Biff8 only pastes one sheet
         d:=TempWorkbook.WorkSheets[0].OriginalDimensions;
+        IsFileModified := true;
         for r:= d.FirstRow to d.LastRow-1 do
           for c:= d.FirstCol to d.LastCol-1 do
           begin
@@ -1520,12 +1593,12 @@ end;
 {$ENDIF}
 
 procedure TXlsFile.PasteFromText(const Row, Col: integer);
-{$IFNDEF TMSASGx}
+{$IFDEF FLEXCEL}
 var
   InStream: TStringStream;
 {$ENDIF}
 begin
-{$IFNDEF TMSASGx}
+{$IFDEF FLEXCEL}
   InStream:=TStringStream.Create(ClipBoard.AsText);
   try
     LoadFromTextDelim(InStream, Self, #9, Row, Col,[]);
@@ -1729,6 +1802,7 @@ procedure TXLSFile.SetCellFormula(aRow, aCol: integer;
 begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
     FWorkbook.WorkSheets[FActiveSheet-1].Cells.CellList.Formula[aRow-1, aCol-1]:=Value;
+    IsFileModified := true;
 end;
 
 procedure TXLSFile.AddImage(const Data: string; const DataType: TXlsImgTypes;
@@ -1861,6 +1935,7 @@ procedure TXLSFile.AssignCellDataX2(const aRow, aColOffset: integer;
 begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   FWorkbook.WorkSheets[FActiveSheet-1].Cells.CellList.SetValueX2(aRow-1, FirstColumn + aColOffset, Value, RTFRuns);
+  IsFileModified := true;
 end;
 
 procedure TXLSFile.GetCellDataX2(const aRow, aColOffset: integer;
@@ -1876,6 +1951,7 @@ begin
   begin;
     FWorkbook.WorkSheets[FActiveSheet-1].ClearValues;
     SelectSheet(FActiveSheet);
+    IsFileModified := true;
   end;
 end;
 
@@ -1885,7 +1961,7 @@ begin
 
   FWorkbook.DeleteSheets(FActiveSheet-1, aSheetCount);
   if (FActiveSheet>= SheetCount) then ActiveSheet:=SheetCount-1;  //Guarantee that ActiveSheet remains valid.
-
+  IsFileModified := true;
 end;
 
 function TXLSFile.GetPrintOptions: byte;
@@ -1929,6 +2005,7 @@ begin
   if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
   for i:=Low(RTFRuns) to High(RTFRuns) do dec(RTFRuns[i].FirstChar);
   FWorkbook.WorkSheets[FActiveSheet-1].Cells.CellList.SetValueX2(aRow-1, aCol-1, Value, RTFRuns);
+  IsFileModified := true;
 end;
 
 procedure TXLSFile.GetCellValueX2(aRow, aCol: integer; out v: TXlsCellValue; out RTFRuns: TRTFRunList);
@@ -1993,12 +2070,10 @@ begin
   FWorkbook.WorkSheets[FActiveSheet-1].HLinks[HyperLinkIndex-1].SetCellRange(OffsetRange(CellRange,-1,-1));
 end;
 
-{$IFDEF INTERNAL_ACCESS}
 function TXLSFile.GetTWorkbook: TWorkbook;
 begin
   Result:=FWorkbook;
 end;
-{$ENDIF}
 
 function TXLSFile.GetColOutlineLevel(const aCol: integer): integer;
 begin
@@ -2212,6 +2287,90 @@ begin
   finally
     inc(NamedRange.NameSheetIndex);
   end;
+end;
+
+function TXLSFile.GetOutlineSummaryColsRightOfDetail: boolean;
+begin
+  Result:=true;
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
+  Result:=FWorkbook.WorkSheets[FActiveSheet-1].OutlineSummaryColsRightOfDetail;
+end;
+
+function TXLSFile.GetOutlineSummaryRowsBelowDetail: boolean;
+begin
+  Result:=true;
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
+  Result:=FWorkbook.WorkSheets[FActiveSheet-1].OutlineSummaryRowsBelowDetail;
+end;
+
+function TXLSFile.GetOutlineAutomaticStyles: boolean;
+begin
+  Result:=false;
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
+  Result:=FWorkbook.WorkSheets[FActiveSheet-1].OutlineAutomaticStyles;
+end;
+
+procedure TXLSFile.SetOutlineSummaryColsRightOfDetail(const Value: boolean);
+begin
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
+  FWorkbook.WorkSheets[FActiveSheet-1].OutlineSummaryColsRightOfDetail:=Value;
+end;
+
+procedure TXLSFile.SetOutlineSummaryRowsBelowDetail(const Value: boolean);
+begin
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
+  FWorkbook.WorkSheets[FActiveSheet-1].OutlineSummaryRowsBelowDetail:=Value;
+end;
+
+procedure TXLSFile.SetOutlineAutomaticStyles(const Value: boolean);
+begin
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
+  FWorkbook.WorkSheets[FActiveSheet-1].OutlineAutomaticStyles:=Value;
+end;
+
+procedure TXLSFile.AutofitCol(const Col1, Col2: integer;
+  const IgnoreStrings: Boolean; const Adjustment: extended);
+begin
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
+  FWorkbook.WorkSheets[FActiveSheet-1].RecalcColWidths(self, col1 - 1, col2 - 1, IgnoreStrings, adjustment);
+  RestoreObjectSizes;
+end;
+
+procedure TXLSFile.AutofitRow(const row1, row2: integer;
+  const AutofitNotAutofittingRows, keepHeightAutomatic: Boolean;
+  const adjustment: extended);
+begin
+  if not FWorkbook.IsWorkSheet(FActiveSheet-1) then exit;
+  FWorkbook.WorkSheets[FActiveSheet-1].RecalcRowHeights(self, row1 - 1, row2 - 1, AutofitNotAutofittingRows, keepHeightAutomatic, adjustment);
+  RestoreObjectSizes;
+end;
+
+procedure TXLSFile.AutofitRowsOnWorkbook(const AutofitNotAutofittingRows,
+  KeepSizesAutomatic: Boolean; const Adjustment: extended);
+var
+  i: integer;
+  ws: TWorkSheet;
+begin
+  for i := 0 to SheetCount - 1 do
+  begin
+    if FWorkbook.IsWorksheet(i) then
+    begin
+      ws:=FWorkbook.WorkSheets[i];
+      ws.Cells.CellList.RecalcRowHeights(self, 0, ws.Cells.RowList.Count - 1, AutofitNotAutofittingRows, KeepSizesAutomatic, Adjustment);
+      ws.RestoreObjectCoords;
+
+    end;
+  end;
+end;
+
+function TXLSFile.GetInvalidateFormulas: boolean;
+begin
+  Result := IsFileModified;
+end;
+
+procedure TXLSFile.SetInvalidateFormulas(const Value: boolean);
+begin
+  IsFileModified := value;
 end;
 
 end.

@@ -163,7 +163,6 @@ type
                      constructor Create(aList:TButtonListBox);
                      procedure CurrentEffect(dwEffect: Longint); override;
                      procedure QueryDrag; override;
-                    published
                      property LastEffect:integer read FLastEffect;
                     end;
   {$ENDIF}

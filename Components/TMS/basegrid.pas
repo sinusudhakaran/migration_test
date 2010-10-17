@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TBaseGrid component                                                       }
 { for Delphi & C++Builder                                                   }
-{ version 3.4.x.x                                                           }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 1996-2006                                          }
+{            copyright © 1996-2008                                          }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -51,6 +50,7 @@ type
     {$IFDEF TMSUNICODE}
     , edUniEdit,edUniComboEdit,edUniComboList,edUniEditBtn, edUniMemo
     {$ENDIF}
+    , edDateTimeEdit
     );
 
   { TCellProperties }
@@ -104,8 +104,8 @@ type
     property IsBaseCell: Boolean read FIsBaseCell write FIsBaseCell;
     property CellSpanX: Integer read FCellSpanX write FCellSpanX;
     property CellSpanY: Integer read FCellSpanY write FCellSpany;
-    property OwnerCol: Integer read FOwnerCol write FOwnerCol;
-    property OwnerRow: Integer read FOwnerRow write FOwnerRow;
+    property OwnerCol: Integer read FOwnerCol write FOwnerCol stored False;
+    property OwnerRow: Integer read FOwnerRow write FOwnerRow stored False;
     property Alignment: TAlignment read FAlignment write SetAlignment;
     property BorderColor: TColor read FBorderColor write FBorderColor;
     property BorderWidth: integer read FBorderWidth write FBorderWidth;
@@ -135,12 +135,16 @@ type
     FCol: Integer;
     FValue: string;
     FOrigValue: string;
+    FSequenceStart: boolean;
+    FSequenceStop: boolean;
   public
   published
     property Value: string read FValue write FValue;
     property OrigValue: string read FOrigValue write FOrigValue;
     property Col: Integer read FCol write FCol;
     property Row: Integer read FRow write FRow;
+    property SequenceStart:boolean read FSequenceStart write FSequenceStart;
+    property SequenceStop:boolean read FSequenceStop write FSequenceStop;
   end;
 
   TUndoRedoCollection = class(TCollection)
@@ -148,8 +152,9 @@ type
   public
     constructor Create;
   published
-
   end;
+
+  TAdvGridUndoRedoEvent = procedure(Sender: TObject; Grid: TBaseGrid; Col,Row: integer; OrigValue,NewValue: string) of object;
 
   TAdvGridUndoRedo = class(TComponent)
   private
@@ -157,12 +162,16 @@ type
     FGrid: TBaseGrid;
     FLevel: Integer;
     FMaxLevel: Integer;
+    FOnUndo: TAdvGridUndoRedoEvent;
+    FOnRedo: TAdvGridUndoRedoEvent;
   protected
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure RegisterChange(ACol,ARow: Integer; OldValue, NewValue: string); virtual;
+    procedure StartSequence; virtual;
+    procedure StopSequence; virtual;
     property Level: Integer read FLevel write FLevel;
     property Items: TUndoRedoCollection read FItems write FItems;
     property Grid: TBaseGrid read FGrid write FGrid;
@@ -173,7 +182,8 @@ type
     function CanRedo: Boolean;
   published
     property MaxLevel: Integer read FMaxLevel write FMaxLevel;
-
+    property OnUndo: TAdvGridUndoRedoEvent read FOnUndo write FOnUndo;
+    property OnRedo: TAdvGridUndoRedoEvent read FOnRedo write FOnRedo;
   end;
 
   TBaseGrid = class(TStringGrid)
@@ -182,6 +192,7 @@ type
     FDefaultDrawing: Boolean;
     FGridLineWidth: Integer;
     FGridLineColor: TColor;
+    FGridFixedLineColor: TColor;
     FPaintID: Integer;
     FCustomSelect: Boolean;
     FOnGetDisplText: TGetDisplTextEvent;
@@ -197,6 +208,7 @@ type
     function GetGridLineWidth: integer;
     procedure SetGridLineWidth(const Value: integer);
     procedure SetGridLineColor(const Value: TColor);
+    procedure SetGridFixedLineColor(const Value: TColor);
     procedure SetObjectEx(c, r: integer; const Value: TObject);
     function GetObjectEx(c, r: integer): TObject;
     function GetCellEx(c, r: integer): String;
@@ -211,7 +223,12 @@ type
     procedure SetGridCell(c, r: Integer; const Value: string);
     procedure SetUndoRedo(const Value: TAdvGridUndoRedo);
     procedure SetActiveRowColor(const Value: TColor);
+    //function GetRowsEx(r: integer): TStrings;
+    //procedure SetRowsEx(r: integer; const Value: TStrings);
   protected
+    FShowSelection: Boolean;
+    FHasCellProps: Boolean;
+    function GetCPGraphicObject(cp: TCellProperties): TObject;
     { Protected declarations }
     {$IFNDEF DELPHI6_LVL}
     procedure SetGridOrientation(RightToLeftOrientation: Boolean);
@@ -229,8 +246,7 @@ type
     function FixedColsWidth: Integer;
     function FixedRowsHeight: Integer;
     procedure TopLeftChanged; override;
-    procedure DrawCell(ACol, ARow: Longint; ARect: TRect;
-      AState: TGridDrawState); override;
+    procedure DrawCell(ACol, ARow: Longint; ARect: TRect; AState: TGridDrawState); override;
     procedure DrawGridCell(Canvas: TCanvas; ACol, ARow:longint; ARect:TRect; AState:TGridDrawState); virtual;
     function HasCellProperties(ACol, ARow:integer): Boolean;
     procedure ClearProps;
@@ -258,7 +274,7 @@ type
     property GridObjects[c,r: Integer]: TObject read GetGridObject write SetGridObject;
     procedure GetDisplText(c,r: Integer; var Value: string); virtual;
     procedure GetDisplWideText(c,r: Integer; var Value: widestring); virtual;
-    procedure GetDefaultProps(ACol,ARow: Integer; AFont: TFont; ABrush: TBrush; var AColorTo: TColor;
+    procedure GetDefaultProps(ACol,ARow: Integer; AFont: TFont; ABrush: TBrush; var AColorTo, AMirrorColor, AMirrorColorTo: TColor;
       var HA: TAlignment; var VA: TVAlignment; var WW: boolean; var GD: TCellGradientDirection); virtual;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
   public
@@ -269,7 +285,7 @@ type
     procedure SetCellProperties(c, r: integer; const Value: TCellProperties);
     property CellProperties[c,r: Integer]: TCellProperties read GetCellProperties write SetCellProperties;
     procedure GetVisualProperties(ACol,ARow: Integer; var AState: TGridDrawState; Print, Select, Remap: Boolean;
-      ABrush: TBrush; var AColorTo: TColor; AFont: TFont; var HA: TAlignment; var VA: TVAlignment; var WW: Boolean;
+      ABrush: TBrush; var AColorTo, AMirrorColor, AMirrorColorTo: TColor; AFont: TFont; var HA: TAlignment; var VA: TVAlignment; var WW: Boolean;
       var GD: TCellGradientDirection); virtual;
     function CellRect(c,r:Integer): TRect;
     function CellSize(c,r: Integer): TPoint;
@@ -295,16 +311,19 @@ type
     property Cells[c,r: Integer]: String read GetCellEx write SetCellEx;
     property GridCells[c,r: Integer]: string read GetGridCell write SetGridCell;
     property WordWrap: boolean read FWordWrap write FWordWrap;
+    //property Rows[r: Integer]: TStrings read GetRowsEx write SetRowsEx;
   published
     { Published declarations }
     property ActiveRowShow: Boolean read FActiveRowShow write FActiveRowShow default False;
     property ActiveRowColor: TColor read FActiveRowColor write SetActiveRowColor default clInfoBk;
     property DefaultDrawing: Boolean read GetDefaultDrawing write SetDefaultDrawing default False;
     property GridLineWidth: Integer read GetGridLineWidth write SetGridLineWidth default 1;
-    property GridLineColor: TColor read fGridLineColor write SetGridLineColor default clSilver;
+    property GridLineColor: TColor read FGridLineColor write SetGridLineColor default clSilver;
+    property GridFixedLineColor: TColor read FGridFixedLineColor write SetGridFixedLineColor default clGray;
     property OnGetDisplText: TGetDisplTextEvent read FOnGetDisplText write FOnGetDisplText;
     property OnGetDisplWideText: TGetDisplWideTextEvent read FOnGetDisplWideText write FOnGetDisplWideText;
     property UndoRedo: TAdvGridUndoRedo read FUndoRedo write SetUndoRedo;
+
   end;
 
 
@@ -324,8 +343,10 @@ const
 constructor TBaseGrid.Create(AOwner: TComponent);
 begin
   inherited;
+
   GridLineWidth := 1;
-  GridLineColor := clSilver;
+  FGridLineColor := clSilver;
+  FGridFixedLineColor := clGray;
   DefaultDrawing := False;
   Options := Options + [goDrawFocusSelected];
   CustomSelect := True;
@@ -360,8 +381,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TBaseGrid.DrawCell(ACol, ARow: Integer; ARect: TRect;
-  AState: TGridDrawState);
+procedure TBaseGrid.DrawCell(ACol, ARow: Integer; ARect: TRect; AState: TGridDrawState);
 var
   hrgn: THandle;
   CrL,CrT: Integer;
@@ -371,7 +391,7 @@ var
   VA: TVAlignment;
   WW: Boolean;
   GLW: Integer;
-  AColorTo: TColor;
+  AColorTo,AMirrorColor,AMirrorColorTo: TColor;
   GD: TCellGradientDirection;
 begin
   hrgn := 0;
@@ -422,31 +442,39 @@ begin
   Canvas.Pen.Width := 1;
   Canvas.Font.Assign(Font);
 
-  GetVisualProperties(ACol,ARow,AState,False,True,True,Canvas.Brush,AColorTo,Canvas.Font,HA,VA,WW,GD);
+  GetVisualProperties(ACol,ARow,AState,False,True,True,Canvas.Brush,AColorTo,AMirrorColor,AMirrorColorTo,Canvas.Font,HA,VA,WW,GD);
 
 //  if Canvas.Brush.Color = clNone then
 //    Canvas.Brush.Color := Color;
 
   Canvas.Pen.Color := Canvas.Brush.Color;
 
-  if (ActiveRowShow) and (ARow = Row) and (ACol <> Col) then
+  if (ActiveRowShow) and (ARow = Row) and ((ACol <> Col) or (FShowSelection = false)) then
     Canvas.Brush.Color := ActiveRowColor;
 
+  Canvas.Pen.Color := Canvas.Brush.Color;
+
   if (AColorTo <> clNone) {and not (gdSelected in AState)} then
-    DrawGradient(Canvas,Canvas.Brush.Color,AColorTo,64, ARect,GD = GradientHorizontal)
+  begin
+    if AMirrorColorTo <> clNone then
+      DrawVistaGradient(Canvas, ARect, Canvas.Brush.Color, AColorTo, AMirrorColor, AMirrorColorTo, true, clNone)
+    else
+      DrawGradient(Canvas,Canvas.Brush.Color,AColorTo,64, ARect,GD = GradientHorizontal)
+  end
   else
     Canvas.Rectangle(ARect.Left,ARect.Top, ARect.Right ,ARect.Bottom);
 
   if gdFixed in AState then
   begin
-    Canvas.Pen.Color := clgray;
+    Canvas.Pen.Color := FGridFixedLineColor;
     Canvas.Pen.Width := 1;
     GLW := 1;
   end
   else
   begin
     if FGridLineWidth > 0 then
-      Canvas.Pen.Color := GridLineColor;
+      Canvas.Pen.Color := FGridLineColor;
+
     Canvas.Pen.Width := FGridLineWidth;
     GLW := (FGridLineWidth + 1) shr 1;
   end;
@@ -469,10 +497,10 @@ begin
   if ((goVertLine in Options) and not (gdFixed in AState)) or
      ((goFixedVertLine in Options) and (gdFixed in AState)) then
   begin
-    if UseRightToLeftAlignment then    
+    if UseRightToLeftAlignment then
     begin
-      Canvas.MoveTo(ARect.Right - GLW +1,ARect.Bottom - GLW);
-      Canvas.LineTo(ARect.Right - GLW +1,ARect.Top - GLW);
+      Canvas.MoveTo(ARect.Right - GLW + 1,ARect.Bottom - GLW);
+      Canvas.LineTo(ARect.Right - GLW + 1,ARect.Top - GLW);
     end
     else
     begin
@@ -482,10 +510,12 @@ begin
   end;
 
   if gdFixed in AState then
+  begin
     Inflaterect(ARect,-1,-1)
+  end
   else
     Inflaterect(ARect,-FGridLineWidth,-FGridLineWidth);
-
+  
   DrawGridCell(Canvas,ACol,ARow,ARect,AState);
 
   // DrawText(Canvas.Handle,PChar(Cells[ACol,ARow]),Length(Cells[ACol,ARow]),ARect,DT_CENTER or DT_VCENTER or DT_SINGLELINE or DT_NOCLIP);
@@ -503,12 +533,14 @@ begin
 end;
 
 procedure TBaseGrid.GetDefaultProps(ACol, ARow: Integer; AFont: TFont;
-  ABrush: TBrush; var AColorTo: TColor; var HA: TAlignment;
+  ABrush: TBrush; var AColorTo, AMirrorColor, AMirrorColorTo: TColor; var HA: TAlignment;
   var VA: TVAlignment; var WW: boolean; var GD: TCellGradientDirection);
 begin
   AFont.Assign(Font);
   ABrush.Color := Color;
   AColorTo := clNone;
+  AMirrorColor := clNone;
+  AMirrorColorTo := clNone;
   HA := taLeftJustify;
   VA := vtaTop;
   WW := WordWrap;
@@ -528,14 +560,17 @@ begin
   if EC then
     Cells[c,r] := ' ';
 
-  if not Assigned(inherited Objects[c,r]) then
-    inherited Objects[c,r] := TCellProperties.Create(self,c,r);
+  //if not Assigned(inherited Objects[c,r]) then
+  //  inherited Objects[c,r] := TCellProperties.Create(self,c,r);
+  //TCellProperties(inherited Objects[c,r]).CellObject := Value;
 
-  TCellProperties(inherited Objects[c,r]).CellObject := Value;
+   // set cellobject in a correct initialized cellproperties object
+  CellProperties[c,r].CellObject := Value;
 
   if EC then
     Cells[c,r] := '';
 end;
+
 
 function TBaseGrid.GetObjectEx(c, r: integer): TObject;
 begin
@@ -556,6 +591,13 @@ begin
   FGridLineColor := Value;
   Invalidate;
 end;
+
+procedure TBaseGrid.SetGridFixedLineColor(const Value: TColor);
+begin
+  FGridFixedLineColor := Value;
+  Invalidate;
+end;
+
 
 procedure TBaseGrid.SetGridLineWidth(const Value: integer);
 begin
@@ -604,6 +646,11 @@ begin
   OffsetRect(ARect,tlr.Left,tlr.Top);
 
   Result := ARect;
+end;
+
+function TBaseGrid.GetCPGraphicObject(cp: TCellProperties): TObject;
+begin
+  Result := cp.FGraphicObject;
 end;
 
 function TBaseGrid.CellRect(c,r: integer): TRect;
@@ -735,7 +782,7 @@ var
   VA: TVAlignment;
   WW: Boolean;
   GD: TCellGradientDirection;
-  AColorTo: TColor;
+  AColorTo, AMirrorColor, AMirrorColorTo: TColor;
   cp: TCellProperties;
   AFont: TFont;
   ABrush: TBrush;
@@ -751,8 +798,9 @@ begin
     AFont := TFont.Create;
     ABrush := TBrush.Create;
 
-    GetDefaultProps(c,r,AFont,ABrush,AColorTo,HA,VA,WW,GD);
+    GetDefaultProps(c,r,AFont,ABrush,AColorTo,AMirrorColor,AMirrorColorTo,HA,VA,WW,GD);
 
+    cp.CalcType := acNone;
     cp.Alignment := HA;
     cp.VAlignment := VA;
     cp.WordWrap := WW;
@@ -895,13 +943,16 @@ procedure TBaseGrid.RepaintCell(c, r: integer);
 var
   ARect: TRect;
 begin
-  ARect := CellRect(c,r);
-  {$IFNDEF TMSDOTNET}
-  InvalidateRect(Handle,@ARect,True);
-  {$ENDIF}
-  {$IFDEF TMSDOTNET}
-  InvalidateRect(Handle,ARect,True);
-  {$ENDIF}
+  if HandleAllocated Then 
+  begin
+    ARect := CellRect(c,r);
+    {$IFNDEF TMSDOTNET}
+    InvalidateRect(Handle,@ARect,True);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    InvalidateRect(Handle,ARect,True);
+    {$ENDIF}
+  end;
 end;
 
 function TBaseGrid.IsSelected(ACol, ARow: Integer): Boolean;
@@ -954,7 +1005,7 @@ begin
       with CellProperties[BC.X,BC.Y] do
       begin
         if (Col <= BC.X + CellSpanX) and (Col < ColCount - 1) and
-           (BC.X < ColCount -1) then
+           (BC.X < ColCount -1) and (BC.X + CellSpanX < ColCount) then
           Col := BC.X + CellSpanX;
       end;
     end;
@@ -1048,7 +1099,7 @@ begin
 end;
 
 procedure TBaseGrid.GetVisualProperties(ACol, ARow: Integer;
-  var AState: TGridDrawState; Print, Select, Remap: Boolean; ABrush: TBrush; var AColorTo: TColor; AFont: TFont;
+  var AState: TGridDrawState; Print, Select, Remap: Boolean; ABrush: TBrush; var AColorTo, AMirrorColor, AMirrorColorTo: TColor; AFont: TFont;
   var HA: TAlignment; var VA: TVAlignment; var WW: Boolean;var GD: TCellGradientDirection);
 begin
 
@@ -1073,7 +1124,7 @@ var
   VA: TVAlignment;
   WW: boolean;
   GD: TCellGradientDirection;
-  AColorTo: TColor;
+  AColorTo,AMirrorColor,AMirrorColorTo: TColor;
 
 begin
   EC := Cells[c,r] = '';
@@ -1089,7 +1140,7 @@ begin
     AFont := TFont.Create;
     ABrush := TBrush.Create;
 
-    GetDefaultProps(c,r,AFont,ABrush,AColorTo,HA,VA,WW,GD);
+    GetDefaultProps(c,r,AFont,ABrush,AColorTo,AMirrorColor,AMirrorColorTo,HA,VA,WW,GD);
 
     cp.Alignment := HA;
     cp.VAlignment := VA;
@@ -1104,7 +1155,6 @@ begin
 
     ABrush.Free;
     AFont.Free;
-    
   end;
 
   TCellProperties(inherited Objects[c,r]).GraphicObject := Value;
@@ -1378,11 +1428,18 @@ end;
 procedure TBaseGrid.ClearPropRect(ACol1, ARow1, ACol2, ARow2: Integer);
 var
   c,r: Integer;
+  cp: TCellProperties;
 begin
+  if not FHasCellProps then
+    Exit;
   for c := ACol1 to ACol2 do
    for r := ARow1 to ARow2 do
      if Assigned(inherited Objects[c,r]) then
      begin
+       cp := TCellProperties(inherited Objects[c,r]);
+       if Assigned(cp.GraphicObject) and (cp.GraphicObject.ClassName = 'TCellGraphic') then
+         cp.GraphicObject.Free;
+
        TCellProperties(inherited Objects[c,r]).Free;
        inherited Objects[c,r] := nil;
      end;
@@ -1499,10 +1556,9 @@ begin
   FReadOnly := TCellProperties(Source).ReadOnly;
   FEditor := TCellProperties(Source).Editor;
   FValignment := TCellProperties(Source).VAlignment;
-  WordWrap := TCellProperties(Source).WordWrap;
-  NodeLevel := TCellProperties(Source).NodeLevel;
-
-  Control := TCellProperties(Source).Control;
+  FWordWrap := TCellProperties(Source).WordWrap;
+  FNodeLevel := TCellProperties(Source).NodeLevel;
+  FControl := TCellProperties(Source).Control;
 end;
 
 constructor TCellProperties.Create(AOwner: TBaseGrid; ACol, ARow:integer);
@@ -1524,6 +1580,8 @@ begin
   FCalcObject := nil;
   FWordWrap := AOwner.FWordWrap;
   FNodeLevel := 0;
+
+  AOwner.FHasCellProps := true;
 end;
 
 function TCellProperties.GetBaseCell(c, r: Integer): TPoint;
@@ -1609,12 +1667,36 @@ begin
     begin
       inc(FLevel);
 
-      with TUndoRedoItem(FItems.Items[FLevel - 1]) do
+      if TUndoRedoItem(FItems.Items[FLevel - 1]).SequenceStart then
       begin
-        Grid.Cells[Col,Row] := Value;
-        Grid.Col := Col;
-        Grid.Row := Row;
-      end;
+        inc(FLevel);
+
+        while (FLevel < FItems.Count) and not (TUndoRedoItem(FItems.Items[FLevel - 1]).SequenceStop) do
+        begin
+          with TUndoRedoItem(FItems.Items[FLevel - 1]) do
+          begin
+            if Assigned(FOnRedo) then
+              FOnRedo(self, Grid, Col, Row, Grid.Cells[Col,Row], Value);
+
+            Grid.Cells[Col,Row] := Value;
+            Grid.Col := Col;
+            Grid.Row := Row;
+          end;
+          inc(FLevel);
+        end;
+        inc(FLevel);
+        Grid.Invalidate;
+      end
+      else
+        with TUndoRedoItem(FItems.Items[FLevel - 1]) do
+        begin
+          if Assigned(FOnRedo) then
+            FOnRedo(self, Grid, Col, Row, Grid.Cells[Col,Row], Value);
+
+          Grid.Cells[Col,Row] := Value;
+          Grid.Col := Col;
+          Grid.Row := Row;
+        end;
     end;
   end;
 end;
@@ -1630,7 +1712,9 @@ begin
     Col := ACol;
     Row := ARow;
     Value := NewValue;
-    OrigValue := OldValue
+    OrigValue := OldValue;
+    SequenceStart := false;
+    SequenceStop := false;
   end;
   FLevel := FItems.Count;
 end;
@@ -1641,16 +1725,67 @@ begin
     do FItems.Items[0].Free;
 end;
 
+procedure TAdvGridUndoRedo.StartSequence;
+begin
+  with TUndoRedoItem(FItems.Add) do
+  begin
+    Col := -1;
+    Row := -1;
+    Value := '';
+    OrigValue := '';
+    SequenceStart := true;
+    SequenceStop := false;
+  end;
+  FLevel := FItems.Count;
+end;
+
+procedure TAdvGridUndoRedo.StopSequence;
+begin
+  with TUndoRedoItem(FItems.Add) do
+  begin
+    Col := -1;
+    Row := -1;
+    Value := '';
+    OrigValue := '';
+    SequenceStart := false;
+    SequenceStop := true;
+  end;
+  FLevel := FItems.Count;
+end;
+
 procedure TAdvGridUndoRedo.Undo;
 begin
   if Assigned(Grid) and (FLevel > 0) and (FLevel <= FItems.Count) then
   begin
-    with TUndoRedoItem(FItems.Items[FLevel - 1]) do
+    if TUndoRedoItem(FItems.Items[FLevel - 1]).SequenceStop then
     begin
-      Grid.Cells[Col,Row] := OrigValue;
-      Grid.Col := Grid.DisplColIndex(Col);
-      Grid.Row := Row;
-      Grid.RepaintCell(Grid.Col,Row);
+      dec(FLevel);
+      while (FLevel > 0) and not (TUndoRedoItem(FItems.Items[FLevel - 1]).SequenceStart) do
+      begin
+        with TUndoRedoItem(FItems.Items[FLevel - 1]) do
+        begin
+          if Assigned(FOnUndo) then
+             FOnUndo(self, Grid, Col, Row, Grid.Cells[Col,Row], OrigValue);
+          Grid.Cells[Col,Row] := OrigValue;
+          Grid.Col := Grid.DisplColIndex(Col);
+          Grid.Row := Row;
+        end;
+        dec(FLevel);
+      end;
+      dec(FLevel);
+      Grid.Invalidate;
+    end
+    else
+    begin
+      with TUndoRedoItem(FItems.Items[FLevel - 1]) do
+      begin
+        if Assigned(FOnUndo) then
+          FOnUndo(self, Grid, Col, Row, Grid.Cells[Col,Row], OrigValue);
+        Grid.Cells[Col,Row] := OrigValue;
+        Grid.Col := Grid.DisplColIndex(Col);
+        Grid.Row := Row;
+        Grid.RepaintCell(Grid.Col,Row);
+      end;
       dec(FLevel);
     end;
   end;
@@ -1662,5 +1797,6 @@ constructor TUndoRedoCollection.Create;
 begin
   inherited Create(TUndoRedoItem);
 end;
+
 
 end.

@@ -5,7 +5,7 @@
 {                                                                           }
 { written by                                                                }
 {       TMS Software                                                        }
-{       copyright © 1998-2006                                               }
+{       copyright © 1998-2008                                               }
 {       Email : info@tmssoftware.com                                        }
 {       Web : http://www.tmssoftware.com                                    }
 { The source code is given as is. The author is not responsible             }
@@ -37,6 +37,7 @@ const
   //          : added style interface
   // v1.2.1.0 : Added support for Office 2007 styles
   // v1.2.1.1 : Fixed : repaint issue on style change
+  // v1.2.1.2 : Fixed : issue with caption drawing
   
 type
   TShader = class(TPanel, ITMSStyle)
@@ -343,6 +344,16 @@ begin
     DrawVistaGradient(Canvas, R, FromColor, ToColor, FromColorMirror, ToColorMirror, gdVertical, clNone)
   else
     DrawVistaGradient(Canvas, R, FromColor, ToColor, FromColorMirror, ToColorMirror, gdHorizontal, clNone);
+
+  Canvas.Font.Assign(Font);
+
+  SetBkMode(Canvas.Handle, TRANSPARENT);
+  {$IFNDEF TMSDOTNET}
+  DrawText(Canvas.Handle, Pchar(Caption), Length(Caption), R, DT_SINGLELINE or DT_CENTER or DT_VCENTER);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  DrawText(Canvas.Handle, Caption, Length(Caption), R, DT_SINGLELINE or DT_CENTER or DT_VCENTER);
+  {$ENDIF}
 end;
 
 function TShader.GetVersion: string;

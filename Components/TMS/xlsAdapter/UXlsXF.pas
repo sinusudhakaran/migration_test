@@ -23,8 +23,6 @@ type
   TFormatRecordList=class;
 
   TXFRecord=class(TBaseRecord)
-  private
-    function GetActualFontIndex(const FontList: TFontRecordList): integer;
   public
     function CellPattern: integer;
     function CellFgColorIndex: integer;
@@ -32,6 +30,7 @@ type
 
     function FontIndex: integer;
     function FormatIndex: integer;
+    function GetActualFontIndex(const FontList: TFontRecordList): integer;
 
     function GetBorderStyle(const aPos: integer; const FirstBit: byte):TFlxBorderStyle;
     function GetBorderColorIndex(const aPos: integer; const FirstBit: byte):integer;
@@ -50,6 +49,9 @@ type
     constructor CreateFromFormat(const Fmt: TFlxFormat; const FontList: TFontRecordList; const FormatList: TFormatRecordList);
     function FlxFormat(const FontList: TFontRecordList; const FormatList: TFormatRecordList): TFlxFormat;
     procedure FillUsedColors(const UsedColors: BooleanArray; const FontList: TFontRecordList);
+
+    function Rotation: integer;
+    function WrapText: boolean;
   end;
 
   TXFRecordList= class(TBaseRecordList)  //Items are TXFRecord
@@ -454,6 +456,16 @@ end;
 function TXFRecord.VAlign: TVFlxAlignment;
 begin
   Result:=TVFlxAlignment(PXFDat(Data).Options6 and $70 shr 4);
+end;
+
+function TXFRecord.Rotation: integer;
+begin
+  Result := Data[7];
+end;
+
+function TXFRecord.WrapText: boolean;
+begin
+  Result := PXFDat(Data).Options6 and $8 = $8;
 end;
 
 { TFontRecord }

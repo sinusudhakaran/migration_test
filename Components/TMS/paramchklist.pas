@@ -1,10 +1,9 @@
 {**************************************************************************}
 { TParamCheckList component                                                )
 { for Delphi & C++Builder                                                  }
-{ version 1.3                                                              }
 {                                                                          }
 { written by TMS Software                                                  }
-{            copyright © 2000 - 2006                                       }
+{            copyright © 2000 - 2008                                       }
 {            Email : info@tmssoftware.com                                  }
 {            Website : http://www.tmssoftware.com/                         }
 {                                                                          }
@@ -40,7 +39,7 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 2; // Release nr.
+  REL_VER = 3; // Release nr.
   BLD_VER = 0; // Build nr.
 
   // version history
@@ -50,9 +49,16 @@ const
   // 1.3.0.4 : fixed issue with popup menu selection
   // 1.3.1.0 : improved positioning of directory select dialog on multimonitor machines
   // 1.3.2.0 : New : property WordWrap added
+  // 1.3.2.1 : Fixed checkbox painting issue on Delphi 2007
+  // 1.3.3.0 : Fixed issue with spinedit
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TParamClickEvent = procedure (Sender:TObject;idx:integer; href:string;var value:string) of object;
   TParamPopupEvent = procedure (Sender:TObject;idx:integer; href:string;values:TStringlist;var DoPopup:boolean) of object;
   TParamSelectEvent = procedure (Sender:TObject;idx:integer; href,value:string) of object;
@@ -1090,11 +1096,13 @@ begin
   else
     R.Left := R.Right - GetItemIndent(Index);
 
+  Invalidate;
+
   {$IFNDEF TMSDOTNET}
-  InvalidateRect(Handle, @R, not (csOpaque in ControlStyle));
+  //InvalidateRect(Handle, @R, not (csOpaque in ControlStyle));
   {$ENDIF}
   {$IFDEF TMSDOTNET}
-  InvalidateRect(Handle, R, not (csOpaque in ControlStyle));
+  //InvalidateRect(Handle, R, not (csOpaque in ControlStyle));
   {$ENDIF}
   UpdateWindow(Handle);
 end;
@@ -1160,7 +1168,7 @@ begin
     ToggleClickCheck(ItemIndex);
   inherited;
 
-  if (FFocusLink <> -1) and (ItemIndex >= 0) and (ItemIndex < Items.Count) and (Key in [#13]) then
+  if (FFocusLink <> -1) and (ItemIndex >= 0) and (ItemIndex < Items.Count) and (Key = #13) then
   begin
     {$IFDEF TMSDEBUG}
     outputdebugstring(pchar('start edit for : '+inttostr(ffocuslink)));
@@ -1499,7 +1507,11 @@ begin
 
     PrepareParam(Param,v);
 
-    FParamSpinEdit.Value := StrToInt(Trim(v));
+    try
+      FParamSpinEdit.Value := StrToInt(Trim(v));
+    except
+      FParamSpinEdit.Value := 0;
+    end;
     FParamSpinEdit.SetFocus;
   end;
 

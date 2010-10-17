@@ -1,9 +1,8 @@
 {*************************************************************************}
 { TTodoList component                                                     }
 { for Delphi & C++Builder                                                 }
-{ version 1.2.4                                                           }
 {                                                                         }
-{ Copyright © 2001-2006 by TMS software                                   }
+{ Copyright © 2001-2008                                                   }
 { Email : info@tmssoftware.com                                            }
 { Web : http://www.tmssoftware.com                                        }
 {                                                                         }
@@ -18,7 +17,7 @@
 
 unit TodoList;
 
-{
+{                 
   With the USE_PLANNERDATEPICKER definition disabled, the component uses the
   Win32 date picker component for date editing. It's colors can be set using
   the EditColors.DefaultDateEditor property.
@@ -45,7 +44,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, StdCtrls, ExtCtrls,
-  Forms, Spin, ComCtrls, Math, Mask, Buttons, ComObj,
+  Forms, Spin, ComCtrls, Math, Mask, Buttons, ComObj, AdvStyleIF,
 
 {$IFNDEF TMSDOTNET}
   ToDoXPVS,
@@ -59,6 +58,10 @@ uses
 {$IFDEF USE_PLANNERDATEPICKER}
   , PlannerCal, PlannerDatePicker
 {$ENDIF}
+
+{$IFDEF DELPHI_UNICODE}
+  , Character
+{$ENDIF}
   ;
 
 const
@@ -68,10 +71,10 @@ const
 {$ENDIF}
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 2; // Minor version nr.
-  REL_VER = 4; // Release nr.
-  BLD_VER = 2; // Build nr.
-  DATE_VER = ' Feb, 2006'; // Month version
+  MIN_VER = 3; // Minor version nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 4; // Build nr.
+  DATE_VER = ' Jul, 2008'; // Month version
 
   // version history
   // 1.2.3.0 : added MaxLength property in TodoItem
@@ -82,6 +85,18 @@ const
   // 1.2.4.0 : Whidbey style added
   // 1.2.4.1 : Fixed issue with TotalTimeSuffix
   // 1.2.4.2 : Fixed issue with OnItemRightClick for empty todolist
+  // 1.3.0.0 : New Style interface
+  //         : New Office 2007 Luna & Obsidian styles
+  // 1.3.0.1 : Fixed issue for SetFocus
+  // 1.3.1.0 : New support for Office 2007 silver style added
+  // 1.3.2.0 : New exposed Anchors property
+  // 1.3.2.1 : Fixed issue with Item.Select for multiselect mode
+  // 1.3.2.2 : Fixed issue with sorting on tdStatus, tdTotalTime
+  //         : Improved : initial completiondate in inplace editor
+  // 1.3.2.3 : Fixed issue with parent visibility change during edit
+  //         : Fixed issue with Notes/Priority editor displaying first time
+  // 1.3.2.4 : Fixed issue with focus leave when editing stops  
+
 
 var
   CF_TODOITEM: word;
@@ -131,7 +146,7 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
-  TTodoListStyle = (esOffice2003Blue, esOffice2003Silver, esOffice2003Olive, esOffice2003Classic, esWhidbey, esCustom);
+  TTodoListStyle = (esOffice2003Blue, esOffice2003Silver, esOffice2003Olive, esOffice2003Classic, esOffice2007Luna, esOffice2007Obsidian, esWindowsXP, esWhidbey, esCustom, esOffice2007Silver);
 
   { TProgressLook }
 
@@ -694,6 +709,7 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure Changed; virtual;
     procedure Select;
+    procedure UnSelect;
     procedure SaveToStream(S: TStream);
     procedure LoadFromStream(S: TStream);
     property DBKey: string read FDBKey write FDBKey;
@@ -1119,7 +1135,7 @@ type
   TCalendarType = (tcDefaultCalendar, tcPlannerCalendar);
 {$ENDIF}
 
-  TCustomTodoList = class(TCustomControl) { TCustomTodoList is made of a TTodoHeader and a TTodoListBox bellow it. }
+  TCustomTodoList = class(TCustomControl, ITMSStyle) { TCustomTodoList is made of a TTodoHeader and a TTodoListBox bellow it. }
   private
 {$IFDEF USE_PLANNERDATEPICKER}
     FCalendarType: TCalendarType;
@@ -1290,6 +1306,7 @@ type
     procedure SetHeaderActiveColor(const Value: TColor);
     procedure SetHeaderActiveColorTo(const Value: TColor);
     procedure SetLook(const Value: TTodoListStyle);
+    procedure SetComponentStyle(AStyle: TTMSStyle);    
     procedure ThemeAdapt;
     function GetVersion: string;
     procedure SetVersion(const Value: string);
@@ -1343,6 +1360,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Loaded; override;
+    procedure SetFocus; override;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     function StatusToString(AValue: TTodoStatus): string; virtual;
     function StringToStatus(AValue: string): TTodoStatus; virtual;
@@ -1485,6 +1503,7 @@ type
     property ActiveItemColor;
     property ActiveItemColorTo;
     property Align;
+    property Anchors;
     property AutoAdvanceEdit;
     property AutoInsertItem;
     property AutoDeleteItem;
@@ -3923,7 +3942,12 @@ procedure TTodoListBox.KeyPress(var Key: Char);
 var
   Msg: TMessage;
 begin
+  {$IFNDEF DELPHI_UNICODE}
   if (Key in ['A'..'z', '0'..'9']) and FOwner.Editable then
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if character.IsLetterOrDigit(Key) and FOwner.Editable then
+  {$ENDIF}
   begin
     if (FFocusColumn >= 0) and (FOwner.Columns[FFocusColumn].TodoData = tdComplete) then
     begin
@@ -5166,8 +5190,23 @@ begin
   with (Collection as TTodoItemCollection).FOwner as TTodoListBox do
   begin
     ItemIndex := Self.Index;
+    if MultiSelect then
+      Selected[self.Index] := true;
   end;
 end;
+
+procedure TTodoItem.UnSelect;
+begin
+  with (Collection as TTodoItemCollection).FOwner as TTodoListBox do
+  begin
+
+    if MultiSelect then
+      Selected[self.Index] := false
+    else
+      ItemIndex := -1;    
+  end;
+end;
+
 
 function TTodoItem.GetNotesLine: string;
 begin
@@ -6227,6 +6266,11 @@ begin
     ThemeAdapt;
 end;
 
+procedure TCustomTodoList.SetFocus;
+begin
+  FTodoListBox.SetFocus;
+end;
+
 function TCustomTodoList.PriorityCommaText: string;
 var i: TTodoPriority;
 begin
@@ -6504,6 +6548,20 @@ begin
           Result := 1 else
           if Item1.Priority < Item2.Priority then
             Result := -1;
+      end;
+    tdStatus:
+      begin
+        if Item1.Status > Item2.Status then
+          Result := 1 else
+          if Item1.Status < Item2.Status then
+            Result := -1;
+      end;
+    tdTotalTime:
+      begin
+        if Item1.TotalTime > Item2.TotalTime then
+          Result := 1 else
+            if Item1.TotalTime < Item2.TotalTime then
+              Result := -1;
       end;
     tdSubject:
       begin
@@ -6891,13 +6949,17 @@ begin
 end;
 
 procedure TCustomTodoList.LoadFromStream(S: TStream);
-var i, Count: Integer;
+var
+  i, Count: Integer;
 begin
-  S.Read(Count, 4);
   Items.Clear;
-  for i := 1 to Count do
-    Items.Add.LoadFromStream(S);
-  SortColumn := -1;
+  if S.Size > 0 then
+  begin
+    S.Read(Count, 4);
+    for i := 1 to Count do
+      Items.Add.LoadFromStream(S);
+    SortColumn := -1;
+  end;
 end;
 
 procedure TCustomTodoList.LoadFromFile(FileName: string);
@@ -7322,9 +7384,22 @@ begin
   FTodoHeader.ActiveColorTo := Value;
 end;
 
+procedure TCustomTodoList.SetComponentStyle(AStyle: TTMSStyle);
+begin
+  Look := TTodoListStyle(AStyle);
+end;
+
 procedure TCustomTodoList.SetLook(const Value: TTodoListStyle);
 begin
   FLook := Value;
+  PreviewColor := clNone;
+  PreviewColorTo := clNone;
+  PreviewFont.Color := clBlack;
+  ActiveItemColor := clNone;
+  ActiveItemColorTo := clNone;
+  SelectionColor := clHighLight;
+  SelectionColorTo := clNone;
+
   case FLook of
   esOffice2003Blue:
     begin
@@ -7349,10 +7424,62 @@ begin
     end;
   esOffice2003Classic:
     begin
-      HeaderColor := $808080;
-      HeaderColorTo := $808080;
-      HeaderActiveColor := $D8D5D4;
-      HeaderActiveColorTo := $D8D5D4;
+      HeaderColor := clWhite;
+      HeaderColorTo := $ccd4d8;
+      HeaderActiveColor := $d8d5d4;
+      HeaderActiveColorTo := $d8d5d4;
+    end;
+  esOffice2007Luna:
+    begin
+      HeaderColor := clWhite;
+      HeaderColorTo := $FFD2AF;
+      HeaderActiveColor := $94E6FB;
+      HeaderActiveColorTo := $1595EE;
+
+      PreviewColor := clWhite;
+      PreviewColorTo := $fff6ec;
+      PreviewFont.Color := $808080;
+      ActiveItemColor := $e8c8b3;
+      ActiveItemColorTo := $e8c8b3;
+      SelectionColor := $7a4c29;
+      SelectionColorTo := $7a4c29;
+    end;
+  esOffice2007Obsidian:
+    begin
+      HeaderColor := $F2F1F0;
+      HeaderColorTo := $C9C2BD;
+      HeaderActiveColor := $94E6FB;
+      HeaderActiveColorTo := $1595EE;
+
+      PreviewColor := clWhite;
+      PreviewColorTo := $fff6ec;
+      PreviewFont.Color := $808080;
+      ActiveItemColor := $e8c8b3;
+      ActiveItemColorTo := $e8c8b3;
+      SelectionColor := $7a4c29;
+      SelectionColorTo := $7a4c29;
+    end;
+  esOffice2007Silver:
+    begin
+      HeaderColor := clWhite;
+      HeaderColorTo := $DCD7D4;
+      HeaderActiveColor := $94E6FB;
+      HeaderActiveColorTo := $1595EE;
+
+      PreviewColor := clWhite;
+      PreviewColorTo := $fff6ec;
+      PreviewFont.Color := $808080;
+      ActiveItemColor := $e8c8b3;
+      ActiveItemColorTo := $e8c8b3;
+      SelectionColor := $7a4c29;
+      SelectionColorTo := $7a4c29;
+    end;
+  esWindowsXP:
+    begin
+      HeaderColor := clBtnFace;
+      HeaderColorTo := clBtnFace;
+      HeaderActiveColor := clBtnFace;
+      HeaderActiveColorTo := clBtnFace;
     end;
   esWhidbey:
     begin
@@ -7735,8 +7862,15 @@ begin
     ActiveEditor.Hide;
     
   ActiveEditor := nil;
-  FOwner.EditDone(TodoData, EditedItem); 
-  SetFocus;
+
+
+  FOwner.EditDone(TodoData, EditedItem);
+
+  if Assigned(FOwner.Parent) then
+  begin
+//    if FOwner.Parent.Visible then
+//      SetFocus;
+  end;
 end;
 
 constructor TInplaceListBox.Create(AOwner: TComponent);
@@ -7873,7 +8007,12 @@ begin
 
   if FNumericOnly then
   begin
+    {$IFNDEF DELPHI_UNICODE}
     if not ((Key in ['0'..'9']) or (Key = chr(VK_BACK)) or (key = #13)) then
+    {$ENDIF}
+    {$IFDEF DELPHI_UNICODE}
+    if not ((character.IsNumber(Key)) or (Key = chr(VK_BACK)) or (key = #13)) then
+    {$ENDIF}
       Key := #0;
   //Exit;
   end;
@@ -7960,9 +8099,15 @@ begin
     ActiveEditor.Height := R.Bottom - R.Top;
 
   // Put the editor parent in the correct position
+
     R.TopLeft := ClientToScreen(R.TopLeft);
     R.BottomRight := ClientToScreen(R.BottomRight);
+
+    {$IFDEF DELPHI9_LVL}
+    SetControlRect(EditorParent, Rect(0,0,0,0));
+    {$ELSE}
     SetControlRect(EditorParent, R);
+    {$ENDIF}
   end
   else
   begin
@@ -7974,6 +8119,11 @@ begin
   ActiveEditor.Visible := True;
   if UseSeparateParent then
     EditorParent.Visible := True;
+
+  {$IFDEF DELPHI9_LVL}
+  SetControlRect(EditorParent, R);
+  {$ENDIF}
+
   ActiveEditor.SetFocus;
 end;
 
@@ -8296,7 +8446,9 @@ begin
 {$IFDEF TMSDOTNET}
           if (DateTime.Compare(tempDate, EditedItem.CompletionDate) <> 0) then
 {$ENDIF}
-            PlannerDateEditor.Calendar.Date := EditedItem.CompletionDate;
+            PlannerDateEditor.Calendar.Date := EditedItem.CompletionDate
+          else
+            PlannerDateEditor.Calendar.Date :=  Now;
 
           if EditedItem.CompletionDate = 0 then
             PlannerDateEditor.Text := ''
@@ -8309,7 +8461,7 @@ begin
         begin
 {$ENDIF}
 {$IFNDEF TMSDOTNET}
-          if (DefaultDateEditor.Date <> 0) then
+          if (DefaultDateEditor.Date <> 0) and (EditedItem.CompletionDate <> 0) then
             DefaultDateEditor.Date := EditedItem.CompletionDate
           else
             DefaultDateEditor.Date := Now;
@@ -9403,7 +9555,13 @@ end;
 function TInplaceFloatSpinEdit.IsValidChar(var Key: Char): Boolean;
 begin
 //  Result := (Key = '.' {DecimalSeparator}) or (Key in ['+', '-', '0'..'9']) or ((Key < #32) and (Key <> Chr(VK_RETURN)));
+{$IFNDEF DELPHI_UNICODE}
    Result := (Key = FDecSep) or (Key in ['+', '-', '0'..'9']) or ((Key < #32) and (Key <> Chr(VK_RETURN)));
+{$ENDIF}
+
+{$IFDEF DELPHI_UNICODE}
+   Result := (Key = FDecSep) or (character.IsNumber(Key)) or (Key = '+') or (Key = '-') or ((Key < #32) and (Key <> Chr(VK_RETURN)));
+{$ENDIF}
 
 (*
 if (FSpinType = sptFloat) and not (key in [chr(vk_escape),chr(vk_return),chr(vk_back)]) then

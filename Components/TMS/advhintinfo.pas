@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvHintInfo component                                                    }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -86,7 +85,7 @@ end;
 
 procedure TAdvHintInfo.SetPicture(const Value: TGDIPPicture);
 begin
-  FPicture := Value;
+  FPicture.Assign(Value);
 end;
 
 end.

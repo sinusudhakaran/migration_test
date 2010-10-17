@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                   }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2004 - 2006                                        }
+{            copyright © 2004 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -34,7 +34,7 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 2; // Release nr.
+  REL_VER = 5; // Release nr.
   BLD_VER = 0; // Build nr.
 
   // 1.0.2.0 : do not display font charsets <> ANSI_CHARSET
@@ -47,6 +47,18 @@ const
   // 1.3.1.0 : Added aftFixedPitch & aftProportional in AllowedFontTypes
   // 1.3.1.1 : Fix for issue with focus of control & dropdown
   // 1.3.2.0 : New support for Office 2007 style added
+  // 1.3.2.1 : Fixed issue with programmatic dropdown text initialization
+  // 1.3.2.2 : Fixed issue with border color of dropdown
+  // 1.3.2.3 : Fixed issue with dropdown height
+  // 1.3.3.0 : New property DroppedDown added
+  //         : New events OnExit, OnEnter added
+  // 1.3.4.0 : Published Enabled, Visible properties
+  //         : Fixed issue with keyboard selection
+  // 1.3.4.1 : Fixed issue with color/textcolor of dropdown list
+  // 1.3.4.2 : Fixed issue with keyboard handling for csDropDownlist style
+  // 1.3.4.3 : Fixed issue with auto dropdown hiding
+  // 1.3.4.4 : Fixed issue with ItemIndex update from OnChange event
+  // 1.3.5.0 : New : exposed Align property
 
 type
   TAdvFontType = (aftBitmap, aftTrueType, aftPostScript, aftPrinter, aftFixedPitch, aftProportional);
@@ -231,8 +243,12 @@ type
     procedure SetItemHeight(const Value: integer);
     procedure SetStyle(const Value: TComboStyle);
     procedure SetAutoItemSize(const Value: boolean);
+    procedure SetTextEx(const Value: string);
+    function GetTextEx: string;
     function GetVersion: string;
     procedure SetVersion(const Value: string);
+    function GetDropDown: boolean;
+    procedure SetDropDown(const Value: boolean);
   protected
     procedure SetEditRect;
     procedure Loaded; override;
@@ -252,6 +268,7 @@ type
     procedure BeforeDropDown; virtual;
     procedure DropDownOnDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState); virtual;
     procedure ValueChanged; virtual;
+    procedure UpdateIndex; virtual;
     procedure PopulateListBox; virtual;
 
     property Flat: Boolean read FFlat write SetFlat;
@@ -259,7 +276,7 @@ type
     property ItemHeight: integer read GetItemHeight write SetItemHeight;
     property FontHeight: integer read FFontHeight write SetFontHeight;
     property Style: TComboStyle read FStyle write SetStyle default csDropDown;
-    procedure SetComponentStyle(AStyle: TTMSStyle);    
+    procedure SetComponentStyle(AStyle: TTMSStyle);
   public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
@@ -269,7 +286,9 @@ type
     property ItemIndex: integer read GetItemIndex write SetItemIndex;
     property RecentSelection: TStringList read FRecentSelection;
     property AppearanceStyle: TAdvComboStyle read FAppearanceStyle write SetAppearanceStyle;
+    property DroppedDown: boolean read GetDropDown write SetDropDown;
   published
+    property Align;
     property AutoFocus: boolean read FAutoFocus write fAutoFocus default false;
     property AutoThemeAdapt: Boolean read FAutoThemeAdapt write FAutoThemeAdapt default False;
     property Button: TAdvComboBtn read FButton write SetButton;
@@ -282,8 +301,11 @@ type
     property SelectionColorTo: TColor read FSelectionColorTo write SetSelectionColorTo default clNone;
     property SelectionTextColor: TColor read FSelectionTextColor write FSelectionTextColor default clHighLightText;
     property SelectionGradient: TSelectionGradient read FSelectionGradient write SetSelectionGradient default sgVerticalInOut;
-    property Text;
+    property Text: string read GetTextEx write SetTextEx; 
     property Version: string read GetVersion write SetVersion;
+    property PopupMenu;
+    property OnExit;
+    property OnEnter;
     property OnChange;
     property OnKeyDown;
     property OnKeyPress;
@@ -300,15 +322,16 @@ type
   public
     constructor Create(aOwner: TComponent); override;
   published
+    property Enabled;
     property Items;
     property ItemIndex;
     property ItemHeight;
     property TabOrder;
     property TabStop;
-    property Text;
     property Font;
     property ShowHint;
     property Style;
+    property Visible;
   end;
 
   TAdvFontSelector = class(TAdvCustomComboBox)
@@ -692,7 +715,7 @@ begin
     FDropDownList.Width := Self.Width;
     FDropDownList.Height := 20;
     FDropDownList.Parent := Self;
-    FDropDownList.BorderWidth := 1;
+    FDropDownList.BorderWidth := 0;
 
     FDropDownListBox := TListBox.Create(FDropDownList);
 
@@ -864,9 +887,9 @@ var
   //uchar: Integer;
   SecondDown: Boolean;
 begin
-  SecondDown:= false;
+  SecondDown := false;
   if FDroppedDown and Assigned(FDropDownList) and (FDropDownList.Visible) then   // CancelMode wihe DropDown on second click
-    SecondDown:= true;
+    SecondDown := true;
 
   inherited;
   if csDesigning in ComponentState then
@@ -876,7 +899,7 @@ begin
   begin
     if not SecondDown then
       ButtonClick;
-    exit;
+    Exit;
   end;
 
   if PtInRect(GetButtonRect, point(msg.xpos, msg.ypos)) then
@@ -899,18 +922,13 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TAdvCustomComboBox.WMLButtonUp(var Msg: TWMMouse);
-{var
- uchar: Integer;
-}
 begin
-{ if fButtonDown then
-  begin
-   uchar:=CharFromPos(point(msg.xpos,msg.ypos));
-   SelStart:=uChar;
-   SelLength:=0;
-  end;
- }
-  fButtonDown := false;
+  //if Assigned(FDropDownList) and Assigned(FDropDownListBox) and (FDropDownList.Visible) then
+  //begin
+  //  SetCapture(FDropDownListBox.Handle);
+  //end;
+
+  FButtonDown := false;
 
   inherited;
 end;
@@ -950,6 +968,11 @@ var
 begin
   R := ClientRect;
   Result := Rect(R.Right - FButton.Width - 1, R.Top + 1, R.Right - 1, R.Bottom - 2);
+end;
+
+function TAdvCustomComboBox.GetDropDown: boolean;
+begin
+  Result := FDropDownList.Visible
 end;
 
 //------------------------------------------------------------------------------
@@ -1154,6 +1177,11 @@ begin
   if I > Metrics.tmHeight then I := Metrics.tmHeight;
   {Result := Metrics.tmHeight + I div 4 + GetSystemMetrics(SM_CYBORDER) * 4 +2;}
   Result := Metrics.tmHeight + I div 4 {+ GetSystemMetrics(SM_CYBORDER) * 4};
+end;
+
+function TAdvCustomComboBox.GetTextEx: string;
+begin
+  Result := inherited Text;
 end;
 
 //------------------------------------------------------------------------------
@@ -1465,7 +1493,7 @@ end;
 procedure TAdvCustomComboBox.CMExit(var Message: TCMExit);
 begin
   inherited;
-  Text := FOldText;
+  //inherited Text := FOldText;
   DrawButton;
   DrawBorders;
 end;
@@ -1514,14 +1542,15 @@ var
   P: TPoint;
   i, MinTW: integer;
   R: TRect;
+  cnt,rec: integer;
 begin
   if not Assigned(FDropDownList) then
-    exit;
+    Exit;
 
   if FDropDownList.Visible then
   begin
     HideDropDown;
-    exit;
+    Exit;
   end;
 
   if not FDropDownList.Visible then
@@ -1543,13 +1572,19 @@ begin
 }
   FDropDownListBox.ItemHeight := GetListItemHeight;
 
-  if FItems.Count < FDropDownCount then
+  if DisplayRecentSelection then
+    rec := RecentSelection.Count
+  else
+    rec := 0;
+
+  if FItems.Count + rec < FDropDownCount then
   begin
-    FDropDownList.Height := Max(20, (FItems.Count * GetListItemHeight {LISTITEMHEIGHT}) + 4);
+    cnt := FItems.Count + rec;
+    FDropDownList.Height := Max(16, ((cnt * GetListItemHeight)) + 4);
   end
   else
   begin
-    FDropDownList.Height := Max(20, (FDropDownCount * GetListItemHeight {LISTITEMHEIGHT}) + 4);
+    FDropDownList.Height := Max(16, (FDropDownCount * GetListItemHeight) + 4);
   end;
 
   P := Point(0, self.Height);
@@ -1557,19 +1592,20 @@ begin
 
   if R.Bottom > (P.Y + FDropDownList.Height + 4) then
   begin
-    FDropDownList.Left := P.X - 2;
+    FDropDownList.Left := P.X {- 2};
     FDropDownList.Top := P.Y;
   end
   else
   begin
-    FDropDownList.Left := P.X - 1;
+    FDropDownList.Left := P.X {- 1};
     FDropDownList.Top := P.Y - self.Height - FDropDownList.Height;
   end;
 
-
   FDropDownListBox.Font.Size := FontHeight;
+  FDropDownListBox.Font.Color := Font.Color;
+  FDropDownListBox.Color := Color;
 
-  //FDropDownListBox.Items.Assign(FItems);
+
   PopulateListBox;
 
   i := FDropDownListBox.Items.IndexOf(self.Text);
@@ -1580,7 +1616,7 @@ begin
 
   //FItemIndex:= FDropDownListBox.ItemIndex;
 
-  MinTW := self.Width + 1;
+  MinTW := self.Width;
   for i := 0 to FDropDownListBox.Items.Count - 1 do
   begin
     MinTW := Max(MinTW, FDropDownList.Canvas.TextWidth(FDropDownListBox.Items[i]));
@@ -1590,6 +1626,7 @@ begin
     FDropDownList.Width := MinTW + 24 //GetSystemMetrics(SM_CXHSCROLL)
   else
     FDropDownList.Width := MinTW;
+    
   FDropDownList.Visible := true;
   FDroppedDown := true;
   SendMessage(Handle, EM_SETSEL, 0, Length(Text));
@@ -1600,6 +1637,8 @@ end;
 
 procedure TAdvCustomComboBox.HideDropDown;
 begin
+  //if Assigned(FDropDownListBox) and (GetCapture = FDropDownListBox.Handle) then
+  //  ReleaseCapture;
   FDropDownList.Visible := false;
   FDroppedDown := false;
   Invalidate;
@@ -1633,7 +1672,6 @@ procedure TAdvCustomComboBox.WMSetFocus(var Msg: TWMSetFocus);
 begin
   if csLoading in ComponentState then
     Exit;
-
   inherited;
 end;
 
@@ -1817,16 +1855,24 @@ begin
   if FItems.Count <= 0 then
   begin
     FItemIndex := -1;
-    exit;
+    Exit;
   end;
 
-  if (Value >= 0) and (Value < FItems.Count) then
+  if (Value >= -1) and (Value < FItems.Count) then
   begin
     FItemIndex := Value;
-    Self.Text := FItems[FItemIndex];
+    if (Value >= 0) then
+      inherited Text := FItems[FItemIndex]
+    else
+      inherited Text := '';
     if Assigned(FDropDownList) and FDropDownList.Visible then
       if Assigned(FDropDownListBox) then
-        FDropDownListBox.ItemIndex := FDropDownListBox.Items.IndexOf(FItems[FItemIndex]);
+      begin
+        if (Value >= 0) then
+          FDropDownListBox.ItemIndex := FDropDownListBox.Items.IndexOf(FItems[FItemIndex])
+        else
+          FDropDownListBox.ItemIndex := -1;
+      end;
     ValueChanged;
   end;
 end;
@@ -1884,7 +1930,7 @@ var
 begin
   if csDesigning in ComponentState then
     Exit;
-    
+
   if not FLookUp then
     Exit;
 
@@ -1906,7 +1952,7 @@ begin
         begin
           FDropDownListBox.ItemIndex := FDropDownListBox.Items.IndexOf(Items.Strings[i]);
         end;
-        Text := UsrStr + AutoAdd;
+        inherited Text := UsrStr + AutoAdd;
        //Modified := True;
         SendMessage(Handle, EM_SETSEL, length(c), length(text));
         Exit;
@@ -1918,7 +1964,9 @@ end;
 
 procedure TAdvCustomComboBox.KeyUp(var Key: Word; Shift: TShiftState);
 begin
-  if FChanged and LookUp and not (key in [vk_back, vk_delete]) then LookupText;
+  if FChanged and LookUp and not (key in [vk_back, vk_delete]) then
+    LookupText;
+  UpdateIndex;
   FChanged := False;
   inherited;
 end;
@@ -1928,7 +1976,7 @@ end;
 procedure TAdvCustomComboBox.Change;
 begin
   inherited;
-  fChanged := true;
+  FChanged := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -1939,9 +1987,10 @@ begin
     vk_back, vk_delete: FWorkMode := false;
     vk_return:
       begin
-        if (Items.IndexOf(Text) <> -1) then
+        //if (Items.IndexOf(Text) <> -1) then
         begin
-          text := Items.Strings[Items.IndexOf(Text)];
+          if (Items.IndexOf(Text) > -1) then 
+            inherited Text := Items.Strings[Items.IndexOf(Text)];
           self.Change;
           ValueChanged;
           if FDropDownList.Visible then
@@ -1965,7 +2014,7 @@ begin
     VK_NEXT: PageJump(true);
     VK_ESCAPE:
       begin
-        Text := FOldText;
+        inherited Text := FOldText;
         if FDropDownList.Visible then
         begin
           HideDropDown;
@@ -1983,7 +2032,10 @@ end;
 procedure TAdvCustomComboBox.WMChar(var Msg: TWMKey);
 var
   key: Char;
+  i: integer;
+  str: string;
 begin
+
   if Msg.CharCode = VK_RETURN then
   begin
     key := #13;
@@ -1993,7 +2045,7 @@ begin
     Msg.CharCode := 0;
     if (Items.IndexOf(Text) <> -1) then
     begin
-      text := Items.Strings[Items.IndexOf(Text)];
+      inherited Text := Items.Strings[Items.IndexOf(Text)];
       SendMessage(Handle, EM_SETSEL, 0, 0);
       self.Change;
       ValueChanged;
@@ -2006,7 +2058,41 @@ begin
     end;
     Exit;
   end;
+
+  if (Style = csDropDownlist) then
+  begin
+    if (Msg.CharCode <> 8) then
+    begin
+      str := Uppercase(Chr(Msg.CharCode));
+
+      if (Items.Count > 0) then
+        for i := 0 to Items.count - 1 do
+        begin
+          if pos(str, upstr(Items.Strings[i], fMatchCase)) = 1 then
+          begin
+            if Assigned(FDropDownListBox) and FDropDownList.Visible then
+            begin
+              FDropDownListBox.ItemIndex := FDropDownListBox.Items.IndexOf(Items.Strings[i]);
+            end;
+            FItemIndex := i;
+            inherited Text := Items.Strings[i];
+            SelStart := 0;
+            SelLength := Length(Text);
+            break;
+          end;
+        end;
+    end;
+  end;
+
   inherited;
+
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomComboBox.UpdateIndex;
+begin
+  FItemIndex := FItems.IndexOf(Text);
 end;
 
 //------------------------------------------------------------------------------
@@ -2015,12 +2101,14 @@ procedure TAdvCustomComboBox.ValueChanged;
 begin
   FOldText := Text;
 
+  FItemIndex := FItems.IndexOf(Text);
+  
   if Items.IndexOf(Text) >= 0 then
   begin
-    FItemIndex := FItems.IndexOf(Text);
+    //FItemIndex := FItems.IndexOf(Text);
 
     if csLoading in ComponentState then
-      exit;
+      Exit;
 
     if FRecentSelection.IndexOf(Text) >= 0 then
       FRecentSelection.Delete(FRecentSelection.IndexOf(Text));
@@ -2154,6 +2242,14 @@ begin
   FDisplayRecentSelection := Value;
 end;
 
+procedure TAdvCustomComboBox.SetDropDown(const Value: boolean);
+begin
+  if Value then 
+    ShowDropDown
+  else
+    HideDropDown;  
+end;
+
 //------------------------------------------------------------------------------
 
 function TAdvCustomComboBox.GetItemHeight: integer;
@@ -2177,6 +2273,12 @@ begin
     FStyle := Value;
     self.ReadOnly := FStyle = csDropDownList;
   end;
+end;
+
+procedure TAdvCustomComboBox.SetTextEx(const Value: string);
+begin
+  inherited Text := Value;
+  FOldText := Value;
 end;
 
 procedure TAdvCustomComboBox.SetAutoItemSize(const Value: boolean);

@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvCardList component                                                    }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2005                                               }
+{            copyright © 2005 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -18,6 +17,13 @@
 {***************************************************************************}
 
 unit AdvCardListReg;
+
+{$IFDEF TMSDOTNET}
+{$R TAdvCardList.bmp}
+{$R TAdvButtonsBar.bmp}
+{$R TAdvCardListStyler.bmp}
+{$ENDIF}
+
 
 interface
 

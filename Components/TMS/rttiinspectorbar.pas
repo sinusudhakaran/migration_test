@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TRTTIInspectorBar component                                               }
 { for Delphi & C++Builder                                                   }
-{ version 1.4                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2001 - 2006                                        }
+{            copyright © 2001 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -200,7 +199,11 @@ begin
     AObject := TRTTIInspectorItem(InspectorItem).ObjectRef;
 
     if Assigned(AObject) then
+    begin
       SetStrProp(AObject, TRTTIInspectorItem(InspectorItem).PropName, InspectorItem.TextValue);
+
+      InspectorItem.TextValue := GetStrProp(AObject, TRTTIInspectorItem(InspectorItem).PropName);
+    end;
   end;
 
   if InspectorItem.PropertyType = ptBoolean then
@@ -259,7 +262,10 @@ begin
     AObject := TRTTIInspectorItem(InspectorItem).ObjectRef;
 
     if Assigned(AObject) then
-      SetOrdProp(AObject, TRTTIInspectorItem(InspectorItem).PropName, InspectorItem.IntValue)
+    begin
+      SetOrdProp(AObject, TRTTIInspectorItem(InspectorItem).PropName, InspectorItem.IntValue);
+      InspectorItem.IntValue := GetOrdProp(AObject, TRTTIInspectorItem(InspectorItem).PropName);
+    end;
   end;
 
   if InspectorItem.PropertyType in [ptFloat] then
@@ -273,6 +279,8 @@ begin
         d := 0;
       end;
       SetFloatProp(AObject, TRTTIInspectorItem(InspectorItem).PropName, d);
+      d := GetFloatProp(AObject, TRTTIInspectorItem(InspectorItem).PropName);
+      InspectorItem.TextValue := FloatToStr(d);
     end;
   end;
 
@@ -282,7 +290,11 @@ begin
     AObject := TRTTIInspectorItem(InspectorItem).ObjectRef;
 
     if Assigned(AObject) then
+    begin
       SetOrdProp(AObject, TRTTIInspectorItem(InspectorItem).PropName, Integer(InspectorItem.ColorValue));
+
+      InspectorItem.ColorValue := TColor(GetOrdProp(AObject, TRTTIInspectorItem(InspectorItem).PropName));
+    end;
   end;
 
   if InspectorItem.PropertyType = ptFont then
@@ -503,6 +515,7 @@ var
           RTTIItem.PropName := PropList^[I - 1].Name;
           RTTIItem.Level := Level;
           RTTIItem.ObjectRef := AObject;
+          RTTIItem.ReadOnly := not Assigned(PropList^[I - 1].SetProc);
 
           s :=PropList^[I - 1].PropType^.Name;
           {$IFDEF TMSDEBUG}

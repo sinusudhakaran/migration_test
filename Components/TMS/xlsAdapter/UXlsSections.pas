@@ -12,15 +12,15 @@ type
   protected
     property sBOF: TBOFRecord read FBOF write FBOF;   //renamed to sBOF to avoid conflicts with C++Builder
     property sEOF: TEOFRecord read FEOF write FEOF;
-  published
+  public
     constructor Create;
     destructor Destroy; override;
     procedure Clear; virtual;
     function TotalSize:int64; virtual;
     function TotalRangeSize(const SheetIndex: integer; const CellRange: TXlsCellRange): int64; virtual;
     procedure LoadFromStream( const DataStream: TStream; const First: TBOFRecord; const SST: TSST);virtual;abstract;
-    procedure SaveToStream(const DataStream: TStream);virtual;abstract;
-    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange);virtual; abstract;
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);virtual;abstract;
+    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);virtual; abstract;
   end;
 
 implementation

@@ -160,21 +160,21 @@ begin
   FDataLink.Control := Self;
   FDataLink.OnDataChange := DataChange;
   FDataLink.OnUpdateData := DataUpdate;
-  ControlStyle:=ControlStyle+[csReplicatable];
+  ControlStyle := ControlStyle + [csReplicatable];
 end;
 
 procedure TDBMoneyEdit.DataChange(Sender: TObject);
 begin
- if assigned(FDataLink.Field) {$IFDEF DELPHI4_LVL}and not (fDataLink.BOF and fDataLink.EOF) {$ENDIF} then
+  if Assigned(FDataLink.Field) {$IFDEF DELPHI4_LVL}and not (fDataLink.BOF and fDataLink.EOF) {$ENDIF} then
   begin
-   self.Text:=FDataLink.Field.AsString;
-   Modified:=false;
+    self.Text := FDataLink.Field.AsString;
+    Modified := false;
   end;
 
 {$IFDEF DELPHI4_LVL}
- if (fDataLink.BOF and fDataLink.EOF) then
+  if not Assigned(FDataLink.Field) or (FDataLink.BOF and FDataLink.EOF) then
   begin
-    self.Text:='';
+    self.Text := '';
   end;
 {$ENDIF} 
 end;
@@ -257,7 +257,12 @@ end;
 procedure TDBMoneyEdit.KeyPress(var Key: Char);
 begin
   inherited KeyPress(Key);
+  {$IFNDEF DELPHI_UNICODE}
   if (Key in [#32..#255]) and (FDataLink.Field <> nil) and
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if (Key >= #32) and (FDataLink.Field <> nil) and
+  {$ENDIF}
     not FDataLink.Field.IsValidChar(Key) or (FDataLink.ReadOnly) then
   begin
     MessageBeep(0);

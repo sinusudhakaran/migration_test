@@ -1,9 +1,8 @@
 {**************************************************************************}
 { TColumnListBox component                                                 }
 { for Delphi & C++Builder                                                  }
-{ version 1.2                                                              }
 {                                                                          }
-{ Copyright © 2000 - 2006                                                  }
+{ Copyright © 2000 - 2008                                                  }
 {   TMS Software                                                           }
 {   Email : info@tmssoftware.com                                           }
 {   Web : http://www.tmssoftware.com                                       }
@@ -30,19 +29,26 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 2; // Minor version nr.
   REL_VER = 1; // Release nr.
-  BLD_VER = 1; // Build nr.
+  BLD_VER = 3; // Build nr.
 
   // version history
   // v1.2.1.0 : Added Items.LoadFromFile, Items.SaveToFile methods
   // v1.2.1.1 : Fixed issue with DeleteSelected
-  
+  // v1.2.1.2 : Fixed issue with DeleteSelected & multiselect
+  // v1.2.1.3 : Fixed issue with OnDrawItem event
+
 
 type
- TColumnListBox = class;
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
 
- TColumnType = (ctText,ctImage);
+  TColumnListBox = class;
 
- TEllipsisType = (etAtEnd, etInMiddle, etNone);
+  TColumnType = (ctText,ctImage);
+
+  TEllipsisType = (etAtEnd, etInMiddle, etNone);
 
   TListBoxColumnItem = class(TCollectionItem)
   private
@@ -125,7 +131,12 @@ type
     function IndexInColumnOf(col: Integer;s:string): Integer;
     function IndexInRowOf(row: Integer;s:string): Integer;
 
+    {$IFDEF DELPHI_UNICODE}
+    procedure SaveToFile(FileName: string; Unicode: boolean = true);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     procedure SaveToFile(FileName: string);
+    {$ENDIF}
     procedure LoadFromFile(FileName: string);
   end;
 
@@ -311,6 +322,9 @@ begin
     Exit;
 
   r := rect;
+
+  if Assigned(OnDrawItem) then
+    OnDrawItem(Self, Index, Rect, State);
 
   if (odSelected in State) then
     Canvas.Rectangle(r.left,r.top,r.right,r.bottom);
@@ -1090,11 +1104,17 @@ end;
 
 procedure TListBoxItemCollection.LoadFromFile(FileName: string);
 var
+  {$IFNDEF DELPHI_UNICODE}
   tf: textfile;
   s:string;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  sl: TStringList;
+  i: integer;
+  {$ENDIF}
 begin
   Clear;
-
+  {$IFNDEF DELPHI_UNICODE}
   assignfile(tf, FileName);
   {$i-}
   reset(tf);
@@ -1110,13 +1130,44 @@ begin
     EndUpdate;
     closefile(tf);
   end;
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  sl := TStringList.Create;
+
+  try
+    sl.LoadFromFile(FileName);
+    BeginUpdate;
+    for i := 0 to sl.Count - 1 do
+    begin
+      Add.Strings.CommaText := sl.Strings[i];
+    end;
+    EndUpdate;
+
+  finally
+    sl.Free;
+  end;
+  {$ENDIF}
+
 end;
 
+{$IFNDEF DELPHI_UNICODE}
 procedure TListBoxItemCollection.SaveToFile(FileName: string);
+{$ENDIF}
+{$IFDEF DELPHI_UNICODE}
+procedure TListBoxItemCollection.SaveToFile(FileName: string; Unicode: boolean = true);
+{$ENDIF}
 var
   i: integer;
+  {$IFNDEF DELPHI_UNICODE}
   tf: textfile;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  sl: TStringList;
+  {$ENDIF}
+
 begin
+  {$IFNDEF DELPHI_UNICODE}
   assignfile(tf, FileName);
   rewrite(tf);
   for i := 1 to Count do
@@ -1124,6 +1175,22 @@ begin
     writeln(tf, Items[i - 1].Strings.CommaText);
   end;
   closefile(tf);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  sl := TStringList.Create;
+  for i := 1 to Count do
+  begin
+    sl.Add(Items[i - 1].Strings.CommaText);
+  end;
+
+  if Unicode then
+    sl.SaveToFile(FileName, TEncoding.Unicode)
+  else
+    sl.SaveToFile(FileName);
+
+  sl.Free;
+  {$ENDIF}
 end;
 
 { TListBoxItem }
@@ -1208,9 +1275,22 @@ end;
 
 {$IFDEF DELPHI6_LVL}
 procedure TColumnListBox.DeleteSelected;
+var
+  i: integer;
 begin
-  if ItemIndex >= 0 then
-    ListBoxItems[ItemIndex].Free;
+  if MultiSelect then
+  begin
+    BeginUpdate;
+    for i := Items.Count - 1 downto 0 do
+    begin
+      if Selected[i] then
+        ListBoxItems[i].Free;
+    end;
+    EndUpdate;
+  end
+  else
+    if ItemIndex >= 0 then
+      ListBoxItems[ItemIndex].Free;
 end;
 {$ENDIF}
 

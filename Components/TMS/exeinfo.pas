@@ -305,7 +305,7 @@ begin
    GetMem( pcWindowsDirectory, dwWDSize ); // allocate memory for the string
    try
       if Windows.GetWindowsDirectory( pcWindowsDirectory, dwWDSize ) <> 0 then
-         Result := pcWindowsDirectory+'\';
+         Result := StrPas(pcWindowsDirectory) + '\';
    finally
       FreeMem( pcWindowsDirectory ); // now free the memory allocated for the string
    end;
@@ -321,7 +321,7 @@ begin
    GetMem( pcSystemDirectory, dwSDSize ); // allocate memory for the string
    try
       if Windows.GetSystemDirectory( pcSystemDirectory, dwSDSize ) <> 0 then
-         Result := pcSystemDirectory+'\';
+         Result := StrPas(pcSystemDirectory) + '\';
    finally
       FreeMem( pcSystemDirectory ); // now free the memory allocated for the string
    end;

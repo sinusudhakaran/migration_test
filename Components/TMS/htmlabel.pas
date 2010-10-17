@@ -43,7 +43,7 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 7; // Minor version nr.
   REL_VER = 5; // Release nr.
-  BLD_VER = 3; // Build nr.
+  BLD_VER = 4; // Build nr.
 
 
 // version history
@@ -53,8 +53,14 @@ const
 // v1.7.5.1 : improved border width > 1 handling
 // v1.7.5.2 : improved URL color printing
 // v1.7.5.3 : Fixed issue with anchors for vertical center & bottom alignment
+// v1.7.5.4 : Fixed issue with AutoSizing = true & VAlignment <> tvaTop
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TRichText = string;
 
   TAnchorClick = procedure (Sender:TObject; Anchor:string) of object;
@@ -192,6 +198,7 @@ type
     procedure UnHilightText;
     procedure MarkText(HiText: string; DoCase: Boolean);
     procedure UnMarkText;
+    function GetSizeWithMaxWidth(AMaxWidth : integer) : TSize;
     property HTMLSize: TSize read GetSize;
   published
     { Published declarations }
@@ -336,6 +343,26 @@ begin
   end;
 end;
 
+function THTMLabel.GetSizeWithMaxWidth(AMaxWidth : integer) : TSize;
+
+var
+  r: TRect;
+  x, y: Integer;
+  mr:trect;
+  hyperlinks,mouselink: Integer;
+  s,anchor,stripped,focusanchor:string;
+
+begin
+  r := Rect(0,0,AMaxWidth,4096);
+  s := GetDisplText;
+  Canvas.Font.Assign(self.Font);
+
+  HTMLPaint(Canvas,s,r,FImages,0,0,-1,FHoverHyperLink,FShadowOffset,True,False,False,False,False,FHover,1.0,
+    FURLcolor,FHoverColor,FHoverFontColor,FShadowColor,anchor,stripped,focusanchor,x,y,hyperlinks,mouselink,mr);
+
+  Result.cx := X;
+  Result.cy := Y;
+end;
 
 procedure THTMLabel.BeginUpdate;
 begin
@@ -363,6 +390,7 @@ var
   TopColor, BottomColor: TColor;
   pt:TPoint;
   gsteps,bw1,bw2: Integer;
+  DVAlignment : TVAlignment;
 
   procedure AdjustColors(Bevel: TPanelBevel);
   begin
@@ -506,6 +534,8 @@ begin
 
   Canvas.Brush.Color := self.Color;
 
+  DVAlignment := FVAlignment;
+
   if FAutoSizing then
   begin
     if ((Align = alLeft) or (Align = alRight) or (Align = alNone)) and
@@ -515,25 +545,33 @@ begin
     if ((Align = alTop) or (Align = alBottom) or (Align = alNone)) and
        (FAutoSizeType in [asVertical,asBoth]) then
       r.Bottom := r.Bottom + $FFFF;
+
+    DVAlignment := tvaTop;
   end;
 
   GetCursorPos(pt);
   pt := self.ScreenToClient(pt);
 
-  if FVAlignment in [tvaCenter,tvaBottom] then
+  if DVAlignment in [tvaCenter,tvaBottom] then
   begin
     HTMLPaint(Canvas,s,r,FImages,pt.x,pt.y,-1,FHoverHyperLink,FShadowOffset,True,False,False,False,False,FHover,1.0,fURLcolor,FHoverColor,FHoverFontColor,FShadowColor,anchor,stripped,focusanchor,x,y,hyperlinks,mouselink,mr);
-    if y < Height then
-    case FVAlignment of
-    tvaCenter:r.Top := r.Top+((r.Bottom - r.Top - y) div 2);
+    if (y < Height) then
+    case DVAlignment of
+    tvaCenter:r.Top := r.Top + ((r.Bottom - r.Top - y) div 2);
     tvaBottom:r.Top := r.Bottom - y;
     end;
   end;
 
+  if AutoSizing then
+  begin
+    case FVAlignment of
+      tvaCenter: r.Top := r.Top + 3;
+      tvaBottom: r.Top := r.Top + 6;
+    end;
+  end;
 
   HTMLPaint(Canvas,s,r,FImages,pt.x,pt.y,-1,FHoverHyperLink,FShadowOffset,False,False,False,False,False,FHover,
             1.0,FURLcolor,FHoverColor,FHoverFontColor,FShadowColor,Anchor,Stripped,FocusAnchor,x,y,HyperLinks,mouselink,mr);
-
 
   if FAutoSizing then
   begin

@@ -1,6 +1,6 @@
 object RecurrEdit: TRecurrEdit
-  Left = 1206
-  Top = 175
+  Left = 498
+  Top = 179
   BorderStyle = bsDialog
   Caption = 'Recurrency'
   ClientHeight = 329
@@ -83,7 +83,6 @@ object RecurrEdit: TRecurrEdit
           Top = 43
           Width = 295
           Height = 102
-          PageIndex = 5
           TabOrder = 0
           object TPage
             Left = 0
@@ -191,7 +190,7 @@ object RecurrEdit: TRecurrEdit
             end
             object rSpecialDay: TRadioButton
               Left = 8
-              Top = 32
+              Top = 31
               Width = 49
               Height = 17
               Caption = 'Every'

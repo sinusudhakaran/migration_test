@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvMemo styler component                                                 }
 { for Delphi & C++Builder                                                   }
-{ version 2.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2002 - 2006                                        }
+{            copyright © 2002 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -85,7 +84,7 @@ begin
   NumberStyle.TextColor := clFuchsia;
   NumberStyle.BkColor := clWhite;
   NumberStyle.Style := [fsBold];
-  BlockStart := 'begin';
+  BlockStart := 'begin,try,case,class,record';
   BlockEnd := 'end';
   HexIdentifier := '$';
   //------------Pascal Standard Default-------------

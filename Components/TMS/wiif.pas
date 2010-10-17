@@ -132,6 +132,8 @@
     procedure DownLoadComplete;
     procedure DownLoadCancel(var cancel:boolean);
     procedure DownLoadProgress(dwSize,dwTotSize:dword);
+    function GetStretched: boolean;
+    procedure SetStretched(const Value: boolean);
     {$IFDEF USEWININET}
     procedure DownLoad;
     {$ENDIF}
@@ -169,7 +171,7 @@
     property FrameYPos: word read FFrameYPos;
   published
     { Published declarations }
-    property Stretch:boolean read FStretched write FStretched;
+    property Stretch:boolean read GetStretched write SetStretched;
     property Frame:Integer read FFrame write SetFrame;
     property OnFrameChange: TNotifyEvent read FOnFrameChange write FOnFrameChange;
     property OnDownLoadError:TDownLoadErrorEvent read fOnDownLoadError write fOnDownLoadError;
@@ -183,12 +185,12 @@
     procedure SetPicture(Index: Integer; Value: THTMLPicture);
     function GetPicture(Index: Integer):THTMLPicture;
   public
+    destructor Destroy; override;
     property Items[index: Integer]: THTMLPicture read GetPicture write SetPicture; default;
     function AddPicture:THTMLPicture;
     function FindPicture(ID:string):THTMLPicture;
     procedure ClearPictures;
     function Animate: boolean;
-  published
   end;
 
   THTMLImage = class(TGraphicControl)

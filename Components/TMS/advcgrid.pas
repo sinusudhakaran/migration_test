@@ -4,7 +4,7 @@
 { version 3.1                                                              }
 {                                                                          }
 { written by TMS Software                                                  }
-{            copyright © 1996-2006                                         }
+{            copyright © 1996-2007                                         }
 {            Email : info@tmssoftware.com                                  }
 {            Web : http://www.tmssoftware.com                              }
 {                                                                          }
@@ -35,8 +35,8 @@ const
   MAJ_VER = 3; // Major version nr.
   MIN_VER = 1; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 3; // Build nr.
-  DATE_VER = 'Feb, 2007'; // Release date
+  BLD_VER = 7; // Build nr.
+  DATE_VER = 'Aug, 2007'; // Release date
 
   // revision history
   // 2.8.4.1 : changing in grouping to save & restore column setting oi grouped column
@@ -64,6 +64,10 @@ const
   // 3.1.0.1 : Fix for Bands color handling & cell property settings
   // 3.1.0.2 : Fixed issue with InsertCols & column headers
   // 3.1.0.3 : Fixed issue with default color on fixed cells
+  // 3.1.0.4 : Fixed issue with bands & checkbox colors
+  // 3.1.0.5 : Fixed issue with header alignment for merged cells
+  // 3.1.0.6 : Implemented workaround for C++Builder 2007 bug
+  // 3.1.0.7 : Fixed issue with grid.Colors[col,row] on cells with images,checkbox,..
 
 type
   TAdvColumnGrid = class;
@@ -290,6 +294,7 @@ type
     FOnFilterDone: TNotifyEvent;
     FOnAfterColumnMoved: TAfterColumnMoved;
     procedure SetColumnCollection(const Value: TGridColumnCollection);
+    function GetColumnCollection: TGridColumnCollection;
     function GetColCount: integer;
     procedure SetColCount(const Value: integer);
     procedure SynchHeaders;
@@ -328,7 +333,7 @@ type
     function GetCheckFalse(ACol,ARow: Integer): string; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     function CreateColumns: TGridColumnCollection; virtual;
-    procedure GetDefaultProps(ACol,ARow: Integer; AFont: TFont; ABrush: TBrush; var AColorTo: TColor;
+    procedure GetDefaultProps(ACol,ARow: Integer; AFont: TFont; ABrush: TBrush; var AColorTo,AMirrorColor,AMirrorColorTo: TColor;
       var HA: TAlignment; var VA: TVAlignment; var WW: boolean; var GD: TCellGradientDirection); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -347,7 +352,7 @@ type
   published
     property AutoFilterUpdate: Boolean read FAutoFilterUpdate write FAutoFilterUpdate default False;
     property AutoFilterDisplay: Boolean read FAutoFilterDisplay write FAutoFilterDisplay default False;
-    property Columns: TGridColumnCollection read FColumnCollection write SetColumnCollection;
+    property Columns: TGridColumnCollection read GetColumnCollection write SetColumnCollection;
     property ColCount: Integer read GetColCount write SetColCount;
     property FilterDropDown: TFilterDropDown read FFilterDropDown write FFilterDropDown;
     property OnAfterColumnMoved: TAfterColumnMoved read FOnAfterColumnMoved write FOnAfterColumnMoved;
@@ -448,13 +453,13 @@ begin
   if Assigned(Collection) then
     Result := TGridColumnCollection(Collection).FOwner.AllColWidths[Index]
   else
-    Result := 0;  
+    Result := 0;
 end;
 
 procedure TGridColumnItem.SetAlignment(const Value:TAlignment);
 begin
   FAlignment := Value;
-  TGridColumnCollection(Collection).Update(Self);
+  TGridColumnCollection(Collection).FOwner.Invalidate;
 end;
 
 procedure TGridColumnItem.SetColumnHeader(const Value:string);
@@ -1047,6 +1052,8 @@ end;
 
 procedure TAdvColumnGrid.GetCellColor(ACol, ARow: integer;
   AState: TGridDrawState; ABrush: TBrush; AFont: TFont);
+var
+  Clr: TColor;
 begin
   if FColumnCollection.Count > Acol then
   begin
@@ -1064,8 +1071,21 @@ begin
         AFont.Assign(TGridColumnItem(FColumnCollection.Items[ACol]).HeaderFont)
       else
         AFont.Assign(TGridColumnItem(FColumnCollection.Items[ACol]).Font);
+
+      if HasCellProperties(ACol, ARow) then
+      begin
+        Clr := CellProperties[ACol,ARow].BrushColor;
+        if Clr <> clNone then
+          ABrush.Color := Clr;
+
+        Clr := CellProperties[ACol,ARow].FontColor;
+        if Clr <> clNone then
+          AFont.Color := Clr;
+
+      end;
     end;
   end;
+
   inherited;
 end;
 
@@ -1233,6 +1253,11 @@ end;
 procedure TAdvColumnGrid.SetColumnCollection(const value :TGridColumnCollection);
 begin
   FColumnCollection.Assign(Value);
+end;
+
+function TAdvColumnGrid.GetColumnCollection: TGridColumnCollection;
+begin
+  Result := FColumnCollection;
 end;
 
 procedure TAdvColumnGrid.SynchHeaders;
@@ -1410,7 +1435,7 @@ begin
 end;
 
 procedure TAdvColumnGrid.GetDefaultProps(ACol, ARow: Integer; AFont: TFont;
-  ABrush: TBrush; var AColorTo: TColor; var HA: TAlignment; var VA: TVAlignment;
+  ABrush: TBrush; var AColorTo,AMirrorColor,AMirrorColorTo: TColor; var HA: TAlignment; var VA: TVAlignment;
   var WW: boolean; var GD: TCellGradientDirection);
 begin
   if ACol < Columns.Count then
@@ -1418,7 +1443,12 @@ begin
     AFont.Assign(Columns[ACol].Font);
     ABrush.Color := Columns[ACol].Color;
     AColorTo := clNone;
-    HA := Columns[ACol].Alignment;
+
+    if ARow < FixedRows then
+      HA := Columns[ACol].HeaderAlignment
+    else
+      HA := Columns[ACol].Alignment;
+
     VA := VAlignment;
     WW := WordWrap;
     GD := GradientVertical;
@@ -1428,6 +1458,9 @@ begin
 
     if Bands.Active and Columns[ACol].ShowBands then
     begin
+      ABrush.Color := clNone;
+      AColorTo := clNone;
+      {
       if Bands.TotalLength > 0 then
       begin
         if (((ARow - FixedRows) mod Bands.TotalLength) < Bands.PrimaryLength) then
@@ -1435,8 +1468,8 @@ begin
         else
           ABrush.Color := Bands.SecondaryColor;
       end;
+      }
     end;
-
   end
   else
     inherited;

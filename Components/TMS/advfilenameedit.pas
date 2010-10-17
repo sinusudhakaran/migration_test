@@ -1,11 +1,10 @@
 {*********************************************************************}
 { TAdvFilenameEdit                                                    }
 { for Delphi & C++Builder                                             }
-{ version 1.0                                                         }
 {                                                                     }
 { written by                                                          }
 {  TMS Software                                                       }
-{  copyright © 2002 - 2006                                            }
+{  copyright © 2002 - 2008                                            }
 {  Email : info@tmssoftware.com                                       }
 {  Web : http://www.tmssoftware.com                                   }
 {                                                                     }
@@ -29,6 +28,11 @@ uses
   , WinUtils
   {$ENDIF}
   ;
+
+  // version history
+  // v1.0.0.0  : first release
+  // v1.1.0.0  : support for ShowURL added
+  // v1.1.0.1  : Fixed issue with F4 hotkey handling 
 
 type
   TFileDialogKind = (fdOpen, fdSave, fdOpenPicture, fdSavePicture);
@@ -56,6 +60,8 @@ type
     procedure ValidateEvent(Value:string; var IsValid: Boolean); override;
     procedure DialogExit(ExitOk: Boolean);
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    function TestURL: Boolean; override;    
   public
     { Public declarations }
     procedure ClickButton;
@@ -69,8 +75,8 @@ type
     property PasswordChar: Byte read FDummy;
     property Precision: Byte read FDummy;
     property Signed: Byte read FDummy;
-    property ShowURL: Byte read FDummy;
-    property URLColor: Byte read FDummy;
+    //property ShowURL: Byte read FDummy;
+    //property URLColor: Byte read FDummy;
     {$ENDIF}
     property DefaultExt: string read FDefaultExt write FDefaultExt;
     property FileName: TFileName read GetFileName write SetFileName Stored False;
@@ -158,6 +164,11 @@ Begin
   Text := Value;
 End;
 
+function TAdvFileNameEdit.TestURL: Boolean;
+begin
+  Result := ShowUrl and FileExists(text);
+end;
+
 procedure TAdvFileNameEdit.DialogExit(ExitOk: Boolean);
 begin
   if Assigned(OnDialogExit) then
@@ -172,8 +183,15 @@ end;
 procedure TAdvFileNameEdit.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   inherited;
+
+end;
+
+procedure TAdvFileNameEdit.KeyUp(var Key: Word; Shift: TShiftState);
+begin
+  inherited;
   if (Key = VK_F4) then
     BtnClick(Self);
+  SetFocus;
 end;
 
 End.

@@ -1,11 +1,10 @@
 {***********************************************************************}
 { TDBPlannerDatePicker component                                        }
 { for Delphi & C++ Builder                                              }
-{ version 1.4                                                           }
 {                                                                       }
 { written by :                                                          }
 {            TMS Software                                               }
-{            copyright © 1999-2006                                      }
+{            copyright © 1999-2008                                      }
 {            Email : info@tmssoftware.com                               }
 {            Website : http://www.tmssoftware.com                       }
 {                                                                       }
@@ -30,12 +29,13 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 4; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 4; // Build nr.
+  BLD_VER = 5; // Build nr.
 
   // version history
   // 1.4.0.2 : Improvement with dataset update
   // 1.4.0.3 : Fix for putting dataset automatically in edit mode.
   // 1.4.0.4 : Fixed issue with keyboard modifications of date
+  // 1.4.0.5 : Fixed issue with returning date when text is empty
 
 type
 
@@ -528,7 +528,10 @@ end;
 
 function TDBPlannerDatePicker.GetDate: TDateTime;
 begin
-  Result := FPlannerCalendar.Date;
+  if Text = '' then
+    Result := 0
+  else
+    Result := FPlannerCalendar.Date;
 end;
 
 procedure TDBPlannerDatePicker.SetDate(const Value: TDateTime);

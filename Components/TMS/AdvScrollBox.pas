@@ -30,9 +30,14 @@ uses
 const
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 0; // Minor version nr.
+  MIN_VER = 1; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 1; // Build nr.
+
+  // version history
+  // 1.0.0.0 : first release
+  // 1.1.0.0 : Added events OnHScroll, OnVScroll, OnHScrollEnd, OnVScrollEnd
+  // 1.1.0.1 : Fixed : issue with transparency when scrollbox has no scrollbars
 
 
 type
@@ -45,11 +50,16 @@ type
   private
     FCanvas: TCanvas;
     FBorderColor: TColor;
+    FOnVScroll: TNotifyEvent;
+    FOnHScroll: TNotifyEvent;
+    FOnHScrollEnd: TNotifyEvent;
+    FOnVScrollEnd: TNotifyEvent;
     Procedure WMEraseBkGnd( Var msg: TWMEraseBkGnd ); message WM_ERASEBKGND;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure WMHScroll(var Message: TWMHScroll); message WM_HSCROLL;
     procedure WMVScroll(var Message: TWMVScroll); message WM_VSCROLL;
     procedure WMNCPaint(var Message: TMessage); message WM_NCPAINT;
+    procedure CMControlChange(var Message: TCMControlChange); message CM_CONTROLCHANGE;
     procedure NCPaintProc;
     function GetVersion: string;
     procedure SetVersion(const Value: string);
@@ -69,6 +79,10 @@ type
   published
     property Version: string read GetVersion write SetVersion stored false;
     property BorderColor: TColor read FBorderColor write SetBorderColor default clSilver;
+    property OnVScroll: TNotifyEvent read FOnVScroll write FOnVScroll;
+    property OnHScroll: TNotifyEvent read FOnHScroll write FOnHScroll;
+    property OnVScrollEnd: TNotifyEvent read FOnVScrollEnd write FOnVScrollEnd;
+    property OnHScrollEnd: TNotifyEvent read FOnHScrollEnd write FOnHScrollEnd;
   end;
 
 implementation
@@ -215,6 +229,16 @@ procedure TAdvScrollBox.WMHScroll(var Message: TWMHScroll);
 begin
   inherited;
   Invalidate;
+
+  if (Message.ScrollCode <> SB_ENDSCROLL) and Assigned(FOnHScroll) then
+  begin
+    FOnHScroll(Self);
+  end;
+
+  if (Message.ScrollCode = SB_ENDSCROLL) and Assigned(FOnHScrollEnd) then
+  begin
+    FOnHScrollEnd(Self);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -223,6 +247,16 @@ procedure TAdvScrollBox.WMVScroll(var Message: TWMVScroll);
 begin
   inherited;
   Invalidate;
+
+  if (Message.ScrollCode <> SB_ENDSCROLL) and Assigned(FOnVScroll) then
+  begin
+    FOnVScroll(Self);
+  end;
+
+  if (Message.ScrollCode = SB_ENDSCROLL) and Assigned(FOnVScrollEnd) then
+  begin
+    FOnVScrollEnd(Self);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -338,5 +372,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TAdvScrollBox.CMControlChange(var Message: TCMControlChange);
+begin
+  inherited;
+  if not (csDesigning in ComponentState) and not (csLoading in ComponentState) and (Message.Inserting) then
+    Invalidate;
+end;
 
 end.

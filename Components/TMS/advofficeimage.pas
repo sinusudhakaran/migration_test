@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvOfficeImage component                                                 }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -31,9 +30,12 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
-  REL_VER = 0; // Release nr.
+  REL_VER = 2; // Release nr.
   BLD_VER = 0; // Build nr.
 
+  // version history
+  // v1.0.1.0 : Align property added
+  // v1.0.2.0 : Center property added 
 
 type
   TAdvOfficeImage = class(TGraphicControl)
@@ -44,6 +46,7 @@ type
     FOnMouseEnter: TNotifyEvent;
     FOfficeHint: TAdvHintInfo;
     FIPicture: TGDIPPicture;
+    FCenter: boolean;
     procedure OnPictureChanged(Sender: TObject);
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
@@ -51,6 +54,7 @@ type
     procedure SetVersion(const Value: string);
     procedure SetOfficeHint(const Value: TAdvHintInfo);
     procedure SetIPicture(const Value: TGDIPPicture);
+    procedure SetCenter(const Value: boolean);
   protected
     procedure DrawImage(ACanvas: TCanvas); virtual;
     procedure Paint; override;
@@ -60,8 +64,10 @@ type
     destructor Destroy; override;
     function GetVersionNr: Integer; virtual;
   published
+    property Align;
     property Anchors;
     property BiDiMode;
+    property Center: boolean read FCenter write SetCenter default true;
     property Constraints;
     property Picture: TGDIPPicture read FIPicture write SetIPicture;
 
@@ -92,7 +98,7 @@ begin
   FIPicture := TGDIPPicture.Create;
   FIPicture.OnChange := OnPictureChanged;
 
-  ControlStyle := [csCaptureMouse, csDoubleClicks];
+  ControlStyle := [csCaptureMouse, csDoubleClicks,csClickEvents];
 
   FOffSet := 4;
 
@@ -101,6 +107,7 @@ begin
   ShowHint := False;
   Width := 32;
   Height := 32;
+  FCenter := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -162,8 +169,16 @@ begin
   if Assigned(Pic) and not Pic.Empty then
   begin
     Pic.GetImageSizes;
-    x := (Width - Pic.Width) div 2;
-    y := (Height - Pic.Height) div 2;
+    if Center then
+    begin
+      x := (Width - Pic.Width) div 2;
+      y := (Height - Pic.Height) div 2;
+    end
+    else
+    begin
+      x := 0;
+      y := 0;
+    end;
     ACanvas.Draw(x, y, Pic);
   end
   else
@@ -207,6 +222,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TAdvOfficeImage.SetCenter(const Value: boolean);
+begin
+  if (FCenter <> Value) then
+  begin
+    FCenter := Value;
+    Invalidate;
+  end;
+end;
 
 procedure TAdvOfficeImage.SetIPicture(const Value: TGDIPPicture);
 begin

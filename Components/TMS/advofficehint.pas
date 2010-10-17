@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvOfficeHint component                                                  }
 { for Delphi & C++Builder                                                   }
-{ version 1.1                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -37,8 +36,8 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 1; // Minor version nr.
-  REL_VER = 2; // Release nr.
-  BLD_VER = 3; // Build nr.
+  REL_VER = 3; // Release nr.
+  BLD_VER = 2; // Build nr.
 
   // version history
   // 1.0.0.0 : first release
@@ -50,9 +49,16 @@ const
   // 1.1.2.1 : Fixed issue with positioning of normal hints exceeding screen width, height
   // 1.1.2.2 : Fixed issue for using hint with non TMS components that directly use the hintwindowclass
   // 1.1.2.3 : Fixed issue when showing normal hint only for controls with OfficeHint property
+  // 1.1.3.0 : New : property SystemFont added
+  // 1.1.3.1 : Fixed : issue with rounded hint on always on top forms
+  // 1.1.3.2 : Improved : autosizing of hint wrt text
 
 type
-
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TBeforeShowHint = procedure(Sender: TObject; AControl: TControl; AHintInfo: TAdvHintInfo; var UseOfficeHint: boolean) of object;
 
   TAdvOfficeHint = class(TComponent, ITMSStyle)
@@ -68,9 +74,11 @@ type
     FHintHelpLineColor: TColor;
     FUseOfficeHint: boolean;
     FIsOfficeHint: boolean;
+    FSystemFont: boolean;
     FOnBeforeShowHint: TBeforeShowHint;
     procedure SetHintHelpPicture(const Value: TGDIPPicture);
     procedure SetFont(const Value: TFont);
+    procedure SetSystemFont(const Value: boolean);
   protected
     function GetVersion: string;
     procedure SetVersion(const Value: string);
@@ -90,14 +98,16 @@ type
     property HintHelpText: string read FHintHelpText write FHintHelpText;
     property HintHelpPicture: TGDIPPicture read FHintHelpPicture write SetHintHelpPicture;
     property HintHelpLineColor: TColor read FHintHelpLineColor write FHintHelpLineColor default $FFC69A;
+    property SystemFont: boolean read FSystemFont write SetSystemFont default true;
     property Version: string read GetVersion write SetVersion;
     property OnBeforeShowHint: TBeforeShowHint read FOnBeforeShowHint write FOnBeforeShowHint;
   end;
 
-  { THTMLHintWindow }
+  { TAdvOfficeHintWindow }
   TAdvOfficeHintWindow = class(THintWindow)
   private
     FIsPainting: boolean;
+    FIsActivating: boolean;
     FHint: TAdvOfficeHint;
     function FindHintControl: TAdvOfficeHint;
   protected
@@ -233,6 +243,13 @@ begin
   FHintInfo := TAdvHintInfo.Create;
 
   FFont := TFont.Create;
+  FSystemFont := true;
+
+  if IsVista then
+    FFont.Name := 'Segoe UI'
+  else
+    FFont.Name := 'Tahoma'; 
+
   FHintWidth := 200;
   FHintHelpText := 'Press F1 for more help.';
   FHintHelpPicture := TGDIPPicture.Create;
@@ -332,6 +349,22 @@ begin
   FHintHelpPicture.Assign(Value);
 end;
 
+procedure TAdvOfficeHint.SetSystemFont(const Value: boolean);
+begin
+  if (FSystemFont <> Value) then
+  begin
+    FSystemFont := Value;
+
+    if value then
+    begin
+      if IsVista then
+        FFont.Name := 'Segoe UI'
+      else
+        FFont.Name := 'Tahoma';
+    end;
+  end;
+end;
+
 procedure TAdvOfficeHint.SetVersion(const Value: string);
 begin
 
@@ -372,6 +405,8 @@ begin
           FIsOfficeHint := false;
           FUseOfficeHint := false;
         end;
+
+
       end;
 
       // force the hint to display when TAdvHintInfo is used
@@ -400,33 +435,50 @@ procedure TAdvOfficeHintWindow.ActivateHint(Rect: TRect; const AHint: string);
 var
   Pnt: TPoint;
   hr: TRect;
-  rgn:  THandle;
+  //rgn:  THandle;
   AHintInfo: TAdvHintInfo;
   ImgW, ImgH, TxtH, TxtHDiv: integer;
   s: string;
+  dtfmt: DWORD;
 
 begin
+  if FIsActivating then
+    Exit;
+
   Caption := AHint;
   FHint := FindHintControl;
 
   if not Assigned(FHint) then
     Exit;
 
+  FIsActivating := true;
+
   Rect.Right := Rect.Right + 4;
+
 
   if Assigned(FHint.HintControl) then
   begin
      if (IsPublishedProp(FHint.HintControl,'OfficeHint') and FHint.FIsOfficeHint) or FHint.FUseOfficeHint then
      begin
        { calculate rectangle here }
-
        ImgH := 0;
+       ImgW := 0;
 
        Rect.Right := Rect.Right + FHint.HintWidth;
 
        begin
          AHintInfo := FHint.FHintInfo;
+
          Canvas.Font.Assign(FHint.Font);
+
+         if FHint.SystemFont then
+         begin
+           if IsVista then
+             Canvas.Font.Name := 'Segoe UI'
+           else
+             Canvas.Font.Name := 'Tahoma';
+         end;
+
          hr := Rect;
          hr.Right := hr.Right - 16;
 
@@ -445,25 +497,44 @@ begin
 
          s := AHintInfo.Notes.Text;
 
-         if (length(s) > 1) and (AHintInfo.Title = '') then
+         if (s <> '') then
          begin
-           delete(s, length(s) - 1, 2);
+           if s[length(s)-1] = #13 then
+           begin
+             delete(s,length(s)-1,2);
+           end;
          end;
 
-         if s <> '' then
-           TxtH := Max(ImgH,DrawText(Canvas.Handle,PChar(s), Length(s), hr, DT_LEFT or DT_WORDBREAK or DT_CALCRECT))
+         //if (length(s) > 1) and (AHintInfo.Title = '') then
+         //begin
+         //  delete(s, length(s) - 1, 2);
+         //end;
+
+         dtfmt := DT_LEFT or DT_CALCRECT;
+
+         if FHint.HintWidth = 0 then
+           dtfmt := dtfmt + DT_SINGLELINE
          else
-           TxtH := Max(ImgH,DrawTextW(Canvas.Handle,PWideChar(AHintInfo.WideNotes), Length(AHintInfo.WideNotes), hr, DT_LEFT or DT_WORDBREAK or DT_CALCRECT));
+           dtfmt := dtfmt + DT_WORDBREAK;
+
+         if (s <> '') then
+           TxtH := Max(ImgH,DrawText(Canvas.Handle,PChar(s), Length(s), hr, dtfmt))
+         else
+           TxtH := Max(ImgH,DrawTextW(Canvas.Handle,PWideChar(AHintInfo.WideNotes), Length(AHintInfo.WideNotes), hr, dtfmt));
 
          TxtHDiv := Canvas.TextHeight('gh');
 
-         if (AHintInfo.Title <> '') or (AHintInfo.WideTitle <> '') then
-           TxtHDiv := TxTHDiv + (TxtHDiv div 3)
-         else
-           Rect.Right := hr.Right + 24;
+         TxtH := TxtH + (TxtHDiv div 2);
+
+         if fHint.HintWidth = 0 then
+         begin
+           Rect.Right := hr.Right + 24 + ImgW;
+         end;
 
          if (AHintInfo.Title <> '') or (AHintInfo.WideTitle <> '') then
-           TxtH := TxtH + TxtHDiv;
+           TxtH := TxtH + TxTHDiv + (TxtHDiv div 2)
+         else
+           Rect.Right := hr.Right + 24 + ImgW;
 
          if AHintInfo.ShowHelp then
          begin
@@ -476,12 +547,13 @@ begin
              end;
            end;
 
-           TxtH := TxtH + TxtHDiv;
+           TxtH := TxtH + TxtHDiv + TxtHDiv div 2;
          end;
+
        end;
 
-
-       Rect.Bottom := Rect.Bottom + TxtH;
+       //if (AHintInfo.Title <> '') or (AHintInfo.WideTitle <> '') then
+       Rect.Bottom := Rect.Top + TxtH;
      end
      else
      begin
@@ -499,13 +571,13 @@ begin
      end;
   end;
 
-  inherited;
+//  inherited;
 
   if Rect.Bottom - Rect.Top < 22 then
     Rect.Bottom  := Rect.Top + 22;
 
   BoundsRect := Rect;
-
+{
   rgn := CreateRoundRectRgn(0,0,Rect.Right - Rect.Left,Rect.Bottom-Rect.Top,HINTROUNDING,HINTROUNDING);
   if rgn > 0 then
   begin
@@ -515,11 +587,14 @@ begin
       DeleteObject(rgn);
     end;
   end;
-
+}
   Pnt := ClientToScreen(Point(0, 0));
   SetWindowPos(Handle, HWND_TOPMOST, Pnt.X, Pnt.Y, 0, 0,
                SWP_SHOWWINDOW or SWP_NOACTIVATE or SWP_NOSIZE);
 
+  FIsActivating := false;
+
+  Invalidate;
 end;
 
 procedure TAdvOfficeHintWindow.CreateParams(var Params: TCreateParams);
@@ -557,12 +632,26 @@ var
   h: Integer;
   AHintInfo: TAdvHintInfo;
   ImgW, ImgH: integer;
+  rgn: THandle;
 
 begin
   if FIsPainting then
     Exit;
 
+  if not Assigned(FHint) then
+    Exit;
+
   FIsPainting := true;
+
+  rgn := CreateRoundRectRgn(0,0,ClientRect.Right - ClientRect.Left,ClientRect.Bottom-ClientRect.Top,HINTROUNDING,HINTROUNDING);
+  if rgn > 0 then
+  begin
+    try
+      SetWindowRgn(Handle,rgn,true);
+    finally
+      DeleteObject(rgn);
+    end;
+  end;
 
   // draw background
   R := ClientRect;
@@ -574,13 +663,21 @@ begin
 
   Canvas.Font.Assign(FHint.Font);
 
+  if FHint.SystemFont then
+  begin
+    if IsVista then
+      Canvas.Font.Name := 'Segoe UI'
+    else
+      Canvas.Font.Name := 'Tahoma';
+  end;
+
+
   R.Top := R.Top + HINTROUNDING;
   R.Left := R.Left + 2;
 
   ImgH := 0;
 
   // try to find out of the HintControl has a property OfficeHint and if so, use it.
-
   s := '';
   if Assigned(FHint.HintControl) then
   begin
@@ -623,6 +720,16 @@ begin
         end;
 
         s := AHintInfo.Notes.Text;
+
+        if (s <> '') then
+        begin
+          if s[length(s)-1] = #13 then
+          begin
+            delete(s,length(s)-1,2);
+          end;
+        end;
+
+
         Canvas.Font.Style := [];
         DR.Left := DR.Left + 8;
         DR.Right := DR.Right - 8;
@@ -692,6 +799,7 @@ begin
      if Assigned(FHint.HintControl) then
        FHint.HintControl := nil;
   end;
+
 end;
 {$ENDIF}
 
@@ -699,6 +807,7 @@ end;
 function TAdvOfficeHintWindow.ShouldHideHint: Boolean;
 begin
   Result := inherited ShouldHideHint;
+
   if Result then
   begin
     FHint := FindHintControl;
@@ -707,6 +816,7 @@ begin
     if Assigned(FHint.HintControl) then
       FHint.HintControl := nil;
   end;
+
 end;
 {$ENDIF}
 

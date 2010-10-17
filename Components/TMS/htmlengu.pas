@@ -295,7 +295,7 @@ function HTMLDrawEx(Canvas:TCanvas; s:widestring; fr:TRect;
 var
   su: widestring;
   r,dr,hr,rr,er: TRect;
-  htmlwidth,htmlheight: Integer;
+  htmlwidth,htmlheight,txtheight: Integer;
   Align: TAlignment;
   PIndent: Integer;
   OldFont: TFont;
@@ -323,6 +323,7 @@ var
   AltImg,ImgIdx,OldImgIdx: Integer;
   DrawStyle: DWord;
   sz: windows.TSize;
+  ofsx,newofsx: integer;
 
   procedure StartRotated(Canvas:TCanvas;Angle: Integer);
   var
@@ -342,7 +343,7 @@ var
   {$WARNINGS OFF}
   function HTMLDrawLine(Canvas: TCanvas;var s:widestring;r: TRect;Calc:Boolean;
                         var w,h,subh,suph,imgali:Integer;var Align:TAlignment; var PIndent: Integer;
-                        XPos,YPos:Integer;var Hotspot,ImageHotSpot:Boolean): widestring;
+                        XPos,YPos:Integer;var Hotspot,ImageHotSpot:Boolean;OffsetX: integer; var NewOffsetX: integer): widestring;
   var
     su,Res,TagProp,Prop,AltProp,Tagp,LineText:widestring;
     cr: TRect;
@@ -352,7 +353,7 @@ var
     bmp: THTMLPicture;
     ABitmap: TBitmap;
     NewColor: TColor;
-    TagWidth,TagHeight,WordLen,WordLenEx,WordWidth: Integer;
+    TagWidth,TagHeight,WordLen,WordLenEx,WordWidth,oldh: Integer;
     TagChar: WideChar;
     LengthFits, SpaceBreak: Boolean;
 
@@ -371,6 +372,9 @@ var
     ImageHotSpot := False;
     cr := r;
     res := '';
+
+    if not Calc then
+      cr.Left := cr.Left + OffsetX;
 
     if isPara and not Calc then
     begin
@@ -426,7 +430,6 @@ var
 
       if WordLen > 0 then
       begin
-        //th := Canvas.TextHeight(su);
         th := WideTextHeight(Canvas,su);
 
         if isSub and (subh < (th shr 2)) then subh := th shr 2;
@@ -437,6 +440,8 @@ var
 
         StripVal := StripVal + su;
 
+        if Invisible then
+          Delete(s,1,WordLen);
         if not Invisible then
         begin
           // draw mode
@@ -536,7 +541,7 @@ var
             end;
           end;
 
-          LengthFits := (w < r.Right - r.Left) or (r.Right - r.Left <= WordWidth);
+          LengthFits := (w < r.Right - r.Left - OfsX) or (r.Right - r.Left - OfsX <= WordWidth);
 
           if not LengthFits and
             ((Length(LineText) > 0) and (LineText[Length(LineText)] <> ' ')) then
@@ -547,13 +552,19 @@ var
           if LengthFits or not WordWrap then
           begin
             Res := Res + Copy(s,1,WordLen);
-            if not LengthFits and Calc then
-              s := '';
+            //if not LengthFits and Calc then
+            //  s := '';
             Delete(s,1,WordLen);
-            if su[WordLen] = ' ' then
-              sw := Canvas.TextWidth(' ')
+
+            if Length(su) >= WordLen then
+            begin
+              if System.Copy(su, WordLen, 1) = ' ' then
+                sw := Canvas.TextWidth(' ')
+              else
+                sw := 0;
+            end
             else
-              sw := 0;
+              sw := 0;  
           end
           else
           begin
@@ -667,6 +678,12 @@ var
               end;
           'I':begin
                 Canvas.Font.Style := Canvas.Font.Style - [fsItalic];
+              end;
+          'L':begin
+                LineBreak := True;
+              end;
+          'O':begin
+                NewOffsetX := 0;
               end;
           'P':begin
                 LineBreak := True;
@@ -927,7 +944,7 @@ var
                     IMGSize.x := 0;
                     IMGSize.y := 0;
 
-                    if Pos('IDX:',Prop) > 0 then
+                    if Pos('IDX:',Uppercase(Prop)) > 0 then
                     begin
                       Delete(Prop,1,4);
                       if Assigned(FImages) and (IStrToInt(Prop) < FImages.Count) then
@@ -951,11 +968,12 @@ var
                           FImages.GetBitmap(IStrToInt(Prop),ABitmap);
                           PrintBitmap(Canvas,cr,ABitmap);
                           ABitmap.Free;
+                          cr := r;
                         end;
                       end;
                     end;
 
-                    if Pos('SSYS:',Prop) > 0 then
+                    if Pos('SSYS:',Uppercase(Prop)) > 0 then
                     begin
                       Delete(Prop,1,5);
                       IMGSize := SysImage(Canvas,cr.Left,cr.Top,Prop,False,not Calc,Print,ResFactor);
@@ -964,7 +982,7 @@ var
                       IMGSize.y := MulDiv(IMGSize.Y,GetDeviceCaps(Canvas.Handle,LOGPIXELSY),96);
                     end;
 
-                    if Pos('LSYS:',Prop) > 0 then
+                    if Pos('LSYS:',Uppercase(Prop)) > 0 then
                     begin
                       Delete(Prop,1,5);
                       IMGsize := SysImage(Canvas,cr.Left,cr.Top,Prop,True,not Calc,Print,ResFactor);
@@ -1044,6 +1062,8 @@ var
                       {$ENDIF}
                     end;
 
+                    oldh := h;
+
                     if (w + IMGSize.x > r.Right-r.Left) and
                        (IMGSize.x < r.Right - r.Left) then
                     begin
@@ -1077,7 +1097,7 @@ var
                   Imgbreak := True else Linkbreak := True;
 
                 cr.left := cr.left + 12 * (ListIndex - 1);
-                if not calc then
+                if not calc and not Invisible then
                 begin
                   Prop := Canvas.Font.Name;
                   Canvas.Font.Name:='Symbol';
@@ -1095,9 +1115,23 @@ var
                 if s[3] <> '>' then
                 begin
                   Inc(ListIndex);
+                  LineBreak := true;
                 end
                 else
                   Canvas.Font.Style := Canvas.Font.Style + [fsUnderline];
+              end;
+          'O':begin
+                TagChar := WideUpcase(s[3]);
+                if TagChar = 'F' then  // <OFS> tag
+                begin
+                  TagProp := Copy(s,3,pos('>',s) - 1);
+                  Prop := Copy(TagProp,ipos('x',TagProp) + 2,Length(TagProp));
+                  Prop := Copy(Prop,Pos('"',Prop) + 1,Length(prop));
+                  Prop := Copy(Prop,1,Pos('"',Prop) - 1);
+                  val(Prop,NewOffsetX,err);
+                  cr.Left := NewOffsetX;
+                  w := NewOffsetX;
+                end
               end;
           'P':begin
                 if (VarPos('>',s,TagPos)>0) then
@@ -1267,7 +1301,7 @@ var
     w := w - sw;
 
     if w > xsize then
-      xsize := w;
+      xsize := w + 2;
 
     if (FocusLink = Hyperlinks-1) and Anchor and not Calc then
     begin
@@ -1304,6 +1338,9 @@ begin
   isPara := False;
   isShad := False;
   Invisible := False;
+
+  OfsX := 0;
+  NewOfsX := 0;
 
   Result := False;
 
@@ -1375,10 +1412,11 @@ begin
     isSub := False;
 
     HtmlHeight := WideTextHeight(Canvas,s);
+    txtHeight := HtmlHeight;
 
     OldImgIdx := ImgIdx;
 
-    su := HTMLDrawLine(Canvas,s,r,True,HtmlWidth,HtmlHeight,subh,suph,imgali,Align,PIndent,XPos,YPos,HotSpot,ImageHotSpot);
+    su := HTMLDrawLine(Canvas,s,r,True,HtmlWidth,HtmlHeight,subh,suph,imgali,Align,PIndent,XPos,YPos,HotSpot,ImageHotSpot,ofsx,newofsx);
 
     Anchor := OldAnchor;
     LastAnchor := OldAnchorVal;
@@ -1407,7 +1445,7 @@ begin
       ListIndex := LiCount;
       ImgIdx := OldImgIdx;
 
-      HTMLDrawLine(Canvas,su,dr,CheckHotSpot,HtmlWidth,HtmlHeight,subh,suph,ImgAli,Align,PIndent,XPos,YPos,HotSpot,ImageHotspot);
+      HTMLDrawLine(Canvas,su,dr,CheckHotSpot,HtmlWidth,HtmlHeight,subh,suph,ImgAli,Align,PIndent,XPos,YPos,HotSpot,ImageHotspot,ofsx,newofsx);
 
       HlCount := HyperLinks;
       LiCount := ListIndex;
@@ -1416,6 +1454,7 @@ begin
          (YPos > dr.Bottom - ImgAli - WideTextHeight(Canvas,'gh')) and
          (YPos < dr.Bottom - ImgAli)) or ImageHotSpot then
         Result := True;
+      ofsx := newofsx;
 
       DrawFont.Assign(Canvas.Font);
       OldDrawFont.Assign(OldFont);
@@ -1425,11 +1464,8 @@ begin
     ysize := ysize + HtmlHeight + subh + suph;
 
     {do not draw below bottom}
-    if (r.top > r.bottom) and not CheckHeight then
-    begin
-      s := '';
-    end;
-
+    if (r.top + TxtHeight > r.bottom) and not CheckHeight then    
+      s := '';  
   end;
 
   if (ysize = 0) then

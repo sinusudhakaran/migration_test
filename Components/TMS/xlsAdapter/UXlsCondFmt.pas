@@ -185,7 +185,7 @@ begin
     DataStream.Write(AllRange, SizeOf(AllRange));
 
     RangeValuesList.SaveToStreamR(DataStream, i);
-    CFs.SaveToStream(DataStream);
+    CFs.SaveToStream(DataStream, false);
   end;
 
 end;
@@ -218,7 +218,7 @@ begin
     DataStream.Write(AllRange, SizeOf(AllRange));
 
     RangeValuesList.SaveRangeToStreamR(DataStream, i, Rc, CellRange );
-    CFs.SaveToStream(DataStream);
+    CFs.SaveToStream(DataStream, false);
   end;
 end;
 

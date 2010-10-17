@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                   }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 1996-2007                                          }
+{            copyright © 1996-2008                                          }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -15,6 +15,439 @@
 { code can be included in any other component or application without        }
 { written authorization of the author.                                      }
 {***************************************************************************}
+
+// revision history                        
+// 2.8.4.1 : changed LoadFromStream to allow loading multiple grids from same stream
+//         : improved drag & drop handling from readonly drag&drop sources
+// 2.8.4.2 : change in .Paint procedure for inplace editor painting with TDBAdvGrid
+// 2.8.5.0 : support for masked & password HTML form controls
+//         : improved MouseActions.RowSelect handling with scrolling
+//         : improved PasteSelectionFromClipboard procedure
+//         : improved drag&drop with Internet Explorer
+//         : improved HTML forms handling with tab key navigation
+//         : option to do column calculations in floating footer taking hidden rows in account or not
+//         : built-in datetime and time sort format support
+// 2.8.5.1 : Improved tab handling of custom inplace edit controls
+// 2.8.6.0 : OnGetDisplWideText event added
+// 2.8.7.0 : Improvements in SaveToDoc, SaveToXLS
+// 2.8.7.1 : Improved readonly cell handling with merged cells
+// 2.8.7.2 : Improved column sizing with column stretching enabled in scrolled grid
+// 2.8.7.3 : Fixed Navigation.AppendOnArrowDown with floating footer visible
+// 2.8.7.4 : Fixed RemoveRows() combined with use of CellControls
+//         : Fixed RangeSelectAndEdit issue with hidden columns and F2 handling
+//         : Fixed issue with original cell value restore upon ESC
+// 2.8.7.5 : Fixed Ctrl-A select all with disjunct row selection mode
+// 2.8.8.0 : Added MouseActions.WheelIncrement property
+//           Added MouseActions.WheelAction property
+// 2.8.8.1 : Fixed issue with RemoveRows() causing TopRow to become negative
+//           Fix for flicker during painting with FixedRightCols > 0
+//           Fix for AlwaysEdit mode with edButton inplace editor type
+//           Fix for cell validation & floating footer recalculation
+//           Fix for keydown event in combination with floating footer
+// 2.8.8.2 : Fix for unicode cells hint
+//         : Added functions TotalRowCount, TotalColCount
+// 2.8.8.3 : Fix for printing issue
+// 2.8.8.4 : Fix for mousewheel scrolling
+// 2.8.8.5 : Improvements for unicode formulas in TAdvSpreadGrid
+// 2.8.8.6 : Improvements for unicode formulas in TAdvSpreadGrid
+// 2.8.8.7 : Fix for Unicode stream persistence
+
+// v3.0    : see what's new file for details about enhancements
+// 3.0.0.1 : Changed Abort handling in print routine
+//         : Fixed issue with goRowSelect range select and checkboxes
+// 3.0.0.2 : Fixed issue with SelectionTextColor for fixed right columns
+//         : Fixed issue with column & row moving in small grids
+// 3.0.0.3 : Improved balloon hint handling
+//         : Fixed issue with virtual cell editing
+//         : Fixed issue with wordwrap initialization for individual cells
+//         : Fixed issue with AutoNumAlign
+//         : Added SearchFooter.AutoSearch property
+//         : Fixed issue with incorrect OnExit event during inplace editing
+//         : Fixed issue with hidden columns & unicode editing
+//         : Fixed memory leak issue with RowColor[] property
+//         : Fix in LoadFromXML for XML files with data only in attributes
+// 3.0.0.4 : Fix Alignment property handling
+// 3.0.0.5 : Fix text in node cell issue
+// 3.0.0.6 : Fix in BidiMode RightToLeft footer paint
+//         : Improved HTML control editing
+//         : Fix in parent node find function
+// 3.0.0.7 : Improvement with indent for drawing text in cells with nodes
+// 3.0.0.8 : Fixed issue with progressbar printing
+//         : Fixed issue with background display on grids with FixedCols = 0
+//         : Fixed clipboard event sequence inconsistency
+//         : Fixed issue with OLE drag & drop + disjunct row selection in same grid
+//         : Fixed issue with SelectionTextColor in combination with hidden columns
+//         : SaveToAscii, SaveToFixed use SaveHiddenCells property now
+// 3.0.0.9 : Improved SelectOnRightClick with merged cells
+// 3.1.0.0 : New DragScrollOptions property
+//         : New horiz. scrolling during OLE drag & drop
+//         : Fixed issue with SaveToDoc()
+//         : SubGroup improvement
+//         : Improvement with DirectEdit & readonly cells & clipboard handling
+//         : New OnCanClickCell event
+//         : New TAdvGridRTFIO component for rich text export
+//         : Fix for DirectEdit mode editing with merged cells
+// 3.1.1.0 : New: OnDateTimeChange event added
+//         : Fixed issue with rich edit inplace editing & size while typing
+//         : Improved dropdown button for combobox appearance
+//         : Fixed issue with printing with hidden columns, fixed col = 0,
+// 3.1.1.1 : Fixed issue with row remove & fixed merged rows
+//         : Fixed issue with SelectOnRightClick & disjunct row selection
+// 3.1.1.2 : Fixed issue with node contract & fixed merged rows
+//         : Improved DragScrollOptions.Active -> default property value
+// 3.2.0.0 : New: ControlLook.CheckAlwaysActive, ControlLook.RadioAlwaysActive added
+//         : New: edUniMemo inplace editor
+//         : SearchFooter.SearchActiveColumnOnly added
+//         : SearchFooter.SearchColumn property added
+// 3.2.0.1 : Fix in LoadFromXML
+//         : Fix in edUnitEditBtn inplace editor with ESC key
+// 3.2.0.2 : Fix for paste in normal cell editor
+//         : Fix for scroll on visible inplace editor issue
+// 3.2.0.3 : Fix for merged cell editing
+// 3.2.0.4 : Fix for paste in standard inplace editor
+// 3.2.0.5 : Fix for use of OnGetEditText with normal inplace editor
+//         : Fix issue with fixed cells for grouping & hidden columns
+//         : Fix for autosizecolumns with float formatted cells
+//         : Fix for OnExit event call with auto advance editbtn editor
+//         : Fix for floatingfooter background color synchronisation
+//         : Fix issue with OnPrintSetRowHeight default height
+//         : Fix node tree drawing issue on last row of grid
+// 3.3.0.0 : New: OnEditChange event triggered for non default inplace editor types edComboEdit, edSpinEdit, edEditBtn
+//         : New: CSV pager component
+//         : Fixed: issue with RemoveCols for grid with hidden columns
+//         : Fixed: issue with cell validation & arrow keys
+// 3.3.0.1 : Fixed: issue with UnSort
+// 3.3.0.2 : Property AllWideCells[] added
+//         : Improved sort mode ssAlphaNumericNoCase
+//         : SetTheme public function added
+// 3.3.0.3 : Fixed issue with tabbed editing with merged cells
+//         : Fixed issue with scrollinview on last row
+//         : Fixed issue with editing in partially visible merged cells
+// 3.3.0.4 : Fixed issue with RowIndicator transparent drawing
+//         : Removed limitation to set BtnEdit.ButtonWidth smaller than 15
+//         : Improvement in LoadFromXLS
+//         : Fixed issue with fixedfooters & grouping
+// 3.3.0.5 : Fix for clipped progress bar drawing
+// 3.3.1.0 : Added events OnSaveCell, OnLoadCell
+//         : Fixed issue with EditLink on multiple form instances
+//         : Fixed issue with SelectOnRightClick for click on fixed cells
+// 3.3.1.1 : Improved node drawing
+//         : Fixed issue with loading from XML & special characters
+//         : Fixed small painting issue with active cells
+//         : Fixed ShowModified applies for checkbox modifications too now
+//         : Improved OnGetFloatFormat event for decimal number formatting
+//         : Improved ScrollProportional behaviour during wheel zoom
+//         : Fixed issue with goTabs for fixed cells inside grid
+// 3.3.1.2 : Fixed issue with ActiveCellShow and zero fixed columns and/or rows
+//         : Improved tab handling with fixed & readonly columns
+// 3.3.1.3 : Fix for paste handling in edit control in grid with hidden columns
+// 3.3.2.0 : Filter support added for ignoring logic symbols between quotes
+//         : Fixed issue with selection of cells after paste of cell block
+//         : New: SearchFooter.Font property
+//         : Improved: editing/cell selection with SearchFooter visible
+//         : Fixed: issue with EditorEnabled & backspace key in inplace spin edit
+// 3.3.2.1 : Improved floating point detection method
+// 3.3.2.2 : Improved AutoSizeRow with virtual checkboxes
+// 3.3.2.3 : Improved fixed column sizing cursor behaviour
+// 3.3.2.3 : Improved Tab handling for readonly grids
+//         : Fixed issue with column stretching and proportional scrollbars
+// 3.3.2.4 : Fixed issue with OnComboChange for Unicode combobox inplace editor
+//         : Fixed issue with AutoSizeRow with Unicode cells
+// 3.3.2.5 : Fixed issue with date inplace editor height for large cells
+//         : Improved : LoadFromXML uses now LoadCell virtual proc.
+//         : Fixed issue with column index in combochange events for hidden columns
+//         : Fixed issue for very small row heights with PrintSettings.NoAutoSizeRows = true
+//         : Fixed issue with custom checkbox control painting for Bidi RightToLeft mode
+//         : Improved : auto tab advance in scenarios with custom fixed, readonly cells
+// 3.3.2.6 : Fixed : caret display issue for normal inplace editors
+//         : Fixed : issue with ShowSelection = false and disjunct row select during mousedown
+//         : Fixed : issue with checkbox click with grid with goRowSelect = true
+// 3.3.2.7 : Fixed : CellsLoaded called after LoadFromXML
+//         : Fixed : issue with column stretch, horiz. prop. scrollbar
+//         : Fixed : KeepHorizScroll with SelectOnRightClick issue
+//         : Fixed : issue with RemoveSelectedRows in non disjunct row selection mode
+//         : Fixed : issue with PreciseCheckBoxCheck & hidden columns
+// 3.3.2.8 : Fixed : issue with MemoEditLink memo positioning in Delphi 2005 or higher
+//         : Fixed : issue with ScrollInView for grid without fixed rows
+//         : Fixed : issue with KeepHorizScroll and Indexed sorting
+//         : Fixed : issue with unicode inplace editing with arrow keys
+//         : Fixed : issue with coordinate in OnCanEditCell for F2 key when hidden columns are used
+// 3.3.2.9 : Fixed : fix for TAdvColumnGrid AdvanceOnEnter with hidden columns
+//         : Fixed : issue with SizeWhileTyping
+//         : Fixed : OnSetEditText invoking from normal inplace editor
+//         : Fixed : CursorWalkEditor behaviour
+//         : Fixed : cell property initialization when grid.Bands is used
+//         : Fixed : issue with grid.EditBtn.OnKeyDown
+//         : Fixed : issue with disjunctrowselect & editing for keyboard selection
+
+// 3.4.0.0 : New : AddCheckBoxColumn, RemoveCheckBoxColumn procedures added
+//         : New : property Gradients[col,row] to set gradient direction
+//         : New : public property LoadFirstRow added to control loading first line with LoadFromCSV(), InsertFromCSV()
+//         : New : method grid.SortSettings.Remove to immediately remove sort indicators
+//         : New : OfficeHint property
+//         : New : Office 2007 Luna & Obsidian styles added
+//         : New : AddAdvProgress, RemoveAdvProgress & grid.ProgressAppearance for adding sophisticated progress bars in grid
+//         : New : SelectedRowCount, SelectedRow[i]: boolean;
+//         : Improved : keyboard scroll behaviour with SearchFooter visible
+//         : Improved : ActiveCellShow is automatically updated when programmatically changing Selection
+//         : Improved : RowModified is persisted when grid is sorted
+//         : Improved : cleanup of cell objects in case RowCount,ColCount changes programmatically
+//         : Improved : disjunct cell keyboard interface : ctrl - space + space to select
+//         : Improved : MouseActions.RangeSelectAndEdit  behaviour
+// 3.4.0.1 : Fixed : issue with cell controls on fixed rows, fixed cols
+//         : Fixed : issue with Navigation.AllowCtrlEnter = false
+//         : Fixed : issue with virtual cells & AllCells[] access
+// 3.4.0.2 : Fixed : issue with gradient selection colors and gradient cell colors
+//         : Fixed : issue in function RowAvg()
+// 3.4.0.3 : Fixed : issue with OnBeforeClipboardPasteCell
+//         : Fixed : issue with painting for merged group headers
+//         : Improved : grid.Invalidate now also automatically invalidates the floating footer
+//         : Fixed : issue with reparenting with inplace editor
+//         : Fixed : issue with AppendToDoc
+//         : Fixed : issue with inplace combobox in classic Windows style for BidiMode bdRightToLeft
+// 3.4.0.4 : Fixed : issue with OnGetDisplWideText
+//         : Fixed : print column width calculation with use of OnGetFloatFormat
+//         : Improved : node position for painting
+//         : Improved : group summary handling
+// 3.4.0.5 : Fixed : parameter order in OnGetWordWrap
+//         : Fixed : issue with OnEllipsClick for edButton editor type
+// 3.4.0.6 : Fixed : issue with insert/remove rows and ShowModified
+// 3.4.0.7 : Fixed : issue with editing when AlwaysEdit = true & AllowCtrlEnter = false
+//         : Fixed : issue with goTabs and tab advance with readonly cells
+//         : Fixed : issue with Navigation.TabToNextAtEnd
+//         : Fixed : issue when application active window changes when inplace editor is active
+// 3.4.1.0 : New : support for printing radiobuttons added
+// 3.4.1.1 : Fixed : issue with RemoveSelectedRows and disjunct selection + persistent row selection
+// 3.4.2.0 : New : Events OnGetEditWideText, OnSetEditWideText added
+// 3.4.2.1 : Fixed : hide of spin edit with blank text
+// 3.4.2.2 : Fixed : issue with disjunct column selection & hidden columns
+//         : Improved : handling KeepHorizScroll
+//         : Improved : single select selection behaviour with merged cells
+// 3.4.3.0 : New : UpdateEditMode method added to fix issue with programmatically changing goEditing while grid has focus
+// 3.4.4.0 : New : OnRowDisjunctSelected event added
+//         : Fixed : issue with scrolling with SearchFooter visible
+// 3.4.4.1 : Fixed : issue with Navigation.AllowCtrlEnter = false
+// 3.4.5.0 : New : property AllGridCells[] added to get real grid cell value of hidden & visible cells
+// 3.4.5.1 : Fixed : issue with OnGetCellPrintBorder and right-side borders
+//         : Fixed : issue with MouseActions.RangeSelectAndEdit = true for non editable grids
+//         : Fixed : issue with column moving & visible floating footer
+//         : Improved : drag & drop interface for disjunct selected rows
+//         : Fixed : Issue with SaveRectToBinStream
+// 3.4.6.0 : New : property FloatingFooter.BorderColor added
+// 3.4.6.1 : Fixed : issue with DirectEdit & Merged cells
+// 3.4.6.2 : Fixed : issue with AdvanceOnEnter, checkboxes and OnCanEdit event
+//         : Fixed : issue with KeepHorizScroll, FixedFooters, goRowSelect mode
+//         : Improved : performance of RemoveRows
+//         : Fixed : issue with AlwaysEdit = true and readonly cells
+//         : Fixed : issue with CursorWalkEditor & cell merging & static edits
+//         : Improved : drawing speed
+//         : Fixed : issue with unicode editing
+//         : Fixed : issue with GroupCalc for grid with contracted nodes
+//         : Fixed : issue with copy & paste for float cells
+// 3.4.6.3 : Fixed : issue with disjunctrowselect
+// 3.4.7.0 : New : Office2007 Silver style support added
+// 3.4.7.1 : Fixed : issue with SaveFixedCells & SaveToAscii
+// 3.4.7.2 : Fixed : issue with dbl click & MouseActions.RangeSelectAndEdit = true
+// 3.4.8.0 : New : added support to sort cells with scientific notation, ie. X,YE+Z
+// 3.4.8.1 : Fixed : background color issue with checkboxes on gradient grid
+// 3.4.8.2 : Fixed : issue with RangeSelectAndEdit and popup menus
+//         : Fixed : issue with client-alignment, stretchcolumn
+// 3.4.8.3 : Improved : SmartClipboard resize with editing enabled
+//         : Improved : scientific type detection
+//         : Improved : AdvanceOnEnter, OnCellValidate behaviour with custom inplace editors
+//         : Improved : fnAutoGoto search in disjunct row select mode
+// 3.4.8.5 : New : filter based on cells with stripped HTML tags
+//         : Fixed : issue with RemoveChildRow()
+//         : Improved : AdvGridReplaceDialog shows modified rows when enabled
+// 3.4.8.6 : Fixed : issue with Undo for data checkboxes
+//         : Fixed : issue with combination of RangeSelectAndEdit, goColMoving = true, SelectionResizer
+// 3.4.8.7 : Fixed : issue with goEditing
+// 3.4.8.8 : Fixed : issue with center alignment & haBeforeText, haAfterText images
+//         : Improved : added support for export grids with empty cells to XML
+//         : Fixed : issue with InsertRows & CellControls
+//         : Improved : behaviour of OnEditChange
+// 3.4.8.9 : New : Select method added to programmatically perform select on the default cell
+//         : Fixed : issue with shift column selection
+// 3.4.8.10: Fixed : issue with scroll & searchfooter visible
+//         : Fixed : issue with rangeselectandedit=true and mouse dbl click
+//         : Fixed : issue with row sizing & nodes
+//         : Fixed : small painting issue with nodes
+//         : Fixed : issue with cell controls & grid resize
+// 3.4.8.11: Fixed : issue with ActiveRowColor & unicode text
+//         : Fixed : issue with HintShowSizing and multimonitor use
+//         : Fixed : issue with goTabs & edUniMemo editor
+// 3.4.8.12: Fixed : issue with OnClickCell with goColSizing enabled
+// 3.4.8.13: Fixed : issue with column parameter for grid with hidden columns in OnCanEditCell
+//         : Fixed : issue with CellControls use and hide/unhide rows
+// 3.4.8.14: Improved : vertical scroll handling with floating footer
+
+// 3.5.0.0 : New : methods ColumnStatesToString, StringToColumnStates
+//         : New : methods ColumnPosition, ColumnAtPosition
+//         : New : OnEllipsClick event triggered on F4 key in edEditBtn editor
+//         : New : fcCalculated setting for filter data to filter in TAdvSpreadGrid on results
+//         : New : OnEditCellDone event added
+//         : New : Extra MaxRows parameter for functions LoadFromCSV, InsertFromCSV
+//         : New : OnDatePickerCloseUp event added
+//         : New : AutoFitColumns added
+// 3.5.0.1 : Fixed : issue with hidden columns and tracking column moving
+//         : Fixed : issue with OnEditCellDone with advance edit
+//         : Improved : AutoFitColumns
+// 3.5.1.0 : Improved : OnClick, OnClickCell events triggered for click on footerpanel
+// 3.5.1.1 : Improved : index sort indicator drawing
+//         : Fixed : issue with OnCanEdit and button in cell
+// 3.5.2.0 : New : OnSearchEditChanged event added
+//         : Fixed : issue with Tab on datepicker inplace edit
+// 3.5.2.1 : Fixed : isues with tab key and OnCellValidate
+// 3.5.2.2 : Fixed : issue with AllowFmtClipboard & AllowClipboardRowGrow,AllowClipboardColGrow
+//         : Improved : sequence of OnRowMoved event triggering
+//         : Fixed : issue with multicell text Paste in VCL.NET
+// 3.5.2.3 : Fixed : issue with printing
+//         : Improved : OnCellClick triggered when clicked on node cells outside node
+// 3.5.3.0 : New : exposed MatchCase checkbox in search footer via Grid.SearchPanel.MatchCase
+// 3.5.3.1 : Fixed : issue with unicode inplace editors
+//         : Fixed : issue with calling BeginDrag from OnMouseMove
+// 3.5.4.0 : New : property SortSettings.SortOnVirtualCells added
+//         : New : TAdvGridUndoRedo.OnUndo, OnRedo events added
+//         : New : TAdvGridFindDialog.OnCellFound event added
+//         : New : C++Builder 2007 support
+//         : Fixed : issue with OnGridHint with scrolled FloatingFooter
+//         : Fixed : issue with subgrouping in special cases
+//         : Fixed : issue with OnCellsChanged event for unicode inplace memo editing
+//         : Fixed : issue with cell properties on floating footer row with no column calc
+//         : Fixed : issue with OnClick in readonly grid
+// 3.5.4.1 : Fixed : issue with esPopup external editor type
+// 3.5.5.0 : New : Ctrl-F with searchfooter activated sets focus to search edit
+// 3.5.5.1 : Fixed : issue with cellcontrols & swaprows, moverow, insertrow, removerow
+// 3.5.6.0 : New : setting SelectionTextColor = clNone preserves font color for selected cells
+//         : Fixed : issue with shortcut keys and setting AutoGotoWhenSorted
+// 3.5.6.1 : Fixed : issue with OnRowChanging for tab handling with read-only cells
+// 3.5.6.2 : Improved : behavior with use of grid.Navigation.AdvanceOnEnter
+//         : Fixed : issue with destructor when OLE drag & drop is used
+//         : Fixed : issue with combination DisjunctCellSelect & ColSelect/RowSelect
+//         : Fixed : issue with accessing checkbox state in hidden rows
+
+// 3.6.0.0 : New : RemovedCheckRows method added
+//         : New : default parameter added in AddCheckBoxColumn
+//         : New : function IsChecked added
+//         : New : Undo/Redo support for multi cell copy & paste
+//         : New : ShowMaximized property added in TAdvPreviewDialog
+
+// 3.6.0.1 : Improved : small improvement for right arrow in mode grid.Navigation.CursorWalkEditor = true
+//         : Fixed : issue with summary lines & floating footer calculations with hidden rows
+// 3.6.0.2 : Fixed : issue with readonly cells and button in cell / checkbox in cell
+//           Fixed : issue with removing cell controls with hidden rows
+
+// 4.0.0.0 : New : GroupCustomCalc method & OnGroupCalc event added
+//         : New : UnSelectRows, UnSelectCols method added
+//         : New : SaveWithRTF public property added
+//         : New : SearchFooter.SearchMatchStart property added
+//         : New : GotoCell() method added
+//         : New : OnColumnSizing, OnRowSizing events added
+//         : New : MaxRows & DoTrim default parameter on LoadFromFixed added
+//         : New : Hover/down complex gradients on fixed rows
+//         : New : Fixed row dropdown menu
+//         : New : Automatic Group count display with Group count format
+//         : New : Grouping.AutoSelectGroup, to automatically select all rows in a group by clicking the group header
+//         : New : OnCustomStrToDate event added
+//         : New : global grid Modified property added
+//         : New : OnColumnSizing, OnRowSizing events
+//         : New : MaxComboLength property added
+//         : New : with goTabs, AdvanceInsert = true & TabToNextAtEnd = false, row is inserted on tab at last cell
+//         : New : OnSearchFooterClose event added
+//         : New : MouseActions.DirectComboClose, MouseActions.DirectDateClose properties added
+//         : New : SelectionMirrorColor/SelectionMirrorColorTo added for Vista style gradients on selected cells
+//         : New : Internal atScientific type added for auto text alignment / formatting / sorting
+//         : New : Navigation.CursorWalkAlwaysEdit property added
+//         : New : Navigation.LeftRightRowSelect property added 
+//         : New : fnSelectedCells option added for Find function
+//         : New : edDateTimeEdit editor type added
+//         : New : exposed hilight button in searchfooter via grid.SearchPanel.HiliteButton
+//         : New : event OnSearchFooterAction added
+//         : New : CSV import dialog
+//         : New : support for parenthesis in filter spec
+//         : New : translucent cell display during column or row moving
+//         : New : translucent cell display during drag & drop
+//         : New : support for Unicode hints
+//         : New : support for MaxLen attribute for HTML cell forms
+//         : New : support for masked & password editors for HTML cell forms
+//         : New : fnIncludeHiddenRows in Find parameters option added to search in rows hidden by nodes
+//         : New : IgnoreColumns property for AutoSizeRows, Sort, Find control
+//         : New : OnFooterCalc event added for custom footer calculations
+//         : Improved : float spinedit inplace editor behaviour with Page Up/Down keys
+//         : Improved : OnGetEditorProp also called from normal inplace editor
+//         : Improved : ColumnSize.SynchWithGrid behavior
+//         : Improved : HTML control drawing with XP themes
+//         : Improced : scope option to search in selected cells added in TAdvGridFindDialog, TAdvGridReplaceDialog
+//         : Improved : perform auto scroll when dropped over first row during OLE drag & drop
+//         : Improved : RowModified[] can be used also when visible modified row indication is disabled
+//         : Improved : LoadFromFixed handles out of order column indexes
+//         : Fixed : issue with tab edit for special combinations of fixed cells
+//         : Fixed : issue with OnButtonClick for fixed cells and FixedAsButtons = true
+//         : Fixed : issue with AutoNumAlign and thousand separators
+//         : Fixed : issue with getting checkbox state for data checkboxes with hidden rows
+//         : Fixed : issue with Title attribute case sensitivity in hyperlinks on HTML formatted text
+//         : Fixed : issue with clicking on header checkbox & sorting
+//         : Fixed : issue with AddAdvProgress and Min,Max different from 0,100
+//         : Fixed : issue with SortOnVirtualCells & custom sorting
+
+// 4.0.0.1 : Fixed : issue with aborting printing from OnPrintStart
+//         : Fixed : issue with RemoveSelectedRows & fixed footers
+//         : Fixed : issue with autosizing rich text
+// 4.0.0.2 : Fixed : issue with very small grid height and cell selection
+//         : Fixed : issue with repaint with FixedRows = 0
+//         : Fixed : issue with OnMouseDown for cells with nodes
+// 4.0.0.3 : Fixed : issue with Subgrouping on groups with 1 item in last subgroup
+//         : Fixed : issue with tab, editing & merged cells
+//         : Fixed : issue with checkbox, hidden column & Navigation.Always = true
+//         : Improved : OnGetEditorProp event called for edComboList & edComboEdit editor types for
+//         :            combobox initialization in case grid.ControlLook.DropDownAlwaysVisible = true
+//         : Fixed : particular issue with Unicode combobox inplace editor
+// 4.0.0.4 : Fixed : issue with GetParentRow() with collapsed nodes
+//         : Fixed : issue with searchpanel & filtered grid
+//         : Fixed : issue with tab key & rare combination of readonly & merged cells
+//         : Improved : search footer FindNext/FindPrevious scroll in view on found cells
+// 4.0.1.0 : New : Navigation.MoveScrollOnly property added to always only perform scrolling and no selection change
+//         :       when pressing Up/Down/Next/Prior/Home/End
+// 4.0.1.1 : Fixed : issue with loading CSV files with empty last column
+//         : Fixed : issue with GroupShowCount
+//         : Fixed : issue with panning and WheelAction = waScroll
+// 4.0.2.0 : Improved : AdvGridFindDialog.Dialog & AdvGridReplaceDialog.Dialog exposed
+// 4.0.3.0 : New : public property grid.XMLEncoding to specify code table for XLM export
+//         : Fixed : issue with node collapsing & cell selection
+// 4.0.3.1 : Fixed : issue with OLE drag & drop with ShowCells & FixedRows > 1
+// 4.0.4.0 : New : OnWideEllipsClick event added
+// 4.0.4.1 : Fixed : issue with Unicode hint
+// 4.0.4.2 : Fixed : issue with Hilight function
+// 4.0.5.0 : New : OnOleDropURL event added, DragDropSettings.OleAcceptURLs added
+//         : Fixed : issue with using SearchFooter and rows higher than grid height
+// 4.0.5.1 : Fixed : issue with AutoGotoWhenSorted and hiding sorting
+//         : Fixed : issue with AdvanceInsert & FloatingFooter
+// 4.0.5.2 : Fixed : issue with cell highlighting and hidden columns
+//         : Fixed : issue with disjunct cell selection & fixed cells
+// 4.0.5.3 : Fixed : issue with OnDblClick event in combination with FixedRowAlways = true
+// 4.0.5.4 : Fixed : issue with MouseActions.NoScrollOnPartialRow = true
+//         : Fixed : issue with SelectedRowCount & merged cells
+//         : Fixed : issue with AutoInsertRows when nodes are used
+//         : Fixed : issue with CursorWalkEditor = true
+// 4.0.6.0 : New : MouseActions.EditOnDblClickOnly property added
+// 4.0.6.1 : Fixed : issue with MouseActions.SelectOnRightClick and OnSelectCell event
+//         : Fixed : issue with OnSelectionChanged
+//         : Fixed : OnClick issue in combination with OnCanEdit event handler
+// 4.0.6.2 : Fixed : issue with printing radiobuttons
+//         : Fixed : small issue with goTabs & goEditing in grid.Options
+//         : Fixed : issue with cell controls and deleting rows
+// 4.0.6.3 : Fixed : issue with row delete / row insert in grid with nodes
+//         : Fixed : issue with stretch column and always visible vert. scrollbar
+//         : Fixed : issue with OnSelectionChanged & disjunct row selection
+//         : Improved : auto adapt line width for printout resolution
+//         : Fixed : small issue with disjunct cell selection
+// 4.0.6.4 : Fixed : issue with loading empty comments to stream
+//         : Improved : direct edit start with keyboard allowed when MouseActions.EditOnDblClick = true
+//         : Improved : faster cleanup for virtual grids
+// 4.0.6.5 : Fixed : issue with auto hiding horz. scrollbar
+//         : Fixed : issue with cell validation , tab key and hidden columns
+//         : Fixed : issue with MouseActions.EditOnDBlClickOnly = true
+// 4.0.6.6 : Fixed : issue with combination of FixedAsButton & nodes
 
 {$I TMSDEFS.INC}
 
@@ -28,9 +461,12 @@ unit AdvGrid;
 {$Y+}
 {$T-}
 
+
+{$IFNDEF DELPHI_UNICODE}
 {$IFDEF DELPHI5_LVL}
 {$IFNDEF TMSDOTNET}
   {$DEFINE TMSUNICODE}
+{$ENDIF}
 {$ENDIF}
 {$ENDIF}
 
@@ -39,305 +475,54 @@ interface
 uses
   Windows, Graphics, SysUtils, Messages, Classes, Controls, Grids, ClipBrd,
   Dialogs, Printers, Forms, StdCtrls, Buttons, AdvUtil, ExtCtrls, IniFiles,
-  AsgSpin, AsgEdit, ComCtrls, AsgCombo, RichEdit, CommCtrl, Registry,
+  AsgSpin, AsgEdit, ComCtrls, AsgCombo, RichEdit, CommCtrl, Registry, Menus,
   ShellApi, PictureContainer, AsgCheck, AsgHTMLE, BaseGrid, Mask, AdvStyleIF
   {$IFNDEF TMSDOTNET} , OleCtnrs, AdvXPVS {$ENDIF}
   {$IFDEF TMSDOTNET} , WinUtils, uxTheme, System.Runtime.InteropServices, System.Text {$ENDIF}
   {$IFNDEF DELPHI3_LVL} , OleAuto {$ENDIF}
-  {$IFDEF DELPHI3_LVL} , ComObj, Winspool, ActiveX {$ENDIF}
-  {$IFDEF DELPHI4_LVL} , ImgList, AsgDD {$ENDIF}
+  , ComObj, Winspool, ActiveX, ImgList, AsgDD
   {$IFDEF TMSUNICODE} , AsgUni {$ENDIF}
   {$IFDEF DELPHI6_LVL} , Variants {$ENDIF}
   {$IFDEF TMSDEBUG} , TMSUtil {$ENDIF}
-  , AdvObj
+  , AdvObj, AdvDateTimePicker
   {$IFDEF TMSGDIPLUS}
   , AdvHintInfo
   {$ENDIF}
   ;
 
 const
+  {$IFDEF FREEWARE}
+  trialversion = ' trial version ';
+  {$ENDIF}
+
   MAXCOLUMNS = 512;
   RTF_TWIPS = 1440;
 
-  MAJ_VER = 3; // Major version nr.
-  MIN_VER = 4; // Minor version nr.
-  REL_VER = 8; // Release nr.
-  BLD_VER = 10; // Build nr.
-  DATE_VER = 'Feb, 2007'; // Month version
-
-  // revision history
-  // 2.8.4.1 : changed LoadFromStream to allow loading multiple grids from same stream
-  //         : improved drag & drop handling from readonly drag&drop sources
-  // 2.8.4.2 : change in .Paint procedure for inplace editor painting with TDBAdvGrid
-  // 2.8.5.0 : support for masked & password HTML form controls
-  //         : improved MouseActions.RowSelect handling with scrolling
-  //         : improved PasteSelectionFromClipboard procedure
-  //         : improved drag&drop with Internet Explorer
-  //         : improved HTML forms handling with tab key navigation
-  //         : option to do column calculations in floating footer taking hidden rows in account or not
-  //         : built-in datetime and time sort format support
-  // 2.8.5.1 : Improved tab handling of custom inplace edit controls
-  // 2.8.6.0 : OnGetDisplWideText event added
-  // 2.8.7.0 : Improvements in SaveToDoc, SaveToXLS
-  // 2.8.7.1 : Improved readonly cell handling with merged cells
-  // 2.8.7.2 : Improved column sizing with column stretching enabled in scrolled grid
-  // 2.8.7.3 : Fixed Navigation.AppendOnArrowDown with floating footer visible
-  // 2.8.7.4 : Fixed RemoveRows() combined with use of CellControls
-  //         : Fixed RangeSelectAndEdit issue with hidden columns and F2 handling
-  //         : Fixed issue with original cell value restore upon ESC
-  // 2.8.7.5 : Fixed Ctrl-A select all with disjunct row selection mode
-  // 2.8.8.0 : Added MouseActions.WheelIncrement property
-  //           Added MouseActions.WheelAction property
-  // 2.8.8.1 : Fixed issue with RemoveRows() causing TopRow to become negative
-  //           Fix for flicker during painting with FixedRightCols > 0
-  //           Fix for AlwaysEdit mode with edButton inplace editor type
-  //           Fix for cell validation & floating footer recalculation
-  //           Fix for keydown event in combination with floating footer
-  // 2.8.8.2 : Fix for unicode cells hint
-  //         : Added functions TotalRowCount, TotalColCount
-  // 2.8.8.3 : Fix for printing issue
-  // 2.8.8.4 : Fix for mousewheel scrolling
-  // 2.8.8.5 : Improvements for unicode formulas in TAdvSpreadGrid
-  // 2.8.8.6 : Improvements for unicode formulas in TAdvSpreadGrid
-  // 2.8.8.7 : Fix for Unicode stream persistence
-
-  // v3.0    : see what's new file for details about enhancements
-  // 3.0.0.1 : Changed Abort handling in print routine
-  //         : Fixed issue with goRowSelect range select and checkboxes
-  // 3.0.0.2 : Fixed issue with SelectionTextColor for fixed right columns
-  //         : Fixed issue with column & row moving in small grids
-  // 3.0.0.3 : Improved balloon hint handling
-  //         : Fixed issue with virtual cell editing
-  //         : Fixed issue with wordwrap initialization for individual cells
-  //         : Fixed issue with AutoNumAlign
-  //         : Added SearchFooter.AutoSearch property
-  //         : Fixed issue with incorrect OnExit event during inplace editing
-  //         : Fixed issue with hidden columns & unicode editing
-  //         : Fixed memory leak issue with RowColor[] property
-  //         : Fix in LoadFromXML for XML files with data only in attributes
-  // 3.0.0.4 : Fix Alignment property handling
-  // 3.0.0.5 : Fix text in node cell issue
-  // 3.0.0.6 : Fix in BidiMode RightToLeft footer paint
-  //         : Improved HTML control editing
-  //         : Fix in parent node find function
-  // 3.0.0.7 : Improvement with indent for drawing text in cells with nodes
-  // 3.0.0.8 : Fixed issue with progressbar printing
-  //         : Fixed issue with background display on grids with FixedCols = 0
-  //         : Fixed clipboard event sequence inconsistency
-  //         : Fixed issue with OLE drag & drop + disjunct row selection in same grid
-  //         : Fixed issue with SelectionTextColor in combination with hidden columns
-  //         : SaveToAscii, SaveToFixed use SaveHiddenCells property now
-  // 3.0.0.9 : Improved SelectOnRightClick with merged cells
-  // 3.1.0.0 : New DragScrollOptions property
-  //         : New horiz. scrolling during OLE drag & drop
-  //         : Fixed issue with SaveToDoc()
-  //         : SubGroup improvement
-  //         : Improvement with DirectEdit & readonly cells & clipboard handling
-  //         : New OnCanClickCell event
-  //         : New TAdvGridRTFIO component for rich text export
-  //         : Fix for DirectEdit mode editing with merged cells
-  // 3.1.1.0 : New: OnDateTimeChange event added
-  //         : Fixed issue with rich edit inplace editing & size while typing
-  //         : Improved dropdown button for combobox appearance
-  //         : Fixed issue with printing with hidden columns, fixed col = 0,
-  // 3.1.1.1 : Fixed issue with row remove & fixed merged rows
-  //         : Fixed issue with SelectOnRightClick & disjunct row selection
-  // 3.1.1.2 : Fixed issue with node contract & fixed merged rows
-  //         : Improved DragScrollOptions.Active -> default property value
-  // 3.2.0.0 : New: ControlLook.CheckAlwaysActive, ControlLook.RadioAlwaysActive added
-  //         : New: edUniMemo inplace editor
-  //         : SearchFooter.SearchActiveColumnOnly added
-  //         : SearchFooter.SearchColumn property added
-  // 3.2.0.1 : Fix in LoadFromXML
-  //         : Fix in edUnitEditBtn inplace editor with ESC key
-  // 3.2.0.2 : Fix for paste in normal cell editor
-  //         : Fix for scroll on visible inplace editor issue
-  // 3.2.0.3 : Fix for merged cell editing
-  // 3.2.0.4 : Fix for paste in standard inplace editor
-  // 3.2.0.5 : Fix for use of OnGetEditText with normal inplace editor
-  //         : Fix issue with fixed cells for grouping & hidden columns
-  //         : Fix for autosizecolumns with float formatted cells
-  //         : Fix for OnExit event call with auto advance editbtn editor
-  //         : Fix for floatingfooter background color synchronisation
-  //         : Fix issue with OnPrintSetRowHeight default height
-  //         : Fix node tree drawing issue on last row of grid
-  // 3.3.0.0 : New: OnEditChange event triggered for non default inplace editor types edComboEdit, edSpinEdit, edEditBtn
-  //         : New: CSV pager component
-  //         : Fixed: issue with RemoveCols for grid with hidden columns
-  //         : Fixed: issue with cell validation & arrow keys
-  // 3.3.0.1 : Fixed: issue with UnSort
-  // 3.3.0.2 : Property AllWideCells[] added
-  //         : Improved sort mode ssAlphaNumericNoCase
-  //         : SetTheme public function added
-  // 3.3.0.3 : Fixed issue with tabbed editing with merged cells
-  //         : Fixed issue with scrollinview on last row
-  //         : Fixed issue with editing in partially visible merged cells
-  // 3.3.0.4 : Fixed issue with RowIndicator transparent drawing
-  //         : Removed limitation to set BtnEdit.ButtonWidth smaller than 15
-  //         : Improvement in LoadFromXLS
-  //         : Fixed issue with fixedfooters & grouping
-  // 3.3.0.5 : Fix for clipped progress bar drawing
-  // 3.3.1.0 : Added events OnSaveCell, OnLoadCell
-  //         : Fixed issue with EditLink on multiple form instances
-  //         : Fixed issue with SelectOnRightClick for click on fixed cells
-  // 3.3.1.1 : Improved node drawing
-  //         : Fixed issue with loading from XML & special characters
-  //         : Fixed small painting issue with active cells
-  //         : Fixed ShowModified applies for checkbox modifications too now
-  //         : Improved OnGetFloatFormat event for decimal number formatting
-  //         : Improved ScrollProportional behaviour during wheel zoom
-  //         : Fixed issue with goTabs for fixed cells inside grid
-  // 3.3.1.2 : Fixed issue with ActiveCellShow and zero fixed columns and/or rows
-  //         : Improved tab handling with fixed & readonly columns
-  // 3.3.1.3 : Fix for paste handling in edit control in grid with hidden columns
-  // 3.3.2.0 : Filter support added for ignoring logic symbols between quotes
-  //         : Fixed issue with selection of cells after paste of cell block
-  //         : New: SearchFooter.Font property
-  //         : Improved: editing/cell selection with SearchFooter visible
-  //         : Fixed: issue with EditorEnabled & backspace key in inplace spin edit
-  // 3.3.2.1 : Improved floating point detection method
-  // 3.3.2.2 : Improved AutoSizeRow with virtual checkboxes
-  // 3.3.2.3 : Improved fixed column sizing cursor behaviour
-  // 3.3.2.3 : Improved Tab handling for readonly grids
-  //         : Fixed issue with column stretching and proportional scrollbars
-  // 3.3.2.4 : Fixed issue with OnComboChange for Unicode combobox inplace editor
-  //         : Fixed issue with AutoSizeRow with Unicode cells
-  // 3.3.2.5 : Fixed issue with date inplace editor height for large cells
-  //         : Improved : LoadFromXML uses now LoadCell virtual proc.
-  //         : Fixed issue with column index in combochange events for hidden columns
-  //         : Fixed issue for very small row heights with PrintSettings.NoAutoSizeRows = true
-  //         : Fixed issue with custom checkbox control painting for Bidi RightToLeft mode
-  //         : Improved : auto tab advance in scenarios with custom fixed, readonly cells
-  // 3.3.2.6 : Fixed : caret display issue for normal inplace editors
-  //         : Fixed : issue with ShowSelection = false and disjunct row select during mousedown
-  //         : Fixed : issue with checkbox click with grid with goRowSelect = true
-  // 3.3.2.7 : Fixed : CellsLoaded called after LoadFromXML
-  //         : Fixed : issue with column stretch, horiz. prop. scrollbar
-  //         : Fixed : KeepHorizScroll with SelectOnRightClick issue
-  //         : Fixed : issue with RemoveSelectedRows in non disjunct row selection mode
-  //         : Fixed : issue with PreciseCheckBoxCheck & hidden columns
-  // 3.3.2.8 : Fixed : issue with MemoEditLink memo positioning in Delphi 2005 or higher
-  //         : Fixed : issue with ScrollInView for grid without fixed rows
-  //         : Fixed : issue with KeepHorizScroll and Indexed sorting
-  //         : Fixed : issue with unicode inplace editing with arrow keys
-  //         : Fixed : issue with coordinate in OnCanEditCell for F2 key when hidden columns are used
-  // 3.3.2.9 : Fixed : fix for TAdvColumnGrid AdvanceOnEnter with hidden columns
-  //         : Fixed : issue with SizeWhileTyping
-  //         : Fixed : OnSetEditText invoking from normal inplace editor
-  //         : Fixed : CursorWalkEditor behaviour
-  //         : Fixed : cell property initialization when grid.Bands is used
-  //         : Fixed : issue with grid.EditBtn.OnKeyDown
-  //         : Fixed : issue with disjunctrowselect & editing for keyboard selection
-
-  // 3.4.0.0 : New : AddCheckBoxColumn, RemoveCheckBoxColumn procedures added
-  //         : New : property Gradients[col,row] to set gradient direction
-  //         : New : public property LoadFirstRow added to control loading first line with LoadFromCSV(), InsertFromCSV()
-  //         : New : method grid.SortSettings.Remove to immediately remove sort indicators
-  //         : New : OfficeHint property
-  //         : New : Office 2007 Luna & Obsidian styles added
-  //         : New : AddAdvProgress, RemoveAdvProgress & grid.ProgressAppearance for adding sophisticated progress bars in grid
-  //         : New : SelectedRowCount, SelectedRow[i]: boolean;
-  //         : Improved : keyboard scroll behaviour with SearchFooter visible
-  //         : Improved : ActiveCellShow is automatically updated when programmatically changing Selection
-  //         : Improved : RowModified is persisted when grid is sorted
-  //         : Improved : cleanup of cell objects in case RowCount,ColCount changes programmatically
-  //         : Improved : disjunct cell keyboard interface : ctrl - space + space to select
-  //         : Improved : MouseActions.RangeSelectAndEdit  behaviour
-  // 3.4.0.1 : Fixed : issue with cell controls on fixed rows, fixed cols
-  //         : Fixed : issue with Navigation.AllowCtrlEnter = false
-  //         : Fixed : issue with virtual cells & AllCells[] access
-  // 3.4.0.2 : Fixed : issue with gradient selection colors and gradient cell colors
-  //         : Fixed : issue in function RowAvg()
-  // 3.4.0.3 : Fixed : issue with OnBeforeClipboardPasteCell
-  //         : Fixed : issue with painting for merged group headers
-  //         : Improved : grid.Invalidate now also automatically invalidates the floating footer
-  //         : Fixed : issue with reparenting with inplace editor
-  //         : Fixed : issue with AppendToDoc
-  //         : Fixed : issue with inplace combobox in classic Windows style for BidiMode bdRightToLeft
-  // 3.4.0.4 : Fixed : issue with OnGetDisplWideText
-  //         : Fixed : print column width calculation with use of OnGetFloatFormat
-  //         : Improved : node position for painting
-  //         : Improved : group summary handling
-  // 3.4.0.5 : Fixed : parameter order in OnGetWordWrap
-  //         : Fixed : issue with OnEllipsClick for edButton editor type
-  // 3.4.0.6 : Fixed : issue with insert/remove rows and ShowModified
-  // 3.4.0.7 : Fixed : issue with editing when AlwaysEdit = true & AllowCtrlEnter = false
-  //         : Fixed : issue with goTabs and tab advance with readonly cells
-  //         : Fixed : issue with Navigation.TabToNextAtEnd
-  //         : Fixed : issue when application active window changes when inplace editor is active
-  // 3.4.1.0 : New : support for printing radiobuttons added
-  // 3.4.1.1 : Fixed : issue with RemoveSelectedRows and disjunct selection + persistent row selection
-  // 3.4.2.0 : New : Events OnGetEditWideText, OnSetEditWideText added
-  // 3.4.2.1 : Fixed : hide of spin edit with blank text
-  // 3.4.2.2 : Fixed : issue with disjunct column selection & hidden columns
-  //         : Improved : handling KeepHorizScroll
-  //         : Improved : single select selection behaviour with merged cells
-  // 3.4.3.0 : New : UpdateEditMode method added to fix issue with programmatically changing goEditing while grid has focus
-  // 3.4.4.0 : New : OnRowDisjunctSelected event added
-  //         : Fixed : issue with scrolling with SearchFooter visible
-  // 3.4.4.1 : Fixed : issue with Navigation.AllowCtrlEnter = false
-  // 3.4.5.0 : New : property AllGridCells[] added to get real grid cell value of hidden & visible cells
-  // 3.4.5.1 : Fixed : issue with OnGetCellPrintBorder and right-side borders
-  //         : Fixed : issue with MouseActions.RangeSelectAndEdit = true for non editable grids
-  //         : Fixed : issue with column moving & visible floating footer
-  //         : Improved : drag & drop interface for disjunct selected rows
-  //         : Fixed : Issue with SaveRectToBinStream
-  // 3.4.6.0 : New : property FloatingFooter.BorderColor added
-  // 3.4.6.1 : Fixed : issue with DirectEdit & Merged cells
-  // 3.4.6.2 : Fixed : issue with AdvanceOnEnter, checkboxes and OnCanEdit event
-  //         : Fixed : issue with KeepHorizScroll, FixedFooters, goRowSelect mode
-  //         : Improved : performance of RemoveRows
-  //         : Fixed : issue with AlwaysEdit = true and readonly cells
-  //         : Fixed : issue with CursorWalkEditor & cell merging & static edits
-  //         : Improved : drawing speed
-  //         : Fixed : issue with unicode editing
-  //         : Fixed : issue with GroupCalc for grid with contracted nodes
-  //         : Fixed : issue with copy & paste for float cells
-  // 3.4.6.3 : Fixed : issue with disjunctrowselect
-  // 3.4.7.0 : New : Office2007 Silver style support added
-  // 3.4.7.1 : Fixed : issue with SaveFixedCells & SaveToAscii
-  // 3.4.7.2 : Fixed : issue with dbl click & MouseActions.RangeSelectAndEdit = true
-  // 3.4.8.0 : New : added support to sort cells with scientific notation, ie. X,YE+Z
-  // 3.4.8.1 : Fixed : background color issue with checkboxes on gradient grid
-  // 3.4.8.2 : Fixed : issue with RangeSelectAndEdit and popup menus
-  //         : Fixed : issue with client-alignment, stretchcolumn
-  // 3.4.8.3 : Improved : SmartClipboard resize with editing enabled
-  //         : Improved : scientific type detection
-  //         : Improved : AdvanceOnEnter, OnCellValidate behaviour with custom inplace editors
-  //         : Improved : fnAutoGoto search in disjunct row select mode
-  // 3.4.8.5 : New : filter based on cells with stripped HTML tags
-  //         : Fixed : issue with RemoveChildRow()
-  //         : Improved : AdvGridReplaceDialog shows modified rows when enabled
-  // 3.4.8.6 : Fixed : issue with Undo for data checkboxes
-  //         : Fixed : issue with combination of RangeSelectAndEdit, goColMoving = true, SelectionResizer
-  // 3.4.8.7 : Fixed : issue with goEditing
-  // 3.4.8.8 : Fixed : issue with center alignment & haBeforeText, haAfterText images
-  //         : Improved : added support for export grids with empty cells to XML
-  //         : Fixed : issue with InsertRows & CellControls
-  //         : Improved : behaviour of OnEditChange
-  // 3.4.8.9 : New : Select method added to programmatically perform select on the default cell
-  //         : Fixed : issue with shift column selection
-  // 3.4.8.10: Fixed : issue with scroll & searchfooter visible
-  //         : Fixed : issue with rangeselectandedit=true and mouse dbl click
-  //         : Fixed : issue with row sizing & nodes
-  //         : Fixed : small painting issue with nodes
-  //         : Fixed : issue with cell controls & grid resize 
-
-
-  // 3.5.0.0 : Preparation
-  //         : New : methods ColumnStatesToString, StringToColumnStates
-  //         : New : methods ColumnPosition, ColumnAtPosition
-  //         : New : OnEllipsClick event triggered on F4 key in edEditBtn editor
-  //         : New : fcCalculated setting for filter data to filter in TAdvSpreadGrid on results
-
-
-  WM_THEMECHANGED = $031A;
+  MAJ_VER = 4; // Major version nr.
+  MIN_VER = 0; // Minor version nr.
+  REL_VER = 6; // Release nr.
+  BLD_VER = 6; // Build nr.
+  DATE_VER = 'Jul, 2008'; // Month version
 
 var
   CF_GRIDCELLS: Word;
+  WM_GRIDEDITDONE: Word;
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TAdvStringGrid = class;
+
+  ICellGraphic = Interface
+  ['{0712BE3F-5C9A-4771-BF71-4C987CDC39B3}']
+    procedure Draw(Canvas: TCanvas;R: TRect; Col,Row: integer; Selected: boolean; Grid: TAdvStringGrid);
+    function CellWidth: integer;
+    function CellHeight: integer;
+    function IsBackground: boolean;
+  end;
 
   TWinCtrl = class(TWinControl);
 
@@ -345,17 +530,22 @@ type
   TBoolArray = array[0..MAXCOLUMNS] of Boolean;
   TWidthArray = array[0..MAXCOLUMNS] of SmallInt;
 
-  TAdvGridStyle = (gsOffice2003Blue, gsOffice2003Silver, gsOffice2003Olive, gsOffice2003Classic, gsOffice2007Luna, gsOffice2007Obsidian, gsWindowsXP, gsWhidbey, gsCustom, gsOffice2007Silver);
+  TAdvGridStyle = (gsOffice2003Blue, gsOffice2003Silver, gsOffice2003Olive, gsOffice2003Classic, gsOffice2007Luna, gsOffice2007Obsidian, gsWindowsXP, gsWhidbey, gsCustom, gsOffice2007Silver,gsWindowsVista);
 
   EAdvGridError = class(Exception);
 
-  TAsgVAlignment = TVAlignment;
+  TAsgVAlignment = Basegrid.TVAlignment;
 
   TGetEditorTypeEvent = procedure(Sender:TObject;ACol,ARow: Integer;
     var AEditor:TEditorType) of object;
 
   TEllipsClickEvent = procedure(Sender:TObject;ACol,ARow: Integer;
     var S:string) of object;
+
+  {$IFDEF TMSUNICODE}
+  TWideEllipsClickEvent = procedure(Sender:TObject;ACol,ARow: Integer;
+    var S:widestring) of object;
+  {$ENDIF}  
 
   TButtonClickEvent = procedure(Sender:TObject;ACol,ARow: Integer) of object;
 
@@ -379,6 +569,12 @@ type
   TDateTimeSpinClickEvent = procedure(Sender:TObject;ACol,ARow: Integer;
     AValue:TDateTime;UpDown: Boolean) of object;
 
+  TSearchEditChangeEvent = procedure(Sender: TObject; Value: string; var DefaultSearch: boolean) of object;
+
+  TSearchAction = (saFindFirst, saFindPrevious, saFindNext);
+
+  TSearchFooterActionEvent = procedure(Sender: TObject; Value: string; ACol, ARow: integer; SearchAction: TSearchAction) of object;
+
   TCellSaveLoadEvent = procedure(Sender: TObject; ACol,ARow: integer; var Value: string) of object;
 
   {$IFDEF TMSUNICODE}
@@ -390,6 +586,8 @@ type
   TScrollHintType = (shNone,shVertical,shHorizontal,shBoth);
 
   TFilterOperation = (foSHORT, foNONE, foAND, foXOR, foOR);
+
+  TCustomFilterEvent = procedure(Sender: TObject; ARow: integer; var AcceptRow: boolean) of object;
 
   TSortStyle = (ssAutomatic, ssAlphabetic, ssNumeric, ssDate, ssAlphaNoCase,
     ssAlphaCase, ssShortDateEU, ssShortDateUS, ssCustom, ssFinancial, ssAnsiAlphaCase,
@@ -425,9 +623,9 @@ type
 
   TScrollType = (ssNormal,ssFlat,ssEncarta);
 
-  TXPColorScheme = (xpNone, xpBlue, xpGreen, xpGray);
+  TXPColorScheme = (xpNone, xpBlue, xpGreen, xpGray, vistaAero);
 
-  TGridLook = (glStandard,glSoft,glClassic,glTMS,glXP,glListView);
+  TGridLook = (glStandard,glSoft,glClassic,glTMS,glXP,glListView,glVista);
 
   TCanInsertRowEvent = procedure(Sender: TObject; ARow: Integer;
     var CanInsert: Boolean) of object;
@@ -477,10 +675,13 @@ type
     LeftPen,TopPen,RightPen,BottomPen: TPen) of object;
 
   TGridAlignEvent = procedure (Sender: TObject; ARow, ACol: Integer;
-    var HAlign: TAlignment;var VAlign: TAsgVAlignment) of object;
+    var HAlign: Classes.TAlignment;var VAlign: TAsgVAlignment) of object;
 
   TGridHintEvent = procedure (Sender:TObject; ARow, ACol: Integer;
     var hintstr:string) of object;
+
+  TGridWideHintEvent = procedure (Sender:TObject; ARow, ACol: Integer;
+    var hintstr:widestring) of object;
 
   {$IFDEF TMSGDIPLUS}
   TOfficeHintEvent = procedure(Sender: TObject; ACol, ARow: Integer; OfficeHint: TAdvHintInfo) of object;
@@ -490,6 +691,9 @@ type
     var Allow: Boolean) of object;
 
   TOleDropFileEvent = procedure(Sender: TObject; ARow, ACol: Integer; FileName: string;
+    var Allow: Boolean) of object;
+
+  TOleDropURLEvent = procedure(Sender: TObject; ARow, ACol: Integer; URL: string;
     var Allow: Boolean) of object;
 
   TOleDragOverEvent = procedure (Sender:TObject; ARow, ACol: Integer;
@@ -530,13 +734,18 @@ type
 
   TGridPrintColumnWidthEvent = procedure (Sender:TObject; ACol: Integer; var Width: Integer) of object;
   TGridPrintRowHeightEvent = procedure (Sender:TObject; ARow: Integer; var Height: Integer) of object;
+  
+  TCustomStrToDateEvent = procedure(Sender: TObject; Value: string;var ADate: TDateTime) of object;
 
   TOnResizeEvent = procedure (Sender:TObject) of object;
 
-  {$IFDEF DELPHI4_LVL}
   TColumnSizeEvent = procedure (Sender:TObject; ACol: Integer; var Allow: Boolean) of object;
+
+  TColumnSizingEvent = procedure (Sender:TObject; ACol, ColumnSize: Integer) of object;
+
+  TRowSizingEvent = procedure (Sender:TObject; ARow, RowSize: Integer) of object;
+
   TRowSizeEvent = procedure (Sender:TObject; ARow: Integer; var Allow: Boolean) of object;
-  {$ENDIF}
 
   TEndColumnSizeEvent = procedure (Sender:TObject; ACol: Integer) of object;
 
@@ -574,7 +783,9 @@ type
 
   TEditChangeEvent = procedure(Sender: TObject; ACol, ARow: Integer; Value: string) of object;
 
-  TDateTimeChangeEvent = procedure(Sender: TObject; ACol,ARow: Integer; ADateTime: TDateTime) of object;                     
+  TEditCellDoneEvent = procedure(Sender: TObject; ACol, ARow: Integer) of object;
+
+  TDateTimeChangeEvent = procedure(Sender: TObject; ACol,ARow: Integer; ADateTime: TDateTime) of object;
 
   TCellsChangedEvent = procedure(Sender: TObject; R: TRect) of object;
 
@@ -604,7 +815,7 @@ type
 
   TFindParameters = (fnMatchCase,fnMatchFull,fnMatchRegular,fnDirectionLeftRight,
     fnMatchStart,fnFindInCurrentRow,fnFindInCurrentCol,fnIncludeFixed,fnAutoGoto,
-    fnIgnoreHTMLTags,fnBackward,fnIncludeHiddenColumns,fnFindInPresetCol,fnFindInPresetRow);
+    fnIgnoreHTMLTags,fnBackward,fnIncludeHiddenColumns,fnFindInPresetCol,fnFindInPresetRow,fnSelectedCells,fnIncludeHiddenRows);
 
   TCellHAlign = (haLeft,haRight,haCenter,haBeforeText,haAfterText,haFull);
 
@@ -612,7 +823,7 @@ type
 
   TCellType = (ctBitmap,ctIcon,ctNone,ctImageList,ctCheckBox,ctDataCheckBox,
     ctRotated,ctDataImage,ctNode,ctRadio,ctEmpty,ctImages,ctPicture,ctFilePicture,
-    ctValue,ctProgress,ctComment,ctButton,ctBitButton,ctVirtCheckBox,ctRowCheckBox,ctProgressPie,ctSummary,ctRangeIndicator,ctXPProgress);
+    ctValue,ctProgress,ctComment,ctButton,ctBitButton,ctVirtCheckBox,ctRowCheckBox,ctProgressPie,ctSummary,ctRangeIndicator,ctXPProgress,ctInterface);
 
   TFitToPage = (fpNever,fpGrow,fpShrink,fpAlways,fpCustom);
 
@@ -626,6 +837,8 @@ type
 
   THasComboEvent = procedure(Sender: TObject; ACol,ARow: Integer; var HasComboBox: Boolean) of object;
 
+  THasSpinEditEvent = procedure(Sender: TObject; ACol,ARow: Integer; var HasSpinEdit: Boolean) of object;
+
   TGridExportState = (esExportStart, esExportNewRow, esExportDone, esExportSelRow, esExportFail);
   TGridImportState = (isImportStart, isImportNewRow, isImportDone, isImportSelRow);
 
@@ -634,6 +847,10 @@ type
   TGridBalloonEvent = procedure(Sender: TObject; ACol, ARow: Integer; var ATitle: string; var AText: string; var AIcon: Integer) of object;
 
   TWordWrapEvent = procedure(Sender: TObject; ACol,ARow: Integer; var WordWrap: boolean) of object;
+
+  TGroupCalcEvent = procedure(Sender: TObject; ACol, FromRow, ToRow: integer; var Res: double) of object;
+
+  TFixedDropDownEvent = procedure(Sender: TObject; ACol,ARow: integer; var AMenu: TPopupMenu; var KeepFixedCellHighlighted: boolean) of object;
 
   //For Drag-Scrolling
   TDragScrollDelays = class(TPersistent)
@@ -711,11 +928,17 @@ type
     FCellPicture : TPicture;
     FCellList: TIntList;
     FCellStrings : TStrings;
+    {$IFDEF DELPHI6_LVL}
+    FCellInterface: TInterfacedPersistent;
+    {$ENDIF}
     {$ENDIF}
   public
     constructor Create;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
+    {$IFDEF DELPHI6_LVL}
+    procedure SetInterfacedCell(AObject: TInterfacedPersistent);
+    {$ENDIF}    
     procedure SetBitmap(ABmp:TBitmap;Transparent: Boolean;hal:TCellHAlign;val:TCellVAlign);
     procedure SetPicture(APicture:TPicture;Transparent: Boolean;StretchMode:TStretchMode;padding: Integer;hal:TCellHAlign;val:TCellVAlign);
     procedure SetFilePicture(APicture:TFilePicture;Transparent: Boolean;stretchmode:TStretchMode;padding: Integer;hal:TCellHAlign;val:TCellVAlign);
@@ -754,6 +977,9 @@ type
     property CellPicture : TPicture read FCellPicture write FCellPicture;
     property CellList: TIntList read FCellList write FCellList;
     property CellStrings: TStrings read FCellStrings write FCellStrings;
+    {$IFDEF DELPHI6_LVL}
+    property CellInterface: TInterfacedPersistent read FCellInterface write FCellInterface;
+    {$ENDIF}
     {$ENDIF}
   end;
 
@@ -808,7 +1034,7 @@ type
     procedure SetContractGlyph(Value: TBitmap);
     procedure SetNodeType(Value: TNodeType);
     procedure SetShowTree(const Value: Boolean);
-    procedure SetShowTreeFull(const Value: Boolean);    
+    procedure SetShowTreeFull(const Value: Boolean);
     procedure SetNodeIndent(const Value: Integer);
     procedure SetTreeColor(const Value: TColor);
   public
@@ -846,12 +1072,26 @@ type
     FProgressMarginX: Integer;
     FProgressXP: Boolean;
     FDropDownAlwaysVisible: Boolean;
+    FSpinButtonsAlwaysVisible: Boolean;
     FNoDisabledCheckRadioLook: Boolean;
     FNoDisabledButtonLook: Boolean;
     FCommentColor: TColor;
     FProgressBorderColor: TColor;
     FFixedGradientFrom: TColor;
     FFixedGradientTo: TColor;
+    FFixedGradientMirrorFrom: TColor;
+    FFixedGradientMirrorTo: TColor;
+    FFixedGradientHoverFrom: TColor;
+    FFixedGradientHoverTo: TColor;
+    FFixedGradientHoverMirrorFrom: TColor;
+    FFixedGradientHoverMirrorTo: TColor;
+    FFixedGradientHoverBorder: TColor;
+    FFixedGradientDownFrom: TColor;
+    FFixedGradientDownTo: TColor;
+    FFixedGradientDownMirrorFrom: TColor;
+    FFixedGradientDownMirrorTo: TColor;
+    FFixedGradientDownBorder: TColor;
+    FFixedDropdownButton: boolean;
     FCheckAlwaysActive: Boolean;
     FRadioAlwaysActive: Boolean;
     procedure SetCheckBoxSize(const Value: Integer);
@@ -867,11 +1107,24 @@ type
     procedure SetProgressMarginY(const Value: Integer);
     procedure SetProgressXP(const Value: Boolean);
     procedure SetDropDownAlwaysVisible(const Value: Boolean);
+    procedure SetSpinButtonsAlwaysVisible(const Value: Boolean);    
     procedure SetNoDisabledCheckRadioLook(const Value: Boolean);
     procedure SetNoDisabledButtonLook(const Value: Boolean);
     procedure SetCommentColor(const Value: TColor);
     procedure SetFixedGradientFrom(const Value: TColor);
     procedure SetFixedGradientTo(const Value: TColor);
+    procedure SetFixedGradientMirrorFrom(const Value: TColor);
+    procedure SetFixedGradientMirrorTo(const Value: TColor);
+    procedure SetFixedGradientHoverFrom(const Value: TColor);
+    procedure SetFixedGradientHoverTo(const Value: TColor);
+    procedure SetFixedGradientHoverMirrorFrom(const Value: TColor);
+    procedure SetFixedGradientHoverMirrorTo(const Value: TColor);
+    procedure SetFixedGradientHoverBorder(const Value: TColor);
+    procedure SetFixedGradientDownFrom(const Value: TColor);
+    procedure SetFixedGradientDownTo(const Value: TColor);
+    procedure SetFixedGradientDownMirrorFrom(const Value: TColor);
+    procedure SetFixedGradientDownMirrorTo(const Value: TColor);
+    procedure SetFixedGradientDownBorder(const Value: TColor);
   public
     constructor Create(AOwner: TAdvStringGrid);
     destructor Destroy; override;
@@ -882,6 +1135,19 @@ type
     property CheckedGlyph: TBitmap read FCheckedGlyph write SetCheckedGlyph;
     property FixedGradientFrom: TColor read FFixedGradientTo write SetFixedGradientTo default clNone;
     property FixedGradientTo: TColor read FFixedGradientFrom write SetFixedGradientFrom default clNone;
+    property FixedGradientMirrorFrom: TColor read FFixedGradientMirrorTo write SetFixedGradientMirrorTo default clNone;
+    property FixedGradientMirrorTo: TColor read FFixedGradientMirrorFrom write SetFixedGradientMirrorFrom default clNone;
+    property FixedGradientHoverFrom: TColor read FFixedGradientHoverTo write SetFixedGradientHoverTo default clNone;
+    property FixedGradientHoverTo: TColor read FFixedGradientHoverFrom write SetFixedGradientHoverFrom default clNone;
+    property FixedGradientHoverMirrorFrom: TColor read FFixedGradientHoverMirrorTo write SetFixedGradientHoverMirrorTo default clNone;
+    property FixedGradientHoverMirrorTo: TColor read FFixedGradientHoverMirrorFrom write SetFixedGradientHoverMirrorFrom default clNone;
+    property FixedGradientHoverBorder: TColor read FFixedGradientHoverBorder write SetFixedGradientHoverBorder default clNone;
+    property FixedGradientDownFrom: TColor read FFixedGradientDownTo write SetFixedGradientDownTo default clNone;
+    property FixedGradientDownTo: TColor read FFixedGradientDownFrom write SetFixedGradientDownFrom default clNone;
+    property FixedGradientDownMirrorFrom: TColor read FFixedGradientDownMirrorTo write SetFixedGradientDownMirrorTo default clNone;
+    property FixedGradientDownMirrorTo: TColor read FFixedGradientDownMirrorFrom write SetFixedGradientDownMirrorFrom default clNone;
+    property FixedGradientDownBorder: TColor read FFixedGradientDownBorder write SetFixedGradientDownBorder default clNone;
+    property FixedDropDownButton: Boolean read FFixedDropDownButton write FFixedDropDownButton default False;
     property UnCheckedGlyph: TBitmap read FUnCheckedGlyph write SetUnCheckedGlyph;
     property RadioOnGlyph: TBitmap read FRadioOnGlyph write SetRadioOnGlyph;
     property RadioOffGlyph: TBitmap read FRadioOffGlyph write SetRadioOffGlyph;
@@ -891,6 +1157,7 @@ type
     property RadioAlwaysActive: Boolean read FRadioAlwaysActive write FRadioAlwaysActive default False;
     property ControlStyle: TControlStyle read FControlStyle write SetControlStyle default csWinXP;
     property DropDownAlwaysVisible: Boolean read FDropDownAlwaysVisible write SetDropDownAlwaysVisible default False;
+    property SpinButtonsAlwaysVisible: Boolean read FSpinButtonsAlwaysVisible write SetSpinButtonsAlwaysVisible default False;
     property FlatButton: Boolean read FFlatButton write SetFlatButton default False;
     property NoDisabledCheckRadioLook: Boolean read FNoDisabledCheckRadioLook write SetNoDisabledCheckRadioLook default False;
     property NoDisabledButtonLook: Boolean read FNoDisabledButtonLook write SetNoDisabledButtonLook default False;
@@ -943,6 +1210,8 @@ type
     FAllSelect: Boolean;
     FDirectEdit: Boolean;
     FDirectComboDrop: Boolean;
+    FDirectComboClose: Boolean;
+    FDirectDateClose: Boolean;
     FDirectDateDrop: Boolean;
     FDisjunctRowSelect: Boolean;
     FDisjunctColSelect: Boolean;    
@@ -967,10 +1236,17 @@ type
     FWheelIncrement: Integer;
     FWheelAction: TWheelAction;
     FAutoSizeColOnDblClick: Boolean;
+    FEditOnDblClickOnly: Boolean;
+    FOnChange: TNotifyEvent;
     procedure SetDisjunctColSelect(const AValue: Boolean);
     procedure SetDisjunctRowSelect(const AValue: Boolean);
     procedure SetDisjunctCellSelect(const AValue: Boolean);
     procedure SetHotmailRowSelect(const AValue: Boolean);
+    procedure SetEditOnDblClickOnly(const AValue: Boolean);
+    procedure SetWheelAction(const Value: TWheelAction);
+  protected
+    procedure Changed;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   public
     constructor Create(AOwner: TComponent);
     destructor Destroy; override;
@@ -983,12 +1259,15 @@ type
     property CaretPositioning: Boolean read FCaretPositioning write FCaretPositioning default False;
     property CheckAllCheck: Boolean read FCheckAllCheck write FCheckAllCheck default False;
     property ColSelect: Boolean read FColSelect write FColSelect default False;
+    property DirectComboClose: Boolean read FDirectComboClose write FDirectComboClose default False;
     property DirectComboDrop: Boolean read FDirectComboDrop write FDirectComboDrop default False;
+    property DirectDateClose: Boolean read FDirectDateClose write FDirectDateClose default False;
     property DirectDateDrop: Boolean read FDirectDateDrop write FDirectDateDrop default False;
     property DirectEdit: Boolean read FDirectEdit write FDirectEdit default False;
     property DisjunctRowSelect: Boolean read FDisjunctRowSelect write SetDisjunctRowSelect default False;
     property DisjunctColSelect: Boolean read FDisjunctColSelect write SetDisjunctColSelect default False;
     property DisjunctCellSelect: Boolean read FDisjunctCellSelect write SetDisjunctCellSelect default False;
+    property EditOnDblClickOnly: Boolean read FEditOnDblClickOnly write SetEditOnDblClickOnly default False;
     property FixedRowsEdit: TGridFixedCellEdit read FFixedRowsEdit write FFixedRowsEdit default fceNone;
     property FixedColsEdit: TGridFixedCellEdit read FFixedColsEdit write FFixedColsEdit default fceNone;
     property HotmailRowSelect: Boolean read FHotmailRowSelect write SetHotmailRowSelect default false;
@@ -1004,7 +1283,7 @@ type
     property SizeFixedCol: Boolean read FSizeFixedCol write FSizeFixedCol default False;
     property SizeFixedRow: Boolean read FSizeFixedRow write FSizeFixedRow default False;    
     property WheelIncrement: Integer read FWheelIncrement write FWheelIncrement default 0;
-    property WheelAction: TWheelAction read FWheelAction write FWheelAction default waMoveSelection;
+    property WheelAction: TWheelAction read FWheelAction write SetWheelAction default waMoveSelection;
   end;
 
   TColumnSizeLocation = (clRegistry,clIniFile);
@@ -1020,9 +1299,7 @@ type
     FStretch: Boolean;
     FStretchColumn: Integer;
     FSynchWithGrid: Boolean;
-    {$IFDEF DELPHI4_LVL}
     FLocation: TColumnSizeLocation;
-    {$ENDIF}
     procedure SetStretch(Value: Boolean);
   public
     constructor Create(AOwner:TComponent);
@@ -1034,9 +1311,7 @@ type
     property Stretch: Boolean read FStretch write SetStretch default False;
     property StretchColumn: Integer read FStretchColumn write FStretchColumn default -1;
     property SynchWithGrid: Boolean read FSynchWithGrid write FSynchWithGrid default False;
-    {$IFDEF DELPHI4_LVL}
     property Location: TColumnSizeLocation read FLocation write FLocation default clRegistry;
-    {$ENDIF}
   end;
 
   { Grouping visual properties }
@@ -1058,19 +1333,24 @@ type
     FHeaderLineWidth: Integer;
     FSummaryLineColor: TColor;
     FHeaderLineColor: TColor;
+    FShowGroupCount: boolean;
+    FGroupCountFormat: string;
+    FAutoSelectGroup: boolean;
   public
     constructor Create;
     procedure Assign(Source: TPersistent); override;
   published
+    property AutoSelectGroup: boolean read FAutoSelectGroup write FAutoSelectGroup default false;
+    property GroupCountFormat: string read FGroupCountFormat write FGroupCountFormat;
     property HeaderColor: TColor read FHeaderColor write FHeaderColor default clNone;
     property HeaderColorTo: TColor read FHeaderColorTo write FHeaderColorTo default clNone;
     property HeaderTextColor: TColor read FHeaderTextColor write FHeaderTextColor default clNone;
     property HeaderUnderline: Boolean read FHeaderUnderline write FHeaderUnderline default false;
     property HeaderLineColor: TColor read FHeaderLineColor write FHeaderLineColor default clBlue;
     property HeaderLineWidth: Integer read FHeaderLineWidth write FHeaderLineWidth default 2;
-
     property MergeHeader: Boolean read FMergeHeader write FMergeHeader default false;
     property MergeSummary: Boolean read FMergeSummary write FMergeSummary default false;
+    property ShowGroupCount: Boolean read FShowGroupCount write FShowGroupCount default false;
     property Summary: Boolean read FSummary write FSummary default false;
     property SummaryColor: TColor read FSummaryColor write FSummaryColor default clNone;
     property SummaryColorTo: TColor read FSummaryColorTo write FSummaryColorTo default clNone;
@@ -1103,6 +1383,7 @@ type
     FAdvanceDirection: TAdvanceDirection;
     FAdvanceAuto: Boolean;
     FCursorWalkEditor: Boolean;
+    FCursorWalkAlwaysEdit: Boolean;
     FMoveRowOnSort: Boolean;
     FImproveMaskSel: Boolean;
     FAlwaysEdit: Boolean;
@@ -1117,7 +1398,14 @@ type
     FSkipFixedCells: Boolean;
     FAllowCtrlEnter: Boolean;
     FAppendOnArrowDown: Boolean;
+    FLeftRightRowSelect: Boolean;
+    FMoveScrollOnly: Boolean;    
+    FOnChange: TNotifyEvent;
     procedure SetAutoGoto(aValue: Boolean);
+    procedure SetAdvanceDirection(const Value: TAdvanceDirection);
+  protected
+    procedure Changed;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1131,7 +1419,7 @@ type
     property AutoGotoWhenSorted: Boolean read FAutoGotoWhenSorted write SetAutoGoto default False;
     property AutoGotoIncremental: Boolean read FAutoGotoIncremental write FAutoGotoIncremental default False;
     property AutoComboDropSize: Boolean read FAutoComboDropSize write FAutoComboDropSize default False;
-    property AdvanceDirection: TAdvanceDirection read FAdvanceDirection write FAdvanceDirection default adLeftRight;
+    property AdvanceDirection: TAdvanceDirection read FAdvanceDirection write SetAdvanceDirection default adLeftRight;
     property AllowClipboardShortCuts: Boolean read FAllowClipboardShortcuts write FAllowClipboardShortcuts default False;
     property AllowCtrlEnter: Boolean read FAllowCtrlEnter write FAllowCtrlEnter default True;
     property AllowSmartClipboard: Boolean read FAllowSmartClipboard write FAllowSmartClipboard default False;
@@ -1145,8 +1433,11 @@ type
     property EditSelectAll: Boolean read FEditSelectAll write FEditSelectAll default True;
     property InsertPosition: TInsertPosition read FInsertPosition write FInsertPosition default pInsertBefore;
     property CursorWalkEditor: Boolean read FCursorWalkEditor write FCursorWalkEditor default False;
+    property CursorWalkAlwaysEdit: Boolean read FCursorWalkAlwaysEdit write FCursorWalkAlwaysEdit default True;
     property MoveRowOnSort: Boolean read FMoveRowOnSort write FMoveRowOnSort default False;
+    property MoveScrollOnly: Boolean read FMoveScrollOnly write FMoveScrollOnly default False;
     property ImproveMaskSel: Boolean read FImproveMaskSel write FImproveMaskSel default False;
+    property LeftRightRowSelect: Boolean read FLeftRightRowSelect write FLeftRightRowSelect default true;
     property CopyHTMLTagsToClipboard: Boolean read FCopyHTMLTagsToClipboard write FCopyHTMLTagsToClipboard default True;
     property KeepHorizScroll: Boolean read FKeepHorizScroll write FKeepHorizScroll default False;
     property LineFeedOnEnter: Boolean read FLineFeedOnEnter write FLineFeedOnEnter default False;
@@ -1366,6 +1657,11 @@ type
     FInitSortDirection: TSortDirection;
     FUndoSort: Boolean;
     FAutoSortForGrouping: Boolean;
+    FVirtualCells: Boolean;
+    FHeaderColor: TColor;
+    FHeaderColorTo: TColor;
+    FHeaderMirrorColor: TColor;
+    FHeaderMirrorColorTo: TColor;
     function GetDownGlyph: TBitmap;
     function GetUpGlyph: TBitmap;
     procedure SetDownGlyph(const Value: TBitmap);
@@ -1374,6 +1670,10 @@ type
     procedure SetIndexDownGlyph(const Value: TBitmap);
     procedure SetIndexUpGlyph(const Value: TBitmap);
     procedure SetShow(const Value: Boolean);
+    procedure SetHeaderColor(const Value: TColor);
+    procedure SetHeaderColorTo(const Value: TColor);
+    procedure SetHeaderMirrorColor(const Value: TColor);
+    procedure SetHeaderMirrorColorTo(const Value: TColor);
   protected
   public
     constructor Create(AOwner: TAdvStringGrid);
@@ -1402,6 +1702,11 @@ type
     property NormalCellsOnly: Boolean read FSortNormalCellsOnly write FSortNormalCellsOnly default False;
     property Row: Integer read FSortRow write SetSortRow default 0;
     property UndoSort: Boolean read FUndoSort write FUndoSort default False;
+    property SortOnVirtualCells: Boolean read FVirtualCells write FVirtualCells default True;
+    property HeaderColor: TColor read FHeaderColor write SetHeaderColor default clNone;
+    property HeaderColorTo: TColor read FHeaderColorTo write SetHeaderColorTo default clNone;
+    property HeaderMirrorColor: TColor read FHeaderMirrorColor write SetHeaderMirrorColor default clNone;
+    property HeaderMirrorColorTo: TColor read FHeaderMirrorColorTo write SetHeaderMirrorColorTo default clNone;
   end;
 
   TProgressStyle = (psXP, psClassic);
@@ -1863,12 +2168,14 @@ type
   TAdvInplaceEdit = class(TInplaceEdit)
   private
     FSelKeyDown: Integer;
+    FOldSelStart: integer;
     FLengthLimit: SmallInt;
     FValign: Boolean;
     FWordWrap: Boolean;
     GotKey: Boolean;
     Workmode: Boolean;
     FGrid: TAdvStringGrid;
+    FColE,FRowE: integer;
     procedure SetVAlign(Value: Boolean);
     procedure SetWordWrap(Value: Boolean);
     procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
@@ -1897,6 +2204,7 @@ type
     property VAlign: Boolean read FVAlign write SetVAlign;
     property WordWrap: Boolean read FWordwrap write SetWordWrap;
     property LengthLimit: smallint read FLengthLimit write FLengthLimit;
+    property PopupMenu;
   end;
 
   TFilterCells = (fcVirtual, fcNormal, fcStripHTML, fcCalculated);
@@ -2000,7 +2308,6 @@ type
 
   {OLE Drag & Drop helper objects}
 
-  {$IFDEF DELPHI4_LVL}
   TDragDropSettings = class(TPersistent)
   private
     FGrid: TAdvStringGrid;
@@ -2010,17 +2317,29 @@ type
     FOleDropSource: Boolean;
     FOleRemoveRows: Boolean;
     FOleAcceptFiles: Boolean;
+    FOleAcceptURLs: Boolean;
     FOleDropTarget: Boolean;
     FOleInsertRows: Boolean;
     FOleCopyAlways: Boolean;
     FOleColumnDragDrop: Boolean;
+    FShowCells: Boolean;
     procedure SetOleDropRTF(const Value: Boolean);
     procedure SetOleDropTarget(const Value: Boolean);
+    procedure SetShowCells(const Value: boolean);
   public
     constructor Create(AOwner: TAdvStringGrid);
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
   published
+    {$IFDEF DELPHI6_LVL}
+    property ShowCells: boolean read FShowCells write SetShowCells default True;
+    {$ENDIF}
+    {$IFNDEF DELPHI6_LVL}
+    property ShowCells: boolean read FShowCells write SetShowCells default False;
+    {$ENDIF}
     property OleAcceptFiles: Boolean read FOleAcceptFiles write FOleAcceptFiles default True;
     property OleAcceptText: Boolean read FOleAcceptText write FOleAcceptText default True;
+    property OleAcceptURLs: Boolean read FOleAcceptURLs write FOleAcceptURLs default True;
     property OleCopyAlways: Boolean read FOleCopyAlways write FOleCopyAlways default False;
     property OleDropTarget: Boolean read FOleDropTarget write SetOleDropTarget default False;
     property OleDropSource: Boolean read FOleDropSource write FOleDropSource default False;
@@ -2041,6 +2360,7 @@ type
     procedure DropCol(pt:TPoint;Col: Integer); override;
     procedure DropRTF(pt:TPoint;s:string); override;
     procedure DropFiles(pt:TPoint;files:tstrings); override;
+    procedure DropURL(pt:TPoint;s:string); override;
     procedure DragMouseMove(pt:TPoint;var Allow: Boolean; DropFormats:TDropFormats); override;
     procedure DragMouseLeave; override;
   end;
@@ -2049,15 +2369,14 @@ type
   private
     FGrid:TAdvStringGrid;
     FLastEffect: Integer;
+  protected
+    procedure DragDropStop; override;
   public
     constructor Create(aGrid:TAdvStringGrid);
     procedure CurrentEffect(dwEffect: Longint); override;
     procedure QueryDrag; override;
-  published
     property LastEffect: Integer read FLastEffect;
   end;
-  {$ENDIF}
-  
   {$ENDIF}
 
   {TGridChangeNotifier}
@@ -2072,12 +2391,14 @@ type
   THTMLHintWindow = class(THintWindow)
   private
     FTextHeight, FTextWidth: Integer;
+    FWideCaption: widestring;
     procedure CMTextChanged(var Message: TMessage); message CM_TEXTCHANGED;
   protected
     procedure Paint; override;
     procedure CreateParams(var Params: TCreateParams); override;
+    property WideCaption: widestring read FWideCaption write FWideCaption;
   public
-    procedure ActivateHint(Rect: TRect; const AHint: string); Override;
+    procedure ActivateHint(Rect: TRect; const AHint: string); override;
     {$IFNDEF TMSDOTNET}
     function CalcHintRect(MaxWidth: Integer; const AHint: string; AData: Pointer): TRect; override;
     {$ENDIF}
@@ -2087,11 +2408,22 @@ type
   published
   end;
 
+  TRetEdit = class(TEdit)
+  private
+    FOnReturn: TNotifyEvent;
+    procedure WMKeyDown(var Msg:TWMKeydown); message WM_KEYDOWN;
+    procedure WMChar(var Msg: TWMChar); message WM_CHAR;
+  protected
+    procedure CreateParams(var Params:TCreateParams); override;
+  published
+    property OnReturn: TNotifyEvent read FOnReturn write FOnReturn;
+  end;
+
   { TSearchPanel }
 
   TSearchPanel = class(TPanel)
   private
-    FEdit: TEdit;
+    FEdit: TRetEdit;
     FExitButton: TAdvGridButton;
     FForwardButton: TAdvGridButton;
     FBackwardButton: TAdvGridButton;
@@ -2118,6 +2450,7 @@ type
     procedure ExitClick(Sender: TObject);
     procedure HighlightClick(Sender: TObject);
     procedure EditChange(Sender: TObject);
+    procedure EditReturn(Sender: TObject);
     procedure Paint; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -2131,7 +2464,12 @@ type
     property HintFindNext: string read FHintFindNext write FHintFindNext;
     property HintFindPrev: string read FHintFindPrev write FHintFindPrev;
     property HintHighlight: string read FHintHighlight write FHintHighlight;
-    property EditControl: TEdit read FEdit;
+    property EditControl: TRetEdit read FEdit;
+    property MatchCase: TCheckBox read FMatchCase;
+    property HiliteButton: TAdvGridButton read FHiliteButton;
+    property ForwardButton: TAdvGridButton read FForwardButton;
+    property BackwardButton: TAdvGridButton read FBackwardButton;
+    property ExitButton: TAdvGridButton read FExitButton;
   published
     property ColorTo: TColor read FColorTo write SetColorTo default clNone;
     property OnBackwardClick: TNotifyEvent read FOnBackwardClick write FOnBackwardClick;
@@ -2166,6 +2504,7 @@ type
     FLastSearch: string;
     FSearchColumn: Integer;
     FSearchActiveColumnOnly: Boolean;
+    FSearchMatchStart: Boolean;
     FHighLightCaption: string;
     FFont: TFont;
     procedure SetColor(const Value: TColor);
@@ -2209,6 +2548,7 @@ type
     property MatchCaseCaption: string read FMatchCaseCaption write SetMatchCaseCaption;
     property SearchActiveColumnOnly: Boolean read FSearchActiveColumnOnly write FSearchActiveColumnOnly default False;
     property SearchColumn: Integer read FSearchColumn write FSearchColumn default -1;
+    property SearchMatchStart: boolean read FSearchMatchStart write FSearchMatchStart default False;
     property ShowClose: Boolean read FShowClose write SetShowClose default true;
     property ShowFindNext: boolean read FShowFindNext write SetShowFindNext default true;
     property ShowFindPrev: boolean read FShowFindPrev write SetShowFindPrev default true;
@@ -2230,6 +2570,7 @@ type
     procedure CMHintShow(var Msg: TCMHintShow); message CM_HINTSHOW;
   protected
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     function HTMLColReplace(s:string):string;
     function PaintLastRow: integer;
     function PaintColPreview: integer;
@@ -2284,7 +2625,7 @@ type
     property EnableCalculation: Boolean read FEnableCalculation write SetEnableCalculation;
   published
     property BorderColor: TColor read FBorderColor write SetBorderColor default clNone;
-    property CalculateHiddenRows: Boolean read FCalculateHiddenRows write FCalculateHiddenRows default False;
+    property CalculateHiddenRows: Boolean read FCalculateHiddenRows write FCalculateHiddenRows default True;
     property Color: TColor read FColor write SetColor default clBtnFace;
     property Column: Integer read FColumn write SetColumn default 0;
     property CustomTemplate: string read FCustomTemplate write SetCustomTemplate;
@@ -2300,6 +2641,8 @@ type
     Alignment: TAlignment;
     VAlignment: TVAlignment;
   end;
+
+  THoverFixedCells = (hfNone, hfAll, hfFixedRows, hfFixedColumns);
 
   {TAdvStringGrid}
 
@@ -2352,6 +2695,7 @@ type
     FOnRowDisjunctSelect: TRowDisjunctSelectEvent;
     FOnRowDisjunctSelected: TAutoInsertRowEvent;
     FOnGridHint: TGridHintEvent;
+    FOnGridWideHint: TGridWideHintEvent;
     FOnRowChanging: TRowChangingEvent;
     FOnRowChanged: TRowChangedEvent;
     FOnColChanging: TColChangingEvent;
@@ -2365,7 +2709,6 @@ type
     FOnAutoInsertCol: TAutoInsertColEvent;
     FOnCanDeleteRow: TCanDeleteRowEvent;
     FOnAutoDeleteRow: TAutoDeleteRowEvent;
-    {$IFDEF DELPHI4_LVL}
     FOnOleDrop: TOleDragDropEvent;
     FOnOleDrag: TOleDragDropEvent;
     FOnOleDragOver: TOleDragOverEvent;
@@ -2377,7 +2720,7 @@ type
     FGridDropTarget: TGridDropTarget;
     {$ENDIF}
     FOnOleDropFile: TOleDropFileEvent;
-    {$ENDIF}
+    FOnOleDropURL: TOleDropURLEvent;
     FOnClickSort: TClickSortEvent;
     FOnCanSort: TCanSortEvent;
     FOnExpandNode: TNodeClickEvent;
@@ -2386,6 +2729,9 @@ type
     FOnBeforeContractNode: TNodeAllowEvent;
     FCustomCompare: TCustomCompareEvent;
     FRawCompare: TRawCompareEvent;
+    FOnSearchEditChange: TSearchEditChangeEvent;
+    FOnSearchFooterAction: TSearchFooterActionEvent;
+    FOnSearchFooterClose: TNotifyEvent;
     FOnClipboardPaste: TClipboardEvent;
     FOnClipboardCut: TClipboardEvent;
     FOnClipboardCopy: TClipboardEvent;
@@ -2419,6 +2765,7 @@ type
     FOnCellsChanged: TCellsChangedEvent;
     FOnFileProgress: TGridProgressEvent;
     FOnFilterProgress: TGridProgressEvent;
+    FOnFixedDropDownClick: TFixedDropDownEvent;
     FOnRichEditSelectionChange: TNotifyEvent;
     FHintColor: TColor;
     FHintShowCells: Boolean;
@@ -2430,18 +2777,16 @@ type
     FSortIndexes: TSortIndexList;
     FBackGround:TBackGround;
     FDropSelection: TGridRect;
-    {$IFDEF DELPHI4_LVL}
     FOleDropTargetAssigned: Boolean;
-    {$ENDIF}
-    {$IFDEF DELPHI3_LVL}
     ArwU,ArwD,ArwL,ArwR:TArRowWindow;
-    {$ENDIF}
-    {$IFDEF DELPHI4_LVL}
     FOnColumnSize:TColumnSizeEvent;
+    FOnRowSizing : TRowSizingEvent;
+    FOnColumnSizing: TColumnSizingEvent;
     FOnRowSize:TRowSizeEvent;
     FOnColumnMove:TColumnSizeEvent;
+    FOnColumnMoving: TColumnSizeEvent;
     FOnRowMove:TRowSizeEvent;
-    {$ENDIF}
+    FOnRowMoving:TRowSizeEvent;
     FOnEndColumnSize: TEndColumnSizeEvent;
     FOnEndRowSize: TEndRowSizeEvent;
     FPrintSettings: TPrintSettings;
@@ -2464,6 +2809,8 @@ type
     FNumHidden: Integer;
     FSelectionColor: TColor;
     FSelectionColorTo: TColor;
+    FSelectionMirrorColor: TColor;
+    FSelectionMirrorColorTo: TColor;
     FSelectionTextColor: TColor;
     FSelectionRectangle: Boolean;
     FSelectionRTFKeep: Boolean;
@@ -2473,7 +2820,7 @@ type
     FURLFull: Boolean;
     FURLColor: TColor;
     FURLEdit: Boolean;
-    FGridImages: TImageList;
+    FGridImages: TCustomImageList;
     FIntelliPan: TIntelliPan;
     FIntelliZoom: Boolean;
     FScrollType: TScrollType;
@@ -2485,10 +2832,10 @@ type
     FRichEdit: TAdvRichEdit;
     FInplaceRichEdit: TAdvRichEdit;
     FFixedAsButtons: Boolean;
+    FFixedDropDownMenu: TPopupMenu;
     FFixedCellPushed: Boolean;
     FPushedFixedCell: TRect;
     FPushedCellButton: TPoint;
-    FShowSelection: Boolean;
     FHideFocusRect: Boolean;
     FFixedFont: TFont;
     FFixedRowAlways: Boolean;
@@ -2517,12 +2864,18 @@ type
     FSaveHiddenCells: Boolean;
     FSaveVirtCells: Boolean;
     FSaveWithHTML: Boolean;
+    FSaveWithRTF: Boolean;
     FWordWrapEx: Boolean;
     FModified: Boolean;
     FEditDisable: Boolean;
     FEditChange: Boolean;
     FExcelStyleDecimalSeparator: Boolean;
     FHovering: Boolean;
+    FHoverFixedCells: THoverFixedCells;
+    FNoMouseLeave: boolean;
+    FDropDownDown: boolean;
+    FHoverFixedX: integer;
+    FHoverFixedY: integer;
     FFloatFormat: string;
     FOldCellText: string;
     FNewCellText: string;
@@ -2555,7 +2908,7 @@ type
     SearchInc: string;
     SearchTics: integer;
     FAnchor: string;
-    ZoomFactor: Integer;
+    FZoomFactor: Integer;
     FIsColChanging: Boolean;
     ColchgFlg: Boolean;
     ColMoveFlg: Boolean;
@@ -2597,6 +2950,7 @@ type
     FGridTimerID: Integer;
     FGridBlink: Boolean;
     FMaxEditLength: Integer;
+    FMaxComboLength: Integer;
     FLook: TGridLook;
     FContainer: TPictureContainer;
     FCellChecker: TAdvStringGridCheck;
@@ -2606,10 +2960,13 @@ type
     FCtrlType: string;
     FCtrlEditing: Boolean;
     FPasteAll: Boolean;
+    FSpinUpClick: Boolean;
+    FSpinDnClick: Boolean;
     MaxWidths: array[0..MAXCOLUMNS] of Integer;
     Indents: array[0..MAXCOLUMNS] of Integer;
     FOnGetEditorType: TGetEditorTypeEvent;
     FOnHasComboBox: THasComboEvent;
+    FOnHasSpinEdit: THasSpinEditEvent;
     FOnGetEditorProp: TGetEditorPropEvent;
     FOnEllipsClick: TEllipsClickEvent;
     FOnButtonClick: TButtonClickEvent;
@@ -2619,12 +2976,14 @@ type
     FOnRadioMouseUp: TRadioClickEvent;
     FOnComboChange: TComboChangeEvent;
     FOnComboCloseUp: TClickCellEvent;
+    FOnDatePickerCloseUp: TClickCellEvent;
     FOnComboObjectChange: TComboObjectChangeEvent;
     FOnSpinClick: TSpinClickEvent;
     FOnFloatSpinClick: TFloatSpinClickEvent;
     FOntimeSpinClick: TDateTimeSpinClickEvent;
     FOnDateSpinClick: TDateTimeSpinClickEvent;
     FOnDateTimeChange: TDateTimeChangeEvent;
+    FOnScrollHint:TScrollHintEvent;    
     FEditLink: TEditLink;
     FEditControl: TControlEdit;
     FComboControl: TControlCombo;
@@ -2641,12 +3000,11 @@ type
     EditCheck: TGridCheckbox;
     EditBtn: TGridEditBtn;
     UnitEditBtn: TGridUnitEditBtn;
-    {$IFDEF DELPHI3_LVL}
     EditDate: TGridDatePicker;
-    FOnScrollHint:TScrollHintEvent;
-    {$ENDIF}
+    EditDateTime: TAdvDateTimePicker;
     GridButton: TGridButton;
     MoveButton: TPopupButton;
+    MoveForm: TForm;
     EditControl: TEditorType;
     FGridItems: TCollection;
     FFilter: TFilter;
@@ -2657,6 +3015,7 @@ type
     FActiveCellFont: TFont;
     FXYOffset: TPoint;
     FOldSize: Integer;
+    FOrigColSizes: TIntList;
     FSizeFixed: Boolean;
     FSizeFixedCol: Integer;
     FSizingFixed: Boolean;
@@ -2672,9 +3031,7 @@ type
     FAlwaysQuotes: Boolean;
     FSortSettings: TSortSettings;
     FSelectionRectangleColor: TColor;
-    {$IFDEF DELPHI4_LVL}
     FDragDropSettings: TDragDropSettings;
-    {$ENDIF}
     FControlLook: TControlLook;
     FOnGetCellBorderProp: TGridBorderPropEvent;
     FFooterPanel: TFooterPanel;
@@ -2683,10 +3040,12 @@ type
     FFloatingFooter: TFloatingFooter;
     FIntegralHeight: Boolean;
     FIsWinXP: Boolean;
+    FIsWinVista: Boolean;
     FIsComCtl6: Boolean;
     FClearTextOnly: Boolean;
     FOnEditingDone: TNotifyEvent;
     FOnEditChange: TEditChangeEvent;
+    FOnEditCellDone: TEditCellDoneEvent;
     FOnUpdateColumnSize: TUpdateColumnSizeEvent;
     FHTMLHint: Boolean;
     FAlwaysValidate: Boolean;
@@ -2700,6 +3059,7 @@ type
     FMinRowHeight: Integer;
     FMinColWidth: Integer;
     FMaxRowHeight: Integer;
+    FOnCustomFilter: TCustomFilterEvent;
     FOnCustomCellDraw: TCustomCellDrawEvent;
     FOnCustomCellSize: TCustomCellSizeEvent;
     FSelectionResizeEvent: TSelectionResizeEvent;
@@ -2707,10 +3067,24 @@ type
     {$IFDEF TMSUNICODE}
     FGetEditWideText: TGetEditWideTextEvent;
     FSetEditWideText: TSetEditWideTextEvent;
+    FOnWideEllipsClick: TWideEllipsClickEvent;
     {$ENDIF}
     FOnGetWordWrap: TWordWrapEvent;
+    FOnGroupCalc: TGroupCalcEvent;
     FTMSGradFrom: TColor;
     FTMSGradTo: TColor;
+    FTMSGradMirrorFrom: TColor;
+    FTMSGradMirrorTo: TColor;
+    FTMSGradHoverFrom: TColor;
+    FTMSGradHoverTo: TColor;
+    FTMSGradHoverMirrorFrom: TColor;
+    FTMSGradHoverMirrorTo: TColor;
+    FTMSGradHoverBorder: TColor;
+    FTMSGradDownFrom: TColor;
+    FTMSGradDownTo: TColor;
+    FTMSGradDownMirrorFrom: TColor;
+    FTMSGradDownMirrorTo: TColor;
+    FTMSGradDownBorder: TColor;
     FUseHTMLHints: Boolean;
     FShowNullDates: Boolean;
     FICursor: THandle;
@@ -2751,6 +3125,7 @@ type
     FShowModified: TShowModified;
     FCellGraphic: TCellGraphic;
     FOnPaintFooter: TFooterPaintEvent;
+    FOnCalcFooter: TCalcFooterEvent;
     FDragScrollOptions: TDragScrollOptions;
     FTimerTicks: Integer;
     FDragTmr: TTimer;
@@ -2763,14 +3138,19 @@ type
     FMaxRowCount: Integer;
     FMaxColCount: Integer;
     FProgressAppearance: TGridProgressAppearance;
+    FOnCustomStrToDate: TCustomStrToDateEvent;
     {$IFDEF TMSGDIPLUS}
     FOnOfficeHint: TOfficeHintEvent;
     FOfficeHint: TAdvHintInfo;
     {$ENDIF}
     FScrollLock: Boolean;
+    FPaintCount: integer;
     FEditText: string;
     FEditWideText: widestring;
     FNoEditChange: Boolean;
+    FGridModified: boolean;
+    FIgnoreColumns: TIntList;
+    FXMLEncoding: string;
     procedure SetDragScrollOptions(Value: TDragScrollOptions);
     procedure NCPaintProc;
     {$IFNDEF TMSDOTNET}
@@ -2799,6 +3179,7 @@ type
     procedure WMTimer(var Msg:TWMTimer); message WM_TIMER;
     procedure WMVScroll(var WMScroll:TWMScroll ); message WM_VSCROLL;
     procedure WMHScroll(var WMScroll:TWMScroll ); message WM_HSCROLL;
+    procedure WMGetDlgCode(var Msg: TWMGetDlgCode); message WM_GETDLGCODE;    
     procedure CMCursorChanged(var Message: TMessage); message CM_CURSORCHANGED;
     procedure CMColorChanged(var Message: TMessage); message CM_COLORCHANGED;
     {$IFDEF TMSDOTNET}
@@ -2813,7 +3194,7 @@ type
     // function MouseOverDesignChoice(X, Y: Integer): integer;
     procedure HideEditControl(ACol,ARow: Integer);
     procedure ShowEditControl(ACol,ARow: Integer);
-    function IsEditable(ACol,ARow: Integer): Boolean;
+
     function IsPassword(ACol,ARow: Integer): Boolean;
     procedure HandleRadioClick(ACol,ARow,Xpos,Ypos: Integer);
     function HasStaticEdit(ACol,ARow: Integer): Boolean;
@@ -2860,7 +3241,6 @@ type
     function GetRowModified(ARow: Integer): Boolean;
     procedure SetRowModified(ARow: Integer; Value: Boolean);
     function GetRowSelectCount: Integer;
-    procedure SelectToRowSelect(IsShift: Boolean);
     function GetColSelect(ACol: Integer): Boolean;
     procedure SetColSelect(ACol: Integer;Value: Boolean);
     function GetColSelectCount: Integer;
@@ -2932,7 +3312,7 @@ type
     function GetCellAlignment(ACol,ARow: Integer): TCellAlignment;
     procedure DrawIntelliFocusPoint;
     procedure EraseIntelliFocusPoint;
-    procedure SetImages(Value:tImageList);
+    procedure SetImages(Value:TCustomImageList);
     procedure SetURLShow(Value: Boolean);
     procedure SetURLColor(Value: TColor);
     procedure SetURLFull(Value: Boolean);
@@ -2957,6 +3337,8 @@ type
     function GetWordWrapEx: Boolean;
     procedure SetSelectionColor(AColor: TColor);
     procedure SetSelectionColorTo(AColor: TColor);    
+    procedure SetSelectionMirrorColor(AColor: TColor);
+    procedure SetSelectionMirrorColorTo(AColor: TColor);
     procedure SetSelectionTextColor(AColor: TColor);
     procedure SetSelectionRectangle(AValue: Boolean);
     procedure SetFilterActive(const Value: Boolean);
@@ -3000,8 +3382,8 @@ type
     {$IFDEF TMSDOTNET}
     function PasteText(ACol,ARow: Integer;p:string): Integer;
     {$ENDIF}
-    procedure InputFromCSV(FileName: string;insertmode: Boolean);
-    procedure OutputToCSV(FileName: string;appendmode: Boolean);
+    procedure InputFromCSV(FileName: string;insertmode: Boolean;MaxRows: integer);
+    procedure OutputToCSV(FileName: string;appendmode: Boolean; unicode: Boolean);
     procedure OutputToHTML(FileName: string;appendmode: Boolean);
     procedure LoadXLS(filename,sheetname: string);
     procedure SaveXLS(filename,sheetname: string; CreateNewSheet: Boolean);
@@ -3010,13 +3392,11 @@ type
     procedure SetArrowColor(Value: TColor);
     function GetArrowColor: TColor;
     {$ENDIF}
-    {$IFDEF DELPHI4_LVL}
     {$IFNDEF TMSDOTNET}
     function PasteSize(p:PChar):TPoint;
     {$ENDIF}
     {$IFDEF TMSDOTNET}
     function PasteSize(p:string):TPoint;
-    {$ENDIF}
     {$ENDIF}
     procedure MarkCells(s,tag:string;DoCase: Boolean; FromCol,FromRow,ToCol,ToRow: Integer);
     procedure UnMarkCells(tag:string;FromCol,FromRow,ToCol,ToRow: Integer);
@@ -3046,6 +3426,8 @@ type
     procedure SetFontSizes(i, j: Integer; const Value: Integer);
     procedure SetTMSGradFrom(const Value: TColor);
     procedure SetTMSGradTo(const Value: TColor);
+    procedure SetTMSGradMirrorFrom(const Value: TColor);
+    procedure SetTMSGradMirrorTo(const Value: TColor);
     procedure SetUseHTMLHints(const Value: Boolean);
     procedure ControlExit(Sender: TObject);
     procedure ControlEnter(S, CT,CID,CV:string; CR: TRect; X,RX,Y: Integer);
@@ -3059,6 +3441,7 @@ type
     procedure StartFixedEdit(x,y: Integer);
     function NumFixedRightVis: Integer;
     function FixedColsVis: Integer;
+    function HoverFixedCell(col,row: integer): boolean;
     function GetFooterCanvas: TCanvas;
     function FindInternal(StartCell:TPoint; s:string; sw: widestring; IsWide: boolean; FindParams: TFindParams): TPoint;
     function InNodeRect(ARow,x: integer): Boolean;
@@ -3066,7 +3449,7 @@ type
     procedure SetVersion(const Value: string);
     function GetVersion: string;
     procedure SaveToDOCInt(FileName, bookmark:string; CreateNewDocument, Append: boolean);
-    procedure SaveToASCIIInt(FileName: string; AppendFile: boolean);
+    procedure SaveToASCIIInt(FileName: string; AppendFile: boolean; Unicode: Boolean);
     procedure QSortGroupInt(Indexed: boolean);
 
     procedure CreateToolTip;
@@ -3085,6 +3468,7 @@ type
     function GetSelectionEx: TGridRect;
     procedure SetSelectionEx(const Value: TGridRect);
     procedure SetProgressAppearance(const Value: TGridProgressAppearance);
+    function GetAllGraphicsObject(i,j: integer): TObject;
   protected
     FClipTopLeft: TPoint;
     FClipLastOp: TClipOperation;
@@ -3093,6 +3477,7 @@ type
     FVirtualCells: Boolean;
     FCellCache: string;
     FNoRTLOrientation: Boolean;
+    FIsGrouping: Boolean;
     procedure SubclassProc(var Msg: TMessage);
     procedure DoCalcFooter(ACol: Integer); virtual;
     procedure UpdateEditingCell(ACol,ARow: Integer; Value: string); virtual;
@@ -3106,12 +3491,12 @@ type
     function ToggleCheck(ACol,ARow: Integer; FromEdit: Boolean): Boolean; virtual;
     procedure AdvanceEdit(ACol,ARow: Integer;Advance,Show,Frwrd,Recurs,FromEdit: Boolean);
     procedure AdvanceHTMLEdit(ACol,ARow: Integer; CtrlID: string);
-    function IsFixed(ACol,ARow: Integer): Boolean; override;
     function GetGraphicDetails(ACol,ARow: Integer; var W,H: Integer; var DisplText: Boolean;
       var HA: TCellHAlign;var VA: TCellVAlign): TCellGraphic;
     function GetFormattedCell(ACol,ARow: Integer): string; virtual;
     function NodeIndent(ARow: Integer): Integer; override;
     function HasNodes: Boolean; override;
+    procedure GetDisplText(c,r: Integer; var Value: string); override;    
     procedure UpdateFooter;
     function GetCellType(ACol,ARow: Integer): TCellType; virtual;
     function GetCellGraphic(ACol,ARow: Integer): TCellGraphic; virtual;
@@ -3141,11 +3526,12 @@ type
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     procedure DragOver(Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean); override;
     procedure DragTimerProc(Sender:Tobject);
-    {$IFDEF DELPHI4_LVL}
+    {$IFDEF TMSUNICODE}
+    procedure WideEllipsClick(Sender: TObject);
+    {$ENDIF}
     procedure CalcSizingState(X, Y: Integer; var State: TGridState;
       var Index: Integer; var SizingPos, SizingOfs: Integer;
       var FixedInfo: TGridDrawInfo); override;
-    {$ENDIF}
     procedure SelectionChanged(ALeft, ATop, ARight, ABottom: integer); virtual;
     procedure EditProgress(Value: string; pt: TPoint; SelPos: Integer); virtual;
     procedure DoInsertRow(ARow: Integer); virtual;
@@ -3154,8 +3540,9 @@ type
     procedure DoEnter; override;
     procedure DoExit; override;
     procedure Paint; override;
-    procedure PaintBackground;    
-    function GetEditLimit: Integer; override;    
+    procedure PaintBackground;
+    procedure SelectToRowSelect(IsShift: Boolean);
+    function GetEditLimit: Integer; override;
     procedure ColWidthsChanged; override;
     procedure RowHeightsChanged; override;
     procedure InvalidateGridRect(r:TGridRect);
@@ -3167,6 +3554,8 @@ type
     procedure UpdateColHeaders; virtual;
     function EllipsClick(s:string):string; virtual;
     function MatchFilter(ARow: Integer): Boolean; virtual;
+    procedure PasteStart; virtual;
+    procedure PasteDone; virtual;
     procedure PasteNotify(orig:TPoint;gr:TGridRect; LastOp:TClipOperation); virtual;
     function CalcCell(ACol,ARow: Integer):string; virtual;
     function SaveCell(ACol,ARow: Integer):string; virtual;
@@ -3174,9 +3563,10 @@ type
     procedure UpdateCell(ACol,ARow: Integer); virtual;
     procedure InitValidate(ACol,ARow: Integer); virtual;
     procedure DoCanEditCell(ACol,ARow: Integer; var CanEdit: boolean); virtual;
+    procedure DoSearchFooterAction(AValue: string; ACol, ARow: integer; ASearchAction: TSearchAction); virtual;
     procedure CellsChanged(R:TRect); virtual;
     procedure CellsLoaded; virtual;
-    procedure GetCellHint(ACol,ARow: Integer; var AHint: string); virtual;
+    procedure GetCellHint(ACol,ARow: Integer; var AHint: string;var AWideHint: widestring); virtual;
     procedure GetCellColor(ACol,ARow: Integer;AState: TGridDrawState; ABrush: TBrush; AFont: TFont); virtual;
     procedure GetCellPrintColor(ACol,ARow: Integer;AState: TGridDrawState; ABrush: TBrush; AFont: TFont); virtual;
     procedure GetCellBorder(ACol,ARow: Integer; APen:TPen;var Borders: TCellBorders); virtual;
@@ -3188,9 +3578,10 @@ type
     procedure GetCellReadOnly(ACol,ARow: Integer;var IsReadOnly: Boolean); virtual;
     procedure GetCellPassword(ACol,ARow: Integer;var IsPassword: Boolean); virtual;
     procedure GetCellWordWrap(ACol,ARow: Integer;var WordWrap: Boolean); virtual;
-    procedure GetDefaultProps(ACol,ARow: Integer; AFont: TFont; ABrush: TBrush; var AColorTo: TColor;
+    procedure GetDefaultProps(ACol,ARow: Integer; AFont: TFont; ABrush: TBrush; var AColorTo, AMirrorColor, AMirrorColorTo: TColor;
       var HA: TAlignment; var VA: TVAlignment; var WW: boolean;var GD: TCellGradientDirection); override;
     function HasCombo(ACol,ARow: Integer): Boolean; virtual;
+    function HasSpinEdit(ACol,ARow: Integer): Boolean; virtual;
     function GetCheckTrue(ACol,ARow: Integer): string; virtual;
     function GetCheckFalse(ACol,ARow: Integer): string; virtual;
     function GetFilter(ACol: Integer): Boolean; virtual;
@@ -3204,11 +3595,12 @@ type
     procedure StretchColumn(ACol: Integer);
     procedure PrivatePrintRect(Gridrect:TGridRect; SelRows: Boolean);
     procedure PrivatePrintPreviewRect(Canvas:TCanvas; Displayrect:TRect; Gridrect:TGridRect; SelRows: Boolean);
-    procedure DoneEditing;
+    procedure DoneEditing(ACol,ARow: integer);
     procedure UpdateActiveCells(co,ro,cn,rn: Integer);
     function HasDataCell(ACol,ARow: Integer): Boolean;
     procedure QueryAddRow(var AllowAdd: Boolean); virtual;
     procedure QueryInsertRow(ARow: Integer; var AllowInsert: Boolean); virtual;
+    procedure DirectWheelChange(delta: integer); virtual;
     {$IFDEF DELPHI5_LVL}
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
     function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
@@ -3223,17 +3615,26 @@ type
     procedure CellSelect(c,r: Integer); virtual;
     procedure SetCellSelectMode(const Value: Boolean); virtual;
     {$IFDEF TMSDOTNET}
-    {$IFDEF DELPHI4_LVL}
     procedure Resize; override;
-    {$ENDIF}
     {$ENDIF}
     procedure BalloonChange(Sender: TObject);
     procedure ModifiedChanged(Sender: TObject);
+    procedure DatePickerCloseUp(Sender: TObject);
+    procedure DateTimePickerChange(Sender: TObject);
     procedure SearchChanged(Sender: TObject);
     procedure UpdateSelectionRect(var GR: TGridRect); virtual;
+    procedure OnMouseActionsChanged(Sender: TObject); virtual;
+    procedure EditKeyDown(var Key: Word; Shift: TShiftState); virtual;
+    procedure Edit_WMKeyDown(var Msg: TWMKeydown); virtual; 
+    procedure OnNavigationChanged(Sender: TObject); virtual;
     procedure DrawRadio(Canvas: TCanvas; R:TRect;Num,Idx: Integer;dir,dis: Boolean;sl: TStrings;
-      Selected:boolean;ACol,ARow: integer);
+      Selected:boolean;ACol,ARow: integer; Style: TControlStyle; ResFactor: real; Print: boolean = false);
     function GetParentForm(Control: TControl): TCustomForm;
+    procedure ExpandNodeInt(ARow: Integer);
+    procedure TabToNextRowAtEnd; virtual;
+    procedure SetComment(ACol,ARow: integer; value: string);
+    function GetComment(ACol,ARow: integer): string;
+    function DoAllowFmtPaste: boolean; virtual;
   public
     LButFlg: Boolean;
     Compares: Integer;
@@ -3258,32 +3659,35 @@ type
     constructor Create(AOwner:tComponent); override;
     destructor Destroy; override;
     procedure Invalidate; override;
+    procedure AssignCells(Source: TPersistent); virtual;
     procedure Assign(Source: TPersistent); override;
     procedure GetVisualProperties(ACol,ARow: Integer; var AState: TGridDrawState; Print, Select,Remap: Boolean;
-      ABrush: TBrush; var AColorTo: TColor; AFont: TFont; var HA: TAlignment; var VA: TVAlignment;
+      ABrush: TBrush; var AColorTo, AMirrorColor, AMirrorColorTo: TColor; AFont: TFont; var HA: TAlignment; var VA: TVAlignment;
       var WW: Boolean;var GD: TCellGradientDirection); override;
 //    procedure PrivatePreviewRect(Preview: TPrintPreview; Gridrect:TGridRect; SelRows: Boolean);
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     function GetVersionNr: Integer; virtual;
     function GetVersionString:string; virtual;
+    property ZoomFactor: integer read FZoomFactor write FZoomFactor;
     function ValidateCell(const NewValue: string): Boolean; virtual;
     function ValidateCellWide(const NewValue: widestring): Boolean; virtual;
 
     procedure BalloonInit;
     procedure BalloonDone;
 
-    procedure RemoveRowsEx(RowIndex, RCount: Integer); virtual;
+    procedure InitOrigColSizes;
+    function SelectionToForm(ARect: TGridRect): TForm;
 
+    procedure RemoveCheckedRows(CheckBoxColumn: integer; RemoveChecked: boolean=true);
+    procedure RemoveRowsEx(RowIndex, RCount: Integer); virtual;
     procedure RemoveRows(RowIndex, RCount: Integer); virtual;
-    procedure InsertRows(RowIndex, RCount: Integer); virtual;
+    procedure InsertRows(RowIndex, RCount: Integer; UpdateCellControls: boolean = true); virtual;
     procedure RemoveCols(ColIndex, CCount: Integer); virtual;
     procedure InsertCols(ColIndex, CCount: Integer); virtual;
     procedure AddColumn;
     procedure AddRow;
     {$IFNDEF TMSDOTNET}
-    {$IFDEF DELPHI4_LVL}
     procedure Resize; override;
-    {$ENDIF}
     {$ENDIF}
     procedure FilterRow(ARow: Integer);
     function GetParentRow(ARow: Integer): Integer;
@@ -3300,7 +3704,9 @@ type
     procedure MergeRowCells(RowIndex: Integer; MainMerge: Boolean);
     procedure SplitRowCells(RowIndex: Integer);
     procedure SplitAllCells;
-    function IsSummary(ARow: Integer): Boolean;    
+    function IsSummary(ARow: Integer): Boolean;
+    function IsFixed(ACol,ARow: Integer): Boolean; override;
+    function IsEditable(ACol,ARow: Integer): Boolean;
     procedure SwapColumns(ACol1,ACol2: Integer);
     procedure HideColumn(ColIndex: Integer);
     procedure UnHideColumn(ColIndex: Integer);
@@ -3319,6 +3725,7 @@ type
     procedure GroupAvg(Colindex: Integer);
     procedure GroupMin(Colindex: Integer);
     procedure GroupMax(Colindex: Integer);
+    procedure GroupCustomCalc(Colindex: Integer);
     procedure GroupCount(ColIndex: Integer);
     procedure SubGroup(Colindex: Integer); virtual;
     procedure SubUnGroup(Colindex: Integer); virtual;    
@@ -3341,6 +3748,7 @@ type
     function RealColIndex(ACol: Integer): Integer;
     function DisplRowIndex(ARow: Integer): Integer;
     function DisplColIndex(ACol: Integer): Integer; override;
+    function IsIgnoredColumn(ACol: Integer): boolean;
     procedure SetColumnOrder;
     procedure ResetColumnOrder;
     function ColumnPosition(ACol: integer): integer;
@@ -3370,35 +3778,49 @@ type
     procedure ClearSelection;
     procedure ClearRowSelect;
     procedure ClearColSelect;
+    procedure FocusCell(Col,Row: Integer);
+    procedure GotoCell(Col,Row: Integer);
     procedure SelectRows(RowIndex, RCount: Integer);
+    procedure UnSelectRows(RowIndex, RCount: Integer);
     procedure SelectCols(ColIndex, CCount: Integer);
+    procedure UnSelectCols(ColIndex, CCount: Integer);
     procedure SelectRange(FromCol,ToCol,FromRow,ToRow: Integer);
     procedure ClearSelectedCells;
     procedure ClearModifiedRows;
-    function IsCell(SubStr: String; var ACol, ARow: Integer): Boolean;
+    function ModifiedRowCount: integer;
+    function IsCell(SubStr: string; var ACol, ARow: Integer): Boolean;
     function IsWideCell(ACol,ARow: Integer): Boolean;
-    procedure SaveToFile(FileName: String);
-    procedure SaveToBinFile(FileName: String);
+    {$IFDEF DELPHI_UNICODE}
+    procedure SaveToFile(FileName: string; Unicode: boolean = true);
+    procedure SaveToCSV(FileName: string; Unicode: boolean = true);
+    procedure AppendToCSV(FileName: string; Unicode: boolean = true);
+    procedure AppendToASCII(FileName: string; Unicode: boolean = true);
+    procedure SaveToASCII(FileName: string; Unicode: boolean = true);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
+    procedure SaveToFile(FileName: string);
+    procedure SaveToCSV(FileName: string);
+    procedure AppendToCSV(FileName: string);
+    procedure AppendToASCII(FileName: string);
+    procedure SaveToASCII(FileName: string);
+    {$ENDIF}
+    procedure SaveToBinFile(FileName: string);
     procedure SaveToBinStream(Stream: TStream);
     procedure SaveRectToBinStream(Rect: TRect; Stream: TStream);
-    procedure SaveToHTML(FileName: String);
+    procedure SaveToHTML(FileName: string; Show:boolean = false);
     function SaveToHTMLString: string;
-    procedure AppendToHTML(FileName: String);
-    procedure SaveToXML(FileName: String; ListDescr, RecordDescr:string;FieldDescr:TStrings; ExportEmptyCells: boolean=false);
-    procedure LoadFromXML(FileName: String; LevelToRow: boolean = false);
-    procedure AppendToASCII(FileName: String);
-    procedure SaveToASCII(FileName: String);
-    procedure SaveToCSV(FileName: String);
-    procedure AppendToCSV(FileName: String);
+    procedure AppendToHTML(FileName: string);
+    procedure SaveToXML(FileName: string; ListDescr, RecordDescr:string;FieldDescr:TStrings; ExportEmptyCells: boolean=false);
+    procedure LoadFromXML(FileName: string; LevelToRow: boolean = false);
     procedure SaveToFixed(FileName: string;positions: TIntList);
     procedure SaveToStream(Stream: TStream);
-    procedure LoadFromFile(FileName: String);
-    procedure LoadFromBinFile(FileName: String);
+    procedure LoadFromFile(FileName: string);
+    procedure LoadFromBinFile(FileName: string);
     procedure LoadFromBinStream(Stream: TStream);
     procedure LoadAtPointFromBinStream(Point: TPoint; Stream: TStream);
-    procedure LoadFromCSV(FileName: String);
-    procedure LoadFromFixed(FileName:string;positions:TIntList);
-    procedure InsertFromCSV(FileName: String);
+    procedure LoadFromCSV(FileName: String; MaxRows: integer = -1);
+    procedure LoadFromFixed(FileName:string;positions:TIntList; DoTrim: boolean = true; MaxRows: integer = -1);
+    procedure InsertFromCSV(FileName: String; MaxRows: integer = -1);
     procedure LoadFromStream(Stream: TStream);
     procedure SaveColSizes;
     procedure LoadColSizes;
@@ -3427,8 +3849,8 @@ type
     procedure SetTheme(Scheme: TXPColorScheme);
     procedure SetStyle(AStyle: TAdvGridStyle);
     procedure SetComponentStyle(AStyle: TTMSStyle);
-    procedure RandomFill(DoFixed: Boolean;Rnd: Integer);
-    procedure LinearFill(DoFixed: Boolean);
+    procedure RandomFill(DoFixed: Boolean = false;Rnd: Integer = 100);
+    procedure LinearFill(DoFixed: Boolean = false);
     procedure TextFill(DoFixed: Boolean; Txt: string);
     function HilightText(DoCase: Boolean; S,Text: string):string;
     function UnHilightText(S:string):string;
@@ -3471,10 +3893,11 @@ type
     {$IFDEF ISDELPHI}
     function CellToReal(ACol,ARow: Integer): Real;
     {$ENDIF}
+    procedure AutoFitColumns;
     procedure AutoSizeCells(const DoFixedCells: Boolean; const PaddingX,PaddingY: Integer);
-    procedure AutoSizeColumns(const DoFixedCols: Boolean; const Padding: Integer);
+    procedure AutoSizeColumns(const DoFixedCols: Boolean; const Padding: Integer = 4);
     procedure AutoSizeCol(const ACol: Integer);
-    procedure AutoSizeRows(const DoFixedRows: Boolean; const Padding: Integer);
+    procedure AutoSizeRows(const DoFixedRows: Boolean; const Padding: Integer = 0);
     procedure AutoSizeRow(const ARow: Integer);
     procedure StretchRightColumn;
     procedure AutoNumberCol(const ACol: Integer);
@@ -3487,8 +3910,9 @@ type
     procedure QSort; virtual;
     procedure QSortIndexed; virtual;
     procedure QSortGroup; virtual;
-    procedure QSortGroupIndexed; virtual;    
+    procedure QSortGroupIndexed; virtual;
     procedure QUnSort; virtual;
+    procedure Sort(Column: integer; Direction: TSortDirection = sdAscending);
     procedure InitSortXRef;
     procedure Print;
     procedure PrintRect(Gridrect:TGridRect);
@@ -3498,7 +3922,7 @@ type
     procedure PrintPreview(Canvas:TCanvas; Displayrect:TRect);
     procedure PrintPreviewRect(Canvas:TCanvas; Displayrect:TRect; Gridrect:TGridRect);
     procedure PrintPreviewSelectedRows(Canvas:TCanvas; Displayrect:TRect);
-    procedure PrintPreviewSelectedCols(Canvas:TCanvas; Displayrect:TRect);    
+    procedure PrintPreviewSelectedCols(Canvas:TCanvas; Displayrect:TRect);
     procedure PrintPreviewSelection(Canvas:TCanvas; Displayrect:TRect);    
     procedure PrintDraw(Canvas:TCanvas;DrawRect:TRect);
     procedure PrintDrawRect(Canvas:TCanvas;DrawRect:TRect;Gridrect:TGridRect);
@@ -3513,6 +3937,11 @@ type
     function FindNext: TPoint;
     function MapFontHeight(pointsize: Integer): Integer;
     function MapFontSize(Height: Integer): Integer;
+    {$IFDEF DELPHI6_LVL}
+    procedure AddInterfacedCell(ACol,ARow: Integer; AObject: TInterfacedPersistent);
+    procedure RemoveInterfacedCell(ACol,ARow: Integer);
+    function GetInterfacedCell(ACol,ARow: Integer): TInterfacedPersistent;
+    {$ENDIF}
     function CreateBitmap(ACol,ARow: Integer;transparent: Boolean;hal:TCellHalign;val:TCellValign):TBitmap;
     procedure AddBitmap(ACol,ARow: Integer;ABmp:TBitmap;Transparent: Boolean;hal:TCellHalign;val:TCellValign);
     procedure RemoveBitmap(ACol,ARow: Integer);
@@ -3535,7 +3964,9 @@ type
     procedure SetNodeState(ARow: Integer;Value: Boolean);
     function GetNodeSpan(ARow: Integer): Integer;
     procedure SetNodeSpan(ARow, Span: Integer);
-    procedure UpdateNodeSpan(ARow, Delta: Integer); 
+    function GetSubNodeCount(ARow: Integer): Integer;
+    procedure UpdateNodeSpan(ARow, Delta: Integer);
+    procedure UpdateSubNodeCount(ARow, Delta: Integer);
     procedure ExpandNode(ARow: Integer);
     procedure ContractNode(ARow: Integer);
     procedure ExpandAll;
@@ -3575,10 +4006,11 @@ type
     procedure RemoveCheckBox(ACol,ARow: Integer);
     function HasCheckBox(ACol,ARow: Integer): Boolean;
     function IsInCheckBox(ACol,ARow,XPos,YPos: Integer): Boolean;
-    procedure AddCheckBoxColumn(ACol: integer);
+    procedure AddCheckBoxColumn(ACol: integer; DefaultState: boolean= false;DataCheckBox: boolean = false);
     procedure RemoveCheckBoxColumn(ACol: integer);
     function HasDataCheckBox(ACol,ARow: Integer): Boolean;
     function GetCheckBoxState(ACol,ARow: Integer;var state: Boolean): Boolean;
+    function IsChecked(ACol,ARow: integer): Boolean;
     function SetCheckBoxState(ACol,ARow: Integer;state: Boolean): Boolean;
     function ToggleCheckBox(ACol,ARow: Integer): Boolean;
     procedure CheckAll(ACol: Integer);
@@ -3608,14 +4040,17 @@ type
     procedure RemoveAllMarkers;
     procedure GetMarker(ACol,ARow:Integer;var ErrPos,ErrLen: Integer);
     function IsComment(ACol,ARow: Integer;var comment:string): Boolean;
+    property CellComment[ACol,ARow: Integer]: string read GetComment write SetComment;
     function ColumnSum(ACol,fromRow,toRow: Integer): Double;
     function ColumnAvg(ACol,fromRow,toRow: Integer): Double;
     function ColumnMin(ACol,fromRow,toRow: Integer): Double;
     function ColumnMax(ACol,fromRow,toRow: Integer): Double;
+    function ColumnCustomCalc(ACol,fromRow,toRow: Integer): Double;
     function RowSum(ARow,fromCol,toCol: Integer): Double;
     function RowAvg(ARow,fromCol,toCol: Integer): Double;
     function RowMin(ARow,fromCol,toCol: Integer): Double;
     function RowMax(ARow,fromCol,toCol: Integer): Double;
+    procedure ResetFixedCellHighlight;
     procedure CalcFooter(ACol: Integer); virtual;
     procedure BeginUpdate;
     procedure EndUpdate;
@@ -3647,6 +4082,7 @@ type
     property SaveHiddenCells: Boolean read FSaveHiddenCells write FSaveHiddenCells;
     property SaveVirtCells: Boolean read FSaveVirtCells write FSaveVirtCells;    
     property SaveWithHTML: Boolean read FSaveWithHTML write FSaveWithHTML;
+    property SaveWithRTF: Boolean read FSaveWithRTF write FSaveWithRTF;
     property SortIndexes: TSortIndexList read FSortIndexes;
     property OriginalCellValue: string read FCellCache;
     property EditActive: Boolean read FEditActive;
@@ -3678,6 +4114,7 @@ type
     property RowSelectCount: Integer read GetRowSelectCount;
     property ColSelectCount: Integer read GetColSelectCount;
     property RowModified[ARow: Integer]: Boolean read GetRowModified write SetRowModified;
+    property Modified: boolean read FGridModified write FGridModified;
     property NodeState[ARow: Integer]: Boolean read GetNodeState write SetNodeState;
     property FindBusy: Boolean read FFindBusy;
     property PrintPageRect:TRect read FPrintPageRect;
@@ -3703,9 +4140,10 @@ type
     property Colors[i,j: Integer]: TColor read GetColors write SetColors;
     property ColorsTo[i,j: Integer]: TColor read GetColorsTo write SetColorsTo;
     property Gradients[i,j: Integer]: TCellGradientDirection read GetGradientDir write SetGradientDir;
+    property IgnoreColumns: TIntList read FIgnoreColumns;
     property RowColor[i: Integer]: TColor write SetRowColor;
     property RowColorTo[i: Integer]: TColor write SetRowColorTo;
-    property RowFontColor[i: Integer]: TColor write SetRowFontColor;    
+    property RowFontColor[i: Integer]: TColor write SetRowFontColor;
     property FontColors[i,j: Integer]: TColor read GetFontColors write SetFontColors;
     property FontStyles[i,j: Integer]: TFontStyles read GetFontStyles write SetFontStyles;
     property FontSizes[i,j: Integer]: Integer read GetFontSizes write SetFontSizes;
@@ -3752,6 +4190,19 @@ type
     property MinColWidth: Integer read FMinColWidth write FMinColWidth;
     property TMSGradientFrom: TColor read FTMSGradFrom write SetTMSGradFrom;
     property TMSGradientTo: TColor read FTMSGradTo write SetTMSGradTo;
+    property TMSGradientMirrorFrom: TColor read FTMSGradMirrorFrom write SetTMSGradMirrorFrom;
+    property TMSGradientMirrorTo: TColor read FTMSGradMirrorTo write SetTMSGradMirrorTo;
+    property TMSGradientHoverFrom: TColor read FTMSGradHoverFrom write FTMSGradHoverFrom;
+    property TMSGradientHoverTo: TColor read FTMSGradHoverTo write FTMSGradHoverTo;
+    property TMSGradientHoverMirrorFrom: TColor read FTMSGradHoverMirrorFrom write FTMSGradHoverMirrorFrom;
+    property TMSGradientHoverMirrorTo: TColor read FTMSGradHoverMirrorTo write FTMSGradHoverMirrorTo;
+    property TMSGradientHoverBorder: TColor read FTMSGradHoverBorder write FTMSGradHoverBorder;
+    property TMSGradientDownFrom: TColor read FTMSGradDownFrom write FTMSGradDownFrom;
+    property TMSGradientDownTo: TColor read FTMSGradDownTo write FTMSGradDownTo;
+    property TMSGradientDownMirrorFrom: TColor read FTMSGradDownMirrorFrom write FTMSGradDownMirrorFrom;
+    property TMSGradientDownMirrorTo: TColor read FTMSGradDownMirrorTo write FTMSGradDownMirrorTo;
+    property TMSGradientDownBorder: TColor read FTMSGradDownBorder write FTMSGradDownBorder;
+    property XMLEncoding: string read FXMLEncoding write FXMLEncoding;
     property UseHTMLHints: Boolean read FUseHTMLHints write SetUseHTMLHints;
     property AutoNumberDirection: TSortDirection read FAutoNumberDirection write FAutoNumberDirection;
     property AutoNumberOffset: Integer read FAutoNumberOffset write FAutoNumberOffset;
@@ -3771,6 +4222,8 @@ type
       write FOnCustomCellDraw;
     property OnCustomCellSize: TCustomCellSizeEvent read FOnCustomCellSize
       write FOnCustomCellSize;
+    property OnCustomFilter: TCustomFilterEvent read FOnCustomFilter
+      write FOnCustomFilter;  
     property OnGetCellColor: TGridColorEvent read FOnGetCellColor write FOnGetCellColor;
     property OnGetCellPrintColor: TGridColorEvent read FOnGetCellPrintColor
       write FOnGetCellPrintColor;
@@ -3790,8 +4243,11 @@ type
       write FOnGetCheckTrue;
     property OnGetCheckFalse: TGetCheckEvent read FOnGetCheckFalse
       write FOnGetCheckFalse;
-    property OnGridHint:TGridHintEvent read FOnGridHint
+    property OnGridHint: TGridHintEvent read FOnGridHint
       write FOnGridHint;
+    property OnGridWideHint: TGridWideHintEvent read FOnGridWideHint
+      write FOnGridWideHint;
+    property OnGroupCalc: TGroupCalcEvent read FOnGroupCalc write FOnGroupCalc;
     {$IFDEF TMSGDIPLUS}
     property OnOfficeHint: TOfficeHintEvent read FOnOfficeHint
       write FOnOfficeHint;
@@ -3806,6 +4262,8 @@ type
       write FOnCellChanging;
     property OnCellBalloon: TGridBalloonEvent read FOnCellBalloon
       write FOnCellBalloon;
+    property OnCustomStrToDate: TCustomStrToDateEvent read FOnCustomStrToDate
+      write FOnCustomStrToDate;
     property OnPrintPage:TGridPrintPageEvent read FOnPrintPage
       write FOnPrintPage;
     property OnPrintPageDone: TGridPrintPageDoneEvent read FOnPrintPageDone
@@ -3851,7 +4309,15 @@ type
     property OnCustomCompare: TCustomCompareEvent read FCustomCompare
       write FCustomCompare;
     property OnRawCompare: TRawCompareEvent read FRawCompare
-      write FRawCompare;
+      write FRawCompare;                                                                    
+    property OnSearchEditChange: TSearchEditChangeEvent read FOnSearchEditChange
+      write FOnSearchEditChange;
+    property OnSearchFooterAction: TSearchFooterActionEvent read FOnSearchFooterAction
+      write FOnSearchFooterAction;
+    property OnSearchFooterClose: TNotifyEvent read FOnSearchFooterClose
+      write FOnSearchFooterClose;
+    property OnFixedDropDownClick: TFixedDropDownEvent read FOnFixedDropDownClick
+      write FOnFixedDropDownClick;
     property OnClickCell: TClickCellEvent read FOnClickCell
       write FOnClickCell;
     property OnRightClickCell: TClickCellEvent read FOnRightClickCell
@@ -3901,6 +4367,7 @@ type
     property OnFilterProgress: TGridProgressEvent read FOnFilterProgress
       write FOnFilterProgress;
     property OnHasComboBox: THasComboEvent read FOnHasComboBox write FOnHasComboBox;
+    property OnHasSpinEdit: THasSpinEditEvent read FOnHasSpinEdit write FOnHasSpinEdit;
     property OnGetEditorType:TGetEditorTypeEvent read FOnGetEditorType
       write FOnGetEditorType;
     property OnGetEditorProp:TGetEditorPropEvent read FOnGetEditorProp
@@ -3909,6 +4376,10 @@ type
       write FOnGetFloatFormat;
     property OnEllipsClick:TEllipsClickEvent read FOnEllipsClick
       write FOnEllipsClick;
+    {$IFDEF TMSUNICODE}
+    property OnWideEllipsClick:TWideEllipsClickEvent read FOnWideEllipsClick
+      write FOnWideEllipsClick;
+    {$ENDIF}  
     property OnButtonClick:TButtonClickEvent read FOnButtonClick
       write FOnButtonClick;
     property OnCheckBoxClick:TCheckBoxClickEvent read FOnCheckBoxClick
@@ -3919,10 +4390,12 @@ type
       write FOnRadioClick;
     property OnRadioMouseUp:TRadioClickEvent read FOnRadioMouseUp
       write FOnRadioMouseUp;
+    property OnDatePickerCloseUp: TClickCellEvent read FOnDatePickerCloseUp
+      write FOnDatePickerCloseUp;  
     property OnComboChange:TComboChangeEvent read FOnComboChange
       write FOnComboChange;
     property OnComboCloseUp: TClickCellEvent read FOnComboCloseUp
-      write FOnComboCloseUp;  
+      write FOnComboCloseUp;
     property OnComboObjectChange:TComboObjectChangeEvent read FOnComboObjectChange
       write FOnComboObjectChange;
     property OnSpinClick:TSpinClickEvent read FOnSpinClick
@@ -3937,14 +4410,15 @@ type
       write FOnRichEditSelectionChange;
     property OnDragScroll: TDragScrollEvent read FOnDragScroll write FOnDragScroll;
     property OnEditingDone: TNotifyEvent read FOnEditingDone write FOnEditingDone;
+    property OnEditCellDone: TEditCellDoneEvent read FOnEditCellDone write FOnEditCellDone;
     property OnEditChange: TEditChangeEvent read FOnEditChange write FOnEditChange;
     property OnDateTimeChange: TDateTimeChangeEvent read FOnDateTimeChange write FOnDateTimeChange;
     property OnFooterPaint: TFooterPaintEvent read FOnPaintFooter write FOnPaintFooter;
+    property OnFooterCalc: TCalcFooterEvent read FOnCalcFooter write FOnCalcFooter;
     property OnResize: TNotifyEvent read FOnGridResize write FOnGridResize;
     property OnRowDisjunctSelect: TRowDisjunctSelectEvent read FOnRowDisjunctSelect write FOnRowDisjunctSelect;
     property OnRowDisjunctSelected: TAutoInsertRowEvent read FOnRowDisjunctSelected write FOnRowDisjunctSelected;
     property OnSelectionChanged: TSelectionChanged read FSelectionChanged write FSelectionChanged;
-    {$IFDEF DELPHI4_LVL}
     property OnOleDrop: TOleDragDropEvent read FOnOleDrop write FOnOleDrop;
     property OnOleDropped: TOleDroppedEvent read FOnOleDropped write FOnOleDropped;
     property OnOleDrag: TOleDragDropEvent read FOnOleDrag write FOnOleDrag;
@@ -3953,8 +4427,8 @@ type
     property OnOleDragStop: TOleDragStopEvent read FOnOleDragStop write FOnOleDragStop;
     property OnOleDropCol: TOleDropColEvent read FOnOleDropCol write FOnOleDropCol;
     property OnOleDropFile: TOleDropFileEvent read FOnOleDropFile write FOnOleDropFile;
+    property OnOleDropURL: TOleDropURLEvent read FOnOleDropURL write FOnOleDropURL;
     property DragDropSettings: TDragDropSettings read FDragDropSettings write FDragDropSettings;
-    {$ENDIF}
     {$IFDEF TMSGDIPLUS}
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
     {$ENDIF}
@@ -3966,12 +4440,14 @@ type
     property HTMLHint: Boolean read FHTMLHint write FHTMLHint default False;
     property OnScrollHint:TScrollHintEvent read FOnScrollHint write FOnScrollHint;
     {$ENDIF}
-    {$IFDEF DELPHI4_LVL}
     property OnColumnSize:TColumnSizeEvent read FOnColumnSize write FOnColumnSize;
+    property OnColumnSizing: TColumnSizingEvent read FOnColumnSizing write FOnColumnSizing;
     property OnColumnMove:TColumnSizeEvent read FOnColumnMove write FOnColumnMove;
+    property OnColumnMoving:TColumnSizeEvent read FOnColumnMoving write FOnColumnMoving;    
     property OnRowSize:TRowSizeEvent read FOnRowSize write FOnRowSize;
+    property OnRowSizing: TRowSizingEvent read FOnRowSizing write FOnRowSizing;
     property OnRowMove:TRowSizeEvent read FOnRowMove write FOnRowMove;
-    {$ENDIF}
+    property OnRowMoving:TRowSizeEvent read FOnRowMoving write FOnRowMoving;
     property OnEndColumnSize:TEndColumnSizeEvent read FOnEndColumnSize write FOnEndColumnSize;
     property OnUpdateColumnSize: TUpdateColumnSizeEvent read FOnUpdateColumnSize write FOnUpdateColumnSize;
     property OnEndRowSize: TEndRowSizeEvent read FOnEndRowSize write FOnEndRowSize;
@@ -4004,7 +4480,7 @@ type
     property ColumnSize: TColumnSize read FColumnSize write FColumnSize;
     property ControlLook: TControlLook read FControlLook write FControlLook;
     property Cursor: TCursor read GetCursorEx write SetCursorEx;
-    property DefaultRowHeight: Integer read GetDefRowHeightEx write SetDefRowHeightEx;
+    property DefaultRowHeight: Integer read GetDefRowHeightEx write SetDefRowHeightEx default 22;
     property DefaultEditor: TEditorType read FDefaultEditor write FDefaultEditor default edNormal;
     property DragScrollOptions: TDragScrollOptions read FDragScrollOptions write SetDragScrollOptions;
     property EditWithTags: Boolean read FEditWithTags write FEditWithTags default False;
@@ -4022,6 +4498,7 @@ type
     property FixedFooters: Integer read FFixedFooters write SetFixedFooters default 0;
     property FixedRightCols: Integer read FFixedRightCols write SetFixedRightCols default 0;
     property FixedColWidth: Integer read GetFixedColWidth write SetFixedColWidth default 64;
+    property FixedDropDownMenu: TPopupMenu read FFixedDropDownMenu write FFixedDropDownMenu; 
     property FixedRowHeight: Integer read GetFixedRowHeight write SetFixedRowHeight default 21;
     property FixedRowAlways: Boolean read FFixedRowAlways write FFixedRowAlways default False;
     property FixedRows: Integer read GetFixedRowsEx write SetFixedRowsEx default 1;
@@ -4030,10 +4507,11 @@ type
     property Flat: Boolean read FFlat write SetFlat default False;
     property FloatFormat:string read FFloatFormat write FFloatFormat;
     property FloatingFooter: TFloatingFooter read FFloatingFooter write FFloatingFooter;
-    property GridImages: TImageList read FGridImages write SetImages;
+    property GridImages: TCustomImageList read FGridImages write SetImages;
     property Grouping: TGrouping read FGrouping write FGrouping;
     property HideFocusRect: Boolean read FHideFocusRect write FHideFocusRect default False;
     property Hovering: Boolean read FHovering write SetHovering default False;
+    property HoverFixedCells: THoverFixedCells read FHoverFixedCells write FHoverFixedCells default hfNone;
     property HTMLSettings: THTMLSettings read FHTMLSettings write FHTMLSettings;
     property IntegralHeight: Boolean read FIntegralHeight write SetIntegralHeight default False;
     property IntelliPan: TIntelliPan read FIntelliPan write FIntelliPan default ipVertical;
@@ -4044,6 +4522,7 @@ type
     property LookupCaseSensitive: Boolean read FLookupCaseSensitive write FLookupCaseSensitive default False;
     property LookupHistory: Boolean read FLookupHistory write FLookupHistory default False;
     property MaxEditLength: Integer read FMaxEditLength write SetMaxEditLength default 0;
+    property MaxComboLength: Integer read FMaxComboLength write FMaxComboLength default 0;
     property MouseActions: TMouseActions read FMouseActions write FMouseActions;
     property Multilinecells: Boolean read FMultilinecells write FMultilinecells default False;
     property Navigation: TNavigation read FNavigation write FNavigation;
@@ -4064,6 +4543,8 @@ type
     property SearchFooter: TSearchFooter read FSearchFooter write FSearchFooter;
     property SelectionColor: TColor read FSelectionColor write SetSelectionColor default $EACAB6;
     property SelectionColorTo: TColor read FSelectionColorTo write SetSelectionColorTo  default clNone;
+    property SelectionMirrorColor: TColor read FSelectionMirrorColor write SetSelectionMirrorColor default clNone;
+    property SelectionMirrorColorTo: TColor read FSelectionMirrorColorTo write SetSelectionMirrorColorTo  default clNone;
     property SelectionRectangle: Boolean read FSelectionRectangle write SetSelectionRectangle default False;
     property SelectionResizer: Boolean read FSelectionResizer write SetSelectionResizer default False;
     property SelectionRTFKeep: Boolean read FSelectionRTFKeep write FSelectionRTFKeep default False;
@@ -4078,7 +4559,7 @@ type
     property URLFull: Boolean read FURLFull write SetURLFull default False;
     property URLEdit: Boolean read FURLEdit write FURLEdit default False;
     property VAlignment: TVAlignment read FVAlignment write SetVAlignment default vtaTop;
-    property Version: string read GetVersion write SetVersion;
+    property Version: string read GetVersion write SetVersion stored false;
     property WordWrap: Boolean read GetWordWrapEx write SetWordWrapEx default true;
   end;
 
@@ -4196,6 +4677,8 @@ uses
 
 
 const
+  WM_THEMECHANGED = $031A;
+  
   s_QuickConfig = 'Quick config';
   s_Gallery = 'Gallery';
 
@@ -4205,18 +4688,15 @@ const
 
   {$IFNDEF DELPHI7_LVL}
 
-  {$IFDEF DELPHI4_LVL}
   {$EXTERNALSYM CSTR_LESS_THAN}
-  {$ENDIF}
   CSTR_LESS_THAN           = 1;             { string 1 less than string 2 }
-  {$IFDEF DELPHI4_LVL}
+
   {$EXTERNALSYM CSTR_EQUAL}
-  {$ENDIF}
   CSTR_EQUAL               = 2;             { string 1 equal to string 2 }
-  {$IFDEF DELPHI4_LVL}
+
   {$EXTERNALSYM CSTR_GREATER_THAN}
-  {$ENDIF}
   CSTR_GREATER_THAN        = 3;             { string 1 greater than string 2 }
+
   {$ENDIF}
 
   {$IFNDEF DELPHI6_LVL}
@@ -4338,7 +4818,8 @@ const
 
   CSVSeparators: array[1..10] of char = (',',';','#',#9,'|','@','*','-','+','&');
 
-
+var
+  WideHintFontName: string;
 
 
 function LongMulDiv(Mult1, Mult2, Div1: Integer): Integer; stdcall;
@@ -4365,7 +4846,6 @@ begin
   SetWindowLong(Hwnd,GWL_EXSTYLE,es);
 end;
 
-{$IFDEF DELPHI4_LVL}
 {$IFNDEF TMSDOTNET}
 function GetFileVersion(FileName:string): Integer;
 var
@@ -4394,7 +4874,6 @@ begin
     FreeMem(buf);
   end;
 end;
-{$ENDIF}
 {$ENDIF}
 
 procedure TColumnSize.SetStretch(Value: Boolean);
@@ -4641,6 +5120,7 @@ procedure TGridUniEdit.DoExit;
 begin
   FGrid.FEditWideText := self.Text;
   FGrid.HideInplaceEdit;
+  self.Text := ' ';
   inherited DoExit;
 end;
 
@@ -4737,6 +5217,8 @@ procedure TGridUniMemo.DoExit;
 begin
   FGrid.FEditWideText := self.Text;
   FGrid.HideInplaceEdit;
+  //FGrid.FEditing := true;  //********
+  self.Text := ' ';
   inherited DoExit;
 end;
 
@@ -4792,11 +5274,12 @@ begin
         Repaint;
         Exit;
        end;
-       self.Text := FGrid.WideCells[RCol,FGrid.Row];
+       //self.Text := FGrid.WideCells[RCol,FGrid.Row];
     end;
 
     if (Key = VK_TAB) and (goTabs in FGrid.Options) then
     begin
+      FGrid.EditMode := true;
       FGrid.HideInplaceEdit;
       FGrid.SetFocus;
       FGrid.TabEdit(GetKeyState(VK_SHIFT) and $8000 = $8000);
@@ -4830,6 +5313,7 @@ procedure TGridUniEditBtn.DoExit;
 begin
   FGrid.FEditWideText := self.Text;
   FGrid.HideInplaceEdit;
+  self.Text := ' ';
   inherited DoExit;
 end;
 
@@ -4917,6 +5401,8 @@ begin
   end;
   FGrid.FEditWideText := self.Text;
   FGrid.HideInplaceEdit;
+  if Style = csDropDown then
+    self.Text := ' '; 
   inherited DoExit;
 end;
 
@@ -4930,6 +5416,11 @@ begin
         ItemIndex := ItemIndex + 1
       else
         if ItemIndex > 0 then ItemIndex := ItemIndex - 1;
+
+      if Assigned(FGrid.FOnEditChange) then
+      begin
+        FGrid.FOnEditChange(FGrid,FGrid.RealColIndex(FGrid.Col),FGrid.Row,Items[ItemIndex]);
+      end;
 
       if Assigned(FGrid.FOnComboChange) then
       begin
@@ -5225,6 +5716,11 @@ begin
       else
         if ItemIndex > 0 then ItemIndex := ItemIndex - 1;
 
+      if Assigned(FGrid.FOnEditChange) then
+      begin
+        FGrid.FOnEditChange(FGrid,FGrid.RealColIndex(FGrid.Col),FGrid.Row,Items[ItemIndex]);
+      end;
+
       if Assigned(FGrid.FOnComboChange) then
       begin
         FGrid.FOnComboChange(FGrid,FGrid.RealColIndex(FGrid.Col),FGrid.Row,ItemIndex,Items[ItemIndex]);
@@ -5396,11 +5892,16 @@ var
   idx: integer;
 begin
   idx := ItemIndex;
+
+  if Assigned(FGrid.OnKeyPress) then
+    FGrid.OnKeyPress(Self, Key);
+
   if (Key = #13) and Assigned(FOnReturnKey) then
     FOnReturnKey(Self);
 
-  if Key in [#13,#9] then
+  if (Key = #13) or (Key = #9) then
     Key := #0;
+
   inherited Keypress(Key);
 
   if (idx <> ItemIndex) then
@@ -5416,6 +5917,7 @@ begin
   if Key <> VK_RETURN then
     inherited KeyUp(Key,shift);
   DoChange;
+
 end;
 
 procedure TGridCombo.KeyDown(var Key: Word; Shift: TShiftState);
@@ -5457,6 +5959,16 @@ begin
         Exit;
       end;
       Self.Text := FGrid.CurrentCell;
+
+      if FGrid.Navigation.AdvanceOnEnter and (Key = VK_RETURN) then
+      begin
+        FGrid.HideInplaceEdit;
+        FGrid.SetFocus;
+        Key := 0;
+        FGrid.AdvanceEdit(FGrid.Col,FGrid.Row,False,True,True,False, True);
+        Exit;
+      end;
+
     end;
 
     if (Key = VK_TAB) and (goTabs in FGrid.Options) then
@@ -5540,7 +6052,7 @@ begin
     DC := GetWindowDC(Handle);
     WindowBrush := 0;
     try
-      WindowBrush:=CreateSolidBrush(ColorToRGB(clwindow));
+      WindowBrush := CreateSolidBrush(ColorToRGB(clwindow));
       GetWindowRect(Handle, ARect);
       OffsetRect(arect,-arect.Left,-arect.Top);
 
@@ -5611,10 +6123,20 @@ begin
         Date := TDate(Now);
       end;
 
+    if FGrid.Navigation.AdvanceOnEnter and (Key = VK_RETURN) then
+    begin
+      FGrid.HideInplaceEdit;
+      FGrid.SetFocus;
+      FGrid.AdvanceEdit(FGrid.Col,FGrid.Row,False,True,True,False, True);
+      Exit;
+    end;
+
+
     if (Key = VK_TAB) and (goTabs in FGrid.Options) then
     begin
       FGrid.HideInplaceEdit;
       FGrid.SetFocus;
+      FGrid.CurrentCell := self.Text;
       FGrid.TabEdit(GetKeyState(VK_SHIFT) and $8000 = $8000);
       Exit;
     end;
@@ -5657,6 +6179,7 @@ end;
 
 procedure TGridEditBtn.WMPaste(var Msg:TMessage);
 var
+  {$IFNDEF DELPHI_UNICODE}
   Data: THandle;
   {$IFNDEF TMSDOTNET}
   Content: PChar;
@@ -5664,10 +6187,20 @@ var
   {$IFDEF TMSDOTNET}
   Content: Integer;
   {$ENDIF}
+  {$ENDIF}
   newstr: string;
   Allow: Boolean;
 
 begin
+  {$IFDEF DELPHI_UNICODE}
+  if ClipBoard.HasFormat(CF_TEXT) then
+  begin
+    Allow := True;
+    NewStr := ClipBoard.AsText;
+  end;
+  {$ENDIF}
+
+  {$IFNDEF DELPHI_UNICODE}
   if not ClipBoard.HasFormat(CF_TEXT) then
     Exit;
 
@@ -5696,7 +6229,6 @@ begin
   {$IFNDEF TMSDOTNET}
   if Content = nil then
     Exit;
-
    Allow := True;
    NewStr := StrPas(Content);
   {$ENDIF}
@@ -5707,6 +6239,8 @@ begin
 
   Allow := True;
   NewStr := ClipBoard.AsText;
+  {$ENDIF}
+
   {$ENDIF}
 
   if Assigned(FGrid.FOnClipboardPaste) then
@@ -5791,6 +6325,9 @@ end;
 
 procedure TGridEditBtn.Keypress(var Key: Char);
 begin
+  if Assigned(FGrid.OnKeyPress) then
+    FGrid.OnKeyPress(FGrid, Key);
+
   inherited Keypress(Key);
   //  problem when used with Tab -> move content to new cell!
   //  FGrid.SetEditText(FGrid.Col,FGrid.Row,Text);
@@ -5801,6 +6338,9 @@ var
   am:TAdvanceDirection;
   csx: integer;
 begin
+  if Assigned(FGrid.OnKeyUp) then
+    FGrid.OnKeyUp(FGrid, Key, Shift);
+
   if (Key = VK_RIGHT) then
   begin
     if (self.SelLength = 0) and (self.SelStart = Length(Text)) and (Shift = []) then
@@ -5826,12 +6366,16 @@ begin
             Navigation.AdvanceDirection := adLeftRight;
             AdvanceEdit(Col,Row,True,True,True,False, True);
             Navigation.AdvanceDirection := am;
-            {$IFDEF TMSDOTNET}
-            FGrid.ShowInplaceEdit;
-            {$ENDIF}
-            {$IFNDEF TMSDOTNET}
-            FGrid.ShowEditor;
-            {$ENDIF}
+
+            if Navigation.CursorWalkAlwaysEdit then
+            begin
+              {$IFDEF TMSDOTNET}
+              FGrid.ShowInplaceEdit;
+              {$ENDIF}
+              {$IFNDEF TMSDOTNET}
+              FGrid.ShowEditor;
+              {$ENDIF}
+            end;
           end;
         end;
       end;
@@ -5860,25 +6404,34 @@ begin
           Navigation.AdvanceDirection := adLeftRight;
           AdvanceEdit(Col,Row,True,True,False,False, True);
           Navigation.AdvanceDirection := am;
-          {$IFDEF TMSDOTNET}
-          FGrid.ShowInplaceEdit;
-          {$ENDIF}
-          {$IFNDEF TMSDOTNET}
-          FGrid.ShowEditor;
-          {$ENDIF}
+          if Navigation.CursorWalkAlwaysEdit then
+          begin
+            {$IFDEF TMSDOTNET}
+            FGrid.ShowInplaceEdit;
+            {$ENDIF}
+            {$IFNDEF TMSDOTNET}
+            FGrid.ShowEditor;
+            {$ENDIF}
+          end;
         end;
       end;
     end;
   end;
 
+
+
   if (Key <> VK_RETURN) then
     inherited KeyUp(Key, Shift);
+
 end;
 
 procedure TGridEditBtn.KeyDown(var Key: Word; Shift: TShiftState);
 var
   s:string;
 begin
+  if Assigned(FGrid.OnKeyDown) then
+    FGrid.OnKeyDown(FGrid, Key, Shift);
+
   FSelKeyDown := SelStart;
 
   if ssCtrl in Shift then
@@ -6131,19 +6684,16 @@ procedure TCellNode.Assign(Source: TPersistent);
 begin
   if (Source is TCellNode) then
   begin
-    with (Source as TCelLNode) do
-    begin
-      FColor := Color;
-      FExpandOne := ExpandOne;
-      FNodeType := NodeType;
-      FNodeColor := NodeColor;
-      FNodeIndent := NodeIndent;
-      FExpandGlyph.Assign(ExpandGlyph);
-      FContractGlyph.Assign(ContractGlyph);
-      FShowTree := ShowTree;
-      FShowTreeFull := ShowTreeFull;
-      FTreeColor := TreeColor;
-    end;
+    FColor := (Source as TCelLNode).Color;
+    FExpandOne := (Source as TCelLNode).ExpandOne;
+    FNodeType := (Source as TCelLNode).NodeType;
+    FNodeColor := (Source as TCelLNode).NodeColor;
+    FNodeIndent := (Source as TCelLNode).NodeIndent;
+    FExpandGlyph.Assign((Source as TCelLNode).ExpandGlyph);
+    FContractGlyph.Assign((Source as TCelLNode).ContractGlyph);
+    FShowTree := (Source as TCelLNode).ShowTree;
+    FShowTreeFull := (Source as TCelLNode).ShowTreeFull;
+    FTreeColor := (Source as TCelLNode).TreeColor;
   end;
 end;
 
@@ -6230,6 +6780,12 @@ begin
   FGrid.Invalidate;
 end;
 
+procedure TMouseActions.SetEditOnDblClickOnly(const AValue: Boolean);
+begin
+  FEditOnDblClickOnly := AValue;
+  if AValue then // make sure to turn off normal editing
+    FGrid.Options := FGrid.Options - [goEditing];
+end;
 
 procedure TMouseActions.SetDisjunctColSelect(const AValue: Boolean);
 begin
@@ -6265,6 +6821,20 @@ begin
   end;
 end;
 
+procedure TMouseActions.Changed;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TMouseActions.SetWheelAction(const Value: TWheelAction);
+begin
+  if (FWheelAction <> Value) then
+  begin
+    FWheelAction := Value;
+    Changed;
+  end;
+end;
 
 constructor TCellGraphic.Create;
 begin
@@ -6311,12 +6881,23 @@ begin
   FCellText := TCellGraphic(Source).CellText;
   FCellCreated := TCellGraphic(Source).CellCreated;
 
-
 //  FCellBitmap: TBitmap read FCellBitmap write FCellBitmap;
 //  FCellIcon: TIcon read FCellIcon write FCellIcon;
 //  FCellCreated: Boolean read FCellCreated write FCellCreated;
 end;
 
+{$IFDEF DELPHI6_LVL}
+procedure TCellGraphic.SetInterfacedCell(AObject:TInterfacedPersistent);
+begin
+  {$IFNDEF TMSDOTNET}
+  CellBitmap := TBitmap(AObject);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  CellInterface := AObject;
+  {$ENDIF}
+  CellType := ctInterface;
+end;
+{$ENDIF}
 
 procedure TCellGraphic.SetBitmap(ABmp:TBitmap;Transparent: Boolean;hal:TCellHAlign;val:TCellVAlign);
 begin
@@ -6482,7 +7063,7 @@ begin
     CellType := ctDataCheckBox
   else
     CellType := ctCheckbox;
-    
+
   CellBoolean := Value;
   CellHAlign := hal;
   CellVAlign := val;
@@ -6561,40 +7142,42 @@ end;
 procedure TNavigation.Assign(Source: TPersistent);
 begin
   if (Source is TNavigation) then
-    with (Source as TNavigation) do
-    begin
-      FAllowInsertRow := AllowInsertRow;
-      FAllowDeleteRow := AllowDeleteRow;
-      FAlwaysEdit := AlwaysEdit;
-      FAdvanceOnEnter := AdvanceOnEnter;
-      FAdvanceInsert := AdvanceInsert;
-      FAutoGotoWhenSorted := AutoGotoWhenSorted;
-      FAutoGotoIncremental := AutoGotoIncremental;
-      FAutoComboDropSize := AutoComboDropSize;
-      FAdvanceDirection := AdvanceDirection;
-      FAllowClipboardShortCuts := AllowClipboardShortcuts;
-      FAllowCtrlEnter := AllowCtrlEnter;
-      FAllowSmartClipboard := AllowSmartClipboard;
-      FAllowRTFClipboard := AllowRTFClipboard;
-      FAllowFmtClipboard := AllowFMTClipboard;
-      FAllowClipboardAlways := AllowClipboardAlways;
-      FAllowClipboardRowGrow := AllowClipboardRowGrow;
-      FAllowClipboardColGrow := AllowClipboardColGrow;
-      FAdvanceAuto := AdvanceAuto;
-      FAppendOnArrowDown := AppendOnArrowDown;
-      FEditSelectAll := EditSelectAll;
-      FInsertPosition := InsertPosition;
-      FCursorWalkEditor := CursorWalkEditor;
-      FMoveRowOnSort := MoveRowOnSort;
-      FImproveMaskSel := ImproveMaskSel;
-      FCopyHTMLTagsToClipboard := CopyHTMLTagsToClipboard;
-      FKeepHorizScroll := KeepHorizScroll;
-      FLineFeedOnEnter := LineFeedOnEnter;
-      FHomeEndKey := HomeEndKey;
-      FSkipFixedCells := SkipFixedCells;
-      FTabToNextAtEnd := TabToNextAtEnd;
-      FTabAdvanceDirection := AdvanceDirection;
-    end;
+  begin
+    FAllowInsertRow := (Source as TNavigation).AllowInsertRow;
+    FAllowDeleteRow := (Source as TNavigation).AllowDeleteRow;
+    FAlwaysEdit := (Source as TNavigation).AlwaysEdit;
+    FAdvanceOnEnter := (Source as TNavigation).AdvanceOnEnter;
+    FAdvanceInsert := (Source as TNavigation).AdvanceInsert;
+    FAutoGotoWhenSorted := (Source as TNavigation).AutoGotoWhenSorted;
+    FAutoGotoIncremental := (Source as TNavigation).AutoGotoIncremental;
+    FAutoComboDropSize := (Source as TNavigation).AutoComboDropSize;
+    FAdvanceDirection := (Source as TNavigation).AdvanceDirection;
+    FAllowClipboardShortCuts := (Source as TNavigation).AllowClipboardShortcuts;
+    FAllowCtrlEnter := (Source as TNavigation).AllowCtrlEnter;
+    FAllowSmartClipboard := (Source as TNavigation).AllowSmartClipboard;
+    FAllowRTFClipboard := (Source as TNavigation).AllowRTFClipboard;
+    FAllowFmtClipboard := (Source as TNavigation).AllowFMTClipboard;
+    FAllowClipboardAlways := (Source as TNavigation).AllowClipboardAlways;
+    FAllowClipboardRowGrow := (Source as TNavigation).AllowClipboardRowGrow;
+    FAllowClipboardColGrow := (Source as TNavigation).AllowClipboardColGrow;
+    FAdvanceAuto := (Source as TNavigation).AdvanceAuto;
+    FAppendOnArrowDown := (Source as TNavigation).AppendOnArrowDown;
+    FEditSelectAll := (Source as TNavigation).EditSelectAll;
+    FInsertPosition := (Source as TNavigation).InsertPosition;
+    FCursorWalkEditor := (Source as TNavigation).CursorWalkEditor;
+    FCursorWalkAlwaysEdit := (Source as TNavigation).CursorWalkAlwaysEdit;
+    FMoveRowOnSort := (Source as TNavigation).MoveRowOnSort;
+    FImproveMaskSel := (Source as TNavigation).ImproveMaskSel;
+    FCopyHTMLTagsToClipboard := (Source as TNavigation).CopyHTMLTagsToClipboard;
+    FKeepHorizScroll := (Source as TNavigation).KeepHorizScroll;
+    FLineFeedOnEnter := (Source as TNavigation).LineFeedOnEnter;
+    FHomeEndKey := (Source as TNavigation).HomeEndKey;
+    FSkipFixedCells := (Source as TNavigation).SkipFixedCells;
+    FTabToNextAtEnd := (Source as TNavigation).TabToNextAtEnd;
+    FTabAdvanceDirection := (Source as TNavigation).AdvanceDirection;
+    FLeftRightRowSelect := (Source as TNavigation).LeftRightRowSelect;
+    FMoveScrollOnly := (Source as TNavigation).MoveScrollOnly;
+  end;
 end;
 
 constructor TNavigation.Create;
@@ -6606,6 +7189,8 @@ begin
   FEditSelectAll := True;
   FSkipFixedCells := True;
   FAllowCtrlEnter := True;
+  FCursorWalkAlwaysEdit := True;
+  FLeftRightRowSelect := True;
 end;
 
 destructor TNavigation.Destroy;
@@ -6613,9 +7198,24 @@ begin
   inherited Destroy;
 end;
 
+procedure TNavigation.Changed;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
 procedure TNavigation.SetAutoGoto(aValue: Boolean);
 begin
   FAutoGotoWhenSorted:=aValue;
+end;
+
+procedure TNavigation.SetAdvanceDirection(const Value: TAdvanceDirection);
+begin
+  if (FAdvanceDirection <> Value) then
+  begin
+    FAdvanceDirection := Value;
+    Changed;
+  end;
 end;
 
 constructor THTMLSettings.Create;
@@ -6640,25 +7240,22 @@ procedure THTMLSettings.Assign(Source: TPersistent);
 begin
   if (Source is THTMLSettings) then
   begin
-    with (Source as THTMLSettings) do
-    begin
-      FBorderSize := BorderSize;
-      FCellSpacing := CellSpacing;
-      FCellPadding := CellPadding;
-      FSaveColor := SaveColor;
-      FSaveFonts := SaveFonts;
-      FFooterFile := FooterFile;
-      FHeaderFile := HeaderFile;
-      FTableStyle := TableStyle;
-      FPrefixTag := PrefixTag;
-      FSuffixTag := SuffixTag;
-      FWidth := Width;
-      FXHTML := XHTML;
-      FConvertSpecialChars := ConvertSpecialChars;
-      FAutoPreview := AutoPreview;
-      FNonBreakingText := NonBreakingText;
-    end;
-  end;  
+    FBorderSize := (Source as THTMLSettings).BorderSize;
+    FCellSpacing := (Source as THTMLSettings).CellSpacing;
+    FCellPadding := (Source as THTMLSettings).CellPadding;
+    FSaveColor := (Source as THTMLSettings).SaveColor;
+    FSaveFonts := (Source as THTMLSettings).SaveFonts;
+    FFooterFile := (Source as THTMLSettings).FooterFile;
+    FHeaderFile := (Source as THTMLSettings).HeaderFile;
+    FTableStyle := (Source as THTMLSettings).TableStyle;
+    FPrefixTag := (Source as THTMLSettings).PrefixTag;
+    FSuffixTag := (Source as THTMLSettings).SuffixTag;
+    FWidth := (Source as THTMLSettings).Width;
+    FXHTML := (Source as THTMLSettings).XHTML;
+    FConvertSpecialChars := (Source as THTMLSettings).ConvertSpecialChars;
+    FAutoPreview := (Source as THTMLSettings).AutoPreview;
+    FNonBreakingText := (Source as THTMLSettings).NonBreakingText;
+  end;
 end;
 
 { TPrintSettings }
@@ -6791,12 +7388,14 @@ end;
 
 procedure TAdvInplaceEdit.WMPaste(var Msg: TMessage);
 var
+  {$IFNDEF DELPHI_UNICODE}
   Data: THandle;
   {$IFNDEF TMSDOTNET}
   Content: PChar;
   {$ENDIF}
   {$IFDEF TMSDOTNET}
   Content: Integer;
+  {$ENDIF}
   {$ENDIF}
   newstr: string;
   len: smallint;
@@ -6826,6 +7425,15 @@ var
   end;
 
 begin
+  {$IFDEF DELPHI_UNICODE}
+  if ClipBoard.HasFormat(CF_TEXT) then
+  begin
+    Allow := True;
+    NewStr := ClipBoard.AsText;
+  end;
+  {$ENDIF}
+
+  {$IFNDEF DELPHI_UNICODE}
   if not ClipBoard.HasFormat(CF_TEXT) then
     Exit;
 
@@ -6865,6 +7473,8 @@ begin
 
   Allow := True;
   NewStr := ClipBoard.AsText;
+  {$ENDIF}
+
   {$ENDIF}
 
   if Assigned(FGrid.FOnClipboardPaste) then
@@ -6981,7 +7591,9 @@ var
   updown: boolean;
 
 begin
+  FGrid.Edit_WMKeyDown(Msg);
   updown := false;
+  FOldSelStart := SelStart;
 
   if Msg.CharCode = VK_ESCAPE then
   begin
@@ -7008,14 +7620,45 @@ begin
         SelectAll
       else
         SelStart := Length(Text);
+      Exit;
     end;
 
+    self.Text := FGrid.CurrentCell;
     FGrid.HideInplaceEdit;
-
     FGrid.TabEdit(GetKeyState(VK_SHIFT) and $8000 = $8000);
-
     Exit;
   end;
+
+  if (((Msg.CharCode in [VK_LEFT]) and (SelStart = 0)) or
+     ((Msg.CharCode in [VK_RIGHT]) and (SelStart = length(Text)))) and
+     (GetKeystate(VK_SHIFT) and $8000 = $8000) and (FGrid.Navigation.CursorWalkEditor) then
+  begin
+    txt := self.Text;
+
+    FGrid.FValidating := true;
+    FGrid.CurrentCell := txt;
+
+    FGrid.FValidating := False;
+
+    oldval := FGrid.FOldCellText;
+    if not FGrid.ValidateCell(txt) then
+    begin
+      self.Text := oldval;
+      if FGrid.Navigation.EditSelectAll then
+        SelectAll
+      else
+        SelStart := Length(txt);
+      Repaint;
+      FGrid.FOldCellText := oldval;
+      Exit;
+    end;
+    self.Text := FGrid.FNewCellText;
+
+    FGrid.HideInplaceEdit;
+    FGrid.SetFocus;
+    Exit;
+  end;
+
 
   if ((Msg.CharCode in [VK_UP]) and (SendMessage(self.Handle,EM_LINEFROMCHAR,SelStart,0) = 0)) or
      ((Msg.CharCode in [VK_DOWN]) and
@@ -7044,7 +7687,9 @@ begin
     //self.Text := FGrid.CurrentCell;
     // v3.3
     self.Text := FGrid.FNewCellText;
+
     updown := true;
+
   end;
 
   if (Msg.CharCode = VK_RETURN) and not FGrid.Navigation.LineFeedOnEnter and
@@ -7061,7 +7706,8 @@ begin
         SelectAll
       else
         SelStart := Length(Text);
-      Repaint;
+
+      // Repaint;
 
       FGrid.FOldCellText := oldval;
       Exit;
@@ -7231,7 +7877,6 @@ begin
       SelStart := OldSelStart + 1;
     end;
   end;
-
 end;
 
 procedure TAdvInplaceEdit.WMKillFocus(var Msg: TWMKillFocus);
@@ -7250,30 +7895,18 @@ begin
 
   inherited;
 
-
   // do not close editor when active window changes...
   {
-  if Assigned(Application) then
-    if Assigned(Application.MainForm) then
-    begin
-      if not (GetActiveWindow = Application.MainForm.Handle) then
-      begin
-        FGrid.EditProgress(self.Text,Point(-1,-1),-1);
-        FGrid.DoneEditing;
-        Exit;
-      end;
-    end;
-  }
-
   if not (GetActiveWindow = FGrid.GetParentForm(FGrid).Handle) then
   begin
+    FGrid.SetCellSelectMode(True);
     FGrid.HideInplaceEdit;
     FGrid.EditProgress(self.Text,Point(-1,-1),-1);
-    FGrid.DoneEditing;
+    FGrid.DoneEditing(FColE, FRowE);
     Exit;
   end;
-
-
+  }
+  
   if (msg.FocusedWnd <> FGrid.Handle) then
   begin
     try
@@ -7282,10 +7915,11 @@ begin
     finally
       FGrid.HideInplaceEdit;
       FGrid.FEditing := False;
+
       if FGrid.EditMode then
         FGrid.EditMode := False;
     end;
-    FGrid.SelectCell(FGrid.Col,FGrid.Row);
+    FGrid.SelectCell(FColE,FRowE);
   end;
 
   //if FGrid.EditMode and (FGrid.FixedRows > 0) and not (FGrid.RowHeights[0] = 0) then
@@ -7294,10 +7928,8 @@ begin
   FGrid.FNoEditChange := true;
   Self.Text := FGrid.CurrentCell;
   FGrid.FNoEditChange := false;
-
   FGrid.EditProgress(self.Text,Point(-1,-1),-1);
-
-  FGrid.DoneEditing;
+  FGrid.DoneEditing(FColE,FRowE);
 end;
 
 procedure TAdvInplaceEdit.WMSetFocus(var Msg: TWMSetFocus);
@@ -7310,15 +7942,15 @@ begin
   FGrid.FNoEditChange := false;
 
   if Editmask <> '' then
-  with FGrid do
-  begin
-    if not LButFlg and Navigation.ImproveMaskSel then
+    with FGrid do
     begin
-      SelStart := 0;
-      SelLength := 1;
-      Exit;
+      if not LButFlg and Navigation.ImproveMaskSel then
+      begin
+        SelStart := 0;
+        SelLength := 1;
+        Exit;
+      end;
     end;
-  end;
 
   if not FGrid.Navigation.EditSelectAll then
   begin
@@ -7364,6 +7996,7 @@ begin
   end;
 
   FLengthLimit := FGrid.GetEditLimit;
+
   // v3.3.2.6
   // FGrid.FShowEditProcess := False;
 end;
@@ -7407,16 +8040,22 @@ var
   HAlign: TAlignment;
   VAlign: TVAlignment;
   WW: Boolean;
-  AColorTo: TColor;
+  AColorTo, AMirrorColor, AMirrorColorTo: TColor;
   GD: TCellGradientDirection;
 begin
   inherited UpdateContents;
+
   with FGrid do
   begin
     AState := [];
-    GetVisualProperties(Col,Row,AState,False,False,True,Canvas.Brush,AColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
+    GetVisualProperties(Col,Row,AState,False,False,True,Canvas.Brush,AColorTo,AMirrorColor,AMirrorColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
     Self.Color := Canvas.Brush.Color;
     Self.Font.Assign(Canvas.Font);
+    FColE := Col;
+    FRowE := Row;
+
+    if Assigned(OnGetEditorProp) then
+      OnGetEditorProp(FGrid,Col,Row, nil);
   end;
 
 end;
@@ -7445,7 +8084,6 @@ begin
   Top := r.Top;
   Left := r.Left;
 
-  {$IFDEF DELPHI4_LVL}
   if FGrid.UseRightToLeftAlignment then
   begin
     Left := Left + 1;
@@ -7454,7 +8092,6 @@ begin
     //  r.Left := dr.Left - (r.Right - dr.Right);
     //  r.Right := r.Left + Hold;
   end;
-  {$ENDIF}
 
   SetWindowPos(self.Handle, 0, r.Left, r.Top, r.Right - r.Left - 1, r.Bottom - r.Top - 1,
     SWP_NOREDRAW or SWP_NOZORDER or SWP_SHOWWINDOW);
@@ -7473,6 +8110,8 @@ begin
 end;
 
 procedure TAdvInplaceEdit.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  res1,res2: integer;
 begin
   FSelKeyDown := SelStart;
 
@@ -7485,8 +8124,9 @@ begin
   end;
   VK_DOWN:
   begin
-    if (SendMessage(self.Handle,EM_LINEFROMCHAR,SelStart,0) <
-        SendMessage(self.Handle,EM_LINEFROMCHAR,Length(self.Text),0)) then
+    res1 := SendMessage(self.Handle,EM_LINEFROMCHAR,SelStart,0);
+    res2 := SendMessage(self.Handle,EM_LINEFROMCHAR,Length(self.Text),0);
+    if (res1 < res2) then
       Exit;
   end;
   VK_RETURN:
@@ -7515,6 +8155,7 @@ begin
     WorkMode := True;
   end;
 
+  FGrid.EditKeyDown(Key, Shift);
   inherited KeyDown(Key,shift);
 end;
 
@@ -7526,7 +8167,7 @@ begin
   case Key of
   VK_RIGHT:
   begin
-    if (self.SelLength = 0) and (self.SelStart = Length(Text)) and (Shift = []) then
+    if (self.SelLength = 0) and (FOldSelStart = Length(Text)) and (Shift = []) then
       with FGrid do
       begin
         if Navigation.CursorWalkEditor then
@@ -7548,7 +8189,14 @@ begin
             Navigation.AdvanceDirection := adLeftRight;
             AdvanceEdit(Col,Row,True,True,True,False, True);
             Navigation.AdvanceDirection := am;
-            Key := VK_RETURN;
+
+            if not Navigation.CursorWalkAlwaysEdit then
+            begin
+              HideInplaceEdit;
+              Key := 0;
+            end
+            else
+              Key := VK_RETURN;
           end;
         end;
       end;
@@ -7576,10 +8224,15 @@ begin
 
           am := Navigation.AdvanceDirection;
           Navigation.AdvanceDirection := adLeftRight;
-          AdvanceEdit(Col,Row,True,True,False,False,False);
+          AdvanceEdit(Col,Row,True,True,False,False,True);
           Navigation.AdvanceDirection := am;
-
-          Key := VK_RETURN;
+          if not Navigation.CursorWalkAlwaysEdit then
+          begin
+            HideInplaceEdit;
+            Key := 0;
+          end
+          else
+            Key := VK_RETURN;
         end;
       end;
     end;
@@ -7688,6 +8341,7 @@ begin
   FSearchPanel.Align := alBottom;
   FSearchPanel.Height := 0;
   FSearchPanel.BorderWidth := 0;
+  //FSearchPanel.DoubleBuffered := true;
   FSearchPanel.OnEditChange := SearchEditChange;
   FSearchPanel.OnBackwardClick := SearchBackward;
   FSearchPanel.OnForwardClick := SearchForward;
@@ -7702,24 +8356,35 @@ begin
   FPrintSettings := TPrintSettings.Create(Self);
   FHTMLSettings := THTMLSettings.Create;
   FSortSettings := TSortSettings.Create(Self);
-  {$IFDEF DELPHI4_LVL}
   FDragDropSettings := TDragDropSettings.Create(Self);
-  {$ENDIF}
   FDragScrollOptions := TDragScrollOptions.Create;
 
   FControlLook := TControlLook.Create(Self);
   FNavigation := TNavigation.Create;
+  FNavigation.OnChange := OnNavigationChanged;
   FColumnSize := TColumnSize.Create(Self);
   FCellNode := TCellNode.Create(Self);
   FBands := TBands.Create(Self);
-  
+
   FSizeWhileTyping := TSizeWhileTyping.Create;
   FMouseActions := TMouseActions.Create(Self);
+  FMouseActions.OnChange := OnMouseActionsChanged;
   FGrouping := TGrouping.Create;
   FColumnHeaders := TStringList.Create;
   FImageCache := THTMLPictureCache.Create;
   FColumnHeaders.OnChange := ColHeaderChanged;
   FLastValidation := true;
+  FIsGrouping := false;
+  FPaintCount := 0;
+
+  FHoverFixedX := -1;
+  FHoverFixedY := -1;
+  FHoverFixedCells := hfNone;
+
+  FXMLEncoding := 'ISO-8859-1';
+
+
+  FOrigColSizes := TIntList.Create(-1,-1);
 
   FFixedFont := TFont.Create;
   FFixedFont.Name := 'Tahoma';
@@ -7740,7 +8405,6 @@ begin
     FActiveCellFont.Name := 'Tahoma';
 
   FDefaultEditor := edNormal;
-
   FActiveCellFont.Style := [fsBold];
   FActiveCellFont.OnChange := FixedFontChanged;
   FActiveCellColor := clGray;
@@ -7749,7 +8413,7 @@ begin
   FPushedCellButton := Point(-1,-1);
   FOldSize := -1;
   FRowHeaders := TStringList.Create;
-  FRowHeaders.OnChange:=RowHeaderChanged;
+  FRowHeaders.OnChange := RowHeaderChanged;
   SortList := TStringList.Create;
   FLookupItems := TStringList.Create;
   FRowSelect := TList.Create;
@@ -7763,13 +8427,17 @@ begin
   FModifiedRows := TIntList.Create(0,0);
   FMergedColumns.OnChange := MergedColumnsChanged;
   FRowIndicator := TBitmap.Create;
+  
   FBackground := TBackground.Create(Self);
+
   FScrollHintWnd := THTMLHintWindow.Create(Self);
+
   FScrollHintShow := False;
   FScrollbars := ssBoth;
   FDeselectState := False;
   FMouseDown := False;
   FCtrlDown := False;
+
   FMouseResize := False;
   FEnableWheel := True;
   FUpdateCount := 0;
@@ -7809,6 +8477,8 @@ begin
   {$ENDIF}
   FSelectionColor := $EACAB6;
   FSelectionColorTo := clNone;
+  FSelectionMirrorColor := clNone;
+  FSelectionMirrorColorTo := clNone;
   
   FSelectionTextColor := clBlack;
   {
@@ -7834,7 +8504,7 @@ begin
   InvokedFocusChange := False;
   FShowNullDates := True;
   FVirtualCells := False;
-  
+
   ResizeAssigned := False;
   FSaveFixedCells := True;
   FSaveHiddenCells := False;
@@ -7881,9 +8551,9 @@ begin
   FJavaCSV := False;
   FCheckTrue := 'Y';
   FCheckFalse := 'N';
-  DefaultRowHeight := 21;
+  DefaultRowHeight := 22;
   FFixedRowHeight := DefaultRowHeight;
-  ZoomFactor := 0;
+  FZoomFactor := 0;
   Colchgflg := True;
   Colclicked := -1;
   Rowclicked := -1;
@@ -7895,16 +8565,16 @@ begin
   FSaveWithHTML := True;
 
   FLook := glXP;
+  
   FTMSGradFrom := clWhite;
   FTMSGradTo := ColorToRGB(clBtnFace);
 
-  {$IFDEF DELPHI4_LVL}
-  FOleDropTargetAssigned := False;
-  {$ENDIF}
+  FTMSGradMirrorFrom := clNone;
+  FTMSGradMirrorTo := clNone;
 
-  {$IFNDEF DELPHI3_LVL}
-  Screen.Cursors[crURLcursor] := LoadCursor(HInstance,PChar(crURLcursor));
-  {$ENDIF}
+  FOleDropTargetAssigned := False;
+
+  //Screen.Cursors[crURLcursor] := LoadCursor(HInstance,PChar(crURLcursor));
 
   FIsFlat := False;
   FScrollType := ssNormal;
@@ -7927,10 +8597,8 @@ begin
   FIsWinXP := (verinfo.dwMajorVersion > 5) OR
     ((verinfo.dwMajorVersion = 5) AND (verinfo.dwMinorVersion >= 1));
 
-  if FIsWinXP then
-  begin
-    FIsWinXP := FIsWinXP and IsThemeActive;
-  end;
+  FIsWinVista := IsVista;
+
 
   i := GetFileVersion('COMCTL32.DLL');
   i := (i shr 16) and $FF;
@@ -7978,6 +8646,8 @@ begin
   {$IFDEF TMSGDIPLUS}
   FOfficeHint := TAdvHintInfo.Create;
   {$ENDIF}
+
+  FIgnoreColumns := TIntList.Create(-1,-1);
 
   FOldLeftCol := LeftCol;
   FOldTopRow := TopRow;
@@ -8034,7 +8704,8 @@ begin
     EditBtnUni.Visible := False;
     EditBtnUni.Borderstyle := bsNone;
     EditBtnUni.IsWinXP := FIsWinXP;
-    EditBtnUni.ButtonCaption := '...';    
+    EditBtnUni.ButtonCaption := '...';
+    EditBtnUni.OnClickBtn := WideEllipsClick;
 
     ComboUni := TGridUniCombo.Create(Self);
     ComboUni.Parent := Self;
@@ -8043,15 +8714,20 @@ begin
     ComboUni.IsWinXP := FIsWinXP;
     {$ENDIF}
 
-    {$IFDEF DELPHI3_LVL}
     if ComCtrlOk then
     begin
       EditDate := TGridDatePicker.Create(Self);
       // EditDate.Parent := Self;
       EditDate.Enabled := False;
       EditDate.Visible := False;
+      EditDate.OnCloseUp := DatePickerCloseUp;
+
+      EditDateTime := TAdvDateTimePicker.Create(Self);
+      EDitDateTime.Enabled := False;
+      EditDateTime.Visible := False;
+      EditDateTime.OnCloseUp := DatePickerCloseUp;
+      EditDateTime.OnTimeChange := DateTimePickerChange;
     end;
-    {$ENDIF}
 
     EditCheck := TGridcheckbox.Create(Self);
     EditCheck.Parent := Self;
@@ -8093,6 +8769,8 @@ begin
     FCtrlEditing := False;
   end;
 
+  crURLCursor := crHandPoint;
+
   {$IFDEF FREEWARE}
   cla := self.ClassName;
   {$ENDIF}
@@ -8102,7 +8780,7 @@ destructor TAdvStringGrid.Destroy;
 var
   RCnt,CCnt: integer;
 begin
-  if Owner is TForm then  // restore owner resize Handler
+  if (Owner is TForm) and not (csDesigning in ComponentState) then  // restore owner resize Handler
   begin
     (Owner as TForm).OnResize := FOnResize;
   end;
@@ -8116,10 +8794,10 @@ begin
   RCnt := RowCount;
   CCnt := ColCount;
 
-  if FNumNodes > 0 then
+  if (FNumNodes > 0) then
     ExpandAll;
 
-  if NumHiddenRows = 0 then
+  if (NumHiddenRows = 0) and (FNumNodes = 0) then
   begin
     if (FMaxRowCount > RCnt) then
       RCnt := FMaxRowCount;
@@ -8130,9 +8808,11 @@ begin
 
   if (RCnt > 0) and (CCnt > 0) then
   begin
-    ClearRect(0,0,CCnt - 1,RCnt - 1);
+    if FHasCellProps then
+      ClearRect(0,0,CCnt - 1,RCnt - 1);
   end;
 
+  FIgnoreColumns.Free;
   FProgressAppearance.Free;
   FFloatingFooter.Free;
   FCellGraphic.Free;
@@ -8147,9 +8827,7 @@ begin
   FPrintSettings.Free;
   FHTMLSettings.Free;
   FSortSettings.Free;
-  {$IFDEF DELPHI4_LVL}
   FDragDropSettings.Free;
-  {$ENDIF}
   FDragScrollOptions.Free;
   FControlLook.Free;
   FNavigation.Free;
@@ -8171,12 +8849,13 @@ begin
   FSortIndexes.Free;
   FRowIndicator.Free;
   FBackground.Free;
-  FScrollHintWnd.Free;
+  //FScrollHintWnd.Free;
   FFooterPanel.Free;
   FSearchPanel.Free;
   FSearchFooter.Free;
   FBalloonSettings.Free;
   FShowModified.Free;
+  FOrigColSizes.Free;
 
   {$IFDEF DELPHI3_LVL}
   if not (csDesigning in ComponentState) then
@@ -8197,8 +8876,6 @@ begin
   FFilter.Free;
 
   Cursor := FOldCursor;
-  FRichEdit.Free;
-  FInplaceRichEdit.Free;
 
   if not (csDesigning in ComponentState) then
   begin
@@ -8209,13 +8886,15 @@ begin
     EditUni.Free;
     MemoUni.Free;
     EditBtnUni.Free;
-    ComboUni.Free;
+    FreeAndNil(ComboUni);
     {$ENDIF}
 
-    {$IFDEF DELPHI3_LVL}
     if ComCtrlOk then
+    begin
       EditDate.Free;
-    {$ENDIF}
+      EditDateTime.Free;
+    end;
+
     EditCheck.Free;
     EditBtn.Free;
     UnitEditBtn.Free;
@@ -8225,11 +8904,15 @@ begin
     FComboControl.Free;
   end;
 
+  FRichEdit.Free;
+  FInplaceRichEdit.Free;
+
   inherited Destroy;
 end;
 
 procedure TAdvStringGrid.DestroyWnd;
 begin
+
   inherited DestroyWnd;
 end;
 
@@ -8243,7 +8926,10 @@ begin
   if not (Parent is TWinControl) then Exit;
 
   if not (csDesigning in ComponentState) then
+  begin
     EditDate.Parent := Self;
+    EditDateTime.Parent := Self;
+  end;
 
   FRichEdit.Parent := Self;
   FRichEdit.Visible := False;
@@ -8272,11 +8958,30 @@ begin
   if (csDesigning in ComponentState) and not FLoaded
     and not (csLoading in ComponentState) then
     Font.Name := 'Tahoma';
+
+  if FIsWinXP then
+  begin
+    FIsWinXP := FIsWinXP and IsThemeActive;
+  end;
+end;
+
+procedure TAdvStringGrid.AssignCells(Source: TPersistent);
+var
+  ms: TMemoryStream;
+begin
+  if (Source is TAdvStringGrid) then
+  begin
+    ms := TMemoryStream.Create;
+    (Source as TAdvStringGrid).SaveToStream(ms);
+    ms.Position := 0;
+    LoadFromStream(ms);
+    ms.Free;
+  end;
 end;
 
 procedure TAdvStringGrid.Assign(Source: TPersistent);
 var
-  ms: TMemoryStream;
+  i: integer;
 begin
   if (Source is TAdvStringGrid) then
   begin
@@ -8290,7 +8995,7 @@ begin
     FAnchorHint := (Source as TAdvStringGrid).AnchorHint;
     FAutoNumAlign := (Source as TAdvStringGrid).AutoNumAlign;
     FAutoSize := (Source as TAdvStringGrid).AutoSize;
-    FAutoThemeAdapt := (Source as TAdvStringGrid).AutoThemeAdapt;
+    FAutoThemeAdapt := (Source as TAdvStringGrid).AutoThemeAdapt;     
     FMouseActions.Assign((Source as TAdvstringGrid).MouseActions);
     FNavigation.Assign((Source as TAdvStringGrid).Navigation);
     FGrouping.Assign((Source as TAdvStringGrid).Grouping);
@@ -8302,26 +9007,46 @@ begin
     FCellNode.Assign((Source as TAdvStringGrid).CellNode);
     FSortSettings.Assign((Source as TAdvStringGrid).SortSettings);
     FDragScrollOptions.Assign((Source as TAdvStringGrid).DragScrollOptions);
+    FDragDropSettings.Assign((Source as TAdvStringGrid).DragDropSettings);
     FProgressAppearance.Assign((Source as TAdvStringGrid).ProgressAppearance);
 
     {$IFDEF TMSGDIPLUS}
     FOfficeHint.Assign((Source as TAdvStringGrid).OfficeHint);
     {$ENDIF}
 
+    FFixedRowAlways := (Source as TAdvStringGrid).FixedRowAlways;
     ColCount := (Source as TAdvStringGrid).ColCount;
     RowCount := (Source as TAdvStringGrid).RowCount;
     FixedRows := (Source as TAdvStringGrid).FixedRows;
     FixedCols := (Source as TAdvStringGrid).FixedCols;
     DefaultColWidth := (Source as TAdvStringGrid).DefaultColWidth;
     DefaultRowHeight := (Source as TAdvStringGrid).DefaultRowHeight;
+    FixedRowHeight := (Source as TAdvStringGrid).FixedRowHeight;
+    FixedColWidth := (Source as TAdvStringGrid).FixedColWidth;
 
     Options := (Source as TAdvStringGrid).Options;
 
-    ms := TMemoryStream.Create;
-    (Source as TAdvStringGrid).SaveToStream(ms);
-    ms.Position := 0;
-    LoadFromStream(ms);
-    ms.Free;
+    for i := 0 to ColCount - 1 do
+    begin
+      ColWidths[i] := (Source as TAdvStringGrid).ColWidths[i];
+    end;
+
+    ColumnHeaders.Assign((Source as TAdvStringGrid).ColumnHeaders);
+
+    for i := 0 to RowCount - 1 do
+      RowHeights[i] := (Source as TAdvStringGrid).RowHeights[i];
+
+    FScrollProportional := (Source as TAdvStringGrid).ScrollProportional;
+    FScrollSynch := (Source as TAdvStringGrid).ScrollSynch;
+    FScrollWidth := (Source as TAdvStringGrid).ScrollWidth;
+    FScrollHints := (Source as TAdvStringGrid).ScrollHints;
+    FScrollbarAlways := (Source as TAdvStringGrid).ScrollBarAlways;
+    ScrollBars := (Source as TAdvStringGrid).ScrollBars;
+    ScrollColor := (Source as TAdvStringGrid).ScrollColor;
+    ScrollType := (Source as TAdvStringGrid).ScrollType;
+    ScrollWidth := (Source as TAdvStringGrid).ScrollWidth;
+
+    AssignCells(Source);
   end;
 end;
 
@@ -8341,7 +9066,6 @@ begin
         FFooterPanel.Invalidate;
 end;
 
-{$IFDEF DELPHI4_LVL}
 procedure TAdvStringGrid.Resize;
 begin
   inherited;
@@ -8355,7 +9079,6 @@ begin
 
   CellControlsUpdate;
 end;
-{$ENDIF}
 
 procedure TAdvStringGrid.UpdateScrollBars(Refresh: Boolean);
 begin
@@ -8378,7 +9101,6 @@ begin
 
   if (VisibleColCount + FixedCols >= ColCount) then
     ShowScrollbar(self.Handle, SB_HORZ, (ScrollBarAlways in [saBoth, saHorz]));
-    
 
   if (VisibleRowCount + FixedRows >= RowCount) then
     EnableScrollBar(self.Handle, SB_VERT, ESB_DISABLE_BOTH);
@@ -8431,30 +9153,30 @@ begin
   FOldCursor := Cursor;
   ShowColumnHeaders;
   ShowRowHeaders;
-  {$IFDEF DELPHI3_LVL}
-  crURLCursor := crHandPoint;
-  {$ENDIF}
 
-  {$IFDEF DELPHI4_LVL}
   with FDragDropSettings do
   if FOleDropTargetAssigned then
   begin
     {$IFNDEF TMSDOTNET}
     FGridDropTarget.AcceptText := FOleAcceptText;
     FGridDropTarget.AcceptFiles := FOleAcceptFiles;
+    FGridDropTarget.AcceptURLs := FOleAcceptURLs;
     {$ENDIF}
   end;
-  {$ENDIF}
 
   case Look of
   glTMS:
     begin
       FTMSGradFrom := clSilver;
       FTMSGradTo := clWhite;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       if not (csDesigning in ComponentState) then
       begin
         MoveButton.GradFrom := FTMSGradFrom;
         MoveButton.GradTo := FTMSGradTo;
+        MoveButton.GradMirrorFrom := FTMSGradMirrorFrom;
+        MoveButton.GradMirrorTo := FTMSGradMirrorTo;
       end;
     end;
   end;
@@ -8491,11 +9213,27 @@ begin
 
   if AutoThemeAdapt then
     ThemeAdapt;
+
+  InitOrigColSizes;
 end;
 
+procedure TAdvStringGrid.DateTimePickerChange(Sender: TObject);
+begin
+  if Assigned(OnDateTimeChange) then
+    OnDateTimeChange(Self, Col, Row, EditDateTime.DateTime);
+end;
+
+procedure TAdvStringGrid.DatePickerCloseUp(Sender: TObject);
+begin
+  if Assigned(FOnDatePickerCloseUp) then
+    FOnDatePickerCloseUp(self, Row, Col);
+
+  if MouseActions.DirectDateClose then
+    HideInplaceEdit;
+end;
 
 procedure TAdvStringGrid.GetCellHint(ACol, ARow: Integer;
-  var AHint: string);
+  var AHint: string; var AWideHint: widestring);
 begin
   if Assigned(FOnGridHint) then
   begin
@@ -8503,6 +9241,13 @@ begin
     {$IFDEF TMSGDIPLUS}
     OfficeHint.Notes.Text := AHint;
     {$ENDIF}
+  end;
+
+  if Assigned(FOnGridWideHint) then
+  begin
+    FOnGridWideHint(Self,ARow,ACol,AWideHint);
+    if (AWideHint <> '') then    
+      AHint := EncodeWideStr(AWideHint);
   end;
 
   {$IFDEF TMSGDIPLUS}
@@ -8520,6 +9265,7 @@ var
   cp: TCellProperties;
 
 begin
+
   if FActiveCellShow then
   begin
     RACol := RemapColInv(ACol);
@@ -8535,7 +9281,7 @@ begin
   begin
     cp := CellProperties[ACol,ARow];
 
-    if (CellTypes[ACol,ARow] in [ctEmpty,ctNone]) then
+    if (CellTypes[ACol,ARow] in [ctEmpty,ctNone,ctComment,ctIcon,ctImages,ctImageList]) then
     begin
       if cp.BrushColor <> clNone then
         ABrush.Color := cp.BrushColor;
@@ -8611,11 +9357,48 @@ begin
 end;
 
 function TAdvStringGrid.HasCombo(ACol,ARow: Integer): Boolean;
+var
+  AEditor: TEditorType;
 begin
   Result := False;
   if Assigned(OnHasComboBox) then
-    OnHasComboBox(Self,ACol,ARow,Result);
+    OnHasComboBox(Self,ACol,ARow,Result)
+  else
+  begin
+    if ControlLook.DropDownAlwaysVisible then
+    begin
+      GetCellEditor(ACol,ARow,AEditor);
+      {$IFNDEF TMSDOTNET}
+      Result := AEditor in [edComboEdit, edComboList, edUniComboEdit, edUniComboList];
+      {$ELSE}
+      Result := AEditor in [edComboEdit, edComboList];
+      {$ENDIF}
+    end;
+  end;
 end;
+
+function TAdvStringGrid.HasSpinEdit(ACol,ARow: Integer): Boolean;
+var
+  AEditor: TEditorType;
+begin
+  Result := False;
+
+  if (ACol >= FixedCols) and (ARow >= FixedRows) then
+  begin
+    if Assigned(OnHasSpinEdit) then
+      OnHasSpinEdit(Self,ACol,ARow,Result)
+    else
+    begin
+      if ControlLook.SpinButtonsAlwaysVisible then
+      begin
+        AEditor := DefaultEditor;
+        GetCellEditor(ACol,ARow,AEditor);
+        Result := AEditor in [edSpinEdit, edFloatSpinEdit, edTimeSpinEdit, edDateSpinEdit];
+      end;
+    end;
+  end;
+end;
+
 
 procedure TAdvStringGrid.GetCellEditor(ACol,ARow: Integer;var AEditor:TEditorType);
 begin
@@ -8631,6 +9414,12 @@ begin
 
   if Assigned(OnIsFixedCell) and not IsFixed then
     OnIsFixedCell(Self,ARow,ACol,IsFixed);
+end;
+
+procedure TAdvStringGrid.DoSearchFooterAction(AValue: string; ACol: Integer; ARow: Integer; ASearchAction: TSearchAction);
+begin
+  if Assigned(OnSearchFooterAction) then
+    OnSearchFooterAction(Self, AValue, ACol, ARow, ASearchAction);
 end;
 
 procedure TAdvStringGrid.DoCanEditCell(ACol,ARow: Integer; var CanEdit: boolean);
@@ -8653,7 +9442,6 @@ begin
   end;
 
   DoCanEditCell(BC.X, BC.Y, IsReadOnly);
-
 end;
 
 procedure TAdvStringGrid.GetCellPassword(ACol,ARow: Integer;var IsPassword: Boolean);
@@ -8668,15 +9456,25 @@ begin
     OnGetWordWrap(Self,ACol,ARow,WordWrap);
 end;
 
-procedure TAdvStringGrid.GetDefaultProps(ACol,ARow: Integer; AFont: TFont; ABrush: TBrush; var AColorTo: TColor;
+procedure TAdvStringGrid.GetDefaultProps(ACol,ARow: Integer; AFont: TFont; ABrush: TBrush; var AColorTo, AMirrorColor, AMirrorColorTo: TColor;
   var HA: TAlignment; var VA: TVAlignment; var WW: boolean; var GD: TCellGradientDirection);
 var
   AState: TGridDrawState;
 begin
   AState := [];
-  GetVisualProperties(ACol,ARow, AState, false, false,false, ABrush, AColorTo, AFont, HA, VA, WW, GD);
-  if Bands.Active then
+  GetVisualProperties(ACol,ARow, AState, false, false, false, ABrush, AColorTo, AMirrorColor, AMirrorColorTo, AFont, HA, VA, WW, GD);
+  
+  if Bands.Active or (Background.Display in [bdGradientHorz, bdGradientVert]) then
+  begin
     ABrush.Color := clNone;
+    AColorTo := clNone;
+  end;
+
+  if (gdSelected in AState) then
+  begin
+    ABrush.Color := clNone;
+    AColorTo := clNone;
+  end;
 end;
 
 function TAdvStringGrid.GetCheckTrue(ACol,ARow: Integer): string;
@@ -8717,13 +9515,24 @@ begin
 
   res := res + '#';
 
-  for i := 0 to FColumnOrder.Count - 1 do
+  if FColumnOrder.Count = 0 then
   begin
-    if i = 0 then
-      res := res + IntToStr(FColumnOrder.Items[i])
-    else
-      res := res + ',' + IntToStr(FColumnOrder.Items[i]);
-  end;
+    for i := 0 to ColCount - 1 + NumHiddenColumns do
+    begin
+      if i = 0 then
+        res := res + IntToStr(i)
+      else
+        res := res + ',' + IntToStr(i);
+    end;
+  end
+  else
+    for i := 0 to FColumnOrder.Count - 1 do
+    begin
+      if i = 0 then
+        res := res + IntToStr(FColumnOrder.Items[i])
+      else
+        res := res + ',' + IntToStr(FColumnOrder.Items[i]);
+    end;
 
   res := res + '#';
 
@@ -8781,43 +9590,46 @@ begin
   sl := TStringList.Create;
   sl.CommaText := s;
 
-  for i := 0 to ColCount - 1 do
+  if s <> '' then
   begin
-    NewPos := StrToInt(sl.Strings[i]);
-    if (NewPos <> -1) then
-      FColumnOrder.Add(NewPos);
-  end;
-
-  // prepare reorganisation
-  il := TIntList.Create(0,0);
-  for i := 0 to ColCount - 1 do
-  begin
-    for j := 0 to FColumnOrder.Count - 1 do
+    for i := 0 to ColCount - 1 do
     begin
-      if (FColumnOrder[j] = i) then
-        il.Add(j);
+      NewPos := StrToInt(sl.Strings[i]);
+      if (NewPos <> -1) then
+        FColumnOrder.Add(NewPos);
     end;
+
+    // prepare reorganisation
+    il := TIntList.Create(0,0);
+    for i := 0 to ColCount - 1 do
+    begin
+      for j := 0 to FColumnOrder.Count - 1 do
+      begin
+        if (FColumnOrder[j] = i) then
+          il.Add(j);
+      end;
+    end;
+
+    FColumnOrder.Clear;
+    for i := 0 to ColCount - 1 do
+    begin
+      FColumnOrder.Add(il.Items[i]);
+    end;
+    il.Free;
+
+    // do reorganisation
+    if FColumnOrder.Count > 0 then
+      ResetColumnOrder;
+
+    FColumnOrder.Clear;
+    for i := 0 to ColCount - 1 do
+    begin
+      NewPos := StrToInt(sl.Strings[i]);
+      if (NewPos <> -1) then
+        FColumnOrder.Add(NewPos);
+    end;
+
   end;
-
-  FColumnOrder.Clear;
-  for i := 0 to ColCount - 1 do
-  begin
-    FColumnOrder.Add(il.Items[i]);
-  end;
-  il.Free;
-
-  // do reorganisation
-  if FColumnOrder.Count > 0 then
-    ResetColumnOrder;
-
-  FColumnOrder.Clear;
-  for i := 0 to ColCount - 1 do
-  begin
-    NewPos := StrToInt(sl.Strings[i]);
-    if (NewPos <> -1) then
-      FColumnOrder.Add(NewPos);
-  end;
-
 
   // order + visible part
   s := copy(value,pos('#',value)+1,length(value));
@@ -8848,22 +9660,16 @@ end;
 procedure TAdvStringGrid.SaveColSizes;
 var
   i: Integer;
-  {$IFDEF DELPHI4_LVL}
   IniFile: TCustomIniFile;
-  {$ELSE}
-  IniFile: TIniFile;
-  {$ENDIF}
 
 begin
   if (FColumnSize.Key<>'') and
      (FColumnSize.Section<>'') and
      (not (csDesigning in ComponentState)) then
   begin
-    {$IFDEF DELPHI4_LVL}
     if FColumnSize.Location = clRegistry then
       IniFile := TRegistryIniFile.Create(FColumnSize.Key)
     else
-    {$ENDIF}
       IniFile := TIniFile.Create(FColumnSize.Key);
 
     with IniFile do
@@ -8880,22 +9686,16 @@ end;
 procedure TAdvStringGrid.LoadColSizes;
 var
   i: Integer;
-  {$IFDEF DELPHI4_LVL}
   IniFile: TCustomIniFile;
-  {$ELSE}
-  IniFile: TIniFile;
-  {$ENDIF}
   NewWidth: Integer;
 begin
-  if (FColumnSize.Key<>'') and
-     (FColumnSize.Section<>'') and
+  if (FColumnSize.Key <> '') and
+     (FColumnSize.Section <> '') and
      (not (csDesigning in ComponentState)) then
   begin
-    {$IFDEF DELPHI4_LVL}
     if FColumnSize.location = clRegistry then
       IniFile := TRegistryIniFile.Create(FColumnSize.Key)
     else
-    {$ENDIF}
       IniFile := TIniFile(tIniFile.Create(FColumnSize.Key));
 
     with IniFile do
@@ -8916,22 +9716,16 @@ end;
 procedure TAdvStringGrid.SaveColPositions;
 var
   i: Integer;
-  {$IFDEF DELPHI4_LVL}
   IniFile: TCustomIniFile;
-  {$ELSE}
-  IniFile: TIniFile;
-  {$ENDIF}
 
 begin
-  if (FColumnSize.Key<>'') and
-     (FColumnSize.Section<>'') and
+  if (FColumnSize.Key <> '') and
+     (FColumnSize.Section <> '') and
      (not (csDesigning in ComponentState)) then
   begin
-    {$IFDEF DELPHI4_LVL}
     if FColumnSize.Location = clRegistry then
       IniFile := TRegistryIniFile.Create(FColumnSize.Key)
     else
-    {$ENDIF}
       IniFile := TIniFile.Create(FColumnSize.Key);
 
     with IniFile do
@@ -8948,23 +9742,17 @@ end;
 procedure TAdvStringGrid.LoadColPositions;
 var
   i,j: Integer;
-  {$IFDEF DELPHI4_LVL}
   IniFile: TCustomIniFile;
-  {$ELSE}
-  IniFile: TIniFile;
-  {$ENDIF}
   NewPos: Integer;
-  il: TIntList;
+  il,hl: TIntList;
 begin
-  if (FColumnSize.Key<>'') and
-     (FColumnSize.Section<>'') and
+  if (FColumnSize.Key <> '') and
+     (FColumnSize.Section <> '') and
      (not (csDesigning in ComponentState)) then
   begin
-    {$IFDEF DELPHI4_LVL}
     if FColumnSize.location = clRegistry then
       IniFile := TRegistryIniFile.Create(FColumnSize.Key)
     else
-    {$ENDIF}
       IniFile := TIniFile(TIniFile.Create(FColumnSize.Key));
 
     with IniFile do
@@ -8975,7 +9763,7 @@ begin
       begin
         FColumnOrder.Clear;
 
-        for i := 0 to ColCount - 1 do
+        for i := 0 to AllColCount - 1 do
         begin
           NewPos := ReadInteger(FColumnSize.Section,'Pos'+inttostr(i),-1);
           if (NewPos <> -1) then
@@ -8984,8 +9772,11 @@ begin
 
         // prepare reorganisation
         il := TIntList.Create(0,0);
-        for i := 0 to ColCount - 1 do
+        hl := TIntList.Create(0,0);
+
+        for i := 0 to AllColCount - 1 do
         begin
+
           for j := 0 to FColumnOrder.Count - 1 do
           begin
             if (FColumnOrder[j] = i) then
@@ -8994,23 +9785,39 @@ begin
         end;
 
         FColumnOrder.Clear;
-        for i := 0 to ColCount - 1 do
+        for i := 0 to AllColCount - 1 do
         begin
+          if IsHiddenColumn(i) then
+            hl.Add(i);
           FColumnOrder.Add(il.Items[i]);
         end;
         il.Free;
+
+        UnHidecolumnsAll;
 
         // do reorganisation
         if FColumnOrder.Count > 0 then
           ResetColumnOrder;
 
+        // hide columns again
+
+        for I := 0 to hl.Count - 1 do
+        begin
+          HideColumn(hl.Items[I]);
+        end;
+
+        hl.Free;
+
         FColumnOrder.Clear;
-        for i := 0 to ColCount - 1 do
+
+        for i := 0 to AllColCount - 1 do
         begin
           NewPos := ReadInteger(FColumnSize.Section,'Pos'+inttostr(i),-1);
           if (NewPos <> -1) then
             FColumnOrder.Add(NewPos);
         end;
+
+
       end;
     end;
     IniFile.Free;
@@ -9036,6 +9843,14 @@ var
     if (pos('fsStrikeOut',s) > 0) then Result := Result + [fsStrikeOut];
   end;
 
+  function StringToColorEx(s: string): TColor;
+  begin
+    if s ='' then
+      Result := clNone
+    else
+      Result := StringToColor(s);
+  end;
+
 begin
   AssignFile(f, FileName);
   Reset(f);
@@ -9047,46 +9862,48 @@ begin
   sl.LoadFromFile(FileName);
 
   try
-    Color := StringToColor(sl.Values['Color']);
-    HintColor := StringToColor(sl.Values['HintColor']);
-    SelectionColor := StringToColor(sl.Values['SelectionColor']);
-    SelectionColorTo := StringToColor(sl.Values['SelectionColorTo']);
-    SelectionTextColor := StringToColor(sl.Values['SelectionTextColor']);
-    URLColor := StringToColor(sl.Values['URLColor']);
+    Color := StringToColorEx(sl.Values['Color']);
+    HintColor := StringToColorEx(sl.Values['HintColor']);
+    SelectionColor := StringToColorEx(sl.Values['SelectionColor']);
+    SelectionColorTo := StringToColorEx(sl.Values['SelectionColorTo']);
+    SelectionMirrorColor := StringToColorEx(sl.Values['SelectionMirrorColor']);
+    SelectionMirrorColorTo := StringToColorEx(sl.Values['SelectionMirrorColorTo']);
+    SelectionTextColor := StringToColorEx(sl.Values['SelectionTextColor']);
+    URLColor := StringToColorEx(sl.Values['URLColor']);
     URLShow := StringToBool(sl.Values['URLShow']);
 
-    ScrollColor := StringToColor(sl.Values['ScrollColor']);
-    ActiveRowColor := StringToColor(sl.Values['ActiveRowColor']);
+    ScrollColor := StringToColorEx(sl.Values['ScrollColor']);
+    ActiveRowColor := StringToColorEx(sl.Values['ActiveRowColor']);
     ActiveRowShow := StringToBool(sl.Values['ActiveRowShow']);
     ActiveCellShow := StringToBool(sl.Values['ActiveCellShow']);
-    Font.Color := StringToColor(sl.Values['Font.Color']);
+    Font.Color := StringToColorEx(sl.Values['Font.Color']);
     Font.Style := StringToFontStyle(sl.Values['Font.Style']);
     Font.Size := StrToInt(sl.Values['Font.Size']);
     Font.Name := sl.Values['Font.Name'];
-    ActiveCellColor := StringToColor(sl.Values['ActiveCellColor']);
-    ActiveCellColorTo := StringToColor(sl.Values['ActiveCellColorTo']);
-    ActiveCellFont.Color := StringToColor(sl.Values['ActiveCellFont.Color']);
+    ActiveCellColor := StringToColorEx(sl.Values['ActiveCellColor']);
+    ActiveCellColorTo := StringToColorEx(sl.Values['ActiveCellColorTo']);
+    ActiveCellFont.Color := StringToColorEx(sl.Values['ActiveCellFont.Color']);
     ActiveCellFont.Style := StringToFontStyle(sl.Values['ActiveCellFont.Style']);
     ActiveCellFont.Size := StrToInt(sl.Values['ActiveCellFont.Size']);
     ActiveCellFont.Name := sl.Values['ActiveCellFont.Name'];
-    FixedFont.Color := StringToColor(sl.Values['FixedFont.Color']);
+    FixedFont.Color := StringToColorEx(sl.Values['FixedFont.Color']);
     FixedFont.Style := StringToFontStyle(sl.Values['FixedFont.Style']);
     FixedFont.Size := StrToInt(sl.Values['FixedFont.Size']);
     FixedFont.Name := sl.Values['FixedFont.Name'];
 
-    Balloon.BackGroundColor := StringToColor(sl.Values['Balloon.BackGroundColor']);
-    Balloon.TextColor := StringToColor(sl.Values['Balloon.TextColor']);
+    Balloon.BackGroundColor := StringToColorEx(sl.Values['Balloon.BackGroundColor']);
+    Balloon.TextColor := StringToColorEx(sl.Values['Balloon.TextColor']);
     Balloon.Transparency := StrToInt(sl.Values['Balloon.Transparency']);
 
-    Bands.PrimaryColor := StringToColor(sl.Values['Bands.PrimaryColor']);
-    Bands.SecondaryColor := StringToColor(sl.Values['Bands.SecondaryColor']);
+    Bands.PrimaryColor := StringToColorEx(sl.Values['Bands.PrimaryColor']);
+    Bands.SecondaryColor := StringToColorEx(sl.Values['Bands.SecondaryColor']);
     Bands.Active := StringToBool(sl.Values['Bands.Active']);
 
-    SortSettings.IndexColor := StringToColor(sl.Values['SortSettings.IndexColor']);
-    FloatingFooter.Color := StringToColor(sl.Values['FloatingFooter.Color']);
+    SortSettings.IndexColor := StringToColorEx(sl.Values['SortSettings.IndexColor']);
+    FloatingFooter.Color := StringToColorEx(sl.Values['FloatingFooter.Color']);
     ControlLook.CheckSize := StrToInt(sl.Values['ControlLook.CheckSize']);
-    ControlLook.Color := StringToColor(sl.Values['ControlLook.Color']);
-    ControlLook.CommentColor := StringToColor(sl.Values['ControlLook.CommentColor']);
+    ControlLook.Color := StringToColorEx(sl.Values['ControlLook.Color']);
+    ControlLook.CommentColor := StringToColorEx(sl.Values['ControlLook.CommentColor']);
 
     if UpperCase(sl.Values['ControlLook.ControlStyle']) = UpperCase('csClassic') then
       ControlLook.ControlStyle := csClassic
@@ -9103,12 +9920,12 @@ begin
     else if UpperCase(sl.Values['ControlLook.ControlStyle']) = UpperCase('csTheme') then
       ControlLook.ControlStyle := csTheme;
 
-    ControlLook.FixedGradientFrom := StringToColor(sl.Values['ControlLook.FixedGradientFrom']);
-    ControlLook.FixedGradientTo := StringToColor(sl.Values['ControlLook.FixedGradientTo']);
+    ControlLook.FixedGradientFrom := StringToColorEx(sl.Values['ControlLook.FixedGradientFrom']);
+    ControlLook.FixedGradientTo := StringToColorEx(sl.Values['ControlLook.FixedGradientTo']);
     ControlLook.RadioSize := StrToInt(sl.Values['ControlLook.RadioSize']);
 
     ControlLook.FlatButton := StringToBool(sl.Values['ControlLook.FlatButton']);
-    ControlLook.ProgressBorderColor := StringToColor(sl.Values['ControlLook.ProgressBorderColor']);
+    ControlLook.ProgressBorderColor := StringToColorEx(sl.Values['ControlLook.ProgressBorderColor']);
     ControlLook.ProgressXP := StringToBool(sl.Values['ControlLook.ProgressXP']);
 
     if UpperCase(sl.Values['Look']) = UpperCase('glStandard') then
@@ -9122,25 +9939,28 @@ begin
     else if UpperCase(sl.Values['Look']) = UpperCase('glXP') then
       Look := glXP
     else if UpperCase(sl.Values['Look']) = UpperCase('glListView') then
-      Look := glListView;
+      Look := glListView
+    else if UpperCase(sl.Values['Look']) = UpperCase('glVista') then
+      Look := glVista;
 
-    SearchFooter.Color := StringToColor(sl.Values['SearchFooter.Color']);
-    SearchFooter.ColorTo := StringToColor(sl.Values['SearchFooter.ColorTo']);
+    SearchFooter.Color := StringToColorEx(sl.Values['SearchFooter.Color']);
+    SearchFooter.ColorTo := StringToColorEx(sl.Values['SearchFooter.ColorTo']);
 
-    GridLineColor := StringToColor(sl.Values['GridLineColor']);
+    GridLineColor := StringToColorEx(sl.Values['GridLineColor']);
+    GridFixedLineColor := StringToColorEx(sl.Values['GridFixedLineColor']);
 
-    Grouping.HeaderColor := StringToColor(sl.Values['Grouping.HeaderColor']);
+    Grouping.HeaderColor := StringToColorEx(sl.Values['Grouping.HeaderColor']);
 
-    Grouping.HeaderColorTo := StringToColor(sl.Values['Grouping.HeaderColorTo']);
-    Grouping.HeaderTextColor := StringToColor(sl.Values['Grouping.HeaderTextColor']);
+    Grouping.HeaderColorTo := StringToColorEx(sl.Values['Grouping.HeaderColorTo']);
+    Grouping.HeaderTextColor := StringToColorEx(sl.Values['Grouping.HeaderTextColor']);
     Grouping.HeaderUnderline := StringToBool(sl.Values['Grouping.HeaderUnderline']);
-    Grouping.HeaderLineColor := StringToColor(sl.Values['Grouping.HeaderLineColor']);
+    Grouping.HeaderLineColor := StringToColorEx(sl.Values['Grouping.HeaderLineColor']);
     Grouping.HeaderLineWidth := StrToInt(sl.Values['Grouping.HeaderLineWidth']);
-    Grouping.SummaryColor := StringToColor(sl.Values['Grouping.SummaryColor']);
-    Grouping.SummaryColorTo := StringToColor(sl.Values['Grouping.SummaryColorTo']);
-    Grouping.SummaryTextColor := StringToColor(sl.Values['Grouping.SummaryTextColor']);
+    Grouping.SummaryColor := StringToColorEx(sl.Values['Grouping.SummaryColor']);
+    Grouping.SummaryColorTo := StringToColorEx(sl.Values['Grouping.SummaryColorTo']);
+    Grouping.SummaryTextColor := StringToColorEx(sl.Values['Grouping.SummaryTextColor']);
     Grouping.SummaryLine := StringToBool(sl.Values['Grouping.SummaryLine']);
-    Grouping.SummaryLineColor := StringToColor(sl.Values['Grouping.SummaryLineColor']);
+    Grouping.SummaryLineColor := StringToColorEx(sl.Values['Grouping.SummaryLineColor']);
     Grouping.SummaryLineWidth := StrToInt(sl.Values['Grouping.SummaryLineWidth']);
 
     BackGround.Top := StrToInt(sl.Values['BackGround.Top']);
@@ -9162,8 +9982,8 @@ begin
     else if UpperCase(sl.Values['BackGround.Cells']) = UpperCase('bcAll') then
       BackGround.Cells := bcAll;
 
-    BackGround.Color := StringToColor(sl.Values['BackGround.Color']);
-    BackGround.ColorTo := StringToColor(sl.Values['BackGround.ColorTo']);
+    BackGround.Color := StringToColorEx(sl.Values['BackGround.Color']);
+    BackGround.ColorTo := StringToColorEx(sl.Values['BackGround.ColorTo']);
 
   finally
     sl.Free;
@@ -9225,7 +10045,10 @@ begin
   WriteColor('HintColor',HintColor);
   WriteColor('SelectionColor',SelectionColor);
   WriteColor('SelectionColorTo',SelectionColorTo);
+  WriteColor('SelectionMirrorColor',SelectionMirrorColor);
+  WriteColor('SelectionMirrorColorTo',SelectionMirrorColorTo);
   WriteColor('SelectionTextColor',SelectionTextColor);
+
   WriteColor('URLColor',self.URLColor);
   WriteBool('URLShow',self.URLShow);
   WriteColor('ScrollColor',self.ScrollColor);
@@ -9294,6 +10117,7 @@ begin
     glTMS:       WriteString('Look','glTMS');
     glXP:        WriteString('Look','glXP');
     glListView:  WriteString('Look','glListView');
+    glVista:     WriteString('Look','glVista');
   end;
 
   //-- SearchFooter
@@ -9319,6 +10143,7 @@ begin
   WriteInt('Grouping.SummaryLineWidth', Grouping.SummaryLineWidth);
 
   WriteColor('GridLineColor',GridLineColor);
+  WriteColor('GridFixedLineColor',GridFixedLineColor);
 
   //-- BackGround;
   WriteInt('BackGround.Top', BackGround.Top);
@@ -9704,6 +10529,7 @@ begin
     CellIndex := Span;
     CellHAlign := haBeforeText;
     CellVAlign := vaCenter;
+    CellErrFrom := 0;
     CellVar := -1;
   end;
 
@@ -9735,7 +10561,7 @@ var
   i,dr: Integer;
 
 begin
-  ExpandNode(ARow);
+  ExpandNodeInt(ARow);
   dr := DisplRowIndex(ARow);
 
   for i := 1 to GetNodeSpan(dr) do
@@ -9835,7 +10661,7 @@ begin
 
   if cg = nil then
     Exit;
-  if cg.CellType = ctNode then
+  if (cg.CellType = ctNode) then
     Result := CellProperties[0,ARow].NodeLevel;
 end;
 
@@ -9848,7 +10674,7 @@ begin
   if cg = nil then
     Exit;
 
-  if cg.CellType = ctNode then
+  if (cg.CellType = ctNode) then
   begin
     ARow := RemapRowInv(ARow);
     if Value <> cg.CellBoolean then
@@ -9869,9 +10695,38 @@ begin
   if cg = nil then
     Exit;
 
-  if cg.CellType = ctNode then
+  if (cg.CellType = ctNode) then
     Result := cg.CellIndex;
 end;
+
+function TAdvStringGrid.GetSubNodeCount(ARow: Integer): Integer;
+var
+  cg:TCellGraphic;
+begin
+  Result := 0;
+
+  cg := GetCellGraphic(0,ARow);
+  if cg = nil then
+    Exit;
+
+  if (cg.CellType = ctNode) then
+    Result := cg.CellErrFrom;
+end;
+
+
+procedure TAdvStringGrid.UpdateSubNodeCount(ARow, Delta: Integer);
+var
+  cg:TCellGraphic;
+begin
+  cg := GetCellGraphic(0,ARow);
+  if cg = nil then
+    Exit;
+
+  if (cg.CellType = ctNode) then
+    cg.CellErrFrom := cg.CellErrFrom + Delta;
+end;
+
+
 
 procedure TAdvStringGrid.UpdateNodeSpan(ARow, Delta: Integer);
 var
@@ -9881,7 +10736,7 @@ begin
   if cg = nil then
     Exit;
 
-  if cg.CellType = ctNode then
+  if (cg.CellType = ctNode) then
     cg.CellIndex := cg.CellIndex + Delta;
 end;
 
@@ -9893,7 +10748,7 @@ begin
   if cg = nil then
     Exit;
 
-  if cg.CellType = ctNode then
+  if (cg.CellType = ctNode) then
     cg.CellIndex := Span;
 end;
 
@@ -9957,10 +10812,7 @@ end;
 
 procedure TAdvStringGrid.ExpandNode(ARow: Integer);
 var
-  i,j: Integer;
-  cg: TCellGraphic;
-  tr,cr: Integer;
-  rs: boolean;
+  i: Integer;
 begin
   if CellNode.ExpandOne then
     for i := FixedRows to RowCount - 1 do
@@ -9969,7 +10821,16 @@ begin
         if not GetNodeState(i) then
           ContractNode(RealRowIndex(i));
     end;
+  ExpandNodeInt(ARow);
+end;
 
+procedure TAdvStringGrid.ExpandNodeInt(ARow: Integer);
+var
+  i,j: Integer;
+  cg: TCellGraphic;
+  tr,cr: Integer;
+  rs: boolean;
+begin
   ARow := RemapRow(ARow);
 
   cg := GetCellGraphic(0,ARow);
@@ -10006,7 +10867,7 @@ begin
 
   if FNumCellControls = 0 then
     BeginUpdate;
-  
+
   try
     UnHideRows(i + 1,j - 1);
 
@@ -10114,7 +10975,7 @@ end;
 
 function TAdvStringGrid.GetParentRow(ARow: Integer): Integer;
 var
-  i, lvl: Integer;
+  i, lvl, nlvl,nspan, delta: Integer;
 begin
   Result := -1;
   if FNumNodes = 0 then
@@ -10128,12 +10989,19 @@ begin
   else
     lvl := $FFFF;
 
+  delta := 0;
   i := ARow;
-  while i >= FixedRows do
+  while (i >= FixedRows) do
   begin
-    if IsNode(i) and (GetNodeLevel(i) < lvl) then
+    nlvl := GetNodeLevel(i);
+    if IsNode(i) and (nlvl < lvl) then
     begin
-      if (GetNodeSpan(i) + i > ARow) then
+      nspan := GetNodeSpan(i);
+
+      if GetNodeState(i) then
+        delta := delta  + (nspan - 1);
+
+      if (nspan + i - delta > ARow) then
       begin
         Result := i;
         Exit;
@@ -10144,22 +11012,24 @@ begin
 end;
 
 procedure TAdvStringGrid.RemoveNormalRow(ARow: Integer);
-var
-  RRow,j: Integer;
+//var
+  //RRow: integer;
+  //j: Integer;
 begin
-  RRow := ARow;
-  ARow := DisplRowIndex(ARow);
+  //RRow := ARow;
+//  ARow := DisplRowIndex(ARow);
 
   RemoveRows(ARow,1);
 //  DeleteRow(ARow);
 
   dec(FMaxRowCount);
-
+  (*
   for j := 1 to FGriditems.Count do
   begin
     if (FGriditems.Items[j - 1] as TGridItem).Idx > RRow then
       (FGriditems.Items[j - 1] as TGridItem).Idx := (FGriditems.Items[j - 1] as TGridItem).Idx - 1;
   end;
+  *)
 end;
 
 procedure TAdvStringGrid.InsertNormalRow(ARow: Integer);
@@ -10184,7 +11054,8 @@ var
   pr,j: Integer;
   lvl: Integer;
   NRow,NLvl,RRow: Integer;
-
+  n: boolean;
+  c: integer;
 begin
   ARow := DisplRowIndex(ARow);
 
@@ -10198,6 +11069,7 @@ begin
   if pr <> -1 then
   begin
     UpdateNodeSpan(pr, 1);
+    UpdateSubNodeCount(pr,1);
     ExpandNode(RealRowIndex(pr));
     lvl := CellProperties[0,pr].NodeLevel;
   end;
@@ -10216,15 +11088,34 @@ begin
       if (NRow <> -1) then
       begin
         UpdateNodeSpan(NRow, 1);
+        UpdateSubNodeCount(pr,1);
         ExpandNode(RealRowIndex(NRow));
         Nlvl := CellProperties[0,NRow].NodeLevel;
       end;
-
     end;
   end;
 
+  n := IsNode(Arow);
+
+  if n then
+    InsertAt := 1;
+
   // insert row after
   InsertRows(ARow + InsertAt,1);
+
+  if n then
+  begin
+    for c := 0 to ColCount - 1 do
+    begin
+      Cells[c,ARow + 1] := Cells[c, ARow];
+      if c > 0 then
+        Objects[c, ARow + 1] := Objects[c, ARow];
+
+      Cells[c, Arow] := '';
+      if c > 0 then
+        Objects[c, ARow] := nil;
+    end;
+  end;
 
   // set level of inserted row
   if (pr <> -1) then
@@ -10241,9 +11132,17 @@ procedure TAdvStringGrid.RemoveChildRow(ARow: Integer);
 var
   sp, pr: Integer;
   lvl: Integer;
-  //j: Integer;
+  i: Integer;
+  ci: TControlItem;
 begin
   ARow := DisplRowIndex(ARow);
+
+  for i := 1 to FControlList.Count do
+  begin
+    ci := FControlList.Control[i - 1];
+    if (ci.Y >= RealRowIndex(ARow)) then
+      ci.Y := ci.Y - 1;
+  end;
 
   pr := GetParentRow(ARow);
 
@@ -10255,6 +11154,7 @@ begin
     if sp > 1 then
     begin
       UpdateNodeSpan(pr, - 1);
+      UpdateSubNodeCount(pr, - 1);
     end;
 
     ExpandNode(RealRowIndex(pr));
@@ -10269,6 +11169,7 @@ begin
         if sp > 1 then
         begin
           UpdateNodeSpan(pr, - 1);
+          UpdateSubNodeCount(pr, - 1);
         end;
         ExpandNode(RealRowIndex(pr));
       end
@@ -10338,7 +11239,7 @@ begin
   else
   begin
     Result := 1;
-  end;  
+  end;
 
   Exit;
 
@@ -10358,6 +11259,36 @@ begin
   end;
 
 end;
+
+{$IFDEF DELPHI6_LVL}
+procedure TAdvStringGrid.AddInterfacedCell(ACol,ARow: Integer; AObject: TInterfacedPersistent);
+begin
+  with CreateCellGraphic(ACol,ARow) do
+    SetInterfacedCell(AObject);
+end;
+
+procedure TAdvStringGrid.RemoveInterfacedCell(ACol,ARow: Integer);
+begin
+  RemoveCellGraphic(ACol,ARow,ctInterface);
+end;
+
+function TAdvStringGrid.GetInterfacedCell(ACol,ARow: Integer): TInterfacedPersistent;
+var
+  cg: TCellGraphic;
+begin
+  Result := nil;
+  cg := GetCellGraphic(ACol,ARow);
+  if cg = nil then
+    Exit;
+  if (cg.CellType = ctInterface) then
+  {$IFNDEF TMSDOTNET}
+  Result := TInterfacedPersistent(cg.CellBitmap);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  Result := cg.CellInterface;
+  {$ENDIF}
+end;
+{$ENDIF}
 
 function TAdvStringGrid.CreateBitmap(ACol,ARow: Integer;transparent: Boolean;hal:TCellHalign;val:TCellValign):TBitmap;
 var
@@ -10386,7 +11317,7 @@ begin
   cg := GetCellGraphic(ACol,ARow);
   if cg = nil then
     Exit;
-  if (cg.CellType = cTBitmap) then
+  if (cg.CellType = ctBitmap) then
     Result := cg.CellBitmap;
 end;
 
@@ -10553,8 +11484,8 @@ begin
     CellType := ctXPProgress;
     CellHAlign := haLeft;
     CellVAlign := vaTop;
-    CellErrFrom := 0;
-    CellErrLen := 100;
+    CellErrFrom := Min;
+    CellErrLen := Max;
     CellBoolean := False;
     CellText := '';
   end;
@@ -10617,7 +11548,7 @@ begin
     CellBoolean := True;
   end;
 end;
-
+                                          
 procedure TAdvStringGrid.AddProgressFormatted(ACol,ARow: Integer;FGColor,FGTextColor,BKColor,BKTextColor: TColor; Fmt: string; Min, Max: integer);
 begin
   with CreateCellGraphic(ACol,ARow) do
@@ -10712,6 +11643,27 @@ begin
     CellColor := Color;
     {$ENDIF}
   end;
+end;
+
+function TAdvStringGrid.GetComment(ACol,ARow: Integer): string;
+begin
+  Result := '';
+  IsComment(ACol,ARow, Result);
+end;
+
+procedure TAdvStringGrid.SetComment(ACol: Integer; ARow: Integer; value: string);
+var
+  cg: TCellGraphic;
+begin
+  cg := GetCellGraphic(ACol,ARow);
+
+  if not Assigned(cg) then
+    AddComment(Acol,ARow, value)
+  else
+    if cg.CellType = ctComment then
+    begin
+      cg.CellText := value;
+    end;
 end;
 
 
@@ -10909,13 +11861,13 @@ begin
   end;
 end;
 
-procedure TAdvStringGrid.AddCheckBoxColumn(ACol: Integer);
+procedure TAdvStringGrid.AddCheckBoxColumn(ACol: Integer; DefaultState: boolean= false;DataCheckBox: boolean = false);
 var
   i: integer;
 begin
   for i := FixedRows to RowCount - 1 do
   begin
-    AddCheckBox(ACol,i,false,false);
+    AddCheckBox(ACol,i,DefaultState,DataCheckBox);
   end;
 end;
 
@@ -10940,6 +11892,14 @@ begin
     vtaCenter: SetCheckBox(state,Data,True,haBeforeText,vaCenter);
     vtaBottom: SetCheckBox(state,Data,True,haBeforeText,vaBottom);
     end;
+  end;
+
+  if data then
+  begin
+    if state then
+      Cells[ACol,ARow] := CheckTrue
+    else
+      Cells[ACol,ARow] := CheckFalse;
   end;
 end;
 
@@ -10966,6 +11926,7 @@ begin
   cg := GetCellGraphic(ACol,ARow);
   if cg = Nil then
     Exit;
+
   if cg.CellType in [ctCheckBox,ctDataCheckBox,ctVirtCheckBox,ctRowCheckBox] then
   begin
     if not MouseActions.PreciseCheckBoxCheck then
@@ -11039,32 +12000,74 @@ begin
   Result := (CellTypes[BC.X,BC.Y] in [ctCheckBox,ctDataCheckBox,ctVirtCheckBox,ctRadio,ctButton,ctRowCheckBox]);
 end;
 
+function TAdvStringGrid.IsChecked(ACol,ARow: integer): boolean;
+begin
+  GetCheckBoxState(ACol,ARow,Result);
+end;
+
 function TAdvStringGrid.GetCheckBoxState(ACol,ARow: Integer;var State: Boolean): Boolean;
 var
   cg: TCellGraphic;
+  cp: TCellProperties;
+
 begin
   Result := False;
 
-  cg := GetCellGraphic(ACol,ARow);
-  if cg = Nil then
-    Exit;
-
-  if (cg.CellType = ctCheckBox) then
+  if (NumHiddenRows > 0) then
   begin
-    State := cg.CellBoolean;
-    Result := True;
-  end;
+    //r := RealRowIndex(Arow);
+    cp := TCellProperties(GetAllGraphicsObject(ACol,ARow));
 
-  if (cg.CellType in [ctDataCheckBox,ctVirtCheckBox]) then
-  begin
-    State := Cells[ACol,ARow] = GetCheckTrue(ACol,ARow);
-    Result := True;
-  end;
+    if Assigned(cp) then
+    begin
+      cg := TCellGraphic(GetCPGraphicObject(cp));
 
-  if (cg.CellType = ctRowCheckBox) and (ACol = 0) then
+      if Assigned(cg) then
+      begin
+        if (cg.CellType = ctCheckBox) then
+        begin
+          State := cg.CellBoolean;
+          Result := True;
+        end;
+
+        if (cg.CellType in [ctDataCheckBox,ctVirtCheckBox]) then
+        begin
+          State := AllCells[ACol,ARow] = GetCheckTrue(ACol,ARow);
+          Result := True;
+        end;
+
+        if (cg.CellType = ctRowCheckBox) and (ACol = 0) then
+        begin
+          State := RowSelect[ARow];
+          Result := True;
+        end;
+      end;
+
+    end;
+  end
+  else
   begin
-    State := RowSelect[ARow];
-    Result := True;
+    cg := GetCellGraphic(ACol,ARow);
+    if cg = Nil then
+      Exit;
+
+    if (cg.CellType = ctCheckBox) then
+    begin
+      State := cg.CellBoolean;
+      Result := True;
+    end;
+
+    if (cg.CellType in [ctDataCheckBox,ctVirtCheckBox]) then
+    begin
+      State := Cells[ACol,ARow] = GetCheckTrue(ACol,ARow);
+      Result := True;
+    end;
+
+    if (cg.CellType = ctRowCheckBox) and (ACol = 0) then
+    begin
+      State := RowSelect[ARow];
+      Result := True;
+    end;
   end;
 
 end;
@@ -11072,9 +12075,21 @@ end;
 function TAdvStringGrid.SetCheckBoxState(ACol,ARow: Integer;State: Boolean): Boolean;
 var
   cg: TCellGraphic;
+  cp: TCellProperties;
+
 begin
   Result := False;
-  cg := GetCellGraphic(ACol,ARow);
+
+  if (NumHiddenRows > 0) then
+  begin
+    cp := TCellProperties(GetAllGraphicsObject(ACol,ARow));
+    if Assigned(cp) then
+      cg := TCellGraphic(GetCPGraphicObject(cp));
+  end
+  else
+    cg := GetCellGraphic(ACol,ARow);
+
+
   if cg = nil then
     Exit;
 
@@ -11084,6 +12099,7 @@ begin
     RepaintCell(ACol,ARow);
     Result := True;
   end;
+
 
   if (cg.CellType in [ctDataCheckBox,ctVirtCheckBox]) then
   begin
@@ -11301,7 +12317,7 @@ begin
   RemoveCellGraphic(ACol,ARow,ctImageList);
 end;
 
-procedure TAdvStringGrid.SetImages(Value: TImageList);
+procedure TAdvStringGrid.SetImages(Value: TCustomImageList);
 begin
   if Value <> FGridImages then
   begin
@@ -11334,6 +12350,23 @@ begin
   if FLook <> Value then
   begin
     FLook := Value;
+
+    if Value = glVista then
+      SetStyle(gsWindowsVista)
+    else
+    begin
+      FTMSGradFrom := clWhite;
+      FTMSGradTo := clBtnFace;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
+      GridFixedLineColor := clGray;
+      ControlLook.FixedGradientFrom := clWhite;
+      ControlLook.FixedGradientTo := clBtnFace;
+      ControlLook.FixedGradientMirrorFrom := clNone;
+      ControlLook.FixedGradientMirrorTo := clNone;
+      GridFixedLineColor := clGray;
+    end;
+
     Invalidate;
     if not (csLoading in ComponentState) then
     begin
@@ -11410,16 +12443,70 @@ begin
 end;
 
 procedure TAdvStringGrid.MoveColumn(FromIndex, ToIndex: Integer);
+var
+  i: integer;
 begin
   if FColumnOrder.Count = 0 then
     SetColumnOrder;
 
   ColumnMoved(FromIndex,ToIndex);
+
+  if (FControlList.Count > 0) then
+  begin
+    for i := 0 to FControlList.Count - 1 do
+    begin
+      if FromIndex > ToIndex then
+      begin
+        if (FControlList.Control[i].X < FromIndex) and (FControlList.Control[i].X >= ToIndex) then
+          FControlList.Control[i].X := FControlList.Control[i].X + 1
+        else
+          if (FControlList.Control[i].X = FromIndex)  then
+            FControlList.Control[i].X := ToIndex;
+      end
+      else
+      begin
+        if (FControlList.Control[i].X > FromIndex) and (FControlList.Control[i].X <= ToIndex) then
+          FControlList.Control[i].X := FControlList.Control[i].X - 1
+        else
+          if (FControlList.Control[i].X = FromIndex)  then
+            FControlList.Control[i].X := ToIndex;
+      end;
+
+    end;
+    CellControlsUpdate;
+  end;
 end;
 
 procedure TAdvStringGrid.MoveRow(FromIndex, ToIndex: Integer);
+var
+  i: integer;
 begin
   RowMoved(FromIndex,ToIndex);
+
+  if (FControlList.Count > 0) then
+  begin
+    for i := 0 to FControlList.Count - 1 do
+    begin
+      if FromIndex > ToIndex then
+      begin
+        if (FControlList.Control[i].Y < FromIndex) and (FControlList.Control[i].Y >= ToIndex) then
+          FControlList.Control[i].Y := FControlList.Control[i].Y + 1
+        else
+          if (FControlList.Control[i].Y = FromIndex)  then
+            FControlList.Control[i].Y := ToIndex;
+      end
+      else
+      begin
+        if (FControlList.Control[i].Y > FromIndex) and (FControlList.Control[i].Y <= ToIndex) then
+          FControlList.Control[i].Y := FControlList.Control[i].Y - 1
+        else
+          if (FControlList.Control[i].Y = FromIndex)  then
+            FControlList.Control[i].Y := ToIndex;
+      end;
+    end;
+    CellControlsUpdate;
+  end;
+
 end;
 
 procedure TAdvStringGrid.UnHideSelection;
@@ -11600,6 +12687,10 @@ begin
   GroupCalc(Colindex,5);
 end;
 
+procedure TAdvStringGrid.GroupCustomCalc(Colindex: Integer);
+begin
+  GroupCalc(Colindex,6);
+end;
 
 procedure TAdvStringGrid.GroupCalc(Colindex,Method: Integer);
 var
@@ -11624,7 +12715,8 @@ begin
         2:Floats[Colindex,k] := ColumnAvg(Colindex,i + 1,j - 1);
         3:Floats[Colindex,k] := ColumnMin(Colindex,i + 1,j - 1);
         4:Floats[Colindex,k] := ColumnMax(Colindex,i + 1,j - 1);
-        5:Floats[ColIndex,k] := j - 1 - i;
+        5:Ints[ColIndex,k] := j - 1 - i;
+        6:Floats[ColIndex,k] := ColumnCustomCalc(Colindex,i + 1,j - 1);
         end;
 
         i := j;
@@ -11749,7 +12841,7 @@ begin
 
     i := FixedRows + 1;
 
-    while (i <RowCount - 1 - FFixedFooters) do
+    while (i < RowCount  - FFixedFooters) do
     begin
       nc := Cells[Colindex,i];
 
@@ -11761,10 +12853,11 @@ begin
           if (np > FixedRows) and not IsNode(i) and not IsSummary(i) and (Grouping.Summary) and (1 < 0) then
           begin
             InsertChildRow(np,0);
+
             AddSummary(np);
 
             // set style of group summary span
-            if Grouping.MergeSummary then
+            if Grouping.MergeSummary and Grouping.Summary then
             begin
               MergeCells(grpc,np,ColCount - grpc,1);
               if Grouping.SummaryColor <> clNone then
@@ -11786,6 +12879,7 @@ begin
 
             inc(np);
             AddNode(np,i - np + 1);
+
             CellGraphics[0, np].CellVar := ColIndex;
             inc(i);
           end
@@ -11805,6 +12899,7 @@ begin
         if not (IsNode(i) or IsSummary(i)) then
         begin
           InsertChildRow(i,0);
+
           Cells[grpc,i] := nc;
 
           //else
@@ -11813,7 +12908,7 @@ begin
           // set style of group header span
           if Grouping.MergeHeader then
           begin
-            MergeCells(grpc,i,ColCount - grpc,1);
+            MergeCells(grpc,i,ColCount - grpc ,1);
             if Grouping.HeaderColor <> clNone then
               Colors[grpc,i] := ColorToRGB(Grouping.HeaderColor);
             if Grouping.HeaderColorTo <> clNone then
@@ -11836,7 +12931,7 @@ begin
         Inc(i);
       end;
 
-      if (i < RowCount - 1) and not IsNode(i - 1) and not IsSummary(i - 1) then
+      if (i < RowCount ) and not IsNode(i - 1) and not IsSummary(i - 1) then
       begin
         lc := Cells[grp,i];
         Cells[grp,i] := '';
@@ -11860,7 +12955,7 @@ begin
 
           AddSummary(np);
 
-          if Grouping.MergeSummary then
+          if Grouping.MergeSummary and Grouping.Summary then
           begin
             MergeCells(grpc,np,ColCount - grpc,1);
             if Grouping.SummaryColor <> clNone then
@@ -11884,7 +12979,8 @@ begin
           inc(i);
         end;
 
-        AddNode(np,i - np + 1);
+        // !! was i - np + 1 !!
+        AddNode(np,i - np );
         CellGraphics[0, np].CellVar := ColIndex;
 
         if Grouping.MergeHeader then
@@ -11909,8 +13005,16 @@ begin
       end
       else
       begin
-        AddNode(FixedRows,i - 1);
-        CellGraphics[0, FixedRows].CellVar := ColIndex;
+        InsertChildRow(i,0);
+
+        AddNode(i, 2);
+        Cells[grpc,i] := Cells[grp,i + 1];
+        inc(i);
+        Cells[grp,i] := '';
+
+        //
+        //AddNode(FixedRows,i - 1);
+        //CellGraphics[0, FixedRows].CellVar := ColIndex;
       end;
 
       if (i <= RowCount - 1) and not IsNode(i - 1) and not IsSummary(i - 1) then
@@ -11927,7 +13031,7 @@ begin
 
         AddSummary(i);
 
-        if Grouping.MergeSummary then
+        if Grouping.MergeSummary and Grouping.Summary then
         begin
           MergeCells(grpc,i,ColCount - grpc,1);
           if Grouping.SummaryColor <> clNone then
@@ -11966,6 +13070,7 @@ begin
   if (Colindex < FixedCols) then
     Exit;
 
+
   if FGroupColumn <> -1 then
     UnGroup;
 
@@ -11973,6 +13078,8 @@ begin
     Exit;
 
   BeginUpdate;
+
+  FIsGrouping := true;
 
   try
     FGroupColumn := Colindex;
@@ -12017,7 +13124,7 @@ begin
             AddSummary(np);
 
             // set style of group summary span
-            if Grouping.MergeSummary then
+            if Grouping.MergeSummary and Grouping.Summary then
             begin
               {
               MergeCells(grpc,np,ColCount - grpc,1);
@@ -12044,7 +13151,9 @@ begin
             inc(i);
           end
           else
+          begin
             AddNode(np,i - np);
+          end;
         end;
 
         // insert group header row
@@ -12091,7 +13200,7 @@ begin
         InsertRows(np,1);
         AddSummary(np);
 
-        if Grouping.MergeSummary then
+        if Grouping.MergeSummary and Grouping.Summary then
         begin
           {
           MergeCells(grpc,np,ColCount - grpc,1);
@@ -12150,7 +13259,7 @@ begin
 
       AddSummary(i);
 
-      if Grouping.MergeSummary then
+      if Grouping.MergeSummary and Grouping.Summary then
       begin
         {
         MergeCells(grpc,i,ColCount - grpc,1);
@@ -12175,13 +13284,13 @@ begin
 
     RemoveCols(grp,1);
 
-    if Grouping.MergeHeader or Grouping.MergeSummary then
+    if Grouping.MergeHeader or (Grouping.MergeSummary and Grouping.Summary) then
       for i := FixedRows to RowCount - 1 do
       begin
         grpc := 1;
         if IsNode(i) and Grouping.MergeHeader then
         begin
-          MergeCells(grpc,i,ColCount - grpc + 1,1);
+          MergeCells(grpc,i,ColCount - grpc,1);
           if Grouping.HeaderColor <> clNone then
             Colors[grpc,i] := ColorToRGB(Grouping.HeaderColor);
           if Grouping.HeaderColorTo <> clNone then
@@ -12190,9 +13299,9 @@ begin
             FontColors[grpc,i] := ColorToRGB(Grouping.HeaderTextColor);
         end;
 
-        if (IsNode(i + 1) or (i = RowCount - 1)) and Grouping.MergeSummary then
+        if (IsNode(i + 1) or (i = RowCount - 1)) and Grouping.MergeSummary and Grouping.Summary then
         begin
-          MergeCells(grpc,i,ColCount - grpc + 1,1);
+          MergeCells(grpc,i,ColCount - grpc,1);
           if Grouping.SummaryColor <> clNone then
             Colors[grpc,i] := Grouping.SummaryColor;
           if Grouping.SummaryColorTo <> clNone then
@@ -12204,6 +13313,7 @@ begin
 
     Row := FixedRows;
   finally
+    FIsGrouping := false;
     EndUpdate;
   end;
 end;
@@ -12237,11 +13347,13 @@ begin
 
   i := FixedRows;
 
+  FIsGrouping := true;
+
   while i <= RowCount - 1 - FFixedFooters do
   begin
     if IsNode(i) then
     begin
-      if Grouping.Summary or Grouping.MergeSummary then
+      if Grouping.Summary {Grouping.MergeSummary} then
       begin
         j := GetNodeSpan(i);
 
@@ -12285,8 +13397,10 @@ begin
     end;
   end;
 
+  FIsGrouping := false;
 
   FGroupColumn := -1;
+  Invalidate;
 end;
 
 procedure TAdvStringGrid.HideRow(RowIndex: Integer);
@@ -12554,14 +13668,13 @@ begin
 
   if Flg then
   begin
-    InsertRows(k,1);
+    InsertRows(k,1,false);
 
     with (FGriditems.Items[l] as TGridItem) do
     begin
       Rows[k].Assign(Items);
       RowHeights[k] := Height;
     end;
-
 
     (FGriditems.Items[l] as TGridItem).Free;
   end;
@@ -12603,7 +13716,7 @@ begin
 
     if Num > 0 then
     begin
-      InsertRows(k,num);
+      InsertRows(k,num,false);
 
       i := 0;
       while (i < FGridItems.Count) and (FGridItems.Count > 0) do
@@ -12618,7 +13731,7 @@ begin
           if Assigned(CellControls[1,k + l - FromRow]) and (l = FromRow) then
           begin
             r := CellRect(1,k + l - FromRow);
-            CellControls[1,k + l - FromRow].SetBounds(r.Left,r.Top,r.Right - r.Left,r.Bottom - r.Top);
+            CellControls[1,k + l - FromRow].SetBounds(r.Left,r.Top,r.Right - r.Left,r.Bottom - r.Top - 1);
             CellControls[1,k + l - FromRow].Visible := True;
           end;
         end
@@ -12637,6 +13750,7 @@ end;
 function TAdvStringGrid.IsHiddenRow(Rowindex: Integer): Boolean;
 var
   j: Integer;
+
 begin
   Result := False;
   if FGriditems.Count = 0 then
@@ -12704,6 +13818,11 @@ end;
 function TAdvStringGrid.DisplColIndex(ACol: Integer): Integer;
 begin
   Result := RemapColinv(ACol);
+end;
+
+function TAdvStringGrid.IsIgnoredColumn(ACol: Integer): boolean;
+begin
+  Result := FIgnoreColumns.HasValue(ACol);
 end;
 
 procedure TAdvStringGrid.SetVisibleCol(i: Integer;aValue: Boolean);
@@ -12826,7 +13945,7 @@ begin
   MouseToCell(x,y,c,r);
   if (c < 0) or (r < 0) then
     Exit;
-    
+
   cr := CellRect(c,r);
   if (r <= FixedRows) and (goColSizing in Options) then
     Result := (Abs(x - cr.Left) < 4) or (Abs(x - cr.Right) < 4);
@@ -12901,27 +14020,37 @@ begin
           nh := 0;
 
         ct := CellProperties[c,RowCount - 1].CalcType;
+
         if ct <> acNONE then
         begin
           case ct of
           acSUM: Floats[c,RowCount - 1] := ColumnSum(c,FixedRows,RowCount - 2 + nh);
-          acCOUNT: Floats[c,RowCount - 1] := RowCount - 1 - FixedRows + nh;
+          acCOUNT: Ints[c,RowCount - 1] := RowCount - 1 - FixedRows + nh;
           acAVG: Floats[c,RowCount - 1] := ColumnAvg(c,FixedRows,RowCount - 2 + nh);
           acMIN: Floats[c,RowCount - 1] := ColumnMin(c,FixedRows,RowCount - 2 + nh);
           acMAX: Floats[c,RowCount - 1] := ColumnMax(c,FixedRows,RowCount - 2 + nh);
           acCUSTOM:
-            if (Assigned(FloatingFooter.FOnCalcFooter)) then
             begin
-              s:='';
-              FloatingFooter.FOnCalcFooter(self,c,RowCount - 1 + nh,s);
-              Cells[c,RowCount - 1] := s;
-            end
-            else
-              Cells[c,RowCount - 1] := '';
+              if Assigned(FOnCalcFooter) then
+              begin
+                s := '';
+                FOnCalcFooter(self,c,RowCount - 1 + nh,s);
+                Cells[c,RowCount - 1] := s;
+              end
+              else
+                if (Assigned(FloatingFooter.FOnCalcFooter)) then
+                begin
+                  s := '';
+                  FloatingFooter.FOnCalcFooter(self,c,RowCount - 1 + nh,s);
+                  Cells[c,RowCount - 1] := s;
+                end
+                else
+                  Cells[c,RowCount - 1] := '';
+            end;
           end;
-        end
-        else
-          Cells[c,RowCount - 1] := '';
+        end;
+        //else
+        //  Cells[c,RowCount - 1] := '';
       end;
   end;
 end;
@@ -12989,6 +14118,7 @@ begin
   ScrollInfo.cbSize := SizeOf(ScrollInfo);
   {$ENDIF}
   GetScrollInfo(Handle,SB_VERT,ScrollInfo);
+
 
   if FScrollProportional and (1 < 0) then
   begin
@@ -13322,8 +14452,8 @@ begin
   if Value then
   begin
     Exit;
-    FlatInit;
-    FlatUpdate;
+    //FlatInit;
+    //FlatUpdate;
   end
   else
   if FIsflat and (FScrollType = ssNormal) then
@@ -13349,6 +14479,16 @@ begin
     SetScrollInfo(Handle,SB_VERT,ScrollInfo,True);
   end;
 
+end;
+
+procedure TAdvStringGrid.WMGetDlgCode(var Msg: TWMNoParams);
+begin
+  inherited;
+  if Navigation.AutoGotoWhenSorted then
+    Msg.Result := Msg.Result or DLGC_WANTCHARS;
+
+  if not (goEditing in Options) then
+    Msg.Result := Msg.Result or DLGC_WANTCHARS;
 end;
 
 procedure TAdvStringGrid.WMHScroll(var WMScroll: TWMScroll);
@@ -13516,9 +14656,10 @@ begin
 
   UpdateHScrollBar;
 
-  // total column width smaller than grid width or no horiz. scrollbar selected
-  if (TCW < Width) or not (ScrollBars in [ssHorizontal,ssBoth]) then
-    ShowScrollBar(Handle,SB_HORZ,False);
+  // total column width smaller than grid width or no horiz. scrollbar selected, hide the scrollbar
+  if (ScrollBarAlways in [saNone, saVert]) then
+    if (TCW < Width) or not (ScrollBars in [ssHorizontal,ssBoth]) then
+      ShowScrollBar(Handle,SB_HORZ,False);
 end;
 
 procedure TAdvStringGrid.UpdateVScroller;
@@ -13578,6 +14719,7 @@ begin
 
   if ViewRatio >= 0.9999 then
     Exit;
+
   IdealNMax := (127 + ViewRatio) / (1 - ViewRatio);
 
   if TotalScrollableHeight > Height  then
@@ -13695,6 +14837,8 @@ begin
   if (AOperation = opRemove) and (AComponent = FCellChecker) then
     FCellChecker := nil;
 
+  if (AOperation = opRemove) and (AComponent = FFixedDropDownMenu) then
+    FFixedDropDownMenu := nil;
 
   inherited;
 end;
@@ -13707,9 +14851,9 @@ begin
   begin
     if Assigned(FDragTmr) then
     begin
-      FDragTmr.enabled:=false;
-      FDragTmr.free;
-      FDragTmr:=nil;
+      FDragTmr.Enabled := false;
+      FDragTmr.Free;
+      FDragTmr := nil;
     end;
     inherited;
     Exit;
@@ -13825,7 +14969,20 @@ begin
   end;
 end;
 
-
+{$IFDEF TMSUNICODE}
+procedure TAdvStringGrid.WideEllipsClick(Sender: TObject);
+var
+  ws: widestring;
+begin
+  if Assigned(OnWideEllipsClick) then
+  begin
+    ws := UniEditBtn.Text;
+    OnWideEllipsClick(Self, Col,Row, ws);
+    if  (ws <> UniEditBtn.Text) then
+      UniEditBtn.Text := ws;
+  end;
+end;
+{$ENDIF}
 
 procedure TAdvStringGrid.SizeChanged(OldColCount, OldRowCount: longint);
 begin
@@ -14011,8 +15168,10 @@ begin
   end;
 
   Colsized := False;
+
   if HasCheckBox(Col,Row) then
     HideEditor;
+
   UpdateFooter;
   CellControlsUpdate;
 
@@ -14056,8 +15215,10 @@ begin
   end;
 
   Rowsized := False;
+
   if HasCheckBox(Col,Row) then
     HideEditor;
+    
   CellControlsUpdate;
 end;
 
@@ -14192,6 +15353,16 @@ procedure TAdvStringGrid.UpdateOnSelection(var GR: TGridRect);
 begin
 end;
 
+procedure TAdvStringGrid.OnMouseActionsChanged(Sender: TObject);
+begin
+
+end;
+
+procedure TAdvStringGrid.OnNavigationChanged(Sender: TObject);
+begin
+
+end;
+
 procedure TAdvStringGrid.UpdateEditingCell(ACol,ARow: Integer; Value: string);
 begin
   SetEditText(RemapColInv(ACol),ARow,Value);
@@ -14288,9 +15459,28 @@ begin
     EditSpin.Enabled := False;
     EditSpin.Visible := False;
   end;
+  edDateTimeEdit:
+  begin
+    if ComCtrlOk then
+    begin
+      if EditDate.Checked then
+      {$IFNDEF TMSDOTNET}
+        UpdateEditingCell(ACol,ARow,FormatDateTime(ShortDateFormat + ' ' + ShortTimeFormat,EditDateTime.DateTime))
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+        UpdateEditingCell(ACol,ARow,FormatDateTime(ShortDateFormat + ' ' + ShortTimeFormat,EditDateTime.DateTime))
+      {$ENDIF}
+      else
+        UpdateEditingCell(ACol,ARow,'');
+
+      EditMode := False;
+      EditDateTime.Enabled := False;
+      EditDateTime.Visible := False;
+    end;
+
+  end;
   edDateEdit,edDateEditUpDown:
   begin
-    {$IFDEF DELPHI3_LVL}
     if ComCtrlOk then
     begin
       if EditDate.Checked then
@@ -14306,8 +15496,11 @@ begin
       EditMode := False;
       EditDate.Enabled := False;
       EditDate.Visible := False;
+
+      {$IFNDEF TMSDOTNET}
+      ShowWindow(EditDate.GetCalendarHandle, SW_HIDE);
+      {$ENDIF}
     end;
-    {$ENDIF}
   end;
   edTimeEdit:
   begin
@@ -14382,7 +15575,7 @@ begin
   end;
 
   if (EditControl <> edNormal) and (FEditActive) then
-    DoneEditing;
+    DoneEditing(ACol,ARow);
 
   FBlockKill := false;
   FEditActive := False;
@@ -14406,7 +15599,7 @@ var
   pt: TPoint;
   CellWidth,CellHeight,OCol: Integer;
   EditColor: TColor;
-  AColorTo: TColor;
+  AColorTo,AMirrorColor,AMirrorColorTo: TColor;
   EditFont: TFont;
   AState: TGridDrawState;
   HAlign: TAlignment;
@@ -14417,11 +15610,12 @@ var
   Err, ValI: Integer;
   EcC: boolean;
   PForm: TComponent;
-
+  dt: TDateTime;
   {$IFDEF DELPHI5_LVL}
   {$IFNDEF TMSDOTNET}
   i: Integer;
   ws: array of widestring;
+  wo: array of TObject;
   {$ENDIF}
   {$ENDIF}
 
@@ -14436,7 +15630,6 @@ begin
 
   r := CellRect(ACol,ARow);
 
-  {$IFDEF DELPHI4_LVL}
   if UseRightToLeftAlignment then
   begin
     r.Left := r.Left + 1;
@@ -14445,7 +15638,6 @@ begin
   //  r.Left := dr.Left - (r.Right - dr.Right);
   //  r.Right := r.Left + Hold;
   end;
-  {$ENDIF}
 
   OCol := ACol;
   ACol := RemapCol(ACol);
@@ -14454,7 +15646,7 @@ begin
   CellHeight := R.Bottom - R.Top - 1;
 
   AState := [];
-  GetVisualProperties(OCol,Row,AState,False,False,True,Canvas.Brush,AColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
+  GetVisualProperties(OCol,Row,AState,False,False,True,Canvas.Brush,AColorTo,AMirrorColor,AMirrorColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
 
   EditColor := Canvas.Brush.Color;
   EditFont := Canvas.Font;
@@ -14471,6 +15663,10 @@ begin
   edComboEdit:
     begin
       EditMode := True;
+
+      if Assigned(FOnGetEditorProp) then
+        FOnGetEditorProp(self,ACol,ARow,EditLink);
+
       EditCombo.Width := 0;
       EditCombo.Height := 0;
       EditCombo.Top := r.Top;
@@ -14489,10 +15685,12 @@ begin
 
       EditCombo.Color := EditColor;
 
+      EditCombo.MaxLength := FMaxComboLength;
+
       EditCombo.Visible := True;
 
-      EditCombo.Flat := Look in [glSoft,glTMS,glXP,glListView];
-      EditCombo.Etched := Look in [glSoft,glTMS,glXP,glListView];
+      EditCombo.Flat := Look in [glSoft,glTMS,glXP,glVista,glListView];
+      EditCombo.Etched := Look in [glSoft,glTMS,glXP,glVista,glListView];
 
       if FNavigation.FAutoComboDropSize then
         EditCombo.SizeDropDownWidth
@@ -14501,7 +15699,7 @@ begin
           SendMessage(EditCombo.Handle,CB_SETDROPPEDWIDTH,EditCombo.DropWidth,0);
 
       EditCombo.SetFocus;
-      EditCombo.DroppedDown := FMouseActions.DirectComboDrop;
+      EditCombo.DroppedDown := FMouseActions.DirectComboDrop or ControlLook.DropDownAlwaysVisible;
 
       if FStartEditChar <> #0 then
         PostMessage(EditCombo.Handle,WM_CHAR,Ord(FStartEditChar),0);
@@ -14510,6 +15708,10 @@ begin
   edComboList:
     begin
       EditMode := True;
+
+      if Assigned(FOnGetEditorProp) then
+        FOnGetEditorProp(self,ACol,ARow,EditLink);
+
       EditCombo.Top := r.Top;
       EditCombo.Left := r.Left;
 
@@ -14542,8 +15744,8 @@ begin
 
       EditCombo.Visible := True;
 
-      EditCombo.Flat := Look in [glSoft,glTMS,glXP,glListView];
-      EditCombo.Etched := Look in [glSoft,glTMS,glXP,glListView];
+      EditCombo.Flat := Look in [glSoft,glTMS,glXP,glVista,glListView];
+      EditCombo.Etched := Look in [glSoft,glTMS,glXP,glVista,glListView];
 
       if FNavigation.FAutoComboDropSize then
         EditCombo.SizeDropDownWidth
@@ -14553,7 +15755,7 @@ begin
 
       EditCombo.SetFocus;
 
-      EditCombo.DroppedDown := FMouseActions.DirectComboDrop;
+      EditCombo.DroppedDown := FMouseActions.DirectComboDrop or ControlLook.DropDownAlwaysVisible;
 
       if EcC then
       begin
@@ -14573,8 +15775,8 @@ begin
     begin
       EditMode := True;
       EditUni.ReCreate;
-      EditUni.Top := r.Top + 2 + XYOffset.Y;
-      EditUni.Left := r.Left + 2 + XYOffset.X;
+      EditUni.Top := r.Top + 1 + XYOffset.Y;
+      EditUni.Left := r.Left + 1 + XYOffset.X;
       EditUni.Width := CellWidth - 2 - XYOffset.X * 2;
       EditUni.Height := CellHeight - 2 - XYOffset.Y * 2;
       EditUni.Visible := True;
@@ -14598,8 +15800,8 @@ begin
     begin
       EditMode := True;
       MemoUni.ReCreate;
-      MemoUni.Top := r.Top + 2 + XYOffset.Y;
-      MemoUni.Left := r.Left + 2 + XYOffset.X;
+      MemoUni.Top := r.Top + 1 + XYOffset.Y;
+      MemoUni.Left := r.Left + 1 + XYOffset.X;
       MemoUni.Width := CellWidth - 2 - XYOffset.X * 2;
       MemoUni.Height := CellHeight - 2 - XYOffset.Y * 2;
       MemoUni.Visible := True;
@@ -14614,6 +15816,8 @@ begin
 
       MemoUni.Text := wt;
       MemoUni.SetFocus;
+      if length(wt) > 0 then      
+        MemoUni.SelectAll;
 
       if FStartEditChar <> #0 then
         PostMessage(MemoUni.Handle,WM_CHAR,Ord(FStartEditChar),0);
@@ -14649,10 +15853,14 @@ begin
   edUniComboEdit,edUniComboList:
     begin
       SetLength(ws,combouni.Items.Count);
+      SetLength(wo,combouni.Items.Count);
 
       // copy widestrings as control recreate causes to push items back to 8bit
       for i := 1 to combouni.Items.Count do
-       ws[i - 1] := combouni.Items[i - 1];
+      begin
+        ws[i - 1] := combouni.Items[i - 1];
+        wo[i - 1] := combouni.Items.Objects[i - 1];
+      end;
 
       EditMode := True;
 
@@ -14674,7 +15882,9 @@ begin
       combouni.Items.Clear;
 
       for i := 0 to High(ws) do
-       combouni.items.Add(ws[i]);
+      begin
+        combouni.items.AddObject(ws[i],wo[i]);
+      end;
 
       wt := WideCells[ACol, ARow];
 
@@ -14698,15 +15908,19 @@ begin
 
       ComboUni.Visible := True;
       ComboUni.Font.Assign(Font);
-      ComboUni.Flat := Look in [glSoft,glTMS,glXP,glListView];
-      ComboUni.Etched := Look in [glSoft,glTMS,glXP,glListView];
+      ComboUni.Flat := Look in [glSoft,glTMS,glXP,glVista,glListView];
+      ComboUni.Etched := Look in [glSoft,glTMS,glXP,glVista,glListView];
 
       if FNavigation.FAutoComboDropSize then
         ComboUni.SizeDropDownWidth;
 
       ComboUni.SetFocus;
 
-      ComboUni.DroppedDown := FMouseActions.DirectComboDrop;
+      ComboUni.DroppedDown := FMouseActions.DirectComboDrop or ControlLook.DropDownAlwaysVisible;
+
+      if ComboUni.DropWidth > 0 then
+        SendMessage(ComboUni.Handle,CB_SETDROPPEDWIDTH,ComboUni.DropWidth,0);
+
       EditCtrl := ComboUni;
     end;
   {$ENDIF}
@@ -14759,13 +15973,66 @@ begin
         end;
       end;
       EditSpin.SetFocus;
+
       if FStartEditChar <> #0 then
         PostMessage(EditSpin.Handle,WM_CHAR,Ord(FStartEditChar),0);
+
+
+      if FSpinUpClick then
+        EditSpin.DoInc(false);
+      if FSpinDnClick then
+        EditSpin.DoDec(false);
+
       EditCtrl := EditSpin;
     end;
+
+  edDateTimeEdit:
+    begin
+      if ComCtrlOk then
+      begin
+        EditMode := True;
+        EditDate.Parent := Self;
+        EditDate.ReCreate;
+
+        s := GetEditText(OCol,ARow);
+
+        if s = '' then
+        begin
+          dt := Now;
+        end
+        else
+        begin
+          try
+            {$IFNDEF TMSDOTNET}
+            //dt := VarToDateTime(s);
+            dt := StrToDateTime(s);
+            {$ELSE}
+            dt := StrToDateTime(s);
+            {$ENDIF}
+          except
+            dt := Now;
+          end;
+        end;
+        EditDateTime.Date := dt;
+        EditDateTime.Kind := dkDateTime;
+        EditDateTime.BorderStyle := bsNone; 
+
+        EditDateTime.Top := r.Top;
+        EditDateTime.Left := r.Left;
+        EditDateTime.Width := CellWidth;
+
+        if CellHeight > EditDateTime.Height then
+          EditDateTime.Height := CellHeight;
+
+        EditDateTime.Enabled := True;
+        EditDateTime.Visible := True;
+        EditDateTime.Color := EditColor;
+        EditDateTime.SetFocus;
+      end;
+    end;
+
   edDateEdit,edDateEditUpdown:
     begin
-      {$IFDEF DELPHI3_LVL}
       if ComCtrlOk then
       begin
         EditMode := True;
@@ -14779,7 +16046,30 @@ begin
           if s = '' then
             EditDate.Date := Now
           else
-            EditDate.Date := StrToDate(s);
+          {$IFDEF DELPHI7_LVL}
+          begin
+              if Assigned(FOnCustomStrToDate) then
+              begin
+                dt := Now;
+                FOnCustomStrToDate(Self, S, dt);
+                EditDate.Date := dt;
+              end
+              else
+                //EditDate.Date := VartoDateTime(s);
+                EditDate.Date := StrToDateTime(s);
+           end;
+          {$ELSE}
+          begin
+              if Assigned(FOnCustomStrToDate) then
+              begin
+                dt := Now;
+                FOnCustomStrToDate(Self,S,dt);
+                EditDate.Date := dt;
+              end
+              else   
+                EditDate.Date := StrToDate(s);
+          end;      
+          {$ENDIF}  
         except
           EditDate.Date := Now;
         end;
@@ -14819,7 +16109,6 @@ begin
 
         EditCtrl := EditDate;
       end;
-     {$ENDIF}
    end;
   edTimeEdit:
     begin
@@ -14908,9 +16197,9 @@ begin
       UnitEditBtn.MaxLength := GetEditLimit;
       UnitEditBtn.UnitID := '';
       UnitEditBtn.Text := '';
-      while Length(s) > 0 do
+      while (Length(s) > 0) do
       begin
-        if s[1] in ['0'..'9','.',',','-'] then
+        if CheckSignedNum(s[1]) or (s[1] = ThousandSeparator) or (s[1]= DecimalSeparator) then
           UnitEditBtn.Text := UnitEditBtn.Text+s[1]
         else
           UnitEditBtn.UnitID := UnitEditBtn.unitid+s[1];
@@ -14923,7 +16212,7 @@ begin
       UnitEditBtn.Height := CellHeight;
 
       if FStartEditChar <> #0 then
-        PostMessage(EditBtn.Handle,WM_CHAR,Ord(FStartEditChar),0);
+        PostMessage(UnitEditBtn.Handle,WM_CHAR,Ord(FStartEditChar),0);
       EditCtrl := UnitEditBtn;
     end;
   edButton:
@@ -15001,12 +16290,12 @@ begin
           if (EditLink.FPopupForm = nil) then
           begin
             PForm := Application.FindComponent('gridform');
-          	if Assigned(PForm) then
-          		PForm.Free;
+            if Assigned(PForm) then
+              PForm.Free;
 
       	    EditLink.FPopupForm := TForm.Create(Application);
            	EditLink.FPopupForm.Name := 'gridform';
-          end;  
+          end;
 
 
           if ((EditLink.PopupLeft <> -1) and (EditLink.PopupTop <> -1)) then
@@ -15025,8 +16314,10 @@ begin
           {$ENDIF}
 
           EditLink.FPopupForm.OnDeactivate := EditLink.FormExit;
-          EditLink.FPopupForm.Width := EditLink.FPopupWidth;
-          EditLink.FPopupForm.Height := EditLink.FPopupHeight;
+          EditLink.FPopupForm.Width := 0;
+          EditLink.FPopupForm.Height := 0;
+          EditLink.FPopupForm.FormStyle := fsStayOnTop;
+
           EditLink.FPopupForm.BorderStyle := bsNone;
           EditLink.FPopupForm.Show;
 
@@ -15039,6 +16330,9 @@ begin
           EditLink.FPopupForm.Left := pt.x;
           EditLink.FPopupForm.Top := pt.y;
           {$ENDIF}
+
+          EditLink.FPopupForm.Width := EditLink.FPopupWidth;
+          EditLink.FPopupForm.Height := EditLink.FPopupHeight;
 
           EditLink.CreateEditor(EditLink.FPopupForm);
         end
@@ -15090,7 +16384,8 @@ var
 begin
   Result := False;
 
-  if FValidating then Exit;
+  if FValidating then
+    Exit;
 
   Result := inherited CanEditshow;
 
@@ -15157,9 +16452,14 @@ begin
     Exit;
   end;
 
+  if not (Parent is TWinControl) then
+  begin
+    Result := true;
+    Exit;
+  end;
+
   CanChange := True;
   Result := False;
-
   FEditText := Cells[ACol,ARow];
 
   // floating bottomrow
@@ -15176,10 +16476,18 @@ begin
     end
     else
     begin
+      if ARow >= TopRow + VisibleRowCount then
+      begin
+        TopRow := ARow - VisibleRowCount + FixedRows;
+      end;
+
       R := CellRect(ACol,ARow);
+
       if (R.Bottom > ClientRect.Bottom - FloatingFooter.Height + 2) and
         (ARow < RowCount - 1) then
+      begin
         TopRow := TopRow + 1;
+      end;
 
       if (ARow = RowCount - 1) then
         Exit;
@@ -15191,9 +16499,8 @@ begin
   if SearchFooter.Visible then
   begin
     R := CellRect(ACol,ARow);
-
     while (R.Bottom > ClientRect.Bottom - SearchPanel.Height + 2) and
-      (ARow <= RowCount - 1) do
+      (ARow <= RowCount - 1) and (TopRow < RowCount) do
     begin
       TopRow := TopRow + 1;
       R := CellRect(ACol,ARow);
@@ -15212,8 +16519,10 @@ begin
     // Row := pt.Y;
     RepaintCell(pt.x,pt.y);
 
-    if MouseActions.DirectEdit then
+    if MouseActions.DirectEdit or (ControlLook.DropDownAlwaysVisible and HasCombo(ACol,ARow)) then
+    begin
       ShowEditor;
+    end;
 
     Exit;
   end;
@@ -15228,9 +16537,11 @@ begin
     and not FDisableChange then
     FOnCellChanging(Self,Row,Col,ARow,ACol,CanChange);
 
+
   // prevent selection of first cell when nodes are used
   if ((ACol = 0) and (FNumNodes > 0) and not (goRowSelect in Options)) or not CanChange then
     Exit;
+
 
   OSC := Selection.Left;
   OSR := Selection.Top;
@@ -15253,6 +16564,9 @@ begin
     CanEdit := (goEditing in Options) or FEditDisable;
 
     GetCellReadOnly(ECol,ARow,CanEdit);
+
+    if MouseActions.EditOnDblClickOnly then
+      CanEdit := false;
 
     if CanEdit then
     begin
@@ -15290,15 +16604,16 @@ begin
     end;
   end
   else
-  begin
+  begin                         
     CanEdit := true;
     GetCellReadOnly(ECol,ARow,CanEdit);
 
-    FEditDisable := False;
+    FEditDisable := (not CanEdit) and ((goEditing in Options) or MouseActions.RangeSelectAndEdit); //False; /* 3.6.0.2 */
+
     if not (goEditing in Options) and not (goRowSelect in Options) and CanEdit then
     begin
-       FEditChange := True;
-       Options := Options + [goEditing];
+      FEditChange := True;
+      Options := Options + [goEditing];
     end;
   end;
 
@@ -15311,7 +16626,6 @@ begin
 
     if Result then
       Result := inherited SelectCell(ACol,ARow);
-
   end
   else
   begin
@@ -15470,10 +16784,17 @@ var
   s: string;
   CDIM: TPoint;
   r: TRect;
+  NoHaFull: boolean;
+  {$IFDEF DELPHI6_LVL}
+  io: TInterfacedPersistent;
+  icg: ICellGraphic;
+  {$ENDIF}
 
 begin
   Result.x := 0;
   Result.y := 0;
+
+  NoHaFull := false;
 
   cg := CellGraphics[ACol,ARow];
   if cg = nil then
@@ -15516,15 +16837,46 @@ begin
 
     if (s <> '') then
     begin
-      if (cg.CellHAlign in [haFull,haCenter]) then
+      if (cg.CellHAlign in [haCenter]) then
         w := 0;
+      if (cg.CellHAlign in [haFull]) then
+        w := Canvas.TextWidth(cg.FCellText) + 4;
 
       if not (cg.CellVAlign in [vaAboveText,vaUnderText]) then
         h := 0;
+    end
+    else
+    begin
+      if (cg.CellHAlign in [haFull]) then
+      begin
+        Canvas.Font.Assign(Font);
+        w := Canvas.TextWidth(cg.FCellText) + 4;
+        NoHaFull := cg.FCellText <> '';
+      end;
     end;
   end;
 
+  {$IFDEF DELPHI6_LVL}
+  ctInterface:
+  begin
+    {$IFNDEF TMSDOTNET}
+    io := TInterfacedPersistent(cg.CellBitmap);
+    if io.GetInterface(ICellGraphic, icg) then
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    io := cg.CellInterface;
+    icg := ICellGraphic(io.GetType.GetInterface(typeof(ICellGraphic).FullName));    
+    if (icg <> nil) then
+    {$ENDIF}
+   
+    begin
+      w := icg.CellWidth;
+      h := icg.CellHeight;
+    end;
 
+  end;
+  {$ENDIF}
+  
   ctBitmap:
   begin
     if cg.CellHAlign in [haBeforeText,haAfterText] then
@@ -15549,7 +16901,11 @@ begin
       else
         if s = '' then
           w := GridImages.Width;
-      h := GridImages.Height;
+      if cg.CellVAlign in [vaUnderText, vaAboveText] then
+        h := GridImages.Height
+      else
+        if s = '' then
+          h := GridImages.Height
     end;
   end;
   ctProgressPie:
@@ -15595,7 +16951,7 @@ begin
       h := Canvas.TextHeight('gh');
       {$IFDEF TMSDOTNET}
       for i := 1 to cg.CellStrings.Count do
-        w := w + 12 + Canvas.TextWidth(cg.CellStrings[i - 1]);            
+        w := w + 12 + Canvas.TextWidth(cg.CellStrings[i - 1]);
       {$ENDIF}
       {$IFNDEF TMSDOTNET}
       for i := 1 to TStringList(cg.CellBitmap).Count do
@@ -15623,7 +16979,7 @@ begin
   end;
   end;
 
-  if (cg.CellVAlign = vaFull) or (cg.CellHAlign = haFull) then
+  if (cg.CellVAlign = vaFull) or ((cg.CellHAlign = haFull) and not NoHaFull) then
   begin
     r := CellRect(ACol,ARow);
     if cg.CellVAlign = vaFull then
@@ -15636,8 +16992,6 @@ begin
     end;
   end;
 
-
-
   Result.x := w;
   Result.y := h;
 end;
@@ -15648,6 +17002,10 @@ var
   w,h,i: Integer;
   s: string;
   CDIM: TPoint;
+  {$IFDEF DELPHI6_LVL}
+  io: TInterfacedPersistent;
+  icg: ICellGraphic;
+  {$ENDIF}
 
 begin
   Result.x := 0;
@@ -15695,6 +17053,27 @@ begin
     h := (cg.CellIndex and $FFFF0000) shr 16;
   end;
 
+  {$IFDEF DELPHI6_LVL}
+  ctInterface:
+  begin
+    {$IFNDEF TMSDOTNET}
+    io := TInterfacedPersistent(cg.CellBitmap);
+    if io.GetInterface(ICellGraphic, icg) then
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    io := cg.CellInterface;
+    icg := ICellGraphic(io.GetType.GetInterface(typeof(ICellGraphic).FullName));
+    if icg <> nil then
+    {$ENDIF}
+
+
+    begin
+      w := icg.CellWidth;
+      h := icg.CellHeight;
+    end;
+
+  end;
+  {$ENDIF}
   ctBitmap:
   begin
     w := cg.CellBitmap.Width;
@@ -15801,6 +17180,24 @@ begin
   Result.y := h;
 end;
 
+
+procedure TAdvStringGrid.GetDisplText(c,r: Integer; var Value: string);
+var
+  ns: integer;
+begin
+  inherited;
+
+  if Grouping.ShowGroupCount and (c = GroupColumn) and IsNode(r) then
+  begin
+    ns := (GetNodeSpan(r) - 1) - GetSubNodecount(r);
+
+    if Grouping.GroupCountFormat <> '' then
+      value := value + SysUtils.Format(Grouping.GroupCountFormat,[ns])
+    else
+      value := value + ' (' + IntToStr(ns)+')';
+  end;
+end;
+
 function TAdvStringGrid.HasNodes: Boolean;
 begin
   Result := FNumNodes > 0;
@@ -15832,7 +17229,6 @@ begin
 
   if (MouseActions.HotmailRowSelect) and (ACol = 0) then
     Result := ctRowCheckBox; 
-
 end;
 
 function TAdvStringGrid.GetCellImages(ACol,ARow: Integer): TIntList;
@@ -16067,7 +17463,7 @@ var
 begin
   if FixedRows > 0 then
     for i := 0 to FColumnHeaders.Count - 1 do
-      if i < ColCount then
+      if i < TotalColCount then
         Cells[i,0] := CLFToLF(FColumnHeaders[i]);
 end;
 
@@ -16197,7 +17593,7 @@ begin
   else
   begin
     cs := FixedCols;
-    ce := ColCount - 1 - FFixedRightCols;
+    ce := ColCount - 1 - FFixedRightCols + NumHiddenColumns;
     rs := FixedRows;
     re := RowCount - 1 - FFixedFooters;
   end;
@@ -16260,7 +17656,7 @@ begin
   else
   begin
     cs := FixedCols;
-    ce := ColCount - 1 - FFixedRightCols;
+    ce := ColCount - 1 - FFixedRightCols + NumHiddenColumns;
     rs := FixedRows;
     re := RowCount - 1 - FFixedFooters;
   end;
@@ -16530,7 +17926,7 @@ begin
   CellsLoaded;
 end;
 
-procedure TAdvStringGrid.RandomFill(DoFixed: Boolean;rnd: Integer);
+procedure TAdvStringGrid.RandomFill(DoFixed: Boolean = false;rnd: Integer = 100);
 var
   i,j: Integer;
   ro,co,re,ce: Integer;
@@ -16557,7 +17953,7 @@ begin
   CellsLoaded;
 end;
 
-procedure TAdvStringGrid.LinearFill(DoFixed: Boolean);
+procedure TAdvStringGrid.LinearFill(DoFixed: Boolean = false);
 var
   i,j: Integer;
   ro,co,re,ce: Integer;
@@ -16634,7 +18030,7 @@ begin
   begin
     i := Selection.Top;
     j := Selection.Bottom;
-    if i > j then
+    if (i > j) then
     begin
       i := Selection.Bottom;
       j := Selection.Top;
@@ -16734,6 +18130,36 @@ begin
   //InvalidateCol(ACol);
 end;
 
+procedure TAdvStringGrid.GotoCell(Col,Row: Integer);
+begin
+  MoveColRow(Col,Row,true,true);
+end;
+
+procedure TAdvStringGrid.FocusCell(Col,Row: Integer);
+begin
+  MoveColRow(Col,Row,true,true);
+end;
+
+// unselecting rows only makes sense and is only applicable in disjunct row selection mode
+procedure TAdvStringGrid.UnSelectRows(RowIndex, RCount: Integer);
+var
+  i,j: Integer;
+begin
+  if FMouseActions.DisjunctRowSelect then
+  begin
+    for i := RowIndex to RowIndex + RCount - 1 do
+    begin
+      if FMouseActions.RowSelectPersistent then
+        j := RemapRowInv(i)
+      else
+        j := i;
+
+      if j < RowCount then
+        RowSelect[j] := False;
+    end;
+  end;
+end;
+
 procedure TAdvStringGrid.SelectRows(RowIndex, RCount: Integer);
 var
   gr: TGridRect;
@@ -16747,7 +18173,7 @@ begin
         j := RemapRowInv(i)
       else
         j := i;
-        
+
       if j < RowCount then
         RowSelect[j] := True;
     end;
@@ -16759,6 +18185,18 @@ begin
     gr.Top := Rowindex;
     gr.Bottom := Rowindex + rcount - 1;
     Selection := gr;
+  end;
+end;
+
+procedure TAdvStringGrid.UnSelectCols(ColIndex, CCount: Integer);
+var
+  i: Integer;
+begin
+  if FMouseActions.DisjunctColSelect then
+  begin
+    for i := ColIndex to ColIndex + CCount - 1 do
+      if i < ColCount then
+        ColSelect[i] := False;
   end;
 end;
 
@@ -16891,6 +18329,18 @@ begin
   for i := 1 to FColSelect.Count do
     if FColSelect.Items[i-1] <> nil then Inc(Res);
   Result := Res;
+end;
+
+function TAdvStringGrid.ModifiedRowCount;
+var
+  i,r: integer;
+begin
+  r := 0;
+
+  for i := 0 to FModifiedRows.Count - 1 do
+    if (FModifiedRows[i] = 1) then inc(r);
+
+  Result := r;
 end;
 
 function TAdvStringGrid.GetRowModified(ARow: Integer): boolean;
@@ -17038,8 +18488,10 @@ begin
     r := CellRect(ACol,ARow);
     r.Left := r.Left + 1 + FXYOffset.X;
     r.Top := r.Top + 1 + FXYOffset.Y;
+
     if HasCheckBox(ACol,ARow) then
       r.Left := r.Left + ControlLook.CheckSize;
+      
     XPos := -1;
     YPos := -1;
 
@@ -17298,6 +18750,13 @@ begin
       end;
     end;
   end;
+
+  if MouseActions.DisjunctRowSelect then
+  begin
+    ClearRowSelect;
+    RowSelect[Row] := true;
+  end;
+
 end;
 
 procedure TAdvStringGrid.KeyPress(var Key:Char);
@@ -17318,7 +18777,7 @@ begin
 
   if (Key = #13) and not Navigation.AdvanceOnEnter then
   begin
-    if not IsEditable(Col,Row) then
+    if not IsEditable(RCol,Row) then
     begin
       if Assigned(OnKeyPress) then
         OnKeyPress(Self, Key);
@@ -17330,10 +18789,13 @@ begin
   if (Key = #13) and ((GetFocus <> Handle) or HasStaticEdit(RCol,Row)) then
   begin
     AdvanceEdit(Col,Row,False,False,True,False,EditMode);
+
     if HasStaticEdit(RCol,Row) then
     begin
       if Assigned(OnKeyPress) then
         OnKeyPress(Self,Key);
+      if Navigation.AdvanceOnEnter then
+        ShowInplaceEdit;
       Exit;
     end;
   end;
@@ -17441,7 +18903,10 @@ end;
 
 procedure TAdvStringGrid.SetFixedRowsEx(Value: Integer);
 begin
-  inherited FixedRows := Value;
+  if (Value >= RowCount) and FFixedRowAlways then
+    inherited FixedRows := RowCount - 1
+  else
+    inherited FixedRows := Value;
   if not (csLoading in ComponentState) then
     FFixedRowsMin := Value;
 end;
@@ -17530,6 +18995,7 @@ var
   i: Integer;
   s:string;
   temp: Boolean;
+
 begin
   Result := True;
 
@@ -17546,7 +19012,7 @@ begin
 
       if (pos('|\',s) > 0) then
         s := DecodeWideStr(s);
-      
+
       {
       if (FFilter.Items[i - 1].Data = fcVirtual) then
         s := Cells[Column,ARow]
@@ -17585,6 +19051,14 @@ begin
       end;
     end;
   end;
+
+  if Assigned(FOnCustomFilter) then
+  begin
+    temp := Result;
+    FOnCustomFilter(Self, ARow, temp);
+    Result := temp;
+  end;
+
 end;
 
 procedure TAdvStringGrid.FilterRow(ARow: Integer);
@@ -17616,7 +19090,6 @@ begin
 
     if Assigned(FOnFilterProgress) and (RowsTodo > 0) then
       FOnFilterProgress(Self, Round(100* (RowsDone / RowsTodo)));
-
   end;
 
   HideRowList(il);
@@ -17698,6 +19171,25 @@ begin
     Invalidate;
   end;
 end;
+
+procedure TAdvStringGrid.SetSelectionMirrorColor(AColor: TColor);
+begin
+  if (FSelectionMirrorColor <> AColor) then
+  begin
+    FSelectionMirrorColor := AColor;
+    Invalidate;
+  end;
+end;
+
+procedure TAdvStringGrid.SetSelectionMirrorColorTo(AColor: TColor);
+begin
+  if (FSelectionMirrorColorTo <> AColor) then
+  begin
+    FSelectionMirrorColorTo := AColor;
+    Invalidate;
+  end;
+end;
+
 
 procedure TAdvStringGrid.SetSelectionTextColor(AColor: TColor);
 begin
@@ -17829,7 +19321,7 @@ var
   VAlign: TVAlignment;
   WW: Boolean;
   GD: TCellGradientDirection;
-  AColorTo: TColor;
+  AColorTo,AMirrorColor,AMirrorColorTo: TColor;
   CID,CT,CV: string;
   AAngle: Integer;
   x1,x2,y1,y2: Integer;
@@ -17860,7 +19352,9 @@ begin
   AState := [];
 
   //2.50.3 -> ACol changed to RemapColInv
-  GetVisualProperties(RemapColInv(ACol),ARow,AState,False,True,True,Canvas.Brush,AColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
+  GetVisualProperties(RemapColInv(ACol),ARow,AState,False,True,True,Canvas.Brush,AColorTo,AMirrorColor,AMirrorColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
+
+  Canvas.Font.Size := Canvas.Font.Size + FZoomFactor;
 
   if ctt = ttFormula then
     s := CalcCell(ACol,ARow);
@@ -17910,6 +19404,12 @@ begin
 
   if ctt = ttRTF then
   begin
+    FRichEdit.Clear;
+    FRichEdit.Left := 0;
+    FRichEdit.Top := 0;
+    FRichEdit.Width := 0;
+    FRichEdit.Height := 0;
+
     CellToRich(ACol,ARow,FRichEdit);
     Canvas.Font.Name := FRichEdit.SelAttributes.Name;
     Canvas.Font.Size := FRichEdit.SelAttributes.Size;
@@ -18012,6 +19512,7 @@ begin
     FRichEdit.WordWrap := True;
     FRichEdit.WordWrap := False;
     FRichEdit.WordWrap := FWordWrapEx;
+
     SetTranspWindow(FRichEdit.Handle);
 
     {
@@ -18021,14 +19522,16 @@ begin
     FRichEdit.Height := 2;
     FRichEdit.WordWrap := True;
     FRichEdit.WordWrap := False;
-    FRichEdit.WordWrap := FWordWrap;
+    FRichEdit.WordWrap := FWordWrapex;
     SetTranspWindow(FRichEdit.Handle);
 
     // We need to force a proper REQUESTRESIZE.
     // Direct message EM_RESIZEREQUEST does not work on Win2K!
+    }
     FRichEdit.Lines.Add('');
     FRichEdit.Lines.Delete(FRichEdit.Lines.Count - 1);
-    }
+
+    
     Result.cx := FRichEdit.ReqWidth + XYOffset.X * 2;
     Result.cy := FRichEdit.ReqHeight + XYOffset.Y * 2;
   end;
@@ -18041,7 +19544,7 @@ var
   Canvas: TCanvas;
 
 begin
-  if not (Look in [glSoft,glTMS,glXP,glListView]) then
+  if not (Look in [glSoft,glTMS,glXP,glVista,glListView]) then
     Exit;
 
   if BorderStyle = bsNone then
@@ -18156,7 +19659,7 @@ begin
         end;
 
         AText := s;
-      end;  
+      end;
 
       {$IFNDEF TMSDOTNET}
       len1 := Length(AText);
@@ -18173,7 +19676,7 @@ begin
 
       i := 1;
       if AText <> '' then
-        while AText[i] in [#13, #10, #9] do
+        while (AText[i] = #13) or (AText[i] = #10) or (AText[i] = #9) do
           inc(i);
 
       if len1 > len2 then
@@ -18234,7 +19737,10 @@ begin
         {$IFNDEF TMSDOTNET}
         with PNMDateTimeChange(Message.NMHdr)^ do
         begin
-          FDateTime := SystemTimeToDateTime(st);
+          if (st.wYear > 0) and (st.wMonth > 0) and (st.wDay > 0) then
+            FDateTime := SystemTimeToDateTime(st)
+          else
+            FDateTime := 0;
           FOnDateTimeChange(Self, Col, Row, FDateTime);
         end;
         {$ENDIF}
@@ -18337,6 +19843,7 @@ var
   btm: integer;
   acol,arow: integer;
 begin
+
   // check if bottom-right cell is visible;
   acol := ColCount - 1;
   arow := RowCount - 1;
@@ -18380,7 +19887,6 @@ begin
 
     flg := true;
   end;
-
 
   if FSearchFooter.Visible then
     CR.Bottom := CR.Bottom - 32;
@@ -18431,7 +19937,6 @@ end;
 procedure TAdvStringGrid.Paint;
 var
   R: TRect;
-
 //  fh,i: Integer;
 //  P: TPoint;
 
@@ -18605,7 +20110,8 @@ begin
     begin
       FRichEdit.SelStart := 0;
       FRichEdit.SelLength := $FFFF;
-      FRichEdit.SelAttributes.Color := FSelectionTextColor;
+      if FSelectionTextColor <> clNone then
+        FRichEdit.SelAttributes.Color := FSelectionTextColor;
     end;
   end;
 
@@ -18700,15 +20206,22 @@ begin
 end;
 
 procedure TAdvStringGrid.DoInsertRow(ARow: Integer);
+var
+  DRow: integer;
 begin
-  if FNumNodes = 0 then
+  if (FNumNodes = 0) then
     InsertRows(ARow,1)
   else
   begin
-    if GetParentRow(ARow) = -1 then
+    DRow := DisplRowIndex(ARow);
+    if GetParentRow(DRow) = -1 then
+    begin
       InsertNormalRow(ARow)
+    end
     else
+    begin
       InsertChildRow(ARow,0);
+    end;
   end;
 
   if Assigned(FOnAutoInsertRow) then
@@ -18753,6 +20266,7 @@ end;
 function TAdvStringGrid.SaveCell(ACol,ARow: Integer): string;
 var
   State: Boolean;
+
 begin
   if FSaveVirtCells then
     Result := DisplCells[ACol,ARow]
@@ -18767,8 +20281,17 @@ begin
     else
       Result := GetCheckFalse(ACol,ARow);
   end;
-  if not  FSaveWithHTML then
-    Result := HTMLStrip(Result);
+
+  case TextType(Result,true) of
+  ttHTML: if not FSaveWithHTML then
+            Result := HTMLStrip(Result);
+  ttRTF:
+    if not FSaveWithRTF then
+    begin
+      CellToRich(ACol, ARow, RichEdit);
+      Result := RichEdit.Text;
+    end;
+  end;
 
   if Assigned(FOnSaveCell) then
     FOnSaveCell(Self,Acol,ARow,Result);
@@ -18884,7 +20407,7 @@ begin
 end;
 
 procedure TAdvStringGrid.GetVisualProperties(ACol,ARow: Integer; var AState: TGridDrawState; Print, Select,Remap: Boolean;
-  ABrush: TBrush; var AColorTo: TColor; AFont: TFont; var HA: TAlignment; var VA: TVAlignment;
+  ABrush: TBrush; var AColorTo,AMirrorColor,AMirrorColorTo: TColor; AFont: TFont; var HA: TAlignment; var VA: TVAlignment;
   var WW: Boolean; var GD: TCellGradientDirection);
 var
   CA: TCellAlignment;
@@ -18893,6 +20416,7 @@ var
   cp: TCellProperties;
   isCtrl: boolean;
   ct: TCellType;
+  hasBrush: boolean;
 
 begin
   if (ACol < FixedCols) or (ARow < FixedRows) then
@@ -18922,12 +20446,14 @@ begin
 
   ABrush.Color := clNone;
   AColorTo := clNone;
+  AMirrorColor := clNone;
+  AMirrorColorTo := clNone;
   isCtrl := false;
+  hasBrush := false;
 
   if HasCellProperties(RCol,ARow) then
   begin
     cp := CellProperties[RCol,ARow];
-
     ct := CellTypes[ACol,ARow];
 
     if (ct in [ctEmpty,ctNone]) then
@@ -18939,6 +20465,7 @@ begin
     begin
       isCtrl := ct in [ctCheckBox, ctRadio, ctDataCheckBox, ctButton];
       ABrush.Color := cp.BrushColor;
+      hasBrush := isCtrl and (ABrush.Color <> clNone);
     end;
 
     if cp.FontColor <> clNone then
@@ -18963,9 +20490,11 @@ begin
   if (gdSelected in AState) then
     GD := GradientVertical;
 
-  if (ABrush.Color = clNone) or isCtrl then
+  if ((ABrush.Color = clNone) or isCtrl) and not hasBrush then
   begin
-    ABrush.Color := self.Color;
+     if ABrush.Color = clNone then
+      ABrush.Color := self.Color;
+
     if FBands.Active and ((FBands.Print = Print) or not Print) and
        (ACol >= FixedCols) and (ACol < ColCount - FixedRightCols + FNumHidden)
        and (ARow >= FixedRows) and (ARow < RowCount - FixedFooters) then
@@ -18978,7 +20507,10 @@ begin
           ABrush.Color := FBands.SecondaryColor;
       end
       else
-        ABrush.Color := self.Color;
+      begin
+        if ABrush.Color = clNone then
+          ABrush.Color := self.Color;
+      end;
     end;
 
     if (ACol < FixedCols) or (ARow < FixedRows) or
@@ -18997,6 +20529,7 @@ begin
     AState := AState + [gdFixed];
   end;
 
+
   if Print then
     GetCellPrintColor(RCol,ARow,AState,ABrush,AFont)
   else
@@ -19011,7 +20544,11 @@ begin
       AState := [gdSelected];
       ABrush.Color := FSelectionColor;
       AColorTo := FSelectionColorTo;
-      AFont.Color := FSelectionTextColor;
+      AMirrorColor := FSelectionMirrorColor;
+      AMirrorColorTo := FSelectionMirrorColorTo;
+
+      if FSelectionTextColor <> clNone then
+        AFont.Color := FSelectionTextColor;
     end;
   end;
 
@@ -19024,7 +20561,11 @@ begin
       AState := [gdSelected];
       ABrush.Color := FSelectionColor;
       AColorTo := FSelectionColorTo;
-      AFont.Color := FSelectionTextColor;
+      AMirrorColor := FSelectionMirrorColor;
+      AMirrorColorTo := FSelectionMirrorColorTo;
+
+      if FSelectionTextColor <> clNone then
+        AFont.Color := FSelectionTextColor;
     end;
   end;
 
@@ -19034,10 +20575,13 @@ begin
   begin
     ABrush.Color := FSelectionColor;
     AColorTo := FSelectionColorTo;
-    AFont.Color := FSelectionTextColor;
+    AMirrorColor := FSelectionMirrorColor;
+    AMirrorColorTo := FSelectionMirrorColorTo;
+
+    if FSelectionTextColor <> clNone then
+      AFont.Color := FSelectionTextColor;
     AState := AState + [gdSelected];
   end;
-
 
   if MouseActions.DisjunctCellSelect then
   {$IFNDEF TMSDOTNET}
@@ -19049,7 +20593,11 @@ begin
     begin
       ABrush.Color := FSelectionColor;
       AColorTo := FSelectionColorTo;
-      AFont.Color := FSelectionTextColor;
+      AMirrorColor := FSelectionMirrorColor;
+      AMirrorColorTo := FSelectionMirrorColorTo;
+
+      if FSelectionTextColor <> clNone then
+        AFont.Color := FSelectionTextColor;
       AState := AState + [gdSelected];
     end
     else
@@ -19080,6 +20628,10 @@ function TAdvStringGrid.GetGraphicDetails(ACol,ARow: Integer; var W,H: Integer; 
 var
   cg: TCellGraphic;
   pt: TPoint;
+  {$IFDEF DELPHI6_LVL}
+  icg: ICellGraphic;
+  io: TInterfacedPersistent;
+  {$ENDIF}
 
 begin
   cg := CellGraphics[ACol,ARow];
@@ -19098,6 +20650,24 @@ begin
       W := cg.CellBitmap.Width;
       H := cg.CellBitmap.Height;
     end;
+    {$IFDEF DELPHI6_LVL}
+    ctInterface:
+    begin
+      {$IFNDEF TMSDOTNET}
+      io := TInterfacedPersistent(cg.CellBitmap);
+      if io.GetInterface(ICellGraphic, icg) then
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      io := cg.CellInterface;
+      icg := ICellGraphic(io.GetType.GetInterface(typeof(ICellGraphic).FullName));
+      if icg <> nil then
+      {$ENDIF}
+      begin
+        W := icg.CellWidth;
+        H := icg.CellHeight;
+      end;
+    end;
+    {$ENDIF}
     ctButton,ctBitButton:
     begin
       W := cg.CellIndex and $FFFF;
@@ -19183,39 +20753,53 @@ end;
 
 procedure TAdvStringGrid.SetStyle(AStyle: TAdvGridStyle);
 begin
+  SelectionTextColor := clBlack;
+  
   case AStyle of
     gsOffice2003Blue:
       begin
       FTMSGradFrom := $FCE1CB;
       FTMSGradTo := $E0A57D;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FActiveCellColor := $94E6FB;
       FActiveCellColorTo := $1595EE;
       FControlLook.FixedGradientFrom := FTMSGradFrom;
       FControlLook.FixedGradientTo := FTMSGradTo;
       FSearchFooter.Color := $FCE1CB;
       FSearchFooter.ColorTo := $E0A57D;
+      GridLineColor := clSilver;
+      GridFixedLineColor := clGray;
       end;
     gsOffice2003Silver:
       begin
       FTMSGradFrom := $ECE2E1;
       FTMSGradTo := $B39698;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FActiveCellColor := $94E6FB;
       FActiveCellColorTo := $1595EE;
       FControlLook.FixedGradientFrom := FTMSGradFrom;
       FControlLook.FixedGradientTo := FTMSGradTo;
       FSearchFooter.Color := $ECE2E1;
       FSearchFooter.ColorTo := $B39698;
+      GridLineColor := clSilver;
+      GridFixedLineColor := clGray;
       end;
     gsOffice2003Olive:
       begin
       FTMSGradFrom := $CFF0EA;
       FTMSGradTo := $8CC0B1;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FActiveCellColor := $94E6FB;
       FActiveCellColorTo := $1595EE;
       FControlLook.FixedGradientFrom := FTMSGradFrom;
       FControlLook.FixedGradientTo := FTMSGradTo;
       FSearchFooter.Color := $CFF0EA;
       FSearchFooter.ColorTo := $8CC0B1;
+      GridLineColor := clSilver;
+      GridFixedLineColor := clGray;
       end;
     gsOffice2003Classic:
       begin
@@ -19223,10 +20807,14 @@ begin
       FActiveCellColorTo := $d8d5d4;
       FTMSGradFrom := clWhite;
       FTMSGradTo := $ccd4d8;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FControlLook.FixedGradientFrom := clNone;
       FControlLook.FixedGradientTo := clNone;
       FSearchFooter.Color := clWhite;
       FSearchFooter.ColorTo := $d8d5d4;
+      GridLineColor := clSilver;
+      GridFixedLineColor := clGray;
       end;
     gsOffice2007Luna:
       begin
@@ -19234,11 +20822,14 @@ begin
       FActiveCellColorTo := $5EC1F1;
       FTMSGradFrom := $FBF9F6;
       FTMSGradTo := $E8DBD2;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FControlLook.FixedGradientFrom := FTMSGradFrom;
       FControlLook.FixedGradientTo := FTMSGradTo;
       FSearchFooter.Color := $FFEFE3;
       FSearchFooter.ColorTo := $FFD2AF;
       GridLineColor := $E5D7D0;
+      GridFixedLineColor := clGray;
       SelectionColor := $5EC1F1;
       end;
     gsOffice2007Obsidian:
@@ -19247,12 +20838,15 @@ begin
       FActiveCellColorTo := $5EC1F1;
       FTMSGradFrom := $F7F7F7;
       FTMSGradTo := $DEDEDE;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FControlLook.FixedGradientFrom := FTMSGradFrom;
       FControlLook.FixedGradientTo := FTMSGradTo;
       FSearchFooter.Color := $F2F1F0;
       FSearchFooter.ColorTo := $C9C2BD;
 
       GridLineColor := $E5D7D0;
+      GridFixedLineColor := clGray;
       SelectionColor := $5EC1F1;
       end;
     gsOffice2007Silver:
@@ -19266,6 +20860,7 @@ begin
       FSearchFooter.Color := $EEEEEE;
       FSearchFooter.ColorTo := $C1C1C1;
       GridLineColor := $E5D7D0;
+      GridFixedLineColor := clGray;
       SelectionColor := $95C7F5;
       end;
     gsWindowsXP:
@@ -19274,27 +20869,79 @@ begin
       FActiveCellColorTo := clBtnFace;
       FTMSGradFrom := clBtnFace;
       FTMSGradTo := clBtnFace;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FControlLook.FixedGradientFrom := clNone;
       FControlLook.FixedGradientTo := clNone;
       FSearchFooter.Color := clBtnFace;
       FSearchFooter.ColorTo := clBtnFace;
       SelectionColor := clHighLight;
+      GridLineColor := clSilver;
+      GridFixedLineColor := clGray;
       end;
+    gsWindowsVista:
+      begin
+      FTMSGradFrom := $FFFFFF;
+      FTMSGradTo := $FFFFFF;
+      FTMSGradMirrorFrom := $FAF8F7;
+      FTMSGradMirrorTo := $F4F2F1;
 
+      FTMSGradHoverFrom := $FFF7E3;
+      FTMSGradHoverTo := $FFF7E3;
+      FTMSGradHoverMirrorFrom := $FFEDBD;
+      FTMSGradHoverMirrorTo := $FBE7B7;
+      FTMSGradHoverBorder := $E3C993;
+      //FTMSGradHoverBorder := $F9D996;
+
+      FControlLook.FixedGradientFrom := FTMSGradFrom;
+      FControlLook.FixedGradientTo := FTMSGradTo;
+      FControlLook.FixedGradientMirrorFrom := FTMSGradMirrorFrom;
+      FControlLook.FixedGradientMirrorTo := FTMSGradMirrorTo;
+      FControlLook.FixedGradientHoverFrom := FTMSGradHoverFrom;
+      FControlLook.FixedGradientHoverTo := FTMSGradHoverTo;
+      FControlLook.FixedGradientHoverMirrorFrom := FTMSGradHoverMirrorFrom;
+      FControlLook.FixedGradientHoverMirrorTo := FTMSGradHoverMirrorTo;
+
+      FControlLook.FixedGradientDownFrom := $F9E4BC;
+      FControlLook.FixedGradientDownTo := $F9E4BC;
+      FControlLook.FixedGradientDownMirrorFrom := $F7D68D;
+      FControlLook.FixedGradientDownMirrorTo := $F5D18A;
+      FControlLook.FixedGradientDownBorder := $AE904F;
+
+      SortSettings.HeaderColor := $FCF9F2;
+      SortSettings.HeaderColorTo := $FCF9F2;
+      SortSettings.HeaderMirrorColor := $F9F1E1;
+      SortSettings.HeaderMirrorColorTo := $F6ECD8;
+
+      FActiveCellColor := clBtnFace;
+      FActiveCellColorTo := clBtnFace;
+      FControlLook.FixedGradientFrom := clNone;
+      FControlLook.FixedGradientTo := clNone;
+      FSearchFooter.Color := clBtnFace;
+      FSearchFooter.ColorTo := clBtnFace;
+      SelectionColor := $00EACAB6;
+      SelectionTextColor := clWhite;
+
+      GridLineColor := clSilver;
+      GridFixedLineColor := $D4D2D1;
+      end;
     gsWhidbey:
       begin
 //      FActiveCellColor := clWhite;
 //      FActiveCellColorTo := $00FFD9B3;
       FActiveCellColor := $94E6FB;
       FActiveCellColorTo := $1595EE;
-
       FTMSGradFrom := clWhite;
       FTMSGradTo := clBtnFace;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FControlLook.FixedGradientFrom := clNone;
       FControlLook.FixedGradientTo := clNone;
       FSearchFooter.Color := $00EBEEEF;
       FSearchFooter.ColorTo := $007E9898; ///$00FFD9B3;
       SelectionColor := clHighLight;
+      GridLineColor := clSilver;
+      GridFixedLineColor := clGray;
       end;
   end;
   Invalidate;
@@ -19307,6 +20954,8 @@ begin
     begin
       FTMSGradFrom := $FCE1CB;
       FTMSGradTo := $E0A57D;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FActiveCellColor := $94E6FB;
       FActiveCellColorTo := $1595EE;
       FControlLook.FixedGradientFrom := FTMSGradFrom;
@@ -19318,6 +20967,8 @@ begin
     begin
       FTMSGradFrom := $CFF0EA;
       FTMSGradTo := $8CC0B1;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FActiveCellColor := $94E6FB;
       FActiveCellColorTo := $1595EE;
       FControlLook.FixedGradientFrom := FTMSGradFrom;
@@ -19329,6 +20980,8 @@ begin
     begin
       FTMSGradFrom := $ECE2E1;
       FTMSGradTo := $B39698;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
       FActiveCellColor := $94E6FB;
       FActiveCellColorTo := $1595EE;
       FControlLook.FixedGradientFrom := FTMSGradFrom;
@@ -19336,12 +20989,35 @@ begin
       FSearchFooter.Color := $ECE2E1;
       FSearchFooter.ColorTo := $B39698;
     end;
+  vistaAero:
+    begin
+      // blueish selection color
+      //FTMSGradFrom := $FDFBF6;
+      //FTMSGradTo := $FCEFD5;
+
+      FTMSGradFrom := $FFFFFF;
+      FTMSGradTo := $FFFFFF;
+      FTMSGradMirrorFrom := $FAF8F7;
+      FTMSGradMirrorTo := $F4F2F1;
+
+      FActiveCellColor := $94E6FB;
+      FActiveCellColorTo := $1595EE;
+
+      FControlLook.FixedGradientFrom := FTMSGradFrom;
+      FControlLook.FixedGradientTo := FTMSGradTo;
+
+      FSearchFooter.Color := $ECE2E1;
+      FSearchFooter.ColorTo := $B39698;
+    end
   else
     begin
       FActiveCellColor := clWhite;
       FActiveCellColorTo := $00FFD9B3;
       FTMSGradFrom := clWhite;
       FTMSGradTo := clBtnFace;
+      FTMSGradMirrorFrom := clNone;
+      FTMSGradMirrorTo := clNone;
+      
       FControlLook.FixedGradientFrom := clNone;
       FControlLook.FixedGradientTo := clNone;
       FSearchFooter.Color := clWhite;
@@ -19365,6 +21041,9 @@ var
   begin
     Result := xpNone;
 
+    if FIsWinVista then
+      Result := vistaAero
+    else
     if IsWinXP then
     begin
       if IsThemeActive then
@@ -19380,19 +21059,26 @@ var
           Result := xpGreen
         else if (ColorScheme.ToString = 'Metallic') then
           Result := xpGray
+        else
+          Result := xpNone;
         {$ENDIF}
+
         {$IFNDEF TMSDOTNET}
         SetLength(FileName, 255);
         SetLength(ColorScheme, 255);
         SetLength(SizeName, 255);
         GetCurrentThemeName(PWideChar(FileName), 255,
         PWideChar(ColorScheme), 255, PWideChar(SizeName), 255);
+
         if(PWideChar(ColorScheme)='NormalColor') then
           Result := xpBlue
         else if (PWideChar(ColorScheme)='HomeStead') then
           Result := xpGreen
         else if (PWideChar(ColorScheme)='Metallic') then
           Result := xpGray
+        else
+          Result := xpNone;
+
         {$ENDIF}
       end;
     end;
@@ -19554,23 +21240,28 @@ begin
   end;
 end;
 
-procedure TAdvStringGrid.DrawRadio(Canvas: TCanvas;R:TRect;Num,Idx: Integer;dir,dis: Boolean;sl: TStrings; Selected:boolean; ACol,ARow: integer);
+procedure TAdvStringGrid.DrawRadio(Canvas: TCanvas;R:TRect;Num,Idx: Integer;dir,dis: Boolean;sl: TStrings; Selected:boolean; ACol,ARow: integer; Style: TControlStyle; ResFactor: real; Print: boolean = false);
 var
   DrawState: Integer;
   DrawRect: TRect;
   DrawNum: Integer;
-  DrawOfs,Th: Integer;
+  DrawOfs,Th, DirFactor: Integer;
   s: string;
   Bmp: TBitmap;
   RadioOn: Boolean;
   HTheme: THandle;
   OldColor: TColor;
+  cstyle: TControlStyle;
 
 begin
   if ControlLook.NoDisabledCheckRadioLook or ControlLook.RadioAlwaysActive then
     dis := false;
 
   DrawOfs := 0;
+  DirFactor := 1;
+  if Print then
+    DirFactor := -1;
+
   SetBkMode(Canvas.Handle,TRANSPARENT);
 
   for DrawNum := 1 to Num do
@@ -19594,7 +21285,12 @@ begin
     if (DrawNum - 1 = Idx) then
      RadioOn := True;
 
-    case ControlLook.ControlStyle of
+    cstyle := Style; //ControlLook.ControlStyle;
+
+    if (cstyle = csTheme) and not FIsWinXP then
+      cstyle := csClassic;
+
+    case cstyle of
     csClassic,csFlat:
       begin
         DrawState := DFCS_BUTTONRADIO;
@@ -19610,40 +21306,41 @@ begin
 
         if dir then
         begin
-          DrawRect.Left := DrawOfs + R.Left + 2 + (DrawNum-1) * ControlLook.RadioSize;
+          DrawRect.Left := DrawOfs + R.Left + 2 + (DrawNum - 1) * ControlLook.RadioSize;
           DrawRect.Top := R.Top + (R.Bottom - R.Top - ControlLook.RadioSize) div 2;
 
           if s <> '' then
           begin
-            Canvas.TextOut(DrawRect.Left + ControlLook.RadioSize,DrawRect.Top - 2,s);
+            Canvas.TextOut(DrawRect.Left + Round(ControlLook.RadioSize * ResFactor),DrawRect.Top - 2,s);
             DrawOfs := DrawOfs + Canvas.TextWidth(s);
           end;
         end
         else
         begin
           th := Canvas.TextHeight('gh');
+          
           if s <> '' then
           begin
             DrawRect.Left := R.Left + 2;
-            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th;
-            Canvas.TextOut(DrawRect.Left + ControlLook.RadioSize + 4,DrawRect.Top - 2,s);
+            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th * DirFactor;
+            Canvas.TextOut(DrawRect.Left + Round((ControlLook.RadioSize + 4) * ResFactor),DrawRect.Top - 2,s);
           end
           else
           begin
-            DrawRect.Left := R.Left + (R.Right - R.Left - ControlLook.RadioSize) div 2;
-            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th;
+            DrawRect.Left := R.Left + (R.Right - R.Left - Round((ControlLook.RadioSize * ResFactor))) div 2;
+            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th * DirFactor;
           end;
         end;
 
         if ControlLook.ControlStyle = csFlat then
         begin
-          DrawRect.Right := DrawRect.Left + ControlLook.RadioSize + 2;
-          DrawRect.Bottom := DrawRect.Top + ControlLook.RadioSize + 2;
+          DrawRect.Right := DrawRect.Left + Round((ControlLook.RadioSize + 2) * ResFactor);
+          DrawRect.Bottom := DrawRect.Top + Round((ControlLook.RadioSize + 2) * ResFactor);
         end
         else
         begin
-          DrawRect.Right := DrawRect.Left + ControlLook.RadioSize;
-          DrawRect.Bottom := DrawRect.Top + ControlLook.RadioSize;
+          DrawRect.Right := DrawRect.Left + Round(ControlLook.RadioSize * ResFactor);
+          DrawRect.Bottom := DrawRect.Top + Round(ControlLook.RadioSize * ResFactor);
         end;
 
         DrawFrameControl(Canvas.Handle,DrawRect,DFC_BUTTON,DrawState);
@@ -19669,13 +21366,13 @@ begin
           if s <> '' then
           begin
             DrawRect.Left := R.Left + 2;
-            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th;
+            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th * DirFactor;
             Canvas.Textout(DrawRect.Left + 16,Drawrect.Top + 1,s);
           end
           else
           begin
             DrawRect.Left := R.Left + (R.Right - R.Left - 16) div 2;
-            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th;
+            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th * DirFactor;
           end;
         end;
 
@@ -19747,13 +21444,13 @@ begin
           if s <> '' then
           begin
             DrawRect.Left := R.Left + 2;
-            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th;
+            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th * DirFactor;
             Canvas.Textout(DrawRect.Left + 16 + 2,Drawrect.Top - 2,s);
           end
           else
           begin
             DrawRect.Left := R.Left + (R.Right - R.Left - 16) div 2;
-            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th;
+            DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th * DirFactor;
           end;
         end;
 
@@ -19819,13 +21516,13 @@ begin
             if s <> '' then
             begin
               DrawRect.Left := R.Left + 2;
-              DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th;
+              DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th * DirFactor;
               Canvas.Textout(DrawRect.Left + 16 + 2,Drawrect.Top-2,s);
             end
             else
             begin
               DrawRect.Left := R.Left + (R.Right - R.Left - 16) div 2;
-              DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th;
+              DrawRect.Top := R.Top + 2 + (DrawNum - 1) * th * DirFactor;
             end;
           end;
 
@@ -19905,7 +21602,7 @@ var
   ctt: TTextType;
   cg: TCellGraphic;
   OCol,RRow: Integer;
-  FOldBrushColor,FOldFontColor, AColorTo: TColor;
+  FOldBrushColor,FOldFontColor, AColorTo,AMirrorColor,AMirrorColorTo: TColor;
   BRect, DRect, CRect: TRect;
   OrigRight,lvl, Hold: Integer;
   HTheme: THandle;
@@ -19915,6 +21612,11 @@ var
   Settings: TGaugeSettings;
   ci: integer;
   brshColor: TColor;
+  brdrColor: TColor;
+  {$IFDEF DELPHI6_LVL}
+  io: TInterfacedPersistent;
+  icg: ICellGraphic;
+  {$ENDIF}
 
   procedure DrawBorders(ACol,ARow: Integer;tr: TRect);
   var
@@ -19982,13 +21684,12 @@ var
         Canvas.MoveTo(tr.Left,tr.Top  - GridLineWidth);
         Canvas.LineTo(tr.Right,tr.Top  - GridLineWidth);
       end;
-
     end;
 
     if cbBottom in Borders then
     begin
       Canvas.Pen.Assign(PenB);
-      Canvas.MoveTo(tr.Left,tr.Bottom - 1);
+      Canvas.MoveTo(tr.Left - 1 - GridLineWidth,tr.Bottom - 1);
       Canvas.LineTo(tr.Right,tr.Bottom - 1);
     end;
 
@@ -20008,11 +21709,17 @@ var
     DrawRect: TRect;
     BMP: TBitmap;
     HTheme: THandle;
+    cstyle: TControlStyle;
+
   begin
     if ControlLook.NoDisabledCheckRadioLook or ControlLook.CheckAlwaysActive then
       Enabled := true;
 
-    case ControlStyle of
+    cstyle := ControlStyle;
+    if (cstyle = csTheme) and not FIsWinXP then
+      cstyle := csClassic;
+
+    case cstyle of
     csClassic,csFlat:
       begin
         if State then
@@ -20031,7 +21738,6 @@ var
         DrawRect.Right := DrawRect.Left + FControlLook.CheckSize;
         DrawRect.Bottom := DrawRect.Top + FControlLook.CheckSize;
 
-        {$IFDEF DELPHI4_LVL}
         if UseRightToLeftAlignment then
         begin
           DRect := DrawRect;
@@ -20056,11 +21762,9 @@ var
           SetGridOrientation(False);
           {$ENDIF}
         end;
-        {$ENDIF}
 
         DrawFrameControl(Canvas.Handle,DrawRect,DFC_BUTTON,DrawState);
 
-        {$IFDEF DELPHI4_LVL}
         if UseRightToLeftAlignment then
         begin
           {$IFDEF DELPHI6_LVL}
@@ -20070,8 +21774,6 @@ var
           {$ENDIF}
           DrawRect := DRect;
         end;
-        {$ENDIF}
-
       end;
     csTMS:
       begin
@@ -20379,6 +22081,10 @@ var
     DrawStyle : DWord;
     HTheme: THandle;
     VA: TCellVAlign;
+    {$IFDEF DELPHI6_LVL}
+    io: TInterfacedPersistent;
+    icg: ICellGraphic;
+    {$ENDIF}
 
   begin
     SrcRect.Top := 0;
@@ -20620,7 +22326,7 @@ var
         Canvas.Brush.Color := Canvas.Pen.Color;
         Canvas.Polygon([Point(r.Right-7,r.Top+1),Point(r.Right-2,r.Top+1),Point(r.Right-2,r.Top+6)]);
         Canvas.Brush.Color := Self.Color;
-      end;                               
+      end;
     end;
 
     ctProgressPie:
@@ -20660,6 +22366,7 @@ var
       Settings.Level1Perc := FProgressAppearance.Level1Perc;
       Settings.Level2Perc := FProgressAppearance.Level2Perc;
       Settings.ShowBorder := FProgressAppearance.ShowBorder;
+      Settings.BorderColor := FProgressAppearance.BorderColor;
       Settings.Stacked := FProgressAppearance.Stacked;
       Settings.ShowPercentage := FProgressAppearance.ShowPercentage;
       Settings.CompletionSmooth := FProgressAppearance.CompletionSmooth;
@@ -20695,7 +22402,7 @@ var
         InflateRect(r,-2,-2);
         SrcRect := r;
 
-        SrcRect.Right := SrcRect.Left + Round((SrcRect.Right-SrcRect.Left)*(Ints[ACol,ARow])/100);
+        SrcRect.Right := SrcRect.Left + Round((SrcRect.Right-SrcRect.Left)*(Floats[ACol,ARow])/100);
 
         DrawThemeBackground(HTHeme,Canvas.Handle,PP_CHUNK,1,@SrcRect,nil);
 
@@ -20711,7 +22418,7 @@ var
         InflateRect(r,-2,-2);
         SrcRect := r;
 
-        SrcRect.Right := SrcRect.Left + Round((SrcRect.Right-SrcRect.Left)*(Ints[ACol,ARow])/100);
+        SrcRect.Right := SrcRect.Left + Round((SrcRect.Right-SrcRect.Left)*(Floats[ACol,ARow])/100);
 
         DrawThemeBackground(HTHeme,Canvas.Handle,PP_CHUNK,1,SrcRect,nil);
 
@@ -20726,24 +22433,43 @@ var
         with CellGraphic do
           if CellBoolean then
             DrawProgressLin(Canvas,r,TColor(CellBitmap),TColor(CellIndex),
-              TColor(CellIcon),TColor(CellAngle),Ints[ACol,ARow],ControlLook.ProgressMarginX,ControlLook.ProgressMarginY, CellErrFrom, CellErrLen, CellText, ControlLook.ProgressBorderColor,false)
+              TColor(CellIcon),TColor(CellAngle),Floats[ACol,ARow],ControlLook.ProgressMarginX,ControlLook.ProgressMarginY, CellErrFrom, CellErrLen, CellText, ControlLook.ProgressBorderColor,false)
           else
             DrawProgressLin(Canvas,r,TColor(CellBitmap),TColor(CellBitmap) xor $FFFFFF,
-              TColor(CellIcon),TColor(CellIcon) xor $FFFFFF,Ints[ACol,ARow],ControlLook.ProgressMarginX,ControlLook.ProgressMarginY, CellErrFrom, CellErrLen, CellText, ControlLook.ProgressBorderColor,false);
+              TColor(CellIcon),TColor(CellIcon) xor $FFFFFF,Floats[ACol,ARow],ControlLook.ProgressMarginX,ControlLook.ProgressMarginY, CellErrFrom, CellErrLen, CellText, ControlLook.ProgressBorderColor,false);
+
         {$ENDIF}
-        
+
         {$IFDEF TMSDOTNET}
         with CellGraphic do
         if CellBoolean then
           DrawProgressLin(Canvas,r,CellColor, CellTextFGColor,
-            CellBKColor,CellTextBKColor,Ints[ACol,ARow],ControlLook.ProgressMarginX,ControlLook.ProgressMarginY, CellErrFrom, CellErrLen, CellText, ControlLook.ProgressBorderColor,false)
+            CellBKColor,CellTextBKColor,Floats[ACol,ARow],ControlLook.ProgressMarginX,ControlLook.ProgressMarginY, CellErrFrom, CellErrLen, CellText, ControlLook.ProgressBorderColor,false)
         else
           DrawProgressLin(Canvas,r,CellColor,CellColor xor $FFFFFF,
-            CellBKColor,CellBKColor xor $FFFFFF,Ints[ACol,ARow],ControlLook.ProgressMarginX,ControlLook.ProgressMarginY, CellErrFrom, CellErrLen, CellText, ControlLook.ProgressBorderColor,false);
+            CellBKColor,CellBKColor xor $FFFFFF,Floats[ACol,ARow],ControlLook.ProgressMarginX,ControlLook.ProgressMarginY, CellErrFrom, CellErrLen, CellText, ControlLook.ProgressBorderColor,false);
         {$ENDIF}
       end;
     end;
 
+    {$IFDEF DELPHI6_LVL}
+    ctInterface:
+    begin
+      {$IFNDEF TMSDOTNET}
+      io := TInterfacedPersistent(cg.CellBitmap);
+	  if io.GetInterface(ICellGraphic, icg) then
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      io := cg.CellInterface;
+      icg := ICellGraphic(io.GetType.GetInterface(typeof(ICellGraphic).FullName));
+      if icg <> nil then
+      {$ENDIF}
+      begin
+        icg.Draw(Canvas, Rect(r.Left-1,r.Top-1,r.Right,r.Bottom), ACol,ARow, (gdSelected in AState), self);
+      end;
+    end;
+    {$ENDIF}
+    
     ctBitmap:
     begin
       if (CellGraphic.CellTransparent) then
@@ -20777,7 +22503,7 @@ var
       s := CellGraphic.CellText;
       SrcColor := SetBKColor(Canvas.Handle,ColorToRGB(clBtnFace));
 
-      IsEdit := True;
+      IsEdit := true;
 
       if not ControlLook.NoDisabledButtonLook then
         GetCellReadOnly(ACol,ARow,IsEdit);
@@ -20916,12 +22642,12 @@ var
 
       {$IFNDEF TMSDOTNET}
       DrawRadio(Canvas,r,GetRadioStrings(ACol,ARow).Count,CellGraphic.CellIndex,CellGraphic.cellBoolean,not IsEdit,
-                TStringList(CellGraphic.cellbitmap), gdSelected in AState, ACol,ARow);
+                TStringList(CellGraphic.cellbitmap), gdSelected in AState, ACol,ARow, ControlLook.ControlStyle, 1.0);
       {$ENDIF}
 
       {$IFDEF TMSDOTNET}
       DrawRadio(Canvas,r,GetRadioStrings(ACol,ARow).Count,CellGraphic.CellIndex,CellGraphic.cellBoolean,not IsEdit,
-                CellGraphic.CellStrings, gdSelected in AState, ACol,ARow);
+                CellGraphic.CellStrings, gdSelected in AState, ACol,ARow, ControlLook.ControlStyle, 1.0);
       {$ENDIF}
     end;
 
@@ -20995,7 +22721,6 @@ var
 
         if (ACol < FixedCols) and not Flat and (Flook in [glTMS,glXP,glListView,glSoft]) then
           r.Left := r.Left + 1;
-
       end;
 
       r.Left := NodeIndent(ARow) - CellNode.NodeIndent div 2 - 4;
@@ -21042,7 +22767,6 @@ var
       begin
         CRect := r;
         CRect.Top := CRect.Top + (r.Bottom - r.Top - FCellNode.FContractGlyph.Height) div 2;
-
 
         if CellGraphic.CellBoolean then
           DrawBitmapTransp(Canvas,FCellNode.FContractGlyph,brshColor,CRect)
@@ -21247,10 +22971,8 @@ var
     ErrPos,ErrLen: Integer;
     FltrBmp: TBitmap;
     CID,CV,CT: string;
-    {$IFDEF DELPHI4_LVL}
     DRect: TRect;
     Hold: Integer;
-    {$ENDIF}
     {$IFDEF TMSUNICODE}
     ws: widestring;
     {$ENDIF}
@@ -21309,6 +23031,7 @@ var
       Rect := ARect;
     end;
 
+
     if (ACol >= FixedCols) and (ARow >= FixedRows) and not FMouseDown then
 
       if ((FMouseActions.DisjunctRowSelect and not RowSelect[RRow]) or
@@ -21319,7 +23042,6 @@ var
         Canvas.Font.Color := Font.Color;
         GetCellColor(ACol,ARow,AState,Canvas.Brush,Canvas.Font);
       end;
-
 
     // enhanced code to always draw background image
     if (FBackGround.Bitmap.Empty = False) and (Colors[ACol,ARow] = clNone) and
@@ -21447,7 +23169,7 @@ var
       Rect.Left := Rect.Left + GraphicWidth;
     end;
 
-    
+
     if val = vaAboveText then
     begin
       Rect.Top := Rect.Top + GraphicHeight;
@@ -21477,7 +23199,6 @@ var
         Rect.Right := Rect.Right - 10;
       end;
 
-      {$IFDEF DELPHI4_LVL}
       if UseRightToLeftAlignment then
       begin
         DRect := Rect;
@@ -21502,14 +23223,12 @@ var
         SetGridOrientation(False);
         {$ENDIF}
       end;
-      {$ENDIF}
 
       HTMLDrawEx(Canvas,TmpStr,Rect,Gridimages,
                Rect.Left,Rect.Top,-1,0,1,False,False,False,False,FGridBlink,False,not EnhTextSize,FCtrlDown,
                0.0,URLCol,clNone,clNone,clGray,Anchor,Stripped,FocusAnchor,AnchorHint,
                XSize,YSize,ml,hl,hr,cr,CID,CT,CV,FImageCache,FContainer,Handle);
 
-      {$IFDEF DELPHI4_LVL}
       if UseRightToLeftAlignment then
       begin
         {$IFDEF DELPHI6_LVL}
@@ -21519,7 +23238,6 @@ var
         {$ENDIF}
         Rect := DRect;
       end;
-      {$ENDIF}
 
       if FSortSettings.Show and (ARow = FSortSettings.Row) and (RowCount > 2) and
          ((ACol = FSortSettings.Column) or (SortIndexes.FindIndex(ACol) <> -1)) and (FixedRows > 0) and
@@ -21531,7 +23249,7 @@ var
         vtaBottom:vpos := Rect.Bottom - 8;
         end;
 
-        if not ((SortIndexes.FindIndex(ACol)>0) and not FSortSettings.IndexShow) then
+        if not ((SortIndexes.FindIndex(ACol) > 0) and not FSortSettings.IndexShow) then
           DrawSortIndicator(Canvas,ACol,Rect.Right + 2,vpos);
       end;
 
@@ -21550,7 +23268,6 @@ var
         Canvas.Rectangle(Rect.Left,Rect.Top,Rect.Right,Rect.Bottom);
       Canvas.Brush.Style := bsClear;
 
-      {$IFDEF DELPHI4_LVL}
       if UseRightToLeftAlignment then
       begin
         DRect := Rect;
@@ -21574,13 +23291,11 @@ var
         SetGridOrientation(False);
         {$ENDIF}
       end;
-      {$ENDIF}
 
       RTFPaint(ACol,ARow,Canvas,Rect);
       Canvas.Brush.Style := bsSolid;
       Canvas.Font.Color := clBlack; // forces a canvas font reinitialize
 
-      {$IFDEF DELPHI4_LVL}
       if UseRightToLeftAlignment then
       begin
         {$IFDEF DELPHI6_LVL}
@@ -21590,11 +23305,9 @@ var
         {$ENDIF}
         Rect := DRect;
       end;
-      {$ENDIF}
 
       Exit;
     end;
-
 
     {$IFDEF TMSUNICODE}
     if ctt = ttUnicode then
@@ -21619,13 +23332,12 @@ var
           DrawSortIndicator(Canvas,ACol,Rect.Right + 3,vpos);
       end;
 
-      Canvas.Pen.Color := Canvas.Brush.Color;
-      if (not (gdSelected in aState) or (gdFocused in aState) or (FSelectionColor <> clNone)) and not IsFixed(ACol,ARow) then
-        Canvas.Rectangle(Rect.Left,Rect.Top,Rect.Right,Rect.Bottom);
+//      Canvas.Pen.Color := Canvas.Brush.Color;
+//      if (not (gdSelected in aState) or (gdFocused in aState) or (FSelectionColor <> clNone)) and not IsFixed(ACol,ARow) then
+//        Canvas.Rectangle(Rect.Left,Rect.Top,Rect.Right,Rect.Bottom);
 
       DrawStyle := VAlignments[VAlign] or Alignments[HAlignment];
 
-      {$IFDEF DELPHI4_LVL}
       if UseRightToLeftAlignment then
       begin
         DRect := Rect;
@@ -21637,9 +23349,9 @@ var
         else
         begin
           Rect.Left := Rect.Left - XYOffset.X;
-          Rect.Right := Rect.Right + XYOffset.X;          
+          Rect.Right := Rect.Right + XYOffset.X;
         end;
-          
+
         Hold := Rect.Left;
         Rect.Left := Rect.Right;
         Rect.Right := Hold;
@@ -21649,14 +23361,13 @@ var
         SetGridOrientation(False);
         {$ENDIF}
       end;
-      {$ENDIF}
 
       if Win32Platform = VER_PLATFORM_WIN32_NT then
       begin
         Canvas.Brush.Style := bsClear;
 
         if CellWW or MultiLineCells then
-          DrawTextExW(Canvas.Handle,PWidechar(ws),Length(ws),rect,DT_LEFT or DT_NOPREFIX or DT_WORDBREAK OR DrawStyle,nil)
+          DrawTextExW(Canvas.Handle,PWidechar(ws),Length(ws),rect,DT_LEFT or DT_NOPREFIX or DT_WORDBREAK OR DT_END_ELLIPSIS or DrawStyle,nil)
         else
           DrawTextExW(Canvas.Handle,PWidechar(ws),Length(ws),rect,DT_LEFT or DT_NOPREFIX or DrawStyle or DT_SINGLELINE or DT_END_ELLIPSIS,nil);
       end
@@ -21665,7 +23376,6 @@ var
         ExtTextOutW(Canvas.Handle,rect.Left,rect.Top,ETO_CLIPPED,@rect,PWideChar(ws),Length(ws),nil);
       end;
 
-      {$IFDEF DELPHI4_LVL}
       if UseRightToLeftAlignment then
       begin
         {$IFDEF DELPHI6_LVL}
@@ -21675,8 +23385,6 @@ var
         {$ENDIF}
         Rect := DRect;
       end;
-      {$ENDIF}
-
 
       Exit;
     end;
@@ -21688,10 +23396,13 @@ var
       Rect.Left := Rect.Left + 10;
     end;
 
-    if (ARow = 0) and (ACol = FSortSettings.Column) and FSortSettings.Show then
+    if (ARow = 0) and
+       ((ACol = FSortSettings.Column) or (SortIndexes.FindIndex(ACol) <> -1)) and
+       FSortSettings.Show then
       SortWidth := 14
-    else
+    else 
       SortWidth := 0;
+
 
     if URLShow then
       if IsURL(Cells[ACol,ARow]) then
@@ -21727,9 +23438,7 @@ var
     DrawStyle := DrawStyle or DT_EXPANDTABS or DT_NOPREFIX or WordWraps[CellWW] or
       Alignments[HAlignment] or FVAlign;
 
-    {$IFDEF DELPHI4_LVL}
     DrawStyle := DrawTextBiDiModeFlags(DrawStyle);
-    {$ENDIF}
 
     SetBkMode(Canvas.Handle,TRANSPARENT);
 
@@ -21741,7 +23450,7 @@ var
     if (ARow = 0) and GetFilter(ACol) then
       Rect.Right := Rect.Right - 16;
 
-    {$IFDEF DELPHI4_LVL}
+
     if UseRightToLeftAlignment then
     begin
       DRect := Rect;
@@ -21765,7 +23474,6 @@ var
       SetGridOrientation(False);
       {$ENDIF}
     end;
-    {$ENDIF}
 
     if Assigned(cg) and (TmpStr <> '') then
     begin
@@ -21786,7 +23494,6 @@ var
     DrawTextEx(Canvas.Handle,TmpStr,Length(TmpStr), Rect, DrawStyle, nil);
     {$ENDIF}
 
-    {$IFDEF DELPHI4_LVL}
     if UseRightToLeftAlignment then
     begin
       {$IFDEF DELPHI6_LVL}
@@ -21796,9 +23503,8 @@ var
       {$ENDIF}
       Rect := DRect;
     end;
-    {$ENDIF}
 
-    if ErrLen > 0 then
+    if (ErrLen > 0) and Assigned(cg) and (cg.CellType = ctEmpty) then
     begin
       DrawErrorLines(Self,Canvas, TmpStr, Rect, FontHeight, ErrPos,ErrLen);
     end;
@@ -21808,7 +23514,6 @@ var
 
     if (ARow = 0) and GetFilter(ACol) then
       Rect.Right := Rect.Right - 16;
-
 
     if FSortSettings.Show and (ARow = FSortSettings.Row) and (RowCount > 2) and
        ((ACol = FSortSettings.Column) or (SortIndexes.FindIndex(ACol) <> -1)) and
@@ -21832,7 +23537,7 @@ var
         vtaBottom:vpos := Rect.Bottom - 8;
         end;
 
-        if not ( (SortIndexes.FindIndex(ACol) > 0) and not FSortSettings.IndexShow) then
+        if not ((SortIndexes.FindIndex(ACol) > 0) and not FSortSettings.IndexShow) then
           DrawSortIndicator(Canvas,ACol,Rect.Left,vpos);
       end;
 
@@ -21862,7 +23567,7 @@ begin
 
   CellWW := WordWrap;
 
-  GetVisualProperties(OCol,ARow,AState,False,False,True,Canvas.Brush,AColorTo,Canvas.Font,HAlignment,VAlign,CellWW,GD);
+  GetVisualProperties(OCol,ARow,AState,False,False,True,Canvas.Brush,AColorTo,AMirrorColor,AMirrorColorTo,Canvas.Font,HAlignment,VAlign,CellWW,GD);
 
   cg := GetGraphicDetails(ACol,ARow,GraphicWidth,GraphicHeight,DisplText,hal,val);
 
@@ -21875,22 +23580,85 @@ begin
       Canvas.Brush.Color := clHighLight
   end;
 
-  Canvas.Font.Size := Canvas.Font.Size + ZoomFactor;
+  Canvas.Font.Size := Canvas.Font.Size + FZoomFactor;
 
   FOldBrushColor := Canvas.Brush.Color;
   FOldFontColor := Canvas.Font.Color;
 
   if (IsFixed(OCol,ARow) or (OCol < FixedCols) or (ARow < FixedRows)) and
-     ((Flook in [glTMS,glXP]) and not Flat) then
+     ((Flook in [glTMS,glXP,glVista]) and not Flat) then
   begin
-    if FActiveCellShow and
-      (((Row = ARow) and (OCol = FixedCols - 1) and (FixedCols > 0)) or
-      ((Col = OCol) and (ARow = FixedRows - 1) and (FixedRows > 0))) then
-       DrawGradient(Canvas, ActiveCellColor,ActiveCellColorTo,32,ARect,False)
-    else
-      DrawGradient(Canvas, FTMSGradFrom,FTMSGradTo,32,ARect,False);
-  end;
+    if (Look = glVista) then
+    begin
+      ARect.Left := ARect.Left - 1;
+      ARect.Top := ARect.Top - 1;
+      ARect.Bottom := ARect.Bottom - 1;
+    end;
 
+    if HoverFixedCell(OCol,ARow) and ((OCol = FHoverFixedX) and (FGridState <> gsColMoving) and (ARow = FHoverFixedY) or
+       ((FGridState = gsColMoving) and (MoveCell = OCol))) and not (csDesigning in ComponentState) then
+    begin
+      ARect.Right := ARect.Right + 1;
+      ARect.Bottom := ARect.Bottom + 1;
+
+      if FMouseDownMove or ((FGridState = gsColMoving) and (MoveCell >= 0)) then
+      begin
+        if ControlLook.FixedDropDownButton then
+        begin
+          if FDropDownDown then
+          begin
+            DrawVistaGradient(Canvas, Rect(ARect.Right - 16,ARect.Top, ARect.Right, ARect.Bottom), FTMSGradDownFrom, FTMSGradDownTo, FTMSGradDownMirrorFrom, FTMSGradDownMirrorTo, True, FTMSGradDownBorder, false);
+            DrawVistaGradient(Canvas, Rect(ARect.Left,ARect.Top, ARect.Right - 16, ARect.Bottom), FTMSGradHoverFrom, FTMSGradHoverTo, FTMSGradHoverMirrorFrom, FTMSGradHoverMirrorTo, True, FTMSGradHoverBorder, false);
+          end
+          else
+          begin
+            DrawVistaGradient(Canvas, Rect(ARect.Left,ARect.Top, ARect.Right - 16, ARect.Bottom), FTMSGradDownFrom, FTMSGradDownTo, FTMSGradDownMirrorFrom, FTMSGradDownMirrorTo, True, FTMSGradDownBorder, false);
+            DrawVistaGradient(Canvas, Rect(ARect.Right - 16,ARect.Top, ARect.Right, ARect.Bottom), FTMSGradHoverFrom, FTMSGradHoverTo, FTMSGradHoverMirrorFrom, FTMSGradHoverMirrorTo, True, FTMSGradHoverBorder, false);
+          end;
+        end
+        else
+          DrawVistaGradient(Canvas, ARect, FTMSGradDownFrom, FTMSGradDownTo, FTMSGradDownMirrorFrom, FTMSGradDownMirrorTo, True, FTMSGradDownBorder, false)
+      end
+      else
+        DrawVistaGradient(Canvas, ARect, FTMSGradHoverFrom, FTMSGradHoverTo, FTMSGradHoverMirrorFrom, FTMSGradHoverMirrorTo, True, FTMSGradHoverBorder, false);
+
+      if ControlLook.FixedDropDownButton then
+      begin
+        if FMouseDownMove then
+          Canvas.Pen.Color := FTMSGradDownBorder
+        else
+          Canvas.Pen.Color := FTMSGradHoverBorder;
+
+        Canvas.MoveTo(ARect.Right -16, ARect.Top);
+        Canvas.LineTo(ARect.Right -16, ARect.Bottom);
+
+        DrawTriangle(Canvas, ARect.Right - 8, ARect.Top + 8, clBlack);
+
+        ARect.Right := ARect.Right - 16;
+      end;
+
+    end
+    else
+    begin
+      if FActiveCellShow and
+        (((Row = ARow) and (OCol = FixedCols - 1) and (FixedCols > 0)) or
+        ((Col = OCol) and (ARow = FixedRows - 1) and (FixedRows > 0))) then
+        DrawVistaGradient(Canvas, ARect, ActiveCellColor,ActiveCellColorTo,clNone, clNone, True, clNone)
+      else
+      begin
+        if Look = glVista then
+          brdrColor := clWhite
+        else
+          brdrColor := clNone;
+
+        if (SortSettings.Column <> -1) and (SortSettings.HeaderColor <> clNone) and (OCol = SortSettings.Column) and (ARow = FixedRows - 1) and
+           ((OCol + 1 > FixedCols) or FSortSettings.FixedCols) then 
+          DrawVistaGradient(Canvas, ARect, SortSettings.HeaderColor, SortSettings.HeaderColorTo, SortSettings.HeaderMirrorColor, SortSettings.HeaderMirrorColorTo, True, clNone, true)
+        else
+          DrawVistaGradient(Canvas, ARect, FTMSGradFrom, FTMSGradTo, FTMSGradMirrorFrom, FTMSGradMirrorTo, True, brdrColor, true);
+      end;
+    end;
+  end;
 
   // text draw with alignment
   if (ACol = 0) and (ARow = Row) and (FixedCols > 0) and Assigned(FRowIndicator) then
@@ -21959,7 +23727,7 @@ begin
       CloseThemeData(HTheme);
       {$ENDIF}
 
-      canvas.Pen.Color := clWhite;
+      Canvas.Pen.Color := clWhite;
       Canvas.MoveTo(ARect.Left,ARect.Top);
       Canvas.LineTo(ARect.Right,ARect.Top);
     end
@@ -21971,6 +23739,7 @@ begin
     end;
   end;
 
+
   if (OCol = 0) and RowModified[ARow] and ShowModified.Enabled then
   begin
     Canvas.Brush.Color := ShowModified.Color;
@@ -21980,19 +23749,51 @@ begin
 
   OrigRight := ARect.Right;
 
-
-
-  if not IsFixed(OCol,ARow) and ControlLook.DropDownAlwaysVisible then
+  if not IsFixed(OCol,ARow) then
   begin
-    if HasCombo(OCol,ARow) then
+    if ControlLook.DropDownAlwaysVisible then
     begin
-      DrawComboButton(Canvas,Self.Handle, ARect,FIsWinXP and FIsComCtl6, False);
-      ARect.Right := ARect.Right - 16;
+      if HasCombo(OCol,ARow) then
+      begin
+        DrawComboButton(Canvas,Self.Handle, ARect,FIsWinXP and FIsComCtl6, False);
+        ARect.Right := ARect.Right - 16;
+      end;
+    end;
+
+    if ControlLook.SpinButtonsAlwaysVisible then
+    begin
+      if HasSpinEdit(OCol,ARow) then
+      begin
+        DrawSpinButtons(Canvas,Self.Handle, ARect,FIsWinXP and FIsComCtl6, False);
+        ARect.Right := ARect.Right - 16;
+      end;
     end;
   end;
 
   if Assigned(cg) then
   begin
+    {$IFDEF DELPHI6_LVL}
+    if cg.CellType = ctInterface then
+    begin
+      {$IFNDEF TMSDOTNET}
+      io := TInterfacedPersistent(cg.CellBitmap);
+	  if io.GetInterface(ICellGraphic, icg) then
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      io := cg.CellInterface;
+      icg := ICellGraphic(io.GetType.GetInterface(typeof(ICellGraphic).FullName));
+      if icg <> nil then
+      {$ENDIF}
+      begin
+        if icg.IsBackground then
+        begin
+          InflateRect(ARect,1,1);
+          DrawCellGraphic(ARect, cg, VAlign);
+          InflateRect(ARect,-1,-1);
+        end;
+      end;
+    end;
+    {$ENDIF}
     if not NoImageAndText then
       if not ((Assigned(OnDrawCell) or Assigned(OnCustomCellDraw)) and NoDefaultDraw) then
         DrawCellText;
@@ -22006,14 +23807,10 @@ begin
   {$IFDEF FREEWARE}
   if (ARow = RowCount - 1) then
   begin
-    if (Hiword(FFreewareCode) mod 13) +
-       (Loword(FFreewareCode) mod 17) <> 13 then
-    begin
-      BRect := GetCellRect(FixedCols,ARow);
-      Anchor := ClassName  + ' trial version ' + GetVersionString;
-      Canvas.Font.Color := clNavy;
-      Canvas.TextOut(BRect.Left+4,BRect.Top,Anchor);
-    end;
+    BRect := GetCellRect(FixedCols,ARow);
+    Anchor := ClassName  + trialversion + GetVersionString;
+    Canvas.Font.Color := clNavy;
+    Canvas.TextOut(BRect.Left + 4,BRect.Top,Anchor);
   end;
   {$ENDIF}
 
@@ -22041,7 +23838,6 @@ begin
     Canvas.LineTo(ARect.Right - 1,ARect.Bottom - 1);
     Canvas.LineTo(ARect.Left - 1,ARect.Bottom - 1);
   end;
-
 
   if (IsFixed(OCol,ARow) or (OCol < FixedCols) or (ARow < FixedRows)) and
      ((Flook in [glTMS,glXP]) and not Flat) then
@@ -22170,6 +23966,8 @@ begin
     if (lvl > 0) then
     begin
       //Canvas.MoveTo(ARect.Left - 4 { + 2 + (CellNode.NodeIndent div 2)},ARect.Top + (ARect.Bottom - ARect.Top) shr 1);
+
+      // horizontal node line
       Canvas.MoveTo(ci,ARect.Top + (ARect.Bottom - ARect.Top) shr 1);
 
       if FCellNode.ShowTreeFull then
@@ -22191,11 +23989,14 @@ begin
 
     if HasCellProperties(0,ARow) then
     begin
+
       // draw straight interconnecting lines
       for vpos := 1 to CellProperties[0,ARow].NodeLevel do
       begin
+        // draw line till middle of cell
         Canvas.MoveTo(ci - CellNode.NodeIndent * vpos, ARect.Top );
         Canvas.LineTo(ci - CellNode.NodeIndent * vpos, ARect.Top + (ARect.Bottom - ARect.Top) shr 1);
+
 
         if (ARow < RowCount - 1) then
         begin
@@ -22205,10 +24006,16 @@ begin
               Canvas.LineTo(ci - CellNode.NodeIndent * vpos + CellNode.NodeIndent, ARect.Top + (ARect.Bottom - ARect.Top) shr 1)
           end
           else
+            // draw till bottom
             Canvas.LineTo(ci  - CellNode.NodeIndent * vpos, ARect.Bottom + 4);
         end
         else
-          Canvas.LineTo(ci  - CellNode.NodeIndent * vpos, ARect.Bottom + 4);
+        begin
+          if (vpos < CellProperties[0,ARow].NodeLevel) then
+            Canvas.LineTo(ci - CellNode.NodeIndent * vpos + CellNode.NodeIndent, ARect.Top + (ARect.Bottom - ARect.Top) shr 1);
+
+          //Canvas.LineTo(ci  - CellNode.NodeIndent * vpos, ARect.Bottom + 4);
+        end;
       end;
     end;
 
@@ -22216,7 +24023,28 @@ begin
   end;
 
   if Assigned(cg) then
-    DrawCellGraphic(ARect,cg, VAlign);
+  begin
+    {$IFDEF DELPHI6_LVL}
+    if cg.CellType = ctInterface then
+    begin
+      {$IFNDEF TMSDOTNET}
+      io := TInterfacedPersistent(cg.CellBitmap);
+	  if io.GetInterface(ICellGraphic, icg) then
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      io := cg.CellInterface;
+      icg := ICellGraphic(io.GetType.GetInterface(typeof(ICellGraphic).FullName));
+      if icg <> nil then
+      {$ENDIF}
+      begin
+        if not icg.IsBackground then
+         DrawCellGraphic(ARect, cg, VAlign);
+      end;
+    end
+    else
+    {$ENDIF}
+      DrawCellGraphic(ARect,cg, VAlign);
+  end;
 
   if Assigned(OnDrawCell) then
   begin
@@ -22262,7 +24090,7 @@ begin
     Exit;
 
   Res := -1;
-
+  
   if FSortSettings.Show then
   begin
     if not FSortSettings.IndexShow then
@@ -22280,6 +24108,8 @@ begin
   else
     sCol := FixedCols;
 
+  if sCol = -1 then
+    Exit;
 
   for i := FixedRows to RowCount - 1 do
   begin
@@ -22298,15 +24128,15 @@ end;
 function TAdvStringGrid.MatchCell(Col,Row: Integer; IsWide: Boolean): Boolean;
 var
   res1,res2: Boolean;
-  ct: string;
+  ct,cs: string;
   ctw: widestring;
   ic: Integer;
 begin
   res2 := True;
 
+
   if not (fnIncludeHiddenColumns in FFindParams) then
     Col := RemapCol(Col);
-
 
   {$IFDEF DELPHI6_LVL}
   if IsWide then
@@ -22319,10 +24149,15 @@ begin
   else
   {$ENDIF}
   begin
-    if not (fnMatchCase in FFindParams) then
-      ct := AnsiUpperCase(Cells[Col,Row])
+    if fnIncludeHiddenRows in FFindParams then
+      cs := AllCells[Col,Row]
     else
-      ct:= Cells[Col,Row];
+      cs := Cells[Col,Row];
+
+    if not (fnMatchCase in FFindParams) then
+      ct := AnsiUpperCase(cs)
+    else
+      ct:= cs;
   end;
 
   if fnIgnoreHTMLTags in FFindParams then
@@ -22393,7 +24228,29 @@ function TAdvStringGrid.FindInternal(StartCell:TPoint; s:string; sw: widestring;
 var
   MaxCol,MinCol: Integer;
   MaxRow,MinRow: Integer;
-  i,j: Integer;
+  i,j,pr,nr: Integer;
+
+  function GetNodeFromRow(row: integer): integer;
+  var
+    k,l: integer;
+  begin
+    k := FixedRows;
+    l := FixedRows;
+
+    while (k < RowCount - 1) do
+    begin
+      if IsNode(k) then
+        l := l + GetNodeSpan(k);
+
+      if l >= Row then
+      begin
+        break;
+      end
+      else
+        inc(k);
+    end;
+    Result := k;
+  end;
 
 begin
   Result.x := -1;
@@ -22432,8 +24289,19 @@ begin
     MinRow := FixedRows;
   end;
 
+  if fnSelectedCells in FindParams then
+  begin
+    MaxCol := Selection.Right;
+    MaxRow := Selection.Bottom;
+    MinCol := Selection.Left;
+    MinRow := Selection.Top;
+  end;
+
   if fnIncludeHiddenColumns in FindParams then
     MaxCol := MaxCol + NumHiddenColumns;
+
+  if FNumNodes > 0 then
+    MaxRow := MaxRow + NumHiddenRows;
 
   if (StartCell.x = -1) and (StartCell.y = -1) then
   begin
@@ -22551,25 +24419,44 @@ begin
       while (i <= MaxCol) and (i >= MinCol) do
       begin
         ExportNotification(esExportNewRow,j);
-        if MatchCell(i,j,IsWide) then
+
+        if not IsIgnoredColumn(i) then
         begin
-          SearchCell.x := i;
-          SearchCell.y := j;
-          Result := SearchCell;
-          if fnAutoGoto in FindParams then
+
+          if MatchCell(i,j,IsWide) then
           begin
-            if MouseActions.DisjunctRowSelect then
+            SearchCell.x := i;
+            SearchCell.y := j;
+            Result := SearchCell;
+            if fnAutoGoto in FindParams then
             begin
-              ClearRowSelect;
-              RowSelect[j] := true;
-            end
-            else
-            begin
-              Row := j;
-              Col := i;
+              nr := j;
+
+              if (fnIncludeHiddenRows in FindParams) and (NumHiddenRows > 0) then
+              begin
+                if IsHiddenRow(j) and (FNumNodes > 0) then
+                begin
+                  pr := GetNodeFromRow(j);
+                  if pr <> -1 then
+                    ExpandNode(pr);
+                end;
+                nr := DisplRowIndex(nr);
+              end;
+
+              if MouseActions.DisjunctRowSelect then
+              begin
+                ClearRowSelect;
+                RowSelect[nr] := true;
+              end
+              else
+              begin
+                Row := nr;
+                Col := i;
+              end;
             end;
+            Exit;
           end;
-          Exit;
+          
         end;
 
         if fnBackward in FindParams then
@@ -22608,15 +24495,28 @@ begin
           Result := Searchcell;
           if fnAutoGoto in Findparams then
           begin
+            nr := j;
+
+            if (fnIncludeHiddenRows in FindParams) and (NumHiddenRows > 0) then
+            begin
+              if IsHiddenRow(j) and (FNumNodes > 0) then
+              begin
+                pr := GetNodeFromRow(j);
+                if pr <> -1 then
+                  ExpandNode(pr);
+              end;
+              nr := DisplRowIndex(nr);
+            end;
+
             if MouseActions.DisjunctRowSelect then
             begin
               ClearRowSelect;
-              RowSelect[j] := true;
+              RowSelect[nr] := true;
             end
             else
             begin
-              Row:=j;
-              Col:=i;
+              Row := nr;
+              Col := i;
             end;
           end;
           Exit;
@@ -22662,7 +24562,17 @@ begin
 end;
 
 procedure TAdvStringGrid.SearchEditChange(Sender: TObject);
+var
+  DefaultSearch: boolean;
+
 begin
+  DefaultSearch := true;
+  if Assigned(FOnSearchEditChange) then
+    FOnSearchEditChange(self, FSearchPanel.FEdit.Text, DefaultSearch);
+
+  if not DefaultSearch then
+    Exit;
+
   if not SearchFooter.AutoSearch then
     Exit;
 
@@ -22677,6 +24587,9 @@ begin
   if FSearchFooter.SearchActiveColumnOnly then
     FFindParams := FFindParams + [fnFindInCurrentCol];
 
+  if FSearchFooter.SearchMatchStart then
+    FFindParams := FFindParams + [fnMatchStart];
+
   if (FSearchFooter.SearchColumn >= 0) and (FSearchFooter.SearchColumn < ColCount) then
   begin
     FindCol := FSearchFooter.SearchColumn;
@@ -22686,6 +24599,8 @@ begin
   if (FSearchPanel.FEdit.Text <> '') then
   begin
     SearchCell := Find(Point(-1,-1),FSearchPanel.FEdit.Text,FFindParams);
+
+    DoSearchFooterAction(FSearchPanel.FEdit.Text, SearchCell.X, SearchCell.Y, saFindFirst);
 
     if SearchCell.X = -1 then
     begin
@@ -22724,10 +24639,36 @@ begin
       SearchCell := Point(-1,-1);
     SearchFooter.LastSearch := FSearchPanel.FEdit.Text;
   end;
+
   FFindParams := [fnAutoGoto, fnBackward];
+
+  if FSearchPanel.FHiliteButton.Down then
+    FFindParams := FFindParams + [fnIgnoreHTMLTags];
+
+  if FSearchPanel.FMatchCase.Checked then
+    FFindParams := FFindParams + [fnMatchCase];
+
+  if FSearchFooter.SearchActiveColumnOnly then
+    FFindParams := FFindParams + [fnFindInCurrentCol];
+
+  if FSearchFooter.SearchMatchStart then
+    FFindParams := FFindParams + [fnMatchStart];
+
+  if (FSearchFooter.SearchColumn >= 0) and (FSearchFooter.SearchColumn < ColCount) then
+  begin
+    FindCol := FSearchFooter.SearchColumn;
+    FFindParams := FFindParams + [fnFindInPresetCol];
+  end;    
+
   SearchCell := Find(SearchCell,FSearchPanel.FEdit.Text,FFindParams);
   if (Row > TopRow + VisibleRowCount - 2) and (VisibleRowCount + FixedRows < RowCount) then
     TopRow := TopRow + 2;
+
+  if (SearchCell.X <> -1) then
+    ScrollInView(SearchCell.X, SearchCell.Y);
+
+  DoSearchFooterAction(FSearchPanel.FEdit.Text, SearchCell.X, SearchCell.Y, saFindPrevious);
+
 end;
 
 procedure TAdvStringGrid.SearchForward(Sender: TObject);
@@ -22738,14 +24679,44 @@ begin
       SearchCell := Point(-1,-1);
     SearchFooter.LastSearch := FSearchPanel.FEdit.Text;
   end;
+
   FFindParams := [fnAutoGoto];
+
+  if FSearchPanel.FHiliteButton.Down then
+    FFindParams := FFindParams + [fnIgnoreHTMLTags];
+
+  if FSearchPanel.FMatchCase.Checked then
+    FFindParams := FFindParams + [fnMatchCase];
+
+  if FSearchFooter.SearchActiveColumnOnly then
+    FFindParams := FFindParams + [fnFindInCurrentCol];
+
+  if FSearchFooter.SearchMatchStart then
+    FFindParams := FFindParams + [fnMatchStart];
+
+  if (FSearchFooter.SearchColumn >= 0) and (FSearchFooter.SearchColumn < ColCount) then
+  begin
+    FindCol := FSearchFooter.SearchColumn;
+    FFindParams := FFindParams + [fnFindInPresetCol];
+  end;
+
   SearchCell := Find(SearchCell,FSearchPanel.FEdit.Text,FFindParams);
+
+  if (SearchCell.X <> -1) then
+    ScrollInView(SearchCell.X, SearchCell.Y);
+
+
   if (Row > TopRow + VisibleRowCount - 2) and (VisibleRowCount + FixedRows < RowCount) then
     TopRow := TopRow + 2;
+
+  DoSearchFooterAction(FSearchPanel.FEdit.Text, SearchCell.X, SearchCell.Y, saFindNext);
 end;
 
 procedure TAdvStringGrid.SearchExit(Sender: TObject);
 begin
+  if Assigned(OnSearchFooterClose) then
+    OnSearchFooterClose(Self);
+
   SearchFooter.Visible := false;
 end;
 
@@ -22807,6 +24778,7 @@ var
   ROldRow: Integer;
   AE: Boolean;
   pt: TPoint;
+  cc: boolean;
 begin
   Result := True;
   if not FEditing then Exit;
@@ -22823,6 +24795,7 @@ begin
   try
     if (FOldCellText <> NewValue) or FAlwaysValidate then
     begin
+      cc := (FOldCellText <> NewValue);
 
       AE := Navigation.AdvanceOnEnter;
       Navigation.AdvanceOnEnter := false;
@@ -22837,10 +24810,14 @@ begin
       if Assigned(FOnCellValidate) then
         FOnCellValidate(Self,ROldCol,FOldRow,Value,Valid);
 
-      if ShowModified.Enabled and (FixedCols > 0) and (FOldCellText <> Value) then
+      if (FOldCellText <> Value) then
+        Modified := true;
+
+      if {ShowModified.Enabled and }(FixedCols > 0) and (FOldCellText <> Value) then
       begin
         RowModified[Row] := true;
-        RepaintCell(0,Row);
+        if ShowModified.Enabled then
+          RepaintCell(0,Row);
       end;
 
       if Valid then
@@ -22853,7 +24830,7 @@ begin
       if Valid and Assigned(UndoRedo) then
         UndoRedo.RegisterChange(ROldCol,ROldRow,FOldCellText,Value);
 
-      if Valid then
+      if Valid and cc then
         CellsChanged(Rect(ROldCol,ROldRow,ROldCol,ROldRow));
 
       // Since Value is also a VAR parameter, we always
@@ -22912,6 +24889,7 @@ begin
     InitValidate(Col,Row);
     FValidating := False;
   end;
+
   Result := Valid;
 end;
 
@@ -22920,7 +24898,7 @@ var
   Value: WideString;
   Valid: Boolean;
   ROldCol: Integer;
-
+  cc: boolean;
 begin
   Result := True;
   if not FEditing then Exit;
@@ -22932,16 +24910,16 @@ begin
   Valid := True;
   ROldCol := RemapCol(FOldCol);
 
+
   if (FOldCellTextWide <> NewValue) or FAlwaysValidate then
   begin
+    cc := (FOldCellTextWide <> NewValue);
     UpdateCell(ROldCol,FOldRow);
     Value := NewValue;
     Valid := True;
 
     if Assigned(FOnCellValidateWide) then
       FOnCellValidateWide(Self,ROldCol,FOldRow,Value,Valid);
-
-    CellsChanged(Rect(ROldCol,FOldRow,ROldCol,FOldRow));
 
     // Since Value is also a VAR parameter, we always
     // use it if it was changed in OnCellValidate.
@@ -22974,6 +24952,19 @@ begin
     begin
       WideCells[ROldCol,FOldRow] := Value;
     end;
+
+    if (FOldCellTextWide <> NewValue) then
+      Modified := true;
+    
+    if ShowModified.Enabled and (FixedCols > 0) and (FOldCellTextWide <> NewValue) then
+    begin
+      RowModified[FOldRow] := true;
+      RepaintCell(0,FOldRow);
+    end;
+
+
+    if Valid and cc then
+      CellsChanged(Rect(ROldCol,FOldRow,ROldCol,FOldRow));
 
     FOldCellTextWide := WideCells[ROldCol,FOldRow];
   end;
@@ -23068,9 +25059,10 @@ begin
       if (Col >= LeftCol) and (Col < LeftCol + VisibleColCount) and
          (Row >= TopRow) and (Row < TopRow + VisibleRowCount) and Editable then
          begin
-           if not FMouseActions.DirectEdit and HasCombo(Col,Row) then
+           if not (FMouseActions.DirectEdit or ControlLook.DropDownAlwaysVisible) and HasCombo(Col,Row) then
              ShowInplaceEdit;
          end;
+
     end;
 
   if ((RowCount=1) and (FixedRowAlways)) or
@@ -23083,7 +25075,8 @@ begin
   try
     inherited DoEnter;
     // FEntered := True;
-    SelectCell(Col,Row);
+    if (goEditing in Options) or (MouseActions.RangeSelectAndEdit) then
+      SelectCell(Col,Row);
   finally
     InitValidate(Col,Row);
   end;
@@ -23103,12 +25096,23 @@ end;
 
 procedure TAdvStringGrid.CMDialogChar(var Msg: TCMDialogChar);
 begin
-  if ssAlt in KeyDataToShiftState(Msg.KeyData) then
+  //Msg.CharCode := 0;
+  Msg.Result := 0;
+  Exit;
+
+  if (ssAlt in KeyDataToShiftState(Msg.KeyData)) or (csDesigning in ComponentState) then
+  begin
     inherited
+  end
   else
   begin
-    Msg.CharCode := 0;
-    Msg.Result := 0;
+    if GetFocus = handle then
+    begin
+      Msg.CharCode := 0;
+      Msg.Result := 1;
+    end
+    else
+      inherited;
   end;
 end;
 
@@ -23172,6 +25176,24 @@ begin
   if not InvokedChange then
     FMouseSelectMode := msNormal;
   InvokedChange := False;
+end;
+
+procedure TAdvStringGrid.ResetFixedCellHighlight;
+var
+  hx,hy: Integer;
+begin
+  FSizeFixed := false;
+  FSizeFixedR := false;
+  FNoMouseLeave := false;
+
+  if not FNoMouseLeave and (FHoverFixedCells <> hfNone) and ((FHoverFixedX <> -1) or (FHoverFixedY <> -1)) then
+  begin
+    hx := FHoverFixedX;
+    hy := FHoverFixedY;
+    FHoverFixedX := -1;
+    FHoverFixedY := -1;
+    RepaintCell(hx,hy);
+  end;
 end;
 
 procedure TAdvStringGrid.BeginUpdate;
@@ -23291,11 +25313,51 @@ begin
 end;
 
 procedure TAdvStringGrid.WMPaint(var Msg: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+
 begin
   if FUpdateCount > 0 then
     Msg.Result := 0
   else
-    inherited;
+  begin
+    if not FDoubleBuffered or (Msg.DC <> 0) then
+    begin
+      if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+        inherited
+      else
+        PaintHandler(Msg);
+    end
+    else
+    begin
+      DC := GetDC(0);
+      MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+      ReleaseDC(0, DC);
+      MemDC := CreateCompatibleDC(0);
+      OldBitmap := SelectObject(MemDC, MemBitmap);
+      try
+        DC := BeginPaint(Handle, PS);
+        Perform(WM_ERASEBKGND, MemDC, MemDC);
+        Msg.DC := MemDC;
+        WMPaint(Msg);
+        Msg.DC := 0;
+        BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+        EndPaint(Handle, PS);
+      finally
+        SelectObject(MemDC, OldBitmap);
+        DeleteDC(MemDC);
+        DeleteObject(MemBitmap);
+      end;
+    end;
+  end;
+
+  if not TabStop and (FPaintCount = 0) then
+  begin
+    inc(FPaintCount);
+    UpdateVScroller;
+  end;
 end;
 
 procedure TAdvStringGrid.WMEraseBkGnd(var Message: TMessage);
@@ -23324,7 +25386,21 @@ begin
   if not Assigned(FColumnSize) then
     Exit;
 
-  if FColumnSize.FStretch then
+  if (FOldSize > 0) and (FColumnSize.FSynchWithGrid) then
+  begin
+    HideInplaceEdit;
+    if BorderStyle = bsSingle then
+      r := (Msg.Width + 2) / FOldSize
+    else
+      r := Msg.Width / FOldSize;
+
+    for i := 1 to ColCount do
+      if FOrigColSizes.Count > i - 1 then
+        ColWidths[i - 1] := Trunc(FOrigColSizes[i - 1] * r);
+  end;
+
+
+  if FColumnSize.FStretch and (ScrollBarAlways in [saNone, saVert]) then
   begin
     tw := 0;
     sc := FColumnSize.StretchColumn;
@@ -23341,27 +25417,19 @@ begin
       us := False;
     end;
 
-    if ScrollBars in [ssBoth, ssHorizontal] then
-      ShowScrollbar(Handle,SB_HORZ,(tw + ColWidths[sc] > ClientWidth ));
+    if (ScrollBars in [ssBoth, ssHorizontal]) and (ScrollbarAlways = saNone) then
+        ShowScrollbar(Handle,SB_HORZ,(tw + ColWidths[sc] > ClientWidth ));
 
-    if ScrollBars in [ssBoth, ssVertical] then
-      ShowScrollbar(Handle,SB_VERT,RowCount - FixedRows > VisibleRowCount);
+      if (ScrollBars in [ssBoth, ssVertical]) and (ScrollbarAlways = saNone)  then
+        ShowScrollbar(Handle,SB_VERT,RowCount - FixedRows > VisibleRowCount);
 
-    if not us then
+
+    if (not us) and (ScrollBarAlways = saNone) then
       Exit;
   end;
 
+
   inherited;
-
-  if (FOldSize > 0) and (FColumnSize.FSynchWithGrid) then
-  begin
-    HideInplaceEdit;
-    r := Msg.Width / FOldSize;
-    for i := 1 to ColCount do
-      ColWidths[i - 1] := Round(ColWidths[i - 1] * r);
-  end;
-
-  FOldSize := Msg.Width;
 
   if us and not FDisableSize then
   begin
@@ -23388,6 +25456,11 @@ var
   ch: char;
 begin
   rm := RemapCol(Col);
+
+  if MouseActions.EditOnDblClickOnly then
+  begin
+    Options := Options + [goEditing];
+  end;
 
   if Navigation.AllowClipboardShortCuts then
   begin
@@ -23433,15 +25506,17 @@ begin
   if HasStaticEdit(rc,Row) then
   begin
     //if (Char(Msg.CharCode) = #32) and (HasStaticEdit(RealCol,Row)) then
-    if not ((Msg.CharCode in [VK_RETURN]) and (Navigation.AdvanceOnEnter)) then
-      Msg.CharCode := 0;
+      //Msg.CharCode := 0;
+
+    if ((Msg.CharCode in [VK_RETURN]) and Navigation.AdvanceOnEnter) then
+      inherited;
   end;
 
-  if (goEditing in Options) and
-     (Char(Msg.CharCode) in [^H, #32..#255]) then
-  begin
-    ch := chr(Msg.CharCode);
+  ch := chr(Msg.CharCode);
 
+  if (goEditing in Options) and (Msg.CharCode <> VK_TAB) and 
+     ( (ch = ^H) or (ch >= #32) or (ch <= #255) ) then
+  begin
     if Assigned(OnKeyPress) then
     begin
       OnKeyPress(Self,ch);
@@ -23461,7 +25536,19 @@ end;
 function TAdvStringGrid.GetFooterCanvas: TCanvas;
 begin
   Result := FFooterPanel.Canvas;
+end;
 
+function TAdvStringGrid.HoverFixedCell(col: Integer; row: Integer): boolean;
+begin
+  Result := false;
+
+  if (HoverFixedCells in [hfAll, hfFixedColumns, hfFixedRows]) then
+  begin
+    if (col < FixedCols) and (HoverFixedCells in [hfAll, hfFixedColumns]) then
+      Result := true;
+    if (row < FixedRows) and (HoverFixedCells in [hfAll, hfFixedRows]) then
+      Result := true;
+  end;
 end;
 
 function TAdvStringGrid.FixedColsVis: Integer;
@@ -23488,17 +25575,34 @@ begin
     Result := FFixedRightCols;
 end;
 
+procedure TAdvStringGrid.TabToNextRowAtEnd;
+begin
+  Row := FixedRows;
+end;
+
+procedure TAdvStringGrid.EditKeyDown(var Key: Word; Shift: TShiftState);
+begin
+
+end;
+
+procedure TAdvStringGrid.Edit_WMKeyDown(var Msg: TWMKeydown);
+begin
+
+end;
+
 procedure TAdvStringGrid.TabEdit(Dir: Boolean);
 var
   Key,X: word;
   Shift: TShiftState;
   pt: TPoint;
   fc: integer;
+  allow: boolean;
+  AllowAdd: boolean;
 
   function CanVisitCell(col,row: Integer): boolean;
   begin
-    if goEditing in Options then
-      Result := IsEditable(col,row)
+    if (goEditing in Options) then
+      Result := IsEditable(RemapCol(col),row)
     else
       Result := not IsFixed(col,row);
   end;
@@ -23576,7 +25680,6 @@ begin
             begin
               Selection := TGridRect(Rect(fc, RowCount - 1 - FixedFooters, fc, RowCount - 1 - FixedFooters));
             end;
-
           end;
 
           if not IsBaseCell(Col,Row) then
@@ -23636,20 +25739,34 @@ begin
         if (Col + CellSpan(Col,Row).X + X = ColCount - NumFixedRightVis) then
         begin
           FForceSel := true;
-          
+
           if Row < RowCount - FixedFooters - 1 then
           begin
             fc := FirstCellInRow(Row + 1);
-            if (fc >= 0) then
+
+            allow := true;
+            if Assigned(OnRowChanging) then
+              OnRowChanging(Self, Row, Row + 1, allow);
+
+            if Assigned(OnCellChanging) then
+              OnCellChanging(Self, Row, Col, Row + 1, fc, Allow);
+
+            if Assigned(OnColChanging) then
+              OnColChanging(Self, Col, fc, Allow);
+
+            if allow then
             begin
-              // Selection := TGridRect(Rect(fc, Row + 1, fc, Row + 1));
-              Col := fc;
-              Row := Row + 1;
-            end
-            else
-            begin
-              Col := FixedCols;
-              Row := Row + 1;
+              if (fc >= 0) then
+              begin
+                // Selection := TGridRect(Rect(fc, Row + 1, fc, Row + 1));
+                Col := fc;
+                Row := Row + 1;
+              end
+              else
+              begin
+                Col := FixedCols;
+                Row := Row + 1;
+              end;
             end;
           end
           else
@@ -23664,13 +25781,10 @@ begin
             begin
               PostMessage((Parent as TWinControl).Handle,WM_KEYDOWN,VK_TAB,0)
             end;
-            //else
+            // else
             //  TabEdit(dir);
-
           end;
-
           FForceSel := false;
-
         end
         else
         begin
@@ -23698,27 +25812,62 @@ begin
       end
       else
       begin
-        Col := FixedColsVis;
+        X := FixedColsVis;
+
         if Row < RowCount - FixedFooters - 1 then
         begin
-          Row := Row + 1;
-          X := 0;
-          while not IsBaseCell(Col + X,Row) do
+
+          while (not IsBaseCell(X,Row + 1) or not CanVisitCell(X,Row + 1)) and (X < ColCount) do
           begin
             inc(X);
           end;
-          Col := Col + x;
 
-        end
+          if (X = ColCount) then
+          begin
+            Col := FixedCols;
+            Row := Row + 1;
+            TabEdit(Dir);
+          end
+          else
+          begin
+            //FocusCell(X,Row + 1);
+            Col := X;
+            Row := Row + 1;
+          end;
+         end
         else
         begin
-          Row := FixedRows;
+          if not Navigation.TabToNextAtEnd and Navigation.AdvanceInsert then
+          begin
+            AllowAdd := True;
+            QueryAddRow(AllowAdd);
+            if AllowAdd then
+            begin
+              if FloatingFooter.Visible then
+              begin
+                InsertRows(RowCount - 1, 1);
+                Row := RowCount - 2;
+              end
+              else
+              begin
+                RowCount := RowCount + 1;
+                Row := RowCount - 1;
+              end;
+            end
+            else
+              TabToNextRowAtEnd;
+          end
+          else
+            TabToNextRowAtEnd;
+
           Col := FixedCols;
+
           if (Parent is TWinControl) and Navigation.TabToNextAtEnd then
-            PostMessage((Parent as TWinControl).Handle,WM_KEYDOWN,VK_TAB,0)
+            PostMessage((Parent as TWinControl).Handle,WM_KEYDOWN,VK_TAB,0);
           //else
           //  TabEdit(Dir);
         end;
+
       end;
     end
     else
@@ -23727,7 +25876,8 @@ begin
         Row := Row + CellSpan(Col,Row).Y + 1
       else
       begin
-        Row := FixedRows;
+        TabToNextRowAtEnd;
+
         if Col < ColCount - NumFixedRightVis - 1 then
           Col := Col + 1
         else
@@ -23743,8 +25893,7 @@ begin
     end;
   end;
 
-
-  if not IsEditable(Col,Row) and (goEditing in Options) then
+  if not IsEditable(remapcol(Col),Row) and (goEditing in Options) then
     TabEdit(Dir);
 
   if Navigation.AlwaysEdit then
@@ -23782,8 +25931,10 @@ var
   ctt: TTextType;
   hscrflg: boolean;
   tr: integer;
-  updflg:boolean;
+  updflg: boolean;
   CR: TRect;
+  wc: TCustomForm;
+  rngsel: boolean;
 begin
   OldLeftCol := LeftCol;
 
@@ -23810,12 +25961,42 @@ begin
   hscrflg := (Msg.CharCode in [VK_UP,VK_DOWN,VK_PRIOR,VK_NEXT]) and (goRowSelect in Options)
     and FNavigation.KeepHorizScroll;
 
+  if Navigation.MoveScrollOnly and (Msg.CharCode in [VK_UP,VK_DOWN,VK_PRIOR,VK_NEXT,VK_HOME,VK_END]) then
+  begin
+    case Msg.CharCode of
+    VK_UP: if TopRow > FixedRows then TopRow := TopRow - 1;
+    VK_DOWN: if TopRow + VisibleRowCount < RowCount then TopRow := TopRow + 1;
+    VK_NEXT: if TopRow + VisibleRowCount < RowCount then TopRow := TopRow + VisibleRowCount;
+    VK_PRIOR: if TopRow > VisibleRowCount + FixedRows then TopRow := TopRow - VisibleRowCount
+               else
+                 TopRow := FixedRows;
+    VK_HOME: TopRow := FixedRows;
+    VK_END: TopRow := RowCount - VisibleRowCount;
+    end;
+
+    Msg.Result := 1;
+    Exit;
+  end;
+
   if hscrflg then
     BeginUpdate;
 
+  if MouseActions.EditOnDblClickOnly and (Msg.CharCode = VK_F2) then
+  begin
+    rngsel := MouseActions.RangeSelectAndEdit;
+    MouseActions.RangeSelectAndEdit := true;
+    if IsEditable(RCol,Row) then
+    begin
+      Options := Options + [goEditing];
+      ShowInplaceEdit;
+    end;
+    MouseActions.RangeSelectAndEdit := rngsel;
+  end;
+
+
   if MouseActions.RangeSelectAndEdit and not (goEditing in Options) and (Msg.CharCode = VK_F2) then
   begin
-    if IsEditable(Col,Row) then
+    if IsEditable(RCol,Row) then
     begin
       Options := Options + [goEditing];
       ShowInplaceEdit;
@@ -23829,6 +26010,11 @@ begin
       Msg.Result := 1;
       Exit;
     end;
+  end;
+
+  if (Msg.CharCode = ord('F')) and IsCtrl and SearchFooter.Visible then
+  begin
+    SearchPanel.EditControl.SetFocus;
   end;
 
   if (Msg.CharCode = VK_F2) then
@@ -23855,13 +26041,29 @@ begin
 
   if (Msg.CharCode = VK_RETURN) then
   begin
-    if not IsEditable(Col,Row) then
+    if not IsEditable(RCol,Row) then
     begin
+      wc := GetParentForm(self);
+      if Assigned(wc) then
+      begin
+        if wc.KeyPreview then
+        begin
+          inherited;
+          Exit;
+        end;
+      end;
+
+
       CC := Msg.CharCode;
       if Assigned(OnKeyDown) then
-        OnKeyDown(Self, CC, SS);
+         OnKeyDown(Self, CC, SS);
       Msg.CharCode := 0;
       Msg.Result := 1;
+
+
+      Exit;
+
+      inherited;
       Exit;
     end;
   end;
@@ -23883,7 +26085,9 @@ begin
           RepaintCell(0,Row);
         end;
 
-        GetCheckBoxState(RCol,Row,Chk);
+        RRow := RealRowIndex(Row);
+        GetCheckBoxState(RCol,RRow,Chk);
+
         if Assigned(FOnCheckBoxClick) then
           FOnCheckBoxClick(Self,RCol,Row,Chk);
       end;
@@ -23903,7 +26107,8 @@ begin
             OnButtonClick(Self, RCol, Row);
         end;
 
-        RepaintCell(Col,Row);
+      RepaintCell(Col,Row);
+
     end;
   end;
 
@@ -24050,6 +26255,48 @@ begin
     ContractNode(RealRowIndex(Row));
   end;
 
+  if not Navigation.LeftRightRowSelect then
+  begin
+    if (Msg.CharCode = VK_LEFT) and (goRowSelect in Options)
+      and not IsNode(Row) and (ColCount > VisibleColCount) then
+    begin
+      if (LeftCol > FixedCols) then
+        LeftCol := LeftCol - 1;
+      chw := Msg.CharCode;
+      if Assigned(OnKeyDown) then
+        OnKeyDown(self,chw,SS);
+      Msg.Result := 0;
+      Exit;
+    end;
+
+    if (Msg.CharCode = VK_RIGHT) and (goRowSelect in Options)
+      and not IsNode(Row) and (ColCount > VisibleColCount) then
+    begin
+      if (LeftCol + VisibleColCount < ColCount) then
+        LeftCol := LeftCol + 1;
+      chw := Msg.CharCode;
+      if Assigned(OnKeyDown) then
+        OnKeyDown(self,chw,SS);
+      Msg.Result := 0;
+      Exit;
+    end;
+  end
+  else
+  begin
+    if (Msg.CharCode = VK_LEFT) and (ssCtrl in SS) and (goRowSelect in Options)
+      and not IsNode(Row) and (ColCount > VisibleColCount) and (LeftCol > FixedCols) then
+    begin
+      LeftCol := LeftCol - 1;
+    end;
+
+    if (Msg.CharCode = VK_RIGHT) and (ssCtrl in SS) and (goRowSelect in Options)
+      and not IsNode(Row) and (ColCount > VisibleColCount) then
+    begin
+      if (LeftCol + VisibleColCount < ColCount) then
+        LeftCol := LeftCol + 1;
+    end;
+  end;
+
   if (Msg.CharCode = VK_TAB) and (goTabs in Options) then
   begin
     // if IsMergedCell(Col,Row) then
@@ -24159,8 +26406,6 @@ begin
       end;
     end;
 
-
-
     if (Msg.CharCode = VK_DOWN) and (Row < RowCount - FixedFooters) and (IsFixed(Col,Row + 1) and (Row + 1 < RowCount)) then
     begin
       nr := Row;
@@ -24204,7 +26449,14 @@ begin
         sl.Free;
       end
       else
+      begin
         DoAppendRow;
+        for i := 0 to ColCount + NumHiddenColumns - 1 do
+        begin
+          GridCells[i, RowCount - 1] := '';
+          GridObjects[i, RowCount - 1] := nil;
+        end;
+      end;
 
       if FloatingFooter.Visible or (FixedFooters > 0) then
         Row := Row + 1;
@@ -24234,7 +26486,7 @@ begin
   if (SearchFooter.Visible) then
   begin
     if (tr >= RowCount - VisibleRowCount) then
-      if not (Msg.CharCode in [VK_DOWN, VK_UP, VK_HOME, VK_END, VK_PRIOR, VK_NEXT]) then
+      if not (Msg.CharCode in [VK_DOWN, VK_UP, VK_HOME, VK_END, VK_PRIOR, VK_NEXT, VK_MENU, VK_SHIFT, VK_LEFT, VK_RIGHT]) then
       begin
         BeginUpdate;
         updflg := true;
@@ -24246,7 +26498,7 @@ begin
   if (SearchFooter.Visible) then
   begin
     if (TopRow >= RowCount - VisibleRowCount) then
-      if not (Msg.CharCode in [VK_DOWN, VK_UP, VK_HOME, VK_END, VK_PRIOR, VK_NEXT]) then
+      if not (Msg.CharCode in [VK_DOWN, VK_UP, VK_HOME, VK_END, VK_PRIOR, VK_NEXT, VK_MENU, VK_SHIFT, VK_LEFT, VK_RIGHT]) then
         TopRow := tr;
 
     if updflg then
@@ -24346,25 +26598,25 @@ begin
       begin
         if Row < RowCount then
         begin
-          DoInsertRow(Row + 1);
+          DoInsertRow(RealRowIndex(Row + 1));
           if Row + 1 < RowCount then
             Row := Row + 1;
         end
         else
         begin
-          DoInsertRow(Row);
+          DoInsertRow(RealRowIndex(Row));
           Row := Row;
         end;
       end
       else
       begin
-        DoInsertRow(Row);
+        DoInsertRow(RealRowIndex(Row));
         Row := 1;
       end;
     end
     else
     begin
-      DoInsertRow(Row);
+      DoInsertRow(RealRowIndex(Row));
     end;
     CalcFooter(-1);
   end;
@@ -24381,9 +26633,9 @@ begin
       begin
         for i := FixedRows to RowCount - FixedFooters - 1 do
           RowSelect[i] := true;
-      end
-      else
-        UpdateOnSelection(GR);
+      end;
+      
+      UpdateOnSelection(GR);
       Selection := GR;
     end;
     Exit;
@@ -24483,6 +26735,7 @@ var
   x,y: longint;
   pt: TPoint;
   lc: Integer;
+  CanSelect: boolean;
 begin
   inherited;
 
@@ -24490,28 +26743,37 @@ begin
 
   if MouseActions.SelectOnRightClick and (x >= 0) and (y >= 0) and not IsFixed(x,y) then
   begin
-    if (x <> -1) and (y <> -1) and (not IsSelected(x, y)) then
+    if (x <> -1) and (y <> -1) then
     begin
-      lc := LeftCol;
+      if (not IsSelected(x, y)) then
+      begin
+        lc := LeftCol;
 
-      if Navigation.KeepHorizScroll then
-        BeginUpdate;
-
-      try
-        if IsBaseCell(x,y) then
-          MoveColRow(x,y,True,True)
-        else
-        begin
-          pt := BaseCell(x,y);
-          MoveColRow(pt.x,pt.y,True,True)
-        end;
-
-      finally
         if Navigation.KeepHorizScroll then
-        begin
-          LeftCol := lc;
-          EndUpdate;
+          BeginUpdate;
+
+        try
+          if IsBaseCell(x,y) then
+            MoveColRow(x,y,True,True)
+          else
+          begin
+            pt := BaseCell(x,y);
+            MoveColRow(pt.x,pt.y,True,True)
+          end;
+
+        finally
+          if Navigation.KeepHorizScroll then
+          begin
+            LeftCol := lc;
+            EndUpdate;
+          end;
         end;
+      end
+      else
+      begin
+        CanSelect := true;
+        if Assigned(OnSelectCell) then
+          OnSelectCell(Self, x, y, CanSelect);
       end;
     end;
 
@@ -24567,8 +26829,12 @@ var
   r,cr: TRect;
   Allow: Boolean;
   BC: TPoint;
+  rngsel: boolean;
 begin
   MouseToCell(Message.XPos,Message.YPos,x,y);
+
+  if MouseActions.RangeSelectAndEdit then
+    FForceSel := true;
 
   if x = -1 then
   begin
@@ -24578,7 +26844,10 @@ begin
       y := 0;
     end
     else
+    begin
+      inherited;
       Exit;
+    end;
   end;
 
   if (y < FixedRows) and (goColSizing in Options) and (MouseActions.AutoSizeColOnDblClick) then
@@ -24590,10 +26859,9 @@ begin
       if x - 1 >= FixedCols then
       begin
         Allow := True;
-        {$IFDEF DELPHI4_LVL}
         if Assigned(OnColumnSize) then
           OnColumnSize(Self,x - 1,Allow);
-        {$ENDIF}
+          
         if Allow then
         begin
           AutoSizeCol(x - 1);
@@ -24610,10 +26878,10 @@ begin
       begin
         FDblClk := True;
         Allow := True;
-        {$IFDEF DELPHI4_LVL}
+
         if Assigned(OnColumnSize) then
           OnColumnSize(Self,x,Allow);
-        {$ENDIF}
+
         if Allow then
         begin
           AutoSizeCol(x);
@@ -24625,6 +26893,15 @@ begin
     end;
   end;
 
+  if HasButton(x,y) then
+  begin
+    if PtInRect(ButtonRect(x,y),Point(Message.XPos,Message.YPos)) then
+    begin
+      Exit;
+    end;
+  end;
+
+
   inherited;
 
   if Assigned(FOnDblClickCell) then
@@ -24633,11 +26910,27 @@ begin
     FOnDblClickCell(Self,ARow,ACol);
   end;
 
+  if MouseActions.EditOnDblClickOnly then
+  begin
+    rngsel := MouseActions.RangeSelectAndEdit;
+    MouseActions.RangeSelectAndEdit := true;
+
+    if IsEditable(x,y) then
+    begin
+      Options := Options + [goEditing];
+      FOldCol := x;
+      FOldRow := y;
+      ShowInplaceEdit;
+    end;
+    MouseActions.RangeSelectAndEdit := rngsel;
+  end;
+
+
   rx := RemapCol(x);
 
   if (x >= 0) and (y >= 0) then
   begin
-    if FMouseActions.RangeSelectAndEdit and IsEditable(rx,y) then
+    if FMouseActions.RangeSelectAndEdit and IsEditable(rx,y) and not MouseActions.EditOnDblClickOnly then
     begin
       //EditMode := false;
       Options := Options + [goEditing];
@@ -24647,7 +26940,8 @@ begin
       MouseDown(mbleft,[],cr.left,cr.Top);
     end;
   end;
-  
+
+  FForceSel := false;
 
   if (y < FixedRows) and (MouseActions.FixedRowsEdit = fceDblClick) then
     StartFixedEdit(x,y)
@@ -24695,6 +26989,7 @@ begin
   Rfi := RemapCol(FromIndex);
   Rti := RemapCol(ToIndex);
 
+  {
   if (FColumnOrder.Count > FromIndex) and
      (FColumnOrder.Count > ToIndex) then
   begin
@@ -24702,7 +26997,16 @@ begin
     FColumnOrder.Delete(FromIndex);
     FColumnOrder.Insert(ToIndex,ii);
   end;
+  }
 
+  if (FColumnOrder.Count > Rfi) and
+     (FColumnOrder.Count > Rti) then
+  begin
+    ii := FColumnOrder.Items[Rfi];
+    FColumnOrder.Delete(Rfi);
+    FColumnOrder.Insert(Rti,ii);
+  end;
+  
 
   if FEnhRowColMove then
   begin
@@ -24817,11 +27121,15 @@ procedure TAdvStringGrid.RowMoved(FromIndex, ToIndex: longint);
 var
   rh: Integer;
   i: Integer;
+  rm: TMovedEvent;
 
 begin
   if (FloatingFooter.Visible and (FloatingFooter.FooterStyle = fsFixedLastRow) and
     (ToIndex = RowCount - 1)) then
     Exit;
+
+  rm := OnRowMoved;
+  OnRowMoved := nil;
 
   inherited RowMoved(FromIndex,ToIndex);
 
@@ -24836,12 +27144,17 @@ begin
 
     ColMoveFlg := True;
   end;
+
+  OnRowMoved := rm;
+
+  if Assigned(OnRowMoved) then
+    OnRowMoved(Self, FromIndex, ToIndex);
 end;
 
 procedure TAdvStringGrid.WMRButtonUp(var Msg:TWMLButtonUp);
 begin
   // MouseUp stops colmove / rowmove on both left & right button up !!
-  if (Screen.Cursor = crDrag) and
+  if ((Screen.Cursor = crDrag) or (Screen.Cursor = crNoDrop)) and
      (FGridstate in [gsColMoving,gsRowMoving]) and FEnhRowColMove then
   begin
     Msg.Result := 0;
@@ -24860,7 +27173,7 @@ var
   FIsSizing: Boolean;
   lc,offs: Integer;
   UndoSort, CanEdit: Boolean;
-
+  allowdrop: boolean;
 begin
   ColMoveFlg := False;
   ColSizeFlg := False;
@@ -24947,6 +27260,7 @@ begin
     FFixedCellPushed := False;
   end;
 
+
   MouseToCell(Msg.XPos,Msg.YPos,x,y);
   displx := x;
 
@@ -24955,11 +27269,13 @@ begin
     Canedit := (goEditing in Options);
 
     if not ControlLook.NoDisabledButtonLook then
-      GetCellReadOnly(x,y,CanEdit);
+      CanEdit := IsEditable(x,y); //GetCellReadOnly(x,y,CanEdit);
 
-    if CanEdit or ControlLook.NoDisabledButtonLook then
+    if CanEdit or ControlLook.NoDisabledButtonLook or
+      (FPushedCellButton.x < FixedCols) or (FPushedCellButton.y < FixedRows) then
     begin
-      PushButton(FPushedCellButton.x,FPushedCellButton.y,False);
+      if not IsNode(FPushedCellButton.y) then
+        PushButton(FPushedCellButton.x,FPushedCellButton.y,False);
       if Assigned(FOnButtonClick) then
         FOnButtonClick(Self,FPushedCellButton.x,FPushedCellButton.y);
     end;
@@ -24992,13 +27308,16 @@ begin
     FIsSizing := GetCursor = Screen.Cursors[crHSplit];
   end;
 
-  if Assigned(OnClick) and not FIsSizing then
+  if Assigned(OnClick) and not FIsSizing and (((y < FixedRows) or (x < FixedCols)) or (not (goEditing in Options))) then
+  begin
     OnClick(Self);
+  end;
 
-  //if FGridState = gsSelecting then
-  //begin
-  //  FGridState := gsNormal;
-  //end;
+  if (FGridState = gsSelecting) or Dragging then
+  begin
+    FGridState := gsNormal;
+    Click;
+  end;
 
   if FSelectionClick then
   begin
@@ -25063,6 +27382,20 @@ begin
     FDeselectState := False;
   end;
 
+
+  if (IsNode(y) and (Grouping.AutoSelectGroup)) and (x > 0) and not GetNodeState(y) then
+  begin
+    if FMouseActions.DisjunctRowSelect then
+    begin
+      for i := 1 to GetNodeSpan(y) - 1 do
+        RowSelect[RemapRowInv(y + i)] := true;
+    end
+    else
+    begin
+      Selection := TGridRect(Rect(FixedCols,y,ColCount,y + GetNodeSpan(y)-1));
+    end;
+  end;
+
   if (FMouseActions.DisjunctColSelect) then
   begin
     SelectToColSelect(False);
@@ -25076,25 +27409,40 @@ begin
 
 // if fEnhRowColMove and ((x=0) or (y=0)) then LockWindowUpdate(self.Handle);
 
-
-
   WasMove := False;
 
-  if (Screen.Cursor = crDrag) and
+  if ((Screen.Cursor = crDrag) or (Screen.Cursor = crNoDrop)) and
      (FGridstate in [gsColMoving,gsRowMoving]) and FEnhRowColMove then
   begin
-    Screen.Cursor := crDefault;
-
     MoveButton.Enabled := False;
     MoveButton.Visible := False;
 
-    if (FGridState = gsColMoving) and (MoveCell >= 0) and
-       (x >= FixedCols) and (MoveCell <> x) then
-      MoveColumn(MoveCell,x);
+    if Assigned(MoveForm) then
+    begin
+      FreeAndNil(MoveForm);
+    end;
 
-    if (FGridState = gsRowMoving) and (MoveCell >= 0) and
-       (y >= FixedRows) and (MoveCell <> y) then
-      MoveRow(MoveCell,y);
+    allowdrop := Screen.Cursor <> crNoDrop;
+
+    Screen.Cursor := crDefault;
+
+    if allowdrop then
+    begin
+      if (FGridState = gsColMoving) and (MoveCell >= 0) and
+         (x >= FixedCols) and (MoveCell <> x) then
+        MoveColumn(MoveCell,x);
+
+      if (FGridState = gsRowMoving) and (MoveCell >= 0) and
+         (y >= FixedRows) and (MoveCell <> y) then
+        MoveRow(MoveCell,y);
+    end
+    else
+    begin
+      if (FGridState = gsColMoving) and (MoveCell >= 0) then
+        RepaintRow(0);
+      if (FGridState = gsRowMoving) and (MoveCell >= 0) then
+        RepaintCol(0);
+    end;
 
     if FGridState in [gsRowMoving,gsColMoving] then
       KillTimer(Handle,1);
@@ -25105,7 +27453,7 @@ begin
 
   inherited;
 
-  if FGridState = gsSelecting then
+  if (FGridState = gsSelecting) then
   begin
     FGridState := gsNormal;
   end;
@@ -25153,28 +27501,35 @@ begin
 
   r := CellRect(displx,y);
 
+
   if (y = 0) and (goColSizing in Options) then
   begin
     if (Abs(Msg.xpos - r.Left) < 4)
       or (Abs(Msg.xpos - r.Right) < 4) then Exit;
   end;
-
+  
   MouseToCell(clickposx,clickposy,cx,cy);
+
+  if ControlLook.FixedDropDownButton and (Msg.Xpos > r.Right - 16) then
+    Exit;
 
   if ((Msg.Xpos > r.Right - 16) and GetFilter(x)) then
     Exit;
 
   if (y = FSortSettings.Row) and (cy = FSortSettings.Row) and
-     (FixedRows > 0) and
+     (FixedRows > 0) and not IsInCheckBox(x,y,Msg.XPos,Msg.YPos) and
      FSortSettings.Show and not WasMove and
      (RowCount > 2) then
   begin
+     if IsIgnoredColumn(x) then  // preset to false in case it is in the ignored column list
+       Doit := false;
+       
      if (Assigned(FOnCanSort)) then
        FOnCanSort(self,x,Doit);
   end;
 
   if (y = FSortSettings.Row) and (cy = FSortSettings.Row) and
-     (FixedRows > 0) and
+     (FixedRows > 0) and not IsInCheckBox(x,y,Msg.XPos,Msg.YPos) and
      FSortSettings.Show and
      (RowCount > 2) and
      Doit and not WasMove then
@@ -25219,12 +27574,11 @@ begin
           QSortGroupIndexed
         else
           QSortIndexed;
-
+                                   
         if SortIndexes.Count > 0 then
           FSortSettings.FSortColumn := SortIndexes[0]
         else
           FSortSettings.FSortColumn := -1;
-
 
         SortTime := GetTickcount - SortTime;
 
@@ -25261,7 +27615,7 @@ begin
         if Navigation.KeepHorizScroll and (goRowSelect in Options) then
           BeginUpdate;
 
-        if FNumNodes > 0 then
+        if (FNumNodes > 0) then
           QSortgroup
         else
         begin
@@ -25403,7 +27757,7 @@ end;
 
 procedure TAdvStringGrid.WMLButtonDown(var Msg:TWMLButtonDown);
 var
-  x,y,rx,ml,hl,ox,oy: Integer;
+  x,y,rx,ry,ml,hl,ox,oy: Integer;
   ClickRect, r, hr,cr: TRect;
   CID,CV,CT: string;
   s,Anchor,Stripped,FocusAnchor,AnchorHint: string;
@@ -25414,19 +27768,24 @@ var
   cpt: TPoint;
   FOldAlwaysEdit,ClickInSelect: Boolean;
   OldLeftCol,OldTopRow,ORow,OCol: Integer;
-  OldSel: TGridRect;
+  OldSel,PrevSel: TGridRect;
   LastCellClicked,Allow, CanSelect: Boolean;
   {$IFNDEF DELPHI7}
   ks: TKeyboardState;
   {$ENDIF}
   GR: TGridRect;
-  ForceSelect: boolean;
+  SS: TShiftState;
+  ForceSelect, CanChange: boolean;
+  noderow: boolean;
 
 begin
   FMouseDownMove := True;
   FMouseKeepDown := True;
+  FSpinUpClick := False;
+  FSpinDnClick := False;
   ForceSelect := False;
   MouseToCell(Msg.XPos,Msg.YPos,X,Y);
+  PrevSel := Selection;
 
   if SelectionResizer and SelectionRectangle then
   begin
@@ -25441,9 +27800,9 @@ begin
       FDropSelection := Selection;
       CopySelectionToClipboard;
       FMouseResize := True;
+      OldSel := Selection;
       ORow := Row;
       OCol := Col;
-      OldSel := Selection;
       if not (goEditing in Options) and not MouseActions.RangeSelectAndEdit then
         inherited;
       Selection := OldSel;
@@ -25457,8 +27816,10 @@ begin
   end;
 
   allow := true;
+
   if Assigned(OnCanClickCell) then
     OnCanClickCell(self, y,x, allow);
+
 
   if not Allow then
     Exit;
@@ -25489,6 +27850,19 @@ begin
     Exit;
   end;
 
+  SS := [];
+  if GetKeystate(VK_CONTROL) and $8000 = $8000 then
+    SS := [ssCtrl];
+  if GetKeystate(VK_SHIFT) and $8000 = $8000 then
+    SS := [ssShift];
+  if GetKeystate(VK_MENU) and $8000 = $8000 then
+    SS := [ssAlt];
+
+  if FMouseActions.DisjunctCellSelect and not (ssCtrl in SS) then
+  begin
+    FSelectedCells.Clear;
+    Invalidate;
+  end;
 
   Searchinc := '';
   FMoveColind := -1;
@@ -25498,6 +27872,7 @@ begin
 
   OldLeftCol := LeftCol;
   OldTopRow := TopRow;
+  FOldTopRow := TopRow;
   FOldKeepLeftCol := LeftCol;
 
   if y = 0 then
@@ -25568,24 +27943,44 @@ begin
 
   FixCellClick := IsFixed(x,y) and not FixCellClick;
 
+  noderow := false;
+  if (x >= 0) and (y >= 0) then
+    noderow := IsNode(y);
+
   if (x >= 0) and (y >= 0) then
   begin
     if ((y < FixedRows) or (x < FixedCols) or FixCellClick) then
-    if (FFixedAsButtons and (goFixedVertLine in Options) and (goFixedHorzLine in Options) and Ctl3D) then
+    if (FFixedAsButtons and (goFixedVertLine in Options) and (goFixedHorzLine in Options) and Ctl3D) and
+      (not noderow or (noderow and not InNodeRect(y,Msg.XPos))) then
     begin
       FPushedFixedCell := CellRect(x,y);
       FPushedCellButton := Point(x,y);
       FFixedCellPushed := True;
       DrawEdge(Canvas.Handle,FPushedFixedCell, BDR_SUNKENINNER,BF_RIGHT or BF_BOTTOM);
       DrawEdge(Canvas.Handle,FPushedFixedCell, BDR_SUNKENINNER,BF_LEFT or BF_TOP);
+      noderow := false;
     end;
   end;
-
+               
   rx := RemapCol(x);
 
   if not (csDesigning in ComponentState) and (x >= 0) and (y >= 0) then
   begin
-    if (y < FixedRows) and (x = 0) and IsNode(y) and InNodeRect(y,Msg.XPos) and MouseActions.NodeAllExpandContract then
+    if ControlLook.SpinButtonsAlwaysVisible and HasSpinEdit(x,y) then
+    begin
+      r := CellRect(x,y);
+
+      if (Msg.XPos > r.Right - 18) then
+      begin
+        if Msg.YPos > r.Top + ((r.Bottom - r.Top) div 2) then
+          FSpinDnClick := true
+        else
+          FSpinUpClick := true;
+      end;
+    end;
+
+
+    if (y < FixedRows) and (x = 0) and noderow and InNodeRect(y,Msg.XPos) and MouseActions.NodeAllExpandContract then
     begin
       if (GraphicObjects[0,y] as TCellGraphic).CellBoolean then
         ExpandAll
@@ -25596,7 +27991,7 @@ begin
     end;
 
     if (y >= FixedRows) and (x = 0) then
-      if IsNode(y) and InNodeRect(y,Msg.XPos) then
+      if noderow and InNodeRect(y,Msg.XPos) then
       begin
         if not (GraphicObjects[0,y] as TCellGraphic).CellBoolean then
         begin
@@ -25629,6 +28024,7 @@ begin
 
         if MouseActions.MoveRowOnNodeClick then
           Row := y;
+
         Exit;
       end;
 
@@ -25642,9 +28038,16 @@ begin
 
     if (x = 0) and (y >= FixedRows) and (FNumNodes > 0) and not
       (MouseActions.RowSelect or (goRowSizing in Options)) then
-      Exit;
+    begin
+      if Assigned(OnMouseDown) then
+        OnMouseDown(Self, mbLEFT,SS ,msg.XPos, msg.YPos);
 
-    {$IFDEF DELPHI4_LVL}
+      if Assigned(OnClickCell) then
+        OnClickCell(self,y,x);
+
+      Exit;
+    end;
+
     if (IsSelected(x,y) or
        ((y < FixedRows) and not FEnhRowColMove)) and
        not (goEditing in Options) and not HasButton(rx,y) and not HasCheckBox(rx, y) and
@@ -25653,21 +28056,28 @@ begin
     begin
       if not (((msg.xpos - ClickRect.Left < 4) or (ClickRect.Right - msg.xpos < 4)) and (goColsizing in Options)) then
       begin
+        if Assigned(OnMouseDown) then
+          OnMouseDown(Self, mbLEFT,SS ,msg.XPos, msg.YPos);
+
         FSelectionClick := True;
         if Assigned(OnClickCell) then
           OnClickCell(self,y,x);
+          
         Exit;
       end;
     end;
-    {$ENDIF}
+
   end;
 
   if HasButton(rx,y) then
   begin
     HideInplaceEdit;
-    // v2.5 added
 
+    // v2.5 added
+    FForceSel := true;
     SelectCell(x,y);
+    FForceSel := false;
+
     //move from here
     //Selection := TGridRect(Rect(x,y,x,y));
 
@@ -25683,10 +28093,11 @@ begin
       if Assigned(OnClickCell) then
         OnClickCell(self,y,x);
 
+      //if (goEditing in Options) then
+      //  Options := Options - [goEditing];
       Exit;
     end;
   end;
-
 
   if (x >= ColCount) or (y >= RowCount) or (x < 0) or (y < 0) then
   begin
@@ -25701,6 +28112,17 @@ begin
 
   ClickPosdx := -r.Right + ClickPosx;
   ClickPosdy := -r.Bottom + ClickPosy;
+
+  if (FMouseActions.DisjunctRowSelect) and (y >= FixedRows) and (goEditing in Options) and
+    not ((x = 0) and (FMouseActions.HotmailRowSelect)) then
+  begin
+    if GetKeystate(VK_SHIFT) and $8000 = $8000 then
+    begin
+      inherited;
+      Selection := TGridRect(Rect(x,y,PrevSel.Left, PrevSel.Top));
+      Exit;
+    end;
+  end;
 
   // if ctrl-pressed / shift pressed
   if (FMouseActions.DisjunctRowSelect) and (y >= FixedRows) and
@@ -25773,7 +28195,7 @@ begin
 
       if (CID <> '') then
       begin
-        CanEdit := true;
+        //CanEdit := true;
         DoCanEditCell(ox,oy, CanEdit);
       end;
 
@@ -25805,84 +28227,6 @@ begin
           FOnControlClick(Self,y,x,CID,CT,CV);
 
         ControlEnter(S, CT, CID, CV, CR, x,rx,y);
-
-        {
-        if (CT = 'EDIT') or (CT = 'PASSWORD') or (CT = 'MASK') then
-        begin
-          FCtrlXY := Point(rx,y);
-          FCtrlID := CID;
-          FCtrlType := CT;
-
-          FCtrlEditing := True;
-          FEditControl.Width := 0;
-
-          if (CT = 'PASSWORD') then
-            FEditControl.PasswordChar := '*'
-          else
-            FEditControl.PasswordChar := #0;
-
-          if (CT = 'MASK') then
-            FEditControl.EditMask := GetControlProp(s,CID)
-          else
-            FEditControl.EditMask := '';
-
-          FEditControl.OnExit := ControlExit;
-          FEditControl.Text := CV;
-          FEditControl.BorderStyle := bsNone;
-          FEditControl.Left := CR.Left + 1;
-          FEditControl.Width := CR.Right - CR.Left - 4;
-          FEditControl.Top := CR.Top + 4;
-          FEditControl.Height := CR.Bottom - CR.Top - 4;
-          FEditControl.Parent := Self;
-          FEditControl.Visible := True;
-
-          BringWindowToTop(FEditControl.Handle);
-          FEditControl.SetFocus;
-        end;
-
-        if CT = 'COMBO' then
-        begin
-          FCtrlXY := Point(rx,y);
-          FCtrlID := CID;
-          FCtrlType := CT;
-
-          FCtrlEditing := True;
-
-          FComboControl.IsWinXP := FIsWinXP;
-          FComboControl.Width := 0;
-
-          ComboEdit := True;
-          DropHeight := 8;
-
-          FComboControl.Left := CR.Left + 1;
-          FComboControl.Width := CR.Right - CR.Left - 4;
-          FComboControl.Top := CR.Top + 4;
-
-          FComboControl.Parent := Self;
-
-          if Assigned(FOnControlComboList) then
-            FOnControlComboList(Self,y,x,CID,CT,CV,TStringList(FComboControl.Items),ComboEdit,DropHeight);
-
-          if ComboEdit then
-            FComboControl.Style := csDropDown
-          else
-            FComboControl.Style := csDropDownList;
-
-          if FComboControl.Items.IndexOf(CV) <> -1 then
-            FComboControl.ItemIndex := FComboControl.Items.IndexOf(CV);
-          FComboControl.Text := CV;
-          FComboControl.DropDownCount := DropHeight;
-
-          FComboControl.OnExit := ControlExit;
-
-          FComboControl.Height := FComboControl.ItemHeight * (DropHeight+2);
-          FComboControl.Visible := True;
-          FComboControl.DroppedDown := True;
-          FComboControl.SetFocus;
-          // BringWindowToTop(FComboControl.Handle);
-
-        end;
-        }
       end
       else
       begin
@@ -25913,12 +28257,14 @@ begin
 
     if (ctt = ttHTML) and (pos('<CONTROL',uppercase(s))> 0) then
     begin
+      if Assigned(OnClickCell) then
+        OnClickCell(self, ox, oy);
+      HideInplaceEdit;
+      
       Selection := TGridRect(Rect(x,y,x,y));
       Exit;
     end;
   end;
-
-
 
   MoveCell := -1;
 
@@ -25964,6 +28310,9 @@ begin
 
     HideSelection;
 
+    if FMouseActions.DisjunctCellSelect then
+      FSelectedCells.Clear;
+
     if GetKeystate(VK_SHIFT) and $8000 = $8000 then
     begin
       Selection := TGridRect(Rect(FixedCols,y,ColCount - 1,ORow));
@@ -25990,6 +28339,9 @@ begin
     SetFocus; //make sure inplace editors are hidden
     HideSelection;
 
+    if FMouseActions.DisjunctCellSelect then
+      FSelectedCells.Clear;
+
     if GetKeystate(VK_SHIFT) and $8000 = $8000 then
     begin
       Selection := TGridRect(Rect(OCol,FixedRows,x,RowCount - 1));
@@ -26013,12 +28365,10 @@ begin
 
   r := CellRect(x,y);
 
-
-
   MoveOfsx := Msg.xpos - r.Left;
   MoveOfsy := Msg.ypos - r.Top;
 
-  CanEdit := (goEditing in Options) or MouseActions.RangeSelectAndEdit;
+  CanEdit := (goEditing in Options) or (MouseActions.RangeSelectAndEdit);
 
   GetCellReadOnly(rx,y,CanEdit);
 
@@ -26054,7 +28404,9 @@ begin
       end;
     end;
 
-    GetCheckBoxState(rx,y,chk);
+    ry := RealRowIndex(y);
+
+    GetCheckBoxState(rx,ry,chk);
 
     // move focus to checkbox cell
     if not Navigation.AlwaysEdit then
@@ -26091,7 +28443,7 @@ begin
 
   if (x >= FixedCols) and
      (y >= FixedRows) and
-     CanEdit and FMouseActions.DirectEdit then
+     CanEdit and (FMouseActions.DirectEdit or (ControlLook.DropDownAlwaysVisible and HasCombo(x,y))) then
   begin
     HideEditor;
     SetFocus;
@@ -26109,10 +28461,9 @@ begin
 
   if not ClickInSelect and MouseActions.RangeSelectAndEdit and not IsFixed(x,y) then
   begin
-    Options := Options - [goEditing];
     ForceSelect := true;
+    Options := Options - [goEditing];
   end;
-
 
   FOldAlwaysEdit := FNavigation.AlwaysEdit;
 
@@ -26128,6 +28479,7 @@ begin
 
   if (goRowSelect in Options) and FNavigation.KeepHorizScroll then
     BeginUpdate;
+
   try
     if not FSelHidden then
     begin
@@ -26145,6 +28497,8 @@ begin
     if (TopRow <> OldTopRow) and FMouseActions.NoScrollOnPartialRow then
     begin
       TopRow := OldTopRow;
+      // stop further mouse processing
+      SendMessage(self.Handle, WM_LBUTTONUP, 0,0);
     end;
 
   finally
@@ -26156,7 +28510,7 @@ begin
     end;
   end;
 
-  if not (((msg.xpos - ClickRect.Left < 4) or (ClickRect.Right - msg.xpos < 4)) and (goColsizing in Options)) then
+  if not (((msg.xpos - ClickRect.Left < 4) or (ClickRect.Right - msg.xpos < 4)) and (goColsizing in Options)) or (Y >= FixedRows) then
   begin
     if Assigned(FOnClickCell) then
       FOnClickCell(Self,Y,X);
@@ -26170,9 +28524,22 @@ begin
 
   if IsMergedCell(X,Y) and not IsFixed(X,Y) then
   begin
+    CanChange := true;
+
+    if (r.Left <> Col) or (r.Top <> Row) then
+    begin
+      if Assigned(OnCellChanging) then
+        OnCellChanging(self, Row, Col, r.Top, r.Left, CanChange);
+    end;
+
+    if not CanChange then
+      Exit;
+
     CanSelect := true;
-    if Assigned(OnSelectCell) then
-      OnSelectCell(Self, r.Left, r.Top, CanSelect);
+
+    if (r.Left <> Col) or (r.Top <> Row) then
+      if Assigned(OnSelectCell) then
+        OnSelectCell(Self, r.Left, r.Top, CanSelect);
 
     if not (goRowSelect in Options) and CanSelect then
       Selection := TGridRect(Rect(r.Left,r.Top,r.Right,r.Bottom));
@@ -26192,7 +28559,7 @@ begin
   if (x >= FixedCols) and
      (y >= FixedRows) and
      CanEdit and
-     FMouseActions.DirectEdit and not HasStaticEdit(rx,y) then
+     (FMouseActions.DirectEdit or (ControlLook.DropDownAlwaysVisible and HasCombo(rx,y))) and not HasStaticEdit(rx,y) then
      begin
        if IsBaseCell(ox,oy) then
        begin
@@ -26211,7 +28578,9 @@ begin
 //  FMouseActions.RangeSelectAndEdit := true;
 
   if ForceSelect then
+  begin
     FGridState := gsSelecting;
+  end;
 end;
 
 procedure TAdvStringGrid.ControlEnter(S,CT,CID,CV: string; CR: TRect; X,RX,Y: Integer);
@@ -26224,6 +28593,7 @@ begin
     FCtrlXY := Point(rx,y);
     FCtrlID := CID;
     FCtrlType := CT;
+
 
     FCtrlEditing := True;
     FEditControl.Width := 0;
@@ -26245,6 +28615,7 @@ begin
     FEditControl.Width := CR.Right - CR.Left - 4;
     FEditControl.Top := CR.Top + 4;
     FEditControl.Height := CR.Bottom - CR.Top - 4;
+    FEditControl.MaxLength := GetControlMaxLen(s,CID);
     FEditControl.Parent := Self;
     FEditControl.Visible := True;
 
@@ -26288,6 +28659,8 @@ begin
     FComboControl.OnExit := ControlExit;
 
     FComboControl.Height := FComboControl.ItemHeight * (DropHeight + 2);
+    FComboControl.MaxLength := GetControlMaxLen(s,CID);
+
     FComboControl.Visible := True;
     FComboControl.DroppedDown := True;
     FComboControl.SetFocus;
@@ -26372,7 +28745,7 @@ begin
         code1 := pos(DateSeparator,s1);
         if (code1 > 1) and (Length(s1) > code1) and (code1 < 4) then
         begin
-          if (s1[code1 - 1] in ['0'..'9']) and (s1[code1 + 1] in ['0'..'9']) then
+          if (CheckNum(s1[code1 - 1]) and CheckNum(s1[code1 + 1])) then
           begin
             {$IFDEF DELPHI7_LVL}
             if (pos(TimeSeparator,s1) > 0) then
@@ -26390,7 +28763,7 @@ begin
           code1 := pos(TimeSeparator,s1);
           if (code1 > 1) and (Length(s1) > code1) and (code1 < 4) then
           begin
-            if (s1[code1 - 1] in ['0'..'9']) and (s1[code1 + 1] in ['0'..'9']) then
+            if (CheckNum(s1[code1 - 1]) and CheckNum(s1[code1 + 1])) then
               aStyle := ssTime
             else
               aStyle := ssAlphaBetic
@@ -26419,6 +28792,15 @@ begin
   case aStyle of
   ssAlphabetic,ssAlphaCase:
   begin
+    (*
+    CompareString(LOCALE_USER_DEFAULT, 0 , PWideChar(Cells[Col,ARow1]), length(Cells[Col,ARow1]),
+      PWideChar(Cells[Col,ARow2]), length(Cells[Col,ARow2]));
+
+    if res = CSTR_LESS_THAN then res := -1;
+    if res = CSTR_EQUAL then res := 0;
+    if res = CSTR_GREATER_THAN then res := 1;
+    *)
+
     if (Cells[Col,ARow1] > Cells[Col,ARow2]) then
       res := 1
     else
@@ -26593,7 +28975,12 @@ begin
   begin
     res := 0;
     if Assigned(FCustomCompare) then
-      FCustomCompare(Self,Cells[Col,ARow1],Cells[Col,ARow2],res);
+    begin
+      if not SortSettings.SortOnVirtualCells then
+        FCustomCompare(Self,GridCells[Col,ARow1],GridCells[Col,ARow2],res)
+      else
+        FCustomCompare(Self,Cells[Col,ARow1],Cells[Col,ARow2],res);
+    end;
   end;
 
   ssRaw:
@@ -26783,7 +29170,10 @@ function TAdvStringGrid.CompareLine(Col,ARow1,ARow2: Integer): Integer;
 var
   res: Integer;
 begin
-  res := Compare(Col,ARow1,ARow2,SortSettings.Direction);
+  if IsIgnoredColumn(Col) then
+    res := 0
+  else
+    res := Compare(Col,ARow1,ARow2,SortSettings.Direction);
 
   if (res = 0) and FSortSettings.Full then
   begin
@@ -26810,7 +29200,10 @@ begin
   else
     sd := sdAscending;
 
-  res := Compare(idx,ARow1,ARow2, sd);
+  if IsIgnoredColumn(idx) then
+    res := 0
+  else
+    res := Compare(idx,ARow1,ARow2, sd);
 
   if (res = 0) and FSortSettings.Full then
   begin
@@ -26885,7 +29278,11 @@ begin
   begin
     for k := 0 to ColCount - 1 do
     begin
-      Cells[k, RowCount - 2] := Cells[k,m];
+      if not SortSettings.SortOnVirtualCells then
+        GridCells[k, RowCount - 2] := GridCells[k,m]
+      else
+        Cells[k, RowCount - 2] := Cells[k,m];
+        
       GridObjects[k, RowCount - 2] := GridObjects[k,m];
     end;
   end
@@ -26968,7 +29365,7 @@ begin
   QuickSortRows(Col,left,right);
   FNilObjects := True;
   ClearRows(RowCount - 2,2);
-  FNilObjects := true;
+  FNilObjects := False;
 
   ColCount := ColCount - NumHiddenColumns;
   ColWidths[cc] := cw;
@@ -26990,10 +29387,12 @@ begin
 
   if Assigned(OnGetDisplText) or FVirtualCells then
   begin
-
     for k := 0 to ColCount - 1 do
     begin
-      Cells[k, RowCount - 2] := Cells[k, m];
+      if not SortSettings.SortOnVirtualCells then
+        GridCells[k, RowCount - 2] := GridCells[k,m]
+      else
+        Cells[k, RowCount - 2] := Cells[k, m];
       GridObjects[k, RowCount - 2] := GridObjects[k, m];
     end;
   end
@@ -27170,6 +29569,12 @@ begin
   end;
 end;
 
+procedure TAdvStringGrid.Sort(Column: integer; Direction: TSortDirection = sdAscending);
+begin
+  SortSettings.Column := Column;
+  SortSettings.Direction := Direction;
+  QSort;
+end;
 
 procedure TAdvStringGrid.QSort;
 var
@@ -27400,6 +29805,24 @@ begin
   CellsChanged(Rect(0,RowIndex,ColCount-1,RowIndex + RCount));
 end;
 
+procedure TAdvStringGrid.RemoveCheckedRows(CheckBoxColumn: integer; RemoveChecked: boolean=true);
+var
+  i: integer;
+begin
+  i := RowCount - 1;
+
+  BeginUpdate;
+
+  while (i >= FixedRows) do
+  begin
+    if IsChecked(CheckBoxColumn,i) XOR (not RemoveChecked) then
+      RemoveRows(i,1);
+    dec(i);
+  end;
+
+  EndUpdate;
+end;
+
 procedure TAdvStringGrid.RemoveRows(RowIndex, RCount : Integer);
 var
   i: Integer;
@@ -27417,7 +29840,7 @@ begin
   for i := 1 to FControlList.Count do
   begin
     ci := FControlList.Control[i - 1];
-    if (ci.Y >= RowIndex + RCount) then
+    if (ci.Y >= RealRowIndex(RowIndex + RCount)) then
       ci.Y := ci.Y - RCount;
   end;
 
@@ -27478,6 +29901,11 @@ begin
       end
       else
         NilRow(i);
+    end;
+
+    for i := RowCount to RowCount + RCount do
+    begin
+      NilRow(i);
     end;
 
     // Decrease rows in one time
@@ -27542,9 +29970,32 @@ var
   vf: Boolean;
   RRIndex: Integer;
   rs: Boolean;
+  ff: Integer;
 begin
-  if RowIndex > RowCount then
+  if RowIndex >= RowCount then
     Exit;
+
+  if (FControlList.Count > 0)  then
+  begin
+    i := FControlList.Count - 1;
+    while (i >= 0) do
+    begin
+      if (FControlList.Control[i].Y >= RowIndex) and (FControlList.Control[i].Y < RowIndex + RCount) then
+      begin
+        FControlList.Control[i].Control.Visible := false;
+        FControlList.Delete(i);
+      end;
+      dec(i);
+    end;
+  end;
+
+
+  ff := -1;
+  if FixedFooters > 0 then
+  begin
+    ff := FFixedFooters;
+    FFixedFooters := 0;
+  end;
 
   vf := FloatingFooter.Visible;
 
@@ -27648,8 +30099,9 @@ begin
     if (Row >= RowCount) then // new row selection was not possible, ie. for fixed merged cells
     begin
       FForceSel := true;
-      Row := FixedRows;
-      if RowCount > FixedRows then
+      FocusCell(FixedCols,FixedRows);
+      //Row := FixedRows;
+      if (RowCount > FixedRows) and rs then
         Options := Options + [goRowSelect];
       FForceSel := false;
       HideSelection;
@@ -27665,6 +30117,25 @@ begin
       FloatingFooter.Visible := vf;
       EndUpdate;
     end;
+  end;
+
+  if (FControlList.Count > 0)  then
+  begin
+    i := FControlList.Count - 1;
+
+    while (i >= 0) do
+    begin
+      if FControlList.Control[i].Y >= RealRowIndex(RowIndex) then
+        FControlList.Control[i].Y := FControlList.Control[i].Y - RCount;
+      dec(i);
+    end;
+    CellControlsUpdate;
+  end;
+
+
+  if ff <> -1 then
+  begin
+    FFixedFooters := ff;
   end;
 end;
 
@@ -27837,6 +30308,7 @@ var
   i,j: Integer;
   rc: Integer;
 begin
+
   for j := ARow1 to ARow2 do
   begin
     for i := ACol1 to ACol2 do
@@ -27848,7 +30320,6 @@ begin
 
       if not FClearTextOnly then
       begin
-
         if HasCellProperties(rc,j) then
         begin
           if FNilObjects then
@@ -27872,9 +30343,10 @@ begin
             RepaintCell(i,j);
         end;
       end;
-
     end;
   end;
+
+  FHasCellProps := false;
   if not (csDestroying in ComponentState) then
   begin
     CellsChanged(Rect(RemapCol(ACol1),ARow1,RemapCol(ACol2),ARow2));
@@ -27920,12 +30392,11 @@ begin
   end;
 end;
 
-procedure TAdvStringGrid.InsertRows(RowIndex,RCount: Integer);
+procedure TAdvStringGrid.InsertRows(RowIndex,RCount: Integer; UpdateCellControls: boolean = true);
 var
   i: Integer;
   cw,cc: Integer;
 begin
-  //necessary to save this due to Delphi 1,2,3 bug in TStringGrid
   cc := ColCount - 1;
   cw := ColWidths[cc];
 
@@ -27960,13 +30431,14 @@ begin
 
   ColWidths[cc] := cw;
 
-  if FControlList.Count > 0 then
+  if (FControlList.Count > 0) and UpdateCellControls then
   begin
     for i := 0 to FControlList.Count - 1 do
     begin
-      if FControlList.Control[i].Y >= RowIndex then
+      if FControlList.Control[i].Y >= RealRowIndex(RowIndex) then
         FControlList.Control[i].Y := FControlList.Control[i].Y + RCount;
     end;
+    CellControlsUpdate;
   end;
 
   if not (csDestroying in ComponentState) then
@@ -27983,6 +30455,9 @@ procedure TAdvStringGrid.RemoveCols(ColIndex,CCount: Integer);
 var
   i: Integer;
 begin
+  if ColIndex + CCount >  ColCount + FNumHidden then
+    CCount := ColCount + FNumHidden - ColIndex;
+
   ClearCols(ColIndex,CCount);
 
   ColCount := ColCount + FNumHidden;
@@ -28260,6 +30735,7 @@ var
   fpic: TFilePicture;
   FirstCell: Boolean;
   DeltaX,DeltaY: Integer;
+  c,r: Integer;
 
 begin
   gpio := TGridPropIO.Create(Self);
@@ -28272,7 +30748,7 @@ begin
   gsio := TGridSLIO.Create(Self);
   pio := TGridCellPropIO.Create(Self);
 
- 
+
   Stream.ReadComponent(gpio);
   gpio.Name := '';
 
@@ -28311,19 +30787,28 @@ begin
       FirstCell := False;
     end;
 
-    Cells[Point.X + cpio.Col - DeltaX,Point.Y + cpio.Row - DeltaY] := cpio.Cell;
+    c := Point.X + cpio.Col - DeltaX;
+    r := Point.Y + cpio.Row - DeltaY;
+
+    Cells[c,r] := cpio.Cell;
+
     if cpio.HasProp then
     begin
+      pio.CellProperties.Assign(CellProperties[c,r]);
+
       Stream.ReadComponent(pio);
       pio.Name := '';
-      
-      CellProperties[Point.X + cpio.Col - DeltaX,Point.Y + cpio.Row - DeltaY].Assign(pio.CellProperties);
+      pio.CellProperties.OwnerCol := c;
+      pio.CellProperties.OwnerRow := r;
+      CellProperties[c,r].Assign(pio.CellProperties);
 
       if pio.HasGraphic then
       begin
+        cgio.CellGraphic.CellText := '';
         Stream.ReadComponent(cgio);
+
         cgio.Name := '';
-        cg := CreateCellGraphic(Point.X + cpio.Col - DeltaX,Point.Y + cpio.Row - DeltaY);
+        cg := CreateCellGraphic(c,r);
         cg.Assign(cgio.CellGraphic);
 
         // it is guaranteed to be created, otherwise not saved
@@ -28387,7 +30872,7 @@ begin
           begin
             Stream.ReadComponent(gsio);
             gsio.Name := '';
-            il := TIntList.Create(Point.X + cpio.Col - DeltaX,Point.Y + cpio.Row - DeltaY);
+            il := TIntList.Create(c,r);
             il.StrValue := gsio.Strings.CommaText;
             {$IFNDEF TMSDOTNET}
             cg.CellBitmap := TBitmap(il);
@@ -28453,6 +30938,7 @@ begin
 
   gpio.RowCount := Rect.Bottom - Rect.Top + 1;
   gpio.ColCount := Rect.Right - Rect.Left + 1;
+
   if SaveFixedCells then
     gpio.FullGrid := (gpio.RowCount = RowCount) and (gpio.ColCount = ColCount)
   else
@@ -28500,68 +30986,69 @@ begin
         if HasProp then
         begin
           pio.CellProperties.Assign(CellProperties[i,j]);
-          pio.HasGraphic := (CellTypes[i,j] <> ctEmpty);
+
+          pio.HasGraphic := (CellTypes[i,j] <> ctEmpty) and
+                  (not ((CellTypes[i,j] in [ctBitmap,ctBitButton,ctPicture,ctFilePicture,ctImages,ctRadio,ctIcon])
+                   and not CellGraphics[i,j].CellCreated));
+
           Stream.WriteComponent(pio);
 
           if pio.HasGraphic then
           begin
-            if not ((CellTypes[i,j] in [ctBitmap,ctBitButton,ctPicture,ctFilePicture,ctImages,ctRadio,ctIcon])
-                   and not CellGraphics[i,j].CellCreated) then
-            begin
-              cgio.CellGraphic.Assign(CellGraphics[i,j]);
-              Stream.WriteComponent(cgio);
+            cgio.CellGraphic.CellText := '';
+            cgio.CellGraphic.Assign(CellGraphics[i,j]);
+            Stream.WriteComponent(cgio);
 
-              case CellTypes[i,j] of
-              ctBitmap,ctBitButton:
-                begin
-                  gbio.Bitmap.Assign(CellGraphics[i,j].CellBitmap);
-                  Stream.WriteComponent(gbio);
-                end;
-              ctIcon:
-                begin
-                  giio.Icon.Assign(CellGraphics[i,j].CellIcon);
-                  Stream.WriteComponent(giio);
-                end;
-              ctPicture:
-                begin
-                  {$IFNDEF TMSDOTNET}
-                  gtio.Picture.Assign(TPicture(CellGraphics[i,j].CellBitmap));
-                  {$ENDIF}
-                  {$IFDEF TMSDOTNET}
-                  gtio.Picture.Assign(CellGraphics[i,j].CellPicture);
-                  {$ENDIF}
-                  Stream.WriteComponent(gtio);
-                end;
-              ctFilePicture:
-                begin
-                  {$IFNDEF TMSDOTNET}
-                  gfio.Picture.Assign(TFilePicture(CellGraphics[i,j].CellBitmap));
-                  {$ENDIF}
-                  {$IFDEF TMSDOTNET}
-                  gfio.Picture.Assign(CellGraphics[i,j].CellFilePicture);
-                  {$ENDIF}
-                  Stream.WriteComponent(gfio);
-                end;
-              ctRadio:
-                begin
-                  {$IFNDEF TMSDOTNET}
-                  gsio.Strings.Assign(TStringList(CellGraphics[i,j].CellBitmap));
-                  {$ENDIF}
-                  {$IFDEF TMSDOTNET}
-                  gsio.Strings.Assign(CellGraphics[i,j].CellStrings);
-                  {$ENDIF}
-                  Stream.WriteComponent(gsio);
-                end;
-              ctImages:
-                begin
-                  {$IFNDEF TMSDOTNET}
-                  gsio.Strings.CommaText := TIntList(CellGraphics[i,j].CellBitmap).StrValue;
-                  {$ENDIF}
-                  {$IFDEF TMSDOTNET}
-                  gsio.Strings.CommaText := CellGraphics[i,j].CellList.StrValue;
-                  {$ENDIF}
-                  Stream.WriteComponent(gsio);
-                end;
+            case CellTypes[i,j] of
+            ctBitmap,ctBitButton:
+              begin
+                gbio.Bitmap.Assign(CellGraphics[i,j].CellBitmap);
+                Stream.WriteComponent(gbio);
+              end;
+            ctIcon:
+              begin
+                giio.Icon.Assign(CellGraphics[i,j].CellIcon);
+                Stream.WriteComponent(giio);
+              end;
+            ctPicture:
+              begin
+                {$IFNDEF TMSDOTNET}
+                gtio.Picture.Assign(TPicture(CellGraphics[i,j].CellBitmap));
+                {$ENDIF}
+                {$IFDEF TMSDOTNET}
+                gtio.Picture.Assign(CellGraphics[i,j].CellPicture);
+                {$ENDIF}
+                Stream.WriteComponent(gtio);
+              end;
+            ctFilePicture:
+              begin
+                {$IFNDEF TMSDOTNET}
+                gfio.Picture.Assign(TFilePicture(CellGraphics[i,j].CellBitmap));
+                {$ENDIF}
+                {$IFDEF TMSDOTNET}
+                gfio.Picture.Assign(CellGraphics[i,j].CellFilePicture);
+                {$ENDIF}
+                Stream.WriteComponent(gfio);
+              end;
+            ctRadio:
+              begin
+                {$IFNDEF TMSDOTNET}
+                gsio.Strings.Assign(TStringList(CellGraphics[i,j].CellBitmap));
+                {$ENDIF}
+                {$IFDEF TMSDOTNET}
+                gsio.Strings.Assign(CellGraphics[i,j].CellStrings);
+                {$ENDIF}
+                Stream.WriteComponent(gsio);
+              end;
+            ctImages:
+              begin
+                {$IFNDEF TMSDOTNET}
+                gsio.Strings.CommaText := TIntList(CellGraphics[i,j].CellBitmap).StrValue;
+                {$ENDIF}
+                {$IFDEF TMSDOTNET}
+                gsio.Strings.CommaText := CellGraphics[i,j].CellList.StrValue;
+                {$ENDIF}
+                Stream.WriteComponent(gsio);
               end;
             end;
           end;
@@ -28616,13 +31103,75 @@ begin
     SaveRectToBinStream(Rect(FixedCols,FixedRows,ColCount - 1, RowCount - 1), Stream);
 end;
 
+{$IFDEF DELPHI_UNICODE}
+procedure TAdvStringGrid.SaveToFile(FileName: String; Unicode: boolean = true);
+{$ENDIF}
+{$IFNDEF DELPHI_UNICODE}
 procedure TAdvStringGrid.SaveToFile(FileName: String);
+{$ENDIF}
 var
+  //f: TextFile;
   i,j,n: Integer;
   ss,CellText: string;
-  f: TextFile;
   nprogr,oprogr: Integer;
+  sl: TStringList;
 begin
+  sl := TStringList.Create;
+
+  oprogr := -1;
+
+  if FSaveHiddenCells then
+    n := FNumHidden
+  else
+    n := 0;
+
+  ss := IntToStr(SaveColCount+n) + ',' + IntToStr(SaveRowCount);
+
+  sl.Add(ss);
+
+  for i := SaveStartCol to SaveEndCol + n do
+  begin
+    ss := 'cw '+IntToStr(i) + ',' + IntToStr(ColWidths[i]);
+    sl.Add(ss);
+  end;
+
+  ExportNotification(esExportStart, -1);
+
+  for i := SaveStartRow to SaveEndRow do
+  begin
+    ExportNotification(esExportNewRow, i);
+    for j := SaveStartCol to SaveEndCol + n do
+    begin
+      CellText := SaveCell(j,i);
+      if CellText <> '' then
+      begin
+        ss := IntToStr(j) + ',' + IntToStr(i) + ',' + lftofile(CellText);
+        sl.Add(ss);
+      end;
+    end;
+
+    if Assigned(FOnFileProgress) then
+    begin
+      nprogr := Round(i/(Min(1,SaveRowCount-1))*100);
+      if nprogr <> oprogr then
+        FOnFileProgress(self,nprogr);
+      oprogr := nprogr;
+    end;
+  end;
+  ExportNotification(esExportDone, -1);
+
+  {$IFDEF DELPHI_UNICODE}
+  if Unicode then
+    sl.SaveToFile(FileName, TEncoding.Unicode)
+  else
+    sl.SaveToFile(FileName);
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
+  sl.SaveToFile(FileName);
+  {$ENDIF}
+  sl.Free;
+
+  (*
   AssignFile(f, FileName);
   {$i-}
   Rewrite(f);
@@ -28669,18 +31218,20 @@ begin
       oprogr := nprogr;
     end;
   end;
-  ExportNotification(esExportDone, -1);  
+  ExportNotification(esExportDone, -1);
   CloseFile(f);
+  *)
 end;
 
 procedure TAdvStringGrid.LoadFromFile(FileName: String);
 var
   X,Y,CW: Integer;
   ss,ss1:string;
-  f:TextFile;
+  //f:TextFile;
   strtCol,strtRow: Integer;
   nprogr,oprogr: Integer;
   seppos: Integer;
+  sl: TFileStringList;
 
   function MStrToInt(s:string): Integer;
   var
@@ -28691,6 +31242,77 @@ var
   end;
 
 begin
+  sl := TFileStringList.Create;
+
+  sl.LoadFromFile(FileName);
+
+  oprogr := -1;
+  StrtCol := FixedCols;
+  StrtRow := FixedRows;
+
+  if FSaveFixedCells then
+  begin
+    StrtCol := 0;
+    strtRow := 0;
+  end;
+
+  sl.ReadLn(ss);
+
+  if ss <> '' then
+  begin
+    ss1 := Copy(ss,1,CharPos(',',ss) - 1);
+    ColCount := MStrToInt(ss1) + StrtCol;
+    ss1 := Copy(ss,CharPos(',',ss) + 1,Length(ss));
+    RowCount := MStrToInt(ss1) + StrtRow;
+  end;
+
+  if (ColCount = 0) or (RowCount = 0) then
+  begin
+    sl.Free;
+    raise EAdvGridError.Create('File contains no data or corrupt file '+FileName);
+  end;
+
+  while not sl.Eof do
+  begin
+    sl.Readln(ss);
+
+    if Pos('cw',ss)=1 then {parse cw i,Width }
+    begin
+      seppos := CharPos(',',ss);
+      ss1 := Copy(ss,4,seppos - 4);
+      ss := Copy(ss,seppos + 1,255);
+      CW := MStrToInt(ss1);
+      if (cw >= 0) and (cw < ColCount) then
+        ColWidths[cw] := mstrtoint(ss);
+    end
+    else
+    begin
+      ss1 := GetToken(ss,',');
+      X := mStrToInt(ss1);
+      ss1 := GetToken(ss,',');
+      Y := mStrToInt(ss1);
+
+      if (X < ColCount) and (Y < RowCount) then
+      begin
+        LoadCell(X,Y,FileToLF(ss,FMultiLineCells));
+      end;
+
+      if Assigned(FOnFileProgress) then
+      begin
+        nprogr := Round(y / (RowCount - 1) * 100);
+        if nprogr <> oprogr then
+          FOnFileProgress(self,nprogr);
+        oprogr := nprogr;
+      end;
+      Application.ProcessMessages;
+    end;
+  end;
+
+  sl.Free;
+  CellsChanged(Rect(0,0,ColCount,RowCount));
+  CellsLoaded;
+
+(*
   AssignFile(f, FileName);
   {$i-}
   Reset(f);
@@ -28761,6 +31383,7 @@ begin
   CloseFile(f);
   CellsChanged(Rect(0,0,ColCount,RowCount));
   CellsLoaded;
+*)
 end;
 
 {$IFDEF ISDELPHI}
@@ -28785,23 +31408,38 @@ begin
 end;
 {$ENDIF}
 
+{$IFDEF DELPHI_UNICODE}
+procedure TAdvStringGrid.SaveToASCII(FileName: String; Unicode: boolean = true);
+begin
+  SaveToASCIIInt(FileName, false, Unicode);
+end;
+
+procedure TAdvStringGrid.AppendToASCII(FileName: String; Unicode: boolean = true);
+begin
+  SaveToASCIIInt(FileName, true, Unicode);
+end;
+{$ENDIF}
+
+{$IFNDEF DELPHI_UNICODE}
 procedure TAdvStringGrid.SaveToASCII(FileName: String);
 begin
-  SaveToASCIIInt(FileName, false);
+  SaveToASCIIInt(FileName, false, false);
 end;
 
 procedure TAdvStringGrid.AppendToASCII(FileName: String);
 begin
-  SaveToASCIIInt(FileName, true);
+  SaveToASCIIInt(FileName, true, false);
 end;
+{$ENDIF}
 
-procedure TAdvStringGrid.SaveToASCIIInt(FileName: String; AppendFile: boolean);
+
+procedure TAdvStringGrid.SaveToASCIIInt(FileName: String; AppendFile: boolean; Unicode: boolean);
 var
   sc,z,n: Integer;
   CellText,CellStr,str,alistr,remainingstr:string;
   i,rc: Integer;
   MultiLineList: TStringlist;
-  OutputFile:TextFile;
+  //OutputFile:TextFile;
   anotherlinepos: Integer;
   blanksfiller: String;
   blankscount,NeededLines: Integer;
@@ -28809,10 +31447,12 @@ var
   Colchars:array[0..MaxColumns] of byte;
   OldCursor: TCursor;
   StrtCol, StrtRow: integer;
-
+  sl: TFileStringList;
+  
 begin
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourGlass;
+  (*
   AssignFile(OutputFile,FileName);
 
   if AppendFile then
@@ -28837,6 +31477,14 @@ begin
     if ( ioResult<> 0) then
       EAdvGridError.Create('Cannot create file '+FileName);
   end;
+  *)
+
+  sl := TFileStringList.Create;
+
+  if AppendFile then
+    if FileExists(FileName) then
+      sl.LoadFromFile(FileName);
+
 
   if FSaveHiddenCells then
     n := FNumHidden
@@ -28946,9 +31594,9 @@ begin
         str := str + cellstr + blanksfiller;
       end;  {Column}
 
-      Writeln(OutputFile,Str);
+      sl.Writeln(Str);
       for i := 0 to MultiLineList.Count-1 do
-        Writeln(OutputFile, MultiLineList[i]);     {finally, add the extra lines for this Row}
+        sl.Writeln(MultiLineList[i]);     {finally, add the extra lines for this Row}
       MultiLineList.Clear;
 
     end;    {Row}
@@ -28956,14 +31604,37 @@ begin
   finally
     ColCount := ColCount - n;
     ExportNotification(esExportDone, -1);
-    CloseFile(OutputFile);
+
+    {$IFDEF DELPHI_UNICODE}
+    if Unicode then
+      sl.SaveToFile(FileName, TEncoding.Unicode)
+    else
+      sl.SaveToFile(FileName);
+    {$ENDIF}
+
+    {$IFNDEF DELPHI_UNICODE}
+    sl.SaveToFile(FileName);
+    {$ENDIF}
+    
+    sl.Free;
     Screen.Cursor := OldCursor;
   end;
 end;
 
-procedure TAdvStringGrid.SaveToHTML(Filename:string);
+procedure TAdvStringGrid.SaveToHTML(Filename:string; Show: boolean = false);
 begin
   OutputToHTML(Filename,False);
+
+  {$IFNDEF TMSDOTNET}
+  if Show then
+    ShellExecute(Application.Handle, 'open', PChar(FileName), nil, nil, SW_NORMAL);
+  {$ENDIF}
+  
+  {$IFDEF TMSDOTNET}
+  if Show then
+    ShellExecute(Application.Handle, 'open', FileName, '', '', SW_NORMAL);
+  {$ENDIF}
+
 end;
 
 procedure TAdvStringGrid.AppendToHTML(Filename:string);
@@ -28983,7 +31654,7 @@ var
   wraptxt,colwtxt,CellText,SpanTxt: string;
   DoneColW: Boolean;
   Span:TPoint;
-  AColorTo: TColor;
+  AColorTo,AMirrorColor,AMirrorColorTo: TColor;
   AState: TGridDrawState;
   HAlign: TAlignment;
   VAlign: TVAlignment;
@@ -29162,7 +31833,7 @@ begin
           Canvas.Font.Color := $7fffffff;
           Canvas.Font.Style := [];
 
-          GetVisualProperties(i,0,AState,False,False,True,Canvas.Brush,AColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
+          GetVisualProperties(i,0,AState,False,False,True,Canvas.Brush,AColorTo,AMirrorColor,AMirrorColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
 
           {
           afs := '';
@@ -29289,7 +31960,7 @@ begin
         Canvas.Font.Color := $7fffffff;
         Canvas.Font.Style := [];
 
-        GetVisualProperties(j,i,AState,False,False,True,Canvas.Brush,AColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
+        GetVisualProperties(j,i,AState,False,False,True,Canvas.Brush,AColorTo,AMirrorColor,AMirrorColorTo,Canvas.Font,HAlign,VAlign,WW,GD);
         {
         if (Canvas.Brush.Color <> $7fffffff) and FHTMLSettings.SaveColor then
            ac := ' bgcolor="#' + HTMLColor(dword(ColorToRGB(Canvas.Brush.Color))) + '"';
@@ -29650,7 +32321,7 @@ begin
   if IOResult <> 0 then
     raise EAdvGridError.Create('Cannot Create file '+FileName);
 
-  writeln(f,'<?xml version="1.0" encoding="ISO-8859-1" ?>');
+  writeln(f,'<?xml version="1.0" encoding="'+ FXMLEncoding +'" ?>');
   writeln(f,'<' + ListDescr + '>');
 
   ExportNotification(esExportStart, -1);
@@ -29680,17 +32351,10 @@ begin
           else
             write(f,'<FIELD' + IntToStr(j - SaveStartCol)+'>');
 
-          {$IFDEF DELPHI4_LVL}
           s := StringReplace(s,'&','$amp',[rfReplaceAll]);
           s := StringReplace(s,'>','&gt;',[rfReplaceAll]);
           s := StringReplace(s,'<','&lt;',[rfReplaceAll]);
           s := StringReplace(s,'"','&quot;',[rfReplaceAll]);
-          {$ELSE}
-          s := StringReplace(s,'&','$amp');
-          s := StringReplace(s,'>','&gt;');
-          s := StringReplace(s,'<','&lt;');
-          s := StringReplace(s,'"','&quot;');
-          {$ENDIF}
 
           write(f,s);
 
@@ -29844,7 +32508,8 @@ begin
           if pos(#13,ct) > 0 then
             ct := '"' + CRToLF(ct) + '"';
 
-          if not FNavigation.CopyHTMLTagsToClipboard and (Pos('</',ct) > 0) then
+          if not FNavigation.CopyHTMLTagsToClipboard and
+            ((Pos('</',ct) > 0) or (Pos('<B',ct) > 0) or (Pos('<I',ct) > 0)) then
           begin
             ct := StrippedCells[rc,z];
           end
@@ -29873,6 +32538,9 @@ begin
   Buffer := '';
   {$ENDIF}
 
+  {$IFDEF DELPHI_UNICODE}
+  len := len * 2;
+  {$ENDIF}
 
   //fill buffer and copy to clipboard
   try
@@ -29953,10 +32621,18 @@ begin
     end;
 
     {$IFNDEF TMSDOTNET}
+
+    {$IFDEF DELPHI_UNICODE}
+    Clipboard.AsText := buffer;
+    {$ENDIF}
+
+    {$IFNDEF DELPHI_UNICODE}
     ptr^ := #0;
     ClipBoard.SetTextBuf(buffer)
     {$ENDIF}
-
+    
+    {$ENDIF}
+    
     {$IFDEF TMSDOTNET}
     Clipboard.SetTextBuf(buffer);
     {$ENDIF}
@@ -29984,21 +32660,31 @@ begin
 
   if MouseActions.DisjunctRowSelect then
   begin
-    gd.Top := GetSaveStartRow;
-    gd.Left := GetSaveStartCol;
-    gd.Bottom := GetSaveEndRow;
-    gd.Right := GetSaveEndCol;
-    CopyFunc(gd,True);
-  end
-  else
-  begin
-    if MouseActions.DisjunctColSelect then
+    if Navigation.AllowFmtClipboard then
+      CopyFunc(Selection,False)
+    else
     begin
       gd.Top := GetSaveStartRow;
       gd.Left := GetSaveStartCol;
       gd.Bottom := GetSaveEndRow;
       gd.Right := GetSaveEndCol;
       CopyFunc(gd,True);
+    end;
+  end
+  else
+  begin
+    if MouseActions.DisjunctColSelect then
+    begin
+      if Navigation.AllowFmtClipboard then
+        CopyFunc(Selection,False)
+      else
+      begin
+        gd.Top := GetSaveStartRow;
+        gd.Left := GetSaveStartCol;
+        gd.Bottom := GetSaveEndRow;
+        gd.Right := GetSaveEndCol;
+        CopyFunc(gd,True);
+      end;
     end
     else
       CopyFunc(Selection,False);
@@ -30111,6 +32797,9 @@ begin
     else
       with Selection do
       begin
+        if Assigned(UndoRedo) then
+          UndoRedo.StartSequence;
+
         for s := Left to Right do
         begin
           rc := RealColIndex(s);
@@ -30120,6 +32809,9 @@ begin
               Cells[rc,z] := '';
             end;
         end;
+
+        if Assigned(UndoRedo) then
+          UndoRedo.StopSequence;
 
         if Navigation.AllowFmtClipboard then
           ClearPropRect(Left,Top,Right,Bottom);
@@ -30195,6 +32887,7 @@ var
   cstate: boolean;
 
 begin
+
   ImportNotification(isImportStart,-1);
 
   FPasteAll := false;
@@ -30215,6 +32908,8 @@ begin
   if (selsize = i - 1) then
     Exit;
 
+  PasteStart;
+    
   if ((i = 1) or (selsize = i - 1))  and
      ((Selection.Left <> Selection.Right) or
       (Selection.Top <> Selection.Bottom)) then
@@ -30246,6 +32941,8 @@ begin
           PasteNotify(FClipTopLeft, TGridRect(Rect(j,k,j,k)), coCopy);
         end;
   end;
+
+  PasteDone;
 
   if (i > 1) and
      ((Selection.Left = Selection.Right) or
@@ -30417,7 +33114,7 @@ begin
   CellsLoaded;
 end;
 
-{$IFDEF DELPHI4_LVL}
+
 {$IFNDEF TMSDOTNET}
 function TAdvStringGrid.PasteSize(p:PChar):TPoint;
 {$ENDIF}
@@ -30532,13 +33229,18 @@ begin
  {$ENDIF}
 
 end;
-{$ENDIF}
+
 
 procedure TAdvStringGrid.PasteInCell(ACol,ARow: Integer; Value: string);
 var
   rc: Integer;
 begin
   rc := RemapCol(ACol);
+
+  if Assigned(UndoRedo) then
+  begin
+    UndoRedo.RegisterChange(ACol,ARow,Cells[rc,ARow],Value);
+  end;
 
   if HasCheckBox(ACol,ARow) then
     SetCheckBoxState(ACol,ARow, Value = CheckTrue)
@@ -30602,6 +33304,9 @@ begin
   gr.Left := ACol;
   gr.Right := ACol;
   gr.Bottom := ARow;
+
+  if Assigned(UndoRedo) then
+    UndoRedo.StartSequence;
 
   repeat
     {$IFNDEF TMSDOTNET}
@@ -30731,7 +33436,7 @@ begin
     {$ENDIF}
 
     {$IFDEF TMSDOTNET}
-    if (length(p) > 0) and (p[1] <> #10) then
+    if (length(p) > 0) and (p[1] = #10) then
       Delete(p, 1, 1);
     {$ENDIF}
 
@@ -30774,6 +33479,9 @@ begin
 
   until cr = EndOfRow;
 
+  if Assigned(UndoRedo) then
+    UndoRedo.StopSequence;
+
   gr.Bottom := gr.Bottom - 1;
   gr.Right := gr.Right - 1;
 
@@ -30791,10 +33499,27 @@ procedure TAdvStringGrid.PasteNotify(orig:TPoint;gr:TGridRect;lastop:TClipOperat
 begin
 end;
 
+procedure TAdvStringGrid.PasteStart;
+begin
+
+end;
+
+procedure TAdvStringGrid.PasteDone;
+begin
+
+end;
+
+function TAdvStringGrid.DoAllowFmtPaste: boolean;
+begin
+  Result := FNavigation.AllowFmtClipboard;
+end;
 
 function TAdvStringGrid.PasteFunc(ACol,ARow: Integer): Integer;
 var
   {$IFNDEF TMSDOTNET}
+  {$IFDEF DELPHI_UNICODE}
+  ContentStr: string;
+  {$ENDIF}
   Content: PChar;
   DataPtr: Pointer;
   s: string;
@@ -30814,7 +33539,7 @@ begin
   Result := 0;
   Clipboard := TClipboard.Create;
 
-  if FNavigation.AllowFmtClipboard then
+  if DoAllowFmtPaste then
   begin
     OpenClipboard(Handle);
     cf_gridcells := RegisterClipboardformat('TAdvStringGrid Cells');
@@ -30824,7 +33549,7 @@ begin
     begin
       // this is the preferred format ??
       Clipboard.Open;
-
+      PasteStart;     
       Data := 0;
 
       try
@@ -30846,6 +33571,21 @@ begin
           MemStream.WriteBuffer(DataPtr^, GlobalSize(Data));
           {$ENDIF}
           MemStream.Position := 0;
+
+          if Navigation.AllowClipboardRowGrow or
+             Navigation.AllowClipboardColGrow then
+          begin
+            gpio := TGridPropIO.Create(self);
+            MemStream.ReadComponent(gpio);
+
+            if (ACol + gpio.ColCount >= ColCount) and Navigation.AllowClipboardColGrow then
+              ColCount := ACol + gpio.ColCount;
+
+            if (ARow + gpio.RowCount >= RowCount) and Navigation.AllowClipboardRowGrow then
+              RowCount := ARow + gpio.RowCount;
+
+            MemStream.Position := 0;
+          end;
 
           LoadAtPointFromBinStream(Point(ACol,ARow),MemStream);
 
@@ -30878,6 +33618,7 @@ begin
 
       Clipboard.Close;
       Clipboard.Free;
+      PasteDone;
       Exit;
     end;
   end;
@@ -30934,12 +33675,21 @@ begin
     {$ENDIF}
 
     {$IFNDEF TMSDOTNET}
+
+    {$IFDEF DELPHI_UNICODE}
+    ContentStr := Clipboard.AsText;
+    if ContentStr <> '' then
+      Result := PasteText(ACol,ARow,PChar(ContentStr));
+    {$ENDIF}
+
+    {$IFNDEF DELPHI_UNICODE}
     if Data <> 0 then
       Content := PChar(GlobalLock(Data))
     else
       Content := nil;
     if Content <> nil then
       Result := PasteText(ACol,ARow,Content);
+    {$ENDIF}
     {$ENDIF}
 
   finally
@@ -31157,8 +33907,7 @@ begin
       RowCount := er - sr + 1;
     end;
 
-    farray := VarArrayCreate([1,1 + ec - sc,1,1 + er - sr],varVariant);
-
+    //farray := VarArrayCreate([1,1 + ec - sc,1,1 + er - sr],varVariant);
     //rangestr:='A1:';
 
     rangestr := Chr(ord('A') - 1 + sc) + IntToStr(sr)+':';
@@ -31173,7 +33922,7 @@ begin
 
     rangestr := rangestr + IntToStr(er);
 
-    farray := FWorkSheet.Range[RangeStr].Value;
+    FArray := FWorkSheet.Range[RangeStr].Value;
 
     if FSaveFixedCells then
     begin
@@ -31559,14 +34308,15 @@ begin
   {$ENDIF}
 end;
 
-procedure TAdvStringGrid.OutputToCSV(FileName:String;appendmode: Boolean);
+procedure TAdvStringGrid.OutputToCSV(FileName:String;appendmode: Boolean; Unicode: boolean);
 var
-  f: TextFile;
+  //f: TextFile;
   z,s,n,rs: Integer;
   oprogr,nprogr: Integer;
   CellText: String;
   Delim: Char;
   dblquotes: Boolean;
+  sl: TFileStringList;
 
 begin
   oprogr := -1;
@@ -31581,6 +34331,7 @@ begin
   else
     Delim := FDelimiter;
 
+  (*
   AssignFile(f,FileName);
 
   if AppendMode then
@@ -31605,18 +34356,23 @@ begin
     {$i+}
     if IOResult<>0 then raise EAdvGridError.Create('Cannot Create file '+FileName);
   end;
+  *)
+
+  sl := TFileStringList.Create;
+  if AppendMode then
+    sl.LoadFromFile(FileName);
+
 
   ExportNotification(esExportStart, -1);
 
   for z := SaveStartRow to SaveEndRow do
   begin
-
     ExportNotification(esExportNewRow, z);
 
     for s := SaveStartCol to SaveEndCol + n do
     begin
       if s > SaveStartCol then
-        write(f,Delim);
+        sl.write(Delim);
 
       if FSaveHiddenCells then
         rs := s
@@ -31659,9 +34415,9 @@ begin
             LinefeedsToCSVNQ(CellText);
         end;
       end;
-      Write(f,CellText);
+      sl.Write(CellText);
     end;
-    Writeln(f);
+    sl.Writeln('');
 
     if Assigned(FOnFileProgress) then
     begin
@@ -31674,24 +34430,50 @@ begin
 
   ExportNotification(esExportDone, -1);
 
-  CloseFile(f)
+  {$IFDEF DELPHI_UNICODE}
+  if Unicode  then
+    sl.SaveToFile(FileName, TEncoding.Unicode)
+  else
+    sl.SaveToFile(FileName);
+  {$ENDIF}
+
+  {$IFNDEF DELPHI_UNICODE}
+  sl.SaveToFile(FileName);
+  {$ENDIF}
+  
+  sl.Free;
 end;
 
+{$IFDEF DELPHI_UNICODE}
+procedure TAdvStringGrid.SaveToCSV(FileName:String; Unicode: boolean = true);
+begin
+  OutputToCSV(FileName,False,Unicode);
+end;
+
+procedure TAdvStringGrid.AppendToCSV(FileName:String; Unicode: boolean = true);
+begin
+  OutputToCSV(FileName,True,Unicode);
+end;
+
+{$ENDIF}
+
+{$IFNDEF DELPHI_UNICODE}
 procedure TAdvStringGrid.SaveToCSV(FileName:String);
 begin
-  OutputToCSV(FileName,False);
+  OutputToCSV(FileName,False,False);
 end;
 
 procedure TAdvStringGrid.AppendToCSV(FileName:String);
 begin
-  OutputToCSV(FileName,True);
+  OutputToCSV(FileName,True,False);
 end;
+{$ENDIF}
 
-procedure TAdvStringGrid.InputFromCSV(Filename:string;insertmode: Boolean);
+procedure TAdvStringGrid.InputFromCSV(Filename:string;insertmode: Boolean;MaxRows: integer);
 var
   buffer,celltext: string;
   s,z: Integer;
-  f: TextFile;
+  //f: TextFile;
   strtCol,strtRow: Integer;
   c1,c2,cm: Integer;
   OldDelimiter: Char;
@@ -31699,7 +34481,9 @@ var
   delimiterpos,quotepos: Integer;
   oprogr,nprogr: Smallint;
   lr: TStringList;
-
+  NewRows: integer;
+  sl: TFileStringList;
+  
 begin
   StrtCol := FixedCols;
   StrtRow := FixedRows;
@@ -31710,6 +34494,7 @@ begin
     StrtRow := 0;
   end;
 
+  (*
   AssignFile(f, FileName);
   {$i-}
   Reset(f);
@@ -31717,6 +34502,10 @@ begin
 
   if (IOResult<>0) then
     raise EAdvGridError.Create('Cannot open file ' + FileName);
+  *)
+
+  sl := TFileStringList.Create;
+  sl.LoadFromFile(FileName);
 
   z := StrtRow;
 
@@ -31739,9 +34528,12 @@ begin
   if FDelimiter = #0 then
   begin
     CellText := '';
-    ReadLn(f,buffer);
-    if not Eof(f) then ReadLn(f,CellText);
-    Reset(f);
+
+    sl.ReadLn(buffer);
+
+    if not sl.Eof then sl.ReadLn(CellText);
+    sl.Reset;
+
     cm := 0;
     for s := 1 to 10 do
     begin
@@ -31784,34 +34576,39 @@ begin
 
   if Assigned(FOnFileProgress) then
   begin
-    Reset(f);
-
+    (*
+    sl.Reset;
     if not FLoadFirstRow then
-      ReadLn(f,buffer);
+      sl.ReadLn(buffer);
 
-    while not Eof(f) do
+    while not sl.Eof do
     begin
-      ReadLn(f,buffer);
+      sl.ReadLn(buffer);
       Inc(LineCount);
     end;
-
+    *)
     if InsertMode then
-      RowCount := RowCount + Linecount
+      RowCount := RowCount + sl.Count
     else
-      Rowcount := StrtRow + LineCount + FixedFooters;
+      Rowcount := StrtRow + sl.Count + FixedFooters;
   end;
 
-  Reset(f);
+  sl.Reset;
 
   oprogr := -1;
   LinePos := 0;
 
   if not FLoadFirstRow then
-    ReadLn(f,buffer);
+    sl.ReadLn(buffer);
 
-  while not Eof(f) do
+  NewRows := 0;
+
+  while (not sl.Eof) and ((MaxRows <= 0) or (NewRows < MaxRows)) do
   begin
-    ReadLn(f,buffer);
+    sl.ReadLn(buffer);
+
+    inc(NewRows);
+
     if FOemConvert then
       OemToString(Buffer);
 
@@ -31877,11 +34674,11 @@ begin
         CSVToLineFeeds(CellText);
 
       LoadCell(s,z,CellText);
-
-      Inc(s);
-      if s > ColCount then
-        ColCount := s;
     end;
+
+    Inc(s);
+    if s > ColCount then
+      ColCount := s;
 
     Inc(z);
 
@@ -31895,7 +34692,7 @@ begin
     end;
   end;
 
-  CloseFile(f);
+  sl.Free;
 
   RowCount := z + FixedFooters;
 
@@ -31912,14 +34709,14 @@ begin
 end;
 
 
-procedure TAdvStringGrid.LoadFromCSV(Filename:string);
+procedure TAdvStringGrid.LoadFromCSV(Filename:string; MaxRows: integer = -1);
 begin
-  InputFromCSV(Filename,False);
+  InputFromCSV(Filename,False,MaxRows);
 end;
 
-procedure TAdvStringGrid.InsertFromCSV(Filename:string);
+procedure TAdvStringGrid.InsertFromCSV(Filename:string; MaxRows: integer = -1);
 begin
-  InputFromCSV(FileName,True);
+  InputFromCSV(FileName,True,MaxRows);
 end;
 
 procedure TAdvStringGrid.SavetoStream(Stream: TStream);
@@ -31932,7 +34729,8 @@ var
   var
     buf:PChar;
     c: array[0..1] of char;
-    l: integer;
+    l,len: integer;
+
   {$ENDIF}
   {$IFDEF TMSDOTNET}
   var
@@ -31940,14 +34738,33 @@ var
   {$ENDIF}
   begin
   {$IFNDEF TMSDOTNET}
+
+    {$IFDEF DELPHI_UNICODE}
+    l := length(s) * 2;
+    len := l + 2;
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     l := length(s);
-    GetMem(buf,l + 1);
+    len := l + 1;
+    {$ENDIF}
+
+    GetMem(buf,len);
+
     Move(s[1],buf^,l);
     //StrPLCopy(buf,s,l);
+
     Stream.Writebuffer(buf^,l);
+
     c[0] := #13;
     c[1] := #10;
+
+    {$IFDEF DELPHI_UNICODE}
+    Stream.Writebuffer(c,4);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     Stream.Writebuffer(c,2);
+    {$ENDIF}
+
     FreeMem(buf);
   {$ENDIF}
 
@@ -32043,12 +34860,28 @@ begin
   ColCount := ColCount - nh;
 end;
 
-procedure TAdvStringGrid.LoadFromFixed(filename:string; positions:TIntList);
+{$IFNDEF TMSDOTNET}
+function compareInts(Item1 : Pointer; Item2 : Pointer) : Integer;
+begin
+  // We start by viewing the object pointers as TCustomer objects
+
+  if Integer(item1) > Integer(Item2) then
+    Result := 1
+  else
+    if Integer(item1) = Integer(Item2) then
+      Result := 0
+    else
+      Result := -1;
+end;
+{$ENDIF}
+
+
+procedure TAdvStringGrid.LoadFromFixed(filename:string; positions:TIntList; DoTrim: boolean = true; MaxRows: integer = -1);
 var
   f: TextFile;
   s,sub: string;
   c,r,i: Integer;
-
+  rc: integer;
 begin
   AssignFile(f, FileName);
   {$i-}
@@ -32059,7 +34892,13 @@ begin
 
   ColCount := FixedCols + Positions.Count - 1;
 
+  {$IFNDEF TMSDOTNET}
+  positions.Sort(@compareInts);
+  {$ENDIF}
+
   r := SaveStartRow;
+
+  rc := 1;
 
   while not Eof(f) do
   begin
@@ -32069,11 +34908,21 @@ begin
     for i := 2 to Positions.Count do
     begin
       sub := Copy(s,Positions.Items[i-2],Positions.Items[i-1] - Positions.Items[i-2]);
-      LoadCell(c,r,Trim(sub));
+      if DoTrim then
+        LoadCell(c,r,Trim(sub))
+      else
+        LoadCell(c,r,sub);
       Inc(c);
     end;
 
     Inc(r);
+
+    Inc(rc);
+
+    if (MaxRows <> -1) then
+      if rc > MaxRows then
+        break;
+      
 
     if (r >= RowCount) and not Eof(f) then
       RowCount := r + 1;
@@ -32097,10 +34946,23 @@ var
     s := '';
     while (Stream.Position < Stream.Size) and (c <> #13) do
     begin
+      {$IFDEF DELPHI_UNICODE}
+      Stream.Read(c,2);
+      {$ENDIF}
+      {$IFNDEF DELPHI_UNICODE}
       Stream.Read(c,1);
+      {$ENDIF}
       if (c <> #13) then s := s + c;
     end;
-    Stream.Read(c,1); {read the #10 newline marker}
+
+    //Stream.Read(c,1); {read the #10 newline marker}
+    {$IFDEF DELPHI_UNICODE}
+    Stream.Read(c,2);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
+    Stream.Read(c,1);
+    {$ENDIF}
+
     Result := Length(s);
   end;
 
@@ -32156,18 +35018,26 @@ begin
   CellsLoaded;
 end;
 
+function TAdvStringGrid.ColumnCustomCalc(ACol,FromRow,ToRow: Integer):Double;
+begin
+  Result := 0;
+  if Assigned(OnGroupCalc) then
+    OnGroupCalc(Self, ACol, FromRow, ToRow, Result);
+end;
+
 function TAdvStringGrid.ColumnSum(ACol,FromRow,ToRow: Integer):Double;
 var
   i,di: Integer;
   sum: Double;
   doh: Boolean;
+  cnt: boolean;
 begin
   sum := 0;
 
   if FloatingFooter.Visible then
     doh := ToRow > RowCount - 1
   else
-    doh := ToRow > RowCount;  
+    doh := ToRow > RowCount;
 
   ExportNotification(esExportStart, -1);
 
@@ -32179,7 +35049,11 @@ begin
     else
       di := i;
 
-    if not (not doh and  (IsNode(di) or IsSummary(di)) and (GroupColumn <> -1)) and IsBaseCell(ACol, di) then
+    cnt := not (IsNode(di) and not IsHiddenRow(i) and (GroupColumn <> -1))
+        and
+           not (IsSummary(di) and not IsHiddenRow(i) and (GroupColumn <> -1));
+
+    if cnt and IsBaseCell(ACol, di) then
     begin
       ExportNotification(esExportNewRow, i);
       try
@@ -32209,6 +35083,7 @@ var
   m: Double;
   i,di: Integer;
   doh: Boolean;
+  cnt: boolean;
 begin
   if FloatingFooter.Visible then
     doh := ToRow > RowCount - 1
@@ -32226,7 +35101,11 @@ begin
     else
       di := i;
 
-    if not (not doh and  (IsNode(di) or IsSummary(di)) and (GroupColumn <> -1)) and IsBaseCell(ACol, di) then
+    cnt := not (IsNode(di) and not IsHiddenRow(i) and (GroupColumn <> -1))
+        and
+           not (IsSummary(di) and not IsHiddenRow(i) and (GroupColumn <> -1));
+
+    if cnt and IsBaseCell(ACol, di) then
     begin
       ExportNotification(esExportNewRow, i);    
       try
@@ -32254,12 +35133,13 @@ var
   m: Double;
   i,di: Integer;
   doh: Boolean;
+  cnt: Boolean;
 begin
   if FloatingFooter.Visible then
     doh := ToRow > RowCount - 1
   else
     doh := ToRow > RowCount;
-      
+
 
   ExportNotification(esExportStart, -1);
   m := Floats[ACol,fromRow];
@@ -32270,7 +35150,11 @@ begin
     else
       di := i;
 
-    if not (not doh and  (IsNode(di) or IsSummary(di)) and (GroupColumn <> -1)) and IsBaseCell(ACol, di) then
+    cnt := not (IsNode(di) and not IsHiddenRow(i) and (GroupColumn <> -1))
+        and
+           not (IsSummary(di) and not IsHiddenRow(i) and (GroupColumn <> -1));
+
+    if cnt and IsBaseCell(ACol, di) then
     begin
       ExportNotification(esExportNewRow, i);
       try
@@ -32360,13 +35244,11 @@ begin
   ts := '';
   gr := Selection;
 
-  {$IFDEF DELPHI4_LVL}
   if (goRowSelect in Options) and (FDragDropSettings.FOleEntireRows) then
   begin
     gr.Left := 0;
     gr.Right := ColCount-1;
   end;
-  {$ENDIF}
 
   if FMouseActions.DisjunctRowSelect then
   begin
@@ -32558,7 +35440,7 @@ begin
   end;
 end;
 
-procedure TAdvStringGrid.AutoSizeColumns(const DoFixedCols: Boolean; const Padding: Integer);
+procedure TAdvStringGrid.AutoSizeColumns(const DoFixedCols: Boolean; const Padding: Integer = 4);
 var
   i,j: Integer;
 begin
@@ -32596,7 +35478,7 @@ begin
 
       GetCellColor(RCol,i,[],Canvas.Brush,Canvas.Font);
 
-      Canvas.Font.Size := Canvas.Font.Size + ZoomFactor;
+      Canvas.Font.Size := Canvas.Font.Size + FZoomFactor;
 
       TextW := GetCellTextSize(RCol,i,False).cx + CellGraphicSize[RCol,i].x;
 
@@ -32639,7 +35521,7 @@ begin
 
   for i := 0 to ColCount - 1 do
   begin
-    if not IsYMergedCell(i,ARow) then
+    if not IsYMergedCell(i,ARow) and not IsIgnoredColumn(i) then
     begin
       if (ARow < FixedRows) or (i < FixedCols) then
         Canvas.Font.Assign(FixedFont)
@@ -32648,7 +35530,7 @@ begin
 
       GetCellColor(i,ARow,[],Canvas.Brush,Canvas.Font);
 
-      Canvas.Font.Size := Canvas.Font.Size + ZoomFactor;
+      Canvas.Font.Size := Canvas.Font.Size + FZoomFactor;
 
       ts := GetCellTextSize(RemapCol(i),ARow,WordWrap).cy;
 
@@ -32715,7 +35597,7 @@ begin
   SizetoWidth(ACol,SizeGrowOnly);
 end;
 
-procedure TAdvStringGrid.AutoSizeRows(const DoFixedRows: Boolean; const Padding: Integer);
+procedure TAdvStringGrid.AutoSizeRows(const DoFixedRows: Boolean; const Padding: Integer = 0);
 var
   i,j: Integer;
 begin
@@ -32762,9 +35644,105 @@ begin
   SizetoHeight(ARow,SizeGrowOnly);
 end;
 
+procedure TAdvStringGrid.AutoFitColumns;
+var
+  ratio: real;
+  CurrW: integer;
+  ScrlW: integer;
+  ColW: integer;
+  BrdrW: integer;
+  LineW: integer;
+  UseW,RemW,ShareW: integer;
+  i, Largest: integer;
+
+begin
+  if (ScrollBarAlways <> saVert) and ((ScrollBars = ssNone) or (VisibleRowCount + FixedRows >= RowCount)) then
+    ScrlW := 0
+  else
+    ScrlW := GetSystemMetrics(SM_CXVSCROLL);
+
+  if BorderStyle = bsSingle then
+  begin
+    if Ctl3D then // border is sunken (vertical border is 2 pixels wide)
+      BrdrW := 4
+    else // border is one-dimensional (vertical border is one pixel wide)
+      BrdrW := 2;
+  end
+  else
+    BrdrW := 0;
+
+  LineW := 0;
+  if (goVertLine in Options) then
+    LineW := LineW + ((ColCount - (FixedCols + FixedRightCols)) * GridLineWidth);
+
+  if (goFixedVertLine in Options) then
+    LineW := LineW + FixedCols + FixedRightCols;
+
+
+  if ColCount > 1 then
+  begin
+    ColW := 0;
+    for i := 0 to ColCount - 1 do
+      ColW := ColW + ColWidths[i];
+
+    UseW := Width - (ScrlW + BrdrW + LineW);
+    ratio := UseW / ColW;
+
+    CurrW := 0;
+    if ColCount > 2 then
+    begin
+      for i := 0 to ColCount - 1 do
+        CurrW := CurrW + Round(ColWidths[i] * ratio);
+
+      ratio := CurrW / ColW;
+      for i := 0 to ColCount - 1 do
+        ColWidths[i] := Round(ColWidths[i] * ratio);
+    end
+    else
+    begin
+      for i := 0 to ColCount - 1 do
+        CurrW := CurrW + Round(ColWidths[i] * ratio);
+
+      ratio := CurrW / ColW;
+
+      for i := 0 to ColCount - 1 do
+        ColWidths[i] := Round(ColWidths[i] * ratio);
+    end;
+  end
+  else
+    ColWidths[0] := Width - (ScrlW + 5);
+
+  // Now check the sizing and adjust to make it fill the grid
+  ColW := 0;
+  for i := 0 to ColCount - 1 do
+    ColW := ColW + ColWidths[i];
+
+  RemW := Width - (ColW + ScrlW + BrdrW);
+
+  if RemW > ColCount then
+  begin
+    ShareW := RemW div ColCount;
+    RemW := RemW - (ShareW * ColCount);
+    for i := 0 to ColCount - 1 do
+    begin
+      ColWidths[i] := ColWidths[i] + ShareW;
+    end;
+  end;
+
+  // find the biggest column and dump the remainder into that
+  Largest := 0;
+  for i := 1 to ColCount - 1 do
+  begin
+    if ColWidths[i] > ColWidths[Largest] then
+      Largest := i;
+  end;
+  ColWidths[Largest] := ColWidths[Largest] + RemW;
+end;
+
+
 procedure TAdvStringGrid.SwapColumns(ACol1, ACol2: Integer);
 var
- cw: Integer;
+  cw,i: Integer;
 begin
   ColCount := ColCount + 1 + FNumHidden;
   Cols[ColCount - 1] := Cols[ACol1];
@@ -32779,11 +35757,24 @@ begin
   else
     if FSortSettings.Column = ACol2 then
       FSortSettings.Column := ACol1;
+
+  if (FControlList.Count > 0) then
+  begin
+    for i := 0 to FControlList.Count - 1 do
+    begin
+      if FControlList.Control[i].X = ACol1 then
+        FControlList.Control[i].X := ACol2
+      else
+        if FControlList.Control[i].X = ACol2 then
+          FControlList.Control[i].X := ACol1;
+    end;
+    CellControlsUpdate;
+  end;
 end;
 
 procedure TAdvStringGrid.SwapRows(ARow1, ARow2: Integer);
 var
- rh: Integer;
+ rh,i: Integer;
 begin
   RowCount := RowCount + 1;
   Rows[RowCount - 1] := Rows[ARow1];
@@ -32798,6 +35789,19 @@ begin
   rh := RowHeights[ARow1];
   RowHeights[ARow1] := RowHeights[ARow2];
   RowHeights[ARow2] := rh;
+
+  if (FControlList.Count > 0) then
+  begin
+    for i := 0 to FControlList.Count - 1 do
+    begin
+      if FControlList.Control[i].Y = ARow1 then
+        FControlList.Control[i].Y := ARow2
+      else
+        if FControlList.Control[i].Y = ARow2 then
+          FControlList.Control[i].Y := ARow1;
+    end;
+    CellControlsUpdate;
+  end;
 end;
 
 procedure TAdvStringGrid.SortSwapRows(ARow1, ARow2: Integer);
@@ -32864,9 +35868,7 @@ begin
     rs := RowModified[ARow1];
     RowModified[ARow1] := RowModified[ARow2];
     RowModified[ARow2] := rs;
-
   end;
-  
 
   if ARow1 = SortRow then
     SortRow := ARow2
@@ -32928,6 +35930,8 @@ procedure TAdvStringGrid.PrivatePrintPreviewRect(Canvas:TCanvas;displayrect:TRec
 var
   i: Integer;
   mm: Integer;
+  FPrintPageFrom, FPrintPageTo: integer;
+
 begin
   ExportNotification(esExportStart,-1);
   FPrintRect := Gridrect;
@@ -32940,12 +35944,22 @@ begin
     FPrintPageNum := i;
   end
   else
-    i:=1;
+    i := 1;
 
-  Prevrect := DisplayRect;
-  BuildPages(Canvas,prPreview,i,SelRows);
-  SetMapMode(Canvas.Handle,mm);
-  ExportNotification(esExportDone,-1);  
+  FPrintPageFrom := 1;
+  FPrintPageTo := i;
+
+  if Assigned(FOnPrintStart) then
+    FOnPrintStart(Self,i,FPrintPageFrom,FPrintPageTo);
+
+  if (FPrintPageFrom > 0) and (FPrintPageTo > 0) and (FPrintPageTo >= FPrintPageFrom) then
+  begin
+    Prevrect := DisplayRect;
+     BuildPages(Canvas,prPreview,i,SelRows);
+     SetMapMode(Canvas.Handle,mm);
+  end;
+  
+  ExportNotification(esExportDone,-1);
 end;
 
 procedure TAdvStringGrid.Print;
@@ -32994,7 +36008,7 @@ end;
 
 procedure TAdvStringGrid.PrivatePrintRect(Gridrect:TGridRect;SelRows: Boolean);
 var
-  i: Integer;
+  pages: Integer;
   mm: Integer;
 
 begin
@@ -33019,44 +36033,34 @@ begin
 
     // do not use printer canvas for calc
 
-    mm := 0;
-
     BeginDoc;
+    mm := GetMapMode(Canvas.Handle);
 
     if not FFastPrint then
     begin
       //BeginDoc;
-
-      mm := GetMapMode(Canvas.Handle);
       SetMapMode(Canvas.Handle,mm_lometric);
-      i := BuildPages(Canvas,prCalcPrint,-1,SelRows);
-
+      pages := BuildPages(Canvas,prCalcPrint,-1,SelRows);
       //Abort;
     end
     else
-      i := 1;
+      pages := MaxInt;
 
     FPrintPageFrom := 1;
-    FPrintPageTo := i;
-    FPrintPageNum := i;
+    FPrintPageTo := pages;
+    FPrintPageNum := pages;
 
     if Assigned(FOnPrintStart) then
     begin
       Abort;
-      FOnPrintStart(Self,i,FPrintPageFrom,FPrintPageTo);
+      
+      FOnPrintStart(Self,pages,FPrintPageFrom,FPrintPageTo);
+
+      if (FPrintPageFrom = 0) or (FPrintPageTo = 0) or (FPrintPageTo < FPrintPageFrom) then
+        Exit;
+
       BeginDoc;
-
-      if (FPrintPageFrom = 0) or (FPrintPageTo = 0) or
-        (FPrintPageTo < FPrintPageFrom) then
-        begin
-          if not FFastPrint then
-            SetMapMode(Canvas.Handle,mm);
-          Exit;
-        end;
-
     end;
-
-    //BeginDoc;
 
     FPrintPageNum := FPrintPageTo;
 
@@ -33065,7 +36069,7 @@ begin
 //    BeginDoc;
 //    mm := GetMapMode(Canvas.Handle);
 //    SetMapMode(Canvas.Handle,mm_lometric);
-    BuildPages(Canvas,prPrint,i,SelRows);
+    BuildPages(Canvas,prPrint,pages,SelRows);
 
     SetMapMode(Canvas.Handle,mm);
     EndDoc;
@@ -33427,7 +36431,7 @@ var
   spacing: Integer;
   Indent,topIndent,footIndent: Integer;
   AlignValue: TAlignment;
-  AColorTo: TColor;
+  AColorTo,AMirrorColor,AMirrorColorTo: TColor;
   fntvspace,fnthspace,fntlineHeight:word;
   OldFont,NewFont: TFont;
   OldBrush,NewBrush: TBrush;
@@ -33621,7 +36625,7 @@ var
 
     AState := [];
 
-    GetVisualProperties(Col,Row,AState,True,False,False,OldBrush,AColorTo,NewFont,HAlign,VAlign,WW,GD);
+    GetVisualProperties(Col,Row,AState,True,False,False,OldBrush,AColorTo,AMirrorColor,AMirrorColorTo,NewFont,HAlign,VAlign,WW,GD);
 
     Canvas.Font.Assign(NewFont);
     Canvas.Font.Height := MapFontHeight(NewFont.Size);
@@ -33666,9 +36670,8 @@ var
 
       r.Bottom := 50;
       DrawStyle := DT_CALCRECT or DT_WORDBREAK or DT_NOPREFIX;
-      {$IFDEF DELPHI4_LVL}
       DrawStyle := DrawTextBiDiModeFlags(DrawStyle);
-      {$ENDIF}
+
       {$IFNDEF TMSDOTNET}
       r.Bottom := DrawText(Canvas.Handle,PChar(s),Length(s),r,DrawStyle);
       {$ENDIF}
@@ -33874,7 +36877,7 @@ var
   var
     c,k,d,cn,swp,lit: Integer;
     th,thm,tb,yp,cr,ml,hl,i,di: Integer;
-    s,su,cs,Anchor,Stripped,FocusAnchor,AnchorHint:string;
+    s,su,cs,Anchor,Stripped,FocusAnchor,AnchorHint: string;
     tr,tp,rg,ir,hr,ctr: TRect;
     first: Integer;
     x1,x2,y1,y2: Integer;
@@ -33967,7 +36970,7 @@ var
       NewFont.Assign(Canvas.Font); // Copy everything except size, which is mapped into mm_lometric
       NewFont.Size := OrgSize;
 
-      GetVisualProperties(cn,ARow,AState,True,False,False,NewBrush,AColorTo,NewFont,HAlign,VAlign,WW,GD);
+      GetVisualProperties(cn,ARow,AState,True,False,False,NewBrush,AColorTo,AMirrorColor,AMirrorColorTo,NewFont,HAlign,VAlign,WW,GD);
 
       Canvas.Brush.Assign(NewBrush);
       Canvas.Font.Assign(NewFont);
@@ -34029,18 +37032,18 @@ var
         end
         else
         begin
-          LFont.lfEscapement:=Angle*10;
-          LFont.lfOrientation:=Angle*10;
+          LFont.lfEscapement := Angle * 10;
+          LFont.lfOrientation := Angle * 10;
         end;
 
         hNewFont := CreateFontIndirect(LFont);
         hOldFont := SelectObject(Canvas.Handle,hNewFont);
       end;
 
-      x1 := Abs(Trunc(tb * cos(Angle*Pi/180)));
-      x2 := Abs(Trunc(th * sin(Angle*Pi/180)));
-      y1 := Abs(Trunc(tb * sin(Angle*Pi/180)));
-      y2 := Abs(Trunc(th * cos(Angle*Pi/180)));
+      x1 := Abs(Trunc(tb * cos(Angle * Pi/180)));
+      x2 := Abs(Trunc(th * sin(Angle * Pi/180)));
+      y1 := Abs(Trunc(tb * sin(Angle * Pi/180)));
+      y2 := Abs(Trunc(th * cos(Angle * Pi/180)));
       th := y1 + y2;
 
       first := fntvspace;
@@ -34059,6 +37062,10 @@ var
 
         CGS.X := Round(CGS.X * ResFactor);
         CGS.Y := Round(CGS.Y * ResFactor);
+
+        // do not print actual cell text for a radiobutton cell
+        if cg.CellType = ctRadio then
+          s := '';
 
         case cg.CellHalign of
         haBeforeText:
@@ -34254,9 +37261,7 @@ var
 
             DrawStyle := DrawStyle or DT_WORDBREAK or DT_EDITCONTROL or DT_EXPANDTABS or DT_NOPREFIX;
 
-            {$IFDEF DELPHI4_LVL}
             DrawStyle := DrawTextBiDiModeFlags(DrawStyle);
-            {$ENDIF}
             {$IFNDEF TMSDOTNET}
             DrawText(Canvas.Handle,PChar(s),Length(s),tp,DrawStyle);
             {$ENDIF}
@@ -34401,17 +37406,20 @@ var
               DFS := DFS or DFCS_FLAT;
 
             rg.Bottom := rg.Top + Round(CellGraphicSize[cn,ARow].y * ResFactor);
+
             // Canvas.rectangle(rg.Left,rg.Top,rg.Right,rg.Bottom);
             GetCheckBoxState(cn,ARow,checkstate);
             if checkstate then
               DrawFrameControl(Canvas.Handle,rg,DFC_BUTTON, DFS or DFCS_CHECKED)
             else
               DrawFrameControl(Canvas.Handle,rg,DFC_BUTTON, DFS);
+
           end;
         ctRadio:
           begin
             rg.Bottom := rg.Top + Round(CellGraphicSize[cn,ARow].y * ResFactor);
 
+            (*
             {$IFDEF TMSDOTNET}
             SetLength(ap,2);
             ap[0] := rg.TopLeft;
@@ -34428,18 +37436,19 @@ var
 
             mm := GetMapMode(Canvas.Handle);
             SetMapMode(Canvas.Handle,MM_TEXT);
+            *)
 
             {$IFNDEF TMSDOTNET}
-            DrawRadio(Canvas, rg,GetRadioStrings(cn,ARow).Count,cg.CellIndex,cg.cellBoolean, false,
-                      TStringList(cg.cellbitmap), false, cn, ARow);
+            DrawRadio(Canvas, rg, GetRadioStrings(cn,ARow).Count,cg.CellIndex,cg.cellBoolean, false,
+                      TStringList(cg.cellbitmap), false, cn, ARow, csClassic, ResFactor, true);
             {$ENDIF}
 
             {$IFDEF TMSDOTNET}
             DrawRadio(Canvas, rg,GetRadioStrings(cn,ARow).Count,cg.CellIndex,cg.cellBoolean, false,
-                      cg.CellStrings, false, cn, ARow);
+                      cg.CellStrings, false, cn, ARow, csClassic, ResFactor, true);
             {$ENDIF}
 
-            SetMapMode(Canvas.Handle,mm);
+            //SetMapMode(Canvas.Handle,mm);
           end;
         ctButton,ctBitButton:
           begin
@@ -34449,6 +37458,10 @@ var
             }
           end;
         ctBitmap:AsgPrintBitmap(Canvas,rg,cg.CellBitmap);
+        ctComment:
+          begin
+
+          end;
         ctPicture:
           begin
             bmp := TBitmap.Create;
@@ -34685,6 +37698,9 @@ var
 
       GetCellPrintBorder(cn,ARow,Canvas.Pen,borders);
 
+      // adapt pen width for printout
+      Canvas.Pen.Width := round(Canvas.Pen.Width * resfactor);
+
       tr.Left := Indents[c];
       tr.Right := tr.Left + CDIM.X;
 
@@ -34881,7 +37897,12 @@ var
 
      if (HTMLHeader <> '') and HTMLTitle then
      begin
-       HTMLRect := Rect(Indent, -PrintSettings.FHeaderSize, xsize, -HeaderSize);
+
+       HTMLDrawEx(Canvas,HTMLHeader,HTMLRect,Gridimages,0,0,-1,0,1, False,True,True,False,True,False,True,False,
+                  HTMLFactor,FURLColor,clNone,clNone,clGray,Anchor,Stripped,FocusAnchor,AnchorHint,
+                  HTMLXSize,HTMLYSize,ml,hl,hr,cr,CID,CV,CT,FImageCache,FContainer,self.Handle);
+
+       HTMLRect := Rect(Indent, -PrintSettings.FHeaderSize, xsize, -HeaderSize - HTMLYSize);
 
        {$IFDEF TMSDOTNET}
        SetLength(ap,2);
@@ -35540,7 +38561,7 @@ var
 begin
   if not MouseActions.DisjunctCellSelect then
     FSelectedCells.Clear;
-     
+
   if (Selection.Left <> Selection.Right) or
      (Selection.Top <> Selection.Bottom) then
   begin
@@ -35558,6 +38579,17 @@ begin
         {$ENDIF}
       end;
     end;
+  end
+  else
+  begin
+    {$IFNDEF TMSDOTNET}
+    if FSelectedCells.IndexOf(Pointer(MakeLong(Col,Row))) = -1 then
+      FSelectedCells.Add(MakeLong(Col,Row));
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if FSelectedCells.IndexOf(TObject(MakeLong(Col,Row))) = -1 then
+      FSelectedCells.Add(MakeLong(Col,Row));
+    {$ENDIF}
   end;
 
   Result := FSelectedCells.Count;
@@ -35625,16 +38657,53 @@ begin
 end;
 
 function TAdvStringGrid.GetSelectedRowCount: integer;
+var
+  pt: TPoint;
 begin
-  Result := FSelectedRows.Count;
+  if MouseActions.DisjunctRowSelect then
+    Result := FSelectedRows.Count
+  else
+  begin
+    if IsMergedCell(Selection.Left, Selection.Top) then
+    begin
+      pt := CellSpan(Selection.Left, Selection.Top);
+      if pt.y + Selection.Top > Selection.Bottom then
+        Result := pt.y + 1
+      else
+        Result := Abs(Selection.Top - Selection.Bottom) + 1;
+    end
+    else
+      if IsMergedCell(Selection.Left, Selection.Bottom) then
+      begin
+        pt := CellSpan(Selection.Left, Selection.Bottom);
+        Result := Abs(Selection.Top - Selection.Bottom) + pt.y + 1;
+      end
+      else
+        Result := Abs(Selection.Top - Selection.Bottom) + 1;
+  end;
 end;
 
 function TAdvStringGrid.GetSelectedRow(i: Integer): Integer;
+var
+  ms,mx: integer;
 begin
-  if i < FSelectedRows.Count then
-    Result := FSelectedRows[i]
+  if MouseActions.DisjunctRowSelect then
+  begin
+    if i < FSelectedRows.Count then
+      Result := FSelectedRows[i]
+    else
+      Result := -1;
+  end
   else
-    Result := -1;
+  begin
+    ms := Min(Selection.Top, Selection.Bottom);
+    mx := Max(Selection.Top, Selection.Bottom);
+
+    if (ms + i <= mx) then
+      Result := ms + i
+    else
+      Result := -1;
+  end;
 end;
 
 procedure TAdvStringGrid.MouseDown(Button:TMouseButton; Shift:TShiftState; X,Y:Integer);
@@ -35642,18 +38711,21 @@ var
   XSelection: TGridRect;
   c,r: Integer;
   cr: TRect;
+  menu: TPopupMenu;
+  pt: TPoint;
+  keephighlighted: boolean;
+
 begin
   XSelection := Selection;
 
   MouseToCell(x,y,c,r);
 
-  if (MouseActions.RangeSelectAndEdit) and (Button = mbLeft) then
+  if (MouseActions.RangeSelectAndEdit) and (Button = mbLeft) and not MouseActions.EditOnDblClickOnly then
   begin
     if (Col = c) and (Row = r) and not (goEditing in Options) and IsEditAble(c,r) then
     begin
       Options := Options + [goEditing];
       inherited;
-
       ShowInplaceEdit;
       Exit;
     end;
@@ -35672,9 +38744,55 @@ begin
 
   FEditStart := false;
 
-  if not EqualRect(TRect(XSelection), TRect(Selection)) then
-    SelectionChanged(Selection.Left, Selection.Top,Selection.Right, Selection.Bottom);
+  if (c <> -1) and (r <> -1) then
+  begin
+    CR := CellRect(c,r);
 
+    if (X > CR.Right - 16) and HoverFixedCell(c,r) and (ControlLook.FixedDropDownButton) then
+    begin
+      FDropDownDown := true;
+      keephighlighted := false;
+
+      if (Assigned(FFixedDropDownMenu) or Assigned(FOnFixedDropDownClick)) then
+      begin
+        FNoMouseLeave := true;
+
+        menu := FFixedDropDownMenu;
+        if Assigned(Menu) then
+          menu.Tag := c;
+
+        if Assigned(FOnFixedDropDownClick) then
+          FOnFixedDropDownClick(Self, c, r, menu, keephighlighted);
+
+        if Assigned(Menu) then
+        begin
+          FMouseDownMove := false;
+          FHoverFixedX := c;
+          FHoverFixedY := r;
+          RepaintCell(c,r);
+
+          pt := ClientToScreen(point(CR.Right - 16, CR.Bottom));
+          Menu.Popup(pt.X, pt.Y);
+
+          FHoverFixedX := -1;
+          FHoverFixedY := -1;
+          RepaintCell(c,r);
+        end;
+
+        FNoMouseLeave := keephighlighted;
+        Exit;
+      end;
+    end;
+
+    if HoverFixedCell(c,r) and (ControlLook.FixedGradientDownFrom <> clNone) and (r = FixedRows - 1) then
+      RepaintCell(c,r);
+  end;
+(*
+  if not EqualRect(TRect(XSelection), TRect(Selection)) then
+  begin
+    SelectionChanged(Selection.Left, Selection.Top,Selection.Right, Selection.Bottom);
+  end;
+*)
   if (c >= 0) and (r >= 0) and ((c < FixedCols) or (r < FixedRows)) then
   begin
     if (MouseActions.FixedRowsEdit = fceLeftClick) and (Button = mbLeft) and (r < FixedRows) then
@@ -35726,7 +38844,17 @@ var
   pt: TPoint;
   CanSelect: Boolean;
 begin
+  if not EqualRect(TRect(XSelection), TRect(Selection)) then
+  begin
+    SelectionChanged(Selection.Left, Selection.Top,Selection.Right, Selection.Bottom);
+  end;
+
+  XSelection := Selection;
+
   MouseToCell(x,y,c,r);
+
+  FDropDownDown := false;
+
 
   if (x > Width) and (FGridState = gsColSIzing) then
   begin
@@ -35739,6 +38867,8 @@ begin
     FGridState := gsNormal;
     Exit;
   end;
+
+
 {
     if MouseActions.DisjunctRowSelect then
     begin
@@ -35808,6 +38938,15 @@ begin
             FSelectedCells.Clear;
             FSelectedCells.Add(MakeLong(pt.x,pt.y));
           end;
+    end
+    else
+    begin
+      if MouseActions.DisjunctCellSelect and not (ssCtrl in Shift) then
+      begin
+        FSelectedCells.Clear;
+        Repaint;
+      end;
+
     end;
 
     if (Selection.Left <> Selection.Right) or
@@ -35821,7 +38960,7 @@ begin
             FSelectedCells.Add(MakeLong(i,j));
         end;
       end;
-      
+
       for i := 1 to FSelectedCells.Count do
         RepaintCell(loword(FSelectedCells.Items[i - 1]),hiword(FSelectedCells.Items[i - 1]));
     end;
@@ -35829,26 +38968,40 @@ begin
     RepaintCell(c,r);
   end;
 
-
   if ((FGridState = gsColMoving) and (Button = mbRight)) then
     Exit
   else
     inherited;
 
+  if HoverFixedCell(c,r) and (ControlLook.FixedGradientDownFrom <> clNone) and (r = FixedRows - 1) then
+    RepaintCell(c,r);
+
 //  if not (FGridState = gsNormal) then
 //    inherited;
 
-
   if not EqualRect(TRect(XSelection), TRect(Selection)) then
+  begin
     SelectionChanged(Selection.Left, Selection.Top,Selection.Right, Selection.Bottom);
+  end;
 end;
 
 procedure TAdvStringGrid.CMMouseLeave(var Msg: TMessage);
+var
+  hx,hy: Integer;
 begin
   inherited;
 
   FSizeFixed := false;
   FSizeFixedR := false;
+
+  if not FNoMouseLeave and (FHoverFixedCells <> hfNone) and ((FHoverFixedX <> -1) or (FHoverFixedY <> -1)) then
+  begin
+    hx := FHoverFixedX;
+    hy := FHoverFixedY;
+    FHoverFixedX := -1;
+    FHoverFixedY := -1;
+    RepaintCell(hx,hy);
+  end;
 
   if (Look = glListView) then
   begin
@@ -35870,22 +39023,21 @@ var
   pt: TPoint;
   xsize,ysize,ml,hl: Integer;
   ctt: TTextType;
-  {$IFDEF DELPHI4_LVL}
   Allow: Boolean;
   dwEffects: Integer;
   {$IFNDEF TMSDOTNET}
   DropSource: TGridDropSource;
   {$ENDIF}
-  {$ENDIF}
   CID,CV,CT: string;
   OldSel,XSelection: TGridRect;
   cc,rc,offs,offsy: Integer;
   SmartResize: boolean;
-  irsel: Boolean;
+  irsel,allowmoving: Boolean;
+  {$IFDEF DELPHI6_LVL}
+  gr: TGridRect;
+  {$ENDIF}
 
 begin
-
-
   if FMouseDownMove and FMouseActions.RangeSelectAndEdit and (goEditing in Options) and not EditMode then
   begin
     Options := Options - [goEditing];
@@ -35903,13 +39055,31 @@ begin
     begin
       if not EqualRect(TRect(Selection),TRect(FSizeSelection)) then
       begin
-        Invalidate;
+        //Invalidate;
         FSizeSelection := Selection;
       end;
     end;
   end;
 
   MouseToCell(X,Y,ACol,ARow);
+
+  if (FHoverFixedCells <> hfNone) and not FNoMouseLeave then
+  begin
+    xsize := FHoverFixedX;
+    ysize := FHoverFixedY;
+    FHoverFixedX := ACol;
+    FHoverFixedY := ARow;
+
+    if ((ysize <= FixedRows) and (ysize >= 0)) or
+       ((xsize <= FixedCols) and (xsize >= 0)) then
+      if (xsize <> FHoverFixedX) or (ysize <> FHoverFixedY) then
+        RepaintCell(xsize,ysize);
+
+    if ((FHoverFixedY <= FixedRows) and (FHoverFixedY >= 0)) or
+       ((FHoverFixedX <= FixedCols) and (FHoverFixedX >= 0)) then
+      if (xsize <> FHoverFixedX) or (ysize <> FHoverFixedY) then
+        RepaintCell(FHoverFixedX, FHoverFixedY);
+  end;
 
   if (Look = glListView) then
   begin
@@ -36039,9 +39209,6 @@ begin
     end;
   end;
 
-
-
-  {$IFDEF DELPHI4_LVL}
   if FSelectionClick and (ACol >= 0) and (ARow >= 0) and
      ((Abs(ClickPosX - X) > 3) or (Abs(ClickPosY - Y) > 3)) and
      FDragDropSettings.FOleDropSource and not (FGridState = gsColsizing) and not SmartResize  then
@@ -36051,6 +39218,7 @@ begin
     ACol := RemapCol(ACol);
     if Assigned(FOnOleDrag) then
       FOnOleDrag(self,ARow,ACol,Cells[x,y],Allow);
+
     if Allow then
     begin
       {$IFNDEF TMSDOTNET}
@@ -36059,9 +39227,31 @@ begin
       if Assigned(FOnOleDragStart) then
         FOnOleDragStart(Self,ARow,ACol);
 
+      pt := ClientToScreen(point(x,y));
+
+      {$IFDEF DELPHI6_LVL}
+      if DragDropSettings.ShowCells then
+      begin
+        if not Assigned(MoveForm) then
+        begin
+          ShowSelection := false;
+
+          gr := TGridRect(Rect(Max(LeftCol,Selection.Left),Max(TopRow,Selection.Top),
+            Min(Selection.Right,LeftCol + VisibleColCount - 1 {- FixedCols}),Min(Selection.Bottom,TopRow + VisibleRowCount - 1{- FixedRows})));
+
+          MoveForm := SelectionToForm(gr);
+
+          ShowSelection := true;
+          MoveForm.Visible := true;
+        end;
+
+        MoveForm.Left := pt.X;
+        MoveForm.Top := pt.Y;
+      end;
+      {$ENDIF}
+
       if (ARow < FixedRows) and (ACol >= 0) and DragDropSettings.OleColumnDragDrop then
       begin
-        pt := ClientToScreen(point(x,y));
         MoveButton.Left := pt.x;
         MoveButton.Top := pt.y;
         MoveButton.Width := ColWidths[ACol];
@@ -36069,29 +39259,38 @@ begin
         MoveButton.Caption := Cells[ACol,ARow];
 
         case Look of
-        glXP:
+        glVista:
           begin
-            //MoveButton.GradFrom := clWhite;
-            //MoveButton.GradTo := ColorToRGB(clBtnFace);
             MoveButton.GradFrom := FTMSGradFrom;
             MoveButton.GradTo := FTMSGradTo;
+            MoveButton.GradMirrorFrom := FTMSGradMirrorFrom;
+            MoveButton.GradMirrorTo := FTMSGradMirrorTo;
+          end;
+        glXP:
+          begin
+            MoveButton.GradFrom := FTMSGradFrom;
+            MoveButton.GradTo := FTMSGradTo;
+            MoveButton.GradMirrorFrom := clNone;
+            MoveButton.GradMirrorTo := clNone;
           end;
         glTMS:
           begin
-            //FTMSGradFrom := clSilver;
-            //FTMSGradTo := clWhite;
             MoveButton.GradFrom := FTMSGradFrom;
             MoveButton.GradTo := FTMSGradTo;
+            MoveButton.GradMirrorFrom := clNone;
+            MoveButton.GradMirrorTo := clNone;
           end;
         else
         begin
           MoveButton.GradFrom := clNone;
           MoveButton.GradTo := clNone;
+          MoveButton.GradMirrorFrom := clNone;
+          MoveButton.GradMirrorTo := clNone;
         end;
         end;
 
         MoveButton.Visible := True;
-        MoveButton.Images := FGridImages;        
+        MoveButton.Images := FGridImages;
         SetWindowPos(MoveButton.Handle,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE);
 
         {$IFNDEF TMSDOTNET}
@@ -36143,7 +39342,7 @@ begin
     if FGridState = gsNormal then
       FGridState := gsSelecting;
   end;
- {$ENDIF}
+
 
 
   if not (csDesigning in Componentstate) then
@@ -36154,7 +39353,6 @@ begin
     if FGridState = gsRowSizing then
       RowSized := True;
 
-    {$IFDEF DELPHI4_LVL}
     if FGridState = gsColMoving then
     begin
       Allow := True;
@@ -36174,15 +39372,24 @@ begin
       if not Allow then
       begin
         FGridState := gsNormal;
-      end;  
+      end;
     end;
-    {$ENDIF}
 
     if (FGridState in [gsColMoving,gsRowMoving]) and
        ( (clickposx <> x) or (clickposy <> y)) and FEnhRowColMove and not FSizingFixed and not FSizingFixedR then
     begin
+      allowmoving := true;
+
       if (FGridState = gsColMoving) and (MoveCell >= FixedCols) and (ARow >= 0) then
       begin
+        {$IFDEF DELPHI6_LVL}
+        if not Assigned(MoveForm) and DragDropSettings.ShowCells then
+        begin
+          MoveForm := SelectionToForm(TGridRect(Rect(MoveCell,0,MoveCell,TopRow + VisibleRowCount - FixedRows)));
+          MoveForm.Visible := true;
+        end;
+        {$ENDIF}
+
         MoveButton.Caption := Cells[RemapCol(MoveCell),0];
         MoveButton.Width := ColWidths[MoveCell];
         MoveButton.Height := RowHeights[ARow];
@@ -36191,6 +39398,14 @@ begin
 
       if (FGridState = gsRowMoving) and (MoveCell >= FixedRows) and (ACol >= 0) then
       begin
+        {$IFDEF DELPHI6_LVL}
+        if not Assigned(MoveForm) and DragDropSettings.ShowCells then
+        begin
+          MoveForm := SelectionToForm(TGridRect(Rect(0, MoveCell, LeftCol + VisibleColCount - FixedCols, MoveCell)));
+          MoveForm.Visible := true;
+        end;
+        {$ENDIF}
+
         MoveButton.Caption := Cells[0,MoveCell];
         MoveButton.Height := RowHeights[MoveCell];
         MoveButton.Width := ColWidths[ACol];
@@ -36199,12 +39414,22 @@ begin
 
       pt := ClientToScreen(point(x - moveofsx,y - moveofsy));
 
-      MoveButton.Left := pt.x;
-      MoveButton.Top := pt.y;
+      if not DragDropSettings.ShowCells then
+      begin
+        MoveButton.Left := pt.x;
+        MoveButton.Top := pt.y;
+      end
+      else
+      begin
+        {$IFDEF DELPHI6_LVL}
+        MoveForm.Left := pt.x;
+        MoveForm.Top := pt.y;
+        {$ENDIF}
+      end;
 
-      {$IFDEF DELPHI3_LVL}
       if FGridState = gsColMoving then
       begin
+
         if (FMoveColInd >= FixedCols) and (FMoveColInd >= 0) and (ACol >= 0) then
         begin
           r := CellRect(FMoveColInd,0);
@@ -36231,6 +39456,9 @@ begin
 
         FMoveColInd := ACol;
         FMoveRowInd := 0;
+
+        if Assigned(FOnColumnMoving) then
+          FOnColumnMoving(Self, FMoveColInd, allowmoving);
       end;
 
       if FGridState = gsRowMoving then
@@ -36263,8 +39491,10 @@ begin
         ArwL.Visible :=(FMoveRowInd >= FixedRows) and (FMoveRowInd - TopRow < VisibleRowCount) ;
         FMoveColInd := 0;
         FMoveRowInd := ARow;
+
+        if Assigned(FOnRowMoving) then
+          FOnRowMoving(Self, FMoveRowInd, allowmoving);
       end;
-      {$ENDIF}
 
       if (FGridState = gsColMoving) and (VisibleColCount < ColCount) then
       begin
@@ -36303,12 +39533,21 @@ begin
       if not MoveButton.Visible then
       begin
         case Look of
+        glVista:
+          begin
+            MoveButton.GradFrom := FTMSGradFrom;
+            MoveButton.GradTo := FTMSGradTo;
+            MoveButton.GradMirrorFrom := FTMSGradMirrorFrom;
+            MoveButton.GradMirrorTo := FTMSGradMirrorTo;
+          end;
         glXP:
           begin
 //            MoveButton.GradFrom := clWhite;
 //            MoveButton.GradTo := ColorToRGB(clBtnFace);
             MoveButton.GradFrom := FTMSGradFrom;
             MoveButton.GradTo := FTMSGradTo;
+            MoveButton.GradMirrorFrom := clNone;
+            MoveButton.GradMirrorTo := clNone;
           end;
         glTMS:
           begin
@@ -36316,27 +39555,35 @@ begin
             //FTMSGradTo := clWhite;
             MoveButton.GradFrom := FTMSGradFrom;
             MoveButton.GradTo := FTMSGradTo;
+            MoveButton.GradMirrorFrom := clNone;
+            MoveButton.GradMirrorTo := clNone;
           end;
         else
         begin
           MoveButton.GradFrom := clNone;
           MoveButton.GradTo := clNone;
+          MoveButton.GradMirrorFrom := clNone;
+          MoveButton.GradMirrorTo := clNone;
         end;
         end;
 
-
-        MoveButton.Visible := True;
+        MoveButton.Visible := not DragDropSettings.ShowCells;
         MoveButton.Images := FGridImages;
-        // +++v2.02+++
+
         Windows.SetFocus(Parent.Handle);
-        // ---v2.02---
       end;
 
       if not MoveButton.Enabled then
         MoveButton.Enabled := True;
 
-      if Screen.Cursor <> crDrag then
-        Screen.Cursor := crDrag;
+
+        if not allowmoving then
+          Screen.Cursor := crNoDrop
+        else
+          Screen.Cursor := crDrag;
+
+      //if Screen.Cursor <> crDrag then
+      //  Screen.Cursor := crDrag;
     end;
 
     FMouseSelectMode := msNormal;
@@ -36487,9 +39734,31 @@ begin
   end;
   //---2.6.0.3
 
+  if ((FGridState = gsColSizing) or FSizingFixed) and Assigned(OnColumnSizing)  then
+  begin
+    if FSizingFixed then
+    begin
+      OnColumnSizing(Self, 0, FSizeFixedX);
+    end
+    else
+    begin
+      OnColumnSizing(Self, ColClicked, x - r.Left - ClickPosDx);
+    end;
+  end;
+
+  if ((FGridState = gsRowSizing) or FSizingFixedR) and Assigned(OnRowSizing)  then
+  begin
+    if FSizingFixedR then
+    begin
+      OnRowSizing(Self, 0, FSizeFixedY);
+    end
+    else
+    begin
+      OnRowSizing(Self, RowClicked, y - r.Top - ClickPosDy);
+    end;
+  end;
 
 
- {$IFDEF DELPHI3_LVL}
   if ((csDesigning in ComponentState) or FHintShowSizing) and
     ((FGridState = gsColSizing) or (FGridState = gsRowSizing) or FSizingFixed or FSizingFixedR)  then
   begin
@@ -36542,7 +39811,7 @@ begin
 
     pt := ClientToScreen(pt);
 
-    r := FScrollHintWnd.CalcHinTRect(200,s,Nil);
+    r := FScrollHintWnd.CalcHintRect(200,s,Nil);
     FScrollHintWnd.Caption := s;
     FScrollHintWnd.Color := self.HintColor;
 
@@ -36554,7 +39823,7 @@ begin
     FScrollHintWnd.ActivateHint(r,s);
     FScrollHintShow := True;
   end;
-  {$ENDIF}
+
 
   if FEnhRowColMove then
   begin
@@ -36562,7 +39831,9 @@ begin
   end;
 
   if not EqualRect(TRect(XSelection), TRect(Selection)) then
+  begin
     SelectionChanged(Selection.Left, Selection.Top,Selection.Right, Selection.Bottom);
+  end;
 end;
 
 procedure TAdvStringGrid.GridResize(Sender:tObject);
@@ -36608,9 +39879,11 @@ var
   CID,CV,CT: string;
   csize: TSize;
   ctt: TTextType;
+  ws: widestring;
 begin
-
   MouseToCell(HintInfo.CursorPos.x,HintInfo.CursorPos.y,Col,Row);
+
+  WideHintFontName := Font.Name;
 
   if (Col >= 0) and (Row >= 0) then
   begin
@@ -36619,6 +39892,18 @@ begin
     HintPos := CellRect(Col,Row);
 
     RCol := RemapCol(Col);
+
+    if IsComment(RCol,Row,HintStr) then
+    begin
+      HintInfo.HintPos.x := HintPos.Right;
+      HintInfo.HintPos.y := HintPos.Top;
+    end
+    else
+    begin
+      HintInfo.HintPos.x := HintPos.Left;
+      HintInfo.HintPos.y := HintPos.Bottom + 6;
+    end;
+
 
     if (TextType(Cells[RCol,Row],FEnableHTML) = ttHTML) and FAnchorHint then
     begin
@@ -36634,19 +39919,12 @@ begin
         if Assigned(FOnAnchorHint) then
           FOnAnchorHint(self,Row,RCol,AnchorHint);
         HintStr := AnchorHint;
+
+        HintInfo.HintPos.x := HintInfo.CursorPos.x + 8;
+        HintInfo.HintPos.y := HintInfo.CursorPos.y - 16;
       end;
     end;
 
-    if IsComment(RCol,Row,HintStr) then
-    begin
-      HintInfo.HintPos.x := HintPos.Right;
-      HintInfo.HintPos.y := HintPos.Top;
-    end
-    else
-    begin
-      HintInfo.HintPos.x := HintPos.Left;
-      HintInfo.HintPos.y := HintPos.Bottom+6;
-    end;
 
     {$IFDEF DELPHI3_LVL}
     if FHintShowCells and
@@ -36676,7 +39954,7 @@ begin
 
       ctt := TextType(Cells[RCol,Row],FEnableHTML);
       if ctt = ttUnicode then
-        HintStr := WideCells[RCol,Row]
+        HintStr := Cells[RCol,Row]
       else
         if HTMLHint then
           HintStr := Cells[RCol,Row]
@@ -36686,7 +39964,12 @@ begin
     {$ENDIF}
 
     if not (FloatingFooter.Visible and (Row = RowCount - 1)) then
-      GetCellHint(Col,Row,HintStr);
+      GetCellHint(Col,Row,HintStr, ws);
+
+    if (TextType(HintStr, true) in [ttUnicode, ttHTML]) then
+    begin
+      HintInfo.HintWindowClass := THTMLHintWindow;
+    end;
 
     HintInfo.HintPos := ClientToScreen(HintInfo.HintPos);
   end;
@@ -36781,7 +40064,6 @@ begin
   SetBounds(Left,Top,Width,Height);
 end;
 
-{$IFDEF DELPHI4_LVL}
 procedure TAdvStringGrid.CalcSizingState(X, Y: Integer; var State: TGridState;
   var Index: Integer; var SizingPos, SizingOfs: Integer;
   var FixedInfo: TGridDrawInfo);
@@ -36791,7 +40073,7 @@ var
 begin
   inherited;
   MouseToCell(x - 6,y,cx,cy);
-  if cy < FixedRows then
+  if (cy < FixedRows) and (cx >= 0) then
   begin
     Allow := True;
     if Assigned(FOnColumnSize) then
@@ -36820,7 +40102,6 @@ begin
   end;
 
 end;
-{$ENDIF}
 
 function TAdvStringGrid.HiddenRow(j: Integer):TStrings;
 var
@@ -37053,6 +40334,17 @@ begin
   AllCells[i,j] := EncodeWideStr(Value);
 end;
 
+function TAdvStringGrid.GetAllGraphicsObject(i,j: integer): TObject;
+begin
+  if IsHiddenRow(j) then
+    Result := HiddenRow(j).Objects[i]
+  else
+  begin
+    j := RemapRow(j);
+    Result := GridObjects[i,j];
+  end;
+end;
+
 function TAdvStringGrid.GetObjectsEx(i,j: Integer):TObject;
 var
   CO: TObject;
@@ -37125,7 +40417,7 @@ begin
     inc(FNumCellControls);
   end;
 
-  FControlList.AddControl(i,j,AControl);
+  FControlList.AddControl(i,realrowindex(j),AControl);
 
   CellProperties[i,j].Control := AControl;
   r := CellRect(i,j);
@@ -37136,7 +40428,8 @@ end;
 procedure TAdvStringGrid.SetColors(i,j: Integer;AColor: TColor);
 begin
   CellProperties[i,j].BrushColor := AColor;
-  RepaintCell(DisplColIndex(i),j);
+  if FUpdateCount = 0 then
+    RepaintCell(DisplColIndex(i),j);
 end;
 
 procedure TAdvStringGrid.SetRowColor(i: Integer;AColor: TColor);
@@ -37326,6 +40619,18 @@ begin
   Invalidate;
 end;
 
+procedure TAdvStringGrid.SetTMSGradMirrorFrom(const Value: TColor);
+begin
+  FTMSGradMirrorFrom := ColorToRGB(Value);
+  Invalidate;
+end;
+
+procedure TAdvStringGrid.SetTMSGradMirrorTo(const Value: TColor);
+begin
+  FTMSGradMirrorTo := ColorToRGB(Value);
+  Invalidate;
+end;
+
 function TAdvStringGrid.GetAllColCount: Integer;
 begin
   Result := ColCount + NumHiddenColumns;
@@ -37342,25 +40647,27 @@ var
   i: Integer;
 begin
 
-  if ZoomFactor + x > 10 then
+  if FZoomFactor + x > 10 then
     Exit;
-  if ZoomFactor + x < -10 then
+  if FZoomFactor + x < -10 then
     Exit;
 
   FScrollLock := true;
 
-  Zoomfactor := ZoomFactor + x;
+  FZoomfactor := FZoomFactor + x;
 
   for i := 0 to ColCount - 1 do
   begin
-    if ColWidths[i] + x > 0 then
-      ColWidths[i] := ColWidths[i] + x;
+    if ColWidths[i] > 0 then
+      if ColWidths[i] + x > 0 then
+        ColWidths[i] := ColWidths[i] + x;
   end;
 
   for i := 0 to RowCount - 1 do
   begin
-    if RowHeights[i] + x > 0 then
-      RowHeights[i] := RowHeights[i] + x;
+    if RowHeights[i] > 0 then    
+      if RowHeights[i] + x > 0 then
+        RowHeights[i] := RowHeights[i] + x;
   end;
 
   FScrollLock := false;
@@ -37387,7 +40694,8 @@ begin
 
   ARect := Rect(0,0,FocusBmp.Width,FocusBmp.Height);
   with wheelpanpos do
-  BRect:=Rect(x,y,x + FocusBmp.Width,y + FocusBmp.Height);
+    BRect:=Rect(x,y,x + FocusBmp.Width,y + FocusBmp.Height);
+    
   BRect:=Rect(0,0,FocusBmp.Width,FocusBmp.Height);
 
   TmpBmp := TBitmap.Create;
@@ -37434,8 +40742,44 @@ var
   i: Integer;
   {$ENDIF}
   FOldSelection: TGridRect;
+  delta: integer;
+  Res: integer;
+
 begin
+  if Message.Msg = WM_DESTROY then
+  begin
+    {$IFDEF TMSUNICODE}
+    if not (csDesigning in ComponentState) and Assigned(ComboUni) then
+      if Assigned(ComboUni.Items) then
+         ComboUni.Items.Clear;
+    {$ENDIF}
+    {$IFNDEF TMSDOTNET}
+    if FOleDropTargetAssigned then
+      RevokeDragDrop(self.Handle);
+    {$ENDIF}
+    KillTimer(Handle,FGridTimerID);
+  end;
+  if (csDestroying in ComponentState) then
+  begin
+    inherited;
+    Exit;
+  end;
+
   FOldSelection := Selection;
+
+  if Message.Msg = WM_GRIDEDITDONE then
+  begin
+    if Assigned(FOnEditCellDone) then
+      FOnEditCellDone(Self, Message.wparam, Message.Lparam);
+
+    if MouseActions.EditOnDblClickOnly then
+    begin
+      HideInplaceEdit;
+      EditMode := false;
+      Options := Options - [goEditing];
+    end;
+
+  end;
 
   if Message.Msg = WM_CANCELMODE then // cancel enh. col/row moving operation
   begin
@@ -37490,7 +40834,6 @@ begin
     begin
       // v3.2.2.9 : prevent disappearing of caret
       SendMessage(NormalEdit.Handle, WM_SETREDRAW, Integer(false),0);
-
       if not FEditStart and EditMode then
 
         case EditControl of
@@ -37586,21 +40929,17 @@ begin
   if (Message.Msg = WM_COMMAND) and
      (Message.WParamHi = CBN_CLOSEUP) and (Message.LParam = Integer(EditCombo.Handle)) then
   begin
+
+    if MouseActions.DirectComboClose then
+    begin
+      EditCombo.Text := EditCombo.Items[EditCombo.ItemIndex];
+      HideInplaceEdit;
+    end;
+
     if Assigned(FOnComboCloseUp) then
       FOnComboCloseUp(Self,Row,RealColIndex(Col));
   end;
 
-  if Message.Msg = WM_DESTROY then
-  begin
-    {$IFDEF DELPHI4_LVL}
-    {$IFNDEF TMSDOTNET}
-    if FOleDropTargetAssigned then
-      RevokeDragDrop(self.Handle);
-    {$ENDIF}
-    {$ENDIF}
-
-    KillTimer(Handle,FGridTimerID);
-  end;
 
   if (Message.Msg = WM_COMMAND) and
      (Message.wparamhi = CBN_EDITCHANGE) then
@@ -37647,33 +40986,78 @@ begin
     if Col < FixedCols then
       Col := FixedCols;
 
-    if (Col > FixedCols) and (xinc = -1) then
+    if (MouseActions.WheelAction = waMoveSelection) then
     begin
-      if (Col + xinc < LeftCol) or (Col + xinc >= LeftCol + VisibleColCount) then
-        EraseIntelliFocusPoint;
-      Col := Col + xinc;
-    end;
-    if (Col < ColCount - FixedRightCols - 1) and (xinc=1) then
-    begin
-      if (Col + xinc < LeftCol) or (Col + xinc >= LeftCol + VisibleColCount) then
-        EraseIntelliFocusPoint;
-      Col := Col + xinc;
-    end;
+      if (Col > FixedCols) and (xinc = -1) then
+      begin
+        if (Col + xinc < LeftCol) or (Col + xinc >= LeftCol + VisibleColCount) then
+          EraseIntelliFocusPoint;
 
-    if (Row > FixedRows) and (yinc = -1) then
-    begin
-      if (Row + yinc < TopRow) or (Row + yinc >= TopRow + VisibleRowCount) then
-        EraseIntelliFocusPoint;
-      if Row + yinc >= 0 then
-        Row := Row + yinc;
-    end;
+        if Col + xinc >= FixedCols then
+          Col := Col + xinc;
+      end;
 
-    if (Row < RowCount - FixedFooters-1) and (yinc = 1) then
+      if (Col < ColCount - FixedRightCols - 1) and (xinc=1) then
+      begin
+        if (Col + xinc < LeftCol) or (Col + xinc >= LeftCol + VisibleColCount) then
+          EraseIntelliFocusPoint;
+
+        if (Col + xinc <= ColCount - 1) then
+          Col := Col + xinc;
+      end;
+
+      if (Row > FixedRows)  and (yinc = -1) then
+      begin
+        if (Row + yinc < TopRow) or (Row + yinc >= TopRow + VisibleRowCount) then
+          EraseIntelliFocusPoint;
+
+        if Row + yinc >= 0 then
+          Row := Row + yinc;
+      end;
+
+      if (Row < RowCount - FixedFooters-1) and (yinc = 1) then
+      begin
+        if (Row + yinc < TopRow) or (Row + yinc >= TopRow + VisibleRowCount) then
+          EraseIntelliFocusPoint;
+
+        if Row + yinc <= RowCount - 1 then
+          Row := Row + yinc;
+      end;
+    end
+    else
     begin
-      if (Row + yinc < TopRow) or (Row + yinc >= TopRow + VisibleRowCount) then
+      if (LeftCol > FixedCols) and (xinc = -1) then
+      begin
         EraseIntelliFocusPoint;
-      if Row + yinc <= RowCount-1 then
-        Row := Row + yinc;
+
+        if LeftCol + xinc >= FixedCols then
+          LeftCol := LeftCol + xinc;
+      end;
+
+      if (LeftCol < ColCount - VisibleColCount) and (xinc=1) then
+      begin
+        EraseIntelliFocusPoint;
+
+        if LeftCol + xinc <= ColCount - VisibleColCount then
+          LeftCol := LeftCol + xinc;
+      end;
+
+      if (TopRow > FixedRows)  and (yinc = -1) then
+      begin
+        EraseIntelliFocusPoint;
+
+        if TopRow + yinc >= FixedRows then
+          TopRow := TopRow + yinc;
+      end;
+
+      if (TopRow < RowCount - VisibleRowCount) and (yinc = 1) then
+      begin
+        EraseIntelliFocusPoint;
+
+        if TopRow + yinc <= RowCount - VisibleRowCount then
+          TopRow := TopRow + yinc;
+      end;
+
     end;
 
     if cursid = 8000 then
@@ -37684,7 +41068,9 @@ begin
     DrawIntelliFocusPoint;
 
     if not EqualRect(TRect(FOldSelection), TRect(Selection)) then
+    begin
       SelectionChanged(Selection.Left, Selection.Top, Selection.Right, Selection.Bottom);
+    end;
   end;
 
   if (Message.msg = WM_MBUTTONDOWN) and (wheelmsg > 0) and
@@ -37717,91 +41103,118 @@ begin
 
   if (message.msg = wheelmsg) and (wheelmsg > 0) and not wheelpan then //intellimouse event here
   begin
-    if (GetKeystate(VK_CONTROL) and $8000 = $8000) and FIntelliZoom then
-    begin  //zoom
-      if message.wparam < 0 then
-        Zoom(wheelscrl)
-      else
-        Zoom(-wheelscrl);
-    end
-    else
-    if FEnableWheel then
-    begin //normal scrolling
-      if FixedRowAlways and (RowCount = 1) then
-        Exit;
+    Res := 0;
+    // allow for processing by the parent
+    if Parent <> nil then
+      with TMessage(Message) do
+        Res := Parent.Perform(CM_MOUSEWHEEL, WParam, LParam);
 
-      nr := Row;
-
-      if MouseActions.WheelIncrement > 0 then
-        wi := MouseActions.WheelIncrement
-      else
-        wi := wheelscrl;
-
-      if MouseActions.WheelAction = waMoveSelection then
-      begin
-        if (message.wparam < 0) then
-          nr := Row + wi
+    if Res = 0 then
+    begin
+      if (GetKeystate(VK_CONTROL) and $8000 = $8000) and FIntelliZoom then
+      begin  //zoom
+        if message.wparam < 0 then
+          Zoom(wheelscrl)
         else
-          nr := Row - wi;
+          Zoom(-wheelscrl);
       end
       else
-      begin
-        if (message.wparam < 0) then
+      if FEnableWheel then
+      begin //normal scrolling
+        if FixedRowAlways and (RowCount = 1) then
+          Exit;
+
+        nr := Row;
+
+        if MouseActions.WheelIncrement > 0 then
+          wi := MouseActions.WheelIncrement
+        else
+          wi := wheelscrl;
+
+        if MouseActions.WheelAction = waMoveSelection then
         begin
-          if (TopRow < RowCount - VisibleRowCount) and (TopRow + wi >= FixedRows) then
-            TopRow := TopRow + wi;
+          if (message.wparam < 0) then
+            nr := Row + wi
+          else
+            nr := Row - wi;
         end
         else
         begin
-          if (TopRow > FixedRows) and (TopRow - wi >= FixedRows) then
-            TopRow := TopRow - wi;
-        end;
-      end;
-
-      if (nr < FixedRows) then
-        nr := FixedRows;
-      if nr > RowCount - FixedFooters - 1 then
-        nr := RowCount - FixedFooters - 1;
-
-      if (Col > ColCount - 1) then
-        Col := ColCount - 1;
-      if Col < FixedCols then
-        Col := FixedCols;
-
-      lc := LeftCol;
-
-      if (nr < RowCount) and (nr >= 0) then
-      begin
-        StartUpdate;
-        Row := nr;
-
-        // what when selection is not accepted ...
-        if (Row <> nr) then
-        begin
-          Row := Row + round((nr - Row) /2);
-
-          if message.wparam > 0 then
+          if (message.wparam < 0) then
           begin
-            if TopRow > FixedRows then
-              TopRow := TopRow - 1;
+            if (TopRow < RowCount - VisibleRowCount) and (TopRow + wi >= FixedRows) then
+              TopRow := TopRow + wi;
+          end
+          else
+          begin
+            if TopRow - wi < FixedRows then
+              wi := TopRow - FixedRows;
+
+            if (TopRow > FixedRows) and (TopRow - wi >= FixedRows) then
+              TopRow := TopRow - wi;
           end;
         end;
 
-        if (goRowSelect in Options) and Navigation.KeepHorizScroll then
-          LeftCol := lc;
-         
-        ResetUpdate;
+        if (nr < FixedRows) then
+          nr := FixedRows;
+        if nr > RowCount - FixedFooters - 1 then
+          nr := RowCount - FixedFooters - 1;
+
+        if (Col > ColCount - 1) then
+          Col := ColCount - 1;
+        if Col < FixedCols then
+          Col := FixedCols;
+
+        lc := LeftCol;
+        delta := 0;
+
+        if (nr < RowCount) and (nr >= 0) then
+        begin
+          StartUpdate;
+
+          delta := nr - Row;
+
+          Row := nr;
+
+          // what when selection is not accepted ...
+          if (Row <> nr) then
+          begin
+            Row := Row + round((nr - Row) /2);
+
+            if message.wparam > 0 then
+            begin
+              if TopRow > FixedRows then
+                TopRow := TopRow - 1;
+            end;
+          end;
+
+          if (goRowSelect in Options) and Navigation.KeepHorizScroll then
+            LeftCol := lc;
+
+          ResetUpdate;
+        end;
+
+        if (MouseActions.WheelIncrement <> 0) then
+        begin
+          Message.Result := 1;
+          DirectWheelChange(delta);
+        end;
+
+        if not EqualRect(TRect(FOldSelection), TRect(Selection)) then
+        begin
+          SelectionChanged(Selection.Left, Selection.Top, Selection.Right, Selection.Bottom);
+        end;
       end;
-
-      Message.Result := 1;
-
-      if not EqualRect(TRect(FOldSelection), TRect(Selection)) then
-        SelectionChanged(Selection.Left, Selection.Top, Selection.Right, Selection.Bottom);
 
       //Exit;
     end;
   end;
   inherited;
+end;
+
+procedure TAdvStringGrid.DirectWheelChange(delta: integer);
+begin
+  //
 end;
 
 {$IFDEF DELPHI5_LVL}
@@ -37900,10 +41313,12 @@ begin
   end;
 end;
 
-procedure TAdvStringGrid.DoneEditing;
+procedure TAdvStringGrid.DoneEditing(ACol,ARow: integer);
 begin
   if Assigned(FOnEditingDone) then
     FOnEditingDone(Self);
+
+  PostMessage(Handle, WM_GRIDEDITDONE,ACol,ARow);
 
   if SearchFooter.Visible then
   begin
@@ -37911,9 +41326,7 @@ begin
     FSearchPanel.FEdit.Width := FSearchPanel.FEdit.Width + 1;
     FSearchPanel.FEdit.Width := FSearchPanel.FEdit.Width - 1;
   end;
-   
 end;
-
 
 procedure TAdvStringGrid.DoneInplaceEdit(Key:word; Shift: TShiftState);
 var
@@ -37952,14 +41365,11 @@ begin
 
   for i := 1 to FControlList.Count do
   begin
-
     ci := FControlList.Control[i - 1];
 
     // ci has the absolute cell index
     if IsHiddenRow(ci.Y) or IsHiddenColumn(ci.X) then
-    begin
       ci.Control.Visible := false;
-    end;
 
     pt.X := RemapCol(ci.X);
     pt.Y := RemapRow(ci.Y);
@@ -37988,7 +41398,7 @@ begin
         if Assigned(ctrl) then
         begin
           r := CellRect(pt.X,pt.Y);
-          ctrl.SetBounds(r.Left,r.Top,r.Right - r.Left,r.Bottom - r.Top);
+          ctrl.SetBounds(r.Left,r.Top,r.Right - r.Left - 1,r.Bottom - r.Top - 1);
           ctrl.Visible := True;
         end;
       end;
@@ -38078,7 +41488,8 @@ begin
   if SearchFooter.Visible and (FOldTopRow < TopRow) then
   begin
     lr := CellRect(Col,Row);
-    if (lr.Bottom > Height - SearchPanel.Height) then
+
+    if (lr.Bottom < Height - SearchPanel.Height) and (lr.Bottom > Height - SearchPanel.Height) then
     begin
       TopRow := TopRow + 1;
     end;
@@ -38089,7 +41500,8 @@ begin
   if SelectionRectangle then
   begin
     //RepaintRect(TRect(Selection));
-    Invalidate;
+    if (Selection.Top <> Selection.Bottom) then
+      Invalidate;
   end;
 
   // get new background rectangle & repaint
@@ -38110,6 +41522,7 @@ begin
 
   if (EditMode) and (EditControl <> edNormal) then
     HideInplaceEdit;
+
 
   UpdateVScrollBar;
   UpdateHScrollBar;
@@ -38155,11 +41568,10 @@ begin
 
   if FNavigation.AlwaysEdit then
   begin
-
-    if Key in [VK_LEFT,VK_RIGHT,VK_DOWN,VK_UP] then
+    if (Key in [VK_LEFT,VK_RIGHT,VK_DOWN,VK_UP]) and not HasStaticEdit(RealCol,Row) then
       ShowInplaceEdit;
 
-    if (Key = VK_TAB) and (goTabs in Options) then
+    if (Key = VK_TAB) and (goTabs in Options) and not HasStaticEdit(RealCol,Row) then
       ShowInplaceEdit;
       
   end;
@@ -38231,6 +41643,79 @@ var
 begin
   vn := GetVersionNr;
   Result := IntToStr(Hi(Hiword(vn)))+'.'+IntToStr(Lo(Hiword(vn)))+'.'+IntToStr(Hi(Loword(vn)))+'.'+IntToStr(Lo(Loword(vn)))+' '+DATE_VER;
+end;
+
+function TAdvStringGrid.SelectionToForm(ARect: TGridRect): TForm;
+{$IFDEF DELPHI6_LVL}
+var
+  bmp, finalbmp: TBitmap;
+  cr1,cr2:TRect;
+  img: TImage;
+{$ENDIF}
+begin
+{$IFNDEF DELPHI6_LVL}
+  Result := nil;
+{$ENDIF}
+{$IFDEF DELPHI6_LVL}
+  bmp := TBitmap.Create;
+  bmp.Width := Width;
+  bmp.Height := Height;
+  PaintTo(bmp.Canvas,0,0);
+
+  cr1 := CellRect(ARect.Left, ARect.Top);
+  cr2 := CellRect(ARect.Right, ARect.Bottom);
+
+  finalbmp := TBitmap.Create;
+  finalbmp.Width := cr2.Right - cr1.Left + 1;
+  finalbmp.Height := cr2.Bottom - cr1.Top + 1;
+
+  finalbmp.Canvas.CopyRect(Rect(0,0,finalbmp.Width,finalbmp.Height), bmp.Canvas,
+    Rect(cr1.Left + 1, cr1.Top + 1, cr2.Right + 2, cr2.Bottom + 2));
+
+  if (ARect.Left = 0) and (FixedCols > 0) and (goFixedHorzLine in Options) then
+  begin
+    finalbmp.Canvas.Pen.Color := GridFixedLineColor;
+    finalbmp.Canvas.MoveTo(0,0);
+    finalbmp.Canvas.LineTo(0,finalbmp.Height);
+  end;
+
+  if (ARect.Top = 0) and (FixedRows > 0) and (goFixedVertLine in Options) then
+  begin
+    finalbmp.Canvas.Pen.Color := GridFixedLineColor;
+    finalbmp.Canvas.MoveTo(0,0);
+    finalbmp.Canvas.LineTo(finalbmp.Width,0);
+  end;
+
+  bmp.Free;
+
+  Result := TForm.Create(self);
+  Result.BorderStyle := bsNone;
+  Result.Width := finalbmp.Width;
+  Result.Height := finalbmp.Height;
+
+  img := TImage.Create(Result);
+  img.Parent := Result;
+  img.Align := alClient;
+
+  img.Picture.Bitmap.Assign(finalbmp);
+
+  Result.AlphaBlendValue := 192;
+  Result.AlphaBlend := true;
+
+  finalbmp.Free;
+{$ENDIF}  
+end;
+
+procedure TAdvStringGrid.InitOrigColSizes;
+var
+  i: integer;
+begin
+  FOrigColSizes.Clear;
+
+  for I := 0 to ColCount - 1 do
+    FOrigColSizes.Add(ColWidths[I]);
+
+  FOldSize := Width;
 end;
 
 procedure TAdvStringGrid.BalloonInit;
@@ -38309,6 +41794,11 @@ end;
 
 procedure TAdvStringGrid.SearchChanged(Sender: TObject);
 begin
+  if FSearchPanel.FHiliteButton.Down and FSearchPanel.Visible and not FSearchFooter.Visible then
+  begin
+    UnHilightInGrid(false);
+  end;
+
   FSearchPanel.Color := FSearchFooter.Color;
   FSearchPanel.ColorTo := FSearchFooter.ColorTo;
   FSearchPanel.Visible := FSearchFooter.Visible;
@@ -38381,6 +41871,9 @@ begin
   FSearchPanel.FHiliteButton.Hint := FSearchPanel.HintHighlight;
   FSearchPanel.FHiliteButton.ShowHint := FSearchPanel.HintHighlight <> '';
 
+
+
+
   if not FSearchPanel.FHiliteButton.Visible then
     FSearchPanel.FMatchCase.Left := 330
   else
@@ -38417,7 +41910,7 @@ end;
 
 procedure TAdvStringGrid.CreateToolTip;
 begin
-  fhToolTip := CreateWindowEx(0, 'Tooltips_Class32', nil, TTS_ALWAYSTIP or TTS_BALLOON,
+  fhToolTip := CreateWindowEx(0, 'Tooltips_Class32', nil, TTS_ALWAYSTIP or TTS_BALLOON or TTS_NOPREFIX,
     Integer(CW_USEDEFAULT), Integer(CW_USEDEFAULT),Integer(CW_USEDEFAULT),
     Integer(CW_USEDEFAULT), Handle, 0, hInstance, nil);
 
@@ -38513,16 +42006,15 @@ procedure TAdvStringGrid.SubclassProc(var Msg: TMessage);
 begin
   if (Msg.Msg = WM_GETDLGCODE) and (goTabs in Options)  then
   begin
-    msg.Result := DLGC_WANTTAB or DLGC_WANTARROWS;
+    msg.Result := msg.Result or DLGC_WANTCHARS or DLGC_WANTTAB or DLGC_WANTARROWS;
     Exit;
   end;
+
   FGridControlWndProc(Msg);
 end;
 
 
 {OLE Drag & Drop interface only supported in Delphi 4+}
-
-{$IFDEF DELPHI4_LVL}
 
 {$IFNDEF TMSDOTNET}
 constructor TGridDropSource.Create(AGrid: TAdvStringGrid);
@@ -38545,8 +42037,36 @@ var
   pt: TPoint;
 begin
   GetCursorPos(pt);
-  FGrid.MoveButton.Left := pt.x;
-  FGrid.MoveButton.Top := pt.y - FGrid.MoveButton.Height;
+
+  if not FGrid.DragDropSettings.ShowCells then
+  begin
+    FGrid.MoveButton.Left := pt.x;
+    FGrid.MoveButton.Top := pt.y - FGrid.MoveButton.Height;
+  end
+  else
+  begin
+    {$IFDEF DELPHI6_LVL}
+    if Assigned(FGrid.MoveForm) then
+    begin
+      FGrid.MoveForm.Left := pt.x + 4;
+      FGrid.MoveForm.Top := pt.y + 4;
+    end;
+    {$ENDIF}
+  end;
+end;
+
+procedure TGridDropSource.DragDropStop;
+begin
+  inherited;
+
+  if FGrid.DragDropSettings.ShowCells then
+  begin
+    {$IFDEF DELPHI6_LVL}
+    if Assigned(FGrid.MoveForm) then
+      FreeAndNil(FGrid.MoveForm);
+    {$ENDIF}  
+  end;
+
 end;
 
 constructor TGridDropTarget.Create(AGrid: TAdvStringGrid);
@@ -38630,7 +42150,8 @@ begin
       FGrid.InsertRows(r,size.y + 1);
 
 
-      if (tr > 0) then FGrid.TopRow := tr;
+      if (tr > 0) then
+        FGrid.TopRow := tr;
     end;
 
     FGrid.PasteText(c,r,PChar(s));
@@ -38654,6 +42175,7 @@ begin
   FGrid.ArwD.Visible := False;
   FGrid.MoveButton.Visible := False;
 
+
   if Assigned(FGrid.FOnOleDropped) then
     FGrid.FOnOleDropped(FGrid,gr);
 end;
@@ -38667,11 +42189,18 @@ begin
 
   FGrid.ScreenToCell(pt,c,r);
 
+  pt := FGrid.ScreenToClient(pt);
+
   Allow := (c >= 0) and (r >= 0);
 
   if Allow and not (dfCol in DropFormats) then
   begin
     if (r = 0) and (FGrid.TopRow > FGrid.FixedRows) then
+    begin
+      FGrid.TopRow := FGrid.TopRow - 1;
+    end
+    else
+    if (pt.y < 8) and (FGrid.FixedRows = 0) and (FGrid.TopRow > 0) then
     begin
       FGrid.TopRow := FGrid.TopRow - 1;
     end
@@ -38783,6 +42312,24 @@ begin
   FGrid.ArwD.Visible := False;
 end;
 
+procedure TGridDropTarget.DropURL(pt: TPoint; s: string);
+var
+  c,r: Integer;
+  Allow: Boolean;
+begin
+  FGrid.ScreenToCell(pt,c,r);
+  Allow := True;
+  if Assigned(FGrid.FOnOleDropURL) then
+    FGrid.FOnOleDropURL(FGrid,r,c,s,Allow);
+
+  if Allow then
+    FGrid.Cells[c,r] := s;
+
+  FGrid.ArwL.Visible := False;
+  FGrid.ArwD.Visible := False;
+end;
+
+
 procedure TGridDropTarget.DropFiles(pt:TPoint; Files:TStrings);
 var
   Allow: Boolean;
@@ -38831,7 +42378,6 @@ begin
   Assert(Result in [S_OK, S_False], Format ('OleInitialize failed ($%x)', [Result]));
 end;
 
-{$ENDIF}
 
 {$ENDIF}
 
@@ -39237,15 +42783,12 @@ procedure TBands.Assign(Source: TPersistent);
 begin
   if (Source is TBands) then
   begin
-    with (Source as TBands) do
-    begin
-      FActive := Active;
-      FPrimaryColor := PrimaryColor;
-      FPrimaryLength := PrimaryLength;
-      FSecondaryColor := SecondaryColor;
-      FSecondaryLength := SecondaryLength;
-      FPrint := Print;
-    end;
+    FActive := (Source as TBands).Active;
+    FPrimaryColor := (Source as TBands).PrimaryColor;
+    FPrimaryLength := (Source as TBands).PrimaryLength;
+    FSecondaryColor := (Source as TBands).SecondaryColor;
+    FSecondaryLength := (Source as TBands).SecondaryLength;
+    FPrint := Print;
   end;
 end;
 
@@ -39444,7 +42987,7 @@ var
 begin
   WinControl := GetEditControl;
 
-  if Assigned(WinControl) then
+  if Assigned(WinControl) and (EditStyle = esInplace) then
   begin
     WinControl.WindowProc := FOwner.FGridControlWndProc;
 
@@ -39453,7 +42996,7 @@ begin
       ShowWindow(WinControl.Handle, SW_HIDE);
       // SendMessage(WinControl.Handle,WM_CLOSE,0,0);
     end;
-  end;  
+  end;
 end;
 
 procedure TEditLink.HideEditor;
@@ -39487,9 +43030,11 @@ begin
       ec.Enabled := true;
   end;
 
-  FOwner.FGridControlWndProc := ec.WindowProc;
-
-  ec.WindowProc := FOwner.SubClassProc;
+  if (EditStyle = esInplace) then
+  begin
+    FOwner.FGridControlWndProc := ec.WindowProc;
+    ec.WindowProc := FOwner.SubClassProc;
+  end;
 
   if Value then
     ec.SetFocus
@@ -39555,6 +43100,7 @@ const
 
 begin
   inherited CreateParams(Params);
+
   Params.Style := Params.Style - WS_BORDER;
 
   if (Win32Platform = VER_PLATFORM_WIN32_NT) and
@@ -39599,7 +43145,7 @@ var
 begin
   DC := Canvas.Handle;
   R := ClientRect;
-  RD := ClientRect;
+  RD := ClientRect;                
 
   // Background
   Brush := CreateSolidBrush(ColorToRGB(Color));
@@ -39619,9 +43165,20 @@ begin
   RD.Right := RD.Right - 4;
   Canvas.Brush.Color := Color;
 
-  HTMLDrawEx(Canvas,Caption,rd,nil,0,0,-1,0,1,False,False,False,False,False,
-               False,False,False,0.0,clBlue,clNone,clNone,clGray,Anchor,Stripped,FocusAnchor,AnchorHint,
-               XSize,YSize,hl,ml,hr,cr,CID,CV,CT,nil,nil,self.Handle);
+  if TextType(Caption,true) = ttUnicode then
+  begin
+    Canvas.Font.Name := WideHintFontName;
+    {$IFNDEF TMSDOTNET}
+    DrawTextExW(Canvas.Handle,PWideChar(WideCaption),Length(WideCaption),rd,DT_SINGLELINE or DT_LEFT or DT_NOPREFIX,nil);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    DrawTextEx(Canvas.Handle,WideCaption,Length(WideCaption),rd,DT_SINGLELINE or DT_LEFT or DT_NOPREFIX,nil);
+    {$ENDIF}
+  end
+  else
+    HTMLDrawEx(Canvas,Caption,rd,nil,0,0,-1,0,1,False,False,False,False,False,
+                 False,False,False,0.0,clBlue,clNone,clNone,clGray,Anchor,Stripped,FocusAnchor,AnchorHint,
+                 XSize,YSize,hl,ml,hr,cr,CID,CV,CT,nil,nil,self.Handle);
 end;
 
 procedure THTMLHintWindow.ActivateHint(Rect: TRect; const AHint: string);
@@ -39632,6 +43189,10 @@ var
   XSize,YSize,ml,hl: Integer;
   Anchor,Stripped,FocusAnchor,AnchorHint: string;
   CID,CV,CT: string;
+{$IFDEF DELPHI6_LVL}
+  Monitor : TMonitor;
+{$ENDIF}
+  ws: widestring;
 
 begin
   Caption := AHint;
@@ -39643,9 +43204,24 @@ begin
     // Calculate width and height
     Rect.Right := Rect.Left + 1024 - dx;
 
-    HTMLDrawEx(Canvas,AHint,Rect,nil,0,0,-1,0,1,False,True,False,False,False,
-               False,True,False,0.0,clBlue,clNone,clNone,clGray,Anchor,Stripped,FocusAnchor,AnchorHint,XSize,YSize,
-               hl,ml,hr,cr,CID,CT,CV,nil,nil,self.Handle);
+    if TextType(AHint,true) = ttUnicode then
+    begin
+      Canvas.Font.Name := WideHintFontName;
+      ws := DecodeWideStr(AHint);
+      {$IFNDEF TMSDOTNET}
+      YSize := DrawTextExW(Canvas.Handle,PWideChar(ws),Length(ws),Rect,DT_SINGLELINE or DT_CALCRECT or DT_LEFT or DT_NOPREFIX,nil);
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      YSize := DrawTextEx(Canvas.Handle,ws,Length(ws),Rect,DT_SINGLELINE or DT_LEFT or DT_CALCRECT or DT_NOPREFIX,nil);
+      {$ENDIF}
+      XSize := Rect.Right - Rect.Left;
+      WideCaption := ws;
+      dx := 8;
+    end
+    else
+      HTMLDrawEx(Canvas,AHint,Rect,nil,0,0,-1,0,1,False,True,False,False,False,
+                 False,True,False,0.0,clBlue,clNone,clNone,clGray,Anchor,Stripped,FocusAnchor,AnchorHint,XSize,YSize,
+                 hl,ml,hr,cr,CID,CT,CV,nil,nil,self.Handle);
 
     FTextWidth := XSize;
     Right := Left + FTextWidth + dx;
@@ -39660,26 +43236,59 @@ begin
     Right := Right - Left + Pnt.X;
     Bottom := Bottom - Top + Pnt.Y;
 
+    {$IFDEF DELPHI6_LVL}
+    Monitor := Screen.MonitorFromPoint(Pnt);
+
+    if Right - Monitor.Left > Monitor.Width then
+    begin
+      Left := Monitor.Left + Monitor.Width - Right + Left - 2;
+      Right := Left + FTextWidth + dx;
+    end;
+
+    if Bottom - Monitor. Top > Monitor. Height then
+    begin
+      Bottom := Monitor. Top + Monitor. Height - 2;
+      Top := Bottom - FTextHeight - dy;
+    end;
+    {$ELSE}
+
+
+    if Right > Screen.DesktopWidth then
+    begin
+      Left := Screen.DesktopWidth - Right + Left -2;
+      Right := Left + FTextWidth + dx;
+    end;
+
+    if Bottom > Screen.DesktopHeight then
+    begin
+      Bottom := Screen.DesktopHeight - 2;
+      Top := Bottom - FTextHeight - dy;
+    end;
+
+    {$ENDIF}
+
+{
     // Make sure the tooltip is completely visible
-     if (Right > Screen.Width) and ((Screen.Width - Right + Left - 2) >= 0) then 
+     if (Right > Screen.Width) and ((Screen.Width - Right + Left - 2) >= 0) then
     begin
       Left := Screen.Width - Right + Left -2;
       Right := Left + FTextWidth + dx;
     end;
 
-    if (Bottom > Screen.Height) and ((Screen.Height - 2 - FTextHeight - dy) >= 0) then 
+    if (Bottom > Screen.Height) and ((Screen.Height - 2 - FTextHeight - dy) >= 0) then
     begin
       Bottom := Screen.Height - 2;
       Top := Bottom - FTextHeight - dy;
     end;
+}
   end;
 
   BoundsRect := Rect;
 
   Pnt := ClientToScreen(Point(0, 0));
   SetWindowPos(Handle, HWND_TOPMOST, Pnt.X, Pnt.Y, 0, 0,
-               SWP_SHOWWINDOW or SWP_NOACTIVATE or SWP_NOSIZE);
-  invalidate;
+                 SWP_SHOWWINDOW or SWP_NOACTIVATE or SWP_NOSIZE);
+  Invalidate;
 end;
 
 {$IFNDEF TMSDOTNET}
@@ -39695,6 +43304,7 @@ var
   XSize,YSize,ml,hl: Integer;
   Anchor,Stripped,FocusAnchor,AnchorHint: string;
   CID,CT,CV: string;
+  ws: widestring;
 begin
   {$IFNDEF TMSDOTNET}
   FillChar(ARect,SizeOf(ARect),0);
@@ -39702,9 +43312,22 @@ begin
 
   ARect.Right := ARect.Left + MaxWidth;
 
-  HTMLDrawEx(Canvas,AHint,ARect,nil,0,0,-1,0,1,False,True,False,False,False,False,
-           True,False,0.0,clBlue,clNone,clNone,clGray,Anchor,Stripped,FocusAnchor,AnchorHint,XSize,YSize,
-           hl,ml,hr,cr,CID,CT,CV,nil,nil,self.Handle);
+  if TextType(AHint,true) = ttUnicode then
+  begin
+    Canvas.Font.Name := WideHintFontName;
+    ws := DecodeWideStr(AHint);
+    {$IFNDEF TMSDOTNET}
+    YSize := DrawTextExW(Canvas.Handle,PWideChar(ws),Length(ws),ARect,DT_SINGLELINE or DT_CALCRECT or DT_LEFT or DT_NOPREFIX,nil);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    YSize := DrawTextEx(Canvas.Handle,ws,Length(ws),ARect,DT_SINGLELINE or DT_LEFT or DT_CALCRECT or DT_NOPREFIX,nil);
+    {$ENDIF}
+    XSize := ARect.Right;
+  end
+  else
+    HTMLDrawEx(Canvas,AHint,ARect,nil,0,0,-1,0,1,False,True,False,False,False,False,
+             True,False,0.0,clBlue,clNone,clNone,clGray,Anchor,Stripped,FocusAnchor,AnchorHint,XSize,YSize,
+             hl,ml,hr,cr,CID,CT,CV,nil,nil,self.Handle);
 
   Result := Rect(0,0,XSize,YSize);
 end;
@@ -39729,6 +43352,11 @@ begin
   FIndexDownGlyph := TBitmap.Create;
   FSortIndexColor := clYellow;
   FAutoSortForGrouping := True;
+  FVirtualCells := True;
+  FHeaderColor := clNone;
+  FHeaderColorTo := clNone;
+  FHeaderMirrorColor := clNone;
+  FHeaderMirrorColorTo := clNone;
 end;
 
 destructor TSortSettings.Destroy;
@@ -39744,30 +43372,31 @@ procedure TSortSettings.Assign(Source: TPersistent);
 begin
   if (Source is TSortSettings) then
   begin
-    with (Source as TSortSettings) do
-    begin
-      FAutoSortForGrouping := AutoSortForGrouping;
-      FAutoColumnMerge := AutoColumnMerge;
-      FSortColumn := Column;
-      FSortShow := Show;
-      FSortIndexShow := IndexShow;
-      FSortIndexColor := IndexColor;
-      FSortFull := Full;
-      FSortSingleColumn := SingleColumn;
-      FSortIgnoreBlanks := IgnoreBlanks;
-      FSortBlankPos := BlankPos;
-      FSortAutoFormat := AutoFormat;
-      FSortDirection := Direction;
-      FSortUpGlyph.Assign(UpGlyph);
-      FSortDownGlyph.Assign(DownGlyph);
-      FIndexUpGlyph.Assign(IndexUpGlyph);
-      FIndexDownGlyph.Assign(IndexDownGlyph);
-      FInitSortDirection := InitSortDirection;
-      FSortFixedCols := FixedCols;
-      FSortNormalCellsOnly := NormalCellsOnly;
-      FSortRow := Row;
-      FUndoSort := UndoSort;
-    end;
+    FAutoSortForGrouping := (Source as TSortSettings).AutoSortForGrouping;
+    FAutoColumnMerge := (Source as TSortSettings).AutoColumnMerge;
+    FSortColumn := (Source as TSortSettings).Column;
+    FSortShow := (Source as TSortSettings).Show;
+    FSortIndexShow := (Source as TSortSettings).IndexShow;
+    FSortIndexColor := (Source as TSortSettings).IndexColor;
+    FSortFull := (Source as TSortSettings).Full;
+    FSortSingleColumn := (Source as TSortSettings).SingleColumn;
+    FSortIgnoreBlanks := (Source as TSortSettings).IgnoreBlanks;
+    FSortBlankPos := (Source as TSortSettings).BlankPos;
+    FSortAutoFormat := (Source as TSortSettings).AutoFormat;
+    FSortDirection := (Source as TSortSettings).Direction;
+    FSortUpGlyph.Assign((Source as TSortSettings).UpGlyph);
+    FSortDownGlyph.Assign((Source as TSortSettings).DownGlyph);
+    FIndexUpGlyph.Assign((Source as TSortSettings).IndexUpGlyph);
+    FIndexDownGlyph.Assign((Source as TSortSettings).IndexDownGlyph);
+    FInitSortDirection := (Source as TSortSettings).InitSortDirection;
+    FSortFixedCols := (Source as TSortSettings).FixedCols;
+    FSortNormalCellsOnly := (Source as TSortSettings).NormalCellsOnly;
+    FSortRow := (Source as TSortSettings).Row;
+    FUndoSort := (Source as TSortSettings).UndoSort;
+    FHeaderColor := (Source as TSortSettings).HeaderColor;
+    FHeaderColorTo := (Source as TSortSettings).HeaderColorTo;
+    FHeaderMirrorColor := (Source as TSortSettings).HeaderMirrorColor;
+    FHeaderMirrorColorTo := (Source as TSortSettings).HeaderMirrorColorTo;
   end;
 end;
 
@@ -39791,6 +43420,46 @@ end;
 procedure TSortSettings.SetDownGlyph(const Value: TBitmap);
 begin
   FSortDownGlyph.Assign(Value);
+end;
+
+procedure TSortSettings.SetHeaderColor(const Value: TColor);
+begin
+  if FHeaderColor <> Value then
+  begin
+    FHeaderColor := Value;
+    if FGrid.FixedRows > 0 then
+      FGrid.RepaintRow(FGrid.FixedRows - 1);
+  end;
+end;
+
+procedure TSortSettings.SetHeaderColorTo(const Value: TColor);
+begin
+  if FHeaderColorTo <> Value then
+  begin
+    FHeaderColorTo := Value;
+    if FGrid.FixedRows > 0 then
+      FGrid.RepaintRow(FGrid.FixedRows - 1);
+  end;
+end;
+
+procedure TSortSettings.SetHeaderMirrorColor(const Value: TColor);
+begin
+  if FHeaderMirrorColor <> Value then
+  begin
+    FHeaderMirrorColor := Value;
+    if FGrid.FixedRows > 0 then
+      FGrid.RepaintRow(FGrid.FixedRows - 1);
+  end;
+end;
+
+procedure TSortSettings.SetHeaderMirrorColorTo(const Value: TColor);
+begin
+  if FHeaderMirrorColorTo <> Value then
+  begin
+    FHeaderMirrorColorTo := Value;
+    if FGrid.FixedRows > 0 then
+      FGrid.RepaintRow(FGrid.FixedRows - 1);
+  end;
 end;
 
 procedure TSortSettings.SetIndexDownGlyph(const Value: TBitmap);
@@ -39825,7 +43494,6 @@ begin
   end;
 end;
 
-
 { TControlLook }
 
 constructor TControlLook.Create(AOwner: TAdvStringGrid);
@@ -39846,6 +43514,19 @@ begin
   FProgressBorderColor := clGray;
   FFixedGradientFrom := clNone;
   FFixedGradientTo := clNone;
+  FFixedGradientMirrorFrom := clNone;
+  FFixedGradientMirrorTo := clNone;
+  FFixedGradientHoverFrom := clNone;
+  FFixedGradientHoverTo := clNone;
+  FFixedGradientHoverMirrorFrom := clNone;
+  FFixedGradientHoverMirrorTo := clNone;
+  FFixedGradientHoverBorder := clNone;
+  FFixedGradientDownFrom := clNone;
+  FFixedGradientDownTo := clNone;
+  FFixedGradientDownMirrorFrom := clNone;
+  FFixedGradientDownMirrorTo := clNone;
+  FFixedGradientDownBorder := clNone;
+  FFixedDropDownButton := false;
 end;
 
 destructor TControlLook.Destroy;
@@ -39875,6 +43556,24 @@ begin
     FProgressBorderColor := (Source as TControlLook).ProgressBorderColor;
     FCheckAlwaysActive := (Source as TControlLook).CheckAlwaysActive;
     FRadioAlwaysActive := (Source as TControlLook).RadioAlwaysActive;
+    FFixedGradientFrom := (Source as TControlLook).FixedGradientFrom;
+    FFixedGradientTo := (Source as TControlLook).FixedGradientTo;
+    FFixedGradientMirrorFrom := (Source as TControlLook).FixedGradientMirrorFrom;
+    FFixedGradientMirrorTo := (Source as TControlLook).FixedGradientMirrorTo;
+
+    FFixedGradientHoverFrom := (Source as TControlLook).FixedGradientHoverFrom;
+    FFixedGradientHoverTo := (Source as TControlLook).FixedGradientHoverTo;
+    FFixedGradientHoverMirrorFrom := (Source as TControlLook).FixedGradientHoverMirrorFrom;
+    FFixedGradientHoverMirrorTo := (Source as TControlLook).FixedGradientHoverMirrorTo;
+    FFixedGradientHoverBorder := (Source as TControlLook).FixedGradientHoverBorder;
+
+    FFixedGradientDownFrom := (Source as TControlLook).FixedGradientDownFrom;
+    FFixedGradientDownTo := (Source as TControlLook).FixedGradientDownTo;
+    FFixedGradientDownMirrorFrom := (Source as TControlLook).FixedGradientDownMirrorFrom;
+    FFixedGradientDownMirrorTo := (Source as TControlLook).FixedGradientDownMirrorTo;
+    FFixedGradientDownBorder := (Source as TControlLook).FixedGradientDownBorder;
+    FDropDownAlwaysVisible := (Source as TControlLook).DropDownAlwaysVisible;
+    FSpinButtonsAlwaysVisible := (Source as TControlLook).SpinButtonsAlwaysVisible;
   end;
 end;
 
@@ -39910,6 +43609,11 @@ begin
   FGrid.Invalidate;
 end;
 
+procedure TControlLook.SetSpinButtonsAlwaysVisible(const Value: Boolean);
+begin
+  FSpinButtonsAlwaysVisible := Value;
+  FGrid.Invalidate;
+end;
 
 procedure TControlLook.SetCommentColor(const Value: TColor);
 begin
@@ -40083,6 +43787,90 @@ begin
     FGrid.TMSGradientFrom := Value
 end;
 
+procedure TControlLook.SetFixedGradientMirrorFrom(const Value: TColor);
+begin
+  FFixedGradientMirrorFrom := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientMirrorTo := Value
+end;
+
+procedure TControlLook.SetFixedGradientMirrorTo(const Value: TColor);
+begin
+  FFixedGradientMirrorTo := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientMirrorFrom := Value
+end;
+
+procedure TControlLook.SetFixedGradientHoverFrom(const Value: TColor);
+begin
+  FFixedGradientHoverFrom := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientHoverTo := Value
+end;
+
+procedure TControlLook.SetFixedGradientHoverTo(const Value: TColor);
+begin
+  FFixedGradientHoverTo := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientHoverFrom := Value
+end;
+
+procedure TControlLook.SetFixedGradientHoverMirrorFrom(const Value: TColor);
+begin
+  FFixedGradientHoverMirrorFrom := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientHoverMirrorTo := Value
+end;
+
+procedure TControlLook.SetFixedGradientHoverMirrorTo(const Value: TColor);
+begin
+  FFixedGradientHoverMirrorTo := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientHoverMirrorFrom := Value
+end;
+
+procedure TControlLook.SetFixedGradientHoverBorder(const Value: TColor);
+begin
+  FFixedGradientHoverBorder := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientHoverBorder := Value
+end;
+
+procedure TControlLook.SetFixedGradientDownFrom(const Value: TColor);
+begin
+  FFixedGradientDownFrom := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientDownTo := Value
+end;
+
+procedure TControlLook.SetFixedGradientDownTo(const Value: TColor);
+begin
+  FFixedGradientDownTo := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientDownFrom := Value
+end;
+
+procedure TControlLook.SetFixedGradientDownMirrorFrom(const Value: TColor);
+begin
+  FFixedGradientDownMirrorFrom := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientDownMirrorTo := Value
+end;
+
+procedure TControlLook.SetFixedGradientDownMirrorTo(const Value: TColor);
+begin
+  FFixedGradientDownMirrorTo := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientDownMirrorFrom := Value
+end;
+
+procedure TControlLook.SetFixedGradientDownBorder(const Value: TColor);
+begin
+  FFixedGradientDownBorder := Value;
+  if Value <> clNone then
+    FGrid.TMSGradientDownBorder := Value
+end;
+
 { TFooterPanel }
 
 constructor TFooterPanel.Create(AOwner: TComponent);
@@ -40145,6 +43933,8 @@ begin
     R.Left := 0;
     R.Right := FW;
   end;
+
+
 
   FGrid.FNoRTLOrientation := true;
 
@@ -40312,10 +44102,10 @@ var
   lft: Integer;
   rtl: boolean;
   rc: integer;
-  
+
 begin
   FW := 0;
-
+  
   rtl := FGrid.UseRightToLeftAlignment;
   lft := FGrid.LeftCol;
 
@@ -40385,6 +44175,7 @@ begin
 
   for i := lft to FGrid.ColCount - 1 do
   begin
+
     Canvas.Pen.Color := clWhite;
 
     Canvas.MoveTo(FW,R.Bottom);
@@ -40415,6 +44206,7 @@ begin
 
   for i := 1 to FGrid.FixedCols do
   begin
+
     if FGrid.IsMergedCell(i - 1, FGrid.RowCount - 1) then
       R.Right := FGrid.CellRect(i - 1, FGrid.RowCount - 1).Right - 1
     else
@@ -40513,11 +44305,21 @@ Begin
   i := 0;
   dx := 0;
 
+  // measure distance of fixed cells
+  while (hi.CursorPos.x > dx) and (i < FGrid.ColCount) and (i < FGrid.FixedCols) do
+  begin
+    dx := dx + FGrid.ColWidths[i];
+    inc(i);
+  end;
+
+  // measure distance of fixed cells
+  i := FGrid.LeftCol;
   while (hi.CursorPos.x > dx) and (i < FGrid.ColCount) do
   begin
     dx := dx + FGrid.ColWidths[i];
     inc(i);
   end;
+
 
   if (i = FGrid.ColCount) and (hi.CursorPos.x > dx) then
     i := -1;
@@ -40535,7 +44337,7 @@ Begin
   Msg.Result := Ord(Not CanShow);
 end;
 
-procedure TFooterPanel.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TFooterPanel.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   i,dx: integer;
 begin
@@ -40549,7 +44351,38 @@ begin
     dx := dx + FGrid.ColWidths[i];
     inc(i);
   end;
-  
+
+  if Assigned(FGrid.OnClick) then
+    FGrid.OnClick(FGrid);
+
+  if Assigned(FGrid.OnClickCell) then
+    FGrid.OnClickCell(FGrid,FGrid.RowCount - 1,i);
+
+end;
+
+procedure TFooterPanel.MouseMove(Shift: TShiftState; X, Y: Integer);
+var
+  i,dx: integer;
+begin
+  inherited;
+
+  i := 0;
+  dx := 0;
+
+  while (X > dx) and (i < FGrid.ColCount) and (i < FGrid.FixedCols) do
+  begin
+    dx := dx + FGrid.ColWidths[i];
+    inc(i);
+  end;
+
+  i := FGrid.LeftCol;
+  while (X > dx) and (i < FGrid.ColCount) do
+  begin
+    dx := dx + FGrid.ColWidths[i];
+    inc(i);
+  end;
+
+
   if ShowHint and ((FLastHintX <> i - 1) and (FLastHintX >= 0)) then
   begin
     Application.CancelHint;
@@ -40587,6 +44420,7 @@ begin
   FOnCalcFooter := nil;
   FBorderColor := clNone;
   FEnableCalculation := true;
+  FCalculateHiddenRows := true;
 end;
 
 destructor TFloatingFooter.Destroy;
@@ -40893,6 +44727,7 @@ begin
     begin
       if Assigned(FGrid.OnEditingDone) then
         FGrid.OnEditingDone(FGrid);
+
       FGrid.Cells[Col,Row] := Value;
     end
     else
@@ -40928,6 +44763,7 @@ procedure TGrouping.Assign(Source: TPersistent);
 begin
   if (Source is TGrouping) then
   begin
+    FGroupCountFormat := (Source as TGrouping).GroupCountFormat;
     FHeaderColor := (Source as TGrouping).HeaderColor;
     FHeaderColorTo := (Source as TGrouping).HeaderColorTo;
     FHeaderTextColor := (Source as TGrouping).HeaderTextColor;
@@ -40936,6 +44772,7 @@ begin
     FMergeHeader := (Source as TGrouping).MergeHeader;
     FMergeSummary := (Source as TGrouping).MergeSummary;
 
+    FShowGroupCount := (Source as TGrouping).ShowGroupCount;
     FSummaryColor := (Source as TGrouping).SummaryColor;
     FSummaryColorTo := (Source as TGrouping).SummaryColorTo;
     FSummaryTextColor := (Source as TGrouping).SummaryTextColor;
@@ -40965,15 +44802,42 @@ end;
 
 { TDragDropSettings }
 
-{$IFDEF DELPHI4_LVL}
 
 constructor TDragDropSettings.Create(AOwner: TAdvStringGrid);
 begin
-  inherited Create;
+  inherited Create;  
   FGrid := AOwner;
   FOleDropTarget := False;
   FOleAcceptFiles := True;
   FOleAcceptText := True;
+  FOleAcceptURLs := True;
+  {$IFDEF DELPHI6_LVL}
+  FShowCells := True;
+  {$ENDIF}
+end;
+
+destructor TDragDropSettings.Destroy;
+begin
+  inherited;
+end;
+
+procedure TDragDropSettings.Assign(Source: TPersistent);
+begin
+  if (Source is TDragDropSettings) then
+  begin
+    FShowCells := (Source as TDragDropSettings).ShowCells;
+    FOleAcceptFiles := (Source as TDragDropSettings).OleAcceptFiles;
+    FOleAcceptText := (Source as TDragDropSettings).OleAcceptText;
+    FOleAcceptURLs := (Source as TDragDropSettings).OleAcceptURLs;
+    FOleCopyAlways := (Source as TDragDropSettings).OleCopyAlways;
+    FOleDropTarget := (Source as TDragDropSettings).OleDropTarget;
+    FOleDropSource := (Source as TDragDropSettings).OleDropSource;
+    FOleEntireRows := (Source as TDragDropSettings).OleEntireRows;
+    FOleInsertRows := (Source as TDragDropSettings).OleInsertRows;
+    FOleRemoveRows := (Source as TDragDropSettings).OleRemoveRows;
+    FOleDropRTF := (Source as TDragDropSettings).OleDropRTF;
+    FOleColumnDragDrop := (Source as TDragDropSettings).OleColumnDragDrop;
+  end;
 end;
 
 procedure TDragDropSettings.SetOleDropRTF(const Value: Boolean);
@@ -41002,6 +44866,13 @@ begin
   {$ENDIF}
 end;
 
+
+procedure TDragDropSettings.SetShowCells(const Value: boolean);
+begin
+  {$IFDEF DELPHI6_LVL}
+  FShowCells := Value;
+  {$ENDIF}
+end;
 
 { TBalloonSettings }
 
@@ -41074,6 +44945,40 @@ begin
     FOnChange(Self);
 end;
 
+{ TRetEdit }
+
+procedure TRetEdit.WMKeyDown(var Msg:TWMKeydown);
+begin
+  if Msg.CharCode = VK_RETURN then
+  begin
+    if Assigned(FOnReturn) then
+      FOnReturn(Self);
+    Exit;
+  end;
+  inherited;
+end;
+
+procedure TRetEdit.WMChar(var Msg: TWMChar);
+var
+  ch: char;
+begin
+  if Msg.CharCode in [Ord(#13)] then
+  begin
+    ch := Chr(Msg.CharCode);
+    if Assigned(OnKeyPress) then
+      OnKeyPress(self, ch);
+    Msg.Result :=0
+  end
+  else
+    inherited;
+end;
+
+procedure TRetEdit.CreateParams(var Params:TCreateParams);
+begin
+  inherited;
+  Params.Style :=  Params.Style + ES_MULTILINE;
+end;
+
 { TSearchPanel }
 
 procedure TSearchPanel.BackwardClick(Sender: TObject);
@@ -41097,7 +45002,7 @@ end;
 constructor TSearchPanel.Create(AOwner: TComponent);
 begin
   inherited;
-  FEdit := TEdit.Create(Self);
+  FEdit := TRetEdit.Create(Self);
   FForwardButton := TAdvGridButton.Create(Self);
   FBackwardButton := TAdvGridButton.Create(Self);
   FExitButton := TAdvGridButton.Create(Self);
@@ -41115,6 +45020,10 @@ begin
   FEdit.Width := 110;
   FEdit.Left := 25;
   FEdit.OnChange := EditChange;
+  FEdit.OnReturn := EditReturn;
+
+  if UseRightToLeftAlignment then
+    FEdit.Left := Width - FEdit.Width - FEdit.Left;
 
   FForwardButton.Parent := self;
   FForwardButton.Left := 140;
@@ -41193,6 +45102,11 @@ begin
   inherited;
 end;
 
+procedure TSearchPanel.EditReturn(Sender: TObject);
+begin
+  ForwardClick(Sender);
+end;
+
 procedure TSearchPanel.EditChange(Sender: TObject);
 begin
   FForwardButton.Enabled := FEdit.Text <> '';
@@ -41232,28 +45146,28 @@ end;
 procedure TSearchFooter.Assign(Source: TPersistent);
 begin
   if (Source is TSearchFooter) then
-    with (Source as TSearchFooter) do
-    begin
-      FColor := Color;
-      FColorTo := Color;
-      FFindNextCaption := FindNextCaption;
-      FFindPrevCaption := FindPrevCaption;
-      FHighLightCaption := HighLightCaption;
-      FHintClose := HintClose;
-      FHintFindNext := HintFindNext;
-      FHintFindPrev := HintFindPrev;
-      FHintHighlight := HintHighLight;
-      FMatchCaseCaption := MatchCaseCaption;
-      FShowClose := ShowClose;
-      FShowFindNext := ShowFindNext;
-      FShowFindPrev := ShowFindPrev;
-      FShowHighLight := ShowHighLight;
-      FShowMatchCase := ShowMatchCase;
-      FSearchActiveColumnOnly := SearchActiveColumnOnly;
-      FSearchColumn := SearchColumn;
-      FVisible := Visible;
-      FFont.Assign(Font);
-    end;
+  begin
+    FColor := (Source as TSearchFooter).Color;
+    FColorTo := (Source as TSearchFooter).ColorTo;
+    FFindNextCaption := (Source as TSearchFooter).FindNextCaption;
+    FFindPrevCaption := (Source as TSearchFooter).FindPrevCaption;
+    FHighLightCaption := (Source as TSearchFooter).HighLightCaption;
+    FHintClose := (Source as TSearchFooter).HintClose;
+    FHintFindNext := (Source as TSearchFooter).HintFindNext;
+    FHintFindPrev := (Source as TSearchFooter).HintFindPrev;
+    FHintHighlight := (Source as TSearchFooter).HintHighLight;
+    FMatchCaseCaption := (Source as TSearchFooter).MatchCaseCaption;
+    FShowClose := (Source as TSearchFooter).ShowClose;
+    FShowFindNext := (Source as TSearchFooter).ShowFindNext;
+    FShowFindPrev := (Source as TSearchFooter).ShowFindPrev;
+    FShowHighLight := (Source as TSearchFooter).ShowHighLight;
+    FShowMatchCase := (Source as TSearchFooter).ShowMatchCase;
+    FSearchActiveColumnOnly := (Source as TSearchFooter).SearchActiveColumnOnly;
+    FSearchMatchStart := (Source as TSearchFooter).SearchMatchStart;
+    FSearchColumn := (Source as TSearchFooter).SearchColumn;
+    FVisible := (Source as TSearchFooter).Visible;
+    FFont.Assign((Source as TSearchFooter).Font);
+  end;
 end;
 
 procedure TSearchFooter.Changed;
@@ -41271,8 +45185,8 @@ begin
   FShowFindPrev := true;
   FSearchActiveColumnOnly := false;
   FSearchColumn := -1;
-  FFindPrevCaption := 'Find previous';
-  FFindNextCaption := 'Find next';
+  FFindPrevCaption := 'Find &previous';
+  FFindNextCaption := 'Find &next';
   FMatchCaseCaption :='Match case';
   FHighLightCaption := 'Highlight';
 
@@ -41291,7 +45205,7 @@ end;
 destructor TSearchFooter.Destroy;
 begin
   FFont.Free;
-  inherited; 
+  inherited;
 end;
 
 procedure TSearchFooter.SetAutoThemeAdapt(const Value: boolean);
@@ -41396,7 +45310,7 @@ begin
   begin
     FShowHighLight := Value;
     Changed;
-  end;  
+  end;
 end;
 
 procedure TSearchFooter.SetShowMatchCase(const Value: Boolean);
@@ -41414,43 +45328,42 @@ begin
   begin
     FVisible := Value;
     Changed;
-  end;  
+  end;
 end;
 
 procedure TMouseActions.Assign(Source: TPersistent);
 begin
   if (Source is TMouseActions) then
   begin
-    with (Source as TMouseActions) do
-    begin
-      FAllColumnSize := AllColumnSize;
-      FAllRowSize := AllRowSize;
-      FAllSelect := AllSelect;
-      FAutoSizeColOnDblClick := AutoSizeColOnDblClick;
-      FCaretPositioning := CaretPositioning;
-      FCheckAllCheck := CheckAllCheck;
-      FColSelect := ColSelect;
-      FDirectComboDrop := DirectComboDrop;
-      FDirectDateDrop := DirectDateDrop;
-      FDirectEdit := DirectEdit;
-      FDisjunctRowSelect := DisjunctRowSelect;
-      FDisjunctColSelect := DisjunctColSelect;
-      FDisjunctCellSelect := FDisjunctCellSelect;
-      FFixedRowsEdit := FixedRowsEdit;
-      FFixedColsEdit := FixedColsEdit;
-      FMoveRowOnNodeClick := MoveRowOnNodeClick;
-      FNoAutoRangeScroll :=  NoAutoRangeScroll;
-      FNodeAllExpandContract := NodeAllExpandContract;
-      FNoScrollOnPartialRow := NoScrollOnPartialRow;
-      FPreciseCheckBoxCheck := PreciseCheckBoxCheck;
-      FRangeSelectAndEdit := RangeSelectAndEdit;
-      FRowSelect := RowSelect;
-      FRowSelectPersistent := RowSelectPersistent;
-      FSelectOnRightClick := SelectOnRightClick;
-      FSizeFixedCol := SizeFixedCol;
-      FWheelIncrement := WheelIncrement;
-      FWheelAction := WheelAction;
-    end;
+    FAllColumnSize := (Source as TMouseActions).AllColumnSize;
+    FAllRowSize := (Source as TMouseActions).AllRowSize;
+    FAllSelect := (Source as TMouseActions).AllSelect;
+    FAutoSizeColOnDblClick := (Source as TMouseActions).AutoSizeColOnDblClick;
+    FCaretPositioning := (Source as TMouseActions).CaretPositioning;
+    FCheckAllCheck := (Source as TMouseActions).CheckAllCheck;
+    FColSelect := (Source as TMouseActions).ColSelect;
+    FDirectComboClose := (Source as TMouseActions).DirectComboClose;
+    FDirectComboDrop := (Source as TMouseActions).DirectComboDrop;
+    FDirectDateClose := (Source as TMouseActions).DirectDateClose;
+    FDirectDateDrop := (Source as TMouseActions).DirectDateDrop;
+    FDirectEdit := (Source as TMouseActions).DirectEdit;
+    FDisjunctRowSelect := (Source as TMouseActions).DisjunctRowSelect;
+    FDisjunctColSelect := (Source as TMouseActions).DisjunctColSelect;
+    FDisjunctCellSelect := (Source as TMouseActions).DisjunctCellSelect;
+    FFixedRowsEdit := (Source as TMouseActions).FixedRowsEdit;
+    FFixedColsEdit := (Source as TMouseActions).FixedColsEdit;
+    FMoveRowOnNodeClick := (Source as TMouseActions).MoveRowOnNodeClick;
+    FNoAutoRangeScroll :=  (Source as TMouseActions).NoAutoRangeScroll;
+    FNodeAllExpandContract := (Source as TMouseActions).NodeAllExpandContract;
+    FNoScrollOnPartialRow := (Source as TMouseActions).NoScrollOnPartialRow;
+    FPreciseCheckBoxCheck := (Source as TMouseActions).PreciseCheckBoxCheck;
+    FRangeSelectAndEdit := (Source as TMouseActions).RangeSelectAndEdit;
+    FRowSelect := (Source as TMouseActions).RowSelect;
+    FRowSelectPersistent := (Source as TMouseActions).RowSelectPersistent;
+    FSelectOnRightClick := (Source as TMouseActions).SelectOnRightClick;
+    FSizeFixedCol := (Source as TMouseActions).SizeFixedCol;
+    FWheelIncrement := (Source as TMouseActions).WheelIncrement;
+    FWheelAction := (Source as TMouseActions).WheelAction;
   end;
 end;
 
@@ -41540,7 +45453,6 @@ begin
     FLevel2Color := TGridProgressAppearance(Source).Level2Color;
     FStyle := TGridProgressAppearance(Source).Style;
     Changed;
-    inherited Assign(Source);
   end;
 end;
 
@@ -41829,8 +45741,6 @@ begin
 end;
 
 
-
-
 initialization
 {$IFNDEF TMSDOTNET}
 {$IFNDEF TMSDISABLEOLE}
@@ -41848,14 +45758,13 @@ initialization
   ComCtrlOk := GetfileVersion(comctrl) >= $00040046;
 
   CF_GRIDCELLS := RegisterClipboardFormat('TAdvStringGrid Cells');
+  WM_GRIDEDITDONE := RegisterWindowMessage('GridEditDone');
 
 finalization
 {$IFNDEF TMSDOTNET}
 {$IFNDEF TMSDISABLEOLE}
-  OleUninitialize
-{$ENDIF}  
+  OleUninitialize;
 {$ENDIF}
-
 {$ENDIF}
 
 end.

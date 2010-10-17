@@ -1,9 +1,8 @@
 {*************************************************************************}
 { TColumnComboBox component                                               }
 { for Delphi & C++Builder                                                 }
-{ version 1.3                                                             }
 {                                                                         }
-{ Copyright © 2000-2005                                                   }
+{ Copyright © 2000-2008                                                   }
 {   TMS Software                                                          }
 {   Email : info@tmssoftware.com                                          }
 {   Web : http://www.tmssoftware.com                                      }
@@ -31,8 +30,8 @@ const
   COLUMN_DELIMITER = '|';
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 1; // Build nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // v1.3.0.1 : adapt text color when component Enabled is set to false
@@ -40,8 +39,16 @@ const
   // v1.3.0.3 : improved disabled font color display
   // v1.3.1.0 : Added Items.LoadFromFile, Items.SaveToFile methods
   // v1.3.1.1 : Fixed issue with LoadFromFile, SaveToFile
+  // v1.3.1.2 : Fixed issue with painting selected item after list is reloaded
+  // v1.3.2.0 : New : exposed Align property
+
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TColumnComboBox = class;
 
   TColumnType = (ctText,ctImage);
@@ -141,7 +148,12 @@ type
     function IndexInColumnOf(col: Integer;s:string): Integer;
     function IndexInRowOf(row: Integer;s:string): Integer;
 
+    {$IFDEF DELPHI_UNICODE}
+    procedure SaveToFile(FileName: string; Unicode: boolean = true);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     procedure SaveToFile(FileName: string);
+    {$ENDIF}
     procedure LoadFromFile(FileName: string);
   end;
 
@@ -222,9 +234,13 @@ type
     property Delimiter: Char read GetDelimiter write SetDelimiter;
     property EditText: string read GetEditText;
   published
+    property Align;
     {$IFDEF DELPHI4_LVL}
     property Anchors;
     property Constraints;
+    property BevelInner;
+    property BevelKind;
+    property BevelOuter;
     property DragKind;
     {$ENDIF}
     property Color;
@@ -400,18 +416,21 @@ begin
     else
       su := '';
 
-    Canvas.Font.Assign(FColumns.Items[col-1].Font);
+    if isEdit and (ParentFont) then
+      Canvas.Font.Assign(GetParentForm(self).Font)
+    else
+      Canvas.Font.Assign(FColumns.Items[col-1].Font);
 
     if (odSelected in State) then
     begin
-      Canvas.brush.color:=clHighLight;
-      Canvas.pen.color:=clHighLight;
-      Canvas.font.color:=clHighLightText;
+      Canvas.brush.color := clHighLight;
+      Canvas.pen.color := clHighLight;
+      Canvas.font.color := clHighLightText;
     end
     else
     begin
-      Canvas.Brush.Color:=FColumns.Items[col-1].Color;
-      Canvas.Pen.color:=Canvas.brush.Color;
+      Canvas.Brush.Color := FColumns.Items[col-1].Color;
+      Canvas.Pen.color := Canvas.brush.Color;
     end;
 
     if not Enabled then
@@ -457,17 +476,27 @@ begin
         {$IFDEF TMSDOTNET}
         DrawTextEx(Canvas.handle,su,length(su),dr,align or DT_END_ELLIPSIS or DT_VCENTER or DT_SINGLELINE or DT_NOPREFIX,nil);
         {$ENDIF}
-        dr.right:=dr.right+2;
+        dr.right := dr.right + 2;
       end;
-      r.left:=dr.right;
+      r.left := dr.right;
     end
     else
     begin
+      if FSelItemIndex >= Items.Count then
+       FSelItemIndex := 0;
 
       if FDropped then
-        su := ColumnItems[FSelItemIndex,EditColumn]
+      begin
+        if FSelItemIndex < Items.Count then
+          su := ColumnItems[FSelItemIndex,EditColumn]
+        else
+          su := '';
+      end
       else
-       su := ColumnItems[ItemIndex,EditColumn];
+      begin
+        if ItemIndex < Items.Count then
+          su := ColumnItems[ItemIndex,EditColumn];
+      end;
 
       dr.left := dr.left + 2;
       dr.top := r.top + 1;
@@ -719,7 +748,7 @@ begin
          s := s + FDelimiter;
 
    if (Items.Count>=i) then
-      Items[i-1]:=s
+      Items[i - 1] := s
     else
       Items.Add(s);
   end;
@@ -906,9 +935,10 @@ begin
   sl := TStringList.Create;
   sl.Assign(Items);
   SortCol := FSortColumn;
-
+  BeginUpdate;
   if sl.Count>1 then
     QuickSortList(sl,0,sl.Count-1);
+  EndUpdate;  
 
   Items.Assign(sl);
   sl.Free;
@@ -1318,11 +1348,17 @@ end;
 
 procedure TComboItemCollection.LoadFromFile(FileName: string);
 var
+  {$IFNDEF DELPHI_UNICODE}
   tf: textfile;
   s:string;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  sl: TStringList;
+  i: integer;
+  {$ENDIF}
 begin
   Clear;
-
+  {$IFNDEF DELPHI_UNICODE}
   assignfile(tf, FileName);
   {$i-}
   reset(tf);
@@ -1338,13 +1374,44 @@ begin
     EndUpdate;
     closefile(tf);
   end;
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  sl := TStringList.Create;
+
+  try
+    sl.LoadFromFile(FileName);
+    BeginUpdate;
+    for i := 0 to sl.Count - 1 do
+    begin
+      Add.Strings.CommaText := sl.Strings[i];
+    end;
+    EndUpdate;
+
+  finally
+    sl.Free;
+  end;
+  {$ENDIF}
+
 end;
 
+{$IFNDEF DELPHI_UNICODE}
 procedure TComboItemCollection.SaveToFile(FileName: string);
+{$ENDIF}
+{$IFDEF DELPHI_UNICODE}
+procedure TComboItemCollection.SaveToFile(FileName: string; Unicode: boolean = true);
+{$ENDIF}
 var
   i: integer;
+  {$IFNDEF DELPHI_UNICODE}
   tf: textfile;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  sl: TStringList;
+  {$ENDIF}
+
 begin
+  {$IFNDEF DELPHI_UNICODE}
   assignfile(tf, FileName);
   rewrite(tf);
   for i := 1 to Count do
@@ -1352,6 +1419,22 @@ begin
     writeln(tf, Items[i - 1].Strings.CommaText);
   end;
   closefile(tf);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  sl := TStringList.Create;
+  for i := 1 to Count do
+  begin
+    sl.Add(Items[i - 1].Strings.CommaText);
+  end;
+
+  if Unicode then
+    sl.SaveToFile(FileName, TEncoding.Unicode)
+  else
+    sl.SaveToFile(FileName);
+
+  sl.Free;
+  {$ENDIF}
 end;
 
 procedure TComboItemCollection.SetItem(Index: Integer;

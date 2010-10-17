@@ -1,9 +1,8 @@
 {**************************************************************************}
 { TParamTreeview component                                                 }
 { for Delphi & C++Builder                                                  }
-{ version 1.3                                                              }
 {                                                                          }
-{ Copyright © 2001 - 2006                                                  }
+{ Copyright © 2001 - 2008                                                  }
 {  TMS Software                                                            }
 {  Email : info@tmssoftware.com                                            }
 {  Web : http://www.tmssoftware.com                                        }
@@ -37,8 +36,8 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 5; // Build nr.
+  REL_VER = 3; // Release nr.
+  BLD_VER = 2; // Build nr.
 
   // version history
   // 1.3.0.1 : improved mask editor property handling
@@ -48,12 +47,21 @@ const
   // 1.3.0.4 : fix for issue with WordWrap = false
   // 1.3.0.5 : fix issue with inplace editors wider than control width
   // 1.3.1.0 : improved positioning of directory select dialog on multimonitor machines
+  // 1.3.1.1 : Fixed : issue with hotkey handling for other controls during param edit
+  // 1.3.3.0 : Fixed issue with spinedit
+  // 1.3.3.1 : Fixed painting issue with mousewheel scrolling
+  // 1.3.3.2 : Fixed runtime creation issue
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TParamTreeViewClickEvent = procedure(Sender:TObject;ANode: TTreeNode; href: string;var value: string) of object;
   TParamTreeViewPopupEvent = procedure(Sender:TObject;ANode: TTreeNode; href: string;values:TStringlist;var DoPopup: Boolean) of object;
   TParamTreeViewSelectEvent = procedure(Sender:TObject;ANode: TTreeNode; href,value: string) of object;
-  TParamTreeViewChangedEvent = procedure(Sender:TObject;ANode: TTreeNode; href,oldvalue,newvalue: string) of object;
+  TParamTreeViewChangedEvent = procedure(Sender:TObject;ANode: TTreeNode; href,oldvalue, newvalue: string) of object;
   TParamTreeViewHintEvent = procedure(Sender:TObject; ANode: TTreeNode; href: string; var hintvalue: string; var showhint: Boolean) of object;
 
   TParamCustomEditEvent = procedure(Sender: TObject; Node: TTreeNode; href, value, props: string; EditRect: TRect) of object;
@@ -178,7 +186,7 @@ type
     function GetParamItemRefs(Item, Index: Integer): string;
     function GetParamRefCount: Integer;
     function GetParamRefs(Index: Integer): string;
-    procedure StartParamEdit(param:string;Node: TTreeNode; hr: TRect);
+    procedure StartParamEdit(param:string; Node: TTreeNode; hr: TRect);
     {$IFNDEF TMSDOTNET}
     procedure StartParamDir(param,curdir:string; hr: TRect);
     {$ENDIF}
@@ -196,8 +204,10 @@ type
     function GetVersionNr: Integer; virtual;
     procedure HandlePopup(Sender:TObject); virtual;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
+
     procedure Loaded; override;
     procedure CreateWnd; override;
+    procedure WndProc(var Message: TMessage); override;
     procedure UpdateParam(Param,Value:string);
     procedure PrepareParam(Param:string; var Value:string);
     procedure ControlUpdate(Sender: TObject; Param,Text:string);
@@ -1059,7 +1069,7 @@ begin
       FParamDatePicker.Width := self.Width - lh - 4
     else
       FParamDatePicker.Width := Max(64,hr.Right - hr.Left);
-      
+
     FParamDatePicker.Kind := dtkDate;
     FParamDatePicker.Cancelled := False;
     FParamDatePicker.Parent := Self;
@@ -1134,7 +1144,11 @@ begin
 
     PrepareParam(a,v);
 
-    FParamSpinEdit.Value := StrToInt(Trim(v));
+    try
+      FParamSpinEdit.Value := StrToInt(Trim(v));
+    except
+      FParamSpinEdit.Value := 0;
+    end;
     FParamSpinEdit.SetFocus;
   end;
 
@@ -1285,6 +1299,8 @@ begin
     Invalidate;
     FOldScrollPos := GetScrollPos(handle,SB_HORZ);
   end;
+
+//  Invalidate;
 end;
 
 function TParamTreeview.IsParam(x, y: Integer;GetFocusRect: Boolean; var Node: TTreeNode; var HR,cr: TRect;var CID,CT,CV: string): string;
@@ -1576,6 +1592,7 @@ begin
   FSelectionFontColor := clHighLightText;
   FItemHeight := 16;
   FOldScrollPos := -1;
+
   FParamPopup := TPopupMenu.Create(Self);
   FParamList := TPopupListBox.Create(Self);
   FParamDatePicker := TPopupDatePicker.Create(Self);
@@ -1583,6 +1600,7 @@ begin
   FParamEdit := TPopupEdit.Create(Self);
   FParamMaskEdit := TPopupMaskEdit.Create(Self);
   FImageCache := THTMLPictureCache.Create;
+
   ReadOnly := True;
   FShowSelection := False;
   FShadowOffset := 1;
@@ -1609,6 +1627,8 @@ begin
   FImageCache.Free;
   inherited;
 end;
+
+
 
 function TParamTreeview.GetItemHeight: integer;
 begin
@@ -1678,6 +1698,23 @@ procedure TParamTreeview.WMSize(var message: TWMSize);
 begin
   inherited;
   Invalidate;
+end;
+
+procedure TParamTreeview.WndProc(var Message: TMessage);
+var
+  sp: integer;
+begin
+  sp := 0;
+  if HandleAllocated then
+    sp := GetScrollPos(Handle,SB_HORZ);
+
+  inherited;
+
+  if (Message.Msg = WM_MOUSEWHEEL) and HandleAllocated then
+  begin
+    if (sp <> GetScrollPos(Handle,SB_HORZ)) then
+      Invalidate;
+  end;
 end;
 
 procedure TParamTreeview.HandlePopup(Sender: TObject);
@@ -1944,7 +1981,7 @@ begin
 {$ENDIF}
   Result := s;
 end;
-
+                                     
 procedure TParamTreeView.ControlUpdate(Sender: TObject; Param,Text:string);
 var
   s: string;
@@ -1957,7 +1994,9 @@ begin
     FOnParamEditDone(Self, Selected, Param, s);
 
   UpdateParam(Param, s);
-  FIsEditing := False;  
+  FIsEditing := False;
+
+  //SetFocus;
 end;
 
 procedure TParamTreeview.SetLineSpacing(const Value: Integer);
@@ -2384,7 +2423,6 @@ begin
     Selected.Expanded :=true;
     StartParamEdit(href, tn, GetParamRect(href));
   end;
-
 end;
 
 function TParamTreeview.GetParamRefNode(href: string): TTreeNode;

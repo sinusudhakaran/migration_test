@@ -1,9 +1,8 @@
 {**************************************************************************}
 { THTMLPopup component                                                     }
 { for Delphi & C++Builder                                                  }
-{ version 1.1                                                              }
 {                                                                          }
-{ Copyright © 2001-2005                                                    }
+{ Copyright © 2001-2008                                                    }
 {   TMS Software                                                           }
 {   Email : info@tmssoftware.com                                           }
 {   Web : http://www.tmssoftware.com                                       }
@@ -770,5 +769,8 @@ begin
 
 end;
 
+{$IFDEF FREEWARE}
+{$I TRIAL.INC}
+{$ENDIF}
 
 end.

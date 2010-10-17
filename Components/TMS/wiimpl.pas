@@ -17,15 +17,18 @@ begin
     FDataStream.Clear
   else
   begin
-    if Source is THTMLPicture then
+    if (Source is THTMLPicture) then
     begin
+      FStretched := (Source as THTMLPicture).Stretch;
+      FFrame := (Source as THTMLPicture).Frame;
+      FID := (Source as THTMLPicture).ID;
       FDataStream.LoadFromStream(THTMLPicture(Source).fDataStream);
       FIsEmpty := False;
       LoadPicture;
       if Assigned(OnChange) then
         OnChange(self);
     end;
-  end;
+  end;    
 end;
 
 constructor THTMLPicture.Create;
@@ -187,8 +190,7 @@ begin
   gpPicture.get_Width(hmWidth);
   gpPicture.get_Height(hmHeight);
 
-
-  if FStretched then
+  if Stretch then
   begin
     gpPicture.Render(ACanvas.Handle,Rect.Left,Rect.Bottom,Rect.Right - Rect.Left,-(Rect.Bottom - Rect.Top),0,0,
                      hmWidth,hmHeight, Rect);
@@ -697,6 +699,15 @@ begin
     FFrame := FFrameCount;
 end;
 
+function THTMLPicture.GetStretched: boolean;
+begin
+  Result := FStretched;
+end;
+
+procedure THTMLPicture.SetStretched(const Value: boolean);
+begin
+  FStretched := Value;
+end;
 
 { THTMLImage }
 
@@ -772,7 +783,7 @@ end;
 
 procedure THTMLImage.SetHTMLPicture(const Value: THTMLPicture);
 begin
-  fHTMLPicture.Assign(Value);
+  FHTMLPicture.Assign(Value);
   Invalidate;
 end;
 
@@ -797,21 +808,23 @@ end;
 
 procedure THTMLImage.DownLoadError(Sender: TObject; err: string);
 begin
- if assigned(fOnDownloadError) then fOnDownLoadError(self,err);
+  if Assigned(FOnDownloadError) then
+    FOnDownLoadError(self,err);
 end;
 
 procedure THTMLImage.DownLoadProgress(Sender: TObject; dwSize,
   dwTotSize: dword);
 begin
- if assigned(fOnDownLoadProgress) then fOnDownLoadProgress(self,dwSize,dwTotSize);
+ if Assigned(FOnDownLoadProgress) then
+   FOnDownLoadProgress(self,dwSize,dwTotSize);
 end;
 
-{ TDownLoadThread }
+{ TDownLoadThread }          
 
 constructor TDownLoadThread.Create(aHTMLPicture: THTMLPicture);
 begin
   inherited Create(false);
-  HTMLPicture:=aHTMLPicture;
+  HTMLPicture := aHTMLPicture;
   FreeOnTerminate := True;
 end;
 
@@ -823,6 +836,12 @@ begin
 end;
 
 { THTMLPictureCache }
+
+destructor THTMLPictureCache.Destroy;
+begin
+  ClearPictures;
+  inherited;
+end;
 
 function THTMLPictureCache.AddPicture: THTMLPicture;
 begin
@@ -841,7 +860,9 @@ var
 begin
   for i := 1 to Count do
     Items[i - 1].Free;
-  inherited;
+
+  Clear;
+  //inherited;
 end;
 
 function THTMLPictureCache.FindPicture(ID: string): THTMLPicture;

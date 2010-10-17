@@ -1,10 +1,8 @@
 {**************************************************************************}
 { HTML design time property editor interface                               }
-{ for Delphi 5.0,6.0,7.0,2005 & C++Builder 5.0,6.0                         }
-{ version 1.2                                                              }
 {                                                                          }
 { written by TMS Software                                                  }
-{            copyright © 2000 - 2005                                       }
+{            copyright © 2000 - 2008                                       }
 {            Email : info@tmssoftware.com                                  }
 {            Web : http://www.tmssoftware.com                              }
 {                                                                          }
@@ -108,12 +106,14 @@ begin
 
   PropInfo:= typInfo.GetPropInfo(GetComponent(0).ClassInfo,'Images');
   if (PropInfo<>nil) then
+  begin
    {$IFNDEF TMSDOTNET}
    HTMLEditor.HTMLStaticText1.Images:=(TImageList(GetOrdProp(GetComponent(0),PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
    HTMLEditor.HTMLStaticText1.Images:=(TImageList(GetObjectProp(GetComponent(0),PropInfo)));
    {$ENDIF}
+  end;
 
   PropInfo:= typInfo.GetPropInfo(GetComponent(0).ClassInfo,'URLColor');
   if (PropInfo<>nil) then
@@ -241,6 +241,7 @@ var
 {$ENDIF}  
   S: string;
   i: Integer;
+  comp: TComponent;
 
 begin
   HTMLEditor := THTMLEditor.Create(Application);
@@ -248,107 +249,119 @@ begin
    HTMLEditor.Memo1.Lines.Clear;
    HTMLEditor.Memo1.Lines.Add(String(GetStrValue));
 
+   {$IFDEF DELPHI6_LVL}
+   if GetComponent(0) is TCollectionItem then
+   begin
+     comp :=  TComponent((GetComponent(0) as TCollectionItem).Collection.Owner);
+   end
+   else
+   {$ENDIF}
+     comp := TComponent(GetComponent(0));
+
+
   {try to inherit the default font}
-   PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'Font');
+   PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'Font');
   if (PropInfo<>nil) then
    {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.Font.Assign(TFont(GetOrdProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.Font.Assign(TFont(GetOrdProp(comp,PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.Font.Assign(TFont(GetObjectProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.Font.Assign(TFont(GetObjectProp(comp,PropInfo)));
    {$ENDIF}
 
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'Images');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'Images');
+  if (PropInfo<>nil) then
+  begin
+   {$IFNDEF TMSDOTNET}
+   HTMLEditor.HTMLStaticText1.Images:=(TImageList(GetOrdProp(comp,PropInfo)));
+   {$ENDIF}
+   {$IFDEF TMSDOTNET}
+   HTMLEditor.HTMLStaticText1.Images:=(TImageList(GetObjectProp(comp,PropInfo)));
+   {$ENDIF}
+  end;
+
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'URLColor');
   if (PropInfo<>nil) then
    {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.Images:=(TImageList(GetOrdProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.URLColor:=(TColor(GetOrdProp(comp,PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.Images:=(TImageList(GetObjectProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.URLColor:=(TColor(GetObjectProp(comp,PropInfo)));
    {$ENDIF}
 
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'URLColor');
-  if (PropInfo<>nil) then
-   {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.URLColor:=(TColor(GetOrdProp(GetComponent(0),PropInfo)));
-   {$ENDIF}
-   {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.URLColor:=(TColor(GetObjectProp(GetComponent(0),PropInfo)));
-   {$ENDIF}
-
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'HoverColor');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'HoverColor');
   if (PropInfo<>nil) then
     {$IFNDEF TMSDOTNET}
-    HTMLEditor.HTMLStaticText1.HoverColor:=(TColor(GetOrdProp(GetComponent(0),PropInfo)));
+    HTMLEditor.HTMLStaticText1.HoverColor:=(TColor(GetOrdProp(comp,PropInfo)));
     {$ENDIF}
     {$IFDEF TMSDOTNET}
-    HTMLEditor.HTMLStaticText1.HoverColor:=(TColor(GetObjectProp(GetComponent(0),PropInfo)));
+    HTMLEditor.HTMLStaticText1.HoverColor:=(TColor(GetObjectProp(comp,PropInfo)));
     {$ENDIF}
 
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'HoverFontColor');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'HoverFontColor');
   if (PropInfo<>nil) then
    {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.HoverFontColor:=(TColor(GetOrdProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.HoverFontColor:=(TColor(GetOrdProp(comp,PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.HoverFontColor:=(TColor(GetObjectProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.HoverFontColor:=(TColor(GetObjectProp(comp,PropInfo)));
    {$ENDIF}
 
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'Hover');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'Hover');
   if (PropInfo<>nil) then
    {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.Hover:=(boolean(GetOrdProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.Hover:=(boolean(GetOrdProp(comp,PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.Hover:=(boolean(GetObjectProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.Hover:=(boolean(GetObjectProp(comp,PropInfo)));
    {$ENDIF}
 
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'AnchorHint');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'AnchorHint');
   if (PropInfo<>nil) then
    {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.AnchorHint:=(boolean(GetOrdProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.AnchorHint:=(boolean(GetOrdProp(comp,PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.AnchorHint:=(boolean(GetObjectProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.AnchorHint:=(boolean(GetObjectProp(comp,PropInfo)));
    {$ENDIF}
 
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'ShadowColor');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'ShadowColor');
   if (PropInfo<>nil) then
    {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.ShadowColor:=(TColor(GetOrdProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.ShadowColor:=(TColor(GetOrdProp(comp,PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.ShadowColor:=(TColor(GetObjectProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.ShadowColor:=(TColor(GetObjectProp(comp,PropInfo)));
    {$ENDIF}
 
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'ShadowOffset');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'ShadowOffset');
   if (PropInfo<>nil) then
    {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.ShadowOffset:=(integer(GetOrdProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.ShadowOffset:=(integer(GetOrdProp(comp,PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.ShadowOffset:=(integer(GetObjectProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.ShadowOffset:=(integer(GetObjectProp(comp,PropInfo)));
    {$ENDIF}
 
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'PictureContainer');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'PictureContainer');
   if PropInfo <> nil then
    {$IFNDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.PictureContainer := (TPictureContainer(GetOrdProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.PictureContainer := (TPictureContainer(GetOrdProp(comp,PropInfo)));
    {$ENDIF}
    {$IFDEF TMSDOTNET}
-   HTMLEditor.HTMLStaticText1.PictureContainer := (TPictureContainer(GetObjectProp(GetComponent(0),PropInfo)));
+   HTMLEditor.HTMLStaticText1.PictureContainer := (TPictureContainer(GetObjectProp(comp,PropInfo)));
    {$ENDIF}
 
 {$IFNDEF TMSPERSONAL}
-  PropInfo := typInfo.GetPropInfo(GetComponent(0).ClassInfo,'Datasource');
+  PropInfo := typInfo.GetPropInfo(comp.ClassInfo,'Datasource');
   if (PropInfo<>nil) then
     begin
      HTMLEditor.DBfields.Visible:=true;
      {$IFNDEF TMSDOTNET}
-     FDataSource := TDataSource(GetOrdProp(GetComponent(0),PropInfo));
+     FDataSource := TDataSource(GetOrdProp(comp,PropInfo));
      {$ENDIF}
      {$IFDEF TMSDOTNET}
-     FDataSource := TDataSource(GetObjectProp(GetComponent(0),PropInfo));
+     FDataSource := TDataSource(GetObjectProp(comp,PropInfo));
      {$ENDIF}
 
      if Assigned(FDataSource) then

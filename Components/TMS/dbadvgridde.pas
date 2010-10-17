@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TDBAdvGrid component                                                      }
 { for Delphi & C++Builder                                                   }
-{ version 2.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 1996-2005                                          }
+{            copyright © 1996-2008                                          }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -16,7 +15,9 @@
 { code can be included in any other component or application without        }
 { written authorization of the author.                                      }
 {***************************************************************************}
+
 {$I TMSDEFS.INC}
+
 unit DBAdvGridDE;
 
 interface
@@ -29,6 +30,9 @@ uses
   {$ENDIF}
   {$IFNDEF TMSDOTNET}
   , DesignIntf, DesignEditors, ContNrs
+  {$IFDEF DELPHI2006_LVL}
+  , WideStrings
+  {$ENDIF}
   {$ENDIF}
 {$ELSE}
   , DsgnIntf
@@ -103,12 +107,22 @@ var
   FDBStringGrid: TDBAdvGrid;//TDBAdvStringGrid;
   FDataSource: TDataSource;
   FDataSet: TDataSet;
-  st: TStringList;
+  {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI2006_LVL}
+  sl: TStringList;
+  {$ENDIF}
+  {$IFDEF DELPHI2006_LVL}
+  sl: TWideStringList;
+  {$ENDIF}
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  sl: TStringList;
+  {$ENDIF}
   i: Integer;
 begin
   FDBGridColumnItem := (GetComponent(0) as TDBGridColumnItem);
   FDBGridColumnCollection := (fDBGridColumnItem.Collection as TDBGridColumnCollection);
-  FDBStringGrid := FDBGridColumnCollection.GetOwner as TDBAdvGrid;//TDBAdvStringGrid;
+  FDBStringGrid := FDBGridColumnCollection.Owner as TDBAdvGrid;//TDBAdvStringGrid;
 
   FDataSource := FDBStringGrid.DataSource;
   if not Assigned(FDataSource) then
@@ -119,11 +133,22 @@ begin
   if not Assigned(FDataSet) then
     Exit;
 
-  st := TStringList.Create;
-  FDataSet.GetFieldNames(st);
-  for i := 1 to st.Count do
-    proc(st.Strings[i-1]);
-  st.Free;
+  {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI2006_LVL}
+  sl := TStringList.Create;
+  {$ENDIF}
+  {$IFDEF DELPHI2006_LVL}
+  sl := TWideStringList.Create;
+  {$ENDIF}
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  sl := TStringList.Create;
+  {$ENDIF}
+
+  FDataSet.GetFieldNames(sl);
+  for i := 1 to sl.Count do
+    proc(sl.Strings[i-1]);
+  sl.Free;
 end;
 
 end.

@@ -1,11 +1,10 @@
 {********************************************************************}
 { Extended filecontrol components                                    }
 { for Delphi & C++ Builder                                           }
-{ version 1.2                                                        }
 {                                                                    }
 { written by :                                                       }
 {           TMS Software                                             }
-{           copyright © 1999-2004                                    }
+{           copyright © 1999-2008                                    }
 {           Email : info@tmssoftware.com                             }
 {           Website : http://www.tmssoftware.com                     }
 {                                                                    }
@@ -38,9 +37,15 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 2; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 1; // Build nr.
 
+  // version history
+  // v1.2.0.1 : Fixed issue with ShowGlyphs = false
+  // v1.2.1.0 : Improved : handling of selection of invalid drives
+  // v1.2.1.1 : Fixed issue with ShowGlyphs = false in TFileListBoxEx
+  //          : Fixed issue with itemheight for non default font
+   
 type
 
   TFileListBoxEx = class(TFileListBox)
@@ -73,7 +78,7 @@ type
     procedure Add(Value: Boolean);
     procedure Insert(Index: Integer;Value: Boolean);
     procedure Delete(Index: Integer);
-  published
+
     property OnChange: TListNotifyEvent read FOnChange write FOnChange;
   end;
 
@@ -162,6 +167,7 @@ type
     function GetVersionNr: Integer; virtual;
     procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
     procedure BuildList; override;
+    procedure Click; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -239,6 +245,9 @@ begin
     {$ENDIF}
 
   end;
+  if (csDesigning in ComponentState) and not
+      ((csReading in Owner.ComponentState) or (csLoading in Owner.ComponentState)) then
+    ShowGlyphs := true;
 end;
 
 destructor TFileListBoxEx.Destroy;
@@ -261,7 +270,10 @@ begin
   MeasureItemStruct := Message.MeasureItemStruct;
   with MeasureItemStruct do
   {$ENDIF}
-    ItemHeight := 17;
+  begin
+    Canvas.Font.Assign(Font);
+    ItemHeight := Canvas.TextHeight('gh') + 2;
+  end;
   {$IFDEF TMSDOTNET}
   Message.MeasureItemStruct := MeasureItemStruct;
   {$ENDIF}
@@ -322,7 +334,7 @@ begin
               else
               begin
                 if not fWinNT then
-                 begin
+                begin
                   {$IFNDEF TMSDOTNET}
                   SHGetFileInfo(PChar(FileInfo.Name),FILE_ATTRIBUTE_NORMAL, SFI, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX  or SHGFI_SMALLICON or SHGFI_USEFILEATTRIBUTES);
                  {$ENDIF}
@@ -331,7 +343,7 @@ begin
                  {$ENDIF}
 
                   I := Items.AddObject(FileInfo.Name,TObject( sfi.iIcon ));
-                 end
+                end
                 else
                  Items.AddObject(FileInfo.Name,nil);
 
@@ -428,6 +440,7 @@ begin
                   SHGetFileInfo(FileInfo.Name,FILE_ATTRIBUTE_NORMAL, SFI, Marshal.SizeOf(TypeOf(TSHFileInfo)), SHGFI_SYSICONINDEX  or SHGFI_SMALLICON or SHGFI_USEFILEATTRIBUTES);
                   {$ENDIF}
                   I := Items.AddObject(FileInfo.Name,TObject( sfi.iIcon ));
+
                 end
                 else
                  Items.AddObject(FileInfo.Name,nil);
@@ -464,20 +477,25 @@ begin
   with Canvas do
   begin
     FillRect(Rect);
-    offset:=17;
+    offset := 0;
 
-    if FWinNT then
-     begin
-      {$IFNDEF TMSDOTNET}
-      syshandle := SHGetFileInfo(PChar(Items[Index]), FILE_ATTRIBUTE_NORMAL, SFI, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX  or SHGFI_SMALLICON or SHGFI_USEFILEATTRIBUTES);
-      {$ENDIF}
-      {$IFDEF TMSDOTNET}
-      syshandle := SHGetFileInfo(Items[Index], FILE_ATTRIBUTE_NORMAL, SFI, Marshal.SizeOf(TypeOf(TSHFileInfo)), SHGFI_SYSICONINDEX  or SHGFI_SMALLICON or SHGFI_USEFILEATTRIBUTES);
-      {$ENDIF}
-      ImageList_Draw(syshandle,sfi.iIcon,canvas.handle,rect.left,rect.top, ILD_TRANSPARENT);
-     end
-    else
-      ImageList_Draw(fImages.Handle,integer(Items.Objects[Index]),canvas.handle,rect.left,rect.top, ILD_TRANSPARENT);
+    if ShowGlyphs then
+    begin
+      offset:=17;
+
+      if FWinNT then
+      begin
+        {$IFNDEF TMSDOTNET}
+        syshandle := SHGetFileInfo(PChar(Items[Index]), FILE_ATTRIBUTE_NORMAL, SFI, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX  or SHGFI_SMALLICON or SHGFI_USEFILEATTRIBUTES);
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        syshandle := SHGetFileInfo(Items[Index], FILE_ATTRIBUTE_NORMAL, SFI, Marshal.SizeOf(TypeOf(TSHFileInfo)), SHGFI_SYSICONINDEX  or SHGFI_SMALLICON or SHGFI_USEFILEATTRIBUTES);
+        {$ENDIF}
+        ImageList_Draw(syshandle,sfi.iIcon,canvas.handle,rect.left,rect.top, ILD_TRANSPARENT);
+      end
+      else
+        ImageList_Draw(fImages.Handle,integer(Items.Objects[Index]),canvas.handle,rect.left,rect.top, ILD_TRANSPARENT);
+    end;
 
     TextOut(Rect.Left + offset, Rect.Top, Items[Index])
   end;
@@ -706,6 +724,20 @@ begin
     DrawText(Canvas.Handle, Items[Index], -1, Rect,
              DT_SINGLELINE or DT_VCENTER or DT_NOPREFIX);
     {$ENDIF}
+  end;
+end;
+
+procedure TDriveComboBoxEx.Click;
+begin
+  try
+    inherited;
+  except
+    if Assigned(DirList) then
+    begin
+      DirList.Clear;
+      if Assigned(DirList.FileList) then
+        DirList.FileList.Clear;
+    end;
   end;
 end;
 

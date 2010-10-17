@@ -1,10 +1,9 @@
 {*********************************************************************}
 { TADVSTRINGGRID component                                            }
 { for Delphi & C++Builder                                             }
-{ version 3.0.x.x                                                     }
 {                                                                     }
 { written by TMS Software                                             }
-{            copyright © 1996-2005                                    }
+{            copyright © 1996-2008                                    }
 {            Email : info@tmssoftware.com                             }
 {            Web : http://www.tmssoftware.com                         }
 {*********************************************************************}
@@ -17,7 +16,7 @@ interface
 uses
   Classes, Advgrid, BaseGrid, AsgCheck, AsgMemo, AdvSpin,
   AsgReplaceDialog, AsgFindDialog, AsgPrev, AsgPrint, AsgHTML, FrmCtrlLink,
-  AdvGridCSVPager
+  AdvGridCSVPager, AsgImport
   {$IFDEF DELPHI5_LVL}
   , AdvGridWorkbook
   {$ENDIF}
@@ -64,7 +63,9 @@ begin
   RegisterComponents('TMS Grids', [TAdvGridPrintSettingsDialog]);
   RegisterComponents('TMS Grids', [TAdvGridHTMLSettingsDialog]);
   RegisterComponents('TMS Grids', [TFormControlEditLink]);
-  RegisterComponents('TMS Grids', [TAdvGridCSVPager]);  
+  RegisterComponents('TMS Grids', [TAdvGridCSVPager]);
+  RegisterComponents('TMS Grids', [TAdvGridCSVPager]);
+  RegisterComponents('TMS Grids', [TAdvGridImportDialog]);
   {$IFDEF DELPHI5_LVL}
   {$IFNDEF TMSDOTNET}
   RegisterComponents('TMS Grids',[TAdvGridWorkbook]);

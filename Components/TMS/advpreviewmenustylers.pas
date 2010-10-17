@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TAdvPreviewMenu component                                               }
 { for Delphi & C++Builder                                                 }
-{ version 1.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright ©  2005 - 2006                                      }
+{           copyright ©  2005 - 2008                                      }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -354,6 +353,7 @@ begin
       MenuItemAppearance.TextColorHot := clBlack;
       MenuItemAppearance.TextColorDown := clBlack;
 
+      MenuItemAppearance.SubItemTitleFont.Style := [fsBold];
     end;
 
      if (FStyle in [psOffice2007Luna, psOffice2007Obsidian, psOffice2007Silver]) then
@@ -405,7 +405,7 @@ begin
         MenuItemAppearance.BorderColorChecked := $45667B;
         MenuItemAppearance.GradientChecked := ggVertical;
         MenuItemAppearance.GradientMirrorChecked := ggVertical;
-
+        MenuItemAppearance.SubItemTitleFont.Style := [fsBold];
     end;
 
   case FStyle of

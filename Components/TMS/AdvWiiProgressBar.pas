@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvWiiProgressBar component                                              }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2007                                               }
+{            copyright © 2007 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -32,7 +31,11 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 1; // Build nr.
+
+  // version history
+  // 1.0.0.0  : first release
+  // 1.0.0.1  : Fixed: issue with setting Appearance.ColorTo
 
 
 type
@@ -368,9 +371,9 @@ end;
 
 procedure TBlockAppearance.SetBlockColorTo(const Value: TColor);
 begin
-  if (BlockColorTo <> Value) then
+  if (FBlockColorTo <> Value) then
   begin
-    BlockColorTo := Value;
+    FBlockColorTo := Value;
     Changed;
   end;
 end;

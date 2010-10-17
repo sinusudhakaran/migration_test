@@ -3,7 +3,7 @@ unit UFlxMessages;
 {$IFDEF LINUX}{$INCLUDE ../FLXCONFIG.INC}{$ELSE}{$INCLUDE ..\FLXCONFIG.INC}{$ENDIF}
 
 interface
-uses {$IFDEF FLX_VCL} Windows, {$ENDIF}
+uses {$IFNDEF LINUX} Windows, {$ENDIF}
      {$IFDEF ConditionalExpressions}{$if CompilerVersion >= 14} variants, varutils, {$IFEND}{$ENDIF} //Delphi 6 or above
      {$IFNDEF ConditionalExpressions}ActiveX,{$ENDIF} //Delphi 5
      Classes, SysUtils;
@@ -29,7 +29,7 @@ resourcestring
 
   DefaultDateTimeFormat='mm/dd/yyyy hh:mm';
 
-  FlexCelVersion='2.6.17';
+  FlexCelVersion='2.6.26';
 {$IFDEF SPANISH}
   {$INCLUDE FlxSpanish.inc}
 {$ELSE}
@@ -102,6 +102,8 @@ type
   TExcelPaperSize = integer;
 
   const
+       Date1904Diff = 4 * 365 + 2;
+
         /// <summary>Not defined.</summary>
         TExcelPaperSize_Undefined=0;
         ///<summary>Letter - 81/2"" x 11""</summary>
@@ -298,6 +300,7 @@ const
   InternalNameRange_Auto_Deactivate   = char($0B);
   InternalNameRange_Sheet_Title       = char($0C);
 
+
 var
   ColMult:extended=256/7; //36.6;
   RowMult:extended=15;
@@ -309,6 +312,11 @@ type
   TXlsCellRange=record
     Left, Top, Right, Bottom: integer;
   end;
+
+  {$IFNDEF ConditionalExpressions}     //delphi 5
+  TSize = tagSIZE;
+  {$ENDIF}
+
 
   /// <summary>
   /// An Excel named range.
@@ -400,6 +408,20 @@ type
     IsFormula: boolean;
   end;
 
+  {$IFDEF  VER130}
+  {$DEFINE NOFORMATSETTINGS}
+  {$ENDIF}
+  {$IFDEF ConditionalExpressions}{$if CompilerVersion < 15}
+  {$DEFINE NOFORMATSETTINGS}
+  {$IFEND}{$ENDIF} //Delphi 6
+
+  {$IFDEF NOFORMATSETTINGS}
+  TFormatSettings = record
+  end;
+  {$ENDIF}
+
+  PFormatSettings = ^TFormatSettings;
+
   TFlxAnchorType=(at_MoveAndResize, at_MoveAndDontResize, at_DontMoveAndDontResize);
 
   TImageProperties=record
@@ -412,17 +434,37 @@ type
   {$IFDEF  VER130}
   function IncludeTrailingPathDelimiter(const S: string): string;
   function VarIsClear(const v: variant): boolean;
+  function PosEx(const SubStr, S: widestring; Offset: Cardinal): Integer;
+  function TryStrToInt(const s: string; var i: integer): boolean;
+  function TryStrToFloat(const s: string; var i: extended): boolean;
   {$ENDIF}
+
+  {$IFDEF NOFORMATSETTINGS}
+  procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings);
+  {$ENDIF}
+
+  procedure EnsureAMPM(var FormatSettings: PFormatSettings);
+  function TryStrToFloatInvariant(const s: string; var i: extended): boolean;
+
+  {$IFDEF ConditionalExpressions}{$if CompilerVersion < 15}
+  function PosEx(const SubStr, S: widestring; Offset: Cardinal): Integer;
+  {$IFEND}{$ENDIF} //Delphi 6
+
+
   function WideUpperCase98(const s: widestring):widestring;
 
   function StringReplaceSkipQuotes(const S, OldPattern, NewPattern: widestring): widestring;
   function FlxTryStrToDateTime(const S: widestring; out Value: TDateTime; var dFormat: widestring; var HasDate, HasTime: boolean; const DateFormat: widestring=''; const TimeFormat: widestring=''): Boolean;
   function TryFormatDateTime(const Fmt: string; value: TDateTime): string;
+  function TryFormatDateTime1904(const Fmt: string; value: TDateTime; const Dates1904: boolean): string; overload;
+  function TryFormatDateTime1904(const Fmt: string; value: TDateTime; const Dates1904: boolean; const LocalSettings: TFormatSettings): string; overload;
 
   function OffsetRange(const CellRange: TXlsCellRange; const DeltaRow, DeltaCol: integer): TXlsCellRange;
 
   //Returns "A" for column 1, "B"  for 2 and so on
   function EncodeColumn(const C: integer): string;
+
+  function GetDefaultLocaleFormatSettings: PFormatSettings;
 
 implementation
 
@@ -470,7 +512,65 @@ begin
   Result:=VarIsNull(v);
 end;
 
+function TryStrToInt(const s: string; var i: integer): boolean;
+var
+  errcode: integer;
+begin
+  val(s, i, errcode);
+  Result:= errCode = 0;
+end;
+
+function TryStrToFloat(const s: string; var i: extended): boolean;
+var
+  errcode: integer;
+begin
+  val(s, i, errcode);
+  Result:= errCode = 0;
+end;
 {$ENDIF}
+
+{$IFDEF NOFORMATSETTINGS}
+procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings);
+begin
+  //Not supported in Delphi 5/6
+end;
+
+procedure EnsureAMPM(var FormatSettings: PFormatSettings);
+begin
+end;
+{$ELSE}
+procedure EnsureAMPM(var FormatSettings: PFormatSettings);
+begin
+       //Windows uses empty AM/PM designators as empty. Excel uses AM/PM. This happens for example on German locale.
+      if (FormatSettings.TimeAMString = '') then
+      begin
+        FormatSettings.TimeAMString := 'AM';
+      end;
+      if (FormatSettings.TimePMString = '') then
+      begin
+        FormatSettings.TimePMString := 'PM';
+      end;
+end;
+{$ENDIF}
+
+var
+  CachedRegionalCulture: TFormatSettings;  //Cached because it is slow.
+
+function GetDefaultLocaleFormatSettings: PFormatSettings;
+begin
+{$IFNDEF NOFORMATSETTINGS}
+  if (CachedRegionalCulture.DecimalSeparator = #0) then GetLocaleFormatSettings(-1, CachedRegionalCulture);
+{$ENDIF}
+  Result:= @CachedRegionalCulture;
+end;
+
+function TryStrToFloatInvariant(const s: string; var i: extended): boolean;
+var
+  errcode: integer;
+begin
+  val(s, i, errcode);
+  Result:= errCode = 0;
+end;
 
 {$UNDEF WIDEUPPEROK}
 {$IFDEF ConditionalExpressions}
@@ -504,7 +604,7 @@ end;
 {$ENDIF}
 
 //Defined as there is not posex on d5
-function PosEx(const SubStr, S: string; Offset: Cardinal): Integer;
+function PosEx(const SubStr, S: widestring; Offset: Cardinal): Integer;
 var
   i,k: integer;
   Equal: boolean;
@@ -531,6 +631,22 @@ begin
     inc(i);
   end;
 end;
+
+function StartsWith(const SubStr, S: widestring; Offset: integer): boolean;
+var
+  i: integer;
+begin
+  Result := false;
+
+  if Offset - 1 + Length(SubStr) > Length(s)  then exit;
+
+  for i := 1 to Length(SubStr) do
+  begin
+    if S[i + Offset - 1] <> SubStr[i] then exit;
+  end;
+  Result:= true;
+end;
+
 function StringReplaceSkipQuotes(const S, OldPattern, NewPattern: widestring): widestring;
 var
   SearchStr, Patt: widestring;
@@ -547,7 +663,7 @@ begin
   while i<= Length(SearchStr) do
   begin
     if SearchStr[i]='"' then InQuote:= not InQuote;
-    if not InQuote and (PosEx(Patt,SearchStr,i)=i) then
+    if not InQuote and (StartsWith(Patt,SearchStr,i)) then
     begin
        if k+Length(NewPattern)-1>Length(Result) then SetLength(Result, k+Length(NewPattern)+100);
      for z:=1 to Length(NewPattern) do Result[z+k-1]:=NewPattern[z];
@@ -639,6 +755,31 @@ end;
 function TryFormatDateTime(const Fmt: string; value: TDateTime): string;
 begin
   try
+    Result :=FormatDateTime(Fmt, value);
+  except
+    Result :='##';
+  end;
+end;
+
+function TryFormatDateTime1904(const Fmt: string; value: TDateTime; const Dates1904: boolean; const LocalSettings: TFormatSettings): string;
+begin
+  try
+    if (Dates1904) then value:= value + Date1904Diff;
+   {$IFDEF  NOFORMATSETTINGS}
+    Result :=FormatDateTime(Fmt, value);
+   {$ELSE}
+    Result :=FormatDateTime(Fmt, value, LocalSettings);
+   {$ENDIF}
+
+  except
+    Result :='##';
+  end;
+end;
+
+function TryFormatDateTime1904(const Fmt: string; value: TDateTime; const Dates1904: boolean): string;
+begin
+  try
+    if (Dates1904) then value:= value + Date1904Diff;
     Result :=FormatDateTime(Fmt, value);
   except
     Result :='##';

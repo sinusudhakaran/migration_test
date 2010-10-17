@@ -82,6 +82,12 @@ end;
 
 procedure TMemoAC.SpeedButton1Click(Sender: TObject);
 begin
+  StringGrid1.RowCount := StringGrid1.RowCount + 1;
+
+end;
+
+procedure TMemoAC.SpeedButton2Click(Sender: TObject);
+begin
   if not StringGrid1.EditorMode then
   begin
     {$IFNDEF TMSDOTNET}
@@ -94,11 +100,6 @@ begin
       StringGrid1.Cells[2,1] := '';
     end;
   end;
-end;
-
-procedure TMemoAC.SpeedButton2Click(Sender: TObject);
-begin
-  StringGrid1.RowCount := StringGrid1.RowCount + 1;
 end;
 
 procedure TMemoAC.FormCreate(Sender: TObject);

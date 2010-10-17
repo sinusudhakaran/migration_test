@@ -25,8 +25,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, htmltext, ExtCtrls, {$IFDEF DELPHI4_LVL} ImgList, {$ENDIF} ComCtrls,
-  ToolWin, Menus
+  StdCtrls, htmltext, ExtCtrls, ComCtrls, ToolWin, Menus, ImgList
 
   {$IFDEF TMSDOTNET}
   , Types, System.ComponentModel

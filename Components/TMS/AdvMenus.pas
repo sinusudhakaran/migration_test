@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvMenu & TAdvPopupMenu component                                        }
 { for Delphi & C++Builder                                                   }
-{ version 2.0.5.0                                                           }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2004 - 2006                                        }
+{            copyright © 2004 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -30,18 +29,18 @@ unit AdvMenus;
 interface
 
 uses
-  Dialogs, Forms, Windows, SysUtils, Classes, Graphics, Menus, ImgList, Controls
+  Dialogs, Forms, Windows, SysUtils, Classes, Graphics, Menus, ImgList, Controls,
+  AdvGDIP, Messages
   {$IFDEF TMSDOTNET}
   , Types, System.Runtime.InteropServices, WinUtils
   {$ENDIF}
   ;
 
-
 const
   MAJ_VER = 2; // Major version nr.
   MIN_VER = 5; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
   // 1.1.0.2 : Fixed issues with multimonitor setup
@@ -57,6 +56,13 @@ const
   // 2.0.0.0 : New Office 2007 styles
   // 2.0.5.0 : New support for DisabledImages in TAdvMainMenu, TAdvPopupMenu
   // 2.5.0.0 : New Office 2007 Silver style added
+  // 2.5.0.1 : Fixed : issue with hidden root menu items
+  // 2.5.1.0 : Fixed : issue with disabled menu items & notes
+  //         : New : property ShowNotes added
+  // 2.5.1.1 : Fixed : issue with disabled menu items
+  // 2.5.2.0 : New : property IntlKeybShortCuts added for automatic internationalization of keyboard values
+  // 2.5.2.1 : Fixed : issue with IsRightAligned function with menus with hidden items
+
 
 type
   TDrawStyle = (dsNormal, dsTile, dsStretch);
@@ -71,6 +77,7 @@ type
   TSeparatorStyle = (ssNormal, ssShortLine, ssCaption);
   TBackgroundPosition = (bpTopLeft, bpTopRight, bpBottomLeft, bpBottomRight,
     bpTopCenter, bpBottomCenter, bpTiled, bpStretched, bpCenter, bpXY);
+  TGlyphPosition = (gpLeft, gpRight);
 
 resourcestring
   AdvResourceRadioItem = 'ADVRADIOITEM';
@@ -99,7 +106,7 @@ const
   // gradient bar
   DefaultColor = $00D8BDAF;
   DefaultColorTo = clNone;
-  DefaultGradientDirection = gdVertical;
+  DefaultMenuGradientDirection = gdVertical;
 
   // sidebar
   DefaultBarVisible = False;
@@ -234,6 +241,10 @@ type
     procedure SetMenuStyler(const Value: TCustomAdvMenuStyler);
     function GetOpacity: Byte;
     procedure SetOpacity(const Value: Byte);
+    function GetShowNotes: Boolean;
+    procedure SetShowNotes(const Value: boolean);
+    function GetIntlKeybShortCuts: boolean;
+    procedure SetIntlKeybShortCuts(const Value: boolean);
   { Properties }
   { Protected }
     property Self: TMenu read GetSelf;
@@ -241,6 +252,58 @@ type
   { Public }
     property MenuStyler: TCustomAdvMenuStyler read GetMenuStyler write SetMenuStyler;
     property Opacity: Byte read GetOpacity write SetOpacity;
+    property ShowNotes: Boolean read GetShowNotes write SetShowNotes;
+    property IntlKeybShortCuts: Boolean read GetIntlKeybShortCuts write SetIntlKeybShortCuts;
+  end;
+
+  TButtonAppearance = class(TPersistent)
+  private
+    FOnChange: TNotifyEvent;
+    FHoverColor: TColor;
+    FColorTo: TColor;
+    FColor: TColor;
+    FHoverColorTo: TColor;
+    FDownColorTo: TColor;
+    FDownColor: TColor;
+    FDownBorderColor: TColor;
+    FBorderColor: TColor;
+    FHoverBorderColor: TColor;
+    FGradientDirection: TGradientDirection;
+    FCaptionFont: TFont;
+    FGlyphPosition: TGlyphPosition;
+    FUseSystemFont: Boolean;
+    procedure Change;
+    procedure SetBorderColor(const Value: TColor);
+    procedure SetColor(const Value: TColor);
+    procedure SetDownColor(const Value: TColor);
+    procedure SetDownColorTo(const Value: TColor);
+    procedure SetHoverColor(const Value: TColor);
+    procedure SetHoverColorTo(const Value: TColor);
+    procedure SetColorTo(const Value: TColor);
+    procedure SetGradientDirection(const Value: TGradientDirection);
+    procedure SetCaptionFont(const Value: TFont);
+    procedure SetGlyphPosition(const Value: TGlyphPosition);
+    procedure SetUseSystemFont(const Value: Boolean);
+  protected
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property GlyphPosition: TGlyphPosition read FGlyphPosition write SetGlyphPosition default gpLeft;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+  published
+    property Color: TColor read FColor write SetColor default clNone;
+    property ColorTo: TColor read FColorTo write SetColorTo default clNone;
+    property DownColor: TColor read FDownColor write SetDownColor default $00B59285;
+    property DownColorTo: TColor read FDownColorTo write SetDownColorTo default clNone;
+    property HoverColor: TColor read FHoverColor write SetHoverColor default $00D2BDB6;
+    property HoverColorTo: TColor read FHoverColorTo write SetHoverColorTo default clNone;
+    property GradientDirection: TGradientDirection read FGradientDirection write SetGradientDirection default gdVertical;
+    property BorderColor: TColor read FBorderColor write SetBorderColor default clNone;
+    property DownBorderColor: TColor read FDownBorderColor write FDownBorderColor default $006A240A;
+    property HoverBorderColor: TColor read FHoverBorderColor write FHoverBorderColor default $006A240A;
+    property CaptionFont: TFont read FCaptionFont write SetCaptionFont;
+    property UseSystemFont: Boolean read FUseSystemFont write SetUseSystemFont default DefaultUseSystemFont;
   end;
 
   { TAdvMenuStyler }
@@ -259,6 +322,9 @@ type
     FMenuBarUpdating: Boolean;
     FMenu: TMenu;
     FBackgroundBitmap: TBitmap;
+    FNotesFont: TFont;
+    FAntiAlias: TAntiAlias;
+    FButtonAppearance: TButtonAppearance;
     procedure SetBackground(const Value: TBackground);
     procedure SetFont(const Value: TFont);
     procedure SetGlyphs(const Value: TMenuGlyphs);
@@ -269,14 +335,19 @@ type
     procedure SetSideBar(const Value: TSideBar);
     procedure SetUseSystemFont(const Value: Boolean);
     procedure SetMenu(const Value: TMenu);
+    procedure SetNotesFont(const Value: TFont);
+    procedure SetAntiAlias(const Value: TAntiAlias);
+    procedure SetTButtonAppearance(const Value: TButtonAppearance);
   protected
     property MenuBarUpdating: Boolean read FMenuBarUpdating write FMenuBarUpdating default False;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     property Menu: TMenu read FMenu write SetMenu;
 
+    property AntiAlias: TAntiAlias read FAntiAlias write SetAntiAlias;
     property Background: TBackground read FBackground write SetBackground;
     property IconBar: TIconBar read FIconBar write SetIconBar;
     property SelectedItem: TSelectedItem read FSelectedItem write SetSelectedItem;
@@ -285,12 +356,15 @@ type
     property SideBar: TSideBar read FSideBar write SetSideBar;
     property Separator: TSeparator read FSeparator write SetSeparator;
     property Font: TFont read FFont write SetFont;
+    property NotesFont: TFont read FNotesFont write SetNotesFont;
     property UseSystemFont: Boolean read FUseSystemFont write SetUseSystemFont default DefaultUseSystemFont;
     property MenuBorderColor: TColor read FMenuBorderColor write FMenuBorderColor default DefaultMenuBorderColor;
+    property ButtonAppearance: TButtonAppearance read FButtonAppearance write SetTButtonAppearance;
   end;
 
   TAdvMenuStyler = class(TCustomAdvMenuStyler)
   published
+    property AntiAlias;
     property Background;
     property IconBar;
     property SelectedItem;
@@ -299,8 +373,10 @@ type
     property SideBar;
     property Separator;
     property Font;
+    property NotesFont;
     property UseSystemFont;
     property MenuBorderColor;
+    property ButtonAppearance;
   end;
 
   { TGradientBar }
@@ -322,7 +398,7 @@ type
     procedure Assign(Source: TPersistent); override;
     property Color: TColor index 0 read GetGradientColor write SetGradientColor default DefaultColor;
     property ColorTo: TColor index 1 read GetGradientColor write SetGradientColor default DefaultColorTo;
-    property GradientDirection: TGradientDirection read FGradientDirection write SetGradientDirection default DefaultGradientDirection;
+    property GradientDirection: TGradientDirection read FGradientDirection write SetGradientDirection default DefaultMenuGradientDirection;
     property Menu: TMenu read FMenu;
   published
   end;
@@ -385,11 +461,13 @@ type
     FUseSystemFont: Boolean;
     FColorMirror: TColor;
     FColorMirrorTo: TColor;
+    FNotesFont: TFont;
     function GetCheckColor(const Index: Integer): TColor;
     procedure SetCheckColor(const Index: Integer; const Value: TColor);
     function GetRadioColor(const Index: Integer): TColor;
     procedure SetRadioColor(const Index: Integer; const Value: TColor);
     procedure SetFont(const Value: TFont);
+    procedure SetNotesFont(const Value: TFont);
     procedure SetUseSystemFont(const Value: Boolean);
   public
     constructor Create(AMenu: TMenu);
@@ -403,6 +481,7 @@ type
     property GradientDirection default DefaultSelectedGradientDirection;
     property BorderColor: TColor read FBorderColor write FBorderColor default DefaultSelectedBorder;
     property Font: TFont read FFont write SetFont;
+    property NotesFont: TFont read FNotesFont write SetNotesFont;
     property UseSystemFont: Boolean read FUseSystemFont write SetUseSystemFont default DefaultUseSystemFont;
     property CheckColor: TColor index 0 read GetCheckColor write SetCheckColor default DefaultSelectedCheckColor;
     property CheckColorTo: TColor index 1 read GetCheckColor write SetCheckColor default DefaultSelectedCheckColorTo;
@@ -464,7 +543,7 @@ type
     property HoverColorTo: TColor index 1 read GetHoverColor write SetHoverColor default DefaultHoverColorTo;
     property HoverColorMirror: TColor index 2 read GetHoverColor write SetHoverColor default clNone;
     property HoverColorMirrorTo: TColor index 3 read GetHoverColor write SetHoverColor default clNone;
-    property HoverGradientDirection: TGradientDirection read FHoverGradientDirection write FHoverGradientDirection default DefaultGradientDirection;
+    property HoverGradientDirection: TGradientDirection read FHoverGradientDirection write FHoverGradientDirection default DefaultMenuGradientDirection;
     property HoverBorderColor: TColor read FHoverBorderColor write FHoverBorderColor default DefaultHoverBorder;
     property HoverTextColor: TColor read FHoverTextColor write FHoverTextColor default DefaultHoverTextColor;
   end;
@@ -640,17 +719,24 @@ type
     FInternalMenuStyler: TCustomAdvMenuStyler;
     FCurrentMenuStyler: TCustomAdvMenuStyler;
     FOpacity: Byte;
+    FShowNotes: boolean;
     FMenuUpdating: Boolean;
     FUpdateRef: Integer;
     FOldWndHandle: THandle;
     FOldWndProcPtr: IntPtr;
     FDirectUpdate: Boolean;
     FDisabledImages: TImageList;
+    FIntlKeybShortCuts: boolean;
     function GetMenuStyler: TCustomAdvMenuStyler;
     function GetCurrentMenuStyler: TCustomAdvMenuStyler;
     procedure SetMenuStyler(const Value: TCustomAdvMenuStyler);
     function GetOpacity: Byte;
     procedure SetOpacity(const Value: Byte);
+    function GetShowNotes: boolean;
+    procedure SetShowNotes(const Value: boolean);
+    function GetIntlKeybShortCuts: boolean;
+    procedure SetIntlKeybShortCuts(const Value: boolean);
+
     function GetVersion: string;
     procedure SetVersion(const Value: string);
   protected
@@ -689,6 +775,8 @@ type
     property DisabledImages: TImageList read FDisabledImages write FDisabledImages;
     property MenuStyler: TCustomAdvMenuStyler read GetMenuStyler write SetMenuStyler;
     property OwnerDraw default True;
+    property IntlKeybShortCuts: boolean read GetIntlKeybShortCuts write SetIntlKeybShortCuts default false;
+    property ShowNotes: boolean read GetShowNotes write SetShowNotes default true;
     property Version: string read GetVersion write SetVersion;
   end;
 
@@ -701,15 +789,21 @@ type
     FInternalMenuStyler: TCustomAdvMenuStyler;
     FCurrentMenuStyler: TCustomAdvMenuStyler;
     FOpacity: Byte;
+    FShowNotes: boolean;
     FMenuUpdating: Boolean;
     FUpdateRef: Integer;
     FDirectUpdate: Boolean;
     FDisabledImages: TImageList;
+    FIntlKeybShortCuts: Boolean;
     function GetMenuStyler: TCustomAdvMenuStyler;
     function GetCurrentMenuStyler: TCustomAdvMenuStyler;
     procedure SetMenuStyler(const Value: TCustomAdvMenuStyler);
     function GetOpacity: Byte;
     procedure SetOpacity(const Value: Byte);
+    function GetShowNotes: boolean;
+    procedure SetShowNotes(const Value: boolean);
+    function GetIntlKeybShortCuts: boolean;
+    procedure SetIntlKeybShortCuts(const Value: boolean);
     procedure AllocMenuStyler;
     function GetVersion: string;
     procedure SetVersion(const Value: string);
@@ -745,8 +839,20 @@ type
     property DisabledImages: TImageList read FDisabledImages write FDisabledImages;
     property MenuStyler: TCustomAdvMenuStyler read GetMenuStyler write SetMenuStyler;
     property OwnerDraw default True;
+    property IntlKeybShortCuts: boolean read GetIntlKeybShortCuts write SetIntlKeybShortCuts default false;
+    property ShowNotes: boolean read GetShowNotes write SetShowNotes default true;
     property Version: string read GetVersion write SetVersion;
   end;
+
+  {
+  TPopupListEx = class(TPopupList)
+  private
+    procedure WndProc(var Message: TMessage); override;
+  public
+    PopupMenu: TPopupMenu;
+    MenuLoop: Boolean;
+  end;
+  }
 
 { intended to be used from events }
 
@@ -801,7 +907,7 @@ function IsRightAligned(MenuItem: TMenuItem; MenuWnd: THandle): Boolean;
 function IsRightmost(MenuItem: TMenuItem): Boolean;
 function GetAdvMenuIntf(AMenu: TMenu): IAdvMenu;
 function GetMenuItemIntf(AMenuItem: TMenuItem): IAdvMenu;
-function AdvShortCutToText(ShortCut: TShortCut): string;
+function AdvShortCutToText(ShortCut: TShortCut;Intl: boolean): string;
 function GetMenuRect(MenuItem: TMenuItem; MenuWnd: THandle): TRect;
 function GetMenuWnd(Menu: TMenu): THandle;
 function GetMDIClientWnd(AdvMenu: IAdvMenu): THandle;
@@ -813,7 +919,6 @@ procedure RestoreMenuAnimation;
 implementation
 
 uses
-  Messages,
   ActnList,
   AdvMenuUtil;
 
@@ -834,14 +939,12 @@ procedure MeasureItem(MenuItem: TMenuItem;
 const
   Alignments: array[TPopupAlignment] of Word = (DT_LEFT, DT_RIGHT, DT_CENTER);
 var
-//  Alignment: TPopupAlignment;
   ImageList: TCustomImageList;
-//  ParentMenu: TMenu;
   TopLevel: Boolean;
-//  DrawStyle: Integer;
-  Text: string;
-  R{, R2}: TRect;
+  Text, s: string;
+  R: TRect;
   AdvMenu: IAdvMenu;
+  th, tw: Integer;
 
   {$IFDEF TMSDOTNET}
   procedure GetMenuSize;
@@ -931,6 +1034,7 @@ begin
         Inc(Width, 15);
         Inc(Height, 5);
       end;
+
       {
       if ParentMenu is TMenu then
         Alignment := paLeft
@@ -939,11 +1043,14 @@ begin
       else
         Alignment := paLeft;
       }
-      
-      Text := Caption;
 
-      if ShortCut <> 0 then
-        Text := Text + AdvShortCutToText(ShortCut);
+      if (pos('\n',Caption) > 0) and AdvMenu.ShowNotes then
+        Text := copy(Caption, 1, pos('\n',Caption)-1)
+      else
+        Text := Caption;
+
+      if (ShortCut <> 0) then
+        Text := Text + AdvShortCutToText(ShortCut,AdvMenu.IntlKeybShortCuts);
 
       {
       DrawStyle := Alignments[Alignment] or DT_EXPANDTABS or DT_SINGLELINE or
@@ -964,7 +1071,7 @@ begin
           if not SelectedItem.UseSystemFont then
             ACanvas.Font.Assign(SelectedItem.Font);
       end;
-          
+
       R := NilRect;
       {$IFNDEF TMSDOTNET}
       DrawText(ACanvas.Handle, PChar(Text), Length(Text), R, DT_CALCRECT or DT_SINGLELINE);
@@ -972,6 +1079,7 @@ begin
       {$IFDEF TMSDOTNET}
       DrawText(ACanvas.Handle, Text, Length(Text), R, DT_CALCRECT or DT_SINGLELINE);
       {$ENDIF}
+
       (*if not TopLevel and not UseSystemFont then
       begin
         if not SelectedItem.UseSystemFont then
@@ -987,6 +1095,7 @@ begin
         {$ENDIF}
         UnionRect(R, R, R2);
       end;*)
+
       Inc(Width, R.Right - R.Left + 7);
       if not UseSystemFont then
         Height := RectHeight(R) + 6;
@@ -1003,7 +1112,35 @@ begin
 
         inc(Height, ItemHeightIncrement);
         Height := ((Height + 1) div 2) * 2; // make Height even and round to up
-        inc(Width, TriangleSize)
+        inc(Width, TriangleSize);
+
+
+        //mmm
+        s := MenuItem.Caption;
+        if (pos('\n',s) > 0) and AdvMenu.ShowNotes then
+        begin
+          ACanvas.Font.Assign(NotesFont);
+          th := ACanvas.TextHeight('gh');
+          while pos('\n',s) > 0 do
+          begin
+            tw := ACanvas.TextWidth(copy(s,1,pos('\n',s)-1));
+            if tw > Width then
+              Width := tw;
+
+            Inc(Height,th);
+            system.delete(s,1,pos('\n',s)+1);
+          end;
+
+          if (s <> '') then
+          begin
+            tw := ACanvas.TextWidth(s);
+            if tw + TriangleSize + IconBar.Size + 15 > Width  then
+              Width := tw + TriangleSize + IconBar.Size + 15;
+          end;
+
+        //mmm
+        end;
+
       end;
     end;
   end;
@@ -1046,6 +1183,7 @@ begin
       if SideBarVisible and IsFirstSubMenuItem(MenuItem) then
       begin
         SideBarRect := MenuRect;
+
 //    if (PopupHeight <> RectHeight(SideBarRect)) then
 //      begin
           SideBar.PopupHeight := RectHeight(SideBarRect);
@@ -1079,6 +1217,7 @@ begin
         ACanvas.LineTo(IconBarRect.Right - 1, IconBarRect.Bottom);
       end;
 
+
       // Draw menu background
       SmallItemRect := ItemRect;
       SmallItemRect.Left := IconBarRect.Right;
@@ -1106,8 +1245,10 @@ begin
         ACanvas.CopyMode := cmSrcCopy;
         ACanvas.CopyRect(SmallItemRect, FBackgroundBitmap.Canvas, SmallItemRect);
       end;
+
     end;
   end;
+
   // Draw menu item
   DrawMenuItemEx(AdvMenu, MenuItem, ACanvas, ItemRect, State);
   DrawMenuWindowBorder(MenuItem, ACanvas);
@@ -1116,12 +1257,21 @@ end;
 procedure DrawMenuItemText(MenuItem: TMenuItem; ACanvas: TCanvas; const ACaption: string; var Rect: TRect;
   State: TOwnerDrawState; Flags: Longint);
 var
-  Text: string;
+  Text,s,dt: string;
   ParentMenu: TMenu;
   AdvMenu: IAdvMenu;
+  dr: TRect;
+  graphics: TGPGraphics;
+  gfont: TGPFont;
+  gfontfamily: TGPFontFamily;
+  rectf,measrect: TGPRectF;
+  gstringformat: TGPStringFormat;
+  gsolidBrush: TGPSolidBrush;
+  th: integer;
+  fclr: TColor;
+  
 begin
   AdvMenu := GetMenuItemIntf(MenuItem);
-
 
   with MenuItem do
   begin
@@ -1137,7 +1287,7 @@ begin
     Text := ACaption;
     if (Flags and DT_CALCRECT <> 0) and ((Text = '') or
       (Text[1] = cHotkeyPrefix) and (Text[2] = #0)) then Text := Text + ' ';
-      
+
     with ACanvas do
     begin
       Brush.Style := bsClear;
@@ -1173,6 +1323,7 @@ begin
 
       if Default then
         Font.Style := Font.Style + [fsBold];
+      (*
       if not Enabled then
       begin
         if not (odSelected in State) then
@@ -1187,18 +1338,218 @@ begin
           {$ENDIF}
           OffsetRect(Rect, -1, -1);
         end;
+
         if (odSelected in State) and (ColorToRGB(clHighlight) = ColorToRGB(clBtnShadow)) then
           Font.Color := clBtnHighlight
         else
           Font.Color := clBtnShadow;
       end;
+      *)
+      //mmmm
+      if (pos('\n',Text) > 0) and (AdvMenu.ShowNotes) then
+      begin
+        if AdvMenu.CurrentMenuStyler.AntiAlias = aaNone then
+        begin
+               
+          if not Enabled then
+          begin
+            if (odSelected in State) and (ColorToRGB(clHighlight) = ColorToRGB(clBtnShadow)) then
+              Font.Color := clBtnHighlight
+            else
+              Font.Color := clBtnShadow;
+          end;
 
-      {$IFNDEF TMSDOTNET}
-      DrawText(Handle, PChar(Text), Length(Text), Rect, Flags);
-      {$ENDIF}
-      {$IFDEF TMSDOTNET}
-      DrawText(Handle, Text, Length(Text), Rect, Flags);
-      {$ENDIF}
+          flags := flags AND NOT DT_VCENTER AND DT_SINGLELINE;
+
+          s := copy(Text, 1, pos('\n',Text) - 1);
+          {$IFNDEF TMSDOTNET}
+          DrawText(Handle, PChar(s), Length(s), Rect, Flags);
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          DrawText(Handle, s, Length(s), Rect, Flags);
+          {$ENDIF}
+
+
+          s := Text;
+          dr := Rect;
+          dr.Top := dr.Top + ACanvas.TextHeight('gh');
+
+          if (odSelected in State) then
+            Font.Assign(AdvMenu.CurrentMenuStyler.SelectedItem.NotesFont)
+          else
+            Font.Assign(AdvMenu.CurrentMenuStyler.NotesFont);
+
+          if not Enabled then
+          begin
+            if (odSelected in State) and (ColorToRGB(clHighlight) = ColorToRGB(clBtnShadow)) then
+              Font.Color := clBtnHighlight
+            else
+              Font.Color := clBtnShadow;
+          end;
+
+          th := ACanvas.TextHeight('gh');
+          repeat
+            system.Delete(s, 1, pos('\n',s)+1);
+
+            if pos('\n',s) > 0 then
+              dt := copy(s, 1, pos('\n',s) - 1)
+            else
+              dt := s;
+            {$IFNDEF TMSDOTNET}
+            DrawText(Handle, PChar(dt), Length(dt), dr, Flags);
+            {$ENDIF}
+            {$IFDEF TMSDOTNET}
+            DrawText(Handle, dt, Length(dt), dr, Flags);
+            {$ENDIF}
+            dr.Top := dr.Top + th;
+          until (pos('\n',s) = 0);
+        end
+        else
+        begin
+          graphics := TGPGraphics.Create(Handle);
+          gfontFamily := TGPFontFamily.Create(Font.Name);
+          gfont := TGPFont.Create(gfontFamily, Font.Size , 0, UnitPoint);
+
+          case AdvMenu.CurrentMenuStyler.AntiAlias of
+          aaClearType:graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+          aaAntiAlias:graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+          end;
+
+          rectf.X := Rect.Left;
+          rectf.Y := Rect.Top;
+          rectf.Width := Rect.Right - Rect.Left;
+          rectf.Height := Rect.Bottom - Rect.Top;
+
+          gstringFormat := TGPStringFormat.Create(GDIP_NOWRAP);
+          gstringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
+
+
+          fclr := Font.Color;
+
+          if not Enabled then
+          begin
+            if (odSelected in State) and (ColorToRGB(clHighlight) = ColorToRGB(clBtnShadow)) then
+              fclr := clBtnHighlight
+            else
+              fclr := clBtnShadow;
+          end;
+
+          gsolidbrush := TGPSolidBrush.Create(ColorToARGB(fclr));
+
+          s := copy(Text, 1, pos('\n',Text) - 1);
+
+          graphics.DrawString(s, Length(s), gfont, Rectf, gstringformat, gsolidbrush);
+
+          gfont.Free;
+          gfontfamily.Free;
+          gsolidbrush.Free;
+
+          if (odSelected in State) then
+          begin
+            gfontfamily := TGPFontFamily.Create(AdvMenu.CurrentMenuStyler.SelectedItem.NotesFont.Name);
+            gfont := TGPFont.Create(gfontFamily,AdvMenu.CurrentMenuStyler.SelectedItem.NotesFont.Size , 0, UnitPoint);
+            fclr := AdvMenu.CurrentMenuStyler.SelectedItem.NotesFont.Color;
+           end
+          else
+          begin
+            gfontfamily := TGPFontFamily.Create(AdvMenu.CurrentMenuStyler.NotesFont.Name);
+            gfont := TGPFont.Create(gfontFamily,AdvMenu.CurrentMenuStyler.NotesFont.Size , 0, UnitPoint);
+            fclr := AdvMenu.CurrentMenuStyler.NotesFont.Color;
+           end;
+
+          if not Enabled then
+          begin
+            if (odSelected in State) and (ColorToRGB(clHighlight) = ColorToRGB(clBtnShadow)) then
+              fclr := clBtnHighlight
+            else
+              fclr := clBtnShadow;
+
+          end;
+
+          gsolidbrush := TGPSolidBrush.Create(ColorToARGB(fclr));          
+
+          s := Text;
+          rectf.Y := rectf.Y + 20;
+
+          graphics.MeasureString('gh',2,gfont,Rectf,gstringformat,measrect);
+          th := round(measrect.Height);
+
+          repeat
+            system.Delete(s, 1, pos('\n',s)+1);
+
+            if pos('\n',s) > 0 then
+              dt := copy(s, 1, pos('\n',s) - 1)
+            else
+              dt := s;
+
+            graphics.DrawString(dt, Length(dt), gfont, Rectf, gstringformat, gsolidbrush);
+            rectf.Y := rectf.Y + th;
+
+          until (pos('\n',s) = 0);
+
+          gfont.Free;
+          gfontfamily.Free;
+          gstringformat.Free;
+          gsolidbrush.Free;
+          graphics.Free;
+        end;
+      end
+      else
+      begin
+        if not Enabled then
+        begin
+          if (odSelected in State) and (ColorToRGB(clHighlight) = ColorToRGB(clBtnShadow)) then
+            Font.Color := clBtnHighlight
+          else
+            Font.Color := clBtnShadow;
+        end;
+
+        if AdvMenu.CurrentMenuStyler.AntiAlias = aaNone then
+        begin
+          {$IFNDEF TMSDOTNET}
+          DrawText(Handle, PChar(Text), Length(Text), Rect, Flags);
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          DrawText(Handle, Text, Length(Text), Rect, Flags);
+          {$ENDIF}
+        end
+        else
+        begin
+          graphics := TGPGraphics.Create(Handle);
+          gfontFamily := TGPFontFamily.Create(Font.Name);
+          gfont := TGPFont.Create(gfontFamily, Font.Size , 0, UnitPoint);
+
+          case AdvMenu.CurrentMenuStyler.AntiAlias of
+          aaClearType:graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+          aaAntiAlias:graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+          end;
+
+          rectf.X := Rect.Left;
+          rectf.Y := Rect.Top;
+          rectf.Width := Rect.Right - Rect.Left;
+          rectf.Height := Rect.Bottom - Rect.Top;
+
+          gstringFormat := TGPStringFormat.Create(GDIP_NOWRAP);
+          gstringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
+          gstringFormat.SetLineAlignment(StringAlignmentCenter);
+
+          if IsInTopMenu(MenuItem) then
+            gstringFormat.SetAlignment(StringAlignmentCenter)
+          else
+            if Flags and DT_RIGHT = DT_RIGHT then
+            begin
+              gstringFormat.SetAlignment(StringAlignmentFar);
+            end;
+
+          gsolidbrush := TGPSolidBrush.Create(ColorToARGB(Font.Color));
+          graphics.DrawString(Text, Length(Text), gfont, Rectf, gstringformat, gsolidbrush);
+          gfont.Free;
+          gfontfamily.Free;
+          gstringformat.Free;
+          gsolidbrush.Free;
+          graphics.Free;
+        end;
+      end;
     end;
   end;
 end;
@@ -1219,6 +1570,7 @@ var
   OldFontColor: TColor;
   MenuWnd, ClientHandle: THandle;
   OwnerForm: TForm;
+  NrOfIcons: integer;
   {$IFDEF TMSDOTNET}
   tp: TPoint;
   {$ENDIF}
@@ -1336,7 +1688,8 @@ var
           begin
             // get menu bar rect into FilledRect
             MenuWnd := GetMenuWnd(AdvMenu.Self);
-            if not IsWindow(MenuWnd) then Exit;
+            if not IsWindow(MenuWnd) then
+              Exit;
             GetWindowRect(MenuWnd, SaveRect);
             GetClientRect(MenuWnd, FilledRect);
 
@@ -1380,7 +1733,20 @@ var
                     (SendMessage(ClientHandle, WM_MDIGETACTIVE, 0, Integer(Maximized)) <> 0)
                   {$ENDIF}
                     and Maximized then
-                    Dec(SaveRect.Right, 3 * GetSystemMetrics(SM_CXMENUSIZE));
+                    begin
+                      NrOfIcons := 0;
+
+                      if (biMinimize in OwnerForm.BorderIcons) then
+                        inc(NrOfIcons);
+
+                      if (biMaximize in OwnerForm.BorderIcons) then
+                        inc(NrOfIcons);
+
+                      if (biSystemMenu in OwnerForm.BorderIcons) then
+                        inc(NrOfIcons);
+
+                      Dec(SaveRect.Right, NrOfIcons * GetSystemMetrics(SM_CXMENUSIZE));
+                    end;
                 end;
               end;
             end;
@@ -1567,11 +1933,12 @@ var
       end;
 
       DrawMenuItemText(MenuItem, ACanvas, Caption, ARect, State, DrawStyle);
+
       if (ShortCut <> 0) and not TopLevel then
       begin
-        ARect.Left := ARect.Right;
+        ARect.Left := ARect.Left;
         ARect.Right := SaveRect.Right - 10;
-        DrawMenuItemText(MenuItem, ACanvas, AdvShortCutToText(ShortCut), ARect, State, DT_RIGHT);
+        DrawMenuItemText(MenuItem, ACanvas, AdvShortCutToText(ShortCut,AdvMenu.IntlKeybShortCuts), ARect, State, DT_RIGHT);
       end;
     end;
   end;
@@ -2512,11 +2879,13 @@ var
   WindowHandle: THandle;
   Level: Integer;
   TopRect: TRect;
+  idx,i: integer;
 begin
   {TODO: find workaround in case when WindowFromDC returns zero
   due to menu animation}
   WindowHandle := WindowFromDC(Canvas.Handle);
   AdvMenu := GetMenuItemIntf(MenuItem);
+
   if not IsWindow(WindowHandle) or (WindowHandle = AdvMenu.Self.WindowHandle)
     or IsInTopMainMenu(MenuItem) then Exit;
 
@@ -2545,20 +2914,26 @@ begin
       SetWindowRgn(WindowHandle, WindowRgnMenu, True);
 
       if Level = 1 then
-        MoveWindow(WindowHandle, WindowRect.Left-1  , WindowRect.Top-2,
+        MoveWindow(WindowHandle, WindowRect.Left-1  , WindowRect.Top - 2,
           RectWidth(WindowRect), RectHeight(WindowRect), True);
       // Move menu window
       if (Level >= 2) then
       begin
         if IsRightAligned(MenuItem, WindowHandle) then
-          dec(WindowRect.Left, TriangleSize)
+        begin
+          dec(WindowRect.Left, TriangleSize);
+        end
         else
+        begin
           inc(WindowRect.Left, TriangleSize);
+        end;
+
         MoveWindow(WindowHandle, WindowRect.Left + 3, WindowRect.Top,
           RectWidth(WindowRect), RectHeight(WindowRect), True);
       end;
     end;
   end;
+
 
   // Draw window border
   with AdvMenu.CurrentMenuStyler do
@@ -2583,14 +2958,24 @@ begin
         Brush.Color := MenuBorderColor;
         FrameRect(R);
 
-        if Level = 1 then
+        if (Level = 1) then
         begin
+          idx := MenuItem.Parent.MenuIndex;
+
+          for i := MenuItem.Parent.MenuIndex downto 0 do
+          begin
+            if not GetParentMenuEx(MenuItem).Items[i].Visible then
+              dec(idx);
+          end;
+
           GetMenuItemRect(GetParent(WindowHandle), GetParentMenuEx(MenuItem).Items.Handle,
-            MenuItem.Parent.MenuIndex, TopRect);
+            idx, TopRect);
+
           Pen.Color := Background.Color;
           OffsetRect(TopRect, -WindowRect.Left, -WindowRect.Top);
-          MoveTo(TopRect.Left+1, 1);
-          LineTo(TopRect.Right-1, 1);
+          MoveTo(TopRect.Left + 1, 1);
+          LineTo(TopRect.Right - 1, 1);
+
         end;
 
         InflateRect(R, -1, -1);
@@ -2818,32 +3203,47 @@ var
   i: Integer;
   RectIsEmpty: Boolean;
 begin
+  Result := False;
+
   // Check if menu item is aligned right relative to it's parent
   if IsInTopMenu(MenuItem) then
+  begin
   // Don't use this fucntion with top level items
     Result := True
+  end
   else
   begin
+    RectIsEmpty := false;
     // workaround for NT: use MenuWnd = 0 for correct results
     if Win32Platform = VER_PLATFORM_WIN32_NT then
       MenuWnd := 0;
 
     i := MenuItem.MenuIndex;
     repeat
-      GetMenuItemRect(MenuWnd, MenuItem.Parent.Handle, 0, R1);
+      if MenuItem.Visible then
+      begin
+        GetMenuItemRect(MenuWnd, MenuItem.Parent.Handle, 0, R1);
+        RectIsEmpty := (RectHeight(R1) = 0) and (RectWidth(R1) = 0);
+      end;
       dec(i);
-      RectIsEmpty := (RectHeight(R1) = 0) and (RectWidth(R1) = 0);
     until not RectIsEmpty or (i < 0);
 
     if not RectIsEmpty then
+    begin
       with MenuItem.Parent do
       begin
-        GetMenuItemRect(GetParent(MenuWnd), Parent.Handle, MenuIndex, R2);
-        Result := (R1.Left > R2.Left) or ((R1.Left = R2.Left) and (R1.Right > R2.Right));
+        if Visible then
+        begin
+          GetMenuItemRect(GetParent(MenuWnd), Parent.Handle, VisibleMenuIndex(MenuItem.Parent), R2);
+          Result := (R1.Left > R2.Left) or ((R1.Left = R2.Left) and (R1.Right > R2.Right));
+        end;
         //Result := (R1.Left > R2.Right));
       end
-   else
-     Result := True;
+    end
+    else
+    begin
+      Result := True;
+    end;
   end;
 end;
 
@@ -2917,11 +3317,53 @@ begin
   Result := GetAdvMenuIntf(GetParentMenuEx(AMenuItem));
 end;
 
-function AdvShortCutToText(ShortCut: TShortCut): string;
+function GetKeyText(nkeyCode: integer): string;
+var
+  nScanCode: integer; 
+  sText: array[0..255] of char;
 begin
-  Result := ShortCutToText(ShortCut);
-  if (ShortCut and scWinKey) <> 0 then
-    Result := AdvWinKeyString + Result;
+  nScanCode := MapVirtualKey(nKeyCode, 0) shl 16;
+  
+  if not (nKeyCode in [VK_SHIFT,VK_MENU,VK_CONTROL,VK_RETURN,VK_BACK]) then
+     nScanCode := nScanCode or $1000000;
+
+  GetKeyNameText(nScanCode, sText, 255);
+  Result := strpas(sText);
+end;
+
+function MakeUpperLower(s: string): string;
+var
+  Len: integer;
+begin
+  Len := Length(s);
+  Result := copy(s, 1, 1) + copy(LowerCase(s), 2, Len - 1);
+  if (Pos('(', Result) > 0) then
+    Result := copy(Result, 1, Pos('(', Result))
+            + UpperCase(copy(Result, Pos('(', Result) + 1, 1))
+            + copy(Result, Pos('(', Result) + 2, Len - Pos('(', Result) - 1);
+end;
+                                
+function AdvShortCutToText(ShortCut: TShortCut; Intl: boolean): string;
+begin
+  if Intl then
+  begin
+    Result := MakeUpperLower(GetKeyText(ShortCut and $FF));
+
+    if ShortCut and scShift <> 0 then
+      Result := MakeUpperLower(GetKeyText(VK_SHIFT)) + '+' + Result;
+
+    if ShortCut and scCtrl <> 0 then
+      Result := MakeUpperLower(GetKeyText(VK_CONTROL)) + '+' + Result;
+
+    if ShortCut and scAlt <> 0 then
+      Result := MakeUpperLower(GetKeyText(VK_MENU)) + '+' + Result;
+  end
+  else
+  begin
+    Result := ShortCutToText(ShortCut);
+    if (ShortCut and scWinKey) <> 0 then
+      Result := AdvWinKeyString + Result;
+  end;
 end;
 
 function GetMenuRect(MenuItem: TMenuItem; MenuWnd: THandle): TRect;
@@ -3022,7 +3464,7 @@ begin
   inherited Create;
   FColor := DefaultColor;
   FColorTo := DefaultColorTo;
-  FGradientDirection := DefaultGradientDirection;
+  FGradientDirection := DefaultMenuGradientDirection;
   FMenu := AMenu;
 end;
 
@@ -3272,6 +3714,8 @@ begin
       Self.OffsetX := OffsetX;
       Self.OffsetY := OffsetY;
       Self.Position := Position;
+      Self.Color := Color;
+      Self.ColorTo := ColorTo;
     end
   else
     inherited Assign(Source); // raises exception
@@ -3431,6 +3875,7 @@ begin
   FUpdateRef := 0;
   FMenuUpdating := False;
   AllocMenuStyler;
+  FShowNotes := true;
 end;
 
 destructor TAdvPopupMenu.Destroy;
@@ -3480,6 +3925,16 @@ begin
   FOpacity := Value;
 end;
 
+procedure TAdvPopupMenu.SetShowNotes(const Value: boolean);
+begin
+  FShowNotes := Value;
+end;
+
+procedure TAdvPopupMenu.SetIntlKeybShortCuts(const Value: boolean);
+begin
+  FIntlKeybShortCuts := Value;
+end;
+
 procedure TAdvPopupMenu.SetMenuStyler(const Value: TCustomAdvMenuStyler);
 begin
   { Assigning existing value or clearing internal MenuStyler is a NOP }
@@ -3518,6 +3973,16 @@ end;
 function TAdvPopupMenu.GetOpacity: Byte;
 begin
   Result := FOpacity;
+end;
+
+function TAdvPopupMenu.GetShowNotes: boolean;
+begin
+  Result := FShowNotes;
+end;
+
+function TAdvPopupMenu.GetIntlKeybShortCuts: boolean;
+begin
+  Result := FIntlKeybShortCuts;
 end;
 
 function TAdvPopupMenu.GetMenuStyler: TCustomAdvMenuStyler;
@@ -3707,6 +4172,7 @@ begin
   FUpdateRef := 0;
   FMenuUpdating := False;
   AllocMenuStyler;
+  FShowNotes := true;
 end;
 
 destructor TAdvMainMenu.Destroy;
@@ -3792,6 +4258,16 @@ begin
   FOpacity := Value;
 end;
 
+procedure TAdvMainMenu.SetShowNotes(const Value: boolean);
+begin
+  FShowNotes := Value;
+end;
+
+procedure TAdvMainMenu.SetIntlKeybShortCuts(const Value: boolean);
+begin
+  FIntlKeybShortCuts := Value;
+end;
+
 procedure TAdvMainMenu.SetMenuStyler(const Value: TCustomAdvMenuStyler);
 begin
   { Assigning existing value or clearing internal MenuStyler is a NOP }
@@ -3836,6 +4312,16 @@ end;
 function TAdvMainMenu.GetOpacity: Byte;
 begin
   Result := FOpacity;
+end;
+
+function TAdvMainMenu.GetShowNotes: boolean;
+begin
+  Result := FShowNotes;
+end;
+
+function TAdvMainMenu.GetIntlKeybShortCuts: boolean;
+begin
+  Result := FIntlKeybShortCuts;
 end;
 
 { ============================================================================
@@ -4176,11 +4662,16 @@ begin
   FMenu := AMenu;
   FColorMirror := clNone;
   FColorMirrorTo := clNone;
+  FNotesFont := TFont.Create;
+  FNotesFont.Assign(Screen.MenuFont);
+  FNotesFont.Size := FNotesFont.Size - 2;
+  FNotesFont.Color := DefaultSelectedTextColor;
 end;
 
 destructor TSelectedItem.Destroy;
 begin
   FreeAndNil(FFont);
+  FreeAndNil(FNotesFont);
   inherited;
 end;
 
@@ -4243,6 +4734,13 @@ begin
   FFont.Assign(Value);
   RefreshMenu(GetAdvMenuIntf(Menu), False, True);
 end;
+
+procedure TSelectedItem.SetNotesFont(const Value: TFont);
+begin
+  FNotesFont.Assign(Value);
+  RefreshMenu(GetAdvMenuIntf(Menu), False, True);
+end;
+
 
 procedure TSelectedItem.SetRadioColor(const Index: Integer;
   const Value: TColor);
@@ -4428,6 +4926,11 @@ begin
   FMenuBorderColor := DefaultMenuBorderColor;
   FMenu := nil;
   FBackgroundBitmap := TBitmap.Create;
+  FNotesFont := TFont.Create;
+  FNotesFont.Assign(Screen.MenuFont);
+  FNotesFont.Size := FNotesFont.Size - 2;
+  FNotesFont.Color := clGray;
+  FButtonAppearance := TButtonAppearance.Create;
 end;
 
 destructor TCustomAdvMenuStyler.Destroy;
@@ -4441,7 +4944,18 @@ begin
   FreeAndNil(FSeparator);
   FreeAndNil(FFont);
   FreeAndNil(FBackgroundBitmap);
+  FreeAndNil(FNotesFont);
+  FreeAndNil(FButtonAppearance);
   inherited;
+end;
+
+procedure TCustomAdvMenuStyler.Notification(AComponent: TComponent;
+  Operation: TOperation);
+begin
+  inherited;
+
+ if (Operation = opRemove) and (AComponent = FMenu) then
+    Menu := nil;
 end;
 
 procedure TCustomAdvMenuStyler.SetBackground(const Value: TBackground);
@@ -4453,6 +4967,18 @@ end;
 procedure TCustomAdvMenuStyler.SetFont(const Value: TFont);
 begin
   FFont.Assign(Value);
+  RefreshMenu(GetAdvMenuIntf(Menu), False, True);
+end;
+
+procedure TCustomAdvMenuStyler.SetNotesFont(const Value: TFont);
+begin
+  FNotesFont.Assign(Value);
+  RefreshMenu(GetAdvMenuIntf(Menu), False, True);
+end;
+
+procedure TCustomAdvMenuStyler.SetAntiAlias(const Value: TAntiAlias);
+begin
+  FAntiAlias := Value;
   RefreshMenu(GetAdvMenuIntf(Menu), False, True);
 end;
 
@@ -4471,6 +4997,8 @@ end;
 procedure TCustomAdvMenuStyler.SetMenu(const Value: TMenu);
 begin
   FMenu := Value;
+  if Assigned(FMenu) then
+    FMenu.FreeNotification(self);
   Background.FMenu := Value;
   IconBar.FMenu := Value;
   SelectedItem.FMenu := Value;
@@ -4511,6 +5039,190 @@ begin
   RefreshMenu(GetAdvMenuIntf(Menu), False, True);
 end;
 
+procedure TCustomAdvMenuStyler.SetTButtonAppearance(
+  const Value: TButtonAppearance);
+begin
+  FButtonAppearance.Assign(Value);
+end;
+
+function IsVista: boolean;
+var
+  hKernel32: HMODULE;
+begin
+  hKernel32 := GetModuleHandle('kernel32');
+  if (hKernel32 > 0) then
+  begin
+    Result := GetProcAddress(hKernel32, 'GetLocaleInfoEx') <> nil;
+  end
+  else
+    Result := false;
+end;
+
+{ TButtonAppearance }
+
+procedure TButtonAppearance.Assign(Source: TPersistent);
+begin
+  if Source is TButtonAppearance then
+  begin
+    FColor := TButtonAppearance(Source).Color;
+    FColorTo := TButtonAppearance(Source).ColorTo;
+    FHoverColor := TButtonAppearance(Source).HoverColor;
+    FHoverColorTo := TButtonAppearance(Source).HoverColorTo;
+    FDownColor := TButtonAppearance(Source).DownColor;
+    FDownColorTo := TButtonAppearance(Source).DownColorTo;
+    FGradientDirection := TButtonAppearance(Source).GradientDirection;
+    FBorderColor := TButtonAppearance(Source).BorderColor;
+    FHoverBorderColor := TButtonAppearance(Source).HoverBorderColor;
+    FDownBorderColor := TButtonAppearance(Source).DownBorderColor;
+    inherited Assign(Source);
+  end;
+end;
+
+procedure TButtonAppearance.Change;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(self);
+end;
+
+constructor TButtonAppearance.Create;
+begin
+  inherited;
+
+  FColor := clNone;
+  FColorTo := clNone;
+  FHoverColor := $00D2BDB6;
+  FHoverColorTo := clNone;
+  FDownColor := $00B59285;
+  FDownColorTo := clNone;
+  FGradientDirection := gdHorizontal;
+
+  FBorderColor := clNone;
+  FDownBorderColor := RGB(10, 36, 106);
+  FHoverBorderColor := RGB(10, 36, 106);
+
+  FCaptionFont := TFont.Create;
+  FGlyphPosition := gpLeft;
+  FGradientDirection := gdVertical;
+
+  if IsVista then
+    CaptionFont.Name := 'Segoe UI'
+  else
+    CaptionFont.Name := 'Tahoma';
+
+  FUseSystemFont := DefaultUseSystemFont;
+end;
+
+destructor TButtonAppearance.Destroy;
+begin
+  FCaptionFont.Free;
+  inherited;
+end;
+
+procedure TButtonAppearance.SetBorderColor(const Value: TColor);
+begin
+  if FBorderColor <> Value then
+  begin
+    FBorderColor := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetCaptionFont(const Value: TFont);
+begin
+  FCaptionFont.Assign(Value);
+  Change;
+end;
+
+procedure TButtonAppearance.SetColor(const Value: TColor);
+begin
+  if FColor <> Value then
+  begin
+    FColor := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetDownColor(const Value: TColor);
+begin
+  if FDownColor <> Value then
+  begin
+    FDownColor := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetDownColorTo(const Value: TColor);
+begin
+  if FDownColorTo <> Value then
+  begin
+    FDownColorTo := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetHoverColor(const Value: TColor);
+begin
+  if FHoverColor <> Value then
+  begin
+    FHoverColor := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetHoverColorTo(const Value: TColor);
+begin
+  if FHoverColorTo <> Value then
+  begin
+    FHoverColorTo := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetColorTo(const Value: TColor);
+begin
+  if FColorTo <> Value then
+  begin
+    FColorTo := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetGradientDirection(
+  const Value: TGradientDirection);
+begin
+  if FGradientDirection <> Value then
+  begin
+    FGradientDirection := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetGlyphPosition(const Value: TGlyphPosition);
+begin
+  if FGlyphPosition <> Value then
+  begin
+    FGlyphPosition := Value;
+    Change;
+  end;
+end;
+
+procedure TButtonAppearance.SetUseSystemFont(const Value: Boolean);
+begin
+  if (FUseSystemFont <> Value) then
+  begin
+    FUseSystemFont := Value;
+
+    if Value then
+    begin
+      if IsVista then
+        FCaptionFont.Name := 'Segoe UI'
+      else
+        FCaptionFont.Name := 'Tahoma';
+    end;
+  end;
+end;
+
+
 function TAdvMainMenu.GetCurrentMenuStyler: TCustomAdvMenuStyler;
 begin
   Result := FCurrentMenuStyler;
@@ -4521,7 +5233,39 @@ begin
   Result := FCurrentMenuStyler;
 end;
 
+{
+procedure TPopupListEx.WndProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    WM_MENUSELECT:
+    begin
+      Message.Result := 0;
+      Exit;
+    end;
+    WM_MENUCOMMAND:
+    begin
+      Message.Result := 0;
+      Exit;
+    end;
+    WM_ENTERMENULOOP:
+      MenuLoop := true;
+    WM_EXITMENULOOP:
+      begin
+        MenuLoop := false;
+        outputdebugstring('exit');
+        Message.Result := 0;
+      end;
+  end;
+
+  inherited WndProc(Message);
+end;
+}
+
 initialization
+{
+  PopupList.Free;
+  PopupList := TPopupListEx.Create;
+}
   DisableMenuAnimation;
 
 finalization

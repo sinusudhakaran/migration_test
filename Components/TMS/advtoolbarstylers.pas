@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TMS ToolBars component                                                  }
 { for Delphi & C++Builder                                                 }
-{ version 2.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright ©  2005 - 2006                                      }
+{           copyright ©  2005 - 2008                                      }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -52,7 +51,8 @@ type
     procedure Loaded; override;
     procedure SaveToFile(FileName: String);
     procedure LoadFromFile(FileName: String);
-    procedure SetComponentStyle(AStyle: TTMSStyle);    
+    procedure SetComponentStyle(AStyle: TTMSStyle);
+    property UseBevel;    
   published
     property Style: TToolBarStyle read FToolBarStyle write SetToolBarStyle default bsOffice2003Blue;
     property AdvMenuStyler;
@@ -97,6 +97,7 @@ type
     property RightHandleColorDown;
     property RightHandleColorDownTo;
     property TabAppearance;
+    property SystemFont;
   end;
 
   TAdvToolBarFantasyStyler = class(TCustomAdvToolBarStyler)
@@ -108,6 +109,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure SaveToFile(FileName: String);
     procedure LoadFromFile(FileName: String);
+    property UseBevel;
   published
     property Style: TToolBarFantasyStyle read FToolBarStyle write SetToolBarStyle default bsChocolate;
     property AdvMenuStyler;
@@ -353,14 +355,34 @@ end;
 
 procedure TAdvToolBarOfficeStyler.SetToolBarStyle(
   const Value: TToolBarStyle);
+
+  procedure InitFont(Font: TFont; SysFont: boolean);
+  begin
+    if SysFont then
+    begin
+      if IsVista then
+        Font.Name := 'Segoe UI'
+      else
+        Font.Name := 'Tahoma';
+    end;
+  end;
+
 begin
-
-
   if FToolBarStyle <> Value then
   begin
     FToolBarStyle := Value;
 
     TMSStyle := tsCustom;
+
+    QATSharpCurve := False;
+
+    InitFont(TabAppearance.Font, TabAppearance.SystemFont);
+    InitFont(PagerCaption.Font, PagerCaption.SystemFont);
+    InitFont(GroupAppearance.Font, GroupAppearance.SystemFont);
+    InitFont(ButtonAppearance.CaptionFont, ButtonAppearance.SystemFont);
+    InitFont(Font, SystemFont);
+    InitFont(CaptionFont, SystemFont);
+    
 
     if (FToolBarStyle in [bsOffice2003Blue, bsOffice2003Olive, bsOffice2003Silver, bsWhidbeyStyle]) then
     begin
@@ -516,6 +538,13 @@ begin
         GroupAppearance.TabAppearance.TextColor := clBlack;
         GroupAppearance.TabAppearance.TextColorHot := clBlack;
 
+        GroupAppearance.TabAppearance.ShadowColor := RGB(191, 188, 164);
+        GroupAppearance.TabAppearance.HighLightColor := $00FFFABF;
+        GroupAppearance.TabAppearance.HighLightColorSelected := $0063CCF8;
+        GroupAppearance.TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        GroupAppearance.TabAppearance.HighLightColorDown := $00FFFBD0;
+        GroupAppearance.TabAppearance.HighLightColorHot := $00FDF4ED;
+
         GroupAppearance.PageAppearance.Color := $EFD3C6;
         GroupAppearance.PageAppearance.ColorTo := clBtnFace;
         GroupAppearance.PageAppearance.BorderColor := clBlack;
@@ -577,9 +606,25 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(191, 188, 164);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { ToolBar color & color hot }
+        Color.Mirror.Color := clBtnFace;
+        Color.Mirror.ColorTo := clBtnFace;
+        Color.Mirror.ColorMirror := clBtnFace;
+        Color.Mirror.ColorMirrorTo := clBtnFace;
+
         ColorHot.Color := $EFD3C6;
         ColorHot.ColorTo := $EFD3C6;
+        ColorHot.Mirror.Color := RGB(244, 242, 232);
+        ColorHot.Mirror.ColorTo := RGB(244, 242, 232);
+        ColorHot.Mirror.ColorMirror := RGB(244, 242, 232);
+        ColorHot.Mirror.ColorMirrorTo := RGB(244, 242, 232);
         ColorHot.Direction := gdVertical;
         BorderColorHot := clHighlight;
 
@@ -602,6 +647,9 @@ begin
         PagerCaption.Gradient := ggVertical;
         PagerCaption.GradientMirror := ggVertical;
 
+        PageAppearance.ShadowColor := RGB(172, 168, 153);
+        PageAppearance.HighLightColor := clBlack; //$00FDF9CE;
+
         QATAppearance.Color := clBtnFace;
         QATAppearance.ColorTo := clBtnFace;
         QATAppearance.BorderColor := clGray;
@@ -609,7 +657,7 @@ begin
         QATAppearance.FullSizeColor := clBtnFace;
         QATAppearance.FullSizeColorTo := clBtnFace;
         QATAppearance.FullSizeBorderColor := clGray;
-        
+
       end;
     bsOffice2003Blue:
       begin
@@ -780,7 +828,7 @@ begin
         TabAppearance.BorderColor := clNone;
         TabAppearance.BorderColorDisabled := clNone;
         TabAppearance.BorderColorHot := clHighlight;
-        TabAppearance.BorderColorSelected := $E3B28D;
+        TabAppearance.BorderColorSelected := clBlack; //$E3B28D;
         TabAppearance.BorderColorSelectedHot := $60CCF9;
 
         TabAppearance.TextColor := clBlack;
@@ -788,7 +836,7 @@ begin
         TabAppearance.TextColorSelected := clBlack;
         TabAppearance.TextColorDisabled := clGray;
 
-        TabAppearance.ColorSelected := $FEF6F0;
+        TabAppearance.ColorSelected := $FCDCC4; //$FEF6F0;
         TabAppearance.ColorSelectedTo := $FAF1E9;
         TabAppearance.ColorMirrorSelected := $FAF1E9;
         TabAppearance.ColorMirrorSelectedTo := $F6EAE0;
@@ -811,22 +859,42 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := $A3673F; //RGB(118, 161, 224);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { ToolBar color & color hot }
-        
+        Color.Mirror.Color := RGB(196, 218, 250);
+        Color.Mirror.ColorTo := RGB(196, 218, 250);
+        Color.Mirror.ColorMirror := RGB(185, 210, 249);
+        Color.Mirror.ColorMirrorTo := RGB(206, 225, 252);
+        BorderColor := RGB(171, 199, 235);
+
         ColorHot.Color := $FFF1E6;
         ColorHot.ColorTo := $FAEADE;
+        ColorHot.Mirror.Color := RGB(210, 226, 251);
+        ColorHot.Mirror.ColorTo := RGB(210, 226, 251);
+        ColorHot.Mirror.ColorMirror := RGB(200, 220, 251);
+        ColorHot.Mirror.ColorMirrorTo := RGB(215, 231, 253);
         ColorHot.Direction := gdVertical;
         BorderColorHot := $E0C7AD;
 
 
         { PageAppearance }
         PageAppearance.BorderColor := $E3B28D;
-        PageAppearance.Color := $FDEADA;
-        PageAppearance.ColorTo := HTMLToRgb($C4DAFA);
-        PageAppearance.ColorMirror := HTMLToRgb($C4DAFA);
-        PageAppearance.ColorMirrorTo := HTMLToRgb($C4DAFA);
+        PageAppearance.Color := RGB(196, 218, 250);//$FDEADA;   //ch: Khan
+        PageAppearance.ColorTo := RGB(196, 218, 250); //HTMLToRgb($C4DAFA);
+        PageAppearance.ColorMirror := RGB(185, 210, 249); //HTMLToRgb($C4DAFA);
+        PageAppearance.ColorMirrorTo := RGB(215, 232, 253); //HTMLToRgb($C4DAFA);
         PageAppearance.Gradient := ggVertical;
         PageAppearance.GradientMirror := ggVertical;
+
+        PageAppearance.ShadowColor := $CD9D7A; //  RGB(172, 168, 153);
+        PageAppearance.HighLightColor := $00FDF9CE;
+       
 
         { PagerCaption }
         PagerCaption.Color := $E4AE88;
@@ -1041,19 +1109,35 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(130, 140, 100);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { ToolBar color & color hot }
+        Color.Mirror.Color := RGB(225, 234, 185);
+        Color.Mirror.ColorTo := RGB(225, 234, 185);
+        Color.Mirror.ColorMirror := RGB(217, 227, 166);
+        Color.Mirror.ColorMirrorTo := RGB(229, 236, 195);
+        //BorderColor := $DFD2C5;
+
         ColorHot.Color := $CFF0EA;
         ColorHot.ColorTo := $CFF0EA;
+        ColorHot.Mirror.Color := RGB(234, 240, 206);
+        ColorHot.Mirror.ColorTo := RGB(234, 240, 206);
+        ColorHot.Mirror.ColorMirror := RGB(228, 236, 196);
+        ColorHot.Mirror.ColorMirrorTo := RGB(236, 241, 211);
         ColorHot.Direction := gdVertical;
         BorderColorHot := $8CC0B1;
 
-
         { PageAppearance }
         PageAppearance.BorderColor := $8CC0B1;
-        PageAppearance.Color := $CFF0EA;
-        PageAppearance.ColorTo := $CFF0EA;
-        PageAppearance.ColorMirror := $CFF0EA;
-        PageAppearance.ColorMirrorTo := $CFF0EA;
+        PageAppearance.Color := RGB(225, 234, 185); //$CFF0EA;
+        PageAppearance.ColorTo := RGB(225, 234, 185); //$CFF0EA;
+        PageAppearance.ColorMirror := RGB(217, 227, 166); //$CFF0EA;
+        PageAppearance.ColorMirrorTo := RGB(234, 240, 207); //$CFF0EA;
         PageAppearance.Gradient := ggVertical;
         PageAppearance.GradientMirror := ggVertical;
 
@@ -1065,6 +1149,9 @@ begin
         PagerCaption.BorderColor := $8CC0B1;
         PagerCaption.Gradient := ggVertical;
         PagerCaption.GradientMirror := ggVertical;
+
+        PageAppearance.ShadowColor := RGB(171, 188, 133);
+        PageAppearance.HighLightColor := RGB(225, 234, 185);
 
         QATAppearance.Color := $00CFF0EA;
         QATAppearance.ColorTo := $008CC0B1;
@@ -1136,9 +1223,9 @@ begin
 
         {AdvToolBarPager}
 
-        GlowButtonAppearance.Color := $EDD4C0;
+        GlowButtonAppearance.Color := $E6E9E2; //$EDD4C0;
         GlowButtonAppearance.ColorTo := $00E6D8D8;
-        GlowButtonAppearance.ColorMirror := $EDD4C0;
+        GlowButtonAppearance.ColorMirror := $E6E9E2; //$EDD4C0;
         GlowButtonAppearance.ColorMirrorTo := $C8B2B3;
         GlowButtonAppearance.BorderColor := $927476;
         GlowButtonAppearance.Gradient := ggVertical;
@@ -1268,18 +1355,34 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(167, 173, 188);
+        TabAppearance.HighLightColor := RGB(234, 234, 240); //$00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
+
         { ToolBar color & color hot }
+        Color.Mirror.Color := RGB(222, 222, 235);
+        Color.Mirror.ColorTo := RGB(222, 222, 235);
+        Color.Mirror.ColorMirror := RGB(210, 210, 227);
+        Color.Mirror.ColorMirrorTo := RGB(230, 230, 238);
+
         ColorHot.Color := $00E6D8D8;
         ColorHot.ColorTo := $00E6D8D8;
+        ColorHot.Mirror.Color := RGB(232, 232, 240);
+        ColorHot.Mirror.ColorTo := RGB(232, 232, 240);
+        ColorHot.Mirror.ColorMirror := RGB(222, 222, 235);
+        ColorHot.Mirror.ColorMirrorTo := RGB(237, 237, 243);
         ColorHot.Direction := gdVertical;
         BorderColorHot := $00F7F3F3;
 
         { PageAppearance }
         PageAppearance.BorderColor := $927476;
-        PageAppearance.Color := $00F7F3F3;
-        PageAppearance.ColorTo := $00E6D8D8;
-        PageAppearance.ColorMirror := $00E6D8D8;
-        PageAppearance.ColorMirrorTo := $00E6D8D8;
+        PageAppearance.Color := RGB(222, 222, 235); //$00F7F3F3;  //ch: Khan
+        PageAppearance.ColorTo := RGB(222, 222, 235); //$00E6D8D8; 
+        PageAppearance.ColorMirror := RGB(210, 210, 227); //$00E6D8D8;
+        PageAppearance.ColorMirrorTo := RGB(239, 239, 244); //$00E6D8D8;
         PageAppearance.Gradient := ggVertical;
         PageAppearance.GradientMirror := ggVertical;
 
@@ -1291,6 +1394,9 @@ begin
         PagerCaption.BorderColor := $00E6D8D8;
         PagerCaption.Gradient := ggVertical;
         PagerCaption.GradientMirror := ggVertical;
+
+        PageAppearance.ShadowColor := RGB(162, 159, 181);
+        PageAppearance.HighLightColor := RGB(207, 220, 239); //$00FDF9CE;
 
         QATAppearance.Color := $00ECE2E1;
         QATAppearance.ColorTo := $00B39698;
@@ -1416,6 +1522,13 @@ begin
         GroupAppearance.TabAppearance.TextColor := $8B4215;
         GroupAppearance.TabAppearance.TextColorHot := $8B4215;
 
+        GroupAppearance.TabAppearance.ShadowColor := $00E8C7AE;
+        GroupAppearance.TabAppearance.HighLightColor := $00FFFABF;
+        GroupAppearance.TabAppearance.HighLightColorSelected := $0063CCF8;
+        GroupAppearance.TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        GroupAppearance.TabAppearance.HighLightColorDown := $00FFFBD0;
+        GroupAppearance.TabAppearance.HighLightColorHot := $00FDF4ED;
+
         GroupAppearance.PageAppearance.Color := $D6F2FE;
         GroupAppearance.PageAppearance.ColorTo := $F9F9F9;
         GroupAppearance.PageAppearance.ColorMirror := $F9F9F9;
@@ -1423,6 +1536,8 @@ begin
         GroupAppearance.PageAppearance.BorderColor := $C2C2C2;        
         GroupAppearance.PageAppearance.Gradient := ggVertical;
         GroupAppearance.PageAppearance.GradientMirror := ggVertical;
+        GroupAppearance.PageAppearance.ShadowColor := $00C4AA96;
+        GroupAppearance.PageAppearance.HighLightColor := $00FDF9CE;
 
         GroupAppearance.ToolBarAppearance.Color.Color := $ECF8FD;
         GroupAppearance.ToolBarAppearance.Color.ColorTo := $F9F9F9;
@@ -1477,6 +1592,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := $00E8C7AE;
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         DragGripStyle := dsNone;
         RoundEdges := True;
         Bevel := bvNone;
@@ -1485,11 +1607,19 @@ begin
         { ToolBar color & color hot }
         Color.Color := $EDD8C7;
         Color.ColorTo := $F6E9D9;
+        Color.Mirror.Color := $00F3E5DA;
+        Color.Mirror.ColorTo := $00F0DED0;
+        Color.Mirror.ColorMirror := $00EDD9C8;
+        Color.Mirror.ColorMirrorTo := $00FBEDDC;
         Color.Direction := gdVertical;
-        BorderColor := $DFD2C5;
+        BorderColor :=  $00D7C8B7; //$DFD2C5; 
 
         ColorHot.Color := $FFF1E6;
         ColorHot.ColorTo := $FAEADE;
+        ColorHot.Mirror.Color := $00FDEFE5;
+        ColorHot.Mirror.ColorTo := $00FCF0E7;
+        ColorHot.Mirror.ColorMirror := $00FBE9DB;
+        ColorHot.Mirror.ColorMirrorTo := $00FBEDDC;
         ColorHot.Direction := gdVertical;
         BorderColorHot := $E0C7AD;
 
@@ -1498,14 +1628,20 @@ begin
 
         { PageAppearance }
         PageAppearance.BorderColor := $E3B28D;
-        PageAppearance.Color := $FAF1E9;
+        {PageAppearance.Color := $FAF1E9;   // ch: Khan
         PageAppearance.ColorTo := $EDD8C7;
         PageAppearance.ColorMirror := $EDD8C7;
-        PageAppearance.ColorMirrorTo := $FFF2E7;
-//        PageAppearance.ColorMirror := clwhite;
-//        PageAppearance.ColorMirrorTo := clred;
+        PageAppearance.ColorMirrorTo := $FFF2E7;}
+        PageAppearance.Color := $00F3E5DA;
+        PageAppearance.ColorTo := $00F0DED0;
+        PageAppearance.ColorMirror := $00EDD9C8;
+        PageAppearance.ColorMirrorTo := $00FFF4E3;
+
         PageAppearance.Gradient := ggVertical;
         PageAppearance.GradientMirror := ggVertical;
+
+        PageAppearance.ShadowColor := $00C4AA96;
+        PageAppearance.HighLightColor := $00FDF9CE;
 
         { PagerCaption }
         PagerCaption.Color := $ECE7E2;
@@ -1516,13 +1652,44 @@ begin
         PagerCaption.Gradient := ggVertical;
         PagerCaption.GradientMirror := ggVertical;
 
-        QATAppearance.Color := $F8EADC;
-        QATAppearance.ColorTo := $F8EADC;
-        QATAppearance.BorderColor := $B2A69F;
+        QATAppearance.Color := $00F4E7DE; //$F8EADC;  // ch: Khan
+        QATAppearance.ColorTo := $00EED8C9; //$F8EADC;
+        QATAppearance.BorderColor := $00D5B39A; //$B2A69F;
 
         QATAppearance.FullSizeColor := $EDCDB2;
         QATAppearance.FullSizeColorTo := $EAC5AA;
         QATAppearance.FullSizeBorderColor := $CDA17E;
+
+        with ButtonAppearance do
+        begin
+          Color := $CFF0EA;
+          ColorTo := $8CC0B1;
+          {
+          ColorDown := $087FE8;
+          ColorDownTo := $7CDAF7;
+          ColorHot := $DCFFFF;
+          ColorHotTo := $5BC0F7;
+          ColorChecked := $3E80FE;
+          ColorCheckedTo := clNone;
+          }
+
+          ColorDown := $4E91FE;
+          ColorDownTo := $91D3FF;
+          ColorHot := $CCF4FF;
+          ColorHotTo := $91D0FF;
+          ColorChecked := $8CD5FF;
+          ColorCheckedTo := $58AFFF;
+
+          BorderDownColor := $385D3F;
+          BorderHotColor := $385D3F;
+          BorderCheckedColor := $385D3F;
+
+          CaptionTextColor := clBlack;
+          CaptionTextColorChecked := clBlack;
+          CaptionTextColorDown := clBlack;
+          CaptionTextColorHot := clBlack;
+        end;
+
       end;
 
     bsOffice2007Obsidian:
@@ -1618,6 +1785,13 @@ begin
         GroupAppearance.TabAppearance.TextColor := clWhite;
         GroupAppearance.TabAppearance.TextColorHot := clWhite;
 
+        GroupAppearance.TabAppearance.ShadowColor := clBlack;
+        GroupAppearance.TabAppearance.HighLightColor := $00959899;
+        GroupAppearance.TabAppearance.HighLightColorSelected := $0063CCF8;
+        GroupAppearance.TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        GroupAppearance.TabAppearance.HighLightColorDown := $00FFFBD0;
+        GroupAppearance.TabAppearance.HighLightColorHot := $00959899;
+
         GroupAppearance.PageAppearance.Color := HTMLToRgb($FDF8EC);
         GroupAppearance.PageAppearance.ColorTo := $F9F9F9;
         GroupAppearance.PageAppearance.BorderColor := $C2C2C2;
@@ -1626,6 +1800,9 @@ begin
         GroupAppearance.PageAppearance.ColorMirrorTo := $F9F9F9;
         GroupAppearance.PageAppearance.Gradient := ggVertical;
         GroupAppearance.PageAppearance.GradientMirror := ggVertical;
+        
+        GroupAppearance.PageAppearance.ShadowColor := clBlack;
+        GroupAppearance.PageAppearance.HighLightColor := $00ECEBE7;
 
         GroupAppearance.ToolBarAppearance.Color.Color := $ECF8FD;
         GroupAppearance.ToolBarAppearance.Color.ColorTo := $F9F9F9;
@@ -1682,6 +1859,12 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := clBlack;
+        TabAppearance.HighLightColor := $00959899; //$00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00959899;
 
         DragGripStyle := dsNone;
         RoundEdges := True;
@@ -1691,6 +1874,10 @@ begin
         { ToolBar color & color hot }
         Color.Color := HtmlToRgb($B4BBC5);
         Color.ColorTo := HtmlToRgb($E5ECEC);
+        Color.Mirror.Color := RGB(215, 219, 224);
+        Color.Mirror.ColorTo := RGB(194, 199, 207);
+        Color.Mirror.ColorMirror := RGB(181, 188, 198);
+        Color.Mirror.ColorMirrorTo := RGB(217, 226, 228);
         Color.Direction := gdVertical;
         BorderColor := HtmlToRgb($AEB0B4);
 
@@ -1699,18 +1886,24 @@ begin
 
         ColorHot.Color := HtmlToRgb($EEF0F2);
         ColorHot.ColorTo := HtmlToRgb($F6F8F8);
+        ColorHot.Mirror.Color := RGB(236, 238, 240);
+        ColorHot.Mirror.ColorTo := RGB(232, 234, 237);
+        ColorHot.Mirror.ColorMirror := RGB(223, 225, 230);
+        ColorHot.Mirror.ColorMirrorTo := RGB(243, 246, 246);
         ColorHot.Direction := gdVertical;
         BorderColorHot := HtmlToRgb($AEB0B4);
 
-
         { PageAppearance }
-        PageAppearance.Color := HtmlToRgb($C1C6CF);
-        PageAppearance.ColorTo := HtmlToRgb($B4BBC5);
-        PageAppearance.ColorMirror := HtmlToRgb($B4BBC5);
-        PageAppearance.ColorMirrorTo := HtmlToRgb($E5ECEC);
+        PageAppearance.Color := RGB(215, 219, 224); //HtmlToRgb($C1C6CF);
+        PageAppearance.ColorTo := RGB(194, 199, 207); //HtmlToRgb($B4BBC5);
+        PageAppearance.ColorMirror := RGB(181, 188, 198); //HtmlToRgb($B4BBC5);
+        PageAppearance.ColorMirrorTo := RGB(231, 240, 240); //HtmlToRgb($E5ECEC);
         PageAppearance.BorderColor := HtmlToRgb($AEB0B4);
         PageAppearance.Gradient := ggVertical;
         PageAppearance.GradientMirror := ggVertical;
+
+        PageAppearance.ShadowColor := RGB(80, 80, 80);
+        PageAppearance.HighLightColor := $00ECEBE7;
 
         { PagerCaption }
         PagerCaption.Color := HtmlToRgb($434752);
@@ -1721,13 +1914,48 @@ begin
         PagerCaption.Gradient := ggVertical;
         PagerCaption.GradientMirror := ggVertical;
 
-        QATAppearance.Color := $00C5BBB4;
-        QATAppearance.ColorTo := $00ECECE5;
-        QATAppearance.BorderColor := $B2A69F;
+        //QATAppearance.Color := $00C5BBB4;
+        //QATAppearance.ColorTo := $00ECECE5;
+        //QATAppearance.BorderColor := $B2A69F;
 
+        QATAppearance.Color := RGB(123, 126, 132);
+        QATAppearance.ColorTo := RGB(71, 71, 71);
+        QATAppearance.BorderColor := RGB(41, 41, 41);
         QATAppearance.FullSizeColor := $8F8D8A;
         QATAppearance.FullSizeColorTo := $8F8D8A;
         QATAppearance.FullSizeBorderColor := $CECCCB;
+        QATSharpCurve := True;
+
+        with ButtonAppearance do
+        begin
+          Color := $CFF0EA;
+          ColorTo := $8CC0B1;
+          {
+          ColorDown := $087FE8;
+          ColorDownTo := $7CDAF7;
+          ColorHot := $DCFFFF;
+          ColorHotTo := $5BC0F7;
+          ColorChecked := $3E80FE;
+          ColorCheckedTo := clNone;
+          }
+
+          ColorDown := $4E91FE;
+          ColorDownTo := $91D3FF;
+          ColorHot := $CCF4FF;
+          ColorHotTo := $91D0FF;
+          ColorChecked := $8CD5FF;
+          ColorCheckedTo := $58AFFF;
+
+          BorderDownColor := $385D3F;
+          BorderHotColor := $385D3F;
+          BorderCheckedColor := $385D3F;
+
+          CaptionTextColor := clBlack;
+          CaptionTextColorChecked := clBlack;
+          CaptionTextColorDown := clBlack;
+          CaptionTextColorHot := clBlack;
+        end;
+
       end;
     bsOffice2007Silver:
       begin
@@ -1875,7 +2103,7 @@ begin
         TabAppearance.BorderColor := clNone;
         TabAppearance.BorderColorDisabled := clNone;
         TabAppearance.BorderColorHot := $C1BEBD;
-        TabAppearance.BorderColorSelected := $FFFAC1;
+        TabAppearance.BorderColorSelected :=  $C1BFBD; //$FFFAC1;  //ch: Khan
         TabAppearance.BorderColorSelectedHot := $60CCF9;
 
         TabAppearance.TextColor := $5C534C;
@@ -1906,6 +2134,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := $00D6CDC9;
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
+
         DragGripStyle := dsNone;
         RoundEdges := True;
         Bevel := bvNone;
@@ -1914,11 +2149,19 @@ begin
         { ToolBar color & color hot }
         Color.Color := $E7DCD5;
         Color.ColorTo := $F4F4EE;
+        Color.Mirror.Color := RGB(241, 244, 248);
+        Color.Mirror.ColorTo := RGB(227, 232, 240);
+        Color.Mirror.ColorMirror := RGB(213, 220, 231);
+        Color.Mirror.ColorMirrorTo := RGB(232, 239, 242);
         Color.Direction := gdVertical;
         BorderColor := $939291;
 
         ColorHot.Color := $F4F0EE;
         ColorHot.ColorTo := $F9F9F7;
+        ColorHot.Mirror.Color := RGB(247, 248, 250);
+        ColorHot.Mirror.ColorTo := RGB(243, 245, 248);
+        ColorHot.Mirror.ColorMirror := RGB(236, 238, 242);
+        ColorHot.Mirror.ColorMirrorTo := RGB(247, 249, 249);
         ColorHot.Direction := gdVertical;
         BorderColorHot := $91908F;
 
@@ -1927,12 +2170,20 @@ begin
 
         { PageAppearance }
         PageAppearance.BorderColor := $C1BFBD;
-        PageAppearance.Color := $F6F1EE;
+        {PageAppearance.Color := $F6F1EE;
         PageAppearance.ColorTo := $E7DCD5;//$EEE6E1;
         PageAppearance.ColorMirror := $E7DCD5;
-        PageAppearance.ColorMirrorTo := $F4F4EE;
+        PageAppearance.ColorMirrorTo := $F4F4EE;}
+        PageAppearance.Color := RGB(241, 244, 248);
+        PageAppearance.ColorTo := RGB(227, 232, 240);
+        PageAppearance.ColorMirror := $00E8DED9; //RGB(213, 220, 231);
+        PageAppearance.ColorMirrorTo := RGB(239, 246, 247);
+
         PageAppearance.Gradient := ggVertical;
         PageAppearance.GradientMirror := ggVertical;
+
+        PageAppearance.ShadowColor := $00ABA49E;
+        PageAppearance.HighLightColor := $00ECEBE7;
 
         { PagerCaption }
         PagerCaption.Color := $EBE8E7;
@@ -1949,9 +2200,40 @@ begin
 
         QATAppearance.FullSizeColor := $E6DED9;
         QATAppearance.FullSizeColorTo := $E6DED9;
-        QATAppearance.FullSizeBorderColor := $F3EFED;        
+        QATAppearance.FullSizeBorderColor := $F3EFED;
+
+        with ButtonAppearance do
+        begin
+          Color := $CFF0EA;
+          ColorTo := $8CC0B1;
+          {
+          ColorDown := $087FE8;
+          ColorDownTo := $7CDAF7;
+          ColorHot := $DCFFFF;
+          ColorHotTo := $5BC0F7;
+          ColorChecked := $3E80FE;
+          ColorCheckedTo := clNone;
+          }
+
+          ColorDown := $4E91FE;
+          ColorDownTo := $91D3FF;
+          ColorHot := $CCF4FF;
+          ColorHotTo := $91D0FF;
+          ColorChecked := $8CD5FF;
+          ColorCheckedTo := $58AFFF;
+
+          BorderDownColor := $385D3F;
+          BorderHotColor := $385D3F;
+          BorderCheckedColor := $385D3F;
+
+          CaptionTextColor := clBlack;
+          CaptionTextColorChecked := clBlack;
+          CaptionTextColorDown := clBlack;
+          CaptionTextColorHot := clBlack;
+        end;
+
       end;
- 
+
     bsWhidbeyStyle:
       begin
         TMSStyle := tsWhidbey;
@@ -2139,21 +2421,39 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(130, 140, 100);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { ToolBar color & color hot }
+        Color.Mirror.Color := RGB(232, 230, 210);
+        Color.Mirror.ColorTo := RGB(232, 230, 210);
+        Color.Mirror.ColorMirror := RGB(224, 221, 197);
+        Color.Mirror.ColorMirrorTo := RGB(244, 243, 228);
+
         ColorHot.Color := $F5F9FA;
         ColorHot.ColorTo := $F5F9FA;
+        ColorHot.Mirror.Color := RGB(241, 240, 228);
+        ColorHot.Mirror.ColorTo := RGB(241, 240, 228);
+        ColorHot.Mirror.ColorMirror := RGB(237, 235, 220);
+        ColorHot.Mirror.ColorMirrorTo := RGB(251, 251, 247);
         ColorHot.Direction := gdVertical;
         BorderColorHot := $E0C7AD;
 
-
         { PageAppearance }
         PageAppearance.BorderColor := clBlack;
-        PageAppearance.Color := clWhite;
-        PageAppearance.ColorTo := $D9E9EC;
-        PageAppearance.ColorMirror := $D9E9EC;
-        PageAppearance.ColorMirrorTo := clWhite;
+        PageAppearance.Color := RGB(232, 230, 210); //clWhite;
+        PageAppearance.ColorTo := RGB(232, 230, 210); //$D9E9EC;
+        PageAppearance.ColorMirror := RGB(224, 221, 197); //$D9E9EC;
+        PageAppearance.ColorMirrorTo := RGB(253, 253, 251); //clWhite;
         PageAppearance.Gradient := ggVertical;
         PageAppearance.GradientMirror := ggVertical;
+
+        PageAppearance.ShadowColor := RGB(145, 145, 107);
+        PageAppearance.HighLightColor := RGB(146, 138, 118); //$00FDF9CE;
 
         { PagerCaption }
         PagerCaption.Color := $859D9D;
@@ -2361,21 +2661,39 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(170, 167, 161);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
+
         { ToolBar color & color hot }
+        Color.Mirror.Color := RGB(230, 227, 223);
+        Color.Mirror.ColorTo := RGB(230, 227, 223);
+        Color.Mirror.ColorMirror := RGB(214, 210, 202);
+        Color.Mirror.ColorMirrorTo := RGB(239, 237, 234);
+
         ColorHot.Color := $F5F9FA;
         ColorHot.ColorTo := $F5F9FA;
+        ColorHot.Mirror.Color := RGB(246, 239, 237);
+        ColorHot.Mirror.ColorTo := RGB(246, 239, 237);
+        ColorHot.Mirror.ColorMirror := RGB(230, 227, 223);
+        ColorHot.Mirror.ColorMirrorTo := RGB(247, 245, 244);
         ColorHot.Direction := gdVertical;
         BorderColorHot := $D8D5D4;
 
-
         { PageAppearance }
         PageAppearance.BorderColor := clBlack;
-        PageAppearance.Color := clWhite;
-        PageAppearance.ColorTo := $C9D1D5;
-        PageAppearance.ColorMirror := $C9D1D5;
-        PageAppearance.ColorMirrorTo := clWhite;
+        PageAppearance.Color := RGB(230, 227, 223); //clWhite;
+        PageAppearance.ColorTo := RGB(230, 227, 223); //$C9D1D5;
+        PageAppearance.ColorMirror := RGB(214, 210, 202); //$C9D1D5;
+        PageAppearance.ColorMirrorTo := RGB(251, 250, 250); //clWhite;
         PageAppearance.Gradient := ggVertical;
         PageAppearance.GradientMirror := ggVertical;
+
+        PageAppearance.ShadowColor := RGB(191, 189, 185);
+        PageAppearance.HighLightColor := RGB(146, 138, 118);
 
         { PagerCaption }
         PagerCaption.Color := $808080;
@@ -2608,7 +2926,7 @@ begin
       Color.ColorTo := clNone;
       Color.Direction := gdHorizontal;
       Color.Steps := 64;
-      DockColor.ColorTo := clInactiveCaptionText;
+      DockColor.ColorTo := $00F8E4D8;
       DockColor.Color := clWhite;
       DockColor.Direction := gdVertical;
       DockColor.Steps := 128;
@@ -2616,20 +2934,20 @@ begin
       Font.Color := clBlack;
 
       RightHandleColor := clWhite;
-      RightHandleColorTo := clInactiveCaptionText;
-      RightHandleColorHot := clInactiveCaptionText;
+      RightHandleColorTo := $00F8E4D8;
+      RightHandleColorHot := $00F8E4D8;
       RightHandleColorHotTo := clSilver;
       RightHandleColorDown := clWhite;
       RightHandleColorDownTo := clSilver;
-      CaptionAppearance.CaptionColor := clInactiveCaptionText;
-      CaptionAppearance.CaptionColorTo := clInactiveCaptionText;
-      CaptionAppearance.CaptionBorderColor := clInactiveCaptionText;
+      CaptionAppearance.CaptionColor := $00F8E4D8;
+      CaptionAppearance.CaptionColorTo := $00F8E4D8;
+      CaptionAppearance.CaptionBorderColor := $00F8E4D8;
       CaptionAppearance.CaptionTextColor := clBlack;
       with ButtonAppearance do
       begin
         Color := clWhite;
-        ColorTo := clInactiveCaptionText;
-        ColorDown := clInactiveCaptionText;
+        ColorTo := $00F8E4D8;
+        ColorDown := $00F8E4D8;
         ColorDownTo := clWhite;
         ColorHot := clNone;
         ColorHotTo := clNone;
@@ -2638,9 +2956,9 @@ begin
         BorderCheckedColor := clSilver;
 
         ColorChecked := clWhite;
-        ColorCheckedTo := clInactiveCaptionText;
+        ColorCheckedTo := $00F8E4D8;
         CaptionTextColor := clSilver;
-        CaptionTextColorChecked := clInactiveCaptionText;
+        CaptionTextColorChecked := $00F8E4D8;
         CaptionTextColorDown := clBlack;
         CaptionTextColorHot := clSilver;
       end;

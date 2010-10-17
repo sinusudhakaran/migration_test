@@ -142,6 +142,12 @@ begin
 
   ScanRecord(First);
 
+  if (FChart <> nil) and (RemainingData = nil) then
+  begin
+    RemainingData := FChart.RemainingData;
+    FChart.RemainingData := nil;
+  end;
+
   //this must be the last statment, so if there is an exception, we dont take First
   FObjRecord:= First as TObjRecord;
 
@@ -150,9 +156,9 @@ end;
 procedure TMsObj.SaveToStream(const DataStream: TStream);
 begin
   if FObjRecord=nil then raise Exception.Create(ErrExcelInvalid);
-  FObjRecord.SaveToStream(DataStream);
-  if FImData<>nil then FImData.SaveToStream(DataStream);
-  if FChart<>nil then FChart.SaveToStream(DataStream);
+  FObjRecord.SaveToStream(DataStream, false);
+  if FImData<>nil then FImData.SaveToStream(DataStream, false);
+  if FChart<>nil then FChart.SaveToStream(DataStream, false);
 end;
 
 function TMsObj.TotalSize: int64;
@@ -382,7 +388,7 @@ end;
 
 procedure TTXO.SaveToStream(const DataStream: TStream);
 begin
-  if FTXO<>nil then FTXO.SaveToStream(DataStream);
+  if FTXO<>nil then FTXO.SaveToStream(DataStream, false);
 end;
 
 procedure TTXO.SetValue(const aValue: WideString);

@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TADVEDIT & TAdvMaskEdit component                                       }
 { for Delphi & C++Builder                                                 }
-{ version 2.7                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 1996-2006                                         }
+{           copyright © 1996-2008                                         }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -26,20 +25,24 @@ interface
 uses
   Windows, Registry, Dialogs,
   Messages, SysUtils, Classes, Graphics, Controls, Forms, StdCtrls, Clipbrd,
-  Mask, Consts, Inifiles, AdvEdDD, ActiveX;
+  Mask, Consts, Inifiles, AdvEdDD, ActiveX
+  {$IFDEF DELPHI_UNICODE}
+  , Character
+  {$ENDIF}
+  ;
 
 const
   MAJ_VER = 2; // Major version nr.
-  MIN_VER = 7; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 6; // Build nr.
+  MIN_VER = 8; // Minor version nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 8; // Build nr.
 
   // version history
   // v2.6.1.0 : added event OnLookupIndexSelect
   // v2.6.2.0 : fix for WinXP themed border drawing
   // v2.6.2.1 : fix for decimalseparator entry when multiple characters are selected
   // v2.6.2.2 : fix for OnClipboardPaste event
-  // v2.7.0.0 : new FocusBorderColor property
+  // v2.7.0.0 : New FocusBorderColor property
   //          : optimized property storage in DFM file
   // v2.7.0.1 : fix for issue with DefaultHandling and return key in forms with KeyPreview
   // v2.7.0.2 : fix for transparent = true in VCL.NET
@@ -47,12 +50,45 @@ const
   // v2.7.0.4 : fix for TabOnFullLength for pasting
   // v2.7.0.5 : fix for handling eaRight edit & focus alignment
   // v2.7.0.6 : improved handling of ExcelStyleDecimalSeparator
+  // v2.7.1.0 : improved disabled border drawing with WinXP theme
+  // v2.7.2.0 : New : DisabledBorder property added
+  //          : Improved : focus border drawing for TAdvMaskEdit
+  // v2.7.3.0 : New : AllowNumericNullValue added
+  // v2.7.3.1 : Fixed : issue with using Color & FlatParentColor = false
+  // v2.7.3.2 : Fixed : issue with ESC/Enter key handling on form with KeyPreview=true
+  // v2.7.3.3 : Fixed : issue with design time destroy of TAdvEdit, TAdvMaskEdit with Label
+  // v2.7.3.4 : Fixed : issue with lookup case insensitive compare
+  // v2.7.3.5 : Improved : painting on leaving focus
+  // v2.7.4.0 : Fixed : issue with OnChange event
+  //          : New : label alignemnts lpRightTop, lpRightCenter, lpRighBottom added
+  //          : Improved : clipboard event handling
+  // v2.7.4.1 : Fixed : issue with keypreview on frames
+  // v2.7.5.0 : Improved : sign not longer taken in account for LengthLimit in etNumeric, etFloat, etMoney types
+  // v2.7.5.1 : Fixed : edit rect issue with Ctl3D = false
+  // v2.7.5.2 : Fixed : issue with OnChange for etMoney type
+  // v2.7.5.3 : Fixed : issue with label margin
+  // v2.7.5.4 : Fixed : issue with OnChange & backspace
+  // v2.8.0.0 : New : PrecisionDisplay property to show floating point values in shortest possible way
+  // v2.8.0.1 : Fixed : issue with PrecisionDisplay when used with edit types other than etFloat, etMoney
+  // v2.8.0.2 : Improved : exposed GetTextSize function in public section
+  // v2.8.1.1 : Fixed : issue with SoftBorder drawing
+  // v2.8.1.2 : Fixed : issue with OnChange
+  // v2.8.1.3 : Fixed : issue with ShowError / OnValueValidate & resetting the error
+  // v2.8.1.4 : Fixed : issue with TAdvMaskEdit.ParentFont = true and label
+  // v2.8.1.5 : Fixed : issue with FocusBorderColor <> clNone and leaving focus
+  // v2.8.1.6 : Improved : behaviour with empty text and setting AllowNumericNullValue = true
+  // v2.8.1.7 : Fixed : issue with disabled border drawing
+  // v2.8.1.8 : Fixed : issue with AutoTab = true on TAdvMaskEdit
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
 
   TLabelPosition = (lpLeftTop, lpLeftCenter, lpLeftBottom, lpTopLeft, lpBottomLeft,
-    lpLeftTopLeft, lpLeftCenterLeft, lpLeftBottomLeft, lpTopCenter,
-    lpBottomCenter);
+    lpLeftTopLeft, lpLeftCenterLeft, lpLeftBottomLeft, lpTopCenter, lpBottomCenter,
+    lpRightTop, lpRightCenter, lpRighBottom);
 
   TAdvEditType = (etString, etNumeric, etFloat, etUppercase, etMixedCase, etLowerCase,
     etPassword, etMoney, etRange, etHex, etAlphaNumeric, etValidChars);
@@ -88,7 +124,6 @@ type
     procedure Show;
     function InList(Value: integer): Boolean;
     function StrToList(s: string): Boolean;
-  published
   end;
 
   TPersistenceLocation = (plInifile, plRegistry);
@@ -166,6 +201,8 @@ type
 
   TEditAlign = (eaLeft, eaRight, eaDefault, eaCenter);
 
+  TPrecisionDisplay = (pdNormal, pdShortest);
+
   TAdvEdit = class(TCustomEdit)
   private
     { Private declarations }
@@ -184,6 +221,7 @@ type
     FExcelStyleDecimalSeparator: Boolean;
     FTabOnFullLength: Boolean;
     FDisabledColor: TColor;
+    FDisabledBorder: boolean;
     FNormalColor: TColor;
     FFocusColor: TColor;
     FFocusFontColor: TColor;
@@ -202,6 +240,7 @@ type
     FFocusAlign: TEditAlign;
     FLengthLimit: SmallInt;
     FPrecision: SmallInt;
+    FPrecisionDisplay: TPrecisionDisplay;
     FPrefix: string;
     FSuffix: string;
     FOldString: string;
@@ -215,6 +254,7 @@ type
     FOnClipboardCut: TClipboardEvent;
     FOnClipboardPaste: TClipboardEvent;
     FOnClipboardCopy: TClipboardEvent;
+    FBlockCopy: boolean;
     FFlatParentColor: Boolean;
     FTransparent: Boolean;
     FCaretPos: TPoint;
@@ -231,6 +271,7 @@ type
     FEmptyText: string;
     FSoftBorder: Boolean;
     FDefaultHandling: Boolean;
+    FBlockDefaultHandling: Boolean;
     FLabelAlwaysEnabled: Boolean;
     FBorder3D: Boolean;
     FErrorMarkerLen: Integer;
@@ -251,14 +292,17 @@ type
     FOnLabelDblClick: TNotifyEvent;
     FValidChars: string;
     FIsWinXP: Boolean;
+    FIsThemed: Boolean;
     FBlockChange: Boolean;
+    FAllowNumericNullValue: Boolean;
+    FParentFnt: boolean;
     procedure CNCommand(var Message: TWMCommand); message CN_COMMAND;
     procedure WMActivate(var Message: TMessage); message WM_ACTIVATE;
     procedure CNCtlColorEdit(var Message: TWMCtlColorEdit); message CN_CTLCOLOREDIT;
     procedure CNCtlColorStatic(var Message: TWMCtlColorStatic); message CN_CTLCOLORSTATIC;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure CMCancelMode(var Message: TMessage); message CM_CANCELMODE;
-    procedure CMShowingChanged(var Message: TMessage); message CM_SHOWINGCHANGED;    
+    procedure CMShowingChanged(var Message: TMessage); message CM_SHOWINGCHANGED;
 {$IFNDEF TMSDOTNET}
     procedure CMHintShow(var Msg: TMessage); message CM_HINTSHOW;
     procedure CMParentFontChanged(var Message: TMessage); message CM_PARENTFONTCHANGED;
@@ -293,8 +337,8 @@ type
     procedure SetText(value: string);
     function GetFloat: double;
     function GetInt: integer;
-    function GetTextSize: integer;
     function FixedLength(s: string): Integer;
+    function AllowMin(ch: char): boolean;
     function DecimalPos: Integer;
     procedure SetFloat(const Value: double);
     procedure SetInt(const Value: integer);
@@ -308,6 +352,7 @@ type
     procedure SetFlat(const value: boolean);
     procedure SetFlatRect(const Value: Boolean);
     procedure SetPrecision(const Value: SmallInt);
+    procedure SetPrecisionDisplay(const Value: TPrecisionDisplay);
     function EStrToFloat(s: string): extended;
     procedure UpdateLabel;
     procedure AutoSeparators;
@@ -320,6 +365,7 @@ type
     procedure DrawBorder;
     function Is3DBorderButton: Boolean;
     procedure SetDisabledColor(const Value: TColor);
+    procedure SetDisabledBorder(const Value: boolean);
     function GetEnabledEx: boolean;
     procedure SetEnabledEx(const Value: boolean);
     procedure SetEditAlign(const Value: TEditAlign);
@@ -333,30 +379,29 @@ type
     procedure SetLabelFont(const Value: TFont);
     function GetError: Boolean;
     procedure SetError(const Value: Boolean);
-    function TestURL: Boolean;
     procedure ApplyURL(const Value: Boolean);
     procedure DrawErrorLines(Canvas: TCanvas; ErrPos, ErrLen: Integer);
 {$IFDEF DELPHI3_LVL}
     procedure SetOleDropSource(const Value: boolean);
     procedure SetOleDropTarget(const Value: boolean);
-    procedure SetAutoThousandSeparator(const Value: Boolean);
-    procedure SetEmptyText(const Value: string);
-    procedure SetSoftBorder(const Value: Boolean);
-    procedure SetLabelAlwaysEnabled(const Value: Boolean);
-    procedure SetBorder3D(const Value: Boolean);
-    procedure SetErrorMarkerLen(const Value: Integer);
-    procedure SetErrorMarkerPos(const Value: Integer);
-    procedure SetFocusBorder(const Value: Boolean);
-    function GetHeightEx: Integer;
-    procedure SetHeightEx(const Value: Integer);
-    procedure UpdateLookup;
-    procedure DoneLookup;
-    procedure ListKeyPress(Sender: TObject; var Key: Char);
-    procedure ListMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
 {$ENDIF}
     function GetVersion: string;
     procedure SetVersion(const Value: string);
+    procedure DoneLookup;
+    function GetHeightEx: Integer;
+    procedure ListKeyPress(Sender: TObject; var Key: Char);
+    procedure ListMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure SetAutoThousandSeparator(const Value: Boolean);
+    procedure SetBorder3D(const Value: Boolean);
+    procedure SetEmptyText(const Value: string);
+    procedure SetErrorMarkerLen(const Value: Integer);
+    procedure SetErrorMarkerPos(const Value: Integer);
+    procedure SetFocusBorder(const Value: Boolean);
+    procedure SetHeightEx(const Value: Integer);
+    procedure SetLabelAlwaysEnabled(const Value: Boolean);
+    procedure SetSoftBorder(const Value: Boolean);
+    procedure UpdateLookup;
   protected
     function GetVersionNr: Integer; virtual;
     { Protected declarations }
@@ -379,6 +424,9 @@ type
 {$IFDEF TMSDOTNET}
     procedure WndProc(var Message: TMessage); override;
 {$ENDIF}
+    procedure SetTextDirect(s:string);
+    function TestURL: Boolean; virtual;
+    property BlockDefaultHandling: boolean read FBlockDefaultHandling write FBlockDefaultHandling;
   public
     { Public declarations }
     constructor Create(aOwner: TComponent); override;
@@ -388,6 +436,7 @@ type
     procedure SelectBeforeDecimal;
     procedure SelectAfterDecimal;
     procedure Init;
+    function GetTextSize: integer;    
     function CharFromPos(pt: TPoint): Integer;
     function PosFromChar(uChar: word): TPoint;
     property FloatValue: double read GetFloat write SetFloat;
@@ -399,6 +448,7 @@ type
     procedure LoadPersist; virtual;
     procedure SavePersist; virtual;
     property DefaultHandling: Boolean read FDefaultHandling write FDefaultHandling;
+
     property EditLabel: TLabel read FLabel;
     property Border3D: Boolean read FBorder3D write SetBorder3D;
   published
@@ -407,6 +457,7 @@ type
     property OnClipboardCopy: TClipboardEvent read FOnClipboardCopy write FOnClipboardCopy;
     property OnClipboardCut: TClipboardEvent read FOnClipboardCut write FOnClipboardCut;
     property OnClipboardPaste: TClipboardEvent read FOnClipboardPaste write FOnClipboardPaste;
+    property AllowNumericNullValue: Boolean read FAllowNumericNullValue write FAllowNumericNullValue default False;
     property AutoFocus: boolean read FAutoFocus write FAutoFocus default False;
     property AutoThousandSeparator: Boolean read FAutoThousandSeparator write SetAutoThousandSeparator default True;
     property EditAlign: TEditAlign read FEditAlign write SetEditAlign default eaLeft;
@@ -429,6 +480,7 @@ type
     property FocusWidthInc: Integer read FFocusWidthInc write FFocusWidthInc default 0;
     property Height: Integer read GetHeightEx write SetHeightEx;
     property ModifiedColor: TColor read FModifiedColor write FModifiedColor default clHighlight;
+    property DisabledBorder: Boolean read FDisabledBorder write SetDisabledBorder default true;
     property DisabledColor: TColor read FDisabledColor write SetDisabledColor default clSilver;
     property ShowError: Boolean read FShowError write FShowError default False;
     property ShowModified: Boolean read FShowModified write FShowModified default False;
@@ -439,6 +491,7 @@ type
     property LengthLimit: smallint read fLengthLimit write FLengthLimit default 0;
     property TabOnFullLength: boolean read fTabOnFullLength write FTabOnFullLength default False;
     property Precision: smallint read FPrecision write SetPrecision default 0;
+    property PrecisionDisplay: TPrecisionDisplay read FPrecisionDisplay write SetPrecisionDisplay default pdNormal;
     property Prefix: string read FPrefix write SetPrefix;
     property Suffix: string read FSuffix write SetSuffix;
     property LabelCaption: string read GetLabelCaption write SetLabelCaption;
@@ -449,6 +502,7 @@ type
     property LabelFont: TFont read FLabelFont write SetLabelFont;
     property Lookup: TLookupSettings read FLookup write FLookup;
     property Persistence: TPersistence read FPersistence write FPersistence;
+
 {$IFDEF DELPHI6_LVL}
     property BevelEdges;
     property BevelInner;
@@ -456,6 +510,7 @@ type
     property BevelOuter;
 {$ENDIF}
 {$IFDEF DELPHI4_LVL}
+    property Align;
     property Anchors;
     property BiDiMode;
     property ParentBiDiMode;
@@ -556,6 +611,7 @@ type
     FFlat: boolean;
     FOnMaskComplete: TMaskCompleteEvent;
     FDisabledColor: TColor;
+    FDisabledBorder: Boolean;
     FOriginalValue: string;
     FCanUndo: Boolean;
     FLabelFont: TFont;
@@ -563,10 +619,12 @@ type
     FFlatLineColor: TColor;
     FSoftBorder: Boolean;
     FFocusBorder: Boolean;
+    FFocusBorderColor: TColor;
     FMouseInControl: Boolean;
     FBorder3D: Boolean;
     FFlatParentColor: Boolean;
     FOldBorder: TBorderStyle;
+    FIsThemed: Boolean;    
     procedure SetAlignment(value: TAlignment);
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
@@ -575,6 +633,10 @@ type
     procedure CMMouseEnter(var Msg: TMessage); message CM_MOUSEENTER;
     procedure CMMouseLeave(var Msg: TMessage); message CM_MOUSELEAVE;
     procedure WMPaint(var Msg: TWMPaint); message WM_PAINT;
+{$IFNDEF TMSDOTNET}
+    procedure WMNCPaint(var Message: TMessage); message WM_NCPAINT;
+    procedure CMParentFontChanged(var Message: TMessage); message CM_PARENTFONTCHANGED;    
+{$ENDIF}
     procedure WMKeyDown(var Msg: TWMKeydown); message WM_KEYDOWN;
     function GetLabelCaption: string;
     procedure SetLabelCaption(const Value: string);
@@ -586,6 +648,7 @@ type
     procedure SetModified(const Value: boolean);
     procedure SetLabelTransparent(const Value: boolean);
     procedure SetDisabledColor(const Value: TColor);
+    procedure SetDisabledBorder(const Value: boolean);
     function GetEnabledEx: Boolean;
     procedure SetEnabledEx(const Value: Boolean);
     function GetColorEx: TColor;
@@ -628,12 +691,14 @@ type
     property AutoTab: Boolean read FAutoTab write FAutoTab default true;
     property CanUndo: Boolean read FCanUndo write FCanUndo default false;
     property Color: TColor read GetColorEx write SetColorEx;
-    property DisabledColor: TColor read FDisabledColor write SetDisabledColor;
+    property DisabledBorder: Boolean read FDisabledBorder write SetDisabledBorder default true;
+    property DisabledColor: TColor read FDisabledColor write SetDisabledColor default clSilver;
     property Enabled: Boolean read GetEnabledEx write SetEnabledEx;
     property Flat: Boolean read FFlat write SetFlat;
     property FlatLineColor: TColor read FFlatLineColor write SetFlatLineColor;
     property FlatParentColor: Boolean read FFlatParentColor write SetFlatParentColor;
     property ShowModified: boolean read FShowModified write fShowModified;
+    property FocusBorderColor: TColor read  FFocusBorderColor write FFocusBorderColor default clNone;    
     property FocusColor: TColor read FFocusColor write FFocusColor;
     property FocusBorder: Boolean read FFocusBorder write FFocusBorder;
     property FocusFontColor: TColor read FFocusFontColor write fFocusFontColor;
@@ -710,6 +775,38 @@ const
   Bin_Codes = ['0', '1'];
   AlphaNum_Codes = [ord('0')..ord('9')] + [ord('a')..ord('z'), ord('A')..ord('Z')];
 
+{$IFNDEF DELPHI7_LVL}
+{$IFNDEF TMSDOTNET}
+function GetFileVersion(FileName:string): Integer;
+var
+  FileHandle:dword;
+  l: Integer;
+  pvs: PVSFixedFileInfo;
+  lptr: uint;
+  querybuf: array[0..255] of char;
+  buf: PChar;
+begin
+  Result := -1;
+
+  StrPCopy(querybuf,FileName);
+  l := GetFileVersionInfoSize(querybuf,FileHandle);
+  if (l>0) then
+  begin
+    GetMem(buf,l);
+    GetFileVersionInfo(querybuf,FileHandle,l,buf);
+    if VerQueryValue(buf,'\',Pointer(pvs),lptr) then
+    begin
+      if (pvs^.dwSignature=$FEEF04BD) then
+      begin
+        Result := pvs^.dwFileVersionMS;
+      end;
+    end;
+    FreeMem(buf);
+  end;
+end;
+{$ENDIF}
+{$ENDIF}
+
 {$IFNDEF TMSDOTNET}
 
 function RangeListCompare(Item1, Item2: Pointer): Integer;
@@ -722,8 +819,22 @@ begin
     if integer(Item1) = integer(Item2) then Result := 0 else Result := -1;
 end;
 
+function CheckTerminator(ch: char): boolean;
+const
+  Terminators = [' ', ',', '.', '/', '\', ':', '*', '$', '-', '(', ')', '[', ']', '"'];
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := ch in Terminators;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  Result := (ch = ' ') or (ch = ',') or (ch = '.') or (ch = '-') or (ch = '''') or
+    (ch = '\') or (ch = '/') or (ch = ':') or (ch = '*') or (ch = '$') or (ch = ')') or (ch = ')') or (ch = '"');
+  {$ENDIF}
+end;
+
 function ShiftCase(Name: string): string;
 
+  {$IFNDEF DELPHI_UNICODE}
   function LowCase(C: char): char;
   begin
     if C in ['A'..'Z'] then
@@ -731,9 +842,8 @@ function ShiftCase(Name: string): string;
     else
       Lowcase := C;
   end;
+  {$ENDIF}
 
-const
-  Terminators = [' ', ',', '.', '/', '\', ':', '*', '$', '-', '(', ')', '[', ']', '"'];
 
 var
   I, L: Integer;
@@ -745,16 +855,28 @@ begin
   L := Length(Name);
   for I := 1 to L do
   begin
-    if NewName[I] in Terminators then
+    if CheckTerminator(NewName[I]) then
       First := true
     else
       if First then
       begin
+        {$IFNDEF DELPHI_UNICODE}
         NewName[I] := Upcase(Name[I]);
+        {$ENDIF}
+        {$IFDEF DELPHI_UNICODE}
+        NewName[I] := character.ToUpper(Name[I]);
+        {$ENDIF}
         First := false;
       end
       else
+      begin
+        {$IFNDEF DELPHI_UNICODE}
         NewName[I] := Lowcase(Name[I]);
+        {$ENDIF}
+        {$IFDEF DELPHI_UNICODE}
+        NewName[I] := character.ToLower(Name[I]);
+        {$ENDIF}
+      end;
 
     if (Copy(NewName, 1, I) = 'Mc') or (Copy(NewName, 1, I) = 'Mac') or
       ((Pos(' Mc', NewName) = I - 2) and (I > 2)) or
@@ -850,9 +972,9 @@ var
   function CharVal(c: char): Integer;
   begin
     Result := 0;
-    if (c in ['0'..'9']) then Result := ord(c) - ord('0');
-    if (c in ['A'..'F']) then Result := ord(c) - ord('A') + 10;
-    if (c in ['a'..'f']) then Result := ord(c) - ord('a') + 10;
+    if ((c >= '0') and (c <= '9')) then Result := ord(c) - ord('0');
+    if ((c >= 'A') and (c <= 'F')) then Result := ord(c) - ord('A') + 10;
+    if ((c >= 'a') and (c <= 'f')) then Result := ord(c) - ord('a') + 10;
   end;
 
 begin
@@ -1002,6 +1124,17 @@ begin
   SelLength := 0;
 end;
 
+function CheckSeparator(ch: char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := ch in ['-', ',', ';'];
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  Result := (ch = '-') or (ch = ',') or (ch = ';');
+  {$ENDIF}
+end;
+
 procedure TAdvEdit.WMChar(var Msg: TWMKey);
 var
   oldSelStart, oldprec: Integer;
@@ -1009,6 +1142,7 @@ var
   s: string;
   key: char;
   isCtrl: Boolean;
+  cf: TCustomForm;
 
   function scanprecision(s: string; inspos: Integer): Boolean;
   var
@@ -1068,6 +1202,9 @@ var
 begin
   IsCtrl := GetKeyState(VK_CONTROL) and $8000 = $8000;
 
+  if (SelLength = length(Text)) and (Text <> '') then
+    FBlockChange := true;
+
   if (Msg.CharCode = VK_RETURN) and IsCtrl then
   begin
     Msg.CharCode := 0;
@@ -1082,12 +1219,22 @@ begin
       OnKeyPress(Self, key);
 
     Msg.CharCode := 0;
-
+    
     if not DefaultHandling then
     begin
       if (Parent is TWinControl) then
       begin
         PostMessage((Parent as TWinControl).Handle, WM_KEYDOWN, VK_RETURN, 0);
+
+        cf := GetParentForm(self);
+
+        if Assigned(cf) then
+          if cf.KeyPreview then
+          begin
+            inherited;
+            Exit;
+          end;
+
         PostMessage((Parent as TWinControl).Handle, WM_KEYUP, VK_RETURN, 0);
       end;
     end;
@@ -1100,6 +1247,16 @@ begin
     begin
       if (Parent is TWinControl) then
       begin
+
+        cf := GetParentForm(self);
+
+        if Assigned(cf) then
+          if cf.KeyPreview then
+          begin
+            inherited;
+            Exit;
+          end;
+
         PostMessage((Parent as TWinControl).Handle, WM_KEYDOWN, VK_ESCAPE, 0);
         PostMessage((Parent as TWinControl).Handle, WM_KEYUP, VK_ESCAPE, 0);
       end;
@@ -1139,17 +1296,16 @@ begin
 {$ENDIF}
   end;
 
+  if (msg.CharCode = vk_back) and (FPrefix <> '') then
+    if (SelStart <= Length(FPrefix)) and (SelLength = 0) then Exit;
 
-  if (msg.charcode = vk_back) and (fPrefix <> '') then
-    if (SelStart <= Length(fPrefix)) and (SelLength = 0) then Exit;
-
-  if (flengthlimit > 0) and (FixedLength(self.text) > flengthlimit) and
-    (SelLength = 0) and (SelStart < decimalpos)
+  if (FLengthLimit > 0) and (FixedLength(self.Text) > FLengthLimit) and
+    (SelLength = 0) and (SelStart < DecimalPos)
 {$IFNDEF TMSDOTNET}
-  and (msg.charcode <> vk_back) and (msg.charcode <> ord(decimalseparator)) then Exit;
+  and (msg.charcode <> vk_back) and (msg.charcode <> ord(decimalseparator)) and not AllowMin(chr(msg.CharCode)) then Exit;
 {$ENDIF}
 {$IFDEF TMSDOTNET}
-  and (msg.charcode <> vk_back) and (msg.charcode <> ord(decimalseparator[1])) then Exit;
+  and (msg.charcode <> vk_back) and (msg.charcode <> ord(decimalseparator[1])) and not AllowMin(chr(msg.CharCode)) then Exit;
 {$ENDIF}
 
   if (msg.charcode = vk_back) then
@@ -1160,8 +1316,12 @@ begin
     else
       delete(s, SelStart - Length(fprefix), SelLength);
 
-    if (lengthlimit > 0) and (fixedLength(s) - 1 > lengthlimit) then
-      Exit;
+    inherited;
+    if (Text = '') and (s <> '') then
+      Change;
+
+    //if (lengthlimit > 0) and (fixedLength(s) - 1 > lengthlimit) then
+    Exit;
   end;
 
   if IsCtrl and (Msg.CharCode = 10) then
@@ -1171,12 +1331,26 @@ begin
     Exit;
 
   case EditType of
-    etString, etPassword: inherited;
-    etAlphaNumeric: if msg.charcode in AlphaNum_Codes + Ctrl_Codes then inherited;
+    etString, etPassword:
+      begin
+        SetModified(true);
+        inherited;
+      end;
+    etAlphaNumeric:
+      begin
+        if msg.charcode in AlphaNum_Codes + Ctrl_Codes then
+        begin
+          SetModified(true);
+          inherited;
+        end;
+      end;
     etValidChars:
       begin
         if (pos(chr(msg.CharCode), ValidChars) > 0) or (msg.CharCode = 8) then
+        begin
+          SetModified(true);        
           inherited;
+        end;
       end;
     etNumeric:
       begin
@@ -1221,20 +1395,23 @@ begin
             inherited;
         end;
       end;
-    etHex: if msg.charcode in Hex_Codes + Ctrl_Codes then inherited;
-
-
+    etHex: if msg.charcode in Hex_Codes + Ctrl_Codes then
+      begin
+        SetModified(true);      
+        inherited;
+      end;
     etRange:
       begin
         if msg.charcode in Range_Codes + Ctrl_Codes then
         begin
+          SetModified(true);        
           s := (inherited Text) + ' ';
           if (msg.charcode in [ord('-'), ord(','), ord(';')]) then
           begin
             if (SelStart <= Length(fPrefix)) then Exit;
-            if (SelStart > Length(fPrefix)) and (s[SelStart] in ['-', ',', ';']) then
+            if (SelStart > Length(fPrefix)) and (CheckSeparator(s[SelStart])) then
               Exit;
-            if (SelStart > Length(fPrefix)) and (s[SelStart + 1] in ['-', ',', ';']) then
+            if (SelStart > Length(fPrefix)) and (CheckSeparator(s[SelStart + 1])) then
               Exit;
             inherited;
           end
@@ -1252,22 +1429,16 @@ begin
               Text := '0,0';
             SelectAfterDecimal;
           end;
-
           Exit;
         end;
 
         if (msg.charcode in Money_Codes + Ctrl_Codes) or (chr(msg.charcode) = decimalseparator) then
         begin
-{$IFNDEF TMSDOTNET}
-          if (chr(msg.charcode) in [thousandseparator, decimalseparator]) then
-{$ENDIF}
-{$IFDEF TMSDOTNET}
-            if (chr(msg.charcode) = thousandseparator) or (chr(msg.charcode) = decimalseparator) then
-{$ENDIF}
-            begin
-              if scandistance(self.Text, SelStart) then
-                Exit;
-            end;
+          if (chr(msg.charcode) = thousandseparator) or (chr(msg.charcode) = decimalseparator) then
+          begin
+            if scandistance(self.Text, SelStart) then
+              Exit;
+          end;
 
 {$IFNDEF TMSDOTNET}
           if scanprecision(self.Text, SelStart) and (msg.charcode in [$30..$39, ord(decimalseparator)]) and (SelLength = 0) then
@@ -1361,15 +1532,10 @@ begin
           if ((msg.charcode = ord(',')) and (Pos(',', self.Text) > 0) and (Pos(',', self.getSelText) = 0)) and
             (chr(msg.charcode) <> thousandseparator) then exit;
 
-{$IFNDEF TMSDOTNET}
-          if (chr(msg.charcode) in [thousandseparator, decimalseparator]) then
-{$ENDIF}
-{$IFDEF TMSDOTNET}
-            if (chr(msg.charcode) = thousandseparator) or (chr(msg.charcode) = decimalseparator) then
-{$ENDIF}
-            begin
-              if scandistance(self.Text, SelStart) then exit;
-            end;
+          if (chr(msg.charcode) = thousandseparator) or (chr(msg.charcode) = decimalseparator) then
+          begin
+            if scandistance(self.Text, SelStart) then exit;
+          end;
 
 {$IFNDEF TMSDOTNET}
           if ScanPrecision(self.text, SelStart) and (msg.charcode in [$30..$39, ord(decimalseparator)]) and (SelLength = 0) then
@@ -1441,7 +1607,7 @@ begin
       end;
     etLowercase:
       begin
-        s := ansilowercase(chr(msg.charcode));
+        s := AnsiLowerCase(chr(msg.charcode));
         msg.charcode := ord(s[1]);
         inherited;
       end;
@@ -1460,7 +1626,8 @@ begin
       (SelLength = 0) and (SelStart = fLengthlimit) then postmessage(self.handle, wm_keydown, VK_TAB, 0);
   end;
 
-  if inherited Modified then SetModified(true);
+  if inherited Modified then
+    SetModified(true);
 
   UpdateLookup;
 end;
@@ -1491,7 +1658,11 @@ end;
 procedure TAdvEdit.CMFontChanged(var Message: TMessage);
 begin
   if (csDesigning in ComponentState) or (csLoading in ComponentState) then
-    if FLabel <> nil then FLabel.Font.Assign(self.font);
+    if (FLabel <> nil) and ParentFont then
+    begin
+      FLabel.Font.Assign(self.font);
+    end;
+      
   inherited;
   SetFlatRect(FFlat);
 end;
@@ -1506,17 +1677,22 @@ end;
 procedure TAdvEdit.SetFlatRect(const Value: Boolean);
 var
   loc: TRect;
+  lft: integer;
 begin
+  lft := 0;
+  if not Ctl3D then
+    lft := 2;
+
   if Value then
   begin
-    loc.Left := 2 + IndentL;
-    loc.Top := 4;
-    loc.Right := Clientrect.Right - 2 - IndentR;
+    loc.Left := lft + 4 + IndentL;
+    loc.Top := 3;
+    loc.Right := Clientrect.Right - 4 - IndentR;
     loc.Bottom := Clientrect.Bottom - 4;
   end
   else
   begin
-    loc.Left := IndentL;
+    loc.Left := lft + IndentL;
     loc.Top := 0;
     loc.Right := ClientRect.Right - IndentR;
     loc.Bottom := ClientRect.Bottom;
@@ -1554,6 +1730,7 @@ begin
       end
       else
       begin
+        Color := FNormalColor;
         FocusColor := FFocusColor;
       end;
 
@@ -1625,11 +1802,14 @@ begin
     else
       Passwordchar := #0;
 
-    at := IsType(self.Text);
-    case FEditType of
-      etHex: if not (at in [atNumeric, atHex]) then self.IntValue := 0;
-      etNumeric: if (at <> atNumeric) then self.IntValue := 0;
-      etFloat, etMoney: if not (at in [atFloat, atNumeric]) then self.FloatValue := 0.0;
+    if (Text <> '') or (not AllowNumericNullValue) then
+    begin
+      at := IsType(self.Text);
+      case FEditType of
+        etHex: if not (at in [atNumeric, atHex]) then self.IntValue := 0;
+        etNumeric: if (at <> atNumeric) then self.IntValue := 0;
+        etFloat, etMoney: if not (at in [atFloat, atNumeric]) then self.FloatValue := 0.0;
+      end;
     end;
 
     if (csDesigning in ComponentState) and (FEditType = etFloat) and (Precision = 0) then
@@ -1683,11 +1863,14 @@ begin
 
   if not IsError then
   begin
-    Color := FNormalColor;
-    if FIsWinXP then
+    if (Color <> FNormalColor) then
     begin
-      Width := Width - 1;
-      Width := Width + 1;
+      Color := FNormalColor;
+      if FIsWinXP then
+      begin
+        Width := Width - 1;
+        Width := Width + 1;
+      end;
     end;
   end;
 
@@ -1700,29 +1883,31 @@ begin
   if fFocusLabel and (FLabel <> nil) then
     FLabel.Font.Style := FLabel.Font.Style - [fsBold];
 
-  if (EditType in [etFloat, etMoney]) and (self.Text = '') then
-    Floatvalue := 0.0;
-
   if (FPrecision > 0) and (EditType in [etFloat, etMoney]) then
   begin
-  // update for precision
-    OldModified := Modified;
-    Floatvalue := self.Floatvalue;
-    Modified := OldModified;
+    if (self.Text <> '') or not FAllowNumericNullValue then
+    begin
+      // update for precision
+      OldModified := Modified;
+      Floatvalue := self.Floatvalue;
+      Modified := OldModified;
+    end;
   end;
 
-  if (EditType in [etNumeric]) and (Self.Text = '') then
+  if (EditType in [etNumeric]) and (Self.Text = '') and not FAllowNumericNullValue then
     Text := '0';
 
+  if (EditType in [etFloat, etMoney]) and (Self.Text = '') and not FAllowNumericNullValue  then
+    Floatvalue := 0.0;
 
   IsValid := DoValidate(Self.Text);
+  
   if not IsValid then
   begin
     Msg.Result := 0;
   end;
 
   inherited;
-
 
   if FFocusBorder then
     Invalidate;
@@ -1749,6 +1934,9 @@ begin
     if FLookup.DisplayList.IndexOf(TT) = -1 then
       FLookup.DisplayList.Add(TT);
   end;
+
+  if FocusBorderColor <> clNone then
+    SendMessage(self.Handle, WM_NCPAINT, 0,0);
 
   if (ErrorMarkerLen > 0) then
     Invalidate;
@@ -1840,10 +2028,10 @@ begin
   end;
 
   if AutoSelect then
-    SelectAll
-  else
-    if EditType in [etFloat, etMoney] then
-      SelectBeforeDecimal;
+    SelectAll;
+  //else
+  //  if EditType in [etFloat, etMoney] then
+  //    SelectBeforeDecimal;
 
   if FFocusLabel and (FLabel <> nil) then
     FLabel.Font.Style := FLabel.Font.Style + [fsBold];
@@ -1864,7 +2052,6 @@ begin
   begin
     if BorderStyle = bsNone then
       SetFlatRect(true);
-
     Invalidate;
   end;
 end;
@@ -1872,11 +2059,13 @@ end;
 constructor TAdvEdit.Create(AOwner: TComponent);
 var
   VerInfo: TOSVersioninfo;
+  i: integer;
 
 begin
   inherited Create(aOwner);
   FFocusColor := clNone;
   FFocusFontColor := clWindowText;
+  FNormalColor := clWindow;
   FFocusAlign := eaDefault;
   FFontColor := self.Font.Color;
   FModifiedColor := clHighLight;
@@ -1887,6 +2076,7 @@ begin
   FLabelMargin := 4;
   FURLColor := clBlue;
   FDisabledColor := clSilver;
+  FDisabledBorder := true;
   FPersistence := TPersistence.Create;
   FFlatParentColor := True;
   FFlatLineColor := clBlack;
@@ -1907,7 +2097,12 @@ begin
 
   FIsWinXP := (verinfo.dwMajorVersion > 5) or
     ((verinfo.dwMajorVersion = 5) and (verinfo.dwMinorVersion >= 1));
-    
+
+  // app is linked with COMCTL32 v6 or higher -> xp themes enabled
+  i := GetFileVersion('COMCTL32.DLL');
+  i := (i shr 16) and $FF;
+  FIsThemed := (i > 5);
+
   if not (csDesigning in ComponentState) then
   begin
     FLookupList := TListHintWindow.Create(Self);
@@ -1937,15 +2132,19 @@ begin
   end;
 
   FLookup := TLookupSettings.Create;
+
+  FParentFnt := false;
 end;
 
 destructor TAdvEdit.Destroy;
 begin
-  if FLabel <> nil then
+  if (FLabel <> nil) then
   begin
+    FLabel.Parent := nil;
     FLabel.Free;
     FLabel := nil;
   end;
+  
   FLabelFont.Free;
   FPersistence.Free;
   FPersistence := nil;
@@ -1997,7 +2196,7 @@ begin
       FBlockChange := false;
       Exit;
     end;
-  end;  
+  end;
 
   if (Message.NotifyCode = EN_CHANGE) then
     if FTransparent then
@@ -2208,8 +2407,9 @@ var
   Allow: Boolean;
 begin
   Allow := True;
-  if Assigned(FOnClipboardCopy) then
+  if Assigned(FOnClipboardCopy) and not FBlockCopy then
     FOnClipboardCopy(self, copy(self.Text, SelStart + 1 - Length(fPrefix), SelLength), allow);
+  FBlockCopy := False;  
   if Allow then inherited;
 end;
 
@@ -2218,20 +2418,27 @@ var
   Allow: Boolean;
 begin
   Allow := True;
+  FBlockCopy := True;
   if Assigned(FOnClipboardCut) then
+  begin
     FOnClipboardCut(self, copy(self.text, SelStart + 1 - Length(fPrefix), SelLength), allow);
+  end;
   if Allow then inherited;
+
+  FBlockCopy := False;
 end;
 
 
 procedure TAdvEdit.WMPaste(var Msg: TMessage);
 var
+{$IFNDEF DELPHI_UNICODE}
   Data: THandle;
 {$IFNDEF TMSDOTNET}
   content: PChar;
 {$ENDIF}
 {$IFDEF TMSDOTNET}
   content: integer;
+{$ENDIF}
 {$ENDIF}
   newstr: string;
   newss, newsl, i: Integer;
@@ -2261,6 +2468,16 @@ var
 begin
   if ReadOnly then
     Exit;
+
+  {$IFDEF DELPHI_UNICODE}
+  if ClipBoard.HasFormat(CF_TEXT) then
+  begin
+    Allow := True;  
+    newstr := InsertString(Clipboard.AsText);
+  {$ENDIF}
+
+
+{$IFNDEF DELPHI_UNICODE}
 
   if ClipBoard.HasFormat(CF_TEXT) then
   begin
@@ -2302,6 +2519,8 @@ begin
     newstr := InsertString(Clipboard.AsText);
 {$ENDIF}
 
+{$ENDIF}
+
     if Assigned(FOnClipboardPaste) then
       FOnClipboardPaste(self, newstr, Allow);
 
@@ -2309,11 +2528,18 @@ begin
 
     if MaxLength > 0 then
     begin
+{$IFNDEF DELPHI_UNICODE}
 {$IFNDEF TMSDOTNET}
       if Length(StrPas(Content)) + Length(Self.Text) - SelLength > MaxLength then
 {$ENDIF}
-        if Length(Clipboard.AsText) + Length(Self.Text) - SelLength > MaxLength then
-          Exit;
+{$IFDEF TMSDOTNET}
+      if Length(Clipboard.AsText) + Length(Self.Text) - SelLength > MaxLength then
+{$ENDIF}
+{$ENDIF}
+{$IFDEF DELPHI_UNICODE}
+    if Length(Clipboard.AsText) + Length(Self.Text) - SelLength > MaxLength then
+{$ENDIF}
+        Exit;
     end;
 
     case FEditType of
@@ -2344,12 +2570,17 @@ begin
         begin
           if IsType(newstr) in [atFloat, atNumeric] then
           begin
+{$IFNDEF DELPHI_UNICODE}
 {$IFNDEF TMSDOTNET}
             if not ((FPrecision = 0) and (Pos(DecimalSeparator, StrPas(Content)) > 0)) then
 {$ENDIF}
 {$IFDEF TMSDOTNET}
-              if not ((FPrecision = 0) and (Pos(DecimalSeparator, Clipboard.AsText) > 0)) then
+            if not ((FPrecision = 0) and (Pos(DecimalSeparator, Clipboard.AsText) > 0)) then
 {$ENDIF}
+{$ENDIF}
+{$IFDEF DELPHI_UNICODE}
+            if not ((FPrecision = 0) and (Pos(DecimalSeparator, Clipboard.AsText) > 0)) then
+{$ENDIF}            
               begin
                 if not (not Signed and (pos('-', newstr) > 0)) then
                 begin
@@ -2410,7 +2641,7 @@ procedure TAdvEdit.WMPaint(var Msg: TWMPaint);
 begin
   inherited;
   PaintEdit;
-  if Border3D or (FFocusBorderColor <> clNone) then
+  if Border3D or (FFocusBorderColor <> clNone) or (not Enabled and DisabledBorder) then
     DrawBorder;
 end;
 
@@ -2429,7 +2660,10 @@ begin
       DrawControlBorder(DC)
     else
     begin
-      OldPen := SelectObject(dc, CreatePen(PS_SOLID, 1, ColorToRGB(FFlatLineColor)));
+      if Enabled then
+        OldPen := SelectObject(dc, CreatePen(PS_SOLID, 1, ColorToRGB(FFlatLineColor)))
+      else
+        OldPen := SelectObject(dc, CreatePen(PS_SOLID, 1, ColorToRGB(clGray)));
 {$IFNDEF TMSDOTNET}
       SendMessage(Handle, EM_GETRECT, 0, LongInt(@Loc));
 {$ENDIF}
@@ -2439,11 +2673,11 @@ begin
 
       if FSoftBorder then
       begin
-        MovetoEx(DC, Loc.Left - 2 + IndentL, Height - 1, nil);
+        MovetoEx(DC, Loc.Left - 4 + IndentL, Height - 1, nil);
         LineTo(DC, Width - 1, Height - 1);
-        LineTo(DC, Width - 1, Loc.Top - 4);
-        LineTo(DC, Loc.Left - 2 + IndentL, Loc.Top - 4);
-        LineTo(DC, Loc.Left - 2 + IndentL, Height - 1);
+        LineTo(DC, Width - 1, Loc.Top - 3);
+        LineTo(DC, Loc.Left - 4 + IndentL, Loc.Top - 3);
+        LineTo(DC, Loc.Left - 4 + IndentL, Height - 1);
       end
       else
       begin
@@ -2726,6 +2960,11 @@ begin
   else Result := Length(fPrefix) + i;
 end;
 
+function TAdvEdit.AllowMin(ch: char): boolean;
+begin
+  Result := Signed and (EditType in [etFloat,etNumeric, etMoney]) and (ch = '-');
+end;
+
 function TAdvEdit.FixedLength(s: string): Integer;
 var
   i: Integer;
@@ -2733,6 +2972,9 @@ begin
   s := StripThousandSep(s);
   i := Pos(decimalseparator, s);
   if (i > 0) then Result := i else Result := Length(s) + 1;
+
+  if Signed and (EditType in [etFloat,etNumeric, etMoney]) and (pos('-',s) > 0) then
+    Result := Result - 1;
 end;
 
 function TAdvEdit.GetText: string;
@@ -2760,31 +3002,49 @@ begin
     end;
   end;
 
-  if (FPrecision > 0) and (value <> '') then
+  if PrecisionDisplay = pdNormal then
   begin
-    if (FEditType in [etMoney]) then
+    if (FPrecision > 0) and (value <> '') then
     begin
-      if (Pos('-', value) > 0) then neg := '-' else neg := '';
-      fmt := '%.' + IntToStr(FPrecision) + 'n';
-      Value := Format(fmt, [EStrToFloat(Value)]);
-    end;
+      if (FEditType in [etMoney]) then
+      begin
+        if (Pos('-', value) > 0) then neg := '-' else neg := '';
+        fmt := '%.' + IntToStr(FPrecision) + 'n';
+        Value := Format(fmt, [EStrToFloat(Value)]);
+      end;
 
-    if (FEditType in [etFloat]) then
+      if (FEditType in [etFloat]) then
+      begin
+        fmt := '%.' + inttostr(FPrecision) + 'f';
+        f := EStrToFloat(value);
+        Value := Format(fmt, [f]);
+      end;
+    end;
+  end
+  else
+  begin
+    if (FEditType in [etFloat, etMoney]) then
     begin
-      fmt := '%.' + inttostr(FPrecision) + 'f';
-      f := EStrToFloat(value);
-      Value := Format(fmt, [f]);
+      f := EStrToFloat(Value);
+      Value := Format('%g', [f]);
     end;
   end;
 
+
+
   if (FEditType in [etHex]) then
-    Value := UpperCase(value);
+    Value := AnsiUpperCase(value);
 
   inherited Text := FPrefix + Value + FSuffix;
 
   SetModified(False);
 
   if FShowURL then ApplyURL(TestURL);
+end;
+
+procedure TAdvEdit.SetTextDirect(s: string);
+begin
+  inherited Text := s;
 end;
 
 function TAdvEdit.GetVisible: boolean;
@@ -2872,10 +3132,13 @@ begin
 
   OldPrec := FPrecision;
   FPrecision := 0;
+
 //changed 1.8
-  FBlockChange := Text <> FPrefix + neg + si + s + fSuffix;
+  FBlockChange := (Text <> FPrefix + neg + si + s + FSuffix);
 
   inherited Text := FPrefix + neg + si + s + fSuffix;
+
+  FBlockChange := false;
 
   FPrecision := OldPrec;
 
@@ -2884,10 +3147,17 @@ begin
   SelStart := OldSelStart + Diffl;
   SelLength := 0;
 end;
-
+                  
 procedure TAdvEdit.UpdateLabel;
 begin
   FLabel.Transparent := FLabeltransparent;
+
+  if not FParentFnt then
+  begin
+    FLabel.Font.Assign(FLabelFont);
+  end
+  else
+    FLabel.Font.Assign(self.Font);
 
   case FLabelPosition of
     lpLeftTop:
@@ -2897,7 +3167,10 @@ begin
       end;
     lpLeftCenter:
       begin
-        FLabel.Top := self.Top + ((self.Height - FLabel.Height) div 2);
+        if Self.Height > FLabel.Height then
+          FLabel.Top := self.Top + ((self.Height - FLabel.Height) div 2)
+        else
+          FLabel.Top := self.Top - ((FLabel.Height - self.Height) div 2);   
         FLabel.Left := self.Left - FLabel.Canvas.TextWidth(FLabel.Caption) - FLabelMargin;
       end;
     lpLeftBottom:
@@ -2938,7 +3211,10 @@ begin
       end;
     lpLeftCenterLeft:
       begin
-        FLabel.top := self.top + ((self.height - FLabel.height) div 2);
+        if Self.Height > FLabel.Height then
+          FLabel.Top := self.top + ((self.height - FLabel.height) div 2)
+        else
+          FLabel.Top := self.Top - ((FLabel.Height - self.Height) div 2);
         FLabel.left := self.left - FLabelMargin;
       end;
     lpLeftBottomLeft:
@@ -2946,10 +3222,26 @@ begin
         FLabel.top := self.top + self.height - FLabel.height;
         FLabel.left := self.left - FLabelMargin;
       end;
+    lpRightTop:
+      begin
+        FLabel.Top := self.Top;
+        FLabel.Left := self.Left + Self.Width + FLabelMargin;
+      end;
+    lpRightCenter:
+      begin
+        if Self.Height > FLabel.Height then
+          FLabel.Top := self.Top + ((self.Height - FLabel.Height) div 2)
+        else
+          FLabel.Top := self.Top - ((FLabel.Height - self.Height) div 2);
+            
+        FLabel.Left := self.Left + Self.Width + FLabelMargin;
+      end;
+    lpRighBottom:
+      begin
+        FLabel.Top := self.Top + self.Height - FLabel.Height;
+        FLabel.Left := self.Left + Self.Width + FLabelMargin;
+      end;
   end;
-
-  if not ParentFont then
-    FLabel.Font.Assign(FLabelFont);
 
   FLabel.Visible := Visible;
 end;
@@ -2968,7 +3260,9 @@ end;
 
 procedure TAdvEdit.SetLabelFont(const Value: TFont);
 begin
-  FLabelFont.Assign(Value);
+  if not ParentFont then
+    FLabelFont.Assign(Value);
+
   if FLabel <> nil then
     UpdateLabel;
 end;
@@ -2982,8 +3276,12 @@ end;
 procedure TAdvEdit.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
 begin
   inherited SetBounds(ALeft, ATop, AWidth, AHeight);
-  if FLabel <> nil then
-    UpdateLabel;
+
+  if (FLabel <> nil) then
+  begin
+    if FLabel.Parent <> nil then
+      UpdateLabel;
+  end;
 
   if HandleAllocated then
     SetFlatRect(FFlat);
@@ -3136,11 +3434,23 @@ begin
   if (FPrecision <> value) and (editType in [etFloat, etMoney, etString]) then
   begin
     FPrecision := Value;
-    at := IsType(self.text);
-    if (at in [atFloat, atNumeric]) then
-      FloatValue := FloatValue
-    else
-      FloatValue := 0.0;
+    if (Text <> '') or (not AllowNumericNullValue) then
+    begin
+      at := IsType(self.text);
+      if (at in [atFloat, atNumeric]) then
+        FloatValue := FloatValue
+      else
+        FloatValue := 0.0;
+    end;
+  end;
+end;
+
+procedure TAdvEdit.SetPrecisionDisplay(const Value: TPrecisionDisplay);
+begin
+  if (FPrecisionDisplay <> Value) then
+  begin
+    FPrecisionDisplay := Value;
+    FloatValue := FloatValue;
   end;
 end;
 
@@ -3225,12 +3535,16 @@ var
   s: string;
   i, j: Integer;
 begin
-  if FPersistence.Enable then
+  if FPersistence.Enable and (FPersistence.Section <> '') then
   begin
     if {$IFDEF DELPHI3_LVL}fPersistence.Location = plInifile{$ELSE}1 > 0{$ENDIF} then
     begin
       if FPersistence.Key = '' then
         FPersistence.Key := ChangeFileExt(ParamStr(0), '.INI');
+        
+      if Persistence.Section = '' then
+        Persistence.Section := Name;
+
       Inifile := TInifile.Create(FPersistence.Key);
 
       if Lookup.Enabled and Lookup.History then
@@ -3295,8 +3609,12 @@ begin
   begin
     if {$IFDEF DELPHI3_LVL}fPersistence.Location = plInifile{$ELSE}1 > 0{$ENDIF} then
     begin
-      if fPersistence.Key = '' then
-        fPersistence.Key := ChangeFileExt(ParamStr(0), '.INI');
+      if FPersistence.Key = '' then
+        FPersistence.Key := ChangeFileExt(ParamStr(0), '.INI');
+
+      if FPersistence.Section = '' then
+        FPersistence.Section := Name;
+
       Inifile := TInifile.Create(fPersistence.Key);
       Inifile.WriteString(fPersistence.Section, self.Name, fPrefix + self.Text + fSuffix);
 
@@ -3376,12 +3694,15 @@ begin
       if GetFocus = Handle then
       begin
         if FFocusColor <> clNone then
-          Color := FFocusColor;
+          Color := FFocusColor
+        else
+          Color := FNormalColor;
         if FFocusFontColor <> clNone then
           Font.Color := FFocusFontColor;
       end
       else
       begin
+
         Color := FNormalColor;
         Font.Color := FFontColor;
       end;
@@ -3401,7 +3722,7 @@ begin
     begin
       IsValid := DoValidate(Self.Text);
       IsError := not IsValid;
-    end;  
+    end;
   end;
 end;
 
@@ -3442,16 +3763,25 @@ begin
   if not LabelAlwaysEnabled and Assigned(FLabel) then
     FLabel.Enabled := Enabled;
 
-  if ParentFont and Assigned(FLabel) then
-    FLabel.Font.Assign(Font);
+  if (FLabel <> nil) then
+    UpdateLabel;
 
+  if Self.ParentFont and Assigned(FLabel) then
+  begin
+    FLabel.Font.Assign(Font);
+  end;
+
+  FParentFnt := self.ParentFont;
+
+  if (FLabel <> nil) then
+    UpdateLabel;
 end;
 
 procedure TAdvEdit.DrawBorder;
 var
   DC: HDC;
 begin
-  if not (FFlat or (FFocusBorder and FMouseInControl) or Border3D or (FFocusBorderColor <> clNone)) then
+  if Enabled and not (FFlat or (FFocusBorder and FMouseInControl) or Border3D or (FFocusBorderColor <> clNone)) then
     Exit;
 
   DC := GetWindowDC(Handle);
@@ -3467,6 +3797,19 @@ var
   ARect: TRect;
   BtnFaceBrush, WindowBrush: HBRUSH;
 begin
+  if (csDesigning in ComponentState) then
+    Exit;
+
+  if not Enabled and FIsThemed and DisabledBorder then
+  begin
+    BtnFaceBrush := CreateSolidBrush(ColorToRGB(clSilver));
+    GetWindowRect(Handle, ARect);
+    OffsetRect(ARect, -ARect.Left, -ARect.Top);
+    FrameRect(DC, ARect, BtnFaceBrush);
+    DeleteObject(BtnFaceBrush);
+    Exit;
+  end;
+
   if (FFocusBorderColor <> clNone) then
   begin
     if (GetFocus = self.Handle) then
@@ -3479,6 +3822,9 @@ begin
     end;
     Exit;
   end;
+
+  if not Enabled then
+    Exit;
 
   if Is3DBorderButton then
     BtnFaceBrush := CreateSolidBrush(GetSysColor(COLOR_BTNFACE))
@@ -3544,7 +3890,7 @@ end;
 procedure TAdvEdit.WMNCPaint(var Message: TMessage);
 begin
   inherited;
-  if FFocusBorderColor <> clNone then
+  if (FFocusBorderColor <> clNone) or (not Enabled and DisabledBorder) then
     DrawBorder;
 end;
 {$ENDIF}
@@ -3599,6 +3945,13 @@ begin
   Invalidate;
 end;
 
+procedure TAdvEdit.SetDisabledBorder(const Value: boolean);
+begin
+  FDisabledBorder := Value;
+  Invalidate;
+end;
+
+
 function TAdvEdit.GetColorEx: TColor;
 begin
   Result := inherited Color;
@@ -3614,8 +3967,10 @@ end;
 procedure TAdvEdit.CMParentFontChanged(var Message: TMessage);
 begin
   inherited;
-  if Assigned(FLabel) and (ParentFont = true) then
+  if Assigned(FLabel) and ParentFont then
+  begin
     FLabel.Font.Assign(Font);
+  end;
 end;
 {$ENDIF}
 
@@ -3675,8 +4030,17 @@ var
 
 begin
   p := Parent;
-  while not (p is TCustomForm) do
+  while Assigned(p) and not (p is TCustomForm) do
     p := p.Parent;
+
+  if not Assigned(p) then
+    Exit;
+
+  if FBlockDefaultHandling then
+  begin
+    FBlockDefaultHandling := false;
+    Exit;
+  end;
 
   IsPrev := (p as TCustomForm).KeyPreview;
 
@@ -3695,7 +4059,6 @@ begin
       PostMessage((Parent as TWinControl).Handle, WM_KEYUP, VK_ESCAPE, 0);
     end;
   end;
-
 
   if (Msg.CharCode = VK_RETURN) and FDefaultHandling and not IsPrev then
   begin
@@ -3741,7 +4104,6 @@ end;
 procedure TAdvEdit.CreateWnd;
 begin
   inherited;
-
   SetFlatRect(FFlat);
 end;
 
@@ -3898,7 +4260,7 @@ begin
       end
       else
       begin
-        if Pos(Uppercase(LookupText), Uppercase(FLookup.FDisplayList.Strings[i - 1])) = 1 then
+        if Pos(AnsiUppercase(LookupText), AnsiUppercase(FLookup.FDisplayList.Strings[i - 1])) = 1 then
         begin
           FLookupListbox.Items.AddObject(FLookup.FDisplayList.Strings[i - 1], TObject(i - 1));
           inc(cnt);
@@ -3966,8 +4328,6 @@ begin
   FIsValidating := True;
 
   ValidateEvent(value, isValid);
-//  if Assigned(FOnValueValidate) then
-//    FOnValueValidate(Self,value,IsValid);
 
   FIsValidating := False;
 
@@ -4001,18 +4361,28 @@ end;
 {TAdvMaskEdit}
 
 constructor TAdvMaskEdit.Create(AOwner: TComponent);
+var
+  i: integer;
 begin
   inherited Create(aOwner);
   FAutoTab := True;
   FLabelMargin := 4;
   FReturnIsTab := True;
   FFocusColor := clWindow;
+  FNormalColor := clWindow;
   FModifiedColor := clRed;
+  FFocusBorderColor := clNone;
   FDisabledColor := clSilver;
+  FDisabledBorder := true;
   FLabelFont := TFont.Create;
   FLabelFont.OnChange := LabelFontChanged;
   FFlatParentColor := True;
+  // app is linked with COMCTL32 v6 or higher -> xp themes enabled
+  i := GetFileVersion('COMCTL32.DLL');
+  i := (i shr 16) and $FF;
+  FIsThemed := (i > 5);
 end;
+
 
 procedure TAdvMaskEdit.SetAlignment(value: tAlignment);
 begin
@@ -4054,11 +4424,14 @@ var
 
 begin
   inherited keyUp(key, shift);
-  if (Pos(' ', self.text) = 0) and (self.SelStart = Length(self.text)) and (self.editmask <> '') then
+
+  if (Pos(' ', self.text) = 0) and (self.SelStart = Length(EditText)) and (self.editmask <> '') and (self.Text <> '') then
   begin
-    accept := true;
-    if assigned(fOnMaskComplete) then fOnMaskComplete(self, self.Text, accept);
-    if fAutoTab and accept then postmessage(self.handle, wm_keydown, VK_TAB, 0);
+    Accept := true;
+    if Assigned(FOnMaskComplete) then
+      FOnMaskComplete(self, self.Text, accept);
+    if FAutoTab and Accept then
+      Postmessage(self.handle, wm_keydown, VK_TAB, 0);
   end;
 end;
 
@@ -4076,7 +4449,7 @@ procedure TAdvMaskEdit.CMMouseEnter(var Msg: TMessage);
 begin
   if FAutoFocus then
     self.SetFocus;
-    
+
   if not FMouseInControl and Enabled then
   begin
     FMouseInControl := True;
@@ -4104,6 +4477,9 @@ begin
 
   inherited Color := FNormalColor;
   Font.Color := FFontColor;
+
+  if FocusBorderColor <> clNone then
+    SendMessage(self.Handle, WM_NCPAINT, 0,0);
 end;
 
 procedure TAdvMaskEdit.WMSetFocus(var Msg: TWMSetFocus);
@@ -4115,10 +4491,21 @@ begin
     Exit;
 
   inherited Color := FFocusColor;
+
   FOriginalValue := self.Text;
-  Font.Color := FocusFontColor;
+
+  if FocusFontColor <> clNone then
+    Font.Color := FocusFontColor;
+
   if AutoSelect then
     SelectAll;
+
+  if (FocusBorder) or (FFocusBorderColor <> clNone) then
+  begin
+    if BorderStyle = bsNone then
+      SetFlatRect(true);
+    Invalidate;
+  end;
 end;
 
 procedure TAdvMaskEdit.WMChar(var Msg: TWMKey);
@@ -4137,8 +4524,9 @@ end;
 
 procedure TAdvMaskEdit.SetLabelCaption(const value: string);
 begin
-  if FLabel = nil then FLabel := CreateLabel;
-  FLabel.caption := value;
+  if FLabel = nil then
+    FLabel := CreateLabel;
+  FLabel.Caption := value;
   UpdateLabel;
 end;
 
@@ -4149,7 +4537,8 @@ begin
   Result := TLabel.Create(Self);
   Result.Parent := Self.Parent;
   Result.FocusControl := Self;
-  Result.Font.assign(Self.Font);
+  Result.Font.Assign(Self.Font);
+  Result.ParentFont := self.ParentFont;
 end;
 
 
@@ -4175,6 +4564,11 @@ end;
 procedure TAdvMaskEdit.UpdateLabel;
 begin
   FLabel.Transparent := FLabeltransparent;
+
+  if not ParentFont then
+    FLabel.Font.Assign(FLabelFont);
+
+  
   case FLabelPosition of
     lpLeftTop: begin
         FLabel.top := self.top;
@@ -4208,28 +4602,46 @@ begin
         FLabel.top := self.top + self.height - FLabel.height;
         FLabel.left := self.left - FLabelMargin;
       end;
+    lpRightTop: begin
+        FLabel.Top := self.Top;
+        FLabel.Left := self.Left + Self.Width + FLabelMargin;
+      end;
+    lpRightCenter: begin
+        FLabel.top := self.top + ((self.height - FLabel.height) shr 1);
+        FLabel.Left := self.Left + Self.Width + FLabelMargin;
+      end;
+    lpRighBottom: begin
+        FLabel.top := self.top + self.height - FLabel.height;
+        FLabel.Left := self.Left + Self.Width + FLabelMargin;
+      end;
   end;
-  FLabel.Font.Assign(FLabelFont);
+
   FLabel.Visible := Visible;
 end;
 
 
 destructor TAdvMaskEdit.Destroy;
 begin
-  FLabelFont.Free;
   if FLabel <> nil then
   begin
+    FLabel.Parent := nil;
     FLabel.Free;
     FLabel := nil;
   end;
+  FLabelFont.Free;
   inherited Destroy;
 end;
 
 procedure TAdvMaskEdit.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
 begin
   inherited SetBounds(ALeft, ATop, AWidth, AHeight);
-  if FLabel <> nil then
-    UpdateLabel;
+
+  if (FLabel <> nil) then
+  begin
+    if FLabel.Parent <> nil then
+      UpdateLabel;
+  end;
+  
   if FFlat then
     SetFlatRect(FFlat);
 end;
@@ -4266,11 +4678,30 @@ begin
 end;
 
 
+{$IFNDEF TMSDOTNET}
+procedure TAdvMaskEdit.WMNCPaint(var Message: TMessage);
+begin
+  inherited;
+  if (FFocusBorderColor <> clNone) or not Enabled then
+    DrawBorder;
+end;
+
+procedure TAdvMaskEdit.CMParentFontChanged(var Message: TMessage);
+begin
+  inherited;
+//  if Assigned(FLabel) and ParentFont then
+//    FLabel.Font.Assign(Font);
+end;
+{$ENDIF}
+
+
+
 procedure TAdvMaskEdit.WMPaint(var Msg: TWMPaint);
 begin
   inherited;
   PaintEdit;
-  if Border3D then DrawBorder;
+  if Border3D or (FFocusBorderColor <> clNone) then
+    DrawBorder;
 end;
 
 procedure TAdvMaskEdit.WMKeyDown(var Msg: TWMKeydown);
@@ -4310,6 +4741,12 @@ end;
 procedure TAdvMaskEdit.SetDisabledColor(const Value: TColor);
 begin
   FDisabledColor := Value;
+  Invalidate;
+end;
+
+procedure TAdvMaskEdit.SetDisabledBorder(const Value: boolean);
+begin
+  FDisabledBorder := Value;
   Invalidate;
 end;
 
@@ -4391,7 +4828,16 @@ begin
     Color := FDisabledColor;
     FNormalColor := FOldColor;
   end;
-  if FLabel <> nil then UpdateLabel;
+
+
+  if (FLabel <> nil) then
+    UpdateLabel;
+
+  if ParentFont and Assigned(FLabel) then
+    FLabel.Font.Assign(Font);
+
+  if (FLabel <> nil) then
+    UpdateLabel;
 end;
 
 procedure TAdvMaskEdit.SetLabelFont(const Value: TFont);
@@ -4682,366 +5128,399 @@ function AdvInputQuery(const QueryType: tAdvEditType; QueryParams: PQueryParams;
     Result := res;
   end;
 
-  function TAdvMaskEdit.GetVisible: Boolean;
+function TAdvMaskEdit.GetVisible: Boolean;
+begin
+  Result := inherited Visible;
+end;
+
+procedure TAdvMaskEdit.SetVisible(const Value: Boolean);
+begin
+  inherited Visible := Value;
+  if (FLabel <> nil) then
+    FLabel.Visible := Value;
+end;
+
+procedure TAdvMaskEdit.DrawBorder;
+var
+  DC: HDC;
+begin
+  if Enabled and not (FFlat or (FFocusBorder and FMouseInControl) or Border3D or (FFocusBorderColor <> clNone)) then
+    Exit;
+
+  DC := GetWindowDC(Handle);
+  try
+    DrawControlBorder(DC);
+  finally
+    ReleaseDC(Handle, DC);
+  end;
+end;
+
+
+procedure TAdvMaskEdit.DrawControlBorder(DC: HDC);
+var
+  ARect: TRect;
+  BtnFaceBrush, WindowBrush: HBRUSH;
+begin
+  if (csDesigning in ComponentState) then
+    Exit;
+
+  if not Enabled and FIsThemed and DisabledBorder then
   begin
-    Result := inherited Visible;
+    BtnFaceBrush := CreateSolidBrush(ColorToRGB(clSilver));
+    GetWindowRect(Handle, ARect);
+    OffsetRect(ARect, -ARect.Left, -ARect.Top);
+    FrameRect(DC, ARect, BtnFaceBrush);
+    DeleteObject(BtnFaceBrush);
+    Exit;
   end;
 
-  procedure TAdvMaskEdit.SetVisible(const Value: Boolean);
+  if (FFocusBorderColor <> clNone) then
   begin
-    inherited Visible := Value;
-    if (FLabel <> nil) then
-      FLabel.Visible := Value;
-  end;
-
-  procedure TAdvMaskEdit.DrawBorder;
-  var
-    DC: HDC;
-  begin
-    if not (FFlat or (FFocusBorder and FMouseInControl) or Border3D) then
-      Exit;
-
-    DC := GetWindowDC(Handle);
-    try
-      DrawControlBorder(DC);
-    finally
-      ReleaseDC(Handle, DC);
-    end;
-  end;
-
-
-  procedure TAdvMaskEdit.DrawControlBorder(DC: HDC);
-  var
-    ARect: TRect;
-    BtnFaceBrush, WindowBrush: HBRUSH;
-  begin
-    if Is3DBorderButton then
-      BtnFaceBrush := CreateSolidBrush(GetSysColor(COLOR_BTNFACE))
-    else
-      BtnFaceBrush := CreateSolidBrush(ColorToRGB((parent as TWinControl).Brush.color));
-
-    WindowBrush := CreateSolidBrush(GetSysColor(COLOR_WINDOW));
-
-    try
+    if (GetFocus = self.Handle) then
+    begin
+      BtnFaceBrush := CreateSolidBrush(ColorToRGB(FFocusBorderColor));
       GetWindowRect(Handle, ARect);
       OffsetRect(ARect, -ARect.Left, -ARect.Top);
-      if Is3DBorderButton then
-      begin
-        DrawEdge(DC, ARect, BDR_SUNKENOUTER, BF_RECT or BF_ADJUST);
-        FrameRect(DC, ARect, BtnFaceBrush);
-      end
-      else
-      begin
-        FrameRect(DC, ARect, BtnFaceBrush);
-        InflateRect(ARect, -1, -1);
-        FrameRect(DC, ARect, BtnFaceBrush);
-      end;
-    finally
-      DeleteObject(WindowBrush);
+      FrameRect(DC, ARect, BtnFaceBrush);
       DeleteObject(BtnFaceBrush);
     end;
+    Exit;
   end;
 
-  function TAdvMaskEdit.Is3DBorderButton: Boolean;
-  begin
-    if csDesigning in ComponentState then
-      Result := Enabled
+  if not Enabled then
+    Exit;
+
+
+  if Is3DBorderButton then
+    BtnFaceBrush := CreateSolidBrush(GetSysColor(COLOR_BTNFACE))
+  else
+    BtnFaceBrush := CreateSolidBrush(ColorToRGB((parent as TWinControl).Brush.color));
+
+  WindowBrush := CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+
+  try
+    GetWindowRect(Handle, ARect);
+    OffsetRect(ARect, -ARect.Left, -ARect.Top);
+    if Is3DBorderButton then
+    begin
+      DrawEdge(DC, ARect, BDR_SUNKENOUTER, BF_RECT or BF_ADJUST);
+      FrameRect(DC, ARect, BtnFaceBrush);
+    end
     else
-      Result := FMouseInControl or (Screen.ActiveControl = Self);
-
-    Result := (Result and FFocusBorder) or (Border3D);
+    begin
+      FrameRect(DC, ARect, BtnFaceBrush);
+      InflateRect(ARect, -1, -1);
+      FrameRect(DC, ARect, BtnFaceBrush);
+    end;
+  finally
+    DeleteObject(WindowBrush);
+    DeleteObject(BtnFaceBrush);
   end;
+end;
+
+function TAdvMaskEdit.Is3DBorderButton: Boolean;
+begin
+  if csDesigning in ComponentState then
+    Result := Enabled
+  else
+    Result := FMouseInControl or (Screen.ActiveControl = Self);
+
+  Result := (Result and FFocusBorder) or (Border3D);
+end;
 
 
 
 {$IFDEF DELPHI3_LVL}
 
-  procedure TAdvMaskEdit.SetFlatLineColor(const Value: TColor);
+procedure TAdvMaskEdit.SetFlatLineColor(const Value: TColor);
+begin
+  FFlatLineColor := Value;
+  Invalidate;
+end;
+
+procedure TAdvMaskEdit.PaintEdit;
+var
+  DC: HDC;
+  Oldpen: HPen;
+  Loc: TRect;
+
+begin
+
+  if FFlat then
   begin
-    FFlatLineColor := Value;
-    Invalidate;
-  end;
+    DC := GetDC(Handle);
 
-  procedure TAdvMaskEdit.PaintEdit;
-  var
-    DC: HDC;
-    Oldpen: HPen;
-    Loc: TRect;
-
-  begin
-
-    if FFlat then
-    begin
-      DC := GetDC(Handle);
-
-      if FFocusBorder then
-        DrawControlBorder(DC)
-      else
-      begin
-        OldPen := SelectObject(dc, CreatePen(PS_SOLID, 1, ColorToRGB(FFlatLineColor)));
-{$IFNDEF TMSDOTNET}
-        SendMessage(Handle, EM_GETRECT, 0, LongInt(@Loc));
-{$ENDIF}
-{$IFDEF TMSDOTNET}
-        Perform(EM_GETRECT, 0, Loc);
-{$ENDIF}
-
-        if FSoftBorder then
-        begin
-          MovetoEx(DC, Loc.Left - 2, Height - 1, nil);
-          LineTo(DC, Width - 1, Height - 1);
-          LineTo(DC, Width - 1, Loc.Top - 4);
-          LineTo(DC, Loc.Left - 2, Loc.Top - 4);
-          LineTo(DC, Loc.Left - 2, Height - 1);
-        end
-        else
-        begin
-          MovetoEx(DC, Loc.Left - 2, Height - 1, nil);
-          LineTo(DC, Width, Height - 1);
-        end;
-
-        DeleteObject(SelectObject(DC, OldPen));
-      end;
-
-      ReleaseDC(Handle, DC);
-    end;
-  end;
-
-  procedure TAdvMaskEdit.SetFlatRect(const Value: Boolean);
-  var
-    loc: TRect;
-  begin
-    if Value then
-    begin
-      loc.Left := 2;
-      loc.Top := 4;
-      loc.Right := Clientrect.Right - 2;
-      loc.Bottom := Clientrect.Bottom - 4;
-    end
+    if FFocusBorder then
+      DrawControlBorder(DC)
     else
     begin
-      loc.Left := 0;
-      loc.Top := 0;
-      loc.Right := ClientRect.Right;
-      loc.Bottom := ClientRect.Bottom;
-    end;
-
+      OldPen := SelectObject(dc, CreatePen(PS_SOLID, 1, ColorToRGB(FFlatLineColor)));
 {$IFNDEF TMSDOTNET}
-    SendMessage(self.Handle, EM_SETRECTNP, 0, longint(@loc));
+      SendMessage(Handle, EM_GETRECT, 0, LongInt(@Loc));
 {$ENDIF}
 {$IFDEF TMSDOTNET}
-    Perform(EM_SETRECTNP, 0, Loc);
+      Perform(EM_GETRECT, 0, Loc);
 {$ENDIF}
-  end;
 
-  procedure TAdvMaskEdit.SetSoftBorder(const Value: Boolean);
+      if FSoftBorder then
+      begin
+        MovetoEx(DC, Loc.Left - 4, Height - 1, nil);
+        LineTo(DC, Width - 1, Height - 1);
+        LineTo(DC, Width - 1, Loc.Top - 3);
+        LineTo(DC, Loc.Left - 4, Loc.Top - 3);
+        LineTo(DC, Loc.Left - 4, Height - 1);
+      end
+      else
+      begin
+        MovetoEx(DC, Loc.Left - 2, Height - 1, nil);
+        LineTo(DC, Width, Height - 1);
+      end;
+
+      DeleteObject(SelectObject(DC, OldPen));
+    end;
+
+    ReleaseDC(Handle, DC);
+  end;
+end;
+
+procedure TAdvMaskEdit.SetFlatRect(const Value: Boolean);
+var
+  loc: TRect;
+begin
+  if Value then
   begin
-    FSoftBorder := Value;
-    Invalidate;
-  end;
-
-  procedure TAdvMaskEdit.SetBorder3D(const Value: Boolean);
+    loc.Left := 2;
+    loc.Top := 4;
+    loc.Right := Clientrect.Right - 2;
+    loc.Bottom := Clientrect.Bottom - 4;
+  end
+  else
   begin
-    FBorder3D := Value;
+    loc.Left := 0;
+    loc.Top := 0;
+    loc.Right := ClientRect.Right;
+    loc.Bottom := ClientRect.Bottom;
   end;
 
-  procedure TAdvMaskEdit.SetFlatParentColor(const Value: Boolean);
-  begin
-    FFlatParentColor := Value;
-    Invalidate;
-  end;
+{$IFNDEF TMSDOTNET}
+  SendMessage(self.Handle, EM_SETRECTNP, 0, longint(@loc));
+{$ENDIF}
+{$IFDEF TMSDOTNET}
+  Perform(EM_SETRECTNP, 0, Loc);
+{$ENDIF}
+end;
 
-  procedure TAdvMaskEdit.CreateWnd;
-  begin
-    inherited;
-    SetFlatRect(FFlat);
-  end;
+procedure TAdvMaskEdit.SetSoftBorder(const Value: Boolean);
+begin
+  FSoftBorder := Value;
+  Invalidate;
+end;
 
-  function TAdvMaskEdit.GetVersion: string;
-  var
-    vn: Integer;
-  begin
-    vn := GetVersionNr;
-    Result := IntToStr(Hi(Hiword(vn))) + '.' + IntToStr(Lo(Hiword(vn))) + '.' + IntToStr(Hi(Loword(vn))) + '.' + IntToStr(Lo(Loword(vn)));
-  end;
+procedure TAdvMaskEdit.SetBorder3D(const Value: Boolean);
+begin
+  FBorder3D := Value;
+end;
 
-  function TAdvMaskEdit.GetVersionNr: Integer;
-  begin
-    Result := MakeLong(MakeWord(BLD_VER, REL_VER), MakeWord(MIN_VER, MAJ_VER));
-  end;
+procedure TAdvMaskEdit.SetFlatParentColor(const Value: Boolean);
+begin
+  FFlatParentColor := Value;
+  Invalidate;
+end;
 
-  procedure TAdvMaskEdit.SetVersion(const Value: string);
-  begin
+procedure TAdvMaskEdit.CreateWnd;
+begin
+  inherited;
+  SetFlatRect(FFlat);
+end;
 
-  end;
+function TAdvMaskEdit.GetVersion: string;
+var
+  vn: Integer;
+begin
+  vn := GetVersionNr;
+  Result := IntToStr(Hi(Hiword(vn))) + '.' + IntToStr(Lo(Hiword(vn))) + '.' + IntToStr(Hi(Loword(vn))) + '.' + IntToStr(Lo(Loword(vn)));
+end;
 
-  procedure TAdvMaskEdit.SetAutoFocus(const Value: boolean);
-  begin
-    FAutoFocus := Value;
-  end;
+function TAdvMaskEdit.GetVersionNr: Integer;
+begin
+  Result := MakeLong(MakeWord(BLD_VER, REL_VER), MakeWord(MIN_VER, MAJ_VER));
+end;
+
+procedure TAdvMaskEdit.SetVersion(const Value: string);
+begin
+
+end;
+
+procedure TAdvMaskEdit.SetAutoFocus(const Value: boolean);
+begin
+  FAutoFocus := Value;
+end;
 
 {$IFNDEF TMSDOTNET}
 { TEditDropTarget }
 
-  constructor TEditDropTarget.Create(AEdit: TAdvEdit);
-  begin
-    inherited Create;
-    FAdvEdit := AEdit;
-  end;
+constructor TEditDropTarget.Create(AEdit: TAdvEdit);
+begin
+  inherited Create;
+  FAdvEdit := AEdit;
+end;
 
-  procedure TEditDropTarget.DragMouseMove(pt: tpoint; var allow: boolean);
-  begin
-    inherited;
-    pt := FAdvEdit.ScreenToClient(pt);
-    FAdvEdit.DrawCaretByCursor;
-  end;
+procedure TEditDropTarget.DragMouseMove(pt: tpoint; var allow: boolean);
+begin
+  inherited;
+  pt := FAdvEdit.ScreenToClient(pt);
+  FAdvEdit.DrawCaretByCursor;
+end;
 
-  procedure TEditDropTarget.DropText(pt: tpoint; s: string);
-  var
-    isCopy: Boolean;
-    uchar: Integer;
+procedure TEditDropTarget.DropText(pt: tpoint; s: string);
+var
+  isCopy: Boolean;
+  uchar: Integer;
 
-  begin
-    inherited;
+begin
+  inherited;
 
 // do not copy multiline text
-    if Pos(#13, s) > 0 then s := copy(s, 1, Pos(#13, s) - 1);
-    if Pos(#10, s) > 0 then s := copy(s, 1, Pos(#10, s) - 1);
+  if Pos(#13, s) > 0 then s := copy(s, 1, Pos(#13, s) - 1);
+  if Pos(#10, s) > 0 then s := copy(s, 1, Pos(#10, s) - 1);
 
-    if (FAdvEdit.FIsDragSource) then
-    begin
-      uchar := FAdvEdit.CharFromPos(pt);
-      if (uchar >= FAdvEdit.SelStart) and
-        (uchar <= FAdvEdit.SelStart + fAdvEdit.SelLength) then
-        Exit;
-    end;
-
-    isCopy := (getkeystate(vk_control) and $8000 = $8000);
-
-    if (fAdvEdit.fIsDragSource) and not isCopy then
-    begin
-      fAdvEdit.ClearSelection;
-    end;
-
-    FAdvEdit.EraseCaret;
-    FAdvEdit.SetCaretByCursor;
-    FAdvEdit.SetSelTextBuf(pchar(s));
-    FAdvEdit.Invalidate;
-  end;
-
-  procedure Initialize;
-  var
-    Result: HRESULT;
+  if (FAdvEdit.FIsDragSource) then
   begin
-    Result := OleInitialize(nil);
-    Assert(Result in [S_OK, S_FALSE], Format('OleInitialize failed ($%x)', [Result]));
+    uchar := FAdvEdit.CharFromPos(pt);
+    if (uchar >= FAdvEdit.SelStart) and
+      (uchar <= FAdvEdit.SelStart + fAdvEdit.SelLength) then
+      Exit;
   end;
+
+  isCopy := (getkeystate(vk_control) and $8000 = $8000);
+
+  if (fAdvEdit.fIsDragSource) and not isCopy then
+  begin
+    fAdvEdit.ClearSelection;
+  end;
+
+  FAdvEdit.EraseCaret;
+  FAdvEdit.SetCaretByCursor;
+  FAdvEdit.SetSelTextBuf(pchar(s));
+  FAdvEdit.Invalidate;
+end;
+
+procedure Initialize;
+var
+  Result: HRESULT;
+begin
+  Result := OleInitialize(nil);
+  Assert(Result in [S_OK, S_FALSE], Format('OleInitialize failed ($%x)', [Result]));
+end;
 {$ENDIF}
 
 { TListHintWindow }
-  constructor TListHintWindow.Create(AOwner: TComponent);
-  begin
-    inherited;
-  end;
+constructor TListHintWindow.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
 
-  procedure TListHintWindow.CreateParams(var Params: TCreateParams);
-  const
-    CS_DROPSHADOW = $00020000;
-  begin
-    inherited CreateParams(Params);
-    Params.Style := Params.Style + WS_BORDER;
+procedure TListHintWindow.CreateParams(var Params: TCreateParams);
+const
+  CS_DROPSHADOW = $00020000;
+begin
+  inherited CreateParams(Params);
+  Params.Style := Params.Style + WS_BORDER;
 
-    if (Win32Platform = VER_PLATFORM_WIN32_NT) and
-      ((Win32MajorVersion > 5) or
-      ((Win32MajorVersion = 5) and (Win32MinorVersion >= 1))) then
-      Params.WindowClass.Style := Params.WindowClass.Style or CS_DROPSHADOW;
+  if (Win32Platform = VER_PLATFORM_WIN32_NT) and
+    ((Win32MajorVersion > 5) or
+    ((Win32MajorVersion = 5) and (Win32MinorVersion >= 1))) then
+    Params.WindowClass.Style := Params.WindowClass.Style or CS_DROPSHADOW;
 
-    Params.ExStyle := Params.ExStyle or WS_EX_TOPMOST;
-  end;
+  Params.ExStyle := Params.ExStyle or WS_EX_TOPMOST;
+end;
 
-  destructor TListHintWindow.Destroy;
-  begin
-    inherited;
-  end;
+destructor TListHintWindow.Destroy;
+begin
+  inherited;
+end;
 
-  procedure TListHintWindow.WMActivate(var Message: TMessage);
-  begin
-    inherited;
-    if Message.WParam = integer(False) then
-      Hide
-    else
-      FListControl.SetFocus;
-  end;
+procedure TListHintWindow.WMActivate(var Message: TMessage);
+begin
+  inherited;
+  if Message.WParam = integer(False) then
+    Hide
+  else
+    FListControl.SetFocus;
+end;
 
-  procedure TListHintWindow.WMNCButtonDown(var Message: TMessage);
-  begin
-    inherited;
-  end;
+procedure TListHintWindow.WMNCButtonDown(var Message: TMessage);
+begin
+  inherited;
+end;
 
-  procedure TListHintWindow.WMNCHitTest(var Message: TWMNCHitTest);
-  var
-    pt: TPoint;
-  begin
+procedure TListHintWindow.WMNCHitTest(var Message: TWMNCHitTest);
+var
+  pt: TPoint;
+begin
 // Make the hint sizable
-    pt := ScreenToClient(Point(Message.XPos, Message.YPos));
+  pt := ScreenToClient(Point(Message.XPos, Message.YPos));
 
-    if (pt.X > Width - 10) and (pt.Y > Height - 10) then
-      message.Result := HTBOTTOMRIGHT
-  end;
+  if (pt.X > Width - 10) and (pt.Y > Height - 10) then
+    message.Result := HTBOTTOMRIGHT
+end;
 
 { TLookupSettings }
 
 procedure TLookupSettings.Assign(Source: TPersistent);
 begin
-  if (Source is TLookupSettings) then
-  begin
-    FCaseSensitive := (Source as TLookupSettings).CaseSensitive;
-    FColor :=  (Source as TLookupSettings).Color;
-    FDisplayCount :=  (Source as TLookupSettings).DisplayCount;
-    FDisplayList.Assign((Source as TLookupSettings).DisplayList);
-    FEnabled := (Source as TLookupSettings).Enabled;
-    FHistory := (Source as TLookupSettings).History;
-    FNumChars := (Source as TLookupSettings).NumChars;
-    FValueList.Assign((Source as TLookupSettings).ValueList);
-    FMulti := (Source as TLookupSettings).Multi;
-    FSeparator := (Source as TLookupSettings).Separator;
-  end;
+if (Source is TLookupSettings) then
+begin
+  FCaseSensitive := (Source as TLookupSettings).CaseSensitive;
+  FColor :=  (Source as TLookupSettings).Color;
+  FDisplayCount :=  (Source as TLookupSettings).DisplayCount;
+  FDisplayList.Assign((Source as TLookupSettings).DisplayList);
+  FEnabled := (Source as TLookupSettings).Enabled;
+  FHistory := (Source as TLookupSettings).History;
+  FNumChars := (Source as TLookupSettings).NumChars;
+  FValueList.Assign((Source as TLookupSettings).ValueList);
+  FMulti := (Source as TLookupSettings).Multi;
+  FSeparator := (Source as TLookupSettings).Separator;
+end;
 end;
 
 constructor TLookupSettings.Create;
-  begin
-    inherited Create;
-    FDisplayList := TStringList.Create;
-    FValueList := TStringList.Create;
-    FColor := clWindow;
-    FDisplayCount := 4;
-    FNumChars := 2;
-    FEnabled := False;
-    FSeparator := ';';
-  end;
+begin
+  inherited Create;
+  FDisplayList := TStringList.Create;
+  FValueList := TStringList.Create;
+  FColor := clWindow;
+  FDisplayCount := 4;
+  FNumChars := 2;
+  FEnabled := False;
+  FSeparator := ';';
+end;
 
-  destructor TLookupSettings.Destroy;
-  begin
-    FValueList.Free;
-    FDisplayList.Free;
-    inherited;
-  end;
+destructor TLookupSettings.Destroy;
+begin
+  FValueList.Free;
+  FDisplayList.Free;
+  inherited;
+end;
 
-  procedure TLookupSettings.SetDisplayList(const Value: TStringList);
-  begin
-    FDisplayList.Assign(Value);
-  end;
+procedure TLookupSettings.SetDisplayList(const Value: TStringList);
+begin
+  FDisplayList.Assign(Value);
+end;
 
-  procedure TLookupSettings.SetNumChars(const Value: Integer);
-  begin
-    if Value > 0 then
-      FNumChars := Value
-  end;
+procedure TLookupSettings.SetNumChars(const Value: Integer);
+begin
+  if Value > 0 then
+    FNumChars := Value
+end;
 
-  procedure TLookupSettings.SetValueList(const Value: TStringList);
-  begin
-    FValueList.Assign(Value);
-  end;
+procedure TLookupSettings.SetValueList(const Value: TStringList);
+begin
+  FValueList.Assign(Value);
+end;
+
+
+
 
 initialization
 {$IFNDEF TMSDOTNET}
@@ -5054,9 +5533,10 @@ finalization
 {$IFNDEF TMSDOTNET}
 {$IFNDEF TMSDISABLEOLE}
   OleUninitialize
-{$ENDIF}  
+{$ENDIF}
 {$ENDIF}
 
 {$ENDIF}
+
 
 end.

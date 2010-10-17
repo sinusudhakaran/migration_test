@@ -268,7 +268,7 @@ begin
 
   for i := 1 to Length(s) do
   begin
-    if (Prev = ' ') and (PrevPrev in ['!','?','.']) and (s[i] <> Upcase(s[i])) then
+    if (Prev = ' ') and ( (PrevPrev = '!') or (PrevPrev = '?') or (PrevPrev = '.') ) and (s[i] <> Upcase(s[i])) then
       s[i] := UpCase(s[i]);
     PrevPrev := Prev;
     Prev := s[i];  

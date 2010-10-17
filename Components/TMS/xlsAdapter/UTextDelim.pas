@@ -23,7 +23,7 @@ begin
   begin
     for c:=Range.Left to Range.Right do
     begin
-      s:=XlsFormatValue(Workbook.CellValue[r,c],Workbook.FormatList[Workbook.CellFormat[r,c]].Format,Color);
+      s:=XlsFormatValue1904(Workbook.CellValue[r,c],Workbook.FormatList[Workbook.CellFormat[r,c]].Format, Workbook.Options1904Dates, Color);
       if (pos(Delim, s)>0) or (pos('"', s)>0) or (pos(#10,s)>0) or (pos(#13,s)>0) then
       begin
         s:=AnsiQuotedStr(s,'"');

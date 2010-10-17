@@ -13,7 +13,7 @@ type
   protected
     function DoCopyTo: TBaseRecord; override;
   public
-    constructor CreateFromData(const aRow, aCol: integer; const aTxt: Widestring; const Drawing: TDrawing; Properties: TImageProperties);
+    constructor CreateFromData(const aRow, aCol: integer; const aTxt: Widestring; const Drawing: TDrawing; Properties: TImageProperties; const sSheet: TObject);
     destructor Destroy;override;
     procedure ArrangeCopyRowsAndCols(const RowOffset, ColOffset: integer);override;
     procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo); override;
@@ -31,7 +31,7 @@ type
     {$INCLUDE TNoteListHdr.inc}
     constructor Create;
     procedure FixDwgIds(const Drawing: TDrawing);
-    procedure AddNewComment(const Row, Col: integer; const Txt: widestring; const Drawing: TDrawing; const Properties: TImageProperties);
+    procedure AddNewComment(const Row, Col: integer; const Txt: widestring; const Drawing: TDrawing; const Properties: TImageProperties; const sSheet: TObject);
   end;
 
 
@@ -48,7 +48,7 @@ begin
   if Dwg<>nil then
   begin
     //We only copy DWG if we are copying rows/columns, when we copy sheets we dont have to
-    Dwg:=Dwg.CopyDwg(RowOffset, ColOffset) as TEscherClientDataRecord;
+    Dwg:=Dwg.CopyDwg(RowOffset, ColOffset, nil) as TEscherClientDataRecord;  //warning
     SetWord(Data, 6, Dwg.ObjId);
   end;
   inherited; //This must be last, so we dont modify row
@@ -58,10 +58,10 @@ procedure TNoteRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos
   const SheetInfo: TSheetInfo);
 begin
   inherited;
-  if (Dwg<>nil) and (Dwg.FindRoot<>nil) then Dwg.FindRoot.ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, true);
+  if (Dwg<>nil) and (Dwg.FindRoot<>nil) then Dwg.FindRoot.ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, true, nil); //warning
 end;
 
-constructor TNoteRecord.CreateFromData(const aRow, aCol: integer; const aTxt: Widestring; const Drawing: TDrawing; Properties: TImageProperties);
+constructor TNoteRecord.CreateFromData(const aRow, aCol: integer; const aTxt: Widestring; const Drawing: TDrawing; Properties: TImageProperties; const sSheet: TObject);
 var
   aData: PArrayOfByte;
   aDataSize: integer;
@@ -84,7 +84,7 @@ begin
     raise;
   end; //except
 
-  Dwg:=Drawing.AddNewComment(Properties);
+  Dwg:=Drawing.AddNewComment(Properties, sSheet);
   SetWord(Data, 6, Dwg.ObjId);   //object id
   Text:=aTxt;
 end;
@@ -150,11 +150,11 @@ begin
 end;
 
 { TNoteList }
-procedure TNoteList.AddNewComment(const Row, Col: integer; const Txt: widestring; const Drawing: TDrawing; const Properties: TImageProperties);
+procedure TNoteList.AddNewComment(const Row, Col: integer; const Txt: widestring; const Drawing: TDrawing; const Properties: TImageProperties; const sSheet: TObject);
 var
   R: TNoteRecord;
 begin
-  R:=TNoteRecord.CreateFromData(Row, Col, Txt, Drawing, Properties);
+  R:=TNoteRecord.CreateFromData(Row, Col, Txt, Drawing, Properties, sSheet);
   try
     AddRecord(R, Row);
   except

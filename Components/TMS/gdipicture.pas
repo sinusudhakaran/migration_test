@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TGDIPPicture class                                                        }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -77,6 +76,8 @@ implementation
 { TGDIPPicture }
 
 procedure TGDIPPicture.Assign(Source: TPersistent);
+var
+  st: TMemoryStream;
 begin
   FIsEmpty := True;
   if Source = nil then
@@ -93,10 +94,36 @@ begin
     if Source is TGDIPPicture then
     begin
       FDataStream.LoadFromStream(TGDIPPicture(Source).FDataStream);
-      FIsEmpty := False;
+      FIsEmpty := fdatastream.Size = 0;
       if Assigned(OnChange) then
         OnChange(self);
-    end;
+    end
+    else
+      if Source is TBitmap then
+      begin
+        st := TMemoryStream.Create;
+        (Source as TBitmap).SaveToStream(st);
+        st.Position := 0;
+        FDataStream.LoadFromStream(st);
+        st.Free;
+        FIsEmpty := false;
+        if Assigned(OnChange) then
+          OnChange(self);
+      end
+      else
+        if (Source is TPicture) then
+        begin
+          st := TMemoryStream.Create;
+          (Source as TPicture).Graphic.SaveToStream(st);
+          st.Position := 0;
+          FDataStream.LoadFromStream(st);
+          st.Free;
+          FIsEmpty := false;
+          if Assigned(OnChange) then
+            OnChange(self);
+        end;
+
+    GetImageSizes;
   end;
 end;
 
@@ -228,13 +255,18 @@ procedure TGDIPPicture.LoadFromFile(const FileName: string);
 begin
   try
     FDataStream.LoadFromFile(Filename);
+
     FIsEmpty := False;
 
     if Assigned(OnClear) then
       OnClear(self);
 
+    GetImageSizes;
+
     if Assigned(OnChange) then
       OnChange(self);
+
+
   except
     FIsEmpty:=true;
   end;
@@ -246,6 +278,9 @@ begin
   begin
     FDataStream.LoadFromStream(Stream);
     FIsEmpty := False;
+
+    GetImageSizes;
+        
     if Assigned(OnChange) then
       OnChange(self);
   end;

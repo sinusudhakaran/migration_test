@@ -5,7 +5,7 @@
 {                                                                         }
 { written by                                                              }
 {    TMS Software                                                         }
-{    copyright © 1999-2006                                                }
+{    copyright © 1999-2007                                                }
 {    Email : info@tmssoftware.com                                         }
 {    Web : http://www.tmssoftware.com                                     }
 {                                                                         }
@@ -388,7 +388,8 @@ end;
 
 procedure TDBHTMLRadioGroup.Change;
 begin
-  if Assigned(FOnChange) then FOnChange(Self);
+  if Assigned(FOnChange) then
+    FOnChange(Self);
 end;
 
 procedure TDBHTMLRadioGroup.Click;

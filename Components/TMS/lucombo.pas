@@ -1,10 +1,9 @@
 {********************************************************************}
 { TLOOKUP components : TLUEdit & TLUCombo                            }
 { for Delphi & C++Builder                                            }
-{ version 2.2                                                        }
 {                                                                    }
 { written by TMS Software                                            }
-{ copyright © 1996-2005                                              }
+{ copyright © 1996-2008                                              }
 { Email : info@tmssoftware.com                                       }
 { Web : http://www.tmssoftware.com                                   }
 {                                                                    }
@@ -87,6 +86,7 @@ type
     FItemIndex: Integer;
     procedure SetLUPersist(value: TLUPersist);
     procedure WMDestroy(var Msg: TMessage); message WM_DESTROY;
+    procedure WMKeyDown(var Msg:TWMKeydown); message WM_KEYDOWN;    
     procedure SetModifiedColor(const Value: TColor);
     procedure SetModified(const Value: Boolean);
     function GetItemIndexP: Integer;
@@ -95,7 +95,7 @@ type
     function GetVersionNr: Integer; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
-    procedure KeyPress(var Key: char); override;  
+    procedure KeyPress(var Key: char); override;
   public
     procedure DoExit; override;
     procedure Change; override;
@@ -358,7 +358,9 @@ end;
 
 procedure TLUEdit.KeyPress(var key: char);
 begin
-  if (key = #13) and FReturnIsTab then key := #0 else
+  if (key = #13) and FReturnIsTab then
+    key := #0
+  else
     inherited Keypress(key);
 end;
 
@@ -391,7 +393,6 @@ end;
 
 constructor TLUEdit.Create(AOwner: TComponent);
 begin
-  OutputDebugString('Create TLUEdit');
   inherited Create(AOwner);
   FLookupItems := TStringList.Create;
   FLUPersist := TLUPersist.Create;
@@ -555,7 +556,9 @@ end;
 procedure TLUCombo.KeyPress(var key: char);
 begin
   inherited Keypress(key);
-  if (key = #13) and FReturnIsTab then key := #0;
+
+  if (key = #13) and FReturnIsTab then
+    key := #0;
 end;
 
 procedure TLUCombo.KeyUp(var Key: Word; Shift: TShiftState);
@@ -585,6 +588,26 @@ begin
   end;
 end;
 
+{$IFNDEF TMSDOTNET}
+function GetCharFromVirtualKey(Key: Word): string;
+var
+   keyboardState: TKeyboardState;
+   asciiResult: Integer;
+begin
+   GetKeyboardState(keyboardState) ;
+
+   SetLength(Result, 2) ;
+   asciiResult := ToAscii(key, MapVirtualKey(key, 0), keyboardState, @Result[1], 0) ;
+   case asciiResult of
+     0: Result := '';
+     1: SetLength(Result, 1) ;
+     2:;
+     else
+       Result := '';
+   end;
+end;
+{$ENDIF}
+
 procedure TLUCombo.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   case Key of
@@ -594,7 +617,7 @@ begin
         FLookupStr := '';
       end;
     vk_return: begin
-        workmode := false; 
+        workmode := false;
         if FReturnIsTab then
         begin
           if droppeddown then
@@ -605,7 +628,7 @@ begin
             itemindex := itemidx;
           end;
           key := 0;
-          postmessage(self.handle, wm_keydown, VK_TAB, 0);          
+          PostMessage(self.handle, wm_keydown, VK_TAB, 0);
         end
         else
           if (Items.IndexOf(Text) <> -1) then
@@ -621,8 +644,17 @@ begin
   else
     begin
       workmode := true;
-      if (ssShift in Shift) then FLookupStr := FLookupStr + chr(key) else
+
+      {$IFNDEF TMSDOTNET}
+      FlookupStr := FLookupStr + GetCharFromVirtualKey(key);
+      {$ENDIF}
+
+      {$IFDEF TMSDOTNET}
+      if (ssShift in Shift) then
+        FLookupStr := FLookupStr + chr(key)
+      else
         FLookupStr := FLookupStr + lowercase(chr(key));
+      {$ENDIF}
     end;
   end;
 
@@ -889,6 +921,11 @@ begin
   if not (csDesigning in ComponentState) then
     SavePersist;
   DefaultHandler(msg);
+end;
+
+procedure TLUCombo.WMKeyDown(var Msg: TWMKeydown);
+begin
+  inherited;
 end;
 
 procedure TLUCombo.SetModifiedColor(const Value: TColor);

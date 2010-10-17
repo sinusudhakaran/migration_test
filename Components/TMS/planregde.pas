@@ -6,7 +6,7 @@
 { version 2.5                                                           }
 {                                                                       }
 { written by TMS Software                                               }
-{            copyright © 1999-2005                                      }
+{            copyright © 1999-2007                                      }
 {            Email : info@tmssoftware.com                               }
 {            Web : http://www.tmssoftware.com                           }
 {***********************************************************************}

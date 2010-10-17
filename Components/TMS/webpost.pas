@@ -5,7 +5,7 @@
 {                                                                   }
 { written by                                                        }
 {    TMS Software                                                   }
-{     copyright © 2001 - 2005                                       }
+{     copyright © 2001 - 2006                                       }
 {     Email : info@tmssoftware.com                                  }
 {     Web   : http://www.tmssoftware.com                            }
 {                                                                   }
@@ -28,12 +28,13 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
-  REL_VER = 1; // Release nr.
+  REL_VER = 3; // Release nr.
   BLD_VER = 0; // Build nr.
 
   // version history
   // v1.0.1.0 : improved handling of post through https
-
+  // v1.0.2.0 : Added property WaitResponse
+  // v1.0.3.0 : Improved timeout & error handling
 
 type
 
@@ -75,6 +76,7 @@ type
     FPort: Integer;
     FAgent: string;
     FTimeOut: integer;
+    FWaitResponse: boolean;
     procedure SetItems(const Value: TWebPostItems);
     function GetVersion: string;
     procedure SetVersion(const Value: string);
@@ -97,8 +99,10 @@ type
     property Action: string read FAction write FAction;
     property Items: TWebPostItems read fItems write SetItems;
     property TimeOut: integer read FTimeOut write FTimeOut default 0;
-    property OnError: TWebPostError read fOnError write FOnError;
     property Version: string read GetVersion write SetVersion;
+    property WaitResponse: boolean read FWaitResponse write FWaitResponse default true;    
+    property OnError: TWebPostError read FOnError write FOnError;
+
   end;
 
 implementation
@@ -161,6 +165,7 @@ begin
   inherited;
   FItems := TWebPostItems.Create(Self);
   FAgent := 'WebPost';
+  FWaitResponse := true;
 end;
 
 destructor TWebPost.Destroy;
@@ -234,49 +239,71 @@ begin
 
   hint := InternetOpen(PChar(FAgent),INTERNET_OPEN_TYPE_PRECONFIG,nil,nil,0);
 
-  if FTimeout > 0 then
-    InternetSetOption(hint, INTERNET_OPTION_CONNECT_TIMEOUT, @FTimeout, sizeof(FTimeout));
-
-  if FPort = 0 then
-    hconn := InternetConnect(hint,pchar(fServer),INTERNET_DEFAULT_HTTP_PORT,nil,nil,INTERNET_SERVICE_HTTP,0,1)
+  if hint = nil then
+    Error
   else
-    hconn := InternetConnect(hint,pchar(fServer),FPort,nil,nil,INTERNET_SERVICE_HTTP,0,1);
-
-  if FPort = INTERNET_DEFAULT_HTTPS_PORT then
-    flags := INTERNET_FLAG_SECURE or INTERNET_FLAG_IGNORE_CERT_CN_INVALID or INTERNET_FLAG_IGNORE_CERT_DATE_INVALID
-  else
-    flags := 0;
-
-  hreq := HttpOpenRequest(hconn, 'POST', pchar(FAction), nil, nil, nil, flags, 1);
-
-  FPostResult := '';
-
-  if HttpSendRequest(hreq,pchar(hdr),length(hdr),pchar(Data),length(Data)) then
-  begin
-    bufsize := READBUFFERSIZE;
-    Result := True;
-
-    while (bufsize > 0) do
-    begin
-      Application.processmessages;
-      if not InternetReadFile(hreq,@buf,READBUFFERSIZE,bufsize) then
+    try
+      if FTimeout > 0 then
       begin
-        Result := False;
-        break;
+        InternetSetOption(hint, INTERNET_OPTION_CONNECT_TIMEOUT, @FTimeout, sizeof(FTimeout));
+        InternetSetOption(hint, INTERNET_OPTION_SEND_TIMEOUT, @FTimeout, sizeof(FTimeout));
+        InternetSetOption(hint, INTERNET_OPTION_RECEIVE_TIMEOUT, @FTimeout, sizeof(FTimeout));
       end;
-      if (bufsize > 0) and (bufsize <= READBUFFERSIZE) then
-        for i := 0 to bufsize - 1 do
-          FPostResult := FPostResult + buf[i];
-    end;
-  end
-  else
-  begin
-    Error;
-  end;
 
- InternetCloseHandle(hreq);
- InternetCloseHandle(hconn);
- InternetCloseHandle(hint);
+      if FPort = 0 then
+        hconn := InternetConnect(hint,pchar(fServer),INTERNET_DEFAULT_HTTP_PORT,nil,nil,INTERNET_SERVICE_HTTP,0,1)
+      else
+        hconn := InternetConnect(hint,pchar(fServer),FPort,nil,nil,INTERNET_SERVICE_HTTP,0,1);
+
+      if hconn = nil then
+        Error
+      else
+      try
+        if FPort = INTERNET_DEFAULT_HTTPS_PORT then
+          flags := INTERNET_FLAG_SECURE or INTERNET_FLAG_IGNORE_CERT_CN_INVALID or INTERNET_FLAG_IGNORE_CERT_DATE_INVALID
+        else
+          flags := 0;
+
+        hreq := HttpOpenRequest(hconn, 'POST', pchar(FAction), nil, nil, nil, flags, 1);
+
+        if hreq = nil then
+          Error
+        else
+        try
+          FPostResult := '';
+
+          if HttpSendRequest(hreq,pchar(hdr),length(hdr),pchar(Data),length(Data)) then
+          begin
+            if FWaitResponse then
+            begin
+              bufsize := READBUFFERSIZE;
+              Result := True;
+
+              while (bufsize > 0) do
+              begin
+                Application.processmessages;
+                if not InternetReadFile(hreq,@buf,READBUFFERSIZE,bufsize) then
+                begin
+                  Result := False;
+                  break;
+                end;
+                if (bufsize > 0) and (bufsize <= READBUFFERSIZE) then
+                  for i := 0 to bufsize - 1 do
+                    FPostResult := FPostResult + buf[i];
+              end;
+            end;
+          end
+          else
+            Error;
+      finally
+        InternetCloseHandle(hreq);
+      end;
+    finally
+      InternetCloseHandle(hconn);
+    end;
+  finally
+    InternetCloseHandle(hint);
+  end;
 end;
 
 procedure TWebPost.SaveToFile(fn: string);

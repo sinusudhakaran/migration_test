@@ -1,10 +1,9 @@
 {**************************************************************************}
 { Mini HTML rendering engine                                               }
 { for Delphi & C++Builder                                                  }
-{ version 1.8                                                              }
 {                                                                          }
 { written by TMS Software                                                  }
-{            copyright © 1999-2005                                         }
+{            copyright © 1999-2008                                         }
 {            Email : info@tmssoftware.com                                  }
 {            Website : http://www.tmssoftware.com/                         }
 {                                                                          }
@@ -49,7 +48,7 @@ function FixMarkup(su:string): string;
 function FixNonBreaking(su:string): string;
 function HTMLStrip(s:string):string;
 function HTMLDrawEx(Canvas:TCanvas; s:string; fr:TRect;
-                    FImages: TImageList;
+                    FImages: TCustomImageList;
                     XPos,YPos,FocusLink,HoverLink,ShadowOffset: Integer;
                     CheckHotSpot,CheckHeight,Print,Selected,Blink,HoverStyle,WordWrap,Down: Boolean;
                     ResFactor:Double;
@@ -61,6 +60,7 @@ function HTMLDrawEx(Canvas:TCanvas; s:string; fr:TRect;
 
 function GetControlValue(HTML,ControlID:string;var ControlValue:String): Boolean;
 function GetControlProp(HTML,ControlID:string): string;
+function GetControlMaxLen(HTML,ControlID:string): integer;
 function SetControlValue(var HTML:string;ControlID,ControlValue:string): Boolean;
 function GetNextControlID(HTML:string; ControlID: string): string;
 function HasHTMLControl(HTML: string): boolean;
@@ -367,7 +367,7 @@ begin
   Result := '';
   for i := 1 to Length(s) do
   begin
-    if not (s[i] in [#13,#10]) then
+    if not ( (s[i] = #13) or (s[i] =#10) ) then
       Result := Result + s[i]
     else
       if (s[i] = #13) and break then
@@ -466,7 +466,7 @@ begin
   Result := su;
 end;
 
-procedure ParseControl(Tag: string; var ControlType,ControlID,ControlValue,ControlWidth,ControlProp:string);
+procedure ParseControl(Tag: string; var ControlType,ControlID,ControlValue,ControlWidth,ControlProp,ControlLen:string);
 var
   Prop: string;
   vp: integer;
@@ -476,6 +476,7 @@ begin
   ControlValue := '';
   ControlID := '';
   ControlProp := '';
+  ControlLen := '';
 
   if VarIPos('TYPE=',Tag,vp) > 0 then
   begin
@@ -516,6 +517,14 @@ begin
     Prop := Copy(Prop,1,Pos('"',Prop) - 1);
     ControlProp := Prop;
   end;
+
+  if VarIPos('MAXLEN=',Tag,vp) > 0 then
+  begin
+    Prop := Copy(Tag,vp + 1,Length(Tag));
+    Prop := Copy(Prop,Pos('"',Prop) + 1,Length(Prop));
+    Prop := Copy(Prop,1,Pos('"',Prop) - 1);
+    ControlLen := Prop;
+  end;
 end;
 
 function HasHTMLControl(HTML: string): boolean;
@@ -528,17 +537,17 @@ end;
 function GetNextControlID(HTML, ControlID:string): string;
 var
   lp: Integer;
-  Tag,CType,CID,CV,CW,CP: string;
+  Tag,CType,CID,CV,CW,CP,CL: string;
   flg: boolean;
 begin
   Result := '';
   flg := ControlID = '';
-  
+
   while VarIPos('<CONTROL ',html,lp) > 0 do
   begin
     Delete(html,1,lp);
     Tag := Copy(html,1,Pos('>',html));
-    ParseControl(Tag,CType,CID,CV,CW,CP);
+    ParseControl(Tag,CType,CID,CV,CW,CP,CL);
 
     if flg and (CType <> 'BUTTON') and (CType <> 'CHECK') and (CType <> 'RADIO') then
     begin
@@ -554,14 +563,14 @@ end;
 function GetControlValue(HTML,ControlID:string;var ControlValue:String): Boolean;
 var
   lp: Integer;
-  Tag,CType,CID,CV,CW,CP: string;
+  Tag,CType,CID,CV,CW,CP,CL: string;
 begin
   Result := False;
   while VarIPos('<CONTROL ',html,lp) > 0 do
   begin
     Delete(html,1,lp);
     Tag := Copy(html,1,Pos('>',html));
-    ParseControl(Tag,CType,CID,CV,CW,CP);
+    ParseControl(Tag,CType,CID,CV,CW,CP,CL);
     if (ControlID = CID) then
     begin
       ControlValue := CV;
@@ -574,14 +583,14 @@ end;
 function GetControlProp(HTML,ControlID:string): string;
 var
   lp: Integer;
-  Tag,CType,CID,CV,CW,CP: string;
+  Tag,CType,CID,CV,CW,CP,CL: string;
 begin
   Result := '';
   while VarIPos('<CONTROL ',html,lp) > 0 do
   begin
     Delete(html,1,lp);
     Tag := Copy(html,1,Pos('>',html));
-    ParseControl(Tag,CType,CID,CV,CW,CP);
+    ParseControl(Tag,CType,CID,CV,CW,CP,CL);
     if (ControlID = CID) then
     begin
       Result := CP;
@@ -590,11 +599,30 @@ begin
   end;
 end;
 
+function GetControlMaxLen(HTML,ControlID:string): integer;
+var
+  lp,e: Integer;
+  Tag,CType,CID,CV,CW,CP,CL: string;
+begin
+  Result := 0;
+  while VarIPos('<CONTROL ',html,lp) > 0 do
+  begin
+    Delete(html,1,lp);
+    Tag := Copy(html,1,Pos('>',html));
+    ParseControl(Tag,CType,CID,CV,CW,CP,CL);
+
+    if (ControlID = CID) then
+    begin
+      val(CL,Result,e);
+      Exit;
+    end;
+  end;
+end;
 
 function SetControlValue(var HTML:string;ControlID,ControlValue:string): Boolean;
 var
   lp: Integer;
-  Tag,Temp,CType,CID,CV,CW,CP: string;
+  Tag,Temp,CType,CID,CV,CW,CP,CL: string;
 begin
   Result := False;
   Temp := '';
@@ -604,13 +632,15 @@ begin
     Temp := Temp + Copy(html,1,lp);
     Delete(html,1,lp);
     Tag := Copy(html,1,Pos('>',html));
-    ParseControl(Tag,CType,CID,CV,CW,CP);
+    ParseControl(Tag,CType,CID,CV,CW,CP,CL);
     if (ControlID = CID) then
     begin
       Temp := Temp + 'CONTROL ID="'+ControlID+'" VALUE="'+ControlValue+'" WIDTH="'+CW+'" TYPE="'+CType+'"';
       if (CP <> '') then
         Temp := Temp + ' PROP="'+CP+'"';
-        
+      if (CL <> '') then
+        Temp := Temp + ' MAXLEN="'+CL+'"';
+
       Temp := Temp + '>';
       html := Temp + Copy(html,pos('>',html)+1,Length(html));
       Result := True;
@@ -628,8 +658,9 @@ begin
     Result := Result + '*';
 end;
 
+{$WARNINGS OFF}
 function HTMLDrawEx(Canvas:TCanvas; s:string; fr:TRect;
-                    FImages: TImageList;
+                    FImages: TCustomImageList;
                     XPos,YPos,FocusLink,HoverLink,ShadowOffset: Integer;
                     CheckHotSpot,CheckHeight,Print,Selected,Blink,HoverStyle,WordWrap,Down: Boolean;
                     ResFactor:Double;
@@ -698,10 +729,9 @@ var
     DeleteObject(SelectObject(Canvas.Handle,hOldFont));
   end;
 
-  {$WARNINGS OFF}
   function HTMLDrawLine(Canvas: TCanvas;var s:string;r: TRect;Calc:Boolean;
                         var w,h,subh,suph,imgali:Integer;var Align:TAlignment; var PIndent: Integer;
-                        XPos,YPos:Integer;var Hotspot,ImageHotSpot:Boolean):string;
+                        XPos,YPos:Integer;var Hotspot,ImageHotSpot:Boolean): string;
   var
     su,Res,TagProp,Prop,AltProp,Tagp,LineText:string;
     cr,ir: TRect;
@@ -714,7 +744,7 @@ var
     TagWidth,TagHeight,WordLen,WordLenEx,WordWidth: Integer;
     TagChar: Char;
     LengthFits, SpaceBreak: Boolean;
-    ControlType,ControlWidth,ControlID,ControlValue,ControlProp: string;
+    ControlType,ControlWidth,ControlID,ControlValue,ControlProp,ControlLen: string;
 
   begin
     Result := '';
@@ -783,6 +813,7 @@ var
       end;
 
       WordLenEx := Length(su);
+      WordWidth := 0;
 
       if WordLen > 0 then
       begin
@@ -1065,7 +1096,7 @@ var
                   Canvas.Brush.Color := hibCol;
                   if hibCol = clNone then
                     Canvas.Brush.Style := bsClear;
-                end;    
+                end;
               end;
           'I':begin
                 Canvas.Font.Style := Canvas.Font.Style - [fsItalic];
@@ -1131,7 +1162,7 @@ var
 
                 TagProp := Uppercase(Copy(s,3,Pos('>',s) - 1));  // <A href="anchor">
 
-                if (VarPos('HREF',TagProp,TagPos)>0) then
+                if (VarPos('HREF',TagProp,TagPos) > 0) then
                 begin
                   TagProp := Copy(s,3,Pos('>',s) - 1);
                   Prop := Copy(TagProp,TagPos + 4,Length(TagProp));
@@ -1141,7 +1172,9 @@ var
                   Anchor := True;
                 end;
 
-                if (VarPos('TITLE',TagProp,TagPos)>0) then
+                TagProp := Uppercase(Copy(s,3,Pos('>',s) - 1));  // <A href="anchor">
+
+                if (VarPos('TITLE',TagProp,TagPos) > 0) then
                 begin
                   TagProp := Copy(s,3,Pos('>',s) - 1);  // <A href="anchor">
                   Prop := Copy(TagProp,TagPos + 5,Length(TagProp));
@@ -1265,10 +1298,10 @@ var
               end;
           'C':begin
                 { control here }
-                { <CONTROL type="EDIT" width="125" ID="name" VALUE=""> }
+                { <CONTROL type="EDIT" width="125" ID="name" VALUE="" MAXLEN=""> }
 
                 TagProp := Copy(s,9,pos('>',s)-1);
-                ParseControl(TagProp,ControlType,ControlID,ControlValue,ControlWidth,ControlProp);
+                ParseControl(TagProp,ControlType,ControlID,ControlValue,ControlWidth,ControlProp,ControlLen);
 
                 if ControlWidth <> '' then
                 begin
@@ -1286,7 +1319,10 @@ var
                   begin
                     if (ControlType = 'EDIT') or (ControlType = 'PASSWORD') or (ControlType = 'MASK') then
                     begin
-                      Canvas.Pen.Color := clGray;
+                      if UseWinXp then
+                        Canvas.Pen.Color := $B99D7F
+                      else
+                        Canvas.Pen.Color := clGray;
                       Canvas.Brush.Style := bsClear;
                       Canvas.Rectangle(cr.Left ,cr.Bottom - h + 3,cr.Left + Indent, cr.Bottom + 1);
                       ir := Rect(cr.Left + 2,cr.Bottom - h + 4,cr.Left + Indent, cr.Bottom);
@@ -1310,7 +1346,11 @@ var
                     if ControlType = 'COMBO' then
                     begin
                       IMGSize.y := 25;
-                      Canvas.Pen.Color := clGray;
+                      if UseWinXp then
+                        Canvas.Pen.Color := $B99D7F
+                      else
+                        Canvas.Pen.Color := clGray;
+                        
                       Canvas.Brush.Style := bsClear;
                       Canvas.Rectangle(cr.Left ,cr.Bottom - h + 3,cr.Left + Indent, cr.Bottom + 1);
                       ir := Rect(cr.Left + 2,cr.Bottom - h + 6,cr.Left + Indent - 17, cr.Bottom);
@@ -1358,7 +1398,11 @@ var
                       IMGSize.x := 16;
                       IMGSize.y := 16;
                       Indent := 16;
-                      Canvas.Pen.Color := clGray;
+                      if UseWinXp then
+                        Canvas.Pen.Color := $B99D7F
+                      else
+                        Canvas.Pen.Color := clGray;
+
                       Canvas.Brush.Style := bsClear;
                       ir := Rect(cr.Left + 2,cr.Bottom - 15,cr.Left + 15, cr.Bottom);
 
@@ -1435,7 +1479,10 @@ var
                       IMGSize.x := 16;
                       IMGSize.y := 16;
                       Indent := 16;
-                      Canvas.Pen.Color := clGray;
+                      if UseWinXp then
+                        Canvas.Pen.Color := $B99D7F
+                      else
+                        Canvas.Pen.Color := clGray;
                       Canvas.Brush.Style := bsClear;
                       ir := Rect(cr.Left + 2,cr.Bottom - 14,cr.Left + 14, cr.Bottom);
 
@@ -1509,7 +1556,10 @@ var
                     if ControlType = 'BUTTON' then
                     begin
                       IMGSize.y := 24;
-                      Canvas.Pen.Color := clGray;
+                      if UseWinXp then
+                        Canvas.Pen.Color := $B99D7F
+                      else
+                        Canvas.Pen.Color := clGray;
                       Canvas.Brush.Style := bsClear;
                       ir := Rect(cr.Left + 2,cr.Bottom - 20,cr.Left + Indent -2, cr.Bottom);
 
@@ -2080,7 +2130,6 @@ var
 
     Result := Res;
   end;
- {$WARNINGS ON}
 
 begin
   Anchor := False;
@@ -2261,10 +2310,12 @@ begin
   OldDrawfont.Free;
   OldCalcfont.Free;
 end;
+{$WARNINGS ON}
+
 
 {$IFNDEF REMOVEDRAW}
 function HTMLDraw(Canvas:TCanvas;s:string;fr:trect;
-                                 FImages:TImageList;
+                                 FImages:TCustomImageList;
                                  xpos,ypos:integer;
                                  checkhotspot,checkheight,print,selected,blink:boolean;
                                  resfactor:double;
@@ -2338,15 +2389,8 @@ var
 begin
   Result := '';
   // replace line breaks by linefeeds
-  {$IFNDEF DELPHI4_LVL}
-  while (pos('<br>',uppercase(s))>0) do s := StringReplace(s,'<br>',chr(13)+chr(10));
-  while (pos('<BR>',uppercase(s))>0) do s := StringReplace(s,'<BR>',chr(13)+chr(10));
-  while (pos('<hr>',uppercase(s))>0) do s := StringReplace(s,'<hr>',chr(13)+chr(10));
-  while (pos('<HR>',uppercase(s))>0) do s := StringReplace(s,'<HR>',chr(13)+chr(10));
- {$ELSE}
   while (pos('<BR>',uppercase(s))>0) do s := StringReplace(s,'<BR>',chr(13)+chr(10),[rfIgnoreCase]);
   while (pos('<HR>',uppercase(s))>0) do s := StringReplace(s,'<HR>',chr(13)+chr(10),[rfIgnoreCase]);
-  {$ENDIF}
 
   {remove all other tags}
   while (VarPos('<',s,TagPos) > 0) do
@@ -2365,16 +2409,21 @@ end;
 
 function HTMLStripAll(s:string):string;
 var
-  TagPos: integer;
+  TagPos, PTP: integer;
 begin
   Result := '';
 
   // remove all tags
   while (VarPos('<',s,TagPos)>0) do
   begin
-    Result := Result + Copy(s,1,TagPos-1);
-    if (VarPos('>',s,TagPos)>0) then
-      Delete(s,1,TagPos);
+    PTP := TagPos;
+    if (VarPos('>',s,TagPos)>PTP) then
+    begin
+      Result := Result + Copy(s,1,TagPos - 1);
+      Delete(s,1,TagPos)
+    end
+    else
+      Break;
   end;
   Result := Result + s;
 end;
@@ -2427,7 +2476,7 @@ begin
   if DoCase then
     r := Pos(su,s)
   else
-    r := Pos(UpperCase(su),UpperCase(s));
+    r := Pos(AnsiUpperCase(su),AnsiUpperCase(s));
 
   if r > 0 then
   begin
@@ -2444,6 +2493,16 @@ begin
   hs := HTMLStripAll(s);
 
   l := 0;
+
+  if (pos('<',hs) >0) or (pos('>',hs) > 0) then
+  begin
+    hs := StringReplace(hs,'<','&lt;',[rfReplaceAll]);
+    hs := StringReplace(hs,'>','&gt;',[rfReplaceAll]);
+    s := hs;
+    h := StringReplace(h,'<','&lt;',[rfReplaceAll]);
+    h := StringReplace(h,'>','&gt;',[rfReplaceAll]);
+
+  end;
 
   while PosFrom(h,hs,l,DoCase,k) > 0 do
   begin
@@ -2470,6 +2529,11 @@ begin
   while Pos('<'+tag+'>',Uppercase(s)) > 0 do s := StringReplace(s,'<'+tag+'>','',[rfIgnoreCase]);
   while Pos('</'+tag+'>',Uppercase(s)) > 0 do s := StringReplace(s,'</'+tag+'>','',[rfIgnoreCase]);
   {$ENDIF}
+
+  s := StringReplace(s,'&lt;','<',[rfReplaceAll]);
+  s := StringReplace(s,'&gt;','>',[rfReplaceAll]);
+
+
   Result := s;
 end;
 

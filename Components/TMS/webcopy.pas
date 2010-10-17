@@ -1,11 +1,10 @@
 {*******************************************************************}
 { TWEBCOPY component                                                }
 { for Delphi & C++Builder                                           }
-{ version 1.5                                                       }
 {                                                                   }
 { written by                                                        }
 {    TMS Software                                                   }
-{    copyright © 2000-2005                                          }
+{    copyright © 2000-2008                                          }
 {    Email : info@tmssoftware.com                                   }
 {    Web   : http://www.tmssoftware.com                             }
 {                                                                   }
@@ -18,14 +17,26 @@
 
 unit WebCopy;
 
+{$HPPEMIT ''}
+{$HPPEMIT '#pragma link "wininet.lib"'}
+{$HPPEMIT ''}
+
+{$R WEBCOPY.RES}
+{$I TMSDEFS.INC}                           
+
 interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  WinInet,  ComCtrls, StdCtrls, ShellApi, WcBase64, WcLogin;
+  WinInet,  ComCtrls, StdCtrls, ShellApi
+  {$IFDEF TMSDOTNET}
+  , WinUtils, System.Text, System.IO, System.Runtime.InteropServices
+  {$ENDIF}
+  {$IFNDEF TMSDOTNET}
+  , WcBase64
+  {$ENDIF}
+  , wclogin;
 
-{$R WEBCOPY.RES}
-{$I TMSDEFS.INC}
 
 const
   errFilesIdentical = 0;
@@ -36,17 +47,25 @@ const
   errCopyWriteFailure = 5;
   errCannotConnect = 6;
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 5; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 3; // Build nr.
+  MIN_VER = 7; // Minor version nr.
+  REL_VER = 5; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // 1.5.0.0  : keep FTP connection between multiple ftp uploads / downloads
   //          : added authenticated HTTP download support
   // 1.5.0.1  : improved handling for keeping FTP connections active
   // 1.5.0.2  : graceful degrade when server cannot return file timestamp
-  // 1.5.0.3  : fixed issue with FtpFindFirstFile and closing handle 
-
+  // 1.5.0.3  : fixed issue with FtpFindFirstFile and closing handle
+  // 1.5.0.4  : fixed issue with KeepConnect and ftp change dir
+  // 1.5.0.5  : fixed OnFileDateCheck event declaration
+  // 1.6.0.0  : New wildchard match multiple file FTP upload/download
+  // 1.6.0.1  : Fixed issue with wildchard match multiple file FTP upload/download
+  // 1.6.1.0  : New property ShowDialogOnTop added
+  // 1.7.0.0  : New : VCL.NET support added
+  // 1.7.5.0  : New : wpFtpDelete type added
+  //          : Fixed : issue with getting filesize for some FTP server types
+  // 1.7.6.0  : New : event OnBeforeDialogShow added  
 
 type
   TWebCopy = class;
@@ -69,13 +88,16 @@ type
   TWebCopyCancel = procedure(Sender:TObject) of object;
   TWebCopyFileDone = procedure(Sender:TObject;idx:integer) of object;
   TWebCopyFileStart = procedure(Sender:TObject;idx:integer) of object;
-  TWebCopyFileDateCheck = procedure(Sender:TObject;idx: Integer;newdate: TDateTime;allow:boolean) of object;
+  TWebRemoveFileDone = procedure(Sender:TObject;idx:integer) of object;
+  TWebRemoveFileFailed = procedure(Sender:TObject;idx:integer) of object;
+  TWebCopyFileDateCheck = procedure(Sender:TObject;idx: Integer;newdate: TDateTime;var allow:boolean) of object;
   TWebCopyConnectError = procedure(Sender: TObject) of object;
-  TWebCopyProtocol = (wpHttp,wpFtp,wpFile,wpFtpUpload,wpHttpUpload);
+  TWebCopyProtocol = (wpHttp,wpFtp,wpFile,wpFtpUpload,wpHttpUpload,wpMultiFtp, wpMultiFtpUpload, wpFtpDelete);
   TWebCopyHTTPCommand = (hcPost,hcPut);
   TWebCopyOverwrite = procedure(Sender:TObject;tgtfile:string;var allow:boolean) of object;
   TWebCopyProgress = procedure(Sender:TObject;fileidx:integer;size,totsize:DWORD) of object;
   TWebCopyNoNewFile = procedure(Sender:TObject;tgtfile:string;curdate,newdate:TDateTime) of object;
+  TWebCopyBeforeDialogShow = procedure(Sender: TObject; ADialog: TForm) of object;
 
   TWebCopyItem = class(TCollectionItem)
   private
@@ -177,6 +199,7 @@ type
     FOnCopyCancel: TWebCopyCancel;
     FOnCopyOverwrite: TWebCopyOverwrite;
     FOnCopyProgress: TWebCopyProgress;
+    FOnBeforeDialogShow: TWebCopyBeforeDialogShow;
     FShowDialog: Boolean;
     FFileOfLabel: string;
     FFromServerLabel: string;
@@ -202,14 +225,23 @@ type
     FFTPconnect: hinternet;
     FPrevConnect: string;
     FPrevTarget: string;
+    FShowDialogOnTop: Boolean;
+    FOnRemovedFile: TWebRemoveFileDone;
+    FOnRemovedFileFailed: TWebRemoveFileFailed;
     function HttpGetFile(idx: Integer;url,tgtdir,tgtfn:string; UseDate: Boolean; var FileDate: TDateTime;var NoNew: Boolean;Auth: TWebCopyAuthentication; UserId, Password: string): Boolean;
     function HttpPutFile(url,tgtdir,tgtfn:string; HttpCommand: TWebCopyHTTPCommand): Boolean;
     function FileGetFile(idx: Integer;FUserid, FPassword, FHost: string; FPort: integer; url, tgtdir,tgtfn: string;
       UseDate: Boolean; var FileDate: TDateTime;var NoNew: Boolean): Boolean;
     function FtpGetFile(idx: Integer;FUserid,FPassword,FHost:string;FPort:Integer;
+      URL, TgtDir,TgtFn: string; UseDate: Boolean; var FileDate: TDateTime;var NoNew: Boolean; KeepConnect, ShowFileInfo: Boolean): Boolean;
+    function MultiFtpGetFile(idx: Integer;FUserid,FPassword,FHost:string;FPort:Integer;
+      URL, TgtDir,TgtFn: string; UseDate: Boolean; var FileDate: TDateTime;var NoNew: Boolean; KeepConnect: Boolean): Boolean;
+    function MultiFtpPutFile(idx: Integer;fuserid,fpassword,FHost:string;FPort:Integer;
       URL, TgtDir,TgtFn: string; UseDate: Boolean; var FileDate: TDateTime;var NoNew: Boolean; KeepConnect: Boolean): Boolean;
     function FtpPutFile(idx: Integer;fuserid,fpassword,FHost:string;FPort:Integer;
       URL, TgtDir,TgtFn: string; UseDate: Boolean; var FileDate: TDateTime;var NoNew: Boolean; KeepConnect: Boolean): Boolean;
+    function FtpRemoveFile(idx: Integer; FUserid, FPassword, FHost: string;
+      FPort: Integer; URL, TgtDir, TgtFn: string; KeepConnect: Boolean): Boolean;
     function MakeProxyUrl(url:string): string;
     function ExtractServer(url:string): string;
 {$IFDEF DELPHI4_LVL}
@@ -268,12 +300,14 @@ type
     property ProxyUserID: string read FProxyUserID write FProxyUserID;
     property ProxyPassword: string read FProxyPassword write FProxyPassword;
     property ShowDialog: Boolean read FShowDialog write FShowDialog default True;
+    property ShowDialogOnTop: Boolean read FShowDialogOnTop write FShowDialogOnTop default True;
     property ShowOpenFile: Boolean read FShowOpenFile write FShowOpenFile default False;
     property ShowOpenFolder: Boolean read FShowOpenFolder write FShowOpenFolder default False;
     property ShowCompletion: Boolean read FShowCompletion write FShowCompletion default False;
     property ShowFileName: Boolean read FShowFileName write FShowFileName default True;
     property ShowServer: Boolean read FShowServer write FShowServer default True;
     property ShowTime: Boolean read FShowTime write FShowTime default False;
+    property OnBeforeDialogShow: TWebCopyBeforeDialogShow read FOnBeforeDialogShow write FOnBeforeDialogShow;
     property OnConnectError: TWebCopyConnectError read FOnConnectError write FOnConnectError;
     property OnCopyCancel: TWebCopyCancel read FOnCopyCancel write FOnCopyCancel;
     property OnCopyDone: TWebCopyThreadDone read FOnCopyDone write FOnCopyDone;
@@ -286,6 +320,8 @@ type
     property OnFileDateCheck: TWebCopyFileDateCheck read FOnFileDateCheck write FOnFileDateCheck;
     property OnURLNotFound: TWebCopyURLNotFound read FOnURLNotFound write FOnURLNotFound;
     property OnNoNewFileFound: TWebCopyNoNewFile read FOnNoNewFile write FOnNoNewFile;
+    property OnRemovedFile : TWebRemoveFileDone read FOnRemovedFile write FOnRemovedFile;
+    property OnRemovedFileFailed : TWebRemoveFileFailed read FOnRemovedFileFailed write FOnRemovedFileFailed;
     property Version: string read GetVersion write SetVersion;
   end;
 
@@ -373,7 +409,7 @@ begin
   Result := url;
 end;
 
-function FileSizeFmt(Size: Integer): string;
+function FileSizeFmt(Size: DWORD): string;
 begin
   if size < 1000 then
     Result := IntToStr(Size) + ' bytes';
@@ -393,7 +429,7 @@ begin
     Result := Format('%.2f',[Size/1000000])+' Mb/sec';
 end;
 
-function TimeFmt(ticks,cursize,totsize: Integer): string;
+function TimeFmt(ticks,cursize,totsize: DWORD): string;
 var
   secs,mins,hours: Integer;
   ratio: double;
@@ -449,7 +485,12 @@ function DirectoryExists(const Name: string): Boolean;
 var
   Code: Integer;
 begin
+  {$IFNDEF TMSDOTNET}
   Code := GetFileAttributes(PChar(Name));
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  Code := GetFileAttributes(Name);
+  {$ENDIF}
   Result := (Code <> -1) and (FILE_ATTRIBUTE_DIRECTORY and Code <> 0);
 end;
 
@@ -471,14 +512,28 @@ end;
 
 function WinInetError(Err: Integer):string;
 var
+  {$IFNDEF TMSDOTNET}
   buf:array[0..255] of Char;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  buf: StringBuilder;
+  {$ENDIF}
   bufsize:integer;
   hwininet:thandle;
 begin
   hwininet := GetModuleHandle('wininet.dll');
-  bufsize := SizeOf(buf);
+
+  {$IFNDEF TMSDOTNET}
+  bufsize := SizeOf(buf);  
   FormatMessage(FORMAT_MESSAGE_FROM_HMODULE,Pointer(hwininet),Err,0,buf,bufsize,nil);
   Result := StrPas(buf);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  bufsize := 255;    
+  buf := StringBuilder.Create(255);
+  FormatMessage(FORMAT_MESSAGE_FROM_HMODULE,IntPtr(hwininet),Err,0,buf,bufsize,nil);
+  Result := buf.ToString;
+  {$ENDIF}
 end;
 
 { TWebCopy }
@@ -535,10 +590,19 @@ end;
 
 function TWebCopy.HttpPutFile(url,tgtdir,tgtfn:string; HttpCommand: TWebCopyHTTPCommand): Boolean;
 var
-{$IFDEF DELPHI4_LVL}
+  {$IFNDEF TMSDOTNET}
   buf:array[0..READBUFFERSIZE - 1] of char;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  buf: TBytes;
+  {$ENDIF} 
   bufsize:dword;
-  lf:file;
+  {$IFNDEF TMSDOTNET}
+  lf: File;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS: FileStream;
+  {$ENDIF}
   fn,furl,fsrvr:string;
   fsize,totsize:dword;
   hconnect:hinternet;
@@ -547,7 +611,6 @@ var
   tck:dword;
   bufferin:INTERNET_BUFFERS;
   ErrCode: Integer;
-{$ENDIF}
 {$IFDEF TMSDEBUG}
   wsize: integer;
 {$ENDIF}  
@@ -593,13 +656,24 @@ begin
 
   fsrvr := ExtractServer(url);
   url := RemoveServer(url);
-
+  {$IFNDEF TMSDOTNET}
   hconnect := InternetConnect(FHinternet,PChar(fsrvr),INTERNET_DEFAULT_HTTP_PORT,nil,nil,INTERNET_SERVICE_HTTP,0,0);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  hconnect := InternetConnect(FHinternet,fsrvr,INTERNET_DEFAULT_HTTP_PORT,nil,nil,INTERNET_SERVICE_HTTP,0,0);
+  {$ENDIF}
 
   if HttpCommand = hcPost then
+  {$IFNDEF TMSDOTNET}
     hintfile := HttpOpenRequest(HConnect,'POST',PChar(url),nil,nil,nil,INTERNET_FLAG_NO_CACHE_WRITE ,0)
   else
     hintfile := HttpOpenRequest(HConnect,'PUT',PChar(url),nil,nil,nil,INTERNET_FLAG_NO_CACHE_WRITE ,0);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+    hintfile := HttpOpenRequestW(HConnect,'POST',url,'','','',INTERNET_FLAG_NO_CACHE_WRITE ,0)
+  else
+    hintfile := HttpOpenRequestW(HConnect,'PUT',url,'','','',INTERNET_FLAG_NO_CACHE_WRITE ,0);
+  {$ENDIF}
 
   if hintfile = nil then
   begin
@@ -610,22 +684,50 @@ begin
     Exit;
   end;
 
+  bufsize := READBUFFERSIZE;
+
+  {$IFDEF TMSDOTNET}
+  SetLength(Buf, READBUFFERSIZE);
+  {$ENDIF}
+
   if hintfile <> nil then
   begin
+    {$IFNDEF TMSDOTNET}
     AssignFile(lf,fn);
     Reset(lf,1);
     TotSize := FileSize(lf);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    FS := FileStream.Create(fn,FileMode.Open);
+    TotSize := FS.Length;
+    {$ENDIF}
 
     bufsize := READBUFFERSIZE;
     FSize := 0;
+    
+    {$IFNDEF TMSDOTNET}
     FillChar(bufferin, SizeOf(bufferin),0);
     bufferin.dwStructSize := SizeOf(INTERNET_BUFFERS);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    bufferin.dwStructSize := Marshal.SizeOf(TypeOf(INTERNET_BUFFERS));
+    {$ENDIF}
     bufferin.dwBufferTotal := TotSize;
-
+    
+    {$IFNDEF TMSDOTNET}
     if not HttpSendRequestEx(hintfile,@bufferin,nil,HSR_INITIATE,0) then
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if not HttpSendRequestEx(hintfile,bufferin,nil,HSR_INITIATE,0) then
+    {$ENDIF}
     begin
       ErrCode := GetLastError;
+      {$IFNDEF TMSDOTNET}
       CloseFile(lf);
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      FS.Free;
+      {$ENDIF}
       InternetCloseHandle(hintfile);
       InternetCloseHandle(hconnect);
       if Assigned(FOnError) then
@@ -639,9 +741,21 @@ begin
 
     while (bufsize = READBUFFERSIZE) and not FCancelled do
     begin
-      BlockRead(lf,buf,READBUFFERSIZE,bufsize);
+      {$IFDEF TMSDOTNET}
+      if bufsize > TotSize - FSize then
+        bufsize := TotSize - FSize;
+      {$ENDIF}
 
+      {$IFNDEF TMSDOTNET}
+      BlockRead(lf,buf,READBUFFERSIZE,bufsize);
       if not InternetWriteFile(hintfile,@buf,bufsize,lpdword) then
+      {$ENDIF}
+
+      {$IFDEF TMSDOTNET}
+      FS.Read(buf,0,bufsize);
+      if not InternetWriteFile(hintfile,buf,bufsize,lpdword) then
+      {$ENDIF}
+
       begin
         ErrCode := GetLastError;
         if Assigned(FOnError) then
@@ -690,8 +804,12 @@ begin
       if Assigned(FOnErrorInfo) then
         FOnErrorInfo(Self,ErrCode, WinInetError(ErrCode));
     end;
-
+    {$IFNDEF TMSDOTNET}
     CloseFile(lf);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    FS.Free;
+    {$ENDIF}
 
     InternetCloseHandle(hintfile);
     InternetCloseHandle(hconnect);
@@ -704,25 +822,6 @@ end;
 //-----------------------------
 // download files over a HTTP
 //-----------------------------
-function TWebCopy.HttpGetFile(idx:Integer; url,tgtdir,tgtfn:string;
-  UseDate: Boolean; var FileDate: TDateTime; var NoNew: Boolean; Auth: TWebCopyAuthentication; UserID, Password:string): Boolean;
-var
-  buf: array[0..READBUFFERSIZE-1] of char;
-  bufsize: DWord;
-  lf: file;
-  fn,furl: string;
-  fsize: int64;
-  hintfile: hinternet;
-  lpdwlen,lpdwidx,lpdword,tck: DWord;
-  allow: Boolean;
-  datebuf: _SYSTEMTIME;
-  ftime: TDateTime;
-  Flags: DWORD;
-  szUser, szPassword, szHeaders:string;
-
-label
-  retryafterlogin;
-
   function URLtoDomain(url:string):string;
   begin
     if pos('://',url) > 0 then
@@ -737,9 +836,43 @@ label
     Result := url;
   end;
 
+function TWebCopy.HttpGetFile(idx:Integer; url,tgtdir,tgtfn:string;
+  UseDate: Boolean; var FileDate: TDateTime; var NoNew: Boolean; Auth: TWebCopyAuthentication; UserID, Password:string): Boolean;
+var
+  {$IFNDEF TMSDOTNET}
+  buf: array[0..READBUFFERSIZE-1] of char;  
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  buf: TBytes;
+  {$ENDIF}
+  bufsize: DWord;
+  {$IFNDEF TMSDOTNET}
+  lf: file;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS: FileStream;
+  ptr: Intptr;
+  {$ENDIF}
+  fn,furl: string;
+  fsize: int64;
+  hintfile: hinternet;
+  lpdwlen,lpdwidx,lpdword,tck: DWord;
+  allow: Boolean;
+  datebuf: _SYSTEMTIME;
+  ftime: TDateTime;
+  Flags: DWORD;
+  szUser, szPassword, szHeaders:string;
+
+label
+  retryafterlogin;
+
+
 
 
 begin
+  {$IFDEF TMSDOTNET}
+  SetLength(buf, READBUFFERSIZE);
+  {$ENDIF}
   Result := False;
   NoNew := False;
   FUrl := url;
@@ -778,14 +911,21 @@ begin
 
 retryafterlogin:
 
+  {$IFNDEF TMSDOTNET}
   if (UserID <> '') or (Password <> '') then
   begin
     szHeaders := 'Authorization: Basic ' + Base64Encode(UserID+':'+Password) + #13#10#13#10;
   end
   else
+  {$ENDIF}
     szHeaders := '';
 
+ {$IFNDEF TMSDOTNET}
   hintfile := InternetOpenURL(fhinternet,PChar(url),PChar(szHeaders),length(szHeaders),Flags,0);
+ {$ENDIF}
+ {$IFDEF TMSDOTNET}
+  hintfile := InternetOpenURL(fhinternet,url,szHeaders,length(szHeaders),Flags,0);
+ {$ENDIF}
   lpdwlen := 4;
   lpdwidx := 0;
 
@@ -793,12 +933,18 @@ retryafterlogin:
 
   if hintfile <> nil then
   begin
+    {$IFNDEF TMSDOTNET}
     HttpQueryInfo(hintfile,HTTP_QUERY_STATUS_CODE or HTTP_QUERY_FLAG_NUMBER ,@lpdword,lpdwlen,lpdwidx);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    HttpQueryInfo(hintfile,HTTP_QUERY_STATUS_CODE or HTTP_QUERY_FLAG_NUMBER ,Intptr(lpdword),lpdwlen,lpdwidx);
+    {$ENDIF}
 
     if (lpdword = 401) and (Auth in [waAuto,waAlways]) then
     begin
       szUser := UserID;
       szPassword := Password;
+
       if GetLogin('Connect to '+URLToDomain(url),szUser, szPassword) then
       begin
         UserID := szUser;
@@ -828,6 +974,7 @@ retryafterlogin:
 
   if hintfile = nil then
   begin
+
     if Assigned(FOnURLNotFound) then
       FOnURLNotFound(Self,url);
     {$IFDEF TMSDEBUG}
@@ -838,11 +985,25 @@ retryafterlogin:
 
   if UseDate or Assigned(FOnFileDateCheck) then
   begin
+    {$IFNDEF TMSDOTNET}
     lpdwlen := SizeOf(datebuf);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    lpdwlen := Marshal.SizeOf(TypeOf(datebuf));
+    {$ENDIF}
     lpdwidx := 0;
+    {$IFNDEF TMSDOTNET}
     HttpQueryInfo(hintfile,HTTP_QUERY_LAST_MODIFIED or HTTP_QUERY_FLAG_SYSTEMTIME,@datebuf,lpdwlen,lpdwidx);
+    {$ENDIF}
+
+    {$IFDEF TMSDOTNET}
+    ptr := Marshal.AllocHGlobal(Marshal.SizeOf(TypeOf(_SYSTEMTIME)));
+    Marshal.StructureToPtr(TObject(datebuf),ptr, false);
+    HttpQueryInfo(hintfile,HTTP_QUERY_LAST_MODIFIED or HTTP_QUERY_FLAG_SYSTEMTIME,ptr,lpdwlen,lpdwidx);
+    {$ENDIF}
 
     SystemTimeToDateTime(datebuf,FTime);
+
     {$IFDEF TMSDEBUG}
      outputdebugstring(pchar(formatdatetime('dd/mm/yyyy hh:nn:ss',ftime)));
     {$ENDIF}
@@ -898,7 +1059,7 @@ retryafterlogin:
   end;
 
   ForceDirectories(ExtractFilePath(fn));
-
+  {$IFNDEF TMSDOTNET}
   AssignFile(lf,fn);
   {$i-}
   Rewrite(lf,1);
@@ -914,6 +1075,21 @@ retryafterlogin:
 
     Exit;
   end;
+  {$ENDIF}
+
+  {$IFDEF TMSDOTNET}
+  try
+    FS := FileStream.Create(fn,FileMode.OpenOrCreate);
+  except
+    InternetCloseHandle(hintfile);
+
+    if Assigned(FOnError) then
+      FOnError(Self,errCannotCreateTargetFile);
+    if Assigned(FOnErrorInfo) then
+      FOnErrorInfo(Self,errCannotCreateTargetFile,'Cannot create file '+fn);
+    Exit;
+  end;
+  {$ENDIF}
 
   bufsize := READBUFFERSIZE;
 
@@ -921,7 +1097,12 @@ retryafterlogin:
   lpdwlen:=4;
   lpdwidx:=0;
 
+  {$IFNDEF TMSDOTNET}
   HttpQueryInfo(hintfile,HTTP_QUERY_CONTENT_LENGTH or HTTP_QUERY_FLAG_NUMBER ,@lpdword,lpdwlen,lpdwidx);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  HttpQueryInfo(hintfile,HTTP_QUERY_CONTENT_LENGTH or HTTP_QUERY_FLAG_NUMBER ,IntPtr(lpdword),lpdwlen,lpdwidx);
+  {$ENDIF}
 
   FSize := 0;
 
@@ -931,14 +1112,25 @@ retryafterlogin:
   while (bufsize > 0) and not FCancelled do
   begin
     Application.Processmessages;
+    {$IFNDEF TMSDOTNET}
     if not InternetReadFile(hintfile,@buf,READBUFFERSIZE,bufsize) then Break;
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if not InternetReadFile(hintfile,buf,READBUFFERSIZE,bufsize) then Break;
+    {$ENDIF}
 
     {$IFDEF TMSDEBUG}
     outputdebugstring(pchar('read from http = '+inttostr(bufsize)));
     {$ENDIF}
 
+    {$IFNDEF TMSDOTNET}
     if (bufsize > 0) and (bufsize <= READBUFFERSIZE) then
       BlockWrite(lf,buf,bufsize);
+    {$ENDIF}
+
+    {$IFDEF TMSDOTNET}
+    FS.Write(buf,0,bufsize);
+    {$ENDIF}
 
     FSize := FSize + bufsize;
 
@@ -964,8 +1156,13 @@ retryafterlogin:
     if bufsize > 0 then
       Result := True;
   end;
-
+  {$IFNDEF TMSDOTNET}
   CloseFile(lf);
+  {$ENDIF}
+
+  {$IFDEF TMSDOTNET}
+  FS.Free;
+  {$ENDIF}
 
   if FCancelled then
     Deletefile(fn);
@@ -976,33 +1173,58 @@ end;
 //-----------------------
 // copy files over a LAN
 //-----------------------
+{$IFDEF TMSDOTNET}
+{$UNSAFECODE ON}
+{$ENDIF}
 function TWebCopy.FileGetFile(idx: Integer;fuserid, fpassword, fhost: string; fPort: integer;
   url, tgtdir,tgtfn: string; UseDate: Boolean; var FileDate: TDateTime;var NoNew: Boolean): Boolean;
+{$IFDEF TMSDOTNET}
+  unsafe;
+{$ENDIF}
+
 const
   BlockSize = $4000;
 type
   pBuf = ^tBuf;
   TBuf = array[1..BlockSize] of char;
-
 var
   SourceSize: LongInt;
+  {$IFNDEF TMSDOTNET}
   sour: tFileRec;
   targ: tFileRec;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  sour: FileStream;
+  targ: FileStream;
+  fInfo: FileInfo;
+  {$ENDIF}
   numRead, numWritten: integer;
+  {$IFNDEF TMSDOTNET}
   fbuf: pBuf;
-  fsize: integer;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  fbuf:TBytes;
+  {$ENDIF}
+  fsize: DWORD;
   tck: dword;
   NetResource: TNetResource;
   dwFlags: DWORD;
   source, dest: string;
   allow:boolean;
-  crT,laT,lwT: _FileTime;
+  crT,laT,lwT, llT: _FileTime;
+  {$IFDEF TMSDOTNET}
+  ptr: Intptr;
+  {$ENDIF}
   FTime: TDateTime;
+  ratio: double;
 
 label
   CleanExit;
 
 begin
+  {$IFDEF TMSDOTNET}
+  SetLength(fbuf,BlockSize);
+  {$ENDIF}
   NoNew := False;
   Result := False;
 
@@ -1024,11 +1246,21 @@ begin
   begin
     NetResource.dwType := RESOURCETYPE_DISK;
     NetResource.lpLocalName := '';
+    {$IFNDEF TMSDOTNET}
     NetResource.lpRemoteName := PChar(fHost);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    NetResource.lpRemoteName := fHost;
+    {$ENDIF}
     NetResource.lpProvider := '';
-    dwFlags := 0;
-    if WNetAddConnection2(NetResource, PChar(fpassword), PChar(fuserid),
-                          dwFlags) <> NO_ERROR then
+    dwFlags := 0;   
+    {$IFNDEF TMSDOTNET}
+    if WNetAddConnection2(NetResource, PChar(fpassword), PChar(fuserid), dwFlags) <> NO_ERROR then
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if WNetAddConnection2(NetResource, fpassword, fuserid, dwFlags) <> NO_ERROR then
+    {$ENDIF}
+
         begin
          if Assigned(FOnConnectError) then
            FOnConnectError(self);
@@ -1063,14 +1295,25 @@ begin
       OnErrorInfo(Self,errFilesIdentical,'Cannot copy identical files '+Source);
     goto CleanExit;
   end;
-
+  {$IFNDEF TMSDOTNET}
   new(FBuf);
-
+  {$ENDIF}
   // tries to open the source file
+  {$IFNDEF TMSDOTNET}
   Sour.Handle := FileOpen(Source, fmOpenRead);
   if Sour.handle = -1 then
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  Sour := FileStream.Create(Source,FileMode.OpenOrCreate);
+  if Integer(Sour.Handle) = -1 then
+  {$ENDIF}
   begin
+    {$IFNDEF TMSDOTNET}
     Dispose(FBuf);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    FBuf := nil;
+    {$ENDIF}
     if Assigned(OnError) then
        OnError(Self,errCannotOpenSourceFile);
     if Assigned(OnErrorInfo) then
@@ -1078,12 +1321,18 @@ begin
 
     goto CleanExit;
   end;
-
   if UseDate or Assigned(FOnFileDateCheck) then
   begin
+    {$IFNDEF TMSDOTNET}
     GetFileTime(sour.Handle,@crT,@laT,@lwT);
+    FileTimeToLocalFileTime(lwT, llT);
+    FileTimeToDateTime(llT,FTime);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    fInfo := FileInfo.Create(Source);
+    FTime := fInfo.CreationTime;
+    {$ENDIF}
 
-    FileTimeToDateTime(lwT,FTime);
 
     if Assigned(OnFileDateCheck) then
     begin
@@ -1091,8 +1340,15 @@ begin
       FOnFileDateCheck(Self,idx,ftime,allow);
       if not Allow then
       begin
+        {$IFNDEF TMSDOTNET}
         Dispose(FBuf);
+        {$ENDIF}
+        {$IFNDEF TMSDOTNET}
         FileClose(Sour.Handle);
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        FileClose(Sour);
+        {$ENDIF}
         goto CleanExit;
       end;
     end
@@ -1101,10 +1357,15 @@ begin
       begin
         NoNew := True;
         FileDate := FTime;
-
-        Dispose(FBuf);
+        {$IFNDEF TMSDOTNET}
+        Dispose(FBuf);       
+        {$ENDIF}
+        {$IFNDEF TMSDOTNET}
         FileClose(Sour.Handle);
-
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        FileClose(Sour);
+        {$ENDIF}
         if Assigned(FOnNoNewFile) then
           FOnNoNewFile(Self,Source,FileDate,FTime);
         goto CleanExit;
@@ -1113,11 +1374,22 @@ begin
   end;
 
   // compute how many block are needed
+  {$IFNDEF TMSDOTNET}
   SourceSize := FileSeek(Sour.handle, 0, 2);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  SourceSize := FileSeek(Sour,0,2);
+  {$ENDIF}
   if SourceSize = -1 then
   begin
-    Dispose(FBuf);
+    {$IFNDEF TMSDOTNET}
     FileClose(Sour.Handle);
+    Dispose(FBuf);   
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    FileClose(Sour);
+
+    {$ENDIF}
     if Assigned(OnError) then
       OnError(Self,errSourceFileZeroLength);
     if Assigned(OnErrorInfo) then
@@ -1127,7 +1399,12 @@ begin
   end;
 
   // set the handle to the file beginning
+  {$IFNDEF TMSDOTNET}
   FileSeek(Sour.handle, 0, 0);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FileSeek(Sour, 0, 0);
+  {$ENDIF}
 
   if FileExists(dest) then
   begin
@@ -1136,8 +1413,13 @@ begin
       FOnCopyOverwrite(self,dest,allow);
     if not Allow then
     begin
-      Dispose(FBuf);
-      FileClose(Sour.handle);
+      {$IFNDEF TMSDOTNET}
+      FileClose(Sour.Handle);
+      Dispose(FBuf);      
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      FileClose(Sour);
+      {$ENDIF}
       goto CleanExit;
     end;
   end;
@@ -1145,12 +1427,22 @@ begin
   ForceDirectories(ExtractFilePath(Dest));
 
   // tries to create the target file
-  Targ.handle := FileCreate(Dest);
-
+  {$IFNDEF TMSDOTNET}
+  Targ.handle := Filecreate(Dest);
   if Targ.Handle < 0 then
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  Targ := FileStream.Create(Dest,FileMode.OpenOrCreate);
+  if Integer(Targ.Handle) < 0 then
+  {$ENDIF}
   begin
+    {$IFNDEF TMSDOTNET}
     FileClose(Sour.Handle);
     Dispose(FBuf);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    FileClose(Sour);
+    {$ENDIF}
     if Assigned(OnError) then
       OnError(Self,errCannotCreateTargetFile);
     if Assigned(OnErrorInfo) then
@@ -1163,13 +1455,25 @@ begin
   // copy block
   repeat
     // reading
+    {$IFNDEF TMSDOTNET}
     numRead := FileRead(Sour.Handle, FBuf^, sizeOf(FBuf^));
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    numRead := Sour.Read(FBuf,0,BlockSize);
+    {$ENDIF}
 
     if numRead < 0 then
     begin
+      {$IFNDEF TMSDOTNET}    
       Dispose(FBuf);
       FileClose(Sour.Handle);
       FileClose(Targ.handle);
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      FileClose(Sour);
+      FileClose(Targ);
+
+      {$ENDIF}
       if Assigned(OnError) then
         OnError(Self,errCopyReadFailure);
       if Assigned(OnErrorInfo) then
@@ -1178,12 +1482,24 @@ begin
     end;
 
     // writing
+    {$IFNDEF TMSDOTNET}
     numWritten := FileWrite(Targ.Handle, FBuf^, numRead);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    numWritten := FileWrite(Targ,FBuf,numRead);
+    {$ENDIF}
     if numWritten < 0 then
     begin
-      Dispose(FBuf);
+      {$IFNDEF TMSDOTNET}
       FileClose(Sour.Handle);
       FileClose(Targ.handle);
+      Dispose(FBuf);     
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      FileClose(Sour);
+      FileClose(Targ);
+
+      {$ENDIF}
       if Assigned(OnError) then
         OnError(Self,errCopyWriteFailure);
       if Assigned(OnErrorInfo) then
@@ -1191,12 +1507,16 @@ begin
       goto CleanExit;
     end;
 
-    FSize := FSize + numWritten;
+    FSize := FSize + DWORD(numWritten);
     if Assigned(FOnCopyProgress) then
       FOnCopyProgress(Self,FFileNum,FSize,SourceSize);
 
     if SourceSize > 0 then
-      FProgress.Position := Round(100 * FSize/SourceSize)
+    begin
+      ratio := FSize;
+      ratio := ratio/SourceSize;
+      FProgress.Position := Round(100 * ratio)
+    end
     else
       FProgress.Position := 100;
     
@@ -1212,9 +1532,16 @@ begin
 
   until (numRead = 0) or (numRead <> numWritten) or FCancelled;
 
+  {$IFNDEF TMSDOTNET}
   FileClose(Sour.Handle);
   FileClose(Targ.handle);
   Dispose(FBuf);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FileClose(Sour);
+  FileClose(Targ);
+
+  {$ENDIF}
 
   Result := true;
 
@@ -1222,7 +1549,12 @@ CleanExit:
 
   if FHost <> '' then
   begin
+  {$IFNDEF TMSDOTNET}
     if WNetCancelConnection2(PChar(fhost), CONNECT_UPDATE_PROFILE, true) <> NO_ERROR then
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+    if WNetCancelConnection2(fhost, CONNECT_UPDATE_PROFILE, true) <> NO_ERROR then
+  {$ENDIF}
     begin
       if Assigned(FOnConnectError) then
         FOnConnectError(Self);
@@ -1231,29 +1563,40 @@ CleanExit:
   end;
 end;
 
-//---------------------------
-// Get files from FTP server
-//---------------------------
-function TWebCopy.FtpGetFile(idx: Integer;FUserid,FPassword,FHost:string;FPort:Integer;
+function TWebCopy.MultiFtpGetFile(idx: Integer;FUserid,FPassword,FHost:string;FPort:Integer;
   URL, TgtDir,TgtFn: string; UseDate: Boolean;var FileDate:TDateTime; var NoNew: Boolean; KeepConnect: boolean): Boolean;
+  {$IFDEF TMSDOTNET}
+  unsafe;
+  {$ENDIF}
 var
   hintconnect: hinternet;
-  hintfile: hinternet;
   hintfind: hinternet;
   ftpflag: Integer;
-  buf: array[0..READBUFFERSIZE-1] of Char;
-  bufsize: DWord;
-  lf: file;
   fn,fdir: string;
-  fsize,tck: DWord;
-  lpdword: DWord;
   ffi: TWin32FindData;
-  Allow: Boolean;
-  FTime: TDateTime;
+  {$IFNDEF TMSDOTNET}
+
+  {$IFNDEF DELPHI_UNICODE}
+  origdir: array[0..255] of char;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  origdir: String;
+  {$ENDIF}
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  origdirString: StringBuilder;
+  origdir: String;  
+  {$ENDIF}  
+  dirs: DWORD;
+  chdir: boolean;
+  sl:tstringlist;
+  i: integer;
+  fdt: TDateTime;
 
 begin
   Result := False;
   NoNew := False;
+  KeepConnect := true;
 
   if FItems.Count > 1 then
     FFileLbl.Caption := IntToStr(FFileNum) + ' ' + FFileOfLabel + ' ' + IntToStr(FItems.ActiveItems) + ' : '
@@ -1277,17 +1620,25 @@ begin
   {$ENDIF}
 
   Application.ProcessMessages;
-  if (FPrevConnect = FHost + FUserID + FPassword) then
-  begin
-    hintconnect := FFTPConnect;
-  end
-  else
+
+  //if (FPrevConnect = FHost + FUserID + FPassword) then
+  //begin
+  //  hintconnect := FFTPConnect;
+  //end
+  //else
   begin
     if (FUserID = '') or (FPassword = '') then
+    {$IFNDEF TMSDOTNET}
       hintconnect := InternetConnect(FHinternet,PChar(FHost),FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
     else
       hintconnect := InternetConnect(FHinternet,PChar(FHost),FPort,PChar(FUserID),PChar(FPassword),INTERNET_SERVICE_FTP,ftpflag,0);
-  end;    
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+      hintconnect := InternetConnect(FHinternet,FHost,FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
+    else
+      hintconnect := InternetConnect(FHinternet,FHost,FPort,FUserID,FPassword,INTERNET_SERVICE_FTP,ftpflag,0);
+    {$ENDIF}
+  end;
 
   if hintconnect = nil then
   begin
@@ -1302,40 +1653,292 @@ begin
   begin
     FFTPConnect := hintconnect;
     FPrevConnect := FHost + FUserID + FPassword;
-  end;  
+  end;
+
+  chdir := false;
 
   Application.ProcessMessages;
 
-  if Pos('/',url) > 0 then
+  if pos('\',url) > 0 then
+    url := StringReplace(url, '\','/',[rfReplaceAll]);
+
+  if (Pos('/',url) > 0) then
   begin
     FDir := url;
     while (FDir[Length(FDir)] <> '/') and (Length(FDir) > 0) do
       Delete(FDir,Length(FDir),1);
 
     if Length(FDir) > 0 then
+    begin
+      dirs := 255;
+      {$IFDEF TMSDOTNET}
+      origdirString := StringBuilder.Create(255);
+      FtpGetCurrentDirectory(hintconnect, origdirString, dirs);
+      chdir := true;
+      FtpSetCurrentDirectory(hintconnect,FDir);
+      {$ENDIF}
+
+      {$IFNDEF TMSDOTNET}
+      
+      {$IFDEF DELPHI_UNICODE}
+      FtpGetCurrentDirectory(hintconnect, PChar(origdir), dirs);
+      {$ENDIF}
+      {$IFNDEF DELPHI_UNICODE}
+      FtpGetCurrentDirectory(hintconnect, origdir, dirs);
+      {$ENDIF}
+      chdir := true;
       FtpSetCurrentDirectory(hintconnect,PChar(FDir));
+      
+      {$ENDIF}     
+    end;
   end;
 
   fn := URLtoFile(url);
 
+  {$IFNDEF TMSDOTNET}
   hintfind := FtpFindFirstFile(hintconnect,PChar(fn),ffi,0,0);
-  
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  hintfind := FtpFindFirstFile(hintconnect,fn,ffi,0,0);
+  {$ENDIF}
+
+  sl := TStringList.Create;
+
+  if not (hintfind = nil) then
+  begin
+   {$IFNDEF TMSDOTNET}
+    sl.Add(strpas(ffi.cFileName));
+   {$ENDIF}
+   {$IFDEF TMSDOTNET}
+    sl.Add(ffi.cFileName);
+   {$ENDIF}
+
+
+   {$IFNDEF TMSDOTNET}
+    while InternetFindNextFile(hintfind, @ffi) do
+   {$ENDIF}
+   {$IFDEF TMSDOTNET}
+    while InternetFindNextFile(hintfind, ffi) do
+   {$ENDIF}
+    begin
+    {$IFNDEF TMSDOTNET}
+    sl.Add(strpas(ffi.cFileName));
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    sl.Add(ffi.cFileName);
+    {$ENDIF}
+    end;
+
+    InternetCloseHandle(hintfind);
+  end;
+
+  for i := 0 to sl.Count - 1 do
+  begin
+    if sl.Count > 0 then
+      FFileLbl.Caption := IntToStr(i + 1) + ' ' + FFileOfLabel + ' ' + IntToStr(sl.Count) + ' : ';
+
+    if ShowServer then
+      FFileLbl.Caption := FFileLabel + ' ' + FFilelbl.caption + sl[i] + ' ' + FFromServerLabel+' '+FHost
+    else
+      FFileLbl.Caption := FFileLabel + ' ' + FFilelbl.caption + sl[i];
+
+    FtpGetFile(i,FUserID, FPassword, FHost, FPort, sl.Strings[i], TgtDir, sl[i], UseDate, fdt, nonew, KeepConnect, false);
+  end;
+
+  sl.Free;
+
+  if not KeepConnect then
+  begin
+    InternetCloseHandle(hintconnect);
+    FPrevConnect := '';
+  end
+  else
+    if chdir then
+    begin
+      if OrigDir = '' then
+        OrigDir := '/';
+
+      {$IFDEF DELPHI_UNICODE}
+      FtpSetCurrentDirectory(hintconnect,PChar(OrigDir));
+      {$ENDIF}
+      {$IFNDEF DELPHI_UNICODE}
+      FtpSetCurrentDirectory(hintconnect,OrigDir);
+      {$ENDIF}
+    end;
+
+  Result := True;
+end;
+
+//---------------------------
+// Get files from FTP server
+//---------------------------
+function TWebCopy.FtpGetFile(idx: Integer;FUserid,FPassword,FHost:string;FPort:Integer;
+  URL, TgtDir,TgtFn: string; UseDate: Boolean;var FileDate:TDateTime; var NoNew: Boolean; KeepConnect, ShowFileInfo: boolean): Boolean;
+var
+  hintconnect: hinternet;
+  hintfile: hinternet;
+  hintfind: hinternet;
+  ftpflag: Integer;
+  {$IFNDEF TMSDOTNET}  
+  buf: array[0..READBUFFERSIZE-1] of Char;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  buf: TBytes;
+  {$ENDIF}
+  bufsize: DWord;
+  {$IFNDEF TMSDOTNET}
+  lf: file;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS: FileStream;
+  {$ENDIF}
+  fn,fdir: string;
+  fsize,tck: DWord;
+  lpdword: DWord;
+  ffi: TWin32FindData;
+  Allow: Boolean;
+  FTime: TDateTime;
+  {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI_UNICODE}
+  origdir: array[0..255] of char;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  origdir: String;
+  {$ENDIF}
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  origdir: String;  
+  origdirString: StringBuilder;
+  {$ENDIF}
+  dirs: DWORD;
+  chdir: boolean;
+
+begin
+  {$IFDEF TMSDOTNET}
+  SetLength(buf, READBUFFERSIZE);
+  {$ENDIF}
+  Result := False;
+  NoNew := False;
+
+  if ShowFileInfo then
+  begin
+    if FItems.Count > 1 then
+      FFileLbl.Caption := IntToStr(FFileNum) + ' ' + FFileOfLabel + ' ' + IntToStr(FItems.ActiveItems) + ' : '
+    else
+      FFileLbl.Caption := '';
+
+    if ShowServer then
+      FFileLbl.Caption := FFileLabel + ' ' + FFilelbl.caption + URLToFile(url) + ' ' + FFromServerLabel+' '+FHost
+    else
+      FFileLbl.Caption := FFileLabel + ' ' + FFilelbl.caption + URLToFile(url);
+  end;
+
+  if FFTPPassive then
+    ftpflag := INTERNET_FLAG_PASSIVE
+  else
+    ftpflag := 0;
+
+  {$IFDEF TMSDEBUG}
+  outputdebugstring(pchar('host:'+FHost));
+  outputdebugstring(pchar('userid:'+FUserID));
+  outputdebugstring(pchar('pwd:'+FPassword));
+  {$ENDIF}
+
+  Application.ProcessMessages;
+
+  if (FPrevConnect = FHost + FUserID + FPassword) then
+  begin
+    hintconnect := FFTPConnect;
+  end
+  else
+  begin
+  {$IFNDEF TMSDOTNET}
+    if (FUserID = '') or (FPassword = '') then
+      hintconnect := InternetConnect(FHinternet,PChar(FHost),FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
+    else
+      hintconnect := InternetConnect(FHinternet,PChar(FHost),FPort,PChar(FUserID),PChar(FPassword),INTERNET_SERVICE_FTP,ftpflag,0);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+    if (FUserID = '') or (FPassword = '') then
+      hintconnect := InternetConnect(FHinternet,FHost,FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
+    else
+      hintconnect := InternetConnect(FHinternet,FHost,FPort,FUserID,FPassword,INTERNET_SERVICE_FTP,ftpflag,0);
+  {$ENDIF}
+  end;
+
+  if hintconnect = nil then
+  begin
+    if Assigned(FOnError) then
+      FOnError(Self,errCannotConnect);
+    if Assigned(FOnErrorInfo) then
+      FOnErrorInfo(Self,errCannotConnect,'Cannot connect to FTP server ' + FHost);
+    Exit;
+  end;
+
+  if KeepConnect then
+  begin
+    FFTPConnect := hintconnect;
+    FPrevConnect := FHost + FUserID + FPassword;
+  end;
+
+  chdir := false;
+
+  Application.ProcessMessages;
+
+  if Pos('/',url) > 0 then
+  begin
+
+    FDir := url;
+    while (FDir[Length(FDir)] <> '/') and (Length(FDir) > 0) do
+      Delete(FDir,Length(FDir),1);
+    {$IFNDEF TMSDOTNET}
+    if Length(FDir) > 0 then
+    begin
+      dirs := 255;
+      {$IFNDEF DELPHI_UNICODE}
+      FtpGetCurrentDirectory(hintconnect, origdir, dirs);
+      {$ENDIF}
+      {$IFDEF DELPHI_UNICODE}
+      FtpGetCurrentDirectory(hintconnect, PChar(origdir), dirs);
+      {$ENDIF}
+      chdir := true;
+      FtpSetCurrentDirectory(hintconnect,PChar(FDir));
+    end;
+    {$ENDIF}
+    
+    {$IFDEF TMSDOTNET}
+    origdirString := StringBuilder.Create(255);
+    if Length(FDir) > 0 then
+    begin
+      dirs := 255;
+      FtpGetCurrentDirectory(hintconnect, origdirString, dirs);
+      chdir := true;
+      FtpSetCurrentDirectory(hintconnect,FDir);
+    end;
+    {$ENDIF}
+  end;
+
+  fn := URLtoFile(url);
+  {$IFNDEF TMSDOTNET}
+  hintfind := FtpFindFirstFile(hintconnect,PChar(fn),ffi,0,0);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  hintfind := FtpFindFirstFile(hintconnect,fn,ffi,0,0);
+  {$ENDIF}
   if hintfind = nil then
     lpdword := 0
   else
   begin
     InternetCloseHandle(hintfind);
-    
+
     lpdword := ffi.nFileSizeLow;
 
     if UseDate or Assigned(FOnFileDateCheck) then
     begin
       FileTimeToDateTime(ffi.ftLastWriteTime,FTime);
-
       {$IFDEF TMSDEBUG}
       outputdebugstring(pchar(formatdatetime('dd/mm/yyyy hh:nn:ss',ftime)));
       {$ENDIF}
-
       if Assigned(FOnFileDateCheck) then
       begin
         Allow := true;
@@ -1344,10 +1947,21 @@ begin
         if not Allow then
         begin
           if not KeepConnect then
-          begin 
+          begin
             InternetCloseHandle(hintconnect);
             FPrevConnect := '';
-          end;
+          end
+          else
+           if chdir then
+           begin
+             {$IFNDEF DELPHI_UNICODE}
+             FtpSetCurrentDirectory(hintconnect,OrigDir);
+             {$ENDIF}
+             {$IFDEF DELPHI_UNICODE}
+             FtpSetCurrentDirectory(hintconnect,PChar(OrigDir));
+             {$ENDIF}
+           end;
+
           Exit;
         end;
       end
@@ -1356,7 +1970,7 @@ begin
         begin
           NoNew := True;
           FileDate := FTime;
-          
+
           if not KeepConnect then
           begin
             InternetCloseHandle(hintconnect);
@@ -1372,8 +1986,19 @@ begin
   end;
 
   Application.ProcessMessages;
-
+  {$IFNDEF TMSDOTNET}
   hintfile := FtpOpenFile(hintconnect,PChar(fn),GENERIC_READ,FTP_TRANSFER_TYPE_BINARY,0);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  hintfile := FtpOpenFile(hintconnect,fn,GENERIC_READ,FTP_TRANSFER_TYPE_BINARY,0);
+  {$ENDIF}
+
+  {$IFDEF DELPHI6_LVL}
+  {$IFNDEF TMSDOTNET}
+  if (hintfile <> nil) and (lpdword = 0) then
+    lpdword := FtpGetFileSize(hintfile, nil);
+  {$ENDIF}  
+  {$ENDIF}  
 
   Application.ProcessMessages;
 
@@ -1381,15 +2006,23 @@ begin
   begin
     if Assigned(FOnURLNotFound) then
       FOnURLNotFound(Self,url);
-      
     if not KeepConnect then
     begin
       InternetCloseHandle(hintconnect);
       FPrevConnect := '';
-    end;
+    end
+    else
+      if chdir then
+      begin
+       {$IFNDEF DELPHI_UNICODE}
+       FtpSetCurrentDirectory(hintconnect,OrigDir);
+       {$ENDIF}
+       {$IFDEF DELPHI_UNICODE}
+        FtpSetCurrentDirectory(hintconnect,PChar(OrigDir));
+       {$ENDIF}
+      end;
     Exit;
   end;
-
   if tgtfn <> '' then
     fn := tgtfn
   else
@@ -1405,31 +2038,60 @@ begin
     Allow := True;
     if Assigned(FOnCopyOverwrite) then
       FOnCopyOverwrite(Self,fn,Allow);
-
     if not Allow then
     begin
       InternetCloseHandle(hintfile);
-          
+
       if not KeepConnect then
       begin
         InternetCloseHandle(hintconnect);
         FPrevConnect := '';
-      end;
-        
+      end
+      else
+        if chdir then
+        begin
+          if OrigDir = '' then
+            OrigDir := '/';
+          {$IFNDEF DELPHI_UNICODE}
+          FtpSetCurrentDirectory(hintconnect,OrigDir);
+          {$ENDIF}
+          {$IFDEF DELPHI_UNICODE}
+          FtpSetCurrentDirectory(hintconnect,PChar(OrigDir));
+          {$ENDIF}
+        end;
+
       Exit;
     end;
   end;
 
 
   ForceDirectories(ExtractFilePath(fn));
-
+  {$IFNDEF TMSDOTNET}
   AssignFile(lf,fn);
   {$i-}
   Rewrite(lf,1);
   {$i+}
-
   if IOResult <> 0 then
   begin
+    InternetCloseHandle(hintfile);
+
+    if not KeepConnect then
+    begin
+      InternetCloseHandle(hintconnect);
+      FPrevConnect := '';
+    end;
+
+    if Assigned(FOnError) then
+      FOnError(Self,errCannotCreateTargetFile);
+    if Assigned(FOnErrorInfo) then
+      FOnErrorInfo(Self,errCannotCreateTargetFile,'Cannot create target file '+fn);
+    Exit;
+  end;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  try
+    FS := FileStream.Create(fn, FileMode.OpenOrCreate);
+  except  
     InternetCloseHandle(hintfile);
     
     if not KeepConnect then
@@ -1444,6 +2106,8 @@ begin
       FOnErrorInfo(Self,errCannotCreateTargetFile,'Cannot create target file '+fn);
     Exit;
   end;
+  {$ENDIF}
+    
 
   bufsize := READBUFFERSIZE;
 
@@ -1457,13 +2121,23 @@ begin
   while (bufsize > 0) and not FCancelled  do
   begin
     Application.ProcessMessages;
+    {$IFNDEF TMSDOTNET}
     if not InternetReadFile(hintfile,@buf,READBUFFERSIZE,bufsize) then Break;
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if not InternetReadFile(hintfile,buf,READBUFFERSIZE,bufsize) then Break;
+    {$ENDIF}
     {$IFDEF TMSDEBUG}
     outputdebugstring(pchar('read from ftp = '+inttostr(bufsize)));
     {$ENDIF}
+    {$IFNDEF TMSDOTNET}
     if (bufsize > 0) and (bufsize <= READBUFFERSIZE) then
       BlockWrite(lf,buf,bufsize);
-
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if (bufsize > 0) and (bufsize <= READBUFFERSIZE) then    
+      FS.Write(buf,0,bufsize);
+    {$ENDIF}
     FSize := FSize + bufsize;
 
 
@@ -1484,29 +2158,195 @@ begin
     FRateLbl.Caption := FRateLabel + ' ' + FileSizeFmtSpeed(Round(FSize/((GetTickCount-tck)+1)*1000));
     FTimeLbl.Caption := FTimeLabel + ' '+ TimeFmt(GetTickCount-tck,FSize,lpdword);
   end;
-
+  {$IFNDEF TMSDOTNET}
   Closefile(lf);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS.Free;
+  {$ENDIF}
+
   InternetCloseHandle(hintfile);
+
   if not KeepConnect then
   begin
     InternetCloseHandle(hintconnect);
     FPrevConnect := '';
-  end;
+  end
+  else
+    if chdir then
+    begin
+      {$IFNDEF DELPHI_UNICODE}
+      FtpSetCurrentDirectory(hintconnect,OrigDir);
+      {$ENDIF}
+      {$IFDEF DELPHI_UNICODE}
+      FtpSetCurrentDirectory(hintconnect,PChar(OrigDir));
+      {$ENDIF}
+    end;
+
   Result := True;
 end;
+
+//--------------------------
+// Put multiple files to FTP
+//--------------------------
+function TWebCopy.MultiFtpPutFile(idx: Integer; FUserid,FPassword,FHost:string;FPort: Integer;
+  URL, TgtDir,TgtFn: string; UseDate: Boolean;var FileDate: TDateTime; var NoNew: Boolean; KeepConnect: Boolean): Boolean;
+var
+  hintconnect: hinternet;
+  ftpflag: Integer;
+  fn: string;
+  SR: TSearchRec;
+
+begin
+  NoNew := False;
+  Result := False;
+  FAnim.ResID := 258;
+  FAnim.ResHandle := hinstance;
+  FAnim.Active  := True;
+
+  if FItems.Count>1 then
+    FFileLbl.Caption := IntToStr(FFilenum) + ' ' + FFileOfLabel + ' ' + IntToStr(FItems.ActiveItems) + ' : '
+  else
+    FFileLbl.Caption := '';
+
+  FFileLbl.Caption := FFileLabel + ' ' + FFileLbl.Caption + URLToFile(url) + ' ' + FToServerLabel+' '+Fhost;
+
+  if FFTPPassive then
+    ftpflag := INTERNET_FLAG_PASSIVE
+  else
+    ftpflag := 0;
+
+  {$IFDEF TMSDEBUG}
+  outputdebugstring(pchar('host:'+fHost));
+  outputdebugstring(pchar('userid:'+fUserID));
+  outputdebugstring(pchar('pwd:'+fPassword));
+  {$ENDIF}
+
+  Application.ProcessMessages;
+  //if (FPrevConnect = FHost + FUserID + FPassword) then
+  //begin
+  //  hintconnect := FFTPConnect;
+  //end
+  //else
+  begin
+    FPrevTarget := '';
+
+    {$IFNDEF TMSDOTNET}
+    if (FUserID = '') or (FPassword = '') then
+      hintconnect := InternetConnect(fhinternet,PChar(FHost),FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
+    else
+      hintconnect := InternetConnect(fhinternet,PChar(FHost),FPort,PChar(FUserID),PChar(FPassword),INTERNET_SERVICE_FTP,ftpflag,0);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if (FUserID = '') or (FPassword = '') then
+      hintconnect := InternetConnect(fhinternet,FHost,FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
+    else
+      hintconnect := InternetConnect(fhinternet,FHost,FPort,FUserID,FPassword,INTERNET_SERVICE_FTP,ftpflag,0);
+    {$ENDIF}
+  end;
+
+  if hintconnect = nil then
+  begin
+    if Assigned(FOnError) then
+      FOnError(Self,errCannotConnect);
+    if Assigned(FOnErrorInfo) then
+      FOnErrorInfo(Self,errCannotConnect,'Cannot connect to FTP server ' + FHost);
+    Exit;
+  end;
+
+  if KeepConnect then
+  begin
+    FFTPConnect := hintconnect;
+    FPrevConnect := FHost + FUserID + FPassword;
+  end;
+
+  Application.ProcessMessages;
+
+  // change to directory / create it if used
+  if (tgtdir <> '') and (tgtdir <> FPrevTarget) then
+  begin
+    if KeepConnect then
+      FPrevTarget := tgtdir
+    else
+      FPrevTarget := '';
+
+    {$IFNDEF TMSDOTNET}
+    if not FtpSetCurrentDirectory(hintconnect,PChar(tgtdir)) then
+    begin
+      if not FtpCreateDirectory(hintconnect,PChar(tgtdir)) then
+      begin
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if not FtpSetCurrentDirectory(hintconnect,tgtdir) then
+    begin
+      if not FtpCreateDirectory(hintconnect,tgtdir) then
+      begin
+    {$ENDIF}
+        if not KeepConnect then
+        begin
+          InternetCloseHandle(hintconnect);
+          FPrevConnect := '';
+        end;
+        Exit;
+      end
+      else
+      {$IFNDEF TMSDOTNET}
+        FtpSetCurrentDirectory(hintconnect,PChar(tgtdir));
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+        FtpSetCurrentDirectory(hintconnect,tgtdir);
+      {$ENDIF}
+    end;
+  end;
+
+  Application.ProcessMessages;
+
+  fn := URL;
+
+  if tgtfn = '' then
+    tgtfn := URLToFile(url);
+
+  if FindFirst(fn,faAnyFile, SR) = 0 then
+  begin
+    repeat
+      FTPPutFile(idx, FUserID, FPassword, FHost, FPort, ExtractFilePath(fn)+SR.Name, TgtDir, ExtractFileName(SR.Name), UseDate, FileDate, NoNew, true);
+    until FindNext(SR) <> 0;
+    FindClose(SR);
+  end;
+
+
+  InternetCloseHandle(hintconnect);
+  FPrevConnect := '';
+
+  Result := True;
+end;
+
 
 //-------------------
 // Put files to FTP
 //-------------------
 function TWebCopy.FtpPutFile(idx: Integer; FUserid,FPassword,FHost:string;FPort: Integer;
   URL, TgtDir,TgtFn: string; UseDate: Boolean;var FileDate: TDateTime; var NoNew: Boolean; KeepConnect: Boolean): Boolean;
+  {$IFDEF TMSDOTNET}
+  unsafe;
+  {$ENDIF}
 var
   hintconnect: hinternet;
   hintfile: hinternet;
   ftpflag: Integer;
+  {$IFNDEF TMSDOTNET}  
   buf: array[0..READBUFFERSIZE-1] of char;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  buf: TBytes;
+  {$ENDIF}
   bufsize,numread: DWord;
+  {$IFNDEF TMSDOTNET}
   lf: file;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS: Filestream;
+  {$ENDIF}
   fn: string;
   FSize,lpdword,tck: DWord;
   ffi: TWin32FindData;
@@ -1514,6 +2354,9 @@ var
   Allow: Boolean;
 
 begin
+  {$IFDEF TMSDOTNET}
+  SetLength(buf,READBUFFERSIZE);
+  {$ENDIF}
   NoNew := False;
   Result := False;
   FAnim.ResID := 258;
@@ -1547,10 +2390,18 @@ begin
   begin
     FPrevTarget := '';
     
+    {$IFNDEF TMSDOTNET}
     if (FUserID = '') or (FPassword = '') then
       hintconnect := InternetConnect(fhinternet,PChar(FHost),FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
     else
       hintconnect := InternetConnect(fhinternet,PChar(FHost),FPort,PChar(FUserID),PChar(FPassword),INTERNET_SERVICE_FTP,ftpflag,0);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if (FUserID = '') or (FPassword = '') then
+      hintconnect := InternetConnect(fhinternet,FHost,FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
+    else
+      hintconnect := InternetConnect(fhinternet,FHost,FPort,FUserID,FPassword,INTERNET_SERVICE_FTP,ftpflag,0);
+    {$ENDIF}
   end;
 
   if hintconnect = nil then
@@ -1577,7 +2428,7 @@ begin
       FPrevTarget := tgtdir
     else
       FPrevTarget := '';  
-    
+    {$IFNDEF TMSDOTNET}
     if not FtpSetCurrentDirectory(hintconnect,PChar(tgtdir)) then
     begin
       if not FtpCreateDirectory(hintconnect,PChar(tgtdir)) then
@@ -1592,6 +2443,23 @@ begin
       else
         FtpSetCurrentDirectory(hintconnect,PChar(tgtdir));
     end;
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if not FtpSetCurrentDirectory(hintconnect,tgtdir) then
+    begin
+      if not FtpCreateDirectory(hintconnect,tgtdir) then
+      begin
+        if not KeepConnect then
+        begin
+          InternetCloseHandle(hintconnect);
+          FPrevConnect := '';
+        end;
+        Exit;
+      end
+      else
+        FtpSetCurrentDirectory(hintconnect,tgtdir);
+    end;
+    {$ENDIF}
   end;
 
   Application.ProcessMessages;
@@ -1604,7 +2472,12 @@ begin
 
   if UseDate or Assigned(FOnFileDateCheck) then
   begin
+  {$IFNDEF TMSDOTNET}
     if FtpFindFirstFile(hintconnect,PChar(tgtfn),ffi,0,0) <> nil then
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+    if FtpFindFirstFile(hintconnect,tgtfn,ffi,0,0) <> nil then
+  {$ENDIF}
     begin
       FileTimeToDateTime(ffi.ftLastWriteTime,FTime);
 
@@ -1627,7 +2500,7 @@ begin
         end;
       end
       else
-        if FTime <= FileDate then
+        if FTime > FileDate then
         begin
           FileDate := FTime;
           NoNew := True;
@@ -1644,7 +2517,12 @@ begin
     end;
   end;
 
+  {$IFNDEF TMSDOTNET}
   hintfile := FtpOpenFile(hintconnect,PChar(tgtfn),GENERIC_WRITE,FTP_TRANSFER_TYPE_BINARY,0);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  hintfile := FtpOpenFile(hintconnect,tgtfn,GENERIC_WRITE,FTP_TRANSFER_TYPE_BINARY,0);
+  {$ENDIF}
 
   if hintfile = nil then
   begin
@@ -1662,13 +2540,18 @@ begin
 
   FLastFile := fn;
   FLastDir := tgtdir;
-
+  {$IFNDEF TMSDOTNET}
   AssignFile(lf,fn);
   {$i-}
   Reset(lf,1);
   {$i+}
 
   lpdword := FileSize(lf);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS := FileStream.Create(fn,FileMode.OpenOrCreate);
+  lpdword := FS.Length;
+  {$ENDIF}
 
   if IOResult <> 0 then
   begin
@@ -1679,10 +2562,13 @@ begin
       FPrevConnect := '';
     end;
 
+    if Assigned(FOnURLNotFound) then
+      FOnURLNotFound(self,fn);
+
     if Assigned(FOnError) then
       FOnError(Self,errCannotOpenSourceFile);
     if Assigned(FOnErrorInfo) then
-      FOnErrorInfo(Self,errCannotOpenSourceFile,'Cannot open target file ' + fn);
+      FOnErrorInfo(Self,errCannotOpenSourceFile,'Cannot open source file ' + fn);
     Exit;
   end;
 
@@ -1691,12 +2577,21 @@ begin
   FCancelled := False;
   tck := GetTickCount;
 
-  while (bufsize = READBUFFERSIZE) and not FCancelled  do
+  while (bufsize > 0) and not FCancelled  do
   begin
     Application.ProcessMessages;
+    {$IFNDEF TMSDOTNET}
     BlockRead(lf,buf,bufsize,numread);
-
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    numread := FS.Read(buf, 0, bufsize);
+    {$ENDIF}
+    {$IFNDEF TMSDOTNET}
     if not InternetWriteFile(hintfile,@buf,numread,bufsize) then Break;
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if not InternetWriteFile(hintfile,buf,numread,bufsize) then Break;
+    {$ENDIF}
     {$IFDEF TMSDEBUG}
     outputdebugstring(pchar('write from ftp = '+IntToStr(bufsize)));
     {$ENDIF}
@@ -1720,17 +2615,147 @@ begin
     FRateLbl.Caption := FRateLabel + ' ' + FileSizeFmtSpeed(Round(FSize/((GetTickCount-tck)+1)*1000));
     FTimeLbl.Caption := FTimeLabel + ' '+ TimeFmt(GetTickCount-tck,FSize,lpdword);
   end;
-
+  {$IFNDEF TMSDOTNET}
   CloseFile(lf);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS.Free;
+  {$ENDIF}
   InternetCloseHandle(hintfile);
   if not KeepConnect then
   begin
     InternetCloseHandle(hintconnect);
-    FPrevConnect := '';    
+    FPrevConnect := '';
   end;
   Result := True;
 end;
 
+
+//-------------------
+// Remove files in FTP
+//-------------------
+function TWebCopy.FtpRemoveFile(idx: Integer; FUserid,FPassword,FHost:string;FPort: Integer;
+  URL, TgtDir,TgtFn: string; KeepConnect: Boolean): Boolean;
+var
+  hintconnect: hinternet;
+  ftpflag: Integer;
+  fn: string;
+
+begin
+  Result := False;
+  FAnim.ResID := 258;
+  FAnim.ResHandle := hinstance;
+  FAnim.Active  := True;
+
+  if FItems.Count>1 then
+    FFileLbl.Caption := IntToStr(FFilenum) + ' ' + FFileOfLabel + ' ' + IntToStr(FItems.ActiveItems) + ' : '
+  else
+    FFileLbl.Caption := '';
+
+  FFileLbl.Caption := FFileLabel + ' ' + FFileLbl.Caption + URLToFile(url) + ' ' + FToServerLabel+' '+Fhost;
+
+  if FFTPPassive then
+    ftpflag := INTERNET_FLAG_PASSIVE
+  else
+    ftpflag := 0;
+
+  {$IFDEF TMSDEBUG}
+  outputdebugstring(pchar('host:'+fHost));
+  outputdebugstring(pchar('userid:'+fUserID));
+  outputdebugstring(pchar('pwd:'+fPassword));
+  {$ENDIF}
+
+  Application.ProcessMessages;
+  if (FPrevConnect = FHost + FUserID + FPassword) then
+  begin
+    hintconnect := FFTPConnect;
+  end
+  else
+  begin
+    FPrevTarget := '';
+    {$IFNDEF TMSDOTNET}
+    if (FUserID = '') or (FPassword = '') then
+      hintconnect := InternetConnect(fhinternet,PChar(FHost),FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
+    else
+      hintconnect := InternetConnect(fhinternet,PChar(FHost),FPort,PChar(FUserID),PChar(FPassword),INTERNET_SERVICE_FTP,ftpflag,0);
+    {$ENDIF}  
+    {$IFDEF TMSDOTNET}
+    if (FUserID = '') or (FPassword = '') then
+      hintconnect := InternetConnect(fhinternet,FHost,FPort,nil,nil,INTERNET_SERVICE_FTP,ftpflag,0)
+    else
+      hintconnect := InternetConnect(fhinternet,FHost,FPort,FUserID,FPassword,INTERNET_SERVICE_FTP,ftpflag,0);
+    {$ENDIF}  
+  end;
+
+  if hintconnect = nil then
+  begin
+    if Assigned(FOnError) then
+      FOnError(Self,errCannotConnect);
+    if Assigned(FOnErrorInfo) then
+      FOnErrorInfo(Self,errCannotConnect,'Cannot connect to FTP server ' + FHost);
+    Exit;
+  end;
+
+  if KeepConnect then
+  begin
+    FFTPConnect := hintconnect;
+    FPrevConnect := FHost + FUserID + FPassword;
+  end;
+
+  Application.ProcessMessages;
+
+  // change to directory
+  if (tgtdir <> '') and (tgtdir <> FPrevTarget) then
+  begin
+    if KeepConnect then
+      FPrevTarget := tgtdir
+    else
+      FPrevTarget := '';
+
+    // directory doesn't exist so can't remove the file
+    {$IFNDEF TMSDOTNET}
+    if not FtpSetCurrentDirectory(hintconnect,PChar(tgtdir)) then
+      exit;
+    {$ENDIF}  
+    {$IFDEF TMSDOTNET}
+    if not FtpSetCurrentDirectory(hintconnect,tgtdir) then
+      exit;
+    {$ENDIF}  
+  end;
+
+    Application.ProcessMessages;
+
+  //fn:=URLtoFile(url);
+  fn := URL;
+
+  if tgtfn = '' then
+    tgtfn := URLToFile(url);
+
+  {$IFNDEF TMSDOTNET}
+  if FtpDeleteFile(hintconnect, PChar(tgtfn)) then
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  if FtpDeleteFile(hintconnect, tgtfn) then
+  {$ENDIF}
+    begin
+    if Assigned(FonRemovedFile) then
+      FonRemovedFile(Self, idx);
+  end
+  else
+  begin
+    if Assigned(FOnRemovedFileFailed) then
+      FOnRemovedFileFailed(Self, idx);
+  end;
+
+  Application.ProcessMessages;
+
+  if not KeepConnect then
+  begin
+    InternetCloseHandle(hintconnect);
+    FPrevConnect := '';
+  end;
+  Result := True;
+end;
 
 constructor TWebCopy.Create(aOwner: TComponent);
 begin
@@ -1755,6 +2780,7 @@ begin
   FDlgOpenFolder := 'Open folder';
   FShowServer := True;
   FShowFileName := True;
+  FShowDialogOnTop := True;
 end;
 
 destructor TWebCopy.Destroy;
@@ -1781,7 +2807,12 @@ begin
       fhinternet := InternetOpen('WebCopy',INTERNET_OPEN_TYPE_PRECONFIG {or INTERNET_FLAG_ASYNC},nil,nil,0)
     else
       fhinternet := InternetOpen('WebCopy',INTERNET_OPEN_TYPE_PROXY
+      {$IFNDEF TMSDOTNET}
                     {or INTERNET_FLAG_ASYNC},PChar(FProxy),nil,0);
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+                    {or INTERNET_FLAG_ASYNC},FProxy,nil,0);
+      {$ENDIF}
   end;
 
   FFileNum := 0;
@@ -1825,9 +2856,15 @@ begin
         wpFile:
           ok := FileGetFile(i - 1,FTPUserID, FTPPassword, FTPHost, FTPPort, URL, Targetdir,TargetFilename,CopyNewerOnly,FDate,NoNew);
         wpFtp:
-          ok := FtpGetFile(i - 1,FTPUserID,FTPPassword,FTPHost,FTPPort,URL,TargetDir,TargetFileName,CopyNewerOnly,FDate,NoNew, KeepConn);
+          ok := FtpGetFile(i - 1,FTPUserID,FTPPassword,FTPHost,FTPPort,URL,TargetDir,TargetFileName,CopyNewerOnly,FDate,NoNew, KeepConn, true);
         wpFtpUpload:
           ok := FtpPutFile(i - 1,FTPUserID,FTPPassword,FTPHost,FTPPort,URL,TargetDir,TargetFileName,CopyNewerOnly,FDate,NoNew, KeepConn);
+        wpMultiFtp:
+          ok := MultiFtpGetFile(i - 1,FTPUserID,FTPPassword,FTPHost,FTPPort,URL,TargetDir,TargetFileName,CopyNewerOnly,FDate,NoNew, KeepConn);
+        wpMultiFtpUpload:
+          ok := MultiFtpPutFile(i - 1,FTPUserID,FTPPassword,FTPHost,FTPPort,URL,TargetDir,TargetFileName,CopyNewerOnly,FDate,NoNew, KeepConn);
+        wpFtpDelete:
+          ok := FtpRemoveFile(i - 1,FTPUserID,FTPPassword,FTPHost,FTPPort,URL,TargetDir,TargetFileName,KeepConn);
         end;
       end;
 
@@ -1846,11 +2883,12 @@ begin
   if Assigned(fhinternet) then
     InternetCloseHandle(fhinternet);
 
-  if Assigned(FOnCopyDone) then
-    FOnCopyDone(Self);
 
   if FShowOpenFile or FShowOpenFolder then
   begin
+    if Assigned(FOnCopyDone) then
+      FOnCopyDone(Self);
+      
     FCancelBtn.Caption := FDlgClose;
     FAnim.Active := False;
     if not FCancelled and FShowOpenFile then
@@ -1862,6 +2900,8 @@ begin
   begin
     FForm.Close;
     DestroyForm;
+    if Assigned(FOnCopyDone) then
+      FOnCopyDone(Self);
   end;
 end;
 
@@ -1878,8 +2918,7 @@ var
   LblTop: Integer;
 
 begin
-  FForm := TForm.Create(Self);
-
+  FForm := TForm.Create(self);
   FForm.Width := 300;
 
   capdy := GetSystemMetrics(SM_CYCAPTION);
@@ -1903,6 +2942,9 @@ begin
 
   FForm.Position := poScreenCenter;
   FForm.Borderstyle := bsDialog;
+
+  if FShowDialogOnTop then
+    FForm.FormStyle := fsStayOnTop;
 
   FFileLbl := TLabel.Create(FForm);
   FFileLbl.Parent := FForm;
@@ -1994,12 +3036,19 @@ begin
   FForm.Caption := FDlgCaption + ' ...';
   FCancelled := False;
 
+
+
+
   if FShowDialog then
   begin
-    FForm.Show; 
+    if Assigned(OnBeforeDialogShow) then
+      OnBeforeDialogShow(Self, FForm);
+
+    FForm.Show;
     if FAlwaysOnTop then
       SetWindowPos(FForm.Handle,HWND_TOPMOST,FForm.Left,FForm.top,FForm.Width,FForm.height,0);
   end;
+  
   FCancelled := False;
 end;
 
@@ -2038,7 +3087,12 @@ end;
 
 procedure TWebCopy.OpenFile(sender: tobject);
 begin
+  {$IFNDEF TMSDOTNET}
   ShellExecute(0,'open',PChar(FLastFile),nil,nil, SW_NORMAL);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  ShellExecute(0,'open',FLastFile,'','', SW_NORMAL);
+  {$ENDIF}
   FForm.Close;
   DestroyForm;
   FFormClosed := True;
@@ -2046,7 +3100,12 @@ end;
 
 procedure TWebCopy.OpenFolder(sender: tobject);
 begin
+  {$IFNDEF TMSDOTNET}
   ShellExecute(0,'open',PChar(FLastDir),nil,nil, SW_NORMAL);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  ShellExecute(0,'open',FLastDir,'','', SW_NORMAL);
+  {$ENDIF}
   FForm.Close;
   DestroyForm;
   FFormClosed:=true;
@@ -2151,14 +3210,14 @@ end;
 
 constructor TWCopyThread.Create(AWebCopy: TWebCopy);
 begin
-  WebCopy := AWebCopy;
-  FreeOnTerminate := True;
+  WebCopy := AWebCopy;  
   inherited Create(False);
+  FreeOnTerminate := True;
 end;
 
 procedure TWCopyThread.Execute;
 begin
-  WebCopy.DoCopy;
+  Synchronize(WebCopy.DoCopy);
 end;
 
 { TWebCopyItem }

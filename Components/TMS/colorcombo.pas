@@ -38,6 +38,8 @@ type
      function GetVersionNr: Integer; override;
      procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
    public
+     constructor Create(AOwner: TComponent); override;
+     procedure Loaded; override;
    end;
 
 procedure Register;
@@ -47,6 +49,12 @@ implementation
 procedure Register;
 begin
   RegisterComponents('TMS', [TAdvColorComboBox]);
+end;
+
+constructor TAdvColorComboBox.Create(AOwner: TComponent);
+begin
+  inherited;
+  Style := csOwnerDrawFixed;
 end;
 
 procedure TAdvColorCombobox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -102,5 +110,16 @@ begin
   Result := MakeLong(MakeWord(BLD_VER,REL_VER),MakeWord(MIN_VER,MAJ_VER));
 end;
 
+
+procedure TAdvColorComboBox.Loaded;
+var
+  i: integer;
+begin
+  inherited;
+  Items.Clear;
+  for I := 0 to 15 do
+    Items.Add(inttostr(i));
+
+end;
 
 end.

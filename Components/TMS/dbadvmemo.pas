@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TDBAdvMemo component                                                      }
 { for Delphi & C++Builder                                                   }
-{ version 1.6                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2002 - 2004                                        }
+{            copyright © 2002 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -22,7 +21,7 @@ unit DBAdvMemo;
 interface
 
 uses
-  Classes, AdvMemo, DB, DBCtrls, Graphics;
+  Classes, AdvMemo, DB, DBCtrls, Graphics, Windows, Messages;
 
 type
 
@@ -128,7 +127,7 @@ type
     property OnCancelAutoCompletion;
     
   end;
-                         
+
 implementation
 
 { TDBAdvMemo }
@@ -175,6 +174,7 @@ begin
 
   if Assigned(FDataLink.Field) and not FDBUpdate then
   begin
+    SendMessage(Handle,WM_SETREDRAW,Integer(False),0);
     Lines.BeginUpdate;
     Lines.Text := FDataLink.Field.AsString;
     DoWrap;
@@ -183,6 +183,7 @@ begin
     CurX := 0;
     CurY := 0;
     ClearSelection;
+    SendMessage(Handle,WM_SETREDRAW,Integer(True),0);
     Refresh;
   end;
 end;

@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvNavBar component                                                      }
 { for Delphi & C++Builder                                                   }
-{ version 1.5.0.0                                                           }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2004 - 2007                                        }
+{            copyright © 2004 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -17,7 +16,7 @@
 { written authorization of the author.                                      }
 {***************************************************************************}
 
-unit AdvNavBar;                                                             
+unit AdvNavBar;
 {$I TMSDEFS.INC}
 interface
 
@@ -44,8 +43,8 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 5; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 1; // Build nr.
+  REL_VER = 4; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // 1.1.0.2 : SplitterPosition control fix for runtime created AdvNavBar
@@ -73,10 +72,26 @@ const
   // 1.5.0.1 : New public property DoEraseBkg added
   // 1.5.1.0 : New Office2007Silver style added
   //         : Fixed issue with hidden panels & collaps
-  // 1.5.1.1 : Fixed issue with OnCollapsChange event 
+  // 1.5.1.1 : Fixed issue with OnCollapsChange event
+  // 1.5.2.0 : New : SectionFont property added
+  // 1.5.2.1 : Fixed issue with mouse up on panel icon during splitter move
+  // 1.5.2.2 : Fixed issue with caption font redraw
+  // 1.5.2.3 : Fixed memory leak with SectionFont
+  // 1.5.2.4 : Fixed issue with RemovePanel()
+  // 1.5.2.5 : Fixed issue with down state painting
+  // 1.5.2.6 : Fixed issue with splitterposition for client aligned navbar on maximized form
+  // 1.5.2.7 : Fixed issue with removing all panels and handling events
+  // 1.5.2.8 : Fixed issue with assigning sections
+  // 1.5.3.0 : New : property CaptionAlignment added
+  // 1.5.4.0 : New : AdvNavBarPanel.Assign() added
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TGradientDirection = (gdVertical, gdHorizontal);
   TBottomIconAlign = (biLeft, biRight);
   TDefaultTabPosition = (tpTop, tpBottom);
@@ -89,7 +104,7 @@ type
     FHeight: Integer;
     FCaption: string;
     FTag: Integer;
-    FControl: TWinControl;     
+    FControl: TWinControl;
     procedure SetCaption(const Value: string);
     procedure SetHeight(const Value: Integer);
     procedure SetControl(const Value: TWinControl);
@@ -98,6 +113,7 @@ type
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
   published
     property Caption: string read FCaption write SetCaption;
     property Control:TWinControl read FControl write SetControl;
@@ -168,6 +184,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     property AdvNavBar: TAdvNavBar read FAdvNavBar write SetAdvNavBar;
     property TabVisible: Boolean read GetTabVisible write SetTabVisible;
@@ -286,6 +303,7 @@ type
     FStyle: TAdvNavBarStyle;
     FSectionColorTo: TColor;
     FSectionColor: TColor;
+    FSectionFont: TFont;
     FOnTPanelActivate: TOnPanelActivate;
     FOnSplitterMove: TSplitterMove;
     FPopupIndicator: Boolean;
@@ -328,6 +346,7 @@ type
     FShowSplitter: boolean;
     FHoverCollapsBtn: boolean;
     FDoEraseBkg: boolean;
+    FCaptionAlignment: TAlignment;
     procedure SetCaptionTabHeight(Value: integer);
     procedure ShowAdvNavBarPanel(PanelIndex: integer);
     procedure SetAllAdvNavBarPanelPosition;
@@ -385,6 +404,7 @@ type
     procedure SetCaptionColorTo(const Value: TColor);
     procedure SetBorderColor(const Value: TColor);
     procedure SetCaptionFont(const Value: TFont);
+    procedure SetSectionFont(const Value: TFont);
     procedure SetSplitterColor(const Value: TColor);
     procedure SetSplitterColorTo(const Value: TColor);
     procedure SetStyle(const Value: TAdvNavBarStyle);
@@ -415,6 +435,8 @@ type
     procedure WMSetCursor(var Msg: TWMSetCursor); message WM_SETCURSOR;
     procedure CMHintShow(var Msg: TCMHintShow); message CM_HINTSHOW;
     procedure SetShowSplitter(const Value: boolean);
+    procedure FontChanged(sender: TObject);
+    procedure SetCaptionAlignment(const Value: TAlignment);
   protected
     function GetVersionNr: Integer; virtual;
     function CaptionTabRect(Index: Integer): TRect;
@@ -478,6 +500,7 @@ type
     property AutoThemeAdapt: Boolean read FAutoThemeAdapt write FAutoThemeAdapt default False;
     property BorderColor: TColor read FBorderColor write SetBorderColor default clGray;
     property BottomIconAlign: TBottomIconAlign read FBottomIconAlign write SetBottomIconAlign default biRight;
+    property CaptionAlignment: TAlignment read FCaptionAlignment write SetCaptionAlignment default taLeftJustify;
     property CaptionColor: TColor read FCaptionColor write SetCaptionColor default clGray;
     property CaptionColorTo: TColor read FCaptionColorTo write SetCaptionColorTo default clNone;
     property CaptionFont: TFont read FCaptionFont write SetCaptionFont;
@@ -515,6 +538,7 @@ type
     property PopupMenu;
     property SectionColor: TColor read FSectionColor write SetSectionColor;
     property SectionColorTo: TColor read FSectionColorTo write SetSectionColorTo;
+    property SectionFont: TFont read FSectionFont write SetSectionFont;
     property ShowHint;
     property ShowSplitter: boolean read FShowSplitter write SetShowSplitter default true;
     property SmallImages: TCustomImageList read FSmallImages write SetSmallImages;
@@ -773,6 +797,30 @@ end;
 //---------------------------{ TAdvNavBarPanel }---------------------------------
 //------------------------------------------------------------------------------
 
+procedure TAdvNavBarPanel.Assign(Source: TPersistent);
+begin
+  if (Source is TAdvNavBarPanel) then
+  begin
+    Caption := (Source as TAdvNavBarPanel).Caption;
+    CaptionAlignment := (Source as TAdvNavBarPanel).CaptionAlignment;
+    CaptionHint := (Source as TAdvNavBarPanel).CaptionHint;
+    CollapsedCaption := (Source as TAdvNavBarPanel).CollapsedCaption;
+    Color := (Source as TAdvNavBarPanel).Color;
+    ColorTo := (Source as TAdvNavBarPanel).ColorTo;
+    GradientDirection := (Source as TAdvNavBarPanel).GradientDirection;
+    Font.Assign((Source as TAdvNavBarPanel).Font);
+    Hint := (Source as TAdvNavBarPanel).Hint;
+    ImageIndex := (Source as TAdvNavBarPanel).ImageIndex;
+    PanelIndex := (Source as TAdvNavBarPanel).PanelIndex;
+    PopupMenu := (Source as TAdvNavBarPanel).PopupMenu;
+    Sections.Assign((Source as TAdvNavBarPanel).Sections);
+    SectionSizing := (Source as TAdvNavBarPanel).SectionSizing;
+    ShowHint := (Source as TAdvNavBarPanel).ShowHint;
+    TextColor := (Source as TAdvNavBarPanel).TextColor;
+    Enabled := (Source as TAdvNavBarPanel).Enabled;
+  end;
+end;
+
 procedure TAdvNavBarPanel.CMDesignHitTest(var Msg: TCMDesignHitTest);
 var
   P: TPoint;
@@ -953,6 +1001,8 @@ begin
 
     Canvas.Brush.Style := bsClear;
 
+    Canvas.Font.Assign(AdvNavBar.SectionFont);
+
     r := Rect(4, h + 2, Width, Height);
 
     case CaptionAlignment of
@@ -1045,10 +1095,10 @@ end;
 
 function TAdvNavBarPanel.GetAdjustedCaption:String;
 begin
-  Result:= FCaption;
+  Result := FCaption;
   if Assigned(FAdvNavBar) and FAdvNavBar.Collapsed then
   begin
-    Result:=FCollapsedCaption;
+    Result := FCollapsedCaption;
   end;
 end;
 
@@ -1360,6 +1410,7 @@ begin
   FSplitterInternalCall := false;
 
   FDisplayCaptionTabsCount := 0;
+  FCaptionAlignment := taLeftJustify;
 
   FFixedBtnMargin := 1;
   FBottomIconAlign := biRight;
@@ -1381,13 +1432,18 @@ begin
   FCaptionFont.Color := clWhite;
   FCaptionFont.Name := 'Tahoma';
   FCaptionFont.Style := [fsBold];
+  FCaptionFont.OnChange := FontChanged;
 
-  FOldSplitterPosForSizeChange:= -1;
+  FSectionFont := TFont.Create;
+  FSectionFont.Assign(Font);
+  FSectionFont.OnChange := FontChanged;
+
+  FOldSplitterPosForSizeChange := -1;
 
   Style := esCustom;
   Style := esOffice2003Blue;
 
-  FCollapsedCaption:='Collapsed';
+  FCollapsedCaption := 'Collapsed';
   FCollapsed := False;
   FCollapsedWidth := DefCollapsedWidth;
   FPreCollapsedWidth := Width;
@@ -1411,6 +1467,7 @@ begin
   FDupAdvNavBarPanel.Free;
   FTempAdvNavBarPanel.Free;
   FCaptionFont.Free;
+  FSectionFont.Free;
   FScroller.Free;
   inherited Destroy;
 end;
@@ -1461,7 +1518,7 @@ begin
   FInternalCall := true;
   ActiveTabIndex := FAdvNavBarPanel.Count - 1;
   FInternalCall := false;
-
+  Result.FPanelIndex := FAdvNavBarPanel.Count - 1;
 end;
 
 //------------------------------------------------------------------------------
@@ -1516,6 +1573,7 @@ var
   atp: TAdvNavBarPanel;
 begin
   atp := GetPanel(Index);
+  RemoveAdvNavBarPanel(atp);  
   if Assigned(atp) then
     atp.Free;
 end;
@@ -1529,6 +1587,7 @@ var
 begin
   if FUpdateCount > 0 then
     Exit;
+
 
   //---- Rectangle around the component
   Canvas.Pen.Color := FBorderColor;
@@ -1567,8 +1626,9 @@ begin
   //---- Draw Splitter
   if ShowSplitter then
     DrawSplitter;
-    
+
   //---- Draw Caption Tabs
+
   DrawAllCaptionTabs; //
   //---- Draw Fixed Tab
   DrawFixedTab;
@@ -1633,23 +1693,30 @@ end;
 procedure TAdvNavBar.WMSize(var Message: TWMSize);
 var
   CR: TRect;
+  frm: TCustomForm;
 begin
   inherited;
 
   CR := GetClientRect;
+
   if ((CR.Bottom - CR.Top) < MinClientHeight) then
   begin
-    if (SplitterPosition >0) then
+    if (SplitterPosition > 0) then
     begin
       if (FOldSplitterPosForSizeChange < 0) and not (csDesigning in ComponentState) and not (csLoading in ComponentState) then
-        FOldSplitterPosForSizeChange:= SplitterPosition;
-      SplitterPosition:= SplitterPosition-1;
+        FOldSplitterPosForSizeChange := SplitterPosition;
+
+      frm := GetParentForm(self);
+
+      if Assigned(frm)  and (frm.WindowState = wsMaximized) then
+      else
+        SplitterPosition := SplitterPosition - 1;
     end;
   end
   else if ((CR.Bottom - CR.Top) > (MinClientHeight + CaptionTabHeight)) and (SplitterPosition < FAdvNavBarPanel.Count)
        and (FOldSplitterPosForSizeChange > 0) and not (csDesigning in ComponentState) and not (csLoading in ComponentState) then
   begin
-    SplitterPosition:= SplitterPosition + 1;
+    SplitterPosition := SplitterPosition + 1;
     if SplitterPosition >= FOldSplitterPosForSizeChange then
       FOldSplitterPosForSizeChange:= -1;
   end;
@@ -1731,9 +1798,11 @@ var
   HorizontalGradient: Boolean;
   clr, clrTo, ClrText: TColor;
   clrMirror, clrMirrorTo: TColor;
-  tp: integer;
+  tp,tl: integer;
   //tbmp: TBitMap;
   R, DR: TRect;
+  DRWSTYLE: DWORD;
+
 begin
   TabR := CaptionTabRect(Index);
   Canvas.Pen.Color := FBorderColor;
@@ -1742,9 +1811,16 @@ begin
 
   R := GetCaptionRect;
 
-  ClrText:= TAdvNavBarPanel(FAdvNavBarPanel[Index]).TextColor;
+  ClrText := TAdvNavBarPanel(FAdvNavBarPanel[Index]).TextColor;
 
-  if Index = FActiveTabIndex then
+  DRWSTYLE := DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS;
+                                           
+  case CaptionAlignment of
+  taRightJustify: DRWSTYLE := DT_RIGHT or DT_SINGLELINE or DT_END_ELLIPSIS;
+  taCenter: DRWSTYLE := DT_CENTER or DT_SINGLELINE or DT_END_ELLIPSIS;
+  end;
+
+  if (Index = FActiveTabIndex) then
   begin
     Canvas.Font.Assign(CaptionFont);
 
@@ -1753,27 +1829,29 @@ begin
     if AllowCollaps then
       DR.Right := DR.Right - 24;
 
+    DR.Right := DR.Right - 4;
+
     if not FCollapsed then
     begin
       {$IFNDEF TMSDOTNET}
       DrawText(Canvas.Handle, PChar(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption),
-               Length(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption), DR, DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS);
+               Length(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption), DR, DRWSTYLE);
       {$ENDIF}
       {$IFDEF TMSDOTNET}
       DrawText(Canvas.Handle,TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption,
-               Length(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption), DR, DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS);
+               Length(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption), DR, DRWSTYLE);
       {$ENDIF}
     end;
 
     //Canvas.TextOut(8, R.Top + (CaptionHeight - Canvas.TextHeight('gh')) div 2, TAdvNavBarPanel(FAdvNavBarPanel[Index]).Caption);
 
-    if Index = FHoverTabIndex then
+    if (Index = FHoverTabIndex) and (Index = FDownTabIndex) then
     begin
       clr := FDownTabColor;
       clrTo := FDownTabColorTo;
-      ClrText := FDownTextColor;
+     ClrText := FDownTextColor;
       clrMirror := FDownTabMirrorColor;
-      clrMirrorTo := FDownTabMirrorColorTo;
+     clrMirrorTo := FDownTabMirrorColorTo;
     end
     else
     begin
@@ -1825,30 +1903,50 @@ begin
   //DrawGradient(Canvas, clr, clrTo, 16, R2, HorizontalGradient);
   DrawVistaGradient(Canvas, R2, clr, clrTo, clrMirror, clrMirrorTo, gdHorizontal, clNone);
 
-  if FImages <> nil then
-  begin
-    tp := (TabR.Bottom - TabR.Top - FImages.Height) div 2;
-    FImages.Draw(Canvas, TabR.left + 5, TabR.Top + tp, TAdvNavBarPanel(FAdvNavBarPanel[Index]).ImageIndex);
-    R2 := Rect(TabR.Left + 5 + Fimages.Width, TabR.Top, TabR.Right, TabR.Bottom);
-  end;
-
   Canvas.Font.Assign(Font);
   Canvas.Brush.Style := bsClear;
   Canvas.Font.Color := ClrText;//TAdvNavBarPanel(FAdvNavBarPanel[Index]).TextColor;
+
+  if FImages <> nil then
+  begin
+    tp := (TabR.Bottom - TabR.Top - FImages.Height) div 2;
+
+    case CaptionAlignment of
+    taLeftJustify:
+      begin
+        FImages.Draw(Canvas, TabR.left + 5, TabR.Top + tp, TAdvNavBarPanel(FAdvNavBarPanel[Index]).ImageIndex);
+        R2 := Rect(TabR.Left + 5 + Fimages.Width, TabR.Top, TabR.Right, TabR.Bottom);
+      end;
+    taRightJustify:
+      begin
+        FImages.Draw(Canvas, TabR.Right - FImages.Width - 4, TabR.Top + tp, TAdvNavBarPanel(FAdvNavBarPanel[Index]).ImageIndex);
+        R2 := Rect(TabR.Left, TabR.Top, TabR.Right - Fimages.Width - 8, TabR.Bottom);
+      end;
+    taCenter:
+      begin
+        tl := Canvas.TextWidth(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption);
+        tl := (TabR.Right - TabR.Left - tl) div 2;
+        tl := tl - FImages.Width - 4;
+
+        FImages.Draw(Canvas, tl, TabR.Top + tp, TAdvNavBarPanel(FAdvNavBarPanel[Index]).ImageIndex);
+        R2 := Rect(TabR.Left, TabR.Top, TabR.Right, TabR.Bottom);
+      end;
+    end;
+
+  end;
+
   tp := (TabR.Bottom - TabR.Top - Canvas.TextHeight('gh')) div 2;
 
-  DR := Rect(R2.Left + 5, R2.Top + tp, Width, Height);
-
-
+  DR := Rect(R2.Left + 5, R2.Top + tp, R2.Right, Height);
 
   {$IFNDEF TMSDOTNET}
   DrawText(Canvas.Handle,PChar(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption),
-           Length(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption), DR, DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS);
+           Length(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption), DR, DRWSTYLE);
   {$ENDIF}
 
   {$IFDEF TMSDOTNET}
   DrawText(Canvas.Handle,TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption,
-           Length(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption), DR, DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS);
+           Length(TAdvNavBarPanel(FAdvNavBarPanel[Index]).AdjustedCaption), DR, DRWSTYLE);
   {$ENDIF}
 
   //Canvas.TextOut(R2.Left + 5, R2.Top + tp, TAdvNavBarPanel(FAdvNavBarPanel[Index]).Caption);
@@ -2005,7 +2103,7 @@ begin
       R.Top + (R.Bottom - R.Top - VHeight) div 2,FCollapsedCaption)
   else
     Canvas.TextOut(R.Left + (R.Right - R.Left - VWidth) div 2,
-      R.Bottom - (R.Bottom - R.Top - VHeight) div 2,FCollapsedCaption);
+      R.Bottom - (R.Bottom - R.Top - VHeight) div 2, FCollapsedCaption);
 
   SelectClipRgn(Canvas.Handle,0);
   DeleteObject(HRGN);
@@ -2574,6 +2672,15 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvNavBar.SetCaptionAlignment(const Value: TAlignment);
+begin
+  if (FCaptionAlignment <> Value) then
+  begin
+    FCaptionAlignment := Value;
+    Invalidate;
+  end;
+end;
+
 procedure TAdvNavBar.SetCaptionColor(const Value: TColor);
 begin
   if Value <> FCaptionColor then
@@ -2702,7 +2809,7 @@ begin
 
       if AllowActivate then
       begin
-        if Assigned(FOnTPanelActivate) then
+        if Assigned(FOnTPanelActivate) and (FActiveTabIndex >= 0) then
           FOnTPanelActivate(self, FDupAdvNavBarPanel.IndexOf(FAdvNavBarPanel[FActiveTabIndex]), FDupAdvNavBarPanel.IndexOf(FAdvNavBarPanel[NewIndex]), AllowActivate);
 
         if AllowActivate then
@@ -2822,11 +2929,15 @@ begin
   begin
     R := GetCaptionRect;
     R.Left := Width - 20;
+    {$IFDEF VER185}
+    Invalidate;
+    {$ELSE}
     {$IFNDEF TMSDOTNET}
     InvalidateRect(Handle, @R, true);
     {$ENDIF}
     {$IFDEF TMSDOTNET}
     InvalidateRect(Handle, R, true);
+    {$ENDIF}
     {$ENDIF}
   end;
 
@@ -2886,10 +2997,11 @@ begin
     FInternalCall := true;
     i := IndexOfTabAt(X, Y);
     FInternalCall := false;
-    if (i >= 0) then                                     
+    if (i >= 0) then
     begin
       FDownTabIndex := i;
       RefreshCaptionTabOrButton(i);
+      Invalidate;
     end;
 
     if AllowCollaps then
@@ -2977,11 +3089,15 @@ begin
       begin
         R := GetCaptionRect;
         R.Left := Width - 20;
+        {$IFDEF VER185}
+        Invalidate;
+        {$ELSE}
         {$IFNDEF TMSDOTNET}
         InvalidateRect(Handle, @R, true);
         {$ENDIF}
         {$IFDEF TMSDOTNET}
         InvalidateRect(Handle, R, true);
+        {$ENDIF}
         {$ENDIF}
         FHoverCollapsBtn := false;
       end;
@@ -3138,13 +3254,18 @@ begin
     FCollapsDown := false;
   end;
 
+  FDownTabIndex := -1;
+  Invalidate;
+
   if FMouseCaptured and FCheckForSplitterMove then
   begin
-    screen.Cursor := FOldCursor;
+    Screen.Cursor := FOldCursor;
     FCheckForSplitterMove := false;
     ReleaseCapture;
     FMouseCaptured := false;
+    Exit;
   end;
+
 
   if not FMouseCaptured and not FCheckForSplitterMove then
   begin
@@ -3262,7 +3383,7 @@ begin
     //FSeparatorLine:= FSeparatorLine + (CaptionTabsToBeDisplayed*FCaptionTabHeight);
     FSplitterPosition := FDisplayCaptionTabsCount;
     SetAllAdvNavBarPanelPosition;
-    if FActiveTabIndex >= 0 then
+    if (FActiveTabIndex >= 0) and (FActiveTabIndex < FAdvNavBarPanel.Count) then
     begin
       TAdvNavBarPanel(FAdvNavBarPanel[FActiveTabIndex]).SendToBack;
       TAdvNavBarPanel(FAdvNavBarPanel[FActiveTabIndex]).BringToFront;
@@ -3282,7 +3403,7 @@ end;
 
 function TAdvNavBar.IndexOfTabAt(X, Y: integer): integer;
 begin
-  if (y >= GetFixedTabRect.top) and (y <= GetFixedTabRect.Bottom) then
+  if (y >= GetFixedTabRect.Top) and (y <= GetFixedTabRect.Bottom) then
   begin
     Result := IndexOfBtnAt(X, Y);
   end
@@ -3559,7 +3680,7 @@ begin
     Invalidate;
   end;
 
-  if (AOperation = opRemove) and not (csDestroying in ComponentState) then
+  if (AOperation = opRemove) and not (csDestroying in ComponentState) and (csDesigning in ComponentState) then
   begin
     i := 0;
     while (i < FAdvNavBarPanel.Count) do
@@ -3669,6 +3790,11 @@ begin
   end;
 end;
 
+procedure TAdvNavBar.FontChanged(sender: TObject);
+begin
+  Invalidate;
+end;
+
 //------------------------------------------------------------------------------
 
 function TAdvNavBar.GetFixedTabButtonCount: integer;
@@ -3739,6 +3865,8 @@ begin
   end
   else if (index >= (FAdvNavBarPanel.Count - FDisplayCaptionTabsCount)) and (index <= FAdvNavBarPanel.Count - 1) then
   begin
+    if index <> ActiveTabIndex then
+//      DrawFixedTab;
     DrawCaptionTab(index);
   end;
 end;
@@ -4033,6 +4161,14 @@ end;
 procedure TAdvNavBar.SetCaptionFont(const Value: TFont);
 begin
   FCaptionFont.Assign(Value);
+  Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvNavBar.SetSectionFont(const Value: TFont);
+begin
+  FSectionFont.Assign(Value);
   Invalidate;
 end;
 
@@ -4650,6 +4786,18 @@ end;
 
 
 { TAdvNavBarPanelSection }
+
+procedure TAdvNavBarPanelSection.Assign(Source: TPersistent);
+begin
+  if (Source is TAdvNavBarPanelSection) then
+  begin
+    FCaption := (Source as TAdvNavBarPanelSection).Caption;
+    FControl := (Source as TAdvNavBarPanelSection).Control;
+    FHeight := (Source as TAdvNavBarPanelSection).Height;
+    FTag := (Source as TAdvNavBarPanelSection).Tag;
+  end;
+
+end;
 
 constructor TAdvNavBarPanelSection.Create(Collection: TCollection);
 begin

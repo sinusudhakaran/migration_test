@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TINIInspectorBar component                                                }
 { for Delphi & C++Builder                                                   }
-{ version 1.4                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2001 - 2005                                        }
+{            copyright © 2001 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -201,10 +200,16 @@ end;
 procedure TINIInspectorBar.StopEdit(InspectorItem: TInspectorItem);
 var
   IniFile: TIniFile;
+  EditState: boolean;
 begin
+  EditState := Editing;
+
   inherited;
 
   if not Assigned(InspectorItem) then
+    Exit;
+
+  if not EditState then
     Exit;
 
   IniFile := TIniFile.Create(FIniFile);

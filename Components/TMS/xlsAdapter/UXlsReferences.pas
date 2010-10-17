@@ -9,6 +9,9 @@ uses Classes, Sysutils, XlsMessages, UXlsBaseRecords,
 type
 
   TExternNameRecord = class(TBaseRecord)
+  public
+    function Name: Widestring;
+    function NameLength: byte;
   end;
 
   TExternNameRecordList=class(TBaseRecordList)
@@ -19,6 +22,7 @@ type
     FExternNameList: TExternNameRecordList;
   public
     function IsLocal: boolean;
+    function IsAddIn: boolean;
     procedure InsertSheets(const SheetCount: integer);
     function BookName: widestring;
     function SheetName(const SheetIndex: integer; const Globals: TObject): widestring;
@@ -33,7 +37,7 @@ type
     constructor CreateEmpty(const SheetCount: integer);
     destructor Destroy; override;
 
-    procedure SaveToStream(const Workbook: TStream); override;
+    procedure SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean); override;
     function TotalSize: integer;override;
     function TotalSizeNoHeaders: integer;override;
   end;
@@ -90,6 +94,7 @@ type
     function AddSheet(SheetCount, FirstSheet, LastSheet: Integer): Integer;
 
     function GetSheetName(const SheetRef: word; const Globals: TObject): widestring;
+    function GetName(const SheetRef: integer; const NameIndex: integer; const Globals: TObject): widestring;
   end;
 
 implementation
@@ -258,6 +263,34 @@ begin
   Result := (FExternRefs.Count - 1);
 end;
 
+function TReferences.GetName(const SheetRef: integer; const NameIndex: integer; const Globals: TObject): widestring;
+var
+  idx: integer;
+begin
+  idx := LocalSupBook;
+  if (SheetRef >= 0) then
+  begin
+    if (SheetRef>=FExternRefs.Count) then raise
+      Exception.CreateFmt(ErrIndexOutBounds, [SheetRef,'Sheet Reference',0,FExternRefs.Count - 1]);
+    idx:=FExternRefs[SheetRef].SupBookRecord;
+  end;
+
+  if (idx = LocalSupBook) then
+  begin
+    if (NameIndex< 0) or (NameIndex >=(Globals as TWorkbookGlobals).Names.Count) then raise
+      Exception.CreateFmt(ErrIndexOutBounds, [NameIndex,'Name Index',0,(Globals as TWorkbookGlobals).Names.Count - 1]);
+    Result:= (Globals as TWorkbookGlobals).Names[NameIndex].Name;
+    exit;
+  end;
+
+  if (idx< 0) or (idx >=FSupBooks.Count) then raise
+    Exception.CreateFmt(ErrIndexOutBounds, [idx,'idx',0,FSupBooks.Count - 1]);
+  if (NameIndex< 0) or (NameIndex >=FSupBooks[idx].FExternNameList.Count) then raise
+    Exception.CreateFmt(ErrIndexOutBounds, [NameIndex,'Name Index',0,FSupBooks[idx].FExternNameList.Count - 1]);
+  Result := (FSupBooks[idx].FExternNameList[NameIndex] as TExternNameRecord).Name;
+end;
+
+
 function TReferences.GetSheetName(const SheetRef: word; const Globals: TObject): widestring;
 var
   idx: integer;
@@ -292,7 +325,7 @@ end;
 
 procedure TReferences.SaveToStream(const DataStream: TStream);
 begin
-  FSupBooks.SaveToStream(DataStream);
+  FSupBooks.SaveToStream(DataStream, false);
   FExternRefs.SaveToStream(DataStream);
 end;
 
@@ -387,6 +420,7 @@ var
   MySelf: TBaseRecord;
   MyPos: integer;
 begin
+  if IsLocal or IsAddIn then begin; Result:= ''; exit; end;
   MySelf:=Self;
   MyPos:=2;
   Xs:=TExcelString.Create(2, MySelf, MyPos);
@@ -446,10 +480,15 @@ begin
   IsLocal:= (DataSize = 4)and (GetWord (Data, 2)= $0401);
 end;
 
-procedure TSupBookRecord.SaveToStream(const Workbook: TStream);
+function TSupBookRecord.IsAddIn: boolean;
+begin
+  Result:= (DataSize = 4)and (GetWord (Data, 2)= $3A01);
+end;
+
+procedure TSupBookRecord.SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);
 begin
   inherited;
-  FExternNameList.SaveToStream(Workbook);
+  FExternNameList.SaveToStream(Workbook, NeedsRecalc);
 end;
 
 function TSupBookRecord.SheetName(const SheetIndex: integer; const Globals: TObject): widestring;
@@ -515,6 +554,29 @@ var
 begin
   Result:=0;
   for i:=0 to Count-1 do Result:=Result+Items[i].TotalSize;
+end;
+
+{ TExternNameRecord }
+
+function TExternNameRecord.Name: Widestring;
+var
+  s: string;
+begin
+  if (Data[7] and 1)=1 then
+  begin
+    SetLength(Result, NameLength);
+    Move(Data[8], Result[1], NameLength*2);
+  end else
+  begin
+    SetLength(s, NameLength);
+    Move(Data[8], s[1], NameLength);
+    Result:=s;
+  end;
+end;
+
+function TExternNameRecord.NameLength: byte;
+begin
+  Result:= Data[6];
 end;
 
 end.

@@ -2,11 +2,10 @@
 {***********************************************************************}
 { TDBPlannerMonthView component                                         }
 { for Delphi & C++Builder                                               }
-{ version 2.5                                                           }
 {                                                                       }
 { written by :                                                          }
 {            TMS Software                                               }
-{            copyright © 2004 - 2007                                    }
+{            copyright © 2004 - 2008                                    }
 {            Email : info@tmssoftware.com                               }
 {            Website : http://www.tmssoftware.com                       }
 {                                                                       }
@@ -133,13 +132,13 @@ type
     procedure RefreshItem(APlannerItem: TPlannerItem); virtual;    
 
     property IsUpdating: Boolean read FIsUpdating;
-    procedure ClearDBItems;
-    procedure ReadDBItems(UpdateKey: string);
-    procedure ReadDBItem;
-    procedure WriteDBItem;
-    procedure AddDBItem;
-    procedure DeleteDBItem;
-    procedure SelectDBItem;
+    procedure ClearDBItems; virtual;
+    procedure ReadDBItems(UpdateKey: string); virtual;
+    procedure ReadDBItem; virtual;
+    procedure WriteDBItem; virtual;
+    procedure AddDBItem; virtual;
+    procedure DeleteDBItem; virtual;
+    procedure SelectDBItem; virtual;
     procedure Refresh;
     function CreateKey: string; virtual;
   published
@@ -171,10 +170,11 @@ begin
 
   if FIsUpdating then
     Exit;
-    
+
   if not CheckDataSet then
     Exit;
 
+  FIsUpdating := true;
 
   {$IFDEF TMSCODESITE}
   SendMsg('add selected here?');
@@ -226,6 +226,7 @@ begin
   finally
     D.GotoBookMark(B);
     D.FreeBookMark(B);
+    FIsUpdating := false;    
     EndUpdate;
   end;
 end;
@@ -271,7 +272,6 @@ end;
 function TDBPlannerMonthView.CreateItem: TPlannerItem;
 begin
   Result := inherited CreateItem;
-  
   Items.DBItem := Result;
   AddDBItem;
 end;
@@ -647,7 +647,7 @@ begin
        ((dts <= sd) and (dte >= ed)) then
     begin
       with Items.DBItem do
-      begin;
+      begin
         ItemStartTime := Int(dts);
         ItemEndTime := Int(dte);
         ItemRealStartTime := dts;
@@ -1045,6 +1045,15 @@ begin
   {$IFDEF TMSCODESITE}
   SendMsg('DatasetChanged');
   {$ENDIF}
+  if FDBPlannerMonthView.IsUpdating then
+    Exit;
+
+  if Assigned(DataSet) then
+    if DataSet.Active then
+    begin
+      if DataSet.State = dsBrowse then
+        FDBPlannerMonthView.Refresh;
+    end;
 end;
 
 procedure TPlannerDataLink.DataSetScrolled(Distance: Integer);

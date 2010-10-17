@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvOfficePagerStyler component                                           }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -87,6 +86,9 @@ implementation
 
 const
   // theme changed notifier
+  {$IFDEF DELPHI2007_LVL}
+  {$EXTERNALSYM WM_THEMECHANGED}
+  {$ENDIF}
   WM_THEMECHANGED = $031A;
 
 type
@@ -391,6 +393,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(158, 169, 191);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { PageAppearance }
         PageAppearance.BorderColor := clBlack;
         PageAppearance.Color := clBtnFace;
@@ -444,7 +453,7 @@ begin
         TabAppearance.BorderColor := clNone;
         TabAppearance.BorderColorDisabled := clNone;
         TabAppearance.BorderColorHot := clHighlight;
-        TabAppearance.BorderColorSelected := $E3B28D;
+        TabAppearance.BorderColorSelected := clBlack; //$E3B28D;
         TabAppearance.BorderColorSelectedHot := $60CCF9;
 
         TabAppearance.TextColor := clBlack;
@@ -452,7 +461,7 @@ begin
         TabAppearance.TextColorSelected := clBlack;
         TabAppearance.TextColorDisabled := clGray;
 
-        TabAppearance.ColorSelected := $FEF6F0;
+        TabAppearance.ColorSelected := $FCDCC4; //$FEF6F0;
         TabAppearance.ColorSelectedTo := $FAF1E9;
         TabAppearance.ColorMirrorSelected := $FAF1E9;
         TabAppearance.ColorMirrorSelectedTo := $F6EAE0;
@@ -474,6 +483,13 @@ begin
         TabAppearance.GradientMirrorHot := ggVertical;
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
+
+        TabAppearance.ShadowColor := $A3673F; //RGB(164, 191, 235);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
 
         { PageAppearance }
         PageAppearance.BorderColor := $E3B28D;
@@ -558,6 +574,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(130, 140, 100);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { PageAppearance }
         PageAppearance.BorderColor := $8CC0B1;
         PageAppearance.Color := $CFF0EA;
@@ -641,6 +664,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(167, 173, 188);
+        TabAppearance.HighLightColor := RGB(234, 234, 240); //$00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
+
         { PageAppearance }
         PageAppearance.BorderColor := $927476;
         PageAppearance.Color := $00F7F3F3;
@@ -723,6 +753,13 @@ begin
         TabAppearance.GradientMirrorHot := ggVertical;
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
+
+        TabAppearance.ShadowColor := $00E8C7AE;
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
 
         RoundEdges := True;
         { PageAppearance }
@@ -811,6 +848,12 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := clBlack;
+        TabAppearance.HighLightColor := $00959899; //$00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00959899;
 
         RoundEdges := True;
 
@@ -866,7 +909,7 @@ begin
         TabAppearance.BorderColor := clNone;
         TabAppearance.BorderColorDisabled := clNone;
         TabAppearance.BorderColorHot := $C1BEBD;
-        TabAppearance.BorderColorSelected := $FFFAC6;
+        TabAppearance.BorderColorSelected := $C1BFBD; //$FFFAC6;
         TabAppearance.BorderColorSelectedHot := $5FCAFA;
 
         TabAppearance.TextColor := $5C534C;
@@ -896,6 +939,13 @@ begin
         TabAppearance.GradientMirrorHot := ggVertical;
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
+
+        TabAppearance.ShadowColor := $00D6CDC9;
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
 
         RoundEdges := True;
         { PageAppearance }
@@ -983,6 +1033,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(130, 140, 100);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+        
         { PageAppearance }
         PageAppearance.BorderColor := clBlack;
         PageAppearance.Color := clWhite;
@@ -1068,6 +1125,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(170, 167, 161);
+        TabAppearance.HighLightColor := $00FFFABF;
+        TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
+        
         { PageAppearance }
         PageAppearance.BorderColor := clBlack;
         PageAppearance.Color := clWhite;

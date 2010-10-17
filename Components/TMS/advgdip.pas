@@ -4,7 +4,7 @@
 { version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -19,13 +19,18 @@
 
 unit AdvGDIP;
 
+{$HPPEMIT ''}
+{$HPPEMIT '#pragma link "gdiplus.lib"'}
+{$HPPEMIT ''}
+
+{$I TMSDEFS.INC}
 {$ALIGN ON}
 {$MINENUMSIZE 4}
 
 interface
 
 uses
-  Windows, ActiveX, Math;
+  Windows, ActiveX, Math, Graphics;
 
 type
   INT16   = type Smallint;
@@ -35,10 +40,13 @@ type
   TSingleDynArray = array of Single;
 
 var
-  GlowSpeed : integer = 40;
+  GlowSpeed : integer = 30;
 
 
-const WINGDIPDLL = 'gdiplus.dll';
+const
+  {$EXTERNALSYM GDIP_NOWRAP}
+  GDIP_NOWRAP = 4096;
+  WINGDIPDLL = 'gdiplus.dll';
 
 //----------------------------------------------------------------------------
 // Memory Allocation APIs
@@ -97,6 +105,33 @@ type
     QualityModeHigh      =  2; // Best rendering quality
 {$ENDIF}
 
+type
+{$IFDEF DELPHI6_UP}
+  {$EXTERNALSYM CompositingQuality}
+  CompositingQuality = (
+    CompositingQualityInvalid          = ord(QualityModeInvalid),
+    CompositingQualityDefault          = ord(QualityModeDefault),
+    CompositingQualityHighSpeed        = ord(QualityModeLow),
+    CompositingQualityHighQuality      = ord(QualityModeHigh),
+    CompositingQualityGammaCorrected,
+    CompositingQualityAssumeLinear
+  );
+  TCompositingQuality = CompositingQuality;
+{$ELSE}
+  {$EXTERNALSYM CompositingQuality}
+  CompositingQuality = Integer;
+  const
+    CompositingQualityInvalid          = QualityModeInvalid;
+    CompositingQualityDefault          = QualityModeDefault;
+    CompositingQualityHighSpeed        = QualityModeLow;
+    CompositingQualityHighQuality      = QualityModeHigh;
+    CompositingQualityGammaCorrected   = 3;
+    CompositingQualityAssumeLinear     = 4;
+
+type
+  TCompositingQuality = CompositingQuality;
+{$ENDIF}
+
 const
   ImageFormatUndefined : TGUID = '{b96b3ca9-0728-11d3-9d7b-0000f81ef32e}';
   {$EXTERNALSYM ImageFormatUndefined}
@@ -127,7 +162,6 @@ type
 // Unit constants
 //--------------------------------------------------------------------------
 
- // {$EXTERNALSYM Unit}
   Unit_ = (
     UnitWorld,      // 0 -- World coordinate (non-physical unit)
     UnitDisplay,    // 1 -- Variable -- for PageTransform only
@@ -180,7 +214,52 @@ type
   TLinearGradientMode = LinearGradientMode;
 
 //--------------------------------------------------------------------------
-// Region Combine Modes
+// Line cap constants (only the lowest 8 bits are used).
+//--------------------------------------------------------------------------
+{$IFDEF DELPHI6_UP}
+  {$EXTERNALSYM LineCap}
+  LineCap = (
+    LineCapFlat             = 0,
+    LineCapSquare           = 1,
+    LineCapRound            = 2,
+    LineCapTriangle         = 3,
+
+    LineCapNoAnchor         = $10, // corresponds to flat cap
+    LineCapSquareAnchor     = $11, // corresponds to square cap
+    LineCapRoundAnchor      = $12, // corresponds to round cap
+    LineCapDiamondAnchor    = $13, // corresponds to triangle cap
+    LineCapArrowAnchor      = $14, // no correspondence
+
+    LineCapCustom           = $ff, // custom cap
+
+    LineCapAnchorMask       = $f0  // mask to check for anchor or not.
+  );
+  TLineCap = LineCap;
+{$ELSE}
+  {$EXTERNALSYM LineCap}
+  LineCap = Integer;
+  const
+    LineCapFlat             = 0;
+    LineCapSquare           = 1;
+    LineCapRound            = 2;
+    LineCapTriangle         = 3;
+
+    LineCapNoAnchor         = $10; // corresponds to flat cap
+    LineCapSquareAnchor     = $11; // corresponds to square cap
+    LineCapRoundAnchor      = $12; // corresponds to round cap
+    LineCapDiamondAnchor    = $13; // corresponds to triangle cap
+    LineCapArrowAnchor      = $14; // no correspondence
+
+    LineCapCustom           = $ff; // custom cap
+
+    LineCapAnchorMask       = $f0; // mask to check for anchor or not.
+
+type
+  TLineCap = LineCap;
+{$ENDIF}
+
+//--------------------------------------------------------------------------
+// Region Comine Modes
 //--------------------------------------------------------------------------
 
   CombineMode = (
@@ -197,6 +276,7 @@ type
 // FontStyle: face types and common styles
 //--------------------------------------------------------------------------
 type
+  {$EXTERNALSYM FontStyle}
   FontStyle = Integer;
   const
     FontStyleRegular    = Integer(0);
@@ -212,6 +292,7 @@ type
 // Smoothing Mode
 //---------------------------------------------------------------------------
 {$IFDEF DELPHI6_UP}
+  {$EXTERNALSYM SmoothingMode}
   SmoothingMode = (
     SmoothingModeInvalid     = ord(QualityModeInvalid),
     SmoothingModeDefault     = ord(QualityModeDefault),
@@ -345,7 +426,7 @@ Type
 
   StringTrimming = (
     {
-    #define GDIPLUS_STRINGTRIMMING_None 0 && no trimming. 
+    #define GDIPLUS_STRINGTRIMMING_None 0 && no trimming.
     #define GDIPLUS_STRINGTRIMMING_Character 1 && nearest character.
     #define GDIPLUS_STRINGTRIMMING_Word 2 && nearest wor
     #define GDIPLUS_STRINGTRIMMING_EllipsisCharacter 3 && nearest character, ellipsis at end
@@ -555,7 +636,140 @@ type
   {$EXTERNALSYM TGPCOLOR}
   TGPColor = ARGB;
 
+  function MakeColor(r, g, b: Byte): ARGB; overload;
+  function MakeColor(a, r, g, b: Byte): ARGB; overload;
+  function GetAlpha(color: ARGB): BYTE;
+  function GetRed(color: ARGB): BYTE;
+  function GetGreen(color: ARGB): BYTE;
+  function GetBlue(color: ARGB): BYTE;
+
+const
+  // Shift count and bit mask for A, R, G, B
+  AlphaShift  = 24;
+  {$EXTERNALSYM AlphaShift}
+  RedShift    = 16;
+  {$EXTERNALSYM RedShift}
+  GreenShift  = 8;
+  {$EXTERNALSYM GreenShift}
+  BlueShift   = 0;
+  {$EXTERNALSYM BlueShift}
+
+  AlphaMask   = $ff000000;
+  {$EXTERNALSYM AlphaMask}
+  RedMask     = $00ff0000;
+  {$EXTERNALSYM RedMask}
+  GreenMask   = $0000ff00;
+  {$EXTERNALSYM GreenMask}
+  BlueMask    = $000000ff;
+  {$EXTERNALSYM BlueMask}
+
 type
+  PixelFormat = Integer;
+  {$EXTERNALSYM PixelFormat}
+  TPixelFormat = PixelFormat;
+
+const
+  PixelFormatIndexed     = $00010000; // Indexes into a palette
+  {$EXTERNALSYM PixelFormatIndexed}
+  PixelFormatGDI         = $00020000; // Is a GDI-supported format
+  {$EXTERNALSYM PixelFormatGDI}
+  PixelFormatAlpha       = $00040000; // Has an alpha component
+  {$EXTERNALSYM PixelFormatAlpha}
+  PixelFormatPAlpha      = $00080000; // Pre-multiplied alpha
+  {$EXTERNALSYM PixelFormatPAlpha}
+  PixelFormatExtended    = $00100000; // Extended color 16 bits/channel
+  {$EXTERNALSYM PixelFormatExtended}
+  PixelFormatCanonical   = $00200000;
+  {$EXTERNALSYM PixelFormatCanonical}
+
+  PixelFormatUndefined      = 0;
+  {$EXTERNALSYM PixelFormatUndefined}
+  PixelFormatDontCare       = 0;
+  {$EXTERNALSYM PixelFormatDontCare}
+
+  PixelFormat1bppIndexed    = (1  or ( 1 shl 8) or PixelFormatIndexed or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat1bppIndexed}
+  PixelFormat4bppIndexed    = (2  or ( 4 shl 8) or PixelFormatIndexed or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat4bppIndexed}
+  PixelFormat8bppIndexed    = (3  or ( 8 shl 8) or PixelFormatIndexed or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat8bppIndexed}
+  PixelFormat16bppGrayScale = (4  or (16 shl 8) or PixelFormatExtended);
+  {$EXTERNALSYM PixelFormat16bppGrayScale}
+  PixelFormat16bppRGB555    = (5  or (16 shl 8) or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat16bppRGB555}
+  PixelFormat16bppRGB565    = (6  or (16 shl 8) or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat16bppRGB565}
+  PixelFormat16bppARGB1555  = (7  or (16 shl 8) or PixelFormatAlpha or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat16bppARGB1555}
+  PixelFormat24bppRGB       = (8  or (24 shl 8) or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat24bppRGB}
+  PixelFormat32bppRGB       = (9  or (32 shl 8) or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat32bppRGB}
+  PixelFormat32bppARGB      = (10 or (32 shl 8) or PixelFormatAlpha or PixelFormatGDI or PixelFormatCanonical);
+  {$EXTERNALSYM PixelFormat32bppARGB}
+  PixelFormat32bppPARGB     = (11 or (32 shl 8) or PixelFormatAlpha or PixelFormatPAlpha or PixelFormatGDI);
+  {$EXTERNALSYM PixelFormat32bppPARGB}
+  PixelFormat48bppRGB       = (12 or (48 shl 8) or PixelFormatExtended);
+  {$EXTERNALSYM PixelFormat48bppRGB}
+  PixelFormat64bppARGB      = (13 or (64 shl 8) or PixelFormatAlpha  or PixelFormatCanonical or PixelFormatExtended);
+  {$EXTERNALSYM PixelFormat64bppARGB}
+  PixelFormat64bppPARGB     = (14 or (64 shl 8) or PixelFormatAlpha  or PixelFormatPAlpha or PixelFormatExtended);
+  {$EXTERNALSYM PixelFormat64bppPARGB}
+  PixelFormatMax            = 15;
+  {$EXTERNALSYM PixelFormatMax}
+
+type
+
+{$IFDEF DELPHI6_UP}
+  RotateFlipType = (
+    RotateNoneFlipNone = 0,
+    Rotate90FlipNone   = 1,
+    Rotate180FlipNone  = 2,
+    Rotate270FlipNone  = 3,
+
+    RotateNoneFlipX    = 4,
+    Rotate90FlipX      = 5,
+    Rotate180FlipX     = 6,
+    Rotate270FlipX     = 7,
+
+    RotateNoneFlipY    = Rotate180FlipX,
+    Rotate90FlipY      = Rotate270FlipX,
+    Rotate180FlipY     = RotateNoneFlipX,
+    Rotate270FlipY     = Rotate90FlipX,
+
+    RotateNoneFlipXY   = Rotate180FlipNone,
+    Rotate90FlipXY     = Rotate270FlipNone,
+    Rotate180FlipXY    = RotateNoneFlipNone,
+    Rotate270FlipXY    = Rotate90FlipNone
+  );
+  TRotateFlipType = RotateFlipType;
+{$ELSE}
+
+  RotateFlipType = (
+    RotateNoneFlipNone, // = 0,
+    Rotate90FlipNone,   // = 1,
+    Rotate180FlipNone,  // = 2,
+    Rotate270FlipNone,  // = 3,
+
+    RotateNoneFlipX,    // = 4,
+    Rotate90FlipX,      // = 5,
+    Rotate180FlipX,     // = 6,
+    Rotate270FlipX      // = 7,
+  );
+  const
+    RotateNoneFlipY    = Rotate180FlipX;
+    Rotate90FlipY      = Rotate270FlipX;
+    Rotate180FlipY     = RotateNoneFlipX;
+    Rotate270FlipY     = Rotate90FlipX;
+
+    RotateNoneFlipXY   = Rotate180FlipNone;
+    Rotate90FlipXY     = Rotate270FlipNone;
+    Rotate180FlipXY    = RotateNoneFlipNone;
+    Rotate270FlipXY    = Rotate90FlipNone;
+
+type
+  TRotateFlipType = RotateFlipType;
+{$ENDIF}
 
 //---------------------------------------------------------------------------
 // Private GDI+ classes for internal type checking
@@ -571,6 +785,7 @@ type
   GpPen = Pointer;
 
   GpImage = Pointer;
+  GpBitmap = Pointer;
 
   GpPath = Pointer;
   GpRegion = Pointer;
@@ -589,6 +804,7 @@ type
   GpRectF           = PGPRectF;
   GpRect            = PGPRect;
   GpDashStyle       = TDashStyle;
+  GpLineCap         = TLineCap;
   GpFlushIntention  = TFlushIntention;
 
   function GdipCreatePath(brushMode: GPFILLMODE;
@@ -757,6 +973,15 @@ type
   function GdipGetTextRenderingHint(graphics: GPGRAPHICS;
     var mode: TEXTRENDERINGHINT): GPSTATUS; stdcall;
   {$EXTERNALSYM GdipGetTextRenderingHint}
+
+  function GdipDrawRectangle(graphics: GPGRAPHICS; pen: GPPEN; x: Single;
+    y: Single; width: Single; height: Single): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipDrawRectangle}
+
+  function GdipDrawRectangleI(graphics: GPGRAPHICS; pen: GPPEN; x: Integer;
+    y: Integer; width: Integer; height: Integer): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipDrawRectangleI}
+
 
   function GdipDrawPath(graphics: GPGRAPHICS; pen: GPPEN;
     path: GPPATH): GPSTATUS; stdcall;
@@ -941,6 +1166,73 @@ type
     out trimming: STRINGTRIMMING): GPSTATUS; stdcall;
   {$EXTERNALSYM GdipGetStringFormatTrimming}
 
+  function GdipSetCompositingQuality(graphics: GPGRAPHICS;
+    compositingQuality: COMPOSITINGQUALITY): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipSetCompositingQuality}
+
+  function GdipGetCompositingQuality(graphics: GPGRAPHICS;
+    var compositingQuality: COMPOSITINGQUALITY): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipGetCompositingQuality}
+
+  function GdipImageRotateFlip(image: GPIMAGE; rfType: ROTATEFLIPTYPE): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipImageRotateFlip}
+
+  function GdipCreateBitmapFromStreamICM(stream: ISTREAM;
+    out bitmap: GPBITMAP): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipCreateBitmapFromStreamICM}
+
+  function GdipCreateBitmapFromStream(stream: ISTREAM;
+    out bitmap: GPBITMAP): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipCreateBitmapFromStream}
+
+  function GdipCreateBitmapFromScan0(width: Integer; height: Integer;
+    stride: Integer; format: PIXELFORMAT; scan0: PBYTE;
+    out bitmap: GPBITMAP): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipCreateBitmapFromScan0}
+
+  function GdipBitmapGetPixel(bitmap: GPBITMAP; x: Integer; y: Integer;
+    var color: ARGB): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipBitmapGetPixel}
+
+  function GdipBitmapSetPixel(bitmap: GPBITMAP; x: Integer; y: Integer;
+    color: ARGB): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipBitmapSetPixel}
+
+  function GdipSetPenEndCap(pen: GPPEN; endCap: GPLINECAP): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipSetPenEndCap}
+
+  function GdipAddPathLine2I(path: GPPATH; points: GPPOINT;
+    count: Integer): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipAddPathLine2I}
+  
+
+  function GdipAddPathPolygon(path: GPPATH; points: GPPOINTF;
+    count: Integer): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipAddPathPolygon}
+
+  function GdipAddPathPolygonI(path: GPPATH; points: GPPOINT;
+    count: Integer): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipAddPathPolygonI}
+
+  function GdipAddPathCurveI(path: GPPATH; points: GPPOINT;
+    count: Integer): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipAddPathCurveI}
+
+  function GdipAddPathCurve(path: GPPATH; points: GPPOINTF;
+    count: Integer): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipAddPathCurve}
+
+  function GdipAddPathCurve2I(path: GPPATH; points: GPPOINT; count: Integer;
+    tension: Single): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipAddPathCurve2I}
+
+  function GdipResetClip(graphics: GPGRAPHICS): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipResetClip}
+
+  function GdipAddPathBezier(path: GPPATH;
+    x1, y1, x2, y2, x3, y3, x4, y4: Single): GPSTATUS; stdcall;
+  {$EXTERNALSYM GdipAddPathBezier}
+  
 //***************************************************************************
 //---------------------------------------------------------------------------
 // GDI+ classes for forward reference
@@ -988,6 +1280,7 @@ type
     constructor Create(nativeOrig: GpFontFamily; status: TStatus); reintroduce; overload;
     constructor Create(name: WideString; fontCollection: TGPFontCollection = nil); reintroduce; overload;
     destructor Destroy; override;
+    property Status: TStatus read lastResult;
   end;
 
 //--------------------------------------------------------------------------
@@ -1020,6 +1313,7 @@ type
       style: TFontStyle = FontStyleRegular;
       unit_: TUnit = UnitPoint); reintroduce; overload;
     destructor Destroy; override;
+    property Status: TStatus read lastResult;    
   end;
 
 (**************************************************************************\
@@ -1089,6 +1383,7 @@ type
     destructor Destroy; override;
     function GetDashStyle: TDashStyle;
     function SetDashStyle(dashStyle: TDashStyle): TStatus;
+    function SetEndCap(endCap: TLineCap): TStatus;
   end;
 
 (**************************************************************************\
@@ -1139,6 +1434,7 @@ type
 
     function AddLine(const pt1, pt2: TGPPointF): TStatus; overload;
     function AddLine(x1, y1, x2, y2: Single): TStatus; overload;
+    function AddLines(points: PGPPoint; count: Integer): TStatus; overload;
 
     function AddArc(rect: TGPRectF; startAngle, sweepAngle: Single): TStatus; overload;
     function AddArc(x, y, width, height, startAngle, sweepAngle: Single): TStatus; overload;
@@ -1148,6 +1444,18 @@ type
 
     function AddPie(rect: TGPRectF; startAngle, sweepAngle: Single): TStatus; overload;
     function AddPie(x, y, width, height, startAngle, sweepAngle: Single): TStatus; overload;
+
+    function AddPolygon(points: PGPPointF; count: Integer): TStatus; overload;
+    function AddPolygon(points: PGPPoint; count: Integer): TStatus; overload;
+
+
+    function AddCurve(points: PGPPointF; count: Integer): TStatus; overload;
+    function AddCurve(points: PGPPoint; count: Integer): TStatus; overload;
+    function AddCurve(points: PGPPoint; count: Integer; tension: Single): TStatus; overload;
+
+    function AddBezier(pt1, pt2, pt3, pt4: TGPPoint): TStatus; overload;
+    function AddBezier(pt1, pt2, pt3, pt4: TGPPointF): TStatus; overload;
+    function AddBezier(x1, y1, x2, y2, x3, y3, x4, y4: Single): TStatus; overload;
   end;
 
 //--------------------------------------------------------------------------
@@ -1191,8 +1499,19 @@ type
     function GetFormat: TGPImageFormat;
     function GetWidth: UINT;
     function GetHeight: UINT;
+    function RotateFlip(rotateFlipType: TRotateFlipType): TStatus;
   end;
 
+  TGPBitmap = class(TGPImage)
+  protected
+    constructor Create(nativeBitmap: GpBitmap);  reintroduce; overload;
+  public
+    constructor Create(stream: IStream; useEmbeddedColorManagement: BOOL = FALSE); reintroduce; overload;
+    constructor Create(width, height: Integer; format: TPixelFormat = PixelFormat32bppARGB); reintroduce; overload;
+    function FromStream(stream: IStream; useEmbeddedColorManagement: BOOL = FALSE): TGPBitmap;
+    function GetPixel(x, y: Integer; out color: TGPColor): TStatus;
+    function SetPixel(x, y: Integer; color: TGPColor): TStatus;
+  end;
 
 (**************************************************************************\
 *
@@ -1221,6 +1540,9 @@ type
     //------------------------------------------------------------------------
     // Rendering modes
     //------------------------------------------------------------------------
+    function SetCompositingQuality(compositingQuality: TCompositingQuality): TStatus;
+    function GetCompositingQuality: TCompositingQuality;
+
     function SetTextRenderingHint(newMode: TTextRenderingHint): TStatus;
     function GetTextRenderingHint: TTextRenderingHint;
     function GetSmoothingMode: TSmoothingMode;
@@ -1231,13 +1553,22 @@ type
     function FillRectangle(brush: TGPBrush; const rect: TGPRectF): TStatus; overload;
     function FillRectangle(brush: TGPBrush; x, y, width, height: Single): TStatus; overload;
     // DrawString
-    function DrawString(string_: WideString; length: Integer; font: TGPFont;
+    {$IFNDEF DELPHI_UNICODE}
+    function DrawString(string_: String; length: Integer; font: TGPFont;
       const layoutRect: TGPRectF; stringFormat: TGPStringFormat; brush: TGPBrush): TStatus; overload;
+    {$ENDIF}
+    {$IFDEF DELPHI6_LVL}
+    function DrawString(string_: widestring; length: Integer; font: TGPFont;
+      const layoutRect: TGPRectF; stringFormat: TGPStringFormat; brush: TGPBrush): TStatus; overload;
+    {$ENDIF}
     // MeasureString
     function MeasureString(string_: WideString; length: Integer; font: TGPFont;
       const layoutRect: TGPRectF; stringFormat: TGPStringFormat; out boundingBox: TGPRectF;
       codepointsFitted: PInteger = nil; linesFilled: PInteger = nil): TStatus; overload;
-      function GetLastStatus: TStatus;
+    function GetLastStatus: TStatus;
+    // DrawRectangle
+    function DrawRectangle(pen: TGPPen; const rect: TGPRectF): TStatus; overload;
+    function DrawRectangle(pen: TGPPen; x, y, width, height: Single): TStatus; overload;
     // DrawImage
     function DrawImage(image: TGPImage; x, y: Integer): TStatus; overload;
     function DrawImageRect(image: TGPImage; x, y, w, h: Integer): TStatus; overload;
@@ -1246,8 +1577,11 @@ type
     // Clip
     function ExcludeClip(const rect: TGPRectF): TStatus; overload;
     function ExcludeClip(region: TGPRegion): TStatus; overload;
-    function SetClip(region: TGPRegion; combineMode: TCombineMode = CombineModeReplace): TStatus; overload;
+    function SetClip(region: TGPRegion; combineMode: TCombineMode = CombineModeReplace): TStatus;
+    function ResetClip: TStatus;
   end;
+
+  function ColorToARGB(Color: TColor): ARGB;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1256,9 +1590,18 @@ var
    StartupOutput: TGdiplusStartupOutput;
    gdiplusToken: ULONG;
 
-////////////////////////////////////////////////////////////////////////////////
+
 
 implementation
+
+function ColorToARGB(Color: TColor): ARGB;
+var
+  c: TColor;
+begin
+  c := ColorToRGB(Color);
+  Result := ARGB( $FF000000 or ((DWORD(c) and $FF) shl 16) or ((DWORD(c) and $FF00) or ((DWORD(c) and $ff0000) shr 16)));
+end;
+
 
   function GdipAlloc; external WINGDIPDLL name 'GdipAlloc';
   procedure GdipFree; external WINGDIPDLL name 'GdipFree';
@@ -1303,7 +1646,6 @@ implementation
   function GdipGetTextRenderingHint; external WINGDIPDLL name 'GdipGetTextRenderingHint';
   function GdipDrawPath; external WINGDIPDLL name 'GdipDrawPath';
   function GdipFillRectangle; external WINGDIPDLL name 'GdipFillRectangle';
-  function GdipFillPath; external WINGDIPDLL name 'GdipFillPath';
   function GdipCreateFontFamilyFromName; external WINGDIPDLL name 'GdipCreateFontFamilyFromName';
   function GdipDeleteFontFamily; external WINGDIPDLL name 'GdipDeleteFontFamily';
   function GdipCreateFont; external WINGDIPDLL name 'GdipCreateFont';
@@ -1324,6 +1666,9 @@ implementation
   function GdipDrawImageI; external WINGDIPDLL name 'GdipDrawImageI';
   function GdipDrawImageRect; external WINGDIPDLL name 'GdipDrawImageRect';
   function GdipDrawImageRectI; external WINGDIPDLL name 'GdipDrawImageRectI';
+  function GdipDrawRectangle; external WINGDIPDLL name 'GdipDrawRectangle';
+  function GdipDrawRectangleI; external WINGDIPDLL name 'GdipDrawRectangleI';
+  function GdipFillPath; external WINGDIPDLL name 'GdipFillPath';
   function GdipLoadImageFromFileICM; external WINGDIPDLL name 'GdipLoadImageFromFileICM';
   function GdipLoadImageFromFile; external WINGDIPDLL name 'GdipLoadImageFromFile';
   function GdipLoadImageFromStream; external WINGDIPDLL name 'GdipLoadImageFromStream';
@@ -1342,15 +1687,48 @@ implementation
   function GdipDeleteRegion; external WINGDIPDLL name 'GdipDeleteRegion';
   function GdipCombineRegionPath; external WINGDIPDLL name 'GdipCombineRegionPath';
   function GdipCombineRegionRegion; external WINGDIPDLL name 'GdipCombineRegionRegion';
+  function GdipSetCompositingQuality; external WINGDIPDLL name 'GdipSetCompositingQuality';
+  function GdipGetCompositingQuality; external WINGDIPDLL name 'GdipGetCompositingQuality';
+  function GdipImageRotateFlip; external WINGDIPDLL name 'GdipImageRotateFlip';
+  function GdipCreateBitmapFromStreamICM; external WINGDIPDLL name 'GdipCreateBitmapFromStreamICM';
+  function GdipCreateBitmapFromStream; external WINGDIPDLL name 'GdipCreateBitmapFromStream';
+  function GdipCreateBitmapFromScan0; external WINGDIPDLL name 'GdipCreateBitmapFromScan0';
+  function GdipBitmapGetPixel; external WINGDIPDLL name 'GdipBitmapGetPixel';
+  function GdipBitmapSetPixel; external WINGDIPDLL name 'GdipBitmapSetPixel';
+  function GdipSetPenEndCap; external WINGDIPDLL name 'GdipSetPenEndCap';
+  function GdipAddPathLine2I; external WINGDIPDLL name 'GdipAddPathLine2I';
 
+  function GdipAddPathPolygon; external WINGDIPDLL name 'GdipAddPathPolygon';
+  function GdipAddPathPolygonI; external WINGDIPDLL name 'GdipAddPathPolygonI';
+  function GdipAddPathCurveI; external WINGDIPDLL name 'GdipAddPathCurveI';
+  function GdipAddPathCurve; external WINGDIPDLL name 'GdipAddPathCurve';
+  function GdipAddPathCurve2I; external WINGDIPDLL name 'GdipAddPathCurve2I';
+  function GdipResetClip; external WINGDIPDLL name 'GdipResetClip';
+  function GdipAddPathBezier; external WINGDIPDLL name 'GdipAddPathBezier';
 // -----------------------------------------------------------------------------
 // TGdiplusBase class
 // -----------------------------------------------------------------------------
 
 
 class function TGdiplusBase.NewInstance: TObject;
+var
+  p  : pointer;
+  sz : ULONG;
 begin
-  Result := InitInstance(GdipAlloc(ULONG(instanceSize)));
+  { Note: GidpAlloc may fail on Windows XP if application is started from
+    Delphi 2007 in debug mode.
+    The reason for this fix is to workaround the following problem:
+    After an application with a TAdvOfficeToolBar executes a standard TOpenDialog,
+    an exception is raised while drawing the officetoolbar. }
+  sz := ULONG(InstanceSize);
+  p := GdipAlloc(sz);
+  if not Assigned(p) then 
+  begin
+    //GdipAlloc failed --> restart GDI+ and try again
+    GdiplusStartup(gdiplusToken, @StartupInput, @StartupOutput);
+    p := GdipAlloc(sz);
+  end;
+  Result := InitInstance(p);
 end;
 
 procedure TGdiplusBase.FreeInstance;
@@ -1521,6 +1899,10 @@ begin
   result := SetStatus(GdipSetPenDashStyle(nativePen, dashStyle));
 end;
 
+function TGPPen.SetEndCap(endCap: TLineCap): TStatus;
+begin
+  result := SetStatus(GdipSetPenEndCap(nativePen, endCap));
+end;
 
 
 (**************************************************************************\
@@ -1697,7 +2079,50 @@ begin
                       width, height));
 end;
 
-function TGPGraphics.DrawString( string_: WideString; length: Integer; font: TGPFont;
+{$IFNDEF DELPHI_UNICODE}
+function TGPGraphics.DrawString( string_: string; length: Integer; font: TGPFont;
+  const layoutRect: TGPRectF; stringFormat: TGPStringFormat; brush: TGPBrush): TStatus;
+var
+  nFont: GpFont;
+  nStringFormat: GpStringFormat;
+  nBrush: GpBrush;
+  wCh: PWidechar;
+  i: integer;
+begin
+  if Assigned(font) then
+    nfont := font.nativeFont
+  else
+    nfont := nil;
+  if Assigned(stringFormat) then
+    nstringFormat := stringFormat.nativeFormat
+  else
+    nstringFormat := nil;
+
+  {charset issue}
+  i := System.Length(string_);
+  GetMem(wCh, i * 2 + 2);
+  FillChar(wCh^, i * 2 + 2,0);
+  StringToWidechar(string_, wCh, i * 2 + 2);
+  {/charset issue}
+
+  if Assigned(brush) then
+    nbrush := brush.nativeBrush
+  else
+    nbrush := nil;
+//  Result := SetStatus(GdipDrawString(nativeGraphics, PWideChar(string_),
+//        length, nfont, @layoutRect, nstringFormat, nbrush));
+
+  {charset issue}
+  Result := SetStatus(GdipDrawString(nativeGraphics, wCh,
+        length, nfont, @layoutRect, nstringFormat, nbrush));
+
+  FreeMem(wCh);
+  {/charset issue}
+end;
+{$ENDIF}
+
+{$IFDEF DELPHI6_LVL}
+function TGPGraphics.DrawString( string_: widestring; length: Integer; font: TGPFont;
   const layoutRect: TGPRectF; stringFormat: TGPStringFormat; brush: TGPBrush): TStatus;
 var
   nFont: GpFont;
@@ -1717,9 +2142,11 @@ begin
     nbrush := brush.nativeBrush
   else
     nbrush := nil;
+
   Result := SetStatus(GdipDrawString(nativeGraphics, PWideChar(string_),
         length, nfont, @layoutRect, nstringFormat, nbrush));
 end;
+{$ENDIF}
 
 function TGPGraphics.MeasureString(string_: WideString; length: Integer; font: TGPFont;
   const layoutRect: TGPRectF; stringFormat: TGPStringFormat; out boundingBox: TGPRectF;
@@ -2119,6 +2546,16 @@ end;
     result := SetStatus(GdipSetPathGradientCenterPointI(GpPathGradient(nativeBrush), @point));
   end;
 
+function TGPGraphics.DrawRectangle(pen: TGPPen; const rect: TGPRectF): TStatus;
+begin
+  Result := DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
+end;
+
+function TGPGraphics.DrawRectangle(pen: TGPPen; x, y, width, height: Single): TStatus;
+begin
+  Result := SetStatus(GdipDrawRectangle(nativeGraphics, pen.nativePen, x, y, width, height));
+end;
+
 function TGPGraphics.DrawImage(image: TGPImage; x, y: Integer): TStatus;
 var
   nImage: GpImage;
@@ -2249,6 +2686,11 @@ begin
 end;
 
 
+function TGPGraphicsPath.AddLines(points: PGPPoint; count: Integer): TStatus;
+begin
+  result := SetStatus(GdipAddPathLine2I(nativePath, points, count));
+end;
+
 function TGPGraphicsPath.AddPie(rect: TGPRectF; startAngle,
   sweepAngle: Single): TStatus;
 begin
@@ -2260,6 +2702,53 @@ function TGPGraphicsPath.AddPie(x, y, width, height, startAngle,
 begin
   result := SetStatus(GdipAddPathPie(nativePath, x, y, width, height, startAngle, sweepAngle));
 end;
+
+function TGPGraphicsPath.AddPolygon(points: PGPPointF;
+  count: Integer): TStatus;
+begin
+  result := SetStatus(GdipAddPathPolygon(nativePath, points, count));
+end;
+
+function TGPGraphicsPath.AddPolygon(points: PGPPoint;
+  count: Integer): TStatus;
+begin
+  result := SetStatus(GdipAddPathPolygonI(nativePath, points, count));
+end;
+
+function TGPGraphicsPath.AddCurve(points: PGPPointF;
+  count: Integer): TStatus;
+begin
+  result := SetStatus(GdipAddPathCurve(nativePath, points, count));
+end;
+
+function TGPGraphicsPath.AddCurve(points: PGPPoint;
+  count: Integer): TStatus;
+begin
+  result := SetStatus(GdipAddPathCurveI(nativePath, points, count));
+end;
+
+function TGPGraphicsPath.AddCurve(points: PGPPoint; count: Integer; tension: Single): TStatus;
+begin
+  result := SetStatus(GdipAddPathCurve2I(nativePath, points, count, tension));
+end;
+
+function TGPGraphicsPath.AddBezier(pt1, pt2, pt3, pt4: TGPPoint): TStatus;
+begin
+  result := AddBezier(pt1.X, pt1.Y, pt2.X, pt2.Y, pt3.X, pt3.Y, pt4.X, pt4.Y);
+end;
+
+function TGPGraphicsPath.AddBezier(pt1, pt2, pt3, pt4: TGPPointF): TStatus;
+begin
+  result := AddBezier(pt1.X, pt1.Y, pt2.X, pt2.Y, pt3.X, pt3.Y, pt4.X, pt4.Y);
+end;
+
+function TGPGraphicsPath.AddBezier(x1, y1, x2, y2, x3, y3, x4,
+  y4: Single): TStatus;
+begin
+  result := SetStatus(GdipAddPathBezier(nativePath, x1, y1, x2, y2, x3, y3, x4, y4));
+end;
+
+//------------------------------------------------------------------------------
 
 function TGPGraphics.FillPath(brush: TGPBrush;
   path: TGPGraphicsPath): TStatus;
@@ -2277,12 +2766,113 @@ begin
   result := SetStatus(GdipSetClipRegion(nativeGraphics, region.nativeRegion, CombineModeExclude));
 end;
 
-
 function TGPGraphics.SetClip(region: TGPRegion;
   combineMode: TCombineMode): TStatus;
 begin
   result := SetStatus(GdipSetClipRegion(nativeGraphics, region.nativeRegion, combineMode));
 end;
+
+function TGPGraphics.ResetClip: TStatus;
+begin
+  result := SetStatus(GdipResetClip(nativeGraphics));
+end;
+
+function MakeColor(a, r, g, b: Byte): ARGB; overload;
+begin
+  result := ((DWORD(b) shl  BlueShift) or
+             (DWORD(g) shl GreenShift) or
+             (DWORD(r) shl   RedShift) or
+             (DWORD(a) shl AlphaShift));
+end;
+
+function MakeColor(r, g, b: Byte): ARGB; overload;
+begin
+  result := MakeColor(255, r, g, b);
+end;
+
+function GetAlpha(color: ARGB): BYTE;
+begin
+  result := BYTE(color shr AlphaShift);
+end;
+
+function GetRed(color: ARGB): BYTE;
+begin
+  result := BYTE(color shr RedShift);
+end;
+
+function GetGreen(color: ARGB): BYTE;
+begin
+  result := BYTE(color shr GreenShift);
+end;
+
+function GetBlue(color: ARGB): BYTE;
+begin
+  result := BYTE(color shr BlueShift);
+end;
+
+function TGPGraphics.GetCompositingQuality: TCompositingQuality;
+begin
+  SetStatus(GdipGetCompositingQuality(nativeGraphics, result));
+end;
+
+function TGPGraphics.SetCompositingQuality(
+  compositingQuality: TCompositingQuality): TStatus;
+begin
+  result := SetStatus(GdipSetCompositingQuality( nativeGraphics, compositingQuality));
+end;
+
+function TGPImage.RotateFlip(rotateFlipType: TRotateFlipType): TStatus;
+begin
+  Result := SetStatus(GdipImageRotateFlip(nativeImage, rotateFlipType));
+end;
+
+
+{ TGPBitmap }
+
+constructor TGPBitmap.Create(stream: IStream; useEmbeddedColorManagement: BOOL);
+var
+  bitmap: GpBitmap;
+begin
+  bitmap := nil;
+  if(useEmbeddedColorManagement) then
+    lastResult := GdipCreateBitmapFromStreamICM(stream, bitmap)
+  else
+    lastResult := GdipCreateBitmapFromStream(stream, bitmap);
+  SetNativeImage(bitmap);
+end;
+
+constructor TGPBitmap.Create(nativeBitmap: GpBitmap);
+begin
+  lastResult := Ok;
+  SetNativeImage(nativeBitmap);
+end;
+
+constructor TGPBitmap.Create(width, height: Integer; format: TPixelFormat);
+var
+  bitmap: GpBitmap;
+begin
+  bitmap := nil;
+  lastResult := GdipCreateBitmapFromScan0(width, height, 0, format, nil, bitmap);
+  SetNativeImage(bitmap);
+end;
+
+function TGPBitmap.FromStream(stream: IStream;
+  useEmbeddedColorManagement: BOOL): TGPBitmap;
+begin
+  Result := TGPBitmap.Create(stream, useEmbeddedColorManagement);
+end;
+
+function TGPBitmap.GetPixel(x, y: Integer; out color: TGPColor): TStatus;
+begin
+  Result := SetStatus(GdipBitmapGetPixel(GpBitmap(nativeImage), x, y, color));
+end;
+
+function TGPBitmap.SetPixel(x, y: Integer; color: TGPColor): TStatus;
+begin
+  Result := SetStatus(GdipBitmapSetPixel(GpBitmap(nativeImage), x, y, color));
+end;
+
+
 
 initialization
 begin

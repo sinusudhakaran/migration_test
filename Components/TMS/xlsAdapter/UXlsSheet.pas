@@ -63,6 +63,7 @@ type
     procedure AddOrRemovePane(const Add: boolean);virtual;
 
     property Window2Frozen: boolean read GetWindow2Frozen write SetWindow2Frozen;
+
   public
     OriginalDimensions: TDimensionsRec;
 
@@ -105,6 +106,7 @@ type
     function TotalSize:int64; override;
     function TotalRangeSize(const SheetIndex: integer; const CellRange: TXlsCellRange):int64; override;
 
+   	procedure RestoreObjectCoords; virtual;
   end;
 
   ClassOfTSheet= class of TSheet;
@@ -112,12 +114,14 @@ type
   TFlxChart = class (TSheet)
   private
     FChartRecords: TChartRecordList;
+    procedure LoadSubChart(const DataStream: TStream; const SST: TSST; const Level: integer);
   protected
     procedure SetPageHeaderFooter(const P: TPageHeaderFooterRecord; const s: Widestring);override;
     procedure AddZoomRecord; override;
     procedure FixCachePointers; override;
 
   public
+    RemainingData: TBaseRecord;
 
     constructor Create(const aWorkbookGlobals: TWorkbookGlobals);override;
     destructor Destroy;override;
@@ -126,8 +130,8 @@ type
     function TotalSize:int64; override;
     function TotalRangeSize(const SheetIndex: integer; const CellRange: TXlsCellRange):int64; override;
     procedure LoadFromStream( const DataStream: TStream; const First: TBOFRecord; const SST: TSST);override;
-    procedure SaveToStream(const DataStream: TStream);override;
-    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange);override;
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);override;
+    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);override;
     procedure Clear; override;
     procedure ArrangeCopyRowsAndCols(const RowOffset, ColOffset: integer);
     procedure ArrangeCopySheet(const SheetInfo: TSheetInfo);override;
@@ -163,8 +167,8 @@ type
     function TotalSize:int64; override;
     function TotalRangeSize(const SheetIndex: integer; const CellRange: TXlsCellRange):int64; override;
     procedure LoadFromStream( const DataStream: TStream; const First: TBOFRecord; const SST: TSST);override;
-    procedure SaveToStream(const DataStream: TStream);override;
-    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange);override;
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);override;
+    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);override;
     procedure Clear; override;
     procedure ArrangeCopySheet(const SheetInfo: TSheetInfo);override;
     procedure ArrangeInsertRowsAndCols(const InsRowPos, InsRowCount, InsColPos, InsColCount: integer; const SheetInfo: TSheetInfo);override;
@@ -223,6 +227,12 @@ type
     procedure AddPrinterDriverRecord(const aPlsRecord: TPlsRecord; const FRecords: TBaseRecordList);
     procedure RemovePrinterDriverRecord;overload;
     procedure RemovePrinterDriverRecord(const FRecords: TBaseRecordList);overload;
+    function GetOutlineSummaryColsRightOfDetail: boolean;
+    function GetOutlineSummaryRowsBelowDetail: boolean;
+    function GetOutlineAutomaticStyles: boolean;
+    procedure SetOutlineSummaryColsRightOfDetail(const value: boolean);
+    procedure SetOutlineSummaryRowsBelowDetail(const value: boolean);
+    procedure SetOutlineAutomaticStyles(const value: boolean);
   protected
     procedure AddZoomRecord; override;
     procedure SetPageHeaderFooter(const P: TPageHeaderFooterRecord; const s: Widestring);override;
@@ -237,8 +247,8 @@ type
     function TotalSize:int64; override;
     function TotalRangeSize(const SheetIndex: integer; const CellRange: TXlsCellRange): int64;override;
     procedure LoadFromStream( const DataStream: TStream; const First: TBOFRecord; const SST: TSST);override;
-    procedure SaveToStream(const DataStream: TStream);override;
-    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange);override;
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);override;
+    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);override;
     procedure Clear; override;
 
     procedure InsertAndCopyRowsAndCols(const FirstRow, LastRow, DestRow, aRowCount,FirstCol, LastCol, DestCol, aColCount: integer; const SheetInfo: TSheetInfo; const OnlyFormulas: boolean);override;
@@ -272,8 +282,10 @@ type
     procedure InsertHPageBreak(const aRow: word);override;
     procedure InsertVPageBreak(const aCol: word);override;
 
-    function GetRowHeight(const aRow: integer): integer;
-    function GetColWidth(const aCol: Word): integer;
+    function GetRowHeight(const aRow: integer): integer;overload;
+    function GetRowHeight(const aRow: integer; const HiddenIsZero: boolean): integer;overload;
+    function GetColWidth(const aCol: Word): integer;overload;
+    function GetColWidth(const aCol: Word; const HiddenIsZero: boolean): integer;overload;
     procedure SetRowHeight(const aRow: integer; const Value: integer);
     procedure SetColWidth(const aCol: Word; const Value: integer);
 
@@ -313,11 +325,20 @@ type
 
     property PrinterDriverSettings: TPrinterDriverSettings read GetPrinterDriverSettings write SetPrinterDriverSettings;
 
-
     constructor DoCreateFromData(const SST: TSST);
 
     property RowOutlineLevel[row: integer]: integer read GetRowOutlineLevel write SetRowOulineLevel;
     property ColOutlineLevel[col: integer]: integer read GetColOutlineLevel write SetColOulineLevel;
+    property OutlineSummaryRowsBelowDetail: boolean read GetOutlineSummaryRowsBelowDetail write SetOutlineSummaryRowsBelowDetail;
+    property OutlineSummaryColsRightOfDetail: boolean read GetOutlineSummaryColsRightOfDetail write SetOutlineSummaryColsRightOfDetail;
+    property OutlineAutomaticStyles: boolean read GetOutlineAutomaticStyles write SetOutlineAutomaticStyles;
+
+  	procedure RestoreObjectCoords; override;
+
+    procedure RecalcRowHeights(const Workbook: pointer; const Row1, Row2: Integer; const Forced: Boolean; const KeepAutoFit: Boolean; const Adjustment: extended);
+    procedure RecalcColWidths(const Workbook: pointer; const Col1, Col2: Integer; const IgnoreStrings: Boolean; const Adjustment: extended);
+
+
   end;
 
 implementation
@@ -691,6 +712,11 @@ begin
 
 end;
 
+procedure TSheet.RestoreObjectCoords;
+begin
+
+end;
+
 { TFlxChart }
 
 procedure TFlxChart.ArrangeCopyRowsAndCols(const RowOffset, ColOffset: integer);
@@ -717,6 +743,7 @@ procedure TFlxChart.Clear;
 begin
   inherited;
   if FChartRecords<>nil then FChartRecords.Clear;
+  FreeAndNil(RemainingData);
   //We don't clear CodeName.
 end;
 
@@ -726,6 +753,7 @@ begin
   (Result as TFlxChart).FChartRecords.CopyFrom(FChartRecords);
   (Result as TFlxChart).FPrintRecords:=(Result as TFlxChart).FChartRecords;
   Result.FixCachePointers;
+  (Result as TFlxChart).RemainingData := nil; //we will not copy this
 end;
 
 constructor TFlxChart.Create(const aWorkbookGlobals: TWorkbookGlobals);
@@ -739,47 +767,66 @@ destructor TFlxChart.Destroy;
 begin
   FreeAndNil(FChartRecords);
   FreeAndNil(FCodeName);
+  FreeAndNil(RemainingData);
   inherited;
 end;
 
-procedure TFlxChart.LoadFromStream(const DataStream: TStream;
-  const First: TBOFRecord; const SST: TSST);
+
+procedure TFlxChart.LoadSubChart(const DataStream: TStream; const SST: TSST; const Level: integer);
 var
   RecordHeader: TRecordHeader;
   R: TBaseRecord;
 begin
-  Clear;
   repeat
     if (DataStream.Read(RecordHeader, sizeof(RecordHeader)) <> sizeof(RecordHeader)) then
       raise Exception.Create(ErrExcelInvalid);
 
     R:=LoadRecord(DataStream, RecordHeader);
     try
-      LoadCachePointers(R);
+      if (Level = 0) then LoadCachePointers(R); //CachePointers are only on level 0, as they refer to the sheet
 
-      if (R is TLabelSSTRecord) then (R as TLabelSSTRecord).AttachToSST(SST);
-      if (R is TBofRecord) then raise Exception.Create(ErrExcelInvalid)
+      if (R is TBofRecord) then raise Exception.Create(ErrExcelInvalid);
+      if (R is TLabelSSTRecord) then (R as TLabelSSTRecord).AttachToSST(SST)
       else if (R is TIgnoreRecord) then FreeAndNil(R)
       else if (R is TDimensionsRecord) then begin; OriginalDimensions:=(R as TDimensionsRecord).Dim^; FreeAndNil(R);end
       else if (R is TEOFRecord) then sEOF:=(R as TEOFRecord)
       else if (R is TCodeNameRecord) then begin; FreeAndNil(FCodeName); FCodeName:=(R as TCodeNameRecord); end
+      else if (R is TBeginRecord)then begin; FChartRecords.Add(R); LoadSubChart(DataStream, SST, Level + 1); end
+
       else FChartRecords.Add(R) ;
+
+
+
+      if (R<>nil) and (R.Id = xlr_EOF) then
+      begin
+        RemainingData := R.Continue;
+        R.Continue := nil;
+      end;
+
     except
       FreeAndNil(R);
       Raise;
     end; //Finally
 
-  until RecordHeader.id = xlr_EOF;
+  until (RecordHeader.id = xlr_EOF) or (RecordHeader.Id = xlr_END);
+
+end;
+
+procedure TFlxChart.LoadFromStream(const DataStream: TStream;
+  const First: TBOFRecord; const SST: TSST);
+begin
+  Clear;
+  LoadSubChart(DataStream, SST, 0);
   sBOF:=First; //Last statement
 end;
 
-procedure TFlxChart.SaveToStream(const DataStream: TStream);
+procedure TFlxChart.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 begin
   if (sBOF=nil)or(sEOF=nil) then raise Exception.Create(ErrSectionNotLoaded);
-  sBOF.SaveToStream(DataStream);
-  FChartRecords.SaveToStream(DataStream);
-  if (FCodeName<>nil) then FCodeName.SaveToStream(DataStream);
-  sEOF.SaveToStream(DataStream);
+  sBOF.SaveToStream(DataStream, NeedsRecalc);
+  FChartRecords.SaveToStream(DataStream, NeedsRecalc);
+  if (FCodeName<>nil) then FCodeName.SaveToStream(DataStream, NeedsRecalc);
+  sEOF.SaveToStream(DataStream, NeedsRecalc);
 end;
 
 function TFlxChart.TotalSize: int64;
@@ -789,10 +836,10 @@ begin
 end;
 
 procedure TFlxChart.SaveRangeToStream(const DataStream: TStream;
-  const SheetIndex: integer; const CellRange: TXlsCellRange);
+  const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 begin
   //Can't save a chart range
-  SaveToStream(DataStream);
+  SaveToStream(DataStream, NeedsRecalc);
 end;
 
 function TFlxChart.TotalRangeSize(const SheetIndex: integer; const CellRange: TXlsCellRange): int64;
@@ -845,7 +892,7 @@ procedure TChartList.SaveToStream(const DataStream: TStream);
 var
   i:integer;
 begin
-  for i:=0 to Count-1 do Items[i].SaveToStream(DataStream);
+  for i:=0 to Count-1 do Items[i].SaveToStream(DataStream, false);
 end;
 
 { TWorkSheet }
@@ -913,7 +960,7 @@ begin
   (Result as TWorkSheet).FMiscRecords2.CopyFrom(FMiscRecords2);
   (Result as TWorkSheet).FHPageBreaks.CopyFrom(FHPageBreaks);
   (Result as TWorkSheet).FVPageBreaks.CopyFrom(FVPageBreaks);
-  (Result as TWorkSheet).FDrawing.CopyFrom(FDrawing);
+  (Result as TWorkSheet).FDrawing.CopyFrom(FDrawing, self);
   (Result as TWorkSheet).FCells.CopyFrom(FCells);
   (Result as TWorkSheet).FRanges.CopyFrom(FRanges);
   (Result as TWorkSheet).FNotes.CopyFrom(FNotes);
@@ -1074,20 +1121,21 @@ begin
 
     FNotes.FixDwgIds(FDrawing);
     FCells.CellList.FixFormulas(FShrFmlas);
+		FDrawing.SaveObjectCoords(self);
   finally
     FreeAndNil(FShrFmlas);
   end; //finally
 
   FCells.FixRows; //if the file was invalid.
-  
+
   //this must be the last statment, so if there is an exception, we dont take First
   sBOF:= First;
 end;
 
-procedure TWorkSheet.SaveToStream(const DataStream: TStream);
+procedure TWorkSheet.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 begin
   if (sBOF=nil)or(sEOF=nil) then raise Exception.Create(ErrSectionNotLoaded);
-  sBOF.SaveToStream(DataStream);
+  sBOF.SaveToStream(DataStream, NeedsRecalc);
 
   if (FGuts<>nil) and FGuts.RecalcNeeded then
   begin
@@ -1096,38 +1144,38 @@ begin
     FGuts.RecalcNeeded:=false;
   end;
 
-  FMiscRecords1.SaveToStream(DataStream);
+  FMiscRecords1.SaveToStream(DataStream, NeedsRecalc);
   FHPageBreaks.SaveToStream(DataStream);
   FVPageBreaks.SaveToStream(DataStream);
   FColumns.SaveToStream(DataStream);
-  FCells.SaveToStream(DataStream);
+  FCells.SaveToStream(DataStream, NeedsRecalc);
   FDrawing.SaveToStream(DataStream);
-  FNotes.SaveToStream(DataStream);
-  FMiscRecords2.SaveToStream(DataStream);
+  FNotes.SaveToStream(DataStream, NeedsRecalc);
+  FMiscRecords2.SaveToStream(DataStream, NeedsRecalc);
   FRanges.SaveToStream(DataStream);
   FHLinks.SaveToStream(DataStream);
-  if (FCodeName<>nil) then FCodeName.SaveToStream(DataStream);
-  sEOF.SaveToStream(DataStream);
+  if (FCodeName<>nil) then FCodeName.SaveToStream(DataStream, NeedsRecalc);
+  sEOF.SaveToStream(DataStream, NeedsRecalc);
 end;
 
 procedure TWorkSheet.SaveRangeToStream(const DataStream: TStream;
-  const SheetIndex: integer; const CellRange: TXlsCellRange);
+  const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 begin
   if (sBOF=nil)or(sEOF=nil) then raise Exception.Create(ErrSectionNotLoaded);
-  sBOF.SaveToStream(DataStream);
-  FMiscRecords1.SaveToStream(DataStream);
+  sBOF.SaveToStream(DataStream, NeedsRecalc);
+  FMiscRecords1.SaveToStream(DataStream, NeedsRecalc);
   FHPageBreaks.SaveRangeToStream(DataStream, CellRange);
   FVPageBreaks.SaveRangeToStream(DataStream, CellRange);
   FColumns.SaveRangeToStream(DataStream, CellRange);
-  FCells.SaveRangeToStream(DataStream, CellRange);
+  FCells.SaveRangeToStream(DataStream, CellRange, NeedsRecalc);
   //Excel doesnt save drawings to the clipboard
   //FDrawing.SaveToStream(DataStream);
-  FNotes.SaveRangeToStream(DataStream, CellRange);
-  FMiscRecords2.SaveToStream(DataStream);
+  FNotes.SaveRangeToStream(DataStream, CellRange, NeedsRecalc);
+  FMiscRecords2.SaveToStream(DataStream, NeedsRecalc);
   FRanges.SaveRangeToStream(DataStream, CellRange);
   FHLinks.SaveRangeToStream(DataStream, CellRange);
-  if (FCodeName<>nil) then FCodeName.SaveToStream(DataStream);
-  sEOF.SaveToStream(DataStream);
+  if (FCodeName<>nil) then FCodeName.SaveToStream(DataStream, NeedsRecalc);
+  sEOF.SaveToStream(DataStream, NeedsRecalc);
 end;
 
 procedure TWorkSheet.InsertAndCopyRowsAndCols(const FirstRow, LastRow, DestRow, aRowCount,FirstCol, LastCol, DestCol, aColCount: integer; const SheetInfo: TSheetInfo; const OnlyFormulas: boolean);
@@ -1153,7 +1201,7 @@ begin
     r.Top:=0;r.Bottom:=Max_Rows;r.Left:=FirstCol; r.Right:=LastCol;
     FHLinks.InsertAndCopyRange(r, 0, DestCol, 0, aColCount, SheetInfo);
   end;
-  FDrawing.InsertAndCopyRowsAndCols(FirstRow, LastRow, DestRow, aRowCount, FirstCol, LastCol, DestCol, aColCount, SheetInfo);
+  FDrawing.InsertAndCopyRowsAndCols(FirstRow, LastRow, DestRow, aRowCount, FirstCol, LastCol, DestCol, aColCount, SheetInfo, self);
 end;
 
 procedure TWorkSheet.DeleteRowsAndCols(const aRow, aRowCount, aCol, aColCount: word; const SheetInfo: TSheetInfo);
@@ -1163,7 +1211,7 @@ begin
   if (aRowCount>0) then
   begin
     FCells.DeleteRows(aRow, aRowCount, SheetInfo);
-    FDrawing.DeleteRows(aRow, aRowCount, SheetInfo);
+    FDrawing.DeleteRows(aRow, aRowCount, SheetInfo, self);
     FRanges.DeleteRowsOrCols(aRow, aRowCount, SheetInfo, false);
     FNotes.DeleteRows(aRow, aRowCount, SheetInfo);
     FHPageBreaks.DeleteRows(aRow, aRowCount);
@@ -1173,7 +1221,7 @@ begin
   if (aColCount>0) then
   begin
     FCells.DeleteCols(aCol, aColCount, SheetInfo);
-    FDrawing.DeleteCols(aCol, aColCount, SheetInfo);
+    FDrawing.DeleteCols(aCol, aColCount, SheetInfo, self);
     FRanges.DeleteRowsOrCols(aCol, aColCount, SheetInfo, true);
     FNotes.DeleteCols(aCol, aColCount, SheetInfo);
     FVPageBreaks.DeleteCols(aCol, aColCount);
@@ -1188,7 +1236,7 @@ procedure TWorkSheet.ArrangeInsertRowsAndCols(const InsRowPos, InsRowCount, InsC
 begin
   //PENDING: Optimize this
   FCells.ArrangeInsertRowsAndCols(InsRowPos, InsRowCount, InsColPos, InsColCount, SheetInfo);
-  FDrawing.ArrangeInsertRowsAndCols(InsRowPos, InsRowCount, InsColPos, InsColCount, SheetInfo);
+  FDrawing.ArrangeInsertRowsAndCols(InsRowPos, InsRowCount, InsColPos, InsColCount, SheetInfo, self);
 end;
 
 
@@ -1258,11 +1306,34 @@ begin
   if not FColumns.Find(aCol, Index) then Result:=DefColWidth else Result:=FColumns[Index].Width;
 end;
 
+function TWorkSheet.GetColWidth(const aCol: Word; const HiddenIsZero: boolean): integer;
+var
+  index: integer;
+begin
+  if not FColumns.Find(aCol, Index) then Result:=DefColWidth
+  else
+  begin
+    if HiddenIsZero and (FColumns[Index].Options and $01 = $01) then Result := 0
+      else Result:=FColumns[Index].Width;
+  end;
+end;
+
 function TWorkSheet.GetRowHeight(const aRow: integer): integer;
 begin
   if not FCells.RowList.HasRow(aRow) then Result:=DefRowHeight else
   Result:= FCells.RowList.RowHeight(aRow);
 end;
+
+function TWorkSheet.GetRowHeight(const aRow: integer; const HiddenIsZero: boolean): integer;
+begin
+  if not FCells.RowList.HasRow(aRow) then Result:=DefRowHeight
+  else
+  begin
+    if HiddenIsZero and FCells.RowList[aRow].IsHidden then Result := 0
+      else Result:=FCells.RowList.RowHeight(aRow);
+  end;
+end;
+
 
 procedure TWorkSheet.SetColWidth(const aCol: Word; const Value: integer);
 var
@@ -1303,13 +1374,13 @@ begin
       FColumns[Index].Options:=FColumns[Index].Options or $1;
     end else
     begin
-      if FColumns[Index].Width=0 then FColumns[Index].Width:=$A;
+      if FColumns[Index].Width=0 then FColumns[Index].Width:=DefColWidth;
       FColumns[Index].Options:=FColumns[Index].Options and not $1;
     end;
   end
   else
     if Value then
-      FColumns.Insert(Index, TColInfo.Create(aCol, $A, 15, $1));
+      FColumns.Insert(Index, TColInfo.Create(aCol, DefColWidth, 15, $1));
 end;
 
 procedure TWorkSheet.SetRowHidden(const aRow: integer;const Value: boolean);
@@ -1367,7 +1438,7 @@ end;
 
 procedure TWorkSheet.SetAnchor(const Index: integer; const aAnchor: TClientAnchor);
 begin
-  FDrawing.SetAnchor(Index, aAnchor);
+  FDrawing.SetAnchor(Index, aAnchor, self);
 end;
 
 
@@ -1538,6 +1609,24 @@ begin
     Result:= FWsBool.FitToPage;
 end;
 
+function TWorkSheet.GetOutlineSummaryRowsBelowDetail: boolean;
+begin
+  if FWsBool= nil then Result:=true else
+    Result:= FWsBool.OutlineSummaryRowsBelowDetail;
+end;
+
+function TWorkSheet.GetOutlineSummaryColsRightOfDetail: boolean;
+begin
+  if FWsBool= nil then Result:=true else
+    Result:= FWsBool.OutlineSummaryColsRightOfDetail;
+end;
+
+function TWorkSheet.GetOutlineAutomaticStyles: boolean;
+begin
+  if FWsBool= nil then Result:=false else
+    Result:= FWsBool.OutlineAutomaticStyles;
+end;
+
 procedure TWorkSheet.SetPrintNumberOfHorizontalPages(const Value: word);
 begin
   if FSetup<>nil then FSetup.FitWidth:=Value;
@@ -1560,9 +1649,24 @@ begin
   if FWSBool<>nil then FWsBool.FitToPage:=value;
 end;
 
+procedure TWorkSheet.SetOutlineSummaryRowsBelowDetail(const value: boolean);
+begin
+  if FWsBool <> nil then FWsBool.OutlineSummaryRowsBelowDetail:=value;
+end;
+
+procedure TWorkSheet.SetOutlineSummaryColsRightOfDetail(const value: boolean);
+begin
+  if FWsBool <> nil then FWsBool.OutlineSummaryColsRightOfDetail:=value;
+end;
+
+procedure TWorkSheet.SetOutlineAutomaticStyles(const value: boolean);
+begin
+  if FWsBool <> nil then FWsBool.OutlineAutomaticStyles:=value;
+end;
+
 procedure TWorkSheet.AddImage(const Data: string; const DataType: TXlsImgTypes; const Properties: TImageProperties;const Anchor: TFlxAnchorType);
 begin
-  FDrawing.AddImage(Data, DataType, Properties, Anchor);
+  FDrawing.AddImage(Data, DataType, Properties, Anchor, self);
 end;
 
 procedure TWorkSheet.ClearImage(const Index: integer);
@@ -1587,7 +1691,7 @@ end;
 procedure TWorkSheet.AddNewComment(const Row, Col: integer;
   const Txt: widestring; const Properties: TImageProperties);
 begin
-  FNotes.AddNewComment(Row, Col, Txt, FDrawing, Properties);
+  FNotes.AddNewComment(Row, Col, Txt, FDrawing, Properties, self);
 end;
 
 
@@ -1790,6 +1894,22 @@ begin
   if FSetup<>nil then FSetup.PrintYResolution:=Value;
 end;
 
+procedure TWorkSheet.RestoreObjectCoords;
+begin
+	FDrawing.RestoreObjectCoords(Self);
+end;
+
+procedure TWorkSheet.RecalcRowHeights(const Workbook: pointer; const Row1, Row2: Integer; const Forced: Boolean; const KeepAutoFit: Boolean; const Adjustment: extended);
+begin
+  Cells.CellList.RecalcRowHeights(Workbook, Row1, Row2, Forced, KeepAutoFit, Adjustment);
+end;
+
+procedure TWorkSheet.RecalcColWidths(const Workbook: pointer; const Col1, Col2: Integer; const IgnoreStrings: Boolean; const Adjustment: extended);
+begin
+  Cells.CellList.RecalcColWidths(Workbook, Col1, Col2, IgnoreStrings, Adjustment);
+end;
+
+
 { TFlxUnsupportedSheet }
 
 procedure TFlxUnsupportedSheet.ArrangeCopySheet(const SheetInfo: TSheetInfo);
@@ -1863,13 +1983,13 @@ begin
   sBOF:=First; //Last statement
 end;
 
-procedure TFlxUnsupportedSheet.SaveToStream(const DataStream: TStream);
+procedure TFlxUnsupportedSheet.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 begin
   if (sBOF=nil)or(sEOF=nil) then raise Exception.Create(ErrSectionNotLoaded);
-  sBOF.SaveToStream(DataStream);
-  FSheetRecords.SaveToStream(DataStream);
-  if (FCodeName<>nil) then FCodeName.SaveToStream(DataStream);
-  sEOF.SaveToStream(DataStream);
+  sBOF.SaveToStream(DataStream, NeedsRecalc);
+  FSheetRecords.SaveToStream(DataStream, NeedsRecalc);
+  if (FCodeName<>nil) then FCodeName.SaveToStream(DataStream, NeedsRecalc);
+  sEOF.SaveToStream(DataStream, NeedsRecalc);
 end;
 
 function TFlxUnsupportedSheet.TotalSize: int64;
@@ -1879,10 +1999,10 @@ begin
 end;
 
 procedure TFlxUnsupportedSheet.SaveRangeToStream(const DataStream: TStream;
-  const SheetIndex: integer; const CellRange: TXlsCellRange);
+  const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 begin
   //Can't save a range
-  SaveToStream(DataStream);
+  SaveToStream(DataStream, NeedsRecalc);
 end;
 
 function TFlxUnsupportedSheet.TotalRangeSize(const SheetIndex: integer; const CellRange: TXlsCellRange): int64;

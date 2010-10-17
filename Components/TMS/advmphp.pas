@@ -29,6 +29,13 @@ type
      property AutoCompletion;
      property HintParameter;
      property HexIdentifier;
+
+    property Description;
+    property Filter;
+    property DefaultExtension;
+    property StylerName;
+    property Extensions;
+    property RegionDefinitions;
    end;
 
 implementation

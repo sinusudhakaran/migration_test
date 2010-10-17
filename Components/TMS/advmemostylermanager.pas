@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvMemo component                                                        }
 { for Delphi & C++Builder                                                   }
-{ version 2.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2001 - 2006                                        }
+{            copyright © 2001 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -24,7 +23,7 @@ interface
 {$I TMSDEFS.INC}
 
 uses
-  Classes, Controls, Graphics, SysUtils, AdvMemo, INIFiles;
+  Classes, Controls, Graphics, SysUtils, AdvMemo, INIFiles, Windows;
 
 type
 

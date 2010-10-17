@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvGlowButton component                                                  }
 { for Delphi & C++Builder                                                   }
-{ version 1.5                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -23,22 +22,26 @@ unit AdvGlowButton;
 
 {$I TMSDEFS.INC}
 
-{$T-}
+{$T-}                           
 
 interface
 
 uses
   Classes, Windows, Forms, Dialogs, Controls, Graphics, Messages, ExtCtrls,
-  SysUtils, Math, Menus, DB, ImgList, AdvGDIP, GDIPicture, ActnList,
-  AdvHintInfo, AdvStyleIF;
+  SysUtils, Math, Menus, ImgList, AdvGDIP, GDIPicture, ActnList,
+  AdvHintInfo, AdvStyleIF, ActiveX
+  {$IFNDEF TMS_STD}
+  , DB
+  {$ENDIF}
+  ;
 
 const
   DropDownSectWidth = 13;
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 7; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 1; // Build nr.
+  MIN_VER = 8; // Minor version nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 9; // Build nr.
 
   // version history
   // 1.0.5.1 : Fixed issue with width & height initialization
@@ -86,8 +89,31 @@ const
   // 1.7.0.0 : New : Repeat functionality added with repeat initial delay & frequency setting
   //         : Improved wordwrap drawing  with no text aliasing
   //         : New : support for using \n newline specifier in property inspector
-  // 1.7.0.1 : Fixed : issue with Enabled = false for non antialiased text
-
+  // 1.7.0.1 : Fixed : drawing issue with Delphi 2007
+  // 1.7.1.0 : New : F4 key to open attached dropdown menu
+  // 1.7.1.1 : Fixed : issue with DropDownSplit and OnClick event handler
+  // 1.7.2.0 : New : events OnEnter, OnExit added
+  // 1.7.2.1 : Improved : painting on MDI child windows
+  // 1.7.2.2 : Fixed : drawing issue with Delphi 2007
+  // 1.8.0.0 : New : Notes & NotesFont
+  //         : New : C++Builder 2007 support
+  //         : Improved : drawing down state for Transparent button
+  //         : Improved : drawing speed
+  // 1.8.0.1 : Fixed : runtime WideCaption assigning causes repaint
+  // 1.8.1.0 : Fixed : issue with inherited forms
+  // 1.8.1.1 : Fixed : issue with dbl click event
+  //         : Fixed : issue with actions & groupindex
+  //         : Fixed : border painting issue on checked buttons in bpMiddle, bpRight position
+  // 1.8.1.2 : Fixed : issue with ShowCaption & WideCaption
+  // 1.8.1.3 : Fixed : issue with using font not installed on the system
+  // 1.8.1.4 : Fixed : issue with WideCaption & aaNone AntiAlias type
+  // 1.8.1.5 : Fixed : issue with DblClick & OnClick event
+  // 1.8.1.6 : Fixed : issue with AutoCheck action items for bsCheck button type
+  // 1.8.1.7 : Fixed : issue with shortcuts on TAdvToolBar
+  //         : Fixed : issue with dbl click
+  //         : Improved : dropdown button position
+  // 1.8.1.8 : Improved : wordwrapped text drawing for non anti aliased text
+  // 1.8.1.9 : Improved : spacing for blGlyphTop, blGlyphTopAdjusted setting
 
 
 type
@@ -107,13 +133,20 @@ type
 
   TFocusType = (ftBorder, ftHot, ftHotBorder, ftNone);
 
-  TShortCutHintPos = (shpLeft, shpTop, shpRight, shpBottom);
+  TShortCutHintPos = (shpLeft, shpTop, shpRight, shpBottom, shpCenter, shpAuto,
+                      shpTopLeft, shpTopRight, shpAboveTop, shpAboveTopLeft,
+                      shpAboveTopRight, shpBottomLeft, shpBottomRight, shpBelowBottom,
+                      shpBelowBottomLeft, shpBelowBottomRight);
 
   TButtonPosition = (bpStandalone, bpLeft, bpMiddle, bpRight);
 
   TGlowButtonState = (gsNormal, gsHot, gsDown);
 
+  TButtonSizeState = (bsGlyph, bsLabel, bsLarge);
+
   TGlowButtonDrawEvent = procedure(Sender: TObject; Canvas: TCanvas; Rect: TRect; State: TGlowButtonState) of object;
+  TSetButtonSizeEvent = procedure(Sender: TObject; var W, H: Integer) of object;
+  TOnGetShortCutHintPos = procedure(Sender: TObject; ButtonSizeState: TButtonSizeState; var ShortCutHintPosition: TShortCutHintPos) of object;
 
   TWinCtrl = class(TWinControl)
   public
@@ -137,10 +170,16 @@ type
 
   TShortCutHintWindow = class(THintWindow)
   private
+    FColor: TColor;
+    FColorTo: TColor;
     procedure WMEraseBkGnd(var Message: TWMEraseBkGnd); message WM_ERASEBKGND;
   protected
+    procedure Resize; override;
     procedure Paint; override;
     procedure CreateParams(var Params:TCreateParams);override;
+  published
+    property Color: TColor read FColor write FColor;
+    property ColorTo: TColor read FColorTo write FColorTo;
   end;
 
   TGlowButtonAppearance = class(TPersistent)
@@ -181,6 +220,43 @@ type
     FGradientDisabled: TGDIPGradient;
     FGradientMirrorChecked: TGDIPGradient;
     FGradientMirrorDisabled: TGDIPGradient;
+    FSystemFont: boolean;
+    procedure SetSystemFont(const Value: boolean);
+    procedure SetBorderColor(const Value: TColor);
+    procedure SetBorderColorChecked(const Value: TColor);
+    procedure SetBorderColorDisabled(const Value: TColor);
+    procedure SetBorderColorDown(const Value: TColor);
+    procedure SetBorderColorHot(const Value: TColor);
+    procedure SetColor(const Value: TColor);
+    procedure SetColorChecked(const Value: TColor);
+    procedure SetColorCheckedTo(const Value: TColor);
+    procedure SetColorDisabled(const Value: TColor);
+    procedure SetColorDisabledTo(const Value: TColor);
+    procedure SetColorDown(const Value: TColor);
+    procedure SetColorDownTo(const Value: TColor);
+    procedure SetColorHot(const Value: TColor);
+    procedure SetColorHotTo(const Value: TColor);
+    procedure SetColorMirror(const Value: TColor);
+    procedure SetColorMirrorChecked(const Value: TColor);
+    procedure SetColorMirrorCheckedTo(const Value: TColor);
+    procedure SetColorMirrorDisabled(const Value: TColor);
+    procedure SetColorMirrorDisabledTo(const Value: TColor);
+    procedure SetColorMirrorDown(const Value: TColor);
+    procedure SetColorMirrorDownTo(const Value: TColor);
+    procedure SetColorMirrorHot(const Value: TColor);
+    procedure SetColorMirrorHotTo(const Value: TColor);
+    procedure SetColorMirrorTo(const Value: TColor);
+    procedure SetColorTo(const Value: TColor);
+    procedure SetGradient(const Value: TGDIPGradient);
+    procedure SetGradientChecked(const Value: TGDIPGradient);
+    procedure SetGradientDisabled(const Value: TGDIPGradient);
+    procedure SetGradientDown(const Value: TGDIPGradient);
+    procedure SetGradientHot(const Value: TGDIPGradient);
+    procedure SetGradientMirror(const Value: TGDIPGradient);
+    procedure SetGradientMirrorChecked(const Value: TGDIPGradient);
+    procedure SetGradientMirrorDisabled(const Value: TGDIPGradient);
+    procedure SetGradientMirrorDown(const Value: TGDIPGradient);
+    procedure SetGradientMirrorHot(const Value: TGDIPGradient);
   protected
     procedure Changed;
   public
@@ -188,46 +264,47 @@ type
     procedure Assign(Source: TPersistent); override;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   published
-    property BorderColor: TColor read FBorderColor write FBorderColor default clSilver;
-    property BorderColorHot: TColor read FBorderColorHot write FBorderColorHot default clBlue;
-    property BorderColorDown: TColor read FBorderColorDown write FBorderColorDown default clNavy;
-    property BorderColorChecked: TColor read FBorderColorChecked write FBorderColorChecked default clBlue;
-    property BorderColorDisabled: TColor read FBorderColorDisabled write FBorderColorDisabled default clGray;
-    property Color: TColor read FColor write FColor default clWhite;
-    property ColorTo: TColor read FColorTo write FColorTo default clWhite;
-    property ColorChecked: TColor read FColorChecked write FColorChecked;
-    property ColorCheckedTo: TColor read FColorCheckedTo write FColorCheckedTo;
-    property ColorDisabled: TColor read FColorDisabled write FColorDisabled;
-    property ColorDisabledTo: TColor read FColorDisabledTo write FColorDisabledTo;
-    property ColorDown: TColor read FColorDown write FColorDown;
-    property ColorDownTo: TColor read FColorDownTo write FColorDownTo;
-    property ColorHot: TColor read FColorHot write FColorHot;
-    property ColorHotTo: TColor read FColorHotTo write FColorHotTo;
-    property ColorMirror: TColor read FColorMirror write FColorMirror default clSilver;
-    property ColorMirrorTo: TColor read FColorMirrorTo write FColorMirrorTo default clWhite;
-    property ColorMirrorHot: TColor read FColorMirrorHot write FColorMirrorHot;
-    property ColorMirrorHotTo: TColor read FColorMirrorHotTo write FColorMirrorHotTo;
-    property ColorMirrorDown: TColor read FColorMirrorDown write FColorMirrorDown;
-    property ColorMirrorDownTo: TColor read FColorMirrorDownTo write FColorMirrorDownTo;
-    property ColorMirrorChecked: TColor read FColorMirrorChecked write FColorMirrorChecked;
-    property ColorMirrorCheckedTo: TColor read FColorMirrorCheckedTo write FColorMirrorCheckedTo;
-    property ColorMirrorDisabled: TColor read FColorMirrorDisabled write FColorMirrorDisabled;
-    property ColorMirrorDisabledTo: TColor read FColorMirrorDisabledTo write FColorMirrorDisabledTo;
-    property Gradient: TGDIPGradient read FGradient write FGradient default ggVertical;
-    property GradientMirror: TGDIPGradient read FGradientMirror write FGradientMirror default ggVertical;
-    property GradientHot: TGDIPGradient read FGradientHot write FGradientHot default ggRadial;
-    property GradientMirrorHot: TGDIPGradient read FGradientMirrorHot write FGradientMirrorHot default ggRadial;
-    property GradientDown: TGDIPGradient read FGradientDown write FGradientDown default ggRadial;
-    property GradientMirrorDown: TGDIPGradient read FGradientMirrorDown write FGradientMirrorDown default ggRadial;
-    property GradientChecked: TGDIPGradient read FGradientChecked write FGradientChecked default ggRadial;
-    property GradientMirrorChecked: TGDIPGradient read FGradientMirrorChecked write FGradientMirrorChecked default ggVertical;
-    property GradientDisabled: TGDIPGradient read FGradientDisabled write FGradientDisabled default ggRadial;
-    property GradientMirrorDisabled: TGDIPGradient read FGradientMirrorDisabled write FGradientMirrorDisabled default ggRadial;
+    property BorderColor: TColor read FBorderColor write SetBorderColor default clSilver;
+    property BorderColorHot: TColor read FBorderColorHot write SetBorderColorHot default clBlue;
+    property BorderColorDown: TColor read FBorderColorDown write SetBorderColorDown default clNavy;
+    property BorderColorChecked: TColor read FBorderColorChecked write SetBorderColorChecked default clBlue;
+    property BorderColorDisabled: TColor read FBorderColorDisabled write SetBorderColorDisabled default clGray;
+    property Color: TColor read FColor write SetColor default clWhite;
+    property ColorTo: TColor read FColorTo write SetColorTo default clWhite;
+    property ColorChecked: TColor read FColorChecked write SetColorChecked;
+    property ColorCheckedTo: TColor read FColorCheckedTo write SetColorCheckedTo;
+    property ColorDisabled: TColor read FColorDisabled write SetColorDisabled;
+    property ColorDisabledTo: TColor read FColorDisabledTo write SetColorDisabledTo;
+    property ColorDown: TColor read FColorDown write SetColorDown;
+    property ColorDownTo: TColor read FColorDownTo write SetColorDownTo;
+    property ColorHot: TColor read FColorHot write SetColorHot;
+    property ColorHotTo: TColor read FColorHotTo write SetColorHotTo;
+    property ColorMirror: TColor read FColorMirror write SetColorMirror default clSilver;
+    property ColorMirrorTo: TColor read FColorMirrorTo write SetColorMirrorTo default clWhite;
+    property ColorMirrorHot: TColor read FColorMirrorHot write SetColorMirrorHot;
+    property ColorMirrorHotTo: TColor read FColorMirrorHotTo write SetColorMirrorHotTo;
+    property ColorMirrorDown: TColor read FColorMirrorDown write SetColorMirrorDown;
+    property ColorMirrorDownTo: TColor read FColorMirrorDownTo write SetColorMirrorDownTo;
+    property ColorMirrorChecked: TColor read FColorMirrorChecked write SetColorMirrorChecked;
+    property ColorMirrorCheckedTo: TColor read FColorMirrorCheckedTo write SetColorMirrorCheckedTo;
+    property ColorMirrorDisabled: TColor read FColorMirrorDisabled write SetColorMirrorDisabled;
+    property ColorMirrorDisabledTo: TColor read FColorMirrorDisabledTo write SetColorMirrorDisabledTo;
+    property Gradient: TGDIPGradient read FGradient write SetGradient default ggVertical;
+    property GradientMirror: TGDIPGradient read FGradientMirror write SetGradientMirror default ggVertical;
+    property GradientHot: TGDIPGradient read FGradientHot write SetGradientHot default ggRadial;
+    property GradientMirrorHot: TGDIPGradient read FGradientMirrorHot write SetGradientMirrorHot default ggRadial;
+    property GradientDown: TGDIPGradient read FGradientDown write SetGradientDown default ggRadial;
+    property GradientMirrorDown: TGDIPGradient read FGradientMirrorDown write SetGradientMirrorDown default ggRadial;
+    property GradientChecked: TGDIPGradient read FGradientChecked write SetGradientChecked default ggRadial;
+    property GradientMirrorChecked: TGDIPGradient read FGradientMirrorChecked write SetGradientMirrorChecked default ggVertical;
+    property GradientDisabled: TGDIPGradient read FGradientDisabled write SetGradientDisabled default ggRadial;
+    property GradientMirrorDisabled: TGDIPGradient read FGradientMirrorDisabled write SetGradientMirrorDisabled default ggRadial;
+    property SystemFont: boolean read FSystemFont write SetSystemFont default true;
   end;
 
+  /// <summary>Button with glow hover & down effect</summary>
   TAdvCustomGlowButton = class(TCustomControl, ITMSStyle)
   private
-    FHot: Boolean;
     FActive: Boolean;
     FDown: Boolean;
     FLeftDown: Boolean;
@@ -273,6 +350,7 @@ type
     FButtonPosition: TButtonPosition;
     FOfficeHint: TAdvHintInfo;
     FCheckLinked: Boolean;
+    FGroupIndexLinked: Boolean;
     FFocusType: TFocusType;
     FShortCutHint: TShortCutHintWindow;
     FShortCutHintPos: TShortCutHintPos;
@@ -299,6 +377,18 @@ type
     FRepeatPause: Integer;
     FRepeatClick: Boolean;
     FOnInternalClick: TNotifyEvent;
+    FButtonSizeState: TButtonSizeState;
+    FMaxButtonSizeState: TButtonSizeState;
+    FOnSetButtonSize: TSetButtonSizeEvent;
+    FOldLayout: TButtonLayout;
+    FOldDropDownPosition: TDropDownPosition;
+    FMinButtonSizeState: TButtonSizeState;
+    FParentForm: TCustomForm;
+    FIsVista: boolean;
+    FNotes: TStringList;
+    FNotesFont: TFont;
+    FGotButtonClick: boolean;
+    FOnGetShortCutHintPos: TOnGetShortCutHintPos;
     procedure SetOfficeHint(const Value: TAdvHintInfo);
     procedure SetButtonPosition(const Value: TButtonPosition);
     procedure SetBorderStyle(const Value: TBorderStyle);
@@ -325,10 +415,12 @@ type
     procedure CMMouseEnter(var Msg: TMessage); message CM_MOUSEENTER;
     procedure WMSetText(var Message: TWMSetText); message WM_SETTEXT;
     procedure WMEraseBkGnd(var Message: TWMEraseBkGnd); message WM_ERASEBKGND;
+    procedure WMPaint(var Msg: TWMPaint); message WM_PAINT;
     procedure CMEnabledChanged(var Message: TMessage); message CM_ENABLEDCHANGED;
 {$IFNDEF TMSDOTNET}
     procedure CMButtonPressed(var Message: TMessage); message CM_BUTTONPRESSED;
 {$ENDIF}
+    procedure WMLButtonDown(var Msg:TWMLButtonDown); message WM_LBUTTONDOWN;
     procedure WMLButtonUp(var Msg:TWMLButtonDown); message WM_LBUTTONUP;
     procedure WMLDblClk(var Msg: TWMLButtonDblClk); message WM_LBUTTONDBLCLK;
     procedure TimerProc(Sender: TObject);
@@ -353,17 +445,25 @@ type
     procedure SetMarginVert(const Value: integer);
     procedure SetMarginHorz(const Value: integer);
     procedure SetRounded(const Value: boolean);
-    procedure SetTrimming(const Value: TStringTrimming);    
+    procedure SetTrimming(const Value: TStringTrimming);
     procedure PerformResize;
     function IsFontStored: Boolean;
+    procedure SetButtonSizeState(const Value: TButtonSizeState);
+    procedure SetMaxButtonSizeState(const Value: TButtonSizeState);
+    procedure SetMinButtonSizeState(const Value: TButtonSizeState);
+    procedure SetNotes(const Value: TStrings);
+    function GetNotes: TStrings;
+    procedure SetNotesFont(const Value: TFont);
+    procedure SetWideCaption(const Value: widestring);
 //    procedure SetCaption(const Value: string);
 //    function GetCaption: string;
   protected
+    FHot: Boolean;
     FDefaultPicDrawing: Boolean;
     FDefaultCaptionDrawing: Boolean;
     FCustomizerCreated: Boolean;
     FCommandID: Integer;
-    procedure TimerExpired(Sender: TObject); virtual;    
+    procedure TimerExpired(Sender: TObject); virtual;
     procedure DrawGlyphCaption; virtual;
     procedure GetToolImage(bmp: TBitmap); virtual;
     procedure SetDroppedDown(Value: Boolean);
@@ -402,22 +502,33 @@ type
     property OnDropDown: TNotifyEvent read FOnDropDown write FOnDropDown;
     function GetVersionNr: Integer; virtual;
     function IsMenuButton: Boolean; virtual;
+    function CanDrawBorder: Boolean; virtual;
+    function CanDrawFocused: Boolean; virtual;
     procedure InternalClick;
     property CheckLinked: Boolean read FCheckLinked write FCheckLinked;
+    property GroupIndexLinked: Boolean read FGroupIndexLinked write FGroupIndexLinked;
     property OnInternalKeyDown: TKeyEvent read FOnInternalKeyDown write FOnInternalKeyDown; // Used by AdvToolBar
     property OnInternalClick: TNotifyEvent read FOnInternalClick write FOnInternalClick; // Used by AdvToolBar
+    property OnGetShortCutHintPos: TOnGetShortCutHintPos read FOnGetShortCutHintPos write FOnGetShortCutHintPos; // Used by AdvToolBar
     property OverlappedText: boolean read FOverlappedText write FOverlappedText;
     property DoAutoSize: boolean read FDoAutoSize write FDoAutoSize;
+    property ButtonSizeState: TButtonSizeState read FButtonSizeState write SetButtonSizeState; // Used by AdvToolBar
+    property MaxButtonSizeState: TButtonSizeState read FMaxButtonSizeState write SetMaxButtonSizeState default bsLarge;
+    property MinButtonSizeState: TButtonSizeState read FMinButtonSizeState write SetMinButtonSizeState default bsGlyph;
+    property OnSetButtonSize: TSetButtonSizeEvent read FOnSetButtonSize write FOnSetButtonSize; // Used by AdvToolBar
+    function GetButtonSize(BtnSizeState: TButtonSizeState): TSize;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
     procedure CreateWnd; override;
     procedure Click; override;
     property Appearance: TGlowButtonAppearance read FAppearance write SetAppearance;
     procedure ShowShortCutHint;
     procedure HideShortCutHint;
+    /// <summary>Sets the style of the component, make sure to include AdvStyleIF unit</summary>
     procedure SetComponentStyle(AStyle: TTMSStyle);
-    property WideCaption: widestring read FWideCaption write FWideCaption;
+    property WideCaption: widestring read FWideCaption write SetWideCaption;
   published
     property Align;
     property Action;
@@ -440,9 +551,11 @@ type
     property FocusType: TFocusType read FFocusType write FFocusType default ftBorder;
     property HotImages: TImageList read FHotImages write FHotImages;
     property HotPicture: TGDIPPicture read FIHotPicture write SetHotPicture;
-    property MarginVert: integer read FMarginVert write SetMarginVert default 2;
-    property MarginHorz: integer read FMarginHorz write SetMarginHorz default 2;
+    property MarginVert: integer read FMarginVert write SetMarginVert default 1;
+    property MarginHorz: integer read FMarginHorz write SetMarginHorz default 1;
     property ModalResult: TModalResult read FModalResult write FModalResult default 0;
+    property Notes: TStrings read GetNotes write SetNotes;
+    property NotesFont: TFont read FNotesFont write SetNotesFont;
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
     property ParentFont default true;
     property Picture: TGDIPPicture read FIPicture write SetPicture;
@@ -461,6 +574,7 @@ type
     property Trimming: TStringTrimming read FTrimming write SetTrimming default StringTrimmingNone;
     property Version: string read GetVersion write SetVersion stored False;
     property WordWrap: boolean read FWordWrap write SetWordWrap default true;
+    property ParentShowHint;
     property ShowHint;
     property TabOrder;
     property TabStop;
@@ -469,6 +583,9 @@ type
     property OnDragDrop;
     property OnDragOver;
     property OnEndDock;
+    property OnExit;
+    property OnEnter;
+
     property OnStartDock;
     property OnStartDrag;
 
@@ -497,6 +614,8 @@ type
     property GroupIndex;
     property Layout;
     property Style;
+    property MaxButtonSizeState;
+    property MinButtonSizeState;
     property DropDownButton;
     property DropDownPosition;
     property DropDownDirection;
@@ -504,6 +623,8 @@ type
     property DropDownMenu;
     property OnDropDown;
   end;
+
+  {$IFNDEF TMS_STD}
 
   //---- DB aware version
   TDBGlowButtonType = (dbCustom, dbFirst, dbPrior, dbNext, dbLast, dbInsert, dbAppend,
@@ -591,9 +712,11 @@ type
     property OnEnabledChanged: TNotifyEvent read FOnEnabledChanged write FOnEnabledChanged;
   end;
 
+  {$ENDIF}
 
 implementation
 
+{$IFNDEF TMS_STD}
 uses
   {$IFDEF DELPHI6_LVL}
   VDBConsts
@@ -601,22 +724,10 @@ uses
   DBConsts
   {$ENDIF}
   ;
-
-const
-  GDIP_NOWRAP = 4096;
+{$ENDIF}
 
 type
   TButtonDisplay = (bdNone, bdButton, bdDropDown);
-
-//------------------------------------------------------------------------------
-
-function ColorToARGB(Color: TColor): ARGB;
-var
-  c: TColor;
-begin
-  c := ColorToRGB(Color);
-  Result := ARGB( $FF000000 or ((DWORD(c) and $FF) shl 16) or ((DWORD(c) and $FF00) or ((DWORD(c) and $ff0000) shr 16)));
-end;
 
 //------------------------------------------------------------------------------
 
@@ -915,21 +1026,32 @@ procedure DrawRoundRect(graphics: TGPGraphics; PC: TColor; X,Y,Width,Height,Radi
 var
   path:TGPGraphicsPath;
   gppen:TGPPen;
+  r: integer;
 begin
-  path := TGPGraphicsPath.Create;
   gppen := tgppen.Create(ColorToARGB(PC),1);
-  path.AddLine(X + radius, Y, X + width - (radius*2), Y);
-  path.AddArc(X + width - (radius*2), Y, radius*2, radius*2, 270, 90);
-  path.AddLine(X + width, Y + radius, X + width, Y + height - (radius*2));
-  path.AddArc(X + width - (radius*2), Y + height - (radius*2), radius*2, radius*2,0,90);
-  path.AddLine(X + width - (radius*2), Y + height, X + radius, Y + height);
-  path.AddArc(X, Y + height - (radius*2), radius*2, radius*2, 90, 90);
-  path.AddLine(X, Y + height - (radius*2), X, Y + radius);
-  path.AddArc(X, Y, radius*2, radius*2, 180, 90);
-  path.CloseFigure;
-  graphics.DrawPath(gppen, path);
+
+  if radius = 0 then
+  begin
+    graphics.DrawRectangle(gppen, X, Y, Width, Height);
+  end
+  else
+  begin
+    r := radius * 2;
+    path := TGPGraphicsPath.Create;
+    //gppen := tgppen.Create(ColorToARGB(PC),1);
+    path.AddLine(X + radius, Y, X + width - r, Y);
+    path.AddArc(X + width - r, Y, r, r, 270, 90);
+    path.AddLine(X + width, Y + radius, X + width, Y + height - r);
+    path.AddArc(X + width - r, Y + height - r, r, r,0,90);
+    path.AddLine(X + width - r, Y + height, X + radius, Y + height);
+    path.AddArc(X, Y + height - r, r, r, 90, 90);
+    path.AddLine(X, Y + height - r, X, Y + radius);
+    path.AddArc(X, Y, r, r, 180, 90);
+    path.CloseFigure;
+    graphics.DrawPath(gppen, path);
+    path.Free;
+  end;
   gppen.Free;
-  path.Free;
 end;
 
 procedure DrawArrow(Canvas: TCanvas; ArP: TPoint; ArClr, ArShad: TColor; Down:boolean);
@@ -970,7 +1092,7 @@ var
   pthGrBrush: TGPPathGradientBrush;
   linGrBrush: TGPLinearGradientBrush;
   solGrBrush: TGPSolidBrush;
-  
+
   w,h,w2,h2: Integer;
   colors : array[0..0] of TGPColor;
   count: Integer;
@@ -1053,13 +1175,63 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure DrawStretchPicture(graphics : TGPGraphics; Canvas: TCanvas; R: TRect; Pic: TGDIPPicture);
+var
+  Img: TGPImage;
+  pstm: IStream;
+  hGlobal: THandle;
+  pcbWrite: Longint;
+  ms: TMemoryStream;
+  bmp: TBitmap;
+begin
+  ms := TMemoryStream.Create;
+  Pic.SaveToStream(ms);
+  hGlobal := GlobalAlloc(GMEM_MOVEABLE, ms.Size);
+  if (hGlobal = 0) then
+  begin
+    ms.Free;
+    raise Exception.Create('Could not allocate memory for image');
+  end;
+
+  try
+    pstm := nil;
+
+    // Create IStream* from global memory
+    CreateStreamOnHGlobal(hGlobal, TRUE, pstm);
+    pstm.Write(ms.Memory, ms.Size,@pcbWrite);
+
+    Img := TGPImage.Create(pstm);
+    if Img.GetFormat = ifBMP then
+    begin // use this alternative for easy bitmap auto transparent drawing
+      bmp := TBitmap.Create;
+      ms.Position := 0;
+      bmp.LoadFromStream(ms);
+      bmp.TransparentMode := tmAuto;
+      bmp.Transparent := true;
+      Canvas.StretchDraw(R, bmp);
+      bmp.Free;
+    end
+    else
+    begin
+      graphics.DrawImageRect(Img, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top);
+    end;
+
+    Img.Free;
+    ms.Free;
+  finally
+    GlobalFree(hGlobal);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 function DrawVistaButton(Canvas: TCanvas; r: TRect; CFU, CTU, CFB, CTB, PC: TColor;
    GradientU, GradientB: TGDIPGradient; Caption:string; WideCaption: widestring; DrawCaption: Boolean; AFont: TFont;
    Images: TImageList; ImageIndex: Integer; EnabledImage: Boolean; Layout: TButtonLayout;
    DropDownButton: Boolean; DrawDwLine: Boolean; Enabled: Boolean; Focus: Boolean; DropDownPos: TDropDownPosition;
-   Picture: TGDIPPicture; AntiAlias: TAntiAlias; DrawPic: Boolean; Glyph: TBitmap; ButtonDisplay: TButtonDisplay; Transparent, Hot: boolean;
+   Picture: TGDIPPicture; ForcePicSize: TSize; AntiAlias: TAntiAlias; DrawPic: Boolean; Glyph: TBitmap; ButtonDisplay: TButtonDisplay; Transparent, Hot: boolean;
    ButtonPosition: TButtonPosition; DropDownSplit, DrawBorder, OverlapText, WordWrap, AutoSize, Rounded, DropDir: Boolean; Spacing: integer;
-   Trimming: TStringTrimming): TSize;
+   Trimming: TStringTrimming;Notes: TStringList; NotesFont: TFont;Checked: boolean): TSize;
 var
   graphics : TGPGraphics;
   path: TGPGraphicsPath;
@@ -1068,14 +1240,15 @@ var
   count: Integer;
   w,h,h2,h2d: Integer;
   colors : array[0..0] of TGPColor;
-  fontFamily: TGPFontFamily;
-  font: TGPFont;
+  fontFamily,nfontFamily: TGPFontFamily;
+  font,nfont: TGPFont;
   rectf: TGPRectF;
   stringFormat: TGPStringFormat;
-  solidBrush: TGPSolidBrush;
+  solidBrush,nsolidBrush: TGPSolidBrush;
   x1,y1,x2,y2: single;
-  fs: integer;
+  fs,nfs: integer;
   sizerect: TGPRectF;
+  noterect: TGPRectF;
   ImgX, ImgY, ImgW, ImgH: Integer;
   BtnR, DwR: TRect;
   BR1,BR2: TRect;
@@ -1087,14 +1260,17 @@ var
   Radius: integer;
   uformat,wwformat: Cardinal;
   tdrect: TRect;
-  th: integer;
+  th, px, py: integer;
+  notesrect: TRect;
+  ydropd: integer;
+
 begin
   BtnR := R;
 
   if Rounded then
     Radius := 3
   else
-    Radius := 0;  
+    Radius := 0;
 
   if DropDownPos = dpRight then
   begin
@@ -1108,6 +1284,9 @@ begin
     if DropDownButton then
       BtnR.Bottom := DwR.Top;
   end;
+
+  if (Notes.Text <> '') then
+    Layout := blGlyphLeftAdjusted;
 
   w := r.Right - r.Left;
   h := r.Bottom - r.Top;
@@ -1162,10 +1341,9 @@ begin
     end
     else
     begin
-      DrawButtonBackground(Canvas, Graphics, Rect(r.left, r.Top + h2 - 1, r.Right, r.Bottom), CTB, CFB, GradientB, False);
+      DrawButtonBackground(Canvas, Graphics, Rect(r.Left, r.Top + h2 - 1, r.Right, r.Bottom), CTB, CFB, GradientB, False);
       DrawButtonBackground(Canvas, Graphics, Rect(r.Left, r.Top, r.Right, r.Bottom - h2), CFU, CTU, GradientU, True);
     end;
-
   end;
 
   graphics.SetSmoothingMode(SmoothingModeAntiAlias);
@@ -1175,8 +1353,8 @@ begin
     case ButtonPosition of
     bpStandalone: DrawRoundRect(Graphics, PC, r.Left, r.Top, r.Right - 1, r.Bottom - 1, Radius);
     bpLeft: DrawOpenRoundRectLeft(Graphics, PC, r.Left, r.Top, r.Right - 1, r.Bottom - 1, Radius);
-    bpRight: DrawOpenRoundRectRight(Graphics, PC, r.Left, r.Top, r.Right - 1, r.Bottom - 1, Radius, Hot);
-    bpMiddle: DrawOpenRoundRectMiddle(Graphics, PC, r.Left, r.Top, r.Right - 1, r.Bottom - 1, Radius, Hot);
+    bpRight: DrawOpenRoundRectRight(Graphics, PC, r.Left, r.Top, r.Right - 1, r.Bottom - 1, Radius, Hot or Checked);
+    bpMiddle: DrawOpenRoundRectMiddle(Graphics, PC, r.Left, r.Top, r.Right - 1, r.Bottom - 1, Radius, Hot or Checked);
     end;
   end;
 
@@ -1188,15 +1366,29 @@ begin
     DrawDottedRoundRect(graphics, clGray,r.Left + 2,r.Top + 2, r.Right - 5, r.Bottom - 5, Radius);
   end;
 
-  fontFamily := TGPFontFamily.Create(AFont.Name);
-
-  fs := 0;
-
   ImgX := 0;
   ImgY := 0;
   ImgH := 0;
   ImgW := 0;
 
+  fontFamily := TGPFontFamily.Create(AFont.Name);
+
+  if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+  begin
+    fontFamily.Free;
+    fontFamily := TGPFontFamily.Create('Arial');
+  end;
+
+  nfontFamily := TGPFontFamily.Create(NotesFont.Name);
+
+  if (nfontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+  begin
+    nfontFamily.Free;
+    nfontFamily := TGPFontFamily.Create('Arial');
+  end;
+
+
+  fs := 0;
   if (fsBold in AFont.Style) then
     fs := fs + 1;
   if (fsItalic in AFont.Style) then
@@ -1204,16 +1396,35 @@ begin
   if (fsUnderline in AFont.Style) then
     fs := fs + 4;
 
+  nfs := 0;
+  if (fsBold in NotesFont.Style) then
+    nfs := nfs + 1;
+  if (fsItalic in NotesFont.Style) then
+    nfs := nfs + 2;
+  if (fsUnderline in NotesFont.Style) then
+    nfs := nfs + 4;
+
   if Assigned(Glyph) and not Glyph.Empty and (Glyph.Width > 1) and (Glyph.Height > 1) then
   begin
     ImgW := Glyph.Width;
     ImgH := Glyph.Height;
+
+    if (ForcePicSize.CX > 0) and (ForcePicSize.CY > 0) then
+    begin
+      ImgW := ForcePicSize.CX;
+      ImgH := ForcePicSize.CY;
+    end;
   end
-  else if not Picture.Empty then
+  else if Assigned(Picture) and not Picture.Empty then
   begin
     Picture.GetImageSizes;
     ImgW := Picture.Width;
     ImgH := Picture.Height;
+    if (ForcePicSize.CX > 0) and (ForcePicSize.CY > 0) then
+    begin
+      ImgW := ForcePicSize.CX;
+      ImgH := ForcePicSize.CY;
+    end;
   end
   else
   begin
@@ -1229,17 +1440,26 @@ begin
     end;
   end;
 
-  if (ImgW > 0) then
-    ImgW := ImgW + Spacing;
+  if DrawCaption and ((Caption <> '') or (WideCaption <> '')) then
+  begin
+    if (ImgW > 0) and (Layout in [blGlyphLeft, blGlyphLeftAdjusted])then
+      ImgW := ImgW + Spacing;
+    if (ImgH > 0) and (Layout in [blGlyphTop, blGlyphTopAdjusted])then
+      ImgH := ImgH + Spacing;
+  end;
 
   Result.cx := ImgW;
   Result.cy := ImgH;
 
   if (Caption <> '') or (WideCaption <> '') then
   begin
-
     if pos('\n',caption) > 0 then
-      Caption := stringreplace(caption, '\n', #10#13, [rfReplaceAll, rfIgnoreCase]);
+    begin
+      if (ForcePicSize.cx > 0) and (ForcePicSize.cy > 0) then
+        Caption := StringReplace(caption, '\n', ' ', [rfReplaceAll, rfIgnoreCase])
+      else
+        Caption := StringReplace(caption, '\n', #10#13, [rfReplaceAll, rfIgnoreCase]);
+    end;
 
     Canvas.Font.Name := AFont.Name;
 
@@ -1295,13 +1515,13 @@ begin
     end;
 
     // Center the block of text (top to bottom) in the rectangle.
-    
+
     case Layout of
       blGlyphTopAdjusted: stringFormat.SetLineAlignment(StringAlignmentNear);
       blGlyphBottomAdjusted: stringFormat.SetLineAlignment(StringAlignmentFar);
       else stringFormat.SetLineAlignment(StringAlignmentCenter);
     end;
-    
+
     stringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
     stringFormat.SetTrimming(Trimming);
 
@@ -1317,63 +1537,133 @@ begin
       szRect.Top := round(rectf.Y);
 
       szRect.Right := szRect.Left + 2;
-      szRect.Bottom := DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, DT_CALCRECT or DT_LEFT or DT_SINGLELINE {or DT_VCENTER});
+
+      uformat := DT_CALCRECT or DT_LEFT;
+
+      if WordWrap then
+      begin
+        szRect.Right := szRect.Left + 4096;
+        uformat := uformat + DT_WORDBREAK
+      end
+      else
+        uformat := uformat + DT_SINGLELINE;
+
+      if Caption <> '' then
+        szRect.Bottom := DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, uformat)
+      else
+        szRect.Bottom := DrawTextW(Canvas.Handle,PWideChar(WideCaption),Length(WideCaption), szrect, uformat);
+      
+      ydropd :=  (round(rectf.Height) + szRect.Bottom) div 2;
+
+      sizeRect.Width := szRect.Right - szRect.Left;
+      sizeRect.Height := szRect.Bottom - szRect.Top;
+
+      notesRect := Rect(0,0,0,0);
+
+      if Notes.Text <> '' then
+      begin
+        Canvas.Font.Assign(NotesFont);
+        notesRect.Left := round(rectf.X);
+        notesRect.Top := round(rectf.Y);
+        notesRect.Right := notesRect.Left + 2;
+        notesRect.Bottom := DrawText(Canvas.Handle,PChar(Notes.Text),Length(Notes.Text), notesRect, DT_CALCRECT or DT_LEFT or DT_WORDBREAK);
+
+        noteRect.Width := notesRect.Right - notesRect.Left;
+        noteRect.Height := notesRect.Bottom - notesRect.Top;
+      end;
 
       case Layout of
         blGlyphLeft:
         begin
           sizeRect.X := (w - (szRect.Right - szRect.Left) - ImgW) div 2;
           sizeRect.Y := szRect.Top;
+          Result.cx := ImgW + Spacing + round(sizerect.Width);
+          Result.cy := Max(ImgH + Spacing, Spacing + round(sizerect.Height));
         end;
         blGlyphLeftAdjusted:
         begin
           sizeRect.X := szRect.Left;
           sizeRect.Y := szRect.Top;
+          Result.cx := ImgW + Spacing + Max(round(sizerect.Width),round(noteRect.Width));
+          Result.cy := Max(ImgH + Spacing, Spacing + round(sizerect.Height)+round(noteRect.Height));
         end;
         blGlyphTop:
         begin
           sizeRect.X := szRect.Left;
           sizeRect.Y := (h - (szRect.Bottom - szRect.Top) - ImgH - 2) div 2;
+          Result.cx := Max(ImgW + Spacing, Spacing + round(sizerect.Width));
+          Result.cy := ImgH + Spacing + round(sizerect.Height);
         end;
         blGlyphTopAdjusted:
         begin
           sizeRect.X := szRect.Left;
           sizeRect.Y := szRect.Top;
+          Result.cx := Max(ImgW + Spacing, Spacing + round(sizerect.Width));
+          Result.cy := ImgH + Spacing + round(sizerect.Height);
         end;
         blGlyphRight:
         begin
           sizeRect.X := szRect.Left;
           sizeRect.Y := szRect.Top;
+          Result.cx := ImgW + Spacing + round(sizerect.Width);
+          Result.cy := Max(ImgH + Spacing, Spacing + round(sizerect.Height));
         end;
         blGlyphRightAdjusted:
         begin
           sizeRect.X := szRect.Left;
           sizeRect.Y := szRect.Top;
+          Result.cx := ImgW + Spacing + round(sizerect.Width);
+          Result.cy := Max(ImgH + Spacing, Spacing + round(sizerect.Height));
         end;
         blGlyphBottom:
         begin
           sizeRect.X := szRect.Left;
           sizeRect.Y := szRect.Top;
+          Result.cx := Max(ImgW + Spacing, Spacing + round(sizerect.Width));
+          Result.cy := ImgH + Spacing + round(sizerect.Height);
         end;
         blGlyphBottomAdjusted:
         begin
           sizeRect.X := szRect.Left;
           sizeRect.Y := szRect.Top;
+          Result.cx := Max(ImgW + Spacing, Spacing + round(sizerect.Width));
+          Result.cy := ImgH + Spacing + round(sizerect.Height);
         end;
       end;
-      sizeRect.Width := szRect.Right - szRect.Left;
-      sizeRect.Height := szRect.Bottom - szRect.Top;
+      //Result.cx := ImgW + Spacing + round(sizerect.Width);
+      //Result.cy := Max(ImgH + Spacing, Spacing + round(sizerect.Height));
     end
     else
     begin
       if Caption <> '' then
-        graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect)
+        graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizeRect)
       else
-        graphics.MeasureString(WideCaption, Length(WideCaption), font, rectf, stringFormat, sizerect);
-    end;
+        graphics.MeasureString(WideCaption, Length(WideCaption), font, rectf, stringFormat, sizeRect);
 
-    Result.cx := ImgW + Spacing + round(sizerect.Width);
-    Result.cy := Max(ImgH + Spacing, Spacing + round(sizerect.Height));
+      ydropd := round(sizerect.y + sizerect.height);
+
+      noteRect := MakeRect(0,0,0,0);
+
+      if Notes.Text <> '' then
+      begin
+        nfont := TGPFont.Create(nfontFamily, NotesFont.Size , nfs, UnitPoint);
+        graphics.MeasureString(Notes.Text, Length(Notes.Text), nfont, rectf, stringFormat, noteRect);
+        nfont.Free;
+      end;
+
+      case Layout of
+        blGlyphLeft, blGlyphLeftAdjusted, blGlyphRight, blGlyphRightAdjusted:
+        begin
+          Result.cx := ImgW + Spacing + Max(round(sizerect.Width), round(noteRect.Width));
+          Result.cy := Max(ImgH + Spacing, Spacing + round(sizerect.Height)+round(noteRect.Height));
+        end;
+        blGlyphTop, blGlyphTopAdjusted, blGlyphBottom, blGlyphBottomAdjusted:
+        begin
+          Result.cx := Max(ImgW + Spacing, Spacing + round(sizerect.Width));
+          Result.cy := ImgH + Spacing + round(sizerect.Height);
+        end;
+      end;
+    end;
 
     if not AutoSize then
     begin
@@ -1383,6 +1673,7 @@ begin
         y2 := h;
         rectf := MakeRect(x1,y1,x2,y2);
       end;
+
 
 //      if (ImgW > 0) then
       begin
@@ -1540,13 +1831,15 @@ begin
           szRect.Top := round(rectf.Y);
           szRect.Right := szRect.Left + round(rectf.Width);
           szRect.Bottom := szRect.Top + round(rectf.Height);
+
           Canvas.Brush.Style := bsClear;
           if WordWrap then
-            wwformat := 0
+            wwformat := DT_WORDBREAK
           else
             wwformat := DT_SINGLELINE;
 
           uformat := DT_VCENTER or wwformat;
+
           case Layout of
             blGlyphLeft:
             begin
@@ -1557,6 +1850,13 @@ begin
             begin
               uformat := DT_VCENTER or wwformat or DT_LEFT;
               szrect.Left := szrect.Left + 2;
+
+              if Notes.Text <> '' then
+              begin
+                uformat := uformat AND NOT DT_VCENTER;
+                szrect.Top := ((szRect.Bottom - szRect.Top) - round(sizeRect.Height) - round(noteRect.Height)) div 2;
+              end;
+
             end;
             blGlyphTop:
             begin
@@ -1569,14 +1869,19 @@ begin
             blGlyphBottomAdjusted: uformat := DT_BOTTOM or wwformat or DT_CENTER;
           end;
 
+          tdrect := szrect;
+
+          Canvas.Font.Assign(AFont);
+
           if not Enabled then
             Canvas.Font.Color := clGray;
 
-          tdrect := szrect;
-
           if WordWrap then
           begin
-            th := DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, uformat or DT_CALCRECT);
+            if Caption <> '' then
+              th := DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, uformat or DT_CALCRECT)
+            else
+              th := DrawTextW(Canvas.Handle,PWideChar(WideCaption),Length(WideCaption), szrect, uformat or DT_CALCRECT);
 
             case Layout of
             blGlyphTopAdjusted:
@@ -1586,9 +1891,7 @@ begin
             blGlyphTop:
               begin
                 tdrect.Top := ImgY + ImgH;
-
                 tdrect.Top := tdrect.Top + (tdrect.Bottom - tdrect.Top - th) div 2;
-
               end;
             blGlyphBottomAdjusted:
               begin
@@ -1601,14 +1904,41 @@ begin
             end;
           end;
 
-          DrawText(Canvas.Handle,PChar(Caption),Length(Caption), tdrect, uformat);
+          if Caption <> '' then
+            DrawText(Canvas.Handle,PChar(Caption),Length(Caption), tdrect, uformat)
+          else
+            DrawTextW(Canvas.Handle,PWideChar(WideCaption),Length(WideCaption), tdrect, uformat);
+
+          if (Notes.Text <> '') then
+          begin
+            tdRect.Top := tdRect.Top + round(sizeRect.Height);
+            tdRect.Bottom := tdRect.Top + round(noteRect.Height);
+            Canvas.Font.Assign(NotesFont);
+            DrawText(Canvas.Handle,PChar(Notes.Text),Length(Notes.Text), tdrect, uformat);
+          end;
         end
         else
         begin
+          if (Notes.Text <> '') then
+          begin
+            stringFormat.SetLineAlignment(StringAlignmentNear);
+            rectf.Y := rectf.Y + ((rectf.Height) - round(sizeRect.Height) - round(noteRect.Height)) / 2;
+          end;
+
           if (Caption <> '') then
             graphics.DrawString(Caption, Length(Caption), font, rectf, stringFormat, solidBrush)
           else
             graphics.DrawString(WideCaption, Length(WideCaption), font, rectf, stringFormat, solidBrush);
+
+          if (Notes.Text <> '') then
+          begin
+            rectf.Y := rectf.Y + round(sizeRect.Height);
+            nfont := TGPFont.Create(nfontFamily, NotesFont.Size , nfs, UnitPoint);
+            nsolidBrush := TGPSolidBrush.Create(ColorToARGB(NotesFont.Color));
+            graphics.DrawString(Notes.Text, Length(Notes.Text), nfont, rectf, stringFormat, nsolidBrush);
+            nsolidBrush.Free;
+            nfont.Free;
+          end
         end;
       end;
     end;
@@ -1618,7 +1948,9 @@ begin
     font.Free;
   end;
 
+
   fontFamily.Free;
+  nfontFamily.Free;
 
   if not AutoSize then
   begin
@@ -1634,18 +1966,51 @@ begin
     begin
       if Assigned(Glyph) and not Glyph.Empty and (Glyph.Width > 1) and (Glyph.Height > 1) then
       begin
-         if (Caption = '') and (WideCaption = '') then
-           Canvas.Draw(r.Left + Max(0, (w - ImgW) div 2), r.Top + Max(0, (h - ImgH) div 2), Glyph)
-         else
-           Canvas.Draw(ImgX, ImgY, Glyph);
+        if (ForcePicSize.CX > 0) and (ForcePicSize.CY > 0) then
+        begin
+          Glyph.Transparent := True;
+          if (Caption = '') and (WideCaption = '') then
+          begin
+            px := r.Left + Max(0, (w - ImgW) div 2);
+            py := r.Top + Max(0, (h - ImgH) div 2);
+            Canvas.StretchDraw(Rect(px, py, px + ForcePicSize.CX, py + ForcePicSize.CY), Glyph);
+          end
+          else
+            Canvas.StretchDraw(Rect(ImgX, ImgY, ImgX + ForcePicSize.CX, ImgY + ForcePicSize.CY), Glyph);
+        end
+        else
+        begin
+          if (Caption = '') and (WideCaption = '') then
+            Canvas.Draw(r.Left + Max(0, (w - ImgW) div 2), r.Top + Max(0, (h - ImgH) div 2), Glyph)
+          else
+            Canvas.Draw(ImgX, ImgY, Glyph);
+        end;
       end
       else
-        if not Picture.Empty then
+        if Assigned(Picture) and not Picture.Empty then
         begin
-           if (Caption = '') and (WideCaption = '') then
-             Canvas.Draw(r.Left + Max(0, (w - ImgW) div 2), r.Top + Max(0, (h - ImgH) div 2), Picture)
-           else
-             Canvas.Draw(ImgX, ImgY, Picture);
+          if (ForcePicSize.CX > 0) and (ForcePicSize.CY > 0) then
+          begin
+            if (Caption = '') and (WideCaption = '') then
+            begin
+              px := r.Left + Max(0, (w - ImgW) div 2);
+              py := r.Top + Max(0, (h - ImgH) div 2);
+              //Canvas.StretchDraw(Rect(px, py, px + ForcePicSize.CX, py + ForcePicSize.CY), Picture);
+              DrawStretchPicture(graphics, Canvas, Rect(px, py, px + ForcePicSize.CX, py + ForcePicSize.CY), Picture);
+            end
+            else
+            begin
+              //Canvas.StretchDraw(Rect(ImgX, ImgY, ImgX + ForcePicSize.CX, ImgY + ForcePicSize.CY), Picture);
+              DrawStretchPicture(graphics, Canvas, Rect(ImgX, ImgY, ImgX + ForcePicSize.CX, ImgY + ForcePicSize.CY), Picture);
+            end;
+          end
+          else
+          begin
+            if (Caption = '') and (WideCaption = '') then
+              Canvas.Draw(r.Left + Max(0, (w - ImgW) div 2), r.Top + Max(0, (h - ImgH) div 2), Picture)
+            else
+              Canvas.Draw(ImgX, ImgY, Picture);
+          end;
         end
         else
           if (ImageIndex <> -1) and Assigned(Images) then
@@ -1665,7 +2030,6 @@ begin
                 Canvas.Draw(ImgX, ImgY, ToolImage); }
           end;
     end;
-
 
     Canvas.Brush.Style := bsClear;
 
@@ -1687,8 +2051,12 @@ begin
       end;
 
       AP.X := DwR.Left + ((DwR.Right - DwR.Left - 5) div 2);
-      AP.Y := DwR.Top + ((DwR.Bottom - DwR.Top - 3) div 2) + 1;
-      
+
+      if (DropDownPos = dpBottom) or ((Caption = '') and (WideCaption = '')) then
+        AP.Y := DwR.Top + ((DwR.Bottom - DwR.Top - 3) div 2) + 1
+      else
+        AP.Y := yDropD - 8;
+
       if not Enabled then
         DrawArrow(Canvas, AP, clGray, clWhite, DropDir)
       else
@@ -1745,7 +2113,7 @@ begin
   if not FDown and (GlowState <> gsPush) then
   begin
     FTimeInc := 20;
-    GlowState := gsHover;    
+    GlowState := gsHover;
   end;
   Invalidate;
 
@@ -1774,7 +2142,7 @@ begin
   FHot := false;
   FInButton := false;
 
-  Repaint;
+//  Repaint;
 
   // down process busy
   if FDown and FMouseDown then
@@ -1805,10 +2173,14 @@ begin
 
 end;
 
+//------------------------------------------------------------------------------
+
 procedure TAdvCustomGlowButton.CMTextChanged(var Message: TMessage);
 begin
   Invalidate;
 end;
+
+//------------------------------------------------------------------------------
 
 procedure TAdvCustomGlowButton.CNCommand(var Message: TWMCommand);
 begin
@@ -1842,8 +2214,8 @@ begin
   FSpacing := 2;
   FWordWrap := true;
   FFirstPaint := true;
-  FMarginVert := 2;
-  FMarginHorz := 2;
+  FMarginVert := 1;
+  FMarginHorz := 1;
   FRounded := true;
   FInitRepeatPause := 400;
   FRepeatPause := 100;
@@ -1873,6 +2245,17 @@ begin
   FTrimming := StringTrimmingNone;
 
   FCommandID := -1;
+
+  FButtonSizeState := bsLarge;
+  FMaxButtonSizeState := bsLarge;
+  FMinButtonSizeState := bsGlyph;
+  FOldLayout := Layout;
+  FOldDropDownPosition := DropDownPosition;
+
+  FNotes := TStringList.Create;
+  FNotesFont := TFont.Create;
+  FNotesFont.Name := 'Tahoma';
+  FNotesFont.Size := 8;
 end;
 
 
@@ -1887,6 +2270,7 @@ procedure TAdvCustomGlowButton.CreateWnd;
 begin
   inherited;
   FActive := FDefault;
+  FParentForm := GetParentForm(Self);
 end;
 
 //------------------------------------------------------------------------------
@@ -1900,6 +2284,8 @@ begin
   FIPicture.Free;
   FIDisabledPicture.Free;
   FIHotPicture.Free;
+  FNotes.Free;
+  FNotesFont.Free;
   inherited;
 end;
 
@@ -1920,22 +2306,36 @@ end;
 procedure TAdvCustomGlowButton.ShowShortCutHint;
 var
   pt: TPoint;
+  SCHintPos: TShortCutHintPos;
+  OffsetX: Integer;
 begin
   if not Assigned(FShortCutHint) then
   begin
-      FShortCutHint := TShortCutHintWindow.Create(Self);
-      FShortCutHint.Parent := Self;
-      FShortCutHint.Visible := False;
+    FShortCutHint := TShortCutHintWindow.Create(Self);
+    FShortCutHint.Parent := Self;
+    FShortCutHint.Visible := False;
+    FShortCutHint.Color := clWhite;
+    FShortCutHint.ColorTo := Appearance.Color;
   end;
 
   FShortCutHint.Caption := FShortCutHintText;
 
   pt := ClientToScreen(Point(0,0));
 
-  case ShortCutHintPos of
+  OffsetX := 6;
+  SCHintPos := ShortCutHintPos;
+
+  if Assigned(FOnGetShortCutHintPos) then
+    FOnGetShortCutHintPos(Self, ButtonSizeState, SCHintPos);
+    
+  if (SCHintPos = shpAuto) then
+    SCHintPos := shpTop;
+
+  case SCHintPos of
   shpLeft:
     begin
-      FShortCutHint.Left := pt.X - (FShortCutHint.Width div 2);
+      //FShortCutHint.Left := pt.X - (FShortCutHint.Width div 2);
+      FShortCutHint.Left := pt.X + OffsetX;
       FShortCutHint.Top := pt.Y + (self.Height - FShortCutHint.Height) div 2;
     end;
   shpTop:
@@ -1953,6 +2353,61 @@ begin
       FShortCutHint.Left := pt.X + (self.Width - FShortCutHint.Width) div 2;
       FShortCutHint.Top := pt.Y + self.Height - (FShortCutHint.Height div 2);
     end;
+  shpCenter:
+    begin
+      FShortCutHint.Left  := pt.X + (self.Width - FShortCutHint.Width) div 2;
+      FShortCutHint.Top := pt.Y + (self.Height - FShortCutHint.Height) div 2;
+    end;
+  shpTopLeft:
+    begin
+      FShortCutHint.Left := pt.X + OffsetX;
+      FShortCutHint.Top := pt.Y - (FShortCutHint.Height div 2);
+    end;
+  shpTopRight:
+    begin
+      FShortCutHint.Left := pt.X + self.Width - FShortCutHint.Width + 1;
+      FShortCutHint.Top := pt.Y - (FShortCutHint.Height div 2);
+    end;
+  shpAboveTop:
+    begin
+      FShortCutHint.Left := pt.X + (self.Width - FShortCutHint.Width) div 2;
+      FShortCutHint.Top := pt.Y - FShortCutHint.Height;
+    end;
+  shpAboveTopLeft:
+    begin
+      FShortCutHint.Left := pt.X + OffsetX;
+      FShortCutHint.Top := pt.Y - FShortCutHint.Height;
+    end;
+  shpAboveTopRight:
+    begin
+      FShortCutHint.Left := pt.X + self.Width - FShortCutHint.Width + 1;
+      FShortCutHint.Top := pt.Y - FShortCutHint.Height;
+    end;
+  shpBottomLeft:
+    begin
+      FShortCutHint.Left := pt.X + OffsetX;
+      FShortCutHint.Top := pt.Y + self.Height - (FShortCutHint.Height div 2);
+    end;
+  shpBottomRight:
+    begin
+      FShortCutHint.Left := pt.X + self.Width - FShortCutHint.Width + 1;
+      FShortCutHint.Top := pt.Y + self.Height - (FShortCutHint.Height div 2);
+    end;
+  shpBelowBottom:
+    begin
+      FShortCutHint.Left := pt.X + (self.Width - FShortCutHint.Width) div 2;
+      FShortCutHint.Top := pt.Y + self.Height;
+    end;
+  shpBelowBottomLeft:
+    begin
+      FShortCutHint.Left := pt.X + OffsetX;
+      FShortCutHint.Top := pt.Y + self.Height
+    end;
+  shpBelowBottomRight:
+    begin
+      FShortCutHint.Left := pt.X + self.Width - FShortCutHint.Width + 1;
+      FShortCutHint.Top := pt.Y + self.Height
+    end;
   end;
 
   FShortCutHint.Visible := true;
@@ -1963,8 +2418,8 @@ begin
   if Assigned(FShortCutHint) then
   begin
     FShortCutHint.Visible := false;
-    FShortCutHint.Free;
-    FShortCutHint := nil;
+    //FShortCutHint.Free;
+    //FShortCutHint := nil;
   end;
 end;
 
@@ -1992,6 +2447,9 @@ begin
     Repaint;
   end;
 
+  if (Key = VK_F4) then
+    DoDropDown;
+
   if Assigned(FOnInternalKeyDown) then
     FOnInternalKeyDown(Self, Key, Shift);
 end;
@@ -2015,7 +2473,7 @@ var
 begin
   inherited;
 
-  if (Key in [#32, #13]) then
+  if (Key = #32) or (Key = #13) then
   begin
     Form := GetParentForm(Self);
     if Form <> nil then
@@ -2038,6 +2496,62 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvCustomGlowButton.Assign(Source: TPersistent);
+begin
+  if (Source is TAdvCustomGlowButton) then
+  begin
+    Align := (Source as TAdvCustomGlowButton).Align;
+    Action := (Source as TAdvCustomGlowButton).Action;
+    Anchors := (Source as TAdvCustomGlowButton).Anchors;
+    AntiAlias := (Source as TAdvCustomGlowButton).AntiAlias;
+    AutoSize := (Source as TAdvCustomGlowButton).AutoSize;
+    BorderStyle := (Source as TAdvCustomGlowButton).BorderStyle;
+    Cancel := (Source as TAdvCustomGlowButton).Cancel;
+    Caption := (Source as TAdvCustomGlowButton).Caption;
+    Constraints := (Source as TAdvCustomGlowButton).Constraints;
+    Default := (Source as TAdvCustomGlowButton).Default;
+    Font.Assign((Source as TAdvCustomGlowButton).Font);
+    ImageIndex := (Source as TAdvCustomGlowButton).ImageIndex;
+    Images.Assign((Source as TAdvCustomGlowButton).Images);
+    DisabledImages.Assign((Source as TAdvCustomGlowButton).DisabledImages);
+    DisabledPicture.Assign((Source as TAdvCustomGlowButton).DisabledPicture);
+    DragMode := (Source as TAdvCustomGlowButton).DragMode;
+    DragKind := (Source as TAdvCustomGlowButton).DragKind;
+    FocusType := (Source as TAdvCustomGlowButton).FocusType;
+    HotImages.Assign((Source as TAdvCustomGlowButton).HotImages);
+    HotPicture.Assign((Source as TAdvCustomGlowButton).HotPicture);
+    MarginVert := (Source as TAdvCustomGlowButton).MarginVert;
+    MarginHorz := (Source as TAdvCustomGlowButton).MarginHorz;
+    ModalResult := (Source as TAdvCustomGlowButton).ModalResult;
+    Notes.Assign((Source as TAdvCustomGlowButton).Notes);
+    NotesFont.Assign((Source as TAdvCustomGlowButton).NotesFont);
+    OfficeHint.Assign((Source as TAdvCustomGlowButton).OfficeHint);
+    ParentFont := (Source as TAdvCustomGlowButton).ParentFont;;
+    Picture.Assign((Source as TAdvCustomGlowButton).Picture);
+    PopupMenu := (Source as TAdvCustomGlowButton).PopupMenu;
+    Position  := (Source as TAdvCustomGlowButton).Position;
+    InitRepeatPause := (Source as TAdvCustomGlowButton).InitRepeatPause;
+    RepeatPause := (Source as TAdvCustomGlowButton).RepeatPause;
+    RepeatClick := (Source as TAdvCustomGlowButton).RepeatClick;
+    Rounded := (Source as TAdvCustomGlowButton).Rounded;
+    ShortCutHint := (Source as TAdvCustomGlowButton).ShortCutHint;
+    ShortCutHintPos := (Source as TAdvCustomGlowButton).ShortCutHintPos;
+    ShowCaption := (Source as TAdvCustomGlowButton).ShowCaption;
+    ShowDisabled := (Source as TAdvCustomGlowButton).ShowDisabled;
+    Spacing := (Source as TAdvCustomGlowButton).Spacing;
+    Transparent := (Source as TAdvCustomGlowButton).Transparent;
+    Trimming := (Source as TAdvCustomGlowButton).Trimming;
+    Version := (Source as TAdvCustomGlowButton).Version;
+    WordWrap := (Source as TAdvCustomGlowButton).WordWrap;
+    ShowHint := (Source as TAdvCustomGlowButton).ShowHint;
+    ParentShowHint := (Source as TAdvCustomGlowButton).ParentShowHint;
+    TabOrder := (Source as TAdvCustomGlowButton).TabOrder;
+    TabStop := (Source as TAdvCustomGlowButton).TabStop;
+    Visible := (Source as TAdvCustomGlowButton).Visible;
+  end;
+
+end;
+
 procedure TAdvCustomGlowButton.Click;
 var
   Form: TCustomForm;
@@ -2056,6 +2570,7 @@ begin
   inherited;
   if (Down <> FInitialDown) then
     Down := FInitialDown;
+  FIsVista := IsVista;  
 end;
 
 //------------------------------------------------------------------------------
@@ -2064,7 +2579,7 @@ procedure TAdvCustomGlowButton.DoDropDown;
 var
   pt: TPoint;
 begin
-  if IsMenuButton then
+  if IsMenuButton or Assigned(FDropDownMenu) then
   begin
     {State := absDropDown;
     Invalidate;
@@ -2126,7 +2641,7 @@ end;
 procedure TAdvCustomGlowButton.MouseUp(Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  inherited MouseUp (Button, Shift, X, Y);
+  inherited MouseUp(Button, Shift, X, Y);
   if FRepeatTimer <> nil then
     FRepeatTimer.Enabled  := False;
 end;
@@ -2138,6 +2653,7 @@ procedure TAdvCustomGlowButton.MouseDown(Button: TMouseButton; Shift: TShiftStat
 var
   pt:TPoint;
   InBottomDrop,InRightDrop: boolean;
+  InSepBtn: boolean;
 
 begin
   inherited;
@@ -2183,10 +2699,15 @@ begin
   InBottomDrop := (DropDownPosition = dpRight) and (X > (Width - DropDownSectWidth));
   InRightDrop := (DropDownPosition = dpBottom) and (Y > (Height - DropDownSectWidth));
 
-  if (not FDropDownButton and IsMenuButton) or (FDropDownButton and not ((Style = bsCheck) or (GroupIndex > 0)) and
-     (InBottomDrop or InRightDrop or not DropDownSplit)) then
+  InSepBtn := (InBottomDrop or InRightDrop);
+
+
+  if (not FDropDownButton and IsMenuButton) or
+     (FDropDownButton and InSepBtn and DropDownSplit) or
+     (FDropDownButton and not DropDownSplit and (not ((Style = bsCheck) or (GroupIndex > 0))))
+      then
   begin
-    FState := absUp;
+    // FState := absUp;
     FMouseInControl := False;
     // FMouseDownInControl := False;
     PopupBtnDown;
@@ -2230,8 +2751,11 @@ begin
   end
   else
   begin
-    if Style = bsCheck then
+    if (Style = bsCheck) then
+    begin
       SetDown(not FDownChecked);
+    end;
+
     if not FDownChecked then
     begin
       FState := absDown;
@@ -2246,7 +2770,6 @@ begin
 
     FDragging := True;
   end;
-
 end;
 
 //------------------------------------------------------------------------------
@@ -2256,12 +2779,22 @@ begin
   if (not FDropDownButton and IsMenuButton) or (FDropDownButton and not ((Style = bsCheck) or (GroupIndex > 0)) and
      (not DropDownSplit)) then
   begin
-
+    if Assigned(FDropDownMenu) then
+    begin
+      //PostMessage(Handle, WM_LBUTTONDOWN,0,0);
+      //PostMessage(Handle, WM_LBUTTONUP,0,0);
+      DoDropDown;
+    end
+    else
+      Click;
   end
   else
   begin
     if Style = bsCheck then
+    begin
       SetDown(not FDownChecked);
+    end;
+
     if not FDownChecked then
     begin
       FState := absDown;
@@ -2273,9 +2806,9 @@ begin
       FState := absDown;
       Repaint;
     end;
-  end;
 
-  Click;
+    Click;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2283,16 +2816,73 @@ end;
 procedure TAdvCustomGlowButton.WMLDblClk(var Msg: TWMLButtonDblClk);
 begin
   inherited;
-  Click;
+end;
+
+procedure TAdvCustomGlowButton.WMPaint(var Msg: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+begin
+  if not FDoubleBuffered or (Msg.DC <> 0) then
+  begin
+    if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+      inherited
+    else
+      PaintHandler(Msg);
+  end
+  else
+  begin
+    DC := GetDC(0);
+    MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+    ReleaseDC(0, DC);
+    MemDC := CreateCompatibleDC(0);
+    OldBitmap := SelectObject(MemDC, MemBitmap);
+    try
+      DC := BeginPaint(Handle, PS);
+      Perform(WM_ERASEBKGND, MemDC, MemDC);
+      Msg.DC := MemDC;
+      WMPaint(Msg);
+      Msg.DC := 0;
+      BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+      EndPaint(Handle, PS);
+    finally
+      SelectObject(MemDC, OldBitmap);
+      DeleteDC(MemDC);
+      DeleteObject(MemBitmap);
+    end;
+  end;
+end;
+
+(*
+begin
+  {$IFDEF VER185}
+  if TForm(FParentForm).FormStyle = fsMDIChild then
+  begin
+    DoubleBuffered := (Application.MainForm.ActiveMDIChild = FParentForm);
+  end
+  else
+    DoubleBuffered := (FParentForm.Handle = GetActiveWindow);
+  {$ENDIF}
+  inherited;
+*)
+
+//------------------------------------------------------------------------------
+procedure TAdvCustomGlowButton.WMLButtonDown(var Msg:TWMLButtonDown);
+begin
+  FGotButtonClick := true;
+  inherited;
 end;
 
 //------------------------------------------------------------------------------
 procedure TAdvCustomGlowButton.WMLButtonUp(var Msg:TWMLButtonDown);
 var
   DoClick: Boolean;
+  inht: boolean;
 
 begin
   FTimeInc := -20;
+  inht := false;
   GlowState := gsPush;
 
   FMouseDown := false;
@@ -2314,9 +2904,10 @@ begin
   if FDragging then
   begin
     FDragging := False;
+
     DoClick := (Msg.XPos >= 0) and (Msg.XPos < ClientWidth) and (Msg.YPos >= 0) and (Msg.YPos <= ClientHeight);
 
-    if FGroupIndex = 0 then
+    if (FGroupIndex = 0) then
     begin
       // Redraw face in-case mouse is captured
       FState := absUp;
@@ -2328,8 +2919,14 @@ begin
         if Assigned(Action) then
         begin
           inherited;
-          if FCheckLinked then
+          inht := true;
+          if (FCheckLinked or FGroupIndexLinked) then
             Exit;
+          {$IFDEF DELPHI7_LVL}
+          if (Action is TAction) then
+            if (Action as TAction).AutoCheck then
+              Exit;
+          {$ENDIF}    
         end;
 
         // ***** extension for toolbar compactbutton handling
@@ -2338,8 +2935,10 @@ begin
           Self.Down := not Self.Down;
         end;
 
-        if Style <> bsCheck then
+        if (Style <> bsCheck) then
+        begin
           SetDown(not FDownChecked);
+        end;
 
         //FState := absUp;
         Repaint;
@@ -2350,8 +2949,11 @@ begin
     else
     begin
       if Assigned(Action) then
-        if FCheckLinked then
+        if FCheckLinked or FGroupIndexLinked then
+        begin
+          inherited;
           Exit;
+        end;
 
       if DoClick then
       begin
@@ -2365,6 +2967,7 @@ begin
           FState := absExclusive;
         Repaint;
       end;
+
     end;
 
     //if DoClick then
@@ -2373,8 +2976,13 @@ begin
     UpdateTracking;
   end;
 
-  inherited;
+  if FGotButtonClick then
+    ControlState := ControlState + [csClicked];
 
+  FGotButtonClick := false;
+
+  if not inht then
+    inherited;
 
   if (Style = bsCheck) or (GroupIndex > 0) then
   begin
@@ -2383,6 +2991,7 @@ begin
     //FHot := true;
     //FMouseInControl := true;
   end;
+
   Invalidate;
 end;
 
@@ -2401,7 +3010,6 @@ begin
   if (AOperation = opRemove) and (AComponent = FHotImages) then
   begin
     FHotImages := nil;
-    ShowMessage('remove hot images');
   end;
 
   if (AOperation = opRemove) and (AComponent = DropdownMenu) then
@@ -2445,14 +3053,17 @@ var
   EnabledImg: Boolean;
   Rgn1, Rgn2: HRGN;
   R: TRect;
-  i: Integer;
+  i, w, h: Integer;
   p: TPoint;
   DCaption: string;
+  DWideCaption: widestring;
   BD: TButtonDisplay;
   DrawFocused, DrawFocusedHot: boolean;
   bmp: TBitmap;
   sz: TSize;
   gs: TGlowButtonState;
+  PicSize: TSize;
+  AFont: TFont;
 
 begin
   if FTransparent and not FMouseEnter then
@@ -2496,6 +3107,7 @@ begin
       else
         FState := absUp;
   end;
+
 
   if (Style = bsCheck) and (Down) then
   begin
@@ -2633,12 +3245,13 @@ begin
             GradColorTo := BlendColor(FColorDownTo, FColorCheckedTo, FStepPush);
             GradColorMirror := BlendColor(FColorMirrorDown, FColorMirrorChecked, FStepPush);
             GradColorMirrorTo := BlendColor(FColorMirrorDownTo, FColorMirrorCheckedTo, FStepPush);
-            PenColor := BlendColor(BorderColorDown, BorderColorHot, FStepPush);
-          end;
+//            PenColor := BlendColor(BorderColorDown, BorderColorChecked, FStepPush);
+          end
         end
         else
           if FDown and (State <> absExclusive) then
           begin
+
             GradColor := BlendColor(FColorDown, FColorHot, FStepPush);
             GradColorTo := BlendColor(FColorDownTo, FColorHotTo, FStepPush);
             GradColorMirror := BlendColor(FColorMirrorDown, FColorMirrorHot, FStepPush);
@@ -2682,9 +3295,15 @@ begin
     end;
 
     if ShowCaption then
-      DCaption := Caption
+    begin
+      DCaption := Caption;
+      DWideCaption := WideCaption;
+    end
     else
+    begin
       DCaption := '';
+      DWideCaption := '';
+    end;
 
     if (FMouseInControl or FMouseDown) and DropDownButton then
     begin
@@ -2697,7 +3316,7 @@ begin
       BD := bdNone;
 
     // do not use special border color for non standalone buttons in mouse hover/down state or checked buttons
-    if ((Position <> bpStandalone) and FMouseDown) or ((Style = bsCheck) and (FState = absDown))  then
+    if ((Position <> bpStandalone) and FMouseDown) {or ((Style = bsCheck) and (FState = absDown))}  then
     begin
       PenColor := BorderColor;
     end;
@@ -2728,6 +3347,17 @@ begin
     DrawFocused := (GetFocus = self.Handle) and (FocusType in [ftBorder, ftHotBorder]);
     DrawFocusedHot := (GetFocus = self.Handle) and (FocusType in [ftHot, ftHotBorder]);
 
+    AFont := TFont.Create;
+    AFont.Assign(Font);
+
+    if (not ParentFont) and Appearance.SystemFont then
+    begin
+      if IsVista then
+        AFont.Name := 'Segoe UI'
+      else
+        AFont.Name := 'Tahoma';
+    end;
+
     bmp := TBitmap.Create;
     bmp.Width := 1;
     bmp.Height := 1;
@@ -2737,43 +3367,86 @@ begin
     if Assigned(Action) then
     begin
       begin
-        if (Action as TCustomAction).ImageIndex >= 0 then        
+        if ((Action as TCustomAction).ImageIndex >= 0) {and (ImageIndex = (Action as TCustomAction).ImageIndex)} then
           if Assigned((Action as TCustomAction).ActionList) then
             if Assigned(TImageList((Action as TCustomAction).ActionList.Images)) then
             begin
               ImgList := TImageList((Action as TCustomAction).ActionList.Images);
               EnabledImg := Enabled;
+              FImageIndex := (Action as TCustomAction).ImageIndex;
             end;
+      end;
+    end;
+
+    PicSize.cx := 0;  // no stretch pic
+    PicSize.cy := 0;
+    if AutoSize then
+    begin
+      if (ButtonSizeState in [bsLabel, bsGlyph]) then
+      begin
+        PicSize.cx := 16;
+        PicSize.cy := 16;
+
+        {if (bmp.Width = 1) then
+        begin
+          bmp.Height := Pic.Height;
+          bmp.Width := Pic.Width;
+          bmp.Canvas.Draw(0, 0, Pic);
+          Pic := nil;
+        end;}
+
+        if Assigned(ImgList) and (ImageIndex >= 0) then
+        begin
+          Pic := nil;
+        end;
+      end;
+
+      if (ButtonSizeState = bsGlyph) then
+      begin
+        DCaption := '';
+        DWideCaption := '';
       end;
     end;
 
     if DoAutoSize or (FFirstPaint and AutoSize) then
     begin
+
       sz := DrawVistaButton(Canvas,ClientRect,GradColor, GradColorTo, GradColorMirror, GradColorMirrorTo,
-        PenColor, GradU, GradB, DCaption, WideCaption, FDefaultCaptionDrawing, Font, ImgList, ImageIndex, EnabledImg, Layout, FDropDownButton {and (Style <> bsCheck)},
-        DrawDwLn, Enabled, DrawFocused, DropDownPosition, Pic, AntiAlias, FDefaultPicDrawing, bmp, BD, Transparent and not (FMouseEnter or DrawFocusedHot or (State = absDown)), FMouseEnter, Position, DropDownSplit, BorderStyle = bsSingle,
-        FOverlappedText, FWordWrap, True, FRounded, FDropDownDirection = ddDown, FSpacing, FTrimming);
+        PenColor, GradU, GradB, DCaption, DWideCaption, FDefaultCaptionDrawing, AFont, ImgList, ImageIndex, EnabledImg, Layout, FDropDownButton {and (Style <> bsCheck)},
+        DrawDwLn, Enabled, DrawFocused, DropDownPosition, Pic, PicSize, AntiAlias, FDefaultPicDrawing, bmp, BD, Transparent and not (FMouseEnter or DrawFocusedHot or (State = absDown)), FMouseEnter, Position, DropDownSplit, CanDrawBorder,
+        FOverlappedText, FWordWrap, True, FRounded, FDropDownDirection = ddDown, FSpacing, FTrimming, FNotes, FNotesFont, FDownChecked);
 
-      if (sz.cx <> Width) and AutoSize then
+      if AutoSize then
       begin
-        if DropDownButton then
-          Width := sz.cx + Spacing * 3 + 2 + DropDownSectWidth + 2 * MarginHorz
-        else
-          Width := sz.cx + Spacing * 3 + 2 + 2 * MarginHorz;
+        W := sz.cx + Spacing * 3 + 2 + 2 * MarginHorz;
+        H := sz.cy + Spacing * 2 + 2 * MarginVert;
 
-        Height := sz.cy + Spacing * 2 + 2 * MarginVert;
+        if DropDownButton then
+        begin
+          if (DropDownPosition = dpBottom) then
+            H := H + DropDownSectWidth
+          else
+            W := W + DropDownSectWidth;
+        end;
+
+        if Assigned(FOnSetButtonSize) then
+          FOnSetButtonSize(Self, w, h);
+
+        if (W <> Width) then
+          Width := W;
+        if (H <> Height) then
+          Height := H;
       end;
 
       FFirstPaint := false;
     end;
 
-
-
+    // transparent border pixels
 
     sz := DrawVistaButton(Canvas,ClientRect,GradColor, GradColorTo, GradColorMirror, GradColorMirrorTo,
-      PenColor, GradU, GradB, DCaption, WideCaption, FDefaultCaptionDrawing, Font, ImgList, ImageIndex, EnabledImg, Layout, FDropDownButton {and (Style <> bsCheck)},
-      DrawDwLn, Enabled, DrawFocused, DropDownPosition, Pic, AntiAlias, FDefaultPicDrawing, bmp, BD, Transparent and not (FMouseEnter or DrawFocusedHot or (State = absDown)), FMouseEnter, Position, DropDownSplit, BorderStyle = bsSingle, FOverlappedText, FWordWrap,
-      False, FRounded, FDropDownDirection = ddDown, FSpacing, FTrimming);
+      PenColor, GradU, GradB, DCaption, DWideCaption, FDefaultCaptionDrawing, AFont, ImgList, ImageIndex, EnabledImg, Layout, FDropDownButton {and (Style <> bsCheck)},
+      DrawDwLn, Enabled, DrawFocused, DropDownPosition, Pic, PicSize, AntiAlias, FDefaultPicDrawing, bmp, BD, Transparent and not (FMouseEnter or DrawFocusedHot or (State = absDown)), FMouseEnter, Position, DropDownSplit, CanDrawBorder, FOverlappedText, FWordWrap,
+      False, FRounded, FDropDownDirection = ddDown, FSpacing, FTrimming, FNotes, FNotesFont, FDownChecked);
 
     DrawGlyphCaption;
 
@@ -2788,15 +3461,13 @@ begin
     if Assigned(OnDrawButton) then
       OnDrawButton(Self, Canvas, ClientRect, gs);
 
-
+    AFont.Free;
     bmp.Free;
 
     if not Assigned(Parent) then
       Exit;
 
-    // transparent border pixels
-
-    if not FTransparent or FMouseEnter then
+    if not FTransparent or FMouseEnter or (State = absDown) or (FHot) then
     begin
       R := ClientRect;
 
@@ -2853,8 +3524,6 @@ begin
         DeleteObject(rgn1);
       end;
     end;
-
-
   end;
 end;
 
@@ -2867,6 +3536,7 @@ end;
 
 procedure TAdvCustomGlowButton.SetDown(Value: Boolean);
 begin
+
   if (csLoading in ComponentState) then
     FInitialDown := Value;
 
@@ -2886,7 +3556,9 @@ begin
 
   if (Value <> FDownChecked) then
   begin
-    if FDownChecked and (not FAllowAllUp) then Exit;
+    if FDownChecked and (not FAllowAllUp) then
+      Exit;
+      
     FDownChecked := Value;
     if Value then
     begin
@@ -2898,7 +3570,8 @@ begin
       FState := absUp;
       Repaint;
     end;
-    if Value then UpdateExclusive;
+
+    if Value and not FCheckLinked then UpdateExclusive;
   end;
 end;
 
@@ -2957,6 +3630,25 @@ end;
 
 //------------------------------------------------------------------------------
 
+
+procedure TAdvCustomGlowButton.SetWideCaption(const Value: widestring);
+begin
+  if (FWideCaption <> Value) then
+  begin
+    FWideCaption := Value;
+
+    if AutoSize then
+    begin
+      DoAutoSize := true;
+      Repaint;
+      DoAutoSize := false;
+    end
+    else
+      Invalidate;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 
 procedure TAdvCustomGlowButton.SetWordWrap(const Value: Boolean);
 begin
@@ -3105,7 +3797,7 @@ begin
           if FStepPush > 100 then
             FStepPush := 100;
 
-          if FStepPush < 0then
+          if FStepPush < 0 then
             FStepPush := 0;
 
           if FTimeInc < 0 then
@@ -3115,7 +3807,6 @@ begin
           end;
 
           GlowState := gsNone;
-
           FreeAndNil(FTimer);
         end
         else
@@ -3153,7 +3844,6 @@ var
 begin
   // SetBkMode(Message.DC, Windows.TRANSPARENT );
   Message.Result := 1;
-  inherited;
   Exit;
 
   if FTransparent then
@@ -3213,7 +3903,7 @@ begin
   with Message do
     if IsAccel(CharCode, Caption) and CanFocus then
     begin
-      if IsMenuButton and (Assigned(DropDownMenu)) then
+      if IsMenuButton or (Assigned(DropDownMenu)) then
         DoDropDown
       else
         Click;
@@ -3231,6 +3921,7 @@ begin
       ((CharCode = VK_ESCAPE) and FCancel)) and
       (KeyDataToShiftState(Message.KeyData) = []) and CanFocus then
     begin
+      //Click;
       InternalClick;
       Result := 1;
     end
@@ -3272,11 +3963,11 @@ begin
       begin
         FDownChecked := False;
         FState := absUp;
-       { if (Action is TCustomAction) then
-          TCustomAction(Action).Checked := False; }
+        { if (Action is TCustomAction) then
+           TCustomAction(Action).Checked := False; }
         Invalidate;
       end;
-      FAllowAllUp := Sender.AllowAllUp;
+      //FAllowAllUp := Sender.AllowAllUp;
     end;
   end;
 end;
@@ -3297,7 +3988,6 @@ begin
     Msg.LParam := Longint(Self);
     Msg.Result := 0;
     Parent.Broadcast(Msg);
-
     {if Assigned(FAdvToolBar) and not (Parent is TAdvCustomToolBar) then
       FAdvToolBar.Broadcast(Msg)
     else if Assigned(AdvToolBar) and (Parent is TAdvCustomToolBar) and Assigned(AdvToolBar.FOptionWindowPanel) then
@@ -3309,7 +3999,6 @@ end;
 //------------------------------------------------------------------------------
 
 {$IFDEF TMSDOTNET}
-
 procedure TAdvCustomGlowButton.ButtonPressed(Group: Integer; Button: TAdvGlowButton);
 begin
   if (Group = FGroupIndex) and (Button <> Self) then
@@ -3322,7 +4011,7 @@ begin
         TCustomAction(Action).Checked := False;
       Invalidate;
     end;
-    FAllowAllUp := Button.AllowAllUp;
+    //FAllowAllUp := Button.AllowAllUp;
   end;
 end;
 
@@ -3344,8 +4033,7 @@ end;
 procedure TAdvCustomGlowButton.UpdateTracking;
 var
   P: TPoint;
-  //FNewMouseInControl: boolean;
-  MouseOver: boolean;
+  FNewMouseInControl: boolean;
 begin
   //if FFlat then
   begin
@@ -3353,24 +4041,6 @@ begin
     begin
       GetCursorPos(P);
 
-      MouseOver := (FindDragTarget(P, True) = Self);
-
-      if MouseOver then
-      begin
-        if (not FMouseInControl) then
-          Perform(CM_MOUSEENTER, 0, 0);
-        if (GetCapture = 0) then
-          SetCapture(Self.Handle);
-      end
-      else
-      begin
-        Perform(CM_MOUSELEAVE, 0, 0);
-        if (GetCapture = Self.Handle) then
-          ReleaseCapture;
-      end;
-        FMouseInControl := MouseOver;
-
-      {
       FNewMouseInControl := not (FindDragTarget(P, True) = Self);
 
       if FNewMouseInControl <> FMouseInControl then
@@ -3381,7 +4051,6 @@ begin
         else
           Perform(CM_MOUSEENTER, 0, 0);
       end;
-      }
     end;
   end;
 end;
@@ -3469,6 +4138,7 @@ begin
   else
     if not FMouseInControl then
       UpdateTracking;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -3552,6 +4222,11 @@ end;
 procedure TAdvCustomGlowButton.OnAppearanceChanged(Sender: TObject);
 begin
   Invalidate;
+  if Assigned(FShortCutHint) then
+  begin
+    FShortCutHint.Color := clWhite;
+    FShortCutHint.ColorTo := Appearance.Color;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3560,6 +4235,11 @@ procedure TAdvCustomGlowButton.SetAppearance(
   const Value: TGlowButtonAppearance);
 begin
   FAppearance.Assign(Value);
+  if Assigned(FShortCutHint) then
+  begin
+    FShortCutHint.Color := clWhite;
+    FShortCutHint.ColorTo := Appearance.Color;
+  end;
 end;
 
 procedure TAdvCustomGlowButton.SetBorderStyle(const Value: TBorderStyle);
@@ -3626,9 +4306,9 @@ begin
       end;
     tsOffice2003Silver:
       begin
-        Appearance.Color := $EDD4C0;
+        Appearance.Color := $E6E9E2; //$EDD4C0;
         Appearance.ColorTo := $00E6D8D8;
-        Appearance.ColorMirror := $EDD4C0;
+        Appearance.ColorMirror := $E6E9E2; //$EDD4C0;
         Appearance.ColorMirrorTo := $C8B2B3;
         Appearance.BorderColor := $927476;
         Appearance.Gradient := ggVertical;
@@ -3823,6 +4503,13 @@ begin
       end;
   end;
   Invalidate;
+
+  if Assigned(FShortCutHint) then
+  begin
+    FShortCutHint.Color := clWhite;
+    FShortCutHint.ColorTo := Appearance.Color;
+  end;
+
 end;
 
 
@@ -3840,7 +4527,8 @@ begin
     begin
       if CheckDefaults or (Self.GroupIndex = 0) then
         Self.GroupIndex := GroupIndex;
-      Self.ImageIndex := ImageIndex;
+      if (csDesigning in ComponentState) then
+        Self.ImageIndex := ImageIndex;
     end;
 end;
 
@@ -3852,6 +4540,244 @@ begin
 end;
 {$ENDIF}
 
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomGlowButton.SetButtonSizeState(
+  const Value: TButtonSizeState);
+begin
+  if (FButtonSizeState <> Value) {and AutoSize} then
+  begin
+    if (FButtonSizeState = bsLarge) then
+    begin
+      FOldLayout := Layout;
+      FOldDropDownPosition := DropDownPosition;
+    end;
+
+    FButtonSizeState := Value;
+    
+    if (FButtonSizeState = bsLarge) and AutoSize then
+    begin
+      Layout := FOldLayout;
+      DropDownPosition := FOldDropDownPosition;
+    end
+    else if AutoSize then
+    begin
+      Layout := blGlyphLeft;
+      DropDownPosition := dpRight;
+    end;
+    FFirstPaint := True;
+    Paint;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomGlowButton.SetMaxButtonSizeState(
+  const Value: TButtonSizeState);
+begin
+  if (FMaxButtonSizeState <> Value) {and AutoSize} then
+  begin
+    FMaxButtonSizeState := Value;
+    ButtonSizeState := FMaxButtonSizeState
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomGlowButton.GetNotes: TStrings;
+begin
+  Result := TStrings(FNotes);
+end;
+
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomGlowButton.SetNotes(const Value: TStrings);
+begin
+  FNotes.Assign(Value);
+  Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomGlowButton.SetNotesFont(const Value: TFont);
+begin
+  FNotesFont.Assign(Value);
+  Invalidate;  
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomGlowButton.SetMinButtonSizeState(
+  const Value: TButtonSizeState);
+begin
+  if (FMinButtonSizeState <> Value) then
+  begin
+    FMinButtonSizeState := Value;
+    if (FMinButtonSizeState > ButtonSizeState) then
+      ButtonSizeState := FMinButtonSizeState;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomGlowButton.GetButtonSize(BtnSizeState: TButtonSizeState): TSize;
+var
+  DCaption: string;
+  DWideCaption: widestring;
+  ImgList: TImageList;
+  Pic: TGDIPPicture;
+  EnabledImg: Boolean;
+  BD: TButtonDisplay;
+  bmp: TBitmap;
+  DrawFocused, DrawFocusedHot, DrawDwLn: boolean;
+  PicSize: TSize;
+  LayOt: TButtonLayout;
+  DpDwPosition: TDropDownPosition;
+begin
+  if Enabled or (DisabledImages = nil) then
+  begin
+    if FHot and (HotImages <> nil) then
+      ImgList := HotImages
+    else
+      ImgList := Images;
+
+    EnabledImg := Enabled;
+  end
+  else
+  begin
+    ImgList := DisabledImages;
+    EnabledImg := True;
+  end;
+
+  if Enabled or DisabledPicture.Empty then
+  begin
+    if FHot and not HotPicture.Empty then
+      Pic := HotPicture
+    else
+      Pic := Picture;
+  end
+  else
+    Pic := DisabledPicture;
+
+
+  if (ImgList = nil) then
+  begin
+    ImgList := FInternalImages;
+    EnabledImg := True;
+  end;
+
+  if ShowCaption then
+  begin
+    DCaption := Caption;
+    DWideCaption := WideCaption;
+  end
+  else
+  begin
+    DCaption := '';
+    DWideCaption := '';
+  end;
+
+  if (FMouseInControl or FMouseDown) and DropDownButton then
+  begin
+    if FInButton then
+      BD := bdDropDown
+    else
+      BD := bdButton;
+  end
+  else
+    BD := bdNone;
+
+  DrawFocused := (GetFocus = self.Handle) and (FocusType in [ftBorder, ftHotBorder]);
+  DrawFocusedHot := (GetFocus = self.Handle) and (FocusType in [ftHot, ftHotBorder]);
+
+  bmp := TBitmap.Create;
+  bmp.Width := 1;
+  bmp.Height := 1;
+
+  GetToolImage(bmp);
+
+  if Assigned(Action) then
+  begin
+    begin
+      if ((Action as TCustomAction).ImageIndex >= 0) and (ImageIndex = (Action as TCustomAction).ImageIndex) then
+        if Assigned((Action as TCustomAction).ActionList) then
+          if Assigned(TImageList((Action as TCustomAction).ActionList.Images)) then
+          begin
+            ImgList := TImageList((Action as TCustomAction).ActionList.Images);
+            EnabledImg := Enabled;
+          end;
+    end;
+  end;
+
+  LayOt := Layout;
+  DpDwPosition := DropDownPosition;
+
+  PicSize.cx := 0;  // no stretch pic
+  PicSize.cy := 0;
+  if AutoSize then
+  begin
+    if (BtnSizeState in [bsLabel, bsGlyph]) then
+    begin
+      PicSize.cx := 16;
+      PicSize.cy := 16;
+
+      if (bmp.Width = 1) then
+      begin
+        bmp.Height := Pic.Height;
+        bmp.Width := Pic.Width;
+        bmp.Canvas.Draw(0, 0, Pic);
+        Pic := nil;
+      end;
+
+      if Assigned(ImgList) and (ImageIndex >= 0) then
+      begin
+        Pic := nil;
+      end;
+    end;
+
+    if (BtnSizeState = bsGlyph) then
+    begin
+      DCaption := '';
+      DWideCaption := '';
+    end;
+
+    if (BtnSizeState = bsLarge) then
+    begin
+      LayOt := FOldLayout;
+      DpDwPosition := FOldDropDownPosition;
+    end
+    else
+    begin
+      LayOt := blGlyphLeft;
+      DpDwPosition := dpRight;
+    end;
+  end;
+
+  DrawDwLn := False;
+
+  with Appearance do
+    Result := DrawVistaButton(Canvas,ClientRect,FColor, FColorTo, FColorMirror, FColorMirrorTo,
+        BorderColor, Gradient, GradientMirror, DCaption, DWideCaption, FDefaultCaptionDrawing, Font, ImgList, ImageIndex, EnabledImg, LayOt, FDropDownButton,
+        DrawDwLn, Enabled, DrawFocused, DpDwPosition, Pic, PicSize, AntiAlias, FDefaultPicDrawing, bmp, BD, Transparent and not (FMouseEnter or DrawFocusedHot or (State = absDown)), FMouseEnter, Position, DropDownSplit, CanDrawBorder,
+        FOverlappedText, FWordWrap, True, FRounded, FDropDownDirection = ddDown, FSpacing, FTrimming, FNotes, FNotesFont, FDownChecked);
+
+  Result.cx := Result.cx + Spacing * 3 + 2 + 2 * MarginHorz;
+  Result.cy := Result.cy + Spacing * 2 + 2 * MarginVert;
+  if DropDownButton then
+  begin
+    if (DpDwPosition = dpBottom) then
+      Result.cy := Result.cy + DropDownSectWidth
+    else
+      Result.cx := Result.cx + DropDownSectWidth;
+  end;
+  //if Assigned(FOnSetButtonSize) then
+    //FOnSetButtonSize(Self, w, h);
+
+  bmp.Free;
+end;
+
+//------------------------------------------------------------------------------
 
 { TGlowButtonAppearance }
 
@@ -3903,6 +4829,17 @@ begin
 
   GradientDisabled := ggRadial;
   GradientMirrorDisabled := ggRadial;
+
+  FSystemFont := true;
+end;
+
+procedure TGlowButtonAppearance.SetSystemFont(const Value: boolean);
+begin
+  if (FSystemFont <> Value) then
+  begin
+    FSystemFont := Value;
+    Changed;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3956,6 +4893,8 @@ begin
 
     GradientDisabled := (Source as TGlowButtonAppearance).GradientDisabled;
     GradientMirrorDisabled := (Source as TGlowButtonAppearance).GradientMirrorDisabled;
+
+    SystemFont := (Source as TGlowButtonAppearance).SystemFont;
   end
   else
     inherited Assign(Source);
@@ -3969,7 +4908,404 @@ begin
     FOnChange(Self);
 end;
 
+procedure TGlowButtonAppearance.SetBorderColor(const Value: TColor);
+begin
+  if (FBorderColor <> Value) then
+  begin
+    FBorderColor := Value;
+    Changed;
+  end;
+end;
+
 //------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetBorderColorChecked(const Value: TColor);
+begin
+  if (FBorderColorChecked <> Value) then
+  begin
+    FBorderColorChecked := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetBorderColorDisabled(
+  const Value: TColor);
+begin
+  if (FBorderColorDisabled <> Value) then
+  begin
+    FBorderColorDisabled := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetBorderColorDown(const Value: TColor);
+begin
+  if (FBorderColorDown <> Value) then
+  begin
+    FBorderColorDown := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetBorderColorHot(const Value: TColor);
+begin
+  if (FBorderColorHot <> Value) then
+  begin
+    FBorderColorHot := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColor(const Value: TColor);
+begin
+  if (FColor <> Value) then
+  begin
+    FColor := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorChecked(const Value: TColor);
+begin
+  if (FColorChecked <> Value) then
+  begin
+    FColorChecked := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorCheckedTo(const Value: TColor);
+begin
+  if (FColorCheckedTo <> Value) then
+  begin
+    FColorCheckedTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorDisabled(const Value: TColor);
+begin
+  if (FColorDisabled <> Value) then
+  begin
+    FColorDisabled := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorDisabledTo(const Value: TColor);
+begin
+  if (FColorDisabledTo <> Value) then
+  begin
+    FColorDisabledTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorDown(const Value: TColor);
+begin
+  if (FColorDown <> Value) then
+  begin
+    FColorDown := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorDownTo(const Value: TColor);
+begin
+  if (FColorDownTo <> Value) then
+  begin
+    FColorDownTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorHot(const Value: TColor);
+begin
+  if (FColorHot <> Value) then
+  begin
+    FColorHot := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorHotTo(const Value: TColor);
+begin
+  if (FColorHotTo <> Value) then
+  begin
+    FColorHotTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirror(const Value: TColor);
+begin
+  if (FColorMirror <> Value) then
+  begin
+    FColorMirror := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorChecked(const Value: TColor);
+begin
+  if (FColorMirrorChecked <> Value) then
+  begin
+    FColorMirrorChecked := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorCheckedTo(
+  const Value: TColor);
+begin
+  if (FColorMirrorCheckedTo <> Value) then
+  begin
+    FColorMirrorCheckedTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorDisabled(
+  const Value: TColor);
+begin
+  if (FColorMirrorDisabled <> Value) then
+  begin
+    FColorMirrorDisabled := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorDisabledTo(
+  const Value: TColor);
+begin
+  if (FColorMirrorDisabledTo <> Value) then
+  begin
+    FColorMirrorDisabledTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorDown(const Value: TColor);
+begin
+  if (FColorMirrorDown <> Value) then
+  begin
+    FColorMirrorDown := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorDownTo(const Value: TColor);
+begin
+  if (FColorMirrorDownTo <> Value) then
+  begin
+    FColorMirrorDownTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorHot(const Value: TColor);
+begin
+  if (FColorMirrorHot <> Value) then
+  begin
+    FColorMirrorHot := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorHotTo(const Value: TColor);
+begin
+  if (FColorMirrorHotTo <> Value) then
+  begin
+    FColorMirrorHotTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorMirrorTo(const Value: TColor);
+begin
+  if (FColorMirrorTo <> Value) then
+  begin
+    FColorMirrorTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetColorTo(const Value: TColor);
+begin
+  if (FColorTo <> Value) then
+  begin
+    FColorTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradient(const Value: TGDIPGradient);
+begin
+  if (FGradient <> Value) then
+  begin
+    FGradient := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientChecked(
+  const Value: TGDIPGradient);
+begin
+  if (FGradientChecked <> Value) then
+  begin
+    FGradientChecked := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientDisabled(
+  const Value: TGDIPGradient);
+begin
+  if (FGradientDisabled <> Value) then
+  begin
+    FGradientDisabled := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientDown(
+  const Value: TGDIPGradient);
+begin
+  if (FGradientDown <> Value) then
+  begin
+    FGradientDown := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientHot(const Value: TGDIPGradient);
+begin
+  if (FGradientHot <> Value) then
+  begin
+    FGradientHot := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientMirror(
+  const Value: TGDIPGradient);
+begin
+  if (FGradientMirror <> Value) then
+  begin
+    FGradientMirror := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientMirrorChecked(
+  const Value: TGDIPGradient);
+begin
+  if (FGradientMirrorChecked <> Value) then
+  begin
+    FGradientMirrorChecked := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientMirrorDisabled(
+  const Value: TGDIPGradient);
+begin
+  if (FGradientMirrorDisabled <> Value) then
+  begin
+    FGradientMirrorDisabled := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientMirrorDown(
+  const Value: TGDIPGradient);
+begin
+  if (FGradientMirrorDown <> Value) then
+  begin
+    FGradientMirrorDown := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TGlowButtonAppearance.SetGradientMirrorHot(
+  const Value: TGDIPGradient);
+begin
+  if (FGradientMirrorHot <> Value) then
+  begin
+    FGradientMirrorHot := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFNDEF TMS_STD}
 
 { TDBATBButtonDataLink }
 
@@ -4393,6 +5729,8 @@ begin
   end;
 end;
 
+{$ENDIF}
+
 //------------------------------------------------------------------------------
 
 {$IFDEF DELPHI6_LVL}
@@ -4400,6 +5738,7 @@ end;
 { TAdvGlowButtonActionLink }
 
 procedure TAdvGlowButtonActionLink.AssignClient(AClient: TObject);
+
 begin
   inherited AssignClient(AClient);
   FClient := AClient as TAdvCustomGlowButton;
@@ -4421,6 +5760,8 @@ function TAdvGlowButtonActionLink.IsGroupIndexLinked: Boolean;
 begin
   Result := (FClient is TAdvCustomGlowButton) and
     (TAdvCustomGlowButton(FClient).GroupIndex = (Action as TCustomAction).GroupIndex);
+
+  FClient.GroupIndexLinked := Result;
 end;
 
 //------------------------------------------------------------------------------
@@ -4430,8 +5771,9 @@ begin
   if IsGroupIndexLinked then
   begin
     FImageIndex := Value;
-    TAdvCustomGlowButton(FClient).ImageIndex := Value;
-  end;  
+    if (csDesigning in FClient.ComponentState) then
+      TAdvCustomGlowButton(FClient).ImageIndex := Value;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -4447,9 +5789,7 @@ end;
 procedure TAdvGlowButtonActionLink.SetChecked(Value: Boolean);
 begin
   if IsCheckedLinked then
-  begin
     TAdvCustomGlowButton(FClient).Down  := Value;
-  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -4465,9 +5805,16 @@ end;
 { TShortCutHintWindow }
 
 procedure TShortCutHintWindow.CreateParams(var Params: TCreateParams);
+const
+  CS_DROPSHADOW = $00020000;
 begin
   inherited;
   Params.Style := Params.Style and not WS_BORDER;
+  if (Win32Platform = VER_PLATFORM_WIN32_NT) and
+     ((Win32MajorVersion > 5) or
+      ((Win32MajorVersion = 5) and (Win32MinorVersion >= 1))) then
+        if Params.WindowClass.Style and CS_DROPSHADOW <> 0 then
+          Params.WindowClass.Style := Params.WindowClass.Style - CS_DROPSHADOW;
 end;
 
 procedure TShortCutHintWindow.Paint;
@@ -4475,7 +5822,7 @@ var
   r: TRect;
 begin
   r := ClientRect;
-  DrawGradient(Canvas, clWhite, clSilver, 32, r, false);
+  DrawGradient(Canvas, Color, ColorTo, 16, r, false);
   Canvas.Brush.Style := bsClear;
   Canvas.Font.Assign(self.Font);
 
@@ -4486,14 +5833,35 @@ begin
 end;
 
 
+procedure TShortCutHintWindow.Resize;
+var
+  ow: integer;
+begin
+  inherited;
+  ow := Canvas.TextWidth('O') + 8;
+  if Width < ow then
+    Width := ow;
+end;
+
 procedure TShortCutHintWindow.WMEraseBkGnd(var Message: TWMEraseBkGnd);
 begin
   Message.Result := 1;
 end;
 
+function TAdvCustomGlowButton.CanDrawBorder: Boolean;
+begin
+  Result := (BorderStyle = bsSingle);
+end;
+
+function TAdvCustomGlowButton.CanDrawFocused: Boolean;
+begin
+  Result := (GetFocus = self.Handle) and (FocusType in [ftBorder, ftHotBorder]);
+end;
+
 {$IFDEF FREEWARE}
 {$I TRIAL.INC}
 {$ENDIF}
+
 
 
 

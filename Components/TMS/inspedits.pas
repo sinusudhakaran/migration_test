@@ -32,7 +32,11 @@ uses
   {$IFDEF TMSDOTNET}
   uxTheme, WinUtils,
   {$ENDIF}
-  Buttons, ExtCtrls, Mask, ComCtrls, Dialogs;
+  Buttons, ExtCtrls, Mask, ComCtrls, Dialogs
+  {$IFDEF DELPHI_UNICODE}
+  , Character
+  {$ENDIF}
+  ;
 
 type
   TWinCtrl = class(TWinControl);
@@ -1379,7 +1383,13 @@ var
   s:string;
 begin
   {$IFNDEF TMSDOTNET}
+
+  {$IFNDEF DELPHI_UNICODE}
   Result := (Key in [DecimalSeparator,ThousandSeparator, TimeSeparator, DateSeparator,'+', '-', '0'..'9']) or
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  Result := (character.IsNumber(Key) or (Key = DecimalSeparator) or (Key = ThousandSeparator) or (Key = TimeSeparator) or (Key = DateSeparator) or (Key = '+') or (Key = '-')) or
+  {$ENDIF}
     ((Key < #32) and (Key <> Chr(VK_RETURN)));
   {$ENDIF}
   {$IFDEF TMSDOTNET}
@@ -1390,7 +1400,7 @@ begin
   if (key = TimeSeparator) and (fSpinType <> sptTime) then Result := False;
   if (key = DateSeparator) and (fSpinType <> sptDate) then Result := False;
 
-  if (FSpinType = sptFloat) and not (key in [chr(VK_ESCAPE),chr(VK_RETURN),chr(VK_BACK)]) then
+  if (FSpinType = sptFloat) and not ( (key = chr(VK_ESCAPE)) or (key = chr(VK_RETURN)) or (key = chr(VK_BACK))) then
   begin
     {$IFNDEF TMSDOTNET}
     if key = ThousandSeparator then Key := DecimalSeparator;

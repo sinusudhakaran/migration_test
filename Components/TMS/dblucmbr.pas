@@ -1,7 +1,6 @@
 {********************************************************************}
 { TDBLUCOMBO component                                               }
-{ for Delphi 3.0,4.0,5.0,6.0 & C++Builder 3.0,4.0,5.0                }
-{ version 1.0                                                        }
+{ for Delphi & C++Builder                                            }
 {                                                                    }
 { written by                                                         }
 {   TMS Software                                                     }

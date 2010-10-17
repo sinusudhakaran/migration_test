@@ -67,7 +67,7 @@ type
     constructor CreateFromData(const aRow, aCol, aXF: word; const aSST: TSST);
 
     procedure AttachToSST(const aSST: TSST);
-    procedure SaveToStream(const Workbook: TStream); override;
+    procedure SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean); override;
 
     destructor Destroy;override;
 
@@ -93,10 +93,12 @@ type
 procedure CreateSSTEntryFromString(var MemSST: TMemSST; const s: wideString; const RTFRuns: TRTFRunList; var Entry: TiSSTEntry);
 var
   OptionFlags: byte;
+  Wide: byte;
   Lb, OldSize, Posi, i: integer;
   pEntry: PArrayOfByte;
 begin
-  if IsWide(s) then OptionFlags:=1 else OptionFlags:=0;
+  if IsWide(s) then Wide := 1 else Wide:=0;
+  OptionFlags := Wide;
   if Length(RTFRuns)>0 then OptionFlags:=OptionFlags or $8;
 
 {  GetMem(Entry, SizeOf(TExtraData)+ //Extra data not to be saved
@@ -108,7 +110,7 @@ begin
   inc( MemSST.UsedSize, SizeOf(TExtraData)+ //Extra data not to be saved
                         SizeOf(Word) + // String Length
                         SizeOf(byte) + // OptionsFlag
-                        Length(s)*(1+OptionFlags));
+                        Length(s)*(1+Wide));
 
   if Length(RTFRuns)>0 then
     inc( MemSST.UsedSize, Length(RTFRuns)*4+2 ); //RTF Info
@@ -134,7 +136,7 @@ begin
     inc(Posi,2);
   end;
 
-  if OptionFlags= 1 then
+  if Wide = 1 then
   begin
     System.Move(s[1], pEntry^[Posi], Length(s)*2);
     inc(Posi, Length(s)*2);
@@ -758,11 +760,11 @@ end;
 
 destructor TLabelSSTRecord.Destroy;
 begin
-  if pSSTEntry>=0 then DecSSTRef(SST.GetEntry(pSSTEntry));
+    if (pSSTEntry>=0) and (SST <> nil) then DecSSTRef(SST.GetEntry(pSSTEntry));
   inherited;
 end;
 
-procedure TLabelSSTRecord.SaveToStream(const Workbook: TStream);
+procedure TLabelSSTRecord.SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);
 begin
   SetLongWord(Data, 6, PExtraData(SST.GetEntry(pSSTEntry)).PosInTable);
   inherited;

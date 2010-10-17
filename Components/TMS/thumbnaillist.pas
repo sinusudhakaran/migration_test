@@ -1184,7 +1184,9 @@ var
         Source := tsFile;
         Caption := Name;
         if not FBuffered then
+        begin
           Picture.LoadFromFile(Filename);
+        end;
       end;
   end;
 

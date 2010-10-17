@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TADVTOOLBUTON component                                                 }
 { for Delphi & C++Builder                                                 }
-{ version 1.3.3.0                                                         }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright ©  2002 - 2006                                      }
+{           copyright ©  2002 - 2007                                      }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -35,8 +34,8 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 3; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 5; // Release nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
   // 1.2.1.0 : Added Whidbey appearance style
@@ -47,6 +46,10 @@ const
   // 1.3.2.0 : New support for Office 2007 silver style added
   // 1.3.2.1 : Fixed issue with programmatically setting down
   // 1.3.3.0 : New : public method ShowDropDownMenu
+  // 1.3.4.0 : New : with DropDownButton = false and assigned DropDownMenu, menu shows on click
+  // 1.3.5.0 : New : property DropDownSplit property added
+  // 1.3.5.1 : Fixed : small issue with BorderDownColor for non gradient buttons
+
 
 type
   TAdvToolButtonStyle = (tasButton, tasCheck);
@@ -100,7 +103,8 @@ type
     FStyle: TAdvToolButtonStyle;
     FLook: Integer;
     FRounded: Boolean;
-    FDropDownButton: Boolean;
+    FDropDownButton: boolean;
+    FDropDownSplit: boolean;
     FAutoThemeAdapt: Boolean;
     FOnDropDown: TNotifyEvent;
     FDropDownMenu: TPopupMenu;
@@ -208,6 +212,7 @@ type
     property Down: Boolean read FDown write SetDown default False;
     property DropDownButton: Boolean read FDropDownButton write SetDropDownButton default False;
     property DropDownMenu: TPopupMenu read FDropDownMenu write FDropDownMenu;
+    property DropDownSplit: boolean read FDropDownSplit write FDropDownSplit default true;
     property Caption;
     property Enabled;
     property Flat: Boolean read FFlat write SetFlat default True;
@@ -474,6 +479,7 @@ begin
   FTransparent := True;
   FShaded := True;
   FShowCaption := True;
+  FDropDownSplit := true;
 end;
 
 destructor TAdvToolButton.Destroy;
@@ -843,7 +849,7 @@ begin
           Canvas.RoundRect(PaintRect.Left,PaintRect.Top,PaintRect.Right,PaintRect.Bottom,8,8);
         end;
 
-        if FDropDownButton then
+        if FDropDownButton and FDropDownSplit then
         begin
           if FState = bsDown then
             Canvas.Pen.COlor := FBorderDownColor
@@ -891,7 +897,9 @@ begin
             DrawGradient(Canvas, Color, ColorTo, Canvas.Pen.Color, 16, PaintRect, False);
           end
           else
+          begin
             Canvas.FillRect(PaintRect);
+          end;
 
           if (FBorderColor <> clNone) then
           begin
@@ -916,6 +924,7 @@ begin
     InflateRect(PaintRect, -1, -1);
   end;
 
+
   Offset := Point(0,0);
 
   if FState in [bsDown, bsExclusive] then
@@ -936,7 +945,12 @@ begin
         DrawGradient(Canvas, ColorChecked, ColorCheckedTo, Canvas.Pen.Color, 16, PaintRect, False)
       end
       else
-        Canvas.FillRect(PaintRect);
+      begin
+        if Canvas.Pen.Color = clNone then
+          Canvas.FillRect(PaintRect)
+        else
+          Canvas.Rectangle(PaintRect);
+      end;
     end;
     if not FFlat and not (csDesigning in ComponentState) then
       Offset := Point(1,1);
@@ -993,7 +1007,7 @@ begin
     GenerateShade;
 
   if AutoThemeAdapt then
-    ThemeAdapt;  
+    ThemeAdapt;
 end;
 
 procedure TAdvToolButton.ShowDropDownMenu;
@@ -1015,7 +1029,8 @@ begin
 
   if (Button = mbLeft) and Enabled then
   begin
-    if (FDropDownButton) and (X > ClientRect.Right - 12) then
+    if ((FDropDownButton) and (X > ClientRect.Right - 12))
+      or (FDropDownButton and (not FDropDownSplit)) or ((not FDropDownButton) and assigned(FDropDownMenu)) then
     begin
       FState := bsUp;
       FMouseInControl := False;

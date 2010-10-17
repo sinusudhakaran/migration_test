@@ -5,7 +5,7 @@
 {                                                                         }
 { written by                                                              }
 {    TMS Software                                                         }
-{    copyright © 1999-2006                                                }
+{    copyright © 1999-2007                                                }
 {    Email : info@tmssoftware.com                                         }
 {    Web : http://www.tmssoftware.com                                     }
 {                                                                         }
@@ -42,8 +42,8 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 5; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 2; // Build nr.
+  REL_VER = 3; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // 1.4.1.0  : added BorderColor to HTMLButton (for flat mode)
@@ -54,7 +54,10 @@ const
   // 1.5.1.0  : Improved transparent drawing for HTMLCheckBox, HTMLRadioButton
   // 1.5.1.1  : Improved HTMLRadioButton checked state activation on mouseup
   // 1.5.1.2  : Fixed issue with dbl OnClick event on radiobutton click
-
+  // 1.5.2.0  : Exposed OnAnchorClick, OnAnchorEnter, OnAnchorExit in HTMLRadioGroup, HTMLCheckGroup
+  // 1.5.2.1  : Fixed compatibility issue with TRadioGroup of THTMLRadioGroup
+  // 1.5.2.2  : Fixed issue with MouseUp handling in THTMLCheckBox, THTMLRadioButton
+  // 1.5.3.0  : New : support themed cbGray state in TCustomHTMLCheckBox.Paint
 type
   TButtonType = (btClassic,btBorland,btFlat,btTMS,btWinXP,btTheme);
 
@@ -87,6 +90,7 @@ type
     FClicksDisabled: Boolean;
     FOldCursor: TCursor;
     FReadOnly: Boolean;
+    FMouseDown:boolean;
     {$IFNDEF TMSDOTNET}
     FBkgBmp: TBitmap;
     FBkgCache: boolean;
@@ -225,6 +229,7 @@ type
     FHot: Boolean;
     FClicksDisabled: Boolean;
     FOldCursor: TCursor;
+    FMouseDown: boolean;
     {$IFNDEF TMSDOTNET}
     FBkgBmp: TBitmap;
     FBkgCache: boolean;
@@ -321,6 +326,7 @@ type
     property ShowHint;
     property TabOrder;
     property TabStop;
+    property Visible;
     {$IFNDEF TMSDOTNET}
     property Transparent:boolean read FTransparent write SetTransparent default False;
     {$ENDIF}
@@ -509,6 +515,9 @@ type
     FShadowOffset: Integer;
     FShadowColor: TColor;
     FOnIsEnabled: TEnabledEvent;
+    FAnchorClick: TAnchorClick;
+    FAnchorEnter: TAnchorClick;
+    FAnchorExit: TAnchorClick;
     procedure SetButtonType(const Value: TButtonType);
     procedure ArrangeButtons;
     procedure ButtonClick(Sender: TObject);
@@ -537,6 +546,9 @@ type
     procedure ReadState(Reader: TReader); override;
     function CanModify: Boolean; virtual;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
+    procedure OnAnchorClickEvent(Sender:TObject; Anchor:string);
+    procedure OnAnchorEnterEvent(Sender:TObject; Anchor:string);
+    procedure OnAnchorExitEvent(Sender:TObject; Anchor:string);
     property Columns: Integer read FColumns write SetColumns default 1;
     property ItemIndex: Integer read FItemIndex write SetItemIndex default -1;
     property Items: TStrings read FItems write SetItems;
@@ -561,6 +573,9 @@ type
     property ShadowOffset: Integer read FShadowOffset write SetShadowOffset default 1;
     property OnIsEnabled: TEnabledEvent read FOnIsEnabled write FOnIsEnabled;
     property Version: string read GetVersion write SetVersion;
+    property OnAnchorClick:TAnchorClick read fAnchorClick write fAnchorClick;
+    property OnAnchorEnter:TAnchorClick read fAnchorEnter write fAnchorEnter;
+    property OnAnchorExit:TAnchorClick read fAnchorExit write fAnchorExit;
   end;
 
   THTMLRadioGroup = class(TCustomHTMLRadioGroup)
@@ -629,6 +644,9 @@ type
     FShadowOffset: Integer;
     FShadowColor: TColor;
     FOnIsEnabled: TEnabledEvent;
+    FAnchorClick: TAnchorClick;
+    FAnchorEnter: TAnchorClick;
+    FAnchorExit: TAnchorClick;
     procedure SetButtonType(const Value: TButtonType);
     procedure ArrangeButtons;
     procedure ButtonClick(Sender: TObject);
@@ -660,6 +678,9 @@ type
     procedure ReadState(Reader: TReader); override;
     function CanModify: Boolean; virtual;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
+    procedure OnAnchorClickEvent(Sender:TObject; Anchor:string);
+    procedure OnAnchorEnterEvent(Sender:TObject; Anchor:string);
+    procedure OnAnchorExitEvent(Sender:TObject; Anchor:string);
     property Columns: Integer read FColumns write SetColumns default 1;
     property Items: TStrings read FItems write SetItems;
   public
@@ -685,6 +706,9 @@ type
     property ShadowOffset: Integer read FShadowOffset write SetShadowOffset default 1;
     property OnIsEnabled: TEnabledEvent read FOnIsEnabled write FOnIsEnabled;
     property Version: string read GetVersion write SetVersion;
+    property OnAnchorClick:TAnchorClick read fAnchorClick write fAnchorClick;
+    property OnAnchorEnter:TAnchorClick read fAnchorEnter write fAnchorEnter;
+    property OnAnchorExit:TAnchorClick read fAnchorExit write fAnchorExit;
   end;
 
   THTMLCheckGroup = class(TCustomHTMLCheckGroup)
@@ -1174,6 +1198,41 @@ begin
               DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_CHECKEDDISABLED,r,nil);
               {$ENDIF}
           end
+          else if State = cbGrayed then
+          begin
+            if Enabled then
+            begin
+              if Down then
+                {$IFNDEF TMSDOTNET}
+                DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_MIXEDPRESSED,@r,nil)
+                {$ENDIF}
+                {$IFDEF TMSDOTNET}
+                DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_MIXEDPRESSED,r,nil)
+                {$ENDIF}
+              else
+              if FHot then
+                {$IFNDEF TMSDOTNET}
+                DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_MIXEDHOT,@r,nil)
+                {$ENDIF}
+                {$IFDEF TMSDOTNET}
+                DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_MIXEDHOT,r,nil)
+                {$ENDIF}
+              else
+                {$IFNDEF TMSDOTNET}
+                DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_MIXEDNORMAL,@r,nil);
+                {$ENDIF}
+                {$IFDEF TMSDOTNET}
+                DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_MIXEDNORMAL,r,nil);
+                {$ENDIF}
+            end
+            else
+              {$IFNDEF TMSDOTNET}
+              DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_MIXEDDISABLED,@r,nil);
+              {$ENDIF}
+              {$IFDEF TMSDOTNET}
+              DrawThemeBackground(HTheme,Canvas.Handle, BP_CHECKBOX,CBS_MIXEDDISABLED,r,nil);
+              {$ENDIF}
+          end
           else
           begin
             if Enabled then
@@ -1343,6 +1402,7 @@ var
   Anchor:string;
 begin
   Anchor := '';
+  FMouseDown := true;
 
   if FFocused then
   begin
@@ -1388,13 +1448,14 @@ begin
 
   Down := False;
   
-  if (X >= 0) and (X<=Width) and (Y>=0) and (Y<=Height) and FFocused then
+  if (X >= 0) and (X<=Width) and (Y>=0) and (Y<=Height) and FFocused and FMouseDown then
   begin
     ClicksDisabled := True;
     Toggle;
     ClicksDisabled := False;
     Click;
   end;
+  FMouseDown := false;
     
   inherited MouseUp(Button, Shift, X, Y);
 
@@ -1409,10 +1470,10 @@ begin
   if MouseCapture then
      Down:=(X>=0) and (X<=Width) and (Y>=0) and (Y<=Height);
 
-  if fFocused then
-    Anchor := IsAnchor(x,y)
-  else
-    Anchor := '';
+//  if fFocused then
+    Anchor := IsAnchor(x,y);
+//  else
+//    Anchor := '';
 
   if Anchor <> '' then
   begin
@@ -2165,7 +2226,7 @@ procedure THTMLRadioButton.DoEnter;
 begin
   inherited DoEnter;
   FFocused := True;
-//  Checked := True;
+  Checked := True;
   Invalidate;
 end;
 
@@ -2181,6 +2242,7 @@ var
   Anchor:string;
 begin
   Anchor := '';
+  FMouseDown := true;
 
   if FFocused then
   begin
@@ -2224,10 +2286,13 @@ begin
   MouseCapture := False;
   Down := False;
 
-  if (X >= 0) and (X <= Width) and (Y >= 0) and (Y <= Height) and not Checked then
+  if (X >= 0) and (X <= Width) and (Y >= 0) and (Y <= Height) and not Checked and FMouseDown then
   begin
     Checked := true;
   end;
+
+  FMouseDown := false;
+
 
   inherited MouseUp(Button, Shift, X, Y);
 
@@ -2242,10 +2307,10 @@ begin
   if MouseCapture then
     Down := (X>=0) and (X<=Width) and (Y>=0) and (Y<=Height);
 
-  if FFocused then
-    Anchor := IsAnchor(x,y)
-  else
-    Anchor := '';
+//  if FFocused then
+    Anchor := IsAnchor(x,y);
+//  else
+//    Anchor := '';
 
   if Anchor <> '' then
   begin
@@ -3320,7 +3385,7 @@ end;
 { TGroupButton }
 
 type
-  TGroupButton = class(THTMLRadioButton)
+  THTMLGroupButton = class(THTMLRadioButton)
   private
     FInClick: Boolean;
     procedure CNCommand(var Message: TWMCommand); message CN_COMMAND;
@@ -3332,7 +3397,7 @@ type
     destructor Destroy; override;
   end;
 
-constructor TGroupButton.InternalCreate(RadioGroup: TCustomHTMLRadioGroup);
+constructor THTMLGroupButton.InternalCreate(RadioGroup: TCustomHTMLRadioGroup);
 begin
   inherited Create(RadioGroup);
   RadioGroup.FButtons.Add(Self);
@@ -3340,16 +3405,19 @@ begin
   Enabled := RadioGroup.Enabled;
   ParentShowHint := False;
   OnClick := RadioGroup.ButtonClick;
+  OnAnchorClick := RadioGroup.OnAnchorClickEvent;
+  OnAnchorEnter := RadioGroup.OnAnchorEnterEvent;
+  OnAnchorExit  := RadioGroup.OnAnchorExitEvent;
   Parent := RadioGroup;
 end;
 
-destructor TGroupButton.Destroy;
+destructor THTMLGroupButton.Destroy;
 begin
   TCustomHTMLRadioGroup(Owner).FButtons.Remove(Self);
   inherited Destroy;
 end;
 
-procedure TGroupButton.CNCommand(var Message: TWMCommand);
+procedure THTMLGroupButton.CNCommand(var Message: TWMCommand);
 begin
   if not FInClick then
   begin
@@ -3363,12 +3431,12 @@ begin
     except
       Application.HandleException(Self);
     end;
-    
+
     FInClick := False;
   end;
 end;
 
-procedure TGroupButton.KeyPress(var Key: Char);
+procedure THTMLGroupButton.KeyPress(var Key: Char);
 begin
   inherited KeyPress(Key);
   TCustomHTMLRadioGroup(Parent).PushKey(Key);
@@ -3378,7 +3446,7 @@ begin
   end;
 end;
 
-procedure TGroupButton.KeyDown(var Key: Word; Shift: TShiftState);
+procedure THTMLGroupButton.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   inherited KeyDown(Key, Shift);
   TCustomHTMLRadioGroup(Parent).PushKeyDown(Key, Shift);
@@ -3465,7 +3533,7 @@ begin
     DeferHandle := BeginDeferWindowPos(FButtons.Count);
     try
       for I := 0 to FButtons.Count - 1 do
-        with TGroupButton(FButtons[I]) do
+        with THTMLGroupButton(FButtons[I]) do
         begin
           {$IFDEF DELPHI4_LVL}
           BiDiMode := Self.BiDiMode;
@@ -3509,6 +3577,27 @@ begin
     end;
   end;
 end;
+procedure TCustomHTMLRadioGroup.OnAnchorClickEvent(Sender:TObject; Anchor:string);
+begin
+if Assigned(FAnchorClick) then begin
+  FAnchorClick(Sender,Anchor);
+  end;
+end;
+
+procedure TCustomHTMLRadioGroup.OnAnchorEnterEvent(Sender:TObject; Anchor:string);
+begin
+if Assigned(FAnchorEnter) then begin
+  FAnchorEnter(Sender,Anchor);
+  end;
+end;
+
+procedure TCustomHTMLRadioGroup.OnAnchorExitEvent(Sender:TObject; Anchor:string);
+begin
+if Assigned(FAnchorExit) then begin
+  FAnchorExit(Sender,Anchor);
+  end;
+end;
+
 
 procedure TCustomHTMLRadioGroup.ButtonClick(Sender: TObject);
 begin
@@ -3545,8 +3634,8 @@ end;
 
 procedure TCustomHTMLRadioGroup.SetButtonCount(Value: Integer);
 begin
-  while FButtons.Count < Value do TGroupButton.InternalCreate(Self);
-  while FButtons.Count > Value do TGroupButton(FButtons.Last).Free;
+  while FButtons.Count < Value do THTMLGroupButton.InternalCreate(Self);
+  while FButtons.Count > Value do THTMLGroupButton(FButtons.Last).Free;
 end;
 
 procedure TCustomHTMLRadioGroup.SetColumns(Value: Integer);
@@ -3570,10 +3659,10 @@ begin
     if FItemIndex <> Value then
     begin
       if FItemIndex >= 0 then
-        TGroupButton(FButtons[FItemIndex]).Checked := False;
+        THTMLGroupButton(FButtons[FItemIndex]).Checked := False;
       FItemIndex := Value;
       if FItemIndex >= 0 then
-        TGroupButton(FButtons[FItemIndex]).Checked := True;
+        THTMLGroupButton(FButtons[FItemIndex]).Checked := True;
     end;
   end;
 end;
@@ -3589,11 +3678,11 @@ var
 begin
   SetButtonCount(FItems.Count);
   for I := 0 to FButtons.Count - 1 do
-    TGroupButton(FButtons[I]).Caption := FItems[I];
+    THTMLGroupButton(FButtons[I]).Caption := FItems[I];
   if FItemIndex >= 0 then
   begin
     FUpdating := True;
-    TGroupButton(FButtons[FItemIndex]).Checked := True;
+    THTMLGroupButton(FButtons[FItemIndex]).Checked := True;
     FUpdating := False;
   end;
   ArrangeButtons;
@@ -3606,7 +3695,7 @@ var
 begin
   inherited;
   for I := 0 to FButtons.Count - 1 do
-    TGroupButton(FButtons[I]).Enabled := Enabled;
+    THTMLGroupButton(FButtons[I]).Enabled := Enabled;
 end;
 
 procedure TCustomHTMLRadioGroup.CMFontChanged(var Message: TMessage);
@@ -3741,6 +3830,10 @@ begin
   Enabled := CheckGroup.Enabled;
   ParentShowHint := False;
   OnClick := CheckGroup.ButtonClick;
+  OnAnchorClick := CheckGroup.OnAnchorClickEvent;
+  OnAnchorEnter := CheckGroup.OnAnchorEnterEvent;
+  OnAnchorExit  := CheckGroup.OnAnchorExitEvent;
+  
   Parent := CheckGroup;
 end;
 
@@ -3894,6 +3987,29 @@ begin
     end;
   end;
 end;
+
+procedure TCustomHTMLCheckGroup.OnAnchorClickEvent(Sender:TObject; Anchor:string);
+begin
+if Assigned(FAnchorClick) then begin
+  FAnchorClick(Sender,Anchor);
+  end;
+end;
+
+procedure TCustomHTMLCheckGroup.OnAnchorEnterEvent(Sender:TObject; Anchor:string);
+begin
+if Assigned(FAnchorEnter) then begin
+  FAnchorEnter(Sender,Anchor);
+  end;
+end;
+
+procedure TCustomHTMLCheckGroup.OnAnchorExitEvent(Sender:TObject; Anchor:string);
+begin
+if Assigned(FAnchorExit) then begin
+  FAnchorExit(Sender,Anchor);
+  end;
+end;
+
+
 
 procedure TCustomHTMLCheckGroup.ButtonClick(Sender: TObject);
 begin

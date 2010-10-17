@@ -1,7 +1,6 @@
 {**************************************************************************}
 { TADVSTRINGGRID DESIGN TIME EDITOR                                        }
 { for Delphi & C++Builder                                                  }
-{ version 3.0.x.x                                                          }
 {                                                                          }
 { written by TMS Software                                                  }
 {            copyright © 1996-2007                                         }
@@ -162,11 +161,15 @@ begin
     {$IFDEF VER180}
       compiler := 'Delphi 2006';
     {$ENDIF}
-    {$IFDEF VER190}
+    {$IFDEF VER185}
       compiler := 'Delphi 2007';
     {$ENDIF}
+    {$IFDEF VER200}
+      compiler := 'Delphi 2008';
+    {$ENDIF}
 
-    MessageDlg(Component.ClassName+' version '+(Component as TAdvStringGrid).VersionString+' for '+compiler+#13#10'© 1997-2007 by TMS software',
+
+    MessageDlg(Component.ClassName+' version '+(Component as TAdvStringGrid).VersionString+' for '+compiler+#13#10'© 1997-2008 by TMS software',
                mtinformation,[mbok],0);
     end;
   1:begin

@@ -25,18 +25,20 @@ interface
 
 uses
   Classes, Windows, Forms, Dialogs, Controls, Graphics, Messages, ExtCtrls,
-  SysUtils, Math, GDIPicture, ActnList, AdvHintInfo, AdvPreviewMenu, AdvGlowButton;
+  SysUtils, Math, GDIPicture, ActnList, AdvHintInfo, AdvPreviewMenu, AdvGlowButton,
+  AdvToolBar;
 
 const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 1; // Build nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history:
   // 1.0.0.0 : first release
   // 1.0.0.1 : fixed issue with menu positioning on multimonitor screens
+  // 1.0.1.0 : TabOrder, TabStop capability added & keyboard support
 
 type
   TAdvCustomShapeButton = class;
@@ -57,7 +59,7 @@ type
   end;
 {$ENDIF}
 
-  TAdvCustomShapeButton = class(TGraphicControl)
+  TAdvCustomShapeButton = class(TCustomControl)
   private
     FGroupIndex: Integer;
     FDown: Boolean;
@@ -85,6 +87,7 @@ type
     FShortCutHintPos: TShortCutHintPos;
     FShortCutHintText: string;
     FPreviewMenuOffSet: Integer;
+    FInternalClick: Boolean;
     procedure UnHotTimerOnTime(Sender: TObject);
     procedure UpdateExclusive;
     procedure UpdateTracking;
@@ -101,6 +104,9 @@ type
     procedure CMSysColorChange(var Message: TMessage); message CM_SYSCOLORCHANGE;
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
+    procedure WMEraseBkGnd(var Message: TWMEraseBkGnd); message WM_ERASEBKGND;
+    procedure CMFocusChanged(var Message: TCMFocusChanged); message CM_FOCUSCHANGED;
+    procedure WMKeyDown(var Message: TWMKeyDown); message WM_KEYDOWN;
 {$IFNDEF TMSDOTNET}
     procedure CMButtonPressed(var Message: TMessage); message CM_BUTTONPRESSED;
 {$ENDIF}
@@ -170,7 +176,7 @@ type
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
     property Style: TAdvToolButtonStyle read FStyle write SetStyle default tasButton;
     property ShortCutHint: string read FShortCutHintText write FShortCutHintText;
-    property ShortCutHintPos: TShortCutHintPos read FShortCutHintPos write FShortCutHintPos default shpTop;
+    property ShortCutHintPos: TShortCutHintPos read FShortCutHintPos write FShortCutHintPos default shpCenter;
     property Version: string read GetVersion write SetVersion;
     property Visible;
     property OnClick;
@@ -216,6 +222,8 @@ type
     property OfficeHint;
     property ShortCutHint;
     property ShortCutHintPos;
+    property TabStop;
+    property TabOrder;
     property Style;
     property Version;
     property Visible;
@@ -312,10 +320,11 @@ begin
 
   FOfficeHint := TAdvHintInfo.Create;
   FShortCutHint := nil;
-  FShortCutHintPos := shpTop;
+  FShortCutHintPos := shpCenter;
   FShortCutHintText := '';
 
   ShowHint := False;
+  DoubleBuffered := True;
   //Width := 32;
   //Height := 32;
 end;
@@ -348,6 +357,7 @@ end;
 procedure TAdvCustomShapeButton.CMEnabledChanged(var Message: TMessage);
 begin
   inherited;
+  Invalidate;
 end;
 
 //------------------------------------------------------------------------------
@@ -578,6 +588,11 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TAdvCustomShapeButton.Paint;
+var
+  Rgn1: HRGN;
+  R: TRect;
+  i: Integer;
+  p: TPoint;
 begin
   if not Enabled then
   begin
@@ -598,7 +613,35 @@ begin
     FState := absDown;
   end;
 
-  inherited;
+  if True then
+  begin
+    // TRANSPARENCY CODE
+
+    R := ClientRect;
+    rgn1 :=  CreateRectRgn(R.Left, R.Top, R.Right, R.Bottom);
+    SelectClipRgn(Canvas.Handle, rgn1);
+
+    i := SaveDC(Canvas.Handle);
+    p := ClientOrigin;
+    Windows.ScreenToClient(Parent.Handle, p);
+    p.x := -p.x;
+    p.y := -p.y;
+    MoveWindowOrg(Canvas.Handle, p.x, p.y);
+
+    SendMessage(Parent.Handle, WM_ERASEBKGND, Canvas.Handle, 0);
+    // transparency ?
+    SendMessage(Parent.Handle, WM_PAINT, Canvas.Handle, 0);
+
+    if (Parent is TWinCtrl) then
+     (Parent as TWinCtrl).PaintCtrls(Canvas.Handle, nil);
+
+    RestoreDC(Canvas.Handle, i);
+
+    SelectClipRgn(Canvas.Handle, 0);
+    DeleteObject(rgn1);
+  end;
+
+  //inherited;
 
   DrawButton(Canvas);
 end;
@@ -613,9 +656,9 @@ begin
   Pic := Picture;
   if not Enabled and not PictureDisabled.Empty then
     Pic := PictureDisabled
-  else if ((FMouseDownInControl and FMouseInControl) or (Assigned(AdvPreviewMenu) and (TInternalAdvPreviewMenu(AdvPreviewMenu).visible))) and not PictureDown.Empty then
+  else if ((FMouseDownInControl and FMouseInControl) or (Down) or (Assigned(AdvPreviewMenu) and (TInternalAdvPreviewMenu(AdvPreviewMenu).visible))) and not PictureDown.Empty then
     Pic := PictureDown
-  else if FMouseInControl and not PictureHot.Empty then
+  else if (FMouseInControl or Self.Focused) and not PictureHot.Empty then
     Pic := PictureHot;
 
   if Assigned(Pic) and not Pic.Empty then
@@ -1025,8 +1068,9 @@ var
   W, H: Integer;
   R: TRect;
 begin
-  DoShowMenuHint := Assigned(FShortCutHint) and FShortCutHint.Visible;
-  inherited;
+  DoShowMenuHint := Assigned(FShortCutHint) and FShortCutHint.Visible and not FInternalClick;
+  if not FInternalClick then
+    inherited;
   if Assigned(AdvPreviewMenu) then
   begin
     W := 0;
@@ -1051,6 +1095,7 @@ begin
       FPreviewMenuOffSet := (R.Right - (pt.X + w));
       pt.X := pt.X + FPreviewMenuOffSet; {-ve vlaue}
       FAdvPreviewMenu.OnDrawButtonFrameTop := ShapePaint;
+      TInternalAdvPreviewMenu(AdvPreviewMenu).OnPreviewHide := OnPreviewMenuHide;
     end;
 
     AdvPreviewMenu.ShowMenu(Pt.X, Pt.Y);
@@ -1120,6 +1165,15 @@ begin
     FShortCutHint.Visible := False;
     FShortCutHint.Parent := nil;
     FShortCutHint.ParentWindow := Parent.Handle;
+
+    FShortCutHint.Color := clWhite;
+    FShortCutHint.ColorTo := clSilver;
+
+    if (Parent is TAdvToolBarPager) then
+    begin
+      if Assigned( (Parent as TAdvToolBarPager).ToolBarStyler) then
+        FShortCutHint.ColorTo := (Parent as TAdvToolBarPager).ToolBarStyler.GlowButtonAppearance.Color;
+    end;
   end;
 
   FShortCutHint.Caption := FShortCutHintText;
@@ -1147,6 +1201,12 @@ begin
       FShortCutHint.Left := pt.X + (self.Width - FShortCutHint.Width) div 2;
       FShortCutHint.Top := pt.Y + self.Height - (FShortCutHint.Height div 2);
     end;
+  shpCenter:
+    begin
+      FShortCutHint.Left  := pt.X + (self.Width - FShortCutHint.Width) div 2;
+      FShortCutHint.Top := pt.Y + (self.Height - FShortCutHint.Height) div 2;
+    end;  
+    
   end;
 
   FShortCutHint.Visible := true;
@@ -1174,5 +1234,48 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TAdvCustomShapeButton.WMEraseBkGnd(var Message: TWMEraseBkGnd);
+begin
+  Message.Result := 1;
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomShapeButton.CMFocusChanged(
+  var Message: TCMFocusChanged);
+begin
+  inherited;
+  Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomShapeButton.WMKeyDown(var Message: TWMKeyDown);
+begin
+  case Message.CharCode of
+    VK_RETURN, VK_SPACE:
+    begin
+      if not FDown then
+      begin
+        FState := absDown;
+        Invalidate;
+      end;
+
+      if Style = tasCheck then
+      begin
+        FState := absDown;
+        Repaint;
+      end;
+
+      FInternalClick := True;
+      Click;
+      FInternalClick := False;
+    end;
+  end;
+  inherited;
+
+end;
 
 end.

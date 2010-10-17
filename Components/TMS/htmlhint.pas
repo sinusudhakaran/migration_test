@@ -1,10 +1,9 @@
 {*************************************************************************}
 { HTMLHint component                                                      }
 { for Delphi & C++Builder                                                 }
-{ version 1.3                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{            copyright © 1999 - 2005                                      }
+{            copyright © 1999 - 2008                                      }
 {            Email : info@tmssoftware.com                                 }
 {            Website : http://www.tmssoftware.com/                        }
 {                                                                         }
@@ -50,6 +49,11 @@ const
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   { THTMLHint }
   EHTMLHintError = class(Exception);
 
@@ -116,7 +120,7 @@ type
     procedure Paint; override;
     procedure CreateParams(var Params: TCreateParams); override;
   public
-    procedure ActivateHint(Rect: TRect; const AHint: string); Override;
+    procedure ActivateHint(Rect: TRect; const AHint: string); override;
   published
   end;
 
@@ -147,7 +151,7 @@ begin
   if R.Right <= R.Left then
     Exit;
   if R.Bottom <= R.Top then
-    Exit;    
+    Exit;
 
   FromColor := ColorToRGB(FromColor);
   ToColor := ColorToRGB(ToColor);
@@ -275,9 +279,13 @@ var
 begin
   Result := nil;
 
+  if not Assigned(Application.MainForm) then
+    Exit;
+
   with Application.MainForm do
   for I := 0 to ComponentCount-1 do
-    if Components[I] is THTMLHint then begin
+    if Components[I] is THTMLHint then
+    begin
       Result := THTMLHint(Components[I]);
       Break;
     end;
@@ -295,7 +303,6 @@ begin
      ((Win32MajorVersion > 5) or
       ((Win32MajorVersion = 5) and (Win32MinorVersion >= 1))) then
     Params.WindowClass.Style := Params.WindowClass.Style or CS_DROPSHADOW;
-
 end;
 
 procedure THTMLHintWindow.Paint;
@@ -356,7 +363,7 @@ begin
   begin
     Canvas.Pen.Color := clGray;
     Canvas.Brush.Style := bsClear;
-    Canvas.RoundRect(R.Left,R.Top,R.Right-1,R.Bottom-1,HINTROUNDING,HINTROUNDING);
+    Canvas.RoundRect(R.Left,R.Top,R.Right - 1,R.Bottom - 1,HINTROUNDING,HINTROUNDING);
   end;
 
   // Caption
@@ -470,11 +477,14 @@ begin
     // Make sure the tooltip is completely visible
 
     {$IFDEF DELPHI6_LVL}
-    Monitor := Screen. MonitorFromPoint (Pnt);
+    Monitor := Screen.MonitorFromPoint(Pnt);
 
-    if Right - Monitor. Left > Monitor. Width then
+    if not Assigned(Monitor) then
+      Monitor := Screen.Monitors[0];
+
+    if Right - Monitor.Left > Monitor.Width then
     begin
-      Left := Monitor. Left + Monitor. Width - Right + Left - 2;
+      Left := Monitor.Left + Monitor.Width - Right + Left - 2;
       Right := Left + FTextWidth + dx;
     end;
 
@@ -518,9 +528,10 @@ begin
 
 //  if not IsWindowVisible(Handle) then
 //  begin
+
     if FHint.FHintStyle = hsRounded then
     begin
-      rgn := CreateRoundRectRgn(0,0,Rect.Right-Rect.Left,Rect.Bottom-Rect.Top,HINTROUNDING,HINTROUNDING);
+      rgn := CreateRoundRectRgn(0,0,Rect.Right - Rect.Left,Rect.Bottom - Rect.Top,HINTROUNDING,HINTROUNDING);
       if rgn > 0 then
       begin
         try
@@ -530,6 +541,7 @@ begin
         end;
       end;
     end;
+
 //  end;
 
   Pnt := ClientToScreen(Point(0, 0));

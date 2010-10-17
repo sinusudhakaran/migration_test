@@ -1,7 +1,6 @@
 {*************************************************************************}
 { TMS TAdvSysKeyboardHook component                                       }
 { for Delphi & C++Builder                                                 }
-{ version 1.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
 {           copyright ©  2007                                             }
@@ -32,7 +31,11 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 1; // Build nr.
+  
+  // version history
+  // 1.0.0.0 : first release
+  // 1.0.0.1 : fixed issue with returning Alt state in shiftstate
 
 
 type
@@ -66,6 +69,8 @@ type
 
 implementation
 
+const
+  HOOKDLL = 'KEYHOOKDLL.DLL';
 //------------------------------------------------------------------------------
 
 {Functions prototypes for the hook dll}
@@ -187,9 +192,10 @@ begin
   @StartKeyBoardHook := NIL;
   @StopKeyBoardHook := NIL;
  {Try to load the hook dll}
-  hHookLib := LoadLibrary('KEYHOOKDLL.DLL');
+  hHookLib := LoadLibrary(HOOKDLL);
  {If the hook dll was loaded successfully}
-  if hHookLib <> 0 then begin
+  if hHookLib <> 0 then
+  begin
    {Get the function addresses}
     @GetHookRecPointer :=
       GetProcAddress(hHookLib, 'GETHOOKRECPOINTER');
@@ -230,7 +236,9 @@ begin
       @StartKeyBoardHook := NIL;
       @StopKeyBoardHook := NIL;
     end;
-  end;
+  end
+  else
+    raise Exception.Create('Could not find or load '+ HOOKDLL);
 end;
 
 //------------------------------------------------------------------------------
@@ -264,10 +272,17 @@ end;
 
 procedure TAdvSysKeyboardHook.Button1KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+var
+  shft: TShiftState;  
 begin
   if Assigned(OnKeyDown) then
   begin
-    OnKeyDown(Self, Key, Shift);
+    Shft := [];
+    if (GetKeyState(VK_SHIFT) and $8000 = $8000) then Include(Shft, ssShift);
+    if (GetKeyState(VK_CONTROL) and $8000 = $8000) then Include(Shft, ssCtrl);
+    if (GetKeyState(VK_MENU) and $8000 = $8000) then Include(Shft, ssAlt);
+
+    OnKeyDown(Self, Key, Shft);
   end;
 end;
 

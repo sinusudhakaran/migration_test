@@ -1,11 +1,10 @@
 {*********************************************************************}
 { TAdvDirectoryEdit                                                   }
 { for Delphi & C++Builder                                             }
-{ version 1.1                                                         }
 {                                                                     }
 { written by                                                          }
 {  TMS Software                                                       }
-{  copyright © 2002 - 2006                                            }
+{  copyright © 2002 - 2008                                            }
 {  Email : info@tmssoftware.com                                       }
 {  Web : http://www.tmssoftware.com                                   }
 {                                                                     }
@@ -44,7 +43,7 @@ type
   protected
     { Protected declarations }
     procedure BtnClick (Sender: TObject); override;
-    procedure ValueValidate(Sender: TObject; Value: String; Var IsValid: Boolean); Virtual;
+    procedure ValueValidate(Sender: TObject; Value: String; Var IsValid: Boolean); virtual;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
   public
     { Public declarations }
@@ -110,11 +109,20 @@ function AdvDirectoryEditCallBack (Wnd: HWND; uMsg: UINT; lParam, lpData: LPARAM
 var
   Temp: String;
   pt: TPoint;
-  r: TRect;
+  wa, rect : TRect;
+
 begin
   if uMsg = BFFM_INITIALIZED then
   begin
-    with TAdvDirectoryEdit (lpData) Do
+    {$IFDEF DELPHI7_LVL}
+    wa := Screen.WorkAreaRect;
+    {$ELSE}
+    SystemParametersInfo(SPI_GETWORKAREA, 0, @wa, 0);
+    {$ENDIF}
+
+    GetWindowRect(Wnd, Rect);
+
+    with TAdvDirectoryEdit(lpData) do
     begin
       {$WARNINGS OFF}
       // avoid platform specific warning
@@ -124,21 +132,24 @@ begin
         Temp := ExcludeTrailingBackslash (Text);
       {WARNINGS ON}
 
-      SendMessage (Wnd, BFFM_SETSELECTION, 1, Integer(PChar(Temp)));
+      SendMessage(Wnd, BFFM_SETSELECTION, 1, Integer(PChar(Temp)));
 
       with TAdvDirectoryEdit(lpData) do
       begin
         pt := Point(0,Height);
         pt := ClientToScreen(pt);
-        GetWindowRect(Wnd,r);
 
-        if pt.X + (r.Right - r.Left) > Screen.DesktopWidth then
-          pt.X := pt.X - (r.Right - r.Left);
+        if pt.X + (rect.Right - rect.Left) > wa.Right then
+          pt.X := pt.X - (rect.Right - rect.Left);
 
-        if pt.Y + (r.Bottom - r.Top) < Screen.DesktopHeight then
-          SetWindowPos(wnd,HWND_NOTOPMOST,pt.X,pt.Y,0,0,SWP_NOSIZE or SWP_NOZORDER)
+        if pt.Y + (rect.Bottom - rect.Top) < wa.Bottom then
+        begin
+          SetWindowPos(Wnd,HWND_NOTOPMOST,pt.X,pt.Y,0,0,SWP_NOSIZE or SWP_NOZORDER)
+        end
         else
-          SetWindowPos(wnd,HWND_NOTOPMOST,pt.X,pt.Y - (r.Bottom - r.Top) - Height,0,0,SWP_NOSIZE or SWP_NOZORDER)
+        begin
+          SetWindowPos(Wnd,HWND_NOTOPMOST,pt.X,wa.Bottom  - (rect.Bottom - rect.Top),0,0,SWP_NOSIZE or SWP_NOZORDER)
+        end;
       end;
     end;
   end;
@@ -175,8 +186,15 @@ begin
 
     lpszTitle := PChar(FBrowseDialogText);
 
-    ulFlags := BIF_RETURNONLYFSDIRS or BIF_NEWDIALOGSTYLE;
-    
+    ulFlags := BIF_RETURNONLYFSDIRS;
+    if FAllowNewFolder then
+      ulFlags := ulFlags or BIF_NEWDIALOGSTYLE;
+
+    // when BIF_NEWDIALOGSTYLE flag is set, GetWindowRect in
+    // BFFM_INITIALIZED returns incorrect height
+    // This seems to be a bug in Microsoft's SHBrowseForFolder
+
+
     if not FAllowNewFolder then
       ulFlags := ulFlags or BIF_NONEWFOLDERBUTTON;
 
@@ -184,13 +202,15 @@ begin
     lParam := Integer(Self);
   end;
 
+  BlockDefaultHandling := true;
+
   iIdList := Nil;
   try
     iIdList := SHBrowseForFolder(bi);
   except
   end;
 
-  if iIdList <> Nil then
+  if iIdList <> nil then
   begin
     try
       FillChar(ResStr,sizeof(ResStr),#0);
@@ -212,6 +232,7 @@ begin
       Malloc.Free(iIdList);
     end;
   end;
+
 end;
 
 procedure TAdvDirectoryEdit.ValueValidate(Sender: TObject; Value: String; Var IsValid: Boolean);

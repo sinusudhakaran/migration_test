@@ -1,9 +1,8 @@
-{************************************************************************}
+{*************************************************************************}
 { TSECTIONLISTBOX component                                               }
 { for Delphi & C++Builder                                                 }
-{ version 1.9                                                             }
 {                                                                         }
-{ Copyright © 1998-2006                                                   }
+{ Copyright © 1998-2008                                                   }
 {   TMS Software                                                          }
 {   Email : info@tmssoftware.com                                          }
 {   Web : http://www.tmssoftware.com                                      }
@@ -36,14 +35,16 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 9; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 3; // Build nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
   // 1.9.0.1 : Fixed issue with SubItems.Move()
   // 1.9.0.2 : Fixed issue with OnExpandSection, OnContractSection
   // 1.9.0.3 : Improved : code improved for AV during clear of empty sectionlistbox
-  
+  // 1.9.1.0 : OnSubitemClick, OnSectionClick triggered from keyboard actions as well
+  // 1.9.1.1 : Fixed issue with DeleteSelected
+
 
 type
 {$IFDEF DELPHI5_LVL}
@@ -419,6 +420,7 @@ type
     FTabPos: Integer;
     FOldTabPos: Integer;
     FOldAnchor: string;
+    FOldScrollPos: integer;
     procedure CNDrawItem(var Message: TWMDrawItem); message CN_DRAWITEM;
     procedure CNCommand(var Message: TWMCommand); message CN_COMMAND;
     procedure WMVScroll(var WMScroll: TWMScroll); message WM_VSCROLL;
@@ -536,6 +538,12 @@ type
     procedure SortAll;
     procedure SortAllSubItems;
     procedure SortAllSections;
+    {$IFDEF DELPHI6_LVL}
+    procedure DeleteSelected; override;
+    {$ENDIF}
+    {$IFNDEF DELPHI6_LVL}
+    procedure DeleteSelected;
+    {$ENDIF}
     procedure SaveToFile(filename: string);
     procedure LoadFromFile(filename: string);
     procedure SaveToInifile(filename: string);
@@ -968,7 +976,8 @@ end;
 
 procedure TSectionListBox.DoPaint;
 begin
-  if (fUpdateCount = 0) then repaint;
+  if (FUpdateCount = 0) then
+    Repaint;
 end;
 
 procedure TSectionListBox.UpdateHorzScrollBar;
@@ -980,7 +989,10 @@ var
 
 begin
   max := 0;
-  if fUpdateCount > 0 then Exit;
+
+  if FUpdateCount > 0 then
+    Exit;
+    
   if fWordWrap then
   begin
     SendMessage(self.handle, lb_SETHORIZONTALEXTENT, max, 0);
@@ -993,7 +1005,7 @@ begin
       d[i] := FTabPositions.Items[i].TabPosition;
     end;
 
-  for i := 0 to self.items.count - 1 do
+  for i := 0 to Items.Count - 1 do
   begin
     s := items[i];
     if (pos('{\', s) > 0) then
@@ -1339,7 +1351,7 @@ begin
       max[j] := k;
   end;
 
-  if (items.count > 0) then
+  if (Items.count > 0) then
   begin
     t := padding;
     for i := 1 to l do
@@ -1963,6 +1975,40 @@ begin
 
   DrawListText(Canvas, Rect.Left, Rect.Top, DText, sct, st, dis, brcol, txtcol);
 end;
+{
+procedure TSectionListBox.SetItemEx(Index: Integer; const value: string);
+var
+  sectionidx, subitemidx: integer;
+begin
+  GetListItemIndex(Index, sectionidx, subitemidx);
+  Sections[sectionidx].SubItems[Subitemidx];
+end;
+
+
+function TSectionListBox.GetItemEx(Index: Integer): string;
+var
+  sectionidx, subitemidx: integer;
+begin
+  GetListItemIndex(Index, sectionidx, subitemidx);
+  Result := Sections[sectionidx].SubItems[Subitemidx];
+end;
+}
+
+procedure TSectionListBox.DeleteSelected;
+var
+  i: integer;
+  sectionidx, subitemidx: integer;
+begin
+  for i := Items.Count - 1 downto 0 do
+  begin
+    if Selected[i] then
+    begin
+      GetListItemIndex(i, sectionidx, subitemidx);
+      Sections[sectionidx].SubItems.Delete(Subitemidx);
+    end;
+  end;
+end;
+
 
 procedure TSectionListBox.ToggleSectionState(idx: Integer);
 var
@@ -2039,7 +2085,7 @@ begin
 
   res := SendMessage(self.handle, lb_itemfrompoint, 0, MAKELPARAM(Message.xPos, Message.yPos));
 
-  if (res >= 0) and (res < self.items.count) then
+  if (res >= 0) and (res < Items.count) then
   begin
     if not fTabMove then
     begin
@@ -2478,7 +2524,7 @@ begin
   {$ENDIF}
   if not ptinrect(r, point(Message.xPos, Message.yPos)) then
   begin
-    if MultiSelect then for i := 1 to self.Items.Count do Selected[i - 1] := False else
+    if MultiSelect then for i := 1 to Items.Count do Selected[i - 1] := False else
       ItemIndex := -1;
 
     if Assigned(OnClick) then
@@ -2488,7 +2534,7 @@ begin
 
   if fTabSelect then fTabMove := True;
 
-  if (res >= 0) and (res < self.items.count) then
+  if (res >= 0) and (res < Items.count) then
   begin
     {$IFNDEF TMSDOTNET}
     SendMessage(self.handle, lb_gettext, res, longint(@buf));
@@ -2714,6 +2760,7 @@ var
   {$IFDEF TMSDOTNET}
   normalItem : integer;
   {$ENDIF}
+  j, k, l: Integer;
 begin
   inherited;
 
@@ -2721,6 +2768,42 @@ begin
   itemstr := '';
   SectionIdx := self.GetItemSectionIndex(itemindex);
   subitemidx := itemindex - self.GetSectionListIndex(SectionIdx) - 1;
+  
+  // Subitems list, must be done before sections
+
+  j := SubItemIdx;                                              
+  if SubItemIdx > -1 then                                       
+  begin
+    case Key of
+      VK_DOWN, VK_RIGHT: j := SubItemIdx + 1;  // Correct 'last position' index
+      VK_UP, VK_LEFT:    j := SubItemIdx - 1;  // Correct 'last position' index
+    end;
+    if Assigned(FOnSubItemClick) and (j > -1) and
+      (j < Sections[SectionIdx].SubItems.Count) then
+      FOnSubItemClick(Self, SectionIdx, j);    // Selection, must be implemented!
+  end;
+
+  // Sections list, must follow after subitems
+
+  l := SectionIdx;
+  if (SubItemIdx = Sections[SectionIdx].SubItems.Count - 1) or
+    ((SubItemIdx = -1) and (Key in [VK_UP, VK_LEFT])) then
+  begin
+    case Key of
+      VK_DOWN, VK_RIGHT: l := SectionIdx + 1;  // Correct 'last position' index
+      VK_UP, VK_LEFT:    l := SectionIdx - 1;  // Correct 'last position' index
+    end;
+    for k := 0 to Sections.Count - 1 do        // Collaps last section and expand new selection
+      if k <> l then Sections[k].State := lssContracted;
+    Sections[l].State := lssExpanded;
+    
+    {$IFDEF DELPHI6_LVL}
+    SetItemIndex(SectionIdx);                   // Reset last index to current
+    {$ENDIF}
+    
+    if Assigned(FOnSectionClick) then
+      FOnSectionClick(Self, l);                // Selection, must be implemented!
+  end;
 
   if key = vk_space then
   begin
@@ -2742,7 +2825,7 @@ begin
 
   if key = vk_escape then
   begin
-    if MultiSelect then for i := 1 to self.Items.Count do Selected[i - 1] := False else ItemIndex := -1;
+    if MultiSelect then for i := 1 to Items.Count do Selected[i - 1] := False else ItemIndex := -1;
   end;
 
   if key = vk_insert then
@@ -3600,25 +3683,31 @@ var
   j, h: Integer;
   r: TRect;
 begin
-  inherited;
+  h := 0;
 
   if (FUpdateCount = 0) and FWallpaper.Empty then
   begin
-    j := TopIndex;
-    h := 0;
+    j := SendMessage(Handle, LB_GETTOPINDEX, 0,0);
     while (j < Items.Count) do
     begin
       h := h + SendMessage(Handle, lb_getitemheight, j, 0);
       inc(j);
     end;
+  end;
+
+  inherited;
+
+  if (FUpdateCount = 0) and FWallpaper.Empty then
+  begin
     if (h < Height) then
     begin
       r := GetClientRect;
       Canvas.Brush.Color := self.Color;
       Canvas.Pen.Color := self.Color;
-      Canvas.Rectangle(0, h, r.Right, r.Bottom);
+      Canvas.Rectangle(0, h, r.Right, r.Bottom - 1);
     end;
   end;
+
 end;
 
 function TSectionListBox.GetVersion: string;
@@ -4831,20 +4920,27 @@ procedure TSectionListbox.UpdateHScrollBar;
 var
   ScrollInfo: TScrollInfo;
 begin
+
   UpdateHorzScrollbar;
+
   ScrollInfo.FMask := SIF_ALL;
   ScrollInfo.cbSize := SizeOf(scrollinfo);
   if GetScrollInfo(Handle, SB_HORZ, scrollinfo) then
   begin
-    ScrollInfo.FMask := SIF_ALL;
-    ScrollInfo.cbSize := SizeOf(scrollinfo);
-    {$IFNDEF TMSDOTNET}
-    FlatSetScrollInfo(SB_HORZ, scrollinfo, True);
-    {$ENDIF}
-    {$IFDEF TMSDOTNET}
-    FlatSB_SetScrollInfo(self.handle, SB_HORZ, scrollinfo, True);
-    {$ENDIF}
+    if (FOldScrollPos <> scrollinfo.nMax) then
+    begin
+      ScrollInfo.FMask := SIF_ALL;
+      ScrollInfo.cbSize := SizeOf(scrollinfo);
+      {$IFNDEF TMSDOTNET}
+      FlatSetScrollInfo(SB_HORZ, scrollinfo, True);
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      FlatSB_SetScrollInfo(self.handle, SB_HORZ, scrollinfo, True);
+      {$ENDIF}
+    end;
+    FOldScrollPos := scrollinfo.nMax;
   end;
+
 end;
 
 procedure TSectionListBox.WndProc(var Message: TMessage);
@@ -4940,7 +5036,7 @@ begin
     s := self.Text;
 
     if length(s) > 0 then
-      while s[length(s)] in [#13, #10, #9] do delete(s, length(s), 1);
+      while ( (s[length(s)] = #13) or (s[length(s)] = #10) or (s[length(s)] = #9)) do delete(s, length(s), 1);
 
     if Assigned(slb.fOnEndEdit) then
       slb.fOnEndEdit(slb, SectionIdx, SubItemIdx, s);

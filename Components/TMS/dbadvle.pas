@@ -278,7 +278,12 @@ end;
 procedure TDBAdvLUEdit.KeyPress(var Key: Char);
 begin
   inherited KeyPress(Key);
+  {$IFNDEF DELPHI_UNICODE}
   if (Key in [#32..#255]) and (FDataLink.Field <> nil) and
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if (Key >= #32) and (FDataLink.Field <> nil) and
+  {$ENDIF}
     not FDataLink.Field.IsValidChar(Key) or (FDataLink.ReadOnly) then
   begin
     MessageBeep(0);

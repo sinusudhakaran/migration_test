@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TInspectorBar component                                                   }
 { for Delphi & C++Builder                                                   }
-{ version 1.4                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2001 - 2007                                        }
+{            copyright © 2001 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -35,14 +34,17 @@ uses
 {$IFDEF TMSDOTNET}
   , WinUtils, Types, uxTheme, System.Runtime.InteropServices
 {$ENDIF}
+{$IFDEF DELPHI_UNICODE}
+  , Character
+{$ENDIF}
   ;
 
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 5; // Minor version nr.
   REL_VER = 4; // Release nr.
-  BLD_VER = 1; // Build nr.
-  DATE_VER = 'Jan, 2007'; // Month version
+  BLD_VER = 11; // Build nr.
+  DATE_VER = 'Jun, 2008'; // Month version
 
   // version history
   // 1.3.1.2 : fix for negative sign entry in property inplace editors
@@ -68,12 +70,29 @@ const
   // 1.5.3.0 : New support for Office 2007 silver added
   // 1.5.4.0 : New events OnSetEditText, OnGetEditText added in TInspectorEditLink
   // 1.5.4.1 : Fixed issue in TDBInspectorBar with items not connnected to a DataField
-  
+  // 1.5.4.2 : Fixed painting issue with D2007
+  // 1.5.4.3 : Fixed combobox dropdown button painting problem
+  // 1.5.4.4 : Fixed painting issue with D2007
+  // 1.5.4.5 : Fixed issue with INIInspectorBar editing
+  // 1.5.4.6 : Fixed issue with OnItemClick for psProperties panel
+  // 1.5.4.7 : Fixed issue with click on properties panel with zero items
+  // 1.5.4.8 : Improved : ellipsis button drawing in flat mode
+  // 1.5.4.9 : Fixed : issue with INIInspectorBar edit updates
+  // 1.5.4.10: Fixed : issue with time editor type
+  // 1.5.4.11: Fixed : issue with hovering on non active window
+
   // theme changed notifier
+  {$IFDEF DELPHI2007_LVL}
+  {$EXTERNALSYM WM_THEMECHANGED}
+  {$ENDIF}
   WM_THEMECHANGED = $031A;
 
-
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TInspectorBar = class;
   TInspectorItem = class;
   TInspectorPanel = class;
@@ -974,6 +993,7 @@ type
     procedure WMDestroy(var Message: TMessage); message WM_DESTROY;
 
 {$ENDIF}
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure WMEraseBkGnd(var Message: TMessage); message WM_ERASEBKGND;
     procedure LabelInplaceExit(sender: tobject);
     procedure LabelInplaceKeyPress(Sender: TObject; var Key: Char);
@@ -1077,7 +1097,7 @@ type
     function HelpWidth: Integer;
     function InspectorIndent: Integer;
     function InDesign: Boolean;
-
+    function GetParentForm(Control: TControl): TCustomForm; virtual;
     procedure WndProc(var Message: TMessage); override;
 
     procedure DoExit; override;
@@ -1105,9 +1125,10 @@ type
     procedure CollapsAll;
     procedure BeginUpdate;
     procedure EndUpdate;
-    procedure SetComponentStyle(AStyle: TTMSStyle);    
+    procedure SetComponentStyle(AStyle: TTMSStyle);
     property Combo: TInspectorCombo read FInspectorCombo;
     property ColorCombo: TInspectorColorCombo read FInspectorColorCombo;
+    property Editing: boolean read FEditing;
     property Edit: TInspectorEdit read FInspectorEdit;
     property EditBtn: TInspectorEditBtn read FInspectorEditBtn;
     property DateTimePicker: TInspectorDateTimePicker read FInspectorDateTimePicker;
@@ -2228,7 +2249,10 @@ end;
 destructor TInspectorItem.Destroy;
 begin
   if InspectorBar.EditItem = Self then
+  begin
     InspectorBar.StopEdit(Self);
+    InspectorBar.FEditing := false;
+  end;
 
   InspectorBar.FMousePanel := -1;
   InspectorBar.FMouseItem := nil;
@@ -2835,7 +2859,6 @@ var
   realtoppanel: integer;
 
 begin
-
   DefaultDraw := True;
 
   if Assigned(FOnPanelDraw) then
@@ -3217,6 +3240,9 @@ var
 begin
   inherited;
 
+  if GetParentForm(self).Handle <> GetActiveWindow then
+    Exit;
+
   if Panels.Count = 0 then
     Exit;
 
@@ -3267,6 +3293,7 @@ begin
     Cursor := FDefCursor;
   end;
 
+
   if (FInspectorCaption.Cursor <> FDefCursor) then
   begin
     if (Mode = imSinglePanelActive) and GetCursorSingle(x, y) or
@@ -3293,18 +3320,26 @@ begin
       if (Item <> FMouseItem) and Assigned(FMouseItem) then
       begin
         r := GetItemRect(FMouseItem.InspectorPanel, FMouseItem);
+        {$IFDEF VER185}
+        Invalidate;
+        {$ELSE}
         InflateRect(r, 4, 4);
 {$IFNDEF TMSDOTNET}
-        InvalidateRect(Handle, @r, False);
+        //InvalidateRect(Handle, @r, False);
+        Invalidate;
 {$ENDIF}
 {$IFDEF TMSDOTNET}
         InvalidateRect(Handle, r, False);
 {$ENDIF}
+        {$ENDIF}
       end;
 
       if Assigned(Item) then
       begin
         r := GetItemRect(Panel, Item);
+        {$IFDEF VER185}
+        Invalidate;
+        {$ELSE}
         InflateRect(r, 4, 4);
 {$IFNDEF TMSDOTNET}
         InvalidateRect(Handle, @r, False);
@@ -3312,6 +3347,7 @@ begin
 {$IFDEF TMSDOTNET}
         InvalidateRect(Handle, r, False);
 {$ENDIF}
+        {$ENDIF}
       end;
     end;
   end
@@ -3321,6 +3357,10 @@ begin
       if Assigned(FMouseItem) then
       begin
         r := GetItemRect(FMouseItem.InspectorPanel, FMouseItem);
+
+        {$IFDEF VER185}
+        Invalidate;
+        {$ELSE}
         InflateRect(r, 4, 4);
 {$IFNDEF TMSDOTNET}
         InvalidateRect(Handle, @r, False);
@@ -3328,8 +3368,8 @@ begin
 {$IFDEF TMSDOTNET}
         InvalidateRect(Handle, r, False);
 {$ENDIF}
+        {$ENDIF}
       end;
-
     end;
 
   Panel := GetCaption(X, Y);
@@ -3341,21 +3381,29 @@ begin
       if FMousePanel <> -1 then
       begin
         r := GetCaptionRect(Panels[FMousePanel]);
+        {$IFDEF VER185}
+        Invalidate;
+        {$ELSE}
 {$IFNDEF TMSDOTNET}
         InvalidateRect(Handle, @r, False);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
         InvalidateRect(Handle, r, False);
 {$ENDIF}
+        {$ENDIF}
       end;
       FMousePanel := Panel.Index;
       r := GetCaptionRect(Panels[FMousePanel]);
+      {$IFDEF VER185}
+      Invalidate;
+      {$ELSE}
 {$IFNDEF TMSDOTNET}
       InvalidateRect(Handle, @r, False);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
       InvalidateRect(Handle, r, False);
 {$ENDIF}
+      {$ENDIF}
     end;
   end
   else
@@ -3363,12 +3411,16 @@ begin
     if FMousePanel <> -1 then
     begin
       r := GetCaptionRect(Panels[FMousePanel]);
+      {$IFDEF VER185}
+      Invalidate;
+      {$ELSE}
 {$IFNDEF TMSDOTNET}
       InvalidateRect(Handle, @r, False);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
       InvalidateRect(Handle, r, False);
 {$ENDIF}
+      {$ENDIF}
       FMousePanel := -1;
     end;
   end;
@@ -3418,7 +3470,9 @@ begin
 //------ Panel Caption Click-------------
   for i := 0 to FPanels.Count - 1 do
   begin
-    if not FPanels.Items[i].Visible then continue;
+    if not FPanels.Items[i].Visible then
+      Continue;
+
     if i <= realtoppanel then
       j := (getNumbervisiblePanelUp(i)) * PanelCaption.Height
     else
@@ -3633,6 +3687,7 @@ begin
         tempHeight := j;
 
         k := FPanels[realtoppanel].Items.Count;
+
         for m := FPanels[realtoppanel].TopItem to FPanels[realtoppanel].Items.Count do
         begin
           k := m;
@@ -3652,7 +3707,7 @@ begin
         end;
 
         if (y > j) and (y < i) and (x < FPanels[realtoppanel].CaptionWidth + InspectorIndent) and
-          (Cursor <> crHSplit) and (FPanels[realtoppanel].Items.Count < k) then
+          (Cursor <> crHSplit) and (k < FPanels[realtoppanel].Items.Count) then
         begin
           ItemClicked(mbLeft, FPanels[realtoppanel], FPanels[realtoppanel].Items[k]);
           Exit;
@@ -3967,7 +4022,6 @@ var
   tempHeight, tempTotalHeight: Integer;
   PanelIndent: Integer;
 begin
-
   if PanelCaption.SideDisplay then
     PanelIndent := PanelCaption.SideWidth
   else
@@ -4364,11 +4418,11 @@ var
   end;
 
 begin
-
-  if (FPanels.Count = 0) or (csDestroying in ComponentState) or (
-    GetNumberVisiblePanelUp(FPanels.Count) = -1) then
+  if (FPanels.Count = 0) or (csDestroying in ComponentState) or
+    (GetNumberVisiblePanelUp(FPanels.Count) = -1) then
   begin
-    inherited;
+    Canvas.Brush.Color := clBtnFace;
+    Canvas.Rectangle(ClientRect);
     Exit;
   end;
 
@@ -5897,7 +5951,7 @@ SizeIcoY := SizeIcoY - lr.Bottom - lr.Top - 9;  //9 because add all inflate rect
         begin
           if Panel.EditBox then
           begin
-            R.Right := R.Right - BoxOffset - 2;
+            R.Right := R.Right - BoxOffset - 1;
             R.Top := R.Top + BoxOffset;
           end;
 
@@ -5905,7 +5959,7 @@ SizeIcoY := SizeIcoY - lr.Bottom - lr.Top - 9;  //9 because add all inflate rect
           begin
             HTheme := OpenThemeData(Handle, 'combobox');
 
-            DrwRect := Rect(R.Right - 16, R.Top + 1, R.Right, R.Top + 18);
+            DrwRect := Rect(R.Right - 15, R.Top , R.Right, Min(R.Top + 17, R.Bottom - 1));
 
             GetCursorPos(pt);
             pt := ScreenToClient(pt);
@@ -6005,7 +6059,7 @@ SizeIcoY := SizeIcoY - lr.Bottom - lr.Top - 9;  //9 because add all inflate rect
           DrawText(Canvas.Handle, ValueText, Length(ValueText), DrwRect, DT_CENTER or DT_SINGLELINE or DT_VCENTER);
 {$ENDIF}
 
-          if not DoVisualStyles then
+          if not (DoVisualStyles and not Flat) then
           begin
             InflateRect(DrwRect, -2, -2);
 
@@ -6023,7 +6077,7 @@ SizeIcoY := SizeIcoY - lr.Bottom - lr.Top - 9;  //9 because add all inflate rect
             R.Top := R.Top + BoxOffset;
           end;
 
-          if DoVisualStyles then
+          if DoVisualStyles and not Flat then
           begin
             HTheme := OpenThemeData(Handle, 'button');
 
@@ -6056,7 +6110,8 @@ SizeIcoY := SizeIcoY - lr.Bottom - lr.Top - 9;  //9 because add all inflate rect
           end;
 
           SetBKMode(Canvas.Handle, TRANSPARENT);
-          DrawText(Canvas.Handle, '..', 2, DrwRect, DT_LEFT);
+          DrwRect.Left := DrwRect.Left - 2;
+          DrawText(Canvas.Handle, '...', 3, DrwRect, DT_LEFT);
           R.Right := R.Right - 16;
         end;
 
@@ -6610,12 +6665,16 @@ begin
     if Panel.Index = getRealTopPanel then
     begin
       r := GetItemRect(Panel, Item);
+      {$IFDEF VER185}
+      Invalidate;
+      {$ELSE}
 {$IFNDEF TMSDOTNET}
       InvalidateRect(Handle, @r, False);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
       InvalidateRect(Handle, r, False);
 {$ENDIF}
+      {$ENDIF}
     end;
   end
   else
@@ -6625,12 +6684,16 @@ begin
     begin
   //MULTIPANEL MODE
       r := GetItemRect(Panel, Item);
+      {$IFDEF VER185}
+      Invalidate;
+      {$ELSE}
 {$IFNDEF TMSDOTNET}
       InvalidateRect(Handle, @r, False);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
       InvalidateRect(Handle, r, False);
 {$ENDIF}
+      {$ENDIF}
     end;
   end;
 
@@ -7209,7 +7272,7 @@ begin
           FInspectorDateTimePicker.Kind := dtkTime;
           if InspectorItem.TextValue <> '' then
 {$IFNDEF TMSDOTNET}
-            FInspectorDateTimePicker.Date := StrToTime(InspectorItem.TextValue);
+            FInspectorDateTimePicker.Time := StrToTime(InspectorItem.TextValue);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
           FInspectorDateTimePicker.DateTime := StrToTime(InspectorItem.TextValue);
@@ -8144,6 +8207,21 @@ begin
   Result := Assigned(Item);
 end;
 
+function TInspectorBar.GetParentForm(Control: TControl): TCustomForm;
+begin
+  Result := nil;
+  if Assigned(Control) then
+    if Control is TCustomForm then
+    begin
+      Result := Control as TCustomForm;
+      Exit;
+    end else
+    begin
+      if Assigned(Control.Parent) then
+        Result := GetParentForm(Control.Parent);
+    end;
+end;
+
 function TInspectorBar.IsPanelItemAtXY(x, y: Integer): Boolean;
 var
   Item: TInspectorItem;
@@ -8217,27 +8295,39 @@ var
 begin
   inherited;
 
+  if GetParentForm(self).Handle <> GetActiveWindow then
+    Exit;
+
   if FMousePanel <> -1 then
   begin
     r := GetCaptionRect(Panels[FMousePanel]);
+    {$IFDEF VER185}
+    Invalidate;
+    {$ELSE}
+
 {$IFNDEF TMSDOTNET}
     InvalidateRect(Handle, @r, False);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
     InvalidateRect(Handle, r, False);
 {$ENDIF}
+    {$ENDIF}
     FMousePanel := -1;
   end;
 
   if Assigned(FMouseItem) then
   begin
     r := GetItemRect(FMouseItem.InspectorPanel, FMouseItem);
+    {$IFDEF VER185}
+    Invalidate;
+    {$ELSE}
 {$IFNDEF TMSDOTNET}
     InvalidateRect(Handle, @r, False);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
     InvalidateRect(Handle, r, False);
 {$ENDIF}
+    {$ENDIF}
   end;
 
   for i := 1 to Panels.Count do
@@ -8654,6 +8744,43 @@ begin
 //   StartEdit(FEditLast);
   end;
 end;
+
+procedure TInspectorBar.WMPaint(var Message: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+begin
+  if not FDoubleBuffered or (Message.DC <> 0) then
+  begin
+    if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+      inherited
+    else
+      PaintHandler(Message);
+  end
+  else
+  begin
+    DC := GetDC(0);
+    MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+    ReleaseDC(0, DC);
+    MemDC := CreateCompatibleDC(0);
+    OldBitmap := SelectObject(MemDC, MemBitmap);
+    try
+      DC := BeginPaint(Handle, PS);
+      Perform(WM_ERASEBKGND, MemDC, MemDC);
+      Message.DC := MemDC;
+      WMPaint(Message);
+      Message.DC := 0;
+      BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+      EndPaint(Handle, PS);
+    finally
+      SelectObject(MemDC, OldBitmap);
+      DeleteDC(MemDC);
+      DeleteObject(MemBitmap);
+    end;
+  end;
+end;
+
 
 procedure TInspectorBar.WMEraseBkGnd(var Message: TMessage);
 begin
@@ -9909,7 +10036,12 @@ begin
   if InspEditType = ieInteger then
   begin
 {$IFNDEF TMSDOTNET}
+    {$IFNDEF DELPHI_UNICODE}
     if not (Key in ['0'..'9', '-', #8]) then
+    {$ENDIF}
+    {$IFDEF DELPHI_UNICODE}
+    if not (character.IsNumber(Key) or (Key = '-') or (Key = #8)) then
+    {$ENDIF}
 {$ENDIF}
 {$IFDEF TMSDOTNET}
       if not (Key in ['0'..'9', '-']) and not (Key = #8) then
@@ -9929,17 +10061,22 @@ begin
   if InspEditType = ieFloat then
   begin
 {$IFNDEF TMSDOTNET}
+    {$IFNDEF DELPHI_UNICODE}
     if not (Key in ['0'..'9', 'e', 'E', '-', DecimalSeparator, #8]) then
+    {$ENDIF}
+    {$IFDEF DELPHI_UNICODE}
+    if not (character.IsNumber(Key) or (Key = 'e') or (Key = 'E') or (Key = '-') or (Key = DecimalSeparator) or (Key = #8)) then
+    {$ENDIF}
 {$ENDIF}
 {$IFDEF TMSDOTNET}
       if not (Key in ['0'..'9', 'e', 'E', '-']) and not (Key = #8) and not (Key = DecimalSeparator) then
 {$ENDIF}
         Key := #0;
 
-    if (Key = '-') and ((Pos('-', Text) > 0) and not (SelLength = Length(Text))) then
+    if (Key = '-') and ((Pos('-', Text) > 0) and (pos('E',uppercase(Text)) = 0) and not (SelLength = Length(Text))) then
       Key := #0;
 
-    if (Key = '-') and (SelStart > 0) then
+    if (Key = '-') and (SelStart > 0) and (pos('E',uppercase(Text)) = 0) then
     begin
       Text := '-' + Text;
       Key := #0;

@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvStringGrid Find & replace dialog component                            }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2002 - 2005                                        }
+{            copyright © 2002 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -113,6 +112,7 @@ type
     FTxtOptionsFixedCells: string;
     FTxtOptionsMatchFirst: string;
     FTxtScopeAllCells: string;
+    FTxtScopeSelectedCells: string;
     FTxtTextToFind: string;
     FTxtScopeCurrRow: string;
     FTxtBtnCancel: string;
@@ -133,6 +133,8 @@ type
     FOnReplaceDone: TNotifyEvent;
     FOnReplaceClose: TNotifyEvent;
     FOnDialogKeyDown: TKeyEvent;
+    FDialogWidth: integer;
+    procedure SetDialogWidth(const Value: integer);
   protected
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     procedure ReplaceDone(Sender: TObject);
@@ -142,8 +144,10 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Execute;
+    property Dialog: TAsgReplaceDialog read FAsgReplace;
   published
     property AutoPosition: Boolean read FAutoPosition write FAutoPosition;
+    property DialogWidth: integer read FDialogWidth write SetDialogWidth default 360;
     property Grid: TAdvStringGrid read FGrid write FGrid;
     property MsgNotFound: string read FMsgNotFound write FMsgNotFound;
     property MsgNoMoreFound: string read FMsgNoMoreFound write FMsgNoMoreFound;
@@ -160,6 +164,7 @@ type
     property TxtScopeAllCells: string read FTxtScopeAllCells write FTxtScopeAllCells;
     property TxtScopeCurrRow: string read FTxtScopeCurrRow write FTxtScopeCurrRow;
     property TxtScopeCurrCol: string read FTxtScopeCurrCol write FTxtScopeCurrCol;
+    property TxtScopeSelectedCells: string read FTxtScopeSelectedCells write FTxtScopeSelectedCells;
     property TxtOptions: string read FTxtOptions write FTxtOptions;
     property TxtOptionsCase: string read FTxtOptionsCase write FTxtOptionsCase;
     property TxtOptionsWholeWords: string read FTxtOptionsWholeWords write FTxtOptionsWholeWords;
@@ -227,6 +232,9 @@ begin
       FindParams := FindParams + [fnFindInCurrentRow];
     if Scope.ItemIndex = 1 then
       FindParams := FindParams + [fnFindInCurrentCol] - [fnDirectionLeftRight];
+
+    if Scope.ItemIndex = 3 then
+      FindParams := FindParams + [fnSelectedCells];
 
     FirstSearch := (FGridCell.x = -1) and (FGridCell.y = -1);
 
@@ -300,14 +308,15 @@ begin
       end;
       
       FirstSearch := False;
-    end;  
+    end;
   end;
 end;
 
 procedure TAsgReplaceDialog.FormCreate(Sender: TObject);
 begin
   FGridCell := Point(-1,-1);
-  SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE + SWP_NOMOVE + SWP_NOSIZE);  
+  SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE + SWP_NOMOVE + SWP_NOSIZE);
+
 end;
 
 procedure TAsgReplaceDialog.CancelBtnClick(Sender: TObject);
@@ -326,6 +335,8 @@ constructor TAdvGridReplaceDialog.Create(AOwner: TComponent);
 begin
   inherited;
   FAsgReplace := TAsgReplaceDialog.Create(nil);
+
+  FDialogWidth := 360;
 
   FMsgNotFound := 'Could not find text';
   FMsgNoMoreFound := 'No more occurences of text ';
@@ -346,7 +357,9 @@ begin
   FTxtScopeCurrCol := 'Current column only';
   FTxtScopeCurrRow := 'Current row only';
   FTxtScopeAllCells := 'All cells';
+  FTxtScopeSelectedCells := 'Selected cells';
 
+  FTxtOptions := 'Options';
   FTxtOptionsCase := '&Case sensitive';
   FTxtOptionsMatchFirst := '&Match from first char';
   FTxtOptionsFixedCells := '&Find in fixed cells';
@@ -387,6 +400,7 @@ begin
   FAsgReplace.Scope.Items[0] := FTxtScopeAllCells;
   FAsgReplace.Scope.Items[1] := FTxtScopeCurrCol;
   FAsgReplace.Scope.Items[2] := FTxtScopeCurrRow;
+  FAsgReplace.Scope.Items[3] := FTxtScopeSelectedCells;
 
   FAsgReplace.Scope.Caption := FTxtScope;
   FAsgReplace.gbDirection.Caption := FTxtDirection;
@@ -423,6 +437,14 @@ begin
 
   FAsgReplace.OnKeyDown := DialogKeyDown;
 
+  FAsgReplace.Width := FDialogWidth;
+
+  FAsgReplace.gbDirection.Width := (FAsgReplace.width - 32) div 2;
+  FAsgReplace.Scope.Width := (FAsgReplace.width - 32) div 2;
+  FAsgReplace.Options.Width := (FAsgReplace.width - 32) div 2;
+  FAsgReplace.Options.Left := FAsgReplace.Width - FAsgReplace.Options.Width - 16;
+
+
   FAsgReplace.Show;
 end;
 
@@ -447,6 +469,12 @@ begin
 end;
 
 
+
+procedure TAdvGridReplaceDialog.SetDialogWidth(const Value: integer);
+begin
+  if (Value  > 300) then
+    FDialogWidth := Value;
+end;
 
 procedure TAsgReplaceDialog.ScopeClick(Sender: TObject);
 begin

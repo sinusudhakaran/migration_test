@@ -11,13 +11,15 @@ type
   end;
   PWideContainer= ^TWideContainer;
 
-  TSheetNameList=class(TList) //Items are TWideContainer
+  TSheetNameList=class(TList)
+  private
   protected
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     function GetFullName(const S: WideString; const N: integer): WideString;
   public
     procedure Add(const aName: WideString); //Error if duplicated entry
     function AddUniqueName(const aName: WideString): WideString;
+    class function MakeValidSheetName(const aName: string): string; //Items are TWideContainer
 
     procedure DeleteSheet(const SheetName: widestring);
     procedure Rename(const OldName, NewName: widestring);
@@ -40,6 +42,22 @@ begin
   Itm.S:=aName;
   Itm.n:=0;
   Insert( InsPos, Itm );
+end;
+
+class function TSheetNameList.MakeValidSheetName(const aName: string): string;
+var
+  Min: integer;
+begin
+  Min:=Length(aName);
+  if Min>31 then Min:=31;
+  Result:=Copy(aName, 1, Min);
+  Result:= StringReplace(Result, '/','_', [rfReplaceAll]);
+  Result:= StringReplace(Result, '\','_', [rfReplaceAll]);
+  Result:= StringReplace(Result, '?','_', [rfReplaceAll]);
+  Result:= StringReplace(Result, '[','_', [rfReplaceAll]);
+  Result:= StringReplace(Result, ']','_', [rfReplaceAll]);
+  Result:= StringReplace(Result, '*','_', [rfReplaceAll]);
+  Result:= StringReplace(Result, ':','.', [rfReplaceAll]);
 end;
 
 function TSheetNameList.AddUniqueName(const aName: WideString): WideString;

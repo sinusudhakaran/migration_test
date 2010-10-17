@@ -49,8 +49,10 @@ type
     function GetActiveSheetVisible: TXlsSheetVisible; virtual; abstract;
     procedure SetActiveSheetVisible(const Value: TXlsSheetVisible); virtual; abstract;
 
-    function GetColumnWidth(aCol: integer): integer;virtual; abstract;
+    function GetColumnWidth(aCol: integer): integer; virtual; abstract;
+    function GetColumnWidthHiddenIsZero(aCol: integer): integer; virtual; abstract;
     function GetRowHeight(aRow: integer): integer;virtual; abstract;
+    function GetRowHeightHiddenIsZero(aRow: integer): integer;virtual; abstract;
     procedure SetColumnWidth(aCol: integer; const Value: integer);virtual; abstract;
     procedure SetRowHeight(aRow: integer; const Value: integer);virtual; abstract;
 
@@ -122,6 +124,9 @@ type
     procedure SetPrintXResolution(const Value: integer); virtual; abstract;
     procedure SetPrintYResolution(const Value: integer); virtual; abstract;
 
+    function GetInvalidateFormulas: boolean; virtual; abstract;
+    procedure SetInvalidateFormulas(const Value: boolean); virtual; abstract;
+
 
     function GetCellMergedBounds(aRow, aCol: integer): TXlsCellRange;virtual;abstract;
     function GetCellMergedList(index: integer): TXlsCellRange;virtual;abstract;
@@ -134,6 +139,13 @@ type
     procedure SetOptionsSaveExternalLinkValues(const Value: boolean);virtual;abstract;
     function GetOptionsPrecisionAsDisplayed: boolean;virtual;abstract;
     procedure SetOptionsPrecisionAsDisplayed(const Value: boolean);virtual;abstract;
+
+    function GetOutlineSummaryColsRightOfDetail: boolean;virtual;abstract;
+    function GetOutlineSummaryRowsBelowDetail: boolean;virtual;abstract;
+    function GetOutlineAutomaticStyles: boolean;virtual;abstract;
+    procedure SetOutlineSummaryColsRightOfDetail(const Value: boolean);virtual;abstract;
+    procedure SetOutlineSummaryRowsBelowDetail(const Value: boolean);virtual;abstract;
+    procedure SetOutlineAutomaticStyles(const Value: boolean);virtual;abstract;
 
   public
     procedure Connect;virtual;abstract;
@@ -194,7 +206,9 @@ type
     procedure Save(const AutoClose: boolean; const FileName: string; const OnGetFileName: TOnGetFileNameEvent; const OnGetOutStream: TOnGetOutStreamEvent=nil; const DataStream: TStream=nil);virtual;abstract;
 
     procedure InsertAndCopyRows(const FirstRow, LastRow, DestRow, aCount: integer; const OnlyFormulas: boolean);virtual;abstract;
+    procedure InsertAndCopyCols(const FirstCol, LastCol, DestCol, aCount: integer; const OnlyFormulas: boolean);virtual;abstract;
     procedure DeleteRows(const aRow, aCount: integer);virtual;abstract;
+    procedure DeleteCols(const aCol, aCount: integer);virtual;abstract;
 
     procedure BeginSheet; virtual; abstract;
     procedure EndSheet(const RowOffset: integer); virtual; abstract;
@@ -258,7 +272,9 @@ type
 
 
     property ColumnWidth[aCol: integer]: integer read GetColumnWidth write SetColumnWidth;
+    property ColumnWidthHiddenIsZero[aCol: integer]: integer read GetColumnWidthHiddenIsZero;
     property RowHeight[aRow: integer]: integer read GetRowHeight write SetRowHeight;
+    property RowHeightHiddenIsZero[aRow: integer]: integer read GetRowHeight;
     property ColumnHidden[const aCol: integer]: boolean read GetColumnHidden write SetColumnHidden;
     property RowHidden[const aRow: integer]: boolean read GetRowHidden write SetRowHidden;
     property DefaultColWidth: integer read GetDefaultColWidth;
@@ -314,6 +330,10 @@ type
     function GetColOutlineLevel(const aCol: integer): integer;virtual;abstract;
     procedure SetColOutlineLevel(const FirstCol, LastCol: integer ;const Level: integer);virtual;abstract;
 
+    property OutlineSummaryRowsBelowDetail: boolean read GetOutlineSummaryRowsBelowDetail write SetOutlineSummaryRowsBelowDetail;
+    property OutlineSummaryColsRightOfDetail: boolean read GetOutlineSummaryColsRightOfDetail write SetOutlineSummaryColsRightOfDetail;
+    property OutlineAutomaticStyles: boolean read GetOutlineAutomaticStyles write SetOutlineAutomaticStyles;
+
     property Options1904Dates: boolean read GetOptions1904Dates write SetOptions1904Dates;
     property OptionsR1C1: boolean read GetOptionsR1C1 write SetOptionsR1C1;
     property OptionsSaveExternalLinkValues: boolean read GetOptionsSaveExternalLinkValues write SetOptionsSaveExternalLinkValues;
@@ -323,6 +343,13 @@ type
     procedure GetFrozenPanes(var Row, Col: integer);virtual;abstract;
     procedure SplitWindow(const xOffset, yOffset: integer);virtual;abstract;
     procedure GetSplitWindow(var xOffset, yOffset: integer);virtual;abstract;
+
+    property InvalidateFormulas: boolean read GetInvalidateFormulas write SetInvalidateFormulas;
+
+    procedure AutofitRow(const row1, row2: integer; const AutofitNotAutofittingRows: Boolean; const keepHeightAutomatic: Boolean; const adjustment: extended);virtual; abstract;
+    procedure AutofitCol(const Col1, Col2: integer; const IgnoreStrings: Boolean; const Adjustment: extended);virtual; abstract;
+    procedure AutofitRowsOnWorkbook(const AutofitNotAutofittingRows: Boolean; const KeepSizesAutomatic: Boolean; const Adjustment: extended);virtual; abstract;
+
   end;
 
   TExcelAdapter = class(TComponent)

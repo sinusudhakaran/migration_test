@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                  }
 {                                                                          }
 { written by TMS Software                                                  }
-{            copyright © 1999-2005                                         }
+{            copyright © 1999-2008                                         }
 {            Email : info@tmssoftware.com                                  }
 {            Website : http://www.tmssoftware.com/                         }
 {                                                                          }
@@ -26,6 +26,9 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, ImgList
   {$IFDEF TMSDOTNET}
   , Types
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  , Character
   {$ENDIF}
   ;
 
@@ -73,7 +76,6 @@ type
     procedure LoadFonts(RTFString: String);
     
     property Fonts: TFontCollection read FFonts;
-  published
   end;
 
   TColorTable = class(TObject)
@@ -88,7 +90,6 @@ type
     procedure LoadColors(RTFString: String);
 
     property Colors: TStringList read FColorList;
-  published
   end;
 
   TRTFHeader = class(TObject)
@@ -101,7 +102,6 @@ type
     constructor Create;
     destructor Destroy; override;
     function GetText: String;
-  published
     property FontTable: TFontTable read FFontTable;
     property ColorTable: TColorTable read FColorTable;
   end;
@@ -127,7 +127,7 @@ type
     FBulletChar: Integer;
     FBulletFont: String;
     FTableAlignment: TAlignment;
-    FImages: TImageList;
+    FImages: TCustomImageList;
     FCurrentCol: Integer;
     FTotalCol: Integer;
     FColColorList: TStringList;
@@ -196,8 +196,7 @@ type
     property HAlignment: TAlignment read FHAlignment;
     property ForeColor: TColor read FForeColor;
     property HighLightColor: TColor read FHighLightColor;
-  published
-    property Images: TImageList read FImages write FImages;
+    property Images: TCustomImageList read FImages write FImages;
   end;
 
 //function HTMLToRTF(s:string; DefFont: TFont; RTFEngine: TRTFEngine): String;
@@ -266,7 +265,7 @@ begin
   Result := '';
   for i := 1 to Length(s) do
   begin
-    if not (s[i] in [#13,#10]) then
+    if not ((s[i] = #13) or (s[i] = #10)) then
       Result := Result + s[i]
     else
       if (s[i] = #13) and dobreak then
@@ -405,8 +404,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
-procedure HTMLToRTFEx(s:string; FImages: TImageList; ShadowOffset: Integer;
+{$WARNINGS OFF}
+procedure HTMLToRTFEx(s:string; FImages: TCustomImageList; ShadowOffset: Integer;
                     CheckHeight,Selected,Blink,HoverStyle,WordWrap,Down: Boolean;
                     ResFactor:Double;
                     URLColor,HoverColor,HoverFontColor,ShadowColor:TColor; DefFont: TFont; RTFEngine: TRTFEngine);
@@ -427,7 +426,6 @@ var
   URLFont: TFont;
   Pic: TPicture;
 
-  {$WARNINGS OFF}
   function ConvertHTMLLine(var s:string;Calc:Boolean):string;
   var
     su,Res,TagProp,Prop,{AltProp,}Tagp,LineText:string;
@@ -1240,7 +1238,6 @@ var
      }
     Result := Res;
   end;
- {$WARNINGS ON}
 
 begin
   //Result := '';
@@ -1310,6 +1307,7 @@ begin
   //Result := RTFEngine.GetText;
   URLFont.Free;
 end;
+{$WARNINGS ON}
 
 //------------------------------------------------------------------------------
 
@@ -1532,14 +1530,19 @@ var
     {Result := clNone;
     if (Pos('\red', S) <= 0) or(Pos('\green', S) <= 0) or (Pos('\blue', S) <= 0) then
       Exit; }
-       
+
     R := 0;
     TagPos := Pos('\red', S);
     if TagPos > 0 then
     begin
       Sub := '';
       I := TagPos + 4;
-      while (S[I] in ['0','1','2','3','4','5','6','7','8','9']) do
+      {$IFNDEF DELPHI_UNICODE}
+      while (S[I] in ['0'..'9']) do
+      {$ENDIF}
+      {$IFDEF DELPHI_UNICODE}
+      while (character.IsNumber(S[I])) do
+      {$ENDIF}
       begin
         Sub := Sub + S[I];
         Inc(I);
@@ -1556,7 +1559,12 @@ var
     begin
       Sub := '';
       I := TagPos + 6;
-      while (S[I] in ['0','1','2','3','4','5','6','7','8','9']) do
+      {$IFNDEF DELPHI_UNICODE}
+      while (S[I] in ['0'..'9']) do
+      {$ENDIF}
+      {$IFDEF DELPHI_UNICODE}
+      while (character.IsNumber(S[I])) do
+      {$ENDIF}
       begin
         Sub := Sub + S[I];
         Inc(I);
@@ -1572,7 +1580,12 @@ var
     begin
       Sub := '';
       I := TagPos + 5;
-      while (S[I] in ['0','1','2','3','4','5','6','7','8','9']) do
+      {$IFNDEF DELPHI_UNICODE}
+      while (S[I] in ['0'..'9']) do
+      {$ENDIF}
+      {$IFDEF DELPHI_UNICODE}
+      while (character.IsNumber(S[I])) do
+      {$ENDIF}
       begin
         Sub := Sub + S[I];
         Inc(I);
@@ -2090,7 +2103,7 @@ begin
   Result := '';
   for i := 1 to Length(s) do
   begin
-    if not (s[i] in [#13,#10]) then
+    if not ((s[i] = #13) or (s[i] = #10)) then
     begin
       Result := Result + s[i];
       if FNewLine then
@@ -2554,7 +2567,12 @@ var
       I := 1;
       while (I <= Length(Tag)) do
       begin
-        if (Tag[I] in ['0','1','2','3','4','5','6','7','8','9']) then
+        {$IFNDEF DELPHI_UNICODE}
+        if (Tag[I] in ['0'..'9']) then
+        {$ENDIF}
+        {$IFDEF DELPHI_UNICODE}
+        if (character.IsNumber(Tag[I])) then
+        {$ENDIF}
         begin
           Sub := Sub + Tag[I];
           Delete(Tag, I, 1);
@@ -2620,7 +2638,9 @@ begin
   AColorTable.LoadColors(S);
 
   Tags := TStringlist.Create;
-  Tags.Add('\pard'); Tags.Add('\ql'); Tags.Add('\qc');
+  if not FStartTable then
+    Tags.Add('\pard');
+  Tags.Add('\ql'); Tags.Add('\qc');
   Tags.Add('\qr'); Tags.Add('\par'); Tags.Add('\tab');
   Tags.Add('\b'); Tags.Add('\b0'); Tags.Add('\i');
   Tags.Add('\i0'); Tags.Add('\ul'); Tags.Add('\ulnone');

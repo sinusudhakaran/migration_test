@@ -1,10 +1,9 @@
 {************************************************************************}
 { TTREELIST component                                                    }
 { for Delphi & C++Builder                                                }
-{ version 1.0                                                            }
 {                                                                        }
 { written by TMS Software                                                }
-{            copyright © 2000 - 2006                                     }
+{            copyright © 2000 - 2008                                     }
 {            Email : info@tmssoftware.com                                }
 {            Web : http://www.tmssoftware.com                            }
 {                                                                        }
@@ -26,6 +25,11 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   StdCtrls, Comctrls, ExtCtrls, CommCtrl
+  {$IFNDEF TMSDOTNET}
+  {$IFDEF DELPHI6_LVL}
+  , Types
+  {$ENDIF}
+  {$ENDIF}
   {$IFDEF TMSDOTNET}
   , Types, System.Runtime.InteropServices, Dialogs
   {$ENDIF}
@@ -34,11 +38,18 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
-  REL_VER = 0; // Release nr.
+  REL_VER = 1; // Release nr.
   BLD_VER = 0; // Build nr.
 
   // 0.8.1.3 : Fixed issue with HeaderImage position
   // 1.0.0.0 : Added support for Delphi 2006, C++Builder 2006
+  // 1.0.0.1 : Fixed painting issue for TreeList with zero columns
+  // 1.0.0.2 : Fixed issue with RightClickSelect
+  // 1.0.0.3 : Fixed issue with HeaderSettings.AllowResize
+  // 1.0.0.4 : Fixed issue with VCL.NET
+  // 1.0.0.5 : Fixed image drawing issue with XP themes
+  // 1.0.1.0 : New : Exposed property TreeList.Header
+  //         : New : Exposed property TreeList.Header.IsSizing
 
 type
   TTreeList = class;
@@ -88,6 +99,7 @@ type
     property Items[Index: Integer]: TColumnItem read GetItem write SetItem; default;
  end;
 
+  THeaderSizeChangedEvent = procedure (Sender:TObject; Section:integer) of object;
   TTLHeaderClickEvent = procedure (Sender:TObject; SectionIdx:integer) of object;
 
   TTLHeader = class(THeader)
@@ -95,6 +107,10 @@ type
     FColor: TColor;
     FOnClick: TTLHeaderClickEvent;
     FOnRightClick:TTLHeaderClickEvent;
+    FIsSizing: boolean;
+    FHitTest: TPoint;
+    procedure WMSetCursor(var Msg: TWMSetCursor); message WM_SETCURSOR;
+    procedure WMNCHitTest(var Msg: TWMNCHitTest); message WM_NCHITTEST;
     procedure WMLButtonDown(var Message: TWMLButtonDown); message WM_LBUTTONDOWN;
     procedure WMRButtonDown(var Message: TWMLButtonDown); message WM_RBUTTONDOWN;
     procedure SetColor(const Value: TColor);
@@ -102,6 +118,10 @@ type
     constructor Create(aOwner:TComponent); override;
     destructor Destroy; override;
     procedure DestroyWnd; override;
+    procedure Sizing(ASection, AWidth: Integer); override;
+    procedure Sized(ASection, AWidth: Integer); override;
+    property IsSizing: boolean read FIsSizing;
+
   protected
     procedure Paint; override;
   published
@@ -117,6 +137,7 @@ type
     FHeight: Integer;
     FVisible: Boolean;
     FFont: TFont;
+    FAllowResize: boolean;
     function GetFont: tFont;
     procedure SetFont(const Value: TFont);
     function GetFlat: boolean;
@@ -155,9 +176,11 @@ type
     FItemHeight:integer;
     FOnClick:TTLHeaderClickEvent;
     FOnRightClick:TTLHeaderClickEvent;
-    FClipRegion: HRGN;
+    FClipRegion: HRGN;   
+    FOnHeaderSizeChanged : THeaderSizeChangedEvent;
     procedure WMHScroll(var message:TMessage); message WM_HSCROLL;
     procedure WMLButtonDown(var message: TWMLButtonDown); message WM_LBUTTONDOWN;
+    procedure WMRButtonDown(var message: TWMLButtonDown); message WM_RBUTTONDOWN;    
     procedure WMPaint(var message: TWMPaint); message WM_PAINT;
     {$IFNDEF TMSDOTNET}
     procedure CNNotify(var message: TWMNotify); message CN_NOTIFY;
@@ -197,6 +220,7 @@ type
     function GetNodeColumn(tn:TTreeNode;idx:integer):string;
     procedure Loaded; override;
     procedure UpdateColumns;
+    property Header: TTLHeader read FHeader;
   published
     { Pubished declarations }
 
@@ -207,10 +231,10 @@ type
     property ItemHeight: Integer read GetItemHeight write SetItemHeight;
     property OnHeaderClick: TTLHeaderClickEvent read fOnClick write fOnClick;
     property OnHeaderRightClick: TTLHeaderClickEvent read fOnRightClick write fOnRightClick;
+    property OnHeaderSizeChanged : THeaderSizeChangedEvent read FOnHeaderSizeChanged write FOnHeaderSizeChanged;
     property Visible: Boolean read GetVisible write SetVisible;
     property HeaderSettings: THeaderSettings read FHeaderSettings write FHeaderSettings;
     property Version: string read GetVersion write SetVersion;
-
     {
     // Default properties
     property Align;
@@ -362,6 +386,15 @@ function TreeView_GetItemHeight(hwnd: HWND): Integer;
 
 implementation
 
+type
+  PHeaderSection = ^THeaderSection;
+  THeaderSection = record
+    FObject: TObject;
+    Width: Integer;
+    Title: string;                                   
+  end;
+
+
 { TColumnItem }
 
 constructor TColumnItem.Create(Collection: TCollection);
@@ -501,6 +534,12 @@ begin
     FOnClick(self,i);
 end;
 
+procedure TTLHeader.WMNCHitTest(var Msg: TWMNCHitTest);
+begin
+  inherited;
+  FHitTest := SmallPointToPoint(Msg.Pos);
+end;
+
 procedure TTLHeader.WMRButtonDown(var Message: TWMLButtonDown);
 var
   x,i:integer;
@@ -516,6 +555,32 @@ begin
   Dec(i);
   if Assigned(FOnRightClick) then
     FOnRightClick(self,i);
+end;
+
+procedure TTLHeader.WMSetCursor(var Msg: TWMSetCursor);
+var
+  I: Integer;
+  X: Integer;
+  FMouseOffset: Integer;
+
+begin
+  inherited;
+  FIsSizing := false;
+  FHitTest := ScreenToClient(FHitTest);
+  X := 2;
+  with Msg do
+    if HitTest = HTCLIENT then
+      for I := 0 to Sections.Count - 2 do  { don't count last section }
+      begin
+        Inc(X, SectionWidth[I]);
+        FMouseOffset := X - (FHitTest.X + 2);
+        if Abs(FMouseOffset) < 4 then
+        begin
+          FIsSizing := true;
+          Break;
+        end;
+      end;
+  FIsSizing := (AllowResize or (csDesigning in ComponentState)) and (FIsSizing);
 end;
 
 procedure TTLHeader.Paint;
@@ -541,7 +606,7 @@ begin
     repeat
       with Owner as TTreeList do
       begin
-        if Columns.Count>I then
+        if (Columns.Count > I) then
           case (Columns.Items[I] as TColumnItem).HeaderAlign of
           taleftJustify:halign:=DT_LEFT;
           taRightJustify:halign:=DT_RIGHT;
@@ -574,11 +639,14 @@ begin
 
       with (Owner as TTreeList) do
       begin
-        if (Columns.Count > I - 1) and Assigned(Images) then
-        if ((Columns.Items[I - 1] as TColumnItem).HeaderImage >= 0) then
+        if (Columns.Count > 0) then
         begin
-          Images.Draw(self.Canvas,pr.Left,pr.Top,(Columns.Items[I - 1] as TColumnItem).HeaderImage);
-          pr.Left:=pr.Left+Images.Width + 2;
+          if (Columns.Count > I - 1) and Assigned(Images) then
+          if ((Columns.Items[I - 1] as TColumnItem).HeaderImage >= 0) then
+          begin
+            Images.Draw(self.Canvas,pr.Left,pr.Top,(Columns.Items[I - 1] as TColumnItem).HeaderImage);
+            pr.Left:=pr.Left+Images.Width + 2;
+          end;
         end;
       end;
 
@@ -609,6 +677,18 @@ begin
 end;
 
 
+procedure TTLHeader.Sized(ASection, AWidth: Integer);
+begin
+  inherited;
+  FIsSizing := false;
+end;
+
+procedure TTLHeader.Sizing(ASection, AWidth: Integer);
+begin
+  inherited;
+  FIsSizing := true;
+end;
+
 destructor TTLHeader.Destroy;
 begin
   inherited;
@@ -624,9 +704,11 @@ end;
 constructor TTreeList.Create(aOwner:TComponent);
 begin
   inherited Create(aOwner);
+  FOnHeaderSizeChanged := nil;
   FHeader := nil;
   FColumnCollection := TColumnCollection.Create(self);
   FHeaderSettings := THeaderSettings.Create(self);
+  FHeaderSettings.AllowResize := false;
   FSeparator := ';';
   FItemHeight := 16;
   FColumnLines := true;
@@ -676,6 +758,11 @@ begin
 
   TColumnItem(fColumnCollection.Items[ASection]).FWidth := AWidth;
   Invalidate;
+  if ((csDesigning in ComponentState) or (csDestroying in ComponentState)) then 
+    Exit;
+    
+  if Assigned (FOnHeaderSizeChanged) and Assigned (FHeader) and Assigned (FColumnCollection) then
+    FOnHeaderSizeChanged (Self, ASection);
 end;
 
 procedure TTreeList.HeaderClick(sender:TObject; ASection:integer);
@@ -844,15 +931,16 @@ procedure TTreeList.CNNotify(var message: TWMNotify);
 var
   TVcd:TNMTVCustomDraw;
   TVdi:TTVDISPINFO;
-  canvas:tcanvas;
+  Canvas:TCanvas;
   s,su:string;
   tn:ttreenode;
-  r:trect;
+  r,nr:trect;
   fIndent,fIdx,fImgWidth:integer;
   defdraw: boolean;
   {$IFDEF DELPHI6_LVL}
   paintimg: boolean;
-  TmpItem: TTVItem;  
+  TmpItem: TTVItem;
+  code: longbool;  
   {$ENDIF}
 
 
@@ -879,10 +967,11 @@ begin
       s := tn.Text;
       StrPLCopy(tvdi.item.pszText,s,255);
       tvdi.Item.Mask := tvdi.item.mask or TVIF_DI_SETITEM;
-      message.result:=0;
+      message.Result := 0;
       Exit;
     end;
   end;
+
 
   if message.NMHdr^.code = NM_CUSTOMDRAW then
   begin
@@ -898,9 +987,11 @@ begin
 
         message.Result := CDRF_NOTIFYITEMDRAW or CDRF_NOTIFYPOSTPAINT;
       end;
+
     CDDS_ITEMPREPAINT:
       begin
         defdraw := true;
+
 
         {$IFDEF DELPHI6_LVL}
         FillChar(TmpItem, SizeOf(TmpItem), 0);
@@ -913,7 +1004,7 @@ begin
           Exit;
 
         //tn := Items.GetNode(tvdi.item.hitem);
-        
+
         paintimg := true;
         if Assigned(OnAdvancedCustomDrawItem) then
           OnAdvancedCustomDrawItem(self, tn, TCustomDrawState(Word(TVcd.nmcd.uItemState)), TCustomDrawStage(message.NMHdr^.code), paintimg, defdraw);
@@ -921,8 +1012,7 @@ begin
 
         if defdraw then
         begin
-
-          if  (TVcd.nmcd.uItemState and CDIS_SELECTED = CDIS_SELECTED) then
+          if (TVcd.nmcd.uItemState and CDIS_SELECTED = CDIS_SELECTED) then
           begin
             TVcd.nmcd.uItemState := TVcd.nmcd.uItemState and (not CDIS_SELECTED);
             SetTextColor(TVcd.nmcd.hdc,ColorToRGB(self.Color));
@@ -950,33 +1040,38 @@ begin
 
         defdraw := true;
 
-        {$IFDEF DELPHI6_LVL}
+        Canvas := TCanvas.Create;
+        Canvas.Handle := TVcd.nmcd.hdc;
 
+        {$IFDEF DELPHI6_LVL}
         FillChar(TmpItem, SizeOf(TmpItem), 0);
         with PNMCustomDraw(message.NMHdr)^ do
+        begin
           TmpItem.hItem := HTREEITEM(dwItemSpec);
 
-        tn := GetNodeFromItem(TmpItem);
+          tn := GetNodeFromItem(TmpItem);
+
+          code := true;
+          if Assigned(tn) then
+            TreeView_GetItemRect(handle, HTREEITEM(dwItemSpec), nr, code);
+        end;
 
         if (tn = nil) then
           Exit;
 
         // tn := Items.GetNode(tvdi.item.hitem);
 
-        paintimg := true;        
+        paintimg := true;
         if Assigned(OnAdvancedCustomDrawItem) then
           OnAdvancedCustomDrawItem(self, tn, TCustomDrawState(word(TVcd.nmcd.uItemState)), TCustomDrawStage(message.NMHdr^.code), paintimg, defdraw);
-        {$ENDIF}  
+        {$ENDIF}
 
         if defdraw then
         begin
-          Canvas := TCanvas.Create;
-          Canvas.Handle := TVcd.nmcd.hdc;
-
           tn := Items.GetNode(HTREEITEM(TVcd.nmcd.dwitemSpec));
 
           // get left pos from tree level
-          TVcd.nmcd.rc.Left := TVcd.nmcd.rc.Left + FIndent*(tn.Level + 1) - GetScrollPos(handle,SB_HORZ);
+          TVcd.nmcd.rc.Left := TVcd.nmcd.rc.Left + FIndent * (tn.Level + 1) - GetScrollPos(handle,SB_HORZ);
 
           // paint image in first column
           FImgWidth := 0;
@@ -993,14 +1088,15 @@ begin
             begin
               if (TVcd.nmcd.uItemState and CDIS_SELECTED = CDIS_SELECTED) and
                 (tn.SelectedIndex >= 0) then
-                Images.draw(canvas,TVcd.nmcd.rc.left,TVcd.nmcd.rc.top,tn.SelectedIndex)
+                Images.draw(Canvas, TVcd.nmcd.rc.left, nr.Top {TVcd.nmcd.rc.top}, tn.SelectedIndex)
               else
                 if (tn.ImageIndex >= 0) then
-                  Images.Draw(canvas,TVcd.nmcd.rc.left,TVcd.nmcd.rc.top,tn.ImageIndex);
+                  Images.Draw(Canvas, TVcd.nmcd.rc.left, nr.Top {TVcd.nmcd.rc.top}, tn.ImageIndex);
+
             end;
 
             if tn.OverlayIndex >= 0 then
-              Images.Draw(canvas,TVcd.nmcd.rc.left,TVcd.nmcd.rc.top,tn.OverlayIndex);
+              Images.Draw(canvas,TVcd.nmcd.rc.left,nr.Top {TVcd.nmcd.rc.top},tn.OverlayIndex);
           end;
 
           TVcd.nmcd.rc.left := TVcd.nmcd.rc.left + FImgWidth;
@@ -1013,34 +1109,34 @@ begin
 
           if  (TVcd.nmcd.uItemState and CDIS_SELECTED = CDIS_SELECTED) then
           begin
-            Canvas.Brush.Color:=clHighLight;
-            Canvas.Pen.Color:=clHighLight;
+            Canvas.Brush.Color := clHighLight;
+            Canvas.Pen.Color := clHighLight;
             with TVcd.nmcd.rc do
               Canvas.Rectangle(left,top,right,bottom);
             Canvas.Font.Color := clHighLightText;
-            if (TVcd.nmcd.uItemState and CDIS_FOCUS=CDIS_FOCUS) then
+            if (TVcd.nmcd.uItemState and CDIS_FOCUS = CDIS_FOCUS) then
             begin
-              Canvas.pen.color := self.Color;
-              Canvas.brush.color := self.Color;
+              Canvas.Pen.color := self.Color;
+              Canvas.Brush.color := self.Color;
               Canvas.DrawFocusRect(TVcd.nmcd.rc);
             end;
-            TVcd.nmcd.rc:=r;
-            TVcd.nmcd.rc.left:=TVcd.nmcd.rc.left+4;
+            TVcd.nmcd.rc := r;
+            TVcd.nmcd.rc.left := TVcd.nmcd.rc.left + 4;
           end
           else
           begin
-            canvas.brush.color:=self.Color;
-            canvas.pen.color:=self.Color;
+            canvas.Brush.Color := self.Color;
+            canvas.Pen.Color := self.Color;
             with TVcd.nmcd.rc do
-              canvas.rectangle(left,top,right,bottom);
+              Canvas.Rectangle(left,top,right,bottom);
           end;
 
           TVcd.nmcd.rc:=r;
 
           if  (TVcd.nmcd.uItemState and CDIS_SELECTED=CDIS_SELECTED) then
           begin
-            canvas.brush.color:=clHighLight;
-            canvas.pen.color:=clHighLight;
+            Canvas.brush.color:=clHighLight;
+            Canvas.pen.color:=clHighLight;
           end;
 
           s := tn.text;
@@ -1106,9 +1202,9 @@ begin
             inc(fIdx);
 
           until (length(s)=0);
+        end;
 
-          Canvas.Free;
-        end;  
+        Canvas.Free;
       end;
       else
         message.Result := 0;
@@ -1374,7 +1470,7 @@ begin
                 end;
               end;
             finally
-              Canvas.Unlock;
+              //Canvas.Unlock;
             end;
           end;
       end;
@@ -1387,30 +1483,55 @@ end;
 
 procedure TTreeList.SetSeparator(const Value: string);
 begin
-  fSeparator := Value;
-  self.Invalidate;
+  FSeparator := Value;
+  Self.Invalidate;
 end;
 
 procedure TTreeList.WMLButtonDown(var message: TWMLButtonDown);
 var
  Node : TTreeNode;
 begin
- if not (csDesigning in ComponentState) then inherited else exit;
- Node:=GetNodeAt(message.XPos,message.YPos);
- if assigned(Node) then
+  if not (csDesigning in ComponentState) then
+    inherited
+  else
+    Exit;
+
+  Node := GetNodeAt(message.XPos,message.YPos);
+  if Assigned(Node) then
   begin
-   Node.selected:=true;
+    Node.selected := True;
   end;
 end;
 
+procedure TTreeList.WMRButtonDown(var message: TWMLButtonDown);
+var
+ Node : TTreeNode;
+begin
+  if RightClickSelect then
+  begin
+    Node := GetNodeAt(message.XPos,message.YPos);
+    if Assigned(Node) then
+    begin
+      Node.selected := True;
+    end;
+  end;
+
+  if not (csDesigning in ComponentState) then
+    inherited
+  else
+    Exit;
+
+end;
+
+
 procedure TTreeList.WMHScroll(var message:TMessage);
 begin
- inherited;
- if fOldScrollPos<>GetScrollPos(handle,SB_HORZ) then
-   begin
+  inherited;
+  if FOldScrollPos <> GetScrollPos(handle,SB_HORZ) then
+  begin
     Invalidate;
-    fOldScrollPos:=GetScrollPos(handle,SB_HORZ);
-   end;
+    FOldScrollPos := GetScrollPos(handle,SB_HORZ);
+  end;
 end;
 
 procedure TTreeList.WMPaint(var message: TWMPaint);
@@ -1595,6 +1716,7 @@ begin
   inherited;
   UpdateColumns;
   FHeader.Font.Assign(FHeaderSettings.Font);
+  FHeader.AllowResize := FHeaderSettings.AllowResize;
 end;
 
 function TTreeList.GetVersion: string;
@@ -1644,9 +1766,7 @@ end;
 
 function THeaderSettings.GetAllowResize: Boolean;
 begin
-  Result := True;
-  if Assigned(FOwner.FHeader) then
-    Result := FOwner.FHeader.AllowResize;
+  Result := FAllowResize;
 end;
 
 function THeaderSettings.GetColor: TColor;
@@ -1685,7 +1805,8 @@ end;
 procedure THeaderSettings.SetAllowResize(const Value: Boolean);
 begin
   if Assigned(FOwner.FHeader) then
-    FOwner.fHeader.AllowResize := Value;
+    FOwner.FHeader.AllowResize := Value;
+  FAllowResize := value;
 end;
 
 procedure THeaderSettings.SetColor(const Value: TColor);

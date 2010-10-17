@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvStringGrid Find dialog component                                      }
 { for Delphi & C++Builder                                                   }
-{ version 1.1                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2002 - 2006                                        }
+{            copyright © 2002 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -32,6 +31,8 @@ uses
   ;
 
 type
+  TAdvGridFindDialog = class;
+  
   TAsgFindDlg = class(TForm)
     Options: TGroupBox;
     Label1: TLabel;
@@ -77,6 +78,7 @@ type
     { Public declarations }
     bInhibitToggle: boolean;
     FGrid: TAdvStringGrid;
+    FFindDialog: TAdvGridFindDialog;
     FGridCell: TPoint;
     FMsgNoMoreFound: string;
     FMsgNotFound: string;
@@ -85,6 +87,7 @@ type
     property OnFindDone: TNotifyEvent read FOnFindDone write FOnFindDone;
   end;
 
+  TCellFoundEvent = procedure(Sender: TObject; Grid: TAdvStringGrid; ACol,ARow: integer; Value: string) of object;
 
   TAdvGridFindDialog = class(TComponent)
   private
@@ -101,6 +104,7 @@ type
     FTxtOptionsFixedCells: string;
     FTxtOptionsMatchFirst: string;
     FTxtScopeAllCells: string;
+    FTxtScopeSelectedCells: string;
     FTxtTextToFind: string;
     FTxtScopeCurrRow: string;
     FTxtBtnCancel: string;
@@ -117,6 +121,9 @@ type
     FOnFindDone: TNotifyEvent;
     FOnFindClose: TNotifyEvent;
     FOnDialogKeyDown: TKeyEvent;
+    FOnCellFound: TCellFoundEvent;
+    FDialogWidth: integer;
+    procedure SetDialogWidth(const Value: integer);
   protected
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     procedure FindDone(Sender: TObject);
@@ -126,8 +133,10 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Execute;
+    property Dialog: TAsgFindDlg read FAsgFind;
   published
     property AutoPosition: Boolean read FAutoPosition write FAutoPosition;
+    property DialogWidth: integer read FDialogWidth write SetDialogWidth default 360;
     property Grid: TAdvStringGrid read FGrid write FGrid;
     property MsgNotFound: string read FMsgNotFound write FMsgNotFound;
     property MsgNoMoreFound: string read FMsgNoMoreFound write FMsgNoMoreFound;
@@ -143,6 +152,7 @@ type
     property TxtScopeAllCells: string read FTxtScopeAllCells write FTxtScopeAllCells;
     property TxtScopeCurrRow: string read FTxtScopeCurrRow write FTxtScopeCurrRow;
     property TxtScopeCurrCol: string read FTxtScopeCurrCol write FTxtScopeCurrCol;
+    property TxtScopeSelectedCells: string read FTxtScopeSelectedCells write FTxtScopeSelectedCells;
     property TxtOptions: string read FTxtOptions write FTxtOptions;
     property TxtOptionsCase: string read FTxtOptionsCase write FTxtOptionsCase;
     property TxtOptionsWholeWords: string read FTxtOptionsWholeWords write FTxtOptionsWholeWords;
@@ -152,6 +162,7 @@ type
     property TxtOptionsWildcards: string read FTxtOptionsWildcards write FTxtOptionsWildcards;
     property TxtBtnOk: string read FTxtBtnOk write FTxtBtnOk;
     property TxtBtnCancel: string read FTxtBtnCancel write FTxtBtnCancel;
+    property OnCellFound: TCellFoundEvent read FOnCellFound write FOnCellFound;
     property OnFindDone: TNotifyEvent read FOnFindDone write FOnFindDone;
     property OnFindClose: TNotifyEvent read FOnFindClose write FOnFindClose;
     property OnDialogKeyDown: TKeyEvent read FOnDialogKeyDown write FOnDialogKeyDown;
@@ -203,6 +214,8 @@ begin
       FindParams := FindParams + [fnFindInCurrentRow];
     if Scope.ItemIndex = 2 then
       FindParams := FindParams + [fnFindInCurrentCol];
+    if Scope.ItemIndex = 3 then
+      FindParams := FindParams + [fnSelectedCells];
 
     FirstSearch := (FGridCell.x = -1) and (FGridCell.y = -1);
     FGridCell := FGrid.Find(FGridCell,TextToFind.Text,FindParams);
@@ -243,6 +256,10 @@ begin
         Top := r.Top;
       end;
 
+      if Assigned(FFindDialog.FOnCellFound) then
+      begin
+        FFindDialog.FOnCellFound(self,FGrid, FGridCell.x, FGridCell.y, TextToFind.Text);
+      end;
     end;
   end;
 end;
@@ -268,7 +285,11 @@ end;
 constructor TAdvGridFindDialog.Create(AOwner: TComponent);
 begin
   inherited;
+  
   FAsgFind := TAsgFindDlg.Create(nil);
+  FAsgFind.FFindDialog := self;
+
+  FDialogWidth := 360;
 
   FMsgNotFound := 'Could not find text';
   FMsgNoMoreFound := 'No more occurences of text ';
@@ -287,7 +308,9 @@ begin
   FTxtScopeCurrCol := 'Current column only';
   FTxtScopeCurrRow := 'Current row only';
   FTxtScopeAllCells := 'All cells';
+  FTxtScopeSelectedCells := 'Selected cells';
 
+  FTxtOptions := 'Options';
   FTxtOptionsCase := '&Case sensitive';
   FTxtOptionsMatchFirst := '&Match from first char';
   FTxtOptionsFixedCells := '&Find in fixed cells';
@@ -324,6 +347,7 @@ begin
   FAsgFind.Scope.Items[0] := FTxtScopeAllCells;
   FAsgFind.Scope.Items[1] := FTxtScopeCurrRow;
   FAsgFind.Scope.Items[2] := FTxtScopeCurrCol;
+  FAsgFind.Scope.Items[3] := FTxtScopeSelectedCells;  
 
   FAsgFind.Scope.Caption := FTxtScope;
   FAsgFind.gbDirection.Caption := FTxtDirection;
@@ -359,6 +383,13 @@ begin
 
   FAsgFind.OnKeyDown := DialogKeyDown;
 
+  FAsgFind.Width := FDialogWidth;
+
+  FAsgFind.gbDirection.Width := (FAsgFind.width - 32) div 2;
+  FAsgFind.Scope.Width := (FAsgFind.width - 32) div 2;
+  FAsgFind.Options.Width := (FAsgFind.width - 32) div 2;
+  FAsgFind.Options.Left := FAsgFind.Width - FAsgFind.Options.Width - 16;
+
   FAsgFind.Show;
 end;
 
@@ -380,6 +411,12 @@ begin
   if (AOperation = opRemove) and (AComponent = FGrid) then
      FGrid := Nil;
   inherited;
+end;
+
+procedure TAdvGridFindDialog.SetDialogWidth(const Value: integer);
+begin
+  if FDialogWidth > 300 then
+    FDialogWidth := Value;
 end;
 
 procedure TAsgFindDlg.ScopeClick(Sender: TObject);

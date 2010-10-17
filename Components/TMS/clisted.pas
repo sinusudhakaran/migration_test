@@ -1,10 +1,9 @@
 {********************************************************************}
 { TCheckListEdit component                                           }
 { for Delphi  & C++Builder                                           }
-{ version 1.2                                                        }
 {                                                                    }
 { written by TMS Software                                            }
-{            copyright © 1999-2006                                   }
+{            copyright © 1999-2008                                   }
 {            Email : info@tmssoftware.com                            }
 {            Web : http://www.tmssoftware.com                        }
 {                                                                    }
@@ -38,8 +37,8 @@ const
   CL_CHECKED = $8;
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 2; // Build nr.
 
 
   // version history
@@ -52,6 +51,9 @@ const
   //         : Added OnShowCheckList event
   // 1.3.0.1 : Fix for QC-36372 issue with Refresh call in ShowCheckList
   // 1.3.1.0 : Added property Selected[i]: boolean to get/set selected items in dropdown
+  // 1.3.2.0 : Added : selection of checkbox & closing dropdown with return key
+  // 1.3.2.1 : Fixed : issue with TextStartChar & TextEndChar being equal
+  // 1.3.2.2 : Fixed : disabled painting of dropdown button when Enabled = false
 
 type
   TCheckListEdit = class;
@@ -72,14 +74,13 @@ type
     property Items[index: Integer]: Integer read GetInteger write SetInteger; default;
     procedure Add(Value: integer);
     procedure Delete(Index: Integer);
-  published
   end;
 
 {TInplaceCheckListBox}
 
   TInplaceCheckListBox = class(TCheckListBox)
   private
-    fParentEdit: TCheckListEdit;
+    FParentEdit: TCheckListEdit;
     procedure WMKeyDown(var Msg: TWMKeydown); message wm_keydown;
   protected
     procedure DoExit; override;
@@ -163,9 +164,10 @@ type
     procedure SetItemEnabled(ItemIndex: Integer; const Value: Boolean);    
     function GetMinHeight: Integer;
     procedure SetEditRect;
-    procedure WMSize(var Message: TWMSize); message WM_SIZE;
+    procedure CMEnabledChanged(var Msg: TMessage); message CM_ENABLEDCHANGED;
     procedure CMEnter(var Message: TCMGotFocus); message CM_ENTER;
     procedure CMExit(var Message: TCMExit); message CM_EXIT;
+    procedure WMSize(var Message: TWMSize); message WM_SIZE;
     procedure WMPaste(var Message: TWMPaste); message WM_PASTE;
     procedure WMCut(var Message: TWMCut); message WM_CUT;
     procedure WMKeyDown(var Msg: TWMKeydown); message WM_KEYDOWN;
@@ -359,38 +361,48 @@ begin
   if not (IsWinXP and IsThemeActive) then
     inherited Paint
   else
-    begin
-
+  begin
     htheme := OpenThemeData(Parent.Handle,'combobox');
     ARect := ClientRect;
     InflateRect(ARect,1,1);
     //InflateRect(ARect,4,4);
     ARect.Left := ARect.Left + 2;
 
-    if Down then
-      {$IFNDEF TMSDOTNET}
-      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
-      {$ENDIF}
-      {$IFDEF TMSDOTNET}
-      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
-      {$ENDIF}
-    else
+    if not Enabled then
     begin
       {$IFNDEF TMSDOTNET}
-      if Hover then
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
-      else
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
+      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_DISABLED,@ARect,nil)
       {$ENDIF}
       {$IFDEF TMSDOTNET}
-      if Hover then
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
-      else
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
+      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_DISABLED,ARect,nil)
       {$ENDIF}
-    end;
+    end
+    else
+      if Down then
+        {$IFNDEF TMSDOTNET}
+        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
+        {$ENDIF}
+      else
+      begin
+        {$IFNDEF TMSDOTNET}
+        if Hover then
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
+        else
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        if Hover then
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
+        else
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
+        {$ENDIF}
+      end;
+
     CloseThemeData(htheme);
-    end;
+  end;
 end;
 
 procedure TDropCheckListButton.Click;
@@ -816,6 +828,12 @@ begin
     ShowCheckList(true);
 end;
 
+procedure TCheckListEdit.CMEnabledChanged(var Msg: TMessage);
+begin
+  inherited;
+  FButton.Enabled := self.Enabled; 
+end;
+
 procedure TCheckListEdit.CMEnter(var Message: TCMGotFocus);
 begin
   if AutoSelect and not (csLButtonDown in ControlState) then SelectAll;
@@ -920,9 +938,19 @@ begin
   if not Assigned(FItems) then
     Exit;
 
-
-  if pos(fTextEndChar, s) > 0 then delete(s, pos(fTextEndChar, s), 1);
-  if pos(fTextStartChar, s) > 0 then delete(s, pos(fTextStartChar, s), 1);
+  if (fTextEndChar <> fTextStartChar) then
+  begin
+    if pos(fTextEndChar, s) > 0 then delete(s, pos(fTextEndChar, s), 1);
+    if pos(fTextStartChar, s) > 0 then delete(s, pos(fTextStartChar, s), 1);
+  end
+  else
+  begin
+    if pos(fTextStartChar, s) > 0 then delete(s, pos(fTextStartChar, s), 1);
+    if (fTextEndChar <> '') and (Pos(fTextEndChar,s) > 0) then
+    begin
+      delete(s, length(s) - length(fTextEndChar) + 1, length(fTextEndChar));
+    end;
+  end;
 
   for i := 1 to fIntList.Count do
     FIntList.Items[i - 1] := FIntList.Items[i - 1] and not CL_CHECKED;
@@ -976,7 +1004,7 @@ begin
     FChecklistbox.Checked[i] := Value;
 end;
 
-function TCheckListEdit.GetSelected(Index: Integer): Boolean;   // by John Schmidt
+function TCheckListEdit.GetSelected(Index: Integer): Boolean;   
 begin
   Result := FCheckListBox.Selected[Index];
 end;
@@ -997,7 +1025,7 @@ begin
   end;
 end;
 
-procedure TCheckListEdit.SetSelected(Index: Integer; const Value: Boolean);    // by John Schmidt
+procedure TCheckListEdit.SetSelected(Index: Integer; const Value: Boolean);    
 begin
   FCheckListBox.Selected[Index] := Value;
 end;
@@ -1149,12 +1177,25 @@ end;
 { TInplaceCheckListBox }
 
 procedure TInplaceCheckListBox.WMKeyDown(var Msg: TWMKeydown);
+var
+  i:integer;
 begin
   if (msg.charcode = vk_tab) then Exit;
 
   if (msg.charcode = vk_escape) or (msg.charcode = vk_F4) or
     ((msg.CharCode = vk_up) and (getkeystate(vk_menu) and $8000 = $8000)) then
   begin
+    postmessage((Parent as TForm).Handle, WM_CLOSE, 0, 0);
+  end;
+
+  if (msg.charcode = vk_return) then
+  begin
+    for i := 0 to Items.Count - 1 do
+      Checked[i] := false;
+
+    Checked[ItemIndex] := true;
+    if Assigned(OnClickCheck) then
+      OnClickCheck(self);
     postmessage((Parent as TForm).Handle, WM_CLOSE, 0, 0);
   end;
 

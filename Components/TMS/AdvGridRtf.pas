@@ -4,7 +4,7 @@
 { version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 1996-2006                                          }
+{            copyright © 1996-2008                                          }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -272,7 +272,7 @@ var
   rg, cg: integer;
   AState: TGridDrawState;
   ABrush: TBrush;
-  AColorTo: TColor;
+  AColorTo,AMirrorColor,AMirrorColorTo: TColor;
   AFont: TFont;
   HA: TAlignment;
   VA: TVAlignment; WW: Boolean;
@@ -545,7 +545,7 @@ begin
         ABrush := TBrush.Create;
         ABrush.Color := CurrentGrid.Color;
         try
-          CurrentGrid.GetVisualProperties(cg, rg, AState, false, false, not Options.ExportHiddenColumns , ABrush, AColorTo, AFont, HA, VA, WW, GD);
+          CurrentGrid.GetVisualProperties(cg, rg, AState, false, false, not Options.ExportHiddenColumns , ABrush, AColorTo,AMirrorColor,AMirrorColorTo, AFont, HA, VA, WW, GD);
 
           if Self.Options.FExportCellProperties then
           begin
@@ -608,7 +608,7 @@ begin
       end; //finally
 
       // Checkbox
-      CellGraphic := CurrentGrid.CellGraphics[cg, rg];
+      CellGraphic := CurrentGrid.CellGraphics[{cg}creal, rg];
       if (CellGraphic <> nil) then
       begin
         if (CellGraphic.CellType in [ctCheckBox, ctDataCheckBox]) then
@@ -628,8 +628,8 @@ begin
       CellData := CurrentGrid.SaveCell(creal, rg);
 
       // do not export text of a checkbox
-      if CurrentGrid.HasCheckBox(creal,rg) then
-        CellData := '';
+      //if CurrentGrid.HasCheckBox(creal,rg) then
+        //CellData := '';
 
       if (Pos('{\rtf', CellData) > 0) then
       begin

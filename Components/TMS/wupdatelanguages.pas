@@ -1,11 +1,11 @@
 {*******************************************************************}
 { TWEBUPDATE Wizard component                                       }
 { for Delphi & C++Builder                                           }
-{ version 1.6                                                       }
+{ version 1.7                                                       }
 {                                                                   }
 { written by                                                        }
 {    TMS Software                                                   }
-{    copyright © 1998-2005                                          }
+{    copyright © 1998-2006                                          }
 {    Email : info@tmssoftware.com                                   }
 {    Web   : http://www.tmssoftware.com                             }
 {                                                                   }
@@ -78,6 +78,15 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
+  TWebUpdateWizardCzech = class(TWebUpdateWizardLanguage)
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+  TWebUpdateWizardPolish = class(TWebUpdateWizardLanguage)
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
 
 implementation
 
@@ -111,6 +120,8 @@ begin
   TotalProgress := 'Totale vooruitgang';
   UpdateComplete := 'Update volledig ...';
   RestartInfo := 'Druk Herstarten om de nieuwe versie te starten.';
+  WhatsNewPopup := 'Bekijken in kladblok';
+  LicensePopup := 'Bekijken in kladblok';
 end;
 
 { TWebUpdateWizardFrench }
@@ -118,31 +129,31 @@ end;
 constructor TWebUpdateWizardFrench.Create(AOwner: TComponent);
 begin
   inherited;
-  Welcome := 'Appuyez lancer pour controler la disponibilité d''une version nouvelle ...';
-  StartButton := 'Lancer';
+  Welcome := 'Cliquez sur Vérifier pour rechercher d''éventuelles mises à jour ...';
+  StartButton := 'Vérifier';
   NextButton := 'Suivant';
   ExitButton := 'Quitter';
   CancelButton := 'Annuler';
-  RestartButton := 'Relancer';
-  GetUpdateButton := 'Update';
-  NewVersionFound := 'Version nouvelle trouvée';
-  NewVersion := 'Version nouvelle';
-  NoNewVersionAvail := 'Pas de version nouvelle disponible.';
-  NewVersionAvail := 'Version nouvelle disponible.';
+  RestartButton := 'Redémarrer';
+  GetUpdateButton := 'Mettre à jour';
+  NewVersionFound := 'Une nouvelle version est disponible';
+  NewVersion := 'Nouvelle version';
+  NoNewVersionAvail := 'Pas de nouvelle version disponible.';
+  NewVersionAvail := 'Nouvelle version disponible.';
   CurrentVersion := 'Version actuelle';
-  NoFilesFound := 'Pas de fichiers trouvés pour version nouvelle';
-  NoUpdateOnServer := 'pas trouvé de version nouvelle sur serveur ...';
-  CannotConnect := 'Pas possible de faire connection avec serveur ou';
+  NoFilesFound := 'pas de mises à jour disponible';
+  NoUpdateOnServer := 'Aucune mise à jour disponible ...';
+  CannotConnect := 'Connexion impossible avec le serveur ou';
   WhatsNew := 'Nouveautés';
-  License := 'Conditions de license';
+  License := 'Informations de license';
   AcceptLicense := 'J''accepte';
-  NotAcceptLicense := 'Je n''accepte pas';
+  NotAcceptLicense := 'Je refuse';
   ComponentsAvail := 'Composants d''application disponible';
   DownloadingFiles := 'Téléchargement des fichiers';
-  CurrentProgress := 'Progrès fichier';
-  TotalProgress := 'Progrès total';
-  UpdateComplete := 'Update complêt ...';
-  RestartInfo := 'Appuyez Relancer pour lancer la version nouvelle';
+  CurrentProgress := 'Progression du fichier';
+  TotalProgress := 'Progression totale';
+  UpdateComplete := 'Mise à jour terminée';
+  RestartInfo := 'Cliquez sur Redémarrer pour lancer la nouvelle version';
 end;
 
 { TWebUpdateWizardGerman }
@@ -150,31 +161,31 @@ end;
 constructor TWebUpdateWizardGerman.Create(AOwner: TComponent);
 begin
   inherited;
-  Welcome := 'Klicken Sie auf Start, um mit der Updateprüfung zu beginnen...';
+  Welcome := 'Klicken Sie auf Starten, um mit der Updateprüfung zu beginnen...';
   StartButton := 'Start';
   NextButton := 'Weiter';
-  ExitButton := 'Verlassen';
+  ExitButton := 'Schließen';
   RestartButton := 'Neu starten';
-  CancelButton := 'Abbruch';
-  GetUpdateButton := 'Update';
-  NewVersionFound := 'Neue Version gefunden';
+  CancelButton := 'Abbrechen';
+  GetUpdateButton := 'Weiter';
+  NewVersionFound := 'Es wurde eine neue Version gefunden';
   NewVersion := 'Neue Version';
   NoNewVersionAvail := 'Keine neue Version verfügbar.';
-  NewVersionAvail := 'Neue Version verfügbar';
-  CurrentVersion := 'Aktuelle Version';
-  NoFilesFound := 'Auf dem Server wurden keine Dateien gefunden';
+  NewVersionAvail := 'Es ist eine neue Version verfügbar';
+  CurrentVersion := 'Ihre Version';
+  NoFilesFound := 'Auf dem Server wurden keine Dateien gefunden.';
   NoUpdateOnServer := 'Kein Update vorhanden auf Server ...';
-  CannotConnect := 'Konnte den Updateserver nicht erreichen oder';
+  CannotConnect := 'Die Verbindung zum Server konnte nicht hergestellt werden';
   WhatsNew := 'Was ist neu?';
-  License := 'Lizenzvereinbar;ung';
-  AcceptLicense := 'Ich nehme an' ;
-  NotAcceptLicense := 'Ich lehne ab';
+  License := 'Lizenzvereinbarung';
+  AcceptLicense := 'Ich akzeptiere die Vereinbarung' ;
+  NotAcceptLicense := 'Ich lehne die Vereinbarung ab';
   ComponentsAvail := 'Verfügbare Anwendungskomponenten';
   DownloadingFiles := 'Lade Dateien';
-  CurrentProgress := 'Verlauf Dateidownload';
-  TotalProgress := 'Verlauf Update';
-  UpdateComplete := 'Update ist komplett ...';
-  RestartInfo := 'Bestätigen Sie den Neustart, um die neue Anwendung zu starten.';
+  CurrentProgress := 'Dateidownload:';
+  TotalProgress := 'Gesamter Updateverlauf:';
+  UpdateComplete := 'Der Download des Updates ist komplett ...';
+  RestartInfo := 'Bestätigen Sie den Neustart,'+chr(13)+chr(10)+'um das Update zu starten.';
 end;
 
 { TWebUpdateWizardPortugese }
@@ -336,6 +347,7 @@ begin
   RestartInfo := 'Klikk Start på nytt  for å starte det oppdaterte programmet.';
 end;
 
+{ TWebUpdateWizardHungarian }
 
 constructor TWebUpdateWizardHungarian.Create(AOwner: TComponent);
 begin
@@ -373,31 +385,106 @@ end;
 constructor TWebUpdateWizardSwedish.Create(AOwner: TComponent);
 begin
   inherited;
-  Welcome := 'Tryck på Start-knappen för att leta efter tillgängliga uppdateringar ...';
-  StartButton := 'Start';
-  NextButton := 'Nästa';
-  ExitButton := 'Avsluta';
-  CancelButton := 'Ångra';
-  RestartButton := 'Starta om';
-  GetUpdateButton := 'Hämta uppdatering';
-  NewVersionFound := 'Ny version funnen';
-  NewVersion := 'Ny version';
-  NoNewVersionAvail := 'Ny version saknas.';
-  NewVersionAvail := 'Ny version finns';
-  CurrentVersion := 'Nuvarande version';
-  NoFilesFound := 'Hittade inga uppdateringsbara filer';
-  NoUpdateOnServer := 'hittade ingen uppdatering på servern ...';
-  CannotConnect := 'Kunde inte få kontakt med servern eller';
-  WhatsNew := 'Nyheter';
-  License := 'Licensavtal';
-  AcceptLicense := 'Jag accepterar';
-  NotAcceptLicense := 'Jag accepterar inte';
-  ComponentsAvail := 'Tillgängliga applikationskomponenter';
-  DownloadingFiles := 'Laddar ner filer';
-  CurrentProgress := 'Nuvarende filförlopp';
-  TotalProgress := 'Totalt filförlopp';
-  UpdateComplete := 'Uppdateringen klar ...';
-  RestartInfo := 'Tryck på Omstart för att starta den uppdaterade applikationen';
+    Welcome := 'Tryck p'#229' Start-knappen f'#246'r att leta efter tillg'#228'ngliga uppdateri' +
+      'ngar ...';
+    StartButton := 'Starta';
+    NextButton := 'N'#228'sta';
+    ExitButton := 'Avsluta';
+    RestartButton := 'Starta om';
+    CancelButton := #197'ngra';
+    FailedDownload := 'Misslyckades att h'#228'mta uppdateringar';
+    GetUpdateButton := 'H'#228'mta uppdatering';
+    NewVersionFound := 'Hittat ny version';
+    NewVersion := 'Ny version';
+    NoNewVersionAvail := 'Ny version saknas.';
+    NewVersionAvail := 'Ny version finns';
+    CurrentVersion := 'Aktuell version';
+    NoFilesFound := 'Hittade inga uppdateringsbara filer';
+    NoUpdateOnServer := 'hittade ingen uppdatering p'#229' servern ...';
+    CannotConnect := 'Kunde inte f'#229' kontakt med servern eller';
+    WhatsNew := 'Nyheter';
+    License := 'Licensavtal';
+    AcceptLicense := 'Jag accepterar';
+    NotAcceptLicense := 'Jag accepterar inte';
+    ComponentsAvail := 'Tillg'#228'ngliga applikationskomponenter';
+    DownloadingFiles := 'H'#228'mtar filer';
+    CurrentProgress := 'P'#229'g'#229'ende filf'#246'rlopp';
+    TotalProgress := 'Totalt filf'#246'rlopp';
+    UpdateComplete := 'Uppdateringen klar ...';
+    RestartInfo := 'Tryck p'#229' "Starta om" f'#246'r att starta den uppdaterade applikatione' +
+      'n';
+    WhatsNewPopup := 'Visa i anteckningar';
+    LicensePopup := 'Visa i Anteckningar';
 end;
+
+{ TWebUpdateWizardCzech }
+
+constructor TWebUpdateWizardCzech.Create(AOwner: TComponent);
+begin
+  inherited;
+    Welcome := 'Stisknìte spustit pro ovìøení existence nové verze aplikace ...';
+    StartButton := 'Spustit';
+    NextButton := 'Další';
+    ExitButton := 'Ukonèit';
+    RestartButton := 'Obnovit';
+    CancelButton := 'Zrušit';
+    FailedDownload := 'Nepodaøilo se získat novou verzi';
+    GetUpdateButton := 'Získat novou verzi';
+    NewVersionFound := 'Nalezena nová verze';
+    NewVersion := 'Nová verze';
+    NoNewVersionAvail := 'Nová verze není k dispozici.';
+    NewVersionAvail := 'Nová verze je k dispozici.';
+    CurrentVersion := 'Souèasná verze';
+    NoFilesFound := 'Nenalezeny soubory nové verze';
+    NoUpdateOnServer := 'žádná nová verze nenalezena ...';
+    CannotConnect := 'Nebylo možno se pøipojit nebo';
+    WhatsNew := 'Co je nového';
+    License := 'Licenèní smlouva';
+    AcceptLicense := 'Souhlasím';
+    NotAcceptLicense := 'Nesouhlasím';
+    ComponentsAvail := 'Dostupné souèásti aplikace';
+    DownloadingFiles := 'Stahování souborù';
+    CurrentProgress := 'Stav aktuálního souboru';
+    TotalProgress := 'Stav všech souborù';
+    UpdateComplete := 'Stažení nové verze ukonèeno...';
+    RestartInfo := 'Stisknìte obnovit pro aplikování zmìn.,';
+    WhatsNewPopup := 'Otevøít v Poznámkovém bloku';
+    LicensePopup := 'Otevøít v Poznámkovém bloku';
+end;
+
+{ TWebUpdateWizardPolish }
+
+constructor TWebUpdateWizardPolish.Create(AOwner: TComponent);
+begin
+  inherited;
+  Welcome := 'Naciœnij START, aby sprawdziæ dostêpnoœæ uaktualnieñ...';
+  StartButton := 'Start';
+  NextButton := 'Dalej';
+  ExitButton := 'Wyjœcie';
+  RestartButton := 'Zakoñcz';
+  CancelButton := 'Anuluj';
+  GetUpdateButton := 'Pobierz';
+  NewVersionFound := 'Znaleziono now¹ wersjê';
+  NewVersion := 'Nowa wersja';
+  NoNewVersionAvail := 'Nie znaleziono nowszej wersji';
+  NewVersionAvail := 'Dostêpna jest nowsza wersja';
+  CurrentVersion := 'Aktualna wersja';
+  NoFilesFound := 'Nie odnaleziono plików na serwerze';
+  NoUpdateOnServer := 'brak aktualizacji na serwerze!';
+  CannotConnect := 'Brak po³¹czenia z serwerem lub';
+  WhatsNew := 'Co nowego?';
+  License := 'Licencja';
+  AcceptLicense := 'Akceptujê licencjê' ;
+  NotAcceptLicense := 'Nie akceptujê licencji';
+  ComponentsAvail := 'Dostêpne komponenty';
+  DownloadingFiles := 'Pobieranie plików';
+  CurrentProgress := 'Postêp aktualnego pliku';
+  TotalProgress := '£¹czny postêp';
+  FailedDownload := 'Nie uda³o siê pobraæ uaktualnienia';
+  UpdateComplete := 'Aktualizacja zakoñczona !';
+  RestartInfo := 'Naciœnij ZAKOÑCZ, aby uruchomiæ now¹ wersjê aplikacji';
+end;
+
+
 
 end.

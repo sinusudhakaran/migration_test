@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvMenuStylers component                                                 }
 { for Delphi & C++Builder                                                   }
-{ version 1.3                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2005 - 2006                                        }
+{            copyright © 2005 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -33,7 +32,7 @@ uses
   ;
 
 type
-  TOfficeStyle = (osOffice2003Blue, osOffice2003Silver, osOffice2003Olive, osOfficeXP, osOffice2007Luna, osOffice2007Obsidian, osCustom, osOffice2007Silver);
+  TOfficeStyle = (osOffice2003Blue, osOffice2003Silver, osOffice2003Olive, osOfficeXP, osOffice2007Luna, osOffice2007Obsidian, osCustom, osOffice2007Silver, osVista, osWhidbey);
 
   TNotifierWindow = class(TWinControl)
   private
@@ -58,9 +57,11 @@ type
     procedure Loaded; override;
     procedure SetComponentStyle(AStyle: TTMSStyle);    
   published
+    property AntiAlias;
     property AutoThemeAdapt: Boolean read FAutoThemeAdapt write FAutoThemeAdapt;
     property Style: TOfficeStyle read FStyle write SetStyle;
     property Background;
+    property ButtonAppearance;
     property IconBar;
     property SelectedItem;
     property RootItem;
@@ -68,6 +69,7 @@ type
     property SideBar;
     property Separator;
     property Font;
+    property NotesFont;
     property UseSystemFont;
     property MenuBorderColor;
   end;
@@ -82,8 +84,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
+    property AntiAlias;
     property Style: TFantasyStyle read FStyle write SetStyle;
     property Background;
+    property ButtonAppearance;
     property IconBar;
     property SelectedItem;
     property RootItem;
@@ -91,6 +95,7 @@ type
     property SideBar;
     property Separator;
     property Font;
+    property NotesFont;    
     property UseSystemFont;
     property MenuBorderColor;
   end;
@@ -277,7 +282,7 @@ begin
     tsOffice2007Silver: Style := osOffice2007Silver;
     tsOffice2007Obsidian: Style := osOffice2007Obsidian;
     tsWindowsXP: Style := osOfficeXP;
-    tsWhidbey: Style := osOfficeXP;
+    tsWhidbey: Style := osWhidbey;
   end;
 end;
 
@@ -322,7 +327,7 @@ begin
 
       IconBar.Color := $FFEFE3;     // #E3EFFF
       IconBar.ColorTo := $E4AD87;   // #87ADE4
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
       IconBar.CheckColor := $006FC0FF;
       IconBar.CheckColorTo := clNone;
       IconBar.CheckBorder := $800000;
@@ -333,6 +338,17 @@ begin
 
       Separator.Color := $CB8C6A;
       Separator.ColorTo := clNone;
+
+      with ButtonAppearance do
+      begin
+        DownColor := $4E91FE;
+        DownColorTo := $91D3FF;
+        HoverColor := $CCF4FF;
+        HoverColorTo := $91D0FF;
+        DownBorderColor := $800000;
+        HoverBorderColor := $800000;
+      end;
+
     end;
   osOffice2003Olive:
     begin
@@ -372,7 +388,7 @@ begin
 
       IconBar.Color := $EDFFFF;  // #FFFFED
       IconBar.ColorTo := $92C7B8; // #B8C792
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
       IconBar.CheckColor := $006FC0FF;
       IconBar.CheckColorTo := clNone;
       IconBar.CheckBorder := $385D3F;
@@ -383,6 +399,16 @@ begin
 
       Separator.Color := $588060;
       Separator.ColorTo := clNone;
+      with ButtonAppearance do
+      begin
+        DownColor := $4E91FE;
+        DownColorTo := $91D3FF;
+        HoverColor := $CCF4FF;
+        HoverColorTo := $91D0FF;
+        DownBorderColor := $800000;
+        HoverBorderColor := $800000;
+      end;
+
     end;
   osOffice2003Silver:
     begin
@@ -423,7 +449,7 @@ begin
 
       IconBar.Color := $FFF9F9;   // #F9F9FF
       IconBar.ColorTo := $B99D9F;  // #9F9DB9
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
       IconBar.CheckColor := $006FC0FF;
       IconBar.CheckColorTo := clNone;
       IconBar.CheckBorder := $006F4B4B;
@@ -434,6 +460,17 @@ begin
 
       Separator.Color := $8F6D6E;
       Separator.ColorTo := clNone;
+      
+      with ButtonAppearance do
+      begin
+        DownColor := $4E91FE;
+        DownColorTo := $91D3FF;
+        HoverColor := $CCF4FF;
+        HoverColorTo := $91D0FF;
+        DownBorderColor := $800000;
+        HoverBorderColor := $800000;
+      end;
+
     end;
   osOfficeXP:
     begin
@@ -471,13 +508,23 @@ begin
 
       IconBar.Color := clBtnFace;
       IconBar.ColorTo := clNone;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
       IconBar.CheckColor := clBtnFace;
       IconBar.CheckColorTo := clNone;
       IconBar.CheckBorder := clBtnFace;
 
       Separator.Color := $7A868A;
       Separator.ColorTo := clNone;
+
+      with ButtonAppearance do
+      begin
+        DownColor := $B59284;
+        DownColorTo := clNone;
+        DownBorderColor := $C66931;
+        HoverColor := $EFD3C6; //$D6BE85;
+        HoverColorTo := clNone;
+        HoverBorderColor := $C66931;
+      end;
     end;
   osOffice2007Luna:
     begin
@@ -521,7 +568,7 @@ begin
 
       IconBar.Color := $EEEEE9;     // #E3EFFF
       IconBar.ColorTo := $EEEEE9;   // #87ADE4
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
       IconBar.CheckColor := $006FC0FF;
       IconBar.CheckColorTo := clNone;
       IconBar.CheckBorder := $800000;
@@ -533,6 +580,15 @@ begin
 
       Separator.Color := $C5C5C5;
       Separator.ColorTo := clNone;
+
+      ButtonAppearance.HoverColor := RGB(221, 222, 224);
+      ButtonAppearance.HoverColorTo := RGB(241, 242, 244);;
+      ButtonAppearance.HoverBorderColor := RGB(168, 175, 181);
+
+      ButtonAppearance.DownColor := RGB(201, 202, 204);
+      ButtonAppearance.DownColorTo := RGB(231, 232, 234);;
+      ButtonAppearance.DownBorderColor := RGB(168, 175, 181);
+      
     end;
   osOffice2007Obsidian:
     begin
@@ -576,7 +632,7 @@ begin
 
       IconBar.Color := $EEEEE9;     // #E3EFFF
       IconBar.ColorTo := $EEEEE9;   // #87ADE4
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
       IconBar.CheckColor := $006FC0FF;
       IconBar.CheckColorTo := clNone;
       IconBar.CheckBorder := $800000;
@@ -588,6 +644,14 @@ begin
 
       Separator.Color := $C5C5C5;
       Separator.ColorTo := clNone;
+
+      ButtonAppearance.HoverColor := RGB(221, 222, 224);
+      ButtonAppearance.HoverColorTo := RGB(241, 242, 244);;
+      ButtonAppearance.HoverBorderColor := RGB(168, 175, 181);
+
+      ButtonAppearance.DownColor := RGB(201, 202, 204);
+      ButtonAppearance.DownColorTo := RGB(231, 232, 234);;
+      ButtonAppearance.DownBorderColor := RGB(168, 175, 181);
 
     end;
 
@@ -633,7 +697,7 @@ begin
 
       IconBar.Color := $EFEFEF;
       IconBar.ColorTo := $EFEFEF;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
       IconBar.CheckColor := $006FC0FF;
       IconBar.CheckColorTo := clNone;
       IconBar.CheckBorder := $800000;
@@ -645,9 +709,127 @@ begin
 
       Separator.Color := $C5C5C5;
       Separator.ColorTo := clNone;
+
+      ButtonAppearance.HoverColor := RGB(221, 222, 224);
+      ButtonAppearance.HoverColorTo := RGB(241, 242, 244);;
+      ButtonAppearance.HoverBorderColor := RGB(168, 175, 181);
+
+      ButtonAppearance.DownColor := RGB(201, 202, 204);
+      ButtonAppearance.DownColorTo := RGB(231, 232, 234);;
+      ButtonAppearance.DownBorderColor := RGB(168, 175, 181);
+
     end;
 
+  osWhidbey:
+    begin
+      Background.Color := $F9FCFC;
+      Background.ColorTo := $F9FCFC;
+      MenuBorderColor := $7A868A;
 
+      RootItem.Color := $D9E6E7;
+      RootItem.ColorTo := $D9E6E7;
+
+      RootItem.SelectedColor := $F4F9F9;
+      RootItem.SelectedColorTo := clNone;
+      RootItem.SelectedBorderColor := $7A868A;
+
+      RootItem.HoverColor := $EFD3C6;
+      RootItem.HoverColorTo := clNone;
+
+      RootItem.HoverColorMirror := clNone;
+      RootItem.HoverColorMirrorTo := clNone;
+      
+      RootItem.HoverBorderColor := $C66931;
+      RootItem.HoverTextColor := clWindowText;
+      RootItem.SelectedTextColor := clBlack;
+
+      SelectedItem.Color := $EED2C1;
+      SelectedItem.ColorTo := clNone;
+
+      SelectedItem.ColorMirror := clNone;
+      SelectedItem.ColorMirrorTo := clNone;
+
+      SelectedItem.BorderColor := $C56A31;
+      SelectedItem.CheckBorder := clBlack;
+      SelectedItem.CheckColor := $C56A31;
+      SelectedItem.CheckColorTo := clNone;
+      SelectedItem.RadioColor := $C56A31;
+      SelectedItem.RadioColorTo := clNone;
+      SelectedItem.RadioBorder := clBlack;
+
+      IconBar.Color := $FBFEFE;
+      IconBar.ColorTo := $ACC3C4;
+      //IconBar.Size := 24;
+      IconBar.CheckColor := $E8E6E1;
+      IconBar.CheckColorTo := clNone;
+      IconBar.CheckBorder := $C56A31;
+
+      Separator.Color := $B8C2C5;
+      Separator.ColorTo := clNone;
+    end;
+
+  osVista:
+    begin
+                         // RRGGBB
+      Background.Color := $EEEEEE;
+      Background.ColorTo := clNone;
+      //MenuBorderColor := $962D00;
+      MenuBorderColor := $979797;
+
+      RootItem.Color := clWhite; //$F2DAC2;
+      RootItem.ColorTo := $EEDBD4;  //$F0D9C1;
+
+      RootItem.SelectedColor := $BBB8B6;
+      RootItem.SelectedColorTo := $E1D0C9;
+      RootItem.SelectedColorMirror := $E1D0C9;
+      RootItem.SelectedColorMirrorTo := $E9DAD5;
+      RootItem.SelectedBorderColor := $534D4B;
+
+      RootItem.HoverColor := clWhite;
+      RootItem.HoverColorTo := $E7D9D3;
+      RootItem.HoverColorMirror := $E7D9D3;
+      RootItem.HoverColorMirrorTo := $F9F1EF;
+      RootItem.HoverBorderColor := $A79A95;
+
+      RootItem.HoverTextColor := clWindowText;
+      RootItem.GradientDirection := gdVertical;
+
+      SelectedItem.Color := $F4F1EB;
+      SelectedItem.ColorTo := $F3EBDA;
+      SelectedItem.ColorMirror := clNone;
+      SelectedItem.ColorMirrorTo := clNone;
+      SelectedItem.BorderColor := $EBD8A8;
+
+      SelectedItem.CheckColor := $F4EFE6;
+      SelectedItem.CheckColorTo := clNone;
+      SelectedItem.RadioColor := $F4EFE6;
+      SelectedItem.RadioColorTo := clNone;
+      SelectedItem.CheckBorder := $E6D3CD;
+      SelectedItem.RadioBorder := $E6D3CD;
+
+      IconBar.Color := $EEEEEE;
+      IconBar.ColorTo := clNone;
+      //IconBar.Size := 24;
+      IconBar.CheckColor := $F4EFE6;
+      IconBar.CheckColorTo := clNone;
+      IconBar.CheckBorder := $E6D3CD;
+
+      IconBar.RadioColor := $F4EFE6;
+      IconBar.RadioColorTo := clNone;
+      IconBar.RadioBorder := $E6D3CD;
+      IconBar.SeparatorColor := $C5C5C5;
+
+      Separator.Color := $E0E0E0;
+      Separator.ColorTo := clWHite;
+
+      ButtonAppearance.HoverColor := RGB(221, 222, 224);
+      ButtonAppearance.HoverColorTo := RGB(241, 242, 244);;
+      ButtonAppearance.HoverBorderColor := RGB(168, 175, 181);
+
+      ButtonAppearance.DownColor := RGB(201, 202, 204);
+      ButtonAppearance.DownColorTo := RGB(231, 232, 234);;
+      ButtonAppearance.DownBorderColor := RGB(168, 175, 181);
+    end;
   end;
   if Assigned(Menu) and (Menu is TAdvMainMenu) then
     DrawMenuBar(Menu.WindowHandle);
@@ -720,7 +902,7 @@ begin
 
       IconBar.Color := $D7EDED;
       IconBar.ColorTo := $8AC2C1;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := $006FC0FF;
       IconBar.RadioColorTo := clNone;
@@ -780,7 +962,7 @@ begin
 
       IconBar.Color := clMenu;
       IconBar.ColorTo := clNone;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := clNone;
       IconBar.RadioColorTo := clNone;
@@ -846,7 +1028,7 @@ begin
 
       IconBar.Color := $EFEFEF;
       IconBar.ColorTo := clWhite;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := clNone;
       IconBar.RadioColorTo := clNone;
@@ -908,7 +1090,7 @@ begin
 
       IconBar.Color := $00A000;
       IconBar.ColorTo := clNone;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := $0000C000;
       IconBar.RadioColorTo := clNone;
@@ -967,7 +1149,7 @@ begin
 
       IconBar.Color := $00B5DEF7;
       IconBar.ColorTo := clNone;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := clNone;
       IconBar.RadioColorTo := clNone;
@@ -1029,7 +1211,7 @@ begin
 
       IconBar.Color := $00E6E0B0;
       IconBar.ColorTo := clWhite;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := $00A7EDFF;
       IconBar.RadioColorTo := clWhite;
@@ -1093,7 +1275,7 @@ begin
 
       IconBar.Color := clWhite;
       IconBar.ColorTo := $00E4DCDA;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := clNone;
       IconBar.RadioColorTo := clNone;
@@ -1159,7 +1341,7 @@ begin
 
       IconBar.Color := $00CFD5F3;
       IconBar.ColorTo := $00CFD5F3;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := clNone;
       IconBar.RadioColorTo := clNone;
@@ -1222,7 +1404,7 @@ begin
 
       IconBar.Color := $00F3F3F3;
       IconBar.ColorTo := clWhite;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
 
       IconBar.RadioColor := clNone;
       IconBar.RadioColorTo := clNone;
@@ -1268,7 +1450,7 @@ begin
 
       IconBar.Color := $FBFEFE;
       IconBar.ColorTo := $ACC3C4;
-      IconBar.Size := 24;
+      //IconBar.Size := 24;
       IconBar.CheckColor := $E8E6E1;
       IconBar.CheckColorTo := clNone;
       IconBar.CheckBorder := $C56A31;

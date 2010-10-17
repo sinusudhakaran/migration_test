@@ -1250,7 +1250,6 @@ begin
           TextValue := InspectorBar.CheckTrue
         else
           TextValue := InspectorBar.CheckFalse;
-//        TextValue := FDataLink.Field.AsString;
       end;
     else
       FDataLink.Field.AsString := TextValue;

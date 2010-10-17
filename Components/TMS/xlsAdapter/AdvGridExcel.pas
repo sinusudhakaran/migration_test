@@ -1,3 +1,4 @@
+
 unit AdvGridExcel;
 {$IFDEF LINUX}{$INCLUDE ../FLXCOMPILER.INC}{$ELSE}{$INCLUDE ..\FLXCOMPILER.INC}{$ENDIF}
 {$IFDEF LINUX}{$INCLUDE ../FLXCONFIG.INC}{$ELSE}{$INCLUDE ..\FLXCONFIG.INC}{$ENDIF}
@@ -5,7 +6,7 @@ interface
 {$IFDEF FLEXCELADVSTRINGGRID}
 uses
   Windows, SysUtils, Classes, XLSAdapter, UExcelAdapter, UFlxUtils, AdvGrid, AdvGridWorkbook,
-  UFlxFormats, UFlxMessages, BaseGrid, UXlsPictures, ShellAPI, Dialogs, Controls,
+  UFlxFormats, UFlxMessages, BaseGrid, UXlsPictures, ShellAPI, Dialogs, Controls, Printers, XlsMessages,
 {$IFDEF ConditionalExpressions}{$IF CompilerVersion >= 14}Variants, {$IFEND}{$ENDIF} //Delphi 6 or above
 {$IFDEF USEPNGLIB}
       //////////////////////////////// IMPORTANT ///////////////////////////////////////
@@ -14,13 +15,16 @@ uses
       // "{$DEFINE USEPNGLIB}" on the file
       //Note that this is only needed on Windows, CLX has native support for PNG
       ///////////////////////////////////////////////////////////////////////////////////
-  pngimage, pngzlib,
+  pngimage, zlibpas,
       ///////////////////////////////////////////////////////////////////////////////////
       //If you are getting an error here, please read the note above.
       ///////////////////////////////////////////////////////////////////////////////////
 {$ENDIF}
-  Graphics, JPEG, AsgHTMLE, 
-  UTextDelim, 
+{$IFDEF FLEXCEL}
+  UFlexcelGrid, Math,
+{$ENDIF}
+  Graphics, JPEG, AsgHTMLE,
+  UTextDelim,
   UFlxNumberFormat, Grids;
 const
   CellOfs = 0;
@@ -29,8 +33,34 @@ type
   TFlxFormatCellGenericEvent = procedure(Sender: TAdvStringGrid; const GridCol, GridRow, XlsCol, XlsRow: integer; const Value: widestring; var Format: TFlxFormat) of object;
 
   TASGIOProgressEvent = procedure(Sender: TObject; SheetNum, SheetTot, RowNum, RowTot: integer) of object;
+  TExportColumnFormatEvent = procedure (Sender: TObject; GridCol, GridRow, XlsCol, XlsRow: integer; const Value: widestring; var ExportCellAsString: boolean) of object;
+  TGetCommentBoxSizeEvent = procedure (Sender: TObject; const Comment: widestring; var Height, Width: integer) of object;
 
   TOverwriteMode = (omNever, omAlways, omWarn);
+
+  TInsertInSheet =
+  (
+      //Clears everything on the sheet before exporting the grid.
+      InsertInSheet_Clear,
+
+      //Overwrites existing cells, but does not clear any existing information on the sheet.
+      InsertInSheet_OverwriteCells,
+
+      //Inserts the grid inside the existing sheet, moving all the other rows down.
+      InsertInSheet_InsertRows,
+
+      //Inserts the grid inside the existing sheet, moving all the other columns to the right.
+      InsertInSheet_InsertCols,
+
+      //Inserts the grid inside the existing sheet, moving all the other rows down (Grid.RowCount - 2) rows.
+      //The first two rows will be overwrited. This can be used to export for example inside of a chart.
+      InsertInSheet_InsertRowsExceptFirstAndSecond,
+
+      //Inserts the grid inside the existing sheet, moving all the other columns right (Grid.ColCount - 2) columns.
+      //The first two columns will be overwrited. This can be used to export for example inside of a chart.
+      InsertInSheet_InsertColsExceptFirstAndSecond
+
+  )  ;
 
   TASGIOOptions = class(TPersistent)
   private
@@ -39,6 +69,7 @@ type
     FImportCellFormats: Boolean;
     FImportFormulas: Boolean;
     FImportImages: Boolean;
+    FImportPrintOptions: boolean;
     FExportCellSizes: Boolean;
     FExportCellFormats: Boolean;
     FExportFormulas: Boolean;
@@ -46,12 +77,17 @@ type
     FExportWordWrapped: Boolean;
     FExportHTMLTags: Boolean;
     FExportHiddenColumns: Boolean;
+    FExportHiddenRows: Boolean;
     FExportShowInExcel: Boolean;
     FExportOverwriteMessage: string;
     FExportOverwrite: TOverwriteMode;
     FExportHardBorders: boolean;
     FUseExcelStandardColorPalette: Boolean;
     FExportShowGridLines: boolean;
+    FImportLockedCellsAsReadonly: boolean;
+    FExportReadonlyCellsAsLocked: boolean;
+    FExportPrintOptions: boolean;
+    FExportSummaryRowsBelowDetail: boolean;
   public
     constructor Create;
     procedure Assign(Source: TPersistent); override;
@@ -61,6 +97,7 @@ type
     property ImportCellFormats: Boolean read FImportCellFormats write FImportCellFormats default True;
     property ImportCellProperties: Boolean read FImportCellProperties write FImportCellProperties default False;
     property ImportCellSizes: Boolean read FImportCellSizes write FImportCellSizes default True;
+    property ImportLockedCellsAsReadonly: Boolean read FImportLockedCellsAsReadonly write FImportLockedCellsAsReadonly default false;
     property ExportOverwrite: TOverwriteMode read FExportOverwrite write FExportOverwrite default omNever;
     property ExportOverwriteMessage: string read FExportOverwriteMessage write FExportOverwriteMessage;
     property ExportFormulas: Boolean read FExportFormulas write FExportFormulas default True;
@@ -68,17 +105,25 @@ type
     property ExportCellProperties: Boolean read FExportCellProperties write FExportCellProperties default True;
     property ExportCellSizes: Boolean read FExportCellSizes write FExportCellSizes default True;
     property ExportHiddenColumns: Boolean read FExportHiddenColumns write FExportHiddenColumns default False;
+    //this property is not ready yet.
+    //property ExportHiddenRows: Boolean read FExportHiddenRows write FExportHiddenRows default False;
+    property ExportReadonlyCellsAsLocked: Boolean read FExportReadonlyCellsAsLocked write FExportReadonlyCellsAsLocked default False;
     property ExportWordWrapped: Boolean read FExportWordWrapped write FExportWordWrapped default False;
     property ExportHTMLTags: Boolean read FExportHTMLTags write FExportHTMLTags default True;
     property ExportShowInExcel: Boolean read FExportShowInExcel write FExportShowInExcel default False;
     property ExportHardBorders: Boolean read FExportHardBorders write FExportHardBorders default False;
     property ExportShowGridLines: Boolean read FExportShowGridLines write FExportShowGridLines default True;
 
+    property ExportPrintOptions: Boolean read FExportPrintOptions write FExportPrintOptions default True;
+    property ImportPrintOptions: Boolean read FImportPrintOptions write FImportPrintOptions default True;
+
+    property ExportSummaryRowsBelowDetail: Boolean read FExportSummaryRowsBelowDetail write FExportSummaryRowsBelowDetail default False;
+
     ///<summary>
-    ///When true, the standard Excel color palette will be used while exporting. Excel 97/2003 have only 53 available colors,
-    ///and any color that does not match must be replaced with the nearest one. If this property is false,
-    ///the Excel color palette will be changed to better display the real grid colors. Note that when you want to
-    ///edit the generated file, having a custom palette might make it difficult to find the color you need.
+    /// When true, the standard Excel color palette will be used while exporting. Excel 97/2003 have only 53 available colors,
+    /// and any color that does not match must be replaced with the nearest one. If this property is false,
+    /// the Excel color palette will be changed to better display the real grid colors. Note that when you want to
+    /// edit the generated file, having a custom palette might make it difficult to find the color you need.
     ///</summary>
     property UseExcelStandardColorPalette: Boolean read FUseExcelStandardColorPalette write FUseExcelStandardColorPalette default True;
   end;
@@ -118,6 +163,9 @@ type
     FOnDateTimeFormat: TFlxFormatCellEvent;
     FOnCellFormat: TFlxFormatCellGenericEvent;
     FOnProgress: TASGIOProgressEvent;
+    FOnExportColumnFormat: TExportColumnFormatEvent;
+    FOnGetCommentBoxSize: TGetCommentBoxSizeEvent;
+
     // procedure SetAdapter(const Value: TExcelAdapter);
     procedure SetAdvStringGrid(const Value: TAdvStringGrid);
     procedure SetAdvGridWorkbook(const Value: TAdvGridWorkbook);
@@ -138,7 +186,7 @@ type
     procedure ImportImages(const Workbook: TExcelFile; const Zoom100: extended);
     procedure ExportImage(const Workbook: TExcelFile; const Pic: TGraphic; const rx, cx, cg, rg: integer);
     procedure InternalXLSImport(const FileName: TFileName; const SheetNumber: integer; const SheetName: widestring);
-    function SupressCR(const s: Widestring): widestring;
+    function SupressCR(s: Widestring): widestring;
     function FindSheet(const Workbook: TExcelFile; const SheetName: widestring; var index: integer): boolean;
     procedure SetOptions(const Value: TASGIOOptions);
     procedure SetBorders(const cg, rg: integer; var LastRowBorders:TRowBorderArray; SpanRow, SpanCol: integer; var Fm: TFlxFormat; const Workbook: TExcelFile; const UsedColors: BooleanArray);
@@ -149,6 +197,11 @@ type
     function WideAdjustLineBreaks(const w: widestring): widestring;
     function NearestColorIndex(const Workbook: TExcelFile; const aColor: TColor; const UsedColors: BooleanArray): integer;
     function GetUsedPaletteColors(const Workbook: TExcelFile): BooleanArray;
+    procedure OpenFile(const Workbook: TExcelFile; const FileName: string);
+    procedure ResizeCommentBox(const Workbook: TExcelFile; const Comment: string; var h, w: integer);
+    function GetVersion: string;
+    procedure SetVersion(const Value: string);
+    function RichToText(const RTFText: string): string;
 
   protected
     { Protected declarations }
@@ -158,7 +211,7 @@ type
     procedure XLSImport(const FileName: TFileName); overload;
     procedure XLSImport(const FileName: TFileName; const SheetNumber: integer); overload;
     procedure XLSImport(const FileName: TFileName; const SheetName: widestring); overload;
-    procedure XLSExport(const FileName: TFileName; const SheetName: widestring = ''; const SheetPos: integer = -1; const SelectSheet: integer = 1);
+    procedure XLSExport(const FileName: TFileName; const SheetName: widestring = ''; const SheetPos: integer = -1; const SelectSheet: integer = 1; const InsertInSheet: TInsertInSheet = InsertInSheet_Clear);
 
     procedure LoadSheetNames(const FileName: string);
     property SheetNames[index: integer]: widestring read GetSheetNames;
@@ -188,10 +241,17 @@ type
     property DateFormat: widestring read FDateFormat write FDateFormat;
     property TimeFormat: widestring read FTimeFormat write FTimeFormat;
 
+    property Version: string read GetVersion write SetVersion;
+
     //Events
+
     property OnDateTimeFormat: TFlxFormatCellEvent read FOnDateTimeFormat write FOnDateTimeFormat;
     property OnCellFormat: TFlxFormatCellGenericEvent read FOnCellFormat write FOnCellFormat;
     property OnProgress: TASGIOProgressEvent read FOnProgress write FOnProgress;
+    property OnExportColumnFormat: TExportColumnFormatEvent read FOnExportColumnFormat write FOnExportColumnFormat;
+    property OnGetCommentBoxSize: TGetCommentBoxSizeEvent read FOnGetCommentBoxSize write FOnGetCommentBoxSize;
+
+
   end;
 
 procedure Register;
@@ -203,6 +263,22 @@ procedure Register;
 begin
   RegisterComponents('TMS Grids', [TAdvGridExcelIO]);
 end;
+
+const
+  RtfStart = '{\rtf';
+
+type
+TTmpCanvas = class
+  private
+    bmp: TBitmap;
+  public
+    Canvas: TCanvas;
+
+    constructor Create;
+    destructor Destroy; override;
+end;
+
+
 
 { TAdvGridExcelIO }
 
@@ -245,7 +321,7 @@ begin
   else
   begin
     bc := Fm.FillPattern.FgColorIndex;
-    if (bc > 0) and (integer(bc) < 56) then
+    if (bc > 0) and (integer(bc) <= 56) then
       Result := Workbook.ColorPalette[bc] else
       Result := $FFFFFF;
   end;
@@ -397,234 +473,262 @@ var
 
   HasTime, HasDate: boolean;
   Formula: string;
+
 begin
   Assert(Workbook <> nil, 'AdvGridWorkbook can''t be nil');
   Assert(CurrentGrid <> nil, 'AdvStringGrid can''t be nil');
 
-  if FZoomSaved then Zoom100 := Workbook.SheetZoom / 100 else Zoom100 := FZoom / 100;
+  CurrentGrid.BeginUpdate;
+  try
+    if FZoomSaved then Zoom100 := Workbook.SheetZoom / 100 else Zoom100 := FZoom / 100;
 
-  CurrentGrid.Clear;
+    CurrentGrid.Clear;
 
-  if FAutoResizeGrid then
-  begin
-    if Workbook.MaxRow - XlsStartRow + 1 + GridStartRow > CurrentGrid.FixedRows then
-      CurrentGrid.RowCount := Workbook.MaxRow - XlsStartRow + 1 + GridStartRow;
-    if Workbook.MaxCol - XlsStartCol + 1 + GridStartCol > CurrentGrid.FixedCols then
-      CurrentGrid.ColCount := Workbook.MaxCol - XlsStartCol + 1 + GridStartCol;
-  end;
-
-  if FOptions.ImportCellSizes then
-  begin
-    CurrentGrid.DefaultRowHeight := Round(Workbook.DefaultRowHeight / RowMult * Zoom100) + CellOfs;
-    CurrentGrid.DefaultColWidth := Round(Workbook.DefaultColWidth / ColMult * Zoom100) + CellOfs;
-  end;
-
-  ImportImages(Workbook, Zoom100); //Load them first, so if there is some resizing to do, it is done here
-
-  if Workbook.MaxRow > CurrentGrid.RowCount + XlsStartRow - 1 - GridStartRow
-    then MaxR := CurrentGrid.RowCount + XlsStartRow - 1 - GridStartRow else MaxR := Workbook.MaxRow;
-  if Workbook.MaxCol > CurrentGrid.ColCount + XlsStartCol - 1 - GridStartCol
-    then MaxC := CurrentGrid.ColCount + XlsStartCol - 1 - GridStartCol else MaxC := Workbook.MaxCol;
-
-  //Adjust Row/Column sizes and set Row/Column formats
-  for r := XlsStartRow to MaxR do
-  begin
-    rg := r + GridStartRow - XlsStartRow;
-    if FOptions.ImportCellSizes then
-      CurrentGrid.RowHeights[rg] := Round(Workbook.RowHeight[r] / RowMult * Zoom100) + CellOfs;
-
-    XF := Workbook.RowFormat[r];
-
-    if (XF >= 0) and FOptions.ImportCellProperties then
+    if Options.ImportPrintOptions then
     begin
-      Fm := Workbook.FormatList[XF];
-      CurrentGrid.RowColor[rg] := GetColor(Workbook, Fm);
-      if (Fm.Font.ColorIndex > 0) and (integer(Fm.Font.ColorIndex) < 56) then
-        CurrentGrid.RowFontColor[rg] := Workbook.ColorPalette[Fm.Font.ColorIndex];
+      if Workbook.PrintOptions and fpo_NoPls = 0 then
+      begin
+        if (Workbook.PrintOptions and fpo_Orientation = 0) then
+        begin
+          CurrentGrid.PrintSettings.Orientation := poLandscape;
+        end else
+        begin
+          CurrentGrid.PrintSettings.Orientation := poPortrait;
+        end;
+      end;
     end;
-  end;
 
-  for c := XlsStartCol to MaxC do
-  begin
-    cg := c + GridStartCol - XlsStartCol;
+
+    if FAutoResizeGrid then
+    begin
+      if Workbook.MaxRow - XlsStartRow + 1 + GridStartRow > CurrentGrid.FixedRows then
+        CurrentGrid.RowCount := Workbook.MaxRow - XlsStartRow + 1 + GridStartRow;
+      if Workbook.MaxCol - XlsStartCol + 1 + GridStartCol > CurrentGrid.FixedCols then
+        CurrentGrid.ColCount := Workbook.MaxCol - XlsStartCol + 1 + GridStartCol;
+    end;
+
     if FOptions.ImportCellSizes then
-      CurrentGrid.ColWidths[cg] := Round(Workbook.ColumnWidth[c] / ColMult * Zoom100) + CellOfs;
-  end;
+    begin
+      CurrentGrid.DefaultRowHeight := Round(Workbook.DefaultRowHeight / RowMult * Zoom100) + CellOfs;
+      CurrentGrid.DefaultColWidth := Round(Workbook.DefaultColWidth / ColMult * Zoom100) + CellOfs;
+    end;
 
-  //Import data
-  for r := XlsStartRow to MaxR do
-  begin
-    rg := r + GridStartRow - XlsStartRow;
+    ImportImages(Workbook, Zoom100); //Load them first, so if there is some resizing to do, it is done here
+
+    if Workbook.MaxRow > CurrentGrid.RowCount + XlsStartRow - 1 - GridStartRow
+      then MaxR := CurrentGrid.RowCount + XlsStartRow - 1 - GridStartRow else MaxR := Workbook.MaxRow;
+    if Workbook.MaxCol > CurrentGrid.ColCount + XlsStartCol - 1 - GridStartCol
+      then MaxC := CurrentGrid.ColCount + XlsStartCol - 1 - GridStartCol else MaxC := Workbook.MaxCol;
+
+    //Adjust Row/Column sizes and set Row/Column formats
+    for r := XlsStartRow to MaxR do
+    begin
+      rg := r + GridStartRow - XlsStartRow;
+      if FOptions.ImportCellSizes then
+        CurrentGrid.RowHeights[rg] := Round(Workbook.RowHeight[r] / RowMult * Zoom100) + CellOfs + CurrentGrid.XYOffset.Y;
+
+      XF := Workbook.RowFormat[r];
+
+      if (XF >= 0) and FOptions.ImportCellProperties then
+      begin
+        Fm := Workbook.FormatList[XF];
+        CurrentGrid.RowColor[rg] := GetColor(Workbook, Fm);
+        if (Fm.Font.ColorIndex > 0) and (integer(Fm.Font.ColorIndex) <= 56) then
+          CurrentGrid.RowFontColor[rg] := Workbook.ColorPalette[Fm.Font.ColorIndex];
+      end;
+    end;
+
     for c := XlsStartCol to MaxC do
     begin
       cg := c + GridStartCol - XlsStartCol;
-      Fm := CellFormatDef(Workbook, r, c);
-
-      //Merged Cells
-      //We check this first, so if its not the first of a merged cell we exit
-      Mb := Workbook.CellMergedBounds[r, c];
-      if ((Mb.Left <> c) or (Mb.Top <> r)) then continue;
-
-      if ((Mb.Left = c) and (Mb.Top = r)) and ((Mb.Right > c) or (Mb.Bottom > r)) then
-        CurrentGrid.MergeCells(cg, rg, Mb.Right - Mb.Left + 1, Mb.Bottom - Mb.Top + 1);
-
-      //Font
-      if FOptions.ImportCellProperties then
-      begin
-        if (Fm.Font.ColorIndex > 0) and (integer(Fm.Font.ColorIndex) < 56) then
-          CurrentGrid.FontColors[cg, rg] := Workbook.ColorPalette[Fm.Font.ColorIndex]
-        else
-          CurrentGrid.FontColors[cg, rg] := 0;
-
-        CurrentGrid.FontSizes[cg, rg] := Trunc((Fm.Font.Size20 / 20 * Zoom100));
-
-        CurrentGrid.FontNames[cg, rg] := Fm.Font.Name;
-
-        if flsBold in Fm.Font.Style then
-          CurrentGrid.FontStyles[cg, rg] := CurrentGrid.FontStyles[cg, rg] + [fsBold];
-        if flsItalic in Fm.Font.Style then
-          CurrentGrid.FontStyles[cg, rg] := CurrentGrid.FontStyles[cg, rg] + [fsItalic];
-        if flsStrikeOut in Fm.Font.Style then
-          CurrentGrid.FontStyles[cg, rg] := CurrentGrid.FontStyles[cg, rg] + [fsStrikeOut];
-        if Fm.Font.Underline <> fu_None then
-          CurrentGrid.FontStyles[cg, rg] := CurrentGrid.FontStyles[cg, rg] + [fsUnderline];
-      end;
-
-      //Pattern
-      {Bmp:=nil;
-      try
-        if Fm.FillPattern.Pattern=1 then
-        begin
-          if (ACanvas.Brush.Color<>clwhite) then
-            ACanvas.Brush.Color:=clwhite;
-        end else
-        if Fm.FillPattern.Pattern=2 then
-        begin
-          if (ACanvas.Brush.Color<>ABrushFg) then
-            ACanvas.Brush.Color:=ABrushFg;
-        end else
-        begin
-          Bmp:=CreateBmpPattern(Fm.FillPattern.Pattern, ABrushFg, ABrushBg);
-          Acanvas.Brush.Bitmap:=Bmp;
-        end;
-
-        ACanvas.FillRect(Rect(Round(Cw*ZoomPreview), Round(Ch*ZoomPreview), Round((Cw+RealColWidth(Col,Zoom100,XPpi))*ZoomPreview), Round((Ch+RealRowHeight(Row,Zoom100,YPpi))*ZoomPreview)));
-
-      finally
-        ACanvas.Brush.Bitmap:=nil;
-        FreeAndNil(Bmp);
-      end; //finally
-      }
-      if FOptions.ImportCellProperties then
-      begin
-        CurrentGrid.Colors[cg, rg] := GetColor(Workbook, Fm);
-
-        if Fm.Rotation > 0 then
-          if Fm.Rotation <= 90 then CurrentGrid.SetRotated(cg, rg, Fm.Rotation) else
-            if Fm.Rotation <= 180 then CurrentGrid.SetRotated(cg, rg, 90 - Fm.Rotation);
-      end;
-
-      //pending: cellborders, brush, cell align, empty right cells, imagesize,
-      //pending: fechas y otros formatos, copy/paste, events, comentarios on flexcel .
-
-      //pending: export deafultreowheights/colwidths
-      //Ask for: Rotated unicode. Image Size.  Vertical Aligns Word wraps in cells.
-      //pending keepexcelformat on import/export don't work with dates
-      //pending: export placement of images
-
-      v := Workbook.CellValue[r, c];
-
-      if FOptions.ImportFormulas then
-      begin
-        Formula := Workbook.CellFormula[r,c];
-        if (Pos('=',Formula) = 1) then
-          v := Formula;
-       end;
-
-      //Cell Align
-      if FOptions.ImportCellProperties then
-      begin
-        case Fm.HAlignment of
-          fha_left: HAlign := taLeftJustify;
-          fha_center: HAlign := taCenter;
-          fha_right: HAlign := taRightJustify;
-        else
-          begin
-            if VarType(v) = VarBoolean then HAlign := taCenter else
-              if (VarType(v) <> VarOleStr) and (VarType(v) <> VarString) then HAlign := taRightJustify
-              else HAlign := taLeftJustify;
-          end;
-        end; //case
-
-        {
-        case Fm.VAlignment of
-        fva_top: VAlign:=AL_TOP;
-        fva_center: VAlign:=AL_VCENTER;
-        else VAlign:=AL_BOTTOM ;
-        end; //case
-        }
-
-        CurrentGrid.Alignments[cg, rg] := HAlign;
-      end;
-
-      FontColor := CurrentGrid.FontColors[cg, rg];
-      w := XlsFormatValue(v, Fm.Format, FontColor);
-
-      if FOptions.ImportCellProperties then
-        CurrentGrid.FontColors[cg, rg] := FontColor;
-
-      if FOptions.ImportCellFormats then
-      begin
-        if UseUnicode then
-          CurrentGrid.WideCells[cg, rg] := WideAdjustLineBreaks(w) else
-          CurrentGrid.Cells[cg, rg] := AdjustLineBreaks(w);
-      end else
-      begin
-        case VarType(V) of
-          varByte,
-            varSmallint,
-            varInteger: CurrentGrid.Ints[cg, rg] := v;
-
-{$IFDEF ConditionalExpressions}{$IF CompilerVersion >= 14}varInt64, {$IFEND}{$ENDIF} //Delphi 6 or above
-          varCurrency,
-            varSingle,
-            varDouble:
-            begin
-              if HasXlsDateTime(Fm.Format, HasDate, HasTime) then
-              begin
-                if HasTime and HasDate then //We can't map this to a date or time cell.
-                  if UseUnicode then
-                    CurrentGrid.WideCells[cg, rg] := w else
-                    CurrentGrid.Cells[cg, rg] := w
-
-                else if HasDate then CurrentGrid.Dates[cg, rg] := v else CurrentGrid.Times[cg, rg] := v
-              end
-              else CurrentGrid.Floats[cg, rg] := v;
-            end;
-
-          varDate: CurrentGrid.Dates[cg, rg] := v;
-        else
-          if UseUnicode then
-            CurrentGrid.WideCells[cg, rg] := w else
-            CurrentGrid.Cells[cg, rg] := w;
-
-        end; //case
-      end;
+      if FOptions.ImportCellSizes then
+        CurrentGrid.ColWidths[cg] := Round(Workbook.ColumnWidth[c] / ColMult * Zoom100) + CellOfs + CurrentGrid.XYOffset.X;
     end;
 
-    //Import Comments
-    if FOptions.ImportCellProperties then
-      for i := 0 to Workbook.CommentsCount[r] - 1 do
-        CurrentGrid.AddComment(Workbook.CommentColumn[r, i] + GridStartCol - XlsStartCol, r + GridStartRow - XlsStartRow, Workbook.CommentText[r, i]);
+    //Import data
+    for r := XlsStartRow to MaxR do
+    begin
+      rg := r + GridStartRow - XlsStartRow;
+      for c := XlsStartCol to MaxC do
+      begin
+        cg := c + GridStartCol - XlsStartCol;
+        Fm := CellFormatDef(Workbook, r, c);
 
-    if Assigned(FOnProgress) then
-      FOnProgress(Self, FWorkSheet, FWorkSheetNum, r - XlsStartRow, MaxR - XlsStartRow);
+        //Merged Cells
+        //We check this first, so if its not the first of a merged cell we exit
+        Mb := Workbook.CellMergedBounds[r, c];
+        if ((Mb.Left <> c) or (Mb.Top <> r)) then continue;
+
+        if ((Mb.Left = c) and (Mb.Top = r)) and ((Mb.Right > c) or (Mb.Bottom > r)) then
+          CurrentGrid.MergeCells(cg, rg, Mb.Right - Mb.Left + 1, Mb.Bottom - Mb.Top + 1);
+
+        if (FOptions.ImportLockedCellsAsReadonly) then
+        begin
+          CurrentGrid.ReadOnly[cg, rg] := fm.Locked;
+        end;
+
+        //Font
+        if FOptions.ImportCellProperties then
+        begin
+          if (Fm.Font.ColorIndex > 0) and (integer(Fm.Font.ColorIndex) <= 56) then
+            CurrentGrid.FontColors[cg, rg] := Workbook.ColorPalette[Fm.Font.ColorIndex]
+          else
+            CurrentGrid.FontColors[cg, rg] := 0;
+
+          CurrentGrid.FontSizes[cg, rg] := Trunc((Fm.Font.Size20 / 20 * Zoom100));
+
+          CurrentGrid.FontNames[cg, rg] := Fm.Font.Name;
+
+          if flsBold in Fm.Font.Style then
+            CurrentGrid.FontStyles[cg, rg] := CurrentGrid.FontStyles[cg, rg] + [fsBold];
+          if flsItalic in Fm.Font.Style then
+            CurrentGrid.FontStyles[cg, rg] := CurrentGrid.FontStyles[cg, rg] + [fsItalic];
+          if flsStrikeOut in Fm.Font.Style then
+            CurrentGrid.FontStyles[cg, rg] := CurrentGrid.FontStyles[cg, rg] + [fsStrikeOut];
+          if Fm.Font.Underline <> fu_None then
+            CurrentGrid.FontStyles[cg, rg] := CurrentGrid.FontStyles[cg, rg] + [fsUnderline];
+        end;
+
+        //Pattern
+        {Bmp:=nil;
+        try
+          if Fm.FillPattern.Pattern=1 then
+          begin
+            if (ACanvas.Brush.Color<>clwhite) then
+              ACanvas.Brush.Color:=clwhite;
+          end else
+          if Fm.FillPattern.Pattern=2 then
+          begin
+            if (ACanvas.Brush.Color<>ABrushFg) then
+              ACanvas.Brush.Color:=ABrushFg;
+          end else
+          begin
+            Bmp:=CreateBmpPattern(Fm.FillPattern.Pattern, ABrushFg, ABrushBg);
+            Acanvas.Brush.Bitmap:=Bmp;
+          end;
+
+          ACanvas.FillRect(Rect(Round(Cw*ZoomPreview), Round(Ch*ZoomPreview), Round((Cw+RealColWidth(Col,Zoom100,XPpi))*ZoomPreview), Round((Ch+RealRowHeight(Row,Zoom100,YPpi))*ZoomPreview)));
+
+        finally
+          ACanvas.Brush.Bitmap:=nil;
+          FreeAndNil(Bmp);
+        end; //finally
+        }
+        if FOptions.ImportCellProperties then
+        begin
+          CurrentGrid.Colors[cg, rg] := GetColor(Workbook, Fm);
+
+          if Fm.Rotation > 0 then
+            if Fm.Rotation <= 90 then CurrentGrid.SetRotated(cg, rg, Fm.Rotation) else
+              if Fm.Rotation <= 180 then CurrentGrid.SetRotated(cg, rg, 90 - Fm.Rotation);
+        end;
+
+        //pending: cellborders, brush, cell align, empty right cells, imagesize,
+        //pending: fechas y otros formatos, copy/paste, events, comentarios on flexcel .
+
+        //pending: export deafultreowheights/colwidths
+        //Ask for: Rotated unicode. Image Size.  Vertical Aligns Word wraps in cells.
+        //pending keepexcelformat on import/export don't work with dates
+        //pending: export placement of images
+
+        v := Workbook.CellValue[r, c];
+
+        //Cell Align
+        if FOptions.ImportCellProperties then
+        begin
+          case Fm.HAlignment of
+            fha_left: HAlign := taLeftJustify;
+            fha_center: HAlign := taCenter;
+            fha_right: HAlign := taRightJustify;
+          else
+            begin
+              if VarType(v) = VarBoolean then HAlign := taCenter else
+                if (VarType(v) <> VarOleStr) and (VarType(v) <> VarString) then HAlign := taRightJustify
+                else HAlign := taLeftJustify;
+            end;
+          end; //case
+
+         //this must be done after reading the alignment, since it depends on the formula value.
+        if FOptions.ImportFormulas then
+        begin
+          Formula := Workbook.CellFormula[r,c];
+          if (Pos('=',Formula) = 1) then
+            v := Formula;
+         end;
+
+
+          {
+          case Fm.VAlignment of
+          fva_top: VAlign:=AL_TOP;
+          fva_center: VAlign:=AL_VCENTER;
+          else VAlign:=AL_BOTTOM ;
+          end; //case
+          }
+
+          CurrentGrid.Alignments[cg, rg] := HAlign;
+        end;
+
+        FontColor := CurrentGrid.FontColors[cg, rg];
+        w := XlsFormatValue1904(v, Fm.Format, Workbook.Options1904Dates, FontColor);
+        if FOptions.ImportCellProperties then
+          CurrentGrid.FontColors[cg, rg] := FontColor;
+
+        if FOptions.ImportCellFormats then
+        begin
+          if UseUnicode then
+            CurrentGrid.WideCells[cg, rg] := WideAdjustLineBreaks(w)
+          else
+            CurrentGrid.Cells[cg, rg] := Trim(AdjustLineBreaks(w));
+        end
+        else
+        begin
+          case VarType(V) of
+            varByte,
+              varSmallint,
+              varInteger: CurrentGrid.Ints[cg, rg] := v;
+
+  {$IFDEF ConditionalExpressions}{$IF CompilerVersion >= 14}varInt64, {$IFEND}{$ENDIF} //Delphi 6 or above
+            varCurrency,
+              varSingle,
+              varDouble:
+              begin
+                if HasXlsDateTime(Fm.Format, HasDate, HasTime) then
+                begin
+                  if HasTime and HasDate then //We can't map this to a date or time cell.
+                    if UseUnicode then
+                      CurrentGrid.WideCells[cg, rg] := w else
+                      CurrentGrid.Cells[cg, rg] := w
+
+                  else if HasDate then CurrentGrid.Dates[cg, rg] := v else CurrentGrid.Times[cg, rg] := v
+                end
+                else CurrentGrid.Floats[cg, rg] := v;
+              end;
+
+            varDate: CurrentGrid.Dates[cg, rg] := v;
+          else
+            if UseUnicode then
+              CurrentGrid.WideCells[cg, rg] := w else
+              CurrentGrid.Cells[cg, rg] := w;
+
+          end; //case
+        end;
+      end;
+
+      //Import Comments
+      if FOptions.ImportCellProperties then
+        for i := 0 to Workbook.CommentsCount[r] - 1 do
+          CurrentGrid.AddComment(Workbook.CommentColumn[r, i] + GridStartCol - XlsStartCol, r + GridStartRow - XlsStartRow, Workbook.CommentText[r, i]);
+
+      if Assigned(FOnProgress) then
+        FOnProgress(Self, FWorkSheet, FWorkSheetNum, r - XlsStartRow, MaxR - XlsStartRow);
+    end;
+
+    //Import nodes
+    if FOptions.ImportCellProperties then //After all has been loaded
+      ImportAllNodes(Workbook, XlsStartRow, MaxR);
+  finally
+    CurrentGrid.EndUpdate;
   end;
-
-  //Import nodes
-  if FOptions.ImportCellProperties then //After all has been loaded
-    ImportAllNodes(Workbook, XlsStartRow, MaxR);
-
 end;
 
 procedure TAdvGridExcelIO.Notification(AComponent: TComponent;
@@ -881,16 +985,57 @@ begin
   end; //finally
 end;
 
-function TAdvGridExcelIO.SupressCR(const s: Widestring): widestring;
+function IsRtf(const Value: string): Boolean;
+begin
+  Result := (Pos(RtfStart, Value) = 1);
+end;
+
+function TAdvGridExcelIO.RichToText(const RTFText: string): string;
+var
+  MemoryStream: TMemoryStream;
+begin
+  if RtfText <> '' then
+  begin
+    MemoryStream := TMemoryStream.Create;
+    try
+      MemoryStream.Write(RtfText[1], Length(RtfText));
+      MemoryStream.Position := 0;
+      CurrentGrid.RichEdit.Lines.LoadFromStream(MemoryStream);
+    finally
+      MemoryStream.Free;
+    end;
+  end
+  else
+    CurrentGrid.RichEdit.Clear;
+
+  Result := CurrentGrid.RichEdit.Text;
+end;
+
+
+function TAdvGridExcelIO.SupressCR(s: Widestring): widestring;
 var
   i, k: integer;
 begin
+  if IsRtf(s) then
+  begin
+     s := RichToText(s);
+  end;
+
+
   SetLength(Result, Length(s));
   k := 1;
   for i := 1 to Length(s) do if s[i] <> #13 then
     begin
       Result[k] := s[i];
       inc(k);
+    end
+    else
+    begin
+      if (i = Length(s)) or (s[i+1] <> #10) then
+      begin
+        Result[k] := #10;
+        inc(k);
+      end
     end;
 
   SetLength(Result, k - 1);
@@ -1038,6 +1183,30 @@ begin
   end;
 end;
 
+procedure TAdvGridExcelIO.ResizeCommentBox(const Workbook: TExcelFile; const Comment: string; var h, w: integer);
+{$IFDEF FLEXCEL}
+var
+  TextLines: WidestringArray;
+  OutRTFRuns: TRTFRunList;
+  RTFRuns: TRTFRunListList;
+  TextExtent: TSize;
+  TmpCanvas: TTmpCanvas;
+{$ENDIF}
+begin
+{$IFDEF FLEXCEL}
+  TmpCanvas := TTmpCanvas.Create();
+  try
+    TmpCanvas.Canvas.Font.Name:='Arial';
+    TmpCanvas.Canvas.Font.Size := 10;
+    SetLength(OutRTFRuns, 0);
+    TFlexCelGrid.SplitText(Workbook, TmpCanvas.Canvas, Comment, w, TextLines, OutRTFRuns, RTFRuns, TextExtent, false, 1);
+    h:= Ceil((TextExtent.cy + 1) * (Length(TextLines) + 1));
+  finally
+    FreeAndNil(TmpCanvas);
+  end; //finally
+{$ENDIF}
+end;
+
 
 procedure TAdvGridExcelIO.ExportData(const Workbook: TExcelFile);
 var
@@ -1048,7 +1217,7 @@ var
   Pic: TCellGraphic;
   AState: TGridDrawState;
   ABrush: TBrush;
-  AColorTo: TColor;
+  AColorTo,AMirrorColor,AMirrorColorTo: TColor;
   AFont: TFont;
   HA: TAlignment;
   VA: TVAlignment;
@@ -1060,11 +1229,22 @@ var
   Cr: TXlsCellRange;
   aDateFormat, aTimeFormat: widestring;
   LastRowBorders: TRowBorderArray;
-  HiddenCount: Integer;
+  HiddenColCount: Integer;
+  HiddenRowCount: Integer;
   SpanX, SpanY: integer;
-  CReal: Integer;
+  CReal, RReal: Integer;
   UsedColors: BooleanArray;
   GD: TCellGradientDirection;
+  NamedRange: TXlsNamedRange;
+
+  HasFixedRows, HasFixedCols: boolean;
+  ExportCellAsString: boolean;
+  GridColCount, GridRowCount: integer;
+  hid: integer;
+
+  CommentHeight: integer;
+  CommentWidth: integer;
+  eq: widestring;
 begin
   Zoom100 := 1;
   Assert(Workbook <> nil, 'AdvGridWorkbook can''t be nil');
@@ -1073,252 +1253,352 @@ begin
   //Workbook.DefaultRowHeight:=Round(CurrentGrid.DefaultRowHeight*RowMult/Zoom100);
   //Workbook.DefaultColWidth:=Round(CurrentGrid.DefaultColWidth*ColMult/Zoom100);
 
+  if Options.ExportPrintOptions then
+  begin
+    Workbook.PrintScale := 100;
+    Workbook.PrintOptions := Workbook.PrintOptions and not fpo_NoPls;
+    if (CurrentGrid.PrintSettings.Orientation = poPortrait) then
+    begin
+      Workbook.PrintOptions := Workbook.PrintOptions or fpo_Orientation;
+    end else
+    begin
+      Workbook.PrintOptions := Workbook.PrintOptions and not fpo_Orientation;
+    end;
+
+    HasFixedRows := (CurrentGrid.PrintSettings.RepeatFixedRows) and (CurrentGrid.FixedRows > 0);
+    HasFixedcols := (CurrentGrid.PrintSettings.RepeatFixedCols) and (CurrentGrid.FixedCols > 0);
+
+    if HasFixedRows or HasFixedCols then
+    begin
+      InitializeNamedRange(NamedRange);
+      NamedRange.Name:=InternalNameRange_Print_Titles;
+      NamedRange.NameSheetIndex:=Workbook.ActiveSheet;
+      if HasFixedRows then
+      begin
+        NamedRange.RangeFormula:='=$A$1:$' + EncodeColumn(Max_Columns+1) + '$' + IntToStr(CurrentGrid.FixedRows);
+      end;
+      if HasFixedCols then
+      begin
+        if NamedRange.RangeFormula <> '' then NamedRange.RangeFormula:= NamedRange.RangeFormula+', ' else NamedRange.RangeFormula:='=';
+        NamedRange.RangeFormula:= NamedRange.RangeFormula +'$A$1:$' + EncodeColumn(CurrentGrid.FixedCols) + '$' + IntToStr(Max_Rows + 1);
+      end;
+
+      Workbook.AddRange(NamedRange);
+    end;
+
+  end;
+
+  Workbook.OutlineSummaryRowsBelowDetail := Options.ExportSummaryRowsBelowDetail;
+  Workbook.OutlineSummaryColsRightOfDetail := Options.ExportSummaryRowsBelowDetail;
+
+
   Workbook.ShowGridLines := Options.ExportShowGridLines;
   //Adjust Row/Column sizes and set Row/Column formats
   UsedColors := GetUsedPaletteColors(Workbook);
 
-  if Options.ExportCellSizes then
-  begin
-    for rg := GridStartRow to CurrentGrid.RowCount - 1 do
-    begin
-      rx := rg - GridStartRow + XlsStartRow;
-      Workbook.RowHeight[rx] := Round(CurrentGrid.RowHeights[rg] * RowMult / Zoom100) - CellOfs;
-    end;
-
-    for cg := GridStartCol to CurrentGrid.ColCount - 1 do
-    begin
-      cx := cg - GridStartCol + XlsStartCol;
-      Workbook.ColumnWidth[cx] := Round(CurrentGrid.ColWidths[cg] * ColMult / Zoom100) - CellOfs;
-    end;
-  end;
-
-  SetLength(LastRowBorders, CurrentGrid.ColCount + 2);
-  for cg := 0 to  Length(LastRowBorders) - 1 do
-  begin
-    LastRowBorders[cg].HasBottom:=false;
-    LastRowBorders[cg].HasRight:=false;
-  end;
-
   CurrentGrid.ExportNotification(esExportStart,-1);
-  HiddenCount := CurrentGrid.NumHiddenColumns;
+  HiddenColCount := CurrentGrid.NumHiddenColumns;
+  HiddenRowCount := CurrentGrid.NumHiddenRows;
 
-  if Options.ExportHiddenColumns then
-    CurrentGrid.ColCount := CurrentGrid.ColCount + HiddenCount;
+  GridColCount := CurrentGrid.ColCount;
+  if Options.ExportHiddenColumns then inc(GridColCount, HiddenColCount);
 
-  //Export data
-  for rg := GridStartRow to CurrentGrid.RowCount - 1 do
-  begin
-    CurrentGrid.ExportNotification(esExportNewRow,rg);
-    rx := rg - GridStartRow + XlsStartRow;
-    for cg := GridStartCol to CurrentGrid.ColCount - 1 do
-    begin
-      cx := cg - GridStartCol + XlsStartCol;
+  CurrentGrid.ColCount := CurrentGrid.ColCount + HiddenColCount;
+  try
+    GridRowCount := CurrentGrid.RowCount + HiddenRowCount;
+    if Options.FExportHiddenRows then
+      CurrentGrid.RowCount := CurrentGrid.RowCount + HiddenRowCount;
+    try
 
-     if Options.ExportHiddenColumns then
-       creal := cg
-     else
-       creal := CurrentGrid.RealColIndex(cg);
-
-      //Merged Cells
-      cp := TCellProperties( CurrentGrid.GridObjects[cg,rg]);
-
-      if (cp <> nil) and not (cp.IsBaseCell) then
-        Continue;
-
-      if (cp <> nil) and ((cp.CellSpanX > 0) or (cp.CellSpanY > 0)) then
-        Workbook.MergeCells(rx, cx, rx + cp.CellSpanY, cx + cp.CellSpanX);
-
-      Fm := CellFormatDef(Workbook, rx, cx);
-
-      AFont := TFont.Create;
-      try
-        ABrush := TBrush.Create;
-        ABrush.Color := CurrentGrid.Color;
-        try
-          CurrentGrid.GetVisualProperties(cg, rg, AState, false, false, not Options.ExportHiddenColumns , ABrush, AColorTo, AFont, HA, VA, WW, GD);
-
-          //Font
-          Fm.Font.ColorIndex := NearestColorIndex(Workbook, AFont.Color, UsedColors);
-          Fm.Font.Size20 := Trunc(-AFont.Height * 72 / AFont.PixelsPerInch * 20 / Zoom100);
-          Fm.Font.Name := AFont.Name;
-          if fsBold in AFont.Style then
-            Fm.Font.Style := Fm.Font.Style + [flsBold] else Fm.Font.Style := Fm.Font.Style - [flsBold];
-          if fsItalic in AFont.Style then
-            Fm.Font.Style := Fm.Font.Style + [flsItalic] else Fm.Font.Style := Fm.Font.Style - [flsItalic];
-          if fsStrikeOut in AFont.Style then
-            Fm.Font.Style := Fm.Font.Style + [flsStrikeOut] else Fm.Font.Style := Fm.Font.Style - [flsStrikeOut];
-          if fsUnderline in AFont.Style then
-            Fm.Font.Underline := fu_Single else Fm.Font.Underline := fu_None;
-
-          //Pattern
-          {Bmp:=nil;
-          try
-            if Fm.FillPattern.Pattern=1 then
+      if Options.ExportCellSizes then
+      begin
+        rx := XlsStartRow; hid:=0;
+        for rg := GridStartRow to GridRowCount - 1 do
+        begin
+          if CurrentGrid.IsHiddenRow(rg) then
+          begin
+            if Options.FExportHiddenRows then
             begin
-              if (ACanvas.Brush.Color<>clwhite) then
-                ACanvas.Brush.Color:=clwhite;
-            end else
-            if Fm.FillPattern.Pattern=2 then
-            begin
-              if (ACanvas.Brush.Color<>ABrushFg) then
-                ACanvas.Brush.Color:=ABrushFg;
-            end else
-            begin
-              Bmp:=CreateBmpPattern(Fm.FillPattern.Pattern, ABrushFg, ABrushBg);
-              Acanvas.Brush.Bitmap:=Bmp;
+              Workbook.RowHidden[rx] := true;
+              inc(rx);
             end;
+            inc(hid);
+            continue;
 
-            ACanvas.FillRect(Rect(Round(Cw*ZoomPreview), Round(Ch*ZoomPreview), Round((Cw+RealColWidth(Col,Zoom100,XPpi))*ZoomPreview), Round((Ch+RealRowHeight(Row,Zoom100,YPpi))*ZoomPreview)));
-
-          finally
-            ACanvas.Brush.Bitmap:=nil;
-            FreeAndNil(Bmp);
-          end; //finally
-          }
-
-          if (cp = nil) then
-          begin
-            SpanY := 0;
-            SpanX := 0;
-          end else
-          begin
-            SpanY := cp.CellSpanY;
-            SpanX := cp.CellSpanX;
           end;
-          SetBorders(cg, rg, LastRowBorders, SpanY, SpanX, Fm, Workbook, UsedColors);
+          Workbook.RowHeight[rx] := Round(CurrentGrid.RowHeights[rg - hid] * RowMult / Zoom100) - CellOfs;
+          inc(rx);
+        end;
 
-          if ColorToRGB(ABrush.Color) = $FFFFFF then
+        cx := XlsStartCol;
+        for cg := GridStartCol to CurrentGrid.ColCount - 1 do
+        begin
+          if CurrentGrid.IsHiddenColumn(cg) then
           begin
-            Fm.FillPattern.Pattern := 1; //no fill
-          end else
-          begin
-            Fm.FillPattern.Pattern := 2; //Solid fill
-            Fm.FillPattern.FgColorIndex := NearestColorIndex(Workbook, ColorToRGB(ABrush.Color), UsedColors);
+            if Options.ExportHiddenColumns then Workbook.ColumnHidden[cx] := true else continue;
           end;
+          Workbook.ColumnWidth[cx] := Round(CurrentGrid.AllColWidths[cg] * ColMult / Zoom100) - CellOfs;
+          inc(cx);
+        end;
+      end;
 
-          if CurrentGrid.IsRotated(cg, rg, AAngle) then
-          begin
-            if AAngle < 0 then AAngle := 360 - (Abs(AAngle) mod 360) else
-              AAngle := AAngle mod 360;
-            if (AAngle >= 0) and (AAngle <= 90) then Fm.Rotation := AAngle
-            else if (AAngle >= 270) then Fm.Rotation := 360 - AAngle + 90;
-          end;
+      SetLength(LastRowBorders, CurrentGrid.ColCount + 2);
+      for cg := 0 to  Length(LastRowBorders) - 1 do
+      begin
+        LastRowBorders[cg].HasBottom:=false;
+        LastRowBorders[cg].HasRight:=false;
+      end;
 
-          if FUseUnicode then
-            w := SupressCR(CurrentGrid.WideCells[creal, rg])
+      //Export data
+      for rg := GridStartRow to CurrentGrid.RowCount - 1 do
+      begin
+        CurrentGrid.ExportNotification(esExportNewRow,rg);
+        rx := rg - GridStartRow + XlsStartRow;
+
+        if Options.FExportHiddenRows then
+        begin
+          if (CurrentGrid.IsHiddenRow(rg)) then
+            rreal :=CurrentGrid.RowCount - CurrentGrid.NumHiddenRows
           else
-            w := SupressCR(CurrentGrid.SaveCell(creal, rg));
+            rreal := CurrentGrid.DisplRowIndex(rg);
+        end
+        else
+          rreal := rg;
 
-          Formula := SupressCR(CurrentGrid.SaveCell(creal, rg));
+        for cg := GridStartCol to GridColCount - 1 do
+        begin
+          cx := cg - GridStartCol + XlsStartCol;
 
-          if not Options.ExportHTMLTags then
-          begin
-            StringReplace(w,'<br>','#13#10',[rfReplaceAll, rfIgnoreCase]);
-          end;
+         if Options.ExportHiddenColumns then
+           creal := cg
+         else
+           creal := CurrentGrid.RealColIndex(cg);
 
-          if (pos(#10, w) > 0) or (CurrentGrid.WordWrap and Options.ExportWordWrapped) then
-            Fm.WrapText := true;
+          //Merged Cells
+          cp := TCellProperties( CurrentGrid.GridObjects[creal,rreal]);
 
-          if (pos('</',w) > 0) and not Options.ExportHTMLTags then
-            w := HTMLStrip(w);
+          if (cp <> nil) and not (cp.IsBaseCell) then
+            Continue;
 
-          //Cell Align
-          case HA of
-            taLeftJustify: Fm.HAlignment := fha_left;
-            taCenter: Fm.HAlignment := fha_center;
-            taRightJustify: Fm.HAlignment := fha_right;
-          else Fm.HAlignment := fha_general;
-          end; //case
+          if (cp <> nil) and ((cp.CellSpanX > 0) or (cp.CellSpanY > 0)) then
+            Workbook.MergeCells(rx, cx, rx + cp.CellSpanY, cx + cp.CellSpanX);
 
-          case VA of
-            vtaTop: Fm.VAlignment := fva_top;
-            vtaCenter: Fm.VAlignment := fva_center;
-          else Fm.VAlignment := fva_bottom;
-          end; //case
+          Fm := CellFormatDef(Workbook, rx, cx);
 
-          if Assigned(OnCellFormat) then
-            OnCellFormat(CurrentGrid, creal, rg, cx, rx, w, Fm);
+          AFont := TFont.Create;
+          try
+            ABrush := TBrush.Create;
+            ABrush.Color := CurrentGrid.Color;
+            try
+              CurrentGrid.GetVisualProperties(creal, rreal, AState, false, false, false , ABrush, AColorTo,AMirrorColor,AMirrorColorTo, AFont, HA, VA, WW, GD);
 
-          if FOptions.ExportCellFormats then
-          begin
-            aDateFormat := FDateFormat;
-            aTimeFormat := FTimeFormat;
-            if Assigned(OnDateTimeFormat) then
-              OnDateTimeFormat(CurrentGrid, creal, rg, cx, rx, w, aDateFormat, aTimeFormat);
+              //Font
+              Fm.Font.ColorIndex := NearestColorIndex(Workbook, AFont.Color, UsedColors);
+              Fm.Font.Size20 := Trunc(-AFont.Height * 72 / AFont.PixelsPerInch * 20 / Zoom100);
+              //Fm.Font.Size20 := AFont.Size * 20;
 
-            if (pos('=',Formula) = 1) and FOptions.ExportFormulas then
-            begin
-              Workbook.CellFormula[rx,cx] := Formula;
-            end
-            else
-            begin
-              if Options.ExportCellProperties then
-                Workbook.SetCellString(rx, cx, w, Fm, aDateFormat, aTimeFormat)
+              Fm.Font.Name := AFont.Name;
+              if fsBold in AFont.Style then
+                Fm.Font.Style := Fm.Font.Style + [flsBold] else Fm.Font.Style := Fm.Font.Style - [flsBold];
+              if fsItalic in AFont.Style then
+                Fm.Font.Style := Fm.Font.Style + [flsItalic] else Fm.Font.Style := Fm.Font.Style - [flsItalic];
+              if fsStrikeOut in AFont.Style then
+                Fm.Font.Style := Fm.Font.Style + [flsStrikeOut] else Fm.Font.Style := Fm.Font.Style - [flsStrikeOut];
+              if fsUnderline in AFont.Style then
+                Fm.Font.Underline := fu_Single else Fm.Font.Underline := fu_None;
+
+              //Pattern
+              {Bmp:=nil;
+              try
+                if Fm.FillPattern.Pattern=1 then
+                begin
+                  if (ACanvas.Brush.Color<>clwhite) then
+                    ACanvas.Brush.Color:=clwhite;
+                end else
+                if Fm.FillPattern.Pattern=2 then
+                begin
+                  if (ACanvas.Brush.Color<>ABrushFg) then
+                    ACanvas.Brush.Color:=ABrushFg;
+                end else
+                begin
+                  Bmp:=CreateBmpPattern(Fm.FillPattern.Pattern, ABrushFg, ABrushBg);
+                  Acanvas.Brush.Bitmap:=Bmp;
+                end;
+
+                ACanvas.FillRect(Rect(Round(Cw*ZoomPreview), Round(Ch*ZoomPreview), Round((Cw+RealColWidth(Col,Zoom100,XPpi))*ZoomPreview), Round((Ch+RealRowHeight(Row,Zoom100,YPpi))*ZoomPreview)));
+
+              finally
+                ACanvas.Brush.Bitmap:=nil;
+                FreeAndNil(Bmp);
+              end; //finally
+              }
+
+              if (cp = nil) then
+              begin
+                SpanY := 0;
+                SpanX := 0;
+              end else
+              begin
+                SpanY := cp.CellSpanY;
+                SpanX := cp.CellSpanX;
+              end;
+              SetBorders(creal, rreal, LastRowBorders, SpanY, SpanX, Fm, Workbook, UsedColors);
+
+              if ColorToRGB(ABrush.Color) = $FFFFFF then
+              begin
+                Fm.FillPattern.Pattern := 1; //no fill
+              end else
+              begin
+                Fm.FillPattern.Pattern := 2; //Solid fill
+                Fm.FillPattern.FgColorIndex := NearestColorIndex(Workbook, ColorToRGB(ABrush.Color), UsedColors);
+              end;
+
+              if CurrentGrid.IsRotated(creal, rreal, AAngle) then
+              begin
+                if AAngle < 0 then AAngle := 360 - (Abs(AAngle) mod 360) else
+                  AAngle := AAngle mod 360;
+                if (AAngle >= 0) and (AAngle <= 90) then Fm.Rotation := AAngle
+                else if (AAngle >= 270) then Fm.Rotation := 360 - AAngle + 90;
+              end;
+
+              if FUseUnicode then
+                w := SupressCR(CurrentGrid.WideCells[creal, rreal])
+              else
+                w := SupressCR(CurrentGrid.SaveCell(creal, rreal));
+
+              Formula := SupressCR(CurrentGrid.SaveCell(creal, rreal));
+
+              if (FOptions.ExportReadonlyCellsAsLocked) then
+              begin
+                Fm.Locked := CurrentGrid.ReadOnly[creal, rreal];
+              end;
+
+              if not Options.ExportHTMLTags then
+              begin
+                StringReplace(w,'<br>','#13#10',[rfReplaceAll, rfIgnoreCase]);
+              end;
+
+              if (pos(#10, w) > 0) or (CurrentGrid.WordWrap and Options.ExportWordWrapped) then
+                Fm.WrapText := true;
+
+              eq := '</';
+
+              if (pos(eq,w) > 0) and not Options.ExportHTMLTags then
+                w := HTMLStrip(w);
+
+              //Cell Align
+              case HA of
+                taLeftJustify: Fm.HAlignment := fha_left;
+                taCenter: Fm.HAlignment := fha_center;
+                taRightJustify: Fm.HAlignment := fha_right;
+              else Fm.HAlignment := fha_general;
+              end; //case
+
+              case VA of
+                vtaTop: Fm.VAlignment := fva_top;
+                vtaCenter: Fm.VAlignment := fva_center;
+              else Fm.VAlignment := fva_bottom;
+              end; //case
+
+              if Assigned(OnCellFormat) then
+                OnCellFormat(CurrentGrid, creal, rreal, cx, rx, w, Fm);
+
+              ExportCellAsString := not FOptions.ExportCellFormats;
+              if Assigned(OnExportColumnFormat) then OnExportColumnFormat(CurrentGrid, creal, rreal, cx, rx, w, ExportCellAsString);
+              if not ExportCellAsString then
+              begin
+                aDateFormat := FDateFormat;
+                aTimeFormat := FTimeFormat;
+                if Assigned(OnDateTimeFormat) then
+                  OnDateTimeFormat(CurrentGrid, creal, rreal, cx, rx, w, aDateFormat, aTimeFormat);
+
+                if (pos('=',Formula) = 1) and FOptions.ExportFormulas then
+                begin
+                  Workbook.CellFormula[rx,cx] := Formula;
+                  if Options.ExportCellProperties then
+                    Workbook.CellFormat[rx, cx] := Workbook.AddFormat(Fm);
+                end
+                else
+                begin
+                  if Options.ExportCellProperties then
+                    Workbook.SetCellString(rx, cx, w, Fm, aDateFormat, aTimeFormat)
+                  else
+                  begin
+                    Fm := CellFormatDef(Workbook, rx, cx);
+                    Workbook.SetCellString(rx, cx, w, Fm, aDateFormat, aTimeFormat);
+                  end;
+                end;
+                CopyFmToMerged(Workbook, cp, rx, cx, Fm) ;
+              end
               else
               begin
-                Fm := CellFormatDef(Workbook, rx, cx);
-                Workbook.SetCellString(rx, cx, w, Fm, aDateFormat, aTimeFormat);
+                if (pos('=',Formula) = 1) and FOptions.ExportFormulas then
+                begin
+                  Workbook.CellFormula[rx,cx] := Formula;
+                end
+                else
+                begin
+                  Workbook.CellValue[rx, cx] := w;
+                end;
+                if Options.ExportCellProperties then
+                begin
+                  Workbook.CellFormat[rx, cx] := Workbook.AddFormat(Fm);
+                  CopyFmToMerged(Workbook, cp, rx, cx, Fm) ;
+                end;
               end;
-              CopyFmToMerged(Workbook, cp, rx, cx, Fm) ;
-            end;
-          end
-          else
+            finally
+              FreeAndNil(ABrush);
+            end; //finally
+          finally
+            FreeAndNil(AFont);
+          end; //finally
+
+          //Export Images
+          Pic := CurrentGrid.CellGraphics[creal, rreal];
+          if (Pic <> nil) and (Pic.CellBitmap <> nil) then
           begin
-            if (pos('=',Formula) = 1) and FOptions.ExportFormulas then
-            begin
-              Workbook.CellFormula[rx,cx] := Formula;
-            end
-            else
-            begin
-              Workbook.CellValue[rx, cx] := w;
-              if Options.ExportCellProperties then
-              begin
-                Workbook.CellFormat[rx, cx] := Workbook.AddFormat(Fm);
-              CopyFmToMerged(Workbook, cp, rx, cx, Fm) ;
-              end;
-            end;
+          if (Pic.CellType = cTBitmap) then
+             ExportImage(Workbook, Pic.CellBitmap, rx, cx, creal, rreal);
+
+          if (Pic.CellType = cTPicture) then
+             ExportImage(Workbook, TPicture(Pic.CellBitmap).Graphic, rx, cx, creal, rreal);
           end;
-        finally
-          FreeAndNil(ABrush);
-        end; //finally
-      finally
-        FreeAndNil(AFont);
-      end; //finally
 
-      //Export Images
-      Pic := CurrentGrid.CellGraphics[cg, rg];
-      if Pic <> nil then
-      begin
-      if (Pic.CellType = cTBitmap) then
-         ExportImage(Workbook, Pic.CellBitmap, rx, cx, cg, rg);
+        //Export Comments
+          if CurrentGrid.IsComment(creal, rreal, Comment) then
+          begin
+            Cr := Workbook.CellMergedBounds[rx, cx];
+            CommentHeight:= 75;
+            CommentWidth:= 130;
+            Comment := SupressCR(Comment);
+            ResizeCommentBox(Workbook, Comment, CommentHeight, CommentWidth);
+            if Assigned(OnGetCommentBoxSize) then OnGetCommentBoxSize(CurrentGrid, Comment, CommentHeight, CommentWidth);
 
-      if (Pic.CellType = cTPicture) then
-         ExportImage(Workbook, TPicture(Pic.CellBitmap).Graphic, rx, cx, cg, rg);
+            CalcImgCells(Workbook, rx - 1, cx + Cr.Right - Cr.Left + 1, 8, 14, CommentHeight, CommentWidth, Properties);
+            Workbook.SetCellComment(rx, cx, Comment, Properties);
+          end;
+
+          if Assigned(FOnProgress) then
+            FOnProgress(Self, FWorksheet, FWorkSheetNum, rg - GridStartRow, CurrentGrid.RowCount - 1 - GridStartRow);
+
+        end;
+
+
+        //Export Nodes
+        if Options.ExportCellProperties then
+          if (CurrentGrid.GetNodeLevel(rreal)>=0) and (CurrentGrid.GetNodeLevel(rreal)<=7) then
+            Workbook.SetRowOutlineLevel(rx+1, rx+CurrentGrid.GetNodeSpan(rreal)-1, CurrentGrid.GetNodeLevel(rreal));
+
       end;
+    finally
+      if Options.FExportHiddenRows then
+        CurrentGrid.RowCount := CurrentGrid.RowCount - HiddenRowCount;
+    end; //finally
 
-    //Export Comments
-      if CurrentGrid.IsComment(cg, rg, Comment) then
-      begin
-        Cr := Workbook.CellMergedBounds[rx, cx];
-        CalcImgCells(Workbook, rx - 1, cx + Cr.Right - Cr.Left + 1, 8, 14, 75, 130, Properties);
-        Workbook.SetCellComment(rx, cx, Comment, Properties);
-      end;
-
-      if Assigned(FOnProgress) then
-        FOnProgress(Self, FWorksheet, FWorkSheetNum, rg - GridStartRow, CurrentGrid.RowCount - 1 - GridStartRow);
-
-    end;
-
-
-    //Export Nodes
-    if Options.ExportCellProperties then
-      if (CurrentGrid.GetNodeLevel(rg)>=0) and (CurrentGrid.GetNodeLevel(rg)<=7) then
-        Workbook.SetRowOutlineLevel(rx+1, rx+CurrentGrid.GetNodeSpan(rg)-1, CurrentGrid.GetNodeLevel(rg));
-
-  end;
-  
-  if Options.ExportHiddenColumns then
-    CurrentGrid.ColCount := CurrentGrid.ColCount - HiddenCount;
+  finally
+    //if Options.ExportHiddenColumns then
+      CurrentGrid.ColCount := CurrentGrid.ColCount - HiddenColCount;
+  end; //finally
 
   CurrentGrid.ExportNotification(esExportDone,-1);
 end;
@@ -1331,7 +1611,7 @@ begin
   for i := 1 to Workbook.SheetCount do
   begin
     Workbook.ActiveSheet := i;
-    if (Workbook.ActiveSheetName = SheetName) then
+    if (WideUpperCase98(Workbook.ActiveSheetName) = WideUpperCase98(SheetName)) then
     begin
       Result := True;
       Index := i;
@@ -1340,11 +1620,18 @@ begin
   end;
 end;
 
-procedure TAdvGridExcelIO.XLSExport(const FileName: TFileName; const SheetName: widestring = ''; const SheetPos: integer = -1; const SelectSheet: integer = 1);
+procedure TAdvGridExcelIO.OpenFile(const Workbook: TExcelFile; const FileName: string);
+begin
+  Workbook.OpenFile(FileName);
+end;
+
+procedure TAdvGridExcelIO.XLSExport(const FileName: TFileName; const SheetName: widestring = ''; const SheetPos: integer = -1; const SelectSheet: integer = 1; const InsertInSheet: TInsertInSheet = InsertInSheet_Clear);
 var
   Workbook: TExcelFile;
   UseWorkbook: boolean;
   Sp, i: integer;
+  rows, cols, dr, dc: integer;
+  GridRowCount, GridColCount: integer;
 begin
   if CurrentGrid = nil then
     raise Exception.Create(ErrNoAdvStrGrid);
@@ -1387,11 +1674,35 @@ begin
     end else
       if FileExists(FileName) then
       begin
-        Workbook.OpenFile(FileName);
+        OpenFile(Workbook, FileName);
         if FindSheet(Workbook, SheetName, Sp) then
         begin
           Workbook.ActiveSheet := Sp;
-          Workbook.ClearSheet;
+          case InsertInSheet of
+             InsertInSheet_Clear:
+               Workbook.ClearSheet;
+             InsertInSheet_InsertRows,
+             InsertInSheet_InsertRowsExceptFirstAndSecond:
+             begin
+               dr := 0;
+               if (InsertInSheet = InsertInSheet_InsertRowsExceptFirstAndSecond) then dr:=1;
+               GridRowCount := CurrentGrid.RowCount;
+               if Options.FExportHiddenRows then Inc(GridRowCount, CurrentGrid.NumHiddenRows);
+               rows := GridRowCount - GridStartRow - dr * 2;
+               if rows > 0 then Workbook.InsertAndCopyRows(Max_Rows + 1, Max_Rows + 1, XlsStartRow + dr, rows ,true);
+             end;
+
+             InsertInSheet_InsertCols,
+             InsertInSheet_InsertColsExceptFirstAndSecond:
+             begin
+               dc:=0;
+               if (InsertInSheet = InsertInSheet_InsertColsExceptFirstAndSecond) then dc:=1;
+               GridColCount := CurrentGrid.ColCount;
+               if Options.ExportHiddenColumns then Inc(GridColCount, CurrentGrid.NumHiddenColumns);
+               cols := GridColCount - GridStartCol - dc * 2;
+               if cols > 0 then Workbook.InsertAndCopyRows(Max_Columns + 1, Max_Columns + 1, XlsStartCol + dc, cols ,true);
+             end;
+          end; //case.
         end else
         begin
           if (SheetPos <= 0) or (SheetPos > Workbook.SheetCount) then
@@ -1607,6 +1918,15 @@ begin
   Result:= Result2;
 end;
 
+function TAdvGridExcelIO.GetVersion: string;
+begin
+  Result := FlexCelVersion;
+end;
+
+procedure TAdvGridExcelIO.SetVersion(const Value: string);
+begin
+end;
+
 { TASGIOOptions }
 
 procedure TASGIOOptions.Assign(Source: TPersistent);
@@ -1635,13 +1955,33 @@ begin
   FExportWordWrapped := False;
   FExportHTMLTags := True;
   FExportHiddenColumns := False;
+  FExportHiddenRows := False;
   FExportOverwrite := omNever;
   FExportShowInExcel := False;
   FExportOverwriteMessage := 'File %s already exists'#13'Ok to overwrite ?';
   FUseExcelStandardColorPalette := true;
   FExportShowGridLines := true;
+  FExportPrintOptions := true;
+  FImportPrintOptions := true;
 end;
 
+
+{ TTmpCanvas }
+
+constructor TTmpCanvas.Create;
+begin
+  inherited;
+  bmp := TBitmap.Create;
+  bmp.Height := 1;
+  bmp.Width := 1;
+  Canvas := bmp.Canvas;
+end;
+
+destructor TTmpCanvas.Destroy;
+begin
+  FreeAndNil(bmp);
+  inherited;
+end;
 {$ENDIF}
 
 end.

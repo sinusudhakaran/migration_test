@@ -25,7 +25,7 @@ type
   TEscherRecordCache = class (TBaseList)
     {$INCLUDE TEscherRecordCacheHdr.inc}
     constructor Create;
-    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);
+    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);
   end;
 
 
@@ -86,7 +86,7 @@ type
     CopiedTo: TEscherRecord;
 
   protected
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord; virtual;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord; virtual;
     function Instance: word;
     function Version: word;
   public
@@ -95,7 +95,7 @@ type
 
     procedure Load(var aRecord: TBaseRecord; var aPos: integer); virtual ; abstract;
     procedure SaveToStream(const DataStream: TStream; const BreakList: TBreakList); virtual;
-    function CopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;  //this should be non-virtual
+    function CopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;  //this should be non-virtual
     function TotalSizeNoSplit: int64;virtual;
     function Loaded: boolean;virtual;
 
@@ -105,14 +105,14 @@ type
     procedure AssignClientData(const aClientData: TBaseClientData);virtual;
     procedure SplitRecords(var NextPos, RealSize, NextDwg: integer;const BreakList: TBreakList);virtual;
 
-    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);virtual;
+    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);virtual;
 
     procedure ClearCopiedTo; virtual;
 
     function FindRoot: TEscherRecord;
     function FindRec(const RecClass: ClassOfTEscherRecord): TEscherRecord; virtual;
     function Patriarch: TEscherSpgrContainerRecord;
-    function CopyDwg(const RowOfs, ColOfs: integer): TEscherRecord;
+    function CopyDwg(const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 
     function CompareRec(const aRecord: TEscherRecord): integer; virtual;//this is used for searching
 
@@ -124,7 +124,7 @@ type
     {$INCLUDE TEscherRecordListHdr.inc}
   public
     procedure SaveToStream(const DataStream: TStream; const BreakList: TBreakList);
-    procedure CopyFrom(const aEscherRecordList: TEscherRecordList; const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer);
+    procedure CopyFrom(const aEscherRecordList: TEscherRecordList; const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject);
     function TotalSizeNoSplit: int64;
   end;
 
@@ -132,7 +132,7 @@ type
   TEscherDataRecord= class(TEscherRecord)
   protected
     Data: PArrayOfByte;
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord; override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord; override;
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);override;
     destructor Destroy; override;
@@ -150,7 +150,7 @@ type
   TEscherContainerRecord=class(TEscherRecord)
   protected
     FContainedRecords: TEscherRecordList;
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord; override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord; override;
   public
     property ContainedRecords: TEscherRecordList read FContainedRecords;
 
@@ -166,7 +166,7 @@ type
 
     procedure SplitRecords(var NextPos, RealSize: integer; var NextDwg: integer; const BreakList: TBreakList);override;
 
-    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);override;
+    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);override;
 
     procedure ClearCopiedTo; override;
 
@@ -194,7 +194,7 @@ type
   public
     ClientData: TBaseClientData;
   protected
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord; override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord; override;
   public
 
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);override;
@@ -210,7 +210,7 @@ type
     procedure AssignClientData(const aClientData: TBaseClientData);override;
 
     procedure ArrangeCopyRowsAndCols(const RowOfs, ColOfs: integer);
-    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);override;
+    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);override;
     function ObjId: word;
   end;
 
@@ -219,22 +219,31 @@ type
     constructor CreateFromData(const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
   end;
 
+  TAbsoluteAnchorRect = record
+    x1, x2, y1, y2: integer;
+  end;
+
   TEscherClientAnchorRecord= class (TEscherDataRecord)
   private
     Anchor: PClientAnchor;
+    SaveRect: TAbsoluteAnchorRect;
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
-    constructor CreateFromData(const aAnchor: TClientAnchor;const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
+    constructor CreateFromData(const aAnchor: TClientAnchor;const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord; const sSheet: TObject);
     destructor Destroy; override;
-    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);override;
+    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);override;
     function AllowCopy(const FirstRow, LastRow, FirstCol, LastCol: integer): boolean;
     function AllowDelete(const FirstRow, LastRow, FirstCol, LastCol: integer): boolean;
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord; override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord; override;
 
     function Row: integer;
     function Col: integer;
     function GetAnchor: TClientAnchor;
-    procedure SetAnchor(const aAnchor: TClientAnchor);
+    procedure SetAnchor(const aAnchor: TClientAnchor; const sSheet: TObject);
+
+    procedure RestoreObjectCoords(const dSheet: TObject);
+    procedure SaveObjectCoords(const sSheet: TObject);
+
   end;
 
   TEscherBStoreRecord= class (TEscherContainerRecord)
@@ -270,9 +279,10 @@ type
     Dg: PDg;
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
-    constructor CreateFromData(const csp, cspidCur: LongWord; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
+    constructor CreateFromData(const csp, cspidCur: LongWord; const FirstShapeId: int64; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
     destructor Destroy; override;
 
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord; override;
     function IncMaxShapeId: LongWord;
     procedure DecShapeCount;
   end;
@@ -287,12 +297,22 @@ type
   PDgg= ^TDgg;
 
   TEscherDggRecord= class(TEscherDataRecord)
+  private
+    procedure GetNewCluster(var DgId: integer; const GetNewId: Boolean; const ShapeCount: int64; out FirstShapeId: int64);
   public
     FDgg: PDgg;
 
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
     constructor CreateFromData(const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
     destructor Destroy; override;
+
+    function AddImage(const DgId: integer; const LastImageId: Int64): Int64;
+    procedure AddNewCluster(DgId: integer; const ShapeCount: Int64; out FirstShapeId: Int64);
+    procedure DestroyClusters(const DgId: integer);
+
+    procedure GetNewDgIdAndCluster(out DgId: integer; out FirstShapeId: Int64);
+    function IsEmpty: Boolean;
+    procedure RemoveImage(const DgId: integer);
 
   end;
 
@@ -302,7 +322,7 @@ type
   public
     ShapeId: PLongWord;
   protected
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord; override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord; override;
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
     constructor CreateFromData(const Pre, aShapeId: LongWord; const Flags: LongWord; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
@@ -321,7 +341,7 @@ type
 
     procedure DeleteRef(const Shape: TEscherSPRecord);
     procedure FixPointers;
-    procedure ArrangeCopyRowsAndCols;
+    procedure ArrangeCopyRowsAndCols(const dSheet: TObject);
   end;
 
   TEscherOPTRecord= class (TEscherDataRecord)
@@ -334,7 +354,7 @@ type
     function GetShapeName: WideString;
     function AddImg(const Data: string; const DataType: TXlsImgTypes): integer;
   protected
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;override;
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
     constructor CreateFromDataImg(const aPict: string; const aPicType: TXlsImgTypes; const PicName: widestring; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
@@ -349,7 +369,7 @@ type
     function Col: integer;
 
     function GetAnchor: TClientAnchor;
-    procedure SetAnchor(const aAnchor: TClientAnchor);
+    procedure SetAnchor(const aAnchor: TClientAnchor; const sSheet: TObject);
 
     procedure ChangeRef(const aBSE: TEscherBSERecord);
     procedure ReplaceImg(const Data: string; const DataType: TXlsImgTypes);
@@ -358,7 +378,7 @@ type
 
 
 implementation
-uses UXlsClientData,UEscherOtherRecords,UEscherGraphToBSE;
+uses UXlsClientData,UEscherOtherRecords,UEscherGraphToBSE, UXlsSheet;
 
 { TEscherRecordCache }
 {$INCLUDE TEscherRecordCacheImp.inc}
@@ -369,11 +389,11 @@ begin
 end;
 
 procedure TEscherRecordCache.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer;
-  const SheetInfo: TSheetInfo; const Forced: boolean);
+  const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);
 var
   i: integer;
 begin
-  for i:=0 to Count-1 do Items[i].ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, Forced);
+  for i:=0 to Count-1 do Items[i].ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, Forced, dSheet);
 end;
 
 { TEscherObjCache }
@@ -390,7 +410,7 @@ end;
 
 { TEscherRecord }
 
-procedure TEscherRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);
+procedure TEscherRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);
 begin
   //Nothing
 end;
@@ -405,10 +425,10 @@ begin
   CopiedTo:=nil;
 end;
 
-function TEscherRecord.CopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherRecord.CopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 begin
   if Self=nil then Result:= nil   //for this to work, this can't be a virtual method
-  else Result:=DoCopyTo(NewDwgCache, RowOfs, ColOfs);
+  else Result:=DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet);
 end;
 
 constructor TEscherRecord.Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
@@ -424,7 +444,7 @@ begin
   FParent:=aParent;
 end;
 
-function TEscherRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 var
   ERec: TEscherRecordHeader;
 begin
@@ -547,10 +567,10 @@ begin
   while (Result<>nil)and (Result.FParent<>DwgCache.Patriarch) do Result:=Result.FParent;
 end;
 
-function TEscherRecord.CopyDwg(const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherRecord.CopyDwg(const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 begin
   if ((DwgCache.Patriarch=nil) or (FindRoot=nil)) then raise Exception.Create(ErrLoadingEscher);
-  DwgCache.Patriarch.FContainedRecords.Add(FindRoot.CopyTo(DwgCache, RowOfs, ColOfs));
+  DwgCache.Patriarch.FContainedRecords.Add(FindRoot.CopyTo(DwgCache, RowOfs, ColOfs, dSheet));
   Result:=CopiedTo;
 end;
 
@@ -597,12 +617,12 @@ begin
   for i:=0 to Count-1 do if Items[i]<>nil then Items[i].SaveToStream(DataStream, BreakList);
 end;
 
-procedure TEscherRecordList.CopyFrom(const aEscherRecordList: TEscherRecordList; const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer);
+procedure TEscherRecordList.CopyFrom(const aEscherRecordList: TEscherRecordList; const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject);
 var
   i:integer;
 begin
   if aEscherRecordList=nil then exit;
-  for i:=0 to aEscherRecordList.Count-1 do Add(aEscherRecordList[i].CopyTo(NewDwgCache, RowOfs, ColOfs));
+  for i:=0 to aEscherRecordList.Count-1 do Add(aEscherRecordList[i].CopyTo(NewDwgCache, RowOfs, ColOfs, dSheet));
 end;
 
 { TEscherDataRecord }
@@ -636,9 +656,9 @@ begin
   inherited;
 end;
 
-function TEscherDataRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherDataRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 begin
-  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs);
+  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet);
   Move(Data^, (Result as TEscherDataRecord).Data^, TotalDataSize);
 end;
 
@@ -695,12 +715,12 @@ end;
 
 { TEscherContainerRecord }
 
-procedure TEscherContainerRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);
+procedure TEscherContainerRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);
 var
   i:integer;
 begin
   inherited;
-  for i:=0 to FContainedRecords.Count-1 do FContainedRecords[i].ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, Forced);
+  for i:=0 to FContainedRecords.Count-1 do FContainedRecords[i].ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, Forced, dSheet);
 end;
 
 procedure TEscherContainerRecord.AssignClientData(
@@ -729,10 +749,10 @@ begin
   inherited;
 end;
 
-function TEscherContainerRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherContainerRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 begin
-  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs);
-  (Result as TEscherContainerRecord).FContainedRecords.CopyFrom(FContainedRecords, NewDwgCache, RowOfs, ColOfs);
+  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet);
+  (Result as TEscherContainerRecord).FContainedRecords.CopyFrom(FContainedRecords, NewDwgCache, RowOfs, ColOfs, dSheet);
 end;
 
 function TEscherContainerRecord.FindRec(const RecClass: ClassOfTEscherRecord): TEscherRecord;
@@ -762,6 +782,7 @@ begin
   if aPos> RSize then raise Exception.Create(ErrExcelInvalid);
   while (not Loaded) and (aPos<RSize) do
   begin
+    if (aRecord.Continue = nil) and (aPos = aRecord.DataSize) then exit; //There is nothing more to read, we need to load the next record from disk. This can happen when reading nested MsObjs.
     if (FContainedRecords.Count=0) or (LastRecord.Loaded) then
     begin
       ReadMem(aRecord, aPos, SizeOf(RecordHeader), @RecordHeader);
@@ -853,7 +874,7 @@ begin
   if ClientData<>nil then ClientData.ArrangeCopyRowsAndCols(RowOfs, ColOfs);
 end;
 
-procedure TEscherClientDataRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);
+procedure TEscherClientDataRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);
 begin
   inherited;
   if ClientData<>nil then ClientData.ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo);
@@ -895,9 +916,9 @@ begin
   inherited;
 end;
 
-function TEscherClientDataRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherClientDataRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 begin
-  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs);
+  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet);
   (Result as TEscherClientDataRecord).AssignClientData(ClientData.CopyTo);
 
   if NewDwgCache=DwgCache then (Result as TEscherClientDataRecord).ClientData.ArrangeId(DwgCache.MaxObjId);
@@ -956,14 +977,15 @@ begin
   if FParent <> nil then (FParent as TEscherSPContainerRecord).ClientAnchor:=Self;
 end;
 
-constructor TEscherClientAnchorRecord.CreateFromData(const aAnchor: TClientAnchor;const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
+constructor TEscherClientAnchorRecord.CreateFromData(const aAnchor: TClientAnchor;const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord; const sSheet: TObject);
 begin
   Create(aEscherHeader, aDwgGroupCache, aDwgCache, aParent);
   move(aAnchor, Anchor^, Sizeof(TClientAnchor));
   LoadedDataSize:=TotalDataSize;
+  SaveObjectCoords(sSheet);
 end;
 
-procedure TEscherClientAnchorRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean);
+procedure TEscherClientAnchorRecord.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const Forced: boolean; const dSheet: TObject);
 var
   dr, dc: integer;
   Af: word;
@@ -1001,7 +1023,7 @@ begin
         if dc< aColPos then Anchor.Dx2:=0;
       end;
     end;
-    2: //move
+    1, 2: //move
     begin
       if Anchor.Row1>=aRowPos then
       begin
@@ -1015,9 +1037,11 @@ begin
         IncMaxMin(Anchor.Col1, aColCount, Max_Columns, aColPos);
         IncMaxMin(Anchor.Col2, Anchor.Col1-dc, Max_Columns, Anchor.Col1);
       end;
+      RestoreObjectCoords(dSheet);
     end;
     3: //dont move
     begin
+      RestoreObjectCoords(dSheet);
     end;
   end; //case
 end;
@@ -1044,14 +1068,16 @@ begin
                  and (Anchor.Col1>=FirstCol) and (Anchor.Col2<=LastCol);
 end;
 
-function TEscherClientAnchorRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherClientAnchorRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 begin
-  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs);
+  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet);
   (Result.FParent as TEscherSPContainerRecord).ClientAnchor:=Result as TEscherClientAnchorRecord;
+  (Result as TEscherClientAnchorRecord).SaveRect := SaveRect;
   inc((Result as TEscherClientAnchorRecord).Anchor.Row1, RowOfs);
   inc((Result as TEscherClientAnchorRecord).Anchor.Row2, RowOfs);
   inc((Result as TEscherClientAnchorRecord).Anchor.Col1, ColOfs);
   inc((Result as TEscherClientAnchorRecord).Anchor.Col2, ColOfs);
+  RestoreObjectCoords(dSheet);
 end;
 
 function TEscherClientAnchorRecord.Col: integer;
@@ -1071,10 +1097,156 @@ end;
 
 
 procedure TEscherClientAnchorRecord.SetAnchor(
-  const aAnchor: TClientAnchor);
+  const aAnchor: TClientAnchor; const sSheet: TObject);
 begin
   move(aAnchor, Anchor^, Sizeof(TClientAnchor));
+  SaveObjectCoords(sSheet);
 end;
+
+procedure CalcAbsCol(const Workbook: TWorkSheet; const Col, Deltax: integer; out x: integer);
+var
+  c: integer;
+begin
+  x :=0;
+  for c:=0 to Col - 1 do
+    inc(x, Workbook.GetColWidth(c, true));
+
+  inc(x, Round(Workbook.GetColWidth(Col, true)*Deltax/1024.0));
+end;
+
+procedure CalcAbsRow(const Workbook: TWorkSheet; const Row, Deltay: integer; out y: integer);
+var
+  r: integer;
+begin
+  y :=0;
+  for r:=0 to Row - 1 do
+    inc(y, Workbook.GetRowHeight(r, true));
+
+  inc(y, Round(Workbook.GetRowHeight(Row, true)*Deltay/255.0));
+end;
+
+procedure CalcColAndDx(const Workbook: TWorkSheet; const RectX: integer; out Column, Deltax: integer);
+var
+  Col, x, Lastx: integer;
+  fw: double;
+begin
+  Col:=0;
+  x:=0;
+  Lastx :=0;
+
+  while (Col<=Max_Columns) and (x<= RectX) do
+  begin
+    Lastx := x;
+    inc (x, Workbook.GetColWidth(Col, true));
+    inc(Col);
+  end;
+
+  Column := Col-1;
+
+  if (Column<0) then
+  begin
+    Column:=0;
+    Deltax:=0;
+  end
+  else
+  begin
+    fw := Workbook.GetColWidth(Column, true);
+    if (Workbook.GetColWidth(Column, true)>0) then
+      Deltax := Round((RectX-Lastx) / fw * 1024.0)
+    else Deltax:=0;
+
+    if (Deltax>1024) then Deltax:=1024;
+  end
+end;
+
+procedure CalcRowAndDy(const Workbook: TWorkSheet; const RectY: integer; out RowFinal, Deltay: integer);
+var
+  Row, y, Lasty: integer;
+  fw: double;
+begin
+  Row:=0;
+  y:=0;
+  Lasty :=0;
+
+  while (Row<=Max_Rows) and (y<= RectY) do
+  begin
+    Lasty := y;
+    inc(y, Workbook.GetRowHeight(Row, true));
+    inc(Row);
+  end;
+
+  RowFinal:=Row-1;
+
+  if (RowFinal<0) then
+  begin
+    RowFinal:=0;
+    Deltay:=0;
+  end
+  else
+  begin
+    fw := Workbook.GetRowHeight(RowFinal, true);
+    if (Workbook.GetRowHeight(RowFinal, true)>0) then
+      Deltay := Round((RectY-Lasty) / fw * 255.0)
+    else Deltay:=0;
+
+    if (Deltay>255) then Deltay:=255;
+  end;
+end;
+
+
+procedure TEscherClientAnchorRecord.RestoreObjectCoords(const dSheet: TObject);
+var
+  aSheet: TWorksheet;
+  x1, y1: integer;
+  Col, Row, Dx, Dy: integer;
+begin
+  if (dSheet = nil) then exit;
+  aSheet := dSheet as TWorksheet;
+
+  case (Anchor.Flag and 3) of
+    1, 2:  //Move and dont resize
+    begin
+        CalcAbsCol(aSheet, Anchor.Col1, Anchor.Dx1, x1);
+        CalcAbsRow(aSheet, Anchor.Row1, Anchor.Dy1, y1);
+
+        CalcColAndDx(aSheet, x1 + SaveRect.x2 - SaveRect.x1, Col, Dx); Anchor.Col2 := Col; Anchor.Dx2 := Dx;
+        CalcRowAndDy(aSheet, y1 + SaveRect.y2 - SaveRect.y1, Row, Dy); Anchor.Row2 := Row; Anchor.Dy2 := Dy;
+    end;
+
+    3: //Dont move and dont resize
+    begin
+      CalcColAndDx(aSheet, SaveRect.x1, Col, Dx); Anchor.Col1 := Col; Anchor.Dx1 := Dx;
+      CalcColAndDx(aSheet, SaveRect.x2, Col, Dx); Anchor.Col2 := Col; Anchor.Dx2 := Dx;
+      CalcRowAndDy(aSheet, SaveRect.y1, Row, Dy); Anchor.Row1 := Row; Anchor.Dy1 := Dy;
+      CalcRowAndDy(aSheet, SaveRect.y2, Row, Dy); Anchor.Row2 := Row; Anchor.Dy2 := Dy;
+    end;
+  end; //case
+end;
+
+procedure TEscherClientAnchorRecord.SaveObjectCoords(const sSheet: TObject);
+var
+  aSheet: TWorksheet;
+  x1, x2, y1, y2: integer;
+begin
+  if (sSheet = nil) then exit;
+  aSheet := sSheet as TWorksheet;
+
+  if (Anchor.Flag and 3) = 0 then Exit;
+
+  //move but not resize
+  //do not move and do not resize
+
+  CalcAbsCol(aSheet, Anchor.Col1, Anchor.Dx1, x1);
+  CalcAbsRow(aSheet, Anchor.Row1, Anchor.Dy1, y1);
+  CalcAbsCol(aSheet, Anchor.Col2, Anchor.Dx2, x2);
+  CalcAbsRow(aSheet, Anchor.Row2, Anchor.Dy2, y2);
+
+  SaveRect.x1  := x1;
+  SaveRect.x2  := x2;
+  SaveRect.y1  := y1;
+  SaveRect.y2  := y2;
+end;
+
 
 { TEscherBSERecord }
 
@@ -1220,38 +1392,56 @@ begin
   if (DwgCache.Dg=nil) then DwgCache.Dg:=Self else raise Exception.Create(ErrDgDuplicated);
 end;
 
-constructor TEscherDgRecord.CreateFromData(const csp, cspidCur: LongWord;
+constructor TEscherDgRecord.CreateFromData(const csp, cspidCur: LongWord; const FirstShapeId: int64;
   const aDwgGroupCache: PEscherDwgGroupCache;
   const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord);
 var
   EscherHeader: TEscherRecordHeader;
 begin
-  EscherHeader.Pre:=$10;
+  EscherHeader.Pre:= cspidCur shl 4;
   EscherHeader.Id:=MsofbtDg;
   EscherHeader.Size:=2*SizeOf(LongWord);
   Create(EscherHeader, aDwgGroupCache, aDwgCache, aParent);
   SetLongWord(Data, 0, csp);
-  SetLongWord(Data, 4, cspidCur);
+  SetLongWord(Data, 4, FirstShapeId + 1);
   LoadedDataSize:=TotalDataSize;
 end;
 
 procedure TEscherDgRecord.DecShapeCount;
 begin
   dec(Dg.ShapeCount);
+  DwgGroupCache.Dgg.RemoveImage(Instance);
 end;
 
 destructor TEscherDgRecord.Destroy;
 begin
+  DwgGroupCache.Dgg.DestroyClusters(Instance);
   DwgCache.Dg:=nil;
   inherited;
 end;
 
-function TEscherDgRecord.IncMaxShapeId: LongWord;
+function TEscherDgRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache;
+  const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
+var
+  DgId : integer;
+  FirstShapeId: Int64;
 begin
-  inc(Dg^.MaxSpId);
-  Result:= Dg^.MaxSpId;
-  inc(Dg^.ShapeCount);
-  //PENDING: cuando llega a 1024, new dgg group
+  Result := inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet);
+  Dg.ShapeCount := 0;
+  (Result as TEscherDgRecord).DwgGroupCache.Dgg.GetNewDgIdAndCluster(DgId, FirstShapeId);
+  (Result as TEscherDgRecord).Pre := DgId shl 4;
+  (Result as TEscherDgRecord).Dg.MaxSpId := FirstShapeId + 1;
+end;
+
+function TEscherDgRecord.IncMaxShapeId: LongWord;
+var
+  LastImageId: int64;
+begin
+  inc(Dg.ShapeCount);
+  LastImageId := Dg.MaxSpId;
+
+  Result := DwgGroupCache.Dgg.AddImage(Instance, LastImageId);
+  Dg.MaxSpId := Result;
 end;
 
 { TEscherSPRecord }
@@ -1299,10 +1489,11 @@ begin
   inherited;
 end;
 
-function TEscherSPRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherSPRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 begin
-  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs);
-  if NewDwgCache=DwgCache then (Result as TEscherSPRecord).ShapeId^:=DwgCache.Dg.IncMaxShapeId;
+  Result:=inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet);
+  //if NewDwgCache=DwgCache then
+  (Result as TEscherSPRecord).ShapeId^:= Result.DwgCache.Dg.IncMaxShapeId;
 end;
 
 { TEscherDggRecord }
@@ -1325,17 +1516,15 @@ var
 begin
   RecordHeader.Id:=MsofbtDgg;
   RecordHeader.Pre:=0;
-  RecordHeader.Size:=24;
+  RecordHeader.Size:=16;
 
   Create(RecordHeader, aDwgGroupCache, aDwgCache, aParent);
   FillChar(Data^, RecordHeader.Size, 0);
-  FDgg.MaxShapeId:=1;
-  FDgg.FIDclCount:=2;
-  FDgg.ShapesSaved:=1;
-  FDgg.DwgSaved:=1;
+  FDgg.MaxShapeId:=2;
+  FDgg.FIDclCount:=1;
+  FDgg.ShapesSaved:=0;
+  FDgg.DwgSaved:=0;
 
-  Data[16]:=1;
-  Data[20]:=1;
   LoadedDataSize:=RecordHeader.Size;
 
 end;
@@ -1345,6 +1534,164 @@ begin
   DwgGroupCache.Dgg:=nil;
   inherited;
 end;
+
+
+procedure TEscherDggRecord.GetNewCluster(var DgId: integer; const GetNewId: Boolean; const ShapeCount: Int64; out FirstShapeId: int64);
+var
+  Found: integer;
+  i: integer;
+  id: Int64;
+begin
+  Found := -1;
+  if GetNewId then
+  begin
+    DgId := 1;
+    begin
+      i := 16;
+      while (i + 7) < TotalDataSize do
+      try
+        begin
+          id := GetLongWord(Data, i);
+          if (Found < 0) and (id = 0) then
+          begin
+            Found := i;
+          end;
+
+          if id >= DgId then
+            DgId := integer(id + 1);
+
+        end;
+      finally
+        i:= i + 8;
+      end;
+
+    end;
+  end
+  else
+  begin
+    begin
+      i := TotalDataSize - 8;
+      while i >= 16 do
+      try
+        begin
+          id := GetLongWord(Data, i);
+          if (Found < 0) and (id = 0) then
+          begin
+            Found := i;
+          end;
+
+          if id = DgId then
+            break;
+
+        end;
+      finally
+        i:= i - 8;
+      end;
+
+    end;
+  end;
+
+  if Found < 0 then
+  begin
+    ReallocMem(Data, TotalDataSize + 8);
+    FDgg := PDgg(Data);
+    Found := TotalDataSize;
+    inc (TotalDataSize, 8);
+    LoadedDataSize:= LoadedDataSize + 8;
+    inc(FDgg.FIDclCount);
+  end;
+
+  Assert(Found > 0);
+  Assert(Found + 8 <= TotalDataSize);
+  SetLongWord(Data, Found, DgId);
+  SetLongWord(Data, Found + 4, ShapeCount);
+  FirstShapeId := (((Found - 16) div 8) + 1) * 1024;
+end;
+
+procedure TEscherDggRecord.GetNewDgIdAndCluster(out DgId: integer; out FirstShapeId: Int64);
+begin
+  DgId := -1;
+  GetNewCluster(DgId, true, 0, FirstShapeId);
+  Inc(FDgg.DwgSaved);
+end;
+
+procedure TEscherDggRecord.AddNewCluster(DgId: integer; const ShapeCount: Int64; out FirstShapeId: Int64);
+begin
+  GetNewCluster(DgId, false, ShapeCount, FirstShapeId);
+end;
+
+procedure TEscherDggRecord.DestroyClusters(const DgId: integer);
+var
+  i: integer;
+begin
+  begin
+    i := 16;
+    while (i + 7) < TotalDataSize do
+    try
+      begin
+        if Int64(GetLongWord(Data, i)) = DgId then
+        begin
+          SetLongWord(Data, i, 0);
+        end;
+
+      end;
+    finally
+      i:= i + 8;
+    end;
+
+  end;
+  Dec(FDgg.DwgSaved);
+end;
+
+function TEscherDggRecord.AddImage(const DgId: integer; const LastImageId: Int64): Int64;
+var
+  ExpectedCluster: integer;
+  ExpectedClusterPos: integer;
+  ExpectedDgId: Int64;
+  IdInCluster: Int64;
+  MaxShapeId: Int64;
+begin
+  Result := -1;
+  ExpectedCluster := LastImageId div 1024 - 1;
+  ExpectedClusterPos := 16 + (ExpectedCluster * 8);
+  if (ExpectedClusterPos >= 16) and (ExpectedClusterPos <= TotalDataSize - 8) then
+  begin
+    ExpectedDgId := GetLongWord(Data, ExpectedClusterPos);
+    if ExpectedDgId = DgId then
+    begin
+      IdInCluster := GetLongWord(Data, ExpectedClusterPos + 4);
+      if IdInCluster < 1024 then
+      begin
+        Result := ((ExpectedCluster + 1) * 1024) + Int64(GetLongWord(Data, ExpectedClusterPos + 4));
+        IncLongWord(Data, ExpectedClusterPos + 4, 1);
+      end;
+    end;
+
+  end;
+
+  if Result < 0 then
+  begin
+    AddNewCluster(DgId, 1, Result);
+  end;
+
+  inc(FDgg.ShapesSaved);
+  MaxShapeId := FDgg.MaxShapeId;
+  if (Result + 1) > MaxShapeId then
+    FDgg.MaxShapeId := Result + 1;
+
+end;
+
+procedure TEscherDggRecord.RemoveImage(const DgId: integer);
+begin
+  Dec(FDgg.ShapesSaved);
+end;
+
+function TEscherDggRecord.IsEmpty(): Boolean;
+begin
+  Result := FDgg.DwgSaved <= 0;
+end;
+
+
 
 { TEscherSpgrContainerRecord }
 
@@ -1365,12 +1712,12 @@ end;
 
 { TEscherSolverContainerRecord }
 
-procedure TEscherSolverContainerRecord.ArrangeCopyRowsAndCols;
+procedure TEscherSolverContainerRecord.ArrangeCopyRowsAndCols(const dSheet: TObject);
 var
   i: integer;
 begin
   for i:=0 to FContainedRecords.Count-1 do
-    (FContainedRecords[i] as TRuleRecord).ArrangeCopyRowsAndCols;
+    (FContainedRecords[i] as TRuleRecord).ArrangeCopyRowsAndCols(dSheet);
 end;
 
 procedure TEscherSolverContainerRecord.CheckMax(const aRuleId: LongWord);
@@ -1436,7 +1783,7 @@ var
   Fr: TEscherRecord;
 begin
   Fr:=FindRoot;
-  if (DwgCache.Patriarch=nil) or (Fr=nil) or ((Fr as TEscherSpContainerRecord).ClientAnchor=nil) then Result:=0
+  if (DwgCache.Patriarch=nil) or (Fr=nil) or not( Fr is TEscherSpContainerRecord) or ((Fr as TEscherSpContainerRecord).ClientAnchor=nil) then Result:=0
   else Result:=(Fr as TEscherSpContainerRecord).ClientAnchor.Col;
 end;
 
@@ -1465,11 +1812,11 @@ begin
   inherited;
 end;
 
-function TEscherOPTRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;
+function TEscherOPTRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 var
   i: integer;
 begin
-  Result:= inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs);
+  Result:= inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet);
 
   if (DwgCache.Blip<>nil) and (Length(BlipPos)>0) then NewDwgCache.Blip.Add(Result as TEscherOptRecord);
   (Result as TEscherOPTRecord).BlipPtr:= copy(BlipPtr, Low(BlipPtr), 1+High(BlipPtr)-Low(BlipPtr));
@@ -1490,7 +1837,7 @@ var
   Fr: TEscherRecord;
 begin
   Fr:=FindRoot;
-  if (DwgCache.Patriarch=nil) or (Fr=nil) or ((Fr as TEscherSpContainerRecord).ClientAnchor=nil) then Result:=0
+  if (DwgCache.Patriarch=nil) or (Fr=nil) or not( Fr is TEscherSpContainerRecord) or ((Fr as TEscherSpContainerRecord).ClientAnchor=nil) then Result:=0
   else Result:=(Fr as TEscherSpContainerRecord).ClientAnchor.Row;
 end;
 
@@ -1599,13 +1946,13 @@ begin
   else Result:=(Fr as TEscherSpContainerRecord).ClientAnchor.GetAnchor;
 end;
 
-procedure TEscherOPTRecord.SetAnchor(const aAnchor: TClientAnchor);
+procedure TEscherOPTRecord.SetAnchor(const aAnchor: TClientAnchor; const sSheet: TObject);
 var
   Fr: TEscherRecord;
 begin
   Fr:=FindRoot;
   if (DwgCache.Patriarch=nil) or (Fr=nil) or not( Fr is TEscherSpContainerRecord) or ((Fr as TEscherSpContainerRecord).ClientAnchor=nil) then exit;
-  (Fr as TEscherSpContainerRecord).ClientAnchor.SetAnchor(aAnchor);
+  (Fr as TEscherSpContainerRecord).ClientAnchor.SetAnchor(aAnchor, sSheet);
 end;
 
 constructor TEscherOPTRecord.CreateFromDataImg(

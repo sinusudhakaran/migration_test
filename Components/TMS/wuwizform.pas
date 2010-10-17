@@ -1,11 +1,11 @@
 {*******************************************************************}
 { TWebUpdate Wizard form                                            }
 { for Delphi & C++Builder                                           }
-{ version 1.6                                                       }
+{ version 2.0                                                       }
 {                                                                   }
 { written by                                                        }
 {    TMS Software                                                   }
-{    copyright © 1998-2006                                          }
+{    copyright © 1998-2007                                          }
 {    Email : info@tmssoftware.com                                   }
 {    Web   : http://www.tmssoftware.com                             }
 {                                                                   }
@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, Menus, StdCtrls, WUpdate, ComCtrls, ExtCtrls, CheckLst, Math;
+  Dialogs, Menus, StdCtrls, WUpdate, ComCtrls, ExtCtrls, CheckLst, Math, ShellAPI;
 
 const
 
@@ -67,6 +67,12 @@ type
     Label8: TLabel;
     FileLabel: TLabel;
     Shape1: TShape;
+    PopupMenu1: TPopupMenu;
+    ViewinNotepad1: TMenuItem;
+    PopupMenu2: TPopupMenu;
+    ViewinNotepad2: TMenuItem;
+    procedure ViewinNotepad2Click(Sender: TObject);
+    procedure ViewinNotepad1Click(Sender: TObject);
     procedure StartButtonClick(Sender: TObject);
     procedure ControlButtonClick(Sender: TObject);
     procedure NewButtonClick(Sender: TObject);
@@ -99,10 +105,13 @@ type
     FStrCurVersion: string;
     FStrExit: string;
     FFailedDownload: string;
+    FStrLicensePopup: string;
+    FStrWhatsNewPopup: string;
     procedure SetWebUpdate(const Value: TWebUpdate);
     procedure SetCancelled(const Value: Boolean);
     procedure ClickDelay;
     procedure SetButtonWidth(Button: TButton);
+    procedure DownloadFiles;
   public
     { Public declarations }
     procedure UpdateDone;
@@ -124,10 +133,12 @@ type
     property StrNoUpdate: string read FStrNoUpdate write FStrNoUpdate;
     property StrNext: string read FStrNext write FStrNext;
     property StrFailedDownload:string read FFailedDownload write FFailedDownload;
+    property StrWhatsNewPopup: string read FStrWhatsNewPopup write FStrWhatsNewPopup;
+    property StrLicensePopup: string read FStrLicensePopup write FStrLicensePopup;
   end;
 
-var
-  WUWIZ: TWUWIZ;
+//var
+//  WUWIZ: TWUWIZ;
 
 implementation
 
@@ -158,7 +169,12 @@ var
 begin
   Cursor := crHourGlass;
   StartButton.Enabled := false;
-  if WebUpdate.StartConnection = WU_SUCCESS then
+  ControlButton.Enabled := false;
+
+  ViewInNotepad1.Caption := StrWhatsNewPopup;
+  ViewInNotepad2.Caption := StrLicensePopup;
+
+  if (WebUpdate.StartConnection = WU_SUCCESS) then
   begin
     Cursor := crDefault;
     if WebUpdate.UpdateType = ftpUpdate then
@@ -166,13 +182,14 @@ begin
 
     WebUpdate.UpdateUpdate := wuuSilent;
 
-    if WebUpdate.GetControlFile = WU_SUCCESS then
+    if (WebUpdate.GetControlFile = WU_SUCCESS) then
     begin
       StartButton.Enabled := true;
       {$IFDEF DELPHI5_LVL}
       PageControl1.ActivePageIndex := 1;
       {$ELSE}
       PageControl1.ActivePage := TabSheet2;
+      ControlButton.Enabled := true;
       {$ENDIF}
 
       res := WebUpdate.DoVersionCheck;
@@ -225,7 +242,7 @@ begin
       PageControl1.ActivePage := TabSheet2;
       {$ENDIF}
 
-      VersionInfoLabel.Caption := StrCannotConnect + ' ' + StrNoUpdate;
+      VersionInfoLabel.Caption := StrCannotConnect + #13 + StrNoUpdate;
 
       VersionInfoLabel.Width := 300;
 
@@ -255,7 +272,9 @@ procedure TWUWIZ.ControlButtonClick(Sender: TObject);
 var
   sl: TStringList;
   i,j: Integer;
+  res: Integer;
 begin
+  ControlButton.Enabled := false;
   if ControlButton.Caption <> StrExit then
   begin
     // check for custom actions to handle
@@ -265,7 +284,12 @@ begin
       sl := WebUpdate.GetWhatsNew;
       if Assigned(sl) then
       begin
+        res := mrOK;
+        if Assigned(WebUpdate.OnDownloadedWhatsNew) then
+          WebUpdate.OnDownloadedWhatsNew(WebUpdate, sl, res);
+
         WhatsNewMemo.Lines.Assign(sl);
+        sl.Free;
         {$IFDEF DELPHI5_LVL}
         PageControl1.ActivePageIndex := 2;
         {$ELSE}
@@ -286,7 +310,11 @@ begin
       sl := WebUpdate.GetEULA;
       if Assigned(sl) then
       begin
+        res := mrOK;
+        if Assigned(WebUpdate.OnDownloadedEULA) then
+          WebUpdate.OnDownloadedEULA(WebUpdate, sl, res);
         EULAMemo.Lines.Assign(sl);
+        sl.Free;
         {$IFDEF DELPHI5_LVL}
         PageControl1.ActivePageIndex := 3;
         {$ELSE}
@@ -323,28 +351,37 @@ begin
         begin
           CheckListBox1.Checked[j] := True;
           CheckListBox1.Items.Objects[j] := TObject(i - 1);
-	  {$IFDEF DELPHI5_LVL}
+          {$IFDEF DELPHI5_LVL}
           if WebUpdate.FileList.Items[i - 1].Mandatory then
             CheckListBox1.ItemEnabled[j] := false;
-          {$ENDIF} 
-          inc(j);  
-        end;    
+          {$ENDIF}
+          inc(j);
+        end;
       end;
 
       if CheckFileCount then
       begin
-        {$IFDEF DELPHI5_LVL}
-          PageControl1.ActivePageIndex := 4;
-        {$ELSE}
-          PageControl1.ActivePage := TabSheet5;
-        {$ENDIF}
-        FilesButton.Enabled := true;
-        FilesButton.SetFocus;
 
-        if AutoRun or (CheckListBox1.Items.Count = 0) then
+        if CheckListBox1.Items.Count = 0 then
         begin
-          ClickDelay;
-          FilesButtonClick(Self);
+          DownloadFiles;
+          Exit;
+        end
+        else
+        begin
+          {$IFDEF DELPHI5_LVL}
+            PageControl1.ActivePageIndex := 4;
+          {$ELSE}
+            PageControl1.ActivePage := TabSheet5;
+          {$ENDIF}
+          FilesButton.Enabled := true;
+          FilesButton.SetFocus;
+
+          if AutoRun or (CheckListBox1.Items.Count = 0) then
+          begin
+            ClickDelay;
+            FilesButtonClick(Self);
+          end;
         end;
       end
       else
@@ -376,6 +413,7 @@ begin
   if Assigned(sl) then
   begin
     EULAMemo.Lines.Assign(sl);
+    sl.Free;
     {$IFDEF DELPHI5_LVL}
     PageControl1.ActivePageIndex := 3;
     {$ELSE}
@@ -412,20 +450,27 @@ begin
       {$IFDEF DELPHI5_LVL}
       if WebUpdate.FileList.Items[i - 1].Mandatory then
         CheckListBox1.ItemEnabled[j] := false;
-      {$ENDIF} 
+      {$ENDIF}
       inc(j);
     end;
   end;
 
   if CheckFileCount then
   begin
-  {$IFDEF DELPHI5_LVL}
-    PageControl1.ActivePageIndex := 4;
-  {$ELSE}
-    PageControl1.ActivePage := TabSheet5;
-  {$ENDIF}
-    FilesButton.Enabled := true;
-    FilesButton.SetFocus;
+    if (CheckListBox1.Items.Count = 0) then
+    begin
+      DownloadFiles;
+    end
+    else
+    begin
+    {$IFDEF DELPHI5_LVL}
+      PageControl1.ActivePageIndex := 4;
+    {$ELSE}
+      PageControl1.ActivePage := TabSheet5;
+    {$ENDIF}
+      FilesButton.Enabled := true;
+      FilesButton.SetFocus;
+    end;
 
     if AutoRun then
     begin
@@ -455,7 +500,7 @@ begin
     begin
       if not WebUpdate.FileList.Items[i - 1].Hidden then
       begin
-        CheckListBox1.Checked[j] := True;
+        CheckListBox1.Checked[j] := WebUpdate.FileList.Items[i - 1].Preselect;
         CheckListBox1.Items.Objects[j] := TObject(i - 1);
 	{$IFDEF DELPHI5_LVL}
         if WebUpdate.FileList.Items[i - 1].Mandatory then
@@ -465,19 +510,27 @@ begin
       end;
     end;
 
-    {$IFDEF DELPHI5_LVL}
-    PageControl1.ActivePageIndex := 4;
-    {$ELSE}
-    PageControl1.ActivePage := TabSheet5;
-    {$ENDIF}
 
-    FilesButton.Enabled := true;
-    FilesButton.SetFocus;
-
-    if AutoRun then
+    if CheckListBox1.Items.Count = 0 then
     begin
-      ClickDelay;
-      FilesButtonClick(Self);
+      DownloadFiles;
+    end
+    else
+    begin
+      {$IFDEF DELPHI5_LVL}
+      PageControl1.ActivePageIndex := 4;
+      {$ELSE}
+      PageControl1.ActivePage := TabSheet5;
+      {$ENDIF}
+
+      FilesButton.Enabled := true;
+      FilesButton.SetFocus;
+
+      if AutoRun then
+      begin
+        ClickDelay;
+        FilesButtonClick(Self);
+      end;
     end;
   end;
 
@@ -502,6 +555,81 @@ begin
   end;
 end;
 
+procedure TWUWiz.DownloadFiles;
+begin
+  FileLabel.Caption := '';
+  FileProgress.Position := 0;
+  TotalProgress.Position := 0;
+
+  {$IFDEF DELPHI5_LVL}
+  PageControl1.ActivePageIndex := 5;
+  {$ELSE}
+  PageControl1.ActivePage := TabSheet6;
+  {$ENDIF}
+  CancelButton.Enabled := true;
+  CancelButton.SetFocus;
+
+  if AutoRun then
+    CancelButton.Enabled := false;
+
+  Cursor := crHourGlass;
+
+  if WebUpdate.GetFileUpdates = WU_FAILED then
+  begin
+    Cursor := crDefault;
+    WebUpdate.Cancel;
+    ShowMessage(FFailedDownload);
+  end;
+
+  WebUpdate.UpdateActions;
+
+  Cursor := crDefault;
+
+  if WebUpdate.Cancelled then
+  begin
+    UpdateDone;
+  end
+  else
+  begin
+    WebUpdate.StopConnection;
+
+    if Assigned(WebUpdate.OnSuccess) then
+      WebUpdate.OnSuccess(WebUpdate);
+
+    if WebUpdate.AppNeedsRestart then
+    begin
+      {$IFDEF DELPHI5_LVL}
+      PageControl1.ActivePageIndex := 6;
+      {$ELSE}
+      PageControl1.ActivePage := TabSheet7;
+      {$ENDIF}
+      RestartButton.Enabled := true;
+      RestartButton.SetFocus;
+
+    end
+    else
+    begin
+      {$IFDEF DELPHI5_LVL}
+      PageControl1.ActivePageIndex := 6;
+      {$ELSE}
+      PageControl1.ActivePage := TabSheet7;
+      {$ENDIF}
+      RestartButton.Caption := StrExit;
+      SetButtonWidth(RestartButton);
+      Label8.Caption := '';
+      RestartButton.Enabled := true;
+      RestartButton.SetFocus;
+    end;
+
+    if AutoRun then
+    begin
+      ClickDelay;
+      RestartButtonClick(Self);
+    end;
+  end;
+end;
+
+
 procedure TWUWIZ.FilesButtonClick(Sender: TObject);
 var
   i,j,k: Integer;
@@ -509,7 +637,7 @@ begin
   for i := 1 to WebUpdate.FileList.Count do
     WebUpdate.FileList.Items[i - 1].Selected := true;
 
-  // indicate the selected items  
+  // indicate the selected items
   for i := 1 to CheckListBox1.Items.Count do
   begin
     if not CheckListBox1.Checked[i - 1] then
@@ -531,74 +659,9 @@ begin
 
   if CheckFileCount then
   begin
-    FileLabel.Caption := '';
-    FileProgress.Position := 0;
-    TotalProgress.Position := 0;
 
-    {$IFDEF DELPHI5_LVL}
-    PageControl1.ActivePageIndex := 5;
-    {$ELSE}
-    PageControl1.ActivePage := TabSheet6;
-    {$ENDIF}
-    CancelButton.Enabled := true;
-    CancelButton.SetFocus;
+    DownloadFiles;
 
-    if AutoRun then
-      CancelButton.Enabled := false;
-
-    Cursor := crHourGlass;
-
-    if WebUpdate.GetFileUpdates = WU_FAILED then
-    begin
-      Cursor := crDefault;
-      WebUpdate.Cancel;
-      ShowMessage(FFailedDownload);
-    end;
-
-    WebUpdate.UpdateActions;
-
-    Cursor := crDefault;
-
-    if WebUpdate.Cancelled then
-    begin
-      UpdateDone;
-    end
-    else
-    begin
-      WebUpdate.StopConnection;
-
-      if WebUpdate.AppNeedsRestart then
-      begin
-        {$IFDEF DELPHI5_LVL}
-        PageControl1.ActivePageIndex := 6;
-        {$ELSE}
-        PageControl1.ActivePage := TabSheet7;
-        {$ENDIF}
-        RestartButton.Enabled := true;
-        RestartButton.SetFocus;
-
-      end
-      else
-      begin
-        {$IFDEF DELPHI5_LVL}
-        PageControl1.ActivePageIndex := 6;
-        {$ELSE}
-        PageControl1.ActivePage := TabSheet7;
-        {$ENDIF}
-        RestartButton.Caption := StrExit;
-        SetButtonWidth(RestartButton);
-        Label8.Caption := '';
-        RestartButton.Enabled := true;
-        RestartButton.SetFocus;
-      end;
-
-      if AutoRun then
-      begin
-        ClickDelay;
-        RestartButtonClick(Self);
-      end;
-
-    end;
   end;
 end;
 
@@ -638,10 +701,28 @@ begin
   Close;
 end;
 
+procedure TWUWIZ.ViewinNotepad1Click(Sender: TObject);
+var
+  fname: string;
+begin
+  fname := WinTempDir + 'whatsnew.txt';
+  WhatsNewMemo.Lines.SaveToFile(fname);
+  ShellExecute(0,'open',pchar(fname),nil,nil,SW_NORMAL);
+end;
+
+procedure TWUWIZ.ViewinNotepad2Click(Sender: TObject);
+var
+  fname: string;
+begin
+  fname := WinTempDir + 'eula.txt';
+  EULAMemo.Lines.SaveToFile(fname);
+  ShellExecute(0,'open',pchar(fname),nil,nil,SW_NORMAL);
+end;
+
 function TWUWIZ.CheckFileCount: Boolean;
 begin
   Result := True;
-  if WebUpdate.FileList.Count = 0 then
+  if (WebUpdate.FileList.Count = 0) then
   begin
     ShowMessage(StrNoNewFiles);
     UpdateDone;

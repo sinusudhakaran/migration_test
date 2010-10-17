@@ -1,9 +1,8 @@
 {**************************************************************************}
 { TParamListBox component                                                  }
 { for Delphi & C++Builder                                                  }
-{ version 1.3                                                              }
 {                                                                          }
-{ Copyright © 2000-2006                                                    }
+{ Copyright © 2000-2008                                                    }
 {   TMS Software                                                           }
 {   Email : info@tmssoftware.com                                           }
 {   Web : http://www.tmssoftware.com                                       }
@@ -37,16 +36,21 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 1; // Release nr.
+  REL_VER = 3; // Release nr.
   BLD_VER = 0; // Build nr.
 
   // version history
   // 1.3.0.1 : improved mask editor property handling
   // 1.3.1.0 : improved positioning of directory select dialog on multimonitor machines
-
+  // 1.3.3.0 : Fixed issue with spinedit
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   EHTMListBoxError = class(Exception);
 
   {$IFDEF USEBARSTYLE}
@@ -1267,8 +1271,11 @@ begin
 
       PrepareParam(Param,v);
 
-      // FParamSpinEdit.Value := StrToInt(Trim(v));
-      FParamSpinEdit.Text := v;
+      try
+        FParamSpinEdit.Value := StrToInt(Trim(v));
+      except
+        FParamSpinEdit.Value := 0;
+      end;
       FParamSpinEdit.SetFocus;
     end;
 

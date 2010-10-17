@@ -26,13 +26,14 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 1; // Build nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // Folderdialog
   // v1.0.0.0 : first release
   // v1.0.1.0 : improved positioning of directory select dialog on multimonitor machines
   // v1.0.1.1 : fix for initializing directory
+  // v1.0.2.0 : added Caption property
 
 type
 
@@ -51,6 +52,7 @@ type
     FDialogX: Integer;
     FDialogY: Integer;
     FDialogPosition: TDialogPosition;
+    FCaption: string; 
     procedure SetTitle(const Value: string);
     procedure SetDirectory(const Value: string);
     procedure SetOptions(const Value: TFolderOptions);
@@ -69,6 +71,7 @@ type
     function Execute: boolean;
   published
     { Published declarations }
+    property Caption: string read FCaption write FCaption;
     property Title: string read FTitle write SetTitle;
     property Directory: string read FDirectory write SetDirectory;
     property ImageIndex: Integer read FImageIndex;
@@ -81,7 +84,7 @@ type
 
 implementation
 
-Uses ShlObj, Forms, ActiveX;
+Uses ShlObj, Forms, ActiveX, Messages;
 
 const
    bif_NoNewFolderButton = $0200;
@@ -137,6 +140,8 @@ begin
           end;
       end;
       SetWindowPos(Wnd, HWND_NOTOPMOST, x, y, 0, 0, SWP_NOSIZE or SWP_NOZORDER);
+      if FCaption <> '' then 
+        SendMessage(Wnd, WM_SETTEXT, 0, Integer(PChar(FCaption)));    
     end;
   end;
   Result := 0;
@@ -149,6 +154,7 @@ begin
     Directory := GetCurrentDir;
   DialogPosition := fdpDefault;
   Options := [fdoNewDialogStyle];
+  FCaption := '';
 end;
 
 function TFolderDialog.Execute: boolean;

@@ -1,10 +1,9 @@
 {***************************************************************************}
-{ TAdvOfficeStatusBar component                                            s }
+{ TAdvOfficeStatusBar component                                             }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2007                                               }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -31,9 +30,9 @@ implementation
 
 procedure Register;
 begin
-  RegisterComponents('TMS', [TAdvOfficeStatusBar,
-                             TAdvOfficeStatusBarOfficeStyler {,
-                             TAdvOfficeStatusBarFantasyStyler }]);
+  RegisterComponents('TMS Menus', [TAdvOfficeStatusBar,
+                                   TAdvOfficeStatusBarOfficeStyler {,
+                                   TAdvOfficeStatusBarFantasyStyler }]);
 end;
 
 

@@ -1533,7 +1533,10 @@ var
 procedure UnLoadDLL;
 begin
   if DLLLoaded then
+  begin
     FreeLibrary(DLLHandle);
+    DLLLoaded := false;
+  end;
 end;
 
 procedure LoadDLL;

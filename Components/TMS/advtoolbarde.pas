@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TMS ToolBars component                                                  }
 { for Delphi & C++Builder                                                 }
-{ version 2.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright ©  2005 - 2006                                      }
+{           copyright ©  2005 - 2008                                      }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -25,7 +24,7 @@ interface
 
 uses
   Classes, Graphics, Comctrls, Windows, Forms, TypInfo, Dialogs, ExtCtrls,
-  Controls, AdvGlowButton, ExtDlgs, GDIPicture, AdvToolBar
+  Controls, AdvGlowButton, ExtDlgs, GDIPicture, AdvToolBar, AdvShapeButton
 {$IFDEF TMSPACK}
   , AdvOfficeSelectors, AdvOfficeComboBox
 {$ENDIF}
@@ -115,11 +114,13 @@ type
 implementation
 
 uses
-  SysUtils,
+  SysUtils
+  {$IFNDEF TMS_STD}
   {$IFDEF DELPHI6_LVL}
-  VDBConsts
+  , VDBConsts
   {$ELSE}
-  DBConsts
+  , DBConsts
+  {$ENDIF}
   {$ENDIF}
   ;
 
@@ -174,12 +175,14 @@ var
   ATBButton : TAdvToolBarButton;
   ATBMenuButton: TAdvToolBarMenuButton;
   ATBSeparator: TAdvToolBarSeparator;
+  {$IFNDEF TMS_STD}
   DBATBButton: TDBAdvToolBarButton;
+  ADBGlowButton: TDBAdvGlowButton;
+  {$ENDIF}
   ATB: TAdvToolBar;
   ATBContainer: TAdvToolBarContainer;
   AGlowButton: TAdvGlowButton;
   AGlowMenuButton: TAdvGlowMenuButton;
-  ADBGlowButton: TDBAdvGlowButton;
 {$IFDEF TMSPACK}
   ACOLSelector: TAdvOfficeColorSelector;
   ATCOLSelector: TAdvOfficeTextColorSelector;
@@ -236,15 +239,18 @@ begin
     end;
   3:
     begin
+      {$IFNDEF TMS_STD}
       DBATBButton := TDBAdvToolBarButton(Designer.CreateComponent(TDBAdvToolBarButton,Component,0, 0,45,23));
       DBATBButton.Width := 23;
       DBATBButton.Height := 22;
       DBATBButton.Parent := ATB;
       DBATBButton.Caption := '';
       DBATBButton.AdvToolBar := ATB;
+      {$ENDIF}
     end;
   4:
     begin
+      {$IFNDEF TMS_STD}
       for I := 1 to 10 do
       begin
         DBATBButton := TDBAdvToolBarButton(Designer.CreateComponent(TDBAdvToolBarButton,Component,0, 0,45,23));
@@ -307,6 +313,7 @@ begin
           end;
         end;
       end;
+      {$ENDIF}      
     end;
   5:
     begin
@@ -349,6 +356,7 @@ begin
     end;
   8:
     begin
+      {$IFNDEF TMS_STD}
       ADBGlowButton := TDBAdvGlowButton(Designer.CreateComponent(TDBAdvGlowButton,Component,0, 0,23,22));
       ADBGlowButton.Width := 23;
       ADBGlowButton.Height := 22;
@@ -361,9 +369,11 @@ begin
       if Assigned(ATB.ToolBarStyler) then
         ADBGlowButton.Appearance.Assign(ATB.ToolBarStyler.GlowButtonAppearance);
       ADBGlowButton.Caption := '';
+      {$ENDIF}
     end;
   9:
     begin
+      {$IFNDEF TMS_STD}
       for I := 1 to 10 do
       begin
         ADBGlowButton := TDBAdvGlowButton(Designer.CreateComponent(TDBAdvGlowButton,Component,0, 0,23,22));
@@ -430,6 +440,7 @@ begin
           end;
         end;
       end;
+      {$ENDIF}
     end;
   {$IFDEF TMSPACK}
   10:
@@ -608,11 +619,13 @@ var
   ATBButton : TAdvToolBarButton;
   ATBMenuButton: TAdvToolBarMenuButton;
   ATBSeparator: TAdvToolBarSeparator;
+  {$IFNDEF TMS_STD}
   DBATBButton: TDBAdvToolBarButton;
+  ADBGlowButton: TDBAdvGlowButton;
+  {$ENDIF}
   ATB: TWinControl;
   AGlowButton: TAdvGlowButton;
   AGlowMenuButton: TAdvGlowMenuButton;
-  ADBGlowButton: TDBAdvGlowButton;
   ATBContainer: TAdvToolBarContainer;
   I: Integer;
 {$IFDEF TMSPACK}
@@ -770,6 +783,7 @@ begin
     end;
   3:
     begin
+      {$IFNDEF TMS_STD}
       DBATBButton := TDBAdvToolBarButton(Designer.CreateComponent(TDBAdvToolBarButton,Component,0, 0,45,23));
       DBATBButton.Width := 23;
       DBATBButton.Height := 22;
@@ -779,9 +793,11 @@ begin
         DBATBButton.AdvToolBar := TAdvToolBar(ATB)
       else if (TAdvToolBarButton(Component).Parent is TAdvQuickAccessToolBar) then
         DBATBButton.AdvQuickAccessToolBar := TAdvQuickAccessToolBar(ATB);
+      {$ENDIF}
     end;
   4:
     begin
+      {$IFNDEF TMS_STD}
       for I := 1 to 10 do
       begin
         DBATBButton := TDBAdvToolBarButton(Designer.CreateComponent(TDBAdvToolBarButton,Component,0, 0,45,23));
@@ -847,12 +863,13 @@ begin
           end;
         end;
       end;
+      {$ENDIF}
     end;
   5:
     begin
       if (TAdvToolBarButton(Component).Parent is TAdvQuickAccessToolBar) then
         Exit;
-    
+
       ATBContainer := TAdvToolBarContainer(Designer.CreateComponent(TAdvToolBarContainer,Component,0, 0,65,45));
       ATBContainer.Width := 65;
       ATBContainer.Height := 45;
@@ -907,6 +924,7 @@ begin
     end;
   8:
     begin
+      {$IFNDEF TMS_STD}
       ADBGlowButton := TDBAdvGlowButton(Designer.CreateComponent(TDBAdvGlowButton,Component,0, 0,23,22));
       ADBGlowButton.Width := 23;
       ADBGlowButton.Height := 22;
@@ -925,9 +943,11 @@ begin
         if (TAdvQuickAccessToolBar(ATB).Parent is TAdvToolBarPager) and Assigned(TAdvToolBarPager(ATB.Parent).ToolBarStyler) then
           ADBGlowButton.Appearance.Assign(TAdvToolBarPager(ATB.Parent).ToolBarStyler.GlowButtonAppearance);
       end;
+      {$ENDIF}
     end;
   9:
     begin
+      {$IFNDEF TMS_STD}
       for I := 1 to 10 do
       begin
         ADBGlowButton := TDBAdvGlowButton(Designer.CreateComponent(TDBAdvGlowButton,Component,0, 0,23,22));
@@ -1003,6 +1023,7 @@ begin
           end;
         end;
       end;
+      {$ENDIF}
     end;
   {$IFDEF TMSPACK}
   10:
@@ -1325,11 +1346,14 @@ var
   ATBButton : TAdvToolBarButton;
   ATBMenuButton: TAdvToolBarMenuButton;
   ATBSeparator: TAdvToolBarSeparator;
+  {$IFNDEF TMS_STD}
   DBATBButton: TDBAdvToolBarButton;
+  ADBGlowButton: TDBAdvGlowButton;
+  {$ENDIF}
   ATB: TAdvToolBar;
   AGlowButton: TAdvGlowButton;
   AGlowMenuButton: TAdvGlowMenuButton;
-  ADBGlowButton: TDBAdvGlowButton;
+
   I: Integer;
 {$IFDEF TMSPACK}
   ACOLSelector: TAdvOfficeColorSelector;
@@ -1386,6 +1410,7 @@ begin
     end;
   3:
     begin
+      {$IFNDEF TMS_STD}
       DBATBButton := TDBAdvToolBarButton(Designer.CreateComponent(TDBAdvToolBarButton,Component,0, 0,45,23));
       DBATBButton.Width := 23;
       DBATBButton.Height := 22;
@@ -1393,9 +1418,11 @@ begin
       DBATBButton.Parent := TAdvToolBarContainer(Component);
       DBATBButton.Caption := '';
       //DBATBButton.AdvToolBar := ATB;
+      {$ENDIF}
     end;
   4:
     begin
+      {$IFNDEF TMS_STD}
       for I := 1 to 10 do
       begin
         DBATBButton := TDBAdvToolBarButton(Designer.CreateComponent(TDBAdvToolBarButton,Component,0, 0,45,23));
@@ -1459,6 +1486,7 @@ begin
           end;
         end;
       end;
+      {$ENDIF}
     end;
   5:
     begin
@@ -1478,14 +1506,17 @@ begin
     end;
   7:
     begin
+      {$IFNDEF TMS_STD}
       ADBGlowButton := TDBAdvGlowButton(Designer.CreateComponent(TDBAdvGlowButton,Component,0, 0,23,22));
       ADBGlowButton.Width := 23;
       ADBGlowButton.Height := 22;
       ADBGlowButton.Parent := ATB;
       ADBGlowButton.Caption := '';
+      {$ENDIF}
     end;
   8:
     begin
+      {$IFNDEF TMS_STD}
       for I := 1 to 10 do
       begin
         ADBGlowButton := TDBAdvGlowButton(Designer.CreateComponent(TDBAdvGlowButton,Component,0, 0,23,22));
@@ -1547,6 +1578,7 @@ begin
           end;
         end;
       end;
+      {$ENDIF}
     end;
   {$IFDEF TMSPACK}
   9:
@@ -1723,11 +1755,14 @@ var
   ATBButton : TAdvToolBarButton;
   ATBMenuButton: TAdvToolBarMenuButton;
   ATBSeparator: TAdvToolBarSeparator;
+  {$IFNDEF TMS_STD}
   DBATBButton: TDBAdvToolBarButton;
+  ADBGlowButton: TDBAdvGlowButton;
+  {$ENDIF}
   ATB: TWinControl;
   AGlowButton: TAdvGlowButton;
   AGlowMenuButton: TAdvGlowMenuButton;
-  ADBGlowButton: TDBAdvGlowButton;
+
   ATBContainer: TAdvToolBarContainer;
   I: Integer;
 {$IFDEF TMSPACK}
@@ -2020,6 +2055,7 @@ begin
     end;
   3:
     begin
+      {$IFNDEF TMS_STD}
       DBATBButton := TDBAdvToolBarButton(Designer.CreateComponent(TDBAdvToolBarButton,Component,0, 0,45,23));
       DBATBButton.Width := 23;
       DBATBButton.Height := 22;
@@ -2031,10 +2067,12 @@ begin
       begin
         DBATBButton.AdvQuickAccessToolBar := TAdvQuickAccessToolBar(ATB);
         DBATBButton.Left := 1000;
-      end;  
+      end;
+      {$ENDIF}
     end;
   4:
     begin
+      {$IFNDEF TMS_STD}
       for I := 1 to 10 do
       begin
         DBATBButton := TDBAdvToolBarButton(Designer.CreateComponent(TDBAdvToolBarButton,Component,0, 0,45,23));
@@ -2049,7 +2087,7 @@ begin
           DBATBButton.AdvQuickAccessToolBar := TAdvQuickAccessToolBar(ATB);
           DBATBButton.Left := 1000;
         end;
-          
+
         case I of
           1:
           begin
@@ -2104,12 +2142,13 @@ begin
           end;
         end;
       end;
+      {$ENDIF}
     end;
   5:
     begin
       if (TAdvGlowButton(Component).Parent is TAdvQuickAccessToolBar) then
         Exit;
-    
+
       ATBContainer := TAdvToolBarContainer(Designer.CreateComponent(TAdvToolBarContainer,Component,0, 0,65,45));
       ATBContainer.Width := 65;
       ATBContainer.Height := 45;
@@ -2148,6 +2187,7 @@ begin
     end;
   8:
     begin
+      {$IFNDEF TMS_STD}
       ADBGlowButton := TDBAdvGlowButton(Designer.CreateComponent(TDBAdvGlowButton,Component,0, 0,23,22));
       ADBGlowButton.Width := 23;
       ADBGlowButton.Height := 22;
@@ -2157,9 +2197,11 @@ begin
       begin
         ADBGlowButton.Left := 1000;
       end;
+      {$ENDIF}
     end;
   9:
     begin
+      {$IFNDEF TMS_STD}
       for I := 1 to 10 do
       begin
         ADBGlowButton := TDBAdvGlowButton(Designer.CreateComponent(TDBAdvGlowButton,Component,0, 0,23,22));
@@ -2226,6 +2268,7 @@ begin
           end;
         end;
       end;
+      {$ENDIF}
     end;
   {$IFDEF TMSPACK}
   10:
@@ -2521,6 +2564,9 @@ procedure TAdvToolBarPagerEditor.ExecuteVerb(Index: Integer);
 var
   AdvPage : TAdvPage;
   QAT: TAdvQuickAccessToolBar;
+  ASB: TAdvShapeButton;
+  i: integer;
+  hasappmenu: boolean;
 begin
   inherited;
   case Index of
@@ -2549,7 +2595,24 @@ begin
       //QAT.AdvToolBarPager := TAdvToolBarPager(Component);
     end;
   4:begin
-      ShowMessage('TMS Advanced ToolBars & Menus version ' + TAdvToolBarPager(Component).Version+#13#10'Copyright © 2005 - 2007 by TMS software');
+      hasappmenu := false;
+      for i := 0 to TAdvToolBarPager(Component).ControlCount - 1 do
+      begin
+        if (TAdvToolBarPager(Component).Controls[i] is TAdvShapeButton) then
+          hasappmenu := true;
+      end;
+
+      if not hasappmenu then
+      begin
+        ASB := TAdvShapeButton(Designer.CreateComponent(TAdvShapeButton,Component, 8,4,48,48));
+        ASB.Parent := TAdvToolBarPager(Component);
+        ASB.Left := 8;
+      end
+      else
+        ShowMessage('TAdvToolBarPager already has an Application Menu Button');
+    end;
+  5:begin
+      ShowMessage('TMS Advanced ToolBars && Menus version ' + TAdvToolBarPager(Component).Version+#13#10'Copyright © 2005 - 2008 by TMS software');
     end;
   end;
 end;
@@ -2560,14 +2623,15 @@ begin
   0: Result := 'New Page';
   1: Result := 'Previous Page';
   2: Result := 'Next Page';
-  3: Result := 'Add Quick access toolbar';
-  4: Result := 'About';
+  3: Result := 'Add Quick Access Toolbar';
+  4: Result := 'Add Application Menu Button';
+  5: Result := 'About';
   end;
 end;
 
 function TAdvToolBarPagerEditor.GetVerbCount: Integer;
 begin
-  Result := 5;
+  Result := 6;
 end;
 
 { TAdvPageEditor }

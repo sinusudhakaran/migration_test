@@ -1,10 +1,10 @@
 {***************************************************************************}
 { TDBAdvCardList component                                                  }
 { for Delphi & C++Builder                                                   }
-{ version 1.1                                                               }
+{ version 1.2                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2005                                               }
+{            copyright © 2005 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -34,16 +34,17 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 2; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 2; // Build nr.
 
   // version history
   // 1.1.0.0 : New method InitTemplate to automatically initialize template according to DB fields
   // 1.1.1.0 : New event OnCardUpdate added
-
+  // 1.2.0.0 : Compatibility update with TAdvCardList
+  // 1.2.2.2 : Improved : shows DisplayText for string field types
+  //         : Improved : editing DB updating
 
 type
-
   { forward declarations }
 
   TDBAdvCardTemplateItem = class;
@@ -117,6 +118,8 @@ type
     procedure ActiveChanged; override;
     procedure DataSetScrolled(Distance: Integer); override;
     procedure RecordChanged(Field: TField); override;
+    procedure EditingChanged; override;
+    procedure DataSetChanged; override;
   public
     constructor Create(ACardList: TDBAdvCardList);
     procedure AdjustBuffer;
@@ -132,6 +135,8 @@ type
     Scrolling: Boolean;
     LastRecordRead: Boolean;
     FOnCardUpdate: TAdvCardEvent;
+    FSelChange: boolean;
+    FEditChange: boolean;
     procedure CalcScrollBarPosition(var Pos: Integer);
     function GetCardTemplate: TDBAdvCardTemplate;
     function GetDataSource: TDataSource;
@@ -165,6 +170,8 @@ type
     function FindCard(BeginWith: string): TAdvCard; override;
     property LeftCol;
     procedure InitTemplate;
+    procedure StartDBEdit;
+    procedure StopDBEdit;
   published
     property DataSource: TDataSource read GetDataSource write SetDataSource;
     property CardTemplate: TDBAdvCardTemplate read GetCardTemplate write SetCardTemplate;
@@ -499,11 +506,22 @@ begin
   Adjusting := False;
 end;
 
+procedure TCardListDataLink.DataSetChanged;
+begin
+  inherited;
+end;
+
 procedure TCardListDataLink.DataSetScrolled(Distance: Integer);
 var
   DoAdjust: Boolean;
 begin
   if not Assigned(FCardList) then
+    Exit;
+
+  if FCardList.FSelChange then
+    Exit;
+
+  if FCardList.FEditChange then
     Exit;
 
   FCardList.Scrolling := True;
@@ -516,14 +534,22 @@ begin
   else
   begin
     inc(FCardList.LockUpdate);
-    DoAdjust := ActiveRecord >= FCardList.SelectedIndex;
+    //DoAdjust := ActiveRecord >= FCardList.SelectedIndex;
+    DoAdjust := (ActiveRecord > FCardList.VisibleCardCount - 1) or (ActiveRecord = 0);
     FCardList.SelectedIndex := ActiveRecord;
     if DoAdjust then
       AdjustBuffer;
     dec(FCardList.LockUpdate);
   end;
+
   FCardList.UpdateScrollBar;
+
   FCardList.Scrolling := False;
+end;
+
+procedure TCardListDataLink.EditingChanged;
+begin
+  inherited;
 end;
 
 procedure TCardListDataLink.RecordChanged(Field: TField);
@@ -562,20 +588,28 @@ end;
 procedure TDBAdvCardList.DataChanged(Card: TAdvCard; Item: TAdvCardItem; DataObject: TDataChangedObject);
 var
   OldSelItem: Integer;
+
 begin
   if not Assigned(FDataLink) or (csLoading in ComponentState) then Exit;
+
+  FEditChange := true;
+
   if FDataLink.Active and not CardsUpdating
      and not (FDataLink.DataSet.State in [dsEdit])
      and (LockUpdate <= 0) then
   begin
     OldSelItem := Item.Index;
+
     if DataObject = dcoItem then
     begin
       if Assigned(CardTemplate.Items[Item.Index].Field) then
       begin
         inc(LockUpdate);
+
         try
-          if SelectedIndex <> Card.Index then SelectedIndex := Card.Index;
+          if SelectedIndex <> Card.Index then
+            SelectedIndex := Card.Index;
+
           if FDataLink.Edit then
           begin
             try
@@ -624,22 +658,36 @@ begin
       if FDataLink.Edit then FDataLink.DataSet.Post;
     except
       FDataLink.DataSet.Cancel;
+      FEditChange := false;
     end;
-    UpdateDBCards;
-    if SelectedIndex <> -1 then SelectedCard.SelectedItem := OldSelItem;
+
+    if not FEditChange then
+    begin
+      UpdateDBCards;
+      if SelectedIndex <> -1 then
+        SelectedCard.SelectedItem := OldSelItem;
+    end;
   end;
+  
+  FEditChange := false;
 end;
 
 procedure TDBAdvCardList.RecordChanged(Field: TField);
 begin
   if not HandleAllocated or (LockUpdate > 0) then Exit;
+
+  if FEditChange then
+    Exit;
+
   inc(LockUpdate);
   try
     if (Field = nil) or (SelectedIndex < 0) then
       UpdateDBCards
     else
     if Assigned(SelectedCard) then
-      UpdateCard(SelectedCard)
+    begin
+      UpdateCard(SelectedCard);
+    end;
   finally
     dec(LockUpdate);
   end;
@@ -756,6 +804,16 @@ begin
   end;
 end;
 
+procedure TDBAdvCardList.StartDBEdit;
+begin
+  FEditChange := true;
+end;
+
+procedure TDBAdvCardList.StopDBEdit;
+begin
+  FEditChange := false;
+end;
+
 function TDBAdvCardList.GetBufferCount: Integer;
 begin
   Result := 0;
@@ -784,10 +842,12 @@ begin
   if Assigned(FDatalink) and FDatalink.Active and (SelectedIndex <> -1) then
     with FDataLink.DataSet do
       begin
+        FSelChange := true;
         inc(LockUpdate);
         MoveCount := SelectedIndex - FDataLink.ActiveRecord;
         FDataLink.MoveBy(MoveCount);
         dec(LockUpdate);
+        FSelChange := false;
       end;
 end;
 
@@ -997,9 +1057,9 @@ begin
   TItem := CardTemplate.Items[ItemIndex];
   if Assigned(TItem.Field) then
   case TItem.DataType of
-    idtString:
+    idtString:                                                         
       begin
-        Card.ItemList[ItemIndex].AsString := AdjustLineBreaks(TItem.Field.AsString);
+        Card.ItemList[ItemIndex].AsString := AdjustLineBreaks(TItem.Field.DisplayText);
       end;
     idtInteger: Card.ItemList[ItemIndex].AsInteger := TItem.Field.AsInteger;
     idtFloat: Card.ItemList[ItemIndex].AsFloat := TItem.Field.AsFloat;
@@ -1124,7 +1184,7 @@ begin
 
   if not Assigned(FDataLink) or (csLoading in ComponentState) or
     (csDesigning in ComponentState) then Exit;
-  if FDatalink.Active and HandleAllocated then
+  if FDatalink.Active and HandleAllocated and ShowScrollbar then
   begin
 {$IFDEF DELPHI7_LVL}
     if not ThemeServices.ThemesEnabled then
@@ -1232,7 +1292,8 @@ begin
       end
       else
         Result := inherited JumpToCard(Offset, ToBegin, ToEnd);
-    end {ToEnd} else
+    end {ToEnd}
+    else
     begin
       if FDataLink.Active then
       begin

@@ -140,7 +140,16 @@ begin
     {$ENDIF}
     {$ENDIF}
 
-    MessageDlg(Component.ClassName+' version '+(Component as TInspectorBar).VersionString+' for '+compiler+#13#10'© 2001-2005 by TMS software',
+    {$IFDEF VER185}
+    {$IFDEF BCB}
+    compiler := 'C++Builder 2007';
+    {$ELSE}
+    compiler := 'Delphi 2007';
+    {$ENDIF}
+    {$ENDIF}
+
+
+    MessageDlg(Component.ClassName+' version '+(Component as TInspectorBar).VersionString+' for '+compiler+#13#10'© 2001-2007 by TMS software',
                mtinformation,[mbok],0);
     end;
   1:begin

@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvMemo component                                                        }
 { for Delphi & C++Builder                                                   }
-{ version 2.1                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2001 - 2006                                        }
+{            copyright © 2001 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -19,11 +18,11 @@
 
 {$I TMSDEFS.INC}
 
-unit AdvMemo;
+unit AdvMemo;                                                 
 
-{$IFDEF TMSDOTNET}
+{$IFDEF TMSDOTNET} 
 {$R AdvMemo.Resources}
-{$ENDIF}
+{$ENDIF}                                               
 
 {$IFNDEF TMSDOTNET}
 {$R AdvMemo.res}
@@ -61,9 +60,9 @@ uses
 const
   MAJ_VER = 2; // Major version nr.
   MIN_VER = 1; // Minor version nr.
-  REL_VER = 2; // Release nr.
-  BLD_VER = 5; // Build nr.
-  DATE_VER = 'Dec, 2006'; // Month version
+  REL_VER = 5; // Release nr.
+  BLD_VER = 6; // Build nr.
+  DATE_VER = 'Jul, 2008'; // Month version
 
 {$IFDEF TMSDOTNET}
   ResourceBaseName = 'AdvMemo';
@@ -124,6 +123,45 @@ const
   //          : Improved : smarttabs behaviour with backspace key
   //          : Fixed : issue with copy & paste in VCL.NET
   // 2.1.2.5  : Fixed : issue with DeleteSelection for ReadOnly memo
+  // 2.1.2.6  : Fixed : issue with codefolding & mousewheel handling
+  // 2.1.2.7  : Fixed : issue with Ctrl-End, Ctrl-Home selection
+  //          : Improved : PageUp/PageDn scroll behaviour
+  // 2.1.3.0  : New : C++Builder support added
+  // 2.1.3.1  : New : public property ClearType added
+  //          : Fixed : issue with setting TopLine when VisibleLineCount > LinesCount
+  // 2.1.3.2  : Improved : GetSelText speed improvement for older Delphi versions
+  // 2.1.3.3  : Improved : Faster Lines.LoadFromStream, Lines.Text access
+  // 2.1.3.4  : Fixed : autoindent issue
+  //          : Fixed : issue with backspace and AutoExpand = false
+  // 2.1.3.5  : Fixed : issue with Undo & Modified with spell check
+  // 2.1.3.6  : Fixed : issue with Enter in empty memo
+  // 2.1.3.7  : Fixed : issue with adding multiline text via Memo.Lines.Add()
+  // 2.1.3.8  : Fixed : issue with Paste Undo
+  // 2.1.3.9  : Fixed : issue with autocompletion after '.'
+  // 2.1.3.10 : Fixed : issue with delete char Undo
+  // 2.1.3.11 : Fixed : issue with Lines.AddObject()
+  // 2.1.3.12 : Improved : redraw in TDBAdvMemo
+  // 2.1.3.13 : Fixed : issue with ClearModified
+  // 2.1.3.14 : Fixed : issue with scrollbar handling
+  // 2.1.3.15 : Fixed : issue with pasting multiline text in empty memo
+  // 2.1.3.16 : Fixed : issue with paste on non expanded line
+  // 2.1.3.17 : Fixed : issue with repainting after RemoveAllCodeFolding
+  // 2.1.3.18 : Fixed : issue with pasting into an empty memo
+  // 2.1.3.19 : Fixed : issue with TrimTrailingSpaces = false
+  // 2.1.3.20 : Fixed : issue in Delphi 5 with inserting lines
+  // 2.1.4.0  : Improved : block marking for try ...catch, case.. blocks in Pascal
+  // 2.1.4.1  : Fixed : issue with scrollbar animation on Windows Vista
+  // 2.1.4.2  : Fixed : gutter painting update when setting Modified = false programmatically
+  //          : Improved : behaviour with SmartTabs = true
+  // 2.1.5.0  : New : method SaveToRTFStream added
+  //          : Improved : autocompletion list updating while typing
+  // 2.1.5.1  : Improved : fix for destroying memo from some memo events
+  // 2.1.5.2  : Improved : cursor handling during mousewheel actions
+  // 2.1.5.3  : Improved : node expand/collaps in scrolled memo
+  // 2.1.5.4  : Fixed : issue with getting correct bracket style of top line
+  // 2.1.5.5  : Fixed : issue with Undo after Select-All/Cut
+  // 2.1.5.6  : Fixed : issue with AdvMemoSource Assign (when no memo connected)
+  //          : Improved : handling of stBracket type ending with #32 
 
 type
   TBorderType = (btRaised, btLowered, btFlatRaised, btFlatLowered);
@@ -203,7 +241,6 @@ type
     procedure Add(Value: integer);
     procedure Insert(Index, Value: integer);
     procedure Delete(Index: Integer);
-  published
   end;
 
   TAutoCompletionListBox = class(TListBox)
@@ -472,6 +509,8 @@ type
     FLinesProp: TList;
     FListLengths: TIntList;
     function GetRealCount: integer;
+    function GetTextEx: string;
+    procedure SetTextEx(const Value: string);
   protected
     procedure SetUpdateState(Updating: boolean); override;
     function Get(Index: Integer): string; override;
@@ -489,6 +528,7 @@ type
     destructor Destroy; override;
     function DoAdd(const S: string): integer;
     function Add(const S: string): integer; override;
+    function AddObject(const S: string; AObject: TObject): Integer; override;
     procedure Clear; override;
     procedure ClearStrings;
     procedure AddStrings(strings: TStrings); override;
@@ -497,8 +537,10 @@ type
     procedure Delete(Index: integer); override;
     procedure Insert(Index: integer; const S: string); override;
     procedure LoadFromFile(const FileName: string); override;
+    procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToFile(const FileName: string); override;
     property RealCount: Integer read GetRealcount;
+    property Text: string read GetTextEx write SetTextEx;
   published
     property OnChange;
     property OnChanging;
@@ -687,6 +729,13 @@ type
     property SelRowTo: integer read FSelRowTo write FSelRowTo;
   end;
 
+  TCorrectUndo = class(TUndo)
+  public
+    constructor Create(LineNo: integer; UndoLine: string);
+    procedure PerformUndo; override;
+    procedure PerformRedo; override;
+  end;
+
 
   TAdvUndoList = class(TList)
   private
@@ -838,6 +887,7 @@ type
   protected
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     function ReplaceOnce(const S, OldPattern, NewPattern: string): string;
+    procedure AddUndo(LineNo: integer; UndoLine: string);
   public
     property Memo: TAdvCustomMemo read FMemo write FMemo;
 
@@ -963,7 +1013,7 @@ type
     FLetShowAutoCompletion: Boolean;
     FSearching: Boolean;
     FHintShowing: Boolean;
-    FListcompletion: TAutoCompletionListBox;
+    FListCompletion: TAutoCompletionListBox;
     FormAutoCompletion: TAdvAutoForm;
     FAutoCompletion: TAutoCompletion;
     FMarkerList: TAdvMarkerList;
@@ -1048,6 +1098,7 @@ type
     FShouldCheckCodeFolding: Boolean;
    	FCodeFoldingNodeCount: Integer;
     FBorderColor: TColor;
+    FClearType: boolean;
     procedure OnCodeFoldingChange(Sender: TObject; ChangeMsg: Integer);
     function InternalUndoList: TAdvUndoList;
     procedure SetMemoSource(const Value: TAdvMemoSource);
@@ -1055,7 +1106,7 @@ type
     procedure SetModified(const Value: boolean);
     procedure AutoCompleteTimer(Sender: TObject);
     procedure UpdateCompletionList(token: string);
-    function SortAutoCompletList(List: TStringList; Index1, Index2: Integer): Integer;
+    //function SortAutoCompletList(List: TStringList; Index1, Index2: Integer): Integer;
     function IsDelimiter(value: Char): boolean;
     procedure ShowForm(ShowAlways: Boolean);
     procedure HideForm;
@@ -1278,6 +1329,9 @@ type
     procedure DoReplace;
     procedure DoWrap;
     procedure UndoWrap;
+    procedure Change; virtual;
+    procedure DoGutterClick(LineNo: integer); virtual;
+    procedure DoGetAutoCompletionList(AToken: string; AList: TStringList); virtual;
     //procedure Loaded; override;
     property ShowRightMargin: boolean read FShowRightMargin write SetShowRightMargin;
     property AutoCorrect: TAutoCorrect read FAutoCorrect write FAutoCorrect;
@@ -1355,6 +1409,7 @@ type
     destructor Destroy; override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
     procedure DropText(X, Y: Integer; s: string);
+    procedure MouseToCursor(X,Y: integer; var CursorX, CursorY: integer);
     procedure UpdateWrap;
     function GetWrappedLineIndex(Index: Integer): Integer;
     procedure CopyToClipBoard;
@@ -1384,6 +1439,7 @@ type
     property Lines: TAdvMemoStrings read FLines write SetLines;
     property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle;
     property Ctl3D: boolean read FCtl3D write SetCtl3D;
+    property ClearType: boolean read FClearType write FClearType;
     property SyntaxStyles: TAdvCustomMemoStyler read FInternalStyles write SetMemoStyler;
     property Selection: string read GetSelText write SetSelText;
     property SelStart: integer read GetSelStart write SetSelStart;
@@ -1463,6 +1519,9 @@ type
     property WordWrap: TWordWrapStyle read FWordWrap write SetWordWrap;
     function SaveToHTML(FileName: string; Fixedfonts: Boolean = True): Boolean;
     function SaveToRTF(FileName: string; Fixedfonts: Boolean = True): Boolean;
+    {$IFNDEF TMSDOTNET}
+    function SaveToRTFStream(AStream: TMemoryStream;Fixedfonts: Boolean = True): Boolean;
+    {$ENDIF}
     procedure CopyHTMLToClipboard;
     function NumberOfPages(ACanvas: TCanvas; PageWidth, PageHeight: Integer): Integer;
     procedure PrintToCanvas(ACanvas: TCanvas; PageWidth, PageHeight, PageNr: Integer);
@@ -1783,6 +1842,7 @@ type
   public
     function CreateItemClass: TCollectionItemClass; virtual;
     constructor Create(AOwner: TComponent);
+    procedure Init;
     function Add: TElementStyle;
     function Insert(Index: integer): TElementStyle;
     property Items[Index: integer]: TElementStyle read GetItem write SetItem; default;
@@ -1969,6 +2029,9 @@ const
   cmEscape = VK_ESCAPE;
 
   // theme changed notifier
+  {$IFDEF DELPHI2007_LVL}
+  {$EXTERNALSYM WM_THEMECHANGED}
+  {$ENDIF}
   WM_THEMECHANGED = $031A;
 
   NODE_WIDTH = 16;
@@ -2122,7 +2185,7 @@ begin
   Result := Copy(S, 1, I);
 end;
 
-
+(*
 function SortAutoCompletList(List: TStringList; Index1, Index2: Integer): Integer;
 begin
   if Assigned(SortingObject) then
@@ -2130,7 +2193,7 @@ begin
   else
     result := Index1;
 end;
-
+*)
 
 procedure DrawError(Canvas: TCanvas; cr: TRect);
 var
@@ -2798,6 +2861,15 @@ begin
   cX := CurX;
   cY := CurY;
 
+  if AutoExpand and (CurY < InternalLines.Count) then
+  begin
+    len := Length(InternalLines[CurY]);
+    if (CurX > len) then
+    begin
+      InternalLines[CurY] := InternalLines[CurY] + StringOfChar(' ', curx - len);
+    end;
+  end;
+
 //  TextFromPos(cx,cy,ss);
 //  SelStart := ss;
 
@@ -2861,6 +2933,7 @@ var
   OldX, OldY: integer;
   S1, S2, S: string;
   Undo: TDeleteBufUndo;
+  oldperf: boolean;
 begin
   if not EditCanModify then
     Exit;
@@ -2915,6 +2988,7 @@ begin
 
   ClearSelection;
 
+  oldperf := InternalUndoList.IsPerforming;
   InternalUndoList.IsPerforming := true;
 
   if xSelStartY <> xSelEndY then
@@ -2933,7 +3007,7 @@ begin
     InternalLines.Delete(xSelStartY + 1);
   end;
 
-  InternalUndoList.IsPerforming := false;
+  InternalUndoList.IsPerforming := oldperf;
 
   if GetWrapped(xSelEndY) then
     S := S + S2
@@ -2950,7 +3024,6 @@ begin
 
   Fletrefresh := True;
   LinesChanged(nil);
-
 
   Undo := TDeleteBufUndo.Create(OldX, OldY, CurX, CurY, S);
   Undo.UndoSelStartX := xSelStartX;
@@ -3198,9 +3271,49 @@ end;
 //--------------------------------------------------------------
 
 function TAdvCustomMemo.GetSelText: string;
+
+{$IFNDEF TMSDOTNET}
+  procedure Append(const source, destination: string; var position: Integer);
+  begin
+    Move(PChar(source)^, PChar(@destination[position+ 1])^, Length(source));
+    Inc(position, Length(source));
+  end;
+
+  function _GetSelText(xSelStartX, xSelStartY, xSelEndX, xSelEndY: Integer): string;
+  var
+    I, position,s: Integer;
+  begin
+    position := 0;
+    s := Length(InternalLines.Text);
+    SetLength(Result, s);
+    Append(Copy(InternalLines[xSelStartY], xSelStartX + 1, Length(InternalLines[xSelStartY])), Result, position);
+
+    for i := xSelStartY + 1 to xSelEndY - 1 do
+    begin
+      if not GetWrapped(i) then
+        Append(#13#10, Result, position);
+      Append(InternalLines[i], Result, position);
+    end;
+
+    //last line
+
+    if xSelEndY < InternalLines.Count then
+    begin
+      if not GetWrapped(xSelEndY) then
+        Append(#13#10, Result, position);
+      Append(Copy(InternalLines[xSelEndY], 1, xSelEndX), Result, position);
+    end;
+
+    SetLength(Result, position);
+  end;
+{$ENDIF}
+
+
 var
-  i: integer;
   xSelStartX, xSelStartY, xSelEndX, xSelEndY: integer;
+{$IFDEF TMSDOTNET}
+  i: integer;
+{$ENDIF}
 begin
   Result := '';
 
@@ -3219,22 +3332,26 @@ begin
   if xSelStartY = xSelEndY then
     Result := Copy(InternalLines[xSelStartY], xSelStartX + 1, xSelEndX - xSelStartX)
   else
+  {$IFNDEF TMSDOTNET}
+    Result := _GetSelText(xSelStartX, xSelStartY, xSelEndX, xSelEndY);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
   begin
     Result := Copy(InternalLines[xSelStartY], xSelStartX + 1, Length(InternalLines[xSelStartY]));
     for i := xSelStartY + 1 to xSelEndY - 1 do
     begin
-      if GetWrapped(i) then
-        Result := Result + InternalLines[i]
-      else
-        Result := Result + #13#10 + InternalLines[i];
+      if not GetWrapped(i) then
+        Result := Result + #13#10;
+      Result := Result + InternalLines[i];
     end;
 
     //last line
-    if GetWrapped(xSelEndY) then
-      Result := Result + Copy(InternalLines[xSelEndY], 1, xSelEndX)
-    else
-      Result := Result + #13#10 + Copy(InternalLines[xSelEndY], 1, xSelEndX);
+    if not GetWrapped(xSelEndY) then
+      Result := Result + #13#10;
+
+    Result := Result + Copy(InternalLines[xSelEndY], 1, xSelEndX);
   end;
+  {$ENDIF}
 end;
 
 //--------------------------------------------------------------
@@ -3265,7 +3382,7 @@ begin
   if InternalLines.Count > 0 then
     S := InternalLines[xSelStartY]
   else
-    InternalLines.Add(Buff);
+    InternalLines.Add('');
 
   if i = 0 then
   begin
@@ -3280,6 +3397,7 @@ begin
       CurX := CurX + Length(Buff);
 
     InternalLines.OnChange := LinesChanged;
+
     InternalUndoList.Add(TPasteUndo.Create(OldX, OldY, CurX, CurY, AValue));
 
     //+++ 1.5.0.8
@@ -3296,6 +3414,7 @@ begin
   end
   else
   begin
+
     k := xSelStartY;
     InternalLines[k] := Copy(S, 1, xSelStartX) + Copy(Buff, 1, i - 1); // first line
     TAdvMemoStrings(InternalLines).DoInsert(k + 1, Copy(S, xSelStartX + 1, Length(S)));
@@ -3310,7 +3429,7 @@ begin
       if buff = '' then
         tz.Add('');
     end;
-    
+
     if buff <> '' then
       tz.Add(buff);
 
@@ -3330,7 +3449,7 @@ begin
       end;
     end;
 
-    k := xSelStartY + tz.count - 1;  
+    k := xSelStartY + tz.count - 1;
     tz.free;
 
     UpdateWrap;
@@ -3339,11 +3458,11 @@ begin
 
     CurY := k;
     CurX := j;
-    MakeVisible;          // khn:
+    MakeVisible;
     LinesChanged(nil);
+    InternalUndoList.Add(TPasteUndo.Create(OldX, OldY, CurX, CurY, AValue));
   end;
   ClearSelection;
-  InternalUndoList.Add(TPasteUndo.Create(OldX, OldY, CurX, CurY, AValue));
   Invalidate;
 end;
 
@@ -3403,6 +3522,7 @@ begin
   end;
 
   Canvas.Font.Assign(FFont);
+  Canvas.Font.Style  := [fsBold];
   FCellSize.W := Canvas.TextWidth('W');
   FCellSize.H := Canvas.TextHeight('W_') + 1;
 {$ENDIF}
@@ -3791,14 +3911,15 @@ begin
 
   if ActiveLineSettings.ActiveLineAtCursor then
     ActiveLine := Value;
-      
+
   FCurY := Value;
   lf := FLetRefresh;
   FLetRefresh := False;
 
   if (CurY <> Old) and (Old >= 0) and (Old < InternalLines.Count) then
   begin
-    InternalLines[Old] := TrimRightWW(old);
+    if TrimTrailingSpaces or (WordWrap <> wwNone) then
+      InternalLines[Old] := TrimRightWW(old);
 
     if FHintForm.Visible then
       FHintForm.Hide;
@@ -3838,6 +3959,7 @@ procedure TAdvCustomMemo.MoveCursor(dX, dY: integer; Shift: TShiftState);
 var
   Selecting: Boolean;
   S: string;
+
   //------------------------------------------------------------
   procedure MoveWordLeft;
   begin
@@ -3863,6 +3985,7 @@ var
       end;
     FLetRefresh := true;
   end;
+
   //------------------------------------------------------------
   procedure MoveWordRight;
   var
@@ -3927,9 +4050,12 @@ var
   eRect: TRect;
   LinesPerPage: integer;
   Selecting: boolean;
+  tr: integer;
 begin
   if FCellSize.H = 0 then
     Exit;
+
+  tr := TopLine;
 
   Selecting := (ssShift in Shift) and (CurX = FPrevSelX) and (CurY = FPrevSelY);
 
@@ -3937,9 +4063,16 @@ begin
   LinesPerPage := (eRect.Bottom - eRect.Top) div FCellSize.H - 1;
 
   if not CodeFolding.Enabled then   // kh:
-    CurY := CurY + dP * LinesPerPage
+  begin
+    CurY := CurY + dP * LinesPerPage;
+    TopLine := tr + dP * LinesPerPage;
+  end
   else
+  begin
     CurY := VisIndexToLineIndex(LineIndexToVisIndex(CurY) + dP * LinesPerPage);
+    TopLine := tr + dP * LinesPerPage;
+  end;
+
 
   if ssCtrl in Shift then
     if dP > 0 then
@@ -3986,7 +4119,7 @@ begin
       first_nonblank := length(s);
     while (first_nonblank > 0) do
     begin
-      if (s[first_nonblank] in [#32]) then
+      if (s[first_nonblank] = #32) then
       begin //found a space
         if s[first_nonblank + 1] = #32 then
         begin //next char is a space
@@ -4347,13 +4480,75 @@ var
     end;
 
     repeat
-      if (CurLine[iCur] in [#32, #0]) //found a space
-        then inc(iCur)
-      else break;
+      if ((CurLine[iCur] = #32) or (CurLine[iCur] = #0)) then //found a space
+        inc(iCur)
+      else
+        break;
     until iCur = CurX;
     Result := (iCur = CurX);
   end;
 
+  function GetTabIndent: integer;
+  var
+    // use for smarttabs
+    MinLen, iLine: integer;
+    PrevLine: string;
+    first_nonblank: integer;
+    stFound: boolean;
+  begin //get the number of spaces to indent the
+    MinLen := CurX - 1;
+    first_nonblank := MinLen;
+    iLine := CurY - 1;
+    stFound := false;
+    if (iLine > 0) and (iLine < InternalLines.Count) then
+    begin
+      repeat
+        //locate a prev line to get tab
+        PrevLine := InternalLines[iLine];
+
+        if fWordWrap <> wwNone then
+          while (iLine > 0) and GetWrapped(iLine) do
+          begin
+            Dec(iLine);
+            PrevLine := InternalLines[iLine] + PrevLine;
+          end;
+
+        first_nonblank := MinLen;
+        //first go until we find a blank
+        if first_nonblank > Length(PrevLine) then
+          first_nonblank := Length(PrevLine) + 1;
+
+        //now go til we find a non blank
+        while (first_nonblank < Length(PrevLine)) and (first_nonblank > 0) do
+        begin
+          if not ( (PrevLine[first_nonblank] = #32) or (PrevLine[first_nonblank] = #9)) then
+          begin
+            stFound := true;
+            break;
+          end
+          else
+            dec(first_nonblank);
+        end;
+
+        while (first_nonblank < Length(PrevLine)) and (first_nonblank > 0) do
+        begin
+          if (PrevLine[first_nonblank] = #32) or (PrevLine[first_nonblank] =  #9) then
+          begin
+            break;
+          end
+          else
+            dec(first_nonblank);
+        end;
+
+        if stFound then break; //found the point
+
+        Dec(iLine);
+      until iLine < 0;
+    end;
+    //  now actually use the tab
+    Result := first_nonblank;
+  end;
+  (*
   function GetTabIndent: integer;
   var
      // use for smarttabs
@@ -4386,7 +4581,7 @@ var
         //now go til we find a non blank
         while (first_nonblank < Length(PrevLine)) and (first_nonblank > 0) do
         begin
-          if not (PrevLine[first_nonblank] in [#32, #9]) then
+          if not ( (PrevLine[first_nonblank] = #32) or (PrevLine[first_nonblank] = #9)) then
           begin
             stFound := true;
             break;
@@ -4397,7 +4592,7 @@ var
 
         while (first_nonblank < Length(PrevLine)) and (first_nonblank > 0) do
         begin
-          if (PrevLine[first_nonblank] in [#32, #9]) then
+          if (PrevLine[first_nonblank] = #32) or (PrevLine[first_nonblank] =  #9) then
           begin
             break;
           end
@@ -4413,6 +4608,8 @@ var
     //  now actually use the tab
     Result := first_nonblank;
   end;
+  *)
+
 
 begin
   OldX := CurX;
@@ -4442,7 +4639,6 @@ begin
   end
   else
   begin
-
     if CodeFolding.Enabled then
     begin
       if CurX = 0 then
@@ -4494,22 +4690,40 @@ function TAdvCustomMemo.HasMarkers: boolean;
 begin
   Result := FMarkerList.Markers.HasMarkers;
 end;
-
+                                   
 //--------------------------------------------------------------
 //        INDENT CURR LINE
 //--------------------------------------------------------------
 
 function TAdvCustomMemo.IndentCurrLine: string;
 var
-  Len, Count: integer;
+  Len, Count,i: integer;
   CurS: string;
 begin
   Result := '';
+
   if not AutoIndent then
     Exit;
+
   CurS := InternalLines[CurY];
   Len := Length(CurS);
+
   Count := 0;
+
+  i := 1;
+
+  if length(Curs) > 0 then
+  begin
+    while Curs[i] = ' ' do
+    begin
+      inc(Count);
+      inc(i);
+      if i >= Length(Curs) then
+        break;
+    end;
+  end;
+
+
   while (Count < CurX) and (Count < Len) do
   begin
     if CurS[Count + 1] <> ' ' then break;
@@ -4534,67 +4748,76 @@ var
     // use for smarttabs
     MinLen, iLine: integer;
     PrevLine, Spaces: string;
-
     stFound: boolean;
     nDistanceToTab: Integer;
+
   begin //get the number of spaces to indent the
     MinLen := CurX + 1;
     first_nonblank := MinLen;
     iLine := CurY - 1;
+
     stFound := false;
-    if (iLine > 0) and (iLine < InternalLines.Count)
-      then begin
+    if (iLine >= 0) and (iLine < InternalLines.Count) then
+    begin
       repeat
-               //locate a prev line to get tab
-        PrevLine := InternalLines[iLine];
-        if fWordWrap <> wwNone
-          then while (iLine > 0) and GetWrapped(iLine) do
+        //locate a prev line to get tab
+        PrevLine := InternalLines[iLine] + #13#10;
+        if (fWordWrap <> wwNone) then
+          while (iLine > 0) and GetWrapped(iLine) do
           begin
             Dec(iLine);
             PrevLine := InternalLines[iLine] + PrevLine;
           end;
-        if (Length(PrevLine) >= MinLen)
-          then begin
+
+        if (Length(PrevLine) >= MinLen) then
+        begin
           first_nonblank := MinLen;
-                      //first go until we find a blank
+          //first go until we find a blank
           while first_nonblank < Length(PrevLine) do
           begin
-            if (PrevLine[first_nonblank] in [#32, #9])
-              then begin
+            if (PrevLine[first_nonblank] = #32) or (PrevLine[first_nonblank] = #9) or
+               (PrevLine[first_nonblank] = #13) or (PrevLine[first_nonblank] = #10) then
+            begin
               break;
             end
-            else inc(first_nonblank);
+            else
+              inc(first_nonblank);
           end;
 
-                      //now go til we find a non blank
-          while first_nonblank < Length(PrevLine) do
+          //now go till we find a non blank
+          while first_nonblank <= Length(PrevLine) do
           begin
-            if not (PrevLine[first_nonblank] in [#32, #9])
-              then begin
+            if not ( (PrevLine[first_nonblank] = #32) or (PrevLine[first_nonblank] = #9) ) then
+            begin
               stFound := true;
               break;
             end
-            else inc(first_nonblank);
+            else
+              inc(first_nonblank);
           end;
-          if stFound
-            then break; //found the point
+
+          if stFound then
+            break; //found the point
         end;
 
         Dec(iLine);
       until
         iLine < 0;
     end;
-      //  now actually use the tab
+
+    //  now actually use the tab
     dec(first_nonblank);
 
     nDistanceToTab := first_nonblank - CurX;
 
-    if nDistanceToTab > 0
-      then Spaces := Spaces + StringOfChar(#32, nDistanceToTab)
-    else begin
-               //no smart tab found so do normal tab
+    if nDistanceToTab > 0 then
+      Spaces := Spaces + StringOfChar(#32, nDistanceToTab)
+    else
+    begin
+      //no smart tab found so do normal tab
       Spaces := '';
     end;
+    
     Result := Spaces;
   end;
 
@@ -4804,8 +5027,8 @@ begin
           Exit;
         end;
 
-        OldCurY := CurY;
-        OldCurX := CurX;
+        OldCurY := FSelStartY; //CurY;
+        OldCurX := FSelStartX; //CurX;
 
         GoHome(AShift);
         if (ssCtrl in AShift) and (ssShift in AShift) then
@@ -4825,8 +5048,8 @@ begin
           Exit;
         end;
 
-        OldCurY := CurY;
-        OldCurX := CurX;
+        OldCurY := FSelStartY; //CurY;
+        OldCurX := FSelStartX; //CurX;
 
         GoEnd(AShift);
         if (ssCtrl in AShift) and (ssShift in AShift) then
@@ -4943,12 +5166,25 @@ begin
     OnKeyDown(Self, Key, Shift);
 
   FAutoCompleteTimer.Enabled := False;
+
 {$IFDEF BLINK}
-  if FletgetCaretTime then
+  if (key <> VK_CONTROL) then
+  begin
+    {$IFNDEF DELPHI2006_LVL}
+    if FletgetCaretTime then
+      FCaretTime := GetCaretBlinkTime;
+    FletgetCaretTime := False;
+    SetCaretBlinkTime(dword(-1));
+    {$ELSE}
     FCaretTime := GetCaretBlinkTime;
-  FletgetCaretTime := False;
-  SetCaretBlinkTime(dword(-1));
+    SetCaretBlinkTime(FCaretTime);
+    FletgetCaretTime := True;
+    if not FHiddenCaret then
+      ShowCaret(True);
+    {$ENDIF}  
+  end;
 {$ENDIF}
+
   FLetShowAutocompletion := True;
   FAllowAutoHint := not (ssctrl in Shift);
 
@@ -5093,6 +5329,8 @@ begin
         begin
           if InternalLines.Count <> 0 then
           begin
+            wrd := InternalLines[CurY];
+
             MemoChecker.CorrectLine(CurY);
 
             if Assigned(MemoSource) then
@@ -5141,6 +5379,8 @@ begin
               wrd := InternalLines[CurY];
               InternalLines[CurY] := Copy(wrd, 1, ps) + newword + Copy(wrd, pe + 1, length(wrd));
               CurX := CurX + d;
+
+              MemoChecker.AddUndo(CurY, wrd);
             end;
           end;
           if MemoChecker.AutoCorrectType = acWordCheck then
@@ -5198,16 +5438,14 @@ begin
     {$ENDIF}
     {$IFNDEF TMSDOTNET}
     InvalidateRect(Handle, @r, false);
-    {$ENDIF}
-
-    if Assigned(OnChange) then
-      OnChange(Self);
+    {$ENDIF}    
+    Change;
   end
   else
     if not (Ord(Key) in [8, 9]) then
       DoCommand(Ord(Key), []);
 
-  if (Key in ['.', '(']) and (AutoCompletion.Active) then
+  if ((Key = '.') or (Key = '(')) and (AutoCompletion.Active) then
   begin
     FAutoCompleteTimer.Enabled := True;
   end;
@@ -5285,7 +5523,10 @@ begin
     FLetRefresh := False;
 
     if (yold <> FCurY) and (yold < InternalLines.Count) then
-      InternalLines[yold] := TrimRightWW(yold);
+    begin
+      if TrimTrailingSpaces and (WordWrap = wwNone) then
+        InternalLines[yold] := TrimRightWW(yold);
+    end;
 
     FLetRefresh := lc;
 
@@ -5315,10 +5556,13 @@ var
   charPos: TFullPos;
   R: TRect;
   Tlp: TLineProp;
+  tl: integer;
 begin
   inherited;
 
   FSelButtonDown := false;
+
+  tl := TopLine;
 
   if not Focused then
   begin
@@ -5343,15 +5587,14 @@ begin
   SelClickUpdate(X, Y, True, Shift, Button);
 
   if ActiveLineSettings.ActiveLineAtCursor then
-    ActiveLine := CurY;
+    FActiveLine := CurY;
 
-  if Assigned(FOnGutterClick) then
-    if PointInRect(Point(X, Y), FGutter.FullRect) then
-    begin
-      CharPos := CharFromPos(X, Y);
-      if charPos.LineNo < InternalLines.Count then
-        FOnGutterClick(Self, charPos.LineNo);
-    end;
+  if PointInRect(Point(X, Y), FGutter.FullRect) then
+  begin
+    CharPos := CharFromPos(X, Y);
+    if charPos.LineNo < InternalLines.Count then
+      DoGutterClick(charPos.LineNo);
+  end;
 
   if FCodeFolding.Enabled then
   begin
@@ -5366,6 +5609,11 @@ begin
         begin
           CurY := charPos.LineNo;
           ToggleNode(charPos.LineNo);
+
+          if ActiveLineSettings.ActiveLineAtCursor then
+            FActiveLine := CurY;
+
+          TopLine := tl;
         end;
       end;
     end;
@@ -5854,6 +6102,18 @@ begin
 end;
 
 //--------------------------------------------------------------
+//        MOUSE TO CURSOR
+//--------------------------------------------------------------
+procedure TAdvCustomMemo.MouseToCursor(X,Y: integer; var CursorX, CursorY: integer);
+var
+  cp: TCellPos;
+begin
+  cp := CellFromPos(X,Y);
+
+  CursorX := cp.X;
+  CursorY := cp.Y;
+end;
+//--------------------------------------------------------------
 //        CELL and CHAR FROM POS
 //--------------------------------------------------------------
 
@@ -6184,7 +6444,10 @@ begin
     Height := FCellSize.H;
     FLineBitmap.Canvas.Font.Assign(Self.Canvas.Font);
     FLineBitmap.HandleType := bmDDB;
-    FLineBitmap.PixelFormat := pf8bit;
+    if FClearType then
+      FLineBitmap.PixelFormat := pfDevice
+    else
+      FLineBitmap.PixelFormat := pf8bit;
   end;
 end;
 
@@ -6213,9 +6476,6 @@ begin
   Result.EndBracket := #0;
   Result.StartBracket := #0;
 
-  if InternalLines.Count = 0 then
-    Exit;
-
   chBE := #0;
   chBS := #0;
   FTempdelimiters := '';
@@ -6242,6 +6502,9 @@ begin
 
   start := 0;
 
+  if InternalLines.Count = 0 then
+    Exit;
+
   // Find first occurence of cached last line style
   i := stopat - 1;
   while (i >= 0) do
@@ -6250,6 +6513,10 @@ begin
     begin
       comment := AStyle.isComment;
       bracket := AStyle.isBracket;
+      //////////
+      chBE := AStyle.EndBracket;
+      chBS := AStyle.StartBracket;
+      //////////
       start := i;
       Result := AStyle;
       Break;
@@ -6478,15 +6745,15 @@ end;
 procedure TAdvCustomMemo.SetModifiedState(Index: Integer;
   const Value: Boolean);
 var
-  Tlp: TlineProp;
+  tlp: TlineProp;
 begin
   if Index >= InternalLines.Count then
     Exit;
-  
+
   InternalLines.OnChange := nil;
 
-  Tlp := InternalLines.GetLineProp(index);
-  if Tlp = nil then
+  tlp := InternalLines.GetLineProp(index);
+  if tlp = nil then
     tlp := InternalLines.CreateProp(index);
 
   if tlp.Modified <> Value then
@@ -6638,22 +6905,20 @@ procedure TAdvCustomMemo.DrawLine(ACanvas: TCanvas; LineNo: Integer; var style: 
 const
   tab = #9;
 var
-  eRect, rct0, rct1, rct, lineRct: TRect;
+  eRect, rct0, rct1, rct, lineRct, bkrct: TRect;
   LineSelStart, LineSelEnd, posln, i, ep, XC: integer;
   urls: TStringList;
   lnstr: string;
   S, S1, S2, S3: string;
   xSelStartX, xSelStartY, xSelEndX, xSelEndY: integer;
   isinlinecomment: boolean;
-  backupstyle: Tstyle;
+  backupstyle: TStyle;
   backupstring: string;
   LineCanvas: TCanvas;
   Tlp: TLineProp;
   lit: char;
   errstart, errend: Integer;
   RgnComentsFound: Boolean;
- { ToSt, ToEn, PartLen, rgn: Integer;
-  PartS: String; }
   RgnIndex: Integer;
   CodeFoldComent: Boolean;
 
@@ -6754,6 +7019,7 @@ var
         try
           Font.Color := InternalStyles.FAllStyles.Items[DrawStyle.index].Font.Color;
           Font.Style := InternalStyles.FAllStyles.Items[DrawStyle.index].Font.Style;
+
           if InternalStyles.FAllStyles.Items[DrawStyle.index].FBGColor <> clNone then
             Brush.Color := InternalStyles.FAllStyles.Items[DrawStyle.index].FBGColor
           else
@@ -6822,8 +7088,11 @@ var
 
               if DrawStyle.isDelimiter then
                 LoadFromItemStyle;
+
               if DrawStyle.isKeyWord then
+              begin
                 LoadFromItemStyle;
+              end;
 
               if DrawStyle.isURL then
               begin
@@ -6875,12 +7144,12 @@ var
 
 {$IFNDEF TMSDOTNET}
             DrawText(LineCanvas.Handle, PChar(s1), length(s1), rct1,
-              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP);
+              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP or DT_EDITCONTROL);
 {$ENDIF}
 
 {$IFDEF TMSDOTNET}
             DrawText(LineCanvas.Handle, s1, length(s1), rct1,
-              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP);
+              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP OR DT_EDITCONTROL);
 {$ENDIF}
 
 {$ENDIF}
@@ -6907,12 +7176,12 @@ var
 {$IFNDEF TMSCLX}
 {$IFNDEF TMSDOTNET}
             DrawText(LineCanvas.Handle, PChar(s2), Length(s2), rct1,
-              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP);
+              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP or DT_EDITCONTROL);
 {$ENDIF}
 
 {$IFDEF TMSDOTNET}
             DrawText(LineCanvas.Handle, s2, Length(s2), rct1,
-              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP);
+              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP or DT_EDITCONTROL);
 {$ENDIF}
 {$ENDIF}
 
@@ -6934,11 +7203,11 @@ var
 {$IFNDEF TMSCLX}
 {$IFNDEF TMSDOTNET}
             DrawText(LineCanvas.Handle, PChar(s3), length(s3), rct1,
-              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP);
+              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP or DT_EDITCONTROL);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
             DrawText(LineCanvas.Handle, s3, length(s3), rct1,
-              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP);
+              DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_NOCLIP or DT_EDITCONTROL);
 {$ENDIF}
 {$ENDIF}
 
@@ -7137,7 +7406,15 @@ var
               inc(tostart);
               len := length(s);
               if tostart > len then
+              begin
+                if SegmentStyle.EndBracket = #32 then
+                begin
+                  SegmentStyle.isBracket := false;
+                  SegmentStyle.StartBracket := #0;
+                  SegmentStyle.EndBracket := #0;
+                end;
                 Exit;
+              end;
               done := True;
             end;
           end
@@ -7262,7 +7539,7 @@ var
 
       toend := tostart + 1;
 
-      while (toend <= Len) and (S[toend] <> #32) and (not (s[toend] in [';', ':']))
+      while (toend <= Len) and (S[toend] <> #32) and (not ( (s[toend] = ';') or (s[toend] = ':')) )
         and (AnsiPos(S[toend], FTempdelimiters) = 0) do
         Inc(toend);
 
@@ -7309,7 +7586,6 @@ var
           end;
         end;
       end;
-
 
 
       if done then
@@ -7372,7 +7648,7 @@ begin
 
 //{$IFDEF CLX}
   LineCanvas.Brush.Color := bkColor;
-  LineCanvas.FillRect(Rect(0, 0, erect.Right, rct.Bottom - rct.Top));
+  LineCanvas.FillRect(Rect(0, 0, erect.Right, rct.Bottom - rct.Top ));
 //{$ENDIF}
 
   s := '';
@@ -7525,7 +7801,9 @@ begin
           Brush.Color := BkColor;
       end;
 
-      FillRect(rct1);
+      bkrct := rct1;
+      bkrct.Bottom := bkrct.Bottom - 1;
+      FillRect(bkrct);
 
       if CodeFolding.Enabled then
       begin
@@ -7859,6 +8137,7 @@ begin
             DrawLine(Canvas, ln, LineStyle, dmScreen, pRect, i);
         end
         else
+
         begin
           if (PrentCount > 0) then
           begin
@@ -7911,7 +8190,7 @@ begin
     Canvas.Font.Size := 8;
     Canvas.Font.Color := clSilver;
     Canvas.Brush.Style := bsClear;
-    Canvas.TextOut(eRect.Left, eRect.Bottom - 14, 'copyright © 2006 tmssoftware.com');
+    Canvas.TextOut(eRect.Left, eRect.Bottom - 14, 'copyright © 2008 tmssoftware.com');
     Canvas.Font.Assign(OldFont);
     OldFont.Free;
 {$ENDIF}
@@ -8368,6 +8647,7 @@ begin
 
   FOwner := AOwner;
   FletgetCaretTime := true;
+  FClearType := true;
   FCaretX := 0;
   FCarety := 0;
   FBlockShow := True;
@@ -8458,7 +8738,7 @@ begin
     TabStop := False;
     SmallChange := 1;
 {$IFNDEF TMSCLX}
-    DoubleBuffered := True;
+    DoubleBuffered := not IsVista;
     pagesize := -1;
 {$ENDIF}
     ControlStyle := ControlStyle + [csNoDesignVisible];
@@ -8477,7 +8757,7 @@ begin
     Height := 16;
     TabStop := False;
 {$IFNDEF TMSCLX}
-    DoubleBuffered := True;
+    DoubleBuffered := not IsVista;
     pagesize := -1;
 {$ENDIF}
     ControlStyle := ControlStyle + [csNoDesignVisible];
@@ -8651,7 +8931,7 @@ begin
     S := Trim(S);
     PartLen := Length(S);
     ToEn := ToSt;
-    while (ToEn <= PartLen) and (S[ToEn] <> #32) and (not (S[ToEn] in [';', ':']))
+    while (ToEn <= PartLen) and (S[ToEn] <> #32) and (not ( (S[ToEn] = ';') or (S[ToEn] = ':')))
       and (S[ToEn] <> InternalStyles.FMultiCommentRight) do
       Inc(ToEn);
 
@@ -8748,7 +9028,7 @@ var
           toStart := 1;
           Len := Length(S);
           toEnd := toStart;
-          while (toend <= Len) and (S[toend] <> #32) and (not (s[toend] in [';', ':']))
+          while (toend <= Len) and (S[toend] <> #32) and (not ( (s[toend] = ';') or (s[toend] = ':')))
             and (s[toend] <> InternalStyles.FMultiCommentRight) do
             Inc(toend);
 
@@ -8804,8 +9084,8 @@ var
       toStart := 1;
       Len := Length(s);
       toEnd := toStart + 1;
-      while (toend <= Len) and (S[toend] <> #32) and (not (s[toend] in [';', ':']))
-        and (AnsiPos(S[toend], Tempdelimiters) = 0) and (not (s[toStart] in [';', ':']))
+      while (toend <= Len) and (S[toend] <> #32) and (not ( (s[toend] = ';') or (s[toend] = ':')))
+        and (AnsiPos(S[toend], Tempdelimiters) = 0) and (not ( (s[toStart] = ';') or (s[toStart] = ':')))
         and (AnsiPos(S[toStart], Tempdelimiters) = 0) do
         Inc(toend);
 
@@ -8813,7 +9093,7 @@ var
       if (part <> ';') and (part <> ':') and (Trim(part) <> ''){and not (part in FTempdelimiters)} then
         SL.Add(Trim(part));
       Delete(s, toStart, toEnd - tostart);
-      if (Length(s) > 0) and (s[1] in [';', ':']) then
+      if (Length(s) > 0) and ( (s[1] = ';') or (s[1] = ':')) then
         Delete(s, 1, 1);
       //toStart := toEnd+1;
     end;
@@ -9491,6 +9771,7 @@ begin
       Tlp.HasChildren := False;
     end;
   end;
+  Invalidate;
 end;
 
 procedure TAdvCustomMemo.RemoveCodeFolding(StartLineIndex: Integer);
@@ -9559,6 +9840,7 @@ begin
       Tlp.HasChildren := False;
     end;
   end;
+  Invalidate;
 end;
 
 function TAdvCustomMemo.IsNode(LineIndex: Integer): Boolean;
@@ -9742,6 +10024,16 @@ begin
   Result := WordAtCursorPos(p);
 end;
 
+function CheckSeparator(ch: char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := ch in [#32,#39,'"','(',')'];
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  Result := (ch = #32) or (ch = #39) or (ch = '"') or (ch ='(') or (ch = ')');
+  {$ENDIF}
+end;
+
 function TAdvCustomMemo.FullWordAtCursor: string;
 var
   s: string;
@@ -9765,14 +10057,14 @@ begin
   fb := CurX + 1;
 
   for i := CurX + 1 to Length(s) do
-    if not (s[i] in [#32,#39,'"','(',')']) then
+    if not (CheckSeparator(s[i])) then
 //    if (s[i] <> #32) and (s[i] <> ')') and (s[i] <> '(') then
       fe := i
     else
       Break;
 
   for i := CurX downto 1 do
-    if not (s[i] in [#32,#39,'"','(',')']) then
+    if not (CheckSeparator(s[i])) then
 //    if (s[i] <> #32) and (s[i] <> ')') and (s[i] <> '(') then
       fb := i
     else
@@ -9852,12 +10144,23 @@ end;
 
 function TAdvCustomMemo.IsWordBoundary(ch: char): boolean;
 begin
+  {$IFNDEF DELPHI_UNICODE}
   Result := (ch in [#32,#39,'"']);
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  Result := (ch = #32) or (ch = #39) or (ch = '"');
+  {$ENDIF}
 end;
 
 function TAdvCustomMemo.IsTokenBoundary(ch: char): boolean;
 begin
+  {$IFNDEF DELPHI_UNICODE}
   Result := ch in [#32, '(', ')', '[', ']', ',', '.', ':', ';', '"', '''', '='];
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  Result := (ch = #32) or (ch = '(') or (ch = ')') or (ch = '[') or (ch = ']') or (ch = ',') or (ch = '.')
+    or (ch = ':') or (ch = ';') or (ch = '"') or (ch = '''') or (ch = '=');
+  {$ENDIF}
 end;
 
 procedure TAdvCustomMemo.LineRefresh;
@@ -9880,8 +10183,7 @@ var
 begin
   if FLetRefresh then
   begin
-    if Assigned(FOnChange) then
-      FOnChange(Self);
+    Change;
 
     SetMaxLength;
     ResizeScrollBars(False);
@@ -10150,6 +10452,26 @@ begin
     on Exception do ;
   end;
 end;
+
+
+{$IFNDEF TMSDOTNET}
+function TAdvCustomMemo.SaveToRTFStream(AStream: TMemorystream;Fixedfonts: Boolean = True): boolean;
+begin
+  Result := false;
+  FRTFEngine := TRTFEngine.Create;
+  OutputRTF(FixedFonts);
+  try
+    AStream.Position := 0;
+    FRTFEngine.SaveToStream(AStream);
+    AStream.Position := 0;
+    Result := True;
+  except
+    on Exception do;
+  end;
+  FRTFEngine.Free;
+  FRTFEngine := nil;
+end;
+{$ENDIF}
 
 function TAdvCustomMemo.SaveToRTF(FileName: string;
   Fixedfonts: Boolean = True): Boolean;
@@ -11085,7 +11407,7 @@ end;
 
 procedure TAdvGutter.SetFont(Value: TFont);
 begin
-  fFont.Assign(Value);
+  FFont.Assign(Value);
 end;
 
 procedure TAdvGutter.SetGutterWidth(Value: integer);
@@ -11446,8 +11768,8 @@ begin
     if Count = 1 then SaveCurX := 0;
     Memo.CurY := Index;
     Memo.DeleteLine;
-    Memo.CurX := SaveCurX;
-    Memo.CurY := SaveCurY;
+    Memo.FCurX := SaveCurX;
+    Memo.FCurY := SaveCurY;
     FDeleting := False;
   end;
 end;
@@ -11491,6 +11813,7 @@ begin
     CurY := 0;
     FLetRefresh := False;
   end;
+  
   Memo.InternalLines.OnChange := nil;
 
   inherited LoadFromFile(FileName);
@@ -11499,16 +11822,24 @@ begin
   Memo.CurY := 0;
   mx := 0;
 
+  Memo.FLetRefresh := false;
+
   for i := 0 to Memo.InternalLines.Count - 1 do
   begin
-    s := StringReplace(Strings[i], #9, stringofchar(#32, memo.TabSize), [rfreplaceall]);
-    Strings[i] := s;
+    s := Strings[i];
+    if pos(#9,s) > 0 then
+    begin
+      s := StringReplace(s, #9, stringofchar(#32, memo.TabSize), [rfreplaceall]);
+      Strings[i] := s;
+    end;
+
     len := Length(s);
     if len > mx then
       mx := len;
   end;
   Memo.FmaxLength := mx;
 
+  Memo.FLetRefresh := true;
   Memo.InternalLines.OnChange := Memo.LinesChanged;
 
   Memo.FLetRefresh := True;
@@ -11518,6 +11849,58 @@ begin
 
   Memo.AutoCodeFold;
 
+  Memo.Refresh;
+end;
+
+procedure TAdvMemoStrings.LoadFromStream(Stream: TStream);
+var
+  i, len, mx: integer;
+  s: string;
+
+begin
+  if not Assigned(Memo) then
+  begin
+    inherited LoadFromStream(Stream);
+    Exit;
+  end;
+
+  with Memo do
+  begin
+    ClearSelection;
+    ClearUndoList;
+    CurX := 0;
+    CurY := 0;
+    FLetRefresh := False;
+  end;
+
+  Memo.InternalLines.OnChange := nil;
+
+  inherited LoadFromStream(Stream);
+
+  Memo.FbackupTopLine := -1;
+  Memo.CurX := 0;
+  Memo.CurY := 0;
+  mx := 0;
+
+  for i := 0 to Memo.InternalLines.Count - 1 do
+  begin
+    s := Strings[i];
+    if pos(#9,s) > 0 then
+    begin
+      s := StringReplace(s, #9, stringofchar(#32, memo.TabSize), [rfreplaceall]);
+      Strings[i] := s;
+    end;
+    len := Length(s);
+    if len > mx then
+      mx := len;
+  end;
+
+  Memo.FmaxLength := mx;
+  Memo.InternalLines.OnChange := Memo.LinesChanged;
+  Memo.FLetRefresh := True;
+  Memo.LinesChanged(nil);
+  Memo.UpdateWrap;
+  Memo.AutoCodeFold;
   Memo.Refresh;
 end;
 
@@ -11641,6 +12024,7 @@ end;
 
 procedure TAdvMemoStrings.ClearStrings;
 begin
+  FLinesProp.Clear;
   FListLengths.Clear;
   inherited Clear;
 end;
@@ -11721,6 +12105,17 @@ procedure TAdvMemoStrings.SetLineProp(Index: Integer;
 begin
   if (Index < Count) and (Index >= 0) then
     inherited PutObject(index, value)
+end;
+
+procedure TAdvMemoStrings.SetTextEx(const Value: string);
+var
+  ms: TMemoryStream;
+begin
+  ms := TMemoryStream.Create;
+  ms.WriteBuffer(Value[1],length(Value));
+  ms.Position := 0;
+  LoadFromStream(ms);
+  ms.Free;
 end;
 
 //--------------------------------------------------------------
@@ -11825,7 +12220,10 @@ begin
       if FUndoText[i] = #13 then
         NewLine
       else
+      begin
         InsertChar(FUndoText[i]);
+        Invalidate;
+      end;
     end;
 end;
 
@@ -11962,6 +12360,43 @@ begin
   end;
 end;
 
+//----------------  TCORRECT UNDO --------------------------
+
+{ TCorrectUndo }
+
+constructor TCorrectUndo.Create(LineNo: integer; UndoLine: string);
+begin
+  inherited Create(-1,-1,-1,-1,'');
+  FUndoCurY := LineNo;
+  FUndoText := UndoLine;
+end;
+
+procedure TCorrectUndo.PerformRedo;
+begin
+  PerformUndo;
+end;
+
+procedure TCorrectUndo.PerformUndo;
+var
+  s: string;
+begin
+  with Memo do
+  begin
+    if Assigned(MemoSource) then
+    begin
+      s := MemoSource.Lines[CurY];
+      MemoSource.Lines[CurY] := FUndoText
+    end
+    else
+    begin
+      s := Lines[CurY];
+      Lines[CurY] := FUndoText;
+    end;
+    FUndoText := s;
+  end;
+end;
+
+
 
 //----------------  TUNDO LIST --------------------------
 
@@ -12029,6 +12464,7 @@ begin
     with Memo do
       if not (csDestroying in ComponentState) then
         UndoChange;
+  inherited;      
 end;
 
 procedure TAdvUndoList.Delete(Index: integer);
@@ -12243,6 +12679,11 @@ end;
 function TElementStyles.GetItem(Index: integer): TElementStyle;
 begin
   Result := TElementStyle(inherited Items[Index]);
+end;
+
+procedure TElementStyles.Init;
+begin
+  FModified := true;
 end;
 
 function TElementStyles.Insert(index: integer): TElementStyle;
@@ -12734,6 +13175,8 @@ begin
   SetMaxLength;
   ResizeScrollBars(False);
   Invalidate;
+  if WordWrap <> wwNone then
+    UpdateWrap;
 end;
 
 procedure TAdvCustomMemo.SetActiveLine(const Value: integer);
@@ -12898,6 +13341,13 @@ begin
   //else
     ;//LinesCount := LineIndexToVisIndex(InternalLines.Count-1);
 
+  if (VisibleLineCount > LinesCount) then
+  begin
+    CurY := 0;
+    CurX := 0;
+    Exit;
+  end;
+
   if (Value >= 0) and (Value + VisibleLineCount < LinesCount) then
   begin
     FTopLine := Value;
@@ -12938,7 +13388,14 @@ end;
 {$IFNDEF TMSCLX}
 procedure TAdvCustomMemo.WndProc(var Message: TMessage);
 begin
+  if (csDestroying in ComponentState) then
+  begin
+    inherited;
+    Exit;
+  end;  
+
   inherited;
+
   if (Message.Msg = WM_THEMECHANGED) and AutoThemeAdapt then
     ThemeAdapt;
 
@@ -12970,18 +13427,20 @@ var
 begin
   inherited DoMousewheelDown(Shift, MousePos);
 
-  //if not CodeFolding.Enabled then
+  if not CodeFolding.Enabled then
     LinesCount := InternalLines.Count
-  //else
-    ;//LinesCount := LineIndexToVisIndex(InternalLines.Count);
+  else
+    LinesCount := LineIndexToVisIndex(InternalLines.Count);
 
-  if (TopLine + VisibleLineCount < LinesCount) then
+  if (LineIndexToVisIndex(TopLine) + VisibleLineCount < LinesCount) then
   begin
     if not CodeFolding.Enabled then
       TopLine := FTopLine + 4
     else
       TopLine := VisIndexToLineIndex(LineIndexToVisIndex(FTopLine) + 4);
   end;
+
+  ShowCaret(true);
 
   Result := true;
 end;
@@ -13006,8 +13465,11 @@ begin
   end
   else
     if LinesCount > VisibleLineCount then
+    begin
       TopLine := 0;
+    end;
 
+  ShowCaret(true);
   Result := true;
 end;
 {$ENDIF}
@@ -13442,21 +13904,53 @@ begin
     Result := inherited Count;
 end;
 
+function TAdvMemoStrings.GetTextEx: string;
+begin
+  Result := inherited Text;
+end;
+
+function TAdvMemoStrings.AddObject(const S: string; AObject: TObject): Integer;
+var
+  P: TObject;
+begin
+  P := TLineProp.Create;
+  (P as TLineProp).FObject := AObject;
+  FLinesProp.Add(p);
+  Result := inherited AddObject(S,P);
+  FListLengths.Add(length(s));
+end;
+
+
 function TAdvMemoStrings.Add(const S: string): integer;
 var
-  sz: string;
+  sz,sc: string;
+  p: integer;
 begin
+
   if not Assigned(Memo) then
   begin
     Result := inherited Add(s);
-    FListLengths.Add(length(s));
+    //FListLengths.Add(length(sz));
   end
   else
   begin
     sz := StringReplace(s, #9, StringOfChar(#32, memo.tabsize), [rfreplaceall]);
+    sz := StringReplace(sz, #10, '', [rfreplaceall]);
+
+    while pos(#13,sz) > 0 do
+    begin
+      p := pos(#13,sz);
+      sc := copy(sz,1,p-1);
+      inherited Add(sc);
+      sz := Copy(sz,p+1,length(sz));
+    end;
+
     Result := inherited Add(sz);
+    {$IFNDEF DELPHI6_LVL}
     FListLengths.Add(length(sz));
-    Memo.LinesChanged(nil);
+    {$ENDIF}
+    //if not (csLoading in Memo.ComponentState) then
+    //  Memo.LinesChanged(nil);
   end;
 end;
 
@@ -13781,7 +14275,10 @@ begin
       Memo.CodeFolding.Enabled := cf;
     end
     else
+    begin
       inherited Assign(Source);
+      inherited AddStrings(Source as TStrings);
+    end;
   end
   else
     inherited Assign(Source);
@@ -13834,6 +14331,7 @@ begin
   end;
 end;
 
+(*
 function StripSpaces(s:string): string;
 var
   i: Integer;
@@ -13843,6 +14341,7 @@ begin
     if s[i] <> ' ' then
       Result := Result + s[i];
 end;
+*)
 
 procedure TAdvCustomMemo.ShowForm(ShowAlways: Boolean);
 var
@@ -13901,8 +14400,7 @@ begin
     end;
   end;
 
-  if Assigned(FOnGetAutoCompletionList) then
-    FOnGetAutoCompletionList(Self, S, FAutoCompleteList);
+  DoGetAutoCompletionList(S, FAutoCompleteList);
 
   if (FAutoCompleteList.Count = 0) then
   begin
@@ -14039,9 +14537,13 @@ procedure TAdvCustomMemo.UpdateCompletionList(token: string);
 var
   i, j, vp: Integer;
   method: string;
+  dw: Integer;
 begin
   FListCompletion.Items.Clear;
   j := -1;
+
+  DoGetAutoCompletionList(token, FAutoCompleteList);
+
 // search cached list rather just the internal styles..
 
 // if the token is not blank then filter based on the token,
@@ -14080,6 +14582,14 @@ begin
     else
       flistcompletion.ItemIndex := 0;
   end;
+
+  dw := FListCompletion.AutoAdaptWidth;
+
+  if AutoCompletion.SizeDropDown then
+  begin
+    FormAutoCompletion.Width := dw
+  end;
+
 end;
 
 procedure TAdvCustomMemo.ListMouseUp(Sender: TObject; Button: TMouseButton;
@@ -14108,7 +14618,7 @@ begin
       s := '';
       for i := 1 to Length(sEntry) do
       begin
-        if not (sEntry[i] in ['(', ';', ' ']) then
+        if not ( (sEntry[i] = '(') or (sEntry[i] = ';') or (sEntry[i] = ' ')) then
           s := s + sEntry[i]
         else
           break;
@@ -14199,7 +14709,7 @@ begin
             s := '';
             for i := 1 to Length(sEntry) do
             begin
-              if not (sEntry[i] in ['(', ';', ' ']) then
+              if not ((sEntry[i] = '(') or (sEntry[i] = ';') or (sEntry[i] = ' ')) then
                 s := s + sEntry[i]
               else
                 break;
@@ -14219,7 +14729,7 @@ begin
           if FAutoCompleteDot and (Pos('.', sEntry) = 0) then
           begin
             FSelStartX := FDotPoint.X;
-            FSelEndX := FDotPoint.X; // + Length(sEntry);
+            FSelEndX := CurX; // + Length(sEntry);
           end
           else
           begin
@@ -14229,13 +14739,13 @@ begin
             if ae > 0 then
             begin
               for vp := CurX + 1 to length(s) do
-                if (s[vp] in [#32, '(', ')']) then
+                if (s[vp] = #32) or (s[vp] = '(') or (s[vp] = ')') then
                 begin
                   ae := vp - 1;
                   Break;
                 end;
               for vp := CurX  downto 1 do
-                if (s[vp] in [#32, '(', ')']) then
+                if (s[vp] = #32) or (s[vp] = '(') or (s[vp] = ')') then
                 begin
                   ab := vp + 1;
                   break;
@@ -14615,7 +15125,7 @@ var
       found := false;
       while (fromX > 0) and not found do
       begin
-        if s[fromX] in [InternalStyles.FHintParameter.FStartchar, InternalStyles.FHintParameter.FEndchar] then
+        if (s[fromX] = InternalStyles.FHintParameter.FStartchar) or (s[fromX] = InternalStyles.FHintParameter.FEndchar) then
           found := true
         else
         begin
@@ -14805,7 +15315,7 @@ var
   flgs, flge: Boolean;
   es, ee: integer;
 
-  function varpos(su, s: string; var vp: integer): integer;
+  function varpos1(su, s: string; var vp: integer): integer;
   var
     sg, eg: Boolean;
   begin
@@ -14819,13 +15329,40 @@ var
         sg := IsWordBoundary(s[vp - 1]);
 
       eg := True;
-    //if (vp + Length(su) -1 <= Length(s)) then
-    //  eg := IsWordBoundary(s[vp + Length(su) - 1]);
+
+      if (vp + Length(su) <= Length(s)) then
+       eg := IsWordBoundary(s[vp + Length(su)]);
 
       if eg and sg then
         Result := vp;
     end;
   end;
+
+  function varpos(var su : string;  s: string; var vp: integer): integer;
+  var
+    sl : TStrings;
+  begin
+    result := -1;
+    if pos(',', su) = 0 then
+      result := varpos1(su, s, vp)
+    else
+    begin
+      sl := TStringList.Create;
+      sl.text := StringReplace(su, ',', #13#10, [rfreplaceall]);
+      while sl.Count > 0 do
+      begin
+        result := varpos1(sl[0], s, vp);
+        if result > 0 then
+        begin
+          su := sl[0];//return the matched key
+          break;
+        end;
+        sl.delete(0);
+      end;
+      sl.free;
+    end;
+  end;
+
 
 begin
   FCursorChangedTrigered := True;
@@ -14869,6 +15406,9 @@ begin
           begin
             s := Uppercase(InternalLines[i]);
 
+            wstart := UpperCase(SyntaxStyles.BlockStart);
+
+
             while (varpos(wstart, s, vp1) > 0) or (varpos(wend, s, vp2) > 0) do
             begin
               if (vp1 > 0) and ((vp1 < vp2) or (vp2 = 0)) then
@@ -14888,8 +15428,10 @@ begin
                 delete(s, 1, vp1 + Length(wend))
               else
                 s := '';
-            end;
 
+              wstart := UpperCase(SyntaxStyles.BlockStart);
+
+            end;
           end;
           inc(i);
         end;
@@ -14913,6 +15455,8 @@ begin
           begin
             s := Uppercase(InternalLines[i]);
 
+            wstart := UpperCase(SyntaxStyles.BlockStart);
+
             while (varpos(wend, s, vp1) > 0) or (varpos(wstart, s, vp2) > 0) do
             begin
               if (vp1 > 0) and ((vp1 < vp2) or (vp2 = 0)) then
@@ -14932,6 +15476,8 @@ begin
                 delete(s, 1, vp1 + Length(wstart))
               else
                 s := '';
+
+              wstart := UpperCase(SyntaxStyles.BlockStart);
             end;
 
           end;
@@ -15275,6 +15821,7 @@ begin
 end;
 
 // custom sorting of the autocompletelist
+(*
 function TAdvCustomMemo.SortAutoCompletList(List: TStringList; Index1, Index2: Integer): Integer;
 var
   entry1, entry2: string;
@@ -15311,6 +15858,7 @@ begin
     result := CompareText(entry1, entry2);
   end;
 end;
+*)
 
 function TAdvCustomMemo.GetBookmarks(Index: Integer): Integer;
 begin
@@ -15361,7 +15909,7 @@ begin
     begin
       if CodeFolding.Enabled then
         ExpandParents(FBookmarkList.Items[Index]);
-        
+
       TopLine := FBookmarkList.Items[Index];
       CurX := 0;
       CurY := FBookmarkList.Items[Index];
@@ -15700,11 +16248,25 @@ end;
 procedure TAutoCompletionListBox.SetImages(IL: TImageList);
 begin
   FImages := IL;
+
+  FBmpVar.FreeImage;
+  FBmpProp.FreeImage;
+  FBmpEvent.FreeImage;
+  FBmpProc.FreeImage;
+  FBmpMethod.FreeImage;
+
+  FBmpVar.PixelFormat := pf24bit;
+  FBmpProp.PixelFormat := pf24bit;
+  FBmpEvent.PixelFormat := pf24bit;
+  FBmpProc.PixelFormat := pf24bit;
+  FBmpMethod.PixelFormat := pf24bit;
+
   FImages.GetBitmap(0, FBmpVar);
   FImages.GetBitmap(1, FBmpProp);
   FImages.GetBitmap(2, FBmpEvent);
   FImages.GetBitmap(3, FBmpProc);
   FImages.GetBitmap(4, FBmpMethod);
+
 end;
 
 constructor TAutoCompletionListBox.Create(AOwner: TComponent);
@@ -15836,13 +16398,17 @@ end;
 
 function TAdvCustomMemo.GetModified: boolean;
 begin
-  Result := InternalUndoList.Count > 0;
+  Result := (InternalUndoList.Count > 0);
 end;
 
 procedure TAdvCustomMemo.SetModified(const Value: boolean);
 begin
-  if Value = False then
+  if (Value = False) then
+  begin
     ClearUndoList;
+    StatusChanged;
+    ClearModified;
+  end;
 end;
 
 function TAdvCustomMemo.GetVersionNr: Integer;
@@ -16104,6 +16670,23 @@ begin
   outputdebugstring(pchar(inttostr(gettickcount - t) + ':unodowrap'));
 {$ENDIF}
 end;
+procedure TAdvCustomMemo.Change;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TAdvCustomMemo.DoGutterClick(LineNo: integer);
+begin
+  if Assigned(FOnGutterClick) then
+    FOnGutterClick(Self, LineNo);
+end;
+
+procedure TAdvCustomMemo.DoGetAutoCompletionList(AToken: string; AList: TStringList);
+begin
+  if Assigned(FOnGetAutoCompletionList) then
+    FOnGetAutoCompletionList(Self, AToken, AList);
+end;
 
 { TAdvMemoSource }
 
@@ -16155,7 +16738,6 @@ end;
 procedure TAdvMemoSource.Loaded;
 begin
   inherited;
-
 end;
 
 procedure TAdvMemoSource.Notification(AComponent: TComponent;
@@ -16169,10 +16751,11 @@ begin
       FMemo.Invalidate;
     Exit;
   end;
+  
   if (Operation = opRemove) and (AComponent = FMemo) then
     SetMemo(nil);
+    
   inherited;
-
 end;
 
 procedure TAdvMemoSource.SetLines(const Value: TAdvMemoStrings);
@@ -16238,7 +16821,7 @@ end;
 
 procedure TAdvMemoSource.SetModified(const Value: boolean);
 begin
-  if FMemo <> nil then
+  if (FMemo <> nil) then
     FMemo.Modified := Value
   else
     FModified := Value;
@@ -16747,13 +17330,8 @@ begin
 end;
 
 procedure TAdvMemoChecker.CorrectLine(LineNo: Integer);
-var
-  s:string;
 begin
-  if Assigned(FMemo) then
-  begin
-    s := FMemo.Lines[LineNo];
-  end;
+
 end;
 
 procedure TAdvMemoChecker.CorrectWord(LineNo,LinePos: Integer; var s: string);
@@ -16799,6 +17377,14 @@ begin
   end;
 end;
 
+procedure TAdvMemoChecker.AddUndo(LineNo: integer; UndoLine: string);
+var
+  cu: TCorrectUndo;
+begin
+  cu := TCorrectUndo.Create(LineNo, UndoLine);
+  FMemo.FUndoList.Add(cu);
+end;
+
 procedure TAdvMemoChecker.CheckAllLines;
 var
   i: Integer;
@@ -16827,9 +17413,10 @@ end;
 
 procedure TAdvMemoCapitalChecker.CorrectLine(LineNo: Integer);
 var
-  Prev,PrevPrev:Char;
+  Prev,PrevPrev: char;
   i: Integer;
-  s:string;
+  s: string;
+  FUndoText: string;
 begin
   Prev := ' ';
   PrevPrev := '.';
@@ -16840,9 +17427,11 @@ begin
     else
       s := FMemo.Lines[LineNo];
 
+    FUndoText := s;
+
     for i := 1 to Length(s) do
     begin
-      if (Prev = ' ') and (PrevPrev in ['!','?','.']) and (s[i] <> Upcase(s[i])) then
+      if (Prev = ' ') and ( (PrevPrev = '!') or (PrevPrev = '?') or (PrevPrev = '.')) and (s[i] <> Upcase(s[i])) then
         s[i] := UpCase(s[i]);
       PrevPrev := Prev;
       Prev := s[i];
@@ -16852,6 +17441,10 @@ begin
       FMemo.MemoSource.Lines[LineNo] := s
     else
       FMemo.Lines[LineNo] := s;
+
+    FMemo.Modified := true;
+
+    AddUndo(LineNo,FUndoText);
   end;
 end;
 
@@ -17006,5 +17599,6 @@ end;
 {$IFDEF FREEWARE}
 {$I TRIAL.INC}
 {$ENDIF}
+
 
 end.

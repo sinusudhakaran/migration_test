@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TMS AdvOutlookList component                                            }
 { for Delphi & C++Builder                                                 }
-{ version 1.3                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 2005 - 2006                                       }
+{           copyright © 2005 - 2008                                       }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -16,6 +15,8 @@
 { code can be included in any other component or application without      }
 { written authorization of the author.                                    }
 {*************************************************************************}
+
+{$I TMSDEFS.INC}
 
 unit AdvOutlookList;
 
@@ -35,9 +36,9 @@ const
 
   //version info
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 3; // Minor version nr.
-  REL_VER = 10; // Release nr.
-  BLD_VER = 0; // Build nr.
+  MIN_VER = 5; // Minor version nr.
+  REL_VER = 6; // Release nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
   // 1.0.0.0 : first release
@@ -85,12 +86,49 @@ const
   //         : New event OnSorted added
   // 1.3.7.1 : Fixed issues with drag & drop
   // 1.3.8.0 : Added OutlookGroup.ItemIndex(p: POGLItem); function
-  // 1.3.9.0 : New : added support for Office 2007 silver style  
+  // 1.3.9.0 : New : added support for Office 2007 silver style
   // 1.3.10.0: New : method UnSelectAll added
   //         : Fixed : issue with SelectItem & multiselect option
+  // 1.3.10.1: Fixed : issue with ClearChilds on group without childs
+  // 1.3.10.2: Fixed : memory leak issue with TOutlookGroup
+  // 1.3.10.3: Fixed : issue with DeleteGroup, DeleteAllGroups method
+  // 1.4.0.0 : New : SelectionColor, SelectionTextColor properties added
+  // 1.4.1.0 : New : OnMouseMove, OnMouseDown, OnMouseUp events added
+  //         : Fixed : issue with OnSelectionChange
+  // 1.5.0.0 : New : GroupFont property added
+  //         : New : GroupCountFont property added
+  //         : New : GroupSelectionColor property added
+  //         : New : GroupSelectionTextColor property added
+  //         : New : GroupColor property added
+  //         : New : C++Builder 2007 support
+  // 1.5.0.1 : Fixed : Issue with NextSelectedItem call
+  // 1.5.1.0 : New : keyboard lookup ignores HTML tags
+  // 1.5.2.0 : New : exposed PreviewSettings.Height
+  //         : Fixed : issue with hiding columns
+  // 1.5.3.0 : New : event OnGroupExpand/OnGroupCollaps added
+  //         : Fixed : issue with OnGroupClick event during expand/collaps
+  //         : Improved : unselect behaviour in single select mode
+  // 1.5.3.1 : Fixed : issue with function group.InsertChild()
+  // 1.5.3.2 : Improved : hint positioning
+  // 1.5.3.3 : Fixed : issue with column index in the header events
+  // 1.5.3.4 : Fixed : issue with NextSelectedItem function
+  // 1.5.3.5 : Fixed : issue with VCL drag & drop & right clicks
+  // 1.5.3.6 : Fixed : issue with OnSelectionChange event
+  // 1.5.4.0 : New : support for HTML formatted text in AdvOutlookList group header
+  // 1.5.5.0 : New : InsertGroup method added
+  //         : New : event OnGetItemHint added
+  //         : New : event OnGetGroupHint added
+  // 1.5.5.1 : Fixed : issue with GroupIndex function
+  // 1.5.5.2 : Fixed : issue with URL click on item & drag & drop
+  // 1.5.6.0 : New : stAnsiText, stAnsiTextNoCase sort types added
+  // 1.5.6.1 : Fixed : issue with multiselect & drag & drop
   
 type
-
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TProOutlookGroupedList = class(TOutlookGroupedList);
   TAdvOutlookList = class;
 
@@ -98,7 +136,7 @@ type
   TGradientDir = (gdVertical, gdHorizontal);
   TCheckBoxStyle = (cbsClassic, cbsFlat, cbsWinXP, cbsBorland);
   TURLType = (utHTTP, utHTTPS, utFTP, utMailTo, utNNTP);
-  TSortType = (stNone, stTextCase, stTextNoCase, stNumeric, stBoolean, stDate, stTime, stDateTime, stCustom, stFloat);
+  TSortType = (stNone, stTextCase, stTextNoCase, stNumeric, stBoolean, stDate, stTime, stDateTime, stCustom, stFloat,stAnsiText, stAnsiTextNoCase);
   TSortDirection = (sdAscending, sdDescending);
   TDragDropSetting = (ddEnabled, ddDisabled);
   TLookUpMethod = (lmDirect, lmIncremental);
@@ -129,6 +167,7 @@ type
     FHeaderSecIndex: Integer;
     FVisible: Boolean;
     FGroupImageIndex: Integer;
+    FHeaderSecOrgIndex: Integer;
     procedure OnFontChanged(Sender: TObject);
     procedure SetCaption(const Value: string);
     procedure SetWidth(const Value: Integer);
@@ -148,6 +187,7 @@ type
     procedure SetHeaderSecIndex(const Value: Integer);
     procedure SetVisible(const Value: Boolean);
     procedure SetGroupImageIndex(const Value: Integer);
+    procedure SetHeaderSecOrgIndex(const Value: Integer);
   protected
     procedure Changed;
     procedure Refresh;
@@ -155,6 +195,7 @@ type
     procedure SetIndex(Value: Integer); override;
 
     property HeaderSecIndex: Integer read FHeaderSecIndex write SetHeaderSecIndex;
+    property HeaderSecOrgIndex: Integer read FHeaderSecOrgIndex write SetHeaderSecOrgIndex;
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
@@ -241,6 +282,7 @@ type
     property ChildItem[Index: Integer]: TStrings read GetChildItem;
     property ChildOGLItem[Index: Integer]: POGLItem read GetChildOLGItem;
     property ChildCount: integer read GetChildCount;
+    property ListItem: POGLItem read OGLItem;
     property Expanded: boolean read GetExpanded write SetExpanded;
     property Data: TObject read GetObject write SetObject;
     property Tag: Integer read GetTag write SetTag;
@@ -300,7 +342,7 @@ type
     property OnSized: TSectionEvent read FOnSized write FOnSized;
   end;
 
-  TProgressStyle = (psXP, psClassic); 
+  TProgressStyle = (psXP, psClassic);
 
   TProgressAppearance = class(TPersistent)
   private
@@ -394,7 +436,6 @@ type
     procedure OnFontChange(Sender: TObject);
   protected
     procedure Changed;
-    property Height: Integer read FHeight write SetHeight default 40;
   public
     constructor Create;
     destructor Destroy; override;
@@ -402,6 +443,7 @@ type
   published
     property Active: Boolean read FActive write SetActive default False;
     property Column: Integer read FColumn write SetColumn default -1;
+    property Height: Integer read FHeight write SetHeight default 40;
     //property TextColor: TColor read FTextColor write SetTextColor default clBlue;
     property Font: TFont read FFont write SetFont;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
@@ -498,6 +540,9 @@ type
   TAOLGetClipboardFormatsEvent = procedure(Sender: TAdvOutlookList; var Formats: TFormatEtcArray) of object;
   TAOLDragAllowedEvent = procedure(Sender: TAdvOutlookList; Item: POGLItem; var Allowed: Boolean) of object;
   TAOLGetCaptionEvent = procedure(Sender: TAdvOutlookList; Item: POGLItem; var Caption: String) of object;
+  TOnGetItemHintEvent = procedure(Sender: TAdvOutlookList; Item: POGLItem; ColumnIndex: Integer; var HintText: String) of object;
+  TOnGetGroupHintEvent = procedure(Sender: TAdvOutlookList; Item: POGLItem; var HintText: String) of object;
+
 
   TOLEItemData = procedure(Sender: TAdvOutlookList; Data: TStrings) of object;
 
@@ -578,11 +623,25 @@ type
     FDragType: TOGLDragType;
     FSelectionOptions: TOGLSelectionOptions;
     FHeaderResize: boolean;
+    FGroupList: TList;
+    FSelectionColor: TColor;
+    FSelectionTextColor: TColor;
+    FOnMouseMove: TMouseMoveEvent;
+    FOnMouseDown: TMouseEvent;
+    FOnMouseUp: TMouseEvent;
+    FGroupColor: TColor;
+    FGroupSelectionColor: TColor;
+    FGroupSelectionTextColor: TColor;
+    FGroupFont: TFont;
+    FGroupCountFont: TFont;
+    FOnGroupExpand: TAOLItemEvent;
+    FOnGroupCollaps: TAOLItemEvent;
+    FOnGetGroupHint: TOnGetGroupHintEvent;
+    FOnGetItemHint: TOnGetItemHintEvent;
     procedure WMEraseBkGnd(var Message:TMessage); message WM_ERASEBKGND;
     //procedure CMHintShow(var Message: TMessage); message CM_HINTSHOW;
     //procedure WMNCPaint(var Message: TMessage); message WM_NCPAINT;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
-
     procedure OnPreviewSettingChange(Sender: TObject);
     procedure OnProgressAppearanceChange(Sender: TObject);
     procedure OnURLSettingsChange(Sender: TObject);
@@ -597,7 +656,7 @@ type
     procedure OnListKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure OnListKeyPress(Sender: TObject; var Key: Char);
     procedure OnListCompareItems(Sender: TOutlookGroupedList; Item1, Item2: POGLItem; Column: TOGLSortColumn; var Result: Integer);
-    procedure OnListGetHint(Sender: TOutlookGroupedList; Item: POGLItem; var HintText: String);
+    procedure OnListGetHint(Sender: TOutlookGroupedList; Item: POGLItem; var HintText: String; var HintPos: TPoint);
     procedure OnListGetGroupImageIndex(Sender: TOutlookGroupedList; Item: POGLItem; var ImageIndex: Integer);
     procedure OnListSelectionChange(Sender: TObject);
     //--- Drag Events
@@ -618,10 +677,11 @@ type
     procedure OnHeaderSectRightClick(Sender: TObject; SectionIndex: Integer);
     procedure OnHeaderSectDblClick(Sender: TObject; SectionIndex: Integer);
     procedure OnSortChange(Sender: TObject);
+    procedure OnGroupCountFontChanged(Sender: TObject);
+    procedure OnGroupFontChanged(Sender: TObject);
     procedure SetBorderStyle(const Value: TBorderStyle);
     procedure FreeItem(Sender: TOutlookGroupedList; Item: POGLItem);
-    procedure DrawItem(Sender: TOutlookGroupedList; ItemCanvas: TCanvas; ItemRect: TRect;
-      Item: POGLItem);
+    procedure DrawItem(Sender: TOutlookGroupedList; ItemCanvas: TCanvas; ItemRect: TRect; Item: POGLItem);
     procedure GetCaption(Sender: TOutlookGroupedList; Item: POGLItem; var Caption: String);
     procedure GetItemHeight(Sender: TOutlookGroupedList; const OGLCanvas: TCanvas; var ItemHeight: Word);
     procedure SetColumnLineColor(const Value: TColor);
@@ -643,6 +703,8 @@ type
     procedure SetHoverFontColor(const Value: TColor);
     procedure SetShadowColor(const Value: TColor);
     procedure SetGroupColumn(const Value: Integer);
+    procedure SetSelectionColor(const Value: TColor);
+    procedure SetSelectionTextColor(const Value: TColor);
     function GetVersion: string;
     procedure SetVersion(const Value: string);
     procedure SetColor(const Value: TColor);
@@ -668,6 +730,11 @@ type
     procedure SetGroupColumnDisplay(const Value: TGroupColumnDisplay);
     procedure SetDragType(const Value: TOGLDragType);
     procedure SetSelectionOptions(const Value: TOGLSelectionOptions);
+    procedure SetGroupColor(const Value: TColor);
+    procedure SetGroupCountFont(const Value: TFont);
+    procedure SetGroupFont(const Value: TFont);
+    procedure SetGroupSelectionColor(const Value: TColor);
+    procedure SetGroupSelectionTextColor(const Value: TColor);
   protected
     procedure HeaderChanged(Sender: TObject);
     procedure CreateWnd; override;
@@ -675,6 +742,9 @@ type
     procedure Paint; override;
     procedure Loaded; override;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
+
+    procedure DoExpand(Sender: TOutlookGroupedList; Item: POGLItem);
+    procedure DoCollaps(Sender: TOutlookGroupedList; Item: POGLItem);
 
     function HTMLPaint(Canvas:TCanvas; s:string; fr:TRect; FImages:TImageList;
                        xpos,ypos,focuslink,hoverlink,shadowoffset: Integer;
@@ -705,6 +775,9 @@ type
 
     procedure Locate(s: String; Col: Integer);
 
+    procedure ListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ListMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
     property Ellipsis: Boolean read FEllipsis write SetEllipsis;
     property ShadowOffset: Integer read fShadowOffset write SetShadowOffset;
     property Hover:boolean read fHover write SetHover;
@@ -719,13 +792,16 @@ type
     procedure BeginUpdate;
     procedure EndUpdate;
 
+    procedure TestFill;
+
     procedure SetFocus; override;
 
-    function AddGroup(Caption: string): TOutlookGroup;
+    function AddGroup(Caption: string): TOutlookGroup;   
+    function InsertGroup(Index: Integer; Caption: string) : TOutlookGroup;
     function AddItem(Group: TOutlookGroup): TStrings; overload;
     function AddItem(ParentItem: POGLItem = nil): POGLItem; overload;
     procedure DeleteItem(Item: POGLItem; Reindex: Boolean = True);
-    procedure DeleteSelectedItems(ReIndex: Boolean = False);
+    procedure DeleteSelectedItems(ReIndex: Boolean = True);
 
     procedure DeleteGroup(Index: Integer);
     procedure DeleteAllGroups;
@@ -794,7 +870,14 @@ type
     property PopupMenu;
     property ProgressAppearance: TProgressAppearance read FProgressAppearance write SetProgressAppearance;
     property PreviewSettings: TPreviewSetting read FPreviewSettings write SetPreviewSettings;
+    property SelectionColor: TColor read FSelectionColor write SetSelectionColor default clHighlight;
+    property SelectionTextColor: TColor read FSelectionTextColor write SetSelectionTextColor default clHighlightText;
     property SelectionOptions: TOGLSelectionOptions read FSelectionOptions write SetSelectionOptions default DefaultSelectionOptions;
+    property GroupFont: TFont read FGroupFont write SetGroupFont;
+    property GroupCountFont: TFont read FGroupCountFont write SetGroupCountFont;
+    property GroupColor: TColor read FGroupColor write SetGroupColor default clNone;
+    property GroupSelectionColor: TColor read FGroupSelectionColor write SetGroupSelectionColor default clHighLight;
+    property GroupSelectionTextColor: TColor read FGroupSelectionTextColor write SetGroupSelectionTextColor default clWhite;
 
     property ShowHint;
     property ShowNodes: Boolean read GetShowNodes write SetShowNodes;
@@ -824,6 +907,11 @@ type
     property OnAnchorClick: TAnchorClick read FAnchorClick write FAnchorClick;
     property OnAnchorEnter: TAnchorClick read FAnchorEnter write FAnchorEnter;
     property OnAnchorExit: TAnchorClick read FAnchorExit write FAnchorExit;
+    property OnGroupExpand: TAOLItemEvent read FOnGroupExpand write FOnGroupExpand;
+    property OnGroupCollaps: TAOLItemEvent read FOnGroupCollaps write FOnGroupCollaps;
+    property OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
+    property OnMouseDown: TMouseEvent read FOnMouseDown write FOnMouseDown;
+    property OnMouseUp: TMouseEvent read FOnMouseUp write FOnMouseUp;
     property OnCheckBoxClick: TCheckBoxClickEvent read FOnCheckBoxClick write FOnCheckBoxClick;
     property OnOLEDragOver: TAOLDragOverEvent read FOnOLEDragOver write FOnOLEDragOver;
     property OnOLEDrop: TAOLDropEvent read FOnOLEDrop write FOnOLEDrop;
@@ -836,6 +924,9 @@ type
     property OnCustomCompare: TOnCustomCompareEvent read FOnCustomCompare write FOnCustomCompare;
     property OnSelectionChange: TNotifyEvent read FOnSelectionChange write FOnSelectionChange;
     property OnSorted: TOnSortedEvent read FOnSorted write FOnSorted;
+    property OnGetItemHint: TOnGetItemHintEvent read FOnGetItemHint write FOnGetItemHint;
+    property OnGetGroupHint: TOnGetGroupHintEvent read FOnGetGroupHint write FOnGetGroupHint;
+
     property OnDragDrop;
     property OnDragOver;
     property OnKeyPress;//: TKeyPressEvent read FOnKeyPress write FOnKeyPress;
@@ -1780,7 +1871,27 @@ var
   olg: TOutlookGroup;
 begin
   olg := TOutlookGroup.Create;
+  FGroupList.Add(pointer(olg));
   olg.OGLItem := FList.AddItem(nil);
+  olg.List := Self;
+  poi := FList.GetItemData(olg.OGLItem);
+  poi.data := TStringList.Create;
+  poi.data.Add(Caption);
+  Result := olg;
+end;
+
+//------------------------------------------------------------------------------
+function TAdvOutlookList.InsertGroup(Index: Integer; Caption: String) : TOutlookGroup;
+var
+  poi: POutlookInfo;
+  olg: TOutlookGroup;
+begin
+  olg := TOutlookGroup.Create;
+  FGroupList.Add(pointer(olg));
+  if Cardinal( Index) >= FList.RootItem.ChildCount then
+    olg.OGLItem := FList.AddItem(nil)
+  else
+    olg.OGLItem := FList.InsertItem(nil, Index);
   olg.List := Self;
   poi := FList.GetItemData(olg.OGLItem);
   poi.data := TStringList.Create;
@@ -1819,6 +1930,12 @@ begin
   FList.OnCompareItems := OnListCompareItems;
   FList.OnGetHint := OnListGetHint;
   FList.OnGetGroupImageIndex := OnListGetGroupImageIndex;
+  FList.OnExpandItem := DoExpand;
+  FList.OnCollapsItem := DoCollaps;
+
+  FList.OnMouseDown := ListMouseDown;
+  FList.OnMouseUp := ListMouseUp;
+
   TProOutlookGroupedList(FList).OnSelectionChange := OnListSelectionChange;
   FHideSelection := True;
   TProOutlookGroupedList(FList).HideSelection := FHideSelection;
@@ -1841,6 +1958,16 @@ begin
   FSelectionOptions := DefaultSelectionOptions;
   FHeaderResize := true;
 
+  GroupColor := clNone;
+  GroupSelectionColor := clHighLight;
+  GroupSelectionTextColor := clWhite;
+  FGroupFont := TFont.Create;
+  FGroupFont.OnChange := OnGroupFontChanged;
+  FGroupFont.Color := $00B96837;
+  FGroupFont.Style := [fsBold];
+  FGroupCountFont := TFont.Create;
+  FGroupCountFont.OnChange := OnGroupCountFontChanged;
+  GroupCountFont.Color := clBlack;
   {
   with FColumns.Add do
   begin
@@ -1893,6 +2020,8 @@ begin
   FBorderColor := clGray;
   FSortSettings := TSortSettings.Create;
   FSortSettings.OnChange := OnSortChange;
+  FSelectionColor := clHighlight;
+  FSelectionTextColor := clHighlightText;
 
   FImageCache := THTMLPictureCache.Create;
   FHoverHyperLink := -1;
@@ -1921,6 +2050,7 @@ begin
   FLookUp := TLookUpSettings.Create;
   FLookUpText := '';
   FGroupColumnDisplay := gdHidden;
+  FGroupList := TList.Create;
 end;
 
 //------------------------------------------------------------------------------
@@ -1985,14 +2115,16 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvOutlookList.DeleteSelectedItems(ReIndex: Boolean);
+procedure TAdvOutlookList.DeleteSelectedItems(ReIndex: Boolean = true);
 begin
-  FList.DeleteSelectedItems(Reindex);
+  FList.DeleteSelectedItems(ReIndex);
 end;
 
 //------------------------------------------------------------------------------
 
 destructor TAdvOutlookList.Destroy;
+var
+  olg: TOutlookGroup;
 begin
   FHeader.Free;
   FList.Free;
@@ -2005,6 +2137,17 @@ begin
   FImageCache.Free;
   FDragFileList.Free;
   FLookUp.Free;
+
+  while FGroupList.Count > 0 do
+  begin
+    olg := TOutlookGroup(FGroupList.Items[0]);
+    olg.Free;
+    FGroupList.Delete(0);
+  end;
+
+  FGroupList.Free;
+  FGroupFont.Free;
+  FGroupCountFont.Free;
   inherited;
 end;
 
@@ -2047,6 +2190,8 @@ var
       W := R.Right - R.Left;
       H := R.Bottom - R.Top;
       Txt := IntToStr(Completion) + '%';
+      if Completion > 100 then
+        Completion := 100;
       SrcRect.Right := SrcRect.Left + Round(W * Completion / 100);
       TgtRect.Left := R.Left + ((W - ACanvas.Textwidth(Txt)) shr 1);
       TgtRect.Top := R.Top + ((H - ACanvas.Textheight(Txt)) shr 1);
@@ -2116,11 +2261,12 @@ begin
   if poi.data.Count > 0 then
     ItemCanvas.TextOut(ItemRect.Left, ItemRect.Top, poi.data[0]);  }
 
+
   // Draw Columns
   with ItemCanvas do
   begin
     //x := ItemRect.Left;
-    for i:= 0 to FColumns.Count-1 do
+    for i := 0 to FColumns.Count - 1 do
     begin
       if ((I = FGroupColumn) and (FGroupColumnDisplay = gdHidden)) or not FColumns.Items[i].Visible then
         Continue;
@@ -2134,6 +2280,7 @@ begin
         ColRect := Rect(x, ItemRect.Top, x + cw -1, ItemRect.Bottom);
         }
         ColRect := GetCellRect(ItemRect, i);
+
         //cw := ColRect.Right - ColRect.Left;
 
         S := '';
@@ -2183,18 +2330,13 @@ begin
           end;
 
           if (FPreviewSettings.Active) and (FPreviewSettings.Column = i) then
-          begin
-            //ItemCanvas.Font.Color := FPreviewSettings.Font.Color;
             ItemCanvas.Font.Assign(FPreviewSettings.Font);
-          end;
-
-          if (Sender.Focused or not HideSelection) and Sender.IsItemSelected(Item) then
-            ItemCanvas.Font.Color := clHighlightText;
 
           if (Sender.Focused or not HideSelection) and Sender.IsItemSelected(Item) then
           begin
-            //Pen.Color := clHighLight;
-            Brush.Color := clHighLight;
+            ItemCanvas.Font.Color := FSelectionTextColor;
+            ItemCanvas.Brush.Color := FSelectionColor;
+
             if Assigned(FOnDrawItemProp) then
               FOnDrawItemProp(self, Item, i, S, ItemCanvas.Brush, ItemCanvas.Font);
           end
@@ -2210,8 +2352,10 @@ begin
               Pen.Color := Self.Color;
               Brush.Color := Self.Color;
             end;
+
             if Assigned(FOnDrawItemProp) then
               FOnDrawItemProp(self, Item, i, S, ItemCanvas.Brush, ItemCanvas.Font);
+
             if (self.ColumnLineColor = clNone) then      // FF: show Column line when selection with ColumnLineColor = clNone
               Rectangle(ColRect.Left-1, ColRect.Top, ColRect.Right, ColRect.Bottom)
             else
@@ -2397,12 +2541,14 @@ end;
 procedure TAdvOutlookList.HeaderChanged(Sender: TObject);
 var
   i: Integer;
-begin 
+begin
+  FHeader.Sections.Clear;
+
   while (Columns.Count > FHeader.Sections.Count) do
     FHeader.Sections.Add('');
 
-  while (Columns.Count > FHeader.Sections.Count) do
-    FHeader.Sections.Delete(FHeader.Sections.Count - 1);
+  //while (Columns.Count > FHeader.Sections.Count) do
+  //  FHeader.Sections.Delete(FHeader.Sections.Count - 1);
 
   if FPreviewSettings.Active then
   begin
@@ -2414,7 +2560,7 @@ begin
 
   if (FGroupColumn >= 0) and (FGroupColumn < FColumns.Count) and (FGroupColumnDisplay = gdHidden) then
   begin
-    FHeader.Sections.Delete(Columns[FGroupColumn].HeaderSecIndex);
+    FHeader.Sections.Delete(0{Columns[FGroupColumn].HeaderSecIndex});
   end;
 
   UpdateHeaderSecIndexes;
@@ -2425,6 +2571,7 @@ begin
        (FPreviewSettings.Active and (i-1 = FPreviewSettings.Column) and (FPreviewSettings.Column >= 0) and (FPreviewSettings.Column < FColumns.Count))
        or not Columns[i - 1].Visible then
       Continue;
+      
     FHeader.Sections[{i - 1}Columns[i - 1].HeaderSecIndex] := Columns[i - 1].Caption;
     FHeader.SectionWidth[{i - 1}Columns[i - 1].HeaderSecIndex] := Columns[i - 1].Width;
   end;
@@ -2460,7 +2607,8 @@ var
   i: Integer;
 begin
   Result := SectionIndex;
-  for i := 0 to FColumns.Count-1 do
+
+  for i := 0 to FColumns.Count - 1 do
   begin
     if (not IsGroupColumn(i) or (FGroupColumnDisplay = gdVisible)) and not IsPreviewColumn(i) and (FColumns[i].HeaderSecIndex = SectionIndex) and (FColumns[i].Visible) then
     begin
@@ -2492,7 +2640,8 @@ begin
     FColumns.Items[MapHeaderSecToCol(ColIdx)].FWidth := ColWidth;
     Invalidate;
     if Assigned(OnHeaderResized) then
-      OnHeaderResized(self, ColIdx, ColWidth);
+      OnHeaderResized(self, MapHeaderSecToCol(ColIdx), ColWidth);
+//      OnHeaderResized(self, ColIdx, ColWidth);
   end;
 end;
 
@@ -2563,9 +2712,11 @@ begin
   end;
 
   x := ItemRect.Left;
-  for i:= 0 to FHeader.Sections.Count-1 do
+
+  for i := 0 to FHeader.Sections.Count - 1 do
   begin
     HeaderCol := MapHeaderSecToCol(i);
+
     w := FHeader.SectionWidth[i];
 
     Result := Rect(x, ItemRect.Top, x + w -1, ItemRect.Bottom);
@@ -2592,6 +2743,7 @@ begin
     if HeaderCol = ColIndex then
       break;
   end;
+
   {
   for i:= 0 to FColumns.Count-1 do
   begin
@@ -2627,7 +2779,8 @@ begin
 
     if i = ColIndex then
       break;
-  end;  }
+  end;
+  }
 end;
 
 //------------------------------------------------------------------------------
@@ -2721,13 +2874,15 @@ begin
   end
   else
   begin
-    if (FList.ViewStyle = vsList) and Assigned(HitInfo.HitItem) then
+    if (FList.ViewStyle = vsList) and Assigned(HitInfo.HitItem) {and (X > 3)} then
     begin
       AColItem := ColAtPoint(TProOutlookGroupedList(FList).GetRealRect(HitInfo.HitItem), X, Y, CellRect);
+
       if FList.IsGroupItem(HitInfo.HitItem) then
       begin
-        if Assigned(FOnGroupClick) then
-          FOnGroupClick(self, HitInfo.HitItem);
+        if (X > 17) then
+          if Assigned(FOnGroupClick) then
+             FOnGroupClick(self, HitInfo.HitItem);
         Exit;
       end;
 
@@ -2895,6 +3050,23 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvOutlookList.SetSelectionColor(const Value: TColor);
+begin
+  FSelectionColor := Value;
+  FList.SelectionColor := Value;
+  Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.SetSelectionTextColor(const Value: TColor);
+begin
+  FSelectionTextColor := Value;
+  Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvOutlookList.SetURLSettings(const Value: TURLSettings);
 begin
   FURLSettings.Assign(Value);
@@ -2929,7 +3101,10 @@ begin
       for i:= 0 to FColumns.Count-1 do
       begin
         if (FColumns[i].HeaderSecIndex >= Hs) and (i <> FPreviewedColumn) and (not IsGroupColumn(i) or (FGroupColumnDisplay = gdVisible)) then
+        begin
           FColumns[i].HeaderSecIndex := FColumns[i].HeaderSecIndex + 1;
+          FColumns[i].HeaderSecOrgIndex := FColumns[i].HeaderSecOrgIndex + 1;
+        end;
       end;
       FPreviewedColumn := -1;
     end;
@@ -2937,7 +3112,10 @@ begin
     for i:= 0 to FColumns.Count-1 do
     begin
       if (FColumns[i].HeaderSecIndex > FColumns[FPreviewSettings.Column].HeaderSecIndex) and (not IsGroupColumn(i) or (FGroupColumnDisplay = gdVisible)) then
+      begin
         FColumns[i].HeaderSecIndex := FColumns[i].HeaderSecIndex - 1;
+        FColumns[i].HeaderSecOrgIndex := FColumns[i].HeaderSecOrgIndex - 1;
+      end;
     end;
     FPreviewedColumn := FPreviewSettings.Column;
 
@@ -2952,7 +3130,10 @@ begin
       for i:= 0 to FColumns.Count-1 do
       begin
         if (FColumns[i].HeaderSecIndex >= Hs) and (i <> FPreviewedColumn) and (not IsGroupColumn(i) or (FGroupColumnDisplay = gdVisible)) then
+        begin
           FColumns[i].HeaderSecIndex := FColumns[i].HeaderSecIndex + 1;
+          FColumns[i].HeaderSecOrgIndex := FColumns[i].HeaderSecOrgIndex + 1;
+        end;
       end;
       FPreviewedColumn := -1;
     end;
@@ -3029,6 +3210,9 @@ var
 begin
   if (csDesigning in ComponentState) then
     Exit;
+
+  if Assigned(FOnMouseMove) then
+    FOnMouseMove(Sender, Shift, X, Y);
 
   AColItem := nil;
 
@@ -3237,7 +3421,7 @@ procedure TAdvOutlookList.OnHeaderSectClick(Sender: TObject;
   SectionIndex: Integer);
 begin
   if Assigned(FOnHeaderClick) then
-    FOnHeaderClick(self, SectionIndex);
+    FOnHeaderClick(self, MapHeaderSecToCol(SectionIndex));
 end;
 
 //------------------------------------------------------------------------------
@@ -3246,7 +3430,7 @@ procedure TAdvOutlookList.OnHeaderSectDblClick(Sender: TObject;
   SectionIndex: Integer);
 begin
   if Assigned(FOnHeaderDblClick) then
-    FOnHeaderDblClick(self, SectionIndex);
+    FOnHeaderDblClick(self, MapHeaderSecToCol(SectionIndex));
 end;
 
 //------------------------------------------------------------------------------
@@ -3255,7 +3439,7 @@ procedure TAdvOutlookList.OnHeaderSectRightClick(Sender: TObject;
   SectionIndex: Integer);
 begin
   if Assigned(FOnHeaderRightClick) then
-    FOnHeaderRightClick(self, SectionIndex);
+    FOnHeaderRightClick(self, MapHeaderSecToCol(SectionIndex));
 end;
 
 //------------------------------------------------------------------------------
@@ -3293,8 +3477,12 @@ begin
             S2 := poi.data[MCol];
         end;
 
+        if pos('</',S2) > 0 then
+          S2 := HTMLStrip(S2);
+
         // Compare
         S2 := Copy(S2, 1, min(Length(s2), Length(S)));
+
         if StrIComp(PChar(S), PChar(S2)) = 0 then
         begin
           FList.ClearSelection;
@@ -3383,6 +3571,22 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvOutlookList.DoExpand(Sender: TOutlookGroupedList; Item: POGLItem);
+begin
+  if Assigned(OnGroupExpand) then
+    OnGroupExpand(Self, Item);
+end;
+//------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.DoCollaps(Sender: TOutlookGroupedList; Item: POGLItem);
+begin
+  if Assigned(OnGroupCollaps) then
+    OnGroupCollaps(Self, Item);
+end;
+
+
+//------------------------------------------------------------------------------
+
 procedure TAdvOutlookList.SortItems;
 {var
   GroupItem,ChildItem: POGLItem; }
@@ -3402,7 +3606,6 @@ begin
 
      if Assigned(FOnSorted) then
        FOnSorted(Self, SortSettings.Column);
-
 
      {
 
@@ -3516,6 +3719,24 @@ begin
     stTextCase:
     begin
       Result := StrComp(PChar(V1), PChar(V2));
+    end;
+    stAnsiText:
+    begin
+      Result := AnsiCompareStr(V1,V2);
+      if Result > 0 then
+        Result := 1
+      else
+        if Result < 0 then
+          Result := -1;
+    end;
+    stAnsiTextNoCase:
+    begin
+      Result := AnsiCompareText(V1,V2);
+      if Result > 0 then
+        Result := 1
+      else
+        if Result < 0 then
+          Result := -1;
     end;
     stNumeric:
     begin
@@ -3732,6 +3953,7 @@ begin
            (FPreviewSettings.Active and (i = FPreviewSettings.Column) and (FPreviewSettings.Column >= 0) and (FPreviewSettings.Column < FColumns.Count)) then
           Continue;
         FColumns.Items[i].HeaderSecIndex := j;
+        FColumns.Items[i].HeaderSecOrgIndex := j;
         Inc(j);
       end;
     end;
@@ -3808,6 +4030,8 @@ begin
         poi2.data := TStringList.Create;
         poi2.data.Add(S);
 
+        FGroupList.Add(DOLGItem);
+
         DOLGItem.OGLItem.ItemObject := ioo;
         DOLGItem.OGLItem.Tag := iot;
 
@@ -3861,6 +4085,20 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.ListMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if Assigned(FOnMouseDown) then
+    FOnMouseDown(Sender, Button, Shift, X, Y);
+end;
+
+procedure TAdvOutlookList.ListMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if Assigned(FOnMouseUp) then
+    FOnMouseUp(Sender, Button, Shift, X, Y);
+end;
 
 procedure TAdvOutlookList.Loaded;
 begin
@@ -3918,6 +4156,29 @@ end;
 procedure TAdvOutlookList.EndUpdate;
 begin
   FList.EndUpdate;
+end;
+
+procedure TAdvOutlookList.TestFill;
+var
+  i,j: integer;
+begin
+  Columns.Clear;
+  Columns.Add.Caption := 'Group';
+  Columns.Add.Caption := 'Col 1';
+  Columns.Add.Caption := 'Col 2';
+  Columns.Add.Caption := 'Col 3';
+
+  for i := 1 to 5 do
+    with AddGroup('Group '+inttostr(i)) do
+    begin
+      for j := 1 to 1 + random(3) do
+        with AddChild do
+        begin
+          Add('cell [0,' +inttostr(j)+']');
+          Add('cell [1,' +inttostr(j)+']');
+          Add('cell [2,' +inttostr(j)+']');
+        end;
+    end;
 end;
 
 procedure TAdvOutlookList.SetFocus;
@@ -4514,18 +4775,34 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvOutlookList.OnListGetHint(Sender: TOutlookGroupedList; Item: POGLItem; var HintText: String);
+procedure TAdvOutlookList.OnListGetHint(Sender: TOutlookGroupedList; Item: POGLItem; var HintText: String; var HintPos: TPoint);
+var
+  cellrect: TRect;
+  pt: tpoint;
 begin
   if Sender.IsGroupItem(Item) then
   begin
-
+    if Assigned(FOnGetGroupHint) then
+      FOnGetGroupHint(Self, Item, HintText);
   end
   else
   begin
     if (FMouseOverCol >= 0) and (FMouseOverCol < FColumns.Count) then
     begin
-      if (Columns.Items[FMouseOverCol].ShowHint) and (Columns.Items[FMouseOverCol].Hint <> '') then
-        HintText := Columns.Items[FMouseOverCol].Hint
+      if (Columns.Items[FMouseOverCol].ShowHint) then
+      begin
+        HintText := Columns.Items[FMouseOverCol].Hint;
+        if Columns[FMouseOverCol].ColumnType = ctCheckBox then
+        begin
+          pt := ScreenToClient(HintPos);
+          ColAtPoint(TProOutlookGroupedList(FList).GetRealRect(Item), pt.X, pt.Y, CellRect);
+          if pt.X < CellRect.Right then
+            HintPos.X := HintPos.X + CHECKBOX_SIZE;
+        end;
+
+        if Assigned(FOnGetItemHint) then
+          FOnGetItemHint(Self, Item, FMouseOverCol, HintText);
+      end
       else
         HintText := ''
     end;
@@ -4549,7 +4826,10 @@ begin
     for i := 0 to FColumns.Count-1 do
     begin
       if (FromIndex < FColumns.Items[i].HeaderSecIndex) and (FColumns.Items[i].HeaderSecIndex <= ToIndex) then
+      begin
         FColumns.Items[i].HeaderSecIndex := FColumns.Items[i].HeaderSecIndex - 1;
+        FColumns.Items[i].HeaderSecOrgIndex := FColumns.Items[i].HeaderSecOrgIndex - 1;
+      end;
     end;
   end
   else
@@ -4557,10 +4837,14 @@ begin
     for i := 0 to FColumns.Count-1 do
     begin
       if (FromIndex > FColumns.Items[i].HeaderSecIndex) and (FColumns.Items[i].HeaderSecIndex >= ToIndex) then
+      begin
         FColumns.Items[i].HeaderSecIndex := FColumns.Items[i].HeaderSecIndex + 1;
+        FColumns.Items[i].HeaderSecOrgIndex := FColumns.Items[i].HeaderSecOrgIndex + 1;
+      end;
     end;
   end;
   FColumns.Items[FromColIndex].HeaderSecIndex := ToIndex;
+  FColumns.Items[FromColIndex].HeaderSecOrgIndex := ToIndex;
 
   //FOutLookList.Columns.Items[FromSection].Index := ToSection;
   HeaderChanged(Self);
@@ -4574,7 +4858,7 @@ function TAdvOutlookList.GetHeaderSecIndex(ColIndex: Integer): Integer;
 begin
   Result := ColIndex;
   if (Result > FGroupColumn) and (FGroupColumnDisplay = gdHidden) then
-    Result := Result -1;
+    Result := Result - 1;
 end;
 
 //------------------------------------------------------------------------------
@@ -4590,14 +4874,16 @@ begin
     if ((FGroupColumn >= 0) and (FGroupColumn < FColumns.Count) and (((i-1) = FGroupColumn)) and (FGroupColumnDisplay = gdHidden)) or
        (FPreviewSettings.Active and (i-1 = FPreviewSettings.Column) and (FPreviewSettings.Column >= 0) and (FPreviewSettings.Column < FColumns.Count)) then
       Continue;
-    if not Columns[i - 1].Visible then
-      FHeader.Sections.Delete(Columns[i - 1].HeaderSecIndex);
+
+    if not Columns[i - 1].Visible and (FHeader.Sections.Count > 0) then
+      FHeader.Sections.Delete(0{Columns[i - 1].HeaderSecIndex});
   end;
 
   CL := TList.Create;
-  for j:= 0 to FHeader.Sections.Count-1 do
+
+  for j := 0 to FHeader.Sections.Count - 1 do
   begin
-    Found := False;
+    Found := false;
     k := -1;
     for i := 1 to Columns.Count do
     begin
@@ -4609,12 +4895,14 @@ begin
       if (CL.IndexOf(Columns[i - 1]) >= 0) then
         Continue;
 
-     { if (j = Columns[i - 1].HeaderSecIndex) then
+     {
+      if (j = Columns[i - 1].HeaderSecIndex) then
       begin
         Found := True;
         CL.Add(Columns[i - 1]);
         Break;
-      end; }
+      end;
+      }
 
       //if (j < Columns[i - 1].HeaderSecIndex) then
       begin
@@ -4622,7 +4910,7 @@ begin
           k := (i - 1)
         else
         begin
-          if Columns[k].HeaderSecIndex > Columns[i - 1].HeaderSecIndex then
+          if Columns[k].HeaderSecOrgIndex > Columns[i - 1].HeaderSecOrgIndex then
             k := (i - 1);
         end;
       end;
@@ -4633,8 +4921,11 @@ begin
       Columns[k].HeaderSecIndex := j;
       CL.Add(Columns[k]);
     end;
-
   end;
+
+  // FF: Column Drag iss after setting visible = false to lower column 
+  for i := 0 to Columns.Count - 1 do
+    Columns[i].HeaderSecOrgIndex := Columns[i].HeaderSecIndex;
 
   CL.Free;
 end;
@@ -4710,13 +5001,11 @@ begin
   for i := 1 to GroupCount do
   begin
     tmp := Groups[i - 1];
-    if tmp.OGLItem  = Group.OGLItem  then
+    if tmp.OGLItem = Group.OGLItem  then
     begin
       Result := i - 1;
-      FreeAndNil(tmp);
       Break;
     end;
-    FreeAndNil(tmp);
   end;
 end;
 
@@ -4726,8 +5015,19 @@ end;
 procedure TAdvOutlookList.DeleteGroup(Index: Integer);
 var
   olg: TOutlookGroup;
+  i: integer;
 begin
   olg := Groups[Index];
+
+  for I := 0 to FGroupList.Count - 1 do
+  begin
+    if (FGroupList.Items[i] = pointer(olg)) then
+    begin
+      FGroupList.Delete(i);
+      break;
+    end;
+  end;
+
   FList.DeleteItem(olg.OGLItem);
   FreeAndNil(olg);    
 end;
@@ -4742,6 +5042,8 @@ begin
 
   for i := GroupCount - 1 downto 0 do
    DeleteGroup(i);
+
+  FGroupList.Clear; 
 end;
 
 //------------------------------------------------------------------------------
@@ -4765,6 +5067,7 @@ begin
       Result := TOutlookGroup.Create;
       Result.OGLItem := ogl;
       Result.List := Self;
+      FGroupList.Add(Result);
       Exit;
     end;
 
@@ -4800,6 +5103,7 @@ end;
 function TAdvOutlookList.ItemGroup(Item: POGLItem): TOutlookGroup;
 begin
   Result := TOutlookGroup.Create;
+  FGroupList.Add(Result);
 
   if IsGroupItem(Item) then
     Result.OGLItem := Item
@@ -4888,9 +5192,6 @@ end;
 
 //------------------------------------------------------------------------------
 
-
-
-
 function TAdvOutlookList.ColumnIndex(Column: Integer): Integer;
 begin
   if (Column >= GroupColumn) and (FGroupColumnDisplay = gdHidden) then
@@ -4918,39 +5219,33 @@ function TAdvOutlookList.NextSelectedItem(Item: POGLItem): POGLItem;
 var
   GroupItem: POGLItem;
   ChildItem: POGLItem;
-  first: boolean;
+
 begin
   Result := nil;
 
-  if FList.SelectedCount = 0 then Exit;
+  if FList.SelectedCount = 0 then
+    Exit;
 
   if IsGroupItem(Item) then
-    GroupItem := Item
-  else
-    GroupItem := Item.Parent;
-
-  first := true;
-
-  while GroupItem <> nil do
   begin
-    if IsItemSelected(GroupItem) and (GroupItem <> Item) then
-    begin
-      Result := GroupItem;
-      Exit;
-    end;
+    Result := Item.FirstChild;
+    Exit;
+  end
+  else
+  begin
+    GroupItem := Item.Parent;
+  end;
+
+  while (GroupItem <> nil) do
+  begin
 
     if GroupItem.ChildSelectedCount > 0 then
     begin
-      if first then
-        ChildItem := Item
-      else
-        ChildItem := GroupItem.FirstChild;
-
-      first := false;
+      ChildItem := Item.NextSibling;
 
       while ChildItem <> nil do
       begin
-        if IsItemSelected(ChildItem) and (ChildItem <> Item) then
+        if IsItemSelected(ChildItem) then
         begin
           Result := ChildItem;
           Exit;
@@ -4958,7 +5253,23 @@ begin
         ChildItem := ChildItem.NextSibling;
       end;
     end;
+
     GroupItem := GroupItem.NextSibling;
+    if Assigned(GroupItem) then
+      Item := GroupItem.FirstChild;
+
+    if IsItemSelected(GroupItem) then
+    begin
+      Result := GroupItem;
+      Exit;
+    end;
+
+    //if IsItemSelected(Item) then
+    //begin
+    //  Result := Item;
+    //  Exit;
+    //end;
+
   end;
 end;
 
@@ -5096,6 +5407,68 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvOutlookList.SetGroupColor(const Value: TColor);
+begin
+  FGroupColor := Value;
+  if Assigned(FList) then
+    TProOutlookGroupedList(FList).GroupColor := FGroupColor;
+  Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.SetGroupCountFont(const Value: TFont);
+begin
+  FGroupCountFont.Assign(Value);
+  if Assigned(FList) then
+    TProOutlookGroupedList(FList).GroupCountFont.Assign(FGroupCountFont);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.SetGroupFont(const Value: TFont);
+begin
+  FGroupFont.Assign(Value);
+  if Assigned(FList) then
+    TProOutlookGroupedList(FList).GroupFont.Assign(FGroupFont);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.SetGroupSelectionColor(const Value: TColor);
+begin
+  FGroupSelectionColor := Value;
+  if Assigned(FList) then
+    TProOutlookGroupedList(FList).GroupSelectionColor := FGroupSelectionColor;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.SetGroupSelectionTextColor(const Value: TColor);
+begin
+  FGroupSelectionTextColor := Value;
+  if Assigned(FList) then
+    TProOutlookGroupedList(FList).GroupSelectionTextColor := FGroupSelectionTextColor;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.OnGroupCountFontChanged(Sender: TObject);
+begin
+  if Assigned(FList) then
+    TProOutlookGroupedList(FList).GroupCountFont.Assign(FGroupCountFont);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvOutlookList.OnGroupFontChanged(Sender: TObject);
+begin
+  if Assigned(FList) then
+    TProOutlookGroupedList(FList).GroupFont.Assign(FGroupFont);
+end;
+
+//------------------------------------------------------------------------------
+
 { TAdvOutlookColumn }
 
 procedure TAdvOutlookColumn.Changed;
@@ -5135,6 +5508,7 @@ begin
   FHeaderSecIndex := Index;
   if Assigned(TAdvOutlookColumns(Collection).AdvOutLookList) then
     FHeaderSecIndex := TAdvOutlookColumns(Collection).AdvOutLookList.GetHeaderSecIndex(Index);
+  FHeaderSecOrgIndex := FHeaderSecIndex;
 end;
 
 //------------------------------------------------------------------------------
@@ -5395,6 +5769,13 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvOutlookColumn.SetHeaderSecOrgIndex(const Value: Integer);
+begin
+  FHeaderSecOrgIndex := Value;
+end;
+
+//------------------------------------------------------------------------------
+
 { TAdvOutlookColumns }
 
 function TAdvOutlookColumns.Add: TAdvOutlookColumn;
@@ -5479,7 +5860,10 @@ begin
     for i := 0 to Count-1 do
     begin
       if (Items[Index].FHeaderSecIndex < Items[i].FHeaderSecIndex) then
+      begin
         Items[i].FHeaderSecIndex := Items[i].FHeaderSecIndex - 1;
+        Items[i].FHeaderSecOrgIndex := Items[i].FHeaderSecOrgIndex - 1;
+      end;
     end;
   end;
 end;
@@ -5493,7 +5877,10 @@ begin
   if Assigned(AdvOutLookList) then
   begin
     for i := 0 to Count-1 do
+    begin
       Items[i].FHeaderSecIndex := AdvOutLookList.GetHeaderSecIndex(Items[i].Index);
+      Items[i].FHeaderSecOrgIndex := Items[i].FHeaderSecIndex;
+    end;
   end;
 end;
 
@@ -5623,7 +6010,7 @@ begin
     SecRect := Rect(R.Left, R.Top, R.Left, R.Bottom);
     sp := 4;   // space between Image and Text
 
-    for i:= 0 to Sections.Count -1 do
+    for i := 0 to Sections.Count - 1 do
     begin
       with FOutLookList.Columns.Items[FOutLookList.MapHeaderSecToCol(i)] do  //GetColIndex(i)
       begin
@@ -5643,13 +6030,13 @@ begin
           Brush.Style := bsClear;
           Pen.Color := FOutLookList.HeaderBorderColor;
           //Rectangle(Rect(SecRect.Left, SecRect.Top, SecRect.Right, SecRect.Bottom));
-          MoveTo(SecRect.Right-1, SecRect.Top);
-          LineTo(SecRect.Right-1, SecRect.Bottom);
-          if i = Sections.Count-1 then
+          MoveTo(SecRect.Right - 2, SecRect.Top);
+          LineTo(SecRect.Right - 2, SecRect.Bottom);
+          if i = Sections.Count - 1 then
           begin
-            MoveTo(SecRect.Right-2, SecRect.Top);
-            LineTo(SecRect.Right-2, SecRect.Bottom);
-            SecRect.Right := SecRect.Right -2;
+            MoveTo(SecRect.Right - 2, SecRect.Top);
+            LineTo(SecRect.Right - 2, SecRect.Bottom);
+            SecRect.Right := SecRect.Right - 2;
           end;
         end;
 
@@ -5999,9 +6386,8 @@ begin
     if (FOutLookList.Columns.Items[Col].HeaderShowHint) and (FOutLookList.Columns.Items[Col].HeaderHint <> '') then
       PHI^.HintStr := FOutLookList.Columns.Items[Col].HeaderHint
     else
-      PHI^.HintStr := ''
+      PHI^.HintStr := '';
   end;
-
 end;
 
 //------------------------------------------------------------------------------
@@ -6593,11 +6979,16 @@ var
   poi: POutlookInfo;
   ogl: POGLItem;
 begin
-  ogl := List.FList.InsertItem(OGLItem,Index);
-  poi := POutlookInfo(@ogl.Data);
-  if not Assigned(poi.data) then
-    poi.data := TStringList.Create;
-  Result := poi.data;
+  if ChildCount = 0 then
+    Result := AddChild
+  else
+  begin
+    ogl := List.FList.InsertItem(OGLItem,Index);
+    poi := POutlookInfo(@ogl.Data);
+    if not Assigned(poi.data) then
+      poi.data := TStringList.Create;
+    Result := poi.data;
+  end;
 end;
 
 function TOutlookGroup.ItemIndex(p: POGLItem): integer;
@@ -6732,6 +7123,9 @@ var
 begin
   ogl := OGLItem.FirstChild;
 
+  if not Assigned(ogl) then
+    Exit;
+
   repeat
     if Assigned(ogl) then
       List.FList.DeleteItem(ogl);
@@ -6765,10 +7159,14 @@ begin
   Result := nsExpanded in oglItem.States;
 end;
 
+//------------------------------------------------------------------------------
+
 function TOutlookGroup.GetObject: TObject;
 begin
   Result := oglItem.GroupObject;
 end;
+
+//------------------------------------------------------------------------------
 
 function TOutlookGroup.GetTag: Integer;
 begin
@@ -6779,18 +7177,28 @@ end;
 
 procedure TOutlookGroup.SetExpanded(const Value: boolean);
 begin
-  if Value then
+  {if Value then
     oglItem.States := oglItem.States + [nsExpanded]
   else
-    oglItem.States := oglItem.States - [nsExpanded];
-  List.Invalidate;
+    oglItem.States := oglItem.States - [nsExpanded];}
+  if Assigned(List) and Assigned(List.FList) then
+  begin
+    if Value then
+      List.FList.ExpandItem(OGLItem)
+    else
+      List.FList.CollapseItem(OGLItem);
+    List.Invalidate;
+  end;
 end;
 
+//------------------------------------------------------------------------------
 
 procedure TOutlookGroup.SetObject(const Value: TObject);
 begin
   oglItem.GroupObject := Value;
 end;
+
+//------------------------------------------------------------------------------
 
 procedure TOutlookGroup.SetTag(const Value: Integer);
 begin

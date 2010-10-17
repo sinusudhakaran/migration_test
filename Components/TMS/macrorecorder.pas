@@ -4,7 +4,7 @@
 { version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2004                                               }
+{            copyright © 2005 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -28,9 +28,13 @@ const
   MAXMSG = 20000;
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 0; // Minor version nr.
+  MIN_VER = 1; // Minor version nr.
   REL_VER = 0; // Release nr.
   BLD_VER = 0; // Build nr.
+
+  // version history
+  // 1.1.0.0 : New : event OnRecordCancelled added
+  //         : New : event OnPlaybackCancelled added 
 
 type
   PEventMsg = ^TEventMsg;
@@ -49,6 +53,7 @@ type
   TMacroRecorder = class(TComponent)
   private
     FOwner: TComponent;
+    FPlayback: boolean;
     FFileName: string;
     FOnPlaybackFinished: TcbPlaybackFinishedProc;
     FPlaybackSpeed: TPlaybackSpeed;
@@ -58,6 +63,8 @@ type
     FRecordingRange: TRecordingRange;
     FOptions: TRecordOptions;
     FOnRecordFinished: TcbRecordFinishedProc;
+    FOnRecordCancelled: TNotifyEvent;
+    FOnPlaybackCancelled: TNotifyEvent;
     procedure SetFileName(value: string);
     procedure SetPlaybackSpeed(value: TPlaybackSpeed);
     procedure PlaybackFinished(AppData: Longint);
@@ -67,8 +74,6 @@ type
     procedure ApplicationEventsMessage(var Msg: tagMSG; var Handled: Boolean);
     function KeyToString(aCode: Cardinal): string;
     function StringToKey(S: string): Cardinal;
-    procedure SaveMacro;
-    procedure LoadMacro;
     function GetVersion: string;
     procedure SetVersion(const Value: string);
   protected
@@ -79,12 +84,16 @@ type
     procedure RecordMacro;
     procedure StopRecording;
     procedure PlayMacro;
+    procedure SaveMacro;
+    procedure LoadMacro;
   published
     property FileName: string read FFileName write SetFileName;
     property PlaybackSpeed: TPlaybackSpeed read FPlaybackSpeed write SetPlaybackSpeed;
     property RecordingRange: TRecordingRange read FRecordingRange write SetRecordingRange;
     property OnPlaybackFinished: TcbPlaybackFinishedProc read FOnPlaybackFinished write FOnPlaybackFinished;
+    property OnPlaybackCancelled: TNotifyEvent read FOnPlayBackCancelled write FOnPlayBackCancelled;
     property OnRecordFinished: TcbRecordFinishedProc read FOnRecordFinished write FOnRecordFinished;
+    property OnRecordCancelled: TNotifyEvent read FOnRecordCancelled write FOnRecordCancelled;
     property Options: TRecordOptions read FOptions write FOptions;
     property Version: string read GetVersion write SetVersion;
   end;
@@ -187,7 +196,7 @@ begin
       begin
         RecorderInstance.StopRecording;
         Exit;
-      end;   
+      end;
     end;
 
     if (gRecordingRange = rrApplication) and gOutOfRange then Exit;
@@ -214,13 +223,25 @@ end;
 
 procedure TMacroRecorder.ApplicationEventsMessage(var Msg: tagMSG; var Handled: Boolean);
 begin
-  {the journal hook is automaticly camceled if the Task manager
+  {the journal hook is automaticly cancelled if the Task manager
   (Ctrl-Alt-Del) or the Ctrl-Esc keys are pressed, restart it
   when the WM_CANCELJOURNAL is sent to the parent window, Application}
 
   Handled := False;
+  if (Msg.message = WM_CANCELJOURNAL) and FPlayback then
+  begin
+    FPlayback := false;
+    if Assigned(FOnPlayBackCancelled) then
+      FOnPlayBackCancelled(self);
+  end;
+  
   if (Msg.message = WM_CANCELJOURNAL) and FHookStarted then
-    JHook := SetWindowsHookEx(WH_JOURNALRECORD, @JournalProc, 0, 0);
+  begin
+    if Assigned(OnRecordCancelled) then
+      OnRecordCancelled(Self);
+    StopRecording;
+    //JHook := SetWindowsHookEx(WH_JOURNALRECORD, @JournalProc, 0, 0);
+  end;
 end;
 
 function JournalPlaybackProc(Code: Integer; wParam: integer; var EventStrut: TEventMsg): integer; stdcall;
@@ -393,7 +414,7 @@ begin
   begin
     FreeMem(PMsgBuff, Sizeof(TMsgBuff));
     PMsgBuff := nil;
-    ShowMessage('No Journal Hook availible');
+    ShowMessage('No Journal Hook available');
   end;
 end;
 
@@ -435,17 +456,21 @@ begin
   cbAppData := 0;
   StartTime := GetTickCount;
 
+  FPlayback := true;
   JHook := SetWindowsHookEx(WH_JOURNALPLAYBACK, @JournalPlayBackProc, hInstance, 0);
+
   if JHook = 0 then
   begin
     FreeMem(PMsgBuff, Sizeof(TMsgBuff));
     PMsgBuff := nil;
-    exit;
+    FPlayback := false;
+    Exit;
   end;
 end;
 
 procedure TMacroRecorder.PlaybackFinished(AppData: Longint);
 begin
+  FPlayback := false;
   if Assigned(FOnPlaybackFinished) then FOnPlaybackFinished(AppData);
 end;
 
@@ -455,29 +480,35 @@ var
   i: integer;
 begin
   //if PMsgBuff <> nil then exit;
+  if not FileExists (FFileName) then 
+    Exit;
   ST1 := TStringList.Create;
   ST2 := TStringList.Create;
-  ST2.LoadFromFile(FFileName);
-  ST1.CommaText := ST2[0];
-  MsgCount := strtoint(ST1.Values['MessageCount']);
 
-  for i := 1 to ST2.Count - 1 do
-  begin
-    ST1.Clear;
-    ST1.CommaText := ST2[i];
-    PMsgBuff[i - 1].message := StrToInt(ST1.Values[ST1.Names[0]]);
-    if (PMsgBuff[i - 1].message = WM_KEYDOWN) or (PMsgBuff[i - 1].message = WM_KEYUP) then
-      PMsgBuff[i - 1].paramL := StringToKey(ST1.Values['ParamL'])
-    else
-      PMsgBuff[i - 1].paramL := StrToInt(ST1.Values['ParamL']);
+  try
+    ST2.LoadFromFile(FFileName);
+    ST1.CommaText := ST2[0];
+    MsgCount := strtoint(ST1.Values['MessageCount']);
 
-    PMsgBuff[i - 1].paramH := StrToInt(ST1.Values['ParamH']);
-    PMsgBuff[i - 1].time := StrToInt(ST1.Values['Time']);
-    PMsgBuff[i - 1].hwnd := StrToInt(ST1.Values['hwnd']);
+    for i := 1 to ST2.Count - 1 do
+    begin
+      ST1.Clear;
+      ST1.CommaText := ST2[i];
+      PMsgBuff[i - 1].message := StrToInt(ST1.Values[ST1.Names[0]]);
+      if (PMsgBuff[i - 1].message = WM_KEYDOWN) or (PMsgBuff[i - 1].message = WM_KEYUP) then
+        PMsgBuff[i - 1].paramL := StringToKey(ST1.Values['ParamL'])
+      else
+        PMsgBuff[i - 1].paramL := StrToInt(ST1.Values['ParamL']);
+
+      PMsgBuff[i - 1].paramH := StrToInt(ST1.Values['ParamH']);
+      PMsgBuff[i - 1].time := StrToInt(ST1.Values['Time']);
+      PMsgBuff[i - 1].hwnd := StrToInt(ST1.Values['hwnd']);
+    end;
+  finally
+
+    ST1.Free;
+    ST2.Free;
   end;
-
-  ST1.Free;
-  ST2.Free;
 end;
 
 function TMacroRecorder.KeyToString(aCode: Cardinal): string;
@@ -572,13 +603,14 @@ begin
   begin
     ST1 := TStringList.Create;
     ST2 := TStringList.Create;
-    ST1.Values['MessageCount'] := inttostr(MsgCount);
-    ST2.Add(ST1.CommaText);
-    S := '';
-    for i := 0 to MsgCount do
-    begin
-      ST1.Clear;
-      case PMsgBuff[i].message of
+    try
+      ST1.Values['MessageCount'] := inttostr(MsgCount);
+      ST2.Add(ST1.CommaText);
+      S := '';
+      for i := 0 to MsgCount do
+      begin
+        ST1.Clear;
+        case PMsgBuff[i].message of
         WM_MOUSEMOVE: S := 'MOUSEMOVE';
         WM_LBUTTONDOWN: S := 'LBUTTONDOWN';
         WM_LBUTTONUP: S := 'LBUTTONUP';
@@ -600,29 +632,30 @@ begin
         WM_SYSCHAR: S := 'SYSCHAR';
         WM_SYSDEADCHAR: S := 'SYSDEADCHAR';
         WM_KEYLAST: S := 'KEYLAST';
-      else
-        S := 'UnKnown';
+        else
+          S := 'UnKnown';
+        end;
+ 
+        p := PMsgBuff[i].paramL;
+
+        ST1.Values[S] := IntToStr(PMsgBuff[i].message);
+        if (S = 'KEYDOWN') or (S = 'KEYUP') then
+          ST1.Values['ParamL'] := KeyToString(p)
+        else
+          ST1.Values['ParamL'] := IntToStr(p);
+
+        p := PMsgBuff[i].paramH;
+ 
+        ST1.Values['ParamH'] := IntToStr(p);
+        ST1.Values['Time'] := InttoStr(PMsgBuff[i].time);
+        ST1.Values['hwnd'] := inttoStr(PMsgBuff[i].hwnd);
+        ST2.Add(ST1.CommaText);
       end;
-
-      p := PMsgBuff[i].paramL;
-
-      ST1.Values[S] := IntToStr(PMsgBuff[i].message);
-      if (S = 'KEYDOWN') or (S = 'KEYUP') then
-        ST1.Values['ParamL'] := KeyToString(p)
-      else
-        ST1.Values['ParamL'] := IntToStr(p);
-
-      p := PMsgBuff[i].paramH;
-
-      ST1.Values['ParamH'] := IntToStr(p);
-      ST1.Values['Time'] := InttoStr(PMsgBuff[i].time);
-      ST1.Values['hwnd'] := inttoStr(PMsgBuff[i].hwnd);
-      ST2.Add(ST1.CommaText);
-    end;
-    ST2.SaveToFile(FFileName);
-
-    ST1.Free;
-    ST2.Free;
+      ST2.SaveToFile(FFileName);
+    finally  
+      ST1.Free;
+      ST2.Free;
+    end;  
   end;
 end;
 

@@ -1,10 +1,10 @@
 {********************************************************************}
 { AdvMemo property editore                                           }
 { for Delphi & C++Builder                                            }
-{ version 1.6                                                        }
+{ version 2.0                                                        }
 {                                                                    }
 { written by : TMS Software                                          }
-{               copyright © 2002 - 2004                              }
+{               copyright © 2002 - 2006                              }
 {               Email : info@tmssoftware.com                         }
 {               Web : http://www.tmssoftware.com                     }
 {********************************************************************}
@@ -189,9 +189,23 @@ begin
   {$IFDEF VER180}
     compiler := 'Delphi 2006';
   {$ENDIF}
+  {$IFDEF VER185}
+    {$IFDEF BCB}
+    compiler := 'C++Builder 2007';
+    {$ELSE}
+    compiler := 'Delphi 2007';
+    {$ENDIF}
+  {$ENDIF}
+  {$IFDEF VER200}
+    {$IFDEF BCB}
+    compiler := 'C++Builder 2008';
+    {$ELSE}
+    compiler := 'Delphi 2008';
+    {$ENDIF}
+  {$ENDIF}
 
   if Index = 0 then
-    MessageDlg(Component.ClassName+' version '+(Component as TAdvCustomMemo).GetVersionString+' for '+compiler+#13#10'© 2001-2004 by TMS software',
+    MessageDlg(Component.ClassName+' version '+(Component as TAdvCustomMemo).GetVersionString+' for '+compiler+#13#10'© 2001-2008 by TMS software',
                mtinformation,[mbok],0);
 end;
 

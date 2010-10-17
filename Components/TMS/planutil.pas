@@ -38,7 +38,6 @@ type
   TDateTimeObject = class(TObject)
   private
     FDT: TDateTime;
-  published
     property DT: TDateTime read FDT write FDT;
   end;
 
@@ -139,7 +138,13 @@ function PrinterDrawString(Canvas:TCanvas; Value: string; var Rect: TRect; Forma
 implementation
 
 type
+{$IFNDEF DELPHI_UNICODE}
   TCharSet = set of char;
+{$ENDIF}
+{$IFDEF DELPHI_UNICODE}
+  TCharSet = array of char;
+{$ENDIF}
+
 
 {$IFNDEF TMSDOTNET}
 {$IFNDEF DELPHI7_LVL}
@@ -1325,7 +1330,42 @@ begin
 end;
 {$ENDIF}
 
+{$IFDEF DELPHI_UNICODE}
+function FirstChar(Charset:TCharSet;s:string):char;
+var
+  i:Integer;
 
+  function InArray(ch: char): boolean;
+  var
+    j: integer;
+  begin
+    result := false;
+    for j := 0 to High(CharSet) - 1 do
+    begin
+      if ch = CharSet[j] then
+      begin
+        result := true;
+        break;
+      end;
+    end;
+  end;
+
+begin
+  i := 1;
+  Result := #0;
+  while i <= Length(s) do
+  begin
+    if InArray(s[i]) then
+    begin
+      Result := s[i];
+      Break;
+    end;
+    Inc(i);
+  end;
+end;
+{$ENDIF}
+
+{$IFNDEF DELPHI_UNICODE}
 function FirstChar(Charset:TCharSet;s:string):char;
 var
   i:Integer;
@@ -1342,6 +1382,7 @@ begin
     Inc(i);
   end;
 end;
+{$ENDIF}
 
 
 
@@ -1350,6 +1391,9 @@ var
   ch,lastop: Char;
   sep: Integer;
   res,newres: Boolean;
+  {$IFDEF DELPHI_UNICODE}
+  CharArray: TCharSet;
+  {$ENDIF}
 
 begin
  {remove leading & trailing spaces}
@@ -1365,8 +1409,23 @@ begin
   LastOp := #0;
   Res := True;
 
+  {$IFDEF DELPHI_UNICODE}
+  SetLength(CharArray,3);
+  CharArray[0] := ';';
+  CharArray[0] := '^';
+  CharArray[0] := '|';
+  {$ENDIF}
+
+
+
   repeat
+    {$IFDEF DELPHI_UNICODE}
+    ch := FirstChar(CharArray,s1);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     ch := FirstChar([';','^','&'],s1);
+    {$ENDIF}
+
     {extract first part of filter}
     if ch <> #0 then
     begin

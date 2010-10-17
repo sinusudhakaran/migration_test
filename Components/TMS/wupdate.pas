@@ -1,11 +1,10 @@
 {*******************************************************************}
 { TWebUpdate component                                              }
 { for Delphi & C++Builder                                           }
-{ version 1.6                                                       }
 {                                                                   }
 { written by                                                        }
 {    TMS Software                                                   }
-{    copyright © 1998-2006                                          }
+{    copyright © 1998-2008                                          }
 {    Email : info@tmssoftware.com                                   }
 {    Web   : http://www.tmssoftware.com                             }
 {                                                                   }
@@ -20,7 +19,16 @@ unit WUpdate;
 
 {$I TMSDEFS.INC}
 {$R WUPDATE.RES}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#pragma link "wininet.lib"'}
+{$HPPEMIT '#pragma link "urlmon.lib"'}
+{$HPPEMIT ''}
+
+
 {$R WUPDENG.RES}
+// USE THIS RESOURCE FILE FOR FRENCH LANGUAGE         
+// {$R WUPDFRE.RES}
 
 interface
 
@@ -29,7 +37,10 @@ interface
 uses
   StdCtrls, Messages, Classes, SysUtils, WinInet, Windows, Forms, Registry,
   IniFiles, Dialogs, ShellApi, Controls, LZExpand, CabFdi, WuCRC32, WuBase64,
-  ComCtrls
+  ComCtrls, ShlObj
+  {$IFDEF BCB}
+  , ActiveX
+  {$ENDIF}
   {$IFDEF DELPHI6_LVL}
   , Variants
   {$ENDIF}
@@ -59,6 +70,8 @@ const
   WebUpdatePostConnectFail= 16;
   WebUpdatePostPostFail   = 17;
   WebUpdateExecAndWait    = 18;
+  WebUpdateReplaceError   = 19;
+  WebUpdateRenameError   = 19;
   WebUpdateUndefined      = $FF;
 
   {constants for errors}
@@ -68,6 +81,9 @@ const
   ErrUpdateTargetEqual    = 3;
   ErrUpdateSignatureError = 4;
   ErrConnectError         = 5;
+  ErrCannotDeleteFile     = 6;
+  ErrCannotRenameFile     = 7;
+  ErrCannotChangeDir      = 8;
   ErrUndefined            = $FF;
 
   {$IFNDEF DELPHI4_LVL}
@@ -96,10 +112,10 @@ const
   WU_VERSIONINFOBASEDNEWVERSION = 11;
   WU_CUSTOMNEWVERSION           = 12;
 
-  MAJ_VER = 1; // Major version nr.
-  MIN_VER = 6; // Minor version nr.
-  REL_VER = 7; // Release nr.
-  BLD_VER = 0; // Build nr.
+  MAJ_VER = 2; // Major version nr.
+  MIN_VER = 0; // Minor version nr.
+  REL_VER = 9; // Release nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
   // 1.6.4.0 : changed what's new & EULA memos to wordwrap = true
@@ -111,8 +127,46 @@ const
   //         : updates with time info shown in wizard
   // 1.6.6.0 : Improvement in handling failed downloads
   // 1.6.7.0 : Trigger OnSuccess event from wizard fixed
+  // 1.6.8.0 : French messages added (contributed by Pierre Yager)
+  // 1.7.0.0 : OnBeforePost event added
+  //         : WebUpdate.OnSuccess triggered when wizard is used after successful update
+  //         : View in Notepad popup added in wizard for Whats New and EULA
+  //         : Fixed issue with CAB extraction for CAB files with multi level hierarchies
+  // 1.7.0.1 : Fixed issue with OnDownloadedWhatsNew, OnDownloadedEULA from wizard
+  // 1.7.1.0 : New : support for Czech language added
+  // 1.7.2.0 : Improved : added support for handling updates for readonly & hidden files
+  // 1.7.3.0 : New : Polish language support
+  // 1.7.4.0 : Improved : What's new information is downloaded when OnDownloadedWhatsnew is assigned
+  //           from the DoVersionCheck function
+  // 2.0.0.0 : New : support for Windows Vista
+  //         : New : support for Delphi 2007 & C++Builder 2007
+  //         : New : {doc} prefix
+  //         : New : support for Hungarian, Czech, Swedish & Polish language added
+  //         : New : parameter InitPath added to DoUpdate method to automatically initialize current directory to app EXE
+  //         : Improved : logging
+  //         : Various smaller improvements & fixes
+  // 2.0.0.1 : Fixed : issue with targetdir during file download
+  // 2.0.1.0 : New method NewWhatsNew(ShowDialog) method available to only show what's new info
+  // 2.0.1.1 : Fixed : issue with overwriting files during updates
+  // 2.0.1.2 : Fixed : memory leak in wizard
+  // 2.0.2.0 : New : method WebUpdateWizard.CloseWizard added
+  // 2.0.3.0 : Improved : handling of temp directory names with spaces
+  // 2.0.3.1 : Fixed : issue with handling updates with _NEW extension on Windows Vista
+  // 2.0.3.2 : Improved : automatic LIB reference in HPP file generation
+  // 2.0.3.3 : Fixed : issue with command line parameters for app restart
+  // 2.0.3.4 : Improved : cleanup of file WUPDATE.INI
+  // 2.0.4.0 : New : property TimeOut added
+  // 2.0.5.0 : New : event OnBeforeDownload triggered before getting "What's new" file.
+  // 2.0.5.1 : Improved : french language version of wizard
+  // 2.0.6.0 : New : Preselect=0|1 per file possible to control preselect in wizard checklistbox
+  // 2.0.7.0 : New : status events when file after download cannot be deleted/renamed
+  // 2.0.7.1 : Improved : will automatically handle URLs with '?' used
+  // 2.0.7.2 : Improved : Fix for Vista UAC with runbefore/runafter commands
+  // 2.0.8.0 : Improved : new status messages for changing FTP directory
+  // 2.0.9.0 : Improved : error logging for FTP based updates
+  // 2.0.9.1 : Fixed : issue with sub .INF file processing for Windows Vista 
 
-type                         
+type
   TWebUpdateAuthentication = (waAlways, waAuto, waNever);
 
   TWebUpdateEvent = procedure(Sender:TObject) of object;
@@ -123,6 +177,7 @@ type
 
   TWebUpdateFileDownloaded = procedure(Sender:TObject; FileName:string) of object;
 
+  TWebUpdateBeforePost = procedure(Sender:TObject;var AllowPost:Boolean) of object;
   TWebUpdateProcessPostResult = procedure(Sender:TObject;var AllowPostResult:Boolean) of object;
 
   TWebUpdateStatus = procedure(Sender:TObject;StatusStr:string; StatusCode,ErrCode:Integer) of object;
@@ -164,10 +219,10 @@ type
     FRegRoot: TLastURLReg;
   public
   published
-    property Save:Boolean read FSave write FSave;
+    property Save:Boolean read FSave write FSave default false;
     property Key:string read FKey write FKey;
     property Section:string read FSection write FSection;
-    property RegRoot: TLastURLReg read FRegRoot write FRegRoot;
+    property RegRoot: TLastURLReg read FRegRoot write FRegRoot default lurLOCALUSER;
   end;
 
   TPostUpdateInfo = class(TPersistent)
@@ -212,6 +267,7 @@ type
     FNewDate: string;
     FNewTime: string;
     FMandatory: Boolean;
+    FPreselect: Boolean;
     FHidden: Boolean;
     FSelected: Boolean;
   public
@@ -229,6 +285,7 @@ type
     property Compressed: Boolean read FCompressed write FCompressed;
     property FileSize: Integer read FFileSize write FFileSize;
     property Mandatory: Boolean read FMandatory write FMandatory;
+    property Preselect: Boolean read FPreselect write FPreselect;
     property Hidden: Boolean read FHidden write FHidden;
     property Selected: Boolean read FSelected write FSelected;
   end;
@@ -308,9 +365,11 @@ type
     FCustomValidate: TWebUpdateCustomValidate;
     FCustomProcess: TWebUpdateCustomProcess;
     FProcessPostResult: TWebUpdateProcessPostResult;
+    FBeforePost: TWebUpdateBeforePost;
     FFileNameList: TWebUpdateFileList;
     FThreaded: Boolean;
     FAppName: string;
+    FAppParam: string;
     FAppComps: string;
     FAppCompsIncluded: Boolean;
     FAppClose: Boolean;
@@ -322,6 +381,7 @@ type
     FOnDownloadedEULA: TWebUpdateTextDownloaded;
     FOnBeforeFileDownload: TWebUpdateBeforeDownload;
     FUseCRC32: Boolean;
+    FUseWinTempDir: Boolean;
     FUtility: TWebUpdateUtility;
     FOnFileNameFromURL: TWebUpdateFileNameFromURL;
     FTempDirectory: string;
@@ -343,6 +403,7 @@ type
     FAgent: string;
     FLanguageID: string;
     FLogFileName: string;
+    FTimeOut: integer;
     FAuthenticate: TWebUpdateAuthentication;
     function GetVersion: string;
     procedure SetVersion(const Value: string);
@@ -365,6 +426,7 @@ type
     function ExecAndWait(sCommandLine: string; Show, Animate: Boolean; Caption, Msg: string): Boolean;
     function GetAppNeedsRestart: Boolean;
     procedure HandleCancel(var Cancel: Boolean); virtual;
+    procedure SetTimeout(timeout: dword);    
   public
     procedure CustomProcess(fn:string); virtual;
     function URLtoFile(url:string):string;
@@ -377,7 +439,8 @@ type
     procedure AddToLog(s: string);
     constructor Create(aOwner:TComponent); override;
     destructor Destroy; override;
-    procedure DoUpdate;
+    procedure DoUpdate; overload;
+    procedure DoUpdate(InitPath: boolean); overload;
     procedure DoSuccess;
     procedure DoThreadUpdate;
     procedure DoPostUpdateInfo;
@@ -391,6 +454,10 @@ type
     function HandleActions: Integer; virtual;
     function GetWhatsNew: TStringList; virtual;
     function GetEULA: TStringList; virtual;
+    function GetOSVersion: string; virtual;
+    function GetIDE: string; virtual;
+    function GetIEVersion: string; virtual;
+    function GetInstalledIDEs: string; virtual;
     function GetFileDetails: Integer; virtual;
     function ProcessFileDetails: Integer; virtual;
     function GetFileUpdates: Integer; virtual;
@@ -398,6 +465,7 @@ type
     function Connected: Boolean;
     function ConnectionType: Integer;
     function NewVersionAvailable: Boolean;
+    function NewWhatsNew(showdialog: boolean = false): TStringList;
     procedure HangUp;
     procedure URLPut(url:string);
     function URLGet:string;
@@ -416,40 +484,42 @@ type
     property AppNeedsRestart: Boolean read GetAppNeedsRestart;
   published
     property Agent: string read FAgent write FAgent;
-    property ApplyPatch: Boolean read FApplyPatch write FApplyPatch;
+    property ApplyPatch: Boolean read FApplyPatch write FApplyPatch default false;
     property Authenticate: TWebUpdateAuthentication read FAuthenticate write FAuthenticate default waNever;
     property DateFormat: string read FDateFormat write FDateFormat;
     property DateSeparator: Char read FDateSeparator write FDateSeparator;
-    property ExtractCAB: Boolean read FExtractCAB write FExtractCAB;
-    property ExistingConnection: Boolean read FExistingConnection write FExistingConnection;
+    property ExtractCAB: Boolean read FExtractCAB write FExtractCAB default false;
+    property ExistingConnection: Boolean read FExistingConnection write FExistingConnection default false;
     property FTPDirectory: string read FFTPDirectory write FFTPDirectory;
-    property FTPPassive: Boolean read FFTPPassive write FFTPPassive;
+    property FTPPassive: Boolean read FFTPPassive write FFTPPassive default false;
     property Host: string read FHost write FHost;
-    property HTTPKeepAliveAuthentication: Boolean read FKeepAlive write FKeepAlive;
-    property KeepIntermediateFiles: Boolean read FKeepIntermediateFiles write FKeepIntermediateFiles;
+    property HTTPKeepAliveAuthentication: Boolean read FKeepAlive write FKeepAlive default false;
+    property KeepIntermediateFiles: Boolean read FKeepIntermediateFiles write FKeepIntermediateFiles default false;
     property LanguageID: string read FLanguageID write FLanguageID;
-    property Logging: Boolean read FLogging write FLogging;
+    property Logging: Boolean read FLogging write FLogging default false;
     property LogFileName: string read FLogFileName write SetLogFileName;
     property LastURLEntry: TLastURLEntry read FLastURLEntry write FLastURLEntry;
     property Password: string read FPassword write FPassword;
-    property Port: Integer read FPort write FPort;
+    property Port: Integer read FPort write FPort default 21;
     property PostUpdateInfo: TPostUpdateInfo read FPostUpdateInfo write FPostUpdateInfo;
     property Proxy: string read FProxy write FProxy;
     property ProxyUserID: string read FProxyUserID write FProxyUserID;
     property ProxyPassword: string read FProxyPassword write FProxyPassword;
     property Signature: string read FSignature write FSignature;
-    property SignatureCheck: Boolean read FSignatureCheck write FSignatureCheck;
+    property SignatureCheck: Boolean read FSignatureCheck write FSignatureCheck default false;
     property TempDirectory: string read FTempDirectory write FTempDirectory;
     property TimeFormat: string read FTimeFormat write FTimeFormat;
+    property TimeOut: integer read FTimeOut write FTimeOut default 0;
     property TimeSeparator: Char read FTimeSeparator write FTimeSeparator;
-    property UpdateType: TWebUpdateType read FUpdateType write FUpdateType;
-    property UpdateConnect: TWebUpdateConnect read FUpdateConnect write FUpdateConnect;
-    property UpdateUpdate: TWebUpdateUpdate read FUpdateUpdate write FUpdateUpdate;
+    property UpdateType: TWebUpdateType read FUpdateType write FUpdateType default httpUpdate;
+    property UpdateConnect: TWebUpdateConnect read FUpdateConnect write FUpdateConnect default wucNoConnect;
+    property UpdateUpdate: TWebUpdateUpdate read FUpdateUpdate write FUpdateUpdate default wuuPromptOnce;
     property URL: string read FURL write FURL;
     property UserID:string read FUserID write FUserID;
-    property UseCRC32: Boolean read FUseCRC32 write FUseCRC32;
+    property UseCRC32: Boolean read FUseCRC32 write FUseCRC32 default false;
+    property UseWinTempDir: Boolean read FUseWinTempDir write FUseWinTempDir default true;
     property Utility: TWebUpdateUtility read FUtility write FUtility;
-    property VersionCheck: TWebUpdateVersionCheck read FVersionCheck write FVersionCheck;
+    property VersionCheck: TWebUpdateVersionCheck read FVersionCheck write FVersionCheck default vcUpdateOnly;
     property OnFileProgress:TWebUpdateFileProgress read FWebUpdateFileProgress
       write FWebUpdateFileProgress;
     property OnFileDownloaded:TWebUpdateFileDownloaded read FWebUpdateFileDownloaded
@@ -458,6 +528,7 @@ type
       write FWebUpdateFileVersionCheck;
     property OnProcessPostResult:TWebUpdateProcessPostResult read FProcessPostResult
       write FProcessPostResult;
+    property OnBeforePost: TWebUpdateBeforePost read FBeforePost write FBeforePost;
     property OnProgress:TWebUpdateProgress read FWebUpdateProgress
       write FWebUpdateProgress;
     property OnProgressCancel:TWebUpdateProgressCancel read FWebUpdateProgressCancel
@@ -492,8 +563,10 @@ type
     property Version: string read GetVersion write SetVersion;
   end;
 
+function GetSizeOfFile(fn:string):Integer;
 procedure HTMLDialog(pHandle: THandle; s:string);
-
+function WinTempDir: string;
+function UserDocDir: string;
 
 const
   winetdll = 'wininet.dll';
@@ -517,6 +590,17 @@ const
 
 {$ENDIF}
 
+const
+  D5 = '\Software\Borland\Delphi\5.0';
+  D6 = '\Software\Borland\Delphi\6.0';
+  D7 = '\Software\Borland\Delphi\7.0';
+  D2005 = '\Software\Borland\BDS\3.0';
+  D2006 = '\Software\Borland\BDS\4.0';
+  D2007 = '\Software\Borland\BDS\5.0';
+  C5 = '\Software\Borland\C++Builder\5.0';
+  C6 = '\Software\Borland\C++Builder\6.0';
+
+
 implementation
 
 {$IFDEF ISDELPHI}
@@ -537,20 +621,127 @@ type
 var
   _logfilename: string;
 
-procedure Log(s:string);
+
+function IsVista: boolean;
 var
-  tf:text;
+  hKernel32: HMODULE;
 begin
-  AssignFile(tf,_logfilename);
-  {$i-}
-  Append(tf);
-  {$i+}
-  if IOresult <> 0 then
-    Rewrite(tf);
-  writeln(tf,s);
-  CloseFile(tf);
+  hKernel32 := GetModuleHandle('kernel32');
+  if (hKernel32 > 0) then
+  begin
+    Result := GetProcAddress(hKernel32, 'GetLocaleInfoEx') <> nil;
+  end
+  else
+    Result := false;
 end;
 
+function TWebUpdate.GetIEVersion: string;
+var
+  Reg: TRegistry;
+begin
+  Result := '(not found)';
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    if Reg.OpenKey ('\Software\Microsoft\Internet Explorer\Version Vector', False) then
+      Result :=Reg.ReadString('IE');
+  finally
+    Reg.CloseKey;
+    Reg.Free;
+  end;
+end;
+
+function IsPlatformInstalled (const Platform: string): Boolean;
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    Result := Reg.OpenKey (Platform, False);
+    Reg.CloseKey;
+  finally
+    Reg.Free
+  end;
+end;
+
+function TWebUpdate.GetIDE: string;
+begin
+  {$IFDEF VER180}
+  {$IFDEF BCB}
+  Result := 'C2006';
+  {$ELSE}
+  Result := 'D2006';
+  {$ENDIF}
+  {$ENDIF}
+  
+  {$IFDEF VER185}
+  {$IFDEF BCB}
+  Result := 'C2007';
+  {$ELSE}
+  Result := 'D2007';
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF VER170}
+  Result := 'D2005';
+  {$ENDIF}
+  {$IFDEF VER150}
+  Result := 'D7';
+  {$ENDIF}
+  {$IFDEF VER140}
+  {$IFDEF BCB}
+  Result := 'C6';
+  {$ELSE}
+  Result := 'D6';
+  {$ENDIF}
+  {$ENDIF}
+  {$IFDEF VER130}
+  {$IFDEF BCB}
+  Result := 'C5';
+  {$ELSE}
+  Result := 'D5';
+  {$ENDIF}
+  {$ENDIF}
+end;
+
+function TWebUpdate.GetInstalledIDEs: string;
+var
+  DevPlatforms: string;
+begin
+  DevPlatforms := '';
+
+  if IsPlatformInstalled(D5) then
+    DevPlatforms := DevPlatforms + 'D5';
+  if IsPlatformInstalled(D6) then
+    DevPlatforms := DevPlatforms + 'D6';
+  if IsPlatformInstalled(D7) then
+    DevPlatforms := DevPlatforms + 'D7';
+  if IsPlatformInstalled(D2005) then
+    DevPlatforms := DevPlatforms + 'D2005';
+  if IsPlatformInstalled(D2006) then
+    DevPlatforms := DevPlatforms + 'D2006';
+  if IsPlatformInstalled(D2007) then
+    DevPlatforms := DevPlatforms + 'D2007';
+
+  if IsPlatformInstalled(C5) then
+    DevPlatforms := DevPlatforms + 'C5';
+  if IsPlatformInstalled(C6) then
+    DevPlatforms := DevPlatforms + 'C6';
+
+  Result := DevPlatforms;
+end;
+
+function TWebUpdate.GetOSVersion: string;
+var
+  VerInfo: TOSVersionInfo;
+begin
+  VerInfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
+  GetVersionEx(verinfo);
+  Result := IntToStr(verinfo.dwMajorVersion)+'.'+IntToStr(verinfo.dwMinorVersion);
+  if IsVista then
+    Result := Result + '(Vista)';
+end;
 
 
 function DirExists(const Name: string): Boolean;
@@ -573,6 +764,85 @@ end;
 function IPos(su,s:string):Integer;
 begin
   Result := Pos(UpperCase(su),UpperCase(s));
+end;
+
+function VersionToString(fvi: tfvi): string;
+begin
+  Result := inttostr(hiword(fvi.VersionMS))+'.'+inttostr(loword(fvi.VersionMS))+'.'+
+    inttostr(hiword(fvi.VersionLS))+'.'+inttostr(loword(fvi.VersionLS));
+end;
+
+function AddBackslash(const s: string): string;
+begin
+  if (Length(s) >= 1) and (s[Length(s)]<>'\') then
+    Result := s + '\'
+  else
+    Result := s;
+end;
+
+// Either remove a trailing backslash or add '.' as needed to get a directory
+function RemoveBackslash(S: string): string;
+begin
+  s := AddBackslash(s);
+  if (Length(s) > 3) and (s[2] = ':') then
+    Delete(s,Length(s),1)
+  else
+    s := s + '.';
+  Result := s
+end;
+
+Procedure FreePidl( pidl: PItemIDList );
+var
+  allocator: IMalloc;
+begin
+  if Succeeded(SHGetMalloc(allocator)) then
+    allocator.Free(pidl);
+end;
+
+function UserDocDir: string;
+var
+  pidl: PItemIDList;
+  Path: array [0..MAX_PATH-1] of char;
+begin
+  Result := '';
+
+  if Succeeded(
+       SHGetSpecialFolderLocation(Application.Handle, CSIDL_PERSONAL, pidl)
+     ) then
+  begin
+    if SHGetPathFromIDList(pidl, Path) then
+      Result := Strpas(path);
+    FreePidl(pidl);
+  end;
+end;
+
+procedure Log(s:string);
+var
+  tf:text;
+  fn: string;
+begin
+  if (pos('\',_logfilename) = 0) and (pos('/',_logfilename) = 0) and (pos(':',_logfilename) = 0) then
+    fn := AddBackslash(UserDocDir) + _logfilename
+  else
+    fn := _logfilename;
+
+  AssignFile(tf,fn);
+  {$i-}
+  Append(tf);
+  {$i+}
+  if IOresult <> 0 then
+    Rewrite(tf);
+  writeln(tf,s);
+  CloseFile(tf);
+end;
+
+
+function WinTempDir: string;
+var
+  buf: array[0..MAX_PATH] of Char;
+begin
+  GetTempPath(sizeof(buf),buf);
+  Result := AddBackslash(StrPas(buf));
 end;
 
 function StringToVersion(fvn:string):tfvi;
@@ -928,6 +1198,11 @@ begin
   FAgent := 'TWebUpdate';
   FAuthenticate := waNever;
   LogFileName := 'WUPDATE.LOG';
+  FUseWinTempDir := true;
+  FUpdateType := httpUpdate;
+  FVersionCheck := vcUpdateOnly;
+  FUpdateUpdate := wuuPromptOnce;
+  FUpdateConnect := wucNoConnect;
 end;
 
 destructor TWebUpdate.Destroy;
@@ -942,6 +1217,7 @@ procedure TWebUpdate.AddToLog(s: string);
 begin
   Log(s);
 end;
+
 
 procedure TWebUpdate.Error;
 var
@@ -963,17 +1239,17 @@ begin
       begin
         InternetGetLastResponseInfo(dwIntError,buf,dwLength);
 
-        if Assigned(OnStatus) then
-          OnStatus(Self,StrPas(buf),WebUpdateAccessError,dwIntError)
-        else
+        DoStatus(976,StrPas(buf),WebUpdateAccessError,ErrorCode);
+
+        if not Assigned(OnStatus) then
           Messagedlg(StrPas(buf),mtError,[mbok],0);
       end
     end
     else
     begin
-      if Assigned(OnStatus) then
-        OnStatus(Self,StrPas(buf),WebUpdateAccessError,ErrorCode)
-      else
+      DoStatus(976, StrPas(buf),WebUpdateAccessError,ErrorCode);
+
+      if not Assigned(OnStatus) then
         Messagedlg(StrPas(buf),mtError,[mbok],0);
     end;
   end;
@@ -1035,6 +1311,9 @@ begin
   if (fvl = '') and (VersionCheck = vcUpdateOnly) then
     Exit;
 
+  if (not FileExists(fvl)) and (VersionCheck = vcAlways) then
+    Exit;
+
   Result := False;
 
   if fvc <> -1 then
@@ -1045,7 +1324,7 @@ begin
       lfs := GetCheckSumOfFile(fvl);
 
     Result := fvc <> lfs;
-    DoStatus(933,'Checksum compare of '+fvl+':'+inttostr(lfs)+':'+inttostr(fvc),WebUpdateInformation,0);
+    DoStatus(944,'Checksum compare of '+fvl+':'+inttostr(lfs)+':'+inttostr(fvc),WebUpdateInformation,0);
     Exit;
   end;
 
@@ -1058,6 +1337,8 @@ begin
 
   lfvi := GetFileVersion(fvl);
   nfvi := StringToVersion(fvn);
+
+  DoStatus(944,'Version compare of '+fvl+':'+VersionToString(lfvi)+' with ' + fvn +':'+VersionToString(nfvi),WebUpdateInformation,0);
 
   if (nfvi.versionMS = -1) or (nfvi.versionLS = -1) then
     Exit;
@@ -1093,32 +1374,6 @@ begin
   DeleteFile(pchar(srcname));
 end;
 
-function AddBackslash(const s: string): string;
-begin
-  if (Length(s) >= 1) and (s[Length(s)]<>'\') then
-    Result := s + '\'
-  else
-    Result := s;
-end;
-
-// Either remove a trailing backslash or add '.' as needed to get a directory
-function RemoveBackslash(S: string): string;
-begin
-  s := AddBackslash(s);
-  if (Length(s) > 3) and (s[2] = ':') then
-    Delete(s,Length(s),1)
-  else
-    s := s + '.';
-  Result := s
-end;
-
-function WinTempDir: string;
-var
-  buf: array[0..MAX_PATH] of Char;
-begin
-  GetTempPath(sizeof(buf),buf);
-  Result := AddBackslash(StrPas(buf));
-end;
 
 procedure TWebUpdate.ConvertPrefix(const prefix:string; var s:string);
 var
@@ -1144,19 +1399,22 @@ begin
         if prefix = 'TMP' then
           s := RemoveBackslash(WinTempDir)
             else
-              if prefix = 'PF' then
-              begin
-                Reg := TRegistry.Create;
-                try
-                  Reg.RootKey := HKEY_LOCAL_MACHINE;
-                  if Reg.OpenKey ('\Software\Microsoft\Windows\CurrentVersion', False) then
-                    s :=RemoveBackSlash(Reg.ReadString('ProgramFilesDir'));
+              if prefix = 'DOC' then
+                s := RemoveBackslash(UserDocDir)
+                  else
+                    if prefix = 'PF' then
+                    begin
+                      Reg := TRegistry.Create;
+                      try
+                        Reg.RootKey := HKEY_LOCAL_MACHINE;
+                        if Reg.OpenKey ('\Software\Microsoft\Windows\CurrentVersion', False) then
+                          s :=RemoveBackSlash(Reg.ReadString('ProgramFilesDir'));
 
-                  Reg.CloseKey;
-                finally
-                  Reg.Free
-                end;
-              end;
+                        Reg.CloseKey;
+                      finally
+                        Reg.Free
+                      end;
+                    end;
 end;
 
 function TWebUpdate.ExpandPath(tgt:string):string;
@@ -1203,6 +1461,10 @@ begin
   while Pos('\',url) > 0 do
     Delete(url,1,Pos('\',url));
 
+  while Pos('?',url) > 0 do
+    Delete(url,1,Pos('?',url));
+
+
   Res := url;
 
   if Assigned(FOnFileNameFromURL) then
@@ -1235,6 +1497,20 @@ begin
     Result := 'http://' + ProxyUser + ':' + ProxyPwd + '@' + url;
   end;
 end;
+
+{$WARNINGS OFF}
+procedure FileSetNotReadOnlyOrHidden(const MyFile : string);
+var
+  Attribute      : integer;
+begin
+  Attribute := FileGetAttr(MyFile);
+  if Attribute <> -1 then
+  begin
+    FileSetAttr(MyFile, Attribute and not faReadOnly and not faHidden);
+  end;
+end;
+{$WARNINGS ON}
+
 
 // copy files over a LAN
 function TWebUpdate.FileGetFile(url, tgt: string; uncompress:Boolean): Boolean;
@@ -1288,7 +1564,10 @@ begin
 
   // tries to create the target file
 
-  GetTempFilename(PChar(FTempDirectory),'WUPD',0,tmpname);
+  if UseWinTempDir then
+    GetTempFilename(PChar(WinTempDir),'WUPD',0,tmpname)
+  else
+   GetTempFilename(PChar(FTempDirectory),'WUPD',0,tmpname);
 
   Target.handle := FileCreate(strpas(tmpname));
 
@@ -1354,7 +1633,19 @@ begin
   else
   begin
     if FileExists(tgt) then
-      sysutils.DeleteFile(tgt);
+    begin
+      if not sysutils.DeleteFile(tgt) then
+      begin
+        FileSetNotReadOnlyOrHidden(tgt);
+        if not sysutils.DeleteFile(tgt) then
+        begin
+          Result := False;
+          DoStatus(972,tgt,WebUpdateReplaceError,ErrCannotDeleteFile);
+          Log('Unable to delete file '+ tgt);
+          Exit;
+        end;
+      end;
+    end;
     sysutils.RenameFile(strpas(TmpName),tgt);
     Result := True;
   end;
@@ -1362,7 +1653,7 @@ end;
 
 function TWebUpdate.URLGetFile(hfile:hinternet;url,tgt:string;uncompress:Boolean):Boolean;
 var
-  buf: array[0..READBUFFERSIZE-1] of char;
+  buf: array[0..READBUFFERSIZE - 1] of char;
   szHeaders: string;
   szUser,szPassword: string;
   tmpname: array[0..MAX_PATH] of char;
@@ -1377,11 +1668,11 @@ var
   {$IFNDEF DELPHI4_LVL}
   lpFindFileData:TWin32FindDataA;
   {$ELSE}
-  lpFindFileData:_WIN32_FIND_DATAA;
+  lpFindFileData:_WIN32_FIND_DATA;
   {$ENDIF}
   OpenFlags: DWORD;
 label
-  RetryAfterLogin;  
+  RetryAfterLogin;
 begin
   Result := False;
 
@@ -1409,7 +1700,7 @@ begin
         CABExtract(fn,tgt);
         if not FKeepIntermediateFiles then
           DeleteFile(pchar(fn));
-      end;            
+      end;
 
       Result := True;
     end
@@ -1429,7 +1720,12 @@ begin
     if (FFTPDirectory <> '') and not FFTPDirSet then
     begin
       s := ExpandPath(FFTPDirectory);
-      FtpSetCurrentDirectory(hfile,pchar(s));
+      
+      DoStatus(974,s,WebUpdateInformation,0);
+      
+      if not FtpSetCurrentDirectory(hfile,pchar(s)) then
+        DoStatus(975,s,WebUpdateInformation,ErrCannotChangeDir);
+
       FFTPDirSet := True;
     end;
 
@@ -1521,6 +1817,7 @@ retryafterlogin:
 
   if hintfile = nil then
   begin
+    Error;
     DoStatus(917,furl,WebUpdateNotFound,ErrUpdateFileNotFound);
     {$IFDEF TMSDEBUG}
     outputdebugstring('could not open file');
@@ -1530,7 +1827,10 @@ retryafterlogin:
 
   fn := tgt + URLtoFile(url);
 
-  GetTempFilename(PChar(FTempDirectory),'WUPD',0,tmpname);
+  if UseWinTempDir then
+    GetTempFilename(PChar(WinTempDir),'WUPD',0,tmpname)
+  else
+    GetTempFilename(PChar(FTempDirectory),'WUPD',0,tmpname);
 
   AssignFile(lf,tmpname);
   Rewrite(lf,1);
@@ -1595,20 +1895,28 @@ retryafterlogin:
     begin
       if not SysUtils.DeleteFile(fn) then
       begin
-        Result := false;
-        Log('Unable to delete file '+fn);
+        FileSetNotReadOnlyOrHidden(fn);
+        if not SysUtils.DeleteFile(fn) then
+        begin
+          Result := false;
+          DoStatus(972,fn,WebUpdateReplaceError,ErrCannotDeleteFile);
+          Log('Unable to delete file '+fn);
+        end;
       end;
     end;
 
     if not SysUtils.RenameFile(strpas(tmpname),fn) then
     begin
       Result := false;
+      DoStatus(973,tmpname+' to ' + fn,WebUpdateRenameError,ErrCannotRenameFile);
       Log('Unable to rename file '+strpas(tmpname)+' to '+fn);
     end;
 
     CustomProcess(fn);
+
     if UnCompress and (UpperCase(ExtractFileExt(fn)) <> '.CAB') then
       ExpandFile(fn);
+
     if UnCompress and (UpperCase(ExtractFileExt(fn)) = '.CAB') then
     begin
       CABExtract(fn,tgt);
@@ -1734,6 +2042,9 @@ begin
     s := IniFile.ReadString('whatsnew'+LanguageID,'file','');
     if s <> '' then
     begin
+      if Assigned(FOnBeforeFileDownload) then
+        FOnBeforeFileDownload(Self,0,s,s);
+        
       DoStatus(937,'',WebUpdateWhatsNew,0);
       Result := GetTextFile(s);
     end;
@@ -1779,6 +2090,7 @@ begin
 
   if Assigned(FOnDownloadedWhatsNew) then
   begin
+    Res := mrOK;
     FOnDownloadedWhatsNew(Self,sl, Res);
     if (Res <> mrOk) then
       Result := WU_FAILED;
@@ -1942,6 +2254,14 @@ begin
   Result := ForceDirectories(ExtractFilePath(Dir)) and CreateDir(Dir);
 end;
 
+procedure TWebUpdate.SetTimeout(timeout: dword);
+var
+  timos: dword;
+begin
+  timos := sizeof(timeout);
+  InternetSetOption(fhint, INTERNET_OPTION_CONNECT_TIMEOUT, @timeout, timos);
+end;
+
 function TWebUpdate.StartConnection: Integer;
 var
   dwReserved: DWORD;
@@ -1953,7 +2273,7 @@ begin
   FHintconnect := nil;
 
   {$IFDEF FREEWARE}
-  ShowMessage('Starting application update with'#13#10'TWebUpdate © 1998-2005 by tmssoftware.com');
+  ShowMessage('Starting application update with'#13#10'TWebUpdate © 1998-2008 by tmssoftware.com');
   {$ENDIF}
 
   if FUpdateType <> FileUpdate then
@@ -2021,6 +2341,8 @@ begin
     end
     else
     begin
+      if FTimeOut > 0 then
+        SetTimeOut(FTimeOut);
       if FUpdateType = httpUpdate then
         FHintConnect := FHint;
       Result := WU_SUCCESS;
@@ -2106,7 +2428,7 @@ function TWebUpdate.GetControlFile: Integer;
 var
   ctrlURL: string;
   IniFile: TIniFile;
-  ExeName,AppParam: string;
+
 begin
   // get the .INF file here
   
@@ -2140,24 +2462,16 @@ begin
   FAppClose := IniFile.ReadInteger('application','appupdate',0) = 1;
 
   FAppName := ExpandPath(IniFile.ReadString('application','appname',''));
-  AppParam := IniFile.ReadString('application','appparam','');
+  FAppParam := IniFile.ReadString('application','appparam','');
 
   if FAppName = '' then
     FAppClose := False;
 
-  ExeName := FAppName;
-
-  if (Pos(' ',FAppName) > 0) then
-    ExeName := '"' + FAppName + '"';
-
   if Assigned(FSetAppParams) then
-    FSetAppParams(Self,AppParam);
+    FSetAppParams(Self,FAppParam);
 
-  if (Pos(' ',AppParam) > 0) then
-    AppParam := '"' + AppParam + '"';
-
-  if (AppParam <> '') then
-    FAppName := ExeName + ' ' + AppParam;
+  if FAppParam = '' then
+    FAppParam := ' ';
 
   FAppComps := ExpandPath(IniFile.ReadString('application','appcomps',''));
   FSilentRestart := IniFile.ReadInteger('application','silentrestart',0)=1;
@@ -2206,7 +2520,6 @@ begin
   end;
 
   Result := dt;
-
 end;
 
 function TWebUpdate.DoVersionCheck: Integer;
@@ -2326,6 +2639,9 @@ var
   s: string;
   fvl,fvn: string;
   IniFile: TINIFile;
+  {$IFDEF DELPHI_UNICODE}
+  sa: ansistring;
+  {$ENDIF}
 begin
   Result := WU_SUCCESS;
 
@@ -2349,7 +2665,19 @@ begin
     s := ExpandPath(IniFile.readstring('action','runbefore',''));
     if s <> '' then
     begin
-      WinExec(pchar(s),sw_normal);
+      {$IFDEF DELPHI_UNICODE}
+      sa := s;
+      if IsVista then
+        ShellExecute(0,'open',PChar(s), nil, nil, SW_NORMAL)
+      else
+        WinExec(PAnsiChar(sa),sw_normal);
+      {$ENDIF}
+      {$IFNDEF DELPHI_UNICODE}
+      if IsVista then
+        ShellExecute(0,'open',PChar(s), nil, nil, SW_NORMAL)
+      else
+        WinExec(PChar(s),SW_NORMAL);
+      {$ENDIF}      
     end;
 
     if Assigned(FCustomProcess) then
@@ -2437,6 +2765,7 @@ begin
         Compressed := IniFile.ReadInteger(filekey,'compressed',0) = 1;
         FileSize := IniFile.ReadInteger(filekey,'filesize',0);
         Mandatory := IniFile.ReadInteger(filekey,'mandatory',0)=1;
+        Preselect := IniFile.ReadInteger(filekey,'preselect',1)=1;
         Hidden := IniFile.ReadInteger(filekey,'hidden',0)=1;
       end;
     end;
@@ -2462,6 +2791,13 @@ begin
     fvn := FFileList.Items[i].NewVersion;
     fvl := FFileList.Items[i].LocalVersion;
 
+    DoStatus(971,
+      FFileList.Items[i].URL + '[' +FFileList.Items[i].LocalVersion+
+        ',nv='+FFileList.Items[i].NewVersion+
+        ',nd='+FFileList.Items[i].NewDate+
+        ',ns='+inttostr(FFileList.Items[i].NewSize)+
+        ',nc='+inttostr(FFileList.Items[i].NewCheckSum)+']',0,0);
+
     if (FFileList.Items[i].LocalVersion <> '') and
        (FFileList.Items[i].NewDate <> '') then
     begin
@@ -2469,7 +2805,11 @@ begin
 
       if FileExists(FFileList.Items[i].LocalVersion) then
       begin
+        {$IFDEF DELPHI2006_LVL}
+        FileAge(FFileList.Items[i].LocalVersion, CurDt);
+        {$ELSE}
         CurDt := SysUtils.FileDateToDateTime(SysUtils.FileAge(FFileList.Items[i].LocalVersion));
+        {$ENDIF}
 
         if CurDt >= NewDt then
           FFileList.Items[i].Free
@@ -2477,14 +2817,17 @@ begin
           inc(i);
       end
       else
-        inc(i);     
+        inc(i);
     end
     else
     begin
       if not CheckVersions(fvn,fvl,
                            FFileList.Items[i].NewSize,
                            FFileList.Items[i].NewCheckSum) then
+      begin
+        DoStatus(930,'',0,0);
         FFileList.Items[i].Free
+      end
       else
       begin
         isNew := True;
@@ -2526,7 +2869,7 @@ begin
   end;
 
   if FFileList.Count = 0 then
-    Result := WU_FAILED;  
+    Result := WU_FAILED;
 
 end;
 
@@ -2539,6 +2882,8 @@ var
   ShowUtil: Boolean;
   ShowAnim: Boolean;
   szCaption, szMsg: string;
+  tgtdir: string;
+  inAppComps: boolean;
 
 begin
   UpdateMethod := FUpdateUpdate;
@@ -2569,37 +2914,63 @@ begin
       if (FFileList.Items[i - 1].TargetDir <> '') and not DirExists(FFileList.Items[i - 1].TargetDir) then
         ForceDirectories(FFileList.Items[i - 1].TargetDir);
 
-      if not URLGetFile(FHintconnect,Fname,
-         FFileList.Items[i - 1].TargetDir,
-         FFileList.Items[i - 1].Compressed) then
+      if UseWinTempDir then
+        tgtdir := WinTempDir
+      else
+        tgtdir := FFileList.Items[i - 1].TargetDir;
+
+      if not URLGetFile(FHintconnect, Fname, tgtdir, false) then
       begin
-         Result := WU_FAILED;      
+         Result := WU_FAILED;
          DoStatus(946,FName,WebUpdateNotFound,0);
          FAppclose := False;
       end
       else
       begin
+        inAppComps := false;
+
         if (IPos(UFName,FAppComps) > 0) then
         begin
           FAppCompsIncluded := True;
+          inAppComps := True;
           DoStatus(962,UFName,0,0);
         end;
 
-        if (UpperCase(ExtractFileExt(UFName)) = '.CAB') and
-          FExtractCAB and
-          not (IPos(UFName,FAppComps) > 0) then
+        if (UpperCase(ExtractFileExt(UFName)) <> '.CAB') and
+           (UpperCase(ExtractFileExt(UFName)) <> '.PAT') and
+           (FFileList.Items[i - 1].TargetDir <> '') and not inAppComps then
         begin
-          if CABExtract(FFileList.Items[i - 1].TargetDir + UFName,FFileList.Items[i - 1].TargetDir) = -1 then
-            DoStatus(947,FFileList.Items[i - 1].TargetDir + UFName,WebUpdateCABError,0)
+          if FileExists(AddBackSlash(FFileList.Items[i - 1].TargetDir) + UFName) then
+            SysUtils.DeleteFile(AddBackSlash(FFileList.Items[i - 1].TargetDir) + UFName);
+
+          RenameFile(tgtdir + UFName, AddBackSlash(FFileList.Items[i - 1].TargetDir) + UFName);
+        end;  
+
+        if (UpperCase(ExtractFileExt(UFName)) <> '.CAB') and
+          FExtractCAB and FFileList.Items[i - 1].Compressed and
+          not inAppComps then
+        begin
+          RenameFile(tgtdir + UFName, UFName);
+          ExpandFile(UFName);
+          if not FKeepIntermediateFiles then
+            DeleteFile(PChar(UFName));
+        end;
+
+        if (UpperCase(ExtractFileExt(UFName)) = '.CAB') and
+          FExtractCAB and FFileList.Items[i - 1].Compressed and
+          not inAppComps then
+        begin
+          if CABExtract(AddBackSlash(tgtdir) + UFName, FFileList.Items[i - 1].TargetDir) = -1 then
+            DoStatus(947,AddBackSlash(tgtdir) + UFName,WebUpdateCABError,0)
           else
           begin
             if not FKeepIntermediateFiles then
-              DeleteFile(PChar(FFileList.Items[i - 1].TargetDir + UFName));
-          end;    
+              DeleteFile(PChar(AddBackSlash(tgtdir) + UFName));
+          end;
         end;
 
         if (UpperCase(ExtractFileExt(UFName)) = '.PAT') and
-          FApplyPatch and (FFileList.Items[i - 1].LocalVersion <> '') and not (IPos(UFName,FAppComps) > 0) then
+          FApplyPatch and (FFileList.Items[i - 1].LocalVersion <> '') and not inAppComps then
         begin
           if Assigned(FUtility) and FApplyPatch and not FileExists('patcher.exe') then
           begin
@@ -2644,6 +3015,9 @@ var
   s: string;
   IniFile: TIniFile;
   CustomVal: Boolean;
+{$IFDEF DELPHI_UNICODE}
+  sa: ansistring;
+{$ENDIF}
 begin
   if FCancelled then
     Result := WU_FAILED
@@ -2653,10 +3027,23 @@ begin
     // post update info
     if FPostUpdateInfo.Enabled then
     begin
-      DoPostUpdateInfo;
-      CustomVal := True;
-      if Assigned(FProcessPostResult) then
-        FProcessPostResult(Self,CustomVal);
+      CustomVal := true;
+
+      if Assigned(FBeforePost) then
+        FBeforePost(Self, CustomVal);
+
+      if CustomVal then
+      begin
+        DoPostUpdateInfo;
+        CustomVal := True;
+        if Assigned(FProcessPostResult) then
+          FProcessPostResult(Self,CustomVal);
+        if not CustomVal then
+        begin
+          Result := WU_FAILED;
+          Exit;
+        end;
+      end;
     end;
 
     // save new updated date
@@ -2680,7 +3067,19 @@ begin
     s := ExpandPath(IniFile.ReadString('action','runafter',''));
     if s <> '' then
     begin
-      Winexec(PChar(s),sw_normal);
+      {$IFDEF DELPHI_UNICODE}
+      sa := s;
+      if IsVista then
+        ShellExecute(0,'open',PChar(s), nil, nil, SW_NORMAL)
+      else
+        Winexec(PAnsiChar(sa),sw_normal);
+      {$ENDIF}
+      {$IFNDEF DELPHI_UNICODE}
+      if IsVista then
+        ShellExecute(0,'open',PChar(s), nil, nil, SW_NORMAL)
+      else
+        Winexec(PChar(s),sw_normal);
+      {$ENDIF}
     end;
 
     IniFile.Free;
@@ -2690,9 +3089,12 @@ begin
 end;
 
 function TWebUpdate.NewVersionAvailable: Boolean;
+var
+  sl: TStringList;
+  Res: integer;
 begin
   Result := false;
-  
+
   if StartConnection = WU_SUCCESS then
   begin
     // handle connect different for FTP & HTTP
@@ -2707,11 +3109,69 @@ begin
       if GetControlFile = WU_SUCCESS then
       begin
         Result := DoVersionCheck <> WU_NONEWVERSION;
+        if Result and Assigned(FOnDownloadedWhatsNew) then
+        begin
+          sl := getWhatsNew;
+          if Assigned(sl) then
+          begin
+            Res := mrOK;
+            FOnDownloadedWhatsNew(Self,sl, Res);
+            sl.Free;
+          end;
+        end;
       end;
     end;
     StopConnection;
   end;
 end;
+
+function TWebUpdate.NewWhatsnew(ShowDialog: boolean = false): TStringlist;
+var
+  sl: TStringList;
+  Res: boolean;
+  resi: integer;
+begin
+  Result := nil;
+
+  if StartConnection = WU_SUCCESS then
+  begin
+    // handle connect different for FTP & HTTP
+    if FUpdateType = ftpUpdate then
+    begin
+      if FTPConnect = WU_FAILED then
+        Error;
+    end;
+
+    if (FHintConnect <> nil) or (FUpdateType = fileUpdate) then
+    begin
+      if GetControlFile = WU_SUCCESS then
+      begin
+        Res := DoVersionCheck <> WU_NONEWVERSION;
+        if Res then
+        begin
+          sl := getWhatsNew;
+          if Assigned(sl) then
+          begin
+            if Assigned(FOnDownloadedWhatsNew) then
+              FOnDownloadedWhatsNew(Self, sl, resi);
+            if ShowDialog then
+            begin
+              if WhatsNewDialog(sl) <> WU_FAILED then
+                Result := sl
+              else
+                sl.Free;  
+            end
+            else
+              Result := sl;
+          end;
+
+        end;
+      end;
+    end;
+    StopConnection;
+  end;
+end;
+
 
 procedure TWebUpdate.DoSuccess;
 begin
@@ -2720,11 +3180,32 @@ begin
 end;
 
 procedure TWebUpdate.DoUpdate;
+begin
+  DoUpdate(False);
+end;
+
+
+procedure TWebUpdate.DoUpdate(InitPath: boolean);
 var
   sl: TStringList;
   res: Integer;
 
 begin
+  if InitPath then
+  begin
+    SetCurrentDir(ExtractFilePath(Application.EXEName));
+  end;
+
+  if FThreaded then
+    DoStatus(968,'Threaded update',0,0)
+  else
+    DoStatus(968,'Non threaded update',0,0);
+
+  DoStatus(966,GetOSVersion,0,0);
+  DoStatus(967,GetIEVersion,0,0);
+  DoStatus(969,GetIDE,0,0);
+  DoStatus(970,GetInstalledIDEs,0,0);
+
   FAppCompsIncluded := False;
   FFTPDirSet := False;
   FControlFileName := '';
@@ -2797,6 +3278,7 @@ begin
     end;
     StopConnection;
   end;
+
 end;
 
 procedure TWebUpdate.DoRestart;
@@ -2804,12 +3286,13 @@ var
   proch: dword;
   allow: Boolean;
   StartupInfo: TStartupInfo;
-  ProcessInfo: TProcessInformation;
-  StartErrorCode: dword;
-  TmpBuf:array[0..1024] of char;
+  //ProcessInfo: TProcessInformation;
+  //StartErrorCode: dword;
+  //TmpBuf:array[0..1024] of char;
   Cancelled: Boolean;
-  curdir, dolog,curapp: string;
+  curdir, dolog,curapp,tmpdir: string;
   commandline: string;
+  inifile: TIniFile;
 begin
   Cancelled := False;
 
@@ -2830,12 +3313,16 @@ begin
   begin
     ExtractUpdateResource;
 
+    inifile := TIniFile.Create(AddBackSlash(UserDocDir) + 'WUPDATE.INI');
+    inifile.WriteString('CONFIG','LOGFILENAME',_logfilename);
+    inifile.Free;
+
     proch := GetCurrentProcessID;
 
     FillChar(StartupInfo, Sizeof(StartupInfo), #0);
     StartupInfo.cb := Sizeof(StartupInfo);
     StartupInfo.dwFlags := STARTF_USESHOWWINDOW;
-    StartupInfo.wShowWindow := SW_SHOWNORMAL;    
+    StartupInfo.wShowWindow := SW_SHOWNORMAL;
 
     curdir := GetCurrentDir;
 
@@ -2844,15 +3331,27 @@ begin
     else
       doLog := ' X ';
 
-    curapp := AddBackSlash(curdir) + fappname;
+    curapp := AddBackSlash(curdir) + FAppname;
 
     if pos(' ',curapp) > 0 then
       curapp := '"' + curapp + '"';
 
-    CommandLine := wintempdir + 'upd.exe ' + IntToStr(proch) + doLog + curapp + ' ' + fappcomps;
+    if (pos(' ',FAppParam) > 0) then
+      FAppParam := '"'+ FAppParam + '"';
+
+    curapp := curapp + ' ' + FAppParam;  
+
+    if UseWinTempDir then
+      tmpdir := WinTempDir
+    else
+      tmpdir := TempDirectory;
+
+    //CommandLine := wintempdir + 'wusetup.exe ' + IntToStr(proch) + doLog + curapp + ' ' + tmpdir + ' ' + fappcomps;
+    CommandLine := IntToStr(proch) + doLog + curapp + ' "' + tmpdir + '" ' + fappcomps;
 
     DoStatus(958,CommandLine,0,0);
 
+    (*
     if not CreateProcess(nil, PChar(CommandLine),
       nil,
       nil,
@@ -2869,11 +3368,13 @@ begin
         StartErrorCode,
         0,
         TmpBuf,
-        SizeOf(TmpBuf),
+        SizeOf(TmpBuf),     
         nil);
 
       DoStatus(950,strpas(TmpBuf),WebUpdateSpawnFail,StartErrorCode);
     end;
+    *)
+    ShellExecute(0,'open',pchar(wintempdir + 'wusetup.exe'),pchar(commandline),nil,SW_SHOW);
 
     if Assigned(FAppDoClose) then
       FAppDoClose(self) else application.Terminate;
@@ -2929,7 +3430,7 @@ begin
     if FLastURLEntry.RegRoot = lurLOCALMACHINE then
       RegIniFile.RootKey := HKEY_LOCAL_MACHINE;
 
-    RegIniFile.OpenKey(FLastURLEntry.key, True {CanCreate});      
+    RegIniFile.OpenKey(FLastURLEntry.key, True {CanCreate});
     DateStr := RegIniFile.ReadString(FLastURLEntry.Section,'LastDate','');
     TimeStr := RegIniFile.ReadString(FLastURLEntry.Section,'LastTime','');
 
@@ -2949,7 +3450,11 @@ begin
   begin
     if FLocalFileDateCheck <> '' then
       if FileExists(FLocalFileDateCheck) then
+      {$IFDEF DELPHI2006_LVL}
+        FileAge(FLocalFileDateCheck, Result);
+      {$ELSE}
         Result := SysUtils.FileDateToDateTime(SysUtils.FileAge(FLocalFileDateCheck));
+      {$ENDIF}
   end;
 end;
 
@@ -2964,10 +3469,13 @@ begin
     RegIniFile := TRegIniFile.Create('');
     if FLastURLEntry.RegRoot = lurLOCALMACHINE then
       RegIniFile.RootKey := HKEY_LOCAL_MACHINE;
-    RegIniFile.OpenKey(FLastURLEntry.key, True {CanCreate});      
+
+    RegIniFile.OpenKey(FLastURLEntry.key, True {CanCreate});
     RegIniFile.WriteString(FLastURLEntry.Section,'LastDate',DateToStr(dt));
+
     if Frac(dt) <> 0 then
       RegIniFile.WriteString(FLastURLEntry.Section,'LastTime',TimeToStr(dt));
+
     RegIniFile.Free;
   end;
 end;
@@ -3011,12 +3519,11 @@ begin
   Ressize := SizeOfResource(hinstance,reshandle);
   ptr := LockResource(hglobal);
 
-  Srcname := wintempdir + 'upd.ex_';
+  Srcname := wintempdir + 'wusetup.ex_';
   AssignFile(binfile,srcname);
   Rewrite(binfile);
   Blockwrite(binfile,ptr^,ressize);
   Closefile(binfile);
-
   ExpandFile(srcname);
 end;
 
@@ -3034,7 +3541,11 @@ begin
   Ressize := SizeOfResource(hinstance,reshandle);
   ptr := LockResource(hglobal);
 
-  SrcName := GetCurrentDir + '\patcher.exe';
+  if UseWinTempDir then
+    SrcName := wintempdir + 'patcher.exe'
+  else
+    SrcName := GetCurrentDir + '\patcher.exe';
+    
   AssignFile(binfile,SrcName);
   Rewrite(binfile);
   Blockwrite(binfile,ptr^,ressize);

@@ -1,11 +1,10 @@
 {***********************************************************************}
 { TPlanner, TPlannerCalendar, TPlannerDatePicker Styler component       }
 { for Delphi & C++ Builder                                              }
-{ version 2.5                                                           }
 {                                                                       }
 { written by :                                                          }
 {            TMS Software                                               }
-{            copyright © 1999-2006                                      }
+{            copyright © 1999-2008                                      }
 {            Email : info@tmssoftware.com                               }
 {            Website : http://www.tmssoftware.com                       }
 {                                                                       }

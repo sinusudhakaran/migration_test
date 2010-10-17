@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                }
 {                                                                        }
 { written by TMS Software                                                }
-{            copyright © 1996-2004                                       }
+{            copyright © 1996-2007                                       }
 {            Email : info@tmssoftware.com                                }
 {            Web : http://www.tmssoftware.com                            }
 {                                                                        }
@@ -37,6 +37,7 @@ unit asgdd;
 {$IFDEF VER180}
   {$HPPEMIT '#include <oleidl.h>'}
 {$ENDIF}
+
 
 interface
 
@@ -98,6 +99,7 @@ type
     function HasFile : boolean;
     function HasRTF : boolean;
     function HasCol : boolean;
+    function HasURL : boolean;
     function Text : string;
     function RTF : string;
     function Col: integer;
@@ -111,7 +113,7 @@ type
     property Medium : integer read GetTymed write SetTymed;
   end;
 
-  TDropFormat = (dfText,dfFile,dfCol,dfRTF);
+  TDropFormat = (dfText,dfFile,dfCol,dfRTF,dfURL);
   TDropFormats = set of TDropFormat;
 
   TASGDropTarget = class (TInterfacedObject, IDropTarget)
@@ -124,6 +126,7 @@ type
     FAcceptText: boolean;
     FAcceptFiles: boolean;
     FAcceptCols: boolean;
+    FAcceptURLs: boolean;
     FDropFormats: TDropFormats;
   public
     constructor Create;
@@ -131,19 +134,23 @@ type
     procedure DropCol(pt:TPoint;col:integer); virtual;
     procedure DropRTF(pt:TPoint;s:string); virtual;
     procedure DropFiles(pt:TPoint;files:tstrings); virtual;
+    procedure DropURL(pt:TPoint;s:string); virtual;
     procedure DragMouseMove(pt:TPoint;var Allow:boolean; DropFormats: TDropFormats); virtual;
     procedure DragMouseEnter; virtual;
     procedure DragMouseLeave; virtual;
-  published
+    
     property AcceptText: boolean read FAcceptText write FAcceptText;
     property AcceptFiles: boolean read FAcceptFiles write FAcceptFiles;
     property AcceptCols: boolean read FAcceptCols write FAcceptCols;
+    property AcceptURLs: boolean read FAcceptURLs write FAcceptURLs;
     property DropFormats:TDropFormats read FDropFormats;
   end;
 
   TASGDropSource = class (TInterfacedObject, IDropSource)
   private
-    fNoAccept:boolean;
+    FNoAccept:boolean;
+  protected
+    procedure DragDropStop; virtual;
   public
     constructor Create;
     function QueryContinueDrag(fEscapePressed: BOOL; grfKeyState: Longint): HResult; stdcall;
@@ -201,6 +208,7 @@ implementation
 var
   CF_RTF : Integer;
   CF_COL : Integer;
+  CF_URL : Integer;
   RTFAware: Boolean;
 
 procedure SetRTFAware(Value: Boolean);
@@ -231,6 +239,7 @@ begin
     begin
      CF_RTF := RegisterClipboardformat('Rich Text Format');
      CF_COL := RegisterClipboardformat('Grid Column');
+     CF_URL := RegisterClipboardformat(CFSTR_SHELLURL);
      CloseClipBoard;
     end;
 end;
@@ -260,10 +269,10 @@ end;
 
 function TEnumFormats.HasFormat (ClipFormat : TClipFormat) : boolean;
 begin
- Result:=false;
- if Reset then
-   while (not Result) and Next do
-      Result:=(ClipFormat=Format);
+  Result := false;
+  if Reset then
+    while (not Result) and Next do
+      Result := (ClipFormat=Format);
 end;
 
 procedure TEnumFormats.SetDataObject (Value : IDataObject);
@@ -322,18 +331,18 @@ begin
   end
 end;
 
-function TEnumFormats.SomeText (Format : TClipFormat) : string;
+function TEnumFormats.SomeText(Format : TClipFormat) : string;
 var
   H : hGlobal;
   P : PChar;
 begin
   Result := '';
-  if HasFormat (Format) then
+  if HasFormat(Format) then
   begin
     H := GlobalHandle;
     if H <> 0 then
     begin
-      P := GlobalLock (H);
+      P := GlobalLock(H);
       try
         Result := P
       finally
@@ -417,24 +426,32 @@ begin
   Result := HasFormat(CF_HDROP)
 end;
 
+function TEnumFormats.HasURL : boolean;
+begin
+  Result := HasFormat(CF_URL);
+end;
+
 constructor TASGDropTarget.Create;
 begin
   inherited Create;
   FAcceptText := true;
   FAcceptFiles := true;
+  FAcceptURLs := true;
 end;
 
 function TASGDropTarget.DragEnter(const DataObj: IDataObject; grfKeyState: Longint; pt: TPoint; var dwEffect: Longint): HResult;
 begin
   with TEnumFormats.Create(DataObj) do
   try
-    FOk := (HasText and FAcceptText) or (HasFile and FAcceptFiles) or (HasRTF and RTFAware and FAcceptText) or (HasCol and FAcceptCols);
+    FOk := (HasText and FAcceptText) or (HasFile and FAcceptFiles) or (HasRTF and RTFAware and FAcceptText)
+      or (HasCol and FAcceptCols) or (HasURL and FAcceptURLs);
 
     FDropFormats := [];
     if HasText then FDropFormats := [dfText];
     if HasFile then FDropFormats := FDropFormats + [dfFile];
     if HasRTF then FDropFormats := FDropFormats + [dfRTF];
     if HasCol then FDropFormats := FDropFormats + [dfCol];
+    if HasURL then FDropFormats := FDropFormats + [dfURL];
 
   finally
     Free
@@ -497,6 +514,10 @@ begin
          SomeFiles(FFiles);
          DropFiles(pt,FFiles);
        end;
+       if HasURL then
+       begin
+         DropURL(pt,Text);
+       end;
       end;   
       finally
       Free
@@ -522,6 +543,10 @@ begin
 end;
 
 procedure TASGDropTarget.DropFiles(pt:tpoint;files:tstrings);
+begin
+end;
+
+procedure TASGDropTarget.DropURL(pt:tpoint;s:string);
 begin
 end;
 
@@ -771,6 +796,11 @@ procedure TASGDropSource.CurrentEffect(dwEffect: Longint);
 begin
 end;
 
+procedure TASGDropSource.DragDropStop;
+begin
+
+end;
+
 procedure TASGDropSource.QueryDrag;
 begin
 end;
@@ -782,9 +812,11 @@ Begin
   Result := S_OK;
   If fEscapePressed then Result := DRAGDROP_S_CANCEL else
     if ((grfKeyState and MK_LBUTTON) = 0) then // mouse-up
+    begin
       Result := DRAGDROP_S_DROP;
-
- QueryDrag;
+      DragDropStop;
+    end;
+  QueryDrag;
 end;
 
 function TASGDropSource.GiveFeedback(dwEffect: Longint): HResult;

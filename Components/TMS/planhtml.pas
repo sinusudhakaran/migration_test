@@ -2,10 +2,9 @@
 {**************************************************************************}
 { Mini HTML rendering engine                                               }
 { for Delphi & C++Builder                                                  }
-{ version 2.0                                                              }
 {                                                                          }
 { written by TMS Software                                                  }
-{            copyright © 1999-2004                                         }
+{            copyright © 1999-2008                                         }
 {            Email : info@tmssoftware.com                                  }
 {            Website : http://www.tmssoftware.com/                         }
 {                                                                          }
@@ -363,7 +362,7 @@ begin
   Result := '';
   for i := 1 to Length(s) do
   begin
-    if not (s[i] in [#13,#10]) then
+    if not ( (s[i] =#13) or (s[i] = #10) ) then
       Result := Result + s[i]
     else
       if (s[i] = #13) and break then
@@ -521,7 +520,7 @@ begin
     begin
       Temp := Temp + 'CONTROL ID="'+ControlID+'" VALUE="'+ControlValue+'" WIDTH="'+CW+'" TYPE="'+CType+'">';
       html := Temp + Copy(html,pos('>',html)+1,Length(html));
-      Result := True;                                  
+      Result := True;
       Exit;
     end;
   end;
@@ -529,6 +528,7 @@ begin
   html := Orig;
 end;
 
+{$WARNINGS OFF}
 function HTMLDrawEx(Canvas:TCanvas; s:string; fr:TRect;
                     FImages: TImageList;
                     XPos,YPos,FocusLink,HoverLink,ShadowOffset: Integer;
@@ -598,7 +598,6 @@ var
     DeleteObject(SelectObject(Canvas.Handle,hOldFont));
   end;
 
-  {$WARNINGS OFF}
   function HTMLDrawLine(Canvas: TCanvas;var s:string;r: TRect;Calc:Boolean;
                         var w,h,subh,suph,imgali:Integer;var Align:TAlignment; var PIndent: Integer;
                         XPos,YPos:Integer;var Hotspot,ImageHotSpot:Boolean):string;
@@ -684,6 +683,7 @@ var
       end;
 
       WordLenEx := Length(su);
+      WordWidth := 0;
 
       if WordLen > 0 then
       begin
@@ -850,8 +850,10 @@ var
           if LengthFits or not WordWrap then
           begin
             Res := Res + Copy(s,1,WordLen);
-            if not LengthFits and Calc and (LineText <> su) then
-              s := '';
+
+            //if not LengthFits and Calc and (LineText <> su) then
+            //  s := '';
+            
             Delete(s,1,WordLen);
             if (Length(su) >= WordLen) and (su[WordLen] = ' ') then
               sw := Canvas.TextWidth(' ')
@@ -1994,7 +1996,6 @@ var
 
     Result := Res;
   end;
- {$WARNINGS ON}
 
 begin
   Anchor := False;
@@ -2168,6 +2169,7 @@ begin
   OldDrawfont.Free;
   OldCalcfont.Free;
 end;
+{$WARNINGS ON}
 
 {$IFNDEF REMOVEDRAW}
 function HTMLDraw(Canvas:TCanvas;s:string;fr:trect;

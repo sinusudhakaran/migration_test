@@ -1,7 +1,7 @@
 {********************************************************************}
 { TAdvGlowButton component                                           }
 { for Delphi & C++Builder                                            }
-{ version 1.4                                                        }
+{ version 1.8                                                        }
 {                                                                    }
 { written                                                            }
 {   TMS Software                                                     }

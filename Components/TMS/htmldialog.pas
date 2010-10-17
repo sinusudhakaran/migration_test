@@ -1,10 +1,9 @@
 {************************************************************************}
 { HTMLDialog component                                                   }
 { for Delphi & C++Builder                                                }
-{ version 1.0                                                            }
 {                                                                        }
 { written by TMS Software                                                }
-{          copyright © 2001-2004                                         }
+{          copyright © 2001-2008                                         }
 {           Email : info@tmssoftware.com                                 }
 {           Web : http://www.tmssoftware.com                             }
 {                                                                        }
@@ -324,7 +323,11 @@ begin
         ModalResult := FCenterButton.ModalResult;
         Default := FCenterButton.Default;
         Cancel := FCenterButton.Cancel;
-        SetBounds(Form. ClientWidth - 2*(ButtonWidth+10), ButtonTop, ButtonWidth, ButtonHeight);
+
+        if (not FRightButton.Visible and not FLeftButton.Visible) then
+          SetBounds((Form.ClientWidth - (ButtonWidth)) div 2, ButtonTop, ButtonWidth, ButtonHeight)
+        else
+          SetBounds(Form. ClientWidth - 2*(ButtonWidth+10), ButtonTop, ButtonWidth, ButtonHeight);
       end;
 
       if FRightButton.Visible then
@@ -338,7 +341,7 @@ begin
         SetBounds(Form.ClientWidth - (ButtonWidth+10), ButtonTop, ButtonWidth, ButtonHeight);
       end;
 
-      result := ShowModal;
+      Result := ShowModal;
 
     finally
       Form.Free;

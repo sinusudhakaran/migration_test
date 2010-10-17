@@ -8,7 +8,7 @@ interface
 uses XlsMessages, XlsFormulaMessages, UFlxStack, UXlsBaseRecords,
      SysUtils, UXlsBaseRecordLists, UFlxMessages, UXlsReferences, UXlsRowColEntries;
 //************************************************************
-  function RPNToString(const RPN: PArrayOfByte; const atPos: integer; const NameTable: TNameRecordList; const CellList: TCellList): widestring;
+  function RPNToString(const RPN: PArrayOfByte; const atPos: integer; const CellList: TCellList): widestring;
 //************************************************************
 implementation
 
@@ -133,25 +133,21 @@ begin
   Result:=Get1Ref(Row1, Col1)+fmRangeSep+Get1Ref(Row2, Col2);
 end;
 
-function GetName(const RPN: PArrayOfByte; const tpos: integer; const NameTable: TNameRecordList):widestring;
+function GetName(const RPN: PArrayOfByte; const ExternSheet: integer; const tpos: integer; const CellList: TCellList):widestring;
 var
   Idx: integer;
 begin
-  Assert(NameTable<>nil,'Name table must not be nil');
-  Idx:=GetWord(RPN, tPos);
-  if (Idx-1<0)or (Idx-1>=NameTable.Count) then raise
-    Exception.CreateFmt(ErrIndexOutBounds, [Idx,'Name',0,NameTable.Count]);
-  Result:= NameTable[Idx-1].Name;
+ Idx:=GetWord(RPN, tPos);
+ Result := CellList.GetName(ExternSheet, Idx - 1);
 end;
 
-function GetNameX(const RPN: PArrayOfByte; const tpos: integer; const NameTable: TNameRecordList; const CellList: TCellList):widestring;
+function GetNameX(const RPN: PArrayOfByte; const tpos: integer; const CellList: TCellList):widestring;
 var
   Idx: integer;
 begin
   Assert(CellList<>nil,'References must not be nil');
-  Assert(NameTable<>nil,'Name table must not be nil');
   Idx:=GetWord(RPN, tPos);
-  Result:= CellList.GetSheetName(Idx)+GetName(RPN, tPos+2, NameTable);
+  Result:= CellList.GetSheetName(Idx)+GetName(RPN, Idx,  tPos+2, CellList);
 end;
 
 procedure ReadMemArea(const RPN: PArrayOfByte; const tpos: integer; var ArrayPos: integer);
@@ -202,14 +198,22 @@ begin
   Result:=FuncNameArray[index].Name;
 end;
 
-function GetFuncNameVar(const RPN: PArrayOfByte; const tPos: integer; var np: integer): widestring;
+function GetFuncNameVar(const RPN: PArrayOfByte; const tPos: integer; var np: integer; out IsAddIn: boolean): widestring;
 var
   index: integer;
 begin
   index:=GetWord(RPN, tPos+1);
+  IsAddin := index = $FF;
+
   if (index<Low(FuncNameArray)) or (index>High(FuncNameArray)) then raise Exception.CreateFmt(ErrIndexOutBounds, [index, 'Function name', Low(FuncNameArray), High(FuncNameArray)]);
   np:=RPN[tPos]and $7F;
-  Result:=FuncNameArray[index].Name;
+
+  if (IsAddIn) then
+  begin
+    Result := '';
+    dec(np);
+  end
+  else Result:=FuncNameArray[index].Name;
 end;
 
 function GetTableText(const RPN: pArrayOfByte): widestring;
@@ -249,12 +253,13 @@ begin
     end; //case
 end;
 
-function RPNToString(const RPN: PArrayOfByte; const atPos: integer; const NameTable: TNameRecordList; const CellList: TCellList): widestring;
+function RPNToString(const RPN: PArrayOfByte; const atPos: integer; const CellList: TCellList): widestring;
 var
   tPos, fPos, arrayPos: integer;
   BaseToken, RealToken: byte;
   ParsedStack: TFormulaStack;
-  s1, s2, s3: widestring;
+  s1, s2, s3, s4: widestring;
+  IsAddin: boolean;
   sl, np, i, AttrLen: integer;
   StartFormula:WideString;
 begin

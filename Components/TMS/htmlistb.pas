@@ -1,9 +1,8 @@
 {**************************************************************************}
 { THTMListBox component                                                    }
 { for Delphi & C++Builder                                                  }
-{ version 1.9                                                              }
 {                                                                          }
-{ Copyright © 2001 - 2006                                                  }
+{ Copyright © 2001 - 2008                                                  }
 {   TMS Software                                                           }
 {   Email : info@tmssoftware.com                                           }
 {   Web : http://www.tmssoftware.com                                       }
@@ -42,7 +41,7 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 9; // Minor version nr.
   REL_VER = 1; // Release nr.
-  BLD_VER = 1; // Build nr.
+  BLD_VER = 5; // Build nr.
 
   // History
   // 1.8.0.1 : Fixed issue with item sizing
@@ -53,9 +52,18 @@ const
   // 1.9.0.1 : Fixed issue with AutoItemHeight
   // 1.9.1.0 : New added support for Office 2007 silver style
   // 1.9.1.1 : Fixed issue with ItemHeight
+  // 1.9.1.2 : Fixed issue with sizing
+  // 1.9.1.3 : Fixed small issue with item autosize height
+  // 1.9.1.4 : Fixed issue with AutoItemHeight
+  // 1.9.1.5 : Fixed issue with AutoItemHeight = false
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   EHTMListBoxError = class(Exception);
 
   TAnchorClick = procedure(Sender:TObject;index:integer;anchor:string) of object;
@@ -108,6 +116,7 @@ type
     FShowFocus: Boolean;
     procedure ReMeasure;
     procedure DoMeasureList;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure WMSize(var Msg: TWMSize); message WM_SIZE;
     procedure WMTimer(var Msg: TWMTimer); message WM_TIMER;
     {$IFNDEF TMSDOTNET}
@@ -461,20 +470,26 @@ begin
       if FScrollHorizontal then
         hrect.Right := hrect.Left + 4096;
 
-      hrect.Bottom := hrect.Bottom + 4;
+      //hrect.Bottom := hrect.Bottom + 4;
 
+      //outputdebugstring(pchar(inttostr(index)+':'+inttostr(hrect.Right - hrect.Left)+':'+inttostr(hrect.Bottom - hrect.Top)));
+
+      //if not index = 0 then
       HTMLDrawEx(aCanvas,items[index],hrect,FImages,pt.x,pt.y,-1,-1,FShadowOffset,False,False,False,(odSelected in State) and ShowSelection,
         True,False,not FEllipsis,1.0,urlcol,clNone,clNone,FShadowColor,a,s,f,XSize,YSize,hl,ml,hr,FImageCache,FContainer,FLineSpacing);
 
       if (odFocused in State) and ShowSelection then
       begin
-        hrect.Left := hrect.Left - 2;
+        hrect.Left := hrect.Left - 2 + dx;
         ACanvas.Brush.Style := bsClear;
 //        ACanvas.Pen.Color := FSelectionColors.BorderColor;
 //        ACanvas.Rectangle(hrect.left,hrect.Top,hrect.Right,hrect.Bottom);
 
       end;
 
+      //aCanvas.Pen.Color := clRed;
+      //aCanvas.Moveto(hrect.Left, hrect.Top);
+      //aCanvas.Lineto(hrect.Left + Width, hrect.Bottom);
 
 
     finally
@@ -599,10 +614,10 @@ end;
 
 procedure THTMListBox.MeasureItem(Index: Integer; var Height: Integer);
 begin
-  Height := SendMessage(Handle,LB_GETITEMHEIGHT, Index ,0);
+  Height := SendMessage(Handle, LB_GETITEMHEIGHT, Index ,0);
 end;
 
-constructor THTMListBox.Create(aOwner: tComponent);
+constructor THTMListBox.Create(AOwner: TComponent);
 begin
   inherited Create(aOwner);
   Style := lbOwnerDrawVariable;
@@ -618,7 +633,7 @@ begin
   FImageCache := THTMLPictureCache.Create;
   FLastHintPos := -1;
   {$IFDEF DELPHI4_LVL}
-  DoubleBuffered := True;
+//  DoubleBuffered := True;
   {$ENDIF}
   FSelectionColors := TGradientStyle.Create;
   FShowSelection := True;
@@ -738,10 +753,12 @@ begin
       if YSize > ClientRect.Bottom - ClientRect.Top then
         YSize := ClientRect.Bottom - ClientRect.Top;
 
-      if YSize > 251 then
-        YSize := 251;
+      if YSize > 255 then
+      begin
+        YSize := 255;
+      end;
 
-      SendMessage(Handle,LB_SETITEMHEIGHT,i,YSize - 2);
+      SendMessage(Handle,LB_SETITEMHEIGHT,i,YSize+1);
 
       if XSize + 6 > MaxX then
         MaxX := XSize + 6;
@@ -786,46 +803,50 @@ begin
   if (Message.msg = LB_ADDSTRING) or
      (Message.msg = LB_INSERTSTRING) then
   begin
-    {$IFNDEF TMSDOTNET}
-    SendMessage(Handle,LB_GETITEMRECT,Message.Result,Longint(@r));
-    {$ENDIF}
-    {$IFDEF TMSDOTNET}
-    Perform(LB_GETITEMRECT,Message.Result,r);
-    {$ENDIF}
+    if FAutoItemHeight and (ItemHeight > 0) then
+    begin
+      {$IFNDEF TMSDOTNET}
+      SendMessage(Handle,LB_GETITEMRECT,Message.Result,Longint(@r));
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      Perform(LB_GETITEMRECT,Message.Result,r);
+      {$ENDIF}
 
 
-    if FScrollHorizontal then
-      r.Right := r.Left + 4096
+      if FScrollHorizontal then
+        r.Right := r.Left + 4096
+      else
+      begin
+        if items.Count * ItemHeight > Height then
+          r.Right := r.Right - GetSystemMetrics(SM_CXVSCROLL)
+        else
+          r.Right := r.Right - 2;
+      end;
+
+      Canvas.Font.Assign(Font);
+
+      r.Bottom := r.Top + Height;
+
+      HTMLDrawEx(Canvas,Items[message.Result],r,FImages,0,0,-1,-1,FShadowOffset,True,True,False,True,True,False,not FEllipsis,1.0,
+                 FURLColor,clNone,clNone,FShadowColor,a,s,f,xsize,ysize,hl,ml,hr,FImageCache,FContainer,FLineSpacing);
+
+      if YSize > ClientRect.Bottom - ClientRect.Top then
+        YSize := ClientRect.Bottom - ClientRect.Top;
+
+      if YSize > 255 then
+         YSize := 255;
+
+      SendMessage(Handle,LB_SETITEMHEIGHT,Message.Result,YSize);
+
+      if FScrollHorizontal and (XSize + 6 > FMaxExtent) then
+      begin
+        FMaxExtent := XSize + 6;
+        UpdateHScrollExtent(FMaxExtent);
+      end;
+    end
     else
     begin
-      if items.Count * ItemHeight > Height then
-        r.Right := r.Right - GetSystemMetrics(SM_CXVSCROLL)
-      else
-        r.Right := r.Right - 2;
-    end;
-
-    Canvas.Font.Assign(Font);
-
-    r.Bottom := r.Top + Height;
-
-    HTMLDrawEx(Canvas,Items[message.Result],r,FImages,0,0,-1,-1,FShadowOffset,True,True,False,True,True,False,not FEllipsis,1.0,
-               FURLColor,clNone,clNone,FShadowColor,a,s,f,xsize,ysize,hl,ml,hr,FImageCache,FContainer,FLineSpacing);
-
-    if YSize > ClientRect.Bottom - ClientRect.Top then
-      YSize := ClientRect.Bottom - ClientRect.Top;
-
-    if YSize > 251 then
-       YSize := 251;
-
-    if not AutoItemHeight then
-      YSize := ItemHeight + 2;
-      
-    SendMessage(Handle,LB_SETITEMHEIGHT,Message.Result,YSize - 2);
-
-    if FScrollHorizontal and (XSize + 6 > FMaxExtent) then
-    begin
-      FMaxExtent := XSize + 6;
-      UpdateHScrollExtent(FMaxExtent);
+       SendMessage(Handle,LB_SETITEMHEIGHT,Message.Result,ItemHeight);
     end;
 
   end;
@@ -1050,6 +1071,42 @@ begin
   end;
 end;
 
+procedure THTMListBox.WMPaint(var Message: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+begin
+  if not FDoubleBuffered or (Message.DC <> 0) then
+  begin
+    if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+      inherited
+    else
+      PaintHandler(Message);
+  end
+  else
+  begin
+    DC := GetDC(0);
+    MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+    ReleaseDC(0, DC);
+    MemDC := CreateCompatibleDC(0);
+    OldBitmap := SelectObject(MemDC, MemBitmap);
+    try
+      DC := BeginPaint(Handle, PS);
+      Perform(WM_ERASEBKGND, MemDC, MemDC);
+      Message.DC := MemDC;
+      WMPaint(Message);
+      Message.DC := 0;
+      BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+      EndPaint(Handle, PS);
+    finally
+      SelectObject(MemDC, OldBitmap);
+      DeleteDC(MemDC);
+      DeleteObject(MemBitmap);
+    end;
+  end;
+end;
+
 procedure THTMListBox.WMSize(var Msg: TWMSize);
 begin
   inherited;
@@ -1060,6 +1117,8 @@ begin
 
   if FScrollHorizontal then
     UpdateHScrollExtent(0);
+
+  Invalidate;
 end;
 
 procedure THTMListBox.Notification(AComponent: TComponent;

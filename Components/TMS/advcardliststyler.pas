@@ -4,7 +4,7 @@
 { version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2005 - 2006                                        }
+{            copyright © 2005 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -263,7 +263,7 @@ begin
         ValueFont.Name := 'Tahoma';
         ValueColor := clNone;
         EditColor := clNone;
-      end;      
+      end;
   end;
   clsSilverFox :
     begin
@@ -359,7 +359,7 @@ begin
         CaptionColor.ColorTo := $00D2BDB5;
         CaptionColor.Direction := gdVertical;
         CaptionFont.Color := clWindowText;
-        CaptionFont.Name := 'Tahoma';
+        //CaptionFont.Name := 'Tahoma';
         CaptionFont.Size := 10;
         CaptionFont.Style := [fsBold];
 
@@ -451,7 +451,7 @@ begin
         CaptionColor.ColorTo := clMenuBar;
         CaptionColor.Direction := gdVertical;
         CaptionFont.Color := clOlive;
-        CaptionFont.Name := 'MS Serif';
+        CaptionFont.Name := 'MS Sans Serif';
         CaptionFont.Size := 10;
         CaptionFont.Style := [fsBold];
 
@@ -462,11 +462,11 @@ begin
         Enabled := true;
 
         ItemEditFont.Color := clBlack;
-        ItemEditFont.Name := 'MS Serif';
+        ItemEditFont.Name := 'MS Sans Serif';
         ItemEditFont.Size := 9;
         ItemEditFont.Style := [fsBold];
         ItemLabelFont.Color := clOlive;
-        ItemLabelFont.Name := 'MS Serif';
+        ItemLabelFont.Name := 'MS Sans Serif';
         ItemLabelFont.Size := 9;
         ItemLabelFont.Style := [fsBold, fsUnderline];
         ReplaceEditFont := true;
@@ -487,7 +487,7 @@ begin
         CaptionColor.ColorTo := $00C1FFFE;
         CaptionColor.Direction := gdVertical;
         CaptionFont.Color := clOlive;
-        CaptionFont.Name := 'MS Serif';
+        CaptionFont.Name := 'MS Sans Serif';
         CaptionFont.Size := 10;
         CaptionFont.Style := [fsBold];
 
@@ -498,11 +498,11 @@ begin
         Enabled := true;
 
         ItemEditFont.Color := clBlack;
-        ItemEditFont.Name := 'MS Serif';
+        ItemEditFont.Name := 'MS Sans Serif';
         ItemEditFont.Size := 9;
         ItemEditFont.Style := [fsBold];
         ItemLabelFont.Color := clOlive;
-        ItemLabelFont.Name := 'MS Serif';
+        ItemLabelFont.Name := 'MS Sans Serif';
         ItemLabelFont.Size := 9;
         ItemLabelFont.Style := [fsBold, fsUnderline];
         ReplaceEditFont := true;
@@ -523,7 +523,7 @@ begin
         CaptionColor.ColorTo := $008AC2C1;
         CaptionColor.Direction := gdVertical;
         CaptionFont.Color := clMaroon;
-        CaptionFont.Name := 'MS Serif';
+        CaptionFont.Name := 'MS Sans Serif';
         CaptionFont.Size := 10;
         CaptionFont.Style := [fsBold];
 
@@ -534,11 +534,11 @@ begin
         Enabled := true;
 
         ItemEditFont.Color := clBlack;
-        ItemEditFont.Name := 'MS Serif';
+        //ItemEditFont.Name := 'MS Sans Serif';
         ItemEditFont.Size := 9;
         ItemEditFont.Style := [fsBold];
         ItemLabelFont.Color := clOlive;
-        ItemLabelFont.Name := 'MS Serif';
+        ItemLabelFont.Name := 'MS Sans Serif';
         ItemLabelFont.Size := 9;
         ItemLabelFont.Style := [fsBold, fsUnderline];
         ReplaceEditFont := true;
@@ -559,7 +559,7 @@ begin
         CaptionColor.ColorTo := $008AC2C1;
         CaptionColor.Direction := gdVertical;
         CaptionFont.Color := clMaroon;
-        CaptionFont.Name := 'MS Serif';
+        CaptionFont.Name := 'MS Sans Serif';
         CaptionFont.Size := 10;
         CaptionFont.Style := [fsBold];
 
@@ -570,11 +570,11 @@ begin
         Enabled := true;
 
         ItemEditFont.Color := clBlack;
-        ItemEditFont.Name := 'MS Serif';
+        ItemEditFont.Name := 'MS Sans Serif';
         ItemEditFont.Size := 9;
         ItemEditFont.Style := [fsBold];
         ItemLabelFont.Color := clOlive;
-        ItemLabelFont.Name := 'MS Serif';
+        ItemLabelFont.Name := 'MS Sans Serif';
         ItemLabelFont.Size := 9;
         ItemLabelFont.Style := [fsBold, fsUnderline];
         ReplaceEditFont := true;
@@ -585,9 +585,9 @@ begin
 
     with CardList.CardTemplate.DefaultItem do
       begin
-        CaptionFont.Name := 'MS Serif';
+        CaptionFont.Name := 'MS Sans Serif';
         CaptionColor := clNone;
-        ValueFont.Name := 'MS Serif';
+        ValueFont.Name := 'MS Sans Serif';
         ValueColor := clNone;
         EditColor := clNone;
       end;

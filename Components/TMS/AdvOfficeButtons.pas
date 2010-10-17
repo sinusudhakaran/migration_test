@@ -1,11 +1,10 @@
 {*************************************************************************}
 { TAdvOfficeButtons components                                            }
 { for Delphi & C++Builder                                                 }
-{ version 1.0                                                             }
 {                                                                         }
 { written by                                                              }
 {    TMS Software                                                         }
-{    copyright © 2007                                                     }
+{    copyright © 2007 - 2008                                              }
 {    Email : info@tmssoftware.com                                         }
 {    Web : http://www.tmssoftware.com                                     }
 {                                                                         }
@@ -28,19 +27,34 @@ unit AdvOfficeButtons;
 interface
 
 uses
-  SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
+  SysUtils, Windows, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
   Forms, Dialogs, StdCtrls, Menus, Buttons, ComObj, ActiveX,
   PictureContainer, AdvGroupBox;
 
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 0; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  MIN_VER = 1; // Minor version nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
-  //
-
+  // 1.0.0.1 : Fixed compatibility issue with TRadioGroup of TAdvOfficeRadioGroup
+  // 1.0.1.0 : Improved : exposed Visible property in TAdvOfficeRadioButton
+  // 1.0.2.0 : New : Added OnEnter, OnExit events in TAdvOfficeRadioButton, TAdvOfficeCheckBox
+  // 1.0.3.0 : Improved : painting hot state of controls
+  // 1.1.0.0 : New property Value added in AdvOfficeCheckGroup
+  //         : New component TDBAdvOfficeCheckGroup added
+  // 1.1.0.1 : Improved : painting of focus rectangle
+  // 1.1.0.2 : Fixed : issue with ImageIndex for caption
+  // 1.1.0.3 : Fixed : issue with arrow keys & TAdvOfficeRadioGroup
+  // 1.1.0.4 : Fixed : issue with dbl click & mouseup handling
+  // 1.1.0.5 : Fixed : small painting issue with ClearType fonts
+  // 1.1.0.6 : Fixed : issue with runtime creating controls
+  // 1.1.0.7 : Fixed : issue with setting separate radiobuttons in group as disabled
+  // 1.1.0.8 : Fixed : issue with OnClick event for TAdvOfficeRadioGroup
+  // 1.1.0.9 : Fixed : issue with vertical alignment of radiobutton label text
+  // 1.1.1.0 : Improved : BidiMode RightToLeft support
+  // 1.1.1.1 : Fixed : painting issue with BiDiMode bdRightToLeft for radiobutton
 
 type
   TAnchorClick = procedure (Sender:TObject; Anchor:string) of object;
@@ -50,7 +64,6 @@ type
     FDown:Boolean;
     FState:TCheckBoxState;
     FFocused:Boolean;
-    FCheckColor:TColor;
     FReturnIsTab:Boolean;
     FImages:TImageList;
     FAnchor: string;
@@ -77,12 +90,12 @@ type
     FTransparentCaching: boolean;
     {$ENDIF}
     FDrawBkg: boolean;
+    FGotClick: boolean;
     procedure WMEraseBkGnd(var Message:TMessage); message WM_ERASEBKGND;
     procedure CMEnabledChanged(var Message: TMessage); message CM_ENABLEDCHANGED;
     procedure CMDialogChar(var Message: TCMDialogChar); message CM_DIALOGCHAR;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
-    procedure SetCheckColor(Value:TColor);
     procedure SetState(Value:TCheckBoxState);
     procedure SetChecked(Value:Boolean);
     function  GetChecked:Boolean;
@@ -104,6 +117,7 @@ type
   protected
     function GetVersionNr: Integer; virtual;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
+    procedure DrawCheck;
     procedure Paint; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
@@ -131,9 +145,9 @@ type
     property Constraints;
     property Color;
     property Alignment: TLeftRight read FAlignment write SetAlignment;
+    property BiDiMode;
     property ButtonVertAlign: TTextLayout read FBtnVAlign write setButtonVertAlign default tlTop;
     property Caption: string read FCaption write SetCaption;
-    property CheckColor: TColor read FCheckColor write SetCheckColor default clBlack;
     property Down: Boolean read FDown write SetDown default False;
     property DragCursor;
     property DragKind;
@@ -160,6 +174,8 @@ type
     property OnDragDrop;
     property OnDragOver;
     property OnEndDrag;
+    property OnEnter;
+    property OnExit;
     property OnKeyDown;
     property OnKeyPress;
     property OnKeyUp;
@@ -182,7 +198,6 @@ type
     FDown: Boolean;
     FChecked: Boolean;
     FFocused: Boolean;
-    FCheckColor: TColor;
     FGroupIndex: Byte;
     FReturnIsTab: Boolean;
     FImages: TImageList;
@@ -209,10 +224,10 @@ type
     FTransparentCaching: boolean;
     {$ENDIF}
     FDrawBkg: Boolean;
+    FGotClick: boolean;    
     procedure TurnSiblingsOff;
     procedure SetDown(Value:Boolean);
     procedure SetChecked(Value:Boolean);
-    procedure SetCheckColor(Value:TColor);
     procedure SetImages(const Value: TImageList);
     procedure SetURLColor(const Value:TColor);
     function IsAnchor(x,y:integer):string;
@@ -236,6 +251,7 @@ type
     procedure DrawParentImage (Control: TControl; Dest: TCanvas);
     {$ENDIF}
   protected
+    procedure DrawRadio;
     procedure Paint; override;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
@@ -261,6 +277,7 @@ type
     {$IFDEF DELPHI4_LVL}
     property Action;
     property Anchors;
+    property BiDiMode;
     property Constraints;
     {$ENDIF}
     property Color;
@@ -268,7 +285,6 @@ type
     property URLColor:TColor read FURLColor write SetURLColor default clBlue;
     property ButtonVertAlign: TTextLayout read fBtnVAlign write SetButtonVertAlign default tlTop;
     property Caption: string read FCaption write SetCaption;
-    property CheckColor:TColor read FCheckColor write SetCheckColor default clBlack;
     property Checked:Boolean read FChecked write SetChecked default False;
     property Down:Boolean read FDown write SetDown default False;
     property DragCursor;
@@ -296,6 +312,8 @@ type
     property OnDragDrop;
     property OnDragOver;
     property OnEndDrag;
+    property OnEnter;
+    property OnExit;
     property OnKeyDown;
     property OnKeyPress;
     property OnKeyUp;
@@ -306,6 +324,7 @@ type
     property OnAnchorEnter:TAnchorClick read fAnchorEnter write fAnchorEnter;
     property OnAnchorExit:TAnchorClick read fAnchorExit write fAnchorExit;
     property Version: string read GetVersion write SetVersion;
+    property Visible;
   end;
 
   TEnabledEvent = procedure (Sender:TObject; ItemIndex: Integer; var Enabled: Boolean) of object;
@@ -319,7 +338,6 @@ type
     FColumns: Integer;
     FReading: Boolean;
     FUpdating: Boolean;
-    FCheckColor: TColor;
     FAlignment: TAlignment;
     FBtnVAlign: TTextLayout;
     FImages: TImageList;
@@ -328,6 +346,7 @@ type
     FShadowOffset: Integer;
     FShadowColor: TColor;
     FOnIsEnabled: TEnabledEvent;
+    FIsReadOnly: boolean;
     procedure ArrangeButtons;
     procedure ButtonClick(Sender: TObject);
     procedure ItemsChange(Sender: TObject);
@@ -339,7 +358,6 @@ type
     procedure CMEnabledChanged(var Message: TMessage); message CM_ENABLEDCHANGED;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
-    procedure SetCheckColor(const Value: TColor);
     procedure SetAlignment(const Value: TAlignment);
     procedure SetButtonVertAlign(const Value: TTextLayout);
     procedure SetContainer(const Value: TPictureContainer);
@@ -358,6 +376,7 @@ type
     property Columns: Integer read FColumns write SetColumns default 1;
     property ItemIndex: Integer read FItemIndex write SetItemIndex default -1;
     property Items: TStrings read FItems write SetItems;
+    property IsReadOnly: boolean read FIsReadOnly write FIsReadOnly;
   public
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     constructor Create(AOwner: TComponent); override;
@@ -370,7 +389,6 @@ type
   published
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property ButtonVertAlign: TTextLayout read fBtnVAlign write SetButtonVertAlign default tlTop;
-    property CheckColor: TColor read FCheckColor write SetCheckColor default clBlack;
     property Ellipsis: Boolean read FEllipsis write SetEllipsis;
     property Images: TImageList read FImages write SetImages;
     property PictureContainer: TPictureContainer read FContainer write SetContainer;
@@ -388,7 +406,6 @@ type
     property Align;
     {$IFDEF DELPHI4_LVL}
     property Anchors;
-    property BiDiMode;
     property Constraints;
     property DragKind;
     property ParentBiDiMode;
@@ -435,7 +452,6 @@ type
     FColumns: Integer;
     FReading: Boolean;
     FUpdating: Boolean;
-    FCheckColor: TColor;
     FAlignment: TAlignment;
     FBtnVAlign: TTextLayout;
     FImages: TImageList;
@@ -444,6 +460,7 @@ type
     FShadowOffset: Integer;
     FShadowColor: TColor;
     FOnIsEnabled: TEnabledEvent;
+    FValue: DWord;
     procedure ArrangeButtons;
     procedure ButtonClick(Sender: TObject);
     procedure ItemsChange(Sender: TObject);
@@ -454,7 +471,6 @@ type
     procedure CMEnabledChanged(var Message: TMessage); message CM_ENABLEDCHANGED;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
-    procedure SetCheckColor(const Value: TColor);
     procedure SetAlignment(const Value: TAlignment);
     procedure SetButtonVertAlign(const Value: TTextLayout);
     procedure SetContainer(const Value: TPictureContainer);
@@ -469,13 +485,17 @@ type
     function GetVersion: string;
     procedure SetVersion(const Value: string);
     function GetVersionNr: Integer;
+    procedure SetValue(const Value: DWord);
+    function GetValue: DWord;
   protected
     procedure Loaded; override;
     procedure ReadState(Reader: TReader); override;
     function CanModify: Boolean; virtual;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
+    procedure UpdateValue;
     property Columns: Integer read FColumns write SetColumns default 1;
     property Items: TStrings read FItems write SetItems;
+    property Value: DWord read GetValue write SetValue;
   public
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     constructor Create(AOwner: TComponent); override;
@@ -490,7 +510,6 @@ type
   published
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property ButtonVertAlign: TTextLayout read fBtnVAlign write SetButtonVertAlign default tlTop;
-    property CheckColor: TColor read FCheckColor write SetCheckColor default clBlack;
     property Ellipsis: Boolean read FEllipsis write SetEllipsis;
     property Images: TImageList read FImages write SetImages;
     property PictureContainer: TPictureContainer read FContainer write SetContainer;
@@ -504,11 +523,11 @@ type
   private
   protected
   public
+    property Value;
   published
     property Align;
     {$IFDEF DELPHI4_LVL}
     property Anchors;
-    property BiDiMode;
     property Constraints;
     property DragKind;
     property ParentBiDiMode;
@@ -563,6 +582,35 @@ uses
 
 const
   BW = 12;
+
+procedure PaintFocusRect(ACanvas: TCanvas; R: TRect; Clr: TColor);
+var
+  LB: TLogBrush;
+  HPen, HOldPen: THandle;
+begin
+  ACanvas.Pen.Color := Clr;
+
+  lb.lbColor := ColorToRGB(Clr);
+  lb.lbStyle := bs_Solid;
+
+  HPen := ExtCreatePen(PS_COSMETIC or PS_ALTERNATE,1, lb, 0, nil);
+  HOldPen := SelectObject(ACanvas.Handle, HPen);
+
+  MoveToEx(ACanvas.Handle, R.Left, R.Top, nil);
+  LineTo(ACanvas.Handle, R.Right, R.Top);
+
+  MoveToEx(ACanvas.Handle, R.Right, R.Top, nil);
+  LineTo(ACanvas.Handle, R.Right, R.Bottom);
+
+  MoveToEx(ACanvas.Handle, R.Right, R.Bottom, nil);
+  LineTo(ACanvas.Handle, R.Left, R.Bottom);
+
+  MoveToEx(ACanvas.Handle, R.Left, R.Top, nil);
+  LineTo(ACanvas.Handle, R.Left, R.Bottom);
+
+  DeleteObject(SelectObject(ACanvas.Handle,HOldPen));
+end;
+
 
 {$IFNDEF DELPHI4_LVL}
 function Min(a,b: Integer): Integer;
@@ -706,6 +754,7 @@ begin
   begin
     if Parent = nil then
       Exit;
+
     DC := Dest.Handle;
     SaveIndex := SaveDC(DC);
     GetViewportOrgEx(DC, Position);
@@ -726,104 +775,111 @@ begin
 end;
 {$ENDIF}
 
+procedure TCustomAdvOfficeCheckBox.DrawCheck;
+var
+  bmp: TBitmap;
+  BL,BT:Integer;
+begin
+  BT := 4;
+  //ExtraBW := 4;
+  bmp := TBitmap.Create;
+  if state = cbChecked then
+  begin
+    if Down then
+      bmp.LoadFromResourceName(hinstance,'TMSOFCCD')
+    else
+      if FHot then
+        bmp.LoadFromResourceName(hinstance,'TMSOFCCH')
+      else
+        bmp.LoadFromResourceName(hinstance,'TMSOFCC');
+
+  end
+  else
+  begin
+    if Down then
+      bmp.LoadFromResourceName(hinstance,'TMSOFCUD')
+    else
+      if FHot then
+        bmp.LoadFromResourceName(hinstance,'TMSOFCUH')
+      else
+        bmp.LoadFromResourceName(hinstance,'TMSOFCU');
+  end;
+
+  bmp.Transparent := true;
+  bmp.TransparentMode := tmAuto;
+
+  case FBtnVAlign of
+  tlTop: BT := 4;
+  tlCenter: BT := (ClientRect.Bottom - ClientRect.Top) div 2 - (bmp.Height div 2);
+  tlBottom: BT := ClientRect.Bottom - bmp.Height;
+  end;
+
+  if (FAlignment = taRightJustify) or UseRightToLeftAlignment then
+    BL := ClientRect.Right - bmp.Width - 1
+  else
+    BL := 0;
+    
+  Canvas.Draw(BL,BT,bmp);
+  bmp.free;
+end;
+
 procedure TCustomAdvOfficeCheckBox.Paint;
 var
-  BL,BT:Integer;
   R, hr: TRect;
   a,s,fa,text: string;
   xsize,ysize: Integer;
-  bmp: TBitmap;
   ExtraBW,HyperLinks,MouseLink: Integer;
 
 begin
   Canvas.Font := Font;
 
-  BT := 4;
-
+  if FTransparentCaching then
   begin
-    if FTransparentCaching then
+    if FBkgCache then
     begin
-      if FBkgCache then
-      begin
-
-        Self.Canvas.Draw(0,0,FBkgBmp)
-      end
-      else
-      begin
-        FBkgBmp.Width := self.Width;
-        FBkgBmp.Height := self.Height;
-        DrawParentImage(Self, FBkgBmp.Canvas);
-        Self.Canvas.Draw(0,0,FBkgBmp);
-        FBkgCache := true;
-      end;
+      Canvas.Draw(0,0,FBkgBmp)
     end
     else
     begin
-      if FDrawBkg then
-        DrawParentImage(Self, self.Canvas);
+      FBkgBmp.Width := self.Width;
+      FBkgBmp.Height := self.Height;
+      DrawParentImage(Self, FBkgBmp.Canvas);
+      Canvas.Draw(0,0,FBkgBmp);
+      FBkgCache := true;
     end;
-
+  end
+  else
+  begin
+    if FDrawBkg then
+      DrawParentImage(Self, Canvas);
+  end;
 
   with Canvas do
   begin
     Text := Caption;
 
-      begin
-        ExtraBW := 4;
-        bmp := TBitmap.Create;
-        if state = cbChecked then
-        begin
-          if Down then
-            bmp.LoadFromResourceName(hinstance,'TMSOFCCD')
-          else
-            if FHot then
-              bmp.LoadFromResourceName(hinstance,'TMSOFCCH')
-            else
-              bmp.LoadFromResourceName(hinstance,'TMSOFCC');
+    DrawCheck;
 
-        end
-        else
-        begin
-          if Down then
-            bmp.LoadFromResourceName(hinstance,'TMSOFCUD')
-          else
-            if FHot then
-              bmp.LoadFromResourceName(hinstance,'TMSOFCUH')
-            else
-              bmp.LoadFromResourceName(hinstance,'TMSOFCU');
-
-        end;
-
-        bmp.Transparent:=true;
-        bmp.TransparentMode := tmAuto;
-
-        case fBtnVAlign of
-        tlTop: BT := 4;
-      	tlCenter: BT := (ClientRect.Bottom-ClientRect.Top) div 2 - (bmp.Height div 2);
-        tlBottom: BT := ClientRect.Bottom - bmp.Height;
-        end;
-
-        if fAlignment = taRightJustify then
-          BL := ClientRect.Right - bmp.Width - 1
-        else
-     	  BL := 0;
-        Canvas.Draw(BL,BT,bmp);
-        bmp.free;
-      end;
-
-    end;
+    ExtraBW := 4;
 
     R := GetClientRect;
 
-    if FAlignment = taRightJustify then
+    if (FAlignment = taRightJustify) or UseRightToLeftAlignment then
     begin
       r.Left := 0;
       r.Right := r.Right - BW - ExtraBW;
     end
-    else																																	
-      r.left := r.left + BW + ExtraBW;
+    else
+      r.Left := r.Left + BW + ExtraBW;
 
     r.top := r.top + 4;
+
+
+    HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,True,False,False,False,False,False,not FEllipsis,1.0,FURLColor,
+      clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
+
+    if UseRightToLeftAlignment then
+      r.Left := r.Right - Xsize - 3;
 
     if not Enabled then
     begin
@@ -845,8 +901,9 @@ begin
     if FFocused then
     begin
       r.right := r.left + xsize + 3;
-      r.bottom := r.top + ysize + 1;
-      DrawFocusRect(Canvas.Handle,R);
+      r.bottom := r.top + ysize ;
+      //WinProcs.DrawFocusRect(Canvas.Handle,R);
+      PaintFocusRect(Canvas,R,clBlack);
     end;
   end;
 end;
@@ -866,23 +923,27 @@ begin
   if FState <> Value then
   begin
     FState := Value;
-    r := GetClientRect;
-    case Alignment of
-    taLeftJustify: r.Right := 20;
-    taRightJustify: r.Left := r.Right - 20;
+
+    if HandleAllocated and HasParent then
+    begin
+      r := GetClientRect;
+      case Alignment of
+      taLeftJustify: r.Right := 20;
+      taRightJustify: r.Left := r.Right - 20;
+      end;
+      {$IFNDEF TMSDOTNET}
+      InvalidateRect(self.Handle,@r,True);
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      InvalidateRect(self.Handle,r,True);
+      {$ENDIF}
     end;
-    {$IFNDEF TMSDOTNET}
-    InvalidateRect(self.Handle,@r,True);
-    {$ENDIF}
-    {$IFDEF TMSDOTNET}
-    InvalidateRect(self.Handle,r,True);
-    {$ENDIF}
   end;
 end;
 
 function TCustomAdvOfficeCheckBox.GetChecked: Boolean;
 begin
-  Result := State = cbChecked;
+  Result := (State = cbChecked);
 end;
 
 procedure TCustomAdvOfficeCheckBox.SetChecked(Value:Boolean);
@@ -895,34 +956,34 @@ begin
   Invalidate;
 end;
 
-procedure TCustomAdvOfficeCheckBox.SetCheckColor(Value:TColor);
-begin
-  FCheckColor := Value;
-  Paint;
-end;
-
 procedure TCustomAdvOfficeCheckBox.DoEnter;
+{$IFNDEF DELPHI9_LVL}
 var
   R: TRect;
+{$ENDIF}  
 begin
   inherited DoEnter;
   FFocused := True;
-
+  {$IFDEF DELPHI9_LVL}
+  Repaint;
+  {$ELSE}
   R := ClientRect;
   R.Right := 16;
   InvalidateRect(self.Handle, @R, true);
+  {$ENDIF}
 end;
 
-procedure TCustomAdvOfficeCheckBox.DoExit;
 
+procedure TCustomAdvOfficeCheckBox.DoExit;
+var
+  db: boolean;
 begin
   inherited DoExit;
   FFocused := False;
-
-  if not FDrawBkg then
-    FFocused := true;
+  db := FDrawBkg;
+  FDrawBkg := true;
   Repaint;
-  FFocused := false;
+  FDrawBkg := db;
 end;
 
 procedure TCustomAdvOfficeCheckBox.MouseDown(Button: TMouseButton; Shift: TShiftState;X, Y: Integer);
@@ -931,6 +992,7 @@ var
   R: TRect;
 begin
   Anchor := '';
+  FGotClick := true;
 
   if FFocused then
   begin
@@ -954,11 +1016,14 @@ begin
   end
   else
   begin
-    SetFocus;
-    FFocused := True;
+    if (self.CanFocus and not (csDesigning in ComponentState)) then
+    begin
+      SetFocus;
+      FFocused := True;
+    end;
   end;
 
-  if Anchor = '' then
+  if (Anchor = '') then
   begin
     inherited MouseDown(Button, Shift, X, Y);
     MouseCapture := True;
@@ -973,13 +1038,13 @@ end;
 procedure TCustomAdvOfficeCheckBox.MouseUp(Button: TMouseButton; Shift: TShiftState;
                                   X, Y: Integer);
 var
-  R: TRect;                                  
+  R: TRect;
 begin
   MouseCapture := False;
 
   Down := False;
 
-  if (X >= 0) and (X<=Width) and (Y>=0) and (Y<=Height) and FFocused then
+  if (X >= 0) and (X<=Width) and (Y>=0) and (Y<=Height) and FFocused and FGotClick then
   begin
     ClicksDisabled := True;
     Toggle;
@@ -992,14 +1057,17 @@ begin
   R := ClientRect;
   R.Right := 16;
   InvalidateRect(Self.Handle,@R, true);
+
+  FGotClick := false;
 end;
 
 procedure TCustomAdvOfficeCheckBox.MouseMove(Shift: TShiftState;X, Y: Integer);
 var
   Anchor:string;
 begin
+
   if MouseCapture then
-     Down:=(X>=0) and (X<=Width) and (Y>=0) and (Y<=Height);
+     Down := (X >= 0) and (X <= Width) and (Y >= 0) and (Y <= Height);
 
   if fFocused then
     Anchor := IsAnchor(x,y)
@@ -1039,7 +1107,7 @@ begin
 
   if Key = vk_Space then
     Down := True;
-    
+
   inherited KeyDown(Key,Shift);
 end;
 
@@ -1052,6 +1120,7 @@ begin
     Click;
   end;
 end;
+
 
 procedure TCustomAdvOfficeCheckBox.SetImages(const Value: TImageList);
 begin
@@ -1127,7 +1196,7 @@ begin
   {$IFNDEF TMSDOTNET}
   SetWindowText(Handle,pchar(Value));
   {$ENDIF}
-  {$IFDEF TMSDOTNET}
+  {$IFDEF TMSDOTNET}                  
   SetWindowText(Handle,Value);
   {$ENDIF}
   FCaption := Value;
@@ -1149,13 +1218,20 @@ end;
 procedure TCustomAdvOfficeCheckBox.CMDialogChar(var Message: TCMDialogChar);
 begin
   with Message do
+  begin
     if IsAccel(CharCode, FCaption) and CanFocus then
     begin
       Toggle;
-      if TabStop then SetFocus;
+      if Assigned(OnClick) then
+        OnClick(Self);
+      if TabStop then
+        if (self.CanFocus and not (csDesigning in ComponentState)) then 
+          SetFocus;
       Result := 1;
-    end else
+    end 
+    else
       inherited;
+  end;
 end;
 
 procedure TCustomAdvOfficeCheckBox.SetContainer(const Value: TPictureContainer);
@@ -1183,23 +1259,17 @@ begin
 end;
 
 procedure TCustomAdvOfficeCheckBox.CMMouseEnter(var Message: TMessage);
-var
-  R: TRect;
 begin
   FHot := True;
-  R := ClientRect;
-  R.Right := 16;
-  InvalidateRect(handle, @R, true);
+  DrawCheck;
+  inherited;
 end;
 
 procedure TCustomAdvOfficeCheckBox.CMMouseLeave(var Message: TMessage);
-var
-  R: TRect;
 begin
   FHot := False;
-  R := ClientRect;
-  R.Right := 16;
-  InvalidateRect(handle, @R, true);
+  DrawCheck;
+  inherited;
 end;
 
 procedure TCustomAdvOfficeCheckBox.Loaded;
@@ -1313,123 +1383,142 @@ begin
   end;
 end;
 
+procedure TAdvOfficeRadioButton.DrawRadio;
+var
+  bmp: TBitmap;
+  BT, BL: integer;
+begin
+  BT := 4;
+  bmp := TBitmap.Create;
+  if (Checked) then
+  begin
+    if Down then
+      bmp.LoadFromResourceName(hinstance,'TMSOFRCD')
+    else
+      if FHot then
+        bmp.LoadFromResourceName(hinstance,'TMSOFRCH')
+      else
+        bmp.LoadFromResourceName(hinstance,'TMSOFRC');
+
+  end
+  else
+  begin
+    if Down then
+      bmp.LoadFromResourceName(hinstance,'TMSOFRUD')
+    else
+      if FHot then
+        bmp.LoadFromResourceName(hinstance,'TMSOFRUH')
+      else
+        bmp.LoadFromResourceName(hinstance,'TMSOFRU');
+  end;
+
+  bmp.Transparent:=true;
+  bmp.TransparentMode :=tmAuto;
+
+  case FBtnVAlign of
+  tlTop: BT := 4;
+  tlCenter: BT := (ClientRect.Bottom-ClientRect.Top) div 2 - (bmp.Height div 2);
+  tlBottom: BT := ClientRect.Bottom - bmp.Height - 2;
+  end;
+
+  if (FAlignment = taRightJustify) or UseRightToLeftAlignment then
+    BL := ClientRect.Right - bmp.Width - 1
+  else
+    BL := 0;
+  Canvas.Draw(BL,BT,bmp);
+  bmp.Free;
+end;
+
 procedure TAdvOfficeRadioButton.Paint;
 var
-  BL,BT,BR:Integer;
+  BR:Integer;
   R,hr: TRect;
   a,s,fa,text: string;
   XSize,YSize,HyperLinks,MouseLink: Integer;
-  bmp: TBitmap;
 
 begin
   Canvas.Font := Font;
   Text := Caption;
 
-    if FTransparentCaching then
+  if FTransparentCaching then
+  begin
+    if FBkgCache then
     begin
-      if FBkgCache then
-      begin
-        Self.Canvas.Draw(0,0,FBkgBmp)
-      end
-      else
-      begin
-        FBkgBmp.Width := self.Width;
-        FBkgBmp.Height := self.Height;
-        FBkgBmp.PixelFormat := pf32bit;
-        DrawParentImage(Self, FBkgBmp.Canvas);
-        Self.Canvas.Draw(0,0,FBkgBmp);
-        FBkgCache := true;
-      end;
+      Self.Canvas.Draw(0,0,FBkgBmp)
     end
     else
     begin
-      if DrawBkg then
-        DrawParentImage(Self, self.Canvas);
+      FBkgBmp.Width := self.Width;
+      FBkgBmp.Height := self.Height;
+      //FBkgBmp.PixelFormat := pf32bit;
+      DrawParentImage(Self, FBkgBmp.Canvas);
+      Self.Canvas.Draw(0,0,FBkgBmp);
+      FBkgCache := true;
     end;
+  end
+  else
+  begin
+    if DrawBkg then
+      DrawParentImage(Self, self.Canvas);
+  end;
 
   with Canvas do
   begin
-    BT := 4;
+    BR := 13;
+    DrawRadio;
 
-      begin
-        BR := 13;
-        bmp := TBitmap.Create;
-        if (Checked) then
-        begin
-          if Down then
-            bmp.LoadFromResourceName(hinstance,'TMSOFRCD')
-          else
-            if FHot then
-              bmp.LoadFromResourceName(hinstance,'TMSOFRCH')
-            else
-              bmp.LoadFromResourceName(hinstance,'TMSOFRC');
+    r := GetClientRect;
+    if (FAlignment = taRightJustify) or UseRightToLeftAlignment then
+    begin
+      r.Left := 0;
+      r.Right := r.Right - BR - 5;
+    end
+    else
+      r.Left := r.Left + BR + 5;
 
-        end
-        else
-        begin
-          if Down then
-            bmp.LoadFromResourceName(hinstance,'TMSOFRUD')
-          else
-            if FHot then
-              bmp.LoadFromResourceName(hinstance,'TMSOFRUH')
-            else
-              bmp.LoadFromResourceName(hinstance,'TMSOFRU');
-        end;
+    r.Top := r.Top + 4;
 
-        bmp.Transparent:=true;
-        bmp.TransparentMode :=tmAuto;
+    HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,True,False,False,False,False,False,not FEllipsis,1.0,clGray,
+      clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
 
-        case FBtnVAlign of
-        tlTop: BT := 4;
-        tlCenter: BT := (ClientRect.Bottom-ClientRect.Top) div 2 - (bmp.Height div 2);
-        tlBottom: BT := ClientRect.Bottom - bmp.Height - 2;
-        end;
+    if UseRightToLeftAlignment then
+      r.Left := r.Right - Xsize - 3;
 
-        if fAlignment = taRightJustify then
-          BL := ClientRect.Right - bmp.Width - 1
-        else
-          BL := 0;
-        Canvas.Draw(BL,BT,bmp);
-        bmp.Free;
+    if ButtonVertAlign in [tlCenter, tlBottom] then
+    begin
+      HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,false,true,False,False,False,False,not FEllipsis,1.0,FURLColor,
+              clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
+      case ButtonVertAlign of
+      tlCenter: r.Top := r.Top - 3 + (r.Bottom - r.Top - YSize) div 2;
+      tlBottom: r.Top := r.Bottom - YSize - 3;
       end;
-
-      r := GetClientRect;
-      if FAlignment = taRightJustify then
-      begin
-        r.Left := 0;
-        r.Right := r.Right - BR - 5;
-      end
-      else
-        r.Left := r.Left + BR + 5;
-
-      r.Top := r.Top + 4;
-
-      if not Enabled then
-      begin
-        OffsetRect(R,1,1);
-        Canvas.Font.Color := clWhite;
-        HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,False,False,False,False,False,False,not FEllipsis,1.0,clGray,
-          clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
-        Canvas.Font.Color := clGray;
-        Offsetrect(R,-1,-1);
-        HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,False,False,False,False,False,False,not FEllipsis,1.0,clWhite,
-          clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
-      end
-      else
-      begin
-        Canvas.Font.Color := Font.Color;
-        HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,False,False,False,False,False,False,not FEllipsis,1.0,FURLColor,
-                clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
-      end;
-
-      if FFocused then
-      begin
-        r.Right := r.Left + xsize + 3;
-        r.Bottom := r.Top + ysize + 1;
-        WinProcs.DrawFocusRect(Canvas.Handle, R);
-      end;
-
     end;
+
+    if not Enabled then
+    begin
+      OffsetRect(R,1,1);
+      Canvas.Font.Color := clWhite;
+      HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,False,False,False,False,False,False,not FEllipsis,1.0,clGray,
+        clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
+      Canvas.Font.Color := clGray;
+      Offsetrect(R,-1,-1);
+      HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,False,False,False,False,False,False,not FEllipsis,1.0,clWhite,
+        clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
+    end
+    else
+    begin
+      Canvas.Font.Color := Font.Color;
+      HTMLDrawEx(Canvas,Text,R,FImages,0,0,-1,-1,FShadowOffset,False,False,False,False,False,False,not FEllipsis,1.0,FURLColor,
+              clNone,clNone,FShadowColor,a,s,fa,XSize,YSize,HyperLinks,MouseLink,hr,FImageCache,FContainer,0);
+    end;
+
+    if FFocused then
+    begin
+      r.Right := r.Left + xsize + 3;
+      r.Bottom := r.Top + ysize {+ 1};
+      PaintFocusRect(Canvas,R,clBlack);
+    end;
+  end;
 end;
 
 procedure TAdvOfficeRadioButton.SetURLColor(const Value: TColor);
@@ -1466,6 +1555,8 @@ begin
 end;
 
 procedure TAdvOfficeRadioButton.SetChecked(Value: Boolean);
+var
+  r: TRect;
 begin
   if FChecked <> Value then
   begin
@@ -1474,19 +1565,30 @@ begin
     if Value then
     begin
       TurnSiblingsOff;
-      //if not FClicksDisabled then
-      DoClick;
+      
+      if not FClicksDisabled then
+        DoClick;
     end;
-    Invalidate;
+
+    if HandleAllocated and HasParent then
+    begin
+      R := ClientRect;
+      if BiDiMode = bdLeftToRight then
+      begin
+        R.Right := 16;
+      end
+      else
+      begin
+        R.Left := R.Right - 16;
+      end;
+
+      InvalidateRect(self.Handle, @r, true);
+    end;
+
+    // Invalidate;
   end;
 end;
 
-
-procedure TAdvOfficeRadioButton.SetCheckColor(Value:TColor);
-begin
-  FCheckColor := Value;
-  Invalidate;
-end;
 
 procedure TAdvOfficeRadioButton.DoClick;
 begin
@@ -1495,28 +1597,33 @@ begin
 end;
 
 procedure TAdvOfficeRadioButton.DoEnter;
+{$IFNDEF DELPHI9_LVL}
 var
   R: TRect;
+{$ENDIF}
 begin
   inherited DoEnter;
   FFocused := True;
+  Checked := true;
+  {$IFDEF DELPHI9_LVL}
+  Repaint;
+  {$ELSE}
   R := ClientRect;
   R.Right := 16;
   InvalidateRect(self.Handle, @R, true);
+  {$ENDIF}
 end;
 
 procedure TAdvOfficeRadioButton.DoExit;
+var
+  db: boolean;
 begin
   inherited DoExit;
-
   FFocused := False;
-
-  if not FDrawBkg then
-    FFocused := true;
-    
+  db := FDrawBkg;
+  FDrawBkg := true;
   Repaint;
-
-  FFocused := false;
+  FDrawBkg := db;
 end;
 
 procedure TAdvOfficeRadioButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1525,6 +1632,7 @@ var
   R: TRect;
 begin
   Anchor := '';
+  FGotClick := true;
 
   if FFocused then
   begin
@@ -1547,8 +1655,11 @@ begin
   end
   else
   begin
-    SetFocus;
-    FFocused := True;
+    if (self.CanFocus and not (csDesigning in ComponentState)) then
+    begin
+      SetFocus;
+      FFocused := True;
+    end;  
   end;
 
   if Anchor = '' then
@@ -1571,16 +1682,20 @@ begin
   MouseCapture := False;
   Down := False;
 
-  if (X >= 0) and (X <= Width) and (Y >= 0) and (Y <= Height) and not Checked then
+  if (X >= 0) and (X <= Width) and (Y >= 0) and (Y <= Height) and not Checked and FGotClick then
   begin
     Checked := true;
   end;
 
   inherited MouseUp(Button, Shift, X, Y);
 
+  DoClick;
+
   R := ClientRect;
   R.Right := 16;
   InvalidateRect(self.Handle, @r, true);
+
+  FGotClick := false;
 end;
 
 procedure TAdvOfficeRadioButton.MouseMove(Shift: TShiftState;X, Y: Integer);
@@ -1597,7 +1712,7 @@ begin
 
   if Anchor <> '' then
   begin
-    if (self.Cursor = crDefault) or (fAnchor<>Anchor) then
+    if (self.Cursor = crDefault) or (fAnchor <> Anchor) then
     begin
       FAnchor := Anchor;
       self.Cursor := crHandPoint;
@@ -1620,22 +1735,23 @@ end;
 
 procedure TAdvOfficeRadioButton.KeyDown(var Key:Word;Shift:TShiftSTate);
 begin
-  if (Key=vk_return) and (fReturnIsTab) then
+  if (Key = vk_return) and (FReturnIsTab) then
   begin
     Key := vk_tab;
     PostMessage(self.Handle,wm_keydown,VK_TAB,0);
   end;
 
-  if Key = vk_Space then
+  if Key = VK_SPACE then
     Down := True;
+    
   inherited KeyDown(Key,Shift);
 end;
 
 procedure TAdvOfficeRadioButton.KeyUp(var Key:Word;Shift:TShiftSTate);
 begin
-  if Key = vk_Space then
+  if Key = VK_SPACE then
   begin
-     Down := False;
+    Down := False;
     if not Checked then Checked := True;
   end;
 end;
@@ -1717,7 +1833,9 @@ begin
     if IsAccel(CharCode, FCaption) and CanFocus then
     begin
       Checked := True;
-      if TabStop then SetFocus;
+      if TabStop then
+        if (self.CanFocus and not (csDesigning in ComponentState)) then 
+          SetFocus;
       Result := 1;
     end else
       inherited;
@@ -1749,23 +1867,17 @@ begin
 end;
 
 procedure TAdvOfficeRadioButton.CMMouseEnter(var Message: TMessage);
-var
-  R: TRect;
 begin
   FHot := True;
-  R := ClientRect;
-  R.Right := 16;
-  InvalidateRect(self.Handle,@R,true);;
+  DrawRadio;
+  inherited;
 end;
 
 procedure TAdvOfficeRadioButton.CMMouseLeave(var Message: TMessage);
-var
-  R: TRect;
 begin
   FHot := False;
-  R := ClientRect;
-  R.Right := 16;
-  InvalidateRect(self.Handle,@R,true);;
+  DrawRadio;
+  inherited;
 end;
 
 
@@ -1777,7 +1889,8 @@ end;
 procedure TAdvOfficeRadioButton.WMLButtonDown(var Message:TWMLButtonDown);
 begin
   FClicksDisabled := True;
-  SetFocus;
+  if (self.CanFocus and not (csDesigning in ComponentState)) then
+    SetFocus;
   FClicksDisabled := False;
   inherited;
 end;
@@ -1807,10 +1920,10 @@ begin
 end;
 
 
-{ TGroupButton }
+{ TAdvGroupButton }
 
 type
-  TGroupButton = class(TAdvOfficeRadioButton)
+  TAdvGroupButton = class(TAdvOfficeRadioButton)
   private
     FInClick: Boolean;
     procedure CNCommand(var Message: TWMCommand); message CN_COMMAND;
@@ -1822,7 +1935,7 @@ type
     destructor Destroy; override;
   end;
 
-constructor TGroupButton.InternalCreate(RadioGroup: TCustomAdvOfficeRadioGroup);
+constructor TAdvGroupButton.InternalCreate(RadioGroup: TCustomAdvOfficeRadioGroup);
 begin
   inherited Create(RadioGroup);
   RadioGroup.FButtons.Add(Self);
@@ -1833,13 +1946,13 @@ begin
   Parent := RadioGroup;
 end;
 
-destructor TGroupButton.Destroy;
+destructor TAdvGroupButton.Destroy;
 begin
   TCustomAdvOfficeRadioGroup(Owner).FButtons.Remove(Self);
   inherited Destroy;
 end;
 
-procedure TGroupButton.CNCommand(var Message: TWMCommand);
+procedure TAdvGroupButton.CNCommand(var Message: TWMCommand);
 begin
   if not FInClick then
   begin
@@ -1857,7 +1970,7 @@ begin
   end;
 end;
 
-procedure TGroupButton.KeyPress(var Key: Char);
+procedure TAdvGroupButton.KeyPress(var Key: Char);
 begin
   inherited KeyPress(Key);
   TCustomAdvOfficeRadioGroup(Parent).PushKey(Key);
@@ -1867,7 +1980,7 @@ begin
   end;
 end;
 
-procedure TGroupButton.KeyDown(var Key: Word; Shift: TShiftState);
+procedure TAdvGroupButton.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   inherited KeyDown(Key, Shift);
   TCustomAdvOfficeRadioGroup(Parent).PushKeyDown(Key, Shift);
@@ -1885,10 +1998,10 @@ begin
   FItemIndex := -1;
   FColumns := 1;
   FAlignment := taLeftJustify;
-  FCheckColor := clBlack;
   FBtnVAlign := tlTop;
   ShadowOffset := 1;
   ShadowColor := clSilver;
+  FIsReadOnly := false;
 end;
 
 destructor TCustomAdvOfficeRadioGroup.Destroy;
@@ -1927,7 +2040,7 @@ var
   RadioEnable: Boolean;
 
 begin
- 
+
   if (csLoading in ComponentState) then
     Exit;
 
@@ -1951,7 +2064,7 @@ begin
     DeferHandle := BeginDeferWindowPos(FButtons.Count);
     try
       for I := 0 to FButtons.Count - 1 do
-        with TGroupButton(FButtons[I]) do
+        with TAdvGroupButton(FButtons[I]) do
         begin
           {$IFDEF DELPHI4_LVL}
           BiDiMode := Self.BiDiMode;
@@ -1960,14 +2073,13 @@ begin
           DrawBkg := false;
           Alignment := Self.Alignment;
           ButtonVertAlign := Self.ButtonVertAlign;
-          CheckColor := Self.CheckColor;
           Images := Self.Images;
           PictureContainer := Self.PictureContainer;
           Ellipsis := Self.Ellipsis;
           ShadowOffset := Self.ShadowOffset;
           ShadowColor := Self.ShadowColor;
 
-          RadioEnable := Self.Enabled;
+          RadioEnable := Self.Enabled and Enabled and not FIsReadOnly;
           if Assigned(FOnIsEnabled) then
             FOnIsEnabled(Self,I,RadioEnable);
 
@@ -2010,7 +2122,8 @@ procedure TCustomAdvOfficeRadioGroup.ItemsChange(Sender: TObject);
 begin
   if not FReading then
   begin
-    if FItemIndex >= FItems.Count then FItemIndex := FItems.Count - 1;
+    if FItemIndex >= FItems.Count then
+      FItemIndex := FItems.Count - 1;
     UpdateButtons;
   end;
 end;
@@ -2031,8 +2144,8 @@ end;
 
 procedure TCustomAdvOfficeRadioGroup.SetButtonCount(Value: Integer);
 begin
-  while FButtons.Count < Value do TGroupButton.InternalCreate(Self);
-  while FButtons.Count > Value do TGroupButton(FButtons.Last).Free;
+  while FButtons.Count < Value do TAdvGroupButton.InternalCreate(Self);
+  while FButtons.Count > Value do TAdvGroupButton(FButtons.Last).Free;
 end;
 
 procedure TCustomAdvOfficeRadioGroup.SetColumns(Value: Integer);
@@ -2056,10 +2169,10 @@ begin
     if FItemIndex <> Value then
     begin
       if FItemIndex >= 0 then
-        TGroupButton(FButtons[FItemIndex]).Checked := False;
+        TAdvGroupButton(FButtons[FItemIndex]).Checked := False;
       FItemIndex := Value;
       if FItemIndex >= 0 then
-        TGroupButton(FButtons[FItemIndex]).Checked := True;
+        TAdvGroupButton(FButtons[FItemIndex]).Checked := True;
     end;
   end;
 end;
@@ -2075,11 +2188,11 @@ var
 begin
   SetButtonCount(FItems.Count);
   for I := 0 to FButtons.Count - 1 do
-    TGroupButton(FButtons[I]).Caption := FItems[I];
+    TAdvGroupButton(FButtons[I]).Caption := FItems[I];
   if FItemIndex >= 0 then
   begin
     FUpdating := True;
-    TGroupButton(FButtons[FItemIndex]).Checked := True;
+    TAdvGroupButton(FButtons[FItemIndex]).Checked := True;
     FUpdating := False;
   end;
   ArrangeButtons;
@@ -2092,7 +2205,7 @@ var
 begin
   inherited;
   for I := 0 to FButtons.Count - 1 do
-    TGroupButton(FButtons[I]).Enabled := Enabled;
+    TAdvGroupButton(FButtons[I]).Enabled := Enabled;
 end;
 
 procedure TCustomAdvOfficeRadioGroup.CMFontChanged(var Message: TMessage);
@@ -2114,12 +2227,6 @@ end;
 
 procedure TCustomAdvOfficeRadioGroup.GetChildren(Proc: TGetChildProc; Root: TComponent);
 begin
-end;
-
-procedure TCustomAdvOfficeRadioGroup.SetCheckColor(const Value: TColor);
-begin
-  FCheckColor := Value;
-  ArrangeButtons;
 end;
 
 procedure TCustomAdvOfficeRadioGroup.SetAlignment(const Value: TAlignment);
@@ -2144,6 +2251,7 @@ end;
 
 procedure TCustomAdvOfficeRadioGroup.SetImages(const Value: TImageList);
 begin
+  inherited Images := Value;
   FImages := Value;
   ArrangeButtons;
 end;
@@ -2274,10 +2382,10 @@ begin
   TStringList(FItems).OnChange := ItemsChange;
   FColumns := 1;
   FAlignment := taLeftJustify;
-  FCheckColor := clBlack;
   FBtnVAlign := tlTop;
   ShadowOffset := 1;
   ShadowColor := clSilver;
+  FValue := 0;
 end;
 
 destructor TCustomAdvOfficeCheckGroup.Destroy;
@@ -2341,7 +2449,6 @@ begin
           DrawBkg := false;
           Alignment := Self.Alignment;
           ButtonVertAlign := Self.ButtonVertAlign;
-          CheckColor := Self.CheckColor;
           Images := Self.Images;
           PictureContainer := Self.PictureContainer;
           Ellipsis := Self.Ellipsis;
@@ -2380,6 +2487,7 @@ begin
     Changed;
     Click;
   end;
+  UpdateValue;
 end;
 
 procedure TCustomAdvOfficeCheckGroup.ItemsChange(Sender: TObject);
@@ -2394,7 +2502,7 @@ procedure TCustomAdvOfficeCheckGroup.Loaded;
 begin
   inherited Loaded;
   ArrangeButtons;
-
+  Value := Value;
 end;
 
 procedure TCustomAdvOfficeCheckGroup.ReadState(Reader: TReader);
@@ -2470,12 +2578,6 @@ procedure TCustomAdvOfficeCheckGroup.GetChildren(Proc: TGetChildProc; Root: TCom
 begin
 end;
 
-procedure TCustomAdvOfficeCheckGroup.SetCheckColor(const Value: TColor);
-begin
-  FCheckColor := Value;
-  ArrangeButtons;
-end;
-
 procedure TCustomAdvOfficeCheckGroup.SetAlignment(const Value: TAlignment);
 begin
   FAlignment := Value;
@@ -2498,6 +2600,7 @@ end;
 
 procedure TCustomAdvOfficeCheckGroup.SetImages(const Value: TImageList);
 begin
+  inherited Images := Value;
   FImages := Value;
   ArrangeButtons;
 end;
@@ -2563,6 +2666,47 @@ begin
     TGroupCheck(FButtons[Index]).Enabled := not Value;
 end;
 
+procedure TCustomAdvOfficeCheckGroup.UpdateValue;
+var
+  i, j: Integer;
+  BitMask: DWord;
+begin
+  FValue := Value;
+  j := Min(FButtons.Count, sizeof(DWord) * 8);
+  BitMask := 1;
+  FValue := 0;
+  for i := 0 to j - 1 do
+  begin
+    if TGroupCheck(FButtons[i]).Checked then
+    begin
+      FValue := FValue or BitMask;
+    end;
+    BitMask := BitMask * 2;
+  end;
+end;
+
+function TCustomAdvOfficeCheckGroup.GetValue: DWord;
+begin
+  Result := FValue;
+end;
+
+procedure TCustomAdvOfficeCheckGroup.SetValue(const Value: DWord);
+var
+  i, j: Integer;
+  BitMask: Integer;
+begin
+  //if (FValue <> Value) then
+  begin
+    FValue := Value;
+    j := Min(FButtons.Count, sizeof(DWord) * 8);
+    BitMask := 1;
+    for i := 0 to j - 1 do
+    begin
+      TGroupCheck(FButtons[i]).Checked := ((FValue And BitMask) > 0);
+      BitMask := BitMask * 2;
+    end;
+  end;
+end;
 
 function TCustomAdvOfficeCheckGroup.GetVersion: string;
 var

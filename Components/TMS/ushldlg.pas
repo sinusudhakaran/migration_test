@@ -1,11 +1,11 @@
 {********************************************************************
 SHELLDLG components
-for Delphi 2.0, 3.0, 4.0, 5.0 & C++Builder 1.0, 3.0
-version 1.4
+for Delphi & C++Builder
+version 1.5
 
-written by 
+written by
    TMS Software
-   copyright © 1998-1999
+   copyright © 1998-2007
    Email : info@tmssoftware.com
    Website : http://www.tmssoftware.com
 
@@ -87,27 +87,50 @@ type
    property FormatType:TFormatType read FType write FType;
  end;
 
-Function SHShutDownDialog(YourGuess:integer):longint; stdcall;
-Function SHRunDialog(hOwner:thandle;Unknown1:integer;Unknown2:pointer;szTitle,szPrompt:pchar;uiFlags:integer):integer; stdcall;
-Function SHFormatDrive(hOwner:thandle;iDrive,iCapacity,iFormatType:integer):integer; stdcall;
-Function SHChangeIconDialog(hOwner:thandle;szFileName:pchar;reserved:integer;var lpIconIndex:integer):integer; stdcall;
+ TPropertyDialog = class(TComponent)
+ private
+   FFileName:string;
+ public
+   function Execute:integer;
+ published
+   property FileName:string read FFileName write FFileName;
+ end;
+
+function SHShutDownDialog(YourGuess:integer):longint; stdcall;
+function SHRunDialog(hOwner:thandle;Unknown1:integer;Unknown2:pointer;szTitle,szPrompt:pwidechar;uiFlags:integer):integer; stdcall;
+function SHFormatDrive(hOwner:thandle;iDrive,iCapacity,iFormatType:integer):integer; stdcall;
+function SHChangeIconDialog(hOwner:thandle;szFileName:pchar;reserved:integer;var lpIconIndex:integer):integer; stdcall;
 
 implementation
+
 {$WARNINGS OFF}
-Function SHShutDownDialog; external 'shell32.dll' index 60;
-Function SHRunDialog; external 'shell32.dll' index 61;
-Function SHChangeIconDialog; external 'shell32.dll' index 62;
-Function SHFormatDrive; external 'shell32.dll' name 'SHFormatDrive';
+function SHShutDownDialog; external 'shell32.dll' index 60;
+function SHRunDialog; external 'shell32.dll' index 61;
+function SHChangeIconDialog; external 'shell32.dll' index 62;
+function SHFormatDrive; external 'shell32.dll' name 'SHFormatDrive';
 {$WARNINGS ON}
+
 function TRunDialog.Execute;
 const
- ShowL:array[boolean] of integer = (2,0);
+  ShowL:array[boolean] of integer = (2,0);
 var
- szTitle,szPrompt:array[0..255] of char;
+  szWTitle,szWPrompt:array[0..255] of widechar;
+  VerInfo: TOSVersioninfo;
 begin
- strpcopy(szTitle,FTitle);
- strpcopy(szPrompt,FPrompt);
- result:=SHRunDialog((owner as twincontrol).handle,0,nil,szTitle,szPrompt,ShowL[FShowLast]);
+  VerInfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
+  GetVersionEx(verinfo);
+
+  if (verinfo.dwPlatformId = VER_PLATFORM_WIN32_NT) then
+  begin
+    StringToWideChar(FTitle,szWTitle,sizeof(szWTitle));
+    StringToWideChar(FPrompt,szWPrompt,sizeof(szWPrompt));
+  end
+  else
+  begin
+    strpcopy(pchar(@szWTitle),FTitle);
+    strpcopy(pchar(@szWPrompt),FPrompt);
+  end;
+  result:=SHRunDialog((owner as twincontrol).handle,0,nil,szWTitle,szWPrompt,ShowL[FShowLast]);
 end;
 
 function TShutDownDialog.Execute;
@@ -117,15 +140,34 @@ end;
 
 function TChangeIconDialog.Execute;
 var
- szFilename:array[0..255] of char;
+ szFilenameW:array[0..259] of widechar;
+ szFileName:array[0..259] of char;
+ verinfo:tosversioninfo;
+
 begin
- strpcopy(szFileName,fFileName);
- result:=SHChangeIconDialog((owner as twincontrol).handle,szFileName,0,FIdx);
- if (result<>0) then
-   begin
-    fFileName:=strpas(szFileName);
-    result:=idOk;
+ verinfo.dwOSVersionInfoSize:=sizeof(tosversioninfo);
+ getversionex(verinfo);
+
+ if (verinfo.dwPlatformId = VER_PLATFORM_WIN32_NT) then
+  begin
+   StringToWideChar(fFilename,szFileNameW,sizeof(szFileNameW));
+   result:=SHChangeIconDialog((owner as twincontrol).handle,pchar(@szFileNameW),0,FIdx);
+   if (result<>0) then
+     begin
+      WideCharToString(szFileNameW);
+      result:=idOk;
+     end;
+  end
+ else
+  begin
+   strpcopy(szFileName,fFileName);
+   result:=SHChangeIconDialog((owner as twincontrol).handle,szFileName,0,FIdx);
+   if (result<>0) then
+    begin
+     fFileName:=strpas(szFileName);
+     result:=idOk;
    end;
+  end;
 end;
 
 function TChangeIconDialog.GetIconHandle;
@@ -151,5 +193,24 @@ begin
 end;
 
 
+
+{ TPropertyDialog }
+
+function TPropertyDialog.Execute: integer;
+var
+  sei:ShellExecuteInfo;
+begin
+  Result := 0;
+  with sei do
+  begin
+    fillchar(sei,sizeof(sei),0);
+    cbSize := sizeof(sei);
+    fMask := SEE_MASK_NOCLOSEPROCESS Or SEE_MASK_INVOKEIDLIST Or SEE_MASK_FLAG_NO_UI;
+    wnd := (owner as twincontrol).handle;
+    lpVerb := 'properties';
+    lpFile := pchar(FFilename);
+  end;
+  if  ShellExecuteEX(@SEI) then SysErrorMessage(GetLastError);
+end;
 
 end.

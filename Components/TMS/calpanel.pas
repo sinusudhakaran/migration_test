@@ -1,10 +1,9 @@
 {********************************************************************}
 { CALPANEL component                                                 }
 { for Delphi & C++ Builder                                           }
-{ version 1.3                                                        }
 {                                                                    }
 { written by TMS Software                                            }
-{           copyright © 1997-2006                                    }
+{           copyright © 1997-2008                                    }
 {           Email : info@tmssoftware.com                             }
 {           Website : http://www.tmssoftware.com                     }
 {                                                                    }
@@ -42,6 +41,11 @@ const
   BLD_VER = 0; // Build nr.
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TDayStr = string;
   TMonthStr = string;
 

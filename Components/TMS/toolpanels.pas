@@ -1,10 +1,9 @@
 {***********************************************************************}
 { TToolPanels component                                                 }
 { for Delphi & C++Builder                                               }
-{ version 1.3                                                           }
 {                                                                       }
 { written by TMS Software                                               }
-{            copyright © 2003 - 2006                                    }
+{            copyright © 2003 - 2008                                    }
 {            Email: info@tmssoftware.com                                }
 {            Web: http://www.tmssoftware.com                            }
 {                                                                       }
@@ -27,7 +26,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ImgList, INIFiles, Registry, Math
+  Dialogs, StdCtrls, ExtCtrls, ImgList, INIFiles, Registry, Math, AdvStyleIF
 {$IFNDEF TMSDOTNET}
   , ActiveX, AxCtrls
 {$ENDIF}
@@ -42,23 +41,55 @@ const
   NODEBTN_SIZE = 8;
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 3; // Minor version nr.
-  REL_VER = 5; // Release nr.
-  BLD_VER = 0; // Build nr.
+  MIN_VER = 4; // Minor version nr.
+  REL_VER = 4; // Release nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
-  // 1.3.1.3 : fixed issue with AutoLock
-  // 1.3.1.4 : fix to allow the use of a TAdvToolPanel without TAdvToolPanelTab
-  // 1.3.1.5 : set name to TAdvToolPanelTab internal form
-  //         : fix for panelform location issue in Delphi 2005
-  // 1.3.2.0 : Custom & Whidbey style added
-  // 1.3.3.0 : Improvements for hosting in ActiveForms
-  // 1.3.3.1 : Fix for controls alignment within bottom toolpanels
-  // 1.3.4.0 : Improved sectionimage painting with auto adapt height to image height
-  // 1.3.4.1 : Fix for issue with parent form recreate
-  // 1.3.5.0 : Added type ssInstant to SlideSpeed property
+  // 1.3.1.3  : fixed issue with AutoLock
+  // 1.3.1.4  : fix to allow the use of a TAdvToolPanel without TAdvToolPanelTab
+  // 1.3.1.5  : set name to TAdvToolPanelTab internal form
+  //          : fix for panelform location issue in Delphi 2005
+  // 1.3.2.0  : Custom & Whidbey style added
+  // 1.3.3.0  : Improvements for hosting in ActiveForms
+  // 1.3.3.1  : Fix for controls alignment within bottom toolpanels
+  // 1.3.4.0  : Improved sectionimage painting with auto adapt height to image height
+  // 1.3.4.1  : Fix for issue with parent form recreate
+  // 1.3.5.0  : Added type ssInstant to SlideSpeed property
+  // 1.3.5.1  : Fixed issue with width/height changes in floating panels
+  // 1.3.5.2  : Fixed issue with form moving for bottom position toolpanels
+  // 1.4.0.0  : Added Office 2007 styles
+  //          : Added Font, ParentFont property in TAdvToolPanelTab
+  // 1.4.0.1  : Fixed issue with tab size calculation for non default fonts
+  // 1.4.0.2  : Fixed issue with Accept handling in OnDockOver
+  // 1.4.1.0  : New support for Office 2007 silver style added
+  // 1.4.1.1  : Improved slide-in with SlideSpeed = ssInstant
+  // 1.4.1.2  : Improved drawing of TAdvToolPanel caption with ampersand
+  // 1.4.2.0  : New : property AutoOpenOnMouseEnter added
+  // 1.4.2.1  : Fixed : issue with ssInstant slidespeed for closing tabs
+  // 1.4.2.2  : Fixed : issue with destroying panel while sliding
+  // 1.4.2.3  : Fixed : issue with click on toolpanel tab for panels with AutoLock = false
+  // 1.4.2.4  : Fixed : issue with top anchored controls on left panels
+  // 1.4.2.5  : Fixed : issue with TabSlideOutDone, TabSlideInDone triggered twice
+  // 1.4.2.6  : Fixed : painting issue with controls on right positioned TAdvToolPanelTab
+  // 1.4.2.7  : Improved : resize handling of floating toolpanels
+  // 1.4.2.8  : Fixed : issue with loading toolpanel state at runtime
+  //          : Fixed : tab hides when all panels are closed
+  // 1.4.2.9  : Fixed : issue with tab width/height with runtime created panels
+  // 1.4.2.10 : Fixed : issue with panel position initialization
+  // 1.4.2.11 : Improved : handling of destroying a TAdvToolPanel
+  // 1.4.3.0  : New : AdvToolPanelTab.Panels.Move method added
+  //          : Improved : sequence of programmatically setting items Locked
+  // 1.4.4.0  : Fixed : issue with AV on app close with right aligned TAdvToolPanelTab
+  // 1.4.4.1  : Fixed : small memory leak 
+
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TAdvToolPanel = class;
   TAdvToolPanelTab = class;
 
@@ -82,6 +113,7 @@ type
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
     property Panel: TAdvToolPanel read FPanel write FPanel;
   published
     property Tag: Integer read FTag write FTag;
@@ -103,6 +135,7 @@ type
     function Insert(index: Integer): TToolPanel;
     property Items[Index: Integer]: TToolPanel read GetItem write SetItem; default;
     property Panel: TAdvToolPanelTab read FOwner;
+    procedure Move(FromIndex, ToIndex: integer);
   end;
 
   TToolPanelGlyphs = class(TPersistent)
@@ -319,9 +352,9 @@ type
   TNodeCollapseEvent = TNodeExpandEvent;
 
   TTPBackGroundPosition = (bpTopLeft, bpTopRight, bpBottomLeft, bpBottomRight, bpTiled, bpStretched, bpCenter);
-  TToolPanelStyle = (esOffice2003Blue, esOffice2003Silver, esOffice2003Olive, esOffice2003Classic, esWhidbey, esCustom);
+  TToolPanelStyle = (esOffice2003Blue, esOffice2003Silver, esOffice2003Olive, esOffice2003Classic, esOffice2007Luna, esOffice2007Obsidian, esWindowsXP, esWhidbey, esCustom, esOffice2007Silver);
 
-  TAdvToolPanel = class(TCustomPanel)
+  TAdvToolPanel = class(TCustomPanel, ITMSStyle)
   private
     FImageIndex: Integer;
     FTab: TAdvToolPanelTab;
@@ -384,6 +417,7 @@ type
     FBackGroundPosition: TTPBackgroundPosition;
     FStyle: TToolPanelStyle;
     FBackgroundTransparent: Boolean;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure WMEXITSIZEMOVE(var Msg: TMessage); message WM_EXITSIZEMOVE;
     procedure WMENTERSIZEMOVE(var Msg: TMessage); message WM_ENTERSIZEMOVE;
     procedure WMNCHitTest(var Msg: TWMNCHitTest); message WM_NCHITTEST;
@@ -395,7 +429,6 @@ type
 {$IFDEF TMSDOTNET}
     procedure CMHintShow(var Message: TCMHintShow); message CM_HINTSHOW;
 {$ENDIF}
-
     procedure CMDesignHitTest(var Msg: TCMDesignHitTest); message CM_DESIGNHITTEST;
     procedure WMSetCursor(var Message: TWMSetCursor); message WM_SETCURSOR;
     procedure SetLocked(const Value: Boolean);
@@ -434,6 +467,7 @@ type
     procedure SetBackGroundPosition(const value: TTPBackgroundPosition);
     procedure SetBackgroundTransparent(Value: Boolean);
     procedure SetStyle(const Value: TToolPanelStyle);
+    procedure SetComponentStyle(AStyle: TTMSStyle);
     procedure SetColorEx(const Value: TColor);
     function GetColorEx: TColor;
     procedure SetVersion(const Value: string);
@@ -457,7 +491,6 @@ type
     procedure UpdateControlPos(SectionIndex, Diff: integer);
     procedure UpdateControlPosBelowSection(SectionIndex, Diff: integer);
     function PtOnAnyItem(X, Y: integer; var SectionIndex: integer; var ItemRect: TRect): Integer;
-
     property SectionHeight: Integer read GetSectionHeight;
   public
     constructor Create(AOwner: TComponent); override;
@@ -558,6 +591,7 @@ type
     procedure WMNCHitTest(var Msg: TWMNCHitTest); message WM_NCHITTEST;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure CreateParams(var Params: TCreateParams); override;
   end;
 
@@ -588,7 +622,7 @@ type
     property Location: TPanelPersistLocation read FLocation write FLocation default pplINIFile;
   end;
 
-  TAdvToolPanelTab = class(TCustomPanel)
+  TAdvToolPanelTab = class(TCustomPanel, ITMSStyle)
   private
     FPanels: TToolPanels;
     FImages: TImageList;
@@ -635,6 +669,12 @@ type
     FAutoThemeAdapt: Boolean;
     FStyle: TToolPanelStyle;
     FMouseInControl: Boolean;
+    FAutoOpenOnMouseEnter: Boolean;
+    FParentHooked: boolean;
+    FDisableParentHook: boolean;
+    FRollInOutActive: boolean;
+    FRestored: boolean;
+    FWMDestroy: boolean;
     function GetPanelFromTab(x, y: Integer): Integer;
     function GetTabSize: Integer;
     procedure WMTimer(var Message: TWMTimer); message WM_TIMER;
@@ -651,6 +691,7 @@ type
     procedure SetTabGlyph(const Value: TBitmap);
     procedure ThemeAdapt;
     procedure SetStyle(const Value: TToolPanelStyle);
+    procedure SetComponentStyle(AStyle: TTMSStyle);    
   protected
     procedure CMDesignHitTest(var Msg: TCMDesignHitTest); message CM_DESIGNHITTEST;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
@@ -673,10 +714,13 @@ type
     function GetVersion:string;
     procedure SetVersion(const Value: string);
     function GetVersionNr: Integer;
+    property Restored: boolean read FRestored write FRestored;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure UpdatePanels(Index: Integer);
+    procedure UnHookParent;
+    procedure HookParent;
     procedure Loaded; override;
     procedure CreateWnd; override;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
@@ -699,17 +743,20 @@ type
     procedure SaveState;
     procedure RestoreState;
     function NumPanelsLocked: Integer;
-
+    property DisableParentHook: boolean read FDisableParentHook write FDisableParentHook;
   published
     property Alignment;
     property AutoDock: Boolean read FAutoDock write SetAutoDock default True;
     property AutoOpenCloseSpeed: TAutoOpenCloseSpeed read FAutoOpenCloseSpeed write FAutoOpenCloseSpeed default aocMedium;
+    property AutoOpenOnMouseEnter: boolean read FAutoOpenOnMouseEnter write FAutoOpenOnMouseEnter default true;
     property AutoThemeAdapt: Boolean read FAutoThemeAdapt write FAutoThemeAdapt default False;
     property Color;
     property ColorTo: TColor read FColorTo write SetColorTo default clNone;
+    property Font;
     property Hint;
     property Images: TImageList read FImages write FImages;
     property PanelGlyphs: TToolPanelGlyphs read FPanelGlyphs write FPanelGlyphs;
+    property ParentFont;
     property Persist: TPanelPersistence read FPersist write FPersist;
     property PopupMenu;
     property Position: TPanelPosition read FPosition write SetPosition;
@@ -723,6 +770,7 @@ type
     property TabWidth: Integer read FTabWidth write SetTabWidth default 23;
     property TabGlyph: TBitmap read FTabGlyph write SetTabGlyph;
     property Version: string read GetVersion write SetVersion;
+    property Visible;
     property OnDockOver;
     property OnDockDrop;
     property OnMouseDown;
@@ -893,6 +941,16 @@ begin
   Result := TToolPanel(inherited Insert(Index));
 end;
 
+procedure TToolPanels.Move(FromIndex, ToIndex: integer);
+var
+  origitem: TToolPanel;
+begin
+  origitem := Items[FromIndex];
+  Insert(ToIndex).Assign(origitem);
+  origitem.Free;
+  FOwner.Invalidate;
+end;
+
 procedure TToolPanels.SetItem(Index: Integer; const Value: TToolPanel);
 begin
   inherited Items[Index] := Value;
@@ -904,6 +962,7 @@ constructor TAdvToolPanelTab.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FPanels := TToolPanels.Create(Self);
+  FWMDestroy := false;
   Caption := '';
   ControlStyle := ControlStyle - [csAcceptsControls, csDesignInteractive];
   FRollInOut := False;
@@ -913,7 +972,7 @@ begin
   FPosition := ppLeft;
   FTimerEnable := True;
   Align := alLeft;
-  FPanelForm := TToolPanelForm.Create(self);
+  FPanelForm := TToolPanelForm.Create(self.Parent);
   FPanelForm.BorderStyle := bsNone;
   FPanelForm.Parent := self.Parent;
   FPanelForm.Visible := False;
@@ -938,6 +997,9 @@ begin
   FPersist := TPanelPersistence.Create;
   FPanelGlyphs := TToolPanelGlyphs.Create;
   Style := esOffice2003Blue;
+  Font.Name := 'Tahoma'; // force a truetype font for font rotation
+  FAutoOpenOnMouseEnter := true;
+  FDisableParentHook := false;  
 end;
 
 procedure TAdvToolPanelTab.CMDesignHitTest(var Msg: TCMDesignHitTest);
@@ -975,12 +1037,18 @@ end;
 
 destructor TAdvToolPanelTab.Destroy;
 begin
+  while FRollInBusy do
+  begin
+  end;
   FPanels.Free;
   FUpDown.Free;
   FTabGlyph.Free;
-  FPanelForm.Destroy;
+  if Assigned(FPanelForm) and not FWMDestroy then
+  begin
+    FPanelForm.Free;
+  end;
   FPersist.Free;
-  FPanelGlyphs.Destroy;
+  FPanelGlyphs.Free;
   inherited;
 end;
 
@@ -1034,7 +1102,7 @@ begin
           tw := TextWidth(TAdvToolPanel(Controls[i - 1]).Caption) + 4;
 
           if Assigned(Images) and (TAdvToolPanel(Controls[i - 1]).ImageIndex >= 0) then
-            tw := tw + 22;
+            tw := tw + 6 + Images.Width;
 
           if (Position = ppLeft) or (Position = ppRight) then
           begin
@@ -1056,7 +1124,7 @@ begin
             tw := TextWidth(Panels[i - 1].Caption) + 4;
 
             if Assigned(Images) and (Panels[i - 1].ImageIndex >= 0) then
-              tw := tw + 22;
+              tw := tw + 6 + Images.Width;
 
             if (Position = ppLeft) or (Position = ppRight) then
             begin
@@ -1113,7 +1181,7 @@ begin
 {$IFNDEF TMSDOTNET}
         FillChar(lf, SizeOf(lf), 0);
 {$ENDIF}
-        tf.Assign(Font);
+        tf.Assign(self.Font);
 {$IFNDEF TMSDOTNET}
         GetObject(tf.Handle, SizeOf(Lf), @Lf);
 {$ENDIF}
@@ -1141,7 +1209,7 @@ begin
           tw := TextWidth(TAdvToolPanel(Controls[i - 1]).Caption) + 4;
 
           if Assigned(Images) and (TAdvToolPanel(Controls[i - 1]).ImageIndex >= 0) then
-            tw := tw + 22;
+            tw := tw + 6 + Images.Width;
 
           if (Position = ppLeft) or (Position = ppRight) then
           begin
@@ -1172,7 +1240,7 @@ begin
             tw := TextWidth(Panels[i - 1].Caption) + 4;
 
             if Assigned(Images) and (Panels[i - 1].ImageIndex >= 0) then
-              tw := tw + 22;
+              tw := tw + 6 + Images.Width;
 
             if (Position = ppLeft) or (Position = ppRight) then
             begin
@@ -1211,6 +1279,21 @@ begin
     LeftPos := FTabWidth
   else
     LeftPos := 0;
+
+  if (PanelsInTab = 0) and not (csDesigning in ComponentState) and not (csLoading in ComponentState) then
+  begin
+    if (Position = ppLeft) or (Position = ppRight) then
+      Width := 0
+    else {(Position = ppTop) or (Position = ppBottom)}
+      Height := 0;
+  end;
+
+  if (Width = 0) and (Position in [ppLeft,ppRight]) and (PanelsInTab > 0) then
+    Width := 23;
+
+  if (Height = 0) and (Position in [ppTop,ppBottom]) and (PanelsInTab > 0) then
+    Height := 23;
+
 
   FDesignViewPanel := Index;
 
@@ -1325,7 +1408,8 @@ begin
   begin
     if FRollOutPanel <> -1 then
     begin
-      IRollIn(FPanels[FRollOutpanel].Panel);
+      if FPanels[FRollOutpanel].Panel.AutoLock=false then
+        IRollIn(FPanels[FRollOutpanel].Panel);
       //FRollOutpanel := -1;
     end;
   end;
@@ -1368,7 +1452,11 @@ begin
   begin
     flg := AComponent is TAdvToolPanel;
     if flg then
+    begin
+      if not (csDesigning in ComponentState) then
+        RemovePanel(AComponent as TAdvToolPanel);
       Invalidate;
+    end;
   end;
 
   if (AOperation = opRemove) and (AComponent = FImages) then
@@ -1643,6 +1731,7 @@ var
   tw, th, dx, dy: Integer;
   clr, clrto: TColor;
   bmp, tbmp: TBitmap;
+
 begin
   bmp := TBitmap.Create;
   bmp.Width := Width;
@@ -1673,6 +1762,8 @@ begin
 
   with bmp.Canvas do
   begin
+    Font.Assign(self.Font);
+
     if (csDesigning in ComponentState) then
     begin
       Brush.Color := Color;
@@ -1725,8 +1816,10 @@ begin
     r.Top := r.Top + FPaintOffset;
 
     // Make sure to use a truetype font!
-    Font.Name := 'Tahoma';
+    //Font.Name := 'Tahoma';
+    
     tf := TFont.Create;
+
     try
       if (Position = ppLeft) or (Position = ppRight) then
       begin
@@ -1765,7 +1858,7 @@ begin
             tw := TextWidth(TAdvToolPanel(Controls[i - 1]).Caption) + 4;
 
             if Assigned(Images) and (TAdvToolPanel(Controls[i - 1]).ImageIndex >= 0) then
-              tw := tw + 22;
+              tw := tw + 6 + Images.Width;
 
             if (FHoverPanel = i - 1) and (TabHoverColor <> clNone) then
             begin
@@ -1913,7 +2006,7 @@ begin
             tw := TextWidth(Panels[i - 1].Caption) + 4;
 
             if Assigned(Images) and (Panels[i - 1].ImageIndex >= 0) then
-              tw := tw + 22;
+              tw := tw + 6 + Images.Width;
 
             if (FHoverPanel = i - 1) and (TabHoverColor <> clNone) then
             begin
@@ -2135,6 +2228,9 @@ begin
   if (csDesigning in ComponentState) then
     Exit;
 
+  if not AutoOpenOnMouseEnter then
+    Exit;
+
   FMouseInControl:= true;
 
   tp := GetPanelFromTab(x, y);
@@ -2200,6 +2296,7 @@ var
   delay: Cardinal;
   actWin: THandle;
 begin
+  FRollInOutActive := true;
   if Assigned(FOnTabSlideIn) then
     FOnTabSlideIn(Self, PanelIndex(APanel), APanel);
 
@@ -2218,6 +2315,11 @@ begin
   case Position of
     ppLeft:
       begin
+        if delay = 0 then
+        begin
+          APanel.Left := -APanel.Width;
+        end
+        else
         while APanel.Left > -APanel.Width do
         begin
           if delay <> 0 then
@@ -2226,8 +2328,7 @@ begin
             while (GetTickCount - t) < delay do
               if ((GetTickCount - t) mod 3) = 0 then
                 Application.ProcessMessages;
-
-          end;      
+          end;
           APanel.Left := APanel.Left - 15;
         end;
       end;
@@ -2239,31 +2340,38 @@ begin
 {$IFDEF TMSDEBUG}
         outputdebugstring(pchar('rollin:' + inttostr(apanel.OpenWidth)));
 {$ENDIF}
-
-        while (FPanelForm.Width > 0) do
+        if delay = 0 then
         begin
-          if delay <> 0 then
+          FPanelForm.Width := 0;
+          FPanelForm.Left := Left;
+        end
+        else
+        begin
+          while (FPanelForm.Width > 0) do
           begin
-            t := GetTickCount;
-            while (GetTickCount - t) < delay do
-              if ((GetTickCount - t) mod 3) = 0 then
-                Application.ProcessMessages;
-          end      
-          else
-          begin
-            FPanelForm.Width := 0;
-            FPanelForm.Left := Left;
-          end;
+            if delay <> 0 then
+            begin
+              t := GetTickCount;
+              while (GetTickCount - t) < delay do
+                if ((GetTickCount - t) mod 3) = 0 then
+                  Application.ProcessMessages;
+            end
+            else
+            begin
+              FPanelForm.Width := 0;
+              FPanelForm.Left := Left;
+            end;
 
-          if FPanelForm.Width > 15 then
-          begin
-            FPanelForm.Width := FPanelForm.Width - 15;
-            FPanelForm.Left := FPanelForm.Left + 15;
-          end
-          else
-          begin
-            FPanelForm.Width := 0;
-            FPanelForm.Left := Left;
+            if FPanelForm.Width > 15 then
+            begin
+              FPanelForm.Width := FPanelForm.Width - 15;
+              FPanelForm.Left := FPanelForm.Left + 15;
+            end
+            else
+            begin
+              FPanelForm.Width := 0;
+              FPanelForm.Left := Left;
+            end;
           end;
         end;
         APanel.Visible := False;
@@ -2316,12 +2424,19 @@ begin
       end;
   end;
 
+
+  if (csDestroying in ComponentState) then
+    Exit;
+
   Panels[PanelIndex(APanel)].State := psClosed;
 
   FRollOutpanel := -1;
 
   if Assigned(FOnTabSlideInDone) then
     FOnTabSlideInDone(Self, PanelIndex(APanel), APanel);
+
+  FRollInOutActive := false;
+
 end;
 
 procedure TAdvToolPanelTab.IRollOut(APanel: TAdvToolPanel);
@@ -2332,6 +2447,8 @@ var
   actWin: THandle;
 
 begin
+  FRollInOutActive := true;
+
   if Assigned(FOnTabSlideOut) then
     FOnTabSlideOut(Self, PanelIndex(APanel), APanel);
 
@@ -2354,24 +2471,29 @@ begin
   case Position of
     ppLeft:
       begin
-        while (APanel.Left < tw) do
+        if delay = 0 then
         begin
-
-          if delay <> 0 then
+          APanel.Left := FTabWidth;
+        end
+        else
+          while (APanel.Left < tw) do
           begin
-            t := GetTickCount;
 
-            while (GetTickCount - t) < delay do
-              if ((GetTickCount - t) mod 3) = 0 then
-                Application.ProcessMessages;
+            if delay <> 0 then
+            begin
+              t := GetTickCount;
 
+              while (GetTickCount - t) < delay do
+                if ((GetTickCount - t) mod 3) = 0 then
+                  Application.ProcessMessages;
+
+            end;
+
+            if APanel.Left + 15 < FTabWidth then
+              APanel.Left := APanel.Left + 15
+            else
+              APanel.Left := FTabWidth;
           end;
-
-          if APanel.Left + 15 < FTabWidth then
-            APanel.Left := APanel.Left + 15
-          else
-            APanel.Left := FTabWidth;
-        end;
       end;
     ppRight:
       begin
@@ -2389,35 +2511,47 @@ begin
 
         while FPanelForm.Width < APanel.OpenWidth do
         begin
-          if delay <> 0 then
+          if delay = 0 then
           begin
-            t := GetTickCount;
-            while (GetTickCount - t) < delay do
-              if ((GetTickCount - t) mod 3) = 0 then
-                Application.ProcessMessages;
-          end;      
-
-//          FPanelForm.Perform(WM_SetRedraw,0,0);
-
-          if FPanelForm.Width + 15 < APanel.OpenWidth then
-          begin
-            FPanelForm.Left := FPanelForm.Left - 15;
-            FPanelForm.Width := FPanelForm.Width + 15;
+            FPanelForm.Left := FPanelForm.Left + FPanelForm.Width - APanel.OpenWidth ;
+            FPanelForm.Width := APanel.OpenWidth;
+            APanel.Left := 2;
+            APanel.Width := FPanelForm.Width - 2; // size panel with form
+            APanel.Anchors := [akLeft, akTop, akRight, akBottom];
           end
           else
           begin
-            FPanelForm.Left := FPanelForm.Left - (APanel.OpenWidth - APanel.Width) + 2;
-            FPanelForm.Width := APanel.OpenWidth;
-          end;
 
-        // final panel positioning
-          APanel.Left := 2;
-          APanel.Width := FPanelForm.Width - 2; // size panel with form
-          APanel.Anchors := [akLeft, akTop, akRight, akBottom];
-          if delay = 0 then
-          begin
-            FPanelForm.Left := FPanelForm.Left - (APanel.OpenWidth - APanel.Width) + 2;
-            FPanelForm.Width := APanel.OpenWidth;
+            if delay <> 0 then
+            begin
+              t := GetTickCount;
+              while (GetTickCount - t) < delay do
+                if ((GetTickCount - t) mod 3) = 0 then
+                  Application.ProcessMessages;
+            end;
+
+  //          FPanelForm.Perform(WM_SetRedraw,0,0);
+
+            if FPanelForm.Width + 15 < APanel.OpenWidth then
+            begin
+              FPanelForm.Left := FPanelForm.Left - 15;
+              FPanelForm.Width := FPanelForm.Width + 15;
+            end
+            else
+            begin
+              FPanelForm.Left := FPanelForm.Left - (APanel.OpenWidth - APanel.Width) + 2;
+              FPanelForm.Width := APanel.OpenWidth;
+            end;
+
+          // final panel positioning
+            APanel.Left := 2;
+            APanel.Width := FPanelForm.Width - 2; // size panel with form
+            APanel.Anchors := [akLeft, akTop, akRight, akBottom];
+            if delay = 0 then
+            begin
+              FPanelForm.Left := FPanelForm.Left - (APanel.OpenWidth - APanel.Width) + 2;
+              FPanelForm.Width := APanel.OpenWidth;
+            end;
           end;
 
 //          FPanelForm.Perform(WM_SetRedraw,1,0);
@@ -2425,8 +2559,11 @@ begin
 //          APanel.Repaint;
 //          FPanelForm.Invalidate;
 //          FPanelForm.Repaint;
-
         end;
+
+        APanel.Width := APanel.Width + 1;
+        APanel.Width := APanel.Width - 1;
+
         if actWin = self.Parent.Handle then
           SetActiveWindow(self.Parent.Handle);
       end;
@@ -2483,6 +2620,8 @@ begin
       end;
   end;
 
+  if (csDestroying in ComponentState) then
+    Exit;
 
   Panels[PanelIndex(APanel)].State := psOpened;
 
@@ -2496,6 +2635,9 @@ begin
 
   if Assigned(FOnTabSlideOutDone) then
     FOnTabSlideOutDone(Self, PanelIndex(APanel), APanel);
+
+  FRollInOutActive := false;
+
 end;
 
 
@@ -2512,7 +2654,7 @@ begin
   GetCursorPos(pt);
   pt := ScreenToClient(pt);
 
-  if (FRollInCandidate >= 0) and FMouseInControl then
+  if (FRollInCandidate >= 0) and FMouseInControl and (Panels.Count > 0) then
   begin
     if (((Position = ppLeft) or (Position = ppRight)) and (pt.X > Width - FTabWidth) and (pt.X < Width))
       or (((Position = ppTop) or (Position = ppBottom)) and (pt.y > Height - FTabWidth) and (pt.y < Height)) then
@@ -2542,7 +2684,7 @@ begin
 
   Inc(FTimerCount);
 
-  if (FRollOutPanel <> -1) then
+  if (FRollOutPanel <> -1) and (Panels.Count > 0) then
   begin
     GetCursorPos(ptp);
     ptp := Panels[FRollOutPanel].Panel.ScreenToClient(ptp);
@@ -2575,7 +2717,7 @@ begin
     end;
   end;
 
-  if (FRollOutPanel <> -1) and (OutTab or not InPanel) then
+  if (FRollOutPanel <> -1) and (OutTab or not InPanel) and (Panels.Count > 0) then
   begin
 
     if (FTimerCount = 10) then
@@ -2605,24 +2747,40 @@ begin
     FTimerCount := 0;
 end;
 
-procedure TAdvToolPanelTab.WndProc(var Msg: TMessage);
+procedure TAdvToolPanelTab.UnHookParent;
 var
   p: TWinControl;
 begin
+  if FDisableParentHook then
+    Exit;
+
+  p := self;
+  repeat
+    p := p.Parent;
+  until (p is TForm) {$IFNDEF TMSDOTNET} or (p is TActiveForm) {$ENDIF} or not Assigned(p);
+
+  if (p <> nil) then
+  begin
+    p.WindowProc := FFormWndProc;
+  end;
+
+  FParentHooked := false;
+end;
+
+procedure TAdvToolPanelTab.WndProc(var Msg: TMessage);
+begin
   if (Msg.Msg = WM_DESTROY) then
   begin
+    FWMDestroy := true;
     KillTimer(Handle, FTimerID);
 
-    // restore subclassed proc
     if not (csDesigning in ComponentState) then
-    begin
-      p := self;
-      repeat
-        p := p.Parent;
-      until (p is TForm) {$IFNDEF TMSDOTNET} or (p is TActiveForm) {$ENDIF} or not Assigned(p);
+      FPanelForm.Free;
 
-      if (p <> nil) then
-        p.WindowProc := FFormWndProc;
+    // restore subclassed proc
+    if not (csDesigning in ComponentState) and FParentHooked then
+    begin
+      UnhookParent;
     end;
   end;
 
@@ -2630,6 +2788,7 @@ begin
   begin
     ThemeAdapt;
   end;
+
   inherited;
 end;
 
@@ -2684,7 +2843,7 @@ begin
   begin
     for j := 1 to Panels.Count do
     begin
-      if Panels[j - 1].Panel.Visible then
+      if Panels[j - 1].Panel.Visible and not Panels[j - 1].Panel.Floating then
       begin
         if (Position = ppLeft) or (Position = ppRight) then
         begin
@@ -2713,8 +2872,8 @@ procedure TAdvToolPanelTab.RollIn(APanel: TAdvToolPanel);
 var
   j: Integer;
 begin
-  if Assigned(FOnTabSlideIn) then
-    FOnTabSlideIn(Self, PanelIndex(APanel), APanel);
+//  if Assigned(FOnTabSlideIn) then
+//    FOnTabSlideIn(Self, PanelIndex(APanel), APanel);
 
   for j := 1 to Panels.Count do
   begin
@@ -2739,17 +2898,18 @@ begin
 
   Panels[PanelIndex(APanel)].State := psClosed;
 
-  if Assigned(FOnTabSlideInDone) then
-    FOnTabSlideInDone(Self, PanelIndex(APanel), APanel);
+//  if Assigned(FOnTabSlideInDone) then
+//    FOnTabSlideInDone(Self, PanelIndex(APanel), APanel);
 end;
 
 procedure TAdvToolPanelTab.RollOut(APanel: TAdvToolPanel);
 var
   j: Integer;
   pt: TPoint;
+
 begin
-  if Assigned(FOnTabSlideOut) then
-    FOnTabSlideOut(Self, PanelIndex(APanel), APanel);
+//  if Assigned(FOnTabSlideOut) then
+//    FOnTabSlideOut(Self, PanelIndex(APanel), APanel);
 
   for j := 1 to Panels.Count do
   begin
@@ -2765,7 +2925,7 @@ begin
             Panels[j - 1].Panel.Top := Top;
             Panels[j - 1].Panel.Left := -Panels[j - 1].OpenWidth;
             Panels[j - 1].Panel.Width := Panels[j - 1].OpenWidth;
-            Panels[j - 1].Panel.Parent := self.Parent;
+            Panels[j - 1].Panel.Parent := self.Parent; // form becomes parent of panel
             self.BringToFront; // v1.2
 
 {$IFDEF TMSDEBUG}
@@ -2781,7 +2941,7 @@ begin
 {$ENDIF}
             pt := Point(Left, Top);
             pt := Parent.ClientToScreen(pt);
-            Panels[j - 1].Panel.Parent := FPanelForm;
+            Panels[j - 1].Panel.Parent := FPanelForm; // panelform becomes parent of panel 
             Panels[j - 1].Panel.Left := 2;
             Panels[j - 1].Panel.Top := 0;
             Panels[j - 1].Panel.Anchors := [akLeft, akTop, akRight, akBottom];
@@ -2865,8 +3025,8 @@ begin
 
   Panels[PanelIndex(APanel)].State := psOpened;
 
-  if Assigned(FOnTabSlideOutDone) then
-    FOnTabSlideOutDone(Self, PanelIndex(APanel), APanel);
+//  if Assigned(FOnTabSlideOutDone) then
+//    FOnTabSlideOutDone(Self, PanelIndex(APanel), APanel);
 end;
 
 procedure TAdvToolPanelTab.RollInOut(Index: Integer);
@@ -2874,6 +3034,7 @@ var
   j: Integer;
   pt: TPoint;
   actWin: THandle;
+  ph: Integer;
 begin
   actWin := GetActiveWindow;
 
@@ -2898,6 +3059,13 @@ begin
     end;
   end;
 
+  ph := 0;
+  
+  if Assigned(GetParentForm(Self)) then
+  begin
+    ph := TWinControl(GetParentForm(Self)).Height;
+  end;
+
   for j := 1 to Panels.Count do
   begin
     if (j - 1 = Index) and (Index <> FRollOutPanel) then
@@ -2906,7 +3074,7 @@ begin
         ppLeft:
           begin
             Panels[j - 1].Panel.Align := alNone;
-            Panels[j - 1].Panel.Height := 0;
+            Panels[j - 1].Panel.Height := ph;
             Panels[j - 1].Panel.Visible := True;
             Panels[j - 1].Panel.Height := Height;
             Panels[j - 1].Panel.Top := Top;
@@ -3059,7 +3227,8 @@ begin
 {$IFDEF TMSDEBUG}
               outputdebugstring(pchar(panels[i - 1].panel.Caption + ':' + inttostr(Panels[i - 1].Panel.Left) + ':' + inttostr(apanel.openwidth)));
 {$ENDIF}
-              Panels[i - 1].Panel.Left := Panels[i - 1].Panel.Left + APanel.OpenWidth;
+              //Panels[i - 1].Panel.Left := Panels[i - 1].Panel.Left + APanel.OpenWidth;
+              APanel.Left := APanel.Left + Panels[i - 1].OpenWidth;
             end;
           end;
           APanel.Align := alLeft;
@@ -3191,6 +3360,17 @@ begin
 {$IFDEF TMSDEBUG}
           outputdebugstring(pchar('lock:' + apanel.Caption + ':' + inttostr(apanel.Left) + ':' + inttostr(apanel.OpenWidth)));
 {$ENDIF}
+          for i := 1 to Panels.Count do
+          begin
+            if Panels[i - 1].Panel.Locked and (Panels[i - 1].Panel <> APanel) then
+            begin
+{$IFDEF TMSDEBUG}
+              outputdebugstring(pchar(panels[i - 1].panel.Caption + ':' + inttostr(Panels[i - 1].Panel.Left) + ':' + inttostr(apanel.openwidth)));
+{$ENDIF}
+              APanel.Top := APanel.Top + Panels[i - 1].OpenWidth;
+            end;
+          end;
+
           APanel.Align := alTop;
           APanel.Height := APanel.OpenWidth;
           APanel.SendToBack;
@@ -3320,6 +3500,7 @@ var
   NewX, NewY: integer;
   flg: Boolean;
 begin
+ 
   if (Msg.Msg = WM_SIZE) then
   begin
     if Position in [ppLeft, ppRight] then
@@ -3362,6 +3543,23 @@ begin
       self.Parent.Invalidate;
   end;
 
+  if ((Msg.Msg = WM_MOVING) or (Msg.Msg = WM_PAINT)) and (Position = ppBottom) and (FRollOutPanel <> -1) then
+  begin
+    pt := Point(Left, Top);
+    pt := Parent.ClientToScreen(pt);
+    NewX := pt.X;
+    NewY := pt.Y - FPanelForm.Height;
+
+    flg := (NewX <> FPanelForm.Left) or (NewY <> FPanelForm.Top);
+
+    FPanelForm.Left := NewX;
+    FPanelForm.Top := NewY;
+
+    SetActiveWindow(self.Parent.Handle);
+
+    if flg then
+      self.Parent.Invalidate;
+  end;
 
   if (Msg.Msg = WM_SYSCOMMAND) and
     ((Msg.WParam = SC_MAXIMIZE) or (Msg.WParam = SC_MINIMIZE) or
@@ -3382,40 +3580,50 @@ begin
   end;
 end;
 
-procedure TAdvToolPanelTab.CreateWnd;
+procedure TAdvToolPanelTab.HookParent;
 var
   p: TWinControl;
-  //i: integer;
-  //hwnd: THandle;
-  //wt: array[0..255] of char;
+begin
+  if FDisableParentHook then
+    Exit;
+  p := self;
+
+  repeat
+    p := p.Parent;
+  until (p is TForm) {$IFNDEF TMSDOTNET} or (p is TActiveForm) {$ENDIF} or not Assigned(p);
+
+  if Assigned(p) then
+  begin
+    {$IFNDEF TMSDOTNET}
+    if (p is TActiveForm) then
+    begin
+      {
+      hwnd := p.Handle;
+      i := 1;
+      repeat
+        getwindowtext(hwnd, wt, sizeof(wt));
+        hwnd := getparent(hwnd);
+        inc(i);
+      until (hwnd = 0) or (i = 100);
+      }
+    end;
+    {$ENDIF}
+  end;
+
+  if Assigned(p) then
+  begin
+    FFormWndProc := p.WindowProc;
+    p.WindowProc := SubClassProc;
+
+    FParentHooked := true;
+  end;
+end;
+
+procedure TAdvToolPanelTab.CreateWnd;
 begin
   inherited;
   if not (csDesigning in ComponentState) then
   begin
-    p := self;
-
-    repeat
-      p := p.Parent;
-    until (p is TForm) {$IFNDEF TMSDOTNET} or (p is TActiveForm) {$ENDIF} or not Assigned(p);
-
-    if Assigned(p) then
-    begin
-      {$IFNDEF TMSDOTNET}
-      if (p is TActiveForm) then
-      begin
-        {
-        hwnd := p.Handle;
-        i := 1;
-        repeat
-          getwindowtext(hwnd, wt, sizeof(wt));
-          hwnd := getparent(hwnd);
-          inc(i);
-        until (hwnd = 0) or (i = 100);
-        }
-      end;
-      {$ENDIF}
-    end;
-
     case AutoOpenCloseSpeed of
       aocVerySlow: FTimerID := SetTimer(Handle, 500, 1500, nil);
       aocSlow: FTimerID := SetTimer(Handle, 500, 500, nil);
@@ -3423,13 +3631,8 @@ begin
       aocFast: FTimerID := SetTimer(Handle, 500, 75, nil);
       aocVeryFast: FTimerID := SetTimer(Handle, 500, 40, nil);
     end;
-    
 
-    if Assigned(p) then
-    begin
-      FFormWndProc := p.WindowProc;
-      p.WindowProc := SubClassProc;
-    end;
+    HookParent;
   end;
 end;
 
@@ -3579,10 +3782,11 @@ procedure TAdvToolPanelTab.DockOver(Source: TDragDockObject; X, Y: Integer;
 var
   ARect: TRect;
   pt: TPoint;
+
 begin
   inherited;
 
-  Accept := Source.Control is TAdvToolPanel;
+  Accept := Accept and (Source.Control is TAdvToolPanel);
 
   if Accept then
   begin
@@ -3642,6 +3846,7 @@ begin
     ImageIndex := APanel.ImageIndex;
     Panel := APanel;
     OpenWidth := APanel.OpenWidth;
+    UpdatePanels(-1);
   end;
 end;
 
@@ -3689,6 +3894,8 @@ begin
   // make sure right panel tab is rightmost control
   if Position = ppRight then
     Left := Parent.Width;
+
+  UpdatePanels(-1);
 end;
 
 function TAdvToolPanelTab.CreatePanel: TAdvToolPanel;
@@ -3726,7 +3933,7 @@ begin
   j := 0;
   for i := 1 to Panels.Count do
   begin
-    if not Panels[i - 1].Panel.Locked and not Panels[i - 1].Panel.Floating then
+    if not Panels[i - 1].Panel.Locked and not Panels[i - 1].Panel.Floating and not Panels[i - 1].Panel.Hidden then
       inc(j);
   end;
   Result := j;
@@ -3882,6 +4089,7 @@ begin
     end;
   end;
 end;
+
 
 procedure TAdvToolPanelTab.INISaveState;
 var
@@ -4089,6 +4297,8 @@ begin
     end;
   end;
 
+  FRestored := true;
+
   if flg then
   begin
     if Persist.Location = pplINIFile then
@@ -4100,7 +4310,8 @@ begin
     begin
       if (Parent.Controls[i - 1] is TAdvToolPanelTab) and (Parent.Controls[i - 1] <> Self) then
       begin
-        TAdvToolPanelTab(Parent.Controls[i - 1]).RestoreState;
+        if not TAdvToolPanelTab(Parent.Controls[i - 1]).Restored then
+          TAdvToolPanelTab(Parent.Controls[i - 1]).RestoreState;
       end;
     end;
 
@@ -4113,6 +4324,8 @@ begin
     INISaveState
   else
     REGSaveState;
+
+  FRestored := false; 
 end;
 
 function TAdvToolPanelTab.REGRestoreState: Boolean;
@@ -4305,6 +4518,10 @@ begin
   end;
 end;
 
+procedure TAdvToolPanelTab.SetComponentStyle(AStyle: TTMSStyle);
+begin
+  Style := TToolPanelStyle(AStyle);
+end;
 
 procedure TAdvToolPanelTab.SetStyle(const Value: TToolPanelStyle);
 var
@@ -4349,6 +4566,9 @@ begin
 
           TabBorderColor := $588060;
 
+          Color := clWhite;
+          ColorTo := $00CEE7E7;
+
         end;
       esOffice2003Silver:
         begin
@@ -4379,6 +4599,66 @@ begin
 
           Color := clWhite;
           ColorTo := $00ECEFF0;
+        end;
+     esOffice2007Luna:
+        begin
+          Font.Color := $723708;
+
+          TabColor := $FFEFE3;
+          TabColorTo := $FFD2AF;
+
+          TabHoverColor := $DCFFFF;
+          TabHoverColorTo := $5BC0F7;
+
+          TabBorderColor := $FFD2AF;
+
+          Color := $FFF4E3;
+          ColorTo := $EDD9C8;
+        end;
+     esOffice2007Obsidian:
+        begin
+          Font.Color := $433C37;
+
+          TabColor := $F2F1F0;
+          TabColorTo := $C9C2BD;
+
+          TabHoverColor := $DCFFFF;
+          TabHoverColorTo := $5BC0F7;
+
+          TabBorderColor := $5C534C;
+
+          Color := $F1F0E6;
+          ColorTo := $C6BCB5;
+        end;
+     esOffice2007Silver:
+        begin
+          Font.Color := $723708;
+
+          TabColor := $F8F7F6;
+          TabColorTo := $E8E0DB;
+
+          TabHoverColor := $DCFFFF;
+          TabHoverColorTo := $5BC0F7;
+
+          TabBorderColor := $74706F;
+
+          Color := clWhite;
+          ColorTo := $DDD4D0;
+        end;
+     esWindowsXP:
+        begin
+          Font.Color := clWhite;
+
+          TabColor := clInactiveCaption;
+          TabColorTo := clInactiveCaption;
+
+          TabHoverColor := clHighLight;
+          TabHoverColorTo := clHighlight;
+
+          TabBorderColor := clBlack;
+
+          Color := clBtnFace;
+          ColorTo := clBtnFace;
         end;
       esWhidbey:
         begin
@@ -4430,6 +4710,21 @@ begin
 end;
 
 { TToolPanel }
+
+procedure TToolPanel.Assign(Source: TPersistent);
+begin
+  if (Source is TToolPanel) then
+  begin
+    FTag := (Source as TToolPanel).Tag;
+    FCaption := (Source as TToolPanel).Caption;
+    FVisible := (Source as TToolPanel).Visible;
+    FImageIndex := (Source as TToolPanel).ImageIndex;
+    FState := (Source as TToolPanel).State;
+    FOpenWidth := (Source as TToolPanel).OpenWidth;
+    FPanel := (Source as TToolPanel).Panel;
+  end;
+
+end;
 
 constructor TToolPanel.Create(Collection: TCollection);
 begin
@@ -4552,9 +4847,11 @@ begin
       if FAutosize then
       begin
 {$IFDEF DELPHI6_LVL}
+        TAdvToolPanel(Collection.Owner).Canvas.Font.Assign(TAdvToolPanel(Collection.Owner).Font);
         fh := TAdvToolPanel(Collection.Owner).Canvas.TextHeight('gh');
         a := TAdvToolPanel(Collection.Owner).SectionLayout.Spacing;
 {$ELSE}
+        TAdvToolPanelSections(Collection).FOwner.Canvas.Font.Assign(TAdvToolPanelSections(Collection).FOwner.Font);
         fh := TAdvToolPanelSections(Collection).FOwner.Canvas.TextHeight('gh');
         a := TAdvToolPanelSections(Collection).FOwner.SectionLayout.Spacing;
 {$ENDIF}
@@ -5510,6 +5807,11 @@ begin
   Result := inherited Color;
 end;
 
+procedure TAdvToolPanel.SetComponentStyle(AStyle: TTMSStyle);
+begin
+  Style := TToolPanelStyle(AStyle);
+end;
+
 procedure TAdvToolPanel.SetStyle(const Value: TToolPanelStyle);
 begin
   if (FStyle <> Value) or (1 > 0) then
@@ -5679,6 +5981,173 @@ begin
           FocusCaptionColor := $00DFDFDF;
           FocusCaptionColorTo := $00AFA7A3;
           FocusCaptionFontColor := clBlack;
+
+          ShowCaptionBorder := false;
+          button3d := false;
+        end;
+     esOffice2007Luna:
+        begin
+          SectionLayout.CaptionColor :=  $FDD6B7;
+          SectionLayout.CaptionColorTo := $C89A76;
+          SectionLayout.CaptionGradientDir := gdVertical;
+
+          NoFocusCaptionColor := $FFEFE3;
+          NoFocusCaptionColorTo := $FFD2AF;
+          NoFocusCaptionFontColor := $723708;
+
+          HoverButtonColor := $DCFFFF;
+          HoverButtonColorTo := $5BC0F7;
+
+          DownButtonColor := $087FE8;
+          DownButtonColorTo := $7CDAF7;
+
+          SectionLayout.BackGroundColor := $00F7EFDE;
+          SectionLayout.BackGroundColorTo := $00F7D6BD;
+
+          Color := $FFF4E3;
+          ColorTo := $EDD9C8;
+          GradientDirection := gdVertical;
+
+          SectionLayout.BackGroundGradientDir := gdVertical;
+
+          SectionLayout.ItemFontColor := $00B53900;
+          SectionLayout.ItemHoverTextColor := $00B53900;
+          SectionLayout.ItemHoverUnderLine := true;
+
+          SectionLayout.BorderWidth := 1;
+          SectionLayout.BorderColor := $FFD2AF;
+          SectionLayout.CaptionFontColor := clBlack;
+
+          CaptionGradientDirection := gdVertical;
+
+          FocusCaptionColor := $BBEEFF;
+          FocusCaptionColorTo := $78DAFF;
+          FocusCaptionFontColor := $723708;
+
+          ShowCaptionBorder := false;
+          button3d := false;
+        end;
+     esOffice2007Obsidian:
+        begin
+          SectionLayout.CaptionColor :=  $B8B8B6;
+          SectionLayout.CaptionColorTo := $6E6E6D;
+          SectionLayout.CaptionGradientDir := gdVertical;
+
+          NoFocusCaptionColor := $F2F1F0;
+          NoFocusCaptionColorTo := $C9C2BD;
+          NoFocusCaptionFontColor := $433C37;
+
+          HoverButtonColor := $DCFFFF;
+          HoverButtonColorTo := $5BC0F7;
+
+          DownButtonColor := $087FE8;
+          DownButtonColorTo := $7CDAF7;
+
+          SectionLayout.BackGroundColor := $E6E6DF;
+          SectionLayout.BackGroundColorTo := $D7D5CE;
+
+          Color := $F1F0E6;
+          ColorTo := $C6BCB5;
+          GradientDirection := gdVertical;
+
+          SectionLayout.BackGroundGradientDir := gdVertical;
+
+          SectionLayout.ItemFontColor := $00B53900;
+          SectionLayout.ItemHoverTextColor := $00B53900;
+          SectionLayout.ItemHoverUnderLine := true;
+
+          SectionLayout.BorderWidth := 1;
+          SectionLayout.BorderColor := $5C534C;
+          SectionLayout.CaptionFontColor := clWhite;
+
+          CaptionGradientDirection := gdVertical;
+
+          FocusCaptionColor := $BBEEFF;
+          FocusCaptionColorTo := $78DAFF;
+          FocusCaptionFontColor := clBlack;
+
+          ShowCaptionBorder := false;
+          button3d := false;
+        end;
+     esOffice2007Silver:
+        begin
+          SectionLayout.CaptionColor :=  $FAEEEB;
+          SectionLayout.CaptionColorTo := $E5DBD7;
+          SectionLayout.CaptionGradientDir := gdVertical;
+
+          NoFocusCaptionColor := $F8F7F6;
+          NoFocusCaptionColorTo := $E8E0DB;
+          NoFocusCaptionFontColor := clBlack;
+
+          HoverButtonColor := $DCFFFF;
+          HoverButtonColorTo := $5BC0F7;
+
+          DownButtonColor := $087FE8;
+          DownButtonColorTo := $7CDAF7;
+
+          SectionLayout.BackGroundColor := $E7DCD5;
+          SectionLayout.BackGroundColorTo := $FBFAF0;
+
+          Color := $DEDDDE;
+          ColorTo := $F7F3F3;
+          GradientDirection := gdVertical;
+
+          SectionLayout.BackGroundGradientDir := gdVertical;
+
+          SectionLayout.ItemFontColor := $00B53900;
+          SectionLayout.ItemHoverTextColor := $00B53900;
+          SectionLayout.ItemHoverUnderLine := true;
+
+          SectionLayout.BorderWidth := 1;
+          SectionLayout.BorderColor := $CCCAC9;
+          SectionLayout.CaptionFontColor := clBlack;
+
+          CaptionGradientDirection := gdVertical;
+
+          FocusCaptionColor := $BBEEFF;
+          FocusCaptionColorTo := $78DAFF;
+          FocusCaptionFontColor := $723708;
+
+          ShowCaptionBorder := false;
+          button3d := false;
+        end;
+      esWindowsXP:
+        begin
+          SectionLayout.CaptionColor := clWhite;
+          SectionLayout.CaptionColorTo := cl3DLight;
+          SectionLayout.CaptionGradientDir := gdVertical;
+
+          NoFocusCaptionColor := clInactiveCaption;
+          NoFocusCaptionColorTo := clInactiveCaption;
+          NoFocusCaptionFontColor := clWhite;
+
+          HoverButtonColor := clHighLight;
+          HoverButtonColorTo := clNone;
+
+          DownButtonColor := clInactiveCaption;
+          DownButtonColorTo := clNone;
+
+          SectionLayout.BackGroundColor := clBtnFace;
+          SectionLayout.BackGroundColorTo := clBtnFace;
+
+          Color := clBtnFace;
+          ColorTo := clBtnFace;
+          GradientDirection := gdVertical;
+
+          SectionLayout.CaptionGradientDir := gdVertical;
+          SectionLayout.BackGroundGradientDir := gdVertical;
+          SectionLayout.ItemFontColor := clBlack;
+          SectionLayout.ItemHoverTextColor := clBlack;
+          SectionLayout.ItemHoverUnderLine := true;
+          SectionLayout.BorderWidth := 1;
+          SectionLayout.BorderColor := clWhite;
+          SectionLayout.CaptionFontColor := clBlack;
+
+          CaptionGradientDirection := gdVertical;
+
+          FocusCaptionColor := clHighLight;
+          FocusCaptionColorTo := clHighLight;
+          FocusCaptionFontColor := clWhite;
 
           ShowCaptionBorder := false;
           button3d := false;
@@ -6026,10 +6495,10 @@ Exit;
               //Canvas.TextOut(a + FSectionLayout.Indent, h + ct{4} + SectionHeight + (j * fh), TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption);
               CapR := Rect(a + FSectionLayout.Indent, h + ct + SectionHeight + (j * fh), Width-2, h + ct + SectionHeight + ((j+1) * fh));
               {$IFDEF TMSDOTNET}
-              DrawText(Canvas.Handle, TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption, Length(TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption), CapR, DT_SINGLELINE or DT_LEFT or DT_VCENTER or DT_END_ELLIPSIS);
+              DrawText(Canvas.Handle, TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption, Length(TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption), CapR, DT_SINGLELINE or DT_LEFT or DT_VCENTER or DT_END_ELLIPSIS or DT_NOPREFIX);
               {$ENDIF}
               {$IFNDEF TMSDOTNET}
-              DrawText(Canvas.Handle, PChar(TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption), Length(TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption), CapR, DT_SINGLELINE or DT_LEFT or DT_VCENTER or DT_END_ELLIPSIS);
+              DrawText(Canvas.Handle, PChar(TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption), Length(TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].Caption), CapR, DT_SINGLELINE or DT_LEFT or DT_VCENTER or DT_END_ELLIPSIS or DT_NOPREFIX);
               {$ENDIF}
             end;
           end;
@@ -6406,10 +6875,10 @@ Exit;
       Font.Color := FNoFocusCaptionFontColor;
     font.Style := [fsBold];
 {$IFNDEF TMSDOTNET}
-    DrawText(Handle, Pchar(Caption), Length(Caption), r, DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS);
+    DrawText(Handle, Pchar(Caption), Length(Caption), r, DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS or DT_NOPREFIX);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
-    DrawText(Handle, Caption, Length(Caption), r, DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS);
+    DrawText(Handle, Caption, Length(Caption), r, DT_LEFT or DT_SINGLELINE or DT_END_ELLIPSIS or DT_NOPREFIX);
 {$ENDIF}
     font.Style := [];
   end;
@@ -6436,7 +6905,7 @@ begin
       fh := 0;
       for j := 0 to TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Count - 1 do
       begin
-        if TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].ImageIndex > -1 then
+        if Assigned(FSectionImages) and (TAdvToolPanelSection(Sections.Items[i - 1]).SectionItems.Items[j].ImageIndex > -1) then
         begin
           a := a + FSectionImages.Width;
           fh := FSectionImages.Height + 2;
@@ -6538,17 +7007,6 @@ procedure TAdvToolPanel.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
 var
   tw: Integer;
 begin
-  if Docking then
-  begin
-{
-outputdebugstring('bounds docked');
-if Assigned(parent) then
-begin
-  outputdebugstring(pchar('->'+parent.ClassName));
-end;
-}
-  end;
-
   if (csDesigning in ComponentState) then
   begin
     if Parent is TAdvToolPanelTab then
@@ -6895,6 +7353,43 @@ begin
 end;
 
 
+procedure TAdvToolPanel.WMPaint(var Message: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+begin
+  if not FDoubleBuffered or (Message.DC <> 0) then
+  begin
+    if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+      inherited
+    else
+      PaintHandler(Message);
+  end
+  else
+  begin
+    DC := GetDC(0);
+    MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+    ReleaseDC(0, DC);
+    MemDC := CreateCompatibleDC(0);
+    OldBitmap := SelectObject(MemDC, MemBitmap);
+    try
+      DC := BeginPaint(Handle, PS);
+      Perform(WM_ERASEBKGND, MemDC, MemDC);
+      Message.DC := MemDC;
+      WMPaint(Message);
+      Message.DC := 0;
+      BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+      EndPaint(Handle, PS);
+    finally
+      SelectObject(MemDC, OldBitmap);
+      DeleteDC(MemDC);
+      DeleteObject(MemBitmap);
+    end;
+  end;
+end;
+
+
 procedure TAdvToolPanel.WMNCHitTest(var Msg: TWMNCHitTest);
 var
   pt: TPoint;
@@ -6902,6 +7397,9 @@ begin
   inherited;
 
   if (csDesigning in ComponentState) then
+    Exit;
+
+  if Floating then
     Exit;
 
   if not Assigned(Tab) then
@@ -6986,15 +7484,25 @@ begin
   inherited;
 end;
 
+destructor TToolPanelForm.Destroy;
+begin
+  inherited;
+end;
+
 procedure TToolPanelForm.WMNCHitTest(var Msg: TWMNCHitTest);
 var
   pt: TPoint;
   atb: TAdvToolPanelTab;
 begin
-
   pt := ScreenToClient(Point(Msg.Xpos, Msg.Ypos));
 
-  atb := TAdvTooLPanelTab(Owner);
+  if not Assigned(Owner) then
+    Exit;
+
+  if not(Owner is TAdvToolPanelTab) then
+    Exit;
+
+  atb := TAdvToolPanelTab(Owner);
 
   if TAdvTooLPanelTab(Owner).Position = ppRight then
   begin

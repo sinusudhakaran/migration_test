@@ -1,11 +1,10 @@
 {*******************************************************************}
 { TWEBUPDATE Wizard component                                       }
 { for Delphi & C++Builder                                           }
-{ version 1.6                                                       }
 {                                                                   }
 { written by                                                        }
 {    TMS Software                                                   }
-{    copyright © 1998-2005                                          }
+{    copyright © 1998-2008                                          }
 {    Email : info@tmssoftware.com                                   }
 {    Web   : http://www.tmssoftware.com                             }
 {                                                                   }
@@ -53,6 +52,8 @@ type
     FAcceptLicense: string;
     FCancelButton: string;
     FFailedDownload: string;
+    FWhatsNewPopup: string;
+    FLicensePopup: string;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
@@ -83,11 +84,14 @@ type
     property TotalProgress: string read FTotalProgress write FTotalProgress;
     property UpdateComplete: string read FUpdateComplete write FUpdateComplete;
     property RestartInfo: string read FRestartInfo write FRestartInfo;
+    property WhatsNewPopup: string read FWhatsNewPopup write FWhatsNewPopup;
+    property LicensePopup: string read FLicensePopup write FLicensePopup;
   end;
 
 
   TWebUpdateWizard = class(TComponent)
   private
+    FWuWiz: TWuWiz;
     FWebUpdate: TWebUpdate;
     FCaption: string;
     FPosition: TPosition;
@@ -106,6 +110,7 @@ type
     destructor Destroy; override;
     procedure Execute;
     procedure InitLanguage(AWizard: TWuWiz; ALanguage: TWebUpdateWizardLanguage);
+    procedure CloseWizard;
   published
     property AutoStart: Boolean read FAutoStart write FAutoStart default False;
     property AutoRun: Boolean read FAutoRun write FAutoRun default False;
@@ -122,6 +127,11 @@ type
 implementation
 
 { TWebUpdateWizard }
+
+procedure TWebUpdateWizard.CloseWizard;
+begin
+  FWuWiz.Close;
+end;
 
 constructor TWebUpdateWizard.Create(AOwner: TComponent);
 begin
@@ -146,7 +156,6 @@ end;
 
 procedure TWebUpdateWizard.Execute;
 var
-  WuWiz: TWuWiz;
   WPC: TWebUpdateProgressCancel;
   WFP: TWebUpdateFileProgress;
 
@@ -154,29 +163,29 @@ begin
   if not Assigned(WebUpdate) then
     raise Exception.Create('No WebUpdate component assigned');
 
-  WuWiz := TWuWiz.Create(Self);
-  WuWiz.BorderStyle := FBorderStyle;
+  FWuWiz := TWuWiz.Create(Self);
+  FWuWiz.BorderStyle := FBorderStyle;
 
   if not BillBoard.Empty then
-    WuWiz.Billboard.Picture.Assign(BillBoard);
+    FWuWiz.Billboard.Picture.Assign(BillBoard);
 
-  WuWiz.Font.Assign(FFont);
+  FWuWiz.Font.Assign(FFont);
 
-  InitLanguage(WuWiz, Language);
+  InitLanguage(FWuWiz, Language);
 
   if FBorderStyle = bsNone then
   begin
-    WuWiz.Height := WuWiz.Shape1.Height + 2;
-    WuWiz.Width := WuWiz.Shape1.Width + 2;
+    FWuWiz.Height := FWuWiz.Shape1.Height + 2;
+    FWuWiz.Width := FWuWiz.Shape1.Width + 2;
   end
   else
   begin
-    WuWiz.Shape1.Pen.Color := clBtnFace;
-    WuWiz.Shape1.Pen.Width := 0;
+    FWuWiz.Shape1.Pen.Color := clBtnFace;
+    FWuWiz.Shape1.Pen.Width := 0;
   end;
 
-  WuWiz.AutoRun := FAutoRun;
-  WuWiz.AutoStart := FAutoStart;
+  FWuWiz.AutoRun := FAutoRun;
+  FWuWiz.AutoStart := FAutoStart;
   try
     WPC := nil;
     WFP := nil;
@@ -186,12 +195,11 @@ begin
       WFP := WebUpdate.OnFileProgress;
     end;
 
-
-    WuWiz.WebUpdate := WebUpdate;
+    FWuWiz.WebUpdate := WebUpdate;
     // traps the OnProgressCancel & OnFileProgress events
-    WuWiz.Caption := FCaption;
-    WuWiz.Position := FPosition;
-    WuWiz.ShowModal;
+    FWuWiz.Caption := FCaption;
+    FWuWiz.Position := FPosition;
+    FWuWiz.ShowModal;
 
     if Assigned(WebUpdate) then
     begin
@@ -200,7 +208,7 @@ begin
     end;
 
   finally
-    WuWiz.Free;
+    FWuWiz.Free;
   end;
 
 end;
@@ -214,7 +222,7 @@ begin
   begin
     NewLang := TWebUpdateWizardLanguage.Create(self);
     ALanguage := NewLang;
-  end;  
+  end;
 
   AWizard.WelcomeLabel.Caption := ALanguage.Welcome;
   AWizard.StartButton.Caption := ALanguage.StartButton;
@@ -247,9 +255,11 @@ begin
   AWizard.StrNoUpdate := ALanguage.NoUpdateOnServer;
   AWizard.StrNext := ALanguage.NextButton;
   AWizard.StrFailedDownload := ALanguage.FailedDownload;
+  AWizard.StrWhatsNewPopup := ALanguage.WhatsNewPopup;
+  AWizard.StrLicensePopup := ALanguage.LicensePopup;
 
   if Assigned(NewLang) then
-    NewLang.Free;  
+    NewLang.Free;
 end;
 
 procedure TWebUpdateWizard.Notification(AComponent: TComponent;
@@ -306,6 +316,8 @@ begin
     FRestartInfo := (Source as TWebUpdateWizardLanguage).RestartInfo;
     FCancelButton := (Source as TWebUpdateWizardLanguage).CancelButton;
     FFailedDownload := (Source as TWebUpdateWizardLanguage).FailedDownload;
+    FWhatsNewPopup := (Source as TWebUpdateWizardLanguage).WhatsNewPopup;
+    FLicensePopup := (Source as TWebUpdateWizardLanguage).LicensePopup;
   end;
 end;
 
@@ -338,6 +350,8 @@ begin
   FUpdateComplete := 'Update completed ...';
   FRestartInfo := 'Press restart to start the updated application.';
   FFailedDownload := 'Failed to download updates';
+  FWhatsNewPopup := 'View in Notepad';
+  FLicensePopup := 'View in Notepad';
 end;
 
 end.

@@ -1,11 +1,10 @@
 {********************************************************************}
 { TWEBDATA component                                                 }
 { for Delphi & C++Builder                                            }
-{ version 1.1                                                        }
 {                                                                    }
 { written by                                                         }
 {     TMS Software                                                   }
-{     copyright © 1999-2005                                          }
+{     copyright © 1999-2008                                          }
 {     Email: info@tmssoftware.com                                    }
 {     Web: http://www.tmssoftware.com                                }
 {                                                                    }
@@ -18,22 +17,33 @@
 
 unit WebData;
 
+{$HPPEMIT ''}
+{$HPPEMIT '#pragma link "wininet.lib"'}
+{$HPPEMIT ''}
+
+
 interface
 
 {$I TMSDEFS.INC}
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, ShellApi, IniFiles, WinInet;
+  StdCtrls, ExtCtrls, ShellApi, IniFiles, WinInet
+  {$IFDEF TMSDOTNET}
+  , System.IO, System.Runtime.InteropServices, System.Text
+  {$ENDIF}
+  ;
 
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 1; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 1; // Build nr.
+  MIN_VER = 2; // Minor version nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // 1.1.0.1 : fix in using WebDataItem.FileName
+  // 1.2.0.0 : New VCL.NET support
+  // 1.2.1.0 : Agent property added
 
 type
   TWebDataProgressEvent = procedure(Sender:TObject;iItem: Integer) of object;
@@ -100,6 +110,7 @@ type
 
   TWebData = class(TComponent)
   private
+    FAgent: string;
     FImageType: TImageType;
     FImageRefs: TStrings;
     FHyperLinks: TStrings;
@@ -128,6 +139,7 @@ type
     function ImageRefs: TStrings;
     function Hyperlinks: TStrings;
   published
+    property Agent: string read FAgent write FAgent;
     property Proxy: string read FProxy write FProxy;
     property ProxyUserID: string read FProxyUserID write FProxyUserID;
     property ProxyPassword: string read FProxyPassword write FProxyPassword;
@@ -163,7 +175,7 @@ begin
     delete(host,1,7);
   end;
 
-  while (Length(host) > 0) and not (host[1] in ['/','\']) do
+  while (Length(host) > 0) and not ((host[1] ='/') or (host[1] ='\')) do
   begin
     srvr := srvr + host[1];
     delete(host,1,1);
@@ -173,11 +185,11 @@ begin
     Result := resource
   else
   begin
-    if  (Length(resource) > 0) and (Resource[1] in ['\','/']) then
+    if  (Length(resource) > 0) and ((Resource[1] = '\') or (Resource[1] = '/')) then
       Result := srvr + resource
     else
     begin
-      while (Length(host) > 0) and not (host[Length(host)] in ['/','\']) do
+      while (Length(host) > 0) and not ( (host[Length(host)] = '/') or (host[Length(host)] = '\')) do
         Delete(host,length(host),1);
       if host = '' then
         host := '/';
@@ -194,9 +206,9 @@ end;
 
 constructor TWDInetThread.Create(AWebData:TWebData);
 begin
+  inherited Create(False);
   WebData := AWebData;
   FreeOnTerminate := True;
-  inherited Create(False);
 end;
 
 { TWebDataItem }
@@ -268,9 +280,19 @@ end;
 
 function TWebData.URLGetFile(hfile:hinternet;url,tgt:string;idx:integer):boolean;
 var
-  buf:array[0..READBUFFERSIZE-1] of char;
+  {$IFNDEF TMSDOTNET}
+  buf: array[0..READBUFFERSIZE-1] of char;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  buf: TBytes;
+  {$ENDIF}
   bufsize: dword;
+  {$IFNDEF TMSDOTNET}
   lf: file;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS: FileStream;
+  {$ENDIF}
   hintfile: hinternet;
   lpdwlen,lpdwidx,lpdword: dword;
 
@@ -282,7 +304,12 @@ begin
   outputdebugstring(pchar(url));
   {$ENDIF}
 
+  {$IFNDEF TMSDOTNET}
   hintfile := InternetOpenURL(hfile,pchar(url),nil,0,INTERNET_FLAG_RELOAD or INTERNET_FLAG_NO_CACHE_WRITE,0);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  hintfile := InternetOpenURL(hfile,url,nil,0,INTERNET_FLAG_RELOAD or INTERNET_FLAG_NO_CACHE_WRITE,0);
+  {$ENDIF}
 
   if (hintfile = nil) then
   begin
@@ -296,7 +323,12 @@ begin
 
   if (hintfile <> nil) then
   begin
+    {$IFNDEF TMSDOTNET}
     HttpQueryInfo(hintfile,HTTP_QUERY_STATUS_CODE or HTTP_QUERY_FLAG_NUMBER ,@lpdword,lpdwlen,lpdwidx);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    HttpQueryInfo(hintfile,HTTP_QUERY_STATUS_CODE or HTTP_QUERY_FLAG_NUMBER ,Intptr(lpdword),lpdwlen,lpdwidx);
+    {$ENDIF}
     if (lpdword >= 300) and (lpdword <> 500) then
     begin
       if Assigned(FOnCollectError) then
@@ -304,26 +336,48 @@ begin
       Exit;
      end;
   end;
-
+  {$IFNDEF TMSDOTNET}
   AssignFile(lf,tgt);
   Rewrite(lf,1);
+  {$ENDIF}
 
   bufsize := READBUFFERSIZE;
+  {$IFDEF TMSDOTNET}
+  SetLength(buf, READBUFFERSIZE);
+  FS := FileStream.Create(tgt,FileMode.OpenOrCreate);
+  {$ENDIF}
 
   while (bufsize > 0) do
   begin
     application.processmessages;
+    {$IFNDEF TMSDOTNET}
     if not InternetReadFile(hintfile,@buf,READBUFFERSIZE,bufsize) then break;
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if not InternetReadFile(hintfile,buf,READBUFFERSIZE,bufsize) then break;
+    {$ENDIF}
     {$IFDEF TMSDEBUG}
     outputdebugstring(pchar('read from http = '+inttostr(bufsize)));
     {$ENDIF}
     if (bufsize>0) and (bufsize<=READBUFFERSIZE) then
+    begin
+      {$IFNDEF TMSDOTNET}
       blockwrite(lf,buf,bufsize);
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      FS.Write(buf,0,READBUFFERSIZE);
+      {$ENDIF}
+    end;
 
     if (bufsize > 0) then Result := True;
   end;
 
+  {$IFNDEF TMSDOTNET}
   CloseFile(lf);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FS.Free;
+  {$ENDIF}
   InternetCloseHandle(hintfile);
 end;
 
@@ -351,7 +405,12 @@ var
   prevurl: string;
   res: Boolean;
   hpos,tpos: Integer;
+  {$IFNDEF TMSDOTNET}
   szTempName: array[0..255] of char;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  szTempName: StringBuilder;
+  {$ENDIF}
   FileName:string;
 
 begin
@@ -363,9 +422,14 @@ begin
 
   // http
   if FProxy = '' then
-    hint := InternetOpen('WebData',INTERNET_OPEN_TYPE_PRECONFIG {or INTERNET_FLAG_ASYNC},nil,nil,0)
+    hint := InternetOpen(PChar(Agent),INTERNET_OPEN_TYPE_PRECONFIG {or INTERNET_FLAG_ASYNC},nil,nil,0)
   else
-    hint := InternetOpen('WebData',INTERNET_OPEN_TYPE_PROXY {or INTERNET_FLAG_ASYNC},PChar(FProxy),nil,0);
+    {$IFNDEF TMSDOTNET}
+    hint := InternetOpen(PChar(Agent),INTERNET_OPEN_TYPE_PROXY {or INTERNET_FLAG_ASYNC},PChar(FProxy),nil,0);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    hint := InternetOpen(Agent,INTERNET_OPEN_TYPE_PROXY {or INTERNET_FLAG_ASYNC},FProxy,nil,0);
+    {$ENDIF}
 
   if hint = nil then
     Exit;
@@ -391,10 +455,19 @@ begin
 
         FileName := wd.FileName;
 
-        GetTempFileName(pchar(GetCurrentDir),'WD',0,szTempName);
 
         if FileName = '' then
+        begin
+          {$IFNDEF TMSDOTNET}
+          GetTempFileName(pchar(GetCurrentDir),'WD',0,szTempName);
           FileName := strpas(szTempName);
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          szTempName := StringBuilder.Create(READBUFFERSIZE);
+          GetTempFileName(GetCurrentDir,'WD',0,szTempName);
+          FileName := szTempName.ToString;
+          {$ENDIF}          
+        end;
           
         res := URLGetFile(hint,wd.URL,FileName,i - 1)
       end
@@ -545,6 +618,7 @@ begin
   FWebDataCollection := TWebDataCollection.Create(Self);
   FImageRefs := TStringlist.Create;
   FHyperlinks := TStringlist.Create;
+  FAgent := 'WebData';
 end;
 
 destructor TWebData.Destroy;

@@ -1,11 +1,10 @@
 {**********************************************************************}
 { TAdvComboBox component                                               }
 { for Delphi & C++Builder                                              }
-{ version 1.2                                                          }
 {                                                                      }
 { written by                                                           }
 {  TMS Software                                                        }
-{  copyright © 1996-2005                                               }
+{  copyright © 1996-2008                                               }
 {  Email : info@tmssoftware.com                                        }
 {  Web : http://www.tmssoftware.com                                    }
 {                                                                      }
@@ -36,14 +35,20 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 2; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 5; // Release nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
   // 1.1.0.1 : fixed issue with changing visibility at runtime
   // 1.2.0.0 : New FocusColor, FocusBorderColor properties added
   //         : Improved DFM property storage
   // 1.2.1.0 : Exposed ComboLabel public property
+  // 1.2.2.0 : Improved : behaviour with ParentFont = true for LabelFont
+  // 1.2.3.0 : New : property DisabledBorder added
+  // 1.2.4.0 : New : method SelectItem added
+  // 1.2.4.1 : Fixed : issue with label margin
+  // 1.2.5.0 : New : exposed Align property
+  // 1.2.5.1 : Fixed : possible issue with label positioning for large label font
 
 type
   TWinCtrl = class(TWinControl);
@@ -65,6 +70,7 @@ type
     FMouseInControl: Boolean;
     FDropWidth: integer;
     FIsWinXP: Boolean;
+    FIsThemed: Boolean;
     FButtonHover: Boolean;
     FLabelAlwaysEnabled: Boolean;
     FLabelTransparent: Boolean;
@@ -77,9 +83,9 @@ type
     FOnDropUp: TNotifyEvent;
     FFocusColor: TColor;
     FFocusBorderColor: TColor;
+    FDisabledBorder: boolean;
     FNormalColor: TColor;
     FHasFocus: Boolean;
-
     procedure SetEtched(const Value: Boolean);
     procedure SetFlat(const Value: Boolean);
     procedure SetButtonWidth(const Value: Integer);
@@ -88,7 +94,7 @@ type
     procedure DrawBorders;
     function  Is3DBorderControl: Boolean;
     function  Is3DBorderButton: Boolean;
-
+    procedure WMKeyDown(var Msg:TWMKeydown); message WM_KEYDOWN;    
     procedure CMEnter(var Message: TCMEnter); message CM_ENTER;
     procedure CMExit(var Message: TCMExit); message CM_EXIT;
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
@@ -98,6 +104,7 @@ type
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     {$IFNDEF TMSDOTNET}
     procedure WMNCPaint (var Message: TMessage); message WM_NCPAINT;
+    procedure CMParentFontChanged(var Message: TMessage); message CM_PARENTFONTCHANGED;
     {$ENDIF}
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
     procedure WMKillFocus(var Message: TWMKillFocus); message WM_KILLFOCUS;
@@ -146,6 +153,7 @@ type
     procedure Init;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     property ComboLabel: TLabel read FLabel;
+    property DisabledBorder: Boolean read FDisabledBorder write FDisabledBorder default true;
     property LabelCaption:string read GetLabelCaption write SetLabelCaption;
     property LabelPosition:TLabelPosition read FLabelPosition write SetLabelPosition default lpLeftTop;
     property LabelMargin: Integer read FLabelMargin write SetLabelMargin default 4;
@@ -153,6 +161,7 @@ type
     property LabelAlwaysEnabled: Boolean read FLabelAlwaysEnabled write SetLabelAlwaysEnabled default False;
     property LabelFont:TFont read FLabelFont write SetLabelFont;
     property Enabled: Boolean read GetEnabledEx write SetEnabledEx;
+    procedure SelectItem(AString: string);
   published
     {$IFDEF DELPHI7_LVL}
     property AutoComplete;
@@ -165,15 +174,17 @@ type
 
   TAdvComboBox = class(TAdvCustomCombo)
   published
+    property Align;
     property AutoFocus;
     property ButtonWidth;
+    property DisabledBorder;
     property Style;
     property Flat;
     property FlatLineColor;
     property FlatParentColor;
     property Etched;
     property FocusBorder;
-    property FocusBorderColor;    
+    property FocusBorderColor;
     property FocusColor;
     property Color;
     property Ctl3D;
@@ -244,11 +255,45 @@ type
 
 implementation
 
+{$IFNDEF DELPHI7_LVL}
+{$IFNDEF TMSDOTNET}
+function GetFileVersion(FileName:string): Integer;
+var
+  FileHandle:dword;
+  l: Integer;
+  pvs: PVSFixedFileInfo;
+  lptr: uint;
+  querybuf: array[0..255] of char;
+  buf: PChar;
+begin
+  Result := -1;
+
+  StrPCopy(querybuf,FileName);
+  l := GetFileVersionInfoSize(querybuf,FileHandle);
+  if (l>0) then
+  begin
+    GetMem(buf,l);
+    GetFileVersionInfo(querybuf,FileHandle,l,buf);
+    if VerQueryValue(buf,'\',Pointer(pvs),lptr) then
+    begin
+      if (pvs^.dwSignature=$FEEF04BD) then
+      begin
+        Result := pvs^.dwFileVersionMS;
+      end;
+    end;
+    FreeMem(buf);
+  end;
+end;
+{$ENDIF}
+{$ENDIF}
+
+
 { TAdvCustomCombo }
 constructor TAdvCustomCombo.Create(AOwner: TComponent);
 var
   dwVersion:Dword;
   dwWindowsMajorVersion,dwWindowsMinorVersion:Dword;
+  i: Integer;
 
 begin
   inherited;
@@ -257,6 +302,7 @@ begin
 //  FOldParentColor := inherited ParentColor;
   FFlat := False;
   FMouseInControl := False;
+  FDisabledBorder := True;
 
   dwVersion := GetVersion;
   dwWindowsMajorVersion :=  DWORD(LOBYTE(LOWORD(dwVersion)));
@@ -264,6 +310,12 @@ begin
 
   FIsWinXP := (dwWindowsMajorVersion > 5) OR
     ((dwWindowsMajorVersion = 5) AND (dwWindowsMinorVersion >= 1));
+
+  // app is linked with COMCTL32 v6 or higher -> xp themes enabled
+  i := GetFileVersion('COMCTL32.DLL');
+  i := (i shr 16) and $FF;
+  FIsThemed := (i > 5);
+    
   FButtonHover := False;
   FLabel := nil;
   FLabelFont := TFont.Create;
@@ -391,8 +443,9 @@ end;
 procedure TAdvCustomCombo.WMNCPaint(var Message: TMessage);
 begin
   inherited;
-  if FFlat then
+  if FFlat or (not Enabled and DoVisualStyles and not FDisabledBorder) then
     DrawBorders;
+
   if (FFocusBorderColor <> clNone) and (GetFocus = self.Handle) then
     DrawBorders;
 end;
@@ -404,7 +457,8 @@ begin
   inherited;
   if Message.Msg = WM_NCPAINT then
   begin
-    if FFlat then DrawBorders;
+    if FFlat or (not Enabled and DoVisualStyles and not FDisabledBorder) then
+      DrawBorders;
 
     if (FFocusBorderColor <> clNone) and (GetFocus = self.Handle) then
       DrawBorders;
@@ -455,41 +509,60 @@ var
     if DoVisualStyles then
     begin
       htheme := OpenThemeData(Handle,'combobox');
-      if IsMouseButtonDown and DroppedDown then
-        {$IFNDEF TMSDOTNET}
-        DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
-        {$ENDIF}
-        {$IFDEF TMSDOTNET}
-        DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
-        {$ENDIF}
 
-      else
+      if not Enabled then
       begin
         {$IFNDEF TMSDOTNET}
-        if not IsMouseButtonDown and FButtonHover and not DroppedDown then
-          DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
-        else
-        DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
+        DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_DISABLED,@ARect,nil)
         {$ENDIF}
         {$IFDEF TMSDOTNET}
-        if not IsMouseButtonDown and FButtonHover and not DroppedDown then
-          DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
-        else
-        DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
+        DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_DISABLED,ARect,nil)
         {$ENDIF}
-
+      end
+      else
+      begin
+        if IsMouseButtonDown and DroppedDown then
+        begin
+          {$IFNDEF TMSDOTNET}
+          DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
+          {$ENDIF}
+        end
+        else
+        begin
+          {$IFNDEF TMSDOTNET}
+          if not IsMouseButtonDown and FButtonHover and not DroppedDown then
+            DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
+          else
+          DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          if not IsMouseButtonDown and FButtonHover and not DroppedDown then
+            DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
+          else
+          DrawThemeBackground(htheme,DC,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
+          {$ENDIF}
+        end;
       end;
 
       CloseThemeData(htheme);
     end
     else
-      DrawFrameControl(DC, ARect, DFC_SCROLL, DFCS_SCROLLCOMBOBOX or DFCS_FLAT );
+    begin
+      if Enabled then      
+        DrawFrameControl(DC, ARect, DFC_SCROLL, DFCS_SCROLLCOMBOBOX or DFCS_FLAT )
+      else
+        DrawFrameControl(DC, ARect, DFC_SCROLL, DFCS_SCROLLCOMBOBOX or DFCS_INACTIVE )
+    end;
 
     ExcludeClipRect(DC, ClientWidth - FButtonWidth -4 , 0, ClientWidth +2, ClientHeight);
   end;
 
 begin
-  if not (FFlat or ( (FFocusBorderColor <> clNone) and FHasFocus)) then
+
+  if not (FFlat or ( (FFocusBorderColor <> clNone) and FHasFocus)) and not (not Enabled and DoVisualStyles and not DisabledBorder) then
   begin
     inherited;
     Exit;
@@ -540,7 +613,6 @@ var
    ARect: TRect;
    BtnFaceBrush: HBRUSH;
 begin
-
   ExcludeClipRect(DC, ClientWidth - FButtonWidth + 4, 4, ClientWidth - 4, ClientHeight - 4);
 
   GetWindowRect(Handle, ARect);
@@ -567,7 +639,18 @@ var
   ARect:TRect;
   BtnFaceBrush, WindowBrush: HBRUSH;
   OldPen: HPen;
+
 begin
+  if not Enabled and FIsThemed and not DisabledBorder then
+  begin
+    BtnFaceBrush := CreateSolidBrush(ColorToRGB($B99D7F));
+    GetWindowRect(Handle, ARect);
+    OffsetRect(ARect, -ARect.Left, -ARect.Top);
+    FrameRect(DC, ARect, BtnFaceBrush);
+    DeleteObject(BtnFaceBrush);
+    Exit;
+  end;
+
   if (FFocusBorderColor <> clNone) then
   begin
     if FHasFocus then
@@ -580,7 +663,6 @@ begin
     end;
     Exit;
   end;
-
 
   if Is3DBorderControl then
     BtnFaceBrush := CreateSolidBrush(GetSysColor(COLOR_BTNFACE))
@@ -627,7 +709,7 @@ procedure TAdvCustomCombo.DrawBorders;
 var
   DC: HDC;
 begin
-  if not (FFlat or (FFocusBorderColor <> clNone)) then
+  if Enabled and not (FFlat or (FFocusBorderColor <> clNone)) then
     Exit;
 
   DC := GetWindowDC(Handle);
@@ -672,7 +754,7 @@ end;
 
 function TAdvCustomCombo.DoVisualStyles: Boolean;
 begin
-  if FIsWinXP then
+  if FIsThemed then
     Result := IsThemeActive
   else
     Result := False;
@@ -764,21 +846,29 @@ begin
   Result.Parent:=self.parent;
   Result.FocusControl:=self;
   Result.Font.Assign(LabelFont);
+  Result.ParentFont := self.ParentFont;  
 end;
 
 
 procedure TAdvCustomCombo.UpdateLabel;
 begin
   FLabel.Transparent := FLabeltransparent;
+
+  if not ParentFont then
+    FLabel.Font.Assign(FLabelFont);
+
   case FLabelPosition of
   lpLeftTop:
     begin
       FLabel.top := self.top;
-      FLabel.left := self.left-FLabel.canvas.textwidth(FLabel.caption)-FLabelMargin;
+      FLabel.left := self.left-FLabel.Canvas.TextWidth(FLabel.caption)-FLabelMargin;
     end;
   lpLeftCenter:
     begin
-      FLabel.top := self.top+((self.height-FLabel.height) shr 1);
+      if self.Height < FLabel.Height then
+        FLabel.Top := self.Top - ((FLabel.Height - self.Height) div 2)
+      else
+        FLabel.top := self.top + ((self.height - FLabel.height) div 2);
       FLabel.left := self.left-FLabel.canvas.textwidth(FLabel.caption)-FLabelMargin;
     end;
   lpLeftBottom:
@@ -788,13 +878,16 @@ begin
     end;
   lpTopLeft:
     begin
-      FLabel.top := self.top-FLabel.height-FLabelMargin;
-      FLabel.left := self.left;
+      FLabel.top := self.Top - FLabel.Height - FLabelMargin;
+      FLabel.left := self.Left;
     end;
   lpTopCenter:
     begin
       FLabel.Top := self.top-FLabel.height-FLabelMargin;
-      FLabeL.Left := self.Left + ((self.Width-FLabel.width) shr 1);
+      if (self.Width > FLabel.width) then
+        FLabeL.Left := self.Left + ((self.Width-FLabel.width) div 2)
+      else
+        FLabeL.Left := self.Left - ((FLabel.Width - self.Width) div 2)
     end;
   lpBottomLeft:
     begin
@@ -804,7 +897,11 @@ begin
   lpBottomCenter:
     begin
       FLabel.top := self.top+self.height+FLabelMargin;
-      FLabeL.Left := self.Left + ((self.Width-FLabel.width) shr 1);
+
+      if (self.Width > FLabel.width) then
+        FLabeL.Left := self.Left + ((self.Width-FLabel.width) div 2)
+      else
+        FLabeL.Left := self.Left - ((FLabel.Width - self.Width) div 2)
     end;
   lpLeftTopLeft:
     begin
@@ -813,8 +910,12 @@ begin
     end;
   lpLeftCenterLeft:
     begin
-      FLabel.top := self.top+((self.height-FLabel.height) shr 1);
-      FLabel.left := self.left-FLabelMargin;
+      if self.Height < FLabel.Height then
+        FLabel.Top := self.Top - ((FLabel.Height - self.Height) div 2)
+      else
+        FLabel.top := self.top + ((self.height-FLabel.height) div 2);
+
+      FLabel.left := self.left - FLabelMargin;
     end;
   lpLeftBottomLeft:
     begin
@@ -822,7 +923,8 @@ begin
       FLabel.left:=self.left-FLabelMargin;
     end;
   end;
-  FLabel.Font.Assign(FLabelFont);
+
+
   FLabel.Visible := Visible;
 end;
 
@@ -844,18 +946,39 @@ begin
 
   if not LabelAlwaysEnabled and Assigned(FLabel) then
     FLabel.Enabled := Enabled;
-    
-  Init;  
+
+  Init;
 end;
+
+{$IFNDEF TMSDOTNET}
+procedure TAdvCustomCombo.CMParentFontChanged(var Message: TMessage);
+begin
+  inherited;
+  if Assigned(FLabel) and ParentFont then
+    FLabel.Font.Assign(Font);
+end;
+{$ENDIF}
+
 
 procedure TAdvCustomCombo.Init;
 begin
   FNormalColor := Color;
 end;
 
+procedure TAdvCustomCombo.SelectItem(AString: string);
+var
+  i: integer;
+begin
+  i := Items.IndexOf(Astring);
+  if (i <> -1) then
+    ItemIndex := i;
+end;
+
 procedure TAdvCustomCombo.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
 begin
   inherited;
+  if (csDestroying in ComponentState) then
+    Exit;
   if FLabel <> nil then
     UpdateLabel;
 end;
@@ -907,7 +1030,10 @@ begin
   begin
     if Assigned(FLabel) then
       if not FLabelAlwaysEnabled then
+      begin
         FLabel.Enabled := Value;
+        UpdateLabel;
+      end;
   end;
 end;
 
@@ -941,6 +1067,11 @@ begin
     FLabel.Visible := Value;
 end;
 
+
+procedure TAdvCustomCombo.WMKeyDown(var Msg: TWMKeydown);
+begin
+  inherited;
+end;
 
 procedure TAdvCustomCombo.WMKillFocus(var Message: TWMKillFocus);
 begin

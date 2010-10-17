@@ -1,9 +1,8 @@
 {************************************************************************}
 { THTMLTreeView component                                                }
 { for Delphi & C++Builder                                                }
-{ version 1.1                                                            }
 {                                                                        }
-{ Copyright © 1999-2006                                                  }
+{ Copyright © 1999-2008                                                  }
 {   TMS Software                                                         }
 {   Email : info@tmssoftware.com                                         }
 {   Web : http://www.tmssoftware.com                                     }
@@ -33,7 +32,6 @@ uses
    {$IFDEF TMSDOTNET}
    , uxTheme, Borland.Vcl.WinUtils, Types, Borland.vcl.commctrl, System.Runtime.InteropServices
    {$ENDIF}
-
    ,PictureContainer;
 
 const
@@ -43,8 +41,8 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 1; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 1; // Build nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // v1.1.0.1 : added support to switch from csTheme to csWinXP automatically on non XP machines
@@ -53,9 +51,17 @@ const
   // v1.1.0.4 : Fixed issue with HotTrack = true
   // v1.1.1.0 : Exposed MultiSelectStyle property
   // v1.1.1.1 : Fixed painting issue with HotTrack = true
+  // v1.1.1.2 : Fixed painting issue on dbl click to open node
+  // v1.1.1.3 : Fixed painting issue with images & checkbox
+  // v1.1.2.0 : New : function NodeText(node: TTreeNode): string added to return text of node without HTML tags
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TAnchorClick = procedure(Sender:TObject;Node:TTreeNode;anchor:string) of object;
 
   TCheckBoxClick = procedure(Sender:TObject;Node:TTreeNode;Check: Boolean) of object;
@@ -106,6 +112,7 @@ type
     {$IFDEF TMSDOTNET}
     procedure CNNotify(var Message: TWMNotifyTV); message CN_NOTIFY;
     {$ENDIF}
+    procedure WMLButtonDblClk(var Message: TWMLButtonDblClk); message WM_LBUTTONDBLCLK;
     procedure WMRButtonDown(var message: TWMLButtonDown); message WM_RBUTTONDOWN;
     procedure WMLButtonDown(var message: TWMLButtonDown); message WM_LBUTTONDOWN;
     procedure WMLButtonUp(var message: TWMLButtonDown); message WM_LBUTTONUP;    
@@ -163,6 +170,7 @@ type
     function GetRadioButton(Node: TTreeNode; var Check: Boolean): Boolean;
     procedure BeginUpdate;
     procedure EndUpdate;
+    function NodeText(Node: TTreeNode): string;
   published
    { Published declarations }
     {new introduced properties}
@@ -643,9 +651,9 @@ var
   a,s,fa: string;
   xsize,ysize,ml,hl,imgs: Integer;
   tn: TTreenode;
-  r,cr,hr: TRect;
+  r,cr,hr,nr: TRect;
   urlcol: TColor;
-  DefaultDraw: Boolean;
+  DefaultDraw,code: Boolean;
   DrawState: TCustomDrawState;
 
 begin
@@ -700,15 +708,31 @@ begin
       end;
     CDDS_ITEMPOSTPAINT:
       begin
-        Canvas := TCanvas.Create;
-        Canvas.Handle := TVcd.nmcd.hdc;
-        Canvas.Font.Assign(self.Font);
         tn := Items.GetNode(HTReeItem(TVcd.nmcd.dwitemSpec));
+
+        if Assigned(tn) then
+        begin
+          code := true;
+          TreeView_GetItemRect(handle, HTREEITEM(TVcd.nmcd.dwItemSpec), nr, code);
+
+          // invalid rectangle
+          TVcd.nmcd.rc.Top := nr.Top;
+          if (nr.Right = 0) or (nr.Bottom = 0) then
+            Exit;
+        end;
+
+        // invalid rectangle
+        if (TVcd.nmcd.rc.Right = 0) or (TVcd.nmcd.rc.Bottom = 0) then
+          Exit;
 
         if ShowRoot then
           TVcd.nmcd.rc.left := TVcd.nmcd.rc.left + FIndent*(tn.level + 1) - GetScrollPos(Handle,SB_HORZ)
         else
           TVcd.nmcd.rc.left := TVcd.nmcd.rc.left + FIndent*(tn.level) - GetScrollPos(Handle,SB_HORZ);
+
+        Canvas := TCanvas.Create;
+        Canvas.Handle := TVcd.nmcd.hdc;
+        Canvas.Font.Assign(self.Font);
 
         DefaultDraw := True;
         DrawState := [];
@@ -1151,6 +1175,12 @@ begin
   inherited;
 end;
 
+procedure THTMLTreeview.WMLButtonDblClk(var Message: TWMLButtonDblClk);
+begin
+  inherited;
+  Invalidate;
+end;
+
 procedure THTMLTreeview.WMLButtonDown(var message: TWMLButtonDown);
 var
   Node,PN : TTreeNode;
@@ -1398,7 +1428,7 @@ begin
     FIsWinXP := FIsWinXP and IsThemeActive;
 
   FImageCache := THTMLPictureCache.Create;
-
+  DoubleBuffered := true;
 end;
 
 
@@ -1463,6 +1493,11 @@ procedure THTMLTreeview.SetImages(const Value: TImageList);
 begin
   FImages := Value;
   Invalidate;
+end;
+
+function THTMLTreeview.NodeText(Node: TTreeNode): string;
+begin
+  Result := HTMLStrip(Node.Text);
 end;
 
 procedure THTMLTreeView.Notification(AComponent: TComponent;

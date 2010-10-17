@@ -30,6 +30,9 @@ uses Windows, Classes, StdCtrls, ExtCtrls, Controls, Messages, SysUtils,
   {$IFDEF TMSDOTNET}
   , uxTheme
   {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  , Character
+  {$ENDIF}
   ;
 
 {$R ASGSPIN.RES}
@@ -193,11 +196,13 @@ type
     procedure WMChar(var Msg: TWMKey); message WM_CHAR;
     procedure WMKeyDown(var Message: TWMKeyDown); message WM_KEYDOWN;
     procedure SetIsWinXP(const Value: Boolean);
-    procedure SetEditAign(const Value: TEditAlign);
+    procedure SetEditAlign(const Value: TEditAlign);
   protected
+    procedure DoInc(Page: boolean); virtual;
+    procedure DoDec(Page: boolean); virtual;
     function IsValidChar(var Key: Char): Boolean; virtual;
-    procedure UpClick (Sender: TObject); virtual;
-    procedure DownClick (Sender: TObject); virtual;
+    procedure UpClick(Sender: TObject); virtual;
+    procedure DownClick(Sender: TObject); virtual;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: Char); override;
     procedure CreateParams(var Params: TCreateParams); override;
@@ -240,7 +245,7 @@ type
     property Ctl3D;
     property DragCursor;
     property DragMode;
-    property EditAlign: TEditAlign read FEditAlign write SetEditAign;    
+    property EditAlign: TEditAlign read FEditAlign write SetEditAlign;
     property EditorEnabled: Boolean read FEditorEnabled write SetEditorEnabled default True;
     property Enabled;
     property Font;
@@ -691,15 +696,27 @@ end;
 procedure TAsgSpinEdit.WMKeyDown(var Message: TWMKeyDown);
 begin
   case Message.CharCode of
-  vk_up,vk_prior:
+  vk_up:
     begin
-      UpClick (Self);
+      DoInc(false);
       Message.Result := 0;
       Exit;
     end;
-  vk_down,vk_next:
+  vk_down:
     begin
-      DownClick(Self);
+      DoDec(false);
+      Message.Result := 0;
+      Exit;
+    end;
+  vk_prior:
+    begin
+      DoInc(true);
+      Message.Result := 0;
+      Exit;
+    end;
+  vk_next:
+    begin
+      DoDec(true);
       Message.Result := 0;
       Exit;
     end;
@@ -734,6 +751,18 @@ begin
     inherited KeyPress(Key);
 end;
 
+function CheckSignedNum(ch:char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := (ch in ['0'..'9','-']);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  Result := Character.IsNumber(ch) or (ch = '-');
+  {$ENDIF}
+end;
+
+
 function TAsgSpinEdit.IsValidChar(var Key: Char): Boolean;
 var
   dp: Integer;
@@ -746,7 +775,7 @@ begin
   end;
 
   Result := (Key = DecimalSeparator) or (Key = ThousandSeparator) or (Key = TimeSeparator) or (Key = DateSeparator)
-    or (Key in ['-','0'..'9']) or ((Key < #32) and (Key <> Chr(VK_RETURN)));
+    or (CheckSignedNum(Key)) or ((Key < #32) and (Key <> Chr(VK_RETURN)));
 
   if ((key = TimeSeparator) and (FSpinType <> sptTime) and
     not (((TimeSeparator = DecimalSeparator) or (TimeSeparator = ThousandSeparator) or (TimeSeparator = '-') or (TimeSeparator = '+')) and (FSpinType in [sptNormal, sptFloat]))) then
@@ -759,10 +788,10 @@ begin
   if (Key = '-') and (((pos('-',self.Text) > 0) and (pos('-',seltext) = 0)) or (SelStart > 0)) then
     Result := False;
 
-  if (FSpinType = sptNormal) and not (key in ['-','0'..'9']) then
+  if (FSpinType = sptNormal) and not (CheckSignedNum(key)) then
     Result := False;
 
-  if (FSpinType = sptFloat) and not (key in [chr(vk_escape),chr(vk_return),chr(vk_back)]) then
+  if (FSpinType = sptFloat) and not ( (key = chr(vk_escape)) or (key = chr(vk_return)) or (key = chr(vk_back))) then
   begin
     if Key = ThousandSeparator then
       Result := False;
@@ -920,14 +949,24 @@ begin
     Result := Metrics.tmHeight + (I div 4) +  2;
 end;
 
-procedure TAsgSpinEdit.UpClick (Sender: TObject);
+procedure TAsgSpinEdit.UpClick(Sender: TObject);
 begin
+  DoInc(false);
+end;
 
+procedure TAsgSpinEdit.DoInc(Page: boolean);
+begin
   if ReadOnly then MessageBeep(0)
   else
     case fSpinType of
     sptNormal: Value := Value + FIncrement;
-    sptFloat:  FloatValue := FloatValue + FIncrementFloat;
+    sptFloat:
+      begin
+        if Page then
+          FloatValue := FloatValue + 1
+        else
+          FloatValue := FloatValue + FIncrementFloat;
+      end;
     sptTime:
       begin
         if selstart>=pos(TimeSeparator,text) then
@@ -968,13 +1007,18 @@ begin
           end
           else
             DateValue := DateValue + 1;
-         end;    
+         end;
        end;
     end;
 
 end;
 
-procedure TAsgSpinEdit.DownClick (Sender: TObject);
+procedure TAsgSpinEdit.DownClick(Sender: TObject);
+begin
+  DoDec(false);
+end;
+
+procedure TAsgSpinEdit.DoDec(Page: boolean);
 var
   dt: TDateTime;
 
@@ -983,7 +1027,13 @@ begin
   else
     case fSpinType of
     sptNormal: Value := Value - FIncrement;
-    sptFloat:  FloatValue := FloatValue - FIncrementFloat;
+    sptFloat:
+      begin
+        if Page then
+          FloatValue := FloatValue - 1
+        else
+          FloatValue := FloatValue - FIncrementFloat;
+      end;
     sptTime:
       begin
         dt := TimeValue;
@@ -1113,7 +1163,7 @@ begin
   end;
 end;
 
-function TAsgSpinEdit.CheckDateValue (NewValue: tDatetime): tdatetime;
+function TAsgSpinEdit.CheckDateValue (NewValue: TDatetime): tdatetime;
 begin
   Result := NewValue;
   if (FMaxDateValue <> FMinDateValue) then
@@ -1224,7 +1274,7 @@ begin
   FButton.IsWinXP := Value;
 end;
 
-procedure TAsgSpinEdit.SetEditAign(const Value: TEditAlign);
+procedure TAsgSpinEdit.SetEditAlign(const Value: TEditAlign);
 begin
   FEditAlign := Value;
   RecreateWnd;

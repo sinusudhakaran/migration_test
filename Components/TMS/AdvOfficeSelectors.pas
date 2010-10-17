@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                   }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -44,12 +44,16 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 1; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 4; // Build nr.
 
   // revision history
 
   // v1.1.0.0  : New AdvOfficeScrollSelector added
   //           : Improved rendering of fonts with only bold styles in font selector
+  // v1.1.0.1  : Fixed : issue with OnDropDown event
+  // v1.1.0.2  : Fixed : issue with closing selector panel & drawing update
+  // v1.1.0.3  : Fixed : issue with More Colors selection from TAdvOfficeColorSelector
+  // v1.1.0.4  : Fixed : painting issue with TAdvOfficeScrollSelector
 
 
 
@@ -808,6 +812,7 @@ type
     property Caption;
     property CaptionAppearance;
     property DragGripAppearance;
+    property Enabled;
     property CloseOnSelect;
     property ColorDropDown;
     property ColorDropDownTo;
@@ -873,6 +878,7 @@ type
 
     property DropDownButton;
     property DragGripPosition;
+    property Enabled;
     property PenColor: TColor read GetPenColor write SetPenColor;
     property SelectedIndex;
     property SelectionType: TSelectionType read FSelectionType write SetSelectionType default stOffice;
@@ -919,6 +925,7 @@ type
 
     property DropDownButton;
     property DragGripPosition;
+    property Enabled;
     property ShowHint;
     //property Style;
 
@@ -976,6 +983,7 @@ type
 
     property DropDownButton;
     property DragGripPosition;
+    property Enabled;
 
     property SelectionType: TSelectionType read FSelectionType write SetSelectionType default stOffice;
     property SelectedIndex;
@@ -1021,6 +1029,7 @@ type
 
     property DropDownButton;
     property DragGripPosition;
+    property Enabled;
     property ShowHint;
     //property Style;
     property SelectedIndex;
@@ -1063,6 +1072,7 @@ type
 
     property DropDownButton;
     property DragGripPosition;
+    property Enabled;
     //property Style;
     property ShowHint;
     property SelectedIndex;
@@ -1117,6 +1127,7 @@ type
 
     property DropDownButton;
     property DragGripPosition;
+    property Enabled;
     //property Style;
     property SelectionAppearance;
 
@@ -1187,6 +1198,7 @@ type
     property DragGripAppearance;
     property DragGripPosition;
     property DropDownButton;
+    property Enabled;
     property Appearance;
     property SelectionStyle;
     property ShowSelectedColor;
@@ -1731,6 +1743,7 @@ type
     procedure CMFocusChanged(var Message: TCMFocusChanged); message CM_FOCUSCHANGED;
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
     procedure WMKillFocus(var Message: TWMSetFocus); message WM_KILLFOCUS;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure DrawUpScroller;
     procedure DrawDownScroller;
     procedure DrawScroller;
@@ -3188,6 +3201,8 @@ procedure TAdvCustomOfficeSelector.MouseUp(Button: TMouseButton;
 begin
   inherited MouseUp(Button, Shift, X, Y);
   FMouseDown := false;
+
+
   if (DropDownButton) and (Style = ssButton) and (x < Width - 8) then
   begin
     if Assigned(OnClick) then
@@ -3641,6 +3656,9 @@ procedure TAdvCustomOfficeSelector.DoDropDown;
 var
   R: TRect;
   P: TPoint;
+  {$IFDEF DELPHI6_LVL}
+  mon: TMonitor;
+  {$ENDIF}
 begin
   if not Assigned(FDropDownWindow) then
   begin
@@ -3654,6 +3672,9 @@ begin
     FDropDownWindow.Height := 100;
     FDropDownWindow.AutoScroll := true;
     FDropDownWindow.BorderWidth := 0;
+    {$IFDEF DELPHI6_LVL}
+    FDropDownWindow.DefaultMonitor := dmDesktop;
+    {$ENDIF}
     FDropDownWindow.OnHide := OnDropDownWindowHide;
     FDropDownWindow.OnClose := DropDownWindowClose;
   end;
@@ -3678,15 +3699,24 @@ begin
 {$ENDIF}
   FDropDownWindow.SetWindowSize;
 
+  P := Point(0, self.Height);
+  P := ClientToScreen(P);
+
+  {$IFDEF DELPHI6_LVL}
+  mon := Screen.MonitorFromPoint(p);
+  if Assigned(mon) then
+    R := mon.WorkAreaRect
+  else
+  {$ENDIF}
+  begin
 {$IFNDEF TMSDOTNET}
   SystemParametersInfo(SPI_GETWORKAREA, 0, @R, 0);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
   SystemParametersInfo(SPI_GETWORKAREA, 0, R, 0);
 {$ENDIF}
+  end;
 
-  P := Point(0, self.Height);
-  P := ClientToScreen(P);
 
   if R.Bottom > (P.Y + FDropDownWindow.Height + 2) then
   begin
@@ -3725,6 +3755,9 @@ begin
   FDropDownWindow.Visible := true;
   FDropDownWindow.SetFocus;
 
+  if Assigned(FOnDropDown) then
+    FOnDropDown(Self);
+
   Invalidate;
 end;
 
@@ -3732,7 +3765,8 @@ end;
 
 procedure TAdvCustomOfficeSelector.HideDropDown;
 begin
-  FDropDownWindow.Visible := false;
+  if Assigned(FDropDownWindow) then
+    FDropDownWindow.Visible := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -5574,10 +5608,16 @@ begin
   if csDesigning in ComponentState then
     Exit;
 
+  if (FItems.Count = 0) then
+    Exit;
+
+  if (Index < 0) and (Index >= FItems.Count) then
+    Exit;
+
   DTSTYLE := DT_SINGLELINE or DT_VCENTER;
 
   if FNoPrefix then
-    DTSTYLE := DTSTYLE or DT_NOPREFIX;  
+    DTSTYLE := DTSTYLE or DT_NOPREFIX;
 
   R := FItems.Items[Index].ItemRect;
   Gr := FItems.Items[Index].ItemRect;
@@ -6320,17 +6360,14 @@ end;
 procedure TAdvSelectorPanel.MouseUp(Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  OldItemIndex: Integer;  
+  OldItemIndex: Integer;
 begin
   inherited;
-  
+
   FMouseDown := false;
 
   if (FHotItemIndex = -1) and (FDownItemIndex = -1) then
     Exit;
-
-  if Assigned(FOnShouldHide) then
-    FOnShouldHide(self);
 
   if (FDownItemIndex > -1) and (FHotItemIndex > -1) then
   begin
@@ -6343,6 +6380,10 @@ begin
     if Assigned(FOnSelect) then
       FOnSelect(self);
   end;
+
+  if Assigned(FOnShouldHide) then
+    FOnShouldHide(self);
+
   FHotItemIndex := -1;
   FDownItemIndex := -1;
 end;
@@ -6352,7 +6393,6 @@ end;
 procedure TAdvSelectorPanel.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   inherited;
-
 end;
 
 //------------------------------------------------------------------------------
@@ -9400,6 +9440,7 @@ begin
     if (SelectedIndex = 41) and (Tools.Items[SelectedIndex].ItemType = itFullWidthButton) and
       not Assigned(OnSelect) then
       begin
+        FDropDownWindow.HideOnDeActivate := false;
         dlg := TColorDialog.Create(self);
         if dlg.Execute then
           SelectedColor := dlg.Color;
@@ -9407,6 +9448,7 @@ begin
 
         if Assigned(FOnSelectColor) then
           FOnSelectColor(Self, SelectedColor);
+        FDropDownWindow.HideOnDeActivate := true;
         Exit;
       end;
   end;
@@ -11054,6 +11096,7 @@ begin
   FIntegralRows := True;
   FOldDropDownHeight := 0;
   FOldDropDownWidth := 0;
+  DoubleBuffered := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -13158,6 +13201,42 @@ begin
   end;
 end;
 
+procedure TAdvCustomOfficeScrollSelector.WMPaint(var Message: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+begin
+  if not FDoubleBuffered or (Message.DC <> 0) then
+  begin
+    if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+      inherited
+    else
+      PaintHandler(Message);
+  end
+  else
+  begin
+    DC := GetDC(0);
+    MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+    ReleaseDC(0, DC);
+    MemDC := CreateCompatibleDC(0);
+    OldBitmap := SelectObject(MemDC, MemBitmap);
+    try
+      DC := BeginPaint(Handle, PS);
+      Perform(WM_ERASEBKGND, MemDC, MemDC);
+      Message.DC := MemDC;
+      WMPaint(Message);
+      Message.DC := 0;
+      BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+      EndPaint(Handle, PS);
+    finally
+      SelectObject(MemDC, OldBitmap);
+      DeleteDC(MemDC);
+      DeleteObject(MemBitmap);
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 function TAdvCustomOfficeScrollSelector.GetColor: TColor;
@@ -13482,7 +13561,7 @@ begin
 
   FIntegralRows := True;
 
-  DoubleBuffered := True;
+  //DoubleBuffered := True;
 end;
 
 //------------------------------------------------------------------------------
@@ -14015,7 +14094,7 @@ begin
   end
   else // Normal
   begin
-    if RefreshItem then
+    if RefreshItem and (Index <> ItemIndex) then
     begin
 {$IFNDEF TMSDOTNET}
       InvalidateRect(Handle, @R, True);

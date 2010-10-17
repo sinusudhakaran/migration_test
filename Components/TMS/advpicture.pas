@@ -5,7 +5,7 @@
 {                                                                           }
 { written by                                                                }
 {   TMS Software                                                            }
-{   copyright © 2001 - 2004                                                 }
+{   copyright © 2001 - 2007                                                 }
 {   Email : info@tmssoftware.com                                            }
 {   Web : http://www.tmssoftware.com                                        }
 {                                                                           }
@@ -31,10 +31,11 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
   REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 1; // Build nr.
 
   // version history
   // v1.3.1.0 : added property PopupMenu to TAdvPicture
+  // v1.3.1.1 : improved stretched painting
 
 type
   TPicturePosition = (bpTopLeft,bpTopRight,bpBottomLeft,bpBottomRight,bpCenter,
@@ -747,6 +748,7 @@ var
   xo,yo: Integer;
   rx,ry: Double;
   NewWidth,NewHeight: Integer;
+  delta: integer;
 
   function Max(a,b:Integer): Integer;
   begin
@@ -846,7 +848,9 @@ begin
 
   bpStretched:
   begin
-    Canvas.StretchDraw(Rect(0,0,Width,Height),FIPicture)
+    delta := round((Height / FIPicture.GetMaxHeight)) + 1;
+
+    Canvas.StretchDraw(Rect(0,-1,Width,Height + delta),FIPicture)
   end;
 
   bpStretchedWithAspect:

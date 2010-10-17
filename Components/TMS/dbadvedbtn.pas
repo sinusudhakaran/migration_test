@@ -1,10 +1,9 @@
 {************************************************************************}
 { TDBADVEDITBTN component                                                }
-{ for Delphi 5.0,6.0,7.0,2005,2006 & C++Builder 5.0,6.0,2006             }
-{ version 1.3                                                            }
+{ for Delphi & C++Builder                                                }
 {                                                                        }
 { written by TMS Software                                                }
-{            copyright © 2000 - 2006                                     }
+{            copyright © 2000 - 2008                                     }
 {            Email : info@tmssoftware.com                                }
 {            Web : http://www.tmssoftware.com                            }
 {                                                                        }
@@ -45,7 +44,7 @@ type
     procedure DataUpdate(Sender: TObject);
     procedure DataChange(Sender: TObject);
     procedure ActiveChange(Sender: TObject);
-    procedure WMChar(var Message: TWMKeyDown); message WM_CHAR;    
+    procedure WMChar(var Message: TWMChar); message WM_CHAR;
     procedure WMCut(var Message: TMessage); message WM_CUT;
     procedure WMPaste(var Message: TMessage); message WM_PASTE;
     procedure WMUndo(var Message: TMessage); message WM_UNDO;
@@ -175,7 +174,7 @@ begin
         //begin
           if (FDataLink.Field.DataType in [ftString {$IFDEF DELPHI4_LVL}, ftWideString{$ENDIF}]) and (MaxLength = 0) then
           MaxLength := FDataLink.Field.Size;
-          self.Text := FDataLink.Field.AsString;
+          self.Text := FDataLink.Field.Text;
         //end;
       end;
     etFloat,etMoney:
@@ -320,7 +319,12 @@ begin
 
   inherited KeyPress(Key);
 
-  if (Key in [#32..#255]) and (FDataLink.Field <> nil) and (Key <> '.') and   
+  {$IFNDEF DELPHI_UNICODE}
+  if (Key in [#32..#255]) and (FDataLink.Field <> nil) and (Key <> '.') and
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if (Key >= #32) and (FDataLink.Field <> nil) and (Key <> '.') and
+  {$ENDIF}
     not FDataLink.Field.IsValidChar(Key) or (FDataLink.ReadOnly) then
   begin
     MessageBeep(0);
@@ -492,7 +496,7 @@ begin
   end;
 end;
 
-procedure TDBAdvEditBtn.WMChar(var Message: TWMKeyDown);
+procedure TDBAdvEditBtn.WMChar(var Message: TWMChar);
 begin
   if (Message.CharCode in [32..255]) and (FDataLink.Field <> nil) and (Message.charcode <> Ord('.'))
      and (Message.charcode <> Ord(',')) and (not FDataLink.Field.IsValidChar(Chr(Message.CharCode))) then
@@ -501,7 +505,7 @@ begin
     Message.CharCode := 0;
   end;
 
-  if not ((Message.CharCode = 13) and ReturnIsTab) then
+  if not ((Message.CharCode = 13) and ReturnIsTab) and (GetKeyState(VK_CONTROL) and $8000 = 0) then
   begin
     FIsEditing := true;
     if not EditCanModify then
@@ -511,6 +515,7 @@ begin
     end;
     FIsEditing := False;
   end;
+  
   inherited;
 
 end;

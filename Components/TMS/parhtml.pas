@@ -1,10 +1,9 @@
 {**************************************************************************}
 { Parameter Mini HTML rendering engine                                     }
 { for Delphi & C++Builder                                                  }
-{ version 1.3                                                              }
 {                                                                          }
 { written by TMS Software                                                  }
-{            copyright © 1999-2006                                         }
+{            copyright © 1999-2007                                         }
 {            Email : info@tmssoftware.com                                  }
 {            Website : http://www.tmssoftware.com/                         }
 {                                                                          }
@@ -568,7 +567,7 @@ begin
   Result := '';
   for i := 1 to Length(s) do
   begin
-    if not (s[i] in [#13,#10]) then
+    if not ((s[i] = #13) or (s[i] = #10)) then
       Result := Result + s[i]
     else
       if (s[i] = #13) and break then
@@ -721,6 +720,7 @@ begin
   end;
 end;
 
+{$WARNINGS OFF}
 function HTMLDrawEx(Canvas:TCanvas; s:string; fr:TRect;
                     FImages: TImageList;
                     XPos,YPos,FocusLink,HoverLink,ShadowOffset: Integer;
@@ -788,7 +788,6 @@ var
     DeleteObject(SelectObject(Canvas.Handle,hOldFont));
   end;
 
-  {$WARNINGS OFF}
   function HTMLDrawLine(Canvas: TCanvas;var s:string;r: TRect;Calc:Boolean;
                         var w,h,subh,suph,imgali:Integer;var Align:TAlignment; var PIndent: Integer;
                         XPos,YPos:Integer;var Hotspot,ImageHotSpot:Boolean):string;
@@ -875,6 +874,7 @@ var
       end;
 
       WordLenEx := Length(su);
+      WordWidth := 0;
 
       if WordLen > 0 then
       begin
@@ -2163,7 +2163,6 @@ var
 
     Result := Res;
   end;
- {$WARNINGS ON}
 
 begin
   Anchor := False;
@@ -2338,6 +2337,7 @@ begin
   OldDrawfont.Free;
   OldCalcfont.Free;
 end;
+{$WARNINGS ON}
 
 {$IFNDEF REMOVEDRAW}
 function HTMLDraw(Canvas:TCanvas;s:string;fr:trect;
@@ -2856,8 +2856,11 @@ end;
 procedure TPopupEdit.WMActivate(var Message: TWMActivate);
 begin
   inherited;
+
   if (Message.Active = 0) and not FContext then
   begin
+//    if Assigned(OnUpdate) then
+//      OnUpdate(self,Param,Text);
     Hide;
   end;
 end;

@@ -81,6 +81,9 @@ implementation
 
 const
   // theme changed notifier
+  {$IFDEF DELPHI2007_LVL}
+  {$EXTERNALSYM WM_THEMECHANGED}
+  {$ENDIF}
   WM_THEMECHANGED = $031A;
 
 type
@@ -324,6 +327,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(158, 169, 191);
+        TabAppearance.HighLightColorSelected := $00FFFABF;
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { GlowButtonAppearance}
         GlowButtonAppearance.Color := clWhite;
         GlowButtonAppearance.ColorTo := HTMLToRgb($DCD8B9);
@@ -399,6 +409,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(164, 191, 235);
+        TabAppearance.HighLightColorSelected := $00FFFABF;
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { GlowButtonAppearance }
         GlowButtonAppearance.Color := $EEDBC8;
         GlowButtonAppearance.ColorTo := $F6DDC9;
@@ -472,6 +489,13 @@ begin
         TabAppearance.GradientMirrorHot := ggVertical;
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
+
+        TabAppearance.ShadowColor := RGB(130, 140, 100);
+        TabAppearance.HighLightColorSelected := $00FFFABF;
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
 
         { GlowButtonAppearance }
         GlowButtonAppearance.Color := $CFF0EA;
@@ -547,6 +571,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(167, 173, 188);
+        TabAppearance.HighLightColorSelected := RGB(234, 234, 240);
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
+
         { GlowButtonAppearance }
         GlowButtonAppearance.Color := $EDD4C0;
         GlowButtonAppearance.ColorTo := $00E6D8D8;
@@ -620,6 +651,13 @@ begin
         TabAppearance.GradientMirrorHot := ggVertical;
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
+
+        TabAppearance.ShadowColor := $00E8C7AE;
+        TabAppearance.HighLightColorSelected := $00FFFABF;
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
 
         RoundEdges := True;
         { GlowButtonAppearance }
@@ -699,6 +737,12 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := clBlack;
+        TabAppearance.HighLightColorSelected := $00959899; //$00FFFABF;
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00959899;
 
         RoundEdges := True;
 
@@ -773,6 +817,13 @@ begin
         TabAppearance.GradientMirrorHot := ggVertical;
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
+
+        TabAppearance.ShadowColor := $00D6CDC9;
+        TabAppearance.HighLightColorSelected := $00FFFABF;
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
 
         RoundEdges := True;
         
@@ -852,6 +903,13 @@ begin
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
 
+        TabAppearance.ShadowColor := RGB(130, 140, 100);
+        TabAppearance.HighLightColorSelected := $00FFFABF;
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00FDF4ED;
+
         { GlowButtonAppearance }
         GlowButtonAppearance.Color := clWhite;
         GlowButtonAppearance.ColorTo := $DFEDF0;
@@ -927,6 +985,13 @@ begin
         TabAppearance.GradientMirrorHot := ggVertical;
         TabAppearance.GradientMirrorSelected := ggVertical;
         TabAppearance.GradientSelected := ggVertical;
+
+        TabAppearance.ShadowColor := RGB(170, 167, 161);
+        TabAppearance.HighLightColorSelected := $00FFFABF;
+        //TabAppearance.HighLightColorSelected := $0063CCF8;
+        TabAppearance.HighLightColorSelectedHot := $00BDFFFF;
+        TabAppearance.HighLightColorDown := $00FFFBD0;
+        TabAppearance.HighLightColorHot := $00F7F4F3;
 
         { GlowButtonAppearance }
         GlowButtonAppearance.Color := clWhite;

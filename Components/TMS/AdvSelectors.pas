@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                   }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2004 - 2005                                        }
+{            copyright © 2004 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -25,6 +25,9 @@ interface
 uses
   Classes, Windows, Graphics, Controls, Messages, ExtCtrls, SysUtils, ImgList, Forms,
   Math, Dialogs
+{$IFNDEF TMSDOTNET}
+  , ACXPVS
+{$ENDIF}  
 {$IFDEF TMSDOTNET}
   , uxTheme, System.Text, WinUtils, Types
 {$ENDIF}
@@ -36,8 +39,8 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 3; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 5; // Release nr.
+  BLD_VER = 2; // Build nr.
 
   // revision history
   // 1.2.0.1 : ShowDropDown, HideDropDown methods added in AdvXXXSelectors
@@ -47,11 +50,16 @@ const
   // 1.3.2.0 : Added Whidbey style
   // 1.3.2.1 : ShowHint exposed in TAdvFontCombo
   // 1.3.3.0 : Added property TextTable, TextCaption to TAdvTableSelector
+  // 1.3.4.0 : Added HotItemIndex in public section of TAdvSelectorPanel
+  // 1.3.4.1 : Fixed : issue with SelectedColor = clNone in TAdvColorSelector
+  // 1.3.5.0 : New : style esXP added
+  // 1.3.5.1 : Fixed : issue with width initialization
+  // 1.3.5.2 : Improved : issue with alignment on caption of TAdvColorSelector
 
 
 type
   TAdvSelectorStyle = (ssButton, ssCombo {, ssCheck});
-  TAdvAppearanceStyle = (esOffice2003Blue, esOffice2003Silver, esOffice2003Olive, esOffice2003Classic, esWhidbey, esCustom);
+  TAdvAppearanceStyle = (esOffice2003Blue, esOffice2003Silver, esOffice2003Olive, esOffice2003Classic, esWhidbey, esCustom, esXP);
   TAdvButtonState = (absUp, absDown, absDropDown);
   TGradientDirection = (gdVertical, gdHorizontal);
   TSelectorItemType = (itAutoSizeButton, itFullWidthButton);
@@ -214,6 +222,7 @@ type
     destructor Destroy; override;
     property Items: TAdvSelectorItems read FItems write SetItems;
     property ItemIndex: integer read FItemIndex write SetItemIndex;
+    property HotItemIndex: integer read FHotItemIndex;
   published
     property BorderColor: TColor read FBorderColor write SetBorderColor default clNone;
     property BorderDownColor: TColor read FBorderDownColor write FBorderDownColor default clNone;
@@ -475,6 +484,7 @@ type
     FOldForeGroundImgColor: TColor;
     FOldBkGroundImgColor: TColor;
     FStretchImageDraw: Boolean;
+    FIsThemed: boolean;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure CMTextChanged(var Message: TMessage); message CM_TEXTCHANGED;
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
@@ -542,6 +552,7 @@ type
     procedure ThemeAdapt;
     procedure SetAutoThemeAdapt(const Value: Boolean);
     function GetVersionNr: Integer; virtual;
+    function DoVisualStyles: boolean;
 
     procedure ChangeImagesColor(ForeGColor, BkGColor: TColor);
     property TwoColorImages: Boolean read FTwoColorImages write SetTwoColorImages;
@@ -1018,6 +1029,8 @@ type
   TAdvColorSelector = class(TAdvCustomColorSelector)
   protected
     procedure Initialize; override;
+  public
+    property SelectedIndex;
   published
     property SelectionStyle;
     property ShowSelectedColor;
@@ -1247,6 +1260,7 @@ const
 type
   XPColorScheme = (xpNone, xpBlue, xpGreen, xpGray);
 
+
 {$IFNDEF TMSDOTNET}
 var
   GetCurrentThemeName: function(pszThemeFileName: PWideChar;
@@ -1255,8 +1269,6 @@ var
     cchMaxColorChars: Integer;
     pszSizeBuff: PWideChar;
     cchMaxSizeChars: Integer): THandle cdecl stdcall;
-
-  IsThemeActive: function: BOOL cdecl stdcall;
 {$ENDIF}
 
 {$IFNDEF TMSDOTNET}
@@ -1265,6 +1277,7 @@ function CurrentXPTheme: XPColorScheme;
 var
   FileName, ColorScheme, SizeName: WideString;
   hThemeLib: THandle;
+  IsThemeActive: function: BOOL cdecl stdcall;
 begin
   hThemeLib := 0;
   Result := xpNone;
@@ -1330,6 +1343,40 @@ begin
   end;
 end;
 {$ENDIF}
+
+//----------------------------------------------------------------- GetFileVersion
+{$IFNDEF DELPHI7_LVL}
+{$IFNDEF TMSDOTNET}
+function GetFileVersion(FileName:string): Integer;
+var
+  FileHandle:dword;
+  l: Integer;
+  pvs: PVSFixedFileInfo;
+  lptr: uint;
+  querybuf: array[0..255] of char;
+  buf: PChar;
+begin
+  Result := -1;
+
+  StrPCopy(querybuf,FileName);
+  l := GetFileVersionInfoSize(querybuf,FileHandle);
+  if (l>0) then
+  begin
+    GetMem(buf,l);
+    GetFileVersionInfo(querybuf,FileHandle,l,buf);
+    if VerQueryValue(buf,'\',Pointer(pvs),lptr) then
+    begin
+      if (pvs^.dwSignature=$FEEF04BD) then
+      begin
+        Result := pvs^.dwFileVersionMS;
+      end;
+    end;
+    FreeMem(buf);
+  end;
+end;
+{$ENDIF}
+{$ENDIF}
+
 
 //----------------------------------------------------------------- DrawGradient
 
@@ -1412,6 +1459,8 @@ end;
 { TAdvCustomSelector }
 
 constructor TAdvCustomSelector.Create(AOwner: TComponent);
+var
+  i: integer;
 begin
   inherited;
   FGlyph := TBitmap.Create;
@@ -1420,6 +1469,11 @@ begin
   FGlyphDown := TBitmap.Create;
   FGlyphDisabled := TBitmap.Create;
   FGlyphShade := TBitmap.Create;
+
+  // app is linked with COMCTL32 v6 or higher -> xp themes enabled
+  i := GetFileVersion('COMCTL32.DLL');
+  i := (i shr 16) and $FF;
+  FIsThemed := (i > 5);
 
   if not (csDesigning in ComponentState) then
   begin
@@ -1976,6 +2030,16 @@ end;
 
 //------------------------------------------------------------------------------
 
+function TAdvCustomSelector.DoVisualStyles: Boolean;
+begin
+  if FIsThemed then
+    Result := IsThemeActive
+  else
+    Result := False;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvCustomSelector.DrawComboButton;
 var
   R, R2, BtnR, CapR: TRect;
@@ -1991,6 +2055,71 @@ var
     Canvas.Pixels[ArP.X + 2, ArP.Y + 2] := ArClr;
   end;
 
+  procedure DrawButton;
+  var
+    ARect: TRect;
+    htheme: THandle;
+  begin
+    GetWindowRect(Handle, ARect);
+    OffsetRect(ARect, -ARect.Left, -ARect.Top);
+    Inc(ARect.Left, ClientWidth - FDropDownBtnWidth);
+    InflateRect(ARect, -1, -1);
+
+    if DoVisualStyles then
+    begin
+      htheme := OpenThemeData(Handle,'combobox');
+
+      if not Enabled then
+      begin
+        {$IFNDEF TMSDOTNET}
+        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_DISABLED,@ARect,nil)
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_DISABLED,ARect,nil)
+        {$ENDIF}
+      end
+      else
+      begin
+        if FMouseDown and (state = absUp) then
+        begin
+          {$IFNDEF TMSDOTNET}
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
+          {$ENDIF}
+        end
+        else
+        begin
+          {$IFNDEF TMSDOTNET}
+          if not FMouseDown and FMouseInControl and not (state = absDown) then
+            DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
+          else
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          if not FMouseDown and FMouseInControl and not (state = absDown) then
+            DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
+          else
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
+          {$ENDIF}
+        end;
+      end;
+
+      CloseThemeData(htheme);
+    end
+    else
+    begin
+      if Enabled then
+        DrawFrameControl(Canvas.Handle, ARect, DFC_SCROLL, DFCS_SCROLLCOMBOBOX or DFCS_FLAT )
+      else
+        DrawFrameControl(Canvas.Handle, ARect, DFC_SCROLL, DFCS_SCROLLCOMBOBOX or DFCS_INACTIVE )
+    end;
+
+    //ExcludeClipRect(Canvas.Handle, ClientWidth - FButtonWidth -4 , 0, ClientWidth +2, ClientHeight);
+  end;
+
+
 begin
   R := Rect(0, 0, Width, Height);
 
@@ -2002,6 +2131,20 @@ begin
 
     AP.X := BtnR.Left + ((BtnR.Right - BtnR.Left - 5) div 2) + 1;
     AP.Y := BtnR.Top + ((BtnR.Bottom - BtnR.Top - 3) div 2) + 1;
+
+    if AppearanceStyle = esXP then
+    begin
+      Canvas.Brush.Style := bsSolid;
+      Canvas.Brush.Color := clWindow;
+      Canvas.Pen.Color := BorderColor;
+      Canvas.Rectangle(R.Left, R.Top, R.Right, R.Bottom);
+
+      DrawButton;
+
+      DrawGlyphAndCaption(Glyph, R2);
+      Exit;
+    end;
+
 
     if state = absUp then
     begin
@@ -2092,9 +2235,9 @@ begin
       end;
 
     end
-    else if State = absDropDown then
+    else
+    if State = absDropDown then
     begin // DropDown State
-
       Canvas.Pen.Color := clWhite;
       Canvas.Brush.Color := clWhite;
       Canvas.Rectangle(R.Left, R.Top, R.Right, R.Bottom);
@@ -2117,6 +2260,7 @@ begin
         Canvas.MoveTo(BtnR.Left, R.Top);
         Canvas.LineTo(BtnR.Left, R.Bottom);
       end;
+      
       {
       if not Glyph.Empty then
         CapR.Left:= DrawGlyph(Glyph, R2);
@@ -2125,14 +2269,11 @@ begin
       if Caption <> '' then
         DrawText(Canvas.Handle, PChar(Caption),-1, CapR, DT_SINGLELINE or DT_VCENTER);
       }
+
       DrawGlyphAndCaption(Glyph, R2);
-
       DrawArrow(AP, clBlack);
-
     end;
-
   end;
-
 end;
 
 //------------------------------------------------------------------------------
@@ -2374,6 +2515,15 @@ end;
 procedure TAdvCustomSelector.SetStyle(const Value: TAdvSelectorStyle);
 begin
   FStyle := Value;
+
+  if (csDesigning in ComponentState) and not (csLoading in ComponentState) then
+  begin
+    if Value = ssButton then
+      Width := 23
+    else
+      Width := 128;  
+  end;
+
   Invalidate;
 end;
 
@@ -2401,6 +2551,7 @@ procedure TAdvCustomSelector.SetAppearanceStyle(
   const Value: TAdvAppearanceStyle);
 begin
   FAppearanceStyle := Value;
+  FDropDownBtnWidth := 12;
   case FAppearanceStyle of
     esOffice2003Blue:
       begin
@@ -2537,6 +2688,54 @@ begin
     esCustom:
       begin
         AutoThemeAdapt := false;
+      end;
+    esXP:
+      begin
+        Color := clBtnFace;
+        ColorTo := clNone;
+
+        ColorSelected := $DED7D6;
+        ColorSelectedTo := clNone;
+
+        ColorDown := $B59584;
+        ColorDownTo := clNone; //$B59285;
+
+        ColorHot := $D6BEB5;
+        ColorHotTo := clNone; //$D2BDB6;
+
+        ColorSelectionHot := $D6BEB5; //RGB(246, 240, 216);
+        ColorSelectionHotTo := clNone;
+
+        ColorSelectionDown := $DED7D6; // RGB(133, 146, 181);
+        ColorSelectionDownTo := clNone;
+
+        BorderColor := clNone;
+
+        if FIsThemed and (Style = ssCombo) then
+        begin
+          BorderColor := $B99D7F;
+        end;
+        
+        if not FIsThemed and (Style = ssCombo) then
+        begin
+          BorderColor := clBlack;
+        end;
+
+        if FIsThemed  then
+        begin
+          BorderHotColor := $B99D7F;
+          BorderDropDownColor := $B99D7F;
+        end
+        else
+        begin
+          BorderHotColor := clBlack;
+          BorderDropDownColor := clBlack;
+        end;
+
+
+
+        AutoThemeAdapt := false;
+        FDropDownBtnWidth := 18;
       end;
   end;
 end;
@@ -6495,7 +6694,7 @@ begin
   begin
     if not aGlyph.Empty then
     begin
-      if ShowSelectedColor then
+      if ShowSelectedColor and (SelectedColor <> clNone) then
       begin
         CapR.Left := DrawGlyph(Glyph, Rect(R.Left, R.Top, R.Right, R.Bottom - 5));
         CapR.Bottom := CapR.Bottom - 5;
@@ -6510,7 +6709,7 @@ begin
     end
     else
     begin
-      if ShowSelectedColor then
+      if ShowSelectedColor and (SelectedColor <> clNone) then
       begin
         if (Caption = '') then
         begin
@@ -6536,9 +6735,10 @@ begin
     DrawText(Canvas.Handle, Caption, -1, CapR, DT_SINGLELINE or DT_CENTER or DT_VCENTER);
 {$ENDIF}
   end
-  else if Style = ssCombo then
+  else
+  if Style = ssCombo then
   begin
-    if {(SelectedIndex >= 0) and }(Caption = '') then
+    if {(SelectedIndex >= 0) and }(Caption = '') and (SelectedColor <> clNone) then
     begin
       Canvas.Pen.Color := clBlack;
       Canvas.Brush.Color := SelectedColor;
@@ -6552,6 +6752,8 @@ end;
 
 procedure TAdvCustomColorSelector.SelectorPanelOnDrawItem(Sender: TObject; Index: integer;
   R: TRect);
+var
+  R1: TRect;
 begin
   if FSelectorPanel.Items.Items[Index].ItemType = itAutoSizeButton then
   begin
@@ -6571,18 +6773,23 @@ begin
       FSelectorPanel.Canvas.Rectangle(R.Left + 4, R.Top + 4, R.Left + 16, R.Top + 16);
     end;
     FSelectorPanel.Canvas.Brush.Style := bsClear;
+
+    R1 := R;
+    R1.Left := R1.Left + 21; // We must align text in the remaining free space
+
+    if (FSelectorPanel.Items.Items[Index].Caption <> '') then
+    case FSelectorPanel.Items.Items[Index].CaptionAlignment of
 {$IFNDEF TMSDOTNET}
-    if (FSelectorPanel.Items.Items[Index].CaptionAlignment = taCenter) and (FSelectorPanel.Items.Items[Index].Caption <> '') then
-      DrawText(FSelectorPanel.Canvas.Handle, PChar(FSelectorPanel.Items.Items[Index].Caption), -1, R, DT_SINGLELINE or DT_VCENTER or DT_CENTER)
-    else if (FSelectorPanel.Items.Items[Index].CaptionAlignment = taRightJustify) and (FSelectorPanel.Items.Items[Index].Caption <> '') then
-      DrawText(FSelectorPanel.Canvas.Handle, PChar(FSelectorPanel.Items.Items[Index].Caption), -1, R, DT_SINGLELINE or DT_VCENTER);
+    taCenter: DrawText(FSelectorPanel.Canvas.Handle, PChar(FSelectorPanel.Items.Items[Index].Caption), -1, R, DT_SINGLELINE or DT_VCENTER or DT_CENTER);
+    taRightJustify: DrawText(FSelectorPanel.Canvas.Handle, PChar(FSelectorPanel.Items.Items[Index].Caption), -1, R, DT_SINGLELINE or DT_VCENTER or DT_RIGHT);
+    taLeftJustify: DrawText(FSelectorPanel.Canvas.Handle, PChar(FSelectorPanel.Items.Items[Index].Caption), -1, R1, DT_SINGLELINE or DT_VCENTER);
 {$ENDIF}
 {$IFDEF TMSDOTNET}
-    if (FSelectorPanel.Items.Items[Index].CaptionAlignment = taCenter) and (FSelectorPanel.Items.Items[Index].Caption <> '') then
-      DrawText(FSelectorPanel.Canvas.Handle, FSelectorPanel.Items.Items[Index].Caption, -1, R, DT_SINGLELINE or DT_VCENTER or DT_CENTER)
-    else if (FSelectorPanel.Items.Items[Index].CaptionAlignment = taRightJustify) and (FSelectorPanel.Items.Items[Index].Caption <> '') then
-      DrawText(FSelectorPanel.Canvas.Handle, FSelectorPanel.Items.Items[Index].Caption, -1, R, DT_SINGLELINE or DT_VCENTER);
+    taCenter: DrawText(FSelectorPanel.Canvas.Handle, FSelectorPanel.Items.Items[Index].Caption, -1, R, DT_SINGLELINE or DT_VCENTER or DT_CENTER);
+    taRightJustify: DrawText(FSelectorPanel.Canvas.Handle, FSelectorPanel.Items.Items[Index].Caption, -1, R, DT_SINGLELINE or DT_VCENTER or DT_RIGHT);
+    taLeftJustify: DrawText(FSelectorPanel.Canvas.Handle, FSelectorPanel.Items.Items[Index].Caption, -1, R1, DT_SINGLELINE or DT_VCENTER);
 {$ENDIF}
+    end;
   end;
 end;
 

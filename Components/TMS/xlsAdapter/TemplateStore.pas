@@ -1,6 +1,12 @@
 unit TemplateStore;
 {$IFDEF LINUX}{$INCLUDE ../FLXCOMPILER.INC}{$ELSE}{$INCLUDE ..\FLXCOMPILER.INC}{$ENDIF}
 
+{$IFDEF ConditionalExpressions}
+      {$if CompilerVersion >= 18}
+         {$DEFINE BCB2006UP}
+      {$ifend}
+{$ENDIF}
+
 interface
 {$R XlsTemplateStore.res}
 uses
@@ -56,8 +62,10 @@ type
   TXlsTemplateStore = class(TXlsBaseTemplateStore)
   private
     FCompress: boolean;
+    FCaseInsensitive: boolean;
     FRefreshPath: string;
     procedure SetCompress(const Value: boolean);
+    function DoUp(s: string): string;
     { Private declarations }
   protected
     FTemplates: TXlsTemplateList;
@@ -76,6 +84,7 @@ type
     { Published declarations }
     property Templates: TXlsTemplateList read FTemplates write FTemplates;
     property Compress: boolean read FCompress write SetCompress;
+    property CaseInsensitive: boolean read FCaseInsensitive write FCaseInsensitive default false;
     property RefreshPath: string read FRefreshPath write FRefreshPath;
 
     //PENDING:AssignTo
@@ -171,7 +180,11 @@ procedure TXlsTemplate.SetFileName(const Value: TFileName);
 begin
   FStorages.LoadFrom(Value);
   FFileName := ExtractFileName(Value);
-  FModifiedDate:=FileDateToDateTime(FileAge(Value));
+  {$IFDEF BCB2006UP}
+     FileAge(Value, FModifiedDate);
+  {$ELSE}
+     FModifiedDate:=FileDateToDateTime(FileAge(Value));
+  {$ENDIF}
 end;
 
 procedure TXlsTemplate.WriteData(Stream: TStream);
@@ -206,12 +219,19 @@ begin
   inherited;
 end;
 
+function TXlsTemplateStore.DoUp(s: string): string;
+begin
+  if FCaseInsensitive then Result := UpperCase(s) else Result := s;
+end;
+
 function TXlsTemplateStore.GetStorages(Name: String): TXlsStorageList;
 var
   i: integer;
 begin
   Name:= ExtractFileName(Name);
-  for i:=0 to Templates.Count -1 do if Templates[i].FileName=Name then
+  if FCaseInsensitive then Name := UpperCase(Name);
+
+  for i:=0 to Templates.Count -1 do if DoUp(Templates[i].FileName)=Name then
   begin
     Result:=Templates[i].Storages;
     exit;
@@ -223,14 +243,22 @@ function TXlsTemplateStore.IsUpToDate: boolean;
 var
   FileName: string;
   i: integer;
+  {$IFDEF BCB2006UP}
+  Modified: TDateTime;
+  {$ENDIF}
 begin
   Result:=false;
   for i:=0 to Templates.Count-1 do
   begin
     FileName:=IncludeTrailingPathDelimiter(RefreshPath)+Templates[i].FileName;
     if not FileExists(FileName) then exit;
-    if FileAge(FileName)<> DateTimeToFileDate(Templates[i].ModifiedDate) then //We compare integers, not doubles
-      exit;
+
+    {$IFDEF BCB2006UP}
+       FileAge(FileName, Modified);
+       if Modified <> Templates[i].ModifiedDate then exit;
+    {$ELSE}
+       if FileAge(FileName) <> DateTimeToFileDate(Templates[i].ModifiedDate) then exit;
+    {$ENDIF}
   end;
   Result:=true;
 end;
@@ -243,7 +271,7 @@ var
 begin
   NewTemplate:=(Templates.Add as TXlsTemplate);
 
-  DocIN:= TOle2Storage.Create('', Ole2_Read, aStream);
+  DocIN:= TOle2Storage.Create('', Ole2_Read, false, aStream);
   try
     NewTemplate.Storages.LoadStorage(DocIN);
   finally

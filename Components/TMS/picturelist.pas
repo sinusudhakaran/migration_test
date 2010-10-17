@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TPictureList component                                                    }
 { for Delphi & C++Builder                                                   }
-{ version 1.0 - rel. June 2002                                              }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2002                                               }
+{            copyright © 2002 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -73,7 +72,7 @@ type
     constructor Create(AOwner:TPictureList);
     function Add:TThumbnail;
     function Insert(index:integer): TThumbnail;
-    property Items[Index: Integer]: TThumbnail read GetItem write SetItem;
+    property Items[Index: Integer]: TThumbnail read GetItem write SetItem; default;
   end;
 
   TThumbnailOrientation = (toVertical, toHorizontal);
@@ -614,5 +613,10 @@ begin
   else
     inherited;
 end;
+
+
+{$IFDEF FREEWARE}
+{$I TRIAL.INC}
+{$ENDIF}
 
 end.

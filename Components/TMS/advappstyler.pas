@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TMS TAdvFormStyler & TAdvAppStyler component                            }
 { for Delphi & C++Builder                                                 }
-{ version 1.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright ©  2006                                             }
+{           copyright ©  2006 - 2007                                      }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -22,12 +21,12 @@ unit AdvAppStyler;
 interface
 
 uses
-  Classes, AdvStyleIF, Forms, Windows, SysUtils, Controls, Messages;
+  Classes, AdvStyleIF, Forms, Windows, SysUtils, Controls, Messages, Dialogs;
 
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 1; // Minor version nr.
-  REL_VER = 4; // Release nr.
+  MIN_VER = 2; // Minor version nr.
+  REL_VER = 0; // Release nr.
   BLD_VER = 1; // Build nr.
 
   // version history
@@ -38,6 +37,8 @@ const
   // 1.1.3.0 : Added capability to adapt theme programmatically at runtime by setting AutoThemeAdapt
   // 1.1.4.0 : Added support to handle frames in frames
   // 1.1.4.1 : Fixed issue with AutoThemeAdapt
+  // 1.2.0.0 : New : Added event OnApplyStyle in TAdvFormStyler to allow excluding components from being styled
+  // 1.2.0.1 : Fixed : issue with form inheritance
 
 type
   TAdvFormStyler = class;
@@ -69,6 +70,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
     procedure RegisterFormStyler(AFormStyler: TAdvFormStyler);
     procedure UnRegisterFormStyler(AFormStyler: TAdvFormStyler);
     function GetVersionNr: integer;
@@ -79,6 +81,8 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
+  TApplyStyleEvent = procedure(Sender: TObject; AComponent: TComponent; var Allow:boolean) of object;
+
   TAdvFormStyler = class(TComponent)
   private
     FStyle: TTMSStyle;
@@ -86,18 +90,20 @@ type
     FOnChange: TNotifyEvent;
     FAutoThemeAdapt: boolean;
     FNotifier: TThemeNotifierWindow;
+    FOnApplyStyle: TApplyStyleEvent;
     procedure SetStyle(const Value: TTMSStyle);
     procedure SetAppStyle(const Value: TAdvAppStyler);
     function GetVersion: string;
     procedure SetVersion(const Value: string);
     procedure ThemeChanged(Sender: TObject);
     procedure SetAutoThemeAdapt(const Value: boolean);
-  protected
+  protected                                          
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
   public
     procedure Loaded; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
     procedure ApplyStyle;
     procedure ApplyStyleToForm(Form: TCustomForm; AStyle:TTMSStyle);
     procedure ApplyStyleToFrame(Frame: TCustomFrame; AStyle:TTMSStyle);
@@ -106,6 +112,7 @@ type
     property AutoThemeAdapt: boolean read FAutoThemeAdapt write SetAutoThemeAdapt;
     property Style: TTMSStyle read FStyle write SetStyle default tsCustom;
     property AppStyle: TAdvAppStyler read FAppStyle write SetAppStyle;
+    property OnApplyStyle: TApplyStyleEvent read FOnApplyStyle write FOnApplyStyle;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property Version: string read GetVersion write SetVersion stored false;
   end;
@@ -248,11 +255,19 @@ procedure TAdvFormStyler.ApplyStyleToForm(Form: TCustomForm; AStyle: TTMSStyle);
 var
   i: integer;
   tmsif: ITMSStyle;
+  allow: boolean;
 begin
   for i := 0 to Form.ComponentCount - 1 do
   begin
     if Form.Components[i].GetInterface(ITMSStyle, tmsif) then
-      tmsif.SetComponentStyle(AStyle);
+    begin
+      allow := true;
+      if Assigned(FOnApplyStyle) then
+        FOnApplyStyle(Self, Form.Components[i],allow);
+
+      if allow then
+        tmsif.SetComponentStyle(AStyle);
+    end;
   end;
 end;
 
@@ -260,20 +275,35 @@ procedure TAdvFormStyler.ApplyStyleToFrame(Frame: TCustomFrame; AStyle: TTMSStyl
 var
   i: integer;
   tmsif: ITMSStyle;
+  allow: boolean;
 begin
   for i := 0 to Frame.ComponentCount - 1 do
   begin
     if Frame.Components[i].GetInterface(ITMSStyle, tmsif) then
-      tmsif.SetComponentStyle(AStyle);
+    begin
+      allow := true;
+      if Assigned(FOnApplyStyle) then
+        FOnApplyStyle(Self, Frame.Components[i],allow);
+
+      if allow then
+        tmsif.SetComponentStyle(AStyle);
+    end;
 
     if Frame.Components[i] is TCustomFrame then
     begin
       ApplyStyleToFrame(TCustomFrame(Frame.Components[i]), AStyle);
     end;
-
   end;
 end;
 
+procedure TAdvFormStyler.Assign(Source: TPersistent);
+begin
+  if (Source is TAdvFormStyler) then
+  begin
+    AutoThemeAdapt := (Source as TAdvFormStyler).AutoThemeAdapt;
+    Style := (Source as TAdvFormStyler).Style;
+  end;
+end;
 
 constructor TAdvFormStyler.Create(AOwner: TComponent);
 var
@@ -304,7 +334,7 @@ destructor TAdvFormStyler.Destroy;
 begin
   if Assigned(FAppStyle) and not (csDesigning in ComponentState) then
     FAppStyle.UnRegisterFormStyler(Self);
-     
+
   inherited;
 end;
 
@@ -353,9 +383,7 @@ begin
 
   if (AOperation = opInsert) then
   begin
-//    ApplyStyle;
   end;
-
 end;
 
 procedure TAdvFormStyler.SetAppStyle(const Value: TAdvAppStyler);
@@ -404,7 +432,7 @@ begin
   if (FStyle <> Value) then
   begin
     FStyle := Value;
-    
+
     if (Value <> tsCustom) then
     begin
       ApplyStyle;
@@ -445,6 +473,15 @@ end;
 
 
 { TAdvAppStyler }
+
+procedure TAdvAppStyler.Assign(Source: TPersistent);
+begin
+  if (Source is TAdvAppStyler) then
+  begin
+    Style := (Source as TAdvAppStyler).Style;
+    AutoThemeAdapt := (Source as TAdvAppStyler).AutoThemeAdapt;
+  end;
+end;
 
 constructor TAdvAppStyler.Create(AOwner: TComponent);
 begin

@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                   }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -35,7 +35,7 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
-  REL_VER = 2; // Release nr.
+  REL_VER = 6; // Release nr.
   BLD_VER = 0; // Build nr.
 
   // version history
@@ -45,6 +45,18 @@ const
   // v1.0.0.2 : exposed TabOrder in AdvOfficeSelector
   // v1.0.1.0 : New support for Office 2007 silver style added
   // v1.0.2.0 : Added property AutoResetFocus to TAdvCustomOfficeComboBox
+  // v1.0.2.1 : Fixed issue with & display in items
+  // v1.0.2.2 : Fixed issue with ItemIndex during OnChange event
+  // v1.0.2.3 : Fixed issue with drawing
+  // v1.0.2.4 : Fixed issue with bold-italic only fonts in AdvOfficeFontSelector
+  // v1.0.3.0 : New : events OnEnter, OnExit exposed
+  // v1.0.3.1 : Fixed : issue with csDropDown mode and text entry
+  // v1.0.3.2 : Fixed issue with keyboard handling for csDropDownlist style
+  // v1.0.4.0 : Improved : exposed Anchors property
+  // v1.0.4.1 : Fixed issue with ItemIndex update from OnChange event
+  // v1.0.4.2 : Improved : protection for GDI+ font creation issue
+  // v1.0.5.0 : New : mousewheel support in TAdvOfficeComboBox & descendent components
+  // v1.0.6.0 : New : exposed methods ShowDropDown, HideDropDown  
 
 
 
@@ -271,8 +283,6 @@ type
     procedure ListBoxMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure ListBoxKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ListBoxOnEnter(Sender: TObject);
-    procedure ShowDropDown;
-    procedure HideDropDown;
     procedure LookUpText;
     function GetVersionNr: Integer; virtual;
     procedure SetButton(const Value: TAdvComboBtn);
@@ -294,6 +304,7 @@ type
     procedure SetVersion(const Value: string);
     procedure SetSelectionAppearance(const Value: TSelectionAppearance);
     procedure SetAntiAlias(const Value: TAntiAlias);
+    procedure ShowDropDownInt;    
   protected
     procedure SetEditRect;
     procedure Loaded; override;
@@ -303,6 +314,9 @@ type
     procedure WndProc(var Message: TMessage); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): boolean; override;
+    function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): boolean; override;
+
     procedure DoSelect(Index: Integer); virtual;
 
     procedure First;
@@ -330,6 +344,8 @@ type
     property Items: TStringList read FItems write SetItems;
     property RecentSelection: TStringList read FRecentSelection;
     procedure SetComponentStyle(AStyle: TTMSStyle);
+    procedure ShowDropDown;
+    procedure HideDropDown;
   published
     property AntiAlias: TAntiAlias read FAntiAlias write SetAntiAlias default aaClearType;
     property AutoFocus: boolean read FAutoFocus write fAutoFocus default false;
@@ -353,13 +369,14 @@ type
     property OnBeforeDropDown: TNotifyEvent read FOnBeforeDropDown write FOnBeforeDropDown;
     property OnSelect: TNotifyEvent read FOnSelect write FOnSelect;
   end;
-
+                                    
   TAdvOfficeSelector = class(TAdvCustomOfficeComboBox)
   private
   protected
   public
     constructor Create(aOwner: TComponent); override;
   published
+    property Anchors;
     property Color;
     property Items;
     property ItemIndex;
@@ -370,6 +387,8 @@ type
     property TabStop;
     property ShowHint;
     property Style;
+    property OnEnter;
+    property OnExit;
   end;
 
   TAdvOfficeFontSelector = class(TAdvCustomOfficeComboBox)
@@ -814,6 +833,9 @@ var
   sizerect: TGPRectF;
   szRect: TRect;
   DTFLAG: DWORD;
+  tm: TTextMetric;
+  ttf: boolean;
+
 begin
   if (Caption <> '') then
   begin
@@ -836,6 +858,7 @@ begin
       fs := fs + 4;
 
     font := TGPFont.Create(fontFamily, AFont.Size , fs, UnitPoint);
+
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
     w := R.Right - R.Left;
@@ -845,6 +868,20 @@ begin
     y1 := r.Top;
     x2 := w;
     y2 := h;
+
+    Canvas.Font.Name := AFont.Name;
+
+    ttf := false;
+
+    GetTextMetrics(Canvas.Handle, tm);
+
+    if ((tm.tmPitchAndFamily AND TMPF_VECTOR) = TMPF_VECTOR) then
+    begin
+      if not ((tm.tmPitchAndFamily AND TMPF_DEVICE) = TMPF_DEVICE) then
+      begin
+        ttf := true;
+      end
+    end;
 
     rectf := MakeRect(x1,y1,x2,y2);
 
@@ -881,7 +918,7 @@ begin
 
     // Center the block of text (top to bottom) in the rectangle.
     stringFormat.SetLineAlignment(StringAlignmentCenter);
-    stringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
+    stringFormat.SetHotkeyPrefix(HotkeyPrefixNone);
 
     //graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
     //graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect);
@@ -890,7 +927,7 @@ begin
     aaAntiAlias:graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
     end;
 
-    if AntiAlias = aaNone then
+    if (AntiAlias = aaNone) or not ttf or (font.Status <> Ok) then
     begin
       szRect.Left := round(rectf.X);
       szRect.Top := round(rectf.Y);
@@ -906,14 +943,13 @@ begin
     else
       graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect);
 
-
     Result := Rect(round(sizerect.X), Round(sizerect.Y), Round(sizerect.X + sizerect.Width), Round(sizerect.Y + sizerect.Height));
     rectf := MakeRect(x1,y1,x2,y2);
 
     if RealDraw then
     begin
       //graphics.DrawString(Caption, Length(Caption), font, rectf, stringFormat, solidBrush);
-      if AntiAlias = aaNone then
+      if (AntiAlias = aaNone) or not ttf or (font.Status <> Ok) then
       begin
         szRect.Left := round(rectf.X);
         szRect.Top := round(rectf.Y);
@@ -931,7 +967,7 @@ begin
       else
         graphics.DrawString(Caption, Length(Caption), font, rectf, stringFormat, solidBrush);
     end;
-      
+
     stringformat.Free;
     solidBrush.Free;
     font.Free;
@@ -968,6 +1004,8 @@ var
   BtnR, DwR: TRect;
   AP: TPoint;
   szRect: TRect;
+  ttf: boolean;
+  tm: TTextMetric;
 
   procedure DrawArrow(ArP: TPoint; ArClr: TColor);
   begin
@@ -1356,6 +1394,23 @@ begin
     gppen.Free;
   end;
 
+  Canvas.Font.Name := AFont.Name;
+
+  ttf := false;
+
+  GetTextMetrics(Canvas.Handle, tm);
+
+  if ((tm.tmPitchAndFamily AND TMPF_VECTOR) = TMPF_VECTOR) then
+  begin
+    if not ((tm.tmPitchAndFamily AND TMPF_DEVICE) = TMPF_DEVICE) then
+    begin
+      ttf := true;
+    end
+  end;
+
+  if Screen.Fonts.IndexOf(AFont.Name) = -1 then
+    ttf := false;
+
   fontFamily:= TGPFontFamily.Create(AFont.Name);
 
   fs := 0;
@@ -1420,7 +1475,7 @@ begin
     end;
 
     //graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect);
-    if AntiAlias = aaNone then
+    if (AntiAlias = aaNone) or not ttf then
     begin
       szRect.Left := round(rectf.X);
       szRect.Top := round(rectf.Y);
@@ -1488,7 +1543,7 @@ begin
     rectf := MakeRect(x1,y1,x2,y2);
 
     //graphics.DrawString(Caption, Length(Caption), font, rectf, stringFormat, solidBrush);
-    if AntiAlias = aaNone then
+    if (AntiAlias = aaNone) or not ttf then
     begin
       szRect.Left := round(rectf.X);
       szRect.Top := round(rectf.Y);
@@ -1582,12 +1637,12 @@ var
   TempCanvas : TCanvas;
   PitchTest : byte;
 begin
-  TempCanvas:=TCanvas.Create;
-  TempCanvas.Handle:=CreateCompatibleDC(0) ;
-  TempCanvas.Font.Name:=FontName;
+  TempCanvas := TCanvas.Create;
+  TempCanvas.Handle := CreateCompatibleDC(0) ;
+  TempCanvas.Font.Name := FontName;
   GetTextMetrics(TempCanvas.Handle, TxMet) ;
   PitchTest:=TxMet.tmPitchAndFamily and PITCH_MASK;
-  Result:=(PitchTest and TMPF_TRUETYPE) <> 0;
+  Result := (PitchTest and TMPF_TRUETYPE) <> 0;
   TempCanvas.free;
 end;
 
@@ -1731,7 +1786,7 @@ begin
     FDropDownList.Height := 20;
     FDropDownList.Parent := Self;
     FDropDownList.BorderWidth := 1;
-
+    FDropDownList.TabStop := false;
     FDropDownListBox := TListBox.Create(FDropDownList);
 
     with FDropDownListBox do
@@ -1741,7 +1796,7 @@ begin
       Style := lbOwnerDrawFixed;
       ItemHeight := LISTITEMHEIGHT;
       Ctl3D := false;
-      TabStop := true;
+      TabStop := false;
       BorderStyle := bsNone;
       TabOrder := 0;
       OnKeyPress := ListBoxKeyPress;
@@ -1785,6 +1840,20 @@ procedure TAdvCustomOfficeComboBox.DoEnter;
 begin
   inherited;
   SetEditRect;
+end;
+
+function TAdvCustomOfficeComboBox.DoMouseWheelDown(Shift: TShiftState;
+  MousePos: TPoint): boolean;
+begin
+  Next;
+  Result := inherited DoMouseWheelDown(Shift, MousePos);
+end;
+
+function TAdvCustomOfficeComboBox.DoMouseWheelUp(Shift: TShiftState;
+  MousePos: TPoint): boolean;
+begin
+  Previous;
+  Result := inherited DoMouseWheelUp(Shift, MousePos);  
 end;
 
 //------------------------------------------------------------------------------
@@ -2173,6 +2242,7 @@ end;
 procedure TAdvCustomOfficeComboBox.WMMouseMove(var Msg: TWMMouse);
 begin
   inherited;
+
   if Style = csDropDownList then
   begin
     if (Cursor <> crArrow) then
@@ -2493,7 +2563,7 @@ end;
 procedure TAdvCustomOfficeComboBox.CMExit(var Message: TCMExit);
 begin
   inherited;
-  Text := FOldText;
+  //Text := FOldText;
   DrawButton;
   DrawBorders;
 end;
@@ -2513,7 +2583,7 @@ end;
 
 procedure TAdvCustomOfficeComboBox.ButtonClick;
 begin
-  ShowDropDown;
+  ShowDropDownInt;
 end;
 
 procedure TAdvCustomOfficeComboBox.PopulateListBox;
@@ -2537,6 +2607,20 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvCustomOfficeComboBox.ShowDropDownInt;
+begin
+  if not Assigned(FDropDownList) then
+    Exit;
+
+  if FDropDownList.Visible then
+  begin
+    HideDropDown;
+    Exit;
+  end;
+  ShowDropDown;
+end;
+//------------------------------------------------------------------------------
+
 procedure TAdvCustomOfficeComboBox.ShowDropDown;
 var
   P: TPoint;
@@ -2544,13 +2628,10 @@ var
   R: TRect;
 begin
   if not Assigned(FDropDownList) then
-    exit;
+    Exit;
 
   if FDropDownList.Visible then
-  begin
-    HideDropDown;
-    exit;
-  end;
+    Exit;    
 
   if not FDropDownList.Visible then
     BeforeDropDown;
@@ -2580,8 +2661,6 @@ begin
     FDropDownList.Height := Max(20, (FDropDownCount * GetListItemHeight {LISTITEMHEIGHT}) + 4);
   end;
 
-
-
   P := Point(0, self.Height);
   P := ClientToScreen(P);
 
@@ -2595,7 +2674,6 @@ begin
     FDropDownList.Left := P.X - 1;
     FDropDownList.Top := P.Y - self.Height - FDropDownList.Height;
   end;
-
 
   FDropDownListBox.Font.Size := FontSize;
 
@@ -2702,7 +2780,8 @@ begin
           HideDropDown;
       end;
     end;
-  end;      }
+  end;
+}
 end;
 
 //------------------------------------------------------------------------------
@@ -2719,6 +2798,7 @@ procedure TAdvCustomOfficeComboBox.ListBoxMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   i: integer;
+
 begin
   // selection End
   i := TListBox(Sender).ItemAtPos(Point(X, Y), true);
@@ -2728,7 +2808,12 @@ begin
     self.ItemIndex := i;
     DoSelect(i);
   end;
+
   HideDropDown;
+
+  if Assigned(GetParentForm(self)) then
+    SetActiveWindow(GetParentForm(self).Handle);
+
   if FAutoResetFocus then
     Self.SetFocus;
 end;
@@ -2748,10 +2833,22 @@ procedure TAdvCustomOfficeComboBox.DropDownOnDrawItem(Control: TWinControl;
 var
   r: TRect;
   TrueTypeFont: Boolean;
+  tm: TTextMetric;
 begin
   TListBox(Control).Canvas.Font.Assign(font);
 
-  TrueTypeFont := IsTrueTypeFont(TListBox(Control).Canvas.Font.Name);
+  //TrueTypeFont := IsTrueTypeFont(TListBox(Control).Canvas.Font.Name);
+
+  TrueTypeFont := false;
+
+  GetTextMetrics(TListBox(Control).Canvas.Handle, tm);
+  if ((tm.tmPitchAndFamily AND TMPF_VECTOR) = TMPF_VECTOR) then
+  begin
+    if not ((tm.tmPitchAndFamily AND TMPF_DEVICE) = TMPF_DEVICE) then
+    begin
+      TrueTypeFont := true;
+    end
+  end;
 
   if (State = [odSelected]) or (State = [odFocused]) or (State = [odSelected, odFocused]) then
   begin
@@ -2979,13 +3076,13 @@ begin
     VK_F4:
       begin
         if (GetKeyState(VK_MENU) and $8000 = 0) then
-          ShowDropDown;
+          ShowDropDownInt;
       end;
     VK_UP: Previous;
     VK_DOWN:
       begin
         if (ssAlt in Shift) then
-          ShowDropDown
+          ShowDropDownInt
         else
           Next;
       end;
@@ -3003,6 +3100,7 @@ begin
   else
     FWorkMode := true;
   end;
+
   inherited KeyDown(key, shift);
 end;
 
@@ -3012,6 +3110,7 @@ procedure TAdvCustomOfficeComboBox.WMChar(var Msg: TWMKey);
 var
   key: Char;
   i: Integer;
+  str: string;
 begin
   if Msg.CharCode = VK_RETURN then
   begin
@@ -3027,6 +3126,7 @@ begin
       SendMessage(Handle, EM_SETSEL, 0, 0);
       self.Change;
       ValueChanged;
+
       if FDropDownList.Visible then
         HideDropDown;
 
@@ -3034,6 +3134,35 @@ begin
     end;
     Exit;
   end;
+
+  if (Style = csDropDownlist) then
+  begin
+    if (Msg.CharCode <> 8) then
+    begin
+      str := Uppercase(Chr(Msg.CharCode));
+
+      if (Items.Count > 0) then
+      begin
+        for i := 0 to Items.count - 1 do
+        begin
+          if pos(str, upstr(Items.Strings[i], fMatchCase)) = 1 then
+          begin
+            if Assigned(FDropDownListBox) and FDropDownList.Visible then
+            begin
+              FDropDownListBox.ItemIndex := FDropDownListBox.Items.IndexOf(Items.Strings[i]);
+            end;
+            FItemIndex := i;
+            inherited Text := Items.Strings[i];
+            SelStart := 0;
+            SelLength := Length(Text);
+            break;
+          end;
+        end;
+        ValueChanged;
+      end;
+    end;
+  end;
+
   inherited;
 end;
 
@@ -3091,6 +3220,7 @@ begin
   if Assigned(FDropDownListBox) and (FDropDownListBox.ItemIndex < FDropDownListBox.Items.Count - 1) then
   begin
     FDropDownListBox.ItemIndex := FDropDownListBox.ItemIndex + 1;
+    FItemIndex := Items.IndexOf(FDropDownListBox.Items[FDropDownListBox.ItemIndex]);
     Text := FDropDownListBox.Items[FDropDownListBox.ItemIndex];
   end;
 end;
@@ -3102,6 +3232,7 @@ begin
   if Assigned(FDropDownListBox) and (FDropDownListBox.Items.Count > 0) and (FDropDownListBox.ItemIndex > 0) then
   begin
     FDropDownListBox.ItemIndex := FDropDownListBox.ItemIndex - 1;
+    FItemIndex := Items.IndexOf(FDropDownListBox.Items[FDropDownListBox.ItemIndex]);
     Text := FDropDownListBox.Items[FDropDownListBox.ItemIndex];
   end;
 end;
@@ -3744,18 +3875,43 @@ var
   TrueTypeFont: Boolean;
   isItal: boolean;
   isBold: boolean;
+  s: string;
 
 begin
 //   TAdvFontType = (aftBitmap, aftTrueType, aftPostScript, aftPrinter);
 
-  TListBox(Control).Canvas.Font.Assign(font);
+  if not Assigned(Control) then
+    Exit;
 
-  TListBox(Control).Canvas.Font.Name := TListBox(Control).Items[Index];
-  //TListBox(Control).Canvas.Font.Style := [];
+  if not (Control is TListBox) then
+    Exit;
 
-  TrueTypeFont := IsTrueTypeFont(TListBox(Control).Canvas.Font.Name);
+  if (Index <  0) or (Index >= TListBox(Control).Items.Count) then
+    Exit;
+
+  TListBox(Control).Canvas.Font.Assign(Font);
+  s := TListBox(Control).Items[Index];
+
+  if s = '' then
+    Exit;
+
+  if ShowFontStyle and (s <> '') then
+    TListBox(Control).Canvas.Font.Name := s;
+
+  TListBox(Control).Canvas.Font.Style := [];
+
+  //TrueTypeFont := IsTrueTypeFont(TListBox(Control).Canvas.Font.Name);
+
+  TrueTypeFont := false;
 
   GetTextMetrics(TListBox(Control).Canvas.Handle, tm);
+  if ((tm.tmPitchAndFamily AND TMPF_VECTOR) = TMPF_VECTOR) then
+  begin
+    if not ((tm.tmPitchAndFamily AND TMPF_DEVICE) = TMPF_DEVICE) then
+    begin
+      TrueTypeFont := true;
+    end
+  end;
 
   isItal := (tm.tmItalic > 0);
   isBold := (tm.tmWeight >= 700);
@@ -3769,7 +3925,10 @@ begin
     end
     else if TrueTypeFont then
     begin
-      aft := aftTrueType;
+      if not ((tm.tmPitchAndFamily AND TMPF_DEVICE) = TMPF_DEVICE) then
+        aft := aftTrueType
+      else
+        aft := aftBitmap;
     end;
   end
   else
@@ -3791,7 +3950,6 @@ begin
     with FSelectionAppearance do
     begin
       r := Rect;
-
       DrawVistaGradient(TListBox(Control).Canvas, r, Color, ColorTo, ColorMirror, ColorMirrorTo, BorderColor,
         Gradient, GradientMirror, '', TListBox(Control).Canvas.Font, Enabled, False, FAntiAlias, FSelectionAppearance.Rounded, False, tpTop);
 
@@ -3829,7 +3987,7 @@ begin
     Rect.Bottom := Rect.Bottom - 3;
   end;
 
-  TListBox(Control).Canvas.Font.Name := TListBox(Control).Items[Index];
+  TListBox(Control).Canvas.Font.Name := s;
   //TListBox(Control).Canvas.Font.Style := [];
 
   if not FShowFontStyle or (tm.tmCharSet <> ANSI_CHARSET) then
@@ -3846,18 +4004,18 @@ begin
       TListBox(Control).Canvas.Font.Style := [fsItalic];
 
     if isBold then
-      TListBox(Control).Canvas.Font.Style := [fsBold];
+      TListBox(Control).Canvas.Font.Style := TListBox(Control).Canvas.Font.Style + [fsBold];
 
-    DrawVistaText(TListBox(Control).Canvas, taLeftJustify, Rect, TListBox(Control).Items[Index], TListBox(Control).Canvas.Font, Enabled, True, FAntiAlias, tpBottom)
+    DrawVistaText(TListBox(Control).Canvas, taLeftJustify, Rect, s, TListBox(Control).Canvas.Font, Enabled, True, FAntiAlias, tpBottom)
   end
   else
   begin
     {$IFNDEF TMSDOTNET}
-    DrawText(TListBox(Control).Canvas.Handle, PChar(TListBox(Control).Items[Index]), -1, Rect, DT_SINGLELINE or DT_VCENTER);
+    DrawText(TListBox(Control).Canvas.Handle, PChar(s), -1, Rect, DT_SINGLELINE or DT_VCENTER);
     {$ENDIF}
 
     {$IFDEF TMSDOTNET}
-    DrawText(TListBox(Control).Canvas.Handle, TListBox(Control).Items[Index], -1, Rect, DT_SINGLELINE or DT_VCENTER);
+    DrawText(TListBox(Control).Canvas.Handle, s, -1, Rect, DT_SINGLELINE or DT_VCENTER);
     {$ENDIF}
   end;
 
@@ -4004,7 +4162,7 @@ begin
            TAdvOfficeFontSizeSelector(Data).PixelsPerInch);
     s := IntToStr(v);
     Result := 1;
-    for i := 0 to TAdvOfficeFontSizeSelector(Data).Items.Count-1 do
+    for i := 0 to TAdvOfficeFontSizeSelector(Data).Items.Count - 1 do
     begin
       v2 := StrToInt(TAdvOfficeFontSizeSelector(Data).Items[i]);
       if v2 = v then

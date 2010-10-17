@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TAdvPanel component                                                     }
 { for Delphi & C++Builder                                                 }
-{ version 1.7                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{            copyright © 2000-2006                                        }
+{            copyright © 2000-2008                                        }
 {            Email : info@tmssoftware.com                                 }
 {            Website : http://www.tmssoftware.com/                        }
 {                                                                         }
@@ -40,7 +39,7 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 7; // Minor version nr.
-  REL_VER = 6; // Release nr.
+  REL_VER = 8; // Release nr.
   BLD_VER = 0; // Build nr.
 
   // version history
@@ -67,8 +66,24 @@ const
   // v1.7.5.2 : Fixed issue with scrollbar on TAdvPanelGroup on non themed Windows
   // v1.7.5.3 : Fixed issue with horiz. mirror gradient
   // v1.7.6.0 : New : support for Office 2007 silver style added
+  // v1.7.6.1 : Improved : painting of controls on TAdvPanelGroup
+  // v1.7.7.0 : Improved : property ParentShowHint exposed
+  // v1.7.7.1 : Fixed : issue with setting AutoSize at design time
+  //          : Fixed : issue with persisting collaps state with Styler assigned
+  // v1.7.7.2 : Fixed : issue with Indent,TopIndent with Anchors
+  // v1.7.7.3 : Fixed : issue with form inheritance for TAdvPanelStyler
+  // v1.7.7.4 : Fixed : issue with BorderShadow & collapsed state
+  // v1.7.7.5 : Fixed : issue with BeginUpdate/EndUpdate
+  // v1.7.7.6 : Fixed : issue with anchor testing on last line in panel
+  // v1.7.7.7 : Improved : painting behaviour for resizing panel
+  // v1.7.8.0 : Improved : behaviour with hidden controls and panel collaps
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TCustomAdvPanel = class;
 
   TAdvPanelStyler = class;
@@ -374,7 +389,7 @@ type
     procedure EndUpdate;
   published
     property AnchorHint: Boolean read FAnchorHint write SetAnchorHint;
-    property AutoHideChildren: Boolean read FAutoHideChildren write SetAutoHideChildren;
+    property AutoHideChildren: Boolean read FAutoHideChildren write SetAutoHideChildren default true;
     property BevelInner: TBevelCut read FBevelInner write SetBevelInner;
     property BevelOuter: TBevelCut read FBevelOuter write SetBevelOuter;
     property BevelWidth: Integer read FBevelWidth write SetBevelWidth;
@@ -501,6 +516,7 @@ type
     FColorMirror: TColor;
     FColorMirrorTo: TColor;
     FOptimizePaint: boolean;
+    FHideList: TList;
     procedure OnStatusBarChange(Sender: TObject);
     procedure SetText(const Value: string);
     procedure SetBackgroundPosition(const Value: TBackgroundPosition);
@@ -526,8 +542,8 @@ type
     procedure CMMouseLeave(Var Msg: TMessage); message CM_MOUSELEAVE;
     procedure CMMouseEnter(Var Msg: TMessage); message CM_MOUSEENTER;
     procedure WMNCHitTest(var Msg: TWMNCHitTest); message WM_NCHITTEST;
-    procedure WMEraseBkGnd(var Message:TMessage); message WM_ERASEBKGND;
     {$IFNDEF TMSDOTNET}
+    procedure WMEraseBkGnd(var Message:TMessage); message WM_ERASEBKGND;
     procedure WMSizing(var Msg: TMessage); message WM_SIZING;
     procedure WMSize(var Msg: TMessage); message WM_SIZE;
     procedure WMMoving(var Msg: TMessage); message WM_MOVING;
@@ -558,7 +574,6 @@ type
     procedure SetBorderShadow(const Value: Boolean);
     procedure SetIndent(const Value: Integer);
     procedure SetTopIndent(const Value: Integer);
-    procedure SetStyler(const Value: TAdvPanelStyler);
     procedure SetLineSpacing(const Value: Integer);
     function GetRawText: string;
     function GetVersionComp: string;
@@ -574,7 +589,8 @@ type
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-
+    procedure SetStyler(const Value: TAdvPanelStyler); virtual;
+    procedure AssignStyle(Settings: TAdvPanelSettings); virtual;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     function DoVisualStyles: Boolean;
     procedure Paint; override;
@@ -590,7 +606,7 @@ type
     procedure DoAutoSize;
     procedure StateChange; virtual;
     procedure AssignSettings(Settings: TAdvPanelSettings);
-    procedure AssignStyle(Settings: TAdvPanelSettings);
+
     procedure ChangeScale(M,D: integer); override;
   public
     { Public declarations }
@@ -793,6 +809,7 @@ type
     property Images;
     property Indent;
     property LineSpacing;
+    property ParentShowHint;
     property PictureContainer;
     property Position;
     property ShadowColor;
@@ -836,6 +853,7 @@ type
     FColumns: Integer;
     FCode: Boolean;
     FScrollSmooth: Boolean;
+    FOldWidth, FOldHeight: integer;
     {$IFNDEF TMSDOTNET}
     procedure WMSize(var Msg: TMessage); message WM_SIZE;
     {$ENDIF}
@@ -890,7 +908,7 @@ type
     property Columns: Integer read FColumns write SetColumns;
     property DefaultPanel: TAdvPanelSettings read FDefaultPanel write SetDefaultPanel;
     property GroupStyle: TGroupStyle read FGroupStyle write SetGroupStyle;
-    property ScrollSmooth: boolean read FScrollSmooth write FScrollSmooth default true;
+    property ScrollSmooth: boolean read FScrollSmooth write FScrollSmooth default false;
     property HorzPadding: Integer read FHorzPadding write SetHorzPadding;
     property VertPadding: Integer read FVertPadding write SetVertPadding;
 
@@ -923,6 +941,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
     procedure Loaded; override;
     procedure SetComponentStyle(AStyle: TTMSStyle);
   published
@@ -1189,12 +1208,6 @@ begin
   end;
 end;
 
-
-
-
-
-
-
 { TAdvPanel }
 
 procedure TCustomAdvPanel.BackgroundChanged(Sender: TObject);
@@ -1216,7 +1229,7 @@ begin
   FCaption.OnStateChange := CaptionStateChange;
   FCaption.OnShadeChange := CaptionShadeChange;
   FCaption.OnPositionChange := CaptionPositionChange;
-  FCaption.Font.Name := 'Tahoma';  // make sure to use a Truetype font
+  //FCaption.Font.Name := 'Tahoma';  // make sure to use a Truetype font
   {$IFNDEF TMSDOTNET}
   FImage.OnChange := BackgroundChanged;
   {$ENDIF}
@@ -1237,7 +1250,7 @@ begin
   FBuffered := True;
   FOldWidth := -1;
   FOldHeight := -1;
-  FOptimizePaint := true;
+  FOptimizePaint := false;
 
   dwVersion := GetVersion;
   dwWindowsMajorVersion :=  DWORD(LOBYTE(LOWORD(dwVersion)));
@@ -1249,7 +1262,7 @@ begin
   FAutoSize := TAutoSize.Create(Self);
   FAutoHideChildren := True;
   FCanUpdate := True;
-  FOldColor := Color;     
+  FOldColor := Color;
   FColorTo := clNone;
   FColorMirror := clNone;
   FColorMirrorTo := clNone;
@@ -1258,7 +1271,9 @@ begin
   FStatusBar.OnChange := OnStatusBarChange;
 
   // make sure to use a Truetype font
-  Font.Name := 'Tahoma';
+  // Font.Name := 'Tahoma';
+
+  FHideList := TList.Create;
 end;
 
 destructor TCustomAdvPanel.Destroy;
@@ -1273,6 +1288,7 @@ begin
   FShadedHeader.Free;
   FAutoSize.Free;
   FStatusBar.Free;
+  FHideList.Free;
   inherited;
 end;
 
@@ -1319,6 +1335,7 @@ begin
         Visible := False;
         if Assigned(FOnClose) then
           FOnClose(Self);
+          
         Synchronize;
 
         DueMinMax := False;
@@ -1343,6 +1360,7 @@ begin
         Visible := False;
         if Assigned(FOnClose) then
           FOnClose(Self);
+          
         Synchronize;
 
         DueMinMax := False;
@@ -2095,6 +2113,7 @@ begin
   {$ENDIF}
 
   InflateRect(r,-BorderWidth,-BorderWidth);
+  InflateRect(r,-1,-1);
 
   r.Left := r.Left + Indent;
   r.Top := r.Top + TopIndent;
@@ -2695,7 +2714,7 @@ begin
         {$IFNDEF TMSDOTNET}
         FillChar(lf, SizeOf(lf), 0);
         {$ENDIF}
-        tf.Assign(aCanvas.Font);
+        tf.Assign(ACanvas.Font);
         {$IFNDEF TMSDOTNET}
         GetObject(tf.Handle, SizeOf(Lf), @Lf);
         {$ENDIF}
@@ -2707,7 +2726,7 @@ begin
         lf.lfOrientation := 30;
 
         tf.Handle := CreateFontIndirect(Lf);
-        aCanvas.Font.Assign(tf);
+        ACanvas.Font.Assign(tf);
       finally
         tf.Free;
       end;
@@ -2969,7 +2988,8 @@ end;
 
 procedure TCustomAdvPanel.SetCollaps(const Value: boolean);
 var
-  i,delta: Integer;
+  i,delta,bdelta: Integer;
+
 begin
   if FCollaps and not Value and Assigned(FOnMaximize) then
     FOnMaximize(Self);
@@ -2979,6 +2999,12 @@ begin
 
   if FIsCollapsing then
     Exit;
+
+  bdelta := 0;
+
+  if (BorderWidth > 0) and BorderShadow then
+    bdelta := BorderWidth + 4;
+
 
   if Value <> FCollaps then
   begin
@@ -3012,24 +3038,28 @@ begin
             end;
           end;
 
+
           if FStatusBar.Visible then
-            Height := FCaption.Height + FStatusBar.Height - 2 {+ 2 * BorderWidth}
+            Height := FCaption.Height + FStatusBar.Height - 2 + bdelta
           else
-            Height := FCaption.Height - 2{+ 2 * BorderWidth};
+            Height := FCaption.Height - 2 + bdelta;
         end
         else  // cpLeft
         begin
           FFullHeight := Width;
           if FAutoHideChildren then
             ShowHideChildren(False);
+            
           FOldColor := Color;
           if CollapsSteps > 0 then
           begin
             Color := CollapsColor;
+
             if FStatusBar.Visible then
               delta := (Width - FCaption.Height - FStatusBar.Height) div CollapsSteps
             else
               delta := (Width - FCaption.Height) div CollapsSteps;
+
             for i := 1 to CollapsSteps do
             begin
               Width := Width - delta;
@@ -3040,9 +3070,9 @@ begin
           end;
 
           if FStatusBar.Visible then
-            Width := FCaption.Height + FStatusBar.Height
+            Width := FCaption.Height + FStatusBar.Height + bdelta
           else
-            Width := FCaption.Height;
+            Width := FCaption.Height + bdelta;
         end;
       end
       else
@@ -3146,7 +3176,7 @@ var
   DrwRes: Boolean;
 begin
   Result := '';
-  DrwRes := false;     // Ch: kh
+  DrwRes := false;     
 
   r := Clientrect;
 
@@ -3162,8 +3192,10 @@ begin
   end;
 
   InflateRect(r,-BorderWidth, -BorderWidth);
+  InflateRect(r,-1, -1);
 
-  OffsetRect(r,Indent, TopIndent);
+  r.Left := r.Left + Indent;
+  r.Top := r.Top + TopIndent;
 
   //if FCaption.Position <> cpTop then
   //  R.Left := R.Left + FCaption.Height;
@@ -3206,10 +3238,14 @@ begin
     if FCaption.Visible then
     begin
       if FCaption.Position = cpTop then
-        r.Top := r.Top + FCaption.Height
+      begin
+        r.Top := r.Top + FCaption.Height;
+      end
       else
         r.Left := r.Left + FCaption.Height;
     end;
+
+
 
     if FTextVAlign in [tvaCenter,tvaBottom] then
     begin
@@ -3221,6 +3257,8 @@ begin
     end;
 
     Canvas.Font.Assign(Font);
+
+    r.Bottom := r.Bottom + 20;
 
     DrwRes := HTMLDrawEx(Canvas,Text,r,FImages,x,y,-1,-1,2,true,false,false,false,false,false,true,1.0,
       FURLColor,clBlue,clRed,clgray,a,s,fa,xsize,ysize,hl,FHoverHyperlink,hoverrect,FImageCache,FContainer,FLineSpacing);
@@ -3412,7 +3450,6 @@ begin
         {$IFDEF TMSDOTNET}
         if FHover then InvalidateRect(Handle,hr,True);
         {$ENDIF}
-
       end;
 
       if (Cursor = FOldCursor) or (FAnchor <> Anchor) then
@@ -3426,7 +3463,6 @@ begin
         {$IFDEF TMSDOTNET}
         if FHover then InvalidateRect(Handle,hr,true);
         {$ENDIF}
-
        end;
 
        FAnchor := Anchor;
@@ -3753,7 +3789,7 @@ end;
 {$ENDIF}
 
 
-
+{$IFNDEF TMSDOTNET}
 procedure TCustomAdvPanel.WMEraseBkGnd(var Message: TMessage);
 begin
   if FOptimizePaint then
@@ -3764,7 +3800,7 @@ begin
   else
     inherited;
 end;
-
+{$ENDIF}
 
 procedure TCustomAdvPanel.SavePosition;
 var
@@ -3895,11 +3931,13 @@ end;
 procedure TCustomAdvPanel.BeginUpdate;
 begin
   SendMessage(Handle,WM_SETREDRAW,Integer(False),0);
+
 end;
 
 procedure TCustomAdvPanel.EndUpdate;
 begin
   SendMessage(Handle,WM_SETREDRAW,Integer(True),0);
+  Repaint;
 end;
 
 
@@ -3984,8 +4022,6 @@ var
 begin
   inherited;
 
-  //OutputDebugString(PChar(self.name+': '+ inttostr(Width)));
-  //showmessage(self.name+': '+ inttostr(Width));
   if csDesigning in ComponentState then
     Synchronize;
 
@@ -4000,6 +4036,7 @@ begin
 
   FOldWidth := AWidth;
   FOldHeight := AHeight;
+
 end;
 
 procedure TCustomAdvPanel.Synchronize;
@@ -4036,8 +4073,21 @@ var
 begin
   for i := 1 to ControlCount do
   begin
-    Controls[i - 1].Visible := Show;
+    if Show then
+    begin
+      if not (FHideList.IndexOf(Controls[i - 1]) >= 0) then
+        Controls[i - 1].Visible := Show;
+    end
+    else
+    begin
+      if not Controls[i - 1].Visible then
+        FHideList.Add(Controls[i - 1]);
+      Controls[i - 1].Visible := Show;
+    end;
   end;
+
+  if Show then
+    FHideList.Clear;
 end;
 
 procedure TCustomAdvPanel.WMLDblClk(var Message: TWMLButtonDblClk);
@@ -4130,6 +4180,9 @@ begin
   if not FAutoSize.Enabled then
     Exit;
 
+  if (csLoading in ComponentState) then
+    Exit;
+
   {$IFNDEF TMSDOTNET}
   r := Rect(0,0,0,0);
   {$ENDIF}
@@ -4211,7 +4264,8 @@ end;
 
 procedure TCustomAdvPanel.Resize;
 begin
-  Paint;
+  if not OptimizePaint then
+    Paint;
   inherited Resize;
   DoAutoSize;
 end;
@@ -4222,12 +4276,9 @@ var
   DC: HDC;
 begin
   DC := GetDC(Handle);
-
   Canvas.Handle := DC;
   Canvas.Brush.Color := clWhite;
-
   ReleaseDC(Handle,DC);
-
   inherited;
 end;
 
@@ -4402,7 +4453,7 @@ begin
   CanMove := Settings.CanMove;
   CanSize := Settings.CanSize;
   Caption.Assign(Settings.Caption);
-  Collaps := Settings.Collaps;
+  //Collaps := Settings.Collaps;
   CollapsColor := Settings.CollapsColor;
   CollapsDelay := Settings.CollapsDelay;
   CollapsSteps := Settings.CollapsSteps;
@@ -4817,7 +4868,6 @@ begin
 
   inc(FUpdateCount);
 
-
   PL := TList.Create;
 
   for i := 1 to ControlCount do
@@ -4905,11 +4955,11 @@ begin
         TCustomAdvPanel(PL.Items[i - 1]).EndUpdate;
     end;
 
-
     TCustomAdvPanel(PL.Items[i - 1]).Repaint;
 
     for j := 1 to TCustomAdvPanel(PL.Items[i - 1]).ControlCount do
     begin
+
       if TCustomAdvPanel(PL.Items[i - 1]).Controls[j - 1] is TWinControl then
       begin
         if (TCustomAdvPanel(PL.Items[i - 1]).Controls[j - 1] as TWinControl).Visible then
@@ -4928,8 +4978,8 @@ begin
         //Width := Width - 1;
       end;
     end;
-
   end;
+
 
   PL.Free;
   dec(FUpdateCount);
@@ -5052,7 +5102,7 @@ begin
   FColumns := 1;
   FDefaultPanel := TAdvPanelSettings.Create;
 
-  FScrollSmooth := true;
+  FScrollSmooth := false;
 end;
 
 procedure TAdvPanelGroup.SetGroupStyle(const Value: TGroupStyle);
@@ -5084,9 +5134,15 @@ begin
 end;
 
 procedure TAdvPanelGroup.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
+var
+  doarr: boolean;
 begin
+  doarr := (AWidth <> FOldWidth) or (AHeight <> FOldHeight);
   inherited;
-  ArrangeControls;
+  if doarr then
+    ArrangeControls;
+  FOldWidth := AWidth;
+  FOldHeight := AHeight;
 end;
 
 destructor TAdvPanelGroup.Destroy;
@@ -5562,6 +5618,7 @@ begin
   FHover := false;
   FHoverColor := clNone;
   FHoverFontColor := clNone;
+  FAutoHideChildren := true;
 end;
 
 destructor TAdvPanelSettings.Destroy;
@@ -5781,6 +5838,17 @@ end;
 
 { TCustomAdvPanelStyler }
 
+procedure TAdvPanelStyler.Assign(Source: TPersistent);
+begin
+  if (Source is TAdvPanelStyler) then
+  begin
+    AutoThemeAdapt  := (Source as TAdvPanelStyler).AutoThemeAdapt; 
+    Settings.Assign((Source as TAdvPanelStyler).Settings);
+    Comments := (Source as TAdvPanelStyler).Comments;
+    Style := (Source as TAdvPanelStyler).Style;
+  end;
+end;
+
 procedure TAdvPanelStyler.Changed(Sender: TObject);
 var
   i: Integer;
@@ -5890,8 +5958,8 @@ begin
       ColorTo := $00E3F0F2;
       ColorMirror := clNone;
       ColorMirrorTo := clNone;
-      Font.Name := 'Verdana';
-      Caption.Font.Name := 'Verdana';
+      //Font.Name := 'Verdana';
+      //Caption.Font.Name := 'Verdana';
       Caption.Font.Color := clHighLightText;
       Caption.ShadeType := stNormal;
       BevelInner := bvNone;
@@ -5920,8 +5988,8 @@ begin
       ColorMirror := clNone;
       ColorMirrorTo := clNone;
 
-      Font.Name := 'Verdana';
-      Caption.Font.Name := 'Verdana';
+      //Font.Name := 'Verdana';
+      //Caption.Font.Name := 'Verdana';
       Caption.Font.Color := clHighLightText;
       Caption.ShadeType := stNormal;
       BevelInner := bvNone;
@@ -5950,8 +6018,8 @@ begin
       ColorMirror := clNone;
       ColorMirrorTo := clNone;
 
-      Font.Name := 'Verdana';
-      Caption.Font.Name := 'Verdana';
+      //Font.Name := 'Verdana';
+      //Caption.Font.Name := 'Verdana';
       Caption.Font.Color := clBlack;
       Caption.ShadeType := stNormal;
       BevelInner := bvNone;
@@ -5970,7 +6038,7 @@ begin
       StatusBar.BevelInner := false;
       StatusBar.Color := $00E3F0F2;
       StatusBar.ColorTo := clWhite;
-      StatusBar.Font.Color := clBlack;      
+      StatusBar.Font.Color := clBlack;
     end;
   psFlat:
     with Settings do
@@ -5980,9 +6048,9 @@ begin
       ColorMirror := clNone;
       ColorMirrorTo := clNone;
 
-      Font.Name := 'Tahoma';
       Font.Color := clWindowText;
-      Caption.Font.Name := 'Tahoma';
+      //Font.Name := 'Tahoma';
+      //Caption.Font.Name := 'Tahoma';
       Caption.Font.Color := clHighLightText;
       Caption.ShadeType := stNormal;
       BevelInner := bvNone;
@@ -6014,9 +6082,10 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stRMetal;
-      Font.Name := 'Tahoma';
+
       Font.Color := clWindowText;
-      Caption.Font.Name := 'Tahoma';
+      //Font.Name := 'Tahoma';
+      //Caption.Font.Name := 'Tahoma';
       Caption.Font.Color := clBlack;
       Caption.Indent := 4;
       Caption.Font.Color := clBlack;
@@ -6049,9 +6118,9 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stNormal;
-      Font.Name := 'MS Sans Serif';
       Font.Color := clWindowText;
-      Caption.Font.Name := 'MS Sans Serif';
+      //Font.Name := 'MS Sans Serif';
+      //Caption.Font.Name := 'MS Sans Serif';
       Caption.Font.Color := clBlack;
       BevelInner := bvNone;
       BevelOuter := bvRaised;
@@ -6062,7 +6131,7 @@ begin
       Caption.Color := clWhite;
       Caption.ColorTo := clNone;
       Caption.Visible := False;
-      Caption.GradientDirection := gdHorizontal;      
+      Caption.GradientDirection := gdHorizontal;
       StatusBar.BorderColor := clNone;
       StatusBar.BorderStyle := bsNone;
       StatusBar.BevelInner := True;
@@ -6081,9 +6150,10 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stNormal;
-      Font.Name := 'MS Sans Serif';
+
       Font.Color := clWindowText;
-      Caption.Font.Name := 'MS Sans Serif';
+      //Font.Name := 'MS Sans Serif';
+      //Caption.Font.Name := 'MS Sans Serif';
       Caption.Font.Color := clHighLightText;
       BevelInner := bvNone;
       BevelOuter := bvRaised;
@@ -6094,7 +6164,7 @@ begin
       Caption.Color := clWhite;
       Caption.ColorTo := clNone;
       Caption.Visible := False;
-      Caption.GradientDirection := gdHorizontal;      
+      Caption.GradientDirection := gdHorizontal;
       StatusBar.BorderColor := clNone;
       StatusBar.BorderStyle := bsNone;
       StatusBar.BevelInner := True;
@@ -6113,9 +6183,10 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stNormal;
-      Font.Name := 'MS Sans Serif';
+
       Font.Color := clWindowText;
-      Caption.Font.Name := 'MS Sans Serif';
+      //Font.Name := 'MS Sans Serif';
+      //Caption.Font.Name := 'MS Sans Serif';
       Caption.Font.Color := clHighLightText;
       BevelInner := bvNone;
       BevelOuter := bvNone; // bvRaised
@@ -6149,9 +6220,10 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stNormal;
-      Font.Name := 'MS Sans Serif';
+
       Font.Color := clWindowText;
-      Caption.Font.Name := 'MS Sans Serif';
+      //Font.Name := 'MS Sans Serif';
+      //Caption.Font.Name := 'MS Sans Serif';
       Caption.Font.Color := clHighLightText;
       BevelInner := bvNone;
       BevelOuter := bvNone; // bvRaised
@@ -6186,9 +6258,10 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stNormal;
-      Font.Name := 'MS Sans Serif';
+
       Font.Color := clWindowText;
-      Caption.Font.Name := 'MS Sans Serif';
+      //Font.Name := 'MS Sans Serif';
+      //Caption.Font.Name := 'MS Sans Serif';
       Caption.Font.Color := clHighLightText;
       BevelInner := bvNone;
       BevelOuter := bvNone; // bvRaised
@@ -6228,9 +6301,10 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stNormal;
-      Font.Name := 'MS Sans Serif';
+
       Font.Color := $723708;
-      Caption.Font.Name := 'MS Sans Serif';
+      //Font.Name := 'MS Sans Serif';
+      //Caption.Font.Name := 'MS Sans Serif';
       Caption.Font.Color := $723708;
       BevelInner := bvNone;
       BevelOuter := bvNone; // bvRaised
@@ -6272,9 +6346,10 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stNormal;
-      Font.Name := 'MS Sans Serif';
+
       Font.Color := $723708;
-      Caption.Font.Name := 'MS Sans Serif';
+      //Font.Name := 'MS Sans Serif';
+      //Caption.Font.Name := 'MS Sans Serif';
       Caption.Font.Color := clBlack;
       BevelInner := bvNone;
       BevelOuter := bvNone; // bvRaised
@@ -6313,9 +6388,10 @@ begin
       Caption.ShadeGrain := 32;
       Caption.ShadeLight := 255;
       Caption.ShadeType := stNormal;
-      Font.Name := 'MS Sans Serif';
+
       Font.Color := $723708;
-      Caption.Font.Name := 'MS Sans Serif';
+      //Font.Name := 'MS Sans Serif';
+      //Caption.Font.Name := 'MS Sans Serif';
       Caption.Font.Color := $723708;
       BevelInner := bvNone;
       BevelOuter := bvNone; // bvRaised

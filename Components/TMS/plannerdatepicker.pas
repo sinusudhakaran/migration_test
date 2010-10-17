@@ -1,11 +1,10 @@
 {***********************************************************************}
 { TPlannerDatePicker component                                          }
 { for Delphi & C++ Builder                                              }
-{ version 1.6                                                           }
 {                                                                       }
 { written by :                                                          }
 {            TMS Software                                               }
-{            copyright © 1999-2006                                      }
+{            copyright © 1999-2008                                      }
 {            Email : info@tmssoftware.com                               }
 {            Website : http://www.tmssoftware.com                       }
 {                                                                       }
@@ -29,8 +28,8 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 6; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 3; // Build nr.
 
   // Version history
   // 1.4.0.0 : Property InActiveDays added
@@ -39,9 +38,13 @@ const
   //         : Hover date color in Calendar added
   // 1.6.0.0 : New : ISO Week number support added (YearStartAt.ISOWeekNumber)
   //           New : OnCellDraw event added for TPlannerCalendarGroup
-  //           New : OnDblClick event added for TPlannerCalendarGroup 
+  //           New : OnDblClick event added for TPlannerCalendarGroup
   //           New : VS.NET (Whidbey) appearance style
   // 1.6.1.0 : New : support for Office 2007 silver style added
+  // 1.6.2.0 : Improved : enhanced keyboard event routing from calendardropdown to datepicker control
+  // 1.6.2.1 : Fixed : issue with initialization null date
+  // 1.6.2.2 : Fixed : issue handling Clear method
+  // 1.6.2.3 : Fixed : issue with GetDate proc  
 
 
 
@@ -78,8 +81,10 @@ type
     procedure PlannerParentDeactivate(Sender: TObject);
     procedure PlannerCalendarDaySelect(Sender: TObject; SelDate: TDateTime);
     procedure PlannerCalendarKeyPress(Sender: TObject; var Key: Char);
-    procedure PlannerCalendarKeyDown(Sender: TObject; var Key: Integer;
+    procedure PlannerCalendarKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure PlannerCalendarKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);      
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
     // methods to do correct streaming, because the planner calendar is
     // stored on a hidden form
@@ -96,6 +101,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure CancelBtnClick;
     destructor Destroy; override;
+    procedure Clear; override;
     procedure DropDown; virtual;
     property Date: TDateTime read GetDate write SetDate;
     property Parent: TWinControl read GetParentEx write SetParentEx;
@@ -103,8 +109,7 @@ type
     procedure SetComponentStyle(AStyle: TTMSStyle);
   published
     { Published declarations }
-    property Calendar : TPlannerCalendar read FPlannerCalendar
-      write FPlannerCalendar;
+    property Calendar : TPlannerCalendar read FPlannerCalendar write FPlannerCalendar;
     property TabOrder;
     property TabStop;
     property HideCalendarAfterSelection : boolean read FHideCalendarAfterSelection
@@ -263,7 +268,8 @@ begin
   PlannerParent.BorderStyle := bsNone;
   FPlannerCalendar := TPlannerCalendar.Create(Self);
   FPlannerCalendar.Parent := PlannerParent;
-  FPlannerCalendar.Name := self.Name +'cal_';
+
+  FPlannerCalendar.Name := self.Name +'cal'+inttostr(AOwner.ComponentCount)+'_';
   {$IFDEF DELPHI4_LVL}
   PlannerParent.Autosize := True;
   {$ELSE}
@@ -434,21 +440,25 @@ procedure TPlannerDatePicker.InitEvents;
 begin
   FPlannerCalendar.OnDaySelect := PlannerCalendarDaySelect;
   FPlannerCalendar.OnKeyPress := PlannerCalendarKeypress;
+  FPlannerCalendar.OnKeyUp := PlannerCalendarKeyUp;
+  FPlannerCalendar.OnKeyDown := PlannerCalendarKeyDown;  
 end;
 
 procedure TPlannerDatePicker.Loaded;
 begin
   inherited;
 
-  if PlannerParent.ComponentCount > 0 then
-  begin
-    APlannerCalendar := (PlannerParent.Components[0] as TPlannerCalendar);
-    APlannerCalendar.OnGetDateHint := FPlannerCalendar.OnGetDateHint;
-    APlannerCalendar.OnGetDateHintString := FPlannerCalendar.OnGetDateHintString;
-    FPlannerCalendar.Free;
-    FPlannerCalendar := APlannerCalendar;
-    InitEvents;
-  end;
+  //if (not (csDesigning in ComponentState)) then
+    if PlannerParent.ComponentCount > 0 then
+    begin
+      APlannerCalendar := (PlannerParent.Components[0] as TPlannerCalendar);
+      APlannerCalendar.OnGetDateHint := FPlannerCalendar.OnGetDateHint;
+      APlannerCalendar.OnGetDateHintString := FPlannerCalendar.OnGetDateHintString;
+      APlannerCalendar.Color := FPlannerCalendar.Color;
+      FPlannerCalendar.Free;
+      FPlannerCalendar := APlannerCalendar;
+      InitEvents;
+    end;
 end;
 
 procedure TPlannerDatePicker.PlannerCalendarDaySelect(Sender: TObject; SelDate: TDateTime);
@@ -468,15 +478,29 @@ begin
 end;
 
 procedure TPlannerDatePicker.PlannerCalendarKeyDown(Sender: TObject;
-  var Key: Integer; Shift: TShiftState);
+  var Key: Word; Shift: TShiftState);
 begin
   if Key = VK_F4 then
     HideParent;
+
+  if Assigned(OnKeyDown) then
+    OnKeyDown(Self, Key, Shift);
 end;
+
+
+procedure TPlannerDatePicker.PlannerCalendarKeyUp(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  if Assigned(OnKeyUp) then
+    OnKeyUp(Self, Key, Shift);
+end;
+
 
 procedure TPlannerDatePicker.PlannerCalendarKeyPress(Sender: TObject;
   var Key: Char);
 begin
+  if Assigned(OnKeyPress) then
+    OnKeyPress(Self, Key);
   if (Key = #13) then
   begin
     PlannerCalendarDaySelect(Sender, FPlannerCalendar.Date);
@@ -538,9 +562,16 @@ begin
     begin
       dt := StrToDate(Text);
       Calendar.Date := dt;
-    end;  
+    end;
   except
   end;
+end;
+
+procedure TPlannerDatePicker.Clear;
+begin
+  inherited;
+  Text := '';
+  Change;
 end;
 
 procedure TPlannerDatePicker.CreateWnd;
@@ -582,7 +613,14 @@ end;
 
 function TPlannerDatePicker.GetDate: TDateTime;
 begin
-  Result := FPlannerCalendar.Date;
+  try
+    if Text = '' then
+      Result := 0
+    else
+      Result := StrToDate(Text);
+  except
+    Result := 0
+  end;
 end;
 
 procedure TPlannerDatePicker.SetDate(const Value: TDateTime);
@@ -600,7 +638,10 @@ begin
 end;
 
 initialization
-  RegisterClass(TPlannerDatePicker);
+  try
+    RegisterClass(TPlannerDatePicker);
+  except
+  end;
 
 {$IFDEF FREEWARE}
 {$IFNDEF VER170}

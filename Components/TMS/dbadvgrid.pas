@@ -1,11 +1,9 @@
-{$I TMSDEFS.INC}
 {***************************************************************************}
 { TDBAdvGrid component                                                      }
 { for Delphi & C++Builder                                                   }
-{ version 2.1                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 1996-2007                                          }
+{            copyright © 1996 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -17,7 +15,9 @@
 { code can be included in any other component or application without        }
 { written authorization of the author.                                      }
 {***************************************************************************}
+
 {$I TMSDEFS.INC}
+
 unit DBAdvGrid;
 
 interface
@@ -30,6 +30,9 @@ uses
   {$ENDIF}
   {$IFNDEF TMSDOTNET}
   , JPeg
+  {$IFDEF DELPHI2006_LVL}
+  , WideStrings
+  {$ENDIF}
   {$ENDIF}
   {$IFDEF TMSDOTNET}
   , Types
@@ -39,8 +42,8 @@ uses
 const
   MAJ_VER = 2; // Major version nr.
   MIN_VER = 1; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 12; // Build nr.
+  REL_VER = 9; // Release nr.
+  BLD_VER = 2; // Build nr.
 
   s_QuickConfig = 'Quick config';
   s_AddAllFIelds = 'Add all DB fields';
@@ -115,6 +118,51 @@ const
   // 2.1.1.11: Fixed issue with SearchFooter & scrolling
   // 2.1.1.12: Fixed issue with HTMLTemplates & PageMode = false
   //         : Fixed issue with display of graphic fields on fixed columns
+  // 2.1.1.13: Fixed issue with progressbar display in floating footer
+  // 2.1.1.14: Fixed issue with checkbox, picture display in floating footer
+  // 2.1.1.15: Fixed issue with ColumnByFieldName use from OnColumnMoved event
+  // 2.1.2.0 : Improved : display DataImageField when PageMode = false
+  // 2.1.2.1 : Fixed issue with Navigation.KeepHorizScroll = true
+  // 2.1.3.0 : Improved : faster design time handling for large active datasets
+  // 2.1.3.1 : Fixed : issue with Tab key and readonly fields
+  // 2.1.4.0 : Fixed : issue with display updates during scrolling
+  //         : Improved : record move on db indicator column click
+  //         : New : SelectedField public property added
+  // 2.1.4.1 : Fixed : issue with scrolling in dtSequenced mode
+  // 2.1.4.2 : Fixed : issue with setting grid.MouseActions.WheelIncrement
+  // 2.1.4.3 : Fixed : issue with closed form with grouped grid
+  // 2.1.4.4 : Fixed : wheel scroll issue
+  // 2.1.4.5 : Fixed : issue with grouping on checkboxfield columns
+  // 2.1.4.6 : Fixed : issue with column Assign method for progress fields
+  // 2.1.5.0 : New : method Reload added
+  //         : Fixed : issue with AlwaysEdit = true and scroll
+  //         : Fixed : issue with dtNonSequenced and scrolling
+  // 2.1.5.1 : Fixed : issue with PageMode = false and dataimages
+  // 2.1.5.2 : Fixed : issue with editing for new inserted rows
+  //         : Fixed : issue with scrollbar & floatingfooter visible
+  // 2.1.5.3 : Fixed : issue with floating footer calculation & editing
+  // 2.1.5.4 : Fixed : issue with grid.Colors[] & printing
+  // 2.1.5.5 : Fixed : issue with fsColumnPreview type for floating footer
+  // 2.1.5.6 : Improved : design time behavior to automatically add fields
+  // 2.1.5.7 : Fixed : issue with progressbar for grid with PageMode = false
+  // 2.1.6.0 : Improved : automatically loads edit length for string/widestring fields from DB field
+  // 2.1.6.1 : Fixed : CheckBoxField based on Field.DisplayText instead of Field.AsString
+  // 2.1.6.2 : Fixed : issue with auto insert row & AdvancOnEdit
+  // 2.1.6.3 : Fixed : issue with disjunct row select & db indicator move
+  // 2.1.7.0 : New : InvalidatePicture / OnInvalidPicture added , shows invalid picture when loading from DB fails
+  // 2.1.7.1 : Fixed : issue with lookup editing for epRow EditPostMode
+  // 2.1.7.2 : Fixed : issue with mousewheel scrolling
+  // 2.1.8.0 : New : OnFieldToStream event added
+  //         : New : PictureStretch property added in Columns
+  // 2.1.8.1 : Improved : CheckBoxField can use virtual field text to set check value
+  // 2.1.8.2 : Fixed : issue with grid.Navigation.KeepHorizScroll = true
+  // 2.1.8.3 : Fixed : issue with setting grid header cells directly with grid.Cells[] or grid.WideCells[]
+  // 2.1.8.4 : Fixed : issue with showing MEMO fields with PageMode = false
+  // 2.1.8.5 : Fixed : issue with editing columns that have no field assigned
+  // 2.1.9.0 : New : added support for unicode lookup fields
+  // 2.1.9.1 : Fixed : issue with PrintSettings.FixedFont
+  // 2.1.9.2 : Fixed : PictureField / PictureStretch not set in ColumnItem.Assign proc
+  //         : Fixed : issue with editing grid with no datasource assigned
 
 type
   TDBAdvGrid = class;
@@ -219,6 +267,7 @@ type
     FHeaderAlignment: TAlignment;
     FHeaderFont: TFont;
     FShowUnicode: boolean;
+    FPictureStretch: TStretchMode;
     procedure SetWidth(const Value: Integer);
     function GetWidth: Integer;
     procedure SetAlignment(const Value: TAlignment);
@@ -261,6 +310,7 @@ type
     procedure SetDataImageField(const Value: boolean);
     procedure SetHTMLTemplate(const Value: string);
     procedure SetHeaderFont(const Value: TFont);
+    procedure SetPrintFont(const Value: TFont);
   protected
     function GetDisplayName: string; override;
     function GetGrid: TDBAdvGrid;
@@ -300,7 +350,7 @@ type
     property FilterCaseSensitive: Boolean read FFilterCaseSensitive write FFilterCaseSensitive default false;
     property Fixed: Boolean read FFixed write SetFixed default false;
     property FloatFormat: string read FFloatFormat write SetFloatFormat;
-    property Font: TFont read FFont write SetFont;
+    property Font : TFont read FFont write SetFont;
     property Header: string read FColumnHeader write SetColumnHeader;
     property HeaderFont: TFont read FHeaderFont write SetHeaderFont;
     property HeaderAlignment: TAlignment read FHeaderAlignment write SetHeaderAlignment default taLeftJustify;
@@ -310,10 +360,11 @@ type
     property Name: string read FName write FName;
     property Password: Boolean read FPassword write SetPassword default false;
     property PictureField: Boolean read FPictureField write SetPictureField default false;
+    property PictureStretch: TStretchMode read FPictureStretch write FPictureStretch default StretchWithAspectRatio; 
     property PrintBorders: TCellBorders read FPrintBorders write FPrintBorders;
     property PrintBorderPen: TPen read fPrintBorderPen write FPrintBorderPen;
     property PrintColor: TColor read FPrintColor write FPrintColor default clWhite;
-    property PrintFont: TFont read FPrintFont write FPrintFont;
+    property PrintFont: TFont read FPrintFont write SetPrintFont;
     property ProgressColor: TColor read FProgressColor write SetProgressColor default clRed;
     property ProgressBKColor: TColor read FProgressBKColor write SetProgressBKColor default clWhite;
     property ProgressTextColor: TColor read FProgressTextColor write SetProgressTextColor default clWhite;
@@ -338,8 +389,12 @@ type
     FNoRecursiveUpdate: Boolean;
     function GetItem(Index: Integer): TDBGridColumnItem;
     procedure SetItem(Index: Integer; const Value: TDBGridColumnItem);
+{$IFNDEF DELPHI6_LVL}
+    function GetOwnerEx: TPersistent;
+{$ENDIF}
   protected
     procedure Update(Item: TCollectionItem); override;
+    function GetOwner: TPersistent; override;
     property Grid: TDBAdvGrid read FOwner;
   public
     function HasFieldsDefined: boolean;
@@ -349,6 +404,9 @@ type
 {$IFNDEF DELPHI5_LVL}
     procedure Delete(index: Integer);
 {$ENDIF}
+{$IFNDEF DELPHI6_LVL}
+    property Owner: TPersistent read GetOwnerEx;
+{$ENDIF}
     property Items[Index: Integer]: TDBGridColumnItem read GetItem write SetItem; default;
 {$IFDEF TMSDOTNET}
     constructor Create(AOwner: TDBAdvGrid; AItemClass: TCollectionItemClass);
@@ -356,7 +414,6 @@ type
 {$IFNDEF TMSDOTNET}
     constructor Create(AOwner: TDBAdvGrid);
 {$ENDIF}
-    function GetOwner: TPersistent; override;
     procedure SetOrganization;
     procedure ResetOrganization;
   end;
@@ -365,6 +422,8 @@ type
   TGetRecordCountEvent = procedure(Sender: TObject; var Count: integer) of object;
   TGetHTMLTemplateDataEvent = procedure(Sender: TObject; ACol, ARow: integer; Fieldname: string; var Data: string) of object;
   TDBColumnPopupEvent = procedure(Sender: TObject; ACol, ARow: Integer; PopupMenu: TPopupMenu) of object;
+  TInvalidPictureEvent = procedure(Sender: TObject; ACol, ARow: integer) of object;
+  TFieldToStreamEvent = procedure(Sender: TObject; ACol,ARow: integer; DBField: TField; MS: TMemoryStream) of object;
   TDataSetType = (dtSequenced, dtNonSequenced);
   TEditPostMode = (epCell, epRow);
 
@@ -415,6 +474,7 @@ type
     FOnGetHTMLTemplateData: TGetHTMLTemplateDataEvent;
     FKeyDownAppend: boolean;
     FMouseWheelScrolling: boolean;
+    FMouseWheelScrolled: Boolean;
     FLastDesignChoice: Integer;
     FOnRowChanging: TRowChangingEvent;
     FFilteredDataSet: Boolean;
@@ -441,12 +501,17 @@ type
     FEditEnding: Boolean;
     FOldFoaterEnableCalc: Boolean;
     FAllowRowChange: Boolean;
-    FMustEnableControls: Boolean;
+    FMustEnableControls: integer;
     FAutoCreateColumns: Boolean;
     FAutoRemoveColumns: Boolean;
     FOnColumnPopup: TDBColumnPopupEvent;
     FShowDesignHelper: Boolean;
     FInternalMove: Boolean;
+    FBlockCallBack: Boolean;
+    FShouldNotPostChanges: Boolean;
+    FInvalidPicture: TPicture;
+    FOnInvalidPicture: TInvalidPictureEvent;
+    FOnFieldToStream: TFieldToStreamEvent;
     procedure DataUpdate;
     procedure DataChange;
     procedure ActiveChange(Value: Boolean);
@@ -485,6 +550,7 @@ type
     procedure SetShowBooleanFields(const Value: Boolean);
     procedure SetShowPictureFields(const Value: Boolean);
     function GetDBFieldAtColumn(ACol: integer): TField;
+    function GetSelectedField: TField;
     function GetDBFieldIndexAtColumn(ACol: integer): integer;
     function GetFixedRowsEx: Integer;
     procedure SetFixedRowsEx(const Value: Integer);
@@ -508,14 +574,18 @@ type
     procedure SetAutoCreateColumns(const Value: Boolean);
     procedure SetAutoRemoveColumns(const Value: Boolean);
     procedure SetShowDesignHelper(const Value: Boolean);
+    procedure SetInvalidPicture(const Value: TPicture);
     //procedure PostEditRecData;
   protected
     function CanEditShow: Boolean; override;
     function  CanEditModify: Boolean; override;
     procedure WndProc(var Message: tMessage); override;
+    function DBWheelUp: boolean;
+    function DBWheelDown: boolean;
+    procedure DirectWheelChange(delta: integer); override;
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
     function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
-    procedure DoCanEditCell(ACol,ARow: Integer; var CanEdit: boolean); override;    
+    procedure DoCanEditCell(ACol,ARow: Integer; var CanEdit: boolean); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     function SelectCell(ACol, ARow: longint): Boolean; override;
@@ -564,16 +634,30 @@ type
     procedure AddStringCheckBox(ACol: integer);
     procedure QueryAddRow(var AllowAdd: Boolean); override;
     procedure LoadLookupList(fld: TField; list: TStrings);
+    {$IFNDEF TMSDOTNET}
+    {$IFDEF DELPHI2006_LVL}
+    procedure LoadWideLookupList(fld: TField; list: TWideStrings);
+    {$ENDIF}
+    {$ENDIF}    
     function GetLookupKey(i: Integer): string;
     property DataLink: TAdvGridDataLink read FDataLink;
     property ReadOnly: Boolean read GetReadOnly write SetReadOnly default False;
     procedure Paint; override;
     procedure UpdateOnSelection(var GR: TGridRect); override;
     procedure UpdateSelectionRect(var GR: TGridRect); override;
-    procedure BlobFieldToStream(DBField: TBlobField; var size: tpoint);
+    procedure BlobFieldToStream(DBField: TBlobField; var size: tpoint; Col, Row: integer);
+    procedure TabToNextRowAtEnd; override;
+    procedure OnMouseActionsChanged(Sender: TObject); override;
+    procedure EditKeyDown(var Key: Word; Shift: TShiftState); override;
+    procedure Edit_WMKeyDown(var Msg: TWMKeydown); override;
+    procedure OnNavigationChanged(Sender: TObject); override;
+    function DoAllowFmtPaste: boolean; override;
+    procedure DoInvalidPicture(Col,Row: integer); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure AssignCells(Source: TPersistent); override;
+    procedure Assign(Source: TPersistent); override;
     procedure Resize; override;
     function GetVersionNr: Integer; override;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
@@ -593,7 +677,11 @@ type
     procedure RemoveAllColumns;
     procedure SaveColumnPositions(Key,Section: string);
     procedure LoadColumnPositions(Key,Section: string);
+    procedure UpdateActive;
+    procedure Reload;
+    procedure UpdateDisplay;
     property Row: Integer read GetDBRow write SetDBRow;
+    property SelectedField: TField read GetSelectedField;
     property FieldAtColumn[ACol: Integer]: TField read GetDBFieldAtColumn;
     property FieldIndexAtColumn[Acol: Integer]: Integer read GetDBFieldIndexAtColumn;
   published
@@ -607,6 +695,7 @@ type
     property EditPostMode: TEditPostMode read FEditPostMode write SetEditPostMode default epCell;
     property FixedRows: Integer read GetFixedRowsEx write SetFixedRowsEx;
     property PageMode: Boolean read FPageMode write SetPageMode default true;
+    property InvalidPicture: TPicture read FInvalidPicture write SetInvalidPicture;
     property RefreshOnDelete: Boolean read FRefreshOnDelete write FRefreshOnDelete default false;
     property RefreshOnInsert: Boolean read FRefreshOnInsert write FRefreshOnInsert default false;
     property ShowDBIndicator: Boolean read FShowDBIndicator write SetShowDBIndicator default true;
@@ -625,9 +714,16 @@ type
     property OnGetEditText: TGetEditEvent read FOnGetEditText write FOnGetEditText;
     property OnGetRecordCount: TGetRecordCountEvent read FOnGetRecordCount write FOnGetRecordCount;
     property OnGetHTMLTemplateData: TGetHTMLTemplateDataEvent read FOnGetHTMLTemplateData write FOnGetHTMLTemplateData;
+    property OnInvalidPicture: TInvalidPictureEvent read FOnInvalidPicture write FOnInvalidPicture;
+    property OnFieldToStream: TFieldToStreamEvent read FOnFieldToStream write FOnFieldToStream;
   end;
 
 implementation
+
+{$IFDEF DELPHI6_LVL}
+uses 
+  Variants;
+{$ENDIF}  
 
 { TAdvGridDataLink }
 
@@ -670,7 +766,12 @@ begin
   if (0 <= I) and (I < FFieldCount) and (FFieldMap[I] >= 0) then
     Result := DataSet.FieldList[FFieldMap[I]]
   else
-    Result := nil;
+  begin
+    if (0 <= I) and (I < FFieldCount) then
+      Result := DataSet.FieldList[I]
+    else
+      Result := nil;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -714,6 +815,7 @@ end;
 
 procedure TAdvGridDataLink.ActiveChanged;
 begin
+
 {$IFDEF DELPHI6_LVL}
   if Active and Assigned(DataSource) then
     if Assigned(DataSource.DataSet) then
@@ -804,6 +906,7 @@ end;
 
 procedure TAdvGridDataLink.RecordChanged(Field: TField);
 begin
+
   FGrid.RecordChanged(Field);
   FModified := False;
 end;
@@ -899,6 +1002,7 @@ begin
   FSpinStep := 1;
 
   FPictureField := false;
+  FPictureStretch := StretchWithAspectRatio;
   FDataImageField := false;
   FHTMLTemplate := '';
 
@@ -1083,6 +1187,14 @@ begin
     FSortSuffix := TDBGridColumnItem(Source).SortSuffix;
     FDataImageField := TDBGridColumnItem(Source).DataImageField;
     FShowUnicode := TDBGridColumnItem(Source).ShowUnicode;
+    FProgressField := TDBGridColumnItem(Source).ProgressField;
+    FProgressColor := TDBGridColumnItem(Source).ProgressColor;
+    FProgressBKColor := TDBGridColumnItem(Source).ProgressBKColor;
+    FProgressTextColor := TDBGridColumnItem(Source).ProgressTextColor;
+    FProgressTextBKColor := TDBGridColumnItem(Source).ProgressTextBKColor;
+    FHTMLTemplate := TDBGridColumnItem(Source).HTMLTemplate;
+    FPictureField := TDBGridColumnItem(Source).PictureField;
+    FPictureStretch := TDBGridColumnItem(Source).PictureStretch;
   end;
 end;
 
@@ -1395,8 +1507,10 @@ procedure TDBGridColumnItem.SetCheckBoxField(const Value: Boolean);
 begin
   if Value and (FPictureField or FProgressField) then
     raise exception.Create('Can not assign true when PictureField or ProgressField is also true.');
+
   if FCheckBoxField <> Value then
   begin
+
     if GetGrid <> nil then
     begin
       if not Value then
@@ -1407,6 +1521,7 @@ begin
         GetGrid.AddStringCheckBox(Index);
       end;
     end;
+    
     FCheckBoxField := Value;
 
     TDBGridColumnCollection(Collection).Update(Self);
@@ -1419,6 +1534,7 @@ procedure TDBGridColumnItem.SetProgressField(const Value: Boolean);
 begin
   if Value and (FCheckBoxField or FPictureField) then
     raise Exception.Create('Can not assign true when CheckBoxField or PictureField is also true.');
+    
   if FProgressField <> Value then
   begin
     FProgressField := Value;
@@ -1476,8 +1592,18 @@ end;
 procedure TDBGridColumnItem.SetHeaderFont(const Value: TFont);
 begin
   FHeaderFont.Assign(Value);
-  TDBGridColumnCollection(Collection).Update(Self);  
+  TDBGridColumnCollection(Collection).Update(Self);
 end;
+
+//------------------------------------------------------------------------------
+
+procedure TDBGridColumnItem.SetPrintFont(const Value: TFont);
+begin
+  FPrintFont.Assign(Value);
+  TDBGridColumnCollection(Collection).Update(Self);
+end;
+
+//------------------------------------------------------------------------------
 
 { TDBGridColumnCollection }
 
@@ -1530,6 +1656,13 @@ function TDBGridColumnCollection.GetOwner: TPersistent;
 begin
   Result := FOwner;
 end;
+
+{$IFNDEF DELPHI6_LVL}
+function TDBGridColumnCollection.GetOwnerEx: TPersistent;
+begin
+  Result := GetOwner;
+end;
+{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -1653,7 +1786,6 @@ begin
   FColumnCollection.FNoRecursiveUpdate := False;
   AlwaysValidate := true;
   FShowDesignHelper := true;
-
   FLastDesignChoice := -1;
   DefaultRowHeight := 22;
   FOldPosition := nil;
@@ -1699,9 +1831,11 @@ begin
 
   FOldAR := -1;
   FOldTopRow := -1;
-  
+
   FAutoCreateColumns := True;
   FAutoRemoveColumns := True;
+  FInvalidPicture := TPicture.Create;
+  FInvalidPicture.Icon.Handle := LoadIcon(0, IDI_ERROR);
 end;
 
 //------------------------------------------------------------------------------
@@ -1724,6 +1858,7 @@ begin
   FColumnCollection.Free;
   FCellGraphic.Free;
   FPicture.Free;
+  FInvalidPicture.Free;
   inherited Destroy;
 end;
 
@@ -1733,15 +1868,27 @@ procedure TDBAdvGrid.ActiveChange(Value: Boolean);
 var
   i, j, rc, ColC: integer;
   aField: TField;
+  {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI2006_LVL}
   sl: TStringList;
+  {$ENDIF}
+  {$IFDEF DELPHI2006_LVL}
+  sl: TWideStringList;
+  {$ENDIF}
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  sl: TStringList;
+  {$ENDIF}
   DoUpdate: Boolean;
 begin
   if Assigned(FDataLink) then
   begin
     if Assigned(FDataLink.DataSet) then
     begin
-  //if not FDataLink.DataSet.Active then
-    //Text := '';
+      if not FDataLink.DataSet.Active then
+        FShowDefinedFields := false;
+
+      //Text := '';
       if FDataLink.DataSet.Active then
       begin
         FShowDefinedFields := false;
@@ -1750,14 +1897,25 @@ begin
           if FColumnCollection.Items[i].FieldName <> '' then
           begin
             FShowDefinedFields := true;
-            break;
+            Break;
           end;
         end;
 
         if FShowDefinedFields then
         begin
           i := 0;
+          {$IFNDEF TMSDOTNET}
+          {$IFNDEF DELPHI2006_LVL}
           sl := TStringList.Create;
+          {$ENDIF}
+          {$IFDEF DELPHI2006_LVL}
+          sl := TWideStringList.Create;
+          {$ENDIF}
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          sl := TStringList.Create;
+          {$ENDIF}
+
           DataSource.DataSet.GetFieldNames(sl);
 
           while (i <= FColumnCollection.Count - 1) do
@@ -1830,6 +1988,11 @@ begin
 
                 FColumnCollection.Items[i].Alignment := aField.Alignment;
                 FColumnCollection.Items[i].EditMask := aField.EditMask;
+
+                if (aField.DataType in [ftString, ftWideString]) then
+                  FColumnCollection.Items[i].EditLength := aField.Size
+                else
+                  FColumnCollection.Items[i].EditLength := 0;
               end;
             end;
           end;
@@ -1902,6 +2065,12 @@ begin
       end
       else
       begin
+        if HasNodes then
+        begin
+          ExpandAll;
+          UnGroup;
+        end;
+
         RowCount := FixedRows + 1;
 
         if FAutoRemoveColumns then
@@ -1916,12 +2085,14 @@ begin
             DoUpdate := false;
 
           if not Columns.HasFieldsDefined and DoUpdate then
+          begin
             ColCount := 2;
+          end;
         end;
 
-        for rc:= 0 to RowCount-1 do
+        for rc := 0 to RowCount - 1 do
         begin
-          for i:= 0 to ColCount -1 do
+          for i := 0 to ColCount - 1 do
             Cells[i, rc] := '';
         end;
 
@@ -1958,13 +2129,19 @@ begin
 
 end;
 
+procedure TDBAdvGrid.Reload;
+begin
+  if not PageMode then  
+    LoadFromDataSet;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TDBAdvGrid.EditingChanged;
 var
   OldV: Boolean;
   i: integer;
-  //aField: TField;  
+  //aField: TField;
   //bm: TBookMark;
 begin
 //InvalidateCol(0);
@@ -2080,8 +2257,10 @@ function TDBAdvGrid.CanModify: Boolean;
 begin
 //FDataLink.OnDataChange := nil;
   Result := false;
-  if PageMode then
-    Result := FDataLink.Edit
+  if PageMode and CheckDataSet then
+  begin
+    Result := FDataLink.Edit;
+  end;
 //FDataLink.OnDataChange := DataChange;
 end;
 
@@ -2139,7 +2318,8 @@ begin
         //FOldDataSetType:=
       end;
     end;
-  end;  
+  end;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -2149,8 +2329,8 @@ var
   i, {j,} NewVisibleFieldCount, ColC: integer;
   aField: TField;
 begin
-
   NewVisibleFieldCount := 0;
+
   for i := 0 to FDataLink.DataSet.FieldCount - 1 do
   begin
     if FDataLink.DataSet.Fields[i].Visible then
@@ -2200,9 +2380,15 @@ begin
         begin
           FColumnCollection.Items[i].Alignment := aField.Alignment;
           FColumnCollection.Items[i].EditMask := aField.EditMask;
+
+          if (aField.DataType in [ftString, ftWideString]) then
+            FColumnCollection.Items[i].EditLength := aField.Size
+          else
+            FColumnCollection.Items[i].EditLength := 0;
         end;
       end;
     end;
+
 {$IFDEF DELPHI6_LVL}
     InvalidateGrid;
 {$ENDIF}
@@ -2238,7 +2424,7 @@ begin
       else
         Field.Text := FEditText;
     end;
-      
+
     if Field.FieldKind = fkLookup then
     begin
       if ComboBox.ItemIndex >= 0 then
@@ -2247,7 +2433,6 @@ begin
         FDataLink.DataSet.FieldByName(Field.KeyFields).AsString := GetLookupKey(v);
       end;
     end;
-
   end;
 end;
 
@@ -2413,7 +2598,7 @@ var
   OldActiveRecord, i: integer;
   aField: TField;
 begin
-  inherited;
+  //inherited;
 
   if Assigned(FDataLink) and (c < FColumnCollection.Count) and PageMode then
   begin
@@ -2425,32 +2610,35 @@ begin
        if not FShowDBIndicator or (FixedCols <= 0) then
          i := 0; }
 
-        if {(c=0) or }(r = {0}FixedRows-1) then
+        if (r = FixedRows - 1) then
         begin
-          if (r = {0}FixedRows-1) and (((not FShowDBIndicator or (FixedCols <= 0)) and (c = 0)) or (c > 0)) then // Field Names
+          if (((not FShowDBIndicator or (FixedCols <= 0)) and (c = 0)) or (c > 0)) then // Field Names
           begin
             if (FColumnCollection.Items[c].Header <> '') then
               Value := FColumnCollection.Items[c].Header
             else
-              if (FColumnCollection.Items[c].FieldName <> '') then
-              begin
-                aField := FDataLink.DataSet.FieldByName(FColumnCollection.Items[c].FieldName);
-                if Assigned(aField) and (aField.DisplayLabel <> '') then
-                  Value := aField.DisplayLabel
-                else
-                  Value := FColumnCollection.Items[c].FieldName;
-              end
+              if (GridCells[c,r] <> '') then
+                Value := GridCells[c,r]
               else
-                if not FShowDefinedFields then
+                if (FColumnCollection.Items[c].FieldName <> '') then
                 begin
-                  i := GetDBFieldIndexAtColumn(c);
-                  if (i <> -1) then
+                  aField := FDataLink.DataSet.FieldByName(FColumnCollection.Items[c].FieldName);
+                  if Assigned(aField) and (aField.DisplayLabel <> '') then
+                    Value := aField.DisplayLabel
+                  else
+                    Value := FColumnCollection.Items[c].FieldName;
+                end
+                else
+                  if not FShowDefinedFields then
                   begin
-                    if (FDataLink.DataSet.Fields[i].DisplayLabel <> '') then
-                      Value := FDataLink.DataSet.Fields[i].DisplayLabel
-                    else
-                      Value := FDataLink.DataSet.Fields[i].DisplayName;
-                end;
+                    i := GetDBFieldIndexAtColumn(c);
+                    if (i <> -1) then
+                    begin
+                      if (FDataLink.DataSet.Fields[i].DisplayLabel <> '') then
+                        Value := FDataLink.DataSet.Fields[i].DisplayLabel
+                      else
+                        Value := FDataLink.DataSet.Fields[i].DisplayName;
+                  end;
             end;
          end;
         end
@@ -2458,8 +2646,7 @@ begin
         begin
           if (c = 0) and (FixedCols > 0) and FShowDBIndicator {or FDataLink.DataSet.Eof or FDataLink.DataSet.Bof} then
             Exit;
-
-          if (r <= FixedRows - 1) or (FloatingFooter.Visible and (r >= RowCount - 1)) then
+          if (r <= FixedRows - 1) or (FloatingFooter.Visible and (r >= RowCount - 1) and (FloatingFooter.FooterStyle <> fsColumnPreview)) then
             Exit;
 
           aField := GetDBFieldAtColumn(c);
@@ -2594,6 +2781,7 @@ begin
       end;
     end;
   end;
+  
   if Assigned(OnGetDisplText) then
     OnGetDisplText(Self, c, r, Value);
 end;
@@ -2605,10 +2793,13 @@ var
 //SI: TScrollInfo;
   a, OldTopRow: integer;
   RC, AR: Integer;
+  OldLeftCol: integer;
 begin
   FDoNotCountRow := true;
 
   OldTopRow := TopRow;
+  OldLeftCol := LeftCol;
+
 //if WMScroll.ScrollCode <> SB_THUMBPOSITION then
 
   if (DataSetType = dtSequenced) or not PageMode then
@@ -2617,125 +2808,145 @@ begin
   if not Assigned(DataSource) then
     Exit;
 
-  if PageMode then
-  begin
-    RC := FDatalink.RecordCount;
-    AR := FDataLink.ActiveRecord;
+  if Navigation.KeepHorizScroll then
+    BeginUpdate;
 
-    with WMScroll, FDataLink.DataSet do
-      case ScrollCode of
-        SB_LINEUP:
-          begin
-            if (AR > 0) and (AR = FDataLink.BufferCount - 1) then
-              AR := AR - 1;
-            FDataLink.DataSet.MoveBy(-AR - 1);
-          end;
-        SB_LINEDOWN:
-          begin
-            FDoNotUpdateMe := true;
-            a := FDataLink.DataSet.MoveBy(RC - AR);
-            FDoNotUpdateMe := false;
-            if a = 0 then
-            begin
-              FDataLink.DataSet.MoveBy(1);
-              if DataSetType = dtNonSequenced then
-                UpdateScrollBar;
-            end
-            else if a > 1 then
-              FDataLink.DataSet.MoveBy(-1)
-            else
-              Self.UpdateScrollBar;
-      //FDataLink.DataSet.MoveBy(-1);
-          end;
-        SB_PAGEUP: FDataLink.DataSet.MoveBy({-VisibleRowCount}(-AR - 1) + (TopRow - OldTopRow));
-        SB_PAGEDOWN: FDataLink.DataSet.MoveBy({VisibleRowCount}(RC - AR) + (TopRow - OldTopRow));
-        SB_THUMBPOSITION:
-          begin
-        //OutputDebugString(Pchar('TopRow='+inttostr(TopRow)+' Row='+inttostr(Row)));
+  try
+    if PageMode then
+    begin
+      RC := FDatalink.RecordCount;
+      AR := FDataLink.ActiveRecord;
 
-            if IsSequenced and (DataSetType = dtSequenced) then
+      with WMScroll, FDataLink.DataSet do
+        case ScrollCode of
+          SB_LINEUP:
             begin
-          //FDoNotUpdateMe:= true;
-              a := TopRow - OldTopRow;
-              if (a > 0) then
+              if (AR > 0) and (AR = FDataLink.BufferCount - 1) then
+                AR := AR - 1;
+              FDataLink.DataSet.MoveBy(-AR - 1);
+            end;
+          SB_LINEDOWN:
+            begin
+              FDoNotUpdateMe := true;
+              a := FDataLink.DataSet.MoveBy(RC - AR);
+              FDoNotUpdateMe := false;
+              if a = 0 then
               begin
-                FDataLink.DataSet.MoveBy((RC - AR - 1) + a);
-            //FDataLink.DataSet.MoveBy(-j);
+                FDataLink.DataSet.MoveBy(1);
+                if DataSetType = dtNonSequenced then
+                  UpdateScrollBar;
               end
-              else if (a < 0) then
-              begin
-                FDataLink.DataSet.MoveBy(-AR + a);
-              end;
-          //FDoNotUpdateMe:= false;
-        {
-          SI.cbSize := sizeof(SI);
-          SI.fMask := SIF_ALL;
-          GetScrollInfo(Self.Handle, SB_VERT, SI);
-          if SI.nTrackPos <= 1 then First
-          else if SI.nTrackPos >= RecordCount then Last
-          else RecNo := SI.nTrackPos;
-          }
-            end
-            else
-              case Pos of
-                0: First;
-                {$IFDEF TMSDOTNET}
-                1: FDataLink.DataSet.MoveBy(-VisibleRowCount);
-                {$ENDIF}
-                {$IFNDEF TMSDOTNET}
-                1: FDataLink.MoveBy(-VisibleRowCount);
-                {$ENDIF}
-                2: Exit;
-                {$IFDEF TMSDOTNET}
-                3: FDataLink.DataSet.MoveBy(VisibleRowCount);
-                {$ENDIF}
-                {$IFNDEF TMSDOTNET}
-                3: FDataLink.MoveBy(VisibleRowCount);
-                {$ENDIF}
-                4: Last;
-              end;
-          end;
-        SB_THUMBTRACK:
-          begin
-            if (DataSetType = dtSequenced) and IsSequenced then
+              else if a > 1 then
+                FDataLink.DataSet.MoveBy(-1)
+              else
+                Self.UpdateScrollBar;
+        //FDataLink.DataSet.MoveBy(-1);
+            end;
+          SB_PAGEUP:
             begin
-              a := TopRow - OldTopRow;
-              if (a > 0) then
-              begin
-                FDataLink.DataSet.MoveBy((RC - AR - 1) + a);
-              end
-              else if (a < 0) then
-              begin
-                FDataLink.DataSet.MoveBy(-AR + a);
-              end;
-            end
-            else
-              case Pos of
-                0: First;
-                {$IFDEF TMSDOTNET}
-                1: FDataLink.DataSet.MoveBy(-VisibleRowCount);
-                {$ENDIF}
-                {$IFNDEF TMSDOTNET}
-                1: FDataLink.MoveBy(-VisibleRowCount);
-                {$ENDIF}
-                2: Exit;
-                {$IFDEF TMSDOTNET}
-                3: FDataLink.DataSet.MoveBy(VisibleRowCount);
-                {$ENDIF}
-                {$IFNDEF TMSDOTNET}
-                3: FDataLink.MoveBy(VisibleRowCount);
-                {$ENDIF}
-                4: Last;
-              end;
+              if (DataSetType = dtSequenced) then
+                FDataLink.DataSet.MoveBy((-AR - 1) + (TopRow - OldTopRow))
+              else
+                FDataLink.DataSet.MoveBy(-VisibleRowCount);
+              //FDataLink.DataSet.MoveBy(-(VisibleRowCount div 2));
+            end;
+          SB_PAGEDOWN:
+            begin
+              if (DataSetType = dtSequenced) then
+                FDataLink.DataSet.MoveBy((RC - AR) + (TopRow - OldTopRow))
+              else
+                FDataLink.DataSet.MoveBy(VisibleRowCount);
+              //FDataLink.DataSet.MoveBy(VisibleRowCount div 2);
+            end;
+          SB_THUMBPOSITION:
+            begin
+          //OutputDebugString(Pchar('TopRow='+inttostr(TopRow)+' Row='+inttostr(Row)));
 
-          end;
-        SB_BOTTOM: Last;
-        SB_TOP: First;
-      end;
+              if IsSequenced and (DataSetType = dtSequenced) then
+              begin
+            //FDoNotUpdateMe:= true;
+                a := TopRow - OldTopRow;
+                if (a > 0) then
+                begin
+                  FDataLink.DataSet.MoveBy((RC - AR - 1) + a);
+              //FDataLink.DataSet.MoveBy(-j);
+                end
+                else if (a < 0) then
+                begin
+                  FDataLink.DataSet.MoveBy(-AR + a);
+                end;
+            //FDoNotUpdateMe:= false;
+          {
+            SI.cbSize := sizeof(SI);
+            SI.fMask := SIF_ALL;
+            GetScrollInfo(Self.Handle, SB_VERT, SI);
+            if SI.nTrackPos <= 1 then First
+            else if SI.nTrackPos >= RecordCount then Last
+            else RecNo := SI.nTrackPos;
+            }
+              end
+              else
+                case Pos of
+                  0: First;
+                  {$IFDEF TMSDOTNET}
+                  1: FDataLink.DataSet.MoveBy(-VisibleRowCount);
+                  {$ENDIF}
+                  {$IFNDEF TMSDOTNET}
+                  1: FDataLink.MoveBy(-VisibleRowCount);
+                  {$ENDIF}
+                  2: Exit;
+                  {$IFDEF TMSDOTNET}
+                  3: FDataLink.DataSet.MoveBy(VisibleRowCount);
+                  {$ENDIF}
+                  {$IFNDEF TMSDOTNET}
+                  3: FDataLink.MoveBy(VisibleRowCount);
+                  {$ENDIF}
+                  4: Last;
+                end;
+            end;
+          SB_THUMBTRACK:
+            begin
+              if (DataSetType = dtSequenced) and IsSequenced then
+              begin
+                a := TopRow - OldTopRow;
+                if (a > 0) then
+                begin
+                  FDataLink.DataSet.MoveBy((RC - AR - 1) + a);
+                end
+                else if (a < 0) then
+                begin
+                  FDataLink.DataSet.MoveBy(-AR + a);
+                end;
+              end
+              else
+                case Pos of
+                  0: First;
+                  {$IFDEF TMSDOTNET}
+                  1: FDataLink.DataSet.MoveBy(-VisibleRowCount);
+                  {$ENDIF}
+                  {$IFNDEF TMSDOTNET}
+                  1: FDataLink.MoveBy(-VisibleRowCount);
+                  {$ENDIF}
+                  2: Exit;
+                  {$IFDEF TMSDOTNET}
+                  3: FDataLink.DataSet.MoveBy(VisibleRowCount);
+                  {$ENDIF}
+                  {$IFNDEF TMSDOTNET}
+                  3: FDataLink.MoveBy(VisibleRowCount);
+                  {$ENDIF}
+                  4: Last;
+                end;
+
+            end;
+          SB_BOTTOM: Last;
+          SB_TOP: First;
+        end;
+    end;
+  finally
+    if Navigation.KeepHorizScroll then
+      LeftCol := OldLeftCol;
+    EndUpdate;
   end;
-//Invalidate;
-
-//inherited;
 
 
 {  if (WMScroll.ScrollCode <> SB_ENDSCROLL) then
@@ -2743,6 +2954,7 @@ begin
 FDataLink.BufferCount:= self.VisibleRowCount +1+ GetScrollPos(Handle,SB_VERT);
 end;   }
   FDoNotCountRow := false;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -2773,7 +2985,10 @@ function TDBAdvGrid.GetRecordCount: integer;
       begin
         cb := GetBookMark;
         First;
-        Result := MoveBy($7FFFFFFF) + 1;
+        if (csDesigning in ComponentState) then
+          Result := MoveBy(100)
+        else
+          Result := MoveBy($7FFFFFFF) + 1;
 
         GotoBookMark(cb);
         FreeBookMark(cb);
@@ -2814,7 +3029,7 @@ begin
         else
         begin
           Result := RowsInDataSet;
-          if (Self.FloatingFooter.Visible) and PageMode then
+          if (Self.FloatingFooter.Visible) and PageMode and (FloatingFooter.FooterStyle <> fsColumnPreview) then
             Inc(Result);
         end;
    { OldRecNo:= FDataLink.DataSet.RecNo;
@@ -2829,7 +3044,9 @@ end;
 
 procedure TDBAdvGrid.Scroll(Distance: Integer);
 begin
-  if not HandleAllocated then Exit;
+  if not HandleAllocated then
+    Exit;
+  
 //OldRect := BoxRect(0, Row, ColCount - 1, Row);
 //if (FDataLink.ActiveRecord >= RowCount - FTitleOffset) then UpdateRowCount;
   UpdateScrollBar;
@@ -2844,16 +3061,21 @@ var
   SIOld, SINew: TScrollInfo;
   gdr1, gdr2, gdr3: TRect;
   i, j: integer;
-  RC: Integer;
+  RC, OldRow, OldTopRow: Integer;
 begin
   if FDatalink.Active and HandleAllocated and not FDoNotUpdateMe and PageMode then
     with FDatalink.DataSet do
     begin
+      OldRow := Row;
+      OldTopRow := TopRow;
       if DataSetType = dtNonSequenced then
       begin
         FInternalCall := true;
+
         if FDataLink.BufferCount <> VisibleRowCount + 1 then
           FDataLink.BufferCount := VisibleRowCount + 1;
+
+
 
        (* if TopRow > {2}FixedRows+1 then
           TopRow := {2}FixedRows+1;
@@ -2868,7 +3090,7 @@ begin
           else
           begin
             TopRow := FixedRows + 1;
-          end;  
+          end;
         end;
 
         if (Row <> (FdataLink.ActiveRecord + FixedRows)) then
@@ -2877,7 +3099,9 @@ begin
           begin
             if (Row > (FdataLink.ActiveRecord + FixedRows)) then
             begin
-              Row := min(FdataLink.ActiveRecord + FixedRows, RowCount-1)
+              FBlockCallBack := True;
+              Row := min(FdataLink.ActiveRecord + FixedRows, RowCount-1);
+              FBlockCallBack := False;
             end
             else
             begin
@@ -2979,8 +3203,9 @@ begin
 
       FKeyDownAppend := false;
 
-      gdr1 := CellRect(1, self.TopRow);
-      gdr2 := CellRect(VisibleColCount + 1, TopRow + VisibleRowCount + 1);
+      gdr1 := CellRect(FixedCols, TopRow);
+      gdr2 := CellRect(VisibleColCount + FixedCols, TopRow + VisibleRowCount);
+
       UnionRect(gdr3, gdr1, gdr2);
 {$IFNDEF TMSDOTNET}
       InvalidateRect(Handle, @gdr3, False);
@@ -2990,7 +3215,9 @@ begin
       InvalidateRect(Handle, gdr3, False);
 {$ENDIF}
 
-      Invalidate;
+      if ShowDBIndicator and ((OldTopRow <> TopRow) or (OldRow <> Row)) then
+        RepaintCol(0);
+      //Invalidate;
     end;
 end;
 
@@ -3013,7 +3240,8 @@ begin
   begin
   (*  if TopRow > {2}FixedRows+1 then
       TopRow := {2}FixedRows+1; *)
-    UpdateScrollBar;
+    if not FBlockCallBack then
+      UpdateScrollBar;
   end
   else
   begin
@@ -3039,7 +3267,6 @@ begin
   RFI := RealColIndex(FromIndex);
   RTI := RealColIndex(ToIndex);
 
-  inherited;
 
   BeginUpdate;
   TDBGridColumnItem(FColumnCollection.Add).Assign(TDBGridColumnItem(FColumnCollection.Items[RFI]));
@@ -3050,6 +3277,9 @@ begin
   TopRow := tr;
   EndUpdate;
   FColumnCollection.FNoRecursiveUpdate := False;
+
+  inherited;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -3057,14 +3287,17 @@ end;
 procedure TDBAdvGrid.WMKeyDown(var Msg: TWMKeydown);
 var
   OldRowCount, i, OldCol: integer;
-  IsCtrl, IsShift, OldValue, Allow, OldV2: Boolean;
+  IsCtrl, IsShift, OldValue, OldV2: Boolean;
   Key:word;
   SS: TShiftState;
   Form: TCustomForm;
   R: TRect;
   CanInsert, CanDelete: boolean;
+  lc: integer;
 
 begin
+
+  lc := LeftCol;
   if not PageMode then
   begin
     inherited;
@@ -3084,13 +3317,22 @@ begin
   case Msg.CharCode of
     VK_UP:
       begin
-        FNewAppendRecord:= false;
+        BeginUpdate;
+
+        FNewAppendRecord := false;
         FDataLink.DataSet.MoveBy(-1);
+
         Select;
+        if Navigation.KeepHorizScroll then
+          LeftCol := lc;
+        EndUpdate;
       end;
+
     VK_DOWN:
       begin
-        OldV2 := FInternalMove;  
+        OldV2 := FInternalMove;
+        BeginUpdate;
+
         if not FKeyDownAppend then
         begin
           if (DataSetType = dtNonSequenced) and (SearchFooter.Visible or FloatingFooter.Visible) then
@@ -3110,7 +3352,7 @@ begin
                 OldValue:= FInternalCall;
                 FInternalCall:= true;
                 FInternalSelection:= true;
-                Row:= min(Row + 1, RowCount-1);      // FF: Index out of bound
+                Row := min(Row + 1, RowCount-1);      // FF: Index out of bound
                 FInternalSelection:= false;
                 FInternalCall:= OldValue;
               end;
@@ -3126,28 +3368,46 @@ begin
             end;
           end;
         end;
+
         Select;
-        FInternalMove := OldV2;      
+        if Navigation.KeepHorizScroll then
+          LeftCol := lc;
+        EndUpdate;
+        FInternalMove := OldV2;
       end;
 
     VK_NEXT:
       begin
+        BeginUpdate;
         FDataLink.DataSet.MoveBy(FDataLink.BufferCount);
+        Invalidate;
         Select;
+        if Navigation.KeepHorizScroll then
+          LeftCol := lc;
+        EndUpdate;
       end;
     VK_PRIOR:
       begin
+        BeginUpdate;
         FDataLink.DataSet.MoveBy(-FDataLink.BufferCount);
+        Invalidate;
         Select;
+        if Navigation.KeepHorizScroll then
+          LeftCol := lc;
+        EndUpdate;
       end;
     VK_HOME:
       begin
         if Navigation.HomeEndKey = heFirstLastRow then
         begin
-          FDataLink.DataSet.First;
-          if Assigned(OnKeyDown) then
-            OnKeyDown(Self, Key, SS);
+          BeginUpdate;
+            FDataLink.DataSet.First;
+            if Assigned(OnKeyDown) then
+              OnKeyDown(Self, Key, SS);
           Select;
+          if Navigation.KeepHorizScroll then
+            LeftCol := lc;
+          EndUpdate;
         end
         else
           inherited;
@@ -3156,6 +3416,7 @@ begin
       begin
         if Navigation.HomeEndKey = heFirstLastRow then
         begin
+          BeginUpdate;
           FDataLink.DataSet.Last;
           if FloatingFooter.Visible then
           begin
@@ -3166,7 +3427,12 @@ begin
 
           if Assigned(OnKeyDown) then
             OnKeyDown(Self, Key, SS);
+
           Select;
+          
+          if Navigation.KeepHorizScroll then
+            LeftCol := lc;
+          EndUpdate;
         end
         else
           inherited;
@@ -3181,7 +3447,7 @@ begin
           if Assigned(OnCanInsertRow) then
             OnCanInsertRow(Self, Row, CanInsert);
 
-          if not FDataLink.DataSet.CanModify then
+          if not CheckDataSet or not FDataLink.DataSet.CanModify then
             CanInsert := false;
 
 
@@ -3208,7 +3474,7 @@ begin
           if Assigned(OnCanDeleteRow) then
             OnCanDeleteRow(Self, Row, CanDelete);
 
-          if not FDataLink.DataSet.CanModify then
+          if not CheckDataSet or not FDataLink.DataSet.CanModify then
             CanDelete := false;
 
           if CanDelete then
@@ -3222,11 +3488,10 @@ begin
               begin
                 if not FDataLink.DataSet.IsEmpty then
                 begin
-                  Allow := True;
-                  if Assigned(OnCanDeleteRow) then
-                    OnCanDeleteRow(self, Row, Allow);
-
-                  if not Allow then Exit;
+                  //Allow := True;
+                  //if Assigned(OnCanDeleteRow) then
+                  //  OnCanDeleteRow(self, Row, Allow);
+                  //if not Allow then Exit;
 
                   FDoNotCountRow := false;
                   FDataLink.DataSet.Delete;
@@ -3234,6 +3499,8 @@ begin
                 end;
               end;
             end;
+            Msg.CharCode := 0;
+            Exit;
           end;
         end;
       end;
@@ -3254,6 +3521,7 @@ begin
         else
           inherited;
       end;
+      
     VK_ESCAPE:
     begin
       if Assigned(DataSource) then
@@ -3270,6 +3538,7 @@ begin
     end;
   else
     inherited;
+
     if ActiveCellShow then
     begin
       InvalidateCell(OldCol, 0);
@@ -3280,9 +3549,52 @@ begin
   if (Key in [VK_ESCAPE, VK_DOWN, VK_UP, VK_PRIOR, VK_NEXT, VK_INSERT]) and Assigned(OnKeyDown) then
     OnKeyDown(Self, Key, SS);
 
-
-
   FDoNotCountRow := false;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TDBAdvGrid.TabToNextRowAtEnd;
+var
+  OldV2, OldValue: Boolean;
+  i: Integer;
+begin
+  OldV2 := FInternalMove;
+  if not FKeyDownAppend then
+  begin
+    if (DataSetType = dtNonSequenced) and (SearchFooter.Visible or FloatingFooter.Visible) then
+      FInternalMove := True;
+    i := FDataLink.DataSet.MoveBy(1);
+    if (i = 0) {and (goTabs in Options)} then
+    begin
+      if {not IsCtrl and not IsShift and} (GetKeystate(VK_MENU) and $8000 = 0) then
+      begin
+        FDataLink.DataSet.append;
+        FNewRecord := true;
+        FKeyDownAppend := true;
+
+        if DataSetType = dtSequenced then
+        begin
+          OldValue:= FInternalCall;
+          FInternalCall:= true;
+          FInternalSelection:= true;
+          Row:= min(Row + 1, RowCount-1);
+          FInternalSelection:= false;
+          FInternalCall:= OldValue;
+        end;
+      end;
+    end
+    else
+    begin
+      if not Navigation.AppendOnArrowDown and (i = 0) and FDataLink.DataSet.Eof and not FDataLink.DataSet.Bof then
+      begin
+        i := FDataLink.DataSet.MoveBy(-1);
+        FDataLink.DataSet.MoveBy(abs(i));
+      end;
+    end;
+  end;
+  Select;
+  FInternalMove := OldV2;
 end;
 
 //------------------------------------------------------------------------------
@@ -3367,6 +3679,9 @@ begin
         begin
           i := -1;
         end;
+        if FMouseWheelScrolling and (i <> 0) then
+          FMouseWheelScrolled := True;
+          
        { if (i <> a) and (a = 1) and (i = 0)
           and Navigation.AdvanceOnEnter and Navigation.AdvanceInsert then }
         if (i <> a) and (a = 1) and (i = 0) then
@@ -3558,26 +3873,29 @@ end;
 procedure TDBAdvGrid.GetCellPrintColor(ACol, ARow: Integer;
   AState: TGridDrawState; ABrush: TBrush; AFont: TFont);
 begin
-  if FColumnCollection.Count > ACol then
+  if not HasCellProperties(ACol,ARow) then
   begin
-
-    if (ACol >= FixedCols) and (Arow >= FixedRows) and
-      (ACol < ColCount - FixedRightCols + NumHiddenColumns) and
-      (ARow < RowCount - FixedFooters) then
+    if (FColumnCollection.Count > ACol) then
     begin
-      if TDBGridColumnItem(FColumnCollection.Items[ACol]).Fixed then
-        ABrush.Color := FixedColor
+      if (ACol >= FixedCols) and (Arow >= FixedRows) and
+        (ACol < ColCount - FixedRightCols + NumHiddenColumns) and
+        (ARow < RowCount - FixedFooters) then
+      begin
+        if TDBGridColumnItem(FColumnCollection.Items[ACol]).Fixed then
+          ABrush.Color := FixedColor
+        else
+          if not (TDBGridColumnItem(FColumnCollection.Items[ACol]).ShowBands and Bands.Active and Bands.Print) then
+            ABrush.Color := TDBGridColumnItem(FColumnCollection.Items[ACol]).PrintColor;
+
+        AFont.Assign(TDBGridColumnItem(FColumnCollection.Items[ACol]).PrintFont);
+      end
       else
-        if not (TDBGridColumnItem(FColumnCollection.Items[ACol]).ShowBands and Bands.Active and Bands.Print) then
-          ABrush.Color := TDBGridColumnItem(FColumnCollection.Items[ACol]).PrintColor;
-
-      AFont.Assign(TDBGridColumnItem(FColumnCollection.Items[ACol]).PrintFont);
-    end
-    else
-    begin
-      AFont.Assign(PrintSettings.HeaderFont);
+      begin
+        AFont.Assign(PrintSettings.FixedFont);
+      end;
     end;
   end;
+
   inherited;
 end;
 
@@ -3610,6 +3928,7 @@ end;
 procedure TDBAdvGrid.GetCellColor(ACol, ARow: Integer;
   AState: TGridDrawState; ABrush: TBrush; AFont: TFont);
 begin
+
   if FColumnCollection.Count > ACol then
   begin
     if (ACol >= FixedCols) and
@@ -3628,6 +3947,7 @@ begin
         AFont.Assign(TDBGridColumnItem(FColumnCollection.Items[ACol]).Font);
     end;
   end;
+
   inherited;
 end;
 
@@ -3649,15 +3969,20 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TDBAdvGrid.GetCellEditor(ACol, ARow: Integer;
-  var AEditor: TEditorType);
+procedure TDBAdvGrid.GetCellEditor(ACol, ARow: Integer; var AEditor: TEditorType);
 var
 //i: integer;
   readOnlyCell: boolean;
   lookupCell: boolean;
   fld: TField;
   sl: TStringList;
+  {$IFNDEF TMSDOTNET}
+  {$IFDEF DELPHI2006_LVL}
+  slw: TWideStringList;
+  {$ENDIF}
+  {$ENDIF}
   PEditor: TEditorType;
+  isWide: boolean;
 
 begin
   readOnlyCell := false;
@@ -3670,8 +3995,11 @@ begin
   begin
     if Assigned(FDataLink) then
     begin
-      if not FDataLink.DataSet.CanModify then
-        readOnlyCell:= true;
+      if not CheckDataSet or not FDataLink.DataSet.CanModify then
+      begin
+        AEditor := edNone;
+        Exit;
+      end;
     end;
 
     if (ACol >= FixedCols) and (Arow >= FixedRows) then
@@ -3700,23 +4028,42 @@ begin
         i := 0;  }
 
         fld := nil;
+        iswide := false;
         sl := TStringList.Create;
-
+        {$IFNDEF TMSDOTNET}
+        {$IFDEF DELPHI2006_LVL}
+        slw := TWideStringList.Create;
+        {$ENDIF}
+        {$ENDIF}
         if FColumnCollection.Items[ACol].FieldName <> '' then
         begin
           fld := FDataLink.DataSet.fieldbyname(FColumnCollection.Items[ACol].FieldName);
           readOnlyCell := {fld.IsIndexField or} readOnlyCell or fld.ReadOnly;
           lookupCell := fld.FieldKind = fkLookup;
-        //sl := TStringList.Create;
-          LoadLookupList(fld, sl);
+          {$IFNDEF TMSDOTNET}
+          {$IFDEF DELPHI2006_LVL}
+          iswide := fld.DataType = ftWideString;
+          if (fld.DataType = ftWideString) then
+            LoadWideLookupList(fld, slw)
+          else
+          {$ENDIF}
+          {$ENDIF}
+            LoadLookupList(fld, sl);
         end
         else if not FShowDefinedFields then
         begin
           fld := FDataLink.DataSet.Fields[GetDBFieldIndexAtColumn(ACol) {ACol - i}];
           readOnlyCell := {fld.IsIndexField or } readOnlyCell or fld.ReadOnly;
           lookupCell := (fld.FieldKind = fkLookup);
-        //sl := TStringList.Create;
-          LoadLookupList(fld, sl);
+          {$IFNDEF TMSDOTNET}
+          {$IFDEF DELPHI2006_LVL}
+          iswide := fld.DataType = ftWideString;
+          if (fld.DataType = ftWideString) then
+            LoadWideLookupList(fld, slw)
+          else
+          {$ENDIF}
+          {$ENDIF}
+            LoadLookupList(fld, sl);
         end;
 
         if Assigned(fld) then
@@ -3736,12 +4083,9 @@ begin
             MaxEditLength := fld.DataSize
           else
             MaxEditLength := 0;
-
         end;
 
         readOnlyCell := readOnlyCell or FColumnCollection.Items[ACol].ReadOnly;
-
-
 
         if not readOnlyCell then
         begin
@@ -3751,9 +4095,20 @@ begin
 
             if lookupCell then
             begin
-              AEditor := edComboList;
-              ComboBox.Items.Assign(sl);
-            //sl.Free;
+              {$IFNDEF TMSDOTNET}
+              {$IFDEF DELPHI2006_LVL}
+              if iswide then
+              begin
+                AEditor := edUniComboList;
+                UniCombo.Items.Assign(TWideStrings(slw));
+              end
+              else
+              {$ENDIF}
+              {$ENDIF}
+              begin
+                AEditor := edComboList;
+                ComboBox.Items.Assign(sl);
+              end;
             end
             else
             begin
@@ -3771,7 +4126,13 @@ begin
         else // if ReadOnly
           AEditor := edNone;
 
-        sl.free;
+        sl.Free;
+
+        {$IFNDEF TMSDOTNET}
+        {$IFDEF DELPHI2006_LVL}
+        slw.Free;
+        {$ENDIF}
+        {$ENDIF}
       end;
     end;
   end;
@@ -3903,7 +4264,7 @@ begin
 end;
 
 
-procedure TDBAdvGrid.BlobFieldToStream(DBField: TBlobField; var size: tpoint);
+procedure TDBAdvGrid.BlobFieldToStream(DBField: TBlobField; var size: tpoint; Col, Row: integer);
 var
   s, ms: TMemoryStream;
   sig: word;
@@ -3926,7 +4287,12 @@ begin
   begin
     s := TMemoryStream.Create;
     try
-      DBField.SaveToStream(S);
+      if Assigned(OnFieldToStream) then
+      begin
+        OnFieldToStream(Self,Col,Row, DBField, S); 
+      end
+      else
+        DBField.SaveToStream(S);       
 
       oletype := -1;
       oleoffset := 0;
@@ -4093,8 +4459,11 @@ begin
           end;
         end;
       end;
-    finally
       FreeAndNil(S);
+    except
+      DoInvalidPicture(Col,Row);
+      if (S <> nil) then
+        FreeAndNil(S);
     end;
   end;
 end;
@@ -4103,11 +4472,27 @@ end;
 //------------------------------------------------------------------------------
 
 function TDBAdvGrid.GetCellGraphic(ACol, ARow: Integer): TCellGraphic;
+
+  procedure LoadPictureFromField(Field: TField);
+  begin
+    try
+{$IFDEF TMSDOTNET}
+      FPicture.Assign(Field);
+{$ENDIF}
+{$IFNDEF TMSDOTNET}
+      FPicture.Assign(TPicture(Field));
+{$ENDIF}
+    except
+      DoInvalidPicture(ACol,ARow);
+    end;
+  end;
+
 var
   Fld: TField;
   OldActiveRecord: integer;
   sp: TPoint;
   IndCol: integer;
+  dt: string;
 
 begin
   Result := inherited GetCellGraphic(ACol, ARow);
@@ -4142,10 +4527,11 @@ begin
   if FShowDBIndicator and (FixedCols > 0) then
     IndCol := 1
   else
-    IndCol := 0;  
+    IndCol := 0;
 
 // CheckBox for Boolean fields
-  if ShowBooleanFields and (ACol >= IndCol) and (ARow >= FixedRows) then
+  if ShowBooleanFields and (ACol >= IndCol) and (ARow >= FixedRows) and
+     not ((ARow = RowCount - 1) and (FloatingFooter.Visible)) then
   begin
     Fld := GetDBFieldAtColumn(ACol);
 
@@ -4203,7 +4589,8 @@ begin
     end;
   end;
 
-  if (Result = nil) and (FColumnCollection.Items[ACol].ProgressField) and (ARow >= FixedRows) then
+  if (Result = nil) and (FColumnCollection.Items[ACol].ProgressField) and (ARow >= FixedRows) and
+   not ((ARow = RowCount - 1) and (FloatingFooter.Visible)) then
   begin
     FCellGraphic.CellType := ctProgress;
 
@@ -4220,15 +4607,16 @@ begin
     FCellgraphic.CellTextBKColor := FColumnCollection.Items[ACol].ProgressTextBKColor;
     {$ENDIF}
 
-    FCellgraphic.CellErrFrom :=0;
-    FCellgraphic.CellErrLen :=100;
+    FCellgraphic.CellErrFrom := 0;
+    FCellgraphic.CellErrLen := 100;
     FCellgraphic.CellBoolean := true;
 
     Result := FCellGraphic;
   end;
 
 // CheckBox for String Fields
-  if (Result = nil) and (FColumnCollection.Items[ACol].CheckBoxField) and (ARow >= FixedRows) and (ACol >= IndCol) then
+  if (Result = nil) and (FColumnCollection.Items[ACol].CheckBoxField) and (ARow >= FixedRows) and (ACol >= IndCol) and
+     not ((ARow = RowCount - 1) and (FloatingFooter.Visible)) then
   begin
     Fld := GetDBFieldAtColumn(ACol);
 
@@ -4246,13 +4634,20 @@ begin
       if (FDataLink.ActiveRecord < 0) or (FDataLink.ActiveRecord >= FDataLink.BufferCount) then
       begin
         FDataLink.ActiveRecord := OldActiveRecord;
-        exit;
+        Exit;
       end;
 
       try
         FCellGraphic.CellType := ctCheckBox;
         FCellGraphic.CellTransparent := ControlLook.ControlStyle = csFlat;
-        FCellGraphic.CellBoolean := UpperCase(Fld.AsString) = UpperCase(FColumnCollection.Items[ACol].CheckTrue);
+
+        dt := Fld.DisplayText;
+
+        if Assigned(OnGetDisplText) then
+          OnGetDisplText(Self, ACol, ARow, dt);
+
+        FCellGraphic.CellBoolean := UpperCase(dt) = UpperCase(FColumnCollection.Items[ACol].CheckTrue);
+
         case self.VAlignment of
           vtaTop: FCellGraphic.CellVAlign := vaTop;
           vtaCenter: FCellGraphic.CellVAlign := vaCenter;
@@ -4265,6 +4660,7 @@ begin
         end;
 
         Result := FCellGraphic;
+
       finally
         FDataLink.ActiveRecord := OldActiveRecord;
       end;
@@ -4273,7 +4669,8 @@ begin
   end;
 
 // Show picture when ShowPictureFields = true
-  if (Result = nil) and ShowPictureFields and (ACol >= IndCol) and (ARow >= FixedRows) then
+  if (Result = nil) and ShowPictureFields and (ACol >= IndCol) and (ARow >= FixedRows) and
+     not ((ARow = RowCount - 1) and (FloatingFooter.Visible)) then
   begin
     Fld := GetDBFieldAtColumn(ACol);
     if Fld <> nil then
@@ -4297,18 +4694,19 @@ begin
 
         try
           FCellGraphic.CellType := ctPicture;
+          LoadPictureFromField(fld);  // Sets FPicture
 {$IFDEF TMSDOTNET}
-          FPicture.Assign(Fld);
+          //FPicture.Assign(Fld);
           FCellGraphic.CellPicture := FPicture;
 {$ENDIF}
 {$IFNDEF TMSDOTNET}
-          FPicture.Assign(TPicture(Fld));
+          //FPicture.Assign(TPicture(Fld));
           FCellGraphic.CellBitmap := TBitmap(FPicture);
 {$ENDIF}
           FCellGraphic.CellHAlign := haCenter;
           FCellGraphic.CellVAlign := vaCenter;
           FCellGraphic.CellTransparent := True;
-          FCellGraphic.CellAngle := Integer(StretchWithAspectRatio);
+          FCellGraphic.CellAngle := Integer(FColumnCollection.Items[ACol].PictureStretch);
           FCellGraphic.CellIndex := 4;
           Result := FCellGraphic;
         finally
@@ -4338,13 +4736,13 @@ begin
         if (FDataLink.ActiveRecord < 0) or (FDataLink.ActiveRecord >= FDataLink.BufferCount) then
         begin
           FDataLink.ActiveRecord := OldActiveRecord;
-          exit;
+          Exit;
         end;
 
         try
           FCellGraphic.CellType := ctPicture;
           FPicture.Assign(nil);
-          BlobFieldToStream(TBlobField(Fld), sp); // Sets FPicture
+          BlobFieldToStream(TBlobField(Fld), sp, ACol, ARow); // Sets FPicture
 {$IFDEF TMSDOTNET}
           FCellGraphic.CellPicture := FPicture;
 {$ENDIF}
@@ -4354,7 +4752,7 @@ begin
           FCellGraphic.CellHAlign := haCenter;
           FCellGraphic.CellVAlign := vaCenter;
           FCellGraphic.CellTransparent := True;
-          FCellGraphic.CellAngle := Integer(StretchWithAspectRatio);
+          FCellGraphic.CellAngle := Integer(FColumnCollection.Items[ACol].PictureStretch);
           FCellGraphic.CellIndex := 4;
           Result := FCellGraphic;
         finally
@@ -4370,7 +4768,7 @@ begin
     Fld := GetDBFieldAtColumn(ACol);
     if Fld <> nil then
     begin
-      if Fld.DataType in [ftSmallInt, ftInteger] then
+      if Fld.DataType in [ftSmallInt, ftInteger, ftWord] then
       begin
         OldActiveRecord := FDataLink.ActiveRecord;
 
@@ -4592,12 +4990,14 @@ function TDBAdvGrid.GetFormattedCell(ACol, ARow: Integer): string;
 var
   fmt: string;
   IsFloat: Boolean;
+  s: string;
 begin
   if (FColumnCollection.Count > ACol) then
   begin
+    s := Cells[ACol, ARow];
     fmt := TDBGridColumnItem(FColumnCollection.Items[ACol]).FloatFormat;
 
-    IsFloat := IsType(Cells[ACol, ARow]) in [atNumeric, atFloat];
+    IsFloat := IsType(s) in [atNumeric, atFloat];
 
     if Assigned(OnGetFloatFormat) then
       OnGetFloatFormat(Self, ACol, ARow, IsFloat, Fmt);
@@ -4607,7 +5007,7 @@ begin
       Result := Format(fmt, [Floats[ACol, ARow]]);
     end
     else
-      Result := Cells[ACol, ARow];
+      Result := s;
 
   end
   else
@@ -4635,7 +5035,8 @@ var
   OldV: boolean;
   v{, i}: integer;
   aField: TField;
-  //TempValue: string;
+  ShouldUpdateData: Boolean;
+  WasEditable: Boolean;
 begin
   if CheckDataSet and Assigned(FColumnCollection) and (FColumnCollection.Count > Acol) and PageMode then
   begin
@@ -4645,6 +5046,8 @@ begin
     if Assigned(FOnCellValidate) then
       FOnCellValidate(Sender, ACol, ARow, Value, Valid);
 
+    if not (DataSource.DataSet.State in [dsInsert, dsEdit]) and (FEditPostMode = epCell) then
+      Exit;
   {
   i := 1;
   if not FShowDBIndicator or (FixedCols <= 0) then
@@ -4659,9 +5062,17 @@ begin
 
     if Valid then
     begin
+      ShouldUpdateData := True;
+      if FShouldNotPostChanges then
+      begin
+        FShouldNotPostChanges := False;
+        if (Value = '') then
+          ShouldUpdateData := False;
+      end;
+
       if FEditPostMode = epCell then
       begin
-        if self.CanModify then
+        if ShouldUpdateData and self.CanModify then
         try
           if FColumnCollection.Items[ACol].FieldName <> '' then
           begin
@@ -4710,6 +5121,7 @@ begin
         end;
 
         OldV := FCancelEditReturn;
+        WasEditable := goEditing in Options;
         if DataSetType = dtSequenced then
           FCancelEditReturn := true
         else
@@ -4718,7 +5130,8 @@ begin
         end;
 
         try
-          FDataLink.DataSet.Post;
+          if ShouldUpdateData then
+            FDataLink.DataSet.Post;
         except
           on E: Exception do
           begin
@@ -4754,6 +5167,12 @@ begin
           end;
         end;
         FCancelEditReturn := OldV;
+        if (DataSetType = dtSequenced) then
+        begin
+          if WasEditable and not(goEditing in Options) then
+            Options := Options + [goEditing];
+        end;
+
         if not DataLink.DataSet.Filtered then
           FEmptyDataSet := false;
         FKeyDownAppend := false;
@@ -4851,11 +5270,15 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TDBAdvGrid.CellValidateWideEvent(Sender: TObject; ACol, ARow: Integer; var Value: widestring; var Valid: Boolean);
+{$IFNDEF DELPHI_UNICODE}
 var
   OldV: boolean;
   v: integer;
   aField: TField;
+  WasEditable: Boolean;
+{$ENDIF}  
 begin
+  {$IFNDEF DELPHI_UNICODE}
   if CheckDataSet and Assigned(FColumnCollection) and (FColumnCollection.Count > Acol) and PageMode then
   begin
     if (pos('|\', Value) = 1) then
@@ -4882,7 +5305,14 @@ begin
 
             if aField.FieldKind = fkLookup then
             begin
-              v := integer(ComboBox.Items.Objects[ComboBox.ItemIndex]);
+              {$IFNDEF TMSDOTNET}
+              {$IFDEF DELPHI2006_LVL}
+              if aField.DataType = ftWideString then
+                v := integer(UniCombo.Items.Objects[UniCombo.ItemIndex])
+              else
+              {$ENDIF}
+              {$ENDIF}
+                v := integer(ComboBox.Items.Objects[ComboBox.ItemIndex]);
               FDataLink.DataSet.FieldByName(aField.KeyFields).AsString := GetLookupKey(v); ;
             end
             else
@@ -4930,6 +5360,7 @@ begin
         end;
 
         OldV := FCancelEditReturn;
+        WasEditable := goEditing in Options;
         if DataSetType = dtSequenced then
           FCancelEditReturn := true
         else
@@ -4973,6 +5404,12 @@ begin
           end;
         end;
         FCancelEditReturn := OldV;
+        if (DataSetType = dtSequenced) then
+        begin
+          if WasEditable and not(goEditing in Options) then
+            Options := Options + [goEditing];
+        end;
+        
         if not DataLink.DataSet.Filtered then
           FEmptyDataSet := false;
         FKeyDownAppend := false;
@@ -5002,6 +5439,7 @@ begin
       end;
     end;
   end;
+  {$ENDIF}
 end;
 
 
@@ -5102,6 +5540,7 @@ var
 //j: integer;
   aField: TField;
 begin
+
   Result := inherited GetEditText(ACol, ARow);
 
   ACol := RealColIndex(ACol);
@@ -5112,7 +5551,7 @@ begin
     if (ShowBooleanFields and (aField <> nil) and (aField.DataType = ftBoolean))
       or (ShowPictureFields and (aField <> nil) and (aField.DataType = ftGraphic))
       or (FColumnCollection.Items[ACol].PictureField) or FColumnCollection.Items[ACol].CheckBoxField then
-      exit;
+      Exit;
 
     if FColumnCollection.Items[ACol].FieldName <> '' then
     begin
@@ -5306,7 +5745,9 @@ begin
   //if dgRowSelect in Options then TopRow := FixedRows;
   //UpdateActive;
     end;
+
   FRecordChanged := false;
+
   if (OldRowCount <> RowCount) or ShouldRepaint then
   begin
     if (OldRowCount > RowCount) and FRefreshOnDelete and ShouldRepaint then
@@ -5326,7 +5767,7 @@ begin
 
     if (FDataLink.BufferCount <> VisibleRowCount + 1) and (DataSetType = dtSequenced) then
       FDataLink.BufferCount := VisibleRowCount + 1;
-    
+
     Invalidate;
     InvalidateRow(Row);
   end;
@@ -5524,6 +5965,7 @@ var
   OldV: Boolean;
 begin
   inherited;
+
   if not CheckDataSet or not PageMode then
     Exit;
 
@@ -5539,7 +5981,7 @@ begin
 //          Exit;
 
         FDataLink.DataSet.DisableControls;
-        FMustEnableControls := True;
+        inc(FMustEnableControls);
         BeginUpdate;
         FOldAR := FDataLink.ActiveRecord;
         FOldPosition := FDataLink.DataSet.GetBookMark;
@@ -5568,10 +6010,12 @@ begin
           else
           begin
             FDataLink.DataSet.First;
-            if (ARow - {1}FixedRows) > 0 then
-              FDataLink.DataSet.MoveBy(ARow - {1}FixedRows);
+            if (ARow - FixedRows) > 0 then
+            begin
+              FDataLink.DataSet.MoveBy(ARow - FixedRows);
+            end;
           end;
-        end;
+        end;                                    
      (* r := ARow - {Row;//} FDataLink.DataSet.recno;
       FDataLink.DataSet.MoveBy(r); *)
       end;
@@ -5582,18 +6026,18 @@ begin
         FSelExport := false;
         if Assigned(FOldPosition) then
         begin    // Go back to original position
-          if FOldTopRow > -1 then
+          if (FOldTopRow > -1) then
             TopRow := FOldTopRow;
 
           FDataLink.DataSet.GotoBookMark(FOldPosition);
           FDataLink.DataSet.FreeBookMark(FOldPosition);
           FOldPosition := nil;
-          if FOldAR <> FDataLink.ActiveRecord then
+          if (FOldAR <> FDataLink.ActiveRecord) then
           begin
             //OutputDebugString(PChar(inttostr(FOldAR) +' : '+ inttostr(FDataLink.ActiveRecord)));
 
             // RePosition ActiveRecord in Cache
-            if FOldAR < FDataLink.ActiveRecord then
+            if (FOldAR < FDataLink.ActiveRecord) then
             begin
               df := (FDataLink.BufferCount - FDataLink.ActiveRecord) + FDataLink.ActiveRecord - FOldAR;
               df := FDataLink.DataSet.MoveBy(df);
@@ -5615,13 +6059,14 @@ begin
 
           OldV := FDoNotCountRow;
           FDoNotCountRow := True;
-          FMustEnableControls := False;
+          dec(FMustEnableControls);
           FDataLink.DataSet.EnableControls;  // This will call UpdateScrollBar which sets Row
           FDoNotCountRow := OldV;
         end;
 
-        if FMustEnableControls and (FDataLink.DataSet.ControlsDisabled) then
+        if (FMustEnableControls > 0) and (FDataLink.DataSet.ControlsDisabled) then
           FDataLink.DataSet.EnableControls;
+
         EndUpdate;
       end;
     esExportFail:
@@ -5644,7 +6089,6 @@ begin
           EndUpdate;
         end;
       end;
-
   end;
 end;
 
@@ -5733,7 +6177,7 @@ begin
   if Assigned(FDataLink) then
   begin
     if FDataLink.Active and Assigned(FDataLink.DataSet) then
-      if not FDataLink.DataSet.CanModify then
+      if FDataLink.DataSet.Active and not FDataLink.DataSet.CanModify then
       begin
         IsReadOnly := false;
         Exit;
@@ -5853,6 +6297,11 @@ end;
 
 //------------------------------------------------------------------------------
 
+function TDBAdvGrid.GetSelectedField: TField;
+begin
+  Result := GetDBFieldAtColumn(Col);
+end;
+
 function TDBAdvGrid.GetDBFieldAtColumn(ACol: integer): TField;
 {var
 j: integer; }
@@ -5942,6 +6391,7 @@ var
   Fld: TField;
 //OldActiveRecord:  Integer;
   OldV: Boolean;
+  WasEditable: Boolean;
 begin
   if Row <> ARow then
   begin
@@ -5986,6 +6436,7 @@ begin
     }
     //FDataLink.DataSet.Edit;
         OldV := FCancelEditReturn;
+        WasEditable := goEditing in Options;
         FInternalCall := true;
         FCancelEditReturn := true;
         CanModify;
@@ -6042,6 +6493,9 @@ begin
         FCancelEditReturn := OldV;
         FInternalCall := false;
 
+        if WasEditable and not(goEditing in Options) then
+          Options := Options + [goEditing];
+
         Result := True;
     //FDataLink.ActiveRecord := OldActiveRecord;
       end
@@ -6084,6 +6538,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TDBAdvGrid.DoInvalidPicture(Col, Row: integer);
+begin
+  FPicture.Assign(FInvalidPicture);
+  if Assigned(OnInvalidPicture) then
+    OnInvalidPicture(Self, Col, Row);
+end;
+//------------------------------------------------------------------------------
+
+function TDBAdvGrid.DoAllowFmtPaste: boolean;
+begin
+  Result := false;
+end;
 
 procedure TDBAdvGrid.DoAppendRow;
 begin
@@ -6092,6 +6558,8 @@ end;
 procedure TDBAdvGrid.DoCanEditCell(ACol, ARow: Integer; var CanEdit: boolean);
 begin
   inherited;
+  if (ACol >= Columns.Count) then
+    Exit;
   if Columns[ACol].ReadOnly then
     CanEdit := false;
 end;
@@ -6124,7 +6592,7 @@ begin
       exit;
 
     if FShowDefinedFields and (FColumnCollection.Items[rc].FieldName = '') then
-      exit;
+      Exit;
 
     if DataSetType = dtSequenced then
     begin
@@ -6225,7 +6693,8 @@ var
   value: string;
   aPicture: TPicture;
   sp: TPoint;
-
+  cb: boolean;
+  
 begin
   if CheckDataSet and not PageMode and Assigned(FColumnCollection) and (FColumnCollection.Count > 0) then
   begin
@@ -6275,7 +6744,6 @@ begin
                 or (ShowPictureFields and (aField.DataType = ftGraphic))
                 or (FColumnCollection.Items[c].PictureField) or FColumnCollection.Items[c].CheckBoxField) }then
               begin
-
                 if (aField.IsBlob) then
                 begin
                   if (aField.DataType = ftGraphic)
@@ -6287,7 +6755,7 @@ begin
                       begin
                         aPicture := TPicture.Create;
                         FPicture.Assign(nil);
-                        BlobFieldToStream(TBlobField(aField), sp); // Sets FPicture
+                        BlobFieldToStream(TBlobField(aField), sp, c,r); // Sets FPicture
                         aPicture.Assign(FPicture);
                         AddPicture(c, r, aPicture, true, StretchWithAspectRatio, 4, haCenter, vaCenter);
                         FPictureList.Add(aPicture);
@@ -6325,7 +6793,26 @@ begin
                   end
                   else if FColumnCollection.Items[c].CheckBoxField then
                   begin
-                    AddCheckBox(c, r, uppercase(aField.AsString) = UpperCase(FColumnCollection.Items[c].CheckTrue), false);
+                    cb := UpperCase(aField.AsString) = UpperCase(FColumnCollection.Items[c].CheckTrue);
+                    AddCheckBox(c, r, cb, true);
+                    if cb then
+                      value := FColumnCollection.Items[c].CheckTrue
+                    else
+                      value := FColumnCollection.Items[c].CheckFalse;
+                  end
+                  else if (FColumnCollection.Items[c].ProgressField) then
+                  begin
+                    Value := aField.DisplayText;
+                    AddProgressEx(c,r,FColumnCollection.Items[c].ProgressColor,
+                                      FColumnCollection.Items[c].ProgressTextColor,
+                                      FColumnCollection.Items[c].ProgressBKColor,
+                                      FColumnCollection.Items[c].ProgressTextBKColor);
+
+                  end
+                  else if (FColumnCollection.Items[c].DataImageField) then
+                  begin
+                    Value := aField.DisplayText;
+                    AddDataImage(c,r,0,haBeforeText, vaTop)
                   end
                   else
                   begin
@@ -6542,6 +7029,22 @@ begin
   end;
 end;
 
+procedure TDBAdvGrid.Assign(Source: TPersistent);
+begin
+  inherited;
+  if (Source is TDBAdvGrid) then
+  begin
+    DataSource := (Source as TDBAdvGrid).DataSource;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TDBAdvGrid.AssignCells(Source: TPersistent);
+begin
+  // do nothing
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TDBAdvGrid.QueryAddRow(var AllowAdd: Boolean);
@@ -6552,6 +7055,9 @@ FInternalInsert := true;
 FDataLink.DataSet.Append;// .Insert;
 FInternalInsert := false;
 }
+
+  if AllowAdd and Assigned(DataSource) and Assigned(DataSource.DataSet) and (DataSource.DataSet.State in [dsEdit, dsInsert]) and (EditPostMode = epRow) then
+    DataSource.DataSet.Post;
 end;
 
 //------------------------------------------------------------------------------
@@ -6561,7 +7067,7 @@ var
   s, k: string;
   i: Integer;
 begin
-  if Assigned(fld.LookupDataSet) then
+  if Assigned(fld.LookupDataSet) and ({(EditPostMode = epCell) or} (Assigned(DataSource) and Assigned(DataSource.DataSet) {and (DataSource.DataSet.State = dsBrowse)})) then
   begin
     fld.LookupDataSet.DisableControls;
     fld.LookupDataSet.First;
@@ -6582,6 +7088,37 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+
+{$IFNDEF TMSDOTNET}
+{$IFDEF DELPHI2006_LVL}
+procedure TDBAdvGrid.LoadWideLookupList(fld: TField; list: TWideStrings);
+var
+  s, k: widestring;
+  i: Integer;
+begin
+  if Assigned(fld.LookupDataSet) and ({(EditPostMode = epCell) or} (Assigned(DataSource) and Assigned(DataSource.DataSet) {and (DataSource.DataSet.State = dsBrowse)})) then
+  begin
+    fld.LookupDataSet.DisableControls;
+    fld.LookupDataSet.First;
+    i := 1;
+    FLookupKeys.Clear;
+    list.Clear;
+
+    while not fld.LookupDataSet.Eof do
+    begin
+      s := fld.LookupDataSet.FieldByName(fld.LookupResultField).AsWideString;
+      k := fld.LookupDataSet.FieldByName(fld.LookupKeyFields).AsWideString;
+      FLookupKeys.AddObject(k, TObject(i));
+      list.AddObject(s, TObject(i));
+      inc(i);
+      fld.LookupDataSet.Next;
+    end;
+    fld.LookupDataSet.EnableControls;
+  end;
+end;
+{$ENDIF}
+{$ENDIF}
 //------------------------------------------------------------------------------
 
 function TDBAdvGrid.GetLookupKey(i: Integer): string;
@@ -6635,6 +7172,7 @@ var
 
 begin
   inherited;
+
   if (csDesigning in ComponentState) and ShowDesignHelper then
   begin
     r := ClientRect;
@@ -6719,7 +7257,18 @@ end;
 
 procedure TDBAdvGrid.AddAllFields;
 var
+  {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI2006_LVL}
   sl: TStringList;
+  {$ENDIF}
+  {$IFDEF DELPHI2006_LVL}
+  sl: TWideStringList;
+  {$ENDIF}
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  sl: TStringList;
+  {$ENDIF}
+
   i, j: Integer;
 begin
   if not Assigned(DataSource) then
@@ -6734,7 +7283,18 @@ begin
     Exit;
   end;
 
+  {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI2006_LVL}
   sl := TStringList.Create;
+  {$ENDIF}
+  {$IFDEF DELPHI2006_LVL}
+  sl := TWideStringList.Create;
+  {$ENDIF}
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  sl := TStringList.Create;  
+  {$ENDIF}
+
   DataSource.DataSet.GetFieldNames(sl);
 
 {  // Removing Invisible Fields
@@ -6749,7 +7309,7 @@ begin
       Inc(i);
   end;
 }
-  if ShowDBIndicator then
+  if ShowDBIndicator and (FixedCols > 0) then
     j := 1
   else
     j := 0;
@@ -6762,14 +7322,24 @@ begin
 
   for i := 1 to sl.Count do
   begin
-    if Columns.Count >= i + j then
-      Columns[i - 1 + j].FieldName := sl[i - 1]
+    if Columns.Count > i - 1 + j then
+    begin
+      Columns[i - 1 + j].FieldName := sl[i - 1];
+      if not PageMode then
+        Columns[i - 1 + j].Header := sl[i - 1];
+    end
     else
     begin
-      Columns.Add.FieldName := sl[i - 1];
+      with Columns.Add do
+      begin
+        FieldName := sl[i - 1];
+        if not PageMode then
+          Header := sl[i - 1];
+      end;
     end;
   end;
   sl.Free;
+  
   DesignerUpdate;
   
   Columns.SetOrganization;
@@ -6955,6 +7525,8 @@ begin
 
       PT := ClientToScreen(Point(CR.Left,CR.Bottom));
 
+
+
       if (Button = mbLeft) and Assigned(GC.ColumnPopup) and
          (GC.ColumnPopupType in [cpFixedCellsLClick,cpNormalCellsLClick,cpAllCellsLClick]) then
       begin
@@ -6989,7 +7561,6 @@ begin
         end;
       end;
     end;
-
   end;
 end;
 
@@ -7051,40 +7622,79 @@ begin
   //PostEditRecData;
 end;
 
+procedure TDBAdvGrid.DirectWheelChange(delta: integer);
+begin
+  inherited;
+  {
+  if not ((DataSetType = dtSequenced) or not PageMode) then
+  begin
+  if delta > 0 then
+    DBWheelDown
+  else
+    DBWheelUp;
+  end;  
+  }  
+end;
+
+//------------------------------------------------------------------------------
+
+function TDBAdvGrid.DBWheelDown: boolean;
+var
+  i, j: integer;
+begin
+  j := 1;
+  if FMouseWheelScrolled then
+    j := 0;
+
+  i := FDataLink.DataSet.MoveBy(j); // 0
+  if (RowCount - 1) > VisibleRowCount then
+  begin
+    if i < 1 then
+    begin
+      TopRow := FixedRows + 1;
+      UpdateScrollBar;
+    end
+    else
+      TopRow := FixedRows + 1;
+  end;
+
+  Row := min(FDataLink.ActiveRecord + FixedRows, RowCount - 1);
+  //if i < 1 then
+  //TopRow:= 2;
+  Result := true;
+  FMouseWheelScrolled := False;
+end;
+
 //------------------------------------------------------------------------------
 
 function TDBAdvGrid.DoMouseWheelDown(Shift: TShiftState;
   MousePos: TPoint): Boolean;
-var
-  i: integer;
 begin
   if (DataSetType = dtSequenced) or not PageMode then
     Result := inherited DoMouseWheelDown(Shift, MousePos)
   else // DataSetType = dtNonSequenced
   begin
-  //Row:= Row + 1;
-  //TopRow:= 1;
-    i := FDataLink.DataSet.MoveBy(1);
-    if (RowCount - 1) > VisibleRowCount then
-    begin
-      if i < 1 then
-      begin
-        TopRow := {2}FixedRows+1;
-        UpdateScrollBar;
-      end
-      else
-        TopRow := {2}FixedRows+1;
-    end;
-
-    Row := min(FDataLink.ActiveRecord + {1}FixedRows, RowCount-1);
-  //if i < 1 then
-    //TopRow:= 2;
-    Result := true;
-  //Result := inherited DoMouseWheelDown(Shift,MousePos);
+    //Row:= Row + 1;
+    //TopRow:= 1;
+    Result := DBWheelDown;
+    //Result := inherited DoMouseWheelDown(Shift,MousePos);
   end;
 end;
 
 //------------------------------------------------------------------------------
+
+function TDBAdvGrid.DBWheelUp: boolean;
+var
+  j: Integer;
+begin
+  j := -1;
+  if FMouseWheelScrolled then
+    j := 0;
+
+  TopRow := FixedRows;
+  FDataLink.DataSet.MoveBy(j);
+  Result := true;
+end;
 
 function TDBAdvGrid.DoMouseWheelUp(Shift: TShiftState;
   MousePos: TPoint): Boolean;
@@ -7093,8 +7703,7 @@ begin
     Result := inherited DoMouseWheelUp(Shift, MousePos)
   else // DataSetType = dtNonSequenced
   begin
-    TopRow := {1}FixedRows;
-    FDataLink.DataSet.MoveBy(-1);
+    DBWheelUp;
     Result := true;
   end;
 end;
@@ -7111,6 +7720,7 @@ begin
     if (message.msg = WM_MOUSEWHEEL) then
     begin
       FMouseWheelScrolling := true;
+      FMouseWheelScrolled := False;
       bu := true;
       self.BeginUpdate;
     end;
@@ -7202,6 +7812,7 @@ procedure TDBAdvGrid.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 var
   SIOld, SINew: TScrollInfo;
+  C,R,d: integer;
 
 begin
   inherited;
@@ -7224,6 +7835,25 @@ begin
         and (SIOld.nMax > 0) then
         SetScrollInfo(Self.Handle, SB_VERT, SINew, True);
     end;
+
+   MouseToCell(X,Y,C,R);
+   
+   if ShowDBIndicator and (FixedCols > 0) and (C = 0) and (R >= 0) then
+   begin
+     if Assigned(DataSource) then
+       if Assigned(DataSource.Dataset) then
+       begin
+         d := R - Row;
+         DataSource.DataSet.MoveBy(d);
+
+         if MouseActions.DisjunctRowSelect then
+         begin
+           ClearRowSelect;
+           Row := R;
+           SelectToRowSelect(false);
+         end;
+       end;
+   end;
 end;
 
 //------------------------------------------------------------------------------
@@ -7325,10 +7955,16 @@ end;
 
 function TDBAdvGrid.CanEditModify: Boolean;
 begin
-  if FEditPostMode = epCell then
+  if (Columns[col].FieldName = '') then
   begin
-    Result:= inherited CanEditModify;
-    
+    Result := inherited CanEditModify;
+    Exit;
+  end;
+
+  if (FEditPostMode = epCell) then
+  begin
+    Result := inherited CanEditModify;
+
     // change for edit then post with out changing Cell
     if Result then
       Result := FDatalink.Editing;
@@ -7355,13 +7991,13 @@ end;
 procedure TDBAdvGrid.SetEditText(ACol, ARow: Integer; const Value: string);
 begin
   inherited SetEditText(ACol, ARow, Value);
-  FEditText:= Value;
+  FEditText := Value;
   FEditWideText := Value;
 end;
 
+//------------------------------------------------------------------------------
 function TDBAdvGrid.CanEditShow: Boolean;
 begin
-
   if Assigned(FDataLink) then
   begin
     if FDataLink.Active and Assigned(FDataLink.Dataset) then
@@ -7370,28 +8006,31 @@ begin
         Result := false;
         Exit;
       end;
-
-
   end;
+
   Result := inherited CanEditshow;
 end;
 
+//------------------------------------------------------------------------------
 procedure TDBAdvGrid.SetAutoCreateColumns(const Value: Boolean);
 begin
   FAutoCreateColumns := Value;
 end;
 
+//------------------------------------------------------------------------------
 procedure TDBAdvGrid.SetAutoRemoveColumns(const Value: Boolean);
 begin
   FAutoRemoveColumns := Value;
 end;
 
+//------------------------------------------------------------------------------
 procedure TDBAdvGrid.SetShowDesignHelper(const Value: Boolean);
 begin
   FShowDesignHelper := Value;
   Invalidate;
 end;
 
+//------------------------------------------------------------------------------
 procedure TDBAdvGrid.UpdateSelectionRect(var GR: TGridRect);
 begin
   inherited;
@@ -7401,6 +8040,86 @@ begin
       GR.Bottom := GR.Bottom - 1;
   end;
 end;
+
+//------------------------------------------------------------------------------
+procedure TDBAdvGrid.UpdateActive;
+var
+  v: Boolean;
+begin
+  v := Assigned(FDataLink) and Assigned(FDataLink.DataSet) and FDataLink.DataSet.Active;
+  ActiveChange(v);
+end;
+//------------------------------------------------------------------------------
+
+procedure TDBAdvGrid.OnMouseActionsChanged(Sender: TObject);
+begin
+  inherited;
+  if (MouseActions.WheelAction = waScroll) then
+    MouseActions.WheelAction := waMoveSelection;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TDBAdvGrid.OnNavigationChanged(Sender: TObject);
+begin
+  inherited;
+  if (Navigation.AdvanceDirection = adTopBottom) then
+    Navigation.AdvanceDirection := adLeftRight;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TDBAdvGrid.EditKeyDown(var Key: Word; Shift: TShiftState);
+begin
+  inherited;
+  if (Navigation.AlwaysEdit) and (DataSetType = dtNonSequenced) and (Row = FixedRows) and (Key = VK_UP) then
+  begin
+    FDataLink.DataSet.MoveBy(-1);
+    ShowEditor;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TDBAdvGrid.Edit_WMKeyDown(var Msg: TWMKeydown);
+begin
+  inherited;
+  if (Msg.CharCode = VK_ESCAPE) and (EditPostMode = epCell) then
+  begin
+    FShouldNotPostChanges := FNewRecord and (FKeyDownAppend or FNewAppendRecord);
+
+    if Assigned(FDatalink.DataSet) and (FDatalink.DataSet.Active) then
+      FDatalink.DataSet.Cancel;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TDBAdvGrid.SetInvalidPicture(const Value: TPicture);
+begin
+  FInvalidPicture.Assign(Value);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TDBAdvGrid.UpdateDisplay;
+var
+  i: Integer;
+begin
+  if not Assigned(FDataLink.DataSet) or not PageMode or FEditUpdating then
+    Exit;
+
+  if FDataLink.DataSet.Active then
+  begin
+    i := Row - TopRow;
+    if (i >= 0) and (i < FDataLink.ActiveRecord) then
+    begin
+      TopRow := TopRow + (i - FDataLink.ActiveRecord);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 
 initialization
   Classes.RegisterClass(TDBGridColumnItem);

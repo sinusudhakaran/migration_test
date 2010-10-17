@@ -2,11 +2,10 @@
 {***********************************************************************}
 { TPlannerMonthView component                                           }
 { for Delphi & C++Builder                                               }
-{ version 2.5                                                           }
 {                                                                       }
 { written by :                                                          }
 {            TMS Software                                               }
-{            copyright © 2004 - 2007                                    }
+{            copyright © 2004 - 2008                                    }
 {            Email : info@tmssoftware.com                               }
 {            Website : http://www.tmssoftware.com                       }
 {                                                                       }
@@ -50,9 +49,9 @@ uses
 const
   MAJ_VER = 2; // Major version nr.
   MIN_VER = 5; // Minor version nr.
-  REL_VER = 2; // Release nr.
-  BLD_VER = 0; // Build nr.
-  DATE_VER = 'Jan, 2007'; // Month version
+  REL_VER = 4; // Release nr.
+  BLD_VER = 2; // Build nr.
+  DATE_VER = 'Apr, 2008'; // Month version
 
   // version history
   // 1.2.0.0 : added recurrency support
@@ -90,7 +89,18 @@ const
   // 2.5.1.2 : Fixed : issue with showing a messagebox from the OnItemSizing event
   // 2.5.1.5 : TPlanner/TDBPlanner Compatibility update
   // 2.5.2.0 : Fixed : issue with MinDate & MaxDate use
-  
+  // 2.5.2.1 : Fixed : issue with Allow parameter in OnItemMoving
+  // 2.5.3.0 : New : OnItemUnSelect event added
+  // 2.5.3.1 : Fixed : hovering on monthlabel with large caption/font size
+  // 2.5.3.2 : Fixed : issue with OnItemPopupPrepare
+  // 2.5.3.3 : Fixed : issue with XYToDate for very small header size
+  // 2.5.3.4 : Fixed : issue with DeleteGlyph & AttachmentGlyph on planner items
+  // 2.5.3.5 : Fixed : issue with auto theme switching
+  // 2.5.3.6 : Fixed : issue with balloon text
+  // 2.5.4.0 : New : exposed Completion property
+  // 2.5.4.1 : Fixed : issue with moving items with time part in DB version
+  // 2.5.4.2 : Fixed : issue with auto delete of recurrent items 
+
 
 
   adaysinmonth: array[1..13] of word = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 29);
@@ -630,6 +640,7 @@ type
     FOnItemActivate: TItemEvent;
     FOnItemDeActivate: TItemEvent;
     FOnItemSelect: TItemEvent;
+    FOnItemUnSelect: TItemEvent;
     FOnItemUpdate: TNotifyEvent;
     FOnItemStartEdit: TItemEvent;
     FOnItemEndEdit: TItemEvent;
@@ -732,6 +743,7 @@ type
     FTodayColor: TColor;
     FTodayColorTo: TColor;
     FIsEditing: boolean;
+    FCompletion: TCompletion;    
     {$IFNDEF TMSDOTNET}
     procedure WMNotify(var Message: TWMNOTIFY); message WM_NOTIFY;
     {$ENDIF}
@@ -899,6 +911,8 @@ type
     function GetVersion: string;
     procedure SetCursorEx(const Value: TCursor);
     function GetCursorEx: TCursor;
+    function GetCompletion: TCompletion;
+    procedure SetCompletion(const Value: TCompletion);
   protected
     procedure SetDateProc(const Value: TDatetime); virtual;
     procedure InvalidateRectangle(ARect: TRect; Bkg: Boolean);
@@ -919,7 +933,8 @@ type
     procedure WndProc(var Msg: TMessage); override;
     function CanResize(var NewWidth, NewHeight: Integer): Boolean; override;
     procedure ThemeAdapt;
-    procedure DateColChanged(Sender: TObject);    
+    procedure DateColChanged(Sender: TObject);
+    procedure CompletionChanged(Sender: TObject);
     {$IFDEF TMSSKINS}
     procedure SkinChange(Sender: TObject);
     {$ENDIF}
@@ -931,6 +946,7 @@ type
     procedure DoYearChanged(dt1, dt2: TDateTime); virtual;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     procedure ItemSelected(Item: TPlannerItem); virtual;
+    procedure ItemUnSelected(Item: TPlannerItem); virtual;
     procedure ItemUpdated(Sender:TObject); virtual;
     procedure ItemMoved(APlannerItem: TPlannerItem; FromStartDate, FromEndDate, ToStartDate, ToEndDate: TDateTime); virtual;
     procedure ItemMoving(APlannerItem: TPlannerItem; FromStartDate, FromEndDate, ToStartDate, ToEndDate: TDateTime; var Allow: Boolean); virtual;
@@ -956,6 +972,7 @@ type
     property FlashFontColor: TColor read FFlashFontColor write SetFlashFontColor;
     function CreateItems(AOwner: TCustomPlanner): TPlannerMonthViewItems; virtual;
     procedure DoPrint(ACanvas: TCanvas);
+    procedure DoItemPopupPrepare(Sender: TObject; PopupMenu:TPopupMenu; Item: TPlannerItem); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1035,6 +1052,7 @@ type
     property Color;
     property ColorCurrent: TColor read FColorCurrent write SetColorCurrent default clYellow;
     property ColorCurrentItem: TColor read FColorCurrentItem write SetColorCurrentItem default clLime;
+    property Completion: TCompletion read GetCompletion write SetCompletion;
     property Cursor: TCursor read GetCursorEx write SetCursorEx;
     property DateFormat: string read FDateFormat write FDateFormat;
     property DayAlignment: TAlignment read FDayAlignment write SetDayAlignment default taRightJustify;
@@ -1141,6 +1159,7 @@ type
     property OnItemAttachementClick: TItemLinkEvent read FOnItemAttachementClick write FOnItemAttachementClick;
     property OnItemHint: TItemHintEvent read FOnItemHint write FOnItemHint;
     property OnItemSelect: TItemEvent read FOnItemSelect write FOnItemSelect;
+    property OnItemUnSelect: TItemEvent read FOnItemUnSelect write FOnItemUnSelect;
     property OnItemUpdate: TNotifyEvent read FOnItemUpdate write FOnItemUpdate;
     property OnItemStartEdit: TItemEvent read FOnItemStartEdit write FOnItemStartEdit;
     property OnItemEndEdit: TItemEvent read FOnItemEndEdit write FOnItemEndEdit;
@@ -1199,6 +1218,11 @@ uses
 
 const
   DefaultPixelsPerInch = 96;
+  // theme changed notifier
+  WM_THEMECHANGED = $031A;
+
+  TTM_SETTITLE = (WM_USER + 32);
+
 
 
 {$IFDEF TMSDOTNET}
@@ -1242,61 +1266,34 @@ end;
 
 {$IFNDEF TMSDOTNET}
 function CurrentXPTheme: XPColorScheme;
-
-  function IsThemedApp: Boolean;
-  var
-    i: Integer;
-  begin
-    // app is linked with COMCTL32 v6 or higher -> xp themes enabled
-    i := GetFileVersion('COMCTL32.DLL');
-    i := (i shr 16) and $FF;
-    Result := (i > 5);
-  end;
-
 var
   FileName, ColorScheme, SizeName: WideString;
-  hThemeLib: THandle;
+
 begin
-  hThemeLib := 0;
   Result := xpNone;
 
   if not IsWinXP then
     Exit;
 
-  try
-    hThemeLib := LoadLibrary('uxtheme.dll');
+  if IsThemeActive then
+  begin
+    SetLength(FileName, 255);
+    SetLength(ColorScheme, 255);
+    SetLength(SizeName, 255);
+    GetCurrentThemeName(PWideChar(FileName), 255,
+    PWideChar(ColorScheme), 255, PWideChar(SizeName), 255);
 
-    if hThemeLib > 0 then
-    begin
-      if IsThemedApp then
-      begin
-        GetCurrentThemeName := GetProcAddress(hThemeLib,'GetCurrentThemeName');
-        if Assigned(GetCurrentThemeName) then
-        begin
-          SetLength(FileName, 255);
-          SetLength(ColorScheme, 255);
-          SetLength(SizeName, 255);
-          OleCheck(GetCurrentThemeName(PWideChar(FileName), 255,
-            PWideChar(ColorScheme), 255, PWideChar(SizeName), 255));
-          if (PWideChar(ColorScheme) = 'NormalColor') then
-            Result := xpBlue
-          else if (PWideChar(ColorScheme) = 'HomeStead') then
-            Result := xpGreen
-          else if (PWideChar(ColorScheme) = 'Metallic') then
-            Result := xpGray
-          else
-            Result := xpNone;
-        end
-        else
-          Result := xpNoTheme;
-      end
-      else
-       Result := xpNoTheme;
-    end;
-  finally
-    if hThemeLib <> 0 then
-      FreeLibrary(hThemeLib);
-  end;
+    if(PWideChar(ColorScheme)='NormalColor') then
+      Result := xpBlue
+    else if (PWideChar(ColorScheme)='HomeStead') then
+      Result := xpGreen
+    else if (PWideChar(ColorScheme)='Metallic') then
+      Result := xpGray
+    else
+      Result := xpNone;
+  end
+  else
+   Result := xpNoTheme;
 end;
 {$ENDIF}
 
@@ -1335,7 +1332,7 @@ end;
 
 constructor TMonthPlannerItem.Create(Collection: TCollection);
 begin
-  inherited;
+  inherited Create(Collection);
   FPosSt := TStringList.Create;
 end;
 
@@ -1348,12 +1345,14 @@ end;
 procedure TMonthPlannerItem.SetItemEndTime(const Value: TDateTime);
 begin
   FEndTime := Value;
+  ItemRealEndTime := Value;
   (Collection as TPlannerItems).SetConflicts;
 end;
 
 procedure TMonthPlannerItem.SetItemStartTime(const Value: TDateTime);
 begin
   FStartTime := Value;
+  ItemRealStartTime := Value;
   (Collection as TPlannerItems).SetConflicts;
 end;
 
@@ -1403,17 +1402,21 @@ begin
   if Assigned((Collection as TPlannerMonthViewItems).PlannerMonthView) then
   begin
     (Collection as TPlannerMonthViewItems).PlannerMonthView.Invalidate;
-  end;  
+  end;
 end;
 
 procedure TMonthPlannerItem.MoveMonthPlannerItem(NewStartTime, NewEndTime: TDateTime; Done: Boolean; var Allow: Boolean);
 var
   OldStartTime, OldEndTime: TDateTime;
+  OldRealStartTime, OldRealEndTime: TDateTime;
 
 begin
   OldStartTime := ItemRealStartTime;
   OldEndTime := ItemRealEndTime;
   
+  OldRealStartTime := ItemRealStartTime;
+  OldRealEndTime := ItemRealEndTime;
+
   if Assigned((Collection as TPlannerMonthViewItems).PlannerMonthView) then
     with ((Collection as TPlannerMonthViewItems).PlannerMonthView) do
     begin
@@ -1428,11 +1431,12 @@ begin
 
     if Allow then
     begin
-      ItemStartTime := NewStartTime;
-      ItemEndTime := NewEndTime;
+      ItemStartTime := Int(NewStartTime);
+      ItemEndTime := Int(NewEndTime);
 
-      ItemRealStartTime := Int(ItemStartTime) + Frac(ItemRealStartTime);
-      ItemRealEndTime := Int(ItemEndTime) + Frac(ItemRealEndTime);
+      ItemRealStartTime := Int(ItemStartTime) + Frac(OldRealStartTime);
+      ItemRealEndTime := Int(ItemEndTime) + Frac(OldRealEndTime);
+
       if Assigned((Collection as TPlannerMonthViewItems).PlannerMonthView) then
         (Collection as TPlannerMonthViewItems).PlannerMonthView.ItemMoved(Self, OldStartTime, OldEndTime, ItemStartTime, ItemEndTime);
     end;
@@ -1447,8 +1451,8 @@ begin
       ItemStartTime := NewStartTime;
       ItemEndTime := NewEndTime;
 
-      ItemRealStartTime := Int(ItemStartTime) + Frac(ItemRealStartTime);
-      ItemRealEndTime := Int(ItemEndTime) + Frac(ItemRealEndTime);
+      ItemRealStartTime := Int(ItemStartTime) + Frac(OldRealStartTime);
+      ItemRealEndTime := Int(ItemEndTime) + Frac(OldRealEndTime);
     end;
   end;
 end;
@@ -1501,6 +1505,8 @@ begin
   FPlanner.OnItemEnter := PlannerItemEnter;
   FPlanner.OnItemExit := PlannerItemExit;
   FPlanner.OnItemText := PlannerItemText;
+  FPlanner.TabStop := false;
+  FPlanner.GridControl.TabStop := false;
 
 //  FPlanner.OnConflictUpdate := ItemsChanged;
   FPlanner.OnItemUpdate := ItemUpdated;
@@ -1511,14 +1517,17 @@ begin
   FMemo.Width := 0;
   FMemo.Height := 0;
   FMemo.Planner := FPlanner;
+  FMemo.TabStop := false;
 
   FMaskEdit := TPlannerMaskEdit.Create(Self);
   FMaskEdit.Parent := Self;
   FMaskEdit.Visible := False;
   FMaskEdit.Width := 0;
   FMaskEdit.Height := 0;
+  FMaskEdit.TabStop := false;
 
   FRichEdit := TMonthPlannerRichEdit.Create(Self);
+  FRichEdit.TabStop := false;
   FBalloon := TBalloonSettings.Create;
   FBalloon.OnEnableChange := BalloonChange;
 
@@ -1702,6 +1711,9 @@ begin
   FDefaultItems.PlannerMonthView := self;
   FDefaultItem := FDefaultItems.Add;
 
+  FCompletion := TCompletion.Create;
+  FCompletion.OnChange := CompletionChanged;
+
   Width := 400;
   Height := 400;
 end;
@@ -1744,6 +1756,7 @@ begin
 {$IFDEF TMSSKINS}
   FSkin.Free;
 {$ENDIF}
+  FCompletion.Free;
   FPlanner.Free;
 
   for i := 1 to 6 do
@@ -1865,7 +1878,10 @@ begin
   FPlanner.PlannerImages := PlannerImages;
 
   if AutoThemeAdapt and not (csDesigning in ComponentState) then
-    ThemeAdapt; 
+    ThemeAdapt;
+
+  FPlanner.DeleteGlyph.Assign(DeleteGlyph);
+  FPlanner.AttachementGlyph.Assign(AttachementGlyph);
 end;
 
 procedure TPlannerMonthView.WndProc(var Msg: TMessage);
@@ -1881,6 +1897,12 @@ begin
   end;
 
   inherited;
+end;
+
+procedure TPlannerMonthView.SetCompletion(const Value: TCompletion);
+begin
+  FPlanner.Footer.Completion.Assign(Value);
+  FCompletion.Assign(Value);
 end;
 
 procedure TPlannerMonthView.SetComponentStyle(AStyle: TTMSStyle);
@@ -4711,11 +4733,13 @@ begin
 
   if (fd < 0) then
     fd := fd + 7;
-
+             
   if (dx > 0) and (dy > 0) then
   begin
     xcal := (x - 1) div dx;
     ycal := ((y - (FweekNameY + FDayFontHeight))) div dy;
+    if ycal < 0 then
+      ycal := 0;
   end;
 
   if xcal > 6 then xcal := 6;
@@ -4774,7 +4798,7 @@ begin
   if ShowCaption then
   begin
 
-    if (x >= lblx1) and (x <= lblx3) and (y > 0) and (y < 15) and FMonthSelect then
+    if (x >= lblx1) and (x <= lblx3) and (y > 0) and (y < CaptionHeight) and FMonthSelect then
     begin
       if not flgla then
       begin
@@ -5314,6 +5338,12 @@ begin
   end;
 end;
 
+procedure TPlannerMonthView.DoItemPopupPrepare(Sender: TObject; PopupMenu:TPopupMenu; Item: TPlannerItem);
+begin
+  if Assigned(OnItemPopupPrepare) then
+    OnItemPopupPrepare(Sender, PopupMenu, Item);
+end;
+
 procedure TPlannerMonthView.MouseDown(Button: TMouseButton;
   Shift: TShiftState; X, Y: integer);
 var
@@ -5346,8 +5376,10 @@ begin
 
         if Assigned(APlannerItem.PopupMenu) then
         begin
-          if Assigned(FPlanner.OnItemPopupPrepare) then
-            FPlanner.OnItemPopupPrepare(FPlanner, APlannerItem.PopupMenu, APlannerItem);
+          DoItemPopupPrepare(self, APlannerItem.PopupMenu, APlannerItem);
+
+          //if Assigned(OnItemPopupPrepare) then
+          //  FPlanner.OnItemPopupPrepare(self, APlannerItem.PopupMenu, APlannerItem);
 
           FPopupPlannerItem := APlannerItem;
           APlannerItem.PopupMenu.PopupComponent := Self;
@@ -5356,8 +5388,10 @@ begin
 
         if (Assigned(FItemPopup)) then
         begin
-          if Assigned(FPlanner.OnItemPopupPrepare) then
-            FPlanner.OnItemPopupPrepare(FPlanner, FPlanner.ItemPopup, APlannerItem);
+          DoItemPopupPrepare(self, APlannerItem.PopupMenu, APlannerItem);
+
+          //if Assigned(OnItemPopupPrepare) then
+          //  OnItemPopupPrepare(self, ItemPopup, APlannerItem);
 
           FPopupPlannerItem := APlannerItem;
           FItemPopup.PopupComponent := Self;
@@ -5614,6 +5648,11 @@ begin
 
     if APlannerItem = nil then
     begin
+      if Assigned(FPlannerMonthItems.Selected) then
+      begin
+        if Assigned(OnItemUnSelect) then
+          OnItemUnSelect(self,FPlannerMonthItems.Selected);
+      end;
       FPlannerMonthItems.UnSelectAll;
     end
     else
@@ -5892,6 +5931,7 @@ begin
 
       if not Items.HasMonthPlannerItem(Items.Selected.ItemStartTime + dfDate, Items.Selected.ItemEndTime + dfDate) then
       begin
+        Allow := true;
         TMonthPlannerItem(Items.Selected).MoveMonthPlannerItem(Items.Selected.ItemStartTime + dfDate, Items.Selected.ItemEndTime + dfDate, true, Allow);
 
         if Allow then
@@ -6131,6 +6171,12 @@ begin
     msg.Result := 1;
 end;
 
+procedure TPlannerMonthView.CompletionChanged(Sender: TObject);
+begin
+  FPlanner.Footer.Completion.Assign(FCompletion);
+  Invalidate;
+end;
+
 procedure TPlannerMonthView.WMEraseBkGnd(var Message: TWMEraseBkGnd);
 begin
   Message.Result := 1;
@@ -6144,7 +6190,7 @@ procedure TPlannerMonthView.WMNotify(var Message: TWMNOTIFYTT);
 procedure TPlannerMonthView.WMNotify(var Message: TWMNOTIFY);
 {$ENDIF}
 var
-  buffer:array[0..255] of char;
+  buffer: array[0..255] of char;
   pt: TPoint;
   plIt: TPlannerItem;
   {$IFDEF TMSDOTNET}
@@ -6220,7 +6266,7 @@ begin
 
         i := 1;
         if AText <> '' then
-          while AText[i] in [#13, #10, #9] do
+          while ( (AText[i] = #13) or (AText[i] = #10) or (AText[i] = #9)) do
             inc(i);
 
         if len1 > len2 then
@@ -6234,13 +6280,14 @@ begin
         // for some reason, balloon tips will not show multiline when there is no title  ...
         if ATitle = '' then
           ATitle := ' ';
+
         if Assigned(OnItemBalloon) then
           OnItemBalloon(FPlanner, plIt, ATitle, AText, AIcon);
       end
       else
       begin
         AText := '';
-        ATitle := '';
+
         AIcon := 1;
         if Assigned(OnDateBalloon) then
           OnDateBalloon(FPlanner,CDate, ATitle, AText, AIcon);
@@ -6251,6 +6298,9 @@ begin
 
       if length(ATitle) > 100 then
         ATitle := copy(ATitle,1, 97) + '...';
+
+      if ATitle = '' then
+        ATitle := ' ';
 
       strpcopy(buffer,ATitle);
 
@@ -6521,7 +6571,21 @@ begin
 end;
 
 procedure TPlannerMonthView.FreeItem(APlannerItem: TPlannerItem);
+var
+  i: integer;
+  dbkey: string;
 begin
+  if (APlannerItem.Recurrent) and (APlannerItem.DBKey <> '') then
+  begin
+    dbkey := APlannerItem.DBKey;
+
+    for i := Items.Count - 1 downto 0 do
+    begin
+      if (Items[i].DBKey = dbkey) and (Items[i] <> APlannerItem) then
+        Items[i].Free;
+    end;
+  end;
+  
   if Items.Selected = APlannerItem then
     Items.Selected := nil;
   APlannerItem.ParentItem.Free;
@@ -6676,6 +6740,12 @@ procedure TPlannerMonthView.ItemSelected(Item: TPlannerItem);
 begin
   if Assigned(OnItemSelect) then
     OnItemSelect(Self, Item);
+end;
+
+procedure TPlannerMonthView.ItemUnSelected(Item: TPlannerItem);
+begin
+  if Assigned(OnItemUnSelect) then
+    OnItemUnSelect(Self, Item);
 end;
 
 procedure TPlannerMonthView.ItemUpdated(Sender: TObject);
@@ -7187,6 +7257,7 @@ procedure TPlannerMonthView.SetDateProc(const Value: TDatetime);
 begin
   DecodeDate(Value, FYear, FMonth, FDay);
   SetDate(FDay, FMonth, FYear);
+  ChangeMonth(0);
 end;
 
 procedure TPlannerMonthView.SetDateCol(const Value: TSelDateItems);
@@ -7482,7 +7553,6 @@ begin
     SetLabel(mo, ye);
     DoPaint;
     DoChangeYear(origdate, seldate);
-    
     DoYearChanged(origdate, seldate);
   end;
 
@@ -8183,6 +8253,11 @@ begin
   Result := FCaptionHeight;
 end;
 
+function TPlannerMonthView.GetCompletion: TCompletion;
+begin
+  Result := FCompletion;
+end;
+
 procedure TPlannerMonthView.SetCaptionHeight(const Value: integer);
 begin
   if (Value > 10) then
@@ -8576,7 +8651,10 @@ begin
     R.Top := R.Top + FDayNumberHeight + 2;
 
     itemHeight := R.Bottom - R.Top;
-    itemHeight := itemHeight div min(FMaxItemsDisplayed, APlannerItem.Conflicts);
+    
+    if min(FMaxItemsDisplayed, APlannerItem.Conflicts) > 0 then
+      itemHeight := itemHeight div min(FMaxItemsDisplayed, APlannerItem.Conflicts);
+
     R.Top := R.Top + (APlannerItem.ConflictPos - FItemScrollerAry[P.y].Position) * itemHeight;
     R.Bottom := R.top + itemHeight - ItemSpace;
 
@@ -8602,7 +8680,10 @@ begin
     R.Top := R.Top + FDayNumberHeight + 2;
 
     itemHeight := R.Bottom - R.Top;
-    itemHeight := itemHeight div min(FMaxItemsDisplayed, APlannerItem.Conflicts);
+
+    if min(FMaxItemsDisplayed, APlannerItem.Conflicts) > 0 then
+      itemHeight := itemHeight div min(FMaxItemsDisplayed, APlannerItem.Conflicts);
+      
     R.Top := R.Top + (APlannerItem.ConflictPos - FItemScrollerAry[RowNo].Position) * itemHeight;
     R.Bottom := R.top + itemHeight - ItemSpace;
 
@@ -9298,13 +9379,15 @@ begin
         OffsetRect(R, FPlannerMonthView.XOffset, 0);
 
       itemHeight := R.Bottom - R.Top;
-      itemHeight := itemHeight div min(FPlannerMonthView.MaxItemsDisplayed, Items[i].Conflicts);
+      
+      if min(FPlannerMonthView.FMaxItemsDisplayed, Items[i].Conflicts) > 0 then
+        itemHeight := itemHeight div min(FPlannerMonthView.MaxItemsDisplayed, Items[i].Conflicts);
 
       if Assigned(FPlannerMonthView.GetItemScroller(P.y)) then
         R.Top := R.Top + (Items[i].ConflictPos - FPlannerMonthView.GetItemScroller(P.y).Position) * itemHeight
       else
         R.Top := R.Top + (Items[i].ConflictPos * itemHeight);
-        
+
       R.Bottom := R.top + itemHeight - FPlannerMonthView.ItemSpace;
 
       if PtInRect(R, Point(X, Y)) then
@@ -9323,11 +9406,13 @@ begin
   begin
     for i := 0 to count - 1 do
     begin
-      if APlannerItem <> Items[i] then
+      if (APlannerItem <> Items[i]) then
       begin
         Items[i].Focus := False;
         //if not Owner.MultiSelect then
         Items[i].Selected := False;
+        if Assigned(FPlannerMonthView) then
+          FPlannerMonthView.ItemUnSelected(APlannerItem);
       end;
     end;
     AlreadySelected := APlannerItem.Selected;

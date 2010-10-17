@@ -1,10 +1,9 @@
 {********************************************************************}
 { TADVPREVIEWDIALOG component                                        }
 { for Delphi & C++Builder                                            }
-{ version 1.3                                                        }
 {                                                                    }
 { written by TMS Software                                            }
-{           copyright © 1998-2004                                    }
+{           copyright © 1998-2008                                    }
 {           Email : info@tmssoftware.com                             }
 {           Web : http://www.tmssoftware.com                         }
 {********************************************************************}
@@ -78,6 +77,7 @@ type
     FPrinterSetupDialog: Boolean;
     FPrintSelection: Boolean;
     FPrintSelectedCols: Boolean;
+    FShowMaximized: boolean;
     procedure SetPreviewWidth(value: integer);
     procedure SetPreviewHeight(value: integer);
     procedure SetPrintSelectedRows(const Value: Boolean);
@@ -108,11 +108,11 @@ type
     property PreviewLeft: Integer read FPreviewLeft write FPreviewLeft;
     property PreviewTop: Integer read FPreviewTop write FPreviewTop;
     property PreviewCenter: Boolean read FPreviewCenter write FPreviewCenter;
-    property PrinterSetupDialog: Boolean read FPrinterSetupDialog write FPrinterSetupDialog;
-    property PrintSelectedRows: Boolean read FPrintSelectedRows write SetPrintSelectedRows;
-    property PrintSelectedCols: Boolean read FPrintSelectedCols write SetPrintSelectedCols;
-    property PrintSelection: Boolean read FPrintSelection write SetPrintSelection;
-
+    property PrinterSetupDialog: Boolean read FPrinterSetupDialog write FPrinterSetupDialog default false;
+    property PrintSelectedRows: Boolean read FPrintSelectedRows write SetPrintSelectedRows default false;
+    property PrintSelectedCols: Boolean read FPrintSelectedCols write SetPrintSelectedCols default false;
+    property PrintSelection: Boolean read FPrintSelection write SetPrintSelection default false;
+    property ShowMaximized: boolean read FShowMaximized write FShowMaximized default false;
   end;
 
 
@@ -150,6 +150,7 @@ begin
   end;
 
   FForm := TAdvPreviewForm.Create(Application);
+
   FForm.Grid := Grid;
   FForm.Width := FPreviewWidth;
   FForm.Height := FPreviewHeight;
@@ -167,7 +168,7 @@ begin
   FForm.Grid.FastPrint := FPreviewFast;
   FForm.Previous.Enabled := False;
   FForm.PrintSelectedRows := FPrintSelectedRows;
-  FForm.PrintSelectedCols := FPrintSelectedCols;  
+  FForm.PrintSelectedCols := FPrintSelectedCols;
   FForm.PrintSelection := FPrintSelection;
   FForm.PrinterSetupDialog := FPrinterSetupDialog;
   FForm.CloseOnPrint := FCloseOnPrint;
@@ -178,7 +179,12 @@ begin
   FForm.Previous.Caption := FDlgPrev;
   FForm.Next.Caption := FDlgNext;
 
+  FForm.DoubleBuffered := true;
+
   try
+    if ShowMaximized then
+      FForm.WindowState := wsMaximized;
+
     Result := (FForm.ShowModal = mrOK);
     FPreviewWidth := FForm.Width;
     FPreviewHeight := FForm.Height;
@@ -206,6 +212,10 @@ end;
 
 procedure TAdvPreviewForm.PreviewPaintBoxPaint(Sender: TObject);
 begin
+  PreviewPaintBox.Canvas.Brush.Color := clWhite;
+  PreviewPaintBox.Canvas.Pen.Color := clWhite;
+  PreviewPaintBox.Canvas.Rectangle(PreviewPaintBox.ClientRect);
+
   if Assigned(Grid) then
   begin
     if PrintSelectedRows or PrintSelectedCols then

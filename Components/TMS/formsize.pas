@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TFormSize component                                                       }
 { for Delphi & C++Builder                                                   }
-{ version 1.1                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2001 - 2006                                        }
+{            copyright © 2001 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -32,13 +31,14 @@ uses
 
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 1; // Minor version nr.
+  MIN_VER = 2; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 2; // Build nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // 1.1.0.1 : Fixed issue with magnet function on left/top side
-  // 1.1.0.2 : Added exception handling in LoadFromSettings, SaveFormSettings 
+  // 1.1.0.2 : Added exception handling in LoadFromSettings, SaveFormSettings
+  // 1.2.0.0 : Added support to be used on Unicode forms (TTntForm) 
 
 type
   EFormSizeError = class(Exception);
@@ -60,6 +60,7 @@ type
     FSaveKey: string;
     FDragAlways: boolean;
     FMagnet: boolean;
+    FUnicode: boolean;
     FMagnetDistance: integer;
     function CreateKey:string;
     function GetVersion: string;
@@ -95,7 +96,7 @@ type
 implementation
 
 uses
- INIFiles;
+  INIFiles, Dialogs;
 
 {$WARNINGS OFF}
 constructor TFormSize.Create(AOwner:TComponent);
@@ -117,15 +118,33 @@ begin
   FSaveName := '.\FORM.INI';
   FSaveKey := owner.Name;
   FMagnetDistance := 32;
-  { Hook parent }
-  OldWndProc := TFarProc(GetWindowLong((Owner as TForm).Handle, GWL_WNDPROC));
-  NewWndProc := MakeObjectInstance(HookWndProc);
-  {$IFNDEF TMSDOTNET}
-  SetWindowLong((Owner as TForm).Handle, GWL_WNDPROC, LongInt(NewWndProc));
-  {$ENDIF}
-  {$IFDEF TMSDOTNET}
-  SetWindowLong((Owner as TForm).Handle, GWL_WNDPROC, NewWndProc);
-  {$ENDIF}
+
+  FUnicode := IsWindowUnicode((Owner as TForm).Handle);
+
+  if FUnicode then
+  begin
+    { Hook parent }
+    OldWndProc := TFarProc(GetWindowLongW((Owner as TForm).Handle, GWL_WNDPROC));
+    NewWndProc := MakeObjectInstance(HookWndProc);
+    {$IFNDEF TMSDOTNET}
+    SetWindowLongW((Owner as TForm).Handle, GWL_WNDPROC, LongInt(NewWndProc));
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    SetWindowLongW((Owner as TForm).Handle, GWL_WNDPROC, NewWndProc);
+    {$ENDIF}
+  end
+  else
+  begin
+    { Hook parent }
+    OldWndProc := TFarProc(GetWindowLong((Owner as TForm).Handle, GWL_WNDPROC));
+    NewWndProc := MakeObjectInstance(HookWndProc);
+    {$IFNDEF TMSDOTNET}
+    SetWindowLong((Owner as TForm).Handle, GWL_WNDPROC, LongInt(NewWndProc));
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    SetWindowLong((Owner as TForm).Handle, GWL_WNDPROC, NewWndProc);
+    {$ENDIF}
+  end;
 end;  { TFormSize.Create }
 
 
@@ -139,10 +158,21 @@ end;  { TFormSize.Loaded }
 destructor TFormSize.Destroy;
 begin
   { Unhook parent }
-  if (Owner <> nil) and Assigned(OldWndProc) then
-    SetWindowLong((Owner as TForm).Handle, GWL_WNDPROC, LongInt(OldWndProc));
+
+  if FUnicode then
+  begin
+    if (Owner <> nil) and Assigned(OldWndProc) then
+      SetWindowLongW((Owner as TForm).Handle, GWL_WNDPROC, LongInt(OldWndProc));
+  end
+  else
+  begin
+    if (Owner <> nil) and Assigned(OldWndProc) then
+      SetWindowLong((Owner as TForm).Handle, GWL_WNDPROC, LongInt(OldWndProc));
+  end;
+
   if Assigned(NewWndProc) then
     FreeObjectInstance(NewWndProc);
+
   { Clean up }
   inherited Destroy;
 end;  { TFormSize.Destroy }

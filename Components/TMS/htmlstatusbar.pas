@@ -1,10 +1,9 @@
 {*************************************************************************}
 { THTMLStatusBar component                                                }
 { for Delphi & C++Builder                                                 }
-{ version 1.3                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 2000 - 2005                                       }
+{           copyright © 2000 - 2008                                       }
 {           Email : info@tmssoftware.com                                  }
 {           Website : http://www.tmssoftware.com/                         }
 {                                                                         }
@@ -38,14 +37,20 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 1; // Build nr.
+  BLD_VER = 3; // Build nr.
 
   // version history
   // 1.3.0.0 : Added support for PictureContainer
   //         : Added HTML property editor for SimpleText & Panel.Text
   // 1.3.0.1 : Improved progress bar drawing
+  // 1.3.0.2 : Fixed background painting color
+  // 1.3.0.3 : Fixed painting issue with resizing and sizegrip
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
 
 { THTMLStatusBar }
 
@@ -321,6 +326,7 @@ type
     procedure CreateWnd; override;
     procedure DestroyWnd; override;
     procedure Loaded; override;
+    procedure Resize; override;
     function DoHint: Boolean; virtual;
     procedure DrawPanel(Panel: THTMLStatusPanel; const Rect: TRect); dynamic;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
@@ -1236,6 +1242,9 @@ var
 begin
   r := rect;
 
+  if Panel.Index = Panels.Count - 1 then
+    Canvas.FillRect(r);
+
   case Panel.Style of
     psHTML:
       begin
@@ -1654,7 +1663,7 @@ begin
       try
         FCanvas.Handle := hDC;
         FCanvas.Font.Assign(Font);
-        FCanvas.Brush.Color := clBtnFace;
+        FCanvas.Brush.Color := self.Color;
         FCanvas.Brush.Style := bsSolid;
         DrawPanel(Panels[itemID], rcItem);
       finally
@@ -1684,7 +1693,7 @@ var
 begin
   if (csDestroying in ComponentState) then
     Exit;
-    
+
   for i := 1 to Panels.Count do
   begin
     case Panels[i - 1].Style of
@@ -1847,6 +1856,11 @@ begin
   if (AOperation = opRemove) and (AComponent = FContainer) then
     FContainer := nil;
     
+  inherited;
+end;
+
+procedure THTMLStatusBar.Resize;
+begin
   inherited;
 end;
 

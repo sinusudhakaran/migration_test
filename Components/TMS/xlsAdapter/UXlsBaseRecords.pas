@@ -26,7 +26,7 @@ type
     destructor Destroy; override;
     procedure AddContinue(const aContinue: TContinueRecord);
 
-    procedure SaveToStream(const Workbook: TStream); virtual;
+    procedure SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean); virtual;
     function CopyTo: TBaseRecord;  //this should be non-virtual
     function TotalSize: integer;virtual;
     function TotalSizeNoHeaders: integer;virtual;
@@ -39,7 +39,7 @@ type
 
   TIgnoreRecord = class (TBaseRecord)
     function TotalSize: integer; override;
-    procedure SaveToStream(const Workbook: TStream); override;
+    procedure SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean); override;
   end;
 
   TSubListRecord = class (TBaseRecord)  //This is a "virtual" record used to save sublists to stream
@@ -51,7 +51,7 @@ type
   public
     constructor  CreateAndAssign(const aSubList: TObjectList);
     function TotalSize: integer; override;
-    procedure SaveToStream(const Workbook: TStream); override;
+    procedure SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean); override;
   end;
 
   TBaseRowColRecord = class(TBaseRecord)
@@ -140,7 +140,7 @@ type
 
   TStringRecord=class(TBaseRecord)
   public
-    procedure SaveToStream(const Workbook: TStream); override;
+    procedure SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean); override;
     function TotalSize: integer; override;
     function Value: widestring;
   end;
@@ -310,9 +310,18 @@ type
     procedure SetValue(const Value: word);
     function GetFitToPage: boolean;
     procedure SetFitToPage(const Value: boolean);
+    function GetOutlineSummaryColsRightOfDetail: boolean;
+    function GetOutlineSummaryRowsBelowDetail: boolean;
+    function GetOutlineAutomaticStyles: boolean;
+    procedure SetOutlineRightOfDetail(const Value: boolean);
+    procedure SetOutlineSummaryRowsBelowDetail(const Value: boolean);
+    procedure SetOutlineAutomaticStyles(const Value: boolean);
   public
     property Value: word read GetValue write SetValue;
     property FitToPage: boolean read GetFitToPage write SetFitToPage;
+    property OutlineSummaryRowsBelowDetail: boolean read GetOutlineSummaryRowsBelowDetail write SetOutlineSummaryRowsBelowDetail;
+    property OutlineSummaryColsRightOfDetail: boolean read GetOutlineSummaryColsRightOfDetail write SetOutlineRightOfDetail;
+    property OutlineAutomaticStyles: boolean read GetOutlineAutomaticStyles write SetOutlineAutomaticStyles;
   end;
 
   T1904Record = class(TBaseRecord)
@@ -571,10 +580,15 @@ begin
 
     xlr_COLINFO     : R:= TColInfoRecord.Create(RecordHeader.Id, Data, RecordHeader.Size);
     xlr_DEFCOLWIDTH : R:= TDefColWidthRecord.Create(RecordHeader.Id, Data, RecordHeader.Size);
-    xlr_STANDARDWIDTH:R:= TStandardWidthRecord.Create(RecordHeader.Id, Data, RecordHeader.Size); 
+    xlr_STANDARDWIDTH:R:= TStandardWidthRecord.Create(RecordHeader.Id, Data, RecordHeader.Size);
     xlr_DEFAULTROWHEIGHT: R:= TDefRowHeightRecord.Create(RecordHeader.Id, Data, RecordHeader.Size);
 
     xlr_FILEPASS: raise Exception.Create(ErrFileIsPasswordProtected);
+
+    xlr_BEGIN: R:= TBeginRecord.Create(RecordHeader.Id, Data, RecordHeader.Size);
+    xlr_END: R:= TEndRecord.Create(RecordHeader.Id, Data, RecordHeader.Size);
+
+    xlr_ChartFbi: R:=TIgnoreRecord.Create(RecordHeader.Id, Data, RecordHeader.Size); //charfbi might be dangerous if copied.
 
     else              R:= TBaseRecord.Create(RecordHeader.Id, Data, RecordHeader.Size);
   end; //case
@@ -669,10 +683,10 @@ begin
       raise Exception.Create(ErrCantWrite);
 end;
 
-procedure TBaseRecord.SaveToStream(const Workbook: TStream);
+procedure TBaseRecord.SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);
 begin
   SaveDataToStream(Workbook, Data);
-  if Continue<>nil then Continue.SaveToStream(Workbook);
+  if Continue<>nil then Continue.SaveToStream(Workbook, NeedsRecalc);
 end;
 
 function TBaseRecord.TotalSize: integer;
@@ -694,9 +708,8 @@ begin
   if DataSize<4 then raise Exception.CreateFmt(ErrWrongExcelRecord,[Id]);
   if (SheetInfo.InsSheet<0) or (SheetInfo.FormulaSheet<> SheetInfo.InsSheet) then exit;
   if aRowPos<= Row then IncWord(Data, 0, aRowCount, Max_Rows);  //row;
-  {$IFDEF INTERNAL_ACCESS} //Isues if we have 256 columns.
+  //Issues if we have 256 columns.
   if aColPos<= Column then IncWord(Data, 2, aColCount, Max_Columns);  //col;
-  {$ENDIF}
 end;
 
 constructor TBaseRowColRecord.Create(const aId: word; const aData: PArrayOfByte; const aDataSize: integer);
@@ -734,7 +747,7 @@ end;
 
 { TIgnoreRecord }
 
-procedure TIgnoreRecord.SaveToStream(const Workbook: TStream);
+procedure TIgnoreRecord.SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);
 begin
   //nothing
 end;
@@ -747,7 +760,7 @@ end;
 { TStringRecord }
 //We won't write out this record
 
-procedure TStringRecord.SaveToStream(const Workbook: TStream);
+procedure TStringRecord.SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);
 begin
   //Nothing.
 end;
@@ -877,7 +890,7 @@ begin
   try
     if sMinCol<aMinCol then MinCol:=aMinCol;
     if sMaxCol>aMaxCol+1 then MaxCol:=aMaxCol+1;
-    inherited SaveToStream(DataStream);
+    inherited SaveToStream(DataStream, false);
   finally
     MinCol:=sMinCol;
     MaxCol:=sMaxCol;
@@ -943,7 +956,7 @@ end;
 procedure TCellRecord.SaveFirstMul(const Workbook: TStream;
   const JoinedRecordSize: Word);
 begin
-  SaveToStream(Workbook);
+  SaveToStream(Workbook, false);
 end;
 
 procedure TCellRecord.SaveLastMul(const Workbook: TStream);
@@ -1113,9 +1126,9 @@ begin
   Result:=inherited DoCopyTo;
 end;
 
-procedure TSubListRecord.SaveToStream(const Workbook: TStream);
+procedure TSubListRecord.SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);
 begin
-  (FSubList as TBaseRecordList).SaveToStream(Workbook);
+  (FSubList as TBaseRecordList).SaveToStream(Workbook, NeedsRecalc);
 end;
 
 function TSubListRecord.TotalSize: integer;
@@ -1163,7 +1176,7 @@ begin
   Xs:=TExcelString.Create(2, Value);
   try
     NewDataSize:=Xs.TotalSize;
-    ReallocMem( Data, NewDataSize);
+    ReallocMem(Data, NewDataSize);
     DataSize:=NewDataSize;
     Xs.CopyToPtr( Data, 0 );
   finally
@@ -1331,6 +1344,21 @@ begin
   Result:= Data[1] and 1=1;
 end;
 
+function TWsBoolRecord.GetOutlineSummaryColsRightOfDetail: boolean;
+begin
+  Result:= Data[0] and $80 <> 0;
+end;
+
+function TWsBoolRecord.GetOutlineSummaryRowsBelowDetail: boolean;
+begin
+  Result:= Data[0] and $40 <> 0;
+end;
+
+function TWsBoolRecord.GetOutlineAutomaticStyles: boolean;
+begin
+  Result:= Data[0] and $20 <> 0;
+end;
+
 function TWsBoolRecord.GetValue: word;
 begin
   Result:=GetWord(Data,0);
@@ -1339,6 +1367,21 @@ end;
 procedure TWsBoolRecord.SetFitToPage(const Value: boolean);
 begin
   if Value then Data[1]:=Data[1] or 1 else Data[1]:=Data[1] and $FF-1;
+end;
+
+procedure TWsBoolRecord.SetOutlineRightOfDetail(const Value: boolean);
+begin
+  if Value then Data[0]:=Data[0] or $80 else Data[0]:=Data[0] and not $80;
+end;
+
+procedure TWsBoolRecord.SetOutlineSummaryRowsBelowDetail(const Value: boolean);
+begin
+  if Value then Data[0]:=Data[0] or $40 else Data[0]:=Data[0] and not $40;
+end;
+
+procedure TWsBoolRecord.SetOutlineAutomaticStyles(const Value: boolean);
+begin
+  if Value then Data[0]:=Data[0] or $20 else Data[0]:=Data[0] and not $20;
 end;
 
 procedure TWsBoolRecord.SetValue(const Value: word);

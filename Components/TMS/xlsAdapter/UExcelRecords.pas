@@ -10,7 +10,7 @@ type
 
   TSheetList = class(TBaseList) //records are TSheet
     {$INCLUDE TSheetListHdr.inc}
-    procedure SaveToStream(const DataStream: TStream);
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
     procedure InsertAndCopyRowsAndCols(const FirstRow, LastRow, DestRow, aRowCount, FirstCol, LastCol, DestCol, aColCount: integer; SheetInfo: TSheetInfo; const OnlyFormulas: boolean);
     procedure DeleteRowsAndCols(const aRow, aRowCount, aCol, aColCount: word; SheetInfo: TSheetInfo);
     procedure DeleteSheets(const SheetIndex: integer; const SheetCount: integer);
@@ -40,17 +40,19 @@ type
     destructor Destroy;override;
 
     procedure LoadFromStream( const DataStream: TStream);
-    procedure SaveToStream(const DataStream: TStream);
-    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange);
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
+    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 
     //Manipulating Methods
     procedure InsertAndCopyRowsAndCols(const SheetNo, FirstRow, LastRow, DestRow, aRowCount, FirstCol, LastCol, DestCol, aColCount: integer; const OnlyFormulas: boolean);
-    procedure DeleteRowsAndCols(const SheetNo: byte; const aRow, aRowCount, aCol, aColCount: word);
-    procedure InsertSheets(const CopyFrom, InsertBefore: integer; SheetCount: byte);
+    procedure DeleteRowsAndCols(const SheetNo: integer; const aRow, aRowCount, aCol, aColCount: word);
+    procedure InsertSheets(const CopyFrom, InsertBefore: integer; SheetCount: integer);
     procedure DeleteSheets(const SheetPos, SheetCount: integer);
 
-    procedure InsertHPageBreak(const SheetNo: byte; const aRow: word);
-    procedure InsertVPageBreak(const SheetNo: byte; const aCol: word);
+    procedure InsertHPageBreak(const SheetNo: integer; const aRow: word);
+    procedure InsertVPageBreak(const SheetNo: integer; const aCol: word);
+
+    procedure RestoreObjectCoords(dSheet: integer);
   end;
 
 implementation
@@ -96,11 +98,11 @@ begin
   end;
 end;
 
-procedure TSheetList.SaveToStream(const DataStream: TStream);
+procedure TSheetList.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 var
   i:integer;
 begin
-  for i:=0 to Count-1 do Items[i].SaveToStream(DataStream);
+  for i:=0 to Count-1 do Items[i].SaveToStream(DataStream, NeedsRecalc);
 end;
 
 { TWorkbook }
@@ -112,7 +114,7 @@ begin
   FSheets := TSheetList.Create;
 end;
 
-procedure TWorkbook.DeleteRowsAndCols(const SheetNo: byte; const aRow, aRowCount, aCol, aColCount: word);
+procedure TWorkbook.DeleteRowsAndCols(const SheetNo: integer; const aRow, aRowCount, aCol, aColCount: word);
 var
   SheetInfo: TSheetInfo;
 begin
@@ -190,7 +192,7 @@ begin
   if (FirstRow>LastRow) or (FirstRow<0) or (LastRow> Max_Rows) or
   ((FirstRow<DestRow) and (DestRow<=LastRow)) or (DestRow+(LastRow-FirstRow+1)*aRowCount>Max_Rows)
   or (DestRow<0)
-  then raise Exception.Create(ErrBadCopyRows);
+  then raise Exception.Create(ErrBadCopyRows);   
 
   if (FirstCol>LastCol) or (FirstCol<0) or (LastCol> Max_Columns) or
   ((FirstCol<DestCol) and (DestCol<=LastCol)) or (DestCol+(LastCol-FirstCol+1)*aColCount>Max_Columns)
@@ -217,7 +219,7 @@ begin
 
 end;
 
-procedure TWorkbook.InsertSheets(const CopyFrom, InsertBefore: integer; SheetCount: byte);
+procedure TWorkbook.InsertSheets(const CopyFrom, InsertBefore: integer; SheetCount: integer);
 var
   i:integer;
   aSheet: TSheet;
@@ -257,12 +259,12 @@ begin
   end;
 end;
 
-procedure TWorkbook.InsertHPageBreak(const SheetNo: byte; const aRow: word);
+procedure TWorkbook.InsertHPageBreak(const SheetNo: integer; const aRow: word);
 begin
   Sheets[SheetNo].InsertHPageBreak(aRow);
 end;
 
-procedure TWorkbook.InsertVPageBreak(const SheetNo: byte; const aCol: word);
+procedure TWorkbook.InsertVPageBreak(const SheetNo: integer; const aCol: word);
 begin
   Sheets[SheetNo].InsertVPageBreak(aCol);
 end;
@@ -295,6 +297,8 @@ begin
       else
         if (RecordHeader.Id = xlr_EOF) then FreeAndNil(R) //There can be 2 eof at the end of the file
         else raise Exception.Create(ErrExcelInvalid);
+
+      if (Globals.SheetCount > 0) and (Globals.SheetCount <= FSheets.Count) then break; //There shouldn't be any garbage here, but some weird non-created-by-excel files might have it, and Excel will load them fine. 
     except
       FreeAndNil(R);
       raise;
@@ -351,7 +355,7 @@ begin
   end; //finally
 end;
 
-procedure TWorkbook.SaveToStream(const DataStream: TStream);
+procedure TWorkbook.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 var
   i: integer;
   FirstSheetVisible: integer;
@@ -370,8 +374,8 @@ begin
   if FirstSheetVisible=-1 then raise Exception.Create(ErrNoSheetVisible);
   FGlobals.SetFirstSheetVisible(FirstSheetVisible);
 
-  FGlobals.SaveToStream( DataStream );
-  FSheets.SaveToStream( DataStream );
+  FGlobals.SaveToStream( DataStream, NeedsRecalc );
+  FSheets.SaveToStream( DataStream, NeedsRecalc );
 end;
 
 procedure TWorkbook.SetActiveSheet(const Value: integer);
@@ -388,15 +392,18 @@ begin
 end;
 
 procedure TWorkbook.SaveRangeToStream(const DataStream: TStream;
-  const SheetIndex: integer; const CellRange: TXlsCellRange);
+  const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 begin
   FixCodeNames;//before fixing offsets.
   FixRangeBoundSheetsOffset(SheetIndex, CellRange);
-  FGlobals.SaveRangeToStream(DataStream, SheetIndex, CellRange);
+  FGlobals.SaveRangeToStream(DataStream, SheetIndex, CellRange, NeedsRecalc);
   //we dont have to check SheetIndex is ok. this was done on FGlobals.SaveRangetoStream
-  FSheets[SheetIndex].SaveRangeToStream(DataStream, SheetIndex, CellRange );
+  FSheets[SheetIndex].SaveRangeToStream(DataStream, SheetIndex, CellRange, NeedsRecalc );
 end;
 
-
+procedure TWorkbook.RestoreObjectCoords(dSheet: integer);
+begin
+	FSheets[dSheet].RestoreObjectCoords;
+end;
 end.
 

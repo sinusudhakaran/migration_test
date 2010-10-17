@@ -21,7 +21,7 @@ unit AdvPreviewMenuRegDE;
 interface
 {$I TMSDEFS.INC}
 uses
-  AdvPreviewMenu, GDIPicDE, Classes, GDIPicture, AdvHintInfo, 
+  AdvPreviewMenu, GDIPicDE, Classes, GDIPicture, AdvHintInfo, AdvPreviewMenuDE, 
 {$IFDEF DELPHI6_LVL}
   DesignIntf, DesignEditors
 {$ELSE}
@@ -43,6 +43,9 @@ begin
 
   RegisterPropertyEditor(TypeInfo(TGDIPPicture), TAdvPreviewMenuItem, 'Picture', TGDIPPictureProperty);
   RegisterPropertyEditor(TypeInfo(TGDIPPicture), TAdvPreviewMenuItem, 'DisabledPicture', TGDIPPictureProperty);
+
+  //RegisterPropertyEditor(TypeInfo(TAdvPreviewMenuItems), TAdvPreviewMenu, 'MenuItems', TPreviewMenuProperty);
+  RegisterComponentEditor(TAdvPreviewMenu, TAdvPreviewMenuEditor);
 end;
 
 end.

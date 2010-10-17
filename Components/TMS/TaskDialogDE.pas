@@ -1,10 +1,10 @@
 {***************************************************************************}
 { TTaskDialog component                                                     }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
+{ version 1.2                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2007                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -52,12 +52,17 @@ implementation
 { TTaskDialogEditor }
 
 procedure TTaskDialogEditor.ExecuteVerb(Index: Integer);
+var
+  AppIsParent: boolean;
 begin
   inherited;
   case Index of
     0:
     begin
+      AppIsParent := TAdvTaskDialog(Component).ApplicationIsParent;
+      TAdvTaskDialog(Component).ApplicationIsParent := true;
       TAdvTaskDialog(Component).Execute;
+      TAdvTaskDialog(Component).ApplicationIsParent := AppIsParent;      
     end;
   end;
 end;

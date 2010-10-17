@@ -34,14 +34,15 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 1; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 4; // Build nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // 1.1.0.1 : workaround for Delphi 2005 dropdown position issue
   // 1.1.0.2 : fixed design time issue for delete component
   // 1.1.0.3 : improved treeview selection consistency
   // 1.1.0.4 : fixed design time issue during loading of component
+  // 1.1.1.0 : exposed Bevel properties 
 
 type
   TSelectMode = (smSingleClick, smDblClick);
@@ -225,6 +226,12 @@ type
     property AutoSelect;
     property AutoSize;
     property BorderStyle;
+    {$IFDEF DELPHI7_LVL}
+    property BevelKind;
+    property BevelInner;
+    property BevelOuter;
+    property BevelEdges;
+    {$ENDIF}
     property Color;
     property Ctl3D;
     property DragCursor;

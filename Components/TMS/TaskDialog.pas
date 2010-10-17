@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TTaskDialog component                                                     }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -27,8 +26,7 @@ interface
 
 uses
   Classes, Windows, Messages, Forms, Dialogs, SysUtils, StdCtrls, Graphics, Consts, Math,
-  ExtCtrls, Controls, ComCtrls, PictureContainer, ComObj, ShellAPI, CommCtrl;
-
+  ExtCtrls, Controls, ComCtrls, PictureContainer, ComObj, ShellAPI, CommCtrl, ClipBrd;
 
 const
 {$IFNDEF DELPHI6_LVL}
@@ -36,9 +34,9 @@ const
 {$ENDIF}
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 1; // Minor version nr.
+  MIN_VER = 5; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 6; // Build nr.
 
   // version history
   // 1.0.0.0 : First release
@@ -63,7 +61,52 @@ const
   //         : Fixed : issue with ESC key handling
   // 1.1.0.0 : Improved : Reflect properties change at run time
   //         : Fixed issues with Footer and its FooterIcon size
-  //         : Added ShortCut support in CommandLinks 
+  //         : Added ShortCut support in CommandLinks
+  // 1.2.0.0 : New : support added for Hyperlinks in expanded text
+  //         : New : option to show no default radiobutton added
+  //         : New : capability to update instruction, content, expanded text, footer while dialog is displayed
+  //         : New : option to allow cancelling the dialog with ESC added
+  //         : Improved : text wrapping for verify text
+  //         : New : TAdvTaskDialogEx component created using TAdvGlowButton on non Vista emulation
+  //         : New : property ApplicationIsParent added
+  //         : New : support for custom icons
+  // 1.2.1.0 : New : support for Information & Shield footer icon
+  //         : Improved : border drawing on Vista in XP compatibility mode
+  //         : New : added support for \n linebreaks in Vista emulation mode
+  // 1.2.1.1 : Fixed : issue with DefaultRadioButton initialization
+  // 1.2.1.2 : Fixed : issue with \n linebreaks with doHyperlinks style
+  // 1.2.2.0 : Improved : keyboard handling for CommandLinks dialog on non Vista emulation
+  //         : Improved : DefaultButton handling for CommandLinks dialog on non Vista emulation
+  // 1.2.2.1 : Fixed : issue with noCommandLinksIcon on non Vista emulation
+  // 1.2.2.2 : Fixed : hot painting issue on taskdialog button on non Vista emulation
+  // 1.2.3.0 : Improved : allow using \n line separators in footer text on non Vista emulation
+  //         : Fixed : issue with doAllowDialogCancel on non Vista emulation
+  //         : Fixed : issue with doAllowMinimize on non Vista emulation
+  // 1.2.4.0 : Improved : removed limitation on text length of Content, Title, ... in Vista native mode
+  //         : Improved : handling of linefeed character on non Vista emulation
+  //         : Improved : handling of anchors in Vista native mode
+  //         : Improved : handling of ESC with common buttons
+  // 1.2.4.1 : Improved : prevent that Alt-F4 can close the dialog
+  // 1.2.5.0 : New : support for hotkeys on expand/contract text on non-Vista emulation
+  // 1.2.5.1 : Fixed : issue with identical accelerator key for expand/collaps
+  // 1.2.6.0 : Improved : taskdialog does not size beyond screen width
+  //         : Improved : DefaultButton can be set to -1 to have no default button
+  // 1.2.7.0 : New: NonNativeDialog property added
+  //         : New: NonNativeMinFormWidth public property added
+  // 1.2.8.0 : Improved : display of disabled task button
+  // 1.2.8.1 : Fixed : display of long text in non native taskdialog
+  // 1.2.8.2 : Fixed : issue with DefaultButton = IdYes, IdNo
+  // 1.5.0.0 : New : replacement functions for ShowMessage , MessageDlg
+  //         : New : TAdvInputTaskDialog
+  //         : New : ElevateButton method added
+  //         : Improved : message label set transparent
+  //         : Improved : Ctrl-C puts taskdialog text on clipboard
+  // 1.5.0.1 : Fixed : Delphi 5 issue with TAdvInputTaskDialog
+  // 1.5.0.2 : Fixed : issue with use of TAdvTaskDialog on topmost forms
+  // 1.5.0.3 : Improved : automatic height adaption of custom input control
+  // 1.5.0.4 : Fixed : issue with removing InputControl at designtime
+  // 1.5.0.5 : Improved : width control of custom editor in TAdvInputTaskDialog
+  // 1.5.0.6 : Improved : AdvShowMessageBox() handling of ESC key for cancel button
 
 type
   {$IFNDEF DELPHI6_LVL}
@@ -72,13 +115,18 @@ type
 
   TTaskDialogResult = (trNone, trOk, trCancel);
 
-  TTaskDialogOption = (doHyperlinks, doCommandLinks, doCommandLinksNoIcon, doExpandedDefault, doExpandedFooter, doAllowMinimize, doVerifyChecked, doProgressBar, doProgressBarMarquee, doTimer);
+  TNonNativeDialog = (nndAuto, nndAlways);
+
+  TTaskDialogOption = (doHyperlinks, doCommandLinks, doCommandLinksNoIcon, doExpandedDefault,
+    doExpandedFooter, doAllowMinimize, doVerifyChecked, doProgressBar, doProgressBarMarquee,
+    doTimer, doNoDefaultRadioButton, doAllowDialogCancel);
 
   TTaskDialogOptions = set of TTaskDialogOption;
 
   TTaskDialogIcon = (tiBlank, tiWarning, tiQuestion, tiError, tiInformation,tiNotUsed,tiShield);
                     //(mtWarning, mtError, mtInformation, mtConfirmation, mtCustom);
-  TTaskDialogFooterIcon = (tfiBlank, tfiWarning, tfiQuestion, tfiError);
+  TTaskDialogFooterIcon = (tfiBlank, tfiWarning, tfiQuestion, tfiError, tfiInformation,
+    tfiShield);
 
   TTaskDialogProgressState = (psNormal, psError, psPaused);
 
@@ -97,7 +145,12 @@ type
 
   TAdvMessageForm = class;
 
-  TAdvTaskDialog = class(TComponent)
+  TInputType = (itEdit, itMemo, itComboEdit, itComboList, itDate, itCustom, itNone);
+
+  TInputGetTextEvent = procedure(Sender: TObject; var Text: string) of object;
+  TInputSetTextEvent = procedure(Sender: TObject; Text: string) of object;
+
+  TCustomAdvTaskDialog = class(TComponent)
   private
     FTitle: string;
     FContent: string;
@@ -111,6 +164,7 @@ type
     FVerifyResult: boolean;
     FVerifyText: string;
     FCustomButtons: TStringList;
+    FCustomIcon: TIcon;
     FOptions: TTaskDialogOptions;
     FRadioButtons: TStringList;
     FhWnd: THandle;
@@ -124,12 +178,22 @@ type
     FOnDialogVerifyClick: TTaskDialogVerifyClickEvent;
     FOnDialogProgress: TTaskDialogProgressEvent;
     FOnDialogClose: TTaskDialogCloseEvent;
+    FOnDialogInputGetText: TInputGetTextEvent;
+    FOnDialogInputSetText: TInputSetTextEvent;
     FIcon: TTaskDialogIcon;
     FFooterIcon: TTaskDialogFooterIcon;
     FDefaultButton: integer;
     FDefaultRadioButton: integer;
     FDialogForm: TAdvMessageForm;
     FDlgPosition: TTaskDialogPosition;
+    FApplicationIsParent: Boolean;
+    FModalParent: THandle;
+    FMinFormWidth: Integer;
+    FNonNativeDialog: TNonNativeDialog;
+    FInputType: TInputType;
+    FInputText: string;
+    FInputItems: TStrings;
+    FInputControl: TWinControl;
     function GetVersion: string;
     procedure SetVersion(const Value: string);
     function GetVersionNr: Integer;
@@ -139,18 +203,22 @@ type
     procedure SetInstruction(const Value: string);
     procedure SetFooter(const Value: string);
     procedure SetExpandedText(const Value: string);
-  public
-    property hWnd: THandle read FhWnd write FhWnd;
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    function Execute: integer;
-    procedure Clear;
-    procedure EnableButton(ButtonID: integer; Enabled: boolean);
-    procedure ClickButton(ButtonID: integer);
-    property RadioButtonResult: integer read FButtonResult write FButtonResult;
-    property VerifyResult: boolean read FVerifyResult write FVerifyResult;
-  published
+    procedure SetCustomIcon(const Value: TIcon);
+    procedure SetInputItems(const Value: TStrings);
+  protected
+    function CreateButton(AOwner: TComponent): TWinControl; virtual;
+    function CreateRadioButton(AOwner: TComponent): TWinControl; virtual;
+    procedure InitRadioButton(AOwner: TForm; Btn: TWinControl; btnIndex: Integer; OnClickEvent : TNotifyEvent); virtual;
+    procedure SetRadioButtonState(Btn: TWinControl; Checked: boolean); virtual;
+    procedure SetRadioButtonCaption(Btn: TWinControl; Value: string); virtual;
+    procedure SetButtonCaption(aButton: TWinControl; Value: TCaption); virtual;
+    procedure SetButtonCancel(aButton: TWinControl; Value: Boolean); virtual;
+    procedure SetButtonDefault(aButton: TWinControl; Value: Boolean); virtual;
+    procedure SetButtonModalResult(aButton: TWinControl; Value: Integer); virtual;
+    function GetButtonModalResult(aButton: TWinControl): Integer; virtual;
+    procedure Notification(AComponent: TComponent; AOperation: TOperation); override;    
     property CustomButtons: TStringList read FCustomButtons write SetCustomButtons;
+    property CustomIcon: TIcon read FCustomIcon write SetCustomIcon;
     property RadioButtons: TStringList read FRadioButtons write SetRadioButtons;
     property CommonButtons: TCommonButtons read FCommonButtons write FCommonButtons;
     property DefaultButton: integer read FDefaultButton write FDefaultButton;
@@ -158,31 +226,123 @@ type
     property DialogPosition: TTaskDialogPosition read FDlgPosition write FDlgPosition default dpScreenCenter;
     property ExpandedText: string read FExpandedText write SetExpandedText;
     property Footer: string read FFooter write SetFooter;
-    property FooterIcon: TTaskDialogFooterIcon read FFooterIcon write FFooterIcon;
-    property Icon: TTaskDialogIcon read FIcon write FIcon;
+    property FooterIcon: TTaskDialogFooterIcon read FFooterIcon write FFooterIcon default tfiBlank;
+    property Icon: TTaskDialogIcon read FIcon write FIcon default tiBlank;
+    property InputText: string read FInputText write FInputText;
+    property InputType: TInputType read FInputType write FInputType;
+    property InputItems: TStrings read FInputItems write SetInputItems;
+    property InputControl: TWinControl read FInputControl write FInputControl;
     property Title: string read FTitle write FTitle;
     property Instruction: string read FInstruction write SetInstruction;
     property Content: string read FContent write SetContent;
     property ExpandControlText: string read FExpandControlText write FExpandControlText;
     property CollapsControlText: string read FCollapsControlText write FCollapsControlText;
     property Options: TTaskDialogOptions read FOptions write FOptions;
+    property ApplicationIsParent: boolean read FApplicationIsParent write FApplicationIsParent default true;
     property VerificationText: string read FVerifyText write FVerifyText;
+    property NonNativeDialog: TNonNativeDialog read FNonNativeDialog write FNonNativeDialog default nndAuto;
+    property NonNativeMinFormWidth: integer read FMinFormWidth write FMinFormWidth default 350;
 
     property ProgressBarMin: integer read FProgressBarMin write FProgressBarMin default 0;
     property ProgressBarMax: integer read FProgressBarMax write FProgressBarMax default 100;
     property Version: string read GetVersion write SetVersion;
-    
+
     property OnDialogCreated: TNotifyEvent read FOnCreated write FOnCreated;
     property OnDialogClose: TTaskDialogCloseEvent read FOnDialogClose write FOnDialogClose;
     property OnDialogButtonClick: TTaskDialogButtonClickEvent read FOnDialogClick write FOnDialogClick;
+    property OnDialogInputSetText: TInputSetTextEvent read FOnDialogInputSetText write FOnDialogInputSetText;
+    property OnDialogInputGetText: TInputGetTextEvent read FOnDialogInputGetText write FOnDialogInputGetText;
     property OnDialogRadioClick: TTaskDialogButtonClickEvent read FOnDialogRadioClick write FOnDialogRadioClick;
     property OnDialogHyperlinkClick: TTaskDialogHyperlinkClickEvent read FOnDialogHyperlinkClick write FOnDialogHyperLinkClick;
     property OnDialogTimer: TNotifyEvent read FOnTimer write FOnTimer;
     property OnDialogVerifyClick: TTaskDialogVerifyClickEvent read FOnDialogVerifyClick write FOnDialogVerifyClick;
     property OnDialogProgress: TTaskDialogProgressEvent read FOnDialogProgress write FOnDialogProgress;
+  public
+    property hWnd: THandle read FhWnd write FhWnd;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function Execute: integer; virtual;
+    procedure Clear;
+    procedure EnableButton(ButtonID: integer; Enabled: boolean);
+    procedure ElevateButton(ButtonID: integer; Enabled: boolean);
+    procedure ClickButton(ButtonID: integer);
+    property RadioButtonResult: integer read FButtonResult write FButtonResult;
+    property VerifyResult: boolean read FVerifyResult write FVerifyResult;
+    property ModalParent: THandle read FModalParent write FModalParent;
   end;
 
-  TTaskDialogButton = class(TGraphicControl)
+  TAdvTaskDialog = class(TCustomAdvTaskDialog)
+  published
+    property CustomButtons;
+    property CustomIcon;
+    property RadioButtons;
+    property CommonButtons;
+    property DefaultButton;
+    property DefaultRadioButton;
+    property DialogPosition;
+    property ExpandedText;
+    property Footer;
+    property FooterIcon;
+    property Icon;
+    property Title;
+    property Instruction;
+    property Content;
+    property ExpandControlText;
+    property CollapsControlText;
+    property Options;
+    property ApplicationIsParent;
+    property VerificationText;
+    property NonNativeDialog;
+    property NonNativeMinFormWidth;
+
+    property ProgressBarMin;
+    property ProgressBarMax;
+    property Version;
+
+    property OnDialogCreated;
+    property OnDialogClose;
+    property OnDialogButtonClick;
+    property OnDialogRadioClick;
+    property OnDialogHyperlinkClick;
+    property OnDialogTimer;
+    property OnDialogVerifyClick;
+    property OnDialogProgress;
+  end;
+
+  TAdvInputTaskDialog = class(TCustomAdvTaskDialog)
+  public
+    constructor Create(AOwner: TComponent); override;
+    function Execute: integer; override;
+  published
+    property ApplicationIsParent;
+    property CustomButtons;
+    property CustomIcon;
+    property CommonButtons;
+    property DefaultButton;
+    property DialogPosition;
+    property ExpandedText;
+    property Footer;
+    property FooterIcon;
+    property Icon;
+    property InputControl;
+    property InputType;
+    property InputText;
+    property InputItems;
+    property Instruction;
+    property Title;
+    property Content;
+    property ExpandControlText;
+    property CollapsControlText;
+    property VerificationText;
+    property OnDialogCreated;
+    property OnDialogClose;
+    property OnDialogButtonClick;
+    property OnDialogVerifyClick;
+    property OnDialogInputSetText;
+    property OnDialogInputGetText;
+  end;
+
+  TTaskDialogButton = class(TCustomControl)
   private
     FOnMouseLeave: TNotifyEvent;
     FOnMouseEnter: TNotifyEvent;
@@ -197,6 +357,7 @@ type
     FBorderColor: TColor;
     FModalResult: TModalResult;
     FHeadingFont: TFont;
+    FAutoFocus: boolean;
     procedure OnPictureChanged(Sender: TObject);
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
@@ -207,6 +368,7 @@ type
     procedure SetHeadingFont(const Value: TFont);
   protected
     procedure Paint; override;
+    procedure KeyPress(var Key: char); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
@@ -214,6 +376,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Click; override;
+    procedure DoEnter; override;
+    procedure DoExit; override;
+    property AutoFocus: boolean read FAutoFocus write FAutoFocus;
   published
     property Anchors;
     property BorderColor: TColor read FBorderColor write FBorderColor;
@@ -246,12 +411,12 @@ type
     FVertSpacing: Integer;
     FExpandButton: TTaskDialogButton;
     FExpanded: Boolean;
-    FExpandLabel: TLabel;
+    //FExpandLabel: TLabel;
     FExpandControlText: String;
     FCollapsControlText: String;
     FcmBtnList: TList;
     FcsBtnList: TList;
-    FTaskDialog: TAdvTaskDialog;
+    FTaskDialog: TCustomAdvTaskDialog;
     FFooterIcon: TImage;
     FFooterIconID: PChar;
     FRadioList: TList;
@@ -262,10 +427,20 @@ type
     FFooterYSize: Integer;
     FContentXSize: Integer;
     FContentYSize: Integer;
+    FExpTextXSize: Integer;
+    FExpTextYSize: Integer;
+    FExpTextTop: Integer;
     FAnchor: String;
     FTimer: TTimer;
     FWhiteWindowHeight: Integer;
     FHorzParaMargin: Integer;
+    FMinFormWidth: Integer;
+    FInputEdit: TEdit;
+    FInputCombo: TComboBox;
+    FInputDate: TDateTimePicker;
+    FInputMemo: TMemo;
+    FOldParent: TWinControl;
+    procedure WMActivate(var M: TWMActivate); message WM_ACTIVATE;
     procedure CMDialogChar(var Message: TCMDialogChar); message CM_DIALOGCHAR;
     procedure OnTimer(Sender: TObject);
     procedure OnExpandButtonClick(Sender: TObject);
@@ -282,6 +457,7 @@ type
     procedure WriteToClipBoard(Text: String);
     function GetFormText: String;
     procedure Paint; override;
+    procedure KeyDown(var Key:Word;Shift:TShiftSTate); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
@@ -293,27 +469,61 @@ type
     function IsAnchor(x, y: integer): string;
     function GetFooterRect: TRect;
     function GetContentRect: TRect;
+    function GetExpTextRect: TRect;
+    procedure DrawExpandedText;
     procedure DrawContent;
     procedure DrawFooter;
     property Expanded: Boolean read FExpanded default true;
     property ExpandButton: TTaskDialogButton read FExpandButton write SetExpandButton;
+    procedure DoShow; override;
   public
     constructor CreateNew(AOwner: TComponent; Dummy: Integer); {$IFNDEF BCB} reintroduce; {$ENDIF}
     destructor Destroy; override;
-    procedure BuildTaskDialog(TaskDialog: TAdvTaskDialog);
+    procedure BuildTaskDialog(TaskDialog: TCustomAdvTaskDialog);
     procedure SetPositions;
     procedure UpdateDialog;
+    property MinFormWidth: Integer Read FMinFormWidth Write FMinFormWidth;
   end;
 
-  function AdvMessageDlgPos(TaskDialog: TAdvTaskDialog; X, Y: Integer): Integer;
+  function AdvMessageDlgPos(TaskDialog: TCustomAdvTaskDialog; X, Y: Integer): Integer;
+
+
+function AdvShowMessage(const Instruction: string): boolean; overload;
+function AdvShowMessage(const Title, Instruction: string): boolean; overload;
+function AdvShowmessage(const Title, Instruction: string; tiIcon: tTaskDialogIcon): boolean; overload;
+function AdvShowMessage(const Title, Instruction, content, verify: string;
+  tiIcon: tTaskDialogIcon): boolean; overload;
+
+function AdvMessageBox(hWnd: HWND; lpInstruction, lpTitle: PChar; flags: UINT): Integer;
+
+
+function AdvShowMessageFmt(const Instruction: string; Parameters: array of const): boolean;
+
+function AdvMessageDlg(const Instruction: string; DlgType: TMsgDlgType;
+  Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer; overload;
+
+function AdvMessageDlg(const Instruction: string; DlgType: TMsgDlgType;
+  Buttons: TMsgDlgButtons; HelpCtx: Longint; DefaultButton: TMsgDlgBtn): Integer; overload;
+
+
+function AdvInputQueryDlg(ACaption, APrompt: string; var Value: string): boolean;
+
+var
+  DRAWBORDER: Boolean = True;
+  ButtonNames: array[TCommonButton] of string = ('OK', 'Yes', 'No', 'Cancel', 'Retry', 'Abort');
 
 procedure Register;
 
-implementation                             
+implementation
 
 {$I HTMLENGO.PAS}
 
 const
+   TDE_CONTENT                         = 0;
+   TDE_EXPANDED_INFORMATION            = 1;
+   TDE_FOOTER                          = 2;
+   TDE_MAIN_INSTRUCTION                = 3;
+
     TDF_ENABLE_HYPERLINKS               = $0001;
     TDF_USE_HICON_MAIN                  = $0002;
     TDF_USE_HICON_FOOTER                = $0004;
@@ -392,13 +602,15 @@ const
 
 
 type
+  TProControl = class(TControl);
+
   PTASKDIALOG_BUTTON = ^TTASKDIALOG_BUTTON;
   TTASKDIALOG_BUTTON  = record
     nButtonID: integer;
     pszButtonText: pwidechar;
   end;
 
-  TTaskDialogWideString = array[0..255] of widechar;
+  TTaskDialogWideString = array[0..1023] of widechar;
 
   TTaskDialogButtonArray = array of TTASKDIALOG_BUTTON;
   TTaskDialogWideStringArray = array of TTaskDialogWideString;
@@ -424,12 +636,66 @@ type
     pszExpandedInformation: pwidechar;
     pszExpandedControlText: pwidechar;
     pszCollapsedControlText: pwidechar;
+    case Integer of
+    0: (hFooterIcon: HICON);
+    1: (pszFooterIcon: pwidechar;
+        pszFooter: pwidechar;
+        pfCallback: pinteger;
+        pData: pointer;
+        cxWidth: integer  // width of the Task Dialog's client area in DLU's.
+                               // If 0, Task Dialog will calculate the ideal width.
+              );
+{
     hFooterIcon: integer;
     pszFooter: pwidechar;
     pfCallBack: pinteger; // PFTASKDIALOGCALLBACK pfCallback;
     pData: pointer;
     cxWidth: integer;
+}
   end;
+
+//------------------------------------------------------------------------------
+
+procedure RunElevated(HWND: THandle; pszPath, pszParameters, pszDirectory: string);
+var
+  shex :  SHELLEXECUTEINFO;
+begin
+  fillchar(shex, sizeof(shex),0);
+  shex.cbSize := sizeof( SHELLEXECUTEINFO );
+  shex.fMask := 0;
+  shex.wnd := hwnd;
+  shex.lpVerb := 'runas';
+  shex.lpFile := pchar(pszPath);
+  shex.lpParameters := pchar(pszParameters);
+  shex.lpDirectory := nil;
+  shex.nShow := SW_NORMAL;
+  ShellExecuteEx(@shex);
+end;
+
+//------------------------------------------------------------------------------
+
+function IsVista: boolean;
+var
+  hKernel32: HMODULE;
+begin
+  hKernel32 := GetModuleHandle('kernel32');
+  if (hKernel32 > 0) then
+  begin
+    Result := GetProcAddress(hKernel32, 'GetLocaleInfoEx') <> nil;
+  end
+  else
+    Result := false;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure VistaShellOpen(HWND: THandle; Command, Param: string);
+begin
+  if IsVista then
+    RunElevated(HWND, Command, Param, '')
+  else
+    ShellExecute(HWND, 'open', pchar(Param), nil, nil, SW_NORMAL);   
+end;
 
 //------------------------------------------------------------------------------
 
@@ -464,11 +730,12 @@ end;
 function TaskDialogCallbackProc(hWnd: THandle; msg, wParam, lparam: integer; refData: pointer): integer; stdcall;
 var
   td: TAdvTaskDialog;
-  Pos: integer;
+  SPos: integer;
   State: TTaskDialogProgressState;
   Res: integer;
   CanClose: boolean;
-  
+  Anchor: string;
+
 begin
   td := nil;
   if Assigned(refdata) then
@@ -510,15 +777,26 @@ begin
   TDN_RADIO_BUTTON_CLICKED:
     begin
       if Assigned(td) and Assigned(td.OnDialogRadioClick) then
-      begin
+      begin                                                                  
         td.OnDialogRadioClick(td, wParam);
       end;
     end;
   TDN_HYPERLINK_CLICKED:
     begin
-      if Assigned(td) and Assigned(td.OnDialogHyperlinkClick) then
+      if Assigned(td) then
       begin
-        td.OnDialogHyperlinkClick(td, WideCharToString(PWideChar(lparam)));
+        Anchor := WideCharToString(PWideChar(lparam));
+
+        if not Assigned(td.OnDialogHyperlinkClick) then
+        begin
+          if (Pos('://', Anchor) > 0) then
+            VistaShellOpen(0, 'iexplore.exe', Anchor);
+        end;
+
+        if Assigned(td.OnDialogHyperlinkClick) then
+        begin
+          td.OnDialogHyperlinkClick(td, Anchor);
+        end;
       end;
     end;
   TDN_VERIFICATION_CLICKED:
@@ -537,8 +815,8 @@ begin
 
       if Assigned(td) and Assigned(td.OnDialogProgress) then
       begin
-        td.OnDialogProgress(td, Pos, State);
-        SendMessage(hWnd,TDM_SET_PROGRESS_BAR_POS,Pos,0);
+        td.OnDialogProgress(td, SPos, State);
+        SendMessage(hWnd,TDM_SET_PROGRESS_BAR_POS,SPos,0);
         case State of
         psNormal: SendMessage(hWnd,TDM_SET_PROGRESS_BAR_STATE, PBST_NORMAL, 0);
         psError: SendMessage(hWnd,TDM_SET_PROGRESS_BAR_STATE, PBST_ERROR, 0);
@@ -698,7 +976,7 @@ end;
 
 { TAdvTaskDialog }
 
-procedure TAdvTaskDialog.Clear;
+procedure TCustomAdvTaskDialog.Clear;
 begin
   CommonButtons := [];
   RadioButtons.Clear;
@@ -713,7 +991,7 @@ begin
   ExpandControlText := '';
   CollapsControlText := '';
   ExpandedText := '';
-  DefaultRadioButton := 0;
+  DefaultRadioButton := 200;
   DefaultButton := 0;
   Options := [];
   VerifyResult := false;
@@ -721,7 +999,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.ClickButton(ButtonID: integer);
+procedure TCustomAdvTaskDialog.ClickButton(ButtonID: integer);
 begin
   SendMessage(hWnd, TDM_CLICK_BUTTON, ButtonID, 0);
   if Assigned(FDialogForm) then
@@ -730,7 +1008,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-constructor TAdvTaskDialog.Create(AOwner: TComponent);
+constructor TCustomAdvTaskDialog.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FCustomButtons := TStringList.Create;
@@ -738,20 +1016,93 @@ begin
   FProgressBarMin := 0;
   FProgressBarMax := 100;
   FDialogForm := nil;
+  FApplicationIsParent := true;
+  FModalParent := 0;
+  FCustomIcon := TIcon.Create;
+  FDefaultRadioButton := 200; 
+  FMinFormWidth := 350;
+  FNonNativeDialog := nndAuto;
+  FInputType := itNone;
+  FInputItems := TStringList.Create;
 end;
 
 //------------------------------------------------------------------------------
 
-destructor TAdvTaskDialog.Destroy;
+destructor TCustomAdvTaskDialog.Destroy;
 begin
   FRadioButtons.Free;
   FCustomButtons.Free;
+  FCustomIcon.Free;
+  FInputItems.Free;
   inherited;
 end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.EnableButton(ButtonID: integer; Enabled: boolean);
+function TCustomAdvTaskDialog.CreateButton(AOwner: TComponent): TWinControl;
+begin
+  Result := TButton.Create(AOwner);
+end;
+
+//------------------------------------------------------------------------------
+
+function TCustomAdvTaskDialog.CreateRadioButton(AOwner: TComponent): TWinControl;
+begin
+  Result := TRadioButton.Create(AOwner);
+end;
+
+procedure TCustomAdvTaskDialog.SetRadioButtonState(Btn: TWinControl; Checked: boolean);
+begin
+  TRadioButton(Btn).Checked := Checked;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomAdvTaskDialog.InitRadioButton(AOwner: TForm; Btn: TWinControl; btnIndex: Integer; OnClickEvent : TNotifyEvent);
+begin
+   with TRadioButton(Btn) do
+   begin
+     Name := 'Radio' + inttostr(btnIndex);
+     Parent := AOwner;
+     Font.Name := AOwner.Canvas.Font.Name;
+     Font.Size := 8;
+     BiDiMode := AOwner.BiDiMode;
+     OnClick := OnClickEvent;
+
+     {
+     BoundsRect := TextRect;
+     Left := FHorzParaMargin + FHorzMargin; //ALeft + FHorzMargin;
+     Top := Y;
+     Width := Self.Width - Left - 4;
+     GetTextSize(Canvas, Caption, k, l);
+     w := Max(w, Left + k + FHorzMargin + 20);
+     }
+   end;
+end;
+
+procedure TCustomAdvTaskDialog.Notification(AComponent: TComponent;
+  AOperation: TOperation);
+begin
+  inherited;
+  if not (csDestroying in ComponentState) then
+  begin
+    if (AOperation = opRemove) then
+    begin
+      if (AComponent = FInputControl) then
+        FInputControl := nil;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomAdvTaskDialog.ElevateButton(ButtonID: integer;
+  Enabled: boolean);
+begin
+  SendMessage(hWnd, TDM_SET_BUTTON_ELEVATION_REQUIRED_STATE, ButtonID, integer(Enabled));
+end;
+
+procedure TCustomAdvTaskDialog.EnableButton(ButtonID: integer; Enabled: boolean);
 begin
   SendMessage(hWnd, TDM_ENABLE_BUTTON, ButtonID, integer(Enabled));
   if Assigned(FDialogForm) then
@@ -764,15 +1115,16 @@ function ConvertNL(s: string): string;
 begin
   if pos('\n',s) > 0 then
   begin
-    Result := StringReplace(s,'\n',#13#10,[rfReplaceAll]);
+    Result := StringReplace(s,'\n',#10,[rfReplaceAll]);
   end
   else
     Result := s;
+    
 end;
 
 //------------------------------------------------------------------------------
 
-function TAdvTaskDialog.Execute: integer;
+function TCustomAdvTaskDialog.Execute: integer;
 var
   verinfo: TOSVersionInfo;
   DLLHandle: THandle;
@@ -780,7 +1132,7 @@ var
   verify: boolean;
   TaskDialogConfig : TTASKDIALOGCONFIG;
   TaskDialogIndirectProc : function(AConfig: PTASKDIALOGCONFIG; Res: pinteger;  ResRadio: pinteger; VerifyFLag: pboolean): integer cdecl stdcall;
-
+{
   wTitle: TTaskDialogWideString;
   wDesc: TTaskDialogWideString;
   wContent: TTaskDialogWideString;
@@ -789,7 +1141,7 @@ var
   wCollapsedControl: TTaskDialogWideString;
   wFooter: TTaskDialogWideString;
   wVerifyText: TTaskDialogWideString;
-
+}
   TBA: TTaskDialogButtonArray;
   TBWS: TTaskDialogWideStringArray;
   i: integer;
@@ -808,7 +1160,7 @@ begin
   ComCtlVersion := GetFileVersion('COMCTL32.DLL');
   ComCtlVersion := (ComCtlVersion shr 16) and $FF;
 
-  if (verinfo.dwMajorVersion >= 6) and (ComCtlVersion > 5) then
+  if (verinfo.dwMajorVersion >= 6) and (ComCtlVersion > 5) and (FNonNativeDialog = nndAuto) then
   begin
     // check COMCTL version ...
 
@@ -821,7 +1173,18 @@ begin
       begin
         FillChar(TaskDialogConfig, sizeof(TTASKDIALOGCONFIG),0);
         TaskDialogConfig.cbSize := sizeof(TTASKDIALOGCONFIG);
-        TaskDialogConfig.hwndParent := Application.Handle;
+
+        if ModalParent <> 0 then
+        begin
+          TaskDialogConfig.hwndParent := ModalParent
+        end
+        else
+        begin
+          if Assigned(Self.Owner) and not ApplicationIsParent then
+            TaskDialogConfig.hwndParent := (Self.Owner as TWinControl).Handle
+          else
+             TaskDialogConfig.hwndParent := Application.Handle;
+        end;
 
         if FCustomButtons.Count > 0 then
         begin
@@ -857,50 +1220,42 @@ begin
 
         if FTitle <> '' then
         begin
-          StringToWideChar(ConvertNL(FTitle), wTitle, sizeof(wTitle));
-          TaskDialogConfig.pszWindowTitle := wTitle;
+          TaskDialogConfig.pszWindowTitle := PWideChar(WideString(ConvertNL(FTitle)));
         end;
 
         if FInstruction <> '' then
         begin
-          StringToWideChar(ConvertNL(FInstruction), wDesc, sizeof(wDesc));
-          TaskDialogConfig.pszMainInstruction := wDesc;
+          TaskDialogConfig.pszMainInstruction := PWideChar(WideString(ConvertNL(FInstruction)));
         end;
 
         if FContent <> '' then
         begin
-          StringToWideChar(ConvertNL(FContent), wContent, sizeof(wContent));
-          TaskDialogConfig.pszContent := wContent;
+          TaskDialogConfig.pszContent := PWideChar(WideString(ConvertNL(FContent)));
         end;
 
         if FFooter <> '' then
         begin
-          StringToWideChar(ConvertNL(FFooter), wFooter, sizeof(wFooter));
-          TaskDialogConfig.pszFooter := wFooter;
+          TaskDialogConfig.pszFooter := PWideChar(WideString(ConvertNL(FFooter)));
         end;
 
         if FExpandControlText <> '' then
         begin
-          StringToWideChar(FExpandControlText, wExpandedControl, sizeof(wExpandedControl));
-          TaskDialogConfig.pszExpandedControlText := wExpandedControl;
+          TaskDialogConfig.pszExpandedControlText := PWideChar(WideString(FExpandControlText));
         end;
 
         if FCollapsControlText <> '' then
         begin
-          StringToWideChar(FCollapsControlText, wCollapsedControl, sizeof(wCollapsedControl));
-          TaskDialogConfig.pszCollapsedControlText := wCollapsedControl;
+          TaskDialogConfig.pszCollapsedControlText := PWideChar(WideString(FCollapsControlText));
         end;
 
         if FExpandedText <> '' then
         begin
-          StringToWideChar(FExpandedText, wExpanded, sizeof(wExpanded));
-          TaskDialogConfig.pszExpandedInformation := wExpanded;
+          TaskDialogConfig.pszExpandedInformation := PWideChar(WideString(FExpandedText))
         end;
 
         if FVerifyText <> '' then
         begin
-          StringToWideChar(FVerifyText, wVerifyText, sizeof(wVerifyText));
-          TaskDialogConfig.pszVerificationText := wVerifyText;
+          TaskDialogConfig.pszVerificationText := PWideChar(WideString(FVerifyText));
         end;
 
         if cbOk in FCommonButtons then
@@ -956,21 +1311,37 @@ begin
         if (DialogPosition = dpOwnerFormCenter) then
           TaskDialogConfig.dwFlags := TaskDialogConfig.dwFlags or TDF_POSITION_RELATIVE_TO_WINDOW;
 
+        if doNoDefaultRadioButton in FOptions then
+          TaskDialogConfig.dwFlags := TaskDialogConfig.dwFlags or TDF_NO_DEFAULT_RADIO_BUTTON;
+
+        if doAllowDialogCancel in FOptions then
+          TaskDialogConfig.dwFlags := TaskDialogConfig.dwFlags or TDF_ALLOW_DIALOG_CANCELLATION;
+
         TaskDialogConfig.hInstance := 0;
 
-        case Icon of
-          tiWarning: TaskDialogConfig.hMainIcon := TD_ICON_WARNING;
-          tiQuestion: TaskDialogConfig.hMainIcon := TD_ICON_QUESTION;
-          tiError: TaskDialogConfig.hMainIcon := TD_ICON_ERROR;
-          tiShield: TaskDialogConfig.hMainIcon := TD_ICON_SHIELD;
-          tiBlank: TaskDialogConfig.hMainIcon := TD_ICON_BLANK;
-          tiInformation: TaskDialogConfig.hMainIcon := TD_ICON_INFORMATION;
+        if not CustomIcon.Empty then
+        begin
+          TaskDialogConfig.hMainIcon := CustomIcon.Handle;
+          TaskDialogConfig.dwFlags := TaskDialogConfig.dwFlags or TDF_USE_HICON_MAIN;
+        end
+        else
+        begin
+          case Icon of
+            tiWarning: TaskDialogConfig.hMainIcon := TD_ICON_WARNING;
+            tiQuestion: TaskDialogConfig.hMainIcon := TD_ICON_QUESTION;
+            tiError: TaskDialogConfig.hMainIcon := TD_ICON_ERROR;
+            tiShield: TaskDialogConfig.hMainIcon := TD_ICON_SHIELD;
+            tiBlank: TaskDialogConfig.hMainIcon := TD_ICON_BLANK;
+            tiInformation: TaskDialogConfig.hMainIcon := TD_ICON_INFORMATION;
+          end;
         end;
 
         case FooterIcon of
           tfiWarning: TaskDialogConfig.hFooterIcon := TD_ICON_WARNING;
           tfiQuestion: TaskDialogConfig.hFooterIcon := TD_ICON_QUESTION;
           tfiError: TaskDialogConfig.hFooterIcon := TD_ICON_ERROR;
+          tfiInformation: TaskDialogConfig.hFooterIcon := THandle(MAKEINTRESOURCEW(Word(-3)));
+          tfiShield: TaskDialogConfig.hFooterIcon := THandle(MAKEINTRESOURCEW(Word(-4)));
         end;
 
         TaskDialogConfig.pfCallBack := @TaskDialogCallbackProc;
@@ -995,7 +1366,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-function TAdvTaskDialog.GetVersion: string;
+function TCustomAdvTaskDialog.GetVersion: string;
 var
   vn: Integer;
 begin
@@ -1006,18 +1377,19 @@ end;
 
 //------------------------------------------------------------------------------
 
-function TAdvTaskDialog.GetVersionNr: Integer;
+function TCustomAdvTaskDialog.GetVersionNr: Integer;
 begin
   Result := MakeLong(MakeWord(BLD_VER, REL_VER), MakeWord(MIN_VER, MAJ_VER));
 end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.SetContent(const Value: string);
+procedure TCustomAdvTaskDialog.SetContent(const Value: string);
 begin
   if (FContent <> Value) then
   begin
     FContent := Value;
+    SendMessage(hWnd, TDM_UPDATE_ELEMENT_TEXT, TDE_CONTENT, Integer(PWideChar(WideString(FContent))));
     if Assigned(FDialogForm) then
       FDialogForm.UpdateDialog;
   end;
@@ -1025,18 +1397,24 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.SetCustomButtons(const Value: TStringList);
+procedure TCustomAdvTaskDialog.SetCustomButtons(const Value: TStringList);
 begin
   FCustomButtons.Assign(Value);
 end;
 
+procedure TCustomAdvTaskDialog.SetCustomIcon(const Value: TIcon);
+begin
+  FCustomIcon.Assign(Value);
+end;
+
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.SetExpandedText(const Value: string);
+procedure TCustomAdvTaskDialog.SetExpandedText(const Value: string);
 begin
   if (FExpandedText <> Value) then
   begin
     FExpandedText := Value;
+    SendMessage(hWnd, TDM_UPDATE_ELEMENT_TEXT, TDE_EXPANDED_INFORMATION, Integer(PWideChar(WideString(FExpandedText))));
     if Assigned(FDialogForm) then
       FDialogForm.UpdateDialog;
   end;
@@ -1044,11 +1422,12 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.SetFooter(const Value: string);
+procedure TCustomAdvTaskDialog.SetFooter(const Value: string);
 begin
   if (FFooter <> Value) then
   begin
     FFooter := Value;
+    SendMessage(hWnd, TDM_UPDATE_ELEMENT_TEXT, TDE_FOOTER, Integer(PWideChar(WideString(FFooter))));
     if Assigned(FDialogForm) then
       FDialogForm.UpdateDialog;
   end;
@@ -1056,11 +1435,17 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.SetInstruction(const Value: string);
+procedure TCustomAdvTaskDialog.SetInputItems(const Value: TStrings);
+begin
+  FInputItems.Assign(Value);
+end;
+
+procedure TCustomAdvTaskDialog.SetInstruction(const Value: string);
 begin
   if (FInstruction <> Value) then
   begin
     FInstruction := Value;
+    SendMessage(hWnd, TDM_UPDATE_ELEMENT_TEXT, TDE_MAIN_INSTRUCTION, Integer(PWideChar(WideString(FInstruction))));
     if Assigned(FDialogForm) then
       FDialogForm.UpdateDialog;
   end;
@@ -1068,16 +1453,77 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.SetRadioButtons(const Value: TStringList);
+procedure TCustomAdvTaskDialog.SetRadioButtonCaption(Btn: TWinControl;
+  Value: string);
+begin
+  TRadioButton(Btn).Caption := Value;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomAdvTaskDialog.SetRadioButtons(const Value: TStringList);
 begin
   FRadioButtons.Assign(Value);
 end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvTaskDialog.SetVersion(const Value: string);
+procedure TCustomAdvTaskDialog.SetVersion(const Value: string);
 begin
 
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomAdvTaskDialog.SetButtonCancel(aButton: TWinControl; Value: Boolean);
+begin
+  if not Assigned(aButton) or not (aButton is TButton) then
+    Exit;
+
+  TButton(aButton).Cancel := Value;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomAdvTaskDialog.SetButtonDefault(aButton: TWinControl; Value: Boolean);
+begin
+  if not Assigned(aButton) or not (aButton is TButton) then
+    Exit;
+
+  TButton(aButton).Default := Value;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomAdvTaskDialog.SetButtonModalResult(aButton: TWinControl; Value: Integer);
+begin
+  if not Assigned(aButton) or not (aButton is TButton) then
+    Exit;
+
+  TButton(aButton).ModalResult := Value;
+end;
+
+//------------------------------------------------------------------------------
+
+function TCustomAdvTaskDialog.GetButtonModalResult(
+  aButton: TWinControl): Integer;
+begin
+  Result := mrNone;
+  if not Assigned(aButton) or not (aButton is TButton) then
+    Exit;
+
+  Result := TButton(aButton).ModalResult;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomAdvTaskDialog.SetButtonCaption(aButton: TWinControl;
+  Value: TCaption);
+begin
+  if not Assigned(aButton) or not (aButton is TButton) then
+    Exit;
+
+  TButton(aButton).Caption := Value;
 end;
 
 //------------------------------------------------------------------------------
@@ -1118,6 +1564,27 @@ begin
   inherited;
 end;
 
+procedure TTaskDialogButton.DoEnter;
+begin
+  inherited;
+  Invalidate;
+end;
+
+procedure TTaskDialogButton.DoExit;
+begin
+  inherited;
+  Invalidate;
+end;
+
+procedure TTaskDialogButton.KeyPress(var Key: char);
+begin
+  inherited;
+  if (Key = #32) or (Key = #13) then
+  begin
+    Click;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TTaskDialogButton.Paint;
@@ -1131,13 +1598,19 @@ begin
   inherited;
 
   R := ClientRect;
+
   BrClr := clNone;
+
   if FMouseDown then
     BrClr := BorderColorDown
   else if FMouseInControl then
     BrClr := BorderColorHot;
+    
   if not Enabled then
     BrClr := clNone;
+
+  if GetFocus = Handle then
+    BrClr := BorderColorDown;
 
   Pic := Picture;
   if FMouseDown and not FGlyphDown.Empty then
@@ -1164,7 +1637,9 @@ begin
 
     Canvas.Draw(x, y, Pic);
     R.Left := x + Pic.Width + 3;
-  end;
+  end
+  else
+    R.Left := R.Left + 2;
 
   if (Caption <> '') then
   begin
@@ -1175,17 +1650,25 @@ begin
       SplitInToLines(Caption, SL);
       GetMultiLineTextSize(Canvas, Caption, HeadingFont, Self.Font, DrawTextBiDiModeFlagsReadingOnly, bw, bh);
       TR.Top := 2 + (Height - bh) div 2;
-      
+
       Canvas.Brush.Style := bsClear;
       if (SL[0] <> '') then
       begin
         Canvas.Font.Assign(HeadingFont);
+        
+        if not Enabled then
+          Canvas.Font.Color := clSilver;
+
         DrawText(Canvas.Handle, PChar(SL[0]),Length(SL[0]), TR, DT_LEFT or DT_TOP or DT_SINGLELINE);
         TR.Top := TR.Top + Canvas.TextHeight('gh') + 4;
       end;
 
       Canvas.Font.Assign(Self.Font);
-      for i:= 1 to SL.count-1 do
+
+      if not Enabled then
+        Canvas.Font.Color := clSilver;
+
+      for i:= 1 to SL.Count - 1 do
       begin
         DrawText(Canvas.Handle, PChar(SL[i]),Length(SL[i]), TR, DT_LEFT or DT_TOP or DT_SINGLELINE);
         TR.Top := TR.Top + Canvas.TextHeight('gh') + 2;
@@ -1196,6 +1679,8 @@ begin
     begin
       Canvas.Brush.Style := bsClear;
       Canvas.Font.Assign(HeadingFont);
+      if not Enabled then
+        Canvas.Font.Color := clSilver;
       DrawText(Canvas.Handle,PChar(Caption),Length(Caption), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
     end;
   end;
@@ -1285,10 +1770,13 @@ procedure TTaskDialogButton.CMMouseEnter(var Message: TMessage);
 begin
   inherited;
   FMouseInControl := True;
+
+  if AutoFocus then
+    SetFocus;
+
   Invalidate;
-  
   if Assigned(FOnMouseEnter) then
-     FOnMouseEnter(Self);
+    FOnMouseEnter(Self);
 end;
 
 //------------------------------------------------------------------------------
@@ -1329,39 +1817,53 @@ var
   ButtonWidths : array[TCommonButton] of integer;  // initialized to zero
   ButtonCaptions: array[TCommonButton] of Pointer; // = (
   //  @SMsgDlgOK, @SMsgDlgYes, @SMsgDlgNo, @SMsgDlgCancel, @SMsgDlgRetry, @SMsgDlgAbort);
-  ButtonNames: array[TCommonButton] of string = ('OK', 'Yes', 'No', 'Cancel', 'Retry', 'Abort');
+  // ButtonNames: array[TCommonButton] of string = ('OK', 'Yes', 'No', 'Cancel', 'Retry', 'Abort');
                                                 //tiBlank, tiWarning, tiQuestion, tiError, tiInformation,tiNotUsed,tiShield
   IconIDs: array[TTaskDialogIcon] of PChar = (IDI_ASTERISK, IDI_EXCLAMATION, IDI_QUESTION, IDI_ERROR, IDI_INFORMATION, nil, IDI_HAND);
-  FooterIconIDs: array[TTaskDialogFooterIcon] of PChar = (nil, IDI_EXCLAMATION, IDI_QUESTION, IDI_HAND);
+  FooterIconIDs: array[TTaskDialogFooterIcon] of PChar = (nil, IDI_EXCLAMATION, IDI_QUESTION, IDI_HAND, IDI_INFORMATION, IDI_WINLOGO);
   Captions: array[TTaskDialogIcon] of Pointer;
   // = (nil, @SMsgDlgWarning, @SMsgDlgConfirm, @SMsgDlgError, @SMsgDlgInformation);
   ModalResults: array[TCommonButton] of Integer = (mrOk, mrYes, mrNo, mrCancel, mrRetry, mrAbort);
   //(tiBlank, tiWarning, tiQuestion, tiError, tiShield);
   //(mtWarning, mtError, mtInformation, mtConfirmation, mtCustom);
 
-function CreateAdvMessageDlg(TaskDialog: TAdvTaskDialog): TForm;
+function CreateAdvMessageDlg(TaskDialog: TCustomAdvTaskDialog): TForm;
 begin
   Result := nil;
   if not Assigned(TaskDialog) then
     Exit;
 
-  Result := TAdvMessageForm.CreateNew(Application,0);
+  if TaskDialog.ApplicationIsParent then
+    Result := TAdvMessageForm.CreateNew(Application,0)
+  else
+    Result := TAdvMessageForm.CreateNew((TaskDialog.Owner) as TCustomForm,0);
+
   with Result do
   begin
     BiDiMode := Application.BiDiMode;
-    BorderStyle := bsDialog;
-    BorderIcons := [];
-    FormStyle := fsStayOnTop;
+
+    if doAllowMinimize in TaskDialog.Options then
+    begin
+      BorderStyle := bsSingle;
+      BorderIcons := [biSystemMenu,biMinimize]
+    end
+    else
+    begin
+      BorderStyle := bsDialog;
+      BorderIcons := [];
+    end;
+   // FormStyle := fsStayOnTop;
     Canvas.Font := Font;
     KeyPreview := True;
     OnKeyDown := TAdvMessageForm(Result).CustomKeyDown;
   end;
+  TAdvMessageForm(Result).MinFormWidth := TaskDialog.NonNativeMinFormWidth;
   TAdvMessageForm(Result).BuildTaskDialog(TaskDialog);
 end;
 
 //------------------------------------------------------------------------------
 
-function AdvMessageDlgPos(TaskDialog: TAdvTaskDialog; X, Y: Integer): Integer;
+function AdvMessageDlgPos(TaskDialog: TCustomAdvTaskDialog; X, Y: Integer): Integer;
 var
   DlgForm: TAdvMessageForm;
 begin
@@ -1370,10 +1872,11 @@ begin
     Exit;
 
   DlgForm := TAdvMessageForm(CreateAdvMessageDlg(TaskDialog));
+  
   TaskDialog.FDialogForm := DlgForm;
   if Assigned(TaskDialog.OnDialogCreated) then
     TaskDialog.OnDialogCreated(TaskDialog);
-    
+
   with DlgForm do
     try
       Color := clWhite;
@@ -1382,17 +1885,23 @@ begin
       if X >= 0 then Left := X;
       if Y >= 0 then Top := Y;
       {$IFDEF DELPHI5_LVL}
+      DefaultMonitor := dmMainForm;      
       if TaskDialog.DialogPosition = dpOwnerFormCenter then
       begin
-        if (Y < 0) and (X < 0) then Position := poOwnerFormCenter;
+        if (Y < 0) and (X < 0) then
+          Position := poOwnerFormCenter;
       end
       else
       begin
-        if (Y < 0) and (X < 0) then Position := poScreenCenter;
+        if (Y < 0) and (X < 0) then
+          Position := poScreenCenter;
       end;
       {$ELSE}
       {$ENDIF}
       Result := ShowModal;
+      {$IFDEF DELPHI5_LVL}
+      Close;
+      {$ENDIF}
     finally
       TaskDialog.FDialogForm := nil;
       Free;
@@ -1418,7 +1927,7 @@ begin
       SetRect(R, 0, 0, 1000, 100)
     else
       SetRect(R, 0, 0, W, 100);
-      
+
     DrawText(Canvas.Handle, PChar(Text), Length(Text)+1, R,
       DT_EXPANDTABS or DT_CALCRECT or DT_WORDBREAK or DT_NOPREFIX or
       DrawTextBiDiModeFlagsReadingOnly);
@@ -1439,7 +1948,19 @@ const
   mcButtonHeight = 14;
   mcButtonSpacing = 4;
 
-procedure TAdvMessageForm.BuildTaskDialog(TaskDialog: TAdvTaskDialog);
+function GetExeName: string;
+var
+  s: string;
+  fe: string;
+begin
+  s := ExtractFileName(Application.EXEName);
+  fe := ExtractFileExt(s);
+  if (Length(fe) > 0) then
+    delete(s, length(s) - Length(fe) + 1, length(fe));
+  Result := s;
+end;  
+
+procedure TAdvMessageForm.BuildTaskDialog(TaskDialog: TCustomAdvTaskDialog);
 var
   DialogUnits: TPoint;
   ButtonWidth, ButtonHeight, ButtonSpacing, ButtonCount, ButtonGroupWidth,
@@ -1457,6 +1978,11 @@ var
   HyperLinks,MouseLink, k, l, n: Integer;
   Focusanchor: string;
   OldFont, hf, pf: TFont;
+  verifTextWidth: Integer;
+  v: Boolean;
+  szContent,szExpandedText,szFooterText: string;
+  defIdx: integer;
+
 begin
   if not Assigned(TaskDialog) then
     Exit;
@@ -1477,7 +2003,10 @@ begin
 
   w := 0;
 
-  Caption := TaskDialog.Title;
+  if TaskDialog.Title <> '' then
+    Caption := TaskDialog.Title
+  else
+    Caption := GetExeName;
 
   if (Caption <> '') then
   begin
@@ -1496,26 +2025,33 @@ begin
   Y := FVertMargin;
   FcmBtnList.Clear;
 
-  if TaskDialog.DefaultButton = 0 then
+  if TaskDialog.DefaultButton <> -1 then
   begin
-    if (cbOk in Buttons) then DefaultButton := cbOk else
-      if cbYes in Buttons then DefaultButton := cbYes else
-        DefaultButton := cbRetry;
-    if cbCancel in Buttons then CancelButton := cbCancel else
-      if cbNo in Buttons then CancelButton := cbNo else
-        CancelButton := cbOk;
-  end
-  else
-  begin
-    case TaskDialog.DefaultButton of
-    1: if (cbOk in Buttons) then DefaultButton := cbOK
-       else
-         DefaultButton := cbYes;
-    2: if (cbCancel in Buttons) then DefaultButton := cbCancel
-       else
-         DefaultButton := cbNo;
+
+    if TaskDialog.DefaultButton = 0 then
+    begin
+      if (cbOk in Buttons) then DefaultButton := cbOk else
+        if cbYes in Buttons then DefaultButton := cbYes else
+          DefaultButton := cbRetry;
+      if cbCancel in Buttons then CancelButton := cbCancel else
+        if cbNo in Buttons then CancelButton := cbNo else
+          CancelButton := cbOk;
+    end
+    else
+    begin
+      case TaskDialog.DefaultButton of
+      1: if (cbOk in Buttons) then DefaultButton := cbOK
+         else
+           DefaultButton := cbYes;
+      2: if (cbCancel in Buttons) then DefaultButton := cbCancel
+         else
+           DefaultButton := cbNo;
+      6: if (cbYes in Buttons) then DefaultButton := cbYes;
+      7: if (cbNo in Buttons) then DefaultButton := cbNo;
+      end;
     end;
   end;
+
 
   for B := Low(TCommonButton) to High(TCommonButton) do
   begin
@@ -1535,29 +2071,41 @@ begin
       if ButtonWidths[B] > ButtonWidth then
         ButtonWidth := ButtonWidths[B];
 
-      i := FcmBtnList.Add(TButton.Create(Self));
+      i := FcmBtnList.Add(TaskDialog.CreateButton(Self));
 
-      with TButton(FcmBtnList.Items[i]) do
+      with TWinControl(FcmBtnList.Items[i]) do
       begin
         Name := ButtonNames[B];
         Parent := Self;
-        Caption := LoadResString(ButtonCaptions[B]);
-        ModalResult := ModalResults[B];
+        TaskDialog.SetButtonCaption(TWinControl(FcmBtnList.Items[i]), LoadResString(ButtonCaptions[B]));
+        TaskDialog.SetButtonModalResult(TWinControl(FcmBtnList.Items[i]), ModalResults[B]);
+        //ModalResult := ModalResults[B];
 
-        if ModalResult = mrCancel then
-          Cancel := true;
+        if (TaskDialog.GetButtonModalResult(TWinControl(FcmBtnList.Items[i])) = mrCancel) and
+           (doAllowDialogCancel in TaskDialog.Options) then
+          TaskDialog.SetButtonCancel(TWinControl(FcmBtnList.Items[i]), True);
+          //Cancel := true;
 
-        if B = DefaultButton then
+        if (TaskDialog.DefaultButton <> -1) then
         begin
-          Default := True;
-          TabOrder := 0;
-        end;
-        if B = CancelButton then Cancel := True;
+          if (B = DefaultButton) then
+          begin
+            //Default := True;
+            TaskDialog.SetButtonDefault(TWinControl(FcmBtnList.Items[i]), True);
+            TabOrder := 0;
+          end;
+        end;  
+
+        if (B = CancelButton) and (doAllowDialogCancel in TaskDialog.Options) then
+          TaskDialog.SetButtonCancel(TWinControl(FcmBtnList.Items[i]), True);
+
         Width := Max(60, ButtonWidths[B]);
         Height := ButtonHeight;
         cmBtnGroupWidth := cmBtnGroupWidth + Width + ButtonSpacing;
         //if B = mbHelp then
           //OnClick := TMessageForm(Result).HelpButtonClick;
+        if TaskDialog.DefaultButton = -1 then
+          TabStop := false;
       end;
       //Inc(ButtonCount);
     end;
@@ -1566,33 +2114,39 @@ begin
   FcsBtnList.Clear;
   if not (docommandLinks in TaskDialog.Options) then
   begin
-    for i:= 0 to TaskDialog.CustomButtons.Count-1 do
+    for i := 0 to TaskDialog.CustomButtons.Count - 1 do
     begin
       TextRect := Rect(0,0,0,0);
       Windows.DrawText( Canvas.Handle,
         PChar(TaskDialog.CustomButtons[i]), -1,
         TextRect, DT_CALCRECT or DT_LEFT or DT_SINGLELINE or
         DrawTextBiDiModeFlagsReadingOnly);
+
       with TextRect do bw := Right - Left + 16;
       if bw > ButtonWidth then
         ButtonWidth := bw;
 
-      j := FcsBtnList.Add(TButton.Create(Self));
-      with TButton(FcsBtnList.Items[j]) do
+      j := FcsBtnList.Add(TaskDialog.CreateButton(Self));
+      with TWinControl(FcsBtnList.Items[j]) do
       begin
         Name := 'Button'+inttostr(i);
         Parent := Self;
-        Caption := TaskDialog.CustomButtons[i];
-        ModalResult := i + 100; //mrAbort;
-        Default := (ModalResult = TaskDialog.DefaultButton);
-        if Default then
-          TabOrder := 0;
+        TaskDialog.SetButtonCaption(TWinControl(FcsBtnList.Items[j]), TaskDialog.CustomButtons[i]);
+        //ModalResult := i + 100; //mrAbort;
+        TaskDialog.SetButtonModalResult(TWinControl(FcsBtnList.Items[j]), i + 100);
+        v := (TaskDialog.GetButtonModalResult(TWinControl(FcsBtnList.Items[j])) = TaskDialog.DefaultButton);
+        TaskDialog.SetButtonDefault(TWinControl(FcsBtnList.Items[j]), V);
+        //Default := (ModalResult = TaskDialog.DefaultButton);
+        //if V then
+        //  TabOrder := 0;
         //if B = DefaultButton then Default := True;
         //if B = CancelButton then Cancel := True;
         Width := Max(60, bw);
         Height := ButtonHeight;
-        OnClick := OnButtonClick;
+        TProControl(FcsBtnList.Items[j]).OnClick := OnButtonClick;
         CsBtnGroupWidth := CsBtnGroupWidth + Width + ButtonSpacing;
+        if TaskDialog.DefaultButton = -1 then
+          TabStop := false;
       end;
     end;
   end
@@ -1605,7 +2159,9 @@ begin
     hf.Size := 11;
     hf.Style := [fsBold];
     pf.Assign(Canvas.Font);
-    for i:= 0 to TaskDialog.CustomButtons.Count-1 do
+
+
+    for i := 0 to TaskDialog.CustomButtons.Count-1 do
     begin
       Canvas.Font.Size := 10;
       Canvas.Font.Style := [];
@@ -1646,13 +2202,35 @@ begin
         BorderColorHot := RGB(108, 225, 255);
         BorderColorDown := RGB(108, 225, 255);
         Width := Max(60, n);
+        if TaskDialog.DefaultButton <> -1 then
+          AutoFocus := true;
+
         Height := Max(bh, Max(ButtonHeight, Canvas.TextHeight('gh') + 20));
-        Picture.LoadFromResourceName(HInstance, 'TD_ARW');
-        PictureHot.LoadFromResourceName(HInstance, 'TD_ARWHOT');
-        PictureDOWN.LoadFromResourceName(HInstance, 'TD_ARWDOWN');
+
+        if not (doCommandLinksNoIcon in TaskDialog.Options) then
+        begin
+          Picture.LoadFromResourceName(HInstance, 'TD_ARW');
+          Picture.TransparentColor := clFuchsia;
+
+          PictureHot.LoadFromResourceName(HInstance, 'TD_ARWHOT');
+          PictureHot.TransparentColor := clFuchsia;
+
+          PictureDown.LoadFromResourceName(HInstance, 'TD_ARWDOWN');
+          PictureDown.TransparentColor := clFuchsia;
+
+          PictureDisabled.LoadFromResourceName(HInstance, 'TD_ARWDIS');
+          PictureDisabled.TransparentColor := clFuchsia;
+        end;
+
+        if TaskDialog.DefaultButton = -1 then
+          TabStop := false
+        else
+          TabStop := true;
+
         OnClick := OnButtonClick;
         //CsBtnGroupWidth := CsBtnGroupWidth + Width + ButtonSpacing;
       end;
+
     end;
     Canvas.Font.Assign(OldFont);
     hf.Free;
@@ -1673,15 +2251,21 @@ begin
     //if ButtonWidths[B] > ButtonWidth then
       //ButtonWidth := ButtonWidths[B];
 
-    i := FcmBtnList.Add(TButton.Create(Self));
-    with TButton(FcmBtnList.Items[i]) do
+    i := FcmBtnList.Add(TaskDialog.CreateButton(Self));
+    with TWinControl(FcmBtnList.Items[i]) do
     begin
       Name := ButtonNames[B];
       Parent := Self;
-      Caption := LoadResString(ButtonCaptions[B]);
-      ModalResult := ModalResults[B];
-      Default := True;
-      Cancel := True; // handle ESC
+      TaskDialog.SetButtonCaption(TWinControl(FcmBtnList.Items[i]), LoadResString(ButtonCaptions[B]));
+      TaskDialog.SetButtonModalResult(TWinControl(FcmBtnList.Items[i]), ModalResults[B]);
+      //ModalResult := ModalResults[B];
+      //Default := True;
+      TaskDialog.SetButtonDefault(TWinControl(FcmBtnList.Items[i]), True);
+      //Cancel := True; // handle ESC
+
+      if doAllowDialogCancel in TaskDialog.Options then
+        TaskDialog.SetButtonCancel(TWinControl(FcmBtnList.Items[i]), True);
+        
       Width := Max(60, ButtonWidths[B]);
       Height := ButtonHeight;
       cmBtnGroupWidth := cmBtnGroupWidth + Width + ButtonSpacing;
@@ -1715,7 +2299,7 @@ begin
     Caption := LoadResString(Captions[DlgType]) else
     Caption := Application.Title;}
 
-  if (IconID <> nil) and not (doCommandLinksNoIcon in TaskDialog.Options) then
+  if ((IconID <> nil) or not (TaskDialog.CustomIcon.Empty)) {and not (doCommandLinksNoIcon in TaskDialog.Options)} then
   begin
     FIcon := TImage.Create(Self);
     with FIcon do
@@ -1723,20 +2307,28 @@ begin
       Name := 'Image';
       Parent := Self;
 
-      case TaskDialog.Icon of
-      tiShield: Picture.Bitmap.Handle := LoadBitmap(hInstance, 'TD_SHIELD');
-      tiBlank:
-        begin
-          Picture.Bitmap.Height := 32;
-          Picture.Bitmap.Width := 32;
-          Picture.Bitmap.Canvas.Brush.Color := clWhite;
-          Picture.Bitmap.Canvas.Pen.Style := psClear;
-          Picture.Bitmap.Canvas.Rectangle(0,0,31,31);
-        end;
+      if not TaskDialog.CustomIcon.Empty then
+      begin
+        Picture.Icon.Assign(TaskDialog.CustomIcon);
+      end
       else
-        Picture.Icon.Handle := LoadIcon(0, IconID);
+      begin
+
+        case TaskDialog.Icon of
+        tiShield: Picture.Bitmap.Handle := LoadBitmap(hInstance, 'TD_SHIELD');
+        tiBlank:
+          begin
+            Picture.Bitmap.Height := 32;
+            Picture.Bitmap.Width := 32;
+            Picture.Bitmap.Canvas.Brush.Color := clWhite;
+            Picture.Bitmap.Canvas.Pen.Style := psClear;
+            Picture.Bitmap.Canvas.Rectangle(0,0,31,31);
+          end;
+        else
+          Picture.Icon.Handle := LoadIcon(0, IconID);
+        end;
       end;
-        
+
       SetBounds(FHorzMargin, Y, 32, 32);
     end;
   end;
@@ -1795,40 +2387,77 @@ begin
     end;
   end;
 
-
   if (TaskDialog.RadioButtons.Count > 0) then
   begin
-    FTaskDialog.RadioButtonResult := FTaskDialog.DefaultRadioButton;
-      
+    if (doNodefaultRadioButton in FTaskDialog.Options) then
+      FTaskDialog.RadioButtonResult := 0
+    else
+      FTaskDialog.RadioButtonResult := FTaskDialog.DefaultRadioButton;
+
     for i := 0 to TaskDialog.RadioButtons.Count-1 do
     begin
-      j := FRadioList.Add(TRadioButton.Create(Self));
-      with TRadioButton(FRadioList.Items[j]) do
+      j := FRadioList.Add(FTaskDialog.CreateRadioButton(Self));
+
+      TaskDialog.InitRadioButton(self, TWinControl(FRadioList.Items[j]), i, OnRadioClick);
+
+      with TWinControl(FRadioList.Items[j]) do
       begin
-        Name := 'Radio'+inttostr(i);
+        (* 
+        Name := 'Radio' + inttostr(i);
         Parent := Self;
         Font.Name := Canvas.Font.Name;
         Font.Size := 8;
         {$IFDEF DELPHI7_LVL}
-        WordWrap := False;
+        //WordWrap := False;
         {$ENDIF}
-        BoundsRect := TextRect;
+        OnClick := OnRadioClick;
         BiDiMode := Self.BiDiMode;
-        Caption := TaskDialog.RadioButtons[i];
-        Checked := (j + 200 = TaskDialog.DefaultRadioButton);
+        *)
+
+        BoundsRect := TextRect;
         Left := FHorzParaMargin + FHorzMargin; //ALeft + FHorzMargin;
         Top := Y;
         Width := Self.Width - Left - 4;
-        OnClick := OnRadioClick;
         GetTextSize(Canvas, Caption, k, l);
         w := Max(w, Left + k + FHorzMargin + 20);
       end;
+
+      TaskDialog.SetRadioButtonCaption(FRadioList.Items[j],TaskDialog.RadioButtons[i]);
+
+      if doNoDefaultRadioButton in TaskDialog.Options then
+        TaskDialog.SetRadioButtonState(FRadioList.Items[j], False)
+      else
+      begin
+        if (TaskDialog.DefaultRadioButton > 0) then
+          TaskDialog.SetRadioButtonState(FRadioList.Items[j], (j + 200 = TaskDialog.DefaultRadioButton))
+        else
+        begin
+          TaskDialog.SetRadioButtonState(FRadioList.Items[j], (i = 0));
+        end;
+      end;
+
+      (*
+      with TRadioButton(FRadioList.Items[j]) do
+      begin
+        if doNoDefaultRadioButton in TaskDialog.Options then
+          Checked := False
+        else
+        begin
+          if (TaskDialog.DefaultRadioButton > 0) then
+            Checked := (j + 200 = TaskDialog.DefaultRadioButton)
+          else
+          begin
+            Checked := (i = 0);
+          end;
+        end;
+      end;
+      *)
     end;
   end;
 
   if (TaskDialog.ExpandedText <> '') then
   begin
-    FExpandLabel := TLabel.Create(Self);
+    (*FExpandLabel := TLabel.Create(Self);
     with FExpandLabel do
     begin
       Name := 'Expand';
@@ -1838,11 +2467,34 @@ begin
       {$ENDIF}
       ShowAccelChar := false;
       BiDiMode := Self.BiDiMode;
-      //BoundsRect := TextRect;
-      //BoundsRect := Rect(0,0,w,0);
       FExpandLabel.Caption := TaskDialog.ExpandedText;
       Left := ALeft;
       Top := Y;
+    end; *)
+
+    FExpTextXSize := 0;
+    FExpTextYSize := 0;
+    r := Rect(FHorzMargin, Y, 300, Y + 26);
+
+
+    if (doHyperlinks in FTaskDialog.Options) then
+    begin
+      szExpandedText := StringReplace(FTaskDialog.ExpandedText,'\n','<br>',[rfReplaceAll]);
+      szExpandedText := StringReplace(szExpandedText,#10,'<br>',[rfReplaceAll]);      
+
+      HTMLDrawEx(Canvas, szExpandedText, r, nil, x, y, -1, -1, 1, true, false, false, true, true, false, true,
+         1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, FExpTextXSize, FExpTextYSize, hyperlinks,
+         mouselink, re, nil, nil, 0);
+    end
+    else
+    begin
+      szExpandedText := StringReplace(FTaskDialog.ExpandedText,'\n',#13,[rfReplaceAll]);
+
+      FExpTextXSize := r.Right - r.Left;
+      //szContent := StringReplace(FTaskDialog.Content,'\n',#13,[rfReplaceAll]);
+      //GetTextSize(Canvas, szContent, FExpTextXSize, FExpTextYSize);
+
+      GetTextSize(Canvas, szExpandedText, FExpTextXSize, FExpTextYSize);
     end;
 
     FExpandButton := TTaskDialogButton.Create(Self);
@@ -1852,15 +2504,21 @@ begin
       Parent := Self;
       Caption := '';
       ModalResult := mrNone;
-      Width := 22;
-      Height := 22;
+      Width := 19;
+      Height := 19;
       OnClick := OnExpandButtonClick;
       Picture.LoadFromResourceName(HInstance, 'TD_COLP');
+      Picture.TransparentColor :=  clFuchsia;
+
       PictureHot.LoadFromResourceName(HInstance, 'TD_COLPHOT');
-      PictureDOWN.LoadFromResourceName(HInstance, 'TD_COLPDOWN');
+      PictureHot.TransparentColor := clFuchsia;
+
+      PictureDown.LoadFromResourceName(HInstance, 'TD_COLPDOWN');
+      PictureDown.TransparentColor := clFuchsia;
     end;
   end;
 
+  verifTextWidth := 0;
   if (TaskDialog.VerificationText <> '') then
   begin
     k := 0;
@@ -1881,6 +2539,7 @@ begin
       OnClick := OnVerifyClick;
       Checked := (doVerifyChecked in TaskDialog.Options);
       GetTextSize(Canvas, Caption, k, l);
+      verifTextWidth := k + FVertSpacing *2;
       w := Max(w, Left + k);
     end;
   end;
@@ -1890,7 +2549,11 @@ begin
   if (TaskDialog.Footer <> '') then
   begin
     r := Rect(FHorzMargin, Y, 300, Y + 26);
-    HTMLDrawEx(Canvas, TaskDialog.Footer, r, nil, x, y, -1, -1, 1, true, false, false, true, true, false, true,
+
+    szFooterText := StringReplace(FTaskDialog.Footer,'\n','<br>',[rfReplaceAll]);
+    szFooterText := StringReplace(szFooterText,#10,'<br>',[rfReplaceAll]);
+
+    HTMLDrawEx(Canvas, szFooterText, r, nil, x, y, -1, -1, 1, true, false, false, true, true, false, true,
        1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, FFooterXSize, FFooterYSize, hyperlinks,
        mouselink, re, nil, nil, 0);
 
@@ -1918,7 +2581,7 @@ begin
     end;
   end;
 
-  ButtonGroupWidth := CmBtnGroupWidth + CsBtnGroupWidth;
+  ButtonGroupWidth := CmBtnGroupWidth + CsBtnGroupWidth + verifTextWidth;
   if (TaskDialog.ExpandedText <> '') and Assigned(FExpandButton) then
   begin
     k := 0;
@@ -1929,16 +2592,110 @@ begin
     ButtonGroupWidth := ButtonGroupWidth + FExpandButton.Width + FHorzSpacing + k + FHorzSpacing;
   end;
 
+  if TaskDialog.Content = '' then
+    Y := Y - 20;
+
+  case TaskDialog.InputType of
+  itEdit:
+    begin
+      FInputEdit := TEdit.Create(self);
+      FInputEdit.Parent := Self;
+      FInputEdit.TabStop := true;
+      FInputEdit.Text := TaskDialog.InputText;
+
+      ALeft := IconTextWidth - TextRect.Right + FHorzMargin;
+      if UseRightToLeftAlignment then
+        ALeft := Self.ClientWidth - ALeft - Width;
+
+      FInputEdit.SetBounds(ALeft, Y + 20, ClientWidth - ALeft, 20);
+    end;
+  itComboEdit, itComboList:
+    begin
+      FInputCombo := TComboBox.Create(self);
+      FInputCombo.Parent := Self;
+      FInputCombo.TabStop := true;
+      FInputCombo.Text := TaskDialog.InputText;
+      FInputCombo.Items.Assign(TaskDialog.InputItems);
+
+      if TaskDialog.InputType = itComboList then
+      begin
+        FInputCombo.Style := csDropDownList;
+        FInputCombo.ItemIndex := FInputCombo.Items.IndexOf(TaskDialog.InputText);
+      end;
+
+      ALeft := IconTextWidth - TextRect.Right + FHorzMargin;
+      if UseRightToLeftAlignment then
+        ALeft := Self.ClientWidth - ALeft - Width;
+
+      FInputCombo.SetBounds(ALeft, Y + 20, ClientWidth - ALeft, 20);
+    end;
+  itDate:
+    begin
+      FInputDate := TDateTimePicker.Create(self);
+      FInputDate.Parent := Self;
+      FInputDate.TabStop := true;
+      ALeft := IconTextWidth - TextRect.Right + FHorzMargin;
+      if UseRightToLeftAlignment then
+        ALeft := Self.ClientWidth - ALeft - Width;
+
+      FInputDate.Top := Y + 20;
+      FInputDate.Left := ALeft;
+    end;
+  itMemo:
+    begin
+      FInputMemo := TMemo.Create(self);
+      FInputMemo.Parent := Self;
+      FInputMemo.TabStop := true;
+      FInputMemo.WantReturns := false;
+      FInputMemo.Lines.Text := TaskDialog.InputText;
+      ALeft := IconTextWidth - TextRect.Right + FHorzMargin;
+      if UseRightToLeftAlignment then
+        ALeft := Self.ClientWidth - ALeft - Width;
+      FInputMemo.SetBounds(ALeft, Y + 20, ClientWidth - ALeft, 60);
+    end;
+  itCustom:
+    begin
+      if Assigned(TaskDialog.InputControl) then
+      begin
+        FOldParent := TaskDialog.InputControl.Parent;
+        TaskDialog.InputControl.Parent := self;
+        TaskDialog.InputControl.Visible := true;
+        if Assigned(TaskDialog.OnDialogInputSetText) then
+          TaskDialog.OnDialogInputSetText(TaskDialog, TaskDialog.InputText)
+        else
+          SetWindowText(TaskDialog.InputControl.Handle, Pchar(TaskDialog.InputText));
+
+        ALeft := IconTextWidth - TextRect.Right + FHorzMargin;
+        if UseRightToLeftAlignment then
+          ALeft := Self.ClientWidth - ALeft - Width;
+
+        TaskDialog.InputControl.Left := ALeft;
+        TaskDialog.InputControl.Top := Y + 20;
+
+
+        //TaskDialog.InputControl.SetBounds(ALeft, Y + 20, ClientWidth - ALeft, 20);
+      end;
+    end;
+  end;
+
   //-- setting Form Width
   k := Max(FFooterXSize, Max(IconTextWidth, ButtonGroupWidth)) + FHorzMargin * 2;
+  k := Max(FExpTextXSize + FHorzMargin * 2, k);
   w := Max(w, k);
-  w := Max(w, 350);
+  w := Max(w, FMinFormWidth);
 
-
+  if w > (Screen.Width - 2 * GetSystemMetrics(SM_CYEDGE)) then
+    w := Screen.Width - 2 * GetSystemMetrics(SM_CYEDGE);
 //  if w > 800 then
 //    w := 800;
 
   ClientWidth := w;
+
+  if (TaskDialog.InputType = itCustom) and Assigned(TaskDialog.InputControl) then
+  begin
+    if TaskDialog.InputControl.Width > ClientWidth - ALeft then
+      TaskDialog.InputControl.Width := ClientWidth - ALeft;
+  end;
 
   if (doProgressBar in TaskDialog.Options) then
   begin
@@ -1962,7 +2719,7 @@ end;
 procedure TAdvMessageForm.UpdateDialog;
 var
   DialogUnits: TPoint;
-  ButtonSpacing, ButtonGroupWidth, IconTextWidth, X, Y, ALeft: Integer;
+  ButtonSpacing, ButtonGroupWidth, IconTextWidth, X, Y: Integer;
   IconID: PChar;
   TextRect: TRect;
   Msg: string;
@@ -1973,7 +2730,7 @@ var
   r, re: trect;
   anchor, stripped: string;
   HyperLinks,MouseLink, k, l, n: Integer;
-  Focusanchor: string;
+  Focusanchor,szFooterText: string;
   OldFont: TFont;
 begin
   if not Assigned(FTaskDialog) then
@@ -1989,7 +2746,11 @@ begin
   DialogUnits := GetAveCharSize(Canvas);
   w := 0;
 
-  Caption := FTaskDialog.Title;
+  if FTaskDialog.Title <> '' then
+    Caption := FTaskDialog.Title
+  else
+    Caption := GetExeName;
+
 
   if (Caption <> '') then
   begin
@@ -2002,7 +2763,7 @@ begin
   CmBtnGroupWidth := 0;
   CsBtnGroupWidth := 0;
   Y := FVertMargin;
-  ALeft := 0;
+  //ALeft := 0;
 
   for i := 0 to FcmBtnList.Count-1 do
   begin
@@ -2043,11 +2804,9 @@ begin
   if Assigned(Message) then
   begin
     Message.Caption := Msg;
-    //Message.BoundsRect := TextRect;
-    ALeft := IconTextWidth - TextRect.Right + FHorzMargin;
-    if UseRightToLeftAlignment then
-      ALeft := Self.ClientWidth - ALeft - Width;
-    //SetBounds(ALeft, Y, TextRect.Right, TextRect.Bottom);
+    //ALeft := IconTextWidth - TextRect.Right + FHorzMargin;
+    //if UseRightToLeftAlignment then
+      //ALeft := Self.ClientWidth - ALeft - Width;
     y := Y + Height + FVertSpacing;
   end;
 
@@ -2055,7 +2814,7 @@ begin
   begin
     FTaskDialog.RadioButtonResult := FTaskDialog.DefaultRadioButton;
 
-    for i := 0 to FRadioList.Count-1 do
+    for i := 0 to FRadioList.Count - 1 do
     begin
       with TRadioButton(FRadioList.Items[i]) do
       begin
@@ -2069,7 +2828,7 @@ begin
     end;
   end;
 
-  if (FTaskDialog.ExpandedText <> '') and Assigned(FExpandLabel) then
+  {if (FTaskDialog.ExpandedText <> '') and Assigned(FExpandLabel) then
   begin
     with FExpandLabel do
     begin
@@ -2077,7 +2836,7 @@ begin
       Top := Y;
       FExpandLabel.Caption := FTaskDialog.ExpandedText;
     end;
-  end;
+  end; }
 
   if (FTaskDialog.VerificationText <> '') and Assigned(FVerificationCheck) then
   begin
@@ -2099,7 +2858,10 @@ begin
   begin
     r := Rect(FHorzMargin, Y, 300, Y + 26);
     x := 0;
-    HTMLDrawEx(Canvas, FTaskDialog.Footer, r, nil, x, y, -1, -1, 1, true, false, false, true, true, false, true,
+    szFooterText := StringReplace(FTaskDialog.Footer,'\n','<br>',[rfReplaceAll]);
+    szFooterText := StringReplace(szFooterText,#10,'<br>',[rfReplaceAll]);    
+
+    HTMLDrawEx(Canvas, szFooterText, r, nil, x, y, -1, -1, 1, true, false, false, true, true, false, true,
        1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, FFooterXSize, FFooterYSize, hyperlinks,
        mouselink, re, nil, nil, 0);
 
@@ -2120,10 +2882,11 @@ begin
     ButtonGroupWidth := ButtonGroupWidth + FExpandButton.Width + FHorzSpacing + k + FHorzSpacing;
   end;
 
+
   //-- setting Form Width
   k := Max(FFooterXSize, Max(IconTextWidth, ButtonGroupWidth)) + FHorzMargin * 2;
   w := Max(w, k);
-  w := Max(w, 350);
+  w := Max(w, FMinFormWidth);
 
 
   ClientWidth := w;
@@ -2148,13 +2911,15 @@ var
   i, h: Integer;
   CmBtnGroupWidth, CsBtnGroupWidth, BtnH: Integer;
   X1, y1: Integer;
-  r, re: trect;
+  r, re, rc: trect;
   anchor, stripped: string;
   HyperLinks,MouseLink: Integer;
   Focusanchor: string;
-  lbl:TLabel;
-  ExH: integer;
-
+  ExpTextTop, verifTextWidth, k, l: Integer;
+  szContent: string;
+  szExpandedText,szFooterText: string;
+  //lbl:TLabel;
+  //ExH: integer;
 begin
   if not Assigned(FTaskDialog) then
     Exit;
@@ -2168,6 +2933,10 @@ begin
   CsBtnGroupWidth := 0;
   Y := VertMargin;
 
+  {$IFDEF DELPHI7_LVL}
+  Message.Transparent := true;
+  {$ENDIF}
+  
   // Instruction Label
   if (Message.Caption <> '') then
     y := Y + Message.Height + VertSpacing
@@ -2186,12 +2955,16 @@ begin
 
     if (doHyperlinks in FTaskDialog.Options) then
     begin
-      HTMLDrawEx(Canvas, FTaskDialog.Content, r, nil, x1, y1, -1, -1, 1, true, true, false, true, true, false, true,
+      szContent := StringReplace(FTaskDialog.Content,'\n','<br>',[rfReplaceAll]);
+      szContent := StringReplace(szContent,#10,'<br>',[rfReplaceAll]);      
+
+      HTMLDrawEx(Canvas, szContent, r, nil, x1, y1, -1, -1, 1, true, true, false, true, true, false, true,
          1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, FContentXSize, FContentYSize, hyperlinks,
          mouselink, re, nil, nil, 0);
     end
     else
     begin
+       szContent := StringReplace(FTaskDialog.Content,'\n',#13,[rfReplaceAll]);
       {
       if (Message.Caption <> '') then
         FContentXSize := Message.Width
@@ -2202,9 +2975,12 @@ begin
         FContentXSize := 360;
       }
       FContentXSize := r.Right - r.Left;
-
-      GetTextSize(Canvas, FTaskDialog.Content, FContentXSize, FContentYSize);
+      GetTextSize(Canvas, szContent, FContentXSize, FContentYSize);
     end;
+
+    rc := GetContentRect;
+    if (fContentXSize > rc.Right - rc.Left) then
+      ClientWidth := ClientWidth + (fContentXSize - (rc.Right - rc.Left));
 
     y1 := FContentYSize;
     if (Message.Caption = '') and Assigned(FIcon) then
@@ -2213,11 +2989,42 @@ begin
     end;
 
     Y := Y + Y1 + VertSpacing;
+
+    case FTaskDialog.InputType of
+    itEdit: FInputEdit.Top := Y - 10;
+    itComboEdit,itComboList: FInputCombo.Top := Y - 10;
+    itDate: FInputDate.Top := Y - 10;
+    itMemo: FInputMemo.Top := Y - 10;
+    itCustom: if Assigned(FTaskDialog.InputControl) then
+               FTaskDialog.InputControl.Top := Y - 10;
+    end;
+
   end
   else
   begin
     if (FTaskDialog.RadioButtons.Count = 0) and not (doCommandLinks in FTaskDialog.Options) then
       Y := Y + VertSpacing;
+
+    if (Message.Caption = '') and Assigned(FIcon) then
+      Y := Y + VertSpacing + VertMargin;
+  end;
+
+  if (FTaskDialog.InputType in [itEdit, itComboEdit, itComboList, itDate]) then
+  begin
+    Y := Y + 30;
+  end;
+
+  if (FTaskDialog.InputType in [itMemo]) then
+  begin
+    Y := Y + 70;
+  end;
+
+  if (FTaskDialog.InputType in [itCustom]) then
+  begin
+    if Assigned(FTaskDialog.InputControl) then
+      Y := Y + FTaskDialog.InputControl.Height + 10
+    else
+      Y := Y + 30;
   end;
 
   if (doProgressBar in FTaskDialog.Options) then
@@ -2241,11 +3048,14 @@ begin
     Y := Y + VertSpacing - 4;
   end;
 
+  FExpTextXSize := 0;
+  FExpTextYSize := 0;
+  ExpTextTop := 0;
   if (FTaskDialog.ExpandedText <> '') then
   begin
     if FExpanded then
     begin
-      lbl := TLabel.Create(self);
+      (*lbl := TLabel.Create(self);
       {$IFDEF DELPHI7_LVL}
       lbl.WordWrap := true;
       {$ENDIF}
@@ -2260,9 +3070,39 @@ begin
 
       Y := Y + FExpandLabel.Height + VertSpacing;
       FExpandLabel.Visible := True;
+      *)
+
+
+      X1 := 0;
+      Y1 := 0;
+      r := GetExpTextRect;
+      r := Rect(r.Left, Y, R.Right, Y + 26);
+
+      if (doHyperlinks in FTaskDialog.Options) then
+      begin
+        szExpandedText := StringReplace(FTaskDialog.ExpandedText,'\n','<br>',[rfReplaceAll]);
+        szExpandedText := StringReplace(szExpandedText,#10,'<br>',[rfReplaceAll]);
+
+        HTMLDrawEx(Canvas, szExpandedText, r, nil, x1, y1, -1, -1, 1, true, true, false, true, true, false, true,
+           1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, FExpTextXSize, FExpTextYSize, hyperlinks,
+           mouselink, re, nil, nil, 0);
+      end
+      else
+      begin
+        szExpandedText := StringReplace(FTaskDialog.ExpandedText,'\n',#13,[rfReplaceAll]);
+
+        FExpTextXSize := r.Right - r.Left;
+        GetTextSize(Canvas, szExpandedText, FExpTextXSize, FExpTextYSize);
+      end;
+
+      ExpTextTop := Y;
+      FExpTextTop := ExpTextTop;
+      Y := Y + FExpTextYSize + VertSpacing;
     end
     else
-      FExpandLabel.Visible := False;
+    begin
+      //FExpandLabel.Visible := False;
+    end;
   end;
 
   if not (docommandLinks in FTaskDialog.Options) then
@@ -2272,7 +3112,8 @@ begin
       CsBtnGroupWidth := CsBtnGroupWidth + TButton(FcsBtnList.Items[i]).Width{ + ButtonSpacing};
     end;
 
-    CsBtnGroupWidth := CsBtnGroupWidth + (FcsBtnList.Count-1) * ButtonSpacing;
+    if (FcsBtnList.Count > 0) then
+      CsBtnGroupWidth := CsBtnGroupWidth + (FcsBtnList.Count-1) * ButtonSpacing;
   end
   else
   begin
@@ -2293,6 +3134,13 @@ begin
     CmBtnGroupWidth := CmBtnGroupWidth + TButton(FcmBtnList.Items[i]).Width{ + ButtonSpacing};
   end;
   CmBtnGroupWidth := CmBtnGroupWidth + (FcmBtnList.Count-1) * ButtonSpacing;
+
+  verifTextWidth := 0;
+  if (FTaskDialog.VerificationText <> '') then
+  begin
+    GetTextSize(Canvas, FTaskDialog.VerificationText, k, l);
+    verifTextWidth := k + FVertSpacing * 2;
+  end;
 
   ButtonGroupWidth := CsBtnGroupWidth + CmBtnGroupWidth;
 
@@ -2323,6 +3171,14 @@ begin
       if (FExpandButton.Height > BtnH) then
         BtnH := FExpandButton.Height;
     end;
+  end;
+
+  if (FTaskDialog.VerificationText <> '') and Assigned(FVerificationCheck) then
+  begin
+    FVerificationCheck.Width := verifTextWidth - FVertSpacing; //ClientWidth - FVerificationCheck.Left - HorzMargin;
+    FVerificationCheck.Top := Y + BtnH;
+    FVerificationCheck.Left := FVertMargin + 3;
+    //X := FVerificationCheck.Left + FVerificationCheck.Width + FVertMargin;
   end;
 
   if not (docommandLinks in FTaskDialog.Options) then
@@ -2361,16 +3217,16 @@ begin
       FWhiteWindowHeight := TButton(FcmBtnList.items[0]).Top{ - (FVertSpacing div 2)};
   end;
 
-  h := h + BtnH;
-  if (BtnH > 0) then
-    y := y + BtnH + FVertSpacing;
-
   if (FTaskDialog.VerificationText <> '') and Assigned(FVerificationCheck) then
   begin
-    FVerificationCheck.Width := ClientWidth - FVerificationCheck.Left - HorzMargin;
-    FVerificationCheck.Top := Y;
-    y := y + FVerificationCheck.Height + VertSpacing;
-    h := h + FVerificationCheck.Height + VertSpacing;
+    h := h + Max(BtnH, FVerificationCheck.Height + VertSpacing);
+    y := y + Max(BtnH + FVertSpacing, FVerificationCheck.Height + VertSpacing);
+  end
+  else
+  begin
+    h := h + BtnH;
+    if (BtnH > 0) then
+      y := y + BtnH + FVertSpacing;
   end;
 
   if (FTaskDialog.Footer <> '') then
@@ -2381,8 +3237,11 @@ begin
       r := Rect(HorzMargin + 20, Y, Width - HorzMargin, Y + 100)
     else
       r := Rect(HorzMargin, Y, Width - HorzMargin, Y + 100);
-      
-    HTMLDrawEx(Canvas, FTaskDialog.Footer, r, nil, x1, y1, -1, -1, 1, true, false, false, true, true, false, true,
+
+    szFooterText := StringReplace(FTaskDialog.Footer,'\n','<br>',[rfReplaceAll]);
+    szFooterText := StringReplace(szFooterText,#10,'<br>',[rfReplaceAll]);    
+
+    HTMLDrawEx(Canvas, szFooterText, r, nil, x1, y1, -1, -1, 1, true, false, false, true, true, false, true,
        1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, FFooterXSize, FFooterYSize, hyperlinks,
        mouselink, re, nil, nil, 0);
 
@@ -2399,6 +3258,9 @@ begin
   ClientHeight := h;
   if (FcmBtnList.Count = 0) and ((docommandLinks in FTaskDialog.Options) or (not (docommandLinks in FTaskDialog.Options) and (FcsBtnList.Count = 0))) then
     FWhiteWindowHeight := Height;
+    
+  if (ExpTextTop > 0) and (doExpandedFooter in FTaskDialog.Options) then
+    FWhiteWindowHeight := ExpTextTop;
 end;
 
 //------------------------------------------------------------------------------
@@ -2414,7 +3276,7 @@ begin
 
   FExpandButton := nil;
   FExpanded := true;
-  FExpandLabel := nil;
+  //FExpandLabel := nil;
   FExpandControlText := '';
   FCollapsControlText := '';
   FcmBtnList := TList.Create;
@@ -2424,6 +3286,7 @@ begin
   FFooterYSize := 0;
   FWhiteWindowHeight := Height;
   FHorzParaMargin := 0;
+  FMinFormWidth := 350;
 end;
 
 //------------------------------------------------------------------------------
@@ -2437,6 +3300,9 @@ end;}
 
 procedure TAdvMessageForm.CustomKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
+  if ((ssAlt in Shift) and (Key = VK_F4)) then
+    Key := 0;
+
   if (Shift = [ssCtrl]) and (Key = Word('C')) then
   begin
     Beep;
@@ -2445,6 +3311,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TAdvMessageForm.WMActivate(var M: TWMActivate);
+begin
+  // only do this when parent form is topmost
+  SetWindowPos( Handle, HWND_TOP, 0,0,0,0, SWP_NOMOVE or SWP_NOSIZE );
+end;
 
 procedure TAdvMessageForm.WriteToClipBoard(Text: String);
 var
@@ -2526,8 +3398,11 @@ begin
     if not Value then
     begin
       FExpandButton.Picture.LoadFromResourceName(HInstance, 'TD_EXP');
+      FExpandButton.Picture.TransparentColor := clFuchsia;
       FExpandButton.PictureHot.LoadFromResourceName(HInstance, 'TD_EXPHOT');
-      FExpandButton.PictureDOWN.LoadFromResourceName(HInstance, 'TD_EXPDOWN');
+      FExpandButton.PictureHot.TransparentColor := clFuchsia;
+      FExpandButton.PictureDown.LoadFromResourceName(HInstance, 'TD_EXPDOWN');
+      FExpandButton.PictureDown.TransparentColor := clFuchsia;
     end;
   end
   else
@@ -2535,8 +3410,11 @@ begin
     if Value then
     begin
       FExpandButton.Picture.LoadFromResourceName(HInstance, 'TD_COLP');
-      FExpandButton.PictureHOT.LoadFromResourceName(HInstance, 'TD_COLPHOT');
-      FExpandButton.PictureDOWN.LoadFromResourceName(HInstance, 'TD_COLPDOWN');
+      FExpandButton.Picture.TransparentColor := clFuchsia;
+      FExpandButton.PictureHot.LoadFromResourceName(HInstance, 'TD_COLPHOT');
+      FExpandButton.PictureHot.TransparentColor := clFuchsia;
+      FExpandButton.PictureDown.LoadFromResourceName(HInstance, 'TD_COLPDOWN');
+      FExpandButton.PictureDown.TransparentColor := clFuchsia;      
     end;
   end;
   FExpanded := Value;
@@ -2558,6 +3436,42 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvMessageForm.DrawExpandedText;
+var
+  r, re: trect;
+  anchor, stripped: string;
+  HyperLinks,MouseLink: Integer;
+  Focusanchor: string;
+  xsize, ysize: Integer;
+  szExpandedText: string;
+begin
+  if not Assigned(FTaskDialog) or (not FExpanded) then
+    Exit;
+
+  R := GetExpTextRect;
+  if (FTaskDialog.ExpandedText <> '') then
+  begin
+
+    if (doHyperlinks in FTaskDialog.Options) then
+    begin
+      szExpandedText := StringReplace(FTaskDialog.ExpandedText,'\n','<br>',[rfReplaceAll]);
+      szExpandedText := StringReplace(szExpandedText,#10,'<br>',[rfReplaceAll]);      
+
+      HTMLDrawEx(Canvas, szExpandedText, R, nil, 0, 0, -1, -1, 1, false, false, false, false, False, false,
+        true, 1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
+        hyperlinks, mouselink, re, nil , nil, 0);
+    end
+    else
+    begin
+      szExpandedText := StringReplace(FTaskDialog.ExpandedText,'\n',#13,[rfReplaceAll]);
+
+      DrawText(Canvas.Handle,PChar(szExpandedText),Length(szExpandedText), R, DT_EXPANDTABS or DT_LEFT or DT_VCENTER or DT_WORDBREAK or DT_NOPREFIX);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvMessageForm.DrawContent;
 var
   r, re: trect;
@@ -2565,6 +3479,7 @@ var
   HyperLinks,MouseLink: Integer;
   Focusanchor: string;
   xsize, ysize: Integer;
+  szContent: string;
 begin
   if not Assigned(FTaskDialog) then
     Exit;
@@ -2572,15 +3487,20 @@ begin
   R := GetContentRect;
   if (FTaskDialog.Content <> '') then
   begin
+
     if (doHyperlinks in FTaskDialog.Options) then
     begin
-      HTMLDrawEx(Canvas, FTaskDialog.Content, R, nil, 0, 0, -1, -1, 1, false, false, false, false, False, false,
+      szContent := StringReplace(FTaskDialog.Content,'\n','<br>',[rfReplaceAll]);
+      szContent := StringReplace(szContent,#10,'<br>',[rfReplaceAll]);
+
+      HTMLDrawEx(Canvas, szContent, R, nil, 0, 0, -1, -1, 1, false, false, false, false, False, false,
         true, 1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
         hyperlinks, mouselink, re, nil , nil, 0);
     end
     else
     begin
-      DrawText(Canvas.Handle,PChar(FTaskDialog.Content),Length(FTaskDialog.Content), R, DT_EXPANDTABS or DT_LEFT or DT_VCENTER or DT_WORDBREAK or DT_NOPREFIX);
+      szContent := StringReplace(FTaskDialog.Content,'\n',#13,[rfReplaceAll]);
+      DrawText(Canvas.Handle,PChar(szContent),Length(szContent), R, DT_EXPANDTABS or DT_LEFT or DT_VCENTER or DT_WORDBREAK or DT_NOPREFIX);
     end;
   end;
 end;
@@ -2607,6 +3527,48 @@ end;
 
 //------------------------------------------------------------------------------
 
+function TAdvMessageForm.GetExpTextRect: TRect;
+var
+  X, Y: Integer;
+begin
+  Result := Rect(-1, -1, -1, -1);
+  if Assigned(FTaskDialog) and FExpanded then
+  begin
+    X := FHorzMargin;
+    if Assigned(FIcon) then
+      X := FIcon.Left + FIcon.Width + FHorzSpacing;
+    {if (Message.Caption <> '') then
+      Y := Message.Top + Message.Height + FVertSpacing
+    else
+      Y := FVertMargin;
+
+    if (FTaskDialog.Content <> '') then
+      y := Y + FContentYSize + FVertSpacing;
+
+    if (doProgressBar in FTaskDialog.Options) then
+    begin
+      if Assigned(FIcon) then
+      begin
+        Y := Max(Y, FIcon.Top + FIcon.Height+3);
+      end;
+
+      if Assigned(FProgressBar) then
+        Y := Y + FProgressBar.Height + FVertSpacing;
+    end;
+
+    if (FTaskDialog.RadioButtons.Count > 0) then
+    begin
+      if (FRadioList.Count > 0) then
+        Y := Y + TRadioButton(FRadioList.Items[FRadioList.Count-1]).Height + FVertSpacing;
+    end;}
+    Y := FExpTextTop;
+
+    Result := Rect(X, Y, ClientWidth - FHorzMargin, Y + FExpTextYSize);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvMessageForm.DrawFooter;
 var
   r, re: trect;
@@ -2615,7 +3577,9 @@ var
   Focusanchor: string;
   xsize, ysize, i: Integer;
   bmp: TBitmap;
+  shieldbmp: TBitmap;
   IconH: THandle;
+  szFooterText: string;
 
 begin
   if not Assigned(FTaskDialog) then
@@ -2635,6 +3599,7 @@ begin
 
     if Assigned(FFooterIcon) then
     begin
+
       IconH := LoadImage(0,FFooterIconID,IMAGE_ICON,16,16, LR_SHARED);
 
       bmp := TBitmap.Create;
@@ -2646,14 +3611,26 @@ begin
       //DrawIcon(bmp.Canvas.Handle,0, 0, IconH);
       //Canvas.StretchDraw(Rect(R.Left, R.Top-2, R.Left+16, R.Top+14), bmp);
 
-      DrawIconEx(bmp.Canvas.Handle, 0, 0, IconH, 16, 16, 0, bmp.Canvas.Brush.Handle, DI_NORMAL); //Replaced DrawIcon
+      if FTaskDialog.FooterIcon = tfiShield then
+      begin
+        shieldbmp := TBitmap.Create;
+        shieldbmp.Handle := LoadBitmap(hInstance, 'TD_SHIELD');
+        bmp.Canvas.StretchDraw(Rect(0,0,16,16),shieldbmp);
+        shieldbmp.Free;
+      end
+      else
+      begin
+        DrawIconEx(bmp.Canvas.Handle, 0, 0, IconH, 16, 16, 0, bmp.Canvas.Brush.Handle, DI_NORMAL); //Replaced DrawIcon
+      end;
       Canvas.Draw(R.Left, R.Top, bmp);
       bmp.Free;
 
       R.Left := R.Left + 20;
     end;
+    szFooterText := StringReplace(FTaskDialog.Footer,'\n','<br>',[rfReplaceAll]);
+    szFooterText := StringReplace(szFooterText,#10,'<br>',[rfReplaceAll]);    
 
-    HTMLDrawEx(Canvas, FTaskDialog.Footer, R, nil, 0, 0, -1, -1, 1, false, false, false, false, False, false,
+    HTMLDrawEx(Canvas, szFooterText, R, nil, 0, 0, -1, -1, 1, false, false, false, false, False, false,
        true, 1.0, clBlue, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
        hyperlinks, mouselink, re, nil , nil, 0);
   end;
@@ -2682,6 +3659,7 @@ var
 begin
   inherited;
   i := FWhiteWindowHeight;
+
   {if (FcmBtnList.Count > 0) then
     i := TButton(FcmBtnList.Items[0]).Top
   else if (FcsBtnList.Count > 0) then
@@ -2707,12 +3685,16 @@ begin
     else
       Canvas.Pen.Style := psSolid;
 
-    Canvas.Pen.Color := clBlack;
-    Canvas.Rectangle(R.Left+1, R.Top+1, R.Right-1, R.Bottom-1);
+    if DRAWBORDER and not IsVista then // only draw on non Vista
+    begin
+      Canvas.Pen.Color := clGray;
+      Canvas.Rectangle(R.Left+1, R.Top+1, R.Right-1, R.Bottom-1);
+    end;
     Canvas.Pen.Style := psSolid;
   end;
 
   DrawContent;
+  DrawExpandedText;
   if Assigned(FTaskDialog) and (FTaskDialog.ExpandedText <> '') and Assigned(FExpandButton) then
   begin
     if not FExpanded then
@@ -2743,7 +3725,7 @@ begin
   Result := '';
   if not Assigned(FTaskDialog) then
     Exit;
-    
+
   AText := '';
   R := GetFooterRect;
   if PtInRect(R, Point(X, Y)) then
@@ -2758,8 +3740,17 @@ begin
   begin
     R := GetContentRect;
     if PtInRect(R, Point(X, y)) then
-      AText := FTaskDialog.Content;
+      AText := FTaskDialog.Content
+    else
+    begin
+      R := GetExpTextRect;
+      if PtInRect(R, Point(X, y)) then
+        AText := FTaskDialog.ExpandedText;
+    end;
   end;
+
+  AText := StringReplace(AText,'\n','<br>',[rfReplaceAll,rfIgnoreCase]);
+  AText := StringReplace(AText,#10,'<br>',[rfReplaceAll,rfIgnoreCase]);
 
   Anchor := '';
   if (AText <> '') then
@@ -2771,26 +3762,38 @@ begin
   end;
 end;
 
+procedure TAdvMessageForm.KeyDown(var Key: Word; Shift: TShiftSTate);
+var
+  s: string;
+begin
+  inherited;
+  if (Key = ord('C')) and (ssCtrl in Shift) then
+  begin
+    // got ctrl-c
+    s := FTaskDialog.FTitle + #13#10;
+    s := s + FTaskDialog.FInstruction + #13#10;
+    s := s + FTaskDialog.FContent;
+    clipboard.Open;
+    clipboard.AsText := s;
+    clipboard.Close;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TAdvMessageForm.MouseDown(Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  Anchor: string;  
+  Anchor: string;
 begin
   inherited;
   Anchor := IsAnchor(X, Y);
   if Anchor <> '' then
   begin
-    if (Pos('://', anchor) > 0) or (pos('mailto:', anchor) > 0) then
-{$IFNDEF TMSDOTNET}
-      ShellExecute(0, 'open', pchar(anchor), nil, nil, SW_NORMAL)
-{$ENDIF}
-{$IFDEF TMSDOTNET}
-      ShellExecute(0, 'open', anchor, '', '', SW_NORMAL)
-{$ENDIF}
-    else
+    if not Assigned(FTaskDialog.OnDialogHyperlinkClick) then
     begin
+      if (Pos('://', anchor) > 0) then
+        VistaShellOpen(0, 'iexplore.exe', Anchor);
     end;
 
     if Assigned(FTaskDialog.OnDialogHyperlinkClick) then
@@ -2833,7 +3836,6 @@ procedure TAdvMessageForm.MouseUp(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 begin
   inherited;
-
 end;
 
 //------------------------------------------------------------------------------
@@ -2938,7 +3940,8 @@ var
   Form: TCustomForm;
 begin
   Form := GetParentForm(Self);
-  if Form <> nil then Form.ModalResult := ModalResult;
+  if Form <> nil then
+    Form.ModalResult := ModalResult;
   inherited;
 end;
 
@@ -2972,16 +3975,74 @@ end;
 procedure TAdvMessageForm.DoClose(var Action: TCloseAction);
 var
   CanClose: Boolean;
+  s: string;
+  a: array[0..255] of char;
+
 begin
   CanClose := True;
+
   if Assigned(FTaskDialog) and Assigned(FTaskDialog.OnDialogClose) then
   begin
     FTaskDialog.OnDialogClose(FTaskDialog, CanClose);
   end;
 
+  case FTaskDialog.InputType of
+  itEdit: FTaskDialog.InputText := FInputEdit.Text;
+  itComboEdit, itComboList: FTaskDialog.InputText := FInputCombo.Text;
+  itDate: FTaskDialog.InputText := DateToStr(FInputDate.Date);
+  itMemo: FTaskDialog.InputText := FInputMemo.Lines.Text;
+  itCustom:
+    begin
+      if Assigned(FTaskDialog.InputControl) then
+      begin
+        GetWindowText(FTaskDialog.InputControl.Handle, a, sizeof(a));
+        s := strpas(a);
+        if Assigned(FTaskDialog.OnDialogInputGetText) then
+        begin
+          s := '';
+          FTaskDialog.OnDialogInputGetText(Self, s);
+        end;
+        FTaskDialog.InputText := s;
+        FTaskDialog.InputControl.Visible := false;
+        FTaskDialog.InputControl.Parent := FOldParent;
+      end;
+    end;
+  end;
+
   if not CanClose then
     Action := caNone;
   inherited;
+end;
+
+procedure TAdvMessageForm.DoShow;
+var
+  defBtn: integer;
+begin
+  inherited;
+
+  defBtn := -1;
+  if FTaskDialog.DefaultButton <> -1 then
+  begin
+    if (FTaskDialog.DefaultButton - 100 >= 0) and (FTaskDialog.DefaultButton - 100 < FTaskDialog.CustomButtons.Count) then
+       defBtn := FTaskDialog.DefaultButton - 100;
+  end;
+
+  if defBtn <> -1 then
+  begin
+    if (docommandLinks in FTaskDialog.Options) then
+      TTaskDialogButton(FcsBtnList[defBtn]).SetFocus
+    else
+      TCustomControl(FcsBtnList[defBtn]).SetFocus;
+  end;
+
+  case FTaskDialog.InputType of
+  itEdit: FInputEdit.SetFocus;
+  itComboEdit, itComboList: FInputCombo.SetFocus;
+  itDate: FInputDate.SetFocus;
+  itMemo: FInputMemo.SetFocus;
+  itCustom: FTaskDialog.InputControl.SetFocus;
+  end;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -2992,7 +4053,7 @@ begin
     Exit;
 
   if Assigned(FTaskDialog) and Assigned(FTaskDialog.onDialogButtonClick) then
-    FTAskDialog.OnDialogButtonClick(FTaskDialog, FcsBtnList.IndexOf(Sender)+100);
+    FTaskDialog.OnDialogButtonClick(FTaskDialog, FcsBtnList.IndexOf(Sender) + 100);
 end;
 
 //------------------------------------------------------------------------------
@@ -3003,7 +4064,7 @@ var
 begin
   if Assigned(FTaskDialog) and (docommandLinks in FTaskDialog.Options) then
   begin
-    for I:= 0 to FcsBtnList.Count-1 do
+    for I := 0 to FcsBtnList.Count-1 do
     begin
       if (TControl(FcsBtnList[I]) is TTaskDialogButton) and IsAccel(Message.CharCode, TTaskDialogButton(FcsBtnList[I]).Caption) and CanFocus then
       begin
@@ -3011,19 +4072,385 @@ begin
         Message.Result := 1;
         Exit;
       end;
-    end;  
+    end;
   end;
+
+  if (FTaskDialog.ExpandControlText <> '') and Expanded then
+  begin
+    if IsAccel(Message.CharCode, FTaskDialog.FExpandControlText) then
+    begin
+      OnExpandButtonClick(Self);
+    end;
+  end
+  else
+    if (FTaskDialog.CollapsControlText <> '') and not Expanded then
+      if IsAccel(Message.CharCode, FTaskDialog.FCollapsControlText) then
+      begin
+        OnExpandButtonClick(Self);
+      end;
+
   inherited;
+
+  if Assigned(FTaskDialog) and (doAllowDialogCancel in FTaskDialog.Options) and (Message.CharCode = VK_ESCAPE) then
+  begin
+    Self.Close;
+  end;
+end;
+
+
+function CoreShowmessage(
+           const Title,    // dialog window title
+           Instruction,    // the part of the message shown in blue
+           content,        // additional message if desired
+           verify: string; // ex Do Not Show this Again
+           tiIcon: tTaskDialogIcon): boolean;
+var
+  td:  TCustomAdvTaskDialog;
+begin
+  td := TCustomAdvTaskDialog.Create(application);
+  td.Title := Title;
+  td.Instruction := instruction;
+  td.Content := Content;
+  td.VerificationText := verify;
+  td.icon := tiIcon;
+  td.execute;
+  result := (verify <> '') and td.VerifyResult;
+  td.free;
+end {CoreShowmessage};
+
+//=====================================================================
+// This returns false unless verify is not blank AND the verify checkbox 
+// was not checked.
+//---------------------------------------------------------------------
+function AdvShowMessage(
+           const Title,    // dialog window title
+           Instruction,    // the part of the message shown in blue
+           content,        // additional message if desired
+           verify: string; // ex Do Not Show this Again
+           tiIcon: tTaskDialogIcon): boolean; overload;
+begin
+  result := coreShowmessage(title, instruction,content,verify,tiIcon);
+end { tmsShowMessage };
+
+function AdvShowmessage(const Instruction: string):boolean; overload;
+begin // Only instruction . tiInformation
+  result := CoreShowMessage('',Instruction,'','',tiInformation);
+end;
+
+function AdvShowmessage(const Title, Instruction: string):boolean; overload;
+begin // title, instruction tiInformation
+  result := CoreShowMessage(Title,Instruction,'','',tiInformation);
+end;
+
+function AdvShowmessage(const Title, Instruction: string;tiIcon: TTaskDialogIcon): boolean; overload;
+begin
+  result := CoreShowMessage(Title,Instruction,'','',tiIcon);
+end;
+
+function AdvShowMessageFmt(const Instruction: string; Parameters: array of const): boolean;
+begin
+  Result := AdvShowmessage(Format(Instruction,Parameters));
+end;
+
+function AdvMessageBox(hWnd: HWND; lpInstruction, lpTitle: PChar; flags: UINT): Integer;
+const
+  MB_CANCELTRYCONTINUE = $00000006;  // missing from windows unit so probably never be used
+var
+  td:   TCustomAdvTaskDialog;
+  res:  integer;
+  def:  integer;
+  num:  integer;
+  task: tCommonButton;
+  txt:  string;
+begin
+  td := TCustomAdvTaskDialog.Create(application);
+  td.Title := lptitle;
+  td.instruction := lpInstruction;
+
+  // extract the icon from flags
+  case MB_ICONMASK and flags of
+    MB_ICONEXCLAMATION: td.Icon := tiWarning;     // Exclamation mark= MB_ICONWARNING
+    MB_ICONINFORMATION: td.Icon := tiInformation; // Circled I = MB_ICONASTERISK
+    MB_ICONQUESTION:    td.Icon := tiQuestion;    // Question (api says don't use any more
+    MB_ICONSTOP:        td.Icon := tiError;       //Stop sign = MB_ICONERROR & MB_ICONHAND
+  end;
+
+  // extract the buttons from flags
+  //   MessageBox() Flags from Windows help file
+  //  MB_ABORTRETRYIGNORE
+  //  The message box contains three push buttons: Abort, Retry, and Ignore.
+  //  MB_CANCELTRYCONTINUE
+  //  Microsoft Windows 2000/XP: The message box contains three push buttons: Cancel, Try Again, Continue. Use this message box type instead of MB_ABORTRETRYIGNORE.
+  //  MB_HELP
+  //  Windows 95/98/Me, Windows NT 4.0 and later: Adds a Help button to the message box. When the user clicks the Help button or presses F1, the system sends a WM_HELP message to the owner.
+  //  MB_OK
+  //  The message box contains one push button: OK. This is the default.
+  //  MB_OKCANCEL
+  //  The message box contains two push buttons: OK and Cancel.
+  //  MB_RETRYCANCEL
+  //  The message box contains two push buttons: Retry and Cancel.
+  //  MB_YESNO
+  //  The message box contains two push buttons: Yes and No.
+  //  MB_YESNOCANCEL
+  //  The message box contains three push buttons: Yes, No, and Cancel.
+  td.Commonbuttons := [];
+  txt := '';
+  case MB_TYPEMASK and flags of
+    MB_ABORTRETRYIGNORE:  txt := 'Abort'#10'Retry'#10'Ignore';
+    MB_CANCELTRYCONTINUE: txt :=  'Cancel'#10'Try Again'#10'Continue';
+    MB_OK:                td.Commonbuttons := [cbOK];
+    MB_RETRYCANCEL:       txt := 'Retry'#10'Cancel';
+    MB_OKCANCEL:          td.CommonButtons := [cbOK,cbCancel];
+    MB_YESNOCANCEL:       td.Commonbuttons := [cbYes, cbNO, cbCancel];
+    MB_YESNO:             td.CommonButtons := [cbYes, cbNO];
+  end;
+
+
+
+  if MB_HELP and flags <> 0 then
+  begin
+    if length(txt) > 0 then
+      txt := txt + #10;
+    txt := txt+'Help';
+  end;
+  if txt <> '' then
+    td.CustomButtons.text := txt;
+
+  // deal with mbDefbutton1, 2, 3 & 4
+  def := 0;
+  if mb_DefButton1 and flags <> 0 then
+    def := 1;
+  if mb_DefButton2 and flags <> 0 then
+    def := 2;
+  if mb_DefButton3 and flags <> 0 then
+    def := 3;
+  if mb_DefButton4 and flags <> 0 then
+    def := 4;
+  if def > 0 then
+  begin // have to set default button
+    num := td.CustomButtons.count;
+    if num <= def  then
+      td.DefaultButton := 99 + def
+    else
+    begin
+      // I think this compiles on supported delphi compilers
+      for task := cbOK to cbClose do
+      begin
+        if task in td.CommonButtons then
+        begin
+          inc(num);
+          if num = def then
+          begin
+            case task of
+              cbOK:     td.Defaultbutton := idOK;
+              cbYes:    td.Defaultbutton := idYES;
+              cbNo:     td.Defaultbutton := idNO;
+              cbCancel: td.Defaultbutton := idCANCEL;
+              cbRetry:  td.Defaultbutton := idRETRY;
+              cbClose:  td.Defaultbutton := idCLOSE;
+            end;
+            break;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  if (cbCancel in td.CommonButtons) then
+    td.Options := td.Options + [doAllowDialogCancel];
+
+  // Deal with mbAppModal, mbSystemModal and mbtaskModal
+  //   not sure what to do with these (I personally haven't used them.
+  result := 0;
+  res := td.Execute;
+  case res of
+    1: result := IDOK;
+    2: result := IDCANCEL;
+    3: result := IDABORT;
+    4: result := IDRETRY;
+    5: result := IDIGNORE;
+    6: result := IDYES;
+    7: result := IDNO;
+    else
+    begin
+      case MB_TYPEMASK and flags of
+        MB_ABORTRETRYIGNORE:
+          case res of
+           100:  result := IDABORT;
+           101:  result := IDRETRY;
+           102:  result := IDIGNORE;
+          end;
+        MB_CANCELTRYCONTINUE:
+          case res of
+           100:  result := IDCANCEL;
+           {$IFDEF DELPHI9_LVL}
+           101:  result := IDTRYAGAIN;
+           102:  result := IDCONTINUE;
+           {$ENDIF}
+          end;
+        MB_RETRYCANCEL:
+          case res of
+            100: result := IDRETRY;
+            101: result := IDCANCEL;
+          end;
+      end;
+    end;
+  end;
+  td.Free;
+end;
+
+function AdvMessageDlg(const Instruction: string; DlgType: TMsgDlgType;
+  Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer; overload;
+begin
+  // passes mbHelp as the default button since we can't deal with help anyway
+  Result := AdvMessageDlg(Instruction,Dlgtype,Buttons,HelpCtx,mbHelp);
+end;
+
+function AdvMessageDlg(const Instruction: string; DlgType: TMsgDlgType;
+  Buttons: TMsgDlgButtons; HelpCtx: Longint; DefaultButton: TMsgDlgBtn): Integer; overload;
+var
+  td:  TCustomAdvTaskDialog;
+  ray: array[0..3] of integer;
+  res: integer;
+begin
+  td := TCustomAdvTaskDialog.Create(Application);
+  td.Instruction := instruction;
+
+  case DlgType of
+    mtWarning:
+      begin
+        td.Icon := tiWarning;
+        td.Title := 'Warning';
+      end;
+    mtError:
+      begin
+        td.Icon := tiError;
+        td.Title := 'Error';
+      end;
+    mtInformation:
+      begin
+        td.Icon := tiInformation;
+        td.Title := 'Information';
+      end;
+    mtConfirmation:
+      begin
+        td.Icon := tiShield;
+        td.Title := 'Confirm';
+      end;
+  end;
+
+  fillchar(ray,sizeof(ray),0);
+  td.CommonButtons := [];
+
+//  TMsgDlgBtn = (mbYes, mbNo, mbOK, mbCancel, mbAbort, mbRetry, mbIgnore,
+//    mbAll, mbNoToAll, mbYesToAll, mbHelp);
+
+  if (mbYes in Buttons) then
+    td.CommonButtons := td.CommonButtons + [cbYes];
+
+  if (mbNo in Buttons) then
+    td.CommonButtons := td.CommonButtons + [cbNo];
+
+  if (mbOK in Buttons) then
+    td.CommonButtons := td.CommonButtons + [cbOK];
+
+  if (mbCancel in Buttons) then
+    td.CommonButtons := td.CommonButtons + [cbCancel];
+
+  if (mbAbort in Buttons) then
+    td.CommonButtons := td.CommonButtons + [cbClose];
+
+  if (mbRetry in Buttons) then
+    td.CommonButtons := td.CommonButtons + [cbRetry];
+
+
+  if (mbIgnore in Buttons) then
+  begin
+    td.CustomButtons.Add('Ignore');
+    ray[0] := mrIgnore;
+  end;
+
+  if (mbAll in Buttons) then
+  begin
+    ray[td.custombuttons.Count] := mrALL;
+    td.CustomButtons.Add('All');
+  end;
+
+  if (mbNoToAll in buttons) then
+  begin
+    ray[td.custombuttons.Count] := mrNoToAll;
+    td.CustomButtons.add('No to All');
+  end;
+
+  if (mbYesToAll in buttons) then
+  begin
+    ray[td.custombuttons.Count] := mrYesToAll;
+    td.Custombuttons.Add('Yes to All');
+  end;
+
+  case DefaultButton of
+  mbYes: td.DefaultButton := integer(mrYes);
+  mbNo: td.DefaultButton := integer(mrNo);
+  mbCancel: td.DefaultButton := integer(mrCancel);
+  mbOK: td.DefaultButton := integer(mrOK);
+  mbAbort: td.DefaultButton := integer(mrAbort);
+  mbRetry: td.DefaultButton := integer(mrRetry);
+  mbIgnore: td.DefaultButton := integer(mrIgnore);
+  end;
+
+
+  result := 0;
+  res := td.Execute;
+  case res of
+  1: Result := mrOk;
+  2: Result := mrCancel;
+  3: Result := mrAbort;
+  4: Result := mrRetry;
+  6: Result := mrYes;
+  7: Result := mrNo;
+  else
+    if (res > 99) and (res < 100+high(ray)) then
+      result := ray[res-100];
+  end;
+end;
+
+function AdvInputQueryDlg(ACaption, APrompt: string; var Value: string):boolean;
+var
+  AID: TAdvInputTaskDialog;
+begin
+  AID := TAdvInputTaskDialog.Create(Application);
+  AID.Instruction := APrompt;
+  AID.Title := ACaption;
+  AID.InputText := Value;
+  AID.InputType := itEdit;
+  AID.CommonButtons := [cbOK, cbCancel];
+  Result := AID.Execute = mrOK;
+  Value := AID.InputText;
 end;
 
 //------------------------------------------------------------------------------
 
 procedure Register;
 begin
-  RegisterComponents('TMS',[TAdvTaskDialog]);
+  RegisterComponents('TMS',[TAdvTaskDialog, TAdvInputTaskDialog]);
 end;
 
 //------------------------------------------------------------------------------
+
+
+{ TAdvInputTaskDialog }
+
+constructor TAdvInputTaskDialog.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FInputType := itEdit;
+  Options := Options + [doAllowDialogCancel];  
+end;
+
+function TAdvInputTaskDialog.Execute: integer;
+begin
+  Result := AdvMessageDlgPos(Self, -1, -1);
+end;
 
 
 initialization
@@ -3033,12 +4460,22 @@ initialization
   ButtonCaptions[cbNo] := @SMsgDlgNo;
   ButtonCaptions[cbCancel] := @SMsgDlgCancel;
   ButtonCaptions[cbRetry] := @SMsgDlgRetry;
-  ButtonCaptions[cbClose] := @SMsgDlgAbort; 
+  ButtonCaptions[cbClose] := @SMsgDlgAbort;
 
   Captions[tiBlank] := nil;
   Captions[tiWarning] := @SMsgDlgWarning;
   Captions[tiQuestion] := @SMsgDlgConfirm;
   Captions[tiError] := @SMsgDlgError;
   Captions[tiShield] := @SMsgDlgInformation;
+
+
+{$IFDEF FREEWARE}
+   if  (FindWindow('TApplication', nil) = 0) OR
+       (FindWindow('TAppBuilder', nil) = 0) then
+   begin
+     MessageBox(0,'Application uses trial version of TMS components','Info',MB_OK);
+   end
+{$ENDIF}
+
 
 end.

@@ -1,4 +1,7 @@
 unit UXlsHyperLink;
+{$IFDEF LINUX}{$INCLUDE ../FLXCOMPILER.INC}{$ELSE}{$INCLUDE ..\FLXCOMPILER.INC}{$ENDIF}
+{$IFDEF LINUX}{$INCLUDE ../FLXCONFIG.INC}{$ELSE}{$INCLUDE ..\FLXCONFIG.INC}{$ENDIF}
+
 interface
 uses Classes, SysUtils, UXlsBaseRecords, XlsMessages, UFlxMessages, UXlsBaseList;
 
@@ -46,8 +49,8 @@ type
     property LastCol: Integer read GetLastCol write SetLastCol;
     property OptionFlags: Integer read GetOptionFlags write SetOptionFlags;
 
-    procedure SaveToStream(const Workbook: TStream);override;
-    procedure SaveRangeToStream(const Workbook: TStream; const CellRange: TXlsCellRange);
+    procedure SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);override;
+    procedure SaveRangeToStream(const Workbook: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
     function TotalRangeSize(const CellRange: TXlsCellRange): Integer;
 
     function TotalSize: Integer;override;
@@ -191,25 +194,25 @@ begin
   end; //finally
 end;
 
-procedure THLinkRecord.SaveToStream(const Workbook: TStream);
+procedure THLinkRecord.SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);
 begin
-  inherited SaveToStream(Workbook);
+  inherited SaveToStream(Workbook, NeedsRecalc);
   if (Hint <> nil) then
   begin
     Hint.FirstRow := FirstRow;
     Hint.FirstCol := FirstCol;
     Hint.LastRow := LastRow;
     Hint.LastCol := LastCol;
-    Hint.SaveToStream(Workbook);
+    Hint.SaveToStream(Workbook, NeedsRecalc);
   end;
 end;
 
-procedure THLinkRecord.SaveRangeToStream(const Workbook: TStream; const CellRange: TXlsCellRange);
+procedure THLinkRecord.SaveRangeToStream(const Workbook: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 begin
   if ((((Self.FirstRow > CellRange.Bottom) or (Self.LastRow < CellRange.Top))
     or (Self.FirstCol > CellRange.Right)) or (Self.LastCol < CellRange.Left)) then
     exit;
-  SaveToStream(Workbook);
+  SaveToStream(Workbook, NeedsRecalc);
 end;
 
 function THLinkRecord.TotalRangeSize(const CellRange: TXlsCellRange): Integer;
@@ -679,7 +682,7 @@ begin
   Sort;
   for i := 0 to Count-1 do
   begin
-    Items[i].SaveToStream(DataStream);
+    Items[i].SaveToStream(DataStream, false);
   end;
 end;
 
@@ -690,7 +693,7 @@ begin
   Sort;
   for i := 0 to Count-1 do
   begin
-    Items[i].SaveRangeToStream(DataStream, CellRange);
+    Items[i].SaveRangeToStream(DataStream, CellRange, false);
   end;
 end;
 

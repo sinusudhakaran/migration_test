@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvTabSet component                                                      }
 { for Delphi & C++Builder                                                   }
-{ version 1.5                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                               }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -39,8 +38,8 @@ const
   ScrollWidth = 13;
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 5; // Minor version nr.
-  REL_VER = 2; // Release nr.
+  MIN_VER = 7; // Minor version nr.
+  REL_VER = 1; // Release nr.
   BLD_VER = 0; // Build nr.
 
   // version history
@@ -53,6 +52,11 @@ const
   // 1.5.0.2 : Fixed issue with TabRearrange and OnDragOver
   // 1.5.1.0 : New : event OnChanged added
   // 1.5.2.0 : New : event OnDrawTabSetBackground
+  // 1.5.5.0 : New : RealToDisplTabIndex , DisplToRealTabIndex functions added
+  // 1.6.0.0 : New : TAdvMDITabSet component added
+  // 1.6.1.0 : Fixed : issue with toggling tab visible property
+  // 1.7.0.0 : New : ClosePosition property added
+  // 1.7.1.0 : New : function ItemIndex added that returns index from tab starting from displayed position
 
 type
   TScrollBtn = (sbLeft, sbRight);
@@ -122,11 +126,11 @@ type
     property ScrollPosition: TScrollPosition read FScrollPosition write SetScrollPosition default spHorizontal;
   end;
 
-  TAdvTabSet = class;
+  TAdvCustomTabSet = class;
 
   TTabList = class(TStringList)
   private
-    Tabs: TAdvTabSet;
+    Tabs: TAdvCustomTabSet;
   public
     procedure Insert(Index: Integer; const S: string); override;
     procedure Delete(Index: Integer); override;
@@ -150,6 +154,7 @@ type
   TAdvTabPosition = (pLeft, pRight, pTop, pBottom);
   TCloseButtonPos = (cbTabs, cbTabSet);
   TShowScroller  = (ssAuto, ssAlways);
+  TClosePosition = (cpLeft, cpRight);
 
   TMeasureTabEvent = procedure(Sender: TObject; Index: Integer;
     var TabWidth: Integer) of object;
@@ -187,6 +192,7 @@ type
     FImageIndex: Integer;
     FIndexInAdvTabSet: integer;
     FEnable: boolean;
+    FVisIndex: Integer;
     procedure SetCaption(const Value: string);
     procedure SetVisible(const Value: Boolean);
     procedure SetShowClose(const Value: Boolean);
@@ -200,8 +206,12 @@ type
     procedure SetImageIndex(const Value: Integer);
     procedure SetEnable(const Value: boolean);
   protected
+    FChildForm: TForm;
+    FOnActivateForm: TNotifyEvent;
+    FOnDestroyForm: TNotifyEvent;
     function GetDisplayName: string; override;
     procedure SetIndex(Value: Integer); override;
+    property VisIndex: Integer read FVisIndex;
   public
     function MoveItemInTabSetTo(ItemIndexOfTabSet: integer): Boolean;
     constructor Create(Collection: TCollection); override;
@@ -224,15 +234,16 @@ type
 
   TTabCollection = class(TCollection)
   private
-    FOwner: TAdvTabSet;
+    FOwner: TAdvCustomTabSet;
     function GetItem(Index: Integer): TTabCollectionItem;
     procedure SetItem(Index: Integer; const Value: TTabCollectionItem);
   protected
     procedure UpdateItemsIndexesInTabSet;
+    procedure ValidateVisTabIndexes;
   public
-    constructor Create(AOwner: TAdvTabSet);
+    constructor Create(AOwner: TAdvCustomTabSet);
     property Items[Index: Integer]: TTabCollectionItem read GetItem write SetItem; default;
-    property AdvTabSet: TAdvTabSet read FOwner;
+    property AdvTabSet: TAdvCustomTabSet read FOwner;
     function Add: TTabCollectionItem;
     function Insert(Index: Integer): TTabCollectionItem;
     function GetOwner: TPersistent; override;
@@ -255,7 +266,7 @@ type
     property RightMargin: TMarginSize index 2 read FRightMargin write SetMargin;
   end;
 
-  TAdvTabSet = class(TCustomControl)
+  TAdvCustomTabSet = class(TCustomControl)
   private
     { property instance variables }
     FStartMargin: Integer;
@@ -332,6 +343,7 @@ type
     FCloseGlyph: TBitmap;
     FDisableCloseGlyph: TBitmap;
     FFreeOnClose: Boolean;
+    FClosePosition: TClosePosition;
 
     { property access methods }
     procedure SetSelectedColor(Value: TColor);
@@ -407,6 +419,7 @@ type
     function GetVersionNr: Integer;
     procedure CloseGlyphOnChange(Sender: TObject);
     procedure SetCloseGlyph(const Value: TBitmap);
+    procedure SetClosePosition(const Value: TClosePosition);
   protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
@@ -435,45 +448,23 @@ type
     {$IFDEF TMSDOTNET}
     procedure Click; override;
     {$ENDIF}
-  public
-    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    function ItemAtPos(Pos: TPoint): Integer;
-    function ItemRect(Item: Integer): TRect;
-    function ItemWidth(Index: Integer): Integer;
-    function MinClientRect: TRect; overload;
-    function MinClientRect(IncludeScroller: Boolean): TRect; overload;
-    function MinClientRect(TabCount: Integer; IncludeScroller: Boolean = False): TRect; overload;
-    procedure SelectNext(Direction: Boolean);
 
-    procedure DragDrop(Source: TObject; X, Y: Integer); override;
+    procedure UpdateScroller;
+    procedure ChangeActiveTab(Value: Integer); virtual;
+    procedure BeforeCloseTab(Tab: TTabCollectionItem; var CloseAction: TCloseAction); virtual;
+    function CanCloseTab(TabIdx: Integer; var CloseAction: TCloseAction): Boolean; virtual;
 
-    property Canvas;
-    property FirstIndex: Integer read FFirstIndex write SetFirstIndex default 0;
-    property VersionNr: Integer read GetVersionNr;
-  published
-    property Align;
-    property Anchors;
     property AutoScroll: Boolean read FAutoScroll write SetAutoScroll default True;
     property ActiveFont: TFont read FActiveFont write SetActiveFont;
     property BackgroundColor: TColor read FBackgroundColor write SetBackgroundColor default clBtnFace;
     property CloseGlyph: TBitmap read FCloseGlyph write SetCloseGlyph;
-    property Constraints;
-    property DragCursor;
-    property DragKind;
-    property DragMode;
-    property Enabled;
     property EndMargin: Integer read FEndMargin write SetEndMargin default 5;
-    property Font;
-    property ParentShowHint;
-    property PopupMenu;
-    property ShowHint;
     property StartMargin: Integer read FStartMargin write SetStartMargin default 5;
     property SelectedColor: TColor read FSelectedColor write SetSelectedColor default clBtnFace;
     property SoftTop: Boolean read FSoftTop write SetSoftTop default False;
 
     property AdvTabs: TTabCollection read FAdvTabs write FAdvTabs;
+    property ClosePosition: TClosePosition read FClosePosition write SetClosePosition default cpLeft;
     property FreeOnClose: Boolean read FFreeOnClose write FFreeOnClose;
     property SelectedColorTo: TColor read FSelectedColorTo write SetSelectedColorTo default clNone;
     property UnSelectedColorTo: TColor read FUnSelectedColorTo write SetUnSelectedColorTo default clNone;
@@ -494,24 +485,103 @@ type
     property TabPosition: TAdvTabPosition read FTabPosition write SetTabPosition default pTop;
     property CloseButtonAt: TCloseButtonPos read FCloseButtonAt write SetCloseButtonAt default cbTabs;
     property TabRearrange: Boolean read FTabRearrange write FTabRearrange default false;
-    property OnTabMoved: TTabMovedEvent read FOnTabMoved write FOnTabMoved;
-    property OnTabClose: TTabCloseEvent read FOnTabClose write FOnTabClose;
-    property OnCanClose: TCanCloseEvent read FOnCanClose write FOnCanClose;
     property ShowScroller: TShowScroller read FShowScroller write SetShowScroller default ssAlways;
     property LowerSelected: integer read FLowerSelected write SetLowerSelected default 2;
-    property Version: string read GetVersion write SetVersion;
-
     property TabHeight: Integer read FOwnerDrawHeight write SetTabHeight default 20;
     property TabIndex: Integer read FTabIndex write SetTabIndex default -1;
     property UnselectedColor: TColor read FUnselectedColor write SetUnselectedColor default clWindow;
-    property Visible;
     property VisibleTabs: Integer read FVisibleTabs;
-    property OnClick;
+    property OnTabMoved: TTabMovedEvent read FOnTabMoved write FOnTabMoved;
+    property OnTabClose: TTabCloseEvent read FOnTabClose write FOnTabClose;
+    property OnCanClose: TCanCloseEvent read FOnCanClose write FOnCanClose;
     property OnChange: TTabChangeEvent read FOnChange write FOnChange;
     property OnChanged: TTabChangedEvent read FOnChanged write FOnChanged;
+    property OnMeasureTab: TMeasureTabEvent read FOnMeasureTab write FOnMeasureTab;
+    property OnDrawTabSetBackground: TDrawTabSetBackgroundEvent read FOnDrawTabSetBackground write FOnDrawTabSetBackground;
+  public
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function ItemAtPos(Pos: TPoint): Integer;
+    function ItemRect(Item: Integer): TRect;
+    function ItemIndex(Pos: integer): integer;
+    function ItemWidth(Index: Integer): Integer;
+    function MinClientRect: TRect; overload;
+    function MinClientRect(IncludeScroller: Boolean): TRect; overload;
+    function MinClientRect(TabCount: Integer; IncludeScroller: Boolean = False): TRect; overload;
+    procedure SelectNext(Direction: Boolean);
+    function DisplToRealTabIndex(tab: integer): integer;
+    function RealToDisplTabIndex(tab: integer): integer;
+
+    procedure DragDrop(Source: TObject; X, Y: Integer); override;
+
+    property Canvas;
+    property FirstIndex: Integer read FFirstIndex write SetFirstIndex default 0;
+    property VersionNr: Integer read GetVersionNr;
+  published
+    property Version: string read GetVersion write SetVersion;
+  end;
+
+  TAdvTabSet = class(TAdvCustomTabSet)
+  published
+    property Align;
+    property Anchors;
+    property AutoScroll;
+    property ActiveFont;
+    property BackgroundColor;
+    property CloseGlyph;
+    property ClosePosition;
+    property Constraints;
+    property DragCursor;
+    property DragKind;
+    property DragMode;
+    property Enabled;
+    property EndMargin;
+    property Font;
+    property ParentShowHint;
+    property PopupMenu;
+    property ShowHint;
+    property StartMargin;
+    property SelectedColor;
+    property SoftTop;
+
+    property AdvTabs;
+    property FreeOnClose;
+    property SelectedColorTo;
+    property UnSelectedColorTo;
+    property TextColor;
+    property TabBorderColor;
+    property TabBackGround;
+    property TabBackGroundSelected;
+    property GradientDirection;
+    property HoverGradientDirection;
+    property TabHoverColor;
+    property TabHoverColorTo;
+    property TabHoverBorder;
+    property TabMargin;
+    property TabOverlap;
+    property ShowFocus;
+    property Images;
+    property TabStyle;
+    property TabPosition;
+    property CloseButtonAt;
+    property TabRearrange;
+    property ShowScroller;
+    property LowerSelected;
+    property TabHeight;
+    property TabIndex;
+    property UnselectedColor;
+    property Visible;
+    property VisibleTabs;
+
+    property OnTabMoved;
+    property OnTabClose;
+    property OnCanClose;
+    property OnClick;
+    property OnChange;
+    property OnChanged;
     property OnDragDrop;
     property OnDragOver;
-    //property OnDrawTab: TDrawTabEvent read FOnDrawTab write FOnDrawTab;
     property OnEndDock;
     property OnEndDrag;
     property OnEnter;
@@ -519,14 +589,110 @@ type
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
-    property OnMeasureTab: TMeasureTabEvent read FOnMeasureTab write FOnMeasureTab;
+    property OnMeasureTab;
     property OnStartDock;
     property OnStartDrag;
-    property OnDrawTabSetBackground: TDrawTabSetBackgroundEvent read FOnDrawTabSetBackground write FOnDrawTabSetBackground;
+    property OnDrawTabSetBackground;
+  end;
+
+  TAdvMDITabSet = class(TAdvCustomTabSet)
+  private
+    FInternalDelete: Boolean;
+    function GetAdvTabCount: integer;
+    procedure OnChildFormActivate(Sender: TObject);
+    procedure OnChildFormDestroy(Sender: TObject);
+  protected
+    function GetAdvTabs(index: integer): TTabCollectionItem;
+    procedure Change;
+    procedure ChangeActiveTab(Value: Integer); override;
+    procedure BeforeCloseTab(Tab: TTabCollectionItem; var CloseAction: TCloseAction); override;
+    function CanCloseTab(TabIdx: Integer; var CloseAction: TCloseAction): Boolean; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    function AddTab(ChildForm: TForm): TTabCollectionItem;
+    function GetChildForm(Tab: TTabCollectionItem): TForm;
+
+    property AdvTabCount: integer read GetAdvTabCount;
+    property AdvTab[index: integer]: TTabCollectionItem read GetAdvTabs;
+    function GetTab(AChild: TForm): TTabCollectionItem;
+    property TabIndex;
+  published
+    property Align;
+    property Anchors;
+    property AutoScroll;
+    property ActiveFont;
+    property BackgroundColor;
+    property CloseGlyph;
+    property ClosePosition;
+    property Constraints;
+    property DragCursor;
+    property DragKind;
+    property DragMode;
+    property Enabled;
+    property EndMargin;
+    property Font;
+    property ParentShowHint;
+    property PopupMenu;
+    property ShowHint;
+    property StartMargin;
+    property SelectedColor;
+    property SoftTop;
+
+    //property AdvTabs;
+    //property FreeOnClose;
+    property SelectedColorTo;
+    property UnSelectedColorTo;
+    property TextColor;
+    property TabBorderColor;
+    property TabBackGround;
+    property TabBackGroundSelected;
+    property GradientDirection;
+    property HoverGradientDirection;
+    property TabHoverColor;
+    property TabHoverColorTo;
+    property TabHoverBorder;
+    property TabMargin;
+    property TabOverlap;
+    property ShowFocus;
+    property Images;
+    property TabStyle;
+    property TabPosition;
+    property CloseButtonAt;
+    property TabRearrange;
+    property ShowScroller;
+    property LowerSelected;
+    property TabHeight;
+    property UnselectedColor;
+    property Visible;
+    property VisibleTabs;
+
+    property OnTabMoved;
+    property OnTabClose;
+    property OnCanClose;
+    property OnClick;
+    property OnChange;
+    property OnChanged;
+    property OnDragDrop;
+    property OnDragOver;
+    property OnEndDock;
+    property OnEndDrag;
+    property OnEnter;
+    property OnExit;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnMeasureTab;
+    property OnStartDock;
+    property OnStartDrag;
+    property OnDrawTabSetBackground;
   end;
 
 implementation
-uses Consts, SysUtils;
+
+uses
+  Consts, SysUtils;
 
 
 const
@@ -1502,6 +1668,10 @@ begin
   FVisible:= true;
   FEnable:= true;
 
+  FChildForm := nil;
+  FOnActivateForm := nil;
+  FOnDestroyForm := nil;
+
   FIndexInAdvTabSet:= TTabCollection(Collection).AdvTabSet.Tabs.Add(FCaption);
   FCaption := FCaption + inttostr(FIndexInAdvTabSet + 1);
   DisplayName:= FCaption;
@@ -1523,6 +1693,7 @@ begin
 
   TTabCollection(Collection).AdvTabSet.TabIndex := 0;
   TTabCollection(Collection).AdvTabSet.AdjustTabWidth;
+  FVisIndex := Index;
   //TTabCollection(Collection).AdvTabSet.Invalidate;
 end;
 
@@ -1591,7 +1762,8 @@ begin
   FCaption := Value;
   TTabCollection(Collection).AdvTabSet.Tabs[FIndexInAdvTabSet{Index}]:= Value;
   TTabCollection(Collection).AdvTabSet.AdjustTabWidth;
-  TTabCollection(Collection).AdvTabSet.Invalidate;
+  TTabCollection(Collection).AdvTabSet.UpdateScroller;
+  //TTabCollection(Collection).AdvTabSet.Invalidate;
 end;
 
 //------------------------------------------------------------------------------
@@ -1640,22 +1812,34 @@ begin
     FVisible := Value;
     if Value then
     begin
-      FIndexInAdvTabSet:= TTabCollection(Collection).AdvTabSet.Tabs.Add(FCaption);
+      i := FIndexInAdvTabSet; //TTabCollection(Collection).AdvTabSet.RealToDisplTabIndex(Index);
+      TTabCollection(Collection).AdvTabSet.Tabs.Insert(i,FCaption);
+      FIndexInAdvTabSet := i;
+
+      //FIndexInAdvTabSet:= TTabCollection(Collection).AdvTabSet.Tabs.Add(FCaption);
       {$IFNDEF TMSDOTNET}
       TTabCollection(Collection).AdvTabSet.DuplicateTabs.InsertObject(FIndexInAdvTabSet,FCaption,pointer(Index{ID}));
       {$ENDIF}
       {$IFDEF TMSDOTNET}
       TTabCollection(Collection).AdvTabSet.DuplicateTabs.InsertObject(FIndexInAdvTabSet,FCaption,TObject(Index{ID}));
       {$ENDIF}
+
+      for i:=0 to TTabCollection(Collection).Count-1 do
+      begin
+        if (i <> Index) and TTabCollection(Collection).Items[i].Visible and (TTabCollection(Collection).Items[i].FIndexInAdvTabSet >= FIndexInAdvTabSet) then
+          Inc(TTabCollection(Collection).Items[i].FIndexInAdvTabSet);
+      end;
+
+      TTabCollection(Collection).ValidateVisTabIndexes;
       TTabCollection(Collection).AdvTabSet.AdjustTabWidth;
     end
     else
     begin
       TTabCollection(Collection).AdvTabSet.Tabs.Delete(FIndexInAdvTabSet);
       TTabCollection(Collection).AdvTabSet.DuplicateTabs.Delete(FIndexInAdvTabSet);
-      for i:=0 to TTabCollection(Collection).Count-1 do
+      for i := 0 to TTabCollection(Collection).Count - 1 do
       begin
-        if TTabCollection(Collection).Items[i].Visible and (TTabCollection(Collection).Items[i].FIndexInAdvTabSet > FIndexInAdvTabSet) then
+        if (i <> Index) and TTabCollection(Collection).Items[i].Visible and (TTabCollection(Collection).Items[i].FIndexInAdvTabSet > FIndexInAdvTabSet) then
           Dec(TTabCollection(Collection).Items[i].FIndexInAdvTabSet);
       end;
     end;
@@ -1672,7 +1856,10 @@ begin
   OldIndex := Index;
   Inherited SetIndex(Value);
   if (OldIndex <> Index) then
+  begin
     TTabCollection(Collection).UpdateItemsIndexesInTabSet;
+    FVisIndex := Index;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1711,6 +1898,7 @@ begin
     end;
     FIndexInAdvTabSet:= ItemIndexOfTabSet;
     TTabCollection(Collection).AdvTabSet.AdjustTabWidth;
+    FVisIndex := ItemIndexOfTabSet;
     Result:= true;
   end;
 end;
@@ -1779,7 +1967,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-constructor TTabCollection.Create(AOwner: TAdvTabSet);
+constructor TTabCollection.Create(AOwner: TAdvCustomTabSet);
 begin
   inherited Create(TTabCollectionItem);
   FOwner := AOwner;
@@ -1830,6 +2018,37 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TTabCollection.ValidateVisTabIndexes;
+var
+  i, j, ixT: Integer;
+begin
+  if (csLoading in FOwner.ComponentState) or (csDesigning in FOwner.ComponentState) then
+    Exit;
+
+  for i := 0 to Count- 1 do
+  begin
+    if (not Items[i].Visible) then
+      continue;
+    ixt := i;
+    for j := i + 1 to Count - 1 do
+    begin
+      if (not Items[j].Visible) then
+        continue;
+      if (Items[ixt].VisIndex < Items[j].VisIndex) and (Items[ixt].FIndexInAdvTabSet >= Items[j].FIndexInAdvTabSet) then
+      begin
+        ixt := j;
+      end;
+    end;
+
+    if (i <> ixt) then
+    begin
+      Items[ixt].MoveItemInTabSetTo(Items[i].FIndexInAdvTabSet);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 //-------------------------------{ TTabMargin}----------------------------------
 //------------------------------------------------------------------------------
 procedure TTabMargin.Assign(Source: TPersistent);
@@ -1870,9 +2089,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-//------------------------------{ TAdvTabSet }----------------------------------
+//------------------------------{ TAdvCustomTabSet }----------------------------------
 //------------------------------------------------------------------------------
-constructor TAdvTabSet.Create(AOwner: TComponent);
+constructor TAdvCustomTabSet.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlStyle := [csCaptureMouse, csDoubleClicks, csOpaque];
@@ -1957,6 +2176,7 @@ begin
   FCloseGlyph.OnChange := CloseGlyphOnChange;
   FDisableCloseGlyph := TBitmap.Create;
   FDisableCloseGlyph.PixelFormat := pf32bit;
+  FClosePosition := cpLeft;
 
   // make sure to use a Truetype font
   Font.Name := 'Tahoma';
@@ -1968,7 +2188,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.CreateParams(var Params: TCreateParams);
+procedure TAdvCustomTabSet.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
   with Params.WindowClass do
@@ -1976,13 +2196,13 @@ begin
 end;
 
 {$IFDEF TMSDOTNET}
-procedure TAdvTabSet.Click;
+procedure TAdvCustomTabSet.Click;
 begin
   inherited;
 end;
 {$ENDIF}
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.CreateScroller;
+procedure TAdvCustomTabSet.CreateScroller;
 begin
   FScroller := TScroller.Create(Self);
   with Scroller do
@@ -1999,14 +2219,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.InitBitmaps;
+procedure TAdvCustomTabSet.InitBitmaps;
 begin
   MemBitmap := TBitmap.Create;
   BrushBitmap := TBitmap.Create;
 end;
 
 //------------------------------------------------------------------------------
-destructor TAdvTabSet.Destroy;
+destructor TAdvCustomTabSet.Destroy;
 begin
   FDisableCloseGlyph.Free;
   FCloseGlyph.Free;
@@ -2024,7 +2244,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DoneBitmaps;
+procedure TAdvCustomTabSet.DoneBitmaps;
 begin
   MemBitmap.Free;
   BrushBitmap.Free;
@@ -2032,14 +2252,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.ScrollClick(Sender: TObject);
+procedure TAdvCustomTabSet.ScrollClick(Sender: TObject);
 begin
   FirstIndex := TScroller(Sender).Position;
 end;
 
 //------------------------------------------------------------------------------
 { cache the tab position data, and return number of visible tabs }
-function TAdvTabSet.CalcTabPositions(Start, Stop: Integer; Canvas: TCanvas;
+function TAdvCustomTabSet.CalcTabPositions(Start, Stop: Integer; Canvas: TCanvas;
   First: Integer): Integer;
 var
   Index: Integer;
@@ -2068,8 +2288,24 @@ begin
   Result := Index - First;
 end;
 
+
+function TAdvCustomTabSet.ItemIndex(Pos: integer): integer;
+var
+  i: integer;
+begin
+  Result := -1;
+  for i := 0 to AdvTabs.Count - 1 do
+  begin
+    if AdvTabs[i].FIndexInAdvTabSet = Pos then
+    begin
+      Result := i;
+      break;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
-function TAdvTabSet.ItemAtPos(Pos: TPoint): Integer;
+function TAdvCustomTabSet.ItemAtPos(Pos: TPoint): Integer;
 var
   TabPos: TTabPos;
   I: Integer;
@@ -2107,7 +2343,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TAdvTabSet.ItemRect(Item: Integer): TRect;
+function TAdvCustomTabSet.ItemRect(Item: Integer): TRect;
 var
   TabPos: TTabPos;
 begin
@@ -2128,7 +2364,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DragOver(Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
+procedure TAdvCustomTabSet.DragOver(Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
 var
   P: TPoint;
   i: integer;
@@ -2159,7 +2395,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DragDrop(Source: TObject; X, Y: Integer);
+procedure TAdvCustomTabSet.DragDrop(Source: TObject; X, Y: Integer);
 var
   i, ItemIndexToBeDroped, DesIndex, FromPos: integer;
   TabPos: TTabPos;
@@ -2175,10 +2411,10 @@ begin
     FromPos:= FTabIndex;
     ItemIndexToBeDroped := integer(FDuplicateTabs.Objects[FTabIndex]);
     {$IFNDEF TMSDOTNET}
-    Pointer(TabPos) := TabPositions[i];
+    Pointer(TabPos) := TabPositions[i - FirstIndex];
     {$ENDIF}
     {$IFDEF TMSDOTNET}
-    TabPos := TTabPos(TabPositions[i]);
+    TabPos := TTabPos(TabPositions[i - FirstIndex]);
     {$ENDIF}
 
     if TabPosition in [pTop, pBottom] then
@@ -2227,7 +2463,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.Paint;
+procedure TAdvCustomTabSet.Paint;
 var
   TabStart, LastTabPos: Integer;
   TabPos: TTabPos;
@@ -2247,6 +2483,7 @@ var
   lf: TLogFont;
   EnableCloseButton: Boolean;
   DownSelected: integer;
+  cbr: TRect;
 
   procedure DrawFocusRectangle(aCanvas: TCanvas; aRect: TRect; Active: Boolean; OverLapDiff: integer);
   begin
@@ -2725,15 +2962,40 @@ begin
     begin
       if FAdvTabs.Items[RealItemIndex].ShowClose then
       begin
-        DrawCloseButton(MemBitmap.Canvas,TextR, isSelected);
+        cbr := TextR;
+        if (ClosePosition = cpRight) then
+        begin
+          case TabPosition of
+            pTop, pBottom:  cbr.Right := cbr.Right - EdgeWidth - 1 + (EdgeWidth div 2);
+            //pLeft:  cbr.Top := cbr.Top + (EdgeWidth div 2);
+            //pRight: cbr.Bottom := cbr.Bottom - (EdgeWidth div 2);
+          end;
+        end;
+
+        DrawCloseButton(MemBitmap.Canvas, cbr, isSelected);
         if TabPosition in [pTop, pBottom] then
-          TextR.Left:= TextR.Left + CloseButtonWidth + {2}3
+        begin
+          if (ClosePosition = cpLeft) then
+            TextR.Left:= TextR.Left + CloseButtonWidth + {2}3
+          else
+            TextR.Right := TextR.Right - CloseButtonWidth - 3;
+        end
         else
         begin
           if TabPosition = pLeft then
-            TextR.Bottom:= TextR.Bottom - CloseButtonHeight -3{+ 3}
+          begin
+            if (ClosePosition = cpLeft) then
+              TextR.Bottom := TextR.Bottom - CloseButtonHeight -3{+ 3}
+            else
+              TextR.Top := TextR.Top + CloseButtonHeight + 3
+          end
           else
-            TextR.Top:= TextR.Top + CloseButtonHeight + 3;
+          begin
+            if (ClosePosition = cpLeft) then
+              TextR.Top := TextR.Top + CloseButtonHeight + 3
+            else
+              TextR.Bottom := TextR.Bottom - CloseButtonHeight - 3;
+          end;
         end;
       end;
     end;
@@ -2916,16 +3178,42 @@ begin
     begin
       if FAdvTabs.Items[RealItemIndex].ShowClose then
       begin
-        DrawCloseButton(MemBitmap.Canvas,TextR, true);
+        cbr := TextR;
+        if (ClosePosition = cpRight) then
+        begin
+          case TabPosition of
+            pTop, pBottom:  cbr.Right := cbr.Right - EdgeWidth - 1 + (EdgeWidth div 2);
+            //pLeft:  cbr.Top := cbr.Top + (EdgeWidth div 2);
+            //pRight: cbr.Bottom := cbr.Bottom - (EdgeWidth div 2);
+          end;
+        end;
+
+        DrawCloseButton(MemBitmap.Canvas, cbr, true);
         if TabPosition in [pTop, pBottom] then
-          TextR.Left:= TextR.Left + CloseButtonWidth + {2}3
+        begin
+          if (ClosePosition = cpLeft) then
+            TextR.Left:= TextR.Left + CloseButtonWidth + {2}3
+          else
+            TextR.Right := TextR.Right - CloseButtonWidth - 3;
+        end
         else
         begin
           if TabPosition = pLeft then
-            TextR.Bottom:= TextR.Bottom - CloseButtonHeight - 3
+          begin
+            if (ClosePosition = cpLeft) then
+              TextR.Bottom:= TextR.Bottom - CloseButtonHeight - 3
+            else
+              TextR.Top := TextR.Top + CloseButtonHeight + 3
+          end
           else
-            TextR.Top:= TextR.Top + CloseButtonHeight + 3;
+          begin
+            if (ClosePosition = cpLeft) then
+              TextR.Top:= TextR.Top + CloseButtonHeight + 3
+            else
+              TextR.Bottom := TextR.Bottom - CloseButtonHeight - 3;
+          end;
         end;
+
       end;
     end;
 
@@ -3131,7 +3419,7 @@ end;
 
 //------------------------------------------------------------------------------
 {$IFNDEF TMSDOTNET}
-procedure TAdvTabSet.CreateEdgeParts;
+procedure TAdvCustomTabSet.CreateEdgeParts;
 var
   H: Integer;
   Working: TBitmap;
@@ -3313,7 +3601,7 @@ end;
 {$ENDIF}
 
 {$IFDEF TMSDOTNET}
-procedure TAdvTabSet.CreateEdgeParts;
+procedure TAdvCustomTabSet.CreateEdgeParts;
 var
   H: Integer;
   Working: TBitmap;
@@ -3576,7 +3864,7 @@ end;
 {$ENDIF}
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.CreateBrushPattern(Bitmap: TBitmap);
+procedure TAdvCustomTabSet.CreateBrushPattern(Bitmap: TBitmap);
 var
   X, Y: Integer;
 begin
@@ -3596,7 +3884,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.FixTabPos;
+procedure TAdvCustomTabSet.FixTabPos;
 var
   FLastVisibleTab: Integer;
 
@@ -3685,7 +3973,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetSelectedColor(Value: TColor);
+procedure TAdvCustomTabSet.SetSelectedColor(Value: TColor);
 begin
   if Value <> FSelectedColor then
   begin
@@ -3696,7 +3984,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetUnselectedColor(Value: TColor);
+procedure TAdvCustomTabSet.SetUnselectedColor(Value: TColor);
 begin
   if Value <> FUnselectedColor then
   begin
@@ -3707,7 +3995,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetBackgroundColor(Value: TColor);
+procedure TAdvCustomTabSet.SetBackgroundColor(Value: TColor);
 begin
   if Value <> FBackgroundColor then
   begin
@@ -3720,7 +4008,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetDitherBackground(Value: Boolean);
+procedure TAdvCustomTabSet.SetDitherBackground(Value: Boolean);
 begin
   if Value <> FDitherBackground then
   begin
@@ -3732,7 +4020,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetAutoScroll(Value: Boolean);
+procedure TAdvCustomTabSet.SetAutoScroll(Value: Boolean);
 begin
   if Value <> FAutoScroll then
   begin
@@ -3744,7 +4032,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetStartMargin(Value: Integer);
+procedure TAdvCustomTabSet.SetStartMargin(Value: Integer);
 begin
   if Value <> FStartMargin then
   begin
@@ -3754,7 +4042,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetEndMargin(Value: Integer);
+procedure TAdvCustomTabSet.SetEndMargin(Value: Integer);
 begin
   if Value <> FEndMargin then
   begin
@@ -3764,7 +4052,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TAdvTabSet.CanChange(NewIndex: Integer): Boolean;
+function TAdvCustomTabSet.CanChange(NewIndex: Integer): Boolean;
 begin
   Result := True;
   if Assigned(FOnChange) then
@@ -3776,7 +4064,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabIndex(Value: Integer);
+
+procedure TAdvCustomTabSet.BeforeCloseTab(Tab: TTabCollectionItem; var CloseAction: TCloseAction);
+begin
+
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomTabSet.ChangeActiveTab(Value: Integer);
 begin
   if Value <> FTabIndex then
   begin
@@ -3791,7 +4087,7 @@ begin
     {$ENDIF}
 
     if not FAdvTabs.Items[integer(FDuplicateTabs.Objects[Value])].Enable then
-      exit;
+      Exit;
 
     if CanChange(Value) then
     begin
@@ -3806,7 +4102,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SelectNext(Direction: Boolean);
+
+procedure TAdvCustomTabSet.SetTabIndex(Value: Integer);
+begin
+  ChangeActiveTab(Value);
+end;
+
+//------------------------------------------------------------------------------
+procedure TAdvCustomTabSet.SelectNext(Direction: Boolean);
 var
   NewIndex: Integer;
 begin
@@ -3825,7 +4128,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetFirstIndex(Value: Integer);
+procedure TAdvCustomTabSet.SetFirstIndex(Value: Integer);
 begin
   if (Value >= 0) and (Value < Tabs.Count) then
   begin
@@ -3835,7 +4138,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabList(Value: TStrings);
+procedure TAdvCustomTabSet.SetTabList(Value: TStrings);
 begin
   FTabs.Assign(Value);
   FTabIndex := -1;
@@ -3844,7 +4147,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabStyle(Value: TTabStyle);
+procedure TAdvCustomTabSet.SetTabStyle(Value: TTabStyle);
 begin
   if Value <> FStyle then
   begin
@@ -3855,7 +4158,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabHeight(Value: Integer);
+procedure TAdvCustomTabSet.SetTabHeight(Value: Integer);
 var
   SaveHeight: Integer;
 begin
@@ -3874,7 +4177,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DrawTab(TabCanvas: TCanvas; R: TRect; Index: Integer;
+procedure TAdvCustomTabSet.DrawTab(TabCanvas: TCanvas; R: TRect; Index: Integer;
   Selected: Boolean);
 begin
   if Assigned(FOnDrawTab) then
@@ -3882,26 +4185,26 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.GetChildren(Proc: TGetChildProc; Root: TComponent);
+procedure TAdvCustomTabSet.GetChildren(Proc: TGetChildProc; Root: TComponent);
 begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.MeasureTab(Index: Integer; var TabWidth: Integer);
+procedure TAdvCustomTabSet.MeasureTab(Index: Integer; var TabWidth: Integer);
 begin
   if Assigned(FOnMeasureTab) then
     FOnMeasureTab(Self, Index, TabWidth);
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TAdvCustomTabSet.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
   R: TRect;
   TabPos: TTabPos;
   RealItemIndex, i: integer;
   p: TPoint;
   PosFound: boolean;
-
+  cbr: TRect;
 begin
   inherited;
 
@@ -3968,7 +4271,16 @@ begin
       begin
         if IsOnButton(FTabIndex, X, Y) then
         begin
-          DrawHoverCloseButton(r);
+          cbr := r;
+          if (ClosePosition = cpRight) then
+          begin
+            case TabPosition of
+              pTop, pBottom:  cbr.Right := cbr.Right + (EdgeWidth div 2);
+              //pLeft:  cbr.Top := cbr.Top + (EdgeWidth div 2);
+              //pRight: cbr.Bottom := cbr.Bottom - (EdgeWidth div 2);
+            end;
+          end;
+          DrawHoverCloseButton(cbr);
           FHoverClosedButton := True;
         end;
       end
@@ -3976,7 +4288,17 @@ begin
       begin
         if not IsOnButton(FTabIndex, X, Y) then
         begin
-          DrawCloseButton(Canvas,r, True);
+          cbr := r;
+          if (ClosePosition = cpRight) then
+          begin
+            case TabPosition of
+              pTop, pBottom:  cbr.Right := cbr.Right + (EdgeWidth div 2);
+              //pLeft:  cbr.Top := cbr.Top + (EdgeWidth div 2);
+              //pRight: cbr.Bottom := cbr.Bottom - (EdgeWidth div 2);
+            end;
+          end;
+          
+          DrawCloseButton(Canvas, cbr, True);
           FHoverClosedButton := false;
         end;
       end;
@@ -3993,7 +4315,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.MouseDown(Button: TMouseButton; Shift: TShiftState;
+procedure TAdvCustomTabSet.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 var
   TabPos: TTabPos;
@@ -4004,7 +4326,7 @@ var
   MinTop: integer;
   MaxBottom: integer;
   CanBeginDrag: Boolean;
-  r: TRect;
+  r, cbr: TRect;
   RealItemIndex: integer;
 begin
   inherited MouseDown(Button, Shift, X, Y);
@@ -4076,7 +4398,16 @@ begin
         begin
           //Pointer(TabPos) := TabPositions[FTabIndex - FirstIndex];
           //r := Rect(TabPos.StartPos, 0, TabPos.StartPos + TabPos.Size, FTabHeight);
-          DrawDownCloseButton(r);
+          cbr := r;
+          if (ClosePosition = cpRight) then
+          begin
+            case TabPosition of
+              pTop, pBottom:  cbr.Right := cbr.Right + (EdgeWidth div 2);
+              //pLeft:  cbr.Top := cbr.Top + (EdgeWidth div 2);
+              //pRight: cbr.Bottom := cbr.Bottom - (EdgeWidth div 2);
+            end;
+          end;
+          DrawDownCloseButton(cbr);
           CanBeginDrag:= false;
         end;
       end
@@ -4095,7 +4426,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TAdvCustomTabSet.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   {OldTabIndex,} RealItemIndex: integer;
 begin
@@ -4137,7 +4468,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.CMMouseLeave(var Message: TMessage);
+procedure TAdvCustomTabSet.CMMouseLeave(var Message: TMessage);
 begin
   if FTabBackGround.Empty then
   begin
@@ -4150,7 +4481,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.WMSize(var Message: TWMSize);
+
+procedure TAdvCustomTabSet.UpdateScroller;
 var
   NumVisTabs, LastTabPos: Integer;
 
@@ -4167,7 +4499,6 @@ var
   end;
 
 begin
-  inherited;
   if Tabs.Count > 1 then
   begin
     LastTabPos := Width - EndMargin;
@@ -4181,7 +4512,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.CMSysColorChange(var Message: TMessage);
+
+procedure TAdvCustomTabSet.WMSize(var Message: TWMSize);
+begin
+  inherited;
+  UpdateScroller;
+end;
+
+//------------------------------------------------------------------------------
+procedure TAdvCustomTabSet.CMSysColorChange(var Message: TMessage);
 begin
   inherited;
   CreateEdgeParts;
@@ -4191,7 +4530,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.CMFontChanged(var Message: TMessage);
+procedure TAdvCustomTabSet.CMFontChanged(var Message: TMessage);
 begin
   inherited;
   Canvas.Font := Font;
@@ -4200,13 +4539,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.WMGetDlgCode(var Message: TWMGetDlgCode);
+procedure TAdvCustomTabSet.WMGetDlgCode(var Message: TWMGetDlgCode);
 begin
   Message.Result := DLGC_WANTALLKEYS;
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.CMDialogChar(var Message: TCMDialogChar);
+procedure TAdvCustomTabSet.CMDialogChar(var Message: TCMDialogChar);
 var
   I: Integer;
 begin
@@ -4224,7 +4563,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DefineProperties(Filer: TFiler);
+procedure TAdvCustomTabSet.DefineProperties(Filer: TFiler);
 begin
   { Can be removed after version 1.0 }
   if Filer is TReader then inherited DefineProperties(Filer);
@@ -4233,31 +4572,55 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.ReadIntData(Reader: TReader);
+procedure TAdvCustomTabSet.ReadIntData(Reader: TReader);
 begin
   Reader.ReadInteger;
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.ReadBoolData(Reader: TReader);
+
+function TAdvCustomTabSet.RealToDisplTabIndex(tab: integer): integer;
+begin
+  Result := -1;
+  if (Tab < 0) or (Tab >= AdvTabs.Count) or (not FAdvTabs.Items[Tab].Visible) or
+     (FAdvTabs.Items[Tab].FIndexInAdvTabSet < 0) or (FAdvTabs.Items[Tab].FIndexInAdvTabSet >= Tabs.Count) then
+    Exit;
+
+  Result := FAdvTabs.Items[Tab].FIndexInAdvTabSet;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomTabSet.DisplToRealTabIndex(tab: integer): integer;
+begin
+  Result := -1;
+  if (Tab < 0) or (tab >= FDuplicateTabs.Count) then
+    Exit;
+
+  Result := integer(FDuplicateTabs.Objects[tab]);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomTabSet.ReadBoolData(Reader: TReader);
 begin
   Reader.ReadBoolean;
 end;
 
 //------------------------------------------------------------------------------
-function TAdvTabSet.MinClientRect: TRect;
+function TAdvCustomTabSet.MinClientRect: TRect;
 begin
   Result := MinClientRect(Tabs.Count, False);
 end;
 
 //------------------------------------------------------------------------------
-function TAdvTabSet.MinClientRect(IncludeScroller: Boolean): TRect;
+function TAdvCustomTabSet.MinClientRect(IncludeScroller: Boolean): TRect;
 begin
   Result := MinClientRect(Tabs.Count, IncludeScroller);
 end;
 
 //------------------------------------------------------------------------------
-function TAdvTabSet.MinClientRect(TabCount: Integer; IncludeScroller: Boolean): TRect;
+function TAdvCustomTabSet.MinClientRect(TabCount: Integer; IncludeScroller: Boolean): TRect;
 var
   I: Integer;
 begin
@@ -4270,7 +4633,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TAdvTabSet.ItemWidth(Index: Integer): Integer;
+function TAdvCustomTabSet.ItemWidth(Index: Integer): Integer;
 var
   W1, W2, RealItemIndex, ImgW: integer;
 begin
@@ -4306,7 +4669,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetSoftTop(const Value: Boolean);
+procedure TAdvCustomTabSet.SetSoftTop(const Value: Boolean);
 begin
   if Value <> SoftTop then
   begin
@@ -4317,7 +4680,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetOriginalTabWidth;
+procedure TAdvCustomTabSet.SetOriginalTabWidth;
 var
   i: integer;
 begin
@@ -4328,7 +4691,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.IncTabWidth(w: integer);
+procedure TAdvCustomTabSet.IncTabWidth(w: integer);
 var
   i, SpCount, RealItemIndex: integer;
   s: String;
@@ -4349,7 +4712,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.AdjustTabWidth;
+procedure TAdvCustomTabSet.AdjustTabWidth;
 var
   TotalIncWidth: integer;
 begin
@@ -4376,7 +4739,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.Notification(AComponent: TComponent; AOperation: TOperation);
+procedure TAdvCustomTabSet.Notification(AComponent: TComponent; AOperation: TOperation);
 begin
   if (AOperation = opRemove) and (AComponent = FImages) then
   begin
@@ -4388,14 +4751,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.Loaded;
+procedure TAdvCustomTabSet.Loaded;
 begin
   inherited Loaded;
   AdjustTabWidth
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetSelectedColorTo(Value: TColor);
+procedure TAdvCustomTabSet.SetSelectedColorTo(Value: TColor);
 begin
   if Value <> FSelectedColorTo then
   begin
@@ -4405,7 +4768,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetUnSelectedColorTo(Value: TColor);
+procedure TAdvCustomTabSet.SetUnSelectedColorTo(Value: TColor);
 begin
   if Value <> FUnSelectedColorTo then
   begin
@@ -4415,7 +4778,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTextColor(Value: TColor);
+procedure TAdvCustomTabSet.SetTextColor(Value: TColor);
 begin
   if Value <> FTextColor then
   begin
@@ -4425,7 +4788,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabBorderColor(Value: TColor);
+procedure TAdvCustomTabSet.SetTabBorderColor(Value: TColor);
 begin
   if Value <> FTabBorderColor then
   begin
@@ -4435,7 +4798,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabBackGround(Const Value: TBitmap);
+procedure TAdvCustomTabSet.SetTabBackGround(Const Value: TBitmap);
 begin
   FTabBackGround.Assign(Value);
 
@@ -4452,14 +4815,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabBackGroundSelected(Const Value: TBitmap);
+procedure TAdvCustomTabSet.SetTabBackGroundSelected(Const Value: TBitmap);
 begin
   TabBackGroundSelected.Assign(Value);
   Invalidate;
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetGradientDirection(Value: TGradientDirection);
+procedure TAdvCustomTabSet.SetGradientDirection(Value: TGradientDirection);
 begin
   if Value <> FGradientDirection then
   begin
@@ -4469,7 +4832,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DrawCloseGlyph(Canvas: TCanvas; P: TPoint; IsEnable: Boolean);
+procedure TAdvCustomTabSet.DrawCloseGlyph(Canvas: TCanvas; P: TPoint; IsEnable: Boolean);
 var
   GlRgn: HRGN;
 begin
@@ -4495,7 +4858,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DrawCloseButton(Canvas: TCanvas; Rect: TRect; Active: Boolean);
+procedure TAdvCustomTabSet.DrawCloseButton(Canvas: TCanvas; Rect: TRect; Active: Boolean);
 var
   a: integer;
   P: TPoint;
@@ -4511,33 +4874,57 @@ begin
     case TabPosition of
       pLeft:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
-        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
+          Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
+          Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+        end;
         if not FTabBackGroundSelected.Empty then Rect.Bottom := Rect.Bottom + TabOverlap;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Bottom - CloseButtonHeight;
       end;
       pRight:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
-      pTop:
+      pTop, pBottom:
+      begin
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end;
+        P.X:= Rect.Left + 2;
+        P.Y:= Rect.Top + 2;
+      end;
+      {pBottom:
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin;
         Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
-      end;
-      pBottom:
-      begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
-        P.X:= Rect.Left + 2;
-        P.Y:= Rect.Top + 2;
-      end;
+      end;}
     end;
     DrawCloseGlyph(Canvas, P, true);
   end
@@ -4545,9 +4932,20 @@ begin
   begin
     if TabPosition = pLeft then
     begin
-      Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
-      Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
-      if not FTabBackGroundSelected.Empty then Rect.Bottom := Rect.Bottom + TabOverlap;
+      if (ClosePosition = cpLeft) then
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
+        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+        if not FTabBackGroundSelected.Empty then
+          Rect.Bottom := Rect.Bottom + TabOverlap;
+      end
+      else
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
+        Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+        if not FTabBackGroundSelected.Empty then
+          Rect.Bottom := Rect.Bottom + TabOverlap;
+      end;
 
       with canvas do
       begin
@@ -4571,18 +4969,34 @@ begin
     begin
       if TabPosition = pRight then
       begin
+        if (ClosePosition = cpLeft) then
+        begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
         Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
       end
-      else if TabPosition = pTop then
+      else if TabPosition in [pTop, pBottom] then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
-      end
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end;
+      {end
       else // Bottom
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        Rect.Top := Rect.Top + FTabMargin.TopMargin + a;}
       end;
 
       with canvas do
@@ -4607,7 +5021,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DrawHoverCloseButton(Rect: TRect);
+procedure TAdvCustomTabSet.DrawHoverCloseButton(Rect: TRect);
 var
   p: TPoint;
 begin
@@ -4619,33 +5033,66 @@ begin
     case TabPosition of
       pLeft:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerSelected{2} {Active};
-        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
-        if not FTabBackGroundSelected.Empty then Rect.Bottom := Rect.Bottom + TabOverlap;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerSelected{2} {Active};
+          Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+          if not FTabBackGroundSelected.Empty then Rect.Bottom := Rect.Bottom + TabOverlap;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerSelected {2} {Active};
+          Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+          if not FTabBackGroundSelected.Empty then Rect.Bottom := Rect.Bottom + TabOverlap;
+        end;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Bottom - CloseButtonHeight;
       end;
       pRight:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin -FLowerSelected+2;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin -FLowerSelected+2;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
-      pTop:
+      pTop, pBottom:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerSelected;
+        end;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
-      pBottom:
+      {pBottom:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerSelected;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerActive;
+        end;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
-      end;
+      end;}
     end;
     DrawCloseGlyph(Canvas, P, true);
   end
@@ -4653,8 +5100,16 @@ begin
   begin
     if TabPosition = pLeft then
     begin
-      Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerSelected{2} {Active};
-      Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+      if (ClosePosition = cpLeft) then
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerSelected{2} {Active};
+        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+      end
+      else
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerSelected;
+        Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+      end;
       if not FTabBackGroundSelected.Empty then Rect.Bottom := Rect.Bottom + TabOverlap;
 
       with canvas do
@@ -4679,18 +5134,34 @@ begin
     begin
       if TabPosition = pRight then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin -FLowerSelected+2;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin -FLowerSelected+2;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin - FLowerSelected + 2;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
       end
-      else if TabPosition = pTop then
+      else if TabPosition in [pTop, pBottom] then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
-      end
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerSelected;
+        end;
+      {end
       else // Bottom
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
+        Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerSelected;}
       end;
 
       with canvas do
@@ -4715,7 +5186,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DrawDownCloseButton(Rect: TRect);
+procedure TAdvCustomTabSet.DrawDownCloseButton(Rect: TRect);
 var
   p: TPoint;
 begin
@@ -4728,7 +5199,10 @@ begin
       pLeft:
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerSelected{2} {active};
-        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+          Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin
+        else
+          Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
         if not FTabBackGroundSelected.Empty then Rect.Bottom := Rect.Bottom + TabOverlap;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Bottom - CloseButtonHeight;
@@ -4736,24 +5210,30 @@ begin
       pRight:
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin -FLowerSelected+2;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+          Rect.Top := Rect.Top + FTabMargin.TopMargin
+        else
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
-      pTop:
+      pTop, pBottom:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+        if (ClosePosition = cpLeft) then
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin
+        else
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
         Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
-      pBottom:
+      {pBottom:
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
+        Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerSelected;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
-      end;
+      end;}
     end;
     DrawCloseGlyph(Canvas, P, true);
   end
@@ -4762,7 +5242,11 @@ begin
     if TabPosition = pLeft then
     begin
       Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerSelected{2} {active};
-      Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+      if (ClosePosition = cpLeft) then
+        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin
+      else
+        Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+
       if not FTabBackGroundSelected.Empty then Rect.Bottom := Rect.Bottom + TabOverlap;
 
       with canvas do
@@ -4788,17 +5272,23 @@ begin
       if TabPosition = pRight then
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin -FLowerSelected+2;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+          Rect.Top := Rect.Top + FTabMargin.TopMargin
+        else
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
       end
-      else if TabPosition = pTop then
+      else if TabPosition in [pTop, pBottom] then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+        if (ClosePosition = cpLeft) then
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin
+        else
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
         Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
-      end
+      {end
       else // bottom
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2}FLowerSelected;
+        Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerSelected;}
       end;
 
       with canvas do
@@ -4823,7 +5313,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TAdvTabSet.IsOnButton(TabIndex, X, Y: integer): Boolean;
+function TAdvCustomTabSet.IsOnButton(TabIndex, X, Y: integer): Boolean;
 var
   aRect: TRect;
 begin
@@ -4831,7 +5321,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TAdvTabSet.IsOnButton(TabIndex, X, Y: integer; var aRect:TRect): Boolean;
+function TAdvCustomTabSet.IsOnButton(TabIndex, X, Y: integer; var aRect:TRect): Boolean;
 var
   r: TRect;
   TabPos: TTabPos;
@@ -4866,7 +5356,13 @@ begin
 
   if TabPosition in [pTop, pBottom] then
   begin
-    r.Left := r.Left + FTabMargin.LeftMargin;
+    if (ClosePosition = cpLeft) then
+      r.Left := r.Left + FTabMargin.LeftMargin
+    else
+    begin
+      r.Right := r.Right + (EdgeWidth div 2);
+      r.Left := r.Right - FTabMargin.RightMargin - CloseButtonWidth;
+    end;
     r.Top := r.Top + FTabMargin.TopMargin;
     r := Rect(r.Left + 2, r.Top + 2, r.Left + CloseButtonWidth, r.Top + CloseButtonHeight);
     if PtInRect(r, Point(X, Y)) then
@@ -4878,13 +5374,22 @@ begin
   begin
     if TabPosition = pLeft then
     begin
-      r.Bottom := r.Bottom - FTabMargin.TopMargin;
+      if (ClosePosition = cpLeft) then
+        r.Bottom := r.Bottom - FTabMargin.TopMargin
+      else
+      begin
+        //r.Top := r.Top + (EdgeWidth div 2);
+        r.Bottom := r.Top + FTabMargin.RightMargin + CloseButtonHeight;
+      end;
       r.Left := r.Left + FTabMargin.LeftMargin;
       r := Rect(r.Left + 2, r.Bottom - CloseButtonHeight, r.Left + CloseButtonWidth, r.Bottom - 2);
     end
     else // pRight
     begin
-      r.Top := r.Top + FTabMargin.TopMargin;
+      if (ClosePosition = cpLeft) then
+        r.Top := r.Top + FTabMargin.TopMargin
+      else
+        r.Top := r.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
       r.Left := r.Left + FTabMargin.LeftMargin;
       r := Rect(r.Left + 2, r.Top, r.Left + CloseButtonWidth, r.Top + CloseButtonHeight);
     end;
@@ -4896,21 +5401,21 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.TabMarginChange(NewValue, OldValue: TMarginSize; Index: integer);
+procedure TAdvCustomTabSet.TabMarginChange(NewValue, OldValue: TMarginSize; Index: integer);
 begin
   AdjustTabWidth;
   Invalidate;
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabMargin(Value: TTabMargin);
+procedure TAdvCustomTabSet.SetTabMargin(Value: TTabMargin);
 begin
   if Assigned(Value) then
     FTabMargin.Assign(Value);
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabOverlap(Value: TTabOverlapSize);
+procedure TAdvCustomTabSet.SetTabOverlap(Value: TTabOverlapSize);
 begin
   if Value <> FTabOverlap then
   begin
@@ -4920,7 +5425,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetImages(value: TCustomImageList);
+procedure TAdvCustomTabSet.SetImages(value: TCustomImageList);
 begin
   FImages := Value;
   AdjustTabWidth;
@@ -4928,13 +5433,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetHoverGradientDirection(value: TGradientDirection);
+procedure TAdvCustomTabSet.SetHoverGradientDirection(value: TGradientDirection);
 begin
   FHoverGradientDirection := value;
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetAdvTabStyle(Value: TAdvTabStyle);
+procedure TAdvCustomTabSet.SetAdvTabStyle(Value: TAdvTabStyle);
 begin
   if Value <> FAdvTabStyle then
   begin
@@ -4948,7 +5453,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetTabPosition(Value: TAdvTabPosition);
+procedure TAdvCustomTabSet.SetTabPosition(Value: TAdvTabPosition);
 begin
   if Value <> FTabPosition then
   begin
@@ -4968,7 +5473,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetCloseButtonAt(Value: TCloseButtonPos);
+procedure TAdvCustomTabSet.SetCloseButtonAt(Value: TCloseButtonPos);
 begin
   if Value<> FCloseButtonAt then
   begin
@@ -4978,7 +5483,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetLowerSelected(Value: integer);
+procedure TAdvCustomTabSet.SetLowerSelected(Value: integer);
 begin
   if Value <> FLowerSelected then
   begin
@@ -4988,7 +5493,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.SetShowScroller(Value: TShowScroller);
+procedure TAdvCustomTabSet.SetShowScroller(Value: TShowScroller);
 begin
   if FShowScroller <> Value then
   begin
@@ -4997,7 +5502,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DrawCloseButtonAtTabSet(IsEnable: Boolean);
+procedure TAdvCustomTabSet.DrawCloseButtonAtTabSet(IsEnable: Boolean);
 var
   aRect: TRect;
   P: TPoint;
@@ -5023,7 +5528,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DrawCrossAtTabSet(IsEnable: Boolean);
+procedure TAdvCustomTabSet.DrawCrossAtTabSet(IsEnable: Boolean);
 var
   aRect: TRect;
 begin
@@ -5059,7 +5564,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.DrawDownCloseButtonAtTabSet();
+procedure TAdvCustomTabSet.DrawDownCloseButtonAtTabSet();
 var
   aRect: TRect;
   P: TPoint;
@@ -5093,7 +5598,7 @@ begin
   FCloseButtonDown:= true;
 end;
 //------------------------------------------------------------------------------
-function TAdvTabSet.IsOnCloseButtonAtTabSet(X, Y: integer): Boolean;
+function TAdvCustomTabSet.IsOnCloseButtonAtTabSet(X, Y: integer): Boolean;
 var
   aRect: TRect;
 begin
@@ -5109,40 +5614,66 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAdvTabSet.CloseButtonClick;
+
+function TAdvCustomTabSet.CanCloseTab(TabIdx: Integer;
+  var CloseAction: TCloseAction): Boolean;
+begin
+  Result := False;
+  if (TabIdx >= 0) then
+  begin
+    Result := True;
+    if Assigned(FOnCanClose) then
+      FOnCanClose(self, TabIdx, Result);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomTabSet.CloseButtonClick;
 var
   OldTabIndex: integer;
   CanClose: Boolean;
+  ca: TCloseAction;
+  i: Integer;
 begin
-  CanClose:= true;
+  //CanClose:= true;
   //RealItemIndex := integer(FDuplicateTabs.objects[FTabIndex]);
   OldTabIndex:= integer(FDuplicateTabs.Objects[FTabIndex]);
 
-  if Assigned(FOnCanClose) then
-    FOnCanClose(self,OldTabIndex,CanClose);
+  i := FAdvTabs.Count;
+  ca := caFree;
+  CanClose := CanCloseTab(OldTabIndex, ca);
 
-  if CanClose then
+  if CanClose and (ca <> caNone) then
   begin
     SelectNext(false);
     if Assigned(FOnTabClose) then
       FOnTabClose(Self, OldTabIndex);
 
-    if FFreeOnClose then
+    if (FAdvTabs.Count < i) then // Item delete externally ie: form deleted
+      Exit;
+
+    BeforeCloseTab(FAdvTabs.Items[OldTabIndex], ca);
+
+    if FFreeOnClose and (ca = caFree) then
       FAdvTabs.Items[OldTabIndex].Free
-    else
+    else if not (ca = caMinimize) then
       FAdvTabs.Items[OldTabIndex].Visible:= false;
   end;
   Invalidate;
 end;
 
+//------------------------------------------------------------------------------
 
-procedure TAdvTabSet.SetActiveFont(const Value: TFont);
+procedure TAdvCustomTabSet.SetActiveFont(const Value: TFont);
 begin
   FActiveFont.Assign(Value);
   Invalidate;
 end;
 
-function TAdvTabSet.GetVersion: string;
+//------------------------------------------------------------------------------
+
+function TAdvCustomTabSet.GetVersion: string;
 var
   vn: Integer;
 begin
@@ -5150,26 +5681,30 @@ begin
   Result := IntToStr(Hi(Hiword(vn)))+'.'+IntToStr(Lo(Hiword(vn)))+'.'+IntToStr(Hi(Loword(vn)))+'.'+IntToStr(Lo(Loword(vn)));
 end;
 
-procedure TAdvTabSet.SetVersion(const Value: string);
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomTabSet.SetVersion(const Value: string);
 begin
 end;
 
-function TAdvTabSet.GetVersionNr: Integer;
+//------------------------------------------------------------------------------
+
+function TAdvCustomTabSet.GetVersionNr: Integer;
 begin
   Result := MakeLong(MakeWord(BLD_VER,REL_VER),MakeWord(MIN_VER,MAJ_VER));
 end;
 
+//------------------------------------------------------------------------------
 
-
-
-procedure TAdvTabSet.SetCloseGlyph(const Value: TBitmap);
+procedure TAdvCustomTabSet.SetCloseGlyph(const Value: TBitmap);
 begin
   FCloseGlyph.Assign(Value);
   Invalidate;
 end;
 
+//------------------------------------------------------------------------------
 
-procedure TAdvTabSet.CloseGlyphOnChange(Sender: TObject);
+procedure TAdvCustomTabSet.CloseGlyphOnChange(Sender: TObject);
 var
   x, y: Integer;
   PxlColor: TColor;
@@ -5193,8 +5728,305 @@ begin
         FDisableCloseGlyph.Canvas.Pixels[x, y] := RGB(c, c, c);
       end;
   end;
-
 end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomTabSet.SetClosePosition(const Value: TClosePosition);
+begin
+  if (FClosePosition <> Value) then
+  begin
+    FClosePosition := Value;
+    Invalidate;
+  end;
+end;
+
+
+//------------------------------------------------------------------------------
+
+{ TAdvMDITabSet }
+
+constructor TAdvMDITabSet.Create(AOwner: TComponent);
+var
+  i: Integer;
+begin
+  inherited;
+
+  if not(AOwner is TForm) then
+  begin
+    raise Exception.create('AdvMDITabSet can only be placed on a Form.');
+  end
+  else if TForm(AOwner).FormStyle <> fsMDIForm then
+  begin
+    raise Exception.create('AdvMDITabSet can only be placed on a MDIForm.');
+  end;
+
+  for i := 0 to AOwner.ComponentCount - 1 do
+  begin
+    if (AOwner.Components[i] is TAdvMDITabSet) and (AOwner.Components[i] <> Self) then
+    begin
+      raise Exception.create('Only one instance of AdvMDITabSet can be placed on a MDIForm.');
+    end;
+  end;
+
+  FreeOnClose := True;
+end;
+
+//------------------------------------------------------------------------------
+
+destructor TAdvMDITabSet.Destroy;
+begin
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvMDITabSet.AddTab(ChildForm: TForm): TTabCollectionItem;
+var
+  i: Integer;
+begin
+  Result := nil;
+
+  if not Assigned(ChildForm) then
+    Exit;
+
+  for i:= 0 to FAdvTabs.Count-1 do
+  begin
+    if (FAdvTabs.Items[i].FChildForm = ChildForm) then
+    begin
+      Exit;
+    end;
+  end;
+
+  Result := FAdvTabs.Add;
+  Result.Caption := ChildForm.Caption;
+  Result.FChildForm := ChildForm;
+  Result.FOnActivateForm := ChildForm.OnActivate;
+  Result.FOnDestroyForm := ChildForm.OnDestroy;
+
+  ChildForm.OnActivate := OnChildFormActivate;
+  ChildForm.OnDestroy := OnChildFormDestroy;
+
+
+  TabIndex := RealToDisplTabIndex(Result.Index);
+  //if not (csLoading in ComponentState) then
+    //InitializeAndUpdateButtons;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvMDITabSet.GetAdvTabCount: integer;
+begin
+  Result := FAdvTabs.Count;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvMDITabSet.GetAdvTabs(index: integer): TTabCollectionItem;
+begin
+  Result := nil;
+  if (Index >= 0) and (Index < FAdvTabs.Count) then
+  begin
+    Result := FAdvTabs[Index];
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvMDITabSet.GetChildForm(Tab: TTabCollectionItem): TForm;
+begin
+  Result := nil;
+  if Assigned(Tab) then
+  begin
+    Result := Tab.FChildForm;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvMDITabSet.GetTab(AChild: TForm): TTabCollectionItem;
+var
+  i: integer;
+begin
+  Result := nil;
+  for I := 0 to FAdvTabs.Count - 1 do
+  begin
+    if FAdvTabs.Items[I].FChildForm = AChild then
+    begin
+      Result := FAdvTabs.Items[I];
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvMDITabSet.OnChildFormActivate(Sender: TObject);
+var
+  i, j:integer;
+begin
+  if (Sender is TForm) and (TForm(Sender).FormStyle = fsMDIChild) then
+  begin
+    j := -1;
+    for i:= 0 to FAdvTabs.count-1 do
+    begin
+      if (FAdvTabs[i].FChildForm = Sender) then
+      begin
+        if not FAdvTabs[i].Visible then
+        begin
+          FAdvTabs[i].Visible := True;
+        end;
+        j := i;
+        TabIndex := RealToDisplTabIndex(i);
+        break;
+      end;
+    end;
+
+    if (j >= 0) and (j < FAdvTabs.count) and Assigned(FAdvTabs[j]) and Assigned(FAdvTabs[j].FOnActivateForm)
+       and Assigned(FAdvTabs[j].FChildForm) then
+    begin
+      FAdvTabs[j].FOnActivateForm(FAdvTabs[j].FChildForm);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvMDITabSet.OnChildFormDestroy(Sender: TObject);
+var
+  i, j :integer;
+begin
+  if not (csDestroying in ComponentState) and (Sender is TForm) and (TForm(Sender).FormStyle = fsMDIChild) then
+  begin
+    j := -1;
+    for i:= 0 to FAdvTabs.count-1 do
+    begin
+      if (FAdvTabs[i].FChildForm = Sender) then
+      begin
+        j := i;
+        break;
+      end;
+    end;
+
+    if (j >= 0) and Assigned(FAdvTabs[j]) and Assigned(FAdvTabs[j].FOnDestroyForm)
+       and Assigned(FAdvTabs[j].FChildForm) then
+    begin
+      FAdvTabs[j].FOnDestroyForm(FAdvTabs[j].FChildForm);
+    end;
+
+    if (j >= 0) and not FInternalDelete then
+    begin
+      if (FAdvTabs[j].FIndexInAdvTabSet = TabIndex) then
+        SelectNext(False);
+      FAdvTabs.Delete(j);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvMDITabSet.Change;
+var
+  RealTabIndex: Integer;
+begin
+  RealTabIndex := DisplToRealTabIndex(TabIndex);
+  if (RealTabIndex < 0) or (RealTabIndex >= FAdvTabs.Count) then
+    Exit;
+
+  if Assigned(FAdvTabs[RealTabIndex].FChildForm) then
+  begin
+    SendMessage(FAdvTabs[RealTabIndex].FChildForm.Handle, WM_NCActivate, WA_ACTIVE, 0);
+
+    if FAdvTabs[RealTabIndex].FChildForm.Windowstate = WSMinimized then
+      FAdvTabs[RealTabIndex].FChildForm.WindowState := WSNormal;
+
+    FAdvTabs[RealTabIndex].FChildForm.BringToFront;
+    FAdvTabs[RealTabIndex].FChildForm.SetFocus;
+    FAdvTabs[RealTabIndex].FChildForm.Visible := True;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvMDITabSet.BeforeCloseTab(Tab: TTabCollectionItem; var CloseAction: TCloseAction);
+begin
+  if not Assigned(Tab) or not Assigned(Tab.FChildForm) then
+  begin
+    inherited;
+    Exit
+  end;
+
+  if FreeOnClose then
+  begin
+    case CloseAction of
+      caFree:
+      begin
+        //FInternalDelete := True;
+        Tab.FChildForm.Release;
+        CloseAction := caMinimize; // just to avoid deletion of tab that should be deleted on form's destoy
+        //FInternalDelete := False;
+      end;
+      caMinimize: Tab.FChildForm.Windowstate := WSMinimized;
+      caHide: Tab.FChildForm.visible := False;
+    end;
+  end
+  else
+  begin
+    Tab.FChildForm.visible := False;
+  end;
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvMDITabSet.CanCloseTab(TabIdx: Integer;
+  var CloseAction: TCloseAction): Boolean;
+var
+  Tab: TTabCollectionItem;
+begin
+  Result := inherited CanCloseTab(TabIdx, CloseAction);
+  if not Result or (TabIdx < 0) or (TabIdx >= FAdvTabs.Count) then
+    Exit;
+
+  Tab := FAdvTabs.Items[TabIdx];
+  if not Assigned(Tab.FChildForm) then
+    Exit;
+
+  if Assigned(Tab.FChildForm.OnCloseQuery) then
+  begin
+    Tab.FChildForm.OnCloseQuery(Tab.FChildForm, Result);
+  end;
+
+  if not Result then
+    Abort;
+
+  if FreeOnClose then
+  begin
+    if Assigned(Tab.FChildForm.OnClose) then
+    begin
+      Tab.FChildForm.OnClose(Tab.FChildForm, CloseAction);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvMDITabSet.ChangeActiveTab(Value: Integer);
+var
+  OldActiveTabIndex: Integer;
+begin
+  OldActiveTabIndex := TabIndex;
+
+  inherited;
+
+  if (Value >= 0) and (Value < FAdvTabs.Count) and (Value <> OldActiveTabIndex) then
+  begin
+    Change;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 
 
 end.

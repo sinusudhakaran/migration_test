@@ -1,9 +1,9 @@
 {**************************************************************************}
 { TADVSTRINGGRID FORM CONTROL EDITLINK                                     }
-{ version 2.8                                                              }
+{ version 3.5                                                              }
 {                                                                          }
 { written by TMS Software                                                  }
-{            copyright © 2000-2004                                         }
+{            copyright © 2000-2007                                         }
 {            Email : info@tmssoftware.com                                  }
 {            Web : http://www.tmssoftware.com                              }
 {                                                                          }
@@ -45,6 +45,7 @@ type
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure CreateEditor(AParent:TWinControl); override;    
     function GetEditControl: TWinControl; override;
     procedure SetProperties; override;
     function GetEditorValue: String; override;
@@ -79,6 +80,12 @@ begin
   FControl := nil;
 end;
 
+procedure TFormControlEditLink.CreateEditor(AParent: TWinControl);
+begin
+  if Assigned(FControl) then
+    FControl.Parent := AParent;
+end;
+
 procedure TFormControlEditLink.EditExit(Sender: TObject);
 begin
   (GetParent as TAdvStringgrid).HideInplaceEdit;
@@ -91,7 +98,7 @@ begin
   if not Assigned(FControl) then
     raise Exception.Create('FormControlEditLink control not assigned');
 
-  FControl.Parent := Grid;
+  //FControl.Parent := Grid;
   Result := FControl;
   TMyWinControl(FControl).OnExit := EditExit;
   TMyWinControl(FControl).OnKeyDown := EditKeyDown;

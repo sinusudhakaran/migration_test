@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TMS AdvOutlookList component                                            }
 { for Delphi & C++Builder                                                 }
-{ version 1.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 2005 - 2006                                       }
+{           copyright © 2005 - 2008                                       }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -29,7 +28,11 @@ interface
 
 uses
   Windows, Messages, Classes, Forms, Controls,
-  Graphics, ImgList, ActiveX;
+  Graphics, ImgList, ActiveX, PictureContainer
+  {$IFDEF DELPHI9_LVL}
+  , Types
+  {$ENDIF}
+  ;
  
 type
   TOGLItemState = (
@@ -295,6 +298,7 @@ type
   (* This interface allows drop targets to display a drag image while
      the image is over the target window. *)
 
+  {$M-}   
   IDropTargetHelper = interface(IUnknown)
     [SID_IDropTargetHelper]
     function DragEnter(hwndTarget: HWND; pDataObject: IDataObject;
@@ -421,7 +425,7 @@ type
   TOGLGetCaptionEvent = procedure(Sender: TOutlookGroupedList;
     Item: POGLItem; var Caption: String) of object;
   TOGLGetHintEvent = procedure(Sender: TOutlookGroupedList;
-    Item: POGLItem; var HintText: String) of object;
+    Item: POGLItem; var HintText: String; var HintPos: TPoint) of object;
   TOGLGetHintSizeEvent = procedure(Sender: TOutlookGroupedList;
     Item: POGLItem; var HintRect: TRect) of object;
   TOGLGetImageIndexEvent = procedure(Sender: TOutlookGroupedList;
@@ -471,6 +475,7 @@ type
     FViewStyle: TOGLViewStyle;
 
     FUpdateCount: Integer;
+    FUpdateSelCount: Integer;
     FOGLItemColumn: Integer;         // the focused OGL item's column
     FTotalItemsHeight: Cardinal;     // the height of all Group items + their OGL items (if group expanded)
     FItemDataSize: Integer;          // number of bytes to allocate with each item
@@ -520,6 +525,8 @@ type
     FOnGetChildItemHeight: TOGLGetChildItemHeightEvent;
     FOnCompareItems: TOGLCompareItemsEvent;
     FOnSearchItem: TOGLSearchItemEvent;
+    FOnExpandItem: TOGLItemEvent;
+    FOnCollapsItem: TOGLItemEvent;
 
     // DragNDrop events
     FOnOLEGetDataObject: TOGLGetDataObjectEvent;
@@ -538,7 +545,15 @@ type
     FGroupShowCount: Boolean;
     FOnSelectionChange: TNotifyEvent;
     FHideSelection: Boolean;
-
+    FIntSelectionColor: TColor;
+    FGroupColor: TColor;
+    FGroupSelectionColor: TColor;
+    FGroupSelectionTextColor: TColor;
+    FGroupFont: TFont;
+    FGroupCountFont: TFont;
+    FSupressOnSelect: Boolean;
+    FAllowOneOnSelect: Boolean;
+    FInternalBtnUp: Boolean;
     function GetFirstGroupItem: POGLItem;
     function GetFirstSelectedItem: POGLItem;
     function GetSelectedCount: Integer;
@@ -590,6 +605,11 @@ type
     procedure SetDragDropMode(const Value: TDragDropMode);
     procedure SetShowNodes(const Value: Boolean);
     procedure SetGroupShowCount(const Value: Boolean);
+    procedure SetGroupColor(const Value: TColor);
+    procedure SetGroupCountFont(const Value: TFont);
+    procedure SetGroupFont(const Value: TFont);
+    procedure SetGroupSelectionColor(const Value: TColor);
+    procedure SetGroupSelectionTextColor(const Value: TColor);
   protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure CreateWnd; override;
@@ -599,6 +619,7 @@ type
     procedure AdjustItemsFont; virtual;
     procedure PaintWindow(DC: HDC); override;
     procedure PaintSelectionRectangle(TargetCanvas: TCanvas);
+    function HTMLPaint(Canvas: TCanvas; s: string; fr:TRect): Boolean; virtual;
     procedure DrawItem(TargetCanvas: TCanvas;
       TargetRect: TRect; Item: POGLItem);
 
@@ -630,6 +651,8 @@ type
     procedure DoOLEDragging(P: TPoint);
     // VCL DragNDrop
     procedure DoEndDrag(Target: TObject; X, Y: Integer); override;
+    procedure DoExpand(Item: POGLItem); virtual;
+    procedure DoCollaps(Item: POGLItem); virtual;
     procedure DragCanceled; override;
     procedure DragFinished;
 
@@ -673,6 +696,12 @@ type
     property DoNotClearItems: Boolean read FDoNotClearItems write FDoNotClearItems default False;
     property DragDropMode: TDragDropMode read FDragDropMode write SetDragDropMode;
     property HideSelection: Boolean read FHideSelection write FHideSelection;
+    property GroupFont: TFont read FGroupFont write SetGroupFont;
+    property GroupCountFont: TFont read FGroupCountFont write SetGroupCountFont;
+    property GroupColor: TColor read FGroupColor write SetGroupColor;
+    property GroupSelectionColor: TColor read FGroupSelectionColor write SetGroupSelectionColor;
+    property GroupSelectionTextColor: TColor read FGroupSelectionTextColor write SetGroupSelectionTextColor;
+
     property OnMouseDownOnItem: TOGLMouseButtonEvent read FOnMouseDownOnItem write FOnMouseDownOnItem;
     property OnMouseUpOnItem: TOGLMouseButtonEvent read FOnMouseUpOnItem write FOnMouseUpOnItem;
     property OnSelectionChange: TNotifyEvent read FOnSelectionChange write FOnSelectionChange;
@@ -747,6 +776,7 @@ type
 
     property DragEngine: IOGLDragEngine read GetDragEngine;
     property DropTargetGroup: POGLItem read FDropTargetGroup;
+    property SelectionColor: TColor read FIntSelectionColor write FIntSelectionColor;
   published
     property AutoOptions: TOGLAutoOptions
       read FAutoOptions write FAutoOptions default DefaultAutoOptions;
@@ -807,6 +837,11 @@ type
       read FOnCompareItems write FOnCompareItems;
     property OnSearchItem: TOGLSearchItemEvent
       read FOnSearchItem write FOnSearchItem;
+
+    property OnExpandItem: TOGLItemEvent
+      read FOnExpandItem write FOnExpandItem;
+    property OnCollapsItem: TOGLItemEvent
+      read FOnCollapsItem write FOnCollapsItem;    
 
     // DragNDrop events
     property OnOLEGetDataObject: TOGLGetDataObjectEvent
@@ -906,9 +941,11 @@ implementation
 
 uses
 
-  SysUtils, Math{, Themes};
+  SysUtils, Math{, Themes}, CommCtrl, ShellApi;
 
 {$R *.RES}
+
+{$I HTMLENGO.PAS}
 
 const
   OGLChildItemVertTextSpacing = 4;
@@ -1575,6 +1612,7 @@ begin
   Color := clWhite;
 
   FGroupShowCount := True;
+  FUpdateSelCount := 0;
 
   FBorderStyle := bsSingle;
   FAutoOptions := DefaultAutoOptions;
@@ -1589,6 +1627,16 @@ begin
   FSortDirection := sdAscending;
   FSearchType := stChildOnly;
   FViewStyle := vsThumbnails;
+  FIntSelectionColor := clHighLight;
+
+  FGroupColor := clNone;
+  FGroupSelectionColor := clHighLight;
+  FGroupSelectionTextColor := clNone;
+  FGroupFont := TFont.Create;
+  FGroupFont.Color := $00B96837;
+  FGroupFont.Style := [fsBold];
+  FGroupCountFont := TFont.Create;
+  FGroupCountFont.Color := clBlack;
 
   FUpdateCount := 0;
   FOGLItemColumn := 0;
@@ -1679,6 +1727,8 @@ begin
   FreeAndNil(FBmpCanvas);
   FreeAndNil(FBmpMinus);
   FreeAndNil(FBmpPlus);
+  FGroupFont.Free;
+  FGroupCountFont.Free;
   inherited Destroy;
 end;
 
@@ -1894,10 +1944,11 @@ begin
         // default item's hint
         HintStr := '';
         if Assigned(FOnGetHint) then
-          FOnGetHint(Self, HitInfo.HitItem, HintStr);
+          FOnGetHint(Self, HitInfo.HitItem, HintStr, HintPos);
         HintMaxWidth := ClientWidth;
         FLastHintRect := GetDisplayRect(HitInfo.HitItem);
       end;
+
       FHintData.OutlookGroupedList := Self;
       FHintData.HitInfo := HitInfo;
       Include(FStates, lsHintShowed);
@@ -2021,16 +2072,33 @@ begin
 end;
 
 procedure TOutlookGroupedList.WMLButtonUp(var Message: TWMLButtonUp);
+  function LeftButtonUp: Boolean;
+  begin
+    if GetSystemMetrics(SM_SWAPBUTTON) = 0 then
+      Result:= GetAsyncKeyState(VK_LBUTTON) >= 0
+    else 
+      Result:= GetAsyncKeyState(VK_RBUTTON) >= 0;  
+ end;
+
 var
   HitInfo: TOGLItemHitInfo;
+  LBtnUp: Boolean;
 begin
-  DoStateChange([], [lsLeftButtonDown]);
-  GetHitTestInfoAt(Message.XPos, Message.YPos, True, HitInfo);
-  HandleMouseUp(Message, HitInfo);
+  LBtnUp := LeftButtonUp;
+  if LBtnUp then
+  begin
+    DoStateChange([], [lsLeftButtonDown]);
+    GetHitTestInfoAt(Message.XPos, Message.YPos, True, HitInfo);
+    HandleMouseUp(Message, HitInfo);
+  end;
+
   inherited;
 
-  if Assigned(FOnMouseUpOnItem) then
+  if LBtnUp and not FInternalBtnUp and Assigned(FOnMouseUpOnItem) then
     FOnMouseUpOnItem(self, mbLeft, KeysToShiftState(Message.Keys) * [ssShift, ssCtrl, ssAlt], Message.XPos, Message.YPos, HitInfo);
+    
+  if FInternalBtnUp then
+    FInternalBtnUp := False;
 end;
 
 procedure TOutlookGroupedList.WMRButtonDown(var Message: TWMRButtonDown);
@@ -2063,8 +2131,11 @@ begin
     HandleMouseUp(Message, HitInfo);
 
     // CC: kh
-    if Assigned(FOnMouseUpOnItem) then
+    if not FInternalBtnUp and Assigned(FOnMouseUpOnItem) then
       FOnMouseUpOnItem(self, mbRight, KeysToShiftState(Message.Keys) * [ssShift, ssCtrl, ssAlt], Message.XPos, Message.YPos, HitInfo);
+
+    if FInternalBtnUp then
+      FInternalBtnUp := False;
   end;
 end;
 
@@ -2078,7 +2149,7 @@ var
   IsHitItemSelected,
   MultiSelect,
   ShiftEmpty,
-  ShiftTotalEmpty,
+  //ShiftTotalEmpty,
   MustUpdateClientRect,
   AltPressed: Boolean;
 begin
@@ -2104,26 +2175,34 @@ begin
   end else
     AltPressed := False;
 
-       
-  IsHitItem :=
-    (HitInfo.HitTest in [htOnItemLabel, htOnItem]);
+  IsHitItem := (HitInfo.HitTest in [htOnItemLabel, htOnItem]);
   IsHitItemSelected := IsHitItem and IsItemSelected(HitInfo.HitItem);
+
   MultiSelect := soMultiSelect in FSelectionOptions;
   ShiftEmpty := ShiftState = [];
-  ShiftTotalEmpty := ShiftEmpty and not AltPressed;
+
+  //ShiftTotalEmpty := ShiftEmpty and not AltPressed;
+
+  if IsGroupItem(HitInfo.HitItem) and not MultiSelect then
+    IsHitItemSelected := false;
 
   // query the application to learn if dragging may start now (if set to dmManual)
   AutoDrag := (DragMode = dmAutomatic) or Dragging;
+
   if Assigned(HitInfo.HitItem) and (not AutoDrag) and (DragMode = dmManual) then
     AutoDrag := DoOLEDragAllowed(HitInfo.HitItem);
 
   // immediate or on MouseMove selection clearing
   MustUpdateClientRect := False;
+
   if (not MultiSelect or ShiftEmpty) and
       IsHitItem and not IsHitItemSelected then
-    MustUpdateClientRect := ClearSelection else
-  if (not MultiSelect or ShiftTotalEmpty) then
-    DoStateChange([lsSelectionClearing]);
+    MustUpdateClientRect := ClearSelection
+  else
+    if (not MultiSelect {or ShiftTotalEmpty}) then
+    begin
+      DoStateChange([lsSelectionClearing]);
+    end;
 
   // Keep start selection's mouse position
   FFromSelPoint := SmallPointToPoint(Message.Pos);
@@ -2149,7 +2228,14 @@ begin
       if ShiftEmpty then
         FSelectedAnchorItem := HitInfo.HitItem;
       if not IsHitItemSelected then
-        AddToSelection(HitInfo.HitItem, True);
+        AddToSelection(HitInfo.HitItem, True)
+      else
+      begin
+        if not (MultiSelect and IsHitItemSelected) then  // FF: Unselect selected item issue
+        ClearSelection;
+        AddToSelection(HitInfo.HitItem, false);
+      end;
+
     end;
     OldFocusedItem := FFocusedItem;
     DoSetFocusedItem(HitInfo.HitItem, False);
@@ -2160,19 +2246,52 @@ begin
       InvalidateItem(FFocusedItem);
     end;
   end;
+
   if MustUpdateClientRect then
     InvalidateRect(Handle, nil, False);
 
   // initialize DragNDrop operation, but not immediately 
-  if AutoDrag and (FStates * [lsLeftButtonDown, lsRightButtonDown] <> []) then
+  if AutoDrag and (FStates * [lsLeftButtonDown {, lsRightButtonDown}] <> []) then
     BeginDrag(False);
 end;
 
 procedure TOutlookGroupedList.HandleMouseUp(var Message: TWMMouse;
   const HitInfo: TOGLItemHitInfo);
+var
+  IsHitItem,
+  MultiSelect,
+  ShiftPressed, CtrlPressed: Boolean;
+  i, j: Integer;
 begin
   if not (lsVCLDragPending in FStates) then
   begin
+
+    MultiSelect := soMultiSelect in FSelectionOptions;
+    IsHitItem := (HitInfo.HitTest in [htOnItemLabel, htOnItem]);
+    ShiftPressed := (GetKeyState(VK_SHIFT) and $8000 = $8000);
+    CtrlPressed := (GetKeyState(VK_CONTROL) and $8000 = $8000);
+    // UnSelected the items on mouse click when Shift and Ctrl are not pressed
+    if MultiSelect and IsHitItem and not IsGroupItem(HitInfo.HitItem) then
+    begin
+      if not ShiftPressed and not CtrlPressed then
+      begin
+        j := 1;
+        i := FSelection.Count-j;
+        while i > -1 do
+        begin
+          if (FSelection[i] <> HitInfo.HitItem) then
+            RemoveFromSelection(FSelection[i], False)
+          else
+          begin
+            if (j >= 2) then
+              break;
+            j := 2;
+          end;
+          i := FSelection.Count - j;
+        end;
+      end;
+    end;
+
     if lsSelectionClearing in FStates then
     begin
       if (HitInfo.HitItem = nil) and not (lsOLEDragging in FStates) then
@@ -2182,14 +2301,28 @@ begin
         AddToSelection(FFocusedItem, True);
       end;
     end;
+    
     if (lsToggleFocusedSelection in FStates) and
        (HitInfo.HitItem = FFocusedItem) then
+    begin
       InvertSelection(HitInfo.HitItem, True);
+
+      if not IsItemSelected(HitInfo.HitItem) then
+        if Assigned(FOnSelectionChange) then
+          FOnSelectionChange(Self);
+    end;
+    
     if not (soMultiSelect in FSelectionOptions) or
        ((soMultiSelect in FSelectionOptions) and
         not (lsMouseSelected in FStates)) then
       ScrollIntoView(HitInfo.HitItem);
+
     ClearSelectionRect;
+
+    if (HitInfo.HitItem = nil) then
+      if Assigned(FOnSelectionChange) then
+        FOnSelectionChange(Self);
+
     DoStateChange([], [lsOLEDragPending, lsOLEDragging,
       lsSelectionClearing, lsToggleFocusedSelection]);
     DoTrackMouseEvent(False);
@@ -2260,7 +2393,7 @@ begin
       MustInvalidateGroupItem :=
         GroupItem.ChildSelectedCount = GroupItem.ChildCount;
       if ChildItem = nil then
-        ChildItem := GroupItem.FirstChild; 
+        ChildItem := GroupItem.FirstChild;
       while ChildItem <> nil do
       begin
         DisplayRect := GetDisplayRect(ChildItem);
@@ -2691,6 +2824,24 @@ begin
   AdjustItemsSize;
 end;
 
+function TOutlookGroupedList.HTMLPaint(Canvas: TCanvas; s: string;
+  fr: TRect): Boolean;
+var
+  anchorval, stripval, focusanchor: string;
+  xsize, ysize, hyperlinks, mouselink: integer;
+  hoverrect: TRect;
+begin
+  HTMLDrawEx(Canvas, s, fr, {FImages}nil, 0, 0, -1, 0, 0, True, False, False, False, False,
+                       False, False, 1.0, clBlue, clNone,clNone, clNone, anchorval,stripval,focusanchor,
+                       XSize,YSize,HyperLinks,MouseLink,HoverRect, {FImageCache} nil, {FContainer} nil,0);
+
+  if (YSize + 4 < (fr.Bottom - fr.Top)) then
+    fr.Top := fr.Top + ((fr.Bottom - fr.Top) - YSize);
+  Result := HTMLDrawEx(Canvas, s, fr, {FImages}nil, 0, 0, -1, 0, 0, False, False, False, False, False,
+                       False, False, 1.0, clBlue, clNone,clNone, clNone, anchorval,stripval,focusanchor,
+                       XSize,YSize,HyperLinks,MouseLink,HoverRect, {FImageCache} nil, {FContainer} nil,0);
+end;
+
 procedure TOutlookGroupedList.DrawItem(TargetCanvas: TCanvas;
   TargetRect: TRect; Item: POGLItem);
 
@@ -2717,8 +2868,11 @@ var
   ChildCount: String;
   ImageIndex: Integer;
 begin
-  if (Item = nil) or (Item = FRootItem) then Exit;
+  if (Item = nil) or (Item = FRootItem) then
+    Exit;
+  
   IsFocused := Focused;
+  
   if IsGroupItem(Item) then
   begin
     // Group item -------------------------
@@ -2737,9 +2891,22 @@ begin
     if IsItemSelected(Item) then
     begin
       if (IsFocused or not HideSelection) and (Item = FFocusedItem) then
-        TargetCanvas.Brush.Color := $00C56A31  // dark blue
+        TargetCanvas.Brush.Color := GroupSelectionColor //FIntSelectionColor // $00C56A31  // dark blue
       else
-        TargetCanvas.Brush.Color := $00F6E9E0; // light blue
+      begin
+        if (GroupColor <> clNone) then
+          TargetCanvas.Brush.Color := GroupColor
+        else
+          TargetCanvas.Brush.Color := $00F6E9E0; // light blue
+      end;
+      rc := Rect(TargetRect.Left, TargetRect.Top,
+        TargetRect.Right, TargetRect.Bottom - 2);
+      TargetCanvas.FillRect(rc);
+    end
+    else if (GroupColor <> clNone) then
+    begin
+      TargetCanvas.Brush.Color := GroupColor;
+      
       rc := Rect(TargetRect.Left, TargetRect.Top,
         TargetRect.Right, TargetRect.Bottom - 2);
       TargetCanvas.FillRect(rc);
@@ -2828,7 +2995,7 @@ begin
             FGroupItemExpandButtonVertOffset, FBmpPlus);
       end;
     end;
-    TargetCanvas.Font.Assign(Self.Font);
+    TargetCanvas.Font.Assign(GroupFont{Self.Font});
     ChildCount := IntToStr(Item.ChildCount);
     if (Item.ChildSelectedCount > 0) and (soMultiSelect in FSelectionOptions) then
       ChildCount := IntToStr(Item.ChildSelectedCount) + ' / ' + ChildCount;
@@ -2839,11 +3006,14 @@ begin
       FOnGetCaption(Self, Item, Caption);
     end else
       Caption := '  ';
-    TargetCanvas.Font.Style := [fsBold];
+    //TargetCanvas.Font.Style := [fsBold];
     if IsItemSelected(Item) and (Item = FFocusedItem) and (IsFocused or not HideSelection) then
-      TargetCanvas.Font.Color := clWhite
+    begin
+      if (GroupSelectionTextColor <> clNone) then
+        TargetCanvas.Font.Color := GroupSelectionTextColor //clWhite
+    end
     else
-      TargetCanvas.Font.Color := $00B96837;
+      TargetCanvas.Font.Color := GroupFont.Color; // $00B96837;
     rc := Rect(TargetRect.Left + 22, TargetRect.Top,
       TargetRect.Right - 12 - TargetCanvas.TextWidth(ChildCount),
       TargetRect.Bottom - 7);
@@ -2859,14 +3029,22 @@ begin
         Inc(rc.Left, FImages.Width + 4);
       end;
     end;
-    DrawText(TargetCanvas.Handle, PChar(Caption), -1, rc,
+
+    if (Pos('<', Caption) > 0) then
+    begin
+      HTMLPaint(TargetCanvas, Caption, rc);
+      TargetCanvas.Brush.Style := bsClear;
+    end
+    else
+      DrawText(TargetCanvas.Handle, PChar(Caption), -1, rc,
       DT_LEFT or DT_BOTTOM or DT_SINGLELINE or DT_NOCLIP or DT_END_ELLIPSIS or DT_NOPREFIX);
     // draw group child items count
-    TargetCanvas.Font.Style := [];
+    //TargetCanvas.Font.Style := [];
+    TargetCanvas.Font.Assign(GroupCountFont);
     if IsItemSelected(Item) and (Item = FFocusedItem) and (IsFocused or not HideSelection) then
-      TargetCanvas.Font.Color := clWhite
+      TargetCanvas.Font.Color := GroupSelectionTextColor// clWhite
     else
-      TargetCanvas.Font.Color := clBlack;
+      TargetCanvas.Font.Color := GroupCountFont.Color; // clBlack;
     rc := Rect(TargetRect.Left + 22, TargetRect.Top,
       TargetRect.Right - 7, TargetRect.Bottom - 7);
     if GroupShowCount then
@@ -2887,7 +3065,7 @@ begin
         if not IsFocused and HideSelection then
           TargetCanvas.Brush.Color := $00F6E9E0 else
         (* if Item = FFocusedItem then *)
-          TargetCanvas.Brush.Color := $00B96837
+          TargetCanvas.Brush.Color := FIntSelectionColor; //$00B96837
         (* else
           TargetCanvas.Brush.Color := $00E0A47B *);
         TargetCanvas.FillRect(rc);
@@ -3513,27 +3691,39 @@ begin
 
   Result.Parent := ParentItem;
 
-  if (Index < 0) then Index := 0;
+  if (Index < 0) then
+    Index := 0;
+
   if (Index > Integer(ParentItem.ChildCount)) then
     Index := ParentItem.ChildCount;
 
-
   if (Index = 0) then
   begin
-    ParentItem.FirstChild.PrevSibling := Result;
-    Result.NextSibling := ParentItem.FirstChild;
-    Result.PrevSibling := ParentItem;
+    if Assigned(ParentItem.FirstChild) then
+    begin
+      ogl := ParentItem.FirstChild;
+      Result.NextSibling := ogl;
+      Result.PrevSibling := ogl.PrevSibling;
+      ogl.PrevSibling := Result;
+    end
+    else
+    begin
+      ParentItem.FirstChild := Result;
+      Result.NextSibling := nil;
+      Result.PrevSibling := nil;
+    end;
 
     Result.FirstChild := nil;
     Result.LastChild := nil;
+    Result.Index := 0;
 
     ParentItem.FirstChild := Result;
-  end;
-
-  i := 0;
-
+  end
+  else
   if (Index > 0) and (Index < Integer(ParentItem.ChildCount)) then
   begin
+    i := 0;
+
     ogl := ParentItem.FirstChild;
 
     while (i < Index) do
@@ -3541,16 +3731,20 @@ begin
       ogl := ogl^.NextSibling;
       inc(i);
     end;
+
     Result.NextSibling := ogl.NextSibling;
 
-    ogl.NextSibling.PrevSibling := Result;
+    if Assigned(ogl.NextSibling) then
+      ogl.NextSibling.PrevSibling := Result;
+
     ogl.NextSibling := Result;
 
+    Result.Index := ogl.Index + 1;
     Result.PrevSibling := ogl;
     Result.FirstChild := nil;
     Result.LastChild := nil;
-  end;
-
+  end
+  else
   if (Index = Integer(ParentItem.ChildCount)) then
   begin
     Result.PrevSibling := ParentItem.LastChild;
@@ -3565,13 +3759,16 @@ begin
       ParentItem.FirstChild := Result;
 
     ParentItem.LastChild := Result;
-  end;  
+  end;
 
+  // correct indexes 
+  ogl := Result.NextSibling;
+  while assigned(ogl) do
+  begin
+    ogl.Index := ogl.Index + 1;
+    ogl := ogl.NextSibling;
+  end;
 
-  if Result.PrevSibling = nil then
-    Result.Index := 0
-  else
-    Result.Index := Result.PrevSibling.Index + 1;
 
   Inc(ParentItem.ChildCount);
   Inc(FRootItem.TotalCount);
@@ -3625,11 +3822,12 @@ begin
         DeleteItem(ChildItem, False);
         ChildItem := Item.FirstChild;
       end;
-      ChildItem := nil;
-    end else
-    begin
-      ChildItem := Item.NextSibling;
+    //  ChildItem := nil;
     end;
+    //else
+    //begin
+    ChildItem := Item.NextSibling;
+    //end;
     if Item.Parent.FirstChild = Item then
       Item.Parent.FirstChild := Item.NextSibling;
     if Item.Parent.LastChild = Item then
@@ -3760,6 +3958,8 @@ begin
       VertScrollBar.Range := FTotalItemsHeight;
       Invalidate;
     end;
+
+    DoExpand(Item);
   end;
 end;
 
@@ -3777,6 +3977,8 @@ begin
       VertScrollBar.Range := FTotalItemsHeight;
       Invalidate;
     end;
+
+    DoCollaps(Item);    
   end;
 end;
 
@@ -3849,7 +4051,12 @@ begin
   if IsGroupItem(Item) then
     GroupItem := Item.PrevSibling
   else
-    GroupItem := Item.Parent.PrevSibling;
+  begin
+    if Assigned(Item.Parent) then    
+      GroupItem := Item.Parent.PrevSibling
+    else
+      GroupItem := nil;
+  end;
   while GroupItem <> nil do
   begin
     Inc(Result.Top, FGroupItemHeight);
@@ -3889,7 +4096,7 @@ begin
   try
     if AutoScrollOnExpand then
     begin
-      (* if Group item with its Child items not places within ClientHeight -
+      (* if Group item with its Child items not placed within ClientHeight -
          simple scroll to the Group item. *)
       if DisplayRect.Top < VertScrollBar.Position then
         VertScrollBar.Position := DisplayRect.Top else
@@ -3925,7 +4132,9 @@ procedure TOutlookGroupedList.AddToSelection(Item: POGLItem;
 var
   ChildItem: POGLItem;
 begin
-  if (Item = nil) or (Item = FRootItem) or IsItemSelected(Item) then Exit;
+  if (Item = nil) or (Item = FRootItem) or IsItemSelected(Item) then
+    Exit;
+
   Include(Item.States, nsSelected);
   FSelection.Add(Item);
   // inc ChildSelectedCount of Item.Parent (i.e. Group item) &
@@ -3936,20 +4145,35 @@ begin
       Inc(Item.Parent.ChildSelectedCount);
     if Item.Parent.ChildSelectedCount = Item.Parent.ChildCount then
       AddToSelection(Item.Parent, False);
-  end else
+
+    if (FUpdateSelCount = 0) and not FSupressOnSelect then
+    begin
+      if Assigned(FOnSelectionChange) then
+        FOnSelectionChange(Self);
+      if FAllowOneOnSelect then
+        FSupressOnSelect := True;
+    end;
+  end
+  else
   // select all Child items of Group Item
   if IncludeChildItems and (soMultiSelect in FSelectionOptions) then
   begin
+    if Assigned(FOnSelectionChange) and not FSupressOnSelect then
+    begin
+      FOnSelectionChange(Self);
+      if FAllowOneOnSelect then
+        FSupressOnSelect := True;
+    end;    
+
+    inc(FUpdateSelCount);
     ChildItem := Item.FirstChild;
     while ChildItem <> nil do
     begin
       AddToSelection(ChildItem);
       ChildItem := ChildItem.NextSibling;
     end;
+    dec(FUpdateSelCount);
   end;
-  
-  if Assigned(FOnSelectionChange) then
-    FOnSelectionChange(Self);
 end;
 
 procedure TOutlookGroupedList.RemoveFromSelection(Item: POGLItem;
@@ -3959,7 +4183,9 @@ procedure TOutlookGroupedList.RemoveFromSelection(Item: POGLItem;
 var
   ChildItem: POGLItem;
 begin
-  if (Item = nil) or (Item = FRootItem) or (not IsItemSelected(Item)) then Exit;
+  if (Item = nil) or (Item = FRootItem) or (not IsItemSelected(Item)) then
+    Exit;
+    
   if FSelection.Remove(Item) <> -1 then
   begin
     Exclude(Item.States, nsSelected);
@@ -4068,6 +4294,10 @@ begin
     AddToSelection(Item, True);
     Exit;
   end;
+
+  try
+    FAllowOneOnSelect := True;
+    FSupressOnSelect := False;
   if IsItem2AfterItem1(FSelectedAnchorItem, Item) then
   begin
     FromChildItem := FSelectedAnchorItem;
@@ -4151,7 +4381,11 @@ begin
       end;
       if GroupItem = ToGroupItem then Exit;
       GroupItem := GroupItem.PrevSibling;
+      end;
     end;
+  finally;
+    FAllowOneOnSelect := False;
+    FSupressOnSelect := False;
   end;
 end;
 
@@ -4198,7 +4432,7 @@ begin
     while i > -1 do
     begin
       RemoveFromSelection(FSelection[i], True);
-      i := FSelection.Count-1;
+      i := FSelection.Count - 1;
     end;
   finally
     FSelection.Clear;
@@ -5004,7 +5238,7 @@ end;
 
 procedure TOutlookGroupedList.DoTrackMouseEvent(const Start: Boolean);
 var
-  tmpTrackMouseEvent: TTrackMouseEvent;
+  tmpTrackMouseEvent: Windows.TTrackMouseEvent;
 begin
   tmpTrackMouseEvent.cbSize := SizeOf(tmpTrackMouseEvent);
   tmpTrackMouseEvent.hwndTrack := Self.Handle;
@@ -5017,7 +5251,7 @@ begin
     tmpTrackMouseEvent.dwFlags := TME_CANCEL;
     tmpTrackMouseEvent.dwHoverTime := 0;
   end;
-  TrackMouseEvent(tmpTrackMouseEvent);
+  Windows.TrackMouseEvent(tmpTrackMouseEvent);
 end;
 
 function TOutlookGroupedList.DoOLECreateDataObject: IDataObject;
@@ -5256,6 +5490,18 @@ begin
   Result := DoOLEGetData(FormatEtcIn, Medium);
 end;
 
+procedure TOutlookGroupedList.DoExpand(Item: POGLItem);
+begin
+  if Assigned(OnExpandItem) then
+    OnExpandItem(Self, Item);
+end;
+
+procedure TOutlookGroupedList.DoCollaps(Item: POGLItem);
+begin
+  if Assigned(OnCollapsItem) then
+    OnCollapsItem(Self, Item);
+end;
+
 procedure TOutlookGroupedList.DoEndDrag(Target: TObject; X, Y: Integer);
 begin
   inherited;
@@ -5265,6 +5511,8 @@ end;
 procedure TOutlookGroupedList.DragCanceled;
 begin
   inherited;
+  if (DragType =  dtVCL) then
+    FInternalBtnUp := True;
   DragFinished;
 end;
 
@@ -5365,6 +5613,44 @@ begin
   FGroupShowCount := Value;
   if not (csDesigning in ComponentState) and not (csLoading in ComponentState) then
     Invalidate;
+end;
+
+procedure TOutlookGroupedList.SetGroupColor(const Value: TColor);
+begin
+  if (FGroupColor <> Value) then
+  begin
+    FGroupColor := Value;
+    Invalidate;
+  end;
+end;
+
+procedure TOutlookGroupedList.SetGroupCountFont(const Value: TFont);
+begin
+  FGroupCountFont.Assign(Value);
+end;
+
+procedure TOutlookGroupedList.SetGroupFont(const Value: TFont);
+begin
+  FGroupFont.Assign(Value);
+end;
+
+procedure TOutlookGroupedList.SetGroupSelectionColor(const Value: TColor);
+begin
+  if (FGroupSelectionColor <> Value) then
+  begin
+    FGroupSelectionColor := Value;
+    Invalidate;
+  end;
+end;
+
+procedure TOutlookGroupedList.SetGroupSelectionTextColor(
+  const Value: TColor);
+begin
+  if (FGroupSelectionTextColor <> Value) then
+  begin
+    FGroupSelectionTextColor := Value;
+    Invalidate;
+  end;
 end;
 
 initialization

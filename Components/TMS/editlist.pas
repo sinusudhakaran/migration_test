@@ -1,10 +1,9 @@
 {*********************************************************************}
 { TEDITLISTBOX component                                              }
 { for Delphi & C++ Builder                                            }
-{ version 2.1                                                         }
 {                                                                     }
 { written by TMS Software                                             }
-{            copyright © 1998-2005                                    }
+{            copyright © 1998-2008                                    }
 {            Email : info@tmssoftware.com                             }
 {            Website : http://www.tmssoftware.com                     }
 {                                                                     }
@@ -33,13 +32,21 @@ const
   MAJ_VER = 2; // Major version nr.
   MIN_VER = 1; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 1; // Build nr.
+  BLD_VER = 4; // Build nr.
 
   // version history
   // 2.1.0.1 : fixed issue with OnKeyPress
+  // 2.1.0.2 : fixed issue with handling ESC/Return on modal form with default buttons
+  // 2.1.0.3 : fixed issue with horiz. scrollbar visible when no items are in the list
+  // 2.1.0.4 : fixed issue with flat scrollbar & use of BeginUpdate/EndUpdate 
   
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TScrollStyle = (ssNormal, ssFlat, ssEncarta);
 
   TEditListBox = class;
@@ -87,6 +94,7 @@ type
     parentlistcache: string;
     procedure WMLButtonDown(var Msg: TWMLButtonDown); message wm_lbuttondown;
     procedure WMChar(var Msg: TWMKey); message wm_char;
+    procedure WMGetDlgCode(var Message: TWMGetDlgCode); message WM_GETDLGCODE;
     procedure CMTextChanged(var Message: TMessage); message CM_TEXTCHANGED;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
@@ -338,6 +346,12 @@ procedure TSizeEdit.WMChar(var Msg: TWMKey);
 begin
   if (msg.charcode = vk_return) then Exit;
   inherited;
+end;
+
+procedure TSizeEdit.WMGetDlgCode(var Message: TWMGetDlgCode);
+begin
+  inherited;
+  Message.Result := Message.Result or DLGC_WANTALLKEYS;
 end;
 
 procedure TSizeEdit.KeyDown(var Key: Word; Shift: TShiftState);
@@ -1286,6 +1300,7 @@ begin
   begin
     SendMessage(Handle, LB_SETHORIZONTALEXTENT, 0, 0);
     SendMessage(Handle, WM_HSCROLL, SB_TOP, 0);
+    ShowScrollBar(self.Handle, SB_HORZ, false);
     Exit;
   end;
 
@@ -1569,6 +1584,16 @@ begin
   begin
     dec(fUpdateCount);
     if fUpdateCount = 0 then UpdateHScrollBar;
+  end;
+
+  if (ScrollStyle <> ssNormal) then
+  begin
+    {$IFNDEF TMSDOTNET}
+    if (VisibleItems < self.Items.Count) then FlatShowScrollbar(SB_VERT, true);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if (VisibleItems < self.Items.Count) then FlatSB_ShowScrollbar(Self.handle, SB_VERT, true);
+    {$ENDIF}
   end;
 
 end;

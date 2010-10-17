@@ -1,11 +1,10 @@
 {****************************************************************}
 { TWEBCOPY component                                             }
-{ for Delphi 4.0,5.0,6.0 - C++Builder 4,5,6                      }
-{ version 1.4 - March 2002                                       }
+{ for Delphi & C++Builder                                        }
 {                                                                }
 { written by                                                     }
 {   TMS Software                                                 }
-{   copyright © 2000-2002                                        }
+{   copyright © 2000-2007                                        }
 {   Email : info@tmssoftware.com                                 }
 {   Web : http://www.tmssoftware.com                             }
 {****************************************************************}
@@ -15,6 +14,11 @@ interface
                     
 uses
   WebCopy, Classes;
+
+{$IFDEF TMSDOTNET}
+{$R TWebCopy.bmp}
+{$ENDIF}
+
 
 procedure Register;
 

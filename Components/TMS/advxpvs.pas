@@ -4,7 +4,7 @@
 { version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 1996-2002                                          }
+{            copyright © 1996-2007                                          }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -19,6 +19,8 @@
 
 unit AdvXPVS;
 
+{$I TMSDEFS.INC}
+
 //Use this when using together with ThemeManager
 {$HPPEMIT ''}
 {$HPPEMIT '#include "uxtheme.h"'}
@@ -30,9 +32,6 @@ uses
   Windows, Graphics;
 
 const
-  // theme changed notifier
-  WM_THEMECHANGED = $031A;
-
 //---------------------------------------------------------------------------------------
 //   "Window" (i.e., non-client) Parts & States
 //---------------------------------------------------------------------------------------

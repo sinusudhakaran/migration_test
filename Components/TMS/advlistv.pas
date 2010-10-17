@@ -1,11 +1,10 @@
 {************************************************************************}
 { TADVLISTVIEW component                                                 }
 { for Delphi & C++Builder                                                }
-{ version 1.6                                                            }
 {                                                                        }
 { written by                                                             }
 {   TMS Software                                                         }
-{   copyright © 1998-2007                                                }
+{   copyright © 1998-2008                                                }
 {   Email : info@tmssoftware.com                                         }
 {   Web : http://www.tmssoftware.com                                     }
 {                                                                        }
@@ -21,6 +20,28 @@
 unit AdvListV;
 
 interface
+
+  // version history
+  // 1.6.0.2 : fixed issue with SaveToHTML font color in first column
+  // 1.6.1.0 : Added new EditFilter method
+  //         : Fixed issue with ssNumeric style for progressbar column sorting
+  // 1.6.1.1 : Fixed issue with SaveToAscii
+  // 1.6.1.2 : Improved header ownerdraw alignment handling
+  // 1.6.1.3 : Fixed issue with alignment for header with sort indicator
+  //         : Invalidate optimization for header size changes
+  // 1.6.2.0 : New SaveWithHTML parameter added to SaveXXXX functions
+  //         : New OnDrawDetailProp event added
+  // 1.6.2.1 : Fixed issue with Windows XP theme and ownerdraw header
+  // 1.6.2.2 : Fixed issue with PrintSettings.RepeatHeaders
+  // 1.6.2.3 : Fixed issue with MoveItem and ItemHeight
+  // 1.6.2.4 : Fixed issue with HideSelection
+  // 1.6.3.0 : New method IndexOfColumn added to get index of columns after rearrange
+  // 1.6.3.1 : Fixed issue with drag & drop of checked items
+  // 1.6.3.2 : Fixed issue with itemindex in OnDrawItemProp event
+  // 1.6.3.3 : Fixed issue with LoadFromFile
+  // 1.6.3.4 : Fixed issues with hint handling in newer VCL updates
+  // 1.6.3.5 : Fixed issue with drag & drop
+
 
 {$I TMSDEFS.INC}
 {$R ALVRES.RES}
@@ -50,31 +71,12 @@ uses
 {$ENDIF}
   ;
 
-type
-  TVAlignment = (vtaCenter, vtaTop, vtaBottom);
-
-  // version history
-  // 1.6.0.2 : fixed issue with SaveToHTML font color in first column
-  // 1.6.1.0 : Added new EditFilter method
-  //         : Fixed issue with ssNumeric style for progressbar column sorting
-  // 1.6.1.1 : Fixed issue with SaveToAscii
-  // 1.6.1.2 : Improved header ownerdraw alignment handling
-  // 1.6.1.3 : Fixed issue with alignment for header with sort indicator
-  //         : Invalidate optimization for header size changes
-  // 1.6.2.0 : New SaveWithHTML parameter added to SaveXXXX functions
-  //         : New OnDrawDetailProp event added
-  // 1.6.2.1 : Fixed issue with Windows XP theme and ownerdraw header
-  // 1.6.2.2 : Fixed issue with PrintSettings.RepeatHeaders
-  // 1.6.2.3 : Fixed issue with MoveItem and ItemHeight
-  // 1.6.2.4 : Fixed issue with HideSelection
-  // 1.6.3.0 : New method IndexOfColumn added to get index of columns after rearrange
-
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 6; // Minor version nr.
   REL_VER = 3; // Release nr.
-  BLD_VER = 0; // Build nr.
-  DATE_VER = 'Jan, 2007'; // Month version
+  BLD_VER = 5; // Build nr.
+  DATE_VER = 'Mar, 2008'; // Month version
 
   alvHDS_FILTERBAR = $100;
   alvHDI_FILTER = $100;
@@ -200,6 +202,15 @@ const
 {$ENDIF}
 
 type
+
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
+  TVAlignment = (vtaCenter, vtaTop, vtaBottom);
+
+
   PHDItemExA = ^THDItemExA;
   PHDItemExW = ^THDItemExW;
   PHDItemEx = PHDItemExA;
@@ -674,7 +685,6 @@ type
     FReArrangeItems: Boolean;
     FListTimerID: Integer;
     FDetailView: TDetails;
-    Showhintassigned: Boolean;
     PrevRect: TRect;
     Fontscalefactor: Double;
     MaxWidths: array[0..MAX_COLUMNS] of Integer;
@@ -794,6 +804,7 @@ type
       ABrush: TBrush; AFont: TFont; itemtext: string); virtual;
     function HeaderHandle: THandle;
     function GetRichEdit: TAdvRichEdit;
+    procedure DoStartDrag(var DragObject: TDragObject); override;
   public
     property Delimiter: char read FDelimiter write FDelimiter;
     constructor Create(AOwner: TComponent); override;
@@ -804,9 +815,15 @@ type
     procedure SetVersion(const Value: string);
 
     { All IO methods }
+    {$IFDEF DELPHI_UNICODE}
+    procedure SaveToFile(filename: string; SaveWithHTML: boolean = true; Unicode: boolean = true);
+    procedure SaveToCSV(filename: string; SaveWithHTML: boolean = true; Unicode: boolean = true);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     procedure SaveToFile(filename: string; SaveWithHTML: boolean = true);
-    procedure LoadFromFile(filename: string);
     procedure SaveToCSV(filename: string; SaveWithHTML: boolean = true);
+    {$ENDIF}
+    procedure LoadFromFile(filename: string);
     procedure LoadFromCSV(filename: string);
     procedure InsertFromCSV(FileName: string);
     procedure SaveToDOC(Filename: string; SaveWithHTML: boolean = true);
@@ -1071,7 +1088,8 @@ var
 procedure TColumnSize.SetStretch(value: Boolean);
 begin
   FStretch := Value;
-  (Owner as TAdvListView).StretchRightColumn;
+  if not (csLoading in (Owner as TAdvListView).ComponentState) then
+    (Owner as TAdvListView).StretchRightColumn;
 end;
 
 procedure TColumnSize.SetSave(value: Boolean);
@@ -1988,7 +2006,9 @@ begin
             im := Items[index].ImageIndex
           else
             if SubImages then
+            begin
               im := GetSubItemImage(index, remapi);
+            end;
 
           if (im >= 0) and (im < $FFFF) then
           begin
@@ -2167,7 +2187,7 @@ var
   Allow: Boolean;
 
 begin
-  if Message.NMHdr^.Code <> LVN_ENDLABELEDIT then
+  if (Message.NMHdr^.Code <> LVN_ENDLABELEDIT) and (Message.NMHdr^.Code <> LVN_GETINFOTIP) then
     inherited;
 
   with Message.NMHdr^ do
@@ -2251,6 +2271,14 @@ begin
             if (uNewState and LVIS_SELECTED <> 0) then SelectionChanged(iItem);
           end;
         end;
+
+      LVN_GETINFOTIP:
+        begin
+          message.Result := 1;
+        end;
+//        if Assigned(FOnInfoTip) then
+//          Application.ActivateHint(Mouse.CursorPos);
+
     end;
 end;
 
@@ -2302,7 +2330,7 @@ begin
   inherited;
   SetSortImage(SortCol);
 
-  if ColumnSize.FStretch then
+  if (ColumnSize.FStretch) then
     StretchRightColumn;
 end;
 
@@ -2329,7 +2357,7 @@ begin
     r := FScrollHintWnd.CalcHinTRect(100, s, nil);
     FScrollHintWnd.Caption := s;
 
-    FScrollHintWnd.Color := application.HintColor;
+    FScrollHintWnd.Color := Application.HintColor;
 
     GetCursorPos(pt);
     r.Left := r.Left + pt.x + 10;
@@ -2344,7 +2372,6 @@ end;
 procedure TAdvListView.WMLButtonUp(var Msg: TWMLButtonUp);
 var
   targetindex, j: Integer;
-
   s: string;
   iItem, iSubItem: Integer;
   r, hr: TRect;
@@ -2366,7 +2393,6 @@ begin
     MoveItem(fReArrangeIndex, TargetIndex);
 
     FReArrangeIndex := -1;
-
   end;
 
   s := GetTextAtPoint(msg.xpos, msg.ypos);
@@ -2599,12 +2625,20 @@ begin
   begin
     if (hwndfrom = FHeaderHandle) then
     begin
-      if (code = HDN_BEGINTRACK) or (code = HDN_BEGINTRACKW) then
+      if (code = HDN_BEGINTRACK)
+       {$IFNDEF DELPHI_UNICODE}
+        or (code = HDN_BEGINTRACKW)
+       {$ENDIF}
+        then
       begin
         FHeaderTracking := True;
       end;
 
-      if (code = HDN_ENDTRACK) or (code = HDN_ENDTRACKW) then
+      if (code = HDN_ENDTRACK)
+         {$IFNDEF DELPHI_UNICODE}
+         or (code = HDN_ENDTRACKW)
+         {$ENDIF}
+         then
       begin
         FHeaderTracking := False;
         SetSortImage(SortColumn);
@@ -2782,7 +2816,6 @@ begin
   FDummyFont := TFont.Create;
 
   FHeaderFont.OnChange := HeaderFontChange;
-  ShowHintAssigned := False;
   FSelectionColor := clHighLight;
   FSelectionTextColor := clHighlightText;
   FValign := DT_VCENTER;
@@ -2844,7 +2877,8 @@ var
 {$ENDIF}
 
 begin
-  inherited;
+//  inherited;
+
   CanShow := True;
   hi := PHintInfo(Msg.LParam);
 {$IFNDEF DELPHI3_LVL}
@@ -3021,6 +3055,7 @@ var
           tw := FPrintSettings.FFixedWidth
         else
           tw := GetTextSize(i, j - 1).x + fnthspace;
+
         if (tw > MaxWidths[j]) then
           MaxWidths[j] := tw;
       end;
@@ -3062,7 +3097,6 @@ var
     anchor, stripped, fa: string;
     xsize, ysize, ml, hl: Integer;
     mm: Integer;
-
   begin
     Result := 0;
     if Preview and (PagNum > 0) then
@@ -3342,7 +3376,7 @@ begin
     ysize := -round(254 / getdevicecaps(Canvas.Handle, LOGPIXELSY) * (prevrect.bottom - prevrect.top));
   end;
 
-  indent := fPrintsettings.fLeftSize;
+  indent := FPrintsettings.fLeftSize;
 
   if fPrintSettings.FUseFixedWidth then
     spacing := 0
@@ -3504,7 +3538,7 @@ begin
     end;
 
        {print all rows here}
-    while (i < self.items.count) do
+    while (i < self.Items.Count) do
     begin
       {at start of page.. print header}
       if (j = 0) then
@@ -3530,13 +3564,14 @@ begin
 
       forcednewpage := false;
 
-      if assigned(FOnPrintNewPage) then
+      if Assigned(FOnPrintNewPage) then
       begin
         FOnPrintNewPage(self, i, forcednewpage);
       end;
 
-      if ((yposprint - GetRowHeight(j) < ysize + footindent) and
-        (i < self.items.count)) or
+
+      if ((i < self.Items.Count) and
+        (yposprint - GetRowHeight(i) < ysize + footindent)) or
         (forcednewpage) then
       begin
         DrawBorderAround(startcol, endcol, yposprint);
@@ -3969,12 +4004,9 @@ begin
       // MUST set the Width last
       Columns[Columns.Count - 1].Width := TempWidth - 2;
       Columns[Columns.Count - 1].Caption := s;
-
       UpdateHeaderOD(Columns.Count - 1);
     end;
-
   finally
-
   end;
 end;
 
@@ -3988,6 +4020,12 @@ end;
 function TAdvListView.HeaderHandle: THandle;
 begin
   Result := SendMessage(Handle, LVM_GETHEADER, 0, 0);
+end;
+
+procedure TAdvListView.DoStartDrag(var DragObject: TDragObject);
+begin
+  inherited;
+  Repaint;
 end;
 
 { All IO methods }
@@ -4803,29 +4841,38 @@ begin
   screen.cursor := crDefault;
 end;
 
+{$IFDEF DELPHI_UNICODE}
+procedure TAdvListView.SaveToFile(FileName: string; SaveWithHTML: boolean = true; Unicode: boolean = true);
+{$ENDIF}
+{$IFNDEF DELPHI_UNICODE}
 procedure TAdvListView.SaveToFile(FileName: string; SaveWithHTML: boolean = true);
+{$ENDIF}
 var
   i, j, k: LongInt;
   ss: string;
-  f: TextFile;
+  //f: TextFile;
   colcount, rowcount: Integer;
   imidx: Integer;
   cols: integer;
+  sl: TFileStringList;
 
 begin
+  (*
   AssignFile(f, FileName);
-
   {$i-}
   Rewrite(f);
   {$i+}
-
   if IOResult = 0 then
+  *)
+
+  sl := TFileStringList.Create;
+
   begin
     colcount := self.columns.count;
     rowcount := self.Items.count;
 
     ss := IntToStr(ColCount) + ',' + IntToStr(RowCount);
-    Writeln(f, ss);
+    sl.Writeln(ss);
 
     cols := colcount;
 
@@ -4835,7 +4882,7 @@ begin
     for i := 0 to colcount - 1 do
     begin
       ss := 'cw ' + inttostr(i) + ',' + inttostr(self.columns[i].width);
-      Writeln(f, ss);
+      sl.Writeln(ss);
     end;
 
     k := 0;
@@ -4852,14 +4899,14 @@ begin
         if (ss <> '') then
         begin
           ss := IntToStr(i) + ',0,' + lftofile(ss);
-          Writeln(f, ss);
+          sl.Writeln(ss);
         end;
       end;
       k := 1;
     end;
 
     for i := 0 to RowCount - 1 do
-      for j := 0 to cols - 1 do
+      for j := 0 to Cols - 1 do
       begin
         ss := gettextatcolrow(j, i);
 
@@ -4872,23 +4919,33 @@ begin
         if (ss <> '') then
         begin
           ss := IntToStr(j) + ',' + IntToStr(i + k) + ',' + inttostr(imidx) + ',' + lftofile(ss);
-          Writeln(f, ss);
+          sl.Writeln(ss);
         end;
       end;
 
-    CloseFile(f);
-  end
-  else
-    raise Exception.Create('Cannot create file '+  FileName);
+    {$IFDEF DELPHI_UNICODE}
+    if Unicode then
+      sl.SaveToFile(FileName, TEncoding.Unicode)
+    else
+      sl.SaveToFile(FileName);
+    {$ENDIF}
+
+    {$IFNDEF DELPHI_UNICODE}
+    sl.SaveToFile(FileName);
+    {$ENDIF}
+
+    sl.Free;
+  end;
 end;
 
 procedure TAdvListView.LoadFromFile(FileName: string);
 var
   X, Y, CW, K: Integer;
   ss, ss1: string;
-  f: TextFile;
+  //f: TextFile;
   Colcount, Rowcount: Integer;
   imidx: Integer;
+  sl: TFileStringList;
 
   function mStrToInt(s: string): Integer;
   var
@@ -4902,23 +4959,33 @@ begin
   ColCount := 0;
   RowCount := 0;
 
+  (*
+
   AssignFile(f, FileName);
   Reset(f);
   if (IOResult <> 0) then raise EAdvListViewError.Create('File ' + FileName + ' not found');
+  *)
 
-  Readln(f, ss);
+  sl := TFileStringList.Create;
+  sl.LoadFromFile(FileName);
+
+  sl.Readln(ss);
 
   if (ss <> '') then
   begin
     ss1 := Copy(ss, 1, Pos(',', ss) - 1);
     ColCount := mStrToInt(ss1);
     ss1 := Copy(ss, Pos(',', ss) + 1, Length(ss));
-    RowCount := mStrToInt(ss1);
+
+    if LoadHeader then
+      RowCount := mStrToInt(ss1) - 1
+    else
+      RowCount := mStrToInt(ss1);
   end;
 
   if (colcount = 0) or (rowcount = 0) then
   begin
-    closefile(f);
+    sl.Free;
     raise EAdvListViewError.Create('File contains no data or corrupt file ' + FileName);
   end;
 
@@ -4926,9 +4993,9 @@ begin
 
   ClearInit(RowCount + k, ColCount);
 
-  while not Eof(f) do
+  while not sl.Eof do
   begin
-    Readln(f, ss);
+    sl.Readln(ss);
 
     if pos('cw', ss) = 1 then
     begin
@@ -4971,15 +5038,21 @@ begin
 
     end;
   end;
-  CloseFile(f);
+  sl.Free;
 end;
 
+{$IFDEF DELPHI_UNICODE}
+procedure TAdvListView.SaveToCSV(filename: string; SaveWithHTML: boolean = true; Unicode: boolean = true);
+{$ENDIF}
+{$IFNDEF DELPHI_UNICODE}
 procedure TAdvListView.SaveToCSV(filename: string; SaveWithHTML: boolean = true);
+{$ENDIF}
 var
-  f: textfile;
+  //f: textfile;
   i, j, r, c: Integer;
   s: string;
   fUsedDelimiter: char;
+  sl: TFileStringList;
 
 begin
   c := self.columns.count;
@@ -4993,12 +5066,16 @@ begin
   else
     FUsedDelimiter := fDelimiter;
 
+  (*
   Assignfile(f, filename);
   {$i-}
   Rewrite(f);
   {$i+}
-
   if IOResult = 0 then
+  *)
+
+  sl := TFileStringList.Create;
+
   begin
     if FSaveHeader then
     begin
@@ -5011,7 +5088,7 @@ begin
       begin
         s := s + FUsedDelimiter + column[i].caption;
       end;
-      writeln(f, s);
+      sl.writeln(s);
     end;
 
     for i := 0 to r - 1 do
@@ -5033,12 +5110,22 @@ begin
           if j < c - 1 then
             s := s + FUsedDelimiter;
       end;
-      writeln(f, s);
+      sl.writeln(s);
     end;
-    closefile(f);
-  end
-  else
-    raise Exception.Create('Cannot create file ' + FileName);
+
+
+    {$IFDEF DELPHI_UNICODE}
+    if Unicode then
+      sl.SaveToFile(FileName, TEncoding.Unicode)
+    else
+      sl.SaveToFile(FileName);
+    {$ENDIF}
+
+    {$IFNDEF DELPHI_UNICODE}
+    sl.SaveToFile(FileName);
+    {$ENDIF}
+
+  end;
 end;
 
 procedure TAdvListView.LoadFromStream(stream: tstream);
@@ -5055,10 +5142,22 @@ var
     s := '';
     while (stream.position < stream.size) and (c <> #13) do
     begin
+      {$IFDEF DELPHI_UNICODE}
+      stream.read(c, 2);
+      {$ENDIF}
+      {$IFNDEF DELPHI_UNICODE}
       stream.read(c, 1);
+      {$ENDIF}
       if (c <> #13) then s := s + c;
     end;
-    stream.read(c, 1); {read the #10 newline marker}
+    //Stream.Read(c,1); {read the #10 newline marker}
+    {$IFDEF DELPHI_UNICODE}
+    Stream.Read(c,2);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
+    Stream.Read(c,1);
+    {$ENDIF}
+    
     readstring := length(s);
   end;
 
@@ -5113,31 +5212,53 @@ var
   var
     buf: pchar;
     c: array[0..1] of char;
+    len, slen: integer;
   begin
-    getmem(buf, length(s) + 1);
+    {$IFDEF DELPHI_UNICODE}
+    slen := length(s) * 2;
+    len := slen + 2;
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
+    slen := length(s);
+    len := (slen + 1);
+    {$ENDIF}
+
+    getmem(buf, len);
     strplcopy(buf, s, length(s));
-    stream.writebuffer(buf^, length(s));
+    stream.writebuffer(buf^, slen);
     c[0] := #13;
     c[1] := #10;
+    {$IFDEF DELPHI_UNICODE}
+    stream.writebuffer(c, 4);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     stream.writebuffer(c, 2);
+    {$ENDIF}
     freemem(buf);
   end;
 
 begin
   ss := IntToStr(self.columns.Count) + ',' + IntToStr(self.Items.Count + 1);
 
-  Writestring(ss);
+  writestring(ss);
 
-  for i := 0 to self.items.Count do
+  for i := 0 to self.Items.Count do
   begin
-    for j := 0 to self.columns.count - 1 do
+    for j := 0 to self.Columns.Count - 1 do
     begin
       if (i = 0) then
-        ss := self.columns[j].caption
+        ss := self.Columns[j].caption
       else
       begin
-        if (j = 0) then ss := self.items[i - 1].caption
-        else ss := self.items[i - 1].subitems[j - 1];
+        if (j = 0) then
+          ss := self.Items[i - 1].Caption
+        else
+        begin
+          if j - 1 < self.Items[i - 1].SubItems.Count then
+            ss := self.Items[i - 1].subitems[j - 1]
+          else
+            ss := '';  
+        end;
       end;
 
       if not SaveWithHTML then
@@ -5164,13 +5285,14 @@ end;
 
 procedure TAdvListView.InputFromCSV(filename: string; insertmode: Boolean);
 var
-  f: textfile;
+//  f: textfile;
   i, j, k, l: Integer;
   s, l1, l2: string;
   lis: tlistitem;
   lic: tlistcolumn;
   c1, c2, cm: Integer;
   fUsedDelimiter: char;
+  sl: TFileStringList;
 
   function varpos(substr, s: string; var varpos: Integer): Integer;
   begin
@@ -5179,6 +5301,7 @@ var
   end;
 
 begin
+(*
   assignfile(f, filename);
 {$I-}
   reset(f);
@@ -5188,14 +5311,17 @@ begin
     raise EAdvListViewError.Create('File cannot be opened');
     Exit;
   end;
+*)
+  sl := TFileStringList.Create;
+  sl.LoadFromFile(Filename);
 
  {guess which CSV separator is used}
   if (fdelimiter = #0) then
   begin
     l2 := '';
-    readln(f, l1);
-    if not eof(f) then readln(f, l2);
-    reset(f);
+    sl.Readln(l1);
+    if not sl.Eof then sl.readln(l2);
+    sl.Reset;
     cm := 0;
     for j := 1 to 5 do
     begin
@@ -5220,9 +5346,9 @@ begin
   end
   else j := 1;
 
-  while not Eof(f) do
+  while not sl.Eof do
   begin
-    ReadLn(f, s);
+    sl.ReadLn(s);
     if (j = 0) then
     begin
       i := 0;
@@ -5318,7 +5444,7 @@ begin
     inc(j);
   end;
 
-  CloseFile(f);
+  sl.Free;
   Items.EndUpdate;
 end;
 
@@ -5368,6 +5494,7 @@ end;
 procedure TAdvListView.SetProgress(ItemIndex, SubItemindex, AValue: Integer);
 begin
   SetTextAtColRow(SubItemIndex, ItemIndex, '{|' + IntToStr(AValue));
+  
   {
   if SubItemIndex >= 0 then
     Items[ItemIndex].SubItems[SubItemIndex] := '{|' + IntToStr(AValue)
@@ -6077,6 +6204,8 @@ begin
 
   ItemHeight := FItemheight + 1;
   ItemHeight := FItemHeight - 1;
+
+  SetExtendedViewStyle(LVS_EX_INFOTIP, FALSE);
 end;
 
 procedure TAdvListView.DoSort(i: Integer);
@@ -6378,17 +6507,20 @@ var
   listitem: TListItem;
   oldcheckbox: Boolean;
   sel: Boolean;
+  chk: Boolean;
 
 begin
   if (aIdx1 = aIdx2) or (aIdx1 = -1) then Exit;
+
 {$IFDEF DELPHI3_LVL}
-  oldcheckbox := checkboxes;
+  oldcheckbox := CheckBoxes;
 {$ENDIF}
 
   sel := (Items[aidx1] as TListItem).Selected;
+  chk := (Items[aidx1] as TListItem).Checked;
   (Items[aidx1] as TListItem).Selected := false;
-  ListItem := TListItem.Create(Items);
 
+  ListItem := Items.Add;
   ListItem.Assign(Items[aidx1]);
 
   Items.Delete(aidx1);
@@ -6402,12 +6534,13 @@ begin
     (Items.Insert(aIdx2) as TListItem).Assign(listitem);
 
   (Items[aidx2] as TListItem).Selected := sel;
+  (Items[aidx2] as TListItem).Checked := chk;
   (Items[aidx2] as TListItem).Focused := true;
 
   ListItem.Free;
 
 {$IFDEF DELPHI3_LVL}
-  checkboxes := oldcheckbox;
+  CheckBoxes := oldcheckbox;
 {$ENDIF}
   ItemHeight := FItemHeight;
 end;
@@ -6538,7 +6671,8 @@ begin
     ptr := pointer(message.lparam);
 
     case ptr^.HDR.code of
-      HDN_BEGINTRACK, HDN_BEGINTRACKW: if assigned(FStartColumnTrack) then
+      HDN_BEGINTRACK {$IFNDEF DELPHI_UNICODE}, HDN_BEGINTRACKW {$ENDIF}:
+        if assigned(FStartColumnTrack) then
         begin
           Allow := true;
           FStartColumnTrack(self, ptr^.item, allow);
@@ -6548,7 +6682,7 @@ begin
             Message.Result := 0;
           Exit;
         end;
-      HDN_ENDTRACK, HDN_ENDTRACKW:
+      HDN_ENDTRACK {$IFNDEF DELPHI_UNICODE}, HDN_ENDTRACKW {$ENDIF}:
         if Assigned(FEndColumnTrack) then
         begin
           FHeaderTracking := False;
@@ -6605,21 +6739,32 @@ begin
   HeaderOwnerDraw := OrigOD;
 
    for i := 1 to Columns.Count do
+   begin
      UpdateHeaderOD(i - 1);
+     Columns[i - 1].Width :=   Columns[i - 1].Width + 1;
+     Columns[i - 1].Width :=   Columns[i - 1].Width - 1;
+   end;
 end;
 
 procedure TAdvListView.ShowHintProc(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 var
   hintpos: TRect;
   iItem, iSubItem: Integer;
-  tw: Integer;
+  //tw: Integer;
   anchor, stripped, s: string;
   xsize, ysize: Integer;
   r: TRect;
+  Item : TListItem;
 begin
   if (Hintinfo.Hintcontrol = self) and (FAutoHint) then
   begin
     s := GetTextAtPoint(hintinfo.cursorpos.x, hintinfo.cursorpos.y);
+
+    if Assigned(OnInfoTip) then
+    begin
+      Item := GetItemAt(HintInfo.CursorPos.X, HintInfo.CursorPos.Y);
+      OnInfoTip(Self, Item, s);
+    end;
 
     if (s <> '') then
     begin
@@ -6654,10 +6799,9 @@ begin
         s := Stripped;
       end;
 
-      tw := FCanvas.textwidth(s);
-
-      if iSubItem >= 0 then
-        Canshow := tw + 4 > self.columns[iSubItem].width;
+      //tw := FCanvas.textwidth(s);
+      //if iSubItem >= 0 then
+      //  Canshow := tw + 4 > self.columns[iSubItem].width;
 
       hintstr := s;
     end;

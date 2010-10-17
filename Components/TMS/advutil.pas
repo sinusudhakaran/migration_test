@@ -4,7 +4,7 @@
 {                                                                         }
 { written by                                                              }
 {  TMS Software                                                           }
-{  copyright © 1996-2006                                                  }
+{  copyright © 1996-2008                                                  }
 {  Email : info@tmssoftware.com                                           }
 {  Web : http://www.tmssoftware.com                                       }
 {                                                                         }
@@ -25,14 +25,25 @@ unit AdvUtil;
 interface
 
 uses
-  Windows, Messages, SysUtils, Graphics, Grids, Classes, Controls, StdCtrls;
+  Windows, Messages, SysUtils, Graphics, Grids, Classes, Controls, StdCtrls
+  {$IFDEF DELPHI_UNICODE}
+  , Character
+  {$ENDIF}
+  ;
 
 type
   TAutoType = (atNumeric,atFloat,atString,atDate,atTime,atScientific);
 
   TTextType = (ttText,ttHTML,ttRTF,ttFormula,ttURL,ttUnicode);
 
+  {$IFNDEF DELPHI_UNICODE}
   TCharSet = set of char;
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  TCharSet = array of char;
+  {$ENDIF}
+
 
   TGaugeOrientation = (goHorizontal, goVertical);
   TGaugeSettings = record
@@ -121,11 +132,16 @@ type
   function NumCharInStr(p:char; s:string):Integer;
   function CSVQuotes(const S: string): string;
   procedure DrawProgressPie(Canvas: TCanvas; r: TRect;Color: TColor; p: Integer; print:boolean);
-  procedure DrawProgressLin(Canvas: TCanvas; r: TRect; Color1,TColor1,Color2,TColor2: TColor; p,Mx,My,Min,Max:Integer; Fmt: string; BorderColor: TColor; print: boolean);
+  procedure DrawProgressLin(Canvas: TCanvas; r: TRect; Color1,TColor1,Color2,TColor2: TColor; pd: double; Mx,My,Min,Max:Integer; Fmt: string; BorderColor: TColor; print: boolean);
   procedure DrawRangeIndicator(Canvas: TCanvas; r: TRect; Value, Range: Integer; ShowValue: boolean; NegColor, PosColor: TColor);
   procedure DrawGradient(Canvas: TCanvas; FromColor,ToColor: TColor; Steps: Integer; R: TRect; Direction: Boolean);
+  procedure DrawVistaGradient(ACanvas: TCanvas; ARect: TRect; ColorFrom, ColorTo, ColorMirrorFrom, ColorMirrorTo: TColor;
+    Direction: boolean; BorderColor: TColor; LeftRightBorder: boolean = false; Fill: Boolean = True);
+
   function GradientAt(FromColor, ToColor: TColor; Left, Right, Pos: integer): TColor;
   procedure DrawComboButton(Canvas: TCanvas;Handle: THandle; ARect: TRect;WinXP,Flat: Boolean);
+  procedure DrawSpinButtons(Canvas: TCanvas;Handle: THandle; ARect: TRect;WinXP,Flat: Boolean);
+
   function DecodeWideStr(s:string): widestring;
   function EncodeWideStr(s:widestring): string;
   {$IFNDEF TMSDOTNET}
@@ -141,6 +157,10 @@ type
   function IsDateStr(s: string): Boolean;
   procedure MakeFragment(var HTML: string);
   procedure DrawGauge(Canvas: TCanvas; R: TRect; Position: Integer; Settings: TGaugeSettings);
+  procedure DrawTriangle(Canvas: TCanvas; X,Y: integer; Color: TColor);
+  function CheckNum(ch:char): boolean;
+  function CheckSignedNum(ch:char): boolean;
+
 
 implementation
 
@@ -319,6 +339,7 @@ begin
   end;
 end;
 
+{$IFNDEF DELPHI_UNICODE}
 function FirstChar(Charset:TCharSet;s:string;var spos: integer):char;
 var
   i:Integer;
@@ -328,12 +349,12 @@ begin
   q := 0;
   spos := -1;
   Result := #0;
-  
+
   while i <= Length(s) do
   begin
     if s[i] = '"' then
       inc(q);
-      
+
     if (s[i] in Charset) and not odd(q) then
     begin
       spos := i;
@@ -343,6 +364,52 @@ begin
     Inc(i);
   end;
 end;
+{$ENDIF}
+
+{$IFDEF DELPHI_UNICODE}
+function FirstChar(Charset:TCharSet;s:string;var spos: integer):char;
+var
+  i:Integer;
+  q: Integer;
+
+  function InArray(ch: char): boolean;
+  var
+    j: integer;
+  begin
+    result := false;
+    for j := 0 to High(CharSet) - 1 do
+    begin
+      if ch = CharSet[j] then 
+      begin
+        result := true;
+        break;
+      end;
+    end;
+  end;
+
+
+begin
+  i := 1;
+  q := 0;
+  spos := -1;
+  Result := #0;
+
+  while i <= Length(s) do
+  begin
+    if s[i] = '"' then
+      inc(q);
+
+    if (InArray(s[i])) and not odd(q) then
+    begin
+      spos := i;
+      Result := s[i];
+      Break;
+    end;
+    Inc(i);
+  end;
+end;
+{$ENDIF}
+
 
 {parse RxCy naming}
 function NameToCell(s:string;var Cell:TPoint):Boolean;
@@ -401,10 +468,11 @@ begin
       begin
         Result := ttUnicode;
 
-        if (Length(s) > 3) then
-          if (ord(s[4]) = 61) then
+        { unicode formula detection }
+        if (Length(s) > 4) then
+          if (ord(s[4]) = 61) and (ord(s[5]) = 0) then
              Result := ttFormula;
-
+             
         Exit;
       end;
 
@@ -420,9 +488,77 @@ begin
           Result := ttHTML;
       end;
     end;
-    
+
   end;
 end;
+
+function CheckNum(ch:char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := (ch in ['0'..'9']);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  Result := Character.IsNumber(ch);
+  {$ENDIF}
+end;
+
+function CheckSignedNum(ch:char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := (ch in ['0'..'9','-']);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  Result := Character.IsNumber(ch) or (ch = '-');
+  {$ENDIF}
+end;
+
+
+function CheckExpNum(ch:char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := (ch in ['0'..'9','e','E']);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  Result := Character.IsNumber(ch) or (ch = 'e') or (ch = 'E');
+  {$ENDIF}
+end;
+
+
+function CheckFloatNum(ch: char): boolean;
+begin
+  {$IFNDEF TMSDOTNET}
+  {$IFNDEF DELPHI_UNICODE}
+  Result := (ch in ['0'..'9','e','E',ThousandSeparator,DecimalSeparator]);
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  Result := Character.IsNumber(ch) or (ch = ThousandSeparator) or (ch = DecimalSeparator) or (ch = 'e') or (ch = 'E');
+  {$ENDIF}
+  {$ENDIF}
+  
+  {$IFDEF TMSDOTNET}
+  Result := (ch in ['0'..'9','e','E']) or (ch = ThousandSeparator) or (ch = DecimalSeparator);
+  {$ENDIF}
+end;
+
+function CheckSignedDottedNum(ch: char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := (ch in ['0'..'9','.','-','e','E','+']);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  Result := Character.IsNumber(ch) or (ch = '.') or (ch = '-') or (ch = 'e') or (ch = 'E') or (ch = '+');
+  {$ENDIF}
+end;
+
+function CheckSignedFloatNum(ch: char): boolean;
+begin
+  Result := CheckFloatNum(ch) or (ch ='+') or (ch = '-');
+end;
+
 
 function RemoveSeps(s:string):string;
 var
@@ -449,7 +585,7 @@ begin
     not (s[1] in ['0'..'9','e','E']) and not (s[i] = ThousandSeparator) and not (s[i] = DecimalSeparator) do
     {$ENDIF}
     {$IFNDEF TMSDOTNET}
-    not (s[1] in ['0'..'9','e','E',ThousandSeparator,DecimalSeparator]) do
+    not CheckFloatNum(s[1]) do
     {$ENDIF}
     begin
       if s[1] = '-' then
@@ -464,7 +600,7 @@ begin
         Result := Result + '.'
       else
       begin
-        if s[i] in ['0'..'9','.','-','e','E','+'] then
+        if CheckSignedDottedNum(s[i]) then
           Result := Result + s[i]
         else
           Break;
@@ -473,7 +609,6 @@ begin
 
   if Neg then
     Result := '-' + Result;
-
 end;
 
 {$IFNDEF DELPHI4_LVL}
@@ -544,11 +679,11 @@ begin
              HexDigit[Lo(hw) shr 4]+HexDigit[Lo(hw) and $F];
 end;
 
-function IsType(s:string):TAutoType;
+function IsType(s:string): TAutoType;
 var
   i: Integer;
   isI,isF,isS: Boolean;
-  ts,th,de,mi: Integer;
+  th,de,mi: Integer;
   isE: boolean;
 
 begin
@@ -563,14 +698,13 @@ begin
   th := -1;
   de := 0;
   mi := 0;
-  ts := 0;
 
   for i := 1 to Length(s) do
   begin
-    if not (s[i] in ['0'..'9','-']) then
+    if not CheckSignedNum(s[i]) then
       isI := False;
 
-    if (s[i] in ['e','E']) then
+    if (s[i] = 'e') or (s[i] = 'E') then
     begin
       if isE then
         isS := false;
@@ -584,10 +718,10 @@ begin
       isF := false;
     end;
 
-    if (i = 1) and (s[i] in ['e','E']) then
+    if (i = 1) and ((s[i] = 'e') or (s[i] = 'E')) then
       isS := false;
 
-    if (i = length(s)) and (s[i] in ['e','E','+','-']) then
+    if (i = length(s)) and ( (s[i] = 'e') or (s[i] = 'E') or (s[i] = '+') or (s[i] = '-') ) then
       isS := false;
       
     {$IFDEF TMSDOTNET}
@@ -595,7 +729,7 @@ begin
       isF := False;
     {$ENDIF}
     {$IFNDEF TMSDOTNET}
-    if not (s[i] in ['0'..'9','-',ThousandSeparator,DecimalSeparator]) then
+    if not (CheckNum(s[i]) or (s[i] ='-') or (s[i] = ThousandSeparator) or (s[i] =DecimalSeparator) ) then
       isF := False;
     {$ENDIF}
 
@@ -604,19 +738,21 @@ begin
       isS := False;
     {$ENDIF}
     {$IFNDEF TMSDOTNET}
-    if not (s[i] in ['0'..'9','-','+','E','e',DecimalSeparator]) then
+    if not (CheckSignedFloatNum(s[i]) and (s[i] <> ThousandSeparator)) then
       isS := False;
     {$ENDIF}
 
-    if (s[i] = ThousandSeparator) and (i - th < 3) then isF := False;
+    if (s[i] = ThousandSeparator) and (i - th < 3) then
+      isF := False;
     if (s[i] = ThousandSeparator) then
     begin
       th := i;
-      inc(ts);
     end;
     
-    if (s[i] = DecimalSeparator) then Inc(de);
-    if (s[i] = '-') then inc(mi);
+    if (s[i] = DecimalSeparator) then
+      Inc(de);
+    if (s[i] = '-') then
+      Inc(mi);
   end;
 
   if isI then
@@ -633,7 +769,7 @@ begin
     end;
   end;
 
-  if (ts > 1) or (mi > 1) or (de > 1) then
+  if (mi > 1) or (de > 1) then
     Result := atString;
 end;
 
@@ -677,12 +813,19 @@ end;
 procedure StringToOem(var s:string);
 {$IFDEF WIN32}
 var
-  pin,pout: PChar;
-{$ENDIF}  
+  pin: PChar;
+  {$IFDEF DELPHI_UNICODE}
+  pout: PAnsiChar;  
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
+  pout: PChar;
+  {$ENDIF}
+{$ENDIF}
 begin
+  //DELPHI_UNICODE
   {$IFDEF WIN32}
-  GetMem(pin,Length(s)+1);
-  GetMem(pout,Length(s)+1);
+  GetMem(pin,Length(s) + 1);
+  GetMem(pout,Length(s) + 1);
   StrLCopy(pin,PChar(s),Length(s));
   CharToOem(pin,pout);
   s := StrPas(pout);
@@ -694,9 +837,16 @@ end;
 procedure OemToString(var s:string);
 {$IFDEF WIN32}
 var
-  pin,pout: PChar;
+  {$IFDEF DELPHI_UNICODE}
+  pin: PAnsiChar;
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
+  pin: PChar;
+  {$ENDIF}
+  pout: PChar;
 {$ENDIF}
 begin
+  //DELPHI_UNICODE
   {$IFDEF WIN32}
   GetMem(pin,Length(s) + 1);
   GetMem(pout,Length(s) + 1);
@@ -954,21 +1104,56 @@ begin
     end
     else
       Result := Result + s[i];
-      
+
     inc(i);
   end;
+end;
+
+function ClosingParenthesis(s1: string): integer;
+var
+  i,j,k,r: integer;
+begin
+  r := 0;
+  j := 0;
+  k := 0;
+  i := 1;
+
+  while (i <= length(s1)) do
+  begin
+    if (s1[i] = ')') then
+      inc(k);
+
+    if (s1[i] = '(') then
+      inc(j);
+      
+    if (s1[i] = ')') and (j = k) then
+    begin
+      r := i;
+      break;
+    end;
+
+
+    inc(i);
+  end;
+
+  Result := r;
 end;
 
 
 function MatchStrEx(s1,s2:string;DoCase:Boolean): Boolean;
 var
   ch,lastop: Char;
-  sep: Integer;
+  sep,cp: Integer;
   res,newres: Boolean;
+  {$IFDEF DELPHI_UNICODE}
+  CharArray: TCharSet;
+  {$ENDIF}
 
 begin
   // remove leading & trailing spaces
-   s1 := Trim(s1);
+  s1 := Trim(s1);
+
+//  outputdebugstring(pchar('matchstrex:'+s1));
 
   // remove spaces between multiple filter conditions
   s1 := StripLogicSpaces(s1);
@@ -992,17 +1177,41 @@ begin
   LastOp := #0;
   Res := True;
 
+  {$IFDEF DELPHI_UNICODE}
+  SetLength(CharArray,5);
+  CharArray[0] := '(';
+  CharArray[1] := ';';
+  CharArray[2] := '^';
+  CharArray[3] := '&';
+  CharArray[4] := '|';
+
+  {$ENDIF}
+
   repeat
-    ch := FirstChar([';','^','&','|'],s1, sep);
+    {$IFDEF DELPHI_UNICODE}
+    ch := FirstChar(CharArray,s1, sep);
+    {$ENDIF}
+
+    {$IFNDEF DELPHI_UNICODE}
+    ch := FirstChar(['(',';','^','&','|'],s1, sep);
+    {$ENDIF}
 
     // extract first part of filter
     if ch <> #0 then
     begin
       //VarPos(ch,s1,sep);
 
-      NewRes := MatchStr(Copy(s1,1,sep - 1),s2,DoCase);
-
-      Delete(s1,1,sep);
+      if (length(s1) > 0) and (s1[1] = '(') and (pos('(',s1) > 0) then
+      begin // found start of parenthesis
+        cp := ClosingParenthesis(s1);
+        NewRes := MatchStrEx(copy(s1,2,cp - 2),s2,DoCase);
+        delete(s1,1,cp);
+      end
+      else
+      begin
+        NewRes := MatchStr(Copy(s1,1,sep - 1),s2,DoCase);
+        Delete(s1,1,sep);
+      end;
 
       if LastOp = #0 then
         Res := NewRes
@@ -1227,6 +1436,8 @@ begin
 
     Val(StripThousandSep(s1a),n1,code1);
     Val(StripThousandSep(tempstr),n2,code2);
+    if IsDate(tempstr,dt2) then code2 := 1;         
+    if IsDate(s1a,dt1) then code1 := 1;             
 
     if (code1 = 0) and (code2 = 0) then {both are numeric types}
     begin
@@ -1529,6 +1740,8 @@ begin
 
     Val(StripThousandSep(s1a),n1,code1);
     Val(StripThousandSep(compstr),n2,code2);
+    if IsDate(compstr,dt2) then code2 := 1;         
+    if IsDate(s1a,dt1) then code1 := 1;     
 
     if (code1 = 0) and (code2 = 0) then {both are numeric types}
     begin
@@ -1598,6 +1811,8 @@ begin
 
     Val(StripThousandSep(s1a),n1,code1);
     Val(StripThousandSep(compstr),n2,code2);
+    if IsDate(compstr,dt2) then code2 := 1;         
+    if IsDate(s1a,dt1) then code1 := 1;             
 
     if (code1 = 0) and (code2 = 0) then // both are numeric types
      begin
@@ -2017,16 +2232,28 @@ begin
   Result := res;
 end;
 
+function CheckTerminator(ch: char): boolean;
+const
+  Terminators = [' ',',','.','-',''''];
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := ch in Terminators;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  Result := (ch = ' ') or (ch = ',') or (ch = '.') or (ch = '-') or (ch = '''');
+  {$ENDIF}
+end;
+
 function ShiftCase(Name: string): string;
 
+{$IFNDEF DELPHI_UNICODE}
  function LowCase(C: char): char;
  begin
   if C in ['A' .. 'Z'] then LowCase := Chr(Ord(C) - Ord('A') + Ord('a'))
   else Lowcase := C;
  end;
+{$ENDIF}
 
-const
-  Terminators = [' ',',','.','-',''''];
 var
   I, L: Integer;
   NewName: string;
@@ -2038,16 +2265,26 @@ begin
 
   for I := 1 to L do
   begin
-    if NewName[I] in Terminators then
+    if CheckTerminator(NewName[I]) then
       First:= True
     else
       if First then
       begin
+        {$IFNDEF DELPHI_UNICODE}
         NewName[I] := Upcase(Name[I]);
+        {$ENDIF}
+        {$IFDEF DELPHI_UNICODE}
+        NewName[I] := Character.ToUpper(Name[I]);
+        {$ENDIF}
         First := False;
       end
       else
+      {$IFNDEF DELPHI_UNICODE}
         NewName[I] := Lowcase(Name[I]);
+      {$ENDIF}
+      {$IFDEF DELPHI_UNICODE}
+        NewName[I] := Character.ToLower(Name[I]);
+      {$ENDIF}
 
     if (Copy(NewName, 1, I) = 'Mc') or
        ((Pos (' Mc', NewName) = I - 2) and (I > 2)) or
@@ -2260,7 +2497,7 @@ begin
 
 end;
 
-procedure DrawProgressLin(Canvas: TCanvas; r: TRect; Color1,TColor1,Color2,TColor2: TColor; p,Mx,My, Min, Max: Integer; Fmt:string; BorderColor: TColor; print: boolean);
+procedure DrawProgressLin(Canvas: TCanvas; r: TRect; Color1,TColor1,Color2,TColor2: TColor; pd: double;Mx,My, Min, Max: Integer; Fmt:string; BorderColor: TColor; print: boolean);
 var
   SrcColor: TColor;
   SrcRect: TRect;
@@ -2268,7 +2505,7 @@ var
   txt: string;
   v: integer;
   dy: integer;
-
+  p: integer;
 begin
   SrcColor := Canvas.Brush.Color;
 
@@ -2276,23 +2513,27 @@ begin
   Canvas.Pen.Color := Color1;
   Canvas.Font.Color := TColor1;
 
+  p := round(pd);
+
 
   if Fmt = '' then
   begin
     txt := IntToStr(p)+'%';
     v := p; // value supposed to be between 0..100
+    //v := round((p - Min) *100 / (Max - Min));
   end
   else
   begin
     txt := Format(fmt,[p]);
-    v := round((p - Min) *100 / Max);
+    // percentage value
+    v := round((p - Min) *100 / (Max - Min));
   end;
 
-  if v > Max then
-    v := Max;
-  if v < Min then
-    v := Min;
-
+  // limit to 0..100%
+  if v > 100 then
+    v := 0;
+  if v < 0 then
+    v := 0;
 
   Inflaterect(r,-Mx,-My);
   SrcRect := r;
@@ -2398,7 +2639,7 @@ begin
 
   with Canvas do
   begin
-    for i := 0 to steps-1 do
+    for i := 0 to Steps - 1 do
     begin
       endr := startr + Round(rstepr*i);
       endg := startg + Round(rstepg*i);
@@ -2407,12 +2648,77 @@ begin
       Pen.Color := endr + (endg shl 8) + (endb shl 16);
       Brush.Color := Pen.Color;
       if Direction then
-        Rectangle(R.Left + stepw,R.Top,R.Left + stepw + Round(rstepw)+1,R.Bottom)
+        Rectangle(R.Left + stepw,R.Top,R.Left + stepw + Round(rstepw) + 1,R.Bottom)
       else
-        Rectangle(R.Left,R.Top + stepw,R.Right,R.Top + stepw + Round(rstepw)+1);
+        Rectangle(R.Left,R.Top + stepw,R.Right,R.Top + stepw + Round(rstepw) + 1);
     end;
   end;
 end;
+
+procedure DrawVistaGradient(ACanvas: TCanvas; ARect: TRect; ColorFrom, ColorTo, ColorMirrorFrom, ColorMirrorTo: TColor;
+  Direction: boolean; BorderColor: TColor; LeftRightBorder: boolean = false; Fill: Boolean = True);
+var
+  r: Trect;
+
+begin
+  if Fill and (ColorFrom <> clNone) then
+  begin
+    if ColorMirrorFrom <> clNone then
+    begin
+      r := ARect;
+
+      if not Direction then
+      begin
+        r.Right := r.Left + ((r.Right - r.Left) div 2);
+        DrawGradient(ACanvas,  ColorFrom, ColorTo, 128, r, true);
+        r := ARect;
+        r.Left := r.Left + ((r.Right - r.Left) div 2);
+        DrawGradient(ACanvas,  ColorMirrorFrom, ColorMirrorTo, 128, r, true);
+      end
+      else
+      begin
+        r.Bottom := r.Top + ((r.Bottom - r.Top) div 2);
+        DrawGradient(ACanvas,  ColorFrom, ColorTo, 128, r, false);
+        r := ARect;
+        r.Top := r.Top + ((r.Bottom - r.Top) div 2);
+        DrawGradient(ACanvas,  ColorMirrorFrom, ColorMirrorTo, 128, r, false);
+      end;
+    end
+    else
+    begin
+      if ColorTo = clNone then
+      begin
+        ACanvas.Brush.Color := ColorFrom;
+        ACanvas.Pen.Color := ColorFrom;
+        ACanvas.Brush.Style := bsSolid;
+        ACanvas.Pen.Width := 1;
+        ACanvas.Pen.Style := psSolid;
+        ARect.Bottom := ARect.Bottom + 1;
+        ACanvas.FillRect(ARect);
+      end
+      else
+        DrawGradient(ACanvas, ColorFrom, ColorTo, 128, ARect, not Direction);
+    end;
+  end;
+
+  if (BorderColor <> clNone) then
+  begin
+    if LeftRightBorder then
+    begin
+      ACanvas.Pen.Color := BorderColor;
+      ACanvas.MoveTo(ARect.Left, ARect.Top);
+      ACanvas.LineTo(ARect.Left, ARect.Bottom);
+      ACanvas.MoveTo(ARect.Right - 1, ARect.Top);
+      ACanvas.LineTo(ARect.Right - 1, ARect.Bottom);
+    end
+    else
+    begin
+      ACanvas.Brush.Color := BorderColor;
+      ACanvas.FrameRect(ARect);
+    end;
+  end;
+end;
+
 
 function GradientAt(FromColor, ToColor: TColor; Left, Right, Pos: integer): TColor;
 var
@@ -2472,6 +2778,44 @@ begin
   end;
 end;
 
+procedure DrawSpinButtons(Canvas: TCanvas;Handle: THandle; ARect: TRect;WinXP,Flat: Boolean);
+var
+  htheme: THandle;
+  DRect: TRect;
+begin
+  ARect.Left := ARect.Right - 15;
+  InflateRect(ARect, 0, 0);
+  OffsetRect(ARect,-1,-1);
+  DRect := ARect;
+
+
+  if WinXP then
+  begin
+    {$IFNDEF TMSDOTNET}
+    htheme := OpenThemeData(Handle,'spin');
+    DRect.Bottom := ARect.Top + ((ARect.Bottom - ARect.Top) div 2);
+    DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_NORMAL,@DRect,nil);
+    DRect.Top := DRect.Bottom;
+    DRect.Bottom := ARect.Bottom;
+    DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,UPS_NORMAL,@DRect,nil);
+    CloseThemeData(htheme);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    htheme := OpenThemeData(Handle,'spin');
+    DRect.Bottom := ARect.Top + ((ARect.Bottom - ARect.Top) div 2);
+    DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_NORMAL,DRect,nil);
+    DRect.Top := DRect.Bottom;
+    DRect.Bottom := ARect.Bottom;
+    DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,UPS_NORMAL,DRect,nil);
+    CloseThemeData(htheme);
+    {$ENDIF}
+  end
+  else
+  begin
+    DrawFrameControl(Canvas.Handle, ARect, DFC_SCROLL, DFCS_SCROLLCOMBOBOX or DFCS_FLAT);
+  end;
+end;
+
 
 function DecodeWideStr(s:string): widestring;
 var
@@ -2501,7 +2845,6 @@ var
   wc: widechar;
   d: string;
 begin
-  {$IFDEF DELPHI4_LVL}
   d := '|\'; // unicode start marker
 
   for k := 1 to length(s) do
@@ -2511,7 +2854,6 @@ begin
     d := d + chr(smallint(wc) and $FF);
   end;
   Result := d;
-  {$ENDIF}
 end;
 
 {$IFNDEF TMSDOTNET}
@@ -2687,6 +3029,22 @@ procedure DrawRectangle(Canvas: TCanvas; R: TRect; aColor: TColor);
 begin
   Canvas.Brush.Color := aColor;
   Canvas.FillRect(R);
+end;
+
+//-------------------------------------------------------------------- DrawTriangle
+
+procedure DrawTriangle(Canvas: TCanvas; X,Y: integer; Color: TColor);
+var
+  ar: Array[1..3] of TPoint;
+begin
+  ar[1] := point(x-3,y);
+  ar[2] := point(x+3,y);
+  ar[3] := point(x,y+3);
+
+  Canvas.Brush.Color := Color;
+  Canvas.Pen.Color := Color;
+
+  Canvas.Polygon(ar);
 end;
 
 //-------------------------------------------------------------------- DrawGauge

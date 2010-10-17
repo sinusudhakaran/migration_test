@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TOfficeStatusBar component                                              }
 { for Delphi & C++Builder                                                 }
-{ version 1.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 2006                                              }
+{           copyright © 2006 - 2008                                       }
 {           Email : info@tmssoftware.com                                  }
 {           Website : http://www.tmssoftware.com/                         }
 {                                                                         }
@@ -28,6 +27,9 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Math,
   ComCtrls, CommCtrl, ImgList, ComObj, ShellAPI, PictureContainer,  AdvGDIP, GDIPicture,
   AdvHintInfo
+{$IFDEF TMSTOOLBAR}
+  , AdvToolBar
+{$ENDIF}
 {$IFDEF DELPHI4_LVL}
   , StdActns
 {$ENDIF}
@@ -37,9 +39,9 @@ uses
   ;
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 1; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  MIN_VER = 2; // Minor version nr.
+  REL_VER = 0; // Release nr.
+  BLD_VER = 4; // Build nr.
 
   GRIP_SIZE = 15;
 
@@ -50,6 +52,17 @@ const
   // 1.1.0.0 : Added support for Office 2007 silver style
   // 1.1.0.1 : Fixed issue with percentage display & max value <> 100.
   // 1.1.1.0 : New : AntiAlias property added
+  // 1.1.2.0 : Improved : file ellipsis antialiased text drawing
+  // 1.1.3.0 : New : method StepIt added in TAdvOfficeStatusPanel
+  // 1.1.3.1 : Fixed : issue with panel & hyperlink click
+  // 1.1.3.2 : Improved : painting
+  // 1.2.0.0 : New : Added AutoSize capability on statusbar panels for text, date,time, capslock, numlock, scrollock, html
+  //         : New : Added StretchPanel
+  //         : New : Added design time resizing of panels
+  // 1.2.0.1 : Fixed : issue with hotkey prefix drawing
+  // 1.2.0.2 : Fixed : issue with SimplePanel drawing
+  // 1.2.0.3 : Fixed : issue with possible overflow in progress position calculation
+  // 1.2.0.4 : Fixed : issue with center aligned HTML formatted statusbar panels
 
 type
 
@@ -194,6 +207,8 @@ type
     FAppearanceStyle: TPanelAppearanceStyle;
     FOfficeHint: TAdvHintInfo;
     FButton: Boolean;
+    FAutoSize: Boolean;
+    FMinWidth: Integer;
     procedure SetAlignment(Value: TAlignment);
     procedure SetBevel(Value: TAdvOfficeStatusPanelBevel);
 {$IFDEF DELPHI4_LVL}
@@ -218,7 +233,9 @@ type
     procedure SetEnabled(const Value: Boolean);
     procedure SetAppearanceStyle(Value: TPanelAppearanceStyle);
     procedure SetOfficeHint(const Value: TAdvHintInfo);
-    procedure SetButton(Value: Boolean);
+    procedure SetButton(const Value: Boolean);
+    procedure SetAutoSize(const Value: Boolean);
+    procedure SetMinWidth(const Value: Integer);
   protected
     function GetDisplayName: string; override;
     procedure Change;
@@ -235,29 +252,32 @@ type
     procedure ClearImageIndexes;
     function ImageCount: Integer;
     property ImageIndexes[Index: Integer]: Integer read GetImageIndexes write SetImageIndexes;
+    procedure StepIt;
   published
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property Animated: Boolean read FAnimated write SetAnimated default false;
     property AnimationImages: TImageList read FAnimationImages write SetAnimationImages;
     property AnimationDelay: Integer read FAnimationDelay write SetAnimationDelay default 0;
+    property AppearanceStyle: TPanelAppearanceStyle read FAppearanceStyle write SetAppearanceStyle;
+    property AutoSize: Boolean read FAutoSize write SetAutoSize default false;
 
 {$IFDEF DELPHI4_LVL}
     property BiDiMode: TBiDiMode read FBiDiMode write SetBiDiMode stored IsBiDiModeStored;
     property ParentBiDiMode: Boolean read FParentBiDiMode write SetParentBiDiMode default True;
 {$ENDIF}
+    property Button: Boolean read FButton write SetButton default false;
     property DateFormat: string read FDateFormat write SetDateFormat;
     property Enabled: Boolean read FEnabled write SetEnabled default true;
     property HTMLOffsetX: Integer read FHTMLOffsetX write SetHTMLOffsetX default 2;
     property HTMLOffsetY: Integer read FHTMLOffsetY write SetHTMLOffseTY default 2;
     property ImageIndex: Integer read FImageIndex write SetImageIndex default -1;
+    property MinWidth: integer read FMinWidth write SetMinWidth default 20;
     property Progress: TProgressStyle read fProgressStyle write SetProgressStyle;
     property Style: TAdvOfficeStatusPanelStyle read FStyle write SetStyle default psHTML;
     property Text: string read FText write SetText;
     property TimeFormat: string read FTimeFormat write SetTimeFormat;
     property Width: Integer read FWidth write SetWidth;
-    property AppearanceStyle: TPanelAppearanceStyle read FAppearanceStyle write SetAppearanceStyle;
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
-    property Button: Boolean read FButton write SetButton default false;
   end;
 
   TAdvOfficeStatusPanels = class(TCollection)
@@ -279,7 +299,7 @@ type
 
   TDrawPanelEvent = procedure(StatusBar: TAdvOfficeStatusBar; Panel: TAdvOfficeStatusPanel;
     const Rect: TRect) of object;
-    
+
   TAdvOfficeStatusBar = class(TCustomControl)
   private
     FInternalOfficeStatusBarStyler: TCustomAdvOfficeStatusBarStyler;
@@ -312,6 +332,11 @@ type
     FDummyHintControl: TDummyHintControl;
     FDisabledImages: TImageList;
     FAntiAlias: TAntiAlias;
+    FStretchPanel: integer;
+    FHitTest: TPoint;
+    FSizePanel: integer;
+    FSizeDownX: integer;
+    FSizeWidth: integer;
     function IsAnchor(x, y: integer): string;
     function GetPanel(x: integer): integer;
     procedure DoRightToLeftAlignment(var Str: string; AAlignment: TAlignment;
@@ -326,6 +351,8 @@ type
     procedure DrawPanelBackGround(Panel: TAdvOfficeStatusPanel; R: TRect);
     procedure DrawSimplePanel;
     procedure DrawAllPanels;
+    function PanelFixedSize: integer;
+    function OnPanelBorder(x: integer): integer;
     procedure DrawSizeGrip(R: TRect);
     procedure UpdatePanel(Index: Integer; Repaint: Boolean);
     procedure UpdatePanels(UpdateRects, UpdateText: Boolean);
@@ -348,6 +375,8 @@ type
     procedure WMTimer(var Msg: TWMTimer); message WM_TIMER;
     procedure WMLButtonDblClk(var Message: TWMLButtonDblClk); message WM_LBUTTONDBLCLK;
     procedure WMEraseBkGnd(var Message: TWMEraseBkGnd); message WM_ERASEBKGND;
+    procedure WMSetCursor(var Msg: TWMSetCursor); message WM_SETCURSOR;
+    procedure CMDesignHitTest(var Msg: TCMDesignHitTest); message CM_DESIGNHITTEST;        
     procedure WMNCHitTest(var Msg: TWMNCHitTest); message WM_NCHITTEST;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
     procedure CMMouseEnter(var Msg: TMessage); message CM_MOUSEENTER;
@@ -383,6 +412,8 @@ type
     function IsLastPanel(Panel: TAdvOfficeStatusPanel): Boolean;
     function HasSizeGrip: Boolean;
     procedure InvalidatePanel(PanelIndex: Integer);
+    procedure AutoSizePanels;
+    procedure SetStretchPanel(const Value: Integer);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -424,6 +455,7 @@ type
     property SimpleText: string read FSimpleText write SetSimpleText;
     property SizeGrip: Boolean read FSizeGrip write SetSizeGrip default True;
     property URLColor: TColor read FURLColor write FURLColor;
+    property StretchPanel: integer read FStretchPanel write SetStretchPanel default -1;
     property Styler: TCustomAdvOfficeStatusBarStyler read FOfficeStatusBarStyler write SetOfficeStatusBarStyler;
     property UseSystemFont: Boolean read FUseSystemFont write SetUseSystemFont default True;
     property Visible;
@@ -608,9 +640,135 @@ const
   SCROLLLOCK = 'SCRL';
 
 type
+  {$IFDEF TMSTOOLBAR}
+  TInternalToolBarPager = class(TAdvToolBarPager);
+  {$ENDIF}
   TGradientDirection = (gdVertical, gdHorizontal);  
 
 {$I HtmlEngo.pas}
+
+// Ellipisfy a text string.
+
+function EllipsifyText( AsPath: boolean; const Text: string;
+  const Canvas: TCanvas; MaxWidth: integer ): string;
+
+  procedure CutFirstDirectory( var S: string );
+  var
+    Root: Boolean;
+    P: Integer;
+  begin
+    if S = '' then
+      exit;
+    if S = '\' then
+      S := ''
+    else
+    begin
+      if S[ 1 ] = '\' then
+      begin
+        Root := True;
+        Delete( S, 1, 1 );
+      end
+      else
+        Root := False;
+      if S[ 1 ] = '.' then
+        Delete( S, 1, 4 );
+      P := Pos( '\', S );
+      if P <> 0 then
+      begin
+        Delete( S, 1, P );
+        S := '...\' + S;
+      end
+      else
+        S := '';
+      if Root then
+        S := '\' + S;
+    end;
+  end;
+
+  function MinimizeName( const Filename: string; const Canvas: TCanvas;
+    MaxLen: Integer ): string;
+  var
+    Drive: string;
+    Dir: string;
+    Name: string;
+  begin
+    Result := FileName;
+    Dir := ExtractFilePath( Result );
+    Name := ExtractFileName( Result );
+
+    if ( Length( Dir ) >= 2 ) and ( Dir[ 2 ] = ':' ) then
+    begin
+      Drive := Copy( Dir, 1, 2 );
+      Delete( Dir, 1, 2 );
+    end
+    else
+      Drive := '';
+    while ( ( Dir <> '' ) or ( Drive <> '' ) ) and ( Canvas.TextWidth( Result ) > MaxLen ) do
+    begin
+      if Dir = '\...\' then
+      begin
+        Drive := '';
+        Dir := '...\';
+      end
+      else if Dir = '' then
+        Drive := ''
+      else
+        CutFirstDirectory( Dir );
+      Result := Drive + Dir + Name;
+    end;
+  end;
+
+var
+  Temp: string;
+  AvgChar: integer;
+  TLen, Index: integer;
+  Metrics: TTextMetric;
+begin
+  try
+    if AsPath then
+    begin
+      Result := MinimizeName( Text, Canvas, MaxWidth );
+    end
+    else
+    begin
+      Temp := Text;
+      if ( Temp <> '' ) and ( Canvas.TextWidth( Temp ) > MaxWidth ) then
+      begin
+        GetTextMetrics( Canvas.Handle, Metrics );
+        AvgChar := Metrics.tmAveCharWidth;
+        if ( AvgChar * 3 ) < MaxWidth then
+        begin
+          Index := ( MaxWidth div AvgChar ) - 1;
+          Temp := Copy( Text, 1, Index );
+          if Canvas.TextWidth( Temp + '...' ) > MaxWidth then
+          begin
+            repeat
+              dec( Index );
+              SetLength( Temp, Index );
+            until ( Canvas.TextWidth( Temp + '...' ) < MaxWidth ) or ( Index < 1 );
+            { delete chars }
+          end
+          else
+          begin
+            TLen := Length( Text );
+            repeat
+              inc( Index );
+              Temp := Copy( Text, 1, Index );
+            until ( Canvas.TextWidth( Temp + '...' ) > MaxWidth ) or ( Index >= TLen );
+            SetLength( Temp, Index - 1 );
+          end;
+          Temp := Temp + '...';
+        end
+        else
+          Temp := '.';
+      end;
+      Result := Temp;
+    end;
+  except
+    Result := '';
+  end;
+end;
+
 
 //------------------------------------------------------------------------------
 
@@ -1296,7 +1454,7 @@ begin
     if (AntiAlias = aaNone) or not IsTTF(Canvas) then
     begin
       Result := Rect(0, 0, 1000, 100);
-      DrawText(Canvas.Handle,PChar(Text),Length(Text), Result, DT_CALCRECT or DT_LEFT or DT_SINGLELINE);
+      DrawText(Canvas.Handle,PChar(Text),Length(Text), Result, DT_CALCRECT or DT_LEFT or DT_SINGLELINE or DT_NOPREFIX);
 
       if RealDraw then
       begin
@@ -1310,6 +1468,11 @@ begin
     end
     else
     begin
+      if (DTSTYLE AND DT_PATH_ELLIPSIS = DT_PATH_ELLIPSIS) then
+      begin
+        Text := EllipsifyText(true,Text, Canvas, r.Right - r.Left);
+      end;
+
       graphics := TGPGraphics.Create(Canvas.Handle);
       fontFamily:= TGPFontFamily.Create(AFont.Name);
       fs := 0;
@@ -1342,13 +1505,13 @@ begin
           // Center-justify each line of text.
           stringFormat.SetAlignment(StringAlignmentCenter);
         end;
-
       end;
+
 
       // Center the block of text (top to bottom) in the rectangle.
       stringFormat.SetLineAlignment(StringAlignmentCenter);
 
-      stringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
+      stringFormat.SetHotkeyPrefix(HotkeyPrefixNone);
 
       case AntiAlias of
       aaClearType:graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
@@ -1428,8 +1591,8 @@ begin
   FParentBiDiMode := True;
   ParentBiDiModeChanged;
 {$ENDIF}
-  FTimeFormat := 'hh:mm:ss';
-  FDateFormat := 'mm/dd/yyyy';
+  FTimeFormat := LongTimeFormat;
+  FDateFormat := ShortDateFormat;
   FProgressStyle := TProgressStyle.Create(self);
   FStyle := psHTML;
   FHTMLOffsetX := 2;
@@ -1442,6 +1605,8 @@ begin
   FAppearanceStyle := psLight;
   FOfficeHint := TAdvHintInfo.Create;
   FButton := False;
+  FMinWidth := 20;
+  FAutoSize := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -1460,6 +1625,8 @@ begin
     Progress.Assign(TAdvOfficeStatusPanel(Source).Progress);
     FOfficeHint.Assign(TAdvOfficeStatusPanel(Source).OfficeHint);
     AppearanceStyle := TAdvOfficeStatusPanel(Source).AppearanceStyle;
+    AutoSize := TAdvOfficeStatusPanel(Source).AutoSize;
+    MinWidth := TAdvOfficeStatusPanel(Source).MinWidth;    
   end
   else
     inherited Assign(Source);
@@ -1587,6 +1754,10 @@ begin
   begin
     FText := Value;
     Changed(False);
+
+    if AutoSize then
+      if Assigned(Collection) then
+        TAdvOfficeStatusPanels(Collection).FStatusBar.AutoSizePanels;
   end;
 end;
 
@@ -1602,11 +1773,17 @@ begin
   end;
 end;
 
+procedure TAdvOfficeStatusPanel.StepIt;
+begin
+  if Progress.Position < Progress.Max then
+    Progress.Position := Progress.Position + 1;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TAdvOfficeStatusPanel.SetDateFormat(const Value: string);
 begin
-  fDateFormat := Value;
+  FDateFormat := Value;
   Changed(True);
   Change;
 end;
@@ -1615,7 +1792,7 @@ end;
 
 procedure TAdvOfficeStatusPanel.SetTimeFormat(const Value: string);
 begin
-  fTimeFormat := Value;
+  FTimeFormat := Value;
   Changed(True);
   Change;
 end;
@@ -1686,6 +1863,11 @@ begin
   FImageIndexes.Strings[Index] := IntToStr(Value);
 end;
 
+procedure TAdvOfficeStatusPanel.SetMinWidth(const Value: Integer);
+begin
+  FMinWidth := Value;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TAdvOfficeStatusPanel.ClearImageIndexes;
@@ -1746,6 +1928,19 @@ begin
   end;
 end;
 
+procedure TAdvOfficeStatusPanel.SetAutoSize(const Value: Boolean);
+begin
+  FAutoSize := Value;
+
+  if FAutoSize then
+  begin
+    if Assigned(Collection) then
+    begin
+      TAdvOfficeStatusPanels(Collection).FStatusBar.AutoSizePanels;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TAdvOfficeStatusPanel.SetOfficeHint(const Value: TAdvHintInfo);
@@ -1755,7 +1950,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvOfficeStatusPanel.SetButton(Value: Boolean);
+procedure TAdvOfficeStatusPanel.SetButton(const Value: Boolean);
 begin
   if (FButton <> Value) then
   begin
@@ -1820,7 +2015,7 @@ begin
     FStatusBar.UpdatePanels(True, False);
 
   {$IFDEF DELPHI6_LVL}
-  (Owner as TAdvOfficeStatusBar).Repaint;
+  (Owner as TAdvOfficeStatusBar).Invalidate;
   {$ENDIF}
 end;
 
@@ -1869,6 +2064,9 @@ begin
   FDummyHintControl := TDummyHintControl.Create(Self);
   FDummyHintControl.Visible := False;
   FAntiAlias := aaClearType;
+  DoubleBuffered := true;
+  FStretchPanel := -1;
+  FSizePanel := -1;
 end;
 
 //------------------------------------------------------------------------------
@@ -2108,10 +2306,11 @@ var
   xsize, ysize: Integer;
   HyperLinks,MouseLink: Integer;
   Focusanchor: string;
-  
+
 begin
   R := GetSimplePanelRect;
-  
+
+
   with FCurrentOfficeStatusBarStyler.PanelAppearanceLight do
   begin
     R2.Left := 0;
@@ -2119,6 +2318,7 @@ begin
     R2.Right := Width;
     R2.Bottom := Height;
     DrawVistaGradient(Canvas, R2, Color, ColorTo, ColorMirror, ColorMirrorTo, gdHorizontal, clNone);
+    Canvas.Font.Color := TextColor;
   end;
 
   R2 := R;
@@ -2131,9 +2331,11 @@ begin
   end;
 
   Canvas.Brush.Style := bsClear;
+
   dr := R;
   dr.Left := dr.Left + 2; //Panel.HTMLOffsetX;
   dr.Top := dr.Top + 2; //Panel.HTMLOffsetY;
+
   HTMLDrawEx(Canvas, SimpleText, dr, fImages, 0, 0, -1, -1, 1, false, false, false, false, (fTimerCount > 5), false,
     true, 1.0, URLColor, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
     hyperlinks, mouselink, re, nil , FContainer, 0);
@@ -2150,7 +2352,7 @@ end;
 
 function TAdvOfficeStatusBar.GetPanelRect(Index: Integer): TRect;
 var
-  I, PanelPos: Integer;
+  I, PanelPos, NR: Integer;
   R: TRect;
 begin
   Result := Rect(-1, -1, -1, -1);
@@ -2160,17 +2362,31 @@ begin
   for I := 0 to Panels.Count - 1 do
   begin
     R.Left := PanelPos;
-    if (I = Panels.Count-1) then
+
+    if (StretchPanel = I) then
     begin
-      R.Right := max(Width-1, R.Left);
-      PanelPos := PanelPos + R.Right;
+      NR := R.Left + (Width - PanelFixedSize);
+      if NR > R.Left then
+        R.Right := NR
+      else
+        R.Right := R.Left;
+
+      PanelPos := PanelPos + (R.Right - R.Left);
     end
     else
     begin
-      R.Right := R.Left + Panels[I].Width;
-      PanelPos := PanelPos + Panels[I].Width;
+      if (I = Panels.Count-1) then
+      begin
+        R.Right := max(Width-1, R.Left);
+        PanelPos := PanelPos + R.Right;
+      end
+      else
+      begin
+        R.Right := R.Left + Panels[I].Width;
+        PanelPos := PanelPos + Panels[I].Width;
+      end;
     end;
-    
+
     if (Index = I) then
     begin
       Result := R;
@@ -2181,11 +2397,47 @@ end;
 
 //------------------------------------------------------------------------------
 
+function TAdvOfficeStatusBar.PanelFixedSize: integer;
+var
+  i: integer;
+begin
+  Result := 0;
+  for i := 0 to Panels.Count - 1 do
+  begin
+    if i <> FStretchPanel then
+      Result := Result + Panels[i].Width;
+  end;
+end;
+
+function TAdvOfficeStatusBar.OnPanelBorder(x: Integer): integer;
+var
+  i: integer;
+  R: TRect;
+
+begin
+  Result := -1;
+  for i := 0 to Panels.Count - 1 do
+  begin
+    R := GetPanelRect(i);
+
+    if (x > r.Right - 2) and (x < r.Right +2) then
+    begin
+      Result := i;
+      Break;
+    end;
+
+  end;
+    
+
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvOfficeStatusBar.DrawAllPanels;
 const
   MaxPanelCount = 128;
 var
-  PanelPos, I: Integer;
+  PanelPos, I, NR: Integer;
   R: TRect;
 begin
   if SimplePanel then
@@ -2195,22 +2447,44 @@ begin
   else
   begin
     R.Top := 0;
-    R.Bottom := Height;
+    R.Bottom := Height - 1;
 
     PanelPos := 0;
+
     for I := 0 to Panels.Count - 1 do
     begin
       R.Left := PanelPos;
-      if (I = Panels.Count-1) then
+
+      if (StretchPanel = I) then
       begin
-        R.Right := max(Width, R.Left);
-        PanelPos := PanelPos + R.Right;
+        NR := R.Left + (Width - PanelFixedSize);
+        if NR > R.Left then
+          R.Right := NR
+        else
+          R.Right := R.Left;
+
+        PanelPos := PanelPos + (R.Right - R.Left);
       end
       else
       begin
-        R.Right := R.Left + Panels[I].Width;
-        PanelPos := PanelPos + Panels[I].Width;
+        if ((I = Panels.Count - 1) and (StretchPanel = -1)) then
+        begin
+          R.Right := max(Width, R.Left);
+          PanelPos := PanelPos + R.Right;
+        end
+        else
+        begin
+          R.Right := R.Left + Panels[I].Width;
+          PanelPos := PanelPos + Panels[I].Width;
+        end;
       end;
+
+      if R.Left = 0 then
+        R.Left := 1;
+
+      if R.Right = Width -1 then
+        R.Right := Width - 2;
+
       DrawPanel(Panels[i], R);
     end;
   end;
@@ -2223,7 +2497,7 @@ begin
   end;
 
   // Draw Border
-  R := Rect(0, 0, Width-1, Height-1);
+  R := Rect(0, 0, Width - 1, Height - 1);
   Canvas.Pen.Color := FCurrentOfficeStatusBarStyler.BorderColor;
   Canvas.MoveTo(R.Left, R.Top);
   Canvas.LineTo(R.Left, R.Bottom);
@@ -2235,6 +2509,7 @@ begin
   Canvas.Pen.Color := BlendColor(FCurrentOfficeStatusBarStyler.BorderColor, clWhite, 80);
   Canvas.MoveTo(R.Left, R.Top);
   Canvas.LineTo(R.Right + 1, R.Top);
+
 end;
 
 //------------------------------------------------------------------------------
@@ -2295,7 +2570,9 @@ var
   PanelAppearance: TVistaBackGround;
   TxtClr: TColor;
   PanelIndex: Integer;
-  
+  al: TAlignment;
+  fpos: double;
+
 begin
   if (Rect.Left >= Rect.Right) or (Rect.Top >= Rect.Bottom) or not Assigned(FCurrentOfficeStatusBarStyler) then
     Exit;
@@ -2307,6 +2584,12 @@ begin
     if Styler.BorderColor <> clNone then
       InflateRect(r, 0, -1);
   end;
+
+
+  al := Panel.Alignment;
+
+  if UseRightToLeftAlignment then
+    al := taRightJustify;
 
   DrawPanelBackGround(Panel, R);
 
@@ -2351,43 +2634,69 @@ begin
   if not Panel.Enabled then
     Canvas.Font.Color := clGray;
 
+
   case Panel.Style of
     psHTML:
       begin
         dr := R;
+
         dr.Left := dr.Left + Panel.HTMLOffsetX;
         dr.Top := dr.Top + Panel.HTMLOffsetY;
+
+        if al in [taRightJustify, taCenter] then
+        begin
+          HTMLDrawEx(Canvas, panel.Text, dr, fImages, 0, 0, -1, -1, 1, true, false, false, false, (fTimerCount > 5), false,
+            true, 1.0, URLColor, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
+            hyperlinks, mouselink, re, nil , FContainer, 0);
+
+          if (al = taRightJustify) then
+          begin
+            if xsize < (dr.Right - dr.Left) then
+              dr.Left := dr.Right - xsize - Panel.HTMLOffsetX
+          end
+          else
+          begin
+            if Xsize < (dr.Right - dr.Left) then
+              dr.Left := dr.Left + (dr.Right - dr.Left - Xsize) div 2;
+          end;
+        end;
+
         HTMLDrawEx(Canvas, panel.Text, dr, fImages, 0, 0, -1, -1, 1, false, false, false, false, (fTimerCount > 5), false,
-        true, 1.0, URLColor, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
-        hyperlinks, mouselink, re, nil , FContainer, 0);
+          true, 1.0, URLColor, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
+          hyperlinks, mouselink, re, nil , FContainer, 0);
       end;
     psEllipsText:
       begin
-        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER;
-        case Panel.Alignment of
+        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER or DT_NOPREFIX;
+        case al of
           taLeftJustify: r.Left := r.Left + 2;
           taCenter: DTSTYLE := DTSTYLE or DT_CENTER;
           taRightJustify: DTSTYLE := DTSTYLE or DT_RIGHT;
         end;
-        
-        DrawVistaText(Canvas, Panel.Alignment, DTSTYLE, r, Panel.Text, Canvas.Font, Enabled, True, AntiAlias, True, False);       
+
+        DrawVistaText(Canvas, Panel.Alignment, DTSTYLE, r, Panel.Text, Canvas.Font, Enabled, True, AntiAlias, True, False);
       end;
     psFileEllipsText:
       begin
-        DTSTYLE := DT_SINGLELINE or DT_PATH_ELLIPSIS or DT_VCENTER;
-        case Panel.Alignment of
+        DTSTYLE := DT_SINGLELINE or DT_PATH_ELLIPSIS or DT_VCENTER or DT_NOPREFIX;
+
+        case al of
           taLeftJustify: r.Left := r.Left + 2;
           taCenter: DTSTYLE := DTSTYLE or DT_CENTER;
           taRightJustify: DTSTYLE := DTSTYLE or DT_RIGHT;
         end;
-        
+
         DrawVistaText(Canvas, Panel.Alignment, DTSTYLE, r, Panel.Text, Canvas.Font, Enabled, True, AntiAlias, False, False);
       end;
     psImage:
       begin
         if Assigned(Images) then
         begin
-          r.Left := r.Left + 2;
+          if al = taRightJustify then
+            r.Left := r.Right - Images.Width - 2
+          else
+            r.Left := r.Left + 2;
+
           dr := r;
           dr.Top := dr.Top + (r.Bottom - r.Top - Images.Height) div 2;
 
@@ -2401,12 +2710,16 @@ begin
               Images.Draw(Canvas, dr.Left, dr.Top, Panel.ImageIndex, False);
 
           end;
-          r.Left := r.Left + Images.Width;
+
+          if al = taRightJustify then
+            r.Right := r.Right - Images.Width
+          else
+            r.Left := r.Left + Images.Width;
         end;
 
         r.Left := r.Left + 2;
 
-        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER;
+        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER or DT_NOPREFIX;
 
         case Panel.Alignment of
           taCenter: DTSTYLE := DTSTYLE or DT_CENTER;
@@ -2421,7 +2734,7 @@ begin
           Canvas.Font.Color := clGray;  // requires forced color change ?
         end;
 
-        DrawVistaText(Canvas, Panel.Alignment, DTSTYLE, r, Panel.Text, Canvas.Font, Enabled, True, AntiAlias, True, False);
+        DrawVistaText(Canvas, al, DTSTYLE, r, Panel.Text, Canvas.Font, Enabled, True, AntiAlias, True, False);
       end;
     psImageList:
       begin
@@ -2461,12 +2774,12 @@ begin
           r.Left := r.Left + Panel.AnimationImages.Width;
         end;
         r.Left := r.Left + 2;
-        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER;
+        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER or DT_NOPREFIX;
         case Panel.Alignment of
           taCenter: DTSTYLE := DTSTYLE or DT_CENTER;
           taRightJustify: DTSTYLE := DTSTYLE or DT_RIGHT;
         end;
-        
+
         DrawVistaText(Canvas, Panel.Alignment, DTSTYLE, r, Panel.Text, Canvas.Font, Enabled, True, AntiAlias, True, False);
       end;
     psProgress:
@@ -2498,17 +2811,22 @@ begin
         Settings.Prefix := Panel.Progress.Prefix;
         Settings.Text := Panel.Text;
 
+        fpos := Panel.Progress.Position - Panel.Progress.Min;
+        if (Panel.Progress.Max - Panel.Progress.Min) > 0 then
+          fpos := fpos / (Panel.Progress.Max - Panel.Progress.Min);
+        fpos := fpos * 100;
+
         if Panel.Progress.Indication = piPercentage then
         begin
           if Panel.Progress.Max <> Panel.Progress.Min then
-            DrawGauge(Canvas, r, Round(100 * (Panel.Progress.Position - Panel.Progress.Min) / (Panel.Progress.Max - Panel.Progress.Min)), Settings)
+            DrawGauge(Canvas, r, Round(fpos), Settings)
           else
             DrawGauge(Canvas, r, 0, Settings)
         end
         else
         begin
           if Panel.Progress.Max <> Panel.Progress.Min then // avoid division by zero
-            DrawGauge(Canvas, r, Round(100 * (Panel.Progress.Position - Panel.Progress.Min) / (Panel.Progress.Max - Panel.Progress.Min)), Settings)
+            DrawGauge(Canvas, r, Round(fpos), Settings)
           else
             DrawGauge(Canvas, r, 0, Settings)
         end;
@@ -2519,8 +2837,8 @@ begin
         FOnDrawPanel(Self, Panel, Rect)
       else
       begin
-        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER;
-        case Panel.Alignment of
+        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER or DT_NOPREFIX;
+        case al of
           taCenter: DTSTYLE := DTSTYLE or DT_CENTER;
           taRightJustify: DTSTYLE := DTSTYLE or DT_RIGHT;
         end;
@@ -2665,6 +2983,15 @@ begin
   begin
     FSizeGrip := Value;
     RecreateWnd;
+  end;
+end;
+
+procedure TAdvOfficeStatusBar.SetStretchPanel(const Value: Integer);
+begin
+  if (Value >= -1) and (Value < Panels.Count) then
+  begin
+    FStretchPanel := Value;
+    Invalidate;
   end;
 end;
 
@@ -2880,12 +3207,43 @@ end;
 procedure TAdvOfficeStatusBar.WMTimer(var Msg: TWMTimer);
 begin
   UpdateStatusBar;
-  inc(fTimerCount);
-  if (fTimerCount > 10) then
-    fTimerCount := 0;
+  inc(FTimerCount);
+  if (FTimerCount > 10) then
+    FTimerCount := 0;
+end;
+
+procedure TAdvOfficeStatusBar.CMDesignHitTest(var Msg: TCMDesignHitTest);
+begin
+  FHitTest := Point(Msg.XPos, Msg.YPos);
+  
+  if (OnPanelBorder(Msg.XPos) <> -1) or (FSizePanel <> -1) then
+    Msg.Result := 1
+  else
+    Msg.Result := 0;  
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TAdvOfficeStatusBar.WMSetCursor(var Msg: TWMSetCursor);
+var
+  Cur: HCURSOR;
+begin
+  if (csDesigning in ComponentState) then
+  begin
+    Cur := 0;
+    if OnPanelBorder(FHitTest.X) <> -1 then
+    begin
+      Cur := Screen.Cursors[crHSplit];
+    end;
+
+    if Cur <> 0 then
+      SetCursor(Cur)
+    else
+      inherited;
+  end
+  else
+    inherited;
+end;
 
 procedure TAdvOfficeStatusBar.WMSize(var Message: TWMSize);
 begin
@@ -2968,6 +3326,75 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TAdvOfficeStatusBar.AutoSizePanels;
+var
+  i: integer;
+  w,imgw: integer;
+  s: string;
+  DTSTYLE: DWORD;
+  r, re: TRect;
+  anchor, stripped: string;
+  xsize, ysize: Integer;
+  HyperLinks,MouseLink: Integer;
+  Focusanchor: string;
+
+begin
+  Canvas.Font.Assign(Font);
+  for i := 0 to Panels.Count - 1 do
+  begin
+    if Panels[i].AutoSize then
+    begin
+      s := '';
+      imgw := 0;
+
+      case Panels[i].Style of
+      psText,psDate,psTime:
+        begin
+          s := Panels[i].Text;
+        end;
+      psScrollLock:
+        begin
+          s := SCROLLLOCK;
+        end;
+      psNumLock:
+        begin
+          s := NUMLOCK;
+        end;
+      psCapsLock:
+        begin
+          s := CAPSLOCK;
+        end;
+      psImage:
+        begin
+          s := Panels[i].Text;
+          if Assigned(Images) and (Panels[i].ImageIndex >= 0) then
+           imgw := Images.Width;
+        end;
+      psHTML:
+        begin
+          r := Rect(0,0,1000,100);
+          HTMLDrawEx(Canvas, Panels[i].Text, r, FImages, 0, 0, -1, -1, 1, true, false, false, false, (fTimerCount > 5), false,
+            true, 1.0, URLColor, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
+            hyperlinks, mouselink, re, nil , FContainer, 0);
+          Panels[i].Width := Max(xsize + 10, Panels[i].MinWidth);
+        end;
+      end;
+
+      if (s <> '') then
+      begin
+        DTSTYLE := DT_SINGLELINE or DT_END_ELLIPSIS or DT_VCENTER;
+        r := Rect(0,0,1000,100);
+        r := DrawVistaText(Canvas, Panels[i].Alignment, DTSTYLE, r, s, Canvas.Font, Enabled, False, AntiAlias, True, False);
+        w := imgw + (r.Right - r.Left) + 12;
+        Panels[i].Width := Max(w, Panels[i].MinWidth);
+      end;
+    end;
+
+    if SizeGrip and (i = Panels.Count - 1) then
+      Panels[i].Width := Panels[i].Width + 16;
+  end;
+end;
 
 procedure TAdvOfficeStatusBar.ChangeScale(M, D: Integer);
 begin
@@ -3058,6 +3485,14 @@ var
   anchor: string;
   idx, i: Integer;
 begin
+  if (csDesigning in ComponentState) then
+  begin
+    if FSizePanel <> -1 then
+    begin
+      Panels[FSizePanel].Width := FSizeWidth + X - FSizeDownX;
+    end;
+  end;
+
   anchor := IsAnchor(x, y);
 
   idx := GetPanel(x);
@@ -3287,6 +3722,8 @@ var
 begin
   inherited;
 
+  FSizePanel := -1;
+
   if (FDownPanelIndex >= 0) then
   begin
     i := FDownPanelIndex;
@@ -3306,6 +3743,14 @@ begin
   inherited MouseDown(Button, Shift, X, Y);
 
   idx := GetPanel(x);
+
+  if (csDesigning in ComponentState) then
+  begin
+    FSizePanel := OnPanelBorder(X);
+    FSizeDownX := X;
+    FSizeWidth := Panels[FSizePanel].Width;
+  end;
+
 
   if (idx >= 0) then
   begin
@@ -3365,6 +3810,7 @@ procedure TAdvOfficeStatusBar.Loaded;
 begin
   inherited;
   UpdateStatusBar;
+  AutoSizePanels;
 end;
 
 //------------------------------------------------------------------------------
@@ -3405,21 +3851,102 @@ begin
   end;
 end;
 
+
+
+//------------------------------------------------------------------------------
+
+function IsVista: boolean;
+var
+  hKernel32: HMODULE;
+begin
+  hKernel32 := GetModuleHandle('kernel32');
+  if (hKernel32 > 0) then
+  begin
+    Result := GetProcAddress(hKernel32, 'GetLocaleInfoEx') <> nil;
+  end
+  else
+    Result := false;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TAdvOfficeStatusBar.Paint;
+{$IFDEF TMSTOOLBAR}
+var
+  clr: TColor;
+  i: integer;
+{$ENDIF}
 begin
-  inherited;
+//  inherited;
 
   DrawAllPanels;
 
+  {$IFDEF TMSTOOLBAR}
+  clr := clGray;
+
+  if Parent is TAdvToolBarForm then
+  begin
+    with Parent as TAdvToolBarForm do
+    begin
+      for i := 0 to ControlCount - 1 do
+      begin
+        if Controls[i] is TAdvToolBarPager then
+        begin
+          with (TInternalToolBarPager(Controls[i])) do
+          begin
+            clr := CurrentToolBarStyler.CaptionAppearance.CaptionTextColor;
+          end;
+        end;
+      end;
+    end;
+
+    if Assigned(Styler) then
+    begin
+      if Styler.BorderColor <> clNone then
+        clr := Styler.BorderColor;
+    end;
+
+    if not IsVista then
+    begin
+      if clr = clWhite then
+        clr := clBlack;
+
+      Canvas.Pen.Color := clr;
+      Canvas.Pen.Width := 1;
+
+      Canvas.MoveTo(0,Height - 7);
+      Canvas.LineTo(0,Height);
+      Canvas.MoveTo(1,Height - 4);
+      Canvas.LineTo(1,Height);
+
+      Canvas.MoveTo(0,Height - 1);
+      Canvas.LineTo(7,Height - 1);
+      Canvas.MoveTo(1,Height - 2);
+      Canvas.LineTo(4,Height - 2);
+
+      Canvas.MoveTo(Width - 1,Height - 7);
+      Canvas.LineTo(Width - 1,Height);
+      Canvas.MoveTo(Width - 2,Height - 4);
+      Canvas.LineTo(Width - 2,Height);
+
+      Canvas.MoveTo(Width - 1,Height - 1);
+      Canvas.LineTo(Width - 8,Height - 1);
+      Canvas.MoveTo(Width - 1,Height - 2);
+      Canvas.LineTo(Width - 5,Height - 2);
+    end;
+  end;
+  {$ENDIF}
+
   if Assigned(Styler) then
+  begin
     if Styler.BorderColor <> clNone then
     begin
       Canvas.Pen.Color := Styler.BorderColor;
+      Canvas.Pen.Width := 1;
       Canvas.MoveTo(0,0);
       Canvas.LineTo(Width,0);
     end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3433,7 +3960,8 @@ end;
 
 procedure TAdvOfficeStatusBar.OnPanelsChanged(Sender: TObject);
 begin
-  Invalidate;
+  if (Panels.UpdateCount = 0) then
+    Invalidate;
 end;
 
 //------------------------------------------------------------------------------
@@ -3443,7 +3971,8 @@ var
   pt: TPoint;
 begin
   inherited;
-  if (csDesigning in ComponentState) then Exit;
+  if (csDesigning in ComponentState) then
+    Exit;
 
   {$IFNDEF TMSDOTNET}
   pt := ScreenToClient(point(msg.xpos,msg.ypos));
@@ -3459,6 +3988,11 @@ begin
   begin
     SetWindowPos(Handle, HWND_TOP,0,0,0,0,  SWP_NOMOVE or SWP_NOSIZE);
     Msg.Result := HTBOTTOMRIGHT;
+  end
+  else
+  begin
+    if (pt.Y > Height - 4) or (pt.X > Width - 4) then
+      Msg.Result := HTTRANSPARENT;
   end;
 end;
 
@@ -3510,6 +4044,23 @@ begin
   FMin := (Source as TProgressStyle).Min;
   FMax := (Source as TProgressStyle).Max;
   FPosition := (Source as TProgressStyle).Position;
+  FShowPercentage := (Source as TProgressStyle).ShowPercentage;
+  FShowGradient := (Source as TProgressStyle).ShowGradient;
+  FStacked := (Source as TProgressStyle).Stacked;
+  FShowBorder := (Source as TProgressStyle).ShowBorder;
+  FBorderColor := (Source as TProgressStyle).BorderColor;
+  FCompletionSmooth := (Source as TProgressStyle).CompletionSmooth;
+  FLevel0Color := (Source as TProgressStyle).Level0Color;
+  FLevel0ColorTo := (Source as TProgressStyle).Level0ColorTo;
+  FLevel1Color := (Source as TProgressStyle).Level1Color;
+  FLevel1ColorTo := (Source as TProgressStyle).Level1ColorTo;
+  FLevel2Color := (Source as TProgressStyle).Level2Color;
+  FLevel2ColorTo := (Source as TProgressStyle).Level2ColorTo;
+  FLevel3Color := (Source as TProgressStyle).Level3Color;
+  FLevel3ColorTo := (Source as TProgressStyle).Level3ColorTo;
+  FLevel1Perc := (Source as TProgressStyle).Level1Perc;
+  FLevel2Perc := (Source as TProgressStyle).Level2Perc;
+  FPrefix := (Source as TProgressStyle).Prefix;
 end;
 
 //------------------------------------------------------------------------------
@@ -3536,10 +4087,10 @@ end;
 constructor TProgressStyle.Create(aOwner: TAdvOfficeStatusPanel);
 begin
   inherited Create;
-  fBackground := clNone;
-  fMin := 0;
-  fMax := 100;
-  fOwner := aOwner;
+  FBackground := clNone;
+  FMin := 0;
+  FMax := 100;
+  FOwner := aOwner;
 
   FLevel0Color := clLime;
   FLevel0ColorTo := $00E1FFE1;
@@ -3584,7 +4135,7 @@ end;
 
 procedure TProgressStyle.SetMax(const Value: integer);
 begin
-  fMax := Value;
+  FMax := Value;
   Changed;
 end;
 

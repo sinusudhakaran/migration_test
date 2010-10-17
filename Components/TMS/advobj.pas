@@ -1,10 +1,9 @@
 {*************************************************************************}
 { Arrow col and row move indicators support file                          }
 { for Delphi & C++Builder                                                 }
-{ version 3.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{            copyright © 1996-2005                                        }
+{            copyright © 1996-2008                                        }
 {            Email : info@tmssoftware.com                                 }
 {            Web : http://www.tmssoftware.com                             }
 {                                                                         }
@@ -25,7 +24,7 @@ interface
 
 uses
   Windows, StdCtrls, Controls, Graphics, ExtCtrls, Dialogs, Classes, Messages,
-  SysUtils, AdvUtil, AsgHTMLE, Buttons, Menus, Forms
+  SysUtils, AdvUtil, AsgHTMLE, Buttons, Menus, Forms, ImgList
   {$IFNDEF TMSDOTNET}
   , AdvXPVS
   {$ENDIF}
@@ -60,10 +59,12 @@ type
   TPopupButton = class(TCustomControl)
   private
     FCaption: string;
-    FImages: TImageList;
+    FImages: TCustomImageList;
     FFlat: boolean;
     FGradTo: TColor;
     FGradFrom: TColor;
+    FGradMirrorTo: TColor;
+    FGradMirrorFrom: TColor;
   private
   protected
     procedure CreateParams(var Params: TCreateParams); override;
@@ -71,12 +72,14 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Paint; override;
     procedure CreateWnd; override;
-    property Images: TImageList read FImages write FImages;
+    property Images: TCustomImageList read FImages write FImages;
   published
     property Caption:string read FCaption write FCaption;
     property Flat: boolean read FFlat write FFlat;
     property GradFrom: TColor read FGradFrom write FGradFrom;
     property GradTo: TColor read FGradTo write FGradTo;
+    property GradMirrorFrom: TColor read FGradMirrorFrom write FGradMirrorFrom;
+    property GradMirrorTo: TColor read FGradMirrorTo write FGradMirrorTo;
   end;
 
   TIntList = class(TList)
@@ -96,9 +99,10 @@ type
     procedure Insert(Index,Value: Integer);
     procedure Delete(Index: Integer);
     property StrValue: string read GetStrValue write SetStrValue;
-  published
     property OnChange: TImageChangeEvent read FOnChange write FOnChange;
   end;
+
+
 
   TSortIndexList = class(TIntList)
   private
@@ -121,8 +125,7 @@ type
     FObject: TControl;
   public
     constructor Create(AX,AY: Integer; AObject: TControl);
-  published
-    property X: integer read FX write FY;
+    property X: integer read FX write FX;
     property Y: integer read FY write FY;
     property Control: TControl read FObject write FObject;
   end;
@@ -338,6 +341,19 @@ type
     property OnDropDown: TNotifyEvent read FOnDropDown write FOnDropDown;
   end;
 
+  TFileStringList = class(TStringList)
+  private
+    fp: integer;
+    cache: string;
+    function GetEOF: boolean;
+  public
+    procedure Reset;
+    procedure ReadLn(var s: string);
+    procedure Write(s: string);
+    procedure WriteLn(s: string);
+    property Eof: boolean read GetEOF;
+  end;
+
 
 //procedure Register;
 
@@ -345,7 +361,7 @@ type
 implementation
 
 uses
-  ActnList, ImgList, ComObj
+  ActnList, ComObj
 {$IFDEF TMSDOTNET}
   , Types
 {$ENDIF}
@@ -667,6 +683,7 @@ begin
   FGradFrom := clNone;
   FGradTo := clNone;
   FImages := nil;
+  DoubleBuffered := true;
 end;
 
 procedure TPopupButton.CreateParams(var Params: TCreateParams);
@@ -700,10 +717,14 @@ begin
   if not FFlat then
     Frame3D(Canvas,r,clWhite,clGray,1);
 
+  DrawVistaGradient(Canvas,r,FGradFrom,FGradTo,FGradMirrorFrom,FGradMirrorTo,true,clNone);
+
+  {
   if FGradFrom <> clNone then
   begin
     DrawGradient(Canvas,FGradFrom,FGradTo, 64, r, False);
   end;
+  }
 
   SetBkMode(Canvas.Handle,TRANSPARENT);
 
@@ -2279,5 +2300,32 @@ end;
 
 {$ENDIF}
 
+procedure TFileStringList.Reset;
+begin
+  fp := 0;
+  cache := '';
+end;
+
+function TFileStringList.GetEOF;
+begin
+  Result := fp >= Count;
+end;
+
+procedure TFileStringList.ReadLn(var s: string);
+begin
+  s := Strings[fp];
+  inc(fp);
+end;
+
+procedure TFileStringList.Write(s: string);
+begin
+  cache := cache + s;
+end;
+
+procedure TFileStringList.WriteLn(s: string);
+begin
+  Add(cache + s);
+  cache := '';
+end;
 
 end.

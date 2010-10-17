@@ -43,13 +43,13 @@ procedure CalcImgCells(const Workbook: TExcelFile; const Row, Col, dh, dw:intege
 
   function Rh(const Row: integer): extended;
   begin
-    if not Workbook.IsEmptyRow(Row) then Result:=Workbook.RowHeight[Row]/RowMult else
+    if not Workbook.IsEmptyRow(Row) then Result:=Workbook.RowHeightHiddenIsZero[Row]/RowMult else
       Result:=Workbook.DefaultRowHeight/RowMult;
   end;
 
   function Cw(const Col: integer): extended;
   begin
-    Result:=Workbook.ColumnWidth[Col]/ColMult;
+    Result:=Workbook.ColumnWidthHiddenIsZero[Col]/ColMult;
   end;
 
 var
@@ -119,13 +119,13 @@ procedure CalcImgDimentions(const Workbook: TExcelFile; const Anchor: TClientAnc
 
   function Rh(const Row: integer): extended;
   begin
-    if not Workbook.IsEmptyRow(Row) then Result:=Workbook.RowHeight[Row]/RowMult else
+    if not Workbook.IsEmptyRow(Row) then Result:=Workbook.RowHeightHiddenIsZero[Row]/RowMult else
       Result:=Workbook.DefaultRowHeight/RowMult;
   end;
 
   function Cw(const Col: integer): extended;
   begin
-    Result:=Workbook.ColumnWidth[Col]/ColMult;
+    Result:=Workbook.ColumnWidthHiddenIsZero[Col]/ColMult;
   end;
 
 var

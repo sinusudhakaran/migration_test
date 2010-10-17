@@ -204,7 +204,7 @@ begin
   Clear;
 
   //Open template
-  DocIN:= TOle2Storage.Create(aFileName, Ole2_Read);
+  DocIN:= TOle2Storage.Create(aFileName, Ole2_Read, false);
   try
     LoadStorage(DocIN);
   finally
@@ -254,7 +254,7 @@ var
   i: integer;
 begin
   //Create template
-  DocOut:=TOle2Storage.Create(aFileName, Ole2_Write);
+  DocOut:=TOle2Storage.Create(aFileName, Ole2_Write, false);
   try
     for i:=0 to Count-1 do Items[i].SaveToDoc(DocOUT);
   finally

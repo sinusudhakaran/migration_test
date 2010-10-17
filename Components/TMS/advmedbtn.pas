@@ -1,10 +1,9 @@
 {*********************************************************************}
 { TADVEDITBTN component                                               }
 { for Delphi & C++Builder                                             }
-{ version 1.3                                                         }
 {                                                                     }
 { written by TMS Software                                             }
-{            copyright © 2000-2004                                    }
+{            copyright © 2000-2008                                    }
 {            Email : info@tmssoftware.com                             }
 {            Web : http://www.tmssoftware.com                         }
 {                                                                     }

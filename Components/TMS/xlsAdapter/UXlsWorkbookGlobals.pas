@@ -94,14 +94,14 @@ type
     function TotalRangeSize(const SheetIndex: integer; const CellRange: TXlsCellRange): int64; override;
     procedure Clear; override;
     procedure LoadFromStream( const DataStream: TStream; const First: TBOFRecord; const SST: TSST); override;
-    procedure SaveToStream(const DataStream: TStream);override;
-    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange);override;
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);override;
+    procedure SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);override;
 
     procedure InsertAndCopyRowsAndCols(const FirstRow, LastRow, DestRow, aRowCount, FirstCol, LastCol, DestCol, aColCount: integer; const SheetInfo: TSheetInfo);
     procedure DeleteRowsAndCols(const aRow, aRowCount, aCol, aColCount: word;const SheetInfo: TSheetInfo);
 
     procedure DeleteSheets(const SheetIndex, SheetCount: integer);
-    procedure InsertSheets(const CopyFrom: integer; BeforeSheet: integer; const OptionFlags: word; const Name: WideString; const SheetCount: byte);
+    procedure InsertSheets(const CopyFrom: integer; BeforeSheet: integer; const OptionFlags: word; const Name: WideString; const SheetCount: integer);
 
     property ColorPalette[Index: integer]: LongWord read GetColorPalette write SetColorPalette;
 
@@ -168,12 +168,12 @@ end;
 procedure TBoundSheetList.SaveRangeToStream(const DataStream: TStream; const SheetIndex: integer);
 begin
   if (SheetIndex>=FBoundSheets.Count)or (SheetIndex<0) then raise Exception.CreateFmt(ErrInvalidSheetNo, [SheetIndex,0,FBoundSheets.Count-1]);
-  FBoundSheets[SheetIndex].SaveToStream(DataStream);
+  FBoundSheets[SheetIndex].SaveToStream(DataStream, false);
 end;
 
 procedure TBoundSheetList.SaveToStream(const DataStream: TStream);
 begin
-  FBoundSheets.SaveToStream(DataStream);
+  FBoundSheets.SaveToStream(DataStream, false);
 end;
 
 function TBoundSheetList.TotalSize: int64;
@@ -314,7 +314,7 @@ begin
 end;
 
 procedure TWorkbookGlobals.InsertSheets(const CopyFrom: integer; BeforeSheet: integer;
-  const OptionFlags: word; const Name: WideString; const SheetCount: byte);
+  const OptionFlags: word; const Name: WideString; const SheetCount: integer);
 var
   i, ofs: integer;
   SheetInfo: TSheetInfo;
@@ -385,39 +385,39 @@ begin
 end;
 
 procedure TWorkbookGlobals.SaveRangeToStream(const DataStream: TStream;
-  const SheetIndex: integer; const CellRange: TXlsCellRange);
+  const SheetIndex: integer; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 begin
   //Someday this can be optimized to only save texts on the range
   //But even Excel does not do it...
   if (sBOF=nil)or(sEOF=nil) then raise Exception.Create(ErrSectionNotLoaded);
 
-  sBOF.SaveToStream(DataStream);
-  FMiscRecords.SaveToStream(DataStream);
+  sBOF.SaveToStream(DataStream, NeedsRecalc);
+  FMiscRecords.SaveToStream(DataStream, NeedsRecalc);
   //FXF, FFonts and FFormats are saved in FMiscRecords.SaveToStream;
 
   FBoundSheets.SaveRangeToStream(DataStream, SheetIndex);
   FReferences.SaveToStream(DataStream);
-  FNames.SaveToStream(DataStream); //Should be after FBoundSheets.SaveToStream
+  FNames.SaveToStream(DataStream, NeedsRecalc); //Should be after FBoundSheets.SaveToStream
   //Images are not saved to the clipboard by excel
   //FDrawingGroup.SaveToStream(DataStream);
   FSST.SaveToStream(DataStream);
-  sEOF.SaveToStream(DataStream);
+  sEOF.SaveToStream(DataStream, NeedsRecalc);
 end;
 
-procedure TWorkbookGlobals.SaveToStream(const DataStream: TStream);
+procedure TWorkbookGlobals.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 begin
   if (sBOF=nil)or(sEOF=nil) then raise Exception.Create(ErrSectionNotLoaded);
 
-  sBOF.SaveToStream(DataStream);
-  FMiscRecords.SaveToStream(DataStream);
+  sBOF.SaveToStream(DataStream, NeedsRecalc);
+  FMiscRecords.SaveToStream(DataStream, NeedsRecalc);
   //FXF, FFonts and FFormats are saved in FMiscRecords.SaveToStream;
 
   FBoundSheets.SaveToStream(DataStream);
   FReferences.SaveToStream(DataStream);
-  FNames.SaveToStream(DataStream); //Should be after FBoundSheets.SaveToStream
+  FNames.SaveToStream(DataStream, NeedsRecalc); //Should be after FBoundSheets.SaveToStream
   FDrawingGroup.SaveToStream(DataStream);
   FSST.SaveToStream(DataStream);
-  sEOF.SaveToStream(DataStream);
+  sEOF.SaveToStream(DataStream, NeedsRecalc);
 end;
 
 procedure TWorkbookGlobals.SetActiveSheet(const Value: integer);
@@ -459,9 +459,12 @@ end;
 
 procedure TWorkbookGlobals.SetSheetName(const index: integer;
   const Value: Widestring);
+var
+  RealName: string;
 begin
-   FBoundSheets.FSheetNames.Rename(FBoundSheets.BoundSheets.SheetName[index], Value);
-   FBoundSheets.BoundSheets.SheetName[index]:=Value;
+   RealName:=TSheetNameList.MakeValidSheetName(Value);
+   FBoundSheets.FSheetNames.Rename(FBoundSheets.BoundSheets.SheetName[index], RealName);
+   FBoundSheets.BoundSheets.SheetName[index]:=RealName;
 end;
 
 procedure TWorkbookGlobals.SetSheetVisible(const index: integer; const Value: TXlsSheetVisible);

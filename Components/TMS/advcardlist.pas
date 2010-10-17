@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvCardList component                                                    }
 { for Delphi & C++Builder                                                   }
-{ version 1.2                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2005 - 2007                                        }
+{            copyright © 2005 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -23,23 +22,29 @@
 
 unit AdvCardList;
 
-interface                                         
+interface
 
 uses
   Classes, Controls, StdCtrls, ExtCtrls, ComCtrls, Windows, SysUtils, ExtDlgs,
   Dialogs, Math, Messages, Forms, Graphics, Buttons, Mask, ShellAPI
+  {$IFDEF TMSDOTNET}
+  , WinUtils
+  {$ENDIF}
   {$IFDEF DELPHI6_LVL}
-  , Variants
+  , Variants, Types
   {$ENDIF}
   {$IFDEF DELPHI7_LVL}
   , Themes
   {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  , Character
+  {$ENDIF}  
   ;
 
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 2; // Minor version nr.
-  REL_VER = 2; // Release nr.
+  MIN_VER = 3; // Minor version nr.
+  REL_VER = 0; // Release nr.
   BLD_VER = 1; // Build nr.
 
   // version history
@@ -65,7 +70,11 @@ const
   //          : New Office 2007 Luna & Obsidian style added
   // v1.2.1.0 : New event OnCardUpdate added in TDBAdvCardList
   // v1.2.2.0 : New suppor for Office 2007 silver style added
-  // v1.2.2.1 : Fixed : issue with default item show conditions 
+  // v1.2.2.1 : Fixed : issue with default item show conditions
+  // v1.2.2.2 : Fixed : issue with setfocus & autoselect of card on mouseclick
+  // v1.2.2.3 : Fixed : issue with delete card on sorted cardlist
+  // v1.3.0.0 : New : VCL.NET support
+  // v1.3.0.1 : Fixed : moved card Appearance to protected section
 
 
 resourcestring
@@ -81,6 +90,11 @@ resourcestring
 {$R AdvCardList.res}
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   ECardTemplateError = class(Exception);
   ECardItemListError = class(Exception);
 
@@ -160,6 +174,7 @@ type
     FReplaceLabelFont: Boolean;
     FReplaceEditFont: Boolean;
     FOnAppearanceChange: TOnAppearanceChange;
+    FCardItem: boolean;
     procedure RecalcMergedBorder;
     procedure DoAppearanceChange(EnabledChanged: Boolean);
     procedure HandleFontChanges(Sender: TObject);
@@ -180,6 +195,7 @@ type
     procedure SetReplaceLabelFont(Value: Boolean);
     procedure SetReplaceEditFont(Value: Boolean);
   protected
+    property CardItem: boolean read FCardItem write FCardItem;
     property OnAppearanceChange: TOnAppearanceChange read FOnAppearanceChange write FOnAppearanceChange;
   public
     constructor Create;
@@ -396,7 +412,7 @@ type
     procedure ItemListChanged(Item: TAdvCardTemplateItem);
     procedure ItemLinkedPropChanged(Item: TAdvCardTemplateItem; OldName: string);
   public
-    constructor Create(CardTemplate: TAdvCardTemplate; ItemClass: TCollectionItemClass);
+    constructor Create(CardTemplate: TAdvCardTemplate; ItemClass: TCollectionItemClass); virtual;
     function Add: TAdvCardTemplateItem;
     procedure Assign(Source: TPersistent); override;
     procedure Delete(Index: Integer);
@@ -592,11 +608,11 @@ type
     FClientRect,
     FListRect: TRect;
     FHeight: Integer;
+    property Appearance: TAdvCardAppearance read FAppearance;
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
-    property Appearance: TAdvCardAppearance read FAppearance;
     property Caption: string read FCaption write SetCaption;
     property Column: Integer read FColumn;
     property Editing: Boolean read FEditing;
@@ -859,7 +875,12 @@ type
     procedure SetSortSettings(Value: TAdvCardSortSettings);
     procedure SetDelayedCardLoad(Value: Boolean);
     procedure DelayedCardLoadTimerOnTimer(Sender: TObject);
-    procedure CMHintShow(var Message: TMessage); message CM_HINTSHOW;
+    {$IFDEF TMSDOTNET}
+    procedure CMHintShow(var Msg: TCMHintShow); message CM_HINTSHOW;
+    {$ENDIF}
+    {$IFNDEF TMSDOTNET}
+    procedure CMHintShow(var Msg: TMessage); message CM_HINTSHOW;
+    {$ENDIF}
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
     procedure WMGetDlgCode(var Message: TWMGetDlgCode); message WM_GETDLGCODE;
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
@@ -1001,6 +1022,9 @@ type
     procedure CancelEditing;
     // method called by custom editor to update after editing ends. Do call cancel editing and store result.
     procedure DoneEdit(Value: Variant);
+    {$IFDEF TMSDOTNET}
+    procedure DoneEditDate(Value: TDateTime);
+    {$ENDIF}
     function VisibleCardCount: Integer;
     property VisibleColumns: Integer read FViewedColumns;
     property Editing: Boolean read GetEditing;
@@ -1447,7 +1471,7 @@ end;
 
 procedure TAdvCardAppearance.DoAppearanceChange(EnabledChanged: Boolean);
 begin
-  if FUpdate then
+  if FUpdate and not FCardItem then
     if Assigned(FOnAppearanceChange) then FOnAppearanceChange(Self, EnabledChanged);
 end;
 
@@ -1637,16 +1661,17 @@ begin
   FVisible := True;
   FWordWrap := False;
   FTransparentImage := True;
+
   if Assigned(Collection) then
   begin
     CardList := GetCardList;
     if Assigned(CardList) and (csDesigning in CardList.ComponentState) and
-        not (csLoading in CardList.ComponentState) then
-        begin
-          Template := GetTemplate;
-          if Assigned(Template) and Assigned(Template.DefaultItem) then
-             Self.AssignVisuals(Template.DefaultItem);
-        end;
+      not (csLoading in CardList.ComponentState) then
+      begin
+        Template := GetTemplate;
+        if Assigned(Template) and Assigned(Template.DefaultItem) then
+          Self.AssignVisuals(Template.DefaultItem);
+      end;
     Collection.EndUpdate;
   end;
 end;
@@ -1759,7 +1784,15 @@ var
       (csLoading in TAdvCardTemplateItems(Collection).FCardTemplate.FCardList.ComponentState)
       then Exit;
     {$IFDEF DELPHI5_LVL}
+
+    {$IFNDEF TMSDOTNET}
     raise ECardTemplateError.CreateResFmt(@SResInvalidEditor, [Ed, Dt]);
+    {$ENDIF}
+
+    {$IFDEF TMSDOTNET}
+    raise ECardTemplateError.CreateFmt(SResInvalidEditor, [Ed, Dt]);
+    {$ENDIF}
+
     {$ENDIF}
   end;
 
@@ -2224,8 +2257,14 @@ begin
   begin
     {$IFDEF DELPHI5_LVL}
     if (Value = '') or (Assigned(Collection) and (Collection is TAdvCardTemplateItems) and
-      (TAdvCardTemplateItems(Collection).GetItemByName(Value) <> nil))
-      then raise ECardTemplateError.CreateResFmt(@SResInvalidItemName, [Value]);
+      (TAdvCardTemplateItems(Collection).GetItemByName(Value) <> nil)) then
+    {$IFNDEF TMSDOTNET}
+    raise ECardTemplateError.CreateResFmt(@SResInvalidItemName, [Value]);
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    raise ECardTemplateError.CreateFmt(SResInvalidItemName, [Value]);
+    {$ENDIF}
+
     {$ENDIF} 
 
     OldName := FName;
@@ -3063,7 +3102,12 @@ begin
     then Result := TAdvCardItem(inherited Add)
   {$IFDEF DELPHI5_LVL}
   else
+  {$IFNDEF TMSDOTNET}
     raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['Add']);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+    raise ECardItemListError.CreateFmt(SResInvalidOperation, ['Add']);
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -3098,7 +3142,13 @@ begin
   if AllowListModification
     then inherited
   {$IFDEF DELPHI5_LVL}
+  {$IFNDEF TMSDOTNET}
   else raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['BeginUpdate']);
+  {$ENDIF}
+
+  {$IFDEF TMSDOTNET}
+  else raise ECardItemListError.CreateFmt(SResInvalidOperation, ['BeginUpdate']);
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -3107,7 +3157,13 @@ begin
   if AllowListModification then
     inherited
   {$IFDEF DELPHI5_LVL}
+  {$IFNDEF TMSDOTNET}
   else raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['Clear']);
+  {$ENDIF}
+
+  {$IFDEF TMSDOTNET}
+  else raise ECardItemListError.CreateFmt(SResInvalidOperation, ['Clear']);
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -3116,8 +3172,13 @@ begin
   if AllowListModification then
     inherited
   {$IFDEF DELPHI5_LVL}
-  else
-    raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['Delete']);
+  {$IFNDEF TMSDOTNET}
+  else raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['Delete']);
+  {$ENDIF}
+
+  {$IFDEF TMSDOTNET}
+  else raise ECardItemListError.CreateFmt(SResInvalidOperation, ['Delete']);
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -3126,8 +3187,13 @@ begin
   if AllowListModification then
     inherited
   {$IFDEF DELPHI5_LVL}
-  else
-    raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['EndUpdate']);
+  {$IFNDEF TMSDOTNET}
+  else raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['EndUpdate']);
+  {$ENDIF}
+
+  {$IFDEF TMSDOTNET}
+  else raise ECardItemListError.CreateFmt(SResInvalidOperation, ['EndUpdate']);
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -3136,8 +3202,13 @@ begin
   if AllowListModification
     then Result := TAdvCardItem(inherited Insert(Index))
   {$IFDEF DELPHI5_LVL}
-  else
-    raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['Insert']);
+  {$IFNDEF TMSDOTNET}
+  else raise ECardItemListError.CreateResFmt(@SResInvalidOperation, ['Insert']);
+  {$ENDIF}
+
+  {$IFDEF TMSDOTNET}
+  else raise ECardItemListError.CreateFmt(SResInvalidOperation, ['Insert']);
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -3600,8 +3671,12 @@ var
         FCardList.Canvas.Font.Assign(TItem.ValueFont);
         if TItem.WordWrap then
         begin
-          DrawText(FCardList.Canvas.Handle, PCHAR(S), Length(S), Rect,
-            DT_LEFT or DT_WORDBREAK or DT_TOP or DT_CALCRECT);
+          {$IFNDEF TMSDOTNET}
+          DrawText(FCardList.Canvas.Handle, PCHAR(S), Length(S), Rect, DT_LEFT or DT_WORDBREAK or DT_TOP or DT_CALCRECT);
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          DrawText(FCardList.Canvas.Handle, s, Length(S), Rect, DT_LEFT or DT_WORDBREAK or DT_TOP or DT_CALCRECT);
+          {$ENDIF}
         end else
         begin
           Rect.Bottom := FCardList.Canvas.TextHeight(S);
@@ -3823,6 +3898,7 @@ end;
 procedure TAdvCards.Delete(Index: Integer);
 begin
   if Assigned(FOnBeforCardDelete) then FOnBeforCardDelete(Self, GetItem(Index));
+  SetLength(FCardList.FSortedCards, Count - 1);
   {$IFDEF DELPHI5_LVL}
   inherited Delete(Index);
   {$ELSE}
@@ -4413,8 +4489,14 @@ begin
       begin
         Str1 := Copy(BeginWith, 1, Length(BeginWith));
         Str2 := Copy(Card.Caption, 1, Length(Card.Caption));
-        if AnsiStrLComp(AnsiStrUpper(PChar(Str1)), AnsiStrUpper(PChar(Str2)),
-          Length(Str1)) = 0 then
+        {$IFNDEF TMSDOTNET}
+        if AnsiStrLComp(AnsiStrUpper(PChar(Str1)), AnsiStrUpper(PChar(Str2)), Length(Str1)) = 0 then
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        if Length(Str2) > Length(Str1) then
+          delete(Str2,Length(Str1),Length(Str2));
+        if AnsiCompareStr(AnsiUpperCase(Str1), AnsiUpperCase(Str2)) = 0 then
+        {$ENDIF}
         begin
           Result := Card;
           Exit;
@@ -4607,11 +4689,21 @@ begin
         if TItem.ItemEditor = ieTime then
         begin
           Kind := dtkTime;
+          {$IFNDEF TMSDOTNET}
           Time := Value;
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          Time := Time.Parse(Value);
+          {$ENDIF}
         end else
         begin
           Kind := dtkDate;
+          {$IFNDEF TMSDOTNET}
           Date := Value;
+          {$ENDIF}
+          {$IFDEF TMSDOTNET}
+          Date := Date.Parse(Value);
+          {$ENDIF}
         end;
         OnKeyDown := HandleControlKeyDown;
       end;
@@ -4764,6 +4856,13 @@ begin
   end;
 end;
 
+{$IFDEF TMSDOTNET}
+procedure TCustomAdvCardList.DoneEditDate(Value: TDateTime);
+begin
+  Cards[FEdCardIndex].ItemList[FEdItemIndex].AsTime := Value;
+end;
+{$ENDIF}
+
 procedure TCustomAdvCardList.DoneEdit(Value: Variant);
 begin
   case VarType(Value) and varTypeMask of
@@ -4853,10 +4952,18 @@ begin
     ctComboBox: DoneEdit(TComboBox(FEdControl).Text);
     ctCustom: DoneEdit(CardTemplate.Items[FEdItemIndex].ItemEditLink.ControlToValue);
     ctDateTimePicker:
-      if CardTemplate.Items[FEdItemIndex].DataType = idtTime then
-        DoneEdit(VarAsType(TDateTimePicker(FEdControl).Time, varDate))
-      else
-        DoneEdit(VarAsType(TDateTimePicker(FEdControl).Date, varDate));
+    {$IFNDEF TMSDOTNET}
+    if CardTemplate.Items[FEdItemIndex].DataType = idtTime then
+      DoneEdit(VarAsType(TDateTimePicker(FEdControl).Time, varDate))
+    else
+      DoneEdit(VarAsType(TDateTimePicker(FEdControl).Date, varDate));
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    if CardTemplate.Items[FEdItemIndex].DataType = idtTime then
+      DoneEditDate(TDateTimePicker(FEdControl).Time);
+    else
+      DoneEditDate(TDateTimePicker(FEdControl).Date);
+    {$ENDIF}
     end;
   end;
 end;
@@ -5247,11 +5354,26 @@ begin
   Sort;
 end;
 
-procedure TCustomAdvCardList.CMHintShow(var Message: TMessage);
+{$IFNDEF TMSDOTNET}
+procedure TCustomAdvCardList.CMHintShow(var Msg: TMessage);
+{$ENDIF}
+{$IFDEF TMSDOTNET}
+procedure TCustomAdvCardList.CMHintShow(var Msg: TCMHintShow);
+{$ENDIF}
 var
+{$IFNDEF TMSDOTNET}
   PHI: PHintInfo;
+{$ENDIF}
+{$IFDEF TMSDOTNET}
+  PHI: THintInfo;
+{$ENDIF}
 begin
-  PHI := TCMHintShow(Message).HintInfo;
+  {$IFNDEF TMSDOTNET}
+  PHI := TCMHintShow(Msg).HintInfo;
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  PHI := Msg.HintInfo;
+  {$ENDIF}
   if FHoverCardIndex > -1 then
   begin
     // -2 - caption
@@ -5260,9 +5382,21 @@ begin
     if (FOverItemIndex > -1) then
     begin
       if CardTemplate.Items[FOverItemIndex].ShowHint then
+        {$IFNDEF TMSDOTNET}
         PHI^.HintStr := Cards[FHoverCardIndex].ItemList[FOverItemIndex].Hint
-    end else
-      if FOverItemIndex = -2 then PHI^.HintStr := Cards[FHoverCardIndex].Hint;
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        PHI.HintStr := Cards[FHoverCardIndex].ItemList[FOverItemIndex].Hint
+        {$ENDIF}
+    end 
+    else
+      if FOverItemIndex = -2 then
+        {$IFNDEF TMSDOTNET}
+        PHI^.HintStr := Cards[FHoverCardIndex].Hint;
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        PHI.HintStr := Cards[FHoverCardIndex].Hint;
+        {$ENDIF}
   end;
 end;
 
@@ -5273,7 +5407,7 @@ begin
     SetMouseOverCard(-1);
     Invalidate;
   end;
-  
+
   if not FGridLineDragging then
   begin
     FCursorOverGridLine := False;
@@ -5289,19 +5423,33 @@ begin
 end;
 
 procedure TCustomAdvCardList.WMSetFocus(var Message: TWMSetFocus);
+var
+  pt: TPoint;
+  Card: TAdvCard;
 begin
   inherited;
 //  if Assigned(FEdControl) and (FEdControl is TWinControl) then
 //    TWinControl(FEdControl).SetFocus;
 
-  // if no card is selected, make sure to select the first one
   if (Cards.Count > 0) and (SelectedIndex < 0) then
   begin
-    SelectedIndex := 0;
-    if (Cards[0].ItemList.Count > 0) and (Cards[0].SelectedItem < 0) then
-      Cards[0].SelectedItem := 0;
+    GetCursorPos(pt);
+    pt := ScreenToClient(pt);
+
+    Card := CardAtXY(pt.x, pt.y, true);
+    if Assigned(Card) then
+    begin
+
+    end
+    else
+    begin  // if no card is selected, make sure to select the first one
+      SelectedIndex := 0;
+      if (Cards[0].ItemList.Count > 0) and (Cards[0].SelectedItem < 0) then
+        Cards[0].SelectedItem := 0;
+    end;
   end;
   Invalidate;
+
 end;
 
 procedure TCustomAdvCardList.WMKillFocus(var Message: TWMKillFocus);
@@ -5338,7 +5486,7 @@ var
 begin
 {$IFDEF DELPHI7_LVL}
   OldFocus := false;
-{$ENDIF}  
+{$ENDIF}
   Result := clrSkipped;
 
   if Card <> nil then
@@ -5390,6 +5538,7 @@ begin
   else
   // card = nil - loop for all cards
   begin
+
     ConvertTypeAndDoneEdit;
     SetMouseOverCard(-1);
     FColumns := 0;
@@ -5406,12 +5555,17 @@ begin
           OldLeftTopCard := FSelectedIndex
         else
           OldLeftTopCard := 0;
-          
+
+    if OldLeftTopCard >= Cards.Count then
+      OldLeftTopCard := 0;
+    
     FInClientAreaCards := nil;
+    
     if Cards.Count = 0 then
       Exit;
 
     PrevN := -1;
+
     // find first card for displaying
     for n := 0 to High(FSortedCards) do
       if CalcListRects(Cards.Items[FSortedCards[n]], nil, False) <> clrSkipped then
@@ -5450,7 +5604,12 @@ begin
     end else
     begin
       ShiftListRects(-(Cards[OldLeftTopCard].FListRect.Left - FCardHorSpacing));
-      FLeftCol := Cards[OldLeftTopCard].FColumn;
+
+      if OldLeftTopCard < Cards.Count then
+        FLeftCol := Cards[OldLeftTopCard].FColumn
+      else
+        FLeftCol := 0;
+
 {$IFDEF DELPHI7_LVL}
       if not ThemeServices.ThemesEnabled then
 {$ENDIF}
@@ -5596,8 +5755,12 @@ begin
             utNNTP: url := 'ftp://' + Card.ItemList[ItemN].AsString;
             utLink: url := Card.ItemList[ItemN].AsString;
             end;
-
+            {$IFNDEF TMSDOTNET}
             ShellExecute(0,'open',pchar(url),nil,nil, SW_NORMAL);
+            {$ENDIF}
+            {$IFDEF TMSDOTNET}
+            ShellExecute(0,'open',url,'','', SW_NORMAL);
+            {$ENDIF}
           end;
         end;
 
@@ -5792,8 +5955,12 @@ begin
   end;
 
   DrawFlags := DrawFlags or DT_END_ELLIPSIS;
-
+  {$IFNDEF TMSDOTNET}
   DrawText(Canvas.Handle, PCHAR(S), Length(S), R, DrawFlags);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  DrawText(Canvas.Handle, S, Length(S), R, DrawFlags);
+  {$ENDIF}
 end;
 
 procedure TCustomAdvCardList.DrawItemValue(Canvas: TCanvas; Card: TAdvCard; ItemIndex: Integer; Preview: boolean);
@@ -5993,13 +6160,14 @@ begin
       else
       begin
         Canvas.Font.Assign(TItem.FValueFont);
+
         if TItem.ValueURLType <> utNone then
         begin
           Canvas.Font.Color := URLColor;
           Canvas.Font.Style := Canvas.Font.Style + [fsUnderline];
         end;
       end;
-        
+
       Canvas.Brush.Color := TItem.FValueColor;
       if Canvas.Brush.Color <> clNone then
       begin
@@ -6028,9 +6196,13 @@ begin
       if Assigned(FOnDrawCardItemProp) then FOnDrawCardItemProp(Self, Card,
         Item, Canvas.Font, Canvas.Brush);
 
-      DrawFlags := DrawFlags or DT_END_ELLIPSIS;  
-
+      DrawFlags := DrawFlags or DT_END_ELLIPSIS;
+      {$IFNDEF TMSDOTNET}
       DrawText(Canvas.Handle, PCHAR(S), Length(S), R, DrawFlags);
+      {$ENDIF}
+      {$IFDEF TMSDOTNET}
+      DrawText(Canvas.Handle, S, Length(S), R, DrawFlags);
+      {$ENDIF}
     end;
 end;
 
@@ -6118,8 +6290,12 @@ begin
 
     R.Left := R.Left + Images.Width + 2;
   end;
-
+  {$IFNDEF TMSDOTNET}
   DrawText(Canvas.Handle, PCHAR(S), Length(S), R, DrawFlags);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  DrawText(Canvas.Handle, S, Length(S), R, DrawFlags);
+  {$ENDIF}
 
   // card border
   R := Card.FListRect;
@@ -6888,7 +7064,12 @@ begin
   if not DirEdit then
     LocateByChar(Key)
   else
+    {$IFNDEF DELPHI_UNICODE}
     if (Key in ['a'..'z','A'..'Z','0'..'9']) then
+    {$ENDIF}
+    {$IFDEF DELPHI_UNICODE}
+    if character.IsLetterOrDigit(Key) then
+    {$ENDIF}
     begin
       if not Editing and (FSelectedIndex >= 0) then
       begin
@@ -6934,6 +7115,7 @@ begin
     Exit;
   end;
 
+
   if (Button = mbRight) then
   begin
     Card := CardAtXY(X, Y, True);
@@ -6963,8 +7145,6 @@ begin
     FSilentMouseMove := False;
     FGridLineDragging := True;
   end;
-
-
 end;
 
 procedure TCustomAdvCardList.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -6975,7 +7155,8 @@ begin
   // column sizing
   if FGridLineDragging then
   begin
-    if FResizingColumn > FViewedColumns then FResizingColumn := FViewedColumns;
+    if FResizingColumn > FViewedColumns then
+      FResizingColumn := FViewedColumns;
     Pt := ClientToScreen(Point(FResizingColumn * FColumnWidth, Y));
     SetCursorPos(Pt.x, Pt.y);
     FGridLineDragging := False;
@@ -7177,16 +7358,19 @@ begin
       end;
     end;
   end;
-  
+
   if not FCursorOverGridLine then
     Screen.Cursor := crDefault;
 end;
 
 procedure TCustomAdvCardList.HandleAppearanceChange(Sender: TObject; EnabledChanged: Boolean);
 begin
-  if (Sender = FCardNormalAppearance) and
-    not TAdvCardAppearance(Sender).Enabled then TAdvCardAppearance(Sender).FEnabled := True;
-  if not (csDesigning in ComponentState) and EnabledChanged then Cards.ApplyAppearance(nil);
+  if (Sender = FCardNormalAppearance) and not TAdvCardAppearance(Sender).Enabled then
+    TAdvCardAppearance(Sender).FEnabled := True;
+
+  if not (csDesigning in ComponentState) and EnabledChanged then
+    Cards.ApplyAppearance(nil);
+    
   Invalidate;
 end;
 
@@ -7318,7 +7502,12 @@ begin
     Brush.Style := bsClear;
     case FFontDirection of
       fdHorizontal:
+        {$IFNDEF TMSDOTNET}
         DrawText(Handle, PCHAR(FCaption), Length(FCaption), Rect,
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        DrawText(Handle, FCaption, Length(FCaption), Rect,
+        {$ENDIF}
           DT_CENTER or DT_VCENTER or DT_SINGLELINE);
       fdVertical:
         TextOut(Rect.Left + ((Rect.Right - Rect.Left) - Abs(Font.Height)) div 2,
@@ -7341,7 +7530,13 @@ begin
   if FFontDirection = fdHorizontal then Angle := 0 else Angle := 900;
   FFont := CreateFont(Font.Height, 0, Angle, Angle, FW, It, Ul, So, Font.Charset,
     OUT_CHARACTER_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
-    CARDINAL(Font.Pitch), PCHAR(Font.Name));
+    CARDINAL(Font.Pitch),
+    {$IFNDEF TMSDOTNET}
+    PCHAR(Font.Name));
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    Font.Name);
+    {$ENDIF}
 end;
 
 //--------------------//
@@ -7355,7 +7550,12 @@ begin
 {$IFDEF DELPHI7_LVL}
   - [csParentBackground]
 {$ENDIF};
+  {$IFNDEF TMSDOTNET}
   FAlphabet := LoadResString(@SResDefAlphabet);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  FAlphabet := LoadResString(SResDefAlphabet);
+  {$ENDIF}
   FBarAlignment := baVertical;
   FBorderWidth := 10;
   FButBorderWidth := 3;
@@ -7647,10 +7847,18 @@ begin
 end;
 
 initialization
+  {$IFNDEF TMSDOTNET}
   SDesignNoItemCaption := LoadResString(@SResDesignNoItemCaption);
   SDesignNoItemDefValue := LoadResString(@SResDesignNoItemDefValue);
   STrue := LoadResString(@SResTrue);
   SFalse := LoadResString(@SResFalse);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+  SDesignNoItemCaption := LoadResString(SResDesignNoItemCaption);
+  SDesignNoItemDefValue := LoadResString(SResDesignNoItemDefValue);
+  STrue := LoadResString(SResTrue);
+  SFalse := LoadResString(SResFalse);
+  {$ENDIF}
 
 {$IFDEF FREEWARE}
 {$I TRIAL.INC}

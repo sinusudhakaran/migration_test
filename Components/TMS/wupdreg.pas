@@ -1,11 +1,11 @@
 {****************************************************************}
 { TWebUpdate & TWebUpdate Wizard component                       }
 { for Delphi & C++Builder                                        }
-{ version 1.6                                                    }
+{ version 1.8                                                    }
 {                                                                }
 { written by                                                     }
 {   TMS Software                                                 }
-{   copyright © 1998-2005                                        }
+{   copyright © 1998-2007                                        }
 {   Email : info@tmssoftware.com                                 }
 {   Web : http://www.tmssoftware.com                             }
 {****************************************************************}
@@ -16,11 +16,7 @@ unit wupdreg;
 interface
 
 uses
-  Classes, WUpdate
-  {$IFDEF DELPHI5_LVL}
-  , WUpdateWiz, WUpdateLanguages
-  {$ENDIF}
-  ;
+  Classes, WUpdate, WUpdateWiz, WUpdateLanguages;
 
 procedure Register;
 
@@ -29,7 +25,6 @@ implementation
 procedure Register;
 begin
   RegisterComponents('TMS Web',[TWebUpdate
-  {$IFDEF DELPHI5_LVL}
   , TWebUpdateWizard
   , TWebUpdateWizardDutch
   , TWebUpdateWizardEnglish
@@ -41,8 +36,9 @@ begin
   , TWebUpdateWizardItalian
   , TWebUpdateWizardNorwegian
   , TWebUpdateWizardHungarian
-  , TWebUpdateWizardSwedish  
-  {$ENDIF}
+  , TWebUpdateWizardSwedish
+  , TWebUpdateWizardCzech
+  , TWebUpdateWizardPolish
   ]);
 end;
 

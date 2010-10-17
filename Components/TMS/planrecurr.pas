@@ -5,7 +5,7 @@
 { version 2.5                                                           }
 {                                                                       }
 { written by TMS Software                                               }
-{            copyright © 1999-2006                                      }
+{            copyright © 1999-2008                                      }
 {            Email: info@tmssoftware.com                                }
 {            Web: http://www.tmssoftware.com                            }
 {                                                                       }
@@ -69,7 +69,6 @@ type
     procedure Delete(Index: Integer);
     property StrValue: string read GetStrValue write SetStrValue;
     function HasValue(Value: Integer): Boolean;
-  published
     property Index: Integer read FIndex write FIndex;
   end;
 
@@ -114,7 +113,7 @@ type
     function DatesAsStrings: TStrings;
     property DayNum[Index: Integer]: byte read GetDayNum write SetDayNum;
     property Months: TIntList read FMonthList;
-  published
+    
     property Recurrency: string read FRecurrency write FRecurrency;
     property StartTime: TDateTime read FStartTime write FStartTime;
     property EndTime: TDateTime read FEndTime write FEndTime;
@@ -232,8 +231,11 @@ function TRecurrencyHandler.ApplyFreq(ADate: TDateTime;
 
 var
   da,mo,ye,mi,ho,se,se1,mo2,ye2,dim: word;
+  flg: boolean;
 
 begin
+  flg := false;
+
   if (FHourList.Count > 0) then
   begin
     DecodeTime(ADate,ho,mi,se,se1);
@@ -266,6 +268,7 @@ begin
     while (mo = mo2) or (Freq in [rfWeekly, rfDaily]) do
     begin
       ADate := ADate + 1;
+
       DecodeDate(ADate,ye2,mo2,da);
       // date is in set of allowed days
       if (DayOfWeek(ADate) in FDaySet) and ((mo = mo2) or (Freq in [rfWeekly,rfDaily])) then
@@ -273,12 +276,12 @@ begin
         // no day of the month specifier ...
         if FDayNum[DayOfWeek(ADate)] = 0 then
         begin
+
           Result := ADate;
           if (Freq = rfWeekly) and (DayOfWeek(ADate) = 7) and (Interval > 1) then
           begin
             Result := Result + ((Interval - 1) * 7);
           end;
-
           Exit;
         end
         else
@@ -287,7 +290,10 @@ begin
           begin
             Result := ADate;
             if (Freq = rfWeekly) and (Interval > 1) then
+            begin
               Result := Result + ((Interval - 1) * 7);
+            end;
+
             Exit;
           end;
         end;
@@ -308,6 +314,7 @@ begin
     end;
   end;
 
+
   if (FMonthList.Count > 0) then
   begin
     DecodeDate(ADate,ye,mo,da);
@@ -318,11 +325,13 @@ begin
 
       dim := PlanUtil.DaysInMonth(mo,ye);
 
+
       if da <= dim then
       begin
         Result := Encodedate(ye,mo,da) + Frac(ADate);
 
         FMonthList.Index := FMonthList.Index + 1;
+        flg := true;
         //if FMonthList.Index <= FMonthList.Count then
         //  Exit;
 
@@ -330,11 +339,9 @@ begin
         begin
           ADate := Result;
           DecodeDate(ADate,ye,mo,da);
-
           mo2 := mo;
           while (mo = mo2) do
           begin
-            ADate := ADate + 1;
             DecodeDate(ADate,ye2,mo2,da);
             // date is in set of allowed days
             if (DayOfWeek(ADate) in FDaySet) and (mo = mo2) then
@@ -361,17 +368,22 @@ begin
                 end;
               end;
             end;
+
+            ADate := ADate + 1;
           end;
         end;
-
       end
       else
+      begin
         if (FMonthList.Index = FMonthList.Count - 1) and (da = 31) then
           Result := 0
         else
           Result := ADate;
+      end;
 
-      FMonthList.Index := FMonthList.Index + 1;
+      if not flg then
+        FMonthList.Index := FMonthList.Index + 1;
+
       if FMonthList.Index <= FMonthList.Count then
         Exit;
     end
@@ -385,6 +397,7 @@ begin
     end;
   end;
 
+
   Result := ADate;
   case Freq of
   rfHourly: Result := IncHour(ADate, Interval);
@@ -393,6 +406,7 @@ begin
   rfMonthly: Result := IncMonth(ADate, Interval);
   rfYearly: Result := IncYear(ADate, Interval);
   end;
+
 
   // after change autocorrect for allowed days
   if (FDayList.Count > 0) then
@@ -423,6 +437,7 @@ begin
     while (mo = mo2) do
     begin
       ADate := ADate + 1;
+
       DecodeDate(ADate,ye2,mo2,da);
       if (DayOfWeek(ADate) in FDaySet) and (mo = mo2) then
       begin
@@ -646,10 +661,10 @@ end;
 procedure TRecurrencyHandler.Generate;
 var
   i,j: Integer;
-  tdelta,nextdate: TDateTime;
+  tdelta,nextdate,prevdate: TDateTime;
   allday: boolean;
   sdc,edc: TDateTime;
-  
+  da,mo,ye: word;
 begin
   FCount := 0;
   FDates.Clear;
@@ -678,18 +693,35 @@ begin
       FUntil := FTimeSpan;
   end;
 
+  // initialize FMonthlist.Index
+  if (FMonthList.Count > 0) then
+  begin
+    decodedate(starttime,ye,mo,da);
+    for i := 0 to FMonthList.Count - 1 do
+    begin
+      if mo = FMonthList.Items[i] then
+      begin
+        FMonthList.Index := i;
+        break;
+      end;
+    end;
+  end;
+
   if (FRCount > 0) then
   begin
     nextdate := StartTime;
+    prevdate := StartTime;
     for i := 1 to FRCount - 1 do
     begin
       nextdate := ApplyFreq(nextdate, FFreq, FInterval);
 
-      with FDates.Add do
-      begin
-        StartDate := nextdate;
-        EndDate := nextdate + tdelta;
-      end;
+      if nextdate > prevdate then
+        with FDates.Add do
+        begin
+          StartDate := nextdate;
+          EndDate := nextdate + tdelta;
+          prevdate := nextdate;
+        end;
 
       if (FTimeSpan <> 0) then
       begin
@@ -701,19 +733,22 @@ begin
   else
   begin
     nextdate := StartTime;
+    prevdate := StartTime;
 
     while (nextdate < FUntil) and (nextdate <> 0) do
     begin
       nextdate := ApplyFreq(nextdate, FFreq, FInterval);
 
-      if (nextdate <= FUntil) and (nextdate <> 0) then
+      if (int(nextdate) <= int(FUntil)) and (nextdate <> 0) then
       begin
         if (FDates.Count = 0) or ((FDates.Count > 0) and (FDates.Items[FDates.Count - 1].StartDate <> nextdate)) then
 
+        if nextdate > prevdate then
         with FDates.Add do
         begin
           StartDate := nextdate;
           EndDate := nextdate + tdelta;
+          prevdate := nextdate;
         end;
       end;
     end;

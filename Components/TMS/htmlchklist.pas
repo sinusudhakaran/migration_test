@@ -53,9 +53,16 @@ const
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TAnchorClick = procedure(Sender:TObject;index:integer;anchor:string) of object;
 
   TAnchorHintEvent = procedure(Sender:TObject; Index: Integer; var Anchor:string) of object;
+
+  TCheckBoxClickEvent = procedure(Sender: TObject; Index: integer) of object;
 
   THTMLCheckList = class;
 
@@ -180,7 +187,7 @@ type
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure ResetContent; override;
     procedure DeleteString(Index: Integer); override;
-    procedure ClickCheck; dynamic;
+    procedure ClickCheck(Index: integer); dynamic;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure CreateWnd; override;
     procedure DestroyWnd; override;
@@ -1114,7 +1121,11 @@ begin
     R.Left := R.Right - GetItemIndent(Index);
 
   {$IFNDEF TMSDOTNET}
+  {$IFDEF DELPHI2007_LVL}
+  Invalidate;
+  {$ELSE}
   InvalidateRect(Handle, @R, not (csOpaque in ControlStyle));
+  {$ENDIF}
   {$ENDIF}
   {$IFDEF TMSDOTNET}
   InvalidateRect(Handle, R, not (csOpaque in ControlStyle));
@@ -1317,13 +1328,14 @@ begin
     end;
     Self.State[Index] := State;
 
-    ClickCheck;
+    ClickCheck(Index);
   end;
 end;
 
 procedure THTMLCheckList.ClickCheck;
 begin
-  if Assigned(FOnCheckClick) then FOnCheckClick(Self);
+  if Assigned(FOnCheckClick) then
+    FOnCheckClick(Self);
 end;
 
 {$IFNDEF TMSDOTNET}

@@ -46,6 +46,7 @@ object CusBtnForm: TCusBtnForm
       Width = 36
       Height = 13
       Caption = 'Caption'
+      FocusControl = EdtBtnCaption
     end
     object LblBtnHint: TLabel
       Left = 26
@@ -53,6 +54,7 @@ object CusBtnForm: TCusBtnForm
       Width = 19
       Height = 13
       Caption = 'Hint'
+      FocusControl = EdtBtnHint
     end
     object LblGlyph: TLabel
       Left = 23
@@ -60,6 +62,7 @@ object CusBtnForm: TCusBtnForm
       Width = 21
       Height = 13
       Caption = 'Icon'
+      FocusControl = CmBxGlyph
     end
     object ChkBtnVis: TCheckBox
       Left = 129

@@ -84,9 +84,10 @@ type
     function Add: TPlannerColorArrayObject;
     {$ENDIF}
     procedure Delete(Index: Integer);
-  published
     property OnChange: TColorChangeEvent read FOnChange write FOnChange;
   end;
+
+ 
 
 
 implementation
@@ -202,5 +203,8 @@ begin
 end;
 
 {$ENDIF}
+
+
+
 
 end.

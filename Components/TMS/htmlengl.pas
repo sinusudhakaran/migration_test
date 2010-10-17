@@ -366,7 +366,7 @@ begin
 end;
 
 
-
+{$WARNINGS OFF}
 function HTMLDrawEx(Canvas:tCanvas;s:string;fr:trect;
                                  fImages:TImageList;
                                  xpos,ypos,focuslink,hoverlink,shadowoffset:integer;
@@ -431,7 +431,6 @@ var
     DeleteObject(SelectObject(Canvas.Handle,hOldFont));
   end;
 
-  {$WARNINGS OFF}
   function HTMLDrawLine(Canvas:TCanvas;var s:string;r:TRect;Calc:Boolean;
                         var w,h,subh,suph,imgali:integer;var align:talignment;
                         xpos,ypos:integer;var hotspot:boolean):string;
@@ -507,6 +506,7 @@ var
       until not FoundTag;
 
       WordLenEx := Length(su);
+      WordWidth := 0;  
 
 
       if WordLenEx > 0 then
@@ -1306,7 +1306,6 @@ var
 
   Result := Res;
   end;
- {$WARNINGS ON}
 
 begin
   anchor:=false;
@@ -1411,18 +1410,19 @@ begin
     if (r.top+htmlheight>r.bottom) and not checkheight then s:='';
   end;
 
- if (ysize=0) then ysize:=Canvas.textheight('gh');
- inspoint:=inspoint shr 1;
+  if (ysize=0) then
+    ysize := Canvas.textheight('gh');
+  inspoint := inspoint shr 1;
 
- Canvas.brush.color:=blnkcolor;
- Canvas.Font.assign(oldFont);
- oldFont.Free;
- drawFont.Free;
- calcFont.Free;
- olddrawFont.Free;
- oldcalcFont.Free;
-
+  Canvas.brush.color:=blnkcolor;
+  Canvas.Font.assign(oldFont);
+  oldFont.Free;
+  drawFont.Free;
+  calcFont.Free;
+  olddrawFont.Free;
+  oldcalcFont.Free;
 end;
+{$WARNINGS ON}
 
 {$IFNDEF REMOVEDRAW}
 function HTMLDraw(Canvas:tCanvas;s:string;fr:trect;

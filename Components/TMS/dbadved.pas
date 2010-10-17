@@ -1,10 +1,9 @@
 {************************************************************************}
 { TDBADVEDIT  & TDBADVMASKEDIT component                                 }
 { for Delphi & C++Builder                                                }
-{ version 2.3                                                            }
 {                                                                        }
 { written by TMS Software                                                }
-{            copyright © 2000 - 2006                                     }
+{            copyright © 2000 - 2008                                     }
 {            Email : info@tmssoftware.com                                }
 {            Web : http://www.tmssoftware.com                            }
 {                                                                        }
@@ -39,7 +38,9 @@ type
     FCanvas: TControlCanvas;
     FOldState: TDataSetState;
     FClearOnInsert: Boolean;
-    FIsEditing: Boolean;
+    //FIsEditing: Boolean;
+    FFocused: Boolean;
+    procedure SetFocused(Value: Boolean);
     function GetDataField: string;
     function GetDataSource: TDataSource;
     function GetReadOnly: Boolean;
@@ -188,11 +189,22 @@ begin
       on Exception do SetFocus;   { if it failed, don't let focus leave }
     end;
   end;
+  SetFocused(False);
   inherited;
+end;
+
+procedure TDBAdvEdit.SetFocused(Value: boolean);
+begin
+  if FFocused <> Value then
+  begin
+    FFocused := Value;
+    FDataLink.Reset;
+  end;
 end;
 
 procedure TDBAdvEdit.CMEnter(var Message: TWMNoParams);
 begin
+  SetFocused(True);
   inherited;
   if FDataLink.CanModify then
     inherited ReadOnly := False;
@@ -215,8 +227,10 @@ begin
   if not Assigned(FDataLink.DataSet) then
     Exit;
 
-  if FIsEditing then
-    Exit;
+  //if FIsEditing then
+  //begin
+  //  Exit;
+  //end;
 
   if Assigned(FDataLink.Field) and
      not (FClearOnInsert and (FDataLink.DataSet.State = dsInsert) and
@@ -288,6 +302,8 @@ end;
 
 destructor TDBAdvEdit.Destroy;
 begin
+  if FCanvas <> nil then
+    FCanvas.Free;
   FDataLink.Free;
   FDataLink := nil;
   inherited Destroy;
@@ -374,7 +390,6 @@ begin
 
   if (Key = VK_DELETE) or ((Key = VK_INSERT) and (ssShift in Shift)) then
     FDataLink.Edit;
-
 end;
 
 procedure TDBAdvEdit.KeyPress(var Key: Char);
@@ -385,17 +400,25 @@ begin
     Exit;
   end;
 
-  if not ((Key = #13) and ReturnIsTab) then
+  if not ((Key = #13) and ReturnIsTab) and
+    (not ((Key = #3) and (GetKeyState(VK_CONTROL) and $8000 = $8000))) then
     if not EditCanMOdify then
       Exit;
 
   if (Key = #8) then
     if not EditCanMOdify then
+    begin
       Exit;
+    end;
 
   inherited KeyPress(Key);
 
+  {$IFNDEF DELPHI_UNICODE}
   if (Key in [#32..#255]) and (FDataLink.Field <> nil) and (Key <> '.') and
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if (Key >= #32) and (FDataLink.Field <> nil) and (Key <> '.') and
+  {$ENDIF}
     not FDataLink.Field.IsValidChar(Key) or (FDataLink.ReadOnly) then
   begin
     MessageBeep(0);
@@ -537,7 +560,7 @@ begin
   begin
     if Assigned(FDataLink.DataSet) then
     begin
-      if not FDataLink.DataSet.Active then
+      if not FDataLink.DataSet.Active or not DataSource.Enabled then
         Text := '';
     end
     else
@@ -580,15 +603,16 @@ begin
     Message.CharCode := 0;
   end;
 
-  if not ((Message.CharCode = 13) and ReturnIsTab) then
+  if not ((Message.CharCode = 13) and ReturnIsTab) and
+    (not ((Message.CharCode = 3) and (GetKeyState(VK_CONTROL) and $8000 = $8000))) then
   begin
-    FIsEditing := true;
+    //FIsEditing := true;
     if not EditCanModify then
     begin
       Message.Result := 1;
       Message.CharCode := 0;
     end;
-    FIsEditing := False;
+    //FIsEditing := False;
   end;
   inherited;
 end;
@@ -691,7 +715,10 @@ end;
 
 destructor TDBAdvMaskEdit.Destroy;
 begin
+  if FCanvas <> nil then
+    FCanvas.Free;
   FDataLink.Free;
+  FDataLink := nil;
   inherited;
 end;
 
@@ -773,7 +800,12 @@ end;
 
 procedure TDBAdvMaskEdit.KeyPress(var Key: Char);
 begin
+  {$IFNDEF DELPHI_UNICODE}
   if (Key in [#8,#32..#255]) and (FDataLink.Field <> nil) and
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if ((Key = #8) or (Key >= #32)) and (FDataLink.Field <> nil) and
+  {$ENDIF}
     not FDataLink.Field.IsValidChar(Key) or (FDataLink.ReadOnly) then
   begin
     MessageBeep(0);

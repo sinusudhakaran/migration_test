@@ -28,6 +28,9 @@ uses
   {$IFDEF TMSDOTNET}
   , Types, Variants , Dialogs
   {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  , Character
+  {$ENDIF}
   ;
 
 const
@@ -879,12 +882,22 @@ begin
   end;
 
   {$IFNDEF TMSDOTNET}
-  if not (Key in ['0'..'9',DecimalSeparator,#8]) then key:=#0;
+  {$IFNDEF DELPHI_UNICODE}
+  if not (Key in ['0'..'9',DecimalSeparator,#8]) then key := #0;
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if not (character.IsNumber(key) or (key = DecimalSeparator) or (key = #8)) then key := #0;
+  {$ENDIF}
   {$ENDIF}
   {$IFDEF TMSDOTNET}
   if not (Key in ['0'..'9',#8]) and not (Key = DecimalSeparator) then key:=#0;
   {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
   if ((Text='0') or (newval)) and (key in ['0'..'9']) then
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if ((Text='0') or (newval)) and (character.IsNumber(key)) then
+  {$ENDIF}
   begin
     Text := Key;
     Key := #0;

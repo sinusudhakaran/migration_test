@@ -1,10 +1,9 @@
 {********************************************************************}
 { TAdvDBLookupComboBox component                                     }
 { for Delphi & C++Builder                                            }
-{ version 1.5                                                        }
 {                                                                    }
 { written by TMS Software                                            }
-{            copyright © 2002 - 2007                                 }
+{            copyright © 2002 - 2008                                 }
 {            Email : info@tmssoftware.com                            }
 {            Web : http://www.tmssoftware.com                        }
 {                                                                    }
@@ -36,9 +35,9 @@ uses Windows, Classes, StdCtrls, ExtCtrls, Controls, Messages, SysUtils,
 
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 5; // Minor version nr.
+  MIN_VER = 6; // Minor version nr.
   REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 2; // Build nr.
 
   // version history
   // 1.2.0.1 : fixed issue with dropdown display in Delphi 2005
@@ -66,6 +65,20 @@ const
   //         : New Dropdown sizing persistence
   // 1.5.0.1 : Fixed issue with calculated lookup fields
   // 1.5.1.0 : Improved : Used AnsiUpperCase instead of UpperCase
+  // 1.5.2.0 : Improved : handling of Tab, Return, Esc key
+  // 1.5.3.0 : Exposed BevelInner, BevelOuter, BevelKind, BevelEdges properties
+  // 1.5.3.1 : Fixed : issue with handling arrow keys in dropdown grid
+  // 1.5.3.2 : Fixed : disabled painting with XP themes of dropdown button
+
+  // 1.6.0.0 : New : GridHeaderAutoSize property added
+  //         : New : TitleOrientation added
+  //         : New : TitleAlignment, TitleVerticalAlignment added
+  //         : New : OnGridSelectCell event added
+  // 1.6.0.1 : Fixed : issue with dataset Insert mode
+  //         : Improved : behaviour with master/detail datasets
+  // 1.6.1.0 : New : property DropDownRowCount added 
+  // 1.6.1.1 : Fixed : issue with handling selection of record that is being deleted
+  // 1.6.1.2 : Fixed : issue with Abort from dataset update after changing value in control
 
 type
   TAdvDBLookupComboBox = class;
@@ -93,6 +106,9 @@ type
 
   TSortType = (stAscendent,stDescendent);
 
+  TTitleOrientation = (toHorizontal, toVertical);
+  TVertAlignment = (tvaCenter, tvaTop, tvaBottom);
+
   TDBGridLookupDataLink = class(TDataLink)
   private
     FGrid:TAdvDBLookupComboBox;
@@ -112,6 +128,8 @@ type
     FGrid:TAdvDBLookupComboBox;
     FNumberRecords:integer;
     OldState:TDataSetState;
+    FLoadingData: Boolean;
+    FOldRecNo: Integer;
   protected
     procedure ActiveChanged; override;
     procedure RecordChanged(Field: TField); override;
@@ -155,6 +173,9 @@ type
     FFixedColor: TColor;
     FFixedColorTo: TColor;
     FGradientDir: TGradientDirection;
+    FTitleOrientation: TTitleOrientation;
+    FTitleAlignment: TAlignment;
+    FTitleVerticalAlignment: TVertAlignment;
     procedure SetWidth(const value:integer);
     procedure SetAlignment(const value:tAlignment);
     procedure SetFont(const value:TFont);
@@ -187,6 +208,9 @@ type
     property Name: string read GetName write SetName;
     property Title: string read FTitle write FTitle;
     property TitleFont: TFont read FTitleFont write SetTitleFont;
+    property TitleAlignment: TAlignment read FTitleAlignment write FTitleAlignment default taCenter;
+    property TitleVerticalAlignment: TVertAlignment read FTitleVerticalAlignment write FTitleVerticalAlignment default tvaCenter;
+    property TitleOrientation: TTitleOrientation read FTitleOrientation write FTitleOrientation default toHorizontal;
   end;
 
   TDBColumnCollection = class(TCollection)
@@ -209,10 +233,15 @@ type
   TDropForm = class(TForm)
   private
     FSizeable: Boolean;
+    FDroppedDown: Boolean;
     procedure WMClose(var Msg:TMessage); message WM_CLOSE;
+    procedure WMSize(var Message: TWMSize); message WM_SIZE;
+    procedure WMNCHitTest(var Message: TWMNCHitTest); message WM_NCHITTEST;
   protected
     { Protected declarations }
     procedure CreateParams(var Params: TCreateParams); override;
+  public  
+    procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
   published
     property Sizeable: Boolean read FSizeable write FSizeable;
   end;
@@ -222,6 +251,7 @@ type
   private
     FParentEdit: TAdvDBLookupComboBox;
     procedure WMKeyDown(var Msg: TWMKeydown); message WM_KEYDOWN;
+    procedure WMGetDlgCode(var Message: TMessage); message WM_GETDLGCODE;
   protected
     procedure DoExit; override;
   property
@@ -257,6 +287,7 @@ type
   TTextToGridListItem = procedure(sender:TObject;var aItem:string) of object;
 
   TDrawGridCellProp = procedure (Sender: TObject; RowIndex: Integer; ColIndex: Integer; DBField: TField; Value: string; AFont: TFont; var AColor: TColor) of object;
+  TGridSelectCellEvent = procedure (Sender: TObject; Col, Row: Integer; Avalue: string; var CanSelect: Boolean) of object;
 
   TDropDirection = (ddDown,ddUp);
 
@@ -293,7 +324,7 @@ type
     FAllfields: TList;
     FBitmapUp,FBitmapdown:TBitmap;
     FDataScroll: Boolean;
-    FItemIndex, FOldItemIndex: Integer;
+    FItemIndex, FOldItemIndex, FOldItemIndex2: Integer;
     FKeyField: string;
     FDataField: string;
     FHeaderColor: Tcolor;
@@ -321,6 +352,7 @@ type
     FSortColumn: string;
     FLabelWidth: Integer;
     FGridRowHeight: Integer;
+    FGridHeaderHeight: Integer;
     FLookupLoad: TLookupLoad;
     FDisableChange: Boolean;
     FInLookup: Boolean;
@@ -337,7 +369,10 @@ type
     FOnDrawProp: TDrawGridCellProp;
     FDropStretchColumn: Integer;
     FDisabledColor: TColor;
-
+    FGridHeaderAutoSize: Boolean;
+    FOnGridSelectCell: TGridSelectCellEvent;
+    FGridCellNotSelected: Boolean;
+    FAlwaysRefreshDropDownList: Boolean;
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
     procedure CMEnter(var Message: TCMGotFocus); message CM_ENTER;
     procedure CMExit(var Message: TCMExit);   message CM_EXIT;
@@ -397,6 +432,7 @@ type
     procedure SetDisabledColor(const Value: TColor);
     procedure SetLookupColumn(const Value: Integer);
     function SecureLookup(const Data:TDataSet; const Field: TField; const KeyFields: String; const KeyValues, KeyValuesDefault: Variant; const ResultFields: String): Variant;
+    function GetDropDownRowCount: integer;
   protected
     function GetVersionNr: Integer; virtual;
     procedure CreateParams(var Params: TCreateParams); override;
@@ -409,7 +445,7 @@ type
     procedure GridMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure StringGridKeyPress(Sender: TObject; var Key: Char);
-    procedure  StringGridSelectCell(Sender: TObject; ACol,
+    procedure StringGridSelectCell(Sender: TObject; ACol,
       ARow: Integer; var CanSelect: Boolean);
     function LoadFromListSource: Integer;
     //procedure UpdateFromListSource;
@@ -428,6 +464,9 @@ type
     procedure UpdateDropStretchColumnWidth;
     function GetColumnField(ACol: Integer): TField;
     procedure CancelChanges;
+    function CanModify: Boolean; virtual;
+    function GetLookupDataField: TField;
+    procedure UpdateDisplayText;
   public
    {$IFDEF TMSDEBUG}
     procedure DebugTest;
@@ -442,6 +481,9 @@ type
     //property LookupColumn: Integer read FLookupColumn write SetLookupColumn;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     procedure DropDown;
+    procedure UpdateDisplText;
+    property AlwaysRefreshDropDownList: Boolean read FAlwaysRefreshDropDownList write FAlwaysRefreshDropDownList default False;
+    property DropDownRowCount: integer read GetDropDownRowCount;
   published
     {$IFDEF DELPHI4_LVL}
     property Anchors;
@@ -450,7 +492,7 @@ type
     {$ENDIF}
     property AutoSelect;
     property AutoSize;
-    {$IFDEF DELPHI7}
+    {$IFDEF DELPHI7_LVL}
     property BevelInner;
     property BevelKind;
     property BevelOuter;
@@ -525,6 +567,8 @@ type
     property GridLines: Boolean read FGridLines write FGridLines default true;
     property GridColumnSize: Boolean read FGridColumnSize write FGridColumnSize default true;
     property GridRowHeight: Integer read FGridRowHeight write FGridRowheight default 21;
+    property GridHeaderAutoSize: Boolean read FGridHeaderAutoSize write FGridHeaderAutoSize default false;
+    property GridHeaderHeight: Integer read FGridHeaderHeight write FGridHeaderheight default 21;    
     property HeaderColor: TColor read FHeaderColor write FHeaderColor default clBtnFace;
     property Images: TImageList read FImages write FImages;
     property KeyField: string read FKeyField write FKeyField;
@@ -539,6 +583,7 @@ type
     property OnClickBtn: TNotifyEvent read FOnClickBtn write FOnClickBtn;
     property OnCloseUp: TNotifyEvent read FOnCloseUp write FOnCloseUp;
     property OnDropDown: TNotifyEvent read FOnDropDown write FOnDropDown;
+    property OnGridSelectCell: TGridSelectCellEvent read FOnGridSelectCell write FOnGridSelectCell;
     property OnTextToGridListItem: TTextToGridListItem read FOnTextToGridListItem write FOnTextToGridListItem;
     property OnGridListItemToText: TGridListItemToText read FOnGridListItemToText write FOnGridListItemToText;
     property OnLookupError: TLookupErrorEvent read FOnLookupError write FOnLookupError;
@@ -553,7 +598,13 @@ implementation
 
 type
 
+{$IFNDEF DELPHI_UNICODE}
   TCharSet = set of char;
+{$ENDIF}
+
+{$IFDEF DELPHI_UNICODE}
+  TCharSet = Array of char;
+{$ENDIF}
 
 const
   ALIGNSTYLE : array[TAlignment] of DWORD = (DT_LEFT, DT_RIGHT, DT_CENTER);
@@ -660,6 +711,7 @@ begin
   Result := Respos;
 end;
 
+{$IFNDEF DELPHI_UNICODE}
 function FirstChar(Charset:TCharSet;s:string):char;
 var
   i:Integer;
@@ -676,6 +728,44 @@ begin
     Inc(i);
   end;
 end;
+{$ENDIF}
+
+{$IFDEF DELPHI_UNICODE}
+function FirstChar(Charset:TCharSet;s:string):char;
+var
+  i:Integer;
+
+  function InArray(ch: char): boolean;
+  var
+    j: integer;
+  begin
+    result := false;
+    for j := 0 to High(CharSet) - 1 do
+    begin
+      if ch = CharSet[j] then 
+      begin
+        result := true;
+        break;
+      end;
+    end;
+  end;
+
+
+begin
+  i := 1;
+  Result := #0;
+  while i <= Length(s) do
+  begin
+    if InArray(s[i]) then
+    begin
+      Result := s[i];
+      Break;
+    end;
+    Inc(i);
+  end;
+end;
+{$ENDIF}
+
 
 function IsDate(s:string;var dt:TDateTime):boolean;
 var
@@ -1072,6 +1162,9 @@ var
   ch,lastop: Char;
   sep: Integer;
   res,newres: Boolean;
+  {$IFDEF DELPHI_UNICODE}
+  CharArray: TCharSet;
+  {$ENDIF}
 
 begin
  {remove leading & trailing spaces}
@@ -1093,8 +1186,23 @@ begin
   LastOp := #0;
   Res := True;
 
+  {$IFDEF DELPHI_UNICODE}
+  SetLength(CharArray, 4);
+  CharArray[0] := ';';
+  CharArray[1] := '^';
+  CharArray[2] := '&';
+  CharArray[3] := '|';
+  {$ENDIF}
+
   repeat
+    {$IFDEF DELPHI_UNICODE}
+    ch := FirstChar(CharArray,s1);
+    {$ENDIF}
+
+    {$IFNDEF DELPHI_UNICODE}
     ch := FirstChar([';','^','&','|'],s1);
+    {$ENDIF}
+
     {extract first part of filter}
     if ch <> #0 then
     begin
@@ -1156,27 +1264,34 @@ begin
     InflateRect(ARect,1,1);
     ARect.Left := ARect.Left + 2;
 
-    if Down then
-      {$IFNDEF TMSDOTNET}
-      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
-      {$ENDIF}
-      {$IFDEF TMSDOTNET}
-      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
-      {$ENDIF}
+    if not Enabled then
+    begin
+      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_DISABLED,@ARect,nil);
+    end
     else
     begin
-      {$IFNDEF TMSDOTNET}
-      if Hover then
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
+      if Down then
+        {$IFNDEF TMSDOTNET}
+        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
+        {$ENDIF}
       else
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
-      {$ENDIF}
-      {$IFDEF TMSDOTNET}
-      if Hover then
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
-      else
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
-      {$ENDIF}
+      begin
+        {$IFNDEF TMSDOTNET}
+        if Hover then
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
+        else
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        if Hover then
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
+        else
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
+        {$ENDIF}
+      end;
     end;
     CloseThemeData(htheme);
     end;
@@ -1272,6 +1387,8 @@ begin
   FGridColumnSize := True;
 
   FGridRowHeight := 21;
+  FGridHeaderHeight := 21;
+  FGridHeaderAutoSize := False;
 
   FLabel := nil;
   FLabelFont := TFont.Create;
@@ -1285,6 +1402,7 @@ begin
   FDisableChange := False;
 
   FDropStretchColumn := -1;
+  FOldItemIndex2 := -1;
 end;
 
 destructor TAdvDBLookupComboBox.Destroy;
@@ -1728,6 +1846,23 @@ begin
   UpdateDropStretchColumnWidth;
 end;
 
+procedure TAdvDBLookupComboBox.UpdateDisplayText;
+var
+  tmpix: Integer;
+begin
+  if (ItemIndex >= 0) and (FAllfields.Count > ItemIndex) then
+  begin
+    tmpix := TFindList(FAllfields.items[ItemIndex]).BaseIndex;
+    ItemIndex := GetRealItemIndex(tmpix);
+  end;
+end;
+
+procedure TAdvDBLookupComboBox.UpdateDisplText;
+begin
+  if Assigned(FDataSourceLink.Datasource) and Assigned(FDataSourceLink.Datasource.DataSet) and FDataSourceLink.Datasource.DataSet.Active then
+    FDataSourceLink.Modify;
+end;
+
 procedure TAdvDBLookupComboBox.UpdateDropStretchColumnWidth;
 var
   w: Integer;
@@ -1762,11 +1897,13 @@ var
   dr: TRect;
   sbw: Integer;
   s,txt:string;
-
+  HeaderHeight: Integer;
 begin
   FAccept := False;
   FOldItemIndex := ItemIndex;
 
+  FGridCellNotSelected := False;
+  
   if FColumns.Count = 0 then
     Exit;
 
@@ -1782,6 +1919,17 @@ begin
   FOldDropDirection := FDropDirection;
   FDataScroll := True;
 
+  if AlwaysRefreshDropDownList then
+  begin
+    LoadFromListSource;
+
+    if FAllFields.Count = 0 then
+    begin
+      FDataScroll := False;
+      Exit;
+    end;
+  end;  
+
   P := Point(0, 0);
   P := Self.ClientToScreen(P);
 
@@ -1796,7 +1944,7 @@ begin
   {$ELSE}
   FChkForm := TDropForm.CreateNew(self);
   {$ENDIF}
-  FChkForm.Visible := False;  
+  FChkForm.Visible := False;
   FChkForm.Sizeable := FDropSizeable;
   FChkForm.BorderStyle := bsNone;
   FChkForm.FormStyle := fsStayOnTop;
@@ -1825,7 +1973,7 @@ begin
 
   // FSensSorted := stAscendent;
   //tmpix := TFindList(FAllfields.Items[ItemIndex]).BaseIndex;
-  
+
   if (FDropSorted) then
     FAllfields.Sort(SortField);
 
@@ -1836,6 +1984,8 @@ begin
 
   FStringGrid.ColCount := FColumns.Count;
 
+  HeaderHeight := 0;
+  
   for i := 0 to FColumns.Count - 1 do
     cw[i] := 0;
 
@@ -1852,7 +2002,7 @@ begin
     
     FStringGrid.ColWidths[i] := FColumns.Items[i].FWidth;
 
-    txt := Uppercase(self.Text);
+    txt := AnsiUpperCase(self.Text);
 
     for j := 0 to FAllfields.Count - 1 do
     begin
@@ -1880,6 +2030,25 @@ begin
       //  FItemIndex := j;
       //**************
     end;
+
+    if GridHeaderAutoSize then
+    begin
+      dr := Rect(0,0,100,100);
+      FStringGrid.Canvas.Font.Assign(FColumns.Items[i].TitleFont);
+      if (FColumns.Items[i].Title <> '') then
+        s := FColumns.Items[i].Title
+      else
+        s := FColumns.Items[i].FListField;
+      DrawTextEx(FStringGrid.Canvas.Handle, PChar(s), Length(s),dr, DT_CALCRECT or DT_LEFT or DT_SINGLELINE or DT_NOPREFIX, nil);
+
+      if (FColumns[i].TitleOrientation = toVertical) then
+        dr.Bottom := dr.Right;
+
+      dr.Bottom := dr.Bottom {+ 8};
+
+      if (HeaderHeight < dr.Bottom) then
+        HeaderHeight := dr.Bottom;
+    end;
   end;
 
   for i := 0 to FColumns.Count - 1 do
@@ -1888,7 +2057,7 @@ begin
       FStringGrid.ColWidths[i] := cw[i] + 4;
   end;
 
-  if FShowGridTitleRow then
+  if FShowGridTitleRow and (FStringGrid.RowCount > 1) then
     FStringGrid.FixedRows := 1
   else
     FStringGrid.FixedRows := 0;
@@ -1903,7 +2072,15 @@ begin
   else
     FStringGrid.GridLineWidth := 0;
 
-  FStringGrid.DefaultRowHeight := FGridRowHeight;  
+  FStringGrid.DefaultRowHeight := FGridRowHeight;
+
+  if FShowGridTitleRow then
+  begin
+    if GridHeaderAutoSize then
+      FStringGrid.RowHeights[0] := HeaderHeight
+    else
+      FStringGrid.RowHeights[0] := FGridHeaderHeight;
+  end;
 
   P := Point(0, 0);
   P := ClientToScreen(P);
@@ -1955,43 +2132,52 @@ begin
 
   if Focus then
     FStringGrid.SetFocus;
-    
+
   FStringGrid.Height := FStringGrid.Height + 1;
   FStringGrid.Height := FStringGrid.Height - 1;
   FDropDirection := FOldDropDirection;
   FChkClosed := False;
   FDataScroll := False;
-  
+
   if FShowGridTitleRow then
-    FStringGrid.Row := FItemIndex + 1 //row=0=> header=>+1
+    FStringGrid.Row := Min(FItemIndex + 1, FStringGrid.RowCount - 1) //row=0=> header=>+1
   else
-    FStringGrid.Row := FItemIndex;
-    
+    FStringGrid.Row := Min(FItemIndex, FStringGrid.RowCount - 1);
+
   if Assigned(FBookmark) then
     if FListDataLink.DataSource.DataSet.BookmarkValid(FBookmark) then
       FListDataLink.DataSource.DataSet.GotoBookmark(FBookmark);
+
+  FChkForm.FDroppedDown := True;
 end;
 
 procedure TAdvDBLookupComboBox.UpdateLookup;
 begin
-  if CheckEditDataSet and (not FDataScroll) and FAccept and Assigned(FDataSourceLink.Datasource.DataSet) and FDataSourceLink.Datasource.DataSet.Active then
-  begin
-    {$IFDEF TMSDEBUG}
-    outputdebugstring(pchar('MODIFY IN TO:'+FListDataLink.Datasource.DataSet.FieldByName(FKeyField).DisplayText));
-    {$ENDIF}
-    try
-      if FListDataLink.Datasource.DataSet.FieldByName(FKeyField).IsNull then
-        FDataSourceLink.Datasource.DataSet.FieldByName(FDataField).Clear
-      else
-        FDataSourceLink.Datasource.DataSet.FieldByName(FDataField).AsVariant :=
-          FListDataLink.Datasource.DataSet.FieldByName(FKeyField).AsVariant;
+  try
+    if CheckEditDataSet and (not FDataScroll) and FAccept and Assigned(FDataSourceLink.Datasource.DataSet) and FDataSourceLink.Datasource.DataSet.Active then
+    begin
+      {$IFDEF TMSDEBUG}
+      outputdebugstring(pchar('MODIFY IN TO:'+FListDataLink.Datasource.DataSet.FieldByName(FKeyField).DisplayText));
+      {$ENDIF}
+      try
+        if FListDataLink.Datasource.DataSet.FieldByName(FKeyField).IsNull then
+          FDataSourceLink.Datasource.DataSet.FieldByName(FDataField).Clear
+        else
+          FDataSourceLink.Datasource.DataSet.FieldByName(FDataField).AsVariant :=
+            FListDataLink.Datasource.DataSet.FieldByName(FKeyField).AsVariant;
     
-      FOldItemIndex := Itemindex;
+        FOldItemIndex := Itemindex;
+        FAccept := False;
+      except
+        on e:Exception do
+          MessageDlg(e.Message, mtWarning, [mbYes], 0);
+      end;
+    end
+    else if FAccept then
       FAccept := False;
-    except
-      on e:Exception do
-        MessageDlg(e.Message, mtWarning, [mbYes], 0);
-    end;
+  finally
+    if FAccept then
+      FAccept := False;
   end;
 end;
 
@@ -2013,14 +2199,21 @@ begin
   Change;
   FChkClosed := False;
 
-  UpdateLookup;
-  if Assigned(DataSource) and Assigned(FDataSourceLink.DataSet) and FDataSourceLink.DataSet.Active then
-    FDataSourceLink.Modify;
-  //Change;
-  PostMessage(FChkForm.Handle,WM_CLOSE,0,0);
+  try
+    UpdateLookup;
+    //if Assigned(DataSource) and Assigned(FDataSourceLink.DataSet) and FDataSourceLink.DataSet.Active and not FDataSourceLink.ReadOnly then
+    if CanModify then
+      FDataSourceLink.Modify;
+  finally
+    //Change;
+    PostMessage(FChkForm.Handle,WM_CLOSE,0,0);
 
-  FDisableChange := false; // suppress OnChange
-  FChkClosed := True;
+    FDisableChange := false; // suppress OnChange
+    FChkClosed := True;
+
+    if CheckDataSet and CanModify and not (FDataSourceLink.DataSet.State in [dsInsert, dsEdit]) and (FOldItemIndex2 >= 0) then // FF: Abort call in Dataset.beforeEdit
+      ItemIndex := FOldItemIndex2;
+  end;  
 end;
 
 procedure TAdvDBLookupComboBox.SetEditRect;
@@ -2134,6 +2327,8 @@ begin
   end;
   if (msg.CharCode = VK_ESCAPE) and Assigned(Parent) then
     SendMessage(Parent.Handle, CM_DIALOGKEY , ord(VK_ESCAPE),0);
+  if (msg.CharCode = VK_RETURN) and Assigned(Parent) then
+    SendMessage(Parent.Handle, CM_DIALOGKEY , ord(VK_RETURN),0);
 
   if (msg.charcode = VK_RETURN) and (FReturnIsTab) then
   begin
@@ -2180,12 +2375,20 @@ begin
     ShowGridList(True);
 end;
 
+function TAdvDBLookupComboBox.GetLookupDataField: TField;
+begin
+  Result := nil;
+  if CheckDataSet and Assigned(DataSource) and Assigned(DataSource.DataSet) and DataSource.DataSet.Active and (DataField <> '') then
+    Result := DataSource.DataSet.Fields.FieldByName(DataField);
+end;
+
 function TAdvDBLookupComboBox.GridToString: string;
 var
   fld,lfld: TField;
   LookupFields: string;
-  VariantResult: Variant;
+  VariantResult, DefaultVal: Variant;
   s:string;
+  found: Boolean;
 begin
   if (csLoading in ComponentState) then
     Exit;
@@ -2204,12 +2407,16 @@ begin
             FInLookup := True;
 
             VariantResult := '';
+            if (fld.DataType = ftString) then
+              DefaultVal := ''
+            else
+              DefaultVal := null;
 
             if (FilterField <> '') and (FilterValue <> '') then
             begin
               LookupFields := KeyField + ';' + FilterField;
 
-              VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, VarArrayOf([fld.AsVariant,FilterValue]), VarArrayOf(['',FilterValue]), FColumns.Items[FLookUpColumn].FListField);
+              VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, VarArrayOf([fld.AsVariant,FilterValue]), VarArrayOf([DefaultVal,FilterValue]), FColumns.Items[FLookUpColumn].FListField);
             end
             else
             begin
@@ -2220,15 +2427,21 @@ begin
               if Assigned(lfld) and (lfld.FieldKind = fkCalculated) then
               begin
                 ListSource.DataSet.DisableControls;
-                ListSource.DataSet.Locate(LookupFields, fld.AsString, [loPartialKey]);
+                found := True;
+                if (fld.AsString <> '') then                
+                  found := ListSource.DataSet.Locate(LookupFields, fld.AsString, [loPartialKey]);
                 s := '';
                 if Assigned(lfld.OnGetText) then
-                  lfld.OnGetText(lfld, s, true);
+                  lfld.OnGetText(lfld, s, true)
+                else if (fld.AsString <> '') and found then                     
+                  s := lfld.DisplayText
+                else
+                  s := '';
                 variantresult := s;
                 ListSource.DataSet.EnableControls;
               end
               else
-                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, fld.AsVariant, '', FColumns.Items[FLookUpColumn].FListField);
+                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, fld.AsVariant, DefaultVal, FColumns.Items[FLookUpColumn].FListField);
             end;
 
             Result := VariantResult;
@@ -2241,13 +2454,13 @@ begin
               begin
                 LookupFields := KeyField + ';' + FilterField;
 
-                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, VarArrayOf([fld.AsVariant, FilterValue]), VarArrayOf(['', FilterValue]), FLabelField);
+                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, VarArrayOf([fld.AsVariant, FilterValue]), VarArrayOf([DefaultVal, FilterValue]), FLabelField);
               end
               else
               begin
                 LookupFields := KeyField;
 
-                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, fld.AsVariant, '', FLabelField);
+                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, fld.AsVariant, DefaultVal, FLabelField);
               end;
 
               {$IFDEF TMSDEBUG}
@@ -2285,7 +2498,8 @@ begin
       end;
     end;
   except
-    on Exception do;
+    on Exception do
+    FInLookup := False;
   end;
 
   if Assigned(OnGridListItemToText) then
@@ -2432,8 +2646,8 @@ begin
       end;
   end;
 
-  //if LookupLoad <> llOnNeed then
-    //Text := '';
+  if LookupLoad <> llOnNeed then
+    Text := '';
 end;
 
 function TAdvDBLookupComboBox.GetListsource: TDatasource;
@@ -2476,6 +2690,10 @@ var
   s:string;
   aField: TField;
   bg: TColor;
+  tf: TFont;
+  lf: TLogFont;
+  TextP: TPoint;
+  ts: TSize;
 begin
   FStringGrid.Canvas.Pen.Width := 1;
 
@@ -2510,7 +2728,6 @@ begin
     FStringGrid.Canvas.Brush.Color := FColumns.Items[ACol].FColor;
     FStringGrid.Canvas.Font.Assign(FColumns.Items[ACol].Font);
 
-
     if Assigned(FOnDrawProp) then
     begin
       AField := GetColumnField(ACol);
@@ -2529,18 +2746,42 @@ begin
     FStringGrid.Canvas.FillRect(Rect);
   end;
 
-  case FColumns.Items[ACol].FAlignment of
-  taLeftJustify :  Stl := DT_LEFT;
-  taRightJustify : Stl := DT_RIGHT;
-  taCenter       : Stl := DT_CENTER;
+  if (gdFixed in State) then
+  begin
+    case FColumns.Items[ACol].TitleAlignment of
+      taLeftJustify :  Stl := DT_LEFT;
+      taRightJustify : Stl := DT_RIGHT;
+      taCenter       : Stl := DT_CENTER;
+      else
+        Stl := DT_LEFT;
+    end;
+
+    case FColumns.Items[ACol].TitleVerticalAlignment of
+      tvaTop    : Stl := stl or DT_TOP;
+      tvaBottom : Stl := stl or DT_BOTTOM;
+      tvaCenter : Stl := stl or DT_VCENTER;
+      else
+        Stl := DT_VCENTER;
+    end;
+  end
   else
-    Stl := DT_LEFT;
+  begin
+    case FColumns.Items[ACol].FAlignment of
+    taLeftJustify :  Stl := DT_LEFT;
+    taRightJustify : Stl := DT_RIGHT;
+    taCenter       : Stl := DT_CENTER;
+    else
+      Stl := DT_LEFT;
+    end;
   end;
 
   rect.Right := rect.Right - 2;
   rect.Left := rect.Left + 2;
 
-  stl := stl or DT_VCENTER or DT_SINGLELINE or DT_END_ELLIPSIS or DT_NOPREFIX;
+  if (gdFixed in State) then
+    stl := stl or DT_SINGLELINE or DT_END_ELLIPSIS or DT_NOPREFIX
+  else
+    stl := stl or DT_VCENTER or DT_SINGLELINE or DT_END_ELLIPSIS or DT_NOPREFIX;
 
   if (ARow = 0) and FShowGridTitleRow then
   begin
@@ -2562,7 +2803,64 @@ begin
     FImages.Draw(FStringGrid.Canvas, rect.Left, rect.Top, i);
   end
   else
-    DrawText(FStringGrid.Canvas.Handle,pchar(s),length(s),rect,stl);
+  begin
+    if (gdFixed in State) then
+    begin
+      if (FColumns[ACol].TitleOrientation = toVertical) then
+      begin
+        ts.cx := FStringGrid.Canvas.TextHeight(s);
+        ts.cy := FStringGrid.Canvas.TextWidth(s);
+        //DrawTextEx(FStringGrid.Canvas.Handle, PChar(s), Length(s),dr, DT_CALCRECT or DT_LEFT or DT_SINGLELINE or DT_NOPREFIX, nil);
+
+        tf := TFont.Create;
+        try
+  {$IFNDEF TMSDOTNET}
+          FillChar(lf, SizeOf(lf), 0);
+  {$ENDIF}
+          tf.Assign(FStringGrid.Canvas.Font);
+  {$IFNDEF TMSDOTNET}
+          GetObject(tf.Handle, SizeOf(Lf), @Lf);
+  {$ENDIF}
+  {$IFDEF TMSDOTNET}
+          GetObject(tf.Handle, Marshal.SizeOf(TypeOf(Lf)), Lf);
+  {$ENDIF}
+
+          lf.lfEscapement := 900;
+          lf.lfOrientation := 900;
+
+          tf.Handle := CreateFontIndirect(Lf);
+          FStringGrid.Canvas.Font.Assign(tf);
+        finally
+          tf.Free;
+        end;
+
+        case FColumns.Items[ACol].TitleAlignment of
+          taLeftJustify : TextP.X := rect.Left {+ Ts.cx};
+          taRightJustify : TextP.X := rect.Right - ts.cx;
+          taCenter       : TextP.X := rect.Left {+ ts.cx }+ (rect.Right - rect.Left - Ts.cx) div 2;
+        end;
+
+        case FColumns.Items[ACol].TitleVerticalAlignment of
+          tvaTop    : TextP.Y := rect.Top + ts.cy;
+          tvaBottom : TextP.Y := rect.Bottom;
+          tvaCenter :
+          begin
+            TextP.Y := rect.Bottom - (rect.Bottom - rect.Top - Ts.cy) div 2;
+            TextP.Y := Min(TextP.Y, rect.Bottom);
+          end;
+        end;
+
+        FStringGrid.Canvas.TextOut(TextP.X, Textp.Y, s);
+        //DrawText(FStringGrid.Canvas.Handle, pchar(s), length(s), rect, stl);
+      end
+      else
+      begin
+        DrawText(FStringGrid.Canvas.Handle, pchar(s), length(s), rect, stl);
+      end;
+    end
+    else
+      DrawText(FStringGrid.Canvas.Handle,pchar(s),length(s),rect,stl);
+  end;
 end;
 
 procedure TAdvDBLookupComboBox.LoadGridOptions;
@@ -2704,7 +3002,8 @@ begin
   begin
     FAccept := True;
     // ItemIndex := r - 1;
-    HideGridList;
+    if not FGridCellNotSelected then
+      HideGridList;
   end
   else
   begin
@@ -2794,7 +3093,7 @@ begin
       FCurrentSearch := OldSearch;
       Exit;
     end;
-    if AnsiPos(UpperCase(key),s)=1 then
+    if AnsiPos(AnsiUpperCase(key),s)=1 then
       lx := i;
   end;
 
@@ -2817,21 +3116,44 @@ begin
   end;
 end;
 
+function TAdvDBLookupComboBox.CanModify: Boolean;
+var
+  fld: TField;
+begin
+  fld := GetLookupDataField;
+  Result := Assigned(DataSource) and Assigned(FDataSourceLink.DataSet) and FDataSourceLink.DataSet.Active and
+            not FDataSourceLink.ReadOnly and FDataSourceLink.DataSet.CanModify and Assigned(fld) and fld.CanModify;
+end;
+
 procedure TAdvDBLookupComboBox.StringGridSelectCell(Sender: TObject; ACol,
   ARow: Integer; var CanSelect: Boolean);
+var
+  s: string;  
 begin
-  if FDataScroll  then
+  if FDataScroll or (not CanModify and Assigned(DataSource) and Assigned(FDataSourceLink.DataSet) and FDataSourceLink.DataSet.Active) then
     Exit;
+  if Assigned(FOnGridSelectCell) then
+  begin
+    s := FStringGrid.Cells[aCol, aRow];
+    FOnGridSelectCell(Self, ACol, ARow, s, CanSelect);
+    FGridCellNotSelected := not CanSelect;
+    if not CanSelect then
+      Exit;
+  end;
+
+  FGridCellNotSelected := False;
   // compares (arow-1<>FitemIndex)
   if FShowGridTitleRow then
   begin
     if (ARow > 0) and (ARow - 1 <> FItemIndex) then
     begin
+      FOldItemIndex2 := ItemIndex;
       ItemIndex := ARow - 1;
     end
     else if (ARow > 0) and (ItemIndex = 0) then
     begin
       FInternalCall := True;
+      FOldItemIndex2 := ItemIndex;
       ItemIndex := ItemIndex;
       FInternalCall := False;
     end;
@@ -2840,11 +3162,13 @@ begin
   begin
     if (ARow >= 0) and (ARow <> FItemIndex) then
     begin
+      FOldItemIndex2 := ItemIndex;
       ItemIndex := ARow;
     end
     else if (ARow >= 0) and (ItemIndex = 0) then
     begin
       FInternalCall := True;
+      FOldItemIndex2 := ItemIndex;
       ItemIndex := ItemIndex;
       FInternalCall := False;
     end;
@@ -2863,8 +3187,11 @@ procedure TAdvDBLookupComboBox.Change;
 var
   Fld: TField;
   s, LookupFields:string;
-  VariantResult: Variant;
+  VariantResult, DefaultVal: Variant;
 begin
+  if FListDataLink.FLoadingData then
+    Exit;
+
   if not FDisableChange then
     inherited;
 
@@ -2936,17 +3263,22 @@ begin
             begin
               VariantResult := '';
 
+              if (fld.DataType = ftString) then
+                DefaultVal := ''
+              else
+                DefaultVal := null;
+
               if (FilterField <> '') and (FilterValue <> '') then
               begin
                 LookupFields := KeyField + ';' + FilterField;
 
-                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, VarArrayOf([fld.AsVariant,FilterValue]), VarArrayOf(['',FilterValue]), FLabelField);
+                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, VarArrayOf([fld.AsVariant,FilterValue]), VarArrayOf([DefaultVal,FilterValue]), FLabelField);
               end
               else
               begin
                 LookupFields := KeyField;
 
-                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, fld.AsVariant, '', FLabelField);
+                VariantResult := SecureLookup(ListSource.DataSet, fld, LookupFields, fld.AsVariant, DefaultVal, FLabelField);
               end;
 
               LabelCaption := VariantResult;
@@ -2982,6 +3314,11 @@ begin
   Result := FDataSourceLink.Datasource;
 end;
 
+function TAdvDBLookupComboBox.GetDropDownRowCount: integer;
+begin
+  Result := FStringGrid.RowCount - FStringGrid.FixedRows;
+end;
+
 procedure TAdvDBLookupComboBox.SetDatasource(const Value: TDatasource);
 begin
   if (FDataSourceLink.Datasource <> Value) then
@@ -3006,9 +3343,14 @@ begin
   if (FDataField = '') or (FKeyField = '') then
     Exit;
   if not CheckDataSet then  Exit;
-  if not Assigned(FDataSourceLink.Datasource) then  Exit;
-  FDataSourceLink.Datasource.Edit;
-  Result :=true;
+  
+  //if not Assigned(FDataSourceLink.Datasource) or not Assigned(FDataSourceLink.DataSource.DataSet) or not (FDataSourceLink.DataSource.DataSet.CanModify) then  Exit;
+  if not CanModify then
+    Exit;
+
+  //FDataSourceLink.Datasource.Edit;
+  Result := FDataSourceLink.Edit;
+  //Result :=true;
 end;
 
 procedure TAdvDBLookupComboBox.SetSortColumns(const Value: Integer);
@@ -3174,7 +3516,7 @@ begin
 
       Exit;
     end;
-    if AnsiPos(UpperCase(key),s) = 1 then
+    if AnsiPos(AnsiUpperCase(key),s) = 1 then
       lx := i;
   end;
 
@@ -3407,7 +3749,11 @@ end;
 procedure TInplaceStringGrid.WMKeyDown(var Msg: TWMKeydown);
 begin
   if (msg.CharCode = VK_TAB) then
+  begin
+    if Assigned(ParentEdit) and IsWindowVisible(ParentEdit.Handle) then
+      PostMessage(ParentEdit.Handle, WM_KEYDOWN, VK_TAB, 0);
     Exit;
+  end;
 
   if (msg.Charcode = VK_ESCAPE) or (msg.CharCode = VK_F4) or
      ((msg.CharCode = VK_UP) and (GetKeyState(VK_MENU) and $8000 = $8000)) then
@@ -3427,6 +3773,12 @@ begin
     ParentEdit.HideGridList;
 end;
 
+procedure TInplaceStringGrid.WMGetDlgCode(var Message: TMessage);
+begin
+  Message.Result := DLGC_WANTTAB or DLGC_WANTARROWS;
+end;
+
+
 { TDropForm }
 
 procedure TDropForm.CreateParams(var Params: TCreateParams);
@@ -3437,10 +3789,31 @@ begin
     Params.Style := WS_ThickFrame or WS_PopUp or WS_Border;
 end;
 
+procedure TDropForm.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
+begin
+  inherited;
+end;
+
 procedure TDropForm.WMClose(var Msg: TMessage);
 begin
   inherited;
   self.Free;
+end;
+
+procedure TDropForm.WMNCHitTest(var Message: TWMNCHitTest);
+begin
+  if Sizeable and Visible and FDroppedDown and ((Message.XPos < Left + 5) or (Message.YPos < Top + 5)) then
+  begin
+    Message.Result := 0;
+    Exit;
+  end;
+
+  inherited;
+end;
+
+procedure TDropForm.WMSize(var Message: TWMSize);
+begin
+  inherited;
 end;
 
 //----------------------------------------------------
@@ -3462,6 +3835,9 @@ begin
     AutoSize := TDBColumnItem(Source).AutoSize;
     FixedColor := TDBColumnItem(Source).FixedColor;
     FixedColorTo := TDBColumnItem(Source).FixedColorTo;
+    TitleOrientation := TDBColumnItem(Source).TitleOrientation;
+    TitleAlignment := TDBColumnItem(Source).TitleAlignment;
+    TitleVerticalAlignment := TDBColumnItem(Source).TitleVerticalAlignment;
   end;
 end;
 
@@ -3475,6 +3851,9 @@ begin
   FFixedColor := clBtnFace;
   FFixedColorTo := clNone;
   FGradientDir := gdVertical;
+  FTitleOrientation := toHorizontal;
+  FTitleAlignment := taCenter;
+  FTitleVerticalAlignment := tvaCenter;
 end;
 
 destructor TDBColumnItem.Destroy;
@@ -3635,10 +4014,13 @@ begin
   inherited Create;
   FGrid := AGrid;
   FNumberRecords := 0;
+  FOldRecNo := -1;
 end;
 
 
 procedure TDBGridDataLink.RecordChanged(Field: TField);
+var
+  lfld: TField;
 begin
   inherited;
   {$IFDEF TMSDEBUG}
@@ -3653,12 +4035,30 @@ begin
       dsBrowse:
         begin
           if (OldState = dsEdit) or (FNumberRecords <> DataSet.RecordCount) then
-            begin
+          begin
             OldState := dsBrowse;
             FGrid.LoadFromListsource;
             if Assigned(FGrid.FDataSourceLink.Datasource) and Assigned(FGrid.FDataSourceLink.Datasource.DataSet) and FGrid.FDataSourceLink.Datasource.DataSet.Active then
               FGrid.FDataSourceLink.Modify;
+          end
+          else if (FGrid.AlwaysRefreshDropDownList and not FLoadingData) then
+          begin
+            FLoadingData := True;
+            if Assigned(FGrid.FDataSourceLink.Datasource) and Assigned(FGrid.FDataSourceLink.Datasource.DataSet) and FGrid.FDataSourceLink.Datasource.DataSet.Active then
+            begin
+              //FGrid.FDataSourceLink.Modify;
+              with FGrid do
+              begin
+                lfld := ListSource.DataSet.FieldByName(FColumns.Items[FLookUpColumn].FListField);
+                if Assigned(lfld) then
+                begin
+                  Text := lfld.DisplayText;
+                end;
+              end;
             end;
+            FLoadingData := False;
+            FOldRecNo := DataSet.RecNo;
+          end;
           OldState := dsBrowse;
           FGrid.UpdateLabel;
          end;
@@ -3800,6 +4200,7 @@ begin
 
       //++++
       Text := GridToString;
+      //PostMessage(handle, WM_SETTEXT, 0, integer(PChar(GridToString)));
       Exit;
       //++++
 
@@ -3884,7 +4285,6 @@ end;
 {$IFDEF FREEWARE}
 {$I TRIAL.INC}
 {$ENDIF}
-
 
 end.
 

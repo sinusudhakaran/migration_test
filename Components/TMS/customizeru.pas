@@ -186,9 +186,15 @@ begin
         CmBxIcon.Items.Add('');
     end;
 
-    CmBxIcon.Items.Add('None');
+    //CmBxIcon.Items.Add('None');
+    CmBxIcon.Items.Add(FToolBarCustomizer.DialogSettings.GlyphEditNoneIconCaption);
 
-    CmBxIcon.Visible := Assigned(FToolBarCustomizer.AdvToolBar.Images) and (FToolBarCustomizer.AdvToolBar.Images.Count > 0);
+
+    CmBxIcon.Visible := Assigned(FToolBarCustomizer.AdvToolBar.Images) and (FToolBarCustomizer.AdvToolBar.Images.Count > 0) and FToolBarCustomizer.DialogSettings.EditGlyphVisible;
+    if CmBxIcon.Visible then
+      LstBxCommand.Height := 193
+    else
+      LstBxCommand.Height := 219;
 
     EdtCaption.Text := FToolBarCustomizer.AdvToolBar.caption;
     CmBxGlphPos.ItemIndex := 0;
@@ -230,16 +236,39 @@ begin
     if ChkLargeIcon.Visible then
       ChkLargeIcon.Left := 190;
    }
+  if ChkLargeIcon.Visible then
+  begin
+    ChkLargeIcon.Left := 50;
+    ChkLargeIcon.Top := 43;
+  end;
+    
   if not EdtCaption.Visible then
   begin
     if CmBxGlphPos.Visible then
     begin
-       LblGlphPos.Left := 6;
-       CmBxGlphPos.Left := LblGlphPos.Left + LblGlphPos.Width + 5;
-       ChkLargeIcon.Left := CmBxGlphPos.Left;
+      LblGlphPos.Left := 6;
+      CmBxGlphPos.Left := LblGlphPos.Left + LblGlphPos.Width + 5;
+      ChkLargeIcon.Left := CmBxGlphPos.Left;
+
+      if ChkLargeIcon.Visible then
+      begin
+        ChkLargeIcon.Left := 200;
+        ChkLargeIcon.Top := 19;
+      end;
     end
     else if ChkLargeIcon.Visible then
-      ChkLargeIcon.Left := 50;
+    begin
+      ChkLargeIcon.Left := 7;
+      ChkLargeIcon.Top := 16;
+    end;
+  end
+  else if not CmBxGlphPos.Visible then
+  begin
+    if ChkLargeIcon.Visible then
+    begin
+      ChkLargeIcon.Left := 200;
+      ChkLargeIcon.Top := 19;
+    end;
   end;
 
   EdtCaption.Left := LblCaption.Left + LblCaption.Width + 5;
@@ -358,7 +387,7 @@ begin
     // Calculate Text Start Position
     Offset := Offset + 8;
     // display the text
-    TextOut(Rect.Left + Offset, Rect.Top+(((Control as TListBox).ItemHeight-TextHeight('X')) div 2),
+    TextOut(Rect.Left + Offset, Rect.Top+(((Control as TListBox).ItemHeight-TextHeight('Wg')) div 2),
     (Control as TListBox).Items[Index]);
   end;
 end;
@@ -493,7 +522,7 @@ begin
     FToolBarCustomizer.AdvToolBar.Images.Draw(CmBxIcon.Canvas, Rect.Left + 2, Rect.Top + 2, Index)
   else if Assigned(FToolBarCustomizer) and Assigned(FToolBarCustomizer.AdvToolBar) and Assigned(FToolBarCustomizer.AdvToolBar.Images) and (Index = FToolBarCustomizer.AdvToolBar.Images.Count) then
   begin
-    CmBxIcon.Canvas.TextOut(Rect.Left + 4, Rect.Top+((CmBxIcon.ItemHeight- CmBxIcon.Canvas.TextHeight('X')) div 2), CmBxIcon.Items[Index]);
+    CmBxIcon.Canvas.TextOut(Rect.Left + 4, Rect.Top+((CmBxIcon.ItemHeight- CmBxIcon.Canvas.TextHeight('Wg')) div 2), CmBxIcon.Items[Index]);
   end;
 
 end;
@@ -530,6 +559,10 @@ begin
   CusBtnForm.lblBtnHint.Caption := FToolBarCustomizer.DialogSettings.ButtonEditHintLabel;
   CusBtnForm.Caption := FToolBarCustomizer.DialogSettings.ButtonEditCaption;
 
+  CusBtnForm.BtnOk.Caption := FToolBarCustomizer.DialogSettings.OkButtonCaption;
+  CusBtnForm.BtnOk.Hint := FToolBarCustomizer.DialogSettings.OkButtonHint;
+  CusBtnForm.BtnCancel.Caption := FToolBarCustomizer.DialogSettings.CancelButtonCaption;
+  CusBtnForm.BtnCancel.Hint := FToolBarCustomizer.DialogSettings.CancelButtonHint;
 
   //--- Load Icon
   CusBtnForm.CmBxGlyph.Visible := False;
@@ -539,7 +572,8 @@ begin
     for i := 0 to FToolBarCustomizer.AdvToolBar.Images.count-1 do
       CusBtnForm.CmBxGlyph.Items.Add('');
 
-    CusBtnForm.CmBxGlyph.Items.Add('None');
+    //CusBtnForm.CmBxGlyph.Items.Add('None');
+    CusBtnForm.CmBxGlyph.Items.Add(FToolBarCustomizer.DialogSettings.GlyphEditNoneIconCaption);
 
     CusBtnForm.CmBxGlyph.Visible := True;
   end;

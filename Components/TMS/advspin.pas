@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TADVSPINEDIT component                                                  }
 { for Delphi & C++Builder                                                 }
-{ version 1.4                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 1996-2005                                         }
+{           copyright © 1996-2008                                         }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -32,13 +31,16 @@ uses
   {$IFNDEF TMSDOTNET}
   , ASXPVS
   {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  , Character
+  {$ENDIF}
   ;
 
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 4; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  REL_VER = 4; // Release nr.
+  BLD_VER = 4; // Build nr.
 
   // version history
   // 1.3.0.1 : improvement for entering floating point number without 0 before decimal separator
@@ -47,6 +49,14 @@ const
   // 1.4.0.1 : Improved float formatting OnExit for keyboard entry
   // 1.4.0.2 : Fixed issue with display with Ctl3D = false
   // 1.4.1.0 : Added events OnUpClick, OnDownClick
+  // 1.4.2.0 : Improved painting of spin buttons
+  // 1.4.3.0 : New : property AllowNullValue added
+  // 1.4.3.1 : Fixed : issue with selection update
+  // 1.4.4.0 : Improved : painting for control in disabled state
+  // 1.4.4.1 : Fixed : issue with OnChange during loading
+  // 1.4.4.2 : Improved sizing of spin buttons
+  // 1.4.4.3 : Improved position of spin buttons for ctl3d = false
+  // 1.4.4.4 : Fixed : issue with AllowNullValue
 
 
 {$R ADVSPIN.RES}
@@ -66,7 +76,7 @@ type
                     lpLeftTopLeft,lpLeftCenterLeft,lpLeftBottomLeft,lpTopCenter,
                     lpBottomCenter);
 
-  TEditAlign = (eaLeft,eaRight,eaCenter);                    
+  TEditAlign = (eaLeft,eaRight,eaCenter);
 
   TAdvSpinButton = class (TWinControl)
   private
@@ -95,6 +105,7 @@ type
     {$ELSE}
     procedure AdjustSize (var W, H: Integer);
     {$ENDIF}
+    procedure WMEraseBkGnd(var Message: TWMEraseBkgnd);  message WM_ERASEBKGND;
     procedure WMSize(var Message: TWMSize);  message WM_SIZE;
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
     procedure WMKillFocus(var Message: TWMKillFocus); message WM_KILLFOCUS;
@@ -195,6 +206,8 @@ type
     FFocusColor: TColor;
     FOnUpClick: TNotifyEvent;
     FOnDownClick: TNotifyEvent;
+    FAllowNullValue: boolean;
+    FBlockChange: boolean;
     function GetMinHeight: Integer;
     function GetValue: LongInt;
     function CheckValue (NewValue: LongInt): LongInt;
@@ -225,13 +238,15 @@ type
     procedure CNCtlColorEdit(var Message: TWMCtlColorEdit); message CN_CTLCOLOREDIT;
     procedure CNCtlColorStatic(var Message: TWMCtlColorStatic); message CN_CTLCOLORSTATIC;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
+    procedure CMEnabledChanged(var Msg: TMessage); message CM_ENABLEDCHANGED;
     procedure WMEraseBkGnd(var Message: TWMEraseBkGnd); message WM_ERASEBKGND;
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
     procedure CMEnter(var Message: TCMGotFocus); message CM_ENTER;
     procedure CMExit(var Message: TCMExit); message CM_EXIT;
     procedure CMMouseEnter(var Msg: TMessage); message CM_MOUSEENTER;
-    procedure CMShowingChanged(var Message: TMessage); message CM_SHOWINGCHANGED;    
+    procedure CMShowingChanged(var Message: TMessage); message CM_SHOWINGCHANGED;
     procedure CMWantSpecialKey(var Msg: TCMWantSpecialKey); message CM_WANTSPECIALKEY;
+    procedure CMTextChanged(var Message: TMessage); message CM_TEXTCHANGED;
     procedure WMPaste(var Message: TWMPaste); message WM_PASTE;
     procedure WMCut(var Message: TWMCut); message WM_CUT;
     procedure WMChar(var Msg:TWMKey); message WM_CHAR;
@@ -241,7 +256,7 @@ type
 {$ENDIF}
     procedure WMKeyDown(var Msg:TWMKeydown); message WM_KEYDOWN;
     procedure WMKillFocus(var Message: TWMKillFocus); message WM_KILLFOCUS;
-    procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;    
+    procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
     function GetLabelCaption: string;
     procedure SetLabelCaption(const Value: string);
     procedure SetLabelMargin(const Value: integer);
@@ -272,7 +287,7 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: Char); override;
     procedure CreateParams(var Params: TCreateParams); override;
-    procedure SetParent(AParent: TWinControl); override;    
+    procedure SetParent(AParent: TWinControl); override;
     procedure CreateWnd; override;
     procedure Loaded; override;
     procedure UpdateLabel;
@@ -291,6 +306,7 @@ type
     procedure Init;
     property SpinLabel: TLabel read FLabel;
   published
+    property AllowNullValue: boolean read FAllowNullValue write FAllowNullValue default True;
     property AutoFocus: boolean read FAutoFocus write FAutoFocus default False;
     property Direction : TSpinDirection read FDirection write SetDirection default spVertical;
     property ReturnIsTab: boolean read FReturnIsTab write FReturnIsTab default False;
@@ -311,6 +327,7 @@ type
     {$ENDIF}
     {$IFDEF DELPHI4_LVL}
     property Anchors;
+    property Align;
     property Constraints;
     {$ENDIF}
     property AutoSelect;
@@ -415,6 +432,9 @@ type
     property ButtonDirection: TButtonDirection read FButtonDirection write FButtonDirection;
 
   end;
+
+var
+   SPIN_HOURFORMAT: string = 'h';
 
 implementation
 
@@ -532,14 +552,20 @@ begin
     FFocusControl := nil;
 end;
 
+
 procedure TAdvSpinButton.AdjustSize (var W, H: Integer);
+var
+  bh: integer;
 begin
-  if (FUpButton = nil) or (csLoading in ComponentState) then Exit;
+  if (FUpButton = nil) or (csLoading in ComponentState) then
+    Exit;
+    
   if fDirection = spVertical then
    begin
+    bh := h div 2;
     if W < 15 then W := 15;
-    FUpButton.SetBounds (0, 0, W, H div 2);
-    FDownButton.SetBounds (0, FUpButton.Height - 1, W, H - FUpButton.Height + 1);
+    FUpButton.SetBounds (0, 0, W, bh);
+    FDownButton.SetBounds (0, FUpButton.Height, W, bh);
    end
   else
    begin
@@ -559,12 +585,17 @@ begin
   inherited SetBounds (ALeft, ATop, W, H);
 end;
 
+procedure TAdvSpinButton.WMEraseBkGnd(var Message: TWMEraseBkGnd);
+begin
+//  Message.Result := 1;
+  inherited;
+end;
+
 procedure TAdvSpinButton.WMSize(var Message: TWMSize);
 var
   W, H: Integer;
 begin
   inherited;
-
   { check for minimum size }
   W := Width;
   H := Height;
@@ -676,7 +707,8 @@ begin
   W := Width;
   H := Height;
   AdjustSize (W, H);
-  if (W <> Width) or (H <> Height) then inherited SetBounds (Left, Top, W, H);
+  if (W <> Width) or (H <> Height) then
+    inherited SetBounds (Left, Top, W, H);
 end;
 
 function TAdvSpinButton.GetUpGlyph: TBitmap;
@@ -747,6 +779,7 @@ begin
   FButton.FocusControl := Self;
   FButton.OnUpClick := UpClick;
   FButton.OnDownClick := DownClick;
+  FBlockChange := false;
   Text := '0';
   ControlStyle := ControlStyle - [csSetCaption];
   FIncrement := 1;
@@ -763,6 +796,7 @@ begin
   FShowSeconds := True;
   FFocusBorderColor := clNone;
   FFocusColor := clWindow;
+  FAllowNullValue := true;
 
   FLabel := nil;
   FLabelMargin := 4;
@@ -786,17 +820,20 @@ procedure TAdvSpinEdit.Loaded;
 begin
   inherited;
 
+  FBlockChange := true;
+
 //  if not (csDesigning in ComponentState) then
-    Init;
+  Init;
 
   case FSpinType of
   sptDate:self.Text := DateToStr(FDateValue);
   sptTime:
     begin
       if FShowSeconds then
-        self.Text := FormatDateTime('h'+TimeSeparator+'nn'+TimeSeparator+'ss',FTimeValue)
+        self.Text := FormatDateTime(SPIN_HOURFORMAT+TimeSeparator+'nn'+TimeSeparator+'ss',FTimeValue)
       else
-        self.Text := FormatDateTime('h'+TimeSeparator+'nn',FTimeValue)
+        self.Text := FormatDateTime(SPIN_HOURFORMAT+TimeSeparator+'nn',FTimeValue);
+
     end;
   sptHex:self.Text := '0x'+inttohex(FHexValue,0);
   end;
@@ -823,6 +860,7 @@ begin
     width := width - 1;
   end;
 
+  FBlockChange := false;
 end;
 
 procedure TAdvSpinEdit.WMSetFocus(var Message: TWMSetFocus);
@@ -849,6 +887,27 @@ begin
 
   if (FFocusColor <> clNone) and (FNormalColor <> clNone) then
     Color := FNormalColor;
+
+  if not AllowNullValue then
+  begin
+    case SpinType of
+      sptNormal, sptHex:
+        begin
+          if (MinValue <> MaxValue) and (Text = '') then
+            Value := MinValue;
+        end;
+      sptFloat:
+        begin
+          if (MinFloatValue <> MaxFloatValue) and (Text = '') then
+            FloatValue := MinFloatValue;
+        end;
+      sptDate, sptTime:
+        begin
+          if (MinDateValue <> MaxDateValue) and (Text = '') then
+            DateValue := MinDateValue;
+        end;
+    end;
+  end;
 
   if FButton.FUpButton.IsWinXP then
   begin
@@ -929,12 +988,36 @@ begin
     inherited KeyPress(Key);
 end;
 
+function CheckSignedNum(ch:char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := (ch in ['0'..'9','-','+']);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  Result := Character.IsNumber(ch) or (ch = '-') or (ch = '+');
+  {$ENDIF}
+end;
+
+function CheckHex(ch:char): boolean;
+begin
+  {$IFNDEF DELPHI_UNICODE}
+  Result := (ch in ['0'..'9','a'..'f','A'..'F']);
+  {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  Result := Character.IsNumber(ch) or ((Character.ToUpper(ch) >= 'A') and (Character.ToUpper(ch) <= 'F'));
+  {$ENDIF}
+end;
+
+
+
 function TAdvSpinEdit.IsValidChar(var Key: Char): Boolean;
 var
   dp: Integer;
 begin
   Result := (Key = DecimalSeparator) or (Key = ThousandSeparator) or (Key = TimeSeparator) or (Key = DateSeparator)
-    or (Key in ['+','-','0'..'9']) or ((Key < #32) and (Key <> Chr(VK_RETURN)));
+    or (CheckSignedNum(Key)) or ((Key < #32) and (Key <> Chr(VK_RETURN)));
 
   if (FSpinType = sptNormal) and ((Key = DecimalSeparator) or (Key = ThousandSeparator) or (Key = TimeSeparator) or (Key = DateSeparator)) then
     Result := False;
@@ -947,7 +1030,7 @@ begin
     not (((DateSeparator = DecimalSeparator) or (TimeSeparator = ThousandSeparator) or (TimeSeparator = '-') or (TimeSeparator = '+')) and (FSpinType in [sptNormal, sptFloat]))) then
     Result := False;
 
-  if (FSpinType = sptFloat) and not (key in [chr(VK_ESCAPE),chr(VK_RETURN),chr(VK_BACK)]) then
+  if (FSpinType = sptFloat) and not ( (key = chr(VK_ESCAPE)) or (key = chr(VK_RETURN)) or (key = chr(VK_BACK))) then
   begin
     if (Key = ThousandSeparator) then
     {$IFDEF TMSDOTNET}
@@ -974,7 +1057,7 @@ begin
 
   if FSpinType = sptTime then
   begin
-     if (Key <> TimeSeparator) and (Key in [',', '.']) then
+     if (Key <> TimeSeparator) and ((Key = ',') or (key = '.')) then
      {$IFDEF TMSDOTNET}
        Key := TimeSeparator[1];
      {$ENDIF}
@@ -988,8 +1071,8 @@ begin
 
   if FSpinType = sptHex then
   begin
-     Result := ((Key in ['0'..'9','a'..'f','A'..'F']) or
-               ((Key < #32) and (Key <> Chr(VK_RETURN)))) and (selstart>=2);
+     Result := (CheckHex(Key) or
+               ((Key < #32) and (Key <> Chr(VK_RETURN)))) and (SelStart >= 2);
      if result and (key=char(vk_back)) and (selstart=2) then result:=false;
   end;
 
@@ -1048,6 +1131,7 @@ var
   Loc: TRect;
   Dist : integer;
 begin
+
   if BorderStyle = bsNone then
     Dist := 2
   else
@@ -1080,7 +1164,7 @@ end;
 procedure TAdvSpinEdit.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
 begin
   inherited SetBounds(ALeft,ATop,AWidth,AHeight);
-  if flabel<>nil then UpdateLabel;
+  if FLabel <> nil then UpdateLabel;
 end;
 
 
@@ -1091,18 +1175,24 @@ var
 
 begin
   inherited;
-  if BorderStyle=bsNone then Dist:=1 else Dist:=5;
+
+  if BorderStyle = bsNone then
+    Dist := 1
+  else
+    Dist := 5;
+    
   MinHeight := GetMinHeight;
     { text edit bug: if size to less than minheight, then edit ctrl does
       not display the text }
   if Height < MinHeight then
     Height := MinHeight
-  else if FButton <> nil then
+  else
+  if FButton <> nil then
   begin
     if NewStyleControls and Ctl3D then
       FButton.SetBounds(Width - FButton.Width - dist, 0, FButton.Width, Height - dist)
     else
-      FButton.SetBounds (Width - FButton.Width, 1, FButton.Width, Height - 3);
+      FButton.SetBounds (Width - FButton.Width - 1, 2, FButton.Width, Height - 3);
     SetEditRect;
   end;
 end;
@@ -1217,6 +1307,9 @@ begin
 
   SelStart := ss;
   SelLength := sl;
+
+  if (length(oldval) <> length(self.Text)) and not (SpinType in [sptDate, sptTime]) then
+   selLength := Length(self.Text);
 
   if oldval <> self.Text then
     Modified := True;
@@ -1349,21 +1442,27 @@ end;
 procedure TAdvSpinEdit.CMExit(var Message: TCMExit);
 begin
   inherited;
-  case fSpinType of
-  sptNormal:if CheckValue(Value) <> Value then
-    SetValue(Value);
-  sptFloat: SetFloatValue(CheckFloatValue(FloatValue));
-//  sptFloat:if CheckFloatValue(FloatValue) <> FloatValue then SetFloatValue(FloatValue);
-  sptTime:if CheckDateValue (TimeValue) <> TimeValue then SetTimeValue(TimeValue);
-  sptDate:if CheckDateValue (DateValue) <> DateValue then SetDateValue(DateValue);
-  sptHex:HexValue:= CheckValue(HexValue);
-  end;
+  if (not AllowNullValue) or (Text <> '') then
+  begin
+    case fSpinType of
+    sptNormal:if CheckValue(Value) <> Value then
+      SetValue(Value);
+    sptFloat: SetFloatValue(CheckFloatValue(FloatValue));
+  //  sptFloat:if CheckFloatValue(FloatValue) <> FloatValue then SetFloatValue(FloatValue);
+    sptTime:if CheckDateValue (TimeValue) <> TimeValue then SetTimeValue(TimeValue);
+    sptDate:if CheckDateValue (DateValue) <> DateValue then SetDateValue(DateValue);
+    sptHex:HexValue:= CheckValue(HexValue);
+    end;
+  end;  
 end;
 
 function TAdvSpinEdit.GetValue: LongInt;
 begin
   try
-    Result := StrToInt (Text);
+    if Trim(Text) = '' then
+      Result := 0
+    else
+      Result := StrToInt(Trim(Text));
   except
     Result := FMinValue;
   end;
@@ -1396,12 +1495,15 @@ end;
 procedure TAdvSpinEdit.SetFloatValue (NewValue: Double);
 begin
   if FPrecision < 0 then
+  begin
     Text := FloatToStrF (CheckFloatValue (NewValue), ffGeneral,4,4)
+  end
   else
     if FPrecision = 0 then
       Text := FloatToStr (CheckFloatValue (NewValue))
     else
       Text := FloatToStrF (CheckFloatValue (NewValue),ffFixed,15,FPrecision);
+
 end;
 
 procedure TAdvSpinEdit.SetValue(NewValue: LongInt);
@@ -1440,6 +1542,13 @@ begin
   end;
 end;
 
+
+procedure TAdvSpinEdit.CMEnabledChanged(var Msg: TMessage);
+begin
+  FButton.FUpButton.Enabled := Enabled;
+  FButton.FDownButton.Enabled := Enabled;  
+  inherited;
+end;
 
 procedure TAdvSpinEdit.CMEnter(var Message: TCMGotFocus);
 begin
@@ -1521,9 +1630,9 @@ begin
   ss := SelStart;
 
   if FShowSeconds then
-    Text := FormatDateTime('h'+TimeSeparator+'nn'+TimeSeparator+'ss',Value)
+    Text := FormatDateTime(SPIN_HOURFORMAT+TimeSeparator+'nn'+TimeSeparator+'ss',Value)
   else
-    Text := FormatDateTime('h'+TimeSeparator+'nn',Value);
+    Text := FormatDateTime(SPIN_HOURFORMAT+TimeSeparator+'nn',Value);
 
   Selstart := ss;
 end;
@@ -1815,7 +1924,17 @@ end;
 procedure TAdvSpinEdit.CNCommand(var Message: TWMCommand);
 begin
   if (Message.NotifyCode = EN_CHANGE) then
-    if FTransparent then Invalidate;
+  begin
+    if FTransparent then
+      Invalidate;
+      
+    if FBlockChange then
+    begin
+      Message.Result := 1;
+      Exit;
+    end;
+  end;
+
   inherited;
 end;
 
@@ -1888,25 +2007,25 @@ var
  loc: TRect;
  voffset: Integer;
 begin
- if FFlat then
+  if FFlat then
   begin
-   DC := GetDC(Handle);
-   voffset := 1;
+    DC := GetDC(Handle);
+    voffset := 1;
 
-   oldpen := SelectObject(dc,CreatePen( PS_SOLID,1,ColorToRGB(FFlatLineColor)));
+    oldpen := SelectObject(dc,CreatePen( PS_SOLID,1,ColorToRGB(FFlatLineColor)));
 
-   {$IFNDEF TMSDOTNET}
-   SendMessage(Handle, EM_GETRECT, 0, LongInt(@Loc));
-   {$ENDIF}
-   {$IFDEF TMSDOTNET}
-   Perform(EM_GETRECT, 0, Loc);
-   {$ENDIF}
+    {$IFNDEF TMSDOTNET}
+    SendMessage(Handle, EM_GETRECT, 0, LongInt(@Loc));
+    {$ENDIF}
+    {$IFDEF TMSDOTNET}
+    Perform(EM_GETRECT, 0, Loc);
+    {$ENDIF}
 
-   MovetoEx(dc,loc.left,self.height-vOffset,nil);
-   LineTo(dc,loc.right,self.height-vOffset);
-   DeleteObject(selectobject(dc,oldpen));
+    MovetoEx(dc,loc.left,self.height-vOffset,nil);
+    LineTo(dc,loc.right,self.height-vOffset);
+    DeleteObject(selectobject(dc,oldpen));
 
-   ReleaseDC(Handle,DC);
+    ReleaseDC(Handle,DC);
   end;
 
  {
@@ -2030,6 +2149,13 @@ begin
   inherited;
   if (FLabel <> nil) then FLabel.Visible := Visible;
 
+end;
+
+procedure TAdvSpinEdit.CMTextChanged(var Message: TMessage);
+begin
+  if FBlockChange then
+    Exit;
+  inherited;
 end;
 
 procedure TAdvSpinEdit.CMMouseEnter(var Msg: TMessage);
@@ -2234,6 +2360,8 @@ procedure TAdvTimerSpeedButton.Paint;
 const
   Flags: array[Boolean] of Integer = (0, DFCS_PUSHED);
   Flats: array[Boolean] of Integer = (0, DFCS_FLAT);
+  FlagsEnabled: array[Boolean] of Integer = (DFCS_INACTIVE, 0);
+  
 var
   R: TRect;
   HTheme: THandle;
@@ -2248,52 +2376,71 @@ begin
     case FButtonDirection of
     bdLeft:
       begin
-        if FState = bsDown then
-          DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_PRESSED,@r,nil)
-        else
+        if not Enabled then
         begin
-          if FHasMouse then
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_HOT,@r,nil)
+          DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_DISABLED,@r,nil)
+        end
+        else
+          if FState = bsDown then
+            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_PRESSED,@r,nil)
           else
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_NORMAL,@r,nil);
-        end;
+          begin
+            if FHasMouse then
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_HOT,@r,nil)
+            else
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_NORMAL,@r,nil);
+          end;
       end;
     bdRight:
       begin
-        if fState = bsDown then
-          DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_PRESSED,@r,nil)
-        else
+        if not Enabled then
         begin
-          if FHasMouse then
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_HOT,@r,nil)
+          DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_DISABLED,@r,nil)
+        end
+        else
+          if fState = bsDown then
+            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_PRESSED,@r,nil)
           else
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_NORMAL,@r,nil);
-        end;
+          begin
+            if FHasMouse then
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_HOT,@r,nil)
+            else
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_NORMAL,@r,nil);
+          end;
       end;
     bdUp:
       begin
-        if fState = bsDown then
-          DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_PRESSED,@r,nil)
-        else
+        if not Enabled then
         begin
-          if FHasMouse then
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_HOT,@r,nil)
+          DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_DISABLED,@r,nil)
+        end
+        else
+          if fState = bsDown then
+            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_PRESSED,@r,nil)
           else
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_NORMAL,@r,nil);
-        end;
+          begin
+            if FHasMouse then
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_HOT,@r,nil)
+            else
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_NORMAL,@r,nil);
+          end;
       end;
-
     bdDown:
       begin
-        if fState = bsDown then
-          DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_PRESSED,@r,nil)
-        else
+        if not Enabled then
         begin
-          if FHasMouse then
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_HOT,@r,nil)
+          DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_DISABLED,@r,nil)
+        end
+        else
+          if fState = bsDown then
+            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_PRESSED,@r,nil)
           else
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_NORMAL,@r,nil);
-        end;
+          begin
+            if FHasMouse then
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_HOT,@r,nil)
+            else
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_NORMAL,@r,nil);
+          end;
       end;
     end;
     {$ENDIF}
@@ -2302,52 +2449,72 @@ begin
     case FButtonDirection of
     bdLeft:
       begin
-        if FState = bsDown then
-          DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_PRESSED,r,nil)
-        else
+        if not Enabled then
         begin
-          if FHasMouse then
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_HOT,r,nil)
+          DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_DISABLED,r,nil)        
+        end
+        else
+          if FState = bsDown then
+            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_PRESSED,r,nil)
           else
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_NORMAL,r,nil);
-        end;
+          begin
+            if FHasMouse then
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_HOT,r,nil)
+            else
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWNHORZ,DNHZS_NORMAL,r,nil);
+          end;
       end;
     bdRight:
       begin
-        if fState = bsDown then
-          DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_PRESSED,r,nil)
-        else
+        if not Enabled then
         begin
-          if FHasMouse then
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_HOT,r,nil)
+          DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_DISABLED,r,nil)        
+        end
+        else
+          if fState = bsDown then
+            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_PRESSED,r,nil)
           else
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_NORMAL,r,nil);
-        end;
+          begin
+            if FHasMouse then
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_HOT,r,nil)
+            else
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_UPHORZ,UPHZS_NORMAL,r,nil);
+          end;
       end;
     bdUp:
       begin
-        if fState = bsDown then
-          DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_PRESSED,r,nil)
-        else
+        if not Enabled then
         begin
-          if FHasMouse then
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_HOT,r,nil)
+          DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_DISABLED,r,nil)
+        end
+        else
+          if fState = bsDown then
+            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_PRESSED,r,nil)
           else
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_NORMAL,r,nil);
-        end;
+          begin
+            if FHasMouse then
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_HOT,r,nil)
+            else
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_UP,UPS_NORMAL,r,nil);
+          end;
       end;
 
     bdDown:
       begin
-        if fState = bsDown then
-          DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_PRESSED,r,nil)
-        else
+        if not Enabled then
         begin
-          if FHasMouse then
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_HOT,r,nil)
+          DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_DISABLED,r,nil)
+        end
+        else
+          if fState = bsDown then
+            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_PRESSED,r,nil)
           else
-            DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_NORMAL,r,nil);
-        end;
+          begin
+            if FHasMouse then
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_HOT,r,nil)
+            else
+              DrawThemeBackground(htheme,Canvas.Handle,SPNP_DOWN,DNS_NORMAL,r,nil);
+          end;
       end;
     end;
     {$ENDIF}
@@ -2357,8 +2524,8 @@ begin
   else
   begin
     case FButtonDirection of
-    bdLeft:DrawFrameControl(Canvas.Handle,r,DFC_SCROLL,DFCS_SCROLLLEFT or flags[fState=bsDown] {$IFDEF DELPHI3_LVL}or flats[flat]{$ENDIF});
-    bdRight:DrawFrameControl(Canvas.Handle,r,DFC_SCROLL,DFCS_SCROLLRIGHT or flags[fState=bsDown] {$IFDEF DELPHI3_LVL}or flats[flat]{$ENDIF});
+    bdLeft:DrawFrameControl(Canvas.Handle,r,DFC_SCROLL,DFCS_SCROLLLEFT or Flags[fState=bsDown] or FlagsEnabled[Enabled] {$IFDEF DELPHI3_LVL}or flats[flat]{$ENDIF});
+    bdRight:DrawFrameControl(Canvas.Handle,r,DFC_SCROLL,DFCS_SCROLLRIGHT or Flags[fState=bsDown] or FlagsEnabled[Enabled] {$IFDEF DELPHI3_LVL}or flats[flat]{$ENDIF});
     bdUp,bdDown:inherited Paint;
     end;
   end;

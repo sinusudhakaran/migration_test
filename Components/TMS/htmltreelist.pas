@@ -1,10 +1,9 @@
 {*************************************************************************}
 { THTMLTreeList component                                                 }
 { for Delphi & C++Builder                                                 }
-{ version 1.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 2000 - 2005                                       }
+{           copyright © 2000 - 2008                                       }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -39,13 +38,21 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 1; // Build nr.
+  BLD_VER = 4; // Build nr.
 
   // version history
   // v1.0.0.0 : First release
   // v1.0.0.1 : Fixed issue with HotTrack display
+  // v1.0.0.2 : Fixed painting issue when updating nodes
+  // v1.0.0.3 : Fixed issue with VCL.NET
+  // v1.0.0.4 : Fixed issue with bordersize of header
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TAnchorEvent = procedure(Sender: TObject; Node: TTreeNode; anchor: string) of object;
 
   THTMLTreeList = class;
@@ -80,7 +87,9 @@ type
     constructor Create(aOwner: THTMLTreeList);
     function GetOwner: tPersistent; override;
     function Add: TColumnItem;
+    {$IFDEF DELPHI4_LVL}
     function Insert(Index: Integer): TColumnItem;
+    {$ENDIF}
     property Items[Index: Integer]: TColumnItem read GetItem write SetItem; default;
   end;
 
@@ -374,10 +383,12 @@ begin
   Result := FOwner;
 end;
 
+{$IFDEF DELPHI4_LVL}
 function TColumnCollection.Insert(Index: Integer): TColumnItem;
 begin
   Result := TColumnItem(inherited Insert(Index));
 end;
+{$ENDIF}
 
 procedure TColumnCollection.SetItem(Index: Integer;
   const Value: TColumnItem);
@@ -506,21 +517,22 @@ end;
 constructor THTMLTreeList.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
-  fHeader := nil;
+  FHeader := nil;
 {$IFDEF DELPHI4_LVL}
   Tooltips := false;
 {$ENDIF}
-  fColumnCollection := tColumnCollection.Create(self);
-  fHeaderSettings := THeaderSettings.Create(self);
-  fSeparator := ';';
-  fItemHeight := 16;
-  fColumnLines := true;
-  fColumnSpace := 2;
-  fOldScrollPos := -1;
-  fHeader := nil;
-  fURLColor := clBlue;
-  fSelectionColor := clHighLight;
-  fSelectionFontColor := clHighLightText;
+  FColumnCollection := tColumnCollection.Create(self);
+  FHeaderSettings := THeaderSettings.Create(self);
+  FSeparator := ';';
+  FItemHeight := 16;
+  FColumnLines := true;
+  FColumnSpace := 2;
+  FOldScrollPos := -1;
+  FHeader := nil;
+  FURLColor := clBlue;
+  FSelectionColor := clHighLight;
+  FSelectionFontColor := clHighLightText;
+  DoubleBuffered := true;
 end;
 
 {$IFDEF TMSDOTNET}
@@ -648,12 +660,14 @@ procedure THTMLTreeList.SetNodeColumn(tn: TTreeNode; idx: integer;
 var
   s,su: string;
   i,vp: Integer;
-
+  sel: boolean;
 begin
   if Assigned(tn) then
     s := tn.Text
   else
     Exit;
+
+  sel := tn.Selected;
 
   su := s;
   for i := 1 to Columns.Count do
@@ -695,9 +709,11 @@ begin
       Inc(i);
     end;
   end;
-  
+
   su := su + s;
   tn.Text := su;
+  tn.Selected := sel;
+  Invalidate;
 end;
 
 
@@ -715,7 +731,7 @@ begin
     begin
       fHeader.top := ATop;
       fHeader.left := ALeft;
-      fHeader.Width := AWidth - 1;
+      fHeader.Width := AWidth;
       fHeader.Height := fHeaderSettings.Height;
     end;
   end
@@ -726,7 +742,7 @@ begin
     begin
       fHeader.top := ATop - (fHeaderSettings.height - 2);
       fHeader.left := ALeft;
-      fHeader.Width := AWidth - 1;
+      fHeader.Width := AWidth;
       fHeader.Height := fHeaderSettings.height;
     end;
   end;
@@ -920,7 +936,6 @@ begin
 
             r.right := r.right - fColumnSpace;
 
-            outputdebugstring(pchar(su));
             if (r.left < r.right) then
               HTMLDrawEx(canvas, su, r, fImages, 0, 0, -1, -1, 1, false, false, false, false, false, false, true,
                 1.0, fURLColor, clNone, clNone, clGray, anchor, stripped, focusanchor, xsize, ysize,
@@ -1139,7 +1154,7 @@ begin
                 end;
               end;
             finally
-              Canvas.Unlock;
+              //Canvas.Unlock;
           end;
         end;
       end;

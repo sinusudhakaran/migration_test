@@ -4,7 +4,7 @@
 {                                                                       }
 { written by :                                                          }
 {            TMS Software                                               }
-{            copyright © 1999-2005                                      }
+{            copyright © 1999-2007                                      }
 {            Email : info@tmssoftware.com                               }
 {            Website : http://www.tmssoftware.com                       }
 {                                                                       }
@@ -170,26 +170,28 @@ begin
   if FIsEditing then
     Exit;
 
-  if Assigned(FDataLink.Field) and not (FDataLink.DataSet.State = dsInsert) and
-     (FOldState <> dsInsert)  then
+  if Assigned(FDataLink.Field) then
   begin
-    FInternalCall:= true;
-    if FDataLink.Field.AsString = '' then
+    if not (FDataLink.DataSet.State = dsInsert) and
+     (FOldState <> dsInsert)  then
     begin
-      self.Date:= -1;
-      self.Text:= '';
-    end
-    else
+      FInternalCall:= true;
+      if FDataLink.Field.AsString = '' then
+      begin
+        self.Date:= -1;
+        self.Text:= '';
+      end
+      else
+      begin
+        self.Date := FDataLink.Field.AsDateTime;
+      end;
+      FInternalCall:= false;
+    end;
+
+    if (FDataLink.DataSet.State = dsInsert) {and (FOldState <> dsInsert)} then
     begin
       self.Date := FDataLink.Field.AsDateTime;
     end;
-    FInternalCall:= false;
-    //Modified := False;
-  end;
-
-  if (FDataLink.DataSet.State = dsInsert) and (FOldState <> dsInsert) then
-  begin
-    //self.Text := '';
   end;
 
   FOldState := FDataLink.DataSet.State;

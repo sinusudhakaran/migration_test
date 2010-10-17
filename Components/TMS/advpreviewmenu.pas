@@ -4,7 +4,7 @@
 { version 1.1                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2006 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -31,8 +31,8 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 1; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 2; // Build nr.
+  REL_VER = 7; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   MENUARROW_WIDTH = 24;
   MINITEM_HEIGHT = 12;
@@ -43,7 +43,16 @@ const
   // v1.1.0.0 : Added support for Actions and Visible property in items
   // v1.1.0.1 : Fixed issue with setting Actions & menu item captions
   // v1.1.0.2 : Fixed issue with subitems scroller
-  
+  // v1.1.1.0 : Added separator support in SubMenuItem
+  // v1.1.2.0 : Fixed issue with updates from Actions
+  // v1.1.2.1 : Fixed issue with submenu assignment with designer
+  // v1.1.3.0 : Improved : submenu selector in design time editor added
+  // v1.1.4.0 : Improved : TAdvPreviewMenu design time editor
+  //          : Improved : tab key handling in previewmenu
+  // v1.1.5.0 : Improved : Office 2007 compatible appearance
+  // v1.1.6.0 : New : property SubItemHeight added in TAdvPreviewMenuItem
+  // v1.1.7.0 : New : property AntiAlias added in TAdvPreviewMenu
+
 type
   TAdvPreviewMenu = class;
   TButtonCollectionItem = class;
@@ -51,6 +60,31 @@ type
   TAdvPreviewMenuItem = class;
   
   TDrawPosition = (dwpLeft, dwpTop, dwpRight, dwpBottom);
+  TVAlign = (tvaTop, tvaCenter);
+
+  TButtonItemActionLink = class(TActionLink)
+  protected
+    FClient: TButtonCollectionItem;
+    procedure AssignClient(AClient: TObject); override;
+    function IsCaptionLinked: Boolean; override;
+    function IsCheckedLinked: Boolean; override;
+    function IsEnabledLinked: Boolean; override;
+    function IsHelpContextLinked: Boolean; override;
+    function IsHintLinked: Boolean; override;
+{$IFDEF DELPHI6_LVL}
+    function IsGroupIndexLinked: Boolean; override;
+{$ENDIF}
+    function IsImageIndexLinked: Boolean; override;
+    function IsShortCutLinked: Boolean; override;
+    function IsVisibleLinked: Boolean; override;
+    function IsOnExecuteLinked: Boolean; override;
+    procedure SetCaption(const Value: string); override;
+    procedure SetEnabled(Value: Boolean); override;
+    procedure SetImageIndex(Value: Integer); override;
+    procedure SetVisible(Value: Boolean); override;
+    procedure SetOnExecute(Value: TNotifyEvent); override;
+  end;
+  TButtonItemActionLinkClass = class of TButtonItemActionLink;
 
   TButtonItemClickEvent = procedure (Sender: TObject; Button: TButtonCollectionItem) of object;
 
@@ -67,7 +101,7 @@ type
     FFont: TFont;
     FWidth: Integer;
     FOnClick: TButtonItemClickEvent;
-    FAction: TBasicAction;
+    FActionLink: TButtonItemActionLink;
     procedure PictureChanged(Sender: TObject);
     procedure OnFontChanged(Sender: TObject);
     procedure SetCaption(const Value: string);
@@ -78,17 +112,22 @@ type
     procedure SetPicture(const Value: TGDIPPicture);
     procedure SetOfficeHint(const Value: TAdvHintInfo);
     procedure SetFont(const Value: TFont);
+    function GetAction: TBasicAction;
     procedure SetAction(const Value: TBasicAction);
+    procedure DoActionChange(Sender: TObject);
   protected
     function GetDisplayName: string; override;
     procedure SetIndex(Value: Integer); override;
     procedure Refresh;
+    function GetActionLinkClass: TButtonItemActionLinkClass; dynamic;
+    procedure ActionChange(Sender: TObject; CheckDefaults: Boolean); dynamic;
+    property ActionLink: TButtonItemActionLink read FActionLink write FActionLink;
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
   published
-    property Action: TBasicAction read FAction write SetAction;
+    property Action: TBasicAction read GetAction write SetAction;
     property Caption: string read FCaption write SetCaption;
     property Enabled: boolean read FEnabled write SetEnabled default true;
     property ImageIndex: Integer read FImageIndex write SetImageIndex default -1;
@@ -106,6 +145,7 @@ type
   TButtonCollection = class(TCollection)
   private
     FOwner: TPersistent;
+    FPreviewMenu: TAdvPreviewMenu;
     function GetItem(Index: Integer): TButtonCollectionItem;
     procedure SetItem(Index: Integer; const Value: TButtonCollectionItem);
   protected
@@ -163,6 +203,7 @@ type
     FTag: integer;
     FWideTitle: widestring;
     FWideNotes: widestring;
+    FSeparator: Boolean;
     procedure PictureChanged(Sender: TObject);
     procedure SetTitle(const Value: string);
     procedure SetImageIndex(const Value: Integer);
@@ -182,6 +223,7 @@ type
     function IsVisibleStored: Boolean;
     procedure SetWideTitle(const Value: widestring);
     procedure SetWideNotes(const Value: widestring);
+    procedure SetSeparator(const Value: Boolean);
   protected
     procedure AssignTo(Dest: TPersistent); override;
     procedure Loaded;
@@ -209,6 +251,7 @@ type
     property DisabledPicture: TGDIPPicture read FIDisabledPicture write SetDisabledPicture;
     property Picture: TGDIPPicture read FIPicture write SetPicture;
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
+    property Separator: Boolean read FSeparator write SetSeparator default False;
     property SubMenu: TPopupMenu read FSubMenu write SetSubMenu;
     property ShortCutHint: string read FShortCutHint write FShortCutHint;
     property Tag: integer read FTag write FTag default 0;
@@ -231,6 +274,7 @@ type
     function Add: TAdvPreviewSubMenuItem;
     procedure Delete(Index: Integer);
     function Insert(Index: Integer): TAdvPreviewSubMenuItem;
+    procedure InitiateActions;
   end;
 
 
@@ -293,6 +337,7 @@ type
     FActionLink: TItemActionLink;
     FWideCaption: widestring;
     FWideSubMenuCaption: widestring;
+    FSubMenuItemHeight: Integer;
     procedure PictureChanged(Sender: TObject);
     procedure SetCaption(const Value: string);
     procedure SetImageIndex(const Value: Integer);
@@ -315,6 +360,7 @@ type
     function IsVisibleStored: Boolean;
     procedure SetWideCaption(const Value: widestring);
     procedure SetWideSubMenuCaption(const Value: widestring);
+    procedure SetSubMenuItemHeight(const Value: Integer);
   protected
     procedure AssignTo(Dest: TPersistent); override;
     procedure Loaded;
@@ -345,6 +391,7 @@ type
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
     property SubItems: TAdvPreviewSubMenuItems read FSubItems write SetSubItems;
     property SubMenuCaption: string read FSubMenuCaption write SetSubMenuCaption;
+    property SubMenuItemHeight: Integer read FSubMenuItemHeight write SetSubMenuItemHeight default 0;
     property WideSubMenuCaption: widestring read FWideSubMenuCaption write SetWideSubMenuCaption;
     property Separator: Boolean read FSeparator write SetSeparator;
     property SubMenuItemSpacing: Integer read FSubMenuItemSpacing write SetSubMenuItemSpacing;
@@ -369,6 +416,7 @@ type
     function Add: TAdvPreviewMenuItem;
     procedure Delete(Index: Integer);
     function Insert(Index: Integer): TAdvPreviewMenuItem;
+    procedure InitiateActions;
   end;
 
   TAdvCustomPreviewMenuPanel = class(TCustomControl)
@@ -461,26 +509,38 @@ type
     FSubMenuScollDownHot: Boolean;
     FSubMenuScollDownDown: Boolean;
     FSubMenuScrolling: Boolean;
+    FSelectedItem: Integer;    // For Editor use
+    FSelectedSubItem: Integer; // For Editor use
+    FHintItem: Integer;        // For Editor use
+    FHintSubItem: Integer;
+    FButtonHot: Integer;     // For Editor use
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
     procedure CMDialogChar(var Message: TCMDialogChar); message CM_DIALOGCHAR;
+    procedure WMGetDlgCode(var Message: TMessage); message WM_GETDLGCODE;
+    procedure CMFocusChanged(var Message: TCMFocusChanged); message CM_FOCUSCHANGED;
+    procedure OnButtonKeyPress(Sender: TObject; var Key: Char);
+    procedure OnButtonKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure OnButtonClick(Sender: TObject);
     procedure OnMouseTimer(Sender: TObject);
     procedure SetItemHot(const Value: Integer);
     procedure SetSubMenuItemHot(const Value: integer);
     procedure SetSubMenuItem(const Value: Integer);
     procedure SetOfficeHint(const Value: TAdvHintInfo);
+    procedure SetButtonHot(const Value: Integer);
   protected
+    FEditorCreated: Boolean;
     procedure Paint; override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
 
+    procedure DrawShortCutHint(Canvas: TCanvas; ShortCutHint: string; Pt: TPoint; Shaded: Boolean);
     procedure DrawItems;
     procedure DrawItem(Index: Integer; RefreshItem: Boolean = false);
     procedure DrawSubMenuItems(ACanvas: TCanvas = nil);
     procedure DrawSubMenuItem(AIndex: Integer; RefreshItem: Boolean = false; ACanvas: TCanvas = nil);
-    procedure DrawRightFrame(WithItems: Boolean = True);
+    procedure DrawRightFrame(ACanvas: TCanvas; WithItems: Boolean = True);
     procedure DrawUpScrollBtn;
     procedure DrawDownScrollBtn;
 
@@ -499,10 +559,21 @@ type
     procedure ShowSubMenuPopup(AIndex: Integer);
     procedure HideSubMenuPopup;
 
+    function IsFirstItem(Index: Integer; CheckEnable, CheckVisible: Boolean): Boolean;
+    function IsLastItem(Index: Integer; CheckEnable, CheckVisible: Boolean): Boolean;
     procedure ItemHotNext;
     procedure ItemHotPrevious;
+    procedure ItemHotLast;
+    function IsFirstSubMenuItem(Index: Integer; CheckEnable, CheckVisible: Boolean): Boolean;
+    function IsLastSubMenuItem(Index: Integer; CheckEnable, CheckVisible: Boolean): Boolean;
     procedure SubMenuItemHotNext;
     procedure SubMenuItemHotPrevious;
+    procedure SubMenuItemHotLast;
+    function IsFirstButton(Index: Integer; CheckEnable, CheckVisible: Boolean): Boolean;
+    function IsLastButton(Index: Integer; CheckEnable, CheckVisible: Boolean): Boolean;
+    procedure ButtonHotNext;
+    procedure ButtonHotPrevious;
+    procedure ButtonHotLast;
 
     procedure ShowAllItemsShortCutHint;
     procedure HideAllItemsShortCutHint;
@@ -555,9 +626,15 @@ type
     procedure SubMenuScrollDownClick;
     procedure SubMenuScrollInView(Index: Integer);
 
+    procedure SetSelectedItem(Index: Integer);
+    property SelectedItem: Integer read FSelectedItem;
+    procedure SetSelectedSubItem(Index: Integer);
+    property SelectedSubItem: Integer read FSelectedSubItem;
+    
     property ItemHot: integer read FItemHot write SetItemHot;
     property SubMenuItem: Integer read FSubMenuItem write SetSubMenuItem;
     property SubMenuItemHot: integer read FSubMenuItemHot write SetSubMenuItemHot;
+    property ButtonHot: Integer read FButtonHot write SetButtonHot;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -579,6 +656,7 @@ type
     procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
     procedure WMNCHitTest(var Message: TWMNCHitTest); message WM_NCHITTEST;
     procedure WMKeyDown(var Message: TWMKeyDown); message WM_KEYDOWN;
+    procedure WMGetDlgCode(var Message: TMessage); message WM_GETDLGCODE;
     procedure CMDialogChar(var Message: TCMDialogChar); message CM_DIALOGCHAR;
     procedure HideTimerOnTime(Sender: TObject);
   protected
@@ -661,6 +739,7 @@ type
     FFont: TFont;
     FSubItemFont: TFont;
     FSubItemTitleFont: TFont;
+    FSystemFont: boolean;
     procedure SetTextColor(const Value: TColor);
     procedure SetTextColorChecked(const Value: TColor);
     procedure SetTextColorDisabled(const Value: TColor);
@@ -670,6 +749,7 @@ type
     procedure SetFont(const Value: TFont);
     procedure SetSubItemFont(const Value: TFont);
     procedure SetSubItemTitleFont(const Value: TFont);
+    procedure SetSystemFont(const Value: boolean);
   protected
   public
     constructor Create;
@@ -679,6 +759,7 @@ type
     property Font: TFont read FFont write SetFont;
     property SubItemTitleFont: TFont read FSubItemTitleFont write SetSubItemTitleFont;
     property SubItemFont: TFont read FSubItemFont write SetSubItemFont;
+    property SystemFont: boolean read FSystemFont write SetSystemFont default true;
     property TextColor: TColor read FTextColor write SetTextColor;
     property TextColorHot: TColor read FTextColorHot write SetTextColorHot;
     property TextColorDown: TColor read FTextColorDown write SetTextColorDown;
@@ -748,6 +829,9 @@ type
     FSubMenuWidth: Integer;
     FMenuWidth: Integer;
     FWideSubMenuCaption: widestring;
+    FMenuShowing: Boolean;
+    FSubMenuItemHeight: Integer;
+    FAntiAlias: TAntiAlias;
     procedure OnPreviewMenuWindowHide(Sender: TObject);
     procedure OnPreviewMenuWindowClose(Sender: TObject; var Action: TCloseAction);
     procedure SetButtonImages(const Value: TImageList);
@@ -761,11 +845,15 @@ type
     procedure SetSubMenuImages(const Value: TCustomImageList);
     procedure SetSubMenuItems(const Value: TAdvPreviewSubMenuItems);
     function GetVisible: Boolean;
+    procedure SetSubMenuItemHeight(const Value: Integer);
   protected
+    FEditorCreated: Boolean;
     procedure Loaded; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     procedure InvalidateTopFrame;
+    procedure InvalidateMenu;
+    procedure DrawMenuItem(Index: Integer);
     procedure InitializeMenu;
     procedure GetMenuSize(var W, H: Integer);
 
@@ -787,6 +875,7 @@ type
     
     property OnDrawButtonFrameTop: TDrawButtonFrameTopEvent read FOnDrawButtonFrameTop write FOnDrawButtonFrameTop;
   published
+    property AntiAlias: TAntiAlias read FAntiAlias write FAntiAlias default aaClearType;
     property Buttons: TButtonCollection read FButtons write SetButtons;
     property ButtonSpacing: Integer read FButtonSpacing write FButtonSpacing;
     property ButtonHeight: Integer read FButtonHeight write FButtonHeight;
@@ -797,6 +886,7 @@ type
     property SubMenuWidth: Integer read FSubMenuWidth write FSubMenuWidth;
     property SubMenuItems: TAdvPreviewSubMenuItems read FSubMenuItems write SetSubMenuItems;
     property SubMenuCaption: string read FSubMenuCaption write FSubMenuCaption;
+    property SubMenuItemHeight: Integer read FSubMenuItemHeight write SetSubMenuItemHeight default 0;
     property WideSubMenuCaption: widestring read FWideSubMenuCaption write FWideSubMenuCaption;
     property SubMenuItemSpacing: Integer read FSubMenuItemSpacing write FSubMenuItemSpacing;
 
@@ -812,6 +902,39 @@ type
     property OnMenuDrawItem: TMenuDrawItemEvent read FOnMenuDrawItem write FOnMenuDrawItem;
     property OnSubMenuDrawItem: TSubMenuDrawItemEvent read FOnSubMenuDrawItem write FOnSubMenuDrawItem;
   end;
+
+  TPreviewMenuControl = class(TCustomControl)
+  private
+    FOwner: TComponent;
+    FAdvPreviewMenu: TAdvPreviewMenu;
+    FAdvPreviewMenuPanel: TAdvPreviewMenuPanel;
+    //procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
+    procedure OnPreviewPanelResize(Sender: TObject);
+  protected
+    procedure Paint; override;
+    procedure CreatePreviewMenu;
+    procedure DestroyPreviewMenu;
+    procedure Resize; override;
+    {procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    }
+    //property ShowBorder: Boolean read FShowBorder write FShowBorder;
+    //procedure InitializeAndUpdate; virtual;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
+    procedure AssignMenu(PreviewMenu: TAdvPreviewMenu);
+
+    property AdvPreviewMenu: TAdvPreviewMenu read FAdvPreviewMenu;
+    property AdvPreviewMenuPanel: TAdvPreviewMenuPanel read FAdvPreviewMenuPanel;
+    property OnResize;
+  end;
+
+var
+  ForceEnableAction: Boolean = False;
 
 implementation
 
@@ -1080,7 +1203,182 @@ end;
 
 //------------------------------------------------------------------------------
 
-function DrawVistaText(Canvas: TCanvas; Alignment: TAlignment; r: TRect; Caption:string; AFont: TFont; Enabled: Boolean; RealDraw: Boolean; AntiAlias: TAntiAlias; Direction: TDrawPosition): TRect;
+function IsTTF(Canvas: TCanvas): Boolean;
+var
+  tm: TTextMetric;
+begin
+  Result := false;
+  if not Assigned(Canvas) then
+    Exit;
+
+  GetTextMetrics(Canvas.Handle, tm);
+
+  if ((tm.tmPitchAndFamily AND TMPF_VECTOR) = TMPF_VECTOR) then
+  begin
+    if not ((tm.tmPitchAndFamily AND TMPF_DEVICE) = TMPF_DEVICE) then
+    begin
+      Result := true;
+      if (Screen.Fonts.IndexOf(Canvas.Font.Name) = -1) then
+        Result := false;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function DrawVistaText(Canvas: TCanvas; Alignment: TAlignment; VAlign: TVAlign; DTSTYLE: DWORD; r: TRect; Caption:string; WideCaption: widestring; AFont: TFont; Enabled: Boolean; RealDraw: Boolean; AntiAlias: TAntiAlias): TRect;
+var
+  graphics : TGPGraphics;
+  w,h: Integer;
+  fontFamily: TGPFontFamily;
+  font: TGPFont;
+  rectf: TGPRectF;
+  stringFormat: TGPStringFormat;
+  solidBrush: TGPSolidBrush;
+  x1,y1,x2,y2: single;
+  fs: integer;
+  sizerect: TGPRectF;
+  szRect: TRect;
+  //DTFLAG: DWORD;
+begin
+  if (Caption <> '') or (WideCaption <> '') then
+  begin
+    graphics := TGPGraphics.Create(Canvas.Handle);
+    fontFamily:= TGPFontFamily.Create(AFont.Name);
+
+    if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+    begin
+      fontFamily.Free;
+      fontFamily := TGPFontFamily.Create('Arial');
+    end;
+
+
+    fs := 0;
+
+    if (fsBold in AFont.Style) then
+      fs := fs + 1;
+
+    if (fsItalic in AFont.Style) then
+      fs := fs + 2;
+
+    if (fsUnderline in AFont.Style) then
+      fs := fs + 4;
+
+    font := TGPFont.Create(fontFamily, AFont.Size , fs, UnitPoint);
+
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+
+    w := R.Right - R.Left;
+    h := R.Bottom - R.Top;
+
+    x1 := r.Left;
+    y1 := r.Top;
+    x2 := w;
+    y2 := h;
+
+    rectf := MakeRect(x1,y1,x2,y2);
+
+    stringFormat := TGPStringFormat.Create;
+
+    if Enabled then
+      solidBrush := TGPSolidBrush.Create(ColorToARGB(AFont.Color))
+    else
+      solidBrush := TGPSolidBrush.Create(ColorToARGB(clGray));
+
+    case Alignment of
+      taLeftJustify: stringFormat.SetAlignment(StringAlignmentNear);
+      taCenter:
+      begin
+        // Center-justify each line of text.
+        stringFormat.SetAlignment(StringAlignmentCenter);
+      end;
+      taRightJustify: stringFormat.SetAlignment(StringAlignmentFar);
+    end;
+
+    // Center the block of text (top to bottom) in the rectangle.
+
+    if (VAlign = tvaCenter) then
+    begin
+      // Center the block of text (top to bottom) in the rectangle.
+      stringFormat.SetLineAlignment(StringAlignmentCenter);
+    end;
+    stringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
+    //stringFormat.SetTrimming(StringTrimmingNone);
+
+
+    case AntiAlias of
+    aaClearType:graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+    aaAntiAlias:graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+    end;
+
+    // graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+
+    if (AntiAlias = aaNone) then
+    begin
+      szRect.Left := round(rectf.X);
+      szRect.Top := round(rectf.Y);
+
+      szRect.Right := szRect.Left + 2;
+
+      if (Caption <> '') then
+        szRect.Bottom := DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, DT_CALCRECT or DT_LEFT)
+      else
+        szRect.Bottom := DrawTextW(Canvas.Handle,PWideChar(WideCaption),Length(WideCaption), szrect, DT_CALCRECT or DT_LEFT);
+
+      sizeRect.X := szRect.Left;
+      sizeRect.Y := szRect.Top;
+      sizeRect.Width := szRect.Right - szRect.Left;
+      sizeRect.Height := szRect.Bottom - szRect.Top;
+    end
+    else
+    begin
+      fillchar(sizerect,sizeof(sizerect),0);
+
+      if (Caption <> '') then
+        graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect)
+      else
+        graphics.MeasureString(WideCaption, Length(WideCaption), font, rectf, stringFormat, sizerect)
+    end;
+
+    Result := Rect(round(sizerect.X), Round(sizerect.Y), Round(sizerect.X + sizerect.Width), Round(sizerect.Y + sizerect.Height));
+    rectf := MakeRect(x1,y1,x2,y2);
+
+    if RealDraw then
+    begin
+      if (AntiAlias = aaNone) then
+      begin
+        szRect.Left := round(rectf.X);
+        szRect.Top := round(rectf.Y);
+        szRect.Right := szRect.Left + round(rectf.Width);
+        szRect.Bottom := szRect.Top + round(rectf.Height);
+        Canvas.Brush.Style := bsClear;
+
+        {DTFLAG := DT_LEFT;
+        case Alignment of
+        taRightJustify: DTFLAG := DT_RIGHT;
+        taCenter: DTFLAG := DT_CENTER;
+        end;}
+        if Caption <> '' then
+          DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, DTSTYLE)
+        else
+          DrawTextW(Canvas.Handle,PWideChar(WideCaption),Length(WideCaption), szrect, DTSTYLE)
+      end
+      else
+      begin
+        if (Caption <> '') then
+          graphics.DrawString(Caption, Length(Caption), font, rectf, stringFormat, solidBrush)
+        else
+          graphics.DrawString(WideCaption, Length(WideCaption), font, rectf, stringFormat, solidBrush)
+      end;
+    end;
+    stringformat.Free;
+    solidBrush.Free;
+    font.Free;
+    fontfamily.Free;
+    graphics.Free;
+  end;
+end;
+
+function DrawVistaText2(Canvas: TCanvas; Alignment: TAlignment; r: TRect; Caption:string; AFont: TFont; Enabled: Boolean; RealDraw: Boolean; AntiAlias: TAntiAlias; Direction: TDrawPosition): TRect;
 var
   graphics : TGPGraphics;
   w,h: Integer;
@@ -1932,20 +2230,34 @@ end;
 procedure GetShortCutHintSize(Canvas: TCanvas; ShortCutHint: string; var h, w: Integer);
 var
   R: TRect;
+  s: string;
+  ow: integer;
 begin
+
   if (ShortCutHint <> '') then
   begin
     R := Rect(0,0,1000,100);
+
+    s := 'O';
+
+    DrawText(Canvas.Handle,PChar(s),Length(S), R, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
+    ow := r.Right + 3 * 2;
+
+    R := Rect(0,0,1000,100);
     DrawText(Canvas.Handle,PChar(ShortCutHint),Length(ShortCutHint), R, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
-    h := R.Bottom + 4*2;
-    w := R.Right + 3*2;
+    h := R.Bottom + 4 * 2;
+    w := R.Right + 3 * 2;
+
+    if w < ow then
+      w := ow;
   end;
 end;
 
-procedure DrawShortCutHint(Canvas: TCanvas; ShortCutHint: string; Pt: TPoint; Shaded: Boolean);
+procedure TAdvPreviewMenuPanel.DrawShortCutHint(Canvas: TCanvas; ShortCutHint: string; Pt: TPoint; Shaded: Boolean);
 var
   h, w: Integer;
   R: TRect;
+  col, colto: TColor;
 begin
   if (ShortCutHint <> '') then
   begin
@@ -1954,7 +2266,15 @@ begin
     GetShortCutHintSize(Canvas, ShortCutHint, h, w);
     R := Rect(pt.X, pt.Y, pt.X + w, pt.Y + h);
 
-    DrawGradient(Canvas, clWhite, clSilver, 32, r, false);
+    col := clWhite;
+    colto := clSilver;
+    if Assigned(FAdvPreviewMenu) then
+    begin
+      if Assigned(FAdvPreviewMenu.Styler) then
+        colto := FAdvPreviewMenu.Styler.ButtonAppearance.Color;
+    end;
+
+    DrawGradient(Canvas, col, colto, 32, r, false);
     Canvas.Brush.Style := bsClear;
     DrawText(Canvas.Handle,PChar(ShortCutHint),Length(ShortCutHint),r, DT_CENTER or DT_SINGLELINE or DT_VCENTER);
 
@@ -1998,6 +2318,25 @@ end;
 
 { TButtonCollectionItem }
 
+procedure TButtonCollectionItem.ActionChange(Sender: TObject;
+  CheckDefaults: Boolean);
+begin
+  if Sender is TCustomAction then
+    with TCustomAction(Sender) do
+    begin
+      if not CheckDefaults or (Self.Caption = '') then
+        Self.Caption := Caption;
+      if not CheckDefaults or (Self.Enabled = True) then
+        Self.Enabled := Enabled;
+      if not CheckDefaults or (Self.ImageIndex = -1) then
+        Self.ImageIndex := ImageIndex;
+      if not CheckDefaults or (Self.Visible = True) then
+        Self.Visible := Visible;
+      //if not CheckDefaults or not Assigned(Self.OnClick) then
+        //Self.OnClick := OnExecute;
+    end;
+end;
+
 procedure TButtonCollectionItem.Assign(Source: TPersistent);
 begin
   if (Source is TButtonCollectionItem) then
@@ -2012,7 +2351,7 @@ begin
     FIDisabledPicture.Assign(TButtonCollectionItem(Source).DisabledPicture);
     FOfficeHint.Assign(TButtonCollectionItem(Source).FOfficeHint);
     FFont.Assign(TButtonCollectionItem(Source).Font);
-    FAction := TButtonCollectionItem(Source).Action;
+    Action := TButtonCollectionItem(Source).Action;
   end
   else
     inherited;
@@ -2046,7 +2385,32 @@ begin
   FIDisabledPicture.Free;
   FOfficeHint.Free;
   FFont.Free;
+  FreeAndNil(FActionLink);
   inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TButtonCollectionItem.DoActionChange(Sender: TObject);
+begin
+  if Sender = Action then ActionChange(Sender, False);
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonCollectionItem.GetAction: TBasicAction;
+begin
+  if FActionLink <> nil then
+    Result := FActionLink.Action
+  else
+    Result := nil;
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonCollectionItem.GetActionLinkClass: TButtonItemActionLinkClass;
+begin
+  Result := TButtonItemActionLink;
 end;
 
 //------------------------------------------------------------------------------
@@ -2081,12 +2445,30 @@ end;
 
 procedure TButtonCollectionItem.SetAction(const Value: TBasicAction);
 begin
-  FAction := Value;
-  if (Value is TCustomAction) and (not (csLoading in Value.ComponentState) or (Caption = '')) then
+  {if (Value is TCustomAction) and (not (csLoading in Value.ComponentState) or (Caption = '')) then
   begin
     Caption := TCustomAction(Value).Caption;
     ImageIndex := TCustomAction(Value).ImageIndex;
   end;
+  }
+  if Value = nil then
+  begin
+    FActionLink.Free;
+    FActionLink := nil;
+  end
+  else
+  begin
+    if FActionLink = nil then
+      FActionLink := GetActionLinkClass.Create(Self);
+    FActionLink.Action := Value;
+    FActionLink.OnChange := DoActionChange;
+    if Assigned(TButtonCollection(Collection).FPreviewMenu) then
+    begin
+      ActionChange(Value, csLoading in Value.ComponentState);
+      Value.FreeNotification(TButtonCollection(Collection).FPreviewMenu);
+    end;
+  end;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -2232,15 +2614,19 @@ begin
     FWideTitle := TAdvPreviewSubMenuItem(Source).FWideTitle;
     FImageIndex := TAdvPreviewSubMenuItem(Source).ImageIndex;
     FEnabled := TAdvPreviewSubMenuItem(Source).Enabled;
-    FIPicture.Assign(TAdvPreviewSubMenuItem(Source).Picture);
-    FIDisabledPicture.Assign(TAdvPreviewSubMenuItem(Source).DisabledPicture);
+    if not TAdvPreviewSubMenuItem(Source).Picture.Empty then
+      FIPicture.Assign(TAdvPreviewSubMenuItem(Source).Picture);
+    if not TAdvPreviewSubMenuItem(Source).DisabledPicture.Empty then
+      FIDisabledPicture.Assign(TAdvPreviewSubMenuItem(Source).DisabledPicture);
     FOfficeHint.Assign(TAdvPreviewSubMenuItem(Source).OfficeHint);
     FNotes.Assign(TAdvPreviewSubMenuItem(Source).Notes);
     FWideNotes := TAdvPreviewSubMenuItem(Source).FWideNotes;
+    FSeparator := TAdvPreviewSubMenuItem(Source).Separator;
     FShortCutHint := TAdvPreviewSubMenuItem(Source).FShortCutHint;
     FVisible := TAdvPreviewSubMenuItem(Source).Visible;
     FTag := TAdvPreviewSubMenuItem(Source).Tag;
     Action := TAdvPreviewSubMenuItem(Source).Action;
+    SubMenu := TAdvPreviewSubMenuItem(Source).SubMenu;
   end
   else
     inherited;
@@ -2265,6 +2651,7 @@ begin
   FWideNotes := '';
   FShortCutHint := '';
   FTag := 0;
+  FSeparator := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -2544,6 +2931,16 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvPreviewSubMenuItem.SetSeparator(const Value: Boolean);
+begin
+  if (FSeparator <> Value) then
+  begin
+    FSeparator := Value;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 { TAdvPreviewSubMenuItems }
 
 function TAdvPreviewSubMenuItems.Add: TAdvPreviewSubMenuItem;
@@ -2578,6 +2975,18 @@ end;
 function TAdvPreviewSubMenuItems.GetOwner: TPersistent;
 begin
   Result := FOwner;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewSubMenuItems.InitiateActions;
+var
+  i: Integer;
+begin
+  for i := 0 to Count -1 do
+  begin
+    Items[i].InitiateAction;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2641,11 +3050,14 @@ begin
     FTag := TAdvPreviewMenuItem(Source).Tag;
     FImageIndex := TAdvPreviewMenuItem(Source).ImageIndex;
     FEnabled := TAdvPreviewMenuItem(Source).Enabled;
-    FIPicture.Assign(TAdvPreviewMenuItem(Source).Picture);
-    FIDisabledPicture.Assign(TAdvPreviewMenuItem(Source).DisabledPicture);
+    if not TAdvPreviewMenuItem(Source).Picture.Empty then
+      FIPicture.Assign(TAdvPreviewMenuItem(Source).Picture);
+    if not TAdvPreviewMenuItem(Source).DisabledPicture.Empty then
+      FIDisabledPicture.Assign(TAdvPreviewMenuItem(Source).DisabledPicture);
     FOfficeHint.Assign(TAdvPreviewMenuItem(Source).OfficeHint);
     FSubItems.Assign(TAdvPreviewMenuItem(Source).SubItems);
     FSubMenuCaption := TAdvPreviewMenuItem(Source).SubMenuCaption;
+    FSubMenuItemHeight := TAdvPreviewMenuItem(Source).SubMenuItemHeight;
     FWideSubMenuCaption := TAdvPreviewMenuItem(Source).FWideSubMenuCaption;
     FSeparator := TAdvPreviewMenuItem(Source).Separator;
     FSubMenuItemSpacing := TAdvPreviewMenuItem(Source).SubMenuItemSpacing;
@@ -2671,6 +3083,7 @@ begin
   FImageIndex := -1;
   FEnabled := True;
   FVisible := True;
+  FSubMenuItemHeight := 0;
   FIPicture := TGDIPPicture.Create;
   FIPicture.OnChange := PictureChanged;
   FIDisabledPicture := TGDIPPicture.Create;
@@ -2721,6 +3134,10 @@ begin
   if (FCaption <> Value) then
   begin
     FCaption := Value;
+    if TAdvPreviewMenuItems(Collection).FOwner is TAdvPreviewMenu then
+    begin
+      TAdvPreviewMenu(TAdvPreviewMenuItems(Collection).FOwner).DrawMenuItem(Index);
+    end;    
   end;
 end;
 
@@ -2739,6 +3156,10 @@ begin
   if (FEnabled <> Value) then
   begin
     FEnabled := Value;
+    if TAdvPreviewMenuItems(Collection).FOwner is TAdvPreviewMenu then
+    begin
+      TAdvPreviewMenu(TAdvPreviewMenuItems(Collection).FOwner).DrawMenuItem(Index);
+    end;
   end;
 end;
 
@@ -2886,6 +3307,7 @@ end;
 procedure TAdvPreviewMenuItem.InitiateAction;
 begin
   if FActionLink <> nil then FActionLink.Update;
+  SubItems.InitiateActions;
 end;
 
 //------------------------------------------------------------------------------
@@ -2972,6 +3394,16 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvPreviewMenuItem.SetSubMenuItemHeight(const Value: Integer);
+begin
+  if (FSubMenuItemHeight <> Value) and (Value >= 0) then
+  begin
+    FSubMenuItemHeight := Value;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 { TAdvPreviewMenuItems }
 
 function TAdvPreviewMenuItems.Add: TAdvPreviewMenuItem;
@@ -3010,6 +3442,18 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvPreviewMenuItems.InitiateActions;
+var
+  i: Integer;
+begin
+  for i := 0 to Count -1 do
+  begin
+    Items[i].InitiateAction;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 function TAdvPreviewMenuItems.Insert(Index: Integer): TAdvPreviewMenuItem;
 begin
   Result := TAdvPreviewMenuItem(inherited Insert(Index));
@@ -3035,6 +3479,7 @@ begin
   FSubMenuWidth := 0;
   FTopFrameHeight := 16;
   FOffSetX := 10;
+  FSubMenuItemHeight := 0;
   FInternalStyler := TAdvCustomPreviewMenuStyler.Create(self);
   FInternalStyler.Name := 'InternalStyler';
   FStyler := nil;
@@ -3047,12 +3492,14 @@ begin
   FPreviewMenuWindow := nil;
   FAdvPreviewMenuPanel := nil;
   FButtons := TButtonCollection.Create(Self);
+  FButtons.FPreviewMenu := Self;
   FButtonHeight := 25;
   FButtonSpacing := 4;
   FShowHint := False;
   FSubMenuItems := TAdvPreviewSubMenuItems.Create(Self);
   FSubMenuItems.FPreviewMenu := Self;
   FWideSubMenuCaption := '';
+  FAntiAlias := aaClearType;
 end;
 
 //------------------------------------------------------------------------------
@@ -3130,6 +3577,12 @@ begin
         if (AComponent = SubMenuItems.Items[j].Action) then
           SubMenuItems.Items[j].Action := nil;
       end;
+
+      for i:= 0 to Buttons.Count-1 do
+      begin
+        if (AComponent = Buttons.Items[i].Action) then
+          Buttons.Items[i].Action := nil;
+      end;
     end;
   end;
 end;
@@ -3204,6 +3657,9 @@ begin
     FPreviewMenuWindow.OnHide := OnPreviewMenuWindowHide;
     FPreviewMenuWindow.OnClose := OnPreviewMenuWindowClose;
     FPreviewMenuWindow.ShowBorder := False;
+    {$IFDEF DELPHI6_LVL}
+    FPreviewMenuWindow.DefaultMonitor := dmDesktop;
+    {$ENDIF}
     //FPreviewMenuWindow.Color := Self.ColorDropDown;
   end;
 
@@ -3223,11 +3679,13 @@ end;
 procedure TAdvPreviewMenu.ShowMenu(X, Y: Integer);
 begin
   InitializeMenu;
+  MenuItems.InitiateActions;
   if Assigned(FPreviewMenuWindow) then
   begin
     FPreviewMenuWindow.Left := X;
     FPreviewMenuWindow.Top := Y;
     FPreviewMenuWindow.Visible := True;
+    FMenuShowing := True;
   end;
 end;
 
@@ -3235,6 +3693,7 @@ end;
 
 procedure TAdvPreviewMenu.HideMenu;
 begin
+  FMenuShowing := False;  
   if Assigned(FPreviewMenuWindow) then
     FPreviewMenuWindow.Hide;
 end;
@@ -3307,6 +3766,24 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvPreviewMenu.InvalidateMenu;
+begin
+  if Assigned(FPreviewMenuWindow) and (FPreviewMenuWindow.Visible) and Assigned(FAdvPreviewMenuPanel) then
+    FAdvPreviewMenuPanel.Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenu.DrawMenuItem(Index: Integer);
+begin
+  if (Assigned(FPreviewMenuWindow) and (FPreviewMenuWindow.Visible) and Assigned(FAdvPreviewMenuPanel)) or (Assigned(FAdvPreviewMenuPanel) and FAdvPreviewMenuPanel.FEditorCreated) then
+  begin
+    FAdvPreviewMenuPanel.DrawItem(Index);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvPreviewMenu.HideShortCutHints;
 begin
   if Assigned(FAdvPreviewMenuPanel) and FAdvPreviewMenuPanel.Visible then
@@ -3333,6 +3810,16 @@ begin
     MenuItems.Items[i].Loaded;
   end;
   
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenu.SetSubMenuItemHeight(const Value: Integer);
+begin
+  if (FSubMenuItemHeight <> Value) and (Value >= 0) then
+  begin
+    FSubMenuItemHeight := Value;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3726,6 +4213,13 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TPreviewMenuWindow.WMGetDlgCode(var Message: TMessage);
+begin
+  Message.Result := DLGC_WANTARROWS + DLGC_WANTCHARS + DLGC_WANTTAB;
+end;
+
+//------------------------------------------------------------------------------
+
 { TAdvCustomPreviewMenuPanel }
 
 procedure TAdvCustomPreviewMenuPanel.CMMouseLeave(var Message: TMessage);
@@ -3969,6 +4463,20 @@ begin
   FFont := TFont.Create;
   FSubItemFont := TFont.Create;
   FSubItemTitleFont := TFont.Create;
+
+  FSystemFont := true;
+  if IsVista then
+  begin
+    FFont.Name := 'Segoe UI';
+    FSubItemFont.Name := 'Segoe UI';
+    FSubItemTitleFont.Name := 'Segoe UI';
+  end
+  else
+  begin
+    FFont.Name := 'Tahoma';
+    FSubItemFont.Name := 'Tahoma';
+    FSubItemTitleFont.Name := 'Tahoma';
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -4010,6 +4518,30 @@ end;
 procedure TSelectionAppearance.SetSubItemTitleFont(const Value: TFont);
 begin
   FSubItemTitleFont.Assign(Value);
+end;
+
+procedure TSelectionAppearance.SetSystemFont(const Value: boolean);
+begin
+  if (FSystemFont <> Value) then
+  begin
+    FSystemFont := Value;
+
+    if value then
+    begin
+      if IsVista then
+      begin
+        Font.Name := 'Segoe UI';
+        SubItemTitleFont.Name := 'Segoe UI';
+        SubItemFont.Name := 'Segoe UI';
+      end
+      else
+      begin
+        Font.Name := 'Tahoma';
+        SubItemTitleFont.Name := 'Tahoma';
+        SubItemFont.Name := 'Tahoma';
+      end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -4257,8 +4789,11 @@ begin
   inherited;
   FButtonPartHot := False;
   FDropDownPartHot := False;
-  FItemDown := -1;
-  ItemHot := -1;
+  if not FEditorCreated then
+  begin
+    FItemDown := -1;
+    ItemHot := -1;
+  end;  
 
   if not Assigned(FSubMenuPopup) then
   begin
@@ -4296,12 +4831,17 @@ begin
   Font.Name := 'Tahoma';
   FMouseTimer := TTimer.Create(Self);
   FMouseTimer.Enabled := False;
-  FMouseTimer.Interval := 310;
+  FMouseTimer.Interval := 350;
   FMouseTimer.OnTimer := OnMouseTimer;
   FMouseItemHot := -1;
   FSubMenuVisibleItemCount := 0;
   FTopSubMenuItem := 0;
   FSubMenuScroller := TMenuItemScroller.Create;
+  FSelectedItem := -1;
+  FSelectedSubItem := -1;
+  FHintItem := -1;
+  FHintSubItem := -1;
+  FButtonHot := -1;
 end;
 
 //------------------------------------------------------------------------------
@@ -4360,7 +4900,31 @@ begin
     if (j >= AdvPreviewMenu.MenuItems.Count) or (j < 0) then
       j := 0;
 
-    if (AdvPreviewMenu.MenuItems.Items[j].Enabled) then
+    if (AdvPreviewMenu.MenuItems.Items[j].Enabled) and (AdvPreviewMenu.MenuItems.Items[j].Visible) then
+    begin
+      ItemHot := j;
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.ItemHotLast;
+var
+  i, j: Integer;
+begin
+  if not Assigned(AdvPreviewMenu) then
+    Exit;
+
+  j := AdvPreviewMenu.MenuItems.Count;
+  for i:= AdvPreviewMenu.MenuItems.Count-1 downto 0 do
+  begin
+    j := j - 1;
+    if (j >= AdvPreviewMenu.MenuItems.Count) or (j < 0) then
+      j := 0;
+
+    if (AdvPreviewMenu.MenuItems.Items[j].Enabled) and (AdvPreviewMenu.MenuItems.Items[j].Visible) then
     begin
       ItemHot := j;
       Break;
@@ -4387,7 +4951,7 @@ begin
     if (j >= AdvPreviewMenu.MenuItems.Count) then
       j := 0;
 
-    if (AdvPreviewMenu.MenuItems.Items[j].Enabled) then
+    if (AdvPreviewMenu.MenuItems.Items[j].Enabled) and (AdvPreviewMenu.MenuItems.Items[j].Visible) then
     begin
       ItemHot := j;
       Break;
@@ -4416,7 +4980,38 @@ begin
       if (j >= SubItems.Count) or (j < 0) then
         j := 0;
 
-      if (SubItems.Items[j].Enabled) then
+      if (SubItems.Items[j].Enabled) and (SubItems.Items[j].Visible) then
+      begin
+        SubMenuScrollInView(j);
+        SubMenuItemHot := j;
+        Break;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.SubMenuItemHotLast;
+var
+  i, j: Integer;
+  SubItems: TAdvPreviewSubMenuItems;
+begin
+  if not Assigned(AdvPreviewMenu) then
+    Exit;
+
+  SubItems := GetSubMenuItems;
+
+  if Assigned(SubItems) then
+  begin
+    j := SubItems.Count;
+    for i:= SubItems.Count-1 downto 0 do
+    begin
+      j := j - 1;
+      if (j >= SubItems.Count) or (j < 0) then
+        j := 0;
+
+      if (SubItems.Items[j].Enabled) and (SubItems.Items[j].Visible) then
       begin
         SubMenuScrollInView(j);
         SubMenuItemHot := j;
@@ -4450,10 +5045,106 @@ begin
       if (j >= SubItems.Count) then
         j := 0;
 
-      if (SubItems.Items[j].Enabled) then
+      if (SubItems.Items[j].Enabled) and (SubItems.Items[j].Visible) then
       begin
         SubMenuScrollInView(j);
         SubMenuItemHot := j;
+        Break;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvPreviewMenuPanel.IsFirstItem(Index: Integer; CheckEnable,
+  CheckVisible: Boolean): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  if not Assigned(AdvPreviewMenu) or (Index < 0) or (Index >= AdvPreviewMenu.MenuItems.Count) then
+    Exit;
+
+  for i:= 0 to AdvPreviewMenu.MenuItems.Count - 1 do
+  begin
+    if (not CheckEnable or AdvPreviewMenu.MenuItems.Items[i].Enabled) and (not CheckVisible or AdvPreviewMenu.MenuItems.Items[i].Visible) then
+    begin
+      Result := (Index = i);
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvPreviewMenuPanel.IsLastItem(Index: Integer; CheckEnable,
+  CheckVisible: Boolean): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  if not Assigned(AdvPreviewMenu) or (Index < 0) or (Index >= AdvPreviewMenu.MenuItems.Count) then
+    Exit;
+
+  for i:= AdvPreviewMenu.MenuItems.Count - 1 downto 0 do
+  begin
+    if (not CheckEnable or AdvPreviewMenu.MenuItems.Items[i].Enabled) and (not CheckVisible or AdvPreviewMenu.MenuItems.Items[i].Visible) then
+    begin
+      Result := (Index = i);
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvPreviewMenuPanel.IsFirstSubMenuItem(Index: Integer;
+  CheckEnable, CheckVisible: Boolean): Boolean;
+var
+  i: Integer;
+  SubItems: TAdvPreviewSubMenuItems;
+begin
+  Result := False;
+  if not Assigned(AdvPreviewMenu) then
+    Exit;
+
+  SubItems := GetSubMenuItems;
+
+  if Assigned(SubItems) then
+  begin
+    for i:= 0 to SubItems.Count-1 do
+    begin
+      if (not CheckEnable or SubItems.Items[i].Enabled) and (not CheckVisible or SubItems.Items[i].Visible) then
+      begin
+        Result := Index = i;
+        Break;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvPreviewMenuPanel.IsLastSubMenuItem(Index: Integer;
+  CheckEnable, CheckVisible: Boolean): Boolean;
+var
+  i: Integer;
+  SubItems: TAdvPreviewSubMenuItems;
+begin
+  Result := False;
+  if not Assigned(AdvPreviewMenu) then
+    Exit;
+
+  SubItems := GetSubMenuItems;
+
+  if Assigned(SubItems) then
+  begin
+    for i:= SubItems.Count - 1 downto 0 do
+    begin
+      if (not CheckEnable or SubItems.Items[i].Enabled) and (not CheckVisible or SubItems.Items[i].Visible) then
+      begin
+        Result := Index = i;
         Break;
       end;
     end;
@@ -4468,11 +5159,14 @@ var
   i, c: Integer;
   found: Boolean;
   SubItems: TAdvPreviewSubMenuItems;
+  Shf: Boolean;
 begin
   inherited;
 
   if not Assigned(AdvPreviewMenu) then
     Exit;
+
+  Shf := (GetKeyState(VK_SHIFT) and $8000 = $8000);
 
   if (Key in [VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT]) then
   begin
@@ -4482,7 +5176,7 @@ begin
     if FShortCutSubMenuItemHintShowing then
     begin
       HideAllSubMenuItemsShortCutHint;
-      DrawRightFrame;
+      DrawRightFrame(Canvas);
     end;  
   end;
 
@@ -4537,6 +5231,70 @@ begin
     VK_ESCAPE:
     begin
       HideMenuWindow;
+    end;
+    VK_TAB:
+    begin
+      if Shf then
+      begin
+        if (FSubMenuItemHot >= 0) then
+        begin
+          if IsFirstSubMenuItem(FSubMenuItemHot, true, true) then
+          begin
+            SubMenuItemHot := -1;
+            ItemHotLast;
+          end  
+          else
+            SubMenuItemHotPrevious;
+        end
+        else
+        begin
+          if IsFirstItem(FItemHot, true, true) then
+          begin
+            ButtonHotLast;
+          end
+          else
+            ItemHotPrevious;
+        end;
+      end
+      else
+      begin
+        if (FSubMenuItemHot >= 0) then
+        begin
+          if IsLastSubMenuItem(FSubMenuItemHot, true, true) and (FButtonList.Count > 0) then
+          begin
+            SubMenuItemHot := -1;
+            ButtonHotNext;
+          end
+          else
+            SubMenuItemHotNext;
+        end
+        else
+        begin
+          if (FButtonHot >= 0) then
+          begin
+            if IsLastButton(FButtonHot, true, true) then
+            begin
+              Self.SetFocus;
+              ButtonHot := -1;
+              ItemHotNext;
+            end
+            else
+              ButtonHotNext;
+          end
+          else if (FItemHot < 0) then
+            ItemHotNext
+          else
+          begin
+            if IsLastItem(FItemHot, true, true) then
+              SubMenuItemHotNext
+            else
+              ItemHotNext;
+          end;
+        end;
+      end;
+    end;
+    VK_SHIFT:
+    begin
     end;
     else
     begin
@@ -4673,7 +5431,7 @@ end;
 procedure TAdvPreviewMenuPanel.MouseDown(Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  i: Integer;
+  i, j: Integer;
   SubItem: TAdvPreviewSubMenuItem;
 begin
   inherited;
@@ -4695,15 +5453,21 @@ begin
     {if (i < AdvPreviewMenu.MenuItems.Count) and (AdvPreviewMenu.MenuItems.Items[i].SubItems.Count > 0) and (AdvPreviewMenu.MenuItems.Items[i].CanSelect) then
     begin
     end;}
-    if (i < AdvPreviewMenu.MenuItems.Count) and (AdvPreviewMenu.MenuItems.Items[i].Enabled) then
+    if (i < AdvPreviewMenu.MenuItems.Count) and ((AdvPreviewMenu.MenuItems.Items[i].Enabled) or FEditorCreated) then
     begin
+      if FEditorCreated and (FItemDown >= 0) and (FItemDown <> i) then
+      begin
+        j := FItemDown;
+        FItemDown := i;
+        DrawItem(j);
+      end;
       FItemDown := i;
       DrawItem(FItemDown);
     end;
   end;
 
   i := SubMenuItemAtPos(X, Y, SubItem);
-  if (i >= 0) and Assigned(SubItem) and (SubItem.Enabled) then
+  if (i >= 0) and Assigned(SubItem) and (SubItem.Enabled or FEditorCreated)  then
   begin
     FSubMenuItemDown := i;
     DrawSubMenuItem(FSubMenuItemDown);
@@ -4742,42 +5506,45 @@ begin
   end;
 
   i := ItemAtPos(X, Y);
-  if ((i >= 0) and PtInRect(GetItemFramesRect, Point(X, Y))) then
+  if not FEditorCreated then
   begin
-    if (i < AdvPreviewMenu.MenuItems.Count) and (AdvPreviewMenu.MenuItems.Items[I].SubItems.Count > 0)
-       and (AdvPreviewMenu.MenuItems.Items[i].CanSelect) and AdvPreviewMenu.MenuItems.Items[i].Enabled then
+    if ((i >= 0) and PtInRect(GetItemFramesRect, Point(X, Y))) and not FEditorCreated then
     begin
-      if PtInRect(GetItemDropDownRect(I), Point(X, Y)) then
+      if (i < AdvPreviewMenu.MenuItems.Count) and (AdvPreviewMenu.MenuItems.Items[I].SubItems.Count > 0)
+         and (AdvPreviewMenu.MenuItems.Items[i].CanSelect) and AdvPreviewMenu.MenuItems.Items[i].Enabled then
       begin
-        if (not FDropDownPartHot) then
+        if PtInRect(GetItemDropDownRect(I), Point(X, Y)) then
         begin
-          FButtonPartHot := False;
-          FDropDownPartHot := True;
-          DrawItem(i, True);
+          if (not FDropDownPartHot) then
+          begin
+            FButtonPartHot := False;
+            FDropDownPartHot := True;
+            DrawItem(i, True);
+          end;
+        end
+        else
+        begin
+          if not FButtonPartHot or (FDropDownPartHot and not FShortCutItemHintShowing) then
+          begin
+            FButtonPartHot := True;
+            FDropDownPartHot := False;
+            DrawItem(i, True);
+          end;
         end;
       end
-      else
+      else if (i < AdvPreviewMenu.MenuItems.Count) then
       begin
-        if not FButtonPartHot or (FDropDownPartHot and not FShortCutItemHintShowing) then
+        if FButtonPartHot or FDropDownPartHot then
         begin
-          FButtonPartHot := True;
+          FButtonPartHot := False;
           FDropDownPartHot := False;
           DrawItem(i, True);
         end;
       end;
-    end
-    else if (i < AdvPreviewMenu.MenuItems.Count) then
-    begin
-      if FButtonPartHot or FDropDownPartHot then
-      begin
-        FButtonPartHot := False;
-        FDropDownPartHot := False;
-        DrawItem(i, True);
-      end;  
     end;
-  end;
-  
-  if (i <> FItemHot) then
+  end;  
+
+  if (i <> FItemHot) and not FEditorCreated then
   begin
     if not ((i < 0) and PtInRect(GetItemFramesRect, Point(X, Y))) then
     begin
@@ -4794,10 +5561,26 @@ begin
         Application.CancelHint;
       end;
     end;
+  end
+  else if FEditorCreated and (i <> FHintItem) and False then
+  begin
+    if (i < 0) and (FHintItem >= 0) then
+    begin
+      EmptyOfficeHint := TAdvHintInfo.Create;
+      Self.OfficeHint.Assign(EmptyOfficeHint);
+      EmptyOfficeHint.Free;
+    end;
+
+    FHintItem := i;
+    if (i >= 0) and (i < AdvPreviewMenu.MenuItems.Count) then
+    begin
+      Self.OfficeHint.Assign(AdvPreviewMenu.MenuItems.Items[i].OfficeHint);
+      Application.CancelHint;
+    end;
   end;
 
   i := SubMenuItemAtPos(X, Y);
-  if (i <> FSubMenuItemHot) then
+  if (i <> FSubMenuItemHot) and not FEditorCreated then
   begin
     SubItems := GetSubMenuItems;
 
@@ -4806,6 +5589,23 @@ begin
     SubMenuItemHot := i;
 
     if (i >= 0) and (FSubMenuItem < AdvPreviewMenu.MenuItems.Count) and (i < SubItems.Count) then
+    begin
+      Self.OfficeHint.Assign(SubItems.Items[i].OfficeHint);
+      Application.CancelHint;
+    end;
+  end
+  else if FEditorCreated and (i <> FHintSubItem) and False then
+  begin
+    SubItems := GetSubMenuItems;
+    if (i < 0) and (FHintSubItem >= 0) then
+    begin
+      EmptyOfficeHint := TAdvHintInfo.Create;
+      Self.OfficeHint.Assign(EmptyOfficeHint);
+      EmptyOfficeHint.Free;
+    end;
+
+    FHintSubItem := i;
+    if (i >= 0) and (i < SubItems.Count) then
     begin
       Self.OfficeHint.Assign(SubItems.Items[i].OfficeHint);
       Application.CancelHint;
@@ -4852,7 +5652,7 @@ begin
     end;
   end;
 
-  if (FItemHot < 0) and (FSubMenuItemHot < 0) and ((OfficeHint.Title <> '') or (OfficeHint.Notes.Count > 0){ or (not OfficeHint.Picture.Empty)}) then
+  if not FEditorCreated and (FItemHot < 0) and (FSubMenuItemHot < 0) and ((OfficeHint.Title <> '') or (OfficeHint.Notes.Count > 0)) then
   begin
     EmptyOfficeHint := TAdvHintInfo.Create;
     Self.OfficeHint.Assign(EmptyOfficeHint);
@@ -4890,6 +5690,13 @@ begin
 
     i := FItemDown;
     FItemDown := -1;
+    if FEditorCreated then
+    begin
+      doClick := True;
+      FMouseSetHot := True;
+      ItemHot := i;
+      FMouseSetHot := False;
+    end;
     DrawItem(i, True);
     if doClick then
     begin
@@ -4971,7 +5778,7 @@ begin
     {Canvas.Brush.Color := RightFrameColor;
     R2 := GetRightFrameRect;
     Canvas.FillRect(R2);}
-    DrawRightFrame(False);
+    DrawRightFrame(Canvas, False);
     
     //------- Frame Borders
     Canvas.Brush.Style := bsClear;
@@ -5019,7 +5826,7 @@ var
   BtnPos: TButtonPosition;
 begin
   if not Assigned(AdvPreviewMenu) or (Index < 0) or (Index >= FAdvPreviewMenu.MenuItems.Count)
-     or not AdvPreviewMenu.MenuItems.Items[Index].Visible then
+     or (not AdvPreviewMenu.MenuItems.Items[Index].Visible and not FEditorCreated) then
     Exit;
 
   ItemR := GetItemRect(Index);
@@ -5049,7 +5856,7 @@ begin
       BtnR.Bottom := BtnR.Bottom-1;
     end;
     
-    if not AdvPreviewMenu.MenuItems.Items[Index].Enabled then
+    if not AdvPreviewMenu.MenuItems.Items[Index].Enabled and not FEditorCreated then
     begin
       if SplitBtn and false then
       begin
@@ -5098,7 +5905,7 @@ begin
         end;
       end;
     end
-    else if (Index = FItemDown) or ((Index = FItemHot) and (Index = FItemIndex)) then
+    else if ((Index = FItemDown) or ((Index = FItemHot) and (Index = FItemIndex))) and not FEditorCreated then
     begin
       if SplitBtn then
       begin
@@ -5163,7 +5970,7 @@ begin
         end;
       end;
     end
-    else if (Index = FItemHot) then
+    else if (Index = FItemHot) and not FEditorCreated then
     begin
       if SplitBtn then
       begin
@@ -5251,7 +6058,7 @@ begin
       GradU := MenuItemAppearance.GradientMirror;
 
 
-      if Index = FItemIndex then // Selected Item
+      if ((Index = FItemIndex) and not FEditorCreated) or (FEditorCreated and (Index = FSelectedItem)) then // Selected Item
       begin
         GradColor := MenuItemAppearance.ColorChecked;
         GradColorTo := MenuItemAppearance.ColorCheckedTo;
@@ -5261,6 +6068,11 @@ begin
         TxtClr := MenuItemAppearance.TextColorChecked;
         GradB := MenuItemAppearance.GradientChecked;
         GradU := MenuItemAppearance.GradientMirrorChecked;
+      end;
+      if FEditorCreated and not AdvPreviewMenu.MenuItems.Items[Index].Enabled then
+      begin
+        PenColor := MenuItemAppearance.BorderColorDisabled;
+        TxtClr := MenuItemAppearance.TextColorDisabled;
       end;
 
       if SplitBtn and (GradColor <> clNone) then
@@ -5335,23 +6147,29 @@ begin
       begin
         Canvas.Font.Assign(MenuItemAppearance.Font);
         Canvas.Font.Color := TxtClr;
+        DrawVistaText(Canvas, taLeftjustify, tvaCenter, DT_SINGLELINE or DT_VCENTER or DT_LEFT, R2, AdvPreviewMenu.MenuItems.Items[Index].Caption, '', Canvas.Font, True, True, AdvPreviewMenu.AntiAlias);
+        (*
   {$IFNDEF TMSDOTNET}
         DrawText(Canvas.Handle, PChar(AdvPreviewMenu.MenuItems.Items[Index].Caption), -1, R2, DT_SINGLELINE or DT_VCENTER or DT_LEFT);
   {$ENDIF}
   {$IFDEF TMSDOTNET}
         DrawText(Canvas.Handle, AdvPreviewMenu.MenuItems.Items[Index].Caption, -1, R2, DT_SINGLELINE or DT_VCENTER or DT_LEFT);
   {$ENDIF}
+        *)
       end
       else if (AdvPreviewMenu.MenuItems.Items[Index].WideCaption <> '') then
       begin
         Canvas.Font.Assign(MenuItemAppearance.Font);
         Canvas.Font.Color := TxtClr;
+        DrawVistaText(Canvas, taLeftjustify, tvaCenter, DT_SINGLELINE or DT_VCENTER or DT_LEFT, R2, '', AdvPreviewMenu.MenuItems.Items[Index].WideCaption, Canvas.Font, True, True, AdvPreviewMenu.AntiAlias);
+        (*  
   {$IFNDEF TMSDOTNET}
         DrawTextW(Canvas.Handle, PWideChar(AdvPreviewMenu.MenuItems.Items[Index].WideCaption), -1, R2, DT_SINGLELINE or DT_VCENTER or DT_LEFT);
   {$ENDIF}
   {$IFDEF TMSDOTNET}
         DrawTextW(Canvas.Handle, AdvPreviewMenu.MenuItems.Items[Index].WideCaption, -1, R2, DT_SINGLELINE or DT_VCENTER or DT_LEFT);
   {$ENDIF}
+        *) 
       end;
     end;
 
@@ -5398,6 +6216,7 @@ var
   Pic: TGDIPPicture;
   i: Integer;
   DTSTYLE: dword;
+  VAlign: TVAlign;
   SubItems: TAdvPreviewSubMenuItems;
   SubMenuItemSpacing: Integer;
   SubMenuCaption: string;
@@ -5426,7 +6245,7 @@ begin
     SubMenuItemIndex := -1;
   end;
 
-  if (AIndex >= SubItems.Count) or (not SubItems.Items[AIndex].Visible) then
+  if (AIndex >= SubItems.Count) or ((not SubItems.Items[AIndex].Visible) and not FEditorCreated) then
     Exit;
 
   R := GetSubMenuItemRect(AIndex);
@@ -5434,6 +6253,9 @@ begin
   if (R.Top < 0) and (R.Bottom < 0) then
     Exit;
 
+  if FEditorCreated then  // fix left border selection line after scrolling in editor
+    R.Left := R.Left + 1;
+    
   if (ACanvas = nil) then
     ACanvas := Canvas;
 
@@ -5454,6 +6276,9 @@ begin
         bmp.Height := Self.Height; // R.Bottom - R4.Bottom;
         bmp.Width := Self.Width; // R.Right - R.Left;
         ACanvas := bmp.Canvas;
+
+        bmp.Canvas.CopyMode := cmSrcCopy;
+        bmp.Canvas.CopyRect(R4, Canvas, R4);
       end;
     end;
 
@@ -5470,6 +6295,9 @@ begin
         bmp.Height := Self.Height; // R4.Top - R.Top;
         bmp.Width := Self.Width; // R.Right - R.Left;
         ACanvas := bmp.Canvas;
+
+        bmp.Canvas.CopyMode := cmSrcCopy;
+        bmp.Canvas.CopyRect(R4, Canvas, R4);
       end;
     end;
   end;
@@ -5479,7 +6307,15 @@ begin
 
   with AdvPreviewMenu.FCurrentStyler do
   begin
-    if not SubItems.Items[AIndex].Enabled then
+    if (SubItems.Items[AIndex].Separator) then
+    begin
+      ACanvas.Pen.Color := RGB(197, 197, 197);
+      ACanvas.MoveTo(R.Left + (R.Right - R.left) div 3, R.Bottom-1);
+      ACanvas.LineTo(R.Right, R.Bottom-1);
+      R.Bottom := R.Bottom-1;
+    end;
+
+    if not SubItems.Items[AIndex].Enabled and not FEditorCreated then
     begin
       if (MenuItemAppearance.ColorDisabledTo <> clNone) then
       begin
@@ -5495,7 +6331,7 @@ begin
       
       TxtClr := MenuItemAppearance.TextColorDisabled;
     end
-    else if (AIndex = FSubMenuItemDown) or ((AIndex = FSubMenuItemHot) and (AIndex = SubMenuItemIndex)) then
+    else if ((AIndex = FSubMenuItemDown) or ((AIndex = FSubMenuItemHot) and (AIndex = SubMenuItemIndex))) and not FEditorCreated then
     begin
       if (MenuItemAppearance.ColorDownTo <> clNone) then
       begin
@@ -5511,7 +6347,7 @@ begin
 
       TxtClr := MenuItemAppearance.TextColorDown;
     end
-    else if (AIndex = FSubMenuItemHot) then
+    else if (AIndex = FSubMenuItemHot) and not FEditorCreated then
     begin
       if (MenuItemAppearance.ColorHotTo <> clNone) then
       begin
@@ -5550,7 +6386,7 @@ begin
       GradU := MenuItemAppearance.GradientMirror;
 
 
-      if AIndex = SubMenuItemIndex then // Selected Item
+      if ((AIndex = SubMenuItemIndex) and not FEditorCreated) or (FEditorCreated and (AIndex = FSelectedSubItem))then // Selected Item
       begin
         GradColor := MenuItemAppearance.ColorChecked;
         GradColorTo := MenuItemAppearance.ColorCheckedTo;
@@ -5560,6 +6396,12 @@ begin
         TxtClr := MenuItemAppearance.TextColorChecked;
         GradB := MenuItemAppearance.GradientChecked;
         GradU := MenuItemAppearance.GradientMirrorChecked;
+      end;
+
+      if FEditorCreated and not SubItems.Items[AIndex].Enabled then
+      begin
+        PenColor := MenuItemAppearance.BorderColorDisabled;
+        TxtClr := MenuItemAppearance.TextColorDisabled;
       end;
 
       if (GradColor <> clNone) and (GradColorTo <> clNone) then
@@ -5601,7 +6443,7 @@ begin
         R2.Left := R2.left + AdvPreviewMenu.SubMenuImages.Width + FImageSpace;
       end;
 
-      R2.Top := R.Top + SubMenuItemSpacing;
+      //R2.Top := R.Top + SubMenuItemSpacing;
       //------ Draw Text
       ACanvas.Brush.Style := bsClear;
       if (SubItems.Items[AIndex].Title <> '') or (SubItems.Items[AIndex].WideTitle <> '') then
@@ -5609,29 +6451,41 @@ begin
         ACanvas.Font.Assign(MenuItemAppearance.SubItemTitleFont);
         ACanvas.Font.Color := TxtClr;
         if (SubItems.Items[AIndex].Notes.Count = 0) and (SubItems.Items[AIndex].WideNotes = '') then
-          DTSTYLE := DT_SINGLELINE or DT_VCENTER or DT_LEFT
+        begin
+          DTSTYLE := DT_SINGLELINE or DT_VCENTER or DT_LEFT;
+          VAlign := tvaCenter;          
+        end  
         else
+        begin
           DTSTYLE := DT_SINGLELINE or DT_TOP or DT_LEFT;
+          VAlign := tvaTop;
+        end;  
         if (SubItems.Items[AIndex].Title <> '') then
         begin
+          DrawVistaText(ACanvas, taLeftjustify, VAlign, DTSTYLE, R2, SubItems.Items[AIndex].Title, '', ACanvas.Font, True, True, FAdvPreviewMenu.AntiAlias);
+          (* 
     {$IFNDEF TMSDOTNET}
           DrawText(ACanvas.Handle, PChar(SubItems.Items[AIndex].Title), -1, R2, DTSTYLE);
     {$ENDIF}
     {$IFDEF TMSDOTNET}
           DrawText(ACanvas.Handle, SubItems.Items[AIndex].Title, -1, R2, DTSTYLE);
     {$ENDIF}
+          *)
           R3 := Rect(0,0,1000,100);
           DrawText(ACanvas.Handle,PChar(SubItems.Items[AIndex].Title),Length(SubItems.Items[AIndex].Title), R3, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
           R2.Top := R2.Top + R3.Bottom + FLineSpace*2;
         end
         else
         begin
+          DrawVistaText(ACanvas, taLeftjustify, VAlign, DTSTYLE, R2, '', SubItems.Items[AIndex].WideTitle, ACanvas.Font, True, True, FAdvPreviewMenu.AntiAlias);
+          (*
     {$IFNDEF TMSDOTNET}
           DrawTextW(ACanvas.Handle, PWideChar(SubItems.Items[AIndex].WideTitle), -1, R2, DTSTYLE);
     {$ENDIF}
     {$IFDEF TMSDOTNET}
           DrawTextW(ACanvas.Handle, SubItems.Items[AIndex].WideTitle, -1, R2, DTSTYLE);
     {$ENDIF}
+          *)
           R3 := Rect(0,0,1000,100);
           DrawTextW(ACanvas.Handle,PWideChar(SubItems.Items[AIndex].WideTitle),Length(SubItems.Items[AIndex].WideTitle), R3, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
           R2.Top := R2.Top + R3.Bottom + FLineSpace*2;
@@ -5646,13 +6500,15 @@ begin
         begin
           if (SubItems.Items[AIndex].Notes[i] <> '') then
           begin
+            DrawVistaText(ACanvas, taLeftjustify, tvaTop, DT_SINGLELINE or DT_TOP or DT_LEFT, R2, SubItems.Items[AIndex].Notes[i], '', ACanvas.Font, True, True, FAdvPreviewMenu.AntiAlias);
+            (*
       {$IFNDEF TMSDOTNET}
             DrawText(ACanvas.Handle, PChar(SubItems.Items[AIndex].Notes[i]), -1, R2, DT_SINGLELINE or DT_TOP or DT_LEFT);
       {$ENDIF}
       {$IFDEF TMSDOTNET}
             DrawText(ACanvas.Handle, SubItems.Items[AIndex].Notes[i], -1, R2, DT_SINGLELINE or DT_TOP or DT_LEFT);
       {$ENDIF}
-
+            *)
             R3 := Rect(0,0,1000,100);
             DrawText(ACanvas.Handle,PChar(SubItems.Items[AIndex].Notes[i]),Length(SubItems.Items[AIndex].Notes[i]), R3, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
             R2.Top := R2.Top + R3.Bottom + FLineSpace;
@@ -5661,12 +6517,15 @@ begin
       end
       else if (SubItems.Items[AIndex].WideNotes <> '') then
       begin
+        DrawVistaText(ACanvas, taLeftjustify, tvaTop, {DT_WORDBREAK or }DT_TOP or DT_LEFT, R2, '', SubItems.Items[AIndex].WideNotes, ACanvas.Font, True, True, FAdvPreviewMenu.AntiAlias);
+        (*
   {$IFNDEF TMSDOTNET}
         DrawTextW(ACanvas.Handle, PWideChar(SubItems.Items[AIndex].WideNotes), -1, R2, DT_WORDBREAK or DT_TOP or DT_LEFT);
   {$ENDIF}
   {$IFDEF TMSDOTNET}
         DrawTextW(ACanvas.Handle, SubItems.Items[AIndex].WideNotes, -1, R2, DT_WORDBREAK or DT_TOP or DT_LEFT);
   {$ENDIF}
+        *)
 
         R3 := Rect(0,0,1000,100);
         DrawTextW(ACanvas.Handle,PWideChar(SubItems.Items[AIndex].WideNotes),Length(SubItems.Items[AIndex].WideNotes), R3, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
@@ -5770,11 +6629,11 @@ begin
   begin
     R := GetSubMenuCaptionRect;
     ACanvas.Pen.Color := clSilver;
-    ACanvas.MoveTo(R.Left, R.Top);
+    ACanvas.MoveTo(R.Left + 1, R.Top);
     ACanvas.LineTo(R.Right, R.Top);
     R := GetRightFrameRect;
-    ACanvas.MoveTo(R.Left+1, R.Top+2);
-    ACanvas.LineTo(R.Left+1, R.Bottom-4);
+    ACanvas.MoveTo(R.Left + 1, R.Top + 2);
+    ACanvas.LineTo(R.Left + 1, R.Bottom - 5);
   end;
 
   //----- Draw SubMenu Items
@@ -5792,51 +6651,55 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvPreviewMenuPanel.DrawRightFrame(WithItems: Boolean = True);
+procedure TAdvPreviewMenuPanel.DrawRightFrame(ACanvas: TCanvas; WithItems: Boolean = True);
 var
   R: TRect;
 begin
   if not Assigned(AdvPreviewMenu) then
     Exit;
 
+  if (ACanvas = nil) then
+    ACanvas := Canvas;
+
   if (FSubMenuItem >= 0) then
-    Canvas.Brush.Color := AdvPreviewMenu.FCurrentStyler.LeftFrameColor
+    ACanvas.Brush.Color := AdvPreviewMenu.FCurrentStyler.LeftFrameColor
   else
-    Canvas.Brush.Color := AdvPreviewMenu.FCurrentStyler.RightFrameColor;
+    ACanvas.Brush.Color := AdvPreviewMenu.FCurrentStyler.RightFrameColor;
   R := GetRightFrameRect;
   R := Rect(R.left+1, R.Top+1, R.Right-1, R.Bottom-1);
-  Canvas.FillRect(R);
+  ACanvas.FillRect(R);
 
   if (FSubMenuItem >= 0) then
   begin
     R.Right := R.Right - SHADOW_WIDTH;
     R.Bottom := R.Bottom - SHADOW_WIDTH;
 
-    Canvas.Pen.Color := AdvPreviewMenu.FCurrentStyler.FrameAppearance.BorderColor;
-    Canvas.MoveTo(R.Right, R.Top);
-    Canvas.LineTo(R.Right, R.Bottom);
-    Canvas.MoveTo(R.Left-1, R.Bottom);
-    Canvas.LineTo(R.Right+1, R.Bottom);
+    ACanvas.Pen.Color := AdvPreviewMenu.FCurrentStyler.FrameAppearance.BorderColor;
+    ACanvas.MoveTo(R.Right, R.Top+1);
+    ACanvas.LineTo(R.Right, R.Bottom);
+    ACanvas.MoveTo(R.Left+1, R.Bottom);
+    ACanvas.LineTo(R.Right, R.Bottom);
     //-- Draw Shadow
-    Canvas.Pen.Color := AdvPreviewMenu.FCurrentStyler.RightFrameBorderColor;
-    Canvas.MoveTo(R.Right+1, R.Top + 3);
-    Canvas.LineTo(R.Right+1, R.Bottom+2);
-    Canvas.MoveTo(R.Left + 3, R.Bottom+1);
-    Canvas.LineTo(R.Right+4, R.Bottom+1);
-    Canvas.Pen.Color := BlendColor(AdvPreviewMenu.FCurrentStyler.RightFrameBorderColor, clWhite, 70);
-    Canvas.MoveTo(R.Right+2, R.Top + 4);
-    Canvas.LineTo(R.Right+2, R.Bottom+2);
-    Canvas.MoveTo(R.Left + 4, R.Bottom+2);
-    Canvas.LineTo(R.Right+4, R.Bottom+2);
-    Canvas.Pen.Color := BlendColor(AdvPreviewMenu.FCurrentStyler.RightFrameBorderColor, clWhite, 50);
-    Canvas.MoveTo(R.Right+3, R.Top + 5);
-    Canvas.LineTo(R.Right+3, R.Bottom+2);
-    Canvas.MoveTo(R.Left + 5, R.Bottom+3);
-    Canvas.LineTo(R.Right+4, R.Bottom+3);
+    ACanvas.Pen.Color := AdvPreviewMenu.FCurrentStyler.RightFrameBorderColor;
+    ACanvas.MoveTo(R.Right+1, R.Top + 3);
+    ACanvas.LineTo(R.Right+1, R.Bottom+2);
+    ACanvas.MoveTo(R.Left + 3, R.Bottom+1);
+    ACanvas.LineTo(R.Right+2, R.Bottom+1);
+    ACanvas.Pixels[R.Right, R.Bottom] := ACanvas.Pen.Color;
+    ACanvas.Pen.Color := BlendColor(AdvPreviewMenu.FCurrentStyler.RightFrameBorderColor, clWhite, 70);
+    ACanvas.MoveTo(R.Right+2, R.Top + 4);
+    ACanvas.LineTo(R.Right+2, R.Bottom+2);
+    ACanvas.MoveTo(R.Left + 4, R.Bottom+2);
+    ACanvas.LineTo(R.Right+3, R.Bottom+2);
+    ACanvas.Pen.Color := BlendColor(AdvPreviewMenu.FCurrentStyler.RightFrameBorderColor, clWhite, 50);
+    ACanvas.MoveTo(R.Right+3, R.Top + 5);
+    ACanvas.LineTo(R.Right+3, R.Bottom+1);
+    ACanvas.MoveTo(R.Left + 5, R.Bottom+3);
+    ACanvas.LineTo(R.Right+2, R.Bottom+3);
   end;
 
   if WithItems then
-    DrawSubMenuItems;
+    DrawSubMenuItems(ACanvas);
 end;
 
 //------------------------------------------------------------------------------
@@ -5850,6 +6713,8 @@ begin
   if not Assigned(AdvPreviewMenu) then
     Exit;
 
+  TabStop := true;
+  TabOrder := 0;    
   FTopSubMenuItem := 0;
   ShowHint := AdvPreviewMenu.ShowHint;
   FShortCutItemHintShowing := False;
@@ -5863,6 +6728,7 @@ begin
   FSubMenuItem := -1;
   FSubMenuItemHot := -1;
   FSubMenuItemDown := -1;
+  FButtonHot := -1;
 
   //---- Left Frame Size Calculation
   GetMaxItemSize(Ih, Iw);
@@ -5874,7 +6740,7 @@ begin
   rw := 0;
   for i:= 0 to AdvPreviewMenu.MenuItems.Count-1 do
   begin
-    if not AdvPreviewMenu.MenuItems.Items[i].Visible then
+    if (not AdvPreviewMenu.MenuItems.Items[i].Visible) and not FEditorCreated then
       Continue;
 
     GetSubMenuMaxItemSize(i, sIh, sIw);
@@ -5968,6 +6834,7 @@ begin
       AdvGlowBtn.Enabled := AdvPreviewMenu.Buttons.Items[i].Enabled;
       AdvGlowBtn.Font.Assign(AdvPreviewMenu.Buttons.Items[i].Font);
       AdvGlowBtn.Caption := AdvPreviewMenu.Buttons.Items[i].Caption;
+      AdvGlowBtn.AntiAlias := AdvPreviewMenu.AntiAlias;
       AdvGlowBtn.ShowCaption := (AdvGlowBtn.Caption <> '');
       AdvGlowBtn.Images := AdvPreviewMenu.ButtonImages;
       AdvGlowBtn.ImageIndex := AdvPreviewMenu.Buttons.Items[i].ImageIndex;
@@ -5978,9 +6845,25 @@ begin
         AdvGlowBtn.Top := FRightFrameRect.Bottom + 4;
         AdvGlowBtn.Left := j - AdvGlowBtn.Width;
         AdvGlowBtn.OnClick := OnButtonClick;
+        AdvGlowBtn.OnKeyPress := OnButtonKeyPress;
+        AdvGlowBtn.OnKeyDown := OnButtonKeyDown;
+        AdvGlowBtn.TabStop := true;
+        //AdvGlowBtn.TabOrder := FButtonList.Count - i;
         AdvGlowBtn.Action := AdvPreviewMenu.Buttons.Items[i].Action;
         AdvGlowBtn.Caption := AdvPreviewMenu.Buttons.Items[i].Caption;
         j := AdvGlowBtn.Left - AdvPreviewMenu.ButtonSpacing;
+      end;
+    end;
+  end;
+
+  for i:= FButtonList.Count - 1 downto 0 do
+  begin
+    if (i < AdvPreviewMenu.Buttons.Count) then
+    begin
+      AdvGlowBtn := TAdvGlowButton(FButtonList.Items[i]);
+      if AdvGlowBtn.Visible then
+      begin
+        AdvGlowBtn.TabOrder := i + 1;
       end;
     end;
   end;
@@ -6002,13 +6885,13 @@ var
 begin
   Result := -1;
   if not Assigned(FAdvPreviewMenu) or (Index < 0) or (Index >= FAdvPreviewMenu.MenuItems.Count)
-     or not FAdvPreviewMenu.MenuItems.Items[Index].Visible then
+     or (not FAdvPreviewMenu.MenuItems.Items[Index].Visible and not FEditorCreated) then
     Exit;
 
   Result := 0;
   for i := 0 to Index-1 do
   begin
-    if FAdvPreviewMenu.MenuItems.Items[i].Visible then
+    if (FAdvPreviewMenu.MenuItems.Items[i].Visible or FEditorCreated) then
       Result := Result + 1;
   end;
 end;
@@ -6026,7 +6909,7 @@ begin
   j := -1;
   for i := 0 to FAdvPreviewMenu.MenuItems.Count-1 do
   begin
-    if FAdvPreviewMenu.MenuItems.Items[i].Visible then
+    if FAdvPreviewMenu.MenuItems.Items[i].Visible or FEditorCreated then
     begin
       Inc(j);
     end;
@@ -6051,7 +6934,7 @@ begin
 
   for i := 0 to FAdvPreviewMenu.MenuItems.Count-1 do
   begin
-    if FAdvPreviewMenu.MenuItems.Items[i].Visible then
+    if FAdvPreviewMenu.MenuItems.Items[i].Visible or FEditorCreated then
       Result := Result + 1;
   end;
 end;
@@ -6096,7 +6979,7 @@ begin
   h := 0;
   for i:= 0 to FAdvPreviewMenu.MenuItems.Count-1 do
   begin
-    if not FAdvPreviewMenu.MenuItems.Items[i].Visible then
+    if not FAdvPreviewMenu.MenuItems.Items[i].Visible and not FEditorCreated then
       Continue;
     j := 0;
     iw := 0;
@@ -6183,15 +7066,26 @@ end;
 
 procedure TAdvPreviewMenuPanel.SelectItem(Index: Integer);
 begin
+  if FEditorCreated then
+  begin
+    if (FItemIndex <> Index) then
+    begin
+      SetSelectedItem(Index);
+      Exit;
+    end;
+  end;
+
   if not Assigned(AdvPreviewMenu) or (Index < 0) or (Index >= FAdvPreviewMenu.MenuItems.Count) then
     Exit;
 
   if ((AdvPreviewMenu.MenuItems.Items[Index].SubItems.Count = 0) or (AdvPreviewMenu.MenuItems.Items[Index].CanSelect)) and AdvPreviewMenu.MenuItems.Items[Index].Enabled then
   begin
-    AdvPreviewMenu.HideMenu;
+    if not FEditorCreated then
+      AdvPreviewMenu.HideMenu;
 
     FItemIndex := Index;
-    AdvPreviewMenu.MenuItems.Items[Index].Click;
+    if not FEditorCreated then
+      AdvPreviewMenu.MenuItems.Items[Index].Click;
     //if Assigned(AdvPreviewMenu.MenuItems.Items[Index].OnClick) then
       //AdvPreviewMenu.MenuItems.Items[Index].FOnClick(AdvPreviewMenu{, AdvPreviewMenu.MenuItems.Items[Index]});
 
@@ -6222,7 +7116,7 @@ begin
     DrawItem(FItemHot);
     if (AdvPreviewMenu.MenuItems.Items[FItemHot].SubItems.Count > 0) then
     begin
-      if FMouseSetHot then
+      if FMouseSetHot and not FEditorCreated then
       begin
         FMouseItemHot := FItemHot;
         FMouseTimer.Enabled := True;
@@ -6232,7 +7126,7 @@ begin
     end
     else
     begin
-      if FMouseSetHot then
+      if FMouseSetHot and not FEditorCreated then
       begin
         FMouseItemHot := -1;
         FMouseTimer.Enabled := True;
@@ -6354,13 +7248,13 @@ begin
   Result := -1;
   SubItems := GetSubMenuItems;
   if not Assigned(FAdvPreviewMenu) or (SubItems = nil) or (Index < 0) or (Index >= SubItems.Count)
-     or not SubItems.Items[Index].Visible then
+     or (not SubItems.Items[Index].Visible and not FEditorCreated) then
     Exit;
 
   Result := 0;
   for i := 0 to Index-1 do
   begin
-    if SubItems.Items[i].Visible then
+    if SubItems.Items[i].Visible or FEditorCreated then
       Result := Result + 1;
   end;
 end;
@@ -6380,7 +7274,7 @@ begin
   j := -1;
   for i := 0 to SubItems.Count-1 do
   begin
-    if SubItems.Items[i].Visible then
+    if SubItems.Items[i].Visible or FEditorCreated then
     begin
       Inc(j);
     end;
@@ -6411,7 +7305,7 @@ begin
 
   for i := 0 to SubItems.Count-1 do
   begin
-    if SubItems.Items[i].Visible then
+    if SubItems.Items[i].Visible or FEditorCreated then
       Result := Result + 1;
   end;
 end;
@@ -6445,6 +7339,7 @@ var
   SubMenuItemSpacing: Integer;
   SubMenuCaption: string;
   WideSubMenuCaption: widestring;
+  SubMenuItemHeight: Integer;
 begin
   if not Assigned(AdvPreviewMenu) or (Index >= AdvPreviewMenu.MenuItems.Count) then
     Exit;
@@ -6455,6 +7350,7 @@ begin
     SubMenuItemSpacing := FAdvPreviewMenu.MenuItems.Items[Index].SubmenuItemSpacing;
     SubMenuCaption := FAdvPreviewMenu.MenuItems.Items[Index].SubMenuCaption;
     WideSubMenuCaption := FAdvPreviewMenu.MenuItems.Items[Index].WideSubMenuCaption;
+    SubMenuItemHeight := FAdvPreviewMenu.MenuItems.Items[Index].SubMenuItemHeight;
   end
   else if (Index < 0) and Assigned(SubMenuItems) then
   begin
@@ -6462,6 +7358,7 @@ begin
     SubMenuItemSpacing := FAdvPreviewMenu.SubMenuItemSpacing;
     SubMenuCaption := FAdvPreviewMenu.SubMenuCaption;
     WideSubMenuCaption := FAdvPreviewMenu.WideSubMenuCaption;
+    SubMenuItemHeight := FAdvPreviewMenu.SubMenuItemHeight;
   end
   else
   begin
@@ -6479,7 +7376,7 @@ begin
     DrawText(Canvas.Handle,PChar(SubMenuCaption),Length(SubMenuCaption), R, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
     w := R.Right;
     h := R.Bottom;
-    FSubMenuCaptionHeight := h + SubmenuItemSpacing + 4;
+    FSubMenuCaptionHeight := h + SubmenuItemSpacing + 6;
   end
   else if (WideSubMenuCaption <> '') then
   begin
@@ -6488,7 +7385,7 @@ begin
     DrawTextW(Canvas.Handle,PWideChar(WideSubMenuCaption),Length(WideSubMenuCaption), R, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
     w := R.Right;
     h := R.Bottom;
-    FSubMenuCaptionHeight := h + SubmenuItemSpacing + 4;
+    FSubMenuCaptionHeight := h + SubmenuItemSpacing + 6;
   end
   else
   begin
@@ -6497,7 +7394,7 @@ begin
 
   for i:= 0 to SubItems.Count-1 do
   begin
-    if not SubItems.Items[i].Visible then
+    if not SubItems.Items[i].Visible and not FEditorCreated then
       Continue;
       
     j := 0;
@@ -6557,8 +7454,9 @@ begin
         if (SubItems.Items[i].Notes[n] <> '') then
         begin
           R := Rect(0,0,1000,100);
-          DrawText(Canvas.Handle,PChar(SubItems.Items[i].Notes[n]),Length(SubItems.Items[i].Notes[n]), R, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
-          tw := Max(tw, R.Right + j);
+          //DrawText(Canvas.Handle,PChar(SubItems.Items[i].Notes[n]),Length(SubItems.Items[i].Notes[n]), R, DT_CALCRECT or DT_LEFT or DT_SINGlELINE);
+          R := DrawVistaText(Canvas, taLeftjustify, tvaTop, DT_CALCRECT or DT_LEFT or DT_SINGlELINE, R, SubItems.Items[i].Notes[n], '', Canvas.Font, True, False, FAdvPreviewMenu.AntiAlias);          
+          tw := Max(tw, R.Right + j + 4);
           th := th + FLineSpace + R.Bottom;
         end;
       end;
@@ -6568,7 +7466,7 @@ begin
       R := Rect(0,0,1000,100);
       if (FAdvPreviewMenu.SubMenuWidth > 0) then
         R.Right := FAdvPreviewMenu.SubMenuWidth;
-      DrawTextW(Canvas.Handle,PWideChar(SubItems.Items[i].WideNotes),Length(SubItems.Items[i].WideNotes), R, DT_CALCRECT or DT_LEFT or DT_WORDBREAK);
+      DrawTextW(Canvas.Handle,PWideChar(SubItems.Items[i].WideNotes),Length(SubItems.Items[i].WideNotes), R, DT_CALCRECT or DT_LEFT {or DT_WORDBREAK});
       tw := Max(tw, R.Right + j);
       th := th + (FLineSpace * max(1, R.Bottom div Canvas.TextHeight('gh')))+ 4 + R.Bottom;
     end;
@@ -6580,7 +7478,10 @@ begin
   w := w + SubmenuItemSpacing*2 + 2;
   h := h + SubmenuItemSpacing*2;
   AWidth := w;
-  AHeight := h;
+  if (SubMenuItemHeight > 0) then
+    AHeight := SubMenuItemHeight
+  else
+    AHeight := h;
 end;
 
 
@@ -6595,6 +7496,12 @@ begin
      or (Index < 0) or (Index >= SubItems.Count) then
     Exit;
 
+  if FEditorCreated then
+  begin
+    SetSelectedSubItem(Index);
+    Exit;
+  end;
+
   if not Assigned(SubItems.Items[Index].SubMenu) and SubItems.Items[Index].Enabled then
   begin
     AdvPreviewMenu.HideMenu;
@@ -6602,7 +7509,7 @@ begin
     SubItems.Items[Index].Click;
     //if Assigned(SubItems.Items[Index].OnClick) then
       //SubItems.Items[Index].FOnClick(AdvPreviewMenu{, SubItems.Items[Index]});
-      
+
     if Assigned(AdvPreviewMenu.OnSubMenuItemClick) then
       AdvPreviewMenu.OnSubMenuItemClick(AdvPreviewMenu, FSubMenuItem, Index);
   end;
@@ -6860,7 +7767,7 @@ begin
     FSubMenuItem := Value;
     CalculateSubMenuItemSize;
     InitializeScroller;
-    DrawRightFrame;
+    DrawRightFrame(Canvas);
   end;
 end;
 
@@ -6904,7 +7811,7 @@ begin
     Exit;
 
   HideMenuWindow;
-    
+
   i := FButtonList.IndexOf(Sender);
   if (i >= 0) and (i < AdvPreviewMenu.Buttons.Count) then
   begin
@@ -6917,6 +7824,23 @@ begin
     begin
       AdvPreviewMenu.FOnButtonClick(AdvPreviewMenu, FButtonList.IndexOf(Sender));
     end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.OnButtonKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.OnButtonKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = VK_ESCAPE) then
+  begin
+    HideMenuWindow;
   end;
 end;
 
@@ -7028,6 +7952,9 @@ begin
 
   FShortCutItemHintShowing := (AdvPreviewMenu.MenuItems.Count > 0);
   FShortCutChars := '';
+
+  if (ItemHot < 0) then
+    ItemHotNext;
 end;
 
 //------------------------------------------------------------------------------
@@ -7445,6 +8372,9 @@ begin
   if not Assigned(SubItems) then
     Exit;
 
+  if not Assigned(AdvPreviewMenu) then
+    Exit;
+
   j := 5;
   if (Value > FTopSubMenuItem) and (Value < SubItems.Count) then
   begin
@@ -7454,6 +8384,15 @@ begin
     FSubMenuScrolling := True;
     i := FTopSubMenuItem;
     FTopSubMenuItem := 0;
+    // background
+    if (FSubMenuItem >= 0) then
+      bmp.Canvas.Brush.Color := AdvPreviewMenu.FCurrentStyler.LeftFrameColor
+    else
+      bmp.Canvas.Brush.Color := AdvPreviewMenu.FCurrentStyler.RightFrameColor;
+    R := GetRightFrameRect;
+    R := Rect(0, 0, bmp.Width, bmp.Height);
+    bmp.Canvas.FillRect(R);
+    //----
     DrawSubMenuItems(bmp.Canvas);
     FTopSubMenuItem := i;
     FSubMenuScrolling := False;
@@ -7506,6 +8445,15 @@ begin
     FSubMenuScrolling := True;
     h := FTopSubMenuItem;
     FTopSubMenuItem := 0;
+    // background
+    if (FSubMenuItem >= 0) then
+      bmp.Canvas.Brush.Color := AdvPreviewMenu.FCurrentStyler.LeftFrameColor
+    else
+      bmp.Canvas.Brush.Color := AdvPreviewMenu.FCurrentStyler.RightFrameColor;
+    R := GetRightFrameRect;
+    R := Rect(0, 0, bmp.Width, bmp.Height);
+    bmp.Canvas.FillRect(R);
+    //----
     DrawSubMenuItems(bmp.Canvas);
     FTopSubMenuItem := h;
     FSubMenuScrolling := False;
@@ -7566,7 +8514,7 @@ begin
 
       for i := k to SubItems.Count -1 do
       begin
-        if SubItems.Items[i].Visible then
+        if SubItems.Items[i].Visible or FEditorCreated then
           j := j + 1;
         if (j >= (FSubMenuVisibleItemCount * Result)) then
           Break;
@@ -7589,7 +8537,7 @@ begin
       k := VisIndexToRealSubItemIndex(FTopSubMenuItem); //VisIndexToRealItemIndex(FTopSubMenuItem);
       for i := k downto 0 do
       begin
-        if SubItems.Items[i].Visible then
+        if SubItems.Items[i].Visible or FEditorCreated then
           j := j + 1;
         if (j >= abs(FSubMenuVisibleItemCount * Result)) or (j >= FTopSubMenuItem) then
           Break;
@@ -7626,6 +8574,209 @@ end;
 procedure TAdvPreviewMenuPanel.SubMenuScrollUpClick;
 begin
   ScrollSubMenu(-1);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.SetSelectedItem(Index: Integer);
+var
+  i: Integer;
+begin
+  if (FSelectedItem <> Index) then
+  begin
+    if Assigned(AdvPreviewMenu.OnMenuItemClick) then
+      AdvPreviewMenu.OnMenuItemClick(AdvPreviewMenu, Index);
+
+    i := FSelectedItem;
+    FSelectedItem := Index;
+    if (i >= 0) then
+      DrawItem(i, True);
+    DrawItem(FSelectedItem);
+    SetSelectedSubItem(0);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.SetSelectedSubItem(Index: Integer);
+var
+  i: Integer;
+  SubItems: TAdvPreviewSubMenuItems;
+begin
+  SubItems := GetSubMenuItems;
+  if (Index < SubItems.Count) then
+  begin
+    if Assigned(AdvPreviewMenu.OnSubMenuItemClick) then
+      AdvPreviewMenu.OnSubMenuItemClick(AdvPreviewMenu, FSubMenuItem, Index);
+
+    i := FSelectedSubItem;
+    FSelectedSubItem := Index;
+    if (i >= 0) then
+      DrawSubMenuItem(i, True);
+    DrawSubMenuItem(FSelectedSubItem);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.WMGetDlgCode(var Message: TMessage);
+begin
+  Message.Result := DLGC_WANTARROWS + DLGC_WANTCHARS + DLGC_WANTTAB;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.ButtonHotNext;
+var
+  i, j: Integer;
+begin
+  if not Assigned(AdvPreviewMenu) then
+    Exit;
+
+  j := FButtonHot;
+  if (j < 0) then
+    j := FButtonList.Count - 2;
+
+  for i:= FButtonList.Count-1 downto 0 do
+  begin
+    j := j + 1;
+    if (j >= FButtonList.Count) or (j < 0) then
+      j := 0;
+
+    if (TAdvGlowButton(FButtonList.Items[j]).Enabled) and (TAdvGlowButton(FButtonList.Items[j]).Visible) then
+    begin
+      ButtonHot := j;
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.ButtonHotLast;
+var
+  i, j: Integer;
+begin
+  if not Assigned(AdvPreviewMenu) then
+    Exit;
+
+  j := -1;
+  for i:= 0 to FButtonList.Count - 1 do
+  begin
+    j := j + 1;
+    if (j >= FButtonList.Count) or (j < 0) then
+      j := 0;
+
+    if (TAdvGlowButton(FButtonList.Items[j]).Enabled) and (TAdvGlowButton(FButtonList.Items[j]).Visible) then
+    begin
+      ButtonHot := j;
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.ButtonHotPrevious;
+var
+  i, j: Integer;
+begin
+  if not Assigned(AdvPreviewMenu) then
+    Exit;
+
+  j := FItemHot;
+  for i:= 0 to FButtonList.Count - 1 do
+  begin
+    j := j - 1;
+    if (j < 0) then
+      j := FButtonList.Count-1;
+
+    if (j >= FButtonList.Count) then
+      j := 0;
+
+    if (TAdvGlowButton(FButtonList.Items[j]).Enabled) and (TAdvGlowButton(FButtonList.Items[j]).Visible) then
+    begin
+      ButtonHot := j;
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvPreviewMenuPanel.IsFirstButton(Index: Integer; CheckEnable,
+  CheckVisible: Boolean): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  if not Assigned(AdvPreviewMenu) or (Index < 0) or (Index >= FButtonList.Count) then
+    Exit;
+
+  for i:= FButtonList.Count - 1 downto 0 do
+  begin
+    if (not CheckEnable or TAdvGlowButton(FButtonList.Items[i]).Enabled) and (not CheckVisible or TAdvGlowButton(FButtonList.Items[i]).Visible) then
+    begin
+      Result := (Index = i);
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvPreviewMenuPanel.IsLastButton(Index: Integer; CheckEnable,
+  CheckVisible: Boolean): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  if not Assigned(AdvPreviewMenu) or (Index < 0) or (Index >= FButtonList.Count) then
+    Exit;
+
+  for i:= 0 to FButtonList.Count - 1 do
+  begin
+    if (not CheckEnable or TAdvGlowButton(FButtonList.Items[i]).Enabled) and (not CheckVisible or TAdvGlowButton(FButtonList.Items[i]).Visible) then
+    begin
+      Result := (Index = i);
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.SetButtonHot(const Value: Integer);
+begin
+  if (FButtonHot <> Value) and (Value < FButtonList.Count) then
+  begin
+    FButtonHot := Value;
+    if (FButtonHot >= 0) then
+    begin
+      TAdvGlowButton(FButtonList.Items[FButtonHot]).SetFocus;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPreviewMenuPanel.CMFocusChanged(
+  var Message: TCMFocusChanged);
+var
+  shf: Boolean;  
+begin
+  with Message do
+    if Sender is TAdvPreviewMenuPanel then
+    begin
+      Shf := (GetKeyState(VK_SHIFT) and $8000 = $8000);
+      ButtonHot := -1;
+      SubMenuItemHot := -1;
+      if shf then
+        SubMenuItemHotLast
+      else if Assigned(FAdvPreviewMenu) and FAdvPreviewMenu.FMenuShowing then
+        ItemHotNext;
+    end;
+  inherited;
 end;
 
 //------------------------------------------------------------------------------
@@ -7855,7 +9006,11 @@ end;
 
 procedure TSubItemActionLink.SetEnabled(Value: Boolean);
 begin
-  if IsEnabledLinked then FClient.Enabled := Value;
+  if IsEnabledLinked then
+  begin
+    if not ForceEnableAction or (Assigned(TAdvPreviewSubMenuItems(FClient.Collection).FPreviewMenu) and not TAdvPreviewSubMenuItems(FClient.Collection).FPreviewMenu.FMenuShowing) then
+      FClient.Enabled := Value;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -7934,5 +9089,234 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+{ TButtonItemActionLink }
+
+procedure TButtonItemActionLink.AssignClient(AClient: TObject);
+begin
+  FClient := AClient as TButtonCollectionItem;
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsCaptionLinked: Boolean;
+begin
+  Result := inherited IsCaptionLinked and
+            AnsiSameCaption(FClient.Caption, (Action as TCustomAction).Caption);
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsCheckedLinked: Boolean;
+begin
+  Result := False; {inherited IsCheckedLinked and
+    (FClient.Checked = (Action as TCustomAction).Checked);}
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsEnabledLinked: Boolean;
+begin
+  Result := inherited IsEnabledLinked and
+    (FClient.Enabled = (Action as TCustomAction).Enabled);
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsHelpContextLinked: Boolean;
+begin
+  Result := False; {inherited IsHelpContextLinked and
+    (FClient.HelpContext = (Action as TCustomAction).HelpContext);}
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsHintLinked: Boolean;
+begin
+  Result := False; {inherited IsHintLinked and
+    (FClient.Hint = (Action as TCustomAction).Hint);}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF DELPHI6_LVL}
+function TButtonItemActionLink.IsGroupIndexLinked: Boolean;
+begin
+  Result := False; {FClient.RadioItem and inherited IsGroupIndexLinked and
+    (FClient.GroupIndex = (Action as TCustomAction).GroupIndex);}
+end;
+{$ENDIF}
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsImageIndexLinked: Boolean;
+begin
+  Result := inherited IsImageIndexLinked and
+    (FClient.ImageIndex = (Action as TCustomAction).ImageIndex);
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsShortCutLinked: Boolean;
+begin
+  Result := False; {inherited IsShortCutLinked and
+    (FClient.ShortCut = (Action as TCustomAction).ShortCut);}
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsVisibleLinked: Boolean;
+begin
+  Result := inherited IsVisibleLinked and
+    (FClient.Visible = (Action as TCustomAction).Visible);
+end;
+
+//------------------------------------------------------------------------------
+
+function TButtonItemActionLink.IsOnExecuteLinked: Boolean;
+begin
+  Result := inherited IsOnExecuteLinked and
+    (@FClient.OnClick = @Action.OnExecute);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TButtonItemActionLink.SetCaption(const Value: string);
+begin
+  if IsCaptionLinked then FClient.Caption := Value;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TButtonItemActionLink.SetEnabled(Value: Boolean);
+begin
+  if IsEnabledLinked then
+  begin
+    //if not ForceEnableAction or (Assigned(TAdvPreviewSubMenuItems(FClient.Collection).FPreviewMenu) and not TAdvPreviewSubMenuItems(FClient.Collection).FPreviewMenu.FMenuShowing) then
+      //FClient.Enabled := Value;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TButtonItemActionLink.SetImageIndex(Value: Integer);
+begin
+  if IsImageIndexLinked then FClient.ImageIndex := Value;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TButtonItemActionLink.SetVisible(Value: Boolean);
+begin
+  if IsVisibleLinked then FClient.Visible := Value;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TButtonItemActionLink.SetOnExecute(Value: TNotifyEvent);
+begin
+  //if IsOnExecuteLinked then FClient.OnClick := Value;
+end;
+
+//------------------------------------------------------------------------------
+
+{ TPreviewMenuControl }
+
+constructor TPreviewMenuControl.Create(AOwner: TComponent);
+begin
+  inherited;
+  FOwner := AOwner;
+  CreatePreviewMenu;
+end;
+
+//------------------------------------------------------------------------------
+
+destructor TPreviewMenuControl.Destroy;
+begin
+  DestroyPreviewMenu;
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TPreviewMenuControl.CreatePreviewMenu;
+begin
+  if (FAdvPreviewMenu = nil) then
+  begin
+    FAdvPreviewMenu := TAdvPreviewMenu.Create(Self);
+    FAdvPreviewMenu.FEditorCreated := True;
+  end;
+
+  if (FAdvPreviewMenuPanel = nil) then
+  begin
+    FAdvPreviewMenuPanel := TAdvPreviewMenuPanel.Create(Self);
+    FAdvPreviewMenuPanel.Parent := Self;
+    FAdvPreviewMenuPanel.OnResize := OnPreviewPanelResize;
+    FAdvPreviewMenuPanel.Visible := True;
+    FAdvPreviewMenuPanel.FEditorCreated := True;
+  end;
+  FAdvPreviewMenu.FAdvPreviewMenuPanel := FAdvPreviewMenuPanel;
+  FAdvPreviewMenuPanel.AdvPreviewMenu := FAdvPreviewMenu;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TPreviewMenuControl.DestroyPreviewMenu;
+begin
+  if (FAdvPreviewMenu <> nil) then
+  begin
+    FAdvPreviewMenu.FAdvPreviewMenuPanel := nil;
+    FAdvPreviewMenu.Free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TPreviewMenuControl.Paint;
+begin
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TPreviewMenuControl.Resize;
+begin
+  inherited;
+
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TPreviewMenuControl.SetBounds(ALeft, ATop, AWidth,
+  AHeight: Integer);
+begin
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TPreviewMenuControl.AssignMenu(PreviewMenu: TAdvPreviewMenu);
+begin
+  if Assigned(AdvPreviewMenu) then
+  begin
+    FAdvPreviewMenu.MenuItems.Clear;
+    FAdvPreviewMenu.MenuItems.Assign(PreviewMenu.MenuItems);
+    FAdvPreviewMenu.SubMenuItems.Assign(PreviewMenu.SubMenuItems);
+    FAdvPreviewMenu.MenuImages := PreviewMenu.MenuImages;
+    FAdvPreviewMenu.SubMenuImages := PreviewMenu.SubMenuImages;
+    FAdvPreviewMenu.Styler := PreviewMenu.Styler;
+    FAdvPreviewMenu.SubMenuCaption := PreviewMenu.SubMenuCaption;
+    Self.ShowHint := PreviewMenu.ShowHint;
+    FAdvPreviewMenu.ShowHint := PreviewMenu.ShowHint;
+    FAdvPreviewMenuPanel.InitializeAndUpdate;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TPreviewMenuControl.OnPreviewPanelResize(Sender: TObject);
+begin
+  Width := FAdvPreviewMenuPanel.Width;
+  Height := FAdvPreviewMenuPanel.Height;
+end;
 
 end.

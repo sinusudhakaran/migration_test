@@ -1,7 +1,6 @@
 {*************************************************************************}
 { TMS TAdvSplitter component                                              }
 { for Delphi & C++Builder                                                 }
-{ version 1.0                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
 {           copyright ©  2007                                             }
@@ -30,10 +29,16 @@ uses
 const
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 0; // Minor version nr.
-  REL_VER = 0; // Release nr.
+  MIN_VER = 1; // Minor version nr.
+  REL_VER = 1; // Release nr.
   BLD_VER = 0; // Build nr.
 
+  // version history
+  // 1.0.0.0 : First release
+  // 1.1.0.0 : New : OnDblClick event added
+  //         : New : property DefaultSize added
+  // 1.1.1.0 : New : OnClick event exposed
+  
 type
   TGradientDirection = (gdHorizontal, gdVertical);
 
@@ -86,6 +91,7 @@ type
     FGlyph: TBitmap;
     FMouseInControl: Boolean;
     FGripStyle: TSplitterGripStyle;
+    FDefaultSize: integer;
     Procedure WMEraseBkGnd( Var msg: TWMEraseBkGnd ); message WM_ERASEBKGND;
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
@@ -96,9 +102,11 @@ type
     procedure SetVersion(const Value: string);
     procedure SetGlyph(const Value: TBitmap);
     procedure SetGripStyle(const Value: TSplitterGripStyle);
+    function FindControl: TControl;
   protected
     procedure Loaded; override;
     procedure Paint; override;
+    procedure DblClick; override;
 
     property Appearance: TSplitterAppearance read FAppearance write SetAppearance;
     property Version: string read GetVersion write SetVersion stored false;
@@ -108,16 +116,20 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure SetComponentStyle(AStyle: TTMSStyle);
-    function GetVersionNr: integer;    
+    function GetVersionNr: integer;
+    property DefaultSize: integer read FDefaultSize write FDefaultSize default 0;
   end;
 
   TAdvSplitter = class(TAdvCustomSplitter)
   published
     property Appearance;
+    property DefaultSize;
     property Glyph;
     property GripStyle;
     property ShowHint;
     property Version;
+    property OnClick;
+    property OnDblClick;
   end;
 
 implementation
@@ -335,6 +347,63 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvCustomSplitter.DblClick;
+var
+  FControl: TControl;
+begin
+  inherited;
+
+  if FDefaultSize <= 0 then
+    Exit;
+
+
+  case Align of
+    alTop:
+      begin
+        if DoCanResize(FDefaultSize) then
+        begin
+          FindControl.Height := FDefaultSize;
+        end;
+      end;
+    alBottom:
+      begin
+        if DoCanResize(FDefaultSize) then
+        begin
+          Parent.DisableAlign;
+          try
+            FControl := FindControl;
+            FControl.Top := FControl.Top + (FControl.Height - FDefaultSize);
+            FControl.Height := FDefaultSize;
+          finally
+            Parent.EnableAlign;
+          end;
+        end;
+      end;
+
+    alLeft:
+      begin
+        if DoCanResize(FDefaultSize) then
+        begin
+          FindControl.Width := FDefaultSize;
+        end;
+      end;
+    alRight:
+      begin
+        if DoCanResize(FDefaultSize) then
+        begin
+          Parent.DisableAlign;
+          FControl := FindControl;
+          try
+            FControl.Left := FControl.Left + (FControl.Width - FDefaultSize);
+            FControl.Width := FDefaultSize;
+          finally
+            Parent.EnableAlign;
+          end;
+        end;
+      end;
+  end;
+end;
+
 destructor TAdvCustomSplitter.Destroy;
 begin
   FAppearance.Free;
@@ -353,6 +422,45 @@ begin
   FMouseInControl := True;
   Invalidate;
 end;
+
+function TAdvCustomSplitter.FindControl: TControl;
+var
+  P: TPoint;
+  I: Integer;
+  R: TRect;
+begin
+  Result := nil;
+  P := Point(Left, Top);
+  case Align of
+    alLeft: Dec(P.X);
+    alRight: Inc(P.X, Width);
+    alTop: Dec(P.Y);
+    alBottom: Inc(P.Y, Height);
+  else
+    Exit;
+  end;
+  for I := 0 to Parent.ControlCount - 1 do
+  begin
+    Result := Parent.Controls[I];
+    if Result.Visible and Result.Enabled then
+    begin
+      R := Result.BoundsRect;
+      if (R.Right - R.Left) = 0 then
+        if Align in [alTop, alLeft] then
+          Dec(R.Left)
+        else
+          Inc(R.Right);
+      if (R.Bottom - R.Top) = 0 then
+        if Align in [alTop, alLeft] then
+          Dec(R.Top)
+        else
+          Inc(R.Bottom);
+      if PtInRect(R, P) then Exit;
+    end;
+  end;
+  Result := nil;
+end;
+
 
 //------------------------------------------------------------------------------
 

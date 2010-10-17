@@ -9,6 +9,12 @@ type
   TChartRecord = class (TBaseRecord)
   end;
 
+  TBeginRecord = class(TChartRecord)
+  end;
+
+  TEndRecord = class(TChartRecord)
+  end;
+
   TChartAIRecord = class (TChartRecord)
   private
     Flags, FLen: word;

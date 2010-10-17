@@ -6,10 +6,37 @@ interface
 uses Classes, SysUtils, UXlsBaseRecords, UXlsBaseRecordLists, UXlsOtherRecords,
      XlsMessages, UXlsRangeRecords, UXlsBaseList, UXlsCellRecords, UXlsFormula,
      {$IFDEF ConditionalExpressions}{$if CompilerVersion >= 14} variants,{$IFEND}{$ENDIF} //Delphi 6 or above
-     UXlsSST, UFlxMessages, UXlsColInfo, UXlsReferences, UXlsWorkbookGlobals, UXlsTokenArray;
+     {$IFDEF ConditionalExpressions}{$if CompilerVersion >= 14} Types,{$IFEND}{$ENDIF} //Delphi 6 or above
+     UXlsSST, UFlxMessages, UXlsColInfo, UXlsReferences, UXlsWorkbookGlobals, UXlsTokenArray, XlsFormulaMessages,UFlxNumberFormat,
+  {$IFDEF FLX_VCL}
+    Graphics,
+  {$ENDIF}
+  {$IFDEF FLX_CLX}
+    QGraphics,
+  {$ENDIF}
+
+     UFlxFormats;
 
 type
   TListClass= class of TBaseRowColRecordList;
+
+  TFlxFontArray = array of TFlxFont;
+  TIntegerArray = array of integer;
+
+  TColWidthCalc = class
+  private
+    XFFonts: TFlxFontArray;
+    Wg: TWorkbookGlobals;
+    bmp: TBitmap;
+    Canvas: TCanvas;
+
+    procedure InitXF();
+  public
+    constructor Create(const aWg: TWorkbookGlobals);
+    function CalcCellWidth(const Row: integer; const Col: integer; const val: TRichString; const XF: integer; const Workbook: pointer; const RowMultDisplay: Extended; const ColMultDisplay: Extended): integer;
+    destructor Destroy;override;
+  end;
+
 
   TBaseRowColList = class(TBaseList) //records are TBaseRowColRecordList
     {$INCLUDE TBaseRowColListHdr.inc}
@@ -20,16 +47,16 @@ type
 
     procedure CopyFrom(const aList: TBaseRowColList);
 
-    procedure SaveToStream(const DataStream: TStream);
-    procedure SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange);
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
+    procedure SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
     function TotalSize: int64;
     function TotalRangeSize(const CellRange: TXlsCellRange): int64;
 
     procedure InsertAndCopyRows(const FirstRow, LastRow, DestRow, aCount: integer; const SheetInfo: TSheetInfo; const OnlyFormulas: boolean);
-    procedure InsertAndCopyCols(const FirstCol, LastCol, DestCol, aCount: integer; const SheetInfo: TSheetInfo; const OnlyFormulas: boolean);
+    procedure InsertAndCopyCols(const FirstCol, LastCol, DestCol, aCount: integer; const SheetInfo: TSheetInfo; const OnlyFormulas: boolean); virtual;
     procedure DeleteRows(const aRow, aCount: word; const SheetInfo: TSheetInfo);
     procedure DeleteCols(const aCol, aCount: word; const SheetInfo: TSheetInfo);
-    procedure ArrangeInsertRowsAndCols(const InsRowPos, InsRowCount, InsColPos, InsColCount: integer; const SheetInfo: TSheetInfo);
+    procedure ArrangeInsertRowsAndCols(const InsRowPos, InsRowCount, InsColPos, InsColCount: integer; const SheetInfo: TSheetInfo); virtual;
 
     constructor Create(const aListClass: TListClass);
   end;
@@ -45,6 +72,11 @@ type
     procedure FixFormulaTokens(const Formula: TFormulaRecord; const ShrFmlas: TShrFmlaRecordList);
     function GetFormula(Row, Col: integer): widestring;
     procedure SetFormula(Row, Col: integer; const Value: widestring);
+    procedure AutofitColumn(const Workbook: pointer; const Column: integer;
+      const ColCalc: TColWidthCalc; const RowMultDisplay,
+      ColMultDisplay: Extended; const IgnoreStrings: Boolean;
+      const Adjustment: Extended);
+
     {$INCLUDE TCellListHdr.inc}
   public
     constructor Create(const aGlobals: TWorkbookGlobals; const aRowRecordList: TRowRecordList; const aColInfoList: TColInfoList);
@@ -61,7 +93,15 @@ type
     function GetSheetName(const SheetNumber: integer): widestring;
     function AddExternSheet(const FirstSheet, LastSheet: Integer): Integer;
     function FindSheet(SheetName: widestring; out SheetIndex: Integer): Boolean;
+
+    procedure InsertAndCopyCols(const FirstCol, LastCol, DestCol, aCount: integer; const SheetInfo: TSheetInfo; const OnlyFormulas: boolean); override;
+    procedure ArrangeInsertRowsAndCols(const InsRowPos, InsRowCount, InsColPos, InsColCount: integer; const SheetInfo: TSheetInfo); override;
+
     procedure ArrangeInsertSheet(const SheetInfo: TSheetInfo);
+    function GetName(const ExternSheet, NameId: integer): widestring;
+
+    procedure RecalcColWidths(const Workbook: pointer; const Col1, Col2: integer; const IgnoreStrings: boolean; const Adjustment: Extended);
+    procedure RecalcRowHeights(const Workbook: pointer; const Row1, Row2: integer; const Forced, KeepAutofit: Boolean; const Adjustment: Extended);
   end;
 
   TCells = class
@@ -79,8 +119,8 @@ type
     procedure Clear;
     procedure CopyFrom(const aList: TCells);
 
-    procedure SaveToStream(const DataStream: TStream);
-    procedure SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange);
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
+    procedure SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
     function TotalSize: int64;
     function TotalRangeSize(const CellRange: TXlsCellRange): int64;
 
@@ -117,16 +157,39 @@ type
   end;
 
 implementation
-{$IFNDEF TMSASGx}
-uses UXlsFormulaParser, UXlsEncodeFormula;
+uses UXlsFormulaParser, UXlsEncodeFormula, UXlsXF, UExcelAdapter
+{$IFDEF FLEXCEL}
+  ,UFlexCelGrid
 {$ENDIF}
+  ,Math;
 
 {$INCLUDE TBaseRowColListImp.inc}
 {$INCLUDE TRangeListImp.inc}
 {$INCLUDE TCellListImp.inc}
+
+type
+
+  /// <summary>
+  /// Class for calculating the automatic row heights.
+  /// This is a tricky thing because we are coupling GDI calls with
+  /// non-graphic code, but there is no other way to do it.
+  /// </summary>
+  TRowHeightCalc = class
+  private
+    XFHeight: TIntegerArray;
+    XFFonts: TFlxFontArray;
+    Wg: TWorkbookGlobals;
+    Canvas: TCanvas;
+    bmp: TBitmap;
+
+    procedure InitXF();
+  public
+    constructor Create(const aWg: TWorkbookGlobals);
+    destructor Destroy;override;
+    function CalcCellHeight(const Row: integer; const Col: integer; const val: TRichString; const XF: integer; const Workbook: pointer; const RowMultDisplay: Extended; const ColMultDisplay: Extended): integer;
+  end;
+
 { TBaseRowColList }
-
-
 procedure TBaseRowColList.AddRecord(const aRecord: TBaseRowColRecord; const aRow: integer);
 var
   i:integer;
@@ -264,18 +327,18 @@ begin
     end;
 end;
 
-procedure TBaseRowColList.SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange);
+procedure TBaseRowColList.SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 var
   i:integer;
 begin
-  for i:=0 to Count-1 do Items[i].SaveRangeToStream(DataStream, CellRange);
+  for i:=0 to Count-1 do Items[i].SaveRangeToStream(DataStream, CellRange, NeedsRecalc);
 end;
 
-procedure TBaseRowColList.SaveToStream(const DataStream: TStream);
+procedure TBaseRowColList.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 var
   i:integer;
 begin
-  for i:=0 to Count-1 do Items[i].SaveToStream(DataStream);
+  for i:=0 to Count-1 do Items[i].SaveToStream(DataStream, NeedsRecalc);
 end;
 
 function TBaseRowColList.TotalRangeSize(const CellRange: TXlsCellRange): int64;
@@ -502,7 +565,7 @@ begin
   if Row>=Count then begin; Result:=''; exit; end;
   if Items[Row].Find(Col,Index) and (Items[Row][Index] is TFormulaRecord) then
   begin
-    Result:=RPNToString(Items[Row][Index].Data, 22, FGlobals.Names, Self);
+    Result:=RPNToString(Items[Row][Index].Data, 22, Self);
   end else
   begin
     Result:='';
@@ -551,6 +614,11 @@ begin
   end;
 end;
 
+function TCellList.GetName(const ExternSheet, NameId: integer): widestring;
+begin
+  Result := FGlobals.References.GetName(ExternSheet, NameId, FGlobals);
+end;
+
 function TCellList.GetSheetName(const SheetNumber: integer): widestring;
 begin
   Result:= FGlobals.References.GetSheetName(SheetNumber, FGlobals);
@@ -563,7 +631,7 @@ begin
   SheetName:=WideUpperCase98(SheetName);
   for i:=0 to FGlobals.SheetCount-1 do
   begin
-    if SheetName= UpperCase(FGlobals.SheetName[i]) then
+    if SheetName= WideUpperCase98(FGlobals.SheetName[i]) then
     begin
       SheetIndex := i;
       Result := True;
@@ -608,7 +676,7 @@ begin
 
   if Formula='' then Cell:=nil else
   begin
-    Ps:=TParseString.Create(Formula, FGlobals.Names, Self);
+    Ps:=TParseString.Create(Formula, Self, fmValue);
     try
       Ps.Parse;
       ds:= Ps.TotalSize+20;
@@ -695,6 +763,185 @@ begin
         ArrangeInsertSheets(Data, 22, 22 + GetWord(Data, 20), SheetInfo);
       end;
   end;
+end;
+
+procedure TCellList.RecalcRowHeights(const Workbook: pointer; const Row1: integer; const Row2: integer; const Forced: Boolean; const KeepAutofit: Boolean; const Adjustment: Extended);
+var
+  RowCalc: TRowHeightCalc;
+  RowMultDisplay: Extended;
+  ColMultDisplay: Extended;
+  i: integer;
+  Row: TRowRecord;
+  MaxCellHeight: integer;
+  Columns: TCellRecordList;
+  cCount: integer;
+  c: integer;
+  Cell: TXlsCellValue;
+  rx: TRichString;
+  CellHeight: integer;
+  Color, index: integer;
+  XF: integer;
+begin
+  //For autofitting all the workoobk:
+  //Row2 should be = FRowRecordList.Count - 1;
+  //Row1 should be 0.
+  RowCalc := TRowHeightCalc.Create(FGlobals);
+  try
+    RowMultDisplay := RowMult;
+    ColMultDisplay := ColMult;
+    for i := Row1 to Row2 do
+    begin
+      if not FRowRecordList.HasRow(i) then
+        continue;
+
+      Row := FRowRecordList[i];
+      if Row = nil then
+        continue;
+
+      if not Forced and not Row.IsAutoHeight then
+        continue;
+
+      rx.Value:='';
+      SetLength(rx.RTFRuns, 0);
+      MaxCellHeight := RowCalc.CalcCellHeight(i + 1, -1, rx, Row.XF, Workbook, RowMultDisplay, ColMultDisplay);
+      if i < Count then
+      begin
+        Columns := Self[i];
+        cCount := Columns.Count;
+        for c := 0 to cCount - 1 do
+        begin
+          GetValueX2(i, Columns[c].Column, Cell, Rx.RTFRuns);
+          XF:= Cell.XF;
+          if XF<0 then
+          begin
+            XF:=FRowRecordList[i].XF;
+            if (XF<=0) and (FColInfoList.Find(Columns[c].Column, index)) then XF:=  FColInfoList[index].XF;
+          end;
+          if (XF<0) then XF:=15;
+
+          rx.Value:= XlsFormatValue1904(Cell.Value, TExcelFile(Workbook).FormatList[XF].Format, TExcelFile(Workbook).Options1904Dates, Color);
+
+          CellHeight := RowCalc.CalcCellHeight(i + 1, Columns[c].Column + 1, rx, XF, Workbook, RowMultDisplay, ColMultDisplay);
+          if CellHeight > MaxCellHeight then MaxCellHeight := CellHeight;
+        end;
+
+      end;
+
+      if (Adjustment <> 1) and (Adjustment >= 0) then
+        MaxCellHeight := Round(MaxCellHeight * Adjustment);
+
+      if MaxCellHeight > $7FFF then
+        MaxCellHeight := $7FFF;
+
+      Row.Height := word(MaxCellHeight);
+      if not KeepAutofit then
+        Row.ManualHeight;
+
+    end;
+  finally
+    FreeAndNil(RowCalc);
+  end;
+end;
+
+procedure TCellList.AutofitColumn(const Workbook: pointer; const Column: integer; const ColCalc: TColWidthCalc; const RowMultDisplay: Extended; const ColMultDisplay: Extended; const IgnoreStrings: Boolean; const Adjustment: Extended);
+var
+  MaxWidth: integer;
+  r: integer;
+  CellWidth: integer;
+
+  Cell: TXlsCellValue;
+  rx: TRichString;
+  Color, index: integer;
+  XF: integer;
+
+begin
+  MaxWidth := 0;
+  for r :=  FRowRecordList.Count - 1 downto 0 do
+  begin
+    GetValueX2(r, Column, Cell, Rx.RTFRuns);
+    XF:= Cell.XF;
+    if XF<0 then
+    begin
+      if (FRowRecordList.HasRow(r)) then XF:=FRowRecordList[r].XF;
+      if (XF<=0) and (FColInfoList.Find(Column, index)) then XF:=  FColInfoList[index].XF;
+    end;
+    if (XF<0) then XF:=15;
+
+    rx.Value:= XlsFormatValue1904(Cell.Value, TExcelFile(Workbook).FormatList[XF].Format, TExcelFile(Workbook).Options1904Dates, Color);
+
+    if IgnoreStrings then
+    begin
+      if (Items[r].Find(Column,Index)) and (Items[r][index] is TLabelSSTRecord) then continue;
+    end;
+
+    CellWidth := ColCalc.CalcCellWidth(r + 1, Column + 1, rx, XF, Workbook, RowMultDisplay, ColMultDisplay);
+    if CellWidth > MaxWidth then
+      MaxWidth := CellWidth;
+
+  end;
+
+  if (Adjustment <> 1) and (Adjustment >= 0) then
+    MaxWidth := Round(MaxWidth * Adjustment) ;
+
+  if MaxWidth > 32767 then
+    MaxWidth := 32767;
+
+  if MaxWidth > 0 then
+    TExcelFile(Workbook).ColumnWidth[Column + 1]:= MaxWidth;
+
+end;
+
+
+procedure TCellList.RecalcColWidths(const Workbook: pointer; const Col1, Col2: integer; const IgnoreStrings: Boolean; const Adjustment: Extended);
+var
+  ColCalc: TColWidthCalc;
+  RowMultDisplay: Extended;
+  ColMultDisplay: Extended;
+  c: integer;
+begin
+    ColCalc := TColWidthCalc.Create(FGlobals);
+    try
+      RowMultDisplay := RowMult;
+      ColMultDisplay := ColMult;
+      for c := Col1 to Col2 do
+      begin
+        AutofitColumn(Workbook, c,  ColCalc, RowMultDisplay, ColMultDisplay, IgnoreStrings, Adjustment);
+      end;
+    finally
+      FreeAndNil(ColCalc);
+    end;
+end;
+
+
+procedure TCellList.ArrangeInsertRowsAndCols(const InsRowPos, InsRowCount,
+  InsColPos, InsColCount: integer; const SheetInfo: TSheetInfo);
+begin
+  inherited ArrangeInsertRowsAndCols(InsRowPos, InsRowCount, InsColPos, InsColCount, SheetInfo);
+  if (InsColCount > 0) then
+    FColInfoList.ArrangeInsertCols(InsColPos, InsColCount, SheetInfo);
+end;
+
+procedure TCellList.InsertAndCopyCols(const FirstCol, LastCol, DestCol,
+  aCount: integer; const SheetInfo: TSheetInfo;
+  const OnlyFormulas: boolean);
+var
+  NewFirstCol: integer;
+  NewLastCol: integer;
+begin
+  inherited InsertAndCopyCols(FirstCol, LastCol, DestCol, aCount, SheetInfo, OnlyFormulas);
+  if (aCount > 0) then
+  begin
+    NewFirstCol := FirstCol;
+    NewLastCol := LastCol;
+    if (DestCol <= FirstCol) then
+    begin
+      NewFirstCol := FirstCol + (LastCol - FirstCol + 1) * aCount;
+      NewLastCol := LastCol + (LastCol - FirstCol + 1) * aCount;
+    end;
+
+    FColInfoList.CopyCols(NewFirstCol, NewLastCol, DestCol, aCount, SheetInfo);
+  end;
+
 end;
 
 { TCells }
@@ -840,19 +1087,19 @@ begin
     raise;
   end;
   try
-    DimRec.SaveToStream(DataStream);
+    DimRec.SaveToStream(DataStream, false);
   finally
     FreeAndNil(DimRec);
   end; //Finally
 end;
 
-procedure TCells.SaveToStream(const DataStream: TStream);
+procedure TCells.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 var
   CellRange: TXlsCellRange;
 begin
   FixRows;
   CalcUsedRange(CellRange);
-  SaveRangetoStream(DataStream, CellRange);
+  SaveRangetoStream(DataStream, CellRange, NeedsRecalc);
 end;
 
 function TCells.TotalSize: int64;
@@ -871,7 +1118,7 @@ begin
   if (FCellList.Count >0) then FRowList.AddRow(FCellList.Count-1);
 end;
 
-procedure TCells.SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange);
+procedure TCells.SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 var
   i,k,j, Written :integer;
 begin
@@ -893,7 +1140,7 @@ begin
     end;
 
     for j:= i to k+i-1 do
-      if (j<=CellRange.Bottom) and (j<FCellList.Count) then FCellList[j].SaveRangeToStream(DataStream, CellRange);
+      if (j<=CellRange.Bottom) and (j<FCellList.Count) then FCellList[j].SaveRangeToStream(DataStream, CellRange, NeedsRecalc);
 
     inc(i, k);
   end;
@@ -965,6 +1212,275 @@ var
 begin
   Result:=0;
   for i:=0 to Count-1 do Result:=Result+Items[i].TotalSize;
+end;
+
+
+{ TRowHeightCalc }
+constructor TRowHeightCalc.Create(const aWg: TWorkbookGlobals);
+begin
+  inherited Create;
+  Wg := aWg;
+  bmp := TBitmap.Create;
+  bmp.Height := 1;
+  bmp.Width := 1;
+  Canvas := bmp.Canvas;
+  InitXF;
+end;
+
+procedure TRowHeightCalc.InitXF();
+var
+  i: integer;
+  xf: TXFRecord;
+  FontIndex: integer;
+  Fr: TFontRecord;
+begin
+  SetLength (XFHeight, Wg.XF.Count);
+  FillChar(XFHeight[0], Length(XFHeight), 0);
+  SetLength (XFFonts, Length(XFHeight));
+  FillChar(XFFonts[0], Length(XFFonts), 0);
+  for i := 0 to Length(XFHeight) - 1 do
+  begin
+    xf := Wg.XF[i];
+    FontIndex := xf.GetActualFontIndex(Wg.Fonts);
+    Fr := Wg.Fonts[FontIndex];
+    XFFonts[i] := Fr.FlxFont;
+    Canvas.Font.Name := XFFonts[i].Name;
+    Canvas.Font.Size := Round(XFFonts[i].Size20 / 20);
+    XFHeight[i] := Ceil(Canvas.TextHeight('Mg') * RowMult);
+  end;
+
+end;
+
+function CalcAngle(const ExcelRotation: integer; var Vertical: boolean): extended;
+begin
+  Vertical:=ExcelRotation=255;
+  if ExcelRotation<0 then Result:=0
+  else if ExcelRotation<=90 then Result:=ExcelRotation*2*pi/360
+  else if ExcelRotation<=180 then Result:=(90-ExcelRotation)*2*pi/360
+  else Result:=0;
+end;
+
+
+function TRowHeightCalc.CalcCellHeight(const Row: integer; const Col: integer; const val: TRichString; const XF: integer; const Workbook: pointer; const RowMultDisplay: Extended; const ColMultDisplay: Extended): integer;
+{$IFDEF FLEXCEL}
+var
+  XFRec: TXFRecord;
+  Vertical: Boolean;
+  Alpha: Extended;
+  CellHeight, CellWidth: extended;
+  rg: TXlsCellRange;
+  c: integer;
+  r: integer;
+  TextExtent: TSize;
+  TextLines: WidestringArray;
+  Clp: Extended;
+  Wr: Extended;
+  RtfRuns2: TRTFRunListList;
+  H,W: Extended;
+  SinAlpha: Extended;
+  CosAlpha: Extended;
+{$ENDIF}
+begin
+{$IFNDEF FLEXCEL}
+  Result := 255;
+{$ELSE}
+  if XF < 0 then
+    begin Result := 255; exit; end;
+
+  if XF >= Length(XFHeight) then  //Just to make sure. We dont want a wrong file to blow here.
+    begin Result := 255; exit; end;
+
+  Result := XFHeight[XF];
+  if val.Value = '' then
+    exit;
+
+  XFRec := Wg.XF[XF];
+  Alpha := CalcAngle(XFRec.Rotation, Vertical);
+  if (not XFRec.WrapText and not Vertical) and (Alpha = 0) then
+    exit;
+
+  Canvas.Font.Name := XFFonts[XF].Name;
+  Canvas.Font.Size := Round(XFFonts[XF].Size20 / 20.0);
+
+  if XFFonts[XF].Underline <> fu_None then
+      Canvas.Font.Style:=Canvas.Font.Style+[fsUnderline];
+
+  if flsBold in XFFonts[XF].Style then Canvas.Font.Style:=Canvas.Font.Style+[fsBold];
+  if flsItalic in XFFonts[XF].Style then Canvas.Font.Style:=Canvas.Font.Style+[fsItalic];
+  if flsStrikeOut in XFFonts[XF].Style then Canvas.Font.Style:=Canvas.Font.Style+[fsStrikeOut];
+
+  CellHeight:=0; CellWidth:=0;
+  rg := TExcelFile(Workbook).CellMergedBounds[Row, Col];
+  if rg.Bottom > rg.Top then exit; //We can not autofit merged cells with more than one row.
+
+    for c := rg.Left to rg.Right do
+    begin
+      CellWidth:= CellWidth + (TExcelFile(Workbook).ColumnWidthHiddenIsZero[c] / ColMultDisplay);
+    end;
+
+    for r := rg.Top to rg.Bottom do
+    begin
+      CellHeight := CellHeight + TExcelFile(Workbook).RowHeightHiddenIsZero[r] / RowMultDisplay;
+    end;
+
+    Clp := (1 * 72.0) / 100.0;
+
+    if Alpha = 0 then
+      Wr := (CellWidth) - (2 * Clp) else
+    begin
+      Wr := 1000000;
+    end;
+
+    TFlexcelGrid.SplitText(TExcelFile(Workbook), Canvas, val.Value, Round(Wr), TextLines, val.RTFRuns, RTFRuns2, TextExtent, Vertical, 1);
+    if Length(TextLines) <= 0 then exit;
+
+{    H := 0;
+    W := 0;
+    for i := 0 to Length(TextLines) - 1 do
+    begin
+      H:= H + TextLines[i].YExtent;
+      if TextLines[i].XExtent > W then
+        W := TextLines[i].XExtent;
+
+    end;
+    }
+    H:= TextExtent.cy * Length(TextLines);
+    W:= TextExtent.cx;
+
+
+    if Alpha <> 0 then
+    begin
+      SinAlpha := Sin((Alpha * PI) / 180);
+      CosAlpha := Cos((Alpha * PI) / 180);
+      H := (H * CosAlpha) + (W * Abs(SinAlpha));
+    end;
+
+  Result := Ceil(RowMultDisplay * H);
+{$ENDIF}
+end;
+
+destructor TRowHeightCalc.Destroy;
+begin
+  FreeAndNil(bmp);
+  inherited;
+end;
+
+{ TColWidthCalc }
+constructor TColWidthCalc.Create(const aWg: TWorkbookGlobals);
+begin
+  inherited Create;
+  Wg := aWg;
+  bmp := TBitmap.Create;
+  bmp.Height := 1;
+  bmp.Width := 1;
+  Canvas := bmp.Canvas;
+  InitXF;
+end;
+
+procedure TColWidthCalc.InitXF();
+var
+  i: integer;
+  xf: TXFRecord;
+  FontIndex: integer;
+  Fr: TFontRecord;
+begin
+  SetLength (XFFonts, Wg.XF.Count);
+  FillChar(XFFonts[0], Length(XFFonts), 0);
+  for i := 0 to Length(XFFonts) - 1 do
+  begin
+    xf := Wg.XF[i];
+    FontIndex := xf.GetActualFontIndex(Wg.Fonts);
+    Fr := Wg.Fonts[FontIndex];
+    XFFonts[i] := Fr.FlxFont;
+  end;
+
+end;
+
+function TColWidthCalc.CalcCellWidth(const Row: integer; const Col: integer; const val: TRichString; const XF: integer; const Workbook: pointer; const RowMultDisplay: Extended; const ColMultDisplay: Extended): integer;
+{$IFDEF FLEXCEL}
+var
+  XFRec: TXFRecord;
+  Vertical: Boolean;
+  Alpha: Extended;
+  rg: TXlsCellRange;
+  TextExtent: TSize;
+  TextLines: WidestringArray;
+  Clp: Extended;
+  Wr: Extended;
+  CellHeight: extended;
+  r: integer;
+  H: Extended;
+  W: Extended;
+  SinAlpha: Extended;
+  CosAlpha: Extended;
+  RtfRuns2: TRTFRunListList;
+{$ENDIF}
+begin
+{$IFNDEF FLEXCEL}
+  Result := 0;
+{$ELSE}
+  if (val.Value = '') then begin Result := 0; exit; end;
+
+  XFRec := Wg.XF[XF];
+  Alpha := CalcAngle(XFRec.Rotation, Vertical);
+
+  Canvas.Font.Name := XFFonts[XF].Name;
+  Canvas.Font.Size := Round(XFFonts[XF].Size20 / 20.0);
+  if XFFonts[XF].Underline <> fu_None then Canvas.Font.Style:=Canvas.Font.Style+[fsUnderline];
+  if flsBold in XFFonts[XF].Style then Canvas.Font.Style:=Canvas.Font.Style+[fsBold];
+  if flsItalic in XFFonts[XF].Style then Canvas.Font.Style:=Canvas.Font.Style+[fsItalic];
+  if flsStrikeOut in XFFonts[XF].Style then Canvas.Font.Style:=Canvas.Font.Style+[fsStrikeOut];
+
+
+  rg := TExcelFile(Workbook).CellMergedBounds[Row, Col];
+  if rg.Right > rg.Left then
+    begin Result := 0; exit; end; //We can not autofit merged cells with more than one column.
+
+  Clp := (1 * 72.0) / 100.0;
+
+  if (Alpha <> 90) and (Alpha <> -90) then
+    Wr := 1000000 else
+  begin
+    CellHeight:=0;
+    for r := rg.Top to rg.Bottom do
+    begin
+      CellHeight := CellHeight + TExcelFile(Workbook).RowHeightHiddenIsZero[r] / RowMultDisplay;
+    end;
+
+    Wr := CellHeight - (2 * Clp);
+  end;
+
+  TFlexCelGrid.SplitText(TExcelFile(Workbook), Canvas, val.Value, Round(Wr), TextLines, val.RTFRuns, RtfRuns2, TextExtent, Vertical, 1);
+  if Length(TextLines) <= 0 then
+    begin Result := 0; exit; end;
+
+  H:= TextExtent.cy;
+  W:= TextExtent.cx;
+{ H := 0;
+  W := 0;
+  for i := 0 to Length(TextLines) - 1 do
+   begin
+    H:= H + TextLines[i].YExtent;
+    if (TextLines[i].XExtent + (2 * Clp)) > W then
+      W := TextLines[i].XExtent;
+
+  end;
+}
+  if Alpha <> 0 then
+  begin
+    SinAlpha := Sin((Alpha * PI) / 180);
+    CosAlpha := Cos((Alpha * PI) / 180);
+    W := (W * CosAlpha) + (H * Abs(SinAlpha));
+  end;
+
+  Result := Ceil(ColMultDisplay * (W + (2 * Clp)));
+{$ENDIF}
+end;
+
+destructor TColWidthCalc.Destroy;
+begin
+  FreeAndNil(bmp);
+  inherited;
 end;
 
 

@@ -1,10 +1,9 @@
 {************************************************************************}
 { TCABFile component                                                     }
 { for Delphi & C++Builder                                                }
-{ version 1.4                                                            }
 {                                                                        }
 { written by TMS Software                                                }
-{           copyright © 1999-2005                                        }
+{           copyright © 1999-2008                                        }
 {           Email : info@tmssoftware.com                                 }
 {           Web : http://www.tmssoftware.com                             }
 {                                                                        }
@@ -21,7 +20,7 @@ unit cabfiles;
 
 {$I TMSDEFS.INC}
 
-{$DEFINE noDEBUG}
+{$DEFINE noTMSDEBUG}
 
 {$R CABFILES.RES}
 
@@ -207,13 +206,16 @@ const
     O_EXCL  =    $400;  // exclusive open
 
     MAJ_VER = 1; // Major version nr.
-    MIN_VER = 4; // Minor version nr.
-    REL_VER = 0; // Release nr.
-    BLD_VER = 3; // Build nr.
+    MIN_VER = 5; // Minor version nr.
+    REL_VER = 1; // Release nr.
+    BLD_VER = 1; // Build nr.
 
     // version history
     // 1.4.0.2 : fix for directory hierarchy handling in uncompress
     // 1.4.0.3 : fixed issue for file timestamp handling
+    // 1.5.0.0 : added support for Delphi 2007
+    // 1.5.1.0 : added support to add files without faArchive attribute set
+    // 1.5.1.1 : fixed issue with very long filenames
 
 type
 
@@ -265,9 +267,9 @@ type
     iDisk: Integer;               // Disk number
     fFailOnIncompressible: BOOL;  // TRUE => Fail if a block is incompressible
     setID: Smallint;               // Cabinet set ID
-    szDisk:array[0..CB_MAX_DISK_NAME-1] of char;    // current disk name
-    szCab:array[0..CB_MAX_CABINET_NAME-1] of char;  // current cabinet name
-    szCabPath:array[0..CB_MAX_CAB_PATH-1] of char;  // path for creating cabinet
+    szDisk:array[0..CB_MAX_DISK_NAME - 1] of char;    // current disk name
+    szCab:array[0..CB_MAX_CABINET_NAME - 1] of char;  // current cabinet name
+    szCabPath:array[0..CB_MAX_CAB_PATH - 1] of char;  // path for creating cabinet
   end;
 
   TCABFile = class;
@@ -391,10 +393,15 @@ var
   cf: TCABFile;
 
 function RemoveBackslash(dir: string):string;
+var
+  ch: char;
 begin
   if (Length(dir)>0) then
-    if (dir[length(dir)] in ['/','\']) then
+  begin
+    ch := dir[length(dir)];
+    if (ch = '/') or (ch = '\') then
       delete(dir,length(dir),1);
+  end;
   Result := dir;
 end;
 
@@ -462,7 +469,9 @@ var
   subdir:string;
   ExtractPath:string;
   Allow: Boolean;
-
+  {$IFDEF DELPHI_UNICODE}
+  sa: ansistring;
+  {$ENDIF}
 begin
   Result := 0;
 
@@ -531,7 +540,13 @@ begin
 
         if Allow then
         begin
+          {$IFDEF DELPHI_UNICODE}
+          sa := ExtractPath + StrPas(notif^.psz1);
+          Result := _lcreat(PAnsiChar(sa),0);
+          {$ENDIF}
+          {$IFNDEF DELPHI_UNICODE}
           Result := _lcreat(PChar(ExtractPath + StrPas(notif^.psz1)),0);
+          {$ENDIF}
           {$IFDEF TMSDEBUG}
           OutputDebugString(pchar('create file: '+ExtractPath + StrPas(notif^.psz1)));
           {$ENDIF}
@@ -575,11 +590,23 @@ begin
 end;
 
 function StdFdiOpen (pszFile : PChar; pmode : Integer): Integer; cdecl;
+{$IFDEF DELPHI_UNICODE}
+var
+  sa: AnsiString;
+{$ENDIF}
 begin
   {$IFDEF TMSDEBUG}
   outputdebugstring('open call');
   {$ENDIF}
+
+  {$IFDEF DELPHI_UNICODE}
+  sa := WideCharToString(pszFile);
+  Result := _lopen(PAnsiChar(sa), pmode);
+  {$ENDIF}
+
+  {$IFNDEF DELPHI_UNICODE}
   Result := _lopen(pszFile, pmode);
+  {$ENDIF}
 end;
 
 function StdFdiRead (hf : Integer; memory : pointer; cb : integer) : integer; cdecl;
@@ -597,6 +624,8 @@ begin
   {$ENDIF}
   Result := _lwrite(hf, memory, cb);
 
+  SysErr(GetLastError);
+    
   if Assigned(cf) then
    begin
     cf.FCurFileSizeDecompress := cf.FCurFileSizeDecompress+cb;
@@ -604,8 +633,6 @@ begin
     if Assigned(cf.FOnDecompressProgress) then
       cf.FOnDecompressProgress(cf,cf.FCurFileNameDecompress,cf.FCurFileSizeDecompress,cf.FTotFileSizeDecompress);
    end;
-
-  SysErr(GetLastError);
 end;
 
 function StdFdiClose (hf : Integer) : Integer; cdecl;
@@ -656,7 +683,11 @@ end;
 function StdFciOpen (pszFile : PChar; oflag : Integer; pmode : Integer;
   err : PInteger; pv : Pointer) : Integer; cdecl;
 var
-  ReOpenBuff:TOFSTRUCT;
+  //ReOpenBuff:TOFSTRUCT;
+  SecAtrrs: TSecurityAttributes;
+  {$IFDEF DELPHI_UNICODE}
+  sa: ansistring;
+  {$ENDIF}
 begin
   {$IFDEF TMSDEBUG}
   outputdebugstring('open call');
@@ -664,9 +695,32 @@ begin
   outputdebugstring(pszFile);
   {$ENDIF}
   if (oflag and O_CREAT = O_CREAT) then
-    Result := OpenFile(pszFile,ReOpenBuff,(oflag and $3) or OF_CREATE)
+  begin
+    FillChar(SecAtrrs, SizeOf(SecAtrrs), #0);
+    SecAtrrs.nLength        := SizeOf(SecAtrrs);
+    SecAtrrs.lpSecurityDescriptor := nil;
+    SecAtrrs.bInheritHandle := True;
+
+    Result := CreateFile(pszFile,GENERIC_READ or GENERIC_WRITE,
+      { access (read-write) mode }
+      FILE_SHARE_READ or FILE_SHARE_WRITE,
+      { share mode } @SecAtrrs,                             { pointer to security attributes }
+      OPEN_ALWAYS,                           { how to create }
+      FILE_ATTRIBUTE_TEMPORARY,              { file attributes }
+      0);
+
+    //Result := OpenFile(pszFile,ReOpenBuff,(oflag and $3) or OF_CREATE);
+  end
   else
+  begin
+    {$IFDEF DELPHI_UNICODE}
+    sa := WideCharToString(pszFile);
+    Result := _lopen(PAnsiChar(sa),oflag);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     Result := _lopen(pszFile,oflag);
+    {$ENDIF}
+  end;
 
   Err^ := 0;
 end;
@@ -794,6 +848,9 @@ var
   finfo: TBYHANDLEFILEINFORMATION;
   filetime: TFileTime;
   attrs: DWORD;
+  {$IFDEF DELPHI_UNICODE}
+  sa: ansistring;
+  {$ENDIF}
 begin
   {$IFDEF TMSDEBUG}
   outputdebugstring('fci open info call');
@@ -832,7 +889,13 @@ begin
                             FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_ARCHIVE));
   CloseHandle(handle);
   Err^ := 0;
+  {$IFDEF DELPHI_UNICODE}
+  sa := WideCharToString(pszName);
+  Result := _lopen(PAnsiChar(sa),OF_READ);
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
   Result := _lopen(pszName,OF_READ);
+  {$ENDIF}
   {$IFDEF TMSDEBUG}
   outputdebugstring(pchar('open handle = '+inttostr(result)));
   {$ENDIF}
@@ -1010,9 +1073,22 @@ var
 begin
   Result := -1;
 
+  {$IFDEF DELPHI_UNICODE}
+  hf := CreateFile(PWideChar(FCABfile), GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, 0, 0);
+  //hf := _lopen(PAnsiChar(FCABfile),OF_READ);
+  {$ENDIF}
+
+  {$IFNDEF DELPHI_UNICODE}
   hf := _lopen(pchar(FCABfile),OF_READ);
+  {$ENDIF}
+
   if (hf <> integer(HFILE_ERROR)) then
+  {$IFDEF DELPHI_UNICODE}
+    CloseHandle(hf)
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
     _lclose(hf)
+  {$ENDIF}
   else
     Exit;
 
@@ -1025,10 +1101,19 @@ begin
 
     if CabinetDLL > 0 then
     begin
+      {$IFDEF DELPHI_UNICODE}
+      @_FDICreate := GetProcAddress(CabinetDLL,PAnsiChar('FDICreate'));
+      @_FDIIsCabinet := GetProcAddress(CabinetDLL,PAnsiChar('FDIIsCabinet'));
+      @_FDICopy := GetProcAddress(CabinetDLL,PAnsiChar('FDICopy'));
+      @_FDIDestroy := GetProcAddress(CabinetDLL,PAnsiChar('FDIDestroy'));
+      {$ENDIF}
+
+      {$IFNDEF DELPHI_UNICODE}
       @_FDICreate := GetProcAddress(CabinetDLL,'FDICreate');
       @_FDIIsCabinet := GetProcAddress(CabinetDLL,'FDIIsCabinet');
       @_FDICopy := GetProcAddress(CabinetDLL,'FDICopy');
       @_FDIDestroy := GetProcAddress(CabinetDLL,'FDIDestroy');
+      {$ENDIF}
 
       hfdi := _FDICreate(@StdFdiAlloc,@StdFdiFree,
                          @StdFdiOpen,@StdFdiRead,@StdFdiWrite,@StdFdiClose,@StdFdiSeek,1,@erf);
@@ -1039,9 +1124,17 @@ begin
 
       doExtract := True;
 
+      {$IFDEF DELPHI_UNICODE}
+      hf := CreateFile(PWideChar(FCABFile), GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, 0, 0);
+      IsCab := _FDIIsCabinet(hfdi,hf,@FDICABINETINFO);
+      CloseHandle(hf);
+      {$ENDIF}
+
+      {$IFNDEF DELPHI_UNICODE}
       hf := _lopen(pchar(fcabfile),OF_READ);
       IsCab := _FDIIsCabinet(hfdi,hf,@FDICABINETINFO);
       _lclose(hf);
+      {$ENDIF}
 
       if IsCab then
       begin
@@ -1138,7 +1231,7 @@ begin
       ccab.cbFolderThresh := Folder_Threshold;
       ccab.FFailOnIncompressible := FALSE;
       ccab.setID := 12345;
-      ccab.iCab := 1;
+      ccab.iCab := 1;                                   
       ccab.iDisk := 0;
       StrCopy(ccab.szDisk,'CAB');
       StrCopy(ccab.szCab, PChar(ExtractFileName(FCabFile)));
@@ -1148,11 +1241,21 @@ begin
       outputdebugstring(ccab.szCabPath);
       {$ENDIF}
 
+      {$IFDEF DELPHI_UNICODE}
+      @_FCICreate := GetProcAddress(CabinetDLL,PAnsiChar('FCICreate'));
+      @_FCIDestroy := GetProcAddress(CabinetDLL,PAnsiChar('FCIDestroy'));
+      @_FCIAddFile := GetProcAddress(CabinetDLL,PAnsiChar('FCIAddFile'));
+      @_FCIFlushCabinet := GetProcAddress(CabinetDLL,PAnsiChar('FCIFlushCabinet'));
+      @_FCIFlushFolder := GetProcAddress(CabinetDLL,PAnsiChar('FCIFlushFolder'));
+      {$ENDIF}
+
+      {$IFNDEF DELPHI_UNICODE}
       @_FCICreate := GetProcAddress(CabinetDLL,'FCICreate');
       @_FCIDestroy := GetProcAddress(CabinetDLL,'FCIDestroy');
       @_FCIAddFile := GetProcAddress(CabinetDLL,'FCIAddFile');
       @_FCIFlushCabinet := GetProcAddress(CabinetDLL,'FCIFlushCabinet');
       @_FCIFlushFolder := GetProcAddress(CabinetDLL,'FCIFlushFolder');
+      {$ENDIF}
 
       hfci:=_FCICreate(@erf,@StdFciFileDest,@StdFciAlloc,@StdFciFree,
                        @StdFciOpen,@StdFciRead,@StdFciWrite,@StdFciClose,
@@ -1208,6 +1311,8 @@ begin
       {$IFDEF TMSDEBUG}
       outputdebugstring(ccab.szCab);
       outputdebugstring(ccab.szCabPath);
+
+      outputdebugstring('flush cabinet file');
       {$ENDIF}
 
       if not _FCIFlushCabinet(hfci,FALSE,@StdFciGetNextCab,@StdFciProgress) then
@@ -1219,7 +1324,7 @@ begin
     end;
   finally
     FreeLibrary(cablib);
-  end;  
+  end;
 
 end;
 
@@ -1355,9 +1460,10 @@ begin
     if FP[Length(FP)] <> '\' then
       FP := FP + '\';
 
-  if FindFirst(FileSpec,faArchive,SR) = 0 then
+  if FindFirst(FileSpec,faAnyfile,SR) = 0 then
   begin
-    if SR.Attr and faArchive = faArchive then
+    //if SR.Attr and faArchive = faArchive then
+      if SR.Attr and faDirectory <> faDirectory then
       with Add do
       begin
         Name := FP + SR.Name;
@@ -1366,7 +1472,8 @@ begin
 
     while FindNext(SR) = 0 do
     begin
-      if SR.Attr and faArchive = faArchive then
+      //if SR.Attr and faArchive = faArchive then
+      if SR.Attr and faDirectory <> faDirectory then
         with Add do
         begin
           Name := FP + SR.Name;
@@ -1406,7 +1513,8 @@ begin
                 RelativePath + FileName,SubDirectory);
             {$ENDIF}
           end
-          else if (SR.Attr and faArchive) = faArchive then
+          else
+          if SR.Attr and faDirectory <> faDirectory then
           begin
             with Add do
             begin

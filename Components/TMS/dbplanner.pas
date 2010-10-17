@@ -2,10 +2,9 @@
 {***********************************************************************}
 { TDBPlanner component                                                  }
 { for Delphi & C++Builder                                               }
-{ version 2.5                                                           }
 {                                                                       }
 { written by TMS Software                                               }
-{            copyright © 1999-2006                                      }
+{            copyright © 1999-2008                                      }
 {            Email: info@tmssoftware.com                                }
 {            Web: http://www.tmssoftware.com                            }
 {                                                                       }
@@ -37,9 +36,9 @@ const
 
   MAJ_VER = 2; // Major version nr.
   MIN_VER = 5; // Minor version nr.
-  REL_VER = 2; // Release nr.
-  BLD_VER = 0; // Build nr.
-  DATE_VER = 'Jan, 2006'; // Month version
+  REL_VER = 6; // Release nr.
+  BLD_VER = 10; // Build nr.
+  DATE_VER = 'Apr, 2008'; // Month version
 
   // version history
   // v2.2.1.1 : Fixed issue with monthly recurrency on fixed dates
@@ -54,6 +53,16 @@ const
   // v2.5.0.16: Fixed issue with MultiMonthSource and items longer than viewed timespan.
   // v2.5.1.4 : Fixed : issue with CtrlDragCopy & TDBPlanner
   // v2.5.2.0 : TPlanner compatibility update
+  // v2.5.3.4 : TPlanner compatibility update
+  // v2.5.3.5 : Fixed : issue with AutoHeaderUpdate for TDBDisjunctDaySource
+  // v2.5.6.1 : TPlanner compatibility update
+  // v2.5.6.2 : Fixed : issue with ResourceDataSource updating
+  // v2.5.6.6 : Fixed : issues with specific yearly recurrence types
+  //          : Improved : exception handling with datasets
+  // v2.5.6.7 : Fixed : issue with SelectionToAbsTime()
+  // v2.5.6.8 : TPlanner compatibility update
+  // v2.5.6.9 : TPlanner compatibility update
+  // v2.5.6.10: TPlanner compatibility update
 
 type
   TDBItemSource = class;
@@ -203,6 +212,7 @@ type
 
   TTimeToFieldsEvent = procedure(Sender: TObject; Fields:TFields;
     dtS: TDateTime; dtE: TDateTime) of object;
+
 
   TDBItemSource = class(TItemSource)
   private
@@ -1627,7 +1637,9 @@ begin
     if Assigned(FOnResourceToPosition) then
       FOnResourceToPosition(Self,Fields.FieldByName(ResourceField),Position, Accept)
     else
+    begin
       Position := StrToInt(Fields.FieldByName(ResourceField).Text);
+    end;
   end;
 end;
 
@@ -1696,7 +1708,7 @@ var
   D: TDataSet;
   B: TBookMark;
   dts,dte,rdts,rdte: TDateTime;
-  plIt: TPlannerItem;
+  plIt, cloneplIt: TPlannerItem;
   Span, j: Integer;
   Accept: Boolean;
   ResourcePos,DatePos: Integer;
@@ -1750,13 +1762,12 @@ begin
 
   FPlanner.Items.BeginUpdate;
 
-  while not D.Eof do
+  while not D.Eof do                               
   begin
     FieldsToTime(D.Fields,dts,dte);
 
     rdts := dts;
     rdte := dte;
-
 
     if (UpdateKey = '') or (UpdateKey = D.FieldByName(KeyField).AsString) then
     begin
@@ -1879,10 +1890,12 @@ begin
             if dts < Day then
               dts := Day;
 
-            for j := 1  to Round(Int(dte) - Int(dts)) do
+            for j := 1 to Round(Int(dte) - Int(dts)) do
             begin
               if (j + plIt.ItemPos < FPlanner.Positions) and (dts + j < Day + Span) then
-                with FPlanner.CloneItem(plIt) do
+              begin
+                cloneplIt := FPlanner.CloneItem(plIt);
+                with cloneplIt do
                 begin
                   ItemRealStartTime := rdts;
                   ItemRealEndTime := dte;
@@ -1891,12 +1904,12 @@ begin
                   ItemPos := CalcItemPos(DatePos,ResourcePos);
                   DBKey := plIt.DBKey;
                 end;
+              end;
             end;
-
           end;
         end;
       end;
-    end;  
+    end;
     D.Next;
   end;
 
@@ -1992,7 +2005,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Edit;
+  try
+    D.Edit;
+  except
+    D.FreeBookMark(B);    
+    EndUpdate;
+    raise Exception.Create('Could not put dataset in edit mode');
+    Exit;
+  end;
 
   if FPlanner.Items.DBItem.RealTime then
   begin
@@ -2129,7 +2149,14 @@ begin
 
   B := D.GetBookMark;
 
-  D.Append;
+  try
+    D.Append;
+  except
+    D.FreeBookMark(B);
+    EndUpdate;
+    raise Exception.Create('Could not append a new record');
+    Exit;
+  end;
 
   if not AutoIncKey then
   begin
@@ -2202,7 +2229,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Delete;
+  try
+     D.Delete;
+  except
+    EndUpdate;
+    raise Exception.Create('Failed to delete record in dataset');
+    Exit;
+  end;
+  
   EndUpdate;
 end;
 
@@ -2302,6 +2336,7 @@ var
   Span: Integer;
   dis: TDateTime;
   crossflg: Boolean;
+  cloneplIt: TPlannerItem;
 
 begin
   if not CheckDataSet then Exit;
@@ -2404,11 +2439,14 @@ begin
         for j := 1  to Round(Int(dte) - Int(dts)) do
         begin
           if (j + ItemPos < FPlanner.Positions) and (dts + j < Day + Span)  then
-            with FPlanner.CloneItem(FPlanner.Items.DBItem) do
+          begin
+            cloneplIt := FPlanner.CloneItem(FPlanner.Items.DBItem);
+            with cloneplIt do
             begin
               DatePos := DatePos + 1;
               ItemPos := CalcItemPos(DatePos,ResourcePos);
             end;
+          end;
         end;
       end;
 
@@ -2812,7 +2850,14 @@ begin
 
   B := D.GetBookMark;
 
-  D.Append;
+  try
+    D.Append;
+  except
+    D.FreeBookMark(B);
+    EndUpdate;
+    raise Exception.Create('Could not append a new record');
+    Exit;
+  end;
 
   if not AutoIncKey then
   begin
@@ -2895,7 +2940,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Delete;
+  try
+     D.Delete;
+  except
+    EndUpdate;
+    raise Exception.Create('Failed to delete record in dataset');
+    Exit;
+  end;
+  
   EndUpdate;
 end;
 
@@ -3015,6 +3067,7 @@ var
   Accept: Boolean;
   B: TBookmark;
 
+
 begin
   if not CheckDataSet then Exit;
 
@@ -3077,11 +3130,11 @@ begin
       FOnFieldsToItem(Self, D.Fields, FPlanner.Items.DBItem);
 
     D.GotoBookMark(B);
-    
+
   finally
     EndUpdate;
   end;
-    
+
   D.FreeBookMark(B);
 end;
 
@@ -3355,7 +3408,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Edit;
+  try
+    D.Edit;
+  except
+    D.FreeBookMark(B);    
+    EndUpdate;
+    raise Exception.Create('Could not put dataset in edit mode');
+    Exit;
+  end;
 
   if FPlanner.Items.DBItem.RealTime then
   begin
@@ -3734,7 +3794,14 @@ begin
 
   B := D.GetBookMark;
 
-  D.Append;
+  try
+    D.Append;
+  except
+    D.FreeBookMark(B);
+    EndUpdate;
+    raise Exception.Create('Could not append a new record');
+    Exit;
+  end;
 
   if not AutoIncKey then
   begin
@@ -3819,7 +3886,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Delete;
+  try
+     D.Delete;
+  except
+    EndUpdate;
+    raise Exception.Create('Failed to delete record in dataset');
+    Exit;
+  end;
+  
   EndUpdate;
 end;
 
@@ -4520,7 +4594,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Edit;
+  try
+    D.Edit;
+  except
+    D.FreeBookMark(B);    
+    EndUpdate;
+    raise Exception.Create('Could not put dataset in edit mode');
+    Exit;
+  end;
 
   if FPlanner.Items.DBItem.RealTime then
   begin
@@ -4616,7 +4697,14 @@ begin
 
   B := D.GetBookMark;
 
-  D.Append;
+  try
+    D.Append;
+  except
+    D.FreeBookMark(B);
+    EndUpdate;
+    raise Exception.Create('Could not append a new record');
+    Exit;
+  end;
 
   if not AutoIncKey then
   begin
@@ -4711,7 +4799,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Delete;
+  try
+     D.Delete;
+  except
+    EndUpdate;
+    raise Exception.Create('Failed to delete record in dataset');
+    Exit;
+  end;
+  
   EndUpdate;
 end;
 
@@ -5189,7 +5284,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Edit;
+  try
+    D.Edit;
+  except
+    D.FreeBookMark(B);    
+    EndUpdate;
+    raise Exception.Create('Could not put dataset in edit mode');
+    Exit;
+  end;
 
   if FPlanner.Items.DBItem.RealTime then
   begin
@@ -5503,7 +5605,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Edit;
+  try
+    D.Edit;
+  except
+    D.FreeBookMark(B);    
+    EndUpdate;
+    raise Exception.Create('Could not put dataset in edit mode');
+    Exit;
+  end;
 
   Day := Int(Dates.PosDate (FPlanner.Items.DBItem.ItemPos));
 
@@ -5606,7 +5715,14 @@ begin
 
   B := D.GetBookMark;
 
-  D.Append;
+  try
+    D.Append;
+  except
+    D.FreeBookMark(B);
+    EndUpdate;
+    raise Exception.Create('Could not append a new record');
+    Exit;
+  end;
 
   if not AutoIncKey then
   begin
@@ -5674,7 +5790,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Delete;
+  try
+     D.Delete;
+  except
+    EndUpdate;
+    raise Exception.Create('Failed to delete record in dataset');
+    Exit;
+  end;
+  
   EndUpdate;
 end;
 
@@ -5926,6 +6049,8 @@ begin
 
   if FAutoHeaderUpdate then
   begin
+    FPlanner.Header.Captions.Clear;
+    FPlanner.Header.Captions.Add('');
     for i := 1 to Dates.Count do
       FPlanner.Header.Captions.Strings[i] := FormatDateTime(DateFormat, Dates[i - 1].Date);
   end;
@@ -6277,7 +6402,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Edit;
+  try
+    D.Edit;
+  except
+    D.FreeBookMark(B);    
+    EndUpdate;
+    raise Exception.Create('Could not put dataset in edit mode');
+    Exit;
+  end;
 
   if FPlanner.Items.DBItem.RealTime then
   begin
@@ -6412,7 +6544,14 @@ begin
 
   B := D.GetBookMark;
 
-  D.Append;
+  try
+    D.Append;
+  except
+    D.FreeBookMark(B);
+    EndUpdate;
+    raise Exception.Create('Could not append a new record');
+    Exit;
+  end;
 
   if not AutoIncKey then
   begin
@@ -6484,7 +6623,14 @@ begin
   D.Locate(KeyField,Variant(FPlanner.Items.DBItem.DBKey),[]);
   {$ENDIF}
 
-  D.Delete;
+  try
+     D.Delete;
+  except
+    EndUpdate;
+    raise Exception.Create('Failed to delete record in dataset');
+    Exit;
+  end;
+  
   EndUpdate;
 end;
 
@@ -7299,7 +7445,10 @@ end;
 
 function TDateCollection.PosDate(Pos: Integer): TDateTime;
 begin
-  Result := Items[Pos].Date;
+  if Pos < Count then
+    Result := Items[Pos].Date
+  else
+    Result := 0;
 end;
 
 procedure TDateCollection.SetItem(Index: Integer; const Value: TDateItem);
@@ -7359,6 +7508,10 @@ begin
   if not FDBItemSource.ResourceDataSource.DataSource.DataSet.Active then
     Exit;
 
+  if (FDBItemSource.ResourceDataSource.DataSource.DataSet.State in [dsInsert,dsEdit]) then
+    Exit;
+
+
   inc(FUpdateCount);
 
   D := FDBItemSource.ResourceDataSource.DataSource.DataSet;
@@ -7395,6 +7548,7 @@ begin
     D.EnableControls;
     D.GotoBookmark(B);
     dec(FUpdateCount);
+    D.FreeBookMark(B);
   end;
 
   FDBItemSource.ResourceUpdate;

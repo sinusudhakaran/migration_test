@@ -4,7 +4,7 @@
 { version 1.3                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{            copyright © 1999-2005                                        }
+{            copyright © 1999-2007                                        }
 {            Email : info@tmssoftware.com                                 }
 {            Website : http://www.tmssoftware.com/                        }
 {                                                                         }
@@ -38,15 +38,20 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 1; // Build nr.
+  REL_VER = 3; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
-  // 1.3.0.1 : improved mask editor property handling 
+  // 1.3.0.1 : improved mask editor property handling
   // 1.3.1.0 : improved positioning of directory select dialog on multimonitor machines
-
+  // 1.3.3.0 : Fixed issue with spinedit 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TParamLabelClickEvent = procedure (Sender:TObject; href:string;var value:string) of object;
   TParamLabelPopupEvent = procedure (Sender:TObject; href:string;values:TStringlist;var DoPopup:boolean) of object;
   TParamLabelSelectEvent = procedure (Sender:TObject; href,value:string) of object;
@@ -1039,8 +1044,11 @@ begin
     FParamSpinEdit.Visible := True;
 
     PrepareParam(Param,v);
-
-    FParamSpinEdit.Value := StrToInt(Trim(v));
+    try
+      FParamSpinEdit.Value := StrToInt(Trim(v));
+    except
+      FParamSpinEdit.Value := 0;
+    end;
     FParamSpinEdit.SetFocus;
   end;
 
@@ -1621,7 +1629,7 @@ end;
 procedure TParamLabel.KeyPress(var Key: Char);
 begin
   inherited;
-  if (FFocusLink <> -1) and (Key in [#13,#32]) and (ParamRefCount >  0) then
+  if (FFocusLink <> -1) and ((Key = #13) or (Key = #32)) and (ParamRefCount >  0) then
   begin
     EditParam(ParamRefs[FFocusLink]);
   end;

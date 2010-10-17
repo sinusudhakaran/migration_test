@@ -54,32 +54,35 @@ type
     constructor Create(const aDrawingGroup: TDrawingGroup);
     destructor Destroy; override;
 
-    procedure CopyFrom(const aDrawing: TDrawing);
+    procedure CopyFrom(const aDrawing: TDrawing; const dSheet: TObject);
     procedure LoadFromStream(const DataStream: TStream; const First: TDrawingRecord; const SST: TSST);
     procedure SaveToStream(const DataStream: TStream);
     function TotalSize: int64;
 
-    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo);
+    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const dSheet: TObject);
     procedure ArrangeCopySheet(const SheetInfo: TSheetInfo);
-    procedure InsertAndCopyRowsAndCols(const FirstRow, LastRow, DestRow, RowCount, FirstCol, LastCol, DestCol, ColCount: integer; const SheetInfo: TSheetInfo);
-    procedure DeleteRows(const aRow, aCount: word;const SheetInfo: TSheetInfo);
-    procedure DeleteCols(const aCol, aCount: word;const SheetInfo: TSheetInfo);
+    procedure InsertAndCopyRowsAndCols(const FirstRow, LastRow, DestRow, RowCount, FirstCol, LastCol, DestCol, ColCount: integer; const SheetInfo: TSheetInfo; const dSheet: TObject);
+    procedure DeleteRows(const aRow, aCount: word;const SheetInfo: TSheetInfo; const dSheet: TObject);
+    procedure DeleteCols(const aCol, aCount: word;const SheetInfo: TSheetInfo; const dSheet: TObject);
 
     function FindObjId(const ObjId: word): TEscherClientDataRecord;
 
     function DrawingCount: integer;
     procedure AssignDrawing(const Index: integer; const Data: string; const DataType: TXlsImgTypes);
     function GetAnchor(const Index: integer): TClientAnchor;
-    procedure SetAnchor(const Index: integer; const aAnchor: TClientAnchor);
+    procedure SetAnchor(const Index: integer; const aAnchor: TClientAnchor; const sSheet: TObject);
     procedure GetDrawingFromStream(const Index: integer; const Data: TStream; var DataType: TXlsImgTypes);
     property DrawingRow[index: integer]: integer read GetDrawingRow;
     property DrawingName[index: integer]: widestring read GetDrawingName;
 
     procedure DeleteImage(const Index: integer);
     procedure ClearImage(const Index: integer);
-    procedure AddImage(Data: string; DataType: TXlsImgTypes; const Properties: TImageProperties;const Anchor: TFlxAnchorType);
+    procedure AddImage(Data: string; DataType: TXlsImgTypes; const Properties: TImageProperties;const Anchor: TFlxAnchorType; const sSheet: TObject);
 
-    function AddNewComment(const Properties: TImageProperties): TEscherClientDataRecord;
+    function AddNewComment(const Properties: TImageProperties; const sSheet: TObject): TEscherClientDataRecord;
+
+    procedure SaveObjectCoords(const sSheet: TObject);
+    procedure RestoreObjectCoords(const dSheet: TObject);
   end;
 
 implementation
@@ -250,12 +253,12 @@ begin
     FRecordCache.Obj.ArrangeCopySheet(SheetInfo);
 end;
 
-procedure TDrawing.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo);
+procedure TDrawing.ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo; const dSheet: TObject);
 begin
   if (FRecordCache.Anchor<> nil) and (SheetInfo.FormulaSheet= SheetInfo.InsSheet)then
-    FRecordCache.Anchor.ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, false);
+    FRecordCache.Anchor.ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, false, dSheet);
   if (FRecordCache.Obj<> nil) then
-    FRecordCache.Obj.ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, false);
+    FRecordCache.Obj.ArrangeInsertRowsAndCols(aRowPos, aRowCount, aColPos, aColCount, SheetInfo, false, dSheet);
 end;
 
 procedure TDrawing.AssignDrawing(const Index: integer; const Data: string;
@@ -287,7 +290,7 @@ begin
   FreeAndNil(FRecordCache.Blip);
 end;
 
-procedure TDrawing.CopyFrom(const aDrawing: TDrawing);
+procedure TDrawing.CopyFrom(const aDrawing: TDrawing; const dSheet: TObject);
 begin
   Clear;
   FRecordCache.MaxObjId:=0;
@@ -304,7 +307,7 @@ begin
   if aDrawing.FDgContainer=nil then FreeAndNil(FDgcontainer) else
   begin
     aDrawing.FDgContainer.ClearCopiedTo;
-    FDgContainer:=aDrawing.FDgContainer.CopyTo(@FRecordCache, 0,0) as TEscherContainerRecord;
+    FDgContainer:=aDrawing.FDgContainer.CopyTo(@FRecordCache, 0,0, dSheet) as TEscherContainerRecord;
     FRecordCache.Shape.Sort; // only here the values are loaded...
     if FRecordCache.Solver<>nil then FRecordCache.Solver.CheckMax(aDrawing.FRecordCache.Solver.MaxRuleId);
 
@@ -321,12 +324,9 @@ begin
 end;
 
 procedure TDrawing.DeleteRows(const aRow, aCount: word;
-  const SheetInfo: TSheetInfo);
+  const SheetInfo: TSheetInfo; const dSheet: TObject);
 var i: integer;
 begin
-  //MADE: delete rows
-  //MADE: Arreglar los continues...
-  //MADE: Conectores
   if FRecordCache.Anchor=nil then exit;
   for i:= FRecordCache.Anchor.Count-1 downto 0 do
     if FRecordCache.Anchor[i].AllowDelete(aRow, aRow+aCount-1,0,Max_Columns+1)then
@@ -335,11 +335,11 @@ begin
       FRecordCache.Patriarch.ContainedRecords.Remove(FRecordCache.Anchor[i].FindRoot);
     end;
 
-  ArrangeInsertRowsAndCols(aRow, -aCount, 0,0, SheetInfo);
+  ArrangeInsertRowsAndCols(aRow, -aCount, 0,0, SheetInfo, dSheet);
 end;
 
 procedure TDrawing.DeleteCols(const aCol, aCount: word;
-  const SheetInfo: TSheetInfo);
+  const SheetInfo: TSheetInfo; const dSheet: TObject);
 var i: integer;
 begin
   //MADE: delete cols
@@ -353,7 +353,7 @@ begin
       FRecordCache.Patriarch.ContainedRecords.Remove(FRecordCache.Anchor[i].FindRoot);
     end;
 
-  ArrangeInsertRowsAndCols(0,0,aCol, -aCount, SheetInfo);
+  ArrangeInsertRowsAndCols(0,0,aCol, -aCount, SheetInfo, dSheet);
 end;
 
 destructor TDrawing.Destroy;
@@ -386,10 +386,10 @@ begin
   Result:=FRecordCache.Blip[index].GetAnchor;
 end;
 
-procedure TDrawing.SetAnchor(const Index: integer; const aAnchor: TClientAnchor);
+procedure TDrawing.SetAnchor(const Index: integer; const aAnchor: TClientAnchor; const sSheet: TObject);
 begin
   Assert(Index<FRecordCache.Blip.Count,'Index out of range');
-  FRecordCache.Blip[index].SetAnchor(aAnchor);
+  FRecordCache.Blip[index].SetAnchor(aAnchor, sSheet);
 end;
 
 procedure TDrawing.GetDrawingFromStream(const Index: integer; const Data: TStream; var DataType: TXlsImgTypes);
@@ -411,7 +411,7 @@ begin
 end;
 
 procedure TDrawing.InsertAndCopyRowsAndCols(const FirstRow, LastRow, DestRow, RowCount, FirstCol, LastCol, DestCol,
-  ColCount: integer; const SheetInfo: TSheetInfo);
+  ColCount: integer; const SheetInfo: TSheetInfo; const dSheet: TObject);
 var
   i,k, myDestRow, myFirstRow, myLastRow, myDestCol, myFirstCol, myLastCol: integer;
 begin
@@ -436,7 +436,7 @@ begin
   end;
 
   //Insert cells
-  ArrangeInsertRowsAndCols(DestRow, RowCount*(LastRow-FirstRow+1), DestCol, ColCount*(LastCol-FirstCol+1), SheetInfo);
+  ArrangeInsertRowsAndCols(DestRow, RowCount*(LastRow-FirstRow+1), DestCol, ColCount*(LastCol-FirstCol+1), SheetInfo, dSheet);
 
   //Copy the images
   //First the rows...
@@ -447,10 +447,10 @@ begin
     for i:= 0 to FRecordCache.Anchor.Count-1 do
       if FRecordCache.Anchor[i].AllowCopy(myFirstRow, myLastRow, 0, Max_Columns+1)then
       begin
-         FRecordCache.Anchor[i].CopyDwg(myDestRow-myFirstRow,0);
+         FRecordCache.Anchor[i].CopyDwg(myDestRow-myFirstRow,0, dSheet);
       end;
     inc(myDestRow, (LastRow-FirstRow+1));
-    if FRecordCache.Solver<>nil then FRecordCache.Solver.ArrangeCopyRowsAndCols;
+    if FRecordCache.Solver<>nil then FRecordCache.Solver.ArrangeCopyRowsAndCols(dSheet);
   end;
 
   //Now the columns... as we already copied the rows, now we will make an array of images
@@ -461,10 +461,10 @@ begin
     for i:= 0 to FRecordCache.Anchor.Count-1 do
       if FRecordCache.Anchor[i].AllowCopy(0, Max_Rows+1, myFirstCol, myLastCol)then
       begin
-         FRecordCache.Anchor[i].CopyDwg(0, myDestCol-myFirstCol);
+         FRecordCache.Anchor[i].CopyDwg(0, myDestCol-myFirstCol, dSheet);
       end;
     inc(myDestCol, (LastCol-FirstCol+1));
-    if FRecordCache.Solver<>nil then FRecordCache.Solver.ArrangeCopyRowsAndCols();
+    if FRecordCache.Solver<>nil then FRecordCache.Solver.ArrangeCopyRowsAndCols(dSheet);
   end;
 
 end;
@@ -476,6 +476,8 @@ var
   SPRec: TEscherSpContainerRecord;
   SPgrRec:TEscherDataRecord;
   SP: TEscherSPRecord;
+  DgId: integer;
+  FirstId: Int64;
 begin
   Assert (FDrawingGroup<>nil,'DrawingGroup can''t be nil');
   FRecordCache.MaxObjId:=0;
@@ -493,7 +495,8 @@ begin
   FDrawingGroup.AddDwg;
 
   //Add required records...
-  Dg:=TEscherDgRecord.CreateFromData(0,$401,FDrawingGroup.RecordCache, @FRecordCache, FDgContainer);
+  FDrawingGroup.RecordCache.Dgg.GetNewDgIdAndCluster(DgId, FirstId);
+  Dg:=TEscherDgRecord.CreateFromData(0, DgId, FirstId, FDrawingGroup.RecordCache, @FRecordCache, FDgContainer);
   FDgContainer.ContainedRecords.Add(Dg);
 
   EscherHeader.Pre:=$F;
@@ -523,7 +526,7 @@ begin
 
 end;
 
-procedure TDrawing.AddImage(Data: string; DataType: TXlsImgTypes; const Properties: TImageProperties;const Anchor: TFlxAnchorType);
+procedure TDrawing.AddImage(Data: string; DataType: TXlsImgTypes; const Properties: TImageProperties;const Anchor: TFlxAnchorType; const sSheet: TObject);
 var
   SPRec: TEscherSpContainerRecord;
   AnchorRec: TEscherClientAnchorRecord;
@@ -572,7 +575,7 @@ begin
   ClientAnchor.Dy1:=Properties.dy1;
   ClientAnchor.Row2:=Properties.Row2;
   ClientAnchor.Dy2:=Properties.dy2;
-  AnchorRec:=TEscherClientAnchorRecord.CreateFromData(ClientAnchor, RecordHeader, FDrawingGroup.RecordCache, @FRecordCache, SPRec);
+  AnchorRec:=TEscherClientAnchorRecord.CreateFromData(ClientAnchor, RecordHeader, FDrawingGroup.RecordCache, @FRecordCache, SPRec, sSheet);
   SPRec.ContainedRecords.Add(AnchorRec);
 
 
@@ -623,7 +626,8 @@ begin
           CurrentRecord:=LoadRecord(DataStream, RecordHeader);
           MyRecord:= CurrentRecord;
           aPos:=0;
-          if not(MyRecord is TDrawingRecord) then raise Exception.Create(ErrExcelInvalid);
+          if not(MyRecord is TDrawingRecord) then
+            raise Exception.Create(ErrExcelInvalid);
         end;
         FDgContainer.Load(MyRecord, aPos);
       end else
@@ -701,7 +705,7 @@ begin
   Result:=RealSize;
 end;
 
-function TDrawing.AddNewComment(const Properties: TImageProperties): TEscherClientDataRecord;
+function TDrawing.AddNewComment(const Properties: TImageProperties; const sSheet: TObject): TEscherClientDataRecord;
 var
   aTXO: TTXO;
   aMsObj: TMsObj;
@@ -754,7 +758,7 @@ begin
     ClientAnchor.Dy1:=Properties.dy1;
     ClientAnchor.Row2:=Properties.Row2;
     ClientAnchor.Dy2:=Properties.dy2;
-    AnchorRec:=TEscherClientAnchorRecord.CreateFromData(ClientAnchor, RecordHeader, FDrawingGroup.RecordCache, @FRecordCache, SPRec);
+    AnchorRec:=TEscherClientAnchorRecord.CreateFromData(ClientAnchor, RecordHeader, FDrawingGroup.RecordCache, @FRecordCache, SPRec, sSheet);
     try
       SPRec.ContainedRecords.Add(AnchorRec);
     except
@@ -802,5 +806,27 @@ begin
   Result:=Obj;
 end;
 
+
+procedure TDrawing.RestoreObjectCoords(const dSheet: TObject);
+var
+  i: integer;
+begin
+	if (FRecordCache.Patriarch=nil) then exit;
+  for i := FRecordCache.Anchor.Count - 1 downto 0 do
+	begin
+		FRecordCache.Anchor[i].RestoreObjectCoords(dSheet);
+  end;
+end;
+
+procedure TDrawing.SaveObjectCoords(const sSheet: TObject);
+var
+  i: integer;
+begin
+	if (FRecordCache.Patriarch=nil) then exit;
+  for i := FRecordCache.Anchor.Count - 1 downto 0 do
+	begin
+		FRecordCache.Anchor[i].SaveObjectCoords(sSheet);
+  end;
+end;
 
 end.

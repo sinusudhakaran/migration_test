@@ -1,11 +1,10 @@
 {***********************************************************************}
 { TPlannerDatePicker component                                          }
 { for Delphi & C++ Builder                                              }
-{ version 1.5                                                           }
 {                                                                       }
 { written by :                                                          }
 {            TMS Software                                               }
-{            copyright © 1999-2005                                      }
+{            copyright © 1999-2008                                      }
 {            Email : info@tmssoftware.com                               }
 {            Website : http://www.tmssoftware.com                       }
 {                                                                       }
@@ -34,7 +33,7 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 5; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 1; // Build nr.
+  BLD_VER = 3; // Build nr.
 
   // Version history
   // 1.4.0.0 : Property Calendar.InActiveDays added
@@ -42,6 +41,8 @@ const
   //         : XP style dropdown button added
   //         : Hover date color in Calendar added
   // 1.5.0.1 : Improved TPlannerDBMaskDatePicker mask handling
+  // 1.5.0.2 : Fixed : issue with use on forms with fsStayOnTop formstyle set
+  // 1.5.0.3 : Fixed : issue with OnInvalidDate event
 
 type
   TPlannerMaskDatePicker = class(TAdvMaskEditBtn)
@@ -138,6 +139,15 @@ var
   end;
 
 begin
+  if (Parent is TForm) then
+  begin
+    if (Parent as TForm).FormStyle = fsStayOnTop then
+      PlannerParent.FormStyle := fsStayOnTop;
+  end
+  else
+    PlannerParent.FormStyle := fsStayOnTop;
+
+
   // Set planner position
   PlannerPosition.x := -2;
   PlannerPosition.y := Height - 3;
@@ -459,10 +469,13 @@ var
 
 begin
   inherited;
+
   try
     dt := StrToDate(Text);
     Calendar.Date := dt;
   except
+    if Assigned(FOnInvalidDate) then
+      FOnInvalidDate(Self)
   end;
 end;
 

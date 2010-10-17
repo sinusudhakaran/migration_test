@@ -70,7 +70,6 @@ type
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     procedure AdjustClientRect(var Rect: TRect); override;
     procedure CreateParams(var Params: TCreateParams); override;
-
     function GetCaptionHeight: Integer;
     function GetCaptionRect: TRect;
     function GetBorderWidth: Integer;

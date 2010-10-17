@@ -3,10 +3,10 @@
 {***********************************************************************}
 { TPlanner component design time code                                   }
 { for Delphi & C++Builder                                               }
-{ version 2.5, 2006                                                     }
+{ version 2.5, 2007                                                     }
 {                                                                       }
 { written by TMS Software                                               }
-{            copyright © 1999-2006                                      }
+{            copyright © 1999-2007                                      }
 {            Email: info@tmssoftware.com                                }
 {            Web: http://www.tmssoftware.com                            }
 {                                                                       }
@@ -191,14 +191,19 @@ begin
       
       {$IFDEF VER180}
       {$IFDEF BCB}
+      compiler := 'C++Builder 2006';
       {$ELSE}
-      compiler := 'Delphi 2006';
+        {$IFDEF VER185}
+        compiler := 'Delphi 2007';
+        {$ELSE}
+        compiler := 'Delphi 2006';
+        {$ENDIF}
       {$ENDIF}
       {$ENDIF}
 
 
 
-      MessageDlg(Component.ClassName+' version '+ (Component as TCustomPlanner).VersionString + ' for ' + compiler + #13#10#13#10'© 1999-2006 by TMS software'#13#10'http://www.tmssoftware.com',
+      MessageDlg(Component.ClassName+' version '+ (Component as TCustomPlanner).VersionString + ' for ' + compiler + #13#10#13#10'© 1999-2007 by TMS software'#13#10'http://www.tmssoftware.com',
                  mtInformation,[mbok],0);
     end;
 

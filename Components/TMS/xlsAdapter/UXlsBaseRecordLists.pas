@@ -20,14 +20,14 @@ type
 
     procedure CopyFrom(const aBaseRecordList: TBaseRecordList);
     property TotalSize: int64 read GetTotalSize;
-    procedure SaveToStream(const DataStream: TStream); virtual;
+    procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean); virtual;
   end;
 
   TBaseRowColRecordList = class(TBaseRecordList) //Records are TBaseRowColRecord
     {$INCLUDE TBaseRowColRecordListHdr.inc}
     procedure ArrangeCopyRowsAndCols(const RowOffset, ColOffset: integer);
     procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount: integer; const SheetInfo: TSheetInfo);
-    procedure SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange);virtual;
+    procedure SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);virtual;
 
     function TotalRangeSize(const CellRange: TXlsCellRange): int64;virtual;
   end;
@@ -35,8 +35,8 @@ type
   TNameRecordList = class(TBaseRecordList) //Records are TNameRecord
     {$INCLUDE TNameRecordListHdr.inc}
     procedure ArrangeInsertRowsAndCols(const InsRow, aRowCount, InsCol, aColCount: integer; const SheetInfo: TSheetInfo);
-    procedure InsertSheets(const CopyFrom, BeforeSheet:integer;  SheetCount: byte; SheetInfo: TSheetInfo);
-    procedure DeleteSheets(const SheetIndex, SheetCount:integer);
+    procedure InsertSheets(const CopyFrom, BeforeSheet:integer;  SheetCount: integer; SheetInfo: TSheetInfo);
+    procedure DeleteSheets(const SheetIndex, SheetCount: integer);
   end;
 
   TBoundSheetRecordList = class (TBaseRecordList)
@@ -57,11 +57,11 @@ type
     private
       procedure GoNext(var i: integer; const aCount: integer; var it: TCellRecord; var NextRec: TCellRecord);
     function SaveAndCalcRange(const DataStream: TStream;
-      const CellRange: TXlsCellRange): int64;
+      const CellRange: TXlsCellRange; const NeedsRecalc: boolean): int64;
     public
-      procedure SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange); override;
+      procedure SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean); override;
       function TotalRangeSize(const CellRange: TXlsCellRange): int64; override;
-      procedure SaveToStream(const DataStream: TStream); override;
+      procedure SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean); override;
       function GetTotalSize: int64;override;
   end;
 
@@ -108,7 +108,7 @@ begin
   Inc(FTotalSize, Delta);
 end;
 
-procedure TBaseRecordList.SaveToStream(const DataStream: TStream);
+procedure TBaseRecordList.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 var
   i:integer;
   it: TBaseRecord;
@@ -116,7 +116,7 @@ begin
   for i:=0 to Count-1 do
   begin
     it:=(Items[i] as TBaseRecord);
-    if it<>nil then it.SaveToStream(DataStream);
+    if it<>nil then it.SaveToStream(DataStream, NeedsRecalc);
   end;
 end;
 
@@ -168,7 +168,7 @@ begin
   end;
 end;
 
-procedure TBaseRowColRecordList.SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange);
+procedure TBaseRowColRecordList.SaveRangeToStream(const DataStream: TStream; const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 var
   i, r, c:integer;
   it: TBaseRowColRecord;
@@ -181,7 +181,7 @@ begin
       r:=it.Row;c:=it.Column;
       if  (r>=CellRange.Top) and (r<=CellRange.Bottom)
          and (c>=CellRange.Left) and (c<=CellRange.Right) then
-         it.SaveToStream(DataStream);
+           it.SaveToStream(DataStream, NeedsRecalc);
     end;
   end;
 end;
@@ -226,7 +226,7 @@ begin
 end;
 
 procedure TNameRecordList.InsertSheets(const CopyFrom, BeforeSheet:integer;
-  SheetCount: byte; SheetInfo: TSheetInfo);
+  SheetCount: integer; SheetInfo: TSheetInfo);
 var
   i, k, MyCount: integer;
 begin
@@ -299,7 +299,6 @@ var
 begin
   //Insert the cells. we can look only for those below destrow
   for i:=DestRow to Count-1 do if HasRow(i) then Items[i].ArrangeInsertRowsAndCols(DestRow, aCount*(LastRow-FirstRow+1), 0, 0, SheetInfo);
-
   //Copy the cells
   MyDestRow:=DestRow;
   CopyOffs:=0;
@@ -445,7 +444,7 @@ begin
 end;
 
 function TCellRecordList.SaveAndCalcRange(const DataStream: TStream;
-  const CellRange: TXlsCellRange): int64;
+  const CellRange: TXlsCellRange; const NeedsRecalc: boolean): int64;
 var
   aCount: integer;
   it, it2: TCellRecord;
@@ -505,7 +504,7 @@ begin
         end
           else
           begin
-            if (DataStream <> nil) then it.SaveToStream(DataStream);
+            if (DataStream <> nil) then it.SaveToStream(DataStream, NeedsRecalc);
             inc(Result, it.TotalSize);
           end;
       end;
@@ -513,17 +512,17 @@ begin
   end;
 end;
 
-procedure TCellRecordList.SaveToStream(const DataStream: TStream);
+procedure TCellRecordList.SaveToStream(const DataStream: TStream; const NeedsRecalc: boolean);
 const
   CellRange: TXlsCellRange=(Left: 0; Top: 0; Right: Max_Columns; Bottom: Max_Rows);
 begin
-  SaveRangeToStream (DataStream, CellRange);
+  SaveRangeToStream (DataStream, CellRange, NeedsRecalc);
 end;
 
 function TCellRecordList.TotalRangeSize(
   const CellRange: TXlsCellRange): int64;
 begin
-  Result:=SaveAndCalcRange(nil, CellRange);
+  Result:=SaveAndCalcRange(nil, CellRange, false);
 end;
 
 function TCellRecordList.GetTotalSize: int64;
@@ -534,9 +533,9 @@ begin
 end;
 
 procedure TCellRecordList.SaveRangeToStream(const DataStream: TStream;
-  const CellRange: TXlsCellRange);
+  const CellRange: TXlsCellRange; const NeedsRecalc: boolean);
 begin
-  SaveAndCalcRange(DataStream, CellRange);
+  SaveAndCalcRange(DataStream, CellRange, NeedsRecalc);
 end;
 
 end.

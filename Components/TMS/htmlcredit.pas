@@ -47,6 +47,11 @@ const
 
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TRichText = string;
 
   TVAlignment = (tvaTop,tvaCenter,tvaBottom);
@@ -931,7 +936,7 @@ end;
 procedure THTMLCredit.Keypress(var Key: Char);
 begin
   inherited;
-  if Key in [#13,#32] then
+  if (Key = #13) or (Key = #32) then
   begin
     if (Pos('://',FFocusAnchor) > 0) or (Pos('mailto:',FFocusAnchor) > 0) then
       {$IFNDEF TMSDOTNET}

@@ -557,6 +557,7 @@ begin
   inherited;
 end;
 
+
 procedure TAsgEditBtn.WMChar(var Message: TWMChar);
 begin
   if not FEditorEnabled then

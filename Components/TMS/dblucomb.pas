@@ -1,11 +1,10 @@
 {***********************************************************************}
 { DB LOOKUP components : TDBLUEdit & TDBLUCombo                         }
 { for Delphi & C++Builder                                               }
-{ version 1.2                                                           }
 {                                                                       }
 { written by                                                            }
 {  TMS Software                                                         }
-{  copyright © 2000 - 2006                                              }
+{  copyright © 2000 - 2008                                              }
 {  Email : info@tmssoftware.com                                         }
 {  Web : http://www.tmssoftware.com                                     }
 {                                                                       }
@@ -24,7 +23,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, LuCombo, db, dbctrls; 
+  StdCtrls, LuCombo, db, dbctrls
+  {$IFDEF DELPHI_UNICODE}
+  , Character
+  {$ENDIF}
+  ;
 
 
 type
@@ -273,7 +276,7 @@ end;
 
 destructor TDBLUCombo.Destroy;
 begin
-  FDataLink.Free;                                  { always destroy owned objects first... }
+  FDataLink.Free;                                 
   inherited Destroy;
 end;
 
@@ -285,12 +288,16 @@ end;
 
 function TDBLUCombo.GetDataSource: TDataSource;
 begin
- Result := FDataLink.DataSource;
+  Result := nil;
+  if not (csDestroying in ComponentState) then
+    Result := FDataLink.DataSource;
 end;
 
 function TDBLUCombo.GetReadOnly: Boolean;
 begin
-  Result := FDataLink.ReadOnly;
+  Result := false;
+  if not (csDestroying in ComponentState) then
+    Result := FDataLink.ReadOnly;
 end;
 
 procedure TDBLUCombo.SetDataField(const Value: string);
@@ -343,7 +350,12 @@ end;
 
 procedure TDBLUCombo.KeyPress(var Key: Char);
 begin
+  {$IFNDEF DELPHI_UNICODE}
   if (Key in [#9,#32..#255]) and (FDataLink.Field <> nil) and
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if ((Key = #9) or character.IsLetterOrDigit(key)) and (FDataLink.Field <> nil) and
+  {$ENDIF}
     not FDataLink.Field.IsValidChar(Key) or (FDataLink.ReadOnly) then
   begin
     MessageBeep(0);
@@ -362,6 +374,7 @@ begin
         Key := #0;
       end;
   end;
+
 end;
 
 procedure TDBLUCombo.Loaded;
@@ -587,7 +600,13 @@ end;
 procedure TDBLUEdit.KeyPress(var Key: Char);
 begin
   inherited KeyPress(Key);
+
+  {$IFNDEF DELPHI_UNICODE}
   if (Key in [#32..#255]) and (FDataLink.Field <> nil) and
+  {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  if (character.IsLetterOrDigit(key)) and (FDataLink.Field <> nil) and
+  {$ENDIF}
     not FDataLink.Field.IsValidChar(Key) or (FDataLink.ReadOnly) then
   begin
     MessageBeep(0);

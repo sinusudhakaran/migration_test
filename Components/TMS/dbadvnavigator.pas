@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TDBADVNAVIGATOR component                                               }
 { for Delphi & C++Builder                                                 }
-{ version 1.2                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 2002 - 2004                                       }
+{           copyright © 2002 - 2008                                       }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -30,9 +29,14 @@ uses
 
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 2; // Minor version nr.
-  REL_VER = 0; // Release nr.
+  MIN_VER = 3; // Minor version nr.
+  REL_VER = 1; // Release nr.
   BLD_VER = 1; // Build nr.
+  
+  // version history
+  // 1.3.0.0 : New property DeleteDisabled added
+  // 1.3.1.0 : New property InsertDisabled added 
+  // 1.3.1.1 : Fixed : update issue with InsertDisabled, DeleteDisabled property setters
 
 type
   TAdvNavButton = class;
@@ -73,6 +77,8 @@ type
     FColorHotTo: TColor;
     FColor: TColor;
     FColorTo: TColor;    
+    FDeleteDisabled: Boolean;
+    FInsertDisabled: Boolean;
     FShaded: Boolean;
     FOnBtnPrior : TNotiFyEvent;
     FOnBtnNext : TNotiFyEvent;
@@ -124,6 +130,8 @@ type
     procedure SetColorDownTo(const Value: TColor);
     procedure SetColorHot(const Value: TColor);
     procedure SetColorHotTo(const Value: TColor);
+    procedure SetDeleteDisabled(const Value: Boolean);
+    procedure SetInsertDisabled(const Value: Boolean);
     procedure SetShaded(const Value: Boolean);
     //procedure SetRounded(const Value: Boolean);
     procedure SetOrientation(const Value: TNavigatorOrientation);
@@ -133,8 +141,9 @@ type
     procedure SetGlyphResName(const Value: string);
     function GetVersion: string;
     procedure SetVersion(const Value: string);
+    function GetButtons(index: TAdvNavigateBtn): TAdvNavButton;
   protected
-    Buttons: array[TAdvNavigateBtn] of TAdvNavButton;
+    FButtons: array[TAdvNavigateBtn] of TAdvNavButton;
     function GetVersionNr: Integer; virtual;
     procedure DataChanged;
     procedure EditingChanged;
@@ -152,6 +161,7 @@ type
     procedure BtnClick(Index: TAdvNavigateBtn); virtual;
     property Look: Integer read FLook write SetLook;
     property BookMark: string read FBookmark write FBookmark;
+    property Buttons[index: TAdvNavigateBtn]:TAdvNavButton read GetButtons;
   published
     property AutoThemeAdapt: Boolean read FAutoThemeAdapt write FAutoThemeAdapt;
     property DataSource: TDataSource read GetDataSource write SetDataSource;
@@ -170,6 +180,8 @@ type
     property ColorHot: TColor read FColorHot write SetColorHot;
     property ColorHotTo: TColor read FColorHotTo write SetColorHotTo;
     property Constraints;
+    property DeleteDisabled: Boolean read FDeleteDisabled write SetDeleteDisabled;
+    property InsertDisabled: Boolean read FInsertDisabled write SetInsertDisabled;
     property DragCursor;
     property DragKind;
     property DragMode;
@@ -312,6 +324,8 @@ begin
   FBorderHotColor := clBlack;
   FBorderDownColor := clBlack;
 
+  FDeleteDisabled := False;
+  FInsertDisabled := False;
   FBookmark := '';
 end;
 
@@ -341,7 +355,7 @@ begin
   end;
 
   X := 0;
-  for I := Low(Buttons) to High(Buttons) do
+  for I := Low(FButtons) to High(FButtons) do
   begin
     Btn := TAdvNavButton.Create (Self);
     Btn.Flat := Flat;
@@ -392,7 +406,7 @@ begin
     Btn.OnClick := ClickHandler;
     Btn.OnMouseDown := BtnMouseDown;
     Btn.Parent := Self;
-    Buttons[I] := Btn;
+    FButtons[I] := Btn;
     X := X + MinBtnSize.X;
   end;
   Buttons[nbPrior].NavStyle := Buttons[nbPrior].NavStyle + [nsAllowTimer];
@@ -403,20 +417,20 @@ procedure TDBAdvNavigator.InitStyles;
 var
   J: TAdvNavigateBtn;
 begin
-  for J := Low(Buttons) to High(Buttons) do
+  for J := Low(FButtons) to High(FButtons) do
   begin
-    Buttons[J].Color := Color;
-    Buttons[J].ColorTo := ColorTo;
-    Buttons[J].ColorDown := ColorDown;
-    Buttons[J].ColorDownTo := ColorDownTo;
-    Buttons[J].ColorHot := ColorHot;
-    Buttons[J].ColorHotTo := ColorHotTo;
-    Buttons[J].BorderColor := BorderColor;
-    Buttons[J].BorderDownColor := BorderDownColor;
-    Buttons[J].BorderHotColor := BorderHotColor;
-    Buttons[J].AutoThemeAdapt := FAutoThemeAdapt;
-    Buttons[J].Rounded := False;
-  end;    
+    FButtons[J].Color := Color;
+    FButtons[J].ColorTo := ColorTo;
+    FButtons[J].ColorDown := ColorDown;
+    FButtons[J].ColorDownTo := ColorDownTo;
+    FButtons[J].ColorHot := ColorHot;
+    FButtons[J].ColorHotTo := ColorHotTo;
+    FButtons[J].BorderColor := BorderColor;
+    FButtons[J].BorderDownColor := BorderDownColor;
+    FButtons[J].BorderHotColor := BorderHotColor;
+    FButtons[J].AutoThemeAdapt := FAutoThemeAdapt;
+    FButtons[J].Rounded := False;
+  end;
 
 end;
 
@@ -445,13 +459,13 @@ begin
     FDefHints.Add('Goto bookmark');
 
   end;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].Hint := FDefHints[Ord(J)];
-  J := Low(Buttons);
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].Hint := FDefHints[Ord(J)];
+  J := Low(FButtons);
   for I := 0 to (FHints.Count - 1) do
   begin
     if FHints.Strings[I] <> '' then Buttons[J].Hint := FHints.Strings[I];
-    if J = High(Buttons) then Exit;
+    if J = High(FButtons) then Exit;
     Inc(J);
   end;
 end;
@@ -468,8 +482,8 @@ begin
   if FFlat <> Value then
   begin
     FFlat := Value;
-    for I := Low(Buttons) to High(Buttons) do
-      Buttons[I].Flat := Value;
+    for I := Low(FButtons) to High(FButtons) do
+      FButtons[I].Flat := Value;
   end;
 end;
 
@@ -486,6 +500,11 @@ begin
      not (csReading in ComponentState) and (FHints.Count = 0) then
     Result := FDefHints else
     Result := FHints;
+end;
+
+function TDBAdvNavigator.GetButtons(index: TAdvNavigateBtn): TAdvNavButton;
+begin
+  Result := FButtons[index];
 end;
 
 procedure TDBAdvNavigator.GetChildren(Proc: TGetChildProc; Root: TComponent);
@@ -508,8 +527,8 @@ begin
   W := Width;
   H := Height;
   FVisibleButtons := Value;
-  for I := Low(Buttons) to High(Buttons) do
-    Buttons[I].Visible := I in FVisibleButtons;
+  for I := Low(FButtons) to High(FButtons) do
+    FButtons[I].Visible := I in FVisibleButtons;
   SetSize(W, H);
   if (W <> Width) or (H <> Height) then
     inherited SetBounds (Left, Top, W, H);
@@ -528,8 +547,8 @@ begin
     Exit;
 
   Count := 0;
-  for I := Low(Buttons) to High(Buttons) do
-    if Buttons[I].Visible then
+  for I := Low(FButtons) to High(FButtons) do
+    if FButtons[I].Visible then
       Inc(Count);
       
   if Count = 0 then
@@ -558,14 +577,14 @@ var
 begin
   if (csLoading in ComponentState) then
     Exit;
-  if Buttons[nbFirst] = nil then
+  if FButtons[nbFirst] = nil then
     Exit;
 
   CalcMinSize(W, H);
 
   Count := 0;
-  for I := Low(Buttons) to High(Buttons) do
-    if Buttons[I].Visible then
+  for I := Low(FButtons) to High(FButtons) do
+    if FButtons[I].Visible then
       Inc(Count);
   if Count = 0 then Inc(Count);
 
@@ -578,9 +597,9 @@ begin
     X := 0;
     Remain := W - Temp;
     Temp := Count div 2;
-    for I := Low(Buttons) to High(Buttons) do
+    for I := Low(FButtons) to High(FButtons) do
     begin
-      if Buttons[I].Visible then
+      if FButtons[I].Visible then
       begin
         Space := 0;
         if Remain <> 0 then
@@ -592,11 +611,11 @@ begin
             Space := 1;
           end;
         end;
-        Buttons[I].SetBounds(X, 0, ButtonWidth + Space, Height);
+        FButtons[I].SetBounds(X, 0, ButtonWidth + Space, Height);
         Inc(X, ButtonWidth + Space);
       end
       else
-        Buttons[I].SetBounds (Width + 1, 0, ButtonWidth, Height);
+        FButtons[I].SetBounds (Width + 1, 0, ButtonWidth, Height);
     end;
   end
   else
@@ -609,9 +628,9 @@ begin
     Y := 0;
     Remain := H - Temp;
     Temp := Count div 2;
-    for I := Low(Buttons) to High(Buttons) do
+    for I := Low(FButtons) to High(FButtons) do
     begin
-      if Buttons[I].Visible then
+      if FButtons[I].Visible then
       begin
         Space := 0;
         if Remain <> 0 then
@@ -623,11 +642,11 @@ begin
             Space := 1;
           end;
         end;
-        Buttons[I].SetBounds(0, Y, Width, ButtonHeight + Space);
+        FButtons[I].SetBounds(0, Y, Width, ButtonHeight + Space);
         Inc(Y, ButtonHeight + Space);
       end
       else
-        Buttons[I].SetBounds(0,Height + 1, Width, ButtonHeight);
+        FButtons[I].SetBounds(0,Height + 1, Width, ButtonHeight);
     end;
 
   end;
@@ -681,8 +700,8 @@ begin
   end
   else if TabStop and (GetFocus = Handle) and (OldFocus <> FocusedButton) then
   begin
-    Buttons[OldFocus].Invalidate;
-    Buttons[FocusedButton].Invalidate;
+    FButtons[OldFocus].Invalidate;
+    FButtons[FocusedButton].Invalidate;
   end;
 end;
 
@@ -758,16 +777,20 @@ begin
           FOnBtnSetBookmark(Self)
         else
         begin
+          {$IFNDEF DELPHI_UNICODE}
           FBookmark := Bookmark;
+          {$ENDIF}
           Buttons[nbGotoBookmark].Enabled := True;
-        end;  
+        end;
       nbGotoBookmark:
         if Assigned(FOnBtnGotoBookmark) then
           FOnBtnGotoBookmark(Self)
         else
         begin
+          {$IFNDEF DELPHI_UNICODE}
           if FBookmark <> '' then
             Bookmark := FBookmark
+          {$ENDIF}  
         end;  
       end;
     end;
@@ -795,17 +818,17 @@ begin
   case Key of
     VK_RIGHT:
       begin
-        if OldFocus < High(Buttons) then
+        if OldFocus < High(FButtons) then
         begin
           NewFocus := OldFocus;
           repeat
             NewFocus := Succ(NewFocus);
-          until (NewFocus = High(Buttons)) or (Buttons[NewFocus].Visible);
-          if Buttons[NewFocus].Visible then
+          until (NewFocus = High(FButtons)) or (FButtons[NewFocus].Visible);
+          if FButtons[NewFocus].Visible then
           begin
             FocusedButton := NewFocus;
-            Buttons[OldFocus].Invalidate;
-            Buttons[NewFocus].Invalidate;
+            FButtons[OldFocus].Invalidate;
+            FButtons[NewFocus].Invalidate;
           end;
         end;
       end;
@@ -813,20 +836,20 @@ begin
       begin
         NewFocus := FocusedButton;
         repeat
-          if NewFocus > Low(Buttons) then
+          if NewFocus > Low(FButtons) then
             NewFocus := Pred(NewFocus);
-        until (NewFocus = Low(Buttons)) or (Buttons[NewFocus].Visible);
+        until (NewFocus = Low(FButtons)) or (FButtons[NewFocus].Visible);
         if NewFocus <> FocusedButton then
         begin
           FocusedButton := NewFocus;
-          Buttons[OldFocus].Invalidate;
-          Buttons[FocusedButton].Invalidate;
+          FButtons[OldFocus].Invalidate;
+          FButtons[FocusedButton].Invalidate;
         end;
       end;
     VK_SPACE:
       begin
-        if Buttons[FocusedButton].Enabled then
-          Buttons[FocusedButton].Click;
+        if FButtons[FocusedButton].Enabled then
+          FButtons[FocusedButton].Click;
       end;
   end;
 end;
@@ -848,8 +871,8 @@ begin
   Buttons[nbLast].Enabled := DnEnable;
   Buttons[nbDelete].Enabled := Enabled and FDataLink.Active and
     FDataLink.DataSet.CanModify and
-    not (FDataLink.DataSet.BOF and FDataLink.DataSet.EOF);
-  Buttons[nbInsert].Enabled := Enabled and FDataLink.Active and FDataLink.DataSet.CanModify;  
+    not (FDataLink.DataSet.BOF and FDataLink.DataSet.EOF) and (not DeleteDisabled);
+  Buttons[nbInsert].Enabled := Enabled and FDataLink.Active and FDataLink.DataSet.CanModify and (not InsertDisabled);   
   Buttons[nbSearch].Enabled := Enabled and FDataLink.Active;
   Buttons[nbSetBookmark].Enabled := Enabled and FDataLink.Active;
   Buttons[nbGotoBookmark].Enabled := Enabled and FDataLink.Active and (FBookmark <> '');
@@ -873,8 +896,8 @@ var
 begin
   if not (Enabled and FDataLink.Active) then
   begin
-    for I := Low(Buttons) to High(Buttons) do
-      Buttons[I].Enabled := False;
+    for I := Low(FButtons) to High(FButtons) do
+      FButtons[I].Enabled := False;
     FBookmark := '';
   end
   else
@@ -926,8 +949,8 @@ var
   J: TAdvNavigateBtn;
 begin
   FColor := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].Color := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].Color := Value;
 end;
 
 procedure TDBAdvNavigator.SetColorTo(const Value: TColor);
@@ -935,8 +958,8 @@ var
   J: TAdvNavigateBtn;
 begin
   FColorTo := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].ColorTo := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].ColorTo := Value;
 end;
 
 procedure TDBAdvNavigator.SetColorDown(const Value: TColor);
@@ -944,8 +967,8 @@ var
   J: TAdvNavigateBtn;
 begin
   FColorDown := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].ColorDown := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].ColorDown := Value;
 end;
 
 procedure TDBAdvNavigator.SetColorDownTo(const Value: TColor);
@@ -953,8 +976,8 @@ var
   J: TAdvNavigateBtn;
 begin
   FColorDownTo := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].ColorDownTo := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].ColorDownTo := Value;
 end;
 
 
@@ -963,8 +986,8 @@ var
   J: TAdvNavigateBtn;
 begin
   FColorHot := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].ColorHot := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].ColorHot := Value;
 end;
 
 procedure TDBAdvNavigator.SetColorHotTo(const Value: TColor);
@@ -972,8 +995,19 @@ var
   J: TAdvNavigateBtn;
 begin
   FColorHotTo := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].ColorHotTo := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].ColorHotTo := Value;
+end;
+procedure TDBAdvNavigator.SetDeleteDisabled(const Value: Boolean);
+begin
+  FDeleteDisabled := Value;
+  DataChanged;
+end;
+
+procedure TDBAdvNavigator.SetInsertDisabled(const Value: Boolean);
+begin
+  FInsertDisabled := Value;
+  DataChanged;
 end;
 
 {
@@ -994,9 +1028,9 @@ var
   I: TAdvNavigateBtn;
 begin
   FShaded := Value;
-  for I := Low(Buttons) to High(Buttons) do
+  for I := Low(FButtons) to High(FButtons) do
   begin
-    Buttons[I].Shaded := FShaded;
+    FButtons[I].Shaded := FShaded;
   end;
 end;
 
@@ -1013,8 +1047,8 @@ begin
 
 
     Count := 0;
-    for I := Low(Buttons) to High(Buttons) do
-      if Buttons[I].Visible then
+    for I := Low(FButtons) to High(FButtons) do
+      if FButtons[I].Visible then
         Inc(Count);
 
     if Value = noHorizontal then
@@ -1061,7 +1095,7 @@ begin
       MinBtnSize := Point(GlyphCustomSize, GlyphCustomSize - 2);
     end;  
 
-    for I := Low(Buttons) to High(Buttons) do
+    for I := Low(FButtons) to High(FButtons) do
     begin
       case GlyphSize of
       gsSmall:
@@ -1072,7 +1106,7 @@ begin
         FmtStr(ResName, '%s'+GlyphResname+'E', [BtnTypeAdvName[I]]);
       end;
 
-      Buttons[I].Glyph.LoadFromResourceName(Hinstance,ResName);
+      FButtons[I].Glyph.LoadFromResourceName(Hinstance,ResName);
 
       case GlyphSize of
       gsSmall:
@@ -1084,7 +1118,7 @@ begin
       end;
 
       if FindResource(HInstance,PChar(ResName), RT_BITMAP) <> 0 then
-        Buttons[I].GlyphHot.LoadFromResourceName(Hinstance,ResName);
+        FButtons[I].GlyphHot.LoadFromResourceName(Hinstance,ResName);
 
       case GlyphSize of
       gsSmall:
@@ -1096,7 +1130,7 @@ begin
       end;
 
       if FindResource(HInstance,PChar(ResName), RT_BITMAP) <> 0 then
-        Buttons[I].GlyphDisabled.LoadFromResourceName(Hinstance,ResName);
+        FButtons[I].GlyphDisabled.LoadFromResourceName(Hinstance,ResName);
     end;
   end;
 end;
@@ -1106,8 +1140,8 @@ var
   J: TAdvNavigateBtn;
 begin
   FBorderColor := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].BorderColor := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].BorderColor := Value;
 end;
 
 procedure TDBAdvNavigator.SetBorderDownColor(const Value: TColor);
@@ -1115,8 +1149,8 @@ var
   J: TAdvNavigateBtn;
 begin
   FBorderDownColor := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].BorderDownColor := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].BorderDownColor := Value;
 end;
 
 procedure TDBAdvNavigator.SetBorderHotColor(const Value: TColor);
@@ -1124,8 +1158,8 @@ var
   J: TAdvNavigateBtn;
 begin
   FBorderHotColor := Value;
-  for J := Low(Buttons) to High(Buttons) do
-    Buttons[J].BorderHotColor := Value;
+  for J := Low(FButtons) to High(FButtons) do
+    FButtons[J].BorderHotColor := Value;
 end;
 
 procedure TDBAdvNavigator.SetLook(const Value: Integer);

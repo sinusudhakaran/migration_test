@@ -30,6 +30,7 @@ object CustomizerForm: TCustomizerForm
       Width = 36
       Height = 13
       Caption = 'Caption'
+      FocusControl = EdtCaption
     end
     object LblGlphPos: TLabel
       Left = 200
@@ -37,6 +38,7 @@ object CustomizerForm: TCustomizerForm
       Width = 67
       Height = 13
       Caption = 'Glyph Position'
+      FocusControl = CmBxGlphPos
     end
     object EdtCaption: TEdit
       Left = 64
@@ -102,6 +104,7 @@ object CustomizerForm: TCustomizerForm
       Width = 55
       Height = 13
       Caption = 'Commands:'
+      FocusControl = LstBxCommand
     end
     object LblToolbarItems: TLabel
       Left = 9
@@ -109,6 +112,7 @@ object CustomizerForm: TCustomizerForm
       Width = 67
       Height = 13
       Caption = 'Toolbar Items:'
+      FocusControl = LstBxToolBarItems
     end
     object TopButton: TSpeedButton
       Left = 173

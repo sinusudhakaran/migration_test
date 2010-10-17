@@ -1,11 +1,10 @@
 {***************************************************************************}
 { TADVPROGRESSBAR component                                                 }
 { for Delphi & C++Builder                                                   }
-{ version 1.1                                                               }
 {                                                                           }
 { written by                                                                }
 {       TMS Software                                                        }
-{       copyright © 2003-2006                                               }
+{       copyright © 2003-2008                                               }
 {       Email : info@tmssoftware.com                                        }
 {       Web : http://www.tmssoftware.com                                    }
 {                                                                           }
@@ -35,14 +34,19 @@ uses
 
 const
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 1; // Minor version nr.
-  REL_VER = 2; // Release nr.
-  BLD_VER = 1; // Build nr.
+  MIN_VER = 2; // Minor version nr.
+  REL_VER = 0; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // 1.1.1.0 : exposed standard events OnMouseDown, OnMouseUp, OnMouseMove
   // 1.1.2.0 : added property InfiniteInterval
   // 1.1.2.1 : Fixed issue with display with Format
+  // 1.1.2.2 : Fixed issue with stacked level colors
+  // 1.1.2.3 : Improved : painting performance
+  // 1.1.2.4 : Fixed : issue with stacked gradient drawing
+  // 1.1.2.5 : Fixed : possible div by zero in calculation
+  // 1.2.0.0 : New : Level0,Level1,Level2 background colors
 
 type
   TGaugeOrientation = (goHorizontal, goVertical);
@@ -59,6 +63,9 @@ type
     Level1Perc : Integer;
     Level2Perc : Integer;
     BorderColor : TColor;
+    Level0BkColor : TColor;
+    Level1BkColor : TColor;
+    Level2BkColor : TColor;
     ShowBorder : Boolean;
     Stacked : Boolean;
     ShowPercentage : Boolean;
@@ -106,6 +113,7 @@ type
     FShowPosition: Boolean;
     FMin: Integer;
     FMax: Integer;
+    FMaxIncrement: Integer;
     FRounded: Boolean;
     FFormat: string;
     FAnimated: Boolean;
@@ -113,7 +121,11 @@ type
     FInfinitePos: Integer;
     FInfiniteInc: Boolean;
     FInfiniteInterval: integer;
+    FOldBlockPos: integer;
     FTimer: TTimer;
+    FLevel0BkColor: TColor;
+    FLevel1BkColor: TColor;
+    FLevel2BkColor: TColor;
     procedure SetOrientation(Value : TGaugeOrientation);
     procedure SetBackgroundColor(Color : TColor);
     procedure SetBorderColor(Color : TColor);
@@ -148,6 +160,9 @@ type
     procedure SetAnimated(const Value: Boolean);
     procedure SetInfinite(const Value: Boolean);
     procedure SetInfiniteInterval(const Value: Integer);
+    procedure SetLevel0BkColor(const Value: TColor);
+    procedure SetLevel1BkColor(const Value: TColor);
+    procedure SetLevel2BkColor(const Value: TColor);
   protected
     { Protected declarations }
     procedure Paint; override;
@@ -179,6 +194,11 @@ type
     property Level3ColorTo : TColor read FLevel3ColorTo write SetLevel3ColorTo;
     property Level1Perc : Integer read FLevel1Perc write SetLevel1Perc;
     property Level2Perc : Integer read FLevel2Perc write SetLevel2Perc;
+
+    property Level0BkColor : TColor read FLevel0BkColor write SetLevel0BkColor default clNone;
+    property Level1BkColor : TColor read FLevel1BkColor write SetLevel1BkColor default clNone;
+    property Level2BkColor : TColor read FLevel2BkColor write SetLevel2BkColor default clNone;
+
     property Min: Integer read FMin write SetMin default 0;
     property Max: Integer read FMax write SetMax default 100;
     property Orientation : TGaugeOrientation read FOrientation write SetOrientation default goHorizontal;
@@ -189,7 +209,7 @@ type
     property ShowPercentage : Boolean read FShowPercentage write SetShowPercentage default true;
     property ShowPosition: Boolean read FShowPosition write SetShowPosition default true;
     property Stacked : Boolean read FStacked write SetStacked default false;
-    property Steps : Integer read FSteps write SetSteps;
+    property Steps : Integer read FSteps write SetSteps default 8;
     property ShowHint;
     property Version: string read GetVersion write SetVersion;
     property Visible;
@@ -214,6 +234,9 @@ begin
   FLevel1Perc := 70;
   FLevel2Perc := 90;
   FBorderColor := clGray;
+  FLevel0BkColor := clNone;
+  FLevel1BkColor := clNone;
+  FLevel2BkColor := clNone;
   FShowBorder := true;
   FStacked := false;
   FShowPercentage := true;
@@ -224,7 +247,7 @@ begin
   FFontPercentage.OnChange := FontChanged;
   FCompletionSmooth := false;
   FShowGradient := true;
-  FSteps := 20;
+  FSteps := 8;
   FBackgroundColor := clWhite;
   FOrientation := goHorizontal;
   FPosition := 50;
@@ -232,6 +255,7 @@ begin
   FRounded := true;
   FMin := 0;
   FMax := 100;
+  FMaxIncrement := 1;
   Width := 128;
   Height := 18;
   FInfiniteInterval := 50;
@@ -294,9 +318,9 @@ begin
   begin
     for i := 0 to Steps - 1 do
     begin
-      endr := startr + Round(rstepr*i);
-      endg := startg + Round(rstepg*i);
-      endb := startb + Round(rstepb*i);
+      endr := startr + Round(rstepr * i);
+      endg := startg + Round(rstepg * i);
+      endb := startb + Round(rstepb * i);
       stepw := Round(i*rstepw);
       Pen.Color := endr + (endg shl 8) + (endb shl 16);
       Brush.Color := Pen.Color;
@@ -319,6 +343,86 @@ begin
 end;
 
 procedure DrawGauge(Canvas: TCanvas; R : TRect; Settings : TGaugeSettings);
+
+  procedure DrawBackGround(WidthBar: integer);
+  var
+    WidthPart : Integer;
+    RectL, RectM, RectR: TRect;
+    BarFilled : Integer;
+  begin
+    if (Settings.Level0BKColor = clNone) and (Settings.Level1BKColor = clNone) and (Settings.Level2BKColor = clNone) then
+      Exit;
+      
+    WidthPart := Round((Settings.Level1Perc / 100) * WidthBar);
+
+    //Draw first part
+    if (Settings.Orientation = goHorizontal) then
+    begin
+      RectL.Left := R.Left + 2;
+      RectL.Top := R.Top + 1;
+      RectL.Right := RectL.Left + WidthPart - 2;
+      RectL.Bottom := r.Bottom - 1;
+    end
+    else
+    begin
+      RectL.Left := r.Left + 1;
+      RectL.Right := R.Right - 1;
+      RectL.Top := R.Bottom - WidthPart + 1;
+      RectL.Bottom := R.Bottom - 2;
+    end;
+
+    if (Settings.Level0BKColor <> clNone) then
+      DrawRectangle(Canvas, RectL, Settings.Level0BKColor);
+
+    BarFilled := WidthPart;
+
+    //Draw second part
+    if (Settings.Orientation = goHorizontal) then
+    begin
+      RectM.Left := RectL.Right;
+      RectM.Top := r.Top + 1;
+      RectM.Bottom := r.Bottom - 1;
+    end
+    else
+    begin
+      RectM.Left := R.Left + 1;
+      RectM.Right := R.Right - 1;
+      RectM.Bottom := RectL.Top;
+    end;
+
+    WidthPart := Round(WidthBar * ((Settings.Level2Perc - Settings.Level1Perc) /100));
+
+    if (Settings.Orientation = goHorizontal) then
+      RectM.Right := WidthPart + RectM.Left
+    else
+       RectM.Top := RectM.Bottom - WidthPart;
+
+    if (Settings.Level1BKColor <> clNone) then
+      DrawRectangle(Canvas, RectM,Settings.Level1BKColor);
+
+    BarFilled := BarFilled + WidthPart;
+    //Draw third part
+    WidthPart := Round(WidthBar - BarFilled);
+
+    if (Settings.Orientation = goHorizontal) then
+    begin
+      RectR.Left := RectM.Right;
+      RectR.Top := R.Top + 1;
+      RectR.Bottom := r.Bottom - 1;
+      RectR.Right := RectR.Left + WidthPart;
+    end
+    else
+    begin
+      RectR.Left := R.Left + 1;
+      RectR.Right := R.Right - 1;
+      RectR.Bottom := RectM.Top - 1;
+      RectR.Top := RectR.Bottom - WidthPart;
+    end;
+
+    if (Settings.Level2BKColor <> clNone) then
+      DrawRectangle(Canvas,RectR, Settings.Level2BKColor);
+  end;
+
 var
   RectL : TRect;
   RectM : TRect;
@@ -375,15 +479,17 @@ begin
     Canvas.RoundRect(R.Left,R.Top,R.Right,R.Bottom,6,6)
   else
     Canvas.Rectangle(R.Left,R.Top,R.Right,R.Bottom);
-   
+
   WidthBar := WidthBar - 2;
 
+  DrawBackGround(WidthBar);
+  
   if (Settings.Position > 0) then
   begin
     if (Settings.Stacked) then
     begin
       if (Settings.Position >= Settings.Level1Perc) then
-        WidthPart := Round((Settings.Level1Perc/100) * WidthBar)
+        WidthPart := Round((Settings.Level1Perc / 100) * WidthBar)
       else
       begin
         WidthPart := Round((Settings.Position / 100) * WidthBar);
@@ -430,6 +536,7 @@ begin
           R2.Right := RectL.Right;
           R2.Bottom := RectL.Bottom;
         end;
+
         DrawGradient(Canvas, Settings.Level0ColorTo, Settings.Level0Color, Settings.Steps,R1,GradDir);
         DrawGradient(Canvas, Settings.Level0Color, Settings.Level0ColorTo, Settings.Steps,R2,GradDir);
       end
@@ -491,6 +598,7 @@ begin
             R2.Right := RectM.Right;
             R2.Bottom := RectM.Bottom;
           end;
+
           DrawGradient(Canvas, Settings.Level1ColorTo, Settings.Level1Color, Settings.Steps,R1,GradDir);
           DrawGradient(Canvas, Settings.Level1Color,Settings.Level1ColorTo, Settings.Steps,R2,GradDir);
         end
@@ -545,11 +653,11 @@ begin
               R2.Right := RectR.Right;
               R2.Bottom := RectR.Bottom;
             end;
-            DrawGradient(Canvas, Settings.Level3ColorTo, Settings.Level3Color, Settings.Steps,R1,GradDir);
-            DrawGradient(Canvas, Settings.Level3Color, Settings.Level3ColorTo, Settings.Steps,R2,GradDir);
+            DrawGradient(Canvas, Settings.Level2ColorTo, Settings.Level2Color, Settings.Steps,R1,GradDir);
+            DrawGradient(Canvas, Settings.Level2Color, Settings.Level2ColorTo, Settings.Steps,R2,GradDir);
           end
           else
-            DrawRectangle(Canvas,RectR, Settings.Level3Color);
+            DrawRectangle(Canvas,RectR, Settings.Level2Color);
         end;
       end;
     end
@@ -948,6 +1056,9 @@ begin
   Settings.Level1Perc := Level1Perc;
   Settings.Level2Perc := Level2Perc;
   Settings.BorderColor := BorderColor;
+  Settings.Level0BkColor := Level0BkColor;
+  Settings.Level1BkColor := Level1BkColor;
+  Settings.Level2BkColor := Level2BkColor;
   Settings.ShowBorder := ShowBorder;
   Settings.Stacked := Stacked;
   Settings.ShowPercentage := ShowPercentage;
@@ -1084,8 +1195,22 @@ end;
 
 procedure TAdvProgressBar.SetPosition(Value : Integer);
 begin
-  FPosition := Value;
-  Paint;
+  if (Value >= Min) and (Value <= Max) then
+  begin
+    FPosition := Value;
+    if (FMaxIncrement = 0) or (FPosition mod FMaxIncrement = 0) or (FOldBlockPos <> FPosition div FMaxIncrement) then
+      Paint;
+
+    if (FMaxIncrement <> 0) then
+      FOldBlockPos := FPosition div FMaxIncrement;
+  end
+  else
+  begin
+    if Value < Min then
+      FPosition := Min;
+    if Value > Min then
+      FPosition := Max;
+  end;
 end;
 
 procedure TAdvProgressBar.SetShowBorder(Value: Boolean);
@@ -1150,13 +1275,15 @@ end;
 procedure TAdvProgressBar.SetMax(const Value: Integer);
 begin
   FMax := Value;
+  FMaxIncrement := (FMax - FMin) div 100;
   Invalidate;
 end;
 
 procedure TAdvProgressBar.SetMin(const Value: Integer);
 begin
   FMin := Value;
-  Invalidate;  
+  FMaxIncrement := (FMax - FMin) div 100;
+  Invalidate;
 end;
 
 procedure TAdvProgressBar.SetRounded(const Value: Boolean);
@@ -1214,6 +1341,33 @@ begin
     end;
   end;
   Paint;
+end;
+
+procedure TAdvProgressBar.SetLevel0BkColor(const Value: TColor);
+begin
+  if (FLevel0BkColor <> Value) then
+  begin
+    FLevel0BkColor := Value;
+    Invalidate;
+  end;
+end;
+
+procedure TAdvProgressBar.SetLevel1BkColor(const Value: TColor);
+begin
+  if (FLevel1BkColor <> Value) then
+  begin
+    FLevel1BkColor := Value;
+    Invalidate;
+  end;
+end;
+
+procedure TAdvProgressBar.SetLevel2BkColor(const Value: TColor);
+begin
+  if (FLevel2BkColor <> Value) then
+  begin
+    FLevel2BkColor := Value;
+    Invalidate;
+  end;
 end;
 
 end.

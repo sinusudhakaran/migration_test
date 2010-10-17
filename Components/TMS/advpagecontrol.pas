@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                   }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2003 - 2005                                        }
+{            copyright © 2003 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -39,9 +39,9 @@ const
   CloseButtonHeight = 13;
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 5; // Minor version nr.
+  MIN_VER = 6; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 4; // Build nr.
+  BLD_VER = 0; // Build nr.
 
   // Revision history
   // 1.3.2.0 : Property FreeOnClose added
@@ -61,12 +61,18 @@ const
   // 1.5.0.2 : Improved image position in tab for left & right mode
   // 1.5.0.3 : Fixed issue with OnCanChange and keyboard tabbing
   // 1.5.0.4 : Improved : small cosmetic painting issue with tab borders
+  // 1.5.0.5 : Fixed : painting issue with bottom tabs on Delphi 5
+  // 1.5.0.6 : Fixed : issue with accelerator chars
+  // 1.5.0.7 : Fixed : issue with OnCanChange for multiline tabs
+  // 1.5.0.8 : Fixed : issue with ParentFont property
+  // 1.6.0.0 : New : Added ClosePosition property to control left or right side close button
 
 
 
 type
   TGradientDirection = (gdVertical, gdHorizontal);
   TTabStyle = (tsClassic, tsDotNet, tsDelphi);
+  TClosePosition = (cpLeft, cpRight);
 
   TMarginSize = -MaxInt..MaxInt;
 
@@ -261,7 +267,10 @@ type
     FCloseGlyph: TBitmap;
     FFullRefresh: Boolean;
     FOnDrawTab: TDrawTabEvent;
-
+    FUpdateCount: Integer;
+    FClosePosition: TClosePosition;
+    procedure CNNotify(var Message: TWMNotify); message CN_NOTIFY;
+    procedure CNDrawItem(var Message: TWMDrawItem); message CN_DRAWITEM;
     procedure ActiveFontChangeEvent(Sender: TObject);
     procedure UpdateTabForActiveFont(Page: TAdvTabSheet);
     procedure ChangeActivePage(Page: TAdvTabSheet);
@@ -318,6 +327,7 @@ type
     procedure WMEraseBkgnd(var Message: TWmEraseBkgnd); message WM_ERASEBKGND;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure CMDesignHitTest(var Message: TCMDesignHitTest); message CM_DESIGNHITTEST;
+    procedure CMDialogChar(var Message: TCMDialogChar); message CM_DIALOGCHAR;
     procedure CMDialogKey(var Message: TCMDialogKey); message CM_DIALOGKEY;
 {$IFNDEF TMSDOTNET}
     procedure CMDockClient(var Message: TCMDockClient); message CM_DOCKCLIENT;
@@ -333,6 +343,7 @@ type
     procedure SetVersion(const Value: string);
     function GetVersionNr: Integer;
     procedure SetCloseGlyph(const Value: TBitmap);
+    procedure SetClosePosition(const Value: TClosePosition);
   protected
 {$IFDEF TMSDOTNET}
     function DockClient(DockSource: TDragDockObject; MousePos: TPoint): Integer; override;
@@ -363,6 +374,8 @@ type
     function TabRectEx(i: Integer): TRect;
     function IndexOfTabAtEx(X, Y: Integer): Integer;
     function CanChange: Boolean; override;
+    procedure BeginUpdate;
+    procedure EndUpdate;
   public
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     constructor Create(AOwner: TComponent); override;
@@ -384,6 +397,7 @@ type
     property BiDiMode;
     property Constraints;
     property CloseGlyph: TBitmap read FCloseGlyph write SetCloseGlyph;
+    property ClosePosition: TClosePosition read FClosePosition write SetClosePosition default cpLeft;
     property DockSite;
     property DragCursor;
     property DragKind;
@@ -1256,9 +1270,10 @@ begin
   FLowerActive := 2;
 
   FCloseGlyph := TBitmap.Create;
+  FClosePosition := cpLeft;
 
-  // make sure to use a Truetype font
-  Font.Name := 'Tahoma';
+  // make sure to use a Truetype font for vertically oriented tabs
+  // Font.Name := 'Tahoma';
 
   FTabMargin := TTabMargin.Create;
   FTabMargin.LeftMargin := 0;
@@ -1376,7 +1391,12 @@ begin
     OnCanChange(Self, ActivePageIndex, NewPage, AllowChange);
 
   if not AllowChange then
+   begin
+     if MultiLine then
+       EndUpdate;
+
     Result := False
+  end
   else
     Result := inherited CanChange;
 end;
@@ -1527,8 +1547,10 @@ begin
     NotVisible := 0;
     for I := 0 to FPages.Count - 1 do
     begin
-      if not GetPage(I).TabVisible then Inc(NotVisible)
-      else Inc(Visible);
+      if not GetPage(I).TabVisible then
+        Inc(NotVisible)
+      else
+        Inc(Visible);
       if Visible = TabIndex + 1 then Break;
     end;
     //Result := GetPage(TabIndex + NotVisible).ImageIndex;
@@ -1650,33 +1672,67 @@ begin
     case TabPosition of
       tpLeft:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerActive {2} {Active};
-        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
-        if not FTabBackGroundActive.Empty then
-          Rect.Bottom := Rect.Bottom + TabOverlap;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerActive {2} {Active};
+          Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+          if not FTabBackGroundActive.Empty then
+            Rect.Bottom := Rect.Bottom + TabOverlap;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerActive {2} {Active};
+          Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+          if not FTabBackGroundActive.Empty then
+            Rect.Bottom := Rect.Bottom + TabOverlap;
+        end;
         //Rectangle(Rect.Left + 2, Rect.Bottom - 2, Rect.Left + CloseButtonWidth, Rect.Bottom - CloseButtonHeight);
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Bottom - CloseButtonHeight;
       end;
       tpRight:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
         //Rectangle(Rect.Left + 2, Rect.Top + 2, Rect.Left + CloseButtonWidth, Rect.Top + CloseButtonHeight);
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
       tpTop:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        end;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
       tpBottom:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerActive;
+        end;
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
@@ -1687,10 +1743,20 @@ begin
   begin
     if TabPosition = tpLeft then
     begin
-      Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerActive {2} {Active};
-      Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
-      if not FTabBackGroundActive.Empty then
-        Rect.Bottom := Rect.Bottom + TabOverlap;
+      if (ClosePosition = cpLeft) then
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerActive {2} {Active};
+        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+        if not FTabBackGroundActive.Empty then
+          Rect.Bottom := Rect.Bottom + TabOverlap;
+      end
+      else
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + FLowerActive {2} {Active};
+        Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+        if not FTabBackGroundActive.Empty then
+          Rect.Bottom := Rect.Bottom + TabOverlap;
+      end;
 
       with Canvas do
       begin
@@ -1714,18 +1780,29 @@ begin
     begin
       if TabPosition = tpRight then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
       end
-      else if TabPosition = tpTop then
+      else if TabPosition in [tpTop, tpBottom] then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
-      end
-      else // Bottom
-      begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        end;
       end;
 
       with canvas do
@@ -1758,34 +1835,61 @@ begin
     case TabPosition of
       tpLeft:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin + {2} FLowerActive {active};
-        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
-        if not FTabBackGroundActive.Empty then
-          Rect.Bottom := Rect.Bottom + TabOverlap;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + {2} FLowerActive {active};
+          Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+          if not FTabBackGroundActive.Empty then
+            Rect.Bottom := Rect.Bottom + TabOverlap;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + {2} FLowerActive {active};
+          Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+          if not FTabBackGroundActive.Empty then
+            Rect.Bottom := Rect.Bottom + TabOverlap;
+        end;
+
         P.X:= Rect.Left + 2;
         P.y:= Rect.Bottom - CloseButtonHeight;
       end;
       tpRight:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin - FLowerActive + 2;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin - FLowerActive + 2;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin - FLowerActive + 2;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
         P.X:= Rect.Left + 2;
         P.y:= Rect.Top + 2;
       end;
-      tpTop:
+      tpTop, tpBottom:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerActive;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerActive;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + FLowerActive;
+        end;
         P.X:= Rect.Left + 2;
         P.y:= Rect.Top + 2;
       end;
-      tpBottom:
+      {tpBottom:
       begin
         Rect.Left := Rect.Left + FTabMargin.LeftMargin;
         Rect.Top := Rect.Top + FTabMargin.TopMargin +  FLowerActive;
         P.X:= Rect.Left + 2;
         P.y:= Rect.Top + 2;
-      end;
+      end;}
     end;
     DrawCloseGlyph(P);
   end
@@ -1793,8 +1897,16 @@ begin
   begin
     if TabPosition = tpLeft then
     begin
-      Rect.Left := Rect.Left + FTabMargin.LeftMargin + {2} FLowerActive {active};
-      Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+      if (ClosePosition = cpLeft) then
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + {2} FLowerActive {active};
+        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+      end
+      else
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + {2} FLowerActive {active};
+        Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+      end;
       if not FTabBackGroundActive.Empty then
         Rect.Bottom := Rect.Bottom + TabOverlap;
 
@@ -1820,18 +1932,29 @@ begin
     begin
       if TabPosition = tpRight then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin - FLowerActive + 2;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin - FLowerActive + 2;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin - FLowerActive + 2;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
       end
-      else if TabPosition = tpTop then
+      else if TabPosition in [tpTop, tpBottom] then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
-      end
-      else // bottom
-      begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + {2} FLowerActive;
+        end;
       end;
 
       with canvas do
@@ -1887,10 +2010,20 @@ begin
     case TabPosition of
       tpLeft:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
-        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
-        if not FTabBackGroundActive.Empty then
-          Rect.Bottom := Rect.Bottom + TabOverlap;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
+          Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+          if not FTabBackGroundActive.Empty then
+            Rect.Bottom := Rect.Bottom + TabOverlap;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
+          Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+          if not FTabBackGroundActive.Empty then
+            Rect.Bottom := Rect.Bottom + TabOverlap;
+        end;
 
         //Rectangle(Rect.Left + 2, Rect.Bottom - 2, Rect.Left + CloseButtonWidth, Rect.Bottom - CloseButtonHeight);
         P.X:= Rect.Left + 2;
@@ -1898,24 +2031,48 @@ begin
       end;
       tpRight:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
         //Rectangle(Rect.Left + 2, Rect.Top + 2, Rect.Left + CloseButtonWidth, Rect.Top + CloseButtonHeight);
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
       tpTop:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end;
         //Rectangle(Rect.Left + 2, Rect.Top + 2, Rect.Left + CloseButtonWidth, Rect.Top + CloseButtonHeight);
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
       end;
       tpBottom:
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end;
         //Rectangle(Rect.Left + 2, Rect.Top + 2, Rect.Left + CloseButtonWidth, Rect.Top + CloseButtonHeight);
         P.X:= Rect.Left + 2;
         P.Y:= Rect.Top + 2;
@@ -1927,10 +2084,20 @@ begin
   begin
     if TabPosition = tpLeft then
     begin
-      Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
-      Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
-      if not FTabBackGroundActive.Empty then
-        Rect.Bottom := Rect.Bottom + TabOverlap;
+      if (ClosePosition = cpLeft) then
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
+        Rect.Bottom := Rect.Bottom - FTabMargin.TopMargin;
+        if not FTabBackGroundActive.Empty then
+          Rect.Bottom := Rect.Bottom + TabOverlap;
+      end
+      else
+      begin
+        Rect.Left := Rect.Left + FTabMargin.LeftMargin + a;
+        Rect.Bottom := Rect.Top + FTabMargin.RightMargin + CloseButtonHeight;
+        if not FTabBackGroundActive.Empty then
+          Rect.Bottom := Rect.Bottom + TabOverlap;
+      end;
 
       with canvas do
       begin
@@ -1954,18 +2121,42 @@ begin
     begin
       if TabPosition = tpRight then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin;
+        end
+        else
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin + 2 - a;
+          Rect.Top := Rect.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+        end;
       end
       else if TabPosition = tpTop then
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end;
       end
       else // Bottom
       begin
-        Rect.Left := Rect.Left + FTabMargin.LeftMargin;
-        Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        if (ClosePosition = cpLeft) then
+        begin
+          Rect.Left := Rect.Left + FTabMargin.LeftMargin;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end
+        else
+        begin
+          Rect.Left := Rect.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          Rect.Top := Rect.Top + FTabMargin.TopMargin + a;
+        end;
       end;
 
       with canvas do
@@ -1997,8 +2188,16 @@ begin
   r := TabRectEx(TabIndex);
   if TabPosition = tpLeft then
   begin
-    r.Left := r.Left + FTabMargin.LeftMargin {Active};
-    r.Bottom := r.Bottom - FTabMargin.TopMargin;
+    if (ClosePosition = cpLeft) then
+    begin
+      r.Left := r.Left + FTabMargin.LeftMargin {Active};
+      r.Bottom := r.Bottom - FTabMargin.TopMargin;
+    end
+    else
+    begin
+      r.Left := r.Left + FTabMargin.LeftMargin {Active};
+      r.Bottom := r.Top + FTabMargin.RightMargin + CloseButtonHeight;
+    end;
     if not FTabBackGroundActive.Empty then
     begin
       r.Left := r.Left + 2;
@@ -2013,9 +2212,29 @@ begin
   end
   else
   begin
-    r.Left := r.Left + FTabMargin.LeftMargin;
-    r.Top := r.Top + FTabMargin.TopMargin;
-    r := Rect(r.Left + 2, r.Top + 2, r.Left + CloseButtonWidth, r.Top + CloseButtonHeight);
+    if (ClosePosition = cpLeft) then
+    begin
+      r.Left := r.Left + FTabMargin.LeftMargin;
+      r.Top := r.Top + FTabMargin.TopMargin;
+      r := Rect(r.Left + 2, r.Top + 2, r.Left + CloseButtonWidth, r.Top + CloseButtonHeight);
+    end
+    else
+    begin
+      case TabPosition of
+        tpTop, tpBottom:
+        begin
+          r.Left := r.Right - FTabMargin.RightMargin - CloseButtonWidth;
+          r.Top := r.Top + FTabMargin.TopMargin;
+          r := Rect(r.Left, r.Top, r.Left + CloseButtonWidth, r.Top + CloseButtonHeight);
+        end;
+        tpRight:
+        begin
+          r.Left := r.Left + FTabMargin.LeftMargin;
+          r.Top := r.Bottom - FTabMargin.RightMargin - CloseButtonHeight;
+          r := Rect(r.Left, r.Top, r.Left + CloseButtonWidth, r.Top + CloseButtonHeight);
+        end;
+      end;
+    end;
     if PtInRect(r, Point(X, Y)) then
     begin
       Result := true;
@@ -2087,6 +2306,7 @@ end;
 procedure TAdvPageControl.WndProc(var Message: TMessage);
 begin
   inherited;
+
   if (Message.Msg = WM_PAINT) and (not FTabBorder3D) then
   begin
     //if not DoubleBuffered then
@@ -2160,6 +2380,7 @@ var
   aAdvTabSheet: TAdvTabSheet;
 begin
   inherited;
+
   if (csDesigning in ComponentState) then
     Exit;
 
@@ -2199,6 +2420,7 @@ var
   aAdvTabSheet: TAdvTabSheet;
 begin
   inherited;
+
   if (csDesigning in ComponentState) then
     Exit;
 
@@ -2431,6 +2653,9 @@ var
   end;
 
 begin
+  if (FUpdateCount > 0) then
+    Exit;
+
   DoubleBuffered := True;
 
   if Parent <> nil then
@@ -3065,7 +3290,12 @@ begin
         if TabPosition = tpLeft then
         begin
           if TAdvTabSheet(FPages[TabIndex]).ShowClose then
-            TextY := Rect.Bottom - 4 - CloseButtonHeight
+          begin
+            if (ClosePosition = cpLeft) then
+              TextY := Rect.Bottom - 4 - CloseButtonHeight
+            else
+              TextY := Rect.Bottom - 4;
+          end
           else
             TextY := Rect.Bottom - 4;
 
@@ -3195,7 +3425,12 @@ begin
         else if TabPosition = tpRight then
         begin
           if TAdvTabSheet(FPages[TabIndex]).ShowClose then
-            TextY := Rect.Top + 4 + CloseButtonHeight
+          begin
+            if (ClosePosition = cpLeft) then
+              TextY := Rect.Top + 4 + CloseButtonHeight
+            else
+              TextY := Rect.Top + 4;
+          end
           else
             TextY := Rect.Top + 4;
 
@@ -3331,7 +3566,12 @@ begin
         else if TabPosition = tpTop then
         begin
           if TAdvTabSheet(FPages[TabIndex]).ShowClose then
-            TextX := Rect.Left + 4 + CloseButtonWidth
+          begin
+            if (ClosePosition = cpLeft) then
+              TextX := Rect.Left + 4 + CloseButtonWidth
+            else
+              TextX := Rect.Left + 4;
+          end
           else
             TextX := Rect.Left + 4;
 
@@ -3463,9 +3703,15 @@ begin
           Rect.Bottom := Rect.Bottom + 1;
 
           if TAdvTabSheet(FPages[TabIndex]).ShowClose then
-            TextX := Rect.Left + 4 + CloseButtonWidth
+          begin
+            if (ClosePosition = cpLeft) then
+              TextX := Rect.Left + 4 + CloseButtonWidth
+            else
+              TextX := Rect.Left + 4;
+          end
           else
             TextX := Rect.Left + 4;
+
 
           if Active then
             TextY := Rect.Top + {3} FLowerActive + 1
@@ -3915,6 +4161,31 @@ begin
   if (HitIndex >= 0) and (HitIndex <> TabIndex) then Message.Result := 1;
 end;
 
+procedure TAdvPageControl.CMDialogChar(var Message: TCMDialogChar);
+var
+  I: Integer;
+  AllowChange: boolean;
+begin
+  for I := 0 to PageCount - 1 do
+    if IsAccel(Message.CharCode, Pages[I].Caption) and CanShowTab(I) and CanFocus then
+    begin
+      Message.Result := 1;
+
+      AllowChange := true;
+
+      if Assigned(OnCanChange) then
+        OnCanChange(Self, ActivePageIndex, I, AllowChange);
+
+      if AllowChange then
+      begin
+        TabIndex := I;
+        Change;
+      end;
+      Exit;
+    end;
+  inherited;
+end;
+
 procedure TAdvPageControl.CMDialogKey(var Message: TCMDialogKey);
 begin
   if (Focused or Windows.IsChild(Handle, Windows.GetFocus)) and
@@ -4019,7 +4290,7 @@ begin
 {$ENDIF}
           { Search for first CR/LF and end string there }
           for I := 1 to Length(S) do
-            if S[I] in [#13, #10] then
+            if (S[I] = #13) or (S[I] = #10) then
             begin
               SetLength(S, I - 1);
               Break;
@@ -4100,6 +4371,7 @@ var
   DockCtl: TControl;
 begin
   inherited;
+
   DockCtl := GetDockClientFromMousePos(SmallPointToPoint(Message.Pos));
   if (DockCtl <> nil) and (Style = tsTabs) then DockCtl.BeginDrag(False);
 end;
@@ -4109,6 +4381,7 @@ var
   DockCtl: TControl;
 begin
   inherited;
+
   DockCtl := GetDockClientFromMousePos(SmallPointToPoint(Message.Pos));
   if DockCtl <> nil then DockCtl.ManualDock(nil, nil, alNone);
 end;
@@ -4428,7 +4701,7 @@ end;
 
 procedure TAdvPageControl.WMEraseBkgnd(var Message: TWmEraseBkgnd);
 begin
-  if (csDesigning in ComponentState) or FTabBorder3D or FullRefresh or (Tabs.Count = 0) then
+  if (csDesigning in ComponentState) or FTabBorder3D or FullRefresh or (Tabs.Count = 0)  or (FUpdateCount > 0) then
     inherited;
 end;
 
@@ -4439,12 +4712,12 @@ var
   PS: TPaintStruct;
   lCanvas : TCanvas;
 begin
-  if (csDesigning in ComponentState) or FullRefresh or (Tabs.Count = 0) then
+  if (csDesigning in ComponentState) or FullRefresh or (Tabs.Count = 0) or (FUpdateCount > 0) then
   begin
     Inherited;
     Exit;
-  end; 
-  
+  end;
+
   if (Message.Msg = WM_PAINT) and (not FTabBorder3D) then
   begin
     DC := GetDC(0);
@@ -4463,6 +4736,14 @@ begin
       lCanvas := TCanvas.Create;
       lCanvas.Handle := MemDC;
 
+      {$IFNDEF DELPHI6_LVL}
+      if (TabPosition = tpBottom) then
+      begin
+        lCanvas.Brush.Color := TAdvTabSheet(Pages[TabIndex]).Color;
+        lCanvas.FillRect(ClientRect);
+      end;  
+      {$ENDIF}
+
       DrawAllTabs(lCanvas);
 
       lCanvas.Free;
@@ -4480,8 +4761,80 @@ begin
     inherited;
 end;
 
+procedure TAdvPageControl.BeginUpdate;
+begin
+  if not Visible or (csLoading in ComponentState) then
+    Exit;
+
+  Inc(FUpdateCount);
+  SendMessage(Handle,WM_SETREDRAW,integer(False),0);
+end;
+
+procedure TAdvPageControl.EndUpdate;
+begin
+  if not Visible then
+    Exit;
+
+  if FUpdateCount > 0 then Dec(FUpdateCount);
+  if FUpdateCount = 0 then
+  begin
+    SendMessage(Handle,WM_SETREDRAW,integer(True),0);
+    InvalidateRect(Handle, Nil, False);
+  end;
+end;
+
+procedure TAdvPageControl.CNNotify(var Message: TWMNotify);
+begin
+
+  {$IFNDEF TMSDOTNET}
+  with Message do
+    case NMHdr^.code of
+      TCN_SELCHANGE:
+        begin
+          inherited;
+          if MultiLine then
+            EndUpdate;
+          Exit;
+        end;
+      TCN_SELCHANGING:
+        begin
+          if MultiLine then
+            BeginUpdate;
+          inherited;
+          Exit;
+        end;
+    end;
+  {$ENDIF}
+  inherited;
+end;
+
+procedure TAdvPageControl.CNDrawItem(var Message: TWMDrawItem);
+begin
+
+  if (FUpdateCount > 0) then
+  begin
+    Message.Result := 1;
+    Exit;
+  end;
+
+  inherited;
+end;
+
+procedure TAdvPageControl.SetClosePosition(const Value: TClosePosition);
+begin
+  if (FClosePosition <> Value) then
+  begin
+    FClosePosition := Value;
+    Invalidate;
+  end;
+end;
+
+
 {$IFDEF FREEWARE}
 {$I TRIAL.INC}
 {$ENDIF}
+
+
+
 
 end.

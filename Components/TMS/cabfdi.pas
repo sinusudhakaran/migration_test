@@ -1,10 +1,9 @@
 {**************************************************************************}
 { CAB FDI procs                                                            }
 { for Delphi & C++Builder                                                  }
-{ version 1.1                                                              }
 {                                                                          }
 { written by TMS Software                                                  }
-{           copyright © 1999 - 2007                                        }
+{           copyright © 1999 - 2008                                        }
 {           Email : info@tmssoftware.com                                   }
 {           Web : http://www.tmssoftware.com                               }
 {                                                                          }
@@ -19,7 +18,10 @@
 
 unit cabfdi;
 
+{$I TMSDEFS.INC}
+
 {$DEFINE noTMSDEBUG}
+{$R-}
 
 interface
 
@@ -113,10 +115,15 @@ begin
 end;
 
 function RemoveBackslash(dir: string):string;
+var
+  ch: char;
 begin
   if (Length(dir)>0) then
-    if (dir[length(dir)] in ['/','\']) then
+  begin
+    ch := dir[length(dir)];
+    if (ch = '/') or (ch = '\') then
       delete(dir,length(dir),1);
+  end;
   Result := dir;
 end;
 
@@ -163,6 +170,9 @@ var
   FileTime,LFileTime:TFileTime;
   SysTime: TSystemTime;
   subdir:string;
+  {$IFDEF DELPHI_UNICODE}
+  sa: ansistring;
+  {$ENDIF}
 begin
   Result := 0;
 
@@ -180,7 +190,7 @@ begin
     fdintCOPY_FILE : begin
 
         {$IFDEF TMSDEBUG}
-        outputdebugstring('copy file');
+        outputdebugstring('copy file:');
         outputdebugstring(notif^.psz1);
         {$ENDIF}
 
@@ -189,7 +199,7 @@ begin
           if doRelative then
            subdir := extractfiledir(expandfilename(notif^.psz1))
           else
-           subdir := doExtractPath+extractfiledir(notif^.psz1);
+           subdir := doExtractPath + ExtractFileDir(notif^.psz1);
 
           if not DirectoryExists(subdir) then
           begin
@@ -197,11 +207,16 @@ begin
             //CreateDirectory(PChar(subdir), nil);
           end;
 
-          result:=_lcreat(pchar(doExtractPath+strpas(notif^.psz1)),0);
-
+          {$IFDEF DELPHI_UNICODE}
+          sa := doExtractPath + strpas(notif^.psz1);
+          result := _lcreat(pansichar(sa),0);
+          {$ENDIF}
+          {$IFNDEF DELPHI_UNICODE}
+          result := _lcreat(pchar(doExtractPath + strpas(notif^.psz1)),0);
+          {$ENDIF}
          end
         else
-        result:=0; {skip}
+          result := 0; {skip}
 
       end;
     fdintCLOSE_FILE_INFO :
@@ -240,11 +255,21 @@ begin
 end;
 
 function StdFdiOpen (pszFile : PChar; pmode : Integer): cardinal; cdecl;
+{$IFDEF DELPHI_UNICODE}
+var
+  sa: ansistring;
+{$ENDIF}
 begin
   {$IFDEF TMSDEBUG}
   outputdebugstring('open call');
   {$ENDIF}
+  {$IFDEF DELPHI_UNICODE}
+  sa := pszFile;
+  Result:=_lopen(pansichar(sa), pmode);
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
   Result:=_lopen(pszFile, pmode);
+  {$ENDIF}
 end;
 
 function StdFdiRead (hf : cardinal; memory : pointer; cb : integer) : cardinal; cdecl;
@@ -299,6 +324,9 @@ var
   cablib: THandle;
   cabname, cabpath:string;
   erf:terf;
+  {$IFDEF DELPHI_UNICODE}
+  sa: ansistring;
+  {$ENDIF}
   FDICABINETINFO:TFDICABINETINFO;
 
   _FDICreate:function(pfnalloc,pfnfree,pfnopen,pfnread,pfnwrite,
@@ -312,7 +340,14 @@ var
 begin
   Result := -1;
 
+  {$IFDEF DELPHI_UNICODE}
+  sa := cabfile;
+  hf :=_lopen(pansichar(sa),OF_READ);
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
   hf :=_lopen(pchar(cabfile),OF_READ);
+  {$ENDIF}
+  
   if (hf <> integer(HFILE_ERROR)) then
     _lclose(hf)
   else
@@ -326,10 +361,10 @@ begin
 
   if (CabinetDLL > 0) then
   begin
-    @_FDICreate := GetProcAddress(CabinetDLL,'FDICreate');
-    @_FDIIsCabinet := GetProcAddress(CabinetDLL,'FDIIsCabinet');
-    @_FDICopy := GetProcAddress(CabinetDLL,'FDICopy');
-    @_FDIDestroy := GetProcAddress(CabinetDLL,'FDIDestroy');
+    @_FDICreate := GetProcAddress(CabinetDLL,PAnsiChar('FDICreate'));
+    @_FDIIsCabinet := GetProcAddress(CabinetDLL,PAnsiChar('FDIIsCabinet'));
+    @_FDICopy := GetProcAddress(CabinetDLL,PAnsiChar('FDICopy'));
+    @_FDIDestroy := GetProcAddress(CabinetDLL,PAnsiChar('FDIDestroy'));
 
     doExtractPath := targetdir;
 
@@ -340,7 +375,14 @@ begin
     outputdebugstring(pchar(cabfile));
     {$ENDIF}
 
+    {$IFDEF DELPHI_UNICODE}
+    sa := cabfile;
+    hf :=_lopen(pansichar(sa),OF_READ);
+    {$ENDIF}
+    {$IFNDEF DELPHI_UNICODE}
     hf :=_lopen(pchar(cabfile),OF_READ);
+    {$ENDIF}
+    
     IsCab :=_FDIIsCabinet(hfdi,hf,@FDICABINETINFO);
     _lclose(hf);
 

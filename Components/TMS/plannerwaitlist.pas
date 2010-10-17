@@ -5,7 +5,7 @@
 { version 2.5                                                           }
 {                                                                       }
 { written by TMS Software                                               }
-{            copyright © 2003 - 2006                                    }
+{            copyright © 2003 - 2007                                    }
 {            Email: info@tmssoftware.com                                }
 {            Web: http://www.tmssoftware.com                            }
 {                                                                       }
@@ -31,15 +31,21 @@ const
   MAJ_VER = 2; // Major version nr.
   MIN_VER = 5; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 3; // Build nr.
+  BLD_VER = 4; // Build nr.
 
   // version history
   // 2.0.0.1 : improved OnItemSelect event handling
   // 2.5.0.0 : compatible with TPlanner v2.5
   //         : Added method CopyToPlanner
   // 2.5.0.3 : Change for showing richedit text
+  // 2.5.0.4 : Fixed painting issue in Delphi 2007
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TItemHintEvent = procedure(Sender: TObject; Item: TPlannerItem; var AHint: string) of object;
 
   TItemEvent = procedure(Sender: TObject; Item: TPlannerItem) of object;
@@ -170,6 +176,9 @@ type
     property Version: string read GetVersion write SetVersion;
   end;
 
+  TPlannerItemCrack = class(TPlannerItem);
+
+
 implementation
 
 uses
@@ -199,7 +208,7 @@ begin
   Idx := SendMessage(Handle,LB_ITEMFROMPOINT,0,MakeLParam(Hi^.CursorPos.X,Hi^.CursorPos.Y));
   if (Idx >= 0) and (Idx < Items.Count) then
   begin
-    AHint := '';
+    AHint := Items[Idx].Hint;
     if Assigned(FOnItemHint) then
       FOnItemHint(Self, Items[Idx],AHint);
     Hi^.HintStr := AHint;
@@ -210,7 +219,7 @@ begin
   Idx := SendMessage(Handle,LB_ITEMFROMPOINT,0,MakeLParam(Hi.CursorPos.X,Hi.CursorPos.Y));
   if (Idx >= 0) and (Idx < Items.Count) then
   begin
-    AHint := '';
+    AHint := Items[Idx].Hint;
     if Assigned(FOnItemHint) then
       FOnItemHint(Self, Items[Idx],AHint);
     Hi.HintStr := AHint;
@@ -297,6 +306,7 @@ begin
     FPlanner.ItemGap := 0;
     FPlanner.Items[Index].Selected := ShowSelection and (odSelected in State);
     FPlanner.Items[Index].Repainted := False;
+    TPlannerItemCrack(FPlanner.Items[Index]).Preview := true;
     FPlanner.PreviewPaint(FPlanner.Items[Index], Canvas, Rect, False, False);
   end;
 end;
@@ -413,12 +423,21 @@ end;
 
 procedure TPlannerWaitList.MoveFromPlanner(APlanner: TCustomPlanner;
   AItem: TPlannerItem);
+var
+  bi,bp: integer;
 begin
   with Items.Add do
   begin
+    bi := APlanner.Items.Selected.ItemBegin;
+    bp := APlanner.Items.Selected.ItemPos;
+
     Assign(AItem);
     APlanner.FreeItem(APlanner.Items.Selected);
     APlanner.Items.Selected := nil;
+    if not APlanner.SelectionAlways then
+    begin
+      APlanner.SelectCells(bi,bi,bp);
+    end;
   end;
 end;
 

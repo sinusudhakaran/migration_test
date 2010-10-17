@@ -1,10 +1,9 @@
 {*********************************************************************}
 { TADVEDITBTN component                                               }
 { for Delphi & C++Builder                                             }
-{ version 1.3                                                         }
 {                                                                     }
 { written by TMS Software                                             }
-{            copyright © 2000-2007                                    }
+{            copyright © 2000-2008                                    }
 {            Email : info@tmssoftware.com                             }
 {            Web : http://www.tmssoftware.com                         }
 {                                                                     }
@@ -35,12 +34,17 @@ uses
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 3; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 2; // Build nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 3; // Build nr.
 
   // version history
-  // v1.3.0.2 : fixed issue with EditorEnabled = false
-  
+  // v1.3.0.2 : Fixed : issue with EditorEnabled = false
+  // v1.3.1.0 : Improved : disabled painting
+  // v1.3.2.0 : New : F4 key support for unit edit control popupmenu
+  // v1.3.2.1 : Fixed : issue with button enabled state for readonly edit control
+  // v1.3.2.2 : Fixed : issue with F4 key for EditorEnabled = false
+  // v1.3.2.3 : Fixed : clipboard issue with DBAdvEditBtn for readonly datasets
+
 
 type
   TNumGlyphs = Buttons.TNumGlyphs;
@@ -167,20 +171,24 @@ type
     procedure CMExit(var Message: TCMExit);   message CM_EXIT;
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
+    procedure CMEnabledChanged(var Msg: TMessage); message CM_ENABLEDCHANGED;
     procedure WMPaste(var Message: TWMPaste);   message WM_PASTE;
     procedure WMCut(var Message: TWMCut);   message WM_CUT;
+    procedure WMCopy(var Message: TWMCopy);   message WM_COPY;
     procedure WMPaint(var Msg: TWMPAINT); message WM_PAINT;
     {$IFNDEF TMSDOTNET}
     procedure WMNCPaint (var Message: TMessage); message WM_NCPAINT;
     {$ENDIF}
     procedure WMKeyDown(var Msg:TWMKeydown); message WM_KEYDOWN;
-    procedure WMChar(var Msg: TWMKey); message WM_CHAR;    
+    procedure WMChar(var Msg: TWMKey); message WM_CHAR;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     function GetButtonWidth: integer;
     procedure SetButtonWidth(const Value: integer);
     procedure ResizeControl;
     procedure SetButtonHint(const Value: string);
     procedure SetButtonStyle(const Value: TButtonStyle);
+    function GetReadOnlyEx: boolean;
+    procedure SetReadOnlyEx(const Value:boolean);
   protected
     function GetVersionNr: Integer; override;
     procedure BtnClick (Sender: TObject); virtual;
@@ -223,7 +231,7 @@ type
     property ParentFont;
     property ParentShowHint;
     property PopupMenu;
-    property ReadOnly;
+    property ReadOnly: boolean read GetReadOnlyEx write SetReadOnlyEx;
     property ShowHint;
     property TabOrder;
     property TabStop;
@@ -384,17 +392,14 @@ procedure TAdvSpeedButton.PaintDropDown;
 var
   htheme: THandle;
   ARect: TRect;
+
 begin
   if not (DoVisualStyles and IsThemeActive) then
   begin
+    Enabled := TAdvEditBtn(Owner.Owner).Enabled and not TAdvEditBtn(Owner.Owner).ReadOnly;
+
     inherited Paint;
-    {
-    if FColor <> clNone then
-    begin
-      Canvas.Brush.Color := FColor;
-      Canvas.Rectangle(0,0,width,height);
-    end;
-    }
+
     Canvas.Pen.Color := clBtnFace;
     Canvas.Pen.Width := 1;
     Canvas.MoveTo(Width-2,0);
@@ -413,28 +418,40 @@ begin
     ARect := ClientRect;
     InflateRect(ARect,1,1);
     ARect.Left := ARect.Left + 2;
-    
-    if (FState in [bsDown, bsExclusive]) and not FUp then
-      {$IFNDEF TMSDOTNET}
-      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
-      {$ENDIF}
-      {$IFDEF TMSDOTNET}
-      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
-      {$ENDIF}
-    else
+
+    if not TAdvEditBtn(Owner.Owner).Enabled or TAdvEditBtn(Owner.Owner).ReadOnly then
     begin
       {$IFNDEF TMSDOTNET}
-      if FHot then
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
-      else
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
+      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_DISABLED,@ARect,nil)
       {$ENDIF}
       {$IFDEF TMSDOTNET}
-      if FHot then
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
-      else
-        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
+      DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_DISABLED,ARect,nil)
       {$ENDIF}
+    end
+    else
+    begin
+      if (FState in [bsDown, bsExclusive]) and not FUp then
+        {$IFNDEF TMSDOTNET}
+        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,@ARect,nil)
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_PRESSED,ARect,nil)
+        {$ENDIF}
+      else
+      begin
+        {$IFNDEF TMSDOTNET}
+        if FHot then
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,@ARect,nil)
+        else
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,@ARect,nil);
+        {$ENDIF}
+        {$IFDEF TMSDOTNET}
+        if FHot then
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_HOT,ARect,nil)
+        else
+          DrawThemeBackground(htheme,Canvas.Handle,CP_DROPDOWNBUTTON,CBXS_NORMAL,ARect,nil);
+        {$ENDIF}
+      end;
     end;
     CloseThemeData(htheme);
   end;
@@ -462,25 +479,35 @@ begin
 
     HTheme := OpenThemeData(Parent.Handle,'button');
 
+    if not TAdvEditBtn(Owner.Owner).Enabled or TAdvEditBtn(Owner.Owner).ReadOnly then
     {$IFNDEF TMSDOTNET}
-    if (FState in [bsDown, bsExclusive]) and not FUp then
-      DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_PRESSED,@r,nil)
-    else
-      if FHot then
-        DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_HOT,@r,nil)
-      else
-        DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_NORMAL,@r,nil);
+      DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_DISABLED,@r,nil)
     {$ENDIF}
-
     {$IFDEF TMSDOTNET}
-    if (FState in [bsDown, bsExclusive]) and not FUp then
-      DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_PRESSED,r,nil)
-    else
-      if FHot then
-        DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_HOT,r,nil)
-      else
-        DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_NORMAL,r,nil);
+      DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_DISABLED,r,nil)
     {$ENDIF}
+    else
+    begin
+      {$IFNDEF TMSDOTNET}
+      if (FState in [bsDown, bsExclusive]) and not FUp then
+        DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_PRESSED,@r,nil)
+      else
+        if FHot then
+          DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_HOT,@r,nil)
+        else
+          DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_NORMAL,@r,nil);
+      {$ENDIF}
+
+      {$IFDEF TMSDOTNET}
+      if (FState in [bsDown, bsExclusive]) and not FUp then
+        DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_PRESSED,r,nil)
+      else
+        if FHot then
+          DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_HOT,r,nil)
+        else
+          DrawThemeBackground(HTheme,Canvas.Handle, BP_PUSHBUTTON,PBS_NORMAL,r,nil);
+      {$ENDIF}
+    end;
 
     CloseThemeData(HTheme);
 
@@ -542,6 +569,8 @@ begin
   end
   else
   begin
+    Enabled := TAdvEditBtn(Owner.Owner).Enabled and not TAdvEditBtn(Owner.Owner).ReadOnly;
+
     if not Flat then
       inherited Paint else
     begin
@@ -570,6 +599,9 @@ begin
           DrawBitmapTransp(canvas,glyph,ColorToRGB(clBtnFace),r);
         end;
       end;
+
+      if not TAdvEditBtn(Owner.Owner).Enabled or TAdvEditBtn(Owner.Owner).ReadOnly then
+        Canvas.Font.Color := clGray;
 
       if (Caption <> '') then
       begin
@@ -634,7 +666,7 @@ begin
   Result.OnClick := BtnClick;
   Result.OnMouseUp := BtnMouseDown;
   Result.Visible := True;
-  Result.Enabled := True;
+  Result.Enabled := Enabled;
   Result.Parent := Self;
   Result.Caption := '';
 end;
@@ -793,11 +825,18 @@ begin
   inherited Loaded;
   SetEditRect;
   ResizeControl;
+  FButton.Enabled := Enabled and not ReadOnly;
 end;
 
 procedure TAdvEditBtn.SetGlyph(value:TBitmap);
 begin
   FButton.Glyph := Value;
+end;
+
+procedure TAdvEditBtn.SetReadOnlyEx(const Value: boolean);
+begin
+  inherited ReadOnly := Value;
+  FButton.Enabled := Enabled and not Value;
 end;
 
 function TAdvEditBtn.GetGlyph:TBitmap;
@@ -837,6 +876,10 @@ begin
     Loc.Top := 1;
     Loc.Left := 1;
   end;
+
+  if not Ctl3D then
+    Loc.Left := 2;
+
   {$IFNDEF TMSDOTNET}
   SendMessage(Handle, EM_SETRECTNP, 0, LongInt(@Loc));
   {$ENDIF}
@@ -897,8 +940,8 @@ end;
 
 procedure TAdvEditBtn.WMKeyDown(var Msg:TWMKeydown);
 begin
-  if not EditorEnabled then
-    Exit;
+  //if not EditorEnabled and (Msg.CharCode <> VK_F4) then
+  //  Exit;
 
   inherited;
   if (Msg.CharCode = VK_RETURN) and (GetKeyState(VK_CONTROL) and $8000 = $8000) then
@@ -926,6 +969,11 @@ begin
   Result := Metrics.tmHeight + I div 4 {+ GetSystemMetrics(SM_CYBORDER) * 4};
 end;
 
+function TAdvEditBtn.GetReadOnlyEx: boolean;
+begin
+  Result := inherited ReadOnly;
+end;
+
 procedure TAdvEditBtn.BtnClick (Sender: TObject);
 begin
   if Assigned(FOnClickBtn) then
@@ -948,6 +996,12 @@ procedure TAdvEditBtn.CMExit(var Message: TCMExit);
 begin
   inherited;
   DrawBorders;
+end;
+
+procedure TAdvEditBtn.CMEnabledChanged(var Msg: TMessage);
+begin
+  inherited;
+  FButton.Enabled := self.Enabled and not ReadOnly;
 end;
 
 procedure TAdvEditBtn.CMEnter(var Message: TCMGotFocus);
@@ -1110,12 +1164,13 @@ end;
 procedure TAdvEditBtn.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   inherited;
-  if (Key = vk_F4) and
+  if (Key = VK_F4) and
      (GetKeyState(vk_control) and $8000 = 0) and
      (GetKeyState(vk_lmenu) and $8000 = 0) and
      (GetKeyState(vk_rmenu) and $8000 = 0) then
-   if Assigned(OnClickBtn) then
-     OnClickBtn(self);
+   begin
+     BtnClick(self);
+   end;
 end;
 
 function TAdvEditBtn.GetButtonWidth: integer;
@@ -1164,6 +1219,7 @@ var
   pt: TPoint;
   i: Integer;
 begin
+  inherited;
   pt := ClientToScreen(point(0,0));
   popmenu := CreatePopupMenu;
 
@@ -1178,8 +1234,6 @@ begin
   TrackPopupMenu(popmenu,TPM_LEFTALIGN or TPM_LEFTBUTTON,pt.x+ClientWidth-15,pt.y+ClientHeight,0,self.handle,nil);
 
   Destroymenu(popmenu);
-  if Assigned(FOnClickBtn) then
-    FOnClickBtn(Sender);
 end;
 
 constructor TUnitAdvEditBtn.Create(AOwner: TComponent);
@@ -1221,7 +1275,8 @@ end;
 
 procedure TUnitAdvEditBtn.WMCommand(var Message: TWMCommand);
 begin
-  UnitID:=fUnits.Strings[message.itemID-1];
+  UnitID := FUnits.Strings[message.itemID - 1];
+  
   if Assigned(OnUnitChanged) then
     OnUnitChanged(Self,UnitID);
 end;
@@ -1257,10 +1312,6 @@ begin
   ReleaseDC(self.handle,hdc);
 end;
 
-
-
-
-
 procedure TAdvEditBtn.SetButtonStyle(const Value: TButtonStyle);
 begin
   FButtonStyle := Value;
@@ -1271,6 +1322,11 @@ procedure TAdvEditBtn.WMChar(var Msg: TWMKey);
 begin
   if not EditorEnabled then
     Exit;
+  inherited;
+end;
+
+procedure TAdvEditBtn.WMCopy(var Message: TWMCopy);
+begin
   inherited;
 end;
 

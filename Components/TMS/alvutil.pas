@@ -3,7 +3,7 @@
 { for Delphi & C++Builder                                                 }
 {                                                                         }
 { written by TMS Software                                                 }
-{            copyright © 1998-2003                                        }
+{            copyright © 1998-2008                                        }
 {            Email : info@tmssoftware.com                                 }
 {            Web : http://www.tmssoftware.com                             }
 {                                                                         }
@@ -18,10 +18,27 @@
 
 unit AlvUtil;
 
+{$I TMSDEFS.INC}
+
 interface
 
 uses
-  Windows, SysUtils, Graphics;
+  Windows, SysUtils, Graphics, Classes;
+
+type
+  TFileStringList = class(TStringList)
+  private
+    fp: integer;
+    cache: string;
+    function GetEOF: boolean;
+  public
+    procedure Reset;
+    procedure ReadLn(var s: string);
+    procedure Write(s: string);
+    procedure WriteLn(s: string);
+    property Eof: boolean read GetEOF;
+  end;
+
 
 function Matches(s0a, s1a: pchar): boolean;
 function Matchstr(s1, s2: string): boolean;
@@ -47,31 +64,54 @@ implementation
 const
   LINEFEED = #13;
 
-procedure StringToOem(var s: string);
+procedure StringToOem(var s:string);
+{$IFDEF WIN32}
 var
-  pin, pout: pchar;
+  pin: PChar;
+  {$IFDEF DELPHI_UNICODE}
+  pout: PAnsiChar;  
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
+  pout: PChar;
+  {$ENDIF}
+{$ENDIF}
 begin
-  GetMem(pin, length(s) + 1);
-  GetMem(pout, length(s) + 1);
-  strlcopy(pin, pchar(s), length(s));
-  CharToOem(pin, pout);
+  //DELPHI_UNICODE
+  {$IFDEF WIN32}
+  GetMem(pin,Length(s) + 1);
+  GetMem(pout,Length(s) + 1);
+  StrLCopy(pin,PChar(s),Length(s));
+  CharToOem(pin,pout);
   s := StrPas(pout);
   FreeMem(pin);
   FreeMem(pout);
+ {$ENDIF}
 end;
 
-procedure OemToString(var s: string);
+procedure OemToString(var s:string);
+{$IFDEF WIN32}
 var
-  pin, pout: pchar;
+  {$IFDEF DELPHI_UNICODE}
+  pin: PAnsiChar;
+  {$ENDIF}
+  {$IFNDEF DELPHI_UNICODE}
+  pin: PChar;
+  {$ENDIF}
+  pout: PChar;
+{$ENDIF}
 begin
-  GetMem(pin, length(s) + 1);
-  GetMem(pout, length(s) + 1);
-  strplcopy(pin, s, length(s));
-  OemToChar(pin, pout);
-  s := strpas(pout);
+  //DELPHI_UNICODE
+  {$IFDEF WIN32}
+  GetMem(pin,Length(s) + 1);
+  GetMem(pout,Length(s) + 1);
+  StrPLCopy(pin,s,Length(s));
+  OemToChar(pin,pout);
+  s := StrPas(pout);
   FreeMem(pin);
   FreeMem(pout);
+  {$ENDIF}
 end;
+
 
 function DoubleToSingleChar(ch: char; const s: string): string;
 var
@@ -482,6 +522,37 @@ begin
   Inflaterect(r, 1, 1);
   Canvas.FrameRect(r);
 end;
+
+
+procedure TFileStringList.Reset;
+begin
+  fp := 0;
+  cache := '';
+end;
+
+function TFileStringList.GetEOF;
+begin
+  Result := fp >= Count;
+end;
+
+procedure TFileStringList.ReadLn(var s: string);
+begin
+  s := Strings[fp];
+  inc(fp);
+end;
+
+procedure TFileStringList.Write(s: string);
+begin
+  cache := cache + s;
+end;
+
+procedure TFileStringList.WriteLn(s: string);
+begin
+  Add(cache + s);
+  cache := '';
+end;
+
+
 
 begin
 end.

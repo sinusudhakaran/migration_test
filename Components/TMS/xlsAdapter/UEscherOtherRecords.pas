@@ -14,7 +14,7 @@ type
   public
     function DeleteRef(const aShape: TEscherSPRecord): boolean;virtual;abstract;
     procedure FixPointers;virtual;abstract;
-    procedure ArrangeCopyRowsAndCols; virtual; abstract;
+    procedure ArrangeCopyRowsAndCols(const dSheet: TObject); virtual; abstract;
   end;
 
   TConnectorRule= packed record
@@ -30,13 +30,13 @@ type
     FConnectorRule: PConnectorRule;
     Shapes: array['A'..'C'] of TEscherSPRecord;
   protected
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;override;
 
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
     function DeleteRef(const aShape: TEscherSPRecord): boolean;override;
     procedure FixPointers;override;
-    procedure ArrangeCopyRowsAndCols; override;
+    procedure ArrangeCopyRowsAndCols(const dSheet: TObject); override;
   end;
 
   TAlignRule= packed record
@@ -52,13 +52,13 @@ type
     FAlignRule: PAlignRule;
     //Shapes: array of TEscherSPRecord;
   protected
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;override;
 
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
     function DeleteRef(const aShape: TEscherSPRecord): boolean;override;
     procedure FixPointers;override;
-    procedure ArrangeCopyRowsAndCols; override;
+    procedure ArrangeCopyRowsAndCols(const dSheet: TObject); override;
   end;
 
   TArcRule= packed record
@@ -73,13 +73,13 @@ type
     FArcRule: PArcRule;
     Shape: TEscherSPRecord;
   protected
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;override;
 
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
     function DeleteRef(const aShape: TEscherSPRecord): boolean;override;
     procedure FixPointers;override;
-    procedure ArrangeCopyRowsAndCols; override;
+    procedure ArrangeCopyRowsAndCols(const dSheet: TObject); override;
   end;
 
   TCalloutRule= packed record
@@ -94,13 +94,13 @@ type
     FCalloutRule: PCalloutRule;
     Shape: TEscherSPRecord;
   protected
-    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer): TEscherRecord;override;
+    function DoCopyTo(const NewDwgCache: PEscherDwgCache; const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;override;
 
   public
     constructor Create(const aEscherHeader: TEscherRecordHeader; const aDwgGroupCache: PEscherDwgGroupCache; const aDwgCache: PEscherDwgCache; const aParent: TEscherContainerRecord); override;
     function DeleteRef(const aShape: TEscherSPRecord): boolean;override;
     procedure FixPointers;override;
-    procedure ArrangeCopyRowsAndCols; override;
+    procedure ArrangeCopyRowsAndCols(const dSheet: TObject); override;
   end;
 
   TEscherClientTextBoxRecord= class(TEscherClientDataRecord)
@@ -119,10 +119,10 @@ implementation
 uses UXlsClientData;
 { TEscherConnectorRuleRecord }
 
-procedure TEscherConnectorRuleRecord.ArrangeCopyRowsAndCols;
+procedure TEscherConnectorRuleRecord.ArrangeCopyRowsAndCols(const dSheet: TObject);
 begin
   if (Shapes['C'] <> nil) and (Shapes['C'].CopiedTo <> nil) then
-    DwgCache.Solver.ContainedRecords.Add(CopyTo(DwgCache, 0, 0));
+    DwgCache.Solver.ContainedRecords.Add(CopyTo(DwgCache, 0, 0, dSheet));
 end;
 
 constructor TEscherConnectorRuleRecord.Create(
@@ -150,12 +150,12 @@ end;
 
 function TEscherConnectorRuleRecord.DoCopyTo(
   const NewDwgCache: PEscherDwgCache;
-  const RowOfs, ColOfs: integer): TEscherRecord;
+  const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 var
   R: TEscherConnectorRuleRecord;
   c:char;
 begin
-  R:= inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs) as TEscherConnectorRuleRecord;
+  R:= inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet) as TEscherConnectorRuleRecord;
   for c:='A' to 'C' do
     if Shapes[c] <> nil then
     begin
@@ -202,7 +202,7 @@ end;
 
 function TEscherAlignRuleRecord.DoCopyTo(
   const NewDwgCache: PEscherDwgCache;
-  const RowOfs, ColOfs: integer): TEscherRecord;
+  const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 begin
   raise Exception.CreateFmt(ErrNotImplemented,['Align Rule']);
 end;
@@ -214,10 +214,10 @@ end;
 
 { TEscherArcRuleRecord }
 
-procedure TEscherArcRuleRecord.ArrangeCopyRowsAndCols;
+procedure TEscherArcRuleRecord.ArrangeCopyRowsAndCols(const dSheet: TObject);
 begin
   if (Shape <> nil) and (Shape.CopiedTo <> nil) then
-    DwgCache.Solver.ContainedRecords.Add(CopyTo(DwgCache, 0, 0));
+    DwgCache.Solver.ContainedRecords.Add(CopyTo(DwgCache, 0, 0, dSheet));
 end;
 
 constructor TEscherArcRuleRecord.Create(
@@ -241,11 +241,11 @@ begin
 end;
 
 function TEscherArcRuleRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache;
-  const RowOfs, ColOfs: integer): TEscherRecord;
+  const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 var
   R: TEscherArcRuleRecord;
 begin
-  R:= inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs) as TEscherArcRuleRecord;
+  R:= inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet) as TEscherArcRuleRecord;
 
   if Shape <> nil then
   begin
@@ -267,10 +267,10 @@ end;
 
 { TEscherCalloutRuleRecord }
 
-procedure TEscherCalloutRuleRecord.ArrangeCopyRowsAndCols;
+procedure TEscherCalloutRuleRecord.ArrangeCopyRowsAndCols(const dSheet: TObject);
 begin
   if (Shape <> nil) and (Shape.CopiedTo <> nil) then
-    DwgCache.Solver.ContainedRecords.Add(CopyTo(DwgCache, 0, 0));
+    DwgCache.Solver.ContainedRecords.Add(CopyTo(DwgCache, 0, 0, dSheet));
 end;
 
 constructor TEscherCalloutRuleRecord.Create(
@@ -294,11 +294,11 @@ begin
 end;
 
 function TEscherCalloutRuleRecord.DoCopyTo(const NewDwgCache: PEscherDwgCache;
-  const RowOfs, ColOfs: integer): TEscherRecord;
+  const RowOfs, ColOfs: integer; const dSheet: TObject): TEscherRecord;
 var
   R: TEscherCalloutRuleRecord;
 begin
-  R:= inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs) as TEscherCalloutRuleRecord;
+  R:= inherited DoCopyTo(NewDwgCache, RowOfs, ColOfs, dSheet) as TEscherCalloutRuleRecord;
 
   if Shape <> nil then
   begin

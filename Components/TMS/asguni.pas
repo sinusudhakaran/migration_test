@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvStringGrid unicode editor component                                   }
 { for Delphi & C++Builder                                                   }
-{ version 3.3.0.0                                                           }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 1996-2006                                          }
+{            copyright © 1996-2008                                          }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -19,12 +18,19 @@
 
 unit AsgUni;
 
+{$I TMSDEFS.INC}
+
 interface
 
 {$WARNINGS OFF}
 
 uses
-  Windows, Messages, Classes, Controls, StdCtrls, Graphics, ADVXPVS, AsgEdit;
+  Windows, Messages, Classes, Controls, StdCtrls, Graphics, ADVXPVS, AsgEdit
+  {$IFDEF DELPHI2006_LVL}
+  , WideStrings
+  {$ENDIF}
+  ;
+
 
 
 type
@@ -38,7 +44,7 @@ type
   protected
     procedure CreateWindowHandle(const Params: TCreateParams); override;
   public
-    constructor Create(AOwner: TComponent);override;
+    constructor Create(AOwner: TComponent); override;
     property SelText: WideString read GetSelText write SetSelText;
     property Text: WideString read GetText write SetText;
   end;
@@ -453,7 +459,7 @@ type
     property Etched: Boolean read FEtched write SetEtched;
     property FocusBorder: Boolean read FFocusBorder write FFocusBorder;
     property AutoFocus: Boolean read FAutoFocus write FAutoFocus;
-    property DropWidth: integer read fDropWidth write SetDropWidth;
+    property DropWidth: integer read FDropWidth write SetDropWidth;
   public
     property IsWinXP: Boolean read FIsWinXP write FIsWinXP;
     constructor Create(AOwner: TComponent); override;
@@ -592,11 +598,14 @@ type
     procedure WindowProc(var Message: TMessage);
     procedure HandleWMDestroy(var Message: TMessage);
   end;
+
   TAccessWinControl = class(TWinControl);
+  
   TWideCaptionHolder = class(TComponent)
   private
     WideCaption: WideString;
   end;
+
   TCompareFunc = function(W1, W2: WideString; Locale: LCID): integer;
 
 var
@@ -641,7 +650,6 @@ procedure TAnsiStringsForWideStrings.Insert(Index: integer; const S: AnsiString)
 begin
   FWideStrings.Insert(Index, S);
 end;
-
 
 { General Fuctions And Procedures}
 
@@ -1396,6 +1404,20 @@ procedure TWideStrings.Assign(Source: TPersistent);
 var
   I: integer;
 begin
+  {$IFDEF DELPHI2006_LVL}
+  if Source is TWideStringList then
+  begin
+    BeginUpdate;
+    try
+      Clear;
+      AddStrings(TWideStrings(Source));
+    finally
+      EndUpdate;
+    end;
+  end
+  else
+  {$ENDIF}
+
   if Source is TWideStrings then
   begin
     BeginUpdate;
@@ -2335,7 +2357,7 @@ end;
 procedure TASGUniCustomCombo.SetDropWidth(const Value: integer);
 begin
   FDropWidth := Value;
-  if value > 0 then
+  if Value > 0 then
     SendMessage(self.Handle,CB_SETDROPPEDWIDTH,FDropWidth,0);
 end;
 

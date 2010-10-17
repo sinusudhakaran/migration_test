@@ -5,7 +5,7 @@
 {                                                                    }
 { Written by :                                                       }
 {   TMS Software                                                     }
-{   Copyright © 2006                                                 }
+{   Copyright © 2007                                                 }
 {   Email : info@tmssoftware.com                                     }
 {   Website : http://www.tmssoftware.com                             }
 {********************************************************************}
@@ -16,31 +16,19 @@ interface
 {$I TMSDEFS.INC}
 
 uses
-  Classes
-  , AdvMoneyEdit
-  {$IFNDEF TMSDOTNET}
-  , DBAdvMoneyEdit
-  {$ENDIF}
-  ;
+  Classes, AdvMoneyEdit;
 
 {$IFDEF TMSDOTNET}
 {$R TAdvMoneyEdit.bmp}
 {$ENDIF}
+
 procedure Register;
 
 implementation
 
 procedure Register;
 begin
-  RegisterComponents('TMS Edits', [TAdvMoneyEdit
-  {$IFNDEF TMSDOTNET}
-    , TDBAdvMoneyEdit
-  {$ENDIF}  
-  ]);
+  RegisterComponents('TMS Edits', [TAdvMoneyEdit]);
 end;
 
-
-
 end.
-
-

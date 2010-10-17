@@ -42,7 +42,7 @@ type
     HLockBytes: THandle;
     FStream: TStream;
   public
-    constructor Create(const AFileName: string; const aMode: TEnumOle2Open; const aStream: TStream=nil);
+    constructor Create(const AFileName: string; const aMode: TEnumOle2Open; const AllowOverwritingFiles: boolean; const aStream: TStream=nil);
     destructor Destroy;override;
 
     procedure GetDirectories(var DirInfo: TMsOleDirInfoArray);
@@ -102,10 +102,11 @@ begin
     OleCheck(FStorage.Commit(STGC_DEFAULT));
 end;
 
-constructor TOle2Storage.Create(const AFileName: string; const aMode: TEnumOle2Open; const aStream: TStream=nil);
+constructor TOle2Storage.Create(const AFileName: string; const aMode: TEnumOle2Open; const AllowOverwritingFiles: boolean; const aStream: TStream=nil);
 var
   WideFileName: Widestring;
   PLockBytes: pointer;
+  WriteMode: integer;
 begin
   inherited Create;
   FStream:=aStream;
@@ -139,7 +140,11 @@ begin
   begin
     WideFileName:=AFileName;
     if aMode= Ole2_Write then
-      OleCheck(StgCreateDocfile(PWideChar(WideFileName), OptionsWrite, 0, FStorage))
+    begin
+      WriteMode := OptionsWrite;
+      if (AllowOverwritingFiles) then WriteMode := WriteMode or STGM_CREATE;
+      OleCheck(StgCreateDocfile(PWideChar(WideFileName), WriteMode, 0, FStorage));
+    end
 
     else if aMode= Ole2_Read then
     begin

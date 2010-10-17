@@ -17,7 +17,7 @@ implementation
       // "{$DEFINE USEPNGLIB}" on the file
       //Note that this is only needed on Windows, CLX has native support for PNG
       ///////////////////////////////////////////////////////////////////////////////////
-       uses pngimage, pngzlib;
+       uses pngimage, zlibpas;   //Note that PNGLIB changed units names. Make sure to download the *latest* version if you get an error in zlib.
       ///////////////////////////////////////////////////////////////////////////////////
       //If you are getting an error here, please read the note above.
       ///////////////////////////////////////////////////////////////////////////////////

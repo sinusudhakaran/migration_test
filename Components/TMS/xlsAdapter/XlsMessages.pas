@@ -103,7 +103,7 @@ type
 const
   Max_Columns       = 255;
   Max_Rows          = 65535; //0 based
-  MaxSheets         = 250;
+  MaxSheets         = 65000;  //some negative values are reserved
 
 
   xlr_BofVersion    = $0600;
@@ -395,6 +395,7 @@ const
 
 //////////////////////////////////////Tokens///////////////////////////777777
     //Globals
+    tk_Arrayformula     = $1;
     tk_Table     = $2;
     tk_BinaryOps = [$3..$11];
     tk_UnaryOps  = [$12..$15];
@@ -557,12 +558,12 @@ const
   procedure IncMaxMin(var X: word ; N, Max,  Min: Longint );
 
   procedure IncByte( const Pdata: PArrayOfByte; const tPos: integer; const Offset: integer; const Max: integer);
-  procedure IncWord( const Pdata: PArrayOfByte; const tPos: integer; const Offset: integer; const Max: integer);
+  procedure IncWord( const Pdata: PArrayOfByte; const tPos: integer; const Offset: integer; const Max: integer); 
   function GetWord(const Pdata: PArrayOfByte; const tPos: integer): word;
-  procedure SetWord(const Pdata: PArrayOfByte; const tPos: integer; const number: Word);
+  procedure SetWord(const Pdata: PArrayOfByte; const tPos: integer; const number: Word); 
   procedure IncLongWord( const Pdata: PArrayOfByte; const tPos: integer; const Offset: int64);
   function GetLongWord(const Pdata: PArrayOfByte; const tPos: integer): LongWord;
-  procedure SetLongWord(const Pdata: PArrayOfByte; const tPos: integer; const number: LongWord);
+  procedure SetLongWord(const Pdata: PArrayOfByte; const tPos: integer; const number: LongWord); 
 
   //These functions do not take Continue records. use them with care, only where we are sure we don't have continues
   function GetStrLen(const Length16Bit: boolean ;const Pdata: PArrayOfByte; const tPos: integer; const UseExtStrLen: boolean; const ExtStrLen: LongWord): int64;
@@ -572,6 +573,11 @@ const
   function WideStringToStringNoCodePage(const W: WideString): string;
   function StringToWideStringNoCodePage(const s: String): WideString;
   procedure CompressBestUnicode(const w: widestring; const PData: PArrayOfByte; const PDataPos: integer);
+
+type
+  pWord=^Word;
+  pLongWord=^LongWord;
+
 
 implementation
 
@@ -616,16 +622,13 @@ begin
   if (N+X>Max) then X:=Max else if N+X<Min then X:=Min else Inc(X,N);
 end;
 
+
 function GetWord(const Pdata: PArrayOfByte; const tPos: integer): word;
-type
-  pWord=^Word;
 begin
   Result:=pWord(PCHAR(Pdata)+tPos)^;
 end;
 
 function GetLongWord(const Pdata: PArrayOfByte; const tPos: integer): LongWord;
-type
-  pLongWord=^LongWord;
 begin
   result:=PLongWord(PCHAR(Pdata)+tPos)^;
 end;

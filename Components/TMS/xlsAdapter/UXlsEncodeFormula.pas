@@ -19,13 +19,13 @@ type
 
     LastRefOp: integer;
 
-    FNameTable: TNameRecordList;
     FCellList: TCellList;
 
     StackWs: TWhiteSpaceStack;
 
     Default3DExternSheet: widestring;
     Force3d: boolean; //Named ranges
+    InitialRefMode: TFmReturnType;
 
     function IsNumber(const c: widechar): boolean;
     function IsAlpha(const c: widechar): boolean;
@@ -77,10 +77,12 @@ type
     procedure SetLastRefOp(const aptg: byte; const RefMode: TFmReturnType);
     procedure ConvertLastRefValueTypeOnce(const RefMode: TFmReturnType; var First: boolean);
     function IsDirectlyInFormula: boolean;
+    procedure DiscardNormalWhiteSpace;
+    procedure MakeLastWhitespaceNormal;
   public
-    constructor Create(const aw: widestring; const aNameTable: TNameRecordList; const aCellList: TCellList);
+    constructor Create(const aw: widestring; const aCellList: TCellList; const ReturnType: TFmReturnType);
     constructor CreateExt(const aw: widestring;
-      const aNameTable: TNameRecordList; const aCellList: TCellList;
+      const aCellList: TCellList;
       const aForce3D: Boolean; const aDefault3DExternSheet: WideString;
       const ReturnType: TFmReturnType);
 
@@ -94,7 +96,6 @@ type
 
 implementation
 
-
 function GetRealPtg(const PtgBase: word; const ReturnType: TFmReturnType): word;
 begin
   case ReturnType of
@@ -106,15 +107,15 @@ end;
 
 { TParseString }
 
-constructor TParseString.Create(const aw: widestring; const aNameTable: TNameRecordList; const aCellList: TCellList);
+constructor TParseString.Create(const aw: widestring; const aCellList: TCellList; const ReturnType: TFmReturnType);
 begin
   inherited Create;
   Fw:= aw;
   ParsePos:=1;
   StackWs:=TWhiteSpaceStack.Create;
-  FNameTable:=aNameTable;
   FCellList:=aCellList;
   Force3D := false;
+  InitialRefMode:=ReturnType;
   MaxErrorLen:=Length(fmErrNull);
   if MaxErrorLen<Length(  fmErrDiv0 ) then MaxErrorLen:=Length(fmErrDiv0 );
   if MaxErrorLen<Length(  fmErrValue) then MaxErrorLen:=Length(fmErrValue);
@@ -124,10 +125,10 @@ begin
   if MaxErrorLen<Length(  fmErrNA   ) then MaxErrorLen:=Length(fmErrNA   );
 end;
 
-constructor TParseString.CreateExt(const aw: widestring; const aNameTable: TNameRecordList; const aCellList: TCellList;
+constructor TParseString.CreateExt(const aw: widestring; const aCellList: TCellList;
                      const aForce3D: Boolean; const aDefault3DExternSheet: WideString; const ReturnType: TFmReturnType);
 begin
-  Create(aw, aNameTable, aCellList);
+  Create(aw, aCellList, ReturnType);
   Default3DExternSheet := aDefault3DExternSheet;
   Force3D := aForce3d;
 end;
@@ -668,7 +669,7 @@ var
   SheetName: string;
   Sheet1, Sheet2: integer;
 begin
-  i:= pos (fmRangeSep, ExternSheet);
+  i:= pos (WideString(fmRangeSep), ExternSheet);
   if (i>0) then SheetName:=Copy(ExternSheet,1, i-1) else SheetName:=ExternSheet;
 
   if not FCellList.FindSheet(SheetName, Sheet1) then raise Exception.CreateFmt(ErrInvalidSheet, [SheetName]);
@@ -887,20 +888,55 @@ end;
 procedure TParseString.GetFormulaArgs(const Index: integer; var ArgCount: integer);
 var
   c: Widechar;
+  MoreToCome: boolean;
+  ActualPos: integer;
 begin
   ArgCount:=0;
   NextChar; //skip parenthesis
-  while PeekChar(c) and (c<> fmCloseParen) do
+  c:= ' ';
+  MoreToCome:=true;
+  while MoreToCome do
   begin
+    ActualPos := ParsePos;
     Expression;
 
-    if PeekCharWs(c) then
-      if c=fmFunctionSep then NextChar else
-      if c<> fmCloseParen then raise Exception.CreateFmt(ErrUnexpectedChar, [char(c), ParsePos, Fw]);
-
+    if (ParsePos = ActualPos) then //missing parameter.
+    begin
+      SkipWhiteSpace;
+      if (ArgCount > 0) or (PeekChar(c) and (c=fmFunctionSep)) then
+      begin
+			  MakeLastWhitespaceNormal; //No real need to call this here, but this way it will behave the same as Excel. (An space before the closing parenthesis on a missing arg is not a post whitespace but a normal space)
+				AddParsed([ptgMissArg]);
+      end
+      else
+      begin
+				PopWhiteSpace();
+        dec(ArgCount);  //This is not a real argument, as in PI()
+      end;
+    end else
+    begin
 			ConvertLastRefValueType(FuncParamType(Index, ArgCount));
+			SkipWhiteSpace();
+			DiscardNormalWhiteSpace();  //No space is allowed before a ",". We only keep the whitespace if it is for closing a parenthesis.
+    end;
 
-    inc(argCount);
+    if PeekCharWs(c) then
+    begin
+			//We should not call SkipWhitespace here, as it was already called.
+      if c=fmFunctionSep then
+      begin
+        NextChar;
+				if (not PeekChar(c)) then
+					raise Exception.CreateFmt(ErrUnexpectedEof, [Fw]);
+      end else
+      if c = fmCloseParen then
+      begin
+        MoreTocome:=false;
+      end else raise Exception.CreateFmt(ErrUnexpectedChar, [char(c), ParsePos, Fw]);
+    end else raise Exception.CreateFmt(ErrUnexpectedEof, [Fw]);
+
+
+    inc(ArgCount);
   end;
 
   if not PeekChar(c) then raise Exception.CreateFmt(ErrMissingParen, [Fw]);
@@ -1045,7 +1081,7 @@ begin
   NextChar;
   Expression;
 
-	ConvertLastRefValueType(fmValue);
+	ConvertLastRefValueType(InitialRefMode);
 
   if PeekChar(c) then raise Exception.CreateFmt(ErrUnexpectedChar,[char(c), ParsePos, Fw]);
   if StackWs.Count<>0 then raise Exception.Create(ErrInternal);
@@ -1057,7 +1093,7 @@ begin
   try
     CopyToPtr(Ptr, 0);
     try
-      RPNToString(Ptr, 2, FNameTable, FCellList);
+      RPNToString(Ptr, 2, FCellList);
     except
       raise Exception.CreateFmt(ErrFormulaInvalid,[Fw]);
     end;
@@ -1075,16 +1111,34 @@ begin
     AddParsed([ptgAttr,$40,Ws.Kind, Ws.Count], false);
 end;
 
+procedure TParseString.DiscardNormalWhiteSpace;
+var
+  Ws: TWhiteSpace;
+begin
+	StackWs.Pop(Ws);
+	if (Ws.Count>0) and (Ws.Kind <> attr_bitFSpace) then
+    AddParsed([ptgAttr,$40,Ws.Kind, Ws.Count], false);
+end;
+
+procedure TParseString.MakeLastWhitespaceNormal;
+var
+  Ws: TWhiteSpace;
+begin
+  StackWs.Peek(Ws);
+  Ws.Kind := attr_bitFSpace;
+end;
+
 
 procedure TParseString.AddParsed(const s: array of byte; const PopWs: boolean=true);
 begin
   if Length(s)= 0 then exit;
+  if PopWs then PopWhiteSpace;
+
   if (s[0] <> ptgParen) and (s[0] <> ptgAttr) then //Those are "transparent" for reference ops.
   begin
 		LastRefOp := Length(FParsedData);
 	end;
 
-  if PopWs then PopWhiteSpace;
   SetLength(FParsedData, Length(FParsedData)+ Length(s));
   move(s[0], FParsedData[Length(FParsedData)-Length(s)], Length(s));
 end;

@@ -50,6 +50,9 @@ type
     function TotalSize: int64;
     function TotalRangeSize(const CellRange: TXlsCellRange): int64;
 
+    procedure ArrangeInsertCols(const DestCol: integer; const aColCount: integer; const SheetInfo: TSheetInfo);
+    procedure CopyCols(const FirstCol, LastCol: integer;  const DestCol: integer; const aColCount: integer; const SheetInfo: TSheetInfo);
+
     procedure CalcGuts(const Guts: TGutsRecord);
   end;
 
@@ -202,6 +205,55 @@ begin
     end;
   end;
   Guts.ColLevel:=MaxGutsLevel;
+end;
+
+procedure TColInfoList.ArrangeInsertCols(const DestCol,
+  aColCount: integer; const SheetInfo: TSheetInfo);
+var
+  i: integer;
+begin
+  if SheetInfo.FormulaSheet <> SheetInfo.InsSheet then exit;
+  Sort; //just in case
+  for i := Count - 1 downto 0 do
+  begin
+    if (Items[i].Column >= DestCol) then inc (Items[i].Column, aColCount)
+    else break;
+  end;
+end;
+
+
+procedure TColInfoList.CopyCols(const FirstCol, LastCol, DestCol,
+  aColCount: integer; const SheetInfo: TSheetInfo);
+var
+  k: integer;
+  i: integer;
+  C: TColInfo;
+  Index: integer;
+  NewCol: integer;
+begin
+  //ArrangeInsertCols(SourceRange.Offset(SourceRange.Top, DestCol), aColCount, SheetInfo);  //This has already been called.
+  for k := 0 to aColCount - 1 do
+  begin
+    i := 0;
+    while i < Count do
+    begin
+      try
+        C := Items[i];
+        if (C = nil) then continue;
+        if (C.Column < FirstCol) then continue;
+        if (C.Column > LastCol) then break;
+        NewCol := ((DestCol + C.Column) - FirstCol) + (k * (LastCol - FirstCol + 1));
+        if ((NewCol >= 0)) and (NewCol <> C.Column) and (NewCol <= (Max_Columns + 1)) then
+        begin
+          Index := -1;
+          if Find(NewCol, Index) then Delete(Index) else if Index <= i then inc(i);
+          Insert(Index, TColInfo.Create(NewCol, C.Width, C.XF, C.Options));
+        end;
+      finally
+        inc(i);
+      end;
+    end;
+  end;
 end;
 
 { TColInfoRecord }

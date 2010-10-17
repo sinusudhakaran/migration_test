@@ -1,9 +1,8 @@
 {**************************************************************************}
 { TUniHTMListBox component                                                 }
 { for Delphi & C++Builder                                                  }
-{ version 1.0                                                              }
 {                                                                          }
-{ Copyright © 2002 - 2004                                                  }
+{ Copyright © 2002 - 2008                                                  }
 {   TMS Software                                                           }
 {   Email : info@tmssoftware.com                                           }
 {   Web : http://www.tmssoftware.com                                       }
@@ -29,20 +28,15 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, StdCtrls,
   Comobj, Activex, PictureContainer;
 
-{$IFNDEF DELPHI3_LVL}
-const
-  crHandPoint = crUpArrow;
-  MAJ_VER = 1; // Major version nr.
-  MIN_VER = 0; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
-{$ELSE}
 const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 0; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
-{$ENDIF}
+  BLD_VER = 1; // Build nr.
+
+  // version history
+  // v1.0.0.0 : first release
+  // v1.0.0.1 : Fixed : issue with font colors on selection change
 
 type
   EUniHTMListboxError = class(Exception);
@@ -233,15 +227,37 @@ uses
 
 function WideSet(s: widestring): string;
 var
-  i: Integer;
+  i,j: Integer;
   wc: widechar;
   d: string;
 begin
   for i := 1 to length(s) do
   begin
     wc := s[i];
-    d := d + chr(((smallint(wc) and $FF00) shr 8)+1);
-    d := d + chr((smallint(wc) and $FF));
+    j := ((smallint(wc) and $FF00) shr 8) + 1;
+    if (j = 256) or (j = 255) then
+    begin
+      d := d + chr(255);
+      if (j = 255) then
+        d := d + chr(1);
+      if (j = 256) then
+        d := d + chr(2);
+    end
+    else
+      d := d + chr(j);
+
+    j := (smallint(wc) and $FF) + 1;
+    if (j = 256) or (j = 255) then
+    begin
+      d := d + chr(255);
+      if (j = 255) then
+        d := d + chr(1);
+      if (j = 256) then
+        d := d + chr(2);
+    end
+    else
+      d := d + chr(j);
+
   end;
   Result := d;
 end;
@@ -251,15 +267,37 @@ var
   ws: widestring;
   wsi: Integer;
   wc: widechar;
+  r: string;
 begin
   ws := '';
-  for wsi := 1 to length(s) div 2 do
+
+  r := '';
+  wsi := 1;
+  while (wsi <= length(s)) do
   begin
-    wc := widechar(smallint(ord(s[wsi*2])+(ord(s[wsi*2-1])-1) shl 8));
+    if ord(s[wsi]) = 255 then
+    begin
+      inc(wsi);
+      if ord(s[wsi]) = 1 then
+        r := r + chr(255)
+      else
+        if ord(s[wsi]) = 2 then
+          r := r + chr(0);
+    end
+    else
+      r := r + s[wsi];
+    inc(wsi);
+  end;
+
+  for wsi := 1 to length(r) div 2 do
+  begin
+    wc := widechar(smallint(ord(r[wsi*2])-1+(ord(r[wsi*2-1])-1) shl 8));
     ws := ws + wc;
   end;
+
   Result := ws;
 end;
+
 
 procedure TUniHTMListbox.DrawItem(Index: Integer; Rect: TRect;State: TOwnerDrawState);
 var
@@ -269,6 +307,7 @@ var
   hrect,hr: TRect;
   pt: TPoint;
   w : widestring;
+  sel: boolean;
 begin
   hrect := Rect;
 
@@ -285,6 +324,7 @@ begin
 
   if (odSelected in State) and ((GetFocus = Handle) or not HideSelection) then
   begin
+    sel := true;
     Canvas.Brush.Color := FSelectionColor;
     Canvas.Pen.Color := FSelectionColor;
     Canvas.Font.Color := FSelectionFontColor;
@@ -292,6 +332,7 @@ begin
   end
   else
   begin
+    sel := false;
     Canvas.Brush.Color := self.Color;
     Canvas.Pen.Color := self.Color;
     Canvas.Font.Color := self.Font.Color;
@@ -313,7 +354,8 @@ begin
 
   w := WideGet(Items[Index]);
 
-  HTMLDrawEx(Canvas,w,hrect,FImages,pt.x,pt.y,-1,-1,FShadowOffset,False,False,False,False,True,False,not FEllipsis,1.0,
+
+  HTMLDrawEx(Canvas,w,hrect,FImages,pt.x,pt.y,-1,-1,FShadowOffset,False,False,False,sel,True,False,not FEllipsis,1.0,
              urlcol,clNone,clNone,FShadowColor,a,s,f,XSize,YSize,hl,ml,hr,FImageCache,FContainer);
 
   if odFocused in State then
@@ -508,6 +550,9 @@ begin
 
     HTMLDrawEx(Canvas,w,r,FImages,0,0,-1,-1,FShadowOffset,True,True,False,True,True,False,not FEllipsis,1.0,
                FURLColor,clNone,clNone,FShadowColor,a,s,f,xsize,ysize,hl,ml,hr,FImageCache,FContainer);
+
+    if YSize > Height then
+      YSize := Height - 4;
 
     SendMessage(Handle,LB_SETITEMHEIGHT,Message.Result,YSize + 4);
 
@@ -797,7 +842,7 @@ begin
         Canvas.Font.Color := self.SelectionFontColor;
       end;
 
-      HTMLDrawEx(Canvas,w,r,FImages,0,0,-1,-1,FShadowOffset,False,False,False,False,FBlinking,False,not FEllipsis,1.0,fURLColor,clNone,clNone,fShadowColor,
+      HTMLDrawEx(Canvas,w,r,FImages,0,0,-1,-1,FShadowOffset,False,False,False,Selected[i],FBlinking,False,not FEllipsis,1.0,fURLColor,clNone,clNone,fShadowColor,
                  a,s,f,xsize,ysize,hl,ml,hr,FImageCache,FContainer);
     end;
   end;

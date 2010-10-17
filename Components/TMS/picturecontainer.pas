@@ -71,7 +71,7 @@ type
     constructor Create(AOwner:TComponent);
     function Add: TPictureItem;
     function Insert(index:integer): TPictureItem;
-    property Items[Index: Integer]: TPictureItem read GetItem write SetItem;
+    property Items[Index: Integer]: TPictureItem read GetItem write SetItem; default;
     function Animate:Boolean;
   end;
 

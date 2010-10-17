@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvOfficeTabSet component                                                }
 { for Delphi & C++Builder                                                   }
-{ version 1.0                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2006                                               }
+{            copyright © 2007 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -39,9 +38,10 @@ const
   TabBUTTON_SIZE = 18;
 
   MAJ_VER = 1; // Major version nr.
-  MIN_VER = 1; // Minor version nr.
-  REL_VER = 1; // Release nr.
-  BLD_VER = 0; // Build nr.
+  MIN_VER = 3; // Minor version nr.
+  REL_VER = 2; // Release nr.
+  BLD_VER = 2; // Build nr.
+  MAX_ROUNDING = 8;
 
   // version history
   // 1.0.0.1 : Fixed issue with hidden tabs & scrolling
@@ -50,9 +50,40 @@ const
   //         : New : OnTabMoved event added
   //         : New : TAdvOfficeMDITabSet
   // 1.1.1.0 : New : Office 2007 silver style added
-  //         : Fixed : issue with close button position 
-
+  //         : Fixed : issue with close button position
+  // 1.1.2.0 : Improved : MDI child OnClose, OnCloseQuery event handled in AdvOfficeMDITabSet
+  // 1.1.2.1 : Fixed : issue with right click on tab
+  // 1.1.2.2 : Improved : paint issue with TabSettings.StartMargin = 0
+  // 1.2.0.0 : New : ImagePosition can be set in TabSettings as left, top, bottom, right from tab caption
+  //         : New : Wordwrapped tab caption support
+  //         : New : autoscrolling pages while mouse is down on scroll buttons
+  //         : New : ScrollButtonsAlways property to show scroll buttons always irrespective of nr. of tabs
+  //         : New : OnDrawTab event for custom tab drawing
+  // 1.2.0.1 : Fixed : issue with OnDestroy for TAdvOfficeMDITabSet
+  // 1.2.0.2 : Fixed : issue with order of MDI child deletes
+  // 1.2.1.0 : Improved : shows images of tabs in MDI child window menu for TAdvOfficeMDITabSet
+  // 1.2.2.0 : Improved : AdvOfficeMDITabSet.GetTab(Child) : TOfficeTabCollectionItem added
+  // 1.2.3.0 : Improved : exposed drag & drop events
+  // 1.2.4.0 : New : Moved PtOnTab method to public section
+  // 1.3.0.0 : New : Optional TabAppearance control per tab
+  //         : New : Optional control on close button per tab
+  //         : New : left, right or left/right rounded tabs
+  // 1.3.1.0 : New : public method added to be used after runtime creation
+  // 1.3.1.1 : Fixed : issue with using font not installed on the system
+  // 1.3.1.2 : Fixed : issue with drag & drop on tabs from other controls
+  // 1.3.1.3 : Fixed : handling caNone CloseAction for MDI child form closing 
+  // 1.3.1.4 : Improved : behaviour when closing MDI childs from the tabset
+  // 1.3.1.5 : Improved : tab border color handling
+  // 1.3.2.0 : Improved : gradient, highlight & shadow painting improvements
+  // 1.3.2.1 : Fixed : issue with updating when calling OfficeTabs.Clear;
+  // 1.3.2.2 : Improved : GDI+ drawing
+  
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TAdvCustomOfficeTabSet = class;
   TAdvOfficeTabSet = class;
 
@@ -62,6 +93,11 @@ type
   TDropDownPosition = (dpRight, dpBottom);
   //TGDIPGradient = (ggRadial, ggVertical, ggDiagonalForward, ggDiagonalBackward);
   //TAntiAlias = (aaNone, aaClearType, aaAntiAlias);
+  TImagePosition = (ipLeft, ipTop, ipRight, ipBottom);
+  TCloseOnTabPos = (cpRight, cpLeft);
+  TAdvTabShape =  (tsRectangle, tsLeftRamp, tsRightRamp, tsLeftRightRamp);
+
+  TTabRounding = 0..MAX_ROUNDING;
 
   TTabMovedEvent = procedure (Sender : TObject; FromIndex, ToIndex: integer) of object;
 
@@ -74,12 +110,22 @@ type
     FStartMargin: Integer;
     FEndMargin: Integer;
     FSpacing: Integer;
+    FImagePosition: TImagePosition;
+    FWordWrap: Boolean;
+    FWidth: Integer;
+    FShape: TAdvTabShape;
+    FRounding: TTabRounding;
     procedure SetLeftMargin(const Value: Integer);
     procedure SetRightMargin(const Value: Integer);
     procedure SetHeight(const Value: Integer);
     procedure SetStartMargin(const Value: Integer);
     procedure SetEndMargin(const Value: Integer);
     procedure SetSpacing(const Value: Integer);
+    procedure SetImagePosition(const Value: TImagePosition);
+    procedure SetWidth(const Value: Integer);
+    procedure SetWordWrap(const Value: Boolean);
+    procedure SetRounding(const Value: TTabRounding);
+    procedure SetShape(const Value: TAdvTabShape);
   protected
     procedure Changed;
     property EndMargin: Integer read FEndMargin write SetEndMargin;
@@ -93,6 +139,11 @@ type
     property StartMargin: Integer read FStartMargin write SetStartMargin default 60;
     property Height: Integer read FHeight write SetHeight default 26;
     property Spacing: Integer read FSpacing write SetSpacing default 4;
+    property Width: Integer read FWidth write SetWidth default 0;
+    property WordWrap: Boolean read FWordWrap write SetWordWrap default False;
+    property ImagePosition: TImagePosition read FImagePosition write SetImagePosition default ipLeft;
+    property Shape: TAdvTabShape read FShape write SetShape default tsRectangle;
+    property Rounding: TTabRounding read FRounding write SetRounding default 1;
   end;
 
   TGradientBackground = class(TPersistent)
@@ -194,6 +245,11 @@ type
     FBorderColorSelectedHot: TColor;
     FBorderColorDown: TColor;
     FFont: TFont;
+    FHighLightColorHot: TColor;
+    FShadowColor: TColor;
+    FHighLightColorDown: TColor;
+    FHighLightColorSelectedHot: TColor;
+    FHighLightColorSelected: TColor;
     procedure OnBackGroundChanged(Sender: TObject);
     procedure SetBackGround(const Value: TGradientBackground);
     procedure SetBorderColor(const Value: TColor);
@@ -274,6 +330,11 @@ type
     property TextColorHot: TColor read FTextColorHot write SetTextColorHot;
     property TextColorSelected: TColor read FTextColorSelected write SetTextColorSelected;
     property TextColorDisabled: TColor read FTextColorDisabled write SetTextColorDisabled;
+    property ShadowColor: TColor read FShadowColor write FShadowColor;
+    property HighLightColorSelected: TColor read FHighLightColorSelected write FHighLightColorSelected;
+    property HighLightColorHot: TColor read FHighLightColorHot write FHighLightColorHot;
+    property HighLightColorSelectedHot: TColor read FHighLightColorSelectedHot write FHighLightColorSelectedHot;
+    property HighLightColorDown: TColor read FHighLightColorDown write FHighLightColorDown;
   end;
 
   TTabAppearance = class(TCustomTabAppearance)
@@ -326,6 +387,7 @@ type
     FScrollButtonNextHint: String;
     FCloseButtonHint: String;
     FTabListButtonHint: String;
+    FScrollButtonsAlways: Boolean;
     procedure Changed;
     procedure OnPictureChanged(Sender: TObject);
     procedure SetCloseButton(const Value: Boolean);
@@ -334,6 +396,7 @@ type
     procedure SetTabListButtonPicture(const Value: TGDIPPicture);
     procedure SetScrollButtonNextPicture(const Value: TGDIPPicture);
     procedure SetScrollButtonPrevPicture(const Value: TGDIPPicture);
+    procedure SetScrollButtonsAlways(const Value: Boolean);
   protected
   public
     constructor Create;
@@ -350,6 +413,7 @@ type
     property TabListButtonHint: String read FTabListButtonHint write FTabListButtonHint;
     property ScrollButtonNextHint: String read FScrollButtonNextHint write FScrollButtonNextHint;
     property ScrollButtonPrevHint: String read FScrollButtonPrevHint write FScrollButtonPrevHint;
+    property ScrollButtonsAlways: Boolean read FScrollButtonsAlways write SetScrollButtonsAlways default False;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
@@ -413,8 +477,12 @@ type
     FIPicture: TGDIPPicture;
     FIDisabledPicture: TGDIPPicture;
     FOfficeHint: TAdvHintInfo;
+    FShowClose: Boolean;
+    FUseTabAppearance: Boolean;
+    FTabAppearance: TTabAppearance;
     procedure TimerProc(Sender: TObject);
     procedure PictureChanged(Sender: TObject);
+    procedure OnTabAppearanceChanged(Sender: TObject);
     procedure SetCaption(const Value: string);
     procedure SetVisible(const Value: Boolean);
     procedure SetImageIndex(const Value: Integer);
@@ -422,6 +490,9 @@ type
     procedure SetDisabledPicture(const Value: TGDIPPicture);
     procedure SetPicture(const Value: TGDIPPicture);
     procedure SetOfficeHint(const Value: TAdvHintInfo);
+    procedure SetShowClose(const Value: Boolean);
+    procedure SetTabAppearance(const Value: TTabAppearance);
+    procedure SetUseTabAppearance(const Value: Boolean);
   protected
     FChildForm: TForm;
     FOnActivateForm: TNotifyEvent;
@@ -442,6 +513,9 @@ type
     property Picture: TGDIPPicture read FIPicture write SetPicture;
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
     property Tag: integer read FTag write FTag default 0;
+    property ShowClose: Boolean read FShowClose write SetShowClose default true;
+    property TabAppearance: TTabAppearance read FTabAppearance write SetTabAppearance;
+    property UseTabAppearance: Boolean read FUseTabAppearance write SetUseTabAppearance default false;
   end;
 
   TOfficeTabCollection = class(TCollection)
@@ -456,6 +530,7 @@ type
     property AdvOfficeTabSet: TAdvCustomOfficeTabSet read FOwner;
     function Add: TOfficeTabCollectionItem;
     procedure Delete(Index: Integer);
+    procedure Clear;
     function Insert(Index: Integer): TOfficeTabCollectionItem;
     function GetOwner: TPersistent; override;
     procedure Move(CurIndex, NewIndex : integer);
@@ -464,6 +539,8 @@ type
   TTabChangingEvent = procedure(Sender: TObject; FromTab, ToTab: Integer; var AllowChange: Boolean) of object;
   TOnTabClose = procedure (Sender:TObject; TabIndex: integer; var Allow: boolean) of object;
   TOnTabListClick = procedure (Sender: TObject; X, Y: integer) of object;
+  TDrawTabEvent = procedure(Sender:TObject; Canvas: TCanvas; TabIndex: integer; TabRect: TRect) of object;
+  TTabClickEvent = procedure(Sender: TObject; PageIndex: integer) of object;
 
   TAdvCustomOfficeTabSet = class(TCustomControl)
   private
@@ -512,6 +589,14 @@ type
     FDummyHintControl: TDummyHintControl;
     FTabRearrange: Boolean;
     FOnTabMoved: TTabMovedEvent;
+    FOnDrawTab: TDrawTabEvent;
+    FCloseOnTabPosition: TCloseOnTabPos;
+    FDesignTime: boolean;
+    FOnTabRightClick: TTabClickEvent;
+    FOnTabClick: TTabClickEvent;
+    FOnTabDblClick: TTabClickEvent;
+    FUpdateCount: integer;
+    FGlow: Boolean;
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
     procedure CMVisibleChanged(var Message: TMessage); message CM_VISIBLECHANGED;
     procedure CMShowingChanged(var Message: TMessage); message CM_SHOWINGCHANGED;
@@ -523,6 +608,7 @@ type
     procedure CMHintShow(var Message: TMessage); message CM_HINTSHOW;
     procedure WMNCHitTest(var Msg: TWMNCHitTest); message WM_NCHITTEST;
     procedure CMDialogChar(var Message: TCMDialogChar); message CM_DIALOGCHAR;
+    procedure WMLButtonDblClk(var Message: TWMLButtonDblClk); message WM_LBUTTONDBLCLK;
     procedure OnTabSettingsChanged(Sender: TObject);
     procedure OnButtonSettingChanged(Sender: TObject);
     procedure OnCloseButtonClick(Sender: TObject);
@@ -557,6 +643,7 @@ type
     procedure SetCloseOnTab(const Value: Boolean);
     procedure SetRotateTabLeftRight(const Value: Boolean);
     procedure SetAdvOfficeTabs(Value: TOfficeTabCollection);
+    procedure SetCloseOnTabPosition(const Value: TCloseOnTabPos);
   protected
     procedure AlignControls(AControl: TControl; var ARect: TRect); override;
     procedure Loaded; override;
@@ -589,7 +676,13 @@ type
     function CanShowTab(TabIndex: Integer): Boolean;
     function GetVisibleTabCount: Integer;
 
-    procedure BeforeCloseTab(Tab: TOfficeTabCollectionItem); virtual;
+    procedure BeforeCloseTab(Tab: TOfficeTabCollectionItem; var CloseAction: TCloseAction); virtual;
+    function CanCloseTab(TabIndex: Integer; var CloseAction: TCloseAction): Boolean; virtual;
+
+    procedure DoChanging(FromTab, ToTab: integer; var AllowChange: boolean); virtual;
+    procedure DoChange; virtual;
+    procedure BeginUpdate;
+    procedure EndUpdate;
 
     procedure InvalidateTab(TabIndex: Integer);
     function GetButtonsRect: TRect;
@@ -597,7 +690,7 @@ type
     function GetTabsRect: TRect;
     function GetTabRect(StartIndex, TabIndex: Integer; ConsiderTabScroller: Boolean): TRect;  overload;
     function GetTabRect(TabIndex: Integer): TRect; overload;
-    function PTOnTab(X, Y: Integer): Integer;
+
     function GetCloseButtonRect: TRect;
     function GetTabListRect: TRect;
     function GetTabScrollerRect: TRect;
@@ -606,14 +699,25 @@ type
     function PtOnTabScrollLeftBtn(X, Y: integer): Boolean;
     function PtOnTabScrollRightBtn(X, Y: integer): Boolean;
 
+    procedure SelectNextSequentialTab;
+
+    function CanShowCloseButton: Boolean;
+    function IsActiveTabNeighbour(TabIndex: Integer): Integer;   // -1= previous;  0= No;   +1= Next
+    function GetLeftRoundingOffset: Integer;
+    function GetRightRoundingOffset: Integer;
+    function UseOldDrawing: Boolean;
+    procedure UpdateTabAppearanceOfTabs;
+
     property AdvOfficeTabs: TOfficeTabCollection read FAdvOfficeTabs write SetAdvOfficeTabs;
     property AdvOfficeTabSetStyler: TCustomAdvOfficeTabSetStyler read FOfficeTabSetStyler write SetOfficeTabSetStyler;
     property ActiveTabIndex: Integer read GetActiveTabIndex write SetActiveTabIndex;
     property AntiAlias: TAntiAlias read FAntiAlias write SetAntiAlias default aaClearType;
     property ButtonSettings: TTabSetButtonSettings read FButtonSettings write SetButtonSettings;
     property CloseOnTab: Boolean read FCloseOnTab write SetCloseOnTab default false;
+    property CloseOnTabPosition: TCloseOnTabPos read FCloseOnTabPosition write SetCloseOnTabPosition default cpRight;
     property DisabledImages: TCustomImageList read FDisabledImages write SetDisabledImages;
     property FreeOnClose: boolean read FFreeOnClose write FFreeOnClose default false;
+    property Glow: Boolean read FGlow write FGlow default true;
     property Images: TCustomImageList read FImages write SetImages;
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
     property TabListMenu: TPopupMenu read FTabListMenu write SetTabListMenu;
@@ -630,15 +734,20 @@ type
     property OnTabClose: TOnTabClose read FOnTabClose write FOnTabClose;
     property OnTabMoved: TTabMovedEvent read FOnTabMoved write FOnTabMoved;
     property OnTabListClick: TOnTabListClick read FOnTabListClick write FOnTabListClick;
+    property OnDrawTab: TDrawTabEvent read FOnDrawTab write FOnDrawTab;
+    property OnTabClick: TTabClickEvent read FOnTabClick write FOnTabClick;
+    property OnTabDblClick: TTabClickEvent read FOnTabDblClick write FOnTabDblClick;
+    property OnTabRightClick: TTabClickEvent read FOnTabRightClick write FOnTabRightClick;
   public
     constructor Create(AOwner: TComponent); override;
     procedure CreateParams(var Params: TCreateParams); override;
+    procedure CreateWnd; override;
     destructor Destroy; override;
+    procedure Init;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
-
+    function PTOnTab(X, Y: Integer): Integer;
     function GetVersionNr: integer;
-
     //procedure MoveAdvOfficeTab(CurIndex, NewIndex: Integer);
     function FindNextTab(TabIndex: Integer; GoForward, CheckTabVisible: Boolean): Integer;
     procedure SelectNextTab(GoForward: Boolean);
@@ -658,8 +767,12 @@ type
     property ButtonSettings;
     property Constraints;
     property CloseOnTab;
+    property CloseOnTabPosition;
     property DisabledImages;
+    property DragKind;
+    property DragMode;
     property FreeOnClose;
+    property Glow;
     property Images;
     property OfficeHint;
     property TabListMenu;
@@ -675,13 +788,21 @@ type
     property Visible;
     property OnChange;
     property OnChanging;
+    property OnDragOver;
+    property OnDragDrop;
+    property OnDrawTab;
+    property OnEndDrag;
     property OnTabClose;
     property OnTabMoved;
+    property OnTabClick;
+    property OnTabDblClick;
+    property OnTabRightClick;
     property OnTabListClick;
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
     property OnResize;
+    property OnStartDrag;
   end;
 
   TAdvOfficeMDITabSet = class(TAdvCustomOfficeTabSet)
@@ -693,7 +814,8 @@ type
     procedure OnChildFormDestroy(Sender: TObject);
   protected
     procedure ChangeActiveTab(TabIndex: Integer); override;
-    procedure BeforeCloseTab(Tab: TOfficeTabCollectionItem); override;
+    procedure BeforeCloseTab(Tab: TOfficeTabCollectionItem; var CloseAction: TCloseAction); override;
+    function CanCloseTab(TabIndex: Integer; var CloseAction: TCloseAction): Boolean; override;
     procedure Change;
   public
     constructor Create(AOwner: TComponent); override;
@@ -703,7 +825,7 @@ type
 
     property AdvOfficeTabCount: integer read GetAdvOfficeTabCount;
     property AdvOfficeTabs[index: integer]: TOfficeTabCollectionItem read GetAdvOfficeTabs;
-    //property AdvOfficeTabs;
+    function GetTab(AChild: TForm): TOfficeTabCollectionItem;
     property ActiveTabIndex;
   published
     property AdvOfficeTabSetStyler;
@@ -713,8 +835,10 @@ type
     property ButtonSettings;
     property Constraints;
     property CloseOnTab;
+    property CloseOnTabPosition;
     property DisabledImages;
     //property FreeOnClose;
+    property Glow;
     property Images;
     property OfficeHint;
     property TabListMenu;
@@ -730,8 +854,12 @@ type
     property Visible;
     property OnChange;
     property OnChanging;
+    property OnDrawTab;
     property OnTabClose;
     property OnTabMoved;
+    property OnTabClick;
+    property OnTabDblClick;
+    property OnTabRightClick;
     property OnTabListClick;
     property OnMouseDown;
     property OnMouseMove;
@@ -740,6 +868,9 @@ type
   end;
 
 implementation
+
+uses
+  AdvOfficeTabSetStylers;
 
 
 //------------------------------------------------------------------------------
@@ -886,7 +1017,92 @@ end;
 
 //------------------------------------------------------------------------------
 
-function DrawVistaText(Canvas: TCanvas; Alignment: TAlignment; r: TRect; Caption:string; AFont: TFont; Enabled: Boolean; RealDraw: Boolean; AntiAlias: TAntiAlias; Direction: TTabPosition): TRect;
+function TrimText(Text: String; r: TRect; GDIPDraw: Boolean; graphics : TGPGraphics; Canvas: TCanvas; font: TGPFont; stringFormat: TGPStringFormat; Ellipsis: Boolean; Direction: TTabPosition): string;
+var
+  rectf: TGPRectF;
+  w, h: Integer;
+  x1,y1,y2: single;
+  sizerect: TGPRectF;
+  s, s2: string;
+  i, j: integer;
+  R2: TRect;
+begin
+  //R.Right := R.Right - 2;
+  w := R.Right - R.Left;
+  h := R.Bottom - R.Top;
+  x1 := r.Left;
+  y1 := r.Top;
+  y2 := h;
+
+  if Direction in [tpLeft, tpRight] then
+  begin
+    //h := R.Right - R.Left;
+    w := R.Bottom - R.Top;
+  end;
+
+  if Ellipsis then
+    s := '...'
+  else
+    s := '';
+    
+  if GDIPDraw then
+  begin
+    stringFormat := TGPStringFormat.Create;
+    w := w - 2;
+    rectf := MakeRect(x1,y1,1000,y2);
+    graphics.MeasureString(Text, Length(Text), font, rectf, stringFormat, sizerect);
+    //-- Add ellipsis
+    if (sizerect.Width >= w) then
+    begin
+      rectf := MakeRect(x1,y1,1000,y2);
+      j := Length(Text);
+      for i := 0 to j do
+      begin
+        s2 := Text + s;
+        graphics.MeasureString(s2, Length(s2), font, rectf, stringFormat, sizerect);
+        if (sizerect.Width >= w) and (Text <> '') then
+        begin
+          Text := Copy(Text, 1, Length(Text)-1);
+        end
+        else
+        begin
+          Break;
+        end;
+      end;
+      Text := Text + s;
+    end;
+    stringFormat.Free;
+  end
+  else
+  begin
+    R2 := Rect(0, 0, 1000, 100);
+    DrawText(Canvas.Handle,PChar(Text),Length(Text), R2, DT_CALCRECT or DT_LEFT or DT_SINGLELINE);
+    if (R2.Right >= w) then
+    begin
+      j := Length(Text);
+      for i := 0 to j do
+      begin
+        s2 := Text + s;
+        DrawText(Canvas.Handle,PChar(s2),Length(s2), R2, DT_CALCRECT or DT_LEFT or DT_SINGLELINE);
+        if (R2.Right >= w) and (Text <> '') then
+        begin
+          Text := Copy(Text, 1, Length(Text)-1);
+        end
+        else
+        begin
+          Break;
+        end;
+      end;
+      Text := Text + s;
+    end;
+  end;
+
+  Result := Text;
+end;
+
+//------------------------------------------------------------------------------
+
+function DrawVistaText(Canvas: TCanvas; Alignment: TAlignment; r: TRect; Caption:string; AFont: TFont; Enabled: Boolean; RealDraw: Boolean; AntiAlias: TAntiAlias; Direction: TTabPosition; Ellipsis: Boolean): TRect;
 var
   graphics : TGPGraphics;
   w,h: Integer;
@@ -901,15 +1117,15 @@ var
   szRect: TRect;
   DTFLAG: DWORD;
 begin
+  stringFormat := nil;
+  graphics := nil;
+  fontFamily := nil;
+  font := nil;
+  solidBrush := nil;
+
+
   if (Caption <> '') then
   begin
-    graphics := TGPGraphics.Create(Canvas.Handle);
-    fontFamily:= TGPFontFamily.Create(AFont.Name);
-    fs := 0;
-
-    font := TGPFont.Create(fontFamily, AFont.Size , fs, UnitPoint);
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-
     w := R.Right - R.Left;
     h := R.Bottom - R.Top;
 
@@ -920,64 +1136,95 @@ begin
 
     rectf := MakeRect(x1,y1,x2,y2);
 
-    stringFormat := nil;
-    if RealDraw then
-    begin
-      case (Direction) of
-        tpTop, tpBottom: stringFormat := TGPStringFormat.Create;
-        tpLeft:
-        begin
-          stringFormat := TGPStringFormat.Create; //($00000002);
-        end;
-        tpRight: stringFormat := TGPStringFormat.Create($00000002);
-      end;
-    end
-    else
-      stringFormat := TGPStringFormat.Create;
-
-
-    if Enabled then
-      solidBrush := TGPSolidBrush.Create(ColorToARGB(AFont.Color))
-    else
-      solidBrush := TGPSolidBrush.Create(ColorToARGB(clGray));
-
-    case Alignment of
-      taLeftJustify: stringFormat.SetAlignment(StringAlignmentNear);
-      taCenter:
+    try
+      if (AntiAlias <> aaNone) then
       begin
-        // Center-justify each line of text.
-        stringFormat.SetAlignment(StringAlignmentCenter);
+        graphics := TGPGraphics.Create(Canvas.Handle);
+        fontFamily:= TGPFontFamily.Create(AFont.Name);
+
+        if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+        begin
+          fontFamily.Free;
+          fontFamily := TGPFontFamily.Create('Arial');
+        end;
+
+        fs := 0;
+
+        font := TGPFont.Create(fontFamily, AFont.Size , fs, UnitPoint);
+        graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+
+
+        stringFormat := nil;
+        if RealDraw then
+        begin
+          case (Direction) of
+            tpTop, tpBottom: stringFormat := TGPStringFormat.Create;
+            tpLeft: stringFormat := TGPStringFormat.Create; //($00000002);
+            tpRight: stringFormat := TGPStringFormat.Create($00000002);
+          end;
+        end
+        else
+          stringFormat := TGPStringFormat.Create;
+
+        if Enabled then
+          solidBrush := TGPSolidBrush.Create(ColorToARGB(AFont.Color))
+        else
+          solidBrush := TGPSolidBrush.Create(ColorToARGB(clGray));
+
+        case Alignment of
+          taLeftJustify: stringFormat.SetAlignment(StringAlignmentNear);
+          taCenter: stringFormat.SetAlignment(StringAlignmentCenter);
+          taRightJustify: stringFormat.SetAlignment(StringAlignmentFar);
+        end;
+
+        // Center the block of text (top to bottom) in the rectangle.
+        stringFormat.SetLineAlignment(StringAlignmentCenter);
+
+        stringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
+
+        //graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+        //graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect);
+        case AntiAlias of
+        aaClearType:graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+        aaAntiAlias:graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+        end;
       end;
-      taRightJustify: stringFormat.SetAlignment(StringAlignmentFar);
-    end;
 
-    // Center the block of text (top to bottom) in the rectangle.
-    stringFormat.SetLineAlignment(StringAlignmentCenter);
+      if (AntiAlias = aaNone) then
+      begin
+        szRect.Left := round(rectf.X);
+        szRect.Top := round(rectf.Y);
 
-    stringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
+        szRect.Right := szRect.Left + 2;
+        DTFLAG := DT_CALCRECT or DT_LEFT;
+        if Ellipsis then
+          DTFLAG := DTFLAG or DT_END_ELLIPSIS
+        else
+          DTFLAG := DTFLAG or DT_WORDBREAK;
 
-    //graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
-    //graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect);
-    case AntiAlias of
-    aaClearType:graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
-    aaAntiAlias:graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-    end;
+        if RealDraw and Ellipsis then
+        begin
+          Caption := TrimText(Caption, r, False, nil, Canvas, font, nil, True, Direction);
+        end;
 
-    if AntiAlias = aaNone then
-    begin
-      szRect.Left := round(rectf.X);
-      szRect.Top := round(rectf.Y);
+        szRect.Bottom := DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, DTFLAG);
 
-      szRect.Right := szRect.Left + 2;
-      szRect.Bottom := DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, DT_CALCRECT or DT_LEFT or DT_WORDBREAK);
+        sizeRect.X := szRect.Left;
+        //sizeRect.Y := szRect.Top;
+        sizeRect.Y := R.Top + ((R.Bottom - R.Top) - szRect.Bottom) div 2;
+        sizeRect.Width := szRect.Right - szRect.Left;
+        sizeRect.Height := szRect.Bottom {- szRect.Top};
+      end
+      else
+      begin
+        if RealDraw and Ellipsis then
+        begin
+          //stringFormat.SetTrimming(StringTrimmingEllipsisCharacter);
+          Caption := TrimText(Caption, r, True, graphics, nil, font, stringformat, True, Direction);
+        end;
 
-      sizeRect.X := szRect.Left;
-      sizeRect.Y := szRect.Top;
-      sizeRect.Width := szRect.Right - szRect.Left;
-      sizeRect.Height := szRect.Bottom - szRect.Top;
-    end
-    else
-      graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect);
+        graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect);
+      end;
 
 
     Result := Rect(round(sizerect.X), Round(sizerect.Y), Round(sizerect.X + sizerect.Width), Round(sizerect.Y + sizerect.Height));
@@ -986,7 +1233,7 @@ begin
     if RealDraw then
     begin
       //graphics.DrawString(Caption, Length(Caption), font, rectf, stringFormat, solidBrush);
-      if AntiAlias = aaNone then
+      if (AntiAlias = aaNone) then
       begin
         szRect.Left := round(rectf.X);
         szRect.Top := round(rectf.Y);
@@ -999,17 +1246,44 @@ begin
         taRightJustify: DTFLAG := DT_RIGHT;
         taCenter: DTFLAG := DT_CENTER;
         end;
+
+        {if Ellipsis then
+        begin
+          Caption := TrimText(Caption, r, False, nil, Canvas, font, stringformat, True);
+        end;}
         DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, DTFLAG or DT_VCENTER or DT_SINGLELINE)
       end
       else
+      begin
+        {if Ellipsis then
+        begin
+          //stringFormat.SetTrimming(StringTrimmingEllipsisCharacter);
+          Caption := TrimText(Caption, r, True, graphics, nil, font, stringformat, True);
+        end;}
+
         graphics.DrawString(Caption, Length(Caption), font, rectf, stringFormat, solidBrush);
+      end;
     end;
-      
-    stringformat.Free;
-    solidBrush.Free;
-    font.Free;
-    fontfamily.Free;
-    graphics.Free;
+    finally
+
+      if (AntiAlias <> aaNone) then
+      begin
+        if Assigned(stringformat) then
+          FreeAndNil(stringformat);
+
+        if Assigned(solidBrush) then
+          FreeAndNil(solidBrush);
+
+        if Assigned(font) then
+          FreeAndNil(font);
+
+        if Assigned(fontfamily) then
+          FreeAndNil(fontfamily);
+
+        if Assigned(graphics) then
+          FreeAndNil(graphics);
+      end;
+    end;
   end;
 end;
 
@@ -1428,6 +1702,12 @@ begin
 
   fontFamily:= TGPFontFamily.Create(AFont.Name);
 
+  if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+  begin
+    fontFamily.Free;
+    fontFamily := TGPFontFamily.Create('Arial');
+  end;
+
   fs := 0;
 
   ImgH := 0;
@@ -1635,11 +1915,790 @@ end;
 
 
 procedure DrawVistaGradient(Canvas: TCanvas; r: TRect; CFU, CTU, CFB, CTB, PC: TColor;
-   GradientU,GradientB: TGDIPGradient; Caption:string; AFont: TFont; Enabled: Boolean; Focus: Boolean;
+   GradientU,GradientB: TGDIPGradient; Caption:string; AFont: TFont; Layout: TButtonLayout; Enabled: Boolean; Focus: Boolean;
    AntiAlias: TAntiAlias; RoundEdges: Boolean; Direction: TTabPosition = tpTop); overload;
 begin
   DrawVistaGradient(Canvas, r, CFU, CTU, CFB, CTB, PC, GradientU,GradientB, Caption, AFont,
-   nil, -1, True, blGlyphLeft, False, False, Enabled, Focus, dpRight, nil, AntiAlias, RoundEdges, Direction);
+   nil, -1, True, Layout, False, False, Enabled, Focus, dpRight, nil, AntiAlias, RoundEdges, Direction);
+end;
+
+//------------------------------------------------------------------------------
+
+function GetTabPath(R: TRect; Shape: TAdvTabShape; Rounding: TTabRounding; RotateLeftRight: Boolean; Direction: TTabPosition): TGPGraphicsPath;
+var
+  p, P2{, P3, P4}: array[0..2] of TGPPoint;
+  P5, p6: array[0..3] of TGPPoint;
+  tension: double;
+  w, h, i, j, h3, w3, rd2: Integer;
+begin
+  w := r.Right - r.Left;
+  h := r.Bottom - r.Top;
+  //h2 := h div 2;
+  h3 := h div 3;
+  w3 := w div 3;
+  tension := 0.8;
+  i := 3;
+
+  Result := TGPGraphicsPath.Create;
+  case Shape of
+    tsRectangle:
+    begin
+      case (Direction) of
+        tpTop:
+        begin
+          p[0] := MakePoint(R.Left, R.Top + Rounding * i);
+          p[1] := MakePoint(R.Left + Rounding, R.Top + Rounding);
+          p[2] := MakePoint(R.Left + Rounding * i, R.Top);
+          Result.AddLine(R.Left, R.Bottom, R.Left, P[0].Y);
+          Result.AddCurve(PGPPoint(@p), 3, tension);
+
+          p2[0] := MakePoint(R.Right - (Rounding * i), R.Top);
+          p2[1] := MakePoint(R.Right - Rounding, R.Top + Rounding);
+          p2[2] := MakePoint(R.Right, R.Top + (Rounding * i));
+          Result.AddLine(P[2].x, R.Top, P2[0].X, R.Top);
+          Result.AddCurve(PGPPoint(@p2), 3, tension);
+          Result.AddLine(R.Right, P2[2].Y, R.Right, R.Bottom);
+          Result.CloseFigure;
+        end;
+        tpBottom:
+        begin
+          p[0] := MakePoint(R.Left, R.Bottom - Rounding * i);
+          p[1] := MakePoint(R.Left + Rounding, R.Bottom - Rounding);
+          p[2] := MakePoint(R.Left + Rounding * i, R.Bottom);
+          Result.AddLine(R.Left, R.Top, R.Left, P[0].Y);
+          Result.AddCurve(PGPPoint(@p), 3, tension);
+
+          p2[0] := MakePoint(R.Right - (Rounding * i), R.Bottom);
+          p2[1] := MakePoint(R.Right - Rounding, R.Bottom - Rounding);
+          p2[2] := MakePoint(R.Right, R.Bottom - (Rounding * i));
+          Result.AddLine(P[2].x, R.Bottom, P2[0].X, R.Bottom);
+          Result.AddCurve(PGPPoint(@p2), 3, tension);
+          Result.AddLine(R.Right, P2[2].Y, R.Right, R.Top);
+          Result.CloseFigure;
+        end;
+        tpLeft:
+        begin
+          p[0] := MakePoint(R.Left + Rounding * i, R.Top);
+          p[1] := MakePoint(R.Left + Rounding, R.Top + Rounding);
+          p[2] := MakePoint(R.Left, R.Top + Rounding * i);
+          Result.AddLine(R.Right, R.Top, p[0].X, R.Top);
+          Result.AddCurve(PGPPoint(@p), 3, tension);
+
+          p2[0] := MakePoint(R.Left, R.Bottom - (Rounding * i));
+          p2[1] := MakePoint(R.Left + Rounding, R.Bottom - Rounding);
+          p2[2] := MakePoint(R.Left + (Rounding * i), R.Bottom);
+          Result.AddLine(R.Left, P[2].Y, R.Left, p2[0].Y);
+          Result.AddCurve(PGPPoint(@p2), 3, tension);
+          Result.AddLine(p2[2].X, R.Bottom, R.Right, R.Bottom);
+          Result.CloseFigure;
+        end;
+        tpRight:
+        begin
+          p[0] := MakePoint(R.Right - Rounding * i, R.Top);
+          p[1] := MakePoint(R.Right - Rounding, R.Top + Rounding);
+          p[2] := MakePoint(R.Right, R.Top + Rounding * i);
+          Result.AddLine(R.Left, R.Top, p[0].X, R.Top);
+          Result.AddCurve(PGPPoint(@p), 3, tension);
+
+          p2[0] := MakePoint(R.Right, R.Bottom - (Rounding * i));
+          p2[1] := MakePoint(R.Right - Rounding, R.Bottom - Rounding);
+          p2[2] := MakePoint(R.Right - (Rounding * i), R.Bottom);
+          Result.AddLine(R.Right, P[2].Y, R.Right, p2[0].Y);
+          Result.AddCurve(PGPPoint(@p2), 3, tension);
+          Result.AddLine(p2[2].X, R.Bottom, R.Left, R.Bottom);
+          Result.CloseFigure;
+        end;
+      end;
+    end;
+    tsLeftRamp:
+    begin
+      case (Direction) of
+        tpTop:
+        begin
+          j := h3 + Rounding;
+
+          p5[0] := MakePoint(R.Left, R.Bottom);
+          p5[1] := MakePoint(R.Left + Rounding*i, R.Bottom - Rounding{* 2});
+          p5[2] := MakePoint(R.Left - Rounding + j, R.Top + Rounding);
+          p5[3] := MakePoint(R.Left + (Rounding * 2) + j, R.Top);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          rd2 := Max(0, Rounding div 2);
+          
+          p2[0] := MakePoint(R.Right - (rd2 * i), R.Top);
+          p2[1] := MakePoint(R.Right - rd2, R.Top + rd2);
+          p2[2] := MakePoint(R.Right, R.Top + (rd2 * i));
+          Result.AddLine(P5[3].x, R.Top, P2[0].X, R.Top);
+          Result.AddCurve(PGPPoint(@p2), 3, tension);
+          Result.AddLine(R.Right, p2[2].Y, R.Right, R.Bottom);
+
+          //Result.AddLine(R.Right, R.Bottom, R.Left, R.Bottom);
+          Result.CloseFigure;
+        end;
+        tpBottom:
+        begin
+          j := h3 + Rounding;
+
+          p5[0] := MakePoint(R.Left + (Rounding * 2) + j, R.Bottom);
+          p5[1] := MakePoint(R.Left - Rounding + j, R.Bottom - Rounding);
+          p5[2] := MakePoint(R.Left + Rounding*i, R.Top + Rounding{* 2});
+          p5[3] := MakePoint(R.Left, R.Top);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          rd2 := Max(0, Rounding div 2);
+
+          p2[0] := MakePoint(R.Right, R.Bottom - (rd2 * i));
+          p2[1] := MakePoint(R.Right - rd2, R.Bottom - rd2);
+          p2[2] := MakePoint(R.Right - (rd2 * i), R.Bottom);
+
+          Result.AddLine(R.Left, R.top, R.Right, R.Top);
+          Result.AddLine(R.Right, R.Top, R.Right, p2[0].Y);
+          Result.AddCurve(PGPPoint(@p2), 3, tension);
+          //Result.AddLine(P2[2].X, R.Bottom, P5[0].x, R.Bottom);
+          Result.CloseFigure;
+        end;
+        tpLeft:
+        begin
+          j := w3 + Rounding;
+          if not RotateLeftRight then
+            j := h3 + Rounding;
+          rd2 := Max(0, Rounding div 2);
+
+          p[0] := MakePoint(R.Left + Rd2 * i, R.Top);
+          p[1] := MakePoint(R.Left + Rd2, R.Top + Rd2);
+          p[2] := MakePoint(R.Left, R.Top + Rd2 * i);
+          Result.AddLine(R.Right, R.Top, p[0].X, R.Top);
+          Result.AddCurve(PGPPoint(@p), 3, tension);
+
+          p5[0] := MakePoint(R.Left, R.Bottom - (Rounding * 2) - j);
+          p5[1] := MakePoint(R.Left + Rounding, R.Bottom + Rounding - j);
+          p5[2] := MakePoint(R.Right - Rounding{* 2}, R.Bottom - Rounding * i);
+          p5[3] := MakePoint(R.Right, R.Bottom);
+          Result.AddLine(R.Left, P[2].Y, R.Left, P5[0].Y);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+          //Result.AddLine(R.Right, R.Bottom, R.Right, R.Top);
+          Result.CloseFigure;
+        end;
+        tpRight:
+        begin
+          j := w3 + Rounding;
+          if not RotateLeftRight then
+            j := h3 + Rounding;
+
+          p5[0] := MakePoint(R.Left, R.Top);
+          p5[1] := MakePoint(R.Left + Rounding{* 2}, R.Top + Rounding*i);
+          p5[2] := MakePoint(R.Right - Rounding, R.Top - Rounding + j);
+          p5[3] := MakePoint(R.Right, R.Top + (Rounding * 2) + j);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          rd2 := Max(0, Rounding div 2);
+          p2[0] := MakePoint(R.Right, R.Bottom - (Rd2 * i));
+          p2[1] := MakePoint(R.Right - Rd2, R.Bottom - Rd2);
+          p2[2] := MakePoint(R.Right - (Rd2 * i), R.Bottom);
+
+          Result.AddLine(R.Right, P5[3].Y, R.Right, p2[0].Y);
+          Result.AddCurve(PGPPoint(@p2), 3, tension);
+
+          Result.AddLine(p2[2].X, R.Bottom, R.Left, R.Bottom);
+          //Result.AddLine(R.Right, R.Bottom, R.Right, Top);
+          Result.CloseFigure;
+        end;
+      end;
+    end;
+    tsRightRamp:
+    begin
+      case (Direction) of
+        tpTop:
+        begin
+          //k := 0;
+          //if (Rounding * i > h2) then
+          //  k := i div 2;
+
+          j := h3 + Rounding;
+          //k := (j div 2);
+
+          rd2 := Max(0, Rounding div 2);
+
+          p[0] := MakePoint(R.Left, R.Top + rd2 * i);
+          p[1] := MakePoint(R.Left + rd2, R.Top + rd2);
+          p[2] := MakePoint(R.Left + rd2 * i, R.Top);
+
+          Result.AddLine(R.Left, R.Bottom, R.Left, P[0].Y);
+          Result.AddCurve(PGPPoint(@p), 3, tension);
+
+          p5[0] := MakePoint(R.Right - (Rounding * 2) - j, R.Top);
+          p5[1] := MakePoint(R.Right + Rounding - j, R.Top + Rounding);
+          p5[2] := MakePoint(R.Right - Rounding*i, R.Bottom - Rounding{* 2});
+          p5[3] := MakePoint(R.Right, R.Bottom);
+          Result.AddLine(P[2].x, R.Top, P5[0].X, R.Top);
+          //Result.AddCurve(PGPPoint(@p5), 4, tension);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          Result.AddLine(R.Left, R.Bottom, R.Right, R.Bottom);
+          Result.CloseFigure;
+        end;
+        tpBottom:
+        begin
+          j := h3 + Rounding;
+          rd2 := Max(0, Rounding div 2);
+
+          p[0] := MakePoint(R.Left, R.Bottom - rd2 * i);
+          p[1] := MakePoint(R.Left + Rd2, R.Bottom - Rd2);
+          p[2] := MakePoint(R.Left + Rd2 * i, R.Bottom);
+          Result.AddLine(R.Left, R.Top, R.Left, P[0].Y);
+          Result.AddCurve(PGPPoint(@p), 3, tension);
+
+          p5[0] := MakePoint(R.Right - (Rounding * 2) - j, R.Bottom);
+          p5[1] := MakePoint(R.Right + Rounding - j, R.Bottom - Rounding);
+          p5[2] := MakePoint(R.Right - Rounding*i, R.Top + Rounding{* 2});
+          p5[3] := MakePoint(R.Right, R.Top);
+          Result.AddLine(P[2].x, R.Bottom, P5[0].X, R.Bottom);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          Result.AddLine(R.Left, R.Top, R.Right, R.Top);
+          Result.CloseFigure;
+        end;
+        tpLeft:
+        begin
+          j := w3 + Rounding;
+          if not RotateLeftRight then
+            j := h3 + Rounding;
+          rd2 := Max(0, Rounding div 2);
+
+          p5[0] := MakePoint(R.Right, R.Top);
+          p5[1] := MakePoint(R.Right - Rounding{* 2}, R.Top + Rounding*i);
+          p5[2] := MakePoint(R.Left + Rounding, R.Top - Rounding + j);
+          p5[3] := MakePoint(R.Left, R.Top + (Rounding * 2) + j);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          p2[0] := MakePoint(R.Left, R.Bottom - (Rd2 * i));
+          p2[1] := MakePoint(R.Left + Rd2, R.Bottom - Rd2);
+          p2[2] := MakePoint(R.Left + (Rd2 * i), R.Bottom);
+
+          Result.AddLine(R.Left, P5[3].Y, R.Left, p2[0].Y);
+          Result.AddCurve(PGPPoint(@p2), 3, tension);
+
+          Result.AddLine(p2[2].X, R.Bottom, R.Right, R.Bottom);
+          //Result.AddLine(R.Right, R.Bottom, R.Right, Top);
+          Result.CloseFigure;
+        end;
+        tpRight:
+        begin
+          j := w3 + Rounding;
+          if not RotateLeftRight then
+            j := h3 + Rounding;
+          rd2 := Max(0, Rounding div 2);
+
+          p[0] := MakePoint(R.Right - Rd2 * i, R.Top);
+          p[1] := MakePoint(R.Right - Rd2, R.Top + Rd2);
+          p[2] := MakePoint(R.Right, R.Top + Rd2 * i);
+          Result.AddLine(R.Left, R.Top, p[0].X, R.Top);
+          Result.AddCurve(PGPPoint(@p), 3, tension);
+
+          p5[0] := MakePoint(R.Right, R.Bottom - (Rounding * 2) - j);
+          p5[1] := MakePoint(R.Right - Rounding, R.Bottom + Rounding - j);
+          p5[2] := MakePoint(R.Left + Rounding{* 2}, R.Bottom - Rounding * i);
+          p5[3] := MakePoint(R.Left, R.Bottom);
+          Result.AddLine(R.Right, P[2].Y, R.Right, P5[0].Y);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+          //Result.AddLine(R.Right, R.Bottom, R.Right, R.Top);
+          Result.CloseFigure;
+        end;
+      end;
+    end;
+    tsLeftRightRamp:
+    begin
+      case (Direction) of
+        tpTop:
+        begin
+          j := h3 + Rounding;
+
+          p5[0] := MakePoint(R.Left, R.Bottom);
+          p5[1] := MakePoint(R.Left + Rounding*i, R.Bottom - Rounding{* 2});
+          p5[2] := MakePoint(R.Left - Rounding + j, R.Top + Rounding);
+          p5[3] := MakePoint(R.Left + (Rounding * 2) + j, R.Top);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          p6[0] := MakePoint(R.Right - (Rounding * 2) - j, R.Top);
+          p6[1] := MakePoint(R.Right + Rounding - j, R.Top + Rounding);
+          p6[2] := MakePoint(R.Right - Rounding*i, R.Bottom - Rounding{* 2});
+          p6[3] := MakePoint(R.Right, R.Bottom);
+
+          Result.AddLine(p5[3].X, R.Top, p6[0].X, R.Top);
+          Result.AddBezier(P6[0],P6[1], P6[2], P6[3]);
+          
+          //Result.AddLine(R.Right, R.Bottom, R.Left, R.Bottom);
+          Result.CloseFigure;
+        end;
+        tpBottom:
+        begin
+          j := h3 + Rounding;
+
+          p5[0] := MakePoint(R.Left + (Rounding * 2) + j, R.Bottom);
+          p5[1] := MakePoint(R.Left - Rounding + j, R.Bottom - Rounding);
+          p5[2] := MakePoint(R.Left + Rounding*i, R.Top + Rounding{* 2});
+          p5[3] := MakePoint(R.Left, R.Top);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          p6[0] := MakePoint(R.Right, R.Top);
+          p6[1] := MakePoint(R.Right - Rounding*i, R.Top + Rounding{* 2});
+          p6[2] := MakePoint(R.Right + Rounding - j, R.Bottom - Rounding);
+          p6[3] := MakePoint(R.Right - (Rounding * 2) - j, R.Bottom);
+
+          Result.AddLine(R.Left, R.top, R.Right, R.Top);
+          Result.AddBezier(P6[0],P6[1], P6[2], P6[3]);
+          Result.AddLine(P6[3].x, R.Bottom, P5[0].X, R.Bottom);
+
+          Result.CloseFigure;
+        end;
+        tpLeft:
+        begin
+          j := w3 + Rounding;
+          if not RotateLeftRight then
+            j := h3 + Rounding;
+
+          p5[0] := MakePoint(R.Right, R.Top);
+          p5[1] := MakePoint(R.Right - Rounding{* 2}, R.Top + Rounding*i);
+          p5[2] := MakePoint(R.Left + Rounding, R.Top - Rounding + j);
+          p5[3] := MakePoint(R.Left, R.Top + (Rounding * 2) + j);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          p6[0] := MakePoint(R.Left, R.Bottom - (Rounding * 2) - j);
+          p6[1] := MakePoint(R.Left + Rounding, R.Bottom + Rounding - j);
+          p6[2] := MakePoint(R.Right - Rounding{* 2}, R.Bottom - Rounding * i);
+          p6[3] := MakePoint(R.Right, R.Bottom);
+          Result.AddLine(R.Left, P5[3].Y, R.Left, P6[0].Y);
+          Result.AddBezier(P6[0],P6[1], P6[2], P6[3]);
+          //Result.AddLine(R.Right, R.Bottom, R.Right, R.Top);
+          Result.CloseFigure;
+        end;
+        tpRight:
+        begin
+          j := w3 + Rounding;
+          if not RotateLeftRight then
+            j := h3 + Rounding;
+
+          p5[0] := MakePoint(R.Left, R.Top);
+          p5[1] := MakePoint(R.Left + Rounding{* 2}, R.Top + Rounding*i);
+          p5[2] := MakePoint(R.Right - Rounding, R.Top - Rounding + j);
+          p5[3] := MakePoint(R.Right, R.Top + (Rounding * 2) + j);
+          Result.AddBezier(P5[0],P5[1], P5[2], P5[3]);
+
+          p6[0] := MakePoint(R.Right, R.Bottom - (Rounding * 2) - j);
+          p6[1] := MakePoint(R.Right - Rounding, R.Bottom + Rounding - j);
+          p6[2] := MakePoint(R.Left + Rounding{* 2}, R.Bottom - Rounding * i);
+          p6[3] := MakePoint(R.Left, R.Bottom);
+          Result.AddLine(R.Right, P5[3].Y, R.Right, P6[0].Y);
+          Result.AddBezier(P6[0],P6[1], P6[2], P6[3]);
+
+          //Result.AddLine(R.Right, R.Bottom, R.Right, R.Top);
+          Result.CloseFigure;
+        end;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure DrawVistaTab(Canvas: TCanvas; r: TRect; CFU, CTU, CFB, CTB, PC: TColor; GradientU,GradientB: TGDIPGradient;
+   Enabled: Boolean; Shape: TAdvTabShape; Focus: Boolean; {AntiAlias: TAntiAlias; }Rounding: TTabRounding; RotateLeftRight: Boolean; Direction: TTabPosition);
+var
+  graphics : TGPGraphics;
+  TabPath, path: TGPGraphicsPath;
+  pthGrBrush: TGPPathGradientBrush;
+  solGrBrush: TGPSolidBrush;
+  linGrBrush: TGPLinearGradientBrush;
+  gppen : tgppen;
+  count: Integer;
+  w,h,h2,w2: Integer;
+  colors : array[0..0] of TGPColor;
+  BtnR: TRect;
+  Rgn: TGPRegion;
+begin
+  BtnR := R;
+
+  w := r.Right - r.Left;
+  h := r.Bottom - r.Top;
+
+  h2 := h div 2;
+  w2 := w div 2;
+
+
+  graphics := TGPGraphics.Create(Canvas.Handle);
+  Tabpath := GetTabPath(R, Shape, Rounding, RotateLeftRight, Direction);
+
+  if (Direction in [tpLeft, tpRight]) and not RotateLeftRight then
+  begin
+    Direction := tpTop;
+    RotateLeftRight := False;
+  end;
+
+  Rgn := TGPRegion.Create(TabPath);
+  graphics.SetClip(Rgn);
+
+  case (Direction) of
+    tpTop:
+    begin
+      // down ellips brush
+
+      solGrBrush := TGPSolidBrush.Create(ColorToARGB(cfb));
+      graphics.FillRectangle(solGrBrush, MakeRect(r.Left , r.top +  h2, w, h2));
+      solGrBrush.Free;
+
+
+      // Create a path that consists of a single ellipse.
+      path := TGPGraphicsPath.Create;
+      path.AddEllipse(r.Left, r.Top +  h2, w , h);
+
+      pthGrBrush := nil;
+      linGrBrush := nil;
+
+      case GradientB of
+      ggRadial: pthGrBrush := TGPPathGradientBrush.Create(path);
+      ggVertical: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top + h2,w,h2),ColorToARGB(CFB),ColorToARGB(CTB), LinearGradientModeVertical);
+      ggDiagonalForward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top + h2,w,h2),ColorToARGB(CFB),ColorToARGB(CTB), LinearGradientModeForwardDiagonal);
+      ggDiagonalBackward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top + h2,w,h2),ColorToARGB(CFB),ColorToARGB(CTB), LinearGradientModeBackwardDiagonal);
+      end;
+
+      if GradientB = ggRadial then
+      begin
+        pthGrBrush.SetCenterPoint(MakePoint(r.Left + w2, r.Bottom));
+
+        // Set the color at the center point to blue.
+        pthGrBrush.SetCenterColor(ColorToARGB(CTB));
+
+        colors[0] := ColorToARGB(CFB);
+        count := 1;
+        pthGrBrush.SetSurroundColors(@colors, count);
+        graphics.FillRectangle(pthGrBrush, r.Left + 1,r.Top + h2, w - 1, h2+1);
+        pthGrBrush.Free;
+      end
+      else
+      begin
+        if not RotateLeftRight then
+          graphics.FillRectangle(linGrBrush, r.Left + 1,r.Top + h2 + 1, w - 1, h2 - 1)
+        else
+          graphics.FillRectangle(linGrBrush, r.Left + 1,r.Top + h2 + 1, w - 1, h2 + 1);
+        linGrBrush.Free;
+      end;
+
+      path.Free;
+
+      solGrBrush := TGPSolidBrush.Create(ColorToARGB(cfu));
+      graphics.FillRectangle(solGrBrush, MakeRect(r.Left , r.Top , w , h2));
+      solGrBrush.Free;
+
+      // Create a path that consists of a single ellipse.
+      path := TGPGraphicsPath.Create;
+      path.AddEllipse(r.Left, r.Top - h2 , w , h);
+
+      case GradientU of
+      ggRadial: pthGrBrush := TGPPathGradientBrush.Create(path);                      // FF: Gradient fix here replace h by h2
+      ggVertical: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w,h2+1),ColorToARGB(CFU),ColorToARGB(CTU), LinearGradientModeVertical);
+      ggDiagonalForward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w,h),ColorToARGB(CFU),ColorToARGB(CTU), LinearGradientModeForwardDiagonal);
+      ggDiagonalBackward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w,h),ColorToARGB(CFU),ColorToARGB(CTU), LinearGradientModeBackwardDiagonal);
+      end;
+
+      if GradientU = ggRadial then
+      begin
+        pthGrBrush.SetCenterPoint(MakePoint(r.Left + w2, r.top));
+
+        // Set the color at the center point to blue.
+        pthGrBrush.SetCenterColor(ColorToARGB(CTU));
+
+        colors[0] := ColorToARGB(CFU);
+        count := 1;
+        pthGrBrush.SetSurroundColors(@colors, count);
+
+        graphics.FillRectangle(pthGrBrush, r.Left + 1,r.Top + 1, w - 1, h - h2 - 1);
+        pthGrBrush.Free;
+      end
+      else
+      begin
+        graphics.FillRectangle(linGrBrush, r.Left + 1,r.Top + 1, w - 1, h2);
+        linGrBrush.Free;
+      end;
+
+      path.Free;
+
+    end;
+    tpBottom:
+    begin
+      // down ellips brush
+
+      solGrBrush := TGPSolidBrush.Create(ColorToARGB(cfb));
+      graphics.FillRectangle(solGrBrush, MakeRect(r.Left , r.top, w , h2));
+      solGrBrush.Free;
+
+      // Create a path that consists of a single ellipse.
+      path := TGPGraphicsPath.Create;
+      //  path.AddRectangle(MakeRect(r.Left, r.Top +  (h div 2), w , h));
+      path.AddEllipse(r.Left, r.Top, w , h2);
+
+      pthGrBrush := nil;
+      linGrBrush := nil;
+
+      case GradientB of
+      ggRadial: pthGrBrush := TGPPathGradientBrush.Create(path);
+      ggVertical: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w,h2),ColorToARGB(CTB),ColorToARGB(CFB), LinearGradientModeVertical);
+      ggDiagonalForward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w,h2),ColorToARGB(CTB),ColorToARGB(CFB), LinearGradientModeForwardDiagonal);
+      ggDiagonalBackward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w,h2),ColorToARGB(CTB),ColorToARGB(CFB), LinearGradientModeBackwardDiagonal);
+      end;
+
+      if GradientB = ggRadial then
+      begin
+        pthGrBrush.SetCenterPoint(MakePoint(r.Left + w2, r.Top));
+
+        // Set the color at the center point to blue.
+        pthGrBrush.SetCenterColor(ColorToARGB(CTB));
+
+        colors[0] := ColorToARGB(CFB);
+        count := 1;
+        pthGrBrush.SetSurroundColors(@colors, count);
+        graphics.FillRectangle(pthGrBrush, r.Left + 1,r.Top, w - 1, h2+1);
+        pthGrBrush.Free;
+      end
+      else
+      begin
+        graphics.FillRectangle(linGrBrush, r.Left + 1,r.Top + 1, w - 1, h2 + 1);
+        linGrBrush.Free;
+      end;
+
+      path.Free;
+
+      solGrBrush := TGPSolidBrush.Create(ColorToARGB(cfu));
+      graphics.FillRectangle(solGrBrush, MakeRect(r.Left , r.top +  h2, w , h2));
+      solGrBrush.Free;
+
+      // Create a path that consists of a single ellipse.
+      path := TGPGraphicsPath.Create;
+      path.AddEllipse(r.Left, r.Bottom - h2 , w , h);
+
+      case GradientU of
+      ggRadial: pthGrBrush := TGPPathGradientBrush.Create(path);                      // FF: Gradient fix here replace h by h2
+      ggVertical: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top + h2-1,w,h2),ColorToARGB(CTU),ColorToARGB(CFU), LinearGradientModeVertical);
+      ggDiagonalForward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top + h2,w,h),ColorToARGB(CTU),ColorToARGB(CFU), LinearGradientModeForwardDiagonal);
+      ggDiagonalBackward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top + h2,w,h),ColorToARGB(CTU),ColorToARGB(CFU), LinearGradientModeBackwardDiagonal);
+      end;
+
+      if GradientU = ggRadial then
+      begin
+        pthGrBrush.SetCenterPoint(MakePoint(r.Left + w2, r.Bottom));
+
+        // Set the color at the center point to blue.
+        pthGrBrush.SetCenterColor(ColorToARGB(CTU));
+
+        colors[0] := ColorToARGB(CFU);
+        count := 1;
+        pthGrBrush.SetSurroundColors(@colors, count);
+
+        graphics.FillRectangle(pthGrBrush, r.Left + 1,r.Top + h2 + 1, w - 1, h2 - 1);
+        pthGrBrush.Free;
+      end
+      else
+      begin
+        graphics.FillRectangle(linGrBrush, r.Left + 1,r.Top + h2, w - 1, h2 - 1);
+        linGrBrush.Free;
+      end;
+
+      path.Free;
+    end;
+    tpLeft:
+    begin
+      // down ellips brush
+
+      solGrBrush := TGPSolidBrush.Create(ColorToARGB(cfb));
+      graphics.FillRectangle(solGrBrush, MakeRect(r.Left + w2, r.top, w2 , h));
+      solGrBrush.Free;
+
+      // Create a path that consists of a single ellipse.
+      path := TGPGraphicsPath.Create;
+      path.AddEllipse(r.Left + w2, r.Top, w , h);
+
+      pthGrBrush := nil;
+      linGrBrush := nil;
+
+      case GradientB of
+      ggRadial: pthGrBrush := TGPPathGradientBrush.Create(path);
+      ggVertical: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left + w2,r.Top,w2,h),ColorToARGB(CFB),ColorToARGB(CTB), LinearGradientModeHorizontal);
+      ggDiagonalForward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left + w2,r.Top,w2,h),ColorToARGB(CFB),ColorToARGB(CTB), LinearGradientModeForwardDiagonal);
+      ggDiagonalBackward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left + w2,r.Top,w2,h),ColorToARGB(CFB),ColorToARGB(CTB), LinearGradientModeBackwardDiagonal);
+      end;
+
+      if GradientB = ggRadial then
+      begin
+        pthGrBrush.SetCenterPoint(MakePoint(r.Right, r.Top + h2));
+
+        // Set the color at the center point to blue.
+        pthGrBrush.SetCenterColor(ColorToARGB(CTB));
+
+        colors[0] := ColorToARGB(CFB);
+        count := 1;
+        pthGrBrush.SetSurroundColors(@colors, count);
+        graphics.FillRectangle(pthGrBrush, r.Left + w2, r.Top, w2 + 1, h-1);
+        pthGrBrush.Free;
+      end
+      else
+      begin
+        graphics.FillRectangle(linGrBrush, r.Left + w2 + 1,r.Top, w2 + 1, h - 1);
+        linGrBrush.Free;
+      end;
+
+      path.Free;
+
+      solGrBrush := TGPSolidBrush.Create(ColorToARGB(cfu));
+      graphics.FillRectangle(solGrBrush, MakeRect(r.Left , r.Top , w2 , h));
+      solGrBrush.Free;
+
+      // Create a path that consists of a single ellipse.
+      path := TGPGraphicsPath.Create;
+      path.AddEllipse(r.Left - w2, r.Top, w , h);
+
+      case GradientU of
+      ggRadial: pthGrBrush := TGPPathGradientBrush.Create(path);                      // FF: Gradient fix here replace h by h2
+      ggVertical: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w2,h),ColorToARGB(CFU),ColorToARGB(CTU), LinearGradientModeHorizontal);
+      ggDiagonalForward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w,h),ColorToARGB(CFU),ColorToARGB(CTU), LinearGradientModeForwardDiagonal);
+      ggDiagonalBackward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w,h),ColorToARGB(CFU),ColorToARGB(CTU), LinearGradientModeBackwardDiagonal);
+      end;
+
+      if GradientU = ggRadial then
+      begin
+        pthGrBrush.SetCenterPoint(MakePoint(r.Left, r.top + h2));
+
+        // Set the color at the center point to blue.
+        pthGrBrush.SetCenterColor(ColorToARGB(CTU));
+
+        colors[0] := ColorToARGB(CFU);
+        count := 1;
+        pthGrBrush.SetSurroundColors(@colors, count);
+
+        graphics.FillRectangle(pthGrBrush, r.Left + 1,r.Top + 1, w2 - 1, h - 1);
+        pthGrBrush.Free;
+      end
+      else
+      begin
+        graphics.FillRectangle(linGrBrush, r.Left + 1,r.Top + 1, w2 - 1, h - 1);
+        linGrBrush.Free;
+      end;
+
+      path.Free;
+
+    end;
+    tpRight:
+    begin
+
+      solGrBrush := TGPSolidBrush.Create(ColorToARGB(cfu));
+      graphics.FillRectangle(solGrBrush, MakeRect(r.Right - w2 , r.Top , w2, h));
+      solGrBrush.Free;
+
+      // Create a path that consists of a single ellipse.
+      path := TGPGraphicsPath.Create;
+      path.AddEllipse(r.Right - w2, r.Top, w, h);
+
+      pthGrBrush := nil;
+      linGrBrush := nil;
+
+      case GradientU of
+      ggRadial: pthGrBrush := TGPPathGradientBrush.Create(path);                      // FF: Gradient fix here replace h by h2
+      ggVertical: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Right-w2,r.Top,w2,h),ColorToARGB(CTU),ColorToARGB(CFU), LinearGradientModeHorizontal);
+      ggDiagonalForward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Right-w2,r.Top,w,h),ColorToARGB(CTU),ColorToARGB(CFU), LinearGradientModeForwardDiagonal);
+      ggDiagonalBackward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Right-w2,r.Top,w,h),ColorToARGB(CTU),ColorToARGB(CFU), LinearGradientModeBackwardDiagonal);
+      end;
+
+      if GradientU = ggRadial then
+      begin
+        pthGrBrush.SetCenterPoint(MakePoint(r.Right, r.top + h2));
+
+        // Set the color at the center point to blue.
+        pthGrBrush.SetCenterColor(ColorToARGB(CTU));
+
+        colors[0] := ColorToARGB(CFU);
+        count := 1;
+        pthGrBrush.SetSurroundColors(@colors, count);
+
+        graphics.FillRectangle(pthGrBrush, r.Right - w2 + 1,r.Top + 1, w2 - 1, h - 1);
+        pthGrBrush.Free;
+      end
+      else
+      begin
+        graphics.FillRectangle(linGrBrush, r.Right - w2, r.Top + 1, w2, h - 1);
+        linGrBrush.Free;
+      end;
+
+      path.Free;
+
+      // down ellips brush
+
+      solGrBrush := TGPSolidBrush.Create(ColorToARGB(cfb));
+      graphics.FillRectangle(solGrBrush, MakeRect(r.Left , r.top, w2, h));
+      solGrBrush.Free;
+
+      // Create a path that consists of a single ellipse.
+      path := TGPGraphicsPath.Create;
+      path.AddEllipse(r.Left - w2, r.Top, w , h);
+
+      pthGrBrush := nil;
+      linGrBrush := nil;
+
+      case GradientB of
+      ggRadial: pthGrBrush := TGPPathGradientBrush.Create(path);
+      ggVertical: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w2+2,h),ColorToARGB(CTB),ColorToARGB(CFB), LinearGradientModeHorizontal);
+      ggDiagonalForward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w2,h),ColorToARGB(CTB),ColorToARGB(CFB), LinearGradientModeForwardDiagonal);
+      ggDiagonalBackward: linGrBrush := TGPLinearGradientBrush.Create(MakeRect(r.Left,r.Top,w2,h),ColorToARGB(CTB),ColorToARGB(CFB), LinearGradientModeBackwardDiagonal);
+      end;
+
+      if GradientB = ggRadial then
+      begin
+        pthGrBrush.SetCenterPoint(MakePoint(r.Left, r.Top + h2));
+
+        // Set the color at the center point to blue.
+        pthGrBrush.SetCenterColor(ColorToARGB(CTB));
+
+        colors[0] := ColorToARGB(CFB);
+        count := 1;
+        pthGrBrush.SetSurroundColors(@colors, count);
+        graphics.FillRectangle(pthGrBrush, r.Left,r.Top, w2 + 1, h-1);
+        pthGrBrush.Free;
+      end
+      else
+      begin
+        graphics.FillRectangle(linGrBrush, r.Left,r.Top, w2 + 2, h - 1);
+        linGrBrush.Free;
+      end;
+
+      path.Free;
+
+    end;
+  end;
+
+  graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+
+  if (PC <> clNone) then
+  begin
+    graphics.ResetClip;
+    gppen := TGPPen.Create(ColorToARGB(PC), 1.6);
+    graphics.DrawPath(gpPen, TabPath);
+    gppen.Free;
+  end;
+
+  if Focus then
+  begin
+    gppen := tgppen.Create(ColorToARGB($E4AD89),1);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    DrawRoundRect(graphics, gppen,r.Left + 1,r.Top + 1, r.Right - 3, r.Bottom - 3, 3);
+    gppen.Free;
+    gppen := tgppen.Create(ColorToARGB(clgray),1);
+    gppen.SetDashStyle(DashStyleDot);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    DrawRoundRect(graphics, gppen,r.Left + 2,r.Top + 2, r.Right - 5, r.Bottom - 5, 3);
+    gppen.Free;
+  end;
+
+  if Assigned(Rgn) then
+    Rgn.Free;
+  TabPath.Free;
+  graphics.Free;
 end;
 
 //------------------------------------------------------------------------------
@@ -1655,6 +2714,11 @@ begin
   FStartMargin := 4;
   FEndMargin := 0;
   FSpacing := 4;
+  FWidth := 0;
+  FWordWrap := False;
+  FImagePosition := ipLeft;
+  FShape := tsRectangle;
+  FRounding := 1;
 end;
 
 //------------------------------------------------------------------------------
@@ -1668,6 +2732,11 @@ begin
     Height := (Source as TTabSetTabSettings).Height;
     StartMargin := (Source as TTabSetTabSettings).StartMargin;
     EndMargin := (Source as TTabSetTabSettings).EndMargin;
+    ImagePosition := (Source as TTabSetTabSettings).ImagePosition;
+    Width := (Source as TTabSetTabSettings).Width;
+    WordWrap := (Source as TTabSetTabSettings).WordWrap;
+    Shape := (Source as TTabSetTabSettings).Shape;
+    Rounding := (Source as TTabSetTabSettings).Rounding;
   end
   else
     inherited;
@@ -1743,6 +2812,61 @@ begin
   if (FSpacing <> Value) then
   begin
     FSpacing := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTabSetTabSettings.SetImagePosition(const Value: TImagePosition);
+begin
+  if (FImagePosition <> Value) then
+  begin
+    FImagePosition := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTabSetTabSettings.SetWidth(const Value: Integer);
+begin
+  if (FWidth <> Value) then
+  begin
+    FWidth := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTabSetTabSettings.SetWordWrap(const Value: Boolean);
+begin
+  if (FWordWrap <> Value) then
+  begin
+    FWordWrap := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTabSetTabSettings.SetRounding(const Value: TTabRounding);
+begin
+  if (FRounding <> Value) and (Value <= MAX_ROUNDING) and (Value >= 0) then
+  begin
+    FRounding := Value;
+    Changed;
+  end;  
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTabSetTabSettings.SetShape(const Value: TAdvTabShape);
+begin
+  if (FShape <> Value) then
+  begin
+    FShape := Value;
     Changed;
   end;
 end;
@@ -2049,6 +3173,12 @@ begin
   FFont.Name := 'Tahoma';
   FFont.Size := 8;
   FFont.Style := [];
+  FShadowColor := RGB(174, 199, 232);
+  FHighLightColorSelected := RGB(191, 250, 255);
+  //FHighLightColorSelected := RGB(248, 204, 99);
+  FHighLightColorSelectedHot := RGB(255, 255, 189);
+  FHighLightColorDown := RGB(208, 251, 255);
+  FHighLightColorHot := RGB(237, 244, 253);
 end;
 
 //------------------------------------------------------------------------------
@@ -2092,6 +3222,12 @@ begin
     Font.Assign((Source as TCustomTabAppearance).Font);
     TextColor := (Source as TCustomTabAppearance).TextColor;
     TextColorHot := (Source as TCustomTabAppearance).TextColorHot;
+    FShadowColor := (Source as TCustomTabAppearance).ShadowColor;
+    FHighLightColorSelected := (Source as TCustomTabAppearance).HighLightColorSelected;
+    FHighLightColorHot := (Source as TCustomTabAppearance).HighLightColorHot;
+    FHighLightColorDown := (Source as TCustomTabAppearance).HighLightColorDown;
+    //FHighLightColorSelected := (Source as TCustomTabAppearance).HighLightColorSelected;
+    FHighLightColorSelectedHot := (Source as TCustomTabAppearance).HighLightColorSelectedHot;
     BackGround.Assign((Source as TCustomTabAppearance).BackGround);
   end
   else
@@ -2572,7 +3708,7 @@ begin
   FTabAppearance := TTabAppearance.Create;
   FTabAppearance.OnChange := OnTabAppearanceChanged;
   FGlowButtonAppearance := TGlowButtonAppearance.Create;
-  FGlowButtonAppearance.onChange := OnGlowButtonAppearanceChanged;
+  FGlowButtonAppearance.OnChange := OnGlowButtonAppearanceChanged;
   FButtonBorderColor := clNone;
 end;
 
@@ -2711,12 +3847,23 @@ begin
   FOfficeHint := TAdvHintInfo.Create;
   
   FChildForm := nil;
+  FShowClose := True;
+
+  FTabAppearance := TTabAppearance.Create;
+  FTabAppearance.OnChange := OnTabAppearanceChanged;
+  FUseTabAppearance := false;
 
   if Assigned(TOfficeTabCollection(Collection).AdvOfficeTabSet) then
   begin
     if (TOfficeTabCollection(Collection).AdvOfficeTabSet.ActiveTabIndex < 0) and (Index = 0) then
       TOfficeTabCollection(Collection).AdvOfficeTabSet.FActiveTabIndex := Index;
     TOfficeTabCollection(Collection).AdvOfficeTabSet.UpdateTabScroller;
+    if (csDesigning in TOfficeTabCollection(Collection).AdvOfficeTabSet.ComponentState) and Assigned(TOfficeTabCollection(Collection).AdvOfficeTabSet.FCurrentOfficeTabSetStyler) then
+    begin
+      if not UseTabAppearance then
+        TabAppearance.Assign(TOfficeTabCollection(Collection).AdvOfficeTabSet.FCurrentOfficeTabSetStyler.TabAppearance);
+    end;
+
     TOfficeTabCollection(Collection).AdvOfficeTabSet.Invalidate;
   end;
 end;
@@ -2734,6 +3881,7 @@ begin
     FIDisabledPicture := (Source as TOfficeTabCollectionItem).FIDisabledPicture;
     FImageIndex := (Source as TOfficeTabCollectionItem).ImageIndex;
     FTag := (Source as TOfficeTabCollectionItem).Tag;
+    ShowClose := (Source as TOfficeTabCollectionItem).ShowClose;
   end
   else
     inherited Assign(Source);
@@ -2748,6 +3896,7 @@ begin
   FOfficeHint.Free;
   if Assigned(FTimer) then
     FreeAndNil(FTimer);
+  FTabAppearance.Free;
   inherited;
 end;
 
@@ -2923,6 +4072,49 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TOfficeTabCollectionItem.SetShowClose(const Value: Boolean);
+begin
+  if (FShowClose <> Value) then
+  begin
+    FShowClose := Value;
+    if Assigned(TOfficeTabCollection(Collection).AdvOfficeTabSet) then
+    begin
+      TOfficeTabCollection(Collection).AdvOfficeTabSet.InitializeAndUpdateButtons;
+      TOfficeTabCollection(Collection).AdvOfficeTabSet.UpdateTabScroller;
+    end;
+    Refresh;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOfficeTabCollectionItem.SetTabAppearance(
+  const Value: TTabAppearance);
+begin
+  FTabAppearance.Assign(Value);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOfficeTabCollectionItem.SetUseTabAppearance(
+  const Value: Boolean);
+begin
+  if (FUseTabAppearance <> Value) then
+  begin
+    FUseTabAppearance := Value;
+    Refresh;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOfficeTabCollectionItem.OnTabAppearanceChanged(Sender: TObject);
+begin
+  Refresh;
+end;
+
+//------------------------------------------------------------------------------
+
 { TOfficeTabCollection }
 
 function TOfficeTabCollection.Add: TOfficeTabCollectionItem;
@@ -2940,6 +4132,22 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TOfficeTabCollection.Clear;
+begin
+  AdvOfficeTabSet.BeginUpdate;
+
+  while (Count>0) do
+    Delete(0);
+
+  AdvOfficeTabSet.EndUpdate;
+
+  AdvOfficeTabSet.FActiveTabIndex := -1;
+  AdvOfficeTabSet.UpdateTabScroller;
+  AdvOfficeTabSet.Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TOfficeTabCollection.Delete(Index: Integer);
 var
   ActItem: TOfficeTabCollectionItem;
@@ -2949,7 +4157,8 @@ begin
     
   if (Index = AdvOfficeTabSet.ActiveTabIndex) then
   begin
-    AdvOfficeTabSet.SelectNextTab(True);
+    //AdvOfficeTabSet.SelectNextTab(True);
+    AdvOfficeTabSet.SelectNextSequentialTab;
   end;
 
   ActItem := nil;
@@ -3023,6 +4232,9 @@ end;
 { TAdvCustomOfficeTabSet }
 
 constructor TAdvCustomOfficeTabSet.Create(AOwner: TComponent);
+var
+  ts: TAdvOfficeTabSetOfficeStyler;
+  
 begin
   inherited;
   ControlStyle := ControlStyle - [csOpaque];
@@ -3070,7 +4282,7 @@ begin
 
   DoubleBuffered := true;
   Height := 27;
-  Width := 200;
+  Width := 300;
   FOldCapRightIndent := 0;
 
   TabRearrange := False;
@@ -3079,10 +4291,23 @@ begin
   FDummyHintControl := TDummyHintControl.Create(Self);
   FDummyHintControl.Visible := False;
 
+  FCloseOnTabPosition := cpRight;
+
   FCloseButton := nil;
   FTabListButton := nil;
   FScrollPrevButton := nil;
   FScrollNextButton := nil;
+  FUpdateCount := 0;
+
+  FDesignTime := (csDesigning in ComponentState) and not
+      ((csReading in Owner.ComponentState) or (csLoading in Owner.ComponentState));
+
+  ts := TAdvOfficeTabSetOfficeStyler.Create(self);
+  ts.Style := tsOffice2007Luna;
+  FInternalOfficeTabSetStyler.Assign(ts);
+  ts.Free;
+
+  FGlow := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -3090,6 +4315,25 @@ end;
 procedure TAdvCustomOfficeTabSet.CreateParams(var Params: TCreateParams);
 begin
   inherited;
+end;
+
+procedure TAdvCustomOfficeTabSet.CreateWnd;
+var
+  t: TOfficeTabCollectionItem;
+
+begin
+  inherited;
+
+  if FDesignTime then
+  begin
+    t := AdvOfficeTabs.Add;
+    t.Caption := Name + '1';
+    t := AdvOfficeTabs.Add;
+    t.Caption := Name + '2';
+    t := AdvOfficeTabs.Add;
+    t.Caption := Name + '3';
+    ActiveTabIndex := 0;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3112,6 +4356,18 @@ begin
   if (FScrollNextButton <> nil) then
     FScrollNextButton.Free;
   inherited;
+end;
+
+procedure TAdvCustomOfficeTabSet.DoChange;
+begin
+  if Assigned(FOnChange) and (FUpdateCount = 0) then
+    FOnChange(Self);
+end;
+
+procedure TAdvCustomOfficeTabSet.DoChanging(FromTab, ToTab: integer; var AllowChange: boolean);
+begin
+  if Assigned(FOnChanging) and (FUpdateCount = 0) then
+    FOnChanging(Self, FromTab, ToTab, AllowChange);
 end;
 
 //------------------------------------------------------------------------------
@@ -3141,12 +4397,19 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvCustomOfficeTabSet.Init;
+begin
+  FPropertiesLoaded := True;
+  InitializeAndUpdateButtons;
+  UpdateTabScroller;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvCustomOfficeTabSet.Loaded;
 begin
   inherited;
-  FPropertiesLoaded := True;
-  InitializeAndUpdateButtons;
-  UpdateTabScroller;  
+  Init;
 end;
 
 //------------------------------------------------------------------------------
@@ -3201,8 +4464,13 @@ var
   tf: TFont;
   lf: TLogFont;
   bmp: TBitMap;
-  R2: TRect;
-
+  R2, R3: TRect;
+  c1, c2, c3, c4, TempClr: TColor;
+  Ellipsis: Boolean;
+  Layout: TButtonLayout;
+  TxtR: TRect;
+  Shape: TAdvTabShape;
+  HighLightClr: TColor;
 begin
   if (TabIndex < 0) or (TabIndex >= FAdvOfficeTabs.Count) then
     Exit;
@@ -3225,7 +4493,21 @@ begin
   if (R.Left <= -1) and (R.Right <= -1) then
     Exit;
 
-  TabAppearance := FCurrentOfficeTabSetStyler.TabAppearance;
+  Layout := blGlyphLeft;
+  ImgY := 0;
+  ImgX := 0;
+  ImgH := 0;
+  ImgW := 0;
+  ImgEnabled := true;
+
+  Ellipsis := (TabSettings.Width > 0) and not TabSettings.WordWrap;
+
+  if AdvOfficeTabs[TabIndex].UseTabAppearance then
+    TabAppearance := AdvOfficeTabs[TabIndex].TabAppearance
+  else
+    TabAppearance := FCurrentOfficeTabSetStyler.TabAppearance;
+
+  HighLightClr := TabAppearance.HighLightColorSelected;
 
   with TabAppearance do
   begin
@@ -3258,9 +4540,13 @@ begin
       GradU := GradientSelected;
       GradB := GradientMirrorSelected;
       TxtClr := TextColorSelected;
+      HighLightClr := TabAppearance.HighLightColorSelected;
 
       if (TabIndex = FHotTabIndex) then
+      begin
         PenColor := BorderColorSelectedHot;
+        HighLightClr := TabAppearance.HighLightColorSelectedHot;
+      end;
 
       if Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
       begin
@@ -3277,7 +4563,10 @@ begin
       end;
 
       if (FDownTabIndex = TabIndex) and not (csDesigning in ComponentState) then
+      begin
         PenColor := BorderColorDown;
+        HighLightClr := TabAppearance.HighLightColorDown;
+      end;
     end
     else //if State = absUp then
     begin
@@ -3291,6 +4580,8 @@ begin
         GradU := GradientHot;
         GradB := GradientMirrorHot;
         TxtClr := TextColorHot;
+        HighLightClr := TabAppearance.HighLightColorHot;
+        
         if Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) and (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
         begin
           if ShowNonSelectedTabs then
@@ -3366,15 +4657,51 @@ begin
     Canvas.Font.Assign(TabAppearance.Font);
     Canvas.Font.Color := TxtClr;
 
+    c1 := GradColor;
+    c2 := c1;
+    c3 := c1;
+    c4 := c3;
     if DoRepaint then
     begin
+      Shape := TabSettings.Shape;
+
+      if (TabPosition in [tpLeft, tpRight]) and not RotateTabLeftRight then
+      begin
+        Shape := tsRectangle;
+      end;
+
+      case TabPosition of
+        tpTop:
+        begin
+          c1 := Canvas.Pixels[R.Left, R.Top];
+          c2 := Canvas.Pixels[R.Right - 1, R.Top];
+        end;
+        tpBottom:
+        begin
+          c1 := Canvas.Pixels[R.Left, R.Bottom-2];
+          c2 := Canvas.Pixels[R.Right - 1, R.Bottom-1];
+          c3 := Canvas.Pixels[R.Left, R.Top];
+          c4 := Canvas.Pixels[R.Right - 1, R.Top];
+        end;
+        tpLeft:
+        begin
+          c1 := Canvas.Pixels[R.Left, R.Top];
+          c2 := Canvas.Pixels[R.Left, R.Bottom-1];
+        end;
+        tpRight:
+        begin
+          c1 := Canvas.Pixels[R.Right, R.Top];
+          c2 := Canvas.Pixels[R.Right, R.Bottom-1];
+        end;
+      end;
+      
       if (ActiveTabIndex = TabIndex) and (CloseOnTab) and (ButtonSettings.CloseButton) and false then
       begin
         bmp := TBitMap.Create;
         bmp.Height := (R.Bottom - R.Top) - 4;
         bmp.Width := R.Right - R.Left;
         DrawVistaGradient(bmp.Canvas, Rect(0, 0, R.Right - R.Left, R.Bottom-R.Top),GradColor, GradColorTo, GradColorMirror, GradColorMirrorTo, PenColor,
-          GradU, GradB, '', {Canvas.}Font, Enabled, False, FAntiAlias, True{FCurrentOfficeTabSetStyler.RoundEdges}, TabPosition);
+          GradU, GradB, '', {Canvas.}Font, Layout, Enabled, False, FAntiAlias, True{FCurrentOfficeTabSetStyler.RoundEdges}, TabPosition);
         Canvas.Draw(R.Left, R.Top, bmp);
         bmp.Free;
       end
@@ -3408,199 +4735,345 @@ begin
           R2 := Rect(-4, 0, (R.Right - R.Left), R.Bottom-R.Top);
           //R.Left := R.Left+2;
         end;
-        DrawVistaGradient(bmp.Canvas, R2,GradColor, GradColorTo, GradColorMirror, GradColorMirrorTo, PenColor,
-          GradU, GradB, '', {Canvas.}Font, Enabled, False, FAntiAlias, True{FCurrentOfficeTabSetStyler.RoundEdges}, TabPosition);
+
+        if UseOldDrawing then
+          DrawVistaGradient(bmp.Canvas, R2,GradColor, GradColorTo, GradColorMirror, GradColorMirrorTo, PenColor,
+            GradU, GradB, '', {Canvas.}Font, Layout, Enabled, False, FAntiAlias, True{FCurrentOfficeTabSetStyler.RoundEdges}, TabPosition)
+        else
+        begin
+          if (PenColor <> clNone) then
+            TempClr := BlendColor(PenColor, clWhite, 50)
+          else
+            TempClr := BlendColor(clBlack, clWhite, 50);
+
+          bmp.Canvas.Brush.Color := TempClr;
+          bmp.Canvas.FillRect(Rect(0, 0, bmp.Width, bmp.Height));
+
+          R3 := R2;
+          case TabPosition of
+            tpTop: R3.Right := R3.Right - 1;
+            tpBottom:
+            begin
+              R3.Right := R3.Right - 1;
+              R3.Bottom := R3.Bottom - 1;
+            end;
+            tpLeft: R3.Bottom := R3.Bottom - 1;
+            tpRight:
+            begin
+              R3.Right := R3.Right - 1;
+              R3.Bottom := R3.Bottom - 2;
+            end;
+          end;
+
+          {case TabPosition of
+            tpTop: R2.Bottom := R2.Bottom - 3;
+            tpBottom: R2.Top := R2.Top + 2;
+            tpLeft: R2.Right := R2.Right - 3;
+            tpRight: R2.Left := R2.Left + 2;
+          end; }
+
+          DrawVistaTab(bmp.Canvas, R3,GradColor, GradColorTo, GradColorMirror, GradColorMirrorTo, PenColor,
+            GradU, GradB, Enabled, Shape, False, TabSettings.Rounding, RotateTabLeftRight, TabPosition);
+
+          bmp.TransparentColor := TempClr;
+          bmp.Transparent := True;
+        end;
         Canvas.Draw(R.Left, R.Top, bmp);
         bmp.Free;
        end;
-       
-      case TabPosition of
-        tpTop:
-        begin
-          if True{FCurrentOfficeTabSetStyler.RoundEdges} then
-          begin
-            Canvas.Pixels[R.Left, R.Top] := Canvas.Pixels[R.Left - 1, R.Top - 1];
-            Canvas.Pixels[R.Left + 1, R.Top] := Canvas.Pixels[R.Left + 1, R.Top - 1];
-            Canvas.Pixels[R.Left, R.Top + 1] := Canvas.Pixels[R.Left - 1, R.Top];
 
-            Canvas.Pixels[R.Right - 1, R.Top] := Canvas.Pixels[R.Right + 1, R.Top];
-            Canvas.Pixels[R.Right - 2, R.Top] := Canvas.Pixels[R.Right + 1, R.Top];
-            Canvas.Pixels[R.Right - 1, R.Top + 1] := Canvas.Pixels[R.Right + 1, R.Top];
-          end;
 
-          //--- Draw 3D effect
-          if not Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
+      if UseOldDrawing then
+      begin
+        case TabPosition of
+          tpTop:
           begin
-            Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
-            Canvas.MoveTo(R.Left+3, R.Top + 3);
-            Canvas.LineTo(R.Right-3, R.Top+3);
-          end
-          else
-          begin
-            if (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
-              Canvas.Pen.Color := BlendColor(clWhite, GradColor, Min(20, FAdvOfficeTabs.Items[TabIndex].FStepHover))
-            else
+            if True{FCurrentOfficeTabSetStyler.RoundEdges} then
+            begin
+              Canvas.Pixels[R.Left, R.Top] := c1; //Canvas.Pixels[R.Left - 1, R.Top - 1];
+              Canvas.Pixels[R.Left + 1, R.Top] := c1; //Canvas.Pixels[R.Left + 1, R.Top - 1];
+              Canvas.Pixels[R.Left, R.Top + 1] := c1; //Canvas.Pixels[R.Left - 1, R.Top];
+
+              Canvas.Pixels[R.Right - 1, R.Top] := c2; //Canvas.Pixels[R.Right + 1, R.Top];
+              Canvas.Pixels[R.Right - 2, R.Top] := c2; //Canvas.Pixels[R.Right + 1, R.Top];
+              Canvas.Pixels[R.Right - 1, R.Top + 1] := c2; //Canvas.Pixels[R.Right + 1, R.Top];
+            end;
+
+            //--- Draw 3D effect
+            if not Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
+            begin
               Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
-            Canvas.MoveTo(R.Left+3, R.Top + 3);
-            Canvas.LineTo(R.Right-3, R.Top+3);
-          end;
-          //if not Assigned(AdvPages[PageIndex].FTimer) then
-          begin
-            Canvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
-            Canvas.MoveTo(R.Left+3, R.Top+1);
-            Canvas.LineTo(R.Right-3, R.Top+1);
-            Canvas.Pen.Color := BlendColor(GradColor, PenColor, FCurrentOfficeTabSetStyler.BlendFactor);
-            Canvas.MoveTo(R.Left+1, R.Top + 3);
-            Canvas.LineTo(R.Left+1, R.Bottom-5);
-            Canvas.MoveTo(R.Right-2, R.Top + 3);
-            Canvas.LineTo(R.Right-2, R.Bottom-5);
-          end;
-        end;
-        tpBottom:
-        begin
-          if True{FCurrentOfficeTabSetStyler.RoundEdges} then
-          begin
-            Canvas.Pixels[R.Left, R.Bottom-2] := Canvas.Pixels[R.Left - 1, R.Bottom - 1];
-            Canvas.Pixels[R.Left + 1, R.Bottom-1] := Canvas.Pixels[R.Left - 1, R.Bottom - 1];
-            Canvas.Pixels[R.Left, R.Bottom - 1] := Canvas.Pixels[R.Left - 1, R.Bottom -1];
-
-            Canvas.Pixels[R.Right - 1, R.Bottom-1] := Canvas.Pixels[R.Right + 1, R.Bottom];
-            Canvas.Pixels[R.Right - 2, R.Bottom-1] := Canvas.Pixels[R.Right + 1, R.Bottom];
-            Canvas.Pixels[R.Right - 1, R.Bottom - 2] := Canvas.Pixels[R.Right + 1, R.Bottom];
-          end;
-
-          //--- Draw 3D effect
-          if not Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
-          begin
-            Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
-            Canvas.MoveTo(R.Left+3, R.Bottom - 4);
-            Canvas.LineTo(R.Right-3, R.Bottom - 4);
-          end
-          else
-          begin
-            if (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
-              Canvas.Pen.Color := BlendColor(clWhite, GradColor, Min(20, FAdvOfficeTabs.Items[TabIndex].FStepHover))
+              Canvas.MoveTo(R.Left+3, R.Top + 3);
+              Canvas.LineTo(R.Right-3, R.Top+3);
+            end
             else
+            begin
+              if (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
+                Canvas.Pen.Color := BlendColor(clWhite, GradColor, Min(20, FAdvOfficeTabs.Items[TabIndex].FStepHover))
+              else
+                Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
+              Canvas.MoveTo(R.Left+3, R.Top + 3);
+              Canvas.LineTo(R.Right-3, R.Top+3);
+            end;
+
+            //-- Draw Shadow
+            if (TabAppearance.ShadowColor <> clNone) then
+            begin
+              Canvas.Pen.Color := TabAppearance.ShadowColor;
+              Canvas.MoveTo(R.Right, R.Top + 3);
+              Canvas.LineTo(R.Right, R.Bottom-4);
+              Canvas.Pen.Color := BlendColor(TabAppearance.ShadowColor, TabAppearance.BackGround.Color, 40);
+              Canvas.MoveTo(R.Right + 1, R.Top + 4);
+              Canvas.LineTo(R.Right + 1, R.Bottom-4);
+            end;
+
+            if (HighLightClr <> clNone) then
+            begin
+              Canvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
+              Canvas.MoveTo(R.Left+3, R.Top+1);
+              Canvas.LineTo(R.Right-3, R.Top+1);
+              Canvas.Pen.Color := HighLightClr; //BlendColor(GradColor, PenColor, FCurrentOfficeTabSetStyler.BlendFactor);
+              Canvas.MoveTo(R.Left+1, R.Top + 3);
+              Canvas.LineTo(R.Left+1, R.Bottom-5);
+              Canvas.MoveTo(R.Right-2, R.Top + 3);
+              Canvas.LineTo(R.Right-2, R.Bottom-5);
+            end;
+          end;
+          tpBottom:
+          begin
+            if True{FCurrentOfficeTabSetStyler.RoundEdges} then
+            begin
+              Canvas.Pixels[R.Left, R.Bottom-2] := c1; //Canvas.Pixels[R.Left - 1, R.Bottom - 1];
+              Canvas.Pixels[R.Left + 1, R.Bottom-1] := c1; //Canvas.Pixels[R.Left - 1, R.Bottom - 1];
+              Canvas.Pixels[R.Left, R.Bottom - 1] := c1; //Canvas.Pixels[R.Left - 1, R.Bottom -1];
+
+              Canvas.Pixels[R.Right - 1, R.Bottom-1] := c2; //Canvas.Pixels[R.Right + 1, R.Bottom];
+              Canvas.Pixels[R.Right - 2, R.Bottom-1] := c2; //Canvas.Pixels[R.Right + 1, R.Bottom];
+              Canvas.Pixels[R.Right - 1, R.Bottom - 2] := c2; //Canvas.Pixels[R.Right + 1, R.Bottom];
+
+              Canvas.Pixels[R.Left, R.Top] := c3;
+              Canvas.Pixels[R.Left + 1, R.Top] := c3;
+              Canvas.Pixels[R.Left, R.Top + 1] := c3;
+
+              Canvas.Pixels[R.Right - 1, R.Top] := c4;
+              Canvas.Pixels[R.Right - 2, R.Top] := c4;
+              Canvas.Pixels[R.Right - 1, R.Top + 1] := c4;
+            end;
+
+            //--- Draw 3D effect
+            if not Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
+            begin
               Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
-            Canvas.MoveTo(R.Left+3, R.Bottom - 4);
-            Canvas.LineTo(R.Right-3, R.Bottom - 4);
-          end;
-          //if not Assigned(AdvPages[PageIndex].FTimer) then
-          begin
-            Canvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
-            Canvas.MoveTo(R.Left+3, R.Bottom -2);
-            Canvas.LineTo(R.Right-3, R.Bottom -2);
-            Canvas.Pen.Color := BlendColor(GradColor, PenColor, FCurrentOfficeTabSetStyler.BlendFactor);
-            Canvas.MoveTo(R.Left+1, R.Bottom - 3);
-            Canvas.LineTo(R.Left+1, R.Top + 5);
-            Canvas.MoveTo(R.Right-2, R.Bottom - 3);
-            Canvas.LineTo(R.Right-2, R.Top + 5);
-          end; 
-        end;
-        tpLeft:
-        begin
-          if True{FCurrentOfficeTabSetStyler.RoundEdges} then
-          begin
-            Canvas.Pixels[R.Left, R.Top] := Canvas.Pixels[R.Left - 1, R.Top - 1];
-            Canvas.Pixels[R.Left + 1, R.Top] := Canvas.Pixels[R.Left + 1, R.Top - 1];
-            Canvas.Pixels[R.Left, R.Top + 1] := Canvas.Pixels[R.Left - 1, R.Top];
-
-            Canvas.Pixels[R.Left, R.Bottom-1] := Canvas.Pixels[R.Left - 1, R.Bottom];
-            Canvas.Pixels[R.Left + 1, R.Bottom-1] := Canvas.Pixels[R.Left - 1, R.Bottom];
-            Canvas.Pixels[R.Left, R.Bottom - 2] := Canvas.Pixels[R.Left - 1, R.Bottom];
-          end;
-
-          //--- Draw 3D effect
-          if not Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
-          begin
-            Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
-            Canvas.MoveTo(R.Left+3, R.Top + 3);
-            Canvas.LineTo(R.Left+3, R.Bottom - 3);
-          end
-          else
-          begin
-            if (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
-              Canvas.Pen.Color := BlendColor(clWhite, GradColor, Min(20, FAdvOfficeTabs.Items[TabIndex].FStepHover))
+              Canvas.MoveTo(R.Left+3, R.Bottom - 4);
+              Canvas.LineTo(R.Right-3, R.Bottom - 4);
+            end
             else
+            begin
+              if (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
+                Canvas.Pen.Color := BlendColor(clWhite, GradColor, Min(20, FAdvOfficeTabs.Items[TabIndex].FStepHover))
+              else
+                Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
+              Canvas.MoveTo(R.Left+3, R.Bottom - 4);
+              Canvas.LineTo(R.Right-3, R.Bottom - 4);
+            end;
+
+            //-- Draw Shadow
+            if (TabAppearance.ShadowColor <> clNone) then
+            begin
+              Canvas.Pen.Color := TabAppearance.ShadowColor;
+              Canvas.MoveTo(R.Right, R.Top + 3);
+              Canvas.LineTo(R.Right, R.Bottom-2);
+              Canvas.Pen.Color := BlendColor(TabAppearance.ShadowColor, TabAppearance.BackGround.Color, 40);
+              Canvas.MoveTo(R.Right + 1, R.Top + 3);
+              Canvas.LineTo(R.Right + 1, R.Bottom-3);
+            end;
+
+            if (HighLightClr <> clNone) then
+            begin
+              Canvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
+              Canvas.MoveTo(R.Left+3, R.Bottom -2);
+              Canvas.LineTo(R.Right-3, R.Bottom -2);
+              Canvas.Pen.Color := HighLightClr; //BlendColor(GradColor, PenColor, FCurrentOfficeTabSetStyler.BlendFactor);
+              Canvas.MoveTo(R.Left+1, R.Bottom - 3);
+              Canvas.LineTo(R.Left+1, R.Top + 5);
+              Canvas.MoveTo(R.Right-2, R.Bottom - 3);
+              Canvas.LineTo(R.Right-2, R.Top + 5);
+            end;
+          end;
+          tpLeft:
+          begin
+            if True{FCurrentOfficeTabSetStyler.RoundEdges} then
+            begin
+              Canvas.Pixels[R.Left, R.Top] := c1; //Canvas.Pixels[R.Left - 1, R.Top - 1];
+              Canvas.Pixels[R.Left + 1, R.Top] := c1; //Canvas.Pixels[R.Left + 1, R.Top - 1];
+              Canvas.Pixels[R.Left, R.Top + 1] := c1; //Canvas.Pixels[R.Left - 1, R.Top];
+
+              Canvas.Pixels[R.Left, R.Bottom-1] := c2; //Canvas.Pixels[R.Left - 1, R.Bottom];
+              Canvas.Pixels[R.Left + 1, R.Bottom-1] := c2; //Canvas.Pixels[R.Left - 1, R.Bottom];
+              Canvas.Pixels[R.Left, R.Bottom - 2] := c2; //Canvas.Pixels[R.Left - 1, R.Bottom];
+            end;
+
+            //--- Draw 3D effect
+            if not Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
+            begin
               Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
-            Canvas.MoveTo(R.Left+3, R.Top + 3);
-            Canvas.LineTo(R.Left+3, R.Bottom - 3);
-          end;
-          //if not Assigned(AdvPages[PageIndex].FTimer) then
-          begin
-            Canvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
-            Canvas.MoveTo(R.Left+1, R.Top+3);
-            Canvas.LineTo(R.Left+1, R.Bottom-3);
-            Canvas.Pen.Color := BlendColor(GradColor, PenColor, FCurrentOfficeTabSetStyler.BlendFactor);
-            Canvas.MoveTo(R.Left+3, R.Top + 1);
-            Canvas.LineTo(R.Right-5, R.Top+1);
-            Canvas.MoveTo(R.Left+3, R.Bottom-2);
-            Canvas.LineTo(R.Right-5, R.Bottom-2);
-          end;
-        end;
-        tpRight:
-        begin
-          if True{FCurrentOfficeTabSetStyler.RoundEdges} then
-          begin
-            Canvas.Pixels[R.Right, R.Top] := Canvas.Pixels[R.Right + 1, R.Top - 1];
-            Canvas.Pixels[R.Right - 1, R.Top] := Canvas.Pixels[R.Right + 1, R.Top - 1];
-            Canvas.Pixels[R.Right, R.Top + 1] := Canvas.Pixels[R.Right + 1, R.Top];
-
-            Canvas.Pixels[R.Right, R.Bottom-1] := Canvas.Pixels[R.Right + 1, R.Bottom];
-            Canvas.Pixels[R.Right - 1, R.Bottom-1] := Canvas.Pixels[R.Right + 1, R.Bottom];
-            Canvas.Pixels[R.Right, R.Bottom - 2] := Canvas.Pixels[R.Right + 1, R.Bottom];
-          end;
-
-          //--- Draw 3D effect
-          if not Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
-          begin
-            Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
-            Canvas.MoveTo(R.Right-3, R.Top + 3);
-            Canvas.LineTo(R.Right-3, R.Bottom - 3);
-          end
-          else
-          begin
-            if (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
-              Canvas.Pen.Color := BlendColor(clWhite, GradColor, Min(20, FAdvOfficeTabs.Items[TabIndex].FStepHover))
+              Canvas.MoveTo(R.Left+3, R.Top + 3);
+              Canvas.LineTo(R.Left+3, R.Bottom - 3);
+            end
             else
-              Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
-            Canvas.MoveTo(R.Right-3, R.Top + 3);
-            Canvas.LineTo(R.Right-3, R.Bottom - 3);
+            begin
+              if (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
+                Canvas.Pen.Color := BlendColor(clWhite, GradColor, Min(20, FAdvOfficeTabs.Items[TabIndex].FStepHover))
+              else
+                Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
+              Canvas.MoveTo(R.Left+3, R.Top + 3);
+              Canvas.LineTo(R.Left+3, R.Bottom - 3);
+            end;
+
+            //--- Draw Shadow
+            if RotateTabLeftRight then
+            begin
+              if (TabAppearance.ShadowColor <> clNone) then
+              begin
+                Canvas.Pen.Color := TabAppearance.ShadowColor;
+                Canvas.MoveTo(R.Left + 3, R.Top - 1);
+                Canvas.LineTo(R.Right - 4, R.Top - 1);
+                Canvas.Pen.Color := BlendColor(TabAppearance.ShadowColor, TabAppearance.BackGround.Color, 40);
+                Canvas.MoveTo(R.Left + 4, R.Top - 2);
+                Canvas.LineTo(R.Right - 4, R.Top - 2);
+              end;
+            end
+            else
+            begin
+              if (TabAppearance.ShadowColor <> clNone) then
+              begin
+                Canvas.Pen.Color := TabAppearance.ShadowColor;
+                Canvas.MoveTo(R.Left + 3, R.Bottom);
+                Canvas.LineTo(R.Right - 4, R.Bottom);
+                Canvas.Pen.Color := BlendColor(TabAppearance.ShadowColor, TabAppearance.BackGround.Color, 40);
+                Canvas.MoveTo(R.Left + 4, R.Bottom + 1);
+                Canvas.LineTo(R.Right - 4, R.Bottom + 1);
+              end;
+            end;
+
+            if (HighLightClr <> clNone) then
+            begin
+              Canvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
+              Canvas.MoveTo(R.Left+1, R.Top+3);
+              Canvas.LineTo(R.Left+1, R.Bottom-3);
+              Canvas.Pen.Color := HighLightClr; //BlendColor(GradColor, PenColor, FCurrentOfficeTabSetStyler.BlendFactor);
+              Canvas.MoveTo(R.Left+3, R.Top + 1);
+              Canvas.LineTo(R.Right-5, R.Top+1);
+              Canvas.MoveTo(R.Left+3, R.Bottom-2);
+              Canvas.LineTo(R.Right-5, R.Bottom-2);
+            end;
           end;
-          //if not Assigned(AdvPages[PageIndex].FTimer) then
+          tpRight:
           begin
-            Canvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
-            Canvas.MoveTo(R.Right-2, R.Top+3);
-            Canvas.LineTo(R.Right-2, R.Bottom-3);
-            Canvas.Pen.Color := BlendColor(GradColor, PenColor, FCurrentOfficeTabSetStyler.BlendFactor);
-            Canvas.MoveTo(R.Left+5, R.Top + 1);
-            Canvas.LineTo(R.Right-3, R.Top+1);
-            Canvas.MoveTo(R.Left+5, R.Bottom-2);
-            Canvas.LineTo(R.Right-3, R.Bottom-2);
+            if True{FCurrentOfficeTabSetStyler.RoundEdges} then
+            begin
+              Canvas.Pixels[R.Right, R.Top] := c1; //Canvas.Pixels[R.Right + 1, R.Top - 1];
+              Canvas.Pixels[R.Right - 1, R.Top] := c1; //Canvas.Pixels[R.Right + 1, R.Top - 1];
+              Canvas.Pixels[R.Right, R.Top + 1] := c1; //Canvas.Pixels[R.Right + 1, R.Top];
+
+              Canvas.Pixels[R.Right, R.Bottom-1] := c2; //Canvas.Pixels[R.Right + 1, R.Bottom];
+              Canvas.Pixels[R.Right - 1, R.Bottom-1] := c2; //Canvas.Pixels[R.Right + 1, R.Bottom];
+              Canvas.Pixels[R.Right, R.Bottom - 2] := c2; //Canvas.Pixels[R.Right + 1, R.Bottom];
+            end;
+
+            //--- Draw 3D effect
+            if not Assigned(FAdvOfficeTabs.Items[TabIndex].FTimer) then
+            begin
+              Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
+              Canvas.MoveTo(R.Right-3, R.Top + 3);
+              Canvas.LineTo(R.Right-3, R.Bottom - 3);
+            end
+            else
+            begin
+              if (FAdvOfficeTabs.Items[TabIndex].FGlowState = gsHover) then
+                Canvas.Pen.Color := BlendColor(clWhite, GradColor, Min(20, FAdvOfficeTabs.Items[TabIndex].FStepHover))
+              else
+                Canvas.Pen.Color := BlendColor(clWhite, GradColor, 50);
+              Canvas.MoveTo(R.Right-3, R.Top + 3);
+              Canvas.LineTo(R.Right-3, R.Bottom - 3);
+            end;
+
+            //-- Draw Shadow
+            if (TabAppearance.ShadowColor <> clNone) then
+            begin
+              Canvas.Pen.Color := TabAppearance.ShadowColor;
+              Canvas.MoveTo(R.Left, R.Bottom);
+              Canvas.LineTo(R.Right - 3, R.Bottom);
+              Canvas.Pen.Color := BlendColor(TabAppearance.ShadowColor, TabAppearance.BackGround.Color, 40);
+              Canvas.MoveTo(R.Left, R.Bottom + 1);
+              Canvas.LineTo(R.Right - 4, R.Bottom + 1);
+            end;
+
+            if (HighLightClr <> clNone) then
+            begin
+              Canvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
+              Canvas.MoveTo(R.Right-2, R.Top+3);
+              Canvas.LineTo(R.Right-2, R.Bottom-3);
+              Canvas.Pen.Color := HighLightClr; //BlendColor(GradColor, PenColor, FCurrentOfficeTabSetStyler.BlendFactor);
+              Canvas.MoveTo(R.Left+5, R.Top + 1);
+              Canvas.LineTo(R.Right-3, R.Top+1);
+              Canvas.MoveTo(R.Left+5, R.Bottom-2);
+              Canvas.LineTo(R.Right-3, R.Bottom-2);
+            end;
           end;
         end;
       end;
 
     end;
 
+    if Assigned(FOnDrawTab) then
+    begin
+      FOnDrawTab(Self, Canvas, TabIndex, R);
+      Exit;
+    end;
+
+    if not UseOldDrawing then
+    begin
+      if TabPosition in [tpTop, tpBottom] then
+      begin
+        R.Left := R.Left + GetLeftRoundingOffset;
+      end
+      else if RotateTabLeftRight then
+      begin
+        if TabPosition = tpLeft then
+          R.Bottom := R.Bottom - GetLeftRoundingOffset
+        else
+        begin
+          if TabSettings.Shape in [tsLeftRamp, tsLeftRightRamp] then
+            R.Top := R.Top + GetLeftRoundingOffset;
+        end;
+      end;
+    end;
+
     case TabPosition of
       tpTop, tpBottom:
       begin
-        CapR := Rect(R.Left + FTabSettings.LeftMargin, R.Top, R.Right, R.Bottom);
-        if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex <> TabIndex)) then
-          CapR.Left := CapR.Left + (TabBUTTON_SIZE + 4 ) div 2;
+        CapR := Rect(R.Left + FTabSettings.LeftMargin + 2, R.Top, R.Right, R.Bottom);
+        if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex <> TabIndex) and AdvOfficeTabs[TabIndex].ShowClose) then
+          CapR.Left := CapR.Left + (TabBUTTON_SIZE + 4 ) div 2
+        else if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex = TabIndex) and AdvOfficeTabs[TabIndex].ShowClose) and (CloseOnTabPosition = cpLeft) then
+          CapR.Left := CapR.Left + (TabBUTTON_SIZE + 4);
       end;
       tpLeft:
       begin
         if RotateTabLeftRight then
         begin
           CapR := Rect(R.Left, R.Top, R.Right, R.Bottom - FTabSettings.LeftMargin);
-          if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex <> TabIndex)) then
-            CapR.Bottom := CapR.Bottom - (TabBUTTON_SIZE + 4) div 2;
+          if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex <> TabIndex) and AdvOfficeTabs[TabIndex].ShowClose) then
+            CapR.Bottom := CapR.Bottom - (TabBUTTON_SIZE + 4) div 2
+          else if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex = TabIndex) and AdvOfficeTabs[TabIndex].ShowClose) and (CloseOnTabPosition = cpLeft) then
+            CapR.Bottom := CapR.Bottom - TabBUTTON_SIZE - 4;
         end
         else
         begin
           CapR := Rect(R.Left + FTabSettings.LeftMargin, R.Top, R.Right, R.Bottom);
+          if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex = TabIndex) and AdvOfficeTabs[TabIndex].ShowClose) and (CloseOnTabPosition = cpLeft) then
+            CapR.Left := CapR.Left + TABBUTTON_SIZE + 4;
         end;
       end;
       tpRight:
@@ -3608,12 +5081,16 @@ begin
         if RotateTabLeftRight then
         begin
           CapR := Rect(R.Left, R.Top + FTabSettings.LeftMargin, R.Right, R.Bottom);
-          if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex <> TabIndex)) then
-            CapR.Top := CapR.Top + (TabBUTTON_SIZE + 4) div 2;
+          if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex <> TabIndex) and AdvOfficeTabs[TabIndex].ShowClose) then
+            CapR.Top := CapR.Top + (TabBUTTON_SIZE + 4) div 2
+          else if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex = TabIndex) and AdvOfficeTabs[TabIndex].ShowClose) and (CloseOnTabPosition = cpLeft) then
+            CapR.Top := CapR.Top + TABBUTTON_SIZE + 4;
         end
         else
         begin
           CapR := Rect(R.Left + FTabSettings.LeftMargin + 3, R.Top, R.Right, R.Bottom);
+          if (ButtonSettings.CloseButton and CloseOnTab and (ActiveTabIndex = TabIndex) and AdvOfficeTabs[TabIndex].ShowClose) and (CloseOnTabPosition = cpLeft) then
+            CapR.Left := CapR.Left + TABBUTTON_SIZE + 5;
         end;
       end;
     end;
@@ -3634,43 +5111,158 @@ begin
       case TabPosition of
         tpTop, tpBottom:
         begin
-          ImgX := CapR.Left;
-          CapR.Left := CapR.Left + ImgW + ImgTxtSp;
-          ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+          case TabSettings.ImagePosition of
+            ipTop:
+            begin
+              ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+              ImgY := CapR.Top;
+              CapR.Top := CapR.Top + ImgH{ + ImgTxtSp};
+            end;
+            ipBottom:
+            begin
+              ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+              ImgY := CapR.Bottom - ImgH;
+              CapR.Bottom := CapR.Bottom - ImgH;
+            end;
+            ipLeft:
+            begin
+              ImgX := CapR.Left;
+              CapR.Left := CapR.Left + ImgW + ImgTxtSp;
+              ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+            end;
+            ipRight:
+            begin
+              ImgX := CapR.Right - ImgW - FTabSettings.RightMargin;
+              CapR.Right := ImgX {- ImgTxtSp};
+              ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+            end;
+          end;
         end;
         tpLeft:
         begin
           if not RotateTabLeftRight then
           begin
-            ImgX := CapR.Left;
-            CapR.Left := CapR.Left + ImgW + ImgTxtSp;
-            ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+            case TabSettings.ImagePosition of
+              ipTop:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+                ImgY := CapR.Top;
+                CapR.Top := CapR.Top + ImgH;
+              end;
+              ipBottom:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+                ImgY := CapR.Bottom - ImgH;
+                CapR.Bottom := CapR.Bottom - ImgH;
+              end;
+              ipLeft:
+              begin
+                ImgX := CapR.Left;
+                CapR.Left := CapR.Left + ImgW + ImgTxtSp;
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+              end;
+              ipRight:
+              begin
+                ImgX := CapR.Right - ImgW - FTabSettings.RightMargin;
+                CapR.Right := ImgX - ImgTxtSp;
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+              end;
+            end;
           end
           else
           begin
-            ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
-            ImgY := CapR.Bottom - ImgH;
-            CapR.Bottom := ImgY - ImgTxtSp;
+            case TabSettings.ImagePosition of
+              ipTop:
+              begin
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+                ImgX := CapR.Left;
+                CapR.Left := CapR.Left + ImgW;
+              end;
+              ipBottom:
+              begin
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+                ImgX := CapR.Right - ImgW;
+                CapR.Right := CapR.Right - ImgW;
+              end;
+              ipLeft:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+                ImgY := CapR.Bottom - ImgH;
+                CapR.Bottom := ImgY - ImgTxtSp;
+              end;
+              ipRight:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+                ImgY := CapR.Top + TabSettings.RightMargin;
+                CapR.Top := ImgY + ImgTxtSp;
+              end;
+            end;
           end;
         end;
         tpRight:
         begin
           if not RotateTabLeftRight then
           begin
-            ImgX := CapR.Left;
-            CapR.Left := CapR.Left + ImgW + ImgTxtSp;
-            ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+            case TabSettings.ImagePosition of
+              ipTop:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+                ImgY := CapR.Top;
+                CapR.Top := CapR.Top + ImgH;
+              end;
+              ipBottom:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+                ImgY := CapR.Bottom - ImgH;
+                CapR.Bottom := CapR.Bottom - ImgH;
+              end;
+              ipLeft:
+              begin
+                ImgX := CapR.Left;
+                CapR.Left := CapR.Left + ImgW + ImgTxtSp;
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+              end;
+              ipRight:
+              begin
+                ImgX := CapR.Right - ImgW;
+                CapR.Right := ImgX - ImgTxtSp;
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+              end;
+            end;
           end
           else
           begin
-            ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
-            ImgY := CapR.Top;
-            CapR.Top := CapR.Top + ImgH + ImgTxtSp;
-          end;  
+            case TabSettings.ImagePosition of
+              ipTop:
+              begin
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+                ImgX := CapR.Right - ImgW;
+                CapR.Right := CapR.Right - ImgW;
+              end;
+              ipBottom:
+              begin
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgH) div 2;
+                ImgX := CapR.Left;
+                CapR.Left := CapR.Left + ImgW;
+              end;
+              ipLeft:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+                ImgY := CapR.Top;
+                CapR.Top := CapR.Top + ImgH + ImgTxtSp;
+              end;
+              ipRight:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgW) div 2;
+                ImgY := CapR.Bottom - ImgH - TabSettings.RightMargin;
+                CapR.Bottom := ImgY {- ImgTxtSp};
+              end;
+            end;
+          end;
         end;
       end;
 
-      Canvas.Draw(ImgX, ImgY, Pic);
+      //Canvas.Draw(ImgX, ImgY, Pic);
     end
     else
     if (Assigned(FImages) or Assigned(DisabledImages)) and (FAdvOfficeTabs.Items[TabIndex].ImageIndex >= 0) then
@@ -3699,59 +5291,178 @@ begin
         case TabPosition of
           tpTop, tpBottom:
           begin
-            ImgX := CapR.Left;
-            CapR.Left := CapR.Left + ImgList.Width + ImgTxtSp;
-            ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+            case TabSettings.ImagePosition of
+              ipTop:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                ImgY := CapR.Top;
+                CapR.Top := CapR.Top + ImgList.Height{ + ImgTxtSp};
+              end;
+              ipBottom:
+              begin
+                ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                ImgY := CapR.Bottom - ImgList.Height;
+                CapR.Bottom := CapR.Bottom - ImgList.Height;
+              end;
+              ipLeft:
+              begin
+                ImgX := CapR.Left;
+                CapR.Left := CapR.Left + ImgList.Width + ImgTxtSp;
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+              end;
+              ipRight:
+              begin
+                ImgX := CapR.Right - ImgList.Width - FTabSettings.RightMargin;
+                CapR.Right := ImgX {- ImgTxtSp};
+                ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+              end;
+            end;
           end;
           tpLeft:
           begin
             if not RotateTabLeftRight then
             begin
-              ImgX := CapR.Left;
-              CapR.Left := CapR.Left + ImgList.Width + ImgTxtSp;
-              ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+              case TabSettings.ImagePosition of
+                ipTop:
+                begin
+                  ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                  ImgY := CapR.Top;
+                  CapR.Top := CapR.Top + ImgList.Height{ + ImgTxtSp};
+                end;
+                ipBottom:
+                begin
+                  ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                  ImgY := CapR.Bottom - ImgList.Height;
+                  CapR.Bottom := CapR.Bottom - ImgList.Height;
+                end;
+                ipLeft:
+                begin
+                  ImgX := CapR.Left;
+                  CapR.Left := CapR.Left + ImgList.Width + ImgTxtSp;
+                  ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+                end;
+                ipRight:
+                begin
+                  ImgX := CapR.Right - ImgList.Width - FTabSettings.RightMargin;
+                  CapR.Right := ImgX - ImgTxtSp;
+                  ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+                end;
+              end;
             end
             else
             begin
-              ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
-              ImgY := CapR.Bottom - ImgList.Height;
-              CapR.Bottom := ImgY - ImgTxtSp;
+              case TabSettings.ImagePosition of
+                ipTop:
+                begin
+                  ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+                  ImgX := CapR.Left;
+                  CapR.Left := CapR.Left + ImgList.Width;
+                end;
+                ipBottom:
+                begin
+                  ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+                  ImgX := CapR.Right - ImgList.Width;
+                  CapR.Right := CapR.Right - ImgList.Width;
+                end;
+                ipLeft:
+                begin
+                  ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                  ImgY := CapR.Bottom - ImgList.Height;
+                  CapR.Bottom := ImgY - ImgTxtSp;
+                end;
+                ipRight:
+                begin
+                  ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                  ImgY := CapR.Top + TabSettings.RightMargin;
+                  CapR.Top := ImgY + ImgTxtSp;
+                end;
+              end;
             end;
           end;
           tpRight:
           begin
             if not RotateTabLeftRight then
             begin
-              ImgX := CapR.Left;
-              CapR.Left := CapR.Left + ImgList.Width + ImgTxtSp;
-              ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+              case TabSettings.ImagePosition of
+                ipTop:
+                begin
+                  ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                  ImgY := CapR.Top;
+                  CapR.Top := CapR.Top + ImgList.Height;
+                end;
+                ipBottom:
+                begin
+                  ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                  ImgY := CapR.Bottom - ImgList.Height;
+                  CapR.Bottom := CapR.Bottom - ImgList.Height;
+                end;
+                ipLeft:
+                begin
+                  ImgX := CapR.Left;
+                  CapR.Left := CapR.Left + ImgList.Width + ImgTxtSp;
+                  ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+                end;
+                ipRight:
+                begin
+                  ImgX := CapR.Right - ImgList.Width;
+                  CapR.Right := ImgX - ImgTxtSp;
+                  ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+                end;
+              end;
             end
             else
             begin
-              ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
-              ImgY := CapR.Top;
-              CapR.Top := CapR.Top + ImgList.Height + ImgTxtSp;
-            end;  
+              case TabSettings.ImagePosition of
+                ipTop:
+                begin
+                  ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+                  ImgX := CapR.Right - ImgList.Width;
+                  CapR.Right := CapR.Right - ImgList.Width;
+                end;
+                ipBottom:
+                begin
+                  ImgY := R.Top + ((R.Bottom - R.Top) - ImgList.Height) div 2;
+                  ImgX := CapR.Left;
+                  CapR.Left := CapR.Left + ImgList.Width;
+                end;
+                ipLeft:
+                begin
+                  ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                  ImgY := CapR.Top;
+                  CapR.Top := CapR.Top + ImgList.Height + ImgTxtSp;
+                end;
+                ipRight:
+                begin
+                  ImgX := R.Left + ((R.Right - R.Left) - ImgList.Width) div 2;
+                  ImgY := CapR.Bottom - ImgList.Height - TabSettings.RightMargin;
+                  CapR.Bottom := ImgY {- ImgTxtSp};
+                end;
+              end;
+            end;
           end;
         end;
 
-        ImgList.Draw(Canvas, ImgX, ImgY, FAdvOfficeTabs.Items[TabIndex].ImageIndex, ImgEnabled);
+        //ImgList.Draw(Canvas, ImgX, ImgY, FAdvOfficeTabs.Items[TabIndex].ImageIndex, ImgEnabled);
       end;
     end;
 
     Canvas.Brush.Style := bsClear;
     if (not RotateTabLeftRight and (TabPosition in [tpLeft, tpRight])) then
     begin
-      DrawVistaText(Canvas, taLeftJustify, CapR, DCaption, Canvas.Font, FAdvOfficeTabs.Items[TabIndex].Enabled, True, FAntiAlias, tpTop);
+      TxtR := DrawVistaText(Canvas, taLeftJustify, CapR, DCaption, Canvas.Font, FAdvOfficeTabs.Items[TabIndex].Enabled, True, FAntiAlias, tpTop, Ellipsis);
     end
     else
     if (TabPosition = tpLeft) then
     begin
       if (DCaption <> '') then
       begin
+        TxtR.Left := CapR.Left + ((CapR.Right - CapR.Left)-Canvas.TextHeight('gh')) div 2;
+        TxtR.Top := CapR.Bottom;
+        TxtR.Right := TxtR.Left + Canvas.TextHeight('gh');
+        TxtR.Bottom := TxtR.Top + Canvas.TextWidth(DCaption);
+     
         // Make sure to use a truetype font!
         // Font.Name := 'Tahoma';
-
         tf := TFont.Create;
         try
           if (TabPosition = tpLeft) or (TabPosition = tpRight) then
@@ -3777,14 +5488,166 @@ begin
         finally
           tf.Free;
         end;
+        
+        DCaption := TrimText(DCaption, CapR, False, nil, Canvas, nil, nil, Ellipsis, TabPosition);
         Canvas.TextOut(CapR.Left + ((CapR.Right - CapR.Left)-Canvas.TextHeight('gh')) div 2, CapR.Bottom, DCaption);
       end;
     end
     else
+    if (TabPosition = tpRight) and (AntiAlias = aaNone) then
     begin
-      DrawVistaText(Canvas, taLeftJustify, CapR, DCaption, Canvas.Font, FAdvOfficeTabs.Items[TabIndex].Enabled, True, FAntiAlias, TabPosition);
+      if (DCaption <> '') then
+      begin
+        TxtR.Left := CapR.Left + ((CapR.Right - CapR.Left)-Canvas.TextHeight('gh')) div 2;
+        TxtR.Top := CapR.Bottom;
+        TxtR.Right := TxtR.Left + Canvas.TextHeight('gh');
+        TxtR.Bottom := TxtR.Top + Canvas.TextWidth(DCaption);
+
+        // Make sure to use a truetype font!
+        // Font.Name := 'Tahoma';
+
+        tf := TFont.Create;
+        try
+          if (TabPosition = tpLeft) or (TabPosition = tpRight) then
+          begin
+{$IFNDEF TMSDOTNET}
+            FillChar(lf, SizeOf(lf), 0);
+{$ENDIF}
+            tf.Assign(Canvas.Font);
+{$IFNDEF TMSDOTNET}
+            GetObject(tf.Handle, SizeOf(Lf), @Lf);
+{$ENDIF}
+{$IFDEF TMSDOTNET}
+            GetObject(tf.Handle, Marshal.SizeOf(TypeOf(Lf)), Lf);
+{$ENDIF}
+
+            if TabPosition = tpLeft then lf.lfEscapement := -900
+            else lf.lfEscapement := -900;
+            lf.lfOrientation := 30;
+
+            tf.Handle := CreateFontIndirect(Lf);
+            Canvas.Font.Assign(tf);
+          end;
+        finally
+          tf.Free;
+        end;
+        DCaption := TrimText(DCaption, CapR, False, nil, Canvas, nil, nil, Ellipsis, TabPosition);
+        Canvas.TextOut(CapR.Right - ((CapR.Right - CapR.Left)-Canvas.TextHeight('gh')) div 2, CapR.Top, DCaption);
+      end;
+    end
+    else
+    begin
+      TxtR := DrawVistaText(Canvas, taLeftJustify, CapR, DCaption, Canvas.Font, FAdvOfficeTabs.Items[TabIndex].Enabled, True, FAntiAlias, TabPosition, Ellipsis);
       //DrawText(Canvas.Handle, PChar(DCaption), Length(DCaption), R, DT_SINGLELINE or DT_VCENTER);
     end;  
+
+    if Assigned(Pic) and not Pic.Empty then
+    begin
+      case TabPosition of
+        tpTop, tpBottom:
+        begin
+          case TabSettings.ImagePosition of
+            ipTop: ImgY := Max(TxtR.Top - ImgH{ - ImgTxtSp}, 4);
+            ipBottom: ImgY := Min(TxtR.Bottom {+ ImgTxtSp}, CapR.Bottom);
+          end;
+        end;
+        tpLeft:
+        begin
+          if not RotateTabLeftRight then
+          begin
+            case TabSettings.ImagePosition of
+              ipTop: ImgY := Max(TxtR.Top - ImgH - ImgTxtSp, 4);
+              ipBottom: ImgY := Max(TxtR.Bottom + ImgTxtSp, 4);
+              ipRight:  ImgX := TxtR.Right + ImgTxtSp*2;
+            end;
+          end
+          else
+          begin
+            case TabSettings.ImagePosition of
+              ipTop: ImgX := Max(TxtR.Left - ImgW - ImgTxtSp, 4);
+              ipBottom: ImgX := Max(TxtR.Right + ImgTxtSp, 4);
+            end;
+          end;
+        end;
+        tpRight:
+        begin
+          if not RotateTabLeftRight then
+          begin
+            case TabSettings.ImagePosition of
+              ipTop: ImgY := Max(TxtR.Top - ImgH - ImgTxtSp, 4);
+              ipBottom: ImgY := Max(TxtR.Bottom + ImgTxtSp, 4);
+              ipRight: ImgX := TxtR.Right + ImgTxtSp*2;
+            end;
+          end
+          else
+          begin
+            case TabSettings.ImagePosition of
+              ipTop: ImgX := Max(TxtR.Right + ImgTxtSp, 4);
+              ipBottom: ImgX := Max(TxtR.Left - ImgW - ImgTxtSp, 4);
+            end;
+          end;
+        end;
+      end;
+
+      Canvas.Draw(ImgX, ImgY, Pic);
+    end
+    else
+    if (Assigned(FImages) or Assigned(DisabledImages)) and (FAdvOfficeTabs.Items[TabIndex].ImageIndex >= 0) then
+    begin
+      if (ImgList <> nil) then
+      begin
+        case TabPosition of
+          tpTop, tpBottom:
+          begin
+            case TabSettings.ImagePosition of
+              ipTop: ImgY := Max(TxtR.Top - ImgList.Height{ - ImgTxtSp}, 4);
+              ipBottom: ImgY := Min(TxtR.Bottom {+ ImgTxtSp}, CapR.Bottom);
+            end;
+          end;
+          tpLeft:
+          begin
+            if not RotateTabLeftRight then
+            begin
+              case TabSettings.ImagePosition of
+                ipTop: ImgY := Max(TxtR.Top - ImgList.Height - ImgTxtSp, 4);
+                ipBottom: ImgY := Max(TxtR.Bottom + ImgTxtSp, 4);
+                ipRight: ImgX := TxtR.Right + ImgTxtSp*2;
+              end;
+            end
+            else
+            begin
+              case TabSettings.ImagePosition of
+                ipTop: ImgX := Max(TxtR.Left - ImgList.Width - ImgTxtSp, 4);
+                ipBottom: ImgX := Max(TxtR.Right + ImgTxtSp, 4);
+              end;
+            end;
+          end;
+          tpRight:
+          begin
+            if not RotateTabLeftRight then
+            begin
+              case TabSettings.ImagePosition of
+                ipTop: ImgY := Max(TxtR.Top - ImgList.Height - ImgTxtSp, 4);
+                ipBottom: ImgY := Max(TxtR.Bottom + ImgTxtSp, 4);
+                ipRight: ImgX := TxtR.Right + ImgTxtSp*2;
+              end;
+            end
+            else
+            begin
+              case TabSettings.ImagePosition of
+                ipTop: ImgX := Max(TxtR.Right + ImgTxtSp, 4);
+                ipBottom: ImgX := Max(TxtR.Left - ImgList.Width - ImgTxtSp, 4);
+              end;
+            end;
+          end;
+        end;
+
+        ImgList.Draw(Canvas, ImgX, ImgY, FAdvOfficeTabs.Items[TabIndex].ImageIndex, ImgEnabled);
+      end;
+    end;
+
+    if (TabIndex <> ActiveTabIndex) and (IsActiveTabNeighbour(TabIndex) <> 0) and (ActiveTabIndex >= 0) then
+      DrawTab(ActiveTabIndex);
 
   end;
 end;
@@ -3989,7 +5852,7 @@ begin
   begin
     if (FHotTabIndex < FAdvOfficeTabs.Count) then
     begin
-      if not Assigned(FAdvOfficeTabs.Items[FHotTabIndex].FTimer) then
+      if not Assigned(FAdvOfficeTabs.Items[FHotTabIndex].FTimer) and Glow then
       begin
         FAdvOfficeTabs.Items[FHotTabIndex].FTimer := TTimer.Create(self);
         FAdvOfficeTabs.Items[FHotTabIndex].FTimer.OnTimer := FAdvOfficeTabs.Items[FHotTabIndex].TimerProc;
@@ -4024,6 +5887,18 @@ begin
     Tab := PTOnTab(X, Y);
     if (Tab >= 0) then
     begin
+    
+      if (Button = mbLeft) then
+      begin
+        if Assigned(FOnTabClick) then
+          FOnTabClick(Self, Tab);
+      end
+      else if (Button = mbRight) then
+      begin
+        if Assigned(FOnTabRightClick) then
+          FOnTabRightClick(Self, Tab);
+      end;
+    
       if (Tab <> ActiveTabIndex) and FAdvOfficeTabs.Items[Tab].Enabled then
       begin
         // Select Tab
@@ -4031,7 +5906,7 @@ begin
         ChangeActiveTab(Tab);
         if not (csDesigning in ComponentState) then
         begin
-          if not Assigned(FAdvOfficeTabs.Items[Tab].FTimer) then
+          if not Assigned(FAdvOfficeTabs.Items[Tab].FTimer) and Glow then
           begin
             FAdvOfficeTabs.Items[Tab].FTimer := TTimer.Create(self);
             FAdvOfficeTabs.Items[Tab].FTimer.OnTimer := FAdvOfficeTabs.Items[Tab].TimerProc;
@@ -4043,6 +5918,8 @@ begin
         end;
         //Invalidate;
         InvalidateTab(OldSelTab);        
+        if not Glow then
+          InvalidateTab(Tab);
       end
       else
       begin
@@ -4050,7 +5927,7 @@ begin
         InvalidateTab(-1);
       end;
 
-      if FTabRearrange then
+      if FTabRearrange and (Button = mbLeft) then
         BeginDrag(false,6);
         
     end
@@ -4101,7 +5978,7 @@ begin
         begin
           if (FHotTabIndex < FAdvOfficeTabs.Count) then
           begin
-            if not Assigned(FAdvOfficeTabs.Items[FHotTabIndex].FTimer) then
+            if not Assigned(FAdvOfficeTabs.Items[FHotTabIndex].FTimer) and Glow then
             begin
               FAdvOfficeTabs.Items[FHotTabIndex].FTimer := TTimer.Create(self);
               FAdvOfficeTabs.Items[FHotTabIndex].FTimer.OnTimer := FAdvOfficeTabs.Items[FHotTabIndex].TimerProc;
@@ -4126,7 +6003,7 @@ begin
       begin
         FHotTabIndex := Tab;
         FOldHotTabIndex := FHotTabIndex;
-        if not Assigned(FAdvOfficeTabs.Items[FHotTabIndex].FTimer) then
+        if not Assigned(FAdvOfficeTabs.Items[FHotTabIndex].FTimer) and Glow then
         begin
           FAdvOfficeTabs.Items[FHotTabIndex].FTimer := TTimer.Create(self);
           FAdvOfficeTabs.Items[FHotTabIndex].FTimer.OnTimer := FAdvOfficeTabs.Items[FHotTabIndex].TimerProc;
@@ -4162,7 +6039,7 @@ begin
       begin
         if (FHotTabIndex < FAdvOfficeTabs.Count) then
         begin
-          if not Assigned(FAdvOfficeTabs.Items[FHotTabIndex].FTimer) then
+          if not Assigned(FAdvOfficeTabs.Items[FHotTabIndex].FTimer) and Glow then
           begin
             FAdvOfficeTabs.Items[FHotTabIndex].FTimer := TTimer.Create(self);
             FAdvOfficeTabs.Items[FHotTabIndex].FTimer.OnTimer := FAdvOfficeTabs.Items[FHotTabIndex].TimerProc;
@@ -4213,6 +6090,15 @@ begin
       DrawTabScrollBtnRight;
     end;
     }
+  end
+  else
+  begin
+    if not Glow and (FHotTabIndex >= 0) and (FHotTabIndex < FAdvOfficeTabs.Count) then
+    begin
+      Tab := FHotTabIndex;
+      FHotTabIndex := -1;
+      InvalidateTab(Tab);
+    end;
   end;
 end;
 
@@ -4307,6 +6193,52 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvCustomOfficeTabSet.SelectNextSequentialTab;
+var
+  i, j: Integer;
+  found: Boolean;
+begin
+  if (ActiveTabIndex < 0) then
+    Exit;
+
+  found := False;
+  i := ActiveTabIndex;
+  j := 1;
+  while (j < FAdvOfficeTabs.Count) do
+  begin
+    Inc(i);
+    if (i >= FAdvOfficeTabs.Count) then
+      Break;
+    if (ActiveTabIndex <> i) and FAdvOfficeTabs.Items[i].Visible and FAdvOfficeTabs.Items[i].Enabled then
+    begin
+      ActiveTabIndex := i;
+      found := True;
+      Break;
+    end;
+    Inc(j);
+  end;
+
+  if not found then
+  begin
+    i := ActiveTabIndex;
+    j := 1;
+    while (j < FAdvOfficeTabs.Count) do
+    begin
+      dec(i);
+      if (i >= FAdvOfficeTabs.Count) then
+        Break;
+      if (i < 0) then
+        Break;
+      if (ActiveTabIndex <> i) and FAdvOfficeTabs.Items[i].Visible and FAdvOfficeTabs.Items[i].Enabled then
+      begin
+        ActiveTabIndex := i;
+        Break;
+      end;
+      Inc(j);
+    end;
+  end;
+end;
+
 procedure TAdvCustomOfficeTabSet.SelectNextTab(GoForward: Boolean);
 var
   i, j: Integer;
@@ -4370,17 +6302,15 @@ begin
   if (TabIndex >= 0) and (TabIndex < FAdvOfficeTabs.Count) and (TabIndex <> ActiveTabIndex) then
   begin
     AllowChange := True;
-    if Assigned(FOnChanging) then
-      FOnChanging(Self, ActiveTabIndex, TabIndex, AllowChange);
+
+    DoChanging(ActiveTabIndex, TabIndex, AllowChange);
 
     if not AllowChange then
       Exit;
 
-
     FActiveTabIndex := TabIndex;
 
-    if Assigned(FOnChange) then
-      FOnChange(Self);
+    DoChange;
 
     if (csDesigning in ComponentState) and not (csLoading in ComponentState) then
     begin
@@ -4580,7 +6510,7 @@ end;
 
 function TAdvCustomOfficeTabSet.GetTabRect(StartIndex, TabIndex: Integer; ConsiderTabScroller: Boolean): TRect;
 var
-  i, TbW, TbH, j, Sp, fdW, ImgTxtSp: Integer;
+  i, TbW, TbH, j, Sp, fdW, ImgTxtSp, ImgW, ImgH: Integer;
   R, CR, R2: TRect;
   TabAppearance: TCustomTabAppearance;
   Pic: TGDIPPicture;
@@ -4607,7 +6537,9 @@ begin
         TabAppearance := FCurrentOfficeTabSetStyler.TabAppearance;
 
         Canvas.Font.Assign(TabAppearance.Font);
-
+        ImgW := 0;
+        ImgH := 0;
+        
         if (TabPosition in [tpTop, tpBottom]) then
         begin
           if FUseMaxSpace then
@@ -4621,7 +6553,7 @@ begin
           else
             R2 := Rect(0, 0, 0, 0);
           //R2 := DrawVistaText(Canvas, R2, FAdvOfficeTabs.Items[i].Caption, Canvas.Font, FAdvOfficeTabs.Items[PageIndex].Enabled, False);
-          TbW := TabSettings.LeftMargin + R2.Right+ fdW + TabSettings.RightMargin;
+          TbW := GetLeftRoundingOffset + TabSettings.LeftMargin + R2.Right+ fdW + TabSettings.RightMargin + GetRightRoundingOffset;
 
           if FAdvOfficeTabs.Items[i].Enabled or FAdvOfficeTabs.Items[i].DisabledPicture.Empty then
             Pic := FAdvOfficeTabs.Items[i].Picture
@@ -4631,7 +6563,8 @@ begin
           if Assigned(Pic) and not Pic.Empty then
           begin
             Pic.GetImageSizes;
-            TbW := TbW + Pic.Width + ImgTxtSp;
+            //TbW := TbW + Pic.Width + ImgTxtSp;
+            ImgW := Pic.Width;
           end
           else
           if (Assigned(FImages) or Assigned(DisabledImages)) and (FAdvOfficeTabs.Items[i].ImageIndex >= 0) then
@@ -4639,20 +6572,43 @@ begin
             if FAdvOfficeTabs.Items[i].Enabled then
             begin
               if Assigned(FImages) then
-                TbW := TbW + FImages.Width + ImgTxtSp;
+              begin
+                //TbW := TbW + FImages.Width + ImgTxtSp;
+                ImgW := FImages.Width;
+              end;
             end
             else
             begin
               if Assigned(FDisabledImages) then
-                TbW := TbW + FDisabledImages.Width + ImgTxtSp
+              begin
+                //TbW := TbW + FDisabledImages.Width + ImgTxtSp
+                ImgW := FDisabledImages.Width;
+              end
               else if Assigned(FImages) then
-                TbW := TbW + FImages.Width + ImgTxtSp;
+              begin
+                //TbW := TbW + FImages.Width + ImgTxtSp;
+                ImgW := FImages.Width;
+              end;
             end;
           end;
 
-          if (ButtonSettings.CloseButton and CloseOnTab) then
+          case TabSettings.ImagePosition of
+            ipTop, ipBottom:
+            begin
+              // do nothing
+            end;
+            ipLeft, ipRight:
+            begin
+              TbW := TbW + ImgW + ImgTxtSp;
+            end;
+          end;
+                    
+          if (ButtonSettings.CloseButton and CloseOnTab and AdvOfficeTabs[i].ShowClose) then
             TbW := Tbw + TabBUTTON_SIZE + 4;
 
+          if (TabSettings.Width > 0) then
+            TbW := TabSettings.Width;
+                        
           if ((CR.Left + TbW) > (CR.Right - ADVPAGE_OFFSET)) and (not ConsiderTabScroller or (FTabScroller.Visible and(i = TabIndex) and (FTabScroller.Position <> TabIndex))) then
             Break;
 
@@ -4698,8 +6654,10 @@ begin
           if Assigned(Pic) and not Pic.Empty then
           begin
             Pic.GetImageSizes;
-            TbW := TbW + Pic.Height + ImgTxtSp;
-            TbH := Max(TbH, Pic.Height);
+            //TbW := TbW + Pic.Height + ImgTxtSp;
+            //TbH := Max(TbH, Pic.Height);
+            ImgW := Pic.Width;
+            ImgH := Pic.Height;
           end
           else
           if (Assigned(FImages) or Assigned(DisabledImages)) and (FAdvOfficeTabs.Items[i].ImageIndex >= 0) then
@@ -4708,22 +6666,40 @@ begin
             begin
               if Assigned(FImages) then
               begin
-                TbW := TbW + FImages.Height + ImgTxtSp;
-                TbH := Max(TbH, FImages.Height);
+                //TbW := TbW + FImages.Height + ImgTxtSp;
+                //TbH := Max(TbH, FImages.Height);
+                ImgW := FImages.Width;
+                ImgH := FImages.Height;
               end;  
             end
             else
             begin
               if Assigned(FDisabledImages) then
               begin
-                TbW := TbW + FDisabledImages.Height + ImgTxtSp;
-                TbH := Max(TbH, FDisabledImages.Height);
+                //TbW := TbW + FDisabledImages.Height + ImgTxtSp;
+                //TbH := Max(TbH, FDisabledImages.Height);
+                ImgW := FDisabledImages.Width;
+                ImgH := FDisabledImages.Height;
               end
               else if Assigned(FImages) then
               begin
-                TbW := TbW + FImages.Height + ImgTxtSp;
-                TbH := Max(TbH, FImages.Height);
+                //TbW := TbW + FImages.Height + ImgTxtSp;
+                //TbH := Max(TbH, FImages.Height);
+                ImgW := FImages.Width;
+                ImgH := FImages.Height;
               end;
+            end;
+          end;
+
+          case TabSettings.ImagePosition of
+            ipTop, ipBottom:
+            begin
+              TbH := Tbh + ImgH + ImgTxtSp;
+            end;
+            ipLeft, ipRight:
+            begin
+              TbW := TbW + ImgW + ImgTxtSp;
+              TbH := Max(TbH, ImgH);
             end;
           end;
 
@@ -4731,6 +6707,9 @@ begin
 
           if not RotateTabLeftRight then
           begin
+            if (TabSettings.Width > 0) then
+              TbH := TabSettings.Width;
+                        
             if ((CR.Top + TbH) > (CR.Bottom - ADVPAGE_OFFSET)) and (not ConsiderTabScroller or (FTabScroller.Visible and(i = TabIndex) and (FTabScroller.Position <> TabIndex))) then
               Break;
 
@@ -4754,8 +6733,12 @@ begin
           end
           else
           begin
-            if (ButtonSettings.CloseButton and CloseOnTab) then
+            TbW := TbW + GetLeftRoundingOffset + GetRightRoundingOffset;
+            if (ButtonSettings.CloseButton and CloseOnTab and AdvOfficeTabs[i].ShowClose) then
               TbW := Tbw + TabBUTTON_SIZE + 4;
+              
+            if (TabSettings.Width > 0) then
+              TbW := TabSettings.Width;
 
             if ((CR.Top + TbW) > (CR.Bottom - ADVPAGE_OFFSET)) and (not ConsiderTabScroller or (FTabScroller.Visible and(i = TabIndex) and (FTabScroller.Position <> TabIndex))) then
               Break;
@@ -4831,7 +6814,7 @@ begin
   if (TabIndex >= 0) and (TabIndex < FAdvOfficeTabs.Count) then
   begin
     R := GetTabRect(TabIndex);
-    if (TabIndex = ActiveTabIndex) and (ActiveTabIndex >= 0) and CloseOnTab then
+    if (TabIndex = ActiveTabIndex) and (ActiveTabIndex >= 0) and CloseOnTab and CanShowCloseButton then
     begin
       CloseBtnR := GetCloseButtonRect;
       if (TabPosition in [tpTop, tpBottom]) or not RotateTabLeftRight then
@@ -4868,7 +6851,25 @@ begin
       end;
     end
     else
-      InvalidateRect(Handle, @R, True);
+    begin
+      if UseOldDrawing then
+      begin
+        case TabPosition of
+          tpTop, tpBottom: R.Right := R.Right + 2;
+          tpLeft:
+          begin
+            if RotateTabLeftRight then
+              R.Top := R.Top - 2
+            else
+              R.Bottom := R.Bottom + 2
+          end;
+          tpRight: R.Bottom := R.Bottom + 2
+        end;
+        InvalidateRect(Handle, @R, True);
+      end
+      else
+        InvalidateRect(Handle, @R, True);
+    end;
   end
   else
   begin
@@ -4931,7 +6932,7 @@ var
     while (i < FAdvOfficeTabs.Count) do
     begin
       R := GetTabRect(i, LastVisTab, False);
-      if (R.Left > -1) and (R.Right > -1) then
+      if ((R.Left > -1) and (R.Right > -1)) or ((TabPosition in [tpLeft, tpRight]) and ((R.Top > -1) and (R.Bottom > -1))) then
       begin
         Result := j; //i;
         AnyTabVisible := True;
@@ -4950,7 +6951,8 @@ var
 begin
   AnyTabVisible := False;
   FUseMaxSpace := False;
-  FTabScroller.Visible := False;
+  if not FButtonSettings.ScrollButtonsAlways then
+    FTabScroller.Visible := False;
   FTabScroller.Min := 0;
   FTabScroller.Max := GetScrollMax;
   if (FTabScroller.Max = 0) and not AnyTabVisible then
@@ -4980,7 +6982,7 @@ begin
       end;
     end;
 
-    if (GetTabRect(j).Right = -1) then
+    if (GetTabRect(j).Right = -1) and (FTabScroller.Position > 0) then
     begin
       FUseMaxSpace := True;
       FTabScroller.Max := GetScrollMax;
@@ -4988,7 +6990,7 @@ begin
         FUseMaxSpace := False;
     end;
   end;
-  FTabScroller.Visible := FTabScroller.Min < FTabScroller.Max;
+  FTabScroller.Visible := (FTabScroller.Min < FTabScroller.Max) or ButtonSettings.ScrollButtonsAlways;
   if (FTabScroller.Position > FTabScroller.Max) then
     FTabScroller.Position := FTabScroller.Max;
 
@@ -5029,6 +7031,12 @@ begin
     Canvas.Pen.Color := FCurrentOfficeTabSetStyler.ButtonBorderColor;
     Canvas.RoundRect(R.Left, R.Top, R.Right, R.Bottom, 5, 5);
   end;
+end;
+
+procedure TAdvCustomOfficeTabSet.EndUpdate;
+begin
+  if FUpdateCount > 0 then
+    dec(FUpdateCount);
 end;
 
 //------------------------------------------------------------------------------
@@ -5106,7 +7114,11 @@ begin
           tpTop:
           begin
             Result := GetTabRect(ActiveTabIndex);
-            Result.Left := Result.Right - TabBUTTON_SIZE - 4;
+            if (CloseOnTabPosition = cpRight) then
+              Result.Left := Result.Right - TABBUTTON_SIZE - 4 - GetRightRoundingOffset
+            else //CloseOnTabPosition = cpLeft
+              Result.Left := Result.Left + 4 + GetLeftRoundingOffset;
+
             Result.Right := Result.Left + TabBUTTON_SIZE;
             Result.Bottom := Result.Bottom - 5;
             Result.Top := Result.Bottom - TabBUTTON_SIZE;
@@ -5114,7 +7126,11 @@ begin
           tpBottom:
           begin
             Result := GetTabRect(ActiveTabIndex);
-            Result.Left := Result.Right - TabBUTTON_SIZE - 4;
+            if (CloseOnTabPosition = cpRight) then
+              Result.Left := Result.Right - TabBUTTON_SIZE - 4 - GetRightRoundingOffset
+            else //CloseOnTabPosition = cpLeft
+              Result.Left := Result.Left + 4 + GetLeftRoundingOffset;
+
             Result.Right := Result.Left + TabBUTTON_SIZE;
             Result.Top := Result.Top + 5;
             Result.Bottom := Result.Top + TabBUTTON_SIZE;
@@ -5126,14 +7142,22 @@ begin
               Result := GetTabRect(ActiveTabIndex);
               Result.Right := Result.Right - 5;
               Result.Left := Result.Right - TabBUTTON_SIZE;
-              Result.Top := Result.Top + 4;
+              if (CloseOnTabPosition = cpRight) then
+                Result.Top := Result.Top + 4 + GetRightRoundingOffset
+              else
+                Result.Top := Result.Bottom - TABBUTTON_SIZE - 4 - GetLeftRoundingOffset;
+
               Result.Bottom := Result.Top + TabBUTTON_SIZE;
             end
             else
             begin
               Result := GetTabRect(ActiveTabIndex);
               i := (Result.Bottom - Result.Top - TabBUTTON_SIZE) div 2;
-              Result.Left := Result.Right - TabBUTTON_SIZE - 5;
+
+              if (CloseOnTabPosition = cpRight) then
+                Result.Left := Result.Right - TabBUTTON_SIZE - 5
+              else //CloseOnTabPosition = cpLeft
+                Result.Left := Result.Left + 4;
               Result.Right := Result.Left + TabBUTTON_SIZE;
               Result.Top := Result.Top + i;
               Result.Bottom := Result.Top + TabBUTTON_SIZE;
@@ -5146,14 +7170,21 @@ begin
               Result := GetTabRect(ActiveTabIndex);
               Result.Left := Result.Left + 5;
               Result.Right := Result.Left + TabBUTTON_SIZE;
-              Result.Bottom := Result.Bottom - 4;
+              if (CloseOnTabPosition = cpRight) then
+                Result.Bottom := Result.Bottom - 4 - GetRightRoundingOffset
+              else
+                Result.Bottom := Result.Top + TABBUTTON_SIZE + 4 + GetLeftRoundingOffset;
               Result.Top := Result.Bottom - TabBUTTON_SIZE;
             end
             else
             begin
               Result := GetTabRect(ActiveTabIndex);
               i := (Result.Bottom - Result.Top - TabBUTTON_SIZE) div 2;
-              Result.Left := Result.Right - TabBUTTON_SIZE - 3;
+
+              if (CloseOnTabPosition = cpRight) then
+                Result.Left := Result.Right - TabBUTTON_SIZE - 3
+              else //CloseOnTabPosition = cpLeft
+                Result.Left := Result.Left + 5;
               Result.Right := Result.Left + TabBUTTON_SIZE;
               Result.Top := Result.Top + i;
               Result.Bottom := Result.Top + TabBUTTON_SIZE;
@@ -5428,6 +7459,7 @@ end;
 procedure TAdvCustomOfficeTabSet.OnTabSettingsChanged(Sender: TObject);
 begin
   InitializeAndUpdateButtons;
+  UpdateTabScroller;
   Invalidate;
 end;
 
@@ -5435,10 +7467,11 @@ end;
 
 procedure TAdvCustomOfficeTabSet.UpdateMe(PropID: integer);
 begin
+  UpdateTabAppearanceOfTabs;
   Invalidate;
 
   case PropID of
-    4: InitializeAndUpdateButtons;
+    2, 4: InitializeAndUpdateButtons;
   end;
 
   if Assigned(AdvOfficeTabSetStyler) then
@@ -5605,7 +7638,7 @@ begin
   if (not FPropertiesLoaded) and not (csDesigning in ComponentState) then
     Exit;
 
-  if ButtonSettings.CloseButton{ and not CloseOnTab} then
+  if ButtonSettings.CloseButton{ and not CloseOnTab} and (CanShowCloseButton or not CloseOnTab) then
   begin
     if (FCloseButton = nil) then
     begin
@@ -5625,6 +7658,9 @@ begin
     FCloseButton.Hint := ButtonSettings.CloseButtonHint;
     FCloseButton.ShowHint := True;
     FCloseButton.Enabled := GetVisibleTabCount > 0; //(ActivePage <> nil);
+    if FCloseButton.Enabled then
+      if not CloseOnTab then
+        FCloseButton.Enabled := CanShowCloseButton;
   end
   else
   if (FCloseButton <> nil) then
@@ -5680,6 +7716,7 @@ begin
     FScrollPrevButton.Hint := ButtonSettings.ScrollButtonPrevHint;
     FScrollPrevButton.ShowHint := True;
     FScrollPrevButton.Enabled := FTabScroller.CanGoBack;
+    FScrollPrevButton.RepeatClick := True;
 
     if (FScrollNextButton = nil) then
     begin
@@ -5698,6 +7735,7 @@ begin
     FScrollNextButton.Hint := ButtonSettings.ScrollButtonNextHint;
     FScrollNextButton.ShowHint := True;
     FScrollNextButton.Enabled := FTabScroller.CanGoForward;
+    FScrollNextButton.RepeatClick := True;
   end
   else
   begin
@@ -5717,43 +7755,76 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvCustomOfficeTabSet.BeforeCloseTab(Tab: TOfficeTabCollectionItem; var CloseAction: TCloseAction);
+begin
+
+end;
+
+procedure TAdvCustomOfficeTabSet.BeginUpdate;
+begin
+  inc(FUpdateCount);
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomOfficeTabSet.CanCloseTab(TabIndex: Integer;
+  var CloseAction: TCloseAction): Boolean;
+begin
+  Result := False;
+  if (ActiveTabIndex >= 0) then
+  begin
+    Result := True;
+    if Assigned(FOnTabClose) then
+      FOnTabClose(Self, ActiveTabIndex, Result);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvCustomOfficeTabSet.OnCloseButtonClick(Sender: TObject);
 var
   Allow: Boolean;
   ActTabIndex: Integer;
   ActItem: TOfficeTabCollectionItem;
+  ca: TCloseAction;
 begin
   if (ActiveTabIndex >= 0) then
   begin
-    Allow := True;
-    if Assigned(FOnTabClose) then
-      FOnTabClose(Self, ActiveTabIndex, Allow);
+    ca := caFree;
+    Allow := CanCloseTab(ActiveTabIndex, ca);
 
-    if Allow then
+    if Allow and (ca <> caNone) then
     begin
       ActTabIndex := ActiveTabIndex;
-      SelectNextTab(True);
+      //SelectNextTab(True);
+      SelectNextSequentialTab;
       ActItem := FAdvOfficeTabs.Items[ActiveTabIndex];
       InvalidateTab(-1);
 
-      BeforeCloseTab(FAdvOfficeTabs.Items[ActTabIndex]);
+      BeforeCloseTab(FAdvOfficeTabs.Items[ActTabIndex], ca);
 
-      if FreeOnClose then
+      if FreeOnClose and (ca = caFree) then
       begin
         if Assigned(ActItem) and (ActItem <> FAdvOfficeTabs.Items[ActTabIndex]) then
         begin
+          //if Assigned(FAdvOfficeTabs[ActTabIndex].FOnDestroyForm) then
+          //  FAdvOfficeTabs[ActTabIndex].FOnDestroyForm(FAdvOfficeTabs[ActTabIndex]);
+
           FAdvOfficeTabs.Items[ActTabIndex].Free;
           FActiveTabIndex := -1;
           ActiveTabIndex := ActItem.Index;
         end
         else
         begin
+          //if Assigned(FAdvOfficeTabs[ActTabIndex].FOnDestroyForm) then
+          //  FAdvOfficeTabs[ActTabIndex].FOnDestroyForm(FAdvOfficeTabs[ActTabIndex]);
+
           FAdvOfficeTabs.Items[ActTabIndex].Free;
           ActiveTabIndex := -1;
         end;  
       end
-      else
-        FAdvOfficeTabs.Items[ActTabIndex].visible := False;
+      else if not (ca = caMinimize) then
+        FAdvOfficeTabs.Items[ActTabIndex].Visible := False;
 
       UpdateTabScroller;
     end;
@@ -5791,6 +7862,7 @@ begin
         MenuItem.RadioItem := True;
         MenuItem.Checked := ActiveTabIndex = I;
         MenuItem.Tag := I;
+        MenuItem.ImageIndex := FAdvOfficeTabs.Items[I].ImageIndex;
         MenuItem.OnClick := OnTabListMenuClick;
         TabListMenu.Items.Add(MenuItem);
       end;
@@ -5873,13 +7945,6 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvCustomOfficeTabSet.BeforeCloseTab(Tab: TOfficeTabCollectionItem);
-begin
-
-end;
-
-//------------------------------------------------------------------------------
-
 procedure TAdvCustomOfficeTabSet.DragOver(Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 var
@@ -5887,9 +7952,10 @@ var
   i: integer;
 begin
   inherited;
-  Accept := False;
-  if Source = self then
-  begin
+  
+  if (Source = self) and (TabRearrange) then
+  begin     
+    Accept := False;
     P.X:= X;
     P.Y:= Y;
     if PtInRect(GetTabsArea, p) then
@@ -5910,18 +7976,147 @@ var
   aItem: TOfficeTabCollectionItem;
 begin
   inherited;
-  P.X := X;
-  P.Y := Y;
-  i := PTOnTab(X, Y);
 
-  if (i >= 0) and (i <> ActiveTabIndex) and (ActiveTabIndex >= 0) and (AdvOfficeTabs.Count > 0) then
+  if (Source = Self) and (TabRearrange) then
   begin
-    aItem := AdvOfficeTabs.Items[ActiveTabIndex];
-    OldIndex := aItem.Index;
-    AdvOfficeTabs.Move(aItem.Index, i);
-    ActiveTabIndex := aItem.Index;
-    if Assigned(FOnTabMoved) then
-      FOnTabMoved(self, OldIndex, i);
+    P.X := X;
+    P.Y := Y;
+    i := PTOnTab(X, Y);
+
+    if (i >= 0) and (i <> ActiveTabIndex) and (ActiveTabIndex >= 0) and (AdvOfficeTabs.Count > 0) then
+    begin
+      aItem := AdvOfficeTabs.Items[ActiveTabIndex];
+      OldIndex := aItem.Index;
+      AdvOfficeTabs.Move(aItem.Index, i);
+      ActiveTabIndex := aItem.Index;
+      if Assigned(FOnTabMoved) then
+        FOnTabMoved(self, OldIndex, i);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomOfficeTabSet.CanShowCloseButton: Boolean;
+begin
+  Result := ButtonSettings.CloseButton;
+  if (ActiveTabIndex >= 0) and (ActiveTabIndex < AdvOfficeTabs.Count) then
+    Result := AdvOfficeTabs[ActiveTabIndex].ShowClose and Result;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomOfficeTabSet.SetCloseOnTabPosition(
+  const Value: TCloseOnTabPos);
+begin
+  if (FCloseOnTabPosition <> Value) then
+  begin
+    FCloseOnTabPosition := Value;
+    InitializeAndUpdateButtons;
+    Invalidate;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomOfficeTabSet.GetLeftRoundingOffset: Integer;
+begin
+  Result := 0;
+  if (TabSettings.Shape in [tsLeftRamp, tsLeftRightRamp]) and not UseOldDrawing and not ((TabPosition in [tpLeft, tpRight]) and not RotateTabLeftRight) then
+    Result := TabSettings.Rounding * 2 + 5;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomOfficeTabSet.GetRightRoundingOffset: Integer;
+begin
+  Result := 0;
+  if (TabSettings.Shape in [tsRightRamp, tsLeftRightRamp]) and not UseOldDrawing and not ((TabPosition in [tpLeft, tpRight]) and not RotateTabLeftRight) then
+    Result := TabSettings.Rounding * 2 + 5;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomOfficeTabSet.IsActiveTabNeighbour(
+  TabIndex: Integer): Integer;
+var
+  i: Integer;  
+begin
+  Result := 0;
+  if (TabIndex = ActiveTabIndex) or (TabIndex < 0) or (TabIndex >= AdvOfficeTabs.Count) then
+    Exit;
+
+  if (TabIndex < ActiveTabIndex) then
+  begin
+    for i:= ActiveTabIndex - 1 downto TabIndex do
+    begin
+      if AdvOfficeTabs[i].Visible then
+      begin
+        if (i = TabIndex) then
+          Result := -1;
+        Break;
+      end;
+    end;
+  end
+  else // if (TabIndex > ActiveTabIndex) then
+  begin
+    for i:= ActiveTabIndex + 1 to TabIndex do
+    begin
+      if AdvOfficeTabs[i].Visible then
+      begin
+        if (i = TabIndex) then
+          Result := 1;
+        Break;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomOfficeTabSet.UpdateTabAppearanceOfTabs;
+var
+  i: Integer;
+begin
+  if not (csDesigning in ComponentState) or not Assigned(FCurrentOfficeTabSetStyler) then
+    Exit;
+
+  for i := 0 to AdvOfficeTabs.Count -1 do
+  begin
+    if not AdvOfficeTabs[i].UseTabAppearance then
+      AdvOfficeTabs[i].TabAppearance.Assign(FCurrentOfficeTabSetStyler.TabAppearance);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomOfficeTabSet.UseOldDrawing: Boolean;
+begin
+  Result := (TabSettings.Shape = tsRectangle) and (TabSettings.Rounding = 1);
+  if not Result and (TabPosition in [tpLeft, tpRight]) and not RotateTabLeftRight then
+    Result := (TabSettings.Rounding = 1);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomOfficeTabSet.WMLButtonDblClk(
+  var Message: TWMLButtonDblClk);
+var
+  Tab: integer;
+  p: TPoint;
+begin
+  inherited;
+
+  p := Point(Message.XPos, Message.YPos);
+
+  if PtInRect(GetTabsArea, p) then
+  begin
+    Tab := PTOnTab(p.X, p.Y);
+    if (Tab >= 0) then
+    begin
+      if Assigned(FOnTabDblClick) then
+        FOnTabDblClick(Self, Tab);
+    end;
   end;
 end;
 
@@ -5955,6 +8150,7 @@ begin
   FScrollButtonNextHint := 'Next';
   FCloseButtonHint := 'Close';;
   FTabListButtonHint := 'TabList';
+  FScrollButtonsAlways := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -5980,6 +8176,7 @@ begin
     FScrollButtonPrevPicture.Assign((Source as TTabSetButtonSettings).FScrollButtonPrevPicture);
     FTabListButtonPicture.Assign((Source as TTabSetButtonSettings).FTabListButtonPicture);
     FCloseButtonPicture.Assign((Source as TTabSetButtonSettings).FCloseButtonPicture);
+    FScrollButtonsAlways := (Source as TTabSetButtonSettings).ScrollButtonsAlways;
   end
   else
     inherited Assign(Source);
@@ -6056,6 +8253,18 @@ procedure TTabSetButtonSettings.SetScrollButtonPrevPicture(
 begin
   FScrollButtonPrevPicture.Assign(Value);
   Changed;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTabSetButtonSettings.SetScrollButtonsAlways(
+  const Value: Boolean);
+begin
+  if (FScrollButtonsAlways <> Value) then
+  begin
+    FScrollButtonsAlways := Value;
+    Changed;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -6149,6 +8358,7 @@ begin
   ChildForm.OnActivate := OnChildFormActivate;
   ChildForm.OnDestroy := OnChildFormDestroy;
 
+
   ActiveTabIndex := Result.Index;
   if not (csLoading in ComponentState) then
     InitializeAndUpdateButtons;
@@ -6161,6 +8371,7 @@ var
   OldActiveTabIndex: Integer;
 begin
   OldActiveTabIndex := ActiveTabIndex;
+
   inherited;
 
   if (TabIndex >= 0) and (TabIndex < FAdvOfficeTabs.Count) and (TabIndex <> OldActiveTabIndex) then
@@ -6172,23 +8383,56 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TAdvOfficeMDITabSet.Change;
+var
+  AChildForm, AForm: TForm;
+  i: integer;
 begin
+  if (ActiveTabIndex < 0) or (ActiveTabIndex >= FAdvOfficeTabs.Count) then
+    Exit;
+
+  AChildForm := FAdvOfficeTabs[ActiveTabIndex].FChildForm;
+  if Assigned(AChildForm) then
+  begin
+    with TForm(GetParentForm(Self)) do
+      for i := 0 to MDIChildCount-1 do
+      begin
+        AForm := MDIChildren[i];
+        if (AForm <> AChildForm) then
+          if (GetNextWindow(AForm.Handle, GW_HWNDNEXT) = AChildForm.Handle) then
+          begin
+            SendMessage(ClientHandle, WM_MDINEXT, AForm.Handle,0);
+            Break;
+          end;
+      end;
+
+    with AChildForm do
+    begin
+      if (Windowstate = WSMinimized) then
+        WindowState := WSNormal;
+      SetFocus;
+      Visible := True;
+      BringToFront;
+    end;
+  end;
+end;
+
+{begin
   if (ActiveTabIndex < 0) or (ActiveTabIndex >= FAdvOfficeTabs.Count) then
     Exit;
 
   if Assigned(FAdvOfficeTabs[ActiveTabIndex].FChildForm) then
   begin
-    SendMessage(FAdvOfficeTabs[ActiveTabIndex].FChildForm.Handle, WM_NCActivate, wa_Active, 0);
-    FAdvOfficeTabs[ActiveTabIndex].FChildForm.SetFocus;
-    FAdvOfficeTabs[ActiveTabIndex].FChildForm.BringToFront;
+    SendMessage(FAdvOfficeTabs[ActiveTabIndex].FChildForm.Handle, WM_NCActivate, WA_ACTIVE, 0);
 
     if FAdvOfficeTabs[ActiveTabIndex].FChildForm.Windowstate = WSMinimized then
-       FAdvOfficeTabs[ActiveTabIndex].FChildForm.WindowState := WSNormal;
+      FAdvOfficeTabs[ActiveTabIndex].FChildForm.WindowState := WSNormal;
 
-    FAdvOfficeTabs[ActiveTabIndex].FChildForm.visible:=true;
+    FAdvOfficeTabs[ActiveTabIndex].FChildForm.BringToFront;
+    FAdvOfficeTabs[ActiveTabIndex].FChildForm.SetFocus;
+    FAdvOfficeTabs[ActiveTabIndex].FChildForm.Visible := True;
   end;
 end;
-
+}
 //------------------------------------------------------------------------------
 
 function TAdvOfficeMDITabSet.GetAdvOfficeTabCount: integer;
@@ -6243,7 +8487,7 @@ procedure TAdvOfficeMDITabSet.OnChildFormDestroy(Sender: TObject);
 var
   i, j :integer;
 begin
-  if not (csDestroying in ComponentState) and not FInternalDelete and (Sender is TForm) and (TForm(Sender).FormStyle = fsMDIChild) then
+  if not (csDestroying in ComponentState) and (Sender is TForm) and (TForm(Sender).FormStyle = fsMDIChild) then
   begin
     j := -1;
     for i:= 0 to FAdvOfficeTabs.count-1 do
@@ -6261,7 +8505,7 @@ begin
       FAdvOfficeTabs[j].FOnDestroyForm(FAdvOfficeTabs[j].FChildForm);
     end;
 
-    if (j >= 0) then
+    if (j >= 0) and not FInternalDelete then
       FAdvOfficeTabs.Delete(j);
   end;
 end;
@@ -6280,23 +8524,83 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvOfficeMDITabSet.BeforeCloseTab(
-  Tab: TOfficeTabCollectionItem);
+function TAdvOfficeMDITabSet.GetTab(AChild: TForm): TOfficeTabCollectionItem;
+var
+  i: integer;
 begin
-  inherited;
-  if not Assigned(Tab) or not Assigned(Tab.FChildForm) then
+  Result := nil;
+  for I := 0 to FAdvOfficeTabs.Count - 1 do
+  begin
+    if FAdvOfficeTabs.Items[I].FChildForm = AChild then
+    begin
+      Result := FAdvOfficeTabs.Items[I];
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvOfficeMDITabSet.CanCloseTab(TabIndex: Integer;
+  var CloseAction: TCloseAction): Boolean;
+var
+  Tab: TOfficeTabCollectionItem;
+begin
+  Result := inherited CanCloseTab(TabIndex, CloseAction);
+  if not Result or (TabIndex < 0) or (TabIndex >= FAdvOfficeTabs.Count) then
     Exit;
+
+  Tab := FAdvOfficeTabs.Items[TabIndex];
+  if not Assigned(Tab.FChildForm) then
+    Exit;
+
+  if Assigned(Tab.FChildForm.OnCloseQuery) then
+  begin
+    Tab.FChildForm.OnCloseQuery(Tab.FChildForm, Result);
+  end;
+
+  if not Result then
+    Abort;
 
   if FreeOnClose then
   begin
-    FInternalDelete := True;
-    Tab.FChildForm.Free;
-    FInternalDelete := False;
+    if Assigned(Tab.FChildForm.OnClose) then
+    begin
+      Tab.FChildForm.OnClose(Tab.FChildForm, CloseAction);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvOfficeMDITabSet.BeforeCloseTab(
+  Tab: TOfficeTabCollectionItem; var CloseAction: TCloseAction);
+begin
+  if not Assigned(Tab) or not Assigned(Tab.FChildForm) then
+  begin
+    inherited;
+    Exit
+  end;
+
+  if FreeOnClose then
+  begin
+    case CloseAction of
+      caFree:
+      begin
+        //FInternalDelete := True;
+        Tab.FChildForm.Release;
+        CloseAction := caMinimize;  // just to avoid deletion of tab that should be delete on form's destoy
+        //FInternalDelete := False;
+      end;
+      caMinimize: Tab.FChildForm.Windowstate := WSMinimized;
+      caHide: Tab.FChildForm.visible := False;
+    end;
   end
   else
   begin
     Tab.FChildForm.visible := False;
-  end;  
+  end;
+  
+  inherited;
 end;
 
 {$IFDEF FREEWARE}

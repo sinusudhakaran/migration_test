@@ -266,7 +266,7 @@ begin
   else raise ETokenException.Create(Token,0,0);
 end;
 
-procedure ArrangeTokenTable(const Data: ParrayOfByte;
+procedure ArrangeTokenTableAndArray(const Data: ParrayOfByte;
                               var tPos: integer;
                               const InsRowPos, InsRowOffset, CopyRowOffset: integer;
                               const InsColPos, InsColOffset, CopyColOffset: integer;
@@ -311,8 +311,9 @@ begin;
     end
 
     else if Token in tk_Operand then ArrangeTokenOperand(Token, Data, tPos, InsRowPos, InsRowOffset, CopyRowOffset, InsColPos, InsColOffset, CopyColOffset, SheetInfo, InsertingSheet, SharedRow, SharedCol, AllowedAbsolute)
-    else if Token=tk_Table then ArrangeTokenTable(Data, tPos, InsRowPos, InsRowOffset, CopyRowOffset, InsColPos, InsColOffset, CopyColOffset, SheetInfo, InsertingSheet, SharedRow, SharedCol, AllowedAbsolute)
+    else if Token=tk_Table then ArrangeTokenTableAndArray(Data, tPos, InsRowPos, InsRowOffset, CopyRowOffset, InsColPos, InsColOffset, CopyColOffset, SheetInfo, InsertingSheet, SharedRow, SharedCol, AllowedAbsolute)
     else if Token=tk_MemFunc then inc(tPos, 2+ 1) //GetWord(Data, tPos+1))
+    else if Token=tk_ArrayFormula then ArrangeTokenTableAndArray(Data, tPos, InsRowPos, InsRowOffset, CopyRowOffset, InsColPos, InsColOffset, CopyColOffset, SheetInfo, InsertingSheet, SharedRow, SharedCol, AllowedAbsolute)
     else raise ETokenException.Create(Token,0,0);
 
   end;

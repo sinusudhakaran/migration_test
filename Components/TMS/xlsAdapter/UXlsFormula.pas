@@ -34,6 +34,7 @@ type
     procedure ArrangeSharedTokens;
     procedure SetTableRecord(const Value: TTableRecord);
     procedure SetArrayRecord(const Value: TArrayRecord);
+    procedure ClearResult;
   protected
     function DoCopyTo: TBaseRecord; override;
 
@@ -42,9 +43,9 @@ type
     constructor Create(const aId: word; const aData: PArrayOfByte; const aDataSize: integer);override;
     constructor CreateFromData(const aId, aDataSize, aRow, aCol, aXF: word; const aValue: variant);
     destructor Destroy;override;
-    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount:integer;  const SheetInfo: TSheetInfo);override;
+    procedure ArrangeInsertRowsAndCols(const aRowPos, aRowCount, aColPos, aColCount:integer; const SheetInfo: TSheetInfo);override;
     procedure ArrangeCopyRowsAndCols(const RowOffset, ColOffset: integer);override;
-    procedure SaveToStream(const Workbook: TStream); override;
+    procedure SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean); override;
 
     function TotalSize: integer;override;
     function TotalSizeNoHeaders: integer;override;
@@ -105,7 +106,7 @@ type
 
 
 implementation
-uses UxlsEncodeFormula, UXlsWorkbookGlobals;
+uses UXlsEncodeFormula, UXlsWorkbookGlobals;
 
 { TFormulaRecord }
 
@@ -151,11 +152,6 @@ begin
     end; //case
   end;
 
-  FillChar(Data^[6],8,0); //clear result
-  Data^[6]:=2; //error value
-  SetWord(Data,12,$FFFF);
-  FillChar(Data^[16],4,0); //clear chn
-
   // For automatic recalc on Excel97...
   Data^[14]:=Data^[14] or 2;
 end;
@@ -198,7 +194,7 @@ begin
       FormulaValue:=aValue;
     }
     end;
-    
+
     varBoolean	:
     begin
       Data[6]:=1;
@@ -212,6 +208,16 @@ begin
   end; //case
 
  end;
+
+procedure TFormulaRecord.ClearResult;
+begin
+  FillChar(Data^[6],8,0); //clear result
+  Data^[6]:=2; //error value
+  SetWord(Data,12,$FFFF);
+  FillChar(Data^[16],4,0); //clear chn
+
+  FormulaValue := unassigned;
+end;
 
 procedure TFormulaRecord.ArrangeCopyRowsAndCols(const RowOffset, ColOffset: integer);
 const
@@ -269,11 +275,12 @@ begin
   Result:=FormulaValue;
 end;
 
-procedure TFormulaRecord.SaveToStream(const Workbook: TStream);
+procedure TFormulaRecord.SaveToStream(const Workbook: TStream; const NeedsRecalc: boolean);
 begin
+  if (NeedsRecalc) then ClearResult;
   inherited;
-  if FArrayRecord<>nil then FArrayRecord.SaveToStream(Workbook);
-  if FTableRecord<>nil then FTableRecord.SaveToStream(Workbook);
+  if FArrayRecord<>nil then FArrayRecord.SaveToStream(Workbook,  NeedsRecalc);
+  if FTableRecord<>nil then FTableRecord.SaveToStream(Workbook,  NeedsRecalc);
 end;
 
 procedure TFormulaRecord.SetFormulaValue(const v: variant);
@@ -286,6 +293,7 @@ begin
   Result:=inherited DoCopyTo;
   (Result as TFormulaRecord).TableRecord:= (FTableRecord.CopyTo as TTableRecord);
   (Result as TFormulaRecord).ArrayRecord:= (FArrayRecord.CopyTo as TArrayRecord);
+  (Result as TFormulaRecord).ClearResult;
 end;
 
 function TFormulaRecord.TotalSize: integer;
@@ -510,7 +518,7 @@ begin
       DefaultSheet := Range.NameSheetIndex;
 
     DefaultSheetName := TWorkbookGlobals(Globals).SheetName[DefaultSheet];
-    Ps := TParseString.CreateExt(Range.RangeFormula, TWorkbookGlobals(Globals).Names, CellList, true, DefaultSheetName, fmRef);
+    Ps := TParseString.CreateExt(Range.RangeFormula, CellList, true, DefaultSheetName, fmRef);
     try
       Ps.Parse;
       SetLength(Fmla, Ps.TotalSize - 2);

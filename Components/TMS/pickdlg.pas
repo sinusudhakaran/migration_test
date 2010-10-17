@@ -33,7 +33,10 @@ const
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 5; // Minor version nr.
   REL_VER = 0; // Release nr.
-  BLD_VER = 0; // Build nr.
+  BLD_VER = 1; // Build nr.
+
+  // version history
+  // v1.5.0.1 : fixed issue to copy also objects to selectlist
 
 type
   TButtonPosition = (bpBottom,bpRight,bpNone);
@@ -129,10 +132,10 @@ type
     function Execute:integer;
     procedure Show;
     procedure Hide;
-    property SelectIndex:integer read fSelectIndex write fSelectIndex;
-    property SelectString:string read fSelectString;
-    property SelectData:tObject read FSelectData;
-    property SelectList:tstringlist read fSelectList;
+    property SelectIndex:integer read FSelectIndex write fSelectIndex;
+    property SelectString:string read FSelectString;
+    property SelectData:TObject read FSelectData;
+    property SelectList:TStringList read FSelectList;
   published
     {$IFNDEF TMSDOTNET}
     property PickItems:tStringlist read fPickList write SetPickList;
@@ -171,15 +174,15 @@ implementation
 constructor TPickDialog.Create(aOwner: tComponent);
 begin
  inherited Create(aOwner);
- fPickList:=tStringlist.Create;
- fSelectList:=tStringlist.Create;
- fSelectIndex:=-1;
- fSelectString:='';
- fWidth:=280;
- fHeight:= 270;
- fCancelCaption:='Cancel';
- fOkCaption:='OK';
- fCount:=0;
+ FPickList := TStringlist.Create;
+ FSelectList := TStringlist.Create;
+ FSelectIndex:=-1;
+ FSelectString:='';
+ FWidth:=280;
+ FHeight:= 270;
+ FCancelCaption:='Cancel';
+ FOkCaption:='OK';
+ FCount:=0;
 end;
 
 {$IFNDEF TMSDOTNET}
@@ -338,7 +341,9 @@ begin
         for i := 0 to SelectList.Items.Count - 1 do
         begin
           if SelectList.Selected[i] then
-            FSelectList.Add(SelectList.Items[i]);
+          begin
+            FSelectList.AddObject(SelectList.Items[i], SelectList.Items.Objects[i]);
+          end;
         end;
       end;
     end;

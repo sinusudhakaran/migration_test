@@ -129,7 +129,7 @@ type
     procedure DragMouseMove(pt:TPoint;var Allow:boolean; DropFormats: TDropFormats); virtual;
     procedure DragMouseEnter; virtual;
     procedure DragMouseLeave; virtual;
-  published
+
     property AcceptText: Boolean read FAcceptText write FAcceptText;
     property AcceptFiles: Boolean read FAcceptFiles write FAcceptFiles;
     property AcceptURL: Boolean read FAcceptURL write FAcceptURL;

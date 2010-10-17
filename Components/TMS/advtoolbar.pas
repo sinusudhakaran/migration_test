@@ -1,10 +1,9 @@
 {*************************************************************************}
 { TMS ToolBars component                                                  }
 { for Delphi & C++Builder                                                 }
-{ version 2.7                                                             }
 {                                                                         }
 { written by TMS Software                                                 }
-{           copyright © 2006 - 2007                                       }
+{           copyright © 2006 - 2008                                       }
 {           Email : info@tmssoftware.com                                  }
 {           Web : http://www.tmssoftware.com                              }
 {                                                                         }
@@ -30,7 +29,10 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Math, Registry,
   Menus, AdvMenus, Dialogs, Forms, ImgList, CommCtrl, ExtCtrls, ActnList,
-  IniFiles, DB, AdvGlowButton, AdvGDIP, GDIPicture, AdvHintInfo, TypInfo, AdvStyleIF
+  IniFiles, AdvGlowButton, AdvGDIP, GDIPicture, AdvHintInfo, TypInfo, AdvStyleIF
+  {$IFNDEF TMS_STD}
+  , DB
+  {$ENDIF}
   {$IFNDEF TMSDOTNET}
   , AxCtrls
   {$ENDIF};
@@ -57,11 +59,12 @@ const
 
   MDIBTNSIZE = 18; // 20
   SCROLLBTN_WIDTH = 12;
+  TOOLBAR_ROWS = 3;
 
-  MAJ_VER = 2; // Major version nr.
-  MIN_VER = 7; // Minor version nr.
-  REL_VER = 0; // Release nr.
-  BLD_VER = 5; // Build nr.
+  MAJ_VER = 3; // Major version nr.
+  MIN_VER = 1; // Minor version nr.
+  REL_VER = 1; // Release nr.
+  BLD_VER = 0; // Build nr.
 
   // version history
   // 1.0.0.0 : first release
@@ -157,6 +160,7 @@ const
   // 2.6.1.0 : Fixed : support for customize dialog for TAdvGlowButton
   //         : New : delay for showing shortcut hints
   // 2.6.1.1 : Improved : Office 2003 color schemes
+  
   // 2.7.0.0 : Added Unicode support for TAdvToolBar captions
   //           Added Unicode support for TAdvPage tab captions
   //           Added Unicode support for TTabGroup captions
@@ -175,8 +179,118 @@ const
   //         : Improved : handling of shortcut hint display on toolbar
   //         : Improved : design time right-click menu for QAT controls
   // 2.7.0.5 : Fixed : issue with shortcut key handling on QAT
+  // 2.7.5.0 : New : Wizard to create apps or add forms with TAdvToolBarPager
+  
+  // 2.8.0.0 : New : DockMode property added in TAdvToolBar
+  //         : New : Office 2007 style toolbar button sizing control
+  //         : Improved : transparent drawing of TAdvOfficeButton controls on TAdvToolBar
+  // 2.8.0.1 : Fixed : issue with runtime toolbar create & destroy
+  //         : Fixed : painting issue with toolbar container
+  // 2.8.0.2 : Fixed : issue with compact TAdvPage display
+  // 2.8.0.3 : Fixed : issue with TAdvToolBarPager caption centered drawing
+  // 2.8.0.4 : Fixed : issue with dragging form through TAdvToolBarPager caption
+  //         : Fixed : issue with alignment of min,max,close button in TAdvToolBarPager caption
+  // 2.8.1.0 : New : TAdvPageCaption.MinWidth property added
+  // 2.8.1.1 : Fixed : handling style changes for compact toolbars
+  // 2.8.2.0 : New : exposed DoDropDown method for TAdvCustomToolBarButton
+  //         : New : method MoveUpInRUList added in TAdvToolBar
+
+  // 2.9.0.0 : New : AdvPreviewMenu designtime editor
+  //         : New : TAdvToolBarForm
+  //         : New : TAdvOfficeStatusBar
+  //         : New : automatic system font selection support, uses Segoe UI font on Windows Vista
+  // 2.9.0.1 : Fixed : small issue with tab font color setting
+  // 2.9.1.0 : New : submenu selector in TAdvPreviewMenu designer
+  //         : Improved : wizard
+  // 2.9.1.1 : Fixed issue with toolbar size update
+
+  // 3.0.0.0 : New : Notes text with NotesFont in TAdvGlowButton
+  //         : New : Notes text with NotesFont in TAdvMainMenu, TAdvPopupMenu
+  //         : New : Windows Vista color style for TAdvMainMenu, TAdvPopupMenu
+  //         : New : Antialiased menu text drawing
+  //         : Improved : multimonitor support for TAdvToolBarForm
+  //         : Improved : maximize state handling of TAdvToolBarForm
+  //         : Improved : painting of TAdvGlowButton, TAdvContainer
+  //         : Improved : statusbar painting
+  //         : Improved : Windows system menu handling on TAdvToolBarPager Caption
+
+  // 3.0.1.1 : Fixed : issues in AdvMenus & AdvGlowButton
+  // 3.0.1.2 : Fixed : issue with form inheritance and menus
+  // 3.0.5.0 : New : tab handling to TAdvPreviewMenu
+  //         : New : wizard creates Quick Access Toolbar (QAT)
+  //         : Fixed : issue with deleting styler at design time
+  //         : Fixed : issues with actions on TAdvGlowButton
+  //         : Improved : various smaller painting improvements in TAdvGlowButton
+  //         : Improved : TAdvPreviewMenu design time editor
+  //         : Improved : tab key handling in previewmenu
+  // 3.0.6.0 : New : public event OnCompactCloseQuery added in TAdvToolBar
+  // 3.0.6.1 : Fixed : issue with loading position & invisible toolbar controls
+  // 3.0.6.2 : Fixed : issue with toolbar menu positioning with shortcuts on form right-side
+  // 3.0.6.3 : Fixed : small issue with selection of menus on toolbars
+  // 3.0.7.0 : New : mousewheel support to change active toolbar page
+  // 3.0.7.1 : New : toolbar menu supports menu disabled images
+  // 3.0.7.2 : Fixed : issue with optionmenu imagelist images
+  //         : Fixed : repainting issue with TAdvShapeButton
+  //         : Fixed : issue with using TAdvOfficePager on a frame
+  //         : New : exposed the toolbar displayed menu as TAdvToolBar.ActiveMenu
+  // 3.0.8.0 : New : property EnableWheel added in TAdvToolBarPager
+  // 3.0.8.1 : Fixed : issue when using font not installed on system
+  // 3.0.8.2 : Improved : tasCheck style TAdvToolBarButton can have dropdown menu
+  //         : Improved : toolbar & toolbar control persistence
+  // 3.0.8.3 : Fixed : issue with TAdvToolBarForm background painting
+  //         : Fixed : issue with not visible toolbar buttons at design time
+  // 3.0.8.4 : Fixed : issue with toolbar variable size and specific button sizes
+  // 3.0.9.0 : New : method ArrangeToolBars added in TAdvDockPanel
+  // 3.0.9.1 : Fixed : TAdvToolBarContainer transparency issue
+  //         : Improved : AddAdvToolBar function assigns styler automatically
+  // 3.0.9.2 : Fixed : issue with changing Images size in undocked state
+  // 3.0.10.0: New : TAdvToolbarPager.OnTabClick, OnTabDblClick event added
+  //         : New : OnCustomizeClick event added
+  //         : New : ShortCutHintPos shpCenter type added
+  //         : Improved : TAdvToolBarPager auto expands when a tab is clicked in collapsed mode
+  //         : Improved : minor visual details to comply with Microsoft UI guidelines
+  //         : Improved : auto control positioning
+  // 3.0.10.1: Fixed : issue with Window activation after option menu modal dialog use
+  // 3.0.10.2: Fixed : issue with AutoSize = true & AutoPositionControls = true, AutoSize gets priority
+  // 3.1.0.0 : Improved : automatic collaps/expand of the ribbon from double click on page tab
+  //         : Improved : Ctrl-F1 will automatically expand/collaps the ribbon
+  //         : New : property TAdvToolBarPager.Expanded exposed to get minimized/normal state of ribbon
+  //         : New : built-in persistence of ribbon minimized/normal state
+  //         : New : autohide of the ribbon when the ribbon width is below 300 pixels
+  //         : New : automatic tooltips for tabs with truncated caption text
+  //         : New : method exposed to programmatically hide & show shortcut hints
+  //         : New : property CompactShortCutHint to set a separate shortcut hint for a toolbar in compact state
+  //         : New : event OnTabGroupClick
+  //         : Improved : tab scrolling disabled when ribbon is minimized
+  //         : Improved : display of wordwrapped text in TAdvGlowButton
+  //         : Improved : QAT painting
+  //         : Improved : shadow, highlight, gradient painting improvements in ribbon
+  //         : Improved : ribbon can float over form during temporary unhide
+  //         : Improved : ESC key handling
+  //         : Improved : Office 2003 toolbar customizer dialog
+  //         : Improved : automatic sizing and handling of Office 2007 style hints
+
+  // 3.1.0.1 : Improved : multi monitor support
+  //         : Fixed : issue with using two instances of a TAdvToolBarPager on a form
+
+  // 3.1.0.2 : Fixed : issue with toolbar height during minimize with QAT position change
+  //         : Improved : AdvtoolBarButton appearances for Office2007 styles
+  //         : New : osWhidbey style in TAdvMenuOfficeStyler for compatibility with whidbey toolbar style
+
+  // 3.1.0.3 : Improved : display of compact toolbars
+  // 3.1.0.4 : Fixed : Alt key required for switching pages with prefix char
+  //         : Improved : multimonitor support
+  // 3.1.1.0 : New : HidePagesOnDblClick property added
+
+var
+  WM_TBCOMPACTWINHIDE: Word;
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+
   TAdvCustomToolBar = class;
   TAdvDockPanel = class;
   TFloatingWindow = class;
@@ -194,12 +308,14 @@ type
   TCustomTabAppearance = class;
   TTabAppearance = class;
   TVistaBackground = class;
+  TVistaPageBackground = class;
   TQATAppearance = class;
   TVistaTextBackground = class;
   TGroupAppearance = class;
   TCompactWindow = class;
   TAdvPageScrollButton = class;
   TAdvQuickAccessToolBar = class;
+  TMinimizedRibbonWindow = class;
 
   TGradientDirection = (gdHorizontal, gdVertical);
   TDockAlign = (daLeft, daTop, daRight, daBottom);
@@ -216,6 +332,7 @@ type
   //TTabGlowState = (gsHover, gsPush, gsNone);
   TScrollArrow = (saLeft, saTop, saRight, saBottom, saNone);
   TArrowStyle = (asSingle, asDouble, asWithLine);
+  TDockMode = (dmAll, dmAllParentDockPanels, dmParentDockPanelOnly);
 
   TDockableTo = set of TDockAlign;
 
@@ -263,6 +380,7 @@ type
     FGradientDirectionDown: TGradientDirection;
     FGradientDirectionHot: TGradientDirection;
     FGradientDirectionChecked: TGradientDirection;
+    FSystemFont: Boolean;
     procedure Change;
     procedure SetBorderColor(const Value: TColor);
     procedure SetColor(const Value: TColor);
@@ -284,6 +402,7 @@ type
     procedure SetGradientDirectionChecked(const Value: TGradientDirection);
     procedure SetGradientDirectionDown(const Value: TGradientDirection);
     procedure SetGradientDirectionHot(const Value: TGradientDirection);
+    procedure SetSystemFont(const Value: Boolean);
   protected
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property GlyphPosition: TGlyphPosition read FGlyphPosition write SetGlyphPosition default gpLeft;
@@ -313,6 +432,7 @@ type
     property BorderHotColor: TColor read FBorderHotColor write FBorderHotColor default $006A240A;
     property BorderCheckedColor: TColor read FBorderCheckedColor write SetBorderCheckedColor default $006A240A;
     property CaptionFont: TFont read FCaptionFont write SetCaptionFont;
+    property SystemFont: Boolean read FSystemFont write SetSystemFont default true;
     //property GlyphPosition: TGlyphPosition read FGlyphPosition write SetGlyphPosition default gpLeft;
   end;
 
@@ -330,14 +450,51 @@ type
     procedure Changed;
   protected
   public
-    constructor Create; 
-    procedure Assign(Source: TPersistent); override;  
+    constructor Create;
+    procedure Assign(Source: TPersistent); override;
   published
     property Color: TColor read FColor write SetColor;
     property ColorTo: TColor read FColorTo write SetColorTo;
     property Direction: TGradientDirection read FDirection write SetDirection;
     property Steps: Integer read FSteps write SetSteps default 64;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  end;
+
+
+  TMirrorGradient = class(TPersistent)
+  private
+    FColorTo: TColor;
+    FColor: TColor;
+    FOnChange: TNotifyEvent;
+    FColorMirrorTo: TColor;
+    FColorMirror: TColor;
+    procedure SetColor(const Value: TColor);
+    procedure SetColorTo(const Value: TColor);
+    procedure SetColorMirror(const Value: TColor);
+    procedure SetColorMirrorTo(const Value: TColor);
+  protected
+    procedure Changed;
+  public
+    constructor Create;
+    procedure Assign(Source: TPersistent); override;
+  published
+    property Color: TColor read FColor write SetColor;
+    property ColorTo: TColor read FColorTo write SetColorTo;
+    property ColorMirror: TColor read FColorMirror write SetColorMirror;
+    property ColorMirrorTo: TColor read FColorMirrorTo write SetColorMirrorTo;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  end;
+
+  TVistaGradientBackground = class(TGradientBackground)
+  private
+    FMirror: TMirrorGradient;
+    procedure SetMirror(const Value: TMirrorGradient);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+  published
+    property Mirror: TMirrorGradient read FMirror write SetMirror;
   end;
 
   TContainerAppearance = class(TPersistent)
@@ -407,7 +564,7 @@ type
     FBackGroundTransparent: Boolean;
     FBackGroundDisplay: TBackGroundDisplay;
     FBackGround: TBitMap;
-    FColor: TGradientBackground;
+    FColor: TVistaGradientBackground;
     FDockColor: TGradientBackground;
     FInternalAdvMenuStyler: TCustomAdvMenuStyler;
     FAdvMenuStyler: TCustomAdvMenuStyler;
@@ -434,18 +591,20 @@ type
     FUseBevel: Boolean;
     FBorderColorHot: TColor;
     FBorderColor: TColor;
-    FColorHot: TGradientBackground;
+    FColorHot: TVistaGradientBackground;
     FCaptionFont: TFont;
     FTMSStyle: TTMSStyle;
     FContainerAppearance: TContainerAppearance;
     FGlowButtonAppearance: TGlowButtonAppearance;
     FPagerCaption: TVistaTextBackground;
     FTabAppearance: TTabAppearance;
-    FPageAppearance: TVistaBackground;
+    FPageAppearance: TVistaPageBackground;
     FCaptionAppearance: TCaptionAppearance;
     FGroupAppearance: TGroupAppearance;
     FCompactGlowButtonAppearance: TGlowButtonAppearance;
     FQATAppearance: TQATAppearance;
+    FSystemFont: boolean;
+    FQatSharpCurve: boolean;
     procedure OnPagerCaptionChanged(Sender: TObject);
     procedure OnTabAppearanceChanged(Sender: TObject);
     procedure OnPageAppearanceChanged(Sender: TObject);
@@ -457,7 +616,7 @@ type
     procedure SetBackGround(const Value: TBitMap);
     procedure SetBackGroundDisplay(const Value: TBackGroundDisplay);
     procedure SetBackGroundTransparent(const Value: Boolean);
-    procedure SetColor(const Value: TGradientBackground);
+    procedure SetColor(const Value: TVistaGradientBackground);
     procedure SetAdvMenuStyler(const Value: TCustomAdvMenuStyler);
     procedure SetDragGripStyle(const Value: TDragGripStyle);
     procedure SetDragGripImage(const Value: TBitMap);
@@ -479,18 +638,18 @@ type
     procedure SetUseBevel(const Value: Boolean);
     procedure SetBorderColor(const Value: TColor);
     procedure SetBorderColorHot(const Value: TColor);
-    procedure SetColorHot(const Value: TGradientBackground);
+    procedure SetColorHot(const Value: TVistaGradientBackground);
     procedure SetCaptionFont(const Value: TFont);
     procedure SetContainerAppearance(const Value: TContainerAppearance);
     procedure SetGlowButtonAppearance(const Value: TGlowButtonAppearance);
     procedure SetPagerCaption(const Value: TVistaTextBackground);
     procedure SetTabAppearance(const Value: TTabAppearance);
-    procedure SetPageAppearance(const Value: TVistaBackground);
+    procedure SetPageAppearance(const Value: TVistaPageBackground);
     procedure SetGroupAppearance(const Value: TGroupAppearance);
     procedure SetCaptionAppearance(const Value: TCaptionAppearance);
-    procedure SetCompactGlowButtonAppearance(
-      const Value: TGlowButtonAppearance);
+    procedure SetCompactGlowButtonAppearance(const Value: TGlowButtonAppearance);
     procedure SetQATAppearance(const Value: TQATAppearance);
+    procedure SetSystemFont(const Value: boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure BackgroundChanged(Sender: TObject);
@@ -501,7 +660,7 @@ type
 
     property ButtonAppearance: TButtonAppearance read FButtonAppearance write SetTButtonAppearance; // PropID 3
 
-    property Color: TGradientBackground read FColor write SetColor;
+    property Color: TVistaGradientBackground read FColor write SetColor;
     property DockColor: TGradientBackground read FDockColor write SetDockColor;
 
     property BackGround: TBitMap read FBackGround write SetBackGround;
@@ -510,6 +669,7 @@ type
 
     property Font: TFont read FFont write SetFont;
 
+    property QATSharpCurve: Boolean read FQATSharpCurve write FQATSharpCurve;
     {===== AdvToolBar Properties -PropID: 2- =====}
     property DragGripStyle: TDragGripStyle read FDragGripStyle write SetDragGripStyle default dsDots;
     property DragGripImage: TBitMap read FDragGripImage write SetDragGripImage;
@@ -525,7 +685,6 @@ type
 
     property FloatingWindowBorderColor: TColor read FFloatingWindowBorderColor write SetFloatingWindowBorderColor;
     property FloatingWindowBorderWidth: integer read FFloatingWindowBorderWidth write SetFloatingWindowBorderWidth default 2;
-    property CaptionAppearance: TCaptionAppearance read FCaptionAppearance write SetCaptionAppearance;
     property Bevel: TPanelBevel read FBevel write SetBevel default bvNone;
     property RoundEdges: boolean read FRoundEdges write SetRoundEdges default True;
     property Transparent: Boolean read FTransparent write SetTransparent default false;
@@ -533,14 +692,14 @@ type
 
     property BorderColor: TColor read FBorderColor write SetBorderColor default clNone;
     property BorderColorHot: TColor read FBorderColorHot write SetBorderColorHot default clNone;
-    property ColorHot: TGradientBackground read FColorHot write SetColorHot;
+    property ColorHot: TVistaGradientBackground read FColorHot write SetColorHot;
     property CaptionFont: TFont read FCaptionFont write SetCaptionFont;
     {========== AdvContainer ==========}
     property ContainerAppearance: TContainerAppearance read FContainerAppearance write SetContainerAppearance;  // PropID 4
     {========== AdvToolBarPager ===========}
     property PagerCaption: TVistaTextBackground read FPagerCaption write SetPagerCaption;
     property TabAppearance: TTabAppearance read FTabAppearance write SetTabAppearance;
-    property PageAppearance: TVistaBackground read FPageAppearance write SetPageAppearance;
+    property PageAppearance: TVistaPageBackground read FPageAppearance write SetPageAppearance;
     property GroupAppearance: TGroupAppearance read FGroupAppearance write SetGroupAppearance;
     property QATAppearance: TQATAppearance read FQATAppearance write SetQATAppearance;
     property TMSStyle: TTMSStyle read FTMSStyle write FTMSStyle;
@@ -548,10 +707,12 @@ type
     procedure Change(PropID: integer);
     procedure LoadPropFromFile(var F: TextFile);
     procedure SavePropToFile(var F: TextFile);
+    procedure ReleaseAllControls;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Loaded; override;
+    procedure UpdateStyle;
     procedure AddControl(AControl: TCustomControl);
     procedure RemoveControl(AControl: TCustomControl);
     procedure Assign(Source: TPersistent); override;
@@ -559,6 +720,8 @@ type
     {========== AdvGlowButton ===========}
     property GlowButtonAppearance: TGlowButtonAppearance read FGlowButtonAppearance write SetGlowButtonAppearance; // PropID 7
     property CompactGlowButtonAppearance: TGlowButtonAppearance read FCompactGlowButtonAppearance write SetCompactGlowButtonAppearance; //propID 7
+    property CaptionAppearance: TCaptionAppearance read FCaptionAppearance write SetCaptionAppearance;
+    property SystemFont: boolean read FSystemFont write SetSystemFont default true;
   end;
 
   TOnDeleteItemEvent = procedure(Sender: TObject; Index: integer) of object;
@@ -606,6 +769,7 @@ type
     procedure SetRowsPosition;
     procedure SetToolBarFullSize(aAdvToolBar: TAdvCustomToolBar);
     procedure UpdateToolBarVisibility(aAdvToolBar: TAdvCustomToolBar);
+    procedure ReArrangeAllToolBars; // Simple remove space between Toolbars
     property OffSetX: integer read FOffSetX default 2;
     property OffSetY: integer read FOffSetY default 1;
   public
@@ -722,6 +886,7 @@ type
 
     function GetVersionNr: integer;
 
+    procedure ArrangeToolBars;
     property RowCount: integer read GetRowCount;
     property AdvToolBarCount: integer read GetAdvToolBarCount;
     property AdvToolBars[index: integer]: TAdvCustomToolBar read GetAdvToolBars;
@@ -855,6 +1020,9 @@ type
     FOfficeHint: TAdvHintInfo;
     FDropDownSplit: boolean;
     FForceImageIndex: Boolean;
+    FInternalClick: Boolean;
+    FMenuBeingClosed: Boolean;
+    FMenuDisplayed: Boolean;
 {$IFNDEF DELPHI6_LVL}
     FAutoSize: Boolean;
 {$ENDIF}
@@ -866,7 +1034,6 @@ type
     //procedure SetMargin(Value: Integer);
     procedure UpdateTracking;
 
-    procedure DoDropDown; // State Change to DropDown
     procedure PopupBtnDown;
     procedure ButtonDown;
 
@@ -939,7 +1106,7 @@ type
     procedure WndProc(var Message: TMessage); override;
     procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
 {$IFNDEF DELPHI6_LVL}
-    procedure SetAutoSize(Value: Boolean); 
+    procedure SetAutoSize(Value: Boolean);
 {$ELSE}
     procedure SetAutoSize(Value: Boolean); override;
 {$ENDIF}
@@ -1020,6 +1187,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Click; override;
+    procedure DoDropDown; // State Change to DropDown
+    
 {$IFDEF TMSDOTNET}
     procedure ButtonPressed(Group: Integer; Button: TAdvCustomToolBarButton);
 {$ENDIF}
@@ -1176,6 +1345,7 @@ type
   TGetConfirmEvent = procedure (Sender: TObject; var Question: string; var Buttons: TMsgDlgButtons; var HelpCtx: Longint) of object;
   TGetEnabledEvent = procedure (Sender: TObject; var Enabled: Boolean) of object;
 
+  {$IFNDEF TMS_STD}
   TDBATBButtonDataLink = class(TDataLink)
   private
     FOnEditingChanged: TNotifyEvent;
@@ -1297,6 +1467,7 @@ type
     property OnGetEnabled: TGetEnabledEvent read FOnGetEnabled write FOnGetEnabled;
     property OnEnabledChanged: TNotifyEvent read FOnEnabledChanged write FOnEnabledChanged;
   end;
+  {$ENDIF}
 
 
   TDockedEvent = procedure(Sender: TObject; AdvDockPanel: TAdvDockPanel) of object;
@@ -1354,6 +1525,7 @@ type
     FCaptureChangeCancels: Boolean;
     FMenuDropped: Boolean;
     FMenuButton: TAdvCustomToolBarButton;
+    FLastMenuButton: TAdvCustomToolBarButton;
     FButtonMenu: TMenuItem;
     FInternalControlPositioning: Boolean;
     FAutoRUL: Boolean;
@@ -1368,6 +1540,7 @@ type
     FOnDocked: TDockedEvent;
     FOnUnDocked: TNotifyEvent;
     FPersistence: TPersistence;
+    FPersistSettingLoaded: Boolean;
     FMenuImages: TCustomImageList;
     FTempMenuItemCount: integer;
     FHotButton: TAdvCustomToolBarButton;
@@ -1439,7 +1612,15 @@ type
     FParentOptionPicture: Boolean;
     FCompactImageIndex: Integer;
     FUpdateCount: Integer;
-    
+    FSeqControlList: TDbgList;
+    FCompactSmallest: Boolean;
+    FWideCompactCaption: widestring;
+    FDockMode: TDockMode;
+    FOnCompactCloseQuery: TCloseQueryEvent;
+    FDoCheckBoundChange: Boolean;
+    FCompactShortCutHint: string;
+    FCompactShortCutHintShowing: Boolean;
+    FButtonRows: array[1..3] of Integer;   // Only for Run time OfficeRibbon, carries rows top
     procedure TimerProc(Sender: TObject);
     procedure OptionTimerProc(Sender: TObject);
     procedure InvalidateCapOptionBtn;
@@ -1492,6 +1673,7 @@ type
     procedure OnMDIChildMenuClick(Sender: TObject);
 
     procedure BuildSequenceControlList;
+    procedure GetSequenceControlList(aList: TDbgList; CheckVisibility: Boolean = True);
     procedure CNDropDownClosed(var Message: TMessage); message CN_DROPDOWNCLOSED;
 
     procedure OnOptionPictureChanged(Sender: TObject);
@@ -1501,6 +1683,8 @@ type
 
     procedure OnGlowButtonKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure OnGlowButtonClick(Sender: TObject);
+    procedure OnSetGlowButtonSize(Sender: TObject; var W, H: Integer);
+    procedure OnGetGlowButtonShortCutHintPos(Sender: TObject; ButtonSizeState: TButtonSizeState; var ShortCutHintPosition: TShortCutHintPos);
 
     procedure CMVisibleChanged(var Message: TMessage); message CM_VISIBLECHANGED;
     procedure WMTimer(var Message: TWMTimer); message WM_TIMER;
@@ -1519,7 +1703,7 @@ type
     procedure CMMouseEnter(var Msg: TMessage); message CM_MOUSEENTER;
     procedure CMDialogKey(var Message: TCMDialogKey); message CM_DIALOGKEY;
     procedure CMFocusChanged(var Message: TCMFocusChanged); message CM_FOCUSCHANGED;
-    procedure CMEnabledChanged(var Message: TMessage); message CM_ENABLEDCHANGED;    
+    procedure CMEnabledChanged(var Message: TMessage); message CM_ENABLEDCHANGED;
     procedure SetToolBarStyler(const Value: TCustomAdvToolBarStyler);
     procedure SetParentStyler(const Value: Boolean);
     procedure SetDragGripWidth(const Value: integer);
@@ -1578,9 +1762,11 @@ type
     function GetAdvDockPanel: TAdvDockPanel;
     procedure SetAdvDockPanel(const Value: TAdvDockPanel);
     procedure UpdateCompactButton;
+    procedure UpdateButtonRowCount; // only for OfficeRibbon
   protected
     procedure AlignControls(AControl: TControl; var ARect: TRect); override;
     procedure Loaded; override;
+    procedure Resize; override;
     procedure UpdateMe(PropID: integer);
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
@@ -1603,6 +1789,7 @@ type
     procedure GetMaxToolBarButtonSize(var W, H: Integer);
 
     procedure UpdateAllGlowButtons;
+    procedure UpdateAllContainer;
 
     procedure InvalidateTransparentControls;
 
@@ -1641,8 +1828,6 @@ type
     procedure UpdateRULists;
     procedure UnHideAllControls;
 
-    procedure SavePosition;
-    procedure LoadPosition;
 
     function GetFloatingWindowSizes(aRows: integer; var aHeight, aWidth: integer): Boolean;
     procedure GetFloatingSizes(var aHeight, aWidth: integer);
@@ -1671,6 +1856,12 @@ type
     property Compact: Boolean read FCompact write SetCompactMode;  // Can be set when parent = TAdvPage
     property IsCompact: Boolean read FCompact;
     function IsSmallestVariant: Boolean;
+    function SetSmallerVariant(CanCompact: Boolean; var NewState: TButtonSizeState; RealSet: Boolean = True): Integer;
+    function SmallerVariantDifference(CanCompact: Boolean; var NewState: TButtonSizeState): Integer;
+    procedure SetSmallestVaraint;
+    function SetLargerVariant(CanCompact: Boolean; var NewState: TButtonSizeState; RealSet: Boolean = True): Integer;
+    function LargerVariantDifference(CanCompact: Boolean; var NewState: TButtonSizeState): Integer;
+    procedure SetLargestVaraint;
 
     property Persistence: TPersistence read FPersistence write SetPersistence;
 
@@ -1700,6 +1891,7 @@ type
     property ShowOptionIndicator: Boolean read FShowOptionIndicator write SetShowOptionIndicator default true;
     property ShowRightHandle: Boolean read FShowRightHandle write SetShowRightHandle default true;
     property DockableTo: TDockableTo read FDockableTo write SetDockableTo default [daLeft, daTop, daRight, daBottom];
+    property DockMode: TDockMode read FDockMode write FDockMode default dmAll;
     property FullSize: Boolean read FFullSize write SetFullSize default false;
     property ToolBarStyler: TCustomAdvToolBarStyler read FToolBarStyler write SetToolBarStyler;
     property ParentStyler: Boolean read FParentStyler write SetParentStyler default true;
@@ -1726,13 +1918,16 @@ type
 
     property CompactPicture: TGDIPPicture read FICompactPicture write SetCompactPicture;
     property CompactCaption: string read FCompactCaption write SetCompactCaption;
+    property WideCompactCaption: widestring read FWideCompactCaption write FWideCompactCaption;
 
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
 
     property ParentOptionPicture: Boolean read FParentOptionPicture write SetParentOptionPicture;
     property CompactImageIndex: Integer read FCompactImageIndex write SetCompactImageIndex;
+    property CompactShortCutHint: string read FCompactShortCutHint write FCompactShortCutHint;
 
     property OnClose: TNotifyEvent read FOnClose write FOnClose;
+    property OnCompactCloseQuery: TCloseQueryEvent read FOnCompactCloseQuery write FOnCompactCloseQuery;
     property OnOptionClick: TOptionEvent read FOnOptionClick write FOnOptionClick;
     property OnDocked: TDockedEvent read FOnDocked write FOnDocked;
     property OnUnDocked: TNotifyEvent read FOnUnDocked write FOnUnDocked;
@@ -1749,6 +1944,8 @@ type
 
     property AdvDockPanel: TAdvDockPanel read GetAdvDockPanel write SetAdvDockPanel;
     procedure SetToolBarFloating(P: TPoint);
+
+    property ActiveMenu: TAdvPopupMenu read FTempMenu;
     procedure UpdateMenu;
     procedure MergeMenu(AMenu: TMainMenu);
     procedure UnmergeMenu(AMenu: TMainMenu);
@@ -1772,7 +1969,11 @@ type
     function GetToolBarState: TToolBarState;
     procedure BeginUpdate;
     procedure EndUpdate;
+   
+    procedure SavePosition;
+    procedure LoadPosition;
 
+    procedure MoveUpInRUList(aControl: TControl);
     property WideCaption: widestring read FWideCaption write SetWideCaption;
   end;
 
@@ -1780,6 +1981,8 @@ type
   public
     property Compact;
     property IsCompact;
+    property WideCompactCaption;
+    property OnCompactCloseQuery; 
   published
     property AllowFloating;
     property AntiAlias;
@@ -1798,6 +2001,7 @@ type
     property CompactCaption;
     property CompactPicture;
     property CompactImageIndex;
+    property CompactShortCutHint;
     property ShowCaption;
     property HintOptionButton;
     property HintCloseButton;
@@ -1805,6 +2009,7 @@ type
     property ShowClose;
     property ShowOptionIndicator;
     property DockableTo;
+    property DockMode;
     property Enabled;
     property FullSize;
     property TextAutoOptionMenu;
@@ -1820,6 +2025,7 @@ type
     property OptionDisabledPicture;
     property OptionPicture;
     property ParentOptionPicture;
+    property ParentShowHint;
     property ShowHint;
     property ToolBarIndex;
     property OfficeHint;
@@ -2354,11 +2560,15 @@ type
     FDeleteAll: Boolean;
     FAddSeparator: Boolean;
     FOnChange: TNotifyEvent;
+    FAddGlowButton: Boolean;
+    FEditButton: Boolean;
     procedure SetAddButton(const Value: Boolean);
     procedure SetAddSeparator(const Value: Boolean);
     procedure SetDelete(const Value: Boolean);
     procedure SetDeleteAll(const Value: Boolean);
     procedure SetReOrder(const Value: Boolean);
+    procedure SetAddGlowButton(const Value: Boolean);
+    procedure SetEditButton(const Value: Boolean);
   protected
     procedure Change;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
@@ -2370,8 +2580,10 @@ type
     property ReOrder: Boolean read FReOrder write SetReOrder;
     property AddButton: Boolean read FAddButton write SetAddButton;
     property AddSeparator: Boolean read FAddSeparator write SetAddSeparator;
+    property AddGlowButton: Boolean read FAddGlowButton write SetAddGlowButton default true;
     property Delete: Boolean read FDelete write SetDelete;
     property DeleteAll: Boolean read FDeleteAll write SetDeleteAll;
+    property EditButton: Boolean read FEditButton  write SetEditButton default true;
   end;
 
   TDialogSettings = class(TPersistent)
@@ -2403,6 +2615,19 @@ type
     FOnChange: TNotifyEvent;
     FEditGlyph: Boolean;
     FCustomize: string;
+    FResetButtonCaption: string;
+    FOKButtonCaption: string;
+    FCancelButtonCaption: string;
+    FEditGlyphVisible: Boolean;
+    FCancelButtonHint: string;
+    FResetButtonHint: string;
+    FAddGlowButtonHint: string;
+    FGlyphPositionBottomCaption: string;
+    FGlyphPositionLeftCaption: string;
+    FGlyphPositionTopCaption: string;
+    FGlyphPositionRightCaption: string;
+    FOKButtonHint: string;
+    FGlyphEditNoneIconCaption: string;
   protected
     procedure Change;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
@@ -2433,7 +2658,21 @@ type
     property ButtonEditCaptionCheck: string read FButtonEditCaptionCheck write FButtonEditCaptionCheck;
     property ButtonEditVisibleCheck: string read FButtonEditVisibleCheck write FButtonEditVisibleCheck;
 
-    property EditGlyph: Boolean read FEditGlyph write FEditGlyph;
+    property OKButtonCaption: string read FOKButtonCaption write FOKButtonCaption;
+    property OKButtonHint: string read FOKButtonHint write FOKButtonHint;
+    property CancelButtonCaption: string read FCancelButtonCaption write FCancelButtonCaption;
+    property CancelButtonHint: string read FCancelButtonHint write FCancelButtonHint;
+    property ResetButtonCaption: string read FResetButtonCaption write FResetButtonCaption;
+    property ResetButtonHint: string read FResetButtonHint write FResetButtonHint;
+    property AddGlowButtonHint: string read FAddGlowButtonHint write FAddGlowButtonHint;
+    property GlyphPositionLeftCaption: string read FGlyphPositionLeftCaption write FGlyphPositionLeftCaption;
+    property GlyphPositionTopCaption: string read FGlyphPositionTopCaption write FGlyphPositionTopCaption;
+    property GlyphPositionRightCaption: string read FGlyphPositionRightCaption write FGlyphPositionRightCaption;
+    property GlyphPositionBottomCaption: string read FGlyphPositionBottomCaption write FGlyphPositionBottomCaption;
+    property GlyphEditNoneIconCaption: string read FGlyphEditNoneIconCaption write FGlyphEditNoneIconCaption;
+
+    property EditGlyph: Boolean read FEditGlyph write FEditGlyph default true;
+    property EditGlyphVisible: Boolean read FEditGlyphVisible write FEditGlyphVisible;
 
     property EditCaption: Boolean read FEditCaption write FEditCaption;
     property EditGlyphPosition: Boolean read FEditGlyphPosition write FEditGlyphPosition;
@@ -2441,7 +2680,7 @@ type
 
     property Customize: string read FCustomize write FCustomize;
   end;
-  
+
   TAdvToolBarWindow = class(TCustomForm)
   private
     FOwner: TComponent;
@@ -2521,9 +2760,7 @@ type
     FOnBeforeDisplay: TNotifyEvent;
     FOnAfterPost: TNotifyEvent;
     FDialogSettings: TDialogSettings;
-    FDeleteItems: TDbgList;
     FOnCanShow: TCustomizerCanShowEvent;
-    function GetCtrl(CtrlName: String): TControl;
     procedure OnButtonPropChange(Sender: TObject);
     procedure OnOptionsChange(Sender: TObject);
     procedure OnCommandsChange(Sender: TObject);
@@ -2541,12 +2778,14 @@ type
     procedure SetSmallImages(const Value: TCustomImageList);
     procedure SetDialogSettings(const Value: TDialogSettings);
   protected
-    procedure UpdateAdvToolBar;
+    FDeleteItems: TDbgList;
+    procedure UpdateAdvToolBar; virtual;
     procedure InitializeWindow;
-    procedure ShowCustomizer;
-    procedure ResetToolBar;
-    procedure SaveInitialState;
+    procedure ShowCustomizer; virtual;
+    procedure ResetToolBar; virtual;
+    procedure SaveInitialState; virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    function GetCtrl(CtrlName: String): TControl;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2635,11 +2874,13 @@ type
     FIndent: Integer;
     FRightIndent: Integer;
     FWideCaption: widestring;
+    FMinWidth: Integer;
     procedure SetCaption(const Value: TCaption);
     procedure SetHeight(const Value: Integer);
     procedure SetVisible(const Value: Boolean);
     procedure SetIndent(const Value: Integer);
     procedure SetWideCaption(const Value: widestring);
+    procedure SetMinWidth(const Value: Integer);
   protected
     procedure Changed;
     property RightIndent: Integer read FRightIndent write FRightIndent;
@@ -2653,6 +2894,7 @@ type
     property Visible: Boolean read FVisible write SetVisible default true;
     property Height: Integer read FHeight write SetHeight default DEFAULT_PAGERCAPTIONHEIGHT;
     property Indent: Integer read FIndent write SetIndent default 100;
+    property MinWidth: Integer read FMinWidth write SetMinWidth default 100;
   end;
 
   TATBTabSettings = class(TPersistent)
@@ -2700,6 +2942,8 @@ type
     FBorderColor: TColor;
     FGradientMirror: TGDIPGradient;
     FGradient: TGDIPGradient;
+    FShadowColor: TColor;
+    FHighLightColor: TColor;
     procedure SetColor(const Value: TColor);
     procedure SetColorTo(const Value: TColor);
     procedure SetSteps(const Value: Integer);
@@ -2710,6 +2954,8 @@ type
     procedure SetGradient(const Value: TGDIPGradient);
     procedure SetGradientMirror(const Value: TGDIPGradient);
   protected
+    property ShadowColor: TColor read FShadowColor write FShadowColor;
+    property HighLightColor: TColor read FHighLightColor write FHighLightColor;
   public
     constructor Create;
     procedure Assign(Source: TPersistent); override;
@@ -2725,12 +2971,20 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
+  TVistaPageBackground = class(TVistaBackground)
+  published
+    property ShadowColor;
+    property HighLightColor;
+  end;
+
   TVistaTextBackGround = class(TVistaBackground)
   private
     FTextColor: TColor;
     FFont: TFont;
+    FSystemFont: boolean;
     procedure SetTextColor(const Value: TColor);
     procedure SetFont(const Value: TFont);
+    procedure SetSystemFont(const Value: boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -2738,6 +2992,7 @@ type
   published
     property TextColor: TColor read FTextColor write SetTextColor;
     property Font: TFont read FFont write SetFont;
+    property SystemFont: boolean read FSystemFont write SetSystemFont default true;
   end;
 
   TQATAppearance = class(TPersistent)
@@ -2824,10 +3079,11 @@ type
     FGradient: TGDIPGradient;
     FTextColor: TColor;
     FCaptionAppearance: TCaptionAppearance;
-    FPageAppearance: TVistaBackground;
+    FPageAppearance: TVistaPageBackground;
     FToolBarAppearance: TToolBarAppearance;
     FTabAppearance: TCustomTabAppearance;
     FFont: TFont;
+    FSystemFont: boolean;
     procedure OnCaptionAppearanceChanged(Sender: TObject);
     procedure OnPageAppearanceChanged(Sender: TObject);
     procedure OnToolBarAppearanceChanged(Sender: TObject);
@@ -2844,10 +3100,11 @@ type
     procedure SetGradientMirror(const Value: TGDIPGradient);
     procedure SetTextColor(const Value: TColor);
     procedure SetCaptionAppearance(const Value: TCaptionAppearance);
-    procedure SetPageAppearance(const Value: TVistaBackground);
+    procedure SetPageAppearance(const Value: TVistaPageBackground);
     procedure SetToolBarAppearance(const Value: TToolBarAppearance);
     procedure SetTabAppearance(const Value: TCustomTabAppearance);
     procedure SetFont(const Value: TFont);
+    procedure SetSystemFont(const Value: boolean);
   protected
     property Steps: Integer read FSteps write SetSteps default 64;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
@@ -2866,7 +3123,8 @@ type
     property GradientMirror: TGDIPGradient read FGradientMirror write SetGradientMirror;
     property TextColor: TColor read FTextColor write SetTextColor;
     property CaptionAppearance: TCaptionAppearance read FCaptionAppearance write SetCaptionAppearance;
-    property PageAppearance: TVistaBackground read FPageAppearance write SetPageAppearance;
+    property PageAppearance: TVistaPageBackground read FPageAppearance write SetPageAppearance;
+    property SystemFont: boolean read FSystemFont write SetSystemFont default true;
     property TabAppearance: TCustomTabAppearance read FTabAppearance write SetTabAppearance;
     property ToolBarAppearance: TToolBarAppearance read FToolBarAppearance write SetToolBarAppearance;
   end;
@@ -2910,6 +3168,13 @@ type
     FBorderColorSelectedHot: TColor;
     FBorderColorDown: TColor;
     FFont: TFont;
+    FSystemFont: Boolean;
+    FShadowColor: TColor;
+    FHighLightColor: TColor;
+    FHighLightColorSelected: TColor;
+    FHighLightColorDown: TColor;
+    FHighLightColorHot: TColor;
+    FHighLightColorSelectedHot: TColor;
     procedure OnBackGroundChanged(Sender: TObject);
     procedure SetBackGround(const Value: TGradientBackground);
     procedure SetBorderColor(const Value: TColor);
@@ -2946,6 +3211,7 @@ type
     procedure SetTextColorSelected(const Value: TColor);
     procedure SetBorderColorDown(const Value: TColor);
     procedure SetFont(const Value: TFont);
+    procedure SetSystemFont(const Value: boolean);
   protected
     procedure Changed;
     property BackGround: TGradientBackground read FBackGround write SetBackGround;
@@ -2986,10 +3252,17 @@ type
     property GradientMirrorSelected: TGDIPGradient read FGradientMirrorSelected write SetGradientMirrorSelected;
     property GradientDisabled: TGDIPGradient read FGradientDisabled write SetGradientDisabled;
     property GradientMirrorDisabled: TGDIPGradient read FGradientMirrorDisabled write SetGradientMirrorDisabled;
+    property SystemFont: boolean read FSystemFont write SetSystemFont default true;    
     property TextColor: TColor read FTextColor write SetTextColor;
     property TextColorHot: TColor read FTextColorHot write SetTextColorHot;
     property TextColorSelected: TColor read FTextColorSelected write SetTextColorSelected;
     property TextColorDisabled: TColor read FTextColorDisabled write SetTextColorDisabled;
+    property ShadowColor: TColor read FShadowColor write FShadowColor;
+    property HighLightColor: TColor read FHighLightColor write FHighLightColor;
+    property HighLightColorHot: TColor read FHighLightColorHot write FHighLightColorHot;
+    property HighLightColorSelected: TColor read FHighLightColorSelected write FHighLightColorSelected;
+    property HighLightColorSelectedHot: TColor read FHighLightColorSelectedHot write FHighLightColorSelectedHot;
+    property HighLightColorDown: TColor read FHighLightColorDown write FHighLightColorDown;
   end;
 
   TTabAppearance = class(TCustomTabAppearance)
@@ -3169,6 +3442,10 @@ type
     FTabLeft: Integer;
     FTabClientWidth: Integer;
     FTabRealClientWidth: Integer;
+    FOldWidth: Integer;
+    FSelfClone: TAdvPage;
+    FCloning: Boolean;
+    FOldAutoPosition: Boolean;
     procedure TimerProc(Sender: TObject);
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
     procedure CMVisibleChanged(var Message: TMessage); message CM_VISIBLECHANGED;
@@ -3216,6 +3493,9 @@ type
     function VisibleToolBarCount: Integer;
 
     function ALLATBSmallestVariant: Boolean;
+    procedure IncreaseToolBarSize;
+    procedure DecreaseToolBarSize;
+
     procedure InitializeScroller;
     procedure UpdateScroller;
     function ScrollPageATBVisibleCount(AIndex: Integer; GoForward: Boolean): Integer;
@@ -3227,6 +3507,11 @@ type
     procedure ScrollInView(ATBIndex: Integer);
 
     function IsGroupTab: Boolean;
+
+    function CreateClone(ParntWin: TWinControl): TAdvPage;
+    procedure DestroyClone;
+    procedure PopulateClone;
+    procedure UnPopulateClone;
 
     property TabWidth: Integer read GetTabWidth; // for internal use
     property TabClientWidth: Integer read FTabClientWidth write FTabClientWidth; // for internal use
@@ -3258,11 +3543,12 @@ type
     property TabHint: string read FTabHint write FTabHint;
     property TabVisible: Boolean read FTabVisible write SetTabVisible default true;
     property TabEnabled: Boolean read FTabEnabled write SetTabEnabled default true;
+    property ParentShowHint;
     property ShowHint;
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
     property PageIndex: Integer read GetPageIndex write SetPageIndex stored false;
     property ShortCutHint: string read FShortCutHintText write FShortCutHintText;
-    property ShortCutHintPos: TShortCutHintPos read FShortCutHintPos write FShortCutHintPos default shpTop;
+    property ShortCutHintPos: TShortCutHintPos read FShortCutHintPos write FShortCutHintPos default shpBottom;
 
     property OnMouseDown;
     property OnMouseMove;
@@ -3270,12 +3556,15 @@ type
   end;
 
   TTabChangingEvent = procedure(Sender: TObject; FromPage, ToPage: Integer; var AllowChange: Boolean) of object;
+  TTabClickEvent = procedure(Sender: TObject; Page: integer) of object;
+  TTabGroupClickEvent = procedure(Sender: TObject; TabGroup: integer) of object;
 
   TAdvToolBarPager = class(TCustomControl)
   private
     FInternalToolBarStyler: TCustomAdvToolBarStyler;
     FToolBarStyler: TCustomAdvToolBarStyler;
     FCurrentToolBarStyler: TCustomAdvToolBarStyler;
+    FOfficeToolBarStyler: TCustomAdvToolBarStyler;
     FDockAlign: TDockAlign;
     FOffSetY: integer;
     FOffSetX: integer;
@@ -3348,6 +3637,24 @@ type
     FOnlyALT: Boolean;
     FQuickAccessToolBar: TAdvQuickAccessToolBar;
     FShortCutDelay: Cardinal;
+    FDesignTime: boolean;
+    FEnableWheel: boolean;
+    FOnTabClick: TTabClickEvent;
+    FOnTabDblClick: TTabClickEvent;
+    FPersistence: TPersistence;
+    FOldHeight: Integer;
+    FOnTabGroupClick: TTabGroupClickEvent;
+    FHideState: Boolean;
+    FQATOldVisible: Boolean;
+    FShapeBtnOldVisible: Boolean;
+    FDblClickTimer: TTimer;
+    FClickCount: Integer;
+    FMinimizedRibbonWindow: TMinimizedRibbonWindow;
+    FOnExpand: TNotifyEvent;
+    FOnCollaps: TNotifyEvent;
+    FNonActiveMouseWheelOnFocus: Boolean;
+    FHidePagesOnDblClick: boolean;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
     procedure CMVisibleChanged(var Message: TMessage); message CM_VISIBLECHANGED;
     procedure CMShowingChanged(var Message: TMessage); message CM_SHOWINGCHANGED;
@@ -3364,7 +3671,14 @@ type
     procedure WMGetDlgCode(var Message: TWMGetDlgCode); message WM_GETDLGCODE;
     procedure CMFocusChanged(var Message: TCMFocusChanged); message CM_FOCUSCHANGED;
     procedure WMLButtonDblClk(var Message: TWMLButtonDblClk); message WM_LBUTTONDBLCLK;
+    procedure SubclassProc(var Msg: TMessage);
+    procedure OnPersistenceChanged(Sender: TObject);
+    procedure OnDblClickTimer(Sender: TObject);
+    procedure OnFloatingRibbonWindowCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure OnFloatingRibbonWindowClose(Sender: TObject; var Action: TCloseAction);
+    procedure OnRibbonWindowHide(Sender: TObject);
     procedure UpdateCaptionButtons(UpdateImage: Boolean);
+    procedure UpdateShapeButton;
     procedure OnCaptionCloseBtnClick(Sender: TObject);
     procedure OnCaptionMaxBtnClick(Sender: TObject);
     procedure OnCaptionMinBtnClick(Sender: TObject);
@@ -3373,7 +3687,6 @@ type
     procedure OnCaptionChanged(Sender: TObject);
     procedure OnOptionPictureChanged(Sender: TObject);
     procedure OnShortCutTime(Sender: TObject);
-    procedure SubclassProc(var Msg: TMessage);
     procedure OnMDICloseBtnClick(Sender: TObject);
     procedure OnMDIMaxBtnClick(Sender: TObject);
     procedure OnMDIMinBtnClick(Sender: TObject);
@@ -3417,6 +3730,8 @@ type
     function ShouldDrawSeparator(PageIndex: Integer): Boolean;
     procedure SetShowQATBelow(const Value: Boolean);
     function GetShowQATBelow: Boolean;
+    procedure SetPersistence(const Value: TPersistence);
+    procedure SetHideState(const Value: Boolean);
   protected
     procedure AlignControls(AControl: TControl; var ARect: TRect); override;
     procedure Loaded; override;
@@ -3458,7 +3773,7 @@ type
     procedure UpdateTabPosition; overload;
     procedure InitializeTabsSize;
     procedure InitializeTabWidth(TabIndex: Integer);
-    
+
     procedure InitializeScroller;
     procedure UpdateTabScroller;
     function TabCountOnVisibleArea(TabIndex: Integer; GoForward: Boolean; var LastTabIndex: Integer): Integer;
@@ -3496,6 +3811,7 @@ type
     function GetTabRect(PageIndex: Integer): TRect;  overload;
     function GetTabRect(Page: TAdvPage): TRect; overload;
     function PTOnTab(X, Y: Integer): Integer;
+    function PtOntTabGroup(X, Y: Integer): Integer;
     function GetTabScrollerRect: TRect;
     function GetTabScrollerLeftRect: TRect;
     function GetTabScrollerRightRect: TRect;
@@ -3507,9 +3823,17 @@ type
     function GetCaptionButtonsRect: TRect;
     function MaxQATRect: TRect;
     function GetQATHeight: Integer;
+    procedure CreateFloatingRibbon;
+    procedure DestroyFloatingRibbon;
+    procedure ShowFloatingRibbon;
+    procedure HideFloatingRibbon;
+    function IsFloatingRibbonShowing: Boolean;
+    procedure HandleKey(Code: Word);
 
     property Align: TDockAlign read GetAlign write SetAlign default daTop;
     property MDIButtonsVisible: Boolean read FMDIButtonsVisible write SetMDIButtonsVisible;
+    property CurrentToolBarStyler: TCustomAdvToolBarStyler read FCurrentToolBarStyler;
+    property HideState: Boolean read FHideState write SetHideState default false;
     //property MinimumSize: Integer read FMinimumSize write SetMinimumSize;
     //property LockHeight: Boolean read FLockHeight write SetLockHeight;
     //property UseRunTimeHeight: Boolean read FUseRunTimeHeight write SetUseRunTimeHeight;
@@ -3526,6 +3850,9 @@ type
     procedure ShowShortCutHint;
     procedure HideShortCutHint;
 
+    procedure SaveState;
+    procedure LoadState;
+
     procedure Expand;
     procedure Collaps;
     function AddAdvPage(AdvPage: TAdvPage): integer; overload;
@@ -3538,9 +3865,12 @@ type
     property ActivePageIndex: Integer read GetActivePageIndex write SetActivePageIndex;
     property AdvPageCount: integer read GetAdvToolBarPageCount;
     property AdvPages[index: integer]: TAdvPage read GetAdvPages;
-
+    procedure NextActivePage;
+    procedure PrevActivePage;
     property ShowQATBelow: Boolean read GetShowQATBelow write SetShowQATBelow default false;
     property QuickAccessToolBar: TAdvQuickAccessToolBar read FQuickAccessToolBar;
+    property Expanded: Boolean read FExpanded;
+    property NonActiveMouseWheelOnFocus: Boolean read FNonActiveMouseWheelOnFocus write FNonActiveMouseWheelOnFocus default false;
   published
     property ActivePage: TAdvPage read GetActivePage write SetActivePage;
     property AntiAlias: TAntiAlias read FAntiAlias write SetAntiAlias default aaClearType;    
@@ -3550,12 +3880,16 @@ type
     property CaptionButtons: TCaptionButtons read FCaptionButtons write SetCaptionButtons;
     property Images: TCustomImageList read FImages write SetImages;
     property DisabledImages: TCustomImageList read FDisabledImages write SetDisabledImages;
+    property HidePagesOnDblClick: boolean read FHidePagesOnDblClick write FHidePagesOnDblClick default true;
+    property EnableWheel: boolean read FEnableWheel write FEnableWheel default true;
     property TabGroups: TTabGroups read FTabGroups write SetTabGroups;
     property TabSettings: TATBTabSettings read FTabSettings write SetTabSettings;
+    property Persistence: TPersistence read FPersistence write SetPersistence;
     property PopupMenu: TPopupMenu read GetPopupMenuEx write SetPopupMenuEx;
     property ToolBarStyler: TCustomAdvToolBarStyler read FToolBarStyler write SetToolBarStyler;
     property ShowNonSelectedTabs: Boolean read FShowNonSelectedTabs write SetShowNonSelectedTabs default False;
     property ShowTabHint: Boolean read FShowTabHint write FShowTabHint default false;
+    property ParentShowHint;
     property ShowHint;
     property OfficeHint: TAdvHintInfo read FOfficeHint write SetOfficeHint;
     property Version: string read GetVersion write SetVersion stored false;
@@ -3571,15 +3905,20 @@ type
     property OnMaxButtonClick: TNotifyEvent read FOnMaxButtonClick write FOnMaxButtonClick;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnChanging: TTabChangingEvent read FOnChanging write FOnChanging;
+    property OnDblClick;
+    property OnEnter;
+    property OnExit;
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
     property OnKeyDown;
     property OnKeyUp;
     property OnKeyPress;
-    property OnEnter;
-    property OnExit;
-    property OnDblClick;
+    property OnTabClick: TTabClickEvent read FOnTabClick write FOnTabClick;
+    property OnTabDblClick: TTabClickEvent read FOnTabDblClick write FOnTabDblClick;
+    property OnTabGroupClick: TTabGroupClickEvent read FOnTabGroupClick write FOnTabGroupClick;
+    property OnExpand: TNotifyEvent read FOnExpand write FOnExpand;
+    property OnCollaps: TNotifyEvent read FOnCollaps write FOnCollaps;
   end;
 
   TAdvVistaButton = class(TGraphicControl)
@@ -3663,6 +4002,7 @@ type
     FDropDownPopupMenu: TPopupMenu;
     FUpdateCount: Integer;
     FCustomizeHint: string;
+    FOnCustomizeClick: TNotifyEvent;
     procedure WMEraseBkGnd(var Msg: TMessage); message WM_ERASEBKGND;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
     procedure CMMouseEnter(var Msg: TMessage); message CM_MOUSEENTER;
@@ -3735,7 +4075,9 @@ type
 
     procedure BeginUpdate;
     procedure EndUpdate;
+    property OnCustomizeClick: TNotifyEvent read FOnCustomizeClick write FOnCustomizeClick;
   published
+
   end;
 
   TAdvQuickAccessToolBar = class(TAdvCustomQuickAccessToolBar)
@@ -3747,6 +4089,7 @@ type
     property DropDownPopupMenu;
     property PopupMenu;
     property ShowHint;
+    property OnCustomizeClick;
   end;
 
   TAdvGlowMenuButton = class(TAdvCustomGlowButton)
@@ -3780,12 +4123,14 @@ type
     procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
     procedure WMNCHitTest(var Message: TWMNCHitTest); message WM_NCHITTEST;
     procedure HideTimerOnTime(Sender: TObject);
+    function GetHideOnDeActivate: Boolean; 
   protected
     procedure Paint; override;
     function GetParentWnd: HWnd;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure DoHide; override;
-    property HideOnDeActivate: Boolean read FHideOnDeActivate write FHideOnDeActivate;
+    procedure SetCornersRounded; 
+    property HideOnDeActivate: Boolean read GetHideOnDeActivate write FHideOnDeActivate;
   public
     constructor Create(AOwner: TComponent); override;
     constructor CreateNew(AOwner: TComponent; Dummy: Integer = 0); override;
@@ -3799,7 +4144,48 @@ type
     property DropDownButton: TAdvGlowButton read FDropDownButton write FDropDownButton;
   end;
 
+  TMinimizedRibbonWindow = class(TCustomForm)
+  private
+    FHideOnDeActivate: Boolean;
+    FOwner: TComponent;
+    FHideTimer: TTimer;
+    FAdvToolBarPager: TAdvToolBarPager;
+    FAdvPage: TAdvPage;
+    procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
+    procedure WMNCHitTest(var Message: TWMNCHitTest); message WM_NCHITTEST;
+    procedure HideTimerOnTime(Sender: TObject);
+    function GetHideOnDeActivate: Boolean;
+  protected
+    procedure Paint; override;
+    function GetParentWnd: HWnd;
+    procedure CreateParams(var Params: TCreateParams); override;
+    procedure DoHide; override;
+    property HideOnDeActivate: Boolean read GetHideOnDeActivate write FHideOnDeActivate;
+  public
+    constructor Create(AOwner: TComponent); override;
+    constructor CreateNew(AOwner: TComponent; Dummy: Integer = 0); override;
+    destructor Destroy; override;
+    procedure SetWindowSize;
+    property AdvToolBarPager: TAdvToolBarPager read FAdvToolBarPager write FAdvToolBarPager;
+    property AdvPage: TAdvPage read FAdvPage write FAdvPage;
+  end;
+
+  TAdvToolBarForm = class(TForm)
+  private
+    { Private declarations }
+    procedure WMGetMinMaxInfo(var Msg: TMessage); message WM_GETMINMAXINFO;
+    procedure WMSize(var Message: TWMSize); message WM_SIZE;
+    procedure WMNCHitTest(var Message: TWMNCHitTest); message WM_NCHITTEST;
+  protected
+    //procedure PaintNCFrame(ACanvas : TCanvas);
+    function GetClientRect: TRect; override;
+    procedure AdjustClientRect(var Rect: TRect); override;  
+    procedure CreateParams(var Params: TCreateParams); override;
+    procedure Paint; override;
+  end;
+
 procedure DrawVerticalText(Canvas: TCanvas; Text: String; TextP: TPoint);
+
 
 function ColorToARGB(Color: TColor): ARGB;
 procedure DrawGDIPArc(graphics: TGPGraphics; Pen: TGPPen; X,Y,Width,Height: integer; StartAngle, SweepAngle: Single; closed : boolean = true);
@@ -3812,24 +4198,28 @@ procedure DrawVistaGradient(Canvas: TCanvas; r: TRect; CFU, CTU, CFB, CTB, PC: T
    AntiAlias: TAntiAlias; RoundEdges: Boolean); overload;
 }
 
-  
+
 var
   SHORTCUT_DELAY: Cardinal = 700;
   CANCAPTURE: Boolean = True;
-  
+
 implementation
 
 uses
-  CustomizerU,
+  CustomizerU, MultiMon, AdvToolBarStylers
+  {$IFNDEF TMS_STD}
   {$IFDEF DELPHI6_LVL}
-  VDBConsts
+  , VDBConsts
   {$ELSE}
-  DBConsts
+  , DBConsts
+  {$ENDIF}
   {$ENDIF}
   ;
 
 const
   GDIP_NOWRAP = 4096;
+  DBLCLICK_DELAY = 600;
+  PAGEGRAD_HEIGHT = 22;
 
 type
   PDockInfo = ^TDockInfo;
@@ -4090,6 +4480,25 @@ end;
 
 //------------------------------------------------------------------------------
 
+function DarkenColor(Color: TColor; Perc: integer): TColor;
+var
+  r,g,b: longint;
+  l: longint;
+begin
+  l := ColorToRGB(Color);
+  r := ((l AND $FF0000) shr 16) and $FF;
+  g := ((l AND $FF00) shr 8) and $FF;
+  b := (l AND $FF);
+
+  r := Round(r * (100 - Perc)/100);
+  g := Round(g * (100 - Perc)/100);
+  b := Round(b * (100 - Perc)/100);
+
+  Result := (r shl 16) or (g shl 8) or b;
+end;
+
+//------------------------------------------------------------------------------
+
 function ColorToARGB(Color: TColor): ARGB;
 var
   c: TColor;
@@ -4244,7 +4653,15 @@ begin
     begin
       graphics := TGPGraphics.Create(Canvas.Handle);
       fontFamily:= TGPFontFamily.Create(AFont.Name);
-      fs := 0;
+      
+      if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+      begin
+        fontFamily.Free;
+        fontFamily := TGPFontFamily.Create('Arial');
+      end;
+
+
+      fs := AdvGDIP.TFontStyle(byte(AFont.Style));
 
       font := TGPFont.Create(fontFamily, AFont.Size , fs, UnitPoint);
       graphics.SetSmoothingMode(SmoothingModeAntiAlias);
@@ -4364,15 +4781,27 @@ begin
   begin
     graphics := TGPGraphics.Create(Canvas.Handle);
     fontFamily:= TGPFontFamily.Create(AFont.Name);
+
+    if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+    begin
+      fontFamily.Free;
+      fontFamily := TGPFontFamily.Create('Arial');
+    end;
+    
+
     fs := 0;
+
     if (fsBold in AFont.Style) then
       fs := fs + 1;
+
     if (fsItalic in AFont.Style) then
       fs := fs + 2;
+
     if (fsUnderline in AFont.Style) then
       fs := fs + 4;
 
     font := TGPFont.Create(fontFamily, AFont.Size , fs, UnitPoint);
+
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
     w := R.Right - R.Left;
@@ -4403,10 +4832,9 @@ begin
     end;
 
     // Center the block of text (top to bottom) in the rectangle.
+
     stringFormat.SetLineAlignment(StringAlignmentCenter);
-
     stringFormat.SetHotkeyPrefix(HotkeyPrefixShow);
-
     stringFormat.SetTrimming(StringTrimmingNone);
 
 
@@ -4417,14 +4845,14 @@ begin
 
     // graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
-    if AntiAlias = aaNone then
+    if (AntiAlias = aaNone) then
     begin
       szRect.Left := round(rectf.X);
       szRect.Top := round(rectf.Y);
 
       szRect.Right := szRect.Left + 2;
 
-      if Caption <> '' then
+      if (Caption <> '') then
         szRect.Bottom := DrawText(Canvas.Handle,PChar(Caption),Length(Caption), szrect, DT_CALCRECT or DT_LEFT or DT_WORDBREAK)
       else
         szRect.Bottom := DrawTextW(Canvas.Handle,PWideChar(WideCaption),Length(WideCaption), szrect, DT_CALCRECT or DT_LEFT or DT_WORDBREAK);
@@ -4436,11 +4864,12 @@ begin
     end
     else
     begin
+      fillchar(sizerect,sizeof(sizerect),0);
+
       if (Caption <> '') then
         graphics.MeasureString(Caption, Length(Caption), font, rectf, stringFormat, sizerect)
       else
         graphics.MeasureString(WideCaption, Length(WideCaption), font, rectf, stringFormat, sizerect)
-
     end;
 
     Result := Rect(round(sizerect.X), Round(sizerect.Y), Round(sizerect.X + sizerect.Width), Round(sizerect.Y + sizerect.Height));
@@ -4448,7 +4877,7 @@ begin
 
     if RealDraw then
     begin
-      if AntiAlias = aaNone then
+      if (AntiAlias = aaNone) then
       begin
         szRect.Left := round(rectf.X);
         szRect.Top := round(rectf.Y);
@@ -4468,13 +4897,12 @@ begin
       end
       else
       begin
-        if Caption <> '' then
+        if (Caption <> '') then
           graphics.DrawString(Caption, Length(Caption), font, rectf, stringFormat, solidBrush)
         else
           graphics.DrawString(WideCaption, Length(WideCaption), font, rectf, stringFormat, solidBrush)
       end;
     end;
-
     stringformat.Free;
     solidBrush.Free;
     font.Free;
@@ -4647,6 +5075,13 @@ begin
   gppen.Free;
 
   fontFamily:= TGPFontFamily.Create(AFont.Name);
+
+  if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+  begin
+    fontFamily.Free;
+    fontFamily := TGPFontFamily.Create('Arial');
+  end;
+
 
   fs := 0;
 
@@ -4825,6 +5260,37 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure DrawVistaPageGradient(Canvas: TCanvas; R: TRect; GradHeight: Integer; FC, TC, MFC, MTC, PC: TColor; RoundEdges: Integer);
+var
+  R1, R2: TRect;
+  graphics: TGPGraphics;
+  w, h: Integer;
+  gppen: TGPPen;
+begin
+  R1 := Rect(R.Left, R.Top, R.Right, R.Top + GradHeight + 1);
+  R2 := Rect(R.Left, R.Top + GradHeight, R.Right, R.Bottom);
+  DrawGradient(Canvas, FC, TC, 40, R1, False);
+  DrawGradient(Canvas, MFC, MTC, 40, R2, False);
+
+  if (PC <> clNone) then
+  begin
+    w := r.Right - r.Left;
+    h := r.Bottom - r.Top;
+    graphics := TGPGraphics.Create(Canvas.Handle);
+    gppen := TGPPen.Create(ColorToARGB(PC),1);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    
+    if (RoundEdges <= 0) then
+      DrawRect(graphics, gppen,r.Left,r.Top, w - 1, h - 1)
+    else
+      DrawRoundRect(graphics, gppen,r.Left,r.Top, w - 1, h - 1, RoundEdges);
+    graphics.free;
+    gppen.Free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure DrawVistaGradient(Canvas: TCanvas; r: TRect; CFU, CTU, CFB, CTB, PC: TColor;
    GradientU,GradientB: TGDIPGradient; Caption:string; AFont: TFont;
    Images: TImageList; ImageIndex: integer; EnabledImage: Boolean; Layout: TButtonLayout;
@@ -4997,6 +5463,12 @@ begin
   end;
 
   fontFamily := TGPFontFamily.Create(AFont.Name);
+
+  if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+  begin
+    fontFamily.Free;
+    fontFamily := TGPFontFamily.Create('Arial');
+  end;
 
   fs := 0;
 
@@ -5711,6 +6183,13 @@ begin
 
   fontFamily := TGPFontFamily.Create(AFont.Name);
 
+  if (fontFamily.Status in [FontFamilyNotFound, FontStyleNotFound]) then
+  begin
+    fontFamily.Free;
+    fontFamily := TGPFontFamily.Create('Arial');
+  end;
+
+
   fs := 0;
 
   ImgX := 0;
@@ -6401,7 +6880,7 @@ begin
 
   FBevel:= bvNone;
 
-  FColor := TGradientBackground.Create;
+  FColor := TVistaGradientBackground.Create;
   FDockColor := TGradientBackground.Create;
 
   FColor.OnChange := BackgroundChanged;
@@ -6417,7 +6896,7 @@ begin
 
   FBorderColor := clNone;
   FBorderColorHot := clNone;
-  FColorHot := TGradientBackground.Create;
+  FColorHot := TVistaGradientBackground.Create;
   FColorHot.Color := clNone;
   FColorHot.ColorTo := clNone;
 
@@ -6436,7 +6915,7 @@ begin
   FPagerCaption.OnChange := OnPagerCaptionChanged;
   FTabAppearance := TTabAppearance.Create;
   FTabAppearance.OnChange := OnTabAppearanceChanged;
-  FPageAppearance := TVistaBackground.Create;
+  FPageAppearance := TVistaPageBackground.Create;
   FPageAppearance.OnChange := OnPageAppearanceChanged;
   FGroupAppearance := TGroupAppearance.Create;
   FGroupAppearance.OnChange := OnGroupAppearanceChanged;
@@ -6445,12 +6924,27 @@ begin
   FQATAppearance.OnChange := OnQATAppearanceChanged;
   //Style := bsOffice2003Blue;
   //FTransparent:= true;
+
+  FSystemFont := true;
+  if IsVista then
+  begin
+    FFont.Name := 'Segoe UI';
+    FCaptionFont.Name := 'Segoe UI';
+  end
+  else
+  begin
+    FFont.Name := 'Tahoma';
+    FCaptionFont.Name := 'Tahoma';
+  end;
 end;
 
 //------------------------------------------------------------------------------
 
 destructor TCustomAdvToolBarStyler.Destroy;
 begin
+  {$IFDEF DELPHI2006_LVL}
+  ReleaseAllControls;
+  {$ENDIF}
   FFont.Free;
   FBackGround.Free;
   FDragGripImage.Free;
@@ -6476,6 +6970,54 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TCustomAdvToolBarStyler.ReleaseAllControls;
+var
+  i, j, c: Integer;
+  ctrl : TCustomControl;
+begin
+  i := 0;
+  c := FControlList.Count;
+  j := 0;
+  while (i < FControlList.Count) do
+  begin
+    ctrl := TCustomControl(FControlList[i]);
+    if not (ctrl is TCustomControl) then
+    begin
+      Inc(i);
+      Continue;
+    end;
+
+    if ctrl is TAdvDockPanel then
+    begin
+      if not (csDestroying in TAdvDockPanel(ctrl).ComponentState) and (TAdvDockPanel(ctrl).ToolBarStyler = self) then
+        TAdvDockPanel(ctrl).ToolBarStyler := nil
+      else
+        Inc(i);
+    end
+    else if (ctrl is TAdvToolBarPager) then
+    begin
+      if not (csDestroying in TAdvToolBarPager(ctrl).ComponentState) and (TAdvToolBarPager(ctrl).ToolBarStyler = Self) then
+        TAdvToolBarPager(ctrl).ToolBarStyler := nil
+      else
+        Inc(i);
+    end
+    else
+      Inc(i);
+    Inc(j);
+    if (j >= c) then
+      Break;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomAdvToolBarStyler.UpdateStyle;
+begin
+  Change(2);
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TCustomAdvToolBarStyler.Change(PropID: integer);
 var
   i: integer;
@@ -6488,7 +7030,15 @@ begin
     if TCustomControl(FControlList[i]) is TAdvDockPanel then
       TAdvDockPanel(FControlList[i]).UpdateMe(PropID)
     else if TCustomControl(FControlList[i]) is TAdvToolBar then
-      TAdvToolBar(FControlList[i]).UpdateMe(PropID)
+    begin
+      if TAdvToolBar(FControlList[i]).Compact then
+      begin
+        TAdvToolBar(FControlList[i]).FCompactWindow.AdvToolBar.UpdateMe(PropID);
+        TAdvToolBar(FControlList[i]).UpdateMe(PropID);
+      end
+      else
+        TAdvToolBar(FControlList[i]).UpdateMe(PropID)
+    end
     else if (TCustomControl(FControlList[i]) is TAdvToolBarPager) then
       TAdvToolBarPager(FControlList[i]).UpdateMe(PropID);
   end;
@@ -6575,7 +7125,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TCustomAdvToolBarStyler.SetColor(const Value: TGradientBackground);
+procedure TCustomAdvToolBarStyler.SetColor(const Value: TVistaGradientBackground);
 begin
   FColor.Assign(Value);
 end;
@@ -6633,6 +7183,28 @@ procedure TCustomAdvToolBarStyler.SetRoundEdges(const Value: boolean);
 begin
   FRoundEdges := Value;
   Change(2);
+end;
+
+procedure TCustomAdvToolBarStyler.SetSystemFont(const Value: boolean);
+begin
+  if (FSystemFont <> Value) then
+  begin
+    FSystemFont := Value;
+
+    if Value then
+    begin
+      if IsVista then
+      begin
+        FFont.Name := 'Segoe UI';
+        FCaptionFont.Name := 'Segoe UI';
+      end
+      else
+      begin
+        FFont.Name := 'Tahoma';
+        FCaptionFont.Name := 'Tahoma';
+      end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -8959,7 +9531,7 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TCustomAdvToolBarStyler.SetColorHot(
-  const Value: TGradientBackground);
+  const Value: TVistaGradientBackground);
 begin
   FColorHot.Assign(Value);
 end;
@@ -9050,7 +9622,7 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TCustomAdvToolBarStyler.SetPageAppearance(
-  const Value: TVistaBackground);
+  const Value: TVistaPageBackground);
 begin
   FPageAppearance.assign(Value);
 end;
@@ -9208,6 +9780,13 @@ begin
   if FPersistence.Enabled and not (csDesigning in ComponentState) then
     SaveToolBarsPosition;
 
+  {$IFDEF DELPHI2006_LVL}
+  if Assigned(FToolBarStyler) and (FToolBarStyler <> FInternalToolBarStyler) then
+  begin
+    FToolBarStyler.RemoveControl(self);
+    FToolBarStyler := nil;
+  end;
+  {$ENDIF}
   FInternalToolBarStyler.Free;
   FRows.Free;
   FToolBars.Free;
@@ -9496,8 +10075,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvDockPanel.SetToolBarStyler(
-  const Value: TCustomAdvToolBarStyler);
+procedure TAdvDockPanel.SetToolBarStyler(const Value: TCustomAdvToolBarStyler);
 var
   i: integer;
 begin
@@ -9803,7 +10381,8 @@ end;
 
 procedure ReleaseToolMenuHooks;
 begin
-  if ToolMenuHook <> 0 then UnhookWindowsHookEx(ToolMenuHook);
+  if ToolMenuHook <> 0 then
+    UnhookWindowsHookEx(ToolMenuHook);
   ToolMenuHook := 0;
   LastMenuItem := nil;
   MenuToolBar := nil;
@@ -9869,6 +10448,7 @@ var
   N: String;
   OldV: Boolean;
   TempToolBarList: TStringList;
+  TempATBList: TDbgList;
   DockList: TDbgList;
   TempList: TDbgList;
 
@@ -9975,6 +10555,20 @@ begin
     {$ENDIF}
       IniFile := TIniFile(tIniFile.Create(FPersistence.Key));
 
+    //---- check and load AdvToolbar Persistence ( Added for manual setting )  
+    TempATBList := TDbgList.Create;
+    for j:=0 to FRows.Count-1 do
+      for i:= 0 to FRows.Items[j].ToolBarList.Count-1 do
+        TempATBList.Add(FRows.Items[j].ToolBarList[i]);
+
+    for j:= 0 to TempATBList.Count-1 do
+    begin
+      if not TAdvCustomToolBar(TempATBList[j]).FPersistSettingLoaded then
+        TAdvCustomToolBar(TempATBList[j]).LoadPosition;
+    end;
+    TempATBList.Free;
+    //----
+
     TempToolBarList:= TStringList.Create;
     for j:=0 to FRows.Count-1 do
       for i:= 0 to FRows.Items[j].ToolBarList.Count-1 do
@@ -10074,6 +10668,14 @@ begin
 
         FRows.SetRowsPosition;
         DockList.Free;
+        for i := 0 to AdvToolBarCount - 1 do
+        begin
+          if AdvToolBars[i].Visible then
+          begin
+            AdvToolBars[i].SetControlsPosition;  // Fix: extra space iss
+            AdvToolBars[i].UpdateRULists;
+          end;
+        end;
       end;
 
     end;
@@ -10298,6 +10900,13 @@ end;
 
 //------------------------------------------------------------------------------
 
+
+procedure TAdvDockPanel.ArrangeToolBars;
+begin
+  FRows.ReArrangeAllToolBars;
+end;
+
+//------------------------------------------------------------------------------
 { TAdvCustomToolBar }
 
 procedure TAdvCustomToolBar.AlignControls(AControl: TControl;
@@ -10353,6 +10962,8 @@ begin
   FLUHidedControls := TDbgList.Create;
   FAutoRUL := true;
 
+  FSeqControlList := TDbgList.Create;
+
   FParentStyler := True;
   FDragGripWidth := 7;
   FPopupIndicatorWidth := DEFAULT_POPUPINDICATORWIDTH;//14;
@@ -10379,6 +10990,7 @@ begin
 
   FPersistence:= TPersistence.Create(self);
   FPersistence.Section:= TOOLBAR_SECTION;
+  FPersistSettingLoaded := False;
   //----
   Constraints.MaxWidth := Constraints.MinWidth;
   //----
@@ -10435,6 +11047,7 @@ begin
   FICompactPicture := TGDIPPicture.Create;
   FICompactPicture.OnChange := OnCompactPictureChanged;
   FCompactCaption := '';
+  FWideCompactCaption := '';
   FSelfClone := nil;
   FCompactWindow := nil;
   FCompactMinWidth := 45;
@@ -10445,6 +11058,11 @@ begin
 
   FParentOptionPicture := True;
   FCompactImageIndex := -1;
+  FDockMode := dmAll;
+
+  FButtonRows[1] := -100;
+  FButtonRows[2] := -100;
+  FButtonRows[3] := -100;
 end;
 
 //------------------------------------------------------------------------------
@@ -10454,19 +11072,29 @@ begin
   if FPersistence.Enabled and not (csDesigning in ComponentState) then
     SavePosition;
 
+  {$IFDEF DELPHI2006_LVL}
+  if not (csDesigning in ComponentState) and Assigned(FToolBarStyler) and (FToolBarStyler <> FInternalToolBarStyler) then
+  begin
+    FToolBarStyler.RemoveControl(self);
+    FToolBarStyler := nil;
+  end;
+  {$ENDIF}
+
   FInternalToolBarStyler.Free;
   FCaptionFont.Free;
 
   FLUHidedControls.Free;
   FRUControls.Free;
-  FATBControls.Free;
   FPersistence.Free;
 
   //if Assigned(FOptionWindowPanel) then   // do not destroy, parent is responsible to destroy
   //  FOptionWindowPanel.Free;
 
   if Assigned(FOptionWindow) then
+  begin
     FOptionWindow.Free;
+    FOptionWindow := nil;
+  end;
 
   FMenuItemTimer.Free;
 
@@ -10485,6 +11113,11 @@ begin
   end;
 
   FOfficeHint.Free;
+  
+  FSeqControlList.Free;
+
+  FATBControls.Free;
+  FATBControls := nil;
   
   inherited;
 end;
@@ -10538,6 +11171,61 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvCustomToolBar.GetSequenceControlList(aList: TDbgList; CheckVisibility: Boolean = True);
+var
+  i, j, k, ToIndex: integer;
+begin
+  if not Assigned(aList) then
+    Exit;
+    
+  aList.Clear;
+  for i := 0 to self.ControlCount - 1 do
+  begin
+    if ((not CheckVisibility) or (CheckVisibility and Controls[i].Visible)) then
+    begin
+      ToIndex := 0;
+      for j := aList.Count - 1 downto 0 do
+      begin
+        if Position in [daTop, daBottom] then
+        begin
+          if self.Controls[i].Left > TControl(aList[j]).Left then
+          begin
+            ToIndex := j + 1;
+            break;
+          end
+          else if self.Controls[i].Left = TControl(aList[j]).Left then
+          begin
+            for k := j downto 0 do
+            begin
+              ToIndex := j;
+              if (self.Controls[i].Left = TControl(aList[k]).Left) and
+                 (self.Controls[i].Top >= TControl(aList[k]).Top) then
+              begin
+                ToIndex := k + 1;
+                break;
+              end;
+            end;
+            break;
+          end;
+        end;
+      end;
+      aList.Insert(ToIndex, self.Controls[i]);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomToolBar.Resize;
+begin
+  inherited;
+
+  if (Parent is TAdvPage) and (AutoPositionControls) and (csDesigning in ComponentState) then
+    SetControlsPosition(false);
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvCustomToolBar.Loaded;
 var
   i: Integer;
@@ -10547,6 +11235,7 @@ begin
 
   BuildSequenceControlList;
   SetControlsPosition;
+  GetSequenceControlList(FSeqControlList);
 
   if FPersistence.Enabled and not (csDesigning in ComponentState) then
     LoadPosition;
@@ -10565,6 +11254,8 @@ begin
       if TControl(FATBControls[i]) is TAdvToolBarMenuButton then
         TAdvToolBarMenuButton(FAtbControls[i]).AdjustSize;
     end;
+
+    UpdateMenu;
   end;
 
   if AutoMDIButtons then
@@ -10581,6 +11272,13 @@ begin
 
   UpdateAllGlowButtons;
   FPropertiesLoaded := True;
+
+  if Assigned(Parent) and (Parent is TAdvPage) and Assigned(Parent.Parent) and (Parent.Parent is TAdvToolBarPager) then
+  begin
+    ParentStyler := ParentStyler;
+    if not (csDesigning in ComponentState) then
+      UpdateButtonRowCount;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -10739,6 +11437,7 @@ var
   GRounded: Boolean;
   GColorFrom, GColorHotFrom: TColor;
   GColorTo, GColorHotTo, BrClr, BrClrHot: TColor;
+  GColorMirrorFrom, GColorMirrorTo, GColorMirrorHotFrom, GColorMirrorHotTo: TColor;
   GCaptionClr, GCaptionClrTo, GCaptionBrClr, GCaptionTxtClr: TColor;
   GCaptionClrHot, GCaptionClrHotTo, GCaptionBrClrHot, GCaptionTxtClrHot: TColor;
   CP: TPoint;
@@ -10748,18 +11447,23 @@ var
   ParentCtrl: TControl;
   ctw: integer;
   ctr: TRect;
+  IsOnGroupPage: Boolean;
 begin
   if (FUpdateCount > 0) then
     Exit;
-    
+
   inherited;
 
   R := GetMyClientRect; // ClientRect;
   CapR := GetCaptionRect;
 
+  IsOnGroupPage := False;
+
   ParentCtrl := self.Parent;
   if (ParentCtrl is TCompactWindow) and Assigned(FSelfClone) then
     ParentCtrl := FSelfClone.Parent;
+  if (ParentCtrl is TAdvPage) and not (ParentCtrl.Parent is TAdvToolBarPager) and Assigned(TAdvPage(ParentCtrl).FSelfClone) then
+    ParentCtrl := TAdvPage(ParentCtrl).FSelfClone;
 
   with FCurrentToolBarStyler, Canvas do
   begin
@@ -10827,6 +11531,7 @@ begin
         i := TAdvToolBarPager(parentctrl.Parent).GroupOfTab(TAdvToolBarPager(parentctrl.Parent).IndexOfPage(TAdvPage(parentctrl)));
         if (TAdvToolBarPager(parentctrl.Parent).ActivePage = TAdvPage(parentctrl)) and (i >= 0) then
         begin
+          IsOnGroupPage := True;
           if not TAdvToolBarPager(parentctrl.Parent).TabGroups.Items[i].DefaultAppearance then
           begin
             GCaptionClr := TAdvToolBarPager(parentctrl.Parent).TabGroups.Items[i].GroupAppearance.CaptionAppearance.CaptionColor;
@@ -11067,27 +11772,45 @@ begin
 
     GRounded := RoundEdges;
     GSteps := Color.Steps;
-    GColorFrom := Color.Color;
-    GColorTo := Color.ColorTo;
+    if Assigned(Parent) and ((Parent is TAdvPage) or (Parent is TCompactWindow)) then
+    begin
+      GColorFrom := Color.Mirror.Color;
+      GColorTo := Color.Mirror.ColorTo;
+      GColorHotFrom := ColorHot.Mirror.Color;
+      GColorHotTo := ColorHot.Mirror.ColorTo;
+    end
+    else
+    begin
+      GColorFrom := Color.Color;
+      GColorTo := Color.ColorTo;
+      GColorHotFrom := ColorHot.Color;
+      GColorHotTo := ColorHot.ColorTo;
+    end;
     BrClr := FCurrentToolBarStyler.BorderColor;
+    GColorMirrorFrom := Color.Mirror.ColorMirror;
+    GColorMirrorTo := Color.Mirror.ColorMirrorTo;
 
     GStepsHot := ColorHot.Steps;
-    GColorHotFrom := ColorHot.Color;
-    GColorHotTo := ColorHot.ColorTo;
     BrClrHot := BorderColorHot;
+    GColorMirrorHotFrom := ColorHot.Mirror.ColorMirror;
+    GColorMirrorHotTo := ColorHot.Mirror.ColorMirrorTo;
 
     if FullSize then
     begin
-      HorzGradient := not HorzGradient;
+      //HorzGradient := not HorzGradient;
       GSteps := 256;
       GColorFrom := DockColor.Color;
       GColorTo := DockColor.ColorTo;
+      HorzGradient := DockColor.FDirection = gdHorizontal;
 
       if ToolBarState = tsFloating then
       begin
         GColorTo := DockColor.Color;
         GColorFrom := DockColor.Color;
-      end;
+      end
+      else  // do not show border for fullsize toolbars
+        BrClr := clNone;
+
       GRounded := False;
     end;
 
@@ -11096,6 +11819,8 @@ begin
       i := TAdvToolBarPager(ParentCtrl.Parent).GroupOfTab(TAdvToolBarPager(ParentCtrl.Parent).IndexOfPage(TAdvPage(ParentCtrl)));
       if (TAdvToolBarPager(ParentCtrl.Parent).ActivePage = TAdvPage(ParentCtrl)) and (i >= 0) then
       begin
+        IsOnGroupPage := True;
+        
         if not TAdvToolBarPager(ParentCtrl.Parent).TabGroups.Items[i].DefaultAppearance then
         begin
           GSteps := TAdvToolBarPager(ParentCtrl.Parent).TabGroups.Items[i].GroupAppearance.ToolBarAppearance.Color.Steps;
@@ -11127,6 +11852,8 @@ begin
     begin
       GColorFrom := BlendColor(GColorHotFrom , GColorFrom, FStepHover);
       GColorTo := BlendColor(GColorHotTo, GColorTo, FStepHover);
+      GColorMirrorFrom := BlendColor(GColorMirrorHotFrom , GColorMirrorFrom, FStepHover);
+      GColorMirrorTo := BlendColor(GColorMirrorHotTo, GColorMirrorTo, FStepHover);
       if (BrClr <> clNone) or (BrClrHot <> clNone) then
         BrClr := BlendColor(BrClrHot, BrClr, FStepHover);
 
@@ -11141,6 +11868,10 @@ begin
       if (BrClr <> clNone) or (BrClrHot <> clNone) then
         BrClr := BrClrHot;
       GSteps := GStepsHot;
+      if (GColorMirrorHotFrom <> clNone) then
+        GColorMirrorFrom := GColorMirrorHotFrom;
+      if (GColorMirrorHotTo <> clNone) then
+        GColorMirrorTo := GColorMirrorHotTo;
     end;
 
     // Set hot color when any child control has focus
@@ -11153,6 +11884,10 @@ begin
       if (BrClr <> clNone) or (BrClrHot <> clNone) then
         BrClr := BrClrHot;
       GSteps := GStepsHot;
+      if (GColorMirrorHotFrom <> clNone) then
+        GColorMirrorFrom := GColorMirrorHotFrom;
+      if (GColorMirrorHotTo <> clNone) then
+        GColorMirrorTo := GColorMirrorHotTo;
     end;
 
     if not Transparent then
@@ -11160,7 +11895,12 @@ begin
       if GColorTo <> clNone then
       begin
         if (ToolBarState in [tsDocked, tsFixed]) or ((ToolBarState = tsFloating) and (FFloatingRows = 1)) then
-          DrawGradient(Canvas, GColorFrom, GColorTo, GSteps, R, HorzGradient)
+        begin
+          if Assigned(Parent) and ((Parent is TAdvPage) or (Parent is TCompactWindow)) and (ParentCtrl is TAdvPage) and (not IsOnGroupPage) then
+             DrawVistaPageGradient(Canvas, R, PAGEGRAD_HEIGHT - Top, GColorFrom, GColorTo, GColorMirrorFrom, GColorMirrorTo, clNone, 3)
+          else
+            DrawGradient(Canvas, GColorFrom, GColorTo, GSteps, R, HorzGradient);
+        end
         else
         begin
           SegR := Rect(R.Left, R.Top, R.Right, R.Top + FSizeAtDock);
@@ -11467,7 +12207,16 @@ begin
       Pen.Color := BrClr;
       Brush.Style := bsClear;
       if GRounded and (Bevel = bvNone) then
-        RoundRect(R.Left, R.Top, R.Right-1, R.Bottom-1, 6, 6)
+      begin
+        RoundRect(R.Left, R.Top, R.Right-1, R.Bottom-1, 6, 6);
+        { TODO: 3d borders
+        if (Parent is TCompactWindow) or (Parent is TAdvPage) then
+        begin
+          Pen.Color := BlendColor(BrClr, clWhite, 50);
+          MoveTo(R.Left + 1, R.Bottom - 4);
+          LineTo(R.Left + 1, R.Top + 2);
+        end;}
+      end
       else
         Rectangle(R);
     end;
@@ -12432,7 +13181,7 @@ begin
     end
     else
     begin
-      if not (AParent is TAdvPage) or not Assigned(AParent.Parent) or not (AParent.Parent is TAdvToolBarPager) then
+      if not (AParent is TAdvPage) or not Assigned(AParent.Parent) or (not (AParent.Parent is TAdvToolBarPager) and not (AParent.Parent is TMinimizedRibbonWindow)) then
         ParentStyler := false;
       FToolBarState := tsFixed;
       if FCurrentDock <> nil then
@@ -12495,16 +13244,26 @@ begin
 
     FToolBarStyler := Value;
 
-    if FParentStyler and Assigned(FLastDock) and not(csDestroying in FLastDock.FCurrentToolBarStyler.ComponentState) then
+    if FParentStyler and Assigned(FLastDock) and Assigned(FLastDock.FCurrentToolBarStyler) and not(csDestroying in FLastDock.FCurrentToolBarStyler.ComponentState) then
       FToolBarStyler := FLastDock.FCurrentToolBarStyler;
 
-    if FParentStyler and Assigned(Parent) and (Parent is TAdvPage) and Assigned(Parent.Parent) and (Parent.Parent is TAdvToolBarPager) then
+    if FParentStyler and Assigned(Parent) and (Parent is TAdvPage) and Assigned(Parent.Parent) then
     begin
-      if not(csDestroying in TAdvToolBarPager(Parent.Parent).FCurrentToolBarStyler.ComponentState) then
-        FToolBarStyler := TAdvToolBarPager(Parent.Parent).FCurrentToolBarStyler
-      else if not(csDestroying in TAdvToolBarPager(Parent.Parent).FInternalToolBarStyler.ComponentState) then
-        FToolBarStyler := TAdvToolBarPager(Parent.Parent).FInternalToolBarStyler;
-    end;  
+      if (Parent.Parent is TAdvToolBarPager) then
+      begin
+        if not(csDestroying in TAdvToolBarPager(Parent.Parent).FCurrentToolBarStyler.ComponentState) then
+          FToolBarStyler := TAdvToolBarPager(Parent.Parent).FCurrentToolBarStyler
+        else if not(csDestroying in TAdvToolBarPager(Parent.Parent).FInternalToolBarStyler.ComponentState) then
+          FToolBarStyler := TAdvToolBarPager(Parent.Parent).FInternalToolBarStyler;
+      end
+      else if (Parent.Parent is TMinimizedRibbonWindow) and Assigned(TMinimizedRibbonWindow(Parent.Parent).AdvToolBarPager) then
+      begin
+        if not(csDestroying in TMinimizedRibbonWindow(Parent.Parent).AdvToolBarPager.FCurrentToolBarStyler.ComponentState) then
+          FToolBarStyler := TMinimizedRibbonWindow(Parent.Parent).AdvToolBarPager.FCurrentToolBarStyler
+        else if not(csDestroying in TMinimizedRibbonWindow(Parent.Parent).AdvToolBarPager.FInternalToolBarStyler.ComponentState) then
+          FToolBarStyler := TMinimizedRibbonWindow(Parent.Parent).AdvToolBarPager.FInternalToolBarStyler;
+      end;
+    end;
 
     if FToolBarStyler = nil then
     begin
@@ -12524,7 +13283,7 @@ begin
       AdjustSizeOfAllButtons();
       UpdateAllGlowButtons;
     end;
-    Invalidate;
+    //Invalidate;
   end;
 end;
 
@@ -12534,7 +13293,11 @@ procedure TAdvCustomToolBar.UpdateMe(PropID: integer);
 begin
   Color := FCurrentToolBarStyler.Color.Color;
   case PropID of
-    5: SetControlsPosition;
+    5: 
+    begin
+      SetControlsPosition;
+      UpdateRULists;
+    end;    
     6:
     begin
       if not (csLoading in ComponentState) then
@@ -12547,7 +13310,26 @@ begin
     end;
   end;
 
+  UpdateAllContainer;
   Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomToolBar.UpdateAllContainer;
+var
+  I: Integer;
+begin
+  if Assigned(FCurrentToolBarStyler) then
+  begin
+    for i := 0 to FATBControls.Count - 1 do
+    begin
+      if (TControl(FATBControls[i]) is TAdvToolBarContainer) then
+      begin
+        TAdvToolBarContainer(FATBControls[i]).Invalidate;
+      end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -12571,12 +13353,12 @@ begin
 
       if (TControl(FATBControls[i]) is TAdvGlowMenuButton) then
           TAdvGlowMenuButton(FAtbControls[i]).Appearance.Assign(FCurrentToolBarStyler.GlowButtonAppearance);
-
+{$IFNDEF TMS_STD}
       if (TControl(FATBControls[i]) is TDBAdvGlowButton) then
           TDBAdvGlowButton(FAtbControls[i]).Appearance.Assign(FCurrentToolBarStyler.GlowButtonAppearance);
+{$ENDIF}
 
-
-      if FCurrentToolBarStyler.TMSStyle <> tsCustom then
+      if (FCurrentToolBarStyler.GetInterface(ITMSStyle, tmsif)) and (FCurrentToolBarStyler.TMSStyle <> tsCustom) then
       begin
         if (TControl(FATBControls[i]).GetInterface(ITMSStyle, tmsif)) then
            tmsif.SetComponentStyle(FCurrentToolBarStyler.TMSStyle);
@@ -12981,7 +13763,7 @@ var
       begin
         for i := 0 to ParentCtrl.ControlCount - 1 do
         begin
-          if (ParentCtrl.Controls[i] is TWinControl) then
+          if (ParentCtrl.Controls[i] is TWinControl) and ((DockMode = dmAll) or ((DockMode = dmAllParentDockPanels) and (ParentCtrl.Controls[i] is TAdvDockPanel))) then
             SearchChildForDockPanel(TWinControl(ParentCtrl.Controls[i]));
         end;
       end;
@@ -13005,7 +13787,18 @@ var
     end;
 
   begin
-    SearchChildForDockPanel(GetParentForm);
+    if (DockMode = dmParentDockPanelOnly) and Assigned(FLastDock) then
+    begin
+      SearchChildForDockPanel(FLastDock);
+    end
+    else if (DockMode = dmAllParentDockPanels) and Assigned(FLastDock) and Assigned(FLastDock.Parent) then
+    begin
+      SearchChildForDockPanel(FLastDock.Parent);
+    end
+    else
+    begin
+      SearchChildForDockPanel(GetParentForm);
+    end;
   end;
 
 begin
@@ -13643,7 +14436,6 @@ begin
   //if name = 'AdvToolBar4' then
     //OutputDebugString(pchar(Name+' AT:'+inttostr(ATop)+' AL:'+inttostr(ALeft)+' AH:'+inttostr(AHeight)+' AW:'+inttostr(AWidth)+' W:'+inttostr(Width)));
 
-
   OldWidth := Width;
   OldHeight := Height;
 
@@ -13789,13 +14581,18 @@ procedure TAdvCustomToolBar.SetToolBarIndex(const Value: Integer);
 var
   curIndex, newIndex : integer;
 begin
-  if Parent is TAdvPage then begin
+  if Parent is TAdvPage then
+  begin
     curIndex := TAdvPage(Parent).FAdvToolBars.IndexOf(Self);
     newIndex := Max(0, Min(Value, TAdvPage(Parent).FAdvToolBars.Count-1));
-    if newIndex <> curIndex then begin
+    if newIndex <> curIndex then
+    begin
       TAdvPage(Parent).FAdvToolBars.Move(curIndex, newIndex);
       TAdvPage(Parent).UpdateAdvToolBarsPosition;
     end;
+
+    if (ToolBarIndex >= 0) then
+      TabOrder := ToolBarIndex;
   end;
 end;
 
@@ -13838,6 +14635,7 @@ begin
     FFloatingWindow.BorderStyle := bsNone;
     FFloatingWindow.Ctl3D := false;
     FFloatingWindow.FormStyle := fsStayOnTop;
+    FFloatingWindow.Position := poDesigned;
     //FFloatingWindow.Width := 100;
     //FFloatingWindow.Height := 100;
     //FFloatingWindow.AutoScroll := true;
@@ -14087,14 +14885,57 @@ end;
 
 procedure TAdvCustomToolBar.SetControlsPosition(UpdateMySize: boolean = true);
 var
-  i, x, y: integer;
+  i, j, x, mw, nmw, x1, y, y1, w, r: integer;
   dgs: TDragGripStyle;
 begin
-  if (csLoading in ComponentState) or (FUpdateCount > 0) then
+  if (csLoading in ComponentState) or (FUpdateCount > 0) or not Assigned(FATBControls) then
     Exit;
-                                                                 // FF: Page.MoveToolBar 
+                                                                 // FF: Page.MoveToolBar
   if not AutoPositionControls and (ToolBarState = tsFixed) and ((Self.Parent = nil) or (Self.Parent is TAdvPage) or (Self.Parent is TCompactWindow) or not (Self.Parent is TAdvDockPanel)) then
     Exit;
+
+  if (Parent is TAdvPage) and not AutoSize then
+  begin
+    x := 2;
+    y := 2;
+
+    //  Then set the controls position
+    FInternalControlPositioning := true;
+    for i := 0 to FATBControls.Count - 1 do
+    begin
+      if TControl(FATBControls[i]).Visible then
+      begin
+        if TControl(FATBControls[i]).Width > (self.Width - x - 2) then
+        begin
+          // find leftmost position!!
+          nmw := 0;
+          mw := 2;
+          for j := 0 to i - 1 do
+          begin
+            if (TControl(FATBControls[j]).Height > TControl(FATBControls[i]).Height) then
+              nmw := TControl(FATBControls[j]).Left + TControl(FATBControls[j]).Width;
+            if nmw > mw then
+              mw := nmw;  
+          end;
+
+          x := mw;
+          y := y + TControl(FATBControls[i]).Height;
+        end;
+
+        TControl(FATBControls[i]).Left := x;
+        TControl(FATBControls[i]).Top := y;
+
+        x := x + TControl(FATBControls[i]).Width;
+      end
+      else
+      begin
+        TControl(FATBControls[i]).Top := Height + 2;
+      end;
+    end;
+    FInternalControlPositioning := false;
+    Exit;
+  end;
+
 
   if (ToolBarState = tsFloating) then
   begin
@@ -14174,31 +15015,99 @@ begin
     else
       y := 2 + CaptionHeight;
 
-
-    FInternalControlPositioning := true;
-    for i := 0 to FATBControls.Count - 1 do
+    if (Parent is TAdvPage) or (Parent is TCompactWindow) then
     begin
-      if TControl(FATBControls[i]).Visible then
+      y1 := y;
+      x1 := x;
+      w := 0;
+      r := 1;
+      FInternalControlPositioning := true;
+      for i := 0 to FATBControls.Count - 1 do
       begin
-        if (FLUHidedControls.IndexOf(FATBControls[i]) >= 0) then
+        if TControl(FATBControls[i]).Visible or (csDesigning in ComponentState) then
         begin
-          //TControl(FATBControls[i]).Left :=
-          if TControl(FATBControls[i]).Parent = self then
-            TControl(FATBControls[i]).Top := Height + 2;
+          if (TControl(FATBControls[i]) is TAdvCustomGlowButton) then
+          begin
+            if (TProCustomglowButton(FATBControls[i]).ButtonSizeState = bsLarge) then
+            begin
+              TControl(FATBControls[i]).Left := x;
+              TControl(FATBControls[i]).Top := y;
+              x := x + TControl(FATBControls[i]).Width;
+              r := 1;
+              y1 := y;
+              x1 := x;
+              w := 0;
+            end
+            else
+            begin
+              TControl(FATBControls[i]).Left := x1;
+              TControl(FATBControls[i]).Top := y1;
+              //x := x + TControl(FATBControls[i]).Width;
+              if (w < TControl(FATBControls[i]).Width) then
+              begin
+                x := x + (TControl(FATBControls[i]).Width - w);
+                w := TControl(FATBControls[i]).Width;
+              end;
+
+              Inc(r);
+              if (r > TOOLBAR_ROWS) then
+              begin
+                r := 1;
+                y1 := y;
+                x1 := x;
+                w := 0;
+              end
+              else
+              begin
+                y1 := y1 + TControl(FATBControls[i]).Height;
+              end;
+            end;
+          end
+          else
+          begin
+            TControl(FATBControls[i]).Left := x;
+            TControl(FATBControls[i]).Top := y;
+            x := x + TControl(FATBControls[i]).Width;
+            r := 1;
+            y1 := y;
+            x1 := x;
+            w := 0;
+          end;
         end
         else
         begin
-          TControl(FATBControls[i]).Left := x;
-          TControl(FATBControls[i]).Top := y;
-          x := x + TControl(FATBControls[i]).Width;
+          TControl(FATBControls[i]).Top := Height + 2;
         end;
-      end
-      else
-      begin
-        TControl(FATBControls[i]).Top := Height + 2;
       end;
-    end;
-    FInternalControlPositioning := false;
+      FInternalControlPositioning := false;
+    end
+    else
+    begin
+      FInternalControlPositioning := true;
+      for i := 0 to FATBControls.Count - 1 do
+      begin
+        if TControl(FATBControls[i]).Visible or (csDesigning in ComponentState) then
+        begin
+          if (FLUHidedControls.IndexOf(FATBControls[i]) >= 0) then
+          begin
+            //TControl(FATBControls[i]).Left :=
+            if TControl(FATBControls[i]).Parent = self then
+              TControl(FATBControls[i]).Top := Height + 2;
+          end
+          else
+          begin
+            TControl(FATBControls[i]).Left := x;
+            TControl(FATBControls[i]).Top := y;
+            x := x + TControl(FATBControls[i]).Width;
+          end;
+        end
+        else
+        begin
+          TControl(FATBControls[i]).Top := Height + 2;
+        end;
+      end;
+      FInternalControlPositioning := false;
+    end;  
 
     if UpdateMySize then
       UpdateSize;
@@ -14234,7 +15143,7 @@ begin
       FInternalControlPositioning := true;
       for i := 0 to FATBControls.Count - 1 do
       begin
-        if TControl(FATBControls[i]).Visible then
+        if TControl(FATBControls[i]).Visible or (csDesigning in ComponentState) then
         begin
           if (FLUHidedControls.IndexOf(FATBControls[i]) >= 0) then
           begin
@@ -14283,9 +15192,9 @@ end;
 
 procedure TAdvCustomToolBar.UpdateSize;
 var
-  H, W, i, MaxS, MaxCtrlS: integer;
+  H, W, W1, i, j, MaxS, MaxCtrlS: integer;
   dgs: TDragGripStyle;
-  
+  OldV: Boolean;
 begin
   if (FToolBarState = tsFloating) then
   begin
@@ -14349,7 +15258,35 @@ begin
         end;
 
         if i >= 0 then
-          W := TControl(FATBControls[i {FATBControls.Count-1}]).Left + TControl(FATBControls[i {FATBControls.Count-1}]).Width
+        begin
+          if (Parent is TAdvPage) or (Parent is TCompactWindow) then
+          begin
+            i := FATBControls.count - 1;
+            j := 1;
+            W1 := 0;
+            while i >= 0 do
+            begin
+              if TControl(FATBControls[i]).visible then
+              begin
+                W1 := Max(W1, TControl(FATBControls[i]).Left + TControl(FATBControls[i]).Width);
+                if (TControl(FATBControls[i]) is TAdvCustomGlowButton) and (TProCustomGlowButton(FATBControls[i]).ButtonSizeState in [bsLabel, bsGlyph]) then
+                begin
+                  Inc(j);
+                  if (j > TOOLBAR_ROWS) then
+                    break;
+                end
+                else
+                  break;
+              end;
+              dec(i);
+            end;
+
+            if (W1 > 0) then
+              W := W1;
+          end
+          else
+            W := TControl(FATBControls[i {FATBControls.Count-1}]).Left + TControl(FATBControls[i {FATBControls.Count-1}]).Width;
+        end
         else
           W := MIN_BUTTONSIZE;
 
@@ -14386,7 +15323,10 @@ begin
       if ShowPopupIndicator then
         MaxS := MaxS + PopupIndicatorWidth;
 
-      MaxS := Max(MaxS, W);
+      if (Parent is TAdvPage) or (Parent is TCompactWindow) then
+        MaxS := W
+      else
+        MaxS := Max(MaxS, W);
       //FMaxLength:= W;
       FMaxLength := MaxS;
 
@@ -14430,6 +15370,8 @@ begin
           if Constraints.MinWidth > W then
             Constraints.MinWidth := W;
 
+          if FDoCheckBoundChange and (Constraints.MaxWidth <> FMaxLength) and (Width > FMaxLength) and (Width <> W) then
+            Width := W;
           //d:= W - Constraints.MaxWidth;
           Constraints.MaxWidth := FMaxLength; //W;
 
@@ -14446,7 +15388,12 @@ begin
           else if W < Width then
           begin
             if Width > FMaxLength then
+            begin
+              OldV := AllowBoundChange;
+              AllowBoundChange := not FDoCheckBoundChange; // True
               Width := W;
+              AllowBoundChange := OldV;
+            end;
           end;
 
           if ShowCaption then
@@ -14617,6 +15564,12 @@ begin
       end;
     end;
 
+    if (ToolBarState = tsFloating) and not (csLoading in ComponentState) then
+    begin
+      FSizeAtDock := GetSizeAtDock(True);
+      SetControlsPosition;
+    end;
+
     Invalidate;
   end;
 end;
@@ -14629,7 +15582,7 @@ var
 begin
   if FMenu = Value then
     Exit;
-    
+
   if csAcceptsControls in ControlStyle then
   begin
     ControlStyle := [csCaptureMouse, csClickEvents,
@@ -14887,8 +15840,25 @@ begin
   if (csDesigning in ComponentState) or (csLoading in ComponentState) then
     ReorderControl(Pos, Control.Left, Control.Top);
 
+  if not ((csDesigning in ComponentState) or (csLoading in ComponentState)) and
+         (Self.ToolBarState = tsDocked) and Assigned(FCurrentDock) then
+    FDoCheckBoundChange := True;
+
   SetControlsPosition;
   UpdateRULists;
+
+  FDoCheckBoundChange := False;
+
+  if not ((csDesigning in ComponentState) or (csLoading in ComponentState)) and
+         (Self.ToolBarState = tsDocked) and Assigned(FCurrentDock) then
+  begin
+    if not AllowBoundChange then
+    begin
+      if (self.FRow >= 0) and (self.FRow < FCurrentDock.RowCount) then
+        FCurrentDock.Rows[self.FRow].ArrangeToolBars;
+    end;
+  end;
+
   if not (csDesigning in ComponentState) and AutoOptionMenu then
   begin
     if Assigned(FOptionWindow) and FOptionWindow.Visible then
@@ -14968,15 +15938,19 @@ begin
       TAdvCustomToolBarControl(Control).AdjustSize;
   end;
 
+  {$IFNDEF TMS_STD}
   if Assigned(FCurrentToolBarStyler) then
   begin
     if (Control is TAdvGlowButton) or (Control is TDBAdvGlowButton) or (Control is TAdvGlowMenuButton) then
       TAdvGlowButton(Control).Appearance.Assign(FCurrentToolBarStyler.GlowButtonAppearance);
   end;
+  {$ENDIF}
 
   if not (csDesigning in ComponentState) and (Parent <> nil) and (Parent is TAdvPage) and (Control is TAdvCustomGlowButton) then
   begin
     TProCustomGlowButton(Control).OnInternalKeyDown := OnGlowButtonKeyDown;
+    TProCustomGlowButton(Control).OnSetButtonSize := OnSetGlowButtonSize;
+    TProCustomGlowButton(Control).OnGetShortCutHintPos := OnGetGlowButtonShortCutHintPos;
   end;
 
   if not (csDesigning in ComponentState) and (Parent <> nil) and (Parent is TAdvDockPanel) and (Control is TAdvCustomGlowButton) then
@@ -15012,6 +15986,9 @@ procedure TAdvCustomToolBar.RemoveControl(Control: TControl);
 var
   I: Integer;
 begin
+  if (FATBControls = nil) then
+    Exit;
+    
   I := FATBControls.IndexOf(Control);
   if I >= 0 then
   begin
@@ -15165,6 +16142,7 @@ var
 begin
   Result := False;
   if Button = nil then Exit;
+  
   FCaptureChangeCancels := False;
   try
     if Button.DropdownMenu <> nil then
@@ -15181,7 +16159,11 @@ begin
       FTempMenu.TrackButton := tbLeftButton;
       Menu := Button.MenuItem.GetParentMenu;
       if Menu <> nil then
+      begin
         FTempMenu.Images := Menu.Images;
+        if (Menu is TAdvMainMenu) then
+          FTempMenu.DisabledImages := (Menu as TAdvMainMenu).DisabledImages;
+      end;
       FButtonMenu := Button.MenuItem;
 
       CheckAndAddMDIChildMenu;
@@ -15214,9 +16196,9 @@ begin
       j := 0;
       for k := 0 to FTempMenu.Items.Count - 1 do
       begin
-        if MenuWidth < Canvas.TextWidth(FTempMenu.Items[k].Caption) then
+        if MenuWidth < (Canvas.TextWidth(FTempMenu.Items[k].Caption) + Canvas.TextWidth(ShortCutToText(FTempMenu.Items[k].shortcut)) ) then
         begin
-          MenuWidth := Canvas.TextWidth(FTempMenu.Items[k].Caption);
+          MenuWidth := Canvas.TextWidth(FTempMenu.Items[k].Caption) + Canvas.TextWidth(ShortCutToText(FTempMenu.Items[k].shortcut));
           j := k;
         end;
       end;
@@ -15326,7 +16308,11 @@ begin
         TAdvPopupMenu(FTempMenu).MenuStyler := FCurrentToolBarStyler.CurrentAdvMenuStyler;
 
       if Hook or ((FTempMenu.Items.Count > 0) and not Assigned(Self.Menu))then
+      begin
+        Button.FMenuDisplayed := True;
         FTempMenu.Popup(APoint.X, APoint.Y);
+        FLastMenuButton := Button;
+      end;
     finally
       if Hook then ReleaseToolMenuHooks;
     end;
@@ -15348,6 +16334,7 @@ procedure TAdvCustomToolBar.CancelMenu;
 begin
   if FInMenuLoop then
   begin
+
     ReleaseToolMenuKeyHooks;
     MouseCapture := False;
     FMenuFocused := False;
@@ -15380,6 +16367,8 @@ var
 begin
   FCaptureChangeCancels := False;
   P := Button.ClientToScreen(Point(0, 0));
+  FLastMenuButton := nil;
+  Button.FInternalClick := True;
   if not RealClick then
   begin
     //PostMessage(Handle, WM_LBUTTONDOWN, MK_LBUTTON, Longint(PointToSmallPoint(ScreenToClient(P))))
@@ -15405,20 +16394,43 @@ begin
   else
   begin
     mouse_event( MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0 );
+    {$IFNDEF DELPHI2006_LVL}
     mouse_event( MOUSEEVENTF_LEFTUP, 0, 0, 0, 0 );
+    {$ENDIF}
   end;
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TAdvCustomToolBar.CNDropDownClosed(var Message: TMessage);
+var
+  aButton: TAdvCustomToolBarButton;
+  P: TPoint;
+  MouseOverButton: Boolean;
 begin
+  aButton := FLastMenuButton; //FMenuButton;
   ClearTempMenu;
+  if Assigned(aButton) and Assigned(Parent) and Assigned(Menu) and not aButton.FInternalClick then
+  begin
+    GetCursorPos(P);
+    MouseOverButton := (FindDragTarget(P, True) = aButton);
+    if MouseOverButton then
+    begin
+      P := aButton.ClientToScreen(Point(1, 1));
+      aButton.FMenuBeingClosed := True;
+      PostMessage(Parent.Handle, WM_LBUTTONUP, MK_LBUTTON, Longint(PointToSmallPoint(ScreenToClient(P))));
+    end;
+    //PostMessage(Parent.Handle, WM_LBUTTONDOWN, MK_LBUTTON, Longint(PointToSmallPoint(ScreenToClient(P))));
+    //PostMessage(Parent.Handle, WM_LBUTTONUP, MK_LBUTTON, Longint(PointToSmallPoint(ScreenToClient(P))));
+    //aButton.Perform(WM_LBUTTONUP, 0, 0);
+  end;
+  //if not (GetKeyState(VK_LBUTTON) < 0) then  //GetAsyncKeyState
   FMenuDropped := False;
+  if Assigned(aButton) then
+    aButton.FMenuDisplayed := False;
   if {(GetComCtlVersion = ComCtlVersionIE5) and }(FMenuButton <> nil)
     then FMenuButton.Invalidate;
   FCaptureChangeCancels := True;
-
 end;
 
 //------------------------------------------------------------------------------
@@ -15678,8 +16690,8 @@ begin
         begin
           j := FRUControls.Count - 1;
           while j >= 0 do
-          begin
-            if (FLUHidedControls.IndexOf(FRUControls[j]) < 0) and not (TControl(FRUControls[j]) is TAdvToolBarSeparator) then
+          begin                                                                                                           // FF: btn Loading pos issue
+            if (FLUHidedControls.IndexOf(FRUControls[j]) < 0) and not (TControl(FRUControls[j]) is TAdvToolBarSeparator) and TControl(FRUControls[j]).Visible then
               Break;
             dec(j);
           end;
@@ -15931,8 +16943,8 @@ begin
         begin
           j := FRUControls.Count - 1;
           while j >= 0 do
-          begin
-            if (FLUHidedControls.IndexOf(FRUControls[j]) < 0) and not (TControl(FRUControls[j]) is TAdvToolBarSeparator) then
+          begin                                                                                                          // FF: btn Loading pos issue
+            if (FLUHidedControls.IndexOf(FRUControls[j]) < 0) and not (TControl(FRUControls[j]) is TAdvToolBarSeparator) and TControl(FRUControls[j]).Visible then
               break;
             dec(j);
           end;
@@ -16582,6 +17594,7 @@ var
   IniFile: TIniFile;
   {$ENDIF}
   N : String;
+  b: Boolean;
 begin
 
   if (FPersistence.Enabled) and (FPersistence.Key <>'') and
@@ -16625,6 +17638,7 @@ begin
           self.Visible := Boolean(SV);
       end;
 
+      b := false;
       //if (N <> '') and (UpperCase(N) = UpperCase(Name)) then
       begin
         for I:= 0 to FATBControls.Count-1 do
@@ -16635,16 +17649,21 @@ begin
             if V <> Integer(TControl(FATBControls[i]).Visible) then
             begin
               TControl(FATBControls[i]).Visible := Boolean(V);
+              b := true;
             end;
           end;
         end;
       end;
+
+      if b then
+        SetControlsPosition;
 
       //if Self.Visible <> Boolean(SV) then
         //Self.Visible := Boolean(SV);
       //AllowBoundChange:= OldV;
     end;
     IniFile.Free;
+    FPersistSettingLoaded := True;
   end;
 end;
 
@@ -17035,6 +18054,41 @@ begin
   end
   else if (Parent is TCompactWindow) then
   begin
+    //--- Handling shortcuthint for compact state
+    if Assigned(FSelfClone) and (FSelfClone.Parent is TAdvPage) then
+    begin
+      if FCompactShortCutHintShowing then
+      begin
+        if not (Message.CharCode in [48..57, 65..90, 97..122]) then
+        begin
+          HideShortCutHintOfButtons;
+
+          // Redisplay KeyTips for all Tabs
+          if (Message.CharCode = VK_ESCAPE) and (TAdvPage(FSelfClone.Parent).AdvToolBarPager is TAdvToolBarPager) then
+          begin
+            if Assigned(FSelfClone.FCompactBtn) and FSelfClone.FCompactBtn.Visible then
+              FSelfClone.FCompactBtn.SetFocus;
+
+            TAdvPage(FSelfClone.Parent).ShowShortCutHintOfAllToolBars;
+            inherited;
+            Exit;
+          end;
+        end;
+
+        if (Message.CharCode in [48..57, 65..90, 97..122]) then
+        begin
+          TAdvPage(FSelfClone.Parent).FShortCutChars := TAdvPage(FSelfClone.Parent).FShortCutChars + char(Message.CharCode);
+          if {TAdvPage(FSelfClone.Parent).}HasShortCut(TAdvPage(FSelfClone.Parent).FShortCutChars, i) then
+          begin
+            //TAdvPage(FSelfClone.Parent).HideShortCutHintOfAllToolBars;
+            HideShortCutHintOfButtons;
+          end;
+        end;
+        
+      end;
+    end;
+    //----
+
     case Message.CharCode of
       VK_DOWN, VK_LEFT, VK_RIGHT:
       begin
@@ -17287,6 +18341,7 @@ begin
     //exit;
 
   InitializeOptionWindow;
+  
   if not ForcePoint then
   begin
     if ToolBarState <> tsFLoating then
@@ -17466,7 +18521,13 @@ begin
   end;
 
   if (Self.ToolBarState in [tsFixed, tsDocked]) and Assigned(Self.Parent) and (Self.Parent is TAdvPage) then
+  begin
     TAdvPage(Self.Parent).UpdateAdvToolBarsPosition;
+    if Self.Visible then
+      TAdvPage(Self.Parent).DecreaseToolBarSize
+    else
+      TAdvPage(Self.Parent).IncreaseToolBarSize;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -17684,6 +18745,8 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TAdvCustomToolBar.WndProc(var Message: TMessage);
+var
+  PrtForm: TCustomForm;
 begin
   if (Message.Msg = WM_DESTROY) then
   begin
@@ -17691,6 +18754,16 @@ begin
     begin
       KillTimer(Handle, FTimerID);
       FTimerID := 0;
+    end;
+  end;
+
+  if (Message.Msg = WM_TBCOMPACTWINHIDE) then
+  begin
+    PrtForm := GetParentForm(Self);
+    if Assigned(PrtForm) and Assigned(PrtForm.Menu) then  // FF: Form.Menu repainting
+    begin // Force repaint
+      PrtForm.Height := PrtForm.Height + 1;
+      PrtForm.Height := PrtForm.Height - 1;
     end;
   end;
 
@@ -17950,6 +19023,7 @@ procedure TAdvCustomToolBar.SetAutoMDIButtons(const Value: Boolean);
 var
   WindowHandle: THandle;
   OldWndProc: Integer;
+  MyParentForm: TCustomForm;
 begin
   if (Parent is TAdvToolBarPager) and Value and (FAutoMDIButtons <> Value) then
     Exit;
@@ -17959,10 +19033,17 @@ begin
     FAutoMDIButtons := Value;
     if (csDesigning in ComponentState) or (csLoading in ComponentState) then
       Exit;
-      
+
     if FAutoMDIButtons and FullSize and Assigned(Menu) then
     begin
-      WindowHandle := GetMyParentForm.Handle;
+      MyParentForm := GetMyParentForm;
+      if not Assigned(MyParentForm) then
+      begin
+        FAutoMDIButtons := False;
+        Exit;
+      end;
+
+      WindowHandle := MyParentForm.Handle;
       if (GetWindowLong(WindowHandle, GWL_WNDPROC) <> Integer(@ATBWindowProc)) then
       begin
         MDIToolBar := Self;
@@ -18108,7 +19189,10 @@ var
   GDHoriztl: Boolean;
 
 begin
-  FMDIChildForm := TProForm(GetMyParentForm).ActiveMDIChild;
+  FMDIChildForm := GetMyParentForm;
+  if Assigned(FMDIChildForm) then
+    FMDIChildForm := TProForm(GetMyParentForm).ActiveMDIChild;
+    
   if FAutoMDIButtons and Assigned(FMDIChildForm) and (FMDIChildForm.WindowState = wsMaximized){ and FMDIButtonsVisible} and (ToolBarState <> tsFloating) then
   begin
     FMDIButtonsVisible := True;
@@ -18559,6 +19643,7 @@ begin
 
       if (TControl(FATBControls[i]) is TAdvToolBarContainer) or
          (TControl(FATBControls[i]) is TAdvGlowButton) or
+         (Pos('AdvOffice', (TControl(FATBControls[i]).ClassName)) > 0) or
          Assigned(PropInfo) then
           TControl(FAtbControls[i]).Invalidate;
 
@@ -18571,7 +19656,21 @@ begin
         end;
       end;
     end;
+
   end;
+
+  if (FStepHover > 0) then
+  for i := 0 to ControlCount  - 1 do
+  begin
+    if Controls[i] is TAdvToolBarContainer then
+    begin
+      for j := 0 to (Controls[i] as TAdvToolBarcontainer).ControlCount - 1 do
+      begin
+        (Controls[i] as TAdvToolBarContainer).Controls[j].Repaint;
+      end;
+    end;
+  end;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -18730,6 +19829,290 @@ end;
 
 //------------------------------------------------------------------------------
 
+function TAdvCustomToolBar.SetSmallerVariant(CanCompact: Boolean; var NewState: TButtonSizeState; RealSet: Boolean = True): Integer;
+
+  function CheckGlowButtonSizeState(Ctrl: TControl; aState: TButtonSizeState): Boolean;
+  begin
+    Result := (Ctrl is TAdvCustomGlowButton) and TProCustomGlowButton(Ctrl).AutoSize and
+              (TProCustomGlowButton(Ctrl).ButtonSizeState = aState) and
+              (TProCustomGlowButton(Ctrl).ButtonSizeState > TProCustomGlowButton(Ctrl).MinButtonSizeState);
+  end;
+
+var
+  i, j, w1, w2, c: Integer;
+  done, V1, V2: Boolean;
+begin
+  Result := 0;
+  if AutoPositionControls and AutoSize and ((Parent is TAdvPage) or (Parent is TCompactWindow)) and not Compact then
+  begin
+    done := False;
+    V1 := FInternalControlPositioning;
+    FInternalControlPositioning := True;
+    V2 := FInternalControlUpdation;
+    FInternalControlUpdation := True;
+    GetSequenceControlList(FSeqControlList);
+    // search for bsLarge
+    for i := FSeqControlList.Count-1 downto 0 do
+    begin
+      if CheckGlowButtonSizeState(TControl(FSeqControlList[i]), bsLarge) and (i > 0) and CheckGlowButtonSizeState(TControl(FSeqControlList[i-1]), bsLarge) then
+      begin
+        w1 := 0;
+        w2 := 0;
+        for j := 0 to TOOLBAR_ROWS-1 do
+        begin
+          if ((i - j) < 0) then
+            break;
+          if CheckGlowButtonSizeState(TControl(FSeqControlList[i - j]), bsLarge) then
+          begin
+            if RealSet then
+            begin
+              w1 := w1 + TProCustomGlowButton(FSeqControlList[i - j]).Width;
+              TProCustomGlowButton(FSeqControlList[i - j]).ButtonSizeState := bsLabel;
+              w2 := Max(w2, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+            end
+            else
+            begin
+              w1 := w1 + TProCustomGlowButton(FSeqControlList[i - j]).Width;
+              w2 := Max(w2, TProCustomGlowButton(FSeqControlList[i - j]).GetButtonSize(bsLabel).cx);
+            end;
+          end
+          else
+          begin
+            break;
+          end;
+        end;
+
+        NewState := bsLabel;
+        Result := w1 - w2;
+        done := True;
+        break;
+      end;  
+    end;
+
+    // search for bsLabel
+    if not done then
+    begin
+      for i := FSeqControlList.Count-1 downto 0 do
+      begin
+        if CheckGlowButtonSizeState(TControl(FSeqControlList[i]), bsLabel) and (i > 0) and CheckGlowButtonSizeState(TControl(FSeqControlList[i-1]), bsLabel) then
+        begin
+          w1 := 0;
+          w2 := 0;
+          c := -1;
+          for j := 0 to TOOLBAR_ROWS-1 do
+          begin
+            if ((i - j) < 0) then
+              break;
+
+            if (j = 0) then
+              c := TControl(FSeqControlList[i - j]).Left
+            else if (c <> TControl(FSeqControlList[i - j]).Left) then
+              break;
+            if CheckGlowButtonSizeState(TControl(FSeqControlList[i - j]), bsLabel) then
+            begin
+              if RealSet then
+              begin
+                w1 := Max(w1, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+                TProCustomGlowButton(FSeqControlList[i - j]).ButtonSizeState := bsGlyph;
+                w2 := Max(w2, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+              end
+              else
+              begin
+                w1 := Max(w1, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+                w2 := Max(w2, TProCustomGlowButton(FSeqControlList[i - j]).GetButtonSize(bsGlyph).cx);
+              end;
+            end
+            else
+            begin
+              break;
+            end;
+          end;
+
+          NewState := bsGlyph;
+          Result := w1 - w2;
+          done := True;
+          break;
+        end;
+      end;
+    end;
+
+    FInternalControlPositioning := V1;
+    FInternalControlUpdation := V2;
+
+    Result := abs(Result);
+    if RealSet and done then
+    begin
+      SetControlsPosition;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomToolBar.SmallerVariantDifference(CanCompact: Boolean; var NewState: TButtonSizeState): Integer;
+begin
+  Result := SetSmallerVariant(CanCompact, NewState, False);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomToolBar.SetSmallestVaraint;
+var
+  i: Integer;
+  NewState: TButtonSizeState;
+begin
+  i := SetSmallerVariant(False, NewState);
+  while (i > 0) do
+  begin
+    i := SetSmallerVariant(False, NewState);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomToolBar.SetLargestVaraint;
+var
+  i: Integer;
+  NewState: TButtonSizeState;
+begin
+  i := SetLargerVariant(False, NewState);
+  while (i > 0) do
+  begin
+    i := SetLargerVariant(False, NewState);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomToolBar.SetLargerVariant(CanCompact: Boolean; var NewState: TButtonSizeState; RealSet: Boolean = True): Integer;
+
+  function CheckGlowButtonSizeState(Ctrl: TControl; aState: TButtonSizeState): Boolean;
+  begin
+    Result := (Ctrl is TAdvCustomGlowButton) and TProCustomGlowButton(Ctrl).AutoSize and
+              (TProCustomGlowButton(Ctrl).ButtonSizeState = aState) and
+              (TProCustomGlowButton(Ctrl).ButtonSizeState < TProCustomGlowButton(Ctrl).MaxButtonSizeState);
+  end;
+
+var
+  i, j, w1, w2, c: Integer;
+  done, V1, V2: Boolean;
+begin
+  Result := 0;
+  if AutoPositionControls and AutoSize and ((Parent is TAdvPage) or (Parent is TCompactWindow)) and not Compact then
+  begin
+    done := False;
+    V1 := FInternalControlPositioning;
+    FInternalControlPositioning := True;
+    V2 := FInternalControlUpdation;
+    FInternalControlUpdation := True;
+    GetSequenceControlList(FSeqControlList);
+    // search for bsGlyph
+    for i := FSeqControlList.Count-1 downto 0 do
+    begin
+      if CheckGlowButtonSizeState(TControl(FSeqControlList[i]), bsGlyph) and (i > 0) and CheckGlowButtonSizeState(TControl(FSeqControlList[i-1]), bsGlyph) then
+      begin
+        w1 := 0;
+        w2 := 0;
+        c := -1;
+        for j := 0 to TOOLBAR_ROWS-1 do
+        begin
+          if ((i - j) < 0) then
+            break;
+
+          if (j = 0) then
+            c := TControl(FSeqControlList[i - j]).Left
+          else if (c <> TControl(FSeqControlList[i - j]).Left) then
+            break;
+
+          if CheckGlowButtonSizeState(TControl(FSeqControlList[i - j]), bsGlyph) then
+          begin
+            if RealSet then
+            begin
+              w1 := Max(w1, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+              TProCustomGlowButton(FSeqControlList[i - j]).ButtonSizeState := bsLabel;
+              w2 := Max(w2, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+            end
+            else
+            begin
+              w1 := Max(w1, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+              w2 := Max(w2, TProCustomGlowButton(FSeqControlList[i - j]).GetButtonSize(bsLabel).cx);
+            end;
+          end
+          else
+          begin
+            break;
+          end;
+        end;
+
+        NewState := bsLabel;
+        Result := w2 - w1;
+        done := True;
+        break;
+      end;  
+    end;
+
+    // search for bsLabel
+    if not done then
+    begin
+      for i := FSeqControlList.Count-1 downto 0 do
+      begin
+        if CheckGlowButtonSizeState(TControl(FSeqControlList[i]), bsLabel) and (i > 0) and CheckGlowButtonSizeState(TControl(FSeqControlList[i-1]), bsLabel) then
+        begin
+          w1 := 0;
+          w2 := 0;
+          for j := 0 to TOOLBAR_ROWS-1 do
+          begin
+            if ((i - j) < 0) then
+              break;
+              
+            if CheckGlowButtonSizeState(TControl(FSeqControlList[i - j]), bsLabel) then
+            begin
+              if RealSet then
+              begin
+                w1 := Max(w1, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+                TProCustomGlowButton(FSeqControlList[i - j]).ButtonSizeState := bsLarge;
+                w2 := w2 + TProCustomGlowButton(FSeqControlList[i - j]).Width;
+              end
+              else
+              begin
+                w1 := Max(w1, TProCustomGlowButton(FSeqControlList[i - j]).Width);
+                w2 := w2 + TProCustomGlowButton(FSeqControlList[i - j]).GetButtonSize(bsLarge).cx;
+              end;
+            end
+            else
+            begin
+              break;
+            end;
+          end;
+
+          NewState := bsLarge;
+          Result := w2 - w1;
+          done := True;
+          break;
+        end;
+      end;
+    end;
+
+    FInternalControlPositioning := V1;
+    FInternalControlUpdation := V2;
+
+    Result := abs(Result);
+    if RealSet and done then
+    begin
+      SetControlsPosition;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvCustomToolBar.LargerVariantDifference(CanCompact: Boolean; var NewState: TButtonSizeState): Integer;
+begin
+  Result := SetLargerVariant(CanCompact, NewState, False);
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvCustomToolBar.SetCompactCaption(const Value: string);
 begin
   if (FCompactCaption <> Value) then
@@ -18760,7 +20143,19 @@ function TAdvCustomToolBar.GetInCompactWidth: Integer;
 begin
   Result := Width;
   if FCompact and (Parent is TAdvPage) and (FSelfClone <> nil) then
+  begin
+    if Assigned(FSelfClone) and FOldAutoPosition and FOldAutoSize and (Parent is TAdvPage) then
+    begin
+      // First check for ScrollSelector if it has then show smallest variant other wise largest
+      if not FCompactSmallest then
+      begin
+        FSelfClone.SetSmallestVaraint;
+        FCompactSmallest := True;
+      end;
+    end;
+
     Result := FSelfClone.Width;
+  end;  
 end;
 
 //------------------------------------------------------------------------------
@@ -18787,6 +20182,7 @@ procedure TAdvCustomToolBar.UpdateCompactWindow(UpdateSize: Boolean = false);
 var
   l, t: Integer;
   aControl: TControl;
+  aList: TdbgList;
 begin
   if (FSelfClone = nil) then
     Exit;
@@ -18811,9 +20207,30 @@ begin
   FSelfClone.DisabledImages := DisabledImages;
   FSelfClone.Menu := Menu;
   FSelfClone.ShowHint := ShowHint;
+  FSelfClone.Font.Assign(Font);
+
+  if ParentOptionPicture and (Parent is TAdvPage) and (Parent.Parent is TAdvToolBarPager) then
+  begin
+    FSelfClone.OptionPicture.Assign(TAdvToolBarPager(Parent.Parent).OptionPicture);
+    FSelfClone.OptionDisabledPicture.Assign(TAdvToolBarPager(Parent.Parent).OptionDisabledPicture);
+  end
+  else
+  begin
+    FSelfClone.OptionPicture.Assign(OptionPicture);
+    FSelfClone.OptionDisabledPicture.Assign(OptionDisabledPicture);
+  end;
+  FSelfClone.ParentOptionPicture := False;
+  FSelfClone.OnOptionClick := OnOptionClick;
 
   if UpdateSize then
   begin
+    aList := TdbgList.Create;
+    {$IFDEF DELPHI6_LVL}
+    aList.Assign(FATBControls);
+    {$ELSE}
+    aList.AssignList(FATBControls);
+    {$ENDIF}
+
     FSelfClone.Height := Height;
     FSelfClone.Width := Width;
 
@@ -18833,6 +20250,16 @@ begin
         aControl.Left := l;
       end;
     end;
+
+    if (FSelfClone.FATBControls.Count = aList.Count) then
+    begin
+      {$IFDEF DELPHI6_LVL}
+      FSelfClone.FATBControls.Assign(aList);
+      {$ELSE}
+      FSelfClone.FATBControls.AssignList(aList);
+      {$ENDIF}
+    end;
+    aList.Free;
   end;
 end;
 
@@ -18840,7 +20267,7 @@ end;
 
 procedure TAdvCustomToolBar.OnCompactWindowHide(Sender: TObject);
 begin
-
+  PostMessage(Handle, WM_TBCOMPACTWINHIDE, 0, 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -18855,20 +20282,49 @@ end;
 
 procedure TAdvCustomToolBar.OnCompactBtnDropDown(Sender: TObject);
 var
-  pt, spt: TPoint;
+  spt: TPoint;
   R: TRect;
+  OldV: Boolean;
+  {$IFDEF DELPHI6_LVL}
+  mon: TMonitor;
+  pt: TPoint;
+  {$ENDIF}
+  {$IFDEF DELPHI9_LVL}
+  w, h: Integer;
+  {$ENDIF}
 begin
   if FCompact then
   begin
+    if Assigned(FSelfClone) and FOldAutoPosition and FOldAutoSize and (Parent is TAdvPage) then
+    begin
+      // First check for ScrollSelector if it has then show smallest variant other wise largest
+      if FCompactSmallest then
+      begin
+        FSelfClone.GetSequenceControlList(FSelfClone.FSeqControlList);
+        FSelfClone.AutoPositionControls := FOldAutoPosition;
+        FSelfClone.AutoSize := FOldAutoSize;
+        FSelfClone.SetLargestVaraint;
+        FCompactSmallest := False;
+      end;
+    end;
+
+    {$IFDEF DELPHI6_LVL}
     pt := Point(Left, Top + Height + 1);
     spt := Parent.ClientToScreen(pt);
-
+    mon := Screen.MonitorFromPoint(spt);
+    if Assigned(mon) then
+      R := mon.WorkAreaRect
+    else
+    {$ENDIF}
+    begin
   {$IFNDEF TMSDOTNET}
     SystemParametersInfo(SPI_GETWORKAREA, 0, @R, 0);
   {$ENDIF}
+
   {$IFDEF TMSDOTNET}
     SystemParametersInfo(SPI_GETWORKAREA, 0, R, 0);
   {$ENDIF}
+    end;
 
     //if R.Bottom < (spt.Y + FCompactWindow.Height + 2) then
       //spt.Y := spt.Y - ((spt.Y + FCompactWindow.Height + 2) - R.Bottom);
@@ -18880,15 +20336,35 @@ begin
     if (R.Right < spt.X + FCompactWindow.Width) and (R.Right > spt.X) then
     begin
       spt.X := spt.X - ((spt.X + FCompactWindow.Width) - R.Right);
-    end;    
+    end;
     FCompactWindow.Left := spt.X;
     FCompactWindow.Top := spt.Y;
+
+    OldV := True;
+    if (Parent is TAdvPage) and (Parent.Parent is TMinimizedRibbonWindow) then
+    begin
+      OldV := TMinimizedRibbonWindow(Parent.Parent).HideOnDeActivate;
+      TMinimizedRibbonWindow(Parent.Parent).HideOnDeActivate := False;
+    end;  
+
+    {$IFDEF DELPHI9_LVL}
+    w := FCompactWindow.Width;
+    h := FCompactWindow.Height;
+    FCompactWindow.Width := 0;
+    FCompactWindow.Height := 0;
+    {$ENDIF}
 
     FCompactWindow.Visible := True;
     {$IFDEF DELPHI9_LVL}
     FCompactWindow.Left := spt.X;
     FCompactWindow.Top := spt.Y;
+    FCompactWindow.Width := w;
+    FCompactWindow.Height := h;
     {$ENDIF}
+    FCompactWindow.SetCornersRounded;
+
+    if (Parent is TAdvPage) and (Parent.Parent is TMinimizedRibbonWindow) then
+      TMinimizedRibbonWindow(Parent.Parent).HideOnDeActivate := OldV;
   end;
 end;
 
@@ -18927,6 +20403,7 @@ var
   aControl: TControl;
   bmp: TBitMap;
   ms: TMemoryStream;
+  aList: TdbgList;
 begin
   if (FCompact <> Value) and (Parent is TAdvPage) and (FPropertiesLoaded) and (not FCompactMode) then
   begin
@@ -18949,7 +20426,9 @@ begin
       if (FCompactWindow = nil) then
       begin
         FCompactWindow := TCompactWindow.CreateNew(self);
-        FCompactWindow.Parent := Self;   // FF: D2005
+        if Name <> '' then //give it a name for debugging
+          FCompactWindow.Name := Name + '_CompactWindow';
+        FCompactWindow.Parent := Self;   
         //FCompactWindow.Parent := self.GetMyParentForm;
         FCompactWindow.BorderIcons := [];
         FCompactWindow.BorderStyle := bsNone;
@@ -18960,12 +20439,15 @@ begin
         FCompactWindow.Height := 30;
         FCompactWindow.AutoScroll := False;
         FCompactWindow.BorderWidth := 0;
+        FCompactWindow.OnCloseQuery := FOnCompactCloseQuery;
         //FCompactWindow.OnHide := OnOptionWindowHide;
       end;
 
       if (FSelfClone = nil) then
       begin
         FSelfClone := TAdvCustomToolBar.Create(FCompactWindow);
+        if Name <> '' then //give it a name for debugging
+          FSelfClone.Name := Name + '_SelfClone';
         FSelfClone.Parent := FCompactWindow;     // set it nil to avoid issue
         FSelfClone.FSelfClone := Self;
 
@@ -18984,6 +20466,7 @@ begin
       // FCompactWindow.Visible := true;
 
       UpdateCompactWindow(True);
+      //FSelfClone.FATBControls.Assign(FATBControls);
 
       Self.Width := GetCompactWidth;
 
@@ -19029,6 +20512,7 @@ begin
         end;
       end;
       FCompactBtn.Caption := FCompactCaption;
+      FCompactBtn.WideCaption := WideCompactCaption;
       FCompactBtn.Width := FCompactMinWidth;
       FCompactBtn.Height := Self.Height;
       FCompactBtn.Left := 0;
@@ -19042,10 +20526,24 @@ begin
       FCompactBtn.OfficeHint.Assign(OfficeHint);
       FCompactBtn.OnClick := OnCompactBtnDropDown;
       FCompactBtn.Style := bsCheck;
+      FCompactBtn.ShortCutHint := CompactShortCutHint;
       FCompact := Value;
+
+      if not (csDesigning in ComponentState) and (Parent <> nil) and (Parent is TAdvPage) then
+      begin
+        //TProCustomGlowButton(FCompactBtn).OnInternalKeyDown := OnCompactButtonKeyDown;
+        //TProCustomGlowButton(FCompactBtn).OnSetButtonSize := OnSetGlowButtonSize;
+      end;
+
     end
     else
     begin
+      aList := TdbgList.Create;
+      {$IFDEF DELPHI6_LVL}
+      aList.Assign(FSelfClone.FATBControls);
+      {$ELSE}
+      aList.AssignList(FSelfClone.FATBControls);
+      {$ENDIF}
       Self.Width := GetInCompactWidth;
       ShowCaption := FSelfClone.ShowCaption;
       AutoPositionControls := False;
@@ -19065,6 +20563,15 @@ begin
         aControl.Top := t;
       end;
 
+      if (FATBControls.Count = aList.Count) then
+      begin
+        {$IFDEF DELPHI6_LVL}
+        FATBControls.Assign(aList);
+        {$ELSE}
+        FATBControls.AssignList(aList);
+        {$ENDIF}
+      end;
+
       if (FCompactWindow <> nil) then
       begin
         FSelfClone.ToolBarStyler := nil;
@@ -19077,6 +20584,7 @@ begin
       Self.AutoPositionControls := FOldAutoPosition;
       Self.AutoSize := FOldAutoSize;
       Self.AutoArrangeButtons := FOldAutoArrangeButtons;
+      aList.Free;
     end;
   end;
 end;
@@ -19166,11 +20674,11 @@ end;
 
 procedure TAdvCustomToolBar.CMFocusChanged(var Message: TCMFocusChanged);
 var
-  i: Integer;
+  //i: Integer;
   OldActive: Boolean;
   //TabOrderList: TDbgList;
   Ctrl: TWinControl;
-  h: HWND;
+  //h: HWND;
 begin
   inherited;
   if (Message.Sender = Self) and (FATBControls.Count > 0){and (TControl(FATBControls[0]) is TWinControl)} then
@@ -19190,6 +20698,7 @@ begin
 
   OldActive := FActive;
   FActive := False;
+  {   //--- commented this, as toolbar should only be ht when mouse over it. 
   for i:= 0 to FATBControls.Count-1 do
   begin
     if (TControl(FATBControls[i]) is TWinControl) then
@@ -19219,7 +20728,7 @@ begin
         Break;
     end;
   end;
-
+  }
   if (FActive <> OldActive) then
     InvalidateTransparentControls;
 end;
@@ -19326,13 +20835,13 @@ begin
           TAdvPage(Parent).HideShortCutHintOfAllToolBars;
 
           // Redisplay KeyTips for all Tabs
-          if (key = VK_ESCAPE) and (TAdvPage(Parent).Parent is TAdvToolBarPager) then
+          if (key = VK_ESCAPE) and Assigned(TAdvPage(Parent).AdvToolBarPager) then
           begin
-            TAdvToolBarPager(TAdvPage(Parent).Parent).ShowShortCutHintOfAllPages;
+            TAdvPage(Parent).AdvToolBarPager.ShowShortCutHintOfAllPages;
           end;
         end;
 
-        // Key in [VK_LEFT, VK_RIGHT, VK_UP, VK_DOWN, VK_ESCAPE]  
+        // Key in [VK_LEFT, VK_RIGHT, VK_UP, VK_DOWN, VK_ESCAPE]
         if (Key in [48..57, 65..90, 97..122]) then
         begin
           TAdvPage(Parent).FShortCutChars := TAdvPage(Parent).FShortCutChars + char(key);
@@ -19344,7 +20853,8 @@ begin
         //TAdvPage(Parent).HideShortCutHintOfAllToolBars;
       if (Key = VK_ESCAPE) then
       begin
-      
+        if Assigned(TAdvPage(Parent).AdvToolBarPager) and TAdvPage(Parent).AdvToolBarPager.IsFloatingRibbonShowing then
+          TAdvPage(Parent).AdvToolBarPager.HideFloatingRibbon;
       end;
     end;
 
@@ -19438,9 +20948,55 @@ end;
 //------------------------------------------------------------------------------
 
 function TAdvCustomToolBar.HasShortCut(aShortCut: String; var VisibleHintCount: Integer): Boolean;
+
+  function HasShortCutInChildControls(ParentCtrl: TWinControl): Boolean;
+  var
+    i: integer;
+    sub: String;
+  begin
+    Result := False;
+    if (ParentCtrl = nil) or not ParentCtrl.Enabled or not ParentCtrl.Visible or (not ParentCtrl.Showing) then
+      Exit;
+
+    if (ParentCtrl is TAdvCustomGlowButton) then
+    begin
+      if (UpperCase(TAdvCustomGlowButton(ParentCtrl).ShortCutHint) = UpperCase(aShortCut)) then
+      begin
+        TAdvCustomGlowButton(ParentCtrl).SetFocus;
+        TAdvCustomGlowButton(ParentCtrl).Repaint;
+        TProCustomGlowButton(ParentCtrl).InternalClick;
+        Result := True;
+      end
+      else if (Length(TAdvCustomGlowButton(ParentCtrl).ShortCutHint) > 0) then
+      begin
+        sub := Copy(TAdvCustomGlowButton(ParentCtrl).ShortCutHint, 1, Length(aShortCut));
+        if (UpperCase(sub) <> UpperCase(aShortCut)) then
+        begin
+          TAdvCustomGlowButton(ParentCtrl).HideShortCutHint;
+        end
+        else
+        begin
+          Inc(VisibleHintCount);
+        end;
+      end;
+    end
+    else
+    begin
+      for i := 0 to ParentCtrl.ControlCount - 1 do
+      begin
+        if (ParentCtrl.Controls[i] is TWinControl) and TWinControl(ParentCtrl.Controls[i]).Enabled and TWinControl(ParentCtrl.Controls[i]).Visible then
+        begin
+          Result := HasShortCutInChildControls(TWinControl(ParentCtrl.Controls[i]));
+          if Result then
+            Break;
+        end;
+      end;
+    end;
+  end;
 var
   i: Integer;
   sub: String;
+  OldV: Boolean;
 begin
   Result := False;
   for i:= 0 to FATBControls.Count-1 do
@@ -19449,15 +21005,41 @@ begin
     begin
       if (UpperCase(TAdvCustomGlowButton(FATBControls[i]).ShortCutHint) = UpperCase(aShortCut)) then
       begin
-        if (TAdvCustomGlowButton(FATBControls[i]).Enabled) and TAdvCustomGlowButton(FATBControls[i]).Visible then
+        if TAdvCustomGlowButton(FATBControls[i]).Visible then
         begin
-          TAdvCustomGlowButton(FATBControls[i]).SetFocus;
-          TAdvCustomGlowButton(FATBControls[i]).Repaint;
-          //TAdvCustomGlowButton(FATBControls[i]).Click;
-          TProCustomGlowButton(FATBControls[i]).InternalClick;
+          if (TAdvCustomGlowButton(FATBControls[i]).Enabled) then
+          begin
+            OldV := True;
+            if (TAdvCustomGlowButton(FATBControls[i]) = FCompactBtn) and (Parent is TAdvPage) and (Parent.Parent is TMinimizedRibbonWindow) then
+            begin
+              OldV := TMinimizedRibbonWindow(Parent.Parent).HideOnDeActivate;
+              TMinimizedRibbonWindow(Parent.Parent).HideOnDeActivate := False;
+            end;
+
+            TAdvCustomGlowButton(FATBControls[i]).SetFocus;
+            TAdvCustomGlowButton(FATBControls[i]).Repaint;
+            //TAdvCustomGlowButton(FATBControls[i]).Click;
+            TProCustomGlowButton(FATBControls[i]).InternalClick;
+            Result := True;
+
+            if (TAdvCustomGlowButton(FATBControls[i]) <> FCompactBtn) and (Self.Parent is TAdvPage) and Assigned(TAdvPage(Parent).AdvToolBarPager) and (TAdvPage(Parent).AdvToolBarPager.IsFloatingRibbonShowing) then
+            begin
+              TAdvPage(Parent).AdvToolBarPager.HideFloatingRibbon;
+            end;
+
+            if Assigned(FSelfClone) and Compact and (Self.Parent is TAdvPage) then
+            begin
+              FSelfClone.ShowShortCutHintOfButtons;
+              FSelfClone.FCompactShortCutHintShowing := True;
+              FSelfClone.SetFocus;
+            end;
+
+            if (TAdvCustomGlowButton(FATBControls[i]) = FCompactBtn) and (Parent is TAdvPage) and (Parent.Parent is TMinimizedRibbonWindow) then
+              TMinimizedRibbonWindow(Parent.Parent).HideOnDeActivate := OldV;
+
+            Break;
+          end;  
         end;  
-        Result := True;
-        Break;
       end
       else if (Length(TAdvCustomGlowButton(FATBControls[i]).ShortCutHint) > 0) then
       begin
@@ -19471,6 +21053,12 @@ begin
           Inc(VisibleHintCount);
         end;
       end;
+    end
+    else if (TControl(FATBControls[i]) is TWinControl) then
+    begin
+      Result := HasShortCutInChildControls(TWinControl(FATBControls[i]));
+      if Result then
+        Break;
     end;
   end;
 
@@ -19481,12 +21069,18 @@ end;
 procedure TAdvCustomToolBar.InvalidateTransparentControls;
 var
   i: Integer;
+  PropInfo: PPropInfo;
 begin
   Invalidate;
   // updating Container to maintain transparency
   for i := 0 to FATBControls.Count - 1 do
   begin
-    if (TControl(FATBControls[i]) is TAdvToolBarContainer) or (TControl(FATBControls[i]) is TAdvGlowButton) then
+    PropInfo := GetPropInfo(TControl(FATBControls[i]).ClassInfo, 'Transparent');
+
+    if (TControl(FATBControls[i]) is TAdvToolBarContainer) or
+       (TControl(FATBControls[i]) is TAdvGlowButton) or
+       (Pos('AdvOffice', (TControl(FATBControls[i]).ClassName)) > 0) or
+       Assigned(PropInfo) then
         TControl(FAtbControls[i]).Invalidate;
   end;
 end;
@@ -19494,26 +21088,83 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TAdvCustomToolBar.HideShortCutHintOfButtons;
+  procedure HideHintOfChildControls(ParentCtrl: TWinControl);
+  var
+    i: integer;
+  begin
+    if (ParentCtrl = nil) {or (ContainsControl(ParentCtrl))} or (not ParentCtrl.Showing) then
+      Exit;
+
+    if (ParentCtrl is TAdvCustomGlowButton) then
+    begin
+      TAdvCustomGlowButton(ParentCtrl).HideShortCutHint;
+    end
+    else
+    begin
+      for i := 0 to ParentCtrl.ControlCount - 1 do
+      begin
+        if (ParentCtrl.Controls[i] is TWinControl) then
+          HideHintOfChildControls(TWinControl(ParentCtrl.Controls[i]));
+      end;
+    end;
+  end;
+  
 var
   i: Integer;
 begin
   for i := 0 to FATBControls.Count - 1 do
   begin
     if (TControl(FATBControls[i]) is TAdvCustomGlowButton) then
-      TAdvCustomGlowButton(FAtbControls[i]).HideShortCutHint;
+      TAdvCustomGlowButton(FATBControls[i]).HideShortCutHint
+    else if (TControl(FATBControls[i]) is TWinControl) then
+    begin
+      HideHintOfChildControls(TWinControl(FATBControls[i]));
+    end;
   end;
+  
+  FCompactShortCutHintShowing := False;
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TAdvCustomToolBar.ShowShortCutHintOfButtons;
+
+
+  procedure ShowHintOfChildControls(ParentCtrl: TWinControl);
+  var
+    i: integer;
+  begin
+    if (ParentCtrl = nil) or not ParentCtrl.Enabled or not ParentCtrl.Visible or (not ParentCtrl.Showing) then
+      Exit;
+
+    if (ParentCtrl is TAdvCustomGlowButton) then
+    begin
+      TAdvCustomGlowButton(ParentCtrl).ShowShortCutHint;
+    end
+    else
+    begin
+      for i := 0 to ParentCtrl.ControlCount - 1 do
+      begin
+        if (ParentCtrl.Controls[i] is TWinControl) and TWinControl(ParentCtrl.Controls[i]).Enabled and TWinControl(ParentCtrl.Controls[i]).Visible then
+          ShowHintOfChildControls(TWinControl(ParentCtrl.Controls[i]));
+      end;
+    end;
+  end;
+
 var
   i: Integer;
 begin
   for i := 0 to FATBControls.Count - 1 do
   begin
-    if (TControl(FATBControls[i]) is TAdvCustomGlowButton) and (TControl(FATBControls[i]).Enabled) and (TControl(FATBControls[i]).Visible) then
-      TAdvCustomGlowButton(FAtbControls[i]).ShowShortCutHint;
+    if (TObject(FATBControls[i]) is TControl) and (TControl(FATBControls[i]).Enabled) and (TControl(FATBControls[i]).Visible) then
+    begin
+      if (TControl(FATBControls[i]) is TAdvCustomGlowButton) then
+        TAdvCustomGlowButton(FAtbControls[i]).ShowShortCutHint
+      else if (TControl(FATBControls[i]) is TWinControl) then
+      begin
+        ShowHintOfChildControls(TWinControl(FATBControls[i]));
+      end;
+    end;
   end;
 end;
 
@@ -19587,6 +21238,114 @@ end;
 procedure TAdvCustomToolBar.OnGlowButtonClick(Sender: TObject);
 begin
   HideOptionWindow;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomToolBar.OnSetGlowButtonSize(Sender: TObject; var W, H: Integer);
+begin
+  if (Sender is TAdvCustomGlowButton)then
+  begin
+    if (AutoPositionControls or (FOldAutoPosition and IsCompact)) and (TProCustomGlowButton(Sender).ButtonSizeState = bsLarge) then
+    begin
+      H := Self.Height - (Self.CaptionHeight + 5);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomToolBar.UpdateButtonRowCount;
+var
+  i: Integer;
+begin
+  if Assigned(Parent) and (Parent is TAdvPage) and Assigned(Parent.Parent) and ((Parent.Parent is TAdvToolBarPager) or (Parent.Parent is TMinimizedRibbonWindow)) then
+  begin
+    FButtonRows[1] := -100;
+    FButtonRows[2] := -100;
+    FButtonRows[3] := -100;
+    for i:= 0 to FATBControls.Count - 1 do
+    begin
+      if (TControl(FATBControls[i]).Top >= 0) and TControl(FATBControls[i]).Visible then
+      begin
+        if (FButtonRows[1] < 0) then
+          FButtonRows[1] := TControl(FATBControls[i]).Top
+        else if not ((TControl(FATBControls[i]).Top >= FButtonRows[1] - 4) and (TControl(FATBControls[i]).Top <= FButtonRows[1] + 4)) then
+        begin
+          if (FButtonRows[2] < 0) then
+            FButtonRows[2] := TControl(FATBControls[i]).Top
+          else if not ((TControl(FATBControls[i]).Top >= FButtonRows[2] - 4) and (TControl(FATBControls[i]).Top <= FButtonRows[2] + 4)) then
+          begin
+            if (FButtonRows[3] < 0) then
+              FButtonRows[3] := TControl(FATBControls[i]).Top;
+          end;
+        end;
+      end;
+    end;
+
+    if (FButtonRows[1] > FButtonRows[2]) and (FButtonRows[2] > 0) then
+    begin
+      i := FButtonRows[2];
+      FButtonRows[2] := FButtonRows[1];
+      FButtonRows[1] := i;
+    end;
+
+    if (FButtonRows[2] > FButtonRows[3]) and (FButtonRows[2] > 0) and (FButtonRows[3] > 0) then
+    begin
+      i := FButtonRows[3];
+      FButtonRows[3] := FButtonRows[2];
+      FButtonRows[2] := i;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomToolBar.OnGetGlowButtonShortCutHintPos(Sender: TObject;
+  ButtonSizeState: TButtonSizeState;
+  var ShortCutHintPosition: TShortCutHintPos);
+var
+  rc: Integer;
+begin
+  if (ShortCutHintPosition <> shpAuto) or not (Sender is TControl) then
+    Exit;
+
+  if (TControl(Sender).Height >= Height - CaptionHeight - 15) then
+    ShortCutHintPosition := shpBottom
+  else //if (ButtonSizeState in [bsGlyph, bsLabel]) then
+  begin
+    if (FButtonRows[3] > 0) then
+      rc := 3
+    else
+      rc := 2;
+
+    if (FButtonRows[1] > 0) and ((TControl(Sender).Top >= FButtonRows[1] - 4) and (TControl(Sender).Top <= FButtonRows[1] + 4)) then
+    begin
+      if (rc <= 2) then
+        ShortCutHintPosition := shpAboveTopLeft
+      else
+        ShortCutHintPosition := shpTopLeft
+    end
+    else if (FButtonRows[2] > 0) and ((TControl(Sender).Top >= FButtonRows[2] - 4) and (TControl(Sender).Top <= FButtonRows[2] + 4)) then
+    begin
+      if (rc <= 2) then
+        ShortCutHintPosition := shpBelowBottomLeft
+      else
+        ShortCutHintPosition := shpLeft
+    end
+    else
+    begin
+      ShortCutHintPosition := shpBottomLeft;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvCustomToolBar.MoveUpInRUList(aControl: TControl);
+begin
+  UpControlInRUL(aControl);
+  UpdateRULists;
 end;
 
 //------------------------------------------------------------------------------
@@ -19820,8 +21579,43 @@ begin
             Break;
 
         end;
+
+        // (Fix) Expand Width If empty space next to it, of all its Next ToolBars
+        if (EmptySpace > 0) then
+        begin
+          for j := i + 1 to FToolBarList.Count - 1  do
+          begin
+            atb := TAdvCustomToolBar(FToolBarList[j]);
+            expw := min(atb.CanExpand, EmptySpace);
+
+            if expw > 0 then
+            begin
+              OldValue := atb.AllowBoundChange;
+              atb.AllowBoundChange := true;
+              atb.Width := atb.Width + expw;
+              atb.AllowBoundChange := OldValue;
+
+              // moving right to adjust expand width
+              for k := j + 1 to i do
+              begin
+                atb := TAdvCustomToolBar(FToolBarList[k]);
+                OldValue := atb.AllowBoundChange;
+                atb.AllowBoundChange := true;
+                atb.Left := atb.Left + expw;
+                atb.AllowBoundChange := OldValue;
+              end;
+            end;
+
+            EmptySpace := EmptySpace - expw;
+            if EmptySpace <= 0 then
+              Break;
+
+          end;
+
+        end;
+
       end
-      else if EmptySpace < 0 then // If -ve empty space the cover empty space on the left
+      else if EmptySpace < 0 then // If -ve empty space then cover empty space on the left
       begin
         for j := i downto 0 do
         begin
@@ -20126,8 +21920,11 @@ begin
             Break;
 
         end;
+
+        // TODO: if required, Expand Height If empty space next to it, of all its Next ToolBars
+        
       end
-      else if EmptySpace < 0 then // If -ve empty space the cover empty space on the Top
+      else if EmptySpace < 0 then // If -ve empty space then cover empty space on the Top
       begin
         for j := i downto 0 do
         begin
@@ -20518,12 +22315,26 @@ begin
                 begin
                   ATb := TAdvCustomToolBar(FToolBarList[k]);
                   exp := min(L, ATb.CanExpand);
-                  OldValue := ATb.AllowBoundChange;
-                  ATb.AllowBoundChange := true;
-                  ATb.Width := ATb.Width + exp;
-                  //if k > tbIdx then
-                  ATb.Left := ATb.Left - exp;
-                  ATb.AllowBoundChange := OldValue;
+                  if (exp > 0) then
+                  begin
+                    OldValue := ATb.AllowBoundChange;
+                    ATb.AllowBoundChange := true;
+                    ATb.Width := ATb.Width + exp;
+                    //if k > tbIdx then
+                    ATb.Left := ATb.Left - exp;
+                    ATb.AllowBoundChange := OldValue;
+
+                    //----- Fix Space and overlap toolbar iss
+                    for j := k - 1 downto tbIdx + 1 do
+                    begin
+                      ATb := TAdvCustomToolBar(FToolBarList[j]);
+                      OldValue := ATb.AllowBoundChange;
+                      ATb.AllowBoundChange := true;
+                      ATb.Left := ATb.Left - exp;
+                      ATb.AllowBoundChange := OldValue;
+                    end;
+                    //-----
+                  end;
 
                   L := L - exp;
                   if L <= 0 then
@@ -20721,6 +22532,10 @@ begin
       begin
         ArrangeToolBars;
         AWidth := aAdvToolBar.Width;
+      end
+      else
+      begin
+
       end;
     end
     else if aAdvToolBar.Width < AWidth then // Increase Width
@@ -21673,6 +23488,58 @@ end;
 
 //------------------------------------------------------------------------------
 
+// Simple remove space between Toolbars
+procedure TRowCollection.ReArrangeAllToolBars;
+var
+  i, j, k: integer;
+  atb: TAdvCustomToolbar;
+begin
+  if FOwner.Align in [daTop, daBottom] then
+  begin
+    for i := 0 to Count - 1 do
+    begin
+      Items[i].ArrangeToolBars;
+      k := -1;
+      for j := 0 to Items[i].FToolBarList.Count - 1 do
+      begin
+        atb := TAdvCustomToolBar(Items[i].FToolBarList[j]);
+        if not (atb.Visible) then
+          Continue;
+          
+        if (k >= 0) then
+          atb.Left := TAdvCustomToolBar(Items[i].FToolBarList[k]).Left + TAdvCustomToolBar(Items[i].FToolBarList[k]).width + OffSetX
+        else
+          atb.Left := (Items[i].RowRect.Left + OffSetX);
+
+        k := j;
+      end;
+    end;
+  end
+  else if FOwner.Align in [daLeft, daRight] then
+  begin
+    for i := 0 to Count - 1 do
+    begin
+      Items[i].ArrangeToolBars;
+      k := -1;
+      for j := 0 to Items[i].FToolBarList.Count - 1 do
+      begin
+        atb := TAdvCustomToolBar(Items[i].FToolBarList[j]);
+        if not (atb.Visible) then
+          Continue;
+
+        if (k >= 0) then
+          atb.Top := TAdvCustomToolBar(Items[i].FToolBarList[k]).Top + TAdvCustomToolBar(Items[i].FToolBarList[k]).Height + OffSetX
+        else
+          atb.Top := Items[i].RowRect.Bottom - (atb.Height + OffSetX);
+
+        k := j;
+      end;
+    end;
+  end;  
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TRowCollection.SetToolBarFullSize(
   aAdvToolBar: TAdvCustomToolBar);
 {var
@@ -22025,8 +23892,21 @@ begin
     begin
       if IsToolBarAlreadyAdded(aAdvToolBar) < 0 then
       begin
-        with Add do
-          AddToolBar(aAdvToolBar);
+        if FOwner.LockHeight then
+        begin
+          if (Count > 0) then
+            Items[Count-1].AddToolBar(aAdvToolBar)
+          else
+          begin
+            with Add do
+              AddToolBar(aAdvToolBar);
+          end;
+        end
+        else
+        begin
+          with Add do
+            AddToolBar(aAdvToolBar);
+        end;
       end;
     end
     else
@@ -22575,7 +24455,7 @@ begin
     FBorderHotColor := TButtonAppearance(Source).BorderHotColor;
     FBorderDownColor := TButtonAppearance(Source).BorderDownColor;
     FBorderCheckedColor := TButtonAppearance(Source).FBorderCheckedColor;
-    inherited Assign(Source);
+    //inherited Assign(Source);
   end;
 end;
 
@@ -22618,6 +24498,13 @@ begin
   FGradientDirectionChecked := gdVertical;
   FGradientDirectionDown := gdVertical;
   FGradientDirectionHot := gdVertical;
+
+  FSystemFont := true;
+
+  if IsVista then
+    CaptionFont.Name := 'Segoe UI'
+  else
+    CaptionFont.Name := 'Tahoma';
 end;
 
 //------------------------------------------------------------------------------
@@ -22834,6 +24721,22 @@ begin
   FGradientDirectionHot := Value;
 end;
 
+procedure TButtonAppearance.SetSystemFont(const Value: Boolean);
+begin
+  if (FSystemFont <> Value) then
+  begin
+    FSystemFont := Value;
+
+    if Value then
+    begin
+      if IsVista then
+        FCaptionFont.Name := 'Segoe UI'
+      else
+        FCaptionFont.Name := 'Tahoma';
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 { TAdvCustomToolBarButton }
@@ -22973,6 +24876,7 @@ end;
 procedure TAdvCustomToolBarButton.CMMouseEnter(var Message: TMessage);
 begin
   inherited;
+
   if (csDesigning in ComponentState) then
     Exit;
 
@@ -22991,6 +24895,7 @@ begin
 
   if Assigned(FOnMouseEnter) then
      FOnMouseEnter(Self);
+
 end;
 
 //------------------------------------------------------------------------------
@@ -23021,6 +24926,7 @@ begin
 
   if Assigned(FOnMouseLeave) then
      FOnMouseLeave(Self);
+
 end;
 
 //------------------------------------------------------------------------------
@@ -23069,9 +24975,8 @@ procedure TAdvCustomToolBarButton.MouseDown(Button: TMouseButton;
 var
   pt:TPoint;
   InBottomDrop,InRightDrop: boolean;
-
-
 begin
+  //OutputDebugString(PChar(BoolToStr(FMenuBeingClosed) +' : '+ BoolToStr(FInternalClick)+' : '+ BoolToStr(FAdvToolBar.FMenuDropped)));
   inherited;
 
   if (Button <> mbLeft) or not Enabled or (csDesigning in ComponentState) then
@@ -23091,7 +24996,15 @@ begin
        DropdownMenu.AutoPopup or (MenuItem <> nil)) and (FAdvToolBar <> nil) and not(FAdvToolBar.FInMenuLoop) then
       FAdvToolBar.TrackMenu(self)
     else }
+      //DoDropDown;
+
+    if (not FAdvToolBar.FMenuDropped and not FMenuBeingClosed and not FMenuDisplayed) or FInternalClick then
+    begin
+      FInternalClick := False;
       DoDropDown;
+    end
+    else if FMenuBeingClosed then
+      FMenuBeingClosed := False;
   end
   else
   begin
@@ -23109,7 +25022,8 @@ begin
 
         if Assigned(FDropDownMenu) then
         begin
-          FDown := false;
+          if Style = tasButton then
+            FDown := false;
           FHot := false;
           FMenuSel := true;
           Repaint;
@@ -23124,13 +25038,14 @@ begin
             if Assigned(AdvQuickAccessToolBar.CurrentToolBarStyler) then
               FDropDownMenu.MenuStyler := AdvQuickAccessToolBar.CurrentToolBarStyler.CurrentAdvMenuStyler;
           end;
+
           FDropDownMenu.Popup(pt.X,pt.Y);
+
           FMenuSel := false;
           Repaint;
         end;
 
         InvalidateMe;
-
         Exit;
       end
       else
@@ -23200,6 +25115,11 @@ var
 begin
   inherited;
 
+  if FMenuBeingClosed then
+    FMenuBeingClosed := False;
+  if FMenuDisplayed then
+    FMenuDisplayed := False;
+    
   if (csDesigning in ComponentState) then
     exit;
 
@@ -23375,7 +25295,7 @@ begin
   else
     DwR := Rect(BtnR.Left, BtnR.Bottom - FDropDownSectWidth, BtnR.Right, BtnR.Bottom);
 
-  if FDropDownButton and (Style <> tasCheck) then
+  if FDropDownButton {and (Style <> tasCheck)} then
   begin
     if Position in [daTop, daBottom] then
       BtnR.Right := DwR.Left
@@ -23553,7 +25473,7 @@ begin
       // BackGround
       if (Clr <> clNone) and (ClrTo <> clNone) then
       begin
-        if FDropDownButton and (Style <> tasCheck) then
+        if FDropDownButton {and (Style <> tasCheck)} then
           DrawGradient(aCanvas, DwClr, DwClrTo, 40, R, GDHoriztl);
 
         DrawGradient(aCanvas, Clr, ClrTo, 40, BtnR, GDHoriztl);
@@ -23561,7 +25481,7 @@ begin
       else
       if (Clr <> clNone) then
       begin
-        if FDropDownButton and (Style <> tasCheck) then
+        if FDropDownButton {and (Style <> tasCheck)} then
         begin
           Brush.Color := DwClr;
           Pen.Color := DwClr;
@@ -23578,10 +25498,10 @@ begin
       begin
         Brush.Style := bsClear;
         Pen.Color := BrClr;
-        if FDropDownButton and FDropDownSplit and (Style <> tasCheck) then
+        if FDropDownButton and FDropDownSplit {and (Style <> tasCheck)} then
           Rectangle(R);
 
-        if FDropDownButton and not FDropDownSplit and (Style <> tasCheck) then
+        if FDropDownButton and not FDropDownSplit {and (Style <> tasCheck)} then
           Rectangle(BtnR.Left, BtnR.Top, R.Right, BtnR.Bottom)
         else
           Rectangle(BtnR);
@@ -23613,11 +25533,10 @@ begin
             LineTo(DwR.Right - 1, BtnR.Top);
             LineTo(DwR.Right - 1, DwR.Bottom);
           end;
-
         end;
       end;
 
-      if FDropDownButton and (Style <> tasCheck) then
+      if FDropDownButton {and (Style <> tasCheck)} then
       begin
         if Position in [daTop, daBottom] then
         begin
@@ -23998,7 +25917,6 @@ begin
     if FMouseInControl and (FHot or FPropHot) and Shaded and Enabled and (FState = absUp)
       and not FMouseDownInControl and not FGlyphShade.Empty then
     begin
-
       if not FShadedForGlyph then
         GenerateShade;
 
@@ -24486,7 +26404,7 @@ procedure TAdvCustomToolBarButton.SetDropDownButton(const Value: Boolean);
 begin
   if FDropDownButton <> Value then
   begin
-    if (Value and not (Style = tasCheck)) or not Value then
+    //if (Value and not (Style = tasCheck)) or not Value then
       FDropDownButton := Value;
     AdjustSize;
     Invalidate;
@@ -24622,8 +26540,8 @@ begin
   if FStyle <> Value then
   begin
     FStyle := Value;
-    if (Value = tasCheck) and DropDownButton then
-      DropDownButton := false;
+    //if (Value = tasCheck) and DropDownButton then
+    //  DropDownButton := false;
   end;
 end;
 
@@ -24703,7 +26621,6 @@ procedure TAdvCustomToolBarButton.SetBounds(ALeft, ATop, AWidth,
   AHeight: Integer);
 begin
   inherited;
-
 end;
 
 //------------------------------------------------------------------------------
@@ -25576,6 +27493,7 @@ var
   GDHoriztl: Boolean;
   AP: TPoint;
   ToolBarStyler: TCustomAdvToolBarStyler;
+  TBMenu: Boolean;
 
   procedure DrawArrow(ArP: TPoint; ArClr: TColor);
   begin
@@ -25607,7 +27525,7 @@ begin
   else
     DwR := Rect(BtnR.Left, BtnR.Bottom - FDropDownSectWidth, BtnR.Right, BtnR.Bottom);
 
-  if FDropDownButton and (Style <> tasCheck) then
+  if FDropDownButton {and (Style <> tasCheck)} then
   begin
     if Position in [daTop, daBottom] then
       BtnR.Right := DwR.Left
@@ -25626,16 +27544,19 @@ begin
   DwClrTo := clNone;
 
   ToolBarStyler := nil;
+  TBMenu := false;
+
   if Assigned(AdvToolBar) then
   begin
     ToolBarStyler := AdvToolBar.FCurrentToolBarStyler;
+    TBMenu := Assigned(AdvToolBar.Menu);
   end
   else if Assigned(AdvQuickAccessToolBar) then
   begin
     ToolBarStyler := AdvQuickAccessToolBar.CurrentToolBarStyler;
   end;
 
-  with aCanvas, FAppearance do
+  with ACanvas, FAppearance do
   begin
     if (State = absDisabled) or not Enabled then
     begin
@@ -25666,16 +27587,33 @@ begin
     begin
       if ParentStyler and Assigned(ToolBarStyler) then
       begin
-        with ToolBarStyler.CurrentAdvMenuStyler.RootItem do
+        if TBMenu then
         begin
-          Clr := SelectedColor;
-          ClrTo := SelectedColorTo;
-          TxtClr := SelectedTextColor;
-          BrClr := SelectedBorderColor;
-          DwClr := HoverColor;
-          DwClrTo := HoverColorTo;
-          GDHoriztl := SelectedGradientDirection = AdvMenus.gdHorizontal;
-          aGlyph := GlyphDown;
+          with ToolBarStyler.CurrentAdvMenuStyler.RootItem do
+          begin
+            Clr := SelectedColor;
+            ClrTo := SelectedColorTo;
+            TxtClr := SelectedTextColor;
+            BrClr := SelectedBorderColor;
+            DwClr := HoverColor;
+            DwClrTo := HoverColorTo;
+            GDHoriztl := SelectedGradientDirection = AdvMenus.gdHorizontal;
+            aGlyph := GlyphDown;
+          end;
+        end
+        else
+        begin
+          with ToolBarStyler.ButtonAppearance do
+          begin
+            Clr := ColorDown;
+            ClrTo := ColorDownTo;
+            TxtClr := CaptionTextColorDown;
+            BrClr := BorderDownColor;
+            DwClr := ColorHot;
+            DwClrTo := ColorHotTo;
+            GDHoriztl := GradientDirectionDown = gdHorizontal;
+            aGlyph := GlyphDown;
+          end;
         end;
       end
       else
@@ -25708,14 +27646,30 @@ begin
       begin
         if ParentStyler and Assigned(ToolBarStyler) then
         begin
-          with ToolBarStyler.CurrentAdvMenuStyler.RootItem do
+          if TBMenu then
           begin
-            Clr := HoverColor;
-            ClrTo := HoverColorTo;
-            TxtClr := HoverTextColor;
-            BrClr := HoverBorderColor;
-            GDHoriztl := HoverGradientDirection = AdvMenus.gdHorizontal;
-            aGlyph := GlyphHot;
+            with ToolBarStyler.CurrentAdvMenuStyler.RootItem do
+            begin
+              Clr := HoverColor;
+              ClrTo := HoverColorTo;
+              TxtClr := HoverTextColor;
+              BrClr := HoverBorderColor;
+              GDHoriztl := HoverGradientDirection = AdvMenus.gdHorizontal;
+              aGlyph := GlyphHot;
+            end;
+          end
+          else
+          begin
+            with ToolBarStyler.ButtonAppearance do
+            begin
+              Clr := ColorHot;
+              ClrTo := ColorHotTo;
+              TxtClr := CaptionTextColorHot;
+              BrClr := BorderHotColor;
+              GDHoriztl := GradientDirectionHot = gdHorizontal;
+              aGlyph := GlyphHot;
+            end;
+
           end;
         end
         else
@@ -25740,7 +27694,7 @@ begin
           BrClr := clNone;
           DwClr := clNone;
           DwClrTo := clNone; 
-          if ParentStyler and Assigned(ToolBarStyler) then
+          if ParentStyler and Assigned(ToolBarStyler) and TBMenu then
           begin
             TxtClr := ToolBarStyler.CurrentAdvMenuStyler.RootItem.Font.Color;
           end
@@ -25749,7 +27703,7 @@ begin
         end
         else
         begin
-          if ParentStyler and Assigned(ToolBarStyler) then
+          if ParentStyler and Assigned(ToolBarStyler) and TBMenu then
           begin
             with ToolBarStyler.CurrentAdvMenuStyler.RootItem do
             begin
@@ -25779,14 +27733,14 @@ begin
     // BackGround
     if (Clr <> clNone) and (ClrTo <> clNone) then
     begin
-      if FDropDownButton and (Style <> tasCheck) then
+      if FDropDownButton {and (Style <> tasCheck)} then
         DrawGradient(aCanvas, DwClr, DwClrTo, 40, R, GDHoriztl);
 
       DrawGradient(aCanvas, Clr, ClrTo, 40, BtnR, GDHoriztl);
     end
     else if (Clr <> clNone) then
     begin
-      if FDropDownButton and (Style <> tasCheck) then
+      if FDropDownButton {and (Style <> tasCheck)} then
       begin
         Brush.Color := DwClr;
         Pen.Color := DwClr;
@@ -25803,10 +27757,10 @@ begin
       Brush.Style := bsClear;
       Pen.Color := BrClr;
       
-      if FDropDownButton and FDropDownSplit and (Style <> tasCheck) then
+      if FDropDownButton and FDropDownSplit {and (Style <> tasCheck)} then
         Rectangle(R);
 
-      if FDropDownButton and not FDropDownSplit and (Style <> tasCheck) then
+      if FDropDownButton and not FDropDownSplit {and (Style <> tasCheck)} then
       begin
         Rectangle(Rect(BtnR.Left, BtnR.Top, R.Right, BtnR.Bottom));
       end
@@ -25843,7 +27797,7 @@ begin
       end;
     end;
 
-    if FDropDownButton and (Style <> tasCheck) then
+    if FDropDownButton {and (Style <> tasCheck)} then
     begin
       if Position in [daTop, daBottom] then
       begin
@@ -26000,6 +27954,11 @@ begin
     begin
       FOptionsPanel.SetFocus;
       SendMessage(getParentWnd, WM_NCACTIVATE, 1, 0);
+    end
+    else
+    begin
+      if Assigned(AdvToolbar) then
+        AdvToolbar.SetFocus;
     end;
   end;
 end;
@@ -26238,6 +28197,121 @@ begin
   Changed;
 end;
 
+//------------------------------------------------------------------------------
+
+{ TVistaGradientBackground }
+
+procedure TVistaGradientBackground.Assign(Source: TPersistent);
+begin
+  inherited;
+  if (Source is TVistaGradientBackground) then
+  begin
+    FMirror.Assign(TVistaGradientBackground(Source).Mirror);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+constructor TVistaGradientBackground.Create;
+begin
+  inherited;
+  FMirror := TMirrorGradient.Create;
+end;
+
+//------------------------------------------------------------------------------
+
+destructor TVistaGradientBackground.Destroy;
+begin
+  FMirror.Free;
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TVistaGradientBackground.SetMirror(const Value: TMirrorGradient);
+begin
+  FMirror.Assign(Value);
+end;
+
+//------------------------------------------------------------------------------
+
+{ TMirrorGradient }
+
+procedure TMirrorGradient.Assign(Source: TPersistent);
+begin
+  if (Source is TMirrorGradient) then
+  begin
+    FColor := TMirrorGradient(Source).Color;
+    FColorTo := TMirrorGradient(Source).ColorTo;
+    FColorMirror := TMirrorGradient(Source).ColorMirror;
+    FColorMirrorTo := TMirrorGradient(Source).ColorMirrorTo;
+  end
+  else
+    inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+constructor TMirrorGradient.Create;
+begin
+  inherited;
+  FColor := clWhite;
+  FColorTo := clBtnFace;
+  FColorMirror := RGB(200, 217, 237);
+  FColorMirrorTo := RGB(227, 244, 255);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMirrorGradient.Changed;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMirrorGradient.SetColor(const Value: TColor);
+begin
+  if (FColor <> Value) then
+  begin
+    FColor := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMirrorGradient.SetColorMirror(const Value: TColor);
+begin
+  if (FColorMirror <> Value) then
+  begin
+    FColorMirror := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMirrorGradient.SetColorMirrorTo(const Value: TColor);
+begin
+  if (FColorMirrorTo <> Value) then
+  begin
+    FColorMirrorTo := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMirrorGradient.SetColorTo(const Value: TColor);
+begin
+  if (FColorTo <> Value) then
+  begin
+    FColorTo := Value;
+    Changed;
+  end;
+end;
 
 //------------------------------------------------------------------------------
 
@@ -26420,12 +28494,12 @@ var
   i, j, W, H, L, T: Integer;
 begin
   // Hiding Separator at Start or End
-  for i := 0 to ControlCount-1 do
+  for i := 0 to ControlCount - 1 do
   begin
     j := ControlList.IndexOf(Controls[i]);
     if (j < 0) then
     begin
-      Controls[i].Top := - Controls[i].Height-2;
+      Controls[i].Top := - Controls[i].Height - 2;
     end;
   end;
 
@@ -27712,6 +29786,12 @@ begin
       begin
         if (TAdvCustomToolBarButton(FItems.Items[i].Objects).ImageIndex >= 0) or not (TAdvCustomToolBarButton(FItems.Items[i].Objects).Glyph.Empty) then
           ShowImageBar := True;
+      end
+      else if (TControl(FItems.Items[i].Objects) is TAdvCustomGlowButton) then
+      begin
+        if (TAdvCustomGlowButton(FItems.Items[i].Objects).ImageIndex >= 0) or not (TAdvCustomGlowButton(FItems.Items[i].Objects).Picture.Empty) or
+           ((TAdvCustomGlowButton(FItems.Items[i].Objects).Action is TCustomAction) and Assigned(TCustomAction(TAdvCustomGlowButton(FItems.Items[i].Objects).Action).ActionList) and (TCustomAction(TAdvCustomGlowButton(FItems.Items[i].Objects).Action).ImageIndex >= 0)) then
+          ShowImageBar := True;
       end;
     end;
   end;
@@ -28492,6 +30572,8 @@ end;
 
 //------------------------------------------------------------------------------
 
+{$IFNDEF TMS_STD}
+
 { TDBATBButtonDataLink }
 
 constructor TDBATBButtonDataLink.Create;
@@ -28868,6 +30950,9 @@ begin
   end;
 end;
 
+
+{$ENDIF}
+
 //------------------------------------------------------------------------------
 
 { TATBCommand }
@@ -29074,6 +31159,8 @@ begin
     FDelete := (Source as TCustomizedOptions).Delete;
     FDeleteAll := (Source as TCustomizedOptions).DeleteAll;
     FAddSeparator := (Source as TCustomizedOptions).AddSeparator;
+    FAddGlowButton := (Source as TCustomizedOptions).AddGlowButton;
+    EditButton := (Source as TCustomizedOptions).EditButton;
   end
   else
     inherited Assign(Source);
@@ -29097,6 +31184,8 @@ begin
   FDelete := True;
   FDeleteAll := False;
   FAddSeparator := True;
+  FAddGlowButton := True;
+  FEditButton := True;
 end;
 
 //------------------------------------------------------------------------------
@@ -29114,6 +31203,17 @@ begin
   if FAddButton <> Value then
   begin
     FAddButton := Value;
+    Change;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomizedOptions.SetAddGlowButton(const Value: Boolean);
+begin
+  if (FAddGlowButton <> Value) then
+  begin
+    FAddGlowButton := Value;
     Change;
   end;
 end;
@@ -29147,6 +31247,17 @@ begin
   if FDeleteAll <> Value then
   begin
     FDeleteAll := Value;
+    Change;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCustomizedOptions.SetEditButton(const Value: Boolean);
+begin
+  if (FEditButton <> Value) then
+  begin
+    FEditButton := Value;
     Change;
   end;
 end;
@@ -29330,7 +31441,7 @@ procedure TAdvToolbarCustomizer.ShowCustomizer;
 var
   R: TRect;
   pt, spt: TPoint;
-  i: Integer;
+  i, y: Integer;
   CanShow: Boolean;
 begin
   if not Assigned(FAdvToolBar) then
@@ -29357,8 +31468,23 @@ begin
   CustomizerForm.ClearButton.Hint := FDialogSettings.DeleteAllHint;
   CustomizerForm.BottomButton.Hint := FDialogSettings.BottomHint;
   CustomizerForm.DownButton.Hint := FDialogSettings.DownHint;
+  CustomizerForm.AddGlowButton.Hint := FDialogSettings.AddGlowButtonHint;
   CustomizerForm.ChkLargeIcon.Caption := FDialogSettings.LargeIconCheck;
   CustomizerForm.Caption := FDialogSettings.Caption;
+
+  //--- Set Ok, Cancel, Reset Button's Captions
+  CustomizerForm.BtnOk.Caption := FDialogSettings.OkButtonCaption;
+  CustomizerForm.BtnOk.Hint := FDialogSettings.OkButtonHint;
+  CustomizerForm.BtnCancel.Caption := FDialogSettings.CancelButtonCaption;
+  CustomizerForm.BtnCancel.Hint := FDialogSettings.CancelButtonHint;
+  CustomizerForm.BtnReset.Caption := FDialogSettings.ResetButtonCaption;
+  CustomizerForm.BtnReset.Hint := FDialogSettings.ResetButtonHint;
+
+  //--- Set Glyph Position text
+  CustomizerForm.CmBxGlphPos.Items[0]:=FDialogSettings.GlyphPositionLeftCaption;
+  CustomizerForm.CmBxGlphPos.Items[1]:=FDialogSettings.GlyphPositionTopCaption;
+  CustomizerForm.CmBxGlphPos.Items[2]:=FDialogSettings.GlyphPositionRightCaption;
+  CustomizerForm.CmBxGlphPos.Items[3]:=FDialogSettings.GlyphPositionBottomCaption;
 
   //--- Set Components
   CustomizerForm.SetCaption(FDialogSettings.EditCaption);
@@ -29368,14 +31494,54 @@ begin
 
   CustomizerForm.CmBxIcon.Enabled := FDialogSettings.EditGlyph;
 
-  CustomizerForm.TopButton.Enabled := self.Options.ReOrder;
-  CustomizerForm.BottomButton.Enabled := self.Options.ReOrder;
-  CustomizerForm.UpButton.Enabled := self.Options.ReOrder;
-  CustomizerForm.DownButton.Enabled := self.Options.ReOrder;
-  CustomizerForm.DeleteButton.Enabled := self.Options.Delete;
-  CustomizerForm.ClearButton.Enabled := self.Options.DeleteAll;
-  CustomizerForm.AddButton.Enabled := Options.AddButton and (CustomizerForm.LstBxCommand.Items.Count > 0);
-  CustomizerForm.SeparatorButton.Enabled := Options.AddSeparator;
+  CustomizerForm.TopButton.Visible := self.Options.ReOrder;
+  CustomizerForm.BottomButton.Visible := self.Options.ReOrder;
+  CustomizerForm.UpButton.Visible := self.Options.ReOrder;
+  CustomizerForm.DownButton.Visible := self.Options.ReOrder;
+  CustomizerForm.DeleteButton.Visible := self.Options.Delete;
+  CustomizerForm.ClearButton.Visible := self.Options.DeleteAll;
+  CustomizerForm.AddButton.Visible := Options.AddButton and (CustomizerForm.LstBxCommand.Items.Count > 0);
+  CustomizerForm.SeparatorButton.Visible := Options.AddSeparator;
+  CustomizerForm.AddGlowButton.Visible := Options.AddGlowButton;
+  CustomizerForm.BtnEdit.Visible := Options.EditButton;
+
+  if not CustomizerForm.TopButton.Visible then
+    y := CustomizerForm.TopButton.Top
+  else
+    y := CustomizerForm.BottomButton.Top + CustomizerForm.BottomButton.Height;
+
+  if CustomizerForm.AddButton.Visible then
+  begin
+    CustomizerForm.AddButton.Top := y;
+    y := y + CustomizerForm.AddButton.Height;
+  end;
+
+  if CustomizerForm.AddGlowButton.Visible then
+  begin
+    CustomizerForm.AddGlowButton.Top := y;
+    y := y + CustomizerForm.AddGlowButton.Height;
+  end;
+
+  if CustomizerForm.SeparatorButton.Visible then
+  begin
+    CustomizerForm.SeparatorButton.Top := y;
+    y := y + CustomizerForm.SeparatorButton.Height;
+  end;
+
+  if CustomizerForm.DeleteButton.Visible then
+  begin
+    CustomizerForm.DeleteButton.Top := y;
+    y := y + CustomizerForm.DeleteButton.Height;
+  end;
+
+  if CustomizerForm.ClearButton.Visible then
+  begin
+    CustomizerForm.ClearButton.Top := y;
+    y := y + CustomizerForm.ClearButton.Height;
+  end;
+
+  if CustomizerForm.BtnEdit.Visible then
+    CustomizerForm.BtnEdit.Top := y;
 
   if self.Options.ReOrder then
     CustomizerForm.LstBxToolBarItems.DragMode := dmAutomatic
@@ -30164,6 +32330,21 @@ begin
     FCaption := (Source as TDialogSettings).Caption;
     FLargeIconCheck := (Source as TDialogSettings).LargeIconCheck;
     FButtonEditCaption := (Source as TDialogSettings).ButtonEditCaption;
+    FResetButtonCaption := (Source as TDialogSettings).FResetButtonCaption;
+    FOKButtonCaption := (Source as TDialogSettings).FOKButtonCaption;
+    FCancelButtonCaption := (Source as TDialogSettings).FCancelButtonCaption;
+    FEditGlyph := (Source as TDialogSettings).EditGlyph;
+    FEditGlyphVisible := (Source as TDialogSettings).EditGlyphVisible;
+
+    FOKButtonHint := (Source as TDialogSettings).OKButtonHint;
+    FCancelButtonHint := (Source as TDialogSettings).CancelButtonHint;
+    FResetButtonHint := (Source as TDialogSettings).ResetButtonHint;
+    FAddGlowButtonHint := (Source as TDialogSettings).AddGlowButtonHint;
+    FGlyphPositionLeftCaption:= (Source as TDialogSettings).GlyphPositionLeftCaption;
+    FGlyphPositionTopCaption:= (Source as TDialogSettings).GlyphPositionTopCaption;
+    FGlyphPositionRightCaption:= (Source as TDialogSettings).GlyphPositionRightCaption;
+    FGlyphPositionBottomCaption:= (Source as TDialogSettings).GlyphPositionBottomCaption;
+    GlyphEditNoneIconCaption := (Source as TDialogSettings).GlyphEditNoneIconCaption;
   end
   else
     inherited Assign(Source);
@@ -30182,6 +32363,7 @@ constructor TDialogSettings.Create;
 begin
   inherited Create;
   FEditGlyph := True;
+  FEditGlyphVisible := True;
   FEditCaption := True;
   FLargeIcon := False;
   FEditGlyphPosition := True;
@@ -30208,6 +32390,19 @@ begin
   FButtonEditCaption := 'Customize Button';
   FOnChange := nil;
   FCustomize := 'Customize';
+  FResetButtonCaption := '&Reset';
+  FOKButtonCaption := '&Ok';
+  FCancelButtonCaption := '&Cancel';
+
+  FOKButtonHint := '';
+  FCancelButtonHint := '';
+  FResetButtonHint := '';
+  FAddGlowButtonHint := 'Insert GlowButton';
+  FGlyphPositionLeftCaption := 'Left';
+  FGlyphPositionTopCaption := 'Top';
+  FGlyphPositionRightCaption := 'Right';
+  FGlyphPositionBottomCaption := 'Bottom';
+  FGlyphEditNoneIconCaption := 'None';
 end;
 
 //------------------------------------------------------------------------------
@@ -30234,6 +32429,7 @@ constructor TAdvToolBarContainer.Create(AOwner: TComponent);
 begin
   inherited;
   ControlStyle := ControlStyle + [csAcceptsControls] - [csOpaque];
+  DoubleBuffered := True;
   FParentStyler := True;
   FLine3D := True;
   FCaption := '';
@@ -30267,7 +32463,7 @@ begin
       if (TControl(Controls[i]) is TAdvGlowButton) then
           TAdvGlowButton(Controls[i]).Appearance.Assign(AdvToolBar.FCurrentToolBarStyler.GlowButtonAppearance);
 
-      if AdvToolBar.FCurrentToolBarStyler.TMSStyle <> tsCustom then
+      if (AdvToolBar.FCurrentToolBarStyler.GetInterface(ITMSStyle, tmsif)) and (AdvToolBar.FCurrentToolBarStyler.TMSStyle <> tsCustom) then
       begin
         if (TControl(Controls[i]).GetInterface(ITMSStyle, tmsif)) then
            tmsif.SetComponentStyle(AdvToolBar.FCurrentToolBarStyler.TMSStyle);
@@ -30300,9 +32496,13 @@ var
   {HorzGradient: boolean;
   GSteps: Integer;
   GColorFrom: TColor;
-  GColorTo, }LnClr: TColor;
+  GColorTo, }
+  LnClr: TColor;
   ShowLn3D: Boolean;
   R, CapR: TRect;
+  i: Integer;
+  P: TPoint;
+  bmp: TBitmap;
 
  { procedure SetGradientColors;
   var
@@ -30345,6 +32545,31 @@ var
 begin
   inherited;
   
+  // TRANSPARENCY CODE
+  R := ClientRect;
+
+  bmp := TBitmap.Create;
+  bmp.Width := Left + (R.Right - R.Left);
+  bmp.Height := Top + (R.Bottom - R.Top);
+
+  i := SaveDC(bmp.Canvas.Handle);
+  p := ClientOrigin;
+  Windows.ScreenToClient(Parent.Handle, p);
+  p.x := -p.x;
+  p.y := -p.y;
+  MoveWindowOrg(bmp.Canvas.Handle, p.x, p.y);
+
+  SendMessage(Parent.Handle, WM_ERASEBKGND, bmp.Canvas.Handle, 0);
+  // transparency ?
+  SendMessage(Parent.Handle, WM_PAINT, bmp.Canvas.Handle, 0);
+
+  if (Parent is TWinCtrl) then
+    (Parent as TWinCtrl).PaintCtrls(bmp.Canvas.Handle, nil);
+
+  RestoreDC(bmp.Canvas.Handle, i);
+
+  Canvas.Draw(-Left, -Top, bmp);
+  bmp.Free;
   R := ClientRect;
   {
   HorzGradient := Color.Direction = gdHorizontal;
@@ -30525,6 +32750,8 @@ begin
   Invalidate;
 end;
 
+//------------------------------------------------------------------------------
+
 procedure TAdvToolBarContainer.SetOfficeHint(const Value: TAdvHintInfo);
 begin
   FOfficeHint.Assign(Value);
@@ -30549,11 +32776,18 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TAdvToolBarContainer.WMEraseBkGnd(var Message: TWMEraseBkGnd);
+{
 var
   DC: HDC;
   i: Integer;
   p: TPoint;
+}
 begin
+  Message.Result := 1;
+  inherited;
+  
+
+  (*
   if {FTransparent} True then
   begin
     if Assigned(Parent) then
@@ -30574,6 +32808,7 @@ begin
   end
   else
     inherited;
+  *)  
 end;
 
 //------------------------------------------------------------------------------
@@ -30678,11 +32913,80 @@ end;
 
 //------------------------------------------------------------------------------
 
+{ AdvToolbarPager Key Hook }
+
+var
+  PagerKeyHook: HHOOK;
+  MainPager: TAdvToolBarPager;
+  {$IFDEF DELPHI9_LVL}
+  OldWParam: Integer = -1;
+  {$ENDIF}
+
+procedure ReleasePagerKeyHooks; forward;
+
+function PagerKeyMsgHook(Code: Integer; WParam: Longint; var Msg: TMsg): Longint; stdcall;
+begin
+  if (Code = HC_ACTION) then
+  begin
+    {if (Msg.Message = CM_DEACTIVATE) or (Msg.message = WM_COMMAND) then
+      ReleasePagerKeyHooks
+    else}
+    if (Msg.Message = WM_KEYDOWN) then
+    begin
+      if Assigned(MainPager) then
+      begin
+        {$IFDEF DELPHI9_LVL}
+        if (OldWParam <> Msg.WParam) then
+          MainPager.HandleKey(Msg.WParam);
+        OldWParam := Msg.WParam;
+        {$ELSE}
+        MainPager.HandleKey(Msg.WParam);
+        {$ENDIF}
+      end;
+
+      //OutputDebugString(PChar(Inttostr(Msg.message) +' lParam'+ Inttostr(Msg.lParam) + 'hwnd' + inttostr(Msg.hwnd)));
+    end
+    else if (Msg.Message = WM_KEYUP) then
+    begin
+      {$IFDEF DELPHI9_LVL}
+      OldWParam := -1;
+      {$ENDIF}
+    end;
+  end;
+  Result := CallNextHookEx(PagerKeyHook, Code, WParam, Longint(@Msg))
+end;
+
+//-------------------------------
+
+procedure InitPagerKeyHooks(Pager: TAdvToolBarPager);
+begin
+  if PagerKeyHook = 0 then
+  begin
+    MainPager := Pager;
+    PagerKeyHook := SetWindowsHookEx(WH_GETMESSAGE, @PagerKeyMsgHook, 0, GetCurrentThreadID);
+  end;
+end;
+
+//-------------------------------
+
+procedure ReleasePagerKeyHooks;
+begin
+  if PagerKeyHook <> 0 then
+    UnhookWindowsHookEx(PagerKeyHook);
+  PagerKeyHook := 0;
+  MainPager := nil;
+end;
+
+//------------------------------------------------------------------------------
+
 { TAdvToolBarPager }
 
 constructor TAdvToolBarPager.Create(AOwner: TComponent);
+//var
+//  i: Integer;
 begin
   inherited;
+
   ControlStyle := ControlStyle + [csAcceptsControls] - [csOpaque];
 
   inherited Align := alTop;
@@ -30700,6 +33004,7 @@ begin
 
   FOffSetX := 0;
   FOffSetY := 0;
+  FEnableWheel := true;
   FAntiAlias := aaClearType;
 
   FLeftScrollBtn := nil;
@@ -30747,8 +33052,11 @@ begin
   FTabGroups := TTabGroups.Create(self);
   FTabGroups.OnChange := OnTabGroupsChanged;
 
+  FPersistence:= TPersistence.Create(self);
+  FPersistence.OnChange:= OnPersistenceChanged;
+
   DoubleBuffered := true;
-  Height := 140;
+  Height := 149;
   FCanMove := False;
   FCaptionButtons := [];
   FCaptionCloseBtn := nil;
@@ -30756,6 +33064,7 @@ begin
   FCaptionMaxBtn := nil;
   FCaptionBtnImages := nil;
   FOldCapRightIndent := 0;
+  FHidePagesOnDblClick := true;
 
   FOfficeHint := TAdvHintInfo.Create;
 
@@ -30783,6 +33092,31 @@ begin
   FShortCutDelay := 0;
 
   FFormWindowState := wsNormal;
+
+  FDesignTime := (csDesigning in ComponentState) and not
+      ((csReading in Owner.ComponentState) or (csLoading in Owner.ComponentState));
+
+  FOfficeToolBarStyler := TAdvToolBarOfficeStyler.Create(self);
+  FCurrentToolBarStyler := FOfficeToolBarStyler;
+  TAdvToolBarOfficeStyler(FOfficeToolBarStyler).Style := bsOffice2007Luna;
+
+  FOldHeight := 0;
+  FHideState := False;
+  FDblClickTimer := TTimer.Create(Self);
+  FDblClickTimer.Enabled := False;
+  FDblClickTimer.Interval := DBLCLICK_DELAY;
+  FDblClickTimer.OnTimer := OnDblClickTimer;
+  FClickCount := 0;
+
+  FNonActiveMouseWheelOnFocus := False;
+  (*
+  for i:= 0 to AOwner.ComponentCount-1 do
+  begin
+    if (AOwner.Components[i] is TAdvToolBarPager) and (AOwner.Components[i] <> Self) then
+      raise Exception.Create('Only one instance of AdvToolBarPager can be placed on a Form.');
+  end;
+  *)
+//  ps.Free;
 end;
 
 //------------------------------------------------------------------------------
@@ -30819,7 +33153,24 @@ destructor TAdvToolBarPager.Destroy;
 var
   i: Integer;
 begin
+  if (Self = MainPager) then
+  ReleasePagerKeyHooks;
+  
+  if Assigned(FPersistence) and FPersistence.Enabled and not (csDesigning in ComponentState) then
+    SaveState;
+
+  {$IFDEF DELPHI2006_LVL}
+  if not (csDesigning in ComponentState) and Assigned(FToolBarStyler) and (FToolBarStyler <> FInternalToolBarStyler) then
+  begin
+    FToolBarStyler.RemoveControl(self);
+    FToolBarStyler := nil;
+  end;
+  {$ENDIF}
   FInternalToolBarStyler.Free;
+  FOfficeToolBarStyler.Free;
+
+  FDblClickTimer.Free;
+  
   for I := 0 to FAdvPages.Count - 1 do
     TAdvPage(FAdvPages[I]).FAdvToolBarPager := nil;
 
@@ -30860,6 +33211,7 @@ begin
   end;
   FShortCutHintWinList.Free;
   FShortCutTimer.Free;
+  FPersistence.Free;
   inherited;
 end;
 
@@ -30886,6 +33238,8 @@ begin
   UpdateTabPosition;
   InitializeScroller;
   //AdvPage.UpdateTabShowing;
+
+  //PostMessage(Handle, WM_Size, 0, 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -30934,6 +33288,13 @@ begin
   
   InitializeTabsSize;
   UpdateTabSizes;
+  InitializeScroller;
+
+  if FPersistence.Enabled and not (csDesigning in ComponentState) then
+    LoadState;
+
+  if not (csDesigning in ComponentState) then
+    InitPagerKeyHooks(Self);
 end;
 
 //------------------------------------------------------------------------------
@@ -31020,13 +33381,13 @@ var
   //Pic: TGDIPPicture;
   ImgEnabled: Boolean;
   //Rgn1, Rgn2: HRGN;
-  R, CapR, TR, R2, R3: TRect;
+  R, CapR, TR, R2, R3, TxtR: TRect;
   i, ImgX, ImgY, ImgTxtSp, j: Integer;
   //p: TPoint;
   DCaption: string;
   DWCaption: widestring;
   DoRepaint: Boolean;
-  TxtClr: TColor;
+  TxtClr, HighLightClr: TColor;
   TabAppearance: TCustomTabAppearance;
   SelectedHot: Boolean;
   bmp, bmp2: TBitmap;
@@ -31054,6 +33415,7 @@ begin
   R := GetTabRect(PageIndex);
   TR := GetTabsRect;
 
+
   if ((R.Left <= -1) and (R.Right <= -1)) or (((R.Left < TR.Left) and (R.Right < TR.Left)) or ((R.Left > TR.Right) and (R.Right > TR.Right))) then
   begin
     Exit;
@@ -31076,7 +33438,8 @@ begin
   }
 
   TabGroup := GroupOfTab(PageIndex);
-  
+
+
   ACanvas := Canvas;
 
   bmp := nil;
@@ -31122,6 +33485,8 @@ begin
       TabAppearance := FCurrentToolBarStyler.GroupAppearance.TabAppearance;
   end;
 
+  HighLightClr := TabAppearance.HighLightColor;
+
   //-------- Tab separator
   if ShouldDrawSeparator(PageIndex) and (bmp = nil) then
   begin
@@ -31155,7 +33520,7 @@ begin
 
       end;
     end
-    else if (PageIndex = ActivePageIndex) then
+    else if (PageIndex = ActivePageIndex) and (Expanded or (not Expanded and IsFloatingRibbonShowing)) then
     begin
       GradColor := ColorSelected;
       GradColorTo := ColorSelectedTo;
@@ -31165,6 +33530,7 @@ begin
       GradU := GradientSelected;
       GradB := GradientMirrorSelected;
       TxtClr := TextColorSelected;
+      HighLightClr := TabAppearance.HighLightColor;
 
      { if (GroupOfTab(PageIndex) >= 0) then
       begin
@@ -31179,7 +33545,10 @@ begin
       end;
       }
       if (PageIndex = FHotPageIndex) then
+      begin
         PenColor := BorderColorSelectedHot;
+        HighLightClr := TabAppearance.HighLightColorSelectedHot;
+      end;
 
       if Assigned(AdvPages[PageIndex].FTimer) then
       begin
@@ -31196,7 +33565,10 @@ begin
       end;
 
       if (FDownPageIndex = PageIndex) and not (csDesigning in ComponentState) then
+      begin
         PenColor := BorderColorDown;
+        HighLightClr := TabAppearance.HighLightColorDown;
+      end;
     end
     else //if State = absUp then
     begin
@@ -31210,6 +33582,7 @@ begin
         GradU := GradientHot;
         GradB := GradientMirrorHot;
         TxtClr := TextColorHot;
+        HighLightClr := TabAppearance.HighLightColorHot;
         //DrawDwLn := True;
         if Assigned(AdvPages[PageIndex].FTimer) and (AdvPages[PageIndex].FGlowState = gsHover) then
         begin
@@ -31291,8 +33664,8 @@ begin
       GradU := GradientHot;
       GradB := GradientMirrorHot;
       TxtClr := TextColorHot;
-
       SelectedHot := True;
+      HighLightClr := TabAppearance.HighLightColorSelected;
     end;
 
   {  if FHot then
@@ -31427,12 +33800,25 @@ begin
         ACanvas.MoveTo(R.Left+3, R.Top + 3);
         ACanvas.LineTo(R.Right-3, R.Top+3);
       end;
+
+      //-- Draw Shadow
+      if (FCurrentToolBarStyler.TabAppearance.ShadowColor <> clNone) then
+      begin
+        ACanvas.Pen.Color := FCurrentToolBarStyler.TabAppearance.ShadowColor;
+        ACanvas.MoveTo(R.Right, R.Top + 3);
+        ACanvas.LineTo(R.Right, R.Bottom-4);
+        ACanvas.Pen.Color := BlendColor(FCurrentToolBarStyler.TabAppearance.ShadowColor, FCurrentToolBarStyler.TabAppearance.BackGround.Color, 40);
+        ACanvas.MoveTo(R.Right + 1, R.Top + 4);
+        ACanvas.LineTo(R.Right + 1, R.Bottom-4);
+      end;
+
       //if not Assigned(AdvPages[PageIndex].FTimer) then
+      if (HighLightClr <> clNone) then
       begin
         ACanvas.Pen.Color := BlendColor(GradColor, PenColor, 80);
         ACanvas.MoveTo(R.Left+3, R.Top+1);
         ACanvas.LineTo(R.Right-3, R.Top+1);
-        ACanvas.Pen.Color := BlendColor(GradColor, PenColor, 50);
+        ACanvas.Pen.Color := HighLightClr; //BlendColor(GradColor, PenColor, 50);
         ACanvas.MoveTo(R.Left+1, R.Top + 3);
         ACanvas.LineTo(R.Left+1, R.Bottom-5);
         ACanvas.MoveTo(R.Right-2, R.Top + 3);
@@ -31477,24 +33863,27 @@ begin
     bmp2.Height := R.Bottom - R.Top;
     R2 := Rect(0, 0, GetRealTabWidth(PageIndex, j), R.Bottom - R.Top);
     if (TabGroup >= 0) then
-      R2.Right := R2.Right - FCurrentGroupTabLeftMargin - FCurrentGroupTabRightMargin
+      R2.Right := R2.Right - FCurrentGroupTabLeftMargin {- FCurrentGroupTabRightMargin}
     else
-      R2.Right := R2.Right - FCurrentTabLeftMargin{FTabSettings.LeftMargin} - FCurrentTabRightMargin{FTabSettings.RightMargin};
+      R2.Right := R2.Right - FCurrentTabLeftMargin {- FCurrentTabRightMargin};
     bmp2.Width := R2.Right - R2.Left;
     bmp2.Canvas.CopyMode := cmSrcCopy;
     bmp2.Canvas.CopyRect(Rect(0, 0, CapR.Right - CapR.Left , CapR.Bottom - CapR.Top), ACanvas, CapR);
     R2 := Rect(0, 0, R2.Right, bmp2.Height);
+
+    ACanvas.Font.Assign(FCurrentToolBarStyler.TabAppearance.Font);
+    ACanvas.Font.Color := TxtClr;
+
     bmp2.Canvas.Font.Assign(ACanvas.Font);
+    bmp2.Canvas.Font.Color := TxtClr;
                                               // CapR
-    DrawVistaText(bmp2.Canvas, taLeftJustify, R2, DCaption, DWCaption, ACanvas.Font, AdvPages[PageIndex].Enabled, True, AntiAlias);
-    //DrawText(Canvas.Handle, PChar(DCaption), Length(DCaption), R, DT_SINGLELINE or DT_VCENTER);
+    TxtR := DrawVistaText(bmp2.Canvas, taLeftJustify, R2, DCaption, DWCaption, ACanvas.Font, AdvPages[PageIndex].Enabled, True, AntiAlias);
+
+    //DrawText(bmp2.Canvas.Handle, PChar(DCaption), Length(DCaption), R2, DT_SINGLELINE or DT_VCENTER);
     //bmp.Canvas.Draw(CapR.Left, CapR.Top, bmp2);
     ACanvas.CopyMode := cmSrcCopy;
     ACanvas.CopyRect(CapR, bmp2.Canvas, Rect(0, 0, CapR.Right - CapR.Left, CapR.Bottom - CapR.Top));
     bmp2.Free;
-    {Canvas.Pen.Color := clBlack;
-    Canvas.Brush.Style := bsClear;
-    Canvas.Rectangle(R); }
 
     if (R.Left < TR.Left)  then
     begin
@@ -31511,7 +33900,7 @@ begin
       Canvas.CopyRect(R3, ACanvas, R3);
       bmp.Free;
     end;
-    
+
     if not Assigned(Parent) then
       Exit;
    {
@@ -31555,7 +33944,9 @@ var
 begin
   // Draw TabBackGround
   R := GetTabsArea;
+
   R.Bottom := ClientRect.Bottom;
+
   with FCurrentToolBarStyler.TabAppearance do
   begin
     if (BackGround.Color <> clNone) and (BackGround.ColorTo <> clNone) then
@@ -31574,8 +33965,9 @@ begin
       Canvas.LineTo(R.Right, R.Top+1);
     end;
   end;
-
+  
   DrawTabGroups;
+
  {
   R := Rect(25, 32, 160, 53);
   DrawVistaGradient(Canvas, R,FCurrentToolBarStyler.TabAppearance.ColorChecked, FCurrentToolBarStyler.TabAppearance.ColorCheckedTo, FCurrentToolBarStyler.TabAppearance.ColorMirrorChecked, FCurrentToolBarStyler.TabAppearance.ColorMirrorCheckedTo, clBlue,
@@ -31604,6 +33996,7 @@ var
   i: Integer;
   bmp: TBitMap;
   DrawTabGpRL, DrawTabGpRR: Boolean;
+  aln: TAlignment;
 begin
   if FCaption.Visible then
   begin
@@ -31623,29 +34016,37 @@ begin
 
     // Draw Text
     TxtR := R;
-    TxtR.Left := TxtR.Left + FCaption.Indent;
-    if Assigned(FQuickAccessToolBar) and not ShowQATBelow then
+    if HideState then
+      TxtR.Left := TxtR.Left + 5
+    else
+      TxtR.Left := TxtR.Left + FCaption.Indent;
+    if Assigned(FQuickAccessToolBar) and not ShowQATBelow and not HideState then
     begin
       TxtR.Left := MaxQATRect.Left + FQuickAccessToolBar.Width;
     end;
-    TxtR.Right := TxtR.Right - FCaption.RightIndent;
+
+    if not HideState then
+      TxtR.Right := TxtR.Right - FCaption.RightIndent;
 
     MaxR := Rect(-1, -1, -1, -1);
-    for i:= 0 to FTabGroups.Count-1 do
+    if not HideState then
     begin
-      DrawTabGpRL := True;
-      DrawTabGpRR := True;
-      TabGpR := GetTabGroupRect(i, DrawTabGpRL, DrawTabGpRR);
-      if (TabGpR.Left > -1) and (TabGpR.Right > -1) then
+      for i:= 0 to FTabGroups.Count-1 do
       begin
-        if (MaxR.Left = -1) then
-          MaxR.Left := TabGpR.Left
-        else
-          MaxR.left := Min(MaxR.left, TabGpR.Left);
-        if (MaxR.Right = -1) then
-          MaxR.Right := TabGpR.Right
-        else
-          MaxR.Right := Max(MaxR.Right, TabGpR.Right);
+        DrawTabGpRL := True;
+        DrawTabGpRR := True;
+        TabGpR := GetTabGroupRect(i, DrawTabGpRL, DrawTabGpRR);
+        if (TabGpR.Left > -1) and (TabGpR.Right > -1) then
+        begin
+          if (MaxR.Left = -1) then
+            MaxR.Left := TabGpR.Left
+          else
+            MaxR.left := Min(MaxR.left, TabGpR.Left);
+          if (MaxR.Right = -1) then
+            MaxR.Right := TabGpR.Right
+          else
+            MaxR.Right := Max(MaxR.Right, TabGpR.Right);
+        end;
       end;
     end;
 
@@ -31693,7 +34094,11 @@ begin
     //Canvas.Font.Style := [];
     bmp.Canvas.Font.Color := FCurrentToolBarStyler.PagerCaption.TextColor;
 
-    DrawVistaText(bmp.Canvas, taLeftJustify, TxtR, Caption.Caption, Caption.WideCaption, bmp.Canvas.Font, Enabled, True, AntiAlias);
+    if HideState then
+      aln := taLeftJustify
+    else
+      aln := taCenter;
+    DrawVistaText(bmp.Canvas, aln, TxtR, Caption.Caption, Caption.WideCaption, bmp.Canvas.Font, Enabled, True, AntiAlias);
 
     Canvas.Draw(R.Left, R.Top, bmp);
     bmp.Free;
@@ -31707,10 +34112,13 @@ var
   R: TRect;
   c, ro, th: integer;
   PrtForm: TCustomForm;
+  col: TColor;
 begin
   inherited;
 
   R := ClientRect;
+
+
   with FCurrentToolBarStyler, Canvas do
   begin
    { if DockColor.ColorTo <> clNone then
@@ -31724,7 +34132,6 @@ begin
     }
     if not BackGround.Empty then
     begin
-
       case BackGroundDisplay of
         bdTile:
           begin
@@ -31754,7 +34161,9 @@ begin
   end;
 
   DrawCaption;
+
   DrawAllTabs; // Also drawTabGroups
+
   //DrawTabGroups;
   DrawTabScrollButtons;
 
@@ -31781,9 +34190,65 @@ begin
       begin
         FFormWindowState := PrtForm.WindowState;
         UpdateCaptionButtons(True);
-      end;  
+      end;
     end;
   end;
+
+  if (AdvPageCount > 0) and (ActivePageIndex >= 0) and (ActivePageIndex < AdvPageCount) then
+  begin
+    R := AdvPages[ActivePageIndex].ClientRect;
+
+    OffsetRect(R,AdvPages[ActivePageIndex].Left, AdvPages[ActivePageIndex].Top);
+
+    col := Canvas.Pixels[R.Left, R.Bottom + 1];
+    Canvas.Pen.Color := DarkenColor(FCurrentToolBarStyler.PageAppearance.ShadowColor, -15); //DarkenColor(col,10);
+    Canvas.MoveTo(R.Left + 4, R.Bottom);
+    Canvas.LineTo(R.Right , R.Bottom);
+    Canvas.Pen.Color := DarkenColor(col,10);
+    Canvas.LineTo(R.Right , R.Top + 4);
+
+    Canvas.Pen.Color := DarkenColor(FCurrentToolBarStyler.PageAppearance.ShadowColor, -20); //DarkenColor(col, 5);
+    Canvas.MoveTo(R.Left + 5, R.Bottom + 1);
+    Canvas.LineTo(R.Right + 1, R.Bottom + 1);
+    Canvas.Pen.Color := DarkenColor(col,5);
+    Canvas.LineTo(R.Right + 1, R.Top + 5);
+
+  end;
+
+
+  with FCurrentToolBarStyler do
+  begin
+    if (Parent is TAdvToolBarForm) and not IsVista then
+    begin
+      Canvas.Pen.Color := CaptionAppearance.CaptionTextColor;
+
+      if Canvas.Pen.Color = clWhite then
+        Canvas.Pen.Color := clBlack;
+
+      Canvas.Pen.Width := 1;
+      Canvas.MoveTo(0,0);
+      Canvas.LineTo(7,0);
+      Canvas.MoveTo(0,1);
+      Canvas.LineTo(4,1);
+      Canvas.MoveTo(1,1);
+      Canvas.LineTo(1,4);
+      Canvas.MoveTo(0,0);
+      Canvas.LineTo(0,7);
+
+      Canvas.MoveTo(Width - 7,0);
+      Canvas.LineTo(Width,0);
+
+      Canvas.MoveTo(Width - 4,1);
+      Canvas.LineTo(Width,1);
+
+      Canvas.MoveTo(Width-2,1);
+      Canvas.LineTo(Width-2,4);
+      Canvas.MoveTo(Width-1,0);
+      Canvas.LineTo(Width-1,7);
+
+    end;
+  end;
+
   (*
   with FCurrentToolBarStyler.TabAppearance do
   begin
@@ -31879,7 +34344,7 @@ begin
     begin
       for i := 0 to FAdvPages.Count - 1 do
       begin
-        for j:= 0 to AdvPages[i].ControlCount -1 do
+        for j:= 0 to AdvPages[i].ControlCount - 1 do
         begin
           if (AdvPages[i].Controls[j] is TAdvToolBar) then
             TAdvCustomToolBar(AdvPages[i].Controls[j]).ParentStyler := TAdvCustomToolBar(AdvPages[i].Controls[j]).ParentStyler;
@@ -31923,14 +34388,49 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TAdvToolBarPager.WMPaint(var Message: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+begin
+  if not FDoubleBuffered or (Message.DC <> 0) then
+  begin
+    if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+      inherited
+    else
+      PaintHandler(Message);
+  end
+  else
+  begin
+    DC := GetDC(0);
+    MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+    ReleaseDC(0, DC);
+    MemDC := CreateCompatibleDC(0);
+    OldBitmap := SelectObject(MemDC, MemBitmap);
+    try
+      DC := BeginPaint(Handle, PS);
+      Perform(WM_ERASEBKGND, MemDC, MemDC);
+      Message.DC := MemDC;
+      WMPaint(Message);
+      Message.DC := 0;
+      BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+      EndPaint(Handle, PS);
+    finally
+      SelectObject(MemDC, OldBitmap);
+      DeleteDC(MemDC);
+      DeleteObject(MemBitmap);
+    end;
+  end;
+end;
 
+//------------------------------------------------------------------------------
 
 procedure TAdvToolBarPager.WMSize(var Message: TWMSize);
 begin
   inherited;
   SetAllPagesPosition;
   UpdateTabSizes;
-  //UpdateTabScroller;
   InitializeScroller;
   UpdateCaptionButtons(False);
   UpdateMDIButtons(False);
@@ -32080,19 +34580,39 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TAdvToolBarPager.MouseDown(Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
+
 var
   P: TPoint;
   Tab: Integer;
+  hMenuHandle: hMENU;
+  hMenuItem: dWord;
+  i: Integer;
 begin
   inherited;
   P := Point(X, Y);
 
   FDownPageIndex := -1;
 
-  if (FCaption.Visible) and PtInRect(GetAvailableCaptionRect, p) and FCanMove then
+  if (Button = mbRight) and (FCaption.Visible) and PtInRect(GetAvailableCaptionRect, p) then
+  begin
+     p.X := X;
+     p.Y := Y;
+     p := ClientToScreen(p);
+
+     hMenuHandle := GetSystemMenu(Parent.Handle, False);
+     hMenuItem := LongWord(Windows.TrackPopupMenu(hMenuHandle, TPM_LEFTBUTTON or
+                                               TPM_RIGHTBUTTON or TPM_RETURNCMD,
+                                               p.X, p.Y, 0, Parent.Handle, nil));
+     if hMenuItem > 0 then
+       SendMessage(Parent.Handle, WM_SYSCOMMAND, hMenuItem, 0);
+     Exit;
+  end;
+
+
+  i := PtOntTabGroup(X, Y);
+  if (FCaption.Visible) and PtInRect(GetAvailableCaptionRect, p) and FCanMove and (i < 0) then
   begin
     ReleaseCapture;
     SendMessage(GetParentForm(Self).Handle, WM_SYSCOMMAND, SC_MOVE+1, 0);
@@ -32109,7 +34629,16 @@ begin
     Tab := PTOnTab(X, Y);
     if (Tab >= 0) then
     begin
-      if (Tab <> ActivePageIndex)  and AdvPages[Tab].TabEnabled then
+      if Assigned(FOnTabClick) then
+        FOnTabClick(Self, Tab);
+
+      {if (Tab = ActivePageIndex) then
+      begin
+        Inc(FClickCount);
+        FDblClickTimer.Enabled := True;
+      end;}
+
+      if (Tab <> ActivePageIndex) and AdvPages[Tab].TabEnabled then
       begin
         // Select Tab
         ChangeActivePage(Tab);
@@ -32126,11 +34655,25 @@ begin
           AdvPages[Tab].FGlowState := gsPush;
         end;
         Invalidate;
+
+        FClickCount := -1;
       end
       else
       begin
         FDownPageIndex := Tab;
         InvalidateTab(-1);
+      end;
+
+      if not FExpanded then
+      begin
+        //Expand;
+        if IsFloatingRibbonShowing then
+        begin
+          if (FClickCount < 2) then
+            HideFloatingRibbon;
+        end
+        else
+          ShowFloatingRibbon;
       end;
     end
     else
@@ -32317,6 +34860,7 @@ procedure TAdvToolBarPager.MouseUp(Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   P: TPoint;
+  i, j: Integer;
 begin
   inherited;
   P := Point(X, Y);
@@ -32341,7 +34885,50 @@ begin
       DrawTabScrollBtnRight;
       OnScrollRightBtnClick(nil);
     end;
+
+    i := PTOnTab(X, Y);
+    if (i >= 0) then
+    begin
+      if (i = ActivePageIndex) then
+      begin
+        Inc(FClickCount);
+        FDblClickTimer.Enabled := True;
+      end;
+    end;
+
+  end
+  else
+  begin
+    i := PtOntTabGroup(X, Y);
+    if (i >= 0) then
+    begin
+      for j := FTabGroups.Items[i].TabIndexStart to FTabGroups.Items[i].TabIndexEnd do
+      begin
+        if TAdvPage(FAdvPages[j]).Enabled and TAdvPage(FAdvPages[j]).TabVisible then
+        begin
+          if (ActivePageIndex <> j) then
+            ActivePageIndex := j;
+          break;
+        end;
+      end;
+
+      if Assigned(FOnTabGroupClick) then
+        FOnTabGroupClick(Self, i);
+    end;
   end;
+
+
+  if (FClickCount >= 2) and HidePagesOnDblClick then
+  begin
+    if FExpanded then
+      Collaps
+    else
+      Expand;
+
+    FDblClickTimer.Enabled := False;
+    FClickCount := 0;
+  end;
+  
 end;
 
 //------------------------------------------------------------------------------
@@ -32509,6 +35096,8 @@ begin
     if (ActivePageIndex >= 0) and (ActivePageIndex < FAdvPages.Count) then
     begin
       AdvPages[FActivePageIndex].Visible := False;
+      if not Expanded then
+        DestroyFloatingRibbon;
     end;
 
     FActivePageIndex := PageIndex;
@@ -32595,8 +35184,8 @@ begin
   Result := GetCaptionRect;
   if FCaption.Visible then
   begin
-    Result.Left := Result.Left + FCaption.Indent;
-    Result.Right := Result.Right - FCaption.RightIndent;
+    Result.Left := Result.Left {+ FCaption.Indent};
+    Result.Right := Result.Right {- FCaption.RightIndent};
   end;
 end;
 
@@ -32635,7 +35224,7 @@ begin
       AdvPage.Top := R.Top;
       AdvPage.Width := R.Right - R.Left;
       AdvPage.Height := R.Bottom - R.Top;
-    end; 
+    end;
   end;
 end;
 
@@ -32741,14 +35330,12 @@ end;
 
 function TAdvToolBarPager.GetTabRect(StartIndex, PageIndex: Integer; ConsiderTabScroller: Boolean): TRect;
 var
-  i, TbW, j, Sp{, fdW, ImgTxtSp, k}: Integer;
-  R, CR{, R2}: TRect;
-  //TabAppearance: TCustomTabAppearance;
+  {i, TbW, j, Sp, fdW, ImgTxtSp, k: Integer;}
+  CR{, R, R2}: TRect;
+
 begin
   Result := Rect(-1, -1, -1, -1);
-  Sp := FCurrentTabSpacing; // FTabSettings.Spacing;
-  {fdW := 5;
-  ImgTxtSp := IMG_SPACE;}
+  //Sp := FCurrentTabSpacing; // FTabSettings.Spacing;
 
   if (PageIndex >= 0) and (PageIndex < FAdvPages.Count) then
   begin
@@ -32760,7 +35347,7 @@ begin
     Result := Rect(AdvPages[PageIndex].TabLeft, CR.Top, AdvPages[PageIndex].TabLeft + AdvPages[PageIndex].TabWidth, CR.Bottom);
     Exit;
 
-    
+    (*
     if Align in [daTop, daBottom] then
     begin
       j := 0;
@@ -32838,6 +35425,7 @@ begin
         Inc(j);
       end;
     end;
+    *)
   end;
 end;
 
@@ -34182,6 +36770,9 @@ var
   DrawTabGpL, DrawTabGpR: Boolean;
   DTSTYLE: DWORD;
 begin
+  if HideState then
+    Exit;
+    
   ImgTxtSp := 3;
   Ind := 3;
   ImgList := nil;
@@ -34275,9 +36866,34 @@ begin
         end;
       end;
 
+      Canvas.Brush.Style := bsClear;
       Canvas.Font.Color := GrpAppearance.TextColor;
       //DrawVistaText(Canvas, Algn, CapR, TabGroups.Items[i].Caption, TabGroups.Items[i].WideCaption, Canvas.Font, True, True,AntiAlias);
       DrawVistaText2(Canvas, Algn, DTSTYLE, CapR, TabGroups.Items[i].Caption, TabGroups.Items[i].WideCaption, Canvas.Font, True, True,AntiAlias, True, False);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvToolBarPager.PtOntTabGroup(X, Y: Integer): Integer;
+var
+  i: Integer;
+  DrawTabGpR, DrawTabGpL: Boolean;
+  p: TPoint;
+  R: TRect;
+begin
+  Result := -1;
+  P := Point(X, Y);
+  for i:= 0 to FTabGroups.Count -1 do
+  begin
+    DrawTabGpR := True;
+    DrawTabGpL := True;
+    R := GetTabGroupRect(i, DrawTabGpL, DrawTabGpR);
+    if PtInRect(R, P) then
+    begin
+      Result := i;
+      break;
     end;
   end;
 end;
@@ -34373,7 +36989,18 @@ begin
             Result.Right := R.Left - 1;
             RightVisible := False;
           end;
+        end;
 
+        if Assigned(FQuickAccessToolBar) and not ShowQATBelow and FQuickAccessToolBar.Visible then
+        begin
+          R := MaxQATRect;
+          i := FQuickAccessToolBar.Width;
+          if (Result.Left < R.Left + i) then
+          begin
+            Result:= Rect(-1, -1, -1, -1);
+            LeftVisible := False;
+            RightVisible := False;
+          end;
         end;
       end;
     end;
@@ -34445,12 +37072,40 @@ end;
 procedure TAdvToolBarPager.CMHintShow(var Message: TMessage);
 var
   PHI: PHintInfo;
+  R, TxtR: TRect;
+  bmp: TBitmap;
+  i: Integer;
+  TabAppearance: TCustomTabAppearance;
 begin
   PHI := TCMHintShow(Message).HintInfo;
   if ShowTabHint then
   begin
     if (FHintPageIndex >= 0) then
-      PHI^.HintStr := AdvPages[FHintPageIndex].TabHint;
+    begin
+      if (AdvPages[FHintPageIndex].TabHint <> '') then
+        PHI^.HintStr := AdvPages[FHintPageIndex].TabHint
+      else
+      begin
+        R := GetTabRect(FHintPageIndex);
+        TabAppearance := FCurrentToolBarStyler.TabAppearance;
+        i := GroupOfTab(FHintPageIndex);
+        if (i >= 0) and (i < FTabGroups.Count) then
+        begin
+          if not FTabGroups.Items[i].DefaultAppearance then
+            TabAppearance := FTabGroups.Items[i].GroupAppearance.TabAppearance
+          else
+            TabAppearance := FCurrentToolBarStyler.GroupAppearance.TabAppearance;
+        end;
+        bmp := TBitmap.Create;
+        bmp.Width := R.Right - R.Left;
+        bmp.Height := R.Bottom - R.Top;
+        bmp.Canvas.Font.Assign(TabAppearance.Font);
+        TxtR := DrawVistaText(bmp.Canvas, taLeftJustify, Rect(0, 0, 1000, 100), AdvPages[FHintPageIndex].Caption, AdvPages[FHintPageIndex].WideCaption, bmp.Canvas.Font, AdvPages[FHintPageIndex].Enabled, False, AntiAlias);
+        if (TxtR.Right - TxtR.Left > R.Right - R.left - FCurrentTabLeftMargin - FCurrentTabRightMargin) then
+          PHI^.HintStr := AdvPages[FHintPageIndex].Caption;
+        bmp.Free;
+      end;
+    end;
   end
   else
     PHI^.HintStr := '';
@@ -34510,7 +37165,6 @@ begin
   if Assigned(ActivePage) then
     ActivePage.Invalidate;
 
-
   if Assigned(ToolBarStyler) then
   begin
     
@@ -34550,6 +37204,8 @@ begin
   if (PropID = 11) then
     UpdateCaptionButtons(True);
 
+  UpdateShapeButton;
+
   if {(PropID in [0, 7, 10, 11, 12]) and }Assigned(FQuickAccessToolBar) then
   begin
     FQuickAccessToolBar.UpdateMe(PropID);
@@ -34559,11 +37215,18 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TAdvToolBarPager.WMNCHitTest(var Msg: TWMNCHitTest);
+var
+  pt: TPoint;
 begin
   inherited;
 
   if (csDesigning in ComponentState) then
     Exit;
+
+  pt := ScreenToClient(point(msg.xpos,msg.ypos));
+
+  if (pt.Y < 3) or (pt.X < 3) or (pt.X > Width - 6) then
+    Msg.Result := HTTRANSPARENT;
 
 {  pt := ScreenToClient(point(msg.xpos,msg.ypos));
 
@@ -34576,7 +37239,8 @@ begin
     //FInMove := true;
 
     SetWindowPos(GetParentForm(Self).Handle, HWND_TOP,0,0,0,0,  SWP_NOMOVE or SWP_NOSIZE);
-  end;  }
+  end;
+}
 end;
 
 //------------------------------------------------------------------------------
@@ -34594,6 +37258,8 @@ end;
 //------------------------------------------------------------------------------
 
 function TAdvToolBarPager.MaxQATRect: TRect;
+var
+  i: Integer;
 begin
   Result := Rect(-1, -1, -1, -1);
   if Assigned(FQuickAccessToolBar) then
@@ -34607,7 +37273,11 @@ begin
     begin
       if Caption.Visible then
       begin
-        Result := Rect(TabSettings.StartMargin - 6, GetCaptionRect.Bottom - GetQATHeight{GetCaptionRect.Top+2}, Width - 150, GetCaptionRect.Bottom);
+        i := Caption.MinWidth;
+        if (FCaptionButtons <> []) then
+          i := i + (Width - GetCaptionButtonsRect.Left) + 2;
+        i := Min(Width, i);  
+        Result := Rect(TabSettings.StartMargin - 6, GetCaptionRect.Bottom - GetQATHeight{GetCaptionRect.Top+2}, Width - i, GetCaptionRect.Bottom);
       end;
     end;
   end;
@@ -34625,6 +37295,23 @@ begin
     Result.Top := FCaptionMaxBtn.Top;
     Result.Bottom := Result.Top + FCaptionMaxBtn.Height;
   end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.UpdateShapeButton;
+var
+  i: integer;
+begin
+
+  for i := 0 to ControlCount - 1 do
+  begin
+    if (Controls[i].ClassName = 'TAdvShapeButton') then
+    begin
+      Controls[i].Invalidate;
+    end;
+  end;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -34705,7 +37392,7 @@ begin
     FCaptionMaxBtn.Left := FCaptionCloseBtn.Left - sp - FCaptionMaxBtn.Width;
     FCaptionMinBtn.Left := FCaptionMaxBtn.Left - sp - FCaptionMinBtn.Width;
 
-    FCaptionCloseBtn.Top := GetCaptionRect.Bottom - ADVPAGE_OFFSET - FCaptionCloseBtn.Height;
+    FCaptionCloseBtn.Top := GetCaptionRect.Top + ADVPAGE_OFFSET; //GetCaptionRect.Bottom - ADVPAGE_OFFSET - FCaptionCloseBtn.Height;
     FCaptionMinBtn.Top := FCaptionCloseBtn.Top;
     FCaptionMaxBtn.Top := FCaptionCloseBtn.Top;
 
@@ -34877,6 +37564,8 @@ var
   I: Integer;
 begin
   FOnlyALT := False;
+  if (GetKeyState(VK_MENU) and $8000 = $8000) then
+  begin
   for I:= 0 to FAdvPages.Count-1 do
     if IsAccel(Message.CharCode, AdvPages[I].Caption) and CanShowTab(I) and CanFocus then
     begin
@@ -34884,6 +37573,8 @@ begin
       ActivePageIndex := I;
       Exit;
     end;
+  end;
+  
   inherited;
 end;
 
@@ -34917,7 +37608,7 @@ begin
         ATB := ActivePage.GetFirstToolBar(True);
         ATB.SetFocus; //ActivePage.AdvToolBars[0].SetFocus;
         HideShortCutHintOfAllPages;
-        ActivePage.ShowShortCutHintOfAllToolBars;
+        //ActivePage.ShowShortCutHintOfAllToolBars;  //--- should not show shortcut on arrow down
       end;
     end;
     VK_ESCAPE:
@@ -34950,9 +37641,28 @@ begin
               ActivePageIndex := i;
               if Assigned(ActivePage) then
               begin
-                ATB := ActivePage.GetFirstToolBar(True);
-                ATB.SetFocus; //ActivePage.AdvToolBars[0].SetFocus;
-                ActivePage.ShowShortCutHintOfAllToolBars;
+                if Expanded then
+                begin
+                  ATB := ActivePage.GetFirstToolBar(True);
+                  if Assigned(ATB) then
+                    ATB.SetFocus; //ActivePage.AdvToolBars[0].SetFocus;
+                  ActivePage.ShowShortCutHintOfAllToolBars;
+                end
+                else
+                begin
+                  if not IsFloatingRibbonShowing then
+                  begin
+                    ShowFloatingRibbon;
+                  end;
+
+                  if Assigned(ActivePage) and Assigned(ActivePage.FSelfClone) then
+                  begin
+                    ATB := ActivePage.FSelfClone.GetFirstToolBar(True);
+                    if Assigned(ATB) then
+                      ATB.SetFocus; //ActivePage.AdvToolBars[0].SetFocus;
+                    ActivePage.FSelfClone.ShowShortCutHintOfAllToolBars;
+                  end;
+                end;
               end;
             end;  
             found := True;
@@ -34982,6 +37692,7 @@ begin
         begin
           if Assigned(FQuickAccessToolBar) then
           begin
+            //i := 0;
             found := FQuickAccessToolBar.HasShortCut(FTabShortCutChars, c);
             if found then
             begin
@@ -34990,7 +37701,7 @@ begin
           end;
         end;
         //--
-
+        
         //-- AdvShapeButton hints
         for i:= 0 to ControlCount - 1 do
         begin
@@ -35095,7 +37806,7 @@ begin
   FTabShortCutChars := '';
 
   //--- TAdvShapeButton hints
-  for i:= 0 to ControlCount - 1 do
+  for i := 0 to ControlCount - 1 do
   begin
     if (UpperCase(Controls[i].ClassName) = 'TADVSHAPEBUTTON') then
     begin
@@ -35212,7 +37923,6 @@ end;
 
 procedure TAdvToolBarPager.CMDialogKey(var Message: TCMDialogKey);
 begin
-  //OutputDebugString(PChar(InttoStr(Message.CharCode)));
   if TabStop and Assigned(ActivePage) and (Message.CharCode in [VK_MENU, VK_F10] {18 ALT}) then
   begin
     if not FTabShortCutHintShowing and (CanFocus) then
@@ -35342,6 +38052,8 @@ end;
 function TAdvToolBarPager.CreateShortCutHintWin: TShortCutHintWindow;
 begin
   Result := TShortCutHintWindow.Create(Self);
+  Result.Color := clWhite;
+  Result.ColorTo := FCurrentToolBarStyler.ButtonAppearance.Color;
   Result.Parent := Self;
   FShortCutHintWinList.Add(Result);
 end;
@@ -35366,6 +38078,7 @@ procedure TAdvToolBarPager.WndProc(var Msg: TMessage);
 var
   p: TWinControl;
 begin
+
   if (Msg.Msg = WM_DESTROY) then
   begin
     // restore subclassed proc
@@ -35386,8 +38099,74 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAdvToolBarPager.SubclassProc(var Msg: TMessage);
+procedure TAdvToolBarPager.PrevActivePage;
+var
+  i: integer;
+  found: boolean;
 begin
+  i := ActivePageIndex;
+  found := false;
+  while (i > 0) do
+  begin
+    i := i - 1;
+    if (i >= 0) and AdvPages[i].TabEnabled and AdvPages[i].TabVisible then
+    begin
+      found := true;
+      break;
+    end;
+  end;
+
+  if found then
+    ActivePageIndex := i;
+end;
+
+procedure TAdvToolBarPager.NextActivePage;
+var
+  i: integer;
+  found: boolean;
+begin
+  i := ActivePageIndex;
+  found := false;
+  while (i < AdvPageCount - 1) do
+  begin
+    i := i + 1;
+    if (i < AdvPageCount) and AdvPages[i].TabEnabled and AdvPages[i].TabVisible then
+    begin
+      found := true;
+      break;
+    end;
+  end;
+
+  if found then
+    ActivePageIndex := i;
+end;
+
+procedure TAdvToolBarPager.SubclassProc(var Msg: TMessage);
+var
+  pt: TPoint;
+begin
+  if (Msg.Msg = CM_MOUSEWHEEL) and EnableWheel and Expanded then
+  begin
+    GetCursorPos(pt);
+    pt := ScreenToClient(pt);
+
+    if PtInRect(ClientRect,pt) and (not NonActiveMouseWheelOnFocus or (GetFocus <> self.Handle)) then
+    begin
+      if (Msg.Wparam > 0) then
+      begin
+        PrevActivePage;
+      end
+      else
+      begin
+        NextActivePage;
+      end;
+      
+      Msg.Result := 1;
+      Exit;
+      
+    end;
+  end;
+
   FFormWndProc(Msg);
 
   //if (Msg.Msg = WM_CLOSE) then
@@ -35396,8 +38175,7 @@ begin
      ((Msg.Msg = WM_SYSCOMMAND) and ((Msg.WParam = SC_MAXIMIZE) or (Msg.WParam = SC_MINIMIZE))) then
   begin
     HideShortCutHintOfAllPages(True);
-  end;
-  
+  end;  
 end;
 
 //------------------------------------------------------------------------------
@@ -35405,8 +38183,10 @@ end;
 procedure TAdvToolBarPager.CreateWnd;
 var
   p: TWinControl;
+  t: TAdvPage;
 begin
   inherited;
+
   if not (csDesigning in ComponentState) then
   begin
     p := self;
@@ -35421,6 +38201,28 @@ begin
       p.WindowProc := SubClassProc;
     end;
   end;
+
+
+  if FDesignTime and (Name <> '') then
+  begin
+    t := TAdvPage.Create(Owner);
+    t.Parent := self;
+    t.AdvToolBarPager := self;
+    t.Name := Name + '1';
+    t.Caption := t.Name;
+    ActivePage := t;
+    t := TAdvPage.Create(Owner);
+    t.Parent := self;
+    t.AdvToolBarPager := self;
+    t.Name := Name + '2';
+    t.Caption := t.Name;
+    t := TAdvPage.Create(Owner);
+    t.Parent := self;
+    t.AdvToolBarPager := self;
+    t.Name := Name + '3';
+    t.Caption := t.Name;
+  end;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -35762,8 +38564,29 @@ end;
 procedure TAdvToolBarPager.WMLButtonDblClk(var Message: TWMLButtonDblClk);
 var
   PrtForm: TCustomForm;
+  Tab: integer;
+  p: TPoint;
 begin
   inherited;
+
+  p := Point(Message.XPos, Message.YPos);
+
+  if PtInRect(GetTabsArea, p) then
+  begin
+    Tab := PTOnTab(p.X, p.Y);
+    if (Tab >= 0) then
+    begin
+      {if FExpanded then
+        Collaps
+      else
+        Expand;
+      }
+      if Assigned(FOnTabDblClick) then
+        FOnTabDblClick(Self, Tab);
+    end;
+  end;
+
+
   if (cbMaximize in FCaptionButtons) and (PtInRect(GetCaptionRect, Point(Message.XPos, Message.YPos))) then
   begin
     PrtForm := GetParentForm(Self);
@@ -35784,13 +38607,19 @@ end;
 procedure TAdvToolBarPager.SetExpanded(Value: Boolean);
 var
   R: TRect;
+  i: Integer;
 begin
   if Value then  // Expand
   begin
     if not FExpanded then
     begin
-      Height := FExpandedHeight;
+      i := FExpandedHeight;
+      if ShowQATBelow then
+        i := i + GetQATHeight;
+      Height := i;
       FExpanded := Value;
+      if Assigned(FOnExpand) then
+        FOnExpand(Self);
     end;
   end
   else // Collaps
@@ -35799,8 +38628,16 @@ begin
     begin
       FExpandedHeight := Height;
       R := GetAdvPageRect;
-      Height := R.Top;
+      i := R.Top;
+      if ShowQATBelow then
+      begin
+        i := i + GetQATHeight;
+        FExpandedHeight := FExpandedHeight - GetQATHeight;
+      end;
+      Height := i;
       FExpanded := Value;
+      if Assigned(FOnCollaps) then
+        FOnCollaps(Self);
     end;
   end;
 end;
@@ -35871,6 +38708,287 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvToolBarPager.SetPersistence(const Value: TPersistence);
+begin
+  FPersistence.Assign(Value);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.OnPersistenceChanged(Sender: TObject);
+begin
+
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.SaveState;
+var
+  {$IFDEF DELPHI4_LVL}
+  IniFile: TCustomIniFile;
+  {$ELSE}
+  IniFile: TIniFile;
+  {$ENDIF}
+begin
+  if (FPersistence.Enabled) and (FPersistence.Key <>'') and
+     (FPersistence.Section <>'') and
+     (not (csDesigning in ComponentState)) then
+  begin
+    {$IFDEF DELPHI4_LVL}
+    if FPersistence.Location = plRegistry then
+      IniFile := TRegistryIniFile.Create(FPersistence.Key)
+    else
+    {$ENDIF}
+      IniFile := TIniFile.Create(FPersistence.Key);
+
+    with IniFile do
+    begin
+      WriteInteger(FPersistence.section,'Minimized', Integer(not Expanded));
+      WriteInteger(FPersistence.section,'ShowQATBelow', Integer(ShowQATBelow));
+    end;
+    IniFile.Free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.LoadState;
+var
+  {$IFDEF DELPHI4_LVL}
+  IniFile: TCustomIniFile;
+  {$ELSE}
+  IniFile: TIniFile;
+  {$ENDIF}
+  i: Integer;
+begin
+  if (FPersistence.Enabled) and (FPersistence.Key <>'') and
+     (FPersistence.Section<>'') and
+     (not (csDesigning in ComponentState)) then
+  begin
+    {$IFDEF DELPHI4_LVL}
+    if FPersistence.location = plRegistry then
+      IniFile := TRegistryIniFile.Create(FPersistence.Key)
+    else
+    {$ENDIF}
+      IniFile := TIniFile(tIniFile.Create(FPersistence.Key));
+
+    with IniFile do
+    begin
+      i:= ReadInteger(FPersistence.section,'Minimized', Integer(not Expanded));
+
+      if (i > 0) then
+        Collaps;
+
+      i := ReadInteger(FPersistence.section,'ShowQATBelow', Integer(ShowQATBelow));
+      if (i > 0) then
+        ShowQATBelow := True;
+    end;
+    IniFile.Free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.SetHideState(const Value: Boolean);
+var
+  i: Integer;
+begin
+  if (FHideState <> Value) then
+  begin
+    FHideState := Value;
+    if FHideState then
+    begin
+      FOldHeight := Self.Height;
+      Height := Caption.Height;
+      if Assigned(FQuickAccessToolBar) then
+      begin
+        FQATOldVisible := FQuickAccessToolBar.Visible;
+        FQuickAccessToolBar.Visible := False;
+      end;
+
+      for i := 0 to ControlCount - 1 do
+      begin
+        if (Controls[i].ClassName = 'TAdvShapeButton') then
+        begin
+          FShapeBtnOldVisible := Controls[i].Visible;
+          Controls[i].Visible := False;
+          break;
+        end;
+      end;
+    end
+    else
+    begin
+      Height := FOldHeight;
+      if Assigned(FQuickAccessToolBar) then
+        FQuickAccessToolBar.Visible := FQATOldVisible;
+
+      for i := 0 to ControlCount - 1 do
+      begin
+        if (Controls[i].ClassName = 'TAdvShapeButton') then
+        begin
+          Controls[i].Visible := FShapeBtnOldVisible;
+          break;
+        end;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.OnDblClickTimer(Sender: TObject);
+begin
+  FDblClickTimer.Enabled := False;
+  FClickCount := 0;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.CreateFloatingRibbon;
+begin
+  if (ActivePageIndex < 0) or not Assigned(ActivePage) then
+    Exit;
+
+  if (FMinimizedRibbonWindow = nil) then
+  begin
+    FMinimizedRibbonWindow := TMinimizedRibbonWindow.CreateNew(self);
+    if Name <> '' then //give it a name for debugging
+      FMinimizedRibbonWindow.Name := Name + '_RibbonWindow';
+    FMinimizedRibbonWindow.Parent := Self;
+    FMinimizedRibbonWindow.BorderIcons := [];
+    FMinimizedRibbonWindow.BorderStyle := bsNone;
+    FMinimizedRibbonWindow.Ctl3D := false;
+    FMinimizedRibbonWindow.FormStyle := fsStayOnTop;
+    FMinimizedRibbonWindow.Visible := False;
+    FMinimizedRibbonWindow.Width := 0;
+    FMinimizedRibbonWindow.Height := 0;
+    FMinimizedRibbonWindow.AutoScroll := False;
+    FMinimizedRibbonWindow.BorderWidth := 0;
+    FMinimizedRibbonWindow.AdvToolBarPager := Self;
+    FMinimizedRibbonWindow.OnCloseQuery := OnFloatingRibbonWindowCloseQuery;
+    FMinimizedRibbonWindow.OnHide := OnRibbonWindowHide;
+    FMinimizedRibbonWindow.OnClose := OnFloatingRibbonWindowClose;
+    if Assigned(FCurrentToolBarStyler) then
+      FMinimizedRibbonWindow.Color := FCurrentToolBarStyler.PagerCaption.BorderColor;
+  end;
+
+  if (FMinimizedRibbonWindow.AdvPage = nil) then
+  begin
+    FMinimizedRibbonWindow.AdvPage := ActivePage.CreateClone(FMinimizedRibbonWindow);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.DestroyFloatingRibbon;
+begin
+  if Assigned(FMinimizedRibbonWindow) then
+  begin
+    if Assigned(ActivePage) then
+      ActivePage.DestroyClone;
+
+    FMinimizedRibbonWindow.Free;
+    FMinimizedRibbonWindow := nil;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.ShowFloatingRibbon;
+var
+  p: TPoint;
+  h, w: Integer;
+begin
+  if (ActivePageIndex < 0) or not Assigned(ActivePage) then
+    Exit;
+
+  CreateFloatingRibbon;
+
+  FMinimizedRibbonWindow.SetWindowSize;
+  w := FMinimizedRibbonWindow.Width;
+  h := FMinimizedRibbonWindow.Height;
+  FMinimizedRibbonWindow.Width := 1;
+  FMinimizedRibbonWindow.Height := 1;
+  FMinimizedRibbonWindow.Visible := True;
+
+  //FMinimizedRibbonWindow.SetWindowSize;
+  P := Point(GetAdvPageRect.Left - 2, GetTabsArea.Bottom);
+  P := ClientToScreen(P);
+  FMinimizedRibbonWindow.Left := P.X;
+  FMinimizedRibbonWindow.Top := P.Y;
+  //FMinimizedRibbonWindow.Visible := True;
+  {$IFDEF DELPHI9_LVL}
+  //FMinimizedRibbonWindow.Left := P.X;
+  //FMinimizedRibbonWindow.Top := P.Y;
+  {$ENDIF}
+  FMinimizedRibbonWindow.width := w;
+  FMinimizedRibbonWindow.Height := h;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.OnFloatingRibbonWindowCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.HideFloatingRibbon;
+begin
+  if Assigned(FMinimizedRibbonWindow) then
+  begin
+    FMinimizedRibbonWindow.Hide;
+    DestroyFloatingRibbon;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.OnRibbonWindowHide(Sender: TObject);
+begin
+  //DestroyFloatingRibbon;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvToolBarPager.IsFloatingRibbonShowing: Boolean;
+begin
+  Result := Assigned(FMinimizedRibbonWindow) and (FMinimizedRibbonWindow.Visible) and not Expanded;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.OnFloatingRibbonWindowClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarPager.HandleKey(Code: Word);
+var
+  shf, Ctrl, Alt: Boolean;
+begin
+  if (Code = VK_F1) then
+  begin
+    Shf := (GetKeyState(VK_SHIFT) and $8000 = $8000);
+    Ctrl := (GetKeyState(VK_CONTROL) and $8000 = $8000);
+    Alt := (GetKeyState(18) and $8000 = $8000);
+
+    if Ctrl and not Shf and not Alt then
+    begin
+      if Expanded then
+        Collaps
+      else
+        Expand;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 { TAdvPage }
 
 constructor TAdvPage.Create(AOwner: TComponent);
@@ -35892,12 +39010,15 @@ begin
   DoubleBuffered := true;
 
   FShortCutHint := nil;
-  FShortCutHintPos := shpTop;
+  FShortCutHintPos := shpBottom;
   FToolBarScroller := TATBTabScroller.Create;
   FTabWidth := 0;
   FTabLeft := 0;
   FTabClientWidth := 0;
   FTabRealClientWidth := 0;
+  FOldWidth := Width;
+  FSelfClone := nil;
+  FCloning := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -35988,12 +39109,27 @@ end;
 function TAdvPage.AddAdvToolBar(ToolBar: TAdvToolBar): Integer;
 begin
   Result := -1;
+  if not Assigned(ToolBar) or FCloning then
+    Exit;
   if (FAdvToolBars.IndexOf(ToolBar) < 0) then
   begin
+    if not (csLoading in ComponentState) and not (csDesigning in ComponentState) then
+    begin
+      ToolBar.ShowRightHandle := False;
+      ToolBar.ShowCaption := True;
+      ToolBar.CaptionPosition := cpBottom;
+      ToolBar.CaptionAlignment := taCenter;
+    end;
+
     Result := FAdvToolBars.Add(ToolBar);
     if (ToolBar.Parent <> Self) then
       ToolBar.Parent := Self;
+    if not (csLoading in ComponentState) and not (csDesigning in ComponentState) and not Assigned(ToolBar.ToolBarStyler) then
+      ToolBar.ParentStyler := True;  
     UpdateAdvToolBarsPosition;
+
+  if not (csDesigning in ComponentState) and not (csLoading in ComponentState) and not (csReading in ComponentState) and not ToolBar.FPropertiesLoaded then
+    ToolBar.FPropertiesLoaded := True;
   end;
 end;
 
@@ -36003,6 +39139,9 @@ procedure TAdvPage.RemoveAdvToolBar(ToolBar: TAdvToolBar);
 var
   I: Integer;
 begin
+  if FCloning then
+    Exit;
+    
   I := FAdvToolBars.IndexOf(ToolBar);
   if (I >= 0) then
   begin
@@ -36016,7 +39155,7 @@ end;
 
 procedure TAdvPage.InsertAdvToolBar(Index: integer; ToolBar: TAdvToolBar);
 begin
-  if (FAdvToolBars.IndexOf(ToolBar) < 0) then
+  if (FAdvToolBars.IndexOf(ToolBar) < 0) and not FCloning then
   begin
     FAdvToolBars.Insert(Index, ToolBar);
     if (ToolBar.Parent <> Self) then
@@ -36031,7 +39170,7 @@ end;
 
 procedure TAdvPage.MoveAdvToolBar(CurIndex, NewIndex: Integer);
 begin
-  if (CurIndex >= 0) and (CurIndex < FAdvToolBars.Count) and (NewIndex >= 0) and (NewIndex < FAdvToolBars.Count) then
+  if not FCloning and (CurIndex >= 0) and (CurIndex < FAdvToolBars.Count) and (NewIndex >= 0) and (NewIndex < FAdvToolBars.Count) then
   begin
     FAdvToolBars.Move(CurIndex, NewIndex);
     UpdateAdvToolBarsPosition;
@@ -36093,6 +39232,7 @@ var
   bmp: TBitMap;
 begin
   //inherited;
+
   if not Assigned(FAdvToolBarPager) or not Assigned(FAdvToolBarPager.FCurrentToolBarStyler) then
     Exit;
 
@@ -36144,22 +39284,28 @@ begin
         Gradient, GradientMirror, FCaption, Font, {ImgList, ImageIndex, EnabledImg, Layout, }
         Enabled{, GetFocus = self.Handle,Pic}, FAdvToolBarPager.FCurrentToolBarStyler.RoundEdges); *)
 
-      DrawVistaGradient(bmp.Canvas, Rect(0, 0, bmp.Width, bmp.Height), Color, ColorTo, ColorMirror, ColorMirrorTo, BorderColor,
-        Gradient, GradientMirror, '', Font, Enabled, False, FAdvToolBarPager.AntiAlias, FAdvToolBarPager.FCurrentToolBarStyler.RoundEdges);
+      //DrawVistaGradient(bmp.Canvas, Rect(0, 0, bmp.Width, bmp.Height), Color, ColorTo, ColorMirror, ColorMirrorTo, BorderColor,
+        //Gradient, GradientMirror, '', Font, Enabled, False, FAdvToolBarPager.AntiAlias, FAdvToolBarPager.FCurrentToolBarStyler.RoundEdges);
+      DrawVistaPageGradient(bmp.Canvas, Rect(0, 0, bmp.Width, bmp.Height), PAGEGRAD_HEIGHT, Color, ColorTo, ColorMirror, ColorMirrorTo, BorderColor, 3);
 
       Canvas.Draw(R.Left, R.Top, bmp);
 
+      Canvas.Pen.Color := FAdvToolBarPager.FCurrentToolBarStyler.PageAppearance.ShadowColor;
+      Canvas.MoveTo(R.Left + 2, R.Bottom - 1);
+      Canvas.LineTo(R.Right-2, R.Bottom - 1);
+
       // Draw 3D effect
-      Canvas.Pen.Color := BlendColor(clWhite, BorderColor, 50);
+      Canvas.Pen.Color := FAdvToolBarPager.FCurrentToolBarStyler.PageAppearance.HighLightColor; //BlendColor(clWhite, BorderColor, 50);
       Canvas.MoveTo(R.Left+1, R.Top + 10);
       Canvas.LineTo(R.Left+1, R.Bottom-2);
       //Canvas.Pixels[R.Left+2, R.Bottom-3] := Canvas.Pen.Color;
       Canvas.MoveTo(R.Right-2, R.Top + 10);
-      Canvas.LineTo(R.Right-2, R.Bottom-2);
+      Canvas.LineTo(R.Right-2, R.Bottom - 2);
       //Canvas.Pixels[R.Right-3, R.Bottom-3] := Canvas.Pen.Color;
 
-      Canvas.MoveTo(R.Left+3, R.Bottom -2);
-      Canvas.LineTo(R.Right-2, R.Bottom-2);
+      Canvas.MoveTo(R.Left + 3, R.Bottom - 2);
+      Canvas.LineTo(R.Right - 2, R.Bottom - 2);
+
     end;
   end;
 
@@ -36200,6 +39346,7 @@ begin
     end;
   end;
 
+
   bmp.Free;
 end;
 
@@ -36222,6 +39369,8 @@ end;
 
 procedure TAdvPage.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
 begin
+  if (AWidth <> Width) then
+    FOldWidth := Width;
   inherited;
   UpdateAdvToolBarsPosition;
 end;
@@ -36319,15 +39468,6 @@ begin
   end;
 end;
 
-procedure TAdvPage.SetWideCaption(const Value: widestring);
-begin
-  if FWideCaption <> Value then
-  begin
-    FWideCaption := Value;
-    Invalidate;
-  end;
-end;
-
 //------------------------------------------------------------------------------
 
 procedure TAdvPage.TimerProc(Sender: TObject);
@@ -36394,7 +39534,14 @@ end;
 procedure TAdvPage.WMSize(var Message: TWMSize);
 begin
   inherited;
-  UpdateAllToolBars;
+  //UpdateAllToolBars;
+  if (FOldWidth <> Width) then
+  begin
+    if (FOldWidth > Width) then
+      DecreaseToolBarSize
+    else
+      IncreaseToolBarSize;
+  end;
   InitializeScroller;
 end;
 
@@ -36475,6 +39622,30 @@ begin
     if Assigned(FAdvToolBarPager) then
     begin
       FAdvToolBarPager.InitializeTabsSize;
+
+      FAdvToolBarPager.UpdateTabSizes;
+      FAdvToolBarPager.InitializeScroller;
+
+      FAdvToolBarPager.Invalidate;
+    end;
+    Invalidate;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPage.SetWideCaption(const Value: widestring);
+begin
+  if FWideCaption <> Value then
+  begin
+    FWideCaption := Value;
+    if Assigned(FAdvToolBarPager) then
+    begin
+      FAdvToolBarPager.InitializeTabsSize;
+
+      FAdvToolBarPager.UpdateTabSizes;
+      FAdvToolBarPager.InitializeScroller;
+
       FAdvToolBarPager.Invalidate;
     end;
     Invalidate;
@@ -36550,10 +39721,180 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvPage.IncreaseToolBarSize;
+var
+  i, l, idx, d, j: Integer;
+  ATBList: TDbgList;
+  BtnState, NewState: TButtonSizeState;
+  found: Boolean;
+begin
+
+  if (csDesigning in ComponentState) then
+    Exit;
+
+  ATBList := TDbgList.Create;
+  GetSequencialToolBarList(ATBList);
+
+  if (ATBList.Count > 0) then
+  begin
+    l := Width - (TAdvToolBar(ATBList[ATBList.Count-1]).Left + TAdvToolBar(ATBList[ATBList.Count-1]).Width) - 2;
+    if (l > 0) then  // InCompact ToolBar
+    begin
+      found := False;
+      for i:= 0 to ATBList.Count-1 do
+      begin
+        if ((TAdvToolBar(ATBList[i]).Visible) or (csDesigning in ComponentState)) and (TAdvToolBar(ATBList[i]).Compact and TAdvToolBar(ATBList[i]).CanUnCompact) then
+        begin
+          if (l >= (TAdvToolBar(ATBList[i]).GetInCompactWidth - TAdvToolBar(ATBList[i]).GetCompactWidth + ADVPAGE_OFFSET)) then
+          begin
+            TAdvToolBar(ATBList[i]).SetCompact(False); // .Compact := False;
+            IncreaseToolBarSize;
+          end;
+          found := True;
+          Break;
+        end;
+      end;
+
+      if not found then
+      begin
+        BtnState := bsLabel;
+        NewState := bsLarge;
+        d := 0;
+        idx := -1;
+        for i:= 0 to ATBList.Count-1 do
+        begin
+          if ((TAdvToolBar(ATBList[i]).Visible) or (csDesigning in ComponentState)) and not (TAdvToolBar(ATBList[i]).Compact) and (TAdvToolBar(ATBList[i]).FPropertiesLoaded) then
+          begin
+            j := TAdvToolBar(ATBList[i]).LargerVariantDifference(False, NewState);
+            if {(j < l) and }(j > 0) and ((idx < 0) or ((j > d) and (NewState = BtnState)) or ((NewState = bsLabel) and (BtnState = bsLarge))) then
+            begin
+              idx := i;
+              d := j;
+              BtnState := NewState;
+            end;
+          end;
+        end;
+
+        if (idx >= 0) then
+        begin
+          if (d < l) then
+          begin
+            d := TAdvToolBar(ATBList[idx]).SetLargerVariant(False, NewState);
+            l := l - d;
+          end
+          else
+          begin
+            idx := -1;
+          end;
+        end;
+
+        if (l > 0) then
+        begin
+          if (idx >= 0) then
+          begin
+            IncreaseToolBarSize;
+          end;
+        end;
+      end;
+    end
+    else   // Compact ToolBar
+    begin
+
+    end;
+  end;
+
+  ATBList.Free;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPage.DecreaseToolBarSize;
+var
+  i, l, idx, d, j: Integer;
+  ATBList: TDbgList;
+  BtnState, NewState: TButtonSizeState;
+begin
+  if (csDesigning in ComponentState) then
+    Exit;
+
+  ATBList := TDbgList.Create;
+  GetSequencialToolBarList(ATBList);
+
+  if (ATBList.Count > 0) then
+  begin
+    l := Width - (TAdvToolBar(ATBList[ATBList.Count-1]).Left + TAdvToolBar(ATBList[ATBList.Count-1]).Width) - 2;
+    if (l > 0) then  // InCompact ToolBar
+    begin
+
+    end
+    else   // Compact ToolBar
+    begin
+      BtnState := bsLabel;
+      NewState := bsGlyph;
+      d := 0;
+      idx := -1;
+      l := abs(l);
+      for i:= ATBList.Count-1 downto 0 do
+      begin
+        if ((TAdvToolBar(ATBList[i]).Visible) or (csDesigning in ComponentState)) and not (TAdvToolBar(ATBList[i]).Compact) and (TAdvToolBar(ATBList[i]).FPropertiesLoaded) then
+        begin
+          j := TAdvToolBar(ATBList[i]).SmallerVariantDifference(False, NewState);
+          if (j > 0) and ((idx < 0) or (((j < d){ or (d < abs(l))}) and (NewState = BtnState)) or ((NewState = bsLabel) and (BtnState = bsGlyph))) then
+          begin
+            idx := i;
+            d := j;
+            BtnState := NewState;
+          end;
+        end;
+      end;
+
+      if (idx >= 0) then
+      begin
+        d := TAdvToolBar(ATBList[idx]).SetSmallerVariant(False, NewState);
+        l := l - d;
+      end;
+
+      if (l > 0) then
+      begin
+        if (idx >= 0) then
+        begin
+          DecreaseToolBarSize;
+        end
+        else
+        begin
+          for i:= ATBList.Count-1 downto 0 do
+          begin
+            if ((TAdvToolBar(ATBList[i]).Visible) or (csDesigning in ComponentState)) and not (TAdvToolBar(ATBList[i]).Compact) and (TAdvToolBar(ATBList[i]).FPropertiesLoaded) then
+            begin
+              TAdvToolBar(ATBList[i]).SetCompact(True); // .Compact := True;
+              TAdvToolBar(ATBList[i]).FCompactSmallest := True;
+              DecreaseToolBarSize;
+              Break;
+            end;
+          end;
+        end;
+      end
+      else
+      begin
+        if (idx >= 0) then
+        begin
+          //UpdateAllToolBars;
+        end
+      end;
+    end;
+  end;
+
+  ATBList.Free;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TAdvPage.UpdateAllToolBars;
 var
-  i, l: Integer;
+  i, l, idx, d, j: Integer;
   ATBList: TDbgList;
+  BtnState, NewState: TButtonSizeState;
+  found: Boolean;
 begin
   // Right most ToolBar
   {rtb := -1;
@@ -36581,6 +39922,7 @@ begin
     l := Width - (TAdvToolBar(ATBList[ATBList.Count-1]).Left + TAdvToolBar(ATBList[ATBList.Count-1]).Width) - 2;
     if (l > 0) then  // InCompact ToolBar
     begin
+      found := False;
       for i:= 0 to ATBList.Count-1 do
       begin
         if ((TAdvToolBar(ATBList[i]).Visible) or (csDesigning in ComponentState)) and (TAdvToolBar(ATBList[i]).Compact and TAdvToolBar(ATBList[i]).CanUnCompact) then
@@ -36590,24 +39932,102 @@ begin
             TAdvToolBar(ATBList[i]).SetCompact(False); // .Compact := False;
             UpdateAllToolBars;
           end;
+          found := True;
           Break;
+        end;
+      end;
+
+      if not found then
+      begin
+        BtnState := bsLabel;
+        NewState := bsLarge;
+        d := 0;
+        idx := -1;
+        for i:= ATBList.Count-1 downto 0 do
+        begin
+          if ((TAdvToolBar(ATBList[i]).Visible) or (csDesigning in ComponentState)) and not (TAdvToolBar(ATBList[i]).Compact) and (TAdvToolBar(ATBList[i]).FPropertiesLoaded) then
+          begin
+            j := TAdvToolBar(ATBList[i]).LargerVariantDifference(False, NewState);
+            if (j < l) and (j > 0) and ((idx < 0) or ((j > d) and (NewState = BtnState)) or ((NewState = bsLabel) and (BtnState = bsLarge))) then
+            begin
+              idx := i;
+              d := j;
+              BtnState := NewState;
+            end;
+          end;
+        end;
+
+        if (idx >= 0) then
+        begin
+          d := TAdvToolBar(ATBList[idx]).SetLargerVariant(False, NewState);
+          l := l - d;
+        end;
+
+        if (l > 0) then
+        begin
+          if (idx >= 0) then
+          begin
+            UpdateAllToolBars;
+          end;
         end;
       end;
     end
     else   // Compact ToolBar
     begin
+      BtnState := bsLabel;
+      NewState := bsGlyph;
+      d := 0;
+      idx := -1;
+      l := abs(l);
       for i:= ATBList.Count-1 downto 0 do
       begin
         if ((TAdvToolBar(ATBList[i]).Visible) or (csDesigning in ComponentState)) and not (TAdvToolBar(ATBList[i]).Compact) and (TAdvToolBar(ATBList[i]).FPropertiesLoaded) then
         begin
-          TAdvToolBar(ATBList[i]).SetCompact(True); // .Compact := True;
-          UpdateAllToolBars;
-          Break;
+          j := TAdvToolBar(ATBList[i]).SmallerVariantDifference(False, NewState);
+          if (j > 0) and ((idx < 0) or (((j < d) or (d < abs(l))) and (NewState = BtnState)) or ((NewState = bsLabel) and (BtnState = bsGlyph))) then
+          begin
+            idx := i;
+            d := j;
+            BtnState := NewState;
+          end;
         end;
+      end;
+
+      if (idx >= 0) then
+      begin
+        d := TAdvToolBar(ATBList[idx]).SetSmallerVariant(False, NewState);
+        l := l - d;
+      end;
+
+      if (l > 0) then
+      begin
+        if (idx >= 0) then
+        begin
+          UpdateAllToolBars;
+        end
+        else
+        begin
+          for i:= ATBList.Count-1 downto 0 do
+          begin
+            if ((TAdvToolBar(ATBList[i]).Visible) or (csDesigning in ComponentState)) and not (TAdvToolBar(ATBList[i]).Compact) and (TAdvToolBar(ATBList[i]).FPropertiesLoaded) then
+            begin
+              TAdvToolBar(ATBList[i]).SetCompact(True); // .Compact := True;
+              UpdateAllToolBars;
+              Break;
+            end;
+          end;
+        end;
+      end
+      else
+      begin
+        if (idx >= 0) then
+        begin
+          UpdateAllToolBars;
+        end
       end;
     end;
   end;
-  
+
   ATBList.Free;
 end;
 
@@ -36641,6 +40061,13 @@ begin
       AdvToolBars[i].Left := X;
       AdvToolBars[i].Top := OffSet;
       AdvToolBars[i].Height := Self.Height - OffSet*2;
+      
+      if (Self.Parent is TMinimizedRibbonWindow) and Assigned(AdvToolBars[i].FCompactBtn) then
+      begin
+        AdvToolBars[i].FCompactBtn.Height := AdvToolBars[i].Height;
+        if Assigned(AdvToolBars[i].FSelfClone) then
+          AdvToolBars[i].FSelfClone.Height := AdvToolBars[i].Height;
+      end;
 
       X := X + AdvToolBars[i].Width + OffSet;
     end;
@@ -36709,6 +40136,10 @@ begin
   FShortCutHint.Visible := false;
   FShortCutHint.Caption := FShortCutHintText;
 
+  FShortCutHint.Color := clWhite;
+  FShortCutHint.ColorTo := FAdvToolBarPager.FCurrentToolBarStyler.GlowButtonAppearance.Color;
+
+
   TabR := FAdvToolBarPager.GetTabRect(Self);
   pt := FAdvToolBarPager.ClientToScreen(Point(TabR.Left, TabR.Top));
   //pt := ClientToScreen(Point(0,0));
@@ -36756,6 +40187,7 @@ begin
     end;
   end;
   FToolBarShortCutShowing := False;
+  FShortCutChars := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -37312,7 +40744,118 @@ procedure TAdvPage.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 begin
   inherited;
+end;
 
+//------------------------------------------------------------------------------
+
+procedure TAdvPage.PopulateClone;
+var
+  i: Integer;
+begin
+  if not Assigned(FSelfClone) then
+    Exit;
+
+  {$IFDEF DELPHI6_LVL}
+  FSelfClone.FAdvToolBars.Assign(FAdvToolBars);
+  {$ENDIF}
+  {$IFNDEF DELPHI6_LVL}
+  FSelfClone.FAdvToolBars.AssignList(FAdvToolBars);
+  {$ENDIF}
+
+  FCloning := True;
+  for i := 0 to FAdvToolBars.Count - 1 do
+  begin
+    AdvToolBars[i].Parent := FSelfClone;
+  end;
+  FCloning := False;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPage.UnPopulateClone;
+var
+  i: Integer;
+begin
+  if not Assigned(FSelfClone) then
+    Exit;
+
+  FCloning := True;
+  FSelfClone.FCloning := True;
+  for i := 0 to FSelfClone.FAdvToolBars.Count - 1 do
+  begin
+    AdvToolBars[i].Parent := Self;
+  end;
+  FSelfClone.FCloning := False;
+  FCloning := False;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvPage.CreateClone(ParntWin: TWinControl): TAdvPage;
+var
+  i: Integer;
+begin
+  Result := nil;
+  if not Assigned(ParntWin) or not Assigned(AdvToolBarPager) then
+    Exit;
+
+  DestroyClone;
+  FOldAutoPosition := Self.AutoPosition;
+  Self.AutoPosition := False;
+
+  FSelfClone := TAdvPage.Create(ParntWin);
+  FSelfClone.Parent := ParntWin;
+  FSelfClone.FSelfClone := Self;
+  FSelfClone.FAdvToolBarPager := FAdvToolBarPager;
+  Result := FSelfClone;
+
+  FSelfClone.AutoPosition := False;
+  FSelfClone.Caption := Self.Caption;
+  FSelfClone.WideCaption := Self.WideCaption;
+  //FSelfClone.ImageIndex;
+  //FSelfClone.TabHint;
+  //FSelfClone.TabVisible;
+  //FSelfClone.TabEnabled;
+  FSelfClone.ShowHint := Self.ShowHint;
+  FSelfClone.OfficeHint.Assign(Self.OfficeHint);
+  //FSelfClone.PageIndex;
+  //property ShortCutHint;
+  FSelfClone.ShortCutHintPos := Self.ShortCutHintPos;
+
+  FSelfClone.OnMouseDown := Self.OnMouseDown;
+  FSelfClone.OnMouseMove := Self.OnMouseMove;
+  FSelfClone.OnMouseUp := Self.OnMouseUp;
+
+  i := Self.AdvToolBarPager.FExpandedHeight;
+  if (Self.AdvToolBarPager.FCaption.Visible) then
+    i := i - Self.AdvToolBarPager.FCaption.Height;
+
+  i := i - Self.AdvToolBarPager.TabSettings.Height - ADVPAGE_OFFSET-1;
+
+  FSelfClone.Height := i;
+  FSelfClone.Width := Self.Width;
+
+  FSelfClone.FCloning := True;
+  PopulateClone;
+  FSelfClone.FCloning := False;
+  FSelfClone.AutoPosition := True;
+  FSelfClone.UpdateAdvToolBarsPosition;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPage.DestroyClone;
+begin
+  UnPopulateClone;
+  if Assigned(FSelfClone) then
+  begin
+    FSelfClone.Free; 
+    FSelfClone := nil;
+    Self.AutoPosition := FOldAutoPosition;
+
+    Width := Width - 1;
+    Width := Width + 1;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -37327,6 +40870,7 @@ begin
   FCaption := '';
   FIndent := 100;
   FRightIndent := 0; 
+  FMinWidth := 100; 
 end;
 
 //------------------------------------------------------------------------------
@@ -37339,6 +40883,7 @@ begin
     FHeight := (Source as TAdvPageCaption).Height;
     Visible := (Source as TAdvPageCaption).Visible;
     Indent := (Source as TAdvPageCaption).Indent;
+    MinWidth := (Source as TAdvPageCaption).MinWidth;
   end
   else
     inherited Assign(Source);
@@ -37385,6 +40930,8 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+
 procedure TAdvPageCaption.SetWideCaption(const Value: widestring);
 begin
   if (FWideCaption <> Value) then
@@ -37401,6 +40948,17 @@ begin
   if (FIndent <> Value) then
   begin
     FIndent := Value;
+    Changed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvPageCaption.SetMinWidth(const Value: Integer);
+begin
+  if (FMinWidth <> Value) then
+  begin
+    FMinWidth := Value;
     Changed;
   end;
 end;
@@ -37446,12 +41004,23 @@ begin
   FTextColorSelected := clBlue;
   FTextColor := clBlue;
   FTextColorHot := clBlue;
+  FShadowColor := RGB(174, 199, 232);
+  FHighLightColor := RGB(191, 250, 255);
+  FHighLightColorSelected := RGB(248, 204, 99);
+  FHighLightColorSelectedHot := RGB(255, 255, 189);
+  FHighLightColorDown := RGB(208, 251, 255);
+  FHighLightColorHot := RGB(237, 244, 253);
   FBackGround := TGradientBackground.Create;
   FBackGround.OnChange := OnBackGroundChanged;
   FFont := TFont.Create;
-  FFont.Name := 'Tahoma';
+  if IsVista then
+    FFont.Name := 'Segoe UI'
+  else
+    FFont.Name := 'Tahoma';
+
   FFont.Size := 8;
   FFont.Style := [];
+  FSystemFont := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -37492,6 +41061,12 @@ begin
     FGradientMirrorDisabled := (Source as TCustomTabAppearance).GradientMirrorDisabled;
     FTextColorDisabled := (Source as TCustomTabAppearance).TextColorDisabled;
     FTextColorSelected := (Source as TCustomTabAppearance).TextColorSelected;
+    FShadowColor := (Source as TCustomTabAppearance).ShadowColor;
+    FHighLightColor := (Source as TCustomTabAppearance).HighLightColor;
+    FHighLightColorHot := (Source as TCustomTabAppearance).HighLightColorHot;
+    FHighLightColorDown := (Source as TCustomTabAppearance).HighLightColorDown;
+    FHighLightColorSelected := (Source as TCustomTabAppearance).HighLightColorSelected;
+    FHighLightColorSelectedHot := (Source as TCustomTabAppearance).HighLightColorSelectedHot;
     Font.Assign((Source as TCustomTabAppearance).Font);
     TextColor := (Source as TCustomTabAppearance).TextColor;
     TextColorHot := (Source as TCustomTabAppearance).TextColorHot;
@@ -37842,6 +41417,23 @@ begin
   end;
 end;
 
+procedure TCustomTabAppearance.SetSystemFont(const Value: boolean);
+begin
+  if (FSystemFont <> value) then
+  begin
+    FSystemFont := value;
+
+    if value then
+    begin
+      if IsVista then
+        FFont.Name := 'Segoe UI'
+      else
+        FFont.Name := 'Tahoma';
+    end;
+    
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TCustomTabAppearance.SetTextColor(const Value: TColor);
@@ -38088,6 +41680,8 @@ begin
   FBorderColor := clGray;
   FGradient := ggVertical;
   FGradientMirror := ggVertical;
+  FShadowColor := RGB(150, 170, 196);
+  FHighLightColor := RGB(206, 249, 253);
 end;
 
 //------------------------------------------------------------------------------
@@ -38102,6 +41696,8 @@ begin
     FColorMirror := (Source as TVistaBackground).ColorMirror;
     FColorMirrorTo := (Source as TVistaBackground).ColorMirrorTo;
     FBorderColor := (Source as TVistaBackground).BorderColor;
+    FShadowColor := (Source as TVistaBackground).ShadowColor;
+    FHighLightColor := (Source as TVistaBackground).HighLightColor;
     Gradient := (Source as TVistaBackground).Gradient;
     GradientMirror := (Source as TVistaBackground).GradientMirror;
   end
@@ -38226,9 +41822,15 @@ begin
   inherited;
   FTextColor := clBlue;
   FFont := TFont.Create;
-  FFont.Name := 'Tahoma';
+
+  if IsVista then
+    FFont.Name := 'Segoe UI'
+  else
+    FFont.Name := 'Tahoma';
+    
   FFont.Size := 8;
   FFont.Style := [];
+  FSystemFont := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -38244,6 +41846,22 @@ end;
 procedure TVistaTextBackGround.SetFont(const Value: TFont);
 begin
   FFont.Assign(Value);
+end;
+
+procedure TVistaTextBackGround.SetSystemFont(const Value: boolean);
+begin
+  if (FSystemFont <> Value) then
+  begin
+    FSystemFont := value;
+
+    if value then
+    begin
+      if IsVista then
+        Font.Name := 'Segoe UI'
+      else
+        Font.Name := 'Tahoma'; 
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -38492,16 +42110,22 @@ begin
   FGradientMirror := ggVertical;
   FCaptionAppearance := TCaptionAppearance.Create;
   FCaptionAppearance.OnChange := OnCaptionAppearanceChanged;
-  FPageAppearance := TVistaBackground.Create;
+  FPageAppearance := TVistaPageBackground.Create;
   FPageAppearance.OnChange := OnPageAppearanceChanged;
   FToolBarAppearance := TToolBarAppearance.Create;
   FToolBarAppearance.OnChange := OnToolBarAppearanceChanged;
   FTabAppearance := TCustomTabAppearance.Create;
   FTabAppearance.OnChange := OnTabAppearanceChanged;
   FFont := TFont.Create;
-  FFont.Name := 'Tahoma';
+  
+  if IsVista then
+    FFont.Name := 'Segoe UI'
+  else
+    FFont.Name := 'Tahoma';
+    
   FFont.Size := 8;
   FFont.Style := [];
+  FSystemFont := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -38636,6 +42260,21 @@ begin
   end;
 end;
 
+procedure TGroupAppearance.SetSystemFont(const Value: boolean);
+begin
+  if (FSystemFont <> Value) then
+  begin
+    FSystemFont := Value;
+    if value then
+    begin
+      if IsVista then
+        FFont.Name := 'Segoe UI'
+      else
+        FFont.Name := 'Tahoma';
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TGroupAppearance.SetTextColor(const Value: TColor);
@@ -38658,7 +42297,7 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TGroupAppearance.SetPageAppearance(
-  const Value: TVistaBackground);
+  const Value: TVistaPageBackground);
 begin
   FPageAppearance.Assign(Value);
 end;
@@ -38946,8 +42585,6 @@ end;
 
 //------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-
 { TCompactWindow }
 
 constructor TCompactWindow.Create(AOwner: TComponent);
@@ -39006,6 +42643,13 @@ destructor TCompactWindow.Destroy;
 begin
   FHideTimer.Free;
   inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+function TCompactWindow.GetHideOnDeActivate: Boolean;
+begin
+  Result := CloseQuery and FHideOnDeActivate;
 end;
 
 //------------------------------------------------------------------------------
@@ -39076,10 +42720,26 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TCompactWindow.WMActivate(var Message: TWMActivate);
+procedure TCompactWindow.SetCornersRounded;
 var
   rgn: THandle;
   R: TRect;
+begin
+  R := ClientRect;
+  rgn := CreateRoundRectRgn(0,0,R.Right-R.Left,R.Bottom-R.Top, 4, 4);
+  if rgn > 0 then
+  begin
+    try
+      SetWindowRgn(Handle,rgn,true);
+    finally
+      DeleteObject(rgn);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TCompactWindow.WMActivate(var Message: TWMActivate);
 begin
 
   if not Visible then
@@ -39098,7 +42758,7 @@ begin
     begin
       if Assigned(AdvToolBar) and Assigned(AdvToolBar.FSelfClone) and (AdvToolBar.FSelfClone.Visible) and AdvToolBar.AnyDroppedDownButton then
       begin
-        // Do not close for GlowButtons when DroppedDown 
+        // Do not close for GlowButtons when DroppedDown
       end
       else
         FHideTimer.Enabled := true;
@@ -39108,18 +42768,9 @@ begin
   begin
     if Self.Visible then
     begin
-      AdvToolBar.SetFocus;
+      if AdvToolBar.Visible then
+        AdvToolBar.SetFocus;
       SendMessage(getParentWnd, WM_NCACTIVATE, 1, 0);
-    end;
-    R := ClientRect;
-    rgn := CreateRoundRectRgn(0,0,R.Right-R.Left,R.Bottom-R.Top, 4, 4);
-    if rgn > 0 then
-    begin
-      try
-        SetWindowRgn(Handle,rgn,true);
-      finally
-        DeleteObject(rgn);
-      end;
     end;
 
   end;
@@ -40161,7 +43812,7 @@ procedure TAdvCustomQuickAccessToolBar.Paint;
 var
   R, R1, R2: TRect;
   Appearance: TQATAppearance;
-  i, w, h: Integer;
+  i, w, h, j: Integer;
   P: TPoint;
   Clr: TColor;
   bmp, bmp1, bmp2: TBitmap;
@@ -40244,8 +43895,12 @@ begin
       GpRgn2.Free;
 
       // Left Curve
+      j := 1;
+      if TAdvToolBarPager(Self.Parent).FCurrentToolBarStyler.QATSharpCurve then  // FF: bsOffice2007Obsidian
+        j := 2;
+
       path := TGPGraphicsPath.Create;
-      path.AddArc(R.Left - (Height - i-2), R.Top, Height + 1, Height + i + 3, 20, 360);
+      path.AddArc(R.Left - (Height - i-2), R.Top, Height + j, Height + i + 3, 20, 360);
       path.CloseFigure;
       GpRgn.Exclude(Path);
       path.Free;
@@ -40275,16 +43930,16 @@ begin
       bmp.Canvas.CopyMode := cmSrcCopy;
       bmp.Canvas.CopyRect(R2, bmp2.Canvas, R2{Rect(R.Right-35, R.Top, R.Right-25, R.Bottom)});
 
-      DrawGDIPLine(graphics, gppen, R.Left, R.Top, w - 10, 0);
-      DrawGDIPLine(graphics, gppen, R.Left - (Height - i - 2) + (Height + 2), R.Bottom - 1, w - 18, 0);
+      //DrawGDIPLine(graphics, gppen, R.Left, R.Top, w - 10, 0);
+      //DrawGDIPLine(graphics, gppen, R.Left - (Height - i - 2) + (Height + 2), R.Bottom - 1, w - 18, 0);
 
       gppen.Free;
 
-      gppen := TGPPen.Create(ColorToARGB(BlendColor(clWhite, Appearance.BorderColor, 60)),1);
+      gppen := TGPPen.Create(ColorToARGB(BlendColor(TAdvToolBarPager(Self.Parent).FCurrentToolBarStyler.PagerCaption.Color, Appearance.BorderColor, 60)),1);
       DrawGDIPLine(graphics, gppen, R.Left, R.Top - 1, w - 10, 0);
       gppen.Free;
 
-      gppen := TGPPen.Create(ColorToARGB(BlendColor(clWhite, Appearance.BorderColor, 40)),1);
+      gppen := TGPPen.Create(ColorToARGB(BlendColor(TAdvToolBarPager(Self.Parent).FCurrentToolBarStyler.PagerCaption.ColorMirror, Appearance.BorderColor, 40)),1);
       DrawGDIPLine(graphics, gppen,R.Left - (Height - i - 2) + (Height + 2), R.Bottom, w - 20, 0);
       gppen.Free;
 
@@ -40471,6 +44126,9 @@ procedure TAdvCustomQuickAccessToolBar.OnCustomizeButtonClick(
 var
   pt, spt: TPoint;
 begin
+  if Assigned(OnCustomizeClick) then
+    OnCustomizeClick(Self);
+
   if Assigned(DropDownPopupMenu) and Assigned(FCustomizeButton) then
   begin
     pt := Point(FCustomizeButton.Left, FCustomizeButton.Top + FCustomizeButton.Height);
@@ -40911,11 +44569,12 @@ begin
       if (TControl(Controls[i]) is TAdvGlowMenuButton) then
           TAdvGlowMenuButton(Controls[i]).Appearance.Assign(ToolBarStyler.GlowButtonAppearance);
 
+{$IFNDEF TMS_STD}
       if (TControl(Controls[i]) is TDBAdvGlowButton) then
           TDBAdvGlowButton(Controls[i]).Appearance.Assign(ToolBarStyler.GlowButtonAppearance);
+{$ENDIF}
 
-
-      if ToolBarStyler.TMSStyle <> tsCustom then
+      if (ToolBarStyler.GetInterface(ITMSStyle, tmsif)) and (ToolBarStyler.TMSStyle <> tsCustom) then
       begin
         if (TControl(Controls[i]).GetInterface(ITMSStyle, tmsif)) then
            tmsif.SetComponentStyle(ToolBarStyler.TMSStyle);
@@ -40932,11 +44591,12 @@ begin
       if (TControl(FHiddenCtrlList[i]) is TAdvGlowMenuButton) then
           TAdvGlowMenuButton(FHiddenCtrlList[i]).Appearance.Assign(ToolBarStyler.GlowButtonAppearance);
 
+{$IFNDEF TMS_STD}
       if (TControl(FHiddenCtrlList[i]) is TDBAdvGlowButton) then
           TDBAdvGlowButton(FHiddenCtrlList[i]).Appearance.Assign(ToolBarStyler.GlowButtonAppearance);
+{$ENDIF}
 
-
-      if ToolBarStyler.TMSStyle <> tsCustom then
+      if (ToolBarStyler.GetInterface(ITMSStyle, tmsif)) and (ToolBarStyler.TMSStyle <> tsCustom) then
       begin
         if (TControl(FHiddenCtrlList[i]).GetInterface(ITMSStyle, tmsif)) then
            tmsif.SetComponentStyle(ToolBarStyler.TMSStyle);
@@ -41059,7 +44719,7 @@ begin
     if (TControl(FCtrlList[i]) is TAdvCustomGlowButton) and (TControl(FCtrlList[i]).Enabled) and (TControl(FCtrlList[i]).Visible) and (TControl(FCtrlList[i]).Parent = Self) then
       TAdvCustomGlowButton(FCtrlList[i]).ShowShortCutHint;
   end;
-end; 
+end;
 
 //------------------------------------------------------------------------------
 
@@ -41236,7 +44896,7 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TAdvVistaButton.Paint;
-
+                               
   procedure DrawFlatDoubleArrows(R: TRect);
   begin
     with Canvas do
@@ -41747,11 +45407,481 @@ end;
 
 //------------------------------------------------------------------------------
 
+function IsAnyChildCtrlHasFocus(WinCtrl: TWinControl): Boolean;
+var
+  i: Integer;
+  h: Hwnd;
+  //a: array[0..255] of char;
+begin
+  Result := False;
+  if not Assigned(WinCtrl) then
+    Exit;
+
+  h := GetFocus;
+  i := 1;
+  while (h <> 0) do
+  begin
+    if (h = WinCtrl.Handle) then
+    begin
+      Result := True;
+      Break;
+    end;
+    h := GetParent(h);
+    inc(i);
+    if (i > 80) then
+      Break;
+  end;
+
+  {GetClassName(GetFocus, a, 255);
+  if (a <> '') then
+  showmessage(a);
+  }
+  {Result := WinCtrl.Focused;
+  if not Result then
+  begin
+    for i := 0 to WinCtrl.ControlCount - 1 do
+    begin
+      if (WinCtrl.Controls[i] is TWinControl) then
+        Result := IsAnyChildCtrlHasFocus(TWinControl(WinCtrl.Controls[i]));
+    end;
+  end;}
+end;
+
+//------------------------------------------------------------------------------
+
+{ TMinimizedRibbonWindow }
+
+constructor TMinimizedRibbonWindow.Create(AOwner: TComponent);
+begin
+  inherited;
+  FOwner := AOwner;
+  FHideOnDeActivate := true;
+  FHideTimer := TTimer.Create(self);
+  FHideTimer.Interval := 1;
+  FHideTimer.Enabled := false;
+  FHideTimer.OnTimer := HideTimerOnTime;
+  FAdvToolBarPager := nil;
+  FAdvPage := nil;
+  Width := 0;
+  Height := 0;
+end;
+
+//------------------------------------------------------------------------------
+
+constructor TMinimizedRibbonWindow.CreateNew(AOwner: TComponent; Dummy: Integer);
+begin
+  inherited;
+  FOwner := AOwner;
+  FHideOnDeActivate := true;
+  FHideTimer := TTimer.Create(self);
+  FHideTimer.Interval := 1;
+  FHideTimer.Enabled := false;
+  FHideTimer.OnTimer := HideTimerOnTime;
+  FAdvToolBarPager := nil;
+  FAdvPage := nil;
+  Width := 0;
+  Height := 0;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMinimizedRibbonWindow.CreateParams(var Params: TCreateParams);
+const
+  CS_DROPSHADOW = $00020000;
+begin
+  inherited CreateParams(Params);
+  // FF: D2005
+  Params.Style := Params.Style or WS_POPUP;
+  Params.Style := Params.Style - WS_CHILD;
+  //Params.ExStyle := Params.ExStyle or WS_EX_NOPARENTNOTIFY;
+
+  //Params.Style := Params.Style - WS_BORDER;
+  {
+  if (Win32Platform = VER_PLATFORM_WIN32_NT) and
+     ((Win32MajorVersion > 5) or
+      ((Win32MajorVersion = 5) and (Win32MinorVersion >= 1))) then
+    Params.WindowClass.Style := Params.WindowClass.Style or CS_DROPSHADOW;
+
+  Params.ExStyle := Params.ExStyle or WS_EX_TOPMOST; }
+  if (Win32Platform = VER_PLATFORM_WIN32_NT) and
+     ((Win32MajorVersion > 5) or
+      ((Win32MajorVersion = 5) and (Win32MinorVersion >= 1))) then
+    Params.WindowClass.Style := Params.WindowClass.Style or CS_DROPSHADOW;
+end;
+
+//------------------------------------------------------------------------------
+
+destructor TMinimizedRibbonWindow.Destroy;
+begin
+  FHideTimer.Free;
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+function TMinimizedRibbonWindow.GetHideOnDeActivate: Boolean;
+begin
+  Result := CloseQuery and FHideOnDeActivate;
+end;
+
+//------------------------------------------------------------------------------
+
+function TMinimizedRibbonWindow.GetParentWnd: HWnd;
+var
+  Last, P: HWnd;
+begin
+  P := GetParent((FOwner as TWinControl).Handle);
+  Last := P;
+  while P <> 0 do
+  begin
+    Last := P;
+    P := GetParent(P);
+  end;
+  Result := Last;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMinimizedRibbonWindow.DoHide;
+begin
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMinimizedRibbonWindow.HideTimerOnTime(Sender: TObject);
+begin
+  Hide;
+  FHideTimer.Enabled := false;
+  if Assigned(AdvToolBarPager) then
+     AdvToolBarPager.DestroyFloatingRibbon;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMinimizedRibbonWindow.Paint;
+var
+  R: TRect;
+begin
+  inherited;
+  R := ClientRect;
+  R := Rect(R.Left - 4, R.Top - 4, R.Right + 4, R.Bottom + 4);
+  Canvas.Brush.Color := Color;
+  Canvas.Pen.Color := Color;
+  Canvas.Rectangle(R);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMinimizedRibbonWindow.SetWindowSize;
+begin
+  if Assigned(AdvToolBarPager) and Assigned(AdvPage) then
+  begin
+    Height := AdvPage.Height + 3;
+    Width := AdvPage.Width + 3;
+    AdvPage.Left := 2;
+    AdvPage.Top := 0;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMinimizedRibbonWindow.WMActivate(var Message: TWMActivate);
+var
+  //rgn: THandle;
+  //R: TRect;
+  ATB: TAdvToolBar;
+begin
+
+  if not Visible then
+  begin
+    {if Assigned(AdvToolBar) then
+      if Assigned(AdvToolBar.FSelfClone) and (AdvToolBar.FSelfClone.Visible) then
+      begin
+        AdvToolBar.FSelfClone.SetFocus;
+      end; }
+    Exit;
+  end;
+
+  if Message.Active = integer(False) then
+  begin
+    if HideOnDeActivate and Visible then
+    begin
+      {if Assigned(AdvToolBarPager) and (AdvToolBarPager.Visible) then
+      begin
+        // Do not close for GlowButtons when DroppedDown
+      end
+      else}
+      if not (Assigned(AdvToolBarPager) and (GetFocus = AdvToolBarPager.Handle)) {and not IsAnyChildCtrlHasFocus(Self)} then
+        FHideTimer.Enabled := true;
+    end;
+  end
+  else if Assigned(AdvPage) then
+  begin
+    if Self.Visible then
+    begin
+      //AdvPage.SetFocus;
+      //SendMessage(getParentWnd, WM_NCACTIVATE, 1, 0);
+      ATB := AdvPage.GetFirstToolBar(True);
+      if Assigned(ATB) then
+        ATB.SetFocus;
+    end;
+
+    {R := ClientRect;
+    rgn := CreateRoundRectRgn(0, 0, R.Right-R.Left, R.Bottom-R.Top, 4, 4);
+    if rgn > 0 then
+    begin
+      try
+        SetWindowRgn(Handle,rgn,true);
+      finally
+        DeleteObject(rgn);
+      end;
+    end;}
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TMinimizedRibbonWindow.WMNCHitTest(var Message: TWMNCHitTest);
+{var
+  pt: TPoint;}
+begin
+  inherited;
+  {
+  // Make the hint sizable
+  pt := ScreenToClient(Point(Message.XPos, Message.YPos));
+
+  if (pt.X > Width - 10) and (pt.Y > Height - 10) then
+    message.Result := HTBOTTOMRIGHT}
+end;
+
+//------------------------------------------------------------------------------
+
+{ TAdvToolBarForm }
+
+procedure TAdvToolBarForm.AdjustClientRect(var Rect: TRect);
+begin
+  inherited AdjustClientRect(Rect);
+
+  if not IsVista then
+  begin
+    Rect.Left := Rect.Left + 1;
+    Rect.Top := Rect.Top + 1;
+    Rect.Right := Rect.Right - 2;
+    Rect.Bottom := Rect.Bottom - 2;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TAdvToolBarForm.GetClientRect: TRect;
+begin
+  Result := inherited GetClientRect;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarForm.CreateParams(var Params: TCreateParams);
+const
+  CS_DROPSHADOW = $00020000;
+
+begin
+  inherited CreateParams(Params);
+
+  BorderStyle := bsSingle;
+
+  Params.Style := Params.Style and not WS_CAPTION or WS_POPUP or WS_SYSMENU;
+//  if IsVista then
+//    Params.Style := Params.Style - WS_THICKFRAME;
+
+  if not (csDesigning in ComponentState) then
+  begin
+    if (Win32Platform = VER_PLATFORM_WIN32_NT) and
+       ((Win32MajorVersion > 5) or
+        ((Win32MajorVersion = 5) and (Win32MinorVersion >= 1))) then
+      Params.WindowClass.Style := Params.WindowClass.Style or CS_DROPSHADOW;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarForm.Paint;
+var
+  i: integer;
+  clr: TColor;
+begin
+  inherited;
+
+  clr := clGray;
+
+  for i := 0 to ControlCount - 1 do
+  begin
+    if Controls[i] is TAdvToolBarPager then
+    begin
+      with Controls[i] as TAdvToolBarPager do
+      begin
+        clr := FCurrentToolBarStyler.CaptionAppearance.CaptionTextColor;
+      end;
+    end;
+
+    if clr = clWhite then
+      clr := clBlack;
+
+  end;
+
+  Canvas.Brush.Style := bsClear;
+  Canvas.Pen.Color := clr;
+  Canvas.Pen.Width := 1;
+  Canvas.RoundRect(0,0,Width - 7, Height -7,18,18);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarForm.WMGetMinMaxInfo(var Msg: TMessage);
+var
+  info: ^TMinMaxInfo;
+  rc: TRect;
+  mi: TMonitorInfo;
+  dx, dy: integer;
+begin
+  inherited;
+
+  if not (csDesigning in ComponentState) then
+  begin
+    FillChar(mi, SizeOf(mi), 0); mi.cbSize := SizeOf(mi);
+    if GetMonitorInfo(MonitorFromWindow(Handle, MONITOR_DEFAULTTONEAREST), @mi) then
+    begin
+      dx := 0;
+      dy := 0;
+      rc := mi.rcWork;
+      info := pointer(Msg.LParam);
+
+      // compensate for clipregion
+      if not IsVista then
+      begin
+        dx := 3;
+        dy := 3;
+      end;
+
+      info^.ptMaxPosition.X := mi.rcWork.Left-mi.rcMonitor.Left - dx;
+      info^.ptMaxPosition.Y := mi.rcWork.Top-mi.rcMonitor.Top - dy;
+      info^.ptMaxSize.X := rc.Right - rc.Left + 2 * dx;
+      info^.ptMaxSize.Y := rc.Bottom - rc.Top + 2 * dy;
+    end;
+    {
+    SystemParametersInfo(SPI_GETWORKAREA, 0, @rc, 0);
+    info := pointer(Msg.LParam);
+    info^.ptMaxPosition.X := rc.Left - 1;
+    info^.ptMaxPosition.Y := rc.Top - 1;
+    info^.ptMaxSize.x := GetSystemMetrics(SM_CXMAXIMIZED) - GetSystemMetrics(SM_CXSIZEFRAME) * 2 + 4;
+    info^.ptMaxSize.y := GetSystemMetrics(SM_CYMAXIMIZED) - GetSystemMetrics(SM_CYSIZEFRAME) * 2 + 4;
+    }
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarForm.WMNCHitTest(var Message: TWMNCHitTest);
+var
+  pt: TPoint;
+begin
+  inherited;
+
+  if not (csDesigning in ComponentState) and (WindowState = wsNormal) then
+  begin
+    pt := ScreenToClient(Point(message.Xpos, message.YPos));
+
+    //outputdebugstring(pchar(inttostr(pt.x)+':'+inttostr(pt.y)+':'+inttostr(width)+':'+inttostr(height)));
+    inherited;
+    //Message.Result := HTCAPTION;
+
+    if (pt.Y < 3) then
+      Message.Result := HTTOP;
+
+    if (pt.X < 3) then
+      Message.Result := HTLEFT;
+
+    if (pt.X > Width - 12) then
+      Message.Result := HTRIGHT;
+
+    if (pt.Y > Height - 12) then
+      Message.Result := HTBOTTOM;
+
+    if (pt.X > Width - 20) and (pt.Y > Height - 20)  then
+    begin
+      Message.Result := HTBOTTOMRIGHT;
+    end;
+
+    if (pt.X < 20) and (pt.Y < 20)  then
+      Message.Result := HTTOPLEFT;
+
+    if (pt.X > Width - 20) and (pt.Y < 20)  then
+    begin
+      Message.Result := HTTOPRIGHT;
+    end;
+
+    if (pt.X < 20) and (pt.Y > Height - 20)  then
+      Message.Result := HTBOTTOMLEFT;
+
+  end
+  else
+    inherited;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TAdvToolBarForm.WMSize(var Message: TWMSize);
+var
+  hrgn: thandle;
+  i: integer;
+
+begin
+  // Hide Pager if its Form's width < 300 otherwise unhide
+  if not (csDesigning in ComponentState) then
+  begin
+    for i := 0 to ControlCount - 1 do
+    begin
+      if Controls[i] is TAdvToolBarPager then
+      begin
+        if (Self.Width < 300) and (not TAdvToolBarPager(Controls[i]).HideState) then
+          TAdvToolBarPager(Controls[i]).HideState := True
+        else if (Self.Width > 300) and (TAdvToolBarPager(Controls[i]).HideState) then
+          TAdvToolBarPager(Controls[i]).HideState := False;
+
+        break;
+      end;  
+    end;
+  end;
+
+  if not (csDesigning in ComponentState) and not IsVista then
+  begin
+    //adjust toolbar pager properties
+    for i := 0 to ControlCount - 1 do
+      if Controls[i] is TAdvToolBarPager then
+        with Controls[i] as TAdvToolBarPager do
+        begin
+          CanMove := Message.SizeType = SIZE_RESTORED;
+          break;
+        end;
+    //set window clipping region
+
+  //  if (Message.SizeType = SIZE_RESTORED) then
+      hrgn := CreateRoundRectRgn(3,3,Width - 3,Height - 3,18,18);
+  //  else
+  //    hrgn := 0;
+    SetWindowRgn(handle, hrgn, Visible);
+    //Invalidate;
+  end;
+  inherited;
+end;
+
+
 
 {$IFDEF FREEWARE}
 {$I TRIAL.INC}
 {$ENDIF}
 
-
+initialization
+  WM_TBCOMPACTWINHIDE := RegisterWindowMessage('TBCompactWinHide');
 
 end.

@@ -1,10 +1,9 @@
 {***************************************************************************}
 { TAdvAlertWindow component                                                 }
 { for Delphi & C++Builder                                                   }
-{ version 1.4                                                               }
 {                                                                           }
 { written by TMS Software                                                   }
-{            copyright © 2004 - 2006                                        }
+{            copyright © 2004 - 2008                                        }
 {            Email : info@tmssoftware.com                                   }
 {            Web : http://www.tmssoftware.com                               }
 {                                                                           }
@@ -47,8 +46,8 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 5; // Minor version nr.
-  REL_VER = 3; // Release nr.
-  BLD_VER = 1; // Build nr.
+  REL_VER = 4; // Release nr.
+  BLD_VER = 4; // Build nr.
 
   // version history
   // 1.3.3.0 : OnShowMessage event added
@@ -79,6 +78,13 @@ const
   //         : Improved alert window position control with AutoSize = true
   // 1.5.3.0 : Apply style change immediate when alertwindow is visible
   // 1.5.3.1 : Fixed issue in CloseAlert method
+  // 1.5.3.2 : Fixed issue with Hide method & Fade thread
+  // 1.5.4.0 : Improved : form creation to allow use of TAdvAlertWindow on datamodule
+  // 1.5.4.1 : Fixed : issue with OnCanDelete event
+  // 1.5.4.2 : Fixed : issue with Show call during auto hide
+  // 1.5.4.3 : Fixed : issue with handling fade thread
+  // 1.5.4.4 : Fixed : issue with programmatically deleting a message
+  // 1.5.5.0 : New : method TAdvAlertWindow.DeleteMessage(index) exposed
 
 type
   TGradientDirection = (gdHorizontal, gdVertical);
@@ -111,7 +117,6 @@ type
     property Max: integer read FMax write SetMax;
     property Position: integer read FPosition write SetPosition;
     property Visible: Boolean read FVisible write SetVisible;
-  published
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
@@ -201,6 +206,7 @@ type
     FAutoHiding: Boolean;
     FURLColor: TColor;
     FOnAlertClick: TNotifyEvent;
+    FOldX,FOldY: integer;
     procedure WMEraseBkGnd(var Msg: TMessage); message WM_ERASEBKGND;
     procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
     procedure WMNCHitTest(var Message: TWMNCHitTest); message WM_NCHITTEST;
@@ -279,7 +285,7 @@ type
     procedure Previous;
     procedure First;
     procedure Last;
-    procedure Delete(index: integer); overload;
+    procedure Delete(Index: integer); overload;
     procedure Delete; overload;
     property ActiveMessage: Integer read GetActiveMessage write SetActiveMessage;
   published
@@ -352,7 +358,6 @@ type
     procedure Execute; override;
   public
     constructor Create(aLayeredWindow: TAdvAlertWindow);
-  published
   end;
 
   TMsgCollectionItem = class(TCollectionItem)
@@ -401,6 +406,9 @@ type
     FOnDeleteItem: TOnDeleteItemEvent;
     function GetItem(Index: Integer): TMsgCollectionItem;
     procedure SetItem(Index: Integer; const Value: TMsgCollectionItem);
+//    procedure Clear;
+  protected
+    procedure Update(Item: TCollectionItem); override;
   public
     constructor Create(AOwner: TComponent);
     property Items[Index: Integer]: TMsgCollectionItem read GetItem write SetItem; default;
@@ -430,6 +438,7 @@ type
     FAlphaStart: byte;
     FAlphaEnd: byte;
     FFadeIn: Boolean;
+    FFadeOut: Boolean;
     FFading: Boolean;
     FHeight: Integer;
     FWidth: Integer;
@@ -577,6 +586,7 @@ type
     procedure Last;
     procedure SavePosition;
     procedure LoadPosition;
+    procedure DeleteMessage(Index: integer);
     property ActiveMessage: Integer read GetActiveMessage write SetActiveMessage;
     property IsVisible: Boolean read GetVisible;
     property IsFading: Boolean read FFading;
@@ -1443,7 +1453,7 @@ begin
       DrawLeftScrollBtn;
     end;
 
-    if PtOnRightScrollBtn(X, Y) then
+    if PtOnRightScrollBtn(X, Y) and (AlertMessages.Count > 1) then
     begin
       FScrollRightDown := true;
       DrawRightScrollBtn;
@@ -1484,9 +1494,19 @@ end;
 procedure TAlertWindow.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
   R: TRect;
+  oldhint: string;
 begin
+  oldhint := Hint;
+
+  if (FOldx = x) and (FOldy = y) then
+    Exit;
+
+
   inherited;
-  
+
+  FOldx := x;
+  FOldy := y;
+
   if (csDesigning in ComponentState) then
     Exit;
 
@@ -1505,7 +1525,8 @@ begin
         FHoverClose := true;
         DrawCloseButton;
         Hint := HintCloseBtn;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
     end
     else
@@ -1513,7 +1534,8 @@ begin
       if Hint = HintCloseBtn then
       begin
         Hint := FOriginalHint;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
       if FHoverClose or FDownClose then
       begin
@@ -1530,7 +1552,8 @@ begin
         FScrollLeftHover := true;
         DrawLeftScrollBtn;
         Hint := HintPrevBtn;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
     end
     else
@@ -1538,7 +1561,8 @@ begin
       if Hint = HintPrevBtn then
       begin
         Hint := FOriginalHint;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
       if FScrollLeftHover or FScrollLeftDown then
       begin
@@ -1555,7 +1579,8 @@ begin
         FScrollRightHover := true;
         DrawRightScrollBtn;
         Hint := HintNextBtn;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
     end
     else
@@ -1563,7 +1588,8 @@ begin
       if Hint = HintNextBtn then
       begin
         Hint := FOriginalHint;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
       if FScrollRightHover or FScrollRightDown then
       begin
@@ -1580,7 +1606,8 @@ begin
         FDeleteHover := true;
         DrawDeleteBtn;
         Hint := HintDeleteBtn;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
     end
     else
@@ -1588,7 +1615,8 @@ begin
       if Hint = HintDeleteBtn then
       begin
         Hint := FOriginalHint;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
       if FDeleteHover or FDeleteDown then
       begin
@@ -1605,7 +1633,8 @@ begin
         FPopupBtnHover := true;
         DrawPopupBtn;
         Hint := HintPopupBtn;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
     end
     else
@@ -1613,7 +1642,8 @@ begin
       if Hint = HintPopupBtn then
       begin
         Hint := FOriginalHint;
-        Application.CancelHint;
+        if Hint <> oldhint then
+          Application.CancelHint;
       end;
       if FPopupBtnHover or FPopupBtnDown then
       begin
@@ -2060,14 +2090,15 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TAlertWindow.Delete(index: integer);
+procedure TAlertWindow.Delete(Index: integer);
 begin
   if (index >= FAlertMessages.Count) or (index < 0) then
     raise exception.Create('Invalid Index');
 
   if index < FMsgScroller.Position - 1 then
     FMsgScroller.Position := FMsgScroller.Position - 1
-  else if index = FMsgScroller.Position - 1 then
+  else
+  if index = FMsgScroller.Position - 1 then
   begin
     if not FMsgScroller.CanGoForward then
     begin
@@ -2076,9 +2107,11 @@ begin
     end;
   end;
 
-  FAlertMessages.Delete(index);
+  //FAlertMessages.Delete(index);
+
   if Assigned(FOnDeleteMessage) then
-    FOnDeleteMessage(self, index);
+    FOnDeleteMessage(self, Index);
+
   Invalidate;
 end;
 
@@ -2581,14 +2614,15 @@ begin
   if FShowDelete then
   begin
     Result := GetDeleteBtnRect;
-    Result.Left := Result.right + 5;
+    Result.Left := Result.Right + 5;
     Result.Right := Result.Left + GetPopupBtnWidth;
   end
   else if FMsgScroller.Visible then
   begin
     Result := GetRightScrollBtnRect;
-    Result.Left := Result.right + 5;
+    Result.Left := Result.Right + 5;
     Result.Right := Result.Left + GetPopupBtnWidth;
+
   end
   else
   begin
@@ -2656,8 +2690,11 @@ procedure TAlertWindow.AlertMessagesOnChange(Sender: TObject);
 begin
   if (csDestroying in ComponentState) then
     Exit;
+
     
+
   FMsgScroller.Max := FAlertMessages.Count;
+  
   if FAlertMessages.Count <= 0 then
   begin
     FMsgScroller.Min := 0;
@@ -2730,6 +2767,7 @@ end;
 
 function TAlertWindow.GetActiveMessage: Integer;
 begin
+
   Result := FMsgScroller.Position;
 end;
 
@@ -2842,6 +2880,7 @@ begin
 
   if FLayeredWindow.FFadeIn then
   begin
+    //outputdebugstring('fadein');
     FLayeredWindow.FAlphaActual := FLayeredWindow.AlphaStart;
 
     Synchronize(fLayeredWindow.Update);
@@ -2867,7 +2906,8 @@ begin
       ti := GetTickCount;
       while (GetTickCount - ti < DWORD(fLayeredWindow.FFadeTime)) do
       begin
-        Application.ProcessMessages;
+        //Application.ProcessMessages;
+        Sleep(1);
       end;
     end;
     if not fLayeredWindow.FShowFullAlpha and not Terminated then
@@ -2879,6 +2919,7 @@ begin
 
   if not FLayeredWindow.FFadeIn then
   begin
+    //outputdebugstring('fadeout');
     t := fLayeredWindow.FAlphaEnd;
     while (t > 0) and not Terminated and not fLayeredWindow.FShowFullAlpha do
     begin
@@ -2890,15 +2931,16 @@ begin
       if FadeAction = faShow then
       begin
         FLayeredWindow.FAlphaActual := FLayeredWindow.FAlphaEnd;
-        Synchronize(fLayeredWindow.Update);
+        Synchronize(FLayeredWindow.Update);
         Break;
       end;
 
       ti := GetTickCount;
 
-      while (GetTickCount - ti < DWORD(fLayeredWindow.FFadeTime)) do
+      while (GetTickCount - ti < DWORD(FLayeredWindow.FFadeTime)) do
       begin
-        Application.ProcessMessages;
+        //Application.ProcessMessages;
+        Sleep(1);
       end;
     end;
 
@@ -2974,6 +3016,11 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TAdvAlertWindow.DeleteMessage(Index: integer);
+begin
+  FAlertWindow.Delete(Index);
+end;
+
 destructor TAdvAlertWindow.Destroy;
 begin
   FFont.Free;
@@ -3025,6 +3072,13 @@ begin
       FAlertWindow.OnDeleteMessage := P;
       if Assigned(FOnDeleteMessage) then
         FOnDeleteMessage(self, index);
+
+      if FAlertWindow.AlertMessagesInfo.Count = 0 then
+      begin
+        FAlertWindow.Hide;
+        ActiveMessage := 0;
+      end;
+      
     end;
 end;
 
@@ -3035,6 +3089,9 @@ var
   i, j: integer;
   s: string;
 begin
+  if AlertMessages.Count < ActiveMessage then
+    ActiveMessage := AlertMessages.Count;
+
   if Assigned(FAlertWindow) then
     if FAlertWindow.Visible then
     begin
@@ -3119,6 +3176,8 @@ begin
 
   vis := FAlertWindow.Visible;
 
+  FAlertWindow.AlertMessages.BeginUpdate;
+  FAlertWindow.AlertMessagesInfo.BeginUpdate;
   FAlertWindow.AlertMessages.Clear;
   FAlertWindow.AlertMessagesInfo.Clear;
 
@@ -3143,6 +3202,9 @@ begin
       ColorTo := AlertMessages.Items[i].ColorTo;
     end;
   end;
+
+  FAlertWindow.AlertMessages.EndUpdate;
+  FAlertWindow.AlertMessagesInfo.EndUpdate;
 
   FAlertWindow.AutoSize :=  FAlertWindow.AutoSize;
 
@@ -3205,9 +3267,10 @@ begin
     FAlertWindow.Visible := False;
     FAlertWindow.Parent := nil;
 
-    //FAlertWindow.ParentWindow := Application.Handle;
-
-    FAlertWindow.ParentWindow := FOwner.Handle;
+    if Owner is TDataModule then
+      FAlertWindow.ParentWindow := Application.MainForm.Handle
+    else
+      FAlertWindow.ParentWindow := FOwner.Handle;
 
     FAlertWindow.OnMouseMove := AlertWindowMouseMove;
     FAlertWindow.OnMouseLeave := AlertWindowOnMouseLeave;
@@ -3247,9 +3310,9 @@ begin
   if Assigned(FAlertWindow) then
   begin
     FFadeIn := False;
-    FFading := True;    
-    with TFadeThread.Create(self) do
-      OnTerminate := ThreadDone;
+    FFading := True;
+    FFadeThread := TFadeThread.Create(self);
+    FFadeThread.OnTerminate := ThreadDone;
   end;
 end;
 
@@ -3376,22 +3439,33 @@ procedure TAdvAlertWindow.Show;
 var
   tp: integer;
   wnd: THandle;
+  blocked: boolean;
 begin
   FDisplayCounter := 0;
+  blocked := false;
 
   wnd := GetFocus;
 
   try
-    if FFading or IsVisible then
+    if FFading and not FFadeIn then
     begin
       SetMessages;
-      if AutoSize then
+      FFadein := true;
+      FFading := false;
+      FFadeThread.Terminate;
+      blocked := true;
+    end
+    else
+      if (FFading  or IsVisible) then
       begin
-        FAlertWindow.AutoSize := true;
-        SetAlertPos;
+        SetMessages;
+        if AutoSize then
+        begin
+          FAlertWindow.AutoSize := true;
+          SetAlertPos;
+        end;
+        Exit;
       end;
-      Exit;
-    end;
 
     if FAlertMessages.Count = 0 then
       Exit;
@@ -3423,7 +3497,7 @@ begin
 
     FFadeIn := true;
 
-    if not IsVisible then
+    if not IsVisible or blocked then
     begin
       FAlertWindow.Visible := True;
 
@@ -3447,7 +3521,7 @@ begin
 
   finally
     Windows.SetFocus(wnd);
-  end;  
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3466,6 +3540,7 @@ begin
   end;
   FFadeThread := nil;
   FFading := false;
+  FFadeOut := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -3555,13 +3630,19 @@ begin
   begin
     p := FAlertMessages.OnDeleteItem;
     FAlertMessages.OnDeleteItem := nil;
+
+    FAlertWindow.AlertMessages.Delete(Index);
+
     AlertMessages.Delete(index);
+
     if (FAlertWindow.AlertMessagesInfo.Count >= Index) then
       FAlertWindow.AlertMessagesInfo.Delete(Index);
     FAlertMessages.OnDeleteItem := P;
     if Assigned(FOnDeleteMessage) then
       FOnDeleteMessage(self, index);
+    FAlertWindow.Invalidate;
   end;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -3786,6 +3867,9 @@ end;
 
 procedure TAdvAlertWindow.SetTimer(Active: Boolean);
 begin
+  if (FTimer = nil) or (csDestroying in FTimer.ComponentState) then
+    Exit;
+
   if FAutoHide and Active then
   begin
     FTimer.Enabled := true;
@@ -3928,7 +4012,7 @@ begin
           GradientDirection := gdVertical;
         end;
 
-          asOffice2007Obsidian:
+      asOffice2007Obsidian:
         begin
           WindowColor := $F1F0E6;
           WindowColorTo := $C6BCB5;
@@ -3987,7 +4071,6 @@ begin
     if Assigned(FAlertWindow) then
       if FAlertWindow.Visible then
         ApplyStyle;
-
   end;
 end;
 
@@ -3995,10 +4078,13 @@ end;
 
 function TAdvAlertWindow.GetActiveMessage: Integer;
 begin
-  if Assigned(FAlertWindow) then
-    Result := FAlertWindow.ActiveMessage
+  if AlertMessages.Count = 0 then
+    Result := -1
   else
-    Result := -1;
+    if Assigned(FAlertWindow) then
+      Result := FAlertWindow.ActiveMessage
+    else
+      Result := -1;
 end;
 
 //------------------------------------------------------------------------------
@@ -4292,6 +4378,7 @@ end;
 
 //------------------------------------------------------------------------------
 
+
 constructor TMsgCollection.Create(AOwner: TComponent);
 begin
   inherited Create(TMsgCollectionItem);
@@ -4332,6 +4419,18 @@ procedure TMsgCollection.SetItem(Index: Integer;
   const Value: TMsgCollectionItem);
 begin
   inherited Items[Index] := Value;
+end;
+
+procedure TMsgCollection.Update(Item: TCollectionItem);
+begin
+  inherited;
+  
+  if (Item = nil) and (Count = 0) then
+  begin
+    if Assigned(OnChange) then
+      OnChange(self);
+  end;
+
 end;
 
 {$IFDEF FREEWARE}

@@ -1,11 +1,10 @@
 {***********************************************************************}
 { TPlannerCalendar component                                            }
 { for Delphi & C++ Builder                                              }
-{ version 1.7                                                           }
 {                                                                       }
 { written by :                                                          }
 {            TMS Software                                               }
-{            copyright © 1999-2006                                      }
+{            copyright © 1999-2008                                      }
 {            Email : info@tmssoftware.com                               }
 {            Website : http://www.tmssoftware.com                       }
 {                                                                       }
@@ -48,8 +47,8 @@ const
 
   MAJ_VER = 1; // Major version nr.
   MIN_VER = 7; // Minor version nr.
-  REL_VER = 3; // Release nr.
-  BLD_VER = 2; // Build nr.
+  REL_VER = 5; // Release nr.
+  BLD_VER = 3; // Build nr.
 
   // Version history
   // 1.4.0.0 : Property InActiveDays added
@@ -84,8 +83,23 @@ const
   // 1.7.3.0 : New : support for Office 2007 silver style added
   // 1.7.3.1 : Fixed : issue with ShowMonthSelector, ShowYearSelector in TPlannerCalendarGroup
   // 1.7.3.2 : Fixed : issue with display update on font change in TPlannerCalendarGroup
+  // 1.7.3.3 : Fixed : painting issue with D2007
+  // 1.7.4.0 : Improved : OnMouseMove, OnMouseDown, OnMouseUp event handler for TPlannerCalendarGroup
+  // 1.7.4.1 : Fixed : issue with mixing glyphs & not glyphs for browsers
+  //         : Fixed : painting issue with Delphi 2007
+  // 1.7.5.0 : New : added support to set DateSelectColor to clNone to have transparent date selection
+  //         : New : added DateSelectBorderColor to set border color of selected dates
+  // 1.7.5.1 : Fixed : issue with event hints
+  // 1.7.5.2 : Improved : check before setting focus on mousedown
+  // 1.7.5.3 : Fixed : issue with OnDayChange in TPlannerCalendarGroup
+
 
 type
+  {$IFDEF DELPHI_UNICODE}
+  THintInfo = Controls.THintInfo;
+  PHintInfo = Controls.PHintInfo;
+  {$ENDIF}
+  
   TCustomCalendarPanel = class;
   TPlannerCalendar = class;
 
@@ -545,6 +559,7 @@ type
     FHoverDate: TDateTime;
     FStyle: TPlannerCalendarStyle;
     FDateSelectColor: TColor;
+    FDateSelectBorderColor: TColor;
     FDateHoverColor: TColor;
     FDateDownColor: TColor;
     FBorderColor: TColor;
@@ -553,6 +568,8 @@ type
     FShowYearSelector: Boolean;
     FEnable: Boolean;
     FMultiSelectCtrlKey: Boolean;
+    FBorderFix: boolean;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;    
     procedure WMCommand(var Message: TWMCommand); message WM_COMMAND;
     procedure WMKeyDown(var Msg: TWMKeydown); message WM_KEYDOWN;
     procedure WMEraseBkGnd(var Message: TWMEraseBkGnd); message WM_ERASEBKGND;
@@ -620,6 +637,7 @@ type
     procedure PropsChanged(Sender: TObject);
     procedure SetLineColor(AValue: TColor);
     procedure SetDateSelectColor(AColor: TColor);
+    procedure SetDateSelectBorderColor(AColor: TColor);
     procedure SetLine3D(AValue: Boolean);
     procedure DrawGradient(Canvas: TCanvas; FromColor, ToColor: TColor; Steps: Integer; r:TRect; Direction: Boolean);
     {$IFDEF USEIMAGE}
@@ -680,6 +698,7 @@ type
     function IsInActiveDay(dt: TDateTime): boolean; virtual;
     procedure ThemeAdapt;
     procedure WndProc(var Msg: TMessage); override;
+    property BorderFix: boolean read FBorderFix write FBorderFix default false;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -730,7 +749,8 @@ type
     property Look: TPlannerCalendarLook read fLook write SetLook;
     property DateDownColor: TColor read FDateDownColor write FDateDownColor;
     property DateHoverColor: TColor read FDateHoverColor write FDateHoverColor;
-    property DateSelectColor: TColor read FDateSelectColor write SetDateSelectColor;
+    property DateSelectColor: TColor read FDateSelectColor write SetDateSelectColor default clTeal;
+    property DateSelectBorderColor: TColor read FDateSelectBorderColor write SetDateSelectBorderColor default clTeal;
     property MultiSelect: Boolean read FMultiSelect write SetMultiSelect default False;
     property MultiSelectCtrlKey: Boolean read FMultiSelectCtrlKey write FMultiSelectCtrlKey default False;
     property DayFont: TFont read FDayFont write SetDayFont;
@@ -860,7 +880,6 @@ type
     FOnDragOver: TDragOverEvent;
     FOnEndDrag: TEndDragEvent;
     FOnStartDrag: TStartDragEvent;
-
     FOnCellDraw: TCellDrawEvent;
     FDay: word;
     FMonth: word;
@@ -916,6 +935,7 @@ type
     FYearStartAt: TYearStartAt;
     FStyle: TPlannerCalendarStyle;
     FDateSelectColor: TColor;
+    FDateSelectBorderColor: TColor;
     FDateHoverColor: TColor;
     FDateDownColor: TColor;
     FAutoThemeAdapt: Boolean;
@@ -1041,6 +1061,7 @@ type
     function GetVersionNr: Integer;
     procedure SetStyle(Value: TPlannerCalendarStyle);
     procedure SetDateSelectColor(Value: TColor);
+    procedure SetDateSelectBorderColor(Value: TColor);
     procedure SetAutoThemeAdapt(Value: Boolean);
     procedure DblClickProc(Sender: TObject);
     procedure SetShowMonthSelector(const Value: boolean);
@@ -1069,6 +1090,9 @@ type
     procedure ThemeAdapt;
     procedure CancelledKey(Sender: TObject; Key: word);
     procedure WndProc(var Msg: TMessage); override;
+    procedure DoMouseMove(Sender: TObject; Shift: TShiftState; X,Y: integer); virtual;
+    procedure DoMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer); virtual;
+    procedure DoMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1135,8 +1159,9 @@ type
 
     property DateDownColor: TColor read FDateDownColor write FDateDownColor;
     property DateHoverColor: TColor read FDateHoverColor write FDateHoverColor;
-    property DateSelectColor: TColor read FDateSelectColor write SetDateSelectColor;
-    
+    property DateSelectColor: TColor read FDateSelectColor write SetDateSelectColor default clTeal;
+    property DateSelectBorderColor: TColor read FDateSelectBorderColor write SetDateSelectBorderColor default clTeal;
+
     property Hint;
     property ShowHint;
     property ParentShowHint;
@@ -1476,6 +1501,7 @@ begin
   FGradientEndColor := clBtnFace;
   FGradientDirection := gdVertical;
   FDateSelectColor := clTeal;
+  FDateSelectBorderColor := clTeal;
   FDateHoverColor := clNone;
   FDateDownColor := clNone;
   FMonthGradientStartColor := clNone;
@@ -1664,6 +1690,12 @@ end;
 procedure TPlannerCalendar.SetDateSelectColor(AColor: TColor);
 begin
   FDateSelectColor := AColor;
+  Invalidate;
+end;
+
+procedure TPlannerCalendar.SetDateSelectBorderColor(AColor: TColor);
+begin
+  FDateSelectBorderColor := AColor;
   Invalidate;
 end;
 
@@ -1903,7 +1935,7 @@ begin
       FOnDayChange(self, dt1, dt2);
   end;
 
-  if mo1 <> mo2 then
+  if (mo1 <> mo2) then
   begin
     DoChangeMonth(dt1, dt2);
   end;
@@ -2065,10 +2097,15 @@ begin
       FGlyphs.PrevMonth.TransparentMode := tmAuto;
       FGlyphs.PrevMonth.Transparent := true;
 
-      if FGlyphs.FPrevYear.Empty or not Browsers.PrevYear then
+      if not Browsers.PrevYear then
         FCanvas.Draw(xoffs + 5,1 + BorderWidth ,FGlyphs.FPrevMonth)
       else
-        FCanvas.Draw(xOffs + 10 + FGlyphs.FPrevYear.Width,1 + BorderWidth,FGlyphs.FPrevMonth);
+      begin
+        if FGlyphs.FPrevYear.Empty then
+          FCanvas.Draw(xoffs + 10 + 16,1 + BorderWidth ,FGlyphs.FPrevMonth)
+        else
+          FCanvas.Draw(xOffs + 10 + FGlyphs.FPrevYear.Width,1 + BorderWidth,FGlyphs.FPrevMonth);
+      end;
     end
     else
     begin
@@ -2580,9 +2617,12 @@ begin
             if inlist then
             begin
               Brush.Color := FDateSelectColor;
-              Pen.Color := FDateSelectColor;
+              if FDateSelectColor = clNone then
+                Brush.Style := bsClear;
+              Pen.Color := FDateSelectBorderColor;
               Font.Color := FSelectFontColor;
-              Fillrect(r);
+              //Fillrect(r);
+              Rectangle(r);
             end
             else
               Brush.color := self.Color;
@@ -2611,7 +2651,8 @@ begin
               else
                 PaintEventMarker(R, FEventMarkerColor, FEventMarkerShape);
 
-              FCanvas.Font.Color := EventDate.FontColor;
+              if Assigned(EventDate) then
+                FCanvas.Font.Color := EventDate.FontColor;
             end;
 
             if not CheckDateRange(d) then
@@ -2650,9 +2691,12 @@ begin
               if (inlist) then
               begin
                 Brush.Color := FDateSelectColor;
-                Pen.Color := FDateSelectColor;
+                if FDateSelectColor = clNone then
+                  Brush.Style := bsClear;
+                Pen.Color := FDateSelectBorderColor;
                 Font.Color := FSelectFontColor;
-                FillRect(r);
+                //FillRect(r);
+                Rectangle(r);
               end;
 
               if (d = FHoverDate) and (FDateHoverColor <> clNone) then
@@ -2678,8 +2722,9 @@ begin
                   PaintEventMarker(R, EventDate.Color, EventDate.Shape)
                 else
                   PaintEventMarker(R, FEventMarkerColor, FEventMarkerShape);
-
-                FCanvas.Font.Color := EventDate.FontColor;
+                  
+                if Assigned(EventDate) then
+                  FCanvas.Font.Color := EventDate.FontColor;
               end;
 
               if not CheckDateRange(d) then
@@ -2729,6 +2774,9 @@ begin
               if inlist then
               begin
                 Brush.Color := FDateSelectColor;
+                if FDateSelectColor = clNone then
+                  Brush.Style := bsClear;
+                Pen.Color := FDateSelectBorderColor;
                 Font.Color := FSelectFontColor;
               end
               else
@@ -2742,15 +2790,18 @@ begin
                 else
                 begin
                   Brush.Color := FDateSelectColor;
+                  if FDateSelectColor = clNone then
+                    Brush.Style := bsClear;
                   Font.Color := FSelectFontColor;
-                  Pen.Color := FDateSelectColor;
+                  Pen.Color := FDateSelectBorderColor;
                 end;
               end;
 
               if not CheckDateRange(d) then
                 Font.Color := FInactiveColor;
 
-              Fillrect(r);
+              //Fillrect(r);
+              Rectangle(r);
 
               if (d = FHoverDate) and (FDateHoverColor <> clNone) then
               begin
@@ -2823,7 +2874,8 @@ begin
 
         if (GetFocus = self.Handle) and (da = i + (j - 1) * 7 - fd) then
         begin
-          Pen.Color := clBlack;
+          Pen.Color := FDateSelectColor;
+          Font.Color := FDateSelectColor;
           WinProcs.DrawFocusRect(FCanvas.Handle, r);
         end;
 
@@ -3341,7 +3393,9 @@ begin
       if CheckDateRange(DiffYear(-1)) then
         Cursor := crHandPoint;
 
+
       BrowserHint := FHintPrevYear;
+
       if FShowWeeks then
         FLastHintPos := Point((Width div 8) + WidthX1,-8)
       else
@@ -3545,7 +3599,7 @@ begin
       end;
     end;
 
-    if Assigned(OnGetDateHint) then
+    if Assigned(OnGetDateHintString) then
       OnGetDateHintString(self, dt, isEvent, EventHint);
   end;
 
@@ -3589,13 +3643,13 @@ begin
   if not Enable then
     Exit;
 
-  Cursor := FOldCursor;
+   Cursor := FOldCursor;
 
   origdate := seldate;
   xposin := $7fff;
   yposin := $7fff;
 
-  if not (GetFocus = self.Handle) then
+  if not (GetFocus = self.Handle) and (CanFocus) then
     SetFocus;
 
   x := x - xoffset;
@@ -3850,6 +3904,7 @@ begin
     Date := Now;
     if MultiSelect then
       Invalidate;
+      
     if Assigned(FOnDayChange) then
       FOnDayChange(self, origdate, SelDate);
 
@@ -3978,6 +4033,43 @@ begin
 
 end;
 
+procedure TPlannerCalendar.WMPaint(var Message: TWMPaint);
+var
+  DC, MemDC: HDC;
+  MemBitmap, OldBitmap: HBITMAP;
+  PS: TPaintStruct;
+begin
+  if not FDoubleBuffered or (Message.DC <> 0) then
+  begin
+    if not (csCustomPaint in ControlState) and (ControlCount = 0) then
+      inherited
+    else
+      PaintHandler(Message);
+  end
+  else
+  begin
+    DC := GetDC(0);
+    MemBitmap := CreateCompatibleBitmap(DC, ClientRect.Right, ClientRect.Bottom);
+    ReleaseDC(0, DC);
+    MemDC := CreateCompatibleDC(0);
+    OldBitmap := SelectObject(MemDC, MemBitmap);
+    try
+      DC := BeginPaint(Handle, PS);
+      Perform(WM_ERASEBKGND, MemDC, MemDC);
+      Message.DC := MemDC;
+      WMPaint(Message);
+      Message.DC := 0;
+      BitBlt(DC, 0, 0, ClientRect.Right, ClientRect.Bottom, MemDC, 0, 0, SRCCOPY);
+      EndPaint(Handle, PS);
+    finally
+      SelectObject(MemDC, OldBitmap);
+      DeleteDC(MemDC);
+      DeleteObject(MemBitmap);
+    end;
+  end;
+end;
+
+
 procedure TPlannerCalendar.Paint;
 var
   r,captionR,gr: TRect;
@@ -4034,7 +4126,9 @@ begin
   end;
 
   r := ClientRect;
-  InflateRect(r, - BorderWidth, - BorderWidth);
+  if not BorderFix then
+    InflateRect(r, - BorderWidth, - BorderWidth);
+
   if (BevelInner <> bvNone) or (BevelOuter <> bvNone) then
     InflateRect(r, - BevelWidth, - BevelWidth);
 
@@ -5538,6 +5632,7 @@ begin
       MonthGradientEndColor := clNone;
       InActiveColor := clTeal;
       DateSelectColor := clHighLight;
+      DateSelectBorderColor := clHighLight;
       DateHoverColor := clInfoBk;
       DateDownColor := clHighLight;
       SelectFontColor := clWhite;
@@ -5551,6 +5646,7 @@ begin
       MonthGradientEndColor := clNone;
       InActiveColor := clTeal;
       DateSelectColor := clHighLight;
+      DateSelectBorderColor := clHighLight;      
       DateHoverColor := clInfoBk;
       DateDownColor := clHighLight;
       SelectFontColor := clBlack;
@@ -5564,6 +5660,7 @@ begin
       MonthGradientEndColor := $E0A57D;
       InactiveColor := clWhite;
       DateSelectColor:= RGB(255, 191, 113);
+      DateSelectBorderColor:= RGB(255, 191, 113);
       DateHoverColor := $C2EEFF;
       DateDownColor := $087FE8;
       SelectFontColor := clWhite;
@@ -5577,6 +5674,7 @@ begin
       MonthGradientEndColor := $8CC0B1;
       InactiveColor := clWhite;
       DateSelectColor:= RGB(255, 191, 113);
+      DateSelectBorderColor:= RGB(255, 191, 113);
       DateHoverColor := $C2EEFF;
       DateDownColor := $087FE8;
       SelectFontColor := clWhite;
@@ -5590,6 +5688,7 @@ begin
       MonthGradientEndColor := $B39698;
       InactiveColor := clWhite;
       DateSelectColor:= RGB(255, 191, 113);
+      DateSelectBorderColor:= RGB(255, 191, 113);
       DateHoverColor := $C2EEFF;
       DateDownColor := $087FE8;
       SelectFontColor := clWhite;
@@ -5603,6 +5702,7 @@ begin
       MonthGradientEndColor := $C9D1D5;
       InactiveColor := clWhite;
       DateSelectColor:= $808080;
+      DateSelectBorderColor:= $808080;      
       DateHoverColor := $D2BDB6;
       DateDownColor := $B59285;
       SelectFontColor := clWhite;
@@ -5618,6 +5718,7 @@ begin
       MonthGradientDirection := gdVertical;
       InactiveColor := clWhite;
       DateSelectColor:= $BBEEFF;
+      DateSelectBorderColor:= $BBEEFF;
       DateHoverColor := $78DAFF;
       DateDownColor := $087FE8;
       SelectFontColor := $723708;
@@ -5633,6 +5734,7 @@ begin
       MonthGradientDirection := gdVertical;
       InactiveColor := clWhite;
       DateSelectColor:= $BBEEFF;
+      DateSelectBorderColor:= $BBEEFF;
       DateHoverColor := $78DAFF;
       DateDownColor := $087FE8;
       SelectFontColor := $433C37;
@@ -5648,6 +5750,7 @@ begin
       MonthGradientDirection := gdVertical;
       InactiveColor := clWhite;
       DateSelectColor:= $BBEEFF;
+      DateSelectBorderColor:= $BBEEFF;
       DateHoverColor := $78DAFF;
       DateDownColor := $087FE8;
       SelectFontColor := $723708;
@@ -5662,6 +5765,7 @@ begin
       MonthGradientEndColor := $A8C0C0;
       InactiveColor := clGray;
       DateSelectColor:= RGB(255, 191, 113);
+      DateSelectBorderColor:= RGB(255, 191, 113);
       DateHoverColor := $C2EEFF;
       DateDownColor := $087FE8;
       SelectFontColor := clWhite;
@@ -5676,6 +5780,7 @@ begin
       MonthGradientEndColor := clNone;
       InactiveColor := clWhite;
       DateSelectColor:= clInfoBk;
+      DateSelectBorderColor:= clInfoBk;
       DateHoverColor := clNone;
       DateDownColor := clNone;
       SelectFontColor := clBlack;
@@ -5690,6 +5795,7 @@ begin
       MonthGradientEndColor := $00F807F1;
       InactiveColor := clWhite;
       DateSelectColor:= clHighLight;
+      DateSelectBorderColor:= clHighLight;      
       DateHoverColor := clNone;
       DateDownColor := clNone;
 
@@ -6030,9 +6136,10 @@ begin
   // get current date update
   d := EncodeDate(FYear, FMonth, FDay);
 
+  AnyDayChange(Sender,d,SelDate);
+
   if not MultiSelect then
     Date := SelDate;
-
 
   tempCal := TPlannerCalendar(Sender);
   FDay := tempCal.Day;
@@ -6106,6 +6213,8 @@ begin
   FDateHoverColor := clNone;
   FDateDownColor := clNone;
   FDateSelectColor := clTeal;
+  FDateSelectBorderColor := clTeal;
+
 
   inherited Color := clWhite;
 
@@ -6205,7 +6314,7 @@ begin
       {$ENDIF}
     end;
 
-  DecodeDate(now, ye, mo, da);
+  DecodeDate(Now, ye, mo, da);
   Fday := da;
   FMonth := mo;
   FYear := ye;
@@ -6435,6 +6544,26 @@ begin
   TPlannerCalendar(FCalendars.Items[0]).SetFocus;
 end;
 
+procedure TPlannerCalendarGroup.DoMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: integer);
+begin
+  if Assigned(OnMouseDown) then
+    OnMouseDown(Self, Button, Shift, (Sender as TPlannerCalendar).Left + X, (Sender as TPlannerCalendar).Top + Y);
+end;
+
+procedure TPlannerCalendarGroup.DoMouseMove(Sender: TObject; Shift: TShiftState; X, Y: integer);
+begin
+  if Assigned(OnMouseMove) then
+    OnMouseMove(self, Shift, (Sender as TPlannerCalendar).Left + X, (Sender as TPlannerCalendar).Top + Y);
+end;
+
+procedure TPlannerCalendarGroup.DoMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: integer);
+begin
+  if Assigned(OnMouseUp) then
+    OnMouseUp(Self, Button, Shift, (Sender as TPlannerCalendar).Left + X, (Sender as TPlannerCalendar).Top + Y);
+end;
+
 procedure TPlannerCalendarGroup.Paint;
 begin
   inherited Paint;
@@ -6604,14 +6733,14 @@ begin
 end;
 
 procedure TPlannerCalendarGroup.SetFOnDaySelect(Value: TDaySelectEvent);
-var
-  i: integer;
+//var
+//  i: integer;
 begin
   FOnDaySelect := Value;
-  for i := 0 to FCalendars.Count - 1 do
-  begin
-    TPlannerCalendar(FCalendars.Items[i]).SelDate := 0;
-  end;
+//  for i := 0 to FCalendars.Count - 1 do
+//  begin
+//    TPlannerCalendar(FCalendars.Items[i]).SelDate := 0;
+//  end;
   UpdateEvents;
 end;
 
@@ -7027,12 +7156,13 @@ begin
     tempCal.FOnDayChange := AnyDayChange;
     tempcal.FOnWeekSelect := WeekChange;
     tempCal.FOnAllDaySelect := FOnAllDaySelect;
+
     tempCal.OnKeyDown := CtrlKeyDown;
     tempCal.OnKeyPress := FOnKeyPress;
     tempCal.OnKeyUp := CtrlKeyUp;
-    tempCal.OnMouseMove := FOnMouseMove;
-    tempCal.OnMouseDown := FOnMouseDown;
-    tempCal.OnMouseUp := FOnMouseUp;
+    tempCal.OnMouseMove := DoMouseMove;
+    tempCal.OnMouseDown := DoMouseDown;
+    tempCal.OnMouseUp := DoMouseUp;
     tempCal.OnDragDrop := FOnDragDrop;
     tempCal.OnDragOver := FOnDragOver;
     tempCal.OnEndDrag := FOnEndDrag;
@@ -7108,6 +7238,7 @@ begin
     tempCal.HintNextYear := FHintNextYear;
 
     tempCal.DateSelectColor := FDateSelectColor;
+    tempCal.DateSelectBorderColor := FDateSelectBorderColor;    
     tempCal.DateHoverColor := FDateHoverColor;
     tempCal.DateDownColor := FDateDownColor;
 
@@ -7120,6 +7251,10 @@ begin
     tempCal.YearStartAt.ISOWeekNumber := FYearStartAt.ISOWeekNumber;
     tempCal.ShowMonthSelector := FShowMonthSelector;
     tempCal.ShowYearSelector := FShowYearSelector;
+
+    {$IFDEF VER185}
+    tempCal.BorderFix := true;
+    {$ENDIF}
 
     PropsChanged(Self);
 
@@ -7631,6 +7766,7 @@ begin
   Dates.Clear;
   UpdateDates;
   Dates.Add.Date := Value;
+  FLastDay := Value;  
   UpdateDates;
 end;
 
@@ -7653,6 +7789,13 @@ begin
   UpdateFields;
 end;
 
+procedure TPlannerCalendarGroup.SetDateSelectBorderColor(Value: TColor);
+begin
+  FDateSelectBorderColor := Value;
+  UpdateFields;
+end;
+
+
 procedure TPlannerCalendarGroup.SetStyle(Value: TPlannerCalendarStyle);
 begin
   FStyle := Value;
@@ -7666,6 +7809,7 @@ begin
       MonthGradientEndColor := clNone;
       InActiveColor := clTeal;
       DateSelectColor := clHighLight;
+      DateSelectBorderColor := clHighLight;
       DateHoverColor := clInfoBk;
       DateDownColor := clHighLight;
       SelectFontColor := clWhite;
@@ -7679,6 +7823,7 @@ begin
       MonthGradientEndColor := clNone;
       InActiveColor := clTeal;
       DateSelectColor := clHighLight;
+      DateSelectBorderColor := clHighLight;
       DateHoverColor := clInfoBk;
       DateDownColor := clHighLight;
       SelectFontColor := clBlack;
@@ -7692,6 +7837,7 @@ begin
       MonthGradientEndColor := $E0A57D;
       InactiveColor := clWhite;
       DateSelectColor:= RGB(255, 191, 113);
+      DateSelectBorderColor:= RGB(255, 191, 113);
       DateHoverColor := $C2EEFF;
       DateDownColor := $087FE8;
       SelectFontColor := clWhite;
@@ -7705,6 +7851,7 @@ begin
       MonthGradientEndColor := $8CC0B1;
       InactiveColor := clWhite;
       DateSelectColor:= RGB(255, 191, 113);
+      DateSelectBorderColor:= RGB(255, 191, 113);
       DateHoverColor := $C2EEFF;
       DateDownColor := $087FE8;
       SelectFontColor := clWhite;
@@ -7718,6 +7865,7 @@ begin
       MonthGradientEndColor := $B39698;
       InactiveColor := clWhite;
       DateSelectColor:= RGB(255, 191, 113);
+      DateSelectBorderColor:= RGB(255, 191, 113);
       DateHoverColor := $C2EEFF;
       DateDownColor := $087FE8;
       SelectFontColor := clWhite;
@@ -7732,6 +7880,7 @@ begin
       MonthGradientEndColor := clNone;
       InactiveColor := clWhite;
       DateSelectColor:= clInfoBk;
+      DateSelectBorderColor:= clInfoBk;
       DateHoverColor := clNone;
       DateDownColor := clNone;
       SelectFontColor := clBlack;
@@ -7746,6 +7895,7 @@ begin
       MonthGradientEndColor := $00F807F1;
       InactiveColor := clWhite;
       DateSelectColor:= clHighLight;
+      DateSelectBorderColor:= clHighLight;
       DateHoverColor := clNone;
       DateDownColor := clNone;
 
@@ -7882,7 +8032,7 @@ begin
     pt := ScreenToClient(pt);
     if (pt.x > tmpCal.Left) and (pt.x < tmpCal.Left + tmpCal.Width) and
        (pt.y > tmpCal.Top) and (pt.y < tmpCal.Top + tmpCal.Height) then
-    if tmpcal.DateAtXY(x,y,ADate) then
+    if tmpcal.DateAtXY(x - tmpCal.Left,y - tmpCal.Top,ADate) then
     begin
       Result := true;
       Break;
@@ -8153,14 +8303,11 @@ initialization
   {$ENDIF}
 
 {$IFDEF FREEWARE}
-{$IFNDEF VER170}
    if  (FindWindow('TApplication', nil) = 0) OR
-       (FindWindow('TPropertyInspector', nil) = 0) OR
        (FindWindow('TAppBuilder', nil) = 0) then
   begin
     ShowMessage('TMS Planner Calendars and DatePickers trial version');
   end
-{$ENDIF}
 {$ENDIF}
 
 
