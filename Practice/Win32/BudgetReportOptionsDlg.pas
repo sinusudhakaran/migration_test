@@ -87,6 +87,8 @@ begin
    if MyClient.clFields.clCountry = whUK then
       chkGST.Hint        := STDHINTS.RptIncludeVATHint;
 
+   if Active_UI_Style = UIS_Simple then
+      btnSave.Hide;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgBudgetReportOptions.SetParams(const Value: TGenRptParameters);

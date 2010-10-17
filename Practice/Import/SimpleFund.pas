@@ -39,7 +39,7 @@ procedure ReadDBaseFile(ClientRef : string; FilePath : string; Chart : TChart);
 const
   ThisMethodName = 'ReadDBaseFile';
 var
- reader               : tDBaseFile;
+ DBaseFile               : tDBaseFile;
  i                    : integer;
  Deleted              : boolean;
  Code                 : Bk5CodeStr;
@@ -60,65 +60,72 @@ begin
     raise EExtractData.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
  end;
  ACode1 := '';
- reader := tDBaseFile.Create(FilePath + SF_FILE);
- for I := 0 to Reader.FieldList.ItemCount - 1 do
-     ACode1 := ACode1 + ', ' + TDBaseField(Reader.FieldList.Items[i]).FieldName ;
+
  try
-   with reader do for i := 1 to Header.NrOfRecs do begin
-     gotoRecord(i);
-     return := GetField(DelMarkName, BooleanCType, Deleted);
-     if (return = 0)
-     and (not Deleted) then begin
-        ACode1      := '';
-        ACode2      := '';
-        AType       := ' ';
-        Name       := '';
+   DBaseFile := tDBaseFile.Create(FilePath + SF_FILE);
+   for I := 0 to DBaseFile.FieldList.ItemCount - 1 do
+       ACode1 := ACode1 + ', ' + TDBaseField(DBaseFile.FieldList.Items[i]).FieldName ;
+   try
+     for i := 1 to DBaseFile.Header.NrOfRecs do begin
+       DBaseFile.gotoRecord(i);
+       return := DBaseFile.GetField(DelMarkName, BooleanCType, Deleted);
+       if (return = 0)
+       and (not Deleted) then begin
+          ACode1      := '';
+          ACode2      := '';
+          AType       := ' ';
+          Name       := '';
 
-        GetField( 'ACODE1', StringCType, ACode1 );
-        ACode1 := Trim( ACode1 );
+          DBaseFile.GetField( 'ACODE1', StringCType, ACode1 );
+          ACode1 := Trim( ACode1 );
 
-        GetField( 'ACODE2', StringCType, ACode2 );
-        ACode2 := Trim( ACode2 );
+          DBaseFile.GetField( 'ACODE2', StringCType, ACode2 );
+          ACode2 := Trim( ACode2 );
 
-        GetField( 'ATYPE', CharCType, AType );
+          DBaseFile.GetField( 'ATYPE', CharCType, AType );
 
-        GetField( 'ANAME', StringCType, Name );
-        Name := Trim(Name);
+          DBaseFile.GetField( 'ANAME', StringCType, Name );
+          Name := Trim(Name);
 
-        GetField( 'ASXCODE', StringCType, ASXCode );
-        ASXCode := Trim(ASXCode);
+          DBaseFile.GetField( 'ASXCODE', StringCType, ASXCode );
+          ASXCode := Trim(ASXCode);
 
-        Code := ACode1;
-        If ACode2<>'' then
-            Code := ACode1 + '/'+ACode2;
+          Code := ACode1;
+          If ACode2<>'' then
+              Code := ACode1 + '/'+ACode2;
 
 
-        { Simple Fund Chart Types are
-           C = Control Account
-           N = Normal Account
-           S = Subaccount }
+          { Simple Fund Chart Types are
+             C = Control Account
+             N = Normal Account
+             S = Subaccount }
 
-        if Code <> '' then begin
-           if (Chart.FindCode( Code )<> NIL ) then Begin
-              LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+Code+' found in '+FilePath + SF_FILE );
-           end else Begin
-              //insert new account into chart
-              NewAccount := New_Account_Rec;
-              with NewAccount^ do begin
-                chAccount_Code        := Code;
-                chAccount_Description := Name;
-                chGST_Class           := 0;
-                chPosting_Allowed     := (AType <> 'C');
-                if ASXCode > '' then
-                   chAlternative_Code  :=  ACode1 + '/' + ASXCode;
-              end;
-              Chart.Insert(NewAccount);
-           end;
-        end;
+          if Code <> '' then begin
+             if (Chart.FindCode( Code )<> NIL ) then Begin
+                LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+Code+' found in '+FilePath + SF_FILE );
+             end else Begin
+                //insert new account into chart
+                NewAccount := New_Account_Rec;
+                with NewAccount^ do begin
+                  chAccount_Code        := Code;
+                  chAccount_Description := Name;
+                  chGST_Class           := 0;
+                  chPosting_Allowed     := (AType <> 'C');
+                  if ASXCode > '' then
+                     chAlternative_Code  :=  ACode1 + '/' + AnsiUppercase(ASXCode);
+                end;
+                Chart.Insert(NewAccount);
+             end;
+          end;
+       end;
      end;
+   finally
+     DBaseFile.Free;
    end;
- finally
-   reader.Free;
+ except
+   on E: Exception do begin
+     HelpfulInfoMsg( Format('Cannot Load The Account File %s%s', [ FilePath, SF_FILE ]), 0 );
+   end;
  end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;

@@ -49,7 +49,8 @@ uses
   UpgradeHelper,
   bkBranding,
   MadUtils,
-  UsageUtils, BKHelp;
+  UsageUtils, BKHelp,
+  ThirdPartyHelper;
 
 const
   UnitName = 'AppStartupShutDown';
@@ -125,8 +126,14 @@ const
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   AdminSystem := nil;
+
+  StartUpStep := 'Check for fxsapi dll';
   if BKFileExists(GetWinSysDir + 'fxsapi.dll') then
     FaxHandle := LoadLibrary(PANSIChar(GetWinSysDir + 'fxsapi.dll'));
+
+  StartUpStep := 'Check for third party dll';
+  ThirdPartyHelper.CheckForThirdPartyDLL;
+
   StartUpStep := 'Reading practice settings';
   //Read Practice INI settings
   LockUtils.ObtainLock( ltPracIni, TimeToWaitForPracINI );
@@ -181,9 +188,18 @@ begin
          end
          else
          begin
+           //default to books
            APPTITLE := 'BankLink Books';
            SHORTAPPNAME := 'BankLink Books';
            bkBranding.BrandingImageSet := imBooks;
+
+           if ThirdPartyHelper.ThirdPartyDLLDetected then
+           begin
+             if (ThirdPartyBannerLogo <> nil) then
+                bkBranding.BrandingImageSet := imDLL;
+             if (ThirdPartyName <> '') then
+                APPTITLE := 'BankLink Books provided by ' + ThirdPartyName;
+           end;
          end;
       {$ENDIF}
     {$ENDIF}
@@ -371,6 +387,8 @@ begin
   end;
   if FaxHandle <> 0 then
     FreeLibrary(FaxHandle);
+  if ThirdPartyDLLDetected then
+    FreeThirdPartyObjects;
 end;
 
 initialization

@@ -49,7 +49,8 @@ uses
   UELIST32 in 'Win32\UELIST32.PAS',
   usrlist32 in 'Win32\usrlist32.pas',
   LOGUTIL in 'Win32\LOGUTIL.PAS',
-  BKHelp in 'Win32\BKHelp.pas';
+  BKHelp in 'Win32\BKHelp.pas',
+  ThirdPartyHelper in 'Win32\ThirdPartyHelper.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

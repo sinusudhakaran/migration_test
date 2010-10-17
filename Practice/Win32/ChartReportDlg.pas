@@ -119,6 +119,9 @@ end;
 procedure TDlgChartReport.FormCreate(Sender: TObject);
 begin
    bkXPThemes.ThemeForm(Self);
+   //favorite reports functionality is disabled in simpleUI
+   if Active_UI_Style = UIS_Simple then
+      btnSave.Hide;
 end;
 
 function GetChartReportOptions(var Basic: Boolean;

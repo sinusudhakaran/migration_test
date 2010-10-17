@@ -59,6 +59,10 @@ object dlgGraphRep: TdlgGraphRep
     TabOrder = 3
     object tsOptions: TTabSheet
       Caption = '&Options'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Panel1: TPanel
         Left = 4
         Top = 4
@@ -124,7 +128,7 @@ object dlgGraphRep: TdlgGraphRep
           Width = 93
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = cmbStartMonthChange
         end
@@ -189,7 +193,7 @@ object dlgGraphRep: TdlgGraphRep
           Width = 241
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
         end
       end

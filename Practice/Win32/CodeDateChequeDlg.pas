@@ -156,6 +156,10 @@ begin
 
   ColFrom.PictureMask := ChequeNoMask;
   Col2.PictureMask    := ChequeNoMask;
+
+  //favorite reports functionality is disabled in simpleUI
+  if Active_UI_Style = UIS_Simple then
+     btnSave.Hide;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgCodeDateCheque.SetUpHelp;

@@ -2,8 +2,8 @@ object frmMain: TfrmMain
   Left = 315
   Top = 258
   Caption = '*'
-  ClientHeight = 845
-  ClientWidth = 885
+  ClientHeight = 843
+  ClientWidth = 881
   Color = 10459904
   Constraints.MinHeight = 360
   Constraints.MinWidth = 512
@@ -23,8 +23,8 @@ object frmMain: TfrmMain
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
-    885
-    845)
+    881
+    843)
   PixelsPerInch = 96
   TextHeight = 13
   object Image1: TImage
@@ -66,7 +66,7 @@ object frmMain: TfrmMain
     Stretch = True
   end
   object lblVersion: TLabel
-    Left = 816
+    Left = 812
     Top = 59
     Width = 45
     Height = 13
@@ -83,7 +83,7 @@ object frmMain: TfrmMain
     ExplicitLeft = 830
   end
   object imgPracticeLogo: TImage
-    Left = 559
+    Left = 555
     Top = 136
     Width = 317
     Height = 79
@@ -94,8 +94,8 @@ object frmMain: TfrmMain
   end
   object MainStatus: TStatusBar
     Left = 0
-    Top = 821
-    Width = 885
+    Top = 819
+    Width = 881
     Height = 24
     Panels = <
       item
@@ -114,11 +114,12 @@ object frmMain: TfrmMain
       end>
     ParentFont = True
     UseSystemFont = False
+    ExplicitWidth = 885
   end
   object rzToolbars: TPanel
     Left = 0
     Top = 0
-    Width = 885
+    Width = 881
     Height = 131
     Align = alTop
     AutoSize = True
@@ -128,10 +129,11 @@ object frmMain: TfrmMain
     ParentBackground = False
     TabOrder = 1
     OnResize = rzToolbarsResize
+    ExplicitWidth = 1178
     object rztFile: TRzToolbar
-      Left = 2
+      Left = 3
       Top = 1
-      Width = 487
+      Width = 649
       Align = alNone
       AutoResize = False
       AutoStyle = False
@@ -157,6 +159,8 @@ object frmMain: TfrmMain
         tbCheckIn
         tbCheckOut
         tbOnline
+        tbAbout
+        tbClose
         RzSpacer1)
       object tbOpen: TRzToolButton
         Left = 1
@@ -186,14 +190,15 @@ object frmMain: TfrmMain
       object tbCheckIn: TRzToolButton
         Left = 255
         Top = 4
+        Width = 70
         ImageIndex = 9
         Caption = 'Check In'
         OnClick = mniFileCheckInClick
       end
       object tbCheckOut: TRzToolButton
-        Left = 315
+        Left = 325
         Top = 4
-        Width = 62
+        Width = 78
         ImageIndex = 10
         Caption = 'Check Out'
         OnClick = mniFileCheckOutClick
@@ -204,21 +209,37 @@ object frmMain: TfrmMain
         Action = ActHomePage
       end
       object RzSpacer1: TRzSpacer
-        Left = 460
+        Left = 622
         Top = 4
       end
       object tbOnline: TRzToolButton
-        Left = 377
+        Left = 403
         Top = 4
-        Width = 83
+        Width = 99
         ImageIndex = 20
         Caption = 'Banklink Online'
         OnClick = tbOnlineClick
       end
+      object tbAbout: TRzToolButton
+        Left = 502
+        Top = 4
+        Caption = 'About'
+        Visible = False
+        OnClick = mniHelpAboutClick
+      end
+      object tbClose: TRzToolButton
+        Left = 562
+        Top = 4
+        ImageIndex = 2
+        Images = AppImages.Maintain
+        Caption = 'Close'
+        Visible = False
+        OnClick = tbCloseClick
+      end
     end
     object rztClient: TRzToolbar
       Left = 2
-      Top = 34
+      Top = 35
       Width = 536
       Align = alNone
       AutoResize = False
@@ -248,37 +269,39 @@ object frmMain: TfrmMain
       object tbCoding: TRzToolButton
         Left = 1
         Top = 4
+        Width = 61
         ImageIndex = 11
         Caption = 'Coding'
         OnClick = mniDECodeEntriesClick
       end
       object tbBudget: TRzToolButton
-        Left = 61
+        Left = 62
         Top = 4
+        Width = 62
         ImageIndex = 12
         Caption = 'Budget'
         OnClick = mniDEEnterBudgetsClick
       end
       object tbReport: TRzToolButton
-        Left = 121
+        Left = 124
         Top = 4
-        Width = 74
+        Width = 80
         DropDownMenu = popReport
         ImageIndex = 13
         ToolStyle = tsDropDown
         Caption = 'Reports'
       end
       object tbGraph: TRzToolButton
-        Left = 195
+        Left = 204
         Top = 4
-        Width = 74
+        Width = 76
         DropDownMenu = popGraph
         ImageIndex = 14
         ToolStyle = tsDropDown
         Caption = 'Graphs'
       end
       object tbGST: TRzToolButton
-        Left = 269
+        Left = 280
         Top = 4
         Width = 74
         DropDownMenu = popGST
@@ -287,13 +310,13 @@ object frmMain: TfrmMain
         Caption = 'GST'
       end
       object RzToolButton13: TRzToolButton
-        Left = 343
+        Left = 354
         Top = 4
         Action = actTasks
         Caption = 'Tasks'
       end
       object RzSpacer2: TRzSpacer
-        Left = 403
+        Left = 414
         Top = 4
       end
     end
@@ -333,6 +356,7 @@ object frmMain: TfrmMain
         tbUPI
         tbQuery
         tbCodingHelp
+        tbCodingClose
         RzSpacer4)
       object tbCodingHelp: TRzToolButton
         Left = 61
@@ -342,7 +366,7 @@ object frmMain: TfrmMain
         OnClick = tbCodingHelpClick
       end
       object tbUPI: TRzToolButton
-        Left = 749
+        Left = 754
         Top = 4
         Width = 74
         DropDownMenu = popUPI
@@ -352,7 +376,7 @@ object frmMain: TfrmMain
         OnClick = tbUPIClick
       end
       object tbFind: TRzToolButton
-        Left = 689
+        Left = 694
         Top = 4
         AllowAllUp = True
         GroupIndex = 44
@@ -361,7 +385,7 @@ object frmMain: TfrmMain
         OnClick = tbFindClick
       end
       object tbView: TRzToolButton
-        Left = 615
+        Left = 620
         Top = 4
         Width = 74
         DropDownMenu = popView
@@ -370,21 +394,22 @@ object frmMain: TfrmMain
         Caption = 'View'
       end
       object tbRepeat: TRzToolButton
-        Left = 555
+        Left = 557
         Top = 4
+        Width = 63
         ImageIndex = 6
         Caption = 'Repeat'
         OnClick = tbRepeatClick
       end
       object tbGoto: TRzToolButton
-        Left = 495
+        Left = 497
         Top = 4
         ImageIndex = 5
         Caption = 'Goto'
         OnClick = tbGotoClick
       end
       object tbSort: TRzToolButton
-        Left = 421
+        Left = 423
         Top = 4
         Width = 74
         DropDownMenu = popSortBy
@@ -393,7 +418,7 @@ object frmMain: TfrmMain
         Caption = 'Sort'
       end
       object tbSuper: TRzToolButton
-        Left = 361
+        Left = 363
         Top = 4
         ImageIndex = 11
         Caption = 'Super'
@@ -402,6 +427,7 @@ object frmMain: TfrmMain
       object tbDissect: TRzToolButton
         Left = 301
         Top = 4
+        Width = 62
         ImageIndex = 3
         Caption = 'Dissect'
         OnClick = tbDissectClick
@@ -442,7 +468,7 @@ object frmMain: TfrmMain
         OnClick = tbQueryClick
       end
       object RzSpacer4: TRzSpacer
-        Left = 121
+        Left = 181
         Top = 29
       end
       object tbJob: TRzToolButton
@@ -452,11 +478,20 @@ object frmMain: TfrmMain
         Caption = 'Job'
         OnClick = tbJobClick
       end
+      object tbCodingClose: TRzToolButton
+        Left = 121
+        Top = 29
+        ImageIndex = 2
+        Images = AppImages.Maintain
+        Caption = 'Close'
+        Visible = False
+        OnClick = tbCodingCloseClick
+      end
     end
     object rztBudget: TRzToolbar
       Left = 2
-      Top = 69
-      Width = 808
+      Top = 70
+      Width = 859
       Align = alNone
       AutoResize = False
       AutoStyle = False
@@ -487,6 +522,7 @@ object frmMain: TfrmMain
         tbBudgetHide
         tbBudgetShow
         tbBudgetHelp
+        tbBudgetClose
         RzSpacer3)
       object tbZero: TRzToolButton
         Left = 61
@@ -501,51 +537,55 @@ object frmMain: TfrmMain
       object tbGenerate: TRzToolButton
         Left = 149
         Top = 4
+        Width = 73
         ImageIndex = 0
         Caption = 'Generate'
         OnClick = tbGenerateClick
       end
       object tbSmooth: TRzToolButton
-        Left = 209
+        Left = 222
         Top = 4
+        Width = 64
         ImageIndex = 4
         Caption = 'Smooth'
         OnClick = tbSmoothClick
       end
       object RzSpacer8: TRzSpacer
-        Left = 269
+        Left = 286
         Top = 4
       end
       object tbAverage: TRzToolButton
-        Left = 277
+        Left = 294
         Top = 4
+        Width = 69
         ImageIndex = 3
         Caption = 'Average'
         OnClick = tbAverageClick
       end
       object tbCopy: TRzToolButton
-        Left = 337
+        Left = 363
         Top = 4
         ImageIndex = 1
         Caption = 'Copy'
         OnClick = tbCopyClick
       end
       object tbIncrease: TRzToolButton
-        Left = 397
+        Left = 423
         Top = 4
+        Width = 65
         ImageIndex = 6
         Caption = 'Inc/Dec'
         OnClick = tbIncreaseClick
       end
       object tbSplit: TRzToolButton
-        Left = 457
+        Left = 488
         Top = 4
         ImageIndex = 2
         Caption = 'Split'
         OnClick = tbSplitClick
       end
       object tbBudgetHelp: TRzToolButton
-        Left = 652
+        Left = 707
         Top = 4
         ImageIndex = 20
         Images = AppImages.Maintain
@@ -553,20 +593,21 @@ object frmMain: TfrmMain
         OnClick = tbBudgetHelpClick
       end
       object RzSpacer3: TRzSpacer
-        Left = 712
+        Left = 827
         Top = 4
       end
       object tbBudgetHide: TRzToolButton
-        Left = 517
+        Left = 548
         Top = 4
-        Width = 75
+        Width = 91
         ImageIndex = 7
         Caption = 'Hide Unused '
         OnClick = tbBudgetHideClick
       end
       object tbBudgetShow: TRzToolButton
-        Left = 592
+        Left = 639
         Top = 4
+        Width = 68
         Hint = 'Show all rows'
         ImageIndex = 8
         Caption = 'Show All'
@@ -578,6 +619,15 @@ object frmMain: TfrmMain
         ImageIndex = 9
         Caption = 'Chart'
         OnClick = tbBudgetChartClick
+      end
+      object tbBudgetClose: TRzToolButton
+        Left = 767
+        Top = 4
+        ImageIndex = 2
+        Images = AppImages.Maintain
+        Caption = 'Close'
+        Visible = False
+        OnClick = tbBudgetCloseClick
       end
     end
   end

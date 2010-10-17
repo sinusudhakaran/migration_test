@@ -44,6 +44,7 @@ type
     SuperTotalOther_Tax_Credit: Money;
     SuperTotalNon_Resident_Tax: Money;
     SuperTotalForeign_Capital_Gains_Credit: Money;
+    procedure ClearSuper;
   end;
 
   //decends from the base BK report object
@@ -741,6 +742,7 @@ end;
 
 procedure PrintSummaryListLedgerLine( Mgr : TListLedgerTMgr; Code : BK5CodeStr; Job: TBKReport);
 var
+  i: integer;
   P     : pAccount_Rec;
   Avg   : Currency;
   Report: TListLedgerReport;
@@ -753,6 +755,7 @@ begin
     ReportParams.ColManager.Code := Code;
     ReportParams.ColManager.OutputColumns(Report, Mgr);
     Report.RenderDetailLine;
+    Mgr.ClearSuper;
   end else begin
     if Code = '' then begin
       Report.PutString( 'Uncoded');
@@ -1216,29 +1219,7 @@ begin
          TListLedgerReport(ReportJob).ClearSubTotals;
 
          //Clear Super
-        SuperTotalImputed_Credit                := 0;
-        SuperTotalTax_Free_Dist                 := 0;
-        SuperTotalTax_Exempt_Dist               := 0;
-        SuperTotalTax_Deferred_Dist             := 0;
-        SuperTotalTFN_Credits                   := 0;
-        SuperTotalForeign_Income                := 0;
-        SuperTotalForeign_Tax_Credits           := 0;
-        SuperTotalCapital_Gains_Indexed         := 0;
-        SuperTotalCapital_Gains_Disc            := 0;
-        SuperTotalCapital_Gains_Other           := 0;
-        SuperTotalOther_Expenses                := 0;
-        SuperTotalCGT_Date                      := 0;
-        SuperTotalFranked                       := 0;
-        SuperTotalUnFranked                     := 0;
-        SuperTotalInterest                      := 0;
-        SuperTotalCapital_Gains_Foreign_Disc    := 0;
-        SuperTotalRent                          := 0;
-        SuperTotalSpecial_Income                := 0;
-        SuperTotalOther_Tax_Credit              := 0;
-        SuperTotalNon_Resident_Tax              := 0;
-        SuperTotalForeign_Capital_Gains_Credit  := 0;
-
-
+         ClearSuper;
 
 //request to show all codes regardless of any activity
          //look for all codes in between last (valid) one printed and next to be printed
@@ -1410,28 +1391,8 @@ begin
          TListLedgerReport(ReportJob).SplitCode := '';
          TListLedgerReport(ReportJob).ClearSubTotals;
 
-            //Clear Super
-         SuperTotalImputed_Credit                := 0;
-         SuperTotalTax_Free_Dist                 := 0;
-         SuperTotalTax_Exempt_Dist               := 0;
-         SuperTotalTax_Deferred_Dist             := 0;
-         SuperTotalTFN_Credits                   := 0;
-         SuperTotalForeign_Income                := 0;
-         SuperTotalForeign_Tax_Credits           := 0;
-         SuperTotalCapital_Gains_Indexed         := 0;
-         SuperTotalCapital_Gains_Disc            := 0;
-         SuperTotalCapital_Gains_Other           := 0;
-         SuperTotalOther_Expenses                := 0;
-         SuperTotalCGT_Date                      := 0;
-         SuperTotalFranked                       := 0;
-         SuperTotalUnFranked                     := 0;
-         SuperTotalInterest                      := 0;
-         SuperTotalCapital_Gains_Foreign_Disc    := 0;
-         SuperTotalRent                          := 0;
-         SuperTotalSpecial_Income                := 0;
-         SuperTotalOther_Tax_Credit              := 0;
-         SuperTotalNon_Resident_Tax              := 0;
-         SuperTotalForeign_Capital_Gains_Credit  := 0;
+         //Clear Super
+         ClearSuper;
 
 //request to show all codes regardless of any activity
          //look for all codes in between last one printed and next to be printed
@@ -2488,5 +2449,32 @@ begin
    end;
 end;
 
+
+{ TListLedgerTMgr }
+
+procedure TListLedgerTMgr.ClearSuper;
+begin
+  SuperTotalImputed_Credit                := 0;
+  SuperTotalTax_Free_Dist                 := 0;
+  SuperTotalTax_Exempt_Dist               := 0;
+  SuperTotalTax_Deferred_Dist             := 0;
+  SuperTotalTFN_Credits                   := 0;
+  SuperTotalForeign_Income                := 0;
+  SuperTotalForeign_Tax_Credits           := 0;
+  SuperTotalCapital_Gains_Indexed         := 0;
+  SuperTotalCapital_Gains_Disc            := 0;
+  SuperTotalCapital_Gains_Other           := 0;
+  SuperTotalOther_Expenses                := 0;
+  SuperTotalCGT_Date                      := 0;
+  SuperTotalFranked                       := 0;
+  SuperTotalUnFranked                     := 0;
+  SuperTotalInterest                      := 0;
+  SuperTotalCapital_Gains_Foreign_Disc    := 0;
+  SuperTotalRent                          := 0;
+  SuperTotalSpecial_Income                := 0;
+  SuperTotalOther_Tax_Credit              := 0;
+  SuperTotalNon_Resident_Tax              := 0;
+  SuperTotalForeign_Capital_Gains_Credit  := 0;
+end;
 
 end.

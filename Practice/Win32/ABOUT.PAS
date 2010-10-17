@@ -62,7 +62,7 @@ uses
    winutils,
    mimeUtils,
    bkUtil32,
-   BKDEFS, upgConstants, LicenseDlg;
+   BKDEFS, upgConstants, LicenseDlg, ThirdPartyHelper;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAbout.FormCreate(Sender: TObject);
@@ -149,6 +149,15 @@ begin
    end
    else
    begin
+     if ThirdPartyDLLDetected and ( ThirdPartySupportName <> '') then
+     begin
+       //always display third party contact details
+       lblCountry1.caption := ThirdPartySupportName;
+       lblPh1.caption      := ThirdPartySupportPhone;
+       lblEmailTo.caption  := ThirdPartySupportEmail;
+       lblWebPage.caption  := ThirdPartySupportWebsite;
+     end
+     else
      //no admin system, show contact details for the accountant
      if Assigned( MyClient) then
      begin
@@ -194,7 +203,7 @@ begin
 {$IFDEF SafeDebugMode}
    DebugLabel.Caption := 'SafeMM DEBUG MODE';
 {$ENDIF}
-  lblForSupport.Font.Style := lblForSupport.Font.Style + [fsBold]; 
+  lblForSupport.Font.Style := lblForSupport.Font.Style + [fsBold];
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAbout.btnCloseClick(Sender: TObject);
@@ -218,7 +227,7 @@ begin
     imgAbout.Picture := bkBranding.AboutImage;
   end;
 
-  if (not Assigned( AdminSystem)) and Assigned( MyClient) then
+  if (not Assigned( AdminSystem)) and (bkBranding.BrandingImageSet <> imDLL) and Assigned( MyClient) then
   begin
     //show the custom logo if there is one
     if MyClient.clFields.clPractice_Logo <> '' then

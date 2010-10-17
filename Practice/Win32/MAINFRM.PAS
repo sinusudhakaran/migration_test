@@ -408,6 +408,10 @@ type
     N99: TMenuItem;
     mniFindandReplace: TMenuItem;
     tbOnline: TRzToolButton;
+    tbClose: TRzToolButton;
+    tbBudgetClose: TRzToolButton;
+    tbCodingClose: TRzToolButton;
+    tbAbout: TRzToolButton;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -675,6 +679,9 @@ type
     procedure mniCustomDocsClick(Sender: TObject);
     procedure tbOnlineClick(Sender: TObject);
     procedure mniExtractBulkDataClick(Sender: TObject);
+    procedure tbCloseClick(Sender: TObject);
+    procedure tbBudgetCloseClick(Sender: TObject);
+    procedure tbCodingCloseClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -768,6 +775,7 @@ type
     SavedAutoSaveEnabled : Boolean;
     SavedAutoSaveInterval : Integer;
     SavedAutoSaveClient : string;
+    UsingCustomPracticeLogo : boolean;
     procedure DoMainFormCommand( command : byte; Modal : boolean = true); overload;
     procedure DoMainFormCommand( command : byte; Sender : TObject; Modal : boolean = true); overload;
 
@@ -864,6 +872,10 @@ const
   mf_DoBulkClear               = 68;
   mf_FindAndReplace            = 69;
   mf_MaintainInactiveBankAccounts = 70;
+  mf_mcSystemOptions           = 71;
+  mf_mcTrialBalance            = 72;
+  mf_mcViewCashJournals        = 73;
+  mf_mcViewAccrualJournals     = 74;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -962,6 +974,7 @@ uses
   SetCriteriaDlg,
   SetupSubgroupsFrm,
   ShellAPI,
+  SimpleUIOpenPageFrm,
   StatusFrm,
   StatsFrm,
   Templates,
@@ -1076,7 +1089,7 @@ begin
   //set the global constants for colors and graphics
   bkBranding.InitialiseGraphicsAndColors( Self.Canvas.Handle);
   lblClientName.Font.Name := Font.Name;
-
+  UsingCustomPracticeLogo := false;
 
   ShowWindow(Application.Handle, SW_HIDE);
   SetWindowLong(Application.Handle, GWL_EXSTYLE,
@@ -1328,7 +1341,17 @@ var
 {$ENDIF}
 begin
   if AdminExists then
+  begin
     DoClientManager(0, 0, 0, 0);
+    Globals.Active_UI_Style := UIS_Standard;
+  end
+  else
+  begin
+    Globals.Active_UI_Style := INI_UI_STYLE;
+  end;
+
+  if Globals.Active_UI_Style = UIS_Simple then
+    ShowSimpleUIOpen;
 
   lblClientName.Caption := '';
 
@@ -1340,11 +1363,20 @@ begin
   end;
 
   //display correct graphic
-  Self.Color := bkBranding.MainFormBackgroundColor;
-  if ( bkBranding.BannerLogo <> nil) then
-    imgLogo.Picture := bkBranding.BannerLogo;
-  if ( bkBranding.BackgroundImage <> nil) then
-    image1.Picture := bkBranding.BackgroundImage;
+  if Globals.Active_UI_Style = UIS_Simple then
+  begin
+    Self.Color := bkBranding.BKSIMPLEUI_FRAME_COLOR;
+    //no branding logo
+    //no background image
+  end
+  else
+  begin
+    Self.Color := bkBranding.MainFormBackgroundColor;
+    if ( bkBranding.BannerLogo <> nil) then
+      imgLogo.Picture := bkBranding.BannerLogo;
+    if ( bkBranding.BackgroundImage <> nil) then
+      image1.Picture := bkBranding.BackgroundImage;
+  end;
 
   AutoSaveInProgress  := False;
   AutoSaveOutstanding := False;
@@ -1554,7 +1586,7 @@ begin
     //position practice logo
     with imgPracticeLogo do
     begin
-      Top := imgLogo.Top;
+      Top := imgLogo.Top + lblVersion.Height;
       Left := TForm(Sender).ClientWidth - (imgPracticeLogo.Width + GetSystemMetrics( SM_CXVSCROLL ) + 8);
     end;
 
@@ -1829,6 +1861,7 @@ begin
   Globals.ApplicationIsTerminating := True;
   Screen.OnActiveFormChange := nil;
   CloseClientManager(False);
+  CloseSimpleUIOpen(False);
   DoMainFormCommand(mf_mcCloseFile);
   LogoutUser;
 end;
@@ -2175,10 +2208,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniFilePreferenceClick(Sender: TObject);
 begin
-  ShowOptions;
-  if not AutoSaveOutstanding then
-      ResetAutoSave;
-
+  DoMainFormCommand( mf_mcSystemOptions);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniFileCheckInClick(Sender: TObject);
@@ -2244,7 +2274,7 @@ begin
 
     //now test to see if a rollover is required, dont ask if dates didnt change
     //or if this is the first time we have set the fin year starts date
-    if ( OldFinYear > 0) and
+    if (Active_UI_Style <> UIS_Simple) and ( OldFinYear > 0) and
        ( MyClient.clFields.clFinancial_Year_Starts > OldFinYear) then
     begin
       //the year end balances routine should now be availalbe because the financial year start has been moved
@@ -3463,7 +3493,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mnsTrialBalanceClick(Sender: TObject);
 begin
-   TrialBalanceOptionsDlg.UpdateTrialBalanceReportOptions( MyClient);
+  DoMainFormCommand( mf_mcTrialBalance);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniPRCustomClick(Sender: TObject);
@@ -3739,6 +3769,17 @@ var
   ShowCustomLogo : boolean;
 begin
   ShowCustomLogo := false;
+  UsingCustomPracticeLogo := false;
+
+  //force application to use logo from Branding DLL if present
+  if (bkBranding.BrandingImageSet = imDLL) then
+  begin
+    imgPracticeLogo.Picture := bkBranding.ClientBanner;
+    imgPracticeLogo.transparent := true;
+    imgPracticeLogo.Visible := true;
+    BackGroundImageVisible  := false;
+    Exit;
+  end;
 
   if Assigned( AdminSystem) then begin
     //Display the custom practice logo if user option is on
@@ -3753,7 +3794,6 @@ begin
   end;
 
   try
-
     //decide if we should use the logo from the client file, normal client files
     //will not have a logo because this will have been removed when the file was
     //checked back into the admin system
@@ -3771,6 +3811,7 @@ begin
           try
             MyClient.clFields.clTemp_Logo_Was_Loaded_OK := LoadCustomLogoFromString( MyClient.clFields.clPractice_Logo);
             ShowCustomLogo := MyClient.clFields.clTemp_Logo_Was_Loaded_OK;
+            UsingCustomPracticeLogo := true;
           except
             On E : Exception do
               LogUtil.LogError( Unitname, E.Message);
@@ -3781,6 +3822,7 @@ begin
   finally
     imgPracticeLogo.Visible         := ShowCustomLogo;
     BackGroundImageVisible          := not imgPracticeLogo.Visible;
+    UsingCustomPracticeLogo         := ShowCustomLogo;
     //force repositioning of graphics on background
     FormResize( Self);
   end;
@@ -4161,6 +4203,7 @@ begin
   else
     ProcessFrm := nil;
 
+  mfModalCommandResult := -1;
   AutoSaveUtils.DisableAutoSave;
   try
     if Modal then DisableMainForm;
@@ -4260,6 +4303,16 @@ begin
         mf_DoBulkExtract :  BulkExtractfrm.DoBulkExtract('',False);
         mf_DoBulkClear   :  BulkExtractfrm.DoBulkExtract('',True);
         mf_FindAndReplace : FindReplacefrm.FindAndReplace;
+        mf_mcSystemOptions : begin
+          ShowOptions;
+            if not AutoSaveOutstanding then
+                 ResetAutoSave;
+        end;
+        mf_mcTrialBalance : begin
+             TrialBalanceOptionsDlg.UpdateTrialBalanceReportOptions( MyClient);
+        end;
+        mf_mcViewCashJournals : ViewJournals(btCashJournals);
+        mf_mcViewAccrualJournals : ViewJournals(btAccrualJournals);
       end;
 
       //reset auto save time after the following actions
@@ -4387,6 +4440,10 @@ begin
   begin
     SaveClient;
     DoOffsiteBackup( MyClient.clFields.clCode, True);
+    if Globals.mfModalCommandResult = 1 then
+    begin
+       MyClient.clFields.clTemp_CRC_at_Last_Backup := MyClient.clFields.clCRC_at_Last_Save;
+    end;
   end;
 end;
 
@@ -4426,6 +4483,11 @@ end;
 procedure TfrmMain.tbBudgetHelpClick(Sender: TObject);
 begin
   BKHelpShowContext( BKH_Chapter_9_Budgets);
+end;
+
+procedure TfrmMain.tbCodingCloseClick(Sender: TObject);
+begin
+   DoCodingTBarCommand(ecQuit);
 end;
 
 procedure TfrmMain.tbCodingHelpClick(Sender: TObject);
@@ -4489,9 +4551,19 @@ begin
   DoBudgetTBarCommand(ecbChart);
 end;
 
+procedure TfrmMain.tbBudgetCloseClick(Sender: TObject);
+begin
+  DoBudgetTBarCommand(ecbQuit);
+end;
+
 procedure TfrmMain.tbChartClick(Sender: TObject);
 begin
    DoCodingTBarCommand(ecChart);
+end;
+
+procedure TfrmMain.tbCloseClick(Sender: TObject);
+begin
+  Close;
 end;
 
 procedure TfrmMain.tbPayeeClick(Sender: TObject);
@@ -4744,7 +4816,7 @@ begin
     end                                            
     else
     if CommandIs( ImportKeyword) then
-    begin                                     
+    begin
        // import a TRF file..
        IncUsage('Notes DDE Import');
        F := ActiveMDIChild;

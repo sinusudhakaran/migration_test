@@ -206,6 +206,10 @@ begin
     end;
   end;
 
+  //favorite reports functionality is disabled in simpleUI
+  if Active_UI_Style = UIS_Simple then
+      btnSave.Hide;
+
   SetUpHelp;
   PageControl1.ActivePage := tbsOptions;
 end;

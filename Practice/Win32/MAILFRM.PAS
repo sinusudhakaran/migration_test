@@ -199,7 +199,7 @@ Uses
   bkconst,
   LogUtil,
   WinUtils,
-  BKDEFS, StDate, bkDateUtils, ClientHomePageFrm;
+  BKDEFS, StDate, bkDateUtils, ClientHomePageFrm, ThirdPartyHelper;
 
 {$R *.DFM}
 
@@ -225,7 +225,13 @@ begin
 
    if Assigned( AdminSystem) then
      result := whSupportEmail[ AdminSystem.fdFields.fdCountry ]
-   else begin
+   else
+   if ThirdPartyDLLDetected and ( ThirdPartySupportName <> '') then
+   begin
+     result := ThirdPartySupportEmail;
+   end
+   else
+   begin
       if Assigned( MyClient) then begin
          result := MyClient.clFields.clPractice_EMail_Address;
       end;

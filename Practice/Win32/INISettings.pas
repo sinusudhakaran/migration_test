@@ -42,6 +42,7 @@ uses
   CryptUtils,
   LockUtils,
   WinUtils,
+  ThirdPartyHelper,
   Classes,
   Windows, SHFolder;
 
@@ -137,6 +138,7 @@ var
   TempBool          : boolean;
   IniFile : TMemIniFile;
   Orig_Version  : integer;
+  iDefaultValue  : integer;
 begin
    CommonDocFolder := ShellGetFolderPath(CSIDL_APPDATA);
    DocFolder := IncludeTrailingPathDelimiter(CommonDocFolder + 'BankLink\' + SHORTAPPNAME);
@@ -185,7 +187,6 @@ begin
       INI_ShowClientProperties := IniFile.ReadBool(GrpOptions,'ClientProperties',false);
       INI_ShowFormHints := IniFile.ReadBool(GrpOptions,'ShowFormHints',true);
       INI_ShowPrintOptions := IniFile.ReadBool(GrpOptions,'ShowPrintOptions',false);
-      INI_AllowCheckOut := IniFile.ReadBool(GrpOptions,'AllowCheckOut',True);
       INI_AutoSaveTime  := IniFile.ReadInteger (GrpOptions,'AutoSaveTime', 5);
 
       INI_DownloadFrom  := IniFile.ReadString(GrpOptions,'UseFloppy','');
@@ -213,6 +214,34 @@ begin
       INI_CODING_FONT_SIZE  := IniFile.ReadInteger(GrpOptions,'CodingFontSize',0);
       INI_CODING_ROW_HEIGHT := IniFile.ReadInteger(GrpOptions,'CodingRowHeight',0);
       INI_Report_Style      := IniFile.ReadString(GrpOptions, 'ReportStyle','Simple');
+
+      //These INI settings can be set from the thirdparty DLL
+      //MH: The handling of settings from the thirdparty DLL could be extended
+      //    to allow for an INI setting to be passed into a routine that then
+      //    returns a default value or forced value.  Didnt do this yet as was
+      //    out of scope.  Would allow any INI value to be overriden.
+
+      //Allow checkout can be FORCED from DLL
+      //  -1 = not set
+      //   0 = default FALSE
+      //   1 = default TRUE
+      //   2 = FORCE FALSE
+      if ThirdPartyDLLDetected and (ThirdPartyHelper.AllowCheckOut <> -1) then
+      begin
+        if (ThirdPartyHelper.AllowCheckOut = 2) then
+          INI_AllowCheckOut := False
+        else
+          INI_AllowCheckOut := IniFile.ReadBool(GrpOptions,'AllowCheckOut',(ThirdPartyHelper.AllowCheckOut = 1)); //not set in DLL
+      end
+      else
+        INI_AllowCheckOut := IniFile.ReadBool(GrpOptions,'AllowCheckOut',True);
+
+      //UI style should be set from the dll on first run after install
+      if ThirdPartyDLLDetected then
+        iDefaultValue := ThirdPartyHelper.DefaultUIStyle
+      else
+        iDefaultValue := 0;
+      INI_UI_Style          := IniFile.ReadInteger( GrpOptions, 'UIStyle',iDefaultValue);
 
       {read MRU List}
       for i := 1 to MAX_MRU do begin
@@ -267,7 +296,7 @@ begin
       INI_BCFirewallType          := IniFile.ReadInteger( GrpBConnect, 'FirewallType', 0);
       INI_BCFirewallUseAuth       := IniFile.ReadBool   ( GrpBConnect, 'UseFirewallAuth', false);
       INI_BCFirewallUsername      := IniFile.ReadString ( GrpBConnect, 'FirewallUsername', '');
-      INI_BCHTTPMethod            := IniFile.ReadString ( GrpBConnect, 'HTTPMethod', 'https://');      
+      INI_BCHTTPMethod            := IniFile.ReadString ( GrpBConnect, 'HTTPMethod', 'https://');
 
       //Read Firewall Password - need to decrypt
       EncryptedPassword           := IniFile.ReadString ( GrpKeyring, 'Key4','');
@@ -380,6 +409,7 @@ begin
      IniFile.WriteString(GrpOptions,'PortNo',INI_SMTP_PORTNO);
      IniFile.WriteString(GrpOptions,'CodingFont',INI_Coding_Font);
      IniFile.WriteString(GrpOptions,'ReportStyle',INI_Report_Style);
+     IniFile.WriteInteger(GrpOptions,'UIStyle', INI_UI_Style);
 
      EncryptedPassword := EncryptPass16( MAIL_PASS_KEY, INI_MAPI_Password);
      iniFile.WriteString(GrpKeyring,'Key1', EncryptedPassword);

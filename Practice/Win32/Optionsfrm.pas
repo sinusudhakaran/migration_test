@@ -78,6 +78,11 @@ type
     Label11: TLabel;
     chkUseSSL: TCheckBox;
     edtPortNo: TEdit;
+    pnlUIStyle: TPanel;
+    lblUIStyle: TLabel;
+    Label12: TLabel;
+    rbGUIStandard: TRadioButton;
+    rbGUISimple: TRadioButton;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOkClick(Sender: TObject);
@@ -188,6 +193,9 @@ begin
    chkCheckout.Checked :=  INI_AllowCheckOut;
    rsAutoSaveTime.IntValue := INI_AutoSaveTime;
    rsAutoSaveTimeChange(rsAutoSaveTime);
+
+   rbGUIStandard.Checked := (INI_UI_STYLE = UIS_Standard);
+   rbGUISimple.checked   := (INI_UI_STYLE = UIS_Simple);
 
    chkMAPI.Checked     := INI_MAPI_Default;
    eProfileName.Text   := INI_MAPI_Profile;
@@ -400,6 +408,11 @@ begin
       SetTRFAssociation( as_TRFHandler);
   end;
 
+  if rbGUISimple.Checked then
+    INI_UI_STYLE := UIS_SIMPLE
+  else
+    INI_UI_STYLE := UIS_STANDARD;
+
   //links tab
   PRACINI_GST101Link := Egst101.Text;
   SetMadEmailOptions;
@@ -546,6 +559,7 @@ begin
    INI_ShowFormHints := chkShowHint.Checked;
    Self.ShowHint    := INI_ShowFormHints;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure ShowOptions;
 var
@@ -569,6 +583,7 @@ begin
       MyDlg.btnReset.Visible := False;
       MyDlg.lblFont.Visible := False;
       MyDlg.pnlCESFont.Visible := False;
+      MyDlg.pnlUIStyle.Visible := false;
     end
     else
     begin

@@ -101,6 +101,7 @@ uses
    RzButton,
    CountryUtils,
    ReportDefs,
+   SimpleUIOpenPageFrm,
    CFHead;
 
 var
@@ -128,14 +129,13 @@ begin
   try
     LockMainForm;
     for i := 0 to frmMain.MDIChildCount-1 do begin
-      if not (frmMain.MDIChildren[i] is TfrmClientManager) then
-
-      if (not (frmMain.MDIChildren[i] is TfrmClientHomePage))
-      or DoClientHomepage then
-      begin
-         if Assigned(frmMain.MDIChildren[i]) then
-           frmMain.MDIChildren[i].close;
-      end;
+      if not ((frmMain.MDIChildren[i] is TfrmClientManager) or (frmMain.MDIChildren[i] is TfrmSimpleUIOpen )) then
+        if (not (frmMain.MDIChildren[i] is TBaseClientHomePage))
+        or DoClientHomepage then
+        begin
+           if Assigned(frmMain.MDIChildren[i]) then
+             frmMain.MDIChildren[i].close;
+        end;
     end;
     Application.ProcessMessages;  //force update of MDI child counter,
                                   //allows forms to close
@@ -145,9 +145,9 @@ begin
   end;
 
   Result := (frmMain.MDIChildCount = 0)
-         or ( (frmMain.MDIChildren[0] is TfrmClientHomePage) and (not DoClientHomepage))
-         or (frmMain.MDIChildren[0] is TfrmClientManager);
-
+         or ((frmMain.MDIChildren[0] is TBaseClientHomePage) and (not DoClientHomepage))
+         or (frmMain.MDIChildren[0] is TfrmClientManager)
+         or (frmMain.MDIChildren[0] is TfrmSimpleUIOpen );
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure CloseAllCodingForms;
@@ -205,9 +205,9 @@ begin
      begin
         TfrmCoding(frmMain.MDIChildren[i]).Reload;
         Application.ProcessMessages;  //force update of MDI Child counter
-     end else if (frmMain.MDIChildren[i] is TfrmClientHomePage) then
+     end else if (frmMain.MDIChildren[i] is TBaseClientHomePage) then
      begin
-        TfrmClientHomePage(frmMain.MDIChildren[i]).RefreshRequest := [HPR_Coding];
+        TBaseClientHomePage(frmMain.MDIChildren[i]).RefreshRequest := [HPR_Coding];
         Application.ProcessMessages;  //force update of MDI Child counter
      end
 end;
@@ -420,6 +420,34 @@ begin
        mniReportOption.Visible := True;
        n41.Visible := True;
     end;
+
+    //override everything if simpleUI
+    if Active_UI_Style = UIS_Simple then
+    begin
+      //disable items on main toolbar
+      tbcheckin.visible := false;
+      tbcheckout.visible := false;
+      tbOnline.Visible := false;
+      tbQuery.Visible := false;
+
+      //turn on extra buttons for simpleUI
+      tbClose.Visible := true;
+      tbCodingClose.Visible := true;
+      tbAbout.Visible := true;
+      tbBudgetClose.Visible := true;
+
+      //turn off the high level menu items
+      mnsFile.Visible := false;
+      mnsDataEntry.Visible := false;
+      mnsReport.visible := false;
+      mnsGraph.visible := false;
+      mnsOtherfunctions.visible := false;
+      mnssystem.Visible := false;
+      mnsWindow.Visible := false;
+      mnsHelp.Visible := false;
+      mnsTest.Visible := false;
+    end;
+
     rztFile.PositionControls;
     bkArrangeToolBars;
   end;
@@ -628,8 +656,10 @@ begin
      actTasks.Visible := UsingAdmin and ( not RestrictedUser);
 
      //toolbar
-     //tbarClient.Visible := ClientFileOpen;
-     rztClient.Visible := ClientFileOpen;
+     if Globals.Active_UI_Style = UIS_Simple then
+       rztClient.Visible := false
+     else
+       rztClient.Visible := ClientFileOpen;
 
      //offsite download
      if ClientFileOpen and (MyClient.clFields.clDownload_From <> dlAdminSystem) then begin
@@ -678,7 +708,7 @@ begin
         N21.visible := false;
      end;
 
-     tbOnline.Visible := length(PRACINI_OnlineLink) > 0; 
+     tbOnline.Visible := length(PRACINI_OnlineLink) > 0;
 
      // Hide Web Export if no format selected or if OZ
      if ClientFileOpen then begin
@@ -854,6 +884,9 @@ begin
   end;
   // While we are here..
   HideJournalItems(not CodingForm.IsJournal);
+
+  if (Globals.Active_UI_Style = UIS_Simple) then
+     frmMain.tbQuery.Visible := false;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function CodingWindowLoaded : boolean;
@@ -1246,8 +1279,8 @@ begin
    for i := 0 to frmMain.MDIChildCount - 1 do    // Iterate
       if (frmMain.MDIChildren[i] is TfrmCoding) then
          TfrmCoding(frmMain.MDIChildren[i]).ProcessExternalCmd( command)
-      else if (frmMain.MDIChildren[i] is TfrmClientHomePage) then
-         TfrmClientHomePage(frmMain.MDIChildren[i]).ProcessExternalCmd( command)
+      else if (frmMain.MDIChildren[i] is TBaseClientHomePage) then
+         TBaseClientHomePage(frmMain.MDIChildren[i]).ProcessExternalCmd( command)
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AccountVisible(Acct : TBank_Account) : boolean;

@@ -7497,6 +7497,7 @@ var
 
   var
     found : boolean;
+    UserSelectedAccounts : boolean;
 begin
   cLoaded   := CodingWindowLoaded;
 
@@ -7526,8 +7527,30 @@ begin
 
       //select accounts to show, current account will be selected automatically
       //if it is the only account
-      if SelectBankAccounts('Select Bank Accounts for Coding',SelectedList,selectWithTrx,DateFrom, DateTo,false,
-                            BKH_Selecting_from_multiple_bank_accounts ) then
+      UserSelectedAccounts := false;
+      if Globals.Active_UI_Style in [UIS_Simple] then
+      begin
+        //simple UI only allows the selection of one account at a time
+        BankAccount := SelectBankAccount( 'Select Bank Account for Coding',
+                                          SelectWithTrx,
+                                          DateFrom,
+                                          DateTo,
+                                          False, //no jnls
+                                          BKH_Selecting_from_multiple_bank_accounts);
+        if Assigned( BankAccount) then
+        begin
+          SelectedList.Clear;
+          SelectedList.AddObject( BankAccount.baFields.baBank_Account_Number,BankAccount);
+          UserSelectedAccounts := true;
+        end;
+      end
+      else
+      begin
+        UserSelectedAccounts := SelectBankAccounts('Select Bank Accounts for Coding',SelectedList,selectWithTrx,DateFrom, DateTo,false,
+                            BKH_Selecting_from_multiple_bank_accounts );
+      end;
+
+      if UserSelectedAccounts then
       begin
         //close all existing coding forms
         UPDATEMF.CloseAllCodingForms;

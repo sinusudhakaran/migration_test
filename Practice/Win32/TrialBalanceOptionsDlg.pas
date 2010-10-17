@@ -201,6 +201,10 @@ begin
      cmbStartMonth.Items.Add( moNames[ i]);
    //set default
   cmbStartMonth.ItemIndex := 0;
+
+  //favorite reports functionality is disabled in simpleUI
+  if Active_UI_Style = UIS_Simple then
+     btnSave.Hide;
 end;
 
 procedure TdlgTrialBalanceOptions.FormDestroy(Sender: TObject);

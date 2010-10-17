@@ -67,7 +67,7 @@ type
     property Pressed : integer read FPressed write SetPressed;
   end;
 
-function SelectBudget(Title : string; StartDate : TstDate = 0) : tBudget;
+function SelectBudget(Title : string; StartDate : TstDate = 0; ShowToolbar : boolean = false) : tBudget;
 function SelectBudgets(Title: string; SelectedList : TstringList) : boolean;
 
 function SelectBudgetToPrint(Title :string; var Btn : integer) : tBudget;
@@ -167,44 +167,60 @@ var
    i,j : integer;
    Budget : TBudget;
    NewITem : TListItem;
+   KillCheckedList : boolean;
 begin
-   {store check marks for current}
-   CheckedList.Clear;
-   for i := 0 to lvBudget.Items.Count -1 do
-     if lvBudget.Items[i].Selected then
-     begin
-       Budget :=  tBudget(lvBudget.items[i].SubItems.Objects[0]);
-       CheckedList.AddObject(Budget.buFields.buName,Budget);
-     end;
+   KillCheckedList := false;
+   if not Assigned(CheckedList) then
+   begin
+     CheckedList := TStringList.Create;
+     KillCheckedList := true;
+   end;
 
-   lvBudget.Items.BeginUpdate;
-   try
-     lvBudget.Items.Clear;
-     {add available accounts}
-     with MyClient.clBudget_List do
-     for i := ItemCount-1 downto 0 do
-     begin
-       with Budget_At(i) do
+  try
+     {store check marks for current}
+     CheckedList.Clear;
+     for i := 0 to lvBudget.Items.Count -1 do
+       if lvBudget.Items[i].Selected then
        begin
-          NewItem := lvBudget.Items.Add;
-          NewItem.Caption := ' ';
-          NewItem.ImageIndex := -1;
-          NewItem.SubItems.AddObject(buFields.buName,Budget_At(i));
-          NewItem.SubItems.Add(bkDate2Str(buFields.buStart_Date));
-          
+         Budget :=  tBudget(lvBudget.items[i].SubItems.Objects[0]);
+         CheckedList.AddObject(Budget.buFields.buName,Budget);
        end;
-     end;
 
-     {check any that are already selected}
-     for i := 0 to CheckedList.Count-1 do
-     begin
-       for j := 0 to lvBudget.items.count -1 do
-         if TBudget(CheckedList.Objects[i]) = TBudget(lvBudget.items[j].subitems.objects[0]) then
-          lvBudget.items[j].checked := true;
+     lvBudget.Items.BeginUpdate;
+     try
+       lvBudget.Items.Clear;
+       {add available accounts}
+       with MyClient.clBudget_List do
+       for i := ItemCount-1 downto 0 do
+       begin
+         with Budget_At(i) do
+         begin
+            NewItem := lvBudget.Items.Add;
+            NewItem.Caption := ' ';
+            NewItem.ImageIndex := -1;
+            NewItem.SubItems.AddObject(buFields.buName,Budget_At(i));
+            NewItem.SubItems.Add(bkDate2Str(buFields.buStart_Date));
+
+         end;
+       end;
+
+       {check any that are already selected}
+       for i := 0 to CheckedList.Count-1 do
+       begin
+         for j := 0 to lvBudget.items.count -1 do
+           if TBudget(CheckedList.Objects[i]) = TBudget(lvBudget.items[j].subitems.objects[0]) then
+            lvBudget.items[j].checked := true;
+       end;
+     finally
+       CheckedList.Clear;
+       lvBudget.items.EndUpdate;
      end;
    finally
-     CheckedList.Clear;
-     lvBudget.items.EndUpdate;
+     if KillCheckedList then
+     begin
+       CheckedList.Free;
+       CheckedList := nil;
+     end;
    end;
 end;
 //------------------------------------------------------------------------------
@@ -251,19 +267,45 @@ end;
 procedure TfrmBudgetLook.tbDeleteClick(Sender: TObject);
 var
   i : Integer;
+  KillCheckedList : boolean;
 begin
-  CheckedList.Clear;
-  for i := 0 to lvBudget.items.Count-1 do
-    with lvBudget.Items[i] do
-      if Checked then
-        CheckedList.AddObject(SubItems[0],lvBudget.items[i].SubItems.Objects[0]);
-
-  if (CheckedList.Count > 0) then
+  KillCheckedList := false;
+  if not Assigned(CheckedList) then
   begin
-    //b := TBudget(lvBudget.Selected.SubItems.Objects[0]);
-    //if DeleteBudget(b) then RefreshList;
-    if DeleteBudgets then RefreshList;
+    CheckedList := TStringList.Create;
+    KillCheckedList := true;
   end;
+
+  try
+    CheckedList.Clear;
+    if (Globals.Active_UI_Style = UIS_Simple) then
+    begin
+      for i := 0 to lvBudget.items.Count-1 do
+        with lvBudget.Items[i] do
+          if Selected then
+            CheckedList.AddObject(SubItems[0],lvBudget.items[i].SubItems.Objects[0]);
+    end else
+    begin
+      for i := 0 to lvBudget.items.Count-1 do
+        with lvBudget.Items[i] do
+          if Checked then
+            CheckedList.AddObject(SubItems[0],lvBudget.items[i].SubItems.Objects[0]);
+    end;
+
+    if (CheckedList.Count > 0) then
+    begin
+      //b := TBudget(lvBudget.Selected.SubItems.Objects[0]);
+      //if DeleteBudget(b) then RefreshList;
+      if DeleteBudgets then RefreshList;
+    end;
+  finally
+    if KillCheckedList then
+    begin
+      CheckedList.Free;
+      CheckedList := nil;
+    end;
+  end;
+
 end;
 //------------------------------------------------------------------------------
 procedure TfrmBudgetLook.tbNewClick(Sender: TObject);
@@ -405,7 +447,7 @@ begin
    result := (Pressed = BTN_OKPRINT) or (Pressed = BTN_PREVIEW);
 end;
 //------------------------------------------------------------------------------
-function SelectBudget(Title : string; StartDate : TstDate = 0) : tBudget;
+function SelectBudget(Title : string; StartDate : TstDate = 0; ShowToolbar : boolean = false) : tBudget;
 var
   rpD, rpM, rpY : Integer;
   buD, buM, buY : Integer;
@@ -414,7 +456,10 @@ var
   NewItem : TListItem;
 begin
   result := nil;
-  if not HasBudgets then exit;
+
+  //exit straight away if not budgets
+  if not ShowToolbar then
+    if not HasBudgets then exit;
 
   if (StartDate = 0) then
     rpM := 0
@@ -428,7 +473,7 @@ begin
        lvBudget.Checkboxes := false;
        btnSelect.visible := false;
        btnClear.visible := false;
-       tbarMaintain.Visible := false;
+       tbarMaintain.Visible := ShowToolbar;
 
        {add available accounts}
        with MyClient.clBudget_List do
@@ -452,27 +497,25 @@ begin
          end;
        end;
 
-       case lvBudget.Items.Count of
-         0 :
-           HelpfulInfoMsg('There are no budgets available for ' + moNames[rpM], 0);
-         1 :
-           begin
-             if lvBudget.Items.Count =1 then
-               result := tBudget(lvBudget.items[0].SubItems.Objects[0]);
-           end;
-       else
-         begin
-           if Execute then
-           begin
-             if lvBudget.Selected <> nil then
-               result := tBudget(lvBudget.Selected.SubItems.Objects[0])
-             else
-               result := nil;
-           end
-           else
-             result := nil;
-         end
+       if ( lvBudget.Items.Count = 0 ) and ( not ShowToolbar) then begin
+          HelpfulInfoMsg('There are no budgets available for ' + moNames[rpM], 0);
+          Exit;
        end;
+
+       if ( lvBudget.Items.Count = 1 ) and ( not ShowToolbar) then begin
+         result := tBudget(lvBudget.items[0].SubItems.Objects[0]);
+         exit;
+       end;
+
+       if Execute then
+       begin
+         if lvBudget.Selected <> nil then
+           result := tBudget(lvBudget.Selected.SubItems.Objects[0])
+         else
+           result := nil;
+       end
+       else
+         result := nil;
      end; {with}
   finally
      MyDlg.Free;

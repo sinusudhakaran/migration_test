@@ -7,6 +7,7 @@ uses
 
 procedure EnterJournal(Account_Type : integer; ForDate : Integer = 0);
 function GetJournalAccount(Account_Type : integer) : tBank_Account;
+procedure ViewJournals(Account_Type : integer);
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 implementation
@@ -27,7 +28,8 @@ uses
    bkConst,
    ApplicationUtils,
    jnlutils32,
-   CountryUtils;
+   CountryUtils,
+   InfoMoreFrm;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetJournalAccount(Account_Type : integer) : tBank_Account;
@@ -71,6 +73,8 @@ var
      end;
 
   end;
+var
+  HideViewButton : boolean;
 begin
   if not Assigned(myClient) then
      Exit;
@@ -92,6 +96,8 @@ begin
      else  h := 0;
    end;
    Transaction := nil;
+   HideViewButton := (Globals.Active_UI_Style = UIS_Simple);
+
    case SelectJournal( Account_Type, Bank_Account, ForDate,Transaction,JA, h,False) of
       mrRetry : begin // View Month...
          Dr := GetMonthDateRange(ForDate);
@@ -100,13 +106,57 @@ begin
       mrOk : begin
          EditJournalEntry(Bank_Account, Transaction, Account_Type, 0, JA);
          JnlUtils32.RemoveJnlAccountIfEmpty(MyClient, Bank_Account);
-         Dr := GetMonthDateRange(ForDate);
-         if HasJournalsInMonth(Bank_Account,DR) then
-            CodeRange;
+
+         if not(Globals.Active_UI_Style = UIS_Simple) then
+         begin
+           Dr := GetMonthDateRange(ForDate);
+           if HasJournalsInMonth(Bank_Account,DR) then
+              CodeRange;
+         end;
       end;
    end;
-
-
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure ViewJournals(Account_Type : integer);
+var
+  DR : TDateRange;
+  bank_Account : tBank_Account;
+
+  procedure CodeRange;
+  begin
+     ApplicationUtils.DisableMainForm;
+     try
+       CodeTheseEntries(DR.Fromdate, DR.ToDate ,bank_Account, [CC_GotoFirstUncoded]);
+     finally
+        ApplicationUtils.EnableMainForm;
+        ApplicationUtils.MakeMainFormForeground;
+     end;
+  end;
+
+begin
+  //use current coding range as default
+  DR.FromDate := gCodingDateFrom;
+  DR.ToDate   := gCodingDateTo;
+
+  if not Assigned(myClient) then
+     Exit;
+
+  //check that this journal account exists
+  CloseAllCodingForms; // Has to be before GetJournalAccount, because it may remove the account (if Empty)
+  Bank_Account := GetJournalAccount(Account_Type);
+  if not Assigned(Bank_Account) then
+    Exit;
+
+
+  //prompt user for date range
+  if CodeDateDlg.EnterDateRange( 'Select Date Range', 'Please select a date range to view journal entries from.', DR.FromDate , DR.ToDate, 0, false, false) then
+  begin
+    //check if there are any journals in this range
+    if HasJournalsInMonth( Bank_Account, DR) then
+      CodeRange
+    else
+      HelpfulInfoMsg('There are no journal entries in this date range.',0);
+  end;
+end;
+
 end.

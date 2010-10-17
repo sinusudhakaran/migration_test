@@ -249,6 +249,10 @@ begin
   AllData1.Visible  := false;
   {$ENDIF}
 
+  //favorite reports functionality is disabled in simpleUI
+  if Active_UI_Style = UIS_Simple then
+     btnSave.Hide;
+
   //load lists
   fmeAccountSelector1.LoadAccounts( MyClient, BKCONST.TransferringJournalsSet);
   fmeAccountSelector1.btnSelectAllAccounts.Click;

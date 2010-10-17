@@ -1067,7 +1067,7 @@ F|List Payees Rule_Line|Y
 F|Custom SFLedger Titles|BS|1|60
 F|SUI Period Start|D
 F|SUI Period End|D
-F|SUI Period Status|L
+F|Spare Integer|L
 F|SUI Step Done|BY0|32
 F|Send Job List|Y
 E

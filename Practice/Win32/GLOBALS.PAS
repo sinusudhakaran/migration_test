@@ -226,6 +226,10 @@ CONST
     ExtendedMapiDllName = 'bkExtMapi.dll';
     MapiAuthKey = 'bkExtendedMAPI';
 
+    //ui style
+    UIS_Standard = 0;
+    UIS_Simple   = 1;
+
     // Startup actions
     sa_BulkExport = 1;
     sa_Connect = 2;
@@ -271,6 +275,7 @@ var
     MaxLoginAttempts         : integer = 5;
     SuperUserLoggedIn        : boolean = false;
     AppCriticalErrorOccured  : boolean = false;
+    mfModalCommandResult : integer = 0;    //MH - used to store the result of the last modal command, -1 is failed
     gCodingDateFrom,
     gCodingDateTo            : TSTDate;
     // AppHelpForm              : TfrmHelp;
@@ -413,6 +418,9 @@ var
     INI_CustomColors: string;
 
     PRACINI_Check_Data_Minutes: Integer;
+
+    INI_UI_Style : integer = 0;
+    Active_UI_Style : integer = 0;     //independant of INI setting so can override in Practice
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //general user settings

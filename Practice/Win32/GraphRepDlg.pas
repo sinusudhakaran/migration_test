@@ -140,7 +140,9 @@ begin
   cmbStartMonth.Visible := True;
   spnStartYear.Visible := True;
 {$ENDIF}
-
+  //favorite reports functionality is disabled in simpleUI
+  if Active_UI_Style = UIS_Simple then
+     btnSave.Hide;
   SetUpHelp;
 end;
 //------------------------------------------------------------------------------

@@ -848,16 +848,16 @@ begin
       DisplayDisconnected;
   end;
 
-  if Success and (FilesDownloaded = 0) then
-    MessageDlg('There are no additional files to download.',
-      mtInformation, [mbOk], 0)
-  else
-    if Success and (FilesDownloaded > 0) then
-      begin
-        MessageDlg(Format ('Download complete!'+#13#13+'%d file(s) downloaded.', [FilesDownloaded]),
-          mtInformation, [mbOk], 0);
+  if (Sender <> nil) // Dont Prompt when Auto
+  and Success then begin
+       if (FilesDownloaded = 0) then
+          MessageDlg('There are no additional files to download.',mtInformation, [mbOk], 0)
+       else if FilesDownloaded > 0 then begin
+          MessageDlg(Format ('Download complete!'#13#13'%d file(s) downloaded.', [FilesDownloaded]),
+               mtInformation, [mbOk], 0);
         Close;
       end;
+  end;
 end;
 
 //******************************************************************************

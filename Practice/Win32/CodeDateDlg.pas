@@ -148,6 +148,10 @@ begin
   lblData.caption := 'Transactions from: '+bkDate2Str(FTransactionsFrom)+ ' to '+bkDate2Str(FTransactionsTo);
 
   SetUpHelp;
+
+  //favorite reports functionality is disabled in simpleUI
+  if Active_UI_Style = UIS_Simple then
+     btnSave.Hide;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgCodeDate.SetUpHelp;

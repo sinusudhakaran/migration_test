@@ -37,7 +37,8 @@ type
                           ecbPercentageChange,
                           ecbHideUnused,
                           ecbShowAll,
-                          ecbChart
+                          ecbChart,
+                          ecbQuit
                           );
 
 type
@@ -895,11 +896,6 @@ begin
   caption := 'Edit Budget '+Budget.buFields.buName;
   edtName.text := Budget.buFields.buName;
   lblName.Caption := Budget.buFields.buName;
-{$IFDEF SmartBooks}
-  edtName.text := '';
-  lblName.Caption := ''
-{$ENDIF}
-
   lblStart.caption   := 'Starts '+bkDate2Str(Budget.buFields.buStart_Date);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1736,9 +1732,7 @@ begin
        ecbHideUnused: DoHideUnused;
        ecbShowAll  : DoShowAll;
        ecbChart    : DoChartLookup;
-       {$IFDEF SmartBooks}
        ecbQuit     : Close;
-       {$ENDIF}
      end;
    finally
      EnableAutoSave;
@@ -1827,6 +1821,8 @@ var
          BudgetScreen.Close;
      end;
 
+var
+  UserSelectedBudgets : boolean;
 begin
   if not Assigned( MyClient) then exit;
   SelectedList  := TStringList.Create;
@@ -1838,7 +1834,23 @@ begin
       SelectedList.AddObject(Budget.buFields.buName,Budget);
     end;
 
-    if SelectBudgets('Select Budgets to Edit',SelectedList) then
+    //simple UI only allows one budget to be loaded
+    UserSelectedBudgets := false;
+    if Globals.Active_UI_Style in [UIS_Simple] then
+    begin
+      Budget := SelectBudget('Selected Budget to Edit',0, true);
+      if Assigned( Budget) then
+      begin
+        SelectedList.Clear;
+        SelectedList.AddObject(Budget.buFields.buName,Budget);
+        UserSelectedBudgets := true;
+      end;
+    end
+    else
+      UserSelectedBudgets := SelectBudgets('Select Budgets to Edit',SelectedList);
+
+
+    if UserSelectedBudgets then
     begin
       try
         {cycle thru bank accounts to see if should be loaded}
@@ -2162,7 +2174,6 @@ procedure TfrmBudget.tblBudgetMouseDown(Sender: TObject;
 var
   ColEstimate, RowEstimate : integer;
 begin
-{$IFNDEF SmartBooks}
   if (Button = mbRight) then begin
     //estimate where click happened
     if tblBudget.CalcRowColFromXY(x,y,RowEstimate,ColEstimate) in [ otrOutside, otrInUnused ] then
@@ -2172,7 +2183,6 @@ begin
     tblBudget.ActiveRow := RowEstimate;
     ShowPopup( x,y,popBudget);
   end;
-{$ENDIF}
 end;
 
 procedure TfrmBudget.ShowPopUp( x, y : Integer; PopMenu :TPopUpMenu );

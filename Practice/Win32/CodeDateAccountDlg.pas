@@ -144,6 +144,11 @@ begin
 
   gCodingDateFrom := MyClient.clFields.clPeriod_Start_Date;
   gCodingDateTo   := Myclient.clFields.clPeriod_End_Date;
+
+  //favorite reports functionality is disabled in simpleUI
+  if Active_UI_Style = UIS_Simple then
+     btnSave.Hide;
+
   (*
   eDateSelector.eDateFrom.asStDate := BkNull2St(gCodingDateFrom);
   eDateSelector.eDateTo.asStDate   := BkNull2St(gCodingDateTo);

@@ -29,14 +29,14 @@ object frmAbout: TfrmAbout
       448)
     object lblTitle: TLabel
       Left = 15
-      Top = 8
+      Top = 3
       Width = 338
-      Height = 34
+      Height = 45
       AutoSize = False
       Caption = 'Application Title'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -24
+      Font.Height = -19
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
@@ -46,7 +46,7 @@ object frmAbout: TfrmAbout
     end
     object lblCopyright: TLabel
       Left = 16
-      Top = 64
+      Top = 56
       Width = 121
       Height = 13
       Caption = 'Copyright (c) 1998, 2002'
@@ -64,8 +64,8 @@ object frmAbout: TfrmAbout
       ShowAccelChar = False
     end
     object lblVersion: TLabel
-      Left = 15
-      Top = 44
+      Left = 16
+      Top = 75
       Width = 118
       Height = 13
       Caption = 'Version 5.2.0 (Build 123)'
@@ -73,15 +73,15 @@ object frmAbout: TfrmAbout
     end
     object lblWinVer: TLabel
       Left = 16
-      Top = 84
+      Top = 94
       Width = 70
       Height = 13
       Caption = 'Windows 2000'
       ShowAccelChar = False
     end
     object DebugLabel: TLabel
-      Left = 16
-      Top = 39
+      Left = 15
+      Top = 422
       Width = 3
       Height = 13
     end
@@ -232,8 +232,8 @@ object frmAbout: TfrmAbout
     ParentBackground = False
     TabOrder = 1
     object imgAbout: TImage
-      Left = 5
-      Top = 8
+      Left = 7
+      Top = 17
       Width = 196
       Height = 255
       Center = True

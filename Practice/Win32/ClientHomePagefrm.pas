@@ -24,13 +24,34 @@ uses
   OSFont;
 
 type
-  THP_RefreshItem = (HRP_Init, HPR_Client, HPR_Coding, HPR_Tasks, HPR_Files);
+  THP_RefreshItem = (HRP_Init, HPR_Client, HPR_Coding, HPR_Tasks, HPR_Files, HPR_Status);
   THP_Refresh = set of THP_RefreshItem;
 const
   THP_RefreshAll = [low(THP_RefreshItem) .. High(THP_RefreshItem)];
 
 type
-  TfrmClientHomePage = class(TForm)
+  TBaseClientHomepage = class(TForm)
+  private
+    //
+  protected
+    function GetTheClient : TClientObj; virtual; abstract;
+    procedure SetTheClient(const Value: TClientObj); virtual; abstract;
+    function GetRefreshRequest : THP_Refresh; virtual; abstract;
+    procedure SetRefreshRequest(const Value: THP_Refresh); virtual; abstract;
+    function GetAbandon : boolean; virtual; abstract;
+    procedure SetAbandon(const Value: Boolean); virtual; abstract;
+  public
+    property TheClient: TClientObj read GetTheClient write SetTheClient;
+    property RefreshRequest : THP_Refresh read GetRefreshRequest write SetRefreshRequest;
+    property Abandon: Boolean read GetAbandon write SetAbandon;
+
+    procedure Lock; virtual; abstract;
+    procedure Unlock; virtual; abstract;
+    procedure ProcessExternalCmd(Command : TExternalCmd); virtual; abstract;
+  end;
+
+type
+  TfrmClientHomePage = class(TBaseClientHomepage)
     gbGroupBar: TRzGroupBar;
     GrpAction: TRzGroup;
     ActionList1: TActionList;
@@ -133,7 +154,6 @@ type
     FBadForexFileName : String;
     fBadForexCurrencyCode : String;
     fBadForexAccountCode : String;
-    procedure SetTheClient(const Value: TClientObj);
 
     procedure RefreshClient;
     procedure RefreshTodo;
@@ -141,7 +161,6 @@ type
     procedure RefreshCoding;
     procedure RefreshMems;
     procedure SetShowLegend(const Value: Boolean);
-    procedure SetRefreshRequest(const Value: THP_Refresh);
     property ShowLegend : Boolean read FShowLegend write SetShowLegend;
     procedure UpdateRefresh;
     { Private declarations }
@@ -149,17 +168,22 @@ type
     procedure UpdateTabs(ActionedPage: string = '');
   protected
     procedure UpdateActions; override;
+    function GetTheClient : TClientObj; override;
+    procedure SetTheClient(const Value: TClientObj); override;
+    function GetRefreshRequest : THP_Refresh; override;
+    procedure SetRefreshRequest(const Value: THP_Refresh); override;
+    function GetAbandon : boolean; override;
+    procedure SetAbandon(const Value: Boolean); override;
+
   public
-    procedure Lock;
-    procedure Unlock;
-    property TheClient: TClientObj read FTheClient write SetTheClient;
-    property RefreshRequest : THP_Refresh read FRefreshRequest write SetRefreshRequest;
-    procedure ProcessExternalCmd(Command : TExternalCmd);
-    property Abandon: Boolean read FAbandon write FAbandon;
+    procedure Lock; override;
+    procedure Unlock; override;
+    procedure ProcessExternalCmd(Command : TExternalCmd); override;
     { Public declarations }
   end;
 
-function ClientHomePage: TfrmClientHomePage;
+function ClientHomePage: TBaseClientHomepage;
+procedure SetClientHomePageToNil;   //called by SimpleUIHomepage
 
 procedure RefreshHomepage (Value : THP_Refresh = THP_RefreshAll; ActionedPage: string = '');
 
@@ -187,11 +211,11 @@ uses
   Extract32,
   Globals,SYDEFS, ToDoListUnit,StDate,Math,MainFrm, BKdateUtils, UpdateMF,baObj32,
   ApplicationUtils, AutoSaveUtils, rptHome, ClientNotesFrm, Files, ClientManagerFrm, BudgetFrm,
-  bkXPThemes, ShellAPI, ForexUtils;
+  bkXPThemes, ShellAPI, ForexUtils, SimpleUIHomepagefrm;
 {$R *.dfm}
 
 var
-  FClientHomePage: TfrmClientHomePage;
+  FClientHomePage: TBaseClientHomePage;
   DebugMe : boolean = false;
 
 const
@@ -210,8 +234,15 @@ begin
      UpDateMF.LockMainForm;
      try try
         ProcessFrm.Show;
-        FClientHomePage := TfrmClientHomePage.Create(MDIParentForm);
-
+        //global var determine which UI to load
+        if Active_UI_Style = UIS_Standard then
+        begin
+          FClientHomePage := TfrmClientHomePage.Create(MDIParentForm);
+        end
+        else
+        begin
+           FClientHomepage := TfrmSimpleUIHomepage.Create(MDIParentForm);
+        end;
      except
         FClientHomePage := nil;
         if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Homepage Failed');
@@ -226,20 +257,39 @@ begin
   Result := FClientHomePage;
 end;
 
+procedure SetClientHomePageToNil;
+//mh: called externally to so that function ClientHomePage returns nil
+begin
+   FClientHomePage := nil;
+end;
+
 procedure RefreshHomepage (Value : THP_Refresh = THP_RefreshAll; ActionedPage: string = '');
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshHomepage');
   if assigned(MyClient) then begin
      // Something to refresh..
-     if assigned(FClientHomePage) then begin
+     if assigned(FClientHomePage) then
+     begin
+        //already have a homepage, just queue the request
         FClientHomePage.RefreshRequest := Value;
-     end else begin// have no Homepage...
+     end
+     else
+     begin// have no Homepage but do have an open client file
         // But I DO want one...
         if HRP_Init in Value then
-           ClientHomePage.TheClient := MyClient;
+        begin
+           ClientHomePage.TheClient := MyClient; //this triggers the form create
+        end;
      end;
-     if Assigned(FClientHomePage) then
-       FClientHomePage.UpdateTabs(ActionedPage);
+
+     //see if a client homepage was created
+     if Assigned( FclientHomePage) then
+     begin
+       Assert((FClientHomePage is TfrmClientHomePage) OR (FClientHomePage is TfrmSimpleUIHomepage), 'Unknown homepage created');
+       //special processing depending on version of homepage that was created
+       if FClientHomePage is TfrmClientHomePage then
+         TfrmClientHomePage(FClientHomePage).UpdateTabs(ActionedPage);
+     end;
   end else
      //Should not have a Homepage...
      CloseClientHomepage;
@@ -248,7 +298,7 @@ end;
 
 procedure CloseClientHomepage;
 var
-  Temp : TFrmClientHomePage;
+  Temp : TBaseClientHomePage;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter CloseHomepage');
   if assigned(FClientHomePage) then begin
@@ -260,14 +310,17 @@ begin
 end;
 
 procedure AbandonClientHomePage;
+//called from files when user selects abandon changes
+//Sets the abandon flag in the homepage form which tells it not to do the save
+//on close
 var
-  Temp : TFrmClientHomePage;
+  Temp : TBaseClientHomePage;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter AbandonHomepage');
   if assigned(FClientHomePage) then begin
       Temp := FClientHomePage;
       FClientHomePage := nil;
-      Temp.FAbandon := True;
+      Temp.Abandon := True;
       Temp.Close;
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit AbandonHomepage');
@@ -648,7 +701,7 @@ begin
    lblClientName.Font.Color :=  TopTitleColor;
    imgLeft.Picture := AppImages.ImgLogo.Picture;
 
-   if frmMain.imgPracticeLogo.Visible then begin
+   if frmMain.UsingCustomPracticeLogo then begin
       imgRight.AutoSize := False;
       imgRight.Stretch := True;
       imgRight.Picture := frmMain.imgPracticeLogo.Picture;
@@ -657,8 +710,8 @@ begin
       PnlTitle.Height := Max (imgLeft.Height ,  frmMain.imgPracticeLogo.Height);
    end else begin
       imgRight.Transparent := True;
-      imgRight.Picture := bkBranding.CodingBanner;
-      PnlTitle.Height := bkBranding.CodingBanner.Height;
+      imgRight.Picture := bkBranding.ClientBanner;
+      PnlTitle.Height := bkBranding.ClientBanner.Height;
    end;
 
    lblClientName.Font.Name := Self.Font.Name;
@@ -702,6 +755,21 @@ begin
 
   except
   end;
+end;
+
+function TfrmClientHomePage.GetAbandon: boolean;
+begin
+  result := FAbandon;
+end;
+
+function TfrmClientHomePage.GetRefreshRequest: THP_Refresh;
+begin
+  result := FRefreshRequest;
+end;
+
+function TfrmClientHomePage.GetTheClient: TClientObj;
+begin
+   result := FTheClient;
 end;
 
 procedure TfrmClientHomePage.NotesTimerTimer(Sender: TObject);
@@ -755,7 +823,7 @@ begin //called when the client details change
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshClient');
    lblClientName.Caption := FTheClient.clExtendedName;
    TreeList.Client := FtheClient;
-   
+
    gpClientDetails.Items.BeginUpdate;
    try
       gpClientDetails.Items.Clear;
@@ -1056,6 +1124,11 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshToDo');
    acTasks.Visible := CheckAdmin;
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshToDo');
+end;
+
+procedure TfrmClientHomePage.SetAbandon(const Value: Boolean);
+begin
+  FAbandon := Value;
 end;
 
 procedure TfrmClientHomePage.SetRefreshRequest(const Value: THP_Refresh);

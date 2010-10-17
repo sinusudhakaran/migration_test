@@ -20,7 +20,7 @@ uses
   Windows, Graphics;
 
 type
-  TImageSet = ( imPractice, imBooks, imOther);
+  TImageSet = ( imPractice, imBooks, imOther, imDLL);
 
 var
   Is256Color : boolean;
@@ -30,6 +30,7 @@ var
   GSTAlternateLineColor : TColor;
   BrandingImageSet : TImageSet;
 
+  function ClientBanner : TPicture;
   function CodingBanner : TPicture;
   function BannerLogo : TPicture;
   function BackgroundImage : TPicture;
@@ -70,12 +71,14 @@ const
   BKHICOLOR_LOGOBLUE  = $009A5B00;  //banklink LOGO Blue
   BKCOLOR_LOGOBLUE    = $00800000;  //banklink LOGO Blue
 
+  BKSIMPLEUI_FRAME_COLOR = $00464646;
+
   ProcessCornerRadius = 5;
 
 implementation
 
 uses
-  WinUtils, ImagesFrm;
+  WinUtils, ImagesFrm, ThirdPartyHelper;
 
 const
   BKHICOLOR_BLUE      = $00F5EDDE;  //alt line col for coding, dissect etc
@@ -96,24 +99,6 @@ const
 procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 begin
   Is256Color := WinUtils.GetScreenColors( CanvasHandleToTest) <= 256;
-  //Is256Color := true;
-
-  {$IFDEF SmartLink}
-  if Is256Color then
-  begin
-    MainFormBackgroundColor := clMaroon;
-    AlternateCodingLineColor := BKHICOLOR_LTPINK;
-    HeaderBackgroundColor := clMaroon;
-    GSTAlternateLineColor := BKCOLOR_GREEN;
-  end
-  else
-  begin
-    MainFormBackgroundColor := clMaroon;
-    AlternateCodingLineColor := BKHICOLOR_LTPINK;
-    HeaderBackgroundColor := clMaroon;
-    GSTAlternateLineColor := BKHICOLOR_GREEN;
-  end;
-  {$ELSE}
   if Is256Color then
   begin
     MainFormBackgroundColor := BKCOLOR_TEAL;
@@ -128,33 +113,63 @@ begin
     HeaderBackgroundColor := BKHICOLOR_TEAL;
     GSTAlternateLineColor := BKHICOLOR_GREEN;
   end;
-  {$ENDIF}
 end;
+
+function ClientBanner : TPicture;
+begin
+  if BrandingImageSet = imPractice then
+  begin
+     if Is256Color then
+        result := AppImages.imgBannerRight256.Picture
+     else
+        result := AppImages.imgBannerRightHiColor.Picture;
+     exit;
+  end;
+
+  //use the coding banner from third party dll if set
+  if BrandingImageSet = imDLL then
+  begin
+    if ThirdPartyHelper.ThirdPartyBannerLogo <> nil then
+    begin
+      result := ThirdPartyHelper.ThirdPartyBannerLogo;
+      exit;
+    end
+  end;
+
+  //default to books
+  if Is256Color then
+    result := AppImages.imgBooksBanner_256.Picture
+  else
+    result := AppImages.imgBooksBanner_HiColor.Picture;
+end;
+
 
 function CodingBanner : TPicture;
 begin
-{$IFDEF SmartLink}
-  if Is256Color then
-    result := AppImages.imgBannerRight256.Picture
-  else
-    result := AppImages.imgBannerRightHiColor.Picture;
-{$ELSE}
   if BrandingImageSet = imPractice then
   begin
-
-    if Is256Color then
-      result := AppImages.imgBannerRight256.Picture
-    else
-      result := AppImages.imgBannerRightHiColor.Picture;
-  end
-  else
-  begin
-    if Is256Color then
-      result := AppImages.imgBooksBanner_256.Picture
-    else
-      result := AppImages.imgBooksBanner_HiColor.Picture;
+     if Is256Color then
+        result := AppImages.imgBannerRight256.Picture
+     else
+        result := AppImages.imgBannerRightHiColor.Picture;
+     exit;
   end;
-{$ENDIF}
+
+  //use the coding banner from third party dll if set
+  if BrandingImageSet = imDLL then
+  begin
+    if ThirdPartyHelper.ThirdPartyCodingLogo <> nil then
+    begin
+      result := ThirdPartyHelper.ThirdPartyCodingLogo;
+      exit;
+    end
+  end;
+
+  //default to books
+  if Is256Color then
+    result := AppImages.imgBooksBanner_256.Picture
+  else
+    result := AppImages.imgBooksBanner_HiColor.Picture;
 end;
 
 function BannerLogo : TPicture;
@@ -167,30 +182,32 @@ end;
 
 function BackgroundImage : TPicture;
 begin
-  {$IFDEF SmartLink}
-  //no background image for SmartLink
-  result := nil;
-  {$ELSE}
   if BrandingImageSet = imPractice then
     result := AppImages.imgBackgroundImage.Picture
   else
     result := AppImages.imgBackgroundImage_Books.Picture;
-  {$ENDIF}
 end;
 
 function AboutImage : TPicture;
 begin
+  result := nil;
   if Is256Color then
-    result := nil //AppImages.imgAbout256.Picture
-  else
-{$IFDEF SmartLink}
+    exit;
+
+  if BrandingImageSet = imPractice then
+  begin
     result := AppImages.imgAboutHiColor.Picture;
-{$ELSE}
-    if BrandingImageSet = imPractice then
-      result := AppImages.imgAboutHiColor.Picture
-    else
-      result := AppImages.imgAboutHiColor_Books.picture;
-{$ENDIF}
+    exit;
+  end;
+
+  //use the coding banner from third party dll if set
+  if (BrandingImageSet = imDLL) and (ThirdPartyHelper.ThirdPartyAboutLogo <> nil) then
+  begin
+    result := ThirdPartyHelper.ThirdPartyAboutLogo;
+    exit;
+  end;
+
+  result := AppImages.imgAboutHiColor_Books.picture;
 end;
 
 function ColorNoData: Integer;
@@ -221,13 +238,10 @@ end;
 
 function ColorUncoded: Integer;
 begin
-   //Result := ClRed;
-
   if Is256Color then
     Result := clRed
   else
     Result := clWebOrangeRed;
-
 end;
 
 function TextUncoded: string;
@@ -237,8 +251,6 @@ end;
 
 function ColorCoded: Integer;
 begin
-//  Result := clGreen;
-
   if Is256Color then
     Result := clGreen
   else
@@ -254,13 +266,6 @@ end;
 function ColorTransferred: Integer;
 begin
   Result := clWebPurple;
-  {
-  if Is256Color then
-    Result := clYellow
-  else
-    //Result := clWebYellow;
-    Result :=  clWebLightPink;
-   }
 end;
 
 function TextTransferred: string;
@@ -271,12 +276,6 @@ end;
 function ColorFinalised: Integer;
 begin
   Result := clWebDodgerBlue;
-  {
-  if Is256Color then
-    Result := clAqua
-  else
-    Result := clWebSkyBlue;
-    }
 end;
 
 function TextFinalised: string;
@@ -328,10 +327,8 @@ begin
   if Is256Color then
       Result := clltGray
    else
-      Result := 16777194;  
+      Result := 16777194;
      // Result := $00FFFB4A;
-  //Result := clWhite ;
-  //Result := IniColor('Back Color Start',14412523);
 end;
 
 function GroupBackGroundStopColor: Integer;
@@ -340,12 +337,11 @@ begin
       Result := clltGray
    else
       Result := BKHICOLOR_TEAL;
-   //Result := IniColor('Back Color Stop',10525952);
 end;
 
 initialization
   Is256Color := false;
   BrandingImageSet := imOther;
-
+  //look for branding dll
 
 end.

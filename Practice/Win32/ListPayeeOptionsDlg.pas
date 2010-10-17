@@ -142,6 +142,10 @@ procedure TdlgListPayeeOptions.FormCreate(Sender: TObject);
 begin
   BKHelpSetUp(Self, BKH_List_payees);
   bkXPThemes.ThemeForm( Self);
+
+   //favorite reports functionality is disabled in simpleUI
+   if Active_UI_Style = UIS_Simple then
+      btnSave.Hide;
 end;
 
 procedure TdlgListPayeeOptions.SetRptParams(const Value: TListPayeesParam);

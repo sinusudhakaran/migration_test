@@ -155,6 +155,7 @@ begin
 
   //dir is valid and media can take the file
   ClientFilename := DataDir + aClientCode + Globals.FILEEXTN;
+  Globals.mfModalCommandResult := 0;
 
   ShowBackupProgress( '', 0.0);
   LogBackupMessage( 'Backing up ' + aClientCode);
@@ -179,12 +180,13 @@ begin
       on E : Exception do
       begin
          HelpfulErrorMsg( 'Backup of ' + aClientCode + ' failed. ' + E.Message, 0, false);
-
          aMsg := Format( 'Backup of %s to %s failed - %s.', [ ClientFilename, BackupFilename, E.Message ] );
          LogUtil.LogMsg(lmError,UnitName, aMsg);
          Exit;
       end;
     end;
+    //backup succeeded
+    Globals.mfModalCommandResult := 1;
   finally
     ClearStatus;
   end;

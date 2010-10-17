@@ -240,7 +240,13 @@ begin
                               AdminSystem.fdFields.fdCollect_Usage_Data,
                               INI_BCHTTPMethod) do
    try
-     ShowModal;
+     if (StartupParam_Action = sa_Connect) then begin
+        // Run Automatic
+        Show;
+        actConnectExecute(nil);
+        Close;
+     end else
+        ShowModal;
      result := FilesDownloaded;
 
      if SettingsChanged then begin

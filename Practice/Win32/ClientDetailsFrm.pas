@@ -167,6 +167,7 @@ uses
    DownloadUtils,
    stDate,
    bkXPThemes,
+   ThirdPartyHelper,
    bkConst, BKDEFS, ClientUtils;
 
 {$R *.DFM}
@@ -230,6 +231,11 @@ begin
   else
     radPractice.Checked := True;
   end;
+
+  //Third party DLL allows users to specify the custom contact details even
+  //when the file is not part of the practice
+  if ThirdPartyDllDetected and AllowEditingOfCustomContactDetails then
+    radCustom.Checked := true;
 
   lblMethod.Visible := PRACINI_AllowOffsiteDiskDownload or (MyClient.clFields.clTemp_Old_Download_From = dfFloppy);
   cmbOSDMethod.Visible := lblMethod.Visible;
@@ -1166,10 +1172,13 @@ var
   ReadOnly : boolean;
   aType    : byte;
 begin
+  ReadOnly := true;
+
   if Assigned( AdminSystem) then
     ReadOnly := not radCustom.checked
   else
-    ReadOnly := true;
+  if ThirdPartyDLLDetected and AllowEditingOfCustomContactDetails then
+    ReadOnly := false;
 
   if radStaffMember.checked then
     aType := cdtStaffMember
