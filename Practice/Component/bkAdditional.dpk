@@ -35,7 +35,8 @@ requires
   vclactnband,
   vcljpg,
   vcldb,
-  VclSmp;
+  VclSmp,
+  tmsd2007;
 
 contains
   BkExGlassButton in 'BkExGlassButton.pas';
