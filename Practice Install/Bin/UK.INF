@@ -1,15 +1,11 @@
  0³Not Used                  ³Not Used
  1³Cheque                    ³Cheque
- 2³Dishonoured Item          ³Unpaid Itm
+ 2³Dishonoured Debit         ³Unpaid Dr
  3³Automatic Payment         ³Auto Pymt
- 4³Government Duty           ³Govt Duty 
- 5³FID Duty                  ³FID Duty
- 6³Govt Tax Acc              ³Govt Tax  
+ 4³Dishonoured Credit        ³Unpaid Cr
+ 5³Tax                       ³Tax
  7³Interest Charges          ³Interest  
  8³Bank Charges              ³Bank Chgs
  9³Misc Debit                ³Withdrawal
 10³Misc Credit               ³Deposit   
-11³Interest Earned           ³Int Earned
-12³Dividends Earned          ³Div Earned
-13³Salary                    ³Salary
-14³Pension                   ³Pension
+11³Interest/Dividends Earned ³Int/Div Earned
