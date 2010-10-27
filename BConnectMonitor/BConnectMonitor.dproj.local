@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2010/10/20 15:23:07.447.dproj,C:\Users\tony.kelly\Documents\RAD Studio\Projects\Project2.dproj=C:\dev\Practice\Dev\BConnectMonitor\BConnectMonitor.dproj</Transaction>
+    <Transaction>2010/10/20 15:40:57.503.dproj,C:\dev\Practice\Dev\BConnectMonitor\BConnectMonitor.dproj=C:\dev\Practice\Dev\BConnectMonitor\BConnectMonitor.dproj</Transaction>
+    <Transaction>2010/10/20 16:27:20.075.PAS,C:\dev\Practice\Dev\Common\Database\BKDEFS.PAS=</Transaction>
+    <Transaction>2010/10/21 11:39:51.845.dproj,C:\dev\Practice\Dev\BConnectMonitor\BConnectMonitor.dproj=C:\dev\Practice\Dev\BConnectMonitor\BConnectMonitor.dproj</Transaction>
+  </Transactions>
+</BorlandProject>
