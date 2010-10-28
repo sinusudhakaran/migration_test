@@ -78,15 +78,6 @@ var
   IdSMTP1: TIdSMTP;
   Message1: TIdMessage;
 
-  function CountryAsString: string;
-  begin
-    case  AdminSystem.fdFields.fdCountry of
-    0: Result := 'NZ';
-    1: Result := 'OZ';
-    2: Result := 'UK';
-    end;
-  end;
-
   procedure ConnectAndSendMessage;
   begin
     try
@@ -159,7 +150,7 @@ begin
 
     while true do begin // Keep running this loop until the program is terminated
       // Trying Secure1
-      ConnectToBConnect(BConnectServerPath + 'loging');
+      ConnectToBConnect(BConnectServerPath + 'login');
       Secure1IsDown := (ExtractDetails = 0);
 
       // Trying Secure2
