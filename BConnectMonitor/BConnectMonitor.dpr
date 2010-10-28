@@ -40,6 +40,7 @@ function ExtractDetails: Integer;
 begin
   LServerResponseMsg := FHeaders.Values['serverresponse'];
   Result := StrToIntDef(FHeaders.Values['errorno'], 0);
+  FHeaders.Clear;
 end;
 
 function GetFirewallType: TipshttpsFirewallTypes;
@@ -71,9 +72,9 @@ end;
 
 procedure LogIn;
 var
-  ParamNum: integer;
+  ParamNum, SleepInterval, FirstEmailParam: integer;
+  Secure1IsDown, Secure2IsDown, LastSecure1Status, LastSecure2Status: boolean;
   AllRecipients: string;
-  BConnectIsOnline: boolean;
   IdSMTP1: TIdSMTP;
   Message1: TIdMessage;
 
@@ -98,14 +99,46 @@ var
     end;
   end;
 
-begin
-  if (ParamCount = 0) then
+  // This isn't to test if the email address is valid, only to distinguish email addresses from the 'time
+  // between checks' parameter 
+  function CheckParamIsEmail(LocalParamNum: integer): boolean;
   begin
-    ShowMessage('You must enter one or more email addresses as parameters. Program will now exit.');
+    Result := (AnsiPos('@', ParamStr(LocalParamNum)) > 0);
+  end;
+
+  procedure ConnectToBConnect(BConnectURL: string);
+  begin
+    PostData.Clear;
+    PostData.Add('user=testuser');
+    PostData.Add('pwd=testpass');
+    PostData.Add('country=NZ');
+    PostData.Add('encrypted=Y');
+    httpClient.ResetHeaders;
+    httpClient.PostData := PostData.Text;
+    httpClient.URL := BConnectURL;
+    httpClient.Post(httpClient.URL);
+  end;
+
+begin
+  if not CheckParamIsEmail(ParamCount) then // the last parameter must be an email address
+  begin
+    ShowMessage('You must enter one or more email addresses as parameters. You can also ' +
+                'include a number of minutes between checks, this will default to 10. eg: ' + #13#10 +
+                'BConnectMonitor.exe 20 bigbird@banklink.co.nz' + #13#10#13#10 +
+                'Program will now exit.');
     Exit;
   end;
 
-  BConnectIsOnline := True;
+  if not CheckParamIsEmail(1) then
+  begin
+    FirstEmailParam := 2;
+    SleepInterval := StrToInt(ParamStr(1)) * 1000 * 60; // x minutes, x being the number entered by the user
+  end else
+  begin
+    FirstEmailParam := 1;
+    SleepInterval := 1000 * 60 * 10; // 10 minutes
+  end;
+
   AllRecipients := '';
   INI_Mail_Type := SMTP_MAIL;
 
@@ -114,55 +147,54 @@ begin
     IdSMTP1.Host := 'BANKLINK-XX1';
     IdSMTP1.Port := 25;
     
-    for ParamNum := 1 to ParamCount do
+    for ParamNum := FirstEmailParam to ParamCount do
       AllRecipients := ParamStr(ParamNum) + ';';
 
     Message1 := TIdMessage.Create(Application);
     Message1.From.Address := 'Tony.Kelly@banklink.co.nz';
     Message1.Recipients.EMailAddresses := AllRecipients;
 
-    while true do begin // Keep running this loop until the program is terminated
-      try
-        PostData.Clear;
-        PostData.Add('user=testuser');
-        PostData.Add('pwd=testpass');
-        PostData.Add('country=NZ');
-        PostData.Add('encrypted=Y');
-        httpClient.ResetHeaders;
-        httpClient.PostData := PostData.Text;
-        httpClient.URL := BConnectServerPath + 'login';
-        httpClient.Post(httpClient.URL);
+    LastSecure1Status := False;
+    LastSecure2Status := False;
 
-        case ExtractDetails of
-          0:    begin
-                  // Connection to BConnect failed
-                  WriteLn('FAILED to connect to BConnect at ' + DateTimeToStr(Now));
-                  if BConnectIsOnline then
-                  begin
-                    // Send email (if we haven't already)
-                    Message1.Subject := 'BConnect is down';
-                    Message1.Body.Text := 'No further notifications will be sent until BConnect has been restored.';
-                    ConnectAndSendMessage;
-                    BConnectIsOnline := False;
-                  end;
-                end;
-          else  begin
-                  // Connected to BConnect successfully
-                  WriteLn('Successfully connected to BConnect at ' + DateTimeToStr(Now));
-                  if not BConnectIsOnline then
-                  begin
-                    // Send email when BConnect is back online
-                    Message1.Subject := 'BConnect is back online';
-                    Message1.Body.Text := 'No further notifications will be sent until BConnect goes down';
-                    ConnectAndSendMessage;
-                    BConnectIsOnline := True;
-                  end;
-                end;
-        end;
-        Sleep(10000); // Check BConnect status every 10 seconds
-        except
-          LUsingPrimaryHost := not LUsingPrimaryHost;
+    while true do begin // Keep running this loop until the program is terminated
+      // Trying Secure1
+      ConnectToBConnect(BConnectServerPath + 'loging');
+      Secure1IsDown := (ExtractDetails = 0);
+
+      // Trying Secure2
+      LUsingPrimaryHost := false;
+      ConnectToBConnect(BConnectServerPath + 'login');
+      Secure2IsDown := (ExtractDetails = 0);
+
+      if Secure1IsDown
+        then WriteLn('FAILED to connect to BConnect (Secure1) at ' + DateTimeToStr(Now))
+        else WriteLn('Successfully connected to BConnect (Secure1) at ' + DateTimeToStr(Now));
+      if Secure2IsDown
+        then WriteLn('FAILED to connect to BConnect (Secure2) at ' + DateTimeToStr(Now))
+        else WriteLn('Successfully connected to BConnect (Secure2) and ' + DateTimeToStr(Now));
+
+      if (Secure1IsDown <> LastSecure1Status) or (Secure2IsDown <> LastSecure2Status) then
+      begin
+        Message1.Subject := 'BConnect status has changed';
+        // Send email (if we haven't already)
+        if Secure1IsDown and Secure2IsDown then
+          Message1.Body.Text := 'Secure1 and Secure2 are down.'
+        else if Secure1IsDown then
+          Message1.Body.Text := 'Secure1 is down, Secure2 is operational.'
+        else if Secure2IsDown then
+          Message1.Body.Text := 'Secure1 is operational, Secure2 is down.'
+        else
+          Message1.Body.Text := 'Secure1 and Secure2 are operational.';
+
+        Message1.Body.Text := Message1.Body.Text + #13#10 +
+                              'No further notifications will be sent until the status of either server has changed.';
+        ConnectAndSendMessage;
       end;
+
+      LastSecure1Status := Secure1IsDown;
+      LastSecure2Status := Secure2IsDown;
+      Sleep(SleepInterval); // Check BConnect status every so often, default to 10 minutes
     end;
 
   finally
