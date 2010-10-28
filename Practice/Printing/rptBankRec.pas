@@ -32,7 +32,6 @@ uses
   GenUtils,
   baUtils,
   InfoMoreFrm,
-  CurrencyConversions,
   CodeDateDlg,
   CodeDateAccountDlg,
   CodeDateChequeDlg,

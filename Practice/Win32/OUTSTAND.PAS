@@ -256,7 +256,7 @@ begin
     Begin
       BCode := BA.baFields.baCurrency_Code;
       CCode := MyClient.clExtra.ceLocal_Currency_Code;
-      Rate  := BA.baForex_Info.Rate( BCode, CCode, ToDate );
+//      Rate  := BA.baForex_Info.Rate( BCode, CCode, ToDate );
     end;
 
     //add transactions
@@ -515,7 +515,7 @@ begin
     Begin
       BCode := BA.baFields.baCurrency_Code;
       CCode := MyClient.clExtra.ceLocal_Currency_Code;
-      Rate  := BA.baForex_Info.Rate( BCode, CCode, UseDate );
+//      Rate  := BA.baForex_Info.Rate( BCode, CCode, UseDate );
     end;
 
     //add transactions

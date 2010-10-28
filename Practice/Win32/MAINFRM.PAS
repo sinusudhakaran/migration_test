@@ -905,7 +905,7 @@ uses
   bkconst,
   bkdefs,
   BKHelp,
-  CurrencyConversions,
+//  CurrencyConversions,
   ClientHomePagefrm,
   bkutil32,
   bkXPThemes,

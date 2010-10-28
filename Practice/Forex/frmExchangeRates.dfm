@@ -3,35 +3,38 @@ object ExchangeRatesfrm: TExchangeRatesfrm
   Top = 0
   Caption = 'Maintain Exchange Rates'
   ClientHeight = 450
-  ClientWidth = 672
+  ClientWidth = 705
   Color = clBtnFace
   ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
   Scaled = False
+  OnActivate = FormActivate
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
-    Left = 160
+    Left = 193
     Top = 0
     Height = 409
+    ExplicitLeft = 160
     ExplicitTop = -65
     ExplicitHeight = 357
   end
   object pButtons: TPanel
     Left = 0
     Top = 409
-    Width = 672
+    Width = 705
     Height = 41
     Align = alBottom
     TabOrder = 0
+    ExplicitWidth = 672
     DesignSize = (
-      672
+      705
       41)
     object btnCancel: TButton
-      Left = 586
+      Left = 619
       Top = 8
       Width = 77
       Height = 25
@@ -39,9 +42,10 @@ object ExchangeRatesfrm: TExchangeRatesfrm
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 0
+      ExplicitLeft = 586
     end
     object BtnoK: TButton
-      Left = 506
+      Left = 539
       Top = 8
       Width = 77
       Height = 25
@@ -49,11 +53,13 @@ object ExchangeRatesfrm: TExchangeRatesfrm
       Caption = 'OK'
       TabOrder = 1
       OnClick = BtnoKClick
+      ExplicitLeft = 506
     end
   end
   object RSGroupBar: TRzGroupBar
     Left = 0
     Top = 0
+    Width = 193
     Height = 409
     GradientColorStyle = gcsCustom
     GradientColorStart = 16776934
@@ -78,6 +84,12 @@ object ExchangeRatesfrm: TExchangeRatesfrm
           Action = acImport
         end
         item
+          Action = acAddExchangeRate
+        end
+        item
+          Action = acEditExchangeRate
+        end
+        item
           Caption = '-'
         end
         item
@@ -87,9 +99,9 @@ object ExchangeRatesfrm: TExchangeRatesfrm
           Action = acUnlock
         end>
       Opened = True
-      OpenedHeight = 108
+      OpenedHeight = 148
       SmallImages = AppImages.ilFileActions_ClientMgr
-      Caption = 'Currency Tasks'
+      Caption = 'Exchange Rate Tasks'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -119,12 +131,13 @@ object ExchangeRatesfrm: TExchangeRatesfrm
     end
   end
   object pTree: TPanel
-    Left = 163
+    Left = 196
     Top = 0
     Width = 509
     Height = 409
     Align = alClient
     TabOrder = 2
+    ExplicitLeft = 163
     object pTop: TPanel
       Left = 1
       Top = 1
@@ -211,50 +224,44 @@ object ExchangeRatesfrm: TExchangeRatesfrm
       Width = 507
       Height = 366
       Align = alClient
-      Header.AutoSizeIndex = 1
+      Header.AutoSizeIndex = -1
       Header.Font.Charset = DEFAULT_CHARSET
       Header.Font.Color = clWindowText
       Header.Font.Height = -11
       Header.Font.Name = 'Tahoma'
       Header.Font.Style = []
-      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+      Header.MainColumn = 1
+      Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
       Header.ParentFont = True
-      Header.SortColumn = 0
       Header.Style = hsXPStyle
       ParentBackground = False
       TabOrder = 1
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toWheelPanning]
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages]
       TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+      OnColumnDblClick = vtRatesColumnDblClick
+      OnFocusChanged = vtRatesFocusChanged
       Columns = <
         item
-          MaxWidth = 500
-          MinWidth = 130
           Position = 0
-          Tag = 1
-          Width = 130
-          WideText = 'ISO Currency Code'
+          WideText = 'State'
         end
         item
-          Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
           Position = 1
-          Tag = 2
-          Width = 223
-          WideText = 'Currency'
+          Width = 100
+          WideText = 'ISO Code'
         end
         item
-          Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
           Position = 2
-          Tag = 3
-          Width = 150
-          WideText = 'Type'
+          Width = 353
+          WideText = 'Rate'
         end>
     end
   end
   object ActionList1: TActionList
     Images = AppImages.ilFileActions_ClientMgr
-    Left = 48
-    Top = 136
+    Left = 64
+    Top = 232
     object acImport: TAction
       Caption = 'Import'
       ImageIndex = 19
@@ -269,6 +276,16 @@ object ExchangeRatesfrm: TExchangeRatesfrm
       Caption = 'Unlock'
       ImageIndex = 5
       OnExecute = acUnlockExecute
+    end
+    object acAddExchangeRate: TAction
+      Caption = '&Add'
+      ImageIndex = 12
+      OnExecute = acAddExchangeRateExecute
+    end
+    object acEditExchangeRate: TAction
+      Caption = '&Edit'
+      ImageIndex = 17
+      OnExecute = acEditExchangeRateExecute
     end
   end
   object ReloadTimer: TTimer

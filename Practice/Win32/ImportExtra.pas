@@ -134,13 +134,13 @@ begin
     BCode := BankAccount.baFields.baCurrency_Code;
     CCode := MyClient.clExtra.ceLocal_Currency_Code;
     ForeignCurrency := BankAccount.IsAForexAccount;
-    if ForeignCurrency and ( BankAccount.baForex_Info = NIL  ) then With MyClient.clFields, BankAccount.baFields do
-    Begin { We check for a valid source before allowing the user to retrieve transactions }
-      Msg := Format( 'Client %s, Bank Account %s : Unable to find an exchange rate currency data source for converting %s to %s with the description %s (%s)',
-        [ clCode, baBank_Account_Number, BCode, CCode, baDefault_Forex_Description, baDefault_Forex_Source ] );
-      LogUtil.LogMsg( lmError,UnitName, ThisMethodName + ' : ' + Msg );
-      Raise Exception.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-    End;
+//    if ForeignCurrency and ( BankAccount.baForex_Info = NIL  ) then With MyClient.clFields, BankAccount.baFields do
+//    Begin { We check for a valid source before allowing the user to retrieve transactions }
+//      Msg := Format( 'Client %s, Bank Account %s : Unable to find an exchange rate currency data source for converting %s to %s with the description %s (%s)',
+//        [ clCode, baBank_Account_Number, BCode, CCode, baDefault_Forex_Description, baDefault_Forex_Source ] );
+//      LogUtil.LogMsg( lmError,UnitName, ThisMethodName + ' : ' + Msg );
+//      Raise Exception.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
+//    End;
 
     //create a temporary transaction list
     TempTransList := TTransaction_List.Create( MyClient, BankAccount );
@@ -155,17 +155,17 @@ begin
         pT^.txDate_Effective    := DiskTxn.dtEffective_Date;
         pT^.txReference         := DiskTxn.dtReference;
 
-        if ForeignCurrency then
-        Begin
-          pT.txForeign_Currency_Amount := DiskTxn.dtAmount;
-          Rate   := BankAccount.baForex_Info.Rate( BCode, CCode, pT.txDate_Presented );
-          if Rate <> 0.0 then
-            pT.txAmount := Round( pT.txForeign_Currency_Amount / Rate )
-          else
-            pT.txAmount := 0;
-          pT.txForex_Conversion_Rate   := Rate;
-        End
-        else
+//        if ForeignCurrency then
+//        Begin
+//          pT.txForeign_Currency_Amount := DiskTxn.dtAmount;
+//          Rate   := BankAccount.baForex_Info.Rate( BCode, CCode, pT.txDate_Presented );
+//          if Rate <> 0.0 then
+//            pT.txAmount := Round( pT.txForeign_Currency_Amount / Rate )
+//          else
+//            pT.txAmount := 0;
+//          pT.txForex_Conversion_Rate   := Rate;
+//        End
+//        else
           pT.txAmount             := DiskTxn.dtAmount;
           
         pT^.txCheque_Number     := 0;
@@ -321,27 +321,27 @@ begin
             exit;
           end;
 
-      if BankAccount.IsAForexAccount then
-      Begin
-        if ( BankAccount.baFields.baDefault_Forex_Source = '' ) then
-        Begin
-          Status := usNoForexSource;
-          result := true;
-          exit;
-        End;
-        if BankAccount.baForex_Info = NIL then
-        Begin
-          Status := usNoForexSource;
-          result := true;
-          exit;
-        End;
-        if DateTo > BankAccount.baForex_Info.ToDate then
-        Begin
-          Status := usForexRatesNeedUpdating;
-          result := true;
-          exit;
-        End;
-      End;
+//      if BankAccount.IsAForexAccount then
+//      Begin
+//        if ( BankAccount.baFields.baDefault_Forex_Source = '' ) then
+//        Begin
+//          Status := usNoForexSource;
+//          result := true;
+//          exit;
+//        End;
+//        if BankAccount.baForex_Info = NIL then
+//        Begin
+//          Status := usNoForexSource;
+//          result := true;
+//          exit;
+//        End;
+//        if DateTo > BankAccount.baForex_Info.ToDate then
+//        Begin
+//          Status := usForexRatesNeedUpdating;
+//          result := true;
+//          exit;
+//        End;
+//      End;
       //all ok
       Status := usOKtoImport;
       result := true;

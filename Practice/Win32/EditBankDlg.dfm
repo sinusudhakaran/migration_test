@@ -81,6 +81,15 @@ object dlgEditBank: TdlgEditBank
         AutoSize = False
         Caption = 'Ledger:'
       end
+      object lblCurrency: TLabel
+        Left = 397
+        Top = 12
+        Width = 44
+        Height = 13
+        Caption = 'Currency'
+        FocusControl = eNumber
+        OnClick = FormCreate
+      end
       object gCalc: TPanel
         Left = 24
         Top = 259
@@ -263,7 +272,7 @@ object dlgEditBank: TdlgEditBank
       object eName: TEdit
         Left = 136
         Top = 40
-        Width = 375
+        Width = 422
         Height = 24
         BorderStyle = bsNone
         MaxLength = 60
@@ -487,6 +496,20 @@ object dlgEditBank: TdlgEditBank
         TabOrder = 5
         OnClick = btnLedgerIDClick
       end
+      object cmbCurrency: TComboBox
+        Left = 467
+        Top = 9
+        Width = 92
+        Height = 21
+        Style = csDropDownList
+        ItemHeight = 13
+        TabOrder = 7
+        Items.Strings = (
+          'GBP'
+          'NZD'
+          'AUD'
+          'USD')
+      end
     end
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
@@ -531,53 +554,6 @@ object dlgEditBank: TdlgEditBank
         Height = 17
         Caption = '&Disabled'
         TabOrder = 3
-      end
-    end
-    object tbCurrency: TTabSheet
-      Caption = '&Currency Options'
-      ImageIndex = 2
-      object Label3: TLabel
-        Left = 3
-        Top = 51
-        Width = 124
-        Height = 13
-        Caption = 'Use Exchange Rates from'
-      end
-      object Label5: TLabel
-        Left = 43
-        Top = 16
-        Width = 84
-        Height = 13
-        Caption = 'This account is in '
-      end
-      object cmbDataSources: TComboBox
-        Left = 158
-        Top = 48
-        Width = 411
-        Height = 21
-        Style = csDropDownList
-        ItemHeight = 13
-        TabOrder = 2
-      end
-      object eCurrencyCode: TEdit
-        Left = 158
-        Top = 13
-        Width = 75
-        Height = 21
-        Enabled = False
-        ReadOnly = True
-        TabOrder = 0
-        Text = 'eCurrencyCode'
-      end
-      object eCurrencyName: TEdit
-        Left = 239
-        Top = 13
-        Width = 330
-        Height = 21
-        Enabled = False
-        ReadOnly = True
-        TabOrder = 1
-        Text = 'eCurrencyName'
       end
     end
   end

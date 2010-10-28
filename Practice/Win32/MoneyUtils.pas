@@ -33,6 +33,7 @@ Function ForexPictureMask : String;
 implementation uses BkConst, SysUtils;
 // ----------------------------------------------------------------------------
 
+{These constants have been replace by those in ISO_4217
 Const
   msNZD = 0; msMin = msNZD;
   msAUD = 1;
@@ -42,17 +43,9 @@ Const
 
   msSymbols : Array[ msNZD..msUSD ] of String[1] = ( '$', '$', '£', '€', '$' );
   msCodes   : Array[ msNZD..msUSD ] of String[3] = ( 'NZD', 'AUD', 'GBP', 'EUR', 'USD' );
-
+}
 // ----------------------------------------------------------------------------
 
-Function CurrencyCodeToIdx( ACode : String ): Integer;
-Begin
-  for Result := msNZD to msUSD do
-    if msCodes[ Result ] = ACode then exit;
-  Raise Exception.CreateFmt( 'MoneyUtils Error : Unknown Currency Code %s', [ ACode ] );
-End;
-
-// ----------------------------------------------------------------------------
 
 Function MoneyStrNoSymbol( Const Amount : Money ): String;
 Begin
@@ -98,10 +91,10 @@ End;
 
 Function FmtDrCrStr( Const aCurrencyCode : String ): String;
 Var
-  Idx : Integer;
+  Symbol: string;
 Begin
-  Idx := CurrencyCodeToIdx( aCurrencyCode );
-  Result := msSymbols[ Idx ] + '#,##0.00 DR;' + msSymbols[ Idx ] + '#,##0.00 CR;' + msSymbols[ Idx ] + '0.00';
+  Symbol := Get_ISO_4217_Symbol(aCurrencyCode);
+  Result := Symbol + '#,##0.00 DR;' + Symbol + '#,##0.00 CR;' + Symbol + '0.00';
 End;
 
 // ----------------------------------------------------------------------------
@@ -118,10 +111,10 @@ End;
 
 Function FmtMoneyStr( Const aCurrencyCode : String ): String;
 Var
-  Idx : Integer;
+  Symbol: string;
 Begin
-  Idx := CurrencyCodeToIdx( aCurrencyCode );
-  Result := msSymbols[ Idx ] + '#,##0.00;' + '-' + msSymbols[ Idx ] + '#,##0.00';
+  Symbol := Get_ISO_4217_Symbol(aCurrencyCode);
+  Result := Symbol + '#,##0.00;' + '-' + Symbol + '#,##0.00';
 End;
 
 // ----------------------------------------------------------------------------
@@ -145,10 +138,10 @@ End;
 
 Function FmtMoneyStrBrackets( Const aCurrencyCode : String ): String;
 Var
-  Idx : Integer;
+  Symbol: string;
 Begin
-  Idx := CurrencyCodeToIdx( aCurrencyCode );
-  Result := msSymbols[ Idx ] + '#,##0.00;' + msSymbols[ Idx ] + '(#,##0.00);' + msSymbols[ Idx ] + '0.00';
+  Symbol := Get_ISO_4217_Symbol(aCurrencyCode);
+  Result := Symbol + '#,##0.00;' + Symbol + '(#,##0.00);' + Symbol + '0.00';
 End;
 
 // ----------------------------------------------------------------------------
@@ -165,10 +158,10 @@ End;
 
 Function FmtBalanceStr( Const aCurrencyCode : String ): String;
 Var
-  Idx : Integer;
+  Symbol: string;
 Begin
-  Idx := CurrencyCodeToIdx( aCurrencyCode );
-  Result := msSymbols[ Idx ] + '#,##0.00 OD;' + msSymbols[ Idx ] + '#,##0.00 IF;' + msSymbols[ Idx ] + '0.00';
+  Symbol := Get_ISO_4217_Symbol(aCurrencyCode);
+  Result := Symbol + '#,##0.00 OD;' + Symbol + '#,##0.00 IF;' + Symbol + '0.00';
 End;
 
 // ----------------------------------------------------------------------------
@@ -184,11 +177,8 @@ End;
 // ----------------------------------------------------------------------------
 
 Function CurrencySymbol( Const aCurrencyCode : String ): String;
-Var
-  Idx : Integer;
 Begin
-  Idx := CurrencyCodeToIdx( aCurrencyCode );
-  Result := msSymbols[ Idx ];
+  Result := Get_ISO_4217_Symbol(aCurrencyCode);
 End;
 
 // ----------------------------------------------------------------------------

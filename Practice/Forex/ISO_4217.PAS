@@ -244,8 +244,12 @@ Function Get_ISO_4217_Symbol( Const ACode : String ): string;
 var
   ISORecord: pISO_4217_Record;
 Begin
+  Result := '';
   ISORecord := Get_ISO_4217_Record(ACode);
-  Result:=ISORecord.Symbol;
+  if Assigned(ISORecord) then
+    Result := ISORecord.Symbol
+  else
+    raise Exception.CreateFmt( 'MoneyUtils Error : Unknown Currency Code %s', [ ACode ] );
 End;
 
 end.

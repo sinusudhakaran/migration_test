@@ -14,7 +14,7 @@ unit baObj32;
 interface
 uses
    bkdateutils,classes, bkdefs, iostream, trxList32, mxList32, moneydef, MatchedItemsList,
-   MemorisationsObj, CurrencyConversions;
+   MemorisationsObj;
 
 type
    pDailyBalancesRec = ^tDailyBalancesRec;
@@ -33,8 +33,8 @@ type
       destructor   Destroy; override;
   private
       baMatched_Items_List     : tMatched_Items_List;
-      fForex_Info : TExchangeRateFileInfo;
-      function GetForexInfo: TExchangeRateFileInfo;
+//      fForex_Info : TExchangeRateFileInfo;
+//      function GetForexInfo: TExchangeRateFileInfo;
   public
       procedure    SaveToFile(var s: TIOStream);
       procedure    LoadFromFile(var s: TIOStream);
@@ -71,7 +71,7 @@ type
       Function IsAnEldersAccount : Boolean;
       Function Default_Forex_Conversion_Rate( ADate : Integer ): Double;
       function Default_Forex_Concersion_DateRange: TDateRange;
-      Property baForex_Info : TExchangeRateFileInfo read GetForexInfo write fForex_Info;
+//      Property baForex_Info : TExchangeRateFileInfo read GetForexInfo write fForex_Info;
       Function Local_Currency_Equivalent( Const Foreign_Currency_Amount : Money; Const AsAt : Integer; Out Rate : Double ): Money;
       Function Title : String;
       function AccountName: string;
@@ -526,7 +526,7 @@ begin
       baEOR := tkEnd_Bank_Account;
    end;
 
-   fForex_Info := NIL;
+//   fForex_Info := NIL;
 
    baTransaction_List           := nil;
    baTransaction_List := TTransaction_List.Create( NIL, Self );
@@ -552,13 +552,13 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TBank_Account.Default_Forex_Concersion_DateRange: TDateRange;
 begin
-   if IsAForexAccount then begin
-      Result.FromDate := baForex_Info.FromDate;
-      Result.ToDate := baForex_Info.ToDate;
-   end else begin
+//   if IsAForexAccount then begin
+//      Result.FromDate := baForex_Info.FromDate;
+//      Result.ToDate := baForex_Info.ToDate;
+//   end else begin
       Result.FromDate := MinValidDate;
       Result.ToDate := MaxValidDate;
-   end;
+//   end;
 end;
 
 function TBank_Account.Default_Forex_Conversion_Rate(ADate: Integer): Double;
@@ -568,13 +568,13 @@ Var
   Client : TClientObj;
 begin
   Result := 0.0;
-  if IsAForexAccount then
+{  if IsAForexAccount then
   Begin
     BCode := baFields.baCurrency_Code;
     Client := TClientObj( baClient );
     CCode := Client.clExtra.ceLocal_Currency_Code;
     Result := baForex_Info.Rate( BCode, CCode, ADate );
-  End;
+  End; }
 end;
 
 destructor TBank_Account.Destroy;
@@ -587,7 +587,7 @@ begin
    baMemorisations_List.Free;
    baMatched_Items_List.Free;
    BKBAIO.Free_Bank_Account_Rec_Dynamic_Fields( baFields);
-   fForex_Info := NIL;
+//   fForex_Info := NIL;
    inherited Destroy;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -823,7 +823,7 @@ begin
    Result := MoneyUtils.FmtMoneyStrBrackets( baFields.baCurrency_Code );
 end;
 
-function TBank_Account.GetForexInfo : TExchangeRateFileInfo;
+{function TBank_Account.GetForexInfo : TExchangeRateFileInfo;
 var
   Client : TClientObj;
   BCode, CCode : String[3];
@@ -849,7 +849,7 @@ begin
     End;
   End;
   Result := fForex_Info;
-end;
+end; }
 
 function TBank_Account.HasTransactionsWithin(StartDate, EndDate: Integer): Boolean;
 Var

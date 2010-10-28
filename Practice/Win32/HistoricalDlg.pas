@@ -1064,14 +1064,14 @@ begin
       Exit;
    end;
 
-   if fisForex then begin
+{   if fisForex then begin
       lr := BankAccount.Default_Forex_Concersion_DateRange;
       if (aDate < lr.FromDate)
       or (aDate > lr.ToDate) then begin
          SetMessage('Exchange rate only available between '#13 + bkDate2Str(lr.FromDate) + ' and ' + bkDate2Str(lr.ToDate) + '.');
          Exit;
       end;
-   end;
+   end; }
 
    //check date is within banklink allowable range
    if (aDate < MinValidDate)

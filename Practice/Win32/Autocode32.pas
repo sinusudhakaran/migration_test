@@ -46,7 +46,6 @@ uses
   PayeeObj,
   StStrS,
   trxList32,
-  CurrencyConversions,
   ForexHelpers,
   SuperFieldsUtils,
   transactionUtils,

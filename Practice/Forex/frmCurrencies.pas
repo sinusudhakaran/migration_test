@@ -206,7 +206,6 @@ begin
              AdminSystem.fCurrencyList.ehISO_Codes[C],
              AdminSystem.fCurrencyList.ehCur_Type [C] ));
         end;
-
    finally
       vtCurrencies.EndUpdate;
       Screen.Cursor := Keep;
@@ -240,6 +239,7 @@ begin
 
    FTreeList:= TTreeBaseList.Create(vtCurrencies);
    FillCurrencies;
+   vtCurrencies.SortTree(0, sdAscending);
 end;
 
 procedure TCurrenciesFrm.FormDestroy(Sender: TObject);

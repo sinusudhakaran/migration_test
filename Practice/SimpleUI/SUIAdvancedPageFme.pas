@@ -21,6 +21,7 @@ type
     gbtnDivisions: tbkExGlassButton;
     gbtnConfigGST: tbkExGlassButton;
     gbtnEOY: tbkExGlassButton;
+    tbkExGlassButton1: tbkExGlassButton;
     procedure CommonButtonKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure CommonButtonKeyPress(Sender: TObject; var Key: Char);
     procedure gbtnChartClick(Sender: TObject);
@@ -35,6 +36,7 @@ type
     procedure gbtnEOYClick(Sender: TObject);
     procedure gbtnChangePeriodClick(Sender: TObject);
     procedure gbtnDivisionsClick(Sender: TObject);
+    procedure tbkExGlassButton1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -109,6 +111,11 @@ end;
 procedure TfmeSUIAdvancedPage.gbtnSystemSettingsClick(Sender: TObject);
 begin
   SimpleUIHomePageFrm.DoSimpleUICommand(sui_mcSystemOptions);
+end;
+
+procedure TfmeSUIAdvancedPage.tbkExGlassButton1Click(Sender: TObject);
+begin
+  SimpleUIHomePageFrm.DoSimpleUICommand(sui_mcCheckForUpdates);
 end;
 
 procedure TfmeSUIAdvancedPage.gbtnChangePeriodClick(Sender: TObject);

@@ -77,8 +77,8 @@ uses
   PDDates32,
   ClientCodingStatistics,
   stDate,
-  ForexUtils,
-  CurrencyConversions,
+//  ForexUtils,
+//  CurrencyConversions,
   CodingStatsList32,
   UsageUtils;
 
@@ -221,13 +221,13 @@ Begin
               BCode := baCurrency_Code;
               CCode := aClient.clExtra.ceLocal_Currency_Code;
               ForeignCurrency := Bank_Account.IsAForexAccount;
-              if ForeignCurrency and ( Bank_Account.baForex_Info = NIL  ) then
-              Begin { We check for a valid source before allowing the user to retrieve transactions }
-                Msg := Format( 'Client %s, Bank Account %s : Unable to find an exchange rate currency data source for converting %s to %s with the description %s (%s)',
-                  [ aClient.clFields.clCode, baBank_Account_Number, BCode, CCode, baDefault_Forex_Description, baDefault_Forex_Source ] );
-                LogUtil.LogMsg( lmError,UnitName, ThisMethodName + ' : ' + Msg );
-                Raise Exception.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-              End;
+//              if ForeignCurrency and ( Bank_Account.baForex_Info = NIL  ) then
+//              Begin { We check for a valid source before allowing the user to retrieve transactions }
+//                Msg := Format( 'Client %s, Bank Account %s : Unable to find an exchange rate currency data source for converting %s to %s with the description %s (%s)',
+//                  [ aClient.clFields.clCode, baBank_Account_Number, BCode, CCode, baDefault_Forex_Description, baDefault_Forex_Source ] );
+//                LogUtil.LogMsg( lmError,UnitName, ThisMethodName + ' : ' + Msg );
+//                Raise Exception.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
+//              End;
 
               MaxLRN := baHighest_LRN;  //baTransaction_List.HighestLRN;
               pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( baBank_Account_Number );
@@ -372,7 +372,8 @@ Begin
                                  if ForeignCurrency then
                                  Begin
                                    txForeign_Currency_Amount := aAmount;
-                                   Rate   := baForex_Info.Rate( BCode, CCode, aDate_Presented );
+//                                   Rate   := baForex_Info.Rate( BCode, CCode, aDate_Presented );
+                                   Rate := 0;
                                    if Rate <> 0.0 then
                                      txAmount := Round( txForeign_Currency_Amount / Rate )
                                    else
@@ -510,13 +511,13 @@ Begin
   Result := False;
   if not NewDataAvailable( Client ) then
       Exit; { No new data }
-  If Client.HasForeignCurrencyAccounts then
-  Begin
-    if not HasRequiredForexSources(Client, fBadForexCurrencyCode, fBadForexAccountCode) then
-       Exit;
-    If HasNewEntriesWithDatesOutsideTheCurrentForexDataRange( Client, AdminSystem, fBadForexCurrencyCode, fBadForexFileName) then
-       Exit;
-  end;
+//  If Client.HasForeignCurrencyAccounts then
+//  Begin
+//    if not HasRequiredForexSources(Client, fBadForexCurrencyCode, fBadForexAccountCode) then
+//       Exit;
+//    If HasNewEntriesWithDatesOutsideTheCurrentForexDataRange( Client, AdminSystem, fBadForexCurrencyCode, fBadForexFileName) then
+//       Exit;
+//  end;
 
   Result := True;
 End;

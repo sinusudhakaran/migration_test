@@ -152,7 +152,7 @@ const
   sui_mcCashflowAct_Cur         = 106;
   sui_mcGraphs_Cur              = 107;
   sui_mcGSTReturn_Cur           = 108;
-
+  sui_mcCheckForUpdates         = 109;
   sui_mcCodingReport            = 110;
   sui_mcLedgerReport            = 111;
   sui_mcPayeeReport             = 112;
@@ -282,7 +282,7 @@ uses
   suiListReportsFme,
   suiBankRecReportsFme,
 
-  ShellAPI, imagesfrm;
+  ShellAPI, imagesfrm, UpgradeHelper;
 {$R *.dfm}
 
 var
@@ -349,6 +349,12 @@ begin
      sui_mcSystemOptions         : frmMain.DoMainFormCommand( mf_mcSystemOptions );
      sui_mcMaintainDiv           : frmMain.DoMainFormCommand( mf_mcEditDivisions);
      sui_mcEmailSupport          : MailFrm.SendMailToSupport( GetSupportEmailAddress);
+     sui_mcCheckForUpdates       : begin
+                                     UpgradeHelper.CheckForUpgrade_Offsite(frmMain.Handle, '',
+                                                                           MyClient.clFields.clCountry);
+                                     if Globals.ApplicationMustShutdownForUpdate then
+                                       frmMain.Close;
+                                   end;
 
      //more input
      sui_mcCoding                : frmMain.DoMainFormCommand( mf_mcCoding);

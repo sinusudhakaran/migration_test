@@ -155,6 +155,11 @@ object fmeSUIAdvancedPage: TfmeSUIAdvancedPage
         Column = 3
         Control = gbtnEOY
         Row = 1
+      end
+      item
+        Column = 3
+        Control = tbkExGlassButton1
+        Row = 2
       end>
     ParentBackground = False
     RowCollection = <
@@ -328,7 +333,6 @@ object fmeSUIAdvancedPage: TfmeSUIAdvancedPage
       TabOrder = 10
       Anchors = []
       OnClick = gbtnChangePeriodClick
-      ExplicitLeft = 586
       DesignSize = (
         150
         165)
@@ -369,15 +373,13 @@ object fmeSUIAdvancedPage: TfmeSUIAdvancedPage
       TabOrder = 6
       Anchors = []
       OnClick = gbtnConfigGSTClick
-      ExplicitLeft = 20
-      ExplicitTop = 17
       DesignSize = (
         150
         163)
     end
     object gbtnEOY: tbkExGlassButton
       Left = 586
-      Top = 190
+      Top = 191
       Width = 150
       Height = 163
       ButtonCaption = 'Complete end of year'
@@ -391,10 +393,29 @@ object fmeSUIAdvancedPage: TfmeSUIAdvancedPage
       TabOrder = 7
       Anchors = []
       OnClick = gbtnEOYClick
-      ExplicitTop = 191
       DesignSize = (
         150
         163)
+    end
+    object tbkExGlassButton1: tbkExGlassButton
+      Left = 586
+      Top = 371
+      Width = 150
+      Height = 165
+      ButtonCaption = 'Check for updates'
+      ButtonColor = clGray
+      ButtonFontColor = clWhite
+      ButtonVertMargin = 0
+      ButtonHorizMargin = 0
+      LabelFontSize = 8
+      LabelHeight = 15
+      ParentColor = True
+      TabOrder = 11
+      Anchors = []
+      OnClick = tbkExGlassButton1Click
+      DesignSize = (
+        150
+        165)
     end
   end
 end

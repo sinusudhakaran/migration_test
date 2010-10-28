@@ -30,6 +30,8 @@ type
     Label1: TLabel;
     Label2: TLabel;
     ReloadTimer: TTimer;
+    acAddExchangeRate: TAction;
+    acEditExchangeRate: TAction;
     procedure FormCreate(Sender: TObject);
     procedure acImportExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -39,6 +41,13 @@ type
     procedure eDateToDblClick(Sender: TObject);
     procedure eDateFromChange(Sender: TObject);
     procedure ReloadTimerTimer(Sender: TObject);
+    procedure acAddExchangeRateExecute(Sender: TObject);
+    procedure acEditExchangeRateExecute(Sender: TObject);
+    procedure vtRatesColumnDblClick(Sender: TBaseVirtualTree;
+      Column: TColumnIndex; Shift: TShiftState);
+    procedure vtRatesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex);
+    procedure FormActivate(Sender: TObject);
   private
     FTreeList: TTreeBaseList;
     FSource: TExchangeSource;
@@ -74,7 +83,8 @@ uses
   ErrorMoreFrm,
   bkBranding,
   ISO_4217,
-  bkXPThemes;
+  bkXPThemes,
+  frmEditExchangeRate;
 
 
 {$R *.dfm}
@@ -109,6 +119,20 @@ type
   end;
 
 
+procedure TExchangeRatesfrm.acAddExchangeRateExecute(Sender: TObject);
+begin
+  if Assigned(FSource) then begin
+    if EditExchangeRate(FSource) then
+      FillRates;
+  end;
+end;
+
+procedure TExchangeRatesfrm.acEditExchangeRateExecute(Sender: TObject);
+begin
+  if Assigned(FSource) and Assigned(vtRates.FocusedNode) then
+    EditExchangeRate(FSource, TExchangeTreeItem(FTreeList.Items[vtRates.FocusedNode^.Index]).FExchangeRecord);
+end;
+
 procedure TExchangeRatesfrm.acImportExecute(Sender: TObject);
 begin
    if Assigned(FSource) then begin
@@ -116,8 +140,6 @@ begin
          FillRates;
    end;
 end;
-
-
 
 //*****************************************************************************
 function FindLocked(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
@@ -254,12 +276,15 @@ var
    C: Integer;
    OtherData : OtherAddItemRec;
 
-   function AddColumn(Name: string; Tag, Width: Integer) : TVirtualTreeColumn;
+   function AddColumn(Name: string; Tag, Width: Integer; Draggable: boolean = true) : TVirtualTreeColumn;
    begin
        Result := vtRates.Header.Columns.Add;
+       if not Draggable then
+         Result.Options := Result.Options - [coDraggable, coShowDropMark];
        Result.Text := Name;
        Result.Tag := Tag;
        Result.Width := Width;
+
    end;
 
 begin
@@ -272,8 +297,8 @@ begin
       FTreeList.Clear;
 
       // ReBuild the Columns
-      AddColumn('S',Tag_Lock,20);
-      AddColumn('Date',Tag_Date,80);
+      AddColumn('S',Tag_Lock,20, false);
+      AddColumn('Date',Tag_Date,80, false);
 
       for C := low(FSource.Header.ehISO_Codes) to high(FSource.Header.ehISO_Codes) do
          if FSource.Header.ehISO_Codes[C] > '' then begin
@@ -294,6 +319,12 @@ begin
       vtRates.EndUpdate;
       Screen.Cursor := Keep;
    end;
+end;
+
+
+procedure TExchangeRatesfrm.FormActivate(Sender: TObject);
+begin
+  FillRates;
 end;
 
 procedure TExchangeRatesfrm.FormCreate(Sender: TObject);
@@ -317,10 +348,6 @@ begin
    end;
    AdminSystem.SyncCurrenciesToSystemAccounts;
    FSource.MapToHeader(AdminSystem.fCurrencyList);
-
-
-   FillRates;
-   // grpDetails.Items[0].Caption := format('Base currency: %s', [AdminSystem.fCurrencyCode]);
 end;
 
 procedure TExchangeRatesfrm.FormDestroy(Sender: TObject);
@@ -361,6 +388,19 @@ begin
   eDateTo.AsStDate := Value;
 end;
 
+procedure TExchangeRatesfrm.vtRatesColumnDblClick(Sender: TBaseVirtualTree;
+  Column: TColumnIndex; Shift: TShiftState);
+begin
+  acEditExchangeRateExecute(Sender);
+end;
+
+procedure TExchangeRatesfrm.vtRatesFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
+begin
+  acEditExchangeRate.Enabled := (vtRates.SelectedCount > 0) and
+                                (not TExchangeTreeItem(FTreeList.Items[Node.Index]).FExchangeRecord.Locked);
+end;
+
 { TExchangeTreeItem }
 
 procedure TExchangeTreeItem.AfterPaintCell(const Tag: integer; Canvas: TCanvas;
@@ -372,7 +412,6 @@ begin
            Canvas.Draw(CellRect.Left,CellRect.Top,  ImagesFrm.AppImages.imgLock.Picture.Bitmap);
       end;
    end;
-
 end;
 
 constructor TExchangeTreeItem.Create(aExchangeRecord: TExchangeRecord);

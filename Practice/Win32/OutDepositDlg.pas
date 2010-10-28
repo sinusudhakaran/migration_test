@@ -256,7 +256,7 @@ begin
           Begin
             BCode := BA.baFields.baCurrency_Code;
             CCode := MyClient.clExtra.ceLocal_Currency_Code;
-            txForex_Conversion_Rate := BA.baForex_Info.Rate( BCode, CCode, txDate_Effective );
+//            txForex_Conversion_Rate := BA.baForex_Info.Rate( BCode, CCode, txDate_Effective );
             if FType = upUPW then
               Foreign_Amount := Abs( GenUtils.Double2Money(eAmount.AsFloat))
             else

@@ -154,8 +154,8 @@ begin
         else
            NewItem.ImageIndex := MAINTAIN_PAGE_NORMAL_BMP;
 
-        if BankAcct.IsAForexAccount and ( BankAcct.baFields.baDefault_Forex_Source = '' ) then
-          NewItem.ImageIndex := MAINTAIN_ALERT;
+//        if BankAcct.IsAForexAccount and ( BankAcct.baFields.baDefault_Forex_Source = '' ) then
+//          NewItem.ImageIndex := MAINTAIN_ALERT;
 
         if ( BankAcct.baFields.baAccount_Type = btBank ) and
            ContraCodeRequired( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used )

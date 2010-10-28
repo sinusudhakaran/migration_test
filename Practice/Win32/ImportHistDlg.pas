@@ -1208,7 +1208,7 @@ begin
       cbAmount.Clear;
       cbAmount2.Clear;
       for I := 0 to vsFile.header.Columns.Count - 1 do
-         if vsFile.header.Columns[I].Tag in [ TagAmount ] then begin
+         if vsFile.header.Columns[I].Tag in [ TagAmount, TagAmountSign ] then begin
             cbAmount.Items.AddObject (vsFile.header.Columns[I].Text, TObject(I));
             cbAmount2.Items.AddObject(vsFile.header.Columns[I].Text, TObject(I));
          end;

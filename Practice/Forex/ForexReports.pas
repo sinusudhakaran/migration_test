@@ -16,7 +16,7 @@ implementation
 // ----------------------------------------------------------------------------
 
 uses
-  omniXML, CodeDateAccountDlg, NewReportObj, RepCols, TravList, CurrencyConversions, SysUtils,
+  omniXML, CodeDateAccountDlg, NewReportObj, RepCols, TravList, SysUtils,
   bkConst, baObj32, bkDateUtils, GenUtils, Globals, RptParams, BKHelp, WarningMoreFrm, ReportTypes,
   NewReportUtils, baUtils, MoneyUtils, ForexHelpers;
 
@@ -107,12 +107,12 @@ begin
     Begin
       BCode := baCurrency_Code;
       CCode := Client.clExtra.ceLocal_Currency_Code;
-      if Bank_Account.baForex_Info = NIL then
-      Begin
-        S := Format( 'Client %s, Bank Account %s : Unable to find an exchange rate currency data source for converting %s to %s with the description %s (%s)',
-          [ clCode, baBank_Account_Number, BCode, CCode, baDefault_Forex_Description, baDefault_Forex_Source ] );
-        Raise Exception.CreateFmt( '%s - %s : %s', [ 'ForexReports', 'LE_EnterAccount_Pres', S ] );
-      end;
+//      if Bank_Account.baForex_Info = NIL then
+//      Begin
+//        S := Format( 'Client %s, Bank Account %s : Unable to find an exchange rate currency data source for converting %s to %s with the description %s (%s)',
+//          [ clCode, baBank_Account_Number, BCode, CCode, baDefault_Forex_Description, baDefault_Forex_Source ] );
+//        Raise Exception.CreateFmt( '%s - %s : %s', [ 'ForexReports', 'LE_EnterAccount_Pres', S ] );
+//      end;
       ForexAmountCol.FormatString  := Bank_Account.FmtMoneyStr;
       LocalAmountCol.FormatString  := Client.FmtMoneyStr;
     end;

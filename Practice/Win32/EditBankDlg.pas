@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, Buttons, OvcBase, OvcEF, OvcPB, OvcNF, baObj32, OvcPF,
   Mask, ExtCtrls, ComCtrls,
-  OsFont, CurrencyConversions;
+  OsFont; //, CurrencyConversions;
 
 type
   TdlgEditBank = class(TForm)
@@ -62,12 +62,8 @@ type
     lblM: TLabel;
     btnLedgerID: TButton;
     lblLedgerID: TLabel;
-    tbCurrency: TTabSheet;
-    cmbDataSources: TComboBox;
-    Label3: TLabel;
-    Label5: TLabel;
-    eCurrencyCode: TEdit;
-    eCurrencyName: TEdit;
+    lblCurrency: TLabel;
+    cmbCurrency: TComboBox;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
@@ -110,6 +106,7 @@ type
     procedure DoList;
     function OKtoPost : boolean;
     procedure SetLedgerLabel;
+    procedure FillCurrencies;
   public
     { Public declarations }
     function Execute : boolean;
@@ -144,7 +141,7 @@ uses
   bkDefs,
   stdHints,
   ISO_4217,
-  ForexUtils,
+//  ForexUtils,
   ComboUtils,
   AdvanceAccountOptionsFrm,
   pwdSeed,
@@ -176,6 +173,26 @@ begin
    eContra.Refresh;
 end;
 //------------------------------------------------------------------------------
+procedure TdlgEditBank.FillCurrencies;
+var
+  Cursor: TCursor;
+  i: Integer;
+begin
+  Cursor := Screen.Cursor;
+  Screen.Cursor := crHourGlass;
+  cmbCurrency.Items.BeginUpdate;
+  try
+    cmbCurrency.Clear;
+    AdminSystem.SyncCurrenciesToSystemAccounts;
+    for i := low(AdminSystem.fCurrencyList.ehISO_Codes) to high(AdminSystem.fCurrencyList.ehISO_Codes) do
+      if AdminSystem.fCurrencyList.ehISO_Codes[i] > '' then
+        cmbCurrency.Items.Add(AdminSystem.fCurrencyList.ehISO_Codes[i]);
+  finally
+    cmbCurrency.Items.EndUpdate;
+    Screen.Cursor := Cursor;
+  end;
+end;
+
 procedure TdlgEditBank.FormCreate(Sender: TObject);
 var
   i: Integer;
@@ -202,6 +219,9 @@ begin
   removingMask          := false;
 
   cmbSign.itemIndex := BAL_INFUNDS;
+
+  FillCurrencies;
+
   SetUpHelp;
 end;
 //------------------------------------------------------------------------------
@@ -213,6 +233,9 @@ begin
    eNumber.Hint     :=
                     'Enter the Bank Account Number|' +
                     'Enter the Bank Account Number';
+   cmbCurrency.Hint :=
+                    'Select the currency for this Bank Account|' +
+                    'Select the currency for this Bank Account';
    eName.Hint       :=
                     'Edit the Bank Account name if necessary|' +
                     'Edit the Bank Account name if necessary or use the default name downloaded with the transactions';
@@ -363,13 +386,13 @@ begin
      exit;
   end;
 
-  if BankAcct.IsAForexAccount and ( cmbDataSources.ItemIndex = -1 )then
-  Begin
-    HelpfulWarningMsg('Please select a currency conversion rate source.',0);
-    PageControl1.ActivePage := tbCurrency;
-    cmbDataSources.SetFocus;
-    exit;
-  end;
+//  if BankAcct.IsAForexAccount and ( cmbDataSources.ItemIndex = -1 )then
+//  Begin
+//    HelpfulWarningMsg('Please select a currency conversion rate source.',0);
+//    PageControl1.ActivePage := tbCurrency;
+//    cmbDataSources.SetFocus;
+//    exit;
+//  end;
   result := true;
 end;
 //------------------------------------------------------------------------------
@@ -535,10 +558,10 @@ var
    Amount : money;
    P : pISO_4217_Record;
    I : Integer;
-   ASource : TExchangeRateSource;
-   Sources : TExchangeRateSources;
+//   ASource : TExchangeRateSource;
+//   Sources : TExchangeRateSources;
 begin
-   Sources := NIL;
+//   Sources := NIL;
    result := false;
    okPressed := false;
 
@@ -583,6 +606,13 @@ begin
    end
    else
      eNumber.Text := BankAcct.baFields.baBank_Account_Number;
+
+   //Set currency
+   cmbCurrency.Visible := (BankAcct.baFields.baIs_A_Manual_Account) and
+                          (MyClient.clFields.clCountry = whUK);
+   cmbCurrency.Enabled := cmbCurrency.Visible and FAddNew;
+   if cmbCurrency.Items.IndexOf(BankAcct.baFields.baCurrency_Code) <> -1 then
+     cmbCurrency.ItemIndex := cmbCurrency.Items.IndexOf(BankAcct.baFields.baCurrency_Code);
 
    if BankAcct.IsAJournalAccount then
    begin
@@ -639,7 +669,7 @@ begin
    //show analysis coding settings if relevant
    tbAnalysis.TabVisible := (MyClient.clFields.clCountry = whNewZealand) and ( BankAcct.baFields.baAccount_Type = btBank);
 
-   if BankAcct.IsAForexAccount then
+{   if BankAcct.IsAForexAccount then
    Begin
      eCurrencyCode.Text := BankAcct.baFields.baCurrency_Code;
      P := Get_ISO_4217_Record( BankAcct.baFields.baCurrency_Code );
@@ -662,7 +692,7 @@ begin
      tbCurrency.TabVisible := True;
    End
    else
-     tbCurrency.TabVisible := False;
+     tbCurrency.TabVisible := False; }
 
    rbAnalysisEnabled.Checked := False;
    rbRestricted.checked := False;
@@ -723,6 +753,7 @@ begin
            BankAcct.baFields.baManual_Account_Sent_To_Admin := True;
        end;
      end;
+     BankAcct.baFields.baCurrency_Code := cmbCurrency.Items[cmbCurrency.ItemIndex];
      BankAcct.baFields.baBank_Account_Name := eName.Text;
      BankAcct.baFields.baContra_Account_Code := eContra.Text;
      BankAcct.baFields.baApply_Master_Memorised_Entries := chkMaster.Checked;
@@ -765,15 +796,15 @@ begin
 
      BankAcct.baFields.baCurrent_Balance := Amount;
 
-     if tbCurrency.Visible then
-     Begin
-       ASource := Sources.Source[ cmbDataSources.ItemIndex ];
-       BankAcct.baFields.baDefault_Forex_Description := ASource.Description;
-       BankAcct.baFields.baDefault_Forex_Source := ASource.DataSource;
-       BankAcct.baForex_Info := NIL; { Clear the current source, it will be reset when we next access it }
-     End;
+//     if tbCurrency.Visible then
+//     Begin
+//       ASource := Sources.Source[ cmbDataSources.ItemIndex ];
+//       BankAcct.baFields.baDefault_Forex_Description := ASource.Description;
+//       BankAcct.baFields.baDefault_Forex_Source := ASource.DataSource;
+//       BankAcct.baForex_Info := NIL; { Clear the current source, it will be reset when we next access it }
+//     End;
    end;
-   if Assigned( Sources ) then Sources.Free;
+//   if Assigned( Sources ) then Sources.Free;
    result := okPressed;
 end;
 //------------------------------------------------------------------------------

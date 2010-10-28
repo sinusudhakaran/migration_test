@@ -133,7 +133,7 @@ object CurrenciesFrm: TCurrenciesFrm
       Header.Font.Height = -11
       Header.Font.Name = 'Tahoma'
       Header.Font.Style = []
-      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+      Header.Options = [hoAutoResize, hoShowSortGlyphs, hoVisible]
       Header.ParentFont = True
       Header.SortColumn = 0
       Header.Style = hsXPStyle
@@ -151,21 +151,21 @@ object CurrenciesFrm: TCurrenciesFrm
           MinWidth = 130
           Position = 0
           Tag = 1
-          Width = 130
+          Width = 145
           WideText = 'ISO Currency Code'
         end
         item
           Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
           Position = 1
           Tag = 2
-          Width = 272
+          Width = 267
           WideText = 'Currency'
         end
         item
           Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
           Position = 2
           Tag = 3
-          Width = 150
+          Width = 135
           WideText = 'Type'
         end>
     end

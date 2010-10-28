@@ -211,7 +211,7 @@ uses
   Extract32,
   Globals,SYDEFS, ToDoListUnit,StDate,Math,MainFrm, BKdateUtils, UpdateMF,baObj32,
   ApplicationUtils, AutoSaveUtils, rptHome, ClientNotesFrm, Files, ClientManagerFrm, BudgetFrm,
-  bkXPThemes, ShellAPI, ForexUtils, SimpleUIHomepagefrm;
+  bkXPThemes, ShellAPI, SimpleUIHomepagefrm;
 {$R *.dfm}
 
 var
@@ -975,32 +975,32 @@ begin
               and (FtheClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number)
               and NewDataAvailable(FtheClient) then
               begin { There is new data available }
-                If FtheClient.HasForeignCurrencyAccounts then
-                Begin
-                  if HasRequiredForexSources( FTheClient, fBadForexCurrencyCode, fBadForexAccountCode ) then
-                  Begin
-                    If HasNewEntriesWithDatesOutsideTheCurrentForexDataRange( FTheClient, AdminSystem, fBadForexCurrencyCode, fBadForexFileName ) then
-                    Begin
-                      acForexRates.Visible := True;
-                      acForexRates.Caption := Format( 'Before you can retrieve new transaction data, please update the foreign currency conversion rates for %s in the file %s',
-                        [ fBadForexCurrencyCode, fBadForexFilename ] );
-                      acUpdate.Visible := False;
-                    End
-                    else
-                    Begin
-                      acUpdate.Caption := 'There are new transactions available';
-                      acUpdate.Visible := True;
-                    End;
-                  End
-                  Else
-                  Begin
-                    acForexSources.Caption := Format( 'Please specify a foreign currency conversion source for %s, account %s',
-                      [ fBadForexCurrencyCode, fBadForexAccountCode ] );
-                    acForexSources.Visible := True;
-                    acUpdate.Visible := False;
-                  End;
-                End
-                Else
+//                If FtheClient.HasForeignCurrencyAccounts then
+//                Begin
+//                  if HasRequiredForexSources( FTheClient, fBadForexCurrencyCode, fBadForexAccountCode ) then
+//                  Begin
+//                    If HasNewEntriesWithDatesOutsideTheCurrentForexDataRange( FTheClient, AdminSystem, fBadForexCurrencyCode, fBadForexFileName ) then
+//                    Begin
+//                      acForexRates.Visible := True;
+//                      acForexRates.Caption := Format( 'Before you can retrieve new transaction data, please update the foreign currency conversion rates for %s in the file %s',
+//                        [ fBadForexCurrencyCode, fBadForexFilename ] );
+//                      acUpdate.Visible := False;
+//                    End
+//                    else
+//                    Begin
+//                      acUpdate.Caption := 'There are new transactions available';
+//                      acUpdate.Visible := True;
+//                    End;
+//                  End
+//                  Else
+//                  Begin
+//                    acForexSources.Caption := Format( 'Please specify a foreign currency conversion source for %s, account %s',
+//                      [ fBadForexCurrencyCode, fBadForexAccountCode ] );
+//                    acForexSources.Visible := True;
+//                    acUpdate.Visible := False;
+//                  End;
+//                End
+//                Else
                 Begin
                   acUpdate.Caption := 'There are new transactions available';
                   acUpdate.Visible := True;
