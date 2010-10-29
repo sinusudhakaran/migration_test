@@ -608,8 +608,9 @@ begin
      eNumber.Text := BankAcct.baFields.baBank_Account_Number;
 
    //Set currency
-   cmbCurrency.Visible := (BankAcct.baFields.baIs_A_Manual_Account) and
+   lblCurrency.Visible := (BankAcct.baFields.baIs_A_Manual_Account) and
                           (MyClient.clFields.clCountry = whUK);
+   cmbCurrency.Visible := lblCurrency.Visible;
    cmbCurrency.Enabled := cmbCurrency.Visible and FAddNew;
    if cmbCurrency.Items.IndexOf(BankAcct.baFields.baCurrency_Code) <> -1 then
      cmbCurrency.ItemIndex := cmbCurrency.Items.IndexOf(BankAcct.baFields.baCurrency_Code);
