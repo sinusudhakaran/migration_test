@@ -272,6 +272,18 @@ Begin
    F.fWriteCode := 'F.WriteDoubleValue( %TOKEN%, %NAME% );';
    AddFieldType( F );
 
+   F := TFieldType.Create( 'BR' );
+   F.fDefn      := 'Array[ 1..%B1% ] of Double;';
+   F.fReadVars  := 'R,I';
+   F.fReadCode  := 'Begin' + CR +
+                   '   R := F.ReadBDoubleValue( I );' + CR +
+                   '   CheckBounds( I, 1, %B1%, ''%NAME%'' );' + CR +
+                   '   %NAME%[ I ] := R;' + CR +
+                   'end;' ;
+   F.fWriteVars := 'I';
+   F.fWriteCode := 'For i := 1 to %B1% do F.WriteBDoubleValue( %TOKEN% , i, %NAME%[ i ] );';
+   AddFieldType( F );
+
    // --------------------------------------------------------------------------
    // Integer Fields
    // --------------------------------------------------------------------------

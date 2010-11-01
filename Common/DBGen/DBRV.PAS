@@ -55,6 +55,7 @@ Var
    Needs_D  : Boolean;
    Needs_Y  : Boolean;
    Needs_S  : Boolean;
+   Needs_R  : Boolean;
    SL       : TStringList;
    i        : Integer;
 Begin
@@ -125,6 +126,7 @@ Begin
                If SL[i] = 'D'  then Needs_D  := True;
                If SL[i] = 'Y'  then Needs_Y  := True;
                If SL[i] = 'S'  then Needs_S  := True;
+               If SL[i] = 'R'  then Needs_R  := True;
             end;
             FreeAndNil( SL );
          end
@@ -143,6 +145,7 @@ Begin
             If Needs_D  then Writeln( RVFile, '   D     : Integer;' );
             If Needs_Y  then Writeln( RVFile, '   Y     : Boolean;' );
             If Needs_S  then Writeln( RVFile, '   S     : ShortString;' );
+            If Needs_R  then Writeln( RVFile, '   R     : Double;' );
             Close( RVFile );
          end;
       end;
