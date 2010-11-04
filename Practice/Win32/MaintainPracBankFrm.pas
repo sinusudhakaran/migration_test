@@ -33,6 +33,7 @@ type
     actSendFrequencyRequest: TAction;
     acCurrencies: TAction;
     acExchangRates: TAction;
+    acSendProvReq: TAction;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
@@ -54,6 +55,8 @@ type
     procedure actSendFrequencyRequestExecute(Sender: TObject);
     procedure acCurrenciesExecute(Sender: TObject);
     procedure acExchangRatesExecute(Sender: TObject);
+    procedure actSendProvReqExecute(Sender: TObject);
+    procedure SendProvAccRequest;
   private
     { Private declarations }
     fChanged : boolean;
@@ -101,7 +104,8 @@ uses
   YesNoDlg,
   bkConst,
   GenUtils,
-  FrequencyRequestFrm;
+  FrequencyRequestFrm,
+  SendProvAccRequestFrm;
 
 
 {$R *.DFM}
@@ -442,6 +446,11 @@ begin
   finally
     FrequencyRequestForm.Free;
   end;
+end;
+
+procedure TfrmMaintainPracBank.actSendProvReqExecute(Sender: TObject);
+begin
+  SendProvAccRequest;
 end;
 
 procedure TfrmMaintainPracBank.btnOKClick(Sender: TObject);
@@ -867,6 +876,17 @@ end;
 procedure TfrmMaintainPracBank.tbHelpClick(Sender: TObject);
 begin
   BKHelpShow(Self);
+end;
+
+procedure TfrmMaintainPracBank.SendProvAccRequest;
+var
+  SendProvAccRequestForm: TfrmSendProvAccRequest;
+begin
+  SendProvAccRequestForm := TfrmSendProvAccRequest.Create(Self);
+  if SendProvAccRequestForm.ShowModal = mrOk then
+  begin
+    ShowMessage('ok');
+  end;
 end;
 
 end.

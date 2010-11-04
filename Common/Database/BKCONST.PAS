@@ -1944,9 +1944,10 @@ const
    mtCash = 4;
    mtSavings = 5;
    mtCheque = 6;
-   mtOther = 7; mtMax = 7;
+   mtOther = 7;
+   mtSuper = 8; mtMax = 8;
 
-   mtNames : Array[ mtMin..mtMax ] of String[ 20 ] =
+   mtNames : Array[ mtMin..mtMax ] of String[ 22 ] =
       ( 'Loan',
         'Personal credit card',
         'Business credit card',
@@ -1954,7 +1955,8 @@ const
         'Cash',
         'Savings',
         'Cheque',
-        'Other');
+        'Other',
+        'Self-managed superfund');
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // period types for payee report totals
   ptMonthly = 0; ptMin = 0;
