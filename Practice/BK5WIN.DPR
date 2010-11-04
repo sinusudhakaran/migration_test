@@ -50,7 +50,16 @@ uses
   usrlist32 in 'Win32\usrlist32.pas',
   LOGUTIL in 'Win32\LOGUTIL.PAS',
   BKHelp in 'Win32\BKHelp.pas',
-  ThirdPartyHelper in 'Win32\ThirdPartyHelper.pas';
+  ThirdPartyHelper in 'Win32\ThirdPartyHelper.pas',
+  AccountSelectorFme in 'Win32\AccountSelectorFme.pas' {fmeAccountSelector: TFrame},
+  ClientLookupFme in 'Win32\ClientLookupFme.pas' {fmeClientLookup: TFrame},
+  ClientSelectFme in 'Win32\ClientSelectFme.pas' {FmeClientSelect: TFrame},
+  DateSelectorFme in 'Win32\DateSelectorFme.pas' {fmeDateSelector: TFrame},
+  DivisionSelectorFme in 'Win32\DivisionSelectorFme.pas' {fmeDivisionSelector: TFrame},
+  ECodingExportFme in 'Win32\ECodingExportFme.pas' {fmeECodingExport: TFrame},
+  ExistingChequesFme in 'Win32\ExistingChequesFme.pas' {fmeExistingCheques: TFrame},
+  RTFEditFme in 'Win32\RTFEditFme.pas' {fmeEditRTF: TFrame},
+  sysaccountsfme in 'Win32\sysaccountsfme.pas' {fmeSysAccounts: TFrame};
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
