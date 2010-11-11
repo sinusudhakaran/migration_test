@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, Buttons, OvcBase, OvcEF, OvcPB, OvcNF, baObj32, OvcPF,
   Mask, ExtCtrls, ComCtrls,
-  OsFont; //, CurrencyConversions;
+  OsFont;
 
 type
   TdlgEditBank = class(TForm)
@@ -141,7 +141,6 @@ uses
   bkDefs,
   stdHints,
   ISO_4217,
-//  ForexUtils,
   ComboUtils,
   AdvanceAccountOptionsFrm,
   pwdSeed,
@@ -386,13 +385,6 @@ begin
      exit;
   end;
 
-//  if BankAcct.IsAForexAccount and ( cmbDataSources.ItemIndex = -1 )then
-//  Begin
-//    HelpfulWarningMsg('Please select a currency conversion rate source.',0);
-//    PageControl1.ActivePage := tbCurrency;
-//    cmbDataSources.SetFocus;
-//    exit;
-//  end;
   result := true;
 end;
 //------------------------------------------------------------------------------
@@ -558,10 +550,7 @@ var
    Amount : money;
    P : pISO_4217_Record;
    I : Integer;
-//   ASource : TExchangeRateSource;
-//   Sources : TExchangeRateSources;
 begin
-//   Sources := NIL;
    result := false;
    okPressed := false;
 
@@ -669,32 +658,6 @@ begin
 
    //show analysis coding settings if relevant
    tbAnalysis.TabVisible := (MyClient.clFields.clCountry = whNewZealand) and ( BankAcct.baFields.baAccount_Type = btBank);
-
-{   if BankAcct.IsAForexAccount then
-   Begin
-     eCurrencyCode.Text := BankAcct.baFields.baCurrency_Code;
-     P := Get_ISO_4217_Record( BankAcct.baFields.baCurrency_Code );
-     if Assigned( P ) then eCurrencyName.Text := P.Name;
-     cmbDataSources.Items.Clear;
-
-     Sources := ExchangeRateFinder.SuggestSources( BankAcct.baFields.baCurrency_Code, MyClient.clExtra.ceLocal_Currency_Code );
-     for I := 0 to Sources.Count - 1 do
-     Begin
-       ASource := Sources.Source[ i ];
-       cmbDataSources.AddComboItem( ASource.DataSource + ' : ' + ASource.Description, I );
-     End;
-     ASource := Sources.FindSourceByDescriptionAndDataSource( BankAcct.baFields.baDefault_Forex_Description, BankAcct.baFields.baDefault_Forex_Source );
-
-     if Assigned( ASource ) then
-       cmbDataSources.ItemIndex := Sources.IndexOf( ASource )
-     else
-       cmbDataSources.Text := '';
-
-     tbCurrency.TabVisible := True;
-   End
-   else
-     tbCurrency.TabVisible := False; }
-
    rbAnalysisEnabled.Checked := False;
    rbRestricted.checked := False;
    rbVeryRestricted.checked := False;
@@ -796,16 +759,7 @@ begin
        BankAcct.baFields.baAnalysis_Coding_Level := acDisabled;
 
      BankAcct.baFields.baCurrent_Balance := Amount;
-
-//     if tbCurrency.Visible then
-//     Begin
-//       ASource := Sources.Source[ cmbDataSources.ItemIndex ];
-//       BankAcct.baFields.baDefault_Forex_Description := ASource.Description;
-//       BankAcct.baFields.baDefault_Forex_Source := ASource.DataSource;
-//       BankAcct.baForex_Info := NIL; { Clear the current source, it will be reset when we next access it }
-//     End;
    end;
-//   if Assigned( Sources ) then Sources.Free;
    result := okPressed;
 end;
 //------------------------------------------------------------------------------
