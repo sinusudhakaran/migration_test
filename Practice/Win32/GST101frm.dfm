@@ -138,6 +138,10 @@ object frmGST101: TfrmGST101
     TabOrder = 1
     object TSPart1: TTabSheet
       Caption = 'Part 1 - GST'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object sbGST: TScrollBox
         Left = 0
         Top = 0
@@ -162,7 +166,7 @@ object frmGST101: TfrmGST101
           object lMain1: TLabel
             Left = 6
             Top = 0
-            Width = 227
+            Width = 226
             Height = 18
             Caption = 'Goods and Services Tax Return'
             Font.Charset = DEFAULT_CHARSET
@@ -1122,7 +1126,7 @@ object frmGST101: TfrmGST101
             object L5: TLabel
               Left = 124
               Top = 19
-              Width = 216
+              Width = 215
               Height = 16
               Caption = 'Total Sales and Income (incl GST)'
               Font.Charset = DEFAULT_CHARSET
@@ -1551,7 +1555,7 @@ object frmGST101: TfrmGST101
               object L10: TLabel
                 Left = 0
                 Top = 40
-                Width = 125
+                Width = 124
                 Height = 16
                 Caption = 'Total GST collected'
                 Font.Charset = DEFAULT_CHARSET
@@ -1625,14 +1629,14 @@ object frmGST101: TfrmGST101
             object L12: TLabel
               Left = 124
               Top = 37
-              Width = 125
+              Width = 124
               Height = 16
               Caption = 'Divide Box 11 by nine'
             end
             object L11: TLabel
               Left = 124
               Top = 9
-              Width = 192
+              Width = 191
               Height = 16
               Caption = 'Total purchases and expenses'
               Font.Charset = DEFAULT_CHARSET
@@ -1652,7 +1656,7 @@ object frmGST101: TfrmGST101
             object L14: TLabel
               Left = 124
               Top = 89
-              Width = 105
+              Width = 104
               Height = 16
               Caption = 'Total GST Credit'
               Font.Charset = DEFAULT_CHARSET
@@ -2443,7 +2447,7 @@ object frmGST101: TfrmGST101
         object lMain1B: TLabel
           Left = 6
           Top = 0
-          Width = 227
+          Width = 226
           Height = 18
           Caption = 'Goods and Services Tax Return'
           Font.Charset = DEFAULT_CHARSET
@@ -3111,7 +3115,7 @@ object frmGST101: TfrmGST101
           object L5B: TLabel
             Left = 124
             Top = 19
-            Width = 216
+            Width = 215
             Height = 16
             Caption = 'Total Sales and Income (incl GST)'
             Font.Charset = DEFAULT_CHARSET
@@ -3535,7 +3539,7 @@ object frmGST101: TfrmGST101
             object L10B: TLabel
               Left = 0
               Top = 40
-              Width = 125
+              Width = 124
               Height = 16
               Caption = 'Total GST collected'
               Font.Charset = DEFAULT_CHARSET
@@ -3609,14 +3613,14 @@ object frmGST101: TfrmGST101
           object L12B: TLabel
             Left = 124
             Top = 37
-            Width = 287
+            Width = 286
             Height = 16
             Caption = 'Multiply Box 11B by 3 then divide the result by 23'
           end
           object L11B: TLabel
             Left = 124
             Top = 9
-            Width = 192
+            Width = 191
             Height = 16
             Caption = 'Total purchases and expenses'
             Font.Charset = DEFAULT_CHARSET
@@ -3650,7 +3654,7 @@ object frmGST101: TfrmGST101
           object L14B: TLabel
             Left = 124
             Top = 89
-            Width = 105
+            Width = 104
             Height = 16
             Caption = 'Total GST Credit'
             Font.Charset = DEFAULT_CHARSET

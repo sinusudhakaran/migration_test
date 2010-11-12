@@ -1328,7 +1328,7 @@ begin
      ERatio.AsFloat               := rpt_Ratio;
 
      Figures^.HasJournals         := GSTInfoA.guHasJournals or GSTInfoB.guHasJournals;
-     Figures^.HasUncodes          := GSTInfoA.guHasUncodes or GSTInfoB.guHasJournals;;
+     Figures^.HasUncodes          := GSTInfoA.guHasUncodes or GSTInfoB.guHasUncodes;
      for j := btMin to btMax do
        Figures^.HasWhichJournals[j] := GSTInfoA.guWhichJournals[j] or GSTInfoB.guWhichJournals[j] ;
 
