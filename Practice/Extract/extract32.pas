@@ -85,6 +85,20 @@ const
 
 {$IFNDEF TESTING}
 
+procedure CheckForMissingExchangeRates(FromDate, ToDate: integer);
+const
+  MISSING_EXCHANGE_RATES_1 = 'There are entries without exchange rates for ';
+  MISSING_EXCHANGE_RATES_2 = ' within the period you are trying to extract. ' +
+                             'Please update the exchange rates before ' +
+                             'extracting the data.';
+var
+  MissingISOCodes: string;
+begin
+  if myClient.HasMissingExchangeRates(MissingISOCodes, FromDate, ToDate) then
+    HelpfulWarningMsg(MISSING_EXCHANGE_RATES_1 + MissingISOCodes +
+                      MISSING_EXCHANGE_RATES_2, 0);
+end;
+
 procedure ExtractData(const Fromdate: Integer = 0; const Todate: Integer = 0);
 
 const
@@ -112,6 +126,8 @@ begin
       NF,     { New Format }
       Path )  { Path }
       then exit;
+
+   CheckForMissingExchangeRates(FD, TD);
 
    { Check that we have a contra account code and enter it if necessary }
 

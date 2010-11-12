@@ -88,9 +88,9 @@ Begin { GetBalances }
          Begin
             With Transaction_At(E)^ Do
             Begin
-               if Forex then
-                 Amount := txForeign_Currency_Amount
-               else
+//               if Forex then
+//                 Amount := txForeign_Currency_Amount
+//               else
                  Amount := txAmount;
 
                If txDate_Presented <> 0 Then

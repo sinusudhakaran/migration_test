@@ -922,9 +922,9 @@ Begin
        entry.Free;
      end;
 
-     if IsForex then
-        Amt := txForeign_Currency_Amount
-     else
+//     if IsForex then
+//        Amt := txForeign_Currency_Amount
+//     else
         Amt := txAmount;
 
 

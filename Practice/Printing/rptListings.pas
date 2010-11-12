@@ -446,19 +446,23 @@ begin
 
                If TwoColumn then
                Begin
-                  If txForeign_Currency_Amount >= 0 then
+//                  If txForeign_Currency_Amount >= 0 then
+                  If txAmount >= 0 then
                   Begin
-                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
                   end;
                end
                else
-                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+                  PutMoney( Trunc( txAmount ) );
 
                if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
                if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
@@ -473,7 +477,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -554,19 +559,23 @@ begin
 
                If TwoColumn then
                Begin
-                  If txForeign_Currency_Amount >= 0 then
+//                  If txForeign_Currency_Amount >= 0 then
+                  If txAmount >= 0 then
                   Begin
-                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
                   end;
                end
                else
-                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+                  PutMoney( Trunc( txAmount ) );
 
                if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
                if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
@@ -580,7 +589,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -1107,19 +1117,23 @@ begin
 
                If TwoColumn then
                Begin
-                  If txForeign_Currency_Amount >= 0 then
+//                  If txForeign_Currency_Amount >= 0 then
+                  If txAmount >= 0 then
                   Begin
-                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
                   end;
                end
                else
-                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+                  PutMoney( Trunc( txAmount ) );
 
                if JournalOnly then
                  SkipColumn; // Gst
@@ -1131,7 +1145,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -1215,19 +1230,23 @@ begin
 
                If TwoColumn then
                Begin
-                  If txForeign_Currency_Amount >= 0 then
+//                  If txForeign_Currency_Amount >= 0 then
+                  If txAmount >= 0 then
                   Begin
-                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
                   end;
                end
                else
-                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+                  PutMoney( Trunc( txAmount ) );
 
                SkipColumn; // PutMoney ( Trunc( txGST_Amount));
 
@@ -1237,7 +1256,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end

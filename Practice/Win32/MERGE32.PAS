@@ -354,7 +354,7 @@ Begin
                               ptr^.txOriginal_Source    := aSource;
                               ptr^.txOriginal_Type      := aType;
                               ptr^.txOriginal_Forex_Conversion_Rate    := ptr^.txForex_Conversion_Rate   ;
-                              ptr^.txOriginal_Foreign_Currency_Amount  := ptr^.txForeign_Currency_Amount ;
+//                              ptr^.txOriginal_Foreign_Currency_Amount  := ptr^.txForeign_Currency_Amount ;
                               ptr^.txOriginal_Amount                   := ptr^.txAmount;
                               ptr^.txOriginal_Cheque_Number            := aCheque_Number;
                            end
@@ -369,18 +369,18 @@ Begin
                                  txDate_Effective     := aDate_Presented;
                                  txDate_Transferred   := 0;
 
-                                 if ForeignCurrency then
-                                 Begin
-                                   txForeign_Currency_Amount := aAmount;
+//                                 if ForeignCurrency then
+//                                 Begin
+//                                   txForeign_Currency_Amount := aAmount;
 //                                   Rate   := baForex_Info.Rate( BCode, CCode, aDate_Presented );
-                                   Rate := 0;
-                                   if Rate <> 0.0 then
-                                     txAmount := Round( txForeign_Currency_Amount / Rate )
-                                   else
-                                     txAmount := 0;
-                                   txForex_Conversion_Rate   := Rate;
-                                 End
-                                 else
+//                                   Rate := 0;
+//                                   if Rate <> 0.0 then
+//                                     txAmount := Round( txForeign_Currency_Amount / Rate )
+//                                   else
+//                                     txAmount := 0;
+//                                   txForex_Conversion_Rate   := Rate;
+//                                 End
+//                                 else
                                    txAmount             := aAmount;
 
                                  txQuantity           := ForceSignToMatchAmount( aQuantity, aAmount);

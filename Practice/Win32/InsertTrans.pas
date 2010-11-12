@@ -100,12 +100,12 @@ begin
         with TempTransaction^ do
         begin
           UE := NIL;
-          if ForeignCurrency then
-          begin
-            If (Assigned(UEList) and ( txCheque_Number <> 0 ) and ( txForeign_Currency_Amount <> 0 )) then
-              UE := UEList.FindUEByNumberAndAmount( txCheque_Number, txForeign_Currency_Amount );
-          end
-          else
+//          if ForeignCurrency then
+//          begin
+//            If (Assigned(UEList) and ( txCheque_Number <> 0 ) and ( txForeign_Currency_Amount <> 0 )) then
+//              UE := UEList.FindUEByNumberAndAmount( txCheque_Number, txForeign_Currency_Amount );
+//          end
+//          else
           begin
             If (Assigned(UEList) and ( txCheque_Number <> 0 ) and ( txAmount <> 0 )) then
                UE := UEList.FindUEByNumberAndAmount( txCheque_Number, txAmount );
@@ -130,7 +130,7 @@ begin
            ptr^.txOriginal_Type      := TempTransaction^.txType;
            ptr^.txOriginal_Amount    := TempTransaction^.txAmount;
            ptr^.txOriginal_Forex_Conversion_Rate    := TempTransaction^.txForex_Conversion_Rate   ;
-           ptr^.txOriginal_Foreign_Currency_Amount  := TempTransaction^.txForeign_Currency_Amount ;
+//           ptr^.txOriginal_Foreign_Currency_Amount  := TempTransaction^.txForeign_Currency_Amount ;
            ptr^.txOriginal_Cheque_Number := TempTransaction^.txCheque_Number;
         end
         else begin
@@ -151,7 +151,7 @@ begin
               txCheque_Number            := TempTransaction.txCheque_Number;
               txAnalysis                 := TempTransaction.txAnalysis;
               txForex_Conversion_Rate    := TempTransaction.txForex_Conversion_Rate   ;
-              txForeign_Currency_Amount  := TempTransaction.txForeign_Currency_Amount ;
+//              txForeign_Currency_Amount  := TempTransaction.txForeign_Currency_Amount ;
 
               txGL_Narration             := TempTransaction.txGL_Narration;
               txStatement_Details        := TempTransaction.txStatement_Details;

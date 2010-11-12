@@ -1392,25 +1392,6 @@ object dlgDissection: TdlgDissection
     OnChange = celAmountChange
     OnKeyPress = celLocalAmountKeyPress
     OnOwnerDraw = celLocalAmountOwnerDraw
-    Left = 416
-    Top = 256
-    RangeHigh = {73B2DBB9838916F2FE43}
-    RangeLow = {73B2DBB9838916F2FEC3}
-  end
-  object celForexAmount: TOvcTCNumericField
-    DataType = nftDouble
-    EFColors.Disabled.BackColor = clWindow
-    EFColors.Disabled.TextColor = clGrayText
-    EFColors.Error.BackColor = clRed
-    EFColors.Error.TextColor = clBlack
-    EFColors.Highlight.BackColor = clHighlight
-    EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
-    PictureMask = '##########.##'
-    Table = tblDissect
-    OnChange = celForexAmountChange
-    OnKeyPress = celForexAmountKeyPress
-    OnOwnerDraw = celForexAmountOwnerDraw
     Left = 376
     Top = 256
     RangeHigh = {73B2DBB9838916F2FE43}

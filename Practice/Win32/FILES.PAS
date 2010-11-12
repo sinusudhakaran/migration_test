@@ -87,7 +87,7 @@ uses
   UBatchBase,
   RadioOptionsDlg, BKDEFS, SysObj32, cfList32, GenUtils, syamio, WebXUtils,
   ECodingUtils, BKUtil32, baObj32, baUtils, bkDateUtils,
-  UpgradeHelper, ClientManagerFrm, ClientUtils;
+  UpgradeHelper, ClientManagerFrm, ClientUtils, ExchangeRateList;
 
 const
   UnitName = 'FILES';
@@ -163,6 +163,7 @@ var
   Button         : integer;
   b: TBank_Account;
   PasswordCorrect: Boolean;
+  LExchangeRates: TExchangeRateList;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -478,6 +479,18 @@ begin
        APPTIME.StopTime;
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+       //Load exchange rates
+       if Assigned(AdminSystem) then begin
+         if Client.HasForeignCurrencyAccounts then begin
+           LExchangeRates := GetExchangeRates;
+           try
+             if LExchangeRates.ItemCount > 0 then
+               Client.ExchangeSource.Assign(LExchangeRates.ExchangeSource(0));
+           finally
+             LExchangeRates.Free;
+           end;
+         end;
+       end;
 
        //Strip out any master memorised entries if there is an admin system
        StripMasterMemorised(Client);

@@ -527,9 +527,9 @@ var
                               if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                               or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
                               begin
-                                if isForex then
-                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txForeign_Currency_Amount )
-                                else
+//                                if isForex then
+//                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txForeign_Currency_Amount )
+//                                else
                                   AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txAmount);
                               end;
                             end else begin
@@ -555,9 +555,9 @@ var
                               if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                               or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
                               begin
-                                if isForex then
-                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txForeign_Currency_Amount)
-                                else
+//                                if isForex then
+//                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txForeign_Currency_Amount)
+//                                else
                                   AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txAmount);
                               end;
                             end else begin

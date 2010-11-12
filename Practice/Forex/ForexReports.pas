@@ -195,7 +195,8 @@ begin
     PutString( GetFormattedReference( Mgr.Transaction ) ) ;
     PutString( txAccount ) ;
 
-    PutMoney( Trunc( txForeign_Currency_Amount ) );
+//    PutMoney( Trunc( txForeign_Currency_Amount ) );
+    PutMoney( Trunc( txAmount ) );
 
     S := Trim( ForexRate2Str( txForex_Conversion_Rate ) );
     if not Mgr.Transaction.Is_Default_Forex_Rate then
@@ -205,7 +206,8 @@ begin
     PutMoney( Trunc( txAmount ) );
 
     if ClForexBalAtBank <> Unknown then
-      ClForexBalAtBank := ClForexBalAtBank + txForeign_Currency_Amount;
+//      ClForexBalAtBank := ClForexBalAtBank + txForeign_Currency_Amount;
+      ClForexBalAtBank := ClForexBalAtBank + txAmount;
 
     if ClLocalBalAtBank <> Unknown then
       ClLocalBalAtBank := ClLocalBalAtBank + txAmount;

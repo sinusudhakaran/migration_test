@@ -285,7 +285,8 @@ begin
          p^.Number       := txCheque_Number;
          p^.Issued       := txDate_Effective;
          p^.Presented    := 0;
-         p^.Amount       := txForeign_Currency_Amount;
+//         p^.Amount       := txForeign_Currency_Amount;
+         p^.Amount       := txAmount;
          p^.Code         := txAccount;
          p^.Ptr          := t;
          p^.Sequence     := txSequence_No;

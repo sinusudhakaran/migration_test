@@ -121,9 +121,9 @@ begin
       lblDate.caption      := bkDate2Str( pT^.txDate_Presented);
       lblRef.Caption       := MakeCodingRef( pT^.txOriginal_Reference);
       lblCode.caption      := '';
-      if BankAccount.IsAForexAccount then
-        lblAmount.caption    := BankAccount.MoneyStr( pT^.txOriginal_Foreign_Currency_Amount )
-      else
+//      if BankAccount.IsAForexAccount then
+//        lblAmount.caption    := BankAccount.MoneyStr( pT^.txOriginal_Foreign_Currency_Amount )
+//      else
         lblAmount.caption    := BankAccount.MoneyStr( pT^.txOriginal_Amount );
 
       lblEntryType.caption := IntToStr( pT^.txOriginal_Type)+ ':' + MyClient.clFields.clShort_Name[ pT^.txOriginal_Type];
@@ -179,16 +179,20 @@ begin
                LogUtil.LogMsg(lmInfo,UnitName, 'Recombine entry ' +
                                                BkDate2Str( CurrTrans^.txDate_Effective) + ' ' +
                                                GetFormattedReference( CurrTrans ) + ' ' + BankAccount.MoneyStr( Currtrans^.Statement_Amount ) );
-               CheckedTotal := CheckedTotal + CurrTrans^.txAmount;
-               CheckedForexTotal := CheckedForexTotal + CurrTrans^.txForeign_Currency_Amount;
+//               CheckedTotal := CheckedTotal + CurrTrans^.txAmount;
+               CheckedTotal := CheckedTotal + CurrTrans^.Local_Amount;
+//               CheckedForexTotal := CheckedForexTotal + CurrTrans^.txForeign_Currency_Amount;
+               CheckedForexTotal := CheckedForexTotal + CurrTrans^.txAmount;
             end;
          end;
 
          //add balancing entry, or reinstate original entry
 
          if ( CheckedCount = MatchedItemsCount) and
-            ( CheckedTotal = pT^.txOriginal_Amount) and
-            ( CheckedForexTotal = pT^.txOriginal_Foreign_Currency_Amount ) then
+//            ( CheckedTotal = pT^.txOriginal_Amount) and
+//            ( CheckedForexTotal = pT^.txOriginal_Foreign_Currency_Amount ) then
+            ( CheckedTotal = pT^.Local_Amount) and
+            ( CheckedForexTotal = pT^.txOriginal_Amount ) then
          begin
             NewTrans := BankAccount.baTransaction_List.New_Transaction;
             with NewTrans^ do begin
@@ -200,7 +204,7 @@ begin
                txCheque_Number         := pT^.txOriginal_Cheque_Number;
                txAmount                := pT^.txOriginal_Amount;
                txForex_Conversion_Rate   := pT^.txOriginal_Forex_Conversion_Rate       ;
-               txForeign_Currency_Amount := pT^.txOriginal_Foreign_Currency_Amount     ;
+//               txForeign_Currency_Amount := pT^.txOriginal_Foreign_Currency_Amount     ;
                txBank_Seq              := pT^.txBank_Seq;
                txUPI_State             := upNone;
 
@@ -228,7 +232,7 @@ begin
                txMatched_Item_ID := pT^.txMatched_Item_ID;
                txBank_Seq        := pT^.txBank_Seq;
                txForex_Conversion_Rate   := pT^.txOriginal_Forex_Conversion_Rate       ;
-               txForeign_Currency_Amount := pT^.txOriginal_Foreign_Currency_Amount     ;
+//               txForeign_Currency_Amount := pT^.txOriginal_Foreign_Currency_Amount     ;
 
 
                //store details of original transaction
@@ -238,7 +242,7 @@ begin
                txOriginal_Cheque_Number := pT^.txOriginal_Cheque_Number;
                txOriginal_Amount        := pT^.txOriginal_Amount;
                txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate    ;
-               txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
+//               txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
 
                txSF_Member_Account_ID:= -1;
                txSF_Fund_ID          := -1;
@@ -282,8 +286,10 @@ begin
    for i := 0 to Pred( lvEntries.Items.Count) do begin
       if lvEntries.Items[ i].Checked then begin
          Inc( CheckedCount);
-         CheckedTotal := CheckedTotal + pTransaction_Rec( lvEntries.Items[ i].SubItems.Objects[0])^.txAmount;
-         CheckedForexTotal := CheckedForexTotal + pTransaction_Rec( lvEntries.Items[ i].SubItems.Objects[0])^.txForeign_Currency_Amount;
+//         CheckedTotal := CheckedTotal + pTransaction_Rec( lvEntries.Items[ i].SubItems.Objects[0])^.txAmount;
+         CheckedTotal := CheckedTotal + pTransaction_Rec( lvEntries.Items[ i].SubItems.Objects[0])^.Local_Amount;
+//         CheckedForexTotal := CheckedForexTotal + pTransaction_Rec( lvEntries.Items[ i].SubItems.Objects[0])^.txForeign_Currency_Amount;
+         CheckedForexTotal := CheckedForexTotal + pTransaction_Rec( lvEntries.Items[ i].SubItems.Objects[0])^.txAmount;
       end;
    end;
 
@@ -306,8 +312,10 @@ begin
 
    //decide whether to show new entry or tell original will be reinstated
    if ( MatchedItemsCount = CheckedCount) and
-      ( CheckedTotal = Transaction^.txOriginal_Amount ) and
-      ( CheckedForexTotal = Transaction^.txOriginal_Foreign_Currency_Amount ) then
+//      ( CheckedTotal = Transaction^.txOriginal_Amount ) and
+//      ( CheckedForexTotal = Transaction^.txOriginal_Foreign_Currency_Amount ) then
+      ( CheckedTotal = Transaction^.Local_Amount ) and
+      ( CheckedForexTotal = Transaction^.txOriginal_Amount ) then
       pnlReinstate.Visible := true
    else
    begin

@@ -92,8 +92,7 @@ type
     pnlTabs: TPanel;
     tcWindows: TRzTabControl;
     NotesTimer: TTimer;
-    acForexRates: TAction;
-    acForexSources: TAction;
+    acForexRatesMissing: TAction;
 
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -137,10 +136,9 @@ type
     procedure FormShow(Sender: TObject);
     procedure NotesTimerTimer(Sender: TObject);
     procedure tcWindowsTabClick(Sender: TObject);
-    procedure acForexRatesExecute(Sender: TObject);
-    procedure acForexSourcesExecute(Sender: TObject);
-
     procedure UpdateWebNotes(var Msg: TMessage); message WEBNOTES_MESSAGE;
+    procedure acForexRatesMissingExecute(Sender: TObject);
+    procedure RefreshExchangeRates;
   private
     FTheClient: TClientObj;
     TreeList: TCHPBaseList;
@@ -160,6 +158,7 @@ type
     procedure RefreshFiles;
     procedure RefreshCoding;
     procedure RefreshMems;
+    procedure RefreshMissingExchangeRateMsg;
     procedure SetShowLegend(const Value: Boolean);
     property ShowLegend : Boolean read FShowLegend write SetShowLegend;
     procedure UpdateRefresh;
@@ -211,7 +210,7 @@ uses
   Extract32,
   Globals,SYDEFS, ToDoListUnit,StDate,Math,MainFrm, BKdateUtils, UpdateMF,baObj32,
   ApplicationUtils, AutoSaveUtils, rptHome, ClientNotesFrm, Files, ClientManagerFrm, BudgetFrm,
-  bkXPThemes, ShellAPI, SimpleUIHomepagefrm;
+  bkXPThemes, ShellAPI, SimpleUIHomepagefrm, ExchangeRateList, frmExchangeRates;
 {$R *.dfm}
 
 var
@@ -436,6 +435,7 @@ var
 begin //RefreshCoding
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshCoding');
    RefreshMems;
+   RefreshMissingExchangeRateMsg;
 
    ClientTree.BeginUpdate;
    try
@@ -610,6 +610,25 @@ begin //RefreshCoding
       ClientTree.EndUpdate;
    end;
     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshCoding');
+end;
+
+procedure TfrmClientHomePage.RefreshExchangeRates;
+var
+  LExchangeRates: TExchangeRateList;
+begin
+  if not Assigned(TheClient) then
+    Exit;
+
+  if Assigned(AdminSystem) then begin
+    if TheClient.HasForeignCurrencyAccounts then begin
+      LExchangeRates := GetExchangeRates;
+      try
+        TheClient.ExchangeSource.Assign(LExchangeRates.ExchangeSource(0));
+      finally
+        LExchangeRates.Free;
+      end;
+    end;
+  end;
 end;
 
 procedure TfrmClientHomePage.FormActivate(Sender: TObject);
@@ -946,9 +965,6 @@ begin
   fBadForexCurrencyCode := '';
   fBadForexAccountCode := '';
 
-  acForexSources.Visible := False;
-  acForexRates.Visible := False;
-
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshFiles');
    if assigned (FTheClient) then begin
       if FtheClient.clFields.clFile_Read_Only then begin
@@ -1001,10 +1017,10 @@ begin
 //                  End;
 //                End
 //                Else
-                Begin
-                  acUpdate.Caption := 'There are new transactions available';
-                  acUpdate.Visible := True;
-                End;
+//                Begin
+                acUpdate.Caption := 'There are new transactions available';
+                acUpdate.Visible := True;
+//                End;
               end else begin
                  acUpdate.Visible := False;
               end
@@ -1036,6 +1052,45 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshFiles');
 end;
 
+procedure TfrmClientHomePage.RefreshMissingExchangeRateMsg;
+const
+  MISSING_EXCHANGE_RATES = 'There are entries without exchange rates for ';
+var
+  ISOCodes: string;
+begin
+  ISOCodes := '';
+  acForexRatesMissing.Visible := False;
+  if TheClient.HasMissingExchangeRates(ISOCodes) then begin
+    acForexRatesMissing.Caption := MISSING_EXCHANGE_RATES + ISOCodes;
+    acForexRatesMissing.Visible := True;
+  end;
+//var
+//  i: integer;
+//  BA: TBank_Account;
+//  ISOCodes: string;
+//begin
+//  ISOCodes := '';
+//  acForexRatesMissing.Visible := False;
+//  for i := FTheClient.clBank_Account_List.First to FTheClient.clBank_Account_List.Last do begin
+//    BA := FTheClient.clBank_Account_List.Bank_Account_At(i);
+//    if BA.HasMissingExchageRates(0, MaxInt) then begin
+//      if (ISOCodes = '') then
+//        ISOCodes := BA.baFields.baCurrency_Code
+//      else begin
+//        if Pos(BA.baFields.baCurrency_Code, ISOCodes) = 0 then begin
+//          if Pos(' and ', ISOCodes) > 0 then
+//            ISOCodes := StringReplace(ISOCodes, ' and ', ', ', [rfReplaceAll]);
+//          ISOCodes := ISOCodes + ' and ' + UpperCase(BA.baFields.baCurrency_Code);
+//        end;
+//      end;
+//    end;
+//  end;
+//  if (ISOCodes <> '') then begin
+//    acForexRatesMissing.Caption := MISSING_EXCHANGE_RATES + ISOCodes;
+//    acForexRatesMissing.Visible := True;
+//  end;
+end;
+
 procedure TfrmClientHomePage.RefreshMems;
 
   function  MemsWrong: Boolean;
@@ -1052,7 +1107,7 @@ procedure TfrmClientHomePage.RefreshMems;
               if mlAccount <> '' then
                  if FTheClient.clChart.FindCode(mlaccount) = nil then
                       exit;
-     // Still Here...                 
+     // Still Here...
      Result := False; // All OK..
   end;
 
@@ -1351,20 +1406,33 @@ begin
    end;
 end;
 
-procedure TfrmClientHomePage.acForexRatesExecute(Sender: TObject);
+procedure TfrmClientHomePage.acForexRatesMissingExecute(Sender: TObject);
 begin
-  if FileExists( fBadForexFileName ) then
-    ShellExecute( 0, 'open', PChar( fBadForexFileName ), NIL, NIL, SW_SHOWNORMAL );
-end;
+  //Books users can't edit exchange rates
+  if not Assigned(AdminSystem) then Exit;
 
-procedure TfrmClientHomePage.acForexSourcesExecute(Sender: TObject);
-begin
-  lock;
+  ApplicationUtils.DisableMainForm;
   try
-    frmMain.DoMainFormCommand( mf_mcMaintainBankAccounts );
+    AutoSaveUtils.DisableAutoSave;
+    try
+      //Inc lock count
+      Lock;
+      try
+        //Edit exchange rates
+        if MaintainExchangeRates then begin
+          RefreshExchangeRates;
+          //Reload transactions
+          SendCmdToAllCodingWindows(ecReloadTrans);
+        end;
+      finally
+        UnLock;
+      end;
+    finally
+      if not Globals.ApplicationIsTerminating then
+        AutoSaveUtils.EnableAutoSave;
+    end;
   finally
-    Unlock;
-    RefreshFiles;
+    ApplicationUtils.EnableMainForm;
   end;
 end;
 

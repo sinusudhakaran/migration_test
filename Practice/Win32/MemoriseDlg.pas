@@ -1825,9 +1825,9 @@ begin
          else
             eNotes.text    := txNotes;
 
-         if SourceBankAccount.IsAForexAccount then
-           AmountToMatch := txForeign_Currency_Amount
-         else
+//         if SourceBankAccount.IsAForexAccount then
+//           AmountToMatch := txForeign_Currency_Amount
+//         else
            AmountToMatch := txAmount;
 
          if AmountToMatch < 0 then

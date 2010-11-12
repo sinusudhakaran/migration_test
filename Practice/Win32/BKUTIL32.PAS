@@ -76,7 +76,7 @@ uses
    classes,
    Math,
    StDate,
-   StStrs, CodeDateDlg, UpdateMF, CodingFormCommands, bkhelp;
+   StStrs, CodeDateDlg, UpdateMF, CodingFormCommands, bkhelp, ForexHelpers;
 
 Const
    UnitName = 'BKUtil32';
@@ -249,7 +249,7 @@ Var
    Code   : BK5CodeStr;
    Msg    : string;
    Payee  : PayeeObj.TPayee;
-   Account : pAccount_Rec;
+   AccountRec : pAccount_Rec;
    ds: pDissection_Rec;
    total: Comp;
    i, j, IntCode, NumericCode: integer;
@@ -336,7 +336,8 @@ Begin
          csByValue       :
             Begin
                result :=  LongToKey( txBank_Seq ) +
-                               LongToKey( Trunc( txAmount ) ) +
+//                               LongToKey( Trunc( txAmount ) ) +
+                               LongToKey( Trunc( Local_Amount ) ) +
                                LongToKey( txDate_Effective ) +
                                LongToKey( txSequence_No ); {16}
             end;
@@ -453,12 +454,12 @@ Begin
              Code := '<Dissected>'
            else
            begin
-             Account := MyClient.clChart.FindCode( txAccount);
-             if Assigned( Account) then
+             AccountRec := MyClient.clChart.FindCode( txAccount);
+             if Assigned( AccountRec) then
                 if SortMethod = csByAccountDesc then
-                   Code := Copy( Account.chAccount_Description, 1, MaxBk5CodeLen)
+                   Code := Copy( AccountRec.chAccount_Description, 1, MaxBk5CodeLen)
                 else
-                   Code := Copy( Account.chAlternative_Code , 1, MaxBk5CodeLen)
+                   Code := Copy( AccountRec.chAlternative_Code , 1, MaxBk5CodeLen)
              else
                Code := 'Unknown';
            end;
@@ -604,7 +605,8 @@ Begin
          csByForexAmount       :
             Begin
                Result :=   LongToKey( txBank_Seq ) +
-                               LongToKey( Trunc( txForeign_Currency_Amount ) ) +
+//                               LongToKey( Trunc( txForeign_Currency_Amount ) ) +
+                               LongToKey( Trunc( txAmount ) ) +
                                LongToKey( txDate_Effective ) +
                                LongToKey( txSequence_No ); {16}
             end;
@@ -996,10 +998,20 @@ begin
       for b:= 0 to Pred( clBank_Account_List.ItemCount) do begin
          Ba := clBank_Account_List.Bank_Account_At( b);
          if Ba.baFields.baAccount_Type in AccountTypes then begin
+
             for i := 0 to Pred( Ba.baTransaction_List.ItemCount) do begin
                pT := BA.baTransaction_List.Transaction_At( i);
 
                if ( pT^.txDate_Effective >= FromDate) and ( pT^.txDate_Effective <= ToDate) then begin
+                  //Clear or set the ForEx rate
+                  if (not pT^.txLocked) then begin
+                    if (lTransferred = 0) then
+                      //Clear ForEx rate
+                      pT^.txForex_Conversion_Rate := 0
+                    else if (pT^.txDate_Transferred = 0)  then
+                      //Set ForEx rate if txn has not already been transfered
+                      pT^.txForex_Conversion_Rate := Ba.Default_Forex_Conversion_Rate(pT^.txDate_Effective);
+                  end;
                   HasEntriesInPeriod := true;
                   pT^.txDate_Transferred := lTransferred;
                end;

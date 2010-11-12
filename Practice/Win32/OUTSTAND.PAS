@@ -358,7 +358,7 @@ begin
                     txOriginal_Cheque_Number            := txCheque_Number;
                     txOriginal_Amount                   := txAmount;
                     txOriginal_Forex_Conversion_Rate    := txForex_Conversion_Rate   ;
-                    txOriginal_Foreign_Currency_Amount  := txForeign_Currency_Amount ;
+//                    txOriginal_Foreign_Currency_Amount  := txForeign_Currency_Amount ;
                  end;
                  // case 7678 - may of left behind a blank UPC so need to go through
                  // the tx list from this date to find it and delete it
@@ -577,7 +577,7 @@ begin
                     txOriginal_Cheque_Number            := txCheque_Number;
                     txOriginal_Amount                   := txAmount;
                     txOriginal_Forex_Conversion_Rate    := txForex_Conversion_Rate   ;
-                    txOriginal_Foreign_Currency_Amount  := txForeign_Currency_Amount ;
+//                    txOriginal_Foreign_Currency_Amount  := txForeign_Currency_Amount ;
                  end;
               end;
             end;    // case

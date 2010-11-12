@@ -4,17 +4,18 @@ unit ExchangeRateList;
 //
 //  Written: July 2010
 //
-//  Authors: Andre' Joosten
+//  Authors: Andre' Joosten, Scott Wilson
 //
 //  Purpose: Creates a binary tree for acessing exchange rates.
 //
 //  Notes:
 //------------------------------------------------------------------------------
 interface
+
 uses
   ECollect, stDate, Classes, mcDefs, ioStream, stTree,stBase, sysUtils;
 
-Type
+type
    RateArray = array of Double;
 
    TExchangeRecord = class(tObject)
@@ -35,7 +36,7 @@ Type
      procedure loadFromExchange_Rate_Rec(Value: pExchange_Rate_Rec);
      procedure SaveToExchange_Rate_Rec(Value: pExchange_Rate_Rec);
      property Rates [index: Integer]: Double read GetRates write SetRates;
-     property Width: integer read Getwidth; 
+     property Width: integer read Getwidth;
    end;
 
    PExchangeSource = ^TExchangeSource;
@@ -45,23 +46,20 @@ Type
    private
      FHeader: TExchange_Rates_Header_Rec;
      FExchangeTree: TStTree;
-     procedure CreateExchangeTree;
-     function GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
      function GetHeaderWidth(Value: TExchange_Rates_Header_Rec): Integer;
      function GetWidth: Integer;
-     function GetExchangeTree: TStTree;
+     procedure LoadExchangeRates(var S : TIOStream);
    public
      constructor Create; overload;
      constructor Create(var S: TIOStream); overload;
-
+     function GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
      procedure SaveToStream(var S : TIOStream );
      procedure LoadFromStream(var S : TIOStream );
      procedure MapToHeader(NewHeader: TExchange_Rates_Header_Rec);
-     procedure Assign(Source: TPersistent); override;
-
+     procedure Assign(Source: TPersistent); override; 
      property Width: Integer read GetWidth;
      property Header: TExchange_Rates_Header_Rec read FHeader;
-     property ExchangeTree: TStTree read GetExchangeTree;
+     property ExchangeTree: TStTree read FExchangeTree;
      function GetDateRates(Value: tstDate): TExchangeRecord;
      function Iterate (Action: TIterateFunc; Up: Boolean;
                        OtherData: Pointer): TStTreeNode;
@@ -104,7 +102,7 @@ Type
      ct_Base = 1;
      ct_User = 2;
 
- function GetExchangeRates(const KeepLock: Boolean = False): TExchangeRateList;
+  function GetExchangeRates(const KeepLock: Boolean = False): TExchangeRateList;
 
 //******************************************************************************
 
@@ -125,18 +123,26 @@ uses
   logutil, MALLOC, StStrS, bkdbExcept, bk5Except;
 
 const
-   DebugMe : Boolean = FALSE;
-   UnitName = 'ExchangeRateList';
-
-   ExchangeRateFilename = 'ExchangeRates.db';
+  DEBUG_ME : Boolean = FALSE;
+  UNIT_NAME = 'ExchangeRateList';
+  EXCHANGE_RATE_FILENAME = 'ExchangeRates.db';
 
 
 function GetExchangeRates(const KeepLock: Boolean = False): TExchangeRateList;
 begin
-    Result := TExchangeRateList.Create;
-    Result.LockAndLoad(KeepLock);
+  Result := TExchangeRateList.Create;
+  Result.LockAndLoad(KeepLock);
 end;
-   
+
+function ExchangeRecordCompare(Item1, Item2: Pointer): Integer;
+begin
+  Result := Compare(TExchangeRecord(Item1).Date, TExchangeRecord(Item2).Date);
+end;
+
+procedure ExchangeRecordFree(Item: Pointer);
+begin
+  TExchangeRecord(Item).Free;
+end;
 
 procedure WriteCurrencyList(var Rec: TExchange_Rates_Header_Rec; var S : TIOStream);
 begin
@@ -159,19 +165,21 @@ end;
 constructor TExchangeSource.Create;
 begin
   inherited;
-  FillChar(fHeader, Sizeof(FHeader),0);
+
+  FExchangeTree := TStTree.Create(TStTreeNode);
+  FExchangeTree.Compare := ExchangeRecordCompare;
+  FExchangeTree.DisposeData := ExchangeRecordFree;
+
+  FillChar(FHeader, Sizeof(FHeader),0);
 end;
 
 
 procedure TExchangeSource.Assign(Source: TPersistent);
 begin
-   if not assigned(Source) then
-      Exit;
-   (*   
-  // if Source is  TExchange_Rates_Header_Rec then begin
-      // Make sure we have the same columns...
-   end else ; ///
-   *)
+  if Assigned(Source) and (Source is TExchangeSource) then begin
+    FHeader := TExchangeSource(Source).Header;
+    FExchangeTree.Assign(TExchangeSource(Source).FExchangeTree);
+  end;
 end;
 
 constructor TExchangeSource.Create(var S: TIOStream);
@@ -180,32 +188,10 @@ begin
    LoadFromStream(S);
 end;
 
-//******************************************************************************
-function ExchangeRecordCompare(Item1, Item2: Pointer): Integer;
-begin
-  Result := Compare(TExchangeRecord(Item1).Date, TExchangeRecord(Item2).Date);
-end;
-
-procedure ExchangeRecordFree(Item: Pointer);
-begin
-   TObject(Item).Free;
-end;
-//******************************************************************************
-
-
-procedure TExchangeSource.CreateExchangeTree;
-begin
-   FExchangeTree := TStTree.Create(TStTreeNode);
-   FExchangeTree.Compare := ExchangeRecordCompare;
-   FExchangeTree.DisposeData := ExchangeRecordFree;
-end;
-
-
-
 function TExchangeSource.GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
 begin
    for Result := low(FromHeader.ehISO_Codes) to High(FromHeader.ehISO_Codes) do
-      if SameText(fHeader.ehISO_Codes[Result], Value) then 
+      if SameText(FHeader.ehISO_Codes[Result], Value) then 
          Exit;
          
    Result := 0; // Not in it...
@@ -241,23 +227,43 @@ begin
    end;
 end;
 
-function TExchangeSource.GetExchangeTree: TStTree;
-begin
-   if not assigned(FExchangeTree) then
-      CreateExchangeTree;
-   Result := FExchangeTree;
-end;
-
 function TExchangeSource.GetHeaderWidth(Value: TExchange_Rates_Header_Rec): Integer;
 var C: Integer;
 begin
    for C := low(Value.ehISO_Codes) to High(Value.ehISO_Codes) do
-      if fHeader.ehISO_Codes[C] = '' then begin
+      if FHeader.ehISO_Codes[C] = '' then begin
          // The first empty one..
          Result := C - low(Value.ehISO_Codes);
          Exit;
       end;
-   Result := High(fHeader.ehISO_Codes) - Low(fHeader.ehISO_Codes);
+   Result := High(FHeader.ehISO_Codes) - Low(FHeader.ehISO_Codes);
+end;
+
+procedure TExchangeSource.LoadExchangeRates(var S: TIOStream);
+var
+  Token: Byte;
+  Rec: tExchange_Rate_Rec;
+  W: Integer;
+  Msg: string;
+begin
+  W := Width;
+  Token := S.ReadToken;
+  while (Token <> tkEndSection) do begin
+    case token of
+      tkBegin_Exchange_Rate:
+        begin
+          Read_Exchange_Rate_Rec(Rec,S);
+          if (W > 0) then
+            FExchangeTree.Insert(TExchangeRecord.Create(@Rec, Width));
+          end;
+      else begin { Should never happen }
+        Msg := Format('%s : Unknown Token %d', ['LoadExchangeRates', Token]);
+        LogUtil.LogMsg(lmError, UNIT_NAME, Msg );
+        raise ETokenException.CreateFmt( '%s - %s', [ UNIT_NAME, Msg ] );
+      end;
+    end;
+    Token := S.ReadToken;
+  end;
 end;
 
 procedure TExchangeSource.LoadFromStream(var S: TIOStream);
@@ -266,58 +272,30 @@ const
 var
   Token: Byte;
   Msg: string;
-
-  procedure LoadExchangeRates;
-  var Token: Byte;
-      Rec: tExchange_Rate_Rec;
-      W: Integer;
-  begin
-     W := Width;
-     if W > 0 then
-        CreateExchangeTree;
-
-     Token := S.ReadToken;
-     while (Token <> tkEndSection) do begin
-        case token of
-           tkBegin_Exchange_Rate: begin
-              Read_Exchange_Rate_Rec(Rec,S);
-              if W > 0 then
-                 FExchangeTree.Insert(TExchangeRecord.Create(@Rec, Width) );
-               end;
-               else begin { Should never happen }
-                  Msg := Format( '%s : Unknown Token %d', [ 'LoadExchangeRates', Token ] );
-                  LogUtil.LogMsg(lmError, UnitName, Msg );
-                  raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
-               end;
-          end;
-          Token := S.ReadToken;
-      end;
-
-  end;
-
 begin
-  FreeAndNil(FExchangeTree);
+  FExchangeTree.Clear;
   Token := S.ReadToken;
   while (Token <> tkEndSection) do begin
      case Token of
+        tkBeginExchangeRateHeader:;
         tkBegin_Exchange_Rates_Header: begin
-           Read_Exchange_Rates_Header_Rec(fHeader, S);
+           Read_Exchange_Rates_Header_Rec(FHeader, S);
         end;
 
-        tkBeginExchangeRates: LoadExchangeRates;
+        tkBeginExchangeRates: LoadExchangeRates(S);
 
         else begin { Should never happen }
            Msg := Format( '%s : Unknown Token %d', [ THIS_METHOD_NAME, Token ] );
-           LogUtil.LogMsg(lmError, UnitName, Msg );
-           raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+           LogUtil.LogMsg(lmError, UNIT_NAME, Msg );
+           raise ETokenException.CreateFmt( '%s - %s', [ UNIT_NAME, Msg ] );
         end;
      end; { of Case }
      Token := S.ReadToken;
   end;
 
-  if fHeader.ehFile_Version <> MC_FILE_VERSION then begin
+  if FHeader.ehFile_Version <> MC_FILE_VERSION then begin
      // Handle upgrades??
-     fHeader.ehFile_Version := MC_FILE_VERSION;
+     FHeader.ehFile_Version := MC_FILE_VERSION;
   end;
 end;
 
@@ -337,22 +315,30 @@ end;
 //******************************************************************************
 
 procedure TExchangeSource.SaveToStream(var S: TIOStream);
-var I: Integer;
+var
+  I: Integer;
 begin
-   // Write The header
-   fHeader.ehRecord_Type := tkBegin_Exchange_Rates_Header;
-   fHeader.ehEOR := tkEnd_Exchange_Rates_Header;
-   fHeader.ehFile_Version := MC_FILE_VERSION;
-   Write_Exchange_Rates_Header_Rec (fHeader, S);
+  S.WriteToken(tkBeginExchangeRateHeader);
+  try
+     // Write The header
+     FHeader.ehRecord_Type := tkBegin_Exchange_Rates_Header;
+     FHeader.ehEOR := tkEnd_Exchange_Rates_Header;
+     FHeader.ehFile_Version := MC_FILE_VERSION;
+     Write_Exchange_Rates_Header_Rec(FHeader, S);
 
-   if Assigned(FExchangeTree)
-   and (FExchangeTree.Count > 0) then begin
-      //Got something to write
-      s.WriteToken(tkBeginExchangeRates);
-        // Write them all out...
-        FExchangeTree.Iterate(WriteExchangeRates, True, @S);
-      s.WriteToken(tkEndSection);
-   end;
+     if Assigned(FExchangeTree) and (FExchangeTree.Count > 0) then begin
+       //Got something to write
+       s.WriteToken(tkBeginExchangeRates);
+       try
+         // Write them all out...
+         FExchangeTree.Iterate(WriteExchangeRates, True, @S);
+       finally
+         s.WriteToken(tkEndSection);
+       end;
+     end;
+  finally
+    S.WriteToken(tkEndSection);
+  end;
 end;
 
 
@@ -424,8 +410,6 @@ begin
 end;
 
 
-
-
 { TExchangeRateList }
 
 function TExchangeRateList.Compare(Item1, Item2: pointer): integer;
@@ -456,7 +440,7 @@ end;
 
 procedure TExchangeRateList.FreeItem(Item: Pointer);
 begin
-   FreeAndNil(TObject(Item));
+   FreeAndNil(TExchangeSource(Item));
 end;
 
 function TExchangeRateList.GetSource(const Value: string): TExchangeSource;
@@ -490,6 +474,7 @@ begin
    Token := S.ReadToken;
    while (Token <> tkEndSection) do begin
       case token of
+         tkBeginExchangeRateHeader: ;
          tkBeginExchangeRateList:; // In the Client file ill already be past this
                                    // But in the file version, it will be here..
          tkBeginExchangeRateSource: begin
@@ -498,8 +483,8 @@ begin
 
          else begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ 'TExchangeRateList.LoadFromStream', Token ] );
-            LogUtil.LogMsg(lmError, UnitName, Msg );
-            raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+            LogUtil.LogMsg(lmError, UNIT_NAME, Msg );
+            raise ETokenException.CreateFmt( '%s - %s', [ UNIT_NAME, Msg ] );
          end;
       end;
       Token := S.ReadToken;
@@ -507,18 +492,20 @@ begin
 end;
 
 procedure TExchangeRateList.SaveToStream(var S: TIOStream);
-var I: Integer;
+var
+  I: Integer;
 begin
-    if ItemCount > 0 then begin
-       S.WriteToken(tkBeginExchangeRateList);
-          for I := First to Last do begin
-             ExchangeSource(I).FHeader.ehLRN := I;
-             S.WriteToken(tkBeginExchangeRateSource);
-               ExchangeSource(I).SaveToStream(S);
-             S.WriteToken(tkEndSection);
-          end;
-       S.WriteToken(tkEndSection);
+  // Write the exchange rates
+  if ItemCount > 0 then begin
+    S.WriteToken(tkBeginExchangeRateList);
+    for I := First to Last do begin
+      ExchangeSource(I).FHeader.ehLRN := I;
+      S.WriteToken(tkBeginExchangeRateSource);
+      ExchangeSource(I).SaveToStream(S);
+      S.WriteToken(tkEndSection);
     end;
+    S.WriteToken(tkEndSection);
+  end;
 end;
 
 
@@ -533,12 +520,12 @@ function TExchangeRateList.LockAndLoad(const KeepLock: Boolean): Boolean;
 const
   THIS_METHOD_NAME = 'TExchangeRateList.LockAndLoad';
 begin
-  if DebugMe then
-     LogUtil.LogMsg(lmDebug, UnitName, THIS_METHOD_NAME + ' Begins');
+  if DEBUG_ME then
+     LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Begins');
 
   if Lock then begin
 
-     ReadFromFile(DataDir + ExchangeRateFilename);
+     ReadFromFile(DataDir + EXCHANGE_RATE_FILENAME);
      if not KeepLock then
         UnLock;
 
@@ -546,9 +533,8 @@ begin
   end else
      Result := False;
 
-
-  if DebugMe then
-     LogUtil.LogMsg(lmDebug, UnitName, THIS_METHOD_NAME + ' Ends');
+  if DEBUG_ME then
+     LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Ends');
 end;
 
 function TExchangeRateList.MergeSource(Value: TExchangeSource): TExchangeSource;
@@ -561,7 +547,6 @@ begin
       FList[I] := Value;
       Value.FHeader.ehLRN := I;
    end;
-
 end;
 
 procedure TExchangeRateList.ReadFromFile(Filename: string);
@@ -590,16 +575,16 @@ function TExchangeRateList.Save: Boolean;
 const
   THIS_METHOD_NAME = 'TExchangeRateList.Save';
 begin
-  if DebugMe then
-     LogUtil.LogMsg(lmDebug, UnitName, THIS_METHOD_NAME + ' Begins');
+  if DEBUG_ME then
+     LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Begins');
 
   // Assert locked ??
-  SaveToFile(DataDir + ExchangeRateFilename);
+  SaveToFile(DataDir + EXCHANGE_RATE_FILENAME);
   Result := UnLock;
 
 
-  if DebugMe then
-     LogUtil.LogMsg(lmDebug, UnitName, THIS_METHOD_NAME + ' Ends');
+  if DEBUG_ME then
+     LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Ends');
 end;
 
 procedure TExchangeRateList.SaveToFile(Filename: string);
@@ -625,9 +610,6 @@ begin
     S.Free;
   end;
 end;
-
-
-
 
 function TExchangeRateList.Unlock: Boolean;
 begin
@@ -711,6 +693,6 @@ begin
 end;
 
 initialization
-   DebugMe := DebugUnit(UnitName);
+   DEBUG_ME := DebugUnit(UNIT_NAME);
 finalization
 end.

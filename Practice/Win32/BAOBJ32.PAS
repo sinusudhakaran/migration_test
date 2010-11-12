@@ -76,6 +76,7 @@ type
       Function Title : String;
       function AccountName: string;
       function ValidPayeeCode(PayeeNumber: integer): Boolean;
+      function HasMissingExchageRates(StartDate, EndDate: Integer): Boolean;
    end;
 
 const
@@ -97,7 +98,9 @@ uses
    bkdbExcept,
    bkcrc,
    PayeeObj,
-   InfoMoreFrm;
+   InfoMoreFrm,
+   ForExHelpers,
+   ExchangeRateList;
 
 const
   UnitName = 'BAOBJ32';
@@ -189,9 +192,9 @@ Begin
 
       With baTransaction_List do For E := 0 to Pred( itemCount ) do With Transaction_At( E )^ do
       Begin
-         if Forex then  // accumulated as forex
-            Amount := txForeign_Currency_Amount
-         else
+//         if Forex then  // accumulated as forex
+//            Amount := txForeign_Currency_Amount
+//         else
             Amount := txAmount;
 
          If ( txDate_Presented <> 0 ) then
@@ -267,9 +270,9 @@ Begin
 
       With baTransaction_List do For E := 0 to Pred( itemCount ) do With Transaction_At( E )^ do
       Begin
-        if Forex then
-          Amount := txForeign_Currency_Amount
-        else
+//        if Forex then
+//          Amount := txForeign_Currency_Amount
+//        else
           Amount := txAmount;
 
          If ( txDate_Presented <> 0 ) then
@@ -405,9 +408,9 @@ Begin
 
       With baTransaction_List do For E := 0 to Pred( itemCount ) do With Transaction_At( E )^ do
       Begin
-         if Forex then
-           Amount := txForeign_Currency_Amount
-         else
+//         if Forex then
+//           Amount := txForeign_Currency_Amount
+//         else
            Amount := txAmount;
 
          If txDate_Presented <> 0 then
@@ -566,15 +569,25 @@ Var
   BCode : String[3];
   CCode : String[3];
   Client : TClientObj;
+  IsoIndex: integer;
+  ExchangeRate: TExchangeRecord;
 begin
   Result := 0.0;
-{  if IsAForexAccount then
+
+  if IsAForexAccount then
   Begin
     BCode := baFields.baCurrency_Code;
     Client := TClientObj( baClient );
     CCode := Client.clExtra.ceLocal_Currency_Code;
-    Result := baForex_Info.Rate( BCode, CCode, ADate );
-  End; }
+//    Result := baForex_Info.Rate( BCode, CCode, ADate );
+    IsoIndex := Client.ExchangeSource.GetISOIndex(BCode,
+                                                  Client.ExchangeSource.Header);
+    if IsoIndex <> 0 then begin
+      ExchangeRate := Client.ExchangeSource.GetDateRates(ADate);
+      if Assigned(ExchangeRate) then
+        Result := ExchangeRate.Rates[IsoIndex];
+    end;
+  End;
 end;
 
 destructor TBank_Account.Destroy;
@@ -850,6 +863,30 @@ begin
   End;
   Result := fForex_Info;
 end; }
+
+function TBank_Account.HasMissingExchageRates(StartDate,
+  EndDate: Integer): Boolean;
+var
+  i: Integer;
+  T: pTransaction_Rec;
+begin
+  Result := False;
+
+  if not IsAForexAccount then Exit;
+
+  for i := 0 to Pred( baTransaction_List.ItemCount ) do
+  begin
+    T := baTransaction_List.Transaction_At(i);
+    if (T.txDate_Effective >= StartDate) and
+       (T.txDate_Effective <= EndDate) then
+    begin
+      if (T.Default_Forex_Rate = 0) then begin
+        Result := True;
+        Break;
+      end;
+    end;
+  end;
+end;
 
 function TBank_Account.HasTransactionsWithin(StartDate, EndDate: Integer): Boolean;
 Var

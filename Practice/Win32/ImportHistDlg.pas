@@ -437,16 +437,16 @@ begin
         pT^.txDate_Effective := Integer(Integer(TOutItem(fOutlist[R]).objects[0]));
         pT^.txDate_Presented := pT^.txDate_Effective;
 
-        if BankAccount.IsAForexAccount then
-        Begin
-          pT.txForeign_Currency_Amount := TOutItem(fOutlist[R]).OutMoney;
-          pT.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate( pT.txDate_Effective );
-          If pT.txForex_Conversion_Rate <> 0.0 then
-            pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
-          else
-            pT.txAmount := 0;
-        End
-        else
+//        if BankAccount.IsAForexAccount then
+//        Begin
+//          pT.txForeign_Currency_Amount := TOutItem(fOutlist[R]).OutMoney;
+//          pT.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate( pT.txDate_Effective );
+//          If pT.txForex_Conversion_Rate <> 0.0 then
+//            pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
+//          else
+//            pT.txAmount := 0;
+//        End
+//        else
         //Amount
           pt^.txAmount := TOutItem(fOutlist[R]).OutMoney;
 

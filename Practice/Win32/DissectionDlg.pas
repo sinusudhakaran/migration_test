@@ -41,14 +41,14 @@ uses
 type
   TControlTotals = Record
     ctCount             : Integer;
-    ctForeign_Currency  : Money;
-    ctLocal_Currency    : Money;
-    ctForeign_Remainder : Money;
+    ctAmount            : Money;
+    ctLocal_Amount      : Money;
+    ctRemainder         : Money;
     ctLocal_Remainder   : Money;
     ctGST               : Money;
     ctPercent           : Double;
-    ctForeign_Currency_Specified_Amount : Money;
-    ctLocal_Currency_Specified_Amount : Money;
+    ctSpecified_Amount  : Money;
+    ctLocal_Specified_Amount : Money;
   end;
 
   TdlgDissection = class(Tform)
@@ -180,7 +180,6 @@ type
     celTaxInv: TOvcTCCheckBox;
     celForexRate: TOvcTCNumericField;
     celLocalAmount: TOvcTCNumericField;
-    celForexAmount: TOvcTCNumericField;
     lblLCTotalField: TLabel;
     lblLCTotal: TLabel;
     lblLocalCurrencyAmount: TLabel;
@@ -312,16 +311,11 @@ type
     procedure btnJobClick(Sender: TObject);
     procedure popDissectPopup(Sender: TObject);
     procedure ClearSuperfundDetails1Click(Sender: TObject);
-    procedure celForexAmountOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
-      const CellRect: TRect; RowNum, ColNum: Integer;
-      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
     procedure celLocalAmountOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
       const CellRect: TRect; RowNum, ColNum: Integer;
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
     procedure celLocalAmountKeyPress(Sender: TObject; var Key: Char);
-    procedure celForexAmountKeyPress(Sender: TObject; var Key: Char);
     procedure celPercentKeyPress(Sender: TObject; var Key: Char);
-    procedure celForexAmountChange(Sender: TObject);
   private
     FHint              : tHintWindow;
     FStartedEdit       : boolean;
@@ -370,7 +364,6 @@ type
     procedure BuildTableColumns;
     procedure CalcControlTotals( var Count : Integer; var Total, Remainder, GSTAmt, Percent : Double; DollarLinesOnly: Boolean = False );
     procedure UpdateControlTotals;
-
     function HasPercentLines: Boolean;
     function HasSingle100PercentLine: Boolean;
     procedure SetupColumnFmtList;
@@ -383,25 +376,17 @@ type
     procedure DoAccountLookup;
     procedure DoGSTLookup;
     procedure DoPayeeLookup;
-//    procedure DoRateLookup;
     procedure DoJobLookup;
     procedure UpdateStatusBar;
     procedure AccountEdited(pD: pWorkDissect_Rec);
     procedure AmountEdited(pD: pWorkDissect_Rec);
-    procedure ForexAmountEdited(pD: pWorkDissect_Rec);
-    procedure LocalAmountEdited(pD: pWorkDissect_Rec);
-//    procedure ForexRateEdited(pD: pWorkDissect_Rec);
     procedure PercentEdited(pD: pWorkDissect_Rec );
-    procedure PercentEditedNoForex(pD: pWorkDissect_Rec );
-    procedure PercentEditedForex(pD: pWorkDissect_Rec );
     function  PayeeEdited(pD: pWorkDissect_Rec; RowNo: Integer) : boolean;
     procedure GSTClassEdited(pD: pWorkDissect_Rec);
     function  ValidDataRow(RowNum: integer): boolean;
     procedure SetColEditMode(EditMode: TEditMode);
     procedure ToggleColEditMode;
     procedure DoCompleteAmount;
-    procedure DoCompleteForeignCurrencyAmount;
-    procedure DoCompleteLocalCurrencyAmount;
     procedure DoDeleteLine;
     procedure DoDitto;
     procedure DoGotoNextUnCode;
@@ -427,11 +412,7 @@ type
     procedure SetQuantitySign(QuantityChanged : Boolean);
     procedure DoEditSuperFields;
     procedure ApplyAmountShortcut(Key: Char);
-    procedure ApplyLocalAmountShortcut(Key: Char);
-    procedure ApplyForexAmountShortcut(Key: Char);
-
     procedure DoCelAmountKeyPress(Sender: TObject; var Key: Char; Move: Boolean = True);
-    procedure DoCelForexAmountKeyPress(Sender: TObject; var Key: Char; Move: Boolean = True);
     procedure DoDeleteNote;
     procedure DoMarkNote;
     procedure DoMarkAllNotes;
@@ -445,6 +426,7 @@ type
     procedure ReCalcPercentAmounts;
     procedure DoInsertLine;
     function  CanInsertRowsAfter( Row : integer; NewRows : integer) : boolean;
+    procedure UpdateBaseAmounts;
   public
     { Public declarations }
     property BankAcct: TBank_Account read FBankAcct write FBankAcct;
@@ -523,9 +505,8 @@ const
    ceJobName        = 14;
    ceTaxInvoice     = 15;
    ceForexRate      = 16;
-   ceForexAmount    = 17;
-   ceLocalAmount    = 18;
-   ceAltChartCode   = 19;
+   ceLocalAmount    = 17;
+   ceAltChartCode   = 18;
 
    ceMax = 19;
 
@@ -581,16 +562,14 @@ begin
 
 {$ELSE}
 
-      if fIsForex then
-      Begin
-        InsColDefnRec( 'Amount (' + BCode + ')', ceForexAmount, celForexAmount, CE_FOREX_AMOUNT_DEF_WIDTH, CE_FOREX_AMOUNT_DEF_VISIBLE, true, CE_FOREX_AMOUNT_DEF_EDITABLE, csByForexAmount );
-        InsColDefnRec( 'Rate', ceForexRate,      celForexRate, CE_FOREX_RATE_DEF_WIDTH, CE_FOREX_RATE_DEF_VISIBLE, false, CE_FOREX_RATE_DEF_EDITABLE, csByForexRate );
-        InsColDefnRec( 'Amount (' + CCode + ')', ceLocalAmount, celLocalAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, true, true, csByValue );
-      End
-      else
-      if MyClient.HasForeignCurrencyAccounts then
-        InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, True, CE_AMOUNT_DEF_EDITABLE, csByValue )
-      else
+      if MyClient.HasForeignCurrencyAccounts then begin
+        if fIsForex then begin
+          InsColDefnRec( 'Amount (' + BCode + ')', ceAmount, celAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, True, CE_AMOUNT_DEF_EDITABLE, csByValue );
+          InsColDefnRec( 'Rate', ceForexRate,      celForexRate, CE_FOREX_RATE_DEF_WIDTH, CE_FOREX_RATE_DEF_VISIBLE, false, CE_FOREX_RATE_DEF_EDITABLE, csByForexRate );
+          InsColDefnRec( 'Amount (' + CCode + ')', ceLocalAmount, celLocalAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, true, true, csByValue );
+        end else
+          InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, True, CE_AMOUNT_DEF_EDITABLE, csByValue );
+      end else
         InsColDefnRec( 'Amount',   ceAmount, celAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, True, CE_AMOUNT_DEF_EDITABLE, csByValue );
 
       InsColDefnRec( 'Percent',    cePercent,    celPercent,   105, false, false, true, -1 );
@@ -1221,7 +1200,7 @@ var
    M       : Money;
    Count : Integer;
    Total : Double;
-   Remainder  : Double;
+   Remainder : Double;
    GSTTotal   : Double;
    Percent: Double;
 begin
@@ -1287,38 +1266,6 @@ begin
            end;
          end;
       end;
-
-      ceForexAmount :
-        begin
-          M := Double2Money( tmpDouble );
-          if pD.dtForeign_Currency_Amount <> M then
-          Begin
-            pd.dtForeign_Currency_Amount := M;
-            ForexAmountEdited(pD);
-          End;
-        end;
-
-      (*
-      ceForexRate :
-        begin
-          R := tmpDouble;
-          if pD.dtForex_Conversion_Rate <> R then
-          Begin
-            pd.dtForex_Conversion_Rate   := R;
-            ForexRateEdited(pD);
-          End;
-        end;
-      *)
-
-      ceLocalAmount :
-        begin
-          M := Double2Money( tmpDouble );
-          if pD.dtAmount <> M then
-          Begin
-            pd.dtAmount := M;
-            LocalAmountEdited( pD );
-          End;
-        end;
 
       cePercent : begin
          M := Double2Percent(tmpDouble);
@@ -1456,6 +1403,8 @@ begin
     Invalidate; // need to repaint all percentage lines also
     AllowRedraw := true;
   end;
+  if FIsForex then
+     UpdateBaseAmounts;
   UpdateDisplayTotals;
 end;
 
@@ -1463,57 +1412,18 @@ end;
 
 procedure TdlgDissection.PercentEdited( pD : pWorkDissect_Rec );
 //update other fields that change when percent changes
-begin
-  if fIsForex then
-    PercentEditedForex( pD )
-  else
-    PercentEditedNoForex( pD );
-end;
-
-// ----------------------------------------------------------------------------
-
-procedure TdlgDissection.PercentEditedForex(pD: pWorkDissect_Rec );
-Var
-  Remainder : Money;
-begin
-  With pD^ do
-  Begin
-    dtForeign_Currency_Amount := 0;
-    UpdateControlTotals;
-    Remainder := pTran.txForeign_Currency_Amount - fControlTotals.ctForeign_Currency_Specified_Amount;
-    dtForeign_Currency_Amount := Remainder * ( dtPercent_Amount / 1000000.0 );
-    dtHas_Been_Edited := True;
-    dtAmount_Type_Is_Percent := True;
-    dtForex_Conversion_Rate   := pTran.txForex_Conversion_Rate;
-    if dtForex_Conversion_Rate <> 0.0 then
-      dtAmount := Round( dtForeign_Currency_Amount / dtForex_Conversion_Rate )
-    else
-      dtAmount := 0;
-    if MyClient.clChart.CanCodeTo( dtAccount) then
-      dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class)
-    else
-      if ( dtAccount = '' ) then dtHas_Been_Edited := false;
-  end;
-  SetQuantitySign( False );
-  with tblDissect do
-  begin
-    AllowRedraw := false;
-    Invalidate; // need to repaint all percentage lines also
-    AllowRedraw := true;
-  end;
-  UpdateDisplayTotals;
-end;
-
-procedure TdlgDissection.PercentEditedNoForex( pD: pWorkDissect_Rec );
 var
-  Remainder : Money;
+  Remainder: Money;
+//  LocalRemainder : Money;
 begin
-  With pD^ do
-  Begin
+  with pD^ do
+  begin
     dtAmount := 0;
     UpdateControlTotals;
-    Remainder := pTran.txAmount - fControlTotals.ctLocal_Currency_Specified_Amount;
+    Remainder := pTran.txAmount - fControlTotals.ctLocal_Specified_Amount;
     dtAmount := Remainder * ( dtPercent_Amount / 1000000.0 );
+//    LocalRemainder := pTran.Local_Amount - fControlTotals.ctLocal_Specified_Amount;
+//    dtLocal_Amount := LocalRemainder * ( dtPercent_Amount / 1000000.0 );
     dtHas_Been_Edited := True;
     dtAmount_Type_Is_Percent := True;
     if MyClient.clChart.CanCodeTo( dtAccount) then
@@ -1528,6 +1438,8 @@ begin
     Invalidate; // need to repaint all percentage lines also
     AllowRedraw := true;
   end;
+  if FIsForex then
+     UpdateBaseAmounts;
   UpdateDisplayTotals;
 end;
 
@@ -1684,12 +1596,6 @@ begin
              data := @(tmpPaintShortStr);
            end;
 
-        ceForexAmount :
-          begin
-             tmpPaintShortStr := BankAcct.MoneyStrBrackets( pD^.dtForeign_Currency_Amount );
-             data := @(tmpPaintShortStr);
-           end;
-
         ceForexRate :
           Begin
             tmpPaintDouble := pD^.dtForex_Conversion_Rate;
@@ -1697,13 +1603,18 @@ begin
           End;
 
          ceAmount : begin
-            tmpPaintDouble := Money2Double( dtAmount );
-            Data := @tmpPaintDouble;
+            if FIsForex then begin
+              tmpPaintShortStr := BankAcct.MoneyStrBrackets( dtAmount );
+              Data := @(tmpPaintShortStr);
+            end else begin
+              tmpPaintDouble := Money2Double( dtAmount );
+              Data := @tmpPaintDouble;
+            end;
          end;
 
         ceLocalAmount :
           begin
-            tmpPaintShortStr := MyClient.MoneyStrBrackets( pD.dtAmount );
+            tmpPaintShortStr := MyClient.MoneyStrBrackets( pD.dtLocal_Amount );
             Data := @tmpPaintShortStr;
            end;
 
@@ -1819,13 +1730,8 @@ begin
             Data := @tmpDouble;
          end;
 
-         ceForexAmount : begin
-            tmpDouble := Money2Double( dtForeign_Currency_Amount );
-            Data := @tmpDouble;
-         end;
-
          ceLocalAmount : begin
-            tmpDouble := Money2Double( dtAmount );
+            tmpDouble := Money2Double( dtLocal_Amount );
             Data := @tmpDouble;
          end;
 
@@ -1888,7 +1794,7 @@ begin
          ceAccount, ceNarration, ceJob : begin
             Data := @tmpShortStr;
          end;
-         ceAmount, cePercent, ceMoneyIn, ceMoneyOut, ceGSTAmount, ceQuantity, ceForexRate, ceForexAmount, ceLocalAmount : begin
+         ceAmount, cePercent, ceMoneyIn, ceMoneyOut, ceGSTAmount, ceQuantity, ceForexRate, ceLocalAmount : begin
             Data := @tmpDouble;
          end;
          ceGSTClass : begin
@@ -1941,7 +1847,7 @@ begin
 
   if fIsForex then
   Begin
-    if ( fControlTotals.ctForeign_Remainder <> 0 ) then
+    if ( fControlTotals.ctRemainder <> 0 ) then
     Begin
       HelpfulErrorMsg( 'The (' + BCode + ') remaining balance is not zero!', 0 );
       tblDissect.SetFocus;
@@ -1995,72 +1901,6 @@ begin
       StopEditingState( True );
    end;
 end;
-
-(*
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-procedure TdlgDissection.DoRateLookup;
-var
-  pD             : pWorkDissect_Rec;
-  FCode, LCode : String[ 3 ];
-  F : TExchangeRateLookupForm;
-  Msg            : TWMKey;
-begin
-  if pTran.txLocked or ( pTran.txDate_Transferred <> 0 ) then exit;
-  if not ColumnFmtList.FieldIsEditable( ceForexRate ) then exit;
-
-  LCode := MyClient.clExtra.ceLocal_Currency_Code;
-  FCode := BankAcct.baFields.baCurrency_Code;
-  if ( LCode = FCode ) then exit;
-
-  with tblDissect do
-  begin
-    if not ( ColumnFmtList.ColumnDefn_At(ActiveCol)^.cdFieldID = ceForexRate ) then
-    begin
-      if not StopEditingState(True) then Exit;
-      ActiveCol := ColumnFmtList.GetColNumOfField( ceForexRate );
-    end;
-    pD := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
-
-    F := TExchangeRateLookupForm.Create( Application );
-    Try
-      F.LocalCurrency         := LCode                        ;
-      F.ForeignCurrency       := FCode                        ;
-      F.AsAt                  := pTran.txDate_Effective          ;
-      F.Forex_Source          := pd.dtForex_Source            ;
-      F.Forex_Description     := pd.dtForex_Description       ;
-      F.Forex_Conversion_Rate := pd.dtForex_Conversion_Rate   ;
-      F.Foreign_Currency_Amount := pd.dtForeign_Currency_Amount;
-      F.DocumentDate          := pd.dtForex_Document_Date;
-      F.Date_Button_Visible := True;
-
-      if F.ShowModal = mrOK then
-      Begin { Apply Selection }
-        pd.dtForex_Source          := F.Forex_Source          ;
-        pd.dtForex_Description     := F.Forex_Description     ;
-        pd.dtForex_Conversion_Rate := F.Forex_Conversion_Rate ;
-        pd.dtForex_Document_Date     := F.DocumentDate          ;
-        pd.dtForex_Edited          := False;
-        pd.dtAmount := Round( pd.dtForeign_Currency_Amount / pd.dtForex_Conversion_Rate );
-        CalculateGST( MyClient, pTran.txDate_Effective, pd.dtAccount, pd.dtAmount, pd.dtGST_Class, pd.dtGST_Amount );
-
-        pd.dtGST_Has_Been_Edited := false;
-        AllowRedraw := false;
-        try
-           InvalidateRow(ActiveRow);
-        finally
-           AllowRedraw := true;
-        end;
-        Msg.CharCode := VK_RIGHT;
-        celForexRate.SendKeyToTable(Msg);
-      End;
-    Finally
-      F.Free;
-    End;
-  end;
-end;
-
-*)
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -2426,6 +2266,15 @@ end;
 procedure TdlgDissection.DoCompleteAmount;
 // Replaces the amount in the current dissection line with the unallocated
 // Remainder.
+var
+   pD : pWorkDissect_Rec;
+   RowAmount : Double;
+   Count : Integer;
+   Total : Double;
+   Remainder  : Double;
+   GSTTotal   : Double;
+   GSTAmount  : Money;
+   Percent: Double;
 begin
    // If Parent Locked then no lookup allowed
    if pTran.txLocked then
@@ -2437,57 +2286,6 @@ begin
    //as the record amount so can calc remainder correctly
    if tblDissect.InEditingState and (not tblDissect.StopEditingState(True)) then exit;
 
-   if fIsForex then
-     DoCompleteForeignCurrencyAmount
-   else
-     DoCompleteLocalCurrencyAmount;
-end;
-
-procedure TdlgDissection.DoCompleteForeignCurrencyAmount;
-var
-   pD : pWorkDissect_Rec;
-begin
-   pD := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
-   UpdateControlTotals;
-
-   if ( fControlTotals.ctPercent = 1000000) or ( fControlTotals.ctForeign_Remainder = 0 ) then exit;
-
-   if fControlTotals.ctPercent = 0 then // as previously, based on amount
-   begin
-     pD.dtForeign_Currency_Amount := pD.dtForeign_Currency_Amount + fControlTotals.ctForeign_Remainder;
-     ForexAmountEdited( pD );
-     UpdateControlTotals;
-     pD.dtAmount := pD.dtAmount + fControlTotals.ctLocal_Remainder;
-   end
-   else // based on percents
-   begin
-     pD.dtPercent_Amount := pD.dtPercent_Amount + ( 1000000 - fControlTotals.ctPercent );
-     PercentEdited( pD );
-     UpdateControlTotals;
-     pD.dtForeign_Currency_Amount := pD.dtForeign_Currency_Amount + fControlTotals.ctForeign_Remainder;
-     pD.dtAmount := pD.dtAmount + fControlTotals.ctLocal_Remainder;
-   end;
-   CalculateGST( MyClient, pTran.txDate_Effective, pD.dtAccount, pD.dtAmount, pD.dtGST_Class, pD.dtGST_Amount );
-   SetQuantitySign(False);
-   with tblDissect do begin
-      AllowRedraw := false;
-      InvalidateRow( ActiveRow );
-      AllowRedraw := true;
-   end;
-   UpdateDisplayTotals;
-end;
-
-procedure TdlgDissection.DoCompleteLocalCurrencyAmount;
-var
-   pD : pWorkDissect_Rec;
-   RowAmount : Double;
-   Count : Integer;
-   Total : Double;
-   Remainder  : Double;
-   GSTTotal   : Double;
-   GSTAmount  : Money;
-   Percent: Double;
-begin
    pD := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
 
    CalcControlTotals( Count, Total, Remainder, GSTTotal, Percent );
@@ -2512,6 +2310,10 @@ begin
    // Calc the new GST and put in Column
    GSTAmount := CalculateGSTForClass( myClient, pTran^.txDate_Effective, pD^.dtAmount, pD^.dtGST_Class);
    pD^.dtGST_Amount := GSTAmount;
+
+  if FIsForex then
+     UpdateBaseAmounts;
+
    with tblDissect do begin
       AllowRedraw := false;
       InvalidateRow( ActiveRow );
@@ -2527,6 +2329,7 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 procedure TdlgDissection.DoDeleteLine;
 //Delete the whole line of dissection record by pressing Ctrl+Y
 var
@@ -2611,21 +2414,6 @@ Begin
             if (TOvcNumericField(celPercent.CellEditor).AsFloat = 0) then begin
                TOvcNumericField(celPercent.CellEditor).AsFloat := Percent2Double( pDPrev^.dtPercent_Amount );
                PercentEdited(WorkDissect.Items[ ActiveRow-1 ]);
-               DittoOK := true;
-            end;
-         end;
-
-         ceForexAmount : begin
-            if (TOvcNumericField(celForexAmount.CellEditor).AsFloat = 0) then begin
-               TOvcNumericField(celForexAmount.CellEditor).AsFloat := Money2Double( pDPrev^.dtForeign_Currency_Amount );
-               if pDPrev.dtPercent_Amount <> 0 then
-               begin
-                 pD := WorkDissect.Items[ActiveRow - 1];
-                 pD.dtPercent_Amount := pDPrev.dtPercent_Amount;
-                 PercentEdited(pD);
-               end
-               else
-                 ForexAmountEdited(WorkDissect.Items[ ActiveRow-1 ]);
                DittoOK := true;
             end;
          end;
@@ -3055,17 +2843,17 @@ var
    pD      : pWorkDissect_Rec;
 begin
   fControlTotals.ctCount             := 0;
-  fControlTotals.ctForeign_Currency  := 0;
-  fControlTotals.ctLocal_Currency    := 0;
-  fControlTotals.ctForeign_Remainder := 0;
+  fControlTotals.ctAmount            := 0;
+  fControlTotals.ctLocal_Amount      := 0;
+  fControlTotals.ctRemainder         := 0;
   fControlTotals.ctLocal_Remainder   := 0;
   fControlTotals.ctGST               := 0;
   fControlTotals.ctPercent           := 0;
-  fControlTotals.ctForeign_Currency_Specified_Amount := 0;
-  fControlTotals.ctLocal_Currency_Specified_Amount := 0;
+  fControlTotals.ctSpecified_Amount  := 0;
+  fControlTotals.ctLocal_Specified_Amount := 0;
 
-  With fControlTotals do
-  Begin
+  with fControlTotals do
+  begin
     for i := 0 to Pred( GLCONST.Max_tx_Lines ) do
     begin
       pD := WorkDissect.Items[i];
@@ -3074,21 +2862,21 @@ begin
         if (dtAccount <> '') or ( dtAmount <> 0.0 ) then
         Begin
           Inc( ctCount );
-          ctForeign_Currency := ctForeign_Currency + dtForeign_Currency_Amount;
-          ctLocal_Currency   := ctLocal_Currency   + dtAmount;
-          ctGST              := ctGST + dtGST_Amount;
+          ctAmount := ctAmount + dtAmount;
+          ctLocal_Amount   := ctLocal_Amount + dtLocal_Amount;
+          ctGST            := ctGST + dtGST_Amount;
           ctPercent := ctPercent + dtPercent_Amount;
           if dtPercent_Amount = 0 then
-          Begin
-            ctForeign_Currency_Specified_Amount := ctForeign_Currency_Specified_Amount + dtForeign_Currency_Amount;
-            ctLocal_Currency_Specified_Amount   := ctLocal_Currency_Specified_Amount   + dtAmount;
-          End;
-        End;
+          begin
+            ctSpecified_Amount := ctSpecified_Amount + dtLocal_Amount;
+            ctLocal_Specified_Amount   := ctLocal_Specified_Amount   + dtAmount;
+          end;
+        end;
       end;
     end;
-    ctForeign_Remainder := pTran.txForeign_Currency_Amount - ctForeign_Currency;
-    ctLocal_Remainder := pTran.txAmount - ctLocal_Currency;
-  End;
+    ctRemainder := pTran.txAmount - ctAmount;
+    ctLocal_Remainder := pTran.Local_Amount - ctLocal_Amount;
+  end;
 end;
 
 procedure TdlgDissection.UpdateDisplayTotals;
@@ -3098,20 +2886,20 @@ begin
   Begin
     if fIsForex then
     Begin
-      lblBSTotal.Caption  := BankAcct.MoneyStr( ctForeign_Currency );
-      lblBSRemaining.Caption := BankAcct.MoneyStr( ctForeign_Remainder );
-      lblLCTotalField.Caption := MyClient.MoneyStr( ctLocal_Currency );
+      lblBSTotal.Caption  := BankAcct.MoneyStr( ctAmount );
+      lblBSRemaining.Caption := BankAcct.MoneyStr( ctRemainder );
+      lblLCTotalField.Caption := MyClient.MoneyStr( ctLocal_Amount );
       lblLCRemainingField.Caption := MyClient.MoneyStr( ctLocal_Remainder );
     End
     Else
     Begin
-      lblBSTotal.Caption  := BankAcct.MoneyStr( ctLocal_Currency );
+      lblBSTotal.Caption  := BankAcct.MoneyStr( ctLocal_Amount );
       lblBSRemaining.Caption := BankAcct.MoneyStr( ctLocal_Remainder );
     End;
 
     lblGSTAmt.Caption := MyClient.MoneyStr( ctGST );
 
-    if ( fIsForex and ( ctForeign_Remainder = 0 ) )  or
+    if ( fIsForex and ( ctRemainder = 0 ) )  or
        ( ( not fIsForex ) and ( ctLocal_Remainder = 0 ) ) then
     Begin
       lblPercentRemain.Caption := '0.0000';
@@ -3190,7 +2978,7 @@ var
    SavedAmount: Money;
    Count : Integer;
    Total : Double;
-   Remainder  : Double;
+   Remainder: Double;
    GSTTotal   : Double;
    Percent: Double;
 begin
@@ -3360,215 +3148,8 @@ begin
     FStartedEdit := True;
 end;
 
-procedure TdlgDissection.DoCelForexAmountKeyPress(Sender: TObject;
-  var Key: Char; Move: Boolean);
-var
-   Percentage    : Double;
-   pD            : pWorkDissect_Rec;
-   pDissectRec   : pWorkDissect_Rec;
-   Msg           : TWMKey;
-   LineNo        : integer;
-   NotEnoughLines: boolean;
-   GSTOnTotal    : Money;
-   GSTOnPercent  : Money;
-   GSTRate       : double;
-   TempClassNo   : byte;
-   S             : string;
-   GrossUpFactor : double;
-   mNewAmount: Money;
-   UseSavedAmount: Boolean;
-   SavedAmount: Money;
-   Count : Integer;
-   Total : Double;
-   Remainder  : Double;
-   GSTTotal   : Double;
-   Percent: Double;
-begin
-  pD   := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
-
-  SavedAmount     := 0;
-  UseSavedAmount  := False;
-  if key in ['%','/'] then
-  begin { treat value as percentage }
-    if ColumnFmtList.ColumnDefn_At(tblDissect.ActiveCol)^.cdFieldID = cePercent then
-    begin
-      // Percent has to become amount
-      UseSavedAmount := True;
-      SavedAmount    := pD.dtForeign_Currency_Amount;
-    end;
-    //stop any further processing of key
-    Key := #0;
-    if tblDissect.StopEditingState( True ) and Move then
-    begin
-      Msg.CharCode := VK_RIGHT;
-      celForexAmount.SendKeyToTable(Msg);
-    end;
-    if UseSavedAmount then
-       pD.dtPercent_Amount := SavedAmount * 100
-    else
-       pD.dtPercent_Amount := abs(pD.dtForeign_Currency_Amount * 100);
-     //Percentage := Abs( TOvcNumericField( celAmount.CellEditor).AsFloat);
-     //pD.dtPercent_Amount := Percentage * 10000;
-    PercentEdited( pD );
-    ReCalcPercentAmounts;
-  end
-  else if key in ['$', '£'] then
-  begin
-    if ColumnFmtList.ColumnDefn_At(tblDissect.ActiveCol)^.cdFieldID = ceForexAmount then
-    begin
-       // Percent has to become amount
-       UseSavedAmount := True;
-       Savedamount := pD.dtPercent_Amount;
-     end;
-     //stop any further processing of key
-     Key := #0;
-
-     UPdateControlTotals;
-
-     CalcControlTotals( Count, Total, Remainder, GSTTotal, Percent );
-     if tblDissect.StopEditingState( True ) and Move then begin
-        Msg.CharCode := VK_RIGHT;
-        celAmount.SendKeyToTable(Msg);
-     end;
-     if UseSavedAmount then
-       pD.dtForeign_Currency_Amount := SavedAmount / 100
-     else
-       pD.dtForeign_Currency_Amount := pD.dtPercent_Amount / 100;
-
-     ForexAmountEdited( pD );
-
-     if HasPercentLines and ( pD.dtForeign_Currency_Amount = fControlTotals.ctForeign_Remainder ) then
-     begin
-       pD^.dtPercent_Amount := 1000000 - fControlTotals.ctPercent;
-       pD^.dtAmount_Type_Is_Percent := True;
-       UpdateDisplayTotals;
-     end
-     else
-     begin
-       pD.dtPercent_Amount := 0;
-       ReCalcPercentAmounts;
-     end;
-  end
-  else if ( Key in ['*', '@']) then
-    begin
-      //use gst rate for class if known, otherwise use default
-      pD   := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
-      // #740 - if no GST class then skip this
-      if pD^.dtGST_Class <> 0 then
-      begin
-        GSTRate := GetGSTClassRate( MyClient, pTran^.txDate_Effective, pD^.dtGST_Class);
-
-        if Key = '*' then begin
-           if GSTRate <> 0 then
-              begin
-                GrossUpFactor := 1 + ( 1 / GSTRate);
-                if ColumnFmtList.ColumnDefn_At(tblDissect.ActiveCol)^.cdFieldID = ceForexAmount then
-                   TOvcNumericField( celForexAmount.CellEditor).AsFloat := TOvcNumericField( celForexAmount.CellEditor).AsFloat * GrossUpFactor
-                else if ColumnFmtList.ColumnDefn_At(tblDissect.ActiveCol)^.cdFieldID = ceLocalAmount then
-                   TOvcNumericField( celLocalAmount.CellEditor).AsFloat := TOvcNumericField( celLocalAmount.CellEditor).AsFloat * GrossUpFactor
-              end;
-        end else begin
-           //calculate gross from net
-           if ColumnFmtList.ColumnDefn_At(tblDissect.ActiveCol)^.cdFieldID = ceForexAmount then
-              TOvcNumericField( celForexAmount.CellEditor).AsFloat := TOvcNumericField( celForexAmount.CellEditor).AsFloat * ( 1 + GSTRate)
-           else  if ColumnFmtList.ColumnDefn_At(tblDissect.ActiveCol)^.cdFieldID = ceLocalAmount then
-              TOvcNumericField( celLocalAmount.CellEditor).AsFloat := TOvcNumericField( celLocalAmount.CellEditor).AsFloat * ( 1 + GSTRate);
-        end;
-
-      end;
-
-      Key := #0;
-
-      if tblDissect.StopEditingState( True ) and Move then
-      begin
-        Msg.CharCode := VK_RIGHT;
-        if ColumnFmtList.ColumnDefn_At(tblDissect.ActiveCol)^.cdFieldID = ceForexAmount then
-           celForexAmount.SendKeyToTable(Msg)
-        else  if ColumnFmtList.ColumnDefn_At(tblDissect.ActiveCol)^.cdFieldID = ceLocalAmount then
-           cellocalAmount.SendKeyToTable(Msg)
-
-      end;
-    end
-  else if ( MyClient.clFields.clCountry = whAustralia)  and (Key in ['#']) then begin
-     {
-       This provides the client with a way to easy way calculate the private use
-       adjustment.
-
-       The client enters a percentage value and presses '^'
-       The amount for the current line is taken as x % of the total.
-       The gst amount for the current line is taken as the gst on x% of the total
-       A new line is inserted with 0 gst and the amount is calculated as
-
-       ((GST on Total) - ( GST on X% of total)) x  percentage
-
-
-       !! Haven't altered this STEVE
-     }
-     Key := #0;
-     //see if account code is valid, if not exit
-     pD   := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
-     if not ( MyClient.clChart.CanCodeTo( pD^.dtAccount)) then exit;
-     //see if we can insert a row
-     //count valid lines below this line
-     LineNo := tblDissect.ActiveRow;
-     //see if there are blank lines at the bottom of the table so can more
-     //all subsequent rows down.
-     NotEnoughLines := false;
-     if ( LineNo + 1) > ( tblDissect.RowLimit -1) then
-        NotEnoughLines := true
-     else begin
-        pDissectRec := WorkDissect.Items[ (tblDissect.RowLimit) -2];
-        if ( pDissectRec^.dtAccount <> '') or ( pDissectRec^.dtAmount <> 0) then begin
-           NotEnoughLines := true;
-        end;
-     end;
-
-     if NotEnoughLines then begin
-        S := 'There are not enough empty dissection lines to expand this entry.';
-        HelpfulWarningMsg( S,0);
-        exit;
-     end;
-
-     //get percentage
-     Percentage := TOvcNumericField( celAmount.CellEditor).AsFloat;
-     //find the rounded money value for the amount
-     mNewAmount  := Double2Money( Money2Double( pTran^.txAmount ) * ( Percentage/100.0 ));
-     //insert new amount
-     TOvcNumericField( celAmount.CellEditor).AsFloat := Money2Double( mNewAmount);
-     if tblDissect.StopEditingState( True ) then begin
-        //calc gst on total
-        GSTCalc32.CalculateGST( MyClient, pTran^.txDate_Effective, pD^.dtAccount, pTran^.txAmount, TempClassNo, GSTOnTotal);
-        GSTOnPercent := pD^.dtGST_Amount;
-        //calc new amount for new line
-        mNewAmount := ( GSTOnTotal - GSTOnPercent) * (Percentage/100.0);
-        //shuffle existing lines down x rows
-        InsertRowsAfter( LineNo, 1);
-        //move to new line;
-        Inc( LineNo);
-        //insert lines
-        tblDissect.AllowRedraw := false;
-        try
-           //edit next line
-           pDissectRec := WorkDissect.Items[ LineNo -1];
-           pDissectRec^.dtAccount := pD^.dtAccount;
-           pDissectRec^.dtAmount  := mNewAmount;
-           pDissectRec^.dtGST_Class := 0;
-           pDissectRec^.dtGST_Amount := 0;
-           pDissectRec^.dtGST_Has_Been_Edited := true;
-        finally
-           tblDissect.InvalidateTable;
-           tblDissect.AllowRedraw := true;
-        end;
-        UpdateDisplayTotals;
-        Msg.CharCode := VK_RIGHT;
-        celAmount.SendKeyToTable(Msg);
-     end;
-  end
-  else if Key in ['0'..'9','-','.'] then
-    FStartedEdit := True;
-end;
-
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 procedure TdlgDissection.celGstAmtKeyPress(Sender: TObject; var Key: Char);
 var
    Percentage    : Double;
@@ -3667,7 +3248,7 @@ var
    Msg         :  String;
    i, j        : Integer;
    Count       : Integer;
-   Total,
+   Total, 
    Remain,
    Percent,
    GST         : Double;
@@ -3767,7 +3348,7 @@ begin
                      dtPercent_Amount      := dsPercent_Amount;
                      dtAmount_Type_Is_Percent := dsAmount_Type_Is_Percent;
                      dtForex_Conversion_Rate   := dsForex_Conversion_Rate   ;
-                     dtForeign_Currency_Amount := dsForeign_Currency_Amount ;
+                     dtLocal_Amount := dsForeign_Currency_Amount ;
                   end;
                   pDissection := dsNext;
                   Inc( i );
@@ -4082,7 +3663,7 @@ begin
                    end;
 
                    dsForex_Conversion_Rate    := dtForex_Conversion_Rate    ;
-                   dsForeign_Currency_Amount  := dtForeign_Currency_Amount  ;
+                   dsForeign_Currency_Amount  := dtLocal_Amount  ;
 
                    dsGL_Narration             := dtNarration;
                    dsTax_Invoice := dtTax_Invoice;
@@ -4740,67 +4321,6 @@ begin
    DoGotoNotes;
 end;
 
-procedure TdlgDissection.ForexAmountEdited(pD: pWorkDissect_Rec);
-Begin
-  with pD^ do
-  begin
-    dtHas_Been_Edited := True;
-    dtForex_Conversion_Rate   := pTran.txForex_Conversion_Rate;
-    if dtForex_Conversion_Rate <> 0.0 then
-      dtAmount := Round( dtForeign_Currency_Amount / dtForex_Conversion_Rate )
-    else
-      dtAmount := 0;
-    dtPercent_Amount          := 0;
-    dtAmount_Type_Is_Percent := False;
-    if MyClient.clChart.CanCodeTo( dtAccount) then
-      dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class)
-    else
-      if ( dtAccount = '' ) then dtHas_Been_Edited := false;
-  end;
-  SetQuantitySign( False );
-  with tblDissect do
-  begin
-    AllowRedraw := false;
-    Invalidate; // need to repaint all percentage lines also
-    AllowRedraw := true;
-  end;
-  UpdateDisplayTotals;
-end;
-
-(*
-procedure TdlgDissection.ForexRateEdited(pD: pWorkDissect_Rec);
-begin
-  with pD^ do
-  begin
-    dtHas_Been_Edited := True;
-
-    If dtForex_Conversion_Rate <> 0.0 then
-      dtAmount := Round( dtForeign_Currency_Amount / dtForex_Conversion_Rate )
-    else
-      dtAmount := 0;
-
-    dtForex_Source            := '';
-    dtForex_Description       := 'Manually Entered Rate';
-    dtForex_Edited            := True;
-
-    dtPercent_Amount          := 0;
-    dtAmount_Type_Is_Percent := False;
-    if MyClient.clChart.CanCodeTo( dtAccount) then
-      dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class)
-    else
-      if ( dtAccount = '' ) then dtHas_Been_Edited := false;
-  end;
-  SetQuantitySign( False );
-  with tblDissect do
-  begin
-    AllowRedraw := false;
-    Invalidate; // need to repaint all percentage lines also
-    AllowRedraw := true;
-  end;
-  UpdateDisplayTotals;
-end;
-*)
-
 procedure TdlgDissection.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
@@ -5266,9 +4786,6 @@ begin
     exit;
   end
   else
-  if fIsForex then
-    DoCelForexAmountKeyPress(Sender, Key)
-  else
     DoCelAmountKeyPress(Sender, Key);
 end;
 
@@ -5427,92 +4944,12 @@ begin
   ShowCommentIndicator := False;
   //get string
   pfHiddenAmount.SetValue( Data^ );
-  S := PChar( pfHiddenAmount.AsString);
-  //check is a data row
-  if ValidDataRow( RowNum ) then
-  begin
-     pD   := WorkDissect.Items[ RowNum -1 ];
-     if pD^.dtSuper_Fields_Edited
-     and FCanUseSuperFundFields then
-        ShowCommentIndicator := True;
 
-  end;
-  {paint background}
-  C.FillRect(R);
-  {draw data}
-  InflateRect( R, -2, -2 );
-  DrawText(C.Handle, PChar( S ), StrLen( PChar( S ) ), R, DT_RIGHT or DT_VCENTER or DT_SINGLELINE);
-
-  if ShowCommentIndicator then
-    begin
-      //draw a red triangle in the top right
-      C.Brush.Color := clRed;
-      C.Pen.Color := clRed;
-      R := CellRect;
-      C.Polygon( [Point( R.Right - (Margin+ 1), R.Top),
-                        Point( R.Right -1, R.Top),
-                        Point( R.Right -1, R.Top + Margin)]);
-    end;
-
-  DoneIt := true;
-end;
-
-procedure TdlgDissection.celForexAmountChange(Sender: TObject);
-// See if we should insert a minus for the user
-var
-   pD : pWorkDissect_Rec;
-begin
-   if not AllowAddMinus then
-      Exit;
-   if tblDissect.ActiveRow = 1 then // get sign from mainline for first line only
-   begin
-     pD := WorkDissect.Items[tblDissect.ActiveRow-1];
-     if ( pTran^.txAmount < 0 ) and ( pD^.dtForeign_Currency_Amount = 0 ) then
-        Keybd_Event(vk_subtract,0,0,0);
-   end
-   else if tblDissect.ActiveRow > 1 then // get sign from previous line
-   begin
-     pD := WorkDissect.Items[tblDissect.ActiveRow-2];
-     if ( pD^.dtForeign_Currency_Amount < 0 ) then
-        Keybd_Event(vk_subtract,0,0,0);
-   end;
-  AllowAddMinus := False;
-end;
-
-procedure TdlgDissection.celForexAmountKeyPress(Sender: TObject; var Key: Char);
-begin
-  if ( key in ['$', '£' ] ) and FStartedEdit then
-  begin
-    Key := #0;
-    exit;
-  end
+  if FIsForex then
+    S := ShortString( Data^ )
   else
-    DoCelForexAmountKeyPress(Sender, Key);
-end;
+    S := PChar( pfHiddenAmount.AsString);
 
-procedure TdlgDissection.celForexAmountOwnerDraw(Sender: TObject;
-  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
-  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
-const
-  margin = 4;
-var
-  R   : TRect;
-  C   : TCanvas;
-  S   : String;
-  pD : pWorkDissect_Rec;
-  ShowCommentIndicator : boolean;
-begin
-  if data = nil then exit;
-  DoneIt := True;
-  R := CellRect;
-  C := TableCanvas;
-  c.Brush.Color := CellAttr.caColor;
-  C.Font.Color  := CellAttr.caFontColor;
-  C.Font.Size   := CellAttr.caFont.Size;
-
-  ShowCommentIndicator := False;
-  //get string
-  S := ShortString( Data^ );
   //check is a data row
   if ValidDataRow( RowNum ) then
   begin
@@ -5687,47 +5124,6 @@ begin
 end;
 
 procedure TdlgDissection.ApplyAmountShortcut(Key: Char);
-begin
-  if fIsForex then
-    ApplyForexAmountShortcut( Key )
-  else
-    ApplyLocalAmountShortcut( Key );
-end;
-
-procedure TdlgDissection.ApplyForexAmountShortcut(Key: Char);
-// Applies a shortcut key press to the Localamount field
-// Test if we are in the correct col, if not end any edit and move to
-// correct col - *, % and @ only work within amount field. Simulate the key press
-// then reset the active col to wherever the user was before
-var
-  Col: Integer;
-  Move: Boolean;
-begin
-  Col := -1;
-  with tblDissect do
-  begin
-    if (not (ColumnFmtList.ColumnDefn_At(ActiveCol)^.cdFieldID = ceLocalAmount)) and
-       (not (ColumnFmtList.ColumnDefn_At(ActiveCol)^.cdFieldID = ceForexAmount)) and
-       (not (ColumnFmtList.ColumnDefn_At(ActiveCol)^.cdFieldID = cePercent)) then
-    begin
-       Col := ActiveCol;
-       if not StopEditingState(True) then
-          Exit; // cannot do anything..
-       ActiveCol := ColumnFmtList.GetColNumOfField(ceLocalAmount);
-       Move := False;
-    end
-    else
-       Move := True;
-    if not StartEditingState then
-        Exit;
-
-    DoCelForexAmountKeyPress(tblDissect, Key, Move);
-    if Col > -1 then
-      ActiveCol := Col;
-  end;
-end;
-
-procedure TdlgDissection.ApplyLocalAmountShortcut(Key: Char);
 // Applies a shortcut key press to the amount field
 // Test if we are in the correct col, if not end any edit and move to
 // correct col - *, % and @ only work within amount field. Simulate the key press
@@ -5912,6 +5308,50 @@ begin
         Keybd_Event(vk_subtract,0,0,0);
    end;
   AllowAddMinus := False;
+end;
+
+procedure TdlgDissection.UpdateBaseAmounts;
+var
+  i: integer;
+  pWorkRec: pWorkDissect_Rec;
+  Total, TotalLocal, Remainder, LocalRemainder: double;
+  TransAmt, LocalTransAmt: double;
+  DissecAmt, DissecAmtLocal: Money;
+  Rate: double;
+begin
+  //Calculate base amount for Forex bank accounts
+  Rate := pTran.Default_Forex_Rate;
+  if (Rate <> 0.0) then begin
+    Total := 0;
+    TotalLocal := 0;
+    TransAmt := GenUtils.Money2Double( pTran^.txAmount );
+    LocalTransAmt := GenUtils.Money2Double( pTran^.Local_Amount );
+    for i := 0 to Pred( GLCONST.Max_tx_Lines ) do begin
+      pWorkRec := WorkDissect.Items[i];
+      pWorkRec^.dtLocal_Amount := 0;
+      if pWorkRec^.dtAmount <> 0 then begin
+        if pWorkRec^.dtAmount_Type_Is_Percent and (pWorkRec^.dtPercent_Amount <> 0) then begin
+          DissecAmt := Double2Money((TransAmt * (pWorkRec^.dtPercent_Amount/1000000)));
+          Total := Total + Money2Double(DissecAmt);
+          DissecAmtLocal := Double2Money((LocalTransAmt * (pWorkRec^.dtPercent_Amount/1000000)));
+          TotalLocal := TotalLocal + Money2Double(DissecAmtLocal);
+          //Set local dissection amount
+          pWorkRec^.dtLocal_Amount := DissecAmtLocal;
+        end else begin;
+          DissecAmt := pWorkRec^.dtAmount;
+          Total := Total + Money2Double(DissecAmt);
+          DissecAmtLocal :=  Double2Money((Money2Double(DissecAmt) / Rate));
+          TotalLocal := TotalLocal + Money2Double(DissecAmtLocal);
+          //Set local dissection amount
+          pWorkRec^.dtLocal_Amount := DissecAmtLocal;
+        end;
+        Remainder   := TransAmt - Total;
+        LocalRemainder := LocalTransAmt - TotalLocal;
+        if (Remainder = 0)  then
+          pWorkRec^.dtLocal_Amount := pWorkRec^.dtLocal_Amount + Double2Money(LocalRemainder);
+      end;
+    end;
+  end;
 end;
 
 procedure TdlgDissection.ConfigureColumns;
@@ -6178,13 +5618,7 @@ procedure TdlgDissection.SetupColDefaultSets;
 begin
    DefaultEditableCols := [ceAccount, ceAmount, cePercent, ceQuantity, ceNarration, ceMoneyIn, ceMoneyOut, cePayee, ceJob, ceTaxInvoice];
 
-   if fIsForex then
-   Begin
-     DefaultEditableCols := DefaultEditableCols - [ceAmount ];
-     DefaultEditableCols := DefaultEditableCols + [ceForexAmount, ceLocalAmount];
-   End;
-
-   If Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
+   if Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
      DefaultEditableCols := DefaultEditableCols + [ceGSTClass];
 
    if (MyClient.clFields.clCountry = whNewZealand ) or ((MyClient.clFields.clCountry = whAustralia ) and ( MyClient.clFields.clBAS_Calculation_Method <> bmFull)) then
@@ -6192,20 +5626,7 @@ begin
 
    AlwaysEditableCols := [ceAccount, ceAmount];
 
-   if fIsForex then
-   Begin
-     AlwaysEditableCols := AlwaysEditableCols  - [ ceAmount ];
-     AlwaysEditableCols := AlwaysEditableCols  + [ ceForexAmount ];
-   End;
-
    AlwaysVisibleCols := [ceAccount, ceAmount, ceNarration];
-
-   if fIsForex then
-   Begin
-     AlwaysVisibleCols := AlwaysVisibleCols  - [ ceAmount ];
-     AlwaysVisibleCols := AlwaysVisibleCols  + [ ceForexAmount ];
-   End;
-
 end;
 
 procedure TdlgDissection.ResetColumns;
@@ -6266,47 +5687,6 @@ begin
     //now resort list into correct order
     ColumnFmtList.ReOrder;
   end;
-end;
-
-procedure TdlgDissection.LocalAmountEdited(pD: pWorkDissect_Rec);
-Var
-  R : Double;
-begin
-  with pD^ do
-  begin
-    (* Change the Exchnge rate
-    R := 0.0;
-    if dtAmount <> 0.0 then
-    Begin
-      R := dtForeign_Currency_Amount / dtAmount;
-      R := DecimalRoundExt ( R, ForexDP );
-    End;
-    dtForex_Conversion_Rate   := R;
-    *)
-    dtForex_Conversion_Rate   := pTran.txForex_Conversion_Rate;
-    if dtForex_Conversion_Rate <> 0.0 then
-       dtForeign_Currency_Amount := Round( dtAmount * dtForex_Conversion_Rate )
-    else
-       dtAmount := 0;
-    CalculateGST( MyClient, pTran.txDate_Effective, pd.dtAccount, pd.dtAmount, pd.dtGST_Class, pd.dtGST_Amount );
-
-
-    dtPercent_Amount          := 0;
-    dtAmount_Type_Is_Percent := False;
-
-    if MyClient.clChart.CanCodeTo( dtAccount) then
-      dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class)
-    else
-      if ( dtAccount = '' ) then dtHas_Been_Edited := false;
-  end;
-  SetQuantitySign( False );
-  with tblDissect do
-  begin
-    AllowRedraw := false;
-    Invalidate; // need to repaint all percentage lines also
-    AllowRedraw := true;
-  end;
-  UpdateDisplayTotals;
 end;
 
 procedure TdlgDissection.SaveTempLayout;

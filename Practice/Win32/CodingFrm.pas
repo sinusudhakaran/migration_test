@@ -598,7 +598,7 @@ uses
 {$ENDIF PLAYSOUNDS}
    SwapUtils, clObj32, pyList32, ECollect, mainfrm,
    PayeeObj, UsageUtils, QueryTx, NewReportUtils,
-   CountryUtils;
+   CountryUtils, SetClearTransferFlags, ExchangeRateList;
 
 const
    UnitName = 'CODINGFRM';
@@ -2003,7 +2003,7 @@ begin
             pUPI^.txOriginal_Amount                   := pT^.txOriginal_Amount;
             pUPI^.txMatched_Item_ID                   := pT^.txMatched_Item_ID;
             pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate    ;
-            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
+//            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
          end
          else begin
             //this is the original transaction so store details
@@ -2013,7 +2013,7 @@ begin
             pUPI^.txOriginal_Cheque_Number            := pT^.txCheque_Number;
             pUPI^.txOriginal_Amount                   := pT^.txAmount;
             pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate    ;
-            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
+//            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
          end;
          //log info the manual match done
          sMsg := 'Matched ref ' + GetFormattedReference( pT) +
@@ -2072,7 +2072,7 @@ begin
             pUPI^.txOriginal_Amount                   := pT^.txOriginal_Amount;
             pUPI^.txMatched_Item_ID                   := pT^.txMatched_Item_ID;
             pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate    ;
-            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
+//            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
          end
          else begin
             //get new matched item id
@@ -2087,7 +2087,7 @@ begin
             pUPI^.txOriginal_Cheque_Number            := pT^.txCheque_Number;
             pUPI^.txOriginal_Amount                   := pT^.txAmount;
             pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate    ;
-            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
+//            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
 
             // -----------------------------------------------------------------
 
@@ -2097,7 +2097,7 @@ begin
             pT^.txOriginal_Cheque_Number              := pT^.txCheque_Number;
             pT^.txOriginal_Amount                     := pT^.txAmount;
             pT^.txOriginal_Forex_Conversion_Rate      := pT^.txForex_Conversion_Rate    ;
-            pT^.txOriginal_Foreign_Currency_Amount    := pT^.txForeign_Currency_Amount  ;
+//            pT^.txOriginal_Foreign_Currency_Amount    := pT^.txForeign_Currency_Amount  ;
 
          end;
          //log info the manual match done and original entry adjusted
@@ -2174,6 +2174,9 @@ procedure TfrmCoding.SetOrClearTransferDate(SetDate : boolean);
 var
    i : Integer;
 begin
+    //Show warning if ForEx account
+   if BankAccount.IsAForexAccount and (not SetDate) and (not UpdateExchangeRates) then exit;
+
    for i := 0 to Pred( WorkTranList.ItemCount ) do begin
       with WorkTranList.Transaction_At( i )^ do begin
         if SetDate then begin
@@ -2461,8 +2464,9 @@ begin
             Exit;
       end;
       //get new amount
-      OldAmount      := txAmount;
-      OldForexAmount := txForeign_Currency_Amount;
+//      OldAmount      := txAmount;
+//      OldForexAmount := txForeign_Currency_Amount;
+      OldForexAmount := txAmount;
 
       Amount := Money2Double( pT.Statement_Amount );
 
@@ -2481,8 +2485,9 @@ begin
       begin
         if not DissectEntry( pT, BankAccount.baFields.baNotes_Always_Visible, True, BankAccount ) then
         begin
-          txForeign_Currency_Amount := OldForexAmount;
-          txAmount := OldAmount;
+//          txForeign_Currency_Amount := OldForexAmount;
+//          txAmount := OldAmount;
+          txAmount := OldForexAmount;
           HelpfulInfoMsg('The transaction amount has been changed back.',0);
           Exit;
         end;
@@ -2490,7 +2495,8 @@ begin
       SetQuantitySign(False);
       //Log change
       if fIsForex then
-        LogUtil.LogMsg( lmInfo, UnitName, 'Foreign Currency Amount Changed from '+ MakeAmount( OldForexAmount)+' to '+ MakeAmount( txForeign_Currency_Amount )+
+//        LogUtil.LogMsg( lmInfo, UnitName, 'Foreign Currency Amount Changed from '+ MakeAmount( OldForexAmount)+' to '+ MakeAmount( txForeign_Currency_Amount )+
+        LogUtil.LogMsg( lmInfo, UnitName, 'Foreign Currency Amount Changed from '+ MakeAmount( OldForexAmount)+' to '+ MakeAmount( txAmount )+
                                         ' for trans '+ bkDate2Str(txDate_Effective)+' '+ GetFormattedReference( pT));
 
       LogUtil.LogMsg( lmInfo, UnitName, 'Amount Changed from '+ MakeAmount( OldAmount)+' to '+ MakeAmount( txAmount)+
@@ -2631,7 +2637,7 @@ begin
                   pNewTrans^.txAmount          := -1 * txAmount;
 
                   pNewTrans^.txForex_Conversion_Rate   := txOriginal_Forex_Conversion_Rate       ;
-                  pNewTrans^.txForeign_Currency_Amount := -1 * txOriginal_Foreign_Currency_Amount     ;
+//                  pNewTrans^.txForeign_Currency_Amount := -1 * txOriginal_Foreign_Currency_Amount     ;
 
                   pNewTrans^.txBank_Seq        := BankAccount.baFields.baNumber;
                   pNewTrans^.txMatched_Item_ID := txMatched_Item_ID;
@@ -2775,7 +2781,7 @@ begin
             pNewTrans^.txAmount         := txAmount;
 
             pNewTrans^.txForex_Conversion_Rate   := txOriginal_Forex_Conversion_Rate       ;
-            pNewTrans^.txForeign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
+//            pNewTrans^.txForeign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
 
             pNewTrans^.txBank_Seq       := BankAccount.baFields.baNumber;
             pNewTrans^.txStatement_Details := txStatement_Details;
@@ -2790,7 +2796,7 @@ begin
                pNewTrans^.txOriginal_Amount        := txOriginal_Amount;
                pNewTrans^.txOriginal_Cheque_Number := txOriginal_Cheque_Number;
                pNewTrans^.txOriginal_Forex_Conversion_Rate   := txOriginal_Forex_Conversion_Rate       ;
-               pNewTrans^.txOriginal_Foreign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
+//               pNewTrans^.txOriginal_Foreign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
                pNewTrans^.txMatched_Item_Id        := txMatched_Item_Id;
             end;
             //update items specific to upc/upd
@@ -3184,7 +3190,8 @@ var
             ceAction :if TestText(GetFormattedAction(pT)) then
                Exit;
 
-            ceForexAmount: if TestMoney(pT.txForeign_Currency_Amount) then
+//            ceForexAmount: if TestMoney(pT.txForeign_Currency_Amount) then
+            ceForexAmount: if TestMoney(pT.txAmount) then
                Exit;
 
             ceForexRate : if testText( FloatToStr(PT.txForex_Conversion_Rate)) then
@@ -3239,9 +3246,9 @@ begin
      for i := bankaccount.baTransaction_List.Last downto bankaccount.baTransaction_List.First do
      begin
        pT := bankaccount.baTransaction_List.Transaction_At( i );
-       if fIsForex then
-         Amount := pT.txForeign_Currency_Amount
-       else
+//       if fIsForex then
+//         Amount := pT.txForeign_Currency_Amount
+//       else
          Amount := pT.txAmount;
        //dont update the balance if it is unknown
        if (bal <> Unknown) then
@@ -3254,9 +3261,9 @@ begin
      for i := bankaccount.baTransaction_List.Last downto bankaccount.baTransaction_List.First do
      begin
        pT := bankaccount.baTransaction_List.Transaction_At( i );
-       if fIsForex then
-         Amount := pT.txForeign_Currency_Amount
-       else
+//       if fIsForex then
+//         Amount := pT.txForeign_Currency_Amount
+//       else
          Amount := pT.txAmount;
 
        pT.txTemp_Balance := bal;
@@ -3302,9 +3309,9 @@ begin
        begin
           pT := WorkTranList.transaction_at( i);
           pT.txTemp_Balance := bal;
-          if fIsForex then
-            Amount := pT.txForeign_Currency_Amount
-          else
+//          if fIsForex then
+//            Amount := pT.txForeign_Currency_Amount
+//          else
             Amount := pT.txAmount;
 
           if (bal <> Unknown) then
@@ -4001,9 +4008,9 @@ begin
      end
      else
      begin
-        if fIsForex then
-          Amount := txForeign_Currency_Amount
-        else
+//        if fIsForex then
+//          Amount := txForeign_Currency_Amount
+//        else
           Amount := txAmount;
 
         //payee is dissected, so dissect the transaction
@@ -4277,25 +4284,29 @@ begin
 
         ceForexAmount :
           begin
-             tmpPaintString := BankAccount.MoneyStrBrackets( pT^.txForeign_Currency_Amount );
+//             tmpPaintString := BankAccount.MoneyStrBrackets( pT^.txForeign_Currency_Amount );
+             tmpPaintString := BankAccount.MoneyStrBrackets( pT^.txAmount );
              data := PChar(tmpPaintString);
            end;
 
         ceForexRate :
           Begin
-            tmpPaintDouble := pT^.txForex_Conversion_Rate;
+//            tmpPaintDouble := pT^.txForex_Conversion_Rate;
+            tmpPaintDouble := pT^.Default_Forex_Rate;
             data := @tmpPaintDouble;
           End;
 
         ceAmount:
            begin
-             tmpPaintString := MakeAmount( pT^.txAmount );
+//             tmpPaintString := MakeAmount( pT^.txAmount );
+             tmpPaintString := MakeAmount( pT^.Local_Amount );
              data := PChar(tmpPaintString);
            end;
 
         ceLocalCurrencyAmount:
            begin
-             tmpPaintString := MyClient.MoneyStrBrackets( pT^.txAmount );
+//             tmpPaintString := MyClient.MoneyStrBrackets( pT^.txAmount );
+             tmpPaintString := MyClient.MoneyStrBrackets( pT^.Local_Amount );
              data := PChar(tmpPaintString);
            end;
 
@@ -4479,14 +4490,17 @@ begin
          end;
 
          ceForexAmount : Begin
-            tmpDouble := Money2Double( pT.txForeign_Currency_Amount );
+//            tmpDouble := Money2Double( pT.txForeign_Currency_Amount );
+            tmpDouble := Money2Double( pT.txAmount );
             data := @tmpDouble;
          End;
 
          ceLocalCurrencyAmount : Begin
-            tmpDouble := Money2Double( pT.txAmount );
+//            tmpDouble := Money2Double( pT.txAmount );
+            tmpDouble := Money2Double( pT.Local_Amount );
             data := @tmpDouble;
-            AutoPressMinus := ( pT^.txForeign_Currency_Amount < 0 );
+//            AutoPressMinus := ( pT^.txForeign_Currency_Amount < 0 );
+            AutoPressMinus := ( pT^.txAmount < 0 );
          End;
 
          ceGSTAmount : begin
@@ -7032,12 +7046,13 @@ begin
                    OER := pT^.txForex_Conversion_Rate;
                    pT^.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate(tmpInteger);
                    if OER <> pT^.txForex_Conversion_Rate then begin
-                      OM := pT.txAmount;
-                      if pT.txForex_Conversion_Rate <> 0.0 then
-                         pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
-                      else
-                         pT.txAmount := 0;
-                      if pT.txAmount <> OM then begin
+//                      OM := pT.txAmount;
+                      OM := pT.Local_Amount;
+//                      if pT.txForex_Conversion_Rate <> 0.0 then
+//                         pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
+//                      else
+//                         pT.txAmount := 0;
+//                      if pT.txAmount <> OM then begin
                          if pT^.txFirst_Dissection <> nil then begin
                             if (not DissectEntry(pT, false, false, BankAccount)) then begin
                                pT.txDate_Effective := OD;
@@ -7056,7 +7071,7 @@ begin
                                txGST_Has_Been_Edited := (txGST_Class <> DefaultGSTClass) or (txGST_Amount <> DefaultGSTAmt);
                             end;
                          end;
-                      end;
+//                      end;
                    end;
                  end;
               end;
@@ -7462,6 +7477,7 @@ var
    cLoaded    : boolean;
    BankAccount : TBank_Account;
    SelectedList : TStringList;
+   LExchangeRates: TExchangeRateList;
 
   procedure CreateCodingScreen(d1,d2 : TStDate; Account : TBank_Account);
   var
@@ -7495,6 +7511,21 @@ var
      end; {with}
   end;
 
+  procedure RefreshExchangeSource;
+  begin
+    //Refresh exchange rate source
+    if Assigned(AdminSystem) then begin
+      if myClient.HasForeignCurrencyAccounts then begin
+        LExchangeRates := GetExchangeRates;
+        try
+          myClient.ExchangeSource.Assign(LExchangeRates.ExchangeSource(0));
+        finally
+          LExchangeRates.Free;
+        end;
+      end;
+    end;
+  end;
+
   var
     found : boolean;
     UserSelectedAccounts : boolean;
@@ -7511,6 +7542,7 @@ begin
     if Assigned(BA) then
     begin
       SelectedList.AddObject(BA.baFields.baBank_Account_Number, BA);
+      RefreshExchangeSource;
       CreateCodingScreen(dateFrom, DateTo, BA);
     end
     else
@@ -7571,6 +7603,7 @@ begin
           end;
 
           if found then begin
+              RefreshExchangeSource;
               CreateCodingScreen(dateFrom, DateTo, BankAccount);
           end;
         end; {with}
@@ -7651,6 +7684,7 @@ begin
      end;
      if (HasTransferredEntries and HasUnTransferredEntries) then
         HelpfulWarningMsg('This Client has some untransferred entries from the previous month', 0);
+
     //Everything was OK so ask user for bank accounts , then create windows
     CodeTheseEntries(dateFrom, dateTo, nil, CodingOptions);
   end;

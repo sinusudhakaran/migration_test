@@ -42,7 +42,7 @@ type
   private
 {$IFDEF ParserDll}
 {$ELSE}
-//    FExchangeSource: TExchangeSource;
+    FExchangeSource: TExchangeSource;
 {$ENDIF}
     procedure LoadFromStream( var s:TIOStream);
     procedure GetZipStreamFromFile( const Filename : String; const ZipStream : TBigMemoryStream);
@@ -60,7 +60,7 @@ type
     procedure Open(FileCode, FileExtension : String);
 {$IFDEF ParserDll}
 {$ELSE}
-//    property ExchangeSource: TExchangeSource read FExchangeSource;
+    property ExchangeSource: TExchangeSource read FExchangeSource;
     property  clExtendedName : string read GetLongName;   //used in reports
     property  clAccountingSystemName : string read GetAccountingSystemName;
     procedure UpdateRefs;
@@ -75,6 +75,8 @@ type
     // Utilities
 
     function HasForeignCurrencyAccounts : Boolean;
+    function HasMissingExchangeRates(var ISOCodeText: string;
+      const FromDate: integer = 0; const ToDate: integer = MaxInt): Boolean;
     procedure FillAccountingSystemList(Value: Tstrings);
 
     { How should we represent money in this country }
@@ -152,7 +154,8 @@ uses
    StStrS,
 {$ENDIF}
    bk5Except,
-   VclZip;
+   VclZip,
+   ForexHelpers;
 
 const
   UnitName  = 'CLOBJ32';
@@ -205,7 +208,7 @@ begin
    clCustom_Headings_List := TNew_Custom_Headings_List.Create;
 
    //Exchange rate source
-//   FExchangeSource := TExchangeSource.Create;
+   FExchangeSource := TExchangeSource.Create;
 {$ENDIF}
    LogDebugMsg(ThisMethodName + ' Ends');
 end;
@@ -236,7 +239,7 @@ begin
    BKCLIO.Free_Client_Rec_Dynamic_Fields( clFields);
 {$IFDEF ParserDll}
 {$ELSE}
-//   FreeAndNil(FExchangeSource);
+   FreeAndNil(FExchangeSource);
 
    clBank_Account_List.Free;
    clChart.Free;
@@ -337,7 +340,7 @@ begin
        tkBegin_MoreClient        : Read_MoreClient_Rec(clMoreFields,s);
        tkBeginJobList            : clJobs.LoadFromFile(S);
        tkBegin_ClientExtra       : Read_ClientExtra_Rec (clExtra,s);
-//       tkBeginExchangeRateHeader : FExchangeSource.LoadFromStream( S );
+       tkBeginExchangeRateHeader : FExchangeSource.LoadFromStream( S );
     else
        begin { Should never happen }
           Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -640,7 +643,7 @@ begin
    BKMCIO.Write_MoreClient_Rec( clMoreFields, S );
    clJobs.SaveToFile(S);
    BKCEIO.Write_ClientExtra_Rec(clExtra,S);
-//   FExchangeSource.SaveToStream( S );
+   FExchangeSource.SaveToStream( S );
    S.WriteToken( tkEndSection );
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;
@@ -761,6 +764,32 @@ Begin
         Result := True;
 End;
 
+function TClientObj.HasMissingExchangeRates(var ISOCodeText: string;
+      const FromDate: integer = 0; const ToDate: integer = MaxInt): Boolean;
+var
+  i: integer;
+  BA: TBank_Account;
+begin
+  ISOCodeText := '';
+  Result := False;
+  for i := clBank_Account_List.First to clBank_Account_List.Last do begin
+    BA := clBank_Account_List.Bank_Account_At(i);
+    if BA.HasMissingExchageRates(FromDate, ToDate) then begin
+      if (ISOCodeText = '') then
+        ISOCodeText := BA.baFields.baCurrency_Code
+      else begin
+        if Pos(BA.baFields.baCurrency_Code, ISOCodeText) = 0 then begin
+          if Pos(' and ', ISOCodeText) > 0 then
+            ISOCodeText := StringReplace(ISOCodeText, ' and ', ', ', [rfReplaceAll]);
+          ISOCodeText := ISOCodeText + ' and ' + UpperCase(BA.baFields.baCurrency_Code);
+        end;
+      end;
+    end;
+  end;
+  if (ISOCodeText <> '') then
+    Result := True;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TClientObj.IntegrityCheck;
@@ -851,10 +880,12 @@ begin
                         Dissect_Total := 0;
                         This := txFirst_Dissection;
                         while This<>NIL do with This^ do begin
-                           Dissect_Total := Dissect_Total + dsForeign_Currency_Amount;
+//                           Dissect_Total := Dissect_Total + dsForeign_Currency_Amount;
+                           Dissect_Total := Dissect_Total + This^.Local_Amount;
                            This := dsNext;
                         end;
-                        If tran.txForeign_Currency_Amount <> Dissect_Total then Begin
+//                        If tran.txForeign_Currency_Amount <> Dissect_Total then Begin
+                        If tran.Local_Amount <> Dissect_Total then Begin
                            RaiseIntegrityException('Foreign Currency Dissection Total');
                         end;
                      end;

@@ -16,6 +16,7 @@ interface
 
 function ClearTransferFlagsForPeriod : boolean;
 function SetTransferFlagsForPeriod: Boolean;
+function UpdateExchangeRates: boolean;
 
 //******************************************************************************
 implementation
@@ -27,12 +28,24 @@ uses
    CodeDateDlg,
    CodingFormCommands,
    UpdateMF,
-   Globals;
+   Globals,
+   YesNoDlg;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+function UpdateExchangeRates: boolean;
+const
+  FOREX_WARNING = 'Clearing the transfer flags will apply any exchange rate ' +
+                  'changes to transactions. Are you sure you want to continue?';
+begin
+  Result := false;
+  if AskYesNo('Clear Transfer Flags', FOREX_WARNING, DLG_NO, 0) = DLG_YES then
+    Result := true;
+end;
+
 function ClearTransferFlagsForPeriod : boolean;
 Var
+   i: integer;
    D1, D2 : LongInt;
    EntriesFound : boolean;
 Begin
@@ -42,6 +55,15 @@ Begin
    Begin
       D1 := clFields.clPeriod_Start_Date;
       D2 := clFields.clPeriod_End_Date;
+
+      //Show warning if ForEx account
+      for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
+        if clBank_Account_List.Bank_Account_At(i).IsAForexAccount then begin
+          if not UpdateExchangeRates then
+            Exit;
+          Break; //Only needs to show once
+        end;
+      end;
 
       If not EnterDateRange( 'Clear the Transfer Flags for a period',
          'Enter the starting and finishing date for the period you want to clear ' +

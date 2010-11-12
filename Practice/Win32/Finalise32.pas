@@ -41,7 +41,9 @@ uses
   bkconst,
   bkDateutils,
   CodingFormCommands,
-  CodeDateDlg;
+  CodeDateDlg,
+  baObj32,
+  YesNoDlg;
 
 Function IsLocked( D1, D2 : LongInt ): tLockInfo;
 
@@ -84,15 +86,22 @@ Procedure   LockEntries( D1, D2 : LongInt );
 //mark all entries for all bank accounts in the date range as finalised
 Var
    B, T : LongInt;
+   BA : TBank_Account;
 Begin
    If not Assigned( MyClient ) then exit;
    With MyClient.clBank_Account_List do
-      For B := 0 to Pred( itemCount ) do
-         With Bank_Account_At( B ).baTransaction_List do
+      For B := 0 to Pred( itemCount ) do begin
+         BA := Bank_Account_At( B );
+         With BA.baTransaction_List do
             For T := 0 to Pred( itemCount ) do
                With Transaction_At( T )^ do
-                  If ( txDate_Effective >=D1 ) and ( txDate_Effective <=D2 ) then
+                  If ( txDate_Effective >=D1 ) and ( txDate_Effective <=D2 ) then begin
+                     //Save ForEx rate for locked transactions
+                     if (not txLocked) and (txDate_Transferred =0) then
+                       txForex_Conversion_Rate := BA.Default_Forex_Conversion_Rate( txDate_Effective );
                      txLocked := TRUE;
+                  end;
+      end;
 end;
 
 {  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  }
@@ -108,8 +117,10 @@ Begin
          With Bank_Account_At( B ).baTransaction_List do
             For T := 0 to Pred( itemCount ) do
                With Transaction_At( T )^ do
-                  If ( txDate_Effective >=D1 ) and ( txDate_Effective <=D2 ) then
+                  If ( txDate_Effective >=D1 ) and ( txDate_Effective <=D2 ) then begin
                      txLocked := FALSE;
+                     txForex_Conversion_Rate := 0;
+                  end;
 end;
 
 {  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  }
@@ -162,13 +173,27 @@ end;
 {  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  }
 
 function UnlockAccountingPeriod : boolean;
+const
+  FOREX_WARNING = 'Unlocking this period will apply any exchange rate ' +
+                  'changes to transactions or journals in this period. Are ' +
+                  'you sure you want to continue?';
 Var
+   i: integer;
    D1, D2 : LongInt;
 Begin
    result := false;
    If not Assigned( MyClient ) then exit;
    With MyClient do
    Begin
+      //Show warning if ForEx account
+      for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
+        if clBank_Account_List.Bank_Account_At(i).IsAForexAccount then begin
+          if AskYesNo('Unlock an Accounting Period', FOREX_WARNING, DLG_NO, 0) = DLG_NO then
+            Exit;
+          Break; //Only needs to show once
+        end;
+      end;
+
       D1 := clFields.clPeriod_Start_Date;
       D2 := clFields.clPeriod_End_Date;
 

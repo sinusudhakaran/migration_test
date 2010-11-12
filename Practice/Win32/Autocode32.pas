@@ -369,9 +369,9 @@ Begin
                       Continue;
                     end;
 
-                  if Forex then
-                    Amount := Transaction.txForeign_Currency_Amount
-                  else
+//                  if Forex then
+//                    Amount := Transaction.txForeign_Currency_Amount
+//                  else
                     Amount := Transaction.txAmount;
 
                   //Entry needs to be dissected
@@ -549,9 +549,9 @@ Begin
                              Continue;
                           end;
 
-                          if Forex then
-                            Amount := Transaction.txForeign_Currency_Amount
-                          else
+//                          if Forex then
+//                            Amount := Transaction.txForeign_Currency_Amount
+//                          else
                             Amount := Transaction.txAmount;
 
                           //Entry needs to be dissected

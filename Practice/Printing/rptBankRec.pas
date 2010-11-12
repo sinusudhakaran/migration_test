@@ -227,9 +227,9 @@ begin
               for i := 0 to Pred( itemCount ) do
               begin
                 pT := Transaction_At( i ) ;
-                if Forex then
-                  Amount := pT.txForeign_Currency_Amount
-                else
+//                if Forex then
+//                  Amount := pT.txForeign_Currency_Amount
+//                else
                   Amount := pT.txAmount;
                 with pT^ do
                 begin
@@ -284,9 +284,9 @@ begin
               for i := 0 to Pred( itemCount ) do
               begin
                 pT := Transaction_At( i ) ;
-                if Forex then
-                  Amount := pT.txForeign_Currency_Amount
-                else
+//                if Forex then
+//                  Amount := pT.txForeign_Currency_Amount
+//                else
                   Amount := pT.txAmount;
 
                 with pT^ do
@@ -353,9 +353,9 @@ begin
               begin
                 pT := Transaction_At( i ) ;
 
-                if Forex then
-                  Amount := pT.txForeign_Currency_Amount
-                else
+//                if Forex then
+//                  Amount := pT.txForeign_Currency_Amount
+//                else
                   Amount := pT.txAmount;
 
                 with pT^ do
@@ -402,9 +402,9 @@ begin
               begin
                 pT := Transaction_At( i ) ;
 
-                if Forex then
-                  Amount := pT.txForeign_Currency_Amount
-                else
+//                if Forex then
+//                  Amount := pT.txForeign_Currency_Amount
+//                else
                   Amount := pT.txAmount;
 
                 with pT^ do
@@ -449,9 +449,9 @@ begin
               for i := 0 to Pred( itemCount ) do
               begin
                 pT := Transaction_At( i ) ;
-                if Forex then
-                  Amount := pT.txForeign_Currency_Amount
-                else
+//                if Forex then
+//                  Amount := pT.txForeign_Currency_Amount
+//                else
                   Amount := pT.txAmount;
                 with pT^ do
                 begin
@@ -740,9 +740,9 @@ procedure UnpresentedItemsDetail( Sender: TObject ) ;
       for tNo := BA.baTransaction_List.First to BA.baTransaction_List.Last do
       begin
         pT := BA.baTransaction_List.Transaction_At( tNo ) ;
-        if Forex then
-          Amount := pT.txForeign_Currency_Amount
-        else
+//        if Forex then
+//          Amount := pT.txForeign_Currency_Amount
+//        else
           Amount := pT.txAmount;
 
         if ( CompareDates( pT^.txDate_Effective, DateFrom, DateTo ) = Within )

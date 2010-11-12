@@ -3829,6 +3829,29 @@ const
      end;
    end;
 
+   procedure UpgradeToVersion163;
+   var
+     i, j: Integer;
+     BA: TBank_Account;
+     pT: pTransaction_Rec;
+   begin
+     for i :=  aClient.clBank_Account_List.First to aClient.clBank_Account_List.Last do begin
+       BA := aClient.clBank_Account_List.Bank_Account_At(i);
+       if Assigned(BA) then begin
+         if BA.IsAForexAccount then
+           for j := BA.baTransaction_List.First to BA.baTransaction_List.Last do begin
+             pT := BA.baTransaction_List.Transaction_At(j);
+             pT.txAmount := pT.txSpare_Money_1; //txForeign_Currency_Amount
+             pT.txSpare_Money_1 := 0;
+             pT.txSpare_Money_2 := 0;
+             //Reset Conversion Rates is not locked or transfered
+             if (pT.txDate_Transferred = 0) or (not pT.txLocked) then
+               pT.txForex_Conversion_Rate := 0;
+           end;
+       end;
+     end;
+   end;
+
 begin
    with aClient.clFields do begin
 
@@ -4153,6 +4176,12 @@ begin
         UpgradeToVersion157;
         clFile_Version := 157;
       end;
+      // 2011 /Multi currency
+      if (CLFile_Version < 163) then begin
+        UpgradeToVersion163;
+        clFile_Version := 163;
+      end;
+
    end;
 end;
 

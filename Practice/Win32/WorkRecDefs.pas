@@ -76,7 +76,7 @@ type
       dtJob: string;
       dtTax_Invoice: Boolean;
       dtForex_Conversion_Rate            : Double;
-      dtForeign_Currency_Amount          : Money;
+      dtLocal_Amount          : Money;
    end;
 
 procedure ClearSuperfundDetails(dwr: PWorkDissect_Rec); overload;

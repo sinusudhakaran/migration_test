@@ -1254,9 +1254,9 @@ begin
       tktxDate_Effective        : FBkReport.PutString(bkDate2Str(Transaction_Rec.txDate_Effective));
 
       tktxAmount                : // Banked amount
-                                  if FTravManager.Bank_Account.IsAForexAccount then
-                                     FBkReport.PutMoney(Transaction_Rec.txForeign_Currency_Amount)
-                                  else
+//                                  if FTravManager.Bank_Account.IsAForexAccount then
+//                                     FBkReport.PutMoney(Transaction_Rec.txForeign_Currency_Amount)
+//                                  else
                                      FBkReport.PutMoney(Transaction_Rec.txAmount);
 
       tktxForex_Conversion_Rate : if FTravManager.Bank_Account.IsAForexAccount

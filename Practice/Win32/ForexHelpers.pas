@@ -28,8 +28,6 @@ Type
     procedure SetStatement_Amount(const Value: Money);
     function GetDefault_Forex_Rate: Double;
     function GetOriginal_Statement_Amount: Money;
-
-
   public
     Procedure ApplyAnyLocalCurrencyRoundingDiscrepancyToTheBiggestDissectionAmount;
     function IsDissected : Boolean;
@@ -98,20 +96,25 @@ end;
 
 function TTransactionHelper.GetStatement_Amount: Money;
 begin
-  if Bank_Account.IsAForexAccount then
-     Result := txForeign_Currency_Amount
-  else
+//  if Bank_Account.IsAForexAccount then
+//     Result := txForeign_Currency_Amount
+//  else
      Result := txAmount;
 end;
 
 function TTransactionHelper.GetDefault_Forex_Rate: Double;
 begin
-  Result := Bank_Account.Default_Forex_Conversion_Rate( txDate_Effective );
+  Result := 0;
+  if (txDate_Transferred > 0) or (txLocked) then
+    Result := txForex_Conversion_Rate
+  else
+    Result := Bank_Account.Default_Forex_Conversion_Rate( txDate_Effective );
 end;
 
 function TTransactionHelper.GetForeign_Amount: Money;
 begin
-  Result := txForeign_Currency_Amount;
+//  Result := txForeign_Currency_Amount;
+  Result := txAmount;
 end;
 
 
@@ -126,17 +129,22 @@ begin
 end;
 
 function TTransactionHelper.GetLocal_Amount: Money;
+var
+  ExchangeRate: double;
 begin
   Result := txAmount;
+  if (Bank_Account.IsAForexAccount) then begin
+    ExchangeRate :=  Default_Forex_Rate;
+    if ExchangeRate > 0 then
+      Result := (txAmount / ExchangeRate);
+  end;
 end;
-
-
 
 function TTransactionHelper.GetOriginal_Statement_Amount: Money;
 begin
-   if Bank_Account.IsAForexAccount then
-     Result := txOriginal_Foreign_Currency_Amount
-  else
+//   if Bank_Account.IsAForexAccount then
+//     Result := txOriginal_Foreign_Currency_Amount
+//  else
      Result := txOriginal_Amount;
 end;
 
@@ -286,9 +294,11 @@ begin
   if Locked then
      Exit;
 
-  txForeign_Currency_Amount := Value;
+//  txForeign_Currency_Amount := Value;
+  txAmount := Value;
   if txForex_Conversion_Rate <> 0.0 then
-     Local_Amount := Round( txForeign_Currency_Amount / txForex_Conversion_Rate )
+//     Local_Amount := Round( txForeign_Currency_Amount / txForex_Conversion_Rate )
+     Local_Amount := Round( txAmount / txForex_Conversion_Rate )
   else
      Local_Amount := 0;
 end;
@@ -297,17 +307,16 @@ end;
 
 procedure TTransactionHelper.SetLocal_Amount(const Value: Money);
 begin
-  if Locked then
-     exit;
+  if Locked then Exit;
+  if (Bank_Account.IsAForexAccount) then Exit; //Local amount is calculated for forex accounts
+
   txAmount := Value;
   if txFirst_Dissection = NIL then
-  Begin
+  begin
     CalculateGST( Client, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
     txGST_Has_Been_Edited := False;
-  End;
-end;
-
-
+  end;
+end; 
 
 // ----------------------------------------------------------------------------
 
@@ -319,9 +328,11 @@ Begin
      exit;
   txForex_Conversion_Rate := Value;
 
-  if ( txForeign_Currency_Amount <> 0 )
+//  if ( txForeign_Currency_Amount <> 0 )
+  if ( txAmount <> 0 )
   and ( txForex_Conversion_Rate <> 0.0 ) then
-     Local_Amount := Round( txForeign_Currency_Amount / txForex_Conversion_Rate )
+//     Local_Amount := Round( txForeign_Currency_Amount / txForex_Conversion_Rate )
+     Local_Amount := Round( txAmount / txForex_Conversion_Rate )
   else
      Local_Amount := 0;
 
@@ -362,14 +373,14 @@ end;
 
 function TDissection_Helper.GetDate_Effective: Integer;
 begin
-    Result := dsTransaction.txDate_Effective;
+  Result := dsTransaction.txDate_Effective;
 end;
 
 function TDissection_Helper.GetDefault_Forex_Rate: Double;
 begin
+  //Gets the exchange rate from the transaction
   Result := dsTransaction.Default_Forex_Rate;
 end;
-
 
 function TDissection_Helper.GetForeign_Amount: Money;
 begin
@@ -381,10 +392,32 @@ begin
   Result := dsForex_Conversion_Rate;
 end;
 
-
 function TDissection_Helper.GetLocal_Amount: Money;
+var
+  ExchangeRate: double;
+  DissectionRec: pDissection_Rec;
+  DissectionTotal: double;
 begin
   Result := dsAmount;
+  if (Bank_Account.IsAForexAccount) then begin
+
+    if (dsNext = nil) then begin
+      DissectionTotal := 0;
+      DissectionRec := dsTransaction.txFirst_Dissection;
+      while (DissectionRec <> nil) and
+            (DissectionRec <> Self.dsTransaction.txLast_Dissection) do begin
+        DissectionTotal := DissectionTotal + DissectionRec.Local_Amount;
+        DissectionRec := DissectionRec.dsNext;
+      end;
+      Result := (Self.dsTransaction.Local_Amount - DissectionTotal);
+    end else begin
+
+      ExchangeRate :=  Default_Forex_Rate;
+      if ExchangeRate > 0 then
+        Result := (dsAmount / ExchangeRate);
+
+    end;
+  end;
 end;
 
 function TDissection_Helper.GetStatement_Amount: Money;
@@ -432,8 +465,8 @@ end;
 
 procedure TDissection_Helper.SetLocal_Amount(const Value: Money);
 begin
-  if Locked then
-     Exit;
+  if Locked then Exit;
+  if (Bank_Account.IsAForexAccount) then Exit; //Local amount is calculated for forex accounts
 
   dsAmount := Value;
   CalculateGST( Client, dsTransaction.txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );

@@ -2036,9 +2036,9 @@ begin
      end
      else
      begin
-        if fIsForex then
-          Amount := txForeign_Currency_Amount
-        else
+//        if fIsForex then
+//          Amount := txForeign_Currency_Amount
+//        else
           Amount := txAmount;
 
         //payee is dissected, so dissect the transaction
@@ -2212,7 +2212,8 @@ begin
 
         ceForexAmount :
           begin
-             tmpPaintString := BankAccount.MoneyStrBrackets( pT.txForeign_Currency_Amount );
+//             tmpPaintString := BankAccount.MoneyStrBrackets( pT.txForeign_Currency_Amount );
+             tmpPaintString := BankAccount.MoneyStrBrackets( pT.txAmount );
              data := PChar( tmpPaintString );
            end;
 
@@ -2224,7 +2225,8 @@ begin
 
         ceLocalAmount :
           begin
-            tmpPaintString := MyClient.MoneyStrBrackets( pT.txAmount );
+//            tmpPaintString := MyClient.MoneyStrBrackets( pT.txAmount );
+            tmpPaintString := MyClient.MoneyStrBrackets( pT.Local_Amount );
             Data := PChar( tmpPaintString );
            end;
 
@@ -2387,12 +2389,14 @@ begin
          end;
 
          ceForexAmount : begin
-            tmpDouble := Money2Double( pT.txForeign_Currency_Amount );
+//            tmpDouble := Money2Double( pT.txForeign_Currency_Amount );
+            tmpDouble := Money2Double( pT.txAmount );
             Data := @tmpDouble;
          end;
 
          ceLocalAmount : begin
-            tmpDouble := Money2Double( pT.txAmount );
+//            tmpDouble := Money2Double( pT.txAmount );
+            tmpDouble := Money2Double( pT.Local_Amount );
             Data := @tmpDouble;
          end;
 
@@ -2617,15 +2621,17 @@ begin
 
          ceAmount : begin
             M  := Double2Money(tmpDouble);
-            OM := pT^.txAmount;
-            if ( pT^.txAmount  <>  M ) then begin
-               pT^.txAmount := M;
+//            OM := pT^.txAmount;
+            OM := pT^.Local_Amount;
+//            if ( pT^.txAmount  <>  M ) then begin
+            if ( pT^.Local_Amount  <>  M ) then begin
+//               pT^.txAmount := M;
                //if the amount is changed then and the transaction is a dissection
                //then the dissection must be redone so that it balances to the  new
                //amount
                if pT^.txFirst_Dissection <> nil then
                   if (not CopyingLine) and (not DissectEntry( pT, false, false, BankAccount )) then begin
-                     pT^.txAmount := OM;
+//                     pT^.txAmount := OM;
                      tblHist.InvalidateTable;
                      HelpfulInfoMsg('The transaction amount has been changed back.',0);
                      exit;
@@ -2639,15 +2645,17 @@ begin
         ceForexAmount :
           begin
             F := Double2Money( tmpDouble );
-            OrigF := pT.txForeign_Currency_Amount;
-            OM := pT.txAmount;
+//            OrigF := pT.txForeign_Currency_Amount;
+            OrigF := pT.txAmount;
+//            OM := pT.txAmount;
             if ( F <> OrigF ) then
             begin
-              pT.txForeign_Currency_Amount := F; { Will }
-              If pT.txForex_Conversion_Rate <> 0.0 then
-                pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
-              else
-                pT.txAmount := 0;
+//              pT.txForeign_Currency_Amount := F; { Will }
+              pT.txAmount := F; { Will }
+//              If pT.txForex_Conversion_Rate <> 0.0 then
+//                pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
+//              else
+//                pT.txAmount := 0;
 
               //if the amount is changed then and the transaction is a dissection
               //then the dissection must be redone so that it balances to the  new
@@ -2656,8 +2664,9 @@ begin
               Begin
                 if ( not CopyingLine ) and (not DissectEntry( pT, false, false, BankAccount )) then
                 begin
-                  pT.txAmount := OM;
-                  pT.txForeign_Currency_Amount := OrigF;
+//                  pT.txAmount := OM;
+//                  pT.txForeign_Currency_Amount := OrigF;
+                  pT.txAmount := OrigF;
                   tblHist.InvalidateTable;
                   HelpfulInfoMsg('The transaction amount has been changed back.',0);
                   exit;
@@ -2702,9 +2711,9 @@ begin
                pT^.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate(tmpInteger);
                if OER <> pT^.txForex_Conversion_Rate then begin
                   OM :=   pT.txAmount;
-                  If pT.txForex_Conversion_Rate <> 0.0 then
-                     pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
-                  else
+//                  If pT.txForex_Conversion_Rate <> 0.0 then
+//                     pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
+//                  else
                      pT.txAmount := 0;
                   if pT.txAmount <> OM then begin
                      if pT^.txFirst_Dissection <> nil then begin
@@ -3493,14 +3502,16 @@ Begin
 
          ceAmount : begin
             if (TOvcNumericField(celAmount.CellEditor).AsFloat = 0) then begin
-               TOvcNumericField(celAmount.CellEditor).AsFloat := Money2Double( pPrev^.txAmount );
+//               TOvcNumericField(celAmount.CellEditor).AsFloat := Money2Double( pPrev^.txAmount );
+               TOvcNumericField(celAmount.CellEditor).AsFloat := Money2Double( pPrev^.Local_Amount );
                DittoOK := true;
             end;
          end;
 
          ceForexAmount : begin
             if (TOvcNumericField(celForexAmount.CellEditor).AsFloat = 0) then begin
-               TOvcNumericField(celForexAmount.CellEditor).AsFloat := Money2Double( pPrev^.txForeign_Currency_Amount );
+//               TOvcNumericField(celForexAmount.CellEditor).AsFloat := Money2Double( pPrev^.txForeign_Currency_Amount );
+               TOvcNumericField(celForexAmount.CellEditor).AsFloat := Money2Double( pPrev^.txAmount );
                DittoOK := true;
             end;
          end;
@@ -3643,12 +3654,12 @@ begin
          with pT^ do begin
             UE := NIL;
 
-            if fIsForex then
-            Begin
-              If (Assigned(UEList) and ( txCheque_Number <> 0 ) and ( txForeign_Currency_Amount <> 0 )) then
-                 UE := UEList.FindUEByNumberAndAmount( txCheque_Number, txForeign_Currency_Amount );
-            End
-            else
+//            if fIsForex then
+//            Begin
+//              If (Assigned(UEList) and ( txCheque_Number <> 0 ) and ( txForeign_Currency_Amount <> 0 )) then
+//                 UE := UEList.FindUEByNumberAndAmount( txCheque_Number, txForeign_Currency_Amount );
+//            End
+//            else
             Begin
               If (Assigned(UEList) and ( txCheque_Number <> 0 ) and ( txAmount <> 0 )) then
                  UE := UEList.FindUEByNumberAndAmount( txCheque_Number, txAmount );
@@ -3672,7 +3683,7 @@ begin
             ptr^.txOriginal_Type      := pT^.txType;
             ptr^.txOriginal_Amount    := pT^.txAmount;
             ptr^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate   ;
-            ptr^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount ;
+//            ptr^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount ;
             ptr^.txOriginal_Cheque_Number := pT^.txCheque_Number;
             //pointer does not need to be inserted so remove from list
             HistTranList.DelFreeItem( pT);
