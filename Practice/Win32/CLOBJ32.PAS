@@ -152,10 +152,10 @@ uses
    MoneyUtils,
    GenUtils,
    StStrS,
+   ForexHelpers,
 {$ENDIF}
    bk5Except,
-   VclZip,
-   ForexHelpers;
+   VclZip;
 
 const
   UnitName  = 'CLOBJ32';
