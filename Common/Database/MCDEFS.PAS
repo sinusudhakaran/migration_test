@@ -9,15 +9,16 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   MC_IOLIB_Version : Integer = 111;
-   MC_IOLIB_Date    = '02/08/10';
-   MC_FILE_VERSION  = 100;  (* Current Version counter for files
+   MC_IOLIB_Version : Integer = 122;
+   MC_IOLIB_Date    = '01/11/10';
+   MC_FILE_VERSION  = 101;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
    
    (*
        2010 UK          : 100     Introduction
+                        : 101     Added header token to SaveToStream method
    
    *)
 

@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 617;
-   BK_IOLIB_Date    = '13/10/10';
+   BK_IOLIB_Version : Integer = 619;
+   BK_IOLIB_Date    = '08/11/10';
    BK_FILE_VERSION  = 163;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.20';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.21';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -197,6 +197,7 @@ Const
      5.20 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
                             Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
      5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
+                            Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
    *)
 
 {  -------------------------------------------------------------------  }
@@ -892,9 +893,9 @@ Type
       txSpareL                           : Integer;       { Stored }
       txJob_Code                         : String[ 8 ];       { Stored }
       txForex_Conversion_Rate            : Double;       { Stored }
-      txForeign_Currency_Amount          : Money;       { Stored }
+      txSpare_Money_1                    : Money;       { Stored }
       txOriginal_Forex_Conversion_Rate   : Double;       { Stored }
-      txOriginal_Foreign_Currency_Amount : Money;       { Stored }
+      txSpare_Money_2                    : Money;       { Stored }
       txBank_Seq                         : Integer;
       txFirst_Dissection                 : pDissection_Rec;
       txLast_Dissection                  : pDissection_Rec;
@@ -1198,7 +1199,7 @@ Type
       ceCustom_SFLedger_Titles           : Array[ 1..1 ] of String[ 60 ];       { Stored }
       ceSUI_Period_Start                 : Integer;       { Stored }
       ceSUI_Period_End                   : Integer;       { Stored }
-      ceSUI_Period_Status                : Integer;       { Stored }
+      ceSpare_Integer                    : Integer;       { Stored }
       ceSUI_Step_Done                    : Array[ 0..32 ] of Boolean;       { Stored }
       ceSend_Job_List                    : Boolean;       { Stored }
       ceEOR                              : Byte;

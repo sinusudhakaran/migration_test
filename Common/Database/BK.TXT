@@ -2,7 +2,7 @@ $|BK_FILE_VERSION  = 163;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.20';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.21';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -184,6 +184,7 @@ $|                         Add Simple UI status flags and period start
 $|  5.20 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
 $|                         Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
 $|  5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
+$|                         Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
 $|*)
 
 N|Client|cl|20
@@ -805,9 +806,9 @@ F|SF Capital Gains Fraction Half|Y
 F|SpareL|L
 F|Job Code|S|8
 F|Forex Conversion Rate|R
-F|Foreign Currency Amount|$
+F|Spare Money 1|$
 F|Original Forex Conversion Rate|R
-F|Original Foreign Currency Amount|$
+F|Spare Money 2|$
 C|Bank Seq|L
 C|First Dissection|P|Dissection_Rec
 C|Last Dissection|P|Dissection_Rec

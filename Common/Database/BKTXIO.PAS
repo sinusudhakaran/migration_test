@@ -123,9 +123,9 @@ CONST
    tktxSpareL                           = 239 ;
    tktxJob_Code                         = 240 ;
    tktxForex_Conversion_Rate            = 241 ;
-   tktxForeign_Currency_Amount          = 242 ;
+   tktxSpare_Money_1                    = 242 ;
    tktxOriginal_Forex_Conversion_Rate   = 243 ;
-   tktxOriginal_Foreign_Currency_Amount = 244 ;
+   tktxSpare_Money_2                    = 244 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -231,9 +231,9 @@ Begin
       F.WriteIntegerValue( tktxSpareL , txSpareL );
       F.WriteStringValue( tktxJob_Code , txJob_Code );
       F.WriteDoubleValue( tktxForex_Conversion_Rate, txForex_Conversion_Rate );
-      F.WriteMoneyValue( tktxForeign_Currency_Amount , txForeign_Currency_Amount );
+      F.WriteMoneyValue( tktxSpare_Money_1 , txSpare_Money_1 );
       F.WriteDoubleValue( tktxOriginal_Forex_Conversion_Rate, txOriginal_Forex_Conversion_Rate );
-      F.WriteMoneyValue( tktxOriginal_Foreign_Currency_Amount , txOriginal_Foreign_Currency_Amount );
+      F.WriteMoneyValue( tktxSpare_Money_2 , txSpare_Money_2 );
       F.WriteToken( tkEnd_Transaction );
    end;
 end; { of Write_Transaction_Rec }
@@ -336,9 +336,9 @@ Begin
          tktxSpareL                           : txSpareL := F.ReadIntegerValue;
          tktxJob_Code                         : txJob_Code := F.ReadStringValue;
          tktxForex_Conversion_Rate            : txForex_Conversion_Rate := F.ReadDoubleValue;
-         tktxForeign_Currency_Amount          : txForeign_Currency_Amount := F.ReadMoneyValue;
+         tktxSpare_Money_1                    : txSpare_Money_1 := F.ReadMoneyValue;
          tktxOriginal_Forex_Conversion_Rate   : txOriginal_Forex_Conversion_Rate := F.ReadDoubleValue;
-         tktxOriginal_Foreign_Currency_Amount : txOriginal_Foreign_Currency_Amount := F.ReadMoneyValue;
+         tktxSpare_Money_2                    : txSpare_Money_2 := F.ReadMoneyValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }

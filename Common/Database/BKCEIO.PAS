@@ -76,7 +76,7 @@ CONST
    tkceCustom_SFLedger_Titles           = 72 ;
    tkceSUI_Period_Start                 = 73 ;
    tkceSUI_Period_End                   = 74 ;
-   tkceSUI_Period_Status                = 75 ;
+   tkceSpare_Integer                    = 75 ;
    tkceSUI_Step_Done                    = 76 ;
    tkceSend_Job_List                    = 77 ;
 
@@ -146,7 +146,7 @@ Begin
       For i := 1 to 1 do F.WriteBStringValue( tkceCustom_SFLedger_Titles , i, ceCustom_SFLedger_Titles[ i ] );
       F.WriteDateValue( tkceSUI_Period_Start , ceSUI_Period_Start );
       F.WriteDateValue( tkceSUI_Period_End , ceSUI_Period_End );
-      F.WriteIntegerValue( tkceSUI_Period_Status , ceSUI_Period_Status );
+      F.WriteIntegerValue( tkceSpare_Integer , ceSpare_Integer );
       For i := 0 to 32 do F.WriteBBooleanValue( tkceSUI_Step_Done , i, ceSUI_Step_Done[ i ] );
       F.WriteBooleanValue( tkceSend_Job_List , ceSend_Job_List );
       F.WriteToken( tkEnd_ClientExtra );
@@ -233,7 +233,7 @@ Begin
             end;
          tkceSUI_Period_Start                 : ceSUI_Period_Start := F.ReadDateValue;
          tkceSUI_Period_End                   : ceSUI_Period_End := F.ReadDateValue;
-         tkceSUI_Period_Status                : ceSUI_Period_Status := F.ReadIntegerValue;
+         tkceSpare_Integer                    : ceSpare_Integer := F.ReadIntegerValue;
          tkceSUI_Step_Done                    : 
             Begin
                Y := F.ReadBBooleanValue( I );
