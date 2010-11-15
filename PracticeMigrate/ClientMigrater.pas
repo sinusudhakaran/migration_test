@@ -278,7 +278,7 @@ end;
 function TClientMigrater.AddBudgetLine(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 var P: Integer;
 begin
-   Result = false; 
+   Result := false; 
    with pBudget_Detail_Rec(Value.data)^ do
       for P := 1 to 12 do
          if (bdBudget[P] <> 0)
