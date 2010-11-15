@@ -14,9 +14,9 @@ Type
   TTransactionHelper = record helper for TTransaction_Rec
   private
     procedure SetLocal_Amount(const Value: Money);
-    procedure SetForex_Rate(const Value: Double);
+//    procedure SetForex_Rate(const Value: Double);
     function Client : TClientObj;
-    function GetForex_Rate: Double;
+//    function GetForex_Rate: Double;
     function GetLocal_Amount: Money;
     function GetForeign_Amount: Money;
     procedure SetForeign_Amount(const Value: Money);
@@ -37,7 +37,7 @@ Type
     procedure SetForeignCurrencyAmountOnDissection( D : pDissection_Rec; FCAmount : Money );
     property Foreign_Amount : Money read GetForeign_Amount write SetForeign_Amount;
     property Local_Amount : Money read GetLocal_Amount write SetLocal_Amount;
-    property Forex_Rate : Double read GetForex_Rate write SetForex_Rate;
+//    property Forex_Rate : Double read GetForex_Rate write SetForex_Rate;
     property Statement_Amount : Money read GetStatement_Amount write SetStatement_Amount;
     property Original_Statement_Amount : Money read GetOriginal_Statement_Amount;
     property Account : string read GetAccount write SetAccount;
@@ -50,8 +50,8 @@ Type
   private
     function Bank_Account : TBank_Account;
     procedure SetLocal_Amount(const Value: Money);
-    procedure SetForex_Rate(const Value: Double);
-    function GetForex_Rate: Double;
+//    procedure SetForex_Rate(const Value: Double);
+//    function GetForex_Rate: Double;
     function GetLocal_Amount: Money;
     function Client : TClientObj;
     function GetForeign_Amount: Money;
@@ -63,7 +63,7 @@ Type
     function Locked: Boolean;
     property Foreign_Amount : Money read GetForeign_Amount write SetForeign_Amount;
     property Local_Amount : Money read GetLocal_Amount write SetLocal_Amount;
-    property Forex_Rate : Double read GetForex_Rate write SetForex_Rate;
+//    property Forex_Rate : Double read GetForex_Rate write SetForex_Rate;
     property Statement_Amount : Money read GetStatement_Amount;
     property Default_Forex_Rate : Double read GetDefault_Forex_Rate;
     property Date_Effective: Integer  read GetDate_Effective;
@@ -118,10 +118,10 @@ begin
 end;
 
 
-function TTransactionHelper.GetForex_Rate: Double;
+{function TTransactionHelper.GetForex_Rate: Double;
 begin
   Result := txForex_Conversion_Rate;
-end;
+end;}
 
 function TTransactionHelper.GetGSTClass: Integer;
 begin
@@ -320,7 +320,7 @@ end;
 
 // ----------------------------------------------------------------------------
 
-procedure TTransactionHelper.SetForex_Rate(const Value: Double);
+{procedure TTransactionHelper.SetForex_Rate(const Value: Double);
 Var
   pD : pDissection_Rec;
 Begin
@@ -345,7 +345,7 @@ Begin
     End;
     ApplyAnyLocalCurrencyRoundingDiscrepancyToTheBiggestDissectionAmount;
   end;
-End;
+End;}
 
 
 procedure TTransactionHelper.SetGSTClass(const Value: Integer);
@@ -387,10 +387,10 @@ begin
   Result := Self.dsForeign_Currency_Amount;
 end;
 
-function TDissection_Helper.GetForex_Rate: Double;
+{function TDissection_Helper.GetForex_Rate: Double;
 begin
   Result := dsForex_Conversion_Rate;
-end;
+end;}
 
 function TDissection_Helper.GetLocal_Amount: Money;
 var
@@ -440,7 +440,7 @@ begin
      Exit;
 
   dsForeign_Currency_Amount := Value;
-  dsForex_Conversion_Rate := Forex_Rate;
+  dsForex_Conversion_Rate := Default_Forex_Rate;
 
   if (dsForeign_Currency_Amount <> 0 )
   and (dsForex_Conversion_Rate <> 0.0 ) then
@@ -449,7 +449,7 @@ begin
      Local_Amount := 0;
 end;
 
-procedure TDissection_Helper.SetForex_Rate(const Value: Double);
+{procedure TDissection_Helper.SetForex_Rate(const Value: Double);
 Begin
   if Locked then
      Exit;
@@ -460,7 +460,7 @@ Begin
      Local_Amount := Round( dsForeign_Currency_Amount / dsForex_Conversion_Rate )
   else
      Local_Amount := 0;
-end;
+end; }
 
 
 procedure TDissection_Helper.SetLocal_Amount(const Value: Money);
