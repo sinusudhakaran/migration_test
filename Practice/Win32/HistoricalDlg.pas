@@ -2402,11 +2402,11 @@ begin
             Data := @tmpDouble;
          end; }
 
-         ceLocalAmount : begin
+{         ceLocalAmount : begin
 //            tmpDouble := Money2Double( pT.txAmount );
             tmpDouble := Money2Double( pT.Local_Amount );
             Data := @tmpDouble;
-         end;
+         end; }
 
          ceGSTAmount : begin
             tmpDouble := Money2Double(pT.txGst_Amount);

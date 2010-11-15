@@ -623,7 +623,7 @@ begin
     if TheClient.HasForeignCurrencyAccounts then begin
       LExchangeRates := GetExchangeRates;
       try
-        TheClient.ExchangeSource.Assign(LExchangeRates.ExchangeSource(0));
+        TheClient.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
       finally
         LExchangeRates.Free;
       end;

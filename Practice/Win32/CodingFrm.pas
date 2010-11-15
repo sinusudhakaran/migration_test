@@ -7518,7 +7518,7 @@ var
       if myClient.HasForeignCurrencyAccounts then begin
         LExchangeRates := GetExchangeRates;
         try
-          myClient.ExchangeSource.Assign(LExchangeRates.ExchangeSource(0));
+          myClient.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
         finally
           LExchangeRates.Free;
         end;

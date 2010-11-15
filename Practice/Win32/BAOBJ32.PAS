@@ -573,19 +573,20 @@ Var
   ExchangeRate: TExchangeRecord;
 begin
   Result := 0.0;
-
   if IsAForexAccount then
   Begin
     BCode := baFields.baCurrency_Code;
     Client := TClientObj( baClient );
-    CCode := Client.clExtra.ceLocal_Currency_Code;
-//    Result := baForex_Info.Rate( BCode, CCode, ADate );
-    IsoIndex := Client.ExchangeSource.GetISOIndex(BCode,
-                                                  Client.ExchangeSource.Header);
-    if IsoIndex <> 0 then begin
-      ExchangeRate := Client.ExchangeSource.GetDateRates(ADate);
-      if Assigned(ExchangeRate) then
-        Result := ExchangeRate.Rates[IsoIndex];
+    if Assigned(Client.ExchangeSource) then begin
+      CCode := Client.clExtra.ceLocal_Currency_Code;
+  //    Result := baForex_Info.Rate( BCode, CCode, ADate );
+      IsoIndex := Client.ExchangeSource.GetISOIndex(BCode,
+                                                    Client.ExchangeSource.Header);
+      if IsoIndex <> 0 then begin
+        ExchangeRate := Client.ExchangeSource.GetDateRates(ADate);
+        if Assigned(ExchangeRate) then
+          Result := ExchangeRate.Rates[IsoIndex];
+      end;
     end;
   End;
 end;

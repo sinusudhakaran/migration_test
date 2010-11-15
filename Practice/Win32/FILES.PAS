@@ -485,7 +485,7 @@ begin
            LExchangeRates := GetExchangeRates;
            try
              if LExchangeRates.ItemCount > 0 then
-               Client.ExchangeSource.Assign(LExchangeRates.ExchangeSource(0));
+               Client.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
            finally
              LExchangeRates.Free;
            end;
