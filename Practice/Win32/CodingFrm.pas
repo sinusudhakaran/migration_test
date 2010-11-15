@@ -4035,9 +4035,9 @@ begin
                else
                   dsGL_Narration := pT^.txGL_Narration;
 
-               if fIsForex then
-                  pT.SetForeignCurrencyAmountOnDissection( Dissection, DissectAmt[ i ] )
-               else
+//               if fIsForex then
+//                  pT.SetForeignCurrencyAmountOnDissection( Dissection, DissectAmt[ i ] )
+//               else
                   dsAmount := DissectAmt[i];
 
                dsPercent_Amount := DissectPct[i];
