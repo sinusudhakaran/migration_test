@@ -99,7 +99,7 @@ type
 
     procedure Refresh;  //reloads the list if needed
     function SaveToFile : boolean;
-
+    procedure QuickRead; //Read without locking Used by Migrator only 
     procedure Insert_Memorisation(m : TMemorisation); override;
    end;
 
@@ -579,17 +579,29 @@ begin
 end;
 
 function TMaster_Memorisations_List.LoadFromFile : boolean;
+
+begin
+  result := false;
+  //lock master file
+  if not mxFiles32.LockMasterFile( FPrefix) then
+     Exit;
+  try
+    QuickRead;
+
+    syMxLast_Updated := WinUtils.GetFileTimeAsInt64( FFilename);
+  finally
+    //unlock master file
+    mxFiles32.UnlockMasterFile( FPrefix);
+  end;
+end;
+
+procedure TMaster_Memorisations_List.QuickRead;
 var
   MasterFileStream : TIOStream;
   Header : TSystemMemorisationListHeader;
   Token : byte;
 begin
-  result := false;
-
-  //lock master file
-  if not mxFiles32.LockMasterFile( FPrefix) then  Exit;
-  try
-    //remove all existing lines
+   //remove all existing lines
     FreeAll;
     MasterFileStream := TIOStream.Create;
     try
@@ -617,12 +629,6 @@ begin
     finally
       MasterFileStream.Free;
     end;
-
-    Self.syMxLast_Updated := WinUtils.GetFileTimeAsInt64( FFilename);
-  finally
-    //unlock master file
-    mxFiles32.UnlockMasterFile( FPrefix);
-  end;
 end;
 
 procedure TMaster_Memorisations_List.Refresh;
