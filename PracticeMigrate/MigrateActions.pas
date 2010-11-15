@@ -308,27 +308,34 @@ begin
      Exit; // same...
 
   // Check the new value against the old one..
+  try
   case Value of
     Running: ;
     Failed:  begin
+                fStopTime := now;
                 ShowMe;
                 propagateWarning(Self.Node.Parent);
              end;
-    Success: if (Fstatus in [Warning, Failed]) then
-                Exit
-             else
-                ParentList.Tree.Expanded[Node] := False;
+    Success: begin
+                fStopTime := now;
+                if (Fstatus in [Warning, Failed]) then
+                   Exit
+                else
+                   ParentList.Tree.Expanded[Node] := False;
+             end;
     Warning: begin
                 propagateWarning(self.Node);
                 if(Fstatus in [Failed]) then
                    Exit;
              end;
-             
+
   end;
   FStatus := Value;
+  finally
+     Changed;
+  end;
 
-  fStopTime := now;
-  Changed;
+
 end;
 
 procedure TMigrateAction.SetTarget(const Value: Integer);

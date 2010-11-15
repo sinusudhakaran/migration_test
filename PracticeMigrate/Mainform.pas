@@ -531,7 +531,12 @@ const
   //pwSwitch = '/PW=';
 var I: Integer;
     s: string;
+    kc: TCursor;
 begin
+   kc := screen.Cursor;
+   Screen.Cursor := crHourGlass;
+   try
+   show;
    PW := '';
    User := '';
    // setup what we know..
@@ -564,6 +569,9 @@ begin
    fromDir := '';
 
    progress := SelectSource;
+   finally
+      screen.Cursor := kc
+   end;
 end;
 
 
@@ -873,7 +881,7 @@ begin
   inherited;
   case Progress of
     SelectSource: begin
-
+          btnClear.Enabled := Destination > '';
        end;
     Selection: begin
           btnDef.Enabled := not (    (cbUsers.Checked = cbUsers.Enabled)
@@ -888,61 +896,28 @@ end;
 procedure TformMain.MigrateSystem;
  var Myaction : TMigrateAction;
 begin
-   MigrationCanceled;
+   MigrationCanceled := False;
    FTreeList.Clear;
    FTreeList.Tree.Clear;
    Myaction := NewAction('Migrate');
    progress := migrate;
-   Statustime := Now;
    try
       if ConnectSystem(MyAction)
       and ConnectClient(MyAction) then begin
-          //SystemConnection.BeginTrans;
-          try
-             FSystemMigrater.ClearData(MyAction);
-             FClientMigrater.ClearData(MyAction);
 
+         FSystemMigrater.ClearData(MyAction);
+         FClientMigrater.ClearData(MyAction);
 
-             FSystemMigrater.ClientMigrater := FClientMigrater;
+         FSystemMigrater.ClientMigrater := FClientMigrater;
+         FSystemMigrater.System := Adminsystem;
 
-             FSystemMigrater.System := Adminsystem;
+         FSystemMigrater.Migrate(MyAction );
 
-             //FSystemMigrater.UserList.CloneList(Adminsystem.fdSystem_User_List);
+         MyAction.Status := Success;
 
-             //MigrateUsers(FUserList);
-             FSystemMigrater.Migrate(MyAction );
-
-             (*
-
-             MainupdateProgress('Migrate System',pgUsers);
-
-             FSystemAccountList.CloneList(Adminsystem.fdSystem_Bank_Account_List);
-
-             //MigrateAccounts(FSystemAccountList);
-
-             MainupdateProgress('Migrate System',pgAccounts);
-
-             FClientList.CloneList(Adminsystem.fdSystem_Client_File_List);
-             //MigrateClientsList(FClientList);
-
-             MainupdateProgress('Migrate System',pgClientList);
-             MigrateClients(FClientList);
-
-             // Now we can migrate the User Clients
-             MigrateUserClients;
-
-             MainupdateProgress('Migrate System',pgClientFiles);
-             *)
-             //SystemConnection.CommitTrans;
-             MyAction.Status := Success;
-             
-             progress := Done;
-          except
-            //SystemConnection.RollbackTrans;
-          end;
-       end;
+      end;
    finally
-      //FreeAndNil(MapList);
+      progress := Done;
    end;
 
 end;

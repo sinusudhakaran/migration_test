@@ -696,7 +696,6 @@ object formMain: TformMain
     Height = 41
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 477
     DesignSize = (
       759
       41)
@@ -745,14 +744,12 @@ object formMain: TformMain
     Top = 96
     Width = 759
     Height = 384
-    ActivePage = tsSelect
+    ActivePage = tsBrowse
     Align = alClient
     TabOrder = 2
     object tsBrowse: TTabSheet
       Caption = 'tsBrowse'
       ImageIndex = 2
-      ExplicitTop = 25
-      ExplicitHeight = 352
       DesignSize = (
         751
         354)
@@ -858,8 +855,6 @@ object formMain: TformMain
     end
     object tsSelect: TTabSheet
       Caption = 'Select options'
-      ExplicitTop = 25
-      ExplicitHeight = 352
       DesignSize = (
         751
         354)
@@ -982,8 +977,6 @@ object formMain: TformMain
     object TsProgress: TTabSheet
       Caption = 'Progress'
       ImageIndex = 1
-      ExplicitTop = 25
-      ExplicitHeight = 352
       object StatusTree: TVirtualStringTree
         Left = 0
         Top = 57
@@ -1005,7 +998,6 @@ object formMain: TformMain
         TreeOptions.PaintOptions = [toHideFocusRect, toShowBackground, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
         TreeOptions.StringOptions = [toSaveCaptions]
-        ExplicitHeight = 298
         Columns = <
           item
             Position = 0
@@ -1062,9 +1054,6 @@ object formMain: TformMain
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 3
-      ExplicitLeft = 3
-      ExplicitTop = 23
-      ExplicitHeight = 355
       object Panel1: TPanel
         Left = 0
         Top = 0
@@ -1108,8 +1097,6 @@ object formMain: TformMain
         TreeOptions.PaintOptions = [toHideFocusRect, toShowBackground, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
         TreeOptions.StringOptions = [toSaveCaptions]
-        ExplicitTop = 55
-        ExplicitHeight = 298
         Columns = <
           item
             Position = 0
@@ -1148,7 +1135,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000140018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000180018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
