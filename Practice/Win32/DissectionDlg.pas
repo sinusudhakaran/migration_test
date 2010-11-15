@@ -565,7 +565,7 @@ begin
       if MyClient.HasForeignCurrencyAccounts then begin
         if fIsForex then begin
           InsColDefnRec( 'Amount (' + BCode + ')', ceAmount, celAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, True, CE_AMOUNT_DEF_EDITABLE, csByValue );
-          InsColDefnRec( 'Rate', ceForexRate,      celForexRate, CE_FOREX_RATE_DEF_WIDTH, CE_FOREX_RATE_DEF_VISIBLE, false, CE_FOREX_RATE_DEF_EDITABLE, csByForexRate );
+//          InsColDefnRec( 'Rate', ceForexRate,      celForexRate, CE_FOREX_RATE_DEF_WIDTH, CE_FOREX_RATE_DEF_VISIBLE, false, CE_FOREX_RATE_DEF_EDITABLE, csByForexRate );
           InsColDefnRec( 'Amount (' + CCode + ')', ceLocalAmount, celLocalAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, true, true, csByValue );
         end else
           InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, True, CE_AMOUNT_DEF_EDITABLE, csByValue );
@@ -1414,7 +1414,6 @@ procedure TdlgDissection.PercentEdited( pD : pWorkDissect_Rec );
 //update other fields that change when percent changes
 var
   Remainder: Money;
-//  LocalRemainder : Money;
 begin
   with pD^ do
   begin
@@ -1422,8 +1421,6 @@ begin
     UpdateControlTotals;
     Remainder := pTran.txAmount - fControlTotals.ctLocal_Specified_Amount;
     dtAmount := Remainder * ( dtPercent_Amount / 1000000.0 );
-//    LocalRemainder := pTran.Local_Amount - fControlTotals.ctLocal_Specified_Amount;
-//    dtLocal_Amount := LocalRemainder * ( dtPercent_Amount / 1000000.0 );
     dtHas_Been_Edited := True;
     dtAmount_Type_Is_Percent := True;
     if MyClient.clChart.CanCodeTo( dtAccount) then
@@ -1862,7 +1859,7 @@ begin
   End
   else
   Begin
-    if ( fControlTotals.ctLocal_Remainder <> 0 ) then
+    if ( fControlTotals.ctRemainder <> 0 ) then
     Begin
       HelpfulErrorMsg( 'The remaining balance is not zero!', 0 );
       tblDissect.SetFocus;
@@ -2875,42 +2872,36 @@ begin
       end;
     end;
     ctRemainder := pTran.txAmount - ctAmount;
-    ctLocal_Remainder := pTran.Local_Amount - ctLocal_Amount;
+    ctLocal_Remainder := 0;
+    if (pTran.Default_Forex_Rate <> 0) then
+      ctLocal_Remainder := pTran.Local_Amount - ctLocal_Amount;
   end;
 end;
 
 procedure TdlgDissection.UpdateDisplayTotals;
 begin
   UpdateControlTotals;
-  With FControlTotals do
-  Begin
-    if fIsForex then
-    Begin
-      lblBSTotal.Caption  := BankAcct.MoneyStr( ctAmount );
-      lblBSRemaining.Caption := BankAcct.MoneyStr( ctRemainder );
-      lblLCTotalField.Caption := MyClient.MoneyStr( ctLocal_Amount );
-      lblLCRemainingField.Caption := MyClient.MoneyStr( ctLocal_Remainder );
-    End
-    Else
-    Begin
-      lblBSTotal.Caption  := BankAcct.MoneyStr( ctLocal_Amount );
-      lblBSRemaining.Caption := BankAcct.MoneyStr( ctLocal_Remainder );
-    End;
 
-    lblGSTAmt.Caption := MyClient.MoneyStr( ctGST );
+  lblBSTotal.Caption  := BankAcct.MoneyStr( FControlTotals.ctAmount );
+  lblBSRemaining.Caption := BankAcct.MoneyStr( FControlTotals.ctRemainder );
+  if fIsForex then
+  begin
+    lblLCTotalField.Caption := MyClient.MoneyStr( FControlTotals.ctLocal_Amount );
+    lblLCRemainingField.Caption := MyClient.MoneyStr( FControlTotals.ctLocal_Remainder );
+  end;
 
-    if ( fIsForex and ( ctRemainder = 0 ) )  or
-       ( ( not fIsForex ) and ( ctLocal_Remainder = 0 ) ) then
-    Begin
-      lblPercentRemain.Caption := '0.0000';
-      lblPercentTotal.Caption  := '100.0000';
-    End
-    Else
-    Begin
-      lblPercentTotal.Caption := Format( '%0.4f', [ctPercent/10000]  );
-      lblPercentRemain.Caption := Format( '%0.4f', [100 - (ctPercent/10000)]  );
-    End;
-  End;
+  lblGSTAmt.Caption := MyClient.MoneyStr( FControlTotals.ctGST );
+
+  if ( FControlTotals.ctRemainder = 0 ) then
+  begin
+    lblPercentTotal.Caption  := '100.0000';
+    lblPercentRemain.Caption := '0.0000';
+  end
+  else
+  begin
+    lblPercentTotal.Caption := Format( '%0.4f', [FControlTotals.ctPercent/10000] );
+    lblPercentRemain.Caption := Format( '%0.4f', [100 - (FControlTotals.ctPercent/10000)] );
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3264,7 +3255,7 @@ begin
       try
          BankAcct := BA;
          fIsForex := BA.IsAForexAccount;
-         celForexRate.PictureMask := MoneyUtils.ForexPictureMask;
+//         celForexRate.PictureMask := MoneyUtils.ForexPictureMask;
          CCode := MyClient.clExtra.ceLocal_Currency_Code;
          BCode := BA.baFields.baCurrency_Code;
 
@@ -3450,7 +3441,8 @@ begin
               lblBSAmount.Caption               := BankAcct.MoneyStr( Statement_Amount );
               lblForLocalCurrencyAmount.Caption := 'Amount (' + CCode + ')';
               lblLocalCurrencyAmount.Caption    := MyClient.MoneyStr( Local_Amount );
-              lblRate.Caption                   := ForexRate2Str( Forex_Rate );
+//              lblRate.Caption                   := ForexRate2Str( Forex_Rate );
+              lblRate.Caption                   := ForexRate2Str( Default_Forex_Rate );
               lblForBSTotal.Caption             := 'Total (' + BCode + ') :';
               lblForBSRemaining.Caption         := 'Remaining (' + BCode + ') :';
               lblLCTotal.Caption                := 'Total (' + CCode + ') :';
@@ -3526,6 +3518,9 @@ begin
                lblStatus.caption := ' This Transaction has been Transferred ';
             end;
          end;
+
+         if FIsForex then
+           UpdateBaseAmounts;
 
          UpdateDisplayTotals;
 
@@ -4134,6 +4129,16 @@ begin
         end;
      end;
   end;  {with payee^, pd^}
+
+  if FIsForex then
+    UpdateBaseAmounts;
+
+   with tblDissect do begin
+      AllowRedraw := false;
+      InvalidateTable;
+      AllowRedraw := true;
+   end;
+
   UpdateDisplayTotals;
 end;
 //------------------------------------------------------------------------------

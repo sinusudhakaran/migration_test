@@ -155,7 +155,6 @@ type
     CelJobName: TOvcTCString;
     Jobs1: TMenuItem;
     tbImportTrans: TRzToolButton;
-    celForexAmount: TOvcTCNumericField;
     celForexRate: TOvcTCNumericField;
     celLocalAmount: TOvcTCNumericField;
     CelAltChartCode: TOvcTCString;
@@ -465,9 +464,9 @@ const
   ceJob            = 20;
   ceJobName        = 21;
   ceForexRate      = 22;
-  ceForexAmount    = 23;
-  ceLocalAmount    = 24;
-  ceAltChartCode   = 25;
+//  ceForexAmount    = 23;
+  ceLocalAmount    = 23;
+  ceAltChartCode   = 24;
 
   {status panel constants}
   PANELLINE = 0;
@@ -801,7 +800,7 @@ begin
       InsColDefnRec( 'Account', ceAccount, celAccount, CalcAcctColWidth( tblHist.Canvas, tblHist.Font, 70), true, true, true, csAccountCode  );
       InsColDefnRec( 'A/c Desc',   ceDescription, celDescription, 150, false, false, false, -1);
 
-      if fIsForex then
+{      if fIsForex then
       Begin
         InsColDefnRec( 'Amount (' + BCode + ')', ceForexAmount, celForexAmount, 120, True, True, True, csByForexAmount );
         InsColDefnRec( 'Rate', ceForexRate, celForexRate, 100, true, false, False, csByForexRate );
@@ -811,6 +810,16 @@ begin
       if MyClient.HasForeignCurrencyAccounts then
         InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, 120, True, True, True, csByValue )
       else
+        InsColDefnRec( 'Amount',   ceAmount, celAmount, 120, True, True, True, csByValue ); }
+
+      if MyClient.HasForeignCurrencyAccounts then begin
+        if fIsForex then begin
+          InsColDefnRec( 'Amount (' + BCode + ')', ceAmount, celAmount, 120, True, True, True, csByValue );
+          InsColDefnRec( 'Rate', ceForexRate, celForexRate, 100, true, false, False, csByForexRate );
+          InsColDefnRec( 'Amount (' + CCode + ')', ceLocalAmount, celLocalAmount, 120, True, false, False, csByValue );
+        end else
+          InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, 120, True, True, True, csByValue );
+      end else
         InsColDefnRec( 'Amount',   ceAmount, celAmount, 120, True, True, True, csByValue );
 
       InsColDefnRec( 'Narration', ceNarration, celNarration, 200, true, true, true, csByNarration );
@@ -1327,11 +1336,11 @@ begin
    DefaultEditableCols := [ceEffDate, ceReference, ceAnalysis, ceAccount, ceAmount, ceNarration, ceOtherParty,
                            ceParticulars, cePayee, ceQuantity, ceEntryType, ceTaxInvoice, cejob];
 
-  if fIsForex then
-  Begin
-    DefaultEditableCols := DefaultEditableCols - [ ceAmount ];
-    DefaultEditableCols := DefaultEditableCols + [ ceForexAmount ];
-  End;
+//  if fIsForex then
+//  Begin
+//    DefaultEditableCols := DefaultEditableCols - [ ceAmount ];
+//    DefaultEditableCols := DefaultEditableCols + [ ceForexAmount ];
+//  End;
 
    If Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
       DefaultEditableCols := DefaultEditableCols + [ceGSTClass];
@@ -2064,9 +2073,9 @@ begin
                    dsGL_Narration      := pT^.txGL_Narration;
                  dsQuantity            := 0;
 
-                 if fIsForex then
-                   pT.SetForeignCurrencyAmountOnDissection( Dissection, DissectAmt[ i ] )
-                 else
+//                 if fIsForex then
+//                   pT.SetForeignCurrencyAmountOnDissection( Dissection, DissectAmt[ i ] )
+//                 else
                    dsAmount              := DissectAmt[i];
 
                  dsPercent_Amount      := DissectPct[i];
@@ -2210,12 +2219,11 @@ begin
              data := @(tmpPaintShortStr);
            end;
 
-        ceForexAmount :
+{        ceForexAmount :
           begin
-//             tmpPaintString := BankAccount.MoneyStrBrackets( pT.txForeign_Currency_Amount );
              tmpPaintString := BankAccount.MoneyStrBrackets( pT.txAmount );
              data := PChar( tmpPaintString );
-           end;
+           end;}
 
         ceForexRate :
           Begin
@@ -2225,12 +2233,12 @@ begin
 
         ceLocalAmount :
           begin
-//            tmpPaintString := MyClient.MoneyStrBrackets( pT.txAmount );
             tmpPaintString := MyClient.MoneyStrBrackets( pT.Local_Amount );
             Data := PChar( tmpPaintString );
            end;
 
         ceAmount: begin
+//           tmpPaintDouble := Money2Double( pT^.Local_Amount );
            tmpPaintDouble := Money2Double( pT^.txAmount );
            data := @tmpPaintDouble;
         end;
@@ -2388,11 +2396,11 @@ begin
             Data := @tmpDouble;
          end;
 
-         ceForexAmount : begin
+{         ceForexAmount : begin
 //            tmpDouble := Money2Double( pT.txForeign_Currency_Amount );
             tmpDouble := Money2Double( pT.txAmount );
             Data := @tmpDouble;
-         end;
+         end; }
 
          ceLocalAmount : begin
 //            tmpDouble := Money2Double( pT.txAmount );
@@ -2450,7 +2458,7 @@ begin
          data := @tmpShortStr;
       end;
 
-      ceGSTAmount, ceQuantity, ceAmount, ceForexAmount, ceForexRate, ceLocalAmount : begin
+      ceGSTAmount, ceQuantity, ceAmount, ceForexRate, ceLocalAmount : begin
          data := @tmpDouble;
       end;
 
@@ -2621,17 +2629,15 @@ begin
 
          ceAmount : begin
             M  := Double2Money(tmpDouble);
-//            OM := pT^.txAmount;
-            OM := pT^.Local_Amount;
-//            if ( pT^.txAmount  <>  M ) then begin
-            if ( pT^.Local_Amount  <>  M ) then begin
-//               pT^.txAmount := M;
+            OM := pT^.txAmount;
+            if ( pT^.txAmount  <>  M ) then begin
+               pT^.txAmount := M;
                //if the amount is changed then and the transaction is a dissection
                //then the dissection must be redone so that it balances to the  new
                //amount
                if pT^.txFirst_Dissection <> nil then
                   if (not CopyingLine) and (not DissectEntry( pT, false, false, BankAccount )) then begin
-//                     pT^.txAmount := OM;
+                     pT^.txAmount := OM;
                      tblHist.InvalidateTable;
                      HelpfulInfoMsg('The transaction amount has been changed back.',0);
                      exit;
@@ -2642,10 +2648,9 @@ begin
             end;
          end;
 
-        ceForexAmount :
+(*        ceForexAmount :
           begin
             F := Double2Money( tmpDouble );
-//            OrigF := pT.txForeign_Currency_Amount;
             OrigF := pT.txAmount;
 //            OM := pT.txAmount;
             if ( F <> OrigF ) then
@@ -2676,7 +2681,7 @@ begin
               //the entry type may have changed which will affect the cheq no, call update
               UpdateChequeNo( pT);
             end;
-          end;
+          end; *)
 
          cePayee : begin
             // can't popup a dialog in here - case 7255
@@ -3502,19 +3507,18 @@ Begin
 
          ceAmount : begin
             if (TOvcNumericField(celAmount.CellEditor).AsFloat = 0) then begin
-//               TOvcNumericField(celAmount.CellEditor).AsFloat := Money2Double( pPrev^.txAmount );
-               TOvcNumericField(celAmount.CellEditor).AsFloat := Money2Double( pPrev^.Local_Amount );
+               TOvcNumericField(celAmount.CellEditor).AsFloat := Money2Double( pPrev^.txAmount );
                DittoOK := true;
             end;
          end;
 
-         ceForexAmount : begin
+{         ceForexAmount : begin
             if (TOvcNumericField(celForexAmount.CellEditor).AsFloat = 0) then begin
 //               TOvcNumericField(celForexAmount.CellEditor).AsFloat := Money2Double( pPrev^.txForeign_Currency_Amount );
                TOvcNumericField(celForexAmount.CellEditor).AsFloat := Money2Double( pPrev^.txAmount );
                DittoOK := true;
             end;
-         end;
+         end; }
 
          ceEffDate : begin
             if (TOvcTCPictureFieldEdit(celDate.CellEditor).AsStDate <=0) then begin

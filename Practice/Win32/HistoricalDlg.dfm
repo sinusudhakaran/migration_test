@@ -471,7 +471,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     OnKeyDown = celPayeeKeyDown
@@ -490,7 +489,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     OnKeyPress = celGstAmtKeyPress
@@ -509,7 +507,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     OnChange = celQuantityChange
@@ -640,7 +637,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     ShowHint = True
     OnOwnerDraw = celAmountOwnerDraw
@@ -859,22 +855,6 @@ object dlgHistorical: TdlgHistorical
     Left = 312
     Top = 208
   end
-  object celForexAmount: TOvcTCNumericField
-    DataType = nftDouble
-    EFColors.Disabled.BackColor = clWindow
-    EFColors.Disabled.TextColor = clGrayText
-    EFColors.Error.BackColor = clRed
-    EFColors.Error.TextColor = clBlack
-    EFColors.Highlight.BackColor = clHighlight
-    EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
-    PictureMask = '##########.##'
-    OnOwnerDraw = celForexAmountOwnerDraw
-    Left = 376
-    Top = 256
-    RangeHigh = {73B2DBB9838916F2FE43}
-    RangeLow = {73B2DBB9838916F2FEC3}
-  end
   object celForexRate: TOvcTCNumericField
     DataType = nftDouble
     EFColors.Disabled.BackColor = clWindow
@@ -883,7 +863,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Left = 336
     Top = 256
@@ -898,9 +877,10 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     OnOwnerDraw = celLocalAmountOwnerDraw
-    Left = 416
+    Left = 376
     Top = 256
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
