@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2010/10/08 09:11:55.160.pas,C:\Users\Ajoosten\Documents\RAD Studio\Projects\Unit2.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\Mainfrm.pas</Transaction>
+    <Transaction>2010/10/08 09:11:55.160.dfm,C:\Users\Ajoosten\Documents\RAD Studio\Projects\Unit2.dfm=C:\DelphiTFS\Practice\Dev\PracticeMigrate\Mainfrm.dfm</Transaction>
+    <Transaction>2010/10/08 09:15:05.194.dproj,C:\Users\Ajoosten\Documents\RAD Studio\Projects\Project1.dproj=C:\DelphiTFS\Practice\Dev\PracticeMigrate\Migrator .dproj</Transaction>
+    <Transaction>2010/10/08 09:37:10.440.dproj,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Migrator .dproj=C:\DelphiTFS\Practice\Dev\PracticeMigrate\Migrator.dproj</Transaction>
+    <Transaction>2010/10/08 12:54:25.921.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\FromBrowseForm.pas</Transaction>
+    <Transaction>2010/10/08 12:54:25.921.dfm,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.dfm=C:\DelphiTFS\Practice\Dev\PracticeMigrate\FromBrowseForm.dfm</Transaction>
+    <Transaction>2010/10/11 08:34:42.352.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\GuidList.pas</Transaction>
+    <Transaction>2010/10/11 14:14:57.250.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\syhelpers.pas</Transaction>
+    <Transaction>2010/10/13 12:56:23.159.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\SQLHelpers.pas</Transaction>
+    <Transaction>2010/10/14 06:32:40.662.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\bkHelpers.pas</Transaction>
+    <Transaction>2010/10/15 08:57:18.943.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\btHelpers.pas</Transaction>
+    <Transaction>2010/10/22 13:09:13.654.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\PasswordHash.pas</Transaction>
+    <Transaction>2010/10/28 09:59:10.939.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\MigrateActions.pas</Transaction>
+    <Transaction>2010/10/29 06:45:51.631.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\Migraters.pas</Transaction>
+    <Transaction>2010/10/29 07:47:44.509.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\ClientMigrater.pas</Transaction>
+    <Transaction>2010/11/01 07:18:11.802.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\SystemMigrater.pas</Transaction>
+    <Transaction>2010/11/01 08:00:59.102.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\MigrateTable.pas</Transaction>
+    <Transaction>2010/11/01 08:14:14.792.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\btHelpers.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\btTables.pas</Transaction>
+    <Transaction>2010/11/01 08:22:32.930.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\SQLHelpers.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\SQLTable.pas</Transaction>
+    <Transaction>2010/11/01 14:51:16.388.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\syhelpers.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\syTables.pas</Transaction>
+    <Transaction>2010/11/04 07:51:31.645.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\bkHelpers.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\bkTables.pas</Transaction>
+    <Transaction>2010/11/10 10:09:53.753.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\AvailableSQLServers.pas</Transaction>
+    <Transaction>2010/11/12 15:08:40.159.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\MigrateStats.pas</Transaction>
+  </Transactions>
+</BorlandProject>
