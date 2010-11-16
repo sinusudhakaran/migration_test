@@ -22,6 +22,7 @@ type
     acDelete: TAction;
     acAdd: TAction;
     grpDetails: TRzGroup;
+    acISOCurrencyCodes: TAction;
     procedure FormCreate(Sender: TObject);
     procedure vtCurrenciesHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -33,15 +34,19 @@ type
     procedure acAddExecute(Sender: TObject);
     procedure BtnoKClick(Sender: TObject);
     procedure acDeleteExecute(Sender: TObject);
-
+    procedure acISOCurrencyCodesExecute(Sender: TObject);
+    procedure vtCurrenciesCreateEditor(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     FTreeList: TTreeBaseList;
+    FChangesMade: boolean;
     procedure FillCurrencies;
     function FindISO(value: string; Select: Boolean = False): Boolean;
     procedure Cleanup;
     { Private declarations }
   protected
-    procedure UpdateActions; override;   
+    procedure UpdateActions; override;
   public
     { Public declarations }
   end;
@@ -60,18 +65,22 @@ uses
   ExchangeRateList,
   Admin32,
   SysObj32,
-  Globals;
+  Globals,
+  ShellAPI;
 
 {$R *.dfm}
 
-  function MaintainCurrencies: Boolean;
-  begin
-      with TCurrenciesFrm.Create(Application.MainForm) do try
-         Result := ShowModal = mrOK;
-      finally
-         Free;
-      end;
+function MaintainCurrencies: Boolean;
+var
+  CurrenciesForm: TCurrenciesFrm;
+begin
+  CurrenciesForm := TCurrenciesFrm.Create(Application.MainForm);
+  try
+    Result := (CurrenciesForm.ShowModal <> mrOK);
+  finally
+    CurrenciesForm.Free;
   end;
+end;
 
 const
    Tag_Iso = 1;
@@ -124,10 +133,18 @@ begin
             else
                Node := nil;
           FTreeList.RemoveItem(Lc);
+          FChangesMade := True;
           // Reselect ..
           if Assigned(Node) then
              vtCurrencies.Selected[Node] := True;
       end;
+end;
+
+procedure TCurrenciesFrm.acISOCurrencyCodesExecute(Sender: TObject);
+const
+  ISO_CODES_WEBSITE = 'http://www.iso.org/iso/currency_codes_list-1';
+begin
+  ShellExecute(0, 'open', PChar( ISO_CODES_WEBSITE ), nil, nil, SW_NORMAL);
 end;
 
 procedure TCurrenciesFrm.BtnoKClick(Sender: TObject);
@@ -225,6 +242,15 @@ begin
    Result := false;
 end;
 
+procedure TCurrenciesFrm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+const
+  CANCEL_PROMPT = 'If you cancel, the currencies you have entered will be lost.'#13#13 +
+                  'Are you sure you want to cancel and lose these changes?';
+begin
+  if not (ModalResult = mrOK) and FChangesMade then
+    CanClose :=  (AskYesNo('Cancel Maintain Currencies', CANCEL_PROMPT, Dlg_No, 0) = DLG_YES);
+end;
+
 procedure TCurrenciesFrm.FormCreate(Sender: TObject);
 begin
    // Common bits
@@ -240,6 +266,8 @@ begin
    FTreeList:= TTreeBaseList.Create(vtCurrencies);
    FillCurrencies;
    vtCurrencies.SortTree(0, sdAscending);
+
+   FChangesMade := False;
 end;
 
 procedure TCurrenciesFrm.FormDestroy(Sender: TObject);
@@ -257,6 +285,18 @@ begin
    end else begin
       acdelete.Enabled := False;
    end;
+end;
+
+procedure TCurrenciesFrm.vtCurrenciesCreateEditor(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+var
+  StringEditLink: TStringEditLink;
+begin
+  //Restrict length of ISO code to 3 characters
+  StringEditLink := TStringEditLink.Create;
+  StringEditLink.Edit.MaxLength := 3;
+  StringEditLink.Edit.CharCase := ecUpperCase;
+  EditLink := StringEditLink;
 end;
 
 procedure TCurrenciesFrm.vtCurrenciesEditing(Sender: TBaseVirtualTree;
@@ -291,13 +331,13 @@ end;
 
 procedure TCurrenciesFrm.vtCurrenciesNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
-
 var
   NewIso: string;
   lc: TCurrencyTreeItem;
   lISO: pISO_4217_Record;
 begin
- if FTreeList.GetColumnTag(Column) = Tag_Iso then begin
+  try
+    if FTreeList.GetColumnTag(Column) = Tag_Iso then begin
 
       NewIso := Uppercase(Trim(NewText)); // need to check more...
       lc := TCurrencyTreeItem(FTreeList.GetNodeItem(Node));
@@ -312,20 +352,24 @@ begin
 
       if FindISO(NewIso) then begin
          HelpfulErrorMsg(format(
-         'ISO Currency Code "%s" is already in the list of currencies for your Practice'#13'You cannot have a curreny more than once', [NewISO]),0);
+         'The ISO Currency Code "%s" is already in the list of currencies for your Practice.'#13 +
+         'You cannot add a curreny more than once.', [NewISO]),0);
          Exit;
       end;
       // Now Test the ISO code
       lISO := Get_ISO_4217_Record(NewISO);
       if not Assigned(lISO) then begin
           HelpfulErrorMsg(format(
-         'ISO Currency Code "%s" is not valid'#13'Please enter a correct code', [NewISO]),0);
+         'ISO ISO Currency Code "%s" is invalid.'#13'Please re-enter with a correct code.', [NewISO]),0);
           Exit;
       end;
-
       lc.FISO := NewISO;
       lc.Title := LISO.Name;
-   end;
+      FChangesMade := True;      
+    end;
+  finally
+    CleanUp;
+  end;
 end;
 
 { TCurrencyTreeItem }

@@ -9,6 +9,7 @@ object CurrenciesFrm: TCurrenciesFrm
   OldCreateOrder = False
   Position = poMainFormCenter
   Scaled = False
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
@@ -80,9 +81,15 @@ object CurrenciesFrm: TCurrenciesFrm
         end
         item
           Action = acDelete
+        end
+        item
+          Caption = '-'
+        end
+        item
+          Action = acISOCurrencyCodes
         end>
       Opened = True
-      OpenedHeight = 68
+      OpenedHeight = 124
       SmallImages = AppImages.ilFileActions_ClientMgr
       Caption = 'Currency Tasks'
       Font.Charset = DEFAULT_CHARSET
@@ -142,6 +149,7 @@ object CurrenciesFrm: TCurrenciesFrm
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toWheelPanning]
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages]
       TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+      OnCreateEditor = vtCurrenciesCreateEditor
       OnEditing = vtCurrenciesEditing
       OnHeaderClick = vtCurrenciesHeaderClick
       OnNewText = vtCurrenciesNewText
@@ -158,7 +166,7 @@ object CurrenciesFrm: TCurrenciesFrm
           Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
           Position = 1
           Tag = 2
-          Width = 267
+          Width = 272
           WideText = 'Currency'
         end
         item
@@ -182,6 +190,11 @@ object CurrenciesFrm: TCurrenciesFrm
     object acAdd: TAction
       Caption = 'Add'
       OnExecute = acAddExecute
+    end
+    object acISOCurrencyCodes: TAction
+      Caption = 'ISO Currency Code List'
+      ImageIndex = 38
+      OnExecute = acISOCurrencyCodesExecute
     end
   end
 end
