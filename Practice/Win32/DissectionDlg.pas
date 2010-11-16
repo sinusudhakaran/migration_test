@@ -3339,7 +3339,7 @@ begin
                      dtPercent_Amount      := dsPercent_Amount;
                      dtAmount_Type_Is_Percent := dsAmount_Type_Is_Percent;
                      dtForex_Conversion_Rate   := dsForex_Conversion_Rate   ;
-                     dtLocal_Amount := dsForeign_Currency_Amount ;
+//                     dtLocal_Amount := dsForeign_Currency_Amount ;
                   end;
                   pDissection := dsNext;
                   Inc( i );
@@ -3658,7 +3658,7 @@ begin
                    end;
 
                    dsForex_Conversion_Rate    := dtForex_Conversion_Rate    ;
-                   dsForeign_Currency_Amount  := dtLocal_Amount  ;
+//                   dsForeign_Currency_Amount  := dtLocal_Amount  ;
 
                    dsGL_Narration             := dtNarration;
                    dsTax_Invoice := dtTax_Invoice;
@@ -5319,41 +5319,36 @@ procedure TdlgDissection.UpdateBaseAmounts;
 var
   i: integer;
   pWorkRec: pWorkDissect_Rec;
-  Total, TotalLocal, Remainder, LocalRemainder: double;
-  TransAmt, LocalTransAmt: double;
-  DissecAmt, DissecAmtLocal: Money;
+  TotalAmt, TotalAmtBase, Remainder, RemainderBase: double;
+  TransAmt, TransAmtBase: double;
+  DissecAmt, DissecAmtBase: Money;
   Rate: double;
 begin
   //Calculate base amount for Forex bank accounts
   Rate := pTran.Default_Forex_Rate;
-  if (Rate <> 0.0) then begin
-    Total := 0;
-    TotalLocal := 0;
+  if (Rate = 0.0) then begin
+    //Set all base amounts to 0 if exchange rate = 0
+    for i := 0 to Pred( GLCONST.Max_tx_Lines ) do
+      pWorkDissect_Rec(WorkDissect.Items[i])^.dtLocal_Amount := 0;
+  end else begin
+    TotalAmt := 0;
+    TotalAmtBase := 0;
     TransAmt := GenUtils.Money2Double( pTran^.txAmount );
-    LocalTransAmt := GenUtils.Money2Double( pTran^.Local_Amount );
+    TransAmtBase := GenUtils.Money2Double( pTran^.Local_Amount );
     for i := 0 to Pred( GLCONST.Max_tx_Lines ) do begin
       pWorkRec := WorkDissect.Items[i];
       pWorkRec^.dtLocal_Amount := 0;
       if pWorkRec^.dtAmount <> 0 then begin
-        if pWorkRec^.dtAmount_Type_Is_Percent and (pWorkRec^.dtPercent_Amount <> 0) then begin
-          DissecAmt := Double2Money((TransAmt * (pWorkRec^.dtPercent_Amount/1000000)));
-          Total := Total + Money2Double(DissecAmt);
-          DissecAmtLocal := Double2Money((LocalTransAmt * (pWorkRec^.dtPercent_Amount/1000000)));
-          TotalLocal := TotalLocal + Money2Double(DissecAmtLocal);
-          //Set local dissection amount
-          pWorkRec^.dtLocal_Amount := DissecAmtLocal;
-        end else begin;
-          DissecAmt := pWorkRec^.dtAmount;
-          Total := Total + Money2Double(DissecAmt);
-          DissecAmtLocal :=  Double2Money((Money2Double(DissecAmt) / Rate));
-          TotalLocal := TotalLocal + Money2Double(DissecAmtLocal);
-          //Set local dissection amount
-          pWorkRec^.dtLocal_Amount := DissecAmtLocal;
-        end;
-        Remainder   := TransAmt - Total;
-        LocalRemainder := LocalTransAmt - TotalLocal;
+        DissecAmt := pWorkRec^.dtAmount;
+        DissecAmtBase :=  Double2Money((Money2Double(DissecAmt) / Rate));
+        TotalAmt := TotalAmt + Money2Double(DissecAmt);
+        TotalAmtBase := TotalAmtBase + Money2Double(DissecAmtBase);
+        //Set dissection base amount
+        pWorkRec^.dtLocal_Amount := DissecAmtBase;
+        Remainder   := TransAmt - TotalAmt;
+        RemainderBase := TransAmtBase - TotalAmtBase;
         if (Remainder = 0)  then
-          pWorkRec^.dtLocal_Amount := pWorkRec^.dtLocal_Amount + Double2Money(LocalRemainder);
+          pWorkRec^.dtLocal_Amount := pWorkRec^.dtLocal_Amount + Double2Money(RemainderBase);
       end;
     end;
   end;

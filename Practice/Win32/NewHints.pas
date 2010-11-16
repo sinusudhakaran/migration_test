@@ -305,6 +305,7 @@ begin
       MaxCRLen := 0;
 
       Commas := False ;
+      //Do two passes of the dissection record to work out the alignment
       D := txFirst_Dissection ;
       while D <> nil do with D^ do
       begin
@@ -315,9 +316,7 @@ begin
 
         if Forex then
         Begin
-//          FCS := Bank_Account.MoneyStrBrackets( dsForeign_Currency_Amount );
           FCS := Bank_Account.MoneyStrBrackets( dsAmount );
-//          if dsForeign_Currency_Amount >= 0 then
           if dsAmount >= 0 then
             FCS := FCS + ' ';
           if Length( FCS ) > MaxFCLen then MaxFCLen := Length( FCS ) ;
@@ -325,10 +324,8 @@ begin
           RS := Format( '%0.5f', [ dsForex_Conversion_Rate ] );
           if Length( RS ) > MaxCRLen then MaxCRLen := Length( RS ) ;
 
-//          VS := MyClient.MoneyStrBrackets( Abs( dsAmount ) ) ;
-          VS := MyClient.MoneyStrBrackets( Abs( dsForeign_Currency_Amount ) ) ;
-//          if dsAmount >= 0 then VS := VS + ' ';
-          if dsForeign_Currency_Amount >= 0 then VS := VS + ' ';
+          VS := MyClient.MoneyStrBrackets( Abs( D.Local_Amount ) ) ;
+          if D.Local_Amount >= 0 then VS := VS + ' ';
           if Length( VS ) > MaxVLen then MaxVLen := Length( VS ) ;
         End
         Else
@@ -342,7 +339,7 @@ begin
           if Length( VS ) > MaxVLen then MaxVLen := Length( VS ) ;
         end;
         D := dsNext ;
-      end ;
+      end ; 
 
       D := txFirst_Dissection ;
       While D <> nil do with D^ do
@@ -354,19 +351,15 @@ begin
 
         if Forex then
         Begin
-//          FCS := Bank_Account.MoneyStrBrackets( dsForeign_Currency_Amount );
           FCS := Bank_Account.MoneyStrBrackets( dsAmount );
-//          if dsForeign_Currency_Amount >= 0 then
           if dsAmount >= 0 then
             FCS := FCS + ' ';
           FCS := LeftPadS( FCS, MaxFCLen );
 
-//          RS := Format( '%0.5f', [ dsForex_Conversion_Rate ] );
           RS := Format( '%0.5f', [ T^.Default_Forex_Rate ] );
           RS:= LeftPadS( RS, MaxCRLen );
 
-//          VS := MyClient.MoneyStrBrackets( dsAmount ) ;
-          VS := MyClient.MoneyStrBrackets( dsForeign_Currency_Amount ) ;
+          VS := MyClient.MoneyStrBrackets( D.Local_Amount ) ;
           VS := LeftPadS( VS, MaxVLen );
         End
         else
