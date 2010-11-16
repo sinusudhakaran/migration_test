@@ -25,10 +25,6 @@ object dlgEditBank: TdlgEditBank
     TabOrder = 0
     object tbDetails: TTabSheet
       Caption = '&Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -36,7 +32,6 @@ object dlgEditBank: TdlgEditBank
         Height = 13
         Caption = 'Account No'
         FocusControl = eNumber
-        OnClick = FormCreate
       end
       object Label1: TLabel
         Left = 24
@@ -92,7 +87,6 @@ object dlgEditBank: TdlgEditBank
         Height = 13
         Caption = 'Currency'
         FocusControl = eNumber
-        OnClick = FormCreate
       end
       object gCalc: TPanel
         Left = 24
@@ -439,7 +433,6 @@ object dlgEditBank: TdlgEditBank
           Height = 13
           Caption = 'Account &Type'
           FocusControl = cmbType
-          OnClick = FormCreate
         end
         object lblInst: TLabel
           Left = 0
@@ -448,7 +441,6 @@ object dlgEditBank: TdlgEditBank
           Height = 13
           Caption = '&Institution'
           FocusControl = eInst
-          OnClick = FormCreate
         end
         object cmbType: TComboBox
           Left = 112
@@ -518,10 +510,6 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label8: TLabel
         Left = 16
         Top = 16
