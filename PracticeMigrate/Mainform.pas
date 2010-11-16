@@ -97,7 +97,8 @@ type
     function Connect(connection:TADOConnection; ASource,ACatalog,AUser,APW: string):Boolean;
     function ConnectSystem(ForAction: TMigrateAction): Boolean;
     function ConnectClient(ForAction: TMigrateAction): Boolean;
-     // Connection properies
+
+    // Connection properies
     procedure SetPW(const Value: string);
     procedure SetDestination(const Value: string);
     procedure SetUser(const Value: string);
@@ -105,42 +106,6 @@ type
     procedure MigrateSystem;
     function GetDestination: string;
     procedure SetPreLoaded(const Value: Boolean);
-    (*
-    function MigrateUsers(FromList: TGuidList): Boolean;
-    function MigrateAccounts(FromList: TGuidList): Boolean;
-    function MigrateClientsList(FromList: TGuidList): Boolean;
-    function MigrateUserClients: Boolean;
-
-    function MigrateClients(FromList: TGuidList): Boolean;
-    function MigrateClient (ClientID:TGuid; Code: string; ClientLRN: Integer): Boolean;
-    // Client Migrations
-    function MigrateClientAccounts(FromList: TGuidList): Boolean;
-
-
-    // Progress handeling
-    procedure Reset;
-    procedure StartProgress(Name: string; MaxValue: integer);
-    procedure updateProgress(Value: Integer);
-    procedure MainupdateProgress(Name: string; Value: Integer);
-
-    // SQL Helpers..
-    function RunSQL(Connection: TADOConnection; SQL: widestring; action: string; DoStatus : Boolean = true) : Boolean;
-    function RunSystemSQL(SQL: widestring; action: string; DoStatus : Boolean = true) : Boolean;
-    function RunClientSQL(SQL: widestring; action: string; DoStatus : Boolean = true) : Boolean;
-    function DeleteQuery(Tablename: string; Truncate: boolean): string;
-    function DeleteClientTable(Tablename: string; Truncate: boolean = false):Boolean;
-    function DeleteSystemTable(Tablename: string; Truncate: boolean = false):Boolean;
-    function InsertClientTable(TableName, Fields, Values, Name : string; DoStatus: Boolean = true): Boolean;
-    function InsertSystemTable(TableName, Fields, Values, Name : string; DoStatus: Boolean = true): Boolean;
-
-    // Static data converters
-    function GetProviderSystemID(Country,System: byte; provider: TProvider): TGuid;
-    function GetTaxClassGuid(Country, TaxClass: byte): TGuid;
-    //function FillTaxClassType(Country, Byte;
-    //  Connection: TADOConnection): Boolean;
-    *)
-   // function GetUserRoleID(user: pUser_Rec): TGuid;
-   // procedure SetCurrentAction(const Value: TMigrateAction);
 
     { Private declarations }
   protected
@@ -235,15 +200,15 @@ begin
    FromDir := FromBrowseForm.GetFromDir;
    if (FromDir > '')
    and (Destination > '')then
-      if TestSystem then
-         Progress := Selection;
+      TestSystem;
+
 end;
 
 procedure TformMain.BtnNextClick(Sender: TObject);
 begin
    case fprogress of
-   SelectSource : if TestSystem
-                     then Progress := Selection;
+   SelectSource : TestSystem;
+
 
    Selection : MigrateSystem;
    Migrate :; // has no meaning..
@@ -285,6 +250,7 @@ begin
                   0,
                   False) = DLG_No then
             exit;
+         // Ok then .. Lets cancel..
          MigrationCanceled := True;
      end;
   Done :   Close;
@@ -292,10 +258,8 @@ begin
 end;
 
 procedure TformMain.btnClearClick(Sender: TObject);
-var Action :TMigrateAction;
+var Action: TMigrateAction;
 begin
-
-
    FTreeList.Clear;
    FTreeList.Tree.Clear;
    progress := Migrate;
@@ -408,59 +372,6 @@ begin
    end;
 end;
 
-
-
-
-  (*
-function TformMain.FillTaxClassType(Country; Byte; Connection: TADOConnection): Boolean;
-   function AddClass(Guid, Name: string);
-   begin
-       TaxClasses.Parameters.ParamValues['Guid'] := Guid;
-       TaxClasses.Parameters.ParamValues['Guid2'] := Guid;
-       TaxClasses.Parameters.ParamValues['Name'] := Name;
-       TaxClasses.ExecSQL;
-   end;
-begin
-   TaxClasses.Connection := Connection;
-case Country of
-  whNewZealand : begin
-     TaxClasses.Parameters.ParamValues['Country'] := 'NZ';
-     AddClass('C84C13A5-4F06-4CC5-9757-FAFAEBC34C9C', 'Undefined');
-     AddClass('CCC94EFB-91C3-401C-9FDE-14982BDEE621', 'Expenditure');
-     AddClass('360240FC-9E69-489E-9C80-EF9EF7D72B82', 'Exempt');
-     AddClass('3D555C88-FD32-460E-9EBD-6CEA52912901', 'GST on Customs Invoice');
-     AddClass('E7119A9E-0D86-46A8-B37B-A7333E9FF9DB', 'Zero Rated');
-  end;
-  whUk : begin
-      TaxClasses.Parameters.ParamValues['Country'] := 'UK';
-      AddClass('99991C52-22BF-462C-81C8-7AD22A09CD8A', 'No VAT');
-      AddClass('2781E33A-5409-4B13-9D5E-2C68C4956A6D', 'Sales - Standard Rate');
-      AddClass('A60B11F8-6300-4261-B8B4-EEE5B2A1E6E4', 'Sales - Reduced Rate');
-      AddClass('DAEF3463-6208-464F-8BCE-4F5E1C6F986F', 'Sales - Zero Rate');
-      AddClass('81D35314-0898-429A-87C6-17A57F9AEA81', 'Sales - Exempt');
-      AddClass('44204C0C-5AA9-4247-A83C-2A96E4FA5E96', 'Sales EC - Standard Rate');
-      AddClass('89E58AAC-F109-4893-B1F7-994867E67F2F', 'Sales EC - Reduced Rate');
-      AddClass('CD59C725-D523-45B3-81DA-74517E401FC6', 'Sales EC - Zero Rate');
-      AddClass('1FEB07C1-3204-4B81-A738-247A8BBEE114', 'Sales EC');
-      AddClass('4EA484E6-C3C9-45E8-84A3-7997331AF33C', 'Purchases - Standard Rate');
-      AddClass('89E58AAC-F109-4893-B1F7-994867E67F2F', 'Purchases - Reduced Rate');
-      AddClass('3D2A5782-F2CA-4502-9F7B-5D669099DE4D', 'Purchases - Zero Rate');
-      AddClass('B1AD3B1E-0942-4088-92B2-88EDC240E7DE', 'Purchases - Exempt');
-      AddClass('0E68182A-24C3-422B-B857-796AF24153F3', 'Purchases EC - Standard Rate');
-      AddClass('158AFB49-8E46-4481-B113-8DC9794E21AD', 'Purchases EC - Reduced Rate');
-      AddClass('D25ADBD0-8A7B-4B09-BA75-A6A2B1773AB6', 'Purchases EC - Zero Rate');
-      AddClass('8FDC1A37-F62A-48B3-BD19-3136D9A7D441', 'Purchases EC - Exempt');
-  end;
-  whAustralia: begin
-      TaxClasses.Parameters.ParamValues['Country'] := 'AU';
-      AddClass('7C29B926-9909-455A-AE2C-38267B5BE631', 'Company');
-  end;
-end;
-
-
-end;
-*)
-
 procedure TformMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   CanClose := true;
@@ -549,22 +460,11 @@ begin
     end else if Pos( LocationSwitch, S) > 0 then begin
        //location specified
        Destination := Copy( S, Pos( LocationSwitch, S) + Length(LocationSwitch), 255);
-       User := 'Practice';
-       pw := 'Pr4ct1C#U$er';
+       User := PracticeUser;
+       pw := Practicepw;
     end;
    end;
-   //
-   {}
 
-   //Destination := 'BANKLINK-AJW7';
-   {}
-    {
-   PW := '1qaz!QAZ';
-   User := 'sa';
-   Source := 'dev-iis';
-    {}
-
-   // Destination := 'DEV-IIS';
    PreLoaded := Destination > '';
    fromDir := '';
 
@@ -573,7 +473,6 @@ begin
       screen.Cursor := kc
    end;
 end;
-
 
 
 function TformMain.GetDestination: string;
@@ -586,108 +485,6 @@ begin
    Result := Globals.DataDir;
 end;
 
-(*
-
-function TformMain.MigrateUserClients: Boolean;
-var I: Integer;
-    NewID, UserID, ClientID: TGuid;
-    function FindUserLRN(Value: Integer):TGuid;
-    var I: Integer;
-    begin
-       FillChar(result,Sizeof(result),0);
-       for I := 0 to FuserList.Count - 1 do
-          if(PUser_Rec(TGuidObject(FuserList.Items[i]).Data)^.usLRN = Value) then begin
-              Result := TGuidObject(FuserList.Items[i]).GuidID;
-              exit;
-          end;
-    end;
-
-begin
-   for I := 0 to AdminSystem.fdSystem_File_Access_List.ItemCount - 1 do
-      with AdminSystem.fdSystem_File_Access_List.Access_At(I)^ do begin
-         UserID := FindUserLRN(acUser_LRN);
-         if IsEqualGUID(UserID,emptyGuid) then
-            continue;
-         ClientID := FClientList.FindLRNGuid(acClient_File_LRN);
-         if IsEqualGUID(ClientID,emptyGuid) then
-            continue;
-
-         CreateGuid(NewID);
-
-         InsertSystemTable('UserClient',
-             '[Id],[UserId_Id],[ClientId_Id]',
-             ToSQL(NewID) + ToSQL(UserID) + ToSQL(ClientID, false),
-             'User Client',
-             False)
-      end;
-
-end;
-
-function TformMain.MigrateUsers(FromList: TGuidList):Boolean;
-var
-   I: Integer;
-   action,
-   keep: TMigrateAction;
-     procedure UpdateUser(UserID: tGuid; Value: PUser_Rec);
-     var NewID: TGuid;
-     begin
-        // See if we have it already
-        Systemusers.Active := false;
-        Systemusers.Parameters.ParamValues['Code']:= Value.usCode;
-        Systemusers.Active := True;
-        if Systemusers.RecordCount > 0 then begin
-           RunSystemSQL(format('Delete from [UserRoles] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]), 'Delete User Role', false);
-           RunSystemSQL(format('Delete from [Users] where [Code] = ''%s''',[Value.usCode]), 'Delete User', false);
-           //RunSystemSQL(format('Delete from [UserClients] where [userID_ID] = %s',[ToSQL(UserId, false)]), 'Delete User clients', false);
-
-           //Exit; // Merge....
-        end;
-
-        if Value.usName = '' then
-           Value.usName := Value.usCode;
-
-        // Add the user..
-        InsertSystemTable('Users',
-                          GetUser_RecFields,
-                          GetUser_RecValues(UserID,Value),
-                          'User',
-                          false);
-        // Add the role
-        CreateGuid(NewID);
-        InsertSystemTable('UserRoles',
-                          '[Id],[User_Id],[Role_Id]',
-                          ToSql(NewID) + ToSQL(UserId) + ToSQL(GetUserRoleID(Value), False),
-                          'User Role',
-                          false);
-
-
-     end;
-begin
-    Result := False;
-    IncLevel;
-    StartProgress('Users',FromList.Count);
-    AddStatus('Merge User List');
-    keep := CurrentAction;
-    action := AddAction('Merge Users');
-    CurrentAction := action;
-    try try
-       for I := 0 to FromList.Count - 1 do
-          with(TGuidObject(FromList.Items[I])) do
-             UpdateUser(GuidID,PUser_Rec(Data));
-       action.Count := FromList.Count;
-       Result := True;
-    except
-      on E: Exception do begin
-         AddException(e, 'Migrating Client List');
-         action.Error := e.Message;
-      end;
-    end;
-    finally
-       DecLevel;
-       CurrentAction := keep;
-    end;
-end;
-  *)
 function TformMain.NewAction(const Title: string;
   ActionObject: Tguidobject): TMigrateAction;
 begin
@@ -695,7 +492,7 @@ begin
    FTreeList.AddNodeItem(StatusTree.RootNode ,Result);
 end;
 
-  
+
 procedure TformMain.SetFromDir(const Value: string);
 begin
   Globals.DataDir := Value;
@@ -871,9 +668,6 @@ begin
    if Result then
       Progress := Selection;
 
-   {finally
-      FreeAndnil(AdminSystem);
-   end;}
 end;
 
 procedure TformMain.UpdateActions;
