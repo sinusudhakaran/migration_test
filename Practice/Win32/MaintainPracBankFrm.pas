@@ -32,7 +32,7 @@ type
     pmGrid: TPopupMenu;
     actSendFrequencyRequest: TAction;
     acCurrencies: TAction;
-    acExchangRates: TAction;
+    acExchangeRates: TAction;
     acSendProvReq: TAction;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
@@ -54,7 +54,7 @@ type
     procedure pmGridPopup(Sender: TObject);
     procedure actSendFrequencyRequestExecute(Sender: TObject);
     procedure acCurrenciesExecute(Sender: TObject);
-    procedure acExchangRatesExecute(Sender: TObject);
+    procedure acExchangeRatesExecute(Sender: TObject);
     procedure actSendProvReqExecute(Sender: TObject);
     procedure SendProvAccRequest;
   private
@@ -125,6 +125,8 @@ begin
   GBMain.GradientColorStart := bkBranding.GroupBackGroundStartColor;
 
   actRemove.Visible := GLOBALS.SuperUserLoggedIn;
+  acCurrencies.Visible := (AdminSystem.fdFields.fdCountry = whUK);
+  acExchangeRates.Visible := (AdminSystem.fdFields.fdCountry = whUK);
 
   //SetListViewColWidth(lvBank,1);
   SetUpHelp;
@@ -282,7 +284,7 @@ begin
    MaintainCurrencies;
 end;
 
-procedure TfrmMaintainPracBank.acExchangRatesExecute(Sender: TObject);
+procedure TfrmMaintainPracBank.acExchangeRatesExecute(Sender: TObject);
 begin
    MaintainExchangeRates;
 end;
