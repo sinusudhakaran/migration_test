@@ -44,6 +44,8 @@ TClientMigrater = class (TMigrater)
     FCodingReportOptionsTable: TCodingReportOptionsTable;
     FSystemMirater: TMigrater;
     FClientLRN: Integer;
+    FChartDivisionTable: TChartDivisionTable;
+    FDivisionList: TGuidList;
     procedure SetClientID(const Value: TGuid);
     procedure SetCode(const Value: string);
 
@@ -111,6 +113,10 @@ TClientMigrater = class (TMigrater)
     procedure SetDoSuperfund(const Value: Boolean);
     procedure SetSystemMirater(const Value: TMigrater);
     procedure SetClientLRN(const Value: Integer);
+    procedure SetChartDivisionTable(const Value: TChartDivisionTable);
+    function GetChartDivisionTable: TChartDivisionTable;
+    procedure SetDivisionList(const Value: TGuidList);
+    function GetDivisionList: TGuidList;
   published
   public
    constructor Create(AConnection: string);
@@ -126,7 +132,7 @@ TClientMigrater = class (TMigrater)
                     AClientLRN: Integer): Boolean;
 
 
-
+   // Tables
    property Client_RecFieldsTable: TClient_RecFieldsTable read GetClient_RecFieldsTable write SetClient_RecFieldsTable;
    property Account_RecTable: TAccount_RecTable read GetAccount_RecTable write SetAccount_RecTable;
    property Transaction_RecTable: TTransaction_RecTable read GetTransaction_RecTable write SetTransaction_RecTable;
@@ -148,6 +154,10 @@ TClientMigrater = class (TMigrater)
    property Client_ReportOptionsTable: TClient_ReportOptionsTable read GetClient_ReportOptionsTable write SetClient_ReportOptionsTable;
    property ClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable read GetClientFinacialReportOptionsTable write SetClientFinacialReportOptionsTable;
    property CodingReportOptionsTable: TCodingReportOptionsTable read GetCodingReportOptionsTable write SetCodingReportOptionsTable;
+   property ChartDivisionTable: TChartDivisionTable read GetChartDivisionTable write SetChartDivisionTable;
+
+   // Lists
+   property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
 
    property DoSuperfund: Boolean read FDoSuperfund write SetDoSuperfund;
    property Code: string read FCode write SetCode;
@@ -278,7 +288,7 @@ end;
 function TClientMigrater.AddBudgetLine(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 var P: Integer;
 begin
-   Result := false; 
+   Result := false;
    with pBudget_Detail_Rec(Value.data)^ do
       for P := 1 to 12 do
          if (bdBudget[P] <> 0)
@@ -291,20 +301,54 @@ begin
 end;
 
 function TClientMigrater.AddChart(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
+var Account: pAccount_Rec;
+    I: Integer;
+    Division: TGuidObject;
+
+    function GetDivision(Value: integer):TGuidObject;
+    var I: Integer;
+    begin
+       Result := nil;
+       for I := 0 to DivisionList.Count - 1 do
+          if TGuidObject(DivisionList[I]).SequenceNo = value then begin
+             Result := TGuidObject(DivisionList[I]);
+             Exit;
+          end;
+    end;
+
 begin
-   Result := Chart_recTable.Insert(Value.GuidID,ClientID, pAccount_Rec(Value.Data));
+   Account := pAccount_Rec(Value.Data);
+   // First the chart..
+   Result := Chart_recTable.Insert(Value.GuidID,ClientID, Account);
+   // Now do the divisions..
+   for I := low(Account.chPrint_in_Division) to high(Account.chPrint_in_Division) do begin
+      if not Account.chPrint_in_Division[I] then
+         Continue;
+      Division := GetDivision(I);
+      if Assigned(Division) then begin
+         Result := ChartDivisionTable.Insert(Value.GuidID, Division.GuidID);
+         if not Result then
+            Exit;
+      end;
+   end;
 end;
 
 procedure TClientMigrater.AddDivisions(ForAction: TMigrateAction);
 var I,C: Integer;
     DivisionName: string;
+    Division: TGuidObject;
 begin
      C := 0;
+     DivisionList.Clear;
      for i := 1 to Max_Divisions do begin
         DivisionName := Trim(FClient.clCustom_Headings_List.Get_Division_Heading(i));
         if DivisionName > '' then begin
-
-           if DivisionsTable.Insert(NewGuid,ClientID, i,DivisionName ) then
+           // Keep the Divisions as a Lookup
+           Division := TGuidObject.Create;
+           Division.GuidID := NewGuid;
+           Division.SequenceNo := i;
+           DivisionList.Add(Division);
+           if DivisionsTable.Insert(Division.GuidID, ClientID, Division.SequenceNo, DivisionName) then
               inc(C);
 
         end;
@@ -495,12 +539,15 @@ begin
    MyAction := ForAction.NewAction('Clear Clients');
    try
       Connected := true;
-      DeleteTable(MyAction,'Jobs', True);
+      { TODO : Change to Tables rather than the name.. }
+      DeleteTable(MyAction,Job_Heading_RecTable, True);
 
       DeleteTable(MyAction,'FuelSheets', True);
       DeleteTable(MyAction,'Balances');
 
-      DeleteTable(MyAction,'Charts', True);
+      DeleteTable(MyAction,'ReportClientDivisions');
+      DeleteTable(MyAction,ChartDivisionTable);
+      DeleteTable(MyAction,'Charts');
 
       DeleteTable(MyAction,'NotesOptions');
       DeleteTable(MyAction,'Headings');
@@ -530,7 +577,7 @@ begin
       DeleteTable(MyAction,'ReportingOptions');
       DeleteTable(MyAction,'ReportSubGroups');
 
-      DeleteTable(MyAction,'ReportClientDivisions');
+
 
       DeleteTable(MyAction,'Clients');
 
@@ -547,7 +594,29 @@ constructor TClientMigrater.Create(AConnection: string);
 begin
    inherited Create;
    Connection.DefaultDatabase := 'PracticeClient';
-   //ConnectionString := AConnection;
+
+   FClient_RecFieldsTable := nil;
+   FBudget_Detail_RecTable := nil;
+   FChart_RecTable := nil;
+   FBudget_Header_RecTable := nil;
+   FMemorisation_Line_RecTable := nil;
+   FPayee_Detail_RecTable := nil;
+   FCustom_Heading_RecTable := nil;
+   FTransaction_RecTable := nil;
+   FJob_Heading_RecTable := nil;
+   FDissection_RecTable := nil;
+   FSubGroupTable := nil;
+   FMemorisation_Detail_RecTable := nil;
+   FAccount_RecTable := nil;
+   FPayee_Line_RecTable := nil;
+   FDivisionsTable := nil;
+   FTaxEntriesTable := nil;
+   FTaxRatesTable := nil;
+   FClient_ScheduleTable := nil;
+   FClient_ReportOptionsTable := nil;
+   FClientFinacialReportOptionsTable := nil;
+   FCodingReportOptionsTable := nil;
+   FChartDivisionTable := nil;
 end;
 
 destructor TClientMigrater.Destroy;
@@ -573,7 +642,15 @@ begin
   FreeAndNil(FClient_ReportOptionsTable);
   FreeAndNil(FClientFinacialReportOptionsTable);
   FreeAndNil(FCodingReportOptionsTable);
+  FreeAndNil(FChartDivisionTable);
   inherited;
+end;
+
+function TClientMigrater.GetDivisionList: TGuidList;
+begin
+  if not Assigned(FDivisionList) then
+      FDivisionList := TGuidList.Create();
+   Result := FDivisionList
 end;
 
 function TClientMigrater.GetAccount_RecTable: TAccount_RecTable;
@@ -595,6 +672,13 @@ begin
    if not Assigned(FBudget_Header_RecTable) then
       FBudget_Header_RecTable := TBudget_Header_RecTable.Create(Connection);
    Result := FBudget_Header_RecTable;
+end;
+
+function TClientMigrater.GetChartDivisionTable: TChartDivisionTable;
+begin
+  if not Assigned(FChartDivisionTable) then
+      FChartDivisionTable := TChartDivisionTable.Create(Connection);
+   Result := FChartDivisionTable;
 end;
 
 function TClientMigrater.GetChart_RecTable: TChart_RecTable;
@@ -798,6 +882,8 @@ begin
       GuidList := TGuidList.Create(FClient.clBank_Account_List);
       RunGuidList(MyAction,'Bank Accounts',GuidList,AddAccount);
 
+      AddDivisions(MyAction);
+      AddSubGroups(MyAction);
       RunGuidList(MyAction,'Chart',GuidList.CloneList(FClient.clChart),AddChart);
 
       RunGuidList(MyAction,'Budgets',GuidList.CloneList(FClient.clBudget_List),AddBudget);
@@ -810,8 +896,7 @@ begin
 
       AddGStRates(MyAction);
 
-      AddDivisions(MyAction);
-      AddSubGroups(MyAction);
+
 
       MyAction.Status := Success;
       Result := true;
@@ -848,6 +933,12 @@ procedure TClientMigrater.SetBudget_Header_RecTable(
   const Value: TBudget_Header_RecTable);
 begin
   FBudget_Header_RecTable := Value;
+end;
+
+procedure TClientMigrater.SetChartDivisionTable(
+  const Value: TChartDivisionTable);
+begin
+  FChartDivisionTable := Value;
 end;
 
 procedure TClientMigrater.SetChart_RecTable(const Value: TChart_RecTable);
@@ -909,6 +1000,11 @@ procedure TClientMigrater.SetDissection_RecTable(
   const Value: TDissection_RecTable);
 begin
   FDissection_RecTable := Value;
+end;
+
+procedure TClientMigrater.SetDivisionList(const Value: TGuidList);
+begin
+  FDivisionList := Value;
 end;
 
 procedure TClientMigrater.SetDivisionsTable(const Value: TDivisionsTable);

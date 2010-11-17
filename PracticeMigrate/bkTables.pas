@@ -128,6 +128,14 @@ public
                    Value: pAccount_Rec): Boolean;
 end;
 
+TChartDivisionTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(ChartID,
+                   DivisionId: TGuid): Boolean;
+end;
+
 TCustom_Heading_RecTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
@@ -556,7 +564,7 @@ begin with Value^ do
 {2}       ,ToSQL(chPosting_Allowed),ToSQL(chAccount_Type),ToSQL(chEnter_Quantity),ToSQL(chMoney_Variance_Up)
 {3}       ,ToSQL(chMoney_Variance_Down),ToSQL(chPercent_Variance_Up),ToSQL(chPercent_Variance_Down)
 {4}       ,ToSQL(chSubtype),ToSQL(chLinked_Account_OS),ToSQL(chLinked_Account_CS),ToSQL(chHide_In_Basic_Chart)],[]);
-          { TODO : Divisions need adding }
+
 end;
 
 procedure TChart_RecTable.SetupTable;
@@ -880,6 +888,19 @@ procedure TBalances_RecTable.SetupTable;
 begin
   TableName := 'Balances';
 
+end;
+
+{ TChartDivisionTable }
+
+function TChartDivisionTable.Insert(ChartID,DivisionId: TGuid): Boolean;
+begin
+   Result := RunValues([toSQL(DivisionId),toSQL(ChartId)],[]);
+end;
+
+procedure TChartDivisionTable.SetupTable;
+begin
+   Tablename := 'ReportClientDivisionChart';
+   SetFields(['ReportClientDivisions_Id','Charts_Id'],[]);
 end;
 
 end.
