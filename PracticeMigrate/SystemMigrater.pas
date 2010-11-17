@@ -355,9 +355,11 @@ begin
 
       DeleteTable(MyAction,'UserClients');
 
+
       DeleteTable(MyAction,'BankTransactions', true);
 
       DeleteTable(MyAction,'ClientSystemAccounts');;
+      DeleteTable(MyAction,'SystemBankAccounts');
 
       DeleteTable(MyAction,'PracticeClients');
 
