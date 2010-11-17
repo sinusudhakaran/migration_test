@@ -60,6 +60,7 @@ type
     Label5: TLabel;
     VirtualStringTree1: TVirtualStringTree;
     LVersion: TLabel;
+    btnSQLBrowse: TButton;
     procedure BBrowseClick(Sender: TObject);
     procedure BtnNextClick(Sender: TObject);
     procedure BtnCancelClick(Sender: TObject);
@@ -522,8 +523,10 @@ begin
 
   btnClear.Visible := not FPreLoaded;
   cbservers.Enabled := not FPreLoaded;
+  btnSQLBrowse.Visible := not FPreLoaded;
+
   if not FPreLoaded then begin
-     ListAvailableSQLServers(cbservers.Items);
+
      (*Databases := TStringList.Create;
        Good plan but takes far too long...
      try
@@ -676,6 +679,7 @@ begin
   case Progress of
     SelectSource: begin
           btnClear.Enabled := Destination > '';
+          btnSQLBrowse.Enabled := cbServers.Items.Count <= 1;
        end;
     Selection: begin
           btnDef.Enabled := not (    (cbUsers.Checked = cbUsers.Enabled)

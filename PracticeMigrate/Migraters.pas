@@ -6,6 +6,7 @@ uses
    DB,
    ADODB,
    MigrateActions,
+   MigrateTable,
    GuidList;
 
 type
@@ -33,7 +34,8 @@ public
 
     // SQL Helpers..
     function RunSQL(ForAction: TMigrateAction; SQL: widestring) : Boolean;
-    function DeleteTable(ForAction: TMigrateAction; Tablename: string; Truncate: boolean = false):Boolean;
+    function DeleteTable(ForAction: TMigrateAction; Tablename: string; Truncate: boolean = false):Boolean; overload;
+    function DeleteTable(ForAction: TMigrateAction; Table: TMigrateTable; Truncate: boolean = false):Boolean; overload;
     function InsertTable(ForAction: TMigrateAction; TableName, Fields, Values, Name: string): Boolean;
 
     // static Data...
@@ -79,6 +81,12 @@ begin
   else
      Result := format('Delete From [%s]',[TableName]);
 
+end;
+
+function TMigrater.DeleteTable(ForAction: TMigrateAction; Table: TMigrateTable;
+  Truncate: boolean): Boolean;
+begin
+   Result := DeleteTable(ForAction, Table.Tablename, Truncate);
 end;
 
 function TMigrater.DeleteTable(ForAction: TMigrateAction; Tablename: string;

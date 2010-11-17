@@ -808,7 +808,7 @@ object formMain: TformMain
       end
       object Label8: TLabel
         Left = 16
-        Top = 225
+        Top = 240
         Width = 244
         Height = 15
         Caption = 'Select the new BankLink Practice installation'
@@ -833,8 +833,8 @@ object formMain: TformMain
         OnClick = BBrowseClick
       end
       object btnClear: TButton
-        Left = 635
-        Top = 274
+        Left = 633
+        Top = 290
         Width = 105
         Height = 25
         Anchors = [akTop, akRight]
@@ -843,14 +843,23 @@ object formMain: TformMain
         OnClick = btnClearClick
       end
       object Cbservers: TComboBox
-        Left = 18
-        Top = 245
+        Left = 16
+        Top = 261
         Width = 722
         Height = 23
         Anchors = [akLeft, akTop, akRight]
         ItemHeight = 15
         TabOrder = 3
         OnSelect = CbserversSelect
+      end
+      object btnSQLBrowse: TButton
+        Left = 663
+        Top = 230
+        Width = 75
+        Height = 25
+        Caption = 'Browse'
+        TabOrder = 4
+        OnClick = btnSQLBrowseClick
       end
     end
     object tsSelect: TTabSheet
