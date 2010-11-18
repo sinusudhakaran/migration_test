@@ -895,7 +895,9 @@ CONST
 
    // system bank account types
    sbtData = 0; sbtMin = 0; // can receive downloaded data
-   sbtOffsite = 1; sbtMax = 1; // offsite account has charges
+   sbtOffsite = 1; // offsite account has charges
+   sbtProvisional = 2; sbtMax = 2; // provisional accounts
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //GST class types indicators NEW ZEALAND
 
