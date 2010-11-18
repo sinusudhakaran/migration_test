@@ -754,36 +754,47 @@ function TClient_ScheduleTable.Insert(MyId: TGuid;
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec): Boolean;
 begin with Value^, Extra^ do
-  Result := RunValues([ToSQL(MyID), ToSQL(ClientID),ToSQL(clScheduled_File_Attachments), ToSQL(clScheduled_Coding_Report_Style)
-              ,ToSQL(clScheduled_Coding_Report_Sort_Order)
+  Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(clScheduled_Coding_Report_Style)
+              ,ToSQL(clScheduled_Coding_Report_Sort_Order), DateToSQL(value.clReport_Start_Date)
+
 {2}       ,ToSQL(clScheduled_Coding_Report_Entry_Selection), ToSQL(clScheduled_Coding_Report_Blank_Lines)
               ,ToSql(clScheduled_Coding_Report_Rule_Line), ToSQL(clScheduled_Coding_Report_New_Page)
+
 {3}       ,ToSQL(clScheduled_Coding_Report_Print_TI), ToSQL(clScheduled_Coding_Report_Show_OP)
               ,ToSQL(clScheduled_Coding_Report_Wrap_Narration)
               ,ToSQL(not (clFax_Scheduled_Reports
                       or clCheckOut_Scheduled_Reports
                       or clWebX_Export_Scheduled_Reports
-                      or clBusiness_Products_Scheduled_Reports
                       or clEmail_Scheduled_Reports))
+
 {4}       ,ToSQL(clEmail_Scheduled_Reports), ToSQL(clFax_Scheduled_Reports), ToSQL(clCheckOut_Scheduled_Reports)
-              ,ToSQL(clWebX_Export_Scheduled_Reports),ToSQL(clECoding_Export_Scheduled_Reports ), ToSQL(clCSV_Export_Scheduled_Reports)
+              ,ToSQL(clWebX_Export_Scheduled_Reports), ToSQL(clCSV_Export_Scheduled_Reports)
               ,ToSQL(clBusiness_Products_Scheduled_Reports), ToSQL(clSend_Coding_Report)
+
 {5}       ,ToSQL(clSend_Chart_of_Accounts), ToSQL(clSend_Payee_List), ToSQL(Extra.ceSend_Job_List)
-              ,ToSQL(clExclude_From_Scheduled_Reports), ToSQL(clReporting_Period)
+              ,ToSQL(clExclude_From_Scheduled_Reports), ToSQL(clReporting_Period) , ToSQL(extra.ceSend_Custom_Documents)
+
 {6}       ,ToSQL(clScheduled_Client_Note_Message), ToSQL(clEmail_Report_Format), ToSQL(ceScheduled_Custom_CR_XML)
               ,ToSQL(ceScheduled_CR_Column_Line)
+
               ],[]);
 end;
 
 procedure TClient_ScheduleTable.SetupTable;
 begin
   TableName := 'ScheduledTaskValues';
-  SetFields(['Id','ClientId_Id','FileAttachments','CodingReportStyle','CodingReportSortOrder'
-{2}      ,'CodingReportEntrySelection','CodingReportBlankLines','CodingReportRuleLine','CodingReportNewPage'
+  SetFields(['Id','ClientId_Id','CodingReportStyle','CodingReportSortOrder', 'ReportYearStart'
+
+{2}      ,'CodingReportEntrySelection','CodingReportBlankLines','CodingReportRuleLineBetweenEntries','CodingReportNewPage'
+
 {3}      ,'CodingReportShowTaxInvoice','CodingReportShowOtherParty','CodingReportWrapNarration','TaskPrint'
-{4}      ,'TaskEmail','TaskFax','TaskCheckOut','TaskWebExport','TaskSendNotes','TaskCSVExport','TaskBusinessProduct','SendCoding'
-{5}      ,'SendChart','SendPayees','SendJobs','ExcludeFromScheduledReports','PeportingPeriod'
-{6}      ,'ClientNoteMessage','EmailReportFormat','CustomCodingReportXML','CodingReportColumnLine' ],[]);
+
+{4}      ,'TaskEmail','TaskFax','TaskCheckOut','TaskWebExport','TaskCSVExport','TaskBusinessProduct','SendCoding'
+
+{5}      ,'SendChart','Sendpayees','SendJobs', 'ExcludeFromScheduledReports','ReportingPeriod' ,'IncludeCustomDocument'
+
+{6}      ,'ClientNoteMessage','EmailReportFormat','CustomCodingReportXML','CodingReportRuleLineBetweenColumns'
+     ],[]);
 
 end;
 
