@@ -326,7 +326,7 @@ begin
          Continue;
       Division := GetDivision(I);
       if Assigned(Division) then begin
-         Result := ChartDivisionTable.Insert(Value.GuidID, Division.GuidID);
+         Result := ChartDivisionTable.Insert(Division.GuidID, Value.GuidID, ClientID, I);
          if not Result then
             Exit;
       end;
@@ -545,9 +545,7 @@ begin
       DeleteTable(MyAction,'FuelSheets', True);
       DeleteTable(MyAction,'Balances');
 
-      DeleteTable(MyAction,'ReportClientDivisions');
-      DeleteTable(MyAction,ChartDivisionTable);
-      DeleteTable(MyAction,'Charts');
+
 
       DeleteTable(MyAction,'NotesOptions');
       DeleteTable(MyAction,'Headings');
@@ -577,9 +575,12 @@ begin
       DeleteTable(MyAction,'ReportingOptions');
       DeleteTable(MyAction,'ReportSubGroups');
 
+      DeleteTable(MyAction,ChartDivisionTable);
 
+      DeleteTable(MyAction,Chart_RecTable);
 
       DeleteTable(MyAction,'Clients');
+
 
       Result := True;
       MyAction.Status := Success;

@@ -132,8 +132,11 @@ TChartDivisionTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
 public
-   function Insert(ChartID,
-                   DivisionId: TGuid): Boolean;
+   function Insert(MyID,
+                   ChartID,
+                   ClientId: TGuid;
+                   Division: Integer
+                   ): Boolean;
 end;
 
 TCustom_Heading_RecTable = class (TMigrateTable)
@@ -903,15 +906,19 @@ end;
 
 { TChartDivisionTable }
 
-function TChartDivisionTable.Insert(ChartID,DivisionId: TGuid): Boolean;
+function TChartDivisionTable.Insert(MyID,
+                   ChartID,
+                   ClientId: TGuid;
+                   Division: Integer
+                   ): Boolean;
 begin
-   Result := RunValues([toSQL(DivisionId),toSQL(ChartId)],[]);
+   Result := RunValues([ToSQL(MyID),toSQL(Division),toSQL(ClientId),toSQL(ChartId)],[]);
 end;
 
 procedure TChartDivisionTable.SetupTable;
 begin
-   Tablename := 'ReportClientDivisionChart';
-   SetFields(['ReportClientDivisions_Id','Charts_Id'],[]);
+   Tablename := 'ClientReportDivisionCharts';
+   SetFields(['Id','DivisionIndex','Client_Id','Chart_Id'],[]);
 end;
 
 end.

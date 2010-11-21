@@ -78,6 +78,7 @@ type
     procedure cbUsersClick(Sender: TObject);
     procedure cbArchiveClick(Sender: TObject);
     procedure btnDefClick(Sender: TObject);
+    procedure CbserversDropDown(Sender: TObject);
 
   private
     Fprogress: Tprogress;
@@ -285,6 +286,12 @@ begin
   cbUsers.Checked := cbUsers.Enabled;
   cbArchive.Checked := cbArchive.Enabled;
   cbUnsync.Checked := false;
+end;
+
+procedure TformMain.CbserversDropDown(Sender: TObject);
+begin
+   if cbservers.Items.Count <=1 then
+      ListAvailableSQLServers(cbservers.Items);
 end;
 
 procedure TformMain.CbserversSelect(Sender: TObject);

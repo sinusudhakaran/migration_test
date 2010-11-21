@@ -850,6 +850,7 @@ object formMain: TformMain
         Anchors = [akLeft, akTop, akRight]
         ItemHeight = 15
         TabOrder = 3
+        OnDropDown = CbserversDropDown
         OnSelect = CbserversSelect
       end
       object btnSQLBrowse: TButton
@@ -857,6 +858,7 @@ object formMain: TformMain
         Top = 230
         Width = 75
         Height = 25
+        Anchors = [akTop, akRight]
         Caption = 'Browse'
         TabOrder = 4
         OnClick = btnSQLBrowseClick
@@ -1144,7 +1146,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000180018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101040010001C0018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
