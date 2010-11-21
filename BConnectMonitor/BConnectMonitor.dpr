@@ -25,7 +25,7 @@ type
   private
     procedure HTTPClientHeader(Sender: TObject; const Field, Value: string);  
   public
-  end;
+  end;                                             
 
 var
   HTTPClient: TipsHTTPS;
@@ -123,7 +123,7 @@ begin
   if not CheckParamIsEmail(1) then
   begin
     FirstEmailParam := 2;
-    SleepInterval := StrToInt(ParamStr(1)) * 1000 * 60; // x minutes, x being the number entered by the user
+    SleepInterval := 1000 * 60 * StrToInt(ParamStr(1)); // x minutes, x being the number entered by the user
   end else
   begin
     FirstEmailParam := 1;
