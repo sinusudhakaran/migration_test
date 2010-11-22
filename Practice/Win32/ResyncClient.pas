@@ -653,7 +653,8 @@ begin
             pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( baFields.baBank_Account_Number );
             if pSB <> nil then
             begin
-               if psb.sbAccount_Type <> sbtData then Continue;
+               if not(psb.sbAccount_Type in [sbtData, sbtProvisional]) then
+                  Continue;
 
                //account exists in client and admin so load details
                NewBankAccount := TBank_Account.Create;

@@ -152,7 +152,8 @@ begin
      for i := 0 to Pred(itemCount) do
      begin
         BankAcct := System_Bank_Account_At(i);
-        if BankAcct.sbAccount_Type <> sbtData then Continue;
+        if not(BankAcct.sbAccount_Type in [sbtData, sbtProvisional]) then
+           Continue;
         //include non attached and not deleted
         IncludeAccount := (BankAcct.sbAttach_Required) and (not BankAcct.sbMark_As_Deleted);
         if (not IncludeAccount) then
@@ -314,7 +315,8 @@ begin
     if lvAdminBank.Items[i].Selected then begin
       AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(lvAdminBank.Items[i].Caption);
       if Assigned(AdminBankAccount) then begin
-        if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Attach Bank Account '+AdminBankAccount.sbAccount_Number+' to Client '+ MyClient.clFields.clCode);
+        if DebugMe then
+           LogUtil.LogMsg(lmDebug, UnitName, 'Attach Bank Account '+AdminBankAccount.sbAccount_Number+' to Client '+ MyClient.clFields.clCode);
 
         //update admin and attach bank account
         AdminBankAccount.sbAttach_Required := false;
@@ -334,6 +336,10 @@ begin
                  baFields.baApply_Master_Memorised_Entries := true;
                  baFields.baDesktop_Super_Ledger_ID := -1;
                  baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
+                 if AdminBankAccount.sbAccount_Type = sbtProvisional then begin
+                    baFields.baIs_A_Manual_Account
+                 end;
+
               end;
 
              Insert(NewBankAccount);

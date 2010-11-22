@@ -34,6 +34,7 @@ type
     acCurrencies: TAction;
     acExchangeRates: TAction;
     acSendProvReq: TAction;
+    acAddProvTrans: TAction;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
@@ -57,11 +58,13 @@ type
     procedure acExchangeRatesExecute(Sender: TObject);
     procedure actSendProvReqExecute(Sender: TObject);
     procedure SendProvAccRequest;
+    procedure acAddProvTransExecute(Sender: TObject);
+    procedure ManuallyAddProvTrans(ForAccount: string);
   private
     { Private declarations }
     fChanged : boolean;
     procedure RefreshBankAccountList(Selected: string = '');
-    procedure HandleDeletes(AsDoRequest: Boolean);
+    procedure HandleDeletes(AsDoRequest: Boolean; Provisionals: Boolean = false);
   public
   protected
     procedure UpdateActions; override;
@@ -105,8 +108,8 @@ uses
   bkConst,
   GenUtils,
   FrequencyRequestFrm,
-  SendProvAccRequestFrm;
-
+  SendProvAccRequestFrm,
+  HistoricalDlg;
 
 {$R *.DFM}
 
@@ -278,6 +281,15 @@ begin
   end;
 end;
 
+
+procedure TfrmMaintainPracBank.acAddProvTransExecute(Sender: TObject);
+var Selected: PSystem_Bank_Account_Rec;
+begin
+  Selected := SysAccounts.Selected;
+  if not Assigned(Selected) then
+     Exit;
+  ManuallyAddProvTrans(Selected.sbAccount_Number);
+end;
 
 procedure TfrmMaintainPracBank.acCurrenciesExecute(Sender: TObject);
 begin
@@ -518,6 +530,7 @@ procedure TfrmMaintainPracBank.UpdateActions;
          actCharge.Enabled := True;
          actSendDelete.Enabled := True;
          actSendFrequencyRequest.Enabled := not Value.sbMark_As_Deleted;
+         acAddProvTrans.Enabled := Value.sbAccount_Type = sbtProvisional;
 
          Result := True;
       finally
@@ -580,6 +593,7 @@ procedure TfrmMaintainPracBank.UpdateActions;
 
          actSendFrequencyRequest.Visible := SysAccounts.AccountsHaveFrequencyInfo;
          actSendFrequencyRequest.Enabled := ((TotCount - delCount) > 0);
+         acAddProvTrans.Enabled := false;
          Result := True;
       end;
 
@@ -610,7 +624,7 @@ begin
   actCharge.ImageIndex := Manager_SingleTick;
   actSendDelete.Enabled := False;
   actSendFrequencyRequest.Enabled := False;
-
+  acAddProvTrans.Enabled := False;
   finally
      fChanged := false;
   end;
@@ -648,7 +662,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmMaintainPracBank.HandleDeletes(AsDoRequest: Boolean);
+procedure TfrmMaintainPracBank.HandleDeletes(AsDoRequest: Boolean; Provisionals: Boolean = false);
 var
     lNode: PVirtualNode;
     lList: TStringList;
@@ -656,7 +670,9 @@ var
     lACC: TSABaseItem;
     AllDeleted,
     AllInactive,
-    AllOffsite: Boolean;
+    AllOffsite,
+    DeleteProvsToo: Boolean;
+    StringNum: integer;
 
     function SendTheRequest: Boolean;
     var Recipient, Body: string;
@@ -737,7 +753,20 @@ var
 
 
 begin
+   DeleteProvsToo := false;
    ldlg := TfrmDeleteRequest.Create(self);
+
+   if Provisionals then
+   begin
+     ldlg.Caption := 'Confirm Provisional Account deletion request';
+     ldlg.Label1.Caption := 'You have selected the following Provisional Accounts for deletion:';
+     ldlg.LDelete.Caption := 'If you continue you will no longer be able to add or import transactions.';
+     ldlg.LDownload.Caption := 'Click OK to continue or Cancel to exit without sending the deletion request.';
+     ldlg.EDate.Visible := false;
+     ldlg.lProcessed.Visible := false;
+     ldlg.lCharges.Visible := false;
+   end;
+
    with ldlg do try
       EAccounts.Lines.clear;
       lList := TStringList.Create; // So we can sort the list..
@@ -749,16 +778,21 @@ begin
          while Assigned(lNode) do begin
             lACC := SysAccounts.Accounts[lNode];
             if Assigned(lAcc.SysAccount) then begin
-
-               lList.Add( format('%s, %s',
-                  [SysAccounts.Accounts[lNode].SysAccount.sbAccount_Number,
-                   SysAccounts.Accounts[lNode].SysAccount.sbAccount_Name]));
-               if not lAcc.SysAccount.sbMark_As_Deleted then
-                  AllDeleted := False;
-               if not lAcc.SysAccount.sbInActive then
-                  AllInactive := False;
-               if not lAcc.IsOffsite then
-                  AllOffsite := False;
+               if (SysAccounts.Accounts[lNode].SysAccount.sbAccount_Type <> sbtProvisional)
+               xor Provisionals then
+               begin
+                 lList.Add( format('%s, %s',
+                    [SysAccounts.Accounts[lNode].SysAccount.sbAccount_Number,
+                     SysAccounts.Accounts[lNode].SysAccount.sbAccount_Name]));
+                 if not lAcc.SysAccount.sbMark_As_Deleted then
+                    AllDeleted := False;
+                 if not lAcc.SysAccount.sbInActive then
+                    AllInactive := False;
+                 if not lAcc.IsOffsite then
+                    AllOffsite := False;
+               end else
+                 if not Provisionals then              
+                   DeleteProvsToo := true; // We'll need to run through HandleDeletes again to delete the selected provisional accounts
             end;
 
             lNode := SysAccounts.AccountTree.GetNextSelected(lNode);
@@ -796,6 +830,14 @@ begin
       FChanged := True;
       ldlg.Free;
    end;
+
+   if DeleteProvsToo then
+     HandleDeletes(AsDoRequest, true); // Now for the provisional accounts
+end;
+
+procedure TfrmMaintainPracBank.ManuallyAddProvTrans(ForAccount: string);
+begin
+  AddProvisionalData(ForAccount );
 end;
 
 //------------------------------------------------------------------------------
@@ -883,12 +925,34 @@ end;
 procedure TfrmMaintainPracBank.SendProvAccRequest;
 var
   SendProvAccRequestForm: TfrmSendProvAccRequest;
+  SystemAccount: pSystem_Bank_Account_Rec;
+  lSel: string;
 begin
+  lsel := '';
   SendProvAccRequestForm := TfrmSendProvAccRequest.Create(Self);
-  if SendProvAccRequestForm.ShowModal = mrOk then
-  begin
-    ShowMessage('ok');
+  try
+     if SendProvAccRequestForm.ShowModal = mrOk then begin
+        // ShowMessage('ok');
+        if LoadAdminSystem(true, 'Provisional Account') then begin
+           // for all intended purposes, it can be trated as delivered..
+           SystemAccount := AdminSystem.NewSystemAccount(SendProvAccRequestForm.AccountNumber, True);
+           SystemAccount.sbAccount_Name := SendProvAccRequestForm.AccountName;
+           SystemAccount.sbAccount_Type := sbtProvisional;
+           SystemAccount.sbInstitution := SendProvAccRequestForm.Institution;
+           SystemAccount.sbCurrency_Code := SendProvAccRequestForm.Currency;
+           // So we can select it..
+           lsel := SystemAccount.sbAccount_Number;
+           SaveAdminSystem;
+        end;
+     end;
+  finally
+     SendProvAccRequestForm.Free;
   end;
+
+  RefreshBankAccountList(lSel);
+  // Since it is a new one...
+  SysAccounts.AccountTree.ScrollIntoView(SysAccounts.AccountTree.GetFirstSelected, true);
+
 end;
 
 end.

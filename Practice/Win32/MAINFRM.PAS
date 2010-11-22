@@ -412,6 +412,7 @@ type
     tbBudgetClose: TRzToolButton;
     tbCodingClose: TRzToolButton;
     tbAbout: TRzToolButton;
+    mniListProvisional: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -682,6 +683,7 @@ type
     procedure tbCloseClick(Sender: TObject);
     procedure tbBudgetCloseClick(Sender: TObject);
     procedure tbCodingCloseClick(Sender: TObject);
+    procedure mniListProvisionalClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -3161,6 +3163,11 @@ end;
 procedure TfrmMain.mniListAdminBankAccountsClick(Sender: TObject);
 begin
    DoModalReport(REPORT_ADMIN_ACCOUNTS,rdNone);
+end;
+
+procedure TfrmMain.mniListProvisionalClick(Sender: TObject);
+begin
+  DoModalReport(REPORT_PROV_ACCOUNTS, rdNone);
 end;
 
 procedure TfrmMain.mniListInactiveClick(Sender: TObject);

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ADODB, DB;
+  Dialogs, StdCtrls, OSFont;
 
 type
   TfrmSendProvAccRequest = class(TForm)
@@ -22,16 +22,24 @@ type
     lblCurrencyWarning: TLabel;
     chkReadTerms: TCheckBox;
     lblTerms: TLabel;
-    conUTILITY: TADOConnection;
     cbxInstitution: TComboBox;
+    lblP: TLabel;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure lblTermsClick(Sender: TObject);
     procedure btnSubmitClick(Sender: TObject);
     function ValidateDetails: boolean;
   private
+    function GetAccountName: string;
+    function GetAccountNumber: string;
+    function GetCurrency: string;
+    function GetInstitution: string;
     { Private declarations }
   public
+    property AccountNumber: string read GetAccountNumber;
+    property AccountName: string read GetAccountName;
+    property Institution: string read GetInstitution;
+    property Currency: string read GetCurrency;
     { Public declarations }
   end;
 
@@ -45,7 +53,7 @@ uses
 procedure TfrmSendProvAccRequest.btnSubmitClick(Sender: TObject);
 begin
   if not ValidateDetails then
-    ModalResult := mrNone;
+    ModalResult := mrOk;
 end;
 
 function TfrmSendProvAccRequest.ValidateDetails: boolean;
@@ -76,7 +84,9 @@ begin
     Exit;
   end;
 
-  if (cbxCurrency.Visible) and ((cbxCurrency.Text = '') or (cbxCurrency.Text = 'Select')) then
+  if (cbxCurrency.Visible)
+  and ((cbxCurrency.Text = '')
+  or (cbxCurrency.Text = 'Select')) then
   begin
     ShowMessage('You must select a Currency. Please try again');
     Exit;
@@ -94,20 +104,17 @@ end;
 
 procedure TfrmSendProvAccRequest.FormCreate(Sender: TObject);
 var
-  i, C, RowNum, NumRows: integer;
-  Query: TADOQuery;
-  Institution: string;
-//  Institutions: TStringList;
+  I: integer;
 begin
   for I := 0 to High(mtNames) do
     cbxAccountType.AddItem(mtNames[I], nil);
 
   AdminSystem.SyncCurrenciesToSystemAccounts;
-  for C := low(AdminSystem.fCurrencyList .ehISO_Codes) to high(AdminSystem.fCurrencyList.ehISO_Codes) do
-    if AdminSystem.fCurrencyList.ehISO_Codes[C] > '' then
-    begin
-      cbxCurrency.AddItem(AdminSystem.fCurrencyList.ehISO_Codes[C], nil);
+  for I := low(AdminSystem.fCurrencyList .ehISO_Codes) to high(AdminSystem.fCurrencyList.ehISO_Codes) do
+    if AdminSystem.fCurrencyList.ehISO_Codes[I] > '' then begin
+       cbxCurrency.AddItem(AdminSystem.fCurrencyList.ehISO_Codes[I],nil);
     end;
+  cbxCurrency.ItemIndex := cbxCurrency.Items.IndexOf( AdminSystem.CurrencyCode);
 
   if (AdminSystem.fdFields.fdCountry = whUK) then
   begin
@@ -116,36 +123,31 @@ begin
     lblCurrencyWarning.Visible := true;
   end;
 
-  {
-  Query := TADOQuery.Create(nil);
-  try
-    Query.Connection := conUTILITY;
-    Query.SQL.Text := 'SELECT * FROM BK_T_INSTITUTION ORDER BY in_Name';
-    Query.Open;
-//    Institutions := TStringList.Create;
-    RowNum := 0;
-    NumRows := Query.RecordCount;
-    while (RowNum < NumRows) do
-    begin
-      try
-        Institution := Query.Recordset.Fields['in_Name'].Value;
-//        Institutions.Add(Institution);
-        cbxInstitution.Items.Add(Institution);
-        Query.Recordset.MoveNext;
-        inc(RowNum);
-      except
-        ShowMessage('RowNum = ' + IntToStr(RowNum));
-      end;
-    end;
-  finally
-
-  end;
-  }
 end;
 
 procedure TfrmSendProvAccRequest.FormShow(Sender: TObject);
 begin
 //
+end;
+
+function TfrmSendProvAccRequest.GetAccountName: string;
+begin
+   Result := edtAccountName.Text;
+end;
+
+function TfrmSendProvAccRequest.GetAccountNumber: string;
+begin
+   Result := lblP.Caption + edtAccountNumber.Text;
+end;
+
+function TfrmSendProvAccRequest.GetCurrency: string;
+begin
+   Result := self.cbxCurrency.Text;
+end;
+
+function TfrmSendProvAccRequest.GetInstitution: string;
+begin
+   Result := cbxInstitution.Text;
 end;
 
 procedure TfrmSendProvAccRequest.lblTermsClick(Sender: TObject);

@@ -588,6 +588,7 @@ begin
       REPORT_SUMMARY_DOWNLOAD: DoSummarisedDownloadReport(Destination);
       REPORT_ADMIN_ACCOUNTS  : DoListAdminBankAccounts(False, Destination);
       REPORT_ADMIN_INACTIVE_ACCOUNTS  : DoListAdminBankAccounts(True, Destination);
+      REPORT_PROV_ACCOUNTS   : DoListAdminBankAccounts(False, Destination, True);
       REPORT_CLIENTS_BY_STAFF: DoClientsByStaffMember(Destination);
       REPORT_CLIENT_REPORT_OPT:DoClientReportOptions(Destination);
       REPORT_DOWNLOAD_LOG    : DoDownloadLog(Destination);

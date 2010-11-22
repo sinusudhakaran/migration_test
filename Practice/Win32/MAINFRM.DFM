@@ -114,7 +114,6 @@ object frmMain: TfrmMain
       end>
     ParentFont = True
     UseSystemFont = False
-    ExplicitWidth = 885
   end
   object rzToolbars: TPanel
     Left = 0
@@ -129,7 +128,6 @@ object frmMain: TfrmMain
     ParentBackground = False
     TabOrder = 1
     OnResize = rzToolbarsResize
-    ExplicitWidth = 1178
     object rztFile: TRzToolbar
       Left = 3
       Top = 1
@@ -1478,6 +1476,10 @@ object frmMain: TfrmMain
         object mniListAdminBankAccounts: TMenuItem
           Caption = 'List &Bank Accounts'
           OnClick = mniListAdminBankAccountsClick
+        end
+        object mniListProvisional: TMenuItem
+          Caption = 'List Provisional Bank Accounts'
+          OnClick = mniListProvisionalClick
         end
         object mniListInactive: TMenuItem
           Caption = 'List &Inactive Bank Accounts'

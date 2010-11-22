@@ -47,6 +47,7 @@ unit HistoricalDlg;
 interface
 
 uses
+ syDefs,
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   OvcTCmmn, OvcTable, ComCtrls, StdCtrls, OvcBase, OvcEF, OvcPB, OvcNF,
   ExtCtrls, OvcTCHdr, OvcTCPic, OvcTCBEF, OvcTCNum, OvcTCell, OvcTCStr,
@@ -313,6 +314,7 @@ type
     fIsForex                      : Boolean;
     BCode                         : String[3];
     CCode                         : String[3];
+    FProvisional: Boolean;
 
     procedure InitController;
     procedure SetupColumnFmtList;
@@ -326,7 +328,7 @@ type
     function  ValidateActiveTrans( pT : pTransaction_Rec; var RowNum, ColNum : integer) : boolean;
     function  ValidateChequeNumber(var RowNum, ColNum: Integer; pT: pTransaction_Rec): Boolean;
     function  IsACheque( pT : pTransaction_Rec) : boolean;
-    procedure SetupEntryTypeList;
+    procedure SetupEntryTypeList(Country: Byte);
     function  FindETInCombo( aEntryType : byte ) : byte;
     procedure SetUpHelp;
 
@@ -373,21 +375,28 @@ type
     function CodingMouseUp(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer): Boolean;
     function GetCellRect(const RowNum, ColNum: Integer): TRect;
+    procedure Setup;
+    procedure SetProvisional(const Value: Boolean);
+    function AccountType: string;
   public
-    class function CreateAndSetup( aBankAccount  : TBank_Account ) : TdlgHistorical;
+    class function CreateAndSetup(aBankAccount: TBank_Account; isProvisional: Boolean = false ): TdlgHistorical; 
     property CurrentSortOrder : Integer read TranSortOrder;
     function GetComboIndexForEntryType(EntryType: Integer): Byte;
     procedure AmountEdited(pT: pTransaction_Rec; Doupdate: Boolean = true);
     procedure UpdateChequeNo(pT: pTransaction_Rec);
+    property Provisional: Boolean read FProvisional write SetProvisional;
   end;
 
 function AddHistoricalData : boolean;
 function AddManualData : boolean;
+function AddProvisionalData(ForAccount: string) : boolean;
 
 //******************************************************************************
 implementation
 
 uses
+  ArchUtil32,
+  clobj32,
   ForexHelpers,
   UsageUtils,
   MainTainGroupsFrm,
@@ -437,6 +446,8 @@ uses
   PayeeObj, baUtils, EditBankDlg, TransactionUtils,ImportHistDlg, Finalise32;
 
 {$R *.DFM}
+
+var DebugMe: boolean = false;
 
 const
   UnitName = 'HISTORICALDLG';
@@ -516,37 +527,18 @@ type
       property Canvas;
   end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class function TdlgHistorical.CreateAndSetup( aBankAccount  : TBank_Account ) : TdlgHistorical;
-var
-  ThisForm       : TdlgHistorical;
-  i              : integer;
-  FirstPDate     : integer;
-  FirstBankDate  : integer;
-  ED, TD, CD: Integer;
+
+procedure TdlgHistorical.Setup;
 begin
-   //create the form
-   ThisForm := TdlgHistorical.Create(Application.MainForm);
-   with ThisForm, tblHist do begin
-      AllowRedraw := false;
+   with tblHist do begin
+       AllowRedraw := false;
+        celForexRate.PictureMask := MoneyUtils.ForexPictureMask;
 
-      BankAccount  := aBankAccount;
-
-      fIsForex := BankAccount.IsAForexAccount;
-      celForexRate.PictureMask := MoneyUtils.ForexPictureMask;
-      CCode := MyClient.clExtra.ceLocal_Currency_Code;
-      BCode := BankAccount.baFields.baCurrency_Code;
-      stClosingBal.Caption := BankAccount.BalanceStr( 0 );
-
+      MoneyUtils.BalanceStr( 0, BCode );
       SetupColumnFmtList;
-      LoadLayoutForThisAcct(BankAccount.baFields.baIs_A_Manual_Account);
+
       BuildTableColumns;
-      SetupEntryTypeList;
-      InitController;
-      //set max gst id length
-      celGSTCode.MaxLength := GST_CLASS_CODE_LENGTH;
-      celAccount.MaxLength := MaxBk5CodeLen;
-      celNarration.MaxLength := MaxNarrationEditLength;
+
 
       //enter key will end edit and move right
       CommandOnEnter := ccRight;
@@ -564,14 +556,7 @@ begin
       OnEndEdit                  := tblHistEndEdit;
       OnDoneEdit                 := tblHistDoneEdit;
 
-      if BankAccount.baFields.baIs_A_Manual_Account then
-        SetSortOrder( BankAccount.baFields.baMDE_Sort_Order )
-      else
-        SetSortOrder( BankAccount.baFields.baHDE_Sort_Order );
-      HistTranList       := TUnSorted_Transaction_List.Create;
-      ExistingCheques    := TChequesList.Create;
-      SetupHelp;
-      //setup sort arrow
+       //setup sort arrow
       with hdrColumnHeadings do begin
          ShowSortArrow      := true;
          SortArrowColor     := clBtnShadow;
@@ -589,8 +574,58 @@ begin
 
       mniSortByNarration.Caption := 'By &Narration';
 
+      HistTranList := TUnSorted_Transaction_List.Create;
+      ExistingCheques := TChequesList.Create;
+      SetupHelp;
+        //add the first row
+      InsertNewRow( InsertAtEnd ); // Insert a blank row
+      FirstActivate := true;
+      AllowRedraw := true;
+      LastReminderAt := 0;
+   end;
+end;
+
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class function TdlgHistorical.CreateAndSetup(aBankAccount: TBank_Account; isProvisional: Boolean = false ) : TdlgHistorical;
+var
+  i              : integer;
+  FirstPDate     : integer;
+  FirstBankDate  : integer;
+  ED, TD, CD: Integer;
+begin
+   //create the form
+   Result := TdlgHistorical.Create(Application.MainForm);
+   with Result, tblHist do begin
+
+      BankAccount  := aBankAccount;
+
+      fIsForex := BankAccount.IsAForexAccount;
+
+      CCode := MyClient.clExtra.ceLocal_Currency_Code;
+      BCode := BankAccount.baFields.baCurrency_Code;
+      FCountry := MyClient.clFields.clCountry;
+
+      LoadLayoutForThisAcct(BankAccount.baFields.baIs_A_Manual_Account);
+
+      SetupEntryTypeList(MyClient.clFields.clCountry);
+
+      InitController;
+      //set max gst id length
+      celGSTCode.MaxLength := GST_CLASS_CODE_LENGTH;
+      celAccount.MaxLength := MaxBk5CodeLen;
+      celNarration.MaxLength := MaxNarrationEditLength;
+
+      Provisional := isProvisional;
+
+      if BankAccount.baFields.baIs_A_Manual_Account then
+        SetSortOrder( BankAccount.baFields.baMDE_Sort_Order )
+      else
+        SetSortOrder( BankAccount.baFields.baHDE_Sort_Order );
+
+
       if HasAlternativeChartCode(FCountry,MyClient.clFields.clAccounting_System_Used) then begin
-         mniSortByAltCode.Caption := Format ('By %s',[AlternativeChartCodeName(FCountry,MyClient.clFields.clAccounting_System_Used)]);
+        mniSortByAltCode.Caption := Format ('By %s',[AlternativeChartCodeName(FCountry,MyClient.clFields.clAccounting_System_Used)]);
       end else
         mniSortByAltCode.Visible := False;
 
@@ -605,7 +640,11 @@ begin
       //Find the date of the first non historical entry
       FirstBankDate := 0;
       FirstPDate    := 0;
-      with BankAccount.baTransaction_List do begin
+      if isProvisional then begin
+         MaxHistTranDate := 0; // unlimited
+
+      end else begin
+        with BankAccount.baTransaction_List do begin
          for i := 0 to Pred( itemCount ) do begin
             with Transaction_At( i )^ do begin
                //look for the first bank entry on historical entry
@@ -633,10 +672,10 @@ begin
                end;
             end;
          end;
-      end;
+       end;
 
-      if BankAccount.baFields.baIs_A_Manual_Account then
-      begin
+       if BankAccount.baFields.baIs_A_Manual_Account then
+       begin
         MaxHistTranDate := 0; // unlimited
         ED := GetMDEExpiryDate(MyClient.clBank_Account_List);
         TD := GetLatestTransDate(MyClient.clBank_Account_List);
@@ -652,13 +691,10 @@ begin
         MaxHistTranDate := FirstBankDate -1;
         lblTransRange.caption := 'Enter Transactions up to and including '+bkDate2Str(MaxHistTranDate) + '.';
       end;
-      //add the first row
-      InsertNewRow( InsertAtEnd ); // Insert a blank row
-      FirstActivate := true;
-      AllowRedraw := true;
-      LastReminderAt := 0;
+      end;
+       Setup;
    end;
-   result := ThisForm;
+
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.FormShow(Sender: TObject);
@@ -717,7 +753,7 @@ end;
 procedure TdlgHistorical.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
-  FCountry := MyClient.clFields.clCountry;
+ 
   lblAcctDetails.Font.Name := Font.Name;
   lblTransRange.Font.Name := Font.Name;
   SetLength( tmpBuffer, MaxNarrationEditLength + 1);
@@ -792,45 +828,42 @@ begin
       //BankLink Columns
       InsColDefnRec( 'Date', ceEffDate, celDate,  70, true, true, true, csDateEffective, 'Effective Date' );
       InsColDefnRec( 'Reference', ceReference, celRef, 100, true, true, true, csReference );
+
       case MyClient.clFields.clCountry of
          whNewZealand : begin
-            InsColDefnRec( 'Analysis', ceAnalysis, celAnalysis, 100, true, true, true, -1 );
+               InsColDefnRec( 'Analysis', ceAnalysis, celAnalysis, 100, true, true, true, -1 );
          end;
       end;
-      InsColDefnRec( 'Account', ceAccount, celAccount, CalcAcctColWidth( tblHist.Canvas, tblHist.Font, 70), true, true, true, csAccountCode  );
-      InsColDefnRec( 'A/c Desc',   ceDescription, celDescription, 150, false, false, false, -1);
 
-{      if fIsForex then
-      Begin
-        InsColDefnRec( 'Amount (' + BCode + ')', ceForexAmount, celForexAmount, 120, True, True, True, csByForexAmount );
-        InsColDefnRec( 'Rate', ceForexRate, celForexRate, 100, true, false, False, csByForexRate );
-        InsColDefnRec( 'Amount (' + CCode + ')', ceLocalAmount, celLocalAmount, 120, True, false, False, csByValue );
-      End
-      else
-      if MyClient.HasForeignCurrencyAccounts then
-        InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, 120, True, True, True, csByValue )
-      else
-        InsColDefnRec( 'Amount',   ceAmount, celAmount, 120, True, True, True, csByValue ); }
+      if not Provisional then begin
+         InsColDefnRec( 'Account', ceAccount, celAccount, CalcAcctColWidth( tblHist.Canvas, tblHist.Font, 70), true, true, true, csAccountCode  );
+         InsColDefnRec( 'A/c Desc',   ceDescription, celDescription, 150, false, false, false, -1);
+      end;
 
       if MyClient.HasForeignCurrencyAccounts then begin
-        if fIsForex then begin
-          InsColDefnRec( 'Amount (' + BCode + ')', ceAmount, celAmount, 120, True, True, True, csByValue );
-          InsColDefnRec( 'Rate', ceForexRate, celForexRate, 100, true, false, False, csByForexRate );
-          InsColDefnRec( 'Amount (' + CCode + ')', ceLocalAmount, celLocalAmount, 120, True, false, False, csByValue );
-        end else
-          InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, 120, True, True, True, csByValue );
+            if fIsForex then begin
+               InsColDefnRec( 'Amount (' + BCode + ')', ceAmount, celAmount, 120, True, True, True, csByValue );
+               InsColDefnRec( 'Rate', ceForexRate, celForexRate, 100, true, false, False, csByForexRate );
+               InsColDefnRec( 'Amount (' + CCode + ')', ceLocalAmount, celLocalAmount, 120, True, false, False, csByValue );
+            end else
+               InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, 120, True, True, True, csByValue );
       end else
-        InsColDefnRec( 'Amount',   ceAmount, celAmount, 120, True, True, True, csByValue );
+            InsColDefnRec( 'Amount',   ceAmount, celAmount, 120, True, True, True, csByValue );
+
+
+
 
       InsColDefnRec( 'Narration', ceNarration, celNarration, 200, true, true, true, csByNarration );
-      InsColDefnRec( 'Payee', cePayee,    celPayee,   70, true, true, true, -1  );
-      InsColDefnRec( 'Payee Name', cePayeeName,  celPayeeName, 100, false, false, false, -1);
-      InsColDefnRec( 'Job', ceJob,  celJob, 50, false, false, true, -1);
-      InsColDefnRec( 'Job Name', ceJobName,  celJobName, 100, false, false, False, -1);
 
-      AllowGSTClassEditing := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
+      if not Provisional then begin
+         InsColDefnRec( 'Payee', cePayee,    celPayee,   70, true, true, true, -1  );
+         InsColDefnRec( 'Payee Name', cePayeeName,  celPayeeName, 100, false, false, false, -1);
+         InsColDefnRec( 'Job', ceJob,  celJob, 50, false, false, true, -1);
+         InsColDefnRec( 'Job Name', ceJobName,  celJobName, 100, false, false, False, -1);
 
-      case MyClient.clFields.clCountry of
+         AllowGSTClassEditing := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
+
+         case MyClient.clFields.clCountry of
          whNewZealand : begin
             InsColDefnRec( 'GST',   ceGSTClass, celGSTCode, 50, true, true, true, -1, 'GST Class ID'  );
             InsColDefnRec( 'GST Amount', ceGSTAmount, celGstAmt, 70, true, true, true, -1  );
@@ -845,14 +878,18 @@ begin
             InsColDefnRec( 'VAT',   ceGSTClass, celGSTCode, 50, true, true, true, -1, 'GST Class ID'  );
             InsColDefnRec( 'VAT Amount', ceGSTAmount, celGstAmt, 70, true, true, true, -1  );
          end;
+         end;
+         InsColDefnRec( 'Tax Inv', ceTaxInvoice, celTaxInv, 55, false, true, true, -1);
       end;
-      InsColDefnRec( 'Tax Inv', ceTaxInvoice, celTaxInv, 55, false, true, true, -1);
+
       InsColDefnRec( 'Quantity',   ceQuantity,  celQuantity, 50, true, true, true, -1  );
       InsColDefnRec( 'Entry Type', ceEntryType, celEntryType, 70, true, true, true, -1 );
 
-      if HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then
+      if not Provisional then begin
+         if HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then
            InsColDefnRec(AlternativeChartCodeName(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used)
                         , ceAltChartcode, CelAltChartCode, 80, false, false, false, csByAltChartCode );
+      end;
 
 
       InsColDefnRec( 'Balance',    ceBalance,   celBalance, 120, true, false, false, csDateEffective);
@@ -977,7 +1014,8 @@ begin
          begin
             pT^.txDate_Effective := HistTranList.Transaction_At(NewIndex).txDate_Effective;
             pT^.txTemp_Balance := HistTranList.Transaction_At(NewIndex).txTemp_Balance;
-            if fIsForex then pT^.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate( pT.txDate_Effective );
+            if fIsForex then
+               pT^.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate( pT.txDate_Effective );
          end
          else
          begin
@@ -1054,7 +1092,6 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TdlgHistorical.ValidDate(aDate: Integer; msg: pstring = nil) : Boolean;
-var lr: TdateRange;
     procedure SetMessage(const Value: string);
     begin
        if assigned(msg) then
@@ -1069,23 +1106,14 @@ begin
 
    if (MaxHistTranDate <> 0)
    and (aDate > MaxHistTranDate) then begin//Date later than max allowed
-      SetMessage('Please enter a date on or before '+bkDate2Str(MaxHistTranDate) + '.');
+      SetMessage(Format('Please enter a date on or before %s.',[bkDate2Str(MaxHistTranDate)]));
       Exit;
    end;
-
-{   if fisForex then begin
-      lr := BankAccount.Default_Forex_Concersion_DateRange;
-      if (aDate < lr.FromDate)
-      or (aDate > lr.ToDate) then begin
-         SetMessage('Exchange rate only available between '#13 + bkDate2Str(lr.FromDate) + ' and ' + bkDate2Str(lr.ToDate) + '.');
-         Exit;
-      end;
-   end; }
 
    //check date is within banklink allowable range
    if (aDate < MinValidDate)
    or (aDate > MaxValidDate) then begin
-      SetMessage( 'Please enter a date between '#13 + bkDate2Str(MinValidDate) + ' and ' + bkDate2Str(MaxValidDate) + '.');
+      SetMessage(Format('Please enter a date between '#13'%s and %s.',[bkDate2Str(MinValidDate),bkDate2Str(MaxValidDate)]) );
       Exit;
    end;
 
@@ -1290,15 +1318,15 @@ begin
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TdlgHistorical.SetupEntryTypeList;
+procedure TdlgHistorical.SetupEntryTypeList(Country: Byte);
 //Used to fill the Entry Type col combo box, the actual entry type values are
 //stored in the object field of the item
 begin
    with celEntryType do begin
       Items.Clear;
 
-      with MyClient.clFields do begin
-         case clCountry of
+
+         case Country of
             whNewZealand : begin
                Items.AddObject('Cheque',    TObject(etChequeNZ));
                Items.AddObject('Withdrawal', TObject(etWithdrawlNZ));
@@ -1317,7 +1345,7 @@ begin
                Items.AddObject('Deposit',   TObject(etDepositUK));
             end;
          end;
-      end;
+
       //update ChequeTypeCmbIndex which provides a quick test to see if
       //transaction is a cheque
       ChequeTypeCmbIndex := 0;
@@ -1330,6 +1358,7 @@ procedure TdlgHistorical.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   SaveLayoutForThisAcct;
 end;
+
 
 procedure TdlgHistorical.SetupColDefaultSets;
 begin
@@ -1562,21 +1591,10 @@ begin
    end;
    //if cancel pressed, or form closed then ask before doing anything.  This will mean that can cancel out
    //even if current transaction is invalid
-   if ( ModalResult = mrCancel ) then
-   begin
-      if IsManual then
-      begin
-        Title := 'Cancel Manual Data Entry';
-        Msg := 'If you cancel, the Manual Transactions you have entered will be LOST!'#13+#13+
-                   'Are you sure you want to cancel and lose these transactions?';
-      end
-      else
-      begin
-        Title := 'Cancel Historical Data Entry';
-        Msg := 'If you cancel, the Historical Transactions you have entered will be LOST!'#13+#13+
-                   'Are you sure you want to cancel and lose these transactions?';
-      end;
-      if AskYesNo( Title, Msg, DLG_NO, 0 ) = DLG_YES then begin
+   if ( ModalResult = mrCancel ) then begin
+      if AskYesNo( Format('Cancel %s Data Entry',[AccountType]),
+                   Format('If you cancel, the %s Transactions you have entered will be LOST!'#13#13+
+                   'Are you sure you want to cancel and lose these transactions?',[AccountType]), DLG_NO, 0 ) = DLG_YES then begin
           CanClose := True;
           exit;
       end
@@ -1622,42 +1640,34 @@ begin
       //if ok then try to add entries
       if  HistTranList.ItemCount = 0 then begin
          //no valid entries
-         HelpfulWarningMsg('There are no entries to add.',0 );
+         HelpfulWarningMsg(format('There are no %s entries to add.',[AccountType]),0 );
          CanClose := false;
          Exit;
       end;
-      //Confirm addition
-      if IsManual then
-      begin
-        Title := 'Confirm Add Manual Entries';
-        Msg := 'The Manual Transactions you have entered will now be added to Bank Account: ';
-        Msg1 := '';
-      end
-      else
-      begin
-        Title := 'Confirm Add Historical Entries';
-        Msg := 'The Historical Transactions you have entered will now be added to Bank Account: ';
 
-      end;
-      if AskYesNo( Title, Msg + #13+#13+
-                   BankAccount.baFields.baBank_Account_Number+' '+BankAccount.AccountName+#13+#13+
-                   'Is it OK to Post these entries now?',
-                   DLG_YES,0) <> DLG_YES then begin
-         tblHist.SetFocus;
-         exit;
-      end;
+      //Confirm addition
+
+      if AskYesNo(
+           Format('Confirm Add %s Entries', [ AccountType]),
+           Format('The %s Transactions you have entered will now be added to Bank Account:'#13#13'%s'#13#13'Is it OK to Post these entries now?',
+                     [AccountType,BankAccount.Title ]),
+                   DLG_YES,0
+                 ) <> DLG_YES then
+           begin
+              tblHist.SetFocus;
+              Exit;
+           end;
+
       //Merge new transactions into the bank account
-      if IsManual then
-         incUsage('Manual Transactions', False,HistTranList.ItemCount )
-      else
-         incUsage('Historic Transactions', False,HistTranList.ItemCount );
+
+      incUsage(Format('%s Transactions',[AccountType]));
+
       InsertTranIntoBankAccount;
       //Close form is ok
-      CanClose := true;
-   end
-   else
+      CanClose := True;
+   end else
       //if we get here then modal result is not mrOK or mrCancel so close form
-      CanClose := true;
+      CanClose := True;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.tblHistGetCellAttributes(Sender: TObject;
@@ -2323,8 +2333,13 @@ begin
            begin
              if pT^.txTemp_Balance = UNKNOWN then
                 tmpPaintString := ''
-             else
-               tmpPaintString := BankAccount.BalanceStr( pT^.txTemp_Balance );
+             else begin
+                if assigned(BankAccount) then
+                   tmpPaintString := BankAccount.BalanceStr( pT^.txTemp_Balance )
+                else
+                   tmpPaintString := '';   
+             end;
+
              data := PChar(tmpPaintString);
            end;
         end;
@@ -3415,6 +3430,8 @@ begin
   pTo.txAmount := pFrom.txAmount;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.DoDitto(CopyLine: Boolean = False);
 Var
    pT             : pTransaction_Rec;
@@ -3712,12 +3729,10 @@ begin
    //DON'T FREE !!!, transactions are now part of BankAccount, however must
    //delete from list otherwise will be free'd when HistTranList is destroyed
    HistTranList.DeleteAll;
-   if IsManual then
-     S := Format( 'Add Manual Entries complete.'+#13+#13+'Added %d new entries.',[ Count ])
-   else
-     S := Format( 'Add Historical Entries complete.'+#13+#13+'Added %d new entries.',[ Count ]);
+
+   S := Format( 'Add %s Entries complete.'#13#13'Added %d new entries.',[AccountType, Count ]);
    LogMsg(lmInfo,UnitName, S);
-   HelpfulInfoMsg( S,0);
+   HelpfulInfoMsg(S, 0);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.SetCaptionState( TBar : TRzToolbar; CaptionOn: boolean);
@@ -3770,6 +3785,18 @@ begin
     Tbar.Width := BarWidth;
   end;
 end;
+procedure TdlgHistorical.SetProvisional(const Value: Boolean);
+begin
+  FProvisional := Value;
+  if FProvisional then begin
+      lblTransRange.Caption := 'You may enter transactions for this provisional account.';
+      tbChart.Visible := false;
+      tbPayee.Visible := false;
+      tbJob.Visible := false;
+      tbDissect.Visible := false;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.tbAddChequesClick(Sender: TObject);
 begin
@@ -3820,6 +3847,17 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TdlgHistorical.AccountType: string;
+begin
+   if isManual then
+     if Provisional then
+        Result := 'Provisional'
+     else
+        Result := 'Manual'
+   else
+      Result := 'Historical'
+end;
+
 procedure TdlgHistorical.actChartExecute(Sender: TObject);
 begin
    DoAccountLookup;
@@ -4045,13 +4083,11 @@ var
   sMsg : string;
 begin
    if ( HistTranList.ItemCount - LastReminderAt) > NoEntriesBeforeReminder then begin
-      if IsManual then
-        sMsg := 'You have entered '+inttostr( Pred(HistTranList.ItemCount)) +' Manual Transactions.  '+
-        'It is recommended that you now leave Manual Data Entry and Save the Client File. (Click File|Save from the menu)'
-      else
-        sMsg := 'You have entered '+inttostr( Pred(HistTranList.ItemCount)) +' Historical Transactions.  '+
-        'It is recommended that you now leave Historical Data Entry and Save the Client File. (Click File|Save from the menu)';
-      HelpfulInfoMsg(sMsg,0);
+      HelpfulInfoMsg(
+           format('You have entered %d %s Transactions.'#13+
+                  'It is recommended that you now leave %1:s Data Entry and Save the Client File. (Click File|Save from the menu)',
+                  [Pred(HistTranList.ItemCount), AccountType]
+                 ),0);
       LastReminderAt := HistTranList.ItemCount-1;
    end;
 end;
@@ -4615,18 +4651,22 @@ begin
                                      SelectManual, 0,0, false,
                                      BKH_Adding_manual_data);
 
-   if (not Assigned(AdminSystem)) and Assigned(SelectedBA) and (not SelectedBA.baFields.baExtend_Expiry_Date) and MDEExpired(MyClient.clBank_Account_List, MyClient.clFields.clLast_Use_Date) then
-   begin
+
+   if (not Assigned(AdminSystem))
+   and Assigned(SelectedBA)
+   and (not SelectedBA.baFields.baExtend_Expiry_Date)
+   and MDEExpired(MyClient.clBank_Account_List, MyClient.clFields.clLast_Use_Date) then begin
       HelpfulWarningMsg( 'You cannot add manual entries to this client file ' +
                       'because your manual bank accounts have expired.',0);
       exit;
    end;
 
-   if not Assigned(SelectedBA) then exit;
+    if not Assigned(SelectedBA) then
+      exit;
 
    // must have institution and type
-   if (SelectedBA.baFields.baManual_Account_Institution = '') or
-      (SelectedBA.baFields.baManual_Account_Type = -1) then
+   if (SelectedBA.baFields.baManual_Account_Institution = '')
+   or (SelectedBA.baFields.baManual_Account_Type = -1) then
    begin
      if AskYesNo('Temporary Account Upgrade', 'The Temporary Account "' + SelectedBA.AccountName + ' : ' +
        SelectedBA.baFields.baBank_Account_Number + '" has been upgraded to a Manual Account.'#13#13 +
@@ -4661,6 +4701,183 @@ begin
       end;
    end;
 end;
+
+
+
+
+
+
+
+function AddProvisionalData(ForAccount: string) : boolean;
+//this function is called from outside this unit and starts the add provisional data process
+//returns true if transactions were added
+var
+  SelectedBA: pSystem_Bank_Account_Rec;
+  ProvisionalDlg: TdlgHistorical;
+
+  TempAccount: TBank_Account;
+  TempClient, KeepClient: TClientObj;
+
+  function SaveToArchives: Boolean;
+  const ThisMethodName = 'ProvisionalToArchive';
+  var
+     eFileName: string;
+     eFile: file of tArchived_Transaction;
+     msg: string;
+     Entry: tArchived_Transaction;
+     t: integer;
+  begin
+     Result := False;
+     LoadAdminSystem(True,'Save Provisional');
+
+     SelectedBA := Adminsystem.fdSystem_Bank_Account_List.FindCode(ForAccount);
+     if not Assigned(SelectedBA) then
+        Exit;
+
+     eFileName := ArchiveFileName( SelectedBA.sbLRN );
+
+     if BKFileExists( eFileName ) then begin
+        if DebugMe then begin
+           Msg := Format('Opening %s.', [ eFileName ]);
+           LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' - ' + Msg );
+        end;
+        Assign( eFile, eFileName );
+        Reset( eFile );
+
+        if DebugMe then begin
+           Msg := Format('Seeking To EOF %s.', [ eFileName ]);
+           LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' - ' + Msg );
+        end;
+        Seek( eFile, FileSize(eFile ));
+     end else Begin
+        if DebugMe then begin
+           Msg := Format('Creating %s.', [ eFileName ]);
+           LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' - ' + Msg );
+        end;
+        Assign(eFile, eFileName);
+        Rewrite(eFile);
+     end;
+
+     // These are all reset on the actual download ??
+     // SelectedBA.sbNew_This_Month := True;
+     // sbWas_On_Latest_Disk        := false;
+     SelectedBA.sbNo_of_Entries_This_Month:= 0;
+     SelectedBA.sbFrom_Date_This_Month:= 0;
+     SelectedBA.sbTo_Date_This_Month:= 0;
+     //SelectedBA.sbCharges_This_Month:= 0;
+
+
+     for T := TempAccount.baTransaction_List.First to TempAccount.baTransaction_List.Last do
+        with TempAccount.baTransaction_List.Transaction_At(T)^ do begin
+           FillChar( Entry, Sizeof( Entry ), 0 );
+             Entry.aRecord_End_Marker := ArchUtil32.ARCHIVE_REC_END_MARKER;
+
+             Entry.aType              := txType;
+             Entry.aSource            := BKCONST.orManual;
+             Entry.aDate_Presented    := txDate_Presented;
+             Entry.aReference         := txReference;
+             Entry.aStatement_Details := copy(txGL_Narration,1,200);
+             Entry.aAmount            := txAmount;
+             Entry.aQuantity          := txQuantity / 10;
+             Entry.aReference         := txReference;
+             Entry.aOther_Party       := txOther_Party;
+             //allocate new lrn for this transaction and write to txn file
+             Inc( AdminSystem.fdFields.fdTransaction_LRN_Counter);
+             Entry.aLRN := AdminSystem.fdFields.fdTransaction_LRN_Counter;
+              //transaction has been constructed
+             Write(eFile, Entry);
+
+             // Update the account record
+             SelectedBA.sbLast_Transaction_LRN := Entry.aLRN;
+
+             //update date range for this account
+             if (SelectedBA.sbFrom_Date_This_Month = 0 )
+             or (Entry.aDate_Presented < SelectedBA.sbFrom_Date_This_Month) then
+                SelectedBA.sbFrom_Date_This_Month := Entry.aDate_Presented;
+
+             SelectedBA.sbTo_Date_This_Month := max(SelectedBA.sbTo_Date_This_Month, Entry.aDate_Presented);
+             SelectedBA.sbLast_Entry_Date := max(SelectedBA.sbLast_Entry_Date, Entry.aDate_Presented);
+
+             //add transaction amount to current balance
+             //for AU the current balance will have been set to the opening balance
+             //for NZ the current balance will be whatever the user has set up
+             if SelectedBA.sbCurrent_Balance <> Unknown then
+                SelectedBA.sbCurrent_Balance := SelectedBA.sbCurrent_Balance + Entry.aAmount;
+
+             
+             // Update the admin system
+             AdminSystem.fdFields.fdPrint_Reports_Up_To :=
+                max(AdminSystem.fdFields.fdPrint_Reports_Up_To, Entry.aDate_Presented);
+             AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded :=
+                max(AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded, Entry.aDate_Presented);
+
+
+
+        end;
+
+      saveAdminSystem;
+      Result := True;
+  end;
+
+begin
+   Result := false;
+   SelectedBA := Adminsystem.fdSystem_Bank_Account_List.FindCode(ForAccount);
+   if not Assigned(SelectedBA) then
+      Exit; // nothing to do...
+
+   TempClient := nil;
+   TempAccount := nil;
+   KeepClient := MyClient;
+   try
+      // Create a temp Client for the Temp Banmk account
+      TempClient := TClientObj.Create;
+      TempClient.clFields.clCode := 'Code';
+      TempClient.clFields.clName := 'Name';
+      // Set the default country bits
+      TempClient.clFields.clCountry := Adminsystem.fdFields.fdCountry;
+      TempClient.clExtra.ceLocal_Currency_Code := Adminsystem.fCurrencyCode;
+
+      TempAccount := TBank_Account.Create;
+      with TempAccount.baFields do begin
+          baCurrent_Balance := SelectedBA.sbCurrent_Balance;
+          baAccount_Type    := btBank;
+          baDesktop_Super_Ledger_ID := -1;
+          baBank_Account_Number := SelectedBA.sbAccount_Number;
+          baBank_Account_Name := SelectedBA.sbAccount_Name;
+          baCurrency_Code := SelectedBA.sbCurrency_Code;
+          // savety net...
+          if baCurrency_Code = '' then
+             baCurrency_Code := Adminsystem.fCurrencyCode;
+      end;
+      TempClient.clBank_Account_List.Insert(TempAccount);
+      MyClient := TempClient;
+      //Create form and show modally
+      ProvisionalDlg := TdlgHistorical.CreateAndSetup(TempAccount, true);
+      with ProvisionalDlg do try
+        Provisional := true;
+
+        Caption := 'Add Provisional Entries';
+        IsManual := True;
+        tblHist.Hint:=
+                    'Enter the details for each Provisional Entry|'+
+                    'Enter the details for each Provisional Entry';
+//        BKHelpSetup(Historical, BKH_Adding_manual_data);
+
+         ShowModal;
+         if ModalResult = mrOK then begin
+            // Now try and copy tans to
+            SaveToArchives;
+         end;
+      finally
+         Free;
+      end;
+   finally
+      freeandNil(TempClient);
+
+      MyClient := KeepClient;
+   end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.EmptyTmpBuffer;
 var
@@ -5148,6 +5365,9 @@ begin
       AllowRedraw := true;
    end;
 end;
+
+
+
 
 end.
 

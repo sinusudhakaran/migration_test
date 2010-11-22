@@ -28,7 +28,8 @@ procedure DoSummarisedDownloadReport(var Dest : TReportDest);
 
 procedure DoReportsDue(var Dest : TReportDest; srOptions : TSchReportOptions);
 
-procedure DoListAdminBankAccounts(NonActiveOnly : Boolean; var Dest : TReportDest);
+procedure DoListAdminBankAccounts(NonActiveOnly : Boolean; var Dest : TReportDest;
+                                  ProvisionalOnly : Boolean = false);
 
 procedure DoClientsByStaffMember(var Dest : TReportDest);
 
@@ -136,6 +137,7 @@ type
       AccountsList : TStringList;
       IncludeDeletedAccounts : boolean;
       NotActiveSince : Integer;
+      ProvisionalOnly : boolean;
    end;
 
    TReportsDueReport = class( TBKReport)
@@ -247,6 +249,7 @@ const
 
 var
    DebugMe : boolean = false;
+   ProvisionalReport : boolean = false;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure AddAdminHeader(Job : TBKReport);
@@ -434,7 +437,7 @@ begin
          if ( not IncludeDeletedAccounts) and ( sbMark_As_Deleted) then
             Continue;
 
-         if sbAccount_Type <> sbtData then
+         if not(sbAccount_Type in [sbtData, sbtProvisional]) then
          begin
           Dec(Count);
           Continue;
@@ -1639,7 +1642,7 @@ end;
 
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure LoadUpdateAdminBankAccounts( AccountList : TStringList );
+procedure LoadUpdateAdminBankAccounts( AccountList : TStringList; Provisional : boolean );
 const
    ThisMethodName = 'LoadUpdateAdminBankAccounts';
 var
@@ -1649,14 +1652,18 @@ var
    sb          : pSystem_Bank_Account_Rec;
    am          : pClient_Account_Map_Rec;
    pf          : pClient_File_Rec;
+   AccountType : integer;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    AccountList.Clear;
+   if Provisional
+    then AccountType := sbtProvisional
+    else AccountType := sbtData;
 
    //add bank accounts to list with a tstring list to hold the client names
    with AdminSystem.fdSystem_Bank_Account_List do begin
       for i := 0 to Pred(ItemCount) do begin
-         if System_Bank_Account_At(i).sbAccount_Type <> sbtData then Continue;
+         if System_Bank_Account_At(i).sbAccount_Type <> AccountType then Continue;
          NewList := TStringList.Create;
          // And add all clients from the client account map
          am := AdminSystem.fdSystem_Client_Account_Map.FindFirstClient(System_Bank_Account_At(i)^.sbLRN);
@@ -1678,7 +1685,7 @@ begin
       with AdminSystem.fdSystem_Bank_Account_List do
          for i := 0 to Pred(ItemCount) do begin
             sb := System_Bank_Account_At(i);
-            if sb.sbAccount_Type <> sbtData then Continue;
+            if sb.sbAccount_Type <> AccountType then Continue;
             if AccountList.Find(sb^.sbAccount_Number,FoundAt) then begin
                sb^.sbAttach_Required := TStringList( AccountList.Objects[FoundAt]).Count = 0;
             end;
@@ -1698,14 +1705,19 @@ var
   AAL_Index    : integer;          //AdminAccountList_Index
   S            : string;
   HasDeletedAccounts : boolean;
+  AccountType : integer;
 begin
+  if ProvisionalReport
+    then AccountType := sbtProvisional
+    else AccountType := sbtData;
+
   HasDeletedAccounts := false;
   with TAdminBankAccountsReport(Sender), AdminSystem do
   begin
      for i := 0 to Pred(fdSystem_Bank_Account_List.ItemCount) do
         with fdSystem_Bank_Account_List.System_Bank_Account_At(i)^ do begin
            //see if should include this account
-           if (( not IncludeDeletedAccounts) and ( sbMark_As_Deleted)) or (sbAccount_Type <> sbtData) then
+           if (( not IncludeDeletedAccounts) and ( sbMark_As_Deleted)) or (sbAccount_Type <> AccountType) then
               Continue;
 
            if NotActiveSince <> 0 then begin
@@ -1714,7 +1726,7 @@ begin
               if Not sbWas_On_Latest_Disk then
                  continue; // Already 'deleted'
 
-              if sbAccount_Type <> sbtData then
+              if sbAccount_Type <> AccountType then
                  continue; // as a minimum was not in last down-load
            end;
 
@@ -1783,7 +1795,8 @@ begin
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure DoListAdminBankAccounts(NonActiveOnly : Boolean; var Dest : TReportDest);
+Procedure DoListAdminBankAccounts(NonActiveOnly : Boolean; var Dest : TReportDest;
+                                  ProvisionalOnly : Boolean = false);
 var
   Job               : TAdminBankAccountsReport;
   AdminAccountsList : TstringList;
@@ -1793,7 +1806,9 @@ var
   cLeft: Double;
   function maketitle : string;
   begin
-     if NonActiveOnly then
+     if ProvisionalOnly then
+        result := Report_List_Names[REPORT_PROV_ACCOUNTS]
+     else if NonActiveOnly then
         result := Report_List_Names[REPORT_ADMIN_INACTIVE_ACCOUNTS]
      else
         result := Report_List_Names[REPORT_ADMIN_ACCOUNTS]
@@ -1817,7 +1832,7 @@ begin
 
      AdminAccountsList := TStringList.Create;
      try
-        LoadUpdateAdminBankAccounts(AdminAccountsList);
+        LoadUpdateAdminBankAccounts(AdminAccountsList, ProvisionalOnly);
 
         Job := TAdminBankAccountsReport.Create(rptOther);
         try
@@ -1859,6 +1874,7 @@ begin
 
            AddCommonFooter(Job);
 
+           ProvisionalReport := ProvisionalOnly;
            Job.OnBKPrint := ListAdminBankDetail;
            Job.AccountsList := AdminAccountsList;
 

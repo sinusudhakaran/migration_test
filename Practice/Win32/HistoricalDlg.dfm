@@ -855,6 +855,21 @@ object dlgHistorical: TdlgHistorical
     Left = 312
     Top = 208
   end
+  object celForexAmount: TOvcTCNumericField
+    DataType = nftDouble
+    EFColors.Disabled.BackColor = clWindow
+    EFColors.Disabled.TextColor = clGrayText
+    EFColors.Error.BackColor = clRed
+    EFColors.Error.TextColor = clBlack
+    EFColors.Highlight.BackColor = clHighlight
+    EFColors.Highlight.TextColor = clHighlightText
+    PictureMask = '##########.##'
+    OnOwnerDraw = celForexAmountOwnerDraw
+    Left = 376
+    Top = 256
+    RangeHigh = {73B2DBB9838916F2FE43}
+    RangeLow = {73B2DBB9838916F2FEC3}
+  end
   object celForexRate: TOvcTCNumericField
     DataType = nftDouble
     EFColors.Disabled.BackColor = clWindow
@@ -880,7 +895,7 @@ object dlgHistorical: TdlgHistorical
     Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     OnOwnerDraw = celLocalAmountOwnerDraw
-    Left = 376
+    Left = 416
     Top = 256
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}

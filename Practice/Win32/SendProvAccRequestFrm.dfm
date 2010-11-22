@@ -9,12 +9,10 @@ object frmSendProvAccRequest: TfrmSendProvAccRequest
   Constraints.MaxWidth = 450
   Constraints.MinHeight = 350
   Constraints.MinWidth = 450
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   OldCreateOrder = False
+  Position = poMainFormCenter
+  Scaled = False
   OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
@@ -81,6 +79,14 @@ object frmSendProvAccRequest: TfrmSendProvAccRequest
     ParentFont = False
     OnClick = lblTermsClick
   end
+  object lblP: TLabel
+    Left = 120
+    Top = 16
+    Width = 6
+    Height = 13
+    Caption = 'P'
+    WordWrap = True
+  end
   object edtAccountNumber: TEdit
     Left = 128
     Top = 13
@@ -130,36 +136,25 @@ object frmSendProvAccRequest: TfrmSendProvAccRequest
     Top = 141
     Width = 281
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 5
-    Text = 'Select'
     Visible = False
   end
   object chkReadTerms: TCheckBox
     Left = 16
     Top = 224
-    Width = 329
+    Width = 393
     Height = 17
     Caption = 'I confirm that I have read and agree to be bound by Banklink'#39's '
     TabOrder = 6
   end
   object cbxInstitution: TComboBox
-    Left = 129
+    Left = 128
     Top = 72
     Width = 281
     Height = 21
     ItemHeight = 13
     TabOrder = 7
-  end
-  object conUTILITY: TADOConnection
-    ConnectionString = 
-      'Provider=SQLOLEDB.1;Persist Security Info=False;User ID=tim;Init' +
-      'ial Catalog=BANKSYSTEM;Data Source=TESTSQL'
-    KeepConnection = False
-    LoginPrompt = False
-    Mode = cmShareDenyNone
-    Provider = 'SQLOLEDB.1'
-    Left = 379
-    Top = 216
   end
 end

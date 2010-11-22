@@ -136,6 +136,7 @@ begin
         try
           if ReportType in [ REPORT_DOWNLOAD, REPORT_WHATSDUE,
                              REPORT_ADMIN_ACCOUNTS, REPORT_ADMIN_INACTIVE_ACCOUNTS,
+                             REPORT_PROV_ACCOUNTS,
                              REPORT_CLIENTS_BY_STAFF, REPORT_CLIENT_REPORT_OPT,
                              REPORT_DOWNLOAD_LOG, REPORT_CLIENT_STATUS,
                              REPORT_FILE_ACCESS_CONTROL, REPORT_SUMMARY_DOWNLOAD,
