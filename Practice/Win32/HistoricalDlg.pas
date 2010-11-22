@@ -3794,6 +3794,7 @@ begin
       tbPayee.Visible := false;
       tbJob.Visible := false;
       tbDissect.Visible := false;
+      tbAddCheques.Visible := false;
   end;
 end;
 
