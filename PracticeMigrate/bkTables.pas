@@ -21,6 +21,7 @@ public
                    TypeID: TGuid;
                    WebExportFormat: TGuid;
                    Archived: Boolean;
+                   SystemComments: string;
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec): Boolean;
@@ -251,22 +252,35 @@ end;
 
 implementation
 
-uses SysUtils, SQLHelpers, bkConst;
+uses
+   SysUtils,
+   SQLHelpers,
+   bkConst,
+   PasswordHash;
 
 
 
 { TClient_RecFieldsTable }
 
-function TClient_RecFieldsTable.Insert(MyId, UserID, AccountingSystemID,
-  TaxSystemID, GroupID, TypeID, WebExportFormat: TGuid; Archived: Boolean;
-  Value: pClient_Rec; More: pMoreClient_Rec; Extra: pClientExtra_Rec): Boolean;
+function TClient_RecFieldsTable.Insert(MyId: TGuid;
+                   UserID: TGuid;
+                   AccountingSystemID: TGuid;
+                   TaxSystemID: TGuid;
+                   GroupID: TGuid;
+                   TypeID: TGuid;
+                   WebExportFormat: TGuid;
+                   Archived: Boolean;
+                   SystemComments: string;
+                   Value: pClient_Rec;
+                   More: pMoreClient_Rec;
+                   Extra: pClientExtra_Rec): Boolean;
 
    function GetNotes: string;
    var I: Integer;
    begin
       Result := '';
       for i := Low( Value.clNotes) to High( Value.clNotes) do
-         Result := Result + Value.clNotes[i];
+         Result := Result + Value.clNotes[i];  // ?? cr
    end;
 
    function GetGSTRatio: Money;
@@ -293,7 +307,7 @@ begin with Value^, Extra^, More^ do
               ,ToSQL(clJournal_Processing_Period),ToSQL(clLast_Disk_Image_Version)
 {9}        ,ToSQL(clWeb_Site_Login_URL),ToSQL(clContact_Details_To_Show),ToSQL(clCustom_Contact_Name)
               ,ToSQL(clCustom_Contact_EMail_Address),ToSQL(clCustom_Contact_Phone)
-{10}       ,ToSQL(clHighest_Manual_Account_No),ToSQL(clCopy_Narration_Dissection)
+{10}       ,ToSQL(clHighest_Manual_Account_No),ToSQL(clCopy_Narration_Dissection),ToSQL(SystemComments)
 {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),ToSQL(WebExportFormat),ToSQL(clMobile_No)
               ,ToSQL(clFile_Read_Only),ToSQL(clSalutation),ToSQL(clExternal_ID)
 {12}       ,ToSQL( clForce_Offsite_Check_Out),ToSQL(clDisable_Offsite_Check_Out),ToSQL(clAlternate_Extract_ID),ToSQL(clUse_Alterate_ID_for_extract)
@@ -303,7 +317,7 @@ begin with Value^, Extra^, More^ do
               ,ToSQL(ceBudget_Include_Quantities),ToSQL(Archived)
 {16}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
               ,ToSql(clBAS_Field_Number[bfGSTProvisional] = GSTRatio),PercentToSQL(GetGSTRatio)
-{17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems),ToSQL(clFile_Password)],[]);
+{17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems),ToSQL(ComputePWHash(clFile_Password,MyId))],[]);
 end;
 
 procedure TClient_RecFieldsTable.SetupTable;
@@ -317,8 +331,8 @@ begin
 {6}     ,'DiskSequenceNo','StaffMemberId','SuppressCheckForNewTXns','DownloadFrom','LastBatchNumber'
 {7}     ,'TaxLedgerCode','ChequesExpireWhen','ShowNotesOnOpen'
 {8}     ,'CflwCashOnHandStyle','LastFinancialYearStart','TaxinterfaceUsed','SaveTaxFilesTo','JournalProcessingPeriod','LastDiskImageVersion'
-{9}    ,'WebSiteLoginURL','ContactDetailsToShow','CustomContactName','CustomContactEMailAddress','CustomContactPhone'
-{10}    ,'HighestManualAccountNo','CopyNarrationDissection'
+{9}     ,'WebSiteLoginURL','ContactDetailsToShow','CustomContactName','CustomContactEMailAddress','CustomContactPhone'
+{10}    ,'HighestManualAccountNo','CopyNarrationDissection','SystemComments'
 {11}    ,'ClientCCEMailAddress','LastECodingAccountUID','WebExportFormat','MobileNo','FileReadOnly','Salutation','ExternalID'
 {12}    ,'ForceOffsiteCheckOut','DisableOffsiteCheckOut','AlternateExtractID','UseAlterateIDforextract'
 {13}    ,'LastUseDate','UseBasicChart','ClientGroupId','ClientTypeId','AllEditModeCES','AllEditModeDIS','TFN'

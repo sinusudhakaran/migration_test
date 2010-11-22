@@ -41,6 +41,8 @@ var
    outarray  : array[0..32] of byte;
 begin
    Result := '';
+   if plainText = '' then
+      Exit; // No PW set...       
    // Add The Text to in iput array
    StrCopy(PChar(@Inarray),Pchar(Plaintext));
    //Appent the Guid as Salt

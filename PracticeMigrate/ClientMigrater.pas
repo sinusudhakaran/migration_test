@@ -170,6 +170,7 @@ end;
 
 implementation
 uses
+   AdminNotesForClient,
    syDefs,
    SystemMigrater,
    BUDOBJ32,
@@ -496,8 +497,11 @@ begin
               inc(C);
         end;
      end;
-     if C > 0 then
+     if C > 0 then begin
         ForAction.InsertAction('Subgroups').Count := C;
+     end else begin
+        SubGroupTable.Insert(NewGuid,ClientID, 0, 'Unallocated');
+     end;
 end;
 
 
@@ -815,6 +819,8 @@ function TClientMigrater.Migrate(ForAction:TMigrateAction;
                     AGroupID,
                     ATypeID: TGuid;
                     AClientLRN: Integer): Boolean;
+
+
 var
    MyAction: TMigrateAction;
    GuidList: TGuidList;
@@ -846,6 +852,7 @@ begin
                       ATypeID,
                       EmptyGuid, //WebExport format
                       False,
+                      GetNotesForClient(ClientLRN),
                       @FClient.clFields,
                       @FClient.clMoreFields,
                       @FClient.clExtra
