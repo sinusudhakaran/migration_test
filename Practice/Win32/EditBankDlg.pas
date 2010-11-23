@@ -597,7 +597,7 @@ begin
      eNumber.Text := BankAcct.baFields.baBank_Account_Number;
 
    //Set currency
-   lblCurrency.Visible := (BankAcct.baFields.baIs_A_Manual_Account) and
+   lblCurrency.Visible := (MyClient.HasForeignCurrencyAccounts) and
                           (MyClient.clFields.clCountry = whUK);
    cmbCurrency.Visible := lblCurrency.Visible;
    cmbCurrency.Enabled := cmbCurrency.Visible and FAddNew;

@@ -25,7 +25,7 @@ type
     { Public declarations }
   end;
 
-function GetDateRange(var aRange: TDateRange; const Title, Text: string): Boolean;
+function GetDateRange(var aRange: TDateRange; const Title, RangeText: string): Boolean;
 
 implementation
 
@@ -34,13 +34,15 @@ uses
 
 {$R *.dfm}
 
-function GetDateRange(var aRange: TDateRange; const Title, Text: string): Boolean;
+function GetDateRange(var aRange: TDateRange; const Title, RangeText: string): Boolean;
 begin
    Result := False;
    with TDateRangeFrm.Create(Application.MainForm) do try
       Caption := Title;
-      ltext.Caption := Text;
+      ltext.Caption := RangeText;
       Range := aRange;
+      DateSelector.btnQuik.Visible := True;
+      DateSelector.AllData1.Visible := False;
       if ShowModal = mrOK then begin
          aRange := Range;
          Result := True;

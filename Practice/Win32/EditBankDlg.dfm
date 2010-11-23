@@ -43,7 +43,7 @@ object dlgEditBank: TdlgEditBank
       end
       object stNumber: TLabel
         Left = 136
-        Top = 18
+        Top = 12
         Width = 3
         Height = 13
       end
@@ -494,7 +494,7 @@ object dlgEditBank: TdlgEditBank
       end
       object cmbCurrency: TComboBox
         Left = 467
-        Top = 9
+        Top = 8
         Width = 92
         Height = 21
         Style = csDropDownList

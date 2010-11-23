@@ -26,8 +26,6 @@ object EditExchangeRateForm: TEditExchangeRateForm
     Height = 41
     Align = alBottom
     TabOrder = 0
-    ExplicitTop = 273
-    ExplicitWidth = 278
     DesignSize = (
       250
       41)
@@ -40,7 +38,6 @@ object EditExchangeRateForm: TEditExchangeRateForm
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 0
-      ExplicitLeft = 192
     end
     object BtnoK: TButton
       Left = 84
@@ -51,7 +48,6 @@ object EditExchangeRateForm: TEditExchangeRateForm
       Caption = 'OK'
       ModalResult = 1
       TabOrder = 1
-      ExplicitLeft = 112
     end
   end
   object Panel1: TPanel
@@ -62,7 +58,6 @@ object EditExchangeRateForm: TEditExchangeRateForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 278
     object btnQuik: TSpeedButton
       Left = 116
       Top = 9
@@ -120,7 +115,6 @@ object EditExchangeRateForm: TEditExchangeRateForm
     OnCreateEditor = vtRatesCreateEditor
     OnEditing = vtRatesEditing
     OnNewText = vtRatesNewText
-    ExplicitHeight = 96
     Columns = <
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]

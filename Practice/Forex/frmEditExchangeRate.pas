@@ -35,11 +35,14 @@ type
     FTreeList: TTreeBaseList;
     function ValidExchangeRates: boolean;
     function AllZero: boolean;
+    procedure DoEditKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure EditNode(Node: PVirtualNode);
   public
     { Public declarations }
   end;
 
-  function EditExchangeRate(ExchangeSource: TExchangeSource;
+  function EditExchangeRate(ISOColumns: TVirtualTreeColumns;
+                            ExchangeSource: TExchangeSource;
                             ExchangeRecord: TExchangeRecord = nil): boolean;
 
 implementation
@@ -75,7 +78,8 @@ begin
   Result := Format('%2.4f',[Value])
 end;
 
-function EditExchangeRate(ExchangeSource: TExchangeSource;
+function EditExchangeRate(ISOColumns: TVirtualTreeColumns;
+                          ExchangeSource: TExchangeSource;
                           ExchangeRecord: TExchangeRecord): boolean;
 const
   TITLE = 'Exchange Rates';
@@ -83,6 +87,9 @@ var
   i, j: integer;
   EditExchangeRateForm: TEditExchangeRateForm;
   ExchangeTreeItem: TExchangeTreeItem;
+  ISOCode: string;
+  HeaderIndex: integer;
+  CurrentPos: integer;
 begin
   Result := false;
   if not Assigned(ExchangeSource) then Exit;
@@ -105,14 +112,23 @@ begin
                                                  ExchangeSource.Width);
       end;
 
-      //Display rates
-      for i := 1 to ExchangeSource.Width do
-        if (ExchangeSource.Header.ehCur_Type[i] <> ct_Base) then begin
-          ExchangeTreeItem :=
-            TExchangeTreeItem.Create(ExchangeSource.Header.ehISO_Codes[i],
-                                     ExchangeRecord.Rates[i]);
-          FTreeList.AddNodeItem(nil, ExchangeTreeItem);
+      //Display rates in same order as exchange rates table
+      CurrentPos := 1;
+      while (CurrentPos < ISOColumns.Count) do begin
+        for i := 0 to Pred(ISOColumns.Count) do begin
+          if (CurrentPos = ISOColumns[i].Position) then begin
+            Inc(CurrentPos);
+            ISOCode := ISOColumns[i].Text;
+            HeaderIndex := ExchangeSource.GetISOIndex(ISOCode, ExchangeSource.Header);
+            if (HeaderIndex > 0) and (ExchangeSource.Header.ehCur_Type[HeaderIndex] <> ct_Base) then begin
+              ExchangeTreeItem :=
+                TExchangeTreeItem.Create(ExchangeSource.Header.ehISO_Codes[HeaderIndex],
+                                         ExchangeRecord.Rates[HeaderIndex]);
+              FTreeList.AddNodeItem(nil, ExchangeTreeItem);
+            end;
+          end;
         end;
+      end;
 
       if ShowModal = mrOk then begin
         //Save changes
@@ -156,6 +172,46 @@ begin
   eDate.AsStDate := Date;
 end;
 
+procedure TEditExchangeRateForm.DoEditKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+
+  procedure NextRow;
+  begin
+    if not Assigned(vtRates.FocusedNode.NextSibling) then Exit;
+    vtRates.FocusedNode := vtRates.FocusedNode.NextSibling;
+    Key := 0;
+    vtRatesClick(Sender);
+  end;
+
+  procedure PrevRow;
+  begin
+    if not Assigned(vtRates.FocusedNode.PrevSibling) then Exit;
+    vtRates.FocusedNode := vtRates.FocusedNode.PrevSibling;
+    Key := 0;
+    vtRatesClick(Sender);
+  end;
+
+begin
+  if Assigned(vtRates.FocusedNode) then begin
+    if Assigned(vtRates.EditLink) then
+      case Key of
+        VK_TAB: if (ssShift in Shift) then
+                  PrevRow
+                else
+                  NextRow;
+        VK_DOWN: NextRow;
+        VK_UP: PrevRow;
+      end;
+  end;
+end;
+
+procedure TEditExchangeRateForm.EditNode(Node: PVirtualNode);
+begin
+  vtRates.FocusedNode := Node;
+  vtRates.FocusedColumn := COL_EXCHANGE_RATE;
+  vtRatesClick(Self);
+end;
+
 procedure TEditExchangeRateForm.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -186,7 +242,7 @@ end;
 procedure TEditExchangeRateForm.FormShow(Sender: TObject);
 begin
   if FEditMode and (FTreeList.Count > 0) then
-    vtRates.EditNode(vtRates.GetFirst, COL_EXCHANGE_RATE);
+    EditNode(vtRates.GetFirst);
 end;
 
 function TEditExchangeRateForm.ValidExchangeRates: boolean;
@@ -208,7 +264,7 @@ begin
     end else if AllZero then begin
       //All rates are zero
       HelpfulErrorMsg('You must enter at least one exchange rate. ', 0);
-      vtRates.EditNode(vtRates.GetFirst, COL_EXCHANGE_RATE);
+      EditNode(vtRates.GetFirst);
       Exit;
     end;
   end;
@@ -219,6 +275,7 @@ procedure TEditExchangeRateForm.vtRatesClick(Sender: TObject);
 begin
   if vtRates.FocusedNode <> nil then // edit selected node
   begin
+    vtRates.Selected[vtRates.FocusedNode] := True;
     vtRates.EditNode(vtRates.FocusedNode, vtRates.FocusedColumn);
   end;
 end;
@@ -229,7 +286,8 @@ var
   StringEditLink: TStringEditLink;
 begin
   StringEditLink := TStringEditLink.Create;
-  StringEditLink.Edit.MaxLength := 20;
+  StringEditLink.Edit.MaxLength := 25;
+  TEdit(StringEditLink.Edit).OnKeyUp := DoEditKeyUp;
   EditLink := StringEditLink;
 end;
 
@@ -256,7 +314,7 @@ begin
       end;
     end else begin
       HelpfulErrorMsg('Please enter a valid exchange rate', 0);
-      vtRates.EditNode(Node, Column);
+      EditNode(Node);
     end;
   end;
 end;
@@ -286,6 +344,7 @@ begin
     1: Result := GetRateText(FExchangeRate);
   end;
 end;
+
 
 end.
 

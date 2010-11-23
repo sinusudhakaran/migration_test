@@ -10,6 +10,7 @@ object ExchangeRatesfrm: TExchangeRatesfrm
   Position = poMainFormCenter
   Scaled = False
   OnActivate = FormActivate
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
@@ -29,7 +30,6 @@ object ExchangeRatesfrm: TExchangeRatesfrm
     Height = 41
     Align = alBottom
     TabOrder = 0
-    ExplicitWidth = 672
     DesignSize = (
       705
       41)
@@ -42,7 +42,6 @@ object ExchangeRatesfrm: TExchangeRatesfrm
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 0
-      ExplicitLeft = 586
     end
     object BtnoK: TButton
       Left = 539
@@ -53,7 +52,6 @@ object ExchangeRatesfrm: TExchangeRatesfrm
       Caption = 'OK'
       TabOrder = 1
       OnClick = BtnoKClick
-      ExplicitLeft = 506
     end
   end
   object RSGroupBar: TRzGroupBar
@@ -137,7 +135,6 @@ object ExchangeRatesfrm: TExchangeRatesfrm
     Height = 409
     Align = alClient
     TabOrder = 2
-    ExplicitLeft = 163
     object pTop: TPanel
       Left = 1
       Top = 1
@@ -235,6 +232,7 @@ object ExchangeRatesfrm: TExchangeRatesfrm
       Header.ParentFont = True
       Header.Style = hsXPStyle
       ParentBackground = False
+      PopupMenu = PopupMenu1
       TabOrder = 1
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toWheelPanning]
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages]
@@ -291,7 +289,15 @@ object ExchangeRatesfrm: TExchangeRatesfrm
   object ReloadTimer: TTimer
     Enabled = False
     OnTimer = ReloadTimerTimer
-    Left = 600
-    Top = 8
+    Left = 64
+    Top = 296
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 64
+    Top = 264
+    object miSetForWholeMonth: TMenuItem
+      Caption = 'Set for whole month'
+      OnClick = miSetForWholeMonthClick
+    end
   end
 end

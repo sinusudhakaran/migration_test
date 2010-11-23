@@ -70,6 +70,7 @@ const
    GrpFavouriteReports  = 'FavouriteReports';
    GrpCustomDocuments = 'CustomDocuments';
    GrpReportSettings = 'ReportSettings';
+   GrpExchangeRates  = 'ExchangeRates';
 
    //Practice INI groups
    GrpPracEnv    = 'Environment';
@@ -494,6 +495,7 @@ end;
 procedure ReadPracticeINI;
 //reads in any practice wide settings
 var
+  i : integer;
   PracIniFile : TMemIniFile;
   SecsToWait   : integer;
   Orig_Version : integer;
@@ -626,6 +628,12 @@ begin
         UseDefaultPrinter        := ReadBool  (GrpOptions,'PreviewDefaultPrinter',false);
         PRACINI_MAPI_MaskError   := ReadString ( GrpMAPI, 'MaskError', '');
 
+        //Exchange Rate Columns
+        for i := Low(PRACINI_ER_Column_Widths) to high(PRACINI_ER_Column_Widths) do begin
+          PRACINI_ER_Column_Widths[i] := ReadInteger( GrpExchangeRates, 'ColWidth' + inttostr( i), -1);
+          PRACINI_ER_Column_Positions [i] := ReadInteger( GrpExchangeRates, 'ColPos' + inttostr( i), -1);
+        end;
+
         if Orig_Version < PRAC_INI_VERSION then begin
           // moved to db
           DeleteKey(GrpPracEnv, 'ForceLogin');
@@ -650,6 +658,7 @@ procedure WritePracticeINI;
 //write back the bk5Prac.ini file with the current values.  Does not write the
 //SecondsToWait entry
 var
+   i : integer;
    PracIniFile : TMemIniFile;
    SecsToWait  : integer;
    sMsg        : String;
@@ -720,6 +729,14 @@ begin
    //        WriteBool( GrpPracEnv, 'DisableBankLRNCheck'...
    //        WriteInteger( GrpPracEnv, 'DefaultDissectMode'...
            WriteString(GrpPracEnv,'FuelCreditRates',PRACINI_FuelCreditRates);
+
+           //Exchange Rate Columns
+           for i := Low(PRACINI_ER_Column_Widths) to high(PRACINI_ER_Column_Widths) do begin
+             if PRACINI_ER_Column_Widths[i] <> -1 then
+               WriteInteger( GrpExchangeRates, 'ColWidth' + inttostr( i), PRACINI_ER_Column_Widths[i]);
+             if PRACINI_ER_Column_Positions[i] <> -1 then
+               WriteInteger( GrpExchangeRates, 'ColPos' + inttostr( i), PRACINI_ER_Column_Positions[i]);
+           end;
 
            WriteInteger( GrpPracInfo, 'IniVersion', PRAC_INI_VERSION);
          end;

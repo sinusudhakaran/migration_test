@@ -172,7 +172,7 @@ CONST
     MAX_CLIENT_MANAGER_COLUMNS = 16;
     MAX_CLIENT_HOMEPAGE_COLUMNS = 8;
     MAX_FAVOURITE_REPORTS_COLUMNS = 1;
-
+    MAX_EXCHANGE_RATE_COLUMNS = 99;
 
     //Print / Preview dialog constants
     BTN_NONE            = 0;
@@ -575,6 +575,11 @@ var
     PRACINI_ReportMemoryLeak           : Boolean = False;
     PRACINI_ShowProSuper               : Boolean = False;
     PRACINI_ShowRewardSuper            : Boolean = False;
+
+    //Exchange Rate columns
+    PRACINI_ER_Column_Widths : Array[ 0..MAX_EXCHANGE_RATE_COLUMNS ] of integer;
+    PRACINI_ER_Column_Positions : Array[ 0..MAX_EXCHANGE_RATE_COLUMNS ] of integer;
+
     // Remember email details in case it fails
     Email_Saved: Boolean = False;
     Email_To: string = '';

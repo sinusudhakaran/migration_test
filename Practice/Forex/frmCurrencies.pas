@@ -38,6 +38,9 @@ type
     procedure vtCurrenciesCreateEditor(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure vtCurrenciesKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     FTreeList: TTreeBaseList;
     FChangesMade: boolean;
@@ -123,7 +126,7 @@ begin
    if Assigned(Lc) then
    if Lc.FCurType = ct_User then
       if AskYesNo('Delete Currency',
-      'Are you sure you want to delete curreny'#10'"' + Lc.Title + '"?', DLG_YES,0 )= DLG_YES then begin
+      'Are you sure you want to delete currency'#10'"' + Lc.Title + '"?', DLG_YES,0 )= DLG_YES then begin
           Node := Lc.Node;
           if Assigned(Node) then
             if Assigned(Node.NextSibling) then
@@ -174,9 +177,10 @@ end;
 procedure TCurrenciesFrm.Cleanup;
 
    function Remove: Boolean;
-   var I: Integer;
-       Lc: TCurrencyTreeItem;
-       Node: PVirtualNode;
+   var
+      I: Integer;
+      Lc: TCurrencyTreeItem;
+      Node: PVirtualNode;
    begin
       Result := true;
       for I := 0 to FtreeList.Count - 1 do begin
@@ -198,11 +202,11 @@ procedure TCurrenciesFrm.Cleanup;
             Exit;
          end;
       end;
-   Result := false;
-end;
+      Result := false;
+   end;
 
 begin
-   while Remove do;
+  while Remove do;
 end;
 
 procedure TCurrenciesFrm.FillCurrencies;
@@ -275,13 +279,24 @@ begin
    FTreeList.Free;
 end;
 
+procedure TCurrenciesFrm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  case Key of
+    Char(VK_ESCAPE):
+      begin
+        Key := #0;
+        ModalResult := mrCancel;
+      end;
+  end;
+end;
+
 procedure TCurrenciesFrm.UpdateActions;
 var Ls: TCurrencyTreeItem;
 begin
    // Looking at the style list
    Ls := TCurrencyTreeItem(FTreeList.GetNodeItem(vtCurrencies.GetFirstSelected));
    if Assigned(Ls) then begin
-      acdelete.Enabled := ls.FCurType = ct_User;
+      acdelete.Enabled := (ls.FCurType = ct_User);
    end else begin
       acdelete.Enabled := False;
    end;
@@ -329,6 +344,29 @@ begin
       vtCurrencies.SortTree(SortColumn, SortDirection);
 end;
 
+procedure TCurrenciesFrm.vtCurrenciesKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if tsEditing in vtCurrencies.TreeStates then
+    Exit; //Doesn't get a key down events if cell is being edited
+
+  case key of
+    VK_Return : Key := 0; // Weird focus problem
+
+    VK_Insert :
+      begin
+        acAddExecute(Sender);
+        vtCurrencies.FocusedColumn := 0;
+        Key := 0;
+      end;
+    VK_Delete :
+      begin
+        acDeleteExecute(Sender);
+        Key := 0;
+      end;
+   end;
+end;
+
 procedure TCurrenciesFrm.vtCurrenciesNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
@@ -353,19 +391,19 @@ begin
       if FindISO(NewIso) then begin
          HelpfulErrorMsg(format(
          'The ISO Currency Code "%s" is already in the list of currencies for your Practice.'#13 +
-         'You cannot add a curreny more than once.', [NewISO]),0);
+         'You cannot add a currency more than once.', [NewISO]),0);
          Exit;
       end;
       // Now Test the ISO code
       lISO := Get_ISO_4217_Record(NewISO);
       if not Assigned(lISO) then begin
           HelpfulErrorMsg(format(
-         'ISO ISO Currency Code "%s" is invalid.'#13'Please re-enter with a correct code.', [NewISO]),0);
+         'ISO Currency Code "%s" is invalid.'#13'Please re-enter with a correct code.', [NewISO]),0);
           Exit;
       end;
       lc.FISO := NewISO;
       lc.Title := LISO.Name;
-      FChangesMade := True;      
+      FChangesMade := True;
     end;
   finally
     CleanUp;

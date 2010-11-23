@@ -12,6 +12,7 @@ object ImportExchange: TImportExchange
   OldCreateOrder = False
   Position = poOwnerFormCenter
   Scaled = False
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
@@ -21,12 +22,12 @@ object ImportExchange: TImportExchange
     Left = 0
     Top = 0
     Width = 990
-    Height = 78
+    Height = 73
     Align = alTop
     TabOrder = 0
     DesignSize = (
       990
-      78)
+      73)
     object Label1: TLabel
       Left = 15
       Top = 14
@@ -141,18 +142,29 @@ object ImportExchange: TImportExchange
   end
   object pOut: TPanel
     Left = 0
-    Top = 403
+    Top = 380
     Width = 990
-    Height = 140
+    Height = 163
     Align = alClient
+    BevelOuter = bvNone
     Caption = 'pOut'
     TabOrder = 3
+    ExplicitTop = 403
+    ExplicitHeight = 140
+    object Label3: TLabel
+      Left = 8
+      Top = 35
+      Width = 42
+      Height = 13
+      Caption = 'Preview:'
+    end
     object vsOut: TVirtualStringTree
-      Left = 1
-      Top = 1
-      Width = 988
-      Height = 138
-      Align = alClient
+      Left = 0
+      Top = 53
+      Width = 990
+      Height = 110
+      Align = alBottom
+      Anchors = [akLeft, akTop, akRight, akBottom]
       Header.AutoSizeIndex = 0
       Header.Font.Charset = DEFAULT_CHARSET
       Header.Font.Color = clWindowText
@@ -175,43 +187,55 @@ object ImportExchange: TImportExchange
       Columns = <>
       WideDefaultText = ''
     end
+    object cbOverwriteExchangeRates: TCheckBox
+      Left = 15
+      Top = 10
+      Width = 441
+      Height = 17
+      Caption = 'Overwrite existing exchange rate information (if overlaps)'
+      TabOrder = 1
+    end
   end
   object PFormat: TPanel
     Left = 0
-    Top = 268
+    Top = 263
     Width = 990
-    Height = 135
+    Height = 117
     Align = alTop
+    BevelOuter = bvNone
     Caption = 'PFormat'
     TabOrder = 2
+    ExplicitTop = 268
     object PCFormat: TPageControl
-      Left = 1
-      Top = 1
-      Width = 988
-      Height = 133
+      Left = 0
+      Top = 0
+      Width = 990
+      Height = 117
       ActivePage = TSDate
       Align = alClient
       TabOrder = 0
       OnChange = PCFormatChange
+      ExplicitLeft = -24
+      ExplicitTop = 4
       object TSDate: TTabSheet
         Caption = '&Date'
         object Label2: TLabel
-          Left = 15
-          Top = 20
+          Left = 10
+          Top = 15
           Width = 34
           Height = 13
           Caption = 'Format'
         end
         object Label4: TLabel
-          Left = 15
-          Top = 47
+          Left = 10
+          Top = 42
           Width = 35
           Height = 13
           Caption = 'Column'
         end
         object EDate: TEdit
-          Left = 83
-          Top = 18
+          Left = 84
+          Top = 13
           Width = 97
           Height = 21
           ReadOnly = True
@@ -219,8 +243,8 @@ object ImportExchange: TImportExchange
           Text = 'dd/mm/yyyy'
         end
         object cbDate: TComboBox
-          Left = 83
-          Top = 45
+          Left = 84
+          Top = 40
           Width = 300
           Height = 21
           Style = csDropDownList
@@ -233,13 +257,14 @@ object ImportExchange: TImportExchange
   end
   object pFile: TPanel
     Left = 0
-    Top = 78
+    Top = 73
     Width = 990
     Height = 190
     Align = alTop
     Color = clWindow
     ParentBackground = False
     TabOrder = 1
+    ExplicitTop = 78
     object lbFile: TLabel
       Left = 1
       Top = 1

@@ -14,12 +14,14 @@ object DateRangeFrm: TDateRangeFrm
   TextHeight = 13
   object ltext: TLabel
     Left = 20
-    Top = 24
-    Width = 325
-    Height = 13
+    Top = 22
+    Width = 365
+    Height = 35
+    AutoSize = False
     Caption = 
       'Enter the starting and finsishilg date for the period you want t' +
       'o lock'
+    WordWrap = True
   end
   object pButtons: TPanel
     Left = 0
@@ -54,13 +56,13 @@ object DateRangeFrm: TDateRangeFrm
   end
   inline DateSelector: TfmeDateSelector
     Left = 20
-    Top = 65
+    Top = 73
     Width = 276
     Height = 65
     TabOrder = 1
     TabStop = True
     ExplicitLeft = 20
-    ExplicitTop = 65
+    ExplicitTop = 73
     ExplicitHeight = 65
     inherited eDateFrom: TOvcPictureField
       Epoch = 0

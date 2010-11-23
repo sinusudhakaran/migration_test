@@ -5,13 +5,16 @@ object CurrenciesFrm: TCurrenciesFrm
   ClientHeight = 398
   ClientWidth = 721
   Color = clBtnFace
+  DefaultMonitor = dmMainForm
   ParentFont = True
+  KeyPreview = True
   OldCreateOrder = False
   Position = poMainFormCenter
   Scaled = False
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyPress = FormKeyPress
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
@@ -109,7 +112,7 @@ object CurrenciesFrm: TCurrenciesFrm
           Caption = 'Item1'
         end>
       Opened = True
-      OpenedHeight = 45
+      OpenedHeight = 48
       Caption = 'Details'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -152,6 +155,7 @@ object CurrenciesFrm: TCurrenciesFrm
       OnCreateEditor = vtCurrenciesCreateEditor
       OnEditing = vtCurrenciesEditing
       OnHeaderClick = vtCurrenciesHeaderClick
+      OnKeyDown = vtCurrenciesKeyDown
       OnNewText = vtCurrenciesNewText
       Columns = <
         item
@@ -166,7 +170,7 @@ object CurrenciesFrm: TCurrenciesFrm
           Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
           Position = 1
           Tag = 2
-          Width = 272
+          Width = 276
           WideText = 'Currency'
         end
         item

@@ -60,6 +60,8 @@ type
     Label12: TLabel;
     vsOut: TVirtualStringTree;
     vsFile: TVirtualStringTree;
+    Label3: TLabel;
+    cbOverwriteExchangeRates: TCheckBox;
     procedure BTNBrowseClick(Sender: TObject);
     procedure chFirstlineClick(Sender: TObject);
     procedure PCFormatChange(Sender: TObject);
@@ -96,6 +98,7 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure vsOutHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 
   private
     FColumnControls: ControlList;
@@ -110,6 +113,7 @@ type
     FCurrentDate: Integer;
     FDateMask: string;
     FExchangeSource: PExchangeSource;
+    FISOColumns: TVirtualTreeColumns;
     CurColumns: array of TCombobox;
     procedure BeginUpdate;
     procedure Endupdate;
@@ -161,7 +165,7 @@ type
     property ExchangeSource: PExchangeSource read FExchangeSource write SetExchangeSource;
   end;
 
- function ImportExchangeRates(aExchangeSource: PExchangeSource ): boolean;
+ function ImportExchangeRates(aExchangeSource: PExchangeSource; ISOColumns: TVirtualTreeColumns ): boolean;
 
 implementation
 
@@ -185,7 +189,8 @@ uses
   stDate,
   ComBoUtils,
   UsageUtils,
-  stDatest;
+  stDatest,
+  WarningMoreFrm;
 
 const
   tNone = ' ';
@@ -218,11 +223,12 @@ type
   end;
 
 
-function ImportExchangeRates(aExchangeSource: PExchangeSource): boolean;
+function ImportExchangeRates(aExchangeSource: PExchangeSource; ISOColumns: TVirtualTreeColumns): boolean;
 var Ldlg: TImportExchange;
 begin
    Ldlg := TImportExchange.Create(Application.MainForm);
    try
+      ldlg.FISOColumns := ISOColumns;  //This must be done before setting the exchange source
       ldlg.ExchangeSource := aExchangeSource;
 
       Result := ldlg.ShowModal = mrOK;
@@ -280,8 +286,9 @@ var R: Integer;
     C: Integer;
     W: Integer;
     FailCount,
-    GoodCount: Integer;
+    GoodCount, FutureCount: Integer;
     lRec: TExchangeRecord;
+    RateIndex: integer;
 
 begin
    if fOutlist.Count = 0 then begin
@@ -304,22 +311,31 @@ begin
 
   FailCount := 0; //Used as temp Counts..
   GoodCount := 0;
+  FutureCount := 0;
   for R := 0 to fOutlist.Count - 1 do begin
      if (not Assigned(TOutItem(fOutlist[R]).Matched))
      or (not TOutItem(fOutlist[R]).Matched.Locked) then
 
         Inc(GoodCount) // Will import
      else
-        Inc(FailCount) // Wont Import
-
+        Inc(FailCount); // Wont Import
+     if (TOutItem(fOutlist[R]).OutDate > stDate.CurrentDate) then
+       Inc(FutureCount);
   end;
 
   if GoodCount = 0 then begin
      HelpfulErrorMsg('No dates found, that are not already locked',0);
      Exit;
+  end else if GoodCount > 0 then begin
+     HelpfulWarningMsg('Locked exchange rates are unable to be imported. ' +
+                       'Any exchange rates imported for a locked rate will be ignored.',0);
   end;
 
-  
+  if (FutureCount > 0) then
+    if AskSelection('Future dates in import',
+      'Future dates exist in the import. These will be ignored, do you want to contiue?', TsDate,cbDate) then
+        Exit;
+
    if FailCount > 0 then
       if AskSelection('Transactions will be skipped',
          Format ('%D Transactions will be skipped, do you want to contiue?',[FailCount]) , TsDate,cbDate) then
@@ -334,7 +350,8 @@ begin
        if Assigned(LRec) then begin
           if LRec.Locked then
             Continue;
-       end else begin
+       end else if (TOutItem(fOutlist[R]).OutDate < stDate.CurrentDate) then begin
+          //Only add if exchange rate date < current date
           LRec := TExchangeRecord.Create(TOutItem(fOutlist[R]).OutDate, W);
           try
              FExchangeSource.ExchangeTree.Insert(LRec);
@@ -343,12 +360,17 @@ begin
              LRec.Free;
              Continue;
           end;
+       end else
+          Continue;
 
-       end;
        for C := 0 to pred(vsout.Header.Columns.Count) do begin
           if (vsout.Header.Columns[C].Tag >= piRate) // is a rate column
           and (TOutItem(fOutlist[R])[C] > '') then begin // Has a rate...
-             LRec.Rates[vsout.Header.Columns[C].Tag - piRate] := StrToFloat(TOutItem(fOutlist[R])[C]);
+             RateIndex := vsout.Header.Columns[C].Tag - piRate;
+             //Don't overwrite unless overwrite = true or existing exchange rate = 0
+             if cbOverwriteExchangeRates.Checked or
+                (Assigned(TOutItem(fOutlist[R]).Matched) and (LRec.Rates[RateIndex] = 0)) then
+                   LRec.Rates[RateIndex] := StrToFloat(TOutItem(fOutlist[R])[C]);
           end;
        end;
     end;
@@ -484,6 +506,15 @@ begin
          end;
       end;
    end;
+end;
+
+procedure TImportExchange.FormCloseQuery(Sender: TObject;
+  var CanClose: Boolean);
+const
+  CANCEL_PROMPT = 'Are you sure you want to exit the Import Exchange Rates window?';
+begin
+  if not (ModalResult = mrOK) and (fFilelist.Count > 0) then
+    CanClose := (AskYesNo('Cancel Import Exchange Rates', CANCEL_PROMPT, Dlg_No, 0) = DLG_YES);
 end;
 
 procedure TImportExchange.FormCreate(Sender: TObject);
@@ -839,11 +870,11 @@ begin
 
      SetLength(ll,1);
      case PCFormat.ActivePageIndex of
-     piDate : ll[0] := cbDate;
-     piRate ..
-     piRate + 99 : ll[0] := CurColumns[PCFormat.ActivePageIndex - piRate];
-
-     else SetLength(ll,0);
+       piDate : ll[0] := cbDate;
+       piRate ..
+       piRate + 99 : ll[0] := CurColumns[PCFormat.ActivePageIndex - piRate];
+     else
+       SetLength(ll,0);
      end;
      ColumnControls := ll;
      OutLvChanged := True;
@@ -1466,11 +1497,14 @@ begin
 end;
 
 procedure TImportExchange.SetExchangeSource(const Value: PExchangeSource);
-var C: Integer;
+var
+    C: Integer;
     R: Integer;
+    I, J: Integer;
 
     procedure AddTab(Name: string);
-    var LTabSheet: TTabsheet;
+    var
+       LTabSheet: TTabsheet;
     begin
        LTabSheet := TTabsheet.Create(PCFormat);
        lTabSheet.Caption := Name;
@@ -1478,7 +1512,7 @@ var C: Integer;
 
        with Tlabel.Create(LTabSheet) do begin
           Parent := LTabsheet;
-          Caption := 'Rate';
+          Caption := 'Rate (ISO)';
           Left := 15;
           Top := 20;
        end;
@@ -1493,7 +1527,7 @@ var C: Integer;
           Left := 83;
           Top := 18;
        end;
-        Inc(R);
+       Inc(R);
     end;
 
     function AddColumn(Name: string; aTag: Integer):TVirtualTreeColumn;
@@ -1519,12 +1553,26 @@ begin
       R := 0;
       SetLength(CurColumns,FExchangeSource.Width); // Skip the base one??
       for C := low(FExchangeSource.Header.ehISO_Codes) to
-        Low(FExchangeSource.Header.ehISO_Codes) + FExchangeSource.Width do
+        (Low(FExchangeSource.Header.ehISO_Codes) + FExchangeSource.Width) - 1 do
            if FExchangeSource.Header.ehCur_Type[C] <> ct_Base then begin
               AddColumn(FExchangeSource.Header.ehISO_Codes[C],PiRate +C).Alignment := taRightJustify;
               AddTab(FExchangeSource.Header.ehISO_Codes[C]);
            end;
 
+      //Set tab and column indexs to match columns in exchange rates table
+{      for i := 0 to Pred(FISOColumns.Count) do begin
+        for j := 0 to Pred(PCFormat.PageCount) do
+          if (PCFormat.Pages[j].Caption = FISOColumns[i].Text) then begin
+            PCFormat.Pages[j].PageIndex := (FISOColumns[i].Position - 1);
+            PCFormat.Pages[j].Tag := (i + piRate);
+            Break;
+          end;
+        for j := 0 to Pred(vsOut.Header.Columns.Count) do
+          if (vsOut.Header.Columns[j].Text = FISOColumns[i].Text) then begin
+            vsOut.Header.Columns[j].Position := (FISOColumns[i].Position - 1);
+            Break;
+          end;
+      end; }
 
   finally
       vsout.EndUpdate;
