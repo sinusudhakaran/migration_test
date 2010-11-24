@@ -185,6 +185,7 @@ $|  5.20 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line 
 $|                         Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
 $|  5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
 $|                         Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
+$|                         Add temp fields txTemp_Forex_Rate and txTemp_Base_Amount
 $|*)
 
 N|Client|cl|20
@@ -823,6 +824,8 @@ C|Temp Tag|L
 C|Date Change|Y
 C|Bank Account|TO
 C|Client|TO
+C|Temp Forex Rate|R
+C|Temp Base Amount|$
 E
 
 N|Dissection|ds|180

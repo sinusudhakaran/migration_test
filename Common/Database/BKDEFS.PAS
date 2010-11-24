@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 619;
-   BK_IOLIB_Date    = '08/11/10';
+   BK_IOLIB_Version : Integer = 620;
+   BK_IOLIB_Date    = '25/11/10';
    BK_FILE_VERSION  = 163;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -198,6 +198,7 @@ Const
                             Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
      5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
                             Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
+                            Add temp fields txTemp_Forex_Rate and txTemp_Base_Amount
    *)
 
 {  -------------------------------------------------------------------  }
@@ -910,6 +911,8 @@ Type
       txDate_Change                      : Boolean;
       txBank_Account                     : TObject;
       txClient                           : TObject;
+      txTemp_Forex_Rate                  : Double;
+      txTemp_Base_Amount                 : Money;
       txEOR                              : Byte;
    end;
 
