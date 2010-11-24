@@ -85,8 +85,8 @@ object dlgEditBank: TdlgEditBank
         Top = 12
         Width = 44
         Height = 13
-        Caption = 'Currency'
-        FocusControl = eNumber
+        Caption = 'C&urrency'
+        FocusControl = cmbCurrency
       end
       object gCalc: TPanel
         Left = 24
@@ -94,7 +94,7 @@ object dlgEditBank: TdlgEditBank
         Width = 553
         Height = 109
         Color = clInfoBk
-        TabOrder = 6
+        TabOrder = 7
         object lblPeriod: TLabel
           Left = 24
           Top = 86
@@ -274,7 +274,7 @@ object dlgEditBank: TdlgEditBank
         Height = 24
         BorderStyle = bsNone
         MaxLength = 60
-        TabOrder = 1
+        TabOrder = 2
         Text = 'eName'
         OnExit = eNumberExit
       end
@@ -284,7 +284,7 @@ object dlgEditBank: TdlgEditBank
         Width = 553
         Height = 35
         BevelOuter = bvNone
-        TabOrder = 2
+        TabOrder = 3
         DesignSize = (
           553
           35)
@@ -337,7 +337,7 @@ object dlgEditBank: TdlgEditBank
         Width = 561
         Height = 57
         BevelOuter = bvNone
-        TabOrder = 3
+        TabOrder = 4
         object lblBank: TLabel
           Left = 16
           Top = 16
@@ -425,7 +425,7 @@ object dlgEditBank: TdlgEditBank
         Width = 557
         Height = 61
         BevelOuter = bvNone
-        TabOrder = 4
+        TabOrder = 5
         object lblType: TLabel
           Left = 0
           Top = 37
@@ -489,7 +489,7 @@ object dlgEditBank: TdlgEditBank
         Width = 129
         Height = 25
         Caption = 'Select &Fund'
-        TabOrder = 5
+        TabOrder = 6
         OnClick = btnLedgerIDClick
       end
       object cmbCurrency: TComboBox
@@ -499,7 +499,7 @@ object dlgEditBank: TdlgEditBank
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 7
+        TabOrder = 1
         Items.Strings = (
           'GBP'
           'NZD'

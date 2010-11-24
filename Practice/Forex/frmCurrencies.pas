@@ -69,7 +69,8 @@ uses
   Admin32,
   SysObj32,
   Globals,
-  ShellAPI;
+  ShellAPI,
+  InfoMoreFrm;
 
 {$R *.dfm}
 
@@ -107,6 +108,13 @@ procedure TCurrenciesFrm.acAddExecute(Sender: TObject);
 var lnode: PVirtualNode;
     lnc: TCurrencyTreeItem;
 begin
+   if vtCurrencies.EditLink <> nil then Exit; //Don't add if already editing
+
+   if FTreeList.Count >= MAX_EXCHANGE_RATE_COLUMNS then begin //limit of 99 currencies
+     HelpfulInfoMsg('No more currencies can be added because the maxiumn limit has been reached.', 0);
+     Exit;
+   end;
+
    // Make a New style name...
    lnc := TCurrencyTreeItem.Create('',ct_User);
    lNode := FTreeList.AddNodeItem(nil,lnc);
@@ -265,7 +273,7 @@ begin
    RSGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
    RSGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
 
-   grpDetails.Items[0].Caption := format('Base currency: %s', [AdminSystem.fCurrencyCode]);
+   grpDetails.Items[0].Caption := format('Base currency: %s', [AdminSystem.CurrencyCode]);
 
    FTreeList:= TTreeBaseList.Create(vtCurrencies);
    FillCurrencies;

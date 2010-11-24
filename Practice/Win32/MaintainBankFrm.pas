@@ -92,6 +92,8 @@ uses
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormCreate(Sender: TObject);
+var
+  CurrencyColumn: TListColumn;
 begin
   bkXPThemes.ThemeForm( Self);
 
@@ -99,6 +101,18 @@ begin
   tbDelete.Enabled  := CurrUser.CanAccessAdmin;
 
   actCreate.Enabled := (not MyClient.clFields.clFile_Read_Only) and ((not Assigned(AdminSystem)) or CurrUser.CanAccessAdmin);
+
+  //Add currency column for UK multi-currency
+  if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then begin
+    CurrencyColumn := lvBank.Columns.Add;
+    CurrencyColumn.Caption := 'Currency';
+    CurrencyColumn.Width := 80;
+  end;
+
+  //Contra column
+  CurrencyColumn := lvBank.Columns.Add;
+  CurrencyColumn.Caption := 'Contra';
+  CurrencyColumn.Width := 100;
 
   LVUTILS.SetListViewColWidth(lvBank,1);
   UpdateRefNeeded := false;
@@ -163,7 +177,9 @@ begin
             NewItem.ImageIndex := MAINTAIN_ALERT;
 
         NewItem.SubItems.AddObject(BankAcct.baFields.baBank_Account_Name,BankAcct);
-        NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
+
+        if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then 
+          NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
 
         NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
       end;

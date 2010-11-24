@@ -26,7 +26,7 @@ uses
 
 
 Const
-  ISO_4217_min = 0; ISO_4217_max = 166;
+  ISO_4217_min = 0; ISO_4217_max = 167;
   ISO_4217_Records : Array[ ISO_4217_min..ISO_4217_max ] of ISO_4217_Record =
   (
     (  Code : 'AED';  Numeric_Code : '784';  Symbol : '';     Decimals : 2;  Name : 'United Arab Emirates dirham' ),
@@ -48,7 +48,7 @@ Const
     (  Code : 'BMD';  Numeric_Code : '060';  Symbol : '$';    Decimals : 2;  Name : 'Bermudian dollar (customarily known as Bermuda dollar)' ),
     (  Code : 'BND';  Numeric_Code : '096';  Symbol : '$';    Decimals : 2;  Name : 'Brunei dollar' ),
     (  Code : 'BOB';  Numeric_Code : '068';  Symbol : 'Bs.';  Decimals : 2;  Name : 'Boliviano' ),
-    (  Code : 'BOV';  Numeric_Code : '984';  Symbol : '';     Decimals : 2;  Name : 'Bolivian Mvdol (funds code)' ),
+    (  Code : 'BOV';  Numeric_Code : '984';  Symbol : '';     Decimals : 2;  Name : 'Bolivian Mvdol' ),
     (  Code : 'BRL';  Numeric_Code : '986';  Symbol : 'R$';   Decimals : 2;  Name : 'Brazilian real' ),
     (  Code : 'BSD';  Numeric_Code : '044';  Symbol : '$';    Decimals : 2;  Name : 'Bahamian dollar' ),
     (  Code : 'BTN';  Numeric_Code : '064';  Symbol : 'Nu.';  Decimals : 2;  Name : 'Ngultrum' ),
@@ -57,10 +57,10 @@ Const
     (  Code : 'BZD';  Numeric_Code : '084';  Symbol : '$';    Decimals : 2;  Name : 'Belize dollar' ),
     (  Code : 'CAD';  Numeric_Code : '124';  Symbol : '$';    Decimals : 2;  Name : 'Canadian dollar' ),
     (  Code : 'CDF';  Numeric_Code : '976';  Symbol : 'Fr';   Decimals : 2;  Name : 'Franc Congolais' ),
-    (  Code : 'CHE';  Numeric_Code : '947';  Symbol : '';     Decimals : 2;  Name : 'WIR euro (complementary currency)' ),
+    (  Code : 'CHE';  Numeric_Code : '947';  Symbol : '';     Decimals : 2;  Name : 'WIR euro' ),
     (  Code : 'CHF';  Numeric_Code : '756';  Symbol : 'Fr';   Decimals : 2;  Name : 'Swiss franc' ),
-    (  Code : 'CHW';  Numeric_Code : '948';  Symbol : '';     Decimals : 2;  Name : 'WIR franc (complementary currency)' ),
-    (  Code : 'CLF';  Numeric_Code : '990';  Symbol : '';     Decimals : 0;  Name : 'Unidad de Fomento (funds code)' ),
+    (  Code : 'CHW';  Numeric_Code : '948';  Symbol : '';     Decimals : 2;  Name : 'WIR franc' ),
+    (  Code : 'CLF';  Numeric_Code : '990';  Symbol : '';     Decimals : 0;  Name : 'Unidades de fomento' ),
     (  Code : 'CLP';  Numeric_Code : '152';  Symbol : '$';    Decimals : 0;  Name : 'Chilean peso' ),
     (  Code : 'CNY';  Numeric_Code : '156';  Symbol : '¥';    Decimals : 2;  Name : 'Renminbi' ),
     (  Code : 'COP';  Numeric_Code : '170';  Symbol : '$';    Decimals : 2;  Name : 'Colombian peso' ),
@@ -132,7 +132,7 @@ Const
     (  Code : 'MVR';  Numeric_Code : '462';  Symbol : '';     Decimals : 2;  Name : 'Rufiyaa' ),
     (  Code : 'MWK';  Numeric_Code : '454';  Symbol : 'MK';   Decimals : 2;  Name : 'Kwacha' ),
     (  Code : 'MXN';  Numeric_Code : '484';  Symbol : '$';    Decimals : 2;  Name : 'Mexican peso' ),
-    (  Code : 'MXV';  Numeric_Code : '979';  Symbol : 'UDI';  Decimals : 2;  Name : 'Mexican Unidad de Inversion (UDI) (funds code)' ),
+    (  Code : 'MXV';  Numeric_Code : '979';  Symbol : 'UDI';  Decimals : 2;  Name : 'Mexican Unidad de Inversion (UDI)' ),
     (  Code : 'MYR';  Numeric_Code : '458';  Symbol : 'RM';   Decimals : 2;  Name : 'Malaysian ringgit' ),
     (  Code : 'MZN';  Numeric_Code : '943';  Symbol : 'MTn';  Decimals : 2;  Name : 'Metical' ),
     (  Code : 'NAD';  Numeric_Code : '516';  Symbol : '$';    Decimals : 2;  Name : 'Namibian dollar' ),
@@ -165,6 +165,7 @@ Const
     (  Code : 'SOS';  Numeric_Code : '706';  Symbol : 'Sh';   Decimals : 2;  Name : 'Somali shilling' ),
     (  Code : 'SRD';  Numeric_Code : '968';  Symbol : '$';    Decimals : 2;  Name : 'Surinam dollar' ),
     (  Code : 'STD';  Numeric_Code : '678';  Symbol : 'Db';   Decimals : 2;  Name : 'Dobra' ),
+    (  Code : 'SVC';  Numeric_Code : '222';  Symbol : '$';    Decimals : 2;  Name : 'El Salvador Colon' ),
     (  Code : 'SYP';  Numeric_Code : '760';  Symbol : '£';    Decimals : 2;  Name : 'Syrian pound' ),
     (  Code : 'SZL';  Numeric_Code : '748';  Symbol : 'L';    Decimals : 2;  Name : 'Lilangeni' ),
     (  Code : 'THB';  Numeric_Code : '764';  Symbol : '';     Decimals : 2;  Name : 'Baht' ),
@@ -179,9 +180,9 @@ Const
     (  Code : 'UAH';  Numeric_Code : '980';  Symbol : '';     Decimals : 2;  Name : 'Hryvnia' ),
     (  Code : 'UGX';  Numeric_Code : '800';  Symbol : 'Sh';   Decimals : 2;  Name : 'Uganda shilling' ),
     (  Code : 'USD';  Numeric_Code : '840';  Symbol : '$';    Decimals : 2;  Name : 'US dollar' ),
-    (  Code : 'USN';  Numeric_Code : '997';  Symbol : '$';    Decimals : 2;  Name : 'United States dollar (next day) (funds code)' ),
-    (  Code : 'USS';  Numeric_Code : '998';  Symbol : '$';    Decimals : 2;  Name : 'United States dollar (same day) (funds code) (one source claims it is no longer used, but it is still on the ISO 4217-MA list)' ),
-    (  Code : 'UYI';  Numeric_Code : '940';  Symbol : '$';    Decimals : 2;  Name : 'Uruguay Peso en Unidades Indexadas' ),
+    (  Code : 'USN';  Numeric_Code : '997';  Symbol : '$';    Decimals : 2;  Name : 'US dollar (next day)' ),
+    (  Code : 'USS';  Numeric_Code : '998';  Symbol : '$';    Decimals : 2;  Name : 'US dollar (same day)' ),
+    (  Code : 'UYI';  Numeric_Code : '940';  Symbol : '$';    Decimals : 2;  Name : 'Uruguay Peso en Uniddes Indexadas' ),
     (  Code : 'UYU';  Numeric_Code : '858';  Symbol : '$';    Decimals : 2;  Name : 'Peso' ),
     (  Code : 'UZS';  Numeric_Code : '860';  Symbol : '';     Decimals : 2;  Name : 'Uzbekistan som' ),
     (  Code : 'VEF';  Numeric_Code : '937';  Symbol : 'Bs F'; Decimals : 2;  Name : 'Venezuelan bolívar fuerte' ),

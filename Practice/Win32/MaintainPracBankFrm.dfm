@@ -267,7 +267,7 @@ object frmMaintainPracBank: TfrmMaintainPracBank
     end
     object acExchangeRates: TAction
       Category = 'Currency'
-      Caption = 'Maintain Exchang Rates'
+      Caption = 'Maintain Exchange Rates'
       ImageIndex = 37
       OnExecute = acExchangeRatesExecute
     end

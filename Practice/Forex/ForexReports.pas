@@ -42,19 +42,19 @@ type
   end;
 
   TForexTravManager = class( TTravManager )
-    OpForexBalAtBank       : Money;
-    ClForexBalAtBank       : Money;
-    OpForexBalInSystem     : Money;
-    ClForexBalInSystem     : Money;
-    OpLocalBalAtBank       : Money;
-    ClLocalBalAtBank       : Money;
-    OpLocalBalInSystem     : Money;
-    ClLocalBalInSystem     : Money;
-    CRForexTotal           : Money;
-    DRForexTotal           : Money;
-    CRLocalTotal           : Money;
-    DRLocalTotal           : Money;
-    ReportJob              : TBKReport;
+    OpBalAtBank        : Money;
+    ClBalAtBank        : Money;
+    OpBalInSystem      : Money;
+    ClBalInSystem      : Money;
+    OpBaseBalAtBank    : Money;
+    ClBaseBalAtBank    : Money;
+    OpBaseBalInSystem  : Money;
+    ClBaseBalInSystem  : Money;
+    CRTotal            : Money;
+    DRTotal            : Money;
+    CRBaseTotal        : Money;
+    DRBaseTotal        : Money;
+    ReportJob          : TBKReport;
   end;
 
   // ----------------------------------------------------------------------------
@@ -125,46 +125,47 @@ begin
     With Bank_Account.baFields do
     Begin
       RenderTitleLine( Bank_Account.Title );
-      RenderTextLine( baDefault_Forex_Description + ' ' + baDefault_Forex_Source );
+//      RenderTextLine( baDefault_Forex_Description + ' ' + baDefault_Forex_Source );
     End;
 
-    GetBalances( Bank_Account, D1, D2, OpForexBalAtBank, ClForexBalAtBank, OpForexBalInSystem, ClForexBalInSystem );
+    GetBalances( Bank_Account, D1, D2, OpBalAtBank, ClBalAtBank, OpBalInSystem, ClBalInSystem );
 
     OpDate := D1;
     if OpDate = 0 then
        OpDate := Bank_Account.baTransaction_List.FirstPresDate;
 
-    ClForexBalAtBank := OpForexBalAtBank;
+    ClBalAtBank := OpBalAtBank;
 
-    if OpForexBalAtBank <> Unknown then
+    if OpBalAtBank <> Unknown then
     begin
-      Bank_Account.baFields.baTemp_Balance := OpForexBalAtBank;
+      Bank_Account.baFields.baTemp_Balance := OpBalAtBank;
 
       PutString( bkDate2Str( OpDate ) ) ;
       PutString( 'Opening Balance' );
       PutString( Bank_Account.baFields.baContra_Account_Code ) ;
-      PutMoneyDontAdd( OPForexBalAtBank );
+      PutMoneyDontAdd( OpBalAtBank );
       Rate := Bank_Account.Default_Forex_Conversion_Rate( OpDate );
       if Rate <> 0.0 then
       Begin
         S := Trim( ForexRate2Str( Rate ) );
         PutString( S );
-        OpLocalBalAtBank := Round( OpForexBalAtBank / Rate );
-        PutMoneyDontAdd( OpLocalBalAtBank );
+        OpBaseBalAtBank := Round( OpBalAtBank / Rate );
+        PutMoneyDontAdd( OpBaseBalAtBank );
       End
       Else
       Begin
-        OpLocalBalAtBank := 0;
+        OpBaseBalAtBank := 0;
         SkipColumn;
         SkipColumn;
       end;
-      ClLocalBalAtBank := OpLocalBalAtBank;
+      ClBaseBalAtBank := OpBaseBalAtBank;
       RenderDetailLine;
+      RenderTextLine('');
     end
     else
     Begin
-      OpLocalBalAtBank := Unknown;
-      ClLocalBalAtBank := Unknown;
+      OpBaseBalAtBank := Unknown;
+      ClBaseBalAtBank := Unknown;
     End;
   end;
 end;
@@ -175,6 +176,7 @@ procedure LE_EnterEntry( Sender: TObject ) ;
 var
   Mgr     : TForexTravManager;
   S       : String;
+  DefaultForexRate: double;
 begin
   Mgr := TForexTravManager( Sender ) ;
   with Mgr, Mgr.ReportJob, TListForexEntriesReport( ReportJob ),
@@ -187,30 +189,33 @@ begin
        exit;
     if not LE_IsBankAccountIncluded( ReportJob, Mgr ) then
        exit;
+    if not Bank_Account.HasTransactionsWithin( Fromdate, Todate ) then
+       exit;
 
     ForexAmountCol.FormatString  := MONEY_FORMAT;
     LocalAmountCol.FormatString  := MONEY_FORMAT;
 
     PutString( bkDate2Str( txDate_Presented ) ) ;
-    PutString( GetFormattedReference( Mgr.Transaction ) ) ;
+    PutString( txGL_Narration ) ;
     PutString( txAccount ) ;
 
-//    PutMoney( Trunc( txForeign_Currency_Amount ) );
+    //Transaction amount
     PutMoney( Trunc( txAmount ) );
 
-    S := Trim( ForexRate2Str( txForex_Conversion_Rate ) );
+    //Exchange rate
+    S := Trim( ForexRate2Str( Mgr.Transaction^.Default_Forex_Rate ) );
     if not Mgr.Transaction.Is_Default_Forex_Rate then
        S := S + '*';
     PutString( S );
 
-    PutMoney( Trunc( txAmount ) );
+    //Base amount
+    PutMoney( Trunc(  Mgr.Transaction^.Local_Amount ) );
 
-    if ClForexBalAtBank <> Unknown then
-//      ClForexBalAtBank := ClForexBalAtBank + txForeign_Currency_Amount;
-      ClForexBalAtBank := ClForexBalAtBank + txAmount;
+    if ClBalAtBank <> Unknown then
+      ClBalAtBank := ClBalAtBank + txAmount;
 
-    if ClLocalBalAtBank <> Unknown then
-      ClLocalBalAtBank := ClLocalBalAtBank + txAmount;
+    if ClBaseBalAtBank <> Unknown then
+      ClBaseBalAtBank := ClBaseBalAtBank + Mgr.Transaction^.Local_Amount;
 
     RenderDetailLine;
   end;
@@ -222,7 +227,7 @@ procedure LE_ExitAccount( Sender: TObject ) ;
 var
   Mgr: TForexTravManager;
   ClDate : Integer;
-  Rate   : Extended;
+  Rate   : Double;
   S : String;
   ClForexBalAsLocal : Money;
   ForexGainOrLoss   : Money;
@@ -238,6 +243,8 @@ begin
        exit;
     if not LE_IsBankAccountIncluded( ReportJob, Mgr ) then
        exit;
+    if not Bank_Account.HasTransactionsWithin( Fromdate, Todate ) then
+       exit;
 
     ForexAmountCol.TotalFormat  := Bank_Account.FmtMoneyStr;
     LocalAmountCol.TotalFormat  := Client.FmtMoneyStr;
@@ -249,7 +256,7 @@ begin
     ForexAmountCol.FormatString  := Bank_Account.FmtMoneyStr;
     LocalAmountCol.FormatString  := Client.FmtMoneyStr;
 
-    if ClForexBalAtBank <> Unknown then
+    if ClBalAtBank <> Unknown then
     begin
       Rpt.SingleUnderLine;
       PutString( bkDate2Str( ClDate ) ) ;
@@ -257,20 +264,20 @@ begin
       SkipColumn;
       SkipColumn;
       SkipColumn;
-      PutMoneyDontAdd( ClLocalBalAtBank );
+      PutMoneyDontAdd( ClBaseBalAtBank );
       RenderDetailLine;
     end;
 
     ForexGainOrLoss   := Unknown;
 
-    if ClForexBalAtBank <> Unknown then
+    if ClBalAtBank <> Unknown then
     begin
       Rate := Bank_Account.Default_Forex_Conversion_Rate( ClDate );
       if Rate <> 0.0 then
       Begin
-        ClForexBalAsLocal := Round( ClForexBalAtBank / Rate );
-        if ClLocalBalAtBank <> Unknown then
-          ForexGainOrLoss := ClForexBalAsLocal - ClLocalBalAtBank;
+        ClForexBalAsLocal := Round( ClBalAtBank / Rate );
+        if ClBaseBalAtBank <> Unknown then
+          ForexGainOrLoss := ClForexBalAsLocal - ClBaseBalAtBank;
       end;
     end;
 
@@ -289,25 +296,25 @@ begin
     ForexAmountCol.FormatString  := Bank_Account.FmtMoneyStr;
     LocalAmountCol.FormatString  := Client.FmtMoneyStr;
 
-    if ClForexBalAtBank <> Unknown then
+    if ClBalAtBank <> Unknown then
     begin
       PutString( bkDate2Str( ClDate ) ) ;
       PutString( 'Closing Balance' );
       PutString( Bank_Account.baFields.baContra_Account_Code ) ;
 
-      PutMoneyDontAdd( ClForexBalAtBank );
+      PutMoneyDontAdd( ClBalAtBank );
 
       Rate := Bank_Account.Default_Forex_Conversion_Rate( ClDate );
       if Rate <> 0.0 then
       Begin
         S := Trim( ForexRate2Str( Rate ) );
         PutString( S );
-        ClLocalBalAtBank := Round( ClForexBalAtBank / Rate );
-        PutMoneyDontAdd( ClLocalBalAtBank );
+        ClBaseBalAtBank := Round( ClBalAtBank / Rate );
+        PutMoneyDontAdd( ClBaseBalAtBank );
       End
       Else
       Begin
-        ClLocalBalAtBank := 0;
+        ClBaseBalAtBank := 0;
         SkipColumn;
         SkipColumn;
       end;
@@ -407,7 +414,7 @@ begin
         if not HasSomeEntries then
           if LParams.BatchRun then
           begin
-            RptBatch.RunResult := 'No Entries in date range , '
+            RptBatch.RunResult := 'No Entries in date range, '
               + bkDate2Str( LParams.FromDate ) + ' to ' + bkDate2Str(
                 LParams.Todate ) + '.';
 
@@ -415,9 +422,33 @@ begin
             // Was meant to run direct... Just Exit
           end
           else
-            HelpfulWarningMsg( 'There are no Entries for this client in the date range , '
+            HelpfulWarningMsg( 'There are no Entries for this client in the date range, '
               + bkDate2Str( LParams.FromDate ) + ' to ' + bkDate2Str(
                 LParams.Todate ) + '.', 0 ) ;
+
+
+        //Check for exchange rates
+        for i := 0 to Pred( LParams.AccountList.Count ) do
+        begin
+          ba := LParams.AccountList[ i ] ;
+          if not ba.HasExchangeRates( LParams.FromDate, LParams.Todate, true ) then
+          begin
+            if LParams.BatchRun then
+            begin
+              RptBatch.RunResult := 'There are missing exchange rates for '
+                + ba.baFields.baCurrency_Code +  ' in the date range, '
+                + bkDate2Str( LParams.FromDate ) + ' to ' + bkDate2Str(
+                  LParams.Todate ) + '.';
+            end
+            else
+              HelpfulWarningMsg( 'There are missing exchange rates for '
+                + ba.baFields.baCurrency_Code +  ' in the date range, '
+                + bkDate2Str( LParams.FromDate ) + ' to ' + bkDate2Str(
+                  LParams.Todate ) + '.', 0 ) ;
+            Exit; //Can't run the report without exchange rates
+          end;
+        end;
+
       end; //While HasSomeEntries
 
       if Dest = rdNone then Continue;

@@ -76,7 +76,7 @@ type
       Function Title : String;
       function AccountName: string;
       function ValidPayeeCode(PayeeNumber: integer): Boolean;
-      function HasMissingExchageRates(StartDate, EndDate: Integer): Boolean;
+      function HasExchangeRates(StartDate, EndDate: Integer; StoreRates: boolean = false): Boolean;
    end;
 
 const
@@ -865,25 +865,33 @@ begin
   Result := fForex_Info;
 end; }
 
-function TBank_Account.HasMissingExchageRates(StartDate,
-  EndDate: Integer): Boolean;
+function TBank_Account.HasExchangeRates(StartDate,
+  EndDate: Integer; StoreRates: boolean): Boolean;
 var
   i: Integer;
   T: pTransaction_Rec;
+  Rate: double;
 begin
-  Result := False;
+  Result := True;
 
   if not IsAForexAccount then Exit;
 
   for i := 0 to Pred( baTransaction_List.ItemCount ) do
   begin
     T := baTransaction_List.Transaction_At(i);
+    T.txTemp_Forex_Rate := 0;
+    T.txTemp_Base_Amount := 0;
     if (T.txDate_Effective >= StartDate) and
        (T.txDate_Effective <= EndDate) then
     begin
-      if (T.Default_Forex_Rate = 0) then begin
-        Result := True;
-        Break;
+      Rate := T.Default_Forex_Rate;
+      if (Rate = 0) then begin
+        Result := False;
+        if not StoreRates then
+          Break;
+      end else if StoreRates then begin
+        T.txTemp_Forex_Rate := Rate;
+        T.txTemp_Base_Amount := T.Local_Amount;
       end;
     end;
   end;

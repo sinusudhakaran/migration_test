@@ -774,7 +774,7 @@ begin
   Result := False;
   for i := clBank_Account_List.First to clBank_Account_List.Last do begin
     BA := clBank_Account_List.Bank_Account_At(i);
-    if BA.HasMissingExchageRates(FromDate, ToDate) then begin
+    if not BA.HasExchangeRates(FromDate, ToDate) then begin
       if (ISOCodeText = '') then
         ISOCodeText := BA.baFields.baCurrency_Code
       else begin

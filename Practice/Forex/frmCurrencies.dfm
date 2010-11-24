@@ -112,7 +112,7 @@ object CurrenciesFrm: TCurrenciesFrm
           Caption = 'Item1'
         end>
       Opened = True
-      OpenedHeight = 48
+      OpenedHeight = 45
       Caption = 'Details'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -170,7 +170,7 @@ object CurrenciesFrm: TCurrenciesFrm
           Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
           Position = 1
           Tag = 2
-          Width = 276
+          Width = 272
           WideText = 'Currency'
         end
         item
