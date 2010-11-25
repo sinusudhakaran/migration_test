@@ -574,8 +574,7 @@ begin
 
       mniSortByNarration.Caption := 'By &Narration';
 
-      HistTranList := TUnSorted_Transaction_List.Create;
-      ExistingCheques := TChequesList.Create;
+
       SetupHelp;
         //add the first row
       InsertNewRow( InsertAtEnd ); // Insert a blank row
@@ -632,11 +631,12 @@ begin
       //setup bank account details
 
       with lblAcctDetails do begin
-         Caption := Format( 'A/C  %',[ BankAccount.Title ]);
-         Hint    := Caption;  //set so user can see the full details even if form width small
+         Caption := Format('A/C  %s',[ BankAccount.Title ]);
+         Hint := Caption;  //set so user can see the full details even if form width small
       end;
 
-
+      HistTranList := TUnSorted_Transaction_List.Create;
+      ExistingCheques := TChequesList.Create;
       //Find the date of the first non historical entry
       FirstBankDate := 0;
       FirstPDate    := 0;
@@ -4727,6 +4727,7 @@ var
      msg: string;
      Entry: tArchived_Transaction;
      t: integer;
+
   begin
      Result := False;
      LoadAdminSystem(True,'Save Provisional');
@@ -4777,11 +4778,12 @@ var
              Entry.aSource            := BKCONST.orManual;
              Entry.aDate_Presented    := txDate_Presented;
              Entry.aReference         := txReference;
+             Entry.aCheque_Number     := txCheque_Number;
              Entry.aStatement_Details := copy(txGL_Narration,1,200);
              Entry.aAmount            := txAmount;
-             Entry.aQuantity          := txQuantity / 10;
-             Entry.aReference         := txReference;
+             Entry.aQuantity          := abs(txQuantity);
              Entry.aOther_Party       := txOther_Party;
+
              //allocate new lrn for this transaction and write to txn file
              Inc( AdminSystem.fdFields.fdTransaction_LRN_Counter);
              Entry.aLRN := AdminSystem.fdFields.fdTransaction_LRN_Counter;
@@ -4813,7 +4815,6 @@ var
                 max(AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded, Entry.aDate_Presented);
 
 
-
         end;
 
       saveAdminSystem;
@@ -4841,7 +4842,8 @@ begin
       TempAccount := TBank_Account.Create;
       with TempAccount.baFields do begin
           baCurrent_Balance := SelectedBA.sbCurrent_Balance;
-          baAccount_Type    := btBank;
+          baAccount_Type := btBank;
+          baIs_A_Manual_Account := True;
           baDesktop_Super_Ledger_ID := -1;
           baBank_Account_Number := SelectedBA.sbAccount_Number;
           baBank_Account_Name := SelectedBA.sbAccount_Name;

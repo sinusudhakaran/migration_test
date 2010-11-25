@@ -59,7 +59,8 @@ object fmeSysAccounts: TfmeSysAccounts
         'New'
         'Unattached'
         'Deleted'
-        'Inactive')
+        'Inactive'
+        'Provisional')
     end
     object btnFilter: TButton
       AlignWithMargins = True
@@ -133,6 +134,7 @@ object fmeSysAccounts: TfmeSysAccounts
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
     Header.PopupMenu = pmHeader
     Images = AppImages.States
+    ParentBackground = False
     TabOrder = 1
     TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages]
     TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]

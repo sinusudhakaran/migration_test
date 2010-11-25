@@ -64,7 +64,7 @@ type
     { Private declarations }
     fChanged : boolean;
     procedure RefreshBankAccountList(Selected: string = '');
-    procedure HandleDeletes(AsDoRequest: Boolean; Provisionals: Boolean = false);
+    procedure HandleDeletes(AsDoRequest: Boolean);
   public
   protected
     procedure UpdateActions; override;
@@ -662,7 +662,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmMaintainPracBank.HandleDeletes(AsDoRequest: Boolean; Provisionals: Boolean = false);
+procedure TfrmMaintainPracBank.HandleDeletes(AsDoRequest: Boolean);
 var
     lNode: PVirtualNode;
     lList: TStringList;
@@ -670,9 +670,7 @@ var
     lACC: TSABaseItem;
     AllDeleted,
     AllInactive,
-    AllOffsite,
-    DeleteProvsToo: Boolean;
-    StringNum: integer;
+    AllOffsite: Boolean;
 
     function SendTheRequest: Boolean;
     var Recipient, Body: string;
@@ -753,20 +751,7 @@ var
 
 
 begin
-   DeleteProvsToo := false;
    ldlg := TfrmDeleteRequest.Create(self);
-
-   if Provisionals then
-   begin
-     ldlg.Caption := 'Confirm Provisional Account deletion request';
-     ldlg.Label1.Caption := 'You have selected the following Provisional Accounts for deletion:';
-     ldlg.LDelete.Caption := 'If you continue you will no longer be able to add or import transactions.';
-     ldlg.LDownload.Caption := 'Click OK to continue or Cancel to exit without sending the deletion request.';
-     ldlg.EDate.Visible := false;
-     ldlg.lProcessed.Visible := false;
-     ldlg.lCharges.Visible := false;
-   end;
-
    with ldlg do try
       EAccounts.Lines.clear;
       lList := TStringList.Create; // So we can sort the list..
@@ -778,9 +763,6 @@ begin
          while Assigned(lNode) do begin
             lACC := SysAccounts.Accounts[lNode];
             if Assigned(lAcc.SysAccount) then begin
-               if (SysAccounts.Accounts[lNode].SysAccount.sbAccount_Type <> sbtProvisional)
-               xor Provisionals then
-               begin
                  lList.Add( format('%s, %s',
                     [SysAccounts.Accounts[lNode].SysAccount.sbAccount_Number,
                      SysAccounts.Accounts[lNode].SysAccount.sbAccount_Name]));
@@ -790,9 +772,6 @@ begin
                     AllInactive := False;
                  if not lAcc.IsOffsite then
                     AllOffsite := False;
-               end else
-                 if not Provisionals then              
-                   DeleteProvsToo := true; // We'll need to run through HandleDeletes again to delete the selected provisional accounts
             end;
 
             lNode := SysAccounts.AccountTree.GetNextSelected(lNode);
@@ -830,14 +809,13 @@ begin
       FChanged := True;
       ldlg.Free;
    end;
-
-   if DeleteProvsToo then
-     HandleDeletes(AsDoRequest, true); // Now for the provisional accounts
 end;
 
 procedure TfrmMaintainPracBank.ManuallyAddProvTrans(ForAccount: string);
 begin
-  AddProvisionalData(ForAccount );
+   AddProvisionalData(ForAccount);
+   // System refreshed...
+   RefreshBankAccountList(ForAccount);
 end;
 
 //------------------------------------------------------------------------------

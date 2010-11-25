@@ -158,6 +158,7 @@ const
   cbf_Unattached = 3;
   cbf_Deleted    = 4;
   cbf_Inactive   = 5;
+  cbf_Provisional= 6;
 
 implementation
 
@@ -563,26 +564,39 @@ var P: TPoint;
 
     procedure TestFilter;
     var n: Integer;
+        Provisional: Boolean;
     begin
        cbFilter.ItemIndex := -1;
        try
+       Provisional := false;
        for n := Low(fInclude.Nodes)+ 1 to High(fInclude.Nodes) do begin
-           if fInclude.Nodes[n] <> [] then
-              Exit;
-           if fInclude.NotNodes[n] <> [] then
-              Exit;
+           if (n= safsTopDeliver)
+           and (fInclude.Nodes[n] = [saProvisional]) then
+              Provisional := True
+           else begin
+              if fInclude.Nodes[n] <> [] then
+                 Exit;
+              if fInclude.NotNodes[n] <> [] then
+                 Exit;
+           end;
        end;
 
+       // only Node zero or Provisional ..
 
        if (fInclude.Nodes[0] = []) then begin
           if fInclude.NotNodes[0] = [] then
-             cbFilter.ItemIndex := cbf_All
+             // Notes and NotNotes Blank
+             if provisional then
+                cbFilter.ItemIndex := cbf_Provisional
+             else
+                cbFilter.ItemIndex := cbf_All
           else if fInclude.NotNodes[0] = [saAttached] then
              cbFilter.ItemIndex := cbf_UnAttached
           else if  fInclude.NotNodes[0] = [saDeleted] then
              cbFilter.ItemIndex := cbf_Deleted
           else if fInclude.NotNodes[0] = [saInactive] then
              cbFilter.ItemIndex := cbf_Inactive
+
        end else if fInclude.NotNodes[0] = [] then begin
           if fInclude.Nodes[0] = [saAttached] then
              cbFilter.ItemIndex := cbf_Attached
@@ -672,19 +686,22 @@ begin
    Include.Clear;
    case cbFilter.ItemIndex of
    cbf_Attached   :begin
-                      Include.Nodes[0] := [saAttached];
+                      Include.Nodes[safsTopStatus] := [saAttached];
                     end;
    cbf_New        :begin
-                      Include.Nodes[0] := [saNew];
+                      Include.Nodes[safsTopStatus] := [saNew];
                     end;
    cbf_Unattached :begin
-                      Include.NotNodes[0]  := [saAttached];
+                      Include.NotNodes[safsTopStatus]  := [saAttached];
                     end;
    cbf_Deleted    :begin
-                      Include.Nodes[0] := [saDeleted];
+                      Include.Nodes[safsTopDeleted] := [saDeleted];   
                     end;
    cbf_Inactive   :begin
-                      Include.Nodes[0] := [saInactive];
+                      Include.Nodes[safsTopStatus] := [saInactive];
+                    end;
+   cbf_Provisional:begin
+                      Include.Nodes[safsTopDeliver] := [saProvisional]
                     end;
    end;
    ReloadAccounts;
@@ -1048,6 +1065,7 @@ var
                       or TestInclude(BankAcct.sbFrequency = difWeekly, saFreqWeek)
                       or TestInclude(BankAcct.sbFrequency = difDaily, saFreqDay)
                       or TestInclude(BankAcct.sbFrequency = difUnspecified, saFreqUnspecified)
+                      or TestInclude(BankAcct.sbAccount_Type = sbtProvisional, saProvisional)
                 ) then
            Exit; // This node failed
 

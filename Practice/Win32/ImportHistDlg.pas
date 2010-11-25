@@ -22,6 +22,7 @@ unit ImportHistDlg;
 interface
 
 uses
+  MatchTransactions,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,Contnrs,
   BKDateUtils,
   Dialogs, ExtCtrls, VirtualTrees, StdCtrls, baObj32, txul, HistoricalDlg, OsFont,
@@ -34,56 +35,63 @@ type
 
 type
   TImportHist = class(TForm)
-    pFileinput: TPanel;
     pBtn: TPanel;
-    pFile: TPanel;
-    BTNBrowse: TButton;
-    EPath: TEdit;
     OpenDlg: TOpenDialog;
-    Label1: TLabel;
-    chFirstline: TCheckBox;
+    BtnCancel: TButton;
+    btnOK: TButton;
+    ReloadTimer: TTimer;
+    pBottom: TPanel;
+    PbTitle: TPanel;
     PFormat: TPanel;
     PCFormat: TPageControl;
     TSDate: TTabSheet;
-    EDate: TEdit;
     Label2: TLabel;
-    TSAmount: TTabSheet;
-    TSReference: TTabSheet;
-    LColumns: TLabel;
-    tsAnalysis: TTabSheet;
-    cbDate: TComboBox;
     Label4: TLabel;
-    cbAmount: TComboBox;
-    cbAmount2: TComboBox;
+    EDate: TEdit;
+    cbDate: TComboBox;
+    TSAmount: TTabSheet;
     lbAmount: TLabel;
     lbAmount2: TLabel;
-    cbRef: TComboBox;
-    TSNarration: TTabSheet;
-    BtnCancel: TButton;
-    btnOK: TButton;
-    Label3: TLabel;
-    cbAna: TComboBox;
-    Label5: TLabel;
-    cbNar1: TComboBox;
-    Label6: TLabel;
-    cbNar2: TComboBox;
-    Label7: TLabel;
-    cbNar3: TComboBox;
+    cbAmount: TComboBox;
+    cbAmount2: TComboBox;
     cbSign: TCheckBox;
-    SkipLine: TRzSpinEdit;
-    Label9: TLabel;
     rbDebitCredit: TRadioButton;
     RBSign: TRadioButton;
     rbSingle: TRadioButton;
-    pOut: TPanel;
+    TSReference: TTabSheet;
+    LColumns: TLabel;
     Label10: TLabel;
+    cbRef: TComboBox;
+    tsAnalysis: TTabSheet;
+    Label3: TLabel;
     Label11: TLabel;
-    ReloadTimer: TTimer;
-    lbFile: TLabel;
-    cbDelimiter: TComboBox;
-    Label12: TLabel;
+    cbAna: TComboBox;
+    TSNarration: TTabSheet;
+    Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
+    cbNar1: TComboBox;
+    cbNar2: TComboBox;
+    cbNar3: TComboBox;
+    pOut: TPanel;
     vsOut: TVirtualStringTree;
+    pTop: TPanel;
+    pFileinput: TPanel;
+    Label1: TLabel;
+    Label9: TLabel;
+    Label12: TLabel;
+    BTNBrowse: TButton;
+    EPath: TEdit;
+    chFirstline: TCheckBox;
+    SkipLine: TRzSpinEdit;
+    cbDelimiter: TComboBox;
+    pFile: TPanel;
+    lbFile: TLabel;
     vsFile: TVirtualStringTree;
+    lMappingTitle: TLabel;
+    POutfileTitle: TPanel;
+    lOutputTitle: TLabel;
+    lInFileTitle: TLabel;
     procedure BTNBrowseClick(Sender: TObject);
     procedure chFirstlineClick(Sender: TObject);
     procedure PCFormatChange(Sender: TObject);
@@ -126,6 +134,8 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure vsOutHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure vsOutGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
 
   private
     FHDEForm: TdlgHistorical;
@@ -139,14 +149,20 @@ type
     FValidDateRange: tDateRange;
     FOutLvChanged: Boolean;
     FFileLvChanged: Boolean;
+    FNeedMatch: Boolean;
     FSubAna: Integer;
     FSubNar: Integer;
     fFileList: TobjectList;
     fOutList: TobjectList;
     FCurrentDate: Integer;
     FDateMask: string;
+    FIniFile: string;
+    FMatchTransactions: TMatchTransactions;
+    FNeedMactch: Boolean;
+
     procedure BeginUpdate;
     procedure Endupdate;
+    procedure ReMatch;
     procedure ReloadFile;
     procedure SetHDEForm(const Value: TdlgHistorical);
     procedure SetColumnControls(const value: ControlList);
@@ -157,6 +173,12 @@ type
     procedure SetFileLvChanged(const Value: Boolean);
     procedure SetOutLvChanged(const Value: Boolean);
     procedure SetDateMask(const Value: string);
+    procedure SetIniFile(const Value: string);
+    function GetIniFile: string;
+    function AccountType: string;
+    procedure SetMatchTransactions(const Value: TMatchTransactions);
+    function GetMatchTransactions: TMatchTransactions;
+    procedure SetNeedMatch(const Value: Boolean);
     property SelectedCol [index : Integer]: Boolean read GetSelectedCol write SetSelectedCol;
     function GetFileText(const Row,Col: Integer; MaxLen: Integer = 0):string;
     property ColumnControls:ControlList read FColumnControls write SetColumnControls;
@@ -183,18 +205,29 @@ type
     function StrtoCurr(Value: string): Currency;
     function StrtoDate(Value,Mask: string): Integer;
     function GetEntryType(Amount: Money): Byte;
-    procedure SetDefault(Value: string; ComboBox: TComboBox; Default: integer = 0);
+    procedure LookFor(Value: string; ComboBox: TComboBox; Default: integer = 0);
+    procedure SetDefault(Value: string; ComboBox: TComboBox); overload;
+    procedure SetDefault(Value: string; CheckBox: TCheckBox); overload;
+    procedure SetDefault(Value: string; SpinEdit: TRzSpinEdit); overload;
     procedure OutColResize(Value: Integer);
     property FileLvChanged: Boolean read FFileLvChanged write SetFileLvChanged;
     property OutLvChanged: Boolean read FOutLvChanged write SetOutLvChanged;
+    property NeedMatch: Boolean read FNeedMatch write SetNeedMatch;
     property DateMask: string read FDateMask write SetDateMask;
     function CurrentDate: Integer;
     procedure SetUpHelp;
+    property IniFile: string read GetIniFile write SetIniFile;
+    function GetPrivateProfileText(App, Key: string; Default: string = ''): string;
+    procedure WritePrivateProfileText(App, Key, Value: string);
+    procedure SaveDefaults;
+    procedure ApplyDefaults;
+    procedure MatchOutItem(Index: Integer);
     { Private declarations }
   public
     property HDEForm: TdlgHistorical read FHDEForm write SetHDEForm;
     property BankAccount: TBank_Account read FBankAccount write SetBankAccount;
     property HistTranList: TUnsorted_Transaction_List read FHistTranList write SetHistTranList;
+    property MatchTransactions: TMatchTransactions read GetMatchTransactions write SetMatchTransactions;
     { Public declarations }
   end;
 
@@ -243,12 +276,36 @@ const
   SubRef    = 2;
   // Rest are fields..
 
+  // Index into OutItem.Objects
+  oiDate    = 0;
+  oiMatch   = 1;
+
   // PageIndex
   piDate = 0;
   piAmount = 1;
   piReference = 2;
   piAnalysis  = 3;
   piNarration = 4;
+
+  // Profile Keys
+  kFile = 'FileName';
+  kSkipLines = 'SkipLines';
+  kHeaderLine = 'HeaderLine';
+  kDelimiter = 'Delimiter';
+  kDateCol = 'DateCol';
+  kAmountType = 'AmountType';
+    vSingle = 'Single';
+    vDouble = 'Double';
+    vSign = 'Sign';
+  kCredidCol = 'CreditCol';
+  kDebidCol = 'DebitCol';
+  kSignCol = 'SignCol';
+  kReverseSign = 'ReverseSign';
+  kRefCol = 'ReferenceCol';
+  kAnalCol = 'AnalysisCol';
+  kNar1Col = 'Narration1Col';
+  kNar2Col = 'Narration2Col';
+  kNar3Col = 'Narration3Col';
 
 type
   TFileitem = class (TStringList)
@@ -273,13 +330,64 @@ begin
       Ldlg.HistTranList := HistTranList;
       Ldlg.SetBounds(HDEForm.Left + 20,HDEForm.Top + 20, HDEForm.Width - 40, HDEForm.Height - 40);
 
-
       Result := ldlg.ShowModal = mrOK;
    finally
       Ldlg.Free;
    end;
 end;
 
+
+function TImportHist.AccountType: string;
+begin
+   if BankAccount.baFields.baIs_A_Manual_Account then
+      Result := 'Provisional'
+   else
+      Result := 'Historical';
+end;
+
+procedure TImportHist.ApplyDefaults;
+// Is called after reloading the file.. so we check if the old settings still can work..
+
+var AmountType: string;
+begin
+   // date
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDateCol),cbDate);
+
+   AmountType := GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAmountType);
+   // Amount
+   if AmountType = vSingle then begin
+      if rbSingle.Enabled then
+         rbSingle.Checked := true;
+      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
+   end else if AmountType = vDouble then begin
+      if rbDebitCredit.Enabled then
+         rbDebitCredit.Checked := true;
+
+      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
+      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol), CBAmount2);
+   end else if  AmountType = vSign then begin
+      if rbSign.Enabled then
+         rbSign.Checked := true;
+
+      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
+      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol), CBAmount2);
+   end;
+
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kReverseSign), cbSign);
+
+
+   // Reference
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kRefCol), cbref);
+
+   // Analysis
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAnalCol), cbAna);
+
+   // Narration
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar1Col), cbNar1);
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar2Col), cbNar2);
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar3Col), cbNar3);
+
+end;
 
 procedure TImportHist.BeginUpdate;
 begin
@@ -295,11 +403,7 @@ begin
    OpenDLG.FileName := EPath.Text;
    if OpenDLG.Execute() then begin
        EPath.Text := OpenDLG.FileName;
-       freloading := True; //Stop the triggers Check First...
-          chFirstLine.Checked := false;
-          SkipLine.IntValue := 0;
-       freloading := False;
-       
+
        ReloadFile;
    end;
 end;
@@ -317,6 +421,11 @@ procedure TImportHist.btnOKClick(Sender: TObject);
 
    function AskSelection(Text1,Text2: string; TS: TTabsheet; Value: TWinControl): Boolean;
    begin
+      if Text2 = '' then begin
+         Result := False;
+         Exit;
+      end;
+
       if AskYesNo(Text1,Text2, DLG_NO,0) = DLG_YES then begin
          // Its OK to continue...
          Result := False;
@@ -329,12 +438,42 @@ procedure TImportHist.btnOKClick(Sender: TObject);
       end;
    end;
 
+
+
 var R: Integer;
     tI: Integer;
     pT: pTransaction_Rec;
 
     FailCount,
-    GoodCount: Integer;
+    GoodCount,
+    DateCount,
+    AmountCount,
+    ReferenceCount,
+    AnalysisCount,
+    NarrationCount: Integer;
+
+    function MatchMessage: string;
+       procedure AddMessage(Count: Integer; Text: string);
+       begin
+          if Count = 0 then
+             Exit;
+          if Result > '' then
+             Result := Result + ';'#13;
+          Result := Format( '%d transactions with matching %s',[Count, Text]);
+       end;
+    begin
+       Result := '';
+       Addmessage(DateCount,'date');
+       Addmessage(AmountCount,'date and amount');
+       Addmessage(ReferenceCount,'date, amount and reference');
+       Addmessage(AnalysisCount,'date, amount, reference and analysis');
+       Addmessage(NarrationCount,'date, amount, reference, analysis and narration');
+
+       if Result > '' then
+          Result := Result + (Format( 'There are %s.'#13#13'Are you sure you want to contiue?',[result]));
+
+    end;
+
 
 begin
    if fOutlist.Count = 0 then begin
@@ -381,22 +520,37 @@ begin
       end;
    end;
 
-  FailCount := 0; //Used as temp Counts..
-  GoodCount := 0;
-  for R := 0 to fOutlist.Count - 1 do begin
-     tI := Integer(TOutItem(fOutlist[R]).objects[0]); //Date..
-     if (ti >= FValidDateRange.FromDate)
-     and (ti <= FValidDateRange.ToDate) then
-        Inc(GoodCount) // Will import
-     else
-        Inc(FailCount) // Wont Import
+   FailCount := 0; //Used as temp Counts..
+   GoodCount := 0;
+   DateCount := 0;
+   AmountCount := 0;
+   ReferenceCount := 0;
+   AnalysisCount := 0;
+   NarrationCount := 0;
+   
+   for R := 0 to fOutlist.Count - 1 do begin
+      tI := Integer(TOutItem(fOutlist[R]).objects[oiDate]); //Date..
+      if (ti >= FValidDateRange.FromDate)
+      and (ti <= FValidDateRange.ToDate) then begin
+         Inc(GoodCount); // Will import
 
-  end;
+         case TTransMatch(TOutItem(FOutList[R]).Objects[oiMatch]) of
+            tmDate      : Inc(DateCount);
+            tmAmount    : Inc(AmountCount);
+            tmReference : Inc(ReferenceCount);
+            tmAnalysis  : Inc(AnalysisCount);
+            tmNarration : Inc(NarrationCount);
+         end;
 
-  if GoodCount = 0 then begin
-     HelpfulErrorMsg('No dates found, before the first delivered transaction',0);
-     Exit;
-  end;
+      end else
+         Inc(FailCount) // Won't Import
+
+   end;
+
+   if GoodCount = 0 then begin
+      HelpfulErrorMsg('No dates found, before the first delivered transaction',0);
+      Exit;
+   end;
 
    // Optional
    if cbRef.ItemIndex < 1 then // First is blank
@@ -414,18 +568,25 @@ begin
       if AskSelection('No Narration Column selected','Are you sure you do not want a Narration Column?', TSNarration,cbNar1) then
          Exit;
 
+
+
    if FailCount > 0 then
       if AskSelection('Transactions will be skipped',
          Format ('%D Transactions will be skipped, do you want to contiue?',[FailCount]) , TsDate,cbDate) then
             Exit;
 
-   // We Shoul be good to go...
-  
+    if AskSelection('Transactions, Matching Exsiting',
+                     MatchMessage , TsDate,cbDate) then
+            Exit;
 
+   // We Should be good to go...
 
-    for R := 0 to fOutlist.Count - 1 do begin
-      if (Integer(TOutItem(fOutlist[R]).objects[0]) >= FValidDateRange.FromDate)
-     and (Integer(TOutItem(fOutlist[R]).objects[0]) <= FValidDateRange.ToDate) then begin
+   // So save the settings
+   SaveDefaults;
+
+   for R := 0 to fOutlist.Count - 1 do begin
+      if (Integer(TOutItem(fOutlist[R]).objects[oiDate]) >= FValidDateRange.FromDate)
+     and (Integer(TOutItem(fOutlist[R]).objects[oiDate]) <= FValidDateRange.ToDate) then begin
 
         pT := BankAccount.baTransaction_List.New_Transaction;
         //Set Some defaults
@@ -434,21 +595,10 @@ begin
         PT^.txHas_Been_Edited := true;
         pT^.txBank_Seq := BankAccount.baFields.baNumber;
         //date
-        pT^.txDate_Effective := Integer(Integer(TOutItem(fOutlist[R]).objects[0]));
+        pT^.txDate_Effective := Integer(Integer(TOutItem(fOutlist[R]).objects[oiDate]));
         pT^.txDate_Presented := pT^.txDate_Effective;
 
-//        if BankAccount.IsAForexAccount then
-//        Begin
-//          pT.txForeign_Currency_Amount := TOutItem(fOutlist[R]).OutMoney;
-//          pT.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate( pT.txDate_Effective );
-//          If pT.txForex_Conversion_Rate <> 0.0 then
-//            pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
-//          else
-//            pT.txAmount := 0;
-//        End
-//        else
-        //Amount
-          pt^.txAmount := TOutItem(fOutlist[R]).OutMoney;
+        pt^.txAmount := TOutItem(fOutlist[R]).OutMoney;
 
         pT^.txType := FHDEForm.GetComboIndexForEntryType(GetEntryType(pT^.txAmount));
 
@@ -463,7 +613,7 @@ begin
         HistTranList.Insert(pT);
         FHDEForm.AmountEdited(pT,False);
         FHDEForm.UpdateChequeNo(pT);
-        incUsage('Historic Transactions CSV');
+        incUsage(format('%s Transactions CSV',[AccountType]));
       end;
     end;
 
@@ -541,6 +691,7 @@ begin
       OutColResize(1);
       FileLVChanged := True;
       OutLVChanged := True;
+      NeedMatch := True;
       vsOut.EndUpdate;
       EndUpdate;
    end;
@@ -555,15 +706,19 @@ begin
    try
       CAna  := GetComboCurrentIntObject(cbAna);
       if CAna >= 0 then begin
-         for R := 0 to fOutList.Count - 1 do
+         for R := 0 to fOutList.Count - 1 do begin
             TOutItem(fOutlist.Items[R]).strings[fSubAna] := GetFiletext(R,CAna, 12);
+         end;
       end else begin
-         for R := 0 to fOutList.Count - 1 do
+         for R := 0 to fOutList.Count - 1 do begin
             TOutItem(fOutlist.Items[R]).strings[fSubAna]  := '';
+            MatchOutItem(R);// While we are here
+         end;
       end;
       OutColResize(fSubAna+1);
       FileLVChanged := True;
       OutLVChanged := True;
+      NeedMatch := True;
    finally
       EndUpdate;
    end;
@@ -579,11 +734,12 @@ var R, C : integer;
     begin
        try
           D := StrtoDate(GetFileText(R,C),Format);
-          TOutItem(foutList[R]).Objects[0]  := TObject(D);
-          if D = 0 then
+          TOutItem(foutList[R]).Objects[oiDate]  := TObject(D);
+          if D <= 0 then
              Result := '**/**/**' //so You can see it..
-          else
+          else begin
              Result := bkDate2Str(D);
+          end;
        except
           Result := '**/**/**' ;
        end;
@@ -606,6 +762,7 @@ begin
       OutColResize(0);
       FileLVChanged := True;
       OutLVChanged := True;
+      NeedMatch := True;
    finally
       EndUpdate;
    end;
@@ -650,6 +807,7 @@ begin
       OutColResize(fSubNar+1);
       FileLVChanged := True;
       OutLVChanged := True;
+      NeedMatch := True;
    finally
       EndUpdate;
    end;
@@ -662,15 +820,19 @@ begin
    try
       CRef := GetComboCurrentIntObject(cbRef);
       if CRef >= 0 then begin
-         for R := 0 to fOutList.Count - 1 do
-           TOutItem(foutList[R]).Strings[SubRef] := GetFiletext(R,CRef,12);
+         for R := 0 to fOutList.Count - 1 do begin
+            TOutItem(foutList[R]).Strings[SubRef] := GetFiletext(R,CRef,12);
+         end;
       end else begin
-         for R := 0 to fOutList.Count - 1 do
-           TOutItem(foutList[R]).Strings[SubRef] := '';
+         for R := 0 to fOutList.Count - 1 do begin
+            TOutItem(foutList[R]).Strings[SubRef] := '';
+            MatchOutItem(R);// While we are here
+         end;
       end;
       OutColResize(SubRef+1);
       FileLVChanged := True;
       OutLVChanged := True;
+      NeedMatch := True;
    finally
       EndUpdate;
    end;
@@ -705,7 +867,12 @@ begin
    if FLockCount > 0 then begin
       Dec(FlockCount);
       if FLockCount = 0 then begin
+         if NeedMatch then
+            ReMatch;
+
          Screen.Cursor := FKeepCursor;
+
+
          if fFileLvChanged then begin
             fFileLvChanged := False;
             vsFile.Invalidate;
@@ -735,6 +902,10 @@ begin
    bkXPThemes.ThemeForm( Self);
    vsOut.Header.Font := Self.Font;
    vsFile.Header.Font := Self.Font;
+   lInfileTitle.Font.Style := [fsBold];
+   lmappingTitle.Font.Style := [fsBold];
+   lOutputTitle.Font.Style := [fsBold];
+
    Tmaskedit(SkipLine).MaxLength := 2;
    fFileList := TobjectList.Create(True);
    fOutList := TobjectList.Create(True);
@@ -780,12 +951,19 @@ begin
 end;
 
 procedure TImportHist.FormResize(Sender: TObject);
-var H: integer;
 begin
-   H := ClientHeight - (pFileinput.Height + PFormat.Height + pBtn.Height);
-   pFile.Height := H div 2;
-   
-   // pFile is align client, so it will take up the rest
+   pTop.Height := (ClientHeight  div 2) - pBtn.Height;
+   // pBottom is align client, so it will take up the rest
+end;
+
+
+function TImportHist.GetMatchTransactions: TMatchTransactions;
+begin
+   if not assigned(FMatchTransactions) then begin
+      FMatchTransactions := TMatchTransactions.Create;
+   end;
+
+   Result := FMatchTransactions;
 end;
 
 function TImportHist.GetEntryType(Amount: Money): Byte;
@@ -830,6 +1008,20 @@ begin
          if Length(Result) > MaxLen then
            SetLength(Result,MaxLen)
    end;
+end;
+
+function TImportHist.GetIniFile: string;
+begin
+   if FIniFile = '' then
+      FIniFile := Globals.DataDir + 'Import.ini';
+   Result := FIniFile;
+end;
+
+function TImportHist.GetPrivateProfileText(App, Key: string; Default: string = ''): string;
+var Lbuf: array[0..200] of char;
+begin
+   GetPrivateProfilestring(pchar(App), Pchar(Key), PChar(default), lbuf, sizeof(lbuf), PChar(IniFile));
+   Result := string(lbuf);
 end;
 
 function TImportHist.GetSelectedcol(index: Integer): Boolean;
@@ -1187,7 +1379,7 @@ begin
          if vsFile.header.Columns[I].Tag in [ TagAmount,TagAmountSign ] then
            cbAmount.Items.AddObject(vsFile.header.Columns[I].Text , TObject(I));
 
-      SetDefault('amount',cbAmount);
+      LookFor('amount',cbAmount);
    finally
      EndUpdate;
    end;
@@ -1213,8 +1405,8 @@ begin
             cbAmount2.Items.AddObject(vsFile.header.Columns[I].Text, TObject(I));
          end;
 
-      SetDefault('debit',cbAmount,0);
-      SetDefault('credit',cbAmount2,1);
+      LookFor('debit',cbAmount,0);
+      LookFor('credit',cbAmount2,1);
    finally
       EndUpdate;
    end;
@@ -1240,8 +1432,8 @@ begin
          else if vsFile.header.Columns[I].Tag in [ TagDebitCredit ] then
            cbAmount2.Items.AddObject(vsFile.header.Columns[I].Text, TObject(I));
 
-       SetDefault('amount',cbAmount);
-       SetDefault('',cbAmount2);
+       LookFor('amount',cbAmount);
+       LookFor('',cbAmount2);
    finally
       EndUpdate;
    end;
@@ -1515,15 +1707,16 @@ begin
        end;
 
        // Do some obvious defaults.
-       SetDefault('date',cbDate);
+       LookFor('date',cbDate);
 
        if RBSign.Enabled then
           RBSign.Checked := true
        else if RBdebitCredit.Enabled then
           RBdebitCredit.Checked := true
        else if RBSingle.Enabled then
-          RBSingle.Checked := true
-
+          RBSingle.Checked := true;
+       // Apply previous settings
+       ApplyDefaults;
    finally
       vsFile.EndUpdate;
       vsOut.EndUpdate;
@@ -1541,6 +1734,14 @@ begin
    SkipLine.ValidateEdit;
    if ePath.Text > '' then
       ReloadFile;
+end;
+
+procedure TImportHist.ReMatch;
+var R: Integer;
+begin
+   for R := 0 to fOutlist.Count - 1 do
+      MatchOutItem(R);
+   NeedMatch := False;   
 end;
 
 procedure TImportHist.SkipLineChange(Sender: TObject);
@@ -1801,6 +2002,23 @@ begin
       vsFile.Selected[TFileItem(fFileList[Node.Index]).ListNode] := true;
 end;
 
+procedure TImportHist.vsOutGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+begin
+   if (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > FValidDateRange.ToDate)
+   or (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) < FValidDateRange.FromDate) then
+       CellText := 'Cannot import, date out of range'
+   else
+       case TTransMatch(TOutItem(FOutList[Node.Index]).Objects[oiMatch]) of
+          tmDate      : CellText := 'Date matches exsiting transactions';
+          tmAmount    : CellText := 'Date and amount matches exsiting transactions';
+          tmReference : CellText := 'Date, amount and reference matches exsiting transactions';
+          tmAnalysis  : CellText := 'Date, amount, reference and analysis matches exsiting transactions';
+          tmNarration : CellText := 'Matches exsiting transactions';
+       end;
+
+end;
+
 procedure TImportHist.vsOutGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
 begin
@@ -1853,6 +2071,8 @@ procedure TImportHist.vsOutPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 
+
+
   procedure SetHighLight(Value: Boolean);
   begin
      if (vsSelected in Node.States) then
@@ -1866,13 +2086,42 @@ procedure TImportHist.vsOutPaintText(Sender: TBaseVirtualTree;
         else
            TargetCanvas.Font.Color := clWindowText;
   end;
- 
+
+  procedure SetMatch(Value: Boolean);
+  begin
+     if Value then
+        TargetCanvas.Font.Color := clWebOrangeRed
+     else
+        TargetCanvas.Font.Color := clWindowText;
+  end;
+
+  function PaintMatch: Boolean;
+  begin
+     Result := True;
+     case TTransMatch(TOutItem(FOutList[Node.Index]).Objects[oiMatch]) of
+     tmDate : SetMatch(Column <= Subdate);
+     tmAmount :  SetMatch(Column <= SubAmount);
+     tmReference :  SetMatch(Column <= SubRef);
+     tmAnalysis :  if fSubAna > 0 then
+                       SetMatch(Column <= fSubAna)
+                   else
+                       SetMatch(Column <= SubRef);    
+
+     tmNarration :  SetMatch(Column <= fSubNar);
+     else result := False;
+     end;
+  end;
+
 begin
   if not Assigned(Node) then
      Exit;
+
+  if PaintMatch then
+     Exit;
+
   if (Column = SubDate) then begin
-     if (Integer(TOutItem(FOutList[Node.Index]).Objects[0]) > FValidDateRange.ToDate )
-     or (Integer(TOutItem(FOutList[Node.Index]).Objects[0]) < FValidDateRange.FromDate ) then
+     if (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > FValidDateRange.ToDate )
+     or (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) < FValidDateRange.FromDate ) then
         TargetCanvas.Font.Color := clRed
      else
         SetHighLight(PCFormat.ActivePageIndex = piDate);
@@ -1894,20 +2143,100 @@ begin
 end;
 
 
+procedure TImportHist.WritePrivateProfileText(App, Key, Value: string);
+begin
+   if Value = '' then
+      // Remove the Key
+      WritePrivateProfileString(PChar(App), PChar(Key), nil, PChar(IniFile))
+   else
+      WritePrivateProfileString(PChar(App), PChar(Key), pChar(Value), PChar(IniFile));
+end;
+
+procedure TImportHist.SaveDefaults;
+begin
+   // Top
+   WritePrivateProfileText(BankAccount.baFields.baBank_Account_Number, KFile, epath.Text);
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSkipLines, SkipLine.Text);
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kHeaderLine, BoolToStr(chFirstLine.Checked,true));
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDelimiter, cbDelimiter.Text);
+
+   // Date..
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDateCol, cbDate.Text);
+
+   // Amount
+   if rbSingle.Checked then begin
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAmountType, vSingle);
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol, '');
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol, '');
+   end else if RBDebitCredit.Checked then begin
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAmountType, vDouble);
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol, CBAmount2.Text);
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol, '');
+   end else if rbSign.Checked then begin
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAmountType, vSign);
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol, '');
+      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol, CBAmount.Text);
+   end;
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kReverseSign, BoolToStr(cbSign.Checked, true));
+
+   // Reference
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kRefCol, cbref.Text);
+
+   // Analysis
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAnalCol, cbAna.Text);
+
+   // Narration
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar1Col, cbNar1.Text);
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar2Col, cbNar2.Text);
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar3Col, cbNar3.Text);
+end;
+
+procedure TImportHist.SetMatchTransactions(const Value: TMatchTransactions);
+begin
+  FMatchTransactions := Value;
+end;
+
+procedure TImportHist.SetNeedMatch(const Value: Boolean);
+begin
+  FNeedMatch := Value;
+
+   if Value <> FNeedMatch then begin
+     if Value then
+        if fLockCount = 0 then begin
+           BeginUpdate;
+           ReMatch;
+           EndUpdate;
+        end;
+     FNeedMatch := Value;
+  end;
+end;
 
 procedure TImportHist.SetBankAccount(const Value: TBank_Account);
 var lMaxHistDate: Integer;
+
+
+
 begin
   FBankAccount := Value;
   if FBankAccount = nil then
      Exit; // ??
 
-  Caption := Format('Import Historical Transactions into Bank Account: %s',[FBankAccount.Title]);
+
+  Caption := Format('Import %s Transactions into Bank Account: %s',[AccountType,FBankAccount.Title]);
   lMaxHistDate := FBankAccount.MaxHistoricalDate;
   FValidDateRange := FBankAccount.Default_Forex_Concersion_DateRange;
 
   if lMaxHistDate > 0 then
      FValidDateRange.ToDate := min(lMaxHistDate,FValidDateRange.ToDate);
+
+  MatchTransactions.Account := FBankAccount;
+
+  EPath.Text := GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kFile);
+  SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kSkipLines),SkipLine);
+  SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kDelimiter),cbDelimiter);
 
 end;
 
@@ -1917,14 +2246,44 @@ begin
 end;
 
 
-
 procedure TImportHist.SetDateMask(const Value: string);
 begin
   FDateMask := Value;
   EDate.Text := Value;
 end;
 
-procedure TImportHist.SetDefault(Value: string; ComboBox: TComboBox; default: integer = 0);
+procedure TImportHist.SetDefault(Value: string; CheckBox: TCheckBox);
+begin
+   if Value = '' then
+      Exit;
+   CheckBox.Checked := Sametext(Value, '1')
+                    or Sametext(Value, 'true');
+end;
+
+procedure TImportHist.SetDefault(Value: string; ComboBox: TComboBox);
+var Index: Integer;
+begin
+   if Value = '' then
+      Exit;
+   Index := ComboBox.Items.IndexOf(Value);
+   if Index < 0 then
+      Exit;
+   ComboBox.ItemIndex := Index;
+   if Assigned(ComboBox.OnChange) then
+      ComboBox.OnChange(ComboBox);
+end;
+
+procedure TImportHist.SetDefault(Value: string; SpinEdit: TRzSpinEdit);
+begin
+   if Value = '' then
+      Exit;
+   SpinEdit.Text := Value;
+   if Assigned(SpinEdit.OnChange) then
+      SpinEdit.OnChange(SpinEdit);
+end;
+
+
+procedure TImportHist.LookFor(Value: string; ComboBox: TComboBox; default: integer = 0);
 var I: Integer;
 begin
    if ComboBox.Items.Count > 0 then begin
@@ -1942,13 +2301,33 @@ begin
       end;
 
    end;
+   // Affect the Change
    if Assigned(ComboBox.OnChange) then
       ComboBox.OnChange(nil)
 end;
 
+procedure TImportHist.MatchOutItem(Index: Integer);
+
+   function Analysis: string;
+   begin
+       if fSubAna >= 0 then  // Analysis column is optional
+          Result := TOutItem(fOutlist[Index]).Strings[fSubAna]
+       else
+          Result := '';
+   end;
+begin
+    TOutItem(fOutlist[index]).objects[oiMatch] := TObject(
+    MatchTransactions.FindMatch(Integer(TOutItem(fOutlist[Index]).objects[oiDate]),
+                                  TOutItem(fOutlist[Index]).OutMoney,
+                                  TOutItem(fOutlist[Index]).Strings[SubRef],
+                                  Analysis,
+                                  TOutItem(fOutlist[index]).Strings[fSubnar]
+                                 ));
+end;
+
 procedure TImportHist.SetFileLvChanged(const Value: Boolean);
 begin
-  if value <> FFileLvChanged then begin
+  if Value <> FFileLvChanged then begin
      if Value then
         if fLockCount = 0 then begin
            vsFile.Invalidate;
@@ -1965,15 +2344,19 @@ begin
 end;
 
 
-
 procedure TImportHist.SetHistTranList(const Value: TUnsorted_Transaction_List);
 begin
   FHistTranList := Value;
 end;
 
+procedure TImportHist.SetIniFile(const Value: string);
+begin
+  FIniFile := Value;
+end;
+
 procedure TImportHist.SetOutLvChanged(const Value: Boolean);
 begin
-  if value <> FOutLvChanged then begin
+  if Value <> FOutLvChanged then begin
      if Value then
         if fLockCount = 0 then begin
            vsOut.Invalidate;
@@ -1982,7 +2365,6 @@ begin
      FOutLvChanged := Value;
   end;
 end;
-
 
 
 end.

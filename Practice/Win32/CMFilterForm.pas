@@ -43,7 +43,7 @@ function ChooseCMFilter(P: TPoint; W, H: Integer; CurrentFilter: UInt64;
 
 type
    saFilters = (saAttached, saNew, saDeleted, saInactive, saSecure, saThisYear,
-                saPassword, saCharge, saFreqMonth, saFreqWeek, saFreqDay, saFreqUnspecified);
+                saPassword, saCharge, saFreqMonth, saFreqWeek, saFreqDay, saFreqUnspecified, saProvisional);
    saFilter = set of saFilters;
 
 
@@ -91,6 +91,7 @@ CountryUtils;
          saFreqWeek : Result := 'weekly';
          saFreqDay  : Result := 'daily';
          saFreqUnspecified: Result := 'unspecified';
+         saProvisional    : Result := 'provisional';
       end;
  end;
 
@@ -109,6 +110,7 @@ CountryUtils;
          saFreqWeek : Result := 'not weekly';
          saFreqDay  : Result := 'not daily';
          saFreqUnspecified: Result := 'not unspecified';
+         saProvisional    : Result := 'not provisional';
       end;
  end;
 
@@ -482,7 +484,7 @@ var
 
    function GetBoolArray(Value: TTreeNode): Integer;
    var Node: TTReeNode;
-   begin
+   begin // Counts children and fills the ftNode array
       Result := 0;
       FillChar(ftNode,Sizeof(ftNode),0);
       Node := Value.GetFirstChild;
@@ -540,6 +542,7 @@ begin
          safsTopDeliver :Expand(topn,
                                CheckNode( tvFilter.Items.AddChild(topn,'Practice Accounts'),saSecure in Include.NotNodes[i])
                             or CheckNode( tvFilter.Items.AddChild(topn,'Books Secure Accounts'),saSecure in Include.Nodes[i])
+                            or CheckNode( tvFilter.Items.AddChild(topn,'Provisional Accounts'),saProvisional in Include.Nodes[i])
                           );
          safsTopFrequency:Expand(topn,
                                CheckNode( tvFilter.Items.AddChild(topn,'Monthly'),    saFreqMonth in Include.NotNodes[i])
@@ -596,20 +599,22 @@ begin
                         LInclude.NotNodes[safsTopCharges] := LInclude.NotNodes[safsTopCharges] +  [saCharge];
                      if ftNode[0] and (not ftNode[1]) then
                         LInclude.Nodes[safsTopCharges] := LInclude.Nodes[safsTopCharges] +  [saCharge];
-                 end;
-               safsTopPassword: if I = 2 then begin
+                  end;
+                safsTopPassword: if I = 2 then begin
                      if ftNode[1] and (not ftNode[0]) then
                         LInclude.NotNodes[safsTopPassword] := LInclude.NotNodes[safsTopPassword] +  [saPassword];
                      if ftNode[0] and (not ftNode[1]) then
                         LInclude.Nodes[safsTopPassword] := LInclude.Nodes[safsTopPassword] +  [saPassword];
-                 end;
-               safsTopDeliver: if I = 2 then begin
+                  end;
+                safsTopDeliver: if I = 3 then begin
                      if ftNode[0] and (not ftNode[1]) then
-                        LInclude.NotNodes[safsTopDeliver] := LInclude.NotNodes[safsTopDeliver] +  [saSecure];
+                        LInclude.NotNodes[safsTopDeliver] := LInclude.NotNodes[safsTopDeliver] +[saSecure];
                      if ftNode[1] and (not ftNode[0]) then
-                        LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] +  [saSecure];
-                 end;
-               safsTopFrequency: if I = 4 then begin
+                        LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saSecure];
+                     if ftNode[2] then
+                        LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saProvisional];
+                  end;
+                safsTopFrequency: if I = 4 then begin
                      if ftNode[0] then
                         LInclude.Nodes[safsTopFrequency] := LInclude.Nodes[safsTopFrequency] +  [saFreqMonth];
                      if ftNode[1] then
@@ -618,7 +623,7 @@ begin
                         LInclude.Nodes[safsTopFrequency] := LInclude.Nodes[safsTopFrequency] +  [saFreqDay];
                      if ftNode[3] then
                         LInclude.Nodes[safsTopFrequency] := LInclude.Nodes[safsTopFrequency] +  [saFreqUnspecified];
-                 end;
+                  end;
 
              end;
              topn := topn.GetNextSibling;
