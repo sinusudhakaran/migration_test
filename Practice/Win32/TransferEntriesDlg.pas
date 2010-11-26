@@ -329,7 +329,7 @@ begin
                ba := Bank_Account_At( i);
                with ba.baFields do begin
                   if baAccount_Type = btBank then begin
-                     if ba.baFields.baIs_A_Manual_Account then begin
+                     if ba.IsManual then begin
                         //add to temp list
                         cmbTempAccount.Items.AddObject( ba.Title, ba);
                      end

@@ -3611,11 +3611,11 @@ begin
       InsColDefnRec( 'Date', ceEffDate, celEditDate,DefNarrationWidth , CE_EFFDATE_DEF_VISIBLE, false, True, csDateEffective, 'Effective Date' );
 
       if BankAccount.IsAJournalAccount then begin
-         InsColDefnRec( 'Reference', ceReference, celRef, CE_REFERENCE_DEF_WIDTH, CE_REFERENCE_DEF_VISIBLE, false, BankAccount.baFields.baIs_A_Manual_Account, csReference );
+         InsColDefnRec( 'Reference', ceReference, celRef, CE_REFERENCE_DEF_WIDTH, CE_REFERENCE_DEF_VISIBLE, false, BankAccount.CanEditTransactions, csReference );
          bkHelpSetup( Self, BKH_Using_the_Journal_Entries_Screen );
       end else Begin
          bkHelpSetup( Self, BKH_Using_the_Code_Entries_Screen);
-         InsColDefnRec( 'Reference', ceReference, celRef, CE_REFERENCE_DEF_WIDTH, CE_REFERENCE_DEF_VISIBLE, false, BankAccount.baFields.baIs_A_Manual_Account, csChequeNumber );
+         InsColDefnRec( 'Reference', ceReference, celRef, CE_REFERENCE_DEF_WIDTH, CE_REFERENCE_DEF_VISIBLE, false, BankAccount.CanEditTransactions, csChequeNumber );
 
          case MyClient.clFields.clCountry of
             whNewZealand : begin
@@ -7265,7 +7265,7 @@ begin
       SetSortOrder( BankAccount.baFields.baCoding_Sort_Order );
 
       // Allow ref editing for manual accounts
-      if BankAccount.baFields.baIs_A_Manual_Account
+      if (BankAccount.CanEditTransactions)
       or BankAccount.IsAJournalAccount then begin
          celRef.Access := otxDefault;
          with celEditDate do begin
@@ -8425,7 +8425,7 @@ begin
    end;
 
 
-   if BankAccount.baFields.baIs_A_Manual_Account
+   if (BankAccount.CanEditTransactions)
    or IsJournal then begin
       Exclude(NeverEditableCols, ceReference);
       Include(DefaultEditableCols, ceReference);

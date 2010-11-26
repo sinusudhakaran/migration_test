@@ -9,7 +9,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
   OnShortCut = FormShortCut
   OnShow = FormShow
   ExplicitWidth = 628
-  ExplicitHeight = 486
+  ExplicitHeight = 488
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel [0]

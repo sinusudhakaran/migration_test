@@ -336,10 +336,9 @@ begin
                  baFields.baApply_Master_Memorised_Entries := true;
                  baFields.baDesktop_Super_Ledger_ID := -1;
                  baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
-                 if AdminBankAccount.sbAccount_Type = sbtProvisional then begin
-                     baFields.baIs_A_Manual_Account := True;
-                     baFields.baAccount_Expiry_Date := MaxInt;
-                 end;
+
+                 if AdminBankAccount.sbAccount_Type = sbtProvisional then
+                    baFields.baIs_A_Provisional_Account := True;
 
               end;
 

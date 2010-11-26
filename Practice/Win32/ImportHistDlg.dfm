@@ -24,7 +24,6 @@ object ImportHist: TImportHist
     Height = 41
     Align = alBottom
     TabOrder = 0
-    ExplicitWidth = 990
     DesignSize = (
       1027
       41)
@@ -37,7 +36,6 @@ object ImportHist: TImportHist
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 1
-      ExplicitLeft = 904
     end
     object btnOK: TButton
       Left = 853
@@ -48,7 +46,6 @@ object ImportHist: TImportHist
       Caption = '&OK'
       TabOrder = 0
       OnClick = btnOKClick
-      ExplicitLeft = 816
     end
   end
   object pBottom: TPanel
@@ -57,16 +54,12 @@ object ImportHist: TImportHist
     Width = 1027
     Height = 243
     Align = alClient
-    BevelInner = bvLowered
+    BevelOuter = bvNone
     TabOrder = 1
-    ExplicitLeft = 264
-    ExplicitTop = 296
-    ExplicitWidth = 513
-    ExplicitHeight = 225
     object PbTitle: TPanel
-      Left = 2
-      Top = 2
-      Width = 1023
+      Left = 0
+      Top = 0
+      Width = 1027
       Height = 20
       Margins.Left = 20
       Margins.Top = 0
@@ -76,6 +69,9 @@ object ImportHist: TImportHist
       Alignment = taLeftJustify
       BevelOuter = bvNone
       TabOrder = 0
+      ExplicitLeft = 2
+      ExplicitTop = 2
+      ExplicitWidth = 1023
       object lMappingTitle: TLabel
         Left = 20
         Top = 1
@@ -85,33 +81,28 @@ object ImportHist: TImportHist
       end
     end
     object PFormat: TPanel
-      Left = 2
-      Top = 22
-      Width = 1023
-      Height = 141
+      Left = 0
+      Top = 20
+      Width = 1027
+      Height = 143
       Align = alTop
       AutoSize = True
-      BevelOuter = bvNone
       Caption = 'PFormat'
       TabOrder = 1
-      ExplicitTop = 27
       object PCFormat: TPageControl
-        Left = 0
-        Top = 0
-        Width = 1023
+        Left = 1
+        Top = 1
+        Width = 1025
         Height = 121
         ActivePage = TSNarration
         Align = alTop
         TabOrder = 0
         OnChange = PCFormatChange
-        ExplicitLeft = 1
-        ExplicitTop = 1
-        ExplicitWidth = 1025
-        ExplicitHeight = 133
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 1023
         object TSDate: TTabSheet
           Caption = '&Date'
-          ExplicitWidth = 980
-          ExplicitHeight = 105
           object Label2: TLabel
             Left = 15
             Top = 10
@@ -149,8 +140,6 @@ object ImportHist: TImportHist
         object TSAmount: TTabSheet
           Caption = '&Amount'
           ImageIndex = 1
-          ExplicitWidth = 980
-          ExplicitHeight = 105
           object lbAmount: TLabel
             Left = 216
             Top = 10
@@ -231,8 +220,6 @@ object ImportHist: TImportHist
         object TSReference: TTabSheet
           Caption = '&Reference'
           ImageIndex = 2
-          ExplicitWidth = 980
-          ExplicitHeight = 105
           object LColumns: TLabel
             Left = 15
             Top = 10
@@ -263,8 +250,6 @@ object ImportHist: TImportHist
         object tsAnalysis: TTabSheet
           Caption = 'A&nalysis'
           ImageIndex = 3
-          ExplicitWidth = 980
-          ExplicitHeight = 105
           object Label3: TLabel
             Left = 15
             Top = 10
@@ -293,8 +278,7 @@ object ImportHist: TImportHist
         object TSNarration: TTabSheet
           Caption = 'Narra&tion'
           ImageIndex = 4
-          ExplicitWidth = 980
-          ExplicitHeight = 105
+          ExplicitWidth = 1015
           object Label5: TLabel
             Left = 15
             Top = 10
@@ -349,13 +333,16 @@ object ImportHist: TImportHist
         end
       end
       object POutfileTitle: TPanel
-        Left = 0
-        Top = 121
-        Width = 1023
+        Left = 1
+        Top = 122
+        Width = 1025
         Height = 20
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
+        ExplicitLeft = 0
+        ExplicitTop = 121
+        ExplicitWidth = 1023
         object lOutputTitle: TLabel
           Left = 20
           Top = 1
@@ -366,23 +353,22 @@ object ImportHist: TImportHist
       end
     end
     object pOut: TPanel
-      Left = 2
+      Left = 0
       Top = 163
-      Width = 1023
-      Height = 78
+      Width = 1027
+      Height = 80
       Align = alClient
       BevelOuter = bvNone
       Caption = 'pOut'
       TabOrder = 2
-      ExplicitLeft = -477
-      ExplicitTop = 85
-      ExplicitWidth = 990
-      ExplicitHeight = 140
+      ExplicitLeft = 2
+      ExplicitWidth = 1023
+      ExplicitHeight = 78
       object vsOut: TVirtualStringTree
         Left = 0
         Top = 0
-        Width = 1023
-        Height = 78
+        Width = 1027
+        Height = 80
         Align = alClient
         Header.AutoSizeIndex = 0
         Header.Font.Charset = DEFAULT_CHARSET
@@ -407,10 +393,8 @@ object ImportHist: TImportHist
         OnPaintText = vsOutPaintText
         OnGetHint = vsOutGetHint
         OnHeaderClick = vsOutHeaderClick
-        ExplicitLeft = 1
-        ExplicitTop = 32
-        ExplicitWidth = 1025
-        ExplicitHeight = 50
+        ExplicitWidth = 1023
+        ExplicitHeight = 78
         Columns = <>
         WideDefaultText = ''
       end
@@ -476,7 +460,6 @@ object ImportHist: TImportHist
         Caption = 'Bro&wse'
         TabOrder = 0
         OnClick = BTNBrowseClick
-        ExplicitLeft = 904
       end
       object EPath: TEdit
         Left = 88
@@ -486,7 +469,6 @@ object ImportHist: TImportHist
         Anchors = [akLeft, akTop, akRight]
         Enabled = False
         TabOrder = 4
-        ExplicitWidth = 803
       end
       object chFirstline: TCheckBox
         Left = 184
@@ -524,7 +506,6 @@ object ImportHist: TImportHist
           ','
           ';'
           '<tab>')
-        ExplicitLeft = 816
       end
     end
     object pFile: TPanel
@@ -536,10 +517,6 @@ object ImportHist: TImportHist
       Color = clWindow
       ParentBackground = False
       TabOrder = 1
-      ExplicitLeft = -764
-      ExplicitTop = -63
-      ExplicitWidth = 990
-      ExplicitHeight = 190
       object lbFile: TLabel
         Left = 1
         Top = 1
@@ -576,8 +553,6 @@ object ImportHist: TImportHist
         OnGetText = vsFileGetText
         OnPaintText = vsFilePaintText
         OnHeaderClick = vsFileHeaderClick
-        ExplicitWidth = 988
-        ExplicitHeight = 175
         Columns = <>
         WideDefaultText = ''
       end

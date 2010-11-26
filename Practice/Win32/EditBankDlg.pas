@@ -339,12 +339,12 @@ begin
   end;
 {$ENDIF}
 
-  if BankAcct.baFields.baIs_A_Manual_Account then // type and institution are mandatory
+  if BankAcct.IsManual then // type and institution are mandatory
   begin
     for i := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
     begin
-      if (Uppercase(MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baBank_Account_Number) = Uppercase(lblM.Caption + eNumber.Text)) and
-         (MyClient.clBank_Account_List.Bank_Account_At(i) <> BankAcct) then
+      if (Uppercase(MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baBank_Account_Number) = Uppercase(lblM.Caption + eNumber.Text))
+      and (MyClient.clBank_Account_List.Bank_Account_At(i) <> BankAcct) then
       begin
         HelpfulWarningMsg('Account Number already exists for a bank account in this client file.',0);
         PageControl1.ActivePage := tbDetails;
@@ -374,6 +374,7 @@ begin
       Exit;
     end;
   end;
+
   if ContraCodeRequired(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used)
      and (eContra.Text='')
      and (BankAcct.baFields.baAccount_Type = btBank) then
@@ -563,14 +564,15 @@ begin
    eContra.Text := BankAcct.baFields.baContra_Account_Code;
 
    chkMaster.Checked := BankAcct.baFields.baApply_Master_Memorised_Entries;
-   chkMaster.Enabled := ( MyClient.clFields.clDownload_From = dlAdminSystem );
-   chkMaster.Visible := not (BankAcct.baFields.baIs_A_Manual_Account);
+   chkMaster.Enabled := MyClient.clFields.clDownload_From = dlAdminSystem;
+   chkMaster.Visible := not BankAcct.IsManual;
 
-   btnAdvanced.Visible := ( BankAcct.baFields.baIs_A_Manual_Account) and
-                          ( Assigned( AdminSystem) and CurrUser.CanAccessAdmin) and
-                          (( PRACINI_AllowAdvanceOptions) or SuperUserLoggedIn);
+   btnAdvanced.Visible := ( BankAcct.IsManual)
+                       and( Assigned(AdminSystem) and CurrUser.CanAccessAdmin)
+                       and((PRACINI_AllowAdvanceOptions) or SuperUserLoggedIn);
 
-   if FAddNew or (not BankAcct.baFields.baIs_A_Manual_Account) then
+   if FAddNew
+   or (not BankAcct.IsManual) then
    begin
      cmbType.ItemIndex := -1;
      eInst.Text := '';
@@ -580,7 +582,7 @@ begin
      eInst.Text := BankAcct.baFields.baManual_Account_Institution;
      cmbType.ItemIndex := BankAcct.baFields.baManual_Account_Type;
    end;
-   eNumber.Visible := BankAcct.baFields.baIs_A_Manual_Account;
+   eNumber.Visible := BankAcct.IsManual;
    if eNumber.Visible then
      lblNo.Caption := 'A&ccount No'
    else
@@ -597,7 +599,9 @@ begin
      eNumber.Text := BankAcct.baFields.baBank_Account_Number;
 
    //Set currency
-   lblCurrency.Visible := (MyClient.clFields.clCountry = whUK);
+   lblCurrency.Visible := (BankAcct.IsManual)
+                       and (MyClient.clFields.clCountry = whUK);
+
    cmbCurrency.Visible := lblCurrency.Visible;
    cmbCurrency.Enabled := cmbCurrency.Visible and FAddNew;
    if cmbCurrency.Items.IndexOf(BankAcct.baFields.baCurrency_Code) <> -1 then
@@ -610,7 +614,7 @@ begin
      self.top    := (Screen.WorkAreaHeight - Self.Height) div 2;
      self.caption := 'Edit Journal Account Details';
    end;
-   if not BankAcct.baFields.baIs_A_Manual_Account then
+   if not BankAcct.IsManual then
    begin
      eInst.Text := '';
      cmbType.ItemIndex := -1;
@@ -694,7 +698,7 @@ begin
    if okPressed then
    begin
      {save values}
-     if BankAcct.baFields.baIs_A_Manual_Account then
+     if BankAcct.IsManual then
      begin
        BankAcct.baFields.baBank_Account_Number := lblM.Caption + eNumber.Text;
        if FAddNew then
@@ -769,7 +773,7 @@ var
 begin
   MyDlg := tdlgEditBank.Create(Application.MainForm);
   try
-    if aBankAcct.baFields.baIs_A_Manual_Account then
+    if aBankAcct.IsManual then
     begin
       if IsNew then
         BKHelpSetUp(MyDlg, BKH_Adding_manual_bank_accounts)

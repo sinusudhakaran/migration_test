@@ -124,7 +124,7 @@ begin
       begin
         baTo := Bank_Account_At( i);
         if (baTo.baFields.baAccount_Type <> btBank)
-        or (baTo.baFields.baIs_A_Manual_Account)
+        or (baTo.IsManual)
         or (baFrom = baTo) then
            Continue;
         GetStatsForAccount(baFrom, 0, MaxInt, FromEntries, D1, D2); // get range of selected account

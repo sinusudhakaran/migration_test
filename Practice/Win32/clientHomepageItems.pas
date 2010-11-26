@@ -964,10 +964,10 @@ begin
    if Assigned(FAccount) then
    begin
      B := FAccount;
-     if B.baFields.baIs_A_Manual_Account then // a/c number may of changed (for manual accounts) - need to re-insert in the correct position
+     if B.IsManual then // a/c number may of changed (for manual accounts) - need to re-insert in the correct position
        FClient.clBank_Account_List.Delete(B);
      EditBankAccount(FAccount, False);
-     if B.baFields.baIs_A_Manual_Account then
+     if B.IsManual then
        FClient.clBank_Account_List.Insert(B);
    end;
 end;

@@ -330,12 +330,13 @@ begin
 
   if (BankAccount.baFields.baAccount_Type = btBank) then
   begin
-     if not BankAccount.baFields.baIs_A_Manual_Account then
+     if BankAccount.IsManual then
+       aMsg := 'Deleting a ' + UserDefinedBankAccountDesc + ' will remove all transactions and coding information.'
+
+     else
         aMsg := 'Deleting a Bank Account will remove all transactions and coding '+
                 'information for the Account.  A copy of these transactions is stored in the Admin system, '+
-                'however no Coding Information, or Unpresented Items are stored.  '
-     else
-        aMsg := 'Deleting a ' + UserDefinedBankAccountDesc + ' will remove all transactions and coding information.';
+                'however no Coding Information, or Unpresented Items are stored.  ';
 
      aMsg := aMsg + #13#13+
              'This is a CRITICAL operation.  Are you sure '+
@@ -406,11 +407,14 @@ begin
   if lvBank.Selected <> nil then
   begin
     B := TBank_Account(lvBank.Selected.SubItems.Objects[0]);
-    if B.baFields.baIs_A_Manual_Account then // a/c number may of changed - need to re-insert in the correct position
-      MyClient.clBank_Account_List.Delete(B);
+    if B.IsManual then // a/c number may of changed - need to re-insert in the correct position
+       MyClient.clBank_Account_List.Delete(B);
+
     Result := EditBankAccount(B);
-    if B.baFields.baIs_A_Manual_Account then
-      MyClient.clBank_Account_List.Insert(B);
+
+    if B.IsManual then
+       MyClient.clBank_Account_List.Insert(B);
+
     if Result then
     begin
       AccountChanged := True;
@@ -449,12 +453,14 @@ begin
     if lvBank.Selected <> nil then
     begin
       BASelected := TBank_Account(lvBank.Selected.SubItems.Objects[0]);
-      if (baSelected.baFields.baAccount_Type = btBank) and (CountManualBankAccounts > 0) and
-         (not baSelected.baFields.baIs_A_Manual_Account) and
-         (CountNonManualBankAccounts = 1) and MDEExpired(MyClient.clBank_Account_List, MyClient.clFields.clLast_Use_Date, True) then // must have a live bank account
+      if (baSelected.baFields.baAccount_Type = btBank)
+      and (CountManualBankAccounts > 0)
+      and (not baSelected.IsManual)
+      and (CountNonManualBankAccounts = 1)
+      and MDEExpired(MyClient.clBank_Account_List, MyClient.clFields.clLast_Use_Date, True) then // must have a live bank account
       begin
-        HelpfulWarningMsg('You cannot delete this bank account until you have removed all of your ' + UserDefinedBankAccountDesc + 's.', 0);
-        exit;
+         HelpfulWarningMsg('You cannot delete this bank account until you have removed all of your ' + UserDefinedBankAccountDesc + 's.', 0);
+         exit;
       end;
       PrevSelectedIndex := lvBank.Selected.Index;
       PrevTopIndex := lvBank.TopItem.Index;

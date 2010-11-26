@@ -379,7 +379,7 @@ type
     procedure SetProvisional(const Value: Boolean);
     function AccountType: string;
   public
-    class function CreateAndSetup(aBankAccount: TBank_Account; isProvisional: Boolean = false ): TdlgHistorical; 
+    class function CreateAndSetup(aBankAccount: TBank_Account; HelpId:Integer; isProvisional: Boolean = false): TdlgHistorical; 
     property CurrentSortOrder : Integer read TranSortOrder;
     function GetComboIndexForEntryType(EntryType: Integer): Byte;
     procedure AmountEdited(pT: pTransaction_Rec; Doupdate: Boolean = true);
@@ -586,7 +586,7 @@ end;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class function TdlgHistorical.CreateAndSetup(aBankAccount: TBank_Account; isProvisional: Boolean = false ) : TdlgHistorical;
+class function TdlgHistorical.CreateAndSetup(aBankAccount: TBank_Account; HelpId:Integer; isProvisional: Boolean = false): TdlgHistorical;
 var
   i              : integer;
   FirstPDate     : integer;
@@ -597,7 +597,7 @@ begin
    Result := TdlgHistorical.Create(Application.MainForm);
    with Result, tblHist do begin
 
-      BankAccount  := aBankAccount;
+      BankAccount := aBankAccount;
 
       fIsForex := BankAccount.IsAForexAccount;
 
@@ -605,7 +605,13 @@ begin
       BCode := BankAccount.baFields.baCurrency_Code;
       FCountry := MyClient.clFields.clCountry;
 
-      LoadLayoutForThisAcct(BankAccount.baFields.baIs_A_Manual_Account);
+      Caption := format ('Add %s Entries',[AccountType]);
+      tblHist.Hint:= Format(
+                    'Enter the details for each %0:s Entry|'+
+                    'Enter the details for each %0:s Entry',[AccountType]);
+      BKHelpSetup(Result, HelpId);              
+
+      LoadLayoutForThisAcct(BankAccount.IsManual);
 
       SetupEntryTypeList(MyClient.clFields.clCountry);
 
@@ -617,7 +623,7 @@ begin
 
       Provisional := isProvisional;
 
-      if BankAccount.baFields.baIs_A_Manual_Account then
+      if BankAccount.IsManual then
         SetSortOrder( BankAccount.baFields.baMDE_Sort_Order )
       else
         SetSortOrder( BankAccount.baFields.baHDE_Sort_Order );
@@ -640,59 +646,49 @@ begin
       //Find the date of the first non historical entry
       FirstBankDate := 0;
       FirstPDate    := 0;
-      if isProvisional then begin
+
+      if BankAccount.IsProvisional then begin
          MaxHistTranDate := 0; // unlimited
-
+         lblTransRange.Caption := 'You may enter transactions for any date.';
+      end else if BankAccount.IsManual then begin
+         MaxHistTranDate := 0; // unlimited
+         ED := GetMDEExpiryDate(MyClient.clBank_Account_List);
+         TD := GetLatestTransDate(MyClient.clBank_Account_List);
+         // if latest tx date is more than 4 months from expiry date then tell user account will expire
+         CD := IncDate(ED, 0, -4, 0);
+         if (TD < CD) and (not BankAccount.baFields.baExtend_Expiry_Date) then
+            lblTransRange.Caption := Format('You may enter transactions for any date, but Manual Accounts expire on %s.',[bkDate2Str(ED)])
+         else
+            lblTransRange.Caption := 'You may enter transactions for any date.';
       end else begin
-        with BankAccount.baTransaction_List do begin
-         for i := 0 to Pred( itemCount ) do begin
-            with Transaction_At( i )^ do begin
-               //look for the first bank entry on historical entry
-               if (txSource = orBank ) then begin
-                  if ( FirstBankDate=0 ) or
-                     (( FirstBankDate>0 ) and ( txDate_Presented < FirstBankDate ) and (txDate_Presented >0)) then
-                     begin
-                        FirstBankDate := txDate_Presented;
-                     end;
-               end;
-               //store date of first presented transaction
-               if ( FirstPDate = 0) or
-                  (( FirstPDate>0 ) and ( txDate_Presented < FirstPDate ) and (txDate_Presented >0)) then
-                  begin
-                     FirstPDate :=  txDate_Presented;
-                  end;
+         // Must be Historical...
+         with BankAccount.baTransaction_List do
+               for i := 0 to Pred( itemCount ) do
+                   with Transaction_At( i )^ do begin
+                      //look for the first bank entry on historical entry
+                      if (txSource = orBank) then begin
+                         if (FirstBankDate=0)
+                         or ((FirstBankDate > 0) and (txDate_Presented < FirstBankDate) and (txDate_Presented > 0)) then
+                              FirstBankDate := txDate_Presented;
+                      end;
 
-               //Populate the List with all the ChequeNos, for cheques that have been
-               //presented, from the transactions list.
-               if ( txCheque_Number <> 0 ) and ( txDate_Presented <> 0) then begin
-                  with ExistingCheques do begin
-                     if not ChequeIsThere( txCheque_Number) then
-                        InsChequeRec( txCheque_Number);
-                  end;
-               end;
-            end;
-         end;
-       end;
+                      //store date of first presented transaction
+                      if (FirstPDate = 0)
+                      or ((FirstPDate > 0) and (txDate_Presented < FirstPDate) and (txDate_Presented > 0)) then
+                         FirstPDate := txDate_Presented;
 
-       if BankAccount.baFields.baIs_A_Manual_Account then
-       begin
-        MaxHistTranDate := 0; // unlimited
-        ED := GetMDEExpiryDate(MyClient.clBank_Account_List);
-        TD := GetLatestTransDate(MyClient.clBank_Account_List);
-        // if latest tx date is more than 4 months from expiry date then tell user account will expire
-        CD := IncDate(ED, 0, -4, 0);
-        if (TD < CD) and (not BankAccount.baFields.baExtend_Expiry_Date) then
-          lblTransRange.Caption := 'You may enter transactions for any date, but Manual Accounts expire on ' + bkDate2Str(ED) + '.'
-        else
-          lblTransRange.Caption := 'You may enter transactions for any date.';
-      end
-      else // date prior to first presented transaction
-      begin
-        MaxHistTranDate := FirstBankDate -1;
-        lblTransRange.caption := 'Enter Transactions up to and including '+bkDate2Str(MaxHistTranDate) + '.';
-      end;
-      end;
-       Setup;
+                      //Populate the List with all the ChequeNos, for cheques that have been
+                      //presented, from the transactions list.
+                      if (txCheque_Number <> 0)
+                      and (txDate_Presented <> 0) then
+                         with ExistingCheques do
+                            if not ChequeIsThere(txCheque_Number) then
+                               InsChequeRec(txCheque_Number);
+                   end; // transaction
+
+
+      end;// Historical
+      Setup;
    end;
 
 end;
@@ -3785,6 +3781,7 @@ begin
     Tbar.Width := BarWidth;
   end;
 end;
+
 procedure TdlgHistorical.SetProvisional(const Value: Boolean);
 begin
   FProvisional := Value;
@@ -4587,36 +4584,29 @@ begin
 
    if not Assigned(SelectedBA) then exit;
 
-   //see if selected BA is a dummy account
-   if SelectedBa.baFields.baIs_A_Manual_Account then begin
-      //warning how many days remaining
-   end
-   else begin
+
       //check that bank account has transactions from the bank
       if SelectedBA.baTransaction_List.ItemCount = 0 then begin
          HelpfulWarningMsg( 'No entries have been downloaded into this Bank Account.  You cannot '+
                             'add Historical Entries until a download has been done.',0);
          exit;
       end;
-   end;
+
 
    //Create form and show modally
-   Historical := TdlgHistorical.CreateAndSetup( SelectedBA);
+   Historical := TdlgHistorical.CreateAndSetup( SelectedBA,BKH_Chapter_7_Historical_data_entry );
    with Historical do begin
       try
-        Caption := 'Add Historical Entries';
         IsManual := False;
-        tblHist.Hint:=
-                    'Enter the details for each Historical Entry|'+
-                    'Enter the details for each Historical Entry';
+
         tbImportTrans.Visible := Assigned(AdminSystem)
                               or PRACINI_AllowHistoricalImport;
-        BKHelpSetup(Historical, BKH_Chapter_7_Historical_data_entry);
 
-         ShowModal;
-         if ModalResult = mrOK then begin
-            result := true;
-         end;
+
+
+        // Run the dialog
+        Result := ShowModal = mrOK;
+
       finally
          Free;
       end;
@@ -4627,11 +4617,10 @@ function AddManualData : boolean;
 //this function is called from outside this unit and starts the add manual data process
 //returns true if transactions were added
 var
-  SelectedBA : TBank_Account;
-  Historical : TdlgHistorical;
+  SelectedBA: TBank_Account;
   R: Boolean;
 begin
-   result := false;
+   Result := false;
 
    //See if client file has any bank accounts attached to it
    if BKUTIL32.CountManualBankAccounts = 0 then begin
@@ -4652,6 +4641,8 @@ begin
                                      SelectManual, 0,0, false,
                                      BKH_Adding_manual_data);
 
+   if not Assigned(SelectedBA) then
+      exit;
 
    if (not Assigned(AdminSystem))
    and Assigned(SelectedBA)
@@ -4662,8 +4653,6 @@ begin
       exit;
    end;
 
-    if not Assigned(SelectedBA) then
-      exit;
 
    // must have institution and type
    if (SelectedBA.baFields.baManual_Account_Institution = '')
@@ -4672,34 +4661,26 @@ begin
      if AskYesNo('Temporary Account Upgrade', 'The Temporary Account "' + SelectedBA.AccountName + ' : ' +
        SelectedBA.baFields.baBank_Account_Number + '" has been upgraded to a Manual Account.'#13#13 +
        'The manual account type and institution are required.'#13#13 +
-       'Would you like to enter this information now?', DLG_YES, 0) <> DLG_YES then exit;
-     if SelectedBA.baFields.baIs_A_Manual_Account then // a/c number may of changed - need to re-insert in the correct position
-       MyClient.clBank_Account_List.Delete(SelectedBA);
+       'Would you like to enter this information now?', DLG_YES, 0) <> DLG_YES then
+          exit;
+
+     MyClient.clBank_Account_List.Delete(SelectedBA);
      R := EditBankAccount(SelectedBA);
-     if SelectedBA.baFields.baIs_A_Manual_Account then
-       MyClient.clBank_Account_List.Insert(SelectedBA);
-     if not R then exit;
+     MyClient.clBank_Account_List.Insert(SelectedBA);
+     if not R then
+        exit;
    end;
 
    //Create form and show modally
-   Historical := TdlgHistorical.CreateAndSetup( SelectedBA);
-   with Historical do begin
-      try
-        Caption := 'Add Manual Entries';
-        IsManual := True;
-        tblHist.Hint:=
-                    'Enter the details for each Manual Entry|'+
-                    'Enter the details for each Manual Entry';
-        tbImportTrans.Visible := False;
-        BKHelpSetup(Historical, BKH_Adding_manual_data);
+   with TdlgHistorical.CreateAndSetup(SelectedBA,BKH_Adding_manual_data) do try
+      IsManual := True;
 
-         ShowModal;
-         if ModalResult = mrOK then begin
-            result := true;
-         end;
-      finally
-         Free;
-      end;
+      tbImportTrans.Visible := False;
+
+      Result := ShowModal = mroK;
+
+   finally
+      Free;
    end;
 end;
 
@@ -4714,7 +4695,7 @@ function AddProvisionalData(ForAccount: string) : boolean;
 //returns true if transactions were added
 var
   SelectedBA: pSystem_Bank_Account_Rec;
-  ProvisionalDlg: TdlgHistorical;
+  //ProvisionalDlg: TdlgHistorical;
 
   TempAccount: TBank_Account;
   TempClient, KeepClient: TClientObj;
@@ -4724,10 +4705,9 @@ var
   var
      eFileName: string;
      eFile: file of tArchived_Transaction;
-     msg: string;
      Entry: tArchived_Transaction;
-     t: integer;
-
+     I: integer;
+     ClientAccountMap: pClient_Account_Map_Rec;
   begin
      Result := False;
      LoadAdminSystem(True,'Save Provisional');
@@ -4738,24 +4718,21 @@ var
 
      eFileName := ArchiveFileName( SelectedBA.sbLRN );
 
-     if BKFileExists( eFileName ) then begin
-        if DebugMe then begin
-           Msg := Format('Opening %s.', [ eFileName ]);
-           LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' - ' + Msg );
-        end;
-        Assign( eFile, eFileName );
-        Reset( eFile );
+     Assign(eFile, eFileName);
+     if BKFileExists(eFileName) then begin
+        if DebugMe then
+           LogUtil.LogMsg(lmDebug, UnitName, format('%s - Opening %s.', [ThisMethodName, eFileName]));
 
-        if DebugMe then begin
-           Msg := Format('Seeking To EOF %s.', [ eFileName ]);
-           LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' - ' + Msg );
-        end;
-        Seek( eFile, FileSize(eFile ));
+        Reset(eFile);
+
+        if DebugMe then
+           LogUtil.LogMsg(lmDebug, UnitName, format('%s - Find end %s.', [ThisMethodName, eFileName]));
+
+        Seek(eFile, FileSize(eFile));
      end else Begin
-        if DebugMe then begin
-           Msg := Format('Creating %s.', [ eFileName ]);
-           LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' - ' + Msg );
-        end;
+        if DebugMe then
+           LogUtil.LogMsg(lmDebug, UnitName, format('%s - Creating %s.', [ThisMethodName, eFileName]));
+
         Assign(eFile, eFileName);
         Rewrite(eFile);
      end;
@@ -4764,65 +4741,87 @@ var
      // SelectedBA.sbNew_This_Month := True;
      // sbWas_On_Latest_Disk        := false;
      SelectedBA.sbNo_of_Entries_This_Month:= 0;
-     SelectedBA.sbFrom_Date_This_Month:= 0;
+     SelectedBA.sbFrom_Date_This_Month:= maxint;
      SelectedBA.sbTo_Date_This_Month:= 0;
      //SelectedBA.sbCharges_This_Month:= 0;
 
+     try
+        for I := TempAccount.baTransaction_List.First to TempAccount.baTransaction_List.Last do
+        with TempAccount.baTransaction_List.Transaction_At(I)^ do begin
+           FillChar(Entry, Sizeof(Entry), 0);
+           Entry.aRecord_End_Marker := ArchUtil32.ARCHIVE_REC_END_MARKER;
 
-     for T := TempAccount.baTransaction_List.First to TempAccount.baTransaction_List.Last do
-        with TempAccount.baTransaction_List.Transaction_At(T)^ do begin
-           FillChar( Entry, Sizeof( Entry ), 0 );
-             Entry.aRecord_End_Marker := ArchUtil32.ARCHIVE_REC_END_MARKER;
+           Entry.aType              := txType;
+           Entry.aSource            := BKCONST.orManual;
+           Entry.aDate_Presented    := txDate_Presented;
+           Entry.aReference         := txReference;
+           Entry.aCheque_Number     := txCheque_Number;
+           Entry.aStatement_Details := txGL_Narration;
+           Entry.aAmount            := txAmount;
+           Entry.aQuantity          := abs(txQuantity);
+           Entry.aOther_Party       := txOther_Party;
+           Entry.aAnalysis          := txAnalysis;
 
-             Entry.aType              := txType;
-             Entry.aSource            := BKCONST.orManual;
-             Entry.aDate_Presented    := txDate_Presented;
-             Entry.aReference         := txReference;
-             Entry.aCheque_Number     := txCheque_Number;
-             Entry.aStatement_Details := copy(txGL_Narration,1,200);
-             Entry.aAmount            := txAmount;
-             Entry.aQuantity          := abs(txQuantity);
-             Entry.aOther_Party       := txOther_Party;
+           //allocate new lrn for this transaction and write to txn file
+           Inc(AdminSystem.fdFields.fdTransaction_LRN_Counter);
+           Entry.aLRN := AdminSystem.fdFields.fdTransaction_LRN_Counter;
 
-             //allocate new lrn for this transaction and write to txn file
-             Inc( AdminSystem.fdFields.fdTransaction_LRN_Counter);
-             Entry.aLRN := AdminSystem.fdFields.fdTransaction_LRN_Counter;
-              //transaction has been constructed
-             Write(eFile, Entry);
+           //transaction has been constructed
+           Write(eFile, Entry);
 
-             // Update the account record
-             SelectedBA.sbLast_Transaction_LRN := Entry.aLRN;
+           // Update the account record
+           SelectedBA.sbLast_Transaction_LRN := Entry.aLRN;
 
-             //update date range for this account
-             if (SelectedBA.sbFrom_Date_This_Month = 0 )
-             or (Entry.aDate_Presented < SelectedBA.sbFrom_Date_This_Month) then
-                SelectedBA.sbFrom_Date_This_Month := Entry.aDate_Presented;
+           //update date range for this account
+           SelectedBA.sbFrom_Date_This_Month := min(SelectedBA.sbFrom_Date_This_Month,Entry.aDate_Presented);
+           SelectedBA.sbTo_Date_This_Month := max(SelectedBA.sbTo_Date_This_Month, Entry.aDate_Presented);
 
-             SelectedBA.sbTo_Date_This_Month := max(SelectedBA.sbTo_Date_This_Month, Entry.aDate_Presented);
-             SelectedBA.sbLast_Entry_Date := max(SelectedBA.sbLast_Entry_Date, Entry.aDate_Presented);
-
-             //add transaction amount to current balance
-             //for AU the current balance will have been set to the opening balance
-             //for NZ the current balance will be whatever the user has set up
-             if SelectedBA.sbCurrent_Balance <> Unknown then
-                SelectedBA.sbCurrent_Balance := SelectedBA.sbCurrent_Balance + Entry.aAmount;
-
-             
-             // Update the admin system
-             AdminSystem.fdFields.fdPrint_Reports_Up_To :=
-                max(AdminSystem.fdFields.fdPrint_Reports_Up_To, Entry.aDate_Presented);
-             AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded :=
-                max(AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded, Entry.aDate_Presented);
+           SelectedBA.sbLast_Entry_Date := max(SelectedBA.sbLast_Entry_Date, Entry.aDate_Presented);
+           if (SelectedBA.sbFirst_Available_Date = 0)
+           or (Entry.aDate_Presented < SelectedBA.sbFirst_Available_Date) then
+              SelectedBA.sbFirst_Available_Date := Entry.aDate_Presented;
 
 
+           //add transaction amount to current balance
+           //for AU the current balance will have been set to the opening balance
+           //for NZ the current balance will be whatever the user has set up
+           if SelectedBA.sbCurrent_Balance <> Unknown then
+              SelectedBA.sbCurrent_Balance := SelectedBA.sbCurrent_Balance + Entry.aAmount;
+
+           // Update the admin system
+           AdminSystem.fdFields.fdPrint_Reports_Up_To :=
+              Max(AdminSystem.fdFields.fdPrint_Reports_Up_To, Entry.aDate_Presented);
+
+           AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded :=
+              Max(AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded, Entry.aDate_Presented);
+
+        end;// Trans Loop
+
+
+        //update the Earliest Download Date to the Client Account Maps
+        for I := AdminSystem.fdSystem_Client_Account_Map.First to AdminSystem.fdSystem_Client_Account_Map.Last do begin
+           ClientAccountMap := AdminSystem.fdSystem_Client_Account_Map.Client_Account_Map_At(I);
+           if ClientAccountMap.amAccount_LRN = SelectedBA.sbLRN then begin
+              // Matching Client account
+              if (ClientAccountMap.amEarliest_Download_Date = 0) then // savety net only, should be maxint if 'reset'
+                 ClientAccountMap.amEarliest_Download_Date := SelectedBA.sbFrom_Date_This_Month
+              else
+                 ClientAccountMap.amEarliest_Download_Date :=
+                               Min(SelectedBA.sbFrom_Date_This_Month,ClientAccountMap.amEarliest_Download_Date);
+           end;
         end;
 
-      saveAdminSystem;
-      Result := True;
+     finally
+        CloseFile(eFile);
+     end;
+     SaveAdminSystem;
+     Result := True;
   end;
 
 begin
    Result := false;
+
+   RefreshAdmin;
    SelectedBA := Adminsystem.fdSystem_Bank_Account_List.FindCode(ForAccount);
    if not Assigned(SelectedBA) then
       Exit; // nothing to do...
@@ -4843,7 +4842,7 @@ begin
       with TempAccount.baFields do begin
           baCurrent_Balance := SelectedBA.sbCurrent_Balance;
           baAccount_Type := btBank;
-          baIs_A_Manual_Account := True;
+          baIs_A_Provisional_Account := true;
           baDesktop_Super_Ledger_ID := -1;
           baBank_Account_Number := SelectedBA.sbAccount_Number;
           baBank_Account_Name := SelectedBA.sbAccount_Name;
@@ -4855,27 +4854,20 @@ begin
       TempClient.clBank_Account_List.Insert(TempAccount);
       MyClient := TempClient;
       //Create form and show modally
-      ProvisionalDlg := TdlgHistorical.CreateAndSetup(TempAccount, true);
-      with ProvisionalDlg do try
-        Provisional := true;
+      with TdlgHistorical.CreateAndSetup(TempAccount,0, true) do try
+         Provisional := True;
+         IsManual := True;
 
-        Caption := 'Add Provisional Entries';
-        IsManual := True;
-        tblHist.Hint:=
-                    'Enter the details for each Provisional Entry|'+
-                    'Enter the details for each Provisional Entry';
-//        BKHelpSetup(Historical, BKH_Adding_manual_data);
-
-         ShowModal;
-         if ModalResult = mrOK then begin
+         if  ShowModal = mrOK then begin
             // Now try and copy tans to
             SaveToArchives;
+            Result := True;
          end;
       finally
          Free;
       end;
    finally
-      freeandNil(TempClient);
+      FreeAndNil(TempClient);
 
       MyClient := KeepClient;
    end;

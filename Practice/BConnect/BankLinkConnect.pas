@@ -334,8 +334,10 @@ begin
    for i := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
    begin
      b := MyClient.clBank_Account_List.Bank_Account_At(i);
-     if b.baFields.baIs_A_Manual_Account and (not b.baFields.baManual_Account_Sent_To_Admin) and (b.baFields.baManual_Account_Type > -1) then
-       ManualString := ManualString + MakeManualXMLString(mtNames[b.baFields.baManual_Account_Type], b.baFields.baManual_Account_Institution);
+     if (B.IsManual)
+     and (not b.baFields.baManual_Account_Sent_To_Admin)
+     and (b.baFields.baManual_Account_Type > -1) then
+         ManualString := ManualString + MakeManualXMLString(mtNames[b.baFields.baManual_Account_Type], b.baFields.baManual_Account_Institution);
    end;
 
 
@@ -415,8 +417,9 @@ begin
         for i := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
         begin
           b := MyClient.clBank_Account_List.Bank_Account_At(i);
-          if b.baFields.baIs_A_Manual_Account and (not b.baFields.baManual_Account_Sent_To_Admin) then
-            b.baFields.baManual_Account_Sent_To_Admin := True;
+          if (b.IsManual)
+          and (not b.baFields.baManual_Account_Sent_To_Admin) then
+              b.baFields.baManual_Account_Sent_To_Admin := True;
         end;
 
    finally

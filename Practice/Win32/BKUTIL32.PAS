@@ -881,7 +881,7 @@ begin
   with MyClient.clBank_Account_List do begin
      for i := 0 to Pred( ItemCount ) do begin
         with Bank_Account_At( i ) do begin
-           if baFields.baIs_A_Manual_Account then begin
+           if IsManual then begin
               Inc( Result );
            end;
         end;
@@ -898,7 +898,8 @@ begin
   with MyClient.clBank_Account_List do begin
      for i := 0 to Pred( ItemCount ) do begin
         with Bank_Account_At( i ) do begin
-           if (not baFields.baIs_A_Manual_Account) and (not IsAJournalAccount) then begin
+           if (not IsManual)
+           and (not IsAJournalAccount) then begin
               Inc( Result );
            end;
         end;

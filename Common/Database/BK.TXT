@@ -186,6 +186,7 @@ $|                         Add SF_Ledger_Name to Payee Line and Memorisation Lin
 $|  5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
 $|                         Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
 $|                         Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
+$|                         Add IsProvisional to Bank account
 $|*)
 
 N|Client|cl|20
@@ -684,7 +685,7 @@ F|Manual Account Type|L
 F|Manual Account Institution|S|60
 F|Manual Account Sent To Admin|Y
 F|Spare String|AS
-F|Spare Boolean|Y
+F|Is A Provisional Account|Y
 F|Spare Number|L
 F|Spare Byte|B
 F|HDE Column Order|BB0|32

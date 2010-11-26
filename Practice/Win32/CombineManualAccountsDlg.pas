@@ -114,8 +114,10 @@ begin
       for i := 0 to Pred( ItemCount) do
       begin
         baTo := Bank_Account_At( i);
-        if (baTo.baFields.baAccount_Type <> btBank) or (not baTo.baFields.baIs_A_Manual_Account) or (baFrom = baTo) then
-          Continue;
+        if (baTo.baFields.baAccount_Type <> btBank)
+        or (not baTo.IsManual)
+        or (baFrom = baTo) then
+           Continue;
         GetStatsForAccount( baFrom, 0, MaxInt, FromEntries, D1, D2); // get range of selected account
         GetStatsForAccount( baTo, 0, D2, ToEntries, D3, D4); // get range of test account
         if (FromEntries = 0) or (ToEntries = 0) then

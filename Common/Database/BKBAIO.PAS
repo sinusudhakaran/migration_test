@@ -71,7 +71,7 @@ CONST
    tkbaManual_Account_Institution       = 177 ;
    tkbaManual_Account_Sent_To_Admin     = 178 ;
    tkbaSpare_String                     = 179 ;
-   tkbaSpare_Boolean                    = 180 ;
+   tkbaIs_A_Provisional_Account         = 180 ;
    tkbaSpare_Number                     = 181 ;
    tkbaSpare_Byte                       = 182 ;
    tkbaHDE_Column_Order                 = 183 ;
@@ -150,7 +150,7 @@ Begin
       F.WriteStringValue( tkbaManual_Account_Institution , baManual_Account_Institution );
       F.WriteBooleanValue( tkbaManual_Account_Sent_To_Admin , baManual_Account_Sent_To_Admin );
       F.WriteAnsiStringValue( tkbaSpare_String , baSpare_String );
-      F.WriteBooleanValue( tkbaSpare_Boolean , baSpare_Boolean );
+      F.WriteBooleanValue( tkbaIs_A_Provisional_Account , baIs_A_Provisional_Account );
       F.WriteIntegerValue( tkbaSpare_Number , baSpare_Number );
       F.WriteByteValue( tkbaSpare_Byte , baSpare_Byte );
       For i := 0 to 32 do F.WriteBByteValue( tkbaHDE_Column_Order , i, baHDE_Column_Order[ i ] );
@@ -247,7 +247,7 @@ Begin
          tkbaManual_Account_Institution       : baManual_Account_Institution := F.ReadStringValue;
          tkbaManual_Account_Sent_To_Admin     : baManual_Account_Sent_To_Admin := F.ReadBooleanValue;
          tkbaSpare_String                     : baSpare_String := F.ReadAnsiStringValue;
-         tkbaSpare_Boolean                    : baSpare_Boolean := F.ReadBooleanValue;
+         tkbaIs_A_Provisional_Account         : baIs_A_Provisional_Account := F.ReadBooleanValue;
          tkbaSpare_Number                     : baSpare_Number := F.ReadIntegerValue;
          tkbaSpare_Byte                       : baSpare_Byte := F.ReadByteValue;
          tkbaHDE_Column_Order                 : 

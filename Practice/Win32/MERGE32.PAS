@@ -121,7 +121,7 @@ Begin
      for I := 0 to Pred( itemCount ) do begin
        Bank_Account := Bank_Account_At( I );
        With Bank_Account, baFields do begin
-          if Bank_Account.baFields.baIs_A_Manual_Account then
+          if Bank_Account.IsManual then
             Continue;
           MaxLRN := baHighest_LRN;  //baTransaction_List.HighestLRN;
           pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( baBank_Account_Number );
@@ -653,10 +653,10 @@ begin
      for i := aClient.clBank_Account_List.First to aClient.clBank_Account_List.Last do
      begin
        ba := aClient.clBank_Account_List.Bank_Account_At(i);
-       if ba.baFields.baIs_A_Manual_Account then
-         ba.baFields.baExtend_Expiry_Date := AdminSystem.fdFields.fdEnhanced_Software_Options[ sfUnlimitedDateTempAccounts]
+       if ba.IsManual then
+          ba.baFields.baExtend_Expiry_Date := AdminSystem.fdFields.fdEnhanced_Software_Options[ sfUnlimitedDateTempAccounts]
        else
-         ba.baFields.baExtend_Expiry_Date := False;
+          ba.baFields.baExtend_Expiry_Date := False;
      end;
 
      //update system lrn
@@ -833,7 +833,7 @@ begin
      for i := 0 to Pred(aClient.clBank_Account_List.ItemCount) do
      begin
        b := aClient.clBank_Account_List.Bank_Account_At(i);
-       if b.baFields.baIs_A_Manual_Account then
+       if b.IsManual then
          Inc(ManualCount)
        else if b.baFields.baAccount_Type = btBank then
          Inc(BankCount);

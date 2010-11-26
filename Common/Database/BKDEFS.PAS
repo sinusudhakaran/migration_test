@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 622;
-   BK_IOLIB_Date    = '25/11/10';
+   BK_IOLIB_Version : Integer = 623;
+   BK_IOLIB_Date    = '26/11/10';
    BK_FILE_VERSION  = 163;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -199,6 +199,7 @@ Const
      5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
                             Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
                             Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
+                            Add IsProvisional to Bank account
    *)
 
 {  -------------------------------------------------------------------  }
@@ -767,7 +768,7 @@ Type
       baManual_Account_Institution       : String[ 60 ];       { Stored }
       baManual_Account_Sent_To_Admin     : Boolean;       { Stored }
       baSpare_String                     : AnsiString;       { Stored }
-      baSpare_Boolean                    : Boolean;       { Stored }
+      baIs_A_Provisional_Account         : Boolean;       { Stored }
       baSpare_Number                     : Integer;       { Stored }
       baSpare_Byte                       : Byte;       { Stored }
       baHDE_Column_Order                 : Array[ 0..32 ] of Byte;       { Stored }

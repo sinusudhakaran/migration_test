@@ -317,9 +317,9 @@ begin
                        break;
                      end;
 
-           SelectManual: include := Bank_Account_At(i).baFields.baIs_A_Manual_Account;
+           SelectManual: include := Bank_Account_At(i).IsManual;
 
-           SelectAllTrxNotManual: include := not Bank_Account_At(i).baFields.baIs_A_Manual_Account;
+           SelectAllTrxNotManual: include := not Bank_Account_At(i).IsManual;
 
            SelectWithUncodedTrx:
              with Bank_Account_At(i) do
@@ -448,9 +448,9 @@ begin
                      break;
                    end;
 
-           SelectManual: include := Bank_Account_At(i).baFields.baIs_A_Manual_Account;
+           SelectManual: include := Bank_Account_At(i).IsManual;
 
-           SelectAllTrxNotManual: include := not Bank_Account_At(i).baFields.baIs_A_Manual_Account;
+           SelectAllTrxNotManual: include := not Bank_Account_At(i).IsManual;
          end; {case}
 
          if Include then  {add account to available list}

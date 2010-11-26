@@ -68,6 +68,9 @@ type
       Function CurrencySymbol : String;
       Function HasTransactionsWithin( StartDate, EndDate : Integer ): Boolean;
       Function IsAForexAccount : Boolean;
+      Function IsManual: Boolean;
+      Function IsProvisional: Boolean;
+      function CanEditTransactions: Boolean;
       Function IsAnEldersAccount : Boolean;
       Function Default_Forex_Conversion_Rate( ADate : Integer ): Double;
       function Default_Forex_Concersion_DateRange: TDateRange;
@@ -511,6 +514,12 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
+function TBank_Account.CanEditTransactions: Boolean;
+begin
+   Result := IsManual
+          or IsProvisional;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 constructor TBank_Account.Create;
@@ -644,6 +653,16 @@ begin
   Client := TClientObj( baClient );
   Result := ( Client.clFields.clCountry = whAustralia ) and
     ( Copy( baFields.baBank_Account_Number, 1, 2 ) = BKConst.EldersPrefix );
+end;
+
+function TBank_Account.IsManual: Boolean;
+begin
+   result := baFields.baIs_A_Manual_Account;
+end;
+
+function TBank_Account.IsProvisional: Boolean;
+begin
+   result := baFields.baIs_A_Provisional_Account;
 end;
 
 //------------------------------------------------------------------------------
@@ -940,7 +959,7 @@ begin
    Result := MaxValidDate;
    if baFields.baAccount_Type<>btBank then
       Exit; // Journal..
-   if baFields.baIs_A_Manual_Account then
+   if IsManual then
       Exit;
    with baTransaction_List do
       for i := 0 to Pred(itemCount) do

@@ -519,8 +519,9 @@ begin
            for i := Client.clBank_Account_List.First to Client.clBank_Account_List.Last do
            begin
              b := Client.clBank_Account_List.Bank_Account_At(i);
-             if b.baFields.baIs_A_Manual_Account and (not b.baFields.baManual_Account_Sent_To_Admin) and
-                (b.baFields.baManual_Account_Type <> -1) then
+             if (b.IsManual)
+             and (not b.baFields.baManual_Account_Sent_To_Admin)
+             and (b.baFields.baManual_Account_Type <> -1) then
              begin
                b.baFields.baManual_Account_Sent_To_Admin := True;
                AdminSystem.fdFields.fdManual_Account_XML := AdminSystem.fdFields.fdManual_Account_XML +

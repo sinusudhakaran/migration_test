@@ -158,7 +158,6 @@ type
     FDateMask: string;
     FIniFile: string;
     FMatchTransactions: TMatchTransactions;
-    FNeedMactch: Boolean;
 
     procedure BeginUpdate;
     procedure Endupdate;
@@ -339,10 +338,12 @@ end;
 
 function TImportHist.AccountType: string;
 begin
-   if BankAccount.baFields.baIs_A_Manual_Account then
+   if BankAccount.IsProvisional then
       Result := 'Provisional'
+   else if BankAccount.IsManual then
+       Result := 'Manual'
    else
-      Result := 'Historical';
+       Result := 'Historical';
 end;
 
 procedure TImportHist.ApplyDefaults;
@@ -454,12 +455,20 @@ var R: Integer;
 
     function MatchMessage: string;
        procedure AddMessage(Count: Integer; Text: string);
+          function plural: string;
+          begin
+            if Count <> 1 then
+               Result := 's'
+            else
+               Result := '';
+          end;
        begin
           if Count = 0 then
              Exit;
+
           if Result > '' then
              Result := Result + ';'#13;
-          Result := Format( '%d transactions with matching %s',[Count, Text]);
+          Result := Format( '%s%d transaction%s with matching %s',[Result, Count,plural, Text]);
        end;
     begin
        Result := '';
@@ -470,7 +479,7 @@ var R: Integer;
        Addmessage(NarrationCount,'date, amount, reference, analysis and narration');
 
        if Result > '' then
-          Result := Result + (Format( 'There are %s.'#13#13'Are you sure you want to contiue?',[result]));
+          Result := Format( 'Some transactions match existing ones:'#13'%s.'#13#13'Are you sure you want to contiue?',[Result]);
 
     end;
 
@@ -575,7 +584,7 @@ begin
          Format ('%D Transactions will be skipped, do you want to contiue?',[FailCount]) , TsDate,cbDate) then
             Exit;
 
-    if AskSelection('Transactions, Matching Exsiting',
+    if AskSelection('Matching Transactions Found',
                      MatchMessage , TsDate,cbDate) then
             Exit;
 
@@ -2268,18 +2277,23 @@ begin
    Index := ComboBox.Items.IndexOf(Value);
    if Index < 0 then
       Exit;
-   ComboBox.ItemIndex := Index;
-   if Assigned(ComboBox.OnChange) then
-      ComboBox.OnChange(ComboBox);
+   if ComboBox.ItemIndex <> Index then begin
+      ComboBox.ItemIndex := Index;
+      if Assigned(ComboBox.OnChange) then
+         ComboBox.OnChange(ComboBox);
+   end;
 end;
 
 procedure TImportHist.SetDefault(Value: string; SpinEdit: TRzSpinEdit);
 begin
    if Value = '' then
       Exit;
-   SpinEdit.Text := Value;
-   if Assigned(SpinEdit.OnChange) then
-      SpinEdit.OnChange(SpinEdit);
+
+//   if SpinEdit.Text <> Value then begin
+      SpinEdit.Text := Value;
+      if Assigned(SpinEdit.OnChange) then
+         SpinEdit.OnChange(SpinEdit);
+ //  end;
 end;
 
 

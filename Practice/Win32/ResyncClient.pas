@@ -537,7 +537,8 @@ begin
             //we need to check the date of the last transaction for delivered
             //accounts to make sure data has not already be downloaded into the
             //client file that would be redownloaded after a resync
-            if (not IsAJournalAccount) and (not baFields.baIs_A_Manual_Account) then
+            if (not IsAJournalAccount)
+            and (not IsManual) then
             begin
               baFields.baTemp_Resync_Date := baTransaction_List.LastPresDate;
               if ( baFields.baTemp_Resync_Date > ClientLastTrxDate ) then
@@ -728,7 +729,8 @@ begin
             AdminBankAccount := AdminAccountsList.FindCode(ClientBankAccount.baFields.baBank_Account_Number);
 
             //journals don't need to be synch'ed  (FB939)
-            if (( ClientBankAccount.IsAJournalAccount) or ClientBankAccount.baFields.baIs_A_Manual_Account) and ( AdminBankAccount = nil) then
+            if (( ClientBankAccount.IsAJournalAccount) or (ClientBankAccount.IsManual))
+            and ( AdminBankAccount = nil) then
               AccountsMatchedOK := true
             else
               AccountsMatchedOK := MatchClientToAdmin( ClientBankAccount, AdminBankAccount,

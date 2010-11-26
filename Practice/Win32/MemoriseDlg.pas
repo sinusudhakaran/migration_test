@@ -1802,7 +1802,7 @@ begin
          SourceBankAccount := ba;
          EditMem := nil;
          EditMemorisedList := nil;
-         if ba.baFields.baIs_A_Manual_Account
+         if (ba.IsManual)
          and chkMaster.Enabled then begin
             chkMaster.Enabled := False;
             AllowMasterMemorised := False;
