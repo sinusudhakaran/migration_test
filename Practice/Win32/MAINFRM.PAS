@@ -413,6 +413,7 @@ type
     tbCodingClose: TRzToolButton;
     tbAbout: TRzToolButton;
     mniListProvisional: TMenuItem;
+    mniFileExchangeRates: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -684,6 +685,7 @@ type
     procedure tbBudgetCloseClick(Sender: TObject);
     procedure tbCodingCloseClick(Sender: TObject);
     procedure mniListProvisionalClick(Sender: TObject);
+    procedure mniFileExchangeRatesClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -878,6 +880,7 @@ const
   mf_mcTrialBalance            = 72;
   mf_mcViewCashJournals        = 73;
   mf_mcViewAccrualJournals     = 74;
+  mf_mcExchangeRates           = 75;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -1004,7 +1007,8 @@ uses
   Chartremapfrm,
   ListChargesDlg,
   CountryUtils, HSBCDemo,
-  CustomDocEditorFrm;
+  CustomDocEditorFrm,
+  frmExchangeRates;
   //StockBalancesDlg;
 
 const
@@ -1029,7 +1033,8 @@ const
                         mf_mcAbandon,
                         mf_mcSave,
                         mf_mcSaveAs,
-                        mf_mcOpenFromMRU
+                        mf_mcOpenFromMRU,
+                        mf_mcExchangeRates
                        ];
 
 const
@@ -1162,7 +1167,7 @@ begin
 
   mniExportWebX.Caption := 'Export ' + glConst.WEBX_GENERIC_APP_NAME  + ' File';
   mniImportWebX.Caption := 'Import ' + glConst.WEBX_GENERIC_APP_NAME + ' File';
- 
+
   UPDATEMF.UpdateMenus;
   UPDATEMF.UpdateSystemMenus;
   Screen.OnActiveFormChange := ActiveFormChange;
@@ -2574,6 +2579,11 @@ begin
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.mniFileExchangeRatesClick(Sender: TObject);
+begin
+  DoMainFormCommand( mf_mcExchangeRates);
+end;
+
 procedure TfrmMain.mniExportBNToFileClick(Sender: TObject);
 begin
   IncUsage('Notes File');
@@ -4231,6 +4241,7 @@ begin
         mf_mcCheckIn : CheckIn;
         mf_mcCheckOut : CheckOut;
         mf_mcAbandon : AbandonChanges(true);
+        mf_mcExchangeRates: MaintainExchangeRates;
         mf_mcCoding : DoCoding;
         mf_mcHDE : DoHDE;
         mf_mcMDE : DoMDE;
