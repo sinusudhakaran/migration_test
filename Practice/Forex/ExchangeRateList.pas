@@ -18,7 +18,7 @@ uses
 type
    RateArray = array of Double;
 
-   TExchangeRecord = class(tObject)
+   TExchangeRecord = class(TPersistent)
    // Record for each date
    // The rates are in a Dinamic array to save memory
    // These rates should be in step with the Header of the Source
@@ -27,16 +27,21 @@ type
      function GetRates(index: Integer): Double;
      procedure SetRates(index: Integer; const Value: Double);
      function Getwidth: integer;
+     procedure SetDate(const Value: TstDate);
+     procedure SetLocked(const Value: Boolean);
    public
-     Date: TStdate;
-     Locked: Boolean;
+     FDate: TStdate;
+     FLocked: Boolean;
      constructor Create(Fromrec: pExchange_Rate_Rec; Width: Integer); overload;
      constructor Create(ForDate: tstDate; Width: Integer); overload;
      destructor Destroy; override;
+     procedure Assign(Source: TPersistent); override;
      procedure loadFromExchange_Rate_Rec(Value: pExchange_Rate_Rec);
      procedure SaveToExchange_Rate_Rec(Value: pExchange_Rate_Rec);
      property Rates [index: Integer]: Double read GetRates write SetRates;
      property Width: integer read Getwidth;
+     property Date: TstDate read FDate write SetDate;
+     property Locked: Boolean read FLocked write SetLocked;
    end;
 
    PExchangeSource = ^TExchangeSource;
@@ -56,7 +61,7 @@ type
      procedure SaveToStream(var S : TIOStream );
      procedure LoadFromStream(var S : TIOStream );
      procedure MapToHeader(NewHeader: TExchange_Rates_Header_Rec);
-     procedure Assign(Source: TPersistent); override; 
+     procedure Assign(Source: TPersistent); override;
      property Width: Integer read GetWidth;
      property Header: TExchange_Rates_Header_Rec read FHeader;
      property ExchangeTree: TStTree read FExchangeTree;
@@ -173,12 +178,37 @@ begin
   FillChar(FHeader, Sizeof(FHeader),0);
 end;
 
+function AssignExchangeRecords(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+var
+  ExchangeRecord, SourceExchangeRec: TExchangeRecord;
+  ExchangeSource: TExchangeSource;
+  Exchange_Rec: TExchange_Rate_Rec;
+begin
+  Result := True;
+  ExchangeSource := TExchangeSource(OtherData^);
+  SourceExchangeRec := TExchangeRecord(Node.Data);
+  //new rec
+  ExchangeRecord := TExchangeRecord.Create(SourceExchangeRec.Date, SourceExchangeRec.Width);
+  ExchangeRecord.Assign(SourceExchangeRec);
+  ExchangeSource.ExchangeTree.Insert(ExchangeRecord)
+end;
 
 procedure TExchangeSource.Assign(Source: TPersistent);
 begin
   if Assigned(Source) and (Source is TExchangeSource) then begin
-    FHeader := TExchangeSource(Source).Header;
-    FExchangeTree.Assign(TExchangeSource(Source).FExchangeTree);
+    //Header
+    FHeader.ehRecord_Type  := TExchangeSource(Source).Header.ehRecord_Type;
+    FHeader.ehFile_Version := TExchangeSource(Source).Header.ehFile_Version;
+    FHeader.ehLRN          := TExchangeSource(Source).Header.ehLRN;
+    FHeader.ehName         := TExchangeSource(Source).Header.ehName;
+    FHeader.ehList_Type    := TExchangeSource(Source).Header.ehList_Type;
+    FHeader.ehISO_Codes    := TExchangeSource(Source).Header.ehISO_Codes;
+    FHeader.ehCur_Type     := TExchangeSource(Source).Header.ehCur_Type;
+    FHeader.ehEOR          := TExchangeSource(Source).Header.ehEOR;
+    //Tree
+//    FExchangeTree.Assign(TExchangeSource(Source).FExchangeTree); //This only copies the pointers into the new stTree
+    FExchangeTree.Clear;
+    TExchangeSource(Source).FExchangeTree.Iterate(AssignExchangeRecords, true, @Self);
   end;
 end;
 
@@ -627,12 +657,23 @@ begin
   loadFromExchange_Rate_Rec(FromRec);
 end;
 
+procedure TExchangeRecord.Assign(Source: TPersistent);
+var
+  i: integer;
+begin
+  SetLength(FRates, High(TExchangeRecord(Source).FRates));
+  for i := Low(TExchangeRecord(Source).FRates) to High(TExchangeRecord(Source).FRates) do
+    Rates[i]  := TExchangeRecord(Source).Rates[i];
+  Date   := TExchangeRecord(Source).Date;
+  Locked := TExchangeRecord(Source).Locked;
+end;
+
 constructor TExchangeRecord.Create(ForDate: TstDate; Width: Integer);
 begin
   inherited Create;
   SetLength(FRates,Width);
-  Date := ForDate;
-  Locked := False;
+  FDate := ForDate;
+  FLocked := False;
 end;
 
 destructor TExchangeRecord.Destroy;
@@ -681,6 +722,16 @@ begin
 
    Value.erApplies_Until := Date;
    Value.erLocked := Locked;
+end;
+
+procedure TExchangeRecord.SetDate(const Value: TstDate);
+begin
+  FDate := Value;
+end;
+
+procedure TExchangeRecord.SetLocked(const Value: Boolean);
+begin
+  FLocked := Value;
 end;
 
 procedure TExchangeRecord.SetRates(index: Integer; const Value: Double);

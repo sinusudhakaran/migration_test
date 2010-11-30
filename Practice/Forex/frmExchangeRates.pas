@@ -56,7 +56,9 @@ type
     FTreeList: TTreeBaseList;
     FSource: TExchangeSource;
     FChangeCount: integer;
+    FBooksSecure: boolean;
     function GetChangeCount: integer;
+    function GetOriginalExchangeSource: TExchangeSource;
     procedure SetFromDate(const Value: tstDate);
     procedure SetToDate(const Value: tstDate);
     function GetFromDate: tstDate;
@@ -68,6 +70,7 @@ type
     { Private declarations }
   public
     { Public declarations }
+    property BooksSecure: boolean read FBooksSecure;
   end;
 
 function MaintainExchangeRates: Boolean;
@@ -225,9 +228,7 @@ begin
    if TExchangeRecord(Node.Data).Date > TUnlockRatesRec(OtherData^).Range.ToDate then
       Exit;
    if TExchangeRecord(Node.Data).Locked then begin
-     for i := 1 to TExchangeRecord(Node.Data).Width do
-       if (TExchangeRecord(Node.Data).Rates[i] <> 0) then
-         Inc(TUnlockRatesRec(OtherData^).UnLockCount);
+     Inc(TUnlockRatesRec(OtherData^).UnLockCount);
      TExchangeRecord(Node.Data).Locked := False;
    end;
 end;
@@ -268,16 +269,24 @@ procedure TExchangeRatesfrm.BtnoKClick(Sender: TObject);
 var
   LExchangeRates: TExchangeRateList;
 begin
-   // Validate..
-   FChangeCount := GetChangeCount;
+   if BooksSecure then begin
+     MyClient.ExchangeSource.Assign(FSource);
+     MyClient.Save;
+     Modalresult := mrOk;
+   end else begin
+     // Validate..
 
-   LExchangeRates := GetExchangeRates(True);
-   try
-      FSource :=  LExchangeRates.MergeSource(FSource);
-      LExchangeRates.Save;
-      Modalresult := mrOk;
-   finally
-      LExchangeRates.Free;
+     //Get change count
+     FChangeCount := GetChangeCount;
+
+     LExchangeRates := GetExchangeRates(True);
+     try
+        FSource :=  LExchangeRates.MergeSource(FSource);
+        LExchangeRates.Save;
+        Modalresult := mrOk;
+     finally
+        LExchangeRates.Free;
+     end;
    end;
 end;
 
@@ -390,7 +399,7 @@ const
   CANCEL_PROMPT = 'If you cancel, the exchange rate information you have entered will be lost.'#13#13 +
                   'Are you sure you want to cancel and lose these changes?';
 begin
-  if FChangeCount = 0 then //Recheck change count if cancel clicked or no changes when OK clicked
+  if (not BooksSecure) and (FChangeCount = 0) then //Recheck change count if cancel clicked or no changes when OK clicked
     FChangeCount := GetChangeCount;
   if not (ModalResult = mrOK) and (FChangeCount > 0) then
     CanClose := (AskYesNo('Cancel Maintain Exchange Rates', CANCEL_PROMPT, Dlg_No, 0) = DLG_YES);
@@ -400,25 +409,32 @@ procedure TExchangeRatesfrm.FormCreate(Sender: TObject);
 var
   LExchangeRates: TExchangeRateList;
 begin
- // Common bits
-   bkXPThemes.ThemeForm(Self);
-   vtRates.Header.Font := Font;
-   vtRates.Header.Height := Abs(vtRates.Header.Font.height) * 10 div 6;
-   vtRates.DefaultNodeHeight := Abs(Self.Font.Height * 15 div 8); //So the editor fits
+  // Common bits
+  bkXPThemes.ThemeForm(Self);
+  vtRates.Header.Font := Font;
+  vtRates.Header.Height := Abs(vtRates.Header.Font.height) * 10 div 6;
+  vtRates.DefaultNodeHeight := Abs(Self.Font.Height * 15 div 8); //So the editor fits
 
-   RSGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-   RSGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
+  RSGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
+  RSGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
 
-   FTreeList := TTreeBaseList.Create(vtRates);
+  FTreeList := TTreeBaseList.Create(vtRates);
 
-   LExchangeRates := GetExchangeRates;
-   try
+  if Assigned( AdminSystem) then begin
+    LExchangeRates := GetExchangeRates;
+    try
       FSource :=  LExchangeRates.GiveMeSource('Master');
-   finally
+      AdminSystem.SyncCurrenciesToSystemAccounts;
+      FSource.MapToHeader(AdminSystem.fCurrencyList);
+    finally
       LExchangeRates.Free;
-   end;
-   AdminSystem.SyncCurrenciesToSystemAccounts;
-   FSource.MapToHeader(AdminSystem.fCurrencyList);
+    end;
+  end else if Assigned(myClient) then   //Books secure
+    if Assigned(MyClient.ExchangeSource) then begin
+      FSource :=  TExchangeSource.Create;
+      FSource.Assign(MyClient.ExchangeSource);
+      FBooksSecure := True;
+    end;
 end;
 
 procedure TExchangeRatesfrm.FormDestroy(Sender: TObject);
@@ -431,7 +447,37 @@ begin
   end;
   WritePracticeINI_WithLock;
 
+  FreeAndNil(FSource);
   FreeAndNil(FTreeList);
+end;
+
+type
+  TChangeCountRec = record
+    ChangeCount: integer;
+    ExchangeSource: TExchangeSource;
+  end;
+
+function ChangeCount(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+var
+  i: integer;
+  ER1, ER2: TExchangeRecord;
+  RateChange: boolean;
+begin
+  Result := true;
+  ER1 := TExchangeRecord(Node.Data);
+  ER2 := TChangeCountRec(OtherData^).ExchangeSource.GetDateRates(ER1.FDate);
+  if Assigned(ER2) then begin
+    for i := 1 to ER2.Width do begin
+      if ER2.Rates[i] <> ER1.Rates[i] then begin
+        Inc(TChangeCountRec(OtherData^).ChangeCount);
+        RateChange := True;
+      end;
+    end;
+    if not RateChange then  //check for lock change
+      if ER2.Locked <> ER1.Locked then
+        Inc(TChangeCountRec(OtherData^).ChangeCount);
+  end else
+    Inc(TChangeCountRec(OtherData^).ChangeCount, (ER1.Width - 1)); //Don't include base rate
 end;
 
 function TExchangeRatesfrm.GetChangeCount: integer;
@@ -440,43 +486,42 @@ var
   ExchangeTreeItem: TExchangeTreeItem;
   ExchangeRecord: TExchangeRecord;
   ExchangeSource: TExchangeSource;
-  ExchangeRates: TExchangeRateList;
+  ChangeCountRec: TChangeCountRec;
 begin
   Result := 0;
-  ExchangeRates := GetExchangeRates;
-  try
-    ExchangeSource := ExchangeRates.GetSource(FSource.Header.ehName);
-    if Assigned(ExchangeSource) then begin
-      for i := 0 to FTreeList.Count - 1 do begin
-        ExchangeTreeItem := TExchangeTreeItem(FTreeList.Items[i]);
-        ExchangeRecord := ExchangeSource.GetDateRates(ExchangeTreeItem.FExchangeRecord.Date);
-        if Assigned(ExchangeRecord) then begin
-          //Edits
-          for j := 1 to ExchangeTreeItem.FExchangeRecord.Width do
-            if (ExchangeRecord.Rates[j] <> ExchangeTreeItem.FExchangeRecord.Rates[j]) then
-              Inc(Result);
-          //Locks
-          if (ExchangeRecord.Locked <> ExchangeTreeItem.FExchangeRecord.Locked) then begin
-            for j := 1 to ExchangeTreeItem.FExchangeRecord.Width do
-              if (ExchangeTreeItem.FExchangeRecord.Rates[j] <> 0) then
-                Inc(Result);
-          end;
-        end else begin
-          //Adds
-          for j := 1 to ExchangeTreeItem.FExchangeRecord.Width do
-            if (ExchangeTreeItem.FExchangeRecord.Rates[j] <> 0) then
-              Inc(Result);
-        end;
-      end;
-    end;
-  finally
-    ExchangeRates.Free;
+  ExchangeSource := GetOriginalExchangeSource;
+  if Assigned(ExchangeSource) then begin
+    ChangeCountRec.ExchangeSource := FSource;
+    ChangeCountRec.ChangeCount := 0;
+    ExchangeSource.Iterate(ChangeCount, true, @ChangeCountRec);
+    Result := ChangeCountRec.ChangeCount;
   end;
 end;
 
 function TExchangeRatesfrm.GetFromDate: tstDate;
 begin
    Result := eDateFrom.AsStDate;
+end;
+
+function TExchangeRatesfrm.GetOriginalExchangeSource: TExchangeSource;
+var
+  ExchangeSource: TExchangeSource;
+  ExchangeRates: TExchangeRateList;
+begin
+  Result := nil;
+  if BooksSecure then
+    Result := MyClient.ExchangeSource
+  else begin
+    ExchangeRates := GetExchangeRates;
+    try
+      ExchangeSource := ExchangeRates.GetSource(FSource.Header.ehName);
+      if Assigned(ExchangeSource) then begin
+        Result := ExchangeSource;
+      end;
+    finally
+      ExchangeRates.Free;
+    end;
+  end;
 end;
 
 function TExchangeRatesfrm.GetToDate: tstDate;

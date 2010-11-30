@@ -165,7 +165,7 @@ type
     property ExchangeSource: PExchangeSource read FExchangeSource write SetExchangeSource;
   end;
 
- function ImportExchangeRates(aExchangeSource: PExchangeSource; ISOColumns: TVirtualTreeColumns ): boolean;
+ function ImportExchangeRates(const aExchangeSource: PExchangeSource; ISOColumns: TVirtualTreeColumns ): boolean;
 
 implementation
 
@@ -223,8 +223,10 @@ type
   end;
 
 
-function ImportExchangeRates(aExchangeSource: PExchangeSource; ISOColumns: TVirtualTreeColumns): boolean;
-var Ldlg: TImportExchange;
+function ImportExchangeRates(const aExchangeSource: PExchangeSource;
+  ISOColumns: TVirtualTreeColumns): boolean;
+var
+   Ldlg: TImportExchange;
 begin
    Ldlg := TImportExchange.Create(Application.MainForm);
    try
@@ -342,7 +344,7 @@ begin
             Exit;
 
    // We Shoul be good to go...
-  
+
     W := FExchangeSource.Width;
 
     for R := 0 to fOutlist.Count - 1 do begin
@@ -369,7 +371,8 @@ begin
              RateIndex := vsout.Header.Columns[C].Tag - piRate;
              //Don't overwrite unless overwrite = true or existing exchange rate = 0
              if cbOverwriteExchangeRates.Checked or
-                (Assigned(TOutItem(fOutlist[R]).Matched) and (LRec.Rates[RateIndex] = 0)) then
+                (Assigned(TOutItem(fOutlist[R]).Matched) and (LRec.Rates[RateIndex] = 0)) or
+                (not Assigned(TOutItem(fOutlist[R]).Matched)) then
                    LRec.Rates[RateIndex] := StrToFloat(TOutItem(fOutlist[R])[C]);
           end;
        end;

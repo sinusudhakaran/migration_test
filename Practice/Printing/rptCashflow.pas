@@ -1566,6 +1566,33 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+{function CheckForex( ForClient : TClientObj): Boolean;
+var
+  i: integer;
+  ba: TBank_Account;
+  FromDate, ToDate: integer;
+begin
+  Result := True;
+  for i := 0 to Pred(ForClient.clBank_Account_List.ItemCount) do begin
+    ba := ForClient.clBank_Account_List.Bank_Account_At(i);
+    if ba.baFields.baTemp_Include_In_Report then begin
+      with ForClient.clFields do begin
+        if clFRS_Reporting_Period_Type = frpCustom then begin
+          FromDate := clTemp_FRS_From_Date;
+          ToDate := clTemp_FRS_To_Date;
+        end else begin
+          FromDate := clTemp_Period_Details_This_Year[clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+          ToDate := clTemp_Period_Details_This_Year[clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+        end;
+      end;
+      if not ba.HasExchangeRates(FromDate, ToDate, True) then begin
+        Result := False;
+        Break;
+      end;
+    end;
+  end;
+end;}
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure VerifyCashflowPreconditions( ForClient : TClientObj);
 begin
    //Check parameters, no need to check booleans
@@ -1747,9 +1774,24 @@ var
 
    BudgetedPeriodsUsed : boolean;
    lParams : TRptParameters;
+   FromDate, ToDate: integer;
+   ISOCodes: string;
 begin
    //check pre conditions
    VerifyCashflowPreconditions( MyClient);
+
+   //Check Forex
+   if MyClient.clFields.clFRS_Reporting_Period_Type = frpCustom then begin
+      FromDate := MyClient.clFields.clTemp_FRS_From_Date;
+      ToDate := MyClient.clFields.clTemp_FRS_To_Date;
+   end else begin
+      FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+      ToDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+   end;
+   if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True) then begin
+     HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+     Exit;
+   end;
 
    case MyClient.clFields.clFRS_Report_Style of
       crsSinglePeriod, crsBudgetRemaining   : ReportSettingsID := Report_List_Names[REPORT_CASHFLOW_SINGLE];

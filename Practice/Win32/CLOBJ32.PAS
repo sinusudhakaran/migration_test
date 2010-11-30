@@ -75,8 +75,8 @@ type
     // Utilities
 
     function HasForeignCurrencyAccounts : Boolean;
-    function HasMissingExchangeRates(var ISOCodeText: string;
-      const FromDate: integer = 0; const ToDate: integer = MaxInt): Boolean;
+    function HasExchangeRates(var ISOCodeText: string;
+      const FromDate: integer = 0; const ToDate: integer = MaxInt; ForReport: boolean = False): Boolean;
     procedure FillAccountingSystemList(Value: Tstrings);
 
     { How should we represent money in this country }
@@ -103,7 +103,6 @@ type
     Function ChequeEntryType : Byte;  { 0, 1, 1 }
     Function WithdrawalEntryType : Byte; { 49,9,9 }
     Function DepositEntryType : Byte; { 50,10,10 }
-
     // ----------------------------------------------------------------------------
 
 {$ENDIF}
@@ -764,30 +763,39 @@ Begin
         Result := True;
 End;
 
-function TClientObj.HasMissingExchangeRates(var ISOCodeText: string;
-      const FromDate: integer = 0; const ToDate: integer = MaxInt): Boolean;
+function TClientObj.HasExchangeRates(var ISOCodeText: string;
+      const FromDate: integer = 0; const ToDate: integer = MaxInt;
+      ForReport: boolean = False): Boolean;
 var
   i: integer;
   BA: TBank_Account;
 begin
+  //Checks if all transaction have exchange rates for either all bank accounts, or
+  //only the bank accounts selected for a report. If ForReport then the calculated
+  //base amount is stored in a temp field in the transaction - for both Forex and
+  //Base currency bank accounts. The temp field is then used by the traverse mgr
+  //to calculate account totals.
+  //If exchange rates are missing then ISOCodeText is populated with the ISO codes.
   ISOCodeText := '';
-  Result := False;
+  Result := True;
   for i := clBank_Account_List.First to clBank_Account_List.Last do begin
     BA := clBank_Account_List.Bank_Account_At(i);
-    if not BA.HasExchangeRates(FromDate, ToDate) then begin
-      if (ISOCodeText = '') then
-        ISOCodeText := BA.baFields.baCurrency_Code
-      else begin
-        if Pos(BA.baFields.baCurrency_Code, ISOCodeText) = 0 then begin
-          if Pos(' and ', ISOCodeText) > 0 then
-            ISOCodeText := StringReplace(ISOCodeText, ' and ', ', ', [rfReplaceAll]);
-          ISOCodeText := ISOCodeText + ' and ' + UpperCase(BA.baFields.baCurrency_Code);
+    if (not ForReport) or (BA.baFields.baTemp_Include_In_Report) then begin
+      if not BA.HasExchangeRates(FromDate, ToDate) then begin
+        if (ISOCodeText = '') then
+          ISOCodeText := BA.baFields.baCurrency_Code
+        else begin
+          if Pos(BA.baFields.baCurrency_Code, ISOCodeText) = 0 then begin
+            if Pos(' and ', ISOCodeText) > 0 then
+              ISOCodeText := StringReplace(ISOCodeText, ' and ', ', ', [rfReplaceAll]);
+            ISOCodeText := ISOCodeText + ' and ' + UpperCase(BA.baFields.baCurrency_Code);
+          end;
         end;
       end;
     end;
   end;
   if (ISOCodeText <> '') then
-    Result := True;
+    Result := False;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

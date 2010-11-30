@@ -344,6 +344,7 @@ begin
     NA4.Visible                     := NotRestrictedUser;
     mniFileCheckOut.Visible         := NotRestrictedUser;
     mniFileCheckIn.Visible          := NotRestrictedUser;
+    mniFileExchangeRates.Visible    := IsOffsiteClient and (not UsingAdmin);
 
     //Reports Menu
     mniReportSchedule.Visible       := NotRestrictedUser and UsingAdmin;
@@ -533,7 +534,9 @@ begin
      mniFileSaveAs.Enabled           := ClientFileOpen;
      mniFileInformation.Enabled      := ClientFileOpen;
      mniFileAbandonChanges.Enabled   := ClientFileOpen;
-
+     mniFileExchangeRates.Enabled    := ClientFileOpen;
+    if (not UsingAdmin) and ClientFileOpen then
+       mniFileExchangeRates.Visible  := (MyClient.clFields.clDownload_From <> dlAdminSystem);
 
      if ClientFileOpen and ( MyClient.clFields.clFile_Read_Only) then
      begin

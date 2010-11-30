@@ -166,19 +166,20 @@ begin
    // First just sorta validate...
    Cleanup;
 
-
    // Save...
-
    Admin32.LoadAdminSystem(True,'Currencies');
-   FillChar(AdminSystem.fCurrencyList, Sizeof(AdminSystem.fCurrencyList),0);
-   C := Low(AdminSystem.fCurrencyList.ehISO_Codes);
-   for I := 0 to FtreeList.Count - 1 do begin
-      Lc := TCurrencyTreeItem(FTreeList[I]);
-      AdminSystem.fCurrencyList.ehISO_Codes[C] := lc.FISO;
-      AdminSystem.fCurrencyList.ehCur_Type [C] := lc.FCurType;
-      inc(C);
+   try
+     FillChar(AdminSystem.fCurrencyList, Sizeof(AdminSystem.fCurrencyList),0);
+     C := Low(AdminSystem.fCurrencyList.ehISO_Codes);
+     for I := 0 to FtreeList.Count - 1 do begin
+        Lc := TCurrencyTreeItem(FTreeList[I]);
+        AdminSystem.fCurrencyList.ehISO_Codes[C] := lc.FISO;
+        AdminSystem.fCurrencyList.ehCur_Type [C] := lc.FCurType;
+        inc(C);
+     end;
+   finally
+     Admin32.SaveAdminSystem();
    end;
-   Admin32.SaveAdminSystem();
    ModalResult := mrOK;
 end;
 

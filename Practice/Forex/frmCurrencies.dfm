@@ -170,7 +170,7 @@ object CurrenciesFrm: TCurrenciesFrm
           Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
           Position = 1
           Tag = 2
-          Width = 272
+          Width = 276
           WideText = 'Currency'
         end
         item

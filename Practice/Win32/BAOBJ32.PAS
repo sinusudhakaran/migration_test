@@ -888,29 +888,38 @@ function TBank_Account.HasExchangeRates(StartDate,
   EndDate: Integer; StoreRates: boolean): Boolean;
 var
   i: Integer;
-  T: pTransaction_Rec;
   Rate: double;
+  T: pTransaction_Rec;
+  D: pDissection_Rec;
 begin
   Result := True;
-
-  if not IsAForexAccount then Exit;
-
+//  if not IsAForexAccount then Exit;
   for i := 0 to Pred( baTransaction_List.ItemCount ) do
   begin
     T := baTransaction_List.Transaction_At(i);
-    T.txTemp_Forex_Rate := 0;
     T.txTemp_Base_Amount := 0;
+    T.txTemp_Forex_Rate := 0;
     if (T.txDate_Effective >= StartDate) and
        (T.txDate_Effective <= EndDate) then
     begin
-      Rate := T.Default_Forex_Rate;
-      if (Rate = 0) then begin
-        Result := False;
-        if not StoreRates then
-          Break;
-      end else if StoreRates then begin
+      T.txTemp_Base_Amount := T.Local_Amount;
+      //Store base amounts in dissection
+      if StoreRates and (T.txFirst_Dissection <> nil) then begin
+        D := T.txFirst_Dissection;
+        while D <> nil do begin
+          D.dsTemp_Base_Amount := D.Local_Amount;
+          D := D.dsNext;
+        end;
+      end;
+      //Store base amounts in transaction      
+      if IsAForexAccount then begin
+        Rate := T.Default_Forex_Rate;
         T.txTemp_Forex_Rate := Rate;
-        T.txTemp_Base_Amount := T.Local_Amount;
+        if (Rate = 0) then begin
+          Result := False;
+          if not StoreRates then
+            Break; //No need to carry on if not storing rates
+        end;
       end;
     end;
   end;

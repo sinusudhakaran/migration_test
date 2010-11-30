@@ -1060,7 +1060,7 @@ var
 begin
   ISOCodes := '';
   acForexRatesMissing.Visible := False;
-  if TheClient.HasMissingExchangeRates(ISOCodes) then begin
+  if not TheClient.HasExchangeRates(ISOCodes) then begin
     acForexRatesMissing.Caption := MISSING_EXCHANGE_RATES + ISOCodes;
     acForexRatesMissing.Visible := True;
   end;

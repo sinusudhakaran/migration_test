@@ -94,7 +94,7 @@ const
 var
   MissingISOCodes: string;
 begin
-  if myClient.HasMissingExchangeRates(MissingISOCodes, FromDate, ToDate) then
+  if not myClient.HasExchangeRates(MissingISOCodes, FromDate, ToDate) then
     HelpfulWarningMsg(MISSING_EXCHANGE_RATES_1 + MissingISOCodes +
                       MISSING_EXCHANGE_RATES_2, 0);
 end;

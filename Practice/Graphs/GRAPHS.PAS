@@ -297,6 +297,22 @@ begin
    end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function CheckExchangeRates(ForClient : TClientObj; FromDate, Period: integer): Boolean;
+var
+  ISOCodes: string;
+begin
+  Result := True;
+  if not ForClient.HasExchangeRates(ISOCodes, Fromdate,
+                                    ForClient.clFields.clTemp_Period_Details_This_Year[Period].Period_End_Date,
+                                    True)  then begin
+    HelpfulInfoMsg('There are entries without exchange rates for '+ ISOCodes +
+                   ' within this period. '#13#13 +
+                   'Please update the exchange rates before ' +
+                   'generating the graph.',0);
+    Result := False;
+  end;
+end;
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure SetDefaultFinancialReportSettings;
 begin
    with MyClient, Myclient.clFields do
@@ -745,6 +761,7 @@ begin
                end;
 
                VerifyFinancialReportPreconditions(Client);
+               if not CheckExchangeRates(Client, FromDate, Period) then Exit;
                CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
                cTotals.Calculate( Division);
 
@@ -815,7 +832,6 @@ var
    ThisYear,
    LastYear,
    Budgeted    : money;
-
 begin
   with MyClient, MyClient.clFields, Totals do
   begin
@@ -942,6 +958,7 @@ begin
               end;
 
               VerifyFinancialReportPreconditions(Client);
+              if not CheckExchangeRates(Client, FromDate, Period) then Exit;
               CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
 
               cTotals.Calculate(Division);
@@ -1192,6 +1209,7 @@ begin
             end;
 
             VerifyFinancialReportPreconditions(Client);
+            if not CheckExchangeRates(Client, FromDate, Period) then Exit;
             //need to fill the period start/end dates so call calc totals
             CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
 
@@ -1486,6 +1504,7 @@ begin
               end;
 
               VerifyFinancialReportPreconditions(Client);
+              if not CheckExchangeRates(Client, FromDate, Period) then Exit;
               CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
               cTotals.Calculate(Division);
 
@@ -1617,6 +1636,7 @@ begin
                end;
 
                VerifyFinancialReportPreconditions(Client);
+               if not CheckExchangeRates(Client, FromDate, Period) then Exit;
                CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
                cTotals.Calculate(Division);
 
