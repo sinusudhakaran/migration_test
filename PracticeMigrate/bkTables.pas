@@ -587,7 +587,7 @@ end;
 procedure TChart_RecTable.SetupTable;
 begin
   TableName := 'Charts';
-  SetFields(['Id','ClientId_Id','AccountCode','AlternateCode','AccountDescription','GSTClass'
+  SetFields(['Id','ClientId','AccountCode','AlternateCode','AccountDescription','GSTClass'
 {2}      ,'PostingAllowed','ReportGroup','EnterQuantity','MoneyVariance_Up'
 {3}      ,'MoneyVariance_Down','PercentVariance_Up','PercentVariance_Down'
 {4}      ,'ReportGroupSubGroup','LinkedAccount_OS','LinkedAccount_CS','HideInBasicChart'],[]);
@@ -800,7 +800,7 @@ end;
 procedure TClient_ScheduleTable.SetupTable;
 begin
   TableName := 'ScheduledTaskValues';
-  SetFields(['Id','ClientId_Id','CodingReportStyle','CodingReportSortOrder', 'ReportYearStart'
+  SetFields(['Id','ClientId','CodingReportStyle','CodingReportSortOrder', 'ReportYearStart'
 
 {2}      ,'CodingReportEntrySelection','CodingReportBlankLines','CodingReportRuleLineBetweenEntries','CodingReportNewPage'
 
@@ -897,7 +897,7 @@ end;
 procedure TCodingReportOptionsTable.SetupTable;
 begin
   TableName := 'CodingReportOptions';
-  SetFields(['Id','ClientId_Id','ReportStyle','SortOrder','EntrySelection'
+  SetFields(['Id','ClientId','ReportStyle','SortOrder','EntrySelection'
       ,'BlankLines','RuleLine','NewPage','CustomXML'
 {3}   ,'WrapNarration', 'ShowOtherParty','ShowTaxInvoice'
 {4}   ,'CustomReport','ColumnLine'],[]);

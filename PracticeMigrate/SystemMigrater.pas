@@ -564,7 +564,7 @@ begin
           Exit;
        if PrefixList.Count = 0 then
           Exit;
-       MyAction := ForAction.InsertAction('Master memorizations');
+       MyAction := ForAction.NewAction('Master memorizations');
        MyAction.Target := PrefixList.Count;
 
        for I := 0 to PrefixList.Count - 1 do begin

@@ -583,6 +583,8 @@ begin
 
       DeleteTable(MyAction,Chart_RecTable);
 
+      DeleteTable(MyAction,'Reminders');
+
       DeleteTable(MyAction,'Clients');
 
 
