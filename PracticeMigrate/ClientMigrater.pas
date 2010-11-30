@@ -46,12 +46,16 @@ TClientMigrater = class (TMigrater)
     FClientLRN: Integer;
     FChartDivisionTable: TChartDivisionTable;
     FDivisionList: TGuidList;
+    FReminderTable: TReminderTable;
     procedure SetClientID(const Value: TGuid);
     procedure SetCode(const Value: string);
 
     procedure AddGStRates(ForAction: TMigrateAction);
     procedure AddDivisions(ForAction: TMigrateAction);
     procedure AddSubGroups(ForAction: TMigrateAction);
+    procedure AddReminders(ForAction: TMigrateAction);
+
+    // List iteration functions
     function AddTransaction(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddMemorisation(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddAccount(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
@@ -117,6 +121,8 @@ TClientMigrater = class (TMigrater)
     function GetChartDivisionTable: TChartDivisionTable;
     procedure SetDivisionList(const Value: TGuidList);
     function GetDivisionList: TGuidList;
+    procedure SetReminderTable(const Value: TReminderTable);
+    function GetReminderTable: TReminderTable;
   published
   public
    constructor Create(AConnection: string);
@@ -155,6 +161,7 @@ TClientMigrater = class (TMigrater)
    property ClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable read GetClientFinacialReportOptionsTable write SetClientFinacialReportOptionsTable;
    property CodingReportOptionsTable: TCodingReportOptionsTable read GetCodingReportOptionsTable write SetCodingReportOptionsTable;
    property ChartDivisionTable: TChartDivisionTable read GetChartDivisionTable write SetChartDivisionTable;
+   property ReminderTable: TReminderTable read GetReminderTable write SetReminderTable;
 
    // Lists
    property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
@@ -170,6 +177,7 @@ end;
 
 implementation
 uses
+   ToDoListUnit,
    AdminNotesForClient,
    syDefs,
    SystemMigrater,
@@ -482,7 +490,36 @@ end;
 function TClientMigrater.AddPayeeLine(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 begin
-  Result := Payee_Line_RecTable.Insert(Value.SequenceNo,Value.GuidID,ForAction.Item.GuidID, pPayee_Line_Rec(Value.Data));
+   Result := Payee_Line_RecTable.Insert(Value.SequenceNo,Value.GuidID,ForAction.Item.GuidID, pPayee_Line_Rec(Value.Data));
+end;
+
+procedure TClientMigrater.AddReminders(ForAction: TMigrateAction);
+var
+   ClientsToDoList: TClientToDoList;
+   I,C: Integer;
+   System: TSystemMigrater;
+begin
+   if not Assigned(SystemMirater) then
+      Exit;
+   System := SystemMirater as TSystemMigrater;
+
+   ClientsToDoList := TClientToDoList.Create(ClientLRN);
+   try
+      if ClientsToDoList.Count = 0 then
+         Exit; // Nothing to do..
+
+      for I := 0 to ClientsToDoList.Count - 1 do
+         ReMinderTable.Insert(
+             NewGuid,
+             ClientID,
+             System.GetUser(ClientsToDoList.ToDoItemAt(I).tdEntered_By),
+             ClientsToDoList.ToDoItemAt(I)
+                              );
+
+      ForAction.InsertAction('Tasks').Count := ClientsToDoList.Count;
+   finally
+      FreeAndNil(ClientsToDoList);
+   end;
 end;
 
 procedure TClientMigrater.AddSubGroups(ForAction: TMigrateAction);
@@ -572,7 +609,7 @@ begin
       KeepTime := Connection.CommandTimeout;
       Connection.CommandTimeout := 10 * 60;
       DeleteTable(MyAction,'Transactions');
-      connection.CommandTimeout := KeepTime;
+      Connection.CommandTimeout := KeepTime;
 
       DeleteTable(MyAction,'BankAccounts');
       DeleteTable(MyAction,'CodingReportOptions');
@@ -580,8 +617,8 @@ begin
       DeleteTable(MyAction,'ReportSubGroups');
 
       DeleteTable(MyAction,ChartDivisionTable);
-
       DeleteTable(MyAction,Chart_RecTable);
+      DeleteTable(MyAction,DivisionsTable);
 
       DeleteTable(MyAction,'Reminders');
 
@@ -624,6 +661,7 @@ begin
    FClientFinacialReportOptionsTable := nil;
    FCodingReportOptionsTable := nil;
    FChartDivisionTable := nil;
+   FReminderTable := nil;
 end;
 
 destructor TClientMigrater.Destroy;
@@ -650,6 +688,7 @@ begin
   FreeAndNil(FClientFinacialReportOptionsTable);
   FreeAndNil(FCodingReportOptionsTable);
   FreeAndNil(FChartDivisionTable);
+  FreeAndNil(FReminderTable);
   inherited;
 end;
 
@@ -786,6 +825,13 @@ begin
    Result := FPayee_Line_RecTable;
 end;
 
+function TClientMigrater.GetReminderTable: TReminderTable;
+begin
+   if not Assigned(FReminderTable) then
+      FReminderTable := TReminderTable.Create(Connection);
+   Result := FReminderTable;
+end;
+
 function TClientMigrater.GetSubGroupTable: TSubGroupTable;
 begin
    if not Assigned(FSubGroupTable) then
@@ -906,7 +952,7 @@ begin
 
       AddGStRates(MyAction);
 
-
+      AddReminders(MyAction);
 
       MyAction.Status := Success;
       Result := true;
@@ -1080,6 +1126,11 @@ procedure TClientMigrater.SetPayee_Line_RecTable(
   const Value: TPayee_Line_RecTable);
 begin
   FPayee_Line_RecTable := Value;
+end;
+
+procedure TClientMigrater.SetReminderTable(const Value: TReminderTable);
+begin
+  FReminderTable := Value;
 end;
 
 procedure TClientMigrater.SetSubGroupTable(const Value: TSubGroupTable);

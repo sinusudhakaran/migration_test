@@ -5,6 +5,7 @@ interface
 uses
    MoneyDef,
    MigrateTable,
+   ToDoListUnit,
    bkDefs;
 
 type
@@ -247,6 +248,16 @@ public
    function Insert(MyID: TGuid;
                    ClientID: TGuid;
                    value: pBalances_Rec): Boolean;
+end;
+
+TReminderTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyID,
+                   ClientID,
+                   ByUser: TGuid;
+                   ToDoItem: pClientToDoItem): Boolean;
 end;
 
 
@@ -933,6 +944,28 @@ procedure TChartDivisionTable.SetupTable;
 begin
    Tablename := 'ClientReportDivisionCharts';
    SetFields(['Id','DivisionIndex','Client_Id','Chart_Id'],[]);
+end;
+
+{ TReminderTable }
+
+function TReminderTable.Insert(
+                   MyID,
+                   ClientID,
+                   ByUser: TGuid;
+                   ToDoItem: pClientToDoItem): Boolean;
+
+begin with ToDoItem^ do
+   Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(tdDate_Entered, tdTime_Entered), ToSQL(ByUser),
+                  ToSQL(tdDescription)
+             ,ToSQL(tdReminderDate), ToSQL(tdIs_Completed), DateToSQL(tdDate_Completed)],[]);
+end;
+
+procedure TReminderTable.SetupTable;
+begin
+   Tablename := 'Reminders';
+   SetFields(['Id','Client_Id','DateEntered','EnteredBy','Action'
+      ,'ReminderDate','Closed','DateClosed'],[]);
+
 end;
 
 end.

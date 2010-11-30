@@ -137,6 +137,8 @@ public
     function Migrate(ForAction:TMigrateAction): Boolean;
 
     // Helper for the Client
+    function GetUser(const Value: string): TGuid; overload;
+    function GetUser(const Value: integer): TGuid; overload;
 end;
 
 implementation
@@ -175,7 +177,7 @@ begin
             ForAction,
             Clientrec.cfFile_Code,
             Value.GuidID,
-            UserList.FindLrnGuid(Clientrec.cfUser_Responsible),
+            GetUser(Clientrec.cfUser_Responsible),
             ClientGroupList.FindLrnGuid(Clientrec.cfGroup_LRN),
             ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN),
             Clientrec.cfLRN
@@ -316,32 +318,23 @@ begin
           Clientrec
         )
     else
-       Result := false;    
+       Result := false;
 end;
 
 function TSystemMigrater.AddUserMap(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 
 var UserID, ClientID: TGuid;
-    function FindUserLRN(Value: Integer):TGuid;
-    var I: Integer;
-    begin
-       FillChar(result,Sizeof(result),0);
-       for I := 0 to UserList.Count - 1 do
-          if(PUser_Rec(TGuidObject(FuserList.Items[i]).Data)^.usLRN = Value) then begin
-              Result := TGuidObject(FuserList.Items[i]).GuidID;
-              exit;
-          end;
-    end;
+
 begin
    Result := true;
    with pFile_Access_Mapping_Rec(Value.Data)^ do begin
-      UserID := FindUserLRN(acUser_LRN);
+      UserID := GetUser(acUser_LRN);
       if IsEqualGUID(UserID,emptyGuid) then
          Exit;
       ClientID := ClientList.FindLRNGuid(acClient_File_LRN);
       if IsEqualGUID(ClientID,emptyGuid) then
          Exit;
-      Result := UserMappingTable.Insert(Value.GuidID,UseriD,ClientID);
+      Result := UserMappingTable.Insert(Value.GuidID, UserID, ClientID);
    end;
 end;
 
@@ -519,6 +512,28 @@ begin
       FSystemUsers.CommandText := 'Select [Id] from [users] where [code] = :Code';
    end;
    Result := FSystemUsers;
+end;
+
+function TSystemMigrater.GetUser(const Value: string): TGuid;
+var I: Integer;
+begin
+   FillChar(Result, Sizeof(Result), 0);
+   for I := 0 to UserList.Count - 1 do
+      if(PUser_Rec(TGuidObject(FuserList.Items[i]).Data)^.usCode = Value) then begin
+         Result := TGuidObject(FuserList.Items[i]).GuidID;
+         Exit;
+      end;
+end;
+
+function TSystemMigrater.GetUser(const Value: integer): TGuid;
+var I: Integer;
+begin
+   FillChar(Result, Sizeof(Result), 0);
+   for I := 0 to UserList.Count - 1 do
+      if(PUser_Rec(TGuidObject(FuserList.Items[i]).Data)^.usLRN = Value) then begin
+         Result := TGuidObject(FuserList.Items[i]).GuidID;
+         Exit;
+      end;
 end;
 
 function TSystemMigrater.GetUserList: TGuidList;

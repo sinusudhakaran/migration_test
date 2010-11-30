@@ -29,6 +29,7 @@ type
     function NullToSQL (Value: Integer):variant;
     function ToSQL(Value: Boolean):variant; overload;
     function ToSQL(Value: string):variant; overload;
+    function ToSQL(Date: Integer; Time: Integer):variant; overload;
 
     procedure SetFields(FieldList: array of string; SFFieldList: array of string);
     procedure SetupTable; virtual; abstract;
@@ -66,7 +67,7 @@ end;
 function TMigrateTable.DateToSQL(Value: Integer): variant;
 begin
    if Value <= 0 then
-      Result := Null // Bad date or null date 
+      Result := Null // Bad date or null date
    else if value = maxint then
       result := Null // clould make a 'maxdate'
    else
@@ -147,6 +148,16 @@ begin
   FTablename := Value;
 end;
 
+
+function TMigrateTable.ToSQL(Date, Time: Integer): variant;
+begin
+   if Date <= 0 then
+      Result := Null // Bad date or null date
+   else if Date = maxint then
+      Result := Null // clould make a 'maxdate'
+   else
+      Result := StDate.StDateToDateTime(Date) + StDate.StTimeToDateTime(Time);
+end;
 
 function TMigrateTable.RunValues(values: array of Variant; SFValues: array of Variant):Boolean;
 var I,S: Integer;
