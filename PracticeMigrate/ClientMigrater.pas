@@ -347,23 +347,25 @@ var I,C: Integer;
     DivisionName: string;
     Division: TGuidObject;
 begin
-     C := 0;
-     DivisionList.Clear;
-     for i := 1 to Max_Divisions do begin
-        DivisionName := Trim(FClient.clCustom_Headings_List.Get_Division_Heading(i));
-        if DivisionName > '' then begin
-           // Keep the Divisions as a Lookup
-           Division := TGuidObject.Create;
-           Division.GuidID := NewGuid;
-           Division.SequenceNo := i;
-           DivisionList.Add(Division);
-           if DivisionsTable.Insert(Division.GuidID, ClientID, Division.SequenceNo, DivisionName) then
-              inc(C);
+   if MigrationCanceled then
+      Exit;
+   C := 0;
+   DivisionList.Clear;
+   for i := 1 to Max_Divisions do begin
+      DivisionName := Trim(FClient.clCustom_Headings_List.Get_Division_Heading(i));
+      if DivisionName > '' then begin
+         // Keep the Divisions as a Lookup
+         Division := TGuidObject.Create;
+         Division.GuidID := NewGuid;
+         Division.SequenceNo := i;
+         DivisionList.Add(Division);
+         if DivisionsTable.Insert(Division.GuidID, ClientID, Division.SequenceNo, DivisionName) then
+            inc(C);
 
-        end;
-     end;
-     if C > 0 then
-        ForAction.InsertAction('Divisions').Count := C;
+      end;
+   end;
+   if C > 0 then
+      ForAction.InsertAction('Divisions').Count := C;
 end;
 
 procedure TClientMigrater.AddGStRates(ForAction: TMigrateAction);
@@ -373,6 +375,9 @@ procedure TClientMigrater.AddGStRates(ForAction: TMigrateAction);
     EntryId,
     ClassId: TGuid;
 begin
+   if MigrationCanceled then
+      Exit;
+
    for ClassNo := 1 to MAX_GST_CLASS do begin
       if FClient.clFields.clGST_Class_Names[ClassNo] = '' then
         Continue; // nothing to save...
@@ -499,6 +504,9 @@ var
    I,C: Integer;
    System: TSystemMigrater;
 begin
+   if MigrationCanceled then
+      Exit;
+
    if not Assigned(SystemMirater) then
       Exit;
    System := SystemMirater as TSystemMigrater;
@@ -526,19 +534,23 @@ procedure TClientMigrater.AddSubGroups(ForAction: TMigrateAction);
 var I,C: Integer;
     SubGroupName: string;
 begin
-     C := 0;
-     for i := 1 to Max_SubGroups do begin
-        SubGroupName := Trim(FClient.clCustom_Headings_List.Get_SubGroup_Heading(i));
-        if SubGroupName > '' then begin
-           if SubGroupTable.Insert(NewGuid,ClientID, i, SubGroupName) then
-              inc(C);
-        end;
-     end;
-     if C > 0 then begin
-        ForAction.InsertAction('Subgroups').Count := C;
-     end else begin
-        SubGroupTable.Insert(NewGuid,ClientID, 0, 'Unallocated');
-     end;
+   if MigrationCanceled then
+      Exit;
+
+   C := 0;
+   for i := 1 to Max_SubGroups do begin
+      SubGroupName := Trim(FClient.clCustom_Headings_List.Get_SubGroup_Heading(i));
+      if SubGroupName > '' then begin
+         if SubGroupTable.Insert(NewGuid,ClientID, i, SubGroupName) then
+            inc(C);
+      end;
+   end;
+
+   if C > 0 then begin
+      ForAction.InsertAction('Subgroups').Count := C;
+   end else begin
+      SubGroupTable.Insert(NewGuid,ClientID, 0, 'Unallocated');
+   end;
 end;
 
 
@@ -907,7 +919,7 @@ begin
                     );
 
 
-
+      try
       Client_ScheduleTable.Insert
                     ( NewGuid,
                       ClientID,
@@ -915,31 +927,46 @@ begin
                       @FClient.clMoreFields,
                       @FClient.clExtra
                     );
-
+      except
+        on E: Exception do MyAction.AddWarining(E);
+      end;
+      try
       Client_ReportOptionsTable.Insert( NewGuid,
                       ClientID,
                       @FClient.clFields,
                       @FClient.clMoreFields,
                       @FClient.clExtra);
 
+      except
+        on E: Exception do MyAction.AddWarining(E);
+      end;
+      try
       ClientFinacialReportOptionsTable.Insert( NewGuid,
                       ClientID,
                       @FClient.clFields,
                       @FClient.clMoreFields,
                       @FClient.clExtra);
 
+      except
+        on E: Exception do MyAction.AddWarining(E);
+      end;
+      try
       CodingReportOptionsTable.Insert( NewGuid,
                       ClientID,
                       @FClient.clFields,
                       @FClient.clMoreFields,
                       @FClient.clExtra);
 
+      except
+        on E: Exception do MyAction.AddWarining(E);
+      end;
 
       GuidList := TGuidList.Create(FClient.clBank_Account_List);
       RunGuidList(MyAction,'Bank Accounts',GuidList,AddAccount);
 
       AddDivisions(MyAction);
       AddSubGroups(MyAction);
+
       RunGuidList(MyAction,'Chart',GuidList.CloneList(FClient.clChart),AddChart);
 
       RunGuidList(MyAction,'Budgets',GuidList.CloneList(FClient.clBudget_List),AddBudget);
@@ -959,7 +986,7 @@ begin
    except
       on E: Exception do begin
          MyAction.Error := E.Message;
-         ForAction.Status := Warning;
+
       end;
    end;
    finally

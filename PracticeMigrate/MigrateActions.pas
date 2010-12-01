@@ -11,7 +11,7 @@ uses
   GuidList;
 
 type
-  TMigratestatus = (Running, Success, Failed, Warning);
+  TMigratestatus = (Running, Success, Failed);
 
   TMigrateList = class (TTreeBaseList)
   private
@@ -37,6 +37,7 @@ type
     FTarget: Integer;
     FCounter: Integer;
     FNextCountStep: Integer;
+    FWarning: Boolean;
     procedure SetCount(const Value: Integer);
     procedure SetItem(const Value: TGuidObject);
     procedure SetStatus(const Value: TMigratestatus);
@@ -46,6 +47,8 @@ type
     procedure SetTarget(const Value: Integer);
     procedure SetCounter(const Value: Integer);
     function AddAction(Title: string; Insert: Boolean; AItem: TGuidObject = nil):TMigrateAction;
+    procedure SetWarning(const Value: Boolean);
+    procedure propagateWarning(FromNode:PVirtualNode);
   protected
     procedure Paintbackground(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; R: TRect;
                                var Handled: Boolean);
@@ -68,6 +71,7 @@ type
      property Target: Integer read FTarget write SetTarget;
       // Counter repesents the current count
      property Counter: Integer read FCounter write SetCounter;
+     property Warning: Boolean read FWarning write SetWarning;
      procedure AddCount(value: Integer = 1);
      procedure SkipCount(Value: Integer = 1);
 
@@ -75,7 +79,9 @@ type
      property Error: string read FError write SetError;
      function NewAction(Title: string; AItem: TGuidObject = nil):TMigrateAction;
      function InsertAction(Title: string; AItem: TGuidObject = nil):TMigrateAction;
-     function Exception(E:Exception):TMigrateAction;
+     procedure AddWarining(E: Exception);
+     // Uesed for simple Actions, to create a sub action
+     function Exception(E: Exception; Action: string = ''):TMigrateAction;
      function GetImageindex: Integer;
   end;
 
@@ -130,6 +136,12 @@ begin
    Counter := FCounter + Value;
 end;
 
+procedure TMigrateAction.AddWarining(E: Exception);
+begin
+   Error := E.Message;
+   Warning := True;
+end;
+
 procedure TMigrateAction.Changed;
 var lNode: PVirtualNode;
 begin
@@ -167,15 +179,17 @@ begin
    Item := AItem;
 end;
 
-function TMigrateAction.Exception(E: Exception): TMigrateAction;
+function TMigrateAction.Exception(E: Exception; Action: string =''): TMigrateAction;
 begin
-   Result := InsertAction('Error');
+   Result := InsertAction(Format ('Error %s', [Action]));
    Result.Error := E.Message;
 end;
 
 function TMigrateAction.GetImageindex: Integer;
 begin
    Result := ord(Status);
+   if Warning  then
+      Result := 3; 
 end;
 
 function TMigrateAction.GetTagText(const Tag: Integer): string;
@@ -258,6 +272,17 @@ begin
     TargetCanvas.FillRect(R);
 end;
 
+procedure TMigrateAction.propagateWarning(FromNode: PVirtualNode);
+var pn: PVirtualNode;
+begin
+   pn := FromNode.Parent;
+   while Assigned(pn)
+   and (Parentlist.Tree.RootNode <> pn) do begin
+      TMigrateAction(ParentList.GetNodeItem(pn)).FWarning := True;
+      pn := pn.Parent;
+   end;
+end;
+
 procedure TMigrateAction.SetCount(const Value: Integer);
 begin
   FCount := Value;
@@ -278,8 +303,12 @@ end;
 
 procedure TMigrateAction.SetError(const Value: string);
 begin
-  FError := Value;
-  Status := Failed;
+  if FError > ''  then
+     FError := FError + '; ';
+
+  FError := FError + Value;
+
+  Status := Failed;//??
   Changed;
 end;
 
@@ -291,51 +320,32 @@ end;
 
 procedure TMigrateAction.SetStatus(const Value: TMigratestatus);
 
-   procedure propagateWarning(FromNode:PVirtualNode);
-   var pn: PVirtualNode;
-   begin
-      pn := FromNode.Parent;
-      while assigned(pn)
-      and (Parentlist.Tree.RootNode <> pn) do begin
-         TMigrateAction(ParentList.GetNodeItem(pn)).Status := Warning;
-         pn := pn.Parent;
-      end;
-   end;
-
-
 begin
   if Status = Value then
      Exit; // same...
 
   // Check the new value against the old one..
   try
-  case Value of
-    Running: ;
-    Failed:  begin
+     case Value of
+     Running: ;
+     Failed:  begin
                 fStopTime := now;
                 ShowMe;
-                propagateWarning(Self.Node.Parent);
+                // Let all the parents know..
+                propagateWarning(Self.Node);
              end;
-    Success: begin
+     Success: begin
                 fStopTime := now;
-                if (Fstatus in [Warning, Failed]) then
-                   Exit
+                if (Fstatus in [Failed]) then
+                   Exit // Failed overwrites success
                 else
-                   ParentList.Tree.Expanded[Node] := False;
+                   ParentList.Tree.Expanded[Node] := Warning;
              end;
-    Warning: begin
-                propagateWarning(self.Node);
-                if(Fstatus in [Failed]) then
-                   Exit;
-             end;
-
-  end;
-  FStatus := Value;
+     end;
+     FStatus := Value;
   finally
      Changed;
   end;
-
-
 end;
 
 procedure TMigrateAction.SetTarget(const Value: Integer);
@@ -343,6 +353,13 @@ begin
    FNextCountStep := 0;
    FTarget := Value;
    Changed;
+end;
+
+procedure TMigrateAction.SetWarning(const Value: Boolean);
+begin
+   FWarning := Value;
+   if FWarning then
+      propagateWarning(Self.Node);
 end;
 
 procedure TMigrateAction.ShowMe;
@@ -353,7 +370,7 @@ begin
       ParentList.Tree.Expanded[pn] := true;
       pn := pn.Parent;
       if Parentlist.Tree.RootNode = pn then
-        Break;
+         Break;
    end;
    Changed;
 end;

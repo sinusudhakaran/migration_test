@@ -350,7 +350,14 @@ var
    MyAction: TMigrateAction;
    I: Integer;
 begin
+   if MigrationCanceled then begin
+      Result := False;
+      Exit;
+   end;
+
+   // Hasve a go..
    Result := True;
+
    if List.Count = 0 then
       Exit; // Nothing to do.. but did not fail..
 

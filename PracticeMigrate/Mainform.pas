@@ -156,7 +156,7 @@ syhelpers;
 
 const
    PracticeUser = 'Practice';
-   Practicepw = 'Pr4ct1C#U$er';
+   PracticePw = 'Pr4ct1C#U$er';
 
 procedure TformMain.Setprogress(const Value: Tprogress);
 begin
@@ -169,6 +169,7 @@ begin
         btnNext.Caption := 'Next';
 
         pcMain.ActivePage := tsBrowse;
+        tsBrowse.Update;
       end;
    Selection :begin
         btnDef.Visible := True;
@@ -177,6 +178,7 @@ begin
         btnNext.Caption := 'Next';
 
         pcMain.ActivePage := tsSelect;
+        tsSelect.Update;
      end;
    Migrate :begin
         btnDef.Visible := False;
@@ -185,6 +187,7 @@ begin
         btnNext.Caption := 'Next';
 
         pcMain.ActivePage := TsProgress;
+        TsProgress.Update;
      end;
    Done: begin
         btnDef.Visible := False;
@@ -194,6 +197,11 @@ begin
 
    end;
   end;
+  pcMain.Update;
+  self.update;
+  
+  Application.ProcessMessages;
+  
 end;
 
 
@@ -323,36 +331,37 @@ var ConnStr:TStringList;
 
 begin
    Result := false;
-   connection.Connected := False;
+   Connection.Connected := False;
    if ASource = '' then
       Exit;
 
    ConnStr := TStringList.Create;
    try
       Connstr.add('Provide=SQLNCLI10.1');
-      Connstr.add('Initial File Name=""');
-      Connstr.add('Server SPN=""');
-      Connstr.add('Persist Security Info=False');
+      //Connstr.add('Initial File Name=""');
+      //Connstr.add('Server SPN=""');
+      //Connstr.add('Persist Security Info=False');
       Connstr.add(format('Initial Catalog=%s',[ACatalog]));
       Connstr.add(format('Data Source=%s',[ASource]));
-      Connstr.add('Use Procedure for Prepare=1');
+      //Connstr.add('Use Procedure for Prepare=1');
 
 
-      if (User = '')
-      and (pw = '') then begin
+      if (AUser = '')
+      and (APW = '') then begin
          Connstr.add('Integrated Security=SSPI');
          Connstr.add('User ID=""');
          Connstr.add('Password=""');
       end else begin
-         Connstr.add('Integrated Security=""');
+         //Connstr.add('Integrated Security=""');
          Connstr.add(format('User ID=%s',[AUser]));
          Connstr.add(format('Password=%s',[APW]));
       end;
 
-      connection.ConnectionString := BuildConnStr;
-      connection.Connected := true;
+      Connection.ConnectionString := BuildConnStr;
 
-      result := connection.Connected;
+      Connection.Connected := true;
+
+      Result := Connection.Connected;
    finally
       ConnStr.Free;
    end;
@@ -365,7 +374,7 @@ begin
       Result := Connect(FClientMigrater.Connection, Destination, 'PracticeClient', User, Pw);
    except
       on e: exception do
-         ForAction.Exception(e);
+         ForAction.Exception(e,'Connect to Client Database');
    end;
 end;
 
@@ -376,7 +385,7 @@ begin
       Result := Connect(FSystemMigrater.Connection, Destination, 'PracticeSystem', User, Pw);
    except
       on e: exception do
-         ForAction.Exception(e)
+         ForAction.Exception(e,'Connect to Practice Database')
    end;
 end;
 
@@ -455,28 +464,35 @@ begin
    kc := screen.Cursor;
    Screen.Cursor := crHourGlass;
    try
-   show;
-   PW := '';
-   User := '';
-   // setup what we know..
-   for i := 1 to ParamCount do begin
-      s := Uppercase( ParamStr(i));
-      if Pos( PracticeSwitch, S) > 0 then begin
-         //Practice Code specified
-         s := Copy( S, Pos( PracticeSwitch, S) + Length(PracticeSwitch), 20);
+      show;
+      PW := '';
+      User := '';
+      // setup what we know..
+      for i := 1 to ParamCount do begin
+         s := Uppercase( ParamStr(i));
+         if Pos(PracticeSwitch, S) > 0 then begin
+            //Practice Code specified
+            s := Copy( S, Pos( PracticeSwitch, S) + Length(PracticeSwitch), 20);
+         end else if Pos( LocationSwitch, S) > 0 then begin
+            //location specified
+            Destination := Copy( S, Pos( LocationSwitch, S) + Length(LocationSwitch), 255);
+            {}
+            User := PracticeUser;
+            PW := PracticePw;
+            {}
+         end;
+      end;
+      {
+      if (PW = '')
+      and (User = '') then begin
+         User := PracticeUser;
+         PW := PracticePw;
+      end;
+      {}
+      PreLoaded := Destination > '';
+      fromDir := '';
 
-    end else if Pos( LocationSwitch, S) > 0 then begin
-       //location specified
-       Destination := Copy( S, Pos( LocationSwitch, S) + Length(LocationSwitch), 255);
-       User := PracticeUser;
-       pw := Practicepw;
-    end;
-   end;
-
-   PreLoaded := Destination > '';
-   fromDir := '';
-
-   progress := SelectSource;
+      progress := SelectSource;
    finally
       screen.Cursor := kc
    end;
@@ -720,7 +736,8 @@ begin
 
          MyAction.Status := Success;
 
-      end;
+      end else
+          MyAction.Status := failed;
    finally
       progress := Done;
    end;
