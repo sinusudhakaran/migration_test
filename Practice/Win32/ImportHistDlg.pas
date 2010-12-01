@@ -92,6 +92,7 @@ type
     POutfileTitle: TPanel;
     lOutputTitle: TLabel;
     lInFileTitle: TLabel;
+    cbChequeNumber: TCheckBox;
     procedure BTNBrowseClick(Sender: TObject);
     procedure chFirstlineClick(Sender: TObject);
     procedure PCFormatChange(Sender: TObject);
@@ -301,6 +302,7 @@ const
   kSignCol = 'SignCol';
   kReverseSign = 'ReverseSign';
   kRefCol = 'ReferenceCol';
+    kHasCheques = 'HasCheques';
   kAnalCol = 'AnalysisCol';
   kNar1Col = 'Narration1Col';
   kNar2Col = 'Narration2Col';
@@ -379,6 +381,7 @@ begin
 
    // Reference
    SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kRefCol), cbref);
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kHasCheques), cbChequeNumber);
 
    // Analysis
    SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAnalCol), cbAna);
@@ -600,18 +603,22 @@ begin
         pT := BankAccount.baTransaction_List.New_Transaction;
         //Set Some defaults
         ClearSuperFundFields(Pt);
-        pT^.txSource := orHistorical;
-        PT^.txHas_Been_Edited := true;
-        pT^.txBank_Seq := BankAccount.baFields.baNumber;
+        if BankAccount.IsProvisional then
+           pT.txSource := orProvisional
+        else
+           pT.txSource := orHistorical;
+
+        PT.txHas_Been_Edited := true;
+        pT.txBank_Seq := BankAccount.baFields.baNumber;
         //date
-        pT^.txDate_Effective := Integer(Integer(TOutItem(fOutlist[R]).objects[oiDate]));
-        pT^.txDate_Presented := pT^.txDate_Effective;
+        pT.txDate_Effective := Integer(Integer(TOutItem(fOutlist[R]).objects[oiDate]));
+        pT.txDate_Presented := pT^.txDate_Effective;
 
-        pt^.txAmount := TOutItem(fOutlist[R]).OutMoney;
+        pt.txAmount := TOutItem(fOutlist[R]).OutMoney;
 
-        pT^.txType := FHDEForm.GetComboIndexForEntryType(GetEntryType(pT^.txAmount));
+        pT.txType := FHDEForm.GetComboIndexForEntryType(GetEntryType(pT.txAmount));
 
-        pt^.txReference := TOutItem(fOutlist[R]).Strings[SubRef];
+        pt.txReference := TOutItem(fOutlist[R]).Strings[SubRef];
 
 
         if fSubAna >= 0 then
@@ -824,13 +831,29 @@ end;
 
 procedure TImportHist.cbRefChange(Sender: TObject);
 var CRef, R: Integer;
+
+   function MakeRef(Value: string): string;
+   var L: Integer;
+   begin
+      Result := MakeCodingRef(Value); // remove Leading zero's regardless
+      if cbChequeNumber.Checked
+      and IsNumeric(Result) then begin
+         // Keep the least significant
+         l := Length(Result);
+         if L > 6 then
+            Result := Copy(Result,L-5,6);
+      end else
+         // Just keep the first 12..
+         Result := Copy(Result,1,12);
+   end;
+
 begin
    BeginUpdate;
    try
       CRef := GetComboCurrentIntObject(cbRef);
       if CRef >= 0 then begin
          for R := 0 to fOutList.Count - 1 do begin
-            TOutItem(foutList[R]).Strings[SubRef] := GetFiletext(R,CRef,12);
+            TOutItem(foutList[R]).Strings[SubRef] := MakeRef(GetFiletext(R,CRef,0));
          end;
       end else begin
          for R := 0 to fOutList.Count - 1 do begin
@@ -998,7 +1021,8 @@ begin
           Result := etWithdrawlUK
         else
           Result := etDepositUK;
-      end
+      end;
+
     else
       raise Exception.Create('Need to define GetEntryType for other countries');
   end;
@@ -1639,8 +1663,8 @@ begin
 
        // Fill in the First line
 
-       cbAna.Items.AddObject(tNone, TObject(-1));
-       cbRef.Items.AddObject(tNone, TObject(-1));
+       cbAna.Items.AddObject (tNone, TObject(-1));
+       cbRef.Items.AddObject (tNone, TObject(-1));
        cbNar1.Items.AddObject(tNone, TObject(-1));
        cbNar2.Items.AddObject(tNone, TObject(-1));
        cbNar3.Items.AddObject(tNone, TObject(-1));
@@ -1648,13 +1672,13 @@ begin
        for C := 0 to lLine.Count - 1 do with AddColumn('',0) do begin
           if CHFirstLine.Checked
           and (lLine[C] > ' ') then
-             Text := lLine[C]
+             Text := Trim(lLine[C])
           else
              Text := Format('Column %d',[C + 1]);
 
           // While we are here..
-          cbAna.Items.AddObject(Text, TObject(C));
-          cbRef.Items.AddObject(Text, TObject(C));
+          cbAna.Items.AddObject (Text, TObject(C));
+          cbRef.Items.AddObject (Text, TObject(C));
           cbNar1.Items.AddObject(Text, TObject(C));
           cbNar2.Items.AddObject(Text, TObject(C));
           cbNar3.Items.AddObject(Text, TObject(C));
@@ -2193,6 +2217,7 @@ begin
 
    // Reference
    WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kRefCol, cbref.Text);
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kHasCheques, BoolToStr(cbChequeNumber.Checked, true));
 
    // Analysis
    WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAnalCol, cbAna.Text);
@@ -2274,7 +2299,7 @@ var Index: Integer;
 begin
    if Value = '' then
       Exit;
-   Index := ComboBox.Items.IndexOf(Value);
+   Index := ComboBox.Items.IndexOf(Value); 
    if Index < 0 then
       Exit;
    if ComboBox.ItemIndex <> Index then begin

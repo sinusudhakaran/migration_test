@@ -61,6 +61,9 @@ object frmMaintainPracBank: TfrmMaintainPracBank
     inherited pTop: TPanel
       Width = 749
       ExplicitWidth = 749
+      inherited btnFilter: TButton
+        OnClick = SysAccountsbtnFilterClick
+      end
     end
     inherited AccountTree: TVirtualStringTree
       Width = 749
@@ -198,7 +201,8 @@ object frmMaintainPracBank: TfrmMaintainPracBank
   end
   object actList: TActionList
     Images = AppImages.ilFileActions_ClientMgr
-    Left = 400
+    Left = 144
+    Top = 8
     object actEdit: TAction
       Category = 'Accounts'
       Caption = 'Edit'

@@ -45,7 +45,7 @@ function HasAccounts: Boolean;
 function HasJobs : boolean;
 function CountBankAccounts : Integer;
 function CountManualBankAccounts : Integer;
-function CountNonManualBankAccounts : Integer;
+function CountDeliveredBankAccounts : Integer;
 function ClientHasUncodedTransactions(D1, D2: Integer): Boolean;
 function HasOnlyJournalAccounts : Boolean;
 function HasEntries: Boolean;
@@ -889,8 +889,8 @@ begin
   end;
 end;
 { -----------------------------------------------------------------------  }
-function CountNonManualBankAccounts : Integer;
-// Returns the number of Manual Bank Accounts
+function CountDeliveredBankAccounts : Integer;
+// Returns the number of Delivered Bank Accounts
 var
   i : integer;
 begin
@@ -899,7 +899,8 @@ begin
      for i := 0 to Pred( ItemCount ) do begin
         with Bank_Account_At( i ) do begin
            if (not IsManual)
-           and (not IsAJournalAccount) then begin
+           and (not IsAJournalAccount)
+           and (not IsProvisional) then begin
               Inc( Result );
            end;
         end;

@@ -60,6 +60,7 @@ type
     procedure SendProvAccRequest;
     procedure acAddProvTransExecute(Sender: TObject);
     procedure ManuallyAddProvTrans(ForAccount: string);
+    procedure SysAccountsbtnFilterClick(Sender: TObject);
   private
     { Private declarations }
     fChanged : boolean;
@@ -173,6 +174,12 @@ begin
       actedit.Execute;
 end;
 
+procedure TfrmMaintainPracBank.SysAccountsbtnFilterClick(Sender: TObject);
+begin
+  SysAccounts.actFilterExecute(Sender);
+
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.RefreshBankAccountList(Selected: string = '');
 begin
@@ -283,7 +290,9 @@ end;
 
 
 procedure TfrmMaintainPracBank.acAddProvTransExecute(Sender: TObject);
-var Selected: PSystem_Bank_Account_Rec;
+var
+   Selected: PSystem_Bank_Account_Rec;
+
 begin
   Selected := SysAccounts.Selected;
   if not Assigned(Selected) then

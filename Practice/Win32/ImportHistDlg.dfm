@@ -69,15 +69,12 @@ object ImportHist: TImportHist
       Alignment = taLeftJustify
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitLeft = 2
-      ExplicitTop = 2
-      ExplicitWidth = 1023
       object lMappingTitle: TLabel
         Left = 20
         Top = 1
-        Width = 117
+        Width = 113
         Height = 13
-        Caption = 'Output column mapping:'
+        Caption = 'Import Column Mapping'
       end
     end
     object PFormat: TPanel
@@ -94,13 +91,10 @@ object ImportHist: TImportHist
         Top = 1
         Width = 1025
         Height = 121
-        ActivePage = TSNarration
+        ActivePage = TSReference
         Align = alTop
         TabOrder = 0
         OnChange = PCFormatChange
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 1023
         object TSDate: TTabSheet
           Caption = '&Date'
           object Label2: TLabel
@@ -230,11 +224,11 @@ object ImportHist: TImportHist
           object Label10: TLabel
             Left = 15
             Top = 46
-            Width = 313
+            Width = 321
             Height = 13
             Caption = 
-              'Reference is limited to 12 characters, typically a Cheque number' +
-              '.'
+              'Reference is limited to 12 characters, or 6 if it is a Cheque nu' +
+              'mber.'
           end
           object cbRef: TComboBox
             Left = 83
@@ -245,6 +239,17 @@ object ImportHist: TImportHist
             ItemHeight = 13
             TabOrder = 0
             OnChange = cbRefChange
+          end
+          object cbChequeNumber: TCheckBox
+            Left = 400
+            Top = 12
+            Width = 161
+            Height = 17
+            Caption = 'Has Cheque Numbers'
+            Checked = True
+            State = cbChecked
+            TabOrder = 1
+            OnClick = cbRefChange
           end
         end
         object tsAnalysis: TTabSheet
@@ -278,7 +283,6 @@ object ImportHist: TImportHist
         object TSNarration: TTabSheet
           Caption = 'Narra&tion'
           ImageIndex = 4
-          ExplicitWidth = 1015
           object Label5: TLabel
             Left = 15
             Top = 10
@@ -340,15 +344,12 @@ object ImportHist: TImportHist
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitLeft = 0
-        ExplicitTop = 121
-        ExplicitWidth = 1023
         object lOutputTitle: TLabel
           Left = 20
           Top = 1
-          Width = 100
+          Width = 96
           Height = 13
-          Caption = 'Output transactions:'
+          Caption = 'Import Transactions'
         end
       end
     end
@@ -361,9 +362,6 @@ object ImportHist: TImportHist
       BevelOuter = bvNone
       Caption = 'pOut'
       TabOrder = 2
-      ExplicitLeft = 2
-      ExplicitWidth = 1023
-      ExplicitHeight = 78
       object vsOut: TVirtualStringTree
         Left = 0
         Top = 0
@@ -393,8 +391,6 @@ object ImportHist: TImportHist
         OnPaintText = vsOutPaintText
         OnGetHint = vsOutGetHint
         OnHeaderClick = vsOutHeaderClick
-        ExplicitWidth = 1023
-        ExplicitHeight = 78
         Columns = <>
         WideDefaultText = ''
       end
@@ -447,9 +443,9 @@ object ImportHist: TImportHist
       object lInFileTitle: TLabel
         Left = 15
         Top = 67
-        Width = 83
+        Width = 87
         Height = 13
-        Caption = 'Input file content'
+        Caption = 'Input File Content'
       end
       object BTNBrowse: TButton
         Left = 941

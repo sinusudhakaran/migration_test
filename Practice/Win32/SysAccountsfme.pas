@@ -136,7 +136,7 @@ const
   cot_AccBal       = 5; //now removed..
   cot_FirstDate    = 6;
   cot_LastDate     = 7;
-  cot_PracticeCode = 8;
+  cot_Delivered    = 8;
   cot_CurrencyCode = 9;
   cot_Status       = 10;
   cot_NoCharge     = 11;
@@ -183,13 +183,13 @@ const
   DefColumns : array [1..14] of byte =
   (cot_Status, cot_ClientCode, cot_ClientName, cot_AccNo,
    cot_AccName,cot_AccBal, cot_CurrencyCode, cot_FirstDate, cot_LastDate,
-   cot_NoCharge, cot_PracticeCode, cot_Institution, cot_Frequency, cot_Inactive) ;
+   cot_NoCharge, cot_Delivered, cot_Institution, cot_Frequency, cot_Inactive) ;
 
   // Valid Columns, update this as columns change..
   ValidColumns = [cot_ClientCode .. cot_Frequency, cot_Offsite..cot_TLRN] - [cot_AccBal];
 
   // Columns that are sorted in groups
-  GroupColumns = [cot_Status, cot_PracticeCode,cot_FirstDate,cot_LastDate, cot_Institution, cot_Frequency];
+  GroupColumns = [cot_Status, cot_Delivered, cot_FirstDate,cot_LastDate, cot_Institution, cot_Frequency];
 
 procedure InitClient(SysAccount: PSystem_Bank_Account_Rec; var ClientCode, ClientName : string) ;
 var acMap: pClient_Account_Map_Rec;
@@ -356,7 +356,13 @@ begin
    if assigned( SysAccount) then case Tag of
      cot_AccNo        : Result := SysAccount.sbAccount_Number;
      cot_AccName      : Result := SysAccount.sbAccount_Name;
-     cot_PracticeCode : Result := SysAccount.sbBankLink_Code;
+     cot_Delivered    : if TestOffsite(SysAccount) then
+                           Result := SysAccount.sbBankLink_Code
+                        else case SysAccount.sbAccount_Type of
+                           sbtProvisional : Result := 'Provisional';
+                           sbtOffsite : Result := SysAccount.sbBankLink_Code;
+                           else Result := '';
+                        end;
      cot_CurrencyCode : Result := SysAccount.sbCurrency_Code;
      cot_ClientCode   : Result := ClientCode;
      cot_ClientName   : Result := ClientName;
@@ -718,7 +724,9 @@ begin
    cot_AccBal       : Result := 'Balance';
    cot_FirstDate    : Result := 'From';
    cot_LastDate     : Result := 'To';
-   cot_PracticeCode : Result := 'Secure Code';
+   //cot_PracticeCode : Result := 'Secure Code';
+   cot_Delivered    : Result := 'Delivered';
+
    cot_CurrencyCode : Result := 'Currency';
    cot_Status       : Result := 'Status';
    cot_NoCharge     : Result := 'Charge';
@@ -1193,16 +1201,20 @@ var
            end;
        end;// DateGroups
 
-       procedure PracticeGroups;
+       procedure DeliveredGroups;
        begin
           if TestOffsite(BankAcct) then
+             CurGroup := 2
+          else if BankAcct.sbAccount_Type = sbtProvisional then
              CurGroup := 1
           else
              CurGroup := 0;
+
           NewGroup := TestNewGroup(CurGroup);
           if Assigned(NewGroup) then begin
               case CurGroup of
-              1 : NewGroup.Title := 'Books Secure Accounts';
+              2 : NewGroup.Title := 'Books Secure Accounts';
+              1 : NewGroup.Title := 'Provisional Accounts';
               0 : NewGroup.Title := 'Practice Accounts';
               end;
               lnode := fAccountList.AddNodeItem(nil, NewGroup);
@@ -1224,7 +1236,7 @@ var
       cot_Institution : InstitutionGroups;
       cot_FirstDate : DateGroups(True);
       cot_LastDate : DateGroups(False);
-      cot_PracticeCode : PracticeGroups;
+      cot_Delivered : DeliveredGroups;
       cot_CurrencyCode : ForexGroups;
       cot_Frequency : FrequencyGroups;
       end;

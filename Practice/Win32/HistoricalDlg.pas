@@ -605,7 +605,7 @@ begin
       BCode := BankAccount.baFields.baCurrency_Code;
       FCountry := MyClient.clFields.clCountry;
 
-      Caption := format ('Add %s Entries',[AccountType]);
+      Result.Caption := format ('Add %s Entries',[AccountType]);
       tblHist.Hint:= Format(
                     'Enter the details for each %0:s Entry|'+
                     'Enter the details for each %0:s Entry',[AccountType]);
@@ -1563,7 +1563,7 @@ var
    i               : integer;
    InvalidRow      : integer;
    InvalidCol      : integer;
-   Title, Msg, Msg1: string;
+   //Title, Msg, Msg1: string;
 begin
    CanClose := False;
    Undo := True;
@@ -2608,7 +2608,6 @@ var
    OER: Double;
    B: Byte;
    M,OM: Money;
-   F, OrigF: Money;
    S: string;
    pD: pDissection_Rec;
 begin
@@ -2659,40 +2658,6 @@ begin
             end;
          end;
 
-(*        ceForexAmount :
-          begin
-            F := Double2Money( tmpDouble );
-            OrigF := pT.txAmount;
-//            OM := pT.txAmount;
-            if ( F <> OrigF ) then
-            begin
-//              pT.txForeign_Currency_Amount := F; { Will }
-              pT.txAmount := F; { Will }
-//              If pT.txForex_Conversion_Rate <> 0.0 then
-//                pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
-//              else
-//                pT.txAmount := 0;
-
-              //if the amount is changed then and the transaction is a dissection
-              //then the dissection must be redone so that it balances to the  new
-              //amount
-              if pT^.txFirst_Dissection <> nil then
-              Begin
-                if ( not CopyingLine ) and (not DissectEntry( pT, false, false, BankAccount )) then
-                begin
-//                  pT.txAmount := OM;
-//                  pT.txForeign_Currency_Amount := OrigF;
-                  pT.txAmount := OrigF;
-                  tblHist.InvalidateTable;
-                  HelpfulInfoMsg('The transaction amount has been changed back.',0);
-                  exit;
-                end;
-              End;
-              AmountEdited(pT);
-              //the entry type may have changed which will affect the cheq no, call update
-              UpdateChequeNo( pT);
-            end;
-          end; *)
 
          cePayee : begin
             // can't popup a dialog in here - case 7255
@@ -3604,9 +3569,9 @@ begin
    Count := 0;
    //create a unpresented items list to check new transactions against
    if fIsForex then
-     UEList      := MakeForeignCurrencyUEList( BankAccount )
+     UEList := MakeForeignCurrencyUEList(BankAccount)
    else
-     UEList      := MakeUEList( BankAccount );
+     UEList := MakeUEList(BankAccount);
 
    try
       i := 0;
@@ -3623,32 +3588,35 @@ begin
             //by user or automatically when amount entered
             if pT^.txAmount < 0 then begin
                case MyClient.clFields.clCountry of
-                  whNewZealand : pT^.txType := etDepositNZ;
-                  whAustralia  : pT^.txType := etDepositOZ;
-                  whUK         : pT^.txType := etDepositUK;
+                  whNewZealand : pT.txType := etDepositNZ;
+                  whAustralia  : pT.txType := etDepositOZ;
+                  whUK         : pT.txType := etDepositUK;
                end;
             end
             else begin
                case MyClient.clFields.clCountry of
-                  whNewZealand : pT^.txType := etWithdrawlNZ;
-                  whAustralia  : pT^.txType := etWithdrawlOZ;
-                  whUK         : pT^.txType := etWithdrawlUK;
+                  whNewZealand : pT.txType := etWithdrawlNZ;
+                  whAustralia  : pT.txType := etWithdrawlOZ;
+                  whUK         : pT.txType := etWithdrawlUK;
                end;
             end;
          end;
          //set the balance sheet date
-         pT^.txDate_Presented := pT^.txDate_Effective;
+         pT.txDate_Presented := pT.txDate_Effective;
          // set the statement details same as narration so mems work
-         pT^.txStatement_Details := pT^.txGL_Narration;
+         pT.txStatement_Details := pT.txGL_Narration;
          //update the has been edited field
          //set to true if validly coded, otherwise set to false
-         pT^.txHas_Been_Edited := (pT^.txCoded_By <> cbNotcoded);
-         if IsManual then
-           //set source to manual entry
-           pT^.txSource         := orMDE
+         pT.txHas_Been_Edited := (pT.txCoded_By <> cbNotcoded);
+
+         //set source
+         if BankAccount.IsProvisional then
+            pT.txSource := orProvisional
+         else if BankAccount.IsManual then
+            pT.txSource  := orMDE
          else
-           //set source to historical entry
-           pT^.txSource         := orHistorical;
+            pT.txSource := orHistorical;
+
          //set cheque number
          with MyClient.clFields, pT^ do begin
             if ((txType = etChequeNZ) and (clCountry = whNewZealand)) or
@@ -3847,11 +3815,11 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TdlgHistorical.AccountType: string;
 begin
-   if isManual then
-     if Provisional then
-        Result := 'Provisional'
-     else
-        Result := 'Manual'
+
+   if BankAccount.IsProvisional then
+     Result := 'Provisional'
+   else if BankAccount.IsManual then
+      Result := 'Manual'
    else
       Result := 'Historical'
 end;
@@ -4077,8 +4045,6 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.RemindUserToSave;
 //Remind the user to accept the current session and save the client file.
-var
-  sMsg : string;
 begin
    if ( HistTranList.ItemCount - LastReminderAt) > NoEntriesBeforeReminder then begin
       HelpfulInfoMsg(
@@ -4571,26 +4537,26 @@ begin
    result := false;
 
    //See if client file has any bank accounts attached to it
-   if BKUTIL32.CountNonManualBankAccounts = 0 then begin
+   if BKUTIL32.CountDeliveredBankAccounts = 0 then begin
       HelpfulInfoMsg( 'You cannot add historical entries to this client file ' +
-                      'until you have attached a bank account.',0);
+                      'until you have attached a delivered bank account.',0);
       exit;
    end;
 
    //Select a bank account to add historical data to
    SelectedBA := SelectBankAccount( 'Select Account to add Historical Transactions to',
-                                     SelectAllTrxNotManual, 0,0, false,
+                                     SelectDeliveredTrx, 0,0, false,
                                      BKH_Chapter_7_Historical_data_entry);
 
    if not Assigned(SelectedBA) then exit;
 
 
-      //check that bank account has transactions from the bank
-      if SelectedBA.baTransaction_List.ItemCount = 0 then begin
-         HelpfulWarningMsg( 'No entries have been downloaded into this Bank Account.  You cannot '+
+   //check that bank account has transactions from the bank
+   if SelectedBA.baTransaction_List.ItemCount = 0 then begin
+      HelpfulWarningMsg( 'No entries have been downloaded into this Bank Account.  You cannot '+
                             'add Historical Entries until a download has been done.',0);
-         exit;
-      end;
+      exit;
+   end;
 
 
    //Create form and show modally
@@ -4836,7 +4802,7 @@ begin
       TempClient.clFields.clName := 'Name';
       // Set the default country bits
       TempClient.clFields.clCountry := Adminsystem.fdFields.fdCountry;
-      TempClient.clExtra.ceLocal_Currency_Code := Adminsystem.fCurrencyCode;
+      TempClient.clExtra.ceLocal_Currency_Code := Adminsystem.CurrencyCode;
 
       TempAccount := TBank_Account.Create;
       with TempAccount.baFields do begin

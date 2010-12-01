@@ -146,10 +146,11 @@ CONST
 
    orBank         = 0;     orMin = 0;
    orGenerated    = 1;
-   orManual       = 2;
+   orManual       = 2;     // Journal
    orHistorical   = 3;
    orGeneratedRev = 4;
-   orMDE          = 5;     orMax = 5;
+   orMDE          = 5;     // Manual entry
+   orProvisional  = 6;     orMax = 6;
 
    orNames : Array[ orMin..orMax ] of String[20] =
       (  'Bank Data',
@@ -157,7 +158,8 @@ CONST
          'Manually Entered',
          'Historical',
          'Generated Reversal',
-         'Manual Data Entry');
+         'Manual Data Entry',
+         'Provisional Data');
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -2304,7 +2306,7 @@ const
   safsTopFrequency = 6; safsTopMax = 6;
 
   safsTopLevel: Array [ safsTopMin..safsTopMax ] of string =
-  ('Status', 'Deleted', 'Transactions', 'Charges', 'Password', 'Delivered To', 'Frequency');
+  ('Status', 'Deleted', 'Transactions', 'Charges', 'Password', 'Delivered', 'Frequency');
 
 
     DefaultCESFontString = '"Courier","",9';

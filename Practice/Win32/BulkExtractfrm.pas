@@ -55,6 +55,7 @@ implementation
 
 
 uses
+   HTTPSConnector,
    software,
    BKUTIL32, Merge32, TransactionUtils,
    ExtractCommon,
@@ -75,8 +76,6 @@ uses
    glConst, Globals, Winutils,
    SageHandisoftSuperConst;
 
-const
-    WebAppPath = '/bconnect/bcWebServer.dll/';
 
 
 
@@ -214,8 +213,7 @@ type
       // Extractor Fields
       FLibList: TObjectList;
       FExportLog: TSystemLog;
-      // HTTP Methodes
-      procedure HTTPClientHeader(Sender: TObject; const Field, Value: string);
+
       // BulkExtractor methodes
       procedure AddLib(FileName: string);
       procedure FillLibList;
@@ -682,238 +680,25 @@ begin
 end;
 
 function TBulkExtractors.Authenticate: TAuthenticateResult;
-const
-   MaxAttempt = 3;
+
 var
-   HTTPClient: TipsHTTPS;
-   LServerResponseMsg : string;
-   LUsingPrimaryHost: Boolean;
-   LsKey: string;
-   PostData: TStringList;
-
-     function ExtractDetails: Integer;
-     begin
-        LServerResponseMsg := FHeaders.Values['serverresponse'];
-        Result := StrToIntDef(FHeaders.Values['errorno'], 0);
-     end;
-
-     function GetFirewallType: TipshttpsFirewallTypes;
-     begin
-        try
-           Result := TipshttpsFirewallTypes(INI_BCFirewallType);
-        except
-           Result := TipshttpsFirewallTypes(0);
-        end;
-     end;
-
-     function BConnectServerPath: string;
-     var AHost: string;
-         APort: integer;
-     begin
-        if LUsingPrimaryHost then begin
-           AHost := INI_BCPrimaryHost;
-           APort := INI_BCPrimaryPort;
-        end else begin
-           AHost := INI_BCSecondaryHost;
-           APort := INI_BCSecondaryPort;
-        end;
-        if APort <> 0 then
-           Result := Format('%s%s:%d%s', [INI_BCHTTPMethod, AHost, APort, WebAppPath])
-        else
-           Result := Format('%s%s%s', [INI_BCHTTPMethod, AHost, WebAppPath]);
-     end;
-
-     function LogIn: Boolean;
-     var
-        AttemptCount: integer;
-
-        function CountryAsString:string;
-        begin
-           case  AdminSystem.fdFields.fdCountry of
-           0: Result := 'NZ';
-           1: Result := 'OZ';
-           2: Result := 'UK';
-           end;
-        end;
-
-     begin //CanExtract.Login
-        AttemptCount := 0;
-        Result := False;
-        while AttemptCount < MaxAttempt do begin
-          try
-             Inc(AttemptCount);
-             PostData.Clear;
-             PostData.Add('user=' + AdminSystem.fdFields.fdBankLink_Code);
-             PostData.Add('pwd=' + AdminSystem.fdFields.fdBankLink_Connect_Password);
-             PostData.Add('country=' + CountryAsString);
-             //if PasswordEncrypted then
-             PostData.Add('encrypted=Y');
-             FHeaders.Clear;
-             httpClient.ResetHeaders;
-             httpClient.PostData := PostData.Text;
-             httpClient.URL := BConnectServerPath + 'login';
-             if LUsingPrimaryHost then
-                UpdateAppStatus('Authenticating Bulk Export' , 'Primary Host'{httpClient.URL Too explicit} ,(AttemptCount / MaxAttempt)* 100 )
-             else
-                UpdateAppStatus('Authenticating Bulk Export' , 'Secondary Host' ,(AttemptCount / MaxAttempt)* 100 );
-             httpClient.Post(httpClient.URL);
-
-             case ExtractDetails of
-               0: begin // success
-                    LsKey := FHeaders.Values['skey'];
-                    Result := True;
-                    Break;
-                  end;
-               2000: begin // overdue accounts
-                     LogError('Authenticate Logon','Overdue Accounts');
-                     Break;
-                  end;
-               1000 : begin //'Invalid Password file (Wrong Practice Code..');
-                     LogError('Authenticate Logon','Wrong Username');
-                     Break;
-                  end;
-               1001 : begin //Invalid Password
-                     LogError('Authenticate Logon','Wrong Password');
-                     Break;
-                  end;
-             end;
-
-         except
-            LUsingPrimaryHost := not LUsingPrimaryHost;
-         end;  //except
-      end;
-    end; //CanExtract.Login
-
-
-    procedure LogOut;
-    begin
-       try
-          PostData.Clear;
-          PostData.Add('skey=' + LsKey);
-          PostData.Add('username=' + AdminSystem.fdFields.fdBankLink_Code);
-          FHeaders.Clear;
-          httpClient.ResetHeaders;
-          httpClient.PostData := PostData.Text;
-          httpClient.URL := BConnectServerPath + 'logout';
-          httpClient.Post(httpClient.URL);
-       except
-          // Well I tryed...
-       end;
-    end;
-
-    function CheckBulkExtract:Boolean;
-    var Reply: string;
-        AttemptCount: Integer;
-    begin
-        AttemptCount := 0;
-        Result := False;
-        while AttemptCount < MaxAttempt do begin
-          try
-             Inc(AttemptCount);
-             PostData.Clear;
-             PostData.Add('skey=' + LsKey);
-             PostData.Add('username=' + AdminSystem.fdFields.fdBankLink_Code);
-             FHeaders.Clear;
-             httpClient.ResetHeaders;
-             httpClient.PostData := PostData.Text;
-             httpClient.URL := BConnectServerPath + 'checkBulkExtract';
-             httpClient.Post(httpClient.URL);
-             case ExtractDetails of
-              0: begin
-                  Reply := FHeaders.Values['AllowBulkExtract'];
-                  Result := (Reply > '')
-                      and (UpCase(Reply[1]) = 'Y');//True
-              end;
-
-              1002: LogError('Authenticate CanExport','Session Key supplied is invalid');
-              1003: LogError('Authenticate CanExport','Session Key has expired');
-              1004: LogError('Authenticate CanExport','Session has already been completed');
-
-              2001: LogError('Authenticate CanExport','The service is currently unavailable');
-              9000: LogError('Authenticate CanExport','Unknown Error at data provider');
-
-            end;
-          except
-             on E: Exception do
-                LogError('Authenticate CanExport',E.Message);
-             // Nothing much I can do
-          end;
-        end;
-    end;
+  BConnect: THTTPSConnector;
 
 begin
    UpdateAppStatus('Authenticate Bulk Export' , '' ,0);
    Result := arFailed;
-   HTTPClient := TipsHTTPS.Create(nil);
-   PostData := TStringList.Create;
-     try
-        // Initialize the HTTPClient;
-        httpClient.OnHeader := HTTPClientHeader;
-        httpClient.Timeout :=  INI_BCTimeout;
-        httpClient.ProxyServer := '';
-        httpClient.ProxyPort := 0;
-        httpClient.ProxyUser := '';
-        httpClient.ProxyPassword := '';
-
-        httpClient.FirewallUser := '';
-        httpClient.FirewallPassword := '';
-        httpClient.FirewallHost := '';
-        httpClient.FirewallPort := 0;
-        httpClient.FirewallType := fwNone;
-        LUsingPrimaryHost := True;
-
-        if not (not  INI_BCCustomConfig or (INI_BCCustomConfig and INI_BCUseWinInet)) then
-           httpClient.Config('useWinInet=False')
-        else
-           httpClient.Config('useWinInet=True');
-
-        httpClient.Config (Format( 'UserAgent=BConnect/2.1 (%s %s, %s)',
-                                  [ Globals.ShortAppName,
-                                    WinUtils.GetShortAppVersionStr,
-                                    WinUtils.GetWinVer]));
-
-        httpClient.Config ('SSLSecurityFlags=0x80000000');
-        httpClient.Config ('SSLEnabledProtocols=140');
-
-        if INI_BCCustomConfig then begin
-           if INI_BCUseProxy then begin
-              httpClient.ProxyServer   := INI_BCProxyHost;
-              httpClient.ProxyPort     := INI_BCProxyPort;
-              case INI_BCProxyAuthMethod of
-                1 :  begin
-                         httpClient.ProxyUser := INI_BCProxyUsername;
-                         httpClient.ProxyPassword := INI_BCProxyPassword;
-                         httpClient.OtherHeaders := Format ('Proxy-Authorization: %s' + Chr (13) + Chr (10), [httpClient.ProxyAuthorization]);
-                         httpClient.ProxyUser := '';
-                         httpClient.ProxyPassword := '';
-                     end;
-                2 :  httpClient.ProxyServer := Format ('*%s*%s', [INI_BCProxyUsername, INI_BCProxyPassword]);
-              end;
-              httpClient.ProxyUser     := INI_BCProxyUsername;
-              httpClient.ProxyPassword := INI_BCProxyPassword;
-           end;
-
-          if INI_BCUseFirewall then begin
-             httpClient.FirewallHost := INI_BCFirewallHost;
-             httpClient.FirewallPort := INI_BCFirewallPort;
-             httpClient.FirewallType := GetFirewallType;
-             if INI_BCFirewallUseAuth then begin
-                httpClient.FirewallUser     := INI_BCFirewallUsername;
-                httpClient.FirewallPassword := INI_BCFirewallPassword;
-            end;
-          end;
-        end;
+   BConnect := THTTPSConnector.Create('Bulk Export');
+   try
         // Try to logon
-        if Login then begin
-           if CheckBulkExtract then
+        if BConnect.Login then begin
+           if BConnect.CheckBulkExtract then
               Result := arCanExtract
            else
               Result := arCannotExtract;
-           LogOut;
+           BConnect.LogOut;
         end;
    finally
-      HTTPClient.Free;
-      Postdata.Free;
+      BConnect.Free;
       ClearStatus;
    end;
 end;
@@ -1020,10 +805,6 @@ begin
       Result := nil;
 end;
 
-procedure TBulkExtractors.HTTPClientHeader(Sender: TObject; const Field, Value: string);
-begin
-  FHeaders.Add (Format ('%s=%s', [Field, Value]));
-end;
 
 procedure TBulkExtractors.InitSesssion;
 begin

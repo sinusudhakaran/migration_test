@@ -51,7 +51,7 @@ const
   SelectWithTrx    = 1;
   SelectForTrans   = 2;
   SelectManual     = 3;
-  SelectAllTrxNotManual = 4;
+  SelectDeliveredTrx  = 4;
   selectWithUncodedTrx = 5;
 
 //******************************************************************************
@@ -197,7 +197,23 @@ begin
   result := 0;
 
   case SelType of
-    SelectAllTrx, SelectManual, SelectAllTrxNotManual : result := ba.baTransaction_List.ItemCount;
+    SelectAllTrx,
+    SelectManual : result := ba.baTransaction_List.ItemCount;
+    SelectDeliveredTrx :  with ba do
+        for j := 0 to Pred(baTransaction_List.ItemCount) do
+        begin
+          pT := baTransaction_List.Transaction_At(j);
+          with pT^ do begin
+            if (txDate_Effective < d1) then
+               continue;
+            if (txDate_Effective > d2) then
+               break;  {sorted so no more to be found}
+            if baTransaction_List.Transaction_At(j).txSource <> orBank then
+               Continue;
+
+            Inc(result);
+          end;
+        end;
 
     SelectWithTrx :
       with ba do
@@ -319,7 +335,7 @@ begin
 
            SelectManual: include := Bank_Account_At(i).IsManual;
 
-           SelectAllTrxNotManual: include := not Bank_Account_At(i).IsManual;
+           SelectDeliveredTrx: Include := not (Bank_Account_At(i).IsManual or Bank_Account_At(i).IsProvisional);
 
            SelectWithUncodedTrx:
              with Bank_Account_At(i) do
@@ -450,7 +466,7 @@ begin
 
            SelectManual: include := Bank_Account_At(i).IsManual;
 
-           SelectAllTrxNotManual: include := not Bank_Account_At(i).IsManual;
+           selectWithUncodedTrx: include := not (Bank_Account_At(i).IsManual or Bank_Account_At(i).IsProvisional); 
          end; {case}
 
          if Include then  {add account to available list}

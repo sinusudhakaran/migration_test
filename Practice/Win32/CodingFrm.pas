@@ -5061,7 +5061,8 @@ begin
             orHistorical   : AcctStatusStr := 'H' + AcctStatusStr;
             orGenerated    : AcctStatusStr := 'G' + AcctStatusStr;
             orGeneratedRev : AcctStatusStr := 'R' + AcctStatusStr;
-            orMDE       : AcctStatusStr := 'L' + AcctStatusStr;
+            orProvisional  : AcctStatusStr := 'P' + AcctStatusStr;
+            orMDE          : AcctStatusStr := 'L' + AcctStatusStr;
          end;
 
          //see if there is extra upi information
@@ -5074,6 +5075,7 @@ begin
                   orHistorical   : UPIStatusStr := UPIStatusStr + ' H';
                   orGenerated    : UPIStatusStr := UPIStatusStr + ' G';
                   orGeneratedRev : UPIStatusStr := UPIStatusStr + ' R';
+                  orProvisional  : UPIStatusStr := UPIStatusStr + ' P';
                   orMDE          : UPIStatusStr := UPIStatusStr + ' L';
                end;
             end;

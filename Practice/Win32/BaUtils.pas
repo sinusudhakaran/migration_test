@@ -66,7 +66,6 @@ Procedure GetBalances( b: TBank_Account; d1, d2: tStDate; Var BankOpBal,
 Var
    E      : Integer;
    Amount : Money;
-   Forex : Boolean;
 Begin { GetBalances }
    With b Do
    Begin
@@ -80,7 +79,6 @@ Begin { GetBalances }
         exit
       End { bafields.baCurrent_Balance = Unknown };
 
-      Forex := b.IsAForexAccount;
 
       With baTransaction_List Do
       Begin
@@ -88,10 +86,8 @@ Begin { GetBalances }
          Begin
             With Transaction_At(E)^ Do
             Begin
-//               if Forex then
-//                 Amount := txForeign_Currency_Amount
-//               else
-                 Amount := txAmount;
+
+               Amount := txAmount;
 
                If txDate_Presented <> 0 Then
                Begin
@@ -380,16 +376,23 @@ begin
   for i := BL.First to BL.Last do
   begin
     b1 := BL.Bank_Account_At(i);
-    if (b1.baFields.baAccount_Type <> btBank) or (not b1.baFields.baIs_A_Manual_Account) then
-      Continue;
+    if (b1.IsAJournalAccount)
+    or (not b1.IsManual) then
+       Continue;
+
+    // Have atleast one manual account (i)
     for j := BL.First to BL.Last do
     begin
       b2 := BL.Bank_Account_At(j);
-      if (b2.baFields.baAccount_Type <> btBank) or (not b2.baFields.baIs_A_Manual_Account) or (i = j) then
-        Continue;
+      if (b2.IsAJournalAccount)
+      or (not b2.IsManual)
+      or (i = j) then  // the one I Have..
+         Continue;
+
       GetStatsForAccount( b1, 0, MaxInt, Entries1, D1, D2);
       GetStatsForAccount( b2, 0, D2, Entries2, D3, D4);
-      if ((Entries1 = 0) or (Entries2 = 0)) and (Result.IndexOf( b1.Title)= -1) then
+      if ((Entries1 = 0) or (Entries2 = 0))
+      and (Result.IndexOf( b1.Title)= -1) then
         Result.AddObject( b1.Title, b1);
     end;
   end;

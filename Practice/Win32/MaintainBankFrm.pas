@@ -456,7 +456,7 @@ begin
       if (baSelected.baFields.baAccount_Type = btBank)
       and (CountManualBankAccounts > 0)
       and (not baSelected.IsManual)
-      and (CountNonManualBankAccounts = 1)
+      and (CountDeliveredBankAccounts = 1)
       and MDEExpired(MyClient.clBank_Account_List, MyClient.clFields.clLast_Use_Date, True) then // must have a live bank account
       begin
          HelpfulWarningMsg('You cannot delete this bank account until you have removed all of your ' + UserDefinedBankAccountDesc + 's.', 0);
