@@ -186,11 +186,13 @@ Begin
    With MyClient do
    Begin
       //Show warning if ForEx account
-      for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
-        if clBank_Account_List.Bank_Account_At(i).IsAForexAccount then begin
-          if AskYesNo('Unlock an Accounting Period', FOREX_WARNING, DLG_NO, 0) = DLG_NO then
-            Exit;
-          Break; //Only needs to show once
+      if Assigned(AdminSystem) or (MyClient.clFields.clDownload_From <> dlAdminSystem) then begin
+        for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
+          if clBank_Account_List.Bank_Account_At(i).IsAForexAccount then begin
+            if AskYesNo('Unlock an Accounting Period', FOREX_WARNING, DLG_NO, 0) in [DLG_NO, 0] then
+              Exit;
+            Break; //Only needs to show once
+          end;
         end;
       end;
 

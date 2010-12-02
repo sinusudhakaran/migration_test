@@ -57,11 +57,13 @@ Begin
       D2 := clFields.clPeriod_End_Date;
 
       //Show warning if ForEx account
-      for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
-        if clBank_Account_List.Bank_Account_At(i).IsAForexAccount then begin
-          if not UpdateExchangeRates then
-            Exit;
-          Break; //Only needs to show once
+      if Assigned(AdminSystem) or (MyClient.clFields.clDownload_From <> dlAdminSystem) then begin
+        for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
+          if clBank_Account_List.Bank_Account_At(i).IsAForexAccount then begin
+            if not UpdateExchangeRates then
+              Exit;
+            Break; //Only needs to show once
+          end;
         end;
       end;
 

@@ -2174,8 +2174,9 @@ procedure TfrmCoding.SetOrClearTransferDate(SetDate : boolean);
 var
    i : Integer;
 begin
-    //Show warning if ForEx account
-   if BankAccount.IsAForexAccount and (not SetDate) and (not UpdateExchangeRates) then exit;
+   //Show warning if ForEx account
+   if Assigned(AdminSystem) or (MyClient.clFields.clDownload_From <> dlAdminSystem) then
+     if BankAccount.IsAForexAccount and (not SetDate) and (not UpdateExchangeRates) then exit;
 
    for i := 0 to Pred( WorkTranList.ItemCount ) do begin
       with WorkTranList.Transaction_At( i )^ do begin

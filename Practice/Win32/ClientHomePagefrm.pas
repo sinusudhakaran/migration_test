@@ -1060,6 +1060,11 @@ var
 begin
   ISOCodes := '';
   acForexRatesMissing.Visible := False;
+
+  //Only Books Secure users should get the missing exchange rates prompt
+  if (not Assigned(AdminSystem)) and (TheClient.clFields.clDownload_From = dlAdminSystem) then
+    Exit;
+
   if not TheClient.HasExchangeRates(ISOCodes) then begin
     acForexRatesMissing.Caption := MISSING_EXCHANGE_RATES + ISOCodes;
     acForexRatesMissing.Visible := True;
@@ -1408,9 +1413,6 @@ end;
 
 procedure TfrmClientHomePage.acForexRatesMissingExecute(Sender: TObject);
 begin
-  //Books users can't edit exchange rates
-  if not Assigned(AdminSystem) then Exit;
-
   ApplicationUtils.DisableMainForm;
   try
     AutoSaveUtils.DisableAutoSave;
