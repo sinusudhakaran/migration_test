@@ -5032,19 +5032,16 @@ begin
 
 
    if BankAccount.IsAJournalAccount then begin
-
       AcctStatusStr := 'Journal';
    end else begin
+      if not ValidDataRow(RowNum) then begin
+         AcctStatusStr := '';
+         GSTStatusStr  := '';
+      end else begin
+         pT   := WorkTranList.Transaction_At(RowNum-1);
+         SetTranUPCStatus(pT);
 
-   if not ValidDataRow(RowNum) then begin
-      AcctStatusStr := '';
-      GSTStatusStr  := '';
-   end
-   else begin
-      pT   := WorkTranList.Transaction_At(RowNum-1);
-      SetTranUPCStatus(pT);
-
-      with pT^ do begin
+         with pT^ do begin
          Case txCoded_By of
             cbMemorisedC               : AcctStatusStr := 'M';
             cbMemorisedM               : AcctStatusStr := 'MM';
@@ -5061,7 +5058,7 @@ begin
             orHistorical   : AcctStatusStr := 'H' + AcctStatusStr;
             orGenerated    : AcctStatusStr := 'G' + AcctStatusStr;
             orGeneratedRev : AcctStatusStr := 'R' + AcctStatusStr;
-            orProvisional  : AcctStatusStr := 'P' + AcctStatusStr;
+            orProvisional  : AcctStatusStr := 'PROV' + AcctStatusStr;
             orMDE          : AcctStatusStr := 'L' + AcctStatusStr;
          end;
 
@@ -5075,7 +5072,7 @@ begin
                   orHistorical   : UPIStatusStr := UPIStatusStr + ' H';
                   orGenerated    : UPIStatusStr := UPIStatusStr + ' G';
                   orGeneratedRev : UPIStatusStr := UPIStatusStr + ' R';
-                  orProvisional  : UPIStatusStr := UPIStatusStr + ' P';
+                  orProvisional  : UPIStatusStr := UPIStatusStr + ' PROV';
                   orMDE          : UPIStatusStr := UPIStatusStr + ' L';
                end;
             end;

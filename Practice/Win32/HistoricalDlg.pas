@@ -4718,7 +4718,7 @@ var
            Entry.aRecord_End_Marker := ArchUtil32.ARCHIVE_REC_END_MARKER;
 
            Entry.aType              := txType;
-           Entry.aSource            := BKCONST.orManual;
+           Entry.aSource            := BKCONST.orProvisional;
            Entry.aDate_Presented    := txDate_Presented;
            Entry.aReference         := txReference;
            Entry.aCheque_Number     := txCheque_Number;
