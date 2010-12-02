@@ -28,6 +28,7 @@ type
       Column: TColumnIndex; NewText: WideString);
     procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     { Private declarations }
     FEditMode: Boolean;
@@ -90,6 +91,7 @@ var
   ISOCode: string;
   HeaderIndex: integer;
   CurrentPos: integer;
+  AllRatesAreZero: Boolean;
 begin
   Result := false;
   if not Assigned(ExchangeSource) then Exit;
@@ -132,12 +134,18 @@ begin
 
       if ShowModal = mrOk then begin
         //Save changes
-        for i := 0 to FTreeList.Count - 1 do
+        for i := 0 to FTreeList.Count - 1 do begin
+          AllRatesAreZero := True;
           for j := 1 to ExchangeRecord.Width do begin
             ExchangeTreeItem := TExchangeTreeItem(FTreeList.Items[i]);
             if (ExchangeSource.Header.ehISO_Codes[j] = ExchangeTreeItem.FISOCode) then
               ExchangeRecord.Rates[j] := ExchangeTreeItem.FExchangeRate;
+            AllRatesAreZero := AllRatesAreZero and (ExchangeRecord.Rates[j] = 0);
           end;
+        end;
+        //Delete ExchangeRecord if all rates are zero
+        if AllRatesAreZero then
+          ExchangeSource.ExchangeTree.Delete(ExchangeRecord);
         if not FEditMode then begin
           //Add Exchange record to tree
           ExchangeRecord.Date := eDate.AsStDate;
@@ -239,17 +247,54 @@ begin
   FreeAndNil(FTreeList);
 end;
 
+procedure TEditExchangeRateForm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  case Key of
+    Char(VK_ESCAPE):
+      begin
+        Key := #0;
+        ModalResult := mrCancel;
+      end;
+  end;
+end;
+
 procedure TEditExchangeRateForm.FormShow(Sender: TObject);
 begin
   if FEditMode and (FTreeList.Count > 0) then
     EditNode(vtRates.GetFirst);
 end;
 
+function AllRatesAreZero(ExchangeRecord: TExchangeRecord):Boolean;
+var
+  i: integer;
+begin
+  Result := True;
+  if ExchangeRecord = nil then Exit;
+  for i := 1 to ExchangeRecord.Width do begin
+    if ExchangeRecord.Rates[i] <> 0 then begin
+      Result := False;
+      Break;
+    end;
+  end;
+end;
+
 function TEditExchangeRateForm.ValidExchangeRates: boolean;
+var
+  ExchangeRecord: TExchangeRecord;
 begin
   Result := False;
   if (not FEditMode) then begin
-    if (FExchangeSource.GetDateRates(eDate.AsStDate) <> nil) then begin
+    ExchangeRecord := FExchangeSource.GetDateRates(eDate.AsStDate);
+
+    //Delete if existing date has no exchange rates
+    if Assigned(ExchangeRecord) then begin
+      if AllRatesAreZero(ExchangeRecord) then begin
+        FExchangeSource.ExchangeTree.Delete(ExchangeRecord);
+        ExchangeRecord := nil;
+      end;
+    end;
+
+    if (ExchangeRecord <> nil) then begin
       //Existing date
       HelpfulErrorMsg('The date entered already exists in the Exchange Rate information. '+
                       'Duplicates cannot be entered.', 0);

@@ -99,6 +99,7 @@ type
     procedure vsOutHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
 
   private
     FColumnControls: ControlList;
@@ -328,19 +329,19 @@ begin
   if GoodCount = 0 then begin
      HelpfulErrorMsg('No dates found, that are not already locked',0);
      Exit;
-  end else if GoodCount > 0 then begin
+  end else if FailCount > 0 then begin
      HelpfulWarningMsg('Locked exchange rates are unable to be imported. ' +
                        'Any exchange rates imported for a locked rate will be ignored.',0);
   end;
 
   if (FutureCount > 0) then
     if AskSelection('Future dates in import',
-      'Future dates exist in the import. These will be ignored, do you want to contiue?', TsDate,cbDate) then
+      'Future dates exist in the import. These will be ignored, do you want to continue?', TsDate,cbDate) then
         Exit;
 
    if FailCount > 0 then
       if AskSelection('Transactions will be skipped',
-         Format ('%D Transactions will be skipped, do you want to contiue?',[FailCount]) , TsDate,cbDate) then
+         Format ('%D Transaction(s) will be skipped, do you want to continue?',[FailCount]) , TsDate,cbDate) then
             Exit;
 
    // We Shoul be good to go...
@@ -542,6 +543,17 @@ procedure TImportExchange.FormDestroy(Sender: TObject);
 begin
    fFileList.Free;
    fOutList.Free;
+end;
+
+procedure TImportExchange.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  case Key of
+    Char(VK_ESCAPE):
+      begin
+        Key := #0;
+        ModalResult := mrCancel;
+      end;
+  end;
 end;
 
 procedure TImportExchange.FormResize(Sender: TObject);
@@ -1515,7 +1527,7 @@ var
 
        with Tlabel.Create(LTabSheet) do begin
           Parent := LTabsheet;
-          Caption := 'Rate (ISO)';
+          Caption := 'Rate column';
           Left := 15;
           Top := 20;
        end;

@@ -6,6 +6,7 @@ object ExchangeRatesfrm: TExchangeRatesfrm
   ClientWidth = 705
   Color = clBtnFace
   ParentFont = True
+  KeyPreview = True
   OldCreateOrder = False
   Position = poMainFormCenter
   Scaled = False
@@ -13,6 +14,7 @@ object ExchangeRatesfrm: TExchangeRatesfrm
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyPress = FormKeyPress
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
@@ -238,7 +240,9 @@ object ExchangeRatesfrm: TExchangeRatesfrm
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages]
       TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
       OnColumnDblClick = vtRatesColumnDblClick
+      OnContextPopup = vtRatesContextPopup
       OnFocusChanged = vtRatesFocusChanged
+      OnHeaderDragging = vtRatesHeaderDragging
       Columns = <
         item
           Position = 0

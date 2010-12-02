@@ -6,10 +6,12 @@ object DateRangeFrm: TDateRangeFrm
   ClientWidth = 407
   Color = clBtnFace
   ParentFont = True
+  KeyPreview = True
   OldCreateOrder = False
   Position = poMainFormCenter
   Scaled = False
   OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
   PixelsPerInch = 96
   TextHeight = 13
   object ltext: TLabel

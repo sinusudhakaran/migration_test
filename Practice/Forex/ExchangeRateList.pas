@@ -261,12 +261,14 @@ function TExchangeSource.GetHeaderWidth(Value: TExchange_Rates_Header_Rec): Inte
 var C: Integer;
 begin
    for C := low(Value.ehISO_Codes) to High(Value.ehISO_Codes) do
-      if FHeader.ehISO_Codes[C] = '' then begin
+//      if FHeader.ehISO_Codes[C] = '' then begin
+      if Value.ehISO_Codes[C] = '' then begin
          // The first empty one..
          Result := C - low(Value.ehISO_Codes);
          Exit;
       end;
-   Result := High(FHeader.ehISO_Codes) - Low(FHeader.ehISO_Codes);
+//   Result := High(FHeader.ehISO_Codes) - Low(FHeader.ehISO_Codes);
+   Result := High(Value.ehISO_Codes) - Low(Value.ehISO_Codes);
 end;
 
 procedure TExchangeSource.LoadExchangeRates(var S: TIOStream);
@@ -397,34 +399,33 @@ var
   I: Integer;
 begin
   Data := RemapArray(OtherData^);
-  with  TExchangeRecord(Node.Data) do begin
-     SetLength(NewRates, Data[2]);
-     for I := 0 to Pred(Data[2]) do
-       if I < Data[1] then
-          NewRates[I] := Rates[I]
-       else if I = Data[1] then
-          NewRates[I] := 0.0
-       else
-          NewRates[I] := Rates[I-1];
-     FRates := Copy( NewRates);
-     NewRates := nil;
-  end;
+  SetLength(NewRates, Data[2]);
+  for I := 1 to Data[2] do
+    if I < Data[1] then
+      NewRates[I-1] :=  TExchangeRecord(Node.Data).Rates[I]
+    else if I = Data[1] then
+      NewRates[I-1] := 0.0
+    else
+      NewRates[I-1] :=  TExchangeRecord(Node.Data).Rates[I];
+  TExchangeRecord(Node.Data).FRates := Copy( NewRates);
+  NewRates := nil;
   Result := True;
 end;
-
 
 procedure TExchangeSource.MapToHeader(NewHeader: TExchange_Rates_Header_Rec);
 var
    C: Integer;
    Data: RemapArray;
+   OldWidth, NewWidth: integer;
 begin
    if Assigned(FExchangeTree) then begin
-
+      OldWidth := GetHeaderWidth(FHeader);
+      NewWidth := GetHeaderWidth(NewHeader);
       for C := low(NewHeader.ehISO_Codes) to
-            low(NewHeader.ehISO_Codes) + GetHeaderWidth(NewHeader) do begin
+            low(NewHeader.ehISO_Codes) + NewWidth do begin
          Data[1] := C;
          Data[2] := GetISOIndex(NewHeader.ehISO_Codes[C],FHeader);
-         if Data[2] >= 0 then begin
+         if Data[2] > 0 then begin
             // SwapColumn
             if Data[1] <> Data[2] then
                FExchangeTree.Iterate(SwapRates, True, @Data);
@@ -436,7 +437,6 @@ begin
    end;
    FHeader.ehISO_Codes := NewHeader.ehISO_Codes;
    FHeader.ehCur_Type := NewHeader.ehCur_Type;
-
 end;
 
 
@@ -661,8 +661,8 @@ procedure TExchangeRecord.Assign(Source: TPersistent);
 var
   i: integer;
 begin
-  SetLength(FRates, High(TExchangeRecord(Source).FRates));
-  for i := Low(TExchangeRecord(Source).FRates) to High(TExchangeRecord(Source).FRates) do
+  SetLength(FRates, High(TExchangeRecord(Source).FRates) + 1);
+  for i := Low(TExchangeRecord(Source).FRates) to High(TExchangeRecord(Source).FRates) + 1 do
     Rates[i]  := TExchangeRecord(Source).Rates[i];
   Date   := TExchangeRecord(Source).Date;
   Locked := TExchangeRecord(Source).Locked;

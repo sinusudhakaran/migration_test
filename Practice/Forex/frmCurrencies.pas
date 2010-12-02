@@ -162,6 +162,8 @@ procedure TCurrenciesFrm.BtnoKClick(Sender: TObject);
 var
   I,C: Integer;
   Lc: TCurrencyTreeItem;
+  LExchangeRates: TExchangeRateList;
+  FSource: TExchangeSource;
 begin
    // First just sorta validate...
    Cleanup;
@@ -180,6 +182,18 @@ begin
    finally
      Admin32.SaveAdminSystem();
    end;
+
+   //Save changes after currancies are edited
+   LExchangeRates := GetExchangeRates(True);
+   try
+     FSource := LExchangeRates.GiveMeSource('Master');
+     FSource.MapToHeader(AdminSystem.fCurrencyList);
+     LExchangeRates.MergeSource(FSource);
+     LExchangeRates.Save;
+   finally
+     LExchangeRates.Free;
+   end;
+
    ModalResult := mrOK;
 end;
 

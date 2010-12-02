@@ -16,6 +16,7 @@ type
     ltext: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure BtnoKClick(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     procedure SetRange(const Value: TDateRange);
     function GetRange: TDateRange;
@@ -67,6 +68,17 @@ procedure TDateRangeFrm.FormCreate(Sender: TObject);
 begin
     bkXPThemes.ThemeForm(Self);
     DateSelector.InitDateSelect(0, Maxint,nil);
+end;
+
+procedure TDateRangeFrm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  case Key of
+    Char(VK_ESCAPE):
+      begin
+        Key := #0;
+        ModalResult := mrCancel;
+      end;
+  end;
 end;
 
 function TDateRangeFrm.GetRange: TDateRange;

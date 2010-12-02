@@ -7,7 +7,7 @@ uses
   ExchangeRateList,  stDate,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, OsFont, ActnList, VirtualTrees, ExtCtrls, RzGroupBar, StdCtrls,
-  ovcbase, ovcef, ovcpb, ovcpf, Menus;
+  ovcbase, ovcef, ovcpb, ovcpf, Menus, bkDateUtils;
 
 type
   TExchangeRatesfrm = class(TForm)
@@ -52,11 +52,17 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure miSetForWholeMonthClick(Sender: TObject);
+    procedure vtRatesHeaderDragging(Sender: TVTHeader; Column: TColumnIndex;
+      var Allowed: Boolean);
+    procedure vtRatesContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     FTreeList: TTreeBaseList;
     FSource: TExchangeSource;
     FChangeCount: integer;
     FBooksSecure: boolean;
+    FColumnOrderLoaded: Boolean;
     function GetChangeCount: integer;
     function GetOriginalExchangeSource: TExchangeSource;
     procedure SetFromDate(const Value: tstDate);
@@ -73,6 +79,17 @@ type
     property BooksSecure: boolean read FBooksSecure;
   end;
 
+  TSetForMonth = class(TObject)
+  private
+    FRange: TDateRange;
+    FExchangeRecord: TExchangeRecord;
+    FDatesToAdd: TList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure SetRange(ADate: integer);
+  end;
+
 function MaintainExchangeRates: Boolean;
 
 implementation
@@ -85,7 +102,6 @@ uses
   stTree,
   stBase,
   ImportExchangeDlg,
-  bkDateUtils,
   Globals,
   YesNoDlg,
   ErrorMoreFrm,
@@ -110,7 +126,10 @@ begin
 
       Result := ShowModal = mrOK;
       if Result and (FChangeCount > 0) then
-        HelpfulInfoMsg(Format('%d exchange rates have been updated to the database',[FChangeCount]), 0);
+        if (FChangeCount = 1) then
+          HelpfulInfoMsg(Format('%d exchange rate has been updated to the database',[FChangeCount]), 0)
+        else
+          HelpfulInfoMsg(Format('%d exchange rates have been updated to the database',[FChangeCount]), 0);
    finally
       Free;
    end;
@@ -149,6 +168,7 @@ begin
     ExchangeRecord := TExchangeTreeItem(FTreeList.Items[vtRates.FocusedNode^.Index]).FExchangeRecord;
     if not ExchangeRecord.Locked then
       EditExchangeRate(vtRates.Header.Columns, FSource, ExchangeRecord);
+    FillRates;      
   end;
 end;
 
@@ -170,30 +190,46 @@ begin
       tDateRange(OtherData^).ToDate := TExchangeRecord(Node.Data).Date // Last Unlocked date
 end;
 
+type
+  TLockRatesRec = record
+    Range: TDateRange;
+    LockCount: integer;
+  end;
+
 function LockRates(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
 begin
    Result := true;
    if TExchangeRecord(Node.Data).Locked then
       Exit;
-   if TExchangeRecord(Node.Data).Date < tDateRange(OtherData^).FromDate then
+   if TExchangeRecord(Node.Data).Date < TLockRatesRec(OtherData^).Range.FromDate then
       Exit;
-   if TExchangeRecord(Node.Data).Date > tDateRange(OtherData^).ToDate then
+   if TExchangeRecord(Node.Data).Date > TLockRatesRec(OtherData^).Range.ToDate then
       Exit;
    TExchangeRecord(Node.Data).Locked := True;
+   Inc(TLockRatesRec(OtherData^).LockCount);
 end;
 
 //*****************************************************************************
 procedure TExchangeRatesfrm.acLockExecute(Sender: TObject);
-var Range: tDateRange;
+var
+  Range: tDateRange;
+  LockRatesRec: TLockRatesRec;
 begin
-   Range := MakeDateRange(FromDate,ToDate);
-   FSource.Iterate(FindLocked,True,@Range);
+  Range := MakeDateRange(FromDate,ToDate);
 
-   if not GetDateRange(Range, 'Lock Exchange Rate Period',
-         'Enter the starting and finishing date for the period you want to lock.') then exit;
+  FSource.Iterate(FindLocked,True, @Range);
 
-   FSource.Iterate(LockRates,True,@Range);
-   vtRates.Invalidate;
+  if not GetDateRange(Range, 'Lock Exchange Rate Period',
+                      'Enter the starting and finishing date for the period you want to lock.') then exit;
+
+  LockRatesRec.LockCount := 0;
+  LockRatesRec.Range := Range;
+  FSource.Iterate(LockRates, True, @LockRatesRec);
+  if LockRatesRec.LockCount > 0 then
+    HelpfulInfoMsg(Format('%d exchange rates have been locked',[LockRatesRec.LockCount]), 0)
+  else
+    HelpfulInfoMsg('There are no exchange rates to be locked in this period', 0);
+  vtRates.Invalidate;
 end;
 
 
@@ -209,13 +245,6 @@ begin
        tDateRange(OtherData^).FromDate := (TExchangeRecord(Node.Data).Date + 1) // Last Unlocked date
 end;
 
-
-type
-  TUnlockRatesRec = record
-    Range: TDateRange;
-    UnLockCount: integer;
-  end;
-
 function UnLockRates(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
 var
   i: integer;
@@ -223,12 +252,12 @@ begin
    Result := true;
    if not TExchangeRecord(Node.Data).Locked then
       Exit;
-   if TExchangeRecord(Node.Data).Date < TUnlockRatesRec(OtherData^).Range.FromDate then
+   if TExchangeRecord(Node.Data).Date < TLockRatesRec(OtherData^).Range.FromDate then
       Exit;
-   if TExchangeRecord(Node.Data).Date > TUnlockRatesRec(OtherData^).Range.ToDate then
+   if TExchangeRecord(Node.Data).Date > TLockRatesRec(OtherData^).Range.ToDate then
       Exit;
    if TExchangeRecord(Node.Data).Locked then begin
-     Inc(TUnlockRatesRec(OtherData^).UnLockCount);
+     Inc(TLockRatesRec(OtherData^).LockCount);
      TExchangeRecord(Node.Data).Locked := False;
    end;
 end;
@@ -243,7 +272,7 @@ const
                    'Are you sure you want to do this?';
 var
   Range: tDateRange;
-  UnlockRatesRec: TUnlockRatesRec;
+  UnlockRatesRec: TLockRatesRec;
 begin
    Range := MakeDateRange(FromDate,ToDate);
    FSource.Iterate(FindUnLocked,True,@Range);
@@ -254,11 +283,11 @@ begin
    //Warning
    if AskYesNo('Unlock Exchange Rate Period', UNLOCK_WARNING, Dlg_No, 0) = DLG_YES then begin
      UnlockRatesRec.Range := Range;
-     UnlockRatesRec.UnLockCount := 0;
+     UnlockRatesRec.LockCount := 0;
      FSource.Iterate(UnLockRates,True,@UnlockRatesRec);
      vtRates.Invalidate;
-     if (UnlockRatesRec.UnLockCount > 0) then
-       HelpfulInfoMsg(Format('%d exchange rates have been unlocked',[UnlockRatesRec.UnLockCount]), 0)
+     if (UnlockRatesRec.LockCount > 0) then
+       HelpfulInfoMsg(Format('%d exchange rates have been unlocked',[UnlockRatesRec.LockCount]), 0)
      else
        HelpfulInfoMsg('There are no exchange rates to be unlocked in this period', 0)
    end;
@@ -277,7 +306,7 @@ begin
      // Validate..
 
      //Get change count
-     FChangeCount := GetChangeCount;
+     FChangeCount := GetChangeCount;        
 
      LExchangeRates := GetExchangeRates(True);
      try
@@ -351,22 +380,25 @@ begin
    vtRates.BeginUpdate;
    try
       vtRates.Clear;
-      vtRates.Header.Columns.Clear;
       FTreeList.Clear;
 
-      // ReBuild the Columns
-      AddColumn('S',Tag_Lock,20, false);
-      AddColumn('Date',Tag_Date,80, false);
+      if not FColumnOrderLoaded then begin
+        vtRates.Header.Columns.Clear;
+        // ReBuild the Columns
+        AddColumn('S',Tag_Lock,20, false);
+        AddColumn('Date',Tag_Date,80, false);
+        vtRates.Header.Columns[1].Options := vtRates.Header.Columns[1].Options - [coShowDropMark];
 
-      for C := low(FSource.Header.ehISO_Codes) to high(FSource.Header.ehISO_Codes) do
-         if FSource.Header.ehISO_Codes[C] > '' then begin
-            if FSource.Header.ehCur_Type[C] = ct_Base then
-               grpDetails.Items[0].Caption := format('Base currency: %s', [FSource.Header.ehISO_Codes[C]])
-            else
-               AddColumn(FSource.Header.ehISO_Codes[C],-C,50);
+        for C := low(FSource.Header.ehISO_Codes) to high(FSource.Header.ehISO_Codes) do
+           if FSource.Header.ehISO_Codes[C] > '' then begin
+              if FSource.Header.ehCur_Type[C] = ct_Base then
+                 grpDetails.Items[0].Caption := format('Base currency: %s', [FSource.Header.ehISO_Codes[C]])
+              else
+                 AddColumn(FSource.Header.ehISO_Codes[C],-C,50);
 
-         end else
-            Break;
+           end else
+              Break;
+      end;
 
       // Add the items..
       OtherData.Range := MakeDateRange(FromDate, ToDate);
@@ -374,11 +406,14 @@ begin
       FSource.Iterate(AddItem,True,@OtherData);
 
       //load column widths and positions
-      for i := 0 to Pred(vtRates.Header.Columns.Count) do begin
-        if PRACINI_ER_Column_Widths[i] <> -1 then
-           vtRates.Header.Columns[i].Width := PRACINI_ER_Column_Widths[i];
-        if PRACINI_ER_Column_Positions[i] <> -1 then
-           vtRates.Header.Columns[i].Position := PRACINI_ER_Column_Positions[i];
+      if not FColumnOrderLoaded then begin
+        FColumnOrderLoaded := True; //only do once
+        for i := 0 to Pred(vtRates.Header.Columns.Count) do begin
+          if PRACINI_ER_Column_Widths[i] <> -1 then
+             vtRates.Header.Columns[i].Width := PRACINI_ER_Column_Widths[i];
+          if PRACINI_ER_Column_Positions[i] <> -1 then
+             vtRates.Header.Columns[i].Position := PRACINI_ER_Column_Positions[i];
+        end;
       end;
 
    finally
@@ -451,13 +486,24 @@ begin
   FreeAndNil(FTreeList);
 end;
 
+procedure TExchangeRatesfrm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  case Key of
+    Char(VK_ESCAPE):
+      begin
+        Key := #0;
+        ModalResult := mrCancel;
+      end;
+  end;
+end;
+
 type
   TChangeCountRec = record
     ChangeCount: integer;
     ExchangeSource: TExchangeSource;
   end;
 
-function ChangeCount(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+function ChangeDeleteCount(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
 var
   i: integer;
   ER1, ER2: TExchangeRecord;
@@ -469,15 +515,35 @@ begin
   if Assigned(ER2) then begin
     for i := 1 to ER2.Width do begin
       if ER2.Rates[i] <> ER1.Rates[i] then begin
+        //Rate edited
         Inc(TChangeCountRec(OtherData^).ChangeCount);
         RateChange := True;
       end;
     end;
-    if not RateChange then  //check for lock change
+    if not RateChange then
       if ER2.Locked <> ER1.Locked then
+        //Lock changed
         Inc(TChangeCountRec(OtherData^).ChangeCount);
   end else
-    Inc(TChangeCountRec(OtherData^).ChangeCount, (ER1.Width - 1)); //Don't include base rate
+    for i := 1 to ER1.Width do
+      if (ER1.Rates[i] <> 0) then //Base rate should always be 0
+        //Delete
+        Inc(TChangeCountRec(OtherData^).ChangeCount);
+end;
+
+function AddCount(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+var
+  i: integer;
+  ER1, ER2: TExchangeRecord;
+begin
+  Result := true;
+  ER1 := TExchangeRecord(Node.Data);
+  ER2 := TChangeCountRec(OtherData^).ExchangeSource.GetDateRates(ER1.FDate);
+  if not Assigned(ER2) then
+    for i := 1 to ER1.Width do
+      if (ER1.Rates[i] <> 0) then //Base rate should always be 0
+        //Add
+        Inc(TChangeCountRec(OtherData^).ChangeCount);
 end;
 
 function TExchangeRatesfrm.GetChangeCount: integer;
@@ -493,7 +559,11 @@ begin
   if Assigned(ExchangeSource) then begin
     ChangeCountRec.ExchangeSource := FSource;
     ChangeCountRec.ChangeCount := 0;
-    ExchangeSource.Iterate(ChangeCount, true, @ChangeCountRec);
+    //Change and delete count
+    ExchangeSource.Iterate(ChangeDeleteCount, true, @ChangeCountRec);
+    ChangeCountRec.ExchangeSource := ExchangeSource;
+    //Add count
+    FSource.Iterate(AddCount, true, @ChangeCountRec);
     Result := ChangeCountRec.ChangeCount;
   end;
 end;
@@ -532,14 +602,12 @@ end;
 function SetRateForMonth(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
 var
   i: integer;
-  SelectedDate: TDateTime;
   FromDate, ToDate: integer;
 begin
   Result := true;
 
-  SelectedDate := stDate.StDateToDateTime(TExchangeRecord(OtherData^).Date);
-  FromDate := stDate.DateTimeToStDate(DateUtils.StartOfTheMonth(SelectedDate));
-  ToDate := stDate.DateTimeToStDate(DateUtils.EndOfTheMonth(SelectedDate));
+  FromDate := TSetForMonth(OtherData^).FRange.FromDate;
+  ToDate := TSetForMonth(OtherData^).FRange.ToDate;
 
   if TExchangeRecord(Node.Data).Locked then
     Exit;
@@ -548,19 +616,38 @@ begin
   if TExchangeRecord(Node.Data).Date > ToDate then
     Exit;
 
-  for i := 1 to TExchangeRecord(OtherData^).Width do
-    TExchangeRecord(Node.Data).Rates[i] := TExchangeRecord(OtherData^).Rates[i]
+  for i := 1 to TSetForMonth(OtherData^).FExchangeRecord.Width do
+    TExchangeRecord(Node.Data).Rates[i] := TSetForMonth(OtherData^).FExchangeRecord.Rates[i];
+  TSetForMonth(OtherData^).FDatesToAdd.Delete(TSetForMonth(OtherData^).FDatesToAdd.IndexOf(Pointer(TExchangeRecord(Node.Data).FDate)));
 end;
 
 procedure TExchangeRatesfrm.miSetForWholeMonthClick(Sender: TObject);
 var
-  ExchangeRecord: TExchangeRecord;
+  i: integer;
+  ExchangeRecord, NewExchangeRecord: TExchangeRecord;
+  SetForMonth: TSetForMonth;
 begin
   if Assigned(FSource) and Assigned(vtRates.FocusedNode) then begin
     //Use the selected rates for all days of the current month
     ExchangeRecord := TExchangeTreeItem(FTreeList.Items[vtRates.FocusedNode^.Index]).FExchangeRecord;
-    FSource.Iterate(SetRateForMonth, True, @ExchangeRecord);
-    vtRates.Invalidate;    
+    SetForMonth := TSetForMonth.Create;
+    try
+      SetForMonth.SetRange(ExchangeRecord.FDate);
+      SetForMonth.FExchangeRecord := ExchangeRecord;
+      FSource.Iterate(SetRateForMonth, True, @SetForMonth);
+      //Add missing dates
+      for i := 0 to SetForMonth.FDatesToAdd.Count - 1 do begin
+        NewExchangeRecord := TExchangeRecord.Create(0, ExchangeRecord.Width);
+        NewExchangeRecord.Assign(ExchangeRecord);
+        NewExchangeRecord.FDate := Integer(SetForMonth.FDatesToAdd[i]);
+        FSource.ExchangeTree.Insert(NewExchangeRecord);
+        FTreeList.AddNodeItem(nil, TExchangeTreeItem.Create(NewExchangeRecord));
+      end;
+    finally
+      SetForMonth.Free;
+    end;
+    //vtRates.Invalidate;
+    FillRates;
   end;
 end;
 
@@ -593,11 +680,25 @@ begin
   acEditExchangeRateExecute(Sender);
 end;
 
+procedure TExchangeRatesfrm.vtRatesContextPopup(Sender: TObject;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  //Disable context popup if nothing selected
+  if vtRates.SelectedCount = 0 then
+    Handled := True;
+end;
+
 procedure TExchangeRatesfrm.vtRatesFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 begin
   acEditExchangeRate.Enabled := (vtRates.SelectedCount > 0) and
                                 (not TExchangeTreeItem(FTreeList.Items[Node.Index]).FExchangeRecord.Locked);
+end;
+
+procedure TExchangeRatesfrm.vtRatesHeaderDragging(Sender: TVTHeader;
+  Column: TColumnIndex; var Allowed: Boolean);
+begin
+
 end;
 
 { TExchangeTreeItem }
@@ -641,6 +742,33 @@ begin
         Result := GetRateText(FExchangeRecord.Rates[-Tag]);
   end;
 
+end;
+
+{ TSetForMonth }
+
+constructor TSetForMonth.Create;
+begin
+  FDatesToAdd := TList.Create;
+end;
+
+destructor TSetForMonth.Destroy;
+begin
+  FreeAndNil(FDatesToAdd);
+  inherited;
+end;
+
+procedure TSetForMonth.SetRange(ADate: integer);
+var
+  i: integer;
+  DateTime: TDateTime;
+begin
+  DateTime := StDateToDateTime(ADate);
+  FRange.FromDate := stDate.DateTimeToStDate(DateUtils.StartOfTheMonth(DateTime));
+  FRange.ToDate := stDate.DateTimeToStDate(DateUtils.EndOfTheMonth(DateTime));
+  //Make a list of dates for the month
+  FDatesToAdd.Clear;
+  for i := FRange.FromDate to FRange.ToDate do
+    FDatesToAdd.Add(Pointer(i));
 end;
 
 end.

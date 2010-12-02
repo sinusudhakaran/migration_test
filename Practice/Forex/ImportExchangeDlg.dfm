@@ -2,19 +2,21 @@ object ImportExchange: TImportExchange
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMaximize]
-  Caption = 'ImportExchange'
+  Caption = 'Import Exchange Rates'
   ClientHeight = 584
   ClientWidth = 990
   Color = clBtnFace
   Constraints.MinHeight = 600
   Constraints.MinWidth = 600
   ParentFont = True
+  KeyPreview = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
   Scaled = False
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyPress = FormKeyPress
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
@@ -149,8 +151,6 @@ object ImportExchange: TImportExchange
     BevelOuter = bvNone
     Caption = 'pOut'
     TabOrder = 3
-    ExplicitTop = 403
-    ExplicitHeight = 140
     object Label3: TLabel
       Left = 8
       Top = 35
@@ -205,7 +205,6 @@ object ImportExchange: TImportExchange
     BevelOuter = bvNone
     Caption = 'PFormat'
     TabOrder = 2
-    ExplicitTop = 268
     object PCFormat: TPageControl
       Left = 0
       Top = 0
@@ -215,14 +214,8 @@ object ImportExchange: TImportExchange
       Align = alClient
       TabOrder = 0
       OnChange = PCFormatChange
-      ExplicitLeft = -24
-      ExplicitTop = 4
       object TSDate: TTabSheet
         Caption = '&Date'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label2: TLabel
           Left = 10
           Top = 15
@@ -252,7 +245,7 @@ object ImportExchange: TImportExchange
           Width = 300
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = cbDateChange
         end
@@ -268,15 +261,15 @@ object ImportExchange: TImportExchange
     Color = clWindow
     ParentBackground = False
     TabOrder = 1
-    ExplicitTop = 78
     object lbFile: TLabel
       Left = 1
       Top = 1
-      Width = 3
+      Width = 988
       Height = 13
       Align = alTop
       Constraints.MaxHeight = 100
       WordWrap = True
+      ExplicitWidth = 3
     end
     object vsFile: TVirtualStringTree
       Left = 1
