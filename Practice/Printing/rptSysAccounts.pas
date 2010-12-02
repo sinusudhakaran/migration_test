@@ -167,6 +167,7 @@ var
         cbf_Unattached : AddJobHeader(Job,siSubTitle,'Unattached accounts only',true);
         cbf_Deleted    : AddJobHeader(Job,siSubTitle,'Marked as Deleted accounts only',true);
         cbf_Inactive   : AddJobHeader(Job,siSubTitle,'Inactive accounts only',true);
+        cbf_Provisional: AddJobHeader(Job,siSubTitle,'Provisional accounts only',true);
         else begin
              Title :=  FromFrame.Include.GetFilterText;
              if Title > '' then
