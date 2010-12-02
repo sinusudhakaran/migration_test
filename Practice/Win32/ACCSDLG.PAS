@@ -466,7 +466,7 @@ begin
 
            SelectManual: include := Bank_Account_At(i).IsManual;
 
-           selectWithUncodedTrx: include := not (Bank_Account_At(i).IsManual or Bank_Account_At(i).IsProvisional); 
+           SelectDeliveredTrx: include := not (Bank_Account_At(i).IsManual or Bank_Account_At(i).IsProvisional); 
          end; {case}
 
          if Include then  {add account to available list}
