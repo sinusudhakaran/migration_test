@@ -1530,7 +1530,7 @@ var
        with Tlabel.Create(LTabSheet) do begin
           Parent := LTabsheet;
           Caption := 'Rate column';
-          Left := 15;
+          Left := 10;
           Top := 20;
        end;
 
@@ -1541,7 +1541,7 @@ var
           Tag := R + 1;
           OnChange := cbRateChange;
           //Name := Format('RateCombo%d',[R]);
-          Left := 83;
+          Left := 90;
           Top := 18;
        end;
        Inc(R);
