@@ -235,14 +235,14 @@ end;
 
 
 //*****************************************************************************
-function FindUnLocked(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+
+function FindLastLocked(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
 begin
-   Result := true;
-   if TExchangeRecord(Node.Data).Locked then
-      tDateRange(OtherData^).ToDate := TExchangeRecord(Node.Data).Date //Last UnLocked date
-   else
-     if ((TExchangeRecord(Node.Data).Date + 1) < tDateRange(OtherData^).ToDate) then
-       tDateRange(OtherData^).FromDate := (TExchangeRecord(Node.Data).Date + 1) // Last Unlocked date
+   Result := True;
+   if TExchangeRecord(Node.Data).Locked then begin
+      tDateRange(OtherData^).ToDate := TExchangeRecord(Node.Data).Date; //Last locked date
+      Result := False;
+   end;
 end;
 
 function UnLockRates(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
@@ -275,7 +275,9 @@ var
   UnlockRatesRec: TLockRatesRec;
 begin
    Range := MakeDateRange(FromDate,ToDate);
-   FSource.Iterate(FindUnLocked,True,@Range);
+   FSource.Iterate(FindLastLocked,False,@Range);
+   //Default from date to the start of the last locked period
+   Range.FromDate := stDate.DateTimeToStDate(DateUtils.StartOfTheMonth(StDateToDateTime(Range.ToDate)));
 
    if not GetDateRange(Range, 'Unlock Exchange Rate Period',
          'Enter the starting and finishing date for the period you want to unlock.') then exit;
