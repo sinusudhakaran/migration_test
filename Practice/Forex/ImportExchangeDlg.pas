@@ -327,7 +327,9 @@ begin
   end;
 
   if GoodCount = 0 then begin
-     HelpfulErrorMsg('No dates found, that are not already locked',0);
+     HelpfulErrorMsg('You cannot import these exchange rates as the dates all ' +
+                     'belong to a period which is locked. If you need to update ' +
+                     'the rates in the locked period please unlock the dates first.', 0);
      Exit;
   end else if FailCount > 0 then begin
      HelpfulWarningMsg('Locked exchange rates are unable to be imported. ' +
