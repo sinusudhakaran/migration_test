@@ -1408,7 +1408,7 @@ end;
 procedure TImportExchange.vsOutHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  PCFormat.ActivePageIndex :=  vsOut.header.Columns[Column].Tag;
+  PCFormat.ActivePageIndex :=  vsOut.header.Columns[Column].Position;
   PCFormat.OnChange(nil);
 end;
 
@@ -1517,7 +1517,7 @@ procedure TImportExchange.SetExchangeSource(const Value: PExchangeSource);
 var
     C: Integer;
     R: Integer;
-    I, J, TabIndex: Integer;
+    I, J: Integer;
 
     procedure AddTab(Name: string);
     var
@@ -1568,14 +1568,12 @@ begin
 
 
       R := 0;
-      TabIndex := 0;
       SetLength(CurColumns,FExchangeSource.Width); // Skip the base one??
       for C := low(FExchangeSource.Header.ehISO_Codes) to
         (Low(FExchangeSource.Header.ehISO_Codes) + FExchangeSource.Width) - 1 do
            if FExchangeSource.Header.ehCur_Type[C] <> ct_Base then begin
-              AddColumn(FExchangeSource.Header.ehISO_Codes[C],PiRate + TabIndex).Alignment := taRightJustify;
+              AddColumn(FExchangeSource.Header.ehISO_Codes[C],PiRate + C).Alignment := taRightJustify;
               AddTab(FExchangeSource.Header.ehISO_Codes[C]);
-              Inc(TabIndex);
            end;
 
       //Set tab and column indexs to match columns in exchange rates table
