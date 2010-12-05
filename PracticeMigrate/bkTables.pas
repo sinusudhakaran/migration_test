@@ -900,7 +900,7 @@ begin with Value^, Extra^ do
    Result := RunValues([ToSQL(MyID),ToSQL(ClientID), ToSQL(clCoding_Report_Style), ToSQL(clCoding_Report_Sort_Order)
                ,ToSQL(clCoding_Report_Entry_Selection)
 {2}       ,ToSQL(clCoding_Report_Blank_Lines), ToSQL(clCoding_Report_Rule_Line), ToSQL(clCoding_Report_New_Page)
-               ,ToSQL(extra.ceCustom_Ledger_Report_XML)
+               ,ToSQL(extra.ceCustom_Coding_Report_XML)
 {3}       ,ToSQL(clCoding_Report_Wrap_Narration),ToSQL(clCoding_Report_Show_OP), ToSQL(Value.clCoding_Report_Print_TI)
 {4}       ,ToSQL(ceCustom_Ledger_Report), ToSQL(ceCoding_Report_Column_Line)],[])
 end;

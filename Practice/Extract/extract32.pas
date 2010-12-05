@@ -267,18 +267,15 @@ begin
 
             whUK :
                Case clAccounting_System_Used of
-                  suOther                       : ;
-                  suPA7                         : if NF then AdvanceX.ExtractData( FD, TD, Path ) else AdvanceXOld.ExtractData( FD, TD, Path );
-                  suXPA                         : AdvanceX.ExtractData( FD, TD, Path );
-                  suSolution6MAS42              : MAS42X.ExtractData( FD, TD, Path );
-                  suMYOBAccountantsOffice       : MYOBAOX.ExtractData( FD, TD, Path);
-                  suMYOB_AO_COM                 : MYOBAOX.ExtractData( FD, TD, Path);
-                  suBK5CSV                      : CSVX.ExtractData( FD, TD, Path );
-                  suQIF                         : DoExtractBusinessProduct(FD, TD, Path);
-                  suOFXV1                       : DoExtractBusinessProduct(FD, TD, Path);
-                  suOFXV2                       : DoExtractBusinessProduct(FD, TD, Path);
-//                  suDigita                      : ;
-//                  suSage                        : ;
+                  suOther       : ;
+                  suSageLine50  : ;
+                  suQuickBooks  : ;
+                  suBK5CSV      : CSVX.ExtractData( FD, TD, Path );
+                  suQIF         : DoExtractBusinessProduct(FD, TD, Path);
+                  suOFXV1       : DoExtractBusinessProduct(FD, TD, Path);
+                  suOFXV2       : DoExtractBusinessProduct(FD, TD, Path);
+
+                  suTASBooks   :;
                end;
          end; { Case clCountry }
 

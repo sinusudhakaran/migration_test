@@ -56,10 +56,27 @@ const
 
 Version 7.4 added the TAXCODE column to the chart export
 
+AU / NZ
+
+   1     2       3        4         5         6       7      8       9     10     11     12    13      14       15
 !ACCNT	NAME	REFNUM	TIMESTAMP	ACCNTTYPE	OBAMOUNT	DESC	ACCNUM	TAXCODE	SCD	BANKNUM	EXTRA	HIDDEN	DELCOUNT	USEID
 ACCNT	Cash	3	935027837	BANK	0.00	Cash	1-7801		0			N	0	N
 
+UK:
+   1      2      3        4         5         6      7       8     9     10     11    12       13       14      15         16
+!ACCNT	NAME	REFNUM	TIMESTAMP	ACCNTTYPE	OBAMOUNT	DESC	ACCNUM	SCD	BANKNUM	EXTRA	HIDDEN	DELCOUNT	USEID	WKPAPERREF	CURRENCY
+
 *)
+
+const
+   colRowType    = 1;
+   colName       = 2;
+   colCode       = 8;
+   colAccType    = 5;
+   colTax : byte = 9;
+
+
+
    qbTypeMin = 1;
    qbTypeMax = 17;
 
@@ -122,6 +139,9 @@ Var
       Len	 : Byte;
    Begin
       Result := '';
+      if n <= 0 then
+         Exit;
+
       Starts := fStart[ n ];
       Len	 := fLen[ n ];
       If ( Starts > 0 ) and ( Len > 0 ) then
@@ -148,15 +168,18 @@ Var
             Readln( F, L );
             FindFields;
             if fCount >= 8 then begin
-               S := GetField( 1);
+               S := GetField(colRowType);
                //look at acct header line to see if contains TAXCODE field
                if S = '!ACCNT' then begin
-                  S := GetField( 9);
-                  if S <> 'TAXCODE' then exit;
+                  S := GetField(colTax);
+                  if S <> 'TAXCODE' then begin
+                     colTax := 0;
+                     Exit;
+                  end;
                end;
                //read subsequent lines to see if tax code field is used
                if S='ACCNT' then begin
-                  S := GetField( 9);
+                  S := GetField(colTax);
                   if S <> '' then begin
                      result := true;
                      exit;
@@ -192,10 +215,15 @@ Begin
       Raise ERefreshFailed.Create( Msg );
    end;
 
-   If ( MyClient.clFields.clCountry = whAustralia ) and GSTCodesInChart( FileName ) and not ( MyClient.GSTHasBeenSetup ) then
-   begin
-      TemplateFileName := GLOBALS.TemplateDir + 'QUICKBKS.TPM';
-      If BKFileExists( TemplateFileName ) then Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+   case MyClient.clFields.clCountry of
+   whAustralia : if GSTCodesInChart(FileName)
+                 and not (MyClient.GSTHasBeenSetup) then begin
+                    TemplateFileName := GLOBALS.TemplateDir + 'QUICKBKS.TPM';
+                    If BKFileExists( TemplateFileName ) then
+                       Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+                 end;
+
+   whUK: colTax = 0;
    end;
 
    OK     := False;
@@ -209,21 +237,20 @@ Begin
          while not EOF( F ) do Begin
             Readln( F, L );
             FindFields;
-            if fCount >= 8 then
+            if fCount >= colCode then
             Begin
-               S := GetField( 1 );
-               if S='ACCNT' then
-               Begin
-                  ACode := GetField( 8 );
-                  ADesc := GetField( 2 );
-                  AGSTCode := GetField( 9);
+               S := GetField(colRowType);
+               if S='ACCNT' then begin
+                  ACode := GetField(colCode);
+                  ADesc := GetField(colName);
+                  AGSTCode := GetField(colTax);
 
-                  if ( ACode<>'' ) and ( ADesc<>'' ) then
+                  if (ACode<>'')
+                  and (ADesc<>'') then
                   Begin
-                     if ( AChart.FindCode( ACode )<> NIL ) then Begin
-                        LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+ACode+' found in '+FileName );
-                     end
-                     else Begin
+                     if (AChart.FindCode(ACode)<> nil) then Begin
+                        LogUtil.LogMsg( lmError, UnitName, format('Duplicate Code %s found in %s',[ACode, FileName]));
+                     end else Begin
                         NewAccount := New_Account_Rec;
                         with NewAccount^ do begin
                            chAccount_Code        := aCode;
@@ -231,10 +258,12 @@ Begin
                            chGST_Class           := GSTCalc32.GetGSTClassNo( MyClient, AGSTCode );
                            chPosting_Allowed     := true;
 
-                           S := GetField( 5 );
-                           for i := qbTypeMin to qbTypeMax do
-                           Begin
-                              if ( S = StdTypeNames[ i ] ) then chAccount_Type := stdTypeCodes[ i ];
+                           S := GetField(colAccType);
+                           for i := qbTypeMin to qbTypeMax do begin
+                              if SameText(S,StdTypeNames[i]) then begin
+                                 chAccount_Type := stdTypeCodes[i];
+                                 break; // Howmany can match...
+                              end;
                            end;
 
                         end;
@@ -257,17 +286,19 @@ Begin
       end;
    end;
 
-   if Assigned( AChart ) and ( AChart.ItemCount = 0 ) then
+   if Assigned(AChart)
+   and (AChart.ItemCount = 0) then
    Begin
       AChart.Free;
       Msg := Format( 'BankLink couldn''t find any accounts in the file %s', [ FileName ] );
       LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-      Raise ERefreshFailed.Create( Msg );
+      raise ERefreshFailed.Create( Msg );
    end;      
    
    Result := AChart;
    
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+   if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

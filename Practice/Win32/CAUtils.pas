@@ -87,7 +87,7 @@ Const
    ThisMethodName = 'IsCASystems';
    AU_Systems = [ saGLMAN, saMYOBAccountantsOffice, saMYOB_AO_COM ];
    NZ_Systems = [ snGLMAN, snMYOB_AO_COM];
-   UK_Systems = [ suMYOBAccountantsOffice, suMYOB_AO_COM ];
+   UK_Systems = [  ];
 
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );

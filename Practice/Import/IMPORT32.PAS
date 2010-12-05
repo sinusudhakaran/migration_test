@@ -169,15 +169,14 @@ procedure RefreshChart;
    procedure UKRefreshChart;
    Begin
       Case MyClient.clFields.clAccounting_System_Used of
-         suOther                   : ;
-         suPA7                     : APSAdvance.RefreshChart;
-         suXPA                     : APSAdvance.RefreshChart;
-         suBK5CSV                  : CSVChart.RefreshChart( '*.CSV', 'GENERIC.TPM', iText );
-         suSolution6MAS42          : Solution6.RefreshChart;
-         suMYOBAccountantsOffice   : MYOBAO.RefreshChart;
-         suMYOB_AO_COM             : MYOBAO.RefreshChart;
-//         suDigita                  : ;
-//         suSage                    : ;
+         suOther        :;
+         suSageLine50   :;
+         suQuickBooks   : QuickBooks.RefreshChart;
+         suQIF          :;
+         suOFXV1        :;
+         suOFXV2        :;
+         suBK5CSV       : CSVChart.RefreshChart( '*.CSV', 'GENERIC.TPM', iText );
+         suTASBooks     :;
       end;
    end;
 

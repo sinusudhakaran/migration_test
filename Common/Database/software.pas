@@ -238,7 +238,7 @@ begin
             Result := True;
       end;
       whUK    : begin
-         if (AType in [suBK5CSV]) then
+         if (AType in [suBK5CSV, suQuickBooks]) then
             Result := True;
       end;
    end;

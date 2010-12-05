@@ -256,15 +256,15 @@ begin
      end;
     whUK : case system of
           suOther   : result := StringToGuid('{422074AD-B5D8-487D-A874-C7060157EAFC}');
-          suPA7     : result := StringToGuid('{29830BE7-5745-4E2B-AA83-2C87049C1E1B}');
-          suXPA     : result := StringToGuid('{ADCAEDBD-5717-43B2-BA21-D532DFCC8EBF}');
+          //suPA7     : result := StringToGuid('{29830BE7-5745-4E2B-AA83-2C87049C1E1B}');
+          //suXPA     : result := StringToGuid('{ADCAEDBD-5717-43B2-BA21-D532DFCC8EBF}');
           suQIF     : result := StringToGuid('{15A617EB-ABFB-4F42-B6E2-9E52BA2E574E}');
           suOFXV1   : result := StringToGuid('{DAC0F0B0-A686-4971-BDAA-F26E00D81F9D}');
           suOFXV2   : result := StringToGuid('{0EF6D347-7275-493A-B98E-19341B97511B}');
           suBK5CSV  : result := StringToGuid('{EAD167CC-86FB-436E-A47B-1644B83AA25E}');
-          suSolution6MAS42 : result := StringToGuid('{554D5BBB-EC02-4167-A65A-F2C8E06F637E}');
-          suMYOBAccountantsOffice : result := StringToGuid('{7B6C02BD-BE2C-40C1-8A63-9ADD08A53C5F}');
-          suMYOB_AO_COM : result := StringToGuid('{5CBF6424-55A0-48FC-B5E8-6F020304DF07}');
+          // suSolution6MAS42 : result := StringToGuid('{554D5BBB-EC02-4167-A65A-F2C8E06F637E}');
+          //suMYOBAccountantsOffice : result := StringToGuid('{7B6C02BD-BE2C-40C1-8A63-9ADD08A53C5F}');
+          // suMYOB_AO_COM : result := StringToGuid('{5CBF6424-55A0-48FC-B5E8-6F020304DF07}');
      end;
 
    end;

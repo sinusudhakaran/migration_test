@@ -630,16 +630,14 @@ CONST
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-   suOther                            = 0;  suMin = 0;
-   suPA7                              = 1;
-   suXPA                              = 2;
+   suOther                            = 0; suMin = 0;
+   suSageLine50                       = 1;
+   suQuickBooks                       = 2;
    suQIF                              = 3;
    suOFXV1                            = 4;
    suOFXV2                            = 5;
    suBK5CSV                           = 6;
-   suSolution6MAS42                   = 7;
-   suMYOBAccountantsOffice            = 8;
-   suMYOB_AO_COM                      = 9;   suMax = 9;
+   suTASBooks                         = 7; suMax = 7;
 
 //UK systems to be added when we get spec for extracts
 //   suDigita                           = ?;
@@ -649,16 +647,14 @@ CONST
 
    suNames : Array[ suMin..suMax ] of String[36] =
       //'123456789012345678901234567890'
-      ( 'Other'                     ,
-        'APS Professional Accounting 7' ,         //suPA7
-        'APS Professional Accounting XPA 8',      //suXPA
-        'Business Products - OFX V1',             //suQIF
-        'Business Products - OFX V2',             //suOFXV1
-        'Business Products - QIF',                //suOFXV2
-        'Generic'                   ,             //suBK5CSV
-        'MYOB Accountants Enterprise MAS',        //suSolution6MAS42
-        'MYOB Accountants Office'   ,             //suMYOBAccountantsOffice
-        'MYOB AO (manual posting)'                //suMYOB_AO_COM
+      ( 'Other',
+        'Sage Line 50',                           //suSageLine50
+        'QuickBooks',                             //suQuickBooks
+        'Business Products - QIF',                //suOIF
+        'Business Products - OFX V1',             //suOFXV1
+        'Business Products - OFX V2',             //suOFXV2
+        'Generic',                                //suBK5CSV
+        'TASBooks'                                //suTASBooks
        );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

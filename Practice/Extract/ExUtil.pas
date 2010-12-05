@@ -160,20 +160,16 @@ Begin
 
          whUK :
             Case clAccounting_System_Used of
-               suOther                       : ;
-               suPA7                         : Result := DefaultDir + clCode + '.BNK';
-               suXPA                         : Result := '';
-               suSolution6MAS42              : if clUse_Alterate_ID_for_extract then
-                                                 result := clAlternate_Extract_ID + '.TXT'
-                                               else
-                                                 Result := clCode + '.TXT';
-               suMYOBAccountantsOffice       : Result := clCode + '.TXT';
-               suMYOB_AO_COM                 : Result := clCode + '.TXT';
-//               suDigita                      : ;
-//               suSage                        : ;
-               suQIF                         : Result := DefaultDir + clCode + '\';
-               suOFXV1                       : Result := DefaultDir + clCode + bpFileExtn[bpOFXV1];
-               suOFXV2                       : Result := DefaultDir + clCode + bpFileExtn[bpOFXV2];
+               suOther            : ;
+               suSageLine50       : ;
+               suQuickBooks       : Result := DefaultDir + clCode + '.IIF';
+               suQIF              : Result := DefaultDir + clCode + '\';
+               suOFXV1            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV1];
+               suOFXV2            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV2];
+               suBK5CSV           : Result := DefaultDir + clCode + '.CSV';
+               suTASBooks         : ;
+
+
             end;
 
       end;
