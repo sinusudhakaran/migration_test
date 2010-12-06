@@ -238,7 +238,11 @@ begin
             Result := True;
       end;
       whUK    : begin
-         if (AType in [suBK5CSV, suQuickBooks]) then
+         if (AType in [suBK5CSV,
+                       suQuickBooks,
+                       suSageLine50,
+                       suTASBooks
+                       ]) then
             Result := True;
       end;
    end;

@@ -3,18 +3,14 @@ object frmVAT: TfrmVAT
   Top = 189
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'VAT Return'
-  ClientHeight = 543
+  ClientHeight = 605
   ClientWidth = 727
   Color = clBtnFace
   Constraints.MaxHeight = 802
   Constraints.MinHeight = 400
   Constraints.MinWidth = 606
   DefaultMonitor = dmMainForm
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -12
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
   Scaled = False
@@ -22,14 +18,15 @@ object frmVAT: TfrmVAT
   OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 14
+  TextHeight = 13
   object Panel1: TPanel
     Left = 0
-    Top = 495
+    Top = 557
     Width = 727
     Height = 48
     Align = alBottom
     TabOrder = 0
+    ExplicitTop = 495
     DesignSize = (
       727
       48)
@@ -79,31 +76,30 @@ object frmVAT: TfrmVAT
     Left = 0
     Top = 0
     Width = 727
-    Height = 495
+    Height = 557
     ActivePage = tsVATCalculation
     Align = alClient
     TabOrder = 1
+    ExplicitHeight = 495
     object tsVATCalculation: TTabSheet
       Caption = 'VAT Calculation'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 467
       object sbGST: TScrollBox
         Left = 0
         Top = 0
         Width = 719
-        Height = 466
+        Height = 529
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
         BorderStyle = bsNone
         TabOrder = 0
+        ExplicitHeight = 467
         object GBGST: TGroupBox
           Left = 0
           Top = 0
           Width = 716
-          Height = 464
+          Height = 510
           Color = clWhite
           Ctl3D = True
           ParentBackground = False
@@ -113,7 +109,7 @@ object frmVAT: TfrmVAT
           object lMain1: TLabel
             Left = 6
             Top = 0
-            Width = 171
+            Width = 168
             Height = 18
             Caption = 'Value Added Tax Return'
             Font.Charset = DEFAULT_CHARSET
@@ -126,8 +122,8 @@ object frmVAT: TfrmVAT
           object Label50: TLabel
             Left = 294
             Top = 42
-            Width = 78
-            Height = 14
+            Width = 68
+            Height = 13
             Caption = 'For the period'
           end
           object Label55: TLabel
@@ -147,8 +143,8 @@ object frmVAT: TfrmVAT
           object Label19: TLabel
             Left = 294
             Top = 22
-            Width = 110
-            Height = 14
+            Width = 97
+            Height = 13
             Caption = 'Registration number'
           end
           object Label20: TLabel
@@ -167,7 +163,7 @@ object frmVAT: TfrmVAT
             ParentFont = False
             Transparent = True
           end
-          object lblPeriod: TStaticText
+          object lblPeriod: TLabel
             Left = 294
             Top = 62
             Width = 187
@@ -181,9 +177,8 @@ object frmVAT: TfrmVAT
             Font.Style = [fsBold]
             ParentFont = False
             ShowAccelChar = False
-            TabOrder = 2
           end
-          object lblGSTno: TStaticText
+          object lblGSTno: TLabel
             Left = 585
             Top = 24
             Width = 98
@@ -198,58 +193,57 @@ object frmVAT: TfrmVAT
             Font.Style = [fsBold]
             ParentFont = False
             ShowAccelChar = False
-            TabOrder = 3
           end
           object pnlVAT: TGroupBox
             Left = 6
             Top = 103
             Width = 704
-            Height = 355
+            Height = 394
             Color = 15197925
             ParentBackground = False
             ParentColor = False
             TabOrder = 1
             object Shape3: TShape
               Left = 40
-              Top = 155
+              Top = 161
               Width = 661
-              Height = 36
+              Height = 40
             end
             object Shape9: TShape
               Left = 40
-              Top = 115
+              Top = 117
               Width = 661
-              Height = 36
+              Height = 40
             end
             object Shape8: TShape
               Left = 40
               Top = 81
               Width = 661
-              Height = 30
+              Height = 32
             end
             object Shape4: TShape
               Left = 40
-              Top = 195
+              Top = 205
               Width = 661
-              Height = 36
+              Height = 40
             end
             object Shape5: TShape
               Left = 40
-              Top = 235
+              Top = 249
               Width = 661
-              Height = 36
+              Height = 40
             end
             object Shape6: TShape
               Left = 40
-              Top = 275
+              Top = 293
               Width = 661
-              Height = 36
+              Height = 40
             end
             object Shape7: TShape
               Left = 40
-              Top = 315
+              Top = 337
               Width = 661
-              Height = 36
+              Height = 40
             end
             object Shape2: TShape
               Left = 40
@@ -279,7 +273,7 @@ object frmVAT: TfrmVAT
             object lblBox3: TLabel
               Left = 50
               Top = 88
-              Width = 371
+              Width = 398
               Height = 14
               AutoSize = False
               Caption = 'Total VAT due (the sum of boxes 1 and 2)'
@@ -295,9 +289,9 @@ object frmVAT: TfrmVAT
             end
             object lblBox4: TLabel
               Left = 49
-              Top = 118
-              Width = 328
-              Height = 28
+              Top = 120
+              Width = 399
+              Height = 26
               Caption = 
                 'VAT reclaimed in this period on purchases and other inputs (incl' +
                 'uding acquisitions from the EC)'
@@ -307,8 +301,8 @@ object frmVAT: TfrmVAT
             end
             object lblBox5: TLabel
               Left = 49
-              Top = 159
-              Width = 319
+              Top = 162
+              Width = 372
               Height = 28
               Caption = 
                 'Net VAT to be paid to Customs or reclaimed by you (Difference be' +
@@ -325,9 +319,9 @@ object frmVAT: TfrmVAT
             end
             object lblBox6: TLabel
               Left = 49
-              Top = 199
-              Width = 372
-              Height = 28
+              Top = 208
+              Width = 399
+              Height = 26
               Caption = 
                 'Total value of sales and all other inputs excluding any VAT. Inc' +
                 'ludes your box 8 figure.'
@@ -337,9 +331,9 @@ object frmVAT: TfrmVAT
             end
             object lblBox7: TLabel
               Left = 49
-              Top = 239
-              Width = 356
-              Height = 28
+              Top = 251
+              Width = 399
+              Height = 26
               Caption = 
                 'Total value of purchases and all other inputs excluding any VAT.' +
                 ' Includes your box 9 figure.'
@@ -349,9 +343,9 @@ object frmVAT: TfrmVAT
             end
             object lblBox8: TLabel
               Left = 50
-              Top = 279
-              Width = 371
-              Height = 28
+              Top = 293
+              Width = 398
+              Height = 26
               Caption = 
                 'Total value of all supplies of goods and related costs, excludin' +
                 'g any VAT, to other EC member states'
@@ -361,9 +355,9 @@ object frmVAT: TfrmVAT
             end
             object lblBox9: TLabel
               Left = 52
-              Top = 319
-              Width = 353
-              Height = 28
+              Top = 339
+              Width = 396
+              Height = 26
               Caption = 
                 'Total value of acquisitions of goods and related costs, excludin' +
                 'g any VAT, to other EC member states.'
@@ -398,20 +392,14 @@ object frmVAT: TfrmVAT
               AutoSize = False
               Caption = 'VAT due in this period on sales and other outputs'
               Color = clWhite
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -13
-              Font.Name = 'Tahoma'
-              Font.Style = []
               ParentColor = False
-              ParentFont = False
               WordWrap = True
             end
             object Label14: TLabel
               Left = 536
               Top = 81
               Width = 20
-              Height = 30
+              Height = 32
               Alignment = taCenter
               AutoSize = False
               Caption = '3'
@@ -447,9 +435,9 @@ object frmVAT: TfrmVAT
             end
             object Label22: TLabel
               Left = 536
-              Top = 195
+              Top = 205
               Width = 20
-              Height = 36
+              Height = 40
               Alignment = taCenter
               AutoSize = False
               Caption = '6'
@@ -466,9 +454,9 @@ object frmVAT: TfrmVAT
             end
             object Label25: TLabel
               Left = 536
-              Top = 235
+              Top = 249
               Width = 20
-              Height = 36
+              Height = 40
               Alignment = taCenter
               AutoSize = False
               Caption = '7'
@@ -485,9 +473,9 @@ object frmVAT: TfrmVAT
             end
             object Label26: TLabel
               Left = 536
-              Top = 275
+              Top = 293
               Width = 20
-              Height = 36
+              Height = 40
               Alignment = taCenter
               AutoSize = False
               Caption = '8'
@@ -504,9 +492,9 @@ object frmVAT: TfrmVAT
             end
             object Label27: TLabel
               Left = 536
-              Top = 315
+              Top = 337
               Width = 20
-              Height = 36
+              Height = 40
               Alignment = taCenter
               AutoSize = False
               Caption = '9'
@@ -523,9 +511,9 @@ object frmVAT: TfrmVAT
             end
             object Label28: TLabel
               Left = 536
-              Top = 115
+              Top = 117
               Width = 20
-              Height = 36
+              Height = 40
               Alignment = taCenter
               AutoSize = False
               Caption = '4'
@@ -542,9 +530,9 @@ object frmVAT: TfrmVAT
             end
             object Label29: TLabel
               Left = 512
-              Top = 155
+              Top = 162
               Width = 44
-              Height = 36
+              Height = 38
               Alignment = taCenter
               AutoSize = False
               Caption = '5'
@@ -609,7 +597,7 @@ object frmVAT: TfrmVAT
             end
             object Box4: TStaticText
               Left = 579
-              Top = 122
+              Top = 126
               Width = 110
               Height = 20
               Alignment = taRightJustify
@@ -625,7 +613,7 @@ object frmVAT: TfrmVAT
             end
             object Box5: TStaticText
               Left = 579
-              Top = 163
+              Top = 170
               Width = 110
               Height = 20
               Alignment = taRightJustify
@@ -641,7 +629,7 @@ object frmVAT: TfrmVAT
             end
             object Box6: TStaticText
               Left = 579
-              Top = 203
+              Top = 215
               Width = 110
               Height = 20
               Alignment = taRightJustify
@@ -657,7 +645,7 @@ object frmVAT: TfrmVAT
             end
             object Box7: TStaticText
               Left = 579
-              Top = 243
+              Top = 260
               Width = 110
               Height = 20
               Alignment = taRightJustify
@@ -673,7 +661,7 @@ object frmVAT: TfrmVAT
             end
             object Box8: TStaticText
               Left = 579
-              Top = 283
+              Top = 302
               Width = 110
               Height = 20
               Alignment = taRightJustify
@@ -689,7 +677,7 @@ object frmVAT: TfrmVAT
             end
             object Box9: TStaticText
               Left = 579
-              Top = 323
+              Top = 346
               Width = 110
               Height = 20
               Alignment = taRightJustify
@@ -779,10 +767,7 @@ object frmVAT: TfrmVAT
     object tsAdjustments: TTabSheet
       Caption = 'Adjustments'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 467
       object gbDebtors: TGroupBox
         Left = 3
         Top = 0
@@ -809,66 +794,66 @@ object frmVAT: TfrmVAT
         object Label1: TLabel
           Left = 10
           Top = 68
-          Width = 88
-          Height = 14
+          Width = 79
+          Height = 13
           Caption = 'Closing Debtors:'
           FocusControl = cd17
         end
         object Label2: TLabel
           Left = 10
           Top = 93
-          Width = 97
-          Height = 14
+          Width = 85
+          Height = 13
           Caption = 'Opening Debtors:'
           FocusControl = od17
         end
         object Label3: TLabel
           Left = 10
           Top = 125
-          Width = 84
-          Height = 14
+          Width = 74
+          Height = 13
           Caption = 'Net Difference:'
         end
         object Label4: TLabel
           Left = 10
           Top = 157
-          Width = 52
-          Height = 14
+          Width = 43
+          Height = 13
           Caption = 'Net VAT:'
         end
         object Label5: TLabel
           Left = 214
           Top = 48
-          Width = 28
-          Height = 14
+          Width = 24
+          Height = 13
           Caption = 'Total'
         end
         object Label6: TLabel
           Left = 289
           Top = 48
-          Width = 69
-          Height = 14
+          Width = 58
+          Height = 13
           Caption = '17.5 % VAT'
         end
         object Label7: TLabel
           Left = 416
           Top = 48
-          Width = 58
-          Height = 14
+          Width = 48
+          Height = 13
           Caption = '13 % VAT'
         end
         object Label8: TLabel
           Left = 539
           Top = 48
-          Width = 51
-          Height = 14
+          Width = 42
+          Height = 13
           Caption = '5 % VAT'
         end
         object Label9: TLabel
           Left = 655
           Top = 48
-          Width = 51
-          Height = 14
+          Width = 42
+          Height = 13
           Caption = '0 % VAT'
         end
         object cdTotal: TOvcNumericField
@@ -1418,66 +1403,66 @@ object frmVAT: TfrmVAT
         object Label10: TLabel
           Left = 10
           Top = 68
-          Width = 93
-          Height = 14
+          Width = 85
+          Height = 13
           Caption = 'Closing Creditors:'
           FocusControl = cc17
         end
         object Label11: TLabel
           Left = 10
           Top = 93
-          Width = 102
-          Height = 14
+          Width = 91
+          Height = 13
           Caption = 'Opening Creditors:'
           FocusControl = oc17
         end
         object Label13: TLabel
           Left = 10
           Top = 125
-          Width = 84
-          Height = 14
+          Width = 74
+          Height = 13
           Caption = 'Net Difference:'
         end
         object Label15: TLabel
           Left = 10
           Top = 157
-          Width = 52
-          Height = 14
+          Width = 43
+          Height = 13
           Caption = 'Net VAT:'
         end
         object Label16: TLabel
           Left = 214
           Top = 48
-          Width = 28
-          Height = 14
+          Width = 24
+          Height = 13
           Caption = 'Total'
         end
         object Label17: TLabel
           Left = 289
           Top = 48
-          Width = 69
-          Height = 14
+          Width = 58
+          Height = 13
           Caption = '17.5 % VAT'
         end
         object Label21: TLabel
           Left = 416
           Top = 48
-          Width = 58
-          Height = 14
+          Width = 48
+          Height = 13
           Caption = '13 % VAT'
         end
         object Label23: TLabel
           Left = 539
           Top = 48
-          Width = 51
-          Height = 14
+          Width = 42
+          Height = 13
           Caption = '5 % VAT'
         end
         object Label24: TLabel
           Left = 655
           Top = 48
-          Width = 51
-          Height = 14
+          Width = 42
+          Height = 13
           Caption = '0 % VAT'
         end
         object ccTotal: TOvcNumericField

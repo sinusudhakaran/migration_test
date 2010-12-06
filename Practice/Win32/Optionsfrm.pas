@@ -119,6 +119,7 @@ implementation
 {$R *.DFM}
 
 uses
+  ThirdPartyHelper,
   madUtils,
   registryutils,
   Admin32,
@@ -599,6 +600,7 @@ begin
         if (WinUtils.GetDefaultCountryCode = '61') then
           MyDlg.tsLinks.TabVisible := false;
       end;
+       MyDlg.pnlUIStyle.Visible := ThirdPartyDLLDetected;
     end;
 
     //only show the file association tab if relevant

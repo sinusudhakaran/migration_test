@@ -223,7 +223,7 @@ Begin
                        Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
                  end;
 
-   whUK: colTax = 0;
+   whUK: colTax := 0;
    end;
 
    OK     := False;

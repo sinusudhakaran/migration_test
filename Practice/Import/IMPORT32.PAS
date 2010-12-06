@@ -57,7 +57,9 @@ uses
   WinUtils,
   DesktopSuper,
   ProSuper,
-  ClassSuperIP;
+  ClassSuperIP,
+  TasBooks,
+  Sage50;
 
 Const
    UnitName = '';
@@ -170,13 +172,13 @@ procedure RefreshChart;
    Begin
       Case MyClient.clFields.clAccounting_System_Used of
          suOther        :;
-         suSageLine50   :;
+         suSageLine50   : Sage50.RefreshChart;
          suQuickBooks   : QuickBooks.RefreshChart;
          suQIF          :;
          suOFXV1        :;
          suOFXV2        :;
          suBK5CSV       : CSVChart.RefreshChart( '*.CSV', 'GENERIC.TPM', iText );
-         suTASBooks     :;
+         suTASBooks     : TasBooks.RefreshChart;
       end;
    end;
 

@@ -21,7 +21,7 @@ uses
   rptParams,
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   OvcBase, OvcEF, OvcPB, OvcNF, ExtCtrls, StdCtrls, MoneyDef, bkConst, bkdefs,
-  ComCtrls, GSTUtil32, RzLine;
+  ComCtrls, GSTUtil32, RzLine, OSFont;
 
 //------------------------------------------------------------------------------
 
@@ -79,8 +79,8 @@ type
     Label55: TLabel;
     Label19: TLabel;
     Label20: TLabel;
-    lblPeriod: TStaticText;
-    lblGSTno: TStaticText;
+    lblPeriod: TLabel;
+    lblGSTno: TLabel;
     pnlVAT: TGroupBox;
     Box1: TStaticText;
     GBAddress: TGroupBox;
@@ -255,8 +255,15 @@ uses
 procedure TfrmVAT.FormCreate(Sender: TObject);
 Var
   i : Integer;
+  function ReFont(Contrl : TLabel): TFont;
+  begin
+     Contrl.Font := self.Font;
+     Contrl.Font.Style := [fsBold];
+     Result := Contrl.Font;
+  end;
+
 begin
-  bkXPThemes.ThemeForm( Self);
+  bkXPThemes.ThemeForm(Self);
 
   for i := 0 to ComponentCount -1 do
   Begin
@@ -272,6 +279,14 @@ begin
        End;
     end;
   End;
+  ReFont(lblName);
+  ReFont(lblGSTno);
+  ReFont(lblPeriod);
+  ReFont(lblBox3);
+  ReFont(lblBox5);
+  ReFont(lMain1).Size := 11;
+
+
   FVAT_Details := TVAT_Details.Create;
   SetUpHelp;
   FCalculated := False;

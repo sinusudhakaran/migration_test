@@ -938,7 +938,8 @@ CONST
    vtPurchasesECStandard        = 13;
    vtPurchasesECReduced         = 14;
    vtPurchasesECZeroRated       = 15;
-   vtPurchasesECExempt          = 16;   vtMax = 16;
+   vtPurchasesECExempt          = 16;
+   vtPurchasesOutsideScope      = 17; vtmax = 17;
 
    vtShortCodes : Array[ vtMin..vtMax ] of String[3] =
     (
@@ -959,7 +960,8 @@ CONST
       'EPS',  {    vtPurchasesECStandard        }
       'EPR',  {    vtPurchasesECReduced         }
       'EPZ',  {    vtPurchasesECZeroRated       }
-      'EPE'   {    vtPurchasesECExempt          }
+      'EPE',  {    vtPurchasesECExempt          }
+      'POS'   {    vtPurchasesOutsideScope      }
     );
 
    vtNames : Array[ vtMin..vtMax ] of String[ 30 ] =
@@ -980,7 +982,8 @@ CONST
       'Purchases EC - Standard Rate', {    vtPurchasesECStandard        }
       'Purchases EC - Reduced Rate',  {    vtPurchasesECReduced         }
       'Purchases EC - Zero Rate',     {    vtPurchasesECZeroRated       }
-      'Purchases EC - Exempt'         {    vtPurchasesECExempt          }
+      'Purchases EC - Exempt',        {    vtPurchasesECExempt          }
+      'Purchases Outside Scope'       {    vtPurchasesOutsideScope      }
     );
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
