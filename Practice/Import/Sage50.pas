@@ -38,8 +38,8 @@ var
    lFile,
    lLine : TStringList;
    I: Integer;
-   aCode: string;
-   aDesc: string;
+   aCode: string[20];
+   aDesc: string[60];
 
    NewAccount: pAccount_Rec;
 begin
@@ -71,18 +71,18 @@ begin
 
       for I := 0 to lFile.Count - 1 do begin
          LLine.DelimitedText := lFile[I];
-         if (colDesc >= LLine.Count) then
-            Continue;
+         if (LLine.Count < colDesc ) then
+            Continue; // Maybe just a blank line at the end...
              //raise ERefreshFailed.Create( Format('File %s is the wrong format', [FromFile]));
 
-         aCode := LLine[colCode];
-         aDesc := lLine[colDesc];
+         aCode := Trim(lLine[colCode]);
+         aDesc := Trim(lLine[colDesc]);
 
-         if (aCode <> '') then begin
+         if (aCode > '') then begin
             if (Result.FindCode(ACode) <> nil) then
                LogUtil.LogMsg(lmError, UnitName,format('Duplicate Code %s found in %s',[ACode, FromFile]))
             else begin
-               {insert new account into chart}
+               //insert new account into chart
                NewAccount := New_Account_Rec;
                with NewAccount^ do begin
                   chAccount_Code  := ACode;
@@ -133,7 +133,7 @@ begin
                clCode,
                ExtractFilePath(ChartFilePath),
                'Sage50 Files|*.CSV',
-               'IIF',
+               'CSV',
                 0 );
          if Sage50FileName = '' then
             Exit;

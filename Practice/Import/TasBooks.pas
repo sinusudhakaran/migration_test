@@ -40,8 +40,8 @@ var
    lFile,
    lLine : TStringList;
    I: Integer;
-   aCode: string;
-   aDesc: string;
+   aCode: string[20];
+   aDesc: string[60];
    colCode,
    colDesc,
    colActive: integer;
@@ -86,18 +86,23 @@ begin
 
       if (colCode < 0)
       or (colDesc < 0)then
-          raise ERefreshFailed.Create( Format('File %s is the wrong format', [FromFile]));
+          raise ERefreshFailed.Create(Format('File %s is the wrong format', [FromFile]));
 
       for I := 1 to lFile.Count - 1 do begin// Skip The HeaderLine
          LLine.DelimitedText := lFile[I];
          if (colCode >= LLine.Count)
          or (colDesc >= LLine.Count) then
-             raise ERefreshFailed.Create( Format('File %s is the wrong format', [FromFile]));
+            continue; // Maybe jus a blank line at the end...
+            //raise ERefreshFailed.Create(Format('File %s is the wrong format', [FromFile]));
 
-         aCode := LLine[colCode];
-         aDesc := lLine[colDesc];
+         aCode := Trim(lLine[colCode]);
+         aDesc := trim(lLine[colDesc]);
 
-         if (aCode <> '') then begin
+         if (aCode > '') then begin
+
+            if aCode[1] = '*' then
+               Break; // Footer Block
+
             if (result.FindCode(ACode) <> nil) then
                LogUtil.LogMsg(lmError, UnitName,format('Duplicate Code %s found in %s',[ACode, FromFile]))
             else begin
@@ -110,8 +115,10 @@ begin
 
                   if (colActive > -1)
                   and (colActive < LLine.Count) then begin
-                     ACode := LLine[colActive];
-                     
+                     ACode := Uppercase(LLine[colActive]);
+                     if (ACode > '')
+                     and (ACode[1] <> 'Y') then
+                        chPosting_Allowed := False;
                   end;
 
                end;
