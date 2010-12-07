@@ -164,6 +164,7 @@ var
   b: TBank_Account;
   PasswordCorrect: Boolean;
   LExchangeRates: TExchangeRateList;
+  ISOCodes: TStrings;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -479,18 +480,6 @@ begin
        APPTIME.StopTime;
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-       //Load exchange rates
-       if Assigned(AdminSystem) then begin
-         if Client.HasForeignCurrencyAccounts then begin
-           LExchangeRates := GetExchangeRates;
-           try
-             if LExchangeRates.ItemCount > 0 then
-               Client.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
-           finally
-             LExchangeRates.Free;
-           end;
-         end;
-       end;
 
        //Strip out any master memorised entries if there is an admin system
        StripMasterMemorised(Client);
@@ -513,19 +502,45 @@ begin
        if Client.clFields.clFile_Read_Only then
          Msg := Msg + ' (READ-ONLY)'
        else if Assigned(AdminSystem) then
-       begin  // see if manual accounts need sending to admin
-         if HasManualAccounts(Client, True) and LoadAdminSystem(True, ThisMethodName) then
+       begin
+         //Load exchange rates
+         if Client.HasForeignCurrencyAccounts then begin
+           LExchangeRates := GetExchangeRates;
+           try
+             if LExchangeRates.ItemCount > 0 then
+               Client.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
+           finally
+             LExchangeRates.Free;
+           end;
+         end;
+         //Update AdminSystem
+         if LoadAdminSystem(True, ThisMethodName) then
          begin
-           for i := Client.clBank_Account_List.First to Client.clBank_Account_List.Last do
-           begin
-             b := Client.clBank_Account_List.Bank_Account_At(i);
-             if (b.IsManual)
-             and (not b.baFields.baManual_Account_Sent_To_Admin)
-             and (b.baFields.baManual_Account_Type <> -1) then
+           //Update ISO code list in Client File Rec
+           ISOCodes := TStringList.Create;
+           try
+             //Get list ISO codes used in the Client File
+             Client.FillIsoCodeList(ISOCodes);
+             //Update Client File Rec
+             CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
+             if Assigned(CFRec) then
+               AdminSystem.AddISOCodes(CFRec, ISOCodes);
+           finally
+             ISOCodes.Free;
+           end;
+           // see if manual accounts need sending to admin
+           if HasManualAccounts(Client, True) then begin
+             for i := Client.clBank_Account_List.First to Client.clBank_Account_List.Last do
              begin
-               b.baFields.baManual_Account_Sent_To_Admin := True;
-               AdminSystem.fdFields.fdManual_Account_XML := AdminSystem.fdFields.fdManual_Account_XML +
-                  MakeManualXMLString(mtNames[b.baFields.baManual_Account_Type], b.baFields.baManual_Account_Institution);
+               b := Client.clBank_Account_List.Bank_Account_At(i);
+               if (b.IsManual)
+               and (not b.baFields.baManual_Account_Sent_To_Admin)
+               and (b.baFields.baManual_Account_Type <> -1) then
+               begin
+                 b.baFields.baManual_Account_Sent_To_Admin := True;
+                 AdminSystem.fdFields.fdManual_Account_XML := AdminSystem.fdFields.fdManual_Account_XML +
+                    MakeManualXMLString(mtNames[b.baFields.baManual_Account_Type], b.baFields.baManual_Account_Institution);
+               end;
              end;
            end;
            SaveAdminSystem;

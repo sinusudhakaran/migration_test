@@ -59,7 +59,12 @@ type
       function MoneyStr(const Amount: Money): string;
       property CurrencyCode: string read GetCurrencyCode;
       function HasMultiCurrency: Boolean;
+      function HasCurrencyBankAccount(ISOCode: string; AddIfMissing: Boolean = False): Boolean;
+      procedure ClearISOCodes(pCF : pClient_File_Rec);
+      procedure AddISOCode(pCF : pClient_File_Rec; ISOCode: string);
+      procedure AddISOCodes(pCF : pClient_File_Rec; ISOCodes: TStrings);
       procedure SyncCurrenciesToSystemAccounts;
+      procedure ForceCurrency(ISO: shortstring; CurType: Byte);
       function NewSystemAccount(AccNumber: string; Delivered: Boolean):pSystem_Bank_Account_Rec;
 {$ENDIF}
   end;
@@ -435,29 +440,93 @@ begin
   Result := False;
 end;
 
-procedure TSystemObj.SyncCurrenciesToSystemAccounts;
-var I: Integer;
-
-    procedure ForceCurrency(ISO: shortstring; CurType: Byte);
-    var c: Integer;
-    begin
-       for C := low(fCurrencyList .ehISO_Codes) to high(fCurrencyList.ehISO_Codes) do
-          if SameText(fCurrencyList.ehISO_Codes[C],ISO) then begin
-             fCurrencyList.ehCur_Type[C] := CurType;
-             Exit; // Im done..
-          end else if fCurrencyList.ehISO_Codes[C] = '' then begin
-             fCurrencyList.ehISO_Codes[C] := Uppercase(ISO);
-             fCurrencyList.ehCur_Type[C] := CurType;
-             Exit;
+function TSystemObj.HasCurrencyBankAccount(ISOCode: string; AddIfMissing: Boolean): Boolean;
+var
+  i, j: integer;
+  pCF : pClient_File_Rec;
+begin
+  Result := False;
+  for i := 0 to Pred(fdSystem_Client_File_List.ItemCount) do begin
+    pCF := fdSystem_Client_File_List.Client_File_At(i);
+    if Assigned(pCF) then begin
+      for j := Low(pCF.cfISO_Codes) to High(pCF.cfISO_Codes) do begin
+        if (pCF.cfISO_Codes[j] = ISOCode) then begin
+          Result := True;
+          Exit;
+        end;
+      end;
+      //Still here - then mustn't be in the list
+      if AddIfMissing then
+        for j := Low(pCF.cfISO_Codes) to High(pCF.cfISO_Codes) do begin
+          if (pCF.cfISO_Codes[j] = '') then begin
+            pCF.cfISO_Codes[j] := ISOCode;
+            Exit;
           end;
+        end;
     end;
+  end;
+end;
+
+procedure TSystemObj.ClearISOCodes(pCF : pClient_File_Rec);
+var
+  i: integer;
+begin
+  //Clear the array
+  if Assigned(pCF) then
+    for i := Low(pCF.cfISO_Codes) to High(pCF.cfISO_Codes) do
+      pCF.cfISO_Codes[i] := '';
+end;
+
+procedure TSystemObj.AddISOCode(pCF : pClient_File_Rec; ISOCode: string);
+var
+  i: integer;
+begin
+  //Add currency to AdminSystem list if it doesn't exist
+  ForceCurrency(ISOCode, ct_User);
+
+  //Add an ISO code to Client File Rec
+  for i := Low(pCF.cfISO_Codes) to High(pCF.cfISO_Codes) do begin
+    if (pCF.cfISO_Codes[i] = ISOCode) then
+      Exit; //Already exists
+    if (pCF.cfISO_Codes[i] = '') then begin
+      pCF.cfISO_Codes[i] := ISOCode;
+      Exit;
+    end;
+  end;
+end;
+
+procedure TSystemObj.AddISOCodes(pCF : pClient_File_Rec; ISOCodes: TStrings);
+var
+  i: integer;
+begin
+  ClearISOCodes(pCF);
+  for i := 0 to ISOCodes.Count - 1 do
+    AddISOCode(pCF, ISOCodes[i]);
+end;
+
+procedure TSystemObj.ForceCurrency(ISO: shortstring; CurType: Byte);
+var c: Integer;
+begin
+   for C := low(fCurrencyList .ehISO_Codes) to high(fCurrencyList.ehISO_Codes) do
+      if SameText(fCurrencyList.ehISO_Codes[C],ISO) then begin
+         fCurrencyList.ehCur_Type[C] := CurType;
+         Exit; // Im done..
+      end else if fCurrencyList.ehISO_Codes[C] = '' then begin
+         fCurrencyList.ehISO_Codes[C] := Uppercase(ISO);
+         fCurrencyList.ehCur_Type[C] := CurType;
+         Exit;
+      end;
+end;
+
+procedure TSystemObj.SyncCurrenciesToSystemAccounts;
+var
+   I: Integer;
 begin
    ForceCurrency(CurrencyCode,ct_Base);
    for I := fdSystem_Bank_Account_List.First to fdSystem_Bank_Account_List.Last do
       with fdSystem_Bank_Account_List.System_Bank_Account_At(I)^ do
          if sbCurrency_Code <> CurrencyCode then
             ForceCurrency(sbCurrency_Code,ct_System);
-
 end;
 
 

@@ -1402,6 +1402,51 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     end;
   end;
 
+  procedure UpgradeAdminToVersion122;
+  var
+    i: Integer;
+    pCF : pClient_File_Rec;
+    aClient : TClientObj;
+    ISOList: TStringList;
+  begin
+    //update the ISO codes for all client files
+    UpgradingToVersion := 122;
+
+    //Only upgrade currencies for UK
+    if AdminSystem.fdFields.fdCountry <> whUK then Exit;    
+
+    aClient := nil;
+    ISOList := TStringList.Create;
+    try
+      for i := AdminSystem.fdSystem_Client_File_List.First to AdminSystem.fdSystem_Client_File_List.Last do
+      begin
+        pCF := AdminSystem.fdSystem_Client_File_List.Client_File_At( i);
+
+        Progress.UpdateAppStatusPerc_NR((i /AdminSystem.fdSystem_Client_File_List.ItemCount * 100));
+        Progress.UpdateAppStatusLine2( 'Updating currency details for ' + pCF^.cfFile_Code, ProcessMessages_On);
+        try
+          OpenAClientForRead( pCF^.cfFile_Code, aClient);
+          try
+            if Assigned( aClient) then begin
+              //Update ISO Codes in Client File Rec
+              aClient.FillIsoCodeList(ISOList);
+              AdminSystem.AddISOCodes(pCF, ISOList);
+            end else
+                   LogMsg( lmError, UnitName ,'Could not update currency Details for ' + pCF^.cfFile_Code);
+          finally
+            FreeAndNil( aClient);
+          end;
+        except
+          on E : Exception do
+            raise EUpgradeAdmin.Create( 'Error updating currency details for ' + pCF^.cfFile_Code +
+                                        ' ' + E.Message + ' ' + E.Classname);
+        end;
+      end;
+    finally
+      ISOList.Free;
+    end;
+  end;
+
 
 Const
    ThisMethodName = 'DoUpgradeAdminToLatestVersion';
@@ -1708,7 +1753,6 @@ Begin
 
          if ( fdFile_Version < 113) then begin
             Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 113');
-            //RefreshAllProcessingStatistics(True, False, True); Moved to latest
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
          end;
 
@@ -1733,7 +1777,14 @@ Begin
          if ( fdFile_Version < 120) then begin
             Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 120');
             UpgradeAdminToVersion120;
-            RefreshAllProcessingStatistics(True, False, True);
+            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
+         end;
+          // UK multi-currency 2011
+         if ( fdFile_Version < 122) then begin
+            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 122');
+            UpgradeAdminToVersion122;
+            if (OriginalVersion < 120) then  //No need to update if already on v120
+              RefreshAllProcessingStatistics(True, False, True); //Always move to last upgrade
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
          end;
 

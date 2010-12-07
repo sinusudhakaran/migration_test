@@ -77,6 +77,7 @@ type
     function HasForeignCurrencyAccounts : Boolean;
     function HasExchangeRates(var ISOCodeText: string;
       const FromDate: integer = 0; const ToDate: integer = MaxInt; ForReport: boolean = False): Boolean;
+    procedure FillIsoCodeList(ISOCodes: TStrings);
     procedure FillAccountingSystemList(Value: Tstrings);
 
     { How should we represent money in this country }
@@ -620,6 +621,24 @@ begin
    finally
       Value.EndUpdate;
    end;
+end;
+
+procedure TClientObj.FillIsoCodeList(ISOCodes: TStrings);
+var
+  i: integer;
+  BA: TBank_Account;
+begin
+  if not Assigned(ISOCodes) then Exit;
+
+  ISOCodes.Clear;
+  for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
+    BA := clBank_Account_List.Bank_Account_At(i);
+    if Assigned(BA) then begin
+      if ISOCodes.IndexOf(BA.baFields.baCurrency_Code) = -1 then
+        ISOCodes.Add(BA.baFields.baCurrency_Code);
+    end;
+  end;
+  TStringList(ISOCodes).Sort;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

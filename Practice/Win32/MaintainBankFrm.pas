@@ -48,7 +48,7 @@ type
     procedure RefreshBankAccountList;
     function DeleteBankAccount(BankAccount : TBank_Account) :boolean;
     procedure SetUpdateRefNeeded(const Value: boolean);
-
+    procedure UpdateISOCodes;
     {$IFNDEF SmartBooks}
     procedure CreateManualAccount;
     {$ENDIF}
@@ -158,7 +158,7 @@ begin
       BankAcct :=  Bank_Account_At(i);
 
       //if not (BankAcct.IsAJournalAccount) then
-      if BankAcct.baFields.baAccount_Type <> btStockBalances then      
+      if BankAcct.baFields.baAccount_Type <> btStockBalances then
       begin
         NewItem := lvBank.Items.Add;
         NewItem.Caption := BankAcct.baFields.baBank_Account_Number;
@@ -167,9 +167,6 @@ begin
           NewItem.ImageIndex := MAINTAIN_PAGE_OPEN_BMP
         else
            NewItem.ImageIndex := MAINTAIN_PAGE_NORMAL_BMP;
-
-//        if BankAcct.IsAForexAccount and ( BankAcct.baFields.baDefault_Forex_Source = '' ) then
-//          NewItem.ImageIndex := MAINTAIN_ALERT;
 
         if ( BankAcct.baFields.baAccount_Type = btBank ) and
            ContraCodeRequired( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used )
@@ -384,6 +381,8 @@ begin
           i := AdminSystem.fdSystem_Client_Account_Map.FindIndexOf(pS^.sbLRN, pF^.cfLRN);
           if i > -1 then
             AdminSystem.fdSystem_Client_Account_Map.AtDelete(i);
+          //Update ISO Code list
+          AdminSystem.HasCurrencyBankAccount('');
         end;
         // Update unattached flag
         if not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindFirstClient(pS^.sbLRN)) then
@@ -469,6 +468,8 @@ begin
        UpdateRefNeeded := true;
        AccountChanged := True;
        RefreshBankAccountList;
+       //Update ISO Codes in Client_File_Rec
+       UpdateISOCodes;
        ReselectAndScroll(lvBank, PrevSelectedIndex, PrevTopIndex);
       end;
     end;
@@ -590,6 +591,8 @@ begin
    if EditBankAccount( DummyAccount, True) then begin
       //if user did not cancel add account to client
       MyClient.clBank_Account_List.Insert( DummyAccount);
+      //Update ISO Codes in Client_File_Rec
+      UpdateISOCodes;
       RefreshBankAccountList;
       AccountChanged := True;
    end
@@ -620,6 +623,30 @@ end;
 procedure TfrmMaintainBank.tbHelpClick(Sender: TObject);
 begin
   BKHelpShow(Self);
+end;
+
+procedure TfrmMaintainBank.UpdateISOCodes;
+var
+  i: integer;
+  b: TBank_Account;
+  pF: pClient_File_Rec;
+begin
+  if MyClient.clFields.clFile_Read_Only then Exit;
+
+  if Assigned(AdminSystem) then begin
+    //Save
+    if LoadAdminSystem(true, 'TfrmMaintainBank.UpdateISOCodes' ) then begin
+      pF := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
+      if Assigned(pF) then begin
+        AdminSystem.ClearISOCodes(pF);
+        for i := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do begin
+          b := MyClient.clBank_Account_List.Bank_Account_At(i);
+          AdminSystem.AddISOCode(pF, b.baFields.baCurrency_Code);
+        end;
+      end;
+      SaveAdminSystem;
+    end;
+  end;
 end;
 
 procedure TfrmMaintainBank.FormShow(Sender: TObject);

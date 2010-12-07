@@ -830,9 +830,11 @@ begin
      ManualCount := 0;
      BankCount := 0;
      MemCount := 0;
+     AdminSystem.ClearISOCodes(AdminClientRec);
      for i := 0 to Pred(aClient.clBank_Account_List.ItemCount) do
      begin
        b := aClient.clBank_Account_List.Bank_Account_At(i);
+       AdminSystem.AddISOCode(AdminClientRec, b.baFields.baCurrency_Code);
        if b.IsManual then
          Inc(ManualCount)
        else if b.baFields.baAccount_Type = btBank then
@@ -867,6 +869,7 @@ begin
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
 
 {-------------------------------------------------------------------------}
 procedure StripMasterMemorised(aClient : TClientObj);

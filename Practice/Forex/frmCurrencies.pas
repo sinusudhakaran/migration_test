@@ -319,7 +319,7 @@ begin
    // Looking at the style list
    Ls := TCurrencyTreeItem(FTreeList.GetNodeItem(vtCurrencies.GetFirstSelected));
    if Assigned(Ls) then begin
-      acdelete.Enabled := (ls.FCurType = ct_User);
+      acdelete.Enabled := (ls.FCurType = ct_User) and (not AdminSystem.HasCurrencyBankAccount(ls.FISO));
    end else begin
       acdelete.Enabled := False;
    end;

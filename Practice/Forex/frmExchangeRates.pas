@@ -603,24 +603,35 @@ end;
 
 function SetRateForMonth(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
 var
-  i: integer;
   FromDate, ToDate: integer;
+
+  procedure RemoveDate(ADate: integer; Update: Boolean = True);
+  var
+    i: integer;
+  begin
+    if Update then
+      for i := 1 to TSetForMonth(OtherData^).FExchangeRecord.Width do
+        TExchangeRecord(Node.Data).Rates[i] := TSetForMonth(OtherData^).FExchangeRecord.Rates[i];
+    if TSetForMonth(OtherData^).FDatesToAdd.IndexOf(Pointer(ADate)) <> -1 then
+      TSetForMonth(OtherData^).FDatesToAdd.Delete(TSetForMonth(OtherData^).FDatesToAdd.IndexOf(Pointer(ADate)));
+  end;
+
 begin
   Result := true;
 
   FromDate := TSetForMonth(OtherData^).FRange.FromDate;
   ToDate := TSetForMonth(OtherData^).FRange.ToDate;
 
-  if TExchangeRecord(Node.Data).Locked then
+  if TExchangeRecord(Node.Data).Locked then begin
+    RemoveDate(TExchangeRecord(Node.Data).FDate, False); //Can't set rates for a locked date
     Exit;
+  end;
   if TExchangeRecord(Node.Data).Date < FromDate then
     Exit;
   if TExchangeRecord(Node.Data).Date > ToDate then
     Exit;
 
-  for i := 1 to TSetForMonth(OtherData^).FExchangeRecord.Width do
-    TExchangeRecord(Node.Data).Rates[i] := TSetForMonth(OtherData^).FExchangeRecord.Rates[i];
-  TSetForMonth(OtherData^).FDatesToAdd.Delete(TSetForMonth(OtherData^).FDatesToAdd.IndexOf(Pointer(TExchangeRecord(Node.Data).FDate)));
+  RemoveDate(TExchangeRecord(Node.Data).FDate);
 end;
 
 procedure TExchangeRatesfrm.miSetForWholeMonthClick(Sender: TObject);
@@ -642,6 +653,7 @@ begin
         NewExchangeRecord := TExchangeRecord.Create(0, ExchangeRecord.Width);
         NewExchangeRecord.Assign(ExchangeRecord);
         NewExchangeRecord.FDate := Integer(SetForMonth.FDatesToAdd[i]);
+        NewExchangeRecord.Locked := False;
         FSource.ExchangeTree.Insert(NewExchangeRecord);
         FTreeList.AddNodeItem(nil, TExchangeTreeItem.Create(NewExchangeRecord));
       end;
