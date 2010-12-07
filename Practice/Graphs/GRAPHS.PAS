@@ -761,7 +761,7 @@ begin
                end;
 
                VerifyFinancialReportPreconditions(Client);
-               if not CheckExchangeRates(Client, FromDate, Period) then Exit;
+               if not CheckExchangeRates(Client, FromDate, Period) then Continue;
                CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
                cTotals.Calculate( Division);
 
@@ -958,7 +958,7 @@ begin
               end;
 
               VerifyFinancialReportPreconditions(Client);
-              if not CheckExchangeRates(Client, FromDate, Period) then Exit;
+              if not CheckExchangeRates(Client, FromDate, Period) then Continue;
               CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
 
               cTotals.Calculate(Division);
@@ -1209,7 +1209,7 @@ begin
             end;
 
             VerifyFinancialReportPreconditions(Client);
-            if not CheckExchangeRates(Client, FromDate, Period) then Exit;
+            if not CheckExchangeRates(Client, FromDate, Period) then Continue;
             //need to fill the period start/end dates so call calc totals
             CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
 
@@ -1504,7 +1504,7 @@ begin
               end;
 
               VerifyFinancialReportPreconditions(Client);
-              if not CheckExchangeRates(Client, FromDate, Period) then Exit;
+              if not CheckExchangeRates(Client, FromDate, Period) then Continue;
               CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
               cTotals.Calculate(Division);
 
@@ -1636,7 +1636,7 @@ begin
                end;
 
                VerifyFinancialReportPreconditions(Client);
-               if not CheckExchangeRates(Client, FromDate, Period) then Exit;
+               if not CheckExchangeRates(Client, FromDate, Period) then Continue;
                CalculateAccountTotals.CalculateAccountTotalsForClient(Client);
                cTotals.Calculate(Division);
 
