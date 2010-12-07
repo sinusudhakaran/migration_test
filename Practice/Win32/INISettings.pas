@@ -612,7 +612,7 @@ begin
         PRACINI_PaperSmartBooks  := ReadBool(GrpPracEnv,'PaperSmartBooks',False);
         PRACINI_CRCFileTest  := ReadBool(GrpPracEnv,'CRCFileTest',False);
 
-        PRACINI_FuelCreditRates := ReadString(GrpPracEnv,'FuelCreditRates', '17.143,38.143,19.0715,16.443');
+        PRACINI_FuelCreditRates := ReadString(GrpPracEnv,'FuelCreditRates', '15.543,19.0715,38.143');
         PRACINI_Check_Data_Minutes := ReadInteger(GrpPracEnv, 'CheckDataMinutes',30); // read only at the moment
 
         PRACINI_AutoUpdateProcessing := ReadBool( GrpPracEnv,'AutoUpdateProcessing', PRACINI_AutoUpdateProcessing);
