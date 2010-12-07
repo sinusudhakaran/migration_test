@@ -25,6 +25,10 @@ object dlgEditBank: TdlgEditBank
     TabOrder = 0
     object tbDetails: TTabSheet
       Caption = '&Details'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblNo: TLabel
         Left = 24
         Top = 12

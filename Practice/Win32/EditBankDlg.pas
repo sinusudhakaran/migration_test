@@ -182,10 +182,16 @@ begin
   cmbCurrency.Items.BeginUpdate;
   try
     cmbCurrency.Clear;
-    AdminSystem.SyncCurrenciesToSystemAccounts;
-    for i := low(AdminSystem.fCurrencyList.ehISO_Codes) to high(AdminSystem.fCurrencyList.ehISO_Codes) do
-      if AdminSystem.fCurrencyList.ehISO_Codes[i] > '' then
-        cmbCurrency.Items.Add(AdminSystem.fCurrencyList.ehISO_Codes[i]);
+    if Assigned(AdminSystem) then begin
+      AdminSystem.SyncCurrenciesToSystemAccounts;
+      for i := low(AdminSystem.fCurrencyList.ehISO_Codes) to high(AdminSystem.fCurrencyList.ehISO_Codes) do
+        if AdminSystem.fCurrencyList.ehISO_Codes[i] > '' then
+          cmbCurrency.Items.Add(AdminSystem.fCurrencyList.ehISO_Codes[i]);
+    end else begin
+      for i := low(MyClient.ExchangeSource.Header.ehISO_Codes) to high(MyClient.ExchangeSource.Header.ehISO_Codes) do
+        if MyClient.ExchangeSource.Header.ehISO_Codes[i] > '' then
+          cmbCurrency.Items.Add(MyClient.ExchangeSource.Header.ehISO_Codes[i]);
+    end;
   finally
     cmbCurrency.Items.EndUpdate;
     Screen.Cursor := Cursor;
