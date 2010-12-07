@@ -3,7 +3,7 @@ unit Files;
 {$WARN SYMBOL_PLATFORM OFF}
 
 interface
-xxx
+
 uses
   Dialogs, Classes, Windows, Sysutils,
   LogUtil, clObj32, ChkProgressFrm;
