@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 344;
-   SY_IOLIB_Date    = '14/05/10';
-   SY_FILE_VERSION   = 121;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 345;
+   SY_IOLIB_Date    = '06/12/10';
+   SY_FILE_VERSION   = 122;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -119,6 +119,7 @@ Const
        5.17.1 (WebNotes) 121   Add Custom Document for Webnotes email
                            Add Webnotes Email Notification flags.
                            Add WebNotes available status
+       5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
    *)
 
 {  -------------------------------------------------------------------  }
@@ -453,6 +454,7 @@ Type
       cfBulk_Extract_Code                : String[ 8 ];       { Stored }
       cfWebNotesAvailable                : Array[ 1..36 ] of Byte;       { Stored }
       cfWebNotes_Email_Notifications     : Integer;       { Stored }
+      cfISO_Codes                        : Array[ 1..99 ] of String[ 3 ];       { Stored }
       cfEOR                              : Byte;
    end;
 

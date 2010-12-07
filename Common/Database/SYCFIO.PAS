@@ -95,6 +95,7 @@ CONST
    tkcfBulk_Extract_Code                = 131 ;
    tkcfWebNotesAvailable                = 132 ;
    tkcfWebNotes_Email_Notifications     = 133 ;
+   tkcfISO_Codes                        = 134 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -175,6 +176,7 @@ Begin
       F.WriteStringValue( tkcfBulk_Extract_Code , cfBulk_Extract_Code );
       For i := 1 to 36 do F.WriteBByteValue( tkcfWebNotesAvailable , i, cfWebNotesAvailable[ i ] );
       F.WriteIntegerValue( tkcfWebNotes_Email_Notifications , cfWebNotes_Email_Notifications );
+      For i := 1 to 99 do F.WriteBStringValue( tkcfISO_Codes , i, cfISO_Codes[ i ] );
       F.WriteToken( tkEnd_Client_File );
    end;
 end; { of Write_Client_File_Rec }
@@ -187,6 +189,7 @@ Var
    Token : Byte;
    I     : Byte;
    B     : Byte;   
+   S     : ShortString;
 
 Begin
    FillChar( O, Client_File_Rec_Size, 0 );
@@ -276,6 +279,12 @@ Begin
                cfWebNotesAvailable[ I ] := B;
             end;
          tkcfWebNotes_Email_Notifications     : cfWebNotes_Email_Notifications := F.ReadIntegerValue;
+         tkcfISO_Codes                        : 
+            Begin
+               S := F.ReadBStringValue( I );
+               CheckBounds( I, 1, 99, 'cfISO_Codes' );
+               cfISO_Codes[ I ] := S;
+            end;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }

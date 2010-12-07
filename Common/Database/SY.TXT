@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 121;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 122;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -106,6 +106,7 @@ $|                  120   Add frequency change pending column to system bank acc
 $|    5.17.1 (WebNotes) 121   Add Custom Document for Webnotes email
 $|                        Add Webnotes Email Notification flags.
 $|                        Add WebNotes available status
+$|    5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
 $|*)
 
 N|Practice Details|fd|10
@@ -408,6 +409,7 @@ F|GST Start Month|B
 F|Bulk Extract Code|S|8
 F|WebNotesAvailable|BB|36
 F|WebNotes Email Notifications|L
+F|ISO Codes|BS|99|3
 E
 
 N|File Access Mapping|ac|100
