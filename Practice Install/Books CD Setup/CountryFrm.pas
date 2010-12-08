@@ -44,6 +44,7 @@ begin
         case iLocale of
           CTRY_NEW_ZEALAND : cmbCountry.ItemIndex := 1;
           CTRY_AUSTRALIA   : cmbCountry.ItemIndex := 0;
+          CTRY_UNITED_KINGDOM   : cmbCountry.ItemIndex := 2;
         end;
       end;
 
@@ -52,6 +53,7 @@ begin
         case cmbCountry.ItemIndex of
           0 : result := 1;  //whAustralia
           1 : result := 0;  //whNewZealand
+          2 : result := 2;  //whUK
         end;
       end;
 

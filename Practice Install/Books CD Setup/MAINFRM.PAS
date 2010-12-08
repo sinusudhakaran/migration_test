@@ -83,6 +83,7 @@ begin
    case cid of
      0 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\BOOKS\NZ\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
      1 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\BOOKS\AU\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
+     2 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\BOOKS\UK\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
    end;
 end;
 
@@ -95,6 +96,7 @@ begin
    case cid of
      0 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\UPDATES\NZ\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
      1 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\UPDATES\AU\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
+     2 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\UPDATES\UK\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);     
    end;
 end;
 
