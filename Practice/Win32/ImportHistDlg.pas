@@ -620,6 +620,8 @@ begin
 
         pt.txReference := TOutItem(fOutlist[R]).Strings[SubRef];
 
+        if BankAccount.IsAForexAccount then
+          pT.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate( pT.txDate_Effective );
 
         if fSubAna >= 0 then
            pt^.txAnalysis := TOutItem(fOutlist[R]).Strings[fSubAna];
