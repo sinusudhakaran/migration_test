@@ -196,6 +196,10 @@ var
 begin
   result := 0;
 
+  //If no date range set then count all?
+  if (d1 = 0) and (d2 = 0)then
+    d2 := MaxInt;
+
   case SelType of
     SelectAllTrx,
     SelectManual : result := ba.baTransaction_List.ItemCount;
