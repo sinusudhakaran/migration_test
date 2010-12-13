@@ -29,7 +29,8 @@ IMPLEMENTATION USES
   glConst,
   logutil,
   sysutils,
-  stStrs;
+  stStrs,
+  ForexHelpers;
 
 const
    UnitName = 'GSTCALC32';
@@ -222,7 +223,7 @@ var
    DefaultGSTAmt   : money;
 begin
    with pT^ do begin
-      CalculateGST( aClient, txDate_Effective, txAccount, txAmount,
+      CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount,
                     DefaultGSTClass, DefaultGSTAmt);
 
       result := (txGST_Class <> DefaultGSTClass) or (txGST_Amount <> DefaultGSTAmt);

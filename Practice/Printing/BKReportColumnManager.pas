@@ -252,7 +252,7 @@ uses
   MoneyDef,
   Globals, bkdateutils, PayeeObj, RptCoding, GenUtils, TransactionUtils,
   CodingRepDlg, baObj32, UserReportSettings, Math, GSTCALC32,
-  rptCodingScheduled;
+  rptCodingScheduled, ForexHelpers;
 
 { TReportColumnItem }
 
@@ -1257,17 +1257,19 @@ begin
 //                                  if FTravManager.Bank_Account.IsAForexAccount then
 //                                     FBkReport.PutMoney(Transaction_Rec.txForeign_Currency_Amount)
 //                                  else
+//                                     FBkReport.PutMoney(Transaction_Rec.txAmount);
                                      FBkReport.PutMoney(Transaction_Rec.txAmount);
 
-      tktxForex_Conversion_Rate : if FTravManager.Bank_Account.IsAForexAccount
-                                  and (Transaction_Rec.txForex_Conversion_Rate <> 0) then
-                                     FBkReport.PutString(ForexRate2Str(Transaction_Rec.txForex_Conversion_Rate))
+      tktxForex_Conversion_Rate : if FTravManager.Bank_Account.IsAForexAccount then
+//                                  and (Transaction_Rec.txForex_Conversion_Rate <> 0) then
+//                                     FBkReport.PutString(ForexRate2Str(Transaction_Rec.txForex_Conversion_Rate))
+                                     FBkReport.PutString(ForexRate2Str(Transaction_Rec.Default_Forex_Rate))
                                   else
                                      FBKReport.SkipColumn;
 
       tktxForeign_Currency_Amount : // Local amount
                                   if FTravManager.Bank_Account.IsAForexAccount then
-                                     FBkReport.PutMoney(Transaction_Rec.txAmount)
+                                     FBkReport.PutMoney(Transaction_Rec.Local_Amount)
                                   else
                                      FBKReport.SkipColumn;
 

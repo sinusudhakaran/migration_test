@@ -585,14 +585,18 @@ begin
 end;
 
 function TImportExchange.GetSelectedcol(index: Integer): Boolean;
-var C: Integer;
+var C, Idx, ObjIdx: Integer;
 begin
    Result := True;
    for C := Low(FColumnControls) to High(FColumnControls) do
-     if FColumnControls[C] is TComboBox then with TComboBox(FColumnControls[C] ) do
-         if ItemIndex >=0 then
-            if Integer(Items.Objects[ItemIndex]) = index then
+     if FColumnControls[C] is TComboBox then begin
+         Idx := TComboBox(FColumnControls[C]).ItemIndex;
+         if Idx >=0 then begin
+            ObjIdx := Integer(TComboBox(FColumnControls[C]).Items.Objects[Idx]);
+            if ObjIdx = index then
                Exit;
+         end;
+     end;
    // Still here...
    Result := False;
 end;

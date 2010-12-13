@@ -196,7 +196,8 @@ Begin
                If ( txFirst_Dissection=NIL ) then
                Begin
                   If ( txGST_Class = 0 ) and ( not txGST_Has_Been_Edited) then begin  //if the gst has been edited then txHas_Been with be set
-                     CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+//                     CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+                     CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
                      txGST_Has_Been_Edited := false;
                   end;
                   Continue;
@@ -306,12 +307,14 @@ Begin
                       if MemorisationLine.mlGST_Has_Been_Edited then
                         begin
                           txGST_Class := MemorisationLine.mlGST_Class;
-                          txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, txAmount, txGST_Class );
+//                          txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, txAmount, txGST_Class );
+                          txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class );
                           txGST_Has_Been_Edited := true;
                         end
                       else
                         begin
-                          CalculateGST( aClient,txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+//                          CalculateGST( aClient,txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+                          CalculateGST( aClient,txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
                           txGST_Has_Been_Edited := false;
                         end;
 
@@ -538,11 +541,13 @@ Begin
                                  //calculate GST.  If has been edited then use class, otherwise use default
                                  if ( PayeeLine.plGST_Has_Been_Edited) then begin
                                     txGST_Class    := PayeeLine.plGST_Class;
-                                    txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, txAmount, txGST_Class);
+//                                    txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, txAmount, txGST_Class);
+                                    txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class);
                                     txGST_Has_Been_Edited := true;
                                  end
                                  else begin
-                                    CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
+ //                                   CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
+                                    CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);
                                     txGST_Has_Been_Edited := false;
                                  end;
                                end;
@@ -688,7 +693,8 @@ Begin
                           //match found
                           txAccount      := TestCode;
                           txCoded_By     := cbAnalysis;
-                          CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+//                          CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+                          CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
                           txGST_Has_Been_Edited := false;
                           Continue;
                        end;

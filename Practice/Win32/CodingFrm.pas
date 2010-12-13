@@ -2402,14 +2402,16 @@ begin
 
          //is transaction a dissection
          If ( txFirst_Dissection = NIL ) then begin
-            CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+//            CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+            CalculateGST( MyClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
             txGST_Has_Been_Edited := false;
          end
          else begin
             Dissection := txFirst_Dissection;
             while Dissection <> nil do begin
                with Dissection^ do begin
-                 CalculateGST( MyClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
+//                 CalculateGST( MyClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
+                 CalculateGST( MyClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
                  dsGST_Has_Been_Edited := false;
                  Dissection := dsNext;
                end;
@@ -3820,7 +3822,8 @@ Begin
       end;
 
       { Normal post account code processing - calculate the GST class and amount and flag the transaction as manually coded }
-      CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+//      CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+      CalculateGST( MyClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
       if (txCoded_By <> cbManualSuper) then //keep
          txCoded_By := cbManual;
       txGST_Has_Been_Edited := False;
@@ -3833,7 +3836,8 @@ begin
       if txGST_Class = 0 then
          txGST_Amount := 0
       else
-         txGST_Amount := ( CalculateGSTForClass( MyClient,  txDate_Effective, txAmount, txGST_Class ) );
+//         txGST_Amount := ( CalculateGSTForClass( MyClient,  txDate_Effective, txAmount, txGST_Class ) );
+         txGST_Amount := ( CalculateGSTForClass( MyClient,  txDate_Effective, Local_Amount, txGST_Class ) );
    end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3946,11 +3950,13 @@ begin
 
           if (PayeeLine.plGST_Has_Been_Edited) then begin
              txGST_Class    := PayeeLine.plGST_Class;
-             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class);
+//             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class);
+             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, txGST_Class);
              txGST_Has_Been_Edited := true;
           end
           else begin
-             CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
+//             CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
+             CalculateGST( MyClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);
              txGST_Has_Been_Edited := false;
           end;
           txCoded_by := cbManualPayee;
@@ -4046,10 +4052,12 @@ begin
                  //calculate GST
                if (PayeeLine.plGST_Has_Been_Edited) then begin
                   dsGST_Class    := PayeeLine.plGST_Class;
-                  dsGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, dsAmount, dsGST_Class);
+//                  dsGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, dsAmount, dsGST_Class);
+                  dsGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Dissection^.Local_Amount, dsGST_Class);
                     dsGST_Has_Been_Edited := true;
                end else begin
-                  CalculateGST( MyClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount);
+//                  CalculateGST( MyClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount);
+                  CalculateGST( MyClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount);
                   dsGST_Has_Been_Edited := false;
                end;
                dsHas_Been_Edited := FALSE;
@@ -4652,8 +4660,10 @@ begin
                AllowIt := false;
             end
             else begin
-               if (( pT^.txAmount < 0 ) and ( Double2Money(GSTAmt) < pT^.txAmount ))
-               or (( pT^.txAmount > 0 ) and ( Double2Money(GSTAmt) > pT^.txAmount )) then begin
+//               if (( pT^.txAmount < 0 ) and ( Double2Money(GSTAmt) < pT^.txAmount ))
+//               or (( pT^.txAmount > 0 ) and ( Double2Money(GSTAmt) > pT^.txAmount )) then begin
+               if (( pT^.Local_Amount < 0 ) and ( Double2Money(GSTAmt) < pT^.Local_Amount ))
+               or (( pT^.Local_Amount > 0 ) and ( Double2Money(GSTAmt) > pT^.Local_Amount )) then begin
                   ErrorSound;
                   TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsFloat := 0;
                   AllowIt := false;
@@ -7067,7 +7077,8 @@ begin
                             GSTClassEdited(pT);
                             //see if gst matches default now
                             with pT^ do begin
-                               CalculateGST( myClient, txDate_Effective, txAccount, txAmount, DefaultGSTClass, DefaultGSTAmt);
+//                               CalculateGST( myClient, txDate_Effective, txAccount, txAmount, DefaultGSTClass, DefaultGSTAmt);
+                               CalculateGST( myClient, txDate_Effective, txAccount, Local_Amount, DefaultGSTClass, DefaultGSTAmt);
                                txGST_Has_Been_Edited := (txGST_Class <> DefaultGSTClass) or (txGST_Amount <> DefaultGSTAmt);
                             end;
                          end;
@@ -7709,7 +7720,8 @@ begin
      if ( Percentage < 0.0 ) or ( Percentage > 100.0) then exit;
      pT  := WorkTranList.Transaction_At(tblCoding.ActiveRow-1);
      //find the new GST Amount
-     InclusiveAmt := Money2Double( pT^.txAmount);
+//     InclusiveAmt := Money2Double( pT^.txAmount);
+     InclusiveAmt := Money2Double( pT^.Local_Amount);
         // Gst = Inclusive *      1
         //                    --------
         //                     1

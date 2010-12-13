@@ -145,11 +145,14 @@ begin
        Destination := rdAsk;
     end;
 
-    for i := 0 to Pred(CRSettings.AccountList.Count) do
+    for i := 0 to Pred(CRSettings.AccountList.Count) do begin
       if HasEntries( TBank_account(CRSettings.AccountList[i])) then begin
           ClientHasEntries := true;
           Break;
       end;
+      //TEST
+      TBank_account(CRSettings.AccountList[i]).HasExchangeRates(Fromdate, ToDate, True)
+    end;
 
     if ( not ClientHasEntries ) then begin
        HelpfulInfoMsg( 'There are no entries within this date range', 0 );

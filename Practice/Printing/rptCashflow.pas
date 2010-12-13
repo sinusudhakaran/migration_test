@@ -1281,8 +1281,8 @@ begin
             //GetValues
             GetOpeningBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
 
-            if MyClient.HasForeignCurrencyAccounts then
-               SetCurrencyFormatForPeriod(ValuesArray, GetFormatForBankAccount(pAcct^.chAccount_Code));
+//            if MyClient.HasForeignCurrencyAccounts then
+//               SetCurrencyFormatForPeriod(ValuesArray, GetFormatForBankAccount(pAcct^.chAccount_Code));
 
             //PrintValues
             PrintValuesForPeriod( ValuesArray, Debit);
@@ -1296,8 +1296,8 @@ begin
            //GetYTDValues
            GetOpeningBalancesForPeriod( pAcct, 1, ValuesArray);
 
-           if MyClient.HasForeignCurrencyAccounts then
-              SetCurrencyFormatForPeriod(ValuesArray, GetFormatForBankAccount(pAcct^.chAccount_Code));
+//           if MyClient.HasForeignCurrencyAccounts then
+//              SetCurrencyFormatForPeriod(ValuesArray, GetFormatForBankAccount(pAcct^.chAccount_Code));
 
            //PrintValues
            PrintValuesForPeriod( ValuesArray, Debit);

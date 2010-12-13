@@ -1138,8 +1138,10 @@ begin
             AllowIt := false;
          end
          else begin
-            if (( pD^.dtAmount < 0 ) and ( Double2Money(GSTAmount) < pD^.dtAmount )) or
-               (( pD^.dtAmount > 0 ) and ( Double2Money(GSTAmount) > pD^.dtAmount )) then begin
+//            if (( pD^.dtAmount < 0 ) and ( Double2Money(GSTAmount) < pD^.dtAmount )) or
+//               (( pD^.dtAmount > 0 ) and ( Double2Money(GSTAmount) > pD^.dtAmount )) then begin
+            if (( pD^.dtLocal_Amount < 0 ) and ( Double2Money(GSTAmount) < pD^.dtLocal_Amount )) or
+               (( pD^.dtLocal_Amount > 0 ) and ( Double2Money(GSTAmount) > pD^.dtLocal_Amount )) then begin
                ErrorSound;
                TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsFloat := 0;
                AllowIt := false;
@@ -1180,7 +1182,9 @@ var
    DefaultGSTClass :  byte;
    DefaultGSTAmount   : money;
 begin
-   CalculateGST( myClient, pTran^.txDate_Effective, pD^.dtAccount, pD^.dtAmount,
+//   CalculateGST( myClient, pTran^.txDate_Effective, pD^.dtAccount, pD^.dtAmount,
+//                 DefaultGSTClass, DefaultGSTAmount);
+   CalculateGST( myClient, pTran^.txDate_Effective, pD^.dtAccount, pD^.dtLocal_Amount,
                  DefaultGSTClass, DefaultGSTAmount);
 
    Result := ( pD^.dtGST_Class <> DefaultGSTClass) or ( pD^.dtGST_Amount <> DefaultGSTAmount);
@@ -1340,7 +1344,8 @@ var
 begin
   with pD^ do begin
      if MyClient.clChart.CanCodeTo( dtAccount) then begin
-        CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtAmount, NewClass, NewGST);
+//        CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtAmount, NewClass, NewGST);
+        CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtLocal_Amount, NewClass, NewGST);
         dtGST_Class  := NewClass;
         dtGST_Amount := NewGST;
         dtGST_Has_Been_Edited := false;
@@ -1388,7 +1393,8 @@ begin
      if MyClient.clChart.CanCodeTo( dtAccount) then begin
         //recalculate the gst using the current class.  No need to change the GST has been edited flag
         //because its status will stay the same.
-        dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class);
+//        dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class);
+        dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class);
      end
      else begin
         //note: Gst not cleared by an invalid account to allow independant editing of gst
@@ -1424,7 +1430,8 @@ begin
     dtHas_Been_Edited := True;
     dtAmount_Type_Is_Percent := True;
     if MyClient.clChart.CanCodeTo( dtAccount) then
-      dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class)
+//      dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class)
+      dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class)
     else
       if ( dtAccount = '' ) then dtHas_Been_Edited := false;
   end;
@@ -1444,11 +1451,15 @@ end;
 
 procedure TdlgDissection.GSTClassEdited( pD: pWorkDissect_Rec );
 begin
+  if FIsForex then
+     UpdateBaseAmounts;
+     
   with pD^ do begin
      if dtGST_Class = 0 then
         dtGST_Amount := 0
      else
-        dtGST_Amount := ( CalculateGSTForClass( MyClient,  pTran^.txDate_Effective, dtAmount, dtGST_Class ) );
+//        dtGST_Amount := ( CalculateGSTForClass( MyClient,  pTran^.txDate_Effective, dtAmount, dtGST_Class ) );
+        dtGST_Amount := ( CalculateGSTForClass( MyClient,  pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class ) );
   end;
   UpdateDisplayTotals;
 end;
@@ -1920,7 +1931,8 @@ Begin
    for i := 0 to Pred( WorkDissect.Count) do begin
       pD := WorkDissect.Items[ i];
       with pD^ do begin
-         CalculateGST( MyClient, pTran.txDate_Effective, dtAccount, dtAmount, dtGST_Class, dtGST_Amount);
+//         CalculateGST( MyClient, pTran.txDate_Effective, dtAccount, dtAmount, dtGST_Class, dtGST_Amount);
+         CalculateGST( MyClient, pTran.txDate_Effective, dtAccount, dtLocal_Amount, dtGST_Class, dtGST_Amount);
          dtGST_Has_Been_Edited := false;
       end;
    end;
@@ -2305,7 +2317,8 @@ begin
      end;
    end;
    // Calc the new GST and put in Column
-   GSTAmount := CalculateGSTForClass( myClient, pTran^.txDate_Effective, pD^.dtAmount, pD^.dtGST_Class);
+//   GSTAmount := CalculateGSTForClass( myClient, pTran^.txDate_Effective, pD^.dtAmount, pD^.dtGST_Class);
+   GSTAmount := CalculateGSTForClass( myClient, pTran^.txDate_Effective, pD^.dtLocal_Amount, pD^.dtGST_Class);
    pD^.dtGST_Amount := GSTAmount;
 
   if FIsForex then
@@ -3108,7 +3121,8 @@ begin
      TOvcNumericField( celAmount.CellEditor).AsFloat := Money2Double( mNewAmount);
      if tblDissect.StopEditingState( True ) then begin
         //calc gst on total
-        GSTCalc32.CalculateGST( MyClient, pTran^.txDate_Effective, pD^.dtAccount, pTran^.txAmount, TempClassNo, GSTOnTotal);
+//        GSTCalc32.CalculateGST( MyClient, pTran^.txDate_Effective, pD^.dtAccount, pTran^.txAmount, TempClassNo, GSTOnTotal);
+        GSTCalc32.CalculateGST( MyClient, pTran^.txDate_Effective, pD^.dtAccount, pTran^.Local_Amount, TempClassNo, GSTOnTotal);
         GSTOnPercent := pD^.dtGST_Amount;
         //calc new amount for new line
         mNewAmount := ( GSTOnTotal - GSTOnPercent) * (Percentage/100.0);
@@ -3161,7 +3175,8 @@ begin
 
      pD         := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
      //find the new GST Amount
-     InclusiveAmt := Money2Double( pD^.dtAmount);
+//     InclusiveAmt := Money2Double( pD^.dtAmount);
+     InclusiveAmt := Money2Double( pD^.dtLocal_Amount);
         // Gst = Inclusive *      1
         //                    --------
         //                     1
@@ -3935,11 +3950,13 @@ begin
 
          if (PayeeLine.plGST_Has_Been_Edited) then begin
             dtGST_Class    := PayeeLine.plGST_Class;
-            dtGST_Amount   := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class);
+//            dtGST_Amount   := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class);
+            dtGST_Amount   := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class);
             dtGST_Has_Been_Edited := true;
          end
          else begin
-            CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtAmount, dtGST_Class, dtGST_Amount);
+//            CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtAmount, dtGST_Class, dtGST_Amount);
+            CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtLocal_Amount, dtGST_Class, dtGST_Amount);
             dtGST_Has_Been_Edited := false;
          end;
 
@@ -4054,17 +4071,22 @@ begin
              //dtNarration :=   ...already changed
              if (PayeeLine.plGST_Has_Been_Edited) then begin
                 pDissectRec.dtGST_Class    := PayeeLine.plGST_Class;
+//                pDissectRec.dtGST_Amount   := CalculateGSTForClass( MyClient,
+//                                                                     pTran^.txDate_Effective,
+//                                                                     pDissectRec^.dtAmount,
+//                                                                     pDissectRec^.dtGST_Class);
                 pDissectRec.dtGST_Amount   := CalculateGSTForClass( MyClient,
-                                                                     pTran^.txDate_Effective,
-                                                                     pDissectRec^.dtAmount,
-                                                                     pDissectRec^.dtGST_Class);
+                                                                    pTran^.txDate_Effective,
+                                                                    pDissectRec^.dtLocal_Amount,
+                                                                    pDissectRec^.dtGST_Class);
                 pDissectRec.dtGST_Has_Been_Edited := true;
              end
              else begin
                 CalculateGST( MyClient,
                               pTran^.txDate_Effective,
                               pDissectRec^.dtAccount,
-                              pDissectRec^.dtAmount,
+//                              pDissectRec^.dtAmount,
+                              pDissectRec^.dtLocal_Amount,
                               pDissectRec^.dtGST_Class,
                               pDissectRec^.dtGST_Amount);
                 pDissectRec^.dtGST_Has_Been_Edited := false;
