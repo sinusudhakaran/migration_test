@@ -82,6 +82,8 @@ Begin
                           CanExtractData := FALSE;
       whAustralia    : If aType in [ saOTHER, saHAPAS, saLotus123 ] then
                           CanExtractData := FALSE;
+      whUK           : If aType in [ suOther ] then
+                          CanExtractData := FALSE;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
