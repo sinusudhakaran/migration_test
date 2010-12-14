@@ -1205,7 +1205,8 @@ begin
 end;
 
 procedure TImportExchange.SetSelectedCol(Index: Integer; const Value: Boolean);
-
+var
+   ColType: integer;
 
    procedure SelectObject(Value: integer; InCombo:TComboBox);
    var I: Integer;
@@ -1218,13 +1219,16 @@ procedure TImportExchange.SetSelectedCol(Index: Integer; const Value: Boolean);
    end;
 
 begin
+   if pcFormat.ActivePageIndex  > 0 then
+     ColType := piRate;
 
-   case pcFormat.ActivePageIndex of
+   case ColType of
    piDate : SelectObject(Index, cbDate);
    piRate : begin
-
-       end;
-
+              //Select rate in current tabs currency combobox
+              if pcFormat.ActivePage.Controls[1] is TComboBox then
+                SelectObject(Index, TComboBox(pcFormat.ActivePage.Controls[1]) );
+            end;
    end;
 end;
 
