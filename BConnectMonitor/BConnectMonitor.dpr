@@ -72,7 +72,7 @@ end;
 
 procedure LogIn;
 var
-  ParamNum, SleepInterval, FirstEmailParam: integer;
+  ParamNum, SleepInterval1, SleepInterval2, FirstEmailParam: integer;
   Secure1IsDown, Secure2IsDown, LastSecure1Status, LastSecure2Status: boolean;
   AllRecipients: string;
   IdSMTP1: TIdSMTP;
@@ -113,21 +113,33 @@ var
 begin
   if not CheckParamIsEmail(ParamCount) then // the last parameter must be an email address
   begin
-    ShowMessage('You must enter one or more email addresses as parameters. You can also ' +
-                'include a number of minutes between checks, this will default to 10. eg: ' + #13#10 +
-                'BConnectMonitor.exe 20 bigbird@banklink.co.nz' + #13#10#13#10 +
+    ShowMessage('You must enter one or more email addresses as parameters, to which email '+
+                'notifications concerning the status of BConnect will be sent. You can optionally ' +
+                'include a number of minutes between checks, this will default to 10. A second ' +
+                'time can also be entered, which is the number of minutes between checks when ' +
+                'it has been detected that one or more of the servers is down, this will default '+
+                'to 1. For example: ' + #13#10 +
+                'BConnectMonitor.exe 20 5 bigbird@banklink.co.nz' + #13#10#13#10 +
                 'Program will now exit.');
     Exit;
   end;
 
+  if not CheckParamIsEmail(2) then
+  begin
+    FirstEmailParam := 3;
+    SleepInterval1 := 1000 * 60 * StrToInt(ParamStr(1)); // x minutes, x being the first number entered by the user
+    SleepInterval2 := 1000 * 60 * StrToInt(ParamStr(2)); // x minutes, x being the second number entered by the user
+  end else
   if not CheckParamIsEmail(1) then
   begin
     FirstEmailParam := 2;
-    SleepInterval := 1000 * 60 * StrToInt(ParamStr(1)); // x minutes, x being the number entered by the user
+    SleepInterval1 := 1000 * 60 * StrToInt(ParamStr(1)); // x minutes, x being the number entered by the user
+    SleepInterval2 := 1000 * 60; // 1 minute
   end else
   begin
     FirstEmailParam := 1;
-    SleepInterval := 1000 * 60 * 10; // 10 minutes
+    SleepInterval1 := 1000 * 60 * 10; // 10 minutes
+    SleepInterval2 := 1000 * 60; // 1 minute
   end;
 
   AllRecipients := '';
@@ -185,7 +197,9 @@ begin
 
       LastSecure1Status := Secure1IsDown;
       LastSecure2Status := Secure2IsDown;
-      Sleep(SleepInterval); // Check BConnect status every so often, default to 10 minutes
+      if (Secure1IsDown or Secure2IsDown)
+        then Sleep(SleepInterval2) // Check BConnect status every so often, defaults to 1 minute
+        else Sleep(SleepInterval1); // Check BConnect status every so often, defaults to 10 minutes
     end;
 
   finally
