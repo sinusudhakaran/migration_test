@@ -241,7 +241,8 @@ uses
   SignUtils,
   WinUtils,
   YesNoDlg,
-  CountryUtils;
+  CountryUtils,
+  ForexHelpers;
 
 {$R *.dfm}
 
@@ -698,7 +699,8 @@ begin
           //set edit flag if not already zero
           dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient,
                                                                    TempYEAdjustment.txDate_Effective,
-                                                                   dsAmount,
+//                                                                   dsAmount,
+                                                                   Local_Amount,
                                                                    pAccount.chGST_Class);
           if ( dsGST_Amount <> 0) then begin
             dsGST_Amount := 0;
@@ -1737,7 +1739,8 @@ begin
         //set edit flag if not already zero
         dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient,
                                                                  OpeningBalanceRec.txDate_Effective,
-                                                                 dsAmount,
+//                                                                 dsAmount,
+                                                                 Local_Amount,
                                                                  pAcct.chGST_Class);
         if ( dsGST_Amount <> 0) then begin
           dsGST_Amount := 0;

@@ -556,10 +556,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsAdjustments: TTabSheet
         Caption = 'Page1'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object tgBalances: TtsGrid
           Left = 0
           Top = 43
@@ -719,10 +715,6 @@ object wizBalancesForward: TwizBalancesForward
         Tag = 1
         Caption = 'Page2'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object tgEarnings: TtsGrid
           Left = 0
           Top = 35
@@ -1052,10 +1044,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsFinshed: TTabSheet
         Caption = 'tbsFinshed'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           585
           297)

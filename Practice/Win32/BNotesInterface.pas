@@ -70,7 +70,8 @@ uses
    pyList32,
    SuperfieldsUtils,
    ECodingUtils, ClientUtils, SchedRepUtils, Globals,
-   ISO_4217;
+   ISO_4217,
+   ForexHelpers;
 
 const
    UnitName = 'BNotesInterface';
@@ -912,7 +913,8 @@ begin
         if BKT^.txGST_Class = 0 then
           BKT^.txGST_Amount := 0
         else
-          BKT^.txGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKT^.txAmount, BKT^.txGST_Class);
+//          BKT^.txGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKT^.txAmount, BKT^.txGST_Class);
+          BKT^.txGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKT^.Local_Amount, BKT^.txGST_Class);
       end
       else
       begin
@@ -1066,7 +1068,8 @@ begin
           BKT^.txGST_Class          := bkPayeeLine.plGST_Class;
           BKT^.txGST_Amount         := CalculateGSTForClass( aClient,
                                                              BKT^.txDate_Effective,
-                                                             BKT^.txAmount,
+//                                                             BKT^.txAmount,
+                                                             BKT^.Local_Amount,
                                                              BKT^.txGST_Class);
           BKT^.txGST_Has_Been_Edited := True;
         end
@@ -1711,7 +1714,8 @@ begin
     BKD.dsSF_Fund_ID          := -1;
 
     //GST - calculate gst using information from the chart codes
-    CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
+//    CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
+    CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.Local_Amount, DefaultGSTClass, DefaultGSTAmount);
     BKD^.dsGST_Amount   := DefaultGSTAmount;
     BKD^.dsGST_Class    := DefaultGSTClass;
     BKD^.dsGST_Has_Been_Edited := False;
@@ -1905,7 +1909,8 @@ begin
       bkPayeeLine := bkPayee.pdLines.PayeeLine_At( DissectionLineNo - 1);
 
       BKD^.dsGST_Class  := bkPayeeLine.plGST_Class;
-      BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.dsAmount, BKD^.dsGST_Class);
+//      BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.dsAmount, BKD^.dsGST_Class);
+      BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.Local_Amount, BKD^.dsGST_Class);
       BKD^.dsGST_Has_Been_Edited := bkPayeeLine.plGST_Has_Been_Edited;
 
       //the payee was specified at the transaction level, the dissection
@@ -1921,7 +1926,8 @@ begin
       //set gst information based on the chart
       //payee not found or dissection too long, use default gst
       //calculate gst using information from the chart codes
-      CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
+//      CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
+      CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.Local_Amount, DefaultGSTClass, DefaultGSTAmount);
       BKD^.dsGST_Amount   := DefaultGSTAmount;
       BKD^.dsGST_Class    := DefaultGSTClass;
       BKD^.dsGST_Has_Been_Edited := False;
@@ -2144,12 +2150,14 @@ begin
     if UseBK5PayeeInformation and Assigned( bkPayeeLine) then
     begin
       BKD^.dsGST_Class  := bkPayeeLine.plGST_Class;
-      BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.dsAmount, BKD^.dsGST_Class);
+//      BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.dsAmount, BKD^.dsGST_Class);
+      BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.Local_Amount, BKD^.dsGST_Class);
       BKD^.dsGST_Has_Been_Edited := bkPayeeLine.plGST_Has_Been_Edited;
     end
     else
     begin
-      CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
+//      CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
+      CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.Local_Amount, DefaultGSTClass, DefaultGSTAmount);
 
       BKD^.dsGST_Amount   := DefaultGSTAmount;
       BKD^.dsGST_Class    := DefaultGSTClass;

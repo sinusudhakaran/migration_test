@@ -38,7 +38,8 @@ uses
      ImportFromECodingDlg, ExportToECodingDlg, bkDateUtils, YesNoDlg,
      BNotesInterface, LogUtil, baObj32, GlobalDirectories, Globals,
      PracticeLogo, MailFrm, todoHandler, StDate, Windows,
-     ClientHomepagefrm, Forms, Admin32, WebNotesService, WebNotesImportFrm;
+     ClientHomepagefrm, Forms, Admin32, WebNotesService, WebNotesImportFrm,
+     ForexHelpers;
 
 const
    UnitName = 'ECodingUtils';
@@ -56,7 +57,8 @@ begin
        IsEldersAccount := ( BankPrefix = EldersPrefix) and ( aClient.clFields.clCountry = whAustralia);
                                          // misc dr,  misc cr
        if not ( IsEldersAccount and ( txType in [9,10])) then begin
-          CalculateGST( aClient, txDate_Effective, txAccount, txAmount, NewClass, NewGST);
+//          CalculateGST( aClient, txDate_Effective, txAccount, txAmount, NewClass, NewGST);
+          CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, NewClass, NewGST);
           txGST_Class  := NewClass;
           txGST_Amount := NewGST;
           txCoded_By   := CodedBy;

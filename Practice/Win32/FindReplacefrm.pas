@@ -69,7 +69,8 @@ uses
    SelectDate,
    bkdateutils,
    Globals,
-   cldateutils;
+   cldateutils,
+   ForexHelpers;
 
 
 procedure FindAndReplace;
@@ -172,7 +173,8 @@ begin
                   if tx.txGST_Has_Been_Edited then
                      Inc(cGStSkipped)
                   else
-                     CalculateGST( MyClient, tx.txDate_Effective, tx.txAccount, tx.txAmount, tx.txGST_Class, tx.txGST_Amount);
+//                     CalculateGST( MyClient, tx.txDate_Effective, tx.txAccount, tx.txAmount, tx.txGST_Class, tx.txGST_Amount);
+                     CalculateGST( MyClient, tx.txDate_Effective, tx.txAccount, tx.Local_Amount, tx.txGST_Class, tx.txGST_Amount);
                end;
             end else begin
                // Do the Dissections
@@ -182,7 +184,8 @@ begin
                      if ds.dsGST_Has_Been_Edited then
                         Inc(cGStSkipped)
                      else
-                        CalculateGST( MyClient, tx.txDate_Effective, ds.dsAccount, ds.dsAmount, ds.dsGST_Class, ds.dsGST_Amount);
+//                        CalculateGST( MyClient, tx.txDate_Effective, ds.dsAccount, ds.dsAmount, ds.dsGST_Class, ds.dsGST_Amount);
+                        CalculateGST( MyClient, tx.txDate_Effective, ds.dsAccount, ds.Local_Amount, ds.dsGST_Class, ds.dsGST_Amount);
                   end;
                   ds := ds.dsNext;
                end;

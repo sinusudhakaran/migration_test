@@ -208,7 +208,8 @@ Begin
                   While Dissection<>NIL do With Dissection^ do
                   Begin
                      If ( dsGST_Class=0 ) and ( not( dsHas_Been_Edited or dsGST_Has_Been_Edited)) then begin
-                        CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
+//                        CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
+                        CalculateGST( aClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
                         dsHas_Been_Edited := false;
                      end;
                      Dissection := dsNext;
@@ -418,12 +419,14 @@ Begin
                               if MemorisationLine.mlGST_Has_Been_Edited then
                                 begin
                                   dsGST_Class := MemorisationLine.mlGST_Class;
-                                  dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, dsAmount, dsGST_Class );
+//                                  dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, dsAmount, dsGST_Class );
+                                  dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, dsGST_Class );
                                   dsGST_Has_Been_Edited := true;
                                 end
                               else
                                 begin
-                                  CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
+//                                  CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
+                                  CalculateGST( aClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
                                   dsGST_Has_Been_Edited := false;
                                 end;
 
@@ -597,11 +600,13 @@ Begin
                                  //calculate GST.  If has been edited then use class, otherwise use default
                                  if PayeeLine.plGST_Has_Been_Edited then begin
                                     dsGST_Class := PayeeLine.plGST_Class;
-                                    dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, dsAmount, dsGST_Class);
+//                                    dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, dsAmount, dsGST_Class);
+                                    dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, dsGST_Class);
                                     dsGST_Has_Been_Edited := true;
                                  end
                                  else begin
-                                    CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
+//                                    CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
+                                    CalculateGST( aClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
                                     dsGST_Has_Been_Edited := false;
                                  end;
                               end;

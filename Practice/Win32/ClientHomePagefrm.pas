@@ -210,7 +210,8 @@ uses
   Extract32,
   Globals,SYDEFS, ToDoListUnit,StDate,Math,MainFrm, BKdateUtils, UpdateMF,baObj32,
   ApplicationUtils, AutoSaveUtils, rptHome, ClientNotesFrm, Files, ClientManagerFrm, BudgetFrm,
-  bkXPThemes, ShellAPI, SimpleUIHomepagefrm, ExchangeRateList, frmExchangeRates;
+  bkXPThemes, ShellAPI, SimpleUIHomepagefrm,
+  ExchangeRateList, frmExchangeRates, GSTUTIL32;
 {$R *.dfm}
 
 var
@@ -624,6 +625,7 @@ begin
       LExchangeRates := GetExchangeRates;
       try
         TheClient.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
+        ApplyDefaultGST(False);
       finally
         LExchangeRates.Free;
       end;

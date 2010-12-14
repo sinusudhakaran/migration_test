@@ -93,7 +93,8 @@ uses
    StDateSt,
    TrxList32,
    bkchio,
-   CountryUtils;
+   CountryUtils,
+   ForexHelpers;
 
 {$R *.dfm}
 const
@@ -352,7 +353,8 @@ begin
            dsGST_Class           := pAccount.chGST_Class;
            //The GST for opening balance journals MUST be zero, set this and
            //set edit flag if not already zero
-           dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient, pJ.txDate_Effective, dsAmount, pAccount.chGST_Class);
+//           dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient, pJ.txDate_Effective, dsAmount, pAccount.chGST_Class);
+           dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient, pJ.txDate_Effective, Local_Amount, pAccount.chGST_Class);
            if ( dsGST_Amount <> 0) then begin
              dsGST_Amount := 0;
              dsGST_Has_Been_Edited := True;

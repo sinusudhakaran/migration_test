@@ -43,7 +43,7 @@ uses
   MemorisationsObj,
   GSTCalc32,
   LogUtil,
-  PayeeObj, baObj32;
+  PayeeObj, baObj32, ForexHelpers;
 
 
 function HasActivity(const Value :TGSTInfo) : Boolean;
@@ -227,8 +227,10 @@ begin
 
                             if ( txGST_Class = ForClass) or ( ( ForClass = -1) and ( txGST_Class in [0..MAX_GST_CLASS] )) then
                             begin
-                               Gross := txAmount;
-                               Net   := ( txAmount - txGST_Amount );
+//                               Gross := txAmount;
+                               Gross := Local_Amount;
+//                               Net   := ( txAmount - txGST_Amount );
+                               Net   := ( Gross - txGST_Amount );
                                Tax   := txGST_Amount;
 
                                guGross_Totals [ txGST_Class ] := guGross_Totals [ txGST_Class ] + Gross;
@@ -268,8 +270,10 @@ begin
 
                                if ( dsGST_Class = ForClass) or ( ( ForClass = -1) and ( dsGST_Class in [0..MAX_GST_CLASS] )) then
                                begin
-                                  Gross := dsAmount;
-                                  Net   := ( dsAmount - dsGST_Amount );
+//                                  Gross := dsAmount;
+                                  Gross := Local_Amount;
+//                                  Net   := ( dsAmount - dsGST_Amount );
+                                  Net   := ( Gross - dsGST_Amount );
                                   Tax   := dsGST_Amount;
 
                                   guGross_Totals [ dsGST_Class ] := guGross_Totals [ dsGST_Class ] + Gross;
@@ -365,7 +369,8 @@ begin
             //is it a dissection?
             if pT^.txFirst_Dissection = nil then begin
                if ( not pT^.txGST_Has_Been_Edited) or IncludeEdited then begin
-                  CalculateGST( MyClient, pT^.txDate_Effective, pT^.txAccount, pT^.txAmount, pT^.txGST_Class, pT^.txGST_Amount);
+//                  CalculateGST( MyClient, pT^.txDate_Effective, pT^.txAccount, pT^.txAmount, pT^.txGST_Class, pT^.txGST_Amount);
+                  CalculateGST( MyClient, pT^.txDate_Effective, pT^.txAccount, pT^.Local_Amount, pT^.txGST_Class, pT^.txGST_Amount);
                   pT^.txGST_Has_Been_Edited := false;
                   if baFields.baAccount_Type in JournalsWithNoGSTSet then begin
                     if pT^.txGST_Amount <> 0 then begin
@@ -382,7 +387,8 @@ begin
                   if not (pD^.dsJournal_Type in [ jtReversed, jtReversal, jtProcessed]) then
                   begin
                     //only recalculate GST if it is not reversed or processed
-                    CalculateGST( MyClient, pT^.txDate_Effective, pD^.dsAccount, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount);
+//                    CalculateGST( MyClient, pT^.txDate_Effective, pD^.dsAccount, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount);
+                    CalculateGST( MyClient, pT^.txDate_Effective, pD^.dsAccount, pD^.Local_Amount, pD^.dsGST_Class, pD^.dsGST_Amount);
                     pD^.dsGST_Has_Been_Edited := false;
                     pT^.txGST_Has_Been_Edited := false;
 

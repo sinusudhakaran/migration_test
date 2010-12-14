@@ -131,7 +131,7 @@ uses
    WebNotesClient,
    bkXPThemes,
    WebNotesSchema,
-   bkConst, trxList32;
+   bkConst, trxList32, ForexHelpers;
 
 const
    UnitName = 'WebNotesService';
@@ -308,7 +308,8 @@ begin
 
          bkPayeeLine := bkPayee.pdLines.PayeeLine_At(DissectionLineNo - 1);
          BKD.dsGST_Class := bkPayeeLine.plGST_Class;
-         BKD.dsGST_Amount := CalculateGSTForClass(Client, BKT.txDate_Effective, BKD.dsAmount, BKD.dsGST_Class);
+//         BKD.dsGST_Amount := CalculateGSTForClass(Client, BKT.txDate_Effective, BKD.dsAmount, BKD.dsGST_Class);
+         BKD.dsGST_Amount := CalculateGSTForClass(Client, BKT.txDate_Effective, BKD.Local_Amount, BKD.dsGST_Class);
          BKD.dsGST_Has_Been_Edited := bkPayeeLine.plGST_Has_Been_Edited;
 
          //the payee was specified at the transaction level, the dissection
@@ -327,7 +328,8 @@ begin
          //payee not found or dissection too long, use default gst
          //calculate gst using information from the chart codes
 
-         CalculateGST(Client, BKT.txDate_Effective, BKD.dsAccount, BKD.dsAmount, BKD.dsGST_Class, BKD.dsGST_Amount);
+//         CalculateGST(Client, BKT.txDate_Effective, BKD.dsAccount, BKD.dsAmount, BKD.dsGST_Class, BKD.dsGST_Amount);
+         CalculateGST(Client, BKT.txDate_Effective, BKD.dsAccount, BKD.Local_Amount, BKD.dsGST_Class, BKD.dsGST_Amount);
          PayeeDetail := '';
          BKD.dsGST_Has_Been_Edited := False;
       end;
@@ -1066,7 +1068,8 @@ begin
           if BKT.txGST_Class = 0 then
               BKT.txGST_Amount := 0
           else
-              BKT.txGST_Amount := CalculateGSTForClass( Client, BKT.txDate_Effective, BKT.txAmount, BKT.txGST_Class);
+//              BKT.txGST_Amount := CalculateGSTForClass( Client, BKT.txDate_Effective, BKT.txAmount, BKT.txGST_Class);
+              BKT.txGST_Amount := CalculateGSTForClass( Client, BKT.txDate_Effective, BKT.Local_Amount, BKT.txGST_Class);
       end else begin
         //bk5 transaction already has an amount, so add a note to import notes
         if lMoney <> 0 then
@@ -1173,7 +1176,8 @@ begin
             //to code the transaction, this means that the gst amount in bnotes
             //should match the default gst amount for bk5
             BKT^.txGST_Class  := bkPayeeLine.plGST_Class;
-            BKT^.txGST_Amount := CalculateGSTForClass(Client,BKT^.txDate_Effective, BKT^.txAmount, BKT^.txGST_Class);
+//            BKT^.txGST_Amount := CalculateGSTForClass(Client,BKT^.txDate_Effective, BKT^.txAmount, BKT^.txGST_Class);
+            BKT^.txGST_Amount := CalculateGSTForClass(Client,BKT^.txDate_Effective, BKT^.Local_Amount, BKT^.txGST_Class);
             BKT^.txGST_Has_Been_Edited := True;
          end else begin
             //use the gst from the account code

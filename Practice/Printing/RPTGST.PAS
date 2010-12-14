@@ -1766,7 +1766,8 @@ var
                               PutMoney( dsGST_Amount );
                               PutString( dsGL_Narration );
                               //get defaults for this accounts
-                              CalculateGST( MyClient, GSTDate, dsAccount, dsAmount, DefaultGSTClass, DefaultGSTAmount);
+//                              CalculateGST( MyClient, GSTDate, dsAccount, dsAmount, DefaultGSTClass, DefaultGSTAmount);
+                              CalculateGST( MyClient, GSTDate, dsAccount, Local_Amount, DefaultGSTClass, DefaultGSTAmount);
                               PutString( GetGSTClassCode( MyClient, DefaultGSTClass));
                               PutMoney( DefaultGSTAmount);
                               RenderDetailLine;

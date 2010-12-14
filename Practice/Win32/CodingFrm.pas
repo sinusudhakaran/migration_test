@@ -7530,6 +7530,7 @@ var
         LExchangeRates := GetExchangeRates;
         try
           myClient.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
+          ApplyDefaultGST(False);
         finally
           LExchangeRates.Free;
         end;
