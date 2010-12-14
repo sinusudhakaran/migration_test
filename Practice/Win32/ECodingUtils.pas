@@ -57,8 +57,8 @@ begin
        IsEldersAccount := ( BankPrefix = EldersPrefix) and ( aClient.clFields.clCountry = whAustralia);
                                          // misc dr,  misc cr
        if not ( IsEldersAccount and ( txType in [9,10])) then begin
-//          CalculateGST( aClient, txDate_Effective, txAccount, txAmount, NewClass, NewGST);
-          CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, NewClass, NewGST);
+          //Assumes that Elders Account is never Forex and uses txAmount instead of Local_Amount
+          CalculateGST( aClient, txDate_Effective, txAccount, txAmount, NewClass, NewGST);
           txGST_Class  := NewClass;
           txGST_Amount := NewGST;
           txCoded_By   := CodedBy;
