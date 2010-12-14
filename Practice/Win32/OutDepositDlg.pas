@@ -156,7 +156,6 @@ end;
 function TdlgDeposit.Execute( BA : tBank_Account; FromDate, ToDate : LongInt; UType: Byte; IsInitial: Boolean = False ): Boolean;
 var
    Transaction : pTransaction_Rec;
-   BCode, CCode : String[3];
 begin
   result            := false;
   okPRessed         := false;
@@ -252,23 +251,10 @@ begin
           txSF_Member_Account_ID  := -1;
           txSF_Fund_ID            := -1;
 
-          if BA.IsAForexAccount then
-          Begin
-            BCode := BA.baFields.baCurrency_Code;
-            CCode := MyClient.clExtra.ceLocal_Currency_Code;
-//            txForex_Conversion_Rate := BA.baForex_Info.Rate( BCode, CCode, txDate_Effective );
-//            if FType = upUPW then
-//              Foreign_Amount := Abs( GenUtils.Double2Money(eAmount.AsFloat))
-//            else
-//              Foreign_Amount := -1 * Abs( GenUtils.Double2Money(eAmount.AsFloat));
-          End
-          Else
-          Begin
-            if FType = upUPW then
-              txAmount := Abs( GenUtils.Double2Money(eAmount.AsFloat))
-            else
-              txAmount := -1 * Abs( GenUtils.Double2Money(eAmount.AsFloat));
-          End;
+          if FType = upUPW then
+            txAmount := Abs( GenUtils.Double2Money(eAmount.AsFloat))
+          else
+            txAmount := -1 * Abs( GenUtils.Double2Money(eAmount.AsFloat));
 
        end;
        baTransaction_List.Insert_Transaction_Rec(transaction);

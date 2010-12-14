@@ -3326,9 +3326,9 @@ begin
      UEList.Free;
      UEList := nil;
 
-     if fIsForex then
-       UEList := MakeForeignCurrencyUEList(BankAccount)
-     else
+//     if fIsForex then
+//       UEList := MakeForeignCurrencyUEList(BankAccount)
+//     else
        UEList := MakeUEList(BankAccount);
 
      tblCoding.RowLimit := Max( WorkTranList.ItemCount + 1, 2);

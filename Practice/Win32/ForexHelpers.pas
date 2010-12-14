@@ -239,6 +239,8 @@ begin
   if Locked then
      exit;
 
+  txAmount := Value;  //Statement_Amount should be removed and ues txAmount directly instead?
+
 //This is no longer used!!!
 
 //  if Bank_Account.IsAForexAccount then

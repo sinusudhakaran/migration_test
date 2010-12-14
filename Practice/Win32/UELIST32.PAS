@@ -60,7 +60,6 @@ const
    SI_Rec_Size = Sizeof(tSeqInfo);
 
 function MakeUEList( BA : TBank_Account) : tUEList;
-function MakeForeignCurrencyUEList( BA : TBank_Account) : tUEList;
 function NewSeqInfo(i : integer) : pSeqInfo;
 
 //******************************************************************************
@@ -261,50 +260,6 @@ begin
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-function MakeForeignCurrencyUEList( BA : TBank_Account) : tUEList;
-const
-  ThisMethodName = 'MakeForeignCurrencyUEList';
-var
-  i : integer;
-  p : pUE;
-  aUEList : tUEList;
-  t : pTransaction_Rec;
-begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-
-  aUEList := tUEList.Create;
-  with aUEList do
-    with BA.baTransaction_List do for i:= 0 to pred(itemCount) do
-    begin
-      t := Transaction_At(i);
-      with t^ do if txDate_Presented = 0 then
-      begin
-         p := NewUE;
-         p^.Number       := txCheque_Number;
-         p^.Issued       := txDate_Effective;
-         p^.Presented    := 0;
-//         p^.Amount       := txForeign_Currency_Amount;
-         p^.Amount       := txAmount;
-         p^.Code         := txAccount;
-         p^.Ptr          := t;
-         p^.Sequence     := txSequence_No;
-         aUEList.Insert(p);
-      end;
-    end;
-
-  if aUEList.ItemCount = 0 then
-  begin
-    aUEList.Free;
-    aUEList := nil;
-  end;
-  Result := aUEList;
-
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
-end;
-
-
 
 //-------------- SeqInfo cheque List ------------------
 function NewSeqInfo(i : integer) : pSeqInfo;

@@ -85,9 +85,9 @@ begin
 
   ForeignCurrency := BankAccount.IsAForexAccount;
 
-  if ForeignCurrency  then
-    UEList := MakeForeignCurrencyUEList( BankAccount )
-  else
+//  if ForeignCurrency  then
+//    UEList := MakeForeignCurrencyUEList( BankAccount )
+//  else
     UEList    := MakeUEList( BankAccount );
 
   //create a unpresented items list to check new transactions against

@@ -292,9 +292,9 @@ Begin
                    end;
                    //build list of unpresented items
 
-                   if ForeignCurrency  then
-                     UEList := MakeForeignCurrencyUEList( Bank_Account )
-                   else
+//                   if ForeignCurrency  then
+//                     UEList := MakeForeignCurrencyUEList( Bank_Account )
+//                   else
                      UEList    := MakeUEList( Bank_Account );
 
                    //begin import for archive

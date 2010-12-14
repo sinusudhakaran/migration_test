@@ -3579,9 +3579,9 @@ var
 begin
    Count := 0;
    //create a unpresented items list to check new transactions against
-   if fIsForex then
-     UEList := MakeForeignCurrencyUEList(BankAccount)
-   else
+//   if fIsForex then
+//     UEList := MakeForeignCurrencyUEList(BankAccount)
+//   else
      UEList := MakeUEList(BankAccount);
 
    try
