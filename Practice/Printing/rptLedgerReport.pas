@@ -326,7 +326,7 @@ begin
             begin
               if (txAccount = Code) then
               begin
-                Result := Result + ( Local_Amount - txGST_Amount)
+                Result := Result + ( txTemp_Base_Amount - txGST_Amount)
               end
               else
               if (txFirst_Dissection <> nil) then
@@ -421,9 +421,9 @@ begin
       if (Mgr.BankContraType = Byte(bcTotal)) and
          (Mgr.ContraCodePrinted = Mgr.Bank_Account.baFields.baContra_Account_Code) and
          (not (Mgr.Bank_Account.baFields.baAccount_Type in LedgerNoContrasJournalSet)) and
-         (Local_Amount <> 0) and (not SummaryReport) then
+         (txTemp_Base_Amount <> 0) and (not SummaryReport) then
       begin
-        Mgr.AccountTotalGross := Mgr.AccountTotalGross + (-Local_Amount);
+        Mgr.AccountTotalGross := Mgr.AccountTotalGross + (-txTemp_Base_Amount);
         Mgr.AccountHasActivity := True;
       end;
 
@@ -445,11 +445,11 @@ begin
       begin
         if SummaryReport then
         begin
-          Mgr.AccountTotalGross    := Mgr.AccountTotalGross + Local_Amount;
+          Mgr.AccountTotalGross    := Mgr.AccountTotalGross + txTemp_Base_Amount;
           Mgr.AccountTotalTax      := Mgr.AccountTotalTax   + txGST_Amount;
-          Mgr.AccountTotalNet      := Mgr.AccountTotalNet   + ( Local_Amount - txGST_Amount);
+          Mgr.AccountTotalNet      := Mgr.AccountTotalNet   + ( txTemp_Base_Amount - txGST_Amount);
           Mgr.AccountTotalQuantity := Mgr.AccountTotalQuantity + txQuantity;
-          Mgr.AccountHasActivity := (Local_Amount <> 0) or (txGST_Amount <> 0);
+          Mgr.AccountHasActivity := (txTemp_Base_Amount <> 0) or (txGST_Amount <> 0);
         end
         else
         begin
@@ -460,7 +460,7 @@ begin
 
           If Quantities then
           begin
-            Net := Local_Amount - txGST_Amount;
+            Net := txTemp_Base_Amount - txGST_Amount;
             Qty := txQuantity;
             Avg := calcAverage(Net/100,Qty/10000);
           end
@@ -475,7 +475,7 @@ begin
             Notes := '';
 
           TListLedgerReport(ReportJob).PutWrapped(GetNarration(Mgr.Transaction, Mgr.Bank_Account.baFields.baAccount_Type), txGST_Class,
-            Local_Amount, txGST_Amount, Local_Amount - txGST_Amount, Qty, Avg, Notes);
+            txTemp_Base_Amount, txGST_Amount, txTemp_Base_Amount - txGST_Amount, Qty, Avg, Notes);
 
           RenderDetailLine;
           Mgr.AccountHasActivity := True;
@@ -488,9 +488,9 @@ begin
       begin
         if SummaryReport then
         begin
-          AccountTotalGross    := AccountTotalGross + (-Local_Amount);
-          AccountTotalNet    := AccountTotalNet + (-Local_Amount);
-          Mgr.AccountHasActivity := Local_Amount <> 0;
+          AccountTotalGross    := AccountTotalGross + (-txTemp_Base_Amount);
+          AccountTotalNet    := AccountTotalNet + (-txTemp_Base_Amount);
+          Mgr.AccountHasActivity := txTemp_Base_Amount <> 0;
         end
         else if (Mgr.BankContraType = Byte(bcAll)) then
         begin
@@ -505,7 +505,7 @@ begin
             Notes := '';
 
           TListLedgerReport(ReportJob).PutWrapped(GetNarration(Mgr.Transaction, Mgr.Bank_Account.baFields.baAccount_Type), txGST_Class,
-            -Local_Amount, 0, -Local_Amount, 0, 0, Notes);
+            -txTemp_Base_Amount, 0, -txTemp_Base_Amount, 0, 0, Notes);
 
           RenderDetailLine;
           Mgr.AccountHasActivity := True;
@@ -1305,11 +1305,11 @@ begin
          end;
       end;
       //store values
-      AccountTotalGross    := AccountTotalGross + Local_Amount;
+      AccountTotalGross    := AccountTotalGross + txTemp_Base_Amount;
       AccountTotalTax      := AccountTotalTax   + txGST_Amount;
-      AccountTotalNet      := AccountTotalNet   + ( Local_Amount - txGST_Amount);
+      AccountTotalNet      := AccountTotalNet   + ( txTemp_Base_Amount - txGST_Amount);
       AccountTotalQuantity := AccountTotalQuantity + txQuantity;
-      if ( Local_Amount <> 0) or ( txGST_Amount <> 0) then
+      if ( txTemp_Base_Amount <> 0) or ( txGST_Amount <> 0) then
          AccountHasActivity := true;
 
       //Super
@@ -1647,7 +1647,7 @@ begin
 
       If Quantities then
       begin
-        Net := Local_Amount - txGST_Amount;
+        Net := txTemp_Base_Amount - txGST_Amount;
         Qty := txQuantity;
         Avg := calcAverage(Net/100,Qty/10000);
       end
@@ -1663,7 +1663,7 @@ begin
         Notes := '';
 
       TListLedgerReport(ReportJob).PutWrapped(GetNarration(Mgr.Transaction, Mgr.Bank_Account.baFields.baAccount_Type), txGST_Class,
-        Local_Amount, txGST_Amount, Local_Amount - txGST_Amount, Qty, Avg, Notes);
+        txTemp_Base_Amount, txGST_Amount, txTemp_Base_Amount - txGST_Amount, Qty, Avg, Notes);
 
       RenderDetailLine;
       AccountHasActivity := True;
