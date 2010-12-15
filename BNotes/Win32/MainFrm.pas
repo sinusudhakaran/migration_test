@@ -313,7 +313,6 @@ type
     AccountCellChanged    : boolean;
     PayeeCellChanged      : boolean;
     JobCellChanged        : boolean;
-    ActiveBankAccount     : TEcBank_Account;
     ActiveBankAccountIndex : integer;
     CurrentPanelField     : integer;
     DefaultDir            : string;
@@ -811,8 +810,7 @@ begin
   with MyClientFile do begin
     for i := 0 to Pred( ecBankAccounts.ItemCount) do begin
       ba := ecBankAccounts.Bank_Account_At( i);
-      cmbBankAccounts.Add( ba.bafields.baBank_Account_Number + '   ' +
-                           ba.baFields.baBank_Account_Name);
+      cmbBankAccounts.Add(GetAccountDetails(ba, ecFields.ecCountry));
     end;
   end;
   cmbBankAccounts.ItemIndex := 0;
@@ -994,7 +992,7 @@ begin
    //now reload
    WorkTranList := tSorted_Transaction_List.Create( MyClientFile.ecFields.ecCountry,
                                                     TranSortOrder);
-   with ActiveBankAccount.baTransaction_List do begin
+   with MyClientFile.ActiveBankAccount.baTransaction_List do begin
       for i := 0 to Pred( ItemCount) do begin
          pT := Transaction_At( i);
          WorkTranList.Insert( pT);
@@ -1010,6 +1008,7 @@ var
 begin
   tgTrans.Cols  := ccMax;
   tgTrans.CheckBoxStyle := stCheck;
+  ccNames[7]:=MyClientFile.SalesTaxNameFromCountry(MyClientFile.ecFields.ecCountry);
 
   for i := ccMin to ccMax do
   begin
@@ -1129,7 +1128,8 @@ begin
 
   //load new bank account
   try
-    ActiveBankAccount := MyClientFile.ecBankAccounts.Bank_Account_At( Index);
+    // ActiveBankAccount := MyClientFile.ecBankAccounts.Bank_Account_At( Index);
+    MyClientFile.ActiveBankAccount := MyClientFile.ecBankAccounts.Bank_Account_At( Index);
   except
     on E: CollException do
     begin
@@ -2065,7 +2065,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.CloseActiveBankAccount;
 begin
-   if not Assigned( ActiveBankAccount) then exit;
+   if not Assigned( MyClientFile.ActiveBankAccount) then exit;
    //finish up any edits
    tgTrans.EndEdit( false);
    pfEndPanelEdit( false);
@@ -2081,7 +2081,7 @@ begin
    WorkTranList.Free;
    WorkTranList := nil;
 
-   ActiveBankAccount := nil;
+   MyClientFile.ActiveBankAccount := nil;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.GSTAmountEdited(NewValue: double; pT: pTransaction_Rec; ValueEmpty : Boolean);
@@ -2306,6 +2306,8 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.BuildPanel;
+var
+  STax: string;
 begin
   //setup tags
   rzDate.Tag            := ccDateEff;
@@ -2351,6 +2353,9 @@ begin
       chkTaxInv.Visible := (not ecHide_Tax_Invoice_Col);
       lblQuantity.Visible := (not ecHide_Quantity_Col);
       rzQuantity.Visible  := (not ecHide_Quantity_Col);
+
+      STax:=MyClientFile.SalesTaxNameFromCountry(ecCountry);
+      lblGST.Caption := STax;
     end;
 
     chkShowPanelClick(chkShowPanel);
@@ -2787,6 +2792,7 @@ begin
   CloseAndSaveCurrentFile(SAVE_AUTOMSG);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 procedure TfrmMain.SetSortOrder( NewSortOrder : integer);
 begin
    TranSortOrder  := NewSortOrder;
@@ -3462,7 +3468,7 @@ var
    Transaction : pTransaction_Rec;
 begin
    //get upc range
-   if not GetUPCRange( ActiveBankAccount,
+   if not GetUPCRange( MyClientFile.ActiveBankAccount,
                        MyClientFile.ecFields.ecDate_Range_From,
                        MyClientFile.ecFields.ecDate_Range_To,
                        ChqNoFrom,
@@ -3478,7 +3484,7 @@ begin
            ChqList.Insert( NewCheque);
      end;
      //search for matches with existing cheques
-     ChequeListObj.FindMatchingCheques( ActiveBankAccount, ChqList);
+     ChequeListObj.FindMatchingCheques( MyClientFile.ActiveBankAccount, ChqList);
 
       //if not cheque no then inc count
       AddCount := 0;
@@ -3506,19 +3512,16 @@ begin
             //not there at all, so !! ADD !! the missing Cheques}
             Transaction := ECTXIO.New_Transaction_Rec;
             with Transaction^ do begin
-               case MyClientFile.ecFields.ecCountry of
-                  whNewZealand : txType := 0;
-                  whAustralia  : txType := 1;
-               end;
+               txType           := whChequeEntryType[MyClientFile.ecFields.ecCountry];
                txSource         := orGenerated;
                txDate_Effective := MyClientFile.ecFields.ecDate_Range_To;
                txCheque_Number  := number;
                txReference      := inttostr( number);
-               txBank_Seq       := ActiveBankAccount.baFields.baNumber;
+               txBank_Seq       := MyClientFile.ActiveBankAccount.baFields.baNumber;
                txUPI_State      := upUPC;
                txUPI_Can_Delete := True;
             end;    // with
-            ActiveBankAccount.baTransaction_List.Insert_Transaction_Rec(Transaction);
+            MyClientFile.ActiveBankAccount.baTransaction_List.Insert_Transaction_Rec(Transaction);
          end
       end;
    finally
@@ -3554,27 +3557,16 @@ begin
    //create new transaction
    Transaction := ECTXIO.New_Transaction_Rec;
    with Transaction^ do begin
-      if upi = upUPD then
-      begin
-        case MyClientFile.ecFields.ecCountry of
-           whNewZealand : txType := 50;
-           whAustralia  : txType := 10;
-        end;    // case
-      end
-      else // upw
-      begin
-        case MyClientFile.ecFields.ecCountry of
-           whNewZealand : txType := 49;
-           whAustralia  : txType := 9;
-        end;
-      end;
+      if upi = upUPD
+        then txType := whDepositEntryType[MyClientFile.ecFields.ecCountry]
+        else txType := whWithdrawalEntryType[MyClientFile.ecFields.ecCountry]; // upw
       txSource           := orGenerated;
       txDate_Effective   := MyClientFile.ecFields.ecDate_Range_To;
-      txBank_Seq         := ActiveBankAccount.baFields.baNumber;
+      txBank_Seq         := MyClientFile.ActiveBankAccount.baFields.baNumber;
       txUPI_State        := upi;
       txUPI_Can_Delete   := True;
    end;    // with
-   ActiveBankAccount.baTransaction_List.Insert_Transaction_Rec(Transaction);
+   MyClientFile.ActiveBankAccount.baTransaction_List.Insert_Transaction_Rec(Transaction);
 
    //reload transaction list
    LoadWorkTranList;                         
@@ -3779,7 +3771,7 @@ begin
    try
       NewDataRow := tgTrans.CurrentDataRow;
 
-      ActiveBankAccount.baTransaction_List.DelFreeItem( pT);
+      MyClientFile.ActiveBankAccount.baTransaction_List.DelFreeItem( pT);
 
       LoadWorkTranList;
       RepositionOnRow( NewDataRow);

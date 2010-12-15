@@ -19,7 +19,7 @@ inherited frmDissection: TfrmDissection
   OnShortCut = FormShortCut
   OnShow = FormShow
   ExplicitWidth = 782
-  ExplicitHeight = 482
+  ExplicitHeight = 484
   PixelsPerInch = 96
   TextHeight = 16
   object pnlTop: TPanel
@@ -226,8 +226,8 @@ inherited frmDissection: TfrmDissection
         Transparent = True
       end
       object btnOK: TButton
-        Left = 572
-        Top = 4
+        Left = 552
+        Top = -4
         Width = 81
         Height = 29
         Cursor = crHandPoint
@@ -243,8 +243,8 @@ inherited frmDissection: TfrmDissection
         TabOrder = 0
       end
       object btnCancel: TButton
-        Left = 659
-        Top = 4
+        Left = 639
+        Top = -4
         Width = 81
         Height = 29
         Cursor = crHandPoint

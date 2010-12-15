@@ -103,6 +103,22 @@ var
               Result  := Int32ToKey( txBank_Seq ) + ByteToKey( 3 ) + Int32ToKey( txAuto_Sequence_No ); {9}
         end;
      end;
+     // --------------------------------------------------------------------------
+     Function UKSortByChequeNoKey : ShortString;
+     Begin
+        With P^ do
+        Begin
+           If txCheque_Number > 0 then
+              Result  := Int32ToKey( txBank_Seq ) + ByteToKey( 1 ) + Int32ToKey( txCheque_Number ) + Int32ToKey( txAuto_Sequence_No )
+           else
+           If ( txType = 3 ) then { Automatic Payments }
+              Result  := Int32ToKey( txBank_Seq ) +  ByteToKey( 2 ) +
+                         ExtToKey( txAmount ) + Int32ToKey( txDate_Effective ) +
+                         Int32ToKey( txAuto_Sequence_No ) {23}
+           else
+              Result  := Int32ToKey( txBank_Seq ) + ByteToKey( 3 ) + Int32ToKey( txAuto_Sequence_No ); {9}
+        end;
+     end;
 
 begin
   { Can now return a String up to 32 characters }
@@ -116,6 +132,7 @@ begin
         csChequeNumber  : Case Country of
                              whNewZealand : Result := NZSortByChequeNoKey;
                              whAustralia  : Result := OZSortByChequeNoKey;
+                             whUK         : Result := UKSortByChequeNoKey;
                           end;
 
         csDatePresented : Result :=

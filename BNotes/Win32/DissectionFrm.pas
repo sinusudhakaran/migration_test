@@ -263,6 +263,7 @@ type
       var Value: Variant);
     procedure JobLookupKeyPress(Sender: TObject; var Key: Char);
     procedure JobEdited(NewValue: string; DataRow: Integer);
+    Function MoneyStr( Const Amount : Money): String;
   public
     { Public declarations }
   end;
@@ -283,7 +284,8 @@ uses
    ecTransactionListObj,
    ecColors,
    ecMessageBoxUtils, ECpyIO, FormUtils,
-   ECollect, mxUtils, NotesHelp, ecJobObj;
+   ECollect, mxUtils, NotesHelp, ecJobObj,
+   Dialogs;
 
 {$R *.DFM}
 const
@@ -381,7 +383,7 @@ begin
        begin
          lblDate.Caption   := bkDate2Str( txDate_Effective );
          lblRef.Caption    := GetFormattedReference( ParentTransaction);
-         lblAmount.Caption := Format( '%0.2m', [txAmount / 100] );
+         lblAmount.Caption := MoneyStr(txAmount / 100);
          if txPayee_Number <> 0 then begin
            APayee := MyClientFile.ecPayees.Find_Payee_Number( txPayee_Number);
            if Assigned(APayee) then
@@ -536,6 +538,7 @@ var
   i : integer;
 begin
   tgDissect.Cols  := ccMax;
+  ccNames[5]:=MyClientFile.SalesTaxNameFromCountry(MyClientFile.ecFields.ecCountry);
 
   for i := ccMin to ccMax do begin
      tgDissect.Col[ i].Heading        := ccNames[ i];
@@ -644,6 +647,8 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.BuildPanel;
+var
+  STax: string;
 begin
   //setup tags
   rzAmount.Tag    := ccAmount;
@@ -683,6 +688,9 @@ begin
     lblQuantity.Visible := (not ecHide_Quantity_Col);
     rzQuantity.Visible  := (not ecHide_Quantity_Col);
     chkTaxInv.Visible := (not ecHide_Tax_Invoice_Col);
+
+    STax:=MyClientFile.SalesTaxNameFromCountry(ecCountry);
+    lblGST.Caption := STax;
   end;
 
   SetEditState(rzQuantity, True);
@@ -1362,6 +1370,15 @@ begin
   else
     Key := 'A';
 end;
+
+function TfrmDissection.MoneyStr(const Amount: Money): String;
+begin
+  if Amount = Unknown then
+    Result := 'Unknown'
+  else
+    Result := FormatFloat( MyClientFile.ActiveBankAccount.FmtMoneyStr, Amount/100.0 );
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.tgDissectEndCellEdit(Sender: TObject; DataCol,
   DataRow: Integer; var Cancel: Boolean);
@@ -1495,8 +1512,8 @@ var
    Total, Remain : Double;
 begin
    CalcControlTotals( Count, Total, Remain );
-   lblTotal.Caption  := Format( '%0.2m', [Total/100]  );
-   lblRemain.Caption := Format( '%0.2m', [Remain] );
+   lblTotal.Caption  := MoneyStr(Total/100);
+   lblRemain.Caption := MoneyStr(Remain);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.AmountEdited(NewValue: double; DataRow: integer);

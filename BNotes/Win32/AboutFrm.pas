@@ -96,6 +96,7 @@ begin
     case MyClientFile.ecFields.ecCountry of
        whNewZealand : lblCountry.Caption := 'NZ';
        whAustralia  : lblCountry.Caption := 'AU';
+       whUK         : lblCountry.Caption := 'UK';
     else
        lblCountry.Caption := '';
     end;
@@ -111,6 +112,8 @@ begin
       lblServer.Caption := MyClientFile.ecFields.ecUpdate_Server
     else} if MyClientFile.ecFields.ecCountry = whAustralia then
       lblServer.Caption := DefaultAUCatalogServer
+    else if MyClientfile.ecFields.ecCountry = whUK then
+      lblServer.Caption := DefaultUKCatalogServer
     else
       lblServer.Caption := DefaultNZCatalogServer;
   end else
