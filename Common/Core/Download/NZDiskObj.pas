@@ -13,7 +13,9 @@ type
     function SaveToRT86Stream: TMemoryStream;
     function SaveSuperDirectoryStream: TMemoryStream;
     procedure LoadFromRT86Stream(const RT86Stream: TMemoryStream);
-    function GetZipStream(const FileName: string): TMemoryStream;
+    function GetZipStream(const FileName: string): TMemoryStream; overload;
+    function GetZipStream(FromStream: TStream ): TMemoryStream; overload;
+
   private
   public
     procedure Validate; override;
@@ -23,6 +25,9 @@ type
     function LoadFromFileOF(const FileName: string;
       const AttachmentDir: string;
       const GetAttachments: Boolean): TStringList; override;
+    procedure ExtractFromStreamOF(const FileName: string;
+                                  FileStream: TStream;
+                                  ToProc: FileExtractProc); override;
     { ------------------------------------------------------------------------ }
     procedure NewDisk(ClientCode, ClientName: string; CreatDate: integer;
       FileName, FloppyDesc, TrueFileName: string; DiskNo, SeqNo: integer);
@@ -91,39 +96,93 @@ begin
     Result := ( dhAccount_List.ItemCount <= MaxAccounts ) and ( dhFields.dhNo_of_Transactions < MaxTransactions );
   *)
 end;
-//------------------------------------------------------------------------------
 
-function TNZDisk.GetZipStream(const FileName: string): TMemoryStream;
+
+procedure TNZDisk.ExtractFromStreamOF(const FileName: string;
+                                  FileStream: TStream;
+                                  ToProc: FileExtractProc);
+var
+  Files: TStringList;
+  ZipStream: TMemoryStream;
+  UnZipper: TVclZip;
+  DataStream: TMemoryStream;
+  i: Integer;
+  Index: Integer;
+begin
+ (* Profile( ProcName ); *)
+  ZipStream := nil;
+  try
+    ZipStream := GetZipStream(FileStream);
+
+    UnZipper := TVCLZip.Create(nil);
+    Files := TStringList.Create;
+    try
+      UnZipper.ArchiveStream := ZipStream;
+      UnZipper.ReadZip;
+
+      for i := 0 to Pred(UnZipper.Count) do
+         Files.Add(UnZipper.Filename[i]);
+
+      Index := Files.IndexOf(ExtractFileName(FileName));
+      if Index >= 0 then begin
+         DataStream := TMemoryStream.Create;
+         try
+            UnZipper.UnZipToStream(DataStream, UnZipper.FullName[Index]);
+            DataStream.Position := 0;
+            Self.LoadFromRT86Stream(DataStream);
+         finally
+            DataStream.Free;
+         end;
+      end else
+         raise FHException.CreateFmt('Couldn''t find any data in the file %s', [FileName]);
+
+      if Assigned(ToProc) then begin
+         for i := 0 to Pred(UnZipper.Count) do begin
+            if UnZipper.FileName[i] <> ExtractFileName(FileName) then begin { it's an attachment file }
+               FileStream := TMemoryStream.Create;
+               try
+                  UnZipper.UnZipToStream(FileStream, UnZipper.FullName[i]);
+                  FileStream.Position := 0;
+                  ToProc(UnZipper.FullName[i],FileStream);
+               finally
+                  FileStream.Free;
+               end;
+            end;
+        end;
+      end;
+      UnZipper.ArchiveStream := nil;
+    finally
+      UnZipper.Free;
+      Files.Free;
+    end;
+  finally
+    ZipStream.Free;
+  end;
+end;
+
+function TNZDisk.GetZipStream(FromStream: TStream): TMemoryStream;
 const
   ChunkSize = 8192;
-  ProcName = 'TNZDisk.GetZipStream';
+
 var
   ID: NZDiskIDRec;
   Buffer: Pointer;
   CRC: LongInt;
   SaveCRC: LongInt;
   ZipStream: TMemoryStream;
-  FileStream: TMemoryStream;
   NumRead: Integer;
   NumWritten: Integer;
 begin
-  (* Profile( 'TNZDisk.GetZipStream' ); *)
-  Result := nil;
-  if not FileExists(FileName) then
-    raise FHException.CreateFmt('%s ERROR: the file %s does not exist', [ProcName, FileName]);
-  { Generate the File Header Record }
-  FileStream := TMemoryStream.Create;
-  try
-    FileStream.LoadFromFile(FileName);
-    FileStream.Position := 0;
-    FileStream.Read(ID, Sizeof(ID));
+    Result := nil;
+
+    FromStream.Position := 0;
+    FromStream.Read(ID, Sizeof(ID));
 
     if ID.idFileType <> 'BankLink' then
-      raise FHException.CreateFmt('%s ERROR: the file %s is not a NZ BankLink DOS disk file',
-        [ProcName, FileName]);
+       raise FHException.Create('the file is not a NZ BankLink DOS disk file');
+
     if ID.idVersion <> 2 then
-      raise FHException.CreateFmt('%s ERROR: the file %s is for version %d (2 expected)',
-        [ProcName, FileName, ID.idVersion]);
+       raise FHException.Create('the file is for version %d (2 expected)');
 
     SaveCRC := ID.idCRC;
     CRC := 0;
@@ -136,26 +195,51 @@ begin
     GetMem(Buffer, ChunkSize);
     try
       repeat
-        NumRead := FileStream.Read(Buffer^, ChunkSize);
+        NumRead := FromStream.Read(Buffer^, ChunkSize);
         if NumRead > 0 then
           begin
             UpdateCRC(CRC, Buffer^, NumRead);
             Decrypt(Buffer^, NumRead);
             NumWritten := ZipStream.Write(Buffer^, NumRead);
             if not (NumWritten = NumRead) then
-              raise FHException.CreateFmt('%s ERROR: ZipStream write failed', [ProcName]);
+              raise FHException.Create('ZipStream write failed');
           end;
       until NumRead < ChunkSize;
     finally
       FreeMem(Buffer, ChunkSize);
     end;
+
     if CRC <> SaveCRC then
-      raise FHException.CreateFmt('%s ERROR: the file %s is corrupt - invalid CRC', [ProcName,
-        FileName]);
+       raise FHException.Create('the file is corrupt - invalid CRC');
+
     ZipStream.Position := 0;
     Result := ZipStream;
+end;
+
+//------------------------------------------------------------------------------
+
+function TNZDisk.GetZipStream(const FileName: string): TMemoryStream;
+const
+  ProcName = 'TNZDisk.GetZipStream';
+
+var
+  FileStream: TMemoryStream;
+begin
+  (* Profile( ProcName ); *)
+  Result := nil;
+  if not FileExists(FileName) then
+    raise FHException.CreateFmt('%s ERROR: the file %s does not exist', [ProcName, FileName]);
+  { Generate the File Header Record }
+  FileStream := TMemoryStream.Create;
+  try try
+     FileStream.LoadFromFile(FileName);
+     Result := GetZipStream(FileStream);
+  except
+     on E: Exception do
+        raise FHException.CreateFmt('%s ERROR:%s in file %s', [ProcName, E.Message, FileName]);
+  end;
   finally
-    FileStream.Free;
+     FileStream.Free;
   end;
 end;
 
@@ -447,6 +531,8 @@ begin
     FreeMem(NZDiskImage);
   end;
 end;
+
+
 //----------------------------------------------------------------------------
 
 function TNZDisk.SaveSuperDirectoryStream: TMemoryStream;
@@ -864,15 +950,19 @@ begin
   inherited;
   if dhFields.dhCountry_Code <> whNewZealand then
     raise FHDataValidationException.Create('TNZDisk.Validate Error: Wrong country code');
+
   if dhFields.dhDisk_Number = 0 then
     raise
       FHDataValidationException.Create('TNZDisk.Validate Error: dhDisk_Number is a required field [NZ]');
+
   if dhFields.dhNo_Of_Disks_in_Set = 0 then
     raise
       FHDataValidationException.Create('TNZDisk.Validate Error: dhNo_of_Disks_In_Set is a required field [NZ]');
+
   if dhFields.dhSequence_In_Set = 0 then
     raise
       FHDataValidationException.Create('TNZDisk.Validate Error: dhSequence_In_Set is a required field [NZ]');
+
   if dhFields.dhFloppy_Desc_NZ_Only = '' then
     raise
       FHDataValidationException.Create('TNZDisk.Validate Error: dhFloppy_Desc_NZ_Only is a required field [NZ]');

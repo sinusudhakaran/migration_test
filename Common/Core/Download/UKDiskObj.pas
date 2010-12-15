@@ -12,7 +12,8 @@ type
   protected
     function SaveToRT86Stream: TMemoryStream;
     procedure LoadFromRT86Stream(var RT86Stream: TMemoryStream);
-    function GetZipStream(const FileName: string): TMemoryStream;
+    function GetZipStream(const FileName: string): TMemoryStream; overload;
+    function GetZipStream(FromStream: TStream ): TMemoryStream; overload;
   private
   public
     procedure Validate; override;
@@ -22,6 +23,10 @@ type
     function LoadFromFileOF(const FileName: string;
       const AttachmentDir: string;
       const GetAttachments: Boolean): TStringList; override;
+      
+    procedure ExtractFromStreamOF(const FileName: string;
+                                  FileStream: TStream;
+                                  ToProc: FileExtractProc); override;
     { ------------------------------------------------------------------------ }
     procedure NewDisk(ClientCode, ClientName: string; CreatDate: integer;
       FileName, TrueFileName: string; DiskNo, SeqNo: integer);
@@ -83,9 +88,78 @@ begin
   Result := (dhAccount_List.ItemCount <= MaxAccounts) and (dhFields.dhNo_of_Transactions <
     MaxTransactions);
 end;
+
+procedure TUKDisk.ExtractFromStreamOF(const FileName: string;
+  FileStream: TStream; ToProc: FileExtractProc);
+
+const
+  ProcName = 'TUKDisk.ExtractFromStreamOF';
+var
+  ZipStream: TMemoryStream;
+  UnZipper: TVclZip;
+  DataStream: TMemoryStream;
+  i: Integer;
+  Index: Integer;
+  Files: TStringList;
+begin
+  (* Profile( ProcName ); *)
+
+  ZipStream := nil;
+  try
+    ZipStream := GetZipStream(FileStream);
+    UnZipper := TVCLZip.Create(nil);
+    Files := TStringList.Create;
+    try
+       UnZipper.ArchiveStream := ZipStream;
+       UnZipper.ReadZip;
+
+       for i := 0 to Pred(UnZipper.Count) do
+         Files.Add(UnZipper.Filename[i]);
+       Index := Files.IndexOf(FileName);
+       if Index >= 0 then begin
+          DataStream := TMemoryStream.Create;
+          try
+            UnZipper.UnZipToStream(DataStream, UnZipper.FullName[Index]);
+            DataStream.Position := 0;
+            Self.LoadFromRT86Stream(DataStream);
+          finally
+            DataStream.Free;
+          end;
+        end
+      else
+        raise FHException.CreateFmt('%s Error: Couldn''t find any data in the file %s', [ProcName,
+          FileName]);
+
+      if Assigned(ToProc) then begin
+         for i := 0 to Pred(UnZipper.Count) do begin
+            if UnZipper.FileName[i] <> ExtractFileName(FileName) then begin { it's an attachment file }
+               FileStream := TMemoryStream.Create;
+               try
+                  UnZipper.UnZipToStream(FileStream, UnZipper.FullName[i]);
+                  FileStream.Position := 0;
+                  ToProc(UnZipper.FullName[i],FileStream);
+               finally
+                  FileStream.Free;
+               end;
+            end;
+        end;
+      end;
+
+      UnZipper.ArchiveStream := nil;
+    finally
+      Files.Free;
+      UnZipper.Free;
+    end;
+
+  finally
+    ZipStream.Free;
+  end;
+end;
+
+
 //------------------------------------------------------------------------------
 
-function TUKDisk.GetZipStream(const FileName: string): TMemoryStream;
+function TUKDisk.GetZipStream(FromStream: TStream): TMemoryStream;
 
 const
   ChunkSize = 8192;
@@ -96,7 +170,6 @@ var
   CRC: Integer;
   SaveCRC: Integer;
   ZipStream: TMemoryStream;
-  FileStream: TMemoryStream;
   NumRead: Integer;
   NumWritten: Integer;
 begin
@@ -104,34 +177,29 @@ begin
 
   Result := nil;
 
-  if not FileExists(FileName) then
-    raise FHException.CreateFmt('%s ERROR: the file %s does not exist', [ProcName, FileName]);
-  { Generate the File Header Record }
-  FileStream := TMemoryStream.Create;
+  FileStream.LoadFromFile(FileName);
+  FileStream.Position := 0;
+  FileStream.Read(ID, Sizeof(ID));
+
+  if ID.idFileType <> 'UKLink' then
+     raise
+        FHException.Create('the file is not an UK BankLink DOS disk file');
+
+  if ID.idVersion <> 'V1.0' then
+      raise FHException.CreateFmt('the file is for version %s (V1.0 expected)',
+        [ID.idVersion]);
+
+  SaveCRC := ID.idCRC;
+  CRC := 0;
+  ID.idCRC := 0;
+
+  UpdateCRC(CRC, ID, Sizeof(ID));
+
+  ZipStream := TMemoryStream.Create;
+
+  GetMem(Buffer, ChunkSize);
   try
-    FileStream.LoadFromFile(FileName);
-    FileStream.Position := 0;
-    FileStream.Read(ID, Sizeof(ID));
-
-    if ID.idFileType <> 'UKLink' then
-      raise
-        FHException.CreateFmt('%s ERROR: the file %s is not an Australian BankLink DOS disk file',
-        [ProcName, FileName]);
-    if ID.idVersion <> 'V1.0' then
-      raise FHException.CreateFmt('%s ERROR: the file %s is for version %s (V1.0 expected)',
-        [ProcName, FileName, ID.idVersion]);
-
-    SaveCRC := ID.idCRC;
-    CRC := 0;
-    ID.idCRC := 0;
-
-    UpdateCRC(CRC, ID, Sizeof(ID));
-
-    ZipStream := TMemoryStream.Create;
-
-    GetMem(Buffer, ChunkSize);
-    try
-      repeat
+     repeat
         NumRead := FileStream.Read(Buffer^, ChunkSize);
         if NumRead > 0 then
           begin
@@ -139,21 +207,48 @@ begin
             Decrypt(Buffer^, NumRead);
             NumWritten := ZipStream.Write(Buffer^, NumRead);
             if not (NumWritten = NumRead) then
-              raise FHException.CreateFmt('%s ERROR: ZipStream write failed', [ProcName]);
+              raise FHException.Create('ZipStream write failed');
           end;
       until NumRead < ChunkSize;
-    finally
-      FreeMem(Buffer, ChunkSize);
-    end;
-    if CRC <> SaveCRC then
-      raise FHException.CreateFmt('%s ERROR: the file %s is corrupt - invalid CRC', [ProcName,
-        FileName]);
-    ZipStream.Position := 0;
-    Result := ZipStream;
   finally
-    FileStream.Free;
+     FreeMem(Buffer, ChunkSize);
+  end;
+
+  if CRC <> SaveCRC then
+      raise FHException.Create('the file is corrupt - invalid CRC');
+  ZipStream.Position := 0;
+  Result := ZipStream;
+
+end;
+
+//------------------------------------------------------------------------------
+
+function TUKDisk.GetZipStream(const FileName: string): TMemoryStream;
+
+const
+  ProcName = 'TUKDisk.GetZipStream';
+
+var
+  FileStream: TMemoryStream;
+begin
+  (* Profile( ProcName ); *)
+  Result := nil;
+  if not FileExists(FileName) then
+    raise FHException.CreateFmt('%s ERROR: the file %s does not exist', [ProcName, FileName]);
+  { Generate the File Header Record }
+  FileStream := TMemoryStream.Create;
+  try try
+     FileStream.LoadFromFile(FileName);
+     Result := GetZipStream(FileStream);
+  except
+     on E: Exception do
+        raise FHException.CreateFmt('%s ERROR:%s in file %s', [ProcName, E.Message, FileName]);
+  end;
+  finally
+     FileStream.Free;
   end;
 end;
+
 
 // ----------------------------------------------------------------------------
 

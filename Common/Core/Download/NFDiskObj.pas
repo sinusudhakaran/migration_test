@@ -5,11 +5,16 @@ interface uses BaseDisk, Classes, NFUtils;
 // ----------------------------------------------------------------------------
 
 type
+  FileExtractProc = procedure (const FileName: string; filestream: TStream) of object;
+
+type
   TNewFormatDisk = class ( TBankLink_Disk )
   protected
-    function  GetZipStream( Const FileName : String; Var ID : NewDiskIDRec ): TMemoryStream;
+    function  GetZipStream( Const FileName : String; Var ID : NewDiskIDRec ): TMemoryStream; overload;
+    function  GetZipStream( FileStream: TStream; Var ID : NewDiskIDRec): TMemoryStream; overload;
     Function  SaveToNFStream: TMemoryStream;
     Procedure LoadFromNFStream( AStream : TMemoryStream );
+    procedure SetID(ID : NewDiskIDRec);
   private
   public
     procedure Validate; Override;
@@ -21,10 +26,22 @@ type
     function  LoadFromFile( Const FileName : String;
                             Const AttachmentDir : String;
                             Const GetAttachments : Boolean ): TStringList;
+
+
+
     procedure SaveToFileOF( Const FileName : String; Const Attachments : TStringList ); Virtual; Abstract;
     function  LoadFromFileOF( Const FileName : String;
                             Const AttachmentDir : String;
                             Const GetAttachments : Boolean ): TStringList; Virtual; Abstract;
+
+    procedure ExtractFromStreamOF(const FileName: string;
+                                  FileStream: TStream;
+                                  ToProc: FileExtractProc); Virtual; Abstract;
+
+    procedure ExtractFromStream(const FileName: string;
+                                FileStream: TStream;
+                                ToProc: FileExtractProc);
+
     procedure LoadFromUpdateFile( const FileName: string);
     procedure WriteLabelFile(const FileName: string);
   end;
@@ -303,6 +320,72 @@ Begin
   OutStream.Position := 0;
   Result := OutStream;
 end;
+
+procedure TNewFormatDisk.SetID(ID: NewDiskIDRec);
+
+ function InsertDot(inp: array of char): string;
+  var
+    i: integer;
+    cnt: integer;
+  begin
+    result:='';
+    i:=High(inp);
+    while (i>0) and (inp[i]<=' ') do
+      Dec(i);
+    for cnt:=1 to 3 do
+    begin
+      result:=inp[i]+result;
+      Dec(i);
+    end;
+    result:='.'+result;
+    for cnt:=i downto 0 do
+    begin
+      result:=inp[i]+result;
+      Dec(i);
+    end
+  end;
+
+
+begin
+   EmptyDisk;
+
+   if ID.nidCountryID = NFCountryNZ then
+      dhFields.dhCountry_Code := whNewZealand
+   else if ID.nidCountryID = NFCountryAU then
+      dhFields.dhCountry_Code := whAustralia
+   else if ID.nidCountryID = NFCountryUK then
+      dhFields.dhCountry_Code := whUnitedKingdom;
+
+   dhFields.dhVersion        := Trim(ID.nidVersion);
+   dhFields.dhFile_SubType   := Trim(ID.nidFileSubType);
+
+   dhFields.dhCreation_Date := Str2Date( ID.nidFileDate );
+
+   case dhFields.dhCountry_Code of
+      whNewZealand :
+        begin
+          dhFields.dhFloppy_Desc_NZ_Only := Trim(ID.nidFloppyDesc);
+          if ID.nidThisDiskNumber<3600 then
+            dhFields.dhFile_Name := InsertDot( ID.nidFloppyDesc )
+          else
+            dhFields.dhFile_Name := Trim(ID.nidFloppyDesc);
+        end;
+      whAustralia  : dhFields.dhFile_Name := Trim(ID.nidFloppyDesc);
+      whUnitedKingdom  : dhFields.dhFile_Name := Trim(ID.nidFloppyDesc);
+   end;
+
+   dhFields.dhTrue_File_Name:=Trim(ID.nidFileName);
+
+   dhFields.dhFirst_Transaction_Date := Str2Date( ID.nidFromDate );
+   dhFields.dhLast_Transaction_Date := Str2Date( ID.nidToDate );
+   dhFields.dhClient_Code          := Trim(ID.nidClientCode);
+   dhFields.dhClient_Name          := TrimRight(ID.nidClientName);
+   dhFields.dhDisk_Number          := ID.nidThisDiskNumber;
+   dhFields.dhSequence_In_Set      := ID.nidSequenceInSet;
+   dhFields.dhNo_Of_Disks_in_Set   := ID.nidNoOfDisksInSet;
+
+end;
+
 //------------------------------------------------------------------------------
 
 Procedure TNewFormatDisk.LoadFromNFStream( AStream : TMemoryStream );
@@ -397,6 +480,8 @@ Begin
   end;
   Close( InFile );
 end;
+
+
 
 // -----------------------------------------------------------------------------
 
@@ -530,29 +615,134 @@ Begin
 end;
 // -----------------------------------------------------------------------------
 
+procedure TNewFormatDisk.ExtractFromStream
+    (const FileName: string;
+     FileStream: TStream;
+     ToProc: FileExtractProc);
+
+Const
+  ProcName = 'TNewFormatDisk.ExtractFromStream';
+Var
+  Files          : TStringList;
+  ZipStream      : TMemoryStream;
+  UnZipper       : TVclZip;
+  DataStream     : TMemoryStream;
+  i              : Integer;
+  Index          : Integer;
+  ID             : NewDiskIDRec;
+begin
+  (* Profile( ProcName ); *)
+
+  ZipStream := nil;
+  try
+    ZipStream := GetZipStream( FileStream, ID );
+
+    SetID(ID);
+
+    UnZipper := TVCLZip.Create( NIL );
+    Files := TStringList.Create;
+    Try
+      UnZipper.ArchiveStream := ZipStream;
+      UnZipper.ReadZip;
+      For i := 0 to Pred( UnZipper.Count ) do
+         Files.Add( UnZipper.Filename[ i ] );
+      Index := Files.IndexOf( 'DATA' );
+      If Index >= 0 then
+      Begin
+        DataStream := TMemoryStream.Create;
+        Try
+          UnZipper.UnZipToStream( DataStream, 'DATA' );
+          DataStream.Position := 0;
+          Self.LoadFromNFStream( DataStream );
+        Finally
+          DataStream.Free;
+        end;
+      end
+      else
+        Raise FHException.CreateFmt( '%s Error: Couldn''t find any data in the file %s', [ ProcName, FileName ] );
+
+      If Assigned(ToProc) then begin
+        For i := 0 to Pred( UnZipper.Count ) do
+        Begin
+          If Files[ i ] <> 'DATA' then
+          Begin { it's an attachment file }
+            FileStream := TMemoryStream.Create;
+            try
+              UnZipper.UnZipToStream( FileStream, UnZipper.FullName[ i ] );
+              FileStream.Position := 0;
+              ToProc(UnZipper.FullName[i],FileStream);
+            finally
+              FileStream.Free;
+            end;
+          end;
+        end;
+      end;
+      UnZipper.ArchiveStream := NIL;
+    Finally
+      UnZipper.Free;
+    end;
+  Finally
+    ZipStream.Free;
+  end;
+end;
+
+function TNewFormatDisk.GetZipStream(FileStream: TStream;
+  var ID: NewDiskIDRec): TMemoryStream;
+Const
+  ChunkSize = 8192;
+  ProcName = 'TNewFormatDisk.GetZipStream';
+Var
+  Buffer     : Pointer;
+  CRC        : LongInt;
+  SaveCRC    : LongInt;
+  ZipStream  : TMemoryStream;
+  NumRead    : Integer;
+  NumWritten : Integer;
+Begin
+  (* Profile( ProcName ); *)
+  Result := NIL;
+  { Generate the File Header Record }
+  FileStream.Position := 0;
+  FileStream.Read( ID, Sizeof( ID ) );
+
+  if ID.nidFileType <> NFFileType then
+     Raise FHException.CreateFmt( '%s ERROR: the file is not a new BankLink format file', [ ProcName ] );
+       // Previous version of software should be able to read ne version of file
+
+  SaveCRC  := ID.nidCRC;
+  CRC      := 0;
+  ID.nidCRC := 0;
+
+  UpdateCRC( CRC, ID, Sizeof( ID ) );
+
+  ZipStream := TMemoryStream.Create;
+
+  GetMem( Buffer, ChunkSize );
+  try
+     repeat
+        NumRead := FileStream.Read( Buffer^, ChunkSize );
+        if NumRead > 0 then
+        begin
+          UpdateCRC( CRC, Buffer^, NumRead );
+          Decrypt( Buffer^, NumRead );
+          NumWritten := ZipStream.Write( Buffer^, NumRead );
+          if not ( NumWritten = NumRead ) then Raise FHException.CreateFmt( '%s ERROR: ZipStream write failed', [ ProcName ] );
+        end;
+      until NumRead < ChunkSize;
+  Finally
+     FreeMem( Buffer, ChunkSize );
+  end;
+
+  If CRC <> SaveCRC then
+       Raise FHException.CreateFmt( '%s ERROR: the file is corrupt - invalid CRC', [ProcName] );
+
+  ZipStream.Position := 0;
+  Result := ZipStream;
+
+end;
+
 function  TNewFormatDisk.LoadFromFile( Const FileName : String; Const AttachmentDir : String; Const GetAttachments : Boolean ): TStringList;
 
-  function InsertDot(inp: array of char): string;
-  var
-    i: integer;
-    cnt: integer;
-  begin
-    result:='';
-    i:=High(inp);
-    while (i>0) and (inp[i]<=' ') do
-      Dec(i);
-    for cnt:=1 to 3 do
-    begin
-      result:=inp[i]+result;
-      Dec(i);
-    end;
-    result:='.'+result;
-    for cnt:=i downto 0 do
-    begin
-      result:=inp[i]+result;
-      Dec(i);
-    end
-  end;
 
 Const
   ProcName = 'TNewFormatDisk.LoadFromFile';
@@ -574,47 +764,15 @@ begin
   try
     ZipStream := GetZipStream( FileName, ID );
 
-    EmptyDisk;
-
-    If ID.nidCountryID = NFCountryNZ then
-      dhFields.dhCountry_Code := whNewZealand;
-    If ID.nidCountryID = NFCountryAU then
-      dhFields.dhCountry_Code := whAustralia;
-    If ID.nidCountryID = NFCountryUK then
-      dhFields.dhCountry_Code := whUnitedKingdom;
-    dhFields.dhVersion        := Trim(ID.nidVersion);
-    dhFields.dhFile_SubType   := Trim(ID.nidFileSubType);
-
-    dhFields.dhCreation_Date := Str2Date( ID.nidFileDate );
-
-    Case dhFields.dhCountry_Code of
-      whNewZealand :
-        begin
-          dhFields.dhFloppy_Desc_NZ_Only := Trim(ID.nidFloppyDesc);
-          if ID.nidThisDiskNumber<3600 then
-            dhFields.dhFile_Name := InsertDot( ID.nidFloppyDesc )
-          else
-            dhFields.dhFile_Name := Trim(ID.nidFloppyDesc);
-        end;
-      whAustralia  : dhFields.dhFile_Name := Trim(ID.nidFloppyDesc);
-      whUnitedKingdom  : dhFields.dhFile_Name := Trim(ID.nidFloppyDesc);
-    end;
-    dhFields.dhTrue_File_Name:=Trim(ID.nidFileName);
-
-    dhFields.dhFirst_Transaction_Date := Str2Date( ID.nidFromDate );
-    dhFields.dhLast_Transaction_Date := Str2Date( ID.nidToDate );
-    dhFields.dhClient_Code          := Trim(ID.nidClientCode);
-    dhFields.dhClient_Name          := TrimRight(ID.nidClientName);
-    dhFields.dhDisk_Number          := ID.nidThisDiskNumber;
-    dhFields.dhSequence_In_Set      := ID.nidSequenceInSet;
-    dhFields.dhNo_Of_Disks_in_Set   := ID.nidNoOfDisksInSet;
+    SetID(ID);
 
     UnZipper := TVCLZip.Create( NIL );
     Files := TStringList.Create;
     Try
       UnZipper.ArchiveStream := ZipStream;
       UnZipper.ReadZip;
-      For i := 0 to Pred( UnZipper.Count ) do Files.Add( UnZipper.Filename[ i ] );
+      For i := 0 to Pred( UnZipper.Count ) do
+         Files.Add( UnZipper.Filename[ i ] );
       Index := Files.IndexOf( 'DATA' );
       If Index >= 0 then
       Begin
@@ -750,60 +908,25 @@ end;
 
 function TNewFormatDisk.GetZipStream( Const FileName : String; Var ID : NewDiskIDRec ): TMemoryStream;
 Const
-  ChunkSize = 8192;
   ProcName = 'TNewFormatDisk.GetZipStream';
+
 Var
-  Buffer     : Pointer;
-  CRC        : LongInt;
-  SaveCRC    : LongInt;
-  ZipStream  : TMemoryStream;
   FileStream : TMemoryStream;
-  NumRead    : Integer;
-  NumWritten : Integer;
+
 Begin
   (* Profile( ProcName ); *)
   Result := NIL;
-  If not FileExists( FileName ) then Raise FHException.CreateFmt( '%s ERROR: the file %s does not exist', [ ProcName, FileName ] );
+  If not FileExists( FileName ) then
+     Raise FHException.CreateFmt( '%s ERROR: the file %s does not exist', [ ProcName, FileName ] );
   { Generate the File Header Record }
   FileStream := TMemoryStream.Create;
-  Try
-    FileStream.LoadFromFile( FileName );
-    FileStream.Position := 0;
-    FileStream.Read( ID, Sizeof( ID ) );
-
-    If ID.nidFileType <> NFFileType then
-      Raise FHException.CreateFmt( '%s ERROR: the file %s is not a new BankLink format file', [ ProcName, FileName ] );
-    (*
-    If ID.nidVersion  <> NFVersion then
-      Raise FHException.CreateFmt( '%s ERROR: the file %s is for version %s (%s expected)', [ ProcName, FileName, A2S(ID.nidVersion), NFVersion ] );
-    *)      // Previous version of software should be able to read ne version of file
-
-    SaveCRC  := ID.nidCRC;
-    CRC      := 0;
-    ID.nidCRC := 0;
-
-    UpdateCRC( CRC, ID, Sizeof( ID ) );
-
-    ZipStream := TMemoryStream.Create;
-
-    GetMem( Buffer, ChunkSize );
-    Try
-      Repeat
-        NumRead := FileStream.Read( Buffer^, ChunkSize );
-        if NumRead > 0 then
-        begin
-          UpdateCRC( CRC, Buffer^, NumRead );
-          Decrypt( Buffer^, NumRead );
-          NumWritten := ZipStream.Write( Buffer^, NumRead );
-          if not ( NumWritten = NumRead ) then Raise FHException.CreateFmt( '%s ERROR: ZipStream write failed', [ ProcName ] );
-        end;
-      until NumRead < ChunkSize;
-    Finally
-      FreeMem( Buffer, ChunkSize );
-    end;
-    If CRC <> SaveCRC then Raise FHException.CreateFmt( '%s ERROR: the file %s is corrupt - invalid CRC', [ ProcName, FileName ] );
-    ZipStream.Position := 0;
-    Result := ZipStream;
+  try try
+     FileStream.LoadFromFile( FileName );
+     Result := GetZipStream(FileStream, ID);
+  except
+     on E: Exception do
+       raise FHException.CreateFmt( '%s ERROR: %s in file %s ', [ProcName, E.Message, FileName]);
+  end;
   Finally
     FileStream.Free;
   end;
