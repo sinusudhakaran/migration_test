@@ -30,7 +30,6 @@ type
     function IsDissected : Boolean;
     function Locked: Boolean;
     procedure ApplyAnyLocalCurrencyRoundingDiscrepancyToTheBiggestDissectionAmount;
-    procedure SetForeignCurrencyAmountOnDissection( D : pDissection_Rec; FCAmount : Money );
     property Account : string read GetAccount write SetAccount;
     property Default_Forex_Rate : Double read GetDefault_Forex_Rate;
     property GST_Class : Integer read GetGSTClass write SetGSTClass;
@@ -104,6 +103,9 @@ var
   ExchangeRate: double;
 begin
   Result := txAmount;
+
+  if not Assigned(txBank_Account) then Exit;
+
   if (Bank_Account.IsAForexAccount) then begin
     ExchangeRate :=  Default_Forex_Rate;
     if ExchangeRate <> 0 then
@@ -251,17 +253,6 @@ end;
 
 // ----------------------------------------------------------------------------
 
-procedure TTransactionHelper.SetForeignCurrencyAmountOnDissection(
-  D: pDissection_Rec; FCAmount: Money);
-begin
-  D.dsForeign_Currency_Amount := FCAmount;
-  D.dsForex_Conversion_Rate := txForex_Conversion_Rate;
-  if D.dsForex_Conversion_Rate <> 0.0 then
-     D.dsAmount := Round( D.dsForeign_Currency_Amount / D.dsForex_Conversion_Rate )
-  else
-     D.dsAmount := 0;
-end;
-
 procedure TTransactionHelper.SetGSTClass(const Value: Integer);
 begin
   if Locked then
@@ -303,6 +294,9 @@ var
   DissectionTotal: double;
 begin
   Result := dsAmount;
+
+  if not Assigned(dsBank_Account) then Exit;
+
   if (Bank_Account.IsAForexAccount) then begin
 
     if (dsNext = nil) then begin
@@ -327,9 +321,9 @@ end;
 
 function TDissection_Helper.GetStatement_Amount: Money;
 begin
-  if  Bank_Account.IsAForexAccount then
-     Result := dsForeign_Currency_Amount
-  else
+//  if  Bank_Account.IsAForexAccount then
+//     Result := dsForeign_Currency_Amount
+//  else
      Result := dsAmount;
 end;
 

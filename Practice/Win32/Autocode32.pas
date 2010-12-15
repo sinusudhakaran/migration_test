@@ -196,7 +196,6 @@ Begin
                If ( txFirst_Dissection=NIL ) then
                Begin
                   If ( txGST_Class = 0 ) and ( not txGST_Has_Been_Edited) then begin  //if the gst has been edited then txHas_Been with be set
-//                     CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
                      CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
                      txGST_Has_Been_Edited := false;
                   end;
@@ -208,7 +207,6 @@ Begin
                   While Dissection<>NIL do With Dissection^ do
                   Begin
                      If ( dsGST_Class=0 ) and ( not( dsHas_Been_Edited or dsGST_Has_Been_Edited)) then begin
-//                        CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
                         CalculateGST( aClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
                         dsHas_Been_Edited := false;
                      end;
@@ -308,13 +306,11 @@ Begin
                       if MemorisationLine.mlGST_Has_Been_Edited then
                         begin
                           txGST_Class := MemorisationLine.mlGST_Class;
-//                          txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, txAmount, txGST_Class );
                           txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class );
                           txGST_Has_Been_Edited := true;
                         end
                       else
                         begin
-//                          CalculateGST( aClient,txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
                           CalculateGST( aClient,txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
                           txGST_Has_Been_Edited := false;
                         end;
@@ -401,12 +397,7 @@ Begin
                                  dsAccount := aCLient.clChart.MatchAltCode(MemorisationLine.mlAccount)
                               else
                                  dsAccount := MemorisationLine.mlAccount;
-
-                              if Forex then
-                                Transaction.SetForeignCurrencyAmountOnDissection( Dissection, Split[ i ] )
-                              else
-                                dsAmount := Split[i];
-
+                              dsAmount := Split[i];
                               dsPercent_Amount := SplitPct[i];
                               dsAmount_Type_Is_Percent := SplitPct[i] <> 0;
                               dsPayee_Number := MemorisationLine.mlPayee;
@@ -419,13 +410,11 @@ Begin
                               if MemorisationLine.mlGST_Has_Been_Edited then
                                 begin
                                   dsGST_Class := MemorisationLine.mlGST_Class;
-//                                  dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, dsAmount, dsGST_Class );
                                   dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, dsGST_Class );
                                   dsGST_Has_Been_Edited := true;
                                 end
                               else
                                 begin
-//                                  CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
                                   CalculateGST( aClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
                                   dsGST_Has_Been_Edited := false;
                                 end;
@@ -544,12 +533,10 @@ Begin
                                  //calculate GST.  If has been edited then use class, otherwise use default
                                  if ( PayeeLine.plGST_Has_Been_Edited) then begin
                                     txGST_Class    := PayeeLine.plGST_Class;
-//                                    txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, txAmount, txGST_Class);
                                     txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class);
                                     txGST_Has_Been_Edited := true;
                                  end
                                  else begin
- //                                   CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
                                     CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);
                                     txGST_Has_Been_Edited := false;
                                  end;
@@ -586,10 +573,7 @@ Begin
                                  dsEOR          := tkEnd_Dissection;
                                  dsTransaction  := Transaction;
                                  dsAccount      := PayeeLine.plAccount;
-                                 if Forex then
-                                   Transaction.SetForeignCurrencyAmountOnDissection( Dissection, PayeeSplit[ i ] )
-                                 else
-                                   dsAmount       := PayeeSplit[i];
+                                 dsAmount       := PayeeSplit[i];
                                  dsPercent_Amount := PayeeSplitPct[i];
                                  dsAmount_type_Is_Percent := PayeesplitPct[i] <> 0;
                                  if PayeeLine.plGL_Narration <> '' then
@@ -600,12 +584,10 @@ Begin
                                  //calculate GST.  If has been edited then use class, otherwise use default
                                  if PayeeLine.plGST_Has_Been_Edited then begin
                                     dsGST_Class := PayeeLine.plGST_Class;
-//                                    dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, dsAmount, dsGST_Class);
                                     dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, dsGST_Class);
                                     dsGST_Has_Been_Edited := true;
                                  end
                                  else begin
-//                                    CalculateGST( aClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount );
                                     CalculateGST( aClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
                                     dsGST_Has_Been_Edited := false;
                                  end;
@@ -698,7 +680,6 @@ Begin
                           //match found
                           txAccount      := TestCode;
                           txCoded_By     := cbAnalysis;
-//                          CalculateGST( aClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
                           CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
                           txGST_Has_Been_Edited := false;
                           Continue;
