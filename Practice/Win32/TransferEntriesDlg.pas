@@ -58,6 +58,8 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
     procedure FormShow(Sender: TObject);
+    procedure cmbTempAccountSelect(Sender: TObject);
+    procedure cmbBankAccountSelect(Sender: TObject);
   private
     { Private declarations }
     procedure SetUpHelp;
@@ -207,6 +209,45 @@ begin
 end;
 //------------------------------------------------------------------------------
 
+procedure TdlgTransferEntries.cmbBankAccountSelect(Sender: TObject);
+begin
+  UpdateStatistics;
+end;
+
+procedure TdlgTransferEntries.cmbTempAccountSelect(Sender: TObject);
+var
+  baFrom, baTo: TBank_Account;
+  i, FromEntries, ToEntries, D1, D2, D3, D4: Integer;
+begin
+  if cmbTempAccount.ItemIndex = -1 then
+  begin
+    cmbBankAccount.Clear;
+    exit;
+  end;
+  baFrom := TBank_Account(cmbTempAccount.Items.Objects[cmbTempAccount.ItemIndex]);
+  cmbBankAccount.Clear;
+  if Assigned(baFrom) then
+  begin
+    // List all accounts with first entry date after or equal last entry date of selected account
+    with MyClient.clBank_Account_List do
+      for i := 0 to Pred( ItemCount) do
+      begin
+        baTo := Bank_Account_At( i);
+        if (baTo.baFields.baAccount_Type <> btBank)
+        or (baTo.IsManual)
+        or (baFrom.baFields.baCurrency_Code <> baTo.baFields.baCurrency_Code)
+        or (baFrom = baTo) then
+           Continue;
+        cmbBankAccount.Items.AddObject( baTo.Title, baTo);
+      end;
+    if cmbBankAccount.Items.Count = 1 then // if only one then select it
+      cmbBankAccount.ItemIndex := 0;
+  end;
+  if cmbBankAccount.Items.Count = 0 then
+    HelpfulInfoMsg('There are no system bank accounts that can be merged with the selected account.', 0);
+  UpdateStatistics;
+end;
+
 procedure TdlgTransferEntries.FieldChanged(Sender: TObject);
 //triggered by cmb changes
 begin
@@ -299,8 +340,8 @@ procedure TransferEntries;
 //note:
 //   dates are effective dates
 var
-   i        : integer;
-   ba       : TBank_Account;
+   i, j        : integer;
+   ba, ba2     : TBank_Account;
    TempBa,
    BankBa   : TBank_Account;
    FromDate : integer;
@@ -324,22 +365,34 @@ begin
          //load bank account combo boxes
          cmbTempAccount.Clear;
          cmbBankAccount.Clear;
-         with MyClient.clBank_Account_List do
+         with MyClient.clBank_Account_List do begin
+            //Add system bank accounts
             for i := 0 to Pred( ItemCount) do begin
                ba := Bank_Account_At( i);
-               with ba.baFields do begin
-                  if baAccount_Type = btBank then begin
-                     if ba.IsManual then begin
-                        //add to temp list
+               if ba.baFields.baAccount_Type = btBank then begin
+                  if (not ba.IsManual) then
+                  //add to system accounts list
+                  cmbBankAccount.Items.AddObject( ba.Title, ba);
+               end;
+            end;
+            //Add manual bank accounts
+            for i := 0 to Pred( ItemCount) do begin
+               ba := Bank_Account_At( i);
+               if (ba.baFields.baAccount_Type = btBank) and (ba.IsManual) then begin
+                  //Only add if system account exists with same currency
+                  for j := 0 to Pred(cmbBankAccount.Items.Count) do begin
+                    ba2 := TBank_Account(cmbBankAccount.Items.Objects[j]);
+                    if Assigned(ba2) then begin
+                      if (ba.baFields.baCurrency_Code = ba2.baFields.baCurrency_Code) then begin
+                        //add to manual accounts list
                         cmbTempAccount.Items.AddObject( ba.Title, ba);
-                     end
-                     else begin
-                        //add to accounts list
-                        cmbBankAccount.Items.AddObject( ba.Title, ba);
-                     end;
+                        Break;
+                      end;
+                    end;
                   end;
                end;
             end;
+         end;   
 
          //if no bank or temp accounts exist then exit;
          if cmbTempAccount.Items.Count = 0 then begin

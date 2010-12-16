@@ -79,7 +79,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     ItemHeight = 13
     ParentCtl3D = False
     TabOrder = 0
-    OnChange = FieldChanged
+    OnSelect = cmbTempAccountSelect
   end
   object cmbBankAccount: TComboBox
     Left = 152
@@ -91,7 +91,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     ItemHeight = 13
     ParentCtl3D = False
     TabOrder = 1
-    OnChange = FieldChanged
+    OnSelect = cmbBankAccountSelect
   end
   object Panel1: TPanel
     Left = 8

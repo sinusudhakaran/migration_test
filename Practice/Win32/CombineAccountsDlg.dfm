@@ -6,7 +6,7 @@ inherited DlgCombineAccounts: TDlgCombineAccounts
   ClientWidth = 622
   OnShow = FormShow
   ExplicitWidth = 628
-  ExplicitHeight = 316
+  ExplicitHeight = 318
   PixelsPerInch = 96
   TextHeight = 13
   object lblInstructions: TLabel [0]

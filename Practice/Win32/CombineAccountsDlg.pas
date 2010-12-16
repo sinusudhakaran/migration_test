@@ -129,8 +129,8 @@ begin
            Continue;
         GetStatsForAccount(baFrom, 0, MaxInt, FromEntries, D1, D2); // get range of selected account
         GetStatsForAccount(baTo, 0, D2, ToEntries, D3, D4); // get range of test account
-        if (FromEntries = 0)
-        or (ToEntries = 0) then
+        if ((FromEntries = 0) or (ToEntries = 0))
+           and (baFrom.baFields.baCurrency_Code = baTo.baFields.baCurrency_Code) then
            cmbCombine.Items.AddObject(baTo.Title, baTo);
       end;
     if cmbCombine.Items.Count = 1 then // if only one then select it

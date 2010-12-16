@@ -344,7 +344,9 @@ begin
          Continue;
       GetStatsForAccount( b1, 0, MaxInt, Entries1, D1, D2);
       GetStatsForAccount( b2, 0, D2, Entries2, D3, D4);
-      if ((Entries1 = 0) or (Entries2 = 0)) and (Result.IndexOf( b1.Title)= -1) then
+      if ((Entries1 = 0) or (Entries2 = 0))
+        and (b1.baFields.baCurrency_Code = b2.baFields.baCurrency_Code)
+        and (Result.IndexOf( b1.Title)= -1) then
         Result.AddObject( b1.Title, b1);
     end;
   end;
@@ -392,6 +394,7 @@ begin
       GetStatsForAccount( b1, 0, MaxInt, Entries1, D1, D2);
       GetStatsForAccount( b2, 0, D2, Entries2, D3, D4);
       if ((Entries1 = 0) or (Entries2 = 0))
+      and (b1.baFields.baCurrency_Code = b2.baFields.baCurrency_Code)
       and (Result.IndexOf( b1.Title)= -1) then
         Result.AddObject( b1.Title, b1);
     end;
