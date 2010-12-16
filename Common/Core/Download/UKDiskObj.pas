@@ -177,9 +177,9 @@ begin
 
   Result := nil;
 
-  FileStream.LoadFromFile(FileName);
-  FileStream.Position := 0;
-  FileStream.Read(ID, Sizeof(ID));
+
+  FromStream.Position := 0;
+  FromStream.Read(ID, Sizeof(ID));
 
   if ID.idFileType <> 'UKLink' then
      raise
@@ -200,7 +200,7 @@ begin
   GetMem(Buffer, ChunkSize);
   try
      repeat
-        NumRead := FileStream.Read(Buffer^, ChunkSize);
+        NumRead := FromStream.Read(Buffer^, ChunkSize);
         if NumRead > 0 then
           begin
             UpdateCRC(CRC, Buffer^, NumRead);
