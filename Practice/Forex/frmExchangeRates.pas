@@ -300,16 +300,16 @@ procedure TExchangeRatesfrm.BtnoKClick(Sender: TObject);
 var
   LExchangeRates: TExchangeRateList;
 begin
+   //Get change count
+   FChangeCount := GetChangeCount;
+
    if BooksSecure then begin
+     //Save
      MyClient.ExchangeSource.Assign(FSource);
      MyClient.Save;
      Modalresult := mrOk;
    end else begin
      // Validate..
-
-     //Get change count
-     FChangeCount := GetChangeCount;        
-
      LExchangeRates := GetExchangeRates(True);
      try
         FSource :=  LExchangeRates.MergeSource(FSource);
@@ -436,7 +436,7 @@ const
   CANCEL_PROMPT = 'If you cancel, the exchange rate information you have entered will be lost.'#13#13 +
                   'Are you sure you want to cancel and lose these changes?';
 begin
-  if (not BooksSecure) and (FChangeCount = 0) then //Recheck change count if cancel clicked or no changes when OK clicked
+  if (FChangeCount = 0) then //Recheck change count if cancel clicked or no changes when OK clicked
     FChangeCount := GetChangeCount;
   if not (ModalResult = mrOK) and (FChangeCount > 0) then
     CanClose := (AskYesNo('Cancel Maintain Exchange Rates', CANCEL_PROMPT, Dlg_No, 0) = DLG_YES);
