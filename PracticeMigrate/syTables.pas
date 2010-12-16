@@ -198,7 +198,7 @@ procedure TClientAccountMapTable.SetupTable;
 begin
   TableName := 'ClientSystemAccounts';
   setFields(
-         ['Id','PracticeClientId','ClientAccount','SystemBankAccount_Id'
+         ['Id','PracticeClientId','ClientAccount','SystemBankAccountId'
           ,'LastDatePrinted','TempLastDatePrinted','EarliestDownloadDate'],[]);
 end;
 

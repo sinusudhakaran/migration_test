@@ -391,7 +391,7 @@ function TTransaction_RecTable.Insert(MyID, AccountID: TGuid;
 begin  with Value^ do
   Result := RunValues([ ToSQL(MyId),ToSQL(AccountID),ToSQL(txSequence_No)
                   ,ToSQL(txType),ToSQL(txSource),DateToSQL(txDate_Presented),DateToSQL(txDate_Effective)
-{2}       ,ToSQL(txDate_Transferred),ToSQL(txAmount) ,ToSQL(txGST_Class),ToSQL(txGST_Amount)
+{2}       ,DateToSQL(txDate_Transferred),ToSQL(txAmount) ,ToSQL(txGST_Class),ToSQL(txGST_Amount)
                   ,ToSQL(txHas_Been_Edited),QtyToSQL(txQuantity),ToSQL(txCheque_Number)
 {3}       ,ToSQL(txReference),ToSQL(txParticulars),ToSQL(txAnalysis), ToSQL(txOrigBB), ToSQL(txOther_Party)
                   ,ToSQL(txAccount), ToSQL(txCoded_By)
@@ -524,7 +524,7 @@ begin
   SetFields(['Id','BankAccountId','SequenceNo','MemorisationType','Amount','Reference','Particulars'
 {2}       ,'Analysis','OtherParty','StatementDetails','MatchOnAmount','MatchOnAnalysis'
 {3}       ,'MatchOnOther_Party','MatchOnNotes','MatchOnParticulars','MatchOnRefce'
-{4}       ,'MatchOnStatement_Details','PayeeNumber','FromMasterList','Notes'
+{4}       ,'MatchOnStatement_Details','Payee','FromMasterList','Notes'
 {5}       ,'DateLastApplied','UseAccountingSystem','AccountingSystem','FromDate','UntilDate'],[]);
 
 end;
