@@ -641,7 +641,7 @@ end;
 
 procedure TImportHist.cbAmountChange(Sender: TObject);
 var R, C, C2: integer;
-    lm: Currency;
+    Amt1, Amt2: Currency;
 
     procedure SetAmount(Value: Money);
     begin
@@ -679,8 +679,12 @@ begin
               C2 := GetComboCurrentIntObject(cbAmount2);
               if C2 >= 0 then begin
                  for R := 0 to fOutlist.Count - 1 do begin
-                    lm := StrtoCurr(GetFileText(R,C2))*100;
-                    SetAmount (lm-  StrtoCurr(GetFileText(R,C))*100);
+                    Amt1 := StrtoCurr(GetFileText(R,C2))*100;
+                    Amt2 := StrtoCurr(GetFileText(R,C))*100;
+                    if (Amt2 < 0) then
+                      SetAmount (Amt2 - Amt1)
+                    else
+                      SetAmount (Amt1 - Amt2);
                  end;
                  Exit;
               end;
@@ -688,10 +692,10 @@ begin
               C2 := GetComboCurrentIntObject(cbAmount2);
               if C2 >= 0 then begin
                  for R := 0 to fOutlist.Count - 1 do begin
-                    lm := StrtoCurr(GetFileText(R,C))*100;
+                    Amt1 := StrtoCurr(GetFileText(R,C))*100;
                     if IsDebit then
-                       lm := - lm;
-                    SetAmount(lm);
+                       Amt1 := - Amt1;
+                    SetAmount(Amt1);
                  end;
                  Exit;
               end;
@@ -1403,6 +1407,7 @@ var I: Integer;
 begin
    BeginUpdate;
    try
+      cbSign.Enabled := True;
       lbAmount.Caption := 'Amount';
       lbAmount.Visible := True;
       cbAmount.Visible := True;
@@ -1426,6 +1431,7 @@ var I: Integer;
 begin
    BeginUpdate;
    try
+      cbSign.Enabled := False;
       lbAmount.Caption := 'Debit';
       lbAmount.Visible := True;
       cbAmount.Visible := True;
@@ -1452,6 +1458,7 @@ var I: Integer;
 begin
    BeginUpdate;
    try
+      cbSign.Enabled := True;
       lbAmount.Caption := 'Amount';
       lbAmount.Visible := True;
       cbAmount.Visible := True;
