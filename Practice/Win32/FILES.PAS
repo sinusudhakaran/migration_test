@@ -164,6 +164,7 @@ var
   b: TBank_Account;
   PasswordCorrect: Boolean;
   LExchangeRates: TExchangeRateList;
+  LExchangeSource: TExchangeSource;
   ISOCodes: TStrings;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -507,8 +508,18 @@ begin
          if Client.HasForeignCurrencyAccounts then begin
            LExchangeRates := GetExchangeRates;
            try
-             if LExchangeRates.ItemCount > 0 then
-               Client.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
+             LExchangeSource := LExchangeRates.FindSource('Master');
+             if (not Assigned(LExchangeSource)) then begin
+               //Assing an empty exchange source to the client file if
+               //there is no system exchange source
+               LExchangeSource := TExchangeSource.Create;
+               try
+                 Client.ExchangeSource.Assign(LExchangeSource);
+               finally
+                 LExchangeSource.Free;
+               end;
+             end else
+               Client.ExchangeSource.Assign(LExchangeSource);
            finally
              LExchangeRates.Free;
            end;

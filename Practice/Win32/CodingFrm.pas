@@ -7488,7 +7488,6 @@ var
    cLoaded    : boolean;
    BankAccount : TBank_Account;
    SelectedList : TStringList;
-   LExchangeRates: TExchangeRateList;
 
   procedure CreateCodingScreen(d1,d2 : TStDate; Account : TBank_Account);
   var
@@ -7522,22 +7521,6 @@ var
      end; {with}
   end;
 
-  procedure RefreshExchangeSource;
-  begin
-    //Refresh exchange rate source
-    if Assigned(AdminSystem) then begin
-      if myClient.HasForeignCurrencyAccounts then begin
-        LExchangeRates := GetExchangeRates;
-        try
-          myClient.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
-          ApplyDefaultGST(False);
-        finally
-          LExchangeRates.Free;
-        end;
-      end;
-    end;
-  end;
-
   var
     found : boolean;
     UserSelectedAccounts : boolean;
@@ -7554,7 +7537,7 @@ begin
     if Assigned(BA) then
     begin
       SelectedList.AddObject(BA.baFields.baBank_Account_Number, BA);
-      RefreshExchangeSource;
+      MyClient.RefreshExchangeSource;
       CreateCodingScreen(dateFrom, DateTo, BA);
     end
     else
@@ -7615,7 +7598,7 @@ begin
           end;
 
           if found then begin
-              RefreshExchangeSource;
+              MyClient.RefreshExchangeSource;
               CreateCodingScreen(dateFrom, DateTo, BankAccount);
           end;
         end; {with}

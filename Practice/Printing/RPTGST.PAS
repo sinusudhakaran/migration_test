@@ -58,7 +58,7 @@ uses
   Math,
   Rptparams,
   UserReportSettings,
-  ForexHelpers;
+  InfoMoreFrm;
 
 
 const
@@ -183,12 +183,10 @@ begin
                                if txGL_Narration > '' then
                                   S := S + ' - ' +txGL_Narration;
 
-//                               LtoTals[gtUndefined] := lTotals[gtUndefined] + txAmount;
-                               LtoTals[gtUndefined] := lTotals[gtUndefined] + Local_Amount;
+                               LtoTals[gtUndefined] := lTotals[gtUndefined] + txTemp_Base_Amount;
 
                                PutString(S);
-//                               PutMoney(txAmount);
-                               PutMoney(Local_Amount);
+                               PutMoney(txTemp_Base_Amount);
 
                                for I := 0 to 3 do PutString(BoxLine);
 
@@ -1069,11 +1067,9 @@ begin
 
         { Print the Entry }
         If MyClient.clFields.clGST_on_Presentation_Date then
-//           GST := CalculateGSTForClass( MyClient, txDate_Presented, txAmount, txGST_Class )
-           GST := CalculateGSTForClass( MyClient, txDate_Presented, Local_Amount, txGST_Class )
+           GST := CalculateGSTForClass( MyClient, txDate_Presented, txTemp_Base_Amount, txGST_Class )
         else
-//           GST := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class );
-           GST := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, txGST_Class );
+           GST := CalculateGSTForClass( MyClient, txDate_Effective, txTemp_Base_Amount, txGST_Class );
         Edited := ( GST <> txGST_Amount );
 
         if not Edited then // Also check to see if class has been edited
@@ -1106,11 +1102,9 @@ begin
             S := txAccount;
           PutString( S );
 
-//          PutMoney( txAmount );
-          PutMoney( Local_Amount );
+          PutMoney( txTemp_Base_Amount );
           PutMoney( txGST_Amount );
-//          PutMoney( txAmount - txGST_Amount );
-          PutMoney( Local_Amount - txGST_Amount );
+          PutMoney( txTemp_Base_Amount - txGST_Amount );
           PutNarration(Mgr.ReportJob, txGL_Narration);
 
           RenderDetailLine;
@@ -1153,11 +1147,9 @@ begin
       { Print the Entry }
 
       If MyClient.clFields.clGST_on_Presentation_Date then
-//         GST := CalculateGSTForClass( MyClient, txDate_Presented, dsAmount, dsGST_Class )
-         GST := CalculateGSTForClass( MyClient, txDate_Presented, Local_Amount, dsGST_Class )
+         GST := CalculateGSTForClass( MyClient, txDate_Presented, txTemp_Base_Amount, dsGST_Class )
       else
-//         GST := CalculateGSTForClass( MyClient, txDate_Effective, dsAmount, dsGST_Class );
-         GST := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, dsGST_Class );
+         GST := CalculateGSTForClass( MyClient, txDate_Effective, txTemp_Base_Amount, dsGST_Class );
       Edited := ( GST <> dsGST_Amount );
 
       if not Edited then // Also check to see if class has been edited
@@ -1278,7 +1270,7 @@ var
    Params : TRptParameters;
    s : string;
    cLeft: Double;
-   TaxName : String;
+   TaxName, ISOCodes : String;
 Begin
    TaxName := MyClient.TaxSystemNameUC;
 
@@ -1323,6 +1315,15 @@ Begin
             else Dest := rdAsk;
             end;
          end;
+
+         //Check Forex - this won't stop the report running if there are missing exchange rates
+         MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True);
+         //Check Forex - this will stop the report running if there are missing exchange rates         
+//         if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
+//          HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+//           Exit;
+//         end;
+
          // Run The Report
          GSTUTIL32.CalculateGSTTotalsForPeriod(Fromdate, ToDate, GSTInfo, -1 );
 
@@ -1718,14 +1719,12 @@ var
 
                            PutString( GetFormattedReference( pT));
                            PutString( txAccount + ' ' + RptParameters.Chart.FindDesc( txAccount ) );
-//                           PutMoney( txAmount );
-                           PutMoney( Local_Amount );
+                           PutMoney( txTemp_Base_Amount );
                            PutMoney( txGST_Amount );
                            PutString( txGL_Narration);
 
                            //get defaults for this accounts
-//                           CalculateGST( MyClient, GSTDate, txAccount, txAmount, DefaultGSTClass, DefaultGSTAmount);
-                           CalculateGST( MyClient, GSTDate, txAccount, Local_Amount, DefaultGSTClass, DefaultGSTAmount);
+                           CalculateGST( MyClient, GSTDate, txAccount, txTemp_Base_Amount, DefaultGSTClass, DefaultGSTAmount);
                            PutString( GetGSTClassCode( MyClient, DefaultGSTClass));
                            PutMoney( DefaultGSTAmount);
 
@@ -1766,8 +1765,7 @@ var
                               PutMoney( dsGST_Amount );
                               PutString( dsGL_Narration );
                               //get defaults for this accounts
-//                              CalculateGST( MyClient, GSTDate, dsAccount, dsAmount, DefaultGSTClass, DefaultGSTAmount);
-                              CalculateGST( MyClient, GSTDate, dsAccount, Local_Amount, DefaultGSTClass, DefaultGSTAmount);
+                              CalculateGST( MyClient, GSTDate, dsAccount, txTemp_Base_Amount, DefaultGSTClass, DefaultGSTAmount);
                               PutString( GetGSTClassCode( MyClient, DefaultGSTClass));
                               PutMoney( DefaultGSTAmount);
                               RenderDetailLine;

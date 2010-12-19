@@ -76,7 +76,9 @@ type
 
     function HasForeignCurrencyAccounts : Boolean;
     function HasExchangeRates(var ISOCodeText: string;
-      const FromDate: integer = 0; const ToDate: integer = MaxInt; ForReport: boolean = False): Boolean;
+      const FromDate: integer = 0; const ToDate: integer = MaxInt;
+      ForReport: boolean = False; AllBankAccounts: boolean = true): Boolean;
+    procedure RefreshExchangeSource;
     procedure FillIsoCodeList(ISOCodes: TStrings);
     procedure FillAccountingSystemList(Value: Tstrings);
 
@@ -140,7 +142,7 @@ uses
    BKceIO,   
    LogUtil,
    Software,
-   globals,                            
+   globals,
    GLConst,
    bkConst,
    bkbuio,
@@ -155,7 +157,8 @@ uses
    ForexHelpers,
 {$ENDIF}
    bk5Except,
-   VclZip;
+   VclZip,
+   GSTUTIL32;
 
 const
   UnitName  = 'CLOBJ32';
@@ -444,6 +447,24 @@ begin
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   Self.LoadFromStream( S);
+end;
+
+procedure TClientObj.RefreshExchangeSource;
+var
+  LExchangeRates: TExchangeRateList;
+begin
+  //Refresh exchange rate source
+  if Assigned(AdminSystem) then begin
+    if HasForeignCurrencyAccounts then begin
+      LExchangeRates := GetExchangeRates;
+      try
+        ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
+        ApplyDefaultGST(False);
+      finally
+        LExchangeRates.Free;
+      end;
+    end;
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -784,7 +805,7 @@ End;
 
 function TClientObj.HasExchangeRates(var ISOCodeText: string;
       const FromDate: integer = 0; const ToDate: integer = MaxInt;
-      ForReport: boolean = False): Boolean;
+      ForReport: boolean = False; AllBankAccounts: boolean = true): Boolean;
 var
   i: integer;
   BA: TBank_Account;
@@ -795,11 +816,12 @@ begin
   //Base currency bank accounts. The temp field is then used by the traverse mgr
   //to calculate account totals.
   //If exchange rates are missing then ISOCodeText is populated with the ISO codes.
+  RefreshExchangeSource;
   ISOCodeText := '';
   Result := True;
   for i := clBank_Account_List.First to clBank_Account_List.Last do begin
     BA := clBank_Account_List.Bank_Account_At(i);
-    if (not ForReport) or (BA.baFields.baTemp_Include_In_Report) then begin
+    if AllBankAccounts or (ForReport and BA.baFields.baTemp_Include_In_Report) then begin
       if not BA.HasExchangeRates(FromDate, ToDate, ForReport) then begin
         if (ISOCodeText = '') then
           ISOCodeText := BA.baFields.baCurrency_Code

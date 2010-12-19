@@ -150,8 +150,6 @@ begin
           ClientHasEntries := true;
           Break;
       end;
-      //TEST
-      TBank_account(CRSettings.AccountList[i]).HasExchangeRates(Fromdate, ToDate, True)
     end;
 
     if ( not ClientHasEntries ) then begin
@@ -159,10 +157,14 @@ begin
        exit;
     end;
 
-    //Auto Code Entries
 
-    for i := 0 to Pred(AccountList.Count) do
+    //Auto Code Entries
+    for i := 0 to Pred(AccountList.Count) do begin
        AutoCodeEntries(Client, TBank_account(AccountList[i]),AllEntries,Fromdate,ToDate);
+       //Store exchange rates for custom coding report - doesn't matter if there
+       //are missing rates
+       TBank_account(CRSettings.AccountList[i]).HasExchangeRates(Fromdate, ToDate, True);
+    end;
 
 
     //create report

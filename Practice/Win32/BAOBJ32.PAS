@@ -35,6 +35,7 @@ type
       baMatched_Items_List     : tMatched_Items_List;
 //      fForex_Info : TExchangeRateFileInfo;
 //      function GetForexInfo: TExchangeRateFileInfo;
+      procedure ApplyDefaultGST(pT: pTransaction_Rec);
   public
       procedure    SaveToFile(var s: TIOStream);
       procedure    LoadFromFile(var s: TIOStream);
@@ -103,7 +104,8 @@ uses
    PayeeObj,
    InfoMoreFrm,
    ForExHelpers,
-   ExchangeRateList;
+   ExchangeRateList,
+   GSTCALC32;
 
 const
   UnitName = 'BAOBJ32';
@@ -195,10 +197,7 @@ Begin
 
       With baTransaction_List do For E := 0 to Pred( itemCount ) do With Transaction_At( E )^ do
       Begin
-//         if Forex then  // accumulated as forex
-//            Amount := txForeign_Currency_Amount
-//         else
-            Amount := txAmount;
+         Amount := txAmount;
 
          If ( txDate_Presented <> 0 ) then
          Begin { It is a presented transaction }
@@ -273,10 +272,7 @@ Begin
 
       With baTransaction_List do For E := 0 to Pred( itemCount ) do With Transaction_At( E )^ do
       Begin
-//        if Forex then
-//          Amount := txForeign_Currency_Amount
-//        else
-          Amount := txAmount;
+         Amount := txAmount;
 
          If ( txDate_Presented <> 0 ) then
          Begin { It is a presented transaction }
@@ -390,11 +386,8 @@ const
 Var
    E : LongInt;
    Amount : Money;
-   Forex : Boolean;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Called' );
-
-   Forex := IsAForexAccount;
 
    With baFields do
    Begin
@@ -411,10 +404,7 @@ Begin
 
       With baTransaction_List do For E := 0 to Pred( itemCount ) do With Transaction_At( E )^ do
       Begin
-//         if Forex then
-//           Amount := txForeign_Currency_Amount
-//         else
-           Amount := txAmount;
+         Amount := txAmount;
 
          If txDate_Presented <> 0 then
          Begin
@@ -884,6 +874,52 @@ begin
   Result := fForex_Info;
 end; }
 
+
+procedure TBank_Account.ApplyDefaultGST(pT: pTransaction_Rec);
+// This does the same as ApplyDefaultGST in GSTUTIL32 except it doesn't update
+//memorisations or payees.
+var
+  pD : pDissection_Rec;
+begin
+  //see if locked or transfered, if so skip this entry
+  if (pT^.txLocked) or (pT^.txDate_Transferred > 0) then Exit;
+
+  //is it a dissection?
+  if pT^.txFirst_Dissection = nil then begin
+    if (not pT^.txGST_Has_Been_Edited) then begin
+      CalculateGST( MyClient, pT^.txDate_Effective, pT^.txAccount, pT^.txTemp_Base_Amount, pT^.txGST_Class, pT^.txGST_Amount);
+      pT^.txGST_Has_Been_Edited := false;
+      if baFields.baAccount_Type in JournalsWithNoGSTSet then begin
+        if pT^.txGST_Amount <> 0 then begin
+          pT^.txGST_Amount := 0;
+          pT^.txGST_Has_Been_Edited := True;
+        end;
+      end;
+    end;
+  end else begin
+    pD := pT^.txFirst_Dissection;
+    while (pD <> nil) do begin
+      if ( not pD^.dsGST_Has_Been_Edited) then begin
+        if not (pD^.dsJournal_Type in [ jtReversed, jtReversal, jtProcessed]) then begin
+          //only recalculate GST if it is not reversed or processed
+          CalculateGST( MyClient, pT^.txDate_Effective, pD^.dsAccount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount);
+          pD^.dsGST_Has_Been_Edited := false;
+          pT^.txGST_Has_Been_Edited := false;
+
+          if baFields.baAccount_Type in JournalsWithNoGSTSet then begin
+            if pD^.dsGST_Amount <> 0 then begin
+              pD^.dsGST_Amount := 0;
+              pD^.dsGST_Has_Been_Edited := True;
+              pT^.txGST_Has_Been_Edited := True;
+            end;
+          end;
+        end;
+      end;
+      pD := pD^.dsNext;
+    end;
+  end;
+end;
+
 function TBank_Account.HasExchangeRates(StartDate,
   EndDate: Integer; StoreRates: boolean): Boolean;
 var
@@ -911,7 +947,7 @@ begin
           D := D.dsNext;
         end;
       end;
-      //Store base amounts in transaction      
+      //Store base amounts in transaction
       if IsAForexAccount then begin
         Rate := T.Default_Forex_Rate;
         T.txTemp_Forex_Rate := Rate;
@@ -920,6 +956,9 @@ begin
           if not StoreRates then
             Break; //No need to carry on if not storing rates
         end;
+        //This needs to be done before reports are run incase the exchange rate
+        //has changed and the base GST amount has not been updated.
+        ApplyDefaultGST(T);
       end;
     end;
   end;
