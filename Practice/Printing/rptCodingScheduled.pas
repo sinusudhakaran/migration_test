@@ -256,9 +256,11 @@ begin
                      PutString( dsAccount );
 
                      if SortType = csAccountCode then
-                       PutMoney( dsAmount)
+//                       PutMoney( dsAmount)
+                       PutMoney( dsTemp_Base_Amount)
                      else
-                       PutMoneyDontAdd( dsAmount );
+//                       PutMoneyDontAdd( dsAmount );
+                       PutMoneyDontAdd( dsTemp_Base_Amount );
 
                       if clScheduled_Coding_Report_Print_TI then
                       begin
@@ -284,9 +286,11 @@ begin
                      PutString( dsAccount );
 
                      if SortType = csAccountCode then
-                       PutMoney( dsAmount)
+//                       PutMoney( dsAmount)
+                       PutMoney( dsTemp_Base_Amount)
                      else
-                       PutMoneyDontAdd( dsAmount );
+//                       PutMoneyDontAdd( dsAmount );
+                       PutMoneyDontAdd( dsTemp_Base_Amount );
 
                      if clScheduled_Coding_Report_Print_TI then begin
                        if txTax_Invoice_Available then
@@ -315,21 +319,26 @@ begin
                      PutString(' /'+inttostr(dsSequence_No));
                      SkipColumn;
                      PutString( dsAccount );
-                     If dsAmount >= 0 then
+//                     If dsAmount >= 0 then
+                     If dsTemp_Base_Amount >= 0 then
                      Begin
                         if SortType = csAccountCode then
-                          PutMoney( dsAmount)
+//                          PutMoney( dsAmount)
+                          PutMoney( dsTemp_Base_Amount)
                         else
-                          PutMoneyDontAdd( dsAmount );
+//                          PutMoneyDontAdd( dsAmount );
+                          PutMoneyDontAdd( dsTemp_Base_Amount );
                         SkipColumn;
                      end
                      else
                      Begin
                         SkipColumn;
                         if SortType = csAccountCode then
-                          PutMoney( dsAmount)
+//                          PutMoney( dsAmount)
+                          PutMoney( dsTemp_Base_Amount)
                         else
-                          PutMoneyDontAdd( dsAmount );
+//                          PutMoneyDontAdd( dsAmount );
+                          PutMoneyDontAdd( dsTemp_Base_Amount );
                      end;
                      if clScheduled_Coding_Report_Print_TI then
                      begin
@@ -352,21 +361,26 @@ begin
                      PutString(bkDate2Str(txDate_Effective));
                      PutString(' /'+inttostr(dsSequence_No));
                      PutString( dsAccount );
-                     If dsAmount >= 0 then
+//                     If dsAmount >= 0 then
+                     If dsTemp_Base_Amount >= 0 then
                      Begin
                         if SortType = csAccountCode then
-                          PutMoney( dsAmount)
+//                          PutMoney( dsAmount)
+                          PutMoney( dsTemp_Base_Amount)
                         else
-                           PutMoneyDontAdd( dsAmount );
+//                           PutMoneyDontAdd( dsAmount );
+                           PutMoneyDontAdd( dsTemp_Base_Amount );
                         SkipColumn;
                      end
                      else
                      Begin
                         SkipColumn;
                         if SortType = csAccountCode then
-                          PutMoney( dsAmount)
+//                          PutMoney( dsAmount)
+                          PutMoney( dsTemp_Base_Amount)
                         else
-                          PutMoneyDontAdd( dsAmount );
+//                          PutMoneyDontAdd( dsAmount );
+                          PutMoneyDontAdd( dsTemp_Base_Amount );
                      end;
 
                      if clScheduled_Coding_Report_Print_TI then begin
@@ -398,10 +412,13 @@ begin
       //enter entry routine not called for dissection entries if sort order
       //is csAccountCode
       if SortType = csAccountCode then begin
-        if dsAmount >=0 then
-           DRTotal := DRTotal + dsAmount
+//        if dsAmount >=0 then
+        if dsTemp_Base_Amount >=0 then
+//           DRTotal := DRTotal + dsAmount
+           DRTotal := DRTotal + dsTemp_Base_Amount
         else
-           CRTotal := CRTotal + dsAmount;
+//           CRTotal := CRTotal + dsAmount;
+           CRTotal := CRTotal + dsTemp_Base_Amount;
       end;
    end; {with}
 end;
@@ -485,7 +502,8 @@ begin
                      PutString( GetFormattedReference( Mgr.Transaction));
                      PutString(trim(txAnalysis));
                      PutString( txAccount );
-                     PutMoney( txAmount );
+//                     PutMoney( txAmount );
+                     PutMoney( txTemp_Base_Amount );
                      if clScheduled_Coding_Report_Print_TI then
                      begin
                        if txTax_Invoice_Available then
@@ -524,7 +542,8 @@ begin
                      PutString(bkDate2Str(txDate_Effective));
                      PutString( GetFormattedReference( Mgr.Transaction));
                      PutString( txAccount );
-                     PutMoney( txAmount );
+//                     PutMoney( txAmount );
+                     PutMoney( txTemp_Base_Amount );
 
                      if clScheduled_Coding_Report_Print_TI then begin
                         if txTax_Invoice_Available then
@@ -553,15 +572,17 @@ begin
                      PutString( GetFormattedReference( Mgr.Transaction));
                      PutString(Trim(txAnalysis));
                      PutString( txAccount );
-                     If txAmount >= 0 then
+//                     If txAmount >= 0 then
+                     if txTemp_Base_Amount >= 0 then
                      Begin
-                        PutMoney( txAmount );
+                        PutMoney( txTemp_Base_Amount );
                         SkipColumn;
                      end
                      else
                      Begin
                         SkipColumn;
-                        PutMoney( txAmount );
+//                        PutMoney( txAmount );
+                        PutMoney( txTemp_Base_Amount );
                      end;
                      if clScheduled_Coding_Report_Print_TI then
                      begin
@@ -600,15 +621,18 @@ begin
                      PutString(bkDate2Str(txDate_Effective));
                      PutString( GetFormattedReference( Mgr.Transaction));
                      PutString( txAccount );
-                     If txAmount >= 0 then
+//                     If txAmount >= 0 then
+                     If txTemp_Base_Amount >= 0 then
                      Begin
-                        PutMoney( txAmount );
+//                        PutMoney( txAmount );
+                        PutMoney( txTemp_Base_Amount );
                         SkipColumn;
                      end
                      else
                      Begin
                         SkipColumn;
-                        PutMoney( txAmount );
+//                        PutMoney( txAmount );
+                        PutMoney( txTemp_Base_Amount );
                      end;
 
                      if clScheduled_Coding_Report_Print_TI then begin
@@ -633,10 +657,13 @@ begin
             TScheduledCodingReport(Mgr.ReportJob).FSettings.ColManager.OutputColumns(Mgr.ReportJob, Mgr);
       end; { of Case clScheduled_Coding_Report_Style }
 
-      If txAmount >=0 then
-         DRTotal := DRTotal + txAmount
+//      If txAmount >=0 then
+      If txTemp_Base_Amount >=0 then
+//         DRTotal := DRTotal + txAmount
+         DRTotal := DRTotal + txTemp_Base_Amount
       else
-         CRTotal := CRTotal + txAmount;
+//         CRTotal := CRTotal + txAmount;
+         CRTotal := CRTotal + txTemp_Base_Amount;
 
       RenderDetailLine;
       For i := 1 to clScheduled_Coding_Report_Blank_Lines do RenderTextLine( '');
@@ -1110,6 +1137,7 @@ begin
    with MyClient.clBank_Account_List do begin
       for i := 0 to Pred( itemCount ) do begin
          AutoCodeEntries(MyClient, Bank_Account_At(i),AllEntries,d1,d2);
+         TBank_account(Bank_Account_At(i)).HasExchangeRates(d1, d2, True);
       end;
    end;
 
