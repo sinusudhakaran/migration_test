@@ -67,7 +67,7 @@ Begin
                 if ( txPayee_Number<>0 ) then begin
                    Payee := clPayee_List.Find_Payee_Number(txPayee_Number);
                    if Assigned( Payee ) then
-                     Payee.pdFields.pdTotal := Payee.pdFields.pdTotal + txAmount;
+                     Payee.pdFields.pdTotal := Payee.pdFields.pdTotal + txTemp_Base_Amount;
                 end
                 else begin
                    if ( txFirst_Dissection <> nil) then begin
@@ -77,7 +77,7 @@ Begin
                          if ( Dissection^.dsPayee_number <> 0) then begin
                             Payee := clPayee_List.Find_Payee_Number( Dissection^.dsPayee_Number );
                             if Assigned( Payee ) then
-                              Payee.pdFields.pdTotal := Payee.pdFields.pdTotal + Dissection^.dsAmount;
+                              Payee.pdFields.pdTotal := Payee.pdFields.pdTotal + Dissection^.dsTemp_Base_Amount;
                          end;
                          Dissection := Dissection^.dsNext;
                       end;
@@ -214,6 +214,7 @@ Var
                       TR.txDate_Presented        := txDate_Presented;
                       TR.txDate_Effective        := txDate_Effective;
                       TR.txAmount                := txAmount;
+                      TR.txTemp_Base_Amount      := txTemp_Base_Amount;
                       TR.txGST_Class             := txGST_Class;
                       TR.txGST_Amount            := txGST_Amount;
                       TR.txHas_Been_Edited       := txHas_Been_Edited;
@@ -250,6 +251,7 @@ Var
                             DR.dsAccount         := D.dsAccount;
                             DR.dsReference       := D.dsReference;
                             DR.dsAmount          := D.dsAmount;
+                            DR.dsTemp_Base_Amount := D.dsTemp_Base_Amount;
                             DR.dsGST_Class       := D.dsGST_Class;
                             DR.dsGST_Amount      := D.dsGST_Amount;
                             DR.dsQuantity        := D.dsQuantity;
@@ -341,12 +343,13 @@ Var
                    PutString( bkDate2Str( txDate_Effective ) );
                    PutString( GetFormattedReference( Transaction));
 
-                   PutMoney( txAmount );
+                   PutMoney( txTemp_Base_Amount );
+
                    SkipColumn;
                    SkipColumn;
                    SkipColumn;
                    RenderDetailLine;
-                   PeriodTotal := PeriodTotal + txAmount;
+                   PeriodTotal := PeriodTotal + txTemp_Base_Amount;
                    SubTotalRendered := False;
                 end;
 
@@ -371,11 +374,11 @@ Var
 
                       if IncludeAllDissectionLines then
                          //amount will have been added above
-                         PutMoneyDontAdd( dsAmount )
+                         PutMoneyDontAdd( dsTemp_Base_Amount )
                       else
                       begin
-                         PutMoney( dsAmount);
-                         PeriodTotal := PeriodTotal + dsAmount;
+                         PutMoney( dsTemp_Base_Amount);
+                         PeriodTotal := PeriodTotal + dsTemp_Base_Amount;
                       end;
 
                       PutString( dsAccount );
@@ -401,14 +404,14 @@ Var
                    end;
                    PutString( bkDate2Str( txDate_Effective ) );
                    PutString( GetFormattedReference( Transaction));
-                   PutMoney( txAmount );
+                   PutMoney( txTemp_Base_Amount );
                    PutString( txAccount );
                    Account := clChart.FindCode( txAccount );
                    If Account<>NIL then PutString(Copy( Account^.chAccount_Description, 1, 20 ) )
                     else SkipColumn;
                    PutNarration( txGL_Narration);
                    RenderDetailLine;
-                   PeriodTotal := PeriodTotal + txAmount;
+                   PeriodTotal := PeriodTotal + txTemp_Base_Amount;
                    SubTotalRendered := False;
                 end;
              end;
@@ -527,6 +530,7 @@ procedure DoPayeeSpendingReport(Destination : TReportDest; RptBatch :TReportBase
 var
    Job   : TPayeeSpendingReport;
    Params : TPayeeParameters;
+   ISOCodes: string;
 begin
    //set defaults
 
@@ -554,6 +558,10 @@ begin
         else
            Destination := rdAsk;
         end;
+
+
+        //Check Forex - this won't stop the report running if there are missing exchange rates
+        MyClient.HasExchangeRates(ISOCodes, params.FromDate, params.ToDate, True, True);
 
         Job := TPayeeSpendingReport.Create(rptOther);;
         try
