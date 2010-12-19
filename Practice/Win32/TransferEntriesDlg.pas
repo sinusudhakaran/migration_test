@@ -413,8 +413,8 @@ begin
          if cmbTempAccount.Items.Count = 1 then
             cmbTempAccount.ItemIndex := 0;
 
-         if cmbBankAccount.Items.Count = 1 then
-            cmbBankAccount.ItemIndex := 0;
+         cmbTempAccountSelect(nil);
+
          //update stats
          FieldChanged( nil);
 

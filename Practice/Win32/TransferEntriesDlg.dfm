@@ -76,7 +76,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Height = 21
     Style = csDropDownList
     Ctl3D = False
-    ItemHeight = 13
+    ItemHeight = 0
     ParentCtl3D = False
     TabOrder = 0
     OnSelect = cmbTempAccountSelect
@@ -88,7 +88,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Height = 21
     Style = csDropDownList
     Ctl3D = False
-    ItemHeight = 13
+    ItemHeight = 0
     ParentCtl3D = False
     TabOrder = 1
     OnSelect = cmbBankAccountSelect
