@@ -1,8 +1,8 @@
 [Setup]
 ;Bits=32
-AppName=BankLink Notes 2009 Update
-AppVerName=BankLink Notes 2009 Update
-AppCopyright=Copyright © 2001-2009 BankLink Limited
+AppName=BankLink Notes 2011 Update
+AppVerName=BankLink Notes 2011 Update
+AppCopyright=Copyright © 2001-2011 BankLink Limited
 ChangesAssociations=yes
 DefaultDirName={sd}\BNotes
 DefaultGroupName=BankLink
