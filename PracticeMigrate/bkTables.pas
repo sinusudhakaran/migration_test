@@ -260,6 +260,14 @@ public
                    ToDoItem: pClientToDoItem): Boolean;
 end;
 
+TDownloadlogTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyiD, ClientID: TGuid;
+                   Value: pDisk_Log_Rec): Boolean;
+end;
+
 
 implementation
 
@@ -966,6 +974,21 @@ begin
    SetFields(['Id','Client_Id','DateEntered','EnteredBy','Action'
       ,'ReminderDate','Closed','DateClosed'],[]);
 
+end;
+
+{ TDownloadlogTable }
+
+function TDownloadlogTable.Insert(MyiD, ClientID: TGuid;
+                   Value: pDisk_Log_Rec): Boolean;
+begin with Value^ do
+   Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(dlDisk_ID)
+                  ,DateToSQL(dlDate_Downloaded),ToSQL(dlNo_of_Accounts),ToSQL(dlNo_of_Entries)],[]);
+end;
+
+procedure TDownloadlogTable.SetupTable;
+begin
+   TableName := 'ClientDownloads';
+   SetFields(['Id','ClientId_Id','DiskID','DateDownloaded','NoOfAccounts','NoOfEntries'], []);
 end;
 
 end.

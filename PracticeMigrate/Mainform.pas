@@ -61,6 +61,7 @@ type
     VirtualStringTree1: TVirtualStringTree;
     LVersion: TLabel;
     btnSQLBrowse: TButton;
+    cbSysTrans: TCheckBox;
     procedure BBrowseClick(Sender: TObject);
     procedure BtnNextClick(Sender: TObject);
     procedure BtnCancelClick(Sender: TObject);
@@ -79,6 +80,7 @@ type
     procedure cbArchiveClick(Sender: TObject);
     procedure btnDefClick(Sender: TObject);
     procedure CbserversDropDown(Sender: TObject);
+    procedure cbSysTransClick(Sender: TObject);
 
   private
     Fprogress: Tprogress;
@@ -307,6 +309,11 @@ begin
    Destination := CBServers.text;
 end;
 
+procedure TformMain.cbSysTransClick(Sender: TObject);
+begin
+  FSystemMigrater.DoSystemTransactions := cbSysTrans.Checked;
+end;
+
 procedure TformMain.cbUnsyncClick(Sender: TObject);
 begin
    FSystemMigrater.DoUnsynchronised := cbUnsync.Checked;
@@ -532,6 +539,7 @@ begin
   UsageDir                  := DataDir + 'USAGE\';
   StyleDir                  := DataDir + 'STYLES\';
   GlobalDirectories.glDataDir :=  Globals.DataDir;
+  ExecDir := DataDir;
 
   EFromDir.Text := Value;
 end;

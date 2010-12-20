@@ -26,6 +26,9 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
+  {$IFDEF Debug}
+  ReportMemoryLeaksOnShutdown := true;
+  {$EndIf}
   Application.CreateForm(TformMain, formMain);
   Application.CreateForm(TAppImages, AppImages);
   Application.Run;

@@ -355,7 +355,7 @@ begin
       Exit;
    end;
 
-   // Hasve a go..
+   // Have a go..
    Result := True;
 
    if List.Count = 0 then
@@ -363,7 +363,7 @@ begin
 
    if (Name > '') then
       // Make my own action
-      MyAction := Foraction.NewAction(Name,ForAction.Item)
+      MyAction := Foraction.InsertAction (Name,ForAction.Item)
    else
       MyAction := ForAction;
 

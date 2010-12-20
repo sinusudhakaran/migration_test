@@ -2,7 +2,9 @@ unit syTables;
 
 interface
 uses
+  DB,
   ADODB,
+  MoneyDef,
   MigrateTable,
   bkDefs,// MasterMems
   sydefs;
@@ -76,6 +78,50 @@ public
                    Value: pMemorisation_Line_Rec): Boolean;
 end;
 
+TChargesTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyiD, AccountId: TGuid;
+        Date: Integer;
+        Charges: Double;
+        Transactions: Integer;
+        IsNew, LoadChargeBilled: Boolean;
+        OffSiteChargeIncluded: Boolean;
+        FileCode,CostCode: string  ): Boolean;
+end;
+
+
+TDownloadDocumentTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyiD: TGuid;
+        DocType: string;
+        DocName: string;
+        FileName: string;
+        ForDate: Integer): Boolean;
+end;
+
+TDownloadlogTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyiD: TGuid;
+                   Value: pSystem_Disk_Log_Rec): Boolean;
+end;
+
+TParameterTable = class (TMigrateTable)
+
+protected
+   procedure SetupTable; override;
+public
+   function Update(ParamName, ParamValue: string): Boolean; overload;
+   function Update(ParamName: string; ParamValue: Boolean): Boolean; overload;
+   function Update(ParamName: string; ParamValue: TGuid): Boolean; overload;
+   function Update(ParamName: string;ParamValue: Integer): Boolean; overload;
+   function Update(ParamName: string; ParamValue: Money): Boolean; overload;
+end;
 
 
 implementation
@@ -288,6 +334,118 @@ begin
       'SFPCFranked','SFMemberID','SFFundID','SFFundCode','SFTransID'
       ,'SFTransCode','SFMemberAccountID','SFMemberAccountCode','SFEdited'
       ,'SFMemberComponent','SFPCUnFranked']);
+end;
+
+{ TChargesTable }
+
+function TChargesTable.Insert(MyiD, AccountId: TGuid;
+        Date: Integer;
+        Charges: Double;
+        Transactions: Integer;
+        IsNew, LoadChargeBilled: Boolean;
+        OffSiteChargeIncluded: Boolean;
+        FileCode,CostCode: string  ): Boolean;
+begin
+   Result := RunValues([ToSQL(MyiD), ToSQL(AccountId), DateToSQL(Date),
+            Charges, ToSQL(Transactions), ToSQL(IsNew), ToSQL(LoadChargeBilled),
+        ToSQL(OffSiteChargeIncluded), ToSQL(FileCode),ToSQL(CostCode)],[])
+end;
+
+procedure TChargesTable.SetupTable;
+begin
+   TableName := 'AccountCharges';
+   SetFields(['Id','SystemBankAccountId','Date','Charges','Transactions','NewAccount','LoadChargeBilled'
+      ,'OffSiteChargeIncluded','FileCode','CostCode'
+      ],[]);
+
+end;
+
+{ TDownloadDocumentTable }
+
+function TDownloadDocumentTable.Insert(MyiD: TGuid;
+        DocType: string;
+        DocName: string;
+        FileName: string;
+
+        ForDate: Integer): Boolean;
+
+begin
+   Result := False;
+   Parameters[0].Value := ToSQL(MyID);
+   Parameters[1].Value := ToSQL(DocType);
+   Parameters[2].Value := DateToSQL(ForDate);
+   Parameters[3].LoadFromFile(FileName,ftBlob);
+   Parameters[4].Value := ToSQL(DocName);
+   // Run the query
+   try
+      Result := ExecSQL = 1;
+   except
+      on e: exception do begin
+         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+      end;
+   end;
+end;
+
+procedure TDownloadDocumentTable.SetupTable;
+begin
+   TableName := 'DownloadDocuments';
+   SetFields(['Id','DocumentType','ForDate','Document','FileName'],[]);
+end;
+
+{ TDownloadlogTable }
+
+function TDownloadlogTable.Insert(MyiD: TGuid;
+                   Value: pSystem_Disk_Log_Rec): Boolean;
+begin
+   with Value^ do
+    Result := RunValues([ToSQL(MyID),ToSql(Value.dlDisk_ID),DateToSQL(Value.dlDate_Downloaded)
+               ,ToSQL(Value.dlNo_of_Accounts), ToSQL(Value.dlNo_of_Entries), ToSQL(Value.dlWas_In_Last_Download)],[]);
+end;
+
+procedure TDownloadlogTable.SetupTable;
+begin
+   TableName := 'Downloads';
+   SetFields(['Id','DiskId','DateDownloaded','NoOfAccounts','NoOfEntries','WasInLastDownload'],[]);
+end;
+
+{ TParameterTable }
+
+function TParameterTable.Update(ParamName, ParamValue: string): Boolean;
+begin
+    Result := RunValues([ToSQL(ParamValue), ToSQL(ParamName)],[]);
+end;
+
+procedure TParameterTable.SetupTable;
+begin
+   TableName := 'SystemParameters';
+
+  // Make the query
+  SQL.Text := Format('update [%s] set [ParameterValue] = :ParameterValue where [ParameterName] = :ParameterName',[TableName]);
+
+end;
+
+function TParameterTable.Update(ParamName: string;
+  ParamValue: Boolean): Boolean;
+begin
+   if ParamValue then
+      Result := Update(ParamName,'true')
+   else
+      Result := Update(ParamName,'false')
+end;
+
+function TParameterTable.Update(ParamName: string; ParamValue: TGuid): Boolean;
+begin
+   Result := RunValues([ToSQL(ParamValue), ToSQL(ParamName)],[]);
+end;
+
+function TParameterTable.Update(ParamName: string;ParamValue: Integer): Boolean;
+begin
+   Result := UpDate(ParamName, IntToStr(ParamValue));
+end;
+
+function TParameterTable.Update(ParamName: string; ParamValue: Money): Boolean;
+begin
+  Result := UpDate(ParamName, FormatFloat('0.00', ParamValue/100) );
 end;
 
 end.

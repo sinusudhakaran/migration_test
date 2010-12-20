@@ -894,9 +894,9 @@ object formMain: TformMain
       object cbAccounts: TCheckBox
         Left = 12
         Top = 62
-        Width = 269
+        Width = 173
         Height = 17
-        Caption = 'System Bank Accounts && Transactions'
+        Caption = 'System Bank Accounts,'
         TabOrder = 1
       end
       object cbGroups: TCheckBox
@@ -983,6 +983,17 @@ object formMain: TformMain
         Height = 17
         Caption = 'Styles'
         TabOrder = 6
+      end
+      object cbSysTrans: TCheckBox
+        Left = 208
+        Top = 62
+        Width = 97
+        Height = 17
+        Caption = '&&Transactions'
+        Checked = True
+        State = cbChecked
+        TabOrder = 7
+        OnClick = cbSysTransClick
       end
     end
     object TsProgress: TTabSheet
@@ -1146,7 +1157,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000280018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101040010002C0018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

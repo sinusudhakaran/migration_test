@@ -41,6 +41,11 @@ private
     FClientAccountMap: tGuidList;
     FMasterMemorisationsTable: TMasterMemorisationsTable;
     FMasterMemlinesTable: TMasterMemlinesTable;
+    FChargesTable: TChargesTable;
+    FDoSystemTransactions: Boolean;
+    FDownloadDocumentTable: TDownloadDocumentTable;
+    FDownloadlogTable: TDownloadlogTable;
+    FParameterTable: TParameterTable;
     procedure SetClientGroupList(const Value: TGuidList);
     procedure SetClientList(const Value: TGuidList);
     procedure SetClientTypeList(const Value: TGuidList);
@@ -59,11 +64,20 @@ private
     function AddSystemClient(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddClientFile(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddUserMap(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
+    function AddDiskLog(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 
     procedure MigrateMasterMems(ForAction: TMigrateAction);
     function AddMasterMemFile(ForAction: TMigrateAction; Prefix: string): Boolean;
     function AddMasterMem(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddMasterMemLine(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
+
+    function GetlongDate(const Value: string): Integer;
+    function AddCharges(ForAction: TMigrateAction; Value: string): Boolean;
+    function AddHTMFile(ForAction: TMigrateAction; Value: string): Boolean;
+    function AddRPTFile(ForAction: TMigrateAction; Value: string): Boolean;
+    function MigrateWorkFolder(ForAction: TMigrateAction): Boolean;
+    function MigrateDisklog(ForAction: TMigrateAction): Boolean;
+    function MigrateSystem(ForAction: TMigrateAction): Boolean;
     // Size Items
     function SizeSystemAccount(ForAction: TMigrateAction; var Value: TGuidObject): Boolean;
 
@@ -98,6 +112,15 @@ private
     function GetMasterMemorisationsTable: TMasterMemorisationsTable;
     procedure SetMasterMemlinesTable(const Value: TMasterMemlinesTable);
     function GetMasterMemlinesTable: TMasterMemlinesTable;
+    procedure SetChargesTable(const Value: TChargesTable);
+    function GetChargesTable: TChargesTable;
+    procedure SetDoSystemTransactions(const Value: Boolean);
+    procedure SetDownloadDocumentTable(const Value: TDownloadDocumentTable);
+    function GetDownloadDocumentTable: TDownloadDocumentTable;
+    procedure SetDownloadlogTable(const Value: TDownloadlogTable);
+    function GetDownloadlogTable: TDownloadlogTable;
+    procedure SetParameterTable(const Value: TParameterTable);
+    function GetParameterTable: TParameterTable;
 protected
     procedure OnConnected; override;
 public
@@ -116,6 +139,7 @@ public
     property ClientList: TGuidList read GetClientList write SetClientList;
     property ClientAccountMap: tGuidList read GetClientAccountMap write SetClientAccountMap;
     property SystemUsers: TADODataSet read GetSystemUsers write SetSystemUsers;
+    function GetSystemAccount(AccountNo: string): TGuidObject;
 
     //Tables
     property btTable: TbtTable read GetbtTable write SetbtTable;
@@ -128,7 +152,13 @@ public
     property UserMappingTable: TUserMappingTable read GetUserMappingTable write SetUserMappingTable;
     property MasterMemorisationsTable: TMasterMemorisationsTable read GetMasterMemorisationsTable write SetMasterMemorisationsTable;
     property MasterMemlinesTable: TMasterMemlinesTable read GetMasterMemlinesTable write SetMasterMemlinesTable;
+    property ChargesTable: TChargesTable read GetChargesTable write SetChargesTable;
+    property DownloadDocumentTable: TDownloadDocumentTable read GetDownloadDocumentTable write SetDownloadDocumentTable;
+    property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable write SetDownloadlogTable;
+    property ParameterTable: TParameterTable read GetParameterTable write SetParameterTable;
+
     //Options
+    property DoSystemTransactions: Boolean read FDoSystemTransactions write SetDoSystemTransactions;
     property DoUsers: Boolean read FDoUsers write SetDousers;
     property DoArchived: Boolean read FDoArchived write SetDoArchived;
     property DoUnsynchronised: Boolean read FDoUnsynchronised write SetDoUnsynchronised;
@@ -144,6 +174,12 @@ end;
 implementation
 
 uses
+   INISettings,
+   PassWordHash,
+   Stdate,
+   Moneydef,
+   Globals,
+   StDateSt,
    bkDefs,
    MemorisationsObj,
    Classes,
@@ -154,6 +190,123 @@ uses
    SysUtils;
 
 { TSystemMigrater }
+
+function TSystemMigrater.AddCharges(ForAction: TMigrateAction; Value: string): Boolean;
+var lFile,lLine: TStringList;
+    MyAction: TMigrateAction;
+    ChargesDate: Integer;
+    L: Integer;
+    cAcc,cFileCode,cCostCode,cCharges,cTrans,cNew,cLoad,cOffsite : integer;
+
+    function GetDate: Integer;
+    var lFile: string;
+    begin
+       lFile := copy(ExtractFilename(Value),1,7);
+       Result := DateStringToStDate('NNNyyyy', LFile, BKDATEEPOCH);
+    end;
+
+    procedure AddAccountLine;
+    var
+       Account: TGuidobject;
+       Charges: Double;
+       Transactions: Integer;
+       IsNew, LoadChargeBilled: Boolean;
+       OffSiteChargeIncluded: Boolean;
+       FileCode,CostCode: string;
+
+       function TextField(Col: Integer):string;
+       begin
+          Result := '';
+          if Col < 0  then
+             Exit;
+          if Col >= lLine.Count then
+             Exit;
+          Result := lLine[Col];
+       end;
+
+       function IntField(Col: Integer): Integer;
+       var iStr: string;
+       begin
+          Result := 0;
+          iStr := TextField(Col);
+          if iStr > '' then
+             result := StrToInt(istr);
+       end;
+
+       function BoolField(Col: Integer; Default: Boolean = false): Boolean;
+       var bStr: string;
+       begin
+          Result := Default;
+          bStr := TextField(Col);
+          if bStr > '' then
+             Result := (Upcase(bStr[1]) = 'Y')
+                    or (Upcase(bStr[1]) = 'T')
+       end;
+
+    begin
+       Account := GetSystemAccount(lLine[cAcc]);
+       if not Assigned(Account) then begin
+          // Make it up...
+          // Practice should already have added it if we did need it...
+          Exit;
+       end;
+       Charges := StrToFloat(lLine[cCharges]);
+       FileCode := TextField(cFileCode);
+       CostCode := TextField(cCostCode);
+       IsNew := BoolField(cNew);
+       LoadChargeBilled := BoolField(cLoad);
+       OffSiteChargeIncluded := BoolField(cOffsite);
+       Transactions := IntField(cTrans);
+       ChargesTable.Insert(NewGuid,Account.GuidID,ChargesDate,Charges, Transactions,
+             IsNew, LoadChargeBilled,OffSiteChargeIncluded,FileCode,CostCode );
+    end;
+
+begin
+   Result := True;
+   lLine := nil;
+   MyAction := nil;
+   lFile := TStringList.Create;
+   try
+      lFile.LoadFromFile(Value);
+      if LFile.Count < 1 then
+         Exit; //Only have header line or less...
+
+      // Get Ready to run..
+      lLine := TStringList.Create;
+      lLine.Delimiter := ',';
+      lLine.StrictDelimiter := true;
+      ChargesDate := GetDate;
+
+      if LFile.Count > 150 then begin
+         // not worth it if to small
+         MyAction := ForAction.InsertAction(format('Charges: %s',[StDateToDateString('NNN yyyy',ChargesDate,false)] ));
+         MyAction.Target := lFile.Count;
+      end;
+
+      lLine.DelimitedText := LFile[0];
+      // Find the names.
+      cAcc := lLine.IndexOf('Account No');
+      cFileCode := lLine.IndexOf('File Code');
+      cCostCode := lLine.IndexOf('Cost Code');
+      cCharges := lLine.IndexOf('Charges');
+      cTrans := lLine.IndexOf('No Of Transactions');
+      cNew := lLine.IndexOf('New Account');
+      cLoad := lLine.IndexOf('Load Charge Billed');
+      cOffsite := lLine.IndexOf('Off-site charge included');
+      for L := 1 to LFile.Count - 1 do  begin
+         lLine.DelimitedText := LFile[L];
+         AddAccountLine;
+         if Assigned(MyAction) then
+            MyAction.AddCount;
+      end;
+
+      if Assigned(MyAction) then
+         MyAction.Count := LFile.Count;
+   finally
+      FreeAndnil(LFile);
+      FreeAndnil(LLine);
+   end;
+end;
 
 function TSystemMigrater.AddClientFile(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
@@ -194,6 +347,62 @@ function TSystemMigrater.AddClientType(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 begin
   Result := ClientTypeTable.Insert(Value.GuidID, pClient_Type_Rec(Value.Data))
+end;
+
+function TSystemMigrater.AddDiskLog(ForAction: TMigrateAction;
+  Value: TGuidObject): Boolean;
+begin
+  Result := DownloadLogTable.Insert(Value.GuidID, pSystem_Disk_Log_Rec(Value.Data))
+end;
+
+function TSystemMigrater.AddHTMFile(ForAction: TMigrateAction; Value: string): Boolean;
+
+var lFile: TStringList;
+    L, Doctype: string;
+    I,P: Integer;
+    ForDate: Integer;
+begin
+   ForDate := -1;
+   Doctype := '';
+   lFile := TStringList.Create;
+   try
+      lFile.LoadFromFile(Value);
+      for I := 0 to lfile.Count - 1 do begin
+         if pos('STATEMENT<br>',lFile[I]) > 0 then begin
+            Doctype := 'Statement';
+         end else if pos('TRANSACTIONS<br>',lFile[I]) > 0 then begin
+            Doctype := 'Interim report';
+         end else if I > 75  then
+            Break // Past any header bits..
+         else
+            Continue; // still looking
+
+         if I = Pred(lfile.Count) then
+            Break; // No more lines left...
+
+         L := lFile[I + 1];
+         
+         P := pos( '<br>', L);
+         if P > 0 then begin
+            L := Copy(L, 1, P-1);
+            P := pos( '>', L); // any other tags...
+            if P > 0 then
+               L := Copy(L, p + 1, length(L));
+            ForDate := GetlongDate(L);
+         end;
+
+         Break; // Found what I was looking for..
+      end;
+
+      // add The document..
+      Result := DownLoadDocumentTable.Insert(NewGuid,Doctype,
+             ExtractFilename(value),
+             Value,
+             Fordate);
+
+   finally
+      LFile.Free;
+   end;
 end;
 
 function TSystemMigrater.AddMasterMem(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
@@ -253,6 +462,62 @@ begin
       )
 end;
 
+function TSystemMigrater.AddRPTFile(ForAction: TMigrateAction;
+  Value: string): Boolean;
+
+   function ReNameFile(Filename, NewExtention: string): string;
+   var point: Integer;
+   begin
+        // Moves the numer to before the extention
+        Result := FileName;
+        Point := Pos('.',Result);
+        if Point > 0 then
+           Result := format('%s_%s.%s',[ copy(Filename,1,Point-1), Copy(FileName,Point+ 1, 255),NewExtention]) ;
+   end;
+var lFile: TStringList;
+    L, Doctype: string;
+    I: Integer;
+    ForDate: Integer;
+
+begin
+   ForDate := -1;
+   Doctype := '';
+   lFile := TStringList.Create;
+   try
+      lFile.LoadFromFile(Value);
+      for I := 0 to lfile.Count - 1 do begin
+         if pos('<big>STATEMENT',lFile[I]) > 0 then begin
+            Doctype := 'Statement';
+         end else if pos('<big>CLIENT',lFile[I]) > 0 then begin
+            Doctype := 'Interim report';
+         end else if I > 75  then  // must be past the header...
+            Break
+         else
+            Continue;
+
+         if I = Pred(lfile.Count) then
+            Break;
+
+         L := lFile[I + 1];
+
+         if pos( '<lmp>', L) = 1 then
+            ForDate := GetlongDate(copy(L, 6, length(L)));
+
+         Break;
+      end;
+
+      Result := DownLoadDocumentTable.Insert(NewGuid,Doctype,
+             reNameFile(ExtractFilename(value),'rpt'),
+             Value,
+             Fordate);
+
+
+   finally
+      LFile.Free;
+   end;
+end;
+
+
 function TSystemMigrater.AddSystemAccount(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 var
     Account: pSystem_Bank_Account_Rec;
@@ -265,6 +530,9 @@ begin
    Account := pSystem_Bank_Account_Rec(Value.Data);
    // Do the record
    Result := SystemAccountTable.Insert(Value.GuidID,Account);
+
+   if not FDoSystemTransactions then
+      Exit;
 
    // find the transactions
    eFileName := ArchiveFileName( Account.sbLRN );
@@ -292,7 +560,7 @@ begin
          BTTable.Insert(NewGuid,Value.GuidID,Entry);
 
          inc(Count);
-         MyAction.Counter := Count;
+         MyAction.AddCount;
       end;
 
    finally
@@ -348,8 +616,9 @@ begin
 
       DeleteTable(MyAction,'UserClients');
 
-
-      DeleteTable(MyAction,'BankTransactions', true);
+      DeleteTable(MyAction,Chargestable,True);
+      DeleteTable(MyAction,DownloadDocumentTable, True);
+      DeleteTable(MyAction,btTable, True);
 
       DeleteTable(MyAction,'ClientSystemAccounts');;
       DeleteTable(MyAction,'SystemBankAccounts');
@@ -389,6 +658,12 @@ begin
    FGroupTable := nil;
    FUserMappingTable := nil;
    FClientAccountMap := nil;
+   FMasterMemorisationsTable := nil;
+   FMasterMemlinesTable := nil;
+   FChargesTable := nil;
+   FDownloadDocumentTable := nil;
+   FDownloadlogTable := nil;
+   FParameterTable := nil;
 end;
 
 destructor TSystemMigrater.Destroy;
@@ -409,6 +684,11 @@ begin
    FreeAndNil(FUserMappingTable);
    FreeAndnil(FClientAccountMap);
    FreeAndNil(FMasterMemorisationsTable);
+   FreeAndNil(FMasterMemlinesTable);
+   FreeAndNil(FChargesTable);
+   FreeAndNil(FDownloadDocumentTable);
+   FreeAndNil(FDownloadlogTable);
+   FreeAndNil(FParameterTable);
    inherited;
 end;
 
@@ -447,11 +727,59 @@ begin
    Result := FClientTypeTable;
 end;
 
+function TSystemMigrater.GetDownloadDocumentTable: TDownloadDocumentTable;
+begin
+   if not Assigned(FDownloadDocumentTable) then
+      FDownloadDocumentTable := TDownloadDocumentTable.Create(Connection);
+   Result := FDownloadDocumentTable;
+end;
+
+function TSystemMigrater.GetDownloadlogTable: TDownloadlogTable;
+begin
+  if not Assigned(FDownloadlogTable) then
+      FDownloadlogTable := TDownloadlogTable.Create(Connection);
+   Result := FDownloadlogTable;
+end;
+
 function TSystemMigrater.GetGroupTable: TClientGroupTable;
 begin
    if not Assigned(FGroupTable) then
       FGroupTable := TClientGroupTable.Create(Connection);
    Result := FGroupTable;
+end;
+
+function TSystemMigrater.GetlongDate(const Value: string): Integer;
+var L: string;
+    P,D,M,Y: Integer;
+
+    function CleanLine: string;
+    var i: Integer;
+    begin
+       Result := Value;
+       for I := 1 to Length(Value) do
+       case Result[i] of
+       #$A0 : Result[I] := #$20; // None braking space to 'Normal' space See Case 10726
+       else Result[I] := UpCase(Result[I]);
+       end;
+  end;
+begin
+   M := -1;
+   try
+      L := CleanLine;
+      p := pos(' ',L);
+      D := StrToInt(Copy(L,1,P-1));
+      L := Copy(L,P+1,255);
+      for P := 1 to 12 do
+         if Pos(Uppercase(ShortMonthNames[P]),L) = 1 then begin
+            M := P;
+         end;
+      p := pos(' ',L);
+      L := Copy(L,P+1,255);
+      Y := StrToInt(L);
+      Result := DMYtoStDate(D,M,Y,BKDATEEPOCH);
+   except
+      Result := -1;
+   end;
 end;
 
 function TSystemMigrater.GetMasterMemlinesTable: TMasterMemlinesTable;
@@ -468,6 +796,20 @@ begin
    Result := FMasterMemorisationsTable;
 end;
 
+function TSystemMigrater.GetParameterTable: TParameterTable;
+begin
+   if not Assigned(FParameterTable) then
+      FParameterTable := TParameterTable.Create(Connection);
+   Result := FParameterTable;
+end;
+
+function TSystemMigrater.GetChargesTable: TChargesTable;
+begin
+  if not Assigned(FChargesTable) then
+      FChargesTable := TChargesTable.Create(Connection);
+   Result := FChargesTable;
+end;
+
 function TSystemMigrater.GetClientAccountMap: tGuidList;
 begin
    if not Assigned(FClientAccountMap) then
@@ -480,6 +822,18 @@ begin
    if not Assigned(FClientAccountMapTable) then
       FClientAccountMapTable := TClientAccountMapTable.Create(Connection);
    Result := FClientAccountMapTable;
+end;
+
+function TSystemMigrater.GetSystemAccount(AccountNo: string): TGuidObject;
+var I: Integer;
+begin
+    fillchar(Result, Sizeof(Result), 0);
+    for I := 0 to SystemAccountList.Count - 1 do
+       with pSystem_Bank_Account_Rec(TGuidObject(SystemAccountList[I]).Data)^ do
+           if SameText(sbAccount_Number,AccountNo) then begin
+              Result := TGuidObject(SystemAccountList[I]);
+              Exit;// we are done...
+           end;
 end;
 
 function TSystemMigrater.GetSystemAccountList: TGuidList;
@@ -594,11 +948,164 @@ begin
     end;
 end;
 
+function TSystemMigrater.MigrateSystem(ForAction: TMigrateAction): Boolean;
+begin
+   ParameterTable.Update('AccountCodeMask', System.fdFields.fdAccount_Code_Mask);
+   ParameterTable.Update('AccountingSystem', GetProviderID(AccountingSystem,System.fdFields.fdCountry, System.fdFields.fdAccounting_System_Used));
+   ParameterTable.Update('AutoPrintScheduledReportSummary', System.fdFields.fdAuto_Print_Sched_Rep_Summary);
+   ParameterTable.Update('BankLinkCode', System.fdFields.fdBankLink_Code);
+
+   ParameterTable.Update('BankLinkConnectPassword', System.fdFields.fdBankLink_Connect_Password);
+   ParameterTable.Update('EnableBulkexport', System.fdFields.fdBulk_Export_Enabled);
+   ParameterTable.Update('BulkExportFormat', System.fdFields.fdBulk_Export_Code);
+
+   ParameterTable.Update('CodingFont', System.fdFields.fdCoding_Font);
+   ParameterTable.Update('CollectUsageData', System.fdFields.fdCollect_Usage_Data);
+
+   ParameterTable.Update('CopyDissectionNarration', System.fdFields.fdCopy_Dissection_Narration);
+
+   ParameterTable.Update('DiskSequenceNo', System.fdFields.fdDisk_Sequence_No);
+
+   ParameterTable.Update('ExportChargesRemarks', System.fdFields.fdExport_Charges_Remarks);
+
+   //ParameterTable.Update('ExportTaxFileTo', System.fdFields);
+
+   ParameterTable.Update('ExtractJournalAccountsPA', System.fdFields.fdExtract_Journal_Accounts_PA);
+   ParameterTable.Update('ExtractMultipleAccountsPA', System.fdFields.fdExtract_Multiple_Accounts_PA);
+   ParameterTable.Update('ExtractQuantity', System.fdFields.fdExtract_Quantity);
+   ParameterTable.Update('ExtractQuantityDecimalPlaces', System.fdFields.fdExtract_Quantity_Decimal_Places);
+
+   ParameterTable.Update('FixedChargeIncrease', System.fdFields.fdFixed_Charge_Increase);
+   ParameterTable.Update('FixedDollarAmount', System.fdFields.fdFixed_Dollar_Amount);
+
+   ParameterTable.Update('ForceLogin', System.fdFields.fdForce_Login );
+
+   ParameterTable.Update('IgnoreQuantityInDownload', System.fdFields.fdIgnore_Quantity_In_Download);
+
+   ParameterTable.Update('LastDiskImageVersion', System.fdFields.fdLast_Disk_Image_Version);
+
+   ParameterTable.Update('LastExportChargesSavedTo', System.fdFields.fdLast_Export_Charges_Saved_To);
+
+   ParameterTable.Update('LoadChartFrom', System.fdFields.fdLoad_Client_Files_From);
+   ParameterTable.Update('LoadClientSuperFilesFrom', System.fdFields.fdLoad_Client_Super_Files_From);
+   ParameterTable.Update('LoginBitmapFilename', System.fdFields.fdLogin_Bitmap_Filename);
+
+   ParameterTable.Update('PracticeManagementSystem', GetProviderID(ManagementSystem,System.fdFields.fdCountry, System.fdFields.fdPractice_Management_System));
+
+   ParameterTable.Update('PINNumber', System.fdFields.fdPIN_Number);
+
+   ParameterTable.Update('PracticeName', System.fdFields.fdPractice_Name_for_Reports);
+   ParameterTable.Update('PracticePhone', System.fdFields.fdPractice_Phone);
+   ParameterTable.Update('PracticeWebSite', System.fdFields.fdPractice_Web_Site);
+   ParameterTable.Update('PracticeEmail', System.fdFields.fdPractice_EMail_Address);
+
+   ParameterTable.Update('PrintClientTypeHeaderPage', System.fdFields.fdPrint_Client_Type_Header_Page);
+   ParameterTable.Update('PrintGroupHeaderPage', System.fdFields.fdPrint_Group_Header_Page);
+
+   ParameterTable.Update('ReplaceNarrationWithPayee', System.fdFields.fdReplace_Narration_With_Payee);
+
+   ParameterTable.Update('SaveClientSuperFilesTo', System.fdFields.fdSave_Client_Super_Files_To);
+   ParameterTable.Update('SaveEntriesTo', System.fdFields.fdSave_Client_Files_To);//???
+   ParameterTable.Update('SaveTaxFilesTo', System.fdFields.fdSave_Tax_Files_To);
+   ParameterTable.Update('SetFixedDollarAmount', System.fdFields.fdSet_Fixed_Dollar_Amount);
+
+
+
+   ParameterTable.Update('SystemReportPassword', System.fdFields.fdSystem_Report_Password);
+   ParameterTable.Update('TaskTrackingPromptType', System.fdFields.fdTask_Tracking_Prompt_Type);
+   ParameterTable.Update('TaxInterfaceUsed', GetProviderID(TaxSystem,System.fdFields.fdCountry, System.fdFields.fdTax_Interface_Used));
+   ParameterTable.Update('UpdateServerForOffsites', System.fdFields.fdUpdate_Server_For_Offsites);
+
+   ParameterTable.Update('UseXlonChartOrder', System.fdFields.fdUse_Xlon_Chart_Order);
+   ParameterTable.Update('WebExportFormat', System.fdFields.fdWeb_Export_Format);
+
+   //Pracini
+   ReadPracticeINI;
+   case System.fdFields.fdCountry of
+      whNewZealand : begin
+         ParameterTable.Update('GSTReturnLink', PRACINI_GST101Link);
+         ParameterTable.Update('Institutionslink',PRACINI_InstListLinkNZ);
+      end;
+      whAustralia : begin
+         ParameterTable.Update('Institutionslink',PRACINI_InstListLinkAU);
+      end;
+   end;
+
+   //ParameterTable.Update('ShowCaptions', System.fdFields.fd)
+   //Userini
+   //ParameterTable.Update('ShowCaptions', System.fdFields.fd);
+   //ParameterTable.Update('ShowDesrciptions', System.fdFields.fd);
+   //ParameterTable.Update('SMTPAccountName', System.fdFields.fd);
+   Result := true;
+end;
+
+function TSystemMigrater.MigrateWorkFolder(ForAction: TMigrateAction): Boolean;
+var
+  MyAction: TMigrateAction;
+  Files: TStringList;
+  I: Integer;
+
+  function GetFileList:TStringList;
+  var Rec: TSearchRec;
+      ext: string;
+  begin
+     Result := TStringList.Create;
+     if FindFirst(DownloadWorkDir + '*.*', faAnyFile, Rec) = 0 then begin
+		    repeat
+			     // Exclude directories from the list of files.
+			     ext := ExtractFileExt(rec.Name );
+           if Sametext(Ext,'.csv') then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(1))
+           else if Sametext(Ext,'.htm') then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(2))
+           else if pos('REPORTS',rec.Name) = 1 then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(3))
+
+
+        until FindNext(Rec) <> 0;
+        FindClose(Rec);
+     end;
+  end;
+
+
+begin
+  result := false;
+  Files := GetFileList;
+  try
+     if Files.Count = 0 then begin
+        Result := True;
+        Exit;
+     end;
+     MyAction := ForAction.InsertAction('Download Documents');
+     MyAction.Target := Files.Count;
+
+     for I := 0 to Files.Count - 1 do begin
+        case Integer(Files.Objects[I]) of
+           1: AddCharges(MyAction, Files[i]);
+           2: AddHTMFile(MyAction, Files[i]);
+           3: AddRPTFile(MyAction, Files[i]);
+        end;
+
+        if MigrationCanceled then begin
+           MyAction.Error := 'Canceled';
+           Result := False;
+           Break;
+        end else
+           MyAction.AddCount;
+
+     end;
+
+     MyAction.Status := Success;
+  finally
+     Files.Free;
+  end;
+end;
+
 function TSystemMigrater.MergeUser(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 var User: PUser_rec;
 begin
-   Result := false;
+
    User := PUser_rec(Value.Data);
 
    // See if we have it already
@@ -642,6 +1149,7 @@ begin
 
    MyAction := ForAction.Create(Format('Migrate %s',[System.fdFields.fdPractice_Name_for_Reports]));
 
+
    if DoUsers then
       RunGuidList(MyAction,'Users',UserList,MergeUser);
 
@@ -666,12 +1174,31 @@ begin
 
    MigrateMasterMems(MyAction);
 
-
    RunGuidList(MyAction,'Client Files',ClientList, AddClientFile);
    ForAction.Counter := 25;
+     
+     
+   MigrateSystem(ForAction);
+
+
+   MigrateWorkFolder(ForAction);
+
+   MigrateDisklog(ForAction);
+
 
    Result := true;
    ForAction.Status := success;
+end;
+
+function TSystemMigrater.MigrateDisklog(ForAction: TMigrateAction): Boolean;
+var lList: TGuidList;
+begin
+   lList := TGuidList.Create(System.fdSystem_Disk_Log);
+   try
+      result := RunGuidList(ForAction,'Disk log',lList, addDiskLog);
+   finally
+      lList.Free;
+   end;
 end;
 
 procedure TSystemMigrater.OnConnected;
@@ -683,6 +1210,11 @@ end;
 procedure TSystemMigrater.SetbtTable(const Value: TbtTable);
 begin
   FbtTable := Value;
+end;
+
+procedure TSystemMigrater.SetChargesTable(const Value: TChargesTable);
+begin
+  FChargesTable := Value;
 end;
 
 procedure TSystemMigrater.SetClientAccountMap(const Value: tGuidList);
@@ -726,6 +1258,11 @@ begin
   FDoArchived := Value;
 end;
 
+procedure TSystemMigrater.SetDoSystemTransactions(const Value: Boolean);
+begin
+  FDoSystemTransactions := Value;
+end;
+
 procedure TSystemMigrater.SetDoUnsynchronised(const Value: Boolean);
 begin
   FDoUnsynchronised := Value;
@@ -734,6 +1271,17 @@ end;
 procedure TSystemMigrater.SetDousers(const Value: Boolean);
 begin
   FDousers := Value;
+end;
+
+procedure TSystemMigrater.SetDownloadDocumentTable(
+  const Value: TDownloadDocumentTable);
+begin
+  FDownloadDocumentTable := Value;
+end;
+
+procedure TSystemMigrater.SetDownloadlogTable(const Value: TDownloadlogTable);
+begin
+  FDownloadlogTable := Value;
 end;
 
 procedure TSystemMigrater.SetGroupTable(const Value: TClientGroupTable);
@@ -751,6 +1299,11 @@ procedure TSystemMigrater.SetMasterMemorisationsTable(
   const Value: TMasterMemorisationsTable);
 begin
   FMasterMemorisationsTable := Value;
+end;
+
+procedure TSystemMigrater.SetParameterTable(const Value: TParameterTable);
+begin
+  FParameterTable := Value;
 end;
 
 procedure TSystemMigrater.SetSystem(const Value: TSystemObj);

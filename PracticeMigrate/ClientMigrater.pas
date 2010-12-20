@@ -47,6 +47,7 @@ TClientMigrater = class (TMigrater)
     FChartDivisionTable: TChartDivisionTable;
     FDivisionList: TGuidList;
     FReminderTable: TReminderTable;
+    FDownloadlogTable: TDownloadlogTable;
     procedure SetClientID(const Value: TGuid);
     procedure SetCode(const Value: string);
 
@@ -54,6 +55,7 @@ TClientMigrater = class (TMigrater)
     procedure AddDivisions(ForAction: TMigrateAction);
     procedure AddSubGroups(ForAction: TMigrateAction);
     procedure AddReminders(ForAction: TMigrateAction);
+    procedure MigrateDiskLog(ForAction: TMigrateAction);
 
     // List iteration functions
     function AddTransaction(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
@@ -66,6 +68,7 @@ TClientMigrater = class (TMigrater)
     function AddPayee(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddPayeeLine(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddHeading(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
+    function AddDiskLog(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 
 
     procedure Reset;
@@ -123,7 +126,8 @@ TClientMigrater = class (TMigrater)
     function GetDivisionList: TGuidList;
     procedure SetReminderTable(const Value: TReminderTable);
     function GetReminderTable: TReminderTable;
-  published
+    procedure SetDownloadlogTable(const Value: TDownloadlogTable);
+    function GetDownloadlogTable: TDownloadlogTable;
   public
    constructor Create(AConnection: string);
    destructor Destroy; override;
@@ -162,6 +166,7 @@ TClientMigrater = class (TMigrater)
    property CodingReportOptionsTable: TCodingReportOptionsTable read GetCodingReportOptionsTable write SetCodingReportOptionsTable;
    property ChartDivisionTable: TChartDivisionTable read GetChartDivisionTable write SetChartDivisionTable;
    property ReminderTable: TReminderTable read GetReminderTable write SetReminderTable;
+   property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable write SetDownloadlogTable;
 
    // Lists
    property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
@@ -206,18 +211,6 @@ var
    procedure AddClientAccountMap;
    var System: TSystemMigrater;
 
-       function GetSystemAccount: TGuidObject;
-       var I: Integer;
-       begin
-          fillchar(Result, Sizeof(Result), 0);
-          for I := 0 to System.SystemAccountList.Count - 1 do
-             with pSystem_Bank_Account_Rec(TGuidObject(System.SystemAccountList[I]).Data)^ do
-                if SameText(sbAccount_Number,Account.baFields.baBank_Account_Number) then begin
-                   Result := TGuidObject(System.SystemAccountList[I]);
-                   Exit;
-                end;
-       end;
-
        function GetClientMap: TGuidObject;
        var I: Integer;
        begin
@@ -234,7 +227,7 @@ var
       if not Assigned(SystemMirater) then
          Exit;
       System := SystemMirater as TSystemMigrater;
-      AdminBankAccount := GetSystemAccount;
+      AdminBankAccount := System.GetSystemAccount(Account.baFields.baBank_Account_Name);
       if not Assigned(AdminBankAccount) then
          Exit;
       Map := getClientMap;
@@ -340,6 +333,26 @@ begin
             Exit;
       end;
    end;
+end;
+
+procedure TClientMigrater.MigrateDiskLog(ForAction: TMigrateAction);
+var lList: TGuidList;
+begin
+   if FClient.clDisk_Log.ItemCount < 1 then
+      Exit;
+
+   lList := TGuidList.Create(FClient.clDisk_Log);
+   try
+      RunGuidList(ForAction,'Disk log',lList, AddDiskLog);
+   finally
+      lList.Free;
+   end;
+end;
+
+function TClientMigrater.AddDiskLog(ForAction: TMigrateAction;
+  Value: TGuidObject): Boolean;
+begin
+  Result := DownloadLogTable.Insert(Value.GuidID, ClientID, pDisk_Log_Rec(Value.Data))
 end;
 
 procedure TClientMigrater.AddDivisions(ForAction: TMigrateAction);
@@ -501,7 +514,7 @@ end;
 procedure TClientMigrater.AddReminders(ForAction: TMigrateAction);
 var
    ClientsToDoList: TClientToDoList;
-   I,C: Integer;
+   I: Integer;
    System: TSystemMigrater;
 begin
    if MigrationCanceled then
@@ -666,6 +679,7 @@ begin
    FAccount_RecTable := nil;
    FPayee_Line_RecTable := nil;
    FDivisionsTable := nil;
+   FDivisionList := nil;
    FTaxEntriesTable := nil;
    FTaxRatesTable := nil;
    FClient_ScheduleTable := nil;
@@ -674,6 +688,7 @@ begin
    FCodingReportOptionsTable := nil;
    FChartDivisionTable := nil;
    FReminderTable := nil;
+   FDownloadlogTable := nil;
 end;
 
 destructor TClientMigrater.Destroy;
@@ -693,6 +708,7 @@ begin
   FreeAndNil(FAccount_RecTable);
   FreeAndNil(FPayee_Line_RecTable);
   FreeAndNil(FDivisionsTable);
+  FreeAndNil(FDivisionList);
   FreeAndnil(FTaxEntriesTable);
   FreeAndNil(FTaxRatesTable);
   FreeAndNil(FClient_ScheduleTable);
@@ -701,6 +717,7 @@ begin
   FreeAndNil(FCodingReportOptionsTable);
   FreeAndNil(FChartDivisionTable);
   FreeAndNil(FReminderTable);
+  FreeAndNil(FDownloadlogTable);
   inherited;
 end;
 
@@ -802,6 +819,13 @@ begin
    Result := FDivisionsTable;
 end;
 
+function TClientMigrater.GetDownloadlogTable: TDownloadlogTable;
+begin
+   if not Assigned(FDownloadlogTable) then
+      FDownloadlogTable := TDownloadlogTable.Create(Connection);
+   Result := FDownloadlogTable;
+end;
+
 function TClientMigrater.GetJob_Heading_RecTable: TJob_Heading_RecTable;
 begin
    if not Assigned(FJob_Heading_RecTable) then
@@ -886,8 +910,8 @@ var
    GuidList: TGuidList;
 begin
    Result := False;
+   Reset;
 
-   FClient := nil;
    Code := ACode;
    ClientID := AClientID;
    ClientLRN := AClientLRN;
@@ -981,12 +1005,13 @@ begin
 
       AddReminders(MyAction);
 
+      MigrateDiskLog(MyAction);
+
       MyAction.Status := Success;
       Result := true;
    except
       on E: Exception do begin
          MyAction.Error := E.Message;
-
       end;
    end;
    finally
@@ -997,6 +1022,7 @@ end;
 
 procedure TClientMigrater.Reset;
 begin
+   FClient := nil;
    DoSuperfund := False;
    DissectionCount := 0;
 end;
@@ -1123,6 +1149,11 @@ begin
    ClientFinacialReportOptionsTable.DoSuperfund := FDoSuperfund;
    CodingReportOptionsTable.DoSuperfund := FDoSuperfund;
 
+end;
+
+procedure TClientMigrater.SetDownloadlogTable(const Value: TDownloadlogTable);
+begin
+  FDownloadlogTable := Value;
 end;
 
 procedure TClientMigrater.SetJob_Heading_RecTable(
