@@ -20,7 +20,6 @@ type
     function GetLocal_Amount: Money;
     function GetOriginal_Statement_Amount: Money;
     function GetStatement_Amount: Money;
-    procedure SetAccount(const Value: string);
     procedure SetGSTClass(const Value: Integer);
     procedure SetStatement_Amount(const Value: Money);
   public
@@ -30,7 +29,6 @@ type
     function IsDissected : Boolean;
     function Locked: Boolean;
     procedure ApplyAnyLocalCurrencyRoundingDiscrepancyToTheBiggestDissectionAmount;
-    property Account : string read GetAccount write SetAccount;
     property Default_Forex_Rate : Double read GetDefault_Forex_Rate;
     property GST_Class : Integer read GetGSTClass write SetGSTClass;
     property Local_Amount : Money read GetLocal_Amount;
@@ -187,53 +185,6 @@ function TTransactionHelper.Locked: Boolean;
 begin
   Result := txLocked
          or (txDate_Transferred <> 0);
-end;
-
-// ----------------------------------------------------------------------------
-
-procedure TTransactionHelper.SetAccount(const Value: string);
-begin
-  txAccount := Value;
-  if txAccount = '' then
-  begin
-    { The user has deleted the account code, so uncode the transaction }
-    txGST_Class := 0;
-    txGST_Amount := 0;
-    txHas_Been_Edited := False;
-    txGST_Has_Been_Edited := False;
-    if ( txCoded_By <> cbManualSuper ) then txCoded_By := cbNotcoded; // Keep
-    exit;
-  End;
-
-  { The user has entered an Account Code }
-
-  If not Client.clChart.CanCodeTo( txAccount ) then
-  Begin { If they have entered an invalid account code, flag the entry as manually coded so
-          that the AutoCode doesn't try to recode it. }
-    if (txCoded_By <> cbManualSuper) then txCoded_By := cbManual; // Keep
-    exit;
-  end;
-
-  If ( txType in [9,10] ) and Bank_Account.IsAnEldersAccount then
-  Begin
-    // special case - elders accounts receive transaction is strange way so
-    //                GST needs to be blank by default
-    //                !! Only if Misc Dr or Cr,  GST should still be calced
-    //                on cheques.
-    txGST_Class := 0;
-    txGST_Amount := 0;
-    if (txCoded_By <> cbManualSuper) then txCoded_By := cbManual; // Keep
-    txHas_Been_Edited := False;
-    txGST_Has_Been_Edited := True;
-    exit;
-  end;
-
-  { Normal post account code processing - calculate the GST class and amount and flag the transaction as manually coded }
-
-  CalculateGST( Client, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
-  if (txCoded_By <> cbManualSuper) then
-     txCoded_By := cbManual; // Keep
-  txGST_Has_Been_Edited := False;
 end;
 
 procedure TTransactionHelper.SetStatement_Amount(const Value: Money);
