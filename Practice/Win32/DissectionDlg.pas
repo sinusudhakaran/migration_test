@@ -426,7 +426,7 @@ type
     procedure ReCalcPercentAmounts;
     procedure DoInsertLine;
     function  CanInsertRowsAfter( Row : integer; NewRows : integer) : boolean;
-    procedure UpdateBaseAmounts;
+    procedure UpdateBaseAmounts(pD : pWorkDissect_Rec);
   public
     { Public declarations }
     property BankAcct: TBank_Account read FBankAcct write FBankAcct;
@@ -565,7 +565,6 @@ begin
       if MyClient.HasForeignCurrencyAccounts then begin
         if fIsForex then begin
           InsColDefnRec( 'Amount (' + BCode + ')', ceAmount, celAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, True, CE_AMOUNT_DEF_EDITABLE, csByValue );
-//          InsColDefnRec( 'Rate', ceForexRate,      celForexRate, CE_FOREX_RATE_DEF_WIDTH, CE_FOREX_RATE_DEF_VISIBLE, false, CE_FOREX_RATE_DEF_EDITABLE, csByForexRate );
           InsColDefnRec( 'Amount (' + CCode + ')', ceLocalAmount, celLocalAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, true, true, csByValue );
         end else
           InsColDefnRec( 'Amount (' + CCode + ')', ceAmount, celAmount, CE_AMOUNT_DEF_WIDTH, CE_AMOUNT_DEF_VISIBLE, True, CE_AMOUNT_DEF_EDITABLE, csByValue );
@@ -1138,8 +1137,6 @@ begin
             AllowIt := false;
          end
          else begin
-//            if (( pD^.dtAmount < 0 ) and ( Double2Money(GSTAmount) < pD^.dtAmount )) or
-//               (( pD^.dtAmount > 0 ) and ( Double2Money(GSTAmount) > pD^.dtAmount )) then begin
             if (( pD^.dtLocal_Amount < 0 ) and ( Double2Money(GSTAmount) < pD^.dtLocal_Amount )) or
                (( pD^.dtLocal_Amount > 0 ) and ( Double2Money(GSTAmount) > pD^.dtLocal_Amount )) then begin
                ErrorSound;
@@ -1182,8 +1179,6 @@ var
    DefaultGSTClass :  byte;
    DefaultGSTAmount   : money;
 begin
-//   CalculateGST( myClient, pTran^.txDate_Effective, pD^.dtAccount, pD^.dtAmount,
-//                 DefaultGSTClass, DefaultGSTAmount);
    CalculateGST( myClient, pTran^.txDate_Effective, pD^.dtAccount, pD^.dtLocal_Amount,
                  DefaultGSTClass, DefaultGSTAmount);
 
@@ -1208,7 +1203,7 @@ var
    GSTTotal   : Double;
    Percent: Double;
 begin
-   FStartedEdit := False;
+   FStartedEdit := False;                                 
    if not ValidDataRow(RowNum) then exit;
 
    pD := WorkDissect.Items[ RowNum-1 ];
@@ -1344,7 +1339,6 @@ var
 begin
   with pD^ do begin
      if MyClient.clChart.CanCodeTo( dtAccount) then begin
-//        CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtAmount, NewClass, NewGST);
         CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtLocal_Amount, NewClass, NewGST);
         dtGST_Class  := NewClass;
         dtGST_Amount := NewGST;
@@ -1387,13 +1381,13 @@ end;
 procedure TdlgDissection.AmountEdited( pD : pWorkDissect_Rec );
 //update other fields that change when amount changes
 begin
+  UpdateBaseAmounts(pD);
   with pD^ do begin
      dtPercent_Amount := 0;
      dtAmount_Type_Is_Percent := False;
      if MyClient.clChart.CanCodeTo( dtAccount) then begin
         //recalculate the gst using the current class.  No need to change the GST has been edited flag
         //because its status will stay the same.
-//        dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class);
         dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class);
      end
      else begin
@@ -1409,8 +1403,6 @@ begin
     Invalidate; // need to repaint all percentage lines also
     AllowRedraw := true;
   end;
-  if FIsForex then
-     UpdateBaseAmounts;
   UpdateDisplayTotals;
 end;
 
@@ -1421,6 +1413,7 @@ procedure TdlgDissection.PercentEdited( pD : pWorkDissect_Rec );
 var
   Remainder: Money;
 begin
+  UpdateBaseAmounts(pD);
   with pD^ do
   begin
     dtAmount := 0;
@@ -1430,7 +1423,6 @@ begin
     dtHas_Been_Edited := True;
     dtAmount_Type_Is_Percent := True;
     if MyClient.clChart.CanCodeTo( dtAccount) then
-//      dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class)
       dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class)
     else
       if ( dtAccount = '' ) then dtHas_Been_Edited := false;
@@ -1442,8 +1434,6 @@ begin
     Invalidate; // need to repaint all percentage lines also
     AllowRedraw := true;
   end;
-  if FIsForex then
-     UpdateBaseAmounts;
   UpdateDisplayTotals;
 end;
 
@@ -1451,14 +1441,11 @@ end;
 
 procedure TdlgDissection.GSTClassEdited( pD: pWorkDissect_Rec );
 begin
-  if FIsForex then
-     UpdateBaseAmounts;
-     
+  UpdateBaseAmounts(pD);
   with pD^ do begin
      if dtGST_Class = 0 then
         dtGST_Amount := 0
      else
-//        dtGST_Amount := ( CalculateGSTForClass( MyClient,  pTran^.txDate_Effective, dtAmount, dtGST_Class ) );
         dtGST_Amount := ( CalculateGSTForClass( MyClient,  pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class ) );
   end;
   UpdateDisplayTotals;
@@ -1931,7 +1918,6 @@ Begin
    for i := 0 to Pred( WorkDissect.Count) do begin
       pD := WorkDissect.Items[ i];
       with pD^ do begin
-//         CalculateGST( MyClient, pTran.txDate_Effective, dtAccount, dtAmount, dtGST_Class, dtGST_Amount);
          CalculateGST( MyClient, pTran.txDate_Effective, dtAccount, dtLocal_Amount, dtGST_Class, dtGST_Amount);
          dtGST_Has_Been_Edited := false;
       end;
@@ -2316,13 +2302,11 @@ begin
        pD.dtAmount := pD.dtAmount + Double2Money(Remainder);
      end;
    end;
+   UpdateBaseAmounts(pD);
+
    // Calc the new GST and put in Column
-//   GSTAmount := CalculateGSTForClass( myClient, pTran^.txDate_Effective, pD^.dtAmount, pD^.dtGST_Class);
    GSTAmount := CalculateGSTForClass( myClient, pTran^.txDate_Effective, pD^.dtLocal_Amount, pD^.dtGST_Class);
    pD^.dtGST_Amount := GSTAmount;
-
-  if FIsForex then
-     UpdateBaseAmounts;
 
    with tblDissect do begin
       AllowRedraw := false;
@@ -3175,7 +3159,6 @@ begin
 
      pD         := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
      //find the new GST Amount
-//     InclusiveAmt := Money2Double( pD^.dtAmount);
      InclusiveAmt := Money2Double( pD^.dtLocal_Amount);
         // Gst = Inclusive *      1
         //                    --------
@@ -3270,7 +3253,6 @@ begin
       try
          BankAcct := BA;
          fIsForex := BA.IsAForexAccount;
-//         celForexRate.PictureMask := MoneyUtils.ForexPictureMask;
          CCode := MyClient.clExtra.ceLocal_Currency_Code;
          BCode := BA.baFields.baCurrency_Code;
 
@@ -3354,7 +3336,6 @@ begin
                      dtPercent_Amount      := dsPercent_Amount;
                      dtAmount_Type_Is_Percent := dsAmount_Type_Is_Percent;
                      dtForex_Conversion_Rate   := dsForex_Conversion_Rate   ;
-//                     dtLocal_Amount := dsForeign_Currency_Amount ;
                   end;
                   pDissection := dsNext;
                   Inc( i );
@@ -3456,7 +3437,6 @@ begin
               lblBSAmount.Caption               := BankAcct.MoneyStr( Statement_Amount );
               lblForLocalCurrencyAmount.Caption := 'Amount (' + CCode + ')';
               lblLocalCurrencyAmount.Caption    := MyClient.MoneyStr( Local_Amount );
-//              lblRate.Caption                   := ForexRate2Str( Forex_Rate );
               lblRate.Caption                   := ForexRate2Str( Default_Forex_Rate );
               lblForBSTotal.Caption             := 'Total (' + BCode + ') :';
               lblForBSRemaining.Caption         := 'Remaining (' + BCode + ') :';
@@ -3534,9 +3514,7 @@ begin
             end;
          end;
 
-         if FIsForex then
-           UpdateBaseAmounts;
-
+         UpdateBaseAmounts(nil);
          UpdateDisplayTotals;
 
          //setup notes panel
@@ -3673,7 +3651,6 @@ begin
                    end;
 
                    dsForex_Conversion_Rate    := dtForex_Conversion_Rate    ;
-//                   dsForeign_Currency_Amount  := dtLocal_Amount  ;
 
                    dsGL_Narration             := dtNarration;
                    dsTax_Invoice := dtTax_Invoice;
@@ -3885,6 +3862,8 @@ begin
     Exit;
   end;
 
+  UpdateBaseAmounts(pD);
+
   APayee := MyClient.clPayee_List.Find_Payee_Number(pD^.dtPayee_Number);
   with pD^, APayee do begin
      //Payee is dissected if more than one line with Account Code
@@ -3950,12 +3929,10 @@ begin
 
          if (PayeeLine.plGST_Has_Been_Edited) then begin
             dtGST_Class    := PayeeLine.plGST_Class;
-//            dtGST_Amount   := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class);
             dtGST_Amount   := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class);
             dtGST_Has_Been_Edited := true;
          end
          else begin
-//            CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtAmount, dtGST_Class, dtGST_Amount);
             CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtLocal_Amount, dtGST_Class, dtGST_Amount);
             dtGST_Has_Been_Edited := false;
          end;
@@ -4068,13 +4045,12 @@ begin
              pDissectRec.dtAmount  := DissectAmt[i];
              pDissectRec.dtPercent_Amount := 0;
              pDissectRec.dtAmount_Type_Is_Percent := False;
+
+             UpdateBaseAmounts(pDissectRec);
+
              //dtNarration :=   ...already changed
              if (PayeeLine.plGST_Has_Been_Edited) then begin
                 pDissectRec.dtGST_Class    := PayeeLine.plGST_Class;
-//                pDissectRec.dtGST_Amount   := CalculateGSTForClass( MyClient,
-//                                                                     pTran^.txDate_Effective,
-//                                                                     pDissectRec^.dtAmount,
-//                                                                     pDissectRec^.dtGST_Class);
                 pDissectRec.dtGST_Amount   := CalculateGSTForClass( MyClient,
                                                                     pTran^.txDate_Effective,
                                                                     pDissectRec^.dtLocal_Amount,
@@ -4085,7 +4061,6 @@ begin
                 CalculateGST( MyClient,
                               pTran^.txDate_Effective,
                               pDissectRec^.dtAccount,
-//                              pDissectRec^.dtAmount,
                               pDissectRec^.dtLocal_Amount,
                               pDissectRec^.dtGST_Class,
                               pDissectRec^.dtGST_Amount);
@@ -4151,9 +4126,6 @@ begin
         end;
      end;
   end;  {with payee^, pd^}
-
-  if FIsForex then
-    UpdateBaseAmounts;
 
    with tblDissect do begin
       AllowRedraw := false;
@@ -5337,7 +5309,7 @@ begin
   AllowAddMinus := False;
 end;
 
-procedure TdlgDissection.UpdateBaseAmounts;
+procedure TdlgDissection.UpdateBaseAmounts(pD : pWorkDissect_Rec);
 var
   i: integer;
   pWorkRec: pWorkDissect_Rec;
@@ -5346,34 +5318,37 @@ var
   DissecAmt, DissecAmtBase: Money;
   Rate: double;
 begin
-  //Calculate base amount for Forex bank accounts
-  Rate := pTran.Default_Forex_Rate;
-  if (Rate = 0.0) then begin
-    //Set all base amounts to 0 if exchange rate = 0
-    for i := 0 to Pred( GLCONST.Max_tx_Lines ) do
-      pWorkDissect_Rec(WorkDissect.Items[i])^.dtLocal_Amount := 0;
-  end else begin
-    TotalAmt := 0;
-    TotalAmtBase := 0;
-    TransAmt := GenUtils.Money2Double( pTran^.txAmount );
-    TransAmtBase := GenUtils.Money2Double( pTran^.Local_Amount );
-    for i := 0 to Pred( GLCONST.Max_tx_Lines ) do begin
-      pWorkRec := WorkDissect.Items[i];
-      pWorkRec^.dtLocal_Amount := 0;
-      if pWorkRec^.dtAmount <> 0 then begin
-        DissecAmt := pWorkRec^.dtAmount;
-        DissecAmtBase :=  Double2Money((Money2Double(DissecAmt) / Rate));
-        TotalAmt := TotalAmt + Money2Double(DissecAmt);
-        TotalAmtBase := TotalAmtBase + Money2Double(DissecAmtBase);
-        //Set dissection base amount
-        pWorkRec^.dtLocal_Amount := DissecAmtBase;
-        Remainder   := TransAmt - TotalAmt;
-        RemainderBase := TransAmtBase - TotalAmtBase;
-        if (Remainder = 0)  then
-          pWorkRec^.dtLocal_Amount := pWorkRec^.dtLocal_Amount + Double2Money(RemainderBase);
+  if FIsForex then begin
+    //Calculate base amount for Forex bank accounts
+    Rate := pTran.Default_Forex_Rate;
+    if (Rate = 0.0) then begin
+      //Set all base amounts to 0 if exchange rate = 0
+      for i := 0 to Pred( GLCONST.Max_tx_Lines ) do
+        pWorkDissect_Rec(WorkDissect.Items[i])^.dtLocal_Amount := 0;
+    end else begin
+      TotalAmt := 0;
+      TotalAmtBase := 0;
+      TransAmt := GenUtils.Money2Double( pTran^.txAmount );
+      TransAmtBase := GenUtils.Money2Double( pTran^.Local_Amount );
+      for i := 0 to Pred( GLCONST.Max_tx_Lines ) do begin
+        pWorkRec := WorkDissect.Items[i];
+        pWorkRec^.dtLocal_Amount := 0;
+        if pWorkRec^.dtAmount <> 0 then begin
+          DissecAmt := pWorkRec^.dtAmount;
+          DissecAmtBase :=  Double2Money((Money2Double(DissecAmt) / Rate));
+          TotalAmt := TotalAmt + Money2Double(DissecAmt);
+          TotalAmtBase := TotalAmtBase + Money2Double(DissecAmtBase);
+          //Set dissection base amount
+          pWorkRec^.dtLocal_Amount := DissecAmtBase;
+          Remainder   := TransAmt - TotalAmt;
+          RemainderBase := TransAmtBase - TotalAmtBase;
+          if (Remainder = 0)  then
+            pWorkRec^.dtLocal_Amount := pWorkRec^.dtLocal_Amount + Double2Money(RemainderBase);
+        end;
       end;
     end;
-  end;
+  end else if Assigned(pD) then
+    pD^.dtLocal_Amount := pD^.dtAmount;
 end;
 
 procedure TdlgDissection.ConfigureColumns;
