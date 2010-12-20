@@ -139,7 +139,7 @@ uses
 {$ELSE}
    baObj32,
    budobj32,
-   BKceIO,   
+   BKceIO,
    LogUtil,
    Software,
    globals,
@@ -155,10 +155,10 @@ uses
    GenUtils,
    StStrS,
    ForexHelpers,
+   GSTUTIL32,
 {$ENDIF}
    bk5Except,
-   VclZip,
-   GSTUTIL32;
+   VclZip;
 
 const
   UnitName  = 'CLOBJ32';
@@ -449,6 +449,7 @@ begin
   Self.LoadFromStream( S);
 end;
 
+{$IFNDEF ParserDll}
 procedure TClientObj.RefreshExchangeSource;
 var
   LExchangeRates: TExchangeRateList;
@@ -466,7 +467,7 @@ begin
     end;
   end;
 end;
-
+{$ENDIF}
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TClientObj.Open(FileCode, FileExtension : String);
