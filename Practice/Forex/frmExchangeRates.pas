@@ -246,8 +246,6 @@ begin
 end;
 
 function UnLockRates(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
-var
-  i: integer;
 begin
    Result := true;
    if not TExchangeRecord(Node.Data).Locked then
@@ -512,6 +510,7 @@ var
   RateChange: boolean;
 begin
   Result := true;
+  RateChange := False;
   ER1 := TExchangeRecord(Node.Data);
   ER2 := TChangeCountRec(OtherData^).ExchangeSource.GetDateRates(ER1.FDate);
   if Assigned(ER2) then begin
@@ -550,9 +549,6 @@ end;
 
 function TExchangeRatesfrm.GetChangeCount: integer;
 var
-  i, j: integer;
-  ExchangeTreeItem: TExchangeTreeItem;
-  ExchangeRecord: TExchangeRecord;
   ExchangeSource: TExchangeSource;
   ChangeCountRec: TChangeCountRec;
 begin

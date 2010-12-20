@@ -73,7 +73,6 @@ type
 
    TExchangeRateList = class(TExtdSortedCollection)
    private
-      CurrentRecord: LongInt;
       FLocked: Boolean;
 
       function Lock: Boolean;
@@ -183,7 +182,6 @@ function AssignExchangeRecords(Container: TstContainer; Node: TstNode; OtherData
 var
   ExchangeRecord, SourceExchangeRec: TExchangeRecord;
   ExchangeSource: TExchangeSource;
-  Exchange_Rec: TExchange_Rate_Rec;
 begin
   Result := True;
   ExchangeSource := TExchangeSource(OtherData^);
@@ -354,8 +352,7 @@ end;
 //******************************************************************************
 
 procedure TExchangeSource.SaveToStream(var S: TIOStream);
-var
-  I: Integer;
+
 begin
   S.WriteToken(tkBeginExchangeRateHeader);
   try
@@ -423,10 +420,10 @@ procedure TExchangeSource.MapToHeader(NewHeader: TExchange_Rates_Header_Rec);
 var
    C: Integer;
    Data: RemapArray;
-   OldWidth, NewWidth: integer;
+   {OldWidth,} NewWidth: integer;
 begin
    if Assigned(FExchangeTree) then begin
-      OldWidth := GetHeaderWidth(FHeader);
+     // OldWidth := GetHeaderWidth(FHeader);
       NewWidth := GetHeaderWidth(NewHeader);
       for C := low(NewHeader.ehISO_Codes) to
             low(NewHeader.ehISO_Codes) + NewWidth do begin
