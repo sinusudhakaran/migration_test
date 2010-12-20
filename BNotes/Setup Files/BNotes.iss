@@ -21,10 +21,13 @@ Root: HKCR; Subkey: "BankLinkBNotesFile\shell\open\command"; ValueType: string; 
 
 [Files]
 Source: "..\Binaries\BNOTES.EXE"; DestDir: "{app}"
-Source: "HelpGuide\Notes_guide_au.chm"; DestDir: "{app}"; DestName: "NOTES_GUIDE.CHM"
 Source: "OtherFiles\bkinstall.exe"; DestDir: "{app}"
 Source: "OtherFiles\bkupgcor.dll"; DestDir: "{app}"
 Source: "OtherFiles\ipwssl6.dll"; DestDir: "{app}"
+
+Source: "HelpGuide\Notes_Guide_NZ.chm"; DestDir: "{app}"; DestName: "NOTES_Guide.chm"; Check: CountryIs(1)
+Source: "HelpGuide\Notes_Guide_AU.chm"; DestDir: "{app}"; DestName: "NOTES_Guide.chm"; Check: CountryIs(0)
+Source: "HelpGuide\Notes_Guide_UK.chm"; DestDir: "{app}"; DestName: "NOTES_Guide.chm"; Check: CountryIs(2)
 
 ; PlusCountry dll
 Source: "PlusCountry.dll"; Flags: dontcopy
@@ -69,8 +72,8 @@ begin
     CountryPage.SelectedValueIndex := Index;
   end else if CurPageId = CountryPage.ID then begin
     case CountryPage.SelectedValueIndex of
-      0: CountryCode := 1;
-      1: CountryCode := 0;
+      0: CountryCode := 0;
+      1: CountryCode := 1;
       2: CountryCode := 2;
     end;
     Result := CountryCode >= 0;
