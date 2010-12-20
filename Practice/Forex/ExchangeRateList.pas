@@ -57,6 +57,7 @@ type
    public
      constructor Create; overload;
      constructor Create(var S: TIOStream); overload;
+     destructor Destroy; override;
      function GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
      procedure SaveToStream(var S : TIOStream );
      procedure LoadFromStream(var S : TIOStream );
@@ -216,6 +217,12 @@ constructor TExchangeSource.Create(var S: TIOStream);
 begin
    Create;
    LoadFromStream(S);
+end;
+
+destructor TExchangeSource.Destroy;
+begin
+  FreeAndNil(FExchangeTree);
+  inherited;
 end;
 
 function TExchangeSource.GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
