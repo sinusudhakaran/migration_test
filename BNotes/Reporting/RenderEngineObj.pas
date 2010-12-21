@@ -34,6 +34,7 @@ type
       procedure RenderDetailLine; virtual; abstract;
       procedure RenderDetailSectionTotal; virtual; abstract;
       procedure RenderDetailSubTotal; virtual; abstract;
+      procedure WriteCurrSymbol(CurrSymbol: string); virtual; abstract;
       procedure RenderDetailGrandTotal; virtual; abstract;
       procedure RenderTitleLine(Text : string); virtual; abstract;
       procedure RenderTextLine(Text:string); virtual; abstract;

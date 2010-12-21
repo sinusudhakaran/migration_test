@@ -162,6 +162,7 @@ type
     procedure RenderDetailLine;
     procedure RenderDetailSectionTotal;
     procedure RenderDetailSubTotal;
+    procedure WriteCurrSymbol(CurrSymbol: string);
     procedure RenderDetailGrandTotal;
     procedure RenderTitleLine(Text : string);
     procedure RenderTextLine(Text:string);
@@ -458,6 +459,11 @@ procedure TBKReport.SkipColumn;
 begin
    FCurrDetail.Add('');
 end;
+procedure TBKReport.WriteCurrSymbol(CurrSymbol: string);
+begin
+  RenderEngine.WriteCurrSymbol(CurrSymbol);
+end;
+
 //******************************************************************************
 procedure TBKReport.RenderDetailGrandTotal;
 begin

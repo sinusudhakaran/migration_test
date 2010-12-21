@@ -52,6 +52,8 @@ type
       CurrY              : longint;
       LineSize           : longint;
 
+      CurrSymbol         : string;
+
       //These routines are passed to the report printer object
       procedure DoNewPageStuff( Sender : TObject);
       procedure DoBeforePrintStuff( Sender : TObject);
@@ -84,18 +86,19 @@ type
       constructor Create( aOwner : TObject); override;
       destructor  Destroy; override;
 
-      procedure RequireLines(lines :integer);     override;
-      procedure RenderDetailHeader;               override;
-      procedure RenderDetailLine;                 override;
-      procedure RenderDetailSectionTotal;         override;
-      procedure RenderDetailSubTotal;             override;
-      procedure RenderDetailGrandTotal;           override;
-      procedure RenderTitleLine(Text : string);   override;
-      procedure RenderTextLine(Text:string);      override;
-      procedure RenderRuledLine;                  override;
-      procedure SingleUnderLine;                  override;
-      procedure DoubleUnderLine;                  override;
-      procedure ReportNewPage;                    override;
+      procedure RequireLines(lines :integer);             override;
+      procedure RenderDetailHeader;                       override;
+      procedure RenderDetailLine;                         override;
+      procedure RenderDetailSectionTotal;                 override;
+      procedure RenderDetailSubTotal;                     override;
+      procedure WriteCurrSymbol(LocalCurrSymbol: string); override;
+      procedure RenderDetailGrandTotal;                   override;
+      procedure RenderTitleLine(Text : string);           override;
+      procedure RenderTextLine(Text:string);              override;
+      procedure RenderRuledLine;                          override;
+      procedure SingleUnderLine;                          override;
+      procedure DoubleUnderLine;                          override;
+      procedure ReportNewPage;                            override;
 
       procedure Preview;
       procedure Print;
@@ -387,9 +390,13 @@ begin
               aCol := Columns.Report_Column_At(i);
               if aCol.isTotalCol then
               begin
-                 if aCol.TotalFormat = '' then FormatS := aCol.FormatString
-                                          else FormatS := aCol.TotalFormat;
-                 RenderText(FormatFloat(FormatS,aCol.subTotal),makeRect(aCol.Left,CurrY,ACol.Width,LineSize),aCol.Alignment,DefaultRenderStyle);
+                if CurrSymbol = '' then
+                begin
+                  if aCol.TotalFormat = '' then FormatS := aCol.FormatString
+                                           else FormatS := aCol.TotalFormat;
+                end else
+                  FormatS := CurrSymbol + aCol.FormatString;
+                RenderText(FormatFloat(FormatS,aCol.subTotal),makeRect(aCol.Left,CurrY,ACol.Width,LineSize),aCol.Alignment,DefaultRenderStyle);
               end;
 
               {averaging cols}
@@ -486,6 +493,12 @@ begin
    RequireLines(2);
    RenderTotalLine(false);
 end;
+
+procedure TRenderToCanvasEng.WriteCurrSymbol(LocalCurrSymbol: string);
+begin
+  CurrSymbol := LocalCurrSymbol;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.DoNewPageStuff(Sender: TObject);
 begin

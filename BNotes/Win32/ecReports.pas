@@ -106,6 +106,7 @@ var
    t  : integer;
    ThisReport : TECTransactionReport;
    pPY : TECPayee;
+   CurrSymbol: string;
 
    procedure PutNotes( Notes : string);
    var
@@ -150,6 +151,7 @@ begin
       //report for each bank account, start new bank account on new page
       for i := 0 to Pred( ForClient.ecBankAccounts.ItemCount) do begin
          ba := ForClient.ecBankAccounts.Bank_Account_At(i);
+         CurrSymbol := ba.baFields.baCurrency_Symbol;
 
          RenderTitleLine( ForClient.GetAccountDetails(ba, ForClient.ecFields.ecCountry));
 
@@ -299,6 +301,10 @@ begin
          finally
             WorkTranList.Free;
          end;
+
+         // CurrSymbolList := TStringList.Create;
+         // CurrSymbolList.Add('Z');
+         WriteCurrSymbol(CurrSymbol);
          RenderDetailSubTotal;
       end;  //for i:=
       RenderDetailGrandTotal;
@@ -312,6 +318,7 @@ var
    CGap           : double;
    S              : string;
    Line           : Boolean;
+   CurrSymbol     : string;
 
 begin
    if GetReportOptions(Line) = mrCancel then
@@ -330,6 +337,7 @@ begin
       CGap     := 1.5;
 
       if not withNotes then begin
+         CurrSymbol := aClient.ecBankAccounts.Bank_Account_At(0).baFields.baCurrency_Symbol; 
          Case aClient.ecFields.ecCountry of
             whNewZealand :
                Begin
@@ -372,6 +380,7 @@ begin
                   AddColAuto(Job,cleft,13.0 ,cGap,'Reference',jtLeft);
                   AddColAuto(Job,cleft,7.0,cGap,'Code To',jtLeft);
                   AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,'#,##0.00','£#,##0.00',true);
+                  // AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,'#,##0.00',CurrSymbol+'#,##0.00',true);
                   AddColAuto(Job, cLeft, 4.5, cGap, 'Tax Inv', jtCenter);
                   AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight, '#,##0.00','£#,##0.00', true);
                   if HasQuantity then
