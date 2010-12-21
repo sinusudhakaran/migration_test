@@ -108,8 +108,6 @@ type
     procedure cbNar1Change(Sender: TObject);
     procedure cbRefChange(Sender: TObject);
     procedure cbAnaChange(Sender: TObject);
-
-
     procedure ReloadTimerTimer(Sender: TObject);
     procedure cbDelimiterChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -137,6 +135,7 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure vsOutGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+    procedure FormShow(Sender: TObject);
 
   private
     FHDEForm: TdlgHistorical;
@@ -147,6 +146,8 @@ type
     FBankAccount: TBank_Account;
     FHistTranList: TUnsorted_Transaction_List;
     FReloading: Boolean;
+    FInSetup: Boolean;
+    FCursor: TCursor;
     FValidDateRange: tDateRange;
     FOutLvChanged: Boolean;
     FFileLvChanged: Boolean;
@@ -164,6 +165,7 @@ type
     procedure Endupdate;
     procedure ReMatch;
     procedure ReloadFile;
+    procedure SetTimer;
     procedure SetHDEForm(const Value: TdlgHistorical);
     procedure SetColumnControls(const value: ControlList);
     function GetSelectedCol(index: Integer): Boolean;
@@ -176,7 +178,6 @@ type
     procedure SetIniFile(const Value: string);
     function GetIniFile: string;
     function AccountType: string;
-    procedure SetMatchTransactions(const Value: TMatchTransactions);
     function GetMatchTransactions: TMatchTransactions;
     procedure SetNeedMatch(const Value: Boolean);
     property SelectedCol [index : Integer]: Boolean read GetSelectedCol write SetSelectedCol;
@@ -227,7 +228,7 @@ type
     property HDEForm: TdlgHistorical read FHDEForm write SetHDEForm;
     property BankAccount: TBank_Account read FBankAccount write SetBankAccount;
     property HistTranList: TUnsorted_Transaction_List read FHistTranList write SetHistTranList;
-    property MatchTransactions: TMatchTransactions read GetMatchTransactions write SetMatchTransactions;
+    property MatchTransactions: TMatchTransactions read GetMatchTransactions;
     { Public declarations }
   end;
 
@@ -326,6 +327,7 @@ var Ldlg: TImportHist;
 begin
    Ldlg := TImportHist.Create(HDEForm);
    try
+      
       Ldlg.HDEForm := HDEForm;
       Ldlg.BankAccount := BankAccount;
       Ldlg.HistTranList := HistTranList;
@@ -405,9 +407,9 @@ end;
 procedure TImportHist.BTNBrowseClick(Sender: TObject);
 begin
    OpenDLG.FileName := EPath.Text;
+   OpenDlg.InitialDir := ExtractFilePath(EPath.Text);
    if OpenDLG.Execute() then begin
        EPath.Text := OpenDLG.FileName;
-
        ReloadFile;
    end;
 end;
@@ -793,7 +795,7 @@ end;
 procedure TImportHist.cbDelimiterChange(Sender: TObject);
 begin
   if EPath.Text > '' then
-     ReloadFile;
+     SetTimer;
 end;
 
 procedure TImportHist.cbNar1Change(Sender: TObject);
@@ -879,7 +881,7 @@ end;
 procedure TImportHist.chFirstlineClick(Sender: TObject);
 begin
    if BkFileexists(ePath.Text) then
-      ReLoadFile;
+      setTimer;
 end;
 
 
@@ -937,6 +939,9 @@ procedure TImportHist.FormCreate(Sender: TObject);
     end;
 
 begin
+   FInSetup := True;
+   FCursor := Screen.Cursor;
+   Screen.Cursor := crHourGlass;
    bkXPThemes.ThemeForm( Self);
    vsOut.Header.Font := Self.Font;
    vsFile.Header.Font := Self.Font;
@@ -986,6 +991,7 @@ procedure TImportHist.FormDestroy(Sender: TObject);
 begin
    fFileList.Free;
    fOutList.Free;
+   FreeAndNil(FMatchTransactions);
 end;
 
 procedure TImportHist.FormResize(Sender: TObject);
@@ -994,6 +1000,12 @@ begin
    // pBottom is align client, so it will take up the rest
 end;
 
+
+procedure TImportHist.FormShow(Sender: TObject);
+begin
+   FInSetup := False;
+   Screen.Cursor := FCursor;
+end;
 
 function TImportHist.GetMatchTransactions: TMatchTransactions;
 begin
@@ -1772,6 +1784,8 @@ end;
 
 procedure TImportHist.ReloadTimerTimer(Sender: TObject);
 begin
+   if FInSetup then
+      Exit; // Next Time...
    ReloadTimer.Enabled := False;
    SkipLine.ValidateEdit;
    if ePath.Text > '' then
@@ -1788,8 +1802,7 @@ end;
 
 procedure TImportHist.SkipLineChange(Sender: TObject);
 begin
-   ReloadTimer.Enabled := False;
-   ReloadTimer.Enabled := True;
+  SetTimer;
 end;
 
 procedure TImportHist.SetSelectedCol(Index: Integer; const Value: Boolean);
@@ -1872,6 +1885,14 @@ begin
              end;
         end;
    end;
+end;
+
+procedure TImportHist.SetTimer;
+begin
+   ReloadTimer.Enabled := False;
+   if Finsetup then
+      Exit;
+   ReloadTimer.Enabled := True;
 end;
 
 procedure TImportHist.SetUpHelp;
@@ -2237,10 +2258,6 @@ begin
    WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar3Col, cbNar3.Text);
 end;
 
-procedure TImportHist.SetMatchTransactions(const Value: TMatchTransactions);
-begin
-  FMatchTransactions := Value;
-end;
 
 procedure TImportHist.SetNeedMatch(const Value: Boolean);
 begin
@@ -2260,8 +2277,6 @@ end;
 procedure TImportHist.SetBankAccount(const Value: TBank_Account);
 var lMaxHistDate: Integer;
 
-
-
 begin
   FBankAccount := Value;
   if FBankAccount = nil then
@@ -2280,7 +2295,7 @@ begin
   EPath.Text := GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kFile);
   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kSkipLines),SkipLine);
   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kDelimiter),cbDelimiter);
-
+  BTNBrowseClick(nil);
 end;
 
 procedure TImportHist.SetColumnControls(const value: ControlList);
@@ -2364,13 +2379,15 @@ procedure TImportHist.MatchOutItem(Index: Integer);
           Result := '';
    end;
 begin
+   
     TOutItem(fOutlist[index]).objects[oiMatch] := TObject(
-    MatchTransactions.FindMatch(Integer(TOutItem(fOutlist[Index]).objects[oiDate]),
-                                  TOutItem(fOutlist[Index]).OutMoney,
-                                  TOutItem(fOutlist[Index]).Strings[SubRef],
-                                  Analysis,
-                                  TOutItem(fOutlist[index]).Strings[fSubnar]
-                                 ));
+                        MatchTransactions.FindMatch(Integer(TOutItem(fOutlist[Index]).objects[oiDate]),
+                                                    TOutItem(fOutlist[Index]).OutMoney,
+                                                    TOutItem(fOutlist[Index]).Strings[SubRef],
+                                                    Analysis,
+                                                    TOutItem(fOutlist[index]).Strings[fSubnar]
+                                                    )    );
+
 end;
 
 procedure TImportHist.SetFileLvChanged(const Value: Boolean);

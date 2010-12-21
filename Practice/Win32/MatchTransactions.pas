@@ -27,7 +27,7 @@ end;
 TMatchTransactions = class (TObject)
 private
    FTransTree: TStTree;
-   procedure SetTransTree(const Value: TStTree);
+   MT: TMatchTrans;
    function GetTransTree: TStTree;
    procedure FillArchiveList(LRN: Integer); overload;
    procedure FillArchiveList(AccountNum: string); overload;
@@ -39,8 +39,8 @@ private
 public
    constructor Create;
    destructor Destroy; override;
-   property  TransTree: TStTree read GetTransTree write SetTransTree;
-   property Account : TBank_Account write SetAccount;
+   property  TransTree: TStTree read GetTransTree;
+   property Account: TBank_Account write SetAccount;
    function FindMatch(Date: integer; Amount: Money; Reference, Analysis, Narration: string):TTransMatch;
 end;
 
@@ -86,7 +86,8 @@ end;
 
 procedure ArchiveTranFree(Item: Pointer);
 begin
-    TObject(Item).Free;
+    TMatchTrans(Item).Free;
+    Item := nil;
 end;
 
 
@@ -95,6 +96,7 @@ constructor TMatchTransactions.Create;
 begin
    inherited Create;
    FTransTree := nil;
+   MT :=  TMatchTrans.Create;
 end;
 
 procedure TMatchTransactions.DateCompare(Sender: TObject; Data1, Data2: Pointer; var Compare: Integer);
@@ -105,15 +107,17 @@ end;
 destructor TMatchTransactions.Destroy;
 begin
   FreeAndNil(FTransTree);
+  MT.Free;
   inherited;
 end;
 
 
 procedure TMatchTransactions.FillArchiveList(LRN: Integer);
-Var
-   ArchiveName: String;
+var
+   ArchiveName: string;
    ArchiveFile: File of tArchived_Transaction;
    T: tArchived_Transaction;
+   nt: TMatchTrans;
 Begin
    TransTree.Clear;
 
@@ -127,11 +131,14 @@ Begin
    try
       while not EOF(ArchiveFile) do begin
 
-         Read( ArchiveFile, T);
+         Read(ArchiveFile, T);
+         nt := TMatchTrans.Create(T);
          try
-            TransTree.Insert(TMatchTrans.Create(T));
+
+            TransTree.Insert(nt);
          except
             // May already have duplicates...
+            nt.Free
          end;
       end;
    finally
@@ -140,7 +147,9 @@ Begin
 end;
 
 procedure TMatchTransactions.FillTransList(FromList: tTransaction_List);
-var T: Integer;
+var
+   T: Integer;
+   nt: TMatchTrans;
 begin
    TransTree.Clear;
    TransTree.OnCompare := nil;
@@ -149,10 +158,12 @@ begin
            //look for the first bank entry
            if (txSource = orBank) then
               Exit;
+           nt := TMatchTrans.Create(FromList.Transaction_At(t)^);
            try
-              TransTree.Insert(TMatchTrans.Create(FromList.Transaction_At(t)^));
+              TransTree.Insert(nt);
            except
               // May already have duplicates...
+              nt.Free;
            end;
         end;
      
@@ -176,57 +187,49 @@ end;
 
 function TMatchTransactions.FindMatch(Date: integer; Amount: Money; Reference, Analysis, Narration: string): TTransMatch;
 var
-  T: TMatchTrans;
   M,N: TStTreeNode;
   res: TTransMatch;
 begin
    Result := tmNoMatch;
-   T := TMatchTrans.Create;
-   try
-      T.Date := Date;
-      T.Amount := Amount;
-      T.Reference := Reference;
-      T.Analysis := Analysis;
-      T.Narration := Narration;
 
-      TransTree.OnCompare := DateCompare;
+   MT.Date := Date;
+   MT.Amount := Amount;
+   MT.Reference := Reference;
+   MT.Analysis := Analysis;
+   MT.Narration := Narration;
 
-      M := TransTree.Find(T);
+   TransTree.OnCompare := DateCompare;
+
+   M := TransTree.Find(MT);
       // Since we do not use the same Compare, we may land anywhere on the same date
       // Try forward
-      N := M;
-      while Assigned(N) do begin
-         res :=  Match(TMatchTrans(N.Data) ,T);
+   N := M;
+   while Assigned(N) do begin
+      res :=  Match(TMatchTrans(N.Data) ,MT);
 
-         //LogUtil.LogMsg(lmDebug,'Match', Format('%d List %s  In %s' ,[ord(res), TMatchTrans(N.Data).ToText, T.ToText]));
+      //LogUtil.LogMsg(lmDebug,'Match', Format('%d List %s  In %s' ,[ord(res), TMatchTrans(N.Data).ToText, T.ToText]));
 
-         if res > Result then
-            Result := res
-         else
-           if res = tmNoMatch then
-               Break;
+      if res > Result then
+         Result := res
+      else if res = tmNoMatch then
+            Break;
 
-         N := TransTree.Next(N);
-      end;
-      
-      // Try backward
-      N := TransTree.Prev(M);
-      while Assigned(N) do begin
-         res :=  Match(TMatchTrans(N.Data) ,T);
+      N := TransTree.Next(N);
+   end;
 
-         //LogUtil.LogMsg(lmDebug,'Match', Format('%d List %s  In %s' ,[ord(res), TMatchTrans(N.Data).ToText, T.ToText]));
+   // Try backward
+   N := TransTree.Prev(M);
+   while Assigned(N) do begin
+      res :=  Match(TMatchTrans(N.Data) ,MT);
 
-         if res > Result then
-            Result := res
-         else
-            if res = tmNoMatch  then
-               Break;
+      //LogUtil.LogMsg(lmDebug,'Match', Format('%d List %s  In %s' ,[ord(res), TMatchTrans(N.Data).ToText, T.ToText]));
 
-         N := TransTree.Prev(N);
-      end;
+      if res > Result then
+         Result := res
+      else if res = tmNoMatch  then
+         Break;
 
-   finally
-     T.Free;
+      N := TransTree.Prev(N);
    end;
 
 end;
@@ -254,7 +257,6 @@ begin
 
   Result := tmDate; // Dates are the same..
   cmp := Compare(Item1.Amount, Item2.Amount);
-
   if cmp <> 0 then
      Exit;
 
@@ -264,13 +266,11 @@ begin
      Exit;
 
   Result := tmReference; // reference is the same
-
   cmp := Compare(Item1.Analysis, Item2.Analysis);
   if cmp <> 0 then
      Exit;
 
   Result := tmAnalysis; // analysis is the same
-
   cmp := Compare(Item1.Narration, Item2.Narration);
   if cmp <> 0 then
      Exit;
@@ -286,12 +286,6 @@ begin
       FillTransList(Value.baTransaction_List);
 end;
 
-procedure TMatchTransactions.SetTransTree(const Value: TStTree);
-begin
-  FTransTree := Value;
-end;
-
-
 
 constructor TMatchTrans.Create(Value: tArchived_Transaction);
 begin
@@ -301,7 +295,6 @@ begin
   Reference := Value.aReference;
   Analysis := Value.aAnalysis;
   Narration := Value.aStatement_Details;  //?? Narration...
- 
 end;
 
 constructor TMatchTrans.Create(Value: tTransaction_Rec);
@@ -312,8 +305,8 @@ begin
    Reference := Value.txReference;
    Analysis := Value.txAnalysis;
    Narration := Value.txGL_Narration;
-
 end;
+
 
 function TMatchTrans.ToText: string;
 begin
