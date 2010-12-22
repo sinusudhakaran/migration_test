@@ -369,10 +369,8 @@ Begin
                       Continue;
                     end;
 
-//                  if Forex then
-//                    Amount := Transaction.txForeign_Currency_Amount
-//                  else
-                    Amount := Transaction.txAmount;
+                  //Dissected memorisation
+                  Amount := Transaction.txAmount;
 
                   //Entry needs to be dissected
                   mxUtils.MemorisationSplit( Amount, MX, Split, SplitPct );
@@ -388,6 +386,7 @@ Begin
                         begin
                           New( Dissection );
                           FillChar( Dissection^, Dissection_Rec_Size, 0);
+                          Dissection.dsBank_Account := Transaction.txBank_Account;
                           with Dissection^ do
                             begin
                               dsRecord_Type := tkBegin_Dissection;
@@ -405,19 +404,12 @@ Begin
                                  txJob_Code := '';
                                  dsJob_Code := MemorisationLine.mlJob_Code;
                               end;
-                              //calculate GST class and Amounts.  If the gst has not been edited then use the default for
-                              //the chart
-                              if MemorisationLine.mlGST_Has_Been_Edited then
-                                begin
+
+                              dsGST_Has_Been_Edited := false;
+                              if MemorisationLine.mlGST_Has_Been_Edited then begin
                                   dsGST_Class := MemorisationLine.mlGST_Class;
-                                  dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, dsGST_Class );
                                   dsGST_Has_Been_Edited := true;
-                                end
-                              else
-                                begin
-                                  CalculateGST( aClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
-                                  dsGST_Has_Been_Edited := false;
-                                end;
+                              end;
 
                               if MemorisationLine.mlGL_Narration <> '' then
                                  dsGL_Narration := MemorisationLine.mlGL_Narration
@@ -480,8 +472,17 @@ Begin
                         end;
 
                     end;
-                    if Forex then
-                      Transaction.ApplyAnyLocalCurrencyRoundingDiscrepancyToTheBiggestDissectionAmount;
+
+                    //Calculate the GST for dissections
+                    Dissection := Transaction.txFirst_Dissection;
+                    while (Dissection <> nil) do begin
+                      if Dissection.dsGST_Has_Been_Edited then
+                        Dissection.dsGST_Amount := CalculateGSTForClass(aClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
+                      else
+                        CalculateGST(aClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
+                      Dissection := Dissection.dsNext;
+                    end;
+
                   Continue;
                end;
             end; { Scope of Memorised_Transaction_List^ }
@@ -544,10 +545,7 @@ Begin
                              Continue;
                           end;
 
-//                          if Forex then
-//                            Amount := Transaction.txForeign_Currency_Amount
-//                          else
-                            Amount := Transaction.txAmount;
+                          Amount := Transaction.txAmount;
 
                           //Entry needs to be dissected
                           PayeePercentageSplit( Amount, Payee, PayeeSplit, PayeeSplitPct );
@@ -567,6 +565,7 @@ Begin
 
                               New( Dissection );
                               FillChar( Dissection^, Dissection_Rec_Size, 0 );
+                              Dissection.dsBank_Account := Transaction.txBank_Account;
                               With Dissection^ do
                               begin
                                  dsRecord_Type  := tkBegin_Dissection;
@@ -581,22 +580,27 @@ Begin
                                  else
                                    dsGL_Narration := Transaction.txGL_Narration;
 
-                                 //calculate GST.  If has been edited then use class, otherwise use default
+                                 dsGST_Has_Been_Edited := false;
                                  if PayeeLine.plGST_Has_Been_Edited then begin
                                     dsGST_Class := PayeeLine.plGST_Class;
-                                    dsGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, dsGST_Class);
                                     dsGST_Has_Been_Edited := true;
-                                 end
-                                 else begin
-                                    CalculateGST( aClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount );
-                                    dsGST_Has_Been_Edited := false;
                                  end;
+
                               end;
                               AppendDissection( Transaction, Dissection );
                             end;
                           End;
-                          if Forex then
-                            Transaction.ApplyAnyLocalCurrencyRoundingDiscrepancyToTheBiggestDissectionAmount;
+
+                          //Calculate GST for dissection
+                          Dissection := Transaction.txFirst_Dissection;
+                          while (Dissection <> nil) do begin
+                            if Dissection.dsGST_Has_Been_Edited then
+                              Dissection.dsGST_Amount := CalculateGSTForClass(aClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
+                            else
+                              CalculateGST(aClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
+                            Dissection := Dissection.dsNext;
+                          end;
+
                        end; //matching payee
                     end;
                  end; //if DoAnalysisCoding

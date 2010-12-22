@@ -533,8 +533,8 @@ var
 //                                if isForex then
 //                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txForeign_Currency_Amount )
 //                                else
-//                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txAmount);
-                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
+                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txAmount);
+//                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
                               end;
                             end else begin
                               pD := pT^.txFirst_Dissection;
@@ -545,8 +545,8 @@ var
 //                                  if isForex then
 //                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsForeign_Currency_Amount )
 //                                  else
-//                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsAmount);
-                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
+                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsAmount);
+//                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
                                  end;
                                  pD := pD^.dsNext;
                               end;
@@ -563,8 +563,8 @@ var
 //                                if isForex then
 //                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txForeign_Currency_Amount)
 //                                else
-//                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txAmount);
-                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
+                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txAmount);
+//                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
                               end;
                             end else begin
                               pD := pT^.txFirst_Dissection;
@@ -575,8 +575,8 @@ var
 //                                  if isForex then
 //                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsForeign_Currency_Amount)
 //                                  else
-//                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsAmount);
-                                   AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
+                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsAmount);
+//                                   AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
                                  end;
                                  pD := pD^.dsNext;
                               end;

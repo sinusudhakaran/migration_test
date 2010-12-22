@@ -4015,10 +4015,7 @@ begin
      end
      else
      begin
-//        if fIsForex then
-//          Amount := txForeign_Currency_Amount
-//        else
-          Amount := txAmount;
+        Amount := txAmount;
 
         //payee is dissected, so dissect the transaction
         mxUtils.PayeePercentageSplit( Amount, aPayee, DissectAmt, DissectPct);
@@ -4033,6 +4030,7 @@ begin
         begin
             PayeeLine := aPayee.pdLines.PayeeLine_At(i);
             Dissection := New_Dissection_Rec;
+            Dissection.dsBank_Account := pT^.txBank_Account;
             ClearSuperFundFields(Dissection);
             with Dissection^ do begin
                dsTransaction := pT;
@@ -4042,26 +4040,17 @@ begin
                else
                   dsGL_Narration := pT^.txGL_Narration;
 
-//               if fIsForex then
-//                  pT.SetForeignCurrencyAmountOnDissection( Dissection, DissectAmt[ i ] )
-//               else
-                  dsAmount := DissectAmt[i];
-
+               dsAmount := DissectAmt[i];
                dsPercent_Amount := DissectPct[i];
                dsAmount_Type_Is_Percent := DissectPct[i] <> 0;
-                 //calculate GST
-               if (PayeeLine.plGST_Has_Been_Edited) then begin
-                  dsGST_Class    := PayeeLine.plGST_Class;
-//                  dsGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, dsAmount, dsGST_Class);
-                  dsGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Dissection^.Local_Amount, dsGST_Class);
-                    dsGST_Has_Been_Edited := true;
-               end else begin
-//                  CalculateGST( MyClient, txDate_Effective, dsAccount, dsAmount, dsGST_Class, dsGST_Amount);
-                  CalculateGST( MyClient, txDate_Effective, dsAccount, Local_Amount, dsGST_Class, dsGST_Amount);
-                  dsGST_Has_Been_Edited := false;
-               end;
-               dsHas_Been_Edited := FALSE;
 
+               dsGST_Has_Been_Edited := false;
+               if (PayeeLine.plGST_Has_Been_Edited) then begin
+                  dsGST_Has_Been_Edited := true;
+                  dsGST_Class := PayeeLine.plGST_Class;
+               end;
+                  
+               dsHas_Been_Edited := FALSE;
 
                if DoSuperFund then begin
                   if PayeeLine.plSF_PCFranked <> 0 then begin
@@ -4118,8 +4107,15 @@ begin
             end;
         end;
 
-        if fIsForex then
-           pT.ApplyAnyLocalCurrencyRoundingDiscrepancyToTheBiggestDissectionAmount;
+        //Calculate the GST for dissections
+        Dissection := pT.txFirst_Dissection;
+        while (Dissection <> nil) do begin
+          if Dissection.dsGST_Has_Been_Edited then
+            Dissection.dsGST_Amount := CalculateGSTForClass(MyClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
+          else
+            CalculateGST(MyClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
+          Dissection := Dissection.dsNext;
+        end;
 
         if Assigned(AdminSystem)
         and AdminSystem.fdFields.fdReplace_Narration_With_Payee then

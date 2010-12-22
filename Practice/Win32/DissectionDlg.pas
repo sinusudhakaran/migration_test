@@ -3514,7 +3514,7 @@ begin
             end;
          end;
 
-         UpdateBaseAmounts(nil);
+         UpdateBaseAmounts(pD);
          UpdateDisplayTotals;
 
          //setup notes panel
