@@ -25,7 +25,8 @@ uses
   bkDateUtils,
   JobRepDlg, MoneyDef,
   RptParams,
-  JobObj, clObj32, balist32, trxList32, bkbaio, bktxio, bkdsio, stdate, bkconst;
+  JobObj, clObj32, balist32, trxList32, bkbaio, bktxio, bkdsio, stdate, bkconst,
+  InfoMoreFrm;
 
 type
    TJobSpendingReport = class(TBKReport)
@@ -161,6 +162,8 @@ begin
         NewTransaction.txJob_Code := OldTransaction.txJob_Code;
         NewTransaction.txGL_Narration := OldTransaction.txGL_Narration;
         NewTransaction.txUPI_State := OldTransaction.txUPI_State;
+        NewTransaction.txTemp_Forex_Rate := OldTransaction.txTemp_Forex_Rate;
+        NewTransaction.txTemp_Base_Amount := OldTransaction.txTemp_Base_Amount;
         //copy dissections
         OldDissection := OldTransaction.txFirst_Dissection;
         if Assigned(OldDissection) then
@@ -182,6 +185,7 @@ begin
             NewDissection.dsJob_Code := OldDissection.dsJob_Code;
             NewDissection.dsGL_Narration := OldDissection.dsGL_Narration;
             NewDissection.dsAccount := OldDissection.dsAccount;
+            NewDissection.dsTemp_Base_Amount := OldDissection.dsTemp_Base_Amount;
             trxlist32.AppendDissection(NewTransaction, NewDissection);
             OldDissection := OldDissection.dsNext;
           end;
@@ -229,10 +233,12 @@ begin
     SkipColumn;
 
   if Params.ShowGrossGST then begin
-     PutMoney(Transaction.txAmount);
+//     PutMoney(Transaction.txAmount);
+     PutMoney(Transaction.txTemp_Base_Amount);
      PutMoney(Transaction.txGST_Amount);
   end;
-  PutMoney(Transaction.txAmount- Transaction.txGST_Amount);
+//  PutMoney(Transaction.txAmount- Transaction.txGST_Amount);
+  PutMoney(Transaction.txTemp_Base_Amount - Transaction.txGST_Amount);
 
 
   RenderDetailLine;
@@ -312,7 +318,8 @@ begin
         not AccountNameRendered, False);
       JobNameRendered := True;
       AccountNameRendered := True;
-      AccountGross := AccountGross + Transaction.txAmount;
+//      AccountGross := AccountGross + Transaction.txAmount;
+      AccountGross := AccountGross + Transaction.txTemp_Base_Amount;
       AccountGST := AccountGST + Transaction.txGST_Amount;
     end;
     while Assigned(Dissection) do
@@ -344,18 +351,23 @@ begin
         if IncludeAllDissectionLines then begin
           //amount will have been added above
           if Params.ShowGrossGST then begin
-             PutMoneyDontAdd(Dissection.dsAmount);
+//             PutMoneyDontAdd(Dissection.dsAmount);
+             PutMoneyDontAdd(Dissection.dsTemp_Base_Amount);
              PutMoneyDontAdd(Dissection.dsGST_Amount);
           end;
-          PutMoneyDontAdd(Dissection.dsAmount - Dissection.dsGST_Amount);
+//          PutMoneyDontAdd(Dissection.dsAmount - Dissection.dsGST_Amount);
+          PutMoneyDontAdd(Dissection.dsTemp_Base_Amount - Dissection.dsGST_Amount);
 
         end else begin
            if Params.ShowGrossGST then begin
-             PutMoney(Dissection.dsAmount);
+//             PutMoney(Dissection.dsAmount);
+             PutMoney(Dissection.dsTemp_Base_Amount);
              PutMoney(Dissection.dsGST_Amount);
            end;
-           PutMoney(Dissection.dsAmount- Dissection.dsGST_Amount);
-           AccountGross := AccountGross + Dissection.dsAmount;
+//           PutMoney(Dissection.dsAmount- Dissection.dsGST_Amount);
+           PutMoney(Dissection.dsTemp_Base_Amount- Dissection.dsGST_Amount);
+//           AccountGross := AccountGross + Dissection.dsAmount;
+           AccountGross := AccountGross + Dissection.dsTemp_Base_Amount;
            AccountGST := AccountGST + Dissection.dsGST_Amount;
         end;
 
@@ -374,7 +386,8 @@ begin
         not AccountNameRendered, True);
       JobNameRendered := True;
       AccountNameRendered := True;
-      AccountGross := AccountGross + Transaction.txAmount;
+//      AccountGross := AccountGross + Transaction.txAmount;
+      AccountGross := AccountGross + Transaction.txTemp_Base_Amount;
       AccountGST := AccountGST + Transaction.txGST_Amount;
     end;
   end;
@@ -420,7 +433,8 @@ begin
           if IsTransactionIncluded(Job, Account, Transaction.txJob_Code, Transaction.txAccount) then
           begin
             //Either is dissected with entire transaction coded to this job and account, or not dissected.
-            AccountGross := AccountGross + Transaction.txAmount;
+//            AccountGross := AccountGross + Transaction.txAmount;
+            AccountGross := AccountGross + Transaction.txTemp_Base_Amount;
             AccountGST := AccountGST + Transaction.txGST_Amount;
           end
           else
@@ -431,7 +445,8 @@ begin
             begin
               if IsDissectionIncluded(Job, Account, Transaction.txJob_Code,
                 Transaction.txAccount, Dissection.dsJob_Code, Dissection.dsAccount) then begin
-                   AccountGross := AccountGross + Dissection.dsAmount;
+//                   AccountGross := AccountGross + Dissection.dsAmount;
+                   AccountGross := AccountGross + Dissection.dsTemp_Base_Amount;
                    AccountGST := AccountGST + Dissection.dsGST_Amount;
                 end;
               Dissection := Dissection.dsNext;
@@ -658,6 +673,7 @@ procedure DoJobSpendingReport(Destination : TReportDest; RptBatch :TReportBase =
 var
    JobReport: TJobSpendingReport;
    Params: TJobParameters;
+   ISOCodes: string;
 begin
   //set defaults
 
@@ -669,6 +685,12 @@ begin
     repeat
       if not GetPRParameters(Params) then
         exit;
+
+      //Check exchange rates
+      if not MyClient.HasExchangeRates(ISOCodes, Params.FromDate, Params.ToDate, True, True) then begin
+        HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+        Exit;
+      end;
 
       if RunBtn = BTN_SAVE then begin
         SaveNodeSettings;
