@@ -514,6 +514,7 @@ begin
   ER1 := TExchangeRecord(Node.Data);
   ER2 := TChangeCountRec(OtherData^).ExchangeSource.GetDateRates(ER1.FDate);
   if Assigned(ER2) then begin
+    RateChange := False;
     for i := 1 to ER2.Width do begin
       if ER2.Rates[i] <> ER1.Rates[i] then begin
         //Rate edited
