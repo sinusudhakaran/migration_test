@@ -383,7 +383,7 @@ begin
        begin
          lblDate.Caption   := bkDate2Str( txDate_Effective );
          lblRef.Caption    := GetFormattedReference( ParentTransaction);
-         lblAmount.Caption := MoneyStr(txAmount / 100);
+         lblAmount.Caption := MoneyStr(txAmount); // division by 100 is handled by the MoneyStr function
          if txPayee_Number <> 0 then begin
            APayee := MyClientFile.ecPayees.Find_Payee_Number( txPayee_Number);
            if Assigned(APayee) then

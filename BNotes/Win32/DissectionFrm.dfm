@@ -226,7 +226,7 @@ inherited frmDissection: TfrmDissection
         Transparent = True
       end
       object btnOK: TButton
-        Left = 552
+        Left = 550
         Top = -4
         Width = 81
         Height = 29
@@ -243,7 +243,7 @@ inherited frmDissection: TfrmDissection
         TabOrder = 0
       end
       object btnCancel: TButton
-        Left = 639
+        Left = 637
         Top = -4
         Width = 81
         Height = 29
