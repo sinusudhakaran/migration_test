@@ -310,6 +310,7 @@ var
    Params : TRptParameters;
    Cleft: Double;
    TaxName : String;
+   ISOCodes: string;
 Begin
    TaxName := MyClient.TaxSystemNameUC;
 
@@ -344,6 +345,12 @@ Begin
       end;
 
       // Still here... Run the report..
+
+      //Check Forex - this will stop the report running if there are missing exchange rates
+      if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
+        HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+        Exit;
+      end;
 
       GSTUTIL32.CalculateGSTTotalsForPeriod( Fromdate, Todate, GSTInfo, -1 );
 
@@ -416,6 +423,7 @@ var
    Job : TGSTReport;
    Params : TRptParameters;
    cLeft: Double;
+   ISOCodes: string;
 const
   FORMAT_AMOUNT = '#,##0.00 DR;#,##0.00 CR';
 Begin
@@ -451,7 +459,13 @@ Begin
 
       // Still here... Run the report..
 
-      GSTUTIL32.CalculateGSTTotalsForPeriod( Fromdate, Todate, GSTInfo, -1 );
+     //Check Forex - this will stop the report running if there are missing exchange rates
+     if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
+       HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+       Exit;
+     end;
+
+     GSTUTIL32.CalculateGSTTotalsForPeriod( Fromdate, Todate, GSTInfo, -1 );
            { //Expect uncoded..
       If (GSTInfo.guHasUncodes) and
          ( AskYesNo('Warning - Uncoded Entries', 'There are ' + inttostr(GSTInfo.guNumberUncoded) + ' UNCODED entries '+
@@ -462,6 +476,7 @@ Begin
                       DLG_NO,0) <> DLG_YES )
                         then exit;
             }
+
      Job := TGSTReport.Create(ReportTypes.rptGst);
      try
        Job.RptParameters := Params;
@@ -693,6 +708,7 @@ var
    Params : TProfitRptParameters;
    MaxPeriods: Integer;
    aColumn : TReportColumn;
+   ISOCodes: string;
 begin
    Params := TProfitRptParameters.Create(ord(Report_GST_Summary_12),MyClient,RptBatch,DYear);
    with Params do try
@@ -746,6 +762,13 @@ begin
              'clTemp_FRS_Division_To_Use in [ 0..Max_Divisions]');
 
      FlagAllAccountsForUse( MyClient);
+
+     //Check Forex - this will stop the report running if there are missing exchange rates
+     if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, False) then begin
+       HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+       Continue;
+     end;
+
      CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, False);
 
      //D1 := FromDate;
@@ -753,7 +776,7 @@ begin
 
      Job := TGSTReconReport.Create(ReportTypes.rptGst);
      try
-       Job.RptParameters := Params;     
+       Job.RptParameters := Params;
        Job.LoadReportSettings(UserPrintSettings,MakeRptName(Report_List_Names[REPORT_GST_SUMMARY_12]));
        if clFRS_Reporting_Period_Type in [frpMonthly, frp2Monthly] then
          Job.UserReportSettings.s7Orientation := BK_LANDSCAPE
@@ -1316,13 +1339,11 @@ Begin
             end;
          end;
 
-         //Check Forex - this won't stop the report running if there are missing exchange rates
-         MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True);
-         //Check Forex - this will stop the report running if there are missing exchange rates         
-//         if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
-//          HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
-//           Exit;
-//         end;
+         //Check Forex - this will stop the report running if there are missing exchange rates
+         if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
+           HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+           Exit;
+         end;
 
          // Run The Report
          GSTUTIL32.CalculateGSTTotalsForPeriod(Fromdate, ToDate, GSTInfo, -1 );
@@ -1814,6 +1835,7 @@ var
    params : TRptParameters;
    cLeft: Double;
    TaxName : String;
+   ISOCodes: string;
 begin
   TaxName := MyClient.TaxSystemNameUC;
 
@@ -1847,6 +1869,12 @@ begin
          end;
       end;
 
+      //Check Forex - this will stop the report running if there are missing exchange rates
+      if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
+        HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+        Exit;
+      end;
+
       GSTUTIL32.CalculateGSTTotalsForPeriod(  Fromdate,ToDate, GSTInfo, -1 );
 
       If (GSTInfo.guHasUncodes) and
@@ -1863,7 +1891,7 @@ begin
 
      Job := TGSTReport.Create(ReportTypes.rptGst);
      try
-       Job.RptParameters := Params;     
+       Job.RptParameters := Params;
        Job.LoadReportSettings(UserPrintSettings,MakeRptName(Report_List_Names[Report_GST_Overrides]));
 
        //Add Headers

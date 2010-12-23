@@ -45,7 +45,8 @@ uses
   repcols,
   SignUtils,
   stDateSt,
-  sysUtils;
+  sysUtils,
+  InfoMoreFrm;
 
 type
   TTrialBalanceReport = class( TBKReport)
@@ -120,6 +121,8 @@ var
   S      : string;
   Params : TRptParameters;
   CLeft : Double;
+  FromDate, ToDate: integer;
+  ISOCodes: string;
 begin
   //set defaults for calculate account totals
 
@@ -147,6 +150,14 @@ begin
     //Non-persistant fields
     Assert( clTemp_FRS_Last_Period_To_Show in [0..pdMaximumNoOfPeriods[ clFRS_Reporting_Period_Type]], 'clTemp_FRS_Last_Period_To_Show in [0..pdMaximumNoOfPeriods[ clFRS_Reporting_Period_Type]]');
     Assert( clTemp_FRS_Last_Actual_Period_To_Use <= clTemp_FRS_Last_Period_To_Show, 'clTemp_FRS_Last_Actual_Period_To_Use <= clTemp_FRS_Last_Period_To_Show');
+  end;
+
+  //Check Forex
+  FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+  ToDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+  if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
+    HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+    Exit;
   end;
 
   //get totals

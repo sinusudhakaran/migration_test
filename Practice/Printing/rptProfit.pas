@@ -1204,6 +1204,8 @@ var
    aColumn           : TReportColumn;
    BudgetedPeriodsUsed : boolean;
    Params : TRptParameters;
+   FromDate, ToDate: integer;
+   ISOCodes: string;
 begin
    VerifyProfitAndLossPreconditions( MyClient);
 
@@ -1214,6 +1216,14 @@ begin
       ReportSettingsID := Report_List_Names[REPORT_PROFITANDLOSS_MULTIPLE];
    end;
    MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := false;
+
+   //Check Forex
+   FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+   ToDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+   if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, False) then begin
+     HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+     Exit;
+   end;
 
    CalculateAccountTotals.AddAutoContraCodes( MyClient);
    try

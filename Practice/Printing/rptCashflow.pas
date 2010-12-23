@@ -1766,6 +1766,12 @@ begin
      HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
      Exit;
    end;
+   //Check exchange rates for opening and closing balance dates for this year and last year
+   if not CalculateAccountTotals.HasOpenAndCloseBalanceExchangeRates(MyClient) then begin
+     HelpfulInfoMsg('The report could not be run because there are missing exchange rates ' +
+                    'for the opening or closing balance dates.',0);
+     Exit;
+   end;
 
    case MyClient.clFields.clFRS_Report_Style of
       crsSinglePeriod, crsBudgetRemaining   : ReportSettingsID := Report_List_Names[REPORT_CASHFLOW_SINGLE];

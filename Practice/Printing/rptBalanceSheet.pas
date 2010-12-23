@@ -125,6 +125,8 @@ var
 
    Old_Show_YTD   : boolean;
    Params : TRptParameters;
+   FromDate, ToDate: integer;
+   ISOCodes: string;
 begin
   //temporarily turn off the YTD flag, not relevant to balance sheet however dont
   //want it to be cleared for cashflow and p&l
@@ -140,6 +142,14 @@ begin
       ReportSettingsID := Report_List_Names[REPORT_BALANCESHEET_MULTIPLE];
    end;
    MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := false;
+
+   //Check Forex
+   FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+   ToDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+   if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
+     HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+     Exit;
+   end;
 
    CalculateAccountTotals.AddAutoContraCodes( MyClient);
    try
