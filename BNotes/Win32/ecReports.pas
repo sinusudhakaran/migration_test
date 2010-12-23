@@ -107,6 +107,7 @@ var
    ThisReport : TECTransactionReport;
    pPY : TECPayee;
    CurrSymbol: string;
+   MultipleCurrencies: boolean;
 
    procedure PutNotes( Notes : string);
    var
@@ -146,11 +147,14 @@ var
    end;
 
 begin
+   MultipleCurrencies := false;
    ThisReport := TECTransactionReport( Sender);
    with ThisReport do begin
       //report for each bank account, start new bank account on new page
       for i := 0 to Pred( ForClient.ecBankAccounts.ItemCount) do begin
          ba := ForClient.ecBankAccounts.Bank_Account_At(i);
+         if (i > 0) and (CurrSymbol <> ba.baFields.baCurrency_Symbol) then
+           MultipleCurrencies := true;
          CurrSymbol := ba.baFields.baCurrency_Symbol;
 
          RenderTitleLine( ForClient.GetAccountDetails(ba, ForClient.ecFields.ecCountry));
@@ -307,7 +311,8 @@ begin
          WriteCurrSymbol(CurrSymbol);
          RenderDetailSubTotal;
       end;  //for i:=
-      RenderDetailGrandTotal;
+      if not MultipleCurrencies then        
+        RenderDetailGrandTotal;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
