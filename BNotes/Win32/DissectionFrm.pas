@@ -1501,7 +1501,7 @@ begin
          Total := Total + dtAmount;
       end;
    end;
-   Remainder   := GenUtils.Money2Double( ParentTransaction^.txAmount ) - ( Total/100 );
+   Remainder   := GenUtils.Money2Double((ParentTransaction^.txAmount - Total) * 100);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.UpdateDisplayTotals;
@@ -1512,7 +1512,7 @@ var
    Total, Remain : Double;
 begin
    CalcControlTotals( Count, Total, Remain );
-   lblTotal.Caption  := MoneyStr(Total/100);
+   lblTotal.Caption  := MoneyStr(Total); // division by 100 is handled by the MoneyStr function
    lblRemain.Caption := MoneyStr(Remain);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
