@@ -243,7 +243,7 @@ type
     procedure GSTAmountEdited( NewValue : double; DataRow : integer; ValueEmpty : Boolean);
     procedure AmountEdited( NewValue : double; DataRow : integer);
     procedure PayeeEdited( NewValue : string; DataRow : integer);
-    procedure UpdateDisplayTotals;
+    procedure UpdateDisplayTotals(Denominator: integer = 1);
 
     function  GSTDifferentToDefault( DataRow : integer) : boolean;
     procedure CalcControlTotals(var Count: Integer; var Total,
@@ -1504,7 +1504,7 @@ begin
    Remainder   := GenUtils.Money2Double((ParentTransaction^.txAmount - Total) * 100);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmDissection.UpdateDisplayTotals;
+procedure TfrmDissection.UpdateDisplayTotals(Denominator: integer = 1);
 //Calculate the Total, dissection count, remaining then updates the displays
 //with new values
 var
@@ -1512,8 +1512,8 @@ var
    Total, Remain : Double;
 begin
    CalcControlTotals( Count, Total, Remain );
-   lblTotal.Caption  := MoneyStr(Total); // division by 100 is handled by the MoneyStr function
-   lblRemain.Caption := MoneyStr(Remain);
+   lblTotal.Caption  := MoneyStr(Total/Denominator);
+   lblRemain.Caption := MoneyStr(Remain/Denominator);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.AmountEdited(NewValue: double; DataRow: integer);
@@ -1538,7 +1538,7 @@ begin
         end;
      end;
   end;
-  UpdateDisplayTotals;
+  UpdateDisplayTotals(100);
 end;
 
 procedure TfrmDissection.btnSuperClick(Sender: TObject);
@@ -2102,7 +2102,7 @@ begin
    CalcControlTotals( Count, dTotal, dRemain );
    RowAmount := DataArray[ tgDissect.CurrentDataRow].dtAmount;
    // Calc the new RowAmount
-   RowAmount := RowAmount + ( dRemain*100);
+   RowAmount := RowAmount + ( dRemain{*100});
    result := FormatFloat( '0.00', RowAmount / 100 );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
