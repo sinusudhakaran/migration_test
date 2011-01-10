@@ -541,8 +541,9 @@ begin
                           );
          safsTopDeliver :Expand(topn,
                                CheckNode( tvFilter.Items.AddChild(topn,'Practice Accounts'),saSecure in Include.NotNodes[i])
-                            or CheckNode( tvFilter.Items.AddChild(topn,'Books Secure Accounts'),saSecure in Include.Nodes[i])
                             or CheckNode( tvFilter.Items.AddChild(topn,'Provisional Accounts'),saProvisional in Include.Nodes[i])
+                            or CheckNode( tvFilter.Items.AddChild(topn,'Books Secure Accounts'),saSecure in Include.Nodes[i])
+
                           );
          safsTopFrequency:Expand(topn,
                                CheckNode( tvFilter.Items.AddChild(topn,'Monthly'),    saFreqMonth in Include.NotNodes[i])

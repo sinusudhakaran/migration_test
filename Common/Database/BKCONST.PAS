@@ -2305,7 +2305,7 @@ const
   safsTopFrequency = 6; safsTopMax = 6;
 
   safsTopLevel: Array [ safsTopMin..safsTopMax ] of string =
-  ('Status', 'Deleted', 'Transactions', 'Charges', 'Password', 'Delivered', 'Frequency');
+  ('Status', 'Deleted', 'Transactions', 'Charges', 'Password', 'Account Type', 'Frequency');
 
 
     DefaultCESFontString = '"Courier","",9';

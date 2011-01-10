@@ -725,7 +725,7 @@ begin
    cot_FirstDate    : Result := 'From';
    cot_LastDate     : Result := 'To';
    //cot_PracticeCode : Result := 'Secure Code';
-   cot_Delivered    : Result := 'Delivered';
+   cot_Delivered    : Result := 'Delivered As';
 
    cot_CurrencyCode : Result := 'Currency';
    cot_Status       : Result := 'Status';

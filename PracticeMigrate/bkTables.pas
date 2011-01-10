@@ -250,6 +250,16 @@ public
                    value: pBalances_Rec): Boolean;
 end;
 
+
+TFuelSheetTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyID: TGuid;
+                   BalanceID: TGuid;
+                   value: pFuel_Sheet_Rec): Boolean;
+end;
+
 TReminderTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
@@ -927,14 +937,46 @@ end;
 
 function TBalances_RecTable.Insert(MyID, ClientID: TGuid;
   value: pBalances_Rec): Boolean;
-begin
-   Result := true
+begin with Value^ Do
+   Result := RunValues([ToSQL(MyID),ToSQL(ClientID),DateToSQL(blGST_Period_Starts),DateToSQL(blGST_Period_Ends),ToSQL(blClosing_Debtors_Balance)
+                ,ToSQL(blOpening_Debtors_Balance)
+{2}          ,ToSQL(blFBT_Adjustments),ToSQL(blOther_Adjustments),ToSQL(blClosing_Creditors_Balance),ToSQL(blOpening_Creditors_Balance)
+                ,ToSQL(blCredit_Adjustments)
+{3}          ,ToSQL(blBAS_Document_ID),ToSQL(blBAS_1C_PT_Last_Months_Income),ToSQL(blBAS_1D_PT_Branch_Income)
+                ,ToSQL(blBAS_1E_PT_Assets),ToSQL(blBAS_1F_PT_Tax),ToSQL(blBAS_1G_PT_Refund_Used)
+{4}          ,ToSQL(blBAS_5B_PT_Ratio),ToSQL(blBAS_6B_GST_Adj_PrivUse),ToSQL(blBAS_7_VAT4_GST_Adj_BAssets)
+                ,ToSQL(blBAS_G7_GST_Adj_Assets),ToSQL(blBAS_G18_GST_Adj_Entertain),ToSQL(blBAS_W1_GST_Adj_Change)
+                ,ToSQL(blBAS_W2_GST_Adj_Exempt),ToSQL(blBAS_W3_GST_Adj_Other)
+{5}          ,ToSQL(blBAS_W4_GST_Cdj_BusUse),ToSQL(blBAS_T1_VAT1_GST_Cdj_PAssets),ToSQL(blBAS_T2_VAT2_GST_Cdj_Change)
+                ,ToSQL(blBAS_T3_VAT3_GST_Cdj_Other),ToSQL(blBAS_T4),ToSQL(blBAS_F1_GST_Closing_Debtors_BalanceA)
+                ,ToSQL(blBAS_F2_GST_Opening_Debtors_BalanceB),ToSQL(blBAS_F3),ToSQL(blBAS_F4)
+{6}          ,ToSQL(blBAS_Form_Used),ToSQL(blBAS_GST_Option),ToSQL(blBAS_GST_Included),ToSQL(blBAS_G21_GST_Closing_Creditors_BalanceA)
+                ,ToSQL(blBAS_G22_GST_Opening_Creditors_BalanceB),ToSQL(blBAS_G23),ToSQL(blBAS_G24)
+{7}          ,ToSQL(blBAS_PAYG_Instalment_Option),ToSQL(blBAS_T7_VAT7),ToSQL(blBAS_T8_VAT8),ToSQL(blBAS_T9_VAT9)
+                ,ToSQL(blBAS_1H),ToSQL(blGST_Adj_PrivUse),ToSQL(blGST_Adj_BAssets)
+{8}          ,ToSQL(blGST_Adj_Assets),ToSQL(blGST_Adj_Entertain),ToSQL(blGST_Adj_Change),ToSQL(blGST_Adj_Exempt)
+                ,ToSQL(blGST_Adj_Other),ToSQL(blGST_Cdj_BusUse)
+{9}          ,ToSQL(blGST_Cdj_PAssets),ToSQL(blGST_Cdj_Change),ToSQL(blGST_Cdj_Other),ToSQL(blBAS_7C),ToSQL(blBAS_7D)
+                ,ToSQL(blBAS_T6_VAT6),ToSQL(blBAS_T5_VAT5)
+{10}         ,ToSQL(blUsing_Fuel_Percent_Method),ToSQL(blPT_Form_Type),ToSQL(blGST_Cdj_Customs)]
+
+            ,[]
+            );
 end;
 
 procedure TBalances_RecTable.SetupTable;
 begin
   TableName := 'Balances';
-
+  SetFields(['Id','ClientId','GSTPeriodStarts','GSTPeriodEnds','ClosingDebtorsBalance','OpeningDebtorsBalance'
+{2}    ,'FBTAdjustments','OtherAdjustments','ClosingCreditorsBalance','OpeningCreditorsBalance','CreditAdjustments'
+{3}    ,'BASDocumentId','BAS1CPTLastMonthsIncome','BAS1DPTBranchIncome','BAS1EPTAssets','BAS1FPTTax','BAS1GPTRefundUsed'
+{4}    ,'BAS5BPTRatio','BAS6B','BAS7','BASG7','BASG18','BASW1','BASW2','BASW3'
+{5}    ,'BASW4','BAST1','BAST2','BAST3','BAST4','BASF1','BASF2','BASF3','BASF4'
+{6}    ,'BASFormUsed','BASGSTOption','BASGSTIncluded','BASG21','BASG22','BASG23','BASG24'
+{7}    ,'BASPAYGInstalmentOption','BAST7','BAST8','BAST9','BAS1H','BASAdjPrivUse','BASAdjBAssets'
+{8}    ,'BASAdjAssets','BASAdjEntertain','BASAdjChange','BASAdjExempt','BASAdjOther','BASCdjBusUse'
+{9}    ,'BASCdjPAssets','BASCdjChange','BASCdjOther','BAS7C','BAS7D','BAST6','BAST5'
+{10}   ,'UsingFuelPercentMethod','PTFormType','BASCdjCustoms'],[]);
 end;
 
 { TChartDivisionTable }
@@ -989,6 +1031,23 @@ procedure TDownloadlogTable.SetupTable;
 begin
    TableName := 'ClientDownloads';
    SetFields(['Id','ClientId_Id','DiskID','DateDownloaded','NoOfAccounts','NoOfEntries'], []);
+end;
+
+{ TFuelSheetTable }
+
+function TFuelSheetTable.Insert(MyID, BalanceID: TGuid; value: pFuel_Sheet_Rec): Boolean;
+begin  with Value^ do
+   Result := RunValues([ToSQL(MyID), ToSQL(BalanceID), ToSQL(fsAccount)
+                  ,ToSQL(fsFuel_Type),QtyToSQL(fsFuel_Litres),ToSQL(fsFuel_Use),PercentToSQL(fsPercentage)
+                  ,ToSQL(fsFuel_Eligible), PercentToSQL(fsCredit_Rate)],[]);
+end;
+
+procedure TFuelSheetTable.SetupTable;
+begin
+  TableName := 'FuelSheets';
+  SetFields(['Id','BalanceId','Account','FuelType','FuelLitres','FuelUse','Percentage'
+      ,'FuelEligible','CreditRate'],[]);
+
 end;
 
 end.

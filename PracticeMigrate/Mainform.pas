@@ -624,6 +624,8 @@ function TformMain.TestSystem: boolean;
         CountText := '';
      end;
      Value.Caption := format(Caption,[CountText]);
+     if Assigned(Value.OnClick) then
+        Value.OnClick(value);
   end;
 
 
@@ -676,7 +678,8 @@ begin
       end;
    end;
 
-   SetCheckBox(cbAccounts,'System Accounts %s && transactions',SysAccounts, true);
+   cbSysTrans.Checked :=  SetCheckBox(cbAccounts,'System Accounts %s,',SysAccounts, true);
+   cbSysTransClick(nil);
 
    if SetCheckBox(cbClients,'Client Files %s',ClientFiles) then begin
          for I := 0 to ClientFiles - 1 do
@@ -740,7 +743,7 @@ begin
          FSystemMigrater.ClientMigrater := FClientMigrater;
          FSystemMigrater.System := Adminsystem;
 
-         FSystemMigrater.Migrate(MyAction );
+         FSystemMigrater.Migrate(MyAction);
 
          MyAction.Status := Success;
 

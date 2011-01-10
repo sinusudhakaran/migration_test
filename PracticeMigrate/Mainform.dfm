@@ -744,7 +744,7 @@ object formMain: TformMain
     Top = 96
     Width = 759
     Height = 384
-    ActivePage = tsBrowse
+    ActivePage = tsSelect
     Align = alClient
     TabOrder = 2
     object tsBrowse: TTabSheet
@@ -999,6 +999,10 @@ object formMain: TformMain
     object TsProgress: TTabSheet
       Caption = 'Progress'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object StatusTree: TVirtualStringTree
         Left = 0
         Top = 57
@@ -1047,7 +1051,7 @@ object formMain: TformMain
           item
             Position = 4
             Tag = 4
-            Width = 337
+            Width = 341
           end>
       end
       object pTitle: TPanel
@@ -1076,6 +1080,10 @@ object formMain: TformMain
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Panel1: TPanel
         Left = 0
         Top = 0
@@ -1157,7 +1165,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C0101040010002C0018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000340018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

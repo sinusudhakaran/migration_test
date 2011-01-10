@@ -3,6 +3,7 @@ unit SystemMigrater;
 interface
 
 uses
+   UBatchBase,
    DB,
    SysObj32,
    Sydefs,
@@ -78,6 +79,8 @@ private
     function MigrateWorkFolder(ForAction: TMigrateAction): Boolean;
     function MigrateDisklog(ForAction: TMigrateAction): Boolean;
     function MigrateSystem(ForAction: TMigrateAction): Boolean;
+    function MigrateCustomDocs(ForAction:TMigrateAction): Boolean;
+
     // Size Items
     function SizeSystemAccount(ForAction: TMigrateAction; var Value: TGuidObject): Boolean;
 
@@ -88,13 +91,7 @@ private
     function GetUserList: TGuidList;
     procedure SetbtTable(const Value: TbtTable);
     function GetbtTable: TbtTable;
-    procedure SetSystemAccountTable(const Value: TSystemBankAccountTable);
     function GetSystemAccountTable: TSystemBankAccountTable;
-    procedure SetClientAccountMapTable(const Value: TClientAccountMapTable);
-    procedure SetClientTypeTable(const Value: TClientTypeTable);
-    procedure SetGroupTable(const Value: TClientGroupTable);
-    procedure SetSystemClientFileTable(const Value: TSystemClientFileTable);
-    procedure SetUserTable(const Value: TUserTable);
     function GetClientTypeTable: TClientTypeTable;
     function GetGroupTable: TClientGroupTable;
     function GetClientAccountMapTable: TClientAccountMapTable;
@@ -104,22 +101,15 @@ private
     procedure SetDoArchived(const Value: Boolean);
     procedure SetDoUnsynchronised(const Value: Boolean);
     procedure SetDoUsers(const Value: Boolean);
-    procedure SetUserMappingTable(const Value: TUserMappingTable);
     function GetUserMappingTable: TUserMappingTable;
     procedure SetClientAccountMap(const Value: tGuidList);
     function GetClientAccountMap: tGuidList;
-    procedure SetMasterMemorisationsTable(const Value: TMasterMemorisationsTable);
     function GetMasterMemorisationsTable: TMasterMemorisationsTable;
-    procedure SetMasterMemlinesTable(const Value: TMasterMemlinesTable);
     function GetMasterMemlinesTable: TMasterMemlinesTable;
-    procedure SetChargesTable(const Value: TChargesTable);
     function GetChargesTable: TChargesTable;
     procedure SetDoSystemTransactions(const Value: Boolean);
-    procedure SetDownloadDocumentTable(const Value: TDownloadDocumentTable);
     function GetDownloadDocumentTable: TDownloadDocumentTable;
-    procedure SetDownloadlogTable(const Value: TDownloadlogTable);
     function GetDownloadlogTable: TDownloadlogTable;
-    procedure SetParameterTable(const Value: TParameterTable);
     function GetParameterTable: TParameterTable;
 protected
     procedure OnConnected; override;
@@ -143,19 +133,19 @@ public
 
     //Tables
     property btTable: TbtTable read GetbtTable write SetbtTable;
-    property SystemAccountTable: TSystemBankAccountTable read GetSystemAccountTable write SetSystemAccountTable;
-    property GroupTable: TClientGroupTable read GetGroupTable write SetGroupTable;
-    property ClientTypeTable: TClientTypeTable read GetClientTypeTable write SetClientTypeTable;
-    property SystemClientFileTable: TSystemClientFileTable read GetSystemClientFileTable write SetSystemClientFileTable;
-    property UserTable: TUserTable read GetUserTable write SetUserTable;
-    property ClientAccountMapTable: TClientAccountMapTable read GetClientAccountMapTable write SetClientAccountMapTable;
-    property UserMappingTable: TUserMappingTable read GetUserMappingTable write SetUserMappingTable;
-    property MasterMemorisationsTable: TMasterMemorisationsTable read GetMasterMemorisationsTable write SetMasterMemorisationsTable;
-    property MasterMemlinesTable: TMasterMemlinesTable read GetMasterMemlinesTable write SetMasterMemlinesTable;
-    property ChargesTable: TChargesTable read GetChargesTable write SetChargesTable;
-    property DownloadDocumentTable: TDownloadDocumentTable read GetDownloadDocumentTable write SetDownloadDocumentTable;
-    property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable write SetDownloadlogTable;
-    property ParameterTable: TParameterTable read GetParameterTable write SetParameterTable;
+    property SystemAccountTable: TSystemBankAccountTable read GetSystemAccountTable;
+    property GroupTable: TClientGroupTable read GetGroupTable;
+    property ClientTypeTable: TClientTypeTable read GetClientTypeTable;
+    property SystemClientFileTable: TSystemClientFileTable read GetSystemClientFileTable;
+    property UserTable: TUserTable read GetUserTable;
+    property ClientAccountMapTable: TClientAccountMapTable read GetClientAccountMapTable;
+    property UserMappingTable: TUserMappingTable read GetUserMappingTable;
+    property MasterMemorisationsTable: TMasterMemorisationsTable read GetMasterMemorisationsTable;
+    property MasterMemlinesTable: TMasterMemlinesTable read GetMasterMemlinesTable;
+    property ChargesTable: TChargesTable read GetChargesTable;
+    property DownloadDocumentTable: TDownloadDocumentTable read GetDownloadDocumentTable;
+    property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable;
+    property ParameterTable: TParameterTable read GetParameterTable;
 
     //Options
     property DoSystemTransactions: Boolean read FDoSystemTransactions write SetDoSystemTransactions;
@@ -174,6 +164,7 @@ end;
 implementation
 
 uses
+   CustomDocEditorFrm,
    INISettings,
    PassWordHash,
    Stdate,
@@ -1069,7 +1060,7 @@ var
 
 
 begin
-  result := false;
+  Result := false;
   Files := GetFileList;
   try
      if Files.Count = 0 then begin
@@ -1095,7 +1086,8 @@ begin
 
      end;
 
-     MyAction.Status := Success;
+     MyAction.Count := Files.Count;
+     Result := True;
   finally
      Files.Free;
   end;
@@ -1145,10 +1137,10 @@ begin
    if not Assigned(System) then
       Exit;
 
-   ForAction.Target := 100;
 
-   MyAction := ForAction.Create(Format('Migrate %s',[System.fdFields.fdPractice_Name_for_Reports]));
 
+   MyAction := ForAction.InsertAction(Format('Migrate %s',[System.fdFields.fdPractice_Name_for_Reports]));
+   MyAction.Target := 100;
 
    if DoUsers then
       RunGuidList(MyAction,'Users',UserList,MergeUser);
@@ -1156,13 +1148,13 @@ begin
    RunGuidList(MyAction,'Client Groups',ClientGroupList, AddClientGroup);
 
    RunGuidList(MyAction,'Client Types',ClientTypeList, AddClientType);
-   ForAction.Counter := 5;
+   MyAction.Counter := 5;
 
    RunGuidList(MyAction,'Bank Accounts',SystemAccountList, AddSystemAccount);
-   ForAction.Counter := 20;
+   MyAction.Counter := 20;
 
    RunGuidList(MyAction,'Client List',ClientList, AddSystemClient);
-   ForAction.Counter := 25;
+   MyAction.Counter := 25;
 
    // User map..
    lList := TGuidList.Create(System.fdSystem_File_Access_List);
@@ -1174,20 +1166,29 @@ begin
 
    MigrateMasterMems(MyAction);
 
+   MigrateCustomDocs(MyAction);
+
    RunGuidList(MyAction,'Client Files',ClientList, AddClientFile);
-   ForAction.Counter := 25;
-     
-     
-   MigrateSystem(ForAction);
+   MyAction.Counter := 75;
 
+   MigrateSystem(MyAction);
 
-   MigrateWorkFolder(ForAction);
+   MigrateWorkFolder(MyAction);
 
-   MigrateDisklog(ForAction);
-
-
+   MigrateDisklog(MyAction);
+            
    Result := true;
-   ForAction.Status := success;
+   MyAction.Status := success;
+end;
+
+
+
+function TSystemMigrater.MigrateCustomDocs(ForAction: TMigrateAction): Boolean;
+begin
+   Result := false;
+   if not (ClientMigrater is TClientMigrater) then
+      Exit; // Raise exception... or set error..
+   Result := TClientMigrater(ClientMigrater).MigrateCustomDocs(ForAction);
 end;
 
 function TSystemMigrater.MigrateDisklog(ForAction: TMigrateAction): Boolean;
@@ -1212,20 +1213,10 @@ begin
   FbtTable := Value;
 end;
 
-procedure TSystemMigrater.SetChargesTable(const Value: TChargesTable);
-begin
-  FChargesTable := Value;
-end;
 
 procedure TSystemMigrater.SetClientAccountMap(const Value: tGuidList);
 begin
   FClientAccountMap := Value;
-end;
-
-procedure TSystemMigrater.SetClientAccountMapTable(
-  const Value: TClientAccountMapTable);
-begin
-  FClientAccountMapTable := Value;
 end;
 
 procedure TSystemMigrater.SetClientGroupList(const Value: TGuidList);
@@ -1248,10 +1239,6 @@ begin
   FClientTypeList := Value;
 end;
 
-procedure TSystemMigrater.SetClientTypeTable(const Value: TClientTypeTable);
-begin
-  FClientTypeTable := Value;
-end;
 
 procedure TSystemMigrater.SetDoArchived(const Value: Boolean);
 begin
@@ -1273,38 +1260,6 @@ begin
   FDousers := Value;
 end;
 
-procedure TSystemMigrater.SetDownloadDocumentTable(
-  const Value: TDownloadDocumentTable);
-begin
-  FDownloadDocumentTable := Value;
-end;
-
-procedure TSystemMigrater.SetDownloadlogTable(const Value: TDownloadlogTable);
-begin
-  FDownloadlogTable := Value;
-end;
-
-procedure TSystemMigrater.SetGroupTable(const Value: TClientGroupTable);
-begin
-  FGroupTable := Value;
-end;
-
-procedure TSystemMigrater.SetMasterMemlinesTable(
-  const Value: TMasterMemlinesTable);
-begin
-  FMasterMemlinesTable := Value;
-end;
-
-procedure TSystemMigrater.SetMasterMemorisationsTable(
-  const Value: TMasterMemorisationsTable);
-begin
-  FMasterMemorisationsTable := Value;
-end;
-
-procedure TSystemMigrater.SetParameterTable(const Value: TParameterTable);
-begin
-  FParameterTable := Value;
-end;
 
 procedure TSystemMigrater.SetSystem(const Value: TSystemObj);
 begin
@@ -1324,17 +1279,6 @@ begin
   FSystemAccountList := Value;
 end;
 
-procedure TSystemMigrater.SetSystemAccountTable(
-  const Value: TSystemBankAccountTable);
-begin
-  FSystemAccountTable := Value;
-end;
-
-procedure TSystemMigrater.SetSystemClientFileTable(
-  const Value: TSystemClientFileTable);
-begin
-  FSystemClientFileTable := Value;
-end;
 
 procedure TSystemMigrater.SetSystemUsers(const Value: TADODataSet);
 begin
@@ -1346,15 +1290,6 @@ begin
   FUserList := Value;
 end;
 
-procedure TSystemMigrater.SetUserMappingTable(const Value: TUserMappingTable);
-begin
-  FUserMappingTable := Value;
-end;
-
-procedure TSystemMigrater.SetUserTable(const Value: TUserTable);
-begin
-  FUserTable := Value;
-end;
 
 function TSystemMigrater.SizeSystemAccount(ForAction: TMigrateAction; var Value: TGuidObject): Boolean;
 var

@@ -6,6 +6,7 @@ interface
 
 uses
    bkTables,
+   CDTables,
    sqlHelpers,
    Guidlist,
    Migraters,
@@ -42,12 +43,15 @@ TClientMigrater = class (TMigrater)
     FClient_ReportOptionsTable: TClient_ReportOptionsTable;
     FClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable;
     FCodingReportOptionsTable: TCodingReportOptionsTable;
+    FCustomDocSceduleTable: TCustomDocSceduleTable;
     FSystemMirater: TMigrater;
     FClientLRN: Integer;
     FChartDivisionTable: TChartDivisionTable;
     FDivisionList: TGuidList;
     FReminderTable: TReminderTable;
     FDownloadlogTable: TDownloadlogTable;
+    FBalances_RecTable: TBalances_RecTable;
+    FFuelSheetTable: TFuelSheetTable;
     procedure SetClientID(const Value: TGuid);
     procedure SetCode(const Value: string);
 
@@ -68,23 +72,11 @@ TClientMigrater = class (TMigrater)
     function AddPayee(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddPayeeLine(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddHeading(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
+    function AddBalance(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddDiskLog(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 
 
     procedure Reset;
-    procedure SetAccount_RecTable(const Value: TAccount_RecTable);
-    procedure SetBudget_Detail_RecTable(const Value: TBudget_Detail_RecTable);
-    procedure SetBudget_Header_RecTable(const Value: TBudget_Header_RecTable);
-    procedure SetChart_RecTable(const Value: TChart_RecTable);
-    procedure SetClient_RecFieldsTable(const Value: TClient_RecFieldsTable);
-    procedure SetCustom_Heading_RecTable(const Value: TCustom_Heading_RecTable);
-    procedure SetDissection_RecTable(const Value: TDissection_RecTable);
-    procedure SetJob_Heading_RecTable(const Value: TJob_Heading_RecTable);
-    procedure SetMemorisation_Detail_RecTable(const Value: TMemorisation_Detail_RecTable);
-    procedure SetMemorisation_Line_RecTable(const Value: TMemorisation_Line_RecTable);
-    procedure SetPayee_Detail_RecTable(const Value: TPayee_Detail_RecTable);
-    procedure SetPayee_Line_RecTable(const Value: TPayee_Line_RecTable);
-    procedure SetTransaction_RecTable(const Value: TTransaction_RecTable);
     function GetAccount_RecTable: TAccount_RecTable;
     function GetBudget_Detail_RecTable: TBudget_Detail_RecTable;
     function GetBudget_Header_RecTable: TBudget_Header_RecTable;
@@ -98,36 +90,25 @@ TClientMigrater = class (TMigrater)
     function GetPayee_Detail_RecTable: TPayee_Detail_RecTable;
     function GetPayee_Line_RecTable: TPayee_Line_RecTable;
     function GetTransaction_RecTable: TTransaction_RecTable;
-    procedure SetDivisionsTable(const Value: TDivisionsTable);
     function GetDivisionsTable: TDivisionsTable;
-    procedure SetTaxEntriesTable(const Value: TTaxEntriesTable);
     function GetTaxEntriesTable: TTaxEntriesTable;
-    procedure SetTaxRatesTable(const Value: TTaxRatesTable);
     function GetTaxRatesTable: TTaxRatesTable;
-    procedure SetClient_ScheduleTable(const Value: TClient_ScheduleTable);
     function GetClient_ScheduleTable: TClient_ScheduleTable;
-    procedure SetSubGroupTable(const Value: TSubGroupTable);
     function GetSubGroupTable: TSubGroupTable;
-    procedure SetClient_ReportOptionsTable(
-      const Value: TClient_ReportOptionsTable);
     function GetClient_ReportOptionsTable: TClient_ReportOptionsTable;
-    procedure SetClientFinacialReportOptionsTable(
-      const Value: TClientFinacialReportOptionsTable);
     function GetClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable;
-    procedure SetCodingReportOptionsTable(
-      const Value: TCodingReportOptionsTable);
     function GetCodingReportOptionsTable: TCodingReportOptionsTable;
     procedure SetDoSuperfund(const Value: Boolean);
     procedure SetSystemMirater(const Value: TMigrater);
     procedure SetClientLRN(const Value: Integer);
-    procedure SetChartDivisionTable(const Value: TChartDivisionTable);
     function GetChartDivisionTable: TChartDivisionTable;
     procedure SetDivisionList(const Value: TGuidList);
     function GetDivisionList: TGuidList;
-    procedure SetReminderTable(const Value: TReminderTable);
     function GetReminderTable: TReminderTable;
-    procedure SetDownloadlogTable(const Value: TDownloadlogTable);
     function GetDownloadlogTable: TDownloadlogTable;
+    function GetBalances_RecTable: TBalances_RecTable;
+    function GetFuelSheetTable: TFuelSheetTable;
+    function GetCustomDocSceduleTable: TCustomDocSceduleTable;
   public
    constructor Create(AConnection: string);
    destructor Destroy; override;
@@ -141,32 +122,35 @@ TClientMigrater = class (TMigrater)
                     ATypeID: TGuid;
                     AClientLRN: Integer): Boolean;
 
-
+   function MigrateCustomDocs(ForAction:TMigrateAction): Boolean;
    // Tables
-   property Client_RecFieldsTable: TClient_RecFieldsTable read GetClient_RecFieldsTable write SetClient_RecFieldsTable;
-   property Account_RecTable: TAccount_RecTable read GetAccount_RecTable write SetAccount_RecTable;
-   property Transaction_RecTable: TTransaction_RecTable read GetTransaction_RecTable write SetTransaction_RecTable;
-   property Dissection_RecTable: TDissection_RecTable read GetDissection_RecTable write SetDissection_RecTable;
-   property Memorisation_Detail_RecTable: TMemorisation_Detail_RecTable read GetMemorisation_Detail_RecTable write SetMemorisation_Detail_RecTable;
-   property Memorisation_Line_RecTable: TMemorisation_Line_RecTable read GetMemorisation_Line_RecTable write SetMemorisation_Line_RecTable;
-   property Chart_RecTable: TChart_RecTable read GetChart_RecTable write SetChart_RecTable;
-   property Custom_Heading_RecTable: TCustom_Heading_RecTable read GetCustom_Heading_RecTable write SetCustom_Heading_RecTable;
-   property Payee_Detail_RecTable: TPayee_Detail_RecTable read GetPayee_Detail_RecTable write SetPayee_Detail_RecTable;
-   property Payee_Line_RecTable: TPayee_Line_RecTable read GetPayee_Line_RecTable write SetPayee_Line_RecTable;
-   property Job_Heading_RecTable: TJob_Heading_RecTable read GetJob_Heading_RecTable write SetJob_Heading_RecTable;
-   property Budget_Header_RecTable: TBudget_Header_RecTable read GetBudget_Header_RecTable write SetBudget_Header_RecTable;
-   property Budget_Detail_RecTable: TBudget_Detail_RecTable read GetBudget_Detail_RecTable write SetBudget_Detail_RecTable;
-   property DivisionsTable: TDivisionsTable read GetDivisionsTable write SetDivisionsTable;
-   property SubGroupTable: TSubGroupTable read GetSubGroupTable write SetSubGroupTable;
-   property TaxEntriesTable: TTaxEntriesTable read GetTaxEntriesTable write SetTaxEntriesTable;
-   property TaxRatesTable: TTaxRatesTable read GetTaxRatesTable write SetTaxRatesTable;
-   property Client_ScheduleTable: TClient_ScheduleTable read GetClient_ScheduleTable write SetClient_ScheduleTable;
-   property Client_ReportOptionsTable: TClient_ReportOptionsTable read GetClient_ReportOptionsTable write SetClient_ReportOptionsTable;
-   property ClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable read GetClientFinacialReportOptionsTable write SetClientFinacialReportOptionsTable;
-   property CodingReportOptionsTable: TCodingReportOptionsTable read GetCodingReportOptionsTable write SetCodingReportOptionsTable;
-   property ChartDivisionTable: TChartDivisionTable read GetChartDivisionTable write SetChartDivisionTable;
-   property ReminderTable: TReminderTable read GetReminderTable write SetReminderTable;
-   property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable write SetDownloadlogTable;
+   property Client_RecFieldsTable: TClient_RecFieldsTable read GetClient_RecFieldsTable;
+   property Account_RecTable: TAccount_RecTable read GetAccount_RecTable;
+   property Transaction_RecTable: TTransaction_RecTable read GetTransaction_RecTable;
+   property Dissection_RecTable: TDissection_RecTable read GetDissection_RecTable;
+   property Memorisation_Detail_RecTable: TMemorisation_Detail_RecTable read GetMemorisation_Detail_RecTable;
+   property Memorisation_Line_RecTable: TMemorisation_Line_RecTable read GetMemorisation_Line_RecTable;
+   property Chart_RecTable: TChart_RecTable read GetChart_RecTable;
+   property Custom_Heading_RecTable: TCustom_Heading_RecTable read GetCustom_Heading_RecTable;
+   property Payee_Detail_RecTable: TPayee_Detail_RecTable read GetPayee_Detail_RecTable;
+   property Payee_Line_RecTable: TPayee_Line_RecTable read GetPayee_Line_RecTable;
+   property Job_Heading_RecTable: TJob_Heading_RecTable read GetJob_Heading_RecTable;
+   property Budget_Header_RecTable: TBudget_Header_RecTable read GetBudget_Header_RecTable;
+   property Budget_Detail_RecTable: TBudget_Detail_RecTable read GetBudget_Detail_RecTable;
+   property DivisionsTable: TDivisionsTable read GetDivisionsTable;
+   property SubGroupTable: TSubGroupTable read GetSubGroupTable;
+   property TaxEntriesTable: TTaxEntriesTable read GetTaxEntriesTable;
+   property TaxRatesTable: TTaxRatesTable read GetTaxRatesTable;
+   property Balances_RecTable: TBalances_RecTable read GetBalances_RecTable;
+   property FuelSheetTable: TFuelSheetTable read GetFuelSheetTable;
+   property Client_ScheduleTable: TClient_ScheduleTable read GetClient_ScheduleTable;
+   property Client_ReportOptionsTable: TClient_ReportOptionsTable read GetClient_ReportOptionsTable;
+   property ClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable read GetClientFinacialReportOptionsTable;
+   property CodingReportOptionsTable: TCodingReportOptionsTable read GetCodingReportOptionsTable;
+   property ChartDivisionTable: TChartDivisionTable read GetChartDivisionTable;
+   property ReminderTable: TReminderTable read GetReminderTable;
+   property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable;
+   property CustomDocSceduleTable: TCustomDocSceduleTable read GetCustomDocSceduleTable;
 
    // Lists
    property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
@@ -177,11 +161,14 @@ TClientMigrater = class (TMigrater)
    property ClientLRN: Integer read FClientLRN write SetClientLRN;
 
    property SystemMirater:TMigrater read FSystemMirater write SetSystemMirater;
+   function GetUser(const Value: string): TGuid;
 end;
 
 
 implementation
 uses
+   UBatchBase,
+   CustomDocEditorFrm,
    ToDoListUnit,
    AdminNotesForClient,
    syDefs,
@@ -227,7 +214,7 @@ var
       if not Assigned(SystemMirater) then
          Exit;
       System := SystemMirater as TSystemMigrater;
-      AdminBankAccount := System.GetSystemAccount(Account.baFields.baBank_Account_Name);
+      AdminBankAccount := System.GetSystemAccount(Account.baFields.baBank_Account_Number);
       if not Assigned(AdminBankAccount) then
          Exit;
       Map := getClientMap;
@@ -268,6 +255,25 @@ begin
    end;
 end;
 
+
+function TClientMigrater.AddBalance(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
+var Balance : pBalances_Rec;
+    FuelSheet: pFuel_Sheet_Rec;
+begin
+   Balance := pBalances_Rec(Value.Data);
+   Result := Balances_RecTable.Insert(Value.GuidID, ClientID, Balance);
+   if not Result then
+      Exit;
+
+   FuelSheet := Balance.blFirst_Fuel_Sheet;
+   while assigned(FuelSheet) do begin
+
+      Result := FuelSheetTable.Insert(NewGuid,Value.GuidID, Fuelsheet);
+      if not Result then
+         Exit;
+      FuelSheet := FuelSheet.fsNext;
+   end;
+end;
 
 function TClientMigrater.AddBudget(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 var
@@ -515,14 +521,9 @@ procedure TClientMigrater.AddReminders(ForAction: TMigrateAction);
 var
    ClientsToDoList: TClientToDoList;
    I: Integer;
-   System: TSystemMigrater;
 begin
    if MigrationCanceled then
       Exit;
-
-   if not Assigned(SystemMirater) then
-      Exit;
-   System := SystemMirater as TSystemMigrater;
 
    ClientsToDoList := TClientToDoList.Create(ClientLRN);
    try
@@ -533,7 +534,7 @@ begin
          ReMinderTable.Insert(
              NewGuid,
              ClientID,
-             System.GetUser(ClientsToDoList.ToDoItemAt(I).tdEntered_By),
+             GetUser(ClientsToDoList.ToDoItemAt(I).tdEntered_By),
              ClientsToDoList.ToDoItemAt(I)
                               );
 
@@ -616,6 +617,9 @@ begin
       DeleteTable(MyAction,'NotesOptions');
       DeleteTable(MyAction,'Headings');
 
+      DeleteTable(MyAction,CustomDocSceduleTable);
+      DeleteTable(MyAction,'CustomDocuments');
+
       DeleteTable(MyAction,'ScheduledTaskValues');
 
       DeleteTable(MyAction,'PayeeLines', True);
@@ -663,6 +667,7 @@ constructor TClientMigrater.Create(AConnection: string);
 begin
    inherited Create;
    Connection.DefaultDatabase := 'PracticeClient';
+   FClient := nil;
 
    FClient_RecFieldsTable := nil;
    FBudget_Detail_RecTable := nil;
@@ -682,6 +687,8 @@ begin
    FDivisionList := nil;
    FTaxEntriesTable := nil;
    FTaxRatesTable := nil;
+   FBalances_RecTable := nil;
+   FFuelSheetTable := nil;
    FClient_ScheduleTable := nil;
    FClient_ReportOptionsTable := nil;
    FClientFinacialReportOptionsTable := nil;
@@ -689,6 +696,7 @@ begin
    FChartDivisionTable := nil;
    FReminderTable := nil;
    FDownloadlogTable := nil;
+   FCustomDocSceduleTable := nil;
 end;
 
 destructor TClientMigrater.Destroy;
@@ -711,10 +719,13 @@ begin
   FreeAndNil(FDivisionList);
   FreeAndnil(FTaxEntriesTable);
   FreeAndNil(FTaxRatesTable);
+  FreeAndNil(FBalances_RecTable);
+  FreeAndnil(FFuelSheetTable);
   FreeAndNil(FClient_ScheduleTable);
   FreeAndNil(FClient_ReportOptionsTable);
   FreeAndNil(FClientFinacialReportOptionsTable);
   FreeAndNil(FCodingReportOptionsTable);
+  FreeAndNil(FCustomDocSceduleTable);
   FreeAndNil(FChartDivisionTable);
   FreeAndNil(FReminderTable);
   FreeAndNil(FDownloadlogTable);
@@ -733,6 +744,13 @@ begin
    if not Assigned(FAccount_RecTable) then
       FAccount_RecTable := TAccount_RecTable.Create(Connection);
    Result := FAccount_RecTable;
+end;
+
+function TClientMigrater.GetBalances_RecTable: TBalances_RecTable;
+begin
+   if not Assigned(FBalances_RecTable) then
+      FBalances_RecTable := TBalances_RecTable.Create(Connection);
+   Result := FBalances_RecTable;
 end;
 
 function TClientMigrater.GetBudget_Detail_RecTable: TBudget_Detail_RecTable;
@@ -798,6 +816,13 @@ begin
    Result := FCodingReportOptionsTable;
 end;
 
+function TClientMigrater.GetCustomDocSceduleTable: TCustomDocSceduleTable;
+begin
+   if not Assigned(FCustomDocSceduleTable) then
+      FCustomDocSceduleTable := TCustomDocSceduleTable.Create(Connection);
+   Result := FCustomDocSceduleTable;
+end;
+
 function TClientMigrater.GetCustom_Heading_RecTable: TCustom_Heading_RecTable;
 begin
    if not Assigned(FCustom_Heading_RecTable) then
@@ -824,6 +849,13 @@ begin
    if not Assigned(FDownloadlogTable) then
       FDownloadlogTable := TDownloadlogTable.Create(Connection);
    Result := FDownloadlogTable;
+end;
+
+function TClientMigrater.GetFuelSheetTable: TFuelSheetTable;
+begin
+  if not Assigned(FFuelSheetTable) then
+      FFuelSheetTable := TFuelSheetTable.Create(Connection);
+   Result := FFuelSheetTable;
 end;
 
 function TClientMigrater.GetJob_Heading_RecTable: TJob_Heading_RecTable;
@@ -896,6 +928,17 @@ begin
    Result := FTransaction_RecTable;
 end;
 
+function TClientMigrater.GetUser(const Value: string): TGuid;
+begin
+   fillChar(result,SizeOf(result),0);
+   if not Assigned(SystemMirater) then
+      Exit;
+   if not (SystemMirater is TSystemMigrater) then
+      Exit;
+
+   Result := TSystemMigrater(SystemMirater).GetUser(Value);
+end;
+
 function TClientMigrater.Migrate(ForAction:TMigrateAction;
                     ACode: string;
                     AClientID,
@@ -908,6 +951,15 @@ function TClientMigrater.Migrate(ForAction:TMigrateAction;
 var
    MyAction: TMigrateAction;
    GuidList: TGuidList;
+   LID: TGuid;
+   I: Integer;
+
+   procedure AddScheduledCustomDoc(Doc: TReportBase);
+   begin
+      if not Assigned(Doc) then
+        Exit;
+      CustomDocSceduleTable.Insert(NewGuid,LID,Doc.GetGUID);
+   end;
 begin
    Result := False;
    Reset;
@@ -920,9 +972,11 @@ begin
    MyAction := ForAction.InsertAction(format('Client: %s',[Code]));
 
    try try
+
       files.OpenAClientForRead(Code, FClient);
       if not Assigned(FClient) then
          raise exception.Create('Could not open File');
+
 
       DoSuperFund :=
                 Software.IsSuperFund(FClient.clFields.clCountry,FClient.clFields.clAccounting_System_Used);
@@ -944,13 +998,19 @@ begin
 
 
       try
-      Client_ScheduleTable.Insert
-                    ( NewGuid,
+         LID := NewGuid;
+         Client_ScheduleTable.Insert
+                    ( LID,
                       ClientID,
                       @FClient.clFields,
                       @FClient.clMoreFields,
                       @FClient.clExtra
                     );
+          for I := low(FClient.clExtra.ceSend_Custom_Documents_List) to High(FClient.clExtra.ceSend_Custom_Documents_List) do
+             if FClient.clExtra.ceSend_Custom_Documents_List[I] > '' then
+               AddScheduledCustomDoc( CustomDocManager.GetReportByGUID(FClient.clExtra.ceSend_Custom_Documents_List[I]));
+             
+                     
       except
         on E: Exception do MyAction.AddWarining(E);
       end;
@@ -1003,6 +1063,8 @@ begin
 
       AddGStRates(MyAction);
 
+      RunGuidList(MyAction,'Balances',GuidList.CloneList(FClient.clBalances_List ),AddBalance);
+
       AddReminders(MyAction);
 
       MigrateDiskLog(MyAction);
@@ -1020,6 +1082,29 @@ begin
    end;
 end;
 
+function TClientMigrater.MigrateCustomDocs(ForAction: TMigrateAction): Boolean;
+var I: Integer;
+    CustomDocTable: TCustomDocTable;
+
+    procedure AddCostomDoc(Doc: TReportBase);
+    begin
+       CustomDocTable.Insert(Doc,GetUser(Doc.Createdby));
+    end;
+begin
+   if CustomDocManager.ReportList.Count = 0 then begin
+      Result := true; // No failure...
+      exit;
+   end;
+
+   CustomDocTable := TCustomDocTable.Create(Connection);
+   try
+      for I := 0 to CustomDocManager.ReportList.Count - 1 do
+         AddCostomDoc(TReportBase(CustomDocManager.ReportList[I]));
+   finally
+      CustomDocTable.Free;
+   end;
+end;
+
 procedure TClientMigrater.Reset;
 begin
    FClient := nil;
@@ -1027,39 +1112,7 @@ begin
    DissectionCount := 0;
 end;
 
-procedure TClientMigrater.SetAccount_RecTable(const Value: TAccount_RecTable);
-begin
-  FAccount_RecTable := Value;
-end;
 
-procedure TClientMigrater.SetBudget_Detail_RecTable(
-  const Value: TBudget_Detail_RecTable);
-begin
-  FBudget_Detail_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetBudget_Header_RecTable(
-  const Value: TBudget_Header_RecTable);
-begin
-  FBudget_Header_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetChartDivisionTable(
-  const Value: TChartDivisionTable);
-begin
-  FChartDivisionTable := Value;
-end;
-
-procedure TClientMigrater.SetChart_RecTable(const Value: TChart_RecTable);
-begin
-  FChart_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetClientFinacialReportOptionsTable(
-  const Value: TClientFinacialReportOptionsTable);
-begin
-  FClientFinacialReportOptionsTable := Value;
-end;
 
 procedure TClientMigrater.SetClientID(const Value: TGuid);
 begin
@@ -1071,54 +1124,14 @@ begin
   FClientLRN := Value;
 end;
 
-procedure TClientMigrater.SetClient_RecFieldsTable(
-  const Value: TClient_RecFieldsTable);
-begin
-  FClient_RecFieldsTable := Value;
-end;
-
-procedure TClientMigrater.SetClient_ReportOptionsTable(
-  const Value: TClient_ReportOptionsTable);
-begin
-  FClient_ReportOptionsTable := Value;
-end;
-
-procedure TClientMigrater.SetClient_ScheduleTable(
-  const Value: TClient_ScheduleTable);
-begin
-  FClient_ScheduleTable := Value;
-end;
-
 procedure TClientMigrater.SetCode(const Value: string);
 begin
   FCode := Value;
-end;
-procedure TClientMigrater.SetCodingReportOptionsTable(
-  const Value: TCodingReportOptionsTable);
-begin
-  FCodingReportOptionsTable := Value;
-end;
-
-procedure TClientMigrater.SetCustom_Heading_RecTable(
-  const Value: TCustom_Heading_RecTable);
-begin
-  FCustom_Heading_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetDissection_RecTable(
-  const Value: TDissection_RecTable);
-begin
-  FDissection_RecTable := Value;
 end;
 
 procedure TClientMigrater.SetDivisionList(const Value: TGuidList);
 begin
   FDivisionList := Value;
-end;
-
-procedure TClientMigrater.SetDivisionsTable(const Value: TDivisionsTable);
-begin
-  FDivisionsTable := Value;
 end;
 
 procedure TClientMigrater.SetDoSuperfund(const Value: Boolean);
@@ -1151,76 +1164,10 @@ begin
 
 end;
 
-procedure TClientMigrater.SetDownloadlogTable(const Value: TDownloadlogTable);
-begin
-  FDownloadlogTable := Value;
-end;
-
-procedure TClientMigrater.SetJob_Heading_RecTable(
-  const Value: TJob_Heading_RecTable);
-begin
-  FJob_Heading_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetMemorisation_Detail_RecTable(
-  const Value: TMemorisation_Detail_RecTable);
-begin
-  FMemorisation_Detail_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetMemorisation_Line_RecTable(
-  const Value: TMemorisation_Line_RecTable);
-begin
-  FMemorisation_Line_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetPayee_Detail_RecTable(
-  const Value: TPayee_Detail_RecTable);
-begin
-  FPayee_Detail_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetPayee_Line_RecTable(
-  const Value: TPayee_Line_RecTable);
-begin
-  FPayee_Line_RecTable := Value;
-end;
-
-procedure TClientMigrater.SetReminderTable(const Value: TReminderTable);
-begin
-  FReminderTable := Value;
-end;
-
-procedure TClientMigrater.SetSubGroupTable(const Value: TSubGroupTable);
-begin
-  FSubGroupTable := Value;
-end;
-
 procedure TClientMigrater.SetSystemMirater(const Value: TMigrater);
 begin
   FSystemMirater := Value;
 end;
 
-procedure TClientMigrater.SetTaxEntriesTable(const Value: TTaxEntriesTable);
-begin
-  FTaxEntriesTable := Value;
-end;
 
-procedure TClientMigrater.SetTaxRatesTable(const Value: TTaxRatesTable);
-begin
-  FTaxRatesTable := Value;
-end;
-
-procedure TClientMigrater.SetTransaction_RecTable(
-  const Value: TTransaction_RecTable);
-begin
-  FTransaction_RecTable := Value;
-end;
-
-{
-procedure TClientMigrater.SetForAction(const Value: TMigrateAction);
-begin
-  FForAction := Value;
-end;
-}
 end.

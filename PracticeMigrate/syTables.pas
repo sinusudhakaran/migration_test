@@ -112,7 +112,6 @@ public
 end;
 
 TParameterTable = class (TMigrateTable)
-
 protected
    procedure SetupTable; override;
 public
@@ -122,6 +121,7 @@ public
    function Update(ParamName: string;ParamValue: Integer): Boolean; overload;
    function Update(ParamName: string; ParamValue: Money): Boolean; overload;
 end;
+
 
 
 implementation
@@ -447,5 +447,7 @@ function TParameterTable.Update(ParamName: string; ParamValue: Money): Boolean;
 begin
   Result := UpDate(ParamName, FormatFloat('0.00', ParamValue/100) );
 end;
+
+
 
 end.

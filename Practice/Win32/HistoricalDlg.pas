@@ -395,6 +395,7 @@ function AddProvisionalData(ForAccount: string) : boolean;
 implementation
 
 uses
+  ClientHomepagefrm,
   ArchUtil32,
   clobj32,
   ForexHelpers,
@@ -3576,7 +3577,11 @@ var
    Count   : integer;
    UEList  : tUEList;
    UE      : pUE;
+   kc: TCursor;
 begin
+   kc := Screen.Cursor;
+   Screen.Cursor := crHourGlass;
+   try
    Count := 0;
    //create a unpresented items list to check new transactions against
 //   if fIsForex then
@@ -3705,6 +3710,9 @@ begin
    //delete from list otherwise will be free'd when HistTranList is destroyed
    HistTranList.DeleteAll;
 
+   finally
+      Screen.Cursor := kc;
+   end;
    S := Format( 'Add %s Entries complete.'#13#13'Added %d new entries.',[AccountType, Count ]);
    LogMsg(lmInfo,UnitName, S);
    HelpfulInfoMsg(S, 0);
@@ -4847,6 +4855,7 @@ begin
       FreeAndNil(TempClient);
 
       MyClient := KeepClient;
+      RefreshHomepage([HPR_Coding]);
    end;
 end;
 
