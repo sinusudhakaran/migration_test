@@ -353,6 +353,10 @@ begin
                    Result := True;
             end;
          end;
+      whUK: begin
+              Result := aType in [suOther, suQIF, suOFXV1, suOFXV2];
+
+      end;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
