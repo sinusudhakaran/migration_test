@@ -143,7 +143,6 @@ var
    NewItem   : TListItem;
    BankAcct  : pSystem_Bank_Account_Rec;
    i         : integer;
-   IncludeAccount : boolean;
 begin
    lvBank.Items.beginUpdate;
    try
@@ -154,49 +153,44 @@ begin
      for i := 0 to Pred(itemCount) do
      begin
         BankAcct := System_Bank_Account_At(i);
-        if BankAcct.sbAccount_Type <> sbtData then Continue;
-        //include non attached and not deleted
-        IncludeAccount := (BankAcct.sbAttach_Required) and (not BankAcct.sbMark_As_Deleted);
-        if (not IncludeAccount) then
-          //include deleted
-          IncludeAccount := (chkIncludeDeleted.Checked and BankAcct.sbMark_As_Deleted);
-        if (not IncludeAccount) then
-          //include attached if not deleted
-          IncludeAccount := (chkIncludeAttached.Checked and not BankAcct.sbAttach_Required) and
-                            (not BankAcct.sbMark_As_Deleted);
+        if BankAcct.sbAccount_Type = sbtOffsite then
+            Continue;
 
-        //add account to list if needed
-        if IncludeAccount then begin
-          NewItem := lvBank.Items.Add;
-          NewItem.Caption := BankAcct.sbAccount_Number;
+        if not chkIncludeAttached.Checked then
+           if (not BankAcct.sbAttach_Required) then
+              Continue; // Skip the Non attached
 
-          //setup icons
-          if BankAcct^.sbAccount_Password <> '' then
-            NewItem.ImageIndex := MAINTAIN_LOCK_BMP
-          else
-            NewItem.ImageIndex := -1;
+        if not chkIncludeDeleted.Checked then
+           if BankAcct.sbMark_As_Deleted then
+              Continue; //Skip the Deleted
 
-          //set state icon
-          NewItem.StateIndex   := -1;
+        NewItem := lvBank.Items.Add;
+        NewItem.Caption := BankAcct.sbAccount_Number;
 
-          if BankAcct.sbMark_As_Deleted then begin
-             NewItem.StateIndex := STATES_DELETED_BMP;
-          end
-          else begin
-             //account is not deleted, show attached state
-             if BankAcct^.sbAttach_Required then begin
-               if BankAcct^.sbNew_This_Month then
+        //setup icons
+        if BankAcct^.sbAccount_Password <> '' then
+           NewItem.ImageIndex := MAINTAIN_LOCK_BMP
+        else
+           NewItem.ImageIndex := -1;
+
+        //set state icon
+        NewItem.StateIndex   := -1;
+
+        if BankAcct.sbMark_As_Deleted then begin
+           NewItem.StateIndex := STATES_DELETED_BMP;
+        end else begin
+           //account is not deleted, show attached state
+           if BankAcct^.sbAttach_Required then begin
+              if BankAcct^.sbNew_This_Month then
                  NewItem.StateIndex := STATES_NEW_ACCOUNT_BMP
-               else
+              else
                  NewItem.StateIndex := STATES_UNATTACHED_BMP;
-             end
-             else
-               NewItem.StateIndex := STATES_ATTACHED_BMP;
-          end;
-
-          NewItem.SubItems.Add(BankAcct.sbAccount_Name);
-          NewItem.SubItems.Add(BankAcct.sbCurrency_Code);
+           end else
+              NewItem.StateIndex := STATES_ATTACHED_BMP;
         end;
+
+        NewItem.SubItems.Add(BankAcct.sbAccount_Name);
+        NewItem.SubItems.Add(BankAcct.sbCurrency_Code);
      end;
    finally
      lvBank.items.EndUpdate;

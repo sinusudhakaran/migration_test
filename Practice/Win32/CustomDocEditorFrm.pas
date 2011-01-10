@@ -106,12 +106,13 @@ type
   TCustomDocHelper = class Helper for TReportBase
   private
     function GetRTF: WideString;
-    procedure SetRTF(ARTF: string);
+    procedure SetRTF(ARTF: Widestring);
     procedure SetDeleted(const Value: Boolean);
     function GetDeleted: Boolean;
   public
     function GetGUID: string;
     property Deleted: Boolean read GetDeleted write SetDeleted;
+    property RTF: WideString read GetRTF write SetRTF;
   end;
 
   //Singleton to provide list of custom documents
@@ -1576,7 +1577,7 @@ begin
   SetNodeTextStr(Settings, 'DocDeleted', BoolToStr(Value));
 end;
 
-procedure TCustomDocHelper.SetRTF(ARTF: string);
+procedure TCustomDocHelper.SetRTF(ARTF: Widestring);
 begin
   SaveRTFData(Settings, 'ReportRTF', ARTF);
 end;

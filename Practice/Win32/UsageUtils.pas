@@ -228,7 +228,7 @@ var
   p: pClient_File_Rec;
   u: pUser_Rec;
   lPractice: TSystem_Coding_Statistics;
-  
+
     procedure WriteCodingStats(Value: pCoding_Statistics_Rec);
     var lDate: string;
        procedure AddCodingUsage(Value: Integer; Name: string);
@@ -251,6 +251,34 @@ var
 
     end;
 
+    procedure SetProvisionalClients;
+    var lList: TList;
+        I: Integer;
+
+        procedure TestAccount(AccLRN: Integer);
+        var map: pClient_Account_Map_Rec;
+        begin
+            map := AdminSystem.fdSystem_Client_Account_Map.FindFirstClient(AccLRN);
+            while assigned (map) do begin
+               if lList.IndexOf(Pointer(map.amClient_LRN)) < 0 then
+                  lList.Add(Pointer(map.amClient_LRN)); // Not in the list yet
+               map := AdminSystem.fdSystem_Client_Account_Map.FindNextClient(AccLRN);
+            end;
+        end;
+    begin
+       lList := TList.Create;
+       try
+          for I := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount - 1 do
+             with AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(I)^ do begin
+                if sbAccount_Type <> sbtProvisional then
+                   Continue;
+                TestAccount(sbLRN);
+             end;
+          SetUsage('No of Client Files with Provisional Bank Accounts',lList.Count);
+       finally
+          lList.Free;
+       end;
+    end;
 
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'UpdateSystemCounters Begins');
@@ -324,6 +352,7 @@ begin
      else
         SetUsage('No of Admin DualAccountingSystems',0);
 
+     SetProvisionalClients;
 
   for i := 0 to Pred(AdminSystem.fdSystem_User_List.ItemCount) do
   begin
