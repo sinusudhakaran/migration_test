@@ -1512,8 +1512,8 @@ var
    Total, Remain : Double;
 begin
    CalcControlTotals( Count, Total, Remain );
-   lblTotal.Caption  := MoneyStr(Total/Denominator);
-   lblRemain.Caption := MoneyStr(Remain/Denominator);
+   lblTotal.Caption  := MoneyStr(Total);
+   lblRemain.Caption := MoneyStr(Remain);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDissection.AmountEdited(NewValue: double; DataRow: integer);
