@@ -485,6 +485,7 @@ F|Linked Account CS|S|20
 F|Hide In Basic Chart|Y
 C|Temp_Quantity|DBR
 C|Temp_Amount|DBR
+C|Temp_Base_Amount|DBR
 C|Temp Money Value|$
 C|Temp Calc Totals Tag|L
 C|Temp Include In Report|Y

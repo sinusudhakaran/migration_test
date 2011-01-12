@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 623;
-   BK_IOLIB_Date    = '26/11/10';
+   BK_IOLIB_Version : Integer = 624;
+   BK_IOLIB_Date    = '24/12/10';
    BK_FILE_VERSION  = 163;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -532,6 +532,7 @@ Type
       chHide_In_Basic_Chart              : Boolean;       { Stored }
       chTemp_Quantity                    : TDynamic_Balances_Rec;
       chTemp_Amount                      : TDynamic_Balances_Rec;
+      chTemp_Base_Amount                 : TDynamic_Balances_Rec;
       chTemp_Money_Value                 : Money;
       chTemp_Calc_Totals_Tag             : Integer;
       chTemp_Include_In_Report           : Boolean;
