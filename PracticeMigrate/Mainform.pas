@@ -130,6 +130,7 @@ var
 implementation
 
 uses
+CustomDocEditorFrm,
 GlobalDirectories,
 AvailableSQLServers,
 ErrorMorefrm,
@@ -147,7 +148,11 @@ baObj32,
 admin32,
 Archutil32,
 WinUtils,
-Globals,FromBrowseForm,clobj32,bkDefs,files,
+Globals,
+FromBrowseForm,
+clobj32,
+bkDefs,
+files,
 SQLHelpers,
 bthelpers,
 bkHelpers,

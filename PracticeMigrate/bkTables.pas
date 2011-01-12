@@ -39,6 +39,18 @@ public
                    Extra: pClientExtra_Rec): Boolean;
 end;
 
+
+TNotesOptionsTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyId: TGuid;
+                   ClientID: TGuid;
+                   Value: pClient_Rec;
+                   Extra: pClientExtra_Rec;
+                   Notification: Integer): Boolean;
+end;
+
 TClient_ReportOptionsTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
@@ -70,6 +82,16 @@ public
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec): Boolean;
+end;
+
+TBAS_OptionsTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyId: TGuid;
+                   ClientID: TGuid;
+                   Value: pClient_Rec;
+                   More: pMoreClient_Rec): Boolean;
 end;
 
 TAccount_RecTable = class (TMigrateTable)
@@ -1048,6 +1070,52 @@ begin
   SetFields(['Id','BalanceId','Account','FuelType','FuelLitres','FuelUse','Percentage'
       ,'FuelEligible','CreditRate'],[]);
 
+end;
+
+{ TBAS_OptionsTable }
+
+function TBAS_OptionsTable.Insert(MyId, ClientID: TGuid; Value: pClient_Rec;
+  More: pMoreClient_Rec): Boolean;
+begin
+   Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(More.mcBAS_Dont_Print_Fuel_Sheet), ToSQL(Value.clBAS_Include_Fuel), ToSQL(Value.clBAS_Calculation_Method)
+               ,ToSQL(Value.clBAS_Dont_Print_Calc_Sheet), ToSQL(Value.clBAS_PAYG_Withheld_Period), ToSQL(Value.clBAS_Report_Format), ToSQL(Value.clBAS_PAYG_Instalment_Period)
+               ,ToSQL(Value.clBAS_Include_FBT_WET_LCT), ToSQL(Value.clBAS_Last_GST_Option), ToSQL(Value.clBAS_Last_PAYG_Instalment_Option)],[]);
+end;
+
+procedure TBAS_OptionsTable.SetupTable;
+begin
+   TableName := 'BASOptions';
+   SetFields(['Id', 'Client_Id','BASDontPrintFuelSheet','BASIncludeFuel','BASCalculationMethod'
+      ,'BASDontPrintCalcSheet','BASPAYGWithheldPeriod','BASReportFormat','BASPAYGIncomeTaxPeriod'
+      ,'BASIncludeFBTWETLCT','BASLastGSTOption','BASLastPAYGInstalmentOption'],[]);
+
+end;
+
+{ TNotesOptionsTable }
+
+function TNotesOptionsTable.Insert(MyId: TGuid;
+                   ClientID: TGuid;
+                   Value: pClient_Rec;
+                   Extra: pClientExtra_Rec;
+                   Notification: Integer): Boolean;
+begin with Value^ do
+   Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(not clECoding_Dont_Allow_UPIs), ToSQL(not clECoding_Dont_Show_Account)
+                 ,ToSQL(not value.clECoding_Dont_Show_Payees), ToSQL(not clECoding_Dont_Show_GST), ToSQL(not clECoding_Dont_Show_TaxInvoice)
+{2}          ,ToSQL(clECoding_WebSpace), ToSQL(clECoding_Default_Password), ToSQL(clECoding_Import_Options), ToSQL(clECoding_Last_Import_Dir)
+                  ,ToSQL(Value.clECoding_Last_Export_Dir)
+{3}          ,ToSQL(clECoding_Entry_Selection), ToSQL(not clECoding_Dont_Send_Chart), ToSQL(not clECoding_Dont_Send_Payees), ToSQL(not clECoding_Dont_Show_Quantity)
+                 ,ToSQL(clECoding_Last_File_No), ToSQL(clECoding_Last_File_No_Imported)
+{4}          ,ToSQL(not Extra.ceECoding_Dont_Send_Jobs), ToSQL(clECoding_Send_Superfund)
+                 ,ToSQL(Notification and wnDontNotifyMe = 0), TOSQL(Notification and wnDontNotifyClient = 0)],[]);
+end;
+
+procedure TNotesOptionsTable.SetupTable;
+begin
+   TableName := 'NotesOptions';
+   SetFields(['Id', 'ClientId' ,'AllowUPIs' ,'ShowChart','ShowPayees','ShowGST','ShowTaxInvoice'
+{2}      ,'WebSpace','DefaultPassword' ,'ImportOptions','LastImportDir','LastExportDir'
+{3}      ,'EntrySelection','SendChart' ,'SendPayees' ,'ShowQuantity' ,'LastFileNo' ,'LastFileNoImported'
+{4}      ,'SendJobs' ,'SendSuperfund' ,'SendtoClientonExport' ,'SendtoPracticeTransactionsAvailable'],[]);
 end;
 
 end.

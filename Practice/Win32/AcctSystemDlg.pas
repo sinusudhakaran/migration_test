@@ -329,39 +329,36 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.cmbSystemChange(Sender: TObject);
 var
-   CanRefresh : Boolean;
    SelectedSystem : integer;
+
+   procedure SetSaveToField(Value: Boolean);
+   begin
+      lblSaveTo.Enabled := Value;
+      eTo.Enabled := Value;
+      btnToFolder.Enabled := Value;
+   end;
+
+   procedure SetCanRefresh(Value: Boolean);
+   begin
+      lblFrom.Enabled := Value;
+      eFrom.Enabled   := Value;
+      btnFromFolder.Enabled := Value;
+   end;
+
 begin
    if Assigned(Sender)
    and Insetup then
       Exit;
-   if cmbSystem.ItemIndex <0 then
+
+   if cmbSystem.ItemIndex < 0 then
       Exit;
+
    SelectedSystem := Integer( cmbSystem.Items.Objects[ cmbSystem.ItemIndex ] );
 
-   CanRefresh := CanRefreshChart( MyClient.clFields.clCountry,
-                                     SelectedSystem );
-   lblFrom.Enabled := CanRefresh;
-   eFrom.Enabled   := CanRefresh;
-   btnFromFolder.Enabled := CanRefresh;
+   SetCanRefresh(Software.CanRefreshChart(MyClient.clFields.clCountry, SelectedSystem));
+   SetSaveToField(Software.UseSaveToField(MyClient.clFields.clCountry, SelectedSystem));
 
-   if not Software.UseSaveToField( MyClient.clFields.clCountry, SelectedSystem) then
-   begin
-     lblSaveTo.Visible := false;
-     eTo.Visible := false;
-     btnToFolder.Visible := false;
-     btnCheckBankManID.Top := eTo.Top;
-   end
-   else
-   begin
-     lblSaveTo.Visible := true;
-     eTo.Visible := true;
-     btnToFolder.Visible := true;
-     btnCheckBankManID.Top := eTo.Top + 28;
-   end;
-
-   btnCheckBankManID.Visible := Software.CanUseMYOBAO_DLL_Refresh(  MyClient.clFields.clCountry, SelectedSystem);
-
+   btnCheckBankManID.Visible := Software.CanUseMYOBAO_DLL_Refresh( MyClient.clFields.clCountry, SelectedSystem);
 
    //check current bank path variable
    if Software.IsMYOBAO_7( MyClient.clFields.clCountry, SelectedSystem) and WinUtils.IsWin2000_or_later then

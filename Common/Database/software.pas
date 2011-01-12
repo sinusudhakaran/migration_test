@@ -393,9 +393,12 @@ end;
 function UseSaveToField( aCountry, aType : byte) : boolean;
 begin
    if IsMYOBAO_DLL_Interface( aCountry, aType) then
-     result := false
+      Result := false
    else
-     result := true;
+      case aCountry of
+        whUK : Result := not (aType in [suQuickBooks, suTASBooks, suSageLine50])
+        else Result := true;
+      end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function IsPA7Interface( aCountry, aType : byte) : boolean;
@@ -509,7 +512,7 @@ end;
 function HasAlternativeChartCode(aCountry, aType : byte) : boolean;
 begin
    case aCountry of
-   whAustralia : result := (aType = saBGLSimpleFund)
+   whAustralia : Result := (aType = saBGLSimpleFund)
    else Result := False;
    end;
 end;
@@ -517,12 +520,12 @@ end;
 
 function AlternativeChartCodeName(aCountry, aType : byte) : ShortString;
 begin
+   Result := '';
    case aCountry of
    whAustralia :
        case aType of
-        saBGLSimpleFund : result := 'ASX Code';
+          saBGLSimpleFund : Result := 'ASX Code';
        end
-   else Result := '';
    end;
 end;
 

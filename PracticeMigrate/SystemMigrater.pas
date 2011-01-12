@@ -324,7 +324,7 @@ begin
             GetUser(Clientrec.cfUser_Responsible),
             ClientGroupList.FindLrnGuid(Clientrec.cfGroup_LRN),
             ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN),
-            Clientrec.cfLRN
+            Clientrec
          );
 end;
 

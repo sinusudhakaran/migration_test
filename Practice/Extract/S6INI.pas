@@ -3,9 +3,9 @@ unit S6INI;
 interface
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Var
-   s6UseMAS50Import  : Boolean;
-//   s6UseASCIIImport  : Boolean;
+
+  function s6UseMAS50Import  : Boolean;
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 implementation uses SysUtils, Forms, WinUtils, IniFiles;
@@ -14,29 +14,26 @@ implementation uses SysUtils, Forms, WinUtils, IniFiles;
 CONST
    SubKey                = 'Settings';
    s6UseMAS50ImportKey   = 'MAS5 Import';
-//   s6UseAsciiImportKey   = 'ASCII Import';
+
    
 VAR
    iniFileName : String;
    
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    
-procedure SetDefaults;
-Begin
-   s6UseMAS50Import := False;
-//   s6UseAsciiImport := False;
-end;   
-   
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    
-procedure ReadSettings;
+function ReadSettings: boolean;
 Var
    I   : TMemIniFile;
 Begin
-   if not BKFileExists( IniFileName ) then Exit;
+   Result := False;
+   if not BKFileExists( IniFileName ) then
+      Exit;
    I := TMemIniFile.Create( IniFileName );
    Try
-      s6UseMAS50Import := StrToBool(I.ReadString( SubKey, s6UseMAS50ImportKey, 'FALSE' ));
+      Result := StrToBool(I.ReadString( SubKey, s6UseMAS50ImportKey, 'FALSE' ));
 //      s6UseAsciiImport := I.ReadBoolean( s6UseAsciiImportKey, s6UseAsciiImport );
    Finally
       I.Free;
@@ -45,13 +42,13 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure SaveSettings;
+procedure SaveSettings(Value: Boolean);
 Var
    I   : TMemIniFile;
 Begin
    I := TMemIniFile.Create( IniFileName );
    try
-      I.WriteBool( SubKey, s6UseMAS50ImportKey, s6UseMAS50Import );
+      I.WriteBool( SubKey, s6UseMAS50ImportKey, Value );
 //      I.WriteBoolean( s6UseAsciiImportKey, s6UseAsciiImport );
    finally
       I.UpdateFile;
@@ -61,12 +58,15 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-initialization
+
+function s6UseMAS50Import  : Boolean;
+begin
    iniFileName := ExtractFilePath( Application.ExeName ) + '\MAS.INI';
-   SetDefaults;
-   ReadSettings;
+   Result := ReadSettings;
    if not BKFileExists( IniFileName ) then begin
-      SaveSettings;
+      SaveSettings(Result);
    end;
+end;
+
 end.
 

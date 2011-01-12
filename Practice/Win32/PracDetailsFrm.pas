@@ -165,10 +165,13 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.SetUpAccounting(const AccountingSystem: Byte);
 var
-  CanRefresh : Boolean;
+  CanRefresh,
+  UseSaveTo : Boolean;
   AccountingSystemSelected: Boolean;
 begin
   CanRefresh := CanRefreshChart( AdminSystem.fdFields.fdCountry, AccountingSystem);
+  UseSaveTo := UseSaveToField(AdminSystem.fdFields.fdCountry, AccountingSystem);
+
   AccountingSystemSelected := not ( AccountingSystem = asNone);
 
   lblMask.Enabled := AccountingSystemSelected;
@@ -176,9 +179,9 @@ begin
   lblLoad.Enabled := AccountingSystemSelected and CanRefresh;
   eLoad.Enabled   := AccountingSystemSelected and CanRefresh;
   btnLoadFolder.Enabled := AccountingSystemSelected and CanRefresh;
-  lblSave.Enabled := AccountingSystemSelected;
-  eSave.Enabled := AccountingSystemSelected;
-  btnSaveFolder.Enabled := AccountingSystemSelected;
+  lblSave.Enabled := AccountingSystemSelected and UseSaveTo;
+  eSave.Enabled := AccountingSystemSelected and UseSaveTo;
+  btnSaveFolder.Enabled := AccountingSystemSelected and UseSaveTo;
 
   if (AccountingSystem = asNone) then begin
     eMask.Text := '';

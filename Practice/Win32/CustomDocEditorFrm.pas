@@ -769,6 +769,7 @@ end;
 procedure TfrmCustomDocEditor.FormDestroy(Sender: TObject);
 begin
    UserINI_CD_GroupWidth := GBGroupBar.Width;
+   CustomDocManager.SaveReports;
 end;
 
 procedure TfrmCustomDocEditor.FormKeyDown(Sender: TObject; var Key: Word;
@@ -1167,7 +1168,6 @@ end;
 
 destructor TCustomDocManager.Destroy;
 begin
-  SaveReports;
   FReportMergeList.Free;
   if Assigned(FReportList) then
     FReportList.Free;

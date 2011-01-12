@@ -5,6 +5,7 @@ unit ClientMigrater;
 interface
 
 uses
+   syDefs,
    bkTables,
    CDTables,
    sqlHelpers,
@@ -52,6 +53,8 @@ TClientMigrater = class (TMigrater)
     FDownloadlogTable: TDownloadlogTable;
     FBalances_RecTable: TBalances_RecTable;
     FFuelSheetTable: TFuelSheetTable;
+    FBAS_OptionsTable: TBAS_OptionsTable;
+    FNotesOptionsTable: TNotesOptionsTable;
     procedure SetClientID(const Value: TGuid);
     procedure SetCode(const Value: string);
 
@@ -109,6 +112,8 @@ TClientMigrater = class (TMigrater)
     function GetBalances_RecTable: TBalances_RecTable;
     function GetFuelSheetTable: TFuelSheetTable;
     function GetCustomDocSceduleTable: TCustomDocSceduleTable;
+    function GetTBAS_OptionsTable: TBAS_OptionsTable;
+    function GetNotesOptionsTable: TNotesOptionsTable;
   public
    constructor Create(AConnection: string);
    destructor Destroy; override;
@@ -120,7 +125,7 @@ TClientMigrater = class (TMigrater)
                     AUserID,
                     AGroupID,
                     ATypeID: TGuid;
-                    AClientLRN: Integer): Boolean;
+                    AClient: pClient_File_Rec = nil): Boolean;
 
    function MigrateCustomDocs(ForAction:TMigrateAction): Boolean;
    // Tables
@@ -151,6 +156,8 @@ TClientMigrater = class (TMigrater)
    property ReminderTable: TReminderTable read GetReminderTable;
    property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable;
    property CustomDocSceduleTable: TCustomDocSceduleTable read GetCustomDocSceduleTable;
+   property BAS_OptionsTable: TBAS_OptionsTable read GetTBAS_OptionsTable;
+   property NotesOptionsTable: TNotesOptionsTable read GetNotesOptionsTable;
 
    // Lists
    property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
@@ -171,17 +178,16 @@ uses
    CustomDocEditorFrm,
    ToDoListUnit,
    AdminNotesForClient,
-   syDefs,
    SystemMigrater,
    BUDOBJ32,
    PayeeObj,
    MemorisationsObj,
+   bkConst,
    bkDefs,
    glConst,
    baObj32,
    Software,
    files,
-
    Sysutils;
 
 { TClientMigrater }
@@ -609,12 +615,14 @@ begin
       { TODO : Change to Tables rather than the name.. }
       DeleteTable(MyAction,Job_Heading_RecTable, True);
 
+      DeleteTable(MYAction,DownloadlogTable, True);
+
       DeleteTable(MyAction,'FuelSheets', True);
       DeleteTable(MyAction,'Balances');
 
+      DeleteTable(MyAction,NotesOptionsTable, True);
+      DeleteTable(MyAction,BAS_OptionsTable, True);
 
-
-      DeleteTable(MyAction,'NotesOptions');
       DeleteTable(MyAction,'Headings');
 
       DeleteTable(MyAction,CustomDocSceduleTable);
@@ -697,6 +705,8 @@ begin
    FReminderTable := nil;
    FDownloadlogTable := nil;
    FCustomDocSceduleTable := nil;
+   FBAS_OptionsTable := nil;
+   FNotesOptionsTable := nil;
 end;
 
 destructor TClientMigrater.Destroy;
@@ -729,6 +739,8 @@ begin
   FreeAndNil(FChartDivisionTable);
   FreeAndNil(FReminderTable);
   FreeAndNil(FDownloadlogTable);
+  FreeAndNil(FBAS_OptionsTable);
+  FreeAndNil(FNotesOptionsTable);
   inherited;
 end;
 
@@ -879,6 +891,13 @@ begin
    Result := FMemorisation_Line_RecTable;
 end;
 
+function TClientMigrater.GetNotesOptionsTable: TNotesOptionsTable;
+begin
+   if not Assigned(FNotesOptionsTable) then
+      FNotesOptionsTable := TNotesOptionsTable.Create(Connection);
+   Result := FNotesOptionsTable;
+end;
+
 function TClientMigrater.GetPayee_Detail_RecTable: TPayee_Detail_RecTable;
 begin
    if not Assigned(FPayee_Detail_RecTable) then
@@ -921,6 +940,13 @@ begin
    Result := FTaxRatesTable;
 end;
 
+function TClientMigrater.GetTBAS_OptionsTable: TBAS_OptionsTable;
+begin
+   if not Assigned(FBAS_OptionsTable) then
+      FBAS_OptionsTable := TBAS_OptionsTable.Create(Connection);
+   Result := FBAS_OptionsTable;
+end;
+
 function TClientMigrater.GetTransaction_RecTable: TTransaction_RecTable;
 begin
    if not Assigned(FTransaction_RecTable) then
@@ -945,7 +971,7 @@ function TClientMigrater.Migrate(ForAction:TMigrateAction;
                     AUserID,
                     AGroupID,
                     ATypeID: TGuid;
-                    AClientLRN: Integer): Boolean;
+                    AClient: pClient_File_Rec = nil): Boolean;
 
 
 var
@@ -966,7 +992,11 @@ begin
 
    Code := ACode;
    ClientID := AClientID;
-   ClientLRN := AClientLRN;
+
+   if Assigned(AClient) then
+      ClientLRN := AClient.cfLRN
+   else
+      ClientLRN := 0;
 
    GuidList := nil;
    MyAction := ForAction.InsertAction(format('Client: %s',[Code]));
@@ -978,9 +1008,9 @@ begin
          raise exception.Create('Could not open File');
 
 
-      DoSuperFund :=
-                Software.IsSuperFund(FClient.clFields.clCountry,FClient.clFields.clAccounting_System_Used);
-        // Add The Client File record
+      DoSuperFund := Software.IsSuperFund(FClient.clFields.clCountry, FClient.clFields.clAccounting_System_Used);
+
+      // Add The Client File record
       Client_RecFieldsTable.Insert
                     ( ClientID,
                       AUserID,
@@ -1009,13 +1039,14 @@ begin
           for I := low(FClient.clExtra.ceSend_Custom_Documents_List) to High(FClient.clExtra.ceSend_Custom_Documents_List) do
              if FClient.clExtra.ceSend_Custom_Documents_List[I] > '' then
                AddScheduledCustomDoc( CustomDocManager.GetReportByGUID(FClient.clExtra.ceSend_Custom_Documents_List[I]));
-             
-                     
+
+
       except
         on E: Exception do MyAction.AddWarining(E);
       end;
+
       try
-      Client_ReportOptionsTable.Insert( NewGuid,
+         Client_ReportOptionsTable.Insert( NewGuid,
                       ClientID,
                       @FClient.clFields,
                       @FClient.clMoreFields,
@@ -1024,8 +1055,9 @@ begin
       except
         on E: Exception do MyAction.AddWarining(E);
       end;
+
       try
-      ClientFinacialReportOptionsTable.Insert( NewGuid,
+         ClientFinacialReportOptionsTable.Insert( NewGuid,
                       ClientID,
                       @FClient.clFields,
                       @FClient.clMoreFields,
@@ -1034,16 +1066,45 @@ begin
       except
         on E: Exception do MyAction.AddWarining(E);
       end;
+
       try
-      CodingReportOptionsTable.Insert( NewGuid,
+         CodingReportOptionsTable.Insert( NewGuid,
                       ClientID,
                       @FClient.clFields,
                       @FClient.clMoreFields,
                       @FClient.clExtra);
 
       except
-        on E: Exception do MyAction.AddWarining(E);
+         on E: Exception do MyAction.AddWarining(E);
       end;
+
+      try
+         if Assigned(AClient) then
+            I := AClient.cfWebNotes_Email_Notifications
+         else
+            I := 0;
+
+         NotesOptionsTable.Insert(NewGuid,
+                      ClientID,
+                      @FClient.clFields,
+                      @FClient.clExtra,
+                      I);
+
+      except
+         on E: Exception do MyAction.AddWarining(E);
+      end;
+
+      if FClient.clFields.clCountry = whAustralia then
+         try
+              BAS_OptionsTable.Insert(NewGuid,
+                      ClientID,
+                      @FClient.clFields,
+                      @FClient.clMoreFields);
+         except
+            on E: Exception do MyAction.AddWarining(E);
+         end;
+
+
 
       GuidList := TGuidList.Create(FClient.clBank_Account_List);
       RunGuidList(MyAction,'Bank Accounts',GuidList,AddAccount);
