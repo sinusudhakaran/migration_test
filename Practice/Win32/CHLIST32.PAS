@@ -813,6 +813,7 @@ begin
    if Value <> FAccumulatorPeriods then begin
      for i := 0 to Pred( ItemCount) do begin
         DBR_SetLength( Account_At(i)^.chTemp_Amount, Value);
+        DBR_SetLength( Account_At(i)^.chTemp_Base_Amount, Value);
         DBR_SetLength( Account_At(i)^.chTemp_Quantity, Value);
      end;
      FAccumulatorPeriods := Value;

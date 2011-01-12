@@ -101,7 +101,7 @@ type
     FAddNew: Boolean;
     LastTrxDate,
     FirstTrxDate : integer;
-    LedgerCode: shortString; 
+    LedgerCode: shortString;
     procedure SetAddNew(Value: Boolean);
     procedure DoList;
     function OKtoPost : boolean;
@@ -334,6 +334,7 @@ function TdlgEditBank.OKtoPost: boolean;
 var
   AccName : string;
   i: Integer;
+  BA: TBank_Account;
 begin
   result := false;
 
@@ -390,6 +391,24 @@ begin
      PageControl1.ActivePage := tbDetails;
      eContra.SetFocus;
      exit;
+  end;
+
+  //Contra code can only be used for bank accounts with the same currency
+  if (eContra.Text <> '') then begin
+    for i := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do begin
+      BA := MyClient.clBank_Account_List.Bank_Account_At(i);
+      if Assigned(BA) then begin
+        if (eContra.Text = BA.baFields.baContra_Account_Code) and
+           (BA.baFields.baCurrency_Code <> BankAcct.baFields.baCurrency_Code) then begin
+          HelpfulWarningMsg('The Contra Account you have entered cannot be used because ' +
+                            'it is already assigned to a bank account with a different currency. ' +
+                            'Please choose a different code for the Contra Account.',0);
+          PageControl1.ActivePage := tbDetails;
+          eContra.SetFocus;
+          Exit;
+        end;
+      end;
+    end;
   end;
 
   result := true;

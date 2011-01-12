@@ -86,7 +86,8 @@ uses
   stDateSt,
   SysUtils, ECollect, BaList32, trxList32,
   RptParams,
-  CountryUtils;
+  CountryUtils,
+  baUtils;
 
 
 {$IFDEF SmartBooks}
@@ -97,6 +98,14 @@ const
    UnitName = 'RPTCASHFLOW';
 
 type
+  TBaseAmounts = record
+    OpeningBalance: array of TValuesArray;
+    Movement: array of TValuesArray;
+    ClosingBalance: array of TValuesArray;
+    ForexGainLoss: array of TValuesArray;
+    ClosingBalanceWithGainLoss: array of TValuesArray;
+  end;
+
   //this is the cashflow report object.  It adds functionality to print a
   //cash on hand section, and provides routines to retrieve values for each
   //account
@@ -107,10 +116,15 @@ type
 
     procedure GetOpeningBalancesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray);
     function GetClosingBalancesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray): Boolean;
-
     function  AccountNeedsPrinting( pAcct : pAccount_Rec) : boolean; override;
 
     procedure SetupColumnsTypes; override;
+    function NonBaseCurrencyContra(AContraCode: string): boolean;
+    function GetExchangeRateForForexContra(AContraCode: string; ForPeriod: integer; EndOfPerod: Boolean = False): Double;
+    procedure SetBaseAmounts(const pAcct : pAccount_Rec; var BaseAmounts: TBaseAmounts);
+  private
+    FClosingBalanceExchangeRate: double;
+    FUseBaseAmounts: Boolean;
   public
     function  GetHeading( No : Integer): string; override;
     procedure PrintCashOnHandSection;
@@ -970,6 +984,7 @@ begin
 
   AccountInfo := TAccountInformation.Create( ClientForReport);
   try
+    AccountInfo.UseBaseAmounts := FUseBaseAmounts; 
     AccountInfo.UseBudgetIfNoActualData     := ClientForReport.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual;
     AccountInfo.LastPeriodOfActualDataToUse := ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode                 := pAcct.chAccount_Code;
@@ -1007,6 +1022,28 @@ begin
   end;
 end;
 
+function TCashflowReportEx.GetExchangeRateForForexContra(AContraCode: string; ForPeriod: integer
+ ; EndOfPerod: Boolean = False): Double;
+var
+  i: integer;
+  ba : TBank_Account;
+  PeriodDate_TY, PeriodDate_LY: integer;
+begin
+  Result := 0;
+  for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
+    ba := TBank_Account(ClientForReport.clBank_Account_List.Bank_Account_At(i));
+    if Assigned(ba) then begin
+      if (ba.baFields.baContra_Account_Code = AContraCode) then begin
+        if EndOfPerod then
+          GetPeriodEndDate(ClientForReport, ForPeriod, PeriodDate_TY, PeriodDate_LY)
+        else
+          GetPeriodStartDate(ClientForReport, ForPeriod, PeriodDate_TY, PeriodDate_LY);
+        Result := ba.Default_Forex_Conversion_Rate(PeriodDate_TY);
+      end;
+    end;
+  end;
+end;
+
 function TCashflowReportEx.GetHeading(No: Integer): string;
 begin
   Result := GetCFHeading(ClientForReport, No);
@@ -1037,6 +1074,7 @@ begin
 
   AccountInfo := TAccountInformation.Create( ClientForReport);
   try
+    AccountInfo.UseBaseAmounts :=  FUseBaseAmounts;
     AccountInfo.UseBudgetIfNoActualData     := ClientForReport.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual;
     AccountInfo.LastPeriodOfActualDataToUse := ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode                 := pAcct.chAccount_Code;
@@ -1094,6 +1132,7 @@ begin
 
   AccountInfo := TAccountInformation.Create( ClientForReport);
   try
+    AccountInfo.UseBaseAmounts := FUseBaseAmounts;
     AccountInfo.UseBudgetIfNoActualData     := ClientForReport.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual;
     AccountInfo.LastPeriodOfActualDataToUse := ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode                 := pAcct.chAccount_Code;
@@ -1146,6 +1185,7 @@ begin
 
   AccountInfo := TAccountInformation.Create( ClientForReport);
   try
+    AccountInfo.UseBaseAmounts := FUseBaseAmounts;
     AccountInfo.UseBudgetIfNoActualData     := ClientForReport.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual;
     AccountInfo.LastPeriodOfActualDataToUse := ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode                 := pAcct.chAccount_Code;
@@ -1179,6 +1219,25 @@ begin
   end;
 end;
 
+function TCashflowReportEx.NonBaseCurrencyContra(AContraCode: string): boolean;
+var
+  i: integer;
+  ba : TBank_Account;
+begin
+  Result := False;
+  for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
+    ba := TBank_Account(ClientForReport.clBank_Account_List.Bank_Account_At(i));
+    if Assigned(ba) then begin
+      if (ba.baFields.baContra_Account_Code = AContraCode) then begin
+        if ba.IsAForexAccount then begin
+          Result := True;
+          Break;
+        end;
+      end;
+    end;
+  end;
+end;
+
 procedure TCashflowReportEx.PrintCashOnHandSection;
 //prints either a detailed or summarised cash on hand section.
 //this routine does not currently support sub groups.
@@ -1188,6 +1247,7 @@ var
   PeriodNo     : integer;
 
   ValuesArray  : TValuesArray;
+  ValuesArrayBase  : TValuesArray;
 
   OB_ValuesArray : TValuesArray;
   MV_ValuesArray : TValuesArray;
@@ -1206,45 +1266,48 @@ var
 
   ShowThisAccount : boolean;
 
-  function GetFormatForBankAccount(AContraCode: string): string;
-  var
-    i: integer;
-    ba : TBank_Account;
-    CS: string;
-  begin
-    Result := MyClient.FmtMoneyStrBrackets;
-    for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
-      ba := TBank_Account(ClientForReport.clBank_Account_List.Bank_Account_At(i));
-      if Assigned(ba) then begin
-        if (ba.baFields.baContra_Account_Code = AContraCode) then
-          CS := ba.CurrencySymbol;
-          if ClientForReport.clFields.clFRS_Report_Style in [crsSinglePeriod, crsBudgetRemaining] then
-          begin
-            if ReportTypeParams.RoundValues then
-            begin
-              Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]);
-              Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]); //note:sign is reversed
-            end else
-            begin
-              Result := Format('%s#,##0.00;%s(#,##0.00);-',[CS, CS]);
-              Result := Format('%s#,##0.00;%s(#,##0.00);-',[CS, CS]); //note:sign is reversed
-            end;
-          end else
-          begin
-             Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]);
-             Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]); //note:sign is reversed
-          end;
+  BaseAmounts: TBaseAmounts;
+  NonBaseCurrencyAccount: Boolean;
 
-      end;
-    end;                                 
-  end;
+//  function GetFormatForBankAccount(AContraCode: string): string;
+//  var
+//    i: integer;
+//    ba : TBank_Account;
+//    CS: string;
+//  begin
+//    Result := MyClient.FmtMoneyStrBrackets;
+//    for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
+//      ba := TBank_Account(ClientForReport.clBank_Account_List.Bank_Account_At(i));
+//      if Assigned(ba) then begin
+//        if (ba.baFields.baContra_Account_Code = AContraCode) then
+//          CS := ba.CurrencySymbol;
+//          if ClientForReport.clFields.clFRS_Report_Style in [crsSinglePeriod, crsBudgetRemaining] then
+//          begin
+//            if ReportTypeParams.RoundValues then
+//            begin
+//              Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]);
+//              Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]); //note:sign is reversed
+//            end else
+//            begin
+//              Result := Format('%s#,##0.00;%s(#,##0.00);-',[CS, CS]);
+//              Result := Format('%s#,##0.00;%s(#,##0.00);-',[CS, CS]); //note:sign is reversed
+//            end;
+//          end else
+//          begin
+//             Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]);
+//             Result := Format('%s#,##0;%s(#,##0);-',[CS, CS]); //note:sign is reversed
+//          end;
+//
+//      end;
+//    end;
+//  end;
 
 begin
   if ClientForReport.clFields.clCflw_Cash_On_Hand_Style = cflCash_On_Hand_None then Exit;
 
-  SetLength( ValuesArray, ColumnsPerPeriod);  //no need to nil this afterward
-                                              //delphi will handle it through
-                                              //reference counting
+  SetLength( ValuesArray, ColumnsPerPeriod);      //no need to nil this afterward
+  SetLength( ValuesArrayBase, ColumnsPerPeriod);  //delphi will handle it through
+                                                  //reference counting
   //test to see if the report is detailed or summarised
   if ClientForReport.clFields.clCflw_Cash_On_Hand_Style = cflCash_On_Hand_Detailed then begin
 
@@ -1255,6 +1318,13 @@ begin
 //    if not HasSubGroups then begin
     for i := 0 to Pred( FRptParameters.Chart.ItemCount) do begin
       pAcct := FRptParameters.Chart.Account_At(i);
+      NonBaseCurrencyAccount := NonBaseCurrencyContra(pAcct.chAccount_Code);
+      if NonBaseCurrencyAccount then begin
+        //Populate all the totals arrays for non-base currency contra accounts
+        SetBaseAmounts(pAcct, BaseAmounts);
+        RequireLines(7);
+      end else
+        RequireLines(5);
 
       //see if should show this account
       ShowThisAccount := ( pAcct^.chAccount_Type in [ atBankAccount]) and
@@ -1270,22 +1340,23 @@ begin
 
         RenderTitleLine( sAccountDesc);
 
-
-
-
         //------ Opening Balance
         PutString( GetHeading( hdOpening_Balance));
         //Print Periodic Information
         for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
-            //GetValues
-            GetOpeningBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
-
-//            if MyClient.HasForeignCurrencyAccounts then
-//               SetCurrencyFormatForPeriod(ValuesArray, GetFormatForBankAccount(pAcct^.chAccount_Code));
-
-            //PrintValues
-            PrintValuesForPeriod( ValuesArray, Debit);
+            if NonBaseCurrencyAccount then begin
+              SetCurrencyFormatForPeriod(BaseAmounts.OpeningBalance[PeriodNo], MyClient.FmtMoneyStr);
+              //PrintValues
+              PrintValuesForPeriod( BaseAmounts.OpeningBalance[PeriodNo], Debit);
+            end else begin
+              //GetValues
+              GetOpeningBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
+              if MyClient.HasForeignCurrencyAccounts then
+                SetCurrencyFormatForPeriod(ValuesArray, MyClient.FmtMoneyStr);
+              //PrintValues
+              PrintValuesForPeriod( ValuesArray, Debit);
+            end;
           end
           else
              SkipPeriod;
@@ -1296,8 +1367,8 @@ begin
            //GetYTDValues
            GetOpeningBalancesForPeriod( pAcct, 1, ValuesArray);
 
-//           if MyClient.HasForeignCurrencyAccounts then
-//              SetCurrencyFormatForPeriod(ValuesArray, GetFormatForBankAccount(pAcct^.chAccount_Code));
+           if MyClient.HasForeignCurrencyAccounts then
+              SetCurrencyFormatForPeriod(ValuesArray, MyClient.FmtMoneyStr);
 
            //PrintValues
            PrintValuesForPeriod( ValuesArray, Debit);
@@ -1310,10 +1381,16 @@ begin
         //Print Periodic Information
         for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
-            //GetValues
-            GetValuesForPeriod( pAcct, PeriodNo, ValuesArray);
-            //PrintValues
-            PrintValuesForPeriod( ValuesArray, Debit);
+
+            if NonBaseCurrencyAccount then begin
+              //PrintValues
+              PrintValuesForPeriod( BaseAmounts.Movement[PeriodNo], Debit);
+            end else begin
+              //GetValues
+              GetValuesForPeriod( pAcct, PeriodNo, ValuesArray);
+              //PrintValues
+              PrintValuesForPeriod( ValuesArray, Debit);
+            end;
           end
           else
              SkipPeriod;
@@ -1328,27 +1405,96 @@ begin
         end;
 
         RenderDetailLine;
-
-        //--------- Closing Balance
-        RequireLines(3);
         SingleUnderLine;
+
         PutString( GetHeading( hdClosing_Balance));
         //Print Periodic Information
         for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
-            //GetValues
-            GetClosingBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
-            //PrintValues
-            PrintValuesForPeriod( ValuesArray, Debit);
+            if NonBaseCurrencyAccount then begin
+              //PrintValues
+              PrintValuesForPeriod( BaseAmounts.ClosingBalance[PeriodNo], Debit);
+            end else begin
+              GetClosingBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
+              //PrintValues
+              PrintValuesForPeriod( ValuesArray, Debit);
+            end;
           end
           else
              SkipPeriod;
         end;
 
+        if NonBaseCurrencyContra(pAcct.chAccount_Code) then begin
+
+          //Period YTD Information
+          if ClientForReport.clFields.clFRS_Show_YTD then begin
+             //GetYTDValues
+             GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
+             //PrintValues
+             PrintValuesForPeriod( ValuesArray, Debit);
+          end;
+
+          RenderDetailLine;
+
+          //Forex gain/loss
+          PutString('Calculated Forex Gain/Loss');
+          for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
+            if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
+              //PrintValues
+              PrintValuesForPeriod( BaseAmounts.ForexGainLoss[PeriodNo], Debit);
+            end
+            else
+               SkipPeriod;
+          end;
+
+          //Period YTD Information
+          if ClientForReport.clFields.clFRS_Show_YTD then begin
+            //GetYTDValues
+            GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArrayBase);
+            //GetValues statement
+            FUseBaseAmounts := False;
+            GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
+            FUseBaseAmounts := True;
+            //Convert statement closing bal
+            FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True);
+            for j := Low(ValuesArray) to High(ValuesArray) do
+              if FClosingBalanceExchangeRate > 0 then
+                ValuesArray[j] := ValuesArray[j] / FClosingBalanceExchangeRate;
+            //Calc gain/loss
+            for j := Low(ValuesArray) to High(ValuesArray) do
+              ValuesArray[j] := ValuesArray[j] - ValuesArrayBase[j];
+            //PrintValues
+            PrintValuesForPeriod( ValuesArray, Debit);
+          end;
+
+          RenderDetailLine;
+
+          //Real closing balance
+          PutString(GetHeading(hdClosing_Balance));
+          for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
+            if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then
+              PrintValuesForPeriod( BaseAmounts.ClosingBalanceWithGainLoss[PeriodNo], Debit)
+            else
+               SkipPeriod;
+          end;
+
+        end;
+
         //Period YTD Information
         if ClientForReport.clFields.clFRS_Show_YTD then begin
            //GetYTDValues
-           GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
+           if NonBaseCurrencyAccount then begin
+             FUseBaseAmounts := False;
+             GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
+             FUseBaseAmounts := True;
+             //Convert statement closing bal for non-base currency accounts
+             FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True);
+             if NonBaseCurrencyContra(pAcct.chAccount_Code) then
+               for j := Low(ValuesArray) to High(ValuesArray) do
+                 if FClosingBalanceExchangeRate > 0 then
+                   ValuesArray[j] := ValuesArray[j] / FClosingBalanceExchangeRate;
+           end else
+             GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
            //PrintValues
            PrintValuesForPeriod( ValuesArray, Debit);
         end;
@@ -1534,6 +1680,71 @@ begin
   end
   else
     result := inherited AccountNeedsPrinting( pAcct);
+end;
+
+procedure TCashflowReportEx.SetBaseAmounts(const pAcct : pAccount_Rec; var BaseAmounts: TBaseAmounts);
+var
+  i: integer;
+  PeriodNo: integer;
+  PeriodCount: integer;
+  ColumnCount: integer;
+  OpeningBalanceExchangeRate, ClosingBalanceExchangeRate: double;
+begin
+  FUseBaseAmounts := True;
+//  PeriodCount := (MaxPeriodToShow - MinPeriodToShow) + 1;
+//  Inc(PeriodCount); //zero base array but periods start at 1?
+  PeriodCount := MaxPeriodToShow + 1; //zero base array but periods start at 1?
+//  ColumnCount := ColumnsPerPeriod;
+  ColumnCount := Length(ColumnTypes);
+
+  //Set width - no need to nil afterward
+  SetLength(BaseAmounts.OpeningBalance, PeriodCount, ColumnCount);
+  SetLength(BaseAmounts.Movement, PeriodCount, ColumnCount);
+  SetLength(BaseAmounts.ClosingBalance, PeriodCount, ColumnCount);
+  SetLength(BaseAmounts.ForexGainLoss, PeriodCount, ColumnCount);
+  SetLength(BaseAmounts.ClosingBalanceWithGainLoss, PeriodCount, ColumnCount);
+
+  with BaseAmounts do begin
+    for PeriodNo := MinPeriodToShow to MaxPeriodToShow do begin
+      if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
+        //Get exchange rates for the start and end of the period
+        OpeningBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo);
+        if (PeriodNo > MinPeriodToShow) then
+          OpeningBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo - 1, True);
+        ClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo, True);
+
+        //1. Opening balances
+        FUseBaseAmounts := False;
+        GetOpeningBalancesForPeriod(pAcct, PeriodNo, OpeningBalance[PeriodNo]);
+        FUseBaseAmounts := True;
+        for i := Low(OpeningBalance[PeriodNo]) to High(OpeningBalance[PeriodNo]) do
+          if OpeningBalanceExchangeRate > 0 then
+            OpeningBalance[PeriodNo, i] := OpeningBalance[PeriodNo, i] / OpeningBalanceExchangeRate;
+
+        //2. Movement
+        GetValuesForPeriod( pAcct, PeriodNo, Movement[PeriodNo]);
+
+        //3. Closing balances
+        FUseBaseAmounts := False;
+        GetClosingBalancesForPeriod( pAcct, PeriodNo, ClosingBalance[PeriodNo]);
+        FUseBaseAmounts := True;
+        for i := Low(ClosingBalance[PeriodNo]) to High(ClosingBalance[PeriodNo]) do
+          ClosingBalance[PeriodNo, i] := OpeningBalance[PeriodNo, i] + Movement[PeriodNo, i];
+
+        //4. Closing balances with forex gain/loss
+        FUseBaseAmounts := False;
+        GetClosingBalancesForPeriod( pAcct, PeriodNo, ClosingBalanceWithGainLoss[PeriodNo]);
+        FUseBaseAmounts := True;
+        for i := Low(ClosingBalanceWithGainLoss[PeriodNo]) to High(ClosingBalanceWithGainLoss[PeriodNo]) do
+          if ClosingBalanceExchangeRate > 0 then
+            ClosingBalanceWithGainLoss[PeriodNo, i] := ClosingBalanceWithGainLoss[PeriodNo, i] / ClosingBalanceExchangeRate;
+
+        //5. Forex gain/loss
+        for i := Low(OpeningBalance[PeriodNo]) to High(OpeningBalance[PeriodNo]) do
+          ForexGainLoss[PeriodNo, i] :=  ClosingBalanceWithGainLoss[PeriodNo, i] - ClosingBalance[PeriodNo, i];
+      end;
+    end;
+  end;
 end;
 
 procedure TCashflowReportEx.SetupColumnsTypes;
@@ -1759,7 +1970,7 @@ begin
       FromDate := MyClient.clFields.clTemp_FRS_From_Date;
       ToDate := MyClient.clFields.clTemp_FRS_To_Date;
    end else begin
-      FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+      FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[1].Period_Start_Date;
       ToDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
    end;
    if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, False) then begin

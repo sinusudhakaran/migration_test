@@ -34,6 +34,7 @@ type
     FClient          : TClientObj;
     FLastPeriodOfActualDataToUse: integer;
     FUseBudgetIfNoActualData: boolean;
+    FUseBaseAmounts: boolean;
 
     procedure SetAccountCode(const Value: string); virtual;
     procedure SetClient(const Value: TClientObj);
@@ -58,6 +59,7 @@ type
 
     function Actual( ForPeriod : integer) : Money; virtual;
     function YTD_Actual( UpToPeriod : integer) : Money; virtual;
+    procedure SetUseBaseAmounts(const Value: boolean);
   public
     property AccountCode    : string read FAccountCode write SetAccountCode;
     property Client         : TClientObj read FClient write SetClient;
@@ -113,6 +115,8 @@ type
 
     function Variance_OpeningBalance_ActualLastYear( ForPeriod : integer) : Money;
     function Variance_ClosingBalance_ActualLastYear( ForPeriod : integer) : Money;
+
+    property UseBaseAmounts: boolean read FUseBaseAmounts write SetUseBaseAmounts;
   end;
 
   TSetOfByte = set of Byte;
@@ -233,7 +237,10 @@ begin
   result := -1;
   if not Assigned( pAcct) then exit;
 
-  result := Low( pAcct^.chTemp_Amount.This_Year);
+  if UseBaseAmounts then
+    result := Low( pAcct^.chTemp_Base_Amount.This_Year)
+  else
+    result := Low( pAcct^.chTemp_Amount.This_Year);
 end;
 
 function TAccountInformation.GetLastPeriod: integer;
@@ -243,7 +250,10 @@ begin
   result := -1;
   if not Assigned( pAcct) then exit;
 
-  result := Max( High( pAcct^.chTemp_Amount.This_Year), High( pAcct^.chTemp_Amount.Last_Year));
+  if UseBaseAmounts then
+    result := Max( High( pAcct^.chTemp_Base_Amount.This_Year), High( pAcct^.chTemp_Base_Amount.Last_Year))
+  else
+    result := Max( High( pAcct^.chTemp_Amount.This_Year), High( pAcct^.chTemp_Amount.Last_Year));
 end;
 
 function TAccountInformation.GetRawActual(ForPeriod: integer): Money;
@@ -255,10 +265,13 @@ begin
 
   Assert( ForPeriod <= HighestPeriod, 'ForPeriod (' + inttostr( ForPeriod) + ') > HighestPeriod (' + inttostr( HighestPeriod) + ')');
 
-  if ForPeriod > High( pAcct^.chTemp_Amount.This_Year) then
-    result := 0
-  else
-    result := pAcct^.chTemp_Amount.This_Year[ ForPeriod];
+  if UseBaseAmounts then begin
+    if ForPeriod <= High( pAcct^.chTemp_Base_Amount.This_Year) then
+      result := pAcct^.chTemp_Base_Amount.This_Year[ ForPeriod];
+  end else begin
+    if ForPeriod <= High( pAcct^.chTemp_Amount.This_Year) then
+      result := pAcct^.chTemp_Amount.This_Year[ ForPeriod];
+  end;
 end;
 
 function TAccountInformation.GetRawActualOrBudget(
@@ -278,10 +291,13 @@ begin
 
   Assert( ForPeriod <= HighestPeriod, 'ForPeriod (' + inttostr( ForPeriod) + ') > HighestPeriod (' + inttostr( HighestPeriod) + ')');
 
-  if ForPeriod > High( pAcct^.chTemp_Amount.Budget) then
-    result := 0
-  else
-    result := pAcct^.chTemp_Amount.Budget[ ForPeriod];
+  if UseBaseAmounts then begin
+    if ForPeriod <= High( pAcct^.chTemp_Base_Amount.Budget) then
+      result := pAcct^.chTemp_Base_Amount.Budget[ ForPeriod];
+  end else begin
+    if ForPeriod <= High( pAcct^.chTemp_Amount.Budget) then
+      result := pAcct^.chTemp_Amount.Budget[ ForPeriod];
+  end;
 end;
 
 function TAccountInformation.GetRawBudgetQuantity(ForPeriod: Integer): Money;
@@ -321,10 +337,13 @@ begin
   if not Assigned( pAcct) then exit;
   Assert( ForPeriod <= HighestPeriod, 'ForPeriod (' + inttostr( ForPeriod) + ') > HighestPeriod (' + inttostr( HighestPeriod) + ')');
 
-  if ForPeriod > High( pAcct^.chTemp_Amount.Last_Year) then
-     result := 0
-  else
-     result := pAcct^.chTemp_Amount.Last_Year[ ForPeriod];
+  if UseBaseAmounts then begin
+    if ForPeriod <= High( pAcct^.chTemp_Base_Amount.Last_Year) then
+      result := pAcct^.chTemp_Base_Amount.Last_Year[ ForPeriod];
+  end else begin
+    if ForPeriod <= High( pAcct^.chTemp_Amount.Last_Year) then
+      result := pAcct^.chTemp_Amount.Last_Year[ ForPeriod];
+  end;
 end;
 
 function TAccountInformation.GetRawQuantity(ForPeriod: integer): Money;
@@ -439,6 +458,11 @@ procedure TAccountInformation.SetLastPeriodOfActualDataToUse(
   const Value: integer);
 begin
   FLastPeriodOfActualDataToUse := Value;
+end;
+
+procedure TAccountInformation.SetUseBaseAmounts(const Value: boolean);
+begin
+  FUseBaseAmounts := Value;
 end;
 
 procedure TAccountInformation.SetUseBudgetIfNoActualData(

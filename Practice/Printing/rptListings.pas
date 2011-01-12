@@ -409,238 +409,238 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure LE_EnterForexEntry_Pres(Sender : TObject);
-var
-   Mgr : TTravManagerWithNewReport;
-   Bal: Money;
-   ShowBal: Boolean;
-   Rpt : TListEntriesReport;
-begin
-   Mgr := TTravManagerWithNewReport(Sender);
-   Rpt := TListEntriesReport( Mgr.ReportJob );
-   With  Mgr, Rpt, Rpt.Params, Bank_Account, Transaction^ do
-   Begin
-      if ( not JournalOnly ) and ( not LE_IsBankAccountIncluded( ReportJob, Mgr ) ) then exit;
-
-      // We are going to print the transaction in two lines
-      // The first line in the Foreign Currency, the second line in
-      // the local currency
-
-      case Client.clFields.clCountry of
-         whNewZealand :
-            Begin
-               // Foreign Currency
-               If txDate_Transferred <> 0 then
-                  PutString( 'Yes' )
-               else
-                  SkipColumn;
-
-               PutString( bkDate2Str ( txDate_Presented ) );
-               PutString( GetFormattedReference( Mgr.Transaction));
-               PutString(Trim(txAnalysis));
-               PutString( txAccount );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-//                  If txForeign_Currency_Amount >= 0 then
-                  If txAmount >= 0 then
-                  Begin
-//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
-                     PutMoney( Trunc( txAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
-                     PutMoney( Trunc( txAmount ) );
-                  end;
-               end
-               else
-//                  PutMoney( Trunc( txForeign_Currency_Amount ) );
-                  PutMoney( Trunc( txAmount ) );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               if JournalOnly then
-                 SkipColumn; // GST
-
-               ShowBal := False;
-               Bal := 0;
-               if ShowBalance then
-               begin
-                 if Bank_Account.baFields.baTemp_Balance <> unknown then
-                 begin
-//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
-                   Bal := Bank_Account.baFields.baTemp_Balance;
-                   ShowBal := True;
-                 end
-                 else
-                   ShowBal := False;
-               end;
-
-               if ShowOP then begin
-                  PutString( txOther_Party );
-                  Rpt.PutNarrationNotes( ReportJob, txParticulars, GetFullNotes( Transaction), ShowBal, Bal);
-                  if ShowNotes then
-                     Rpt.PutNotes(GetFullNotes(Mgr.Transaction));
-               end
-               else
-                 Rpt.PutNarrationNotes( ReportJob, txGL_Narration, GetFullNotes( Transaction), ShowBal, Bal);
-
-               RenderDetailLine;
-
-               //
-               // Show the local amount & GST
-               //
-
-               SkipColumn; // Tfr
-               SkipColumn; // Date
-               SkipColumn; // Reference
-               SkipColumn; // PutString(Trim(txAnalysis));
-               SkipColumn; // PutString( txAccount );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-                  If txAmount >= 0 then
-                  Begin
-                     PutMoneyDontAdd( Trunc( txAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-                     PutMoneyDontAdd( Trunc( txAmount ) );
-                  end;
-               end
-               else
-                  PutMoneyDontAdd( Trunc( txAmount ) );
-
-               if JournalOnly then
-                 PutMoney ( Trunc( txGST_Amount));
-
-               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Narration
-
-              if ShowOP then SkipColumn; // OP
-              If ShowBalance then SkipColumn;
-              RenderDetailLine;
-            end;
-
-
-         whAustralia, whUK :
-            Begin
-               //
-               // Foreign Currency
-               //
-
-               If txDate_Transferred <> 0 then
-                  PutString( 'Yes' )
-               else
-                  SkipColumn;
-
-               PutString( bkDate2Str ( txDate_Presented ) );
-               PutString( GetFormattedReference( Mgr.Transaction));
-               PutString( txAccount );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-//                  If txForeign_Currency_Amount >= 0 then
-                  If txAmount >= 0 then
-                  Begin
-//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
-                     PutMoney( Trunc( txAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
-                     PutMoney( Trunc( txAmount ) );
-                  end;
-               end
-               else
-//                  PutMoney( Trunc( txForeign_Currency_Amount ) );
-                  PutMoney( Trunc( txAmount ) );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               SkipColumn; // PutMoney ( Trunc( txGST_Amount));
-
-               ShowBal := False;
-               Bal := 0;
-               if ShowBalance then
-               begin
-                 if Bank_Account.baFields.baTemp_Balance <> unknown then
-                 begin
-//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
-                   Bal := Bank_Account.baFields.baTemp_Balance;
-                   ShowBal := True;
-                 end
-                 else
-                   ShowBal := False;
-               end;
-
-               Rpt.PutNarrationNotes( ReportJob, txGL_Narration, GetFullNotes( Transaction ), ShowBal, Bal);
-               RenderDetailLine;
-
-               //
-               // Local Currency
-               //
-
-               SkipColumn; // Tfr
-               SkipColumn; // Date
-               SkipColumn; // Reference
-               SkipColumn; // Account
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-                  If txAmount >= 0 then
-                  Begin
-                     PutMoneyDontAdd( Trunc( txAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-                     PutMoneyDontAdd( Trunc( txAmount ) );
-                  end;
-               end
-               else
-                  PutMoneyDontAdd( Trunc( txAmount ) );
-
-               PutMoney ( Trunc( txGST_Amount ) );
-
-               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Narration
-
-               if ShowBalance then SkipColumn;
-               if ShowNotes then SkipColumn;   {notes}
-               RenderDetailLine;
-            end;
-      end; { Case clCountry }
-   end;
-end;
+//procedure LE_EnterForexEntry_Pres(Sender : TObject);
+//var
+//   Mgr : TTravManagerWithNewReport;
+//   Bal: Money;
+//   ShowBal: Boolean;
+//   Rpt : TListEntriesReport;
+//begin
+//   Mgr := TTravManagerWithNewReport(Sender);
+//   Rpt := TListEntriesReport( Mgr.ReportJob );
+//   With  Mgr, Rpt, Rpt.Params, Bank_Account, Transaction^ do
+//   Begin
+//      if ( not JournalOnly ) and ( not LE_IsBankAccountIncluded( ReportJob, Mgr ) ) then exit;
+//
+//      // We are going to print the transaction in two lines
+//      // The first line in the Foreign Currency, the second line in
+//      // the local currency
+//
+//      case Client.clFields.clCountry of
+//         whNewZealand :
+//            Begin
+//               // Foreign Currency
+//               If txDate_Transferred <> 0 then
+//                  PutString( 'Yes' )
+//               else
+//                  SkipColumn;
+//
+//               PutString( bkDate2Str ( txDate_Presented ) );
+//               PutString( GetFormattedReference( Mgr.Transaction));
+//               PutString(Trim(txAnalysis));
+//               PutString( txAccount );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+////                  If txForeign_Currency_Amount >= 0 then
+//                  If txAmount >= 0 then
+//                  Begin
+////                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+////                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txAmount ) );
+//                  end;
+//               end
+//               else
+////                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                  PutMoney( Trunc( txAmount ) );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               if JournalOnly then
+//                 SkipColumn; // GST
+//
+//               ShowBal := False;
+//               Bal := 0;
+//               if ShowBalance then
+//               begin
+//                 if Bank_Account.baFields.baTemp_Balance <> unknown then
+//                 begin
+////                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bal := Bank_Account.baFields.baTemp_Balance;
+//                   ShowBal := True;
+//                 end
+//                 else
+//                   ShowBal := False;
+//               end;
+//
+//               if ShowOP then begin
+//                  PutString( txOther_Party );
+//                  Rpt.PutNarrationNotes( ReportJob, txParticulars, GetFullNotes( Transaction), ShowBal, Bal);
+//                  if ShowNotes then
+//                     Rpt.PutNotes(GetFullNotes(Mgr.Transaction));
+//               end
+//               else
+//                 Rpt.PutNarrationNotes( ReportJob, txGL_Narration, GetFullNotes( Transaction), ShowBal, Bal);
+//
+//               RenderDetailLine;
+//
+//               //
+//               // Show the local amount & GST
+//               //
+//
+//               SkipColumn; // Tfr
+//               SkipColumn; // Date
+//               SkipColumn; // Reference
+//               SkipColumn; // PutString(Trim(txAnalysis));
+//               SkipColumn; // PutString( txAccount );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+//                  If txAmount >= 0 then
+//                  Begin
+//                     PutMoneyDontAdd( Trunc( txAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+//                     PutMoneyDontAdd( Trunc( txAmount ) );
+//                  end;
+//               end
+//               else
+//                  PutMoneyDontAdd( Trunc( txAmount ) );
+//
+//               if JournalOnly then
+//                 PutMoney ( Trunc( txGST_Amount));
+//
+//               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Narration
+//
+//              if ShowOP then SkipColumn; // OP
+//              If ShowBalance then SkipColumn;
+//              RenderDetailLine;
+//            end;
+//
+//
+//         whAustralia, whUK :
+//            Begin
+//               //
+//               // Foreign Currency
+//               //
+//
+//               If txDate_Transferred <> 0 then
+//                  PutString( 'Yes' )
+//               else
+//                  SkipColumn;
+//
+//               PutString( bkDate2Str ( txDate_Presented ) );
+//               PutString( GetFormattedReference( Mgr.Transaction));
+//               PutString( txAccount );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+////                  If txForeign_Currency_Amount >= 0 then
+//                  If txAmount >= 0 then
+//                  Begin
+////                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+////                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txAmount ) );
+//                  end;
+//               end
+//               else
+////                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                  PutMoney( Trunc( txAmount ) );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               SkipColumn; // PutMoney ( Trunc( txGST_Amount));
+//
+//               ShowBal := False;
+//               Bal := 0;
+//               if ShowBalance then
+//               begin
+//                 if Bank_Account.baFields.baTemp_Balance <> unknown then
+//                 begin
+////                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bal := Bank_Account.baFields.baTemp_Balance;
+//                   ShowBal := True;
+//                 end
+//                 else
+//                   ShowBal := False;
+//               end;
+//
+//               Rpt.PutNarrationNotes( ReportJob, txGL_Narration, GetFullNotes( Transaction ), ShowBal, Bal);
+//               RenderDetailLine;
+//
+//               //
+//               // Local Currency
+//               //
+//
+//               SkipColumn; // Tfr
+//               SkipColumn; // Date
+//               SkipColumn; // Reference
+//               SkipColumn; // Account
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+//                  If txAmount >= 0 then
+//                  Begin
+//                     PutMoneyDontAdd( Trunc( txAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+//                     PutMoneyDontAdd( Trunc( txAmount ) );
+//                  end;
+//               end
+//               else
+//                  PutMoneyDontAdd( Trunc( txAmount ) );
+//
+//               PutMoney ( Trunc( txGST_Amount ) );
+//
+//               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Narration
+//
+//               if ShowBalance then SkipColumn;
+//               if ShowNotes then SkipColumn;   {notes}
+//               RenderDetailLine;
+//            end;
+//      end; { Case clCountry }
+//   end;
+//end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -652,11 +652,11 @@ var
    Rpt : TListEntriesReport;
 begin
    Mgr := TTravManagerWithNewReport(Sender);
-   If Mgr.Bank_Account.IsAForexAccount then
-   Begin
-     LE_EnterForexEntry_Pres( Sender );
-     exit;
-   End;
+//   If Mgr.Bank_Account.IsAForexAccount then
+//   Begin
+//     LE_EnterForexEntry_Pres( Sender );
+//     exit;
+//   End;
    Rpt := TListEntriesReport( Mgr.ReportJob );
    With  Mgr, Rpt, Rpt.Params, Bank_Account, Transaction^ do
    Begin
@@ -678,17 +678,20 @@ begin
                Begin
                   If txAmount >= 0 then
                   Begin
-                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txAmount ) );
+                     PutMoney( Trunc( txTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txAmount ) );
+                     PutMoney( Trunc( txTemp_Base_Amount ) );
                   end;
                end
                else
-                  PutMoney( Trunc( txAmount ) );
+//                  PutMoney( Trunc( txAmount ) );
+                  PutMoney( Trunc( txTemp_Base_Amount ) );
 
                if JournalOnly then
                  PutMoney ( Trunc( txGST_Amount));
@@ -699,7 +702,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -730,17 +734,20 @@ begin
                Begin
                   If txAmount >= 0 then
                   Begin
-                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txAmount ) );
+                     PutMoney( Trunc( txTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txAmount ) );
+                     PutMoney( Trunc( txTemp_Base_Amount ) );
                   end;
                end
                else
-                  PutMoney( Trunc( txAmount ) );
+//                  PutMoney( Trunc( txAmount ) );
+                  PutMoney( Trunc( txTemp_Base_Amount ) );
 
                PutMoney ( Trunc( txGST_Amount));
 
@@ -750,7 +757,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -1081,234 +1089,234 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure LE_EnterForexEntry(Sender : Tobject);
-var
-   Mgr : TTravManagerWithNewReport;
-   Bal: Money;
-   ShowBal: Boolean;
-   Rpt : TListEntriesReport;
-begin
-   Mgr := TTravManagerWithNewReport(Sender);
-   Rpt := TListEntriesReport( Mgr.ReportJob );
-   With Mgr, Rpt, Rpt.Params, Transaction^, Bank_Account do
-   Begin
-     if (not JournalOnly) and (not LE_IsBankAccountIncluded(ReportJob, Mgr)) then exit;
-
-     case Client.clFields.clCountry of
-        whNewZealand :
-            Begin
-               // First line is Forex Info
-               If txDate_Transferred <> 0 then
-                  PutString( 'Yes' )
-               else
-                  SkipColumn;
-               PutString( bkDate2Str ( txDate_Effective ) );
-               PutString( GetFormattedReference( Mgr.Transaction));
-               PutString(Trim(txAnalysis));
-               // add a space - its truncating the 'D'
-               if txAccount = DISSECT_DESC then
-                 PutString(txAccount + ' ')
-               else
-                 PutString( txAccount );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-//                  If txForeign_Currency_Amount >= 0 then
-                  If txAmount >= 0 then
-                  Begin
-//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
-                     PutMoney( Trunc( txAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
-                     PutMoney( Trunc( txAmount ) );
-                  end;
-               end
-               else
-//                  PutMoney( Trunc( txForeign_Currency_Amount ) );
-                  PutMoney( Trunc( txAmount ) );
-
-               if JournalOnly then
-                 SkipColumn; // Gst
-
-
-               ShowBal := False;
-               Bal := 0;
-               if ShowBalance then
-               begin
-                 if Bank_Account.baFields.baTemp_Balance <> unknown then
-                 begin
-//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
-                   Bal := Bank_Account.baFields.baTemp_Balance;
-                   ShowBal := True;
-                 end
-                 else
-                   ShowBal := False;
-               end;
-
-               if ShowOP then begin
-                  PutString( txOther_Party );
-                  Rpt.PutNarrationNotes( ReportJob, txParticulars, GetFullNotes( Transaction), ShowBal, Bal);
-                  PutString( txParticulars );
-               end
-               else
-                 Rpt.PutNarrationNotes( ReportJob, txGL_Narration, GetFullNotes( Transaction), ShowBal, Bal);
-
-               RenderDetailLine;
-
-               //
-               // Local Currency Info
-               //
-
-               SkipColumn; // Transferred?
-               SkipColumn; // Date
-               SkipColumn; // Reference
-               SkipColumn; // txAnalysis
-               SkipColumn; // Account
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-                  If txAmount >= 0 then
-                  Begin
-                     PutMoneyDontAdd( Trunc( txAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-                     PutMoneyDontAdd( Trunc( txAmount ) );
-                  end;
-               end
-               else
-                  PutMoneyDontAdd( Trunc( txAmount ) );
-
-               if JournalOnly then
-                 PutMoney ( Trunc( txGST_Amount ) );
-
-               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Other Party
-
-               if ShowOP then SkipColumn;
-               if ShowBalance then SkipColumn;
-               if ShowNotes then SkipColumn;   {notes}
-               RenderDetailLine;
-            end;
-
-         whAustralia, whUK :
-            Begin
-               //
-               // Foreign Currency
-               //
-
-               If txDate_Transferred <> 0 then
-                  PutString( 'Yes' )
-               else
-                  SkipColumn;
-
-               PutString( bkDate2Str ( txDate_Effective ) );
-               PutString( GetFormattedReference( Mgr.Transaction));
-               // add a space - its truncating the 'D'
-               if txAccount = DISSECT_DESC then
-                 PutString(txAccount + ' ')
-               else
-                 PutString( txAccount );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-//                  If txForeign_Currency_Amount >= 0 then
-                  If txAmount >= 0 then
-                  Begin
-//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
-                     PutMoney( Trunc( txAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-//                     PutMoney( Trunc( txForeign_Currency_Amount ) );
-                     PutMoney( Trunc( txAmount ) );
-                  end;
-               end
-               else
-//                  PutMoney( Trunc( txForeign_Currency_Amount ) );
-                  PutMoney( Trunc( txAmount ) );
-
-               SkipColumn; // PutMoney ( Trunc( txGST_Amount));
-
-               ShowBal := False;
-               Bal := 0;
-               if ShowBalance then
-               begin
-                 if Bank_Account.baFields.baTemp_Balance <> unknown then
-                 begin
-//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
-                   Bal := Bank_Account.baFields.baTemp_Balance;
-                   ShowBal := True;
-                 end
-                 else
-                   ShowBal := False;
-               end;
-
-               Rpt.PutNarrationNotes( ReportJob, txGL_Narration,GetFullNotes( Transaction), ShowBal, Bal);
-
-               RenderDetailLine;
-
-               //
-               // Local Currency
-               //
-
-               SkipColumn;  // Transferred?
-               SkipColumn;  // Date
-               SkipColumn; // Reference
-               // add a space - its truncating the 'D'
-               SkipColumn; // txAccount = DISSECT_DESC then
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-                  If txAmount >= 0 then
-                  Begin
-                     PutMoneyDontAdd( Trunc( txAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-                     PutMoneyDontAdd( Trunc( txAmount ) );
-                  end;
-               end
-               else
-                  PutMoneyDontAdd( Trunc( txAmount ) );
-
-               PutMoney ( Trunc( txGST_Amount) );
-
-               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Narration
-               if ShowBalance then SkipColumn;
-               if ShowNotes then SkipColumn;
-               RenderDetailLine;
-            end;
-      end; { Case clCountry }
-   end;
-end;
+//procedure LE_EnterForexEntry(Sender : Tobject);
+//var
+//   Mgr : TTravManagerWithNewReport;
+//   Bal: Money;
+//   ShowBal: Boolean;
+//   Rpt : TListEntriesReport;
+//begin
+//   Mgr := TTravManagerWithNewReport(Sender);
+//   Rpt := TListEntriesReport( Mgr.ReportJob );
+//   With Mgr, Rpt, Rpt.Params, Transaction^, Bank_Account do
+//   Begin
+//     if (not JournalOnly) and (not LE_IsBankAccountIncluded(ReportJob, Mgr)) then exit;
+//
+//     case Client.clFields.clCountry of
+//        whNewZealand :
+//            Begin
+//               // First line is Forex Info
+//               If txDate_Transferred <> 0 then
+//                  PutString( 'Yes' )
+//               else
+//                  SkipColumn;
+//               PutString( bkDate2Str ( txDate_Effective ) );
+//               PutString( GetFormattedReference( Mgr.Transaction));
+//               PutString(Trim(txAnalysis));
+//               // add a space - its truncating the 'D'
+//               if txAccount = DISSECT_DESC then
+//                 PutString(txAccount + ' ')
+//               else
+//                 PutString( txAccount );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+////                  If txForeign_Currency_Amount >= 0 then
+//                  If txAmount >= 0 then
+//                  Begin
+////                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+////                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txAmount ) );
+//                  end;
+//               end
+//               else
+////                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                  PutMoney( Trunc( txAmount ) );
+//
+//               if JournalOnly then
+//                 SkipColumn; // Gst
+//
+//
+//               ShowBal := False;
+//               Bal := 0;
+//               if ShowBalance then
+//               begin
+//                 if Bank_Account.baFields.baTemp_Balance <> unknown then
+//                 begin
+////                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bal := Bank_Account.baFields.baTemp_Balance;
+//                   ShowBal := True;
+//                 end
+//                 else
+//                   ShowBal := False;
+//               end;
+//
+//               if ShowOP then begin
+//                  PutString( txOther_Party );
+//                  Rpt.PutNarrationNotes( ReportJob, txParticulars, GetFullNotes( Transaction), ShowBal, Bal);
+//                  PutString( txParticulars );
+//               end
+//               else
+//                 Rpt.PutNarrationNotes( ReportJob, txGL_Narration, GetFullNotes( Transaction), ShowBal, Bal);
+//
+//               RenderDetailLine;
+//
+//               //
+//               // Local Currency Info
+//               //
+//
+//               SkipColumn; // Transferred?
+//               SkipColumn; // Date
+//               SkipColumn; // Reference
+//               SkipColumn; // txAnalysis
+//               SkipColumn; // Account
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+//                  If txAmount >= 0 then
+//                  Begin
+//                     PutMoneyDontAdd( Trunc( txAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+//                     PutMoneyDontAdd( Trunc( txAmount ) );
+//                  end;
+//               end
+//               else
+//                  PutMoneyDontAdd( Trunc( txAmount ) );
+//
+//               if JournalOnly then
+//                 PutMoney ( Trunc( txGST_Amount ) );
+//
+//               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Other Party
+//
+//               if ShowOP then SkipColumn;
+//               if ShowBalance then SkipColumn;
+//               if ShowNotes then SkipColumn;   {notes}
+//               RenderDetailLine;
+//            end;
+//
+//         whAustralia, whUK :
+//            Begin
+//               //
+//               // Foreign Currency
+//               //
+//
+//               If txDate_Transferred <> 0 then
+//                  PutString( 'Yes' )
+//               else
+//                  SkipColumn;
+//
+//               PutString( bkDate2Str ( txDate_Effective ) );
+//               PutString( GetFormattedReference( Mgr.Transaction));
+//               // add a space - its truncating the 'D'
+//               if txAccount = DISSECT_DESC then
+//                 PutString(txAccount + ' ')
+//               else
+//                 PutString( txAccount );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+////                  If txForeign_Currency_Amount >= 0 then
+//                  If txAmount >= 0 then
+//                  Begin
+////                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+////                     PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                     PutMoney( Trunc( txAmount ) );
+//                  end;
+//               end
+//               else
+////                  PutMoney( Trunc( txForeign_Currency_Amount ) );
+//                  PutMoney( Trunc( txAmount ) );
+//
+//               SkipColumn; // PutMoney ( Trunc( txGST_Amount));
+//
+//               ShowBal := False;
+//               Bal := 0;
+//               if ShowBalance then
+//               begin
+//                 if Bank_Account.baFields.baTemp_Balance <> unknown then
+//                 begin
+////                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txForeign_Currency_Amount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bal := Bank_Account.baFields.baTemp_Balance;
+//                   ShowBal := True;
+//                 end
+//                 else
+//                   ShowBal := False;
+//               end;
+//
+//               Rpt.PutNarrationNotes( ReportJob, txGL_Narration,GetFullNotes( Transaction), ShowBal, Bal);
+//
+//               RenderDetailLine;
+//
+//               //
+//               // Local Currency
+//               //
+//
+//               SkipColumn;  // Transferred?
+//               SkipColumn;  // Date
+//               SkipColumn; // Reference
+//               // add a space - its truncating the 'D'
+//               SkipColumn; // txAccount = DISSECT_DESC then
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+//                  If txAmount >= 0 then
+//                  Begin
+//                     PutMoneyDontAdd( Trunc( txAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+//                     PutMoneyDontAdd( Trunc( txAmount ) );
+//                  end;
+//               end
+//               else
+//                  PutMoneyDontAdd( Trunc( txAmount ) );
+//
+//               PutMoney ( Trunc( txGST_Amount) );
+//
+//               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Narration
+//               if ShowBalance then SkipColumn;
+//               if ShowNotes then SkipColumn;
+//               RenderDetailLine;
+//            end;
+//      end; { Case clCountry }
+//   end;
+//end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1320,11 +1328,11 @@ var
    Rpt : TListEntriesReport;
 begin
    Mgr := TTravManagerWithNewReport(Sender);
-   If Mgr.Bank_Account.IsAForexAccount then
-   Begin
-     LE_EnterForexEntry( Sender );
-     exit;
-   End;
+//   If Mgr.Bank_Account.IsAForexAccount then
+//   Begin
+//     LE_EnterForexEntry( Sender );
+//     exit;
+//   End;
    Rpt := TListEntriesReport( Mgr.ReportJob );
    With Mgr, Rpt, Rpt.Params, Transaction^, Bank_Account do
    Begin
@@ -1350,17 +1358,20 @@ begin
                Begin
                   If txAmount >= 0 then
                   Begin
-                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txAmount ) );
+                     PutMoney( Trunc( txTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txAmount ) );
+                     PutMoney( Trunc( txTemp_Base_Amount ) );
                   end;
                end
                else
-                  PutMoney( Trunc( txAmount ) );
+//                  PutMoney( Trunc( txAmount ) );
+                  PutMoney( Trunc( txTemp_Base_Amount ) );
 
                if JournalOnly then
                  PutMoney ( Trunc( txGST_Amount));
@@ -1371,7 +1382,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -1406,18 +1418,20 @@ begin
                Begin
                   If txAmount >= 0 then
                   Begin
-                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txAmount ) );
+                     PutMoney( Trunc( txTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txAmount ) );
+                     PutMoney( Trunc( txTemp_Base_Amount ) );
                   end;
                end
                else
-                  PutMoney( Trunc( txAmount ) );
-
+//                  PutMoney( Trunc( txAmount ) );
+                  PutMoney( Trunc( txTemp_Base_Amount ) );
                PutMoney ( Trunc( txGST_Amount));
 
                ShowBal := False;
@@ -1426,7 +1440,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -1442,196 +1457,196 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure LE_EnterForexDissect(Sender : TObject);
-var
-   Mgr : TTravManagerWithNewReport;
-   Rpt : TListEntriesReport;
-begin
-   Mgr := TTravManagerWithNewReport(Sender);
-   Rpt := TListEntriesReport( Mgr.ReportJob );
-   With Mgr, Rpt, Rpt.Params, Bank_Account, Transaction^, Dissection^ do
-   Begin
-      if (not JournalOnly) and (not LE_IsBankAccountIncluded(ReportJob, Mgr)) then exit;
-
-      case Client.clFields.clCountry of
-         whNewZealand :
-            Begin
-               //
-               // Foreign Currency Amount
-               //
-               If txDate_Transferred <> 0 then
-                 PutString( 'Yes' )
-               else
-                 SkipColumn;
-
-               PutString( '' ); { Date }
-               PutString(dsReference);
-               PutString( ' /'+IntToStr( dsSequence_No ) ); { Analysis }
-               PutString( dsAccount );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-                  If dsForeign_Currency_Amount >= 0 then
-                  Begin
-                     PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-                     PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
-                  end;
-               end
-               else
-                  PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               if JournalOnly then
-                 SkipColumn;
-
-               if ShowOP then begin
-                  PutString( '' );
-                  Rpt.PutNarrationNotes( ReportJob, dsGL_Narration,GetFullNotes( Dissection), False, 0);
-               end
-               else
-                  Rpt.PutNarrationNotes( ReportJob, dsGL_Narration,GetFullNotes(Dissection), False, 0);
-
-               RenderDetailLine;
-
-               //
-               // Local Currency Amount
-               //
-
-               SkipColumn; // Transferred?
-               SkipColumn; // Date
-               SkipColumn; // Reference
-               SkipColumn; // Analysis
-               SkipColumn; // Account
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-                  If dsAmount >= 0 then
-                  Begin
-                     PutMoneyDontAdd( Trunc( dsAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-                     PutMoneyDontAdd( Trunc( dsAmount ) );
-                  end;
-               end
-               else
-                  PutMoneyDontAdd( Trunc( dsAmount ) );
-
-               if JournalOnly then
-                 PutMoney( Trunc( dsGST_Amount));
-
-               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Reference
-               if ShowOP then SkipColumn;   {other}
-               if ShowBalance then SkipColumn;
-               if ShowNotes then SkipColumn;   {notes}
-               RenderDetailLine;
-            end;
-
-
-         whAustralia, whUK :
-            Begin
-               If txDate_Transferred <> 0 then
-                  PutString( 'Yes' )
-               else
-                  SkipColumn;
-               SkipColumn; { Date }
-
-               If ( dsReference <> '' ) then
-                 PutString(dsReference)
-               else
-                 PutString( ' /'+IntToStr( dsSequence_No ) ); { Reference }
-                 
-               PutString( dsAccount );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-                  If dsForeign_Currency_Amount >= 0 then
-                  Begin
-                     PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-                     PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
-                  end;
-               end
-               else
-                  PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               SkipColumn; // GST
-               
-               Rpt.PutNarrationNotes( ReportJob, dsGL_Narration,GetFullNotes(Dissection), False, 0);
-               RenderDetailLine;
-
-               //
-               // Local
-               //
-
-               SkipColumn; // Transferred
-               SkipColumn; // Date
-               SkipColumn; // Reference
-               SkipColumn; // Account
-
-               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
-               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
-
-               If TwoColumn then
-               Begin
-                  If dsAmount >= 0 then
-                  Begin
-                     PutMoneyDontAdd( Trunc( dsAmount ) );
-                     SkipColumn;
-                  end
-                  else
-                  Begin
-                     SkipColumn;
-                     PutMoneyDontAdd( Trunc( dsAmount ) );
-                  end;
-               end
-               else
-                  PutMoneyDontAdd( Trunc( dsAmount ) );
-
-               PutMoney( Trunc( dsGST_Amount));
-
-               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Narration
-
-               if ShowBalance then
-                 SkipColumn;
-               if ShowNotes then
-                 SkipColumn;   {notes}
-               RenderDetailLine;
-             end;
-      end; { Case clCountry }
-   end;
-end;
+//procedure LE_EnterForexDissect(Sender : TObject);
+//var
+//   Mgr : TTravManagerWithNewReport;
+//   Rpt : TListEntriesReport;
+//begin
+//   Mgr := TTravManagerWithNewReport(Sender);
+//   Rpt := TListEntriesReport( Mgr.ReportJob );
+//   With Mgr, Rpt, Rpt.Params, Bank_Account, Transaction^, Dissection^ do
+//   Begin
+//      if (not JournalOnly) and (not LE_IsBankAccountIncluded(ReportJob, Mgr)) then exit;
+//
+//      case Client.clFields.clCountry of
+//         whNewZealand :
+//            Begin
+//               //
+//               // Foreign Currency Amount
+//               //
+//               If txDate_Transferred <> 0 then
+//                 PutString( 'Yes' )
+//               else
+//                 SkipColumn;
+//
+//               PutString( '' ); { Date }
+//               PutString(dsReference);
+//               PutString( ' /'+IntToStr( dsSequence_No ) ); { Analysis }
+//               PutString( dsAccount );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+//                  If dsForeign_Currency_Amount >= 0 then
+//                  Begin
+//                     PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+//                     PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
+//                  end;
+//               end
+//               else
+//                  PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               if JournalOnly then
+//                 SkipColumn;
+//
+//               if ShowOP then begin
+//                  PutString( '' );
+//                  Rpt.PutNarrationNotes( ReportJob, dsGL_Narration,GetFullNotes( Dissection), False, 0);
+//               end
+//               else
+//                  Rpt.PutNarrationNotes( ReportJob, dsGL_Narration,GetFullNotes(Dissection), False, 0);
+//
+//               RenderDetailLine;
+//
+//               //
+//               // Local Currency Amount
+//               //
+//
+//               SkipColumn; // Transferred?
+//               SkipColumn; // Date
+//               SkipColumn; // Reference
+//               SkipColumn; // Analysis
+//               SkipColumn; // Account
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+//                  If dsAmount >= 0 then
+//                  Begin
+//                     PutMoneyDontAdd( Trunc( dsAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+//                     PutMoneyDontAdd( Trunc( dsAmount ) );
+//                  end;
+//               end
+//               else
+//                  PutMoneyDontAdd( Trunc( dsAmount ) );
+//
+//               if JournalOnly then
+//                 PutMoney( Trunc( dsGST_Amount));
+//
+//               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Reference
+//               if ShowOP then SkipColumn;   {other}
+//               if ShowBalance then SkipColumn;
+//               if ShowNotes then SkipColumn;   {notes}
+//               RenderDetailLine;
+//            end;
+//
+//
+//         whAustralia, whUK :
+//            Begin
+//               If txDate_Transferred <> 0 then
+//                  PutString( 'Yes' )
+//               else
+//                  SkipColumn;
+//               SkipColumn; { Date }
+//
+//               If ( dsReference <> '' ) then
+//                 PutString(dsReference)
+//               else
+//                 PutString( ' /'+IntToStr( dsSequence_No ) ); { Reference }
+//                 
+//               PutString( dsAccount );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+//                  If dsForeign_Currency_Amount >= 0 then
+//                  Begin
+//                     PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+//                     PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
+//                  end;
+//               end
+//               else
+//                  PutMoneyDontAdd( Trunc( dsForeign_Currency_Amount ) );
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               SkipColumn; // GST
+//               
+//               Rpt.PutNarrationNotes( ReportJob, dsGL_Narration,GetFullNotes(Dissection), False, 0);
+//               RenderDetailLine;
+//
+//               //
+//               // Local
+//               //
+//
+//               SkipColumn; // Transferred
+//               SkipColumn; // Date
+//               SkipColumn; // Reference
+//               SkipColumn; // Account
+//
+//               if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Client.FmtMoneyStr;
+//               if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Client.FmtMoneyStr;
+//
+//               If TwoColumn then
+//               Begin
+//                  If dsAmount >= 0 then
+//                  Begin
+//                     PutMoneyDontAdd( Trunc( dsAmount ) );
+//                     SkipColumn;
+//                  end
+//                  else
+//                  Begin
+//                     SkipColumn;
+//                     PutMoneyDontAdd( Trunc( dsAmount ) );
+//                  end;
+//               end
+//               else
+//                  PutMoneyDontAdd( Trunc( dsAmount ) );
+//
+//               PutMoney( Trunc( dsGST_Amount));
+//
+//               PutString( ForexRate2Str( txForex_Conversion_Rate ) ); // Narration
+//
+//               if ShowBalance then
+//                 SkipColumn;
+//               if ShowNotes then
+//                 SkipColumn;   {notes}
+//               RenderDetailLine;
+//             end;
+//      end; { Case clCountry }
+//   end;
+//end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1641,11 +1656,11 @@ var
    Rpt : TListEntriesReport;
 begin
    Mgr := TTravManagerWithNewReport(Sender);
-   if Mgr.Bank_Account.IsAForexAccount then
-   Begin
-     LE_EnterForexDissect( Sender );
-     exit;
-   End;
+//   if Mgr.Bank_Account.IsAForexAccount then
+//   Begin
+//     LE_EnterForexDissect( Sender );
+//     exit;
+//   End;
    Rpt := TListEntriesReport( Mgr.ReportJob );
    With Mgr, Rpt, Rpt.Params, Bank_Account, Transaction^, Dissection^ do
    Begin
@@ -1669,17 +1684,20 @@ begin
                Begin
                   If dsAmount >= 0 then
                   Begin
-                     PutMoneyDontAdd( Trunc( dsAmount ) );
+//                     PutMoneyDontAdd( Trunc( dsAmount ) );
+                     PutMoneyDontAdd( Trunc( dsTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoneyDontAdd( Trunc( dsAmount ) );
+//                     PutMoneyDontAdd( Trunc( dsAmount ) );
+                     PutMoneyDontAdd( Trunc( dsTemp_Base_Amount ) );
                   end;
                end
                else
-                  PutMoneyDontAdd( Trunc( dsAmount ) );
+//                  PutMoneyDontAdd( Trunc( dsAmount ) );
+                  PutMoneyDontAdd( Trunc( dsTemp_Base_Amount ) );
 
                if JournalOnly then
                  PutMoney( Trunc( dsGST_Amount));
@@ -1710,17 +1728,20 @@ begin
                Begin
                   If dsAmount >= 0 then
                   Begin
-                     PutMoneyDontAdd( Trunc( dsAmount ) );
+//                     PutMoneyDontAdd( Trunc( dsAmount ) );
+                     PutMoneyDontAdd( Trunc( dsTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-                     PutMoneyDontAdd( Trunc( dsAmount ) );
+//                     PutMoneyDontAdd( Trunc( dsAmount ) );
+                     PutMoneyDontAdd( Trunc( dsTemp_Base_Amount ) );
                   end;
                end
                else
-                  PutMoneyDontAdd( Trunc( dsAmount ) );
+//                  PutMoneyDontAdd( Trunc( dsAmount ) );
+                  PutMoneyDontAdd( Trunc( dsTemp_Base_Amount ) );
 
                PutMoney( Trunc( dsGST_Amount));
 
@@ -2001,6 +2022,7 @@ var
    BA: TBank_Account;
    i, Button: Integer;
    MONEY_FORMAT : String;
+   ISOCodes: string;
 begin
 
    LParams    := TListEntriesParam.Create(ord(Report_Last),MyClient, RptBatch,dPeriod );
@@ -2115,6 +2137,18 @@ begin
 
      if Dest = rdNone then
        Continue;
+
+     //Flag bank accounts included in the report
+     for i := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
+       MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baTemp_Include_In_Report := False;
+     for i := 0 to Pred(LParams.AccountList.Count) do
+       TBank_Account(LParams.AccountList[i]).baFields.baTemp_Include_In_Report := True;
+     //Check exchange rates
+     if not MyClient.HasExchangeRates(ISOCodes, LParams.FromDate, LParams.ToDate, True, False) then begin
+       HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+       Continue;
+     end;
+
      Job := TListEntriesReport.Create(ReportTypes.rptListings);
      job.Params := LParams;
      try
@@ -2886,50 +2920,51 @@ begin
   DoListPayeesReport( Dest, UserPrintSettings, false,Nil,RptBatch);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function DoCodeOpeningBalance(const Code : string; const D1 : TStDate; var aOpGST, aOpNet : Money ) : money;
-//Accumulate the OpenBal prior to the specified Start Date
-var
-   i, j         : integer;
-   OpenBal      : Money;
-   Curr_Dissect : pDissection_Rec;
 
-begin
-   with MyClient.clChart.FindCode(Code)^ do
-      OpenBal := chOpening_Balance_SB_Only;
-
-   with MyClient.clBank_Account_List do begin
-      for i := 0 to Pred(ItemCount) do begin
-         with Bank_Account_At(i).baTransaction_List do begin
-            for j := 0 to Pred(ItemCount) do begin
-               with Transaction_At(j)^ do begin
-                  if (txDate_Effective < D1) then begin
-                     if (txAccount = Code) then begin
-                        OpenBal := OpenBal + txAmount;
-                        aOpGst  := aOpGST + txGST_Amount;
-                        aOpNet  := aOpNet + ( txAmount - txGST_Amount );
-                     end
-                     else if (txFirst_Dissection <> nil) then begin
-                        Curr_Dissect := txFirst_Dissection;
-                        while Curr_Dissect <> nil do begin
-                           with Curr_Dissect^ do begin
-                              if dsAccount = Code then begin
-                                 OpenBal := OpenBal + dsAmount;
-                                 aOpGst  := aOpGST + dsGST_Amount;
-                                 aOpNet  := aOpNet + ( dsAmount - dsGST_Amount );
-                              end;
-
-                              Curr_Dissect := dsNext;
-                           end;
-                        end;
-                     end;
-                  end;
-               end;
-            end;
-         end;
-      end;
-   end;
-   Result := OpenBal;
-end;
+//function DoCodeOpeningBalance(const Code : string; const D1 : TStDate; var aOpGST, aOpNet : Money ) : money;
+////Accumulate the OpenBal prior to the specified Start Date
+//var
+//   i, j         : integer;
+//   OpenBal      : Money;
+//   Curr_Dissect : pDissection_Rec;
+//
+//begin
+//   with MyClient.clChart.FindCode(Code)^ do
+//      OpenBal := chOpening_Balance_SB_Only;
+//
+//   with MyClient.clBank_Account_List do begin
+//      for i := 0 to Pred(ItemCount) do begin
+//         with Bank_Account_At(i).baTransaction_List do begin
+//            for j := 0 to Pred(ItemCount) do begin
+//               with Transaction_At(j)^ do begin
+//                  if (txDate_Effective < D1) then begin
+//                     if (txAccount = Code) then begin
+//                        OpenBal := OpenBal + txAmount;
+//                        aOpGst  := aOpGST + txGST_Amount;
+//                        aOpNet  := aOpNet + ( txAmount - txGST_Amount );
+//                     end
+//                     else if (txFirst_Dissection <> nil) then begin
+//                        Curr_Dissect := txFirst_Dissection;
+//                        while Curr_Dissect <> nil do begin
+//                           with Curr_Dissect^ do begin
+//                              if dsAccount = Code then begin
+//                                 OpenBal := OpenBal + dsAmount;
+//                                 aOpGst  := aOpGST + dsGST_Amount;
+//                                 aOpNet  := aOpNet + ( dsAmount - dsGST_Amount );
+//                              end;
+//
+//                              Curr_Dissect := dsNext;
+//                           end;
+//                        end;
+//                     end;
+//                  end;
+//               end;
+//            end;
+//         end;
+//      end;
+//   end;
+//   Result := OpenBal;
+//end;
 //------------------------------------------------------------------------------
 
 procedure ListGSTDetail(Sender : TObject);

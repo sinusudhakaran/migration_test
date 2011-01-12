@@ -312,6 +312,7 @@ var
    procedure AddOpeningBalanceItem( WhichYear  : TWhichYear;
                                     Code       : string;
                                     Amount     : Money;
+                                    Amount_Base: Money;
                                     GST_Class  : Byte;
                                     GST_Amount : Money );
    var
@@ -339,11 +340,13 @@ var
              end;
 
              if ( WhichYear = wyThisYear ) then begin
-               if clGST_Inclusive_Cashflow then
-                 AddTo( chTemp_Amount.This_Year[ 0 ], Amount )
-               else begin
+               if clGST_Inclusive_Cashflow then begin
+                 AddTo( chTemp_Amount.This_Year[ 0 ], Amount );
+                 AddTo( chTemp_Base_Amount.This_Year[ 0 ], Amount_Base );
+               end else begin
                  //post net and gst amounts separately
                  AddTo( chTemp_Amount.This_Year[ 0 ], Amount - GST_Amount );
+                 AddTo( chTemp_Base_Amount.This_Year[ 0 ], Amount - GST_Amount );
                  if PostToGSTContra and ( Assigned( G)) then
                     AddTo( G^.chTemp_Amount.This_Year[0], GST_Amount);
                end;
@@ -396,7 +399,7 @@ var
                         if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                         or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
 //                           AddOpeningBalanceItem( WhichYear, pT.txAccount, pT^.txAmount, pT.txGST_Class, pT.txGST_Amount);
-                           AddOpeningBalanceItem( WhichYear, pT.txAccount, pT^.txTemp_Base_Amount, pT.txGST_Class, pT.txGST_Amount);
+                           AddOpeningBalanceItem( WhichYear, pT.txAccount, pT^.txAmount, pT^.txTemp_Base_Amount, pT.txGST_Class, pT.txGST_Amount);
                      end else begin
                         //iterate disections
                         pD := pT.txFirst_Dissection;
@@ -404,7 +407,7 @@ var
                            if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                            or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then
 //                              AddOpeningBalanceItem( WhichYear, pD^.dsAccount, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount);
-                              AddOpeningBalanceItem( WhichYear, pD^.dsAccount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount);
+                              AddOpeningBalanceItem( WhichYear, pD^.dsAccount, pD^.dsAmount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount);
                            pD := pD^.dsNext;
                         end;
                      end;
@@ -558,7 +561,8 @@ var
 //                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txForeign_Currency_Amount )
 //                                else
 //                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txAmount);
-                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
+                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txAmount);
+                                  AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
                               end;
                             end else begin
                               pD := pT^.txFirst_Dissection;
@@ -570,7 +574,8 @@ var
 //                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsForeign_Currency_Amount )
 //                                  else
 //                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsAmount);
-                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
+                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsAmount);
+                                    AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
                                  end;
                                  pD := pD^.dsNext;
                               end;
@@ -588,7 +593,8 @@ var
 //                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txForeign_Currency_Amount)
 //                                else
 //                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txAmount);
-                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
+                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txAmount);
+                                  AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
                               end;
                             end else begin
                               pD := pT^.txFirst_Dissection;
@@ -600,7 +606,8 @@ var
 //                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsForeign_Currency_Amount)
 //                                  else
 //                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsAmount);
-                                   AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
+                                   AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsAmount);
+                                   AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
                                  end;
                                  pD := pD^.dsNext;
                               end;
@@ -1191,6 +1198,9 @@ var
   pAcct       : pAccount_Rec;
   OB_ThisYear : Money;
   OB_LastYear : Money;
+  OB_BaseThisYear : Money;
+  OB_BaseLastYear : Money;
+
   NewBalance  : Money;
 
   m1,m2,m3    : Money;
@@ -1222,6 +1232,8 @@ begin
         //look for contra codes that use this account
         OB_LastYear := 0;
         OB_ThisYear := 0;
+        OB_BaseThisYear := 0;
+        OB_BaseLastYear := 0;
 
         for j := 0 to aClient.clBank_Account_List.Last do begin
           BankAccount := aClient.clBank_Account_List.Bank_Account_At(j);
@@ -1233,30 +1245,41 @@ begin
 
             BankAccount.CalculatePDBalances( This_Year_Starts, This_Year_Ends, m1, m2, NewBalance, m3);
 
-            //Convert to base currency
-            if BankAccount.IsAForexAccount then
-              NewBalance := NewBalance / BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts);
-
             if NewBalance <> Unknown then
               OB_ThisYear := OB_ThisYear + NewBalance;
 
-              //total last year
-            BankAccount.CalculatePDBalances( Last_Year_Starts, Last_Year_Ends, m1, m2, NewBalance, m3);
-
             //Convert to base currency
-            if BankAccount.IsAForexAccount then
-              NewBalance := NewBalance / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts);
+            if BankAccount.IsAForexAccount then begin
+              NewBalance := NewBalance / BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts);
+              if NewBalance <> Unknown then
+                OB_BaseThisYear := OB_BaseThisYear + NewBalance;
+            end;
+
+            //total last year
+            BankAccount.CalculatePDBalances( Last_Year_Starts, Last_Year_Ends, m1, m2, NewBalance, m3);
 
             if NewBalance <> Unknown then
               OB_LastYear := OB_LastYear + NewBalance;
+
+            //Convert to base currency
+            if BankAccount.IsAForexAccount then begin
+              NewBalance := NewBalance / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts);
+              if NewBalance <> Unknown then
+                OB_BaseLastYear := OB_BaseLastYear + NewBalance;
+            end;
+
           end;
         end;
 
-        if not HasBalanceThisYear then
+        if not HasBalanceThisYear then begin
           pAcct^.chTemp_Amount.This_Year[ 0 ] := -OB_ThisYear;
+          pAcct^.chTemp_Base_Amount.This_Year[ 0] := -OB_BaseThisYear;
+        end;
 
-        if not HasBalanceLastYear then
+        if not HasBalanceLastYear then begin
           pAcct^.chTemp_Amount.Last_Year[ 0 ] := -OB_LastYear;
+          pAcct^.chTemp_Base_Amount.Last_Year[ 0 ] := -OB_BaseLastYear;
+        end;
       end;
     end;
   end;
