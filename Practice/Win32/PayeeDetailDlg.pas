@@ -280,13 +280,22 @@ begin
   //load line type combo
   colLineType.Items.Clear;
   colLineType.Items.Add( BKCONST.pltNames[ pltPercentage]);
-  colLineType.Items.Add( BKCONST.pltNames[ pltDollarAmt]);
+  if MyClient.HasForeignCurrencyAccounts then
+    colLineType.Items.Add( '')
+  else
+    colLineType.Items.Add( BKCONST.pltNames[ pltDollarAmt]);
 
   FTaxName := MyClient.TaxSystemNameUC;
   Header.Headings[ GSTCol  ] := FTaxName;
-  Header.Headings[ TypeCol ] := pltNames[ mltPercentage ] + '/' + pltNames[ mltDollarAmt ];
 
-  lblFixedHdr.Caption := 'Fixed ' + pltNames[ pltDollarAmt ];
+  if MyClient.HasForeignCurrencyAccounts then begin
+    Header.Headings[ TypeCol ] := pltNames[ mltPercentage ];
+    lblFixedHdr.Caption := 'Fixed';
+  end else begin
+    Header.Headings[ TypeCol ] := pltNames[ mltPercentage ] + '/' + pltNames[ mltDollarAmt ];
+    lblFixedHdr.Caption := 'Fixed ' + pltNames[ pltDollarAmt ];
+  end;
+
   FixedAmount1.Caption := 'Apply &fixed amount                              ' + pltNames[ pltDollarAmt ];
   LookupGSTClass1.Caption := 'Lookup &' + FTaxName + ' class                                F7';
   SetUpHelp;
@@ -760,7 +769,10 @@ var
 begin
   CalcRemaining(Fixed, TotalPerc, RemainingPerc, HasDollarLines, HasPercentLines);
 
-  lblFixed.Caption :=  MyClient.MoneyStr( Fixed );
+  if MyClient.HasForeignCurrencyAccounts then
+    lblFixed.Caption :=  MyClient.MoneyStrNoSymbol( Fixed )
+  else
+    lblFixed.Caption :=  MyClient.MoneyStr( Fixed );
 
   lblTotalPerc.Caption := Format( '%0.4f%%', [TotalPerc/ 10000]);
   lblRemPerc.Caption := Format( '%0.4f%%', [RemainingPerc/ 10000]);
