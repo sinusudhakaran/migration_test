@@ -229,6 +229,8 @@ type
     RowSelectedColor          : TColor;
     RemovingMask, AllowMinus : Boolean;
 
+    DoingRemainder            : Boolean;
+
     procedure CMFocusChanged(var Msg: TCMFocusChanged); message CM_FocusChanged;
 
     procedure BuildGrid;
@@ -902,6 +904,7 @@ begin
   KeyIsDown        := false;
   KeyIsCopy        := false;
   AllowMinus := True;
+  DoingRemainder := false;
 
   BKHelpSetUp(Self, BKH_Dissecting_transactions);
 end;
@@ -1121,7 +1124,8 @@ begin
           sValue := '-1.0'
         else
           sValue := '1.0';
-        if (StrToFloatDef(sValue, 0) < 0) and (StrToFloatDef(tgDissect.CurrentCell.Value, -1) >= 0) then
+        if (StrToFloatDef(sValue, 0) < 0) and (StrToFloatDef(tgDissect.CurrentCell.Value, -1) >= 0)
+           and (DoingRemainder = false) then
           tgDissect.CurrentCell.Value := '-' + tgDissect.CurrentCell.Value;
       end;
       ccAccount : begin
@@ -1916,6 +1920,7 @@ begin
             end;
             //complete the amount
             if Key = '=' then begin
+               DoingRemainder := True;
                Key := #0;
                sValue := CalcAmountToCompleteStr;
                if (MaskSet.Masks.Items[tgDissect.Col[ccAmount].MaskName].ValidText(sValue, True)) then
@@ -1929,6 +1934,7 @@ begin
                  tgDissect.EndEdit(False);
                  ErrorMessage('The calculated amount is too large. Please divide the value into smaller amounts.');
                end;
+               DoingRemainder := False;
             end;
             if Key = '-' then begin
               Key := #0;
