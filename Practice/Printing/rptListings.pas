@@ -678,20 +678,20 @@ begin
                Begin
                   If txAmount >= 0 then
                   Begin
-//                     PutMoney( Trunc( txAmount ) );
-                     PutMoney( Trunc( txTemp_Base_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-//                     PutMoney( Trunc( txAmount ) );
-                     PutMoney( Trunc( txTemp_Base_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txTemp_Base_Amount ) );
                   end;
                end
                else
-//                  PutMoney( Trunc( txAmount ) );
-                  PutMoney( Trunc( txTemp_Base_Amount ) );
+                  PutMoney( Trunc( txAmount ) );
+//                  PutMoney( Trunc( txTemp_Base_Amount ) );
 
                if JournalOnly then
                  PutMoney ( Trunc( txGST_Amount));
@@ -702,8 +702,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -734,20 +734,20 @@ begin
                Begin
                   If txAmount >= 0 then
                   Begin
-//                     PutMoney( Trunc( txAmount ) );
-                     PutMoney( Trunc( txTemp_Base_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-//                     PutMoney( Trunc( txAmount ) );
-                     PutMoney( Trunc( txTemp_Base_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txTemp_Base_Amount ) );
                   end;
                end
                else
-//                  PutMoney( Trunc( txAmount ) );
-                  PutMoney( Trunc( txTemp_Base_Amount ) );
+                  PutMoney( Trunc( txAmount ) );
+//                  PutMoney( Trunc( txTemp_Base_Amount ) );
 
                PutMoney ( Trunc( txGST_Amount));
 
@@ -757,8 +757,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -1363,20 +1363,20 @@ begin
                Begin
                   If txAmount >= 0 then
                   Begin
-//                     PutMoney( Trunc( txAmount ) );
-                     PutMoney( Trunc( txTemp_Base_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-//                     PutMoney( Trunc( txAmount ) );
-                     PutMoney( Trunc( txTemp_Base_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txTemp_Base_Amount ) );
                   end;
                end
                else
-//                  PutMoney( Trunc( txAmount ) );
-                  PutMoney( Trunc( txTemp_Base_Amount ) );
+                  PutMoney( Trunc( txAmount ) );
+//                  PutMoney( Trunc( txTemp_Base_Amount ) );
 
                if JournalOnly then
                  PutMoney ( Trunc( txGST_Amount));
@@ -1387,8 +1387,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
@@ -1423,20 +1423,20 @@ begin
                Begin
                   If txAmount >= 0 then
                   Begin
-//                     PutMoney( Trunc( txAmount ) );
-                     PutMoney( Trunc( txTemp_Base_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txTemp_Base_Amount ) );
                      SkipColumn;
                   end
                   else
                   Begin
                      SkipColumn;
-//                     PutMoney( Trunc( txAmount ) );
-                     PutMoney( Trunc( txTemp_Base_Amount ) );
+                     PutMoney( Trunc( txAmount ) );
+//                     PutMoney( Trunc( txTemp_Base_Amount ) );
                   end;
                end
                else
-//                  PutMoney( Trunc( txAmount ) );
-                  PutMoney( Trunc( txTemp_Base_Amount ) );
+                  PutMoney( Trunc( txAmount ) );
+//                  PutMoney( Trunc( txTemp_Base_Amount ) );
                PutMoney ( Trunc( txGST_Amount));
 
                ShowBal := False;
@@ -1445,8 +1445,8 @@ begin
                begin
                  if Bank_Account.baFields.baTemp_Balance <> unknown then
                  begin
-//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
-                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
+                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txAmount;
+//                   Bank_Account.baFields.baTemp_Balance := Bank_Account.baFields.baTemp_Balance + txTemp_Base_Amount;
                    Bal := Bank_Account.baFields.baTemp_Balance;
                    ShowBal := True;
                  end
