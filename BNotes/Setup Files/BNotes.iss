@@ -39,6 +39,7 @@ Name: "{userdesktop}\BankLink BNotes"; Filename: "{app}\BNOTES.EXE"; MinVersion:
 [Code]
 var
   CountryCode: integer;
+  ChosenCountry: integer;
   CountryPage: TInputOptionWizardPage;
   FinishedInstall: Boolean;
 
@@ -61,7 +62,9 @@ var
 begin
   Result := True;
   if CurPageId = wpWelcome then begin
-    TempCountry := DefaultCountry;
+    if (ChosenCountry > -1)
+      then TempCountry := ChosenCountry
+      else TempCountry := DefaultCountry;
     case TempCountry of
       0: Index := 1;
       1: Index := 0;
@@ -82,6 +85,10 @@ end;
 
 procedure InitializeWizard();
 begin
+  ChosenCountry := -1;
+  if (Pos('country', ParamStr(ParamCount)) > 0) then
+    ChosenCountry := StrToInt(Copy(ParamStr(ParamCount), 9, 3)); // 3 instead of 1 for a bit of future proofing
+
   //Select Country Page
   CountryPage := CreateInputOptionPage(wpWelcome, 'Country', 'Please select a country for InvoicePlus.', '', True, False);
   CountryPage.Add('Australia');
