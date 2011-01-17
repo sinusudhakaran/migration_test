@@ -2028,8 +2028,9 @@ var
    i, Button: Integer;
    MONEY_FORMAT : String;
    ISOCodes: string;
+   NonBaseCurrency: Boolean;
 begin
-
+   NonBaseCurrency := False;
    LParams    := TListEntriesParam.Create(ord(Report_Last),MyClient, RptBatch,dPeriod );
    try
       LParams.GetBatchAccounts;
@@ -2049,7 +2050,7 @@ begin
                // If Batchless.. this is more or less meaningless
                if not EnterPrintDateRangeOptions('List Journals','Enter the starting and finishing date for the journals you want to list.',
                                     LParams.FromDate, LParams.ToDate, BKH_List_journals, true,
-                                    [], Button, LParams, LParams.WrapNarration, True,[btCashJournals..btStockBalances]) then exit;
+                                    [], Button, LParams, LParams.WrapNarration, NonBaseCurrency, True, False,[btCashJournals..btStockBalances]) then exit;
                // Is a bid odd..
                LParams.TwoColumn := (LParams.Client.clFields.clCoding_Report_Style = rsTwoColumn);
                LParams.SortBy := csDateEffective; // Just to be sure...

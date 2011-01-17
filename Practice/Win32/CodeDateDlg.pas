@@ -32,6 +32,7 @@ type
     chkWrapNarration: TCheckBox;
     tsAdvanced: TTabSheet;
     fmeAccountSelector1: TfmeAccountSelector;
+    chkNonBaseCurrency: TCheckBox;
 
     procedure btnOKClick(Sender: TObject);
     procedure btCloseClick(Sender: TObject);
@@ -82,7 +83,9 @@ function EnterDateRange(Caption : string;
 
 function EnterPrintDateRange(Caption : string; Text :string;
                              var DateFrom,DateTo : TstDate; HelpCtx: integer; Blank : Boolean;
-                             Params: TRPTParameters
+                             Params: TRPTParameters;
+                             var NonBaseCurrency: Boolean;
+                             const ShowNonBaseCurrency: Boolean = False
                              ) : boolean;
 
 function EnterPrintDateRangeOptions(Caption : string; Text :string;
@@ -91,7 +94,9 @@ function EnterPrintDateRangeOptions(Caption : string; Text :string;
                            var Button : Integer;
                            Params: TRPTParameters;
                            var WrapNarration: Boolean;
+                           var NonBaseCurrency: Boolean;
                            const ShowNarration: Boolean = False;
+                           const ShowNonBaseCurrency: Boolean = False;
                            AccountSet: TAccountSet = []
                            ): boolean;
 
@@ -369,7 +374,9 @@ end;    //
 //------------------------------------------------------------------------------
 function EnterPrintDateRange(Caption : string; Text :string;
                              var DateFrom,DateTo : TstDate; HelpCtx: integer; Blank : Boolean;
-                             Params: TRPTParameters
+                             Params: TRPTParameters;
+                             var NonBaseCurrency: Boolean;
+                             const ShowNonBaseCurrency: Boolean = False
                              ) : boolean;
 var
   MyCodeDate : TdlgCodeDate;
@@ -387,6 +394,10 @@ begin
     MyCodeDate.tsAdvanced.TabVisible := False;
     MyCodeDate.tsOptions.TabVisible := False;
     MyCodeDate.pcoptions.ActivePage := MyCodeDate.tsOptions;
+
+    MyCodeDate.chkNonBaseCurrency.Left := MyCodeDate.chkWrapNarration.Left;
+    MyCodeDate.chkNonBaseCurrency.Visible := ShowNonBaseCurrency;
+    MyCodeDate.chkNonBaseCurrency.Checked := NonBaseCurrency;
 
     with MyCodeDate do begin
       btnpreview.Visible := true;
@@ -412,6 +423,10 @@ begin
          DateFrom := MyCodeDate.dlgDateFrom;
          DateTo   := MyCodeDate.dlgDateTo;
 
+         NonBaseCurrency := False;
+         if MyCodeDate.chkNonBaseCurrency.Visible then
+           NonBaseCurrency := MyCodeDate.chkNonBaseCurrency.Checked;
+
          if not MyCodeDate.AllowBlank then
          begin
             gCodingDateFrom := DateFrom;
@@ -434,7 +449,9 @@ function EnterPrintDateRangeOptions(Caption : string; Text :string;
                            var Button : Integer;
                            Params: TRPTParameters;
                            var WrapNarration: Boolean;
+                           var NonBaseCurrency: Boolean;
                            const ShowNarration: Boolean = False;
+                           const ShowNonBaseCurrency: Boolean = False;
                            AccountSet: TAccountSet = []): boolean;
 var
   MyCodeDate : TdlgCodeDate;
@@ -450,6 +467,8 @@ begin
     MyCodeDate.caption := caption;
     MyCodeDate.chkWrapNarration.Visible := ShowNarration;
     MyCodeDate.chkWrapNarration.Checked := WrapNarration;
+    MyCodeDate.chkNonBaseCurrency.Visible := ShowNonBaseCurrency;
+    MyCodeDate.chkNonBaseCurrency.Checked := NonBaseCurrency;
 
     if AccountSet = [] then begin
        MyCodeDate.tsAdvanced.TabVisible := False;
@@ -503,6 +522,10 @@ begin
         WrapNarration := False
       else
         WrapNarration  := MyCodeDate.chkWrapNarration.Checked;
+
+      NonBaseCurrency := False;
+        if MyCodeDate.chkNonBaseCurrency.Visible then
+          NonBaseCurrency := MyCodeDate.chkNonBaseCurrency.Checked;
 
       if (MyCodeDate.radButton1.Visible and MyCodeDate.radButton1.Checked) then
         Button := 0
@@ -603,7 +626,7 @@ begin
     MyCodeDate.RptParams := nil;
     MyCodeDate.tsAdvanced.TabVisible := False;
     MyCodeDate.tsOptions.TabVisible := False;
-     MyCodeDate.pcoptions.ActivePage := MyCodeDate.tsOptions;
+    MyCodeDate.pcoptions.ActivePage := MyCodeDate.tsOptions;
 
     if MyCodeDate.Execute then
     begin

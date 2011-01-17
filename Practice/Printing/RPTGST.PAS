@@ -81,7 +81,12 @@ type
     RptParameters : TRptParameters;
   end;
 
-  TGSTAuditReport = class( TGSTReport)
+  TGSTNonBaseCurrencyReport = class( TGSTReport)
+  private
+    NonBaseCurrency: Boolean;
+  end;
+
+  TGSTAuditReport = class( TGSTNonBaseCurrencyReport)
   private
     DoneHeader : boolean;
     AccountsPrinted : integer;
@@ -311,9 +316,10 @@ var
    Cleft: Double;
    TaxName : String;
    ISOCodes: string;
+   NonBaseCurrency: Boolean;
 Begin
    TaxName := MyClient.TaxSystemNameUC;
-
+   NonBaseCurrency := False;
    Params := TRptParameters.Create(ord(Report_GST_Summary),MyClient,RptBatch,DPeriod);
 
    with Params do try
@@ -328,7 +334,7 @@ Begin
 
          if not EnterPrintDateRange('Print ' + TaxName + ' Summary','Enter the starting and finishing dates for the period you want to print',
                                  Fromdate,Todate,
-                                 BKH_GST_summary_report, true,Params) then exit;
+                                 BKH_GST_summary_report, true,Params, NonBaseCurrency) then exit;
 
          if (Params.RunBtn = BTN_SAVE) then begin
             SaveNodesettings;
@@ -424,10 +430,12 @@ var
    Params : TRptParameters;
    cLeft: Double;
    ISOCodes: string;
+   NonBaseCurrency: Boolean;
 const
   FORMAT_AMOUNT = '#,##0.00 DR;#,##0.00 CR';
 Begin
    Params := TRptParameters.Create(ord(Report_GST_allocationSummary), MyClient,RptBatch,DPeriod);
+   NonBaseCurrency := False;
 
    with Params do try
      if DFrom <> 0 then begin
@@ -441,7 +449,7 @@ Begin
 
          if not EnterPrintDateRange('Print GST Allocation Summary','Enter the starting and finishing dates for the period you want to print',
                                  Fromdate,Todate,
-                                 BKH_GST_summary_report, true,Params) then exit;
+                                 BKH_GST_summary_report, true,Params, NonBaseCurrency) then exit;
 
           if (Params.RunBtn = BTN_SAVE) then begin
             SaveNodesettings;
@@ -1125,6 +1133,12 @@ begin
             S := txAccount;
           PutString( S );
 
+          if TGSTAuditReport(Mgr.ReportJob).NonBaseCurrency then
+            if (txGST_Amount <> 0) and (Mgr.Bank_Account.IsAForexAccount) then
+              PutMoney( txAmount )
+            else
+              PutString( '-' );
+
           PutMoney( txTemp_Base_Amount );
           PutMoney( txGST_Amount );
           PutMoney( txTemp_Base_Amount - txGST_Amount );
@@ -1209,9 +1223,15 @@ begin
           S := dsAccount;
         PutString( S);
 
-        PutMoney( dsAmount );
+        if TGSTAuditReport(Mgr.ReportJob).NonBaseCurrency then
+          if (dsGST_Amount <> 0) and (Mgr.Bank_Account.IsAForexAccount) then
+            PutMoney( dsAmount )
+          else
+            PutString( '-' );
+
+        PutMoney( dsTemp_Base_Amount );
         PutMoney( dsGST_Amount );
-        PutMoney( dsAmount - dsGST_Amount );
+        PutMoney( dsTemp_Base_Amount - dsGST_Amount );
         PutNarration(Mgr.ReportJob, dsGL_Narration );
         RenderDetailLine;
       end;
@@ -1290,6 +1310,7 @@ var
    GSTInfo  : TGSTinfo;
    Job : TGSTAuditReport;
    WrapNarration: Boolean;
+   NonBaseCurrency: Boolean;
    Params : TRptParameters;
    s : string;
    cLeft: Double;
@@ -1305,6 +1326,7 @@ Begin
          Todate := DTo;
       end;
       WrapNarration := GetBatchBool('Wrap_Narration',false);
+      NonBaseCurrency := GetBatchBool('Non_Base_Currency',false);
       s := GetBatchText('Sort','Date');
       if Sametext(S,'Account') then SortOrder := 1
       else SortOrder := 0;
@@ -1318,14 +1340,15 @@ Begin
             if not EnterPrintDateRangeOptions('Print '+TaxName+' Audit Trail',
               'Enter the starting and finishing dates for the period you want to print',
               FromDate,Todate,BKH_GST_audit_trail_report, true,
-              ['&Date order', '&Account code order'], SortOrder, Params, WrapNarration, True) then exit;
+              ['&Date order', '&Account code order'], SortOrder, Params,
+              WrapNarration, NonBaseCurrency, True, MyClient.HasForeignCurrencyAccounts) then exit;
 
             if Params.BatchSave then begin
                 SaveNodeSettings;
                 if SortOrder  = 0 then SetBatchText('Sort','Date')
                 else SetBatchText('Sort','Account');
                 SetBatchBool('Wrap_Narration',WrapNarration);
-
+                SetBatchBool('Non_Base_Currency',NonBaseCurrency);
                 Exit;
             end;
 
@@ -1395,10 +1418,20 @@ Begin
          AddColAuto(Job,cLeft,        9.0,GcGap, 'Date',jtLeft);
          AddColAuto(Job,cLeft,       10.4,GcGap,'Reference', jtLeft);
          AddColAuto(Job,cLeft,       20.0,GcGap,'Account',jtLeft);
-         AddFormatColAuto(Job,cLeft, 10.5,GcGap,'Gross Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
-         AddFormatColAuto(Job,cLeft,  9.0,GcGap,TaxName+' Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
-         AddFormatColAuto(Job,cLeft, 10.5,GcGap,'Net Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
-         AddColAuto(Job,cLeft,       25.0,GcGap,'Narration',jtLeft);
+         //Default to landscape when non-base currencies displayed
+         if MyClient.HasForeignCurrencyAccounts and NonBaseCurrency then begin
+           Job.UserReportSettings.s7Orientation := BK_LANDSCAPE;
+           AddFormatColAuto(Job,cLeft, 9.5,GcGap,'Gross Non-base',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, false);
+           AddFormatColAuto(Job,cLeft, 9.5,GcGap,'Gross Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+           AddFormatColAuto(Job,cLeft,  8.0,GcGap,TaxName+' Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+           AddFormatColAuto(Job,cLeft, 9.5,GcGap,'Net Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+           AddColAuto(Job,cLeft,       23.0,GcGap,'Narration',jtLeft);
+         end else begin
+           AddFormatColAuto(Job,cLeft, 10.5,GcGap,'Gross Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+           AddFormatColAuto(Job,cLeft,  9.0,GcGap,TaxName+' Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+           AddFormatColAuto(Job,cLeft, 10.5,GcGap,'Net Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+           AddColAuto(Job,cLeft,       25.0,GcGap,'Narration',jtLeft);
+         end;
 
        //Add Footers
          AddJobFooter(Job,siFootNote, '[D] = Part of Dissected Entry', true);
@@ -1409,6 +1442,7 @@ Begin
          Job.d2      := Params.ToDate;
          Job.SortOrder := SortOrder;
          Job.WrapNarration := WrapNarration;
+         Job.NonBaseCurrency := NonBaseCurrency;
 
          Job.OnBKPrint := GSTAuditDetail;
          Job.Generate(Dest, params);
@@ -1519,8 +1553,10 @@ var
    Job: TGSTReport;
    Params: TGenRptParameters;
    cLeft: Double;
+   NonBaseCurrency: Boolean;
 begin
    Params := TGenRptParameters.Create(ord(Report_GST_BusinessNorms), MyClient,RptBatch);
+   NonBaseCurrency := False;
    try
    with Params do repeat
       if Batchrun then
@@ -1531,7 +1567,7 @@ begin
         end;
 
         if not EnterPrintDateRange('Print Business Norm Percentages Report','Enter the starting and finishing dates for the period you want to print',
-                                 Fromdate,ToDate,BKH_Business_norms_percentages_report, true,Params) then exit;
+                                 Fromdate,ToDate,BKH_Business_norms_percentages_report, true,Params, NonBaseCurrency) then exit;
 
 
 
@@ -1698,7 +1734,7 @@ var
      DoneHeader := false;
      ClassHeaderDone := false;
 
-      With MyClient, clFields, clBank_Account_List, TGstReport(Sender) do
+      With MyClient, clFields, clBank_Account_List, TGstNonBaseCurrencyReport(Sender) do
       Begin
          For B := 0 to Pred( ItemCount ) do With Bank_Account_At( B ), baFields do
          begin
@@ -1740,6 +1776,13 @@ var
 
                            PutString( GetFormattedReference( pT));
                            PutString( txAccount + ' ' + RptParameters.Chart.FindDesc( txAccount ) );
+
+                           if NonBaseCurrency then
+                             if (txGST_Amount <> 0) and IsAForexAccount then
+                               PutMoney( txAmount )
+                             else
+                               PutString( '-' );
+
                            PutMoney( txTemp_Base_Amount );
                            PutMoney( txGST_Amount );
                            PutString( txGL_Narration);
@@ -1760,7 +1803,7 @@ var
                            If ( dsGST_Class = GST_Class ) and ( dsGST_Has_Been_Edited) then
                            Begin
                               If not DoneHeader then Begin //has a header been shown for this account
-                                 S := 'Account '+ baBank_Account_Number + ': '+ baBank_Account_Name;
+                                 S := 'Account '+ baBank_Account_Number + ': '+ AccountName;
                                  DoHeader( S);
                               end;
                               { Print the Entry }
@@ -1782,7 +1825,14 @@ var
 
                               PutString( getDsctReference (Dissection, pT,0 ) );
                               PutString( dsAccount + ' ' + RptParameters.Chart.FindDesc( dsAccount ) );
-                              PutMoney( dsAmount );
+
+                              if NonBaseCurrency then
+                                if (dsGST_Amount <> 0) and IsAForexAccount then
+                                  PutMoney( dsAmount )
+                                else
+                                  PutString( '-' );
+
+                              PutMoney( dsTemp_Base_Amount );
                               PutMoney( dsGST_Amount );
                               PutString( dsGL_Narration );
                               //get defaults for this accounts
@@ -1831,11 +1881,12 @@ procedure DoGSTOverrides(Dest : TReportDest;RptBatch : TReportBase = nil;
          DFrom : Integer = 0; DTo : Integer = 0);
 var
    GSTInfo  : TGSTinfo;
-   Job : TGSTReport;
+   Job : TGSTNonBaseCurrencyReport;
    params : TRptParameters;
    cLeft: Double;
    TaxName : String;
    ISOCodes: string;
+   NonBaseCurrency: Boolean;
 begin
   TaxName := MyClient.TaxSystemNameUC;
 
@@ -1845,6 +1896,7 @@ begin
          Fromdate := DFrom;
          Todate := DTo;
       end;
+      NonBaseCurrency := GetBatchBool('Non_Base_Currency',false);
 
       repeat
 
@@ -1853,10 +1905,11 @@ begin
       else begin
          if not EnterPrintDateRange('Print '+TaxName+' Overrides','Enter the starting and finishing dates for the period you want to print',
                                  Fromdate,ToDate,BKH_GST_overrides_report,
-                                 True,Params) then exit;
+                                 True,Params, NonBaseCurrency, True) then exit;
 
-         if (Params.RunBtn = BTN_SAVE) then begin
+         if Params.BatchSave then begin
             SaveNodesettings;
+            SetBatchBool('Non_Base_Currency', NonBaseCurrency);
             Exit;
          end;
 
@@ -1889,7 +1942,7 @@ begin
                            Exit;
                         end;
 
-     Job := TGSTReport.Create(ReportTypes.rptGst);
+     Job := TGSTNonBaseCurrencyReport.Create(ReportTypes.rptGst);
      try
        Job.RptParameters := Params;
        Job.LoadReportSettings(UserPrintSettings,MakeRptName(Report_List_Names[Report_GST_Overrides]));
@@ -1906,11 +1959,21 @@ begin
        AddColAuto(Job,cLeft,8.0,Gcgap,'Date',jtLeft);
        AddColAuto(Job,cLeft,10.4,Gcgap,'Reference', jtLeft);
        AddColAuto(Job,cLeft,16.0,Gcgap,'Account',jtLeft);
-       AddFormatColAuto(Job,cLeft,10.5,Gcgap,'Gross Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
-       AddFormatColAuto(Job,cLeft,9.0,Gcgap, TaxName+' Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
-       AddColAuto(Job,cLeft,19.4,Gcgap,'Narration',jtLeft);
-       AddColAuto(Job,cLeft,7.5,Gcgap,'Def Class', jtRight);
-       AddFormatColAuto(Job,cLeft,  10.5,Gcgap,'Default Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+       if MyClient.HasForeignCurrencyAccounts and NonBaseCurrency then begin
+         Job.UserReportSettings.s7Orientation := BK_LANDSCAPE;
+         AddFormatColAuto(Job,cLeft,9.5,Gcgap,'Gross Non-base',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, false);
+         AddFormatColAuto(Job,cLeft,9.5,Gcgap,'Gross Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+         AddFormatColAuto(Job,cLeft,8.0,Gcgap, TaxName+' Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+         AddColAuto(Job,cLeft,19.4,Gcgap,'Narration',jtLeft);
+         AddColAuto(Job,cLeft,7.5,Gcgap,'Def Class', jtRight);
+         AddFormatColAuto(Job,cLeft,  9.5,Gcgap,'Default Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+       end else begin
+         AddFormatColAuto(Job,cLeft,10.5,Gcgap,'Gross Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+         AddFormatColAuto(Job,cLeft,9.0,Gcgap, TaxName+' Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+         AddColAuto(Job,cLeft,19.4,Gcgap,'Narration',jtLeft);
+         AddColAuto(Job,cLeft,7.5,Gcgap,'Def Class', jtRight);
+         AddFormatColAuto(Job,cLeft,  10.5,Gcgap,'Default Amt',jtRight,FORMAT_AMOUNT, MyClient.FmtMoneyStrBrackets, true);
+       end;
 
        //Add Footers
        AddJobFooter( Job,siFootNote, '[D] = Part of Dissected Entry', true);
@@ -1919,6 +1982,8 @@ begin
        Job.GSTInfo := GSTInfo;
        Job.d1      := FromDate;
        Job.d2      := ToDate;
+       Job.NonBaseCurrency := NonBaseCurrency;
+              
        Job.OnBKPrint := GSTOverridesDetail;
        Job.Generate( Dest,params);
      finally
