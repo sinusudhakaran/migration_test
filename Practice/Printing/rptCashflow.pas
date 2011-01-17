@@ -87,7 +87,8 @@ uses
   SysUtils, ECollect, BaList32, trxList32,
   RptParams,
   CountryUtils,
-  baUtils;
+  baUtils,
+  Classes;
 
 
 {$IFDEF SmartBooks}
@@ -1691,10 +1692,7 @@ var
   OpeningBalanceExchangeRate, ClosingBalanceExchangeRate: double;
 begin
   FUseBaseAmounts := True;
-//  PeriodCount := (MaxPeriodToShow - MinPeriodToShow) + 1;
-//  Inc(PeriodCount); //zero base array but periods start at 1?
   PeriodCount := MaxPeriodToShow + 1; //zero base array but periods start at 1?
-//  ColumnCount := ColumnsPerPeriod;
   ColumnCount := Length(ColumnTypes);
 
   //Set width - no need to nil afterward
@@ -1928,6 +1926,78 @@ begin
       DoOutput(CashFlowReport);
   end;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function HasOpenAndCloseBalanceExchangeRates(aClient: TClientObj): Boolean;
+var
+  i, j: integer;
+  BA: TBank_Account;
+  TempDate: integer;
+  MissingDates: TStringList;
+  procedure CheckDate(ADate: integer);
+  begin
+    if ADate > 0 then begin
+      if (BA.Default_Forex_Conversion_Rate(ADate) = 0) then
+        if MissingDates.IndexOf(BKDateUtils.Date2Str(ADate, 'dd/MM/YYYY')) = -1  then
+          MissingDates.Add(BKDateUtils.Date2Str(ADate, 'dd/MM/YYYY'));
+      Result := Result and (BA.Default_Forex_Conversion_Rate(ADate) > 0);
+    end;
+  end;
+begin
+  MissingDates := TStringList.Create;
+  try
+    Result := True;
+    //Check that we have exchange rates for the start and end of each period in the report.
+    for i := aClient.clBank_Account_List.First to aClient.clBank_Account_List.Last do begin
+      BA := aClient.clBank_Account_List.Bank_Account_At(i);
+      if (BA.IsAForexAccount) and (BA.baFields.baTemp_Include_In_Report) then begin
+        if aClient.clFields.clFRS_Report_Style = crsSinglePeriod then begin
+          //Single period
+          TempDate := aClient.clFields.clTemp_Period_Details_This_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+          CheckDate(TempDate);
+          TempDate := aClient.clFields.clTemp_Period_Details_This_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+          CheckDate(TempDate);
+        end else begin
+          //Multiple period
+          for j := 1 to aClient.clFields.clTemp_FRS_Last_Period_To_Show do begin
+            //Open date
+            TempDate := aClient.clFields.clTemp_Period_Details_This_Year[j].Period_Start_Date;
+            CheckDate(TempDate);
+            //Close close
+            TempDate := aClient.clFields.clTemp_Period_Details_This_Year[j].Period_End_Date;
+            CheckDate(TempDate);
+          end;
+        end;
+        //Check exchange rates for last year if comparing to last year
+        if (aClient.clFields.clFRS_Compare_Type = cflCompare_To_Last_Year) then begin
+          if aClient.clFields.clFRS_Report_Style = crsSinglePeriod then begin
+            //Single period
+            TempDate := aClient.clFields.clTemp_Period_Details_Last_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+            CheckDate(TempDate);
+            TempDate := aClient.clFields.clTemp_Period_Details_Last_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+            CheckDate(TempDate);
+          end else begin
+            //Multiple period
+            for j := 1 to aClient.clFields.clTemp_FRS_Last_Period_To_Show do begin
+              //Open date
+              TempDate := aClient.clFields.clTemp_Period_Details_Last_Year[j].Period_Start_Date;
+              CheckDate(TempDate);
+              //Close close
+              TempDate := aClient.clFields.clTemp_Period_Details_Last_Year[j].Period_End_Date;
+              CheckDate(TempDate);
+            end;
+          end;
+        end;
+      end;
+    end;
+    if not Result then
+      HelpfulInfoMsg('The report could not be run because there are missing exchange rates ' +
+                     'for the following opening or closing balance dates.' + #10#10 + MissingDates.Text, 0);
+  finally
+    MissingDates.Free;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure DoCashflowEx( Destination : TReportDest;
                         AReportType: Integer;
@@ -1977,10 +2047,9 @@ begin
      HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
      Exit;
    end;
-   //Check exchange rates for opening and closing balance dates for this year and last year
-   if not CalculateAccountTotals.HasOpenAndCloseBalanceExchangeRates(MyClient) then begin
-     HelpfulInfoMsg('The report could not be run because there are missing exchange rates ' +
-                    'for the opening or closing balance dates.',0);
+   //Check exchange rates exist for all opening and closing balance dates for
+   //all periods in the report, including last year if using budget fiqures
+   if not HasOpenAndCloseBalanceExchangeRates(MyClient) then begin
      Exit;
    end;
 
