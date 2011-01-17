@@ -262,7 +262,10 @@ begin
                         if TaxInvoice then
                         begin
                           AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
-                          AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
+                          if (Client.HasForeignCurrencyAccounts) then
+                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                          else
+                            AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                         end;
                         AddColAuto(Job,cLeft,36,cGap, 'Transaction Details',jtLeft);
                      end;
@@ -314,7 +317,10 @@ begin
                         if TaxInvoice then
                         begin
                           AddColAuto(Job, cLeft, 4.5, cGap, 'Tax Inv', jtCenter);
-                          AddFormatColAuto( Job, cLeft, 6.75, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
+                          if (Client.HasForeignCurrencyAccounts) then
+                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                          else
+                            AddFormatColAuto( Job, cLeft, 6.75, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                         end;
                         AddColAuto(Job,cLeft,23,cGap, 'Transaction Details',jtLeft);
                         AddColAuto( Job, cLeft, 29.0, cGap, 'Notes', jtLeft);
@@ -367,7 +373,10 @@ begin
                         if TaxInvoice then
                         begin
                           AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
-                          AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
+                          if (Client.HasForeignCurrencyAccounts) then
+                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                          else
+                            AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                         end;
                         AddColAuto(Job,cLeft,26 ,cGap, 'Transaction Details',jtLeft);
                      end;
@@ -421,7 +430,10 @@ begin
                         if TaxInvoice then
                         begin
                           AddColAuto(Job, cLeft, 5.5, cGap, 'Tax Inv', jtCenter);
-                          AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
+                          if (Client.HasForeignCurrencyAccounts) then
+                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                          else
+                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                         end;
                         AddColAuto(Job,cLeft,19.5 ,cGap, 'Transaction Details',jtLeft);
                         AddColAuto( Job, cLeft, 23.0, cGap, 'Notes', jtLeft);
@@ -450,6 +462,8 @@ begin
 
          if TaxInvoice then
            AddJobFooter( Job, siFootNote, '( Tax Inv = Tax Invoice  [x] = Available )', true);
+         if (Client.clFields.clCountry = whUK) and (Client.HasForeignCurrencyAccounts) then
+           AddJobFooter( Job, siFootNote, '* Please ensure that you indicate a currency for any VAT amounts recorded for this account.', true);
 
          //AddCodingFooter(Job);
 
