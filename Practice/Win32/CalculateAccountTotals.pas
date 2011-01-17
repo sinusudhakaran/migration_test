@@ -76,6 +76,7 @@ const
   Tag_Retained_PL         = 7;
   Tag_Budget_Movement     = 8;
 
+
 procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil);
 
 procedure AddAutoContraCodes( aClient : TClientObj);
@@ -86,8 +87,6 @@ procedure FlagAllAccountsForUse( aClient : TClientObj);
 procedure CalculateCurrentEarnings( aClient : TClientObj);
 
 procedure EstimateOpeningBalancesForBankAccountContras( aClient : TClientObj);
-
-function HasOpenAndCloseBalanceExchangeRates(aClient: TClientObj): Boolean;
 
 
 //******************************************************************************
@@ -231,29 +230,8 @@ begin
     Last_Year_Ends   := This_Year_Starts - 1;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function HasOpenAndCloseBalanceExchangeRates(aClient: TClientObj): Boolean;
-var
-  i: integer;
-  BA: TBank_Account;
-  This_Year_Starts         : integer;
-  This_Year_Ends           : integer;
-  Last_Year_Starts         : integer;
-  Last_Year_Ends           : integer;
-begin
-  Result := True;
-  CalcYearStartEndDates(aClient, This_Year_Starts, This_Year_Ends, Last_Year_Starts, Last_Year_Ends);
-  for i := aClient.clBank_Account_List.First to aClient.clBank_Account_List.Last do begin
-    BA := aClient.clBank_Account_List.Bank_Account_At(i);
-    if (BA.IsAForexAccount) and (BA.baFields.baTemp_Include_In_Report) then begin
-      Result := Result and (BA.Default_Forex_Conversion_Rate(This_Year_Starts) > 0);
-//      Result := Result and (BA.Default_Forex_Conversion_Rate(This_Year_Ends) > 0); //Hard to get an exchange rate in the future!
-      Result := Result and (BA.Default_Forex_Conversion_Rate(Last_Year_Starts) > 0);
-//      Result := Result and (BA.Default_Forex_Conversion_Rate(Last_Year_Ends) > 0);
-    end;
-  end;
-end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil);
 //note add contras will only be false for when generating budget figures
 type
@@ -1262,7 +1240,8 @@ begin
               OB_LastYear := OB_LastYear + NewBalance;
 
             //Convert to base currency
-            if BankAccount.IsAForexAccount then begin
+            if (BankAccount.IsAForexAccount) and (BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts)  > 0) then begin
+              //May not have an exchange rate for last year if no using budget figures
               NewBalance := NewBalance / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts);
               if NewBalance <> Unknown then
                 OB_BaseLastYear := OB_BaseLastYear + NewBalance;
