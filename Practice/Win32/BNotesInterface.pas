@@ -324,7 +324,17 @@ begin
                   ECT.txDate_Effective        := T.txDate_Effective;
                   ECT.txAmount                := T.txAmount;
                   ECT.txGST_Class             := T.txGST_Class;
-                  ECT.txGST_Amount            := T.txGST_Amount;
+                  //BNotes doesn't handle GST/VAT for multi-currency accounts TFS
+                  //so extract it in the statement currency
+                  if BA.IsAForexAccount then begin
+                    if T.txGST_Has_Been_Edited then
+                      //If manually edited then use the exchange rate to calculate VAT in forex currency
+                      ECT.txGST_Amount := (T.txGST_Amount * T.Default_Forex_Rate)
+                    else
+                      //If NOT manually edited then use the tax rate to calculate VAT in forex currency
+                      ECT.txGST_Amount := GSTCALC32.CalculateGSTForClass(aClient, T.txDate_Effective, T.txAmount, T.txGST_Class);
+                  end else
+                    ECT.txGST_Amount            := T.txGST_Amount;
                   ECT.txHas_Been_Edited       := T.txHas_Been_Edited;
                   ECT.txQuantity              := T.txQuantity;
                   ECT.txCheque_Number         := T.txCheque_Number;
@@ -367,7 +377,17 @@ begin
                         ECD.dsAccount         := D.dsAccount;
                         ECD.dsAmount          := D.dsAmount;
                         ECD.dsGST_Class       := D.dsGST_Class;
-                        ECD.dsGST_Amount      := D.dsGST_Amount;
+                        //BNotes doesn't handle GST/VAT for multi-currency accounts TFS
+                        //so extract it in the statement currency
+                        if BA.IsAForexAccount then begin
+                          if D.dsGST_Has_Been_Edited then
+                            //If manually edited then use the exchange rate to calculate VAT in forex currency
+                            ECD.dsGST_Amount := (D.dsGST_Amount * T.Default_Forex_Rate)
+                          else
+                            //If NOT manually edited then use the tax rate to calculate VAT in forex currency
+                            ECD.dsGST_Amount := GSTCALC32.CalculateGSTForClass(aClient, T.txDate_Effective, D.dsAmount, D.dsGST_Class);
+                        end else
+                          ECD.dsGST_Amount      := D.dsGST_Amount;
                         ECD.dsQuantity        := D.dsQuantity;
                         ECD.dsNarration       := D.dsGL_Narration;
                         ECD.dsTax_Invoice      := D.dsTax_Invoice;
@@ -874,7 +894,8 @@ procedure ImportStandardTransaction( ECT : ecDefs.pTRansaction_Rec;
                                      BKT   : bkDefs.pTransaction_Rec;
                                      ECFile : TECClient;
                                      aClient : TClientObj;
-                                     BankPrefix : string);
+                                     BankPrefix : string;
+                                     BA: TBank_Account);
 var
   ecPayee            : ecPayeeObj.TecPayee;
   bkPayee            : PayeeObj.TPayee;
@@ -895,6 +916,16 @@ begin
   NeedToUpdateGST          := False;
   trxPayeeDetails          := '';
 
+  //Convert VAT amount from forex to base for forex bank accounts
+  if ba.IsAForexAccount then begin
+    //If the exchange rate is zero then flag GST as edited so that it is
+    //added as a note.
+    if (BKT.Default_Forex_Rate <> 0) then
+      ECT.txGST_Amount := (ECT.txGST_Amount / BKT.Default_Forex_Rate)
+    else
+      ECT.txGST_Has_Been_Edited := True;
+  end;
+
   if BKT^.txFirst_Dissection = nil then
   begin
     // - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -913,7 +944,6 @@ begin
         if BKT^.txGST_Class = 0 then
           BKT^.txGST_Amount := 0
         else
-//          BKT^.txGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKT^.txAmount, BKT^.txGST_Class);
           BKT^.txGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKT^.Local_Amount, BKT^.txGST_Class);
       end
       else
@@ -1068,7 +1098,6 @@ begin
           BKT^.txGST_Class          := bkPayeeLine.plGST_Class;
           BKT^.txGST_Amount         := CalculateGSTForClass( aClient,
                                                              BKT^.txDate_Effective,
-//                                                             BKT^.txAmount,
                                                              BKT^.Local_Amount,
                                                              BKT^.txGST_Class);
           BKT^.txGST_Has_Been_Edited := True;
@@ -1712,10 +1741,12 @@ begin
     BKD.dsHas_Been_Edited   := ECD.dsHas_Been_Edited;
     BKD.dsSF_Member_Account_ID:= -1;
     BKD.dsSF_Fund_ID          := -1;
+    BKD.dsBank_Account        := BKT^.txBank_Account;
+    BKD.dsTransaction         := BKT;
 
     //GST - calculate gst using information from the chart codes
-//    CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
     CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.Local_Amount, DefaultGSTClass, DefaultGSTAmount);
+
     BKD^.dsGST_Amount   := DefaultGSTAmount;
     BKD^.dsGST_Class    := DefaultGSTClass;
     BKD^.dsGST_Has_Been_Edited := False;
@@ -1897,6 +1928,8 @@ begin
     BKD.dsPayee_Number      := 0;
     BKD.dsSF_Member_Account_ID:= -1;
     BKD.dsSF_Fund_ID          := -1;
+    BKD.dsBank_Account        := BKT^.txBank_Account;
+    BKD.dsTransaction         := BKT;
 
     //GST and Payee
     if UseTransactionPayeeDetails then
@@ -1909,7 +1942,6 @@ begin
       bkPayeeLine := bkPayee.pdLines.PayeeLine_At( DissectionLineNo - 1);
 
       BKD^.dsGST_Class  := bkPayeeLine.plGST_Class;
-//      BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.dsAmount, BKD^.dsGST_Class);
       BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.Local_Amount, BKD^.dsGST_Class);
       BKD^.dsGST_Has_Been_Edited := bkPayeeLine.plGST_Has_Been_Edited;
 
@@ -1926,7 +1958,6 @@ begin
       //set gst information based on the chart
       //payee not found or dissection too long, use default gst
       //calculate gst using information from the chart codes
-//      CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
       CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.Local_Amount, DefaultGSTClass, DefaultGSTAmount);
       BKD^.dsGST_Amount   := DefaultGSTAmount;
       BKD^.dsGST_Class    := DefaultGSTClass;
@@ -2063,6 +2094,8 @@ begin
     BKD.dsNotes := ECD.dsNotes;
     BKD.dsSF_Member_Account_ID:= -1;
     BKD.dsSF_Fund_ID          := -1;
+    BKD.dsBank_Account        := BKT^.txBank_Account;
+    BKD.dsTransaction         := BKT;
 
     dPayeeDetail := '';
 
@@ -2150,13 +2183,11 @@ begin
     if UseBK5PayeeInformation and Assigned( bkPayeeLine) then
     begin
       BKD^.dsGST_Class  := bkPayeeLine.plGST_Class;
-//      BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.dsAmount, BKD^.dsGST_Class);
       BKD^.dsGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKD^.Local_Amount, BKD^.dsGST_Class);
       BKD^.dsGST_Has_Been_Edited := bkPayeeLine.plGST_Has_Been_Edited;
     end
     else
     begin
-//      CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.dsAmount, DefaultGSTClass, DefaultGSTAmount);
       CalculateGST( aClient, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.Local_Amount, DefaultGSTClass, DefaultGSTAmount);
 
       BKD^.dsGST_Amount   := DefaultGSTAmount;
@@ -2245,7 +2276,8 @@ end;
 procedure ImportDissectedTransaction( ECT : ecDefs.pTRansaction_Rec;
                                       BKT   : bkDefs.pTransaction_Rec;
                                       ECFile : TECClient;
-                                      aClient : TClientObj);
+                                      aClient : TClientObj;
+                                      BA: TBank_Account);
 const
   dplNone = 0;
   dplAtTransaction = 1;
@@ -2254,6 +2286,7 @@ var
   ECD                   : ecDefs.pDissection_Rec;
   ExportToNotesRequired : Boolean;
   DissectionPayeeLevel  : byte;
+  ExchangeRate: double;
 begin
   //we first need to check if the transaction can be imported at all,
   //or if we should just export the transaction to the notes field.
@@ -2294,6 +2327,23 @@ begin
     UpdateNotes(BKT, ECT.txNotes);
 
     Exit;
+  end;
+
+  //Convert VAT amount from forex to base for forex bank accounts
+  if ba.IsAForexAccount then begin
+    //If the exchange rate is zero then flag GST as edited so that it is
+    //added as a note.
+    ExchangeRate := BKT.Default_Forex_Rate;
+    if (ExchangeRate <> 0) then
+      ECT.txGST_Amount := (ECT.txGST_Amount / ExchangeRate)
+    else
+      ECT.txGST_Has_Been_Edited := True;
+    ECD := ECT^.txFirst_Dissection;
+    while ( ECD <> nil) do begin
+      if (ExchangeRate <> 0) then
+        ECD.dsGST_Amount :=  (ECD.dsGST_Amount / ExchangeRate);
+      ECD := ECD.dsNext;
+    end;
   end;
 
   if BKT^.txFirst_Dissection <> nil then
@@ -2401,10 +2451,10 @@ begin
     if ECT.txFirst_Dissection = nil then
     begin
       Prefix := Copy( bkBank.baFields.baBank_Account_Number, 1, 2);
-      ImportStandardTransaction( ECT, BKT, ECFile, aClient, Prefix);
+      ImportStandardTransaction( ECT, BKT, ECFile, aClient, Prefix, bkBank);
     end
     else
-      ImportDissectedTransaction( ECT, BKT, ECFile, aClient);
+      ImportDissectedTransaction( ECT, BKT, ECFile, aClient, bkBank);
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2488,10 +2538,10 @@ begin
             if ECT^.txFirst_Dissection = nil then
               ImportStandardTransaction( ECT, T,
                                          ECFile, aClient,
-                                         S)
+                                         S, ba)
             else
               ImportDissectedTransaction( ECT, T,
-                                          ECFile, aClient);
+                                          ECFile, aClient, ba);
 
             Inc( ImportedCount);
           end

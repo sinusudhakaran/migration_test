@@ -902,7 +902,7 @@ begin
       if ( not pD^.dsGST_Has_Been_Edited) then begin
         if not (pD^.dsJournal_Type in [ jtReversed, jtReversal, jtProcessed]) then begin
           //only recalculate GST if it is not reversed or processed
-          CalculateGST( MyClient, pT^.txDate_Effective, pD^.dsAccount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount);
+          CalculateGST( MyClient, pT^.txDate_Effective, pD^.dsAccount, pD^.Local_Amount, pD^.dsGST_Class, pD^.dsGST_Amount);
           pD^.dsGST_Has_Been_Edited := false;
           pT^.txGST_Has_Been_Edited := false;
 
