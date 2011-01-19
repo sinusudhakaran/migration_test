@@ -1324,8 +1324,10 @@ begin
         //Populate all the totals arrays for non-base currency contra accounts
         SetBaseAmounts(pAcct, BaseAmounts);
         RequireLines(7);
-      end else
+      end else begin
+        FUseBaseAmounts := False;
         RequireLines(5);
+      end;
 
       //see if should show this account
       ShowThisAccount := ( pAcct^.chAccount_Type in [ atBankAccount]) and
@@ -1352,6 +1354,7 @@ begin
               PrintValuesForPeriod( BaseAmounts.OpeningBalance[PeriodNo], Debit);
             end else begin
               //GetValues
+              FUseBaseAmounts := False;
               GetOpeningBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
               if MyClient.HasForeignCurrencyAccounts then
                 SetCurrencyFormatForPeriod(ValuesArray, MyClient.FmtMoneyStr);
@@ -1388,6 +1391,7 @@ begin
               PrintValuesForPeriod( BaseAmounts.Movement[PeriodNo], Debit);
             end else begin
               //GetValues
+              FUseBaseAmounts := False;              
               GetValuesForPeriod( pAcct, PeriodNo, ValuesArray);
               //PrintValues
               PrintValuesForPeriod( ValuesArray, Debit);
@@ -1416,6 +1420,7 @@ begin
               //PrintValues
               PrintValuesForPeriod( BaseAmounts.ClosingBalance[PeriodNo], Debit);
             end else begin
+              FUseBaseAmounts := False;
               GetClosingBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
               //PrintValues
               PrintValuesForPeriod( ValuesArray, Debit);
@@ -1494,8 +1499,10 @@ begin
                for j := Low(ValuesArray) to High(ValuesArray) do
                  if FClosingBalanceExchangeRate > 0 then
                    ValuesArray[j] := ValuesArray[j] / FClosingBalanceExchangeRate;
-           end else
+           end else begin
+             FUseBaseAmounts := False;
              GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
+           end;
            //PrintValues
            PrintValuesForPeriod( ValuesArray, Debit);
         end;
@@ -1637,6 +1644,7 @@ begin
     DoubleUnderline;
     ClearAllTotals;
   end;
+  FUseBaseAmounts := False;
 end;
 
 function TCashflowReportEx.AccountNeedsPrinting( pAcct: pAccount_Rec): boolean;
@@ -1929,7 +1937,7 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function HasOpenAndCloseBalanceExchangeRates(aClient: TClientObj): Boolean;
+function HasOpenAndCloseBalanceExchangeRates(const aClient: TClientObj; var FromDate, ToDate: integer): Boolean;
 var
   i, j: integer;
   BA: TBank_Account;
@@ -1966,6 +1974,17 @@ begin
                                          aClient.clFields.clTemp_FRS_Account_Totals_Cash_Only,
                                          aClient.clFields.clFRS_Reporting_Period_Type,
                                          aClient.clFields.clTemp_Period_Details_Last_Year);
+  //Set from and to dates
+  ToDate := aClient.clFields.clTemp_Period_Details_This_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+  if aClient.clFields.clFRS_Report_Style = crsSinglePeriod then begin
+    FromDate := aClient.clFields.clTemp_Period_Details_This_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+    if (aClient.clFields.clFRS_Compare_Type = cflCompare_To_Last_Year) then
+      FromDate := aClient.clFields.clTemp_Period_Details_Last_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+  end else begin
+    FromDate := aClient.clFields.clTemp_Period_Details_This_Year[1].Period_Start_Date;
+    if (aClient.clFields.clFRS_Compare_Type = cflCompare_To_Last_Year) then
+      FromDate := aClient.clFields.clTemp_Period_Details_Last_Year[1].Period_Start_Date;
+  end;
 
   MissingDates := TStringList.Create;
   try
@@ -2058,21 +2077,15 @@ begin
    //check pre conditions
    VerifyCashflowPreconditions( MyClient);
 
-   //Check Forex
-   if MyClient.clFields.clFRS_Reporting_Period_Type = frpCustom then begin
-      FromDate := MyClient.clFields.clTemp_FRS_From_Date;
-      ToDate := MyClient.clFields.clTemp_FRS_To_Date;
-   end else begin
-      FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[1].Period_Start_Date;
-      ToDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
-   end;
-   if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, False) then begin
-     HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+   //FOREX
+   //Check exchange rates exist for all opening and closing balance dates for
+   //all periods in the report, including previous year if comparing fiqures
+   if not HasOpenAndCloseBalanceExchangeRates(MyClient, FromDate, ToDate) then begin
      Exit;
    end;
-   //Check exchange rates exist for all opening and closing balance dates for
-   //all periods in the report, including last year if using budget fiqures
-   if not HasOpenAndCloseBalanceExchangeRates(MyClient) then begin
+   //Check exchange rates exist for all transactions in the report
+   if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, False) then begin
+     HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
      Exit;
    end;
 
