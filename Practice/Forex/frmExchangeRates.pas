@@ -64,7 +64,6 @@ type
     FBooksSecure: boolean;
     FColumnOrderLoaded: Boolean;
     function GetChangeCount: integer;
-    function GetOriginalExchangeSource: TExchangeSource;
     procedure SetFromDate(const Value: tstDate);
     procedure SetToDate(const Value: tstDate);
     function GetFromDate: tstDate;
@@ -550,47 +549,41 @@ end;
 
 function TExchangeRatesfrm.GetChangeCount: integer;
 var
+  ExchangeRates: TExchangeRateList;
   ExchangeSource: TExchangeSource;
   ChangeCountRec: TChangeCountRec;
 begin
   Result := 0;
-  ExchangeSource := GetOriginalExchangeSource;
-  if Assigned(ExchangeSource) then begin
-    ChangeCountRec.ExchangeSource := FSource;
-    ChangeCountRec.ChangeCount := 0;
-    //Change and delete count
-    ExchangeSource.Iterate(ChangeDeleteCount, true, @ChangeCountRec);
-    ChangeCountRec.ExchangeSource := ExchangeSource;
-    //Add count
-    FSource.Iterate(AddCount, true, @ChangeCountRec);
-    Result := ChangeCountRec.ChangeCount;
+
+  ExchangeRates := GetExchangeRates;
+  try
+    if BooksSecure then
+      ExchangeSource := MyClient.ExchangeSource
+    else
+      ExchangeSource := ExchangeRates.GetSource(FSource.Header.ehName);
+
+    if Assigned(ExchangeSource) then begin
+      ChangeCountRec.ChangeCount := 0;
+
+      //Change and delete count
+      ChangeCountRec.ExchangeSource := FSource;
+      ExchangeSource.Iterate(ChangeDeleteCount, true, @ChangeCountRec);
+
+      //Add count
+      ChangeCountRec.ExchangeSource := ExchangeSource;
+      FSource.Iterate(AddCount, true, @ChangeCountRec);
+
+      Result := ChangeCountRec.ChangeCount;
+    end;
+
+  finally
+    ExchangeRates.Free;
   end;
 end;
 
 function TExchangeRatesfrm.GetFromDate: tstDate;
 begin
    Result := eDateFrom.AsStDate;
-end;
-
-function TExchangeRatesfrm.GetOriginalExchangeSource: TExchangeSource;
-var
-  ExchangeSource: TExchangeSource;
-  ExchangeRates: TExchangeRateList;
-begin
-  Result := nil;
-  if BooksSecure then
-    Result := MyClient.ExchangeSource
-  else begin
-    ExchangeRates := GetExchangeRates;
-    try
-      ExchangeSource := ExchangeRates.GetSource(FSource.Header.ehName);
-      if Assigned(ExchangeSource) then begin
-        Result := ExchangeSource;
-      end;
-    finally
-      ExchangeRates.Free;
-    end;
-  end;
 end;
 
 function TExchangeRatesfrm.GetToDate: tstDate;
