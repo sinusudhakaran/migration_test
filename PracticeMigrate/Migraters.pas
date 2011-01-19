@@ -46,7 +46,7 @@ public
     function GetMasterMemList(ForCountry: byte; List: TStrings): Integer;
 
     // Guidlist bits
-    function RunGuidList(ForAction: TMigrateAction; Name: string; List: TGuidList; Proc: GuidProc): Boolean;
+    function RunGuidList(ForAction: TMigrateAction; Name: string; List: TGuidList; Proc: GuidProc; doLog: Boolean = false): Boolean;
     function NewGuid: TGuid;
 
     // Connection handeling
@@ -277,9 +277,64 @@ begin
           tsElite_XML     : result := StringToGuid('{A6541B50-B6E4-4B21-AEB8-5E0BD8D998B5}');
           tsBAS_MYOB      : result := StringToGuid('{B87D3D4E-8661-42FF-8F76-AE7850001FCF}');
           tsBAS_HANDI     : result := StringToGuid('{D40F2660-8B6A-4588-8073-099878D4037E}');
+          else result := StringToGuid('{F96F0C8B-87B5-4512-BBFC-E39288E6BDEF}');
       end;
    end;
-   ManagementSystem: ;
+
+   ManagementSystem: case Country of
+
+      whNewZealand : case System of
+         xcOther : result := StringToGuid( '{bdaa0dd0-d38c-4101-902c-753c813ac581}');
+         xcAPS : result := StringToGuid(   '{f5f4d897-bde6-4612-a1fe-1e18d60bbc2c}');
+         xcMYOB : result := StringToGuid(  '{133ea5a3-5aaa-493f-aeed-a2940137cf15}');
+         xcMYOBAO : result := StringToGuid('{37f51f41-ea59-40cc-8471-56faa95bd039}');
+         //xcHandi : result := StringToGuid('{}');
+         else result := StringToGuid(      '{4bb85039-57b4-4651-b19d-a9bf4ca790f3}');
+      end;
+
+      whAustralia : case System of
+         xcOther : result := StringToGuid( '{20c6e752-b0cc-4b04-baa1-ff6273f5f2b9}');
+         xcAPS : result := StringToGuid(   '{02612bf5-79a8-4cbf-a267-3ecc77c303f9}');
+         xcMYOB : result := StringToGuid(  '{431fb26a-1e49-47c9-a8f5-cfa53648d29a}');
+         xcMYOBAO : result := StringToGuid('{8635dc10-d9cf-4ab0-92e8-4836b84c8ba1}');
+         xcHandi : result := StringToGuid( '{0f2da56b-af41-43ce-8a62-8f6488c89212}');
+         else result := StringToGuid(      '{0570c4d1-6f79-4b01-a55f-c4f9d2d5cf53}');
+      end;
+
+      whUK : case system of
+         xcOther : result := StringToGuid( '{ec73e0d6-7562-4305-8cc3-8912e46595ce}');
+         xcAPS : result := StringToGuid(   '{e0a9c6cd-f435-43f8-8b86-6c3be6fd8de7}');
+         xcMYOB : result := StringToGuid(  '{66b5649c-0b1c-4b4c-9718-1e0a48822c7a}');
+         xcMYOBAO : result := StringToGuid('{35031064-c338-41ad-b27d-d507a66b4a6f}');
+         xcHandi : result := StringToGuid( '{42cfaa3c-f95e-42f0-b396-1267f3f641d2}');
+         else result := StringToGuid(      '{27cfd2f4-fbde-4b98-8461-dd32208f25d6}');
+      end;
+
+   end;
+
+   WebExport: case Country of
+
+      whNewZealand : case System of
+          wfWebX : result := StringToGuid(    '{C9CEBA54-50B7-447A-8ACD-1CBD0DF3BAFA}');
+          wfWebNotes : result := StringToGuid('{56BFFE20-3DFC-4DB7-A80B-B0CB77991134}');
+          else result := StringToGuid(        '{C6C3348A-12B0-4869-A823-5521B0DD1609}');
+      end;
+
+      whAustralia : case System of
+          wfWebX : result := StringToGuid(    '{D77F3DC1-D639-47BA-A064-233AB71A76C1}');
+          wfWebNotes : result := StringToGuid('{EA06D604-DC10-4224-8A8E-B8467DF0FF7B}');
+          else result := StringToGuid(        '{2211C3E9-66E6-41BA-9AB0-4445BD2871DC}');
+      end;
+
+      whUK : case system of
+          wfWebX : result := StringToGuid(    '{32AAEBD0-785F-4CEB-AEFC-25917DD68AD1}');
+          wfWebNotes : result := StringToGuid('{1BA30927-4470-4EC1-93F4-66EE68157321}');
+          else result := StringToGuid(        '{848A4E7A-1EB7-4559-96EF-1B84B4DB56C1}');
+      end;
+
+   end;
+
+
  end;
 end;
 
@@ -345,12 +400,12 @@ begin
   //
 end;
 
-function TMigrater.RunGuidList(ForAction: TMigrateAction; Name: string; List: TGuidList; Proc: GuidProc): Boolean;
+function TMigrater.RunGuidList(ForAction: TMigrateAction; Name: string; List: TGuidList; Proc: GuidProc; doLog: Boolean = false): Boolean;
 var
    MyAction: TMigrateAction;
    I: Integer;
 begin
-   if MigrationCanceled then begin
+   if ForAction.CheckCanceled then begin
       Result := False;
       Exit;
    end;
@@ -368,22 +423,27 @@ begin
       MyAction := ForAction;
 
    try
+      if list.CheckSpeed then
+         MyAction.TotSize := List.TotSize;
+
       MyAction.Target := List.Count;
       for I := 0 to List.Count - 1 do begin
          // iterate trough the list
          if Proc(MyAction,TGuidobject(List[I])) then
             MyAction.AddCount
          else
-            MyAction.SkipCount;   
+            MyAction.SkipCount;
 
+         if list.CheckSpeed then
+            MyAction.AddRunSize(TGuidobject(List[I]).Size);
          // General flow handeling
-         if MigrationCanceled then begin
-            MyAction.Error := 'Canceled';
-            Result := False;
+         if ForAction.CheckCanceled then
             Break;
-         end;
       end;
       MyAction.Count := I;
+      if doLog then
+        MyAction.LogMessage(format( 'Completed %d',[MyAction.Count]) );
+
    except
       on E: Exception do
          Myaction.Error := format('Incomplete :%s', [E.Message]);

@@ -140,7 +140,7 @@ begin
 
   // Make the query
   SQL.Text := Format('Insert into [%s] (%s) Values (%s)',[TableName,Fields,Values]);
-
+  self.Prepared := true;
 end;
 
 procedure TMigrateTable.SetTablename(const Value: string);

@@ -10,16 +10,19 @@ TGuidObject = class (TObject)
   GuidID: TGuid;
   Data: Pointer;
   SequenceNo: Integer;
-  Size: Money;
+  Size: Int64;
 end;
 
+GuidSizeProc = function (Value: TGuidObject): Int64 of object;
 
 TGuidList = class(TObjectList)
 private
 
 public
+   TotSize: Int64;
+   CheckSpeed: Boolean;
    constructor Create(Source: TExtdCollection = nil);
-   function CloneList(Source: TExtdCollection): TGuidList;
+   function CloneList(Source: TExtdCollection; Sizeproc: GuidSizeProc = nil): TGuidList;
    function FindLRNObject(Value: Integer): TGuidObject; overload;
    function FindLRNGuid(Value: Integer): TGuid; overload;
 end;
@@ -67,19 +70,19 @@ end;
 
 function GuidSort(Item1, Item2: Pointer): Integer;
 begin
-  Result := CompareGuid (TGuidObject(Item1).GuidID,TGuidObject(Item1).GuidID);
+  Result := CompareGuid (TGuidObject(Item1).GuidID,TGuidObject(Item2).GuidID);
 
 end;
 
 
 { TGuidList }
 
-function TGuidList.CloneList(Source: TExtdCollection): TGuidList;
+function TGuidList.CloneList(Source: TExtdCollection; Sizeproc: GuidSizeProc = nil): TGuidList;
 var i: Integer;
     nItem : TGuidObject;
 begin
    Result := Self;
-
+   TotSize := 0;
    Clear;
 
    if not assigned(Source) then
@@ -88,7 +91,7 @@ begin
    for I := 0 to Source.ItemCount - 1 do begin
       nItem := TGuidObject.Create;
       CreateGUID(nitem.GuidID);
-      add(nItem);
+      Add(nItem);
    end;
 
    Sort(GuidSort);
@@ -96,6 +99,8 @@ begin
    for I := 0 to Source.ItemCount - 1 do with TGuidObject(Items[I]) do begin
       Data := Source.Items[I];
       SequenceNo := Succ(I);
+      if Assigned(Sizeproc) then
+         TotSize := TotSize + Sizeproc(TGuidObject(Items[I]));
    end;
 end;
 

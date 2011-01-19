@@ -142,7 +142,7 @@ begin
   SetFields(
    ['Id','AccountNumber','AccountName','AccountPassword','CurrentBalance','LastTransactionId'
    ,'NewThisMonth','NoOfEntriesThisMonth','FromDateThisMonth','ToDateThisMonth','CostCode','ChargesThisMonth'
-   ,'OpeningBalanceFromDisk','ClosingBalanceFromDisk','AttachRequired','WasOnLatestDisk','LastEntryDate'
+   ,'OpeningBalanceFromDisk','ClosingBalanceFromDisk','WasOnLatestDisk','LastEntryDate'
    ,'DateOfLastEntryPrinted','MarkAsDeleted','FileCode','MatterID','AssignmentID','DisbursementID','AccountType'
    ,'JobCode','ActivityCode','FirstAvailableDate','NoChargeAccount','CurrencyCode','InstitutionName','SecureCode','Inactive'
    ,'Frequency','FrequencyChangePending'],[]);
@@ -158,7 +158,7 @@ begin with Value^ do
               ,DateToSQL(Value.sbTo_Date_This_Month) ,ToSQL(Value.sbCost_Code) , ToSQL(Value.sbCharges_This_Month)
 
           ,ToSQL(Value.sbOpening_Balance_from_Disk) ,ToSQL(Value.sbClosing_Balance_from_Disk)
-              ,ToSQL(Value.sbAttach_Required) ,ToSQL(Value.sbWas_On_Latest_Disk) ,DateToSQL(Value.sbLast_Entry_Date)
+              ,ToSQL(Value.sbWas_On_Latest_Disk) ,DateToSQL(Value.sbLast_Entry_Date)
 
           ,DateToSQL(Value.sbDate_Of_Last_Entry_Printed) ,ToSQL(Value.sbMark_As_Deleted) ,ToSQL(Value.sbFile_Code) ,ToSQL(Value.sbMatter_ID)
               ,ToSQL(Value.sbAssignment_ID) ,ToSQL(Value.sbDisbursement_ID) ,ToSQL(Value.sbAccount_Type)

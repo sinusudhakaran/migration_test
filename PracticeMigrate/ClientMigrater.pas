@@ -234,7 +234,7 @@ begin
    Result := False;
    Account := tBank_Account(Value.Data);
    GuidList := nil;
-   MyAction := ForAction.InsertAction (Format('Insert Account %s',[Account.Title]),Value);
+   MyAction := ForAction.InsertAction (Account.Title,Value);
    try try
       Account_RecTable.Insert
           (
@@ -244,10 +244,12 @@ begin
           );
 
        GuidList := TGuidList.Create(Account.baTransaction_List);
-       RunGuidList(MyAction,'Transactions',GuidList,AddTransaction);
+       if not RunGuidList(MyAction,'Transactions',GuidList,AddTransaction) then
+          Exit;
 
        GuidList.CloneList(Account.baMemorisations_List);
-       RunGuidList(MyAction,'Memorizations',GuidList,AddMemorisation);
+       if not RunGuidList(MyAction,'Memorizations',GuidList,AddMemorisation) then
+          Exit;
 
        MyAction.Status := Success;
        AddClientAccountMap;
@@ -372,7 +374,7 @@ var I,C: Integer;
     DivisionName: string;
     Division: TGuidObject;
 begin
-   if MigrationCanceled then
+   if ForAction.CheckCanceled then
       Exit;
    C := 0;
    DivisionList.Clear;
@@ -400,7 +402,7 @@ procedure TClientMigrater.AddGStRates(ForAction: TMigrateAction);
     EntryId,
     ClassId: TGuid;
 begin
-   if MigrationCanceled then
+   if ForAction.CheckCanceled then
       Exit;
 
    for ClassNo := 1 to MAX_GST_CLASS do begin
@@ -528,7 +530,7 @@ var
    ClientsToDoList: TClientToDoList;
    I: Integer;
 begin
-   if MigrationCanceled then
+   if ForAction.CheckCanceled then
       Exit;
 
    ClientsToDoList := TClientToDoList.Create(ClientLRN);
@@ -554,7 +556,7 @@ procedure TClientMigrater.AddSubGroups(ForAction: TMigrateAction);
 var I,C: Integer;
     SubGroupName: string;
 begin
-   if MigrationCanceled then
+   if ForAction.CheckCanceled then
       Exit;
 
    C := 0;
@@ -999,7 +1001,7 @@ begin
       ClientLRN := 0;
 
    GuidList := nil;
-   MyAction := ForAction.InsertAction(format('Client: %s',[Code]));
+   MyAction := ForAction.InsertAction(Code);
 
    try try
 
@@ -1014,11 +1016,11 @@ begin
       Client_RecFieldsTable.Insert
                     ( ClientID,
                       AUserID,
-                      GetProviderID(AccountingSystem,FClient.clFields.clCountry, FClient.clFields.clAccounting_System_Used ),
-                      GetProviderID(TaxSystem,FClient.clFields.clCountry, FClient.clFields.clTax_Interface_Used ),
+                      GetProviderID(AccountingSystem, FClient.clFields.clCountry, FClient.clFields.clAccounting_System_Used ),
+                      GetProviderID(TaxSystem, FClient.clFields.clCountry, FClient.clFields.clTax_Interface_Used ),
                       AGroupID,
                       ATypeID,
-                      EmptyGuid, //WebExport format
+                      GetProviderID(WebExport, FClient.clFields.clCountry, FClient.clFields.clWeb_Export_Format ),
                       False,
                       GetNotesForClient(ClientLRN),
                       @FClient.clFields,
@@ -1037,8 +1039,11 @@ begin
                       @FClient.clExtra
                     );
           for I := low(FClient.clExtra.ceSend_Custom_Documents_List) to High(FClient.clExtra.ceSend_Custom_Documents_List) do
-             if FClient.clExtra.ceSend_Custom_Documents_List[I] > '' then
-               AddScheduledCustomDoc( CustomDocManager.GetReportByGUID(FClient.clExtra.ceSend_Custom_Documents_List[I]));
+             if FClient.clExtra.ceSend_Custom_Documents_List[I] > '' then begin
+                AddScheduledCustomDoc( CustomDocManager.GetReportByGUID(FClient.clExtra.ceSend_Custom_Documents_List[I]));
+                if MyAction.CheckCanceled then
+                   Exit;
+             end;
 
 
       except
@@ -1055,6 +1060,8 @@ begin
       except
         on E: Exception do MyAction.AddWarining(E);
       end;
+      if MyAction.CheckCanceled then
+         Exit;
 
       try
          ClientFinacialReportOptionsTable.Insert( NewGuid,
@@ -1066,6 +1073,8 @@ begin
       except
         on E: Exception do MyAction.AddWarining(E);
       end;
+      if MyAction.CheckCanceled then
+         Exit;
 
       try
          CodingReportOptionsTable.Insert( NewGuid,
@@ -1077,6 +1086,8 @@ begin
       except
          on E: Exception do MyAction.AddWarining(E);
       end;
+      if MyAction.CheckCanceled then
+         Exit;
 
       try
          if Assigned(AClient) then
@@ -1093,8 +1104,10 @@ begin
       except
          on E: Exception do MyAction.AddWarining(E);
       end;
+      if MyAction.CheckCanceled then
+         Exit;
 
-      if FClient.clFields.clCountry = whAustralia then
+      if FClient.clFields.clCountry = whAustralia then begin
          try
               BAS_OptionsTable.Insert(NewGuid,
                       ClientID,
@@ -1103,32 +1116,52 @@ begin
          except
             on E: Exception do MyAction.AddWarining(E);
          end;
-
+         if MyAction.CheckCanceled then
+            Exit;
+      end;
 
 
       GuidList := TGuidList.Create(FClient.clBank_Account_List);
-      RunGuidList(MyAction,'Bank Accounts',GuidList,AddAccount);
+      if not RunGuidList(MyAction,'Bank Accounts',GuidList,AddAccount) then
+         Exit;
 
       AddDivisions(MyAction);
+      if MyAction.CheckCanceled then
+         Exit;
+
       AddSubGroups(MyAction);
+      if MyAction.CheckCanceled then
+         Exit;
 
-      RunGuidList(MyAction,'Chart',GuidList.CloneList(FClient.clChart),AddChart);
+      if not RunGuidList(MyAction,'Chart',GuidList.CloneList(FClient.clChart),AddChart) then
+         Exit;
 
-      RunGuidList(MyAction,'Budgets',GuidList.CloneList(FClient.clBudget_List),AddBudget);
+      if not RunGuidList(MyAction,'Budgets',GuidList.CloneList(FClient.clBudget_List),AddBudget) then
+         Exit;
 
-      RunGuidList(MyAction,'Jobs',GuidList.CloneList(FClient.clJobs),AddJob);
+      if not RunGuidList(MyAction,'Jobs',GuidList.CloneList(FClient.clJobs),AddJob) then
+         Exit;
 
-      RunGuidList(MyAction,'Payees',GuidList.CloneList(FClient.clPayee_List),AddPayee);
+      if not RunGuidList(MyAction,'Payees',GuidList.CloneList(FClient.clPayee_List),AddPayee) then
+         Exit;
 
-      RunGuidList(MyAction,'Headings',GuidList.CloneList(FClient.clCustom_Headings_List ),AddHeading);
+      if not RunGuidList(MyAction,'Headings',GuidList.CloneList(FClient.clCustom_Headings_List ),AddHeading) then
+         Exit;
 
       AddGStRates(MyAction);
+      if MyAction.CheckCanceled then
+         Exit;
 
-      RunGuidList(MyAction,'Balances',GuidList.CloneList(FClient.clBalances_List ),AddBalance);
+      if not  RunGuidList(MyAction,'Balances',GuidList.CloneList(FClient.clBalances_List ),AddBalance) then
+         Exit;
 
       AddReminders(MyAction);
+      if MyAction.CheckCanceled then
+         Exit;
 
       MigrateDiskLog(MyAction);
+      if MyAction.CheckCanceled then
+         Exit;
 
       MyAction.Status := Success;
       Result := true;
@@ -1161,6 +1194,7 @@ begin
    try
       for I := 0 to CustomDocManager.ReportList.Count - 1 do
          AddCostomDoc(TReportBase(CustomDocManager.ReportList[I]));
+      result := true;   
    finally
       CustomDocTable.Free;
    end;

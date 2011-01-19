@@ -2,7 +2,7 @@ object formMain: TformMain
   Left = 0
   Top = 0
   Caption = 'Practice Migration'
-  ClientHeight = 521
+  ClientHeight = 552
   ClientWidth = 759
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -691,7 +691,7 @@ object formMain: TformMain
   end
   object pBottom: TPanel
     Left = 0
-    Top = 480
+    Top = 511
     Width = 759
     Height = 41
     Align = alBottom
@@ -743,8 +743,8 @@ object formMain: TformMain
     Left = 0
     Top = 96
     Width = 759
-    Height = 384
-    ActivePage = tsSelect
+    Height = 415
+    ActivePage = TsProgress
     Align = alClient
     TabOrder = 2
     object tsBrowse: TTabSheet
@@ -756,7 +756,7 @@ object formMain: TformMain
       ExplicitHeight = 0
       DesignSize = (
         751
-        354)
+        385)
       object Label1: TLabel
         Left = 16
         Top = 162
@@ -876,8 +876,8 @@ object formMain: TformMain
       ExplicitHeight = 0
       DesignSize = (
         751
-        354)
-      object Label9: TLabel
+        385)
+      object LOptionsImp: TLabel
         Left = 12
         Top = 16
         Width = 431
@@ -890,9 +890,17 @@ object formMain: TformMain
         Font.Style = [fsBold]
         ParentFont = False
       end
+      object LPractice: TLabel
+        Left = 12
+        Top = 46
+        Width = 44
+        Height = 15
+        Caption = 'Practice'
+        ShowAccelChar = False
+      end
       object cbUsers: TCheckBox
         Left = 12
-        Top = 223
+        Top = 233
         Width = 269
         Height = 17
         Caption = 'User profiles'
@@ -901,7 +909,7 @@ object formMain: TformMain
       end
       object cbAccounts: TCheckBox
         Left = 12
-        Top = 62
+        Top = 72
         Width = 173
         Height = 17
         Caption = 'System Bank Accounts,'
@@ -909,7 +917,7 @@ object formMain: TformMain
       end
       object cbGroups: TCheckBox
         Left = 12
-        Top = 246
+        Top = 256
         Width = 269
         Height = 17
         Caption = 'Group list'
@@ -917,15 +925,15 @@ object formMain: TformMain
       end
       object cbClientTypes: TCheckBox
         Left = 12
-        Top = 269
+        Top = 279
         Width = 269
         Height = 17
         Caption = 'Client types'
         TabOrder = 3
       end
-      object CheckBox3: TCheckBox
+      object cbCustomDocs: TCheckBox
         Left = 12
-        Top = 292
+        Top = 302
         Width = 269
         Height = 17
         Caption = 'Custom documents'
@@ -933,7 +941,7 @@ object formMain: TformMain
       end
       object gbClients: TGroupBox
         Left = 3
-        Top = 93
+        Top = 103
         Width = 728
         Height = 124
         Anchors = [akLeft, akTop, akRight]
@@ -984,9 +992,9 @@ object formMain: TformMain
           TabOrder = 4
         end
       end
-      object CheckBox8: TCheckBox
+      object cbStyles: TCheckBox
         Left = 12
-        Top = 315
+        Top = 325
         Width = 269
         Height = 17
         Caption = 'Styles'
@@ -994,8 +1002,8 @@ object formMain: TformMain
       end
       object cbSysTrans: TCheckBox
         Left = 208
-        Top = 62
-        Width = 97
+        Top = 72
+        Width = 209
         Height = 17
         Caption = '&&Transactions'
         Checked = True
@@ -1003,21 +1011,25 @@ object formMain: TformMain
         TabOrder = 7
         OnClick = cbSysTransClick
       end
+      object cbDocuments: TCheckBox
+        Left = 12
+        Top = 348
+        Width = 269
+        Height = 17
+        Caption = 'Invoices and Charges'
+        TabOrder = 8
+      end
     end
     object TsProgress: TTabSheet
       Caption = 'Progress'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object StatusTree: TVirtualStringTree
         Left = 0
         Top = 57
         Width = 751
-        Height = 297
+        Height = 328
         Align = alClient
-        Header.AutoSizeIndex = 4
+        Header.AutoSizeIndex = 5
         Header.Font.Charset = DEFAULT_CHARSET
         Header.Font.Color = clWindowText
         Header.Font.Height = -11
@@ -1058,8 +1070,14 @@ object formMain: TformMain
           end
           item
             Position = 4
+            Tag = 5
+            Width = 100
+            WideText = 'Remaining'
+          end
+          item
+            Position = 5
             Tag = 4
-            Width = 341
+            Width = 237
           end>
       end
       object pTitle: TPanel
@@ -1070,7 +1088,7 @@ object formMain: TformMain
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
-        object Label10: TLabel
+        object LProgressImp: TLabel
           Left = 16
           Top = 16
           Width = 214
@@ -1100,7 +1118,7 @@ object formMain: TformMain
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 0
-        object Label5: TLabel
+        object LStatsImp: TLabel
           Left = 16
           Top = 16
           Width = 164
@@ -1118,7 +1136,7 @@ object formMain: TformMain
         Left = 0
         Top = 57
         Width = 751
-        Height = 297
+        Height = 328
         Align = alClient
         Header.AutoSizeIndex = 0
         Header.Font.Charset = DEFAULT_CHARSET
@@ -1173,7 +1191,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000380018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000480018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

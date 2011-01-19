@@ -38,7 +38,10 @@ type
     FCounter: Integer;
     FNextCountStep: Integer;
     FWarning: Boolean;
-    procedure SetCount(const Value: Integer);
+    FRunSize: Int64;
+    FTotSize: Int64;
+    fTargetTime : tDateTime;
+    fSpeed: Double;
     procedure SetItem(const Value: TGuidObject);
     procedure SetStatus(const Value: TMigratestatus);
     procedure Changed;
@@ -49,6 +52,10 @@ type
     function AddAction(Title: string; Insert: Boolean; AItem: TGuidObject = nil):TMigrateAction;
     procedure SetWarning(const Value: Boolean);
     procedure propagateWarning(FromNode:PVirtualNode);
+    procedure SetRunSize(const Value: Int64);
+    procedure SetTotSize(const Value: Int64);
+    procedure SetCount(const Value: Integer);
+    procedure SetSpeed(const Value: Double);
   protected
     procedure Paintbackground(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; R: TRect;
                                var Handled: Boolean);
@@ -75,6 +82,10 @@ type
      procedure AddCount(value: Integer = 1);
      procedure SkipCount(Value: Integer = 1);
 
+     property TotSize: Int64 read FTotSize write SetTotSize;
+     property RunSize: Int64 read FRunSize write SetRunSize;
+     property Speed: Double read FSpeed write SetSpeed;
+     procedure AddRunSize(value: Int64);
 
      property Error: string read FError write SetError;
      function NewAction(Title: string; AItem: TGuidObject = nil):TMigrateAction;
@@ -83,16 +94,24 @@ type
      // Uesed for simple Actions, to create a sub action
      function Exception(E: Exception; Action: string = ''):TMigrateAction;
      function GetImageindex: Integer;
+
+     function CheckCanceled: Boolean;
+     procedure LogMessage(const Value: string);
   end;
 
 var
-   MigrationCanceled: Boolean;
+
    Statustime: TDateTime;
 
+   procedure ClearMigrationCanceled;
+   procedure SetMigrationCanceled;
+
+   procedure LogMessage(Value1,Value: string);
 
 implementation
 
 uses
+   Logutil,
    Windows,
    Forms;
 
@@ -103,6 +122,7 @@ const
    tag_count = 2;
    tag_Time = 3;
    tag_Error = 4;
+   tag_TimeLeft = 5;
 
    img_Processing = 0;
    img_success = 0;
@@ -112,6 +132,24 @@ const
 
 var
    ActionCount: Integer;
+   FMigrationCanceled: Boolean;
+
+procedure ClearMigrationCanceled;
+begin
+   FMigrationCanceled := False;
+end;
+
+procedure SetMigrationCanceled;
+begin
+   FMigrationCanceled := True;
+   logutil.LogError('MigrateActions','User Canceled');
+end;
+
+
+procedure LogMessage(Value1,Value: string);
+begin
+  Logutil.LogMsg(lmInfo,Value1,Value );
+end;
 
 { MigrateAction }
 
@@ -136,6 +174,13 @@ begin
    Counter := FCounter + Value;
 end;
 
+procedure TMigrateAction.AddRunSize(value: Int64);
+begin
+   if Value <= 0 then
+     Exit;
+   RunSize := fRunsize + Value;  
+end;
+
 procedure TMigrateAction.AddWarining(E: Exception);
 begin
    Error := E.Message;
@@ -156,6 +201,7 @@ begin
    while Assigned(lNode) do begin
       if Parentlist.Tree.RootNode = LNode then
          Break;
+
       Parentlist.Tree.InvalidateNode(LNode);
       LNode := LNode.Parent;
    end;
@@ -166,6 +212,15 @@ begin
       ActionCount := 0;
       Application.ProcessMessages;
    end;
+end;
+
+function TMigrateAction.CheckCanceled: Boolean;
+begin
+  if FMigrationCanceled then begin
+     Error := 'Canceled';
+     Result := True;
+  end else
+     Result := False;
 end;
 
 constructor TMigrateAction.Create(Title: string; AItem: TGuidObject);
@@ -192,6 +247,8 @@ begin
       Result := 3; 
 end;
 
+
+
 function TMigrateAction.GetTagText(const Tag: Integer): string;
 
   function GetTimeText(ForTime: TDateTime): string;
@@ -201,13 +258,29 @@ function TMigrateAction.GetTagText(const Tag: Integer): string;
      dif := ForTime - fstartTime;
      if dif < (1 / MinsPerDay /60) then
 
-        Exit; // Les than a second...
+        Exit; // Less than a second...
 
      if dif > (1/ MinsPerday * 20) then
         // More than 20 min..
         Result := FormatDateTime('hh:nn:ss', dif)
      else
         Result := FormatDateTime('nn:ss.zzz', dif)
+  end;
+
+
+  function GetTimeLeftText: string;
+  var dif: tdatetime;
+  begin
+      result := '';
+      dif :=  fTargetTime - StatusTime;
+      if dif <= 0 then
+        Exit;
+         
+      if dif > (1/ MinsPerday * 20) then
+        // More than 20 min..
+         Result := FormatDateTime('hh:nn:ss', dif)
+      else
+         Result := FormatDateTime('nn:ss.zzz', dif)
   end;
 
 begin
@@ -219,12 +292,23 @@ begin
           Failed  : Result := 'Failed';
           Success : Result := 'OK';
      end;
-   tag_count : if fCount > 0 then
-        Result := IntToStr(fCount);
+
+   tag_count : if Status = Running then begin
+                  if fCounter > 0 then
+                     Result := IntToStr(fCounter)
+               end else if fCount > 0 then
+                  Result := IntToStr(fCount)
+               else if fTarget> 0 then
+                  Result := IntToStr(fTarget);
+
+
    tag_Time :  if Status = Running then
                    Result := GetTimeText(Statustime)
                else
                    Result := GetTimeText(fstoptime);
+
+   tag_TimeLeft : if Status = Running then
+                   Result := GetTimeLeftText;
 
    tag_Error : Result := Error;
   end;
@@ -236,6 +320,11 @@ begin
    Result := AddAction(Title, True, AItem);
 end;
 
+
+procedure TMigrateAction.LogMessage(const Value: string);
+begin
+   MigrateActions.LogMessage(Title, Value);
+end;
 
 function TMigrateAction.NewAction(Title: string;
   AItem: TGuidObject): TMigrateAction;
@@ -303,10 +392,15 @@ end;
 
 procedure TMigrateAction.SetError(const Value: string);
 begin
-  if FError > ''  then
-     FError := FError + '; ';
+  if Value > '' then begin
 
-  FError := FError + Value;
+     if FError > ''  then
+        FError := FError + '; ';
+
+     Logutil.LogError(Title, Value);
+
+     FError := FError + Value;
+  end;
 
   Status := Failed;//??
   Changed;
@@ -316,6 +410,30 @@ procedure TMigrateAction.SetItem(const Value: TGuidObject);
 begin
   FItem := Value;
   Changed;
+end;
+
+
+
+procedure TMigrateAction.SetRunSize(const Value: Int64);
+begin
+  if FRunSize <> Value then begin
+     StatusTime := now;
+
+     FRunSize := Value;
+
+     if (FRunSize  < FTotSize)
+     and (FRunSize > 0) then begin
+        Speed := (StatusTime - fstartTime) / FRunSize;
+
+        fTargetTime := (Speed * (fTotSize - FRunSize)) + StatuStime;
+     end;
+  end;
+end;
+
+procedure TMigrateAction.SetSpeed(const Value: Double);
+begin
+  FSpeed := Value;
+  LogMessage(Format('%s speed %e',[title,fSpeed]));
 end;
 
 procedure TMigrateAction.SetStatus(const Value: TMigratestatus);
@@ -353,6 +471,12 @@ begin
    FNextCountStep := 0;
    FTarget := Value;
    Changed;
+end;
+
+procedure TMigrateAction.SetTotSize(const Value: Int64);
+begin
+  FTotSize := Value;
+  fTargetTime := 0;
 end;
 
 procedure TMigrateAction.SetWarning(const Value: Boolean);
@@ -436,5 +560,5 @@ end;
 
 initialization
    ActionCount := 0;
-   MigrationCanceled := false;
+   FMigrationCanceled := false;
 end.

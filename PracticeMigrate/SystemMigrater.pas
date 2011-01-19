@@ -3,6 +3,7 @@ unit SystemMigrater;
 interface
 
 uses
+   Classes,
    UBatchBase,
    DB,
    SysObj32,
@@ -47,11 +48,7 @@ private
     FDownloadDocumentTable: TDownloadDocumentTable;
     FDownloadlogTable: TDownloadlogTable;
     FParameterTable: TParameterTable;
-    procedure SetClientGroupList(const Value: TGuidList);
-    procedure SetClientList(const Value: TGuidList);
-    procedure SetClientTypeList(const Value: TGuidList);
-    procedure SetSystemAccountList(const Value: TGuidList);
-    procedure SetUserList(const Value: TGuidList);
+
     function GetClientGroupList: TGuidList;
     function GetClientList: TGuidList;
     function GetClientTypeList: TGuidList;
@@ -82,14 +79,13 @@ private
     function MigrateCustomDocs(ForAction:TMigrateAction): Boolean;
 
     // Size Items
-    function SizeSystemAccount(ForAction: TMigrateAction; var Value: TGuidObject): Boolean;
+    function SizeSystemAccount(Value: TGuidObject): Int64;
+    function SizeClientFile(Value: TGuidObject): Int64;
 
-    procedure SetSystemUsers(const Value: TADODataSet);
     function GetSystemUsers: TADODataSet;
     function GetUserRoleID(user: pUser_Rec): TGuid;
     procedure SetSystem(const Value: TSystemObj);
     function GetUserList: TGuidList;
-    procedure SetbtTable(const Value: TbtTable);
     function GetbtTable: TbtTable;
     function GetSystemAccountTable: TSystemBankAccountTable;
     function GetClientTypeTable: TClientTypeTable;
@@ -102,7 +98,6 @@ private
     procedure SetDoUnsynchronised(const Value: Boolean);
     procedure SetDoUsers(const Value: Boolean);
     function GetUserMappingTable: TUserMappingTable;
-    procedure SetClientAccountMap(const Value: tGuidList);
     function GetClientAccountMap: tGuidList;
     function GetMasterMemorisationsTable: TMasterMemorisationsTable;
     function GetMasterMemlinesTable: TMasterMemlinesTable;
@@ -122,17 +117,17 @@ public
     property System: TSystemObj read FSystem write SetSystem;
 
     // Lists
-    property ClientTypeList: TGuidList read GetClientTypeList write SetClientTypeList;
-    property ClientGroupList: TGuidList read GetClientGroupList write SetClientGroupList;
-    property UserList: TGuidList read GetUserList write SetUserList;
-    property SystemAccountList: TGuidList read GetSystemAccountList write SetSystemAccountList;
-    property ClientList: TGuidList read GetClientList write SetClientList;
-    property ClientAccountMap: tGuidList read GetClientAccountMap write SetClientAccountMap;
-    property SystemUsers: TADODataSet read GetSystemUsers write SetSystemUsers;
+    property ClientTypeList: TGuidList read GetClientTypeList;
+    property ClientGroupList: TGuidList read GetClientGroupList;
+    property UserList: TGuidList read GetUserList;
+    property SystemAccountList: TGuidList read GetSystemAccountList;
+    property ClientList: TGuidList read GetClientList;
+    property ClientAccountMap: tGuidList read GetClientAccountMap;
+    property SystemUsers: TADODataSet read GetSystemUsers;
     function GetSystemAccount(AccountNo: string): TGuidObject;
 
     //Tables
-    property btTable: TbtTable read GetbtTable write SetbtTable;
+    property btTable: TbtTable read GetbtTable;
     property SystemAccountTable: TSystemBankAccountTable read GetSystemAccountTable;
     property GroupTable: TClientGroupTable read GetGroupTable;
     property ClientTypeTable: TClientTypeTable read GetClientTypeTable;
@@ -159,6 +154,9 @@ public
     // Helper for the Client
     function GetUser(const Value: string): TGuid; overload;
     function GetUser(const Value: integer): TGuid; overload;
+
+    // Work Documents
+    function GetWorkFileList:TStringList;
 end;
 
 implementation
@@ -173,7 +171,6 @@ uses
    StDateSt,
    bkDefs,
    MemorisationsObj,
-   Classes,
    bkconst,
    ClientMigrater,
    winutils,
@@ -291,8 +288,10 @@ begin
             MyAction.AddCount;
       end;
 
-      if Assigned(MyAction) then
+      if Assigned(MyAction) then begin
          MyAction.Count := LFile.Count;
+         MyAction.AddRunSize(GetFileSize(Value));
+      end;
    finally
       FreeAndnil(LFile);
       FreeAndnil(LLine);
@@ -372,7 +371,7 @@ begin
             Break; // No more lines left...
 
          L := lFile[I + 1];
-         
+
          P := pos( '<br>', L);
          if P > 0 then begin
             L := Copy(L, 1, P-1);
@@ -530,6 +529,8 @@ begin
    if not BKFileExists(eFileName)then
       Exit;
 
+
+
    // have a go..
    Count := 0;
    MyAction := nil;
@@ -558,6 +559,9 @@ begin
       CloseFile(eFile);
       if Assigned(Myaction) then
          MyAction.Count := Count;
+
+
+
    end;
 end;
 
@@ -912,6 +916,29 @@ begin
    Result := FUserTable;
 end;
 
+function TSystemMigrater.GetWorkFileList: TStringList;
+  var Rec: TSearchRec;
+      ext: string;
+begin
+   Result := TStringList.Create;
+   if FindFirst(DownloadWorkDir + '*.*', faAnyFile, Rec) = 0 then begin
+      repeat
+			     // Exclude directories from the list of files.
+			     ext := ExtractFileExt(rec.Name );
+           if Sametext(Ext,'.csv') then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(1))
+           else if Sametext(Ext,'.htm') then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(2))
+           else if pos('REPORTS',rec.Name) = 1 then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(3))
+
+
+      until FindNext(Rec) <> 0;
+      FindClose(Rec);
+   end;
+end;
+
+
 procedure TSystemMigrater.MigrateMasterMems(ForAction: TMigrateAction);
 var
    PrefixList: TStringList;
@@ -1008,7 +1035,7 @@ begin
    ParameterTable.Update('UpdateServerForOffsites', System.fdFields.fdUpdate_Server_For_Offsites);
 
    ParameterTable.Update('UseXlonChartOrder', System.fdFields.fdUse_Xlon_Chart_Order);
-   ParameterTable.Update('WebExportFormat', System.fdFields.fdWeb_Export_Format);
+   ParameterTable.Update('WebExportFormat',GetProviderID (WebExport,System.fdFields.fdCountry, System.fdFields.fdWeb_Export_Format));
 
    //Pracini
    ReadPracticeINI;
@@ -1036,32 +1063,11 @@ var
   Files: TStringList;
   I: Integer;
 
-  function GetFileList:TStringList;
-  var Rec: TSearchRec;
-      ext: string;
-  begin
-     Result := TStringList.Create;
-     if FindFirst(DownloadWorkDir + '*.*', faAnyFile, Rec) = 0 then begin
-		    repeat
-			     // Exclude directories from the list of files.
-			     ext := ExtractFileExt(rec.Name );
-           if Sametext(Ext,'.csv') then
-              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(1))
-           else if Sametext(Ext,'.htm') then
-              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(2))
-           else if pos('REPORTS',rec.Name) = 1 then
-              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(3))
-
-
-        until FindNext(Rec) <> 0;
-        FindClose(Rec);
-     end;
-  end;
-
-
+const
+  sizeWeight = 50;
 begin
   Result := false;
-  Files := GetFileList;
+  Files := GetWorkFileList;
   try
      if Files.Count = 0 then begin
         Result := True;
@@ -1069,25 +1075,40 @@ begin
      end;
      MyAction := ForAction.InsertAction('Download Documents');
      MyAction.Target := Files.Count;
+     try
+        // Work out the size...
+        for I := 0 to Files.Count - 1 do
+           case Integer(Files.Objects[I]) of
+              1: MyAction.TotSize := MyAction.TotSize + GetFileSize(Files[I])
+              else MyAction.TotSize := MyAction.TotSize + sizeWeight;
+           end;
 
-     for I := 0 to Files.Count - 1 do begin
-        case Integer(Files.Objects[I]) of
-           1: AddCharges(MyAction, Files[i]);
-           2: AddHTMFile(MyAction, Files[i]);
-           3: AddRPTFile(MyAction, Files[i]);
+        for I := 0 to Files.Count - 1 do begin
+           case Integer(Files.Objects[I]) of
+              1: AddCharges(MyAction, Files[i]);
+              2: begin
+                    AddHTMFile(MyAction, Files[i]);
+                    MyAction.AddRunSize(sizeWeight);
+                 end;
+              3: begin
+                    AddRPTFile(MyAction, Files[i]);
+                     MyAction.AddRunSize(sizeWeight);
+                 end;
+           end;
+
+           if MyAction.CheckCanceled then begin
+              Exit;
+           end else
+              MyAction.AddCount;
+
         end;
 
-        if MigrationCanceled then begin
-           MyAction.Error := 'Canceled';
-           Result := False;
-           Break;
-        end else
-           MyAction.AddCount;
-
+        MyAction.Count := Files.Count;
+        Result := True;
+     except
+        on e: Exception do
+           MyAction.Exception(E)
      end;
-
-     MyAction.Count := Files.Count;
-     Result := True;
   finally
      Files.Free;
   end;
@@ -1137,48 +1158,67 @@ begin
    if not Assigned(System) then
       Exit;
 
-
-
    MyAction := ForAction.InsertAction(Format('Migrate %s',[System.fdFields.fdPractice_Name_for_Reports]));
    MyAction.Target := 100;
+   MyAction.LogMessage('Migration Start');
 
    if DoUsers then
-      RunGuidList(MyAction,'Users',UserList,MergeUser);
+      if not RunGuidList(MyAction,'Users',UserList,MergeUser, true) then
+         exit;
 
-   RunGuidList(MyAction,'Client Groups',ClientGroupList, AddClientGroup);
+   if not RunGuidList(MyAction,'Client Groups',ClientGroupList, AddClientGroup) then
+      Exit;
 
-   RunGuidList(MyAction,'Client Types',ClientTypeList, AddClientType);
+   if not RunGuidList(MyAction,'Client Types',ClientTypeList, AddClientType) then
+      Exit;
+
    MyAction.Counter := 5;
 
-   RunGuidList(MyAction,'Bank Accounts',SystemAccountList, AddSystemAccount);
+   if not RunGuidList(MyAction,'Bank Accounts',SystemAccountList, AddSystemAccount, true) then
+      Exit;
    MyAction.Counter := 20;
 
-   RunGuidList(MyAction,'Client List',ClientList, AddSystemClient);
+   ClientList.CheckSpeed := False;
+   if not RunGuidList(MyAction,'Client List',ClientList, AddSystemClient) then
+      Exit;
+
    MyAction.Counter := 25;
 
    // User map..
    lList := TGuidList.Create(System.fdSystem_File_Access_List);
    try
-      RunGuidList(MyAction,'User Clients',LList, AddUserMap);
+      if not RunGuidList(MyAction,'User Clients',LList, AddUserMap) then
+         Exit;
    finally
       FreeAndNil(lList);
    end;
 
    MigrateMasterMems(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
 
    MigrateCustomDocs(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
 
-   RunGuidList(MyAction,'Client Files',ClientList, AddClientFile);
+   ClientList.CheckSpeed := True;
+   if not RunGuidList(MyAction,'Client Files',ClientList, AddClientFile, true) then
+      Exit;
    MyAction.Counter := 75;
 
    MigrateSystem(MyAction);
 
    MigrateWorkFolder(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
 
    MigrateDisklog(MyAction);
-            
+   if MyAction.CheckCanceled then
+      Exit;
+
    Result := true;
    MyAction.Status := success;
+   MyAction.LogMessage('Migration Complete');
 end;
 
 
@@ -1208,35 +1248,10 @@ begin
    BTTable.Prepared := True;
 end;
 
-procedure TSystemMigrater.SetbtTable(const Value: TbtTable);
-begin
-  FbtTable := Value;
-end;
-
-
-procedure TSystemMigrater.SetClientAccountMap(const Value: tGuidList);
-begin
-  FClientAccountMap := Value;
-end;
-
-procedure TSystemMigrater.SetClientGroupList(const Value: TGuidList);
-begin
-  FClientGroupList := Value;
-end;
-
-procedure TSystemMigrater.SetClientList(const Value: TGuidList);
-begin
-  FClientList := Value;
-end;
 
 procedure TSystemMigrater.SetClientMigrater(const Value: TMigrater);
 begin
   FClientMigrater := Value;
-end;
-
-procedure TSystemMigrater.SetClientTypeList(const Value: TGuidList);
-begin
-  FClientTypeList := Value;
 end;
 
 
@@ -1244,6 +1259,7 @@ procedure TSystemMigrater.SetDoArchived(const Value: Boolean);
 begin
   FDoArchived := Value;
 end;
+
 
 procedure TSystemMigrater.SetDoSystemTransactions(const Value: Boolean);
 begin
@@ -1265,51 +1281,27 @@ procedure TSystemMigrater.SetSystem(const Value: TSystemObj);
 begin
   FSystem := Value;
   if Assigned(FSystem) then begin
-     SystemAccountList.CloneList(FSystem.fdSystem_Bank_Account_List);
+     SystemAccountList.CloneList(FSystem.fdSystem_Bank_Account_List,SizeSystemAccount);
      UserList.CloneList(FSystem.fdSystem_User_List);
      ClientGroupList.CloneList(FSystem.fdSystem_Group_List);
      ClientTypeList.CloneList(FSystem.fdSystem_Client_Type_List);
-     ClientList.CloneList(FSystem.fdSystem_Client_File_List);
+     ClientList.CloneList(FSystem.fdSystem_Client_File_List,SizeClientFile);
      ClientAccountMap.CloneList(FSystem.fdSystem_Client_Account_Map);
   end;
 end;
 
-procedure TSystemMigrater.SetSystemAccountList(const Value: TGuidList);
+
+function TSystemMigrater.SizeClientFile(Value: TGuidObject): int64;
 begin
-  FSystemAccountList := Value;
+   Value.Size := GetFileSize(DATADIR + pClient_File_Rec(Value.Data).cfFile_Code + FILEEXTN) div 500;
+   Result := Value.Size;
 end;
 
-
-procedure TSystemMigrater.SetSystemUsers(const Value: TADODataSet);
+function TSystemMigrater.SizeSystemAccount(Value: TGuidObject): Int64;
 begin
-  FSystemUsers := Value;
-end;
-
-procedure TSystemMigrater.SetUserList(const Value: TGuidList);
-begin
-  FUserList := Value;
-end;
-
-
-function TSystemMigrater.SizeSystemAccount(ForAction: TMigrateAction; var Value: TGuidObject): Boolean;
-var
-   Account: pSystem_Bank_Account_Rec;
-   eFileName: string;
-   eFile: file of tArchived_Transaction;
-begin
-   Result := True;
-   Value.Size := 0;
-   Account := pSystem_Bank_Account_Rec(Value.Data);
-
    // find the transactions
-   eFileName := ArchiveFileName(Account.sbLRN);
-   if not BKFileExists(eFileName)then
-      Exit;
-
-   // have a go..
-
-   AssignFile(eFile, eFileName);
-   Value.Size := FileSize(eFile);
+   Value.Size := GetFilesize(ArchiveFileName(pSystem_Bank_Account_Rec(Value.Data).sbLRN));
+   Result := Value.Size;
 end;
 
 end.

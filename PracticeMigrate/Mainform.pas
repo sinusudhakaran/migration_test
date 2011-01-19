@@ -24,14 +24,14 @@ type
     cbAccounts: TCheckBox;
     cbGroups: TCheckBox;
     cbClientTypes: TCheckBox;
-    CheckBox3: TCheckBox;
+    cbCustomDocs: TCheckBox;
     gbClients: TGroupBox;
     cbClients: TCheckBox;
     cbSync: TCheckBox;
     cbUnsync: TCheckBox;
     cbArchive: TCheckBox;
     cbClientFiles: TCheckBox;
-    CheckBox8: TCheckBox;
+    cbStyles: TCheckBox;
     TsProgress: TTabSheet;
     StatusTree: TVirtualStringTree;
     StatusTimer: TTimer;
@@ -49,19 +49,21 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
-    Label9: TLabel;
+    LOptionsImp: TLabel;
     btnDef: TButton;
     pTitle: TPanel;
-    Label10: TLabel;
+    LProgressImp: TLabel;
     ilActions: TImageList;
     Cbservers: TComboBox;
     TabSheet1: TTabSheet;
     Panel1: TPanel;
-    Label5: TLabel;
+    LStatsImp: TLabel;
     VirtualStringTree1: TVirtualStringTree;
     LVersion: TLabel;
     btnSQLBrowse: TButton;
     cbSysTrans: TCheckBox;
+    LPractice: TLabel;
+    cbDocuments: TCheckBox;
     procedure BBrowseClick(Sender: TObject);
     procedure BtnNextClick(Sender: TObject);
     procedure BtnCancelClick(Sender: TObject);
@@ -130,6 +132,7 @@ var
 implementation
 
 uses
+ReportTypes,
 CustomDocEditorFrm,
 GlobalDirectories,
 AvailableSQLServers,
@@ -185,6 +188,11 @@ begin
         btnNext.Caption := 'Next';
 
         pcMain.ActivePage := tsSelect;
+
+        LOptionsImp.Caption := Format('Please select what you would like to import to %s',[Destination]);
+        LProgressImp.Caption := Format('Execute import %s into %s',[AdminSystem.fdFields.fdBankLink_Code, Destination]);
+        LStatsImp.Caption := Format('Import %s into %s Statistics',[AdminSystem.fdFields.fdBankLink_Code, Destination]);
+
         tsSelect.Update;
      end;
    Migrate :begin
@@ -268,7 +276,7 @@ begin
                   False) = DLG_No then
             exit;
          // Ok then .. Lets cancel..
-         MigrationCanceled := True;
+         SetMigrationCanceled;
      end;
   Done :   Close;
   end;
@@ -412,7 +420,7 @@ begin
                   DLG_No,
                   0,
                   False) <> DLG_No then begin
-                      MigrationCanceled := True;
+                      SetMigrationCanceled;
                       Exit;
                   end;
 
@@ -613,6 +621,7 @@ function TformMain.TestSystem: boolean;
        Clientfiles,
        ArchiveCount,
        ForeignCount: integer;
+       kc: Tcursor;
 
 
   function SetCheckBox(Value: TCheckBox; Caption: string; Count: Integer; Disable: boolean = false; unticked: boolean = false): boolean;
@@ -631,6 +640,30 @@ function TformMain.TestSystem: boolean;
      Value.Caption := format(Caption,[CountText]);
      if Assigned(Value.OnClick) then
         Value.OnClick(value);
+  end;
+
+  procedure getStyles;
+  var ll : TStringList;
+  begin
+     ll := TStringList.Create;
+      try
+         FillStyleList(ll);
+          SetCheckBox(cbStyles,'Styles %s',ll.Count);
+      finally
+        ll.Free
+      end;
+  end;
+
+
+  procedure GetWorkFiles;
+  var ll : TStringList;
+  begin
+     ll := FSystemMigrater.GetWorkFileList;
+     try
+        SetCheckBox(cbDocuments,'Invoices and Charges %s',ll.Count);
+     finally
+        ll.Free
+     end;
   end;
 
 
@@ -659,56 +692,80 @@ begin
       Exit;
    end;
 
-   ArchiveCount := 0;
-   ForeignCount := 0;
-   SysAccounts := 0;
-   ClientFiles := 0;
-   TypeCount := 0;
-   GroupCount := 0;
-   userProfiles := 0;
+   kc := Screen.Cursor;
+   Screen.Cursor := crHourGlass;
    try
-      //LoadAdminSystem(false,'Migrator');
-      AdminSystem := TSystemObj.Create;
-      AdminSystem.Open;
-      ClientFiles := Adminsystem.fdSystem_Client_File_List.ItemCount;
-      SysAccounts :=  Adminsystem.fdSystem_Bank_Account_List.ItemCount;
-      TypeCount :=  Adminsystem.fdSystem_Client_Type_List.ItemCount;
-      GroupCount := Adminsystem.fdSystem_Group_List.ItemCount;
-      userProfiles := Adminsystem.fdSystem_User_List.ItemCount;
-      Result := true;
-   except
-      on e: Exception do begin
+      ArchiveCount := 0;
+      ForeignCount := 0;
+      SysAccounts := 0;
+      ClientFiles := 0;
+      TypeCount := 0;
+      GroupCount := 0;
+      userProfiles := 0;
+      try
+         //LoadAdminSystem(false,'Migrator');
+         AdminSystem := TSystemObj.Create;
+         AdminSystem.Open;
+         ClientFiles := Adminsystem.fdSystem_Client_File_List.ItemCount;
+         SysAccounts := Adminsystem.fdSystem_Bank_Account_List.ItemCount;
+         TypeCount :=  Adminsystem.fdSystem_Client_Type_List.ItemCount;
+         GroupCount := Adminsystem.fdSystem_Group_List.ItemCount;
+         userProfiles := Adminsystem.fdSystem_User_List.ItemCount;
 
-          HelpfulErrorMsg(format('Could not open %s'#13'Please select a valid location',[DATADIR + SYSFILENAME]), 0,false);
-      end;
+
+         FSystemMigrater.System := AdminSystem;
+         Result := true;
+
+         except
+            on e: Exception do begin
+               HelpfulErrorMsg(format('Could not open %s'#13'Please select a valid location',[DATADIR + SYSFILENAME]), 0,false);
+               FreeAndnil(AdminSystem);
+            end;
+         end;
+
+         LPractice.Caption := Format('%s: %s',[Adminsystem.fdFields.fdBankLink_Code, Adminsystem.fdFields.fdPractice_Name_for_Reports]);
+
+         if SetCheckBox(cbAccounts,'System Accounts %s,',SysAccounts, true) then begin
+             SysAccounts := FSystemMigrater.SystemAccountList.TotSize div sizeof(tArchived_Transaction);
+             SetCheckBox(cbSysTrans,'&&Transactions %s',SysAccounts,false);
+         end;
+
+         cbSysTransClick(nil);
+
+         if SetCheckBox(cbClients,'Client Files %s',ClientFiles) then begin
+             for I := 0 to ClientFiles - 1 do
+                with Adminsystem.fdSystem_Client_File_List.Client_File_At(I)^ do begin
+                   if cfForeign_File then
+                      inc(ForeignCount);
+                   if cfArchived then
+                      inc(ArchiveCount);
+                end;
+             cbClientFiles.Checked := true;
+         end else
+            cbClientFiles.Checked := false;
+
+
+         SetCheckBox(CBSync,'Synchronised %s',ClientFiles - (ForeignCount + ArchiveCount), True);
+         SetCheckBox(cbUnsync,'Unynchronised %s',ForeignCount, false, true);
+         SetCheckBox(CBArchive,'Archived %s',ArchiveCount, false, true);
+
+         SetCheckBox(cbusers,'User Profiles %s',UserProfiles);
+         SetCheckBox(cbGroups,'Client Groups %s',GroupCount);
+         SetCheckBox(cbClientTypes,'Client Types %s',TypeCount);
+
+         SetCheckBox(cbCustomDocs,'Custom documents %s',CustomDocManager.ReportList.Count);
+
+         GetStyles;
+
+         GetWorkFiles;
+
+   finally
+      Screen.Cursor := kc;
    end;
 
-   cbSysTrans.Checked :=  SetCheckBox(cbAccounts,'System Accounts %s,',SysAccounts, true);
-   cbSysTransClick(nil);
-
-   if SetCheckBox(cbClients,'Client Files %s',ClientFiles) then begin
-         for I := 0 to ClientFiles - 1 do
-            with Adminsystem.fdSystem_Client_File_List.Client_File_At(I)^ do begin
-                if cfForeign_File then
-                   inc(ForeignCount);
-                if cfArchived then
-                   inc(ArchiveCount);
-            end;
-         cbClientFiles.Checked := true;
-   end else
-         cbClientFiles.Checked := false;
-
-
-   SetCheckBox(CBSync,'Synchronised %s',ClientFiles - ForeignCount, True);
-   SetCheckBox(cbUnsync,'Unynchronised %s',ForeignCount, false, true);
-   SetCheckBox(CBArchive,'Archived %s',ArchiveCount, false, true);
-
-   SetCheckBox(cbusers,'User Profiles %s',UserProfiles);
-   SetCheckBox(cbGroups,'Client Groups %s',GroupCount);
-   SetCheckBox(cbClientTypes,'Client Types %s',TypeCount);
-
-   if Result then
+   if Result then begin
       Progress := Selection;
+   end;
 
 end;
 
@@ -733,7 +790,7 @@ end;
 procedure TformMain.MigrateSystem;
  var Myaction : TMigrateAction;
 begin
-   MigrationCanceled := False;
+   ClearMigrationCanceled;
    FTreeList.Clear;
    FTreeList.Tree.Clear;
    Myaction := NewAction('Migrate');
@@ -746,7 +803,7 @@ begin
          FClientMigrater.ClearData(MyAction);
 
          FSystemMigrater.ClientMigrater := FClientMigrater;
-         FSystemMigrater.System := Adminsystem;
+         //FSystemMigrater.System := Adminsystem; already done ??
 
          FSystemMigrater.Migrate(MyAction);
 
