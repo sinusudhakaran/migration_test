@@ -514,11 +514,14 @@ begin
                //there is no system exchange source
                LExchangeSource := TExchangeSource.Create;
                try
-                 Client.ExchangeSource.Assign(LExchangeSource);
+                 //Books Secure Client file exchange rates do not get updated
+                 if (Client.clFields.clDownload_From = dlAdminSystem) then
+                   Client.ExchangeSource.Assign(LExchangeSource);
                finally
                  LExchangeSource.Free;
                end;
-             end else
+             end else if (Client.clFields.clDownload_From = dlAdminSystem) then
+               //Books Secure Client file exchange rates do not get updated
                Client.ExchangeSource.Assign(LExchangeSource);
            finally
              LExchangeRates.Free;

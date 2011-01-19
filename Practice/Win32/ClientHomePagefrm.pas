@@ -621,7 +621,8 @@ begin
     Exit;
 
   if Assigned(AdminSystem) then begin
-    if TheClient.HasForeignCurrencyAccounts then begin
+    //Books Secure Client file exchange rates do not get updated 
+    if TheClient.HasForeignCurrencyAccounts and (TheClient.clFields.clDownload_From = dlAdminSystem) then begin
       LExchangeRates := GetExchangeRates;
       try
         TheClient.ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
@@ -1071,31 +1072,6 @@ begin
     acForexRatesMissing.Caption := MISSING_EXCHANGE_RATES + ISOCodes;
     acForexRatesMissing.Visible := True;
   end;
-//var
-//  i: integer;
-//  BA: TBank_Account;
-//  ISOCodes: string;
-//begin
-//  ISOCodes := '';
-//  acForexRatesMissing.Visible := False;
-//  for i := FTheClient.clBank_Account_List.First to FTheClient.clBank_Account_List.Last do begin
-//    BA := FTheClient.clBank_Account_List.Bank_Account_At(i);
-//    if BA.HasMissingExchageRates(0, MaxInt) then begin
-//      if (ISOCodes = '') then
-//        ISOCodes := BA.baFields.baCurrency_Code
-//      else begin
-//        if Pos(BA.baFields.baCurrency_Code, ISOCodes) = 0 then begin
-//          if Pos(' and ', ISOCodes) > 0 then
-//            ISOCodes := StringReplace(ISOCodes, ' and ', ', ', [rfReplaceAll]);
-//          ISOCodes := ISOCodes + ' and ' + UpperCase(BA.baFields.baCurrency_Code);
-//        end;
-//      end;
-//    end;
-//  end;
-//  if (ISOCodes <> '') then begin
-//    acForexRatesMissing.Caption := MISSING_EXCHANGE_RATES + ISOCodes;
-//    acForexRatesMissing.Visible := True;
-//  end;
 end;
 
 procedure TfrmClientHomePage.RefreshMems;

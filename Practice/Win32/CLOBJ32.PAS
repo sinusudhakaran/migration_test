@@ -456,7 +456,8 @@ var
 begin
   //Refresh exchange rate source
   if Assigned(AdminSystem) then begin
-    if HasForeignCurrencyAccounts then begin
+    //Books Secure Client file exchange rates do not get updated
+    if HasForeignCurrencyAccounts and (clFields.clDownload_From = dlAdminSystem) then begin
       LExchangeRates := GetExchangeRates;
       try
         ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
