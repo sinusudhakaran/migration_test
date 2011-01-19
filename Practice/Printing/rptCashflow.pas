@@ -88,7 +88,7 @@ uses
   RptParams,
   CountryUtils,
   baUtils,
-  Classes;
+  Classes, PeriodUtils;
 
 
 {$IFDEF SmartBooks}
@@ -1893,6 +1893,7 @@ var
 begin
   CashFlowReport := TCashFlowReportEx(Sender);
   CashFlowReport.ResetControlAccounts;
+  CashFlowReport.FUseBaseAmounts := False;
   lClient := CashFlowReport.ClientForReport;
 
   with lClient.clFields do
@@ -1934,6 +1935,11 @@ var
   BA: TBank_Account;
   TempDate: integer;
   MissingDates: TStringList;
+  This_Year_Starts  : integer;
+  This_Year_Ends    : integer;
+  Last_Year_Starts  : integer;
+  Last_Year_Ends    : integer;
+
   procedure CheckDate(ADate: integer);
   begin
     if ADate > 0 then begin
@@ -1943,7 +1949,24 @@ var
       Result := Result and (BA.Default_Forex_Conversion_Rate(ADate) > 0);
     end;
   end;
+
 begin
+  //Get start and end dates
+  CalculateAccountTotals.CalcYearStartEndDates(aClient, This_Year_Starts, This_Year_Ends, Last_Year_Starts, Last_Year_Ends);
+  //Setup period arrays
+  PeriodUtils.LoadPeriodDetailsIntoArray(aClient,
+                                         This_Year_Starts,
+                                         This_Year_Ends,
+                                         aClient.clFields.clTemp_FRS_Account_Totals_Cash_Only,
+                                         aClient.clFields.clFRS_Reporting_Period_Type,
+                                         aClient.clFields.clTemp_Period_Details_This_Year);
+  PeriodUtils.LoadPeriodDetailsIntoArray(aClient,
+                                         Last_Year_Starts,
+                                         Last_Year_Ends,
+                                         aClient.clFields.clTemp_FRS_Account_Totals_Cash_Only,
+                                         aClient.clFields.clFRS_Reporting_Period_Type,
+                                         aClient.clFields.clTemp_Period_Details_Last_Year);
+
   MissingDates := TStringList.Create;
   try
     Result := True;

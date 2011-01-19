@@ -88,6 +88,11 @@ procedure CalculateCurrentEarnings( aClient : TClientObj);
 
 procedure EstimateOpeningBalancesForBankAccountContras( aClient : TClientObj);
 
+procedure CalcYearStartEndDates( const aClient : TClientObj;
+                                 var This_Year_Starts  : integer;
+                                 var This_Year_Ends    : integer;
+                                 var Last_Year_Starts  : integer;
+                                 var Last_Year_Ends    : integer);
 
 //******************************************************************************
 implementation
