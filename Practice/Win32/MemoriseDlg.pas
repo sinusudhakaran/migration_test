@@ -1802,8 +1802,7 @@ begin
          SourceBankAccount := ba;
          EditMem := nil;
          EditMemorisedList := nil;
-         if (ba.IsManual)
-         and chkMaster.Enabled then begin
+         if ((ba.IsManual) and chkMaster.Enabled) or SourceBankAccount.IsAForexAccount then begin
             chkMaster.Enabled := False;
             AllowMasterMemorised := False;
          end;
