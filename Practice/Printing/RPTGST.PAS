@@ -1905,7 +1905,7 @@ begin
       else begin
          if not EnterPrintDateRange('Print '+TaxName+' Overrides','Enter the starting and finishing dates for the period you want to print',
                                  Fromdate,ToDate,BKH_GST_overrides_report,
-                                 True,Params, NonBaseCurrency, True) then exit;
+                                 True,Params, NonBaseCurrency, MyClient.HasForeignCurrencyAccounts) then exit;
 
          if Params.BatchSave then begin
             SaveNodesettings;
