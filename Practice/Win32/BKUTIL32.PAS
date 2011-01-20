@@ -1,7 +1,7 @@
 Unit BKUTIL32;
 
 {  -----------------------------------------------------------------------  }
-interface uses BKDEFS,MONEYDEF, BKCONST, clObj32, PayeeObj;
+interface uses BKDEFS,MONEYDEF, BKCONST, clObj32, PayeeObj, StDate;
 {  -----------------------------------------------------------------------  }
 
 function IsCoded( CONST T : pTransaction_Rec ): Boolean; overload;
@@ -47,6 +47,9 @@ function CountBankAccounts : Integer;
 function CountManualBankAccounts : Integer;
 function CountDeliveredBankAccounts : Integer;
 function ClientHasUncodedTransactions(D1, D2: Integer): Boolean;
+function IsValidGSTAccountType(const AccountType: integer; const aClient: TClientObj): boolean;
+procedure CountCodedGSTTrans(const aClient: TClientObj; D1, D2: TstDate; var Number,
+                             Number_Uncoded: LongInt; DatePresented: boolean = True);
 function HasOnlyJournalAccounts : Boolean;
 function HasEntries: Boolean;
 function HasJournals : Boolean;
@@ -75,7 +78,6 @@ uses
    LogUtil,
    classes,
    Math,
-   StDate,
    StStrs, CodeDateDlg, UpdateMF, CodingFormCommands, bkhelp, ForexHelpers;
 
 Const
@@ -1137,6 +1139,51 @@ Begin
       HelpfulInfoMsg( 'No notes that can be deleted, in this date range.', 0);
    end;
 end;
+
+function IsValidGSTAccountType(const AccountType: integer; const aClient: TClientObj): boolean;
+begin
+  Result := (AccountType in [btBank,btCashJournals,btGSTJournals]) or
+            ((AccountType = btAccrualJournals) and (not aClient.clFields.clGST_Excludes_Accruals));
+end;
+
+
+procedure CountCodedGSTTrans(const aClient: TClientObj; D1, D2: TstDate; var Number,
+  Number_Uncoded: LongInt; DatePresented: boolean = True);
+var
+  B,
+  T: LongInt;
+  pT: pTransaction_Rec;
+  Ba: TBank_Account;
+  TD: integer;
+begin
+  Number := 0;
+  Number_Uncoded := 0;
+
+  //count the number of transactions for in the period
+  for b := aClient.clBank_Account_List.First to aClient.clBank_Account_List.Last do
+  begin
+    Ba := aClient.clBank_Account_List.Bank_Account_At(b);
+    //see if this account should be included
+    if IsValidGSTAccountType(Ba.baFields.baAccount_Type, aClient) then
+    begin
+      for t := ba.baTransaction_List.First to ba.baTransaction_List.Last do
+      begin
+        pT := ba.baTransaction_List.Transaction_At(t);
+        if DatePresented then
+          TD := pT^.txDate_Presented
+        else
+          TD := pT^.txDate_Effective;
+        if ( TD >= D1 ) and ( TD <= D2 ) then
+        begin
+          Inc(Number);
+          if IsUncoded(pT) then
+            Inc( Number_Uncoded );
+        end;
+      end;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 END.
 

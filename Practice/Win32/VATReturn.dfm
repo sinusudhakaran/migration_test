@@ -3,7 +3,7 @@ object frmVAT: TfrmVAT
   Top = 189
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'VAT Return'
-  ClientHeight = 605
+  ClientHeight = 615
   ClientWidth = 727
   Color = clBtnFace
   Constraints.MaxHeight = 802
@@ -21,12 +21,11 @@ object frmVAT: TfrmVAT
   TextHeight = 13
   object Panel1: TPanel
     Left = 0
-    Top = 557
+    Top = 567
     Width = 727
     Height = 48
     Align = alBottom
     TabOrder = 0
-    ExplicitTop = 495
     DesignSize = (
       727
       48)
@@ -76,30 +75,27 @@ object frmVAT: TfrmVAT
     Left = 0
     Top = 0
     Width = 727
-    Height = 557
+    Height = 567
     ActivePage = tsVATCalculation
     Align = alClient
     TabOrder = 1
-    ExplicitHeight = 495
     object tsVATCalculation: TTabSheet
       Caption = 'VAT Calculation'
-      ExplicitHeight = 467
       object sbGST: TScrollBox
         Left = 0
         Top = 0
         Width = 719
-        Height = 529
+        Height = 539
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
         BorderStyle = bsNone
         TabOrder = 0
-        ExplicitHeight = 467
         object GBGST: TGroupBox
           Left = 0
           Top = 0
           Width = 716
-          Height = 510
+          Height = 526
           Color = clWhite
           Ctl3D = True
           ParentBackground = False
@@ -198,7 +194,7 @@ object frmVAT: TfrmVAT
             Left = 6
             Top = 103
             Width = 704
-            Height = 394
+            Height = 417
             Color = 15197925
             ParentBackground = False
             ParentColor = False
@@ -290,7 +286,7 @@ object frmVAT: TfrmVAT
             object lblBox4: TLabel
               Left = 49
               Top = 120
-              Width = 399
+              Width = 389
               Height = 26
               Caption = 
                 'VAT reclaimed in this period on purchases and other inputs (incl' +
@@ -302,7 +298,7 @@ object frmVAT: TfrmVAT
             object lblBox5: TLabel
               Left = 49
               Top = 162
-              Width = 372
+              Width = 319
               Height = 28
               Caption = 
                 'Net VAT to be paid to Customs or reclaimed by you (Difference be' +
@@ -320,7 +316,7 @@ object frmVAT: TfrmVAT
             object lblBox6: TLabel
               Left = 49
               Top = 208
-              Width = 399
+              Width = 384
               Height = 26
               Caption = 
                 'Total value of sales and all other inputs excluding any VAT. Inc' +
@@ -332,7 +328,7 @@ object frmVAT: TfrmVAT
             object lblBox7: TLabel
               Left = 49
               Top = 251
-              Width = 399
+              Width = 397
               Height = 26
               Caption = 
                 'Total value of purchases and all other inputs excluding any VAT.' +
@@ -344,7 +340,7 @@ object frmVAT: TfrmVAT
             object lblBox8: TLabel
               Left = 50
               Top = 293
-              Width = 398
+              Width = 395
               Height = 26
               Caption = 
                 'Total value of all supplies of goods and related costs, excludin' +
@@ -546,6 +542,15 @@ object frmVAT: TfrmVAT
               ParentFont = False
               Transparent = False
               Layout = tlCenter
+            end
+            object lblFinalise: TLabel
+              Left = 40
+              Top = 390
+              Width = 486
+              Height = 13
+              Caption = 
+                '* There are uncoded entries in this period which prevents the VA' +
+                'T Return period from being finalised.'
             end
             object Box1: TStaticText
               Left = 579
@@ -767,7 +772,6 @@ object frmVAT: TfrmVAT
     object tsAdjustments: TTabSheet
       Caption = 'Adjustments'
       ImageIndex = 1
-      ExplicitHeight = 467
       object gbDebtors: TGroupBox
         Left = 3
         Top = 0

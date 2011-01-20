@@ -43,7 +43,8 @@ uses
   CodingFormCommands,
   CodeDateDlg,
   baObj32,
-  YesNoDlg;
+  YesNoDlg,
+  BKUTIL32;
 
 Function IsLocked( D1, D2 : LongInt ): tLockInfo;
 
@@ -123,10 +124,23 @@ Begin
                   end;
 end;
 
+function HasUnCodedGSTEntries(D1, D2: LongInt): Boolean;
+var
+  CodedCount, UnCodedCount: integer;
+begin
+  Result := False;
+  CodedCount := 0;
+  UnCodedCount := 0;
+  BKUTIL32.CountCodedGSTTrans(MyClient, d1, d2, CodedCount, UnCodedCount,
+                              MyClient.clFields.clGST_on_Presentation_Date);
+  Result := (UnCodedCount > 0);
+end;
+
 {  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  }
 function FinaliseAccountingPeriod : boolean;
 Var
    D1, D2 : LongInt;
+   HasUncoded: Boolean;
 Begin
    result := false;
    If not Assigned( MyClient ) then exit;
@@ -135,9 +149,20 @@ Begin
       D1 := clFields.clPeriod_Start_Date;
       D2 := clFields.clPeriod_End_Date;
 
-      If not EnterDateRange( 'Lock Accounting Period',
-         'Enter the starting and finishing date for the period you want to lock.',
-         D1, D2, BKH_Finalise_accounting_period_for_GST_purposes, false, true ) then exit;
+      HasUncoded := True;
+      while HasUncoded do begin
+        If not EnterDateRange( 'Lock Accounting Period',
+           'Enter the starting and finishing date for the period you want to lock.',
+           D1, D2, BKH_Finalise_accounting_period_for_GST_purposes, false, true ) then exit;
+        //Check that all transactions are coded for the UK
+        HasUncoded := False;
+        if MyClient.clFields.clCountry = whUK then
+          if HasUnCodedGSTEntries(D1, D2) then begin
+            HelpfulInfoMsg( 'There are uncoded entries in the selected period. ' +
+                            'Please code these entries before finalising the period.', 0 );
+            HasUncoded := True;
+          end;
+      end;
 
       Case IsLocked( D1, D2 ) of
          ltAll    :
@@ -238,6 +263,7 @@ end;
 function AutoLockGSTPeriod(FromDate, ToDate : integer): boolean;
 Var
    D1, D2 : LongInt;
+   CodedCount, UnCodedCount: integer;
 Begin
    result := false;
    If not Assigned( MyClient ) then exit;
@@ -245,6 +271,14 @@ Begin
    Begin
       d1 := fromDate;
       d2 := toDate;
+
+      //Check that all transactions are coded for the UK
+      if MyClient.clFields.clCountry = whUK then
+        if HasUnCodedGSTEntries(D1, D2) then begin
+          HelpfulInfoMsg( 'There are uncoded entries in this period which prevents ' +
+                          'the VAT Return period from being finalised.', 0 );
+          Exit;
+        end;
 
       Case IsLocked( D1, D2 ) of
          ltAll    :

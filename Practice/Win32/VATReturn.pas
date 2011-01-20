@@ -60,6 +60,7 @@ Type
       VAT6_Adj : Money;
       VAT7_Adj : Money;
       Refund : Boolean;
+      HasUnCodes: Boolean;
   End;
 
 type
@@ -188,6 +189,7 @@ type
     Label27: TLabel;
     Label28: TLabel;
     Label29: TLabel;
+    lblFinalise: TLabel;
     procedure btnOKClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -378,6 +380,11 @@ begin
   lblBox7.Caption := SBox7;
   lblBox8.Caption := SBox8;
   lblBox9.Caption := SBox9;
+
+
+  lblFinalise.Caption := SFinalise;
+  lblFinalise.Visible := FVAT_Class_totals.guHasUncodes;
+  FVat_Details.HasUnCodes := FVat_Class_Totals.guHasUncodes;
 end;
 
 procedure TfrmVAT.gbDebtorsClick(Sender: TObject);
@@ -536,6 +543,7 @@ begin
   FVat_Details.VAT4_Adj := Double2Money( ncvTotal.AsFloat );
   FVat_Details.VAT6_Adj := Double2Money( nddTotal.AsFloat );
   FVat_Details.VAT7_Adj := Double2Money( ndcTotal.AsFloat );
+
   CalculateVAT;
 end;
 

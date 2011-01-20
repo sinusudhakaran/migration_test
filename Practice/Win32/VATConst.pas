@@ -21,6 +21,8 @@ Const
   SBox5ToPay  = 'Net VAT to be paid to Customs. (Difference between boxes 3 and 4).';
   SBox5Refund = 'Net VAT to be reclaimed from Customs. (Difference between boxes 3 and 4).';
 
+  SFinalise = '* There are uncoded entries in this period which prevents the VAT Return period from being finalised.';
+
 implementation
 
 end.

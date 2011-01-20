@@ -346,6 +346,10 @@ begin
      RenderAmountLine( 7, SBox7, FData.VAT7 );
      RenderAmountLine( 8, SBox8, FData.VAT8 );
      RenderAmountLine( 9, SBox9, FData.VAT9 );
+
+     X1 := 350;
+     if FData.HasUnCodes then
+       RenderText(SFinalise, Rect( X1, CurrYPos, X2 + 500, CurrYPos+CurrLineSize ), jtLeft);
    end;
 
    //Was printed is set here so that it will pickup the document being printed

@@ -141,74 +141,74 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function IsValidAccountType( const AccountType : integer; const aClient : TClientObj) : boolean;
-begin
-  Result := (AccountType in [btBank,btCashJournals,btGSTJournals]) or
-            ((AccountType = btAccrualJournals) and (not aClient.clFields.clGST_Excludes_Accruals));
-end;
+//function IsValidAccountType( const AccountType : integer; const aClient : TClientObj) : boolean;
+//begin
+//  Result := (AccountType in [btBank,btCashJournals,btGSTJournals]) or
+//            ((AccountType = btAccrualJournals) and (not aClient.clFields.clGST_Excludes_Accruals));
+//end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure CountEff( D1, D2 : TstDate; Var Number, Number_Uncoded : LongInt );
-Var
-   B,
-   T    : LongInt;
-   pT   : pTransaction_Rec;
-   Ba   : TBank_Account;
-Begin
-   Number := 0;
-   Number_Uncoded := 0;
-
-   //count the number of transactions for in the period
-   for b := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
-   begin
-     Ba := MyClient.clBank_Account_List.Bank_Account_At( b);
-     //see if this account should be included
-     if IsValidAccountType( Ba.baFields.baAccount_Type, MyClient) then
-     begin
-       for t := ba.baTransaction_List.First to ba.baTransaction_List.Last do
-       begin
-         pT := ba.baTransaction_List.Transaction_At( t);
-         if ( pT^.txDate_Effective >=D1 ) and ( pT^.txDate_Effective <=D2 ) then
-         begin
-           Inc( Number );
-           If IsUncoded( pT) then
-             Inc( Number_Uncoded );
-         end;
-       end;
-     end;
-   end;
-end;
+//Procedure CountEff( D1, D2 : TstDate; Var Number, Number_Uncoded : LongInt );
+//Var
+//   B,
+//   T    : LongInt;
+//   pT   : pTransaction_Rec;
+//   Ba   : TBank_Account;
+//Begin
+//   Number := 0;
+//   Number_Uncoded := 0;
+//
+//   //count the number of transactions for in the period
+//   for b := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
+//   begin
+//     Ba := MyClient.clBank_Account_List.Bank_Account_At( b);
+//     //see if this account should be included
+//     if IsValidAccountType( Ba.baFields.baAccount_Type, MyClient) then
+//     begin
+//       for t := ba.baTransaction_List.First to ba.baTransaction_List.Last do
+//       begin
+//         pT := ba.baTransaction_List.Transaction_At( t);
+//         if ( pT^.txDate_Effective >=D1 ) and ( pT^.txDate_Effective <=D2 ) then
+//         begin
+//           Inc( Number );
+//           If IsUncoded( pT) then
+//             Inc( Number_Uncoded );
+//         end;
+//       end;
+//     end;
+//   end;
+//end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Procedure CountPres( D1, D2 : TStDate; Var Number, Number_Uncoded : LongInt );
-Var
-   B,
-   T    : LongInt;
-   pT   : pTransaction_Rec;
-   Ba   : TBank_Account;
-Begin
-   Number := 0;
-   Number_Uncoded := 0;
-
-   //count the number of transactions for in the period
-   for b := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
-   begin
-     Ba := MyClient.clBank_Account_List.Bank_Account_At( b);
-     //see if this account should be included
-     if IsValidAccountType( Ba.baFields.baAccount_Type, MyClient) then
-     begin
-       for t := ba.baTransaction_List.First to ba.baTransaction_List.Last do
-       begin
-         pT := ba.baTransaction_List.Transaction_At( t);
-         if ( pT^.txDate_Presented >=D1 ) and ( pT^.txDate_Presented <=D2 ) then
-         begin
-           Inc( Number );
-           If IsUncoded( pT) then
-             Inc( Number_Uncoded );
-         end;
-       end;
-     end;
-   end;
-end;
+//Procedure CountPres( D1, D2 : TStDate; Var Number, Number_Uncoded : LongInt );
+//Var
+//   B,
+//   T    : LongInt;
+//   pT   : pTransaction_Rec;
+//   Ba   : TBank_Account;
+//Begin
+//   Number := 0;
+//   Number_Uncoded := 0;
+//
+//   //count the number of transactions for in the period
+//   for b := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
+//   begin
+//     Ba := MyClient.clBank_Account_List.Bank_Account_At( b);
+//     //see if this account should be included
+//     if IsValidAccountType( Ba.baFields.baAccount_Type, MyClient) then
+//     begin
+//       for t := ba.baTransaction_List.First to ba.baTransaction_List.Last do
+//       begin
+//         pT := ba.baTransaction_List.Transaction_At( t);
+//         if ( pT^.txDate_Presented >=D1 ) and ( pT^.txDate_Presented <=D2 ) then
+//         begin
+//           Inc( Number );
+//           If IsUncoded( pT) then
+//             Inc( Number_Uncoded );
+//         end;
+//       end;
+//     end;
+//   end;
+//end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSelectGSTPeriod.AddRange(d1, d2: TstDate; Avail,
   Uncoded, Image: integer);
@@ -389,7 +389,7 @@ begin
           if (pb.blGST_Period_Starts > MinValidDate) then begin
              if (D1 < pb.blGST_Period_Starts) then // Fill any gaps
                 FillPeriod(D1, pb.blGST_Period_Starts, img_NoBalance);
-             CountEff(pb.blGST_Period_Starts,pb.blGST_Period_Ends,NumberAvailable,NumberUncoded);
+             CountCodedGSTTrans(MyClient, pb.blGST_Period_Starts,pb.blGST_Period_Ends,NumberAvailable,NumberUncoded, False);
              AddRange(pb.blGST_Period_Starts,pb.blGST_Period_Ends,numberavailable,numberuncoded,img_Balance);
              D1 := pb.blGST_Period_Ends + 1; // Only move forward
              //D1 := Max(D1,pb.blGST_Period_Ends);
@@ -424,7 +424,7 @@ begin
     until (D2 >= DFrom); //...to find the first one to include the from date
 
     repeat // From here add them to the listview and continue to move forward ...
-       CountPres(D1, D2, NumberAvailable, NumberUncoded);
+       CountCodedGSTTrans(MyClient, D1, D2, NumberAvailable, NumberUncoded);
        if (NumberAvailable > 0) then
           AddRange(d1,d2,numberavailable,numberuncoded,Image);
        D1 := Get_Next_PSDate_GST(D1, MyClient.clFields.clGST_Period);
@@ -446,7 +446,7 @@ begin
    For B := 0 to Pred( itemCount ) do With Bank_Account_At( B ) do
    begin
      //check correct journal accounts are being used, exclude stock and opening journals
-     AccountTypeOK := IsValidAccountType( baFields.baAccount_Type, MyClient);
+     AccountTypeOK := IsValidGSTAccountType( baFields.baAccount_Type, MyClient);
 
      If AccountTypeOK then
         With baTransaction_List do For T := 0 to Pred( itemCount ) do
@@ -610,7 +610,7 @@ begin
          with MyClient, clFields, clBank_Account_List do begin
             for B := 0 to Pred( itemCount ) do With Bank_Account_At( B ) do begin
                //check correct journal accounts are being used, exclude stock and opening journals
-               AccountTypeOK := IsValidAccountType( baFields.baAccount_Type, MyClient);
+               AccountTypeOK := IsValidGSTAccountType( baFields.baAccount_Type, MyClient);
 
                If AccountTypeOK then
                   With baTransaction_List do For T := 0 to Pred( itemCount ) do Begin
@@ -661,7 +661,7 @@ begin
 
                {add into listview}
                Repeat
-                  CountPres( D1, D2, NumberAvailable, NumberUncoded );
+                  CountCodedGSTTrans(MyClient, D1, D2, NumberAvailable, NumberUncoded);
                   if ( NumberAvailable > 0 ) then AddRange(d1,d2,numberavailable,numberuncoded,img_Balance);
                   D1 := Get_Next_PSDate_GST( D1, BASPeriodType );
                   D2 := Get_PEDate_GST( D1, BASPeriodType );
@@ -680,7 +680,7 @@ begin
 
                {add into list view}
                Repeat
-                  CountEff( D1, D2, NumberAvailable, NumberUncoded );
+                  CountCodedGSTTrans(MyClient, D1, D2, NumberAvailable, NumberUncoded, False);
                   if NumberAvailable >0 then AddRange(d1,d2,numberavailable,numberuncoded,img_Balance);
                   D1 := Get_Next_PSDate_GST( D1, BASPeriodType );
                   D2 := Get_PEDate_GST( D1, BASPeriodType );
@@ -733,7 +733,7 @@ begin
          with MyClient, clFields, clBank_Account_List do begin
             for B := 0 to Pred( itemCount ) do With Bank_Account_At( B ) do begin
                //check correct journal accounts are being used, exclude stock and opening journals
-               AccountTypeOK := IsValidAccountType( baFields.baAccount_Type, MyClient);
+               AccountTypeOK := IsValidGSTAccountType( baFields.baAccount_Type, MyClient);
 
                If AccountTypeOK then
                   With baTransaction_List do For T := 0 to Pred( itemCount ) do Begin
@@ -768,7 +768,7 @@ begin
 
                {add into listview}
                Repeat
-                  CountPres( D1, D2, NumberAvailable, NumberUncoded );
+                  CountCodedGSTTrans(MyClient, D1, D2, NumberAvailable, NumberUncoded);
                   if ( NumberAvailable > 0 ) then AddRange(d1,d2,numberavailable,numberuncoded,img_Balance);
                   D1 := Get_Next_PSDate_GST( D1, BASPeriodType );
                   D2 := Get_PEDate_GST( D1, BASPeriodType );
@@ -787,7 +787,7 @@ begin
 
                {add into list view}
                Repeat
-                  CountEff( D1, D2, NumberAvailable, NumberUncoded );
+                  CountCodedGSTTrans(MyClient, D1, D2, NumberAvailable, NumberUncoded, False);
                   if NumberAvailable >0 then AddRange(d1,d2,numberavailable,numberuncoded,img_Balance);
                   D1 := Get_Next_PSDate_GST( D1, BASPeriodType );
                   D2 := Get_PEDate_GST( D1, BASPeriodType );
