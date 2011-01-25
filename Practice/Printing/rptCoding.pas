@@ -263,7 +263,7 @@ begin
                         begin
                           AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
                           if (Client.HasForeignCurrencyAccounts) then
-                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                            AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT (GBP)*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
                           else
                             AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                         end;
@@ -318,7 +318,7 @@ begin
                         begin
                           AddColAuto(Job, cLeft, 4.5, cGap, 'Tax Inv', jtCenter);
                           if (Client.HasForeignCurrencyAccounts) then
-                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                            AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT (GBP)*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
                           else
                             AddFormatColAuto( Job, cLeft, 6.75, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                         end;
@@ -374,7 +374,7 @@ begin
                         begin
                           AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
                           if (Client.HasForeignCurrencyAccounts) then
-                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                            AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT (GBP)*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
                           else
                             AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                         end;
@@ -431,7 +431,7 @@ begin
                         begin
                           AddColAuto(Job, cLeft, 5.5, cGap, 'Tax Inv', jtCenter);
                           if (Client.HasForeignCurrencyAccounts) then
-                            AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                            AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT (GBP)*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
                           else
                             AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                         end;

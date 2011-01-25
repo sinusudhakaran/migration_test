@@ -1041,9 +1041,9 @@ begin
     tkjhHeading                 : Result :=  'Job Name';
     tktxGST_Class               : Result :=  TaxName + ' Class';
     tktxGST_Amount              : if HasForeignCurrencyAccounts then
-                                     Result := Format('%s Amount (%s)',[TaxName,whCurrencyCodes[Country]])
+                                     Result := Format('%s (%s)*',[TaxName,whCurrencyCodes[Country]])
                                   else
-                                     Result :=  TaxName + ' Amount';
+                                     Result :=  TaxName + ' Amt';
     tktxTax_Invoice_Available   : Result :=  'Tax Inv';
     tktxQuantity                : Result :=  'Quantity';
     tktxDate_Presented          : Result :=  'Pres Date';
