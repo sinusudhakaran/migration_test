@@ -103,6 +103,7 @@ CONST
    tkdsForex_Conversion_Rate            = 239 ;
    tkdsForeign_Currency_Amount          = 240 ;
    tkdsForex_Document_Date              = 241 ;
+   tkdsOpening_Balance_Currency         = 242 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -188,6 +189,7 @@ Begin
       F.WriteDoubleValue( tkdsForex_Conversion_Rate, dsForex_Conversion_Rate );
       F.WriteMoneyValue( tkdsForeign_Currency_Amount , dsForeign_Currency_Amount );
       F.WriteDateValue( tkdsForex_Document_Date , dsForex_Document_Date );
+      F.WriteStringValue( tkdsOpening_Balance_Currency , dsOpening_Balance_Currency );
       F.WriteToken( tkEnd_Dissection );
    end;
 end; { of Write_Dissection_Rec }
@@ -270,6 +272,7 @@ Begin
          tkdsForex_Conversion_Rate            : dsForex_Conversion_Rate := F.ReadDoubleValue;
          tkdsForeign_Currency_Amount          : dsForeign_Currency_Amount := F.ReadMoneyValue;
          tkdsForex_Document_Date              : dsForex_Document_Date := F.ReadDateValue;
+         tkdsOpening_Balance_Currency         : dsOpening_Balance_Currency := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
