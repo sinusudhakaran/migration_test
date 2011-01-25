@@ -20,7 +20,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Grids_ts, TSGrid, StdCtrls, ExtCtrls, clObj32, baObj32, TSMask,
-  MoneyDef, bkDefs, bkXPThemes, OSFont, chList32;
+  MoneyDef, bkDefs, bkXPThemes, OSFont, chList32, ActnList, Menus;
 
 type
   TdlgOpeningBalances = class(TForm)
@@ -37,6 +37,10 @@ type
     chkHideNonBS: TCheckBox;
     tsMaskDefs1: TtsMaskDefs;
     lblInvalidAccountsUsed: TLabel;
+    PopupMenu1: TPopupMenu;
+    ActionList1: TActionList;
+    acForeignCurrency: TAction;
+    Enterforeigncurrencybalance1: TMenuItem;
     procedure tgBalancesCellLoaded(Sender: TObject; DataCol,
       DataRow: Integer; var Value: Variant);
     procedure FormCreate(Sender: TObject);
@@ -46,17 +50,24 @@ type
       DataRow: Integer; var Cancel: Boolean);
     procedure tgBalancesStartCellEdit(Sender: TObject; DataCol,
       DataRow: Integer; var Cancel: Boolean);
-    procedure FormResize(Sender: TObject);
     procedure tgBalancesKeyPress(Sender: TObject; var Key: Char);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure tgBalancesInvalidMaskValue(Sender: TObject; DataCol,
       DataRow: Integer; var Accept: Boolean);
+    procedure acForeignCurrencyExecute(Sender: TObject);
+    procedure tgBalancesContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
+    procedure PopupMenu1Popup(Sender: TObject);
+    procedure tgBalancesPaintCell(Sender: TObject; DataCol, DataRow: Integer;
+      ARect: TRect; State: TtsPaintCellState; var Cancel: Boolean);
+    procedure tgBalancesMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
   private
     { Private declarations }
     ThisClient             : TClientObj;
     Journal_Account        : tBank_Account;
     FAccountList           : TCustomSortChart;
-
+    FAsAtDate: integer;
     procedure LoadChartIntoList;
     procedure LoadOpeningBalancesIntoChart(BalDate: Integer = -1);
     procedure SaveOpeningBalancesToJournal;
@@ -64,10 +75,14 @@ type
     procedure ReloadLinkedAccountBalances;
     procedure ConfigureGrid;
     procedure UpdateAmountRemaining;
-
+    procedure SetupBalanceCell(pAccount: pAccount_Rec; DataCol, DataRow: Integer; var Value: string);
     function  GetAmountRemaining : Money;
+    function EditableAccount(pAccount : pAccount_Rec): Boolean;
+    function GetExchangeRate(pAccount: pAccount_Rec): Double;
+    function GetForeignCurrencyAmount(pAccount: pAccount_Rec): money;
   public
     { Public declarations }
+    property AsAtDate: integer read FAsAtDate;
   end;
 
 const
@@ -94,7 +109,10 @@ uses
    TrxList32,
    bkchio,
    CountryUtils,
-   ForexHelpers;
+   ForexHelpers,
+   ExchangeRateList,
+   ForeignCurrencyBalDlg,
+   ImagesFrm;
 
 {$R *.dfm}
 const
@@ -126,7 +144,7 @@ begin
          LoadChartIntoList;
 
          if ForDate > 0 then begin
-            mr := ForDate;
+            FAsAtDate := ForDate;
             if ForDate <> ThisClient.clFields.clFinancial_Year_Starts then begin
                // Can ony edit the current reporting year
                tgBalances.Enabled := False;
@@ -134,9 +152,9 @@ begin
                lSubtitle.Caption := 'The Opening Balances for your accounts as at';
             end;
          end else
-            mr := ThisClient.clFields.clFinancial_Year_Starts;
+            FAsAtDate := ThisClient.clFields.clFinancial_Year_Starts;
 
-         lblFinYear.caption := StDateToDateString( 'dd nnn yyyy', mr , true);
+         lblFinYear.caption := StDateToDateString( 'dd nnn yyyy', FAsAtDate , true);
 
          ConfigureGrid;
          UpdateAmountRemaining;
@@ -200,6 +218,17 @@ procedure TdlgOpeningBalances.ConfigureGrid;
 begin
    tgBalances.Rows   := FAccountList.ItemCount;
 end;
+
+function TdlgOpeningBalances.EditableAccount(pAccount: pAccount_Rec): Boolean;
+begin
+  Result := ((pAccount.chAccount_Type in BalanceSheetReportGroupsSet) and (pAccount.chPosting_Allowed))
+            or
+            //or amount is non zero and is not opening or closing stock
+            //opening closing stock accounts may be changed automatically if
+            //linked to from stock on hand
+            (( pAccount.chTemp_Money_Value <> 0 ) and ( not ( pAccount.chAccount_Type in [ atOpeningStock, atClosingStock])));
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgOpeningBalances.LoadOpeningBalancesIntoChart(BalDate: Integer = -1);
 var
@@ -214,8 +243,10 @@ begin
     StartDate := BalDate;
    //zero existing totals in chart
    with ThisClient.clChart do begin
-      for i := 0 to Pred( itemCount) do
+      for i := 0 to Pred( itemCount) do begin
          Account_At(i)^.chTemp_Money_Value := 0;
+         Account_At(i)^.chTemp_Opening_Balance_Currency := '';
+      end;
    end;
 
    //find the open balance journal account
@@ -239,8 +270,11 @@ begin
                  //the temp money values for these accounts will be set
                  //from the stock on hand figure when updating linked accounts
                end
-               else
+               else begin
                  pAccount.chTemp_Money_Value := pAccount.chTemp_Money_Value + pJournal_Line.dsAmount;
+                 //Get the currency
+                 pAccount.chTemp_Opening_Balance_Currency := pJournal_Line.dsOpening_Balance_Currency;
+               end;
             end
             else
             begin
@@ -254,6 +288,7 @@ begin
              end;
              ThisClient.clChart.Insert(pAccount);
              pAccount.chTemp_Money_Value := pJournal_Line.dsAmount;
+             pAccount.chTemp_Opening_Balance_Currency := pJournal_Line.dsOpening_Balance_Currency;
             end;
             pJournal_Line := pJournal_Line.dsNext;
          end;
@@ -274,6 +309,11 @@ begin
       end;
    end;
 end;
+procedure TdlgOpeningBalances.PopupMenu1Popup(Sender: TObject);
+begin
+
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgOpeningBalances.SaveOpeningBalancesToJournal;
 //write an opening balances journal
@@ -349,11 +389,11 @@ begin
            dsTransaction         := pJ;
            dsAccount             := pAccount.chAccount_Code;
            dsAmount              := pAccount.chTemp_Money_Value;
+           dsOpening_Balance_Currency := pAccount.chTemp_Opening_Balance_Currency;
            dsPayee_Number        := 0;
            dsGST_Class           := pAccount.chGST_Class;
            //The GST for opening balance journals MUST be zero, set this and
            //set edit flag if not already zero
-//           dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient, pJ.txDate_Effective, dsAmount, pAccount.chGST_Class);
            dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient, pJ.txDate_Effective, Local_Amount, pAccount.chGST_Class);
            if ( dsGST_Amount <> 0) then begin
              dsGST_Amount := 0;
@@ -386,7 +426,7 @@ procedure TdlgOpeningBalances.tgBalancesCellLoaded(Sender: TObject;
   DataCol, DataRow: Integer; var Value: Variant);
 var
    pAccount : pAccount_Rec;
-   GrayOut       : boolean;
+   BalanceAmtStr: string;
 begin
    pAccount := FAccountList.Items[ DataRow - 1];
 
@@ -394,26 +434,9 @@ begin
       ColAccount      : Value := pAccount.chAccount_Code;
       ColDesc         : Value := pAccount.chAccount_Description;
       ColBalance      : begin
-         //if this is the currently edited cell then display without brackets
-         if ( DataCol = tgBalances.CurrentDataCol) and ( DataRow = tgBalances.CurrentDataRow) then
-           Value := FormatFloat( '0.00', pAccount.chTemp_Money_Value/100)
-         else
-           Value := MakeAmountNoComma( pAccount.chTemp_Money_Value);
-
-         if pAccount.chAccount_Type in BalanceSheetReportGroupsSet then begin
-            tgBalances.CellParentFont[ DataCol, DataRow] := true;
-            tgBalances.CellColor[ DataCol, DataRow]      := clNone;
-         end
-         else begin
-            GrayOut := ( pAccount.chAccount_Type in [ atOpeningStock, atClosingStock]) or (pAccount.chTemp_Money_Value = 0);
-            tgBalances.CellParentFont[ DataCol, DataRow] := false;
-
-            if GrayOut then
-              tgBalances.CellFont[ DataCol, DataRow].color := clGrayText
-            else
-              tgBalances.CellFont[ DataCol, DataRow].color := clRed;
-         end;
-      end;
+                          SetupBalanceCell(pAccount, DataCol, DataRow, BalanceAmtStr);
+                          Value := BalanceAmtStr;
+                        end;
       ColSign         : case ExpectedSign( pAccount.chAccount_Type) of
                            Debit : Value := 'Dr';
                            Credit : Value  := 'Cr';
@@ -423,6 +446,51 @@ begin
       ColReportGroup  : Value := Localise(ThisClient.clFields.clCountry, bkconst.atNames[ pAccount.chAccount_Type]);
    end;
 end;
+
+procedure TdlgOpeningBalances.tgBalancesContextPopup(Sender: TObject;
+  MousePos: TPoint; var Handled: Boolean);
+var
+  i: integer;
+  Grid: TTsGrid;
+  Rect: TRect;
+  pAccount : pAccount_Rec;
+  ExchangeRec: TExchangeRecord;
+  HasExchangeRate: Boolean;
+  BaseCurrencyIdx: integer;
+begin
+  Handled := True;
+
+  if not ThisClient.HasForeignCurrencyAccounts then Exit;
+
+  HasExchangeRate := False;
+  ExchangeRec := ThisClient.ExchangeSource.GetDateRates(AsAtDate);
+  BaseCurrencyIdx := ThisClient.ExchangeSource.GetISOIndex(ThisClient.clExtra.ceLocal_Currency_Code,
+                                                           ThisClient.ExchangeSource.Header);
+
+  if not Assigned(ExchangeRec) then Exit;
+
+  for i := 0 to ExchangeRec.Width - 1 do begin
+    if (ExchangeRec.Rates[i] <> 0) and (i <> BaseCurrencyIdx)then begin
+      HasExchangeRate := True;
+      Break;
+    end;
+  end;
+  if not HasExchangeRate then Exit;
+
+  Grid := TTsGrid(Sender);
+  pAccount := FAccountList.Items[Grid.CurrentDataRow - 1];
+  if Assigned(pAccount) then begin
+    if EditableAccount(pAccount) and (pAccount.chAccount_Type = atBankAccount)
+       and (Grid.CurrentDataCol = ColBalance) then begin
+      Rect := Grid.CellRect(Grid.CurrentDataCol, Grid.CurrentDataRow);
+      //Can't workout how to get the bottom position of the cell???
+      PopupMenu1.Popup(Self.Left + Grid.Left + Rect.Left,
+                       Self.Top + Grid.Top + Rect.Bottom +
+                       Grid.HeadingHeight + 10);
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgOpeningBalances.FormCreate(Sender: TObject);
 begin
@@ -480,6 +548,18 @@ begin
    end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgOpeningBalances.acForeignCurrencyExecute(Sender: TObject);
+var
+  pAccount : pAccount_Rec;
+begin
+  pAccount := FAccountList.Items[tgBalances.CurrentDataRow - 1];
+  if Assigned(pAccount) then begin
+    EnterForeignCurrencyBalance(pAccount, AsAtDate);
+    tgBalances.Refresh;
+    UpdateAmountRemaining;    
+  end;
+end;
+
 procedure TdlgOpeningBalances.chkHideNonBSClick(Sender: TObject);
 begin
    tgBalances.Rows := 0;
@@ -509,6 +589,7 @@ begin
             sValue := '0.00';
          dValue := StrToFloatDef( sValue , 0.0);
          pAccount.chTemp_Money_Value := Double2Money( dValue);
+         pAccount.chTemp_Opening_Balance_Currency := '';
 
          if pAccount.chAccount_Type = atStockOnHand then begin
            pOS_Acct := ThisClient.clChart.FindCode( pAccount.chLinked_Account_OS);
@@ -547,12 +628,7 @@ begin
    pAccount := FAccountList.Items[ DataRow - 1];
 
               //can edit if is a balance sheet item
-   CanEdit := (( pAccount.chAccount_Type in BalanceSheetReportGroupsSet) and ( pAccount.chPosting_Allowed))
-              or
-              //or amount is non zero and is not opening or closing stock
-              //opening closing stock accounts may be changed automatically if
-              //linked to from stock on hand
-              (( pAccount.chTemp_Money_Value <> 0 ) and ( not ( pAccount.chAccount_Type in [ atOpeningStock, atClosingStock])));
+   CanEdit := EditableAccount(pAccount);
 
    Cancel := not CanEdit;
 end;
@@ -576,6 +652,7 @@ begin
    with ThisClient.clChart do begin
       for i := 0 to Pred( itemCount) do begin
          pAccount := Account_At( i);
+
          Value := pAccount^.chTemp_Money_Value;
 
          if ExpectedSign( pAccount.chAccount_Type) = Debit then
@@ -592,6 +669,35 @@ begin
 
    result := Total;
 end;
+
+function TdlgOpeningBalances.GetExchangeRate(pAccount: pAccount_Rec): Double;
+var
+  ExchangeRecord: TExchangeRecord;
+  RateIdx: integer;
+begin
+  Result := 0;
+  ExchangeRecord := ThisClient.ExchangeSource.GetDateRates(AsAtDate);
+  if Assigned(ExchangeRecord) then begin
+    RateIdx := ThisClient.ExchangeSource.GetISOIndex(pAccount.chTemp_Opening_Balance_Currency,
+                                                     ThisClient.ExchangeSource.Header);
+    if (ExchangeRecord.Rates[RateIdx] > 0) then
+      Result := ExchangeRecord.Rates[RateIdx];
+  end;
+end;
+
+function TdlgOpeningBalances.GetForeignCurrencyAmount(
+  pAccount: pAccount_Rec): money;
+var
+  ExchangeRate: double;
+begin
+  Result := 0;
+  if (pAccount.chTemp_Opening_Balance_Currency <> ThisClient.clExtra.ceLocal_Currency_Code) and
+     (pAccount.chTemp_Opening_Balance_Currency <> '')  then begin
+    ExchangeRate := GetExchangeRate(pAccount);
+    Result := Double2Money((pAccount.chTemp_Money_Value/100) * ExchangeRate);
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgOpeningBalances.UpdateAmountRemaining;
 var
@@ -624,26 +730,7 @@ begin
    end;
    lblInvalidAccountsUsed.Visible := Found;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TdlgOpeningBalances.FormResize(Sender: TObject);
-{var
-   VScrollerWidth : integer;
-   FixedWidth     : integer;
-}
-begin
-{
-   VScrollerWidth := GetSystemMetrics( SM_CXVSCROLL );
-   FixedWidth :=
-      tgBalances.Col[1].Width +
-      tgBalances.Col[2].Width +
-      tgBalances.Col[3].Width +
-      tgBalances.Col[4].Width +
-      tgBalances.Col[5].Width +
-      VScrollerWidth;
-   tgBalances.Col[ ColDesc ].Width := ClientWidth - FixedWidth - 4;
-}
-end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 procedure TdlgOpeningBalances.tgBalancesKeyPress(Sender: TObject; var Key: Char);
 var
    DataCol     : integer;
@@ -714,6 +801,81 @@ begin
      end;
    end;
 end;
+
+procedure TdlgOpeningBalances.tgBalancesMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var
+  S: string;
+  DCol, DRow: integer;
+  DataCol, DataRow: integer;
+  pAccount : pAccount_Rec;
+begin
+  tgBalances.ShowHint := False;
+  tgBalances.Hint := '';
+  //Get col and row
+  tgBalances.CellFromXY(X, Y, DCol, DRow);
+
+  if (DCol < 0) or (DRow < 0) then Exit;
+
+  DataCol := tgBalances.DataColnr[DCol];
+  DataRow := tgBalances.DataRownr[DRow];
+
+  if (DataRow <= 0) then Exit;
+
+  //If balance col
+  if (DataCol = ColBalance) then begin
+    //Get Account
+    pAccount := FAccountList.Items[DataRow - 1];
+    //If forex amt then show hint
+    if (pAccount.chTemp_Opening_Balance_Currency <> ThisClient.clExtra.ceLocal_Currency_Code) and
+       (pAccount.chTemp_Opening_Balance_Currency <> '')  then begin
+      //Get foreign currency balance
+      S := MakeAmountNoComma(GetForeignCurrencyAmount(pAccount));
+      tgBalances.Hint := Format('Foreign currency opening balance: %s %s',
+                                [S, pAccount.chTemp_Opening_Balance_Currency]);
+      tgBalances.ShowHint := True;
+    end;
+  end;
+end;
+
+procedure TdlgOpeningBalances.tgBalancesPaintCell(Sender: TObject; DataCol,
+  DataRow: Integer; ARect: TRect; State: TtsPaintCellState;
+  var Cancel: Boolean);
+var
+  pAccount: pAccount_Rec;
+  R: TRect;
+  Value: String;
+  TextWidth: integer;
+begin
+  if DataRow = 0 then Exit; //Header?
+
+  if (DataCol = ColBalance) then begin
+    //Draw notes icon
+    pAccount := FAccountList.Items[DataRow - 1];
+    if (pAccount.chTemp_Opening_Balance_Currency <> ThisClient.clExtra.ceLocal_Currency_Code) and
+       (pAccount.chTemp_Opening_Balance_Currency <> '')  then begin
+      R := ARect;
+
+      R.Right := R.Left + ( R.Bottom - R.Top ); { Square at LH End }
+      OffsetRect( R, -2, 0 ); { Move it Left a bit }
+
+      tgBalances.Canvas.FillRect(ARect);
+      tgBalances.Canvas.StretchDraw(R, ImagesFrm.AppImages.imgNotes.Picture.Bitmap);
+
+      SetupBalanceCell(pAccount, DataCol, DataRow, Value);
+
+      TextWidth := tgBalances.Canvas.TextWidth(Value);
+      R := ARect;
+      R.Left := R.Left + ( R.Bottom - R.Top );
+      tgBalances.Canvas.TextRect(R, R.Right - TextWidth, R.Top, Value);
+
+      Cancel := True;
+      if ( DataCol = tgBalances.CurrentDataCol) and ( DataRow = tgBalances.CurrentDataRow) then
+        Cancel := False;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgOpeningBalances.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
@@ -768,6 +930,32 @@ begin
     end;
   end;
 end;
+
+procedure TdlgOpeningBalances.SetupBalanceCell(pAccount: pAccount_Rec; DataCol,
+  DataRow: Integer; var Value: string);
+var
+  GrayOut: boolean;
+begin
+  //if this is the currently edited cell then display without brackets
+  if ( DataCol = tgBalances.CurrentDataCol) and ( DataRow = tgBalances.CurrentDataRow) then
+    Value := FormatFloat( '0.00', pAccount.chTemp_Money_Value/100)
+  else
+    Value := MakeAmountNoComma( pAccount.chTemp_Money_Value);
+
+  if pAccount.chAccount_Type in BalanceSheetReportGroupsSet then begin
+    tgBalances.CellParentFont[ DataCol, DataRow] := true;
+    tgBalances.CellColor[ DataCol, DataRow]      := clNone;
+  end else begin
+    GrayOut := ( pAccount.chAccount_Type in [ atOpeningStock, atClosingStock]) or (pAccount.chTemp_Money_Value = 0);
+    tgBalances.CellParentFont[ DataCol, DataRow] := false;
+
+    if GrayOut then
+      tgBalances.CellFont[ DataCol, DataRow].color := clGrayText
+    else
+      tgBalances.CellFont[ DataCol, DataRow].color := clRed;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgOpeningBalances.ReloadLinkedAccountBalances;
 var

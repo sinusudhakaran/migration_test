@@ -15,7 +15,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
   object pnlFooter: TPanel
@@ -128,6 +127,7 @@ object dlgOpeningBalances: TdlgOpeningBalances
     Top = 78
     Width = 622
     Height = 338
+    Hint = 'Test hint'
     Align = alClient
     AlwaysShowScrollBar = ssVertical
     CellSelectMode = cmNone
@@ -161,9 +161,12 @@ object dlgOpeningBalances: TdlgOpeningBalances
     XMLExport.Version = '1.0'
     XMLExport.DataPacketVersion = '2.0'
     OnCellLoaded = tgBalancesCellLoaded
+    OnContextPopup = tgBalancesContextPopup
     OnEndCellEdit = tgBalancesEndCellEdit
     OnInvalidMaskValue = tgBalancesInvalidMaskValue
     OnKeyPress = tgBalancesKeyPress
+    OnMouseMove = tgBalancesMouseMove
+    OnPaintCell = tgBalancesPaintCell
     OnStartCellEdit = tgBalancesStartCellEdit
     ColProperties = <
       item
@@ -205,5 +208,21 @@ object dlgOpeningBalances: TdlgOpeningBalances
       end>
     Left = 560
     Top = 16
+  end
+  object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
+    Left = 320
+    Top = 136
+    object Enterforeigncurrencybalance1: TMenuItem
+      Action = acForeignCurrency
+    end
+  end
+  object ActionList1: TActionList
+    Left = 360
+    Top = 136
+    object acForeignCurrency: TAction
+      Caption = 'Enter foreign currency balance'
+      OnExecute = acForeignCurrencyExecute
+    end
   end
 end
