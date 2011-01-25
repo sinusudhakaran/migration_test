@@ -175,6 +175,8 @@ procedure TEditExchangeRateForm.btnQuikClick(Sender: TObject);
 var
   Date: Integer;
 begin
+  if eDate.CanFocus then
+    eDate.SetFocus;
   Date := eDate.AsStDate;
   PopUpCalendar(TEdit(eDate), Date);
   eDate.AsStDate := Date;
