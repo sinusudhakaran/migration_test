@@ -78,6 +78,10 @@ begin
     frmForeignCurrencyBal.nBaseOpeningBal.AsFloat := Money2Double(pAccount.chTemp_Money_Value);
     frmForeignCurrencyBal.CalculateForeignAmount;
 
+    //Set date
+    S := StDateToDateString( 'dd nnn yyyy', AsAtDate , true);
+    frmForeignCurrencyBal.lblOpeningBalance.Caption := Format('Opening Balance (as at %s)', [S]);
+
     if frmForeignCurrencyBal.ShowModal = mrOk then begin
       pAccount.chTemp_Money_Value := Double2Money(frmForeignCurrencyBal.nBaseOpeningBal.asFloat);
       pAccount.chTemp_Opening_Balance_Currency := frmForeignCurrencyBal.cmbCurrency.Items[frmForeignCurrencyBal.cmbCurrency.ItemIndex];
