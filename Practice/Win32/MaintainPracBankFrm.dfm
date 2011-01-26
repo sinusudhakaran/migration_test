@@ -61,9 +61,6 @@ object frmMaintainPracBank: TfrmMaintainPracBank
     inherited pTop: TPanel
       Width = 749
       ExplicitWidth = 749
-      inherited btnFilter: TButton
-        OnClick = SysAccountsbtnFilterClick
-      end
     end
     inherited AccountTree: TVirtualStringTree
       Width = 749

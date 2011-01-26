@@ -132,6 +132,8 @@ begin
   acCurrencies.Visible := (AdminSystem.fdFields.fdCountry = whUK);
   acExchangeRates.Visible := (AdminSystem.fdFields.fdCountry = whUK);
 
+  acSendProvReq.Visible := False;
+
   //SetListViewColWidth(lvBank,1);
   SetUpHelp;
   fChanged := True;
