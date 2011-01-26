@@ -160,6 +160,7 @@ type
     celLocalAmount: TOvcTCNumericField;
     CelAltChartCode: TOvcTCString;
     mniSortByAltCode: TMenuItem;
+    ConvertAmount1: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormDestroy(Sender: TObject);
@@ -270,6 +271,7 @@ type
       const CellRect: TRect; RowNum, ColNum: Integer;
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
     procedure mniSortByAltCodeClick(Sender: TObject);
+    procedure ConvertAmount1Click(Sender: TObject);
   private
     { Private declarations }
     BankAccount                   : TBank_Account;
@@ -3114,6 +3116,7 @@ var
    pT            : pTransaction_Rec;
    Msg           : TWMKey;
    InclusiveAmt  : Double;
+   ExchangeRate  : Double;
 begin
   if not ValidDataRow( tblHist.ActiveRow ) then exit;
 
@@ -3134,6 +3137,24 @@ begin
         //             ((Rate / 100) + 1 )
      NewAmount := InclusiveAmt * ( 1 / ( 1/( Percentage/100) +1));
 
+     TOvcNumericField( celGstAmt.CellEditor).AsFloat := NewAmount;
+     if tblHist.StopEditingState( True ) then begin
+        Msg.CharCode := VK_RIGHT;
+        celAmount.SendKeyToTable(Msg);
+     end;
+  end else if key = '£' then begin
+     //stop any further processing of key
+     Key := #0;
+     NewAmount := TOvcNumericField( celGstAmt.CellEditor).AsFloat;
+     if fIsForex then begin
+       //Convert amount to base currency
+       pT := HistTranList.Transaction_At(tblHist.ActiveRow-1);
+       ExchangeRate := pT.Default_Forex_Rate;
+       if ExchangeRate > 0 then
+         NewAmount := NewAmount / ExchangeRate
+       else
+         NewAmount := 0;
+     end;
      TOvcNumericField( celGstAmt.CellEditor).AsFloat := NewAmount;
      if tblHist.StopEditingState( True ) then begin
         Msg.CharCode := VK_RIGHT;
@@ -4297,6 +4318,16 @@ begin
       end;
    end;
 end;
+procedure TdlgHistorical.ConvertAmount1Click(Sender: TObject);
+var
+  Key: Char;
+begin
+  //Conver VAT amount to base currency
+  Key := '£';
+  if tblHist.StartEditingState then
+    celGstAmtKeyPress(tblHist, Key);
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.ResetColumns;
 var
@@ -4526,13 +4557,20 @@ end;
 procedure TdlgHistorical.tblHistMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  ColEstimate, RowEstimate : integer;  
+  ColEstimate, RowEstimate : integer;
 begin
   if (Button = mbRight) then begin
      //estimate where click happened
      if tblHist.CalcRowColFromXY(x,y,RowEstimate,ColEstimate) in [ otrOutside, otrInUnused ] then exit;
      //select correct row
      tblHist.ActiveRow := RowEstimate;
+
+     ConvertAmount1.Visible := False;
+     if (FCountry = whUK) and
+        (tblHist.ActiveCol = tblHist.ColumnFmtList.GetColNumOfField(ceGSTAmount)) and
+        (BankAccount.IsAForexAccount) then
+       ConvertAmount1.Visible := True;
+
      ShowPopup( x,y,pmTable);
   end;
 end;

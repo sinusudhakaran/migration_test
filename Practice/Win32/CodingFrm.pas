@@ -302,7 +302,7 @@ type
     procedure miSearchClick(Sender: TObject);
     procedure tbtnCloseClick(Sender: TObject);
     procedure tblCodingKeyPress(Sender: TObject; var Key: Char);
-
+    procedure ConvertVATAmount(Sender: TObject);
 
   private
     { Private declarations }
@@ -971,6 +971,16 @@ begin
    NarrationIndex := CurrentIndex;
    Inc( CurrentIndex);
 
+   if (MyClient.clFields.clCountry = whUK) then begin
+     poiCoding[CurrentIndex] := TMenuItem.Create(Self);
+     with poiCoding[CurrentIndex] do begin
+        Name := 'mniConvertAmount';
+        Caption := 'Con&vert Amount';
+        onClick := ConvertVATAmount;
+     end;
+     Inc( CurrentIndex);
+   end;
+
    with popCoding do begin
       for i := 0 to CurrentIndex -1 do begin
          Items.Add( poiCoding[i]);
@@ -1044,6 +1054,7 @@ begin
       OnClick := pmiDoDeleteNote;
    end;
    popCoding.Items[NoteIndex].Add(poiCoding[CurrentIndex]);
+   Inc( CurrentIndex);
 
 end;
 
@@ -7688,6 +7699,7 @@ var
    pT            : pTransaction_Rec;
    Msg           : TWMKey;
    InclusiveAmt  : Double;
+   ExchangeRate  : Double;
 begin
   if not ValidDataRow( tblCoding.ActiveRow ) then exit;
 
@@ -7709,6 +7721,24 @@ begin
         //             ((Rate / 100) + 1 )
      NewAmount := InclusiveAmt * ( 1 / ( 1/( Percentage/100) +1));
 
+     TOvcNumericField( celGstAmt.CellEditor).AsFloat := NewAmount;
+     if tblCoding.StopEditingState( True ) then begin
+        Msg.CharCode := VK_RIGHT;
+        celAmount.SendKeyToTable(Msg);
+     end;
+  end else if key = '£' then begin
+     //stop any further processing of key
+     Key := #0;
+     NewAmount := TOvcNumericField( celGstAmt.CellEditor).AsFloat;
+     if fIsForex then begin
+       //Convert amount to base currency
+       pT := WorkTranList.Transaction_At(tblCoding.ActiveRow-1);
+       ExchangeRate := pT.Default_Forex_Rate;
+       if ExchangeRate > 0 then
+         NewAmount := NewAmount / ExchangeRate
+       else
+         NewAmount := 0;
+     end;
      TOvcNumericField( celGstAmt.CellEditor).AsFloat := NewAmount;
      if tblCoding.StopEditingState( True ) then begin
         Msg.CharCode := VK_RIGHT;
@@ -7871,6 +7901,16 @@ begin
       end;
    end;
 end;
+procedure TfrmCoding.ConvertVATAmount(Sender: TObject);
+var
+  Key: Char;
+begin
+  //Conver VAT amount to base currency
+  Key := '£';
+  if tblCoding.StartEditingState then
+    celGstAmtKeyPress(tblCoding, Key);
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.RestoreColumnDefaults;
 //Sets the column order, visibility, editability, width back to the default settings

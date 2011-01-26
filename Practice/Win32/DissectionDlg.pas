@@ -192,6 +192,7 @@ type
     Bevel3: TBevel;
     Bevel4: TBevel;
     CelAltChartCode: TOvcTCString;
+    ConvertAmount1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tblDissectGetCellData(Sender: TObject; RowNum,
@@ -316,6 +317,7 @@ type
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
     procedure celLocalAmountKeyPress(Sender: TObject; var Key: Char);
     procedure celPercentKeyPress(Sender: TObject; var Key: Char);
+    procedure ConvertAmount1Click(Sender: TObject);
   private
     FHint              : tHintWindow;
     FStartedEdit       : boolean;
@@ -3146,6 +3148,7 @@ var
    pD            : pWorkDissect_Rec;
    Msg           : TWMKey;
    InclusiveAmt  : Double;
+   ExchangeRate  : Double;
 begin
   if not ValidDataRow( tblDissect.ActiveRow ) then exit;
 
@@ -3172,6 +3175,23 @@ begin
         Msg.CharCode := VK_RIGHT;
         celAmount.SendKeyToTable(Msg);
      end;
+  end else if key = '£' then begin
+     //stop any further processing of key
+     Key := #0;
+     NewAmount := TOvcNumericField( celGstAmt.CellEditor).AsFloat;
+     if FBankAcct.IsAForexAccount then begin
+       //Convert amount to base currency
+       ExchangeRate := pTran.Default_Forex_Rate;
+       if ExchangeRate > 0 then
+         NewAmount := NewAmount / ExchangeRate
+       else
+         NewAmount := 0;
+     end;
+     TOvcNumericField(celGstAmt.CellEditor).AsFloat := NewAmount;
+     if tblDissect.StopEditingState(True) then begin
+        Msg.CharCode := VK_RIGHT;
+        celAmount.SendKeyToTable(Msg);
+     end;
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3189,6 +3209,7 @@ var
   ColEstimate, RowEstimate : integer;
 begin
 {$IFNDEF SmartBooks}
+  ConvertAmount1.Visible := False;
   if (Button = mbRight) then begin
      //estimate where click happened
      if tblDissect.CalcRowColFromXY(x,y,RowEstimate,ColEstimate) in [ otrOutside, otrInUnused ] then exit;
@@ -3201,6 +3222,9 @@ begin
            else
            begin
              tblDissect.ActiveRow := RowEstimate;
+             if ColumnFmtList.ColumnDefn_At( ColEstimate )^.cdFieldID = ceGSTAmount then
+                ConvertAmount1.Visible := (MyClient.clFields.clCountry = whUK) and
+                             (BankAcct.IsAForexAccount);
              ShowPopup( x,y,popDissect);
            end;
         end;
@@ -4358,7 +4382,7 @@ end;
 procedure TdlgDissection.popDissectPopup(Sender: TObject);
 var pD: pWorkDissect_Rec;
 begin
-   with tblDissect do begin
+    with tblDissect do begin
       if not ValidDataRow(ActiveRow) then
          Exit;
       if not tblDissect.StopEditingState(True) then
@@ -5487,6 +5511,16 @@ begin
    end;
 end;
 
+procedure TdlgDissection.ConvertAmount1Click(Sender: TObject);
+var
+  Key: Char;
+begin
+  //Conver VAT amount to base currency
+  Key := '£';
+  if tblDissect.StartEditingState then
+    celGstAmtKeyPress(tblDissect, Key);
+end;
+
 procedure TdlgDissection.SaveLayoutForThisAcct;
 var
    i : integer;
@@ -5618,7 +5652,7 @@ begin
    if Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
      DefaultEditableCols := DefaultEditableCols + [ceGSTClass];
 
-   if (MyClient.clFields.clCountry = whNewZealand ) or ((MyClient.clFields.clCountry = whAustralia ) and ( MyClient.clFields.clBAS_Calculation_Method <> bmFull)) then
+   if (MyClient.clFields.clCountry in [whNewZealand, whUK] ) or ((MyClient.clFields.clCountry = whAustralia ) and ( MyClient.clFields.clBAS_Calculation_Method <> bmFull)) then
      DefaultEditableCols := DefaultEditableCols + [ceGSTAmount];
 
    AlwaysEditableCols := [ceAccount, ceAmount];
