@@ -88,7 +88,7 @@ uses
   RptParams,
   CountryUtils,
   baUtils,
-  Classes, PeriodUtils;
+  Classes, PeriodUtils, GenUtils;
 
 
 {$IFDEF SmartBooks}
@@ -121,7 +121,7 @@ type
 
     procedure SetupColumnsTypes; override;
     function NonBaseCurrencyContra(AContraCode: string): boolean;
-    function GetExchangeRateForForexContra(AContraCode: string; ForPeriod: integer; EndOfPerod: Boolean = False): Double;
+    function GetExchangeRateForForexContra(AContraCode: string; ForPeriod: integer; EndOfPerod: Boolean = False; LastYear: Boolean = False): Double;
     procedure SetBaseAmounts(const pAcct : pAccount_Rec; var BaseAmounts: TBaseAmounts);
   private
     FClosingBalanceExchangeRate: double;
@@ -1024,7 +1024,7 @@ begin
 end;
 
 function TCashflowReportEx.GetExchangeRateForForexContra(AContraCode: string; ForPeriod: integer
- ; EndOfPerod: Boolean = False): Double;
+ ; EndOfPerod: Boolean = False; LastYear: Boolean = False): Double;
 var
   i: integer;
   ba : TBank_Account;
@@ -1040,6 +1040,8 @@ begin
         else
           GetPeriodStartDate(ClientForReport, ForPeriod, PeriodDate_TY, PeriodDate_LY);
         Result := ba.Default_Forex_Conversion_Rate(PeriodDate_TY);
+        if LastYear then
+          Result := ba.Default_Forex_Conversion_Rate(PeriodDate_LY);        
       end;
     end;
   end;
@@ -1462,10 +1464,15 @@ begin
             GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
             FUseBaseAmounts := True;
             //Convert statement closing bal
-            FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True);
-            for j := Low(ValuesArray) to High(ValuesArray) do
-              if FClosingBalanceExchangeRate > 0 then
-                ValuesArray[j] := ValuesArray[j] / FClosingBalanceExchangeRate;
+            for j := Low(ValuesArray) to High(ValuesArray) do begin
+              //Get exchange rate
+              FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True, (j > 0));
+              //Calculate variance
+              if (j = integer(ftVariance)) then
+                ValuesArray[integer(ftVariance)] := -(ValuesArray[integer(ftComparative)] - ValuesArray[integer(ftActual)])
+              else if FClosingBalanceExchangeRate > 0 then
+                ValuesArray[j] := Double2Money(Money2Double(ValuesArray[j]) / FClosingBalanceExchangeRate);
+            end;
             //Calc gain/loss
             for j := Low(ValuesArray) to High(ValuesArray) do
               ValuesArray[j] := ValuesArray[j] - ValuesArrayBase[j];
@@ -1494,11 +1501,17 @@ begin
              GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
              FUseBaseAmounts := True;
              //Convert statement closing bal for non-base currency accounts
-             FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True);
-             if NonBaseCurrencyContra(pAcct.chAccount_Code) then
-               for j := Low(ValuesArray) to High(ValuesArray) do
-                 if FClosingBalanceExchangeRate > 0 then
-                   ValuesArray[j] := ValuesArray[j] / FClosingBalanceExchangeRate;
+             if NonBaseCurrencyContra(pAcct.chAccount_Code) then begin
+               for j := Low(ValuesArray) to High(ValuesArray) do begin
+                 //Get exchange rate
+                 FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True, (j > 0));
+                 //Calculate variance
+                 if (j = integer(ftVariance)) then
+                   ValuesArray[integer(ftVariance)] := -(ValuesArray[integer(ftComparative)] - ValuesArray[integer(ftActual)])
+                 else if FClosingBalanceExchangeRate > 0 then
+                   ValuesArray[j] := Double2Money(Money2Double(ValuesArray[j]) / FClosingBalanceExchangeRate);
+               end;
+             end;
            end else begin
              FUseBaseAmounts := False;
              GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
@@ -1698,6 +1711,7 @@ var
   PeriodCount: integer;
   ColumnCount: integer;
   OpeningBalanceExchangeRate, ClosingBalanceExchangeRate: double;
+  LastYear: Boolean;
 begin
   FUseBaseAmounts := True;
   PeriodCount := MaxPeriodToShow + 1; //zero base array but periods start at 1?
@@ -1713,22 +1727,32 @@ begin
   with BaseAmounts do begin
     for PeriodNo := MinPeriodToShow to MaxPeriodToShow do begin
       if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
-        //Get exchange rates for the start and end of the period
-        OpeningBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo);
-        if (PeriodNo > MinPeriodToShow) then
-          OpeningBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo - 1, True);
-        ClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo, True);
 
         //1. Opening balances
         FUseBaseAmounts := False;
         GetOpeningBalancesForPeriod(pAcct, PeriodNo, OpeningBalance[PeriodNo]);
         FUseBaseAmounts := True;
-        for i := Low(OpeningBalance[PeriodNo]) to High(OpeningBalance[PeriodNo]) do
-          if OpeningBalanceExchangeRate > 0 then
-            OpeningBalance[PeriodNo, i] := OpeningBalance[PeriodNo, i] / OpeningBalanceExchangeRate;
+        LastYear := False;
+        for i := Low(OpeningBalance[PeriodNo]) to High(OpeningBalance[PeriodNo]) do begin
+          //Get opening balance exchange rate for each period
+          LastYear := i > 0;
+          OpeningBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo, False, LastYear);
+          if (PeriodNo > MinPeriodToShow) then
+            OpeningBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo - 1, True, LastYear);
+
+          if (i = integer(ftVariance)) then
+            OpeningBalance[PeriodNo, i] := -(OpeningBalance[PeriodNo, integer(ftComparative)] -
+                                             OpeningBalance[PeriodNo, integer(ftActual)])
+          else if OpeningBalanceExchangeRate > 0 then
+            OpeningBalance[PeriodNo, i] := Double2Money(Money2Double(OpeningBalance[PeriodNo, i]) / OpeningBalanceExchangeRate);
+        end;
 
         //2. Movement
         GetValuesForPeriod( pAcct, PeriodNo, Movement[PeriodNo]);
+        //Calculate variance
+        if (High(Movement[PeriodNo]) = Integer(ftVariance)) then
+            Movement[PeriodNo, Integer(ftVariance)] := -(Movement[PeriodNo, integer(ftComparative)] -
+                                                         Movement[PeriodNo, integer(ftActual)]);
 
         //3. Closing balances
         FUseBaseAmounts := False;
@@ -1741,13 +1765,23 @@ begin
         FUseBaseAmounts := False;
         GetClosingBalancesForPeriod( pAcct, PeriodNo, ClosingBalanceWithGainLoss[PeriodNo]);
         FUseBaseAmounts := True;
-        for i := Low(ClosingBalanceWithGainLoss[PeriodNo]) to High(ClosingBalanceWithGainLoss[PeriodNo]) do
-          if ClosingBalanceExchangeRate > 0 then
-            ClosingBalanceWithGainLoss[PeriodNo, i] := ClosingBalanceWithGainLoss[PeriodNo, i] / ClosingBalanceExchangeRate;
+        LastYear := False;
+        for i := Low(ClosingBalanceWithGainLoss[PeriodNo]) to High(ClosingBalanceWithGainLoss[PeriodNo]) do begin
+          //Get closing balance exchange rate for each period
+          LastYear := i > 0;
+          ClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo, True, LastYear);
+
+          if (i = integer(ftVariance)) then
+            ClosingBalanceWithGainLoss[PeriodNo, i] := -(ClosingBalanceWithGainLoss[PeriodNo, integer(ftComparative)] -
+                                                         ClosingBalanceWithGainLoss[PeriodNo, integer(ftActual)])
+          else if ClosingBalanceExchangeRate > 0 then
+            ClosingBalanceWithGainLoss[PeriodNo, i] := Double2Money(Money2Double(ClosingBalanceWithGainLoss[PeriodNo, i]) / ClosingBalanceExchangeRate);
+        end;
 
         //5. Forex gain/loss
         for i := Low(OpeningBalance[PeriodNo]) to High(OpeningBalance[PeriodNo]) do
           ForexGainLoss[PeriodNo, i] :=  ClosingBalanceWithGainLoss[PeriodNo, i] - ClosingBalance[PeriodNo, i];
+          
       end;
     end;
   end;
@@ -1832,14 +1866,40 @@ begin
    end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure SetAmountFormats(const RoundValues: Boolean; var NumberFormatStr, TotalFormatStr: string; var DescriptionWidth: double);
+begin
+  if MyClient.clfields.clFRS_Report_Style in [crsSinglePeriod, crsBudgetRemaining] then
+  begin
+    if RoundValues then
+    begin
+      NumberFormatStr  := '#,##0;(#,##0);-';
+      TotalFormatStr   := '#,##0;(#,##0);-';   //note:sign is reversed
+    end else
+    begin
+      NumberFormatStr  := '#,##0.00;(#,##0.00);-';
+      TotalFormatStr   := '#,##0.00;(#,##0.00);-';   //note:sign is reversed
+    end;
+    DescriptionWidth := 22.0;
+  end else
+  begin
+     NumberFormatStr  := '#,##0;(#,##0);-';
+     TotalFormatStr   := '#,##0;(#,##0);-';   //note:sign is reversed
+     DescriptionWidth := 13.0;
+  end;
+end;
+
+
 procedure ListCashflow(Sender : TObject);
 var
+  i: integer;
   DivisionIdx: integer;
   DivisionArray: DynamicBooleanArray;
   DivisionTitle: string;
   CashFlowReport: TCashFlowReportEx;
   ReportCount: integer;
   lClient: TClientObj;
+  NumberFormatStr, TotalFormatStr: string;
+  DescriptionWidth: Double;
 
   procedure DoOutput(aCashFlowReport: TCashFlowReportEx);
   begin
@@ -1902,6 +1962,15 @@ begin
   CashFlowReport := TCashFlowReportEx(Sender);
   CashFlowReport.ResetControlAccounts;
   CashFlowReport.FUseBaseAmounts := False;
+
+  //Reset amount column format for printing (may have been changed by SetCurrencyFormatForPeriod)
+  SetAmountFormats(CashFlowReport.ReportTypeParams.RoundValues, NumberFormatStr, TotalFormatStr, DescriptionWidth);
+  for i := CashFlowReport.Columns.First to  CashFlowReport.Columns.Last do
+     if not (CashFlowReport.FColumnTypes[i] in [ ftQuantity, ftBudgetQuantity,ftPercentage]) then begin
+        CashFlowReport.Columns.Report_Column_At(CashFlowReport.FCurrDetail.Count + i).FormatString := NumberFormatStr;
+        CashFlowReport.Columns.Report_Column_At(CashFlowReport.FCurrDetail.Count + i).TotalFormat := TotalFormatStr;
+     end;
+
   lClient := CashFlowReport.ClientForReport;
 
   with lClient.clFields do
@@ -1993,6 +2062,9 @@ begin
     for i := aClient.clBank_Account_List.First to aClient.clBank_Account_List.Last do begin
       BA := aClient.clBank_Account_List.Bank_Account_At(i);
       if (BA.IsAForexAccount) and (BA.baFields.baTemp_Include_In_Report) then begin
+        //Check dates for EstimateOpeningBalancesForBankAccountContras
+        CheckDate(This_Year_Starts);
+        CheckDate(Last_Year_Starts);
         if aClient.clFields.clFRS_Report_Style = crsSinglePeriod then begin
           //Single period
           TempDate := aClient.clFields.clTemp_Period_Details_This_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
@@ -2183,24 +2255,7 @@ begin
           //auto calculate width
           TotalCols := TotalPeriodCols + TotalYTDCols;
 
-          if clFRS_Report_Style in [crsSinglePeriod, crsBudgetRemaining] then
-          begin
-            if Job.ReportTypeParams.RoundValues then
-            begin
-              NumberFormatStr  := '#,##0;(#,##0);-';
-              TotalFormatStr   := '#,##0;(#,##0);-';   //note:sign is reversed
-            end else
-            begin
-              NumberFormatStr  := '#,##0.00;(#,##0.00);-';
-              TotalFormatStr   := '#,##0.00;(#,##0.00);-';   //note:sign is reversed
-            end;
-            DescriptionWidth := 22.0;
-          end else
-          begin
-             NumberFormatStr  := '#,##0;(#,##0);-';
-             TotalFormatStr   := '#,##0;(#,##0);-';   //note:sign is reversed
-             DescriptionWidth := 13.0;
-          end;
+          SetAmountFormats(Job.ReportTypeParams.RoundValues, NumberFormatStr, TotalFormatStr, DescriptionWidth);
           QuantityStr        := '#.####;(#.####); ';
 
           //decide on the report scaling factor.  This attempts to automatically

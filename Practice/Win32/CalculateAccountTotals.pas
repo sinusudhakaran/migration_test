@@ -112,7 +112,8 @@ uses
   signUtils,
   sysUtils,
   stDate,
-  ForexHelpers;
+  ForexHelpers,
+  GenUtils;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function DivisionInReport(const aClient : TClientObj; aAccountRec: TAccount_Rec): Boolean;
@@ -1233,7 +1234,7 @@ begin
 
             //Convert to base currency
             if BankAccount.IsAForexAccount then begin
-              NewBalance := NewBalance / BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts);
+              NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts));
               if NewBalance <> Unknown then
                 OB_BaseThisYear := OB_BaseThisYear + NewBalance;
             end;
@@ -1247,7 +1248,7 @@ begin
             //Convert to base currency
             if (BankAccount.IsAForexAccount) and (BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts)  > 0) then begin
               //May not have an exchange rate for last year if no using budget figures
-              NewBalance := NewBalance / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts);
+              NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts));
               if NewBalance <> Unknown then
                 OB_BaseLastYear := OB_BaseLastYear + NewBalance;
             end;
