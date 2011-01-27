@@ -2064,7 +2064,8 @@ begin
       if (BA.IsAForexAccount) and (BA.baFields.baTemp_Include_In_Report) then begin
         //Check dates for EstimateOpeningBalancesForBankAccountContras
         CheckDate(This_Year_Starts);
-        CheckDate(Last_Year_Starts);
+        if (aClient.clFields.clFRS_Compare_Type = cflCompare_To_Last_Year) then
+          CheckDate(Last_Year_Starts);
         if aClient.clFields.clFRS_Report_Style = crsSinglePeriod then begin
           //Single period
           TempDate := aClient.clFields.clTemp_Period_Details_This_Year[aClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
