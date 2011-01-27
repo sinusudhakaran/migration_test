@@ -394,10 +394,11 @@ begin
   PGST.Visible := (AdminSystem.fdFields.fdCountry = whNewZealand);
   edtGST101Link.Text                  := (Globals.PRACINI_GST101Link);
 
-  if (AdminSystem.fdFields.fdCountry=whNewZealand) then
-    edtInstListLink.Text := Globals.PRACINI_InstListLinkNZ
-  else
-    edtInstListLink.Text := Globals.PRACINI_InstListLinkAU;
+  case AdminSystem.fdFields.fdCountry of
+    whNewZealand: edtInstListLink.Text := Globals.PRACINI_InstListLinkNZ;
+    whAustralia : edtInstListLink.Text := Globals.PRACINI_InstListLinkAU;
+    whUK        : edtInstListLink.Text := Globals.PRACINI_InstListLinkUK;
+  end;
 
    // Could hide and or make disabled, Comes from Webservice...
   lOnline.Caption := format('&%s',[BankLinkLiveName]);
@@ -498,10 +499,11 @@ end;
 
 function  TdlgAdminOptions.InstListLinkChanged: Boolean;
 begin
-  if Adminsystem.fdFields.fdCountry=whNewZealand then
-    result := edtInstListLink.Text  <> Globals.PRACINI_InstListLinkNZ
-  else
-    result := edtInstListLink.Text  <> Globals.PRACINI_InstListLinkAU;
+  case AdminSystem.fdFields.fdCountry of
+    whNewZealand: result := (edtInstListLink.Text <> Globals.PRACINI_InstListLinkNZ);
+    whAustralia : result := (edtInstListLink.Text <> Globals.PRACINI_InstListLinkAU);
+    whUK        : result := (edtInstListLink.Text <> Globals.PRACINI_InstListLinkUK);
+  end;
 end;
 
 procedure TdlgAdminOptions.SaveSettingsToINI;
@@ -571,11 +573,11 @@ begin
     Globals.PRACINI_GST101Link              := edtGST101Link.Text;
     Globals.PRACINI_OnlineLink              := EOnlineLink.Text;
 
-    if AdminSystem.fdFields.fdCountry=whNewZealand then
-      Globals.PRACINI_InstListLinkNZ            := edtInstListLink.Text
-    else
-      Globals.PRACINI_InstListLinkAU            := edtInstListLink.Text;
-    //Globals.PRACINI_UseReportStyles         := cbUseStyles.Checked;
+    case AdminSystem.fdFields.fdCountry of
+      whNewZealand: Globals.PRACINI_InstListLinkNZ := edtInstListLink.Text;
+      whAustralia : Globals.PRACINI_InstListLinkAU := edtInstListLink.Text;
+      whUK        : Globals.PRACINI_InstListLinkUK := edtInstListLink.Text;
+    end;
 
     SaveAdminSystem;
     WritePracticeINI_WithLock;

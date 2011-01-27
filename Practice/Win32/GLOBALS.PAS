@@ -547,6 +547,7 @@ var
     PRACINI_GST101Link                  : String = '';
     PRACINI_InstListLinkNZ              : String = '';
     PRACINI_InstListLinkAU              : String = '';
+    PRACINI_InstListLinkUK              : String = '';
 
     PRACINI_OnlineLink                  : String = '';
 

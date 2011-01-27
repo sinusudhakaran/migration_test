@@ -2677,9 +2677,11 @@ end;
 procedure TfrmClientManager.ActShowInstitutionsExecute(Sender: TObject);
 var link: String;
 begin
-  if AdminSystem.fdFields.fdCountry=whNewZealand then
-    link := PRACINI_InstListLinkNZ
-  else link := PRACINI_InstListLinkAU;
+  case AdminSystem.fdFields.fdCountry of
+    whNewZealand: link := Globals.PRACINI_InstListLinkNZ;
+    whAustralia : link := Globals.PRACINI_InstListLinkAU;
+    whUK        : link := Globals.PRACINI_InstListLinkUK;
+  end;
 
   if length(link) = 0 then exit;
   ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);

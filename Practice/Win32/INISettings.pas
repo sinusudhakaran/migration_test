@@ -87,6 +87,7 @@ const
    DefLinkGST103 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst103';
    DefInstListLinkNZ = 'http://www.banklink.co.nz/about_institutions.html';
    DefInstListLinkAU = 'http://www.banklink.com.au/about_institutions.html';
+   DefInstListLinkUK = 'http://www.banklink.co.uk/institutions.html';
 
    UnitName      = 'INISettings';
 
@@ -590,6 +591,7 @@ begin
 
         PRACINI_InstListLinkNZ := ReadString(GrpPracLinks,'InstitutionListNZ',DefInstListLinkNZ);
         PRACINI_InstListLinkAU := ReadString(GrpPracLinks,'InstitutionListAU',DefInstListLinkAU);
+        PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK',DefInstListLinkUK);
 
         PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST103);
         if Sametext(PRACINI_GST101Link,DefLinkGST101) then  // Case 8815
@@ -708,6 +710,7 @@ begin
            WriteString(GrpPracLinks, 'Gst101', PRACINI_GST101Link);
            WriteString(GrpPracLinks, 'InstitutionListNZ',PRACINI_InstListLinkNZ);
            WriteString(GrpPracLinks, 'InstitutionListAU',PRACINI_InstListLinkAU);
+           WriteString(GrpPracLinks, 'InstitutionListUK',PRACINI_InstListLinkUK);
 
            WriteString(GrpPracLinks ,'OnlineLink', PRACINI_OnlineLink);
 
