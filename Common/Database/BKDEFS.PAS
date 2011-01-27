@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 625;
-   BK_IOLIB_Date    = '24/01/11';
+   BK_IOLIB_Version : Integer = 626;
+   BK_IOLIB_Date    = '27/01/11';
    BK_FILE_VERSION  = 163;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -200,7 +200,7 @@ Const
                             Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
                             Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
                             Add IsProvisional to Bank account
-                            Add Opening Balance Curreny field to Dissection and temp field to Account
+                            Add Opening Balance Curreny field to Dissection and temp fields to Account
    *)
 
 {  -------------------------------------------------------------------  }
@@ -546,6 +546,7 @@ Type
       chTemp_Linked_To_From_SOH          : String[ 20 ];
       chTemp_Date_First_Movement         : Integer;
       chTemp_Opening_Balance_Currency    : String[ 3 ];
+      chTemp_Opening_Balance_Forex_Amount : Money;
       chEOR                              : Byte;
    end;
 

@@ -163,6 +163,7 @@ object dlgOpeningBalances: TdlgOpeningBalances
     OnCellLoaded = tgBalancesCellLoaded
     OnContextPopup = tgBalancesContextPopup
     OnEndCellEdit = tgBalancesEndCellEdit
+    OnEndRowEdit = tgBalancesEndRowEdit
     OnInvalidMaskValue = tgBalancesInvalidMaskValue
     OnKeyPress = tgBalancesKeyPress
     OnMouseMove = tgBalancesMouseMove

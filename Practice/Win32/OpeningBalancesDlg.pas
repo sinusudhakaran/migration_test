@@ -62,6 +62,8 @@ type
       ARect: TRect; State: TtsPaintCellState; var Cancel: Boolean);
     procedure tgBalancesMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
+    procedure tgBalancesEndRowEdit(Sender: TObject; DataRow: Integer;
+      var Cancel: Boolean);
   private
     { Private declarations }
     ThisClient             : TClientObj;
@@ -274,6 +276,7 @@ begin
                  pAccount.chTemp_Money_Value := pAccount.chTemp_Money_Value + pJournal_Line.dsAmount;
                  //Get the currency
                  pAccount.chTemp_Opening_Balance_Currency := pJournal_Line.dsOpening_Balance_Currency;
+                 pAccount.chTemp_Opening_Balance_Forex_Amount := pJournal_Line.dsForeign_Currency_Amount;
                end;
             end
             else
@@ -289,6 +292,7 @@ begin
              ThisClient.clChart.Insert(pAccount);
              pAccount.chTemp_Money_Value := pJournal_Line.dsAmount;
              pAccount.chTemp_Opening_Balance_Currency := pJournal_Line.dsOpening_Balance_Currency;
+             pAccount.chTemp_Opening_Balance_Forex_Amount := pJournal_Line.dsForeign_Currency_Amount;             
             end;
             pJournal_Line := pJournal_Line.dsNext;
          end;
@@ -390,6 +394,7 @@ begin
            dsAccount             := pAccount.chAccount_Code;
            dsAmount              := pAccount.chTemp_Money_Value;
            dsOpening_Balance_Currency := pAccount.chTemp_Opening_Balance_Currency;
+           dsForeign_Currency_Amount  := pAccount.chTemp_Opening_Balance_Forex_Amount;
            dsPayee_Number        := 0;
            dsGST_Class           := pAccount.chGST_Class;
            //The GST for opening balance journals MUST be zero, set this and
@@ -618,6 +623,12 @@ begin
      tgBalances.Refresh;
    end;
 end;
+procedure TdlgOpeningBalances.tgBalancesEndRowEdit(Sender: TObject;
+  DataRow: Integer; var Cancel: Boolean);
+begin
+
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgOpeningBalances.tgBalancesStartCellEdit(Sender: TObject;
   DataCol, DataRow: Integer; var Cancel: Boolean);

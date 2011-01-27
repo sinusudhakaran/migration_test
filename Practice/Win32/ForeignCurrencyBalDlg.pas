@@ -33,7 +33,7 @@ type
     procedure FillCurrencies;
     procedure SetAsAtDate(const Value: integer);
     procedure CalculateBaseAmount;
-    procedure CalculateForeignAmount;
+//    procedure CalculateForeignAmount;
   public
     { Public declarations }
     property AsAtDate: integer read FAsAtDate write SetAsAtDate;
@@ -76,15 +76,25 @@ begin
 
     //Conver base to foreign
     frmForeignCurrencyBal.nBaseOpeningBal.AsFloat := Money2Double(pAccount.chTemp_Money_Value);
-    frmForeignCurrencyBal.CalculateForeignAmount;
+//    frmForeignCurrencyBal.CalculateForeignAmount;
+    frmForeignCurrencyBal.nForeignOpeningBal.asFloat := Money2Double(pAccount.chTemp_Opening_Balance_Forex_Amount);
+    frmForeignCurrencyBal.CalculateBaseAmount;
 
     //Set date
     S := StDateToDateString( 'dd nnn yyyy', AsAtDate , true);
     frmForeignCurrencyBal.lblOpeningBalance.Caption := Format('Opening Balance (as at %s)', [S]);
 
     if frmForeignCurrencyBal.ShowModal = mrOk then begin
-      pAccount.chTemp_Money_Value := Double2Money(frmForeignCurrencyBal.nBaseOpeningBal.asFloat);
-      pAccount.chTemp_Opening_Balance_Currency := frmForeignCurrencyBal.cmbCurrency.Items[frmForeignCurrencyBal.cmbCurrency.ItemIndex];
+      if frmForeignCurrencyBal.nForeignOpeningBal.asFloat = 0 then begin
+        //Don't set forex amount if it's zero
+        pAccount.chTemp_Money_Value := 0;
+        pAccount.chTemp_Opening_Balance_Forex_Amount := 0;
+        pAccount.chTemp_Opening_Balance_Currency := '';
+      end else begin
+        pAccount.chTemp_Money_Value := Double2Money(frmForeignCurrencyBal.nBaseOpeningBal.asFloat);
+        pAccount.chTemp_Opening_Balance_Forex_Amount := Double2Money(frmForeignCurrencyBal.nForeignOpeningBal.asFloat);
+        pAccount.chTemp_Opening_Balance_Currency := frmForeignCurrencyBal.cmbCurrency.Items[frmForeignCurrencyBal.cmbCurrency.ItemIndex];
+      end;
     end;
   finally
     frmForeignCurrencyBal.Free;
@@ -106,15 +116,15 @@ begin
     nBaseOpeningBal.AsFloat := nForeignOpeningBal.AsFloat / ExchangeRate;
 end;
 
-procedure TfrmForeignCurrencyBal.CalculateForeignAmount;
-var
-  ExchangeRate: Double;
-begin
-  ExchangeRate := pExchangeRec(cmbCurrency.Items.Objects[cmbCurrency.ItemIndex])^.ExchangeRate;
-  nForeignOpeningBal.AsFloat := 0;
-  if ExchangeRate > 0 then
-    nForeignOpeningBal.AsFloat := nBaseOpeningBal.AsFloat * ExchangeRate;
-end;
+//procedure TfrmForeignCurrencyBal.CalculateForeignAmount;
+//var
+//  ExchangeRate: Double;
+//begin
+//  ExchangeRate := pExchangeRec(cmbCurrency.Items.Objects[cmbCurrency.ItemIndex])^.ExchangeRate;
+//  nForeignOpeningBal.AsFloat := 0;
+//  if ExchangeRate > 0 then
+//    nForeignOpeningBal.AsFloat := nBaseOpeningBal.AsFloat * ExchangeRate;
+//end;
 
 procedure TfrmForeignCurrencyBal.cmbCurrencyChange(Sender: TObject);
 begin

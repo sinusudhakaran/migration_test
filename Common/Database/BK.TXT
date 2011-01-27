@@ -187,7 +187,7 @@ $|  5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled repor
 $|                         Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
 $|                         Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
 $|                         Add IsProvisional to Bank account
-$|                         Add Opening Balance Curreny field to Dissection and temp field to Account
+$|                         Add Opening Balance Curreny field to Dissection and temp fields to Account
 $|*)
 
 N|Client|cl|20
@@ -499,6 +499,7 @@ C|Temp_Tag|L
 C|Temp Linked To From SOH|S|20
 C|Temp Date First Movement|L
 C|Temp Opening Balance Currency|S|3
+C|Temp Opening Balance Forex Amount|$
 E
 
 N|Payee|py|100
