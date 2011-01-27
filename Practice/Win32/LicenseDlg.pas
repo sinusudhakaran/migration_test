@@ -36,6 +36,7 @@ procedure TDlgLicense.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
   FAbout := False;
+  mmoEULA.WordWrap := True;
 end;
 
 procedure TDlgLicense.SetAbout(Value: Boolean);
