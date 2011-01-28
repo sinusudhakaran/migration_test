@@ -542,7 +542,7 @@ begin
       if Count = 0 then
          Exit // Nothing in the file.
       else begin
-         MyAction := ForAction.InsertAction(format('Transactions for %s',[Account.sbAccount_Number]));
+         MyAction := ForAction.InsertAction(format('%s %s',[Account.sbAccount_Number, Account.sbAccount_Name]));
          MyAction.Target := Count;
          Count := 0;
       end;
@@ -1174,7 +1174,8 @@ begin
 
    MyAction.Counter := 5;
 
-   if not RunGuidList(MyAction,'Bank Accounts',SystemAccountList, AddSystemAccount, true) then
+   SystemAccountList.CheckSpeed := true;
+   if not RunGuidList(MyAction,'System Accounts',SystemAccountList, AddSystemAccount, true) then
       Exit;
    MyAction.Counter := 20;
 

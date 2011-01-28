@@ -376,6 +376,7 @@ begin
      whAustralia: begin
         case TaxClass of
          1 :   Result := StringToGuid('{7C29B926-9909-455A-AE2C-01767B5BE631}'); //Company tax...
+         else Result := StringToGuid('{5950CDE9-3E66-485A-B71C-018DCEE760EB}'); // GST
         end;
      end;
   end;

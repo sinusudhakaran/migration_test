@@ -140,19 +140,19 @@ procedure TSystemBankAccountTable.SetupTable;
 begin
   TableName := 'SystemBankAccounts';
   SetFields(
-   ['Id','AccountNumber','AccountName','AccountPassword','CurrentBalance','LastTransactionId'
+   ['Id','AccountNumber','AccountName','AccountPassword','CurrentBalance','LastSequenceNo'
    ,'NewThisMonth','NoOfEntriesThisMonth','FromDateThisMonth','ToDateThisMonth','CostCode','ChargesThisMonth'
    ,'OpeningBalanceFromDisk','ClosingBalanceFromDisk','WasOnLatestDisk','LastEntryDate'
    ,'DateOfLastEntryPrinted','MarkAsDeleted','FileCode','MatterID','AssignmentID','DisbursementID','AccountType'
    ,'JobCode','ActivityCode','FirstAvailableDate','NoChargeAccount','CurrencyCode','InstitutionName','SecureCode','Inactive'
-   ,'Frequency','FrequencyChangePending'],[]);
+   ,'Frequency','FrequencyChangePending','LastBankLink_ID'],[]);
 
 end;
 
 function TSystemBankAccountTable.Insert(MyId: TGuid; Value: pSystem_Bank_Account_Rec): Boolean;
 begin with Value^ do
    result := RunValues([ToSQL(MyId) ,ToSQL(Value.sbAccount_Number) ,ToSQL(Value.sbAccount_Name) ,ToSQL(Value.sbAccount_Password)
-              ,ToSQL(Value.sbCurrent_Balance) ,toSQL(emptyGuid)
+              ,ToSQL(Value.sbCurrent_Balance) ,toSQL(Value.sbLast_Transaction_LRN)
 
           ,ToSQL(Value.sbNew_This_Month) ,ToSQL(Value.sbNo_of_Entries_This_Month) ,DateToSQL(Value.sbFrom_Date_This_Month)
               ,DateToSQL(Value.sbTo_Date_This_Month) ,ToSQL(Value.sbCost_Code) , ToSQL(Value.sbCharges_This_Month)
@@ -166,7 +166,7 @@ begin with Value^ do
           ,ToSQL(Value.sbJob_Code) ,ToSQL(Value.sbActivity_Code) , DateToSQL(Value.sbFirst_Available_Date) ,ToSQL(Value.sbNo_Charge_Account)
               ,ToSQL(Value.sbCurrency_Code) ,ToSQL(Value.sbInstitution) ,ToSQL(Value.sbBankLink_Code) ,toSQL(false)
 
-          ,ToSQL(Value.sbFrequency) ,ToSQL(Value.sbFrequency_Change_Pending)],[]);
+          ,ToSQL(Value.sbFrequency) ,ToSQL(Value.sbFrequency_Change_Pending), ToSQL(0)],[]);
 end;
 
 { TClientGroupTable }
@@ -327,13 +327,13 @@ procedure TMasterMemlinesTable.SetupTable;
 begin
    Tablename := 'MasterMemorisationLines';
    SetFields(['Id','MasterMemorisationId_Id','ChartCode','Percentage','GSTClass','GSTHasBeenEdited','GLNarration'
-      ,'LineType','GSTAmount','Payee','JobCode'
+      ,'LineType','GSTAmount','PayeeNumber','JobCode'
 
      ],[
 
-      'SFPCFranked','SFMemberID','SFFundID','SFFundCode','SFTransID'
-      ,'SFTransCode','SFMemberAccountID','SFMemberAccountCode','SFEdited'
-      ,'SFMemberComponent','SFPCUnFranked']);
+      'SFPCFranked','SFMemberID','SFFundID','SFFundCode','SFTransactionID'
+      ,'SFTransactionCode','SFMemberAccountID','SFMemberAccountCode','SFEdited'
+      ,'SFMemberComponent','SFUnFranked']);
 end;
 
 { TChargesTable }

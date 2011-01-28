@@ -10,6 +10,7 @@ uses
    ADODB;
 
 type
+  TFieldNameList = array of string;
   TMigrateTable = class (TADOQuery)
   private
     FCount: Integer;
@@ -44,6 +45,23 @@ type
   end;
 
 var emptyGuid : TGuid;
+
+const SFLineFields : array[0..32] of string = ({1}   'SFEdited', 'SFFranked', 'SFUnFranked',
+
+{2}   'SFMemberID','SFFundID', 'SFFundCode',
+
+{3}   'SFTransactionID', 'SFTransactionCode', 'SFMemberAccountID', 'SFMemberAccountCode', 'SFLedgerID',
+
+{4}   'SFMemberComponent', 'SFOtherExpenses', 'SFInterest', 'SFRent', 'SFSpecialIncome', 'SFImputedCredit',
+
+{5}   'SFTaxFreeDist', 'SFTaxExemptDist', 'SFTaxDeferredDist', 'SFTFNCredits', 'SFOtherTaxCredit', 'SFNonResidentTax',
+
+{6}   'SFForeignIncome', 'SFForeignTaxCredits', 'SFCapitalGainsIndexed', 'SFCapitalGainsDisc',
+{7}   'SFCapitalGainsOther', 'SFCapitalGainsForeignDisc','SFForeignCapitalGainsCredit',
+
+{8}   'SFCGTDate', 'Quantity', 'SFCapitalGainsFractionHalf');
+
+
 
 implementation
 uses
@@ -237,6 +255,8 @@ begin
    Result := Value;
 end;
 
+
 initialization
   fillchar(emptyGuid,sizeof(emptyGuid),0);
+
 end.

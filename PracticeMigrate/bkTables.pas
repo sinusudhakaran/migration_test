@@ -408,19 +408,19 @@ begin with value^ do
               ,ToSQL(baECoding_Account_UID),ToSQL(baCoding_Sort_Order),ToSQL(baManual_Account_Type)
  {5}     ,ToSQL(baManual_Account_Institution),ToSQL(baManual_Account_Sent_To_Admin)
               ,ToSQL(baHDE_Sort_Order),ToSQL(baMDE_Sort_Order),ToSQL(baDIS_Sort_Order)
- {6}     ,ToSQL(baDesktop_Super_Ledger_ID),ToSql(baCurrency_Code)],[]);
+ {6}     ,ToSQL(baDesktop_Super_Ledger_ID), ToSQL(Value.baSuperFund_Ledger_Code),ToSql(baCurrency_Code)],[]);
 
 end;
 
 procedure TAccount_RecTable.SetupTable;
 begin
   TableName := 'BankAccounts';
-  SetFields(['Id','ClientId','BankAccountNumber','BankAccountName','BankAccountPassword','ContraAccountCode'
- {2}   , 'CurrentBalance','ApplyMasterMemorisedEntries','AccountType','PreferredView','HighestBankLink_ID'
- {3}   , 'HighestLRN','AccountExpiry_Date','HighestMatchedItemID','NotesAlwaysVisible','NotesHeight','LastECodingTransactionUID'
+  SetFields(['Id','Client_Id','BankAccountNumber','BankAccountName','BankAccountPassword','ContraAccountCode'
+ {2}   , 'CurrentBalance','ApplyMasterMemorisedEntries','AccountType','PreferredView','HighestBankLinkID'
+ {3}   , 'LastSequenceNo','AccountExpiryDate','HighestMatchedItemID','NotesAlwaysVisible','NotesHeight','LastECodingTransactionUID'
  {4}   , 'ExtendExpiryDate','IsAManualAccount','AnalysisCodingLevel','ECodingAccountUID','CodingSortOrder','ManualAccountType'
  {5}   , 'ManualAccountInstitution','ManualAccountSentToAdmin','HDESortOrder','MDESortOrder','DISSortOrder'
- {6}   , 'DesktopSuperLedgerID','Currency'],[]);
+ {6}   , 'SFLedgerID','SFLedgerCode','Currency'],[]);
 
 end;
 
@@ -445,7 +445,7 @@ begin  with Value^ do
 
           ],[
 
-{1}       ToSQL(txSF_Franked),ToSQL(txSF_Unfranked),ToSQL(txSF_Interest)
+{1}       ToSQL(Value.txSF_Super_Fields_Edited), ToSQL(txSF_Franked),ToSQL(txSF_Unfranked),ToSQL(txSF_Interest)
               ,ToSQL(txSF_Capital_Gains_Foreign_Disc),ToSQL(txSF_Rent)
 {2}       ,ToSQL(txSF_Special_Income),ToSQL(txSF_Other_Tax_Credit),ToSQL(txSF_Non_Resident_Tax)
               ,ToSQL(txSF_Member_ID)
@@ -467,7 +467,7 @@ begin
   TableName := 'Transactions';
   SetFields(['Id','BankAccount_Id','SequenceNo','Type','Source','DatePresented','DateEffective'
 {2}       ,'DateTransferred','Amount','GSTClass','GSTAmount','HasBeenEdited','Quantity','ChequeNumber'
-{3}       ,'Reference','Particulars','Analysis','OrigBB','OtherParty','Account','CodedBy'
+{3}       ,'Reference','Particulars','Analysis','OrigBB','OtherParty','ChartCode','CodedBy'
 {4}       ,'PayeeNumber','Locked','BankLinkID','GSTHasBeenEdited','MatchedItemID','UPIState','OriginalReference'
 {5}       ,'OriginalSource','OriginalType','OriginalChequeNumber','OriginalAmount','Notes','ECodingImportNotes'
 {6}       ,'ECodingTransactionUID','GLNarration','StatementDetails' ,'TaxInvoiceAvailable'
@@ -476,7 +476,7 @@ begin
 
           ],[
 
-{1}       'SFFranked','SFUnfranked','SFinterest','SFCapitalGainsForeignDisc','SFRent'
+{1}       'SFEdited','SFFranked','SFUnFranked','SFinterest','SFCapitalGainsForeignDisc','SFRent'
 {2}       ,'SFSpecialIncome','SFOtherTaxCredit','SFNonResidentTax','SFMemberID'
 {3}       ,'SFForeignCapitalGainsCredit','SFMemberComponent','SFFundID','SFMemberAccountID'
 {4}       ,'SFFundCode','SFMemberAccountCode','SFTransactionID','SFTransactionCode','SFCapitalGainsFractionHalf'
@@ -522,20 +522,20 @@ begin
  TableName := 'Dissections';
   SetFields(['Id','Transaction_Id','SequenceNo'
 {2}       ,'Amount','GSTClass','GSTAmount','HasBeenEdited','Quantity','Reference'
-{3}       ,'Account','PayeeNumber','GSTHasBeenEdited'
+{3}       ,'ChartCode','PayeeNumber','GSTHasBeenEdited'
 {4}       ,'Notes','ECodingImportNotes','GLNarration','TaxInvoice'
 {5}       ,'ExternalGUID','DocumentTitle','JobCode'
 {6}       ,'DocumentStatusUpdateRequired','NotesRead','ImportNotesRead'
 
           ],[
 
-{1}       'SFFranked','SFUnfranked','SFinterest','SFCapitalGainsForeignDisc','SFRent'
+{1}       'SFFranked','SFUnFranked','SFinterest','SFCapitalGainsForeignDisc','SFRent'
 {2}       ,'SFSpecialIncome','SFOtherTaxCredit','SFNonResidentTax','SFMemberID'
 {3}       ,'SFForeignCapitalGainsCredit','SFMemberComponent','SFFundID','SFMemberAccountID'
 {4}       ,'SFFundCode','SFMemberAccountCode','SFTransactionID','SFTransactionCode','SFCapitalGainsFractionHalf'
 {5}       ,'SFImputedCredit','SFCapitalGainsOther','SFOtherExpenses','SFCGTDate'
 {6}       ,'SFTaxFreeDist','SFTaxExemptDist','SFTaxDeferredDist','SFTFNCredits','SFForeignIncome'
-{7}       ,'SFForeignTaxCredits','SFCapitalGainsIndexed','SFCapitalGainsDisc','SFSuperFieldsEdited']);
+{7}       ,'SFForeignTaxCredits','SFCapitalGainsIndexed','SFCapitalGainsDisc','SFEdited']);
 
 end;
 
@@ -561,10 +561,10 @@ end;
 procedure TMemorisation_Detail_RecTable.SetupTable;
 begin
   TableName := 'Memorisations';
-  SetFields(['Id','BankAccountId','SequenceNo','MemorisationType','Amount','Reference','Particulars'
+  SetFields(['Id','BankAccount_Id','SequenceNo','MemorisationType','Amount','Reference','Particulars'
 {2}       ,'Analysis','OtherParty','StatementDetails','MatchOnAmount','MatchOnAnalysis'
 {3}       ,'MatchOnOther_Party','MatchOnNotes','MatchOnParticulars','MatchOnRefce'
-{4}       ,'MatchOnStatement_Details','Payee','FromMasterList','Notes'
+{4}       ,'MatchOnStatement_Details','PayeeNumber','FromMasterList','Notes'
 {5}       ,'DateLastApplied','UseAccountingSystem','AccountingSystem','FromDate','UntilDate'],[]);
 
 end;
@@ -581,46 +581,45 @@ begin with Value^ do
 
    ],[
 
-{1}        PercentToSQL(mlSF_PCFranked),PercentToSQL(mlSF_PCUnFranked),ToSQL(mlSF_Member_ID)
-                ,ToSQL(mlSF_Fund_ID ),ToSQL(mlSF_Fund_Code)
+{1}       ToSQL(mlSF_Edited), PercentToSQL(mlSF_PCFranked),PercentToSQL(mlSF_PCUnFranked),
+{2}       ToSQL(mlSF_Member_ID), ToSQL(mlSF_Fund_ID ), ToSQL(mlSF_Fund_Code),
 
-{2}        ,ToSQL(mlSF_Trans_ID),ToSQL(mlSF_Trans_Code), ToSQL(mlSF_Member_Component)
-                ,ToSQL(mlSF_Member_Account_ID),ToSQL(mlSF_Member_Account_Code)
+{3}       ToSQL(mlSF_Trans_ID), ToSQL(mlSF_Trans_Code), ToSQL(mlSF_Member_Account_ID), ToSQL(mlSF_Member_Account_Code), toSQL(0),
 
-{3}        ,DateToSQl(mlSF_GDT_Date),PercentToSQL(mlSF_Tax_Free_Dist),PercentToSQL(mlSF_Tax_Deferred_Dist)
+{4}       ToSQL(mlSF_Member_Component), PercentToSQL(mlSF_Other_Expenses), PercentToSQL(mlSF_Interest), PercentToSQL(mlSF_Rent),
+              PercentToSQL(mlSF_Special_Income), PercentToSQL(0),
 
-{4}        ,PercentToSQL(mlSF_Tax_Exempt_Dist), PercentToSQL(mlSF_TFN_Credits)
-                ,PercentToSQL(mlSF_Foreign_Income), PercentToSQL(mlSF_Foreign_Tax_Credits)
-                ,PercentToSQL(mlSF_Capital_Gains_Indexed)
+{5}       PercentToSQL(mlSF_Tax_Free_Dist), PercentToSQL(mlSF_Tax_Exempt_Dist), PercentToSQL(mlSF_Tax_Deferred_Dist), PercentToSQL(mlSF_TFN_Credits),
+              PercentToSQL(mlSF_Other_Tax_Credit), PercentToSQL(mlSF_Non_Resident_Tax),
 
-{5}        ,PercentToSQL(mlSF_Capital_Gains_Disc), PercentToSQL(mlSF_Capital_Gains_Other)
-                ,PercentToSQL(mlSF_Interest), PercentToSQL(mlSF_Other_Expenses)
+{6}       PercentToSQL(mlSF_Foreign_Income), PercentToSQL(mlSF_Foreign_Tax_Credits), PercentToSQL(mlSF_Capital_Gains_Indexed),
+               PercentToSQL(mlSF_Capital_Gains_Disc),
 
-{6}        ,PercentToSQL(mlSF_Capital_Gains_Foreign_Disc),PercentToSQL(mlSF_Rent)
-                ,PercentToSQL(mlSF_Special_Income), PercentToSQL(mlSF_Other_Tax_Credit)
+{7}       PercentToSQL(mlSF_Capital_Gains_Other), PercentToSQL(mlSF_Capital_Gains_Foreign_Disc), PercentToSQL(mlSF_Foreign_Capital_Gains_Credit),
 
-{7}        ,PercentToSQL(mlSF_Non_Resident_Tax), PercentToSQL(mlSF_Foreign_Capital_Gains_Credit)
-                ,QtyToSQL(mlQuantity), ToSQL(mlSF_Edited)
-{8}        ,ToSQL(mlSF_Capital_Gains_Fraction_Half)]);
+
+{8}       DateToSQl(mlSF_GDT_Date), QtyToSQL(mlQuantity),ToSQL(mlSF_Capital_Gains_Fraction_Half)
+    ]);
 
 end;
 
 procedure TMemorisation_Line_RecTable.SetupTable;
 begin
   TableName := 'MemorisationLines';
-  SetFields([ 'Id','MemorisationId','SequenceNo','Percentage','GSTClass','GSTHasBeenEdited'
+  SetFields([ 'Id','Memorisation_Id','SequenceNo','Percentage','GSTClass','GSTHasBeenEdited'
            ,'PayeeNumber','GLNarration','LineType','GSTAmount','ChartCode','JobCode'
 
-   ],[
-{1}         'SFPCFranked','SFPCUnFranked','SFMemberID','SFFundID','SFFundCode'
-{2}         ,'SFTransID','SFTransCode','SFMemberComponent','SFMemberAccountID','SFMemberAccountCode'
+   ],SFLineFields);
+   (*
+{1}         'SFFranked','SFUnFranked','SFMemberID','SFFundID','SFFundCode'
+{2}         ,'SFTransactionID','SFTransactionCode','SFMemberComponent','SFMemberAccountID','SFMemberAccountCode'
 {3}         ,'SFGDTDate','SFTaxFreeDist','SFTaxDeferredDist'
 {4}         ,'SFTaxExemptDist','SFTFNCredits','SFForeignIncome','SFForeignTaxCredits','SFCapitalGainsIndexed'
 {5}         ,'SFCapitalGainsDisc','SFCapitalGainsOther','SFInterest','SFOtherExpenses'
 {6}         ,'SFCapitalGainsForeignDisc','SFRent','SFSpecialIncome','SFOtherTaxCredit'
 {7}         ,'SFNonResidentTax','SFForeignCapitalGainsCredit','Quantity','SFEdited'
 {8}         ,'SFCapitalGainsFractionHalf']);
-
+      *)
 end;
 
 { TChart_RecTable }
@@ -638,7 +637,7 @@ end;
 procedure TChart_RecTable.SetupTable;
 begin
   TableName := 'Charts';
-  SetFields(['Id','ClientId','AccountCode','AlternateCode','AccountDescription','GSTClass'
+  SetFields(['Id','Client_Id','AccountCode','AlternateCode','AccountDescription','GSTClass'
 {2}      ,'PostingAllowed','ReportGroup','EnterQuantity','MoneyVariance_Up'
 {3}      ,'MoneyVariance_Down','PercentVariance_Up','PercentVariance_Down'
 {4}      ,'ReportGroupSubGroup','LinkedAccount_OS','LinkedAccount_CS','HideInBasicChart'],[]);
@@ -710,8 +709,8 @@ begin
 
        ],[
 
-{1}      'SFFranked','SFUnFranked','SFMemberID','SFFundID','SFFundCode','SFTransID'
-{2}      ,'SFTransCode','SFMemberComponent','SFMemberAccountID','SFMemberAccountCode'
+{1}      'SFFranked','SFUnFranked','SFMemberID','SFFundID','SFFundCode','SFTransactionID'
+{2}      ,'SFTransactionCode','SFMemberComponent','SFMemberAccountID','SFMemberAccountCode'
 {3}      ,'SFGDTDate','SFLedgerID','SFLedgerName','SFTaxFreeDist','SFTaxDeferredDist'
 {4}      ,'SFTaxExemptDist','SFTFNCredits','SFForeignIncome','SFForeignTaxCredits'
 {5}      ,'SFCapitalGainsIndexed','SFCapitalGainsDisc','SFCapitalGainsOther','SFInterest'
@@ -795,7 +794,7 @@ end;
 procedure TTaxEntriesTable.SetupTable;
 begin
   TableName := 'TaxEntries';
-  SetFields(['Id','TaxClassType_Id','ClientId','TaxId','SequenceNo','ClassDescription','ControlAccount','Norm'],[]);
+  SetFields(['Id','TaxClassType_Id','Client_Id','TaxId','SequenceNo','ClassDescription','ControlAccount','Norm'],[]);
 end;
 
 { TTaxRatesTable }
@@ -851,7 +850,7 @@ end;
 procedure TClient_ScheduleTable.SetupTable;
 begin
   TableName := 'ScheduledTaskValues';
-  SetFields(['Id','ClientId','CodingReportStyle','CodingReportSortOrder', 'ReportYearStart'
+  SetFields(['Id','Client_Id','CodingReportStyle','CodingReportSortOrder', 'ReportYearStart'
 
 {2}      ,'CodingReportEntrySelection','CodingReportBlankLines','CodingReportRuleLineBetweenEntries','CodingReportNewPage'
 
@@ -887,7 +886,7 @@ end;
 procedure TClient_ReportOptionsTable.SetupTable;
 begin
    TableName := 'ReportingOptions';
-   SetFields(['Id' ,'ClientId_Id' ,'ReportingYearStarts'
+   SetFields(['Id' ,'ClientId' ,'ReportingYearStarts'
 {2}      ,'LedgerReportSummary','LedgerReportShowNotes','LedgerReportShowQuantities','LedgerReportShowNonTrf'
 {3}      ,'LedgerReportShowInactiveCodes','LedgerReportBankContra','LedgerReportGSTContra','LedgerReportShowBalances'
 {4}      ,'LedgerReportShowGrossAndGST','BusinessProductsReportFormat'
@@ -926,7 +925,7 @@ end;
 procedure TClientFinacialReportOptionsTable.SetupTable;
 begin
   TableName := 'FRSOptions';
-  SetFields(['Id','ClientId_Id','FRSShowYTD','FRSShowVariance','FRSCompareType'
+  SetFields(['Id','Client_Id','FRSShowYTD','FRSShowVariance','FRSCompareType'
       ,'FRSReportingPeriodType','FRSReportStyle','FRSReportDetailType','FRSPromptUsertouseBudgetedfigures'
       ,'FRSPrintNPChartCodeTitles','FRSNPChartCodeDetailType','FRSShowQuantity','FRSPrintChartCodes'
       ],[]);
@@ -948,7 +947,7 @@ end;
 procedure TCodingReportOptionsTable.SetupTable;
 begin
   TableName := 'CodingReportOptions';
-  SetFields(['Id','ClientId','ReportStyle','SortOrder','EntrySelection'
+  SetFields(['Id','Client_Id','ReportStyle','SortOrder','EntrySelection'
       ,'BlankLines','RuleLine','NewPage','CustomXML'
 {3}   ,'WrapNarration', 'ShowOtherParty','ShowTaxInvoice'
 {4}   ,'CustomReport','ColumnLine'],[]);
@@ -989,7 +988,7 @@ end;
 procedure TBalances_RecTable.SetupTable;
 begin
   TableName := 'Balances';
-  SetFields(['Id','ClientId','GSTPeriodStarts','GSTPeriodEnds','ClosingDebtorsBalance','OpeningDebtorsBalance'
+  SetFields(['Id','Client_Id','GSTPeriodStarts','GSTPeriodEnds','ClosingDebtorsBalance','OpeningDebtorsBalance'
 {2}    ,'FBTAdjustments','OtherAdjustments','ClosingCreditorsBalance','OpeningCreditorsBalance','CreditAdjustments'
 {3}    ,'BASDocumentId','BAS1CPTLastMonthsIncome','BAS1DPTBranchIncome','BAS1EPTAssets','BAS1FPTTax','BAS1GPTRefundUsed'
 {4}    ,'BAS5BPTRatio','BAS6B','BAS7','BASG7','BASG18','BASW1','BASW2','BASW3'
@@ -1052,7 +1051,7 @@ end;
 procedure TDownloadlogTable.SetupTable;
 begin
    TableName := 'ClientDownloads';
-   SetFields(['Id','ClientId_Id','DiskID','DateDownloaded','NoOfAccounts','NoOfEntries'], []);
+   SetFields(['Id','Client_Id','DiskID','DateDownloaded','NoOfAccounts','NoOfEntries'], []);
 end;
 
 { TFuelSheetTable }
@@ -1067,7 +1066,7 @@ end;
 procedure TFuelSheetTable.SetupTable;
 begin
   TableName := 'FuelSheets';
-  SetFields(['Id','BalanceId','Account','FuelType','FuelLitres','FuelUse','Percentage'
+  SetFields(['Id','Balance_Id','Account','FuelType','FuelLitres','FuelUse','Percentage'
       ,'FuelEligible','CreditRate'],[]);
 
 end;
@@ -1112,7 +1111,7 @@ end;
 procedure TNotesOptionsTable.SetupTable;
 begin
    TableName := 'NotesOptions';
-   SetFields(['Id', 'ClientId' ,'AllowUPIs' ,'ShowChart','ShowPayees','ShowGST','ShowTaxInvoice'
+   SetFields(['Id', 'Client_Id' ,'AllowUPIs' ,'ShowChart','ShowPayees','ShowGST','ShowTaxInvoice'
 {2}      ,'WebSpace','DefaultPassword' ,'ImportOptions','LastImportDir','LastExportDir'
 {3}      ,'EntrySelection','SendChart' ,'SendPayees' ,'ShowQuantity' ,'LastFileNo' ,'LastFileNoImported'
 {4}      ,'SendJobs' ,'SendSuperfund' ,'SendtoClientonExport' ,'SendtoPracticeTransactionsAvailable'],[]);

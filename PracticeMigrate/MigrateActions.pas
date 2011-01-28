@@ -251,37 +251,26 @@ end;
 
 function TMigrateAction.GetTagText(const Tag: Integer): string;
 
-  function GetTimeText(ForTime: TDateTime): string;
-  var dif: tdatetime;
+  function TimeToText(ForTime: tDateTime): string;
+  var h,m,s,ms: word;
   begin
-     result := '';
-     dif := ForTime - fstartTime;
-     if dif < (1 / MinsPerDay /60) then
+    result := '';
+    if ForTime < 0  then
+       Exit;
+    
+    DecodeTime(ForTime,h,m,s,ms);
 
-        Exit; // Less than a second...
+    if h > 0 then begin
+       Result := format('%dh %dm %ds',[h,m,s]);
+    end else if m > 0 then begin
+       Result := format('%dm %ds',[m,s]);
 
-     if dif > (1/ MinsPerday * 20) then
-        // More than 20 min..
-        Result := FormatDateTime('hh:nn:ss', dif)
-     else
-        Result := FormatDateTime('nn:ss.zzz', dif)
+    end else if s > 1 then begin
+       Result := format('%d.%.3ds',[s,ms]);
+
+    end;
   end;
 
-
-  function GetTimeLeftText: string;
-  var dif: tdatetime;
-  begin
-      result := '';
-      dif :=  fTargetTime - StatusTime;
-      if dif <= 0 then
-        Exit;
-         
-      if dif > (1/ MinsPerday * 20) then
-        // More than 20 min..
-         Result := FormatDateTime('hh:nn:ss', dif)
-      else
-         Result := FormatDateTime('nn:ss.zzz', dif)
-  end;
 
 begin
   Result := '';
@@ -303,12 +292,12 @@ begin
 
 
    tag_Time :  if Status = Running then
-                   Result := GetTimeText(Statustime)
+                   Result := TimeTotext(Statustime - fstartTime)
                else
-                   Result := GetTimeText(fstoptime);
+                   Result := TimeTotext(fstoptime - fstartTime);
 
    tag_TimeLeft : if Status = Running then
-                   Result := GetTimeLeftText;
+                   Result :=  TimeToText(fTargetTime - StatusTime);
 
    tag_Error : Result := Error;
   end;

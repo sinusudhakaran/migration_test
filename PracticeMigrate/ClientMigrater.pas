@@ -661,6 +661,8 @@ begin
 
       DeleteTable(MyAction,'Reminders');
 
+      DeleteTable(MyAction,ClientFinacialReportOptionsTable, True);
+
       DeleteTable(MyAction,'Clients');
 
 

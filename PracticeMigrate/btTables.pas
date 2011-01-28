@@ -29,7 +29,7 @@ implementation
 procedure TbtTable.SetupTable;
 begin
    TableName := 'BankTransactions';
-   SetFields(['Id','SequenceNo','txnType','Source','DatePresented','DateTransferred','Amount',
+   SetFields(['Id','SequenceNo','txnType','Source','DatePresented','DateTransferred','Amount','Quantity',
          'ChequeNumber','Reference','Particulars','Analysis','OrigBB','Narration',
          'StatementDetails','BankLinkID','OtherParty','SystemBankAccountId'],[]);
 
@@ -41,7 +41,7 @@ function TbtTable.Insert(MyId, AccountID: TGuid;
 begin
    with Value do
    Result := RunValues([ToSQL(MyId) , ToSQL(aLRN) , ToSQL(aType) , TOSQL(aSource) , DateTOSQL(aDate_Presented)
-               , DateToSQL(aDate_Transferred) , TOSQL(aAmount)
+               , DateToSQL(aDate_Transferred) , TOSQL(aAmount), QtyToSQL(aQuantity)
            , TOSQL(aCheque_Number) , TOSQL(aReference) , TOSQL(aParticulars) , TOSQL(aAnalysis)
                , TOSQL(aOrigBB) , TOSQL(aNarration) , TOSQL(aStatement_Details)
            , ToSQL(aUnique_ID) , ToSQL(aOther_Party) , ToSQL(AccountID )],[]);

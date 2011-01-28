@@ -87,7 +87,7 @@ end;
 procedure TCustomDocSceduleTable.SetupTable;
 begin
   TableName := 'CustomDocumentScheduleTasks';
-  SetFields (['Id','CustomDocumentId','ScheduledTaskValueId'],[]);
+  SetFields (['Id','CustomDocument_Id','ScheduledTaskValue_Id'],[]);
 end;
 
 end.
