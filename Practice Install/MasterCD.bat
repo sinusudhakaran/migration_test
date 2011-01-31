@@ -1,4 +1,10 @@
 echo off
+REM Check for Notes setup
+if not exist setupbnotes.exe echo Copy setupbnotes.exe to this folder before continuing!
+if not exist setupbnotes.exe pause
+REM Check for Notes exe
+if not exist bnotes.exe echo Copy bnotes.exe to this folder before continuing!
+if not exist bnotes.exe pause
 echo **********************************************************
 echo *                                                        *
 echo * This will DELETE the existing "Practice CD" directory! *
@@ -56,12 +62,14 @@ xcopy "Practice CD Files\UK Samples\*" "Practice CD\Software\BankLink\Samples\UK
 REM Templates
 xcopy "Practice CD Files\Templates\*" "Practice CD\Software\BankLink\Template" /i /s /y
 REM BNotes
-REM copy "setupbnotes.exe" "Practice CD\Software\Notes\setupbnotes.exe"
+copy "setupbnotes.exe" "Practice CD\Software\Notes\setupbnotes.exe"
 REM Support
 copy "BK5WIN.exe" "Practice CD\Software\Support\BK5WIN.exe"
+copy "bnotes.exe" "Practice CD\Software\Support\bnotes.exe"
 copy "BKHandler\bkHandlerSetup.exe" "Practice CD\Software\Support\bkHandlerSetup.exe"
 copy "Uncompressed\BK5WIN.exe" "Practice CD\Software\Support\Uncompressed\BK5WIN.exe"
 
 REM Toolkit
 xcopy "Practice CD Files\Toolkit\Australia\*" "Practice CD\Toolkit\Australia" /i /s /y
 xcopy "Practice CD Files\Toolkit\New Zealand\*" "Practice CD\Toolkit\New Zealand" /i /s /y
+pause
