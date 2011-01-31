@@ -53,10 +53,6 @@ Source: "3rd Party\xmltok.dll"; DestDir: "{app}"
 
 ;Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 
-Source: "Templates\BGL.TPM"; DestDir: "{app}\TEMPLATE"
-Source: "Templates\ELITE.TPM"; DestDir : "{app}\TEMPLATE"
-Source: "Templates\GENERIC.TPM"; DestDir : "{app}\TEMPLATE"
-
 [Run]
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 

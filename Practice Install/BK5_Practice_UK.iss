@@ -54,11 +54,7 @@ Source: "3rd Party\S6BNK.COM"; DestDir: "{app}"
 
 ;Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 
-Source: "UK Samples\*.BK5"; DestDir: "{app}\SAMPLES"
-
-Source: "Templates\BGL.TPM"; DestDir: "{app}\TEMPLATE"
-Source: "Templates\ELITE.TPM"; DestDir : "{app}\TEMPLATE"
-Source: "Templates\GENERIC.TPM"; DestDir : "{app}\TEMPLATE"
+Source: "Practice CD Files\UK Samples\*.BK5"; DestDir: "{app}\SAMPLES"
 
 [Icons]
 Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"

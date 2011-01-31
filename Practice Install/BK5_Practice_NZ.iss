@@ -56,10 +56,10 @@ Source: "3rd Party\S6BNK.COM"; DestDir: "{app}"
 Source: "AuthorityForms\Third Party Authority.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\TPA_Generator.xlt"; DestDir: "{app}"
 
-Source: "NZ Samples\NZCODED.BK5"; DestDir: "{app}\SAMPLES"
-Source: "NZ Samples\JO.BK5"; DestDir: "{app}\SAMPLES"
-Source: "NZ Samples\JOCODED.BK5"; DestDir: "{app}\SAMPLES"
-Source: "NZ Samples\NZUNCODE.BK5"; DestDir: "{app}\SAMPLES"
+Source: "Practice CD Files\NZ Samples\NZCODED.BK5"; DestDir: "{app}\SAMPLES"
+Source: "Practice CD Files\NZ Samples\JO.BK5"; DestDir: "{app}\SAMPLES"
+Source: "Practice CD Files\NZ Samples\JOCODED.BK5"; DestDir: "{app}\SAMPLES"
+Source: "Practice CD Files\NZ Samples\NZUNCODE.BK5"; DestDir: "{app}\SAMPLES"
 
 [Icons]
 Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"
