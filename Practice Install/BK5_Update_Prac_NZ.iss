@@ -16,7 +16,7 @@ SolidCompression=yes
 DirExistsWarning=false
 RestartIfNeededByRun=no
 AppendDefaultDirName=no
-InfoBeforeFile=Master CD Files\infoPRAC.txt
+InfoBeforeFile=Practice CD Files\infoPRAC.txt
 
 [Files]
 ;*Application files*
