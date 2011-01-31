@@ -58,8 +58,9 @@ xcopy "Practice CD Files\Templates\*" "Practice CD\Software\BankLink\Template" /
 REM BNotes
 REM copy "setupbnotes.exe" "Practice CD\Software\Notes\setupbnotes.exe"
 REM Support
-copy "BK5WIN.exe" "Practice CD\Software\Support"
-copy "Uncompressed\BK5WIN.exe" "Practice CD\Software\Support\Uncompressed"
+copy "BK5WIN.exe" "Practice CD\Software\Support\BK5WIN.exe"
+copy "BKHandler\bkHandlerSetup.exe" "Practice CD\Software\Support\bkHandlerSetup.exe"
+copy "Uncompressed\BK5WIN.exe" "Practice CD\Software\Support\Uncompressed\BK5WIN.exe"
 
 REM Toolkit
 xcopy "Practice CD Files\Toolkit\Australia\*" "Practice CD\Toolkit\Australia" /i /s /y
