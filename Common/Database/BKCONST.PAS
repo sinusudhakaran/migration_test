@@ -648,7 +648,7 @@ CONST
    suNames : Array[ suMin..suMax ] of String[36] =
       //'123456789012345678901234567890'
       ( 'Other',
-        'Sage Line 50',                           //suSageLine50
+        'Sage 50 Accounts',                           //suSageLine50
         'QuickBooks',                             //suQuickBooks
         'Business Products - QIF',                //suOIF
         'Business Products - OFX V1',             //suOFXV1
