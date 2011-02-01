@@ -70,7 +70,8 @@ uses
   SysObj32,
   Globals,
   ShellAPI,
-  InfoMoreFrm;
+  InfoMoreFrm,
+  BKHelp;
 
 {$R *.dfm}
 
@@ -295,6 +296,8 @@ begin
    vtCurrencies.SortTree(0, sdAscending);
 
    FChangesMade := False;
+
+   BKHelpSetUp(Self, BKH_Maintain_Currencies);
 end;
 
 procedure TCurrenciesFrm.FormDestroy(Sender: TObject);

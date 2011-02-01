@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 //
-// bkHelp.inc
+// BKHelp.inc
 //
 //------------------------------------------------------------------------------
 
@@ -623,6 +623,16 @@ const
   BKH_Interfacing_with_Class_Super = 2069;
   BKH_Copying_a_chart_from_Class_Super_into_BankLink_Practice = 2115;
   BKH_GST_Return_Transitional = 2116;
+  BKH_Copying_a_chart_from_Sage_50_Accounts_into_BankLink_Practice = 2117;
+  BKH_Sage_50_Accounts = 2118;
+  BKH_TASBooks = 2119;
+  BKH_Copying_a_chart_from_TASBooks_into_BankLink_Practice = 2120;
+  BKH_Maintain_Currencies = 2121;
+  BKH_Maintain_Exchange_Rates = 2122;
+  BKH_Adding_manual_bank_accounts_in_different_currencies = 2123;
+  BKH_Importing_a_CSV_format_chart_into_BankLink_Practice = 2124;
+  BKH_Copying_a_chart_from_QuickBooks_Pro_into_BankLink_Practice = 2125;
+  BKH_QuickBooks_Pro = 2126;
 
 var
   //filename of HTML help file
