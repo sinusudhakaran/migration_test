@@ -330,18 +330,19 @@ var
                end else begin
                  //post net and gst amounts separately
                  AddTo( chTemp_Amount.This_Year[ 0 ], Amount - GST_Amount );
-                 AddTo( chTemp_Base_Amount.This_Year[ 0 ], Amount - GST_Amount );
+                 AddTo( chTemp_Base_Amount.This_Year[ 0 ], Amount_Base - GST_Amount);
                  if PostToGSTContra and ( Assigned( G)) then
                     AddTo( G^.chTemp_Amount.This_Year[0], GST_Amount);
                end;
              end
              else begin //last year
-                if clGST_Inclusive_Cashflow then
-                 AddTo( chTemp_Amount.Last_Year[ 0 ], Amount )
-               else
-               begin
+               if clGST_Inclusive_Cashflow then begin
+                 AddTo( chTemp_Amount.Last_Year[ 0 ], Amount );
+                 AddTo( chTemp_Base_Amount.Last_Year[ 0 ], Amount_Base);
+               end else begin
                  //post net and gst amounts separately
                  AddTo( chTemp_Amount.Last_Year[ 0 ], Amount - GST_Amount );
+                 AddTo( chTemp_Base_Amount.Last_Year[ 0 ], Amount_Base - GST_Amount);
                  if PostToGSTContra and ( Assigned( G)) then
                     AddTo( G^.chTemp_Amount.This_Year[0], GST_Amount);
                end;
@@ -450,6 +451,8 @@ var
                if PostToGSTContra and Assigned( G) then
                    AddTo( G^.chTemp_Amount.This_Year[ Period ], GST_Amount );
              end;
+             //Set base amount
+             chTemp_Base_Amount.This_Year[ Period ] := chTemp_Amount.This_Year[ Period ];
            end
            else begin { Last Year }
              AddTo( chTemp_Quantity.Last_Year[ Period ], Quantity );
@@ -461,6 +464,8 @@ var
                if PostToGSTContra and Assigned( G) then
                   AddTo( G^.chTemp_Amount.Last_Year[ Period ], GST_Amount );
              end;
+             //Set base amount
+             chTemp_Base_Amount.Last_Year[ Period ] := chTemp_Amount.Last_Year[ Period ];
            end;
 
          end;

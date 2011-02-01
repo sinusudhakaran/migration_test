@@ -2024,6 +2024,8 @@ var
         if MissingDates.IndexOf(BKDateUtils.Date2Str(ADate, 'dd/MM/YYYY')) = -1  then
           MissingDates.Add(BKDateUtils.Date2Str(ADate, 'dd/MM/YYYY'));
       Result := Result and (BA.Default_Forex_Conversion_Rate(ADate) > 0);
+      if ADate < FromDate then
+        FromDate := ADate;
     end;
   end;
 
