@@ -1,84 +1,50 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectGuid>{bbfca347-1522-4e1b-85c4-113116104773}</ProjectGuid>
-    <MainSource>CDSETUP.DPR</MainSource>
+    <ProjectGuid>{c3328099-812f-4ea3-a7b8-9f90f2e69d13}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
     <DCC_DependencyCheckOutputName>CDSETUP.exe</DCC_DependencyCheckOutputName>
+    <MainSource>CDSETUP.dpr</MainSource>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_DebugInformation>False</DCC_DebugInformation>
-    <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
     <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    <DCC_UnitSearchPath>C:\Delphi Components\FlatStyle</DCC_UnitSearchPath>
-    <DCC_ResourcePath>C:\Delphi Components\FlatStyle</DCC_ResourcePath>
-    <DCC_ObjPath>C:\Delphi Components\FlatStyle</DCC_ObjPath>
-    <DCC_IncludePath>C:\Delphi Components\FlatStyle</DCC_IncludePath>
     <DCC_Define>RELEASE</DCC_Define>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
-    <DCC_WriteableConstants>True</DCC_WriteableConstants>
-    <DCC_UnitSearchPath>C:\Delphi Components\FlatStyle</DCC_UnitSearchPath>
-    <DCC_ResourcePath>C:\Delphi Components\FlatStyle</DCC_ResourcePath>
-    <DCC_ObjPath>C:\Delphi Components\FlatStyle</DCC_ObjPath>
-    <DCC_IncludePath>C:\Delphi Components\FlatStyle</DCC_IncludePath>
     <DCC_Define>DEBUG</DCC_Define>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
-    <Borland.ProjectType>VCLApplication</Borland.ProjectType>
+    <Borland.ProjectType />
     <BorlandProject>
-<BorlandProject xmlns=""> <Delphi.Personality>   <Parameters>
-      <Parameters Name="UseLauncher">False</Parameters>
-      <Parameters Name="LoadAllSymbols">True</Parameters>
-      <Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-    </Parameters>
-    <Language>
-      <Language Name="ProjectLang">$00001409</Language>
-    </Language>
-    <VersionInfo>
-      <VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-      <VersionInfo Name="AutoIncBuild">False</VersionInfo>
-      <VersionInfo Name="MajorVer">1</VersionInfo>
-      <VersionInfo Name="MinorVer">4</VersionInfo>
-      <VersionInfo Name="Release">0</VersionInfo>
-      <VersionInfo Name="Build">8</VersionInfo>
-      <VersionInfo Name="Debug">False</VersionInfo>
-      <VersionInfo Name="PreRelease">False</VersionInfo>
-      <VersionInfo Name="Special">False</VersionInfo>
-      <VersionInfo Name="Private">False</VersionInfo>
-      <VersionInfo Name="DLL">False</VersionInfo>
-      <VersionInfo Name="Locale">5129</VersionInfo>
-      <VersionInfo Name="CodePage">1252</VersionInfo>
-    </VersionInfo>
-    <VersionInfoKeys>
-      <VersionInfoKeys Name="CompanyName">BankLink Limited</VersionInfoKeys>
-      <VersionInfoKeys Name="FileDescription">BankLink Setup Launcher</VersionInfoKeys>
-      <VersionInfoKeys Name="FileVersion">1.4.0.8</VersionInfoKeys>
-      <VersionInfoKeys Name="InternalName">CDSETUP.EXE</VersionInfoKeys>
-      <VersionInfoKeys Name="LegalCopyright">(C) BankLink Ltd 2000, 2002</VersionInfoKeys>
-      <VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
-      <VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys>
-      <VersionInfoKeys Name="ProductName"></VersionInfoKeys>
-      <VersionInfoKeys Name="ProductVersion">1.2</VersionInfoKeys>
-    </VersionInfoKeys>
-    <Source>
-      <Source Name="MainSource">CDSETUP.DPR</Source>
-    </Source>
-  </Delphi.Personality> </BorlandProject></BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">1</VersionInfo><VersionInfo Name="Release">1</VersionInfo><VersionInfo Name="Build">100</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">1033</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">Your Company Name</VersionInfoKeys><VersionInfoKeys Name="FileDescription">Your File Description</VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.1.1.100</VersionInfoKeys><VersionInfoKeys Name="InternalName">Your Internal name</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">Your Legal Copyright</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks">Your Legal Trademarks</VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">Your Original Filename</VersionInfoKeys><VersionInfoKeys Name="ProductName">Your Product Name</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.1.1.100</VersionInfoKeys><VersionInfoKeys Name="Comments">Your Comments</VersionInfoKeys><VersionInfoKeys Name="PrivateBuild">Your Private Build</VersionInfoKeys><VersionInfoKeys Name="SpecialBuild">Your Special Build</VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
+      
+      
+      
+      
+      <Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\5.0\Bpl\VCLZipD2007_3.bpl">File C:\Users\Public\Documents\RAD Studio\5.0\Bpl\VCLZipD2007_3.bpl not found</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+    </Excluded_Packages><Source><Source Name="MainSource">CDSETUP.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
   </ProjectExtensions>
-  <ItemGroup />
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
   <ItemGroup>
-    <DelphiCompile Include="CDSETUP.DPR">
+    <DelphiCompile Include="CDSETUP.dpr">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="MainFrm.pas">
+    <DCCReference Include="CountryFrm.pas">
+      <Form>frmLocation</Form>
+    </DCCReference>
+    <DCCReference Include="MAINFRM.PAS">
       <Form>frmMain</Form>
     </DCCReference>
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
 </Project>

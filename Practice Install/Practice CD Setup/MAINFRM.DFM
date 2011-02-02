@@ -984,7 +984,6 @@ object frmMain: TfrmMain
     ParentFont = False
     TabOrder = 4
     OnClick = RzButton1Click
-    ExplicitTop = 328
   end
   object btnToolkit: TRzBitBtn
     Left = 320

@@ -1,13 +1,16 @@
-program cdsetup;
+program CDSETUP;
 
 uses
   Forms,
-  MainFrm in 'MainFrm.pas' {frmMain};
+  CountryFrm in 'CountryFrm.pas' {frmLocation},
+  MAINFRM in 'MAINFRM.PAS' {frmMain};
 
-{$R *.RES}
+{$R *.res}
+{$R Elevate.res}
 
 begin
   Application.Initialize;
+  Application.MainFormOnTaskbar := True;
   Application.CreateForm(TfrmMain, frmMain);
   Application.Run;
 end.

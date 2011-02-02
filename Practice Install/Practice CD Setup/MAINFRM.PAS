@@ -51,7 +51,6 @@ var
 implementation
 
 {$R *.DFM}
-{$R WinXP.RES}
 
 uses
    ShellAPI, CountryFrm;
