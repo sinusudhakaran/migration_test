@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 626;
-   BK_IOLIB_Date    = '27/01/11';
+   BK_IOLIB_Version : Integer = 627;
+   BK_IOLIB_Date    = '02/02/11';
    BK_FILE_VERSION  = 163;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.21';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.20';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -194,9 +194,9 @@ Const
                             Add Super fields to Payee, as per Mem, there are some extra fields not used(yet)
                             Add Extra GST fields for Transitional return, spanning 1 Oct 2010.
                             Add Simple UI status flags and period start
-     5.20 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
+     5.19 (2010SMSF) 162    Add SF_Ledger_ID to Payee Line and Memorisation Line for payee memorisations
                             Add SF_Ledger_Name to Payee Line and Memorisation Line for payee memorisations
-     5.21 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
+     5.20 (2011/UK)  163    Add Send Job List to Client Extra for scheduled reports
                             Change txForeign_Currency_Amount, and txOriginal_Foreign_Currency_Amount to spare
                             Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
                             Add IsProvisional to Bank account
