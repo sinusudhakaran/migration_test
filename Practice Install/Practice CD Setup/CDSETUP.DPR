@@ -11,6 +11,7 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
+  Application.Title := 'BankLink Setup Launcher';
   Application.CreateForm(TfrmMain, frmMain);
   Application.Run;
 end.
