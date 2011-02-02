@@ -357,18 +357,18 @@ var
    //for the atCashOnHand type accounts
    var
       ba         : TBank_Account;
-//      Contra     : pAccount_Rec;
       i          : integer;
       t          : integer;
       pT         : pTransaction_Rec;
       pD         : pDissection_Rec;
       WhichYear  : TWhichYear;
+      ExchangeRate: Double;
+      OpenBalAmt: Money;
    begin
       with aClient.clBank_Account_List do
          for i := 0 to Pred( ItemCount) do begin
             Ba := Bank_Account_At(i);
             if ( Ba.baFields.baAccount_Type = btOpeningBalances) then begin
-//               Contra := aClient.clChart.FindCode( ba.baFields.baContra_Account_Code);
                for t := 0 to Pred(ba.baTransaction_List.ItemCount) do begin
                   pT := ba.baTransaction_List.Transaction_At(t);
                   if ( pT^.txDate_Effective = This_Year_Starts) or ( pT^.txDate_Effective = Last_Year_Starts) then begin
@@ -383,16 +383,28 @@ var
                         //Just add
                         if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                         or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
-//                           AddOpeningBalanceItem( WhichYear, pT.txAccount, pT^.txAmount, pT.txGST_Class, pT.txGST_Amount);
                            AddOpeningBalanceItem( WhichYear, pT.txAccount, pT^.txAmount, pT^.txTemp_Base_Amount, pT.txGST_Class, pT.txGST_Amount);
                      end else begin
                         //iterate disections
                         pD := pT.txFirst_Dissection;
                         while (pD <> nil) do begin
                            if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
-                           or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then
-//                              AddOpeningBalanceItem( WhichYear, pD^.dsAccount, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount);
-                              AddOpeningBalanceItem( WhichYear, pD^.dsAccount, pD^.dsAmount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount);
+                           or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then begin
+                              OpenBalAmt := pD^.dsAmount;
+                              if pD^.dsOpening_Balance_Currency <> '' then
+                                OpenBalAmt := pD^.dsForeign_Currency_Amount
+                              else begin
+                                //If an opening balance has not been entered as a forex amount then
+                                //it needs to be converted to get the forex amount.
+                                ba.baFields.baCurrency_Code := aClient.GetForexISOCodeForContra(pD^.dsAccount);
+                                if ba.baFields.baCurrency_Code <> '' then begin
+                                  ExchangeRate := ba.Default_Forex_Conversion_Rate(pT^.txDate_Effective);
+                                  OpenBalAmt := Double2Money(Money2Double(pD^.dsAmount) * ExchangeRate);
+                                end;
+                              end;
+                              AddOpeningBalanceItem( WhichYear, pD^.dsAccount, OpenBalAmt, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount);
+                              ba.baFields.baCurrency_Code := aClient.clExtra.ceLocal_Currency_Code;
+                           end;
                            pD := pD^.dsNext;
                         end;
                      end;
@@ -484,7 +496,6 @@ var
       pD         : pDissection_Rec;
       WhichYear  : TWhichYear;
       PeriodNo   : integer;
-      isForex    : Boolean;
       SkipAccount : boolean;
    begin
       with aClient.clBank_Account_List do
@@ -523,9 +534,6 @@ var
                else
                  Contra := nil;
 
-               IsForex := BA.IsAForexAccount;
-//               IsForex := False; // should always be based on local currency or it won't balance
-
                for t := 0 to Pred(ba.baTransaction_List.ItemCount) do begin
                   pT := ba.baTransaction_List.Transaction_At(t);
                   if ( pT^.txDate_Effective >= Last_Year_Starts) and ( pT^.txDate_Effective <= This_Year_Ends) then begin
@@ -546,10 +554,6 @@ var
                               if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                               or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
                               begin
-//                                if isForex then
-//                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txForeign_Currency_Amount )
-//                                else
-//                                  AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txAmount);
                                   AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txAmount);
                                   AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
                               end;
@@ -559,10 +563,6 @@ var
                                  if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                                  or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then
                                  begin
-//                                  if isForex then
-//                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsForeign_Currency_Amount )
-//                                  else
-//                                    AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsAmount);
                                     AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsAmount);
                                     AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
                                  end;
@@ -578,10 +578,6 @@ var
                               if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                               or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
                               begin
-//                                if isForex then
-//                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txForeign_Currency_Amount)
-//                                else
-//                                  AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txAmount);
                                   AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txAmount);
                                   AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
                               end;
@@ -591,10 +587,6 @@ var
                                  if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                                  or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then
                                  begin
-//                                  if isForex then
-//                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsForeign_Currency_Amount)
-//                                  else
-//                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsAmount);
                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsAmount);
                                    AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
                                  end;

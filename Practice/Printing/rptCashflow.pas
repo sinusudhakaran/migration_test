@@ -1345,7 +1345,7 @@ begin
 
         RenderTitleLine( sAccountDesc);
 
-        //------ Opening Balance
+        //1A. Opening Balance
         PutString( GetHeading( hdOpening_Balance));
         //Print Periodic Information
         for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
@@ -1368,7 +1368,7 @@ begin
              SkipPeriod;
         end;
 
-        //Period YTD Information
+        //1B. YTD Opening Balance
         if ClientForReport.clFields.clFRS_Show_YTD then begin
            //GetYTDValues
            GetOpeningBalancesForPeriod( pAcct, 1, ValuesArray);
@@ -1381,10 +1381,8 @@ begin
         end;
         RenderDetailLine;
 
-        //--------- Movement
+        //2A. Movement
         PutString( GetHeading( hdPlus_Movement ));
-
-        //Print Periodic Information
         for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
 
@@ -1393,7 +1391,7 @@ begin
               PrintValuesForPeriod( BaseAmounts.Movement[PeriodNo], Debit);
             end else begin
               //GetValues
-              FUseBaseAmounts := False;              
+              FUseBaseAmounts := False;
               GetValuesForPeriod( pAcct, PeriodNo, ValuesArray);
               //PrintValues
               PrintValuesForPeriod( ValuesArray, Debit);
@@ -1403,7 +1401,7 @@ begin
              SkipPeriod;
         end;
 
-        //Period YTD Information
+        //2B. YTD Movement
         if ClientForReport.clFields.clFRS_Show_YTD then begin
            //GetYTDValues
            GetYTD_ValuesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
@@ -1414,17 +1412,17 @@ begin
         RenderDetailLine;
         SingleUnderLine;
 
+        //3A. Closing Balance All
         PutString( GetHeading( hdClosing_Balance));
-        //Print Periodic Information
         for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
             if NonBaseCurrencyAccount then begin
-              //PrintValues
+              //PrintValues (OB + Movement)
               PrintValuesForPeriod( BaseAmounts.ClosingBalance[PeriodNo], Debit);
             end else begin
               FUseBaseAmounts := False;
               GetClosingBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
-              //PrintValues
+              //PrintValues (Actual closing balance)
               PrintValuesForPeriod( ValuesArray, Debit);
             end;
           end
@@ -1432,9 +1430,10 @@ begin
              SkipPeriod;
         end;
 
+        //***** FOREX ACCOUNTS ONLY *****
         if NonBaseCurrencyContra(pAcct.chAccount_Code) then begin
 
-          //Period YTD Information
+          //3B. YTD Closing Balance Forex
           if ClientForReport.clFields.clFRS_Show_YTD then begin
              //GetYTDValues
              GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
@@ -1444,18 +1443,17 @@ begin
 
           RenderDetailLine;
 
-          //Forex gain/loss
+          //4A Forex gain/loss
           PutString('Calculated Forex Gain/Loss');
           for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
             if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
               //PrintValues
               PrintValuesForPeriod( BaseAmounts.ForexGainLoss[PeriodNo], Debit);
-            end
-            else
+            end else
                SkipPeriod;
           end;
 
-          //Period YTD Information
+          //4B. YTD Forex gain/loss
           if ClientForReport.clFields.clFRS_Show_YTD then begin
             //GetYTDValues
             GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArrayBase);
@@ -1482,7 +1480,7 @@ begin
 
           RenderDetailLine;
 
-          //Real closing balance
+          //5A. Closing balance actual Forex
           PutString(GetHeading(hdClosing_Balance));
           for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
             if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then
@@ -1491,34 +1489,40 @@ begin
                SkipPeriod;
           end;
 
+          //5B. YTD Closing balance actual Forex
+          if ClientForReport.clFields.clFRS_Show_YTD then begin
+            //GetYTDValues          
+            FUseBaseAmounts := False;
+            GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
+            FUseBaseAmounts := True;
+            //Convert statement closing bal for non-base currency accounts
+            if NonBaseCurrencyContra(pAcct.chAccount_Code) then begin
+              for j := Low(ValuesArray) to High(ValuesArray) do begin
+                //Get exchange rate
+                FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True, (j > 0));
+                //Calculate variance
+                if (j = integer(ftVariance)) then
+                  ValuesArray[integer(ftVariance)] := -(ValuesArray[integer(ftComparative)] - ValuesArray[integer(ftActual)])
+                else if FClosingBalanceExchangeRate > 0 then
+                  ValuesArray[j] := Double2Money(Money2Double(ValuesArray[j]) / FClosingBalanceExchangeRate);
+              end;
+            end;
+            //PrintValues
+            PrintValuesForPeriod( ValuesArray, Debit);
+          end;
+
+        //***** END FOREX ACCOUNTS ONLY *****
+        end else begin
+          //3B. YTD Closing Balance
+          if ClientForReport.clFields.clFRS_Show_YTD then begin
+            //GetYTDValues
+            FUseBaseAmounts := False;
+            GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
+            //PrintValues
+            PrintValuesForPeriod( ValuesArray, Debit);
+          end;
         end;
 
-        //Period YTD Information
-        if ClientForReport.clFields.clFRS_Show_YTD then begin
-           //GetYTDValues
-           if NonBaseCurrencyAccount then begin
-             FUseBaseAmounts := False;
-             GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
-             FUseBaseAmounts := True;
-             //Convert statement closing bal for non-base currency accounts
-             if NonBaseCurrencyContra(pAcct.chAccount_Code) then begin
-               for j := Low(ValuesArray) to High(ValuesArray) do begin
-                 //Get exchange rate
-                 FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True, (j > 0));
-                 //Calculate variance
-                 if (j = integer(ftVariance)) then
-                   ValuesArray[integer(ftVariance)] := -(ValuesArray[integer(ftComparative)] - ValuesArray[integer(ftActual)])
-                 else if FClosingBalanceExchangeRate > 0 then
-                   ValuesArray[j] := Double2Money(Money2Double(ValuesArray[j]) / FClosingBalanceExchangeRate);
-               end;
-             end;
-           end else begin
-             FUseBaseAmounts := False;
-             GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
-           end;
-           //PrintValues
-           PrintValuesForPeriod( ValuesArray, Debit);
-        end;
         RenderDetailLine(True,siSectiontotal);
         DoubleUnderLine;
 
@@ -1776,7 +1780,7 @@ begin
                                                          ClosingBalanceWithGainLoss[PeriodNo, integer(ftActual)])
           else if ClosingBalanceExchangeRate > 0 then
             ClosingBalanceWithGainLoss[PeriodNo, i] := Double2Money(Money2Double(ClosingBalanceWithGainLoss[PeriodNo, i]) / ClosingBalanceExchangeRate);
-        end;
+        end; 
 
         //5. Forex gain/loss
         for i := Low(OpeningBalance[PeriodNo]) to High(OpeningBalance[PeriodNo]) do

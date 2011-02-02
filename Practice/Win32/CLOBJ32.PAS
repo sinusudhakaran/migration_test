@@ -108,6 +108,7 @@ type
     Function DepositEntryType : Byte; { 50,10,10 }
     // ----------------------------------------------------------------------------
 
+    function GetForexISOCodeForContra(AContraCode: string): string;
 {$ENDIF}
   end;
 
@@ -734,6 +735,25 @@ Begin
 
    Result := LongInt( CRC );
    LogDebugMsg( ThisMethodName+' Ends');
+end;
+
+function TClientObj.GetForexISOCodeForContra(AContraCode: string): string;
+  var
+  i: integer;
+  ba : TBank_Account;
+begin
+  Result := '';
+  for i := 0 to clBank_Account_List.ItemCount - 1 do begin
+    ba := TBank_Account(clBank_Account_List.Bank_Account_At(i));
+    if Assigned(ba) then begin
+      if (ba.baFields.baContra_Account_Code = AContraCode) then begin
+        if ba.IsAForexAccount then begin
+          Result := ba.baFields.baCurrency_Code;
+          Break;
+        end;
+      end;
+    end;
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
