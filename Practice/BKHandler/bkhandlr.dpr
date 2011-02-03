@@ -6,7 +6,7 @@ uses
   selectbkfolderfrm in 'selectbkfolderfrm.pas' {frmSelectBK5Folder},
   RegistryUtils in 'RegistryUtils.pas';
 
-{$R *.res}
+
 {$R docicon.res}
 {$R trfdoc.res}
 
