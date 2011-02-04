@@ -5,15 +5,17 @@ if not exist setupbnotes.exe pause
 REM Check for Notes exe
 if not exist bnotes.exe echo Copy bnotes.exe to this folder before continuing!
 if not exist bnotes.exe pause
-echo **********************************************************
-echo *                                                        *
-echo * This will DELETE the existing "Practice CD" directory! *
-echo *                                                        *
-echo * Press CTRL+C now to terminate this Batch File          *
-echo *                                                        *
-echo **********************************************************
-Del "Practice CD" /F
+if exist "Practice CD" echo **********************************************************
+if exist "Practice CD" echo *                                                        *
+if exist "Practice CD" echo * This will DELETE the existing "Practice CD" directory! *
+if exist "Practice CD" echo *                                                        *
+if exist "Practice CD" echo * Press CTRL+C now to terminate this Batch File          *
+if exist "Practice CD" echo *                                                        *
+if exist "Practice CD" echo **********************************************************
+if exist "Practice CD" Del "Practice CD" /F
 REM Create the folder structure
+echo "Creating Practice CD..."
+md "Practice CD"
 md "Practice CD\Documents\Australia\Books"
 md "Practice CD\Documents\Australia\Practice"
 md "Practice CD\Documents\New Zealand\Books"
@@ -23,7 +25,7 @@ md "Practice CD\Documents\United Kingdom\Practice"
 md "Practice CD\Redist
 md "Practice CD\Software\BankLink\Books\AU"
 md "Practice CD\Software\BankLink\Books\NZ"
-md "Practice CD\Software\BankLink\Books\UK"
+REM md "Practice CD\Software\BankLink\Books\UK"
 md "Practice CD\Software\BankLink\Practice\AU"
 md "Practice CD\Software\BankLink\Practice\NZ"
 md "Practice CD\Software\BankLink\Practice\UK"
@@ -51,7 +53,7 @@ xcopy "Practice CD Files\Redist\*" "Practice CD\Redist" /i /s /y
 REM Software
 copy BooksInstall_AU\setup_books.exe "Practice CD\Software\BankLink\Books\AU\Setup.exe
 copy BooksInstall_NZ\setup_books.exe "Practice CD\Software\BankLink\Books\NZ\Setup.exe
-copy BooksInstall_UK\setup_books.exe "Practice CD\Software\BankLink\Books\UK\Setup.exe
+REM copy BooksInstall_UK\setup_books.exe "Practice CD\Software\BankLink\Books\UK\Setup.exe
 copy PracticeInstall_AU\setup_practice_au.exe "Practice CD\Software\BankLink\Practice\AU\Setup.exe
 copy PracticeInstall_NZ\setup_practice_nz.exe "Practice CD\Software\BankLink\Practice\NZ\Setup.exe
 copy PracticeInstall_UK\setup_practice_uk.exe "Practice CD\Software\BankLink\Practice\UK\Setup.exe
