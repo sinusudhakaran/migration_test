@@ -2061,6 +2061,9 @@ begin
       FromDate := aClient.clFields.clTemp_Period_Details_Last_Year[1].Period_Start_Date;
   end;
 
+  if This_Year_Starts < FromDate then
+    FromDate := This_Year_Starts;
+
   MissingDates := TStringList.Create;
   try
     Result := True;

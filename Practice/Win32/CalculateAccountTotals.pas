@@ -464,7 +464,7 @@ var
                    AddTo( G^.chTemp_Amount.This_Year[ Period ], GST_Amount );
              end;
              //Set base amount
-             chTemp_Base_Amount.This_Year[ Period ] := chTemp_Amount.This_Year[ Period ];
+             P^.chTemp_Base_Amount.This_Year[ Period ] := chTemp_Amount.This_Year[ Period ];
            end
            else begin { Last Year }
              AddTo( chTemp_Quantity.Last_Year[ Period ], Quantity );
@@ -497,6 +497,7 @@ var
       WhichYear  : TWhichYear;
       PeriodNo   : integer;
       SkipAccount : boolean;
+      IsForex     : boolean;
    begin
       with aClient.clBank_Account_List do
          for i := 0 to Pred( ItemCount) do begin
@@ -533,6 +534,8 @@ var
                  Contra := aClient.clChart.FindCode( ba.baFields.baContra_Account_Code)
                else
                  Contra := nil;
+
+               IsForex := BA.IsAForexAccount;
 
                for t := 0 to Pred(ba.baTransaction_List.ItemCount) do begin
                   pT := ba.baTransaction_List.Transaction_At(t);
@@ -603,16 +606,20 @@ var
                        if (pT^.txFirst_Dissection = nil) then begin
                            if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                            or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then begin
-//                              AddItem( WhichYear, PeriodNo, pT^.txAccount, pt^.txAmount, pt^.txGST_Class, pT^.txGST_Amount, pT^.txQuantity);
-                              AddItem( WhichYear, PeriodNo, pT^.txAccount, pt^.txTemp_Base_Amount, pt^.txGST_Class, pT^.txGST_Amount, pT^.txQuantity);
+                              if IsForex then
+                                AddItem( WhichYear, PeriodNo, pT^.txAccount, pt^.txTemp_Base_Amount, pt^.txGST_Class, pT^.txGST_Amount, pT^.txQuantity)
+                              else
+                                AddItem( WhichYear, PeriodNo, pT^.txAccount, pt^.txAmount, pt^.txGST_Class, pT^.txGST_Amount, pT^.txQuantity);
                            end;
                        end else begin
                           pD := pT^.txFirst_Dissection;
                           while ( pD <> nil) do begin
                              if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                              or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then begin
-//                                AddItem(WhichYear, PeriodNo, pD^.dsAccount, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount, pD^.dsQuantity);
-                                AddItem(WhichYear, PeriodNo, pD^.dsAccount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount, pD^.dsQuantity);
+                                if IsForex then
+                                  AddItem(WhichYear, PeriodNo, pD^.dsAccount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount, pD^.dsQuantity)
+                                else
+                                  AddItem(WhichYear, PeriodNo, pD^.dsAccount, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount, pD^.dsQuantity);
                              end;
                              pD := pD^.dsNext;
                           end;
