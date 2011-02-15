@@ -435,6 +435,7 @@ begin
 
       if  (ReportType in [ // These do not have their own dialog
               Report_List_GST_Details,
+              Report_List_Jobs,
               Report_List_Divisions,
               Report_List_SubGroups,
               Report_List_bankAccts,
