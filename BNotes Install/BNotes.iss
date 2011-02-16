@@ -2,7 +2,7 @@
 ;Bits=32
 AppName=BankLink BNotes
 AppVerName=BankLink BNotes
-AppCopyright=Copyright © 2001,2002 BankLink Limited
+AppCopyright=Copyright © 2001-2011 BankLink Limited
 ChangesAssociations=yes
 DefaultDirName={sd}\BNotes
 DefaultGroupName=BankLink
