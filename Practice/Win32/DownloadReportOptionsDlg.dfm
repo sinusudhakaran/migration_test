@@ -19,7 +19,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
   PixelsPerInch = 96
   TextHeight = 13
   object Label2: TLabel
-    Left = 8
+    Left = 16
     Top = 8
     Width = 263
     Height = 13
@@ -57,7 +57,6 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Caption = 'Cancel'
     TabOrder = 7
     OnClick = btnCancelClick
-    ExplicitLeft = 443
   end
   object btnPrint: TButton
     Left = 354
@@ -68,7 +67,6 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Caption = 'Print'
     TabOrder = 6
     OnClick = btnPrintClick
-    ExplicitLeft = 363
   end
   object chkHideDeleted: TCheckBox
     Left = 16
@@ -81,55 +79,55 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     TabOrder = 3
   end
   object Panel1: TPanel
-    Left = 24
+    Left = 16
     Top = 32
-    Width = 393
+    Width = 400
     Height = 217
     TabOrder = 0
     object chkActive: TCheckBox
-      Left = 24
+      Left = 17
       Top = 49
-      Width = 345
+      Width = 360
       Height = 17
       Caption = 'Active Accounts (received entries in the last download)'
       TabOrder = 1
     end
     object chkInactive: TCheckBox
-      Left = 24
+      Left = 17
       Top = 83
-      Width = 345
+      Width = 360
       Height = 17
       Caption = 'Inactive Accounts (no entries in the last download)'
       TabOrder = 2
     end
     object chkNew: TCheckBox
-      Left = 24
+      Left = 17
       Top = 116
-      Width = 337
+      Width = 360
       Height = 17
       Caption = 'New Accounts '
       TabOrder = 3
     end
     object chkMissing: TCheckBox
-      Left = 24
+      Left = 17
       Top = 150
-      Width = 345
+      Width = 360
       Height = 17
-      Caption = 'Deleted Accounts (account not received in last download)'
+      Caption = 'Deleted Accounts (accounts not received in last download)'
       TabOrder = 4
     end
     object chkNotAllocated: TCheckBox
-      Left = 24
+      Left = 17
       Top = 184
-      Width = 337
+      Width = 360
       Height = 17
       Caption = 'Accounts that have not been allocated to a client'
       TabOrder = 5
     end
     object chkAll: TCheckBox
-      Left = 24
+      Left = 17
       Top = 16
-      Width = 337
+      Width = 360
       Height = 17
       Caption = 'Complete list of accounts'
       TabOrder = 0
