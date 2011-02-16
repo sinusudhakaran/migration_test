@@ -214,8 +214,13 @@ begin
   FAddNew := False;
 
   cmbType.Clear;
-  for i := mtMin to mtMax do
-    cmbType.Items.AddObject(mtNames[i], TObject(i));
+  case MyClient.clFields.clCountry of
+    //No manual superfund accounts for NZ or UK.
+    whNewZealand, whUK: for i := mtMin to mtOther do
+                          cmbType.Items.AddObject(mtNames[i], TObject(i));
+    whAustralia:        for i := mtMin to mtMax do
+                          cmbType.Items.AddObject(mtNames[i], TObject(i));
+  end;
   cmbType.ItemIndex := -1;
 
   eDateFrom.PictureMask := BKDATEFORMAT;
