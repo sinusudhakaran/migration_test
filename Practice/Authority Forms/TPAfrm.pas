@@ -84,6 +84,7 @@ type
     lblPracticeCode: TLabel;
     lblName: TLabel;
     lblSign: TLabel;
+    cbProvisional: TCheckBox;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);

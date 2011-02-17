@@ -87,6 +87,7 @@ type
     rbMonthly: TRadioButton;
     rbWeekly: TRadioButton;
     rbDaily: TRadioButton;
+    cbProvisional: TCheckBox;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);

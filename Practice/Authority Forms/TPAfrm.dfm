@@ -24,6 +24,7 @@ object frmTPA: TfrmTPA
     Top = 0
     Width = 692
     Height = 657
+    VertScrollBar.Position = 221
     Align = alClient
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
@@ -35,7 +36,7 @@ object frmTPA: TfrmTPA
     TabOrder = 0
     object pnlHeader: TPanel
       Left = 0
-      Top = 0
+      Top = -221
       Width = 671
       Height = 49
       Align = alTop
@@ -82,7 +83,7 @@ object frmTPA: TfrmTPA
     end
     object pnlAccount3: TPanel
       Left = 0
-      Top = 177
+      Top = -44
       Width = 671
       Height = 64
       Align = alTop
@@ -172,7 +173,7 @@ object frmTPA: TfrmTPA
     end
     object pnlAccount2: TPanel
       Left = 0
-      Top = 113
+      Top = -108
       Width = 671
       Height = 64
       Align = alTop
@@ -262,7 +263,7 @@ object frmTPA: TfrmTPA
     end
     object pnlFooter: TPanel
       Left = 0
-      Top = 241
+      Top = 20
       Width = 671
       Height = 41
       Align = alTop
@@ -283,7 +284,7 @@ object frmTPA: TfrmTPA
     end
     object pnlAccount1: TPanel
       Left = 0
-      Top = 49
+      Top = -172
       Width = 671
       Height = 64
       Align = alTop
@@ -373,29 +374,29 @@ object frmTPA: TfrmTPA
     end
     object pnlBank: TPanel
       Left = 0
-      Top = 282
+      Top = 61
       Width = 671
-      Height = 126
+      Height = 119
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 3
       object lblTo: TLabel
         Left = 8
-        Top = 15
+        Top = 8
         Width = 89
         Height = 13
         Caption = 'To:  The Manager,'
       end
       object lblPos: TLabel
         Left = 8
-        Top = 58
+        Top = 51
         Width = 159
         Height = 13
         Caption = '(Insert name of Bank and Branch)'
       end
       object lblPos1: TLabel
         Left = 8
-        Top = 83
+        Top = 76
         Width = 157
         Height = 39
         Caption = 
@@ -404,7 +405,7 @@ object frmTPA: TfrmTPA
       end
       object edtBank: TEdit
         Left = 8
-        Top = 36
+        Top = 29
         Width = 387
         Height = 21
         Hint = 
@@ -419,9 +420,9 @@ object frmTPA: TfrmTPA
     end
     object pnl1: TPanel
       Left = 0
-      Top = 408
+      Top = 180
       Width = 671
-      Height = 120
+      Height = 114
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 4
@@ -567,7 +568,7 @@ object frmTPA: TfrmTPA
     end
     object pnl2: TPanel
       Left = 0
-      Top = 528
+      Top = 294
       Width = 671
       Height = 65
       Align = alTop
@@ -592,9 +593,9 @@ object frmTPA: TfrmTPA
     end
     object pnlSign: TPanel
       Left = 0
-      Top = 593
+      Top = 359
       Width = 671
-      Height = 207
+      Height = 191
       Align = alBottom
       BevelOuter = bvNone
       TabOrder = 9
@@ -632,14 +633,14 @@ object frmTPA: TfrmTPA
     end
     object pnlExtras: TPanel
       Left = 0
-      Top = 800
+      Top = 550
       Width = 671
-      Height = 85
+      Height = 103
       Align = alBottom
       TabOrder = 5
       object lblAdditional: TLabel
         Left = 16
-        Top = 9
+        Top = 6
         Width = 297
         Height = 13
         Caption = 'Additional Information to assist BankLink processing'
@@ -652,28 +653,28 @@ object frmTPA: TfrmTPA
       end
       object lblMonthly: TLabel
         Left = 16
-        Top = 33
+        Top = 49
         Width = 92
         Height = 13
         Caption = 'Service Frequency:'
       end
       object lblRural: TLabel
         Left = 16
-        Top = 59
+        Top = 75
         Width = 105
         Height = 13
         Caption = 'Rural Institutions Only:'
       end
       object pnlService: TPanel
         Left = 160
-        Top = 28
+        Top = 43
         Width = 489
         Height = 25
         BevelOuter = bvNone
         TabOrder = 0
         object rbMonthly: TRadioButton
           Left = 8
-          Top = 5
+          Top = 7
           Width = 113
           Height = 17
           Hint = 'Click to select monthly (default) data delivery'
@@ -685,7 +686,7 @@ object frmTPA: TfrmTPA
         end
         object rbWeekly: TRadioButton
           Left = 140
-          Top = 5
+          Top = 7
           Width = 145
           Height = 17
           Hint = 'Click to select weekly data delivery'
@@ -697,7 +698,7 @@ object frmTPA: TfrmTPA
         end
         object rbDaily: TRadioButton
           Left = 313
-          Top = 5
+          Top = 7
           Width = 129
           Height = 17
           Hint = 'Click to select daily data delivery'
@@ -710,9 +711,9 @@ object frmTPA: TfrmTPA
       end
       object pnlRural: TPanel
         Left = 160
-        Top = 53
+        Top = 68
         Width = 489
-        Height = 25
+        Height = 23
         BevelOuter = bvNone
         TabOrder = 1
         object rbReDate: TRadioButton
@@ -739,6 +740,16 @@ object frmTPA: TfrmTPA
           TabOrder = 1
           TabStop = True
         end
+      end
+      object cbProvisional: TCheckBox
+        Left = 16
+        Top = 26
+        Width = 586
+        Height = 17
+        Caption = 
+          'Please supply the account(s) above as Provisional Account(s) if ' +
+          'they are not available from the Bank'
+        TabOrder = 2
       end
     end
   end

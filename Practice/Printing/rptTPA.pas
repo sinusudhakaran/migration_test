@@ -30,7 +30,7 @@ function DoTPAReport(Values: TfrmTPA; Destination : TReportDest; Mode: TAFMode; 
 implementation
 
 uses
-   ReportTypes,
+   ReportTypes, 
    Windows, Globals, MailFrm, bkConst, Graphics, Types, RepCols, UserReportSettings;
 
 function DoTPAReport(Values: TfrmTPA; Destination : TReportDest; Mode: TAFMode; Addr: string = '') : Boolean;
@@ -232,13 +232,19 @@ begin
    CurrYPos := i;
    //Signature
    RenderSplitText(Values.lblSign.Caption, Col1 + 720, True);
-   NewLine(2);
-   DrawBox(XYSizeRect(Col0 - BoxMargin, CurrYPos, ColBoxRight + BoxMargin, CurrYPos + CurrLineSize*7));
+   NewLine;
+   DrawBox(XYSizeRect(Col0 - BoxMargin, CurrYPos, ColBoxRight + BoxMargin, CurrYPos + CurrLineSize*8));
    NewLine;
    myCanvas.Font.Style := [fsBold];
+   CurrYPos := CurrYPos - 10;
    RenderText(Values.lblAdditional.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
-   NewLine(2);
+   NewLine;
+   //Provisional
+   CurrYPos := CurrYPos + 20;
    myCanvas.Font.Style := [];
+   DrawCheckbox(Col1, CurrYPos, Values.cbProvisional.Checked);
+   RenderText(Values.cbProvisional.Caption, Rect(Col1 + CurrLineSize + 10, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+   NewLine(2);
    //Frequency
    RenderText(Values.lblMonthly.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
    DrawRadio(myCanvas, XYSizeRect(Col1 + 400, CurrYPos, Col1 + 800, CurrYPos+CurrLineSize), ' ' + Values.rbMonthly.Caption, True, Values.rbMonthly.Checked);

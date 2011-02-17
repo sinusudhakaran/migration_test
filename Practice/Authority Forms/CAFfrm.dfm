@@ -25,7 +25,7 @@ object frmCAF: TfrmCAF
     Top = 0
     Width = 709
     Height = 707
-    VertScrollBar.Position = 265
+    VertScrollBar.Position = 246
     Align = alClient
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
@@ -37,7 +37,7 @@ object frmCAF: TfrmCAF
     TabOrder = 0
     object pnlHeader: TPanel
       Left = 0
-      Top = -265
+      Top = -246
       Width = 688
       Height = 49
       Align = alTop
@@ -80,7 +80,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount3: TPanel
       Left = 0
-      Top = -88
+      Top = -69
       Width = 688
       Height = 64
       Align = alTop
@@ -180,7 +180,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount2: TPanel
       Left = 0
-      Top = -152
+      Top = -133
       Width = 688
       Height = 64
       Align = alTop
@@ -280,7 +280,7 @@ object frmCAF: TfrmCAF
     end
     object pnlFooter: TPanel
       Left = 0
-      Top = -24
+      Top = -5
       Width = 688
       Height = 41
       Align = alTop
@@ -301,7 +301,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount1: TPanel
       Left = 0
-      Top = -216
+      Top = -197
       Width = 688
       Height = 64
       Align = alTop
@@ -401,7 +401,7 @@ object frmCAF: TfrmCAF
     end
     object pnlBank: TPanel
       Left = 0
-      Top = 17
+      Top = 36
       Width = 688
       Height = 88
       Align = alTop
@@ -471,7 +471,7 @@ object frmCAF: TfrmCAF
     end
     object pnl1: TPanel
       Left = 0
-      Top = 105
+      Top = 124
       Width = 688
       Height = 99
       Align = alTop
@@ -572,7 +572,7 @@ object frmCAF: TfrmCAF
     end
     object pnl2: TPanel
       Left = 0
-      Top = 204
+      Top = 223
       Width = 688
       Height = 113
       Align = alTop
@@ -603,7 +603,7 @@ object frmCAF: TfrmCAF
     end
     object pnl3: TPanel
       Left = 0
-      Top = 317
+      Top = 336
       Width = 688
       Height = 48
       Align = alTop
@@ -624,7 +624,7 @@ object frmCAF: TfrmCAF
     end
     object pnl4: TPanel
       Left = 0
-      Top = 365
+      Top = 384
       Width = 688
       Height = 74
       Align = alTop
@@ -647,9 +647,9 @@ object frmCAF: TfrmCAF
     end
     object pnlSign: TPanel
       Left = 0
-      Top = 439
+      Top = 458
       Width = 688
-      Height = 180
+      Height = 161
       Align = alTop
       BevelOuter = bvNone
       Constraints.MinWidth = 640
@@ -658,7 +658,7 @@ object frmCAF: TfrmCAF
         Left = 29
         Top = 23
         Width = 638
-        Height = 143
+        Height = 130
         Caption = 
           'Dated this ................. day of ............................' +
           '........................ 20............'#13#13#13#13'.....................' +
@@ -668,13 +668,13 @@ object frmCAF: TfrmCAF
           '(Account signatory)                                             ' +
           '                                                                ' +
           '                                           (Account signatory)'#13#13 +
-          #13#13'..............................................................' +
-          '........................................        ................' +
+          #13'...............................................................' +
+          '.......................................        .................' +
           '................................................................' +
-          '......................'#13'(Witness)                                ' +
+          '.....................'#13'(Witness)                                 ' +
           '                                                                ' +
           '                                                                ' +
-          '                       (Witness)'
+          '                      (Witness)'
       end
     end
     object pnlFrequency: TPanel
@@ -685,12 +685,13 @@ object frmCAF: TfrmCAF
       Align = alBottom
       BevelOuter = bvNone
       TabOrder = 5
+      ExplicitTop = 620
       object Panel1: TPanel
         Tag = 29
         Left = 29
         Top = 6
         Width = 637
-        Height = 63
+        Height = 77
         BevelOuter = bvNone
         BorderWidth = 1
         BorderStyle = bsSingle
@@ -699,7 +700,7 @@ object frmCAF: TfrmCAF
         TabOrder = 0
         object lblAdditionalInfo: TLabel
           Left = 14
-          Top = 11
+          Top = 9
           Width = 231
           Height = 13
           Caption = 'Additional information to assist BankLink'
@@ -712,14 +713,14 @@ object frmCAF: TfrmCAF
         end
         object lblServiceFrequency: TLabel
           Left = 14
-          Top = 36
+          Top = 53
           Width = 92
           Height = 13
           Caption = 'Service Frequency:'
         end
         object rbMonthly: TRadioButton
           Left = 137
-          Top = 35
+          Top = 52
           Width = 113
           Height = 17
           Hint = 'Click to select monthly data delivery'
@@ -729,7 +730,7 @@ object frmCAF: TfrmCAF
         end
         object rbWeekly: TRadioButton
           Left = 271
-          Top = 35
+          Top = 52
           Width = 150
           Height = 17
           Hint = 'Click to select weekly data delivery'
@@ -739,13 +740,23 @@ object frmCAF: TfrmCAF
         end
         object rbDaily: TRadioButton
           Left = 444
-          Top = 35
+          Top = 52
           Width = 150
           Height = 17
           Hint = 'Click to select daily data delivery'
           Caption = 'Daily (where available)'
           TabOrder = 2
           TabStop = True
+        end
+        object cbProvisional: TCheckBox
+          Left = 14
+          Top = 29
+          Width = 586
+          Height = 17
+          Caption = 
+            'Please supply the account(s) above as Provisional Account(s) if ' +
+            'they are not available from the Bank'
+          TabOrder = 3
         end
       end
     end

@@ -69,6 +69,7 @@ type
     procedure PrintAccount(const name, bsb, number, client, cost: string;
       const cname, cnumber, cclient, ccost: string; const AcNumPos: Integer; const BSBSep: Boolean = False); // print an account section
     procedure DrawLine; // draw a line across the screen at the current Y position
+    procedure DrawCheckbox(aX, aY: integer; Checked: boolean);
     function GetCurrLineSizeNoInflation: Integer; // sometimes requires less line spacing
     function XYPoint(aX, aY: Integer): TPoint;
   end;
@@ -86,7 +87,8 @@ uses
    ShellAPI,
    Classes,
    SysUtils,
-   RepCols;
+   RepCols,
+   Graphics;
 
 const // Import Column Titles
   ct_AccountName = 'Account Name';
@@ -249,6 +251,40 @@ end;
 function TAuthorityReport.ColumnsFound: Boolean;
 begin
    Result := (fCurRow >= 0) and (fcAccountName >= 0) and (fcAccountNo>= 0) and (fcBank >= 0);
+end;
+
+procedure TAuthorityReport.DrawCheckbox(aX, aY: integer; Checked: boolean);
+const
+  MARGIN = 5;
+var
+  T: TPoint;
+  XWidth, XMargin: integer;
+begin
+  DrawBox(XYSizeRect(aX, aY, aX + CurrLineSize, aY + CurrLineSize));
+  if Checked then begin
+    CanvasRenderEng.OutputBuilder.Canvas.Pen.Width := 2;
+    //Tick (looks too small on printout)
+//    T := XYPoint(aX + 4, aY + (CurrLineSize div 2) );
+//    CanvasRenderEng.OutputBuilder.Canvas.MoveTo(T.X, T.Y);
+//    T := XYPoint(aX + 12, aY + CurrLineSize - 7);
+//    CanvasRenderEng.OutputBuilder.Canvas.LineTo(T.X, T.Y);
+//    T := XYPoint(aX + CurrLineSize - 9, aY + 7);
+//    CanvasRenderEng.OutputBuilder.Canvas.LineTo(T.X, T.Y);
+
+    //Cross
+    XWidth := CurrLineSize - (MARGIN * 2);
+    XMargin := (CurrLineSize - XWidth) div 2;
+    T := XYPoint(aX + XMargin, aY + XMargin);
+    CanvasRenderEng.OutputBuilder.Canvas.MoveTo(T.X, T.Y);
+    T := XYPoint(aX + CurrLineSize - XMargin, aY + CurrLineSize - XMargin);
+    CanvasRenderEng.OutputBuilder.Canvas.LineTo(T.X, T.Y);
+    T := XYPoint(aX + CurrLineSize - XMargin, aY + XMargin);
+    CanvasRenderEng.OutputBuilder.Canvas.MoveTo(T.X, T.Y);
+    T := XYPoint(aX + XMargin, aY + CurrLineSize - XMargin);
+    CanvasRenderEng.OutputBuilder.Canvas.LineTo(T.X, T.Y);
+
+    CanvasRenderEng.OutputBuilder.Canvas.Pen.Width := 1;
+  end;
 end;
 
 procedure TAuthorityReport.DrawLine;

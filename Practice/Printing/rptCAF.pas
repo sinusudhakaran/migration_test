@@ -193,12 +193,18 @@ begin
    RenderSplitText(Values.lblSign.Caption, Col0, True);
    CurrYPos := CurrYPos + CurrLineSize + BoxMargin;
    //Additional information to assist BankLink
-   DrawBox(XYSizeRect(Col0 - BoxMargin, CurrYPos - BoxMargin, ColBoxRight + BoxMargin, CurrYPos + 140));
+   DrawBox(XYSizeRect(Col0 - BoxMargin, CurrYPos - BoxMargin, ColBoxRight + BoxMargin, CurrYPos + 150));
    NewLine;
    myCanvas.Font.Style := [fsbold];
    RenderText(Values.lblAdditionalInfo.Caption, Rect(Col1, CurrYPos - CurrLineSize, Col1 + 600, CurrYPos), jtLeft);
-   NewLine;
+   //Provisional
+   CurrYPos := CurrYPos + 20;
    myCanvas.Font.Style := (myCanvas.Font.Style - [fsbold]);
+   DrawCheckbox(Col1, CurrYPos, Values.cbProvisional.Checked);
+   RenderText(Values.cbProvisional.Caption, Rect(Col1 + CurrLineSize + 10, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+   CurrYPos := CurrYPos + 20;
+   NewLine;
+   //Frequency
    DrawRadio(MyCanvas, XYSizeRect(Col1 + 300, CurrYPos, Col1 + 700, CurrYPos+CurrLineSize), ' ' + Values.rbMonthly.Caption, True, Values.rbMonthly.Checked);
    DrawRadio(MyCanvas, XYSizeRect(Col1 + 700, CurrYPos, Col1 + 1300, CurrYPos+CurrLineSize), ' ' + Values.rbWeekly.Caption, True, Values.rbWeekly.Checked);
    DrawRadio(MyCanvas, XYSizeRect(Col1 + 1300, CurrYPos, Col1 + 1800, CurrYPos+CurrLineSize), ' ' + Values.rbDaily.Caption, True, Values.rbDaily.Checked);
