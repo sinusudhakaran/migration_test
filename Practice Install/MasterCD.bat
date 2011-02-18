@@ -35,6 +35,7 @@ md "Practice CD\Software\Notes"
 md "Practice CD\Software\Support\Uncompressed"
 md "Practice CD\Toolkit\Australia
 md "Practice CD\Toolkit\New Zealand
+md "Practice CD\Toolkit\United Kingdom
 
 REM Copy the files
 copy "Practice CD Files\AUTORUN.INF" "Practice CD\AUTORUN.INF"
