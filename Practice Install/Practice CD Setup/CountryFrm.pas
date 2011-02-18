@@ -17,13 +17,13 @@ type
     { Public declarations }
   end;
 
-function GetCountry : integer;
+function GetCountry(Param: string = '') : integer;
 
 implementation
 
 {$R *.dfm}
 
-function GetCountry : integer;
+function GetCountry(Param: string): integer;
 var
    a                : array[0..7] of char;
    iLocale          : integer;
@@ -47,6 +47,10 @@ begin
           CTRY_UNITED_KINGDOM : cmbCountry.ItemIndex := 2;
         end;
       end;
+
+      //Temp - no UK Books yet
+      if Param = 'BOOKS' then
+        cmbCountry.Items.Delete(2);
 
       if ShowModal = mrOK then
       begin

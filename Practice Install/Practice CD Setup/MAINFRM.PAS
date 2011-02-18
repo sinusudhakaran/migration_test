@@ -141,12 +141,12 @@ procedure TfrmMain.btnClientClick(Sender: TObject);
 var cid: Integer;
 begin
 //ask for country
-   cid := CountryFrm.GetCountry;
+   cid := CountryFrm.GetCountry('BOOKS');
 
    case cid of
      0 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\BANKLINK\BOOKS\NZ\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
      1 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\BANKLINK\BOOKS\AU\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
-     2 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\BANKLINK\BOOKS\UK\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);     
+//     2 : ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\BANKLINK\BOOKS\UK\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
    end;
 
 end;
