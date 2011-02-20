@@ -1184,9 +1184,9 @@ begin
       { Print the Entry }
 
       If MyClient.clFields.clGST_on_Presentation_Date then
-         GST := CalculateGSTForClass( MyClient, txDate_Presented, txTemp_Base_Amount, dsGST_Class )
+         GST := CalculateGSTForClass( MyClient, txDate_Presented, dsTemp_Base_Amount, dsGST_Class )
       else
-         GST := CalculateGSTForClass( MyClient, txDate_Effective, txTemp_Base_Amount, dsGST_Class );
+         GST := CalculateGSTForClass( MyClient, txDate_Effective, dsTemp_Base_Amount, dsGST_Class );
       Edited := ( GST <> dsGST_Amount );
 
       if not Edited then // Also check to see if class has been edited
