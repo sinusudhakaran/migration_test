@@ -35,9 +35,10 @@ type
       OpBalance: Int64; IsNew: Boolean;
       accLRN,instID: integer;
       FrequencyID: integer;
+      IsProvisional: Boolean;
       InternalAccNumber: string='');
     procedure AddTransaction(var DBA: TDisk_Bank_Account;
-      TransID: Integer; TransType: Byte;
+      TransID: Int64; TransType: Byte;
       Amount, GSTAmount, Quantity: Int64; EffDate, OrigDate: Integer;
       Reference, Analysis, Particulars, OtherParty,
       OrigBB, Narration: string);
@@ -814,6 +815,7 @@ procedure TUKDisk.AddAccount(Number, OriginalNumber, Name, FileCode, CostCode, B
   OpBalance: Int64; IsNew: Boolean;
   accLRN,instID: integer;
   FrequencyID: integer;
+  IsProvisional: Boolean;
   InternalAccNumber: string);
 // Add new account to current disk.
 var
@@ -847,6 +849,7 @@ begin
   DBA.dbFields.dbAccount_LRN := accLRN;
   DBA.dbFields.dbInstitution_ID := instID;
   DBA.dbFields.dbFrequency_ID := FrequencyID;
+  DBA.dbFields.dbIs_Provisional := IsProvisional;
 
   dhAccount_List.Insert(DBA);
   Inc(dhFields.dhNo_Of_Accounts);
@@ -854,7 +857,7 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TUKDisk.AddTransaction(var DBA: TDisk_Bank_Account;
-  TransID: Integer; TransType: Byte;
+  TransID: Int64; TransType: Byte;
   Amount, GSTAmount, Quantity: Int64; EffDate, OrigDate: Integer;
   Reference, Analysis, Particulars, OtherParty,
   OrigBB, Narration: string);
@@ -868,7 +871,7 @@ begin
   *)
 
   P := FHDTIO.New_Disk_Transaction_Rec;
-  P.dtBankLink_ID := TransID;
+  P.dtBankLink_ID := TransID and $7FFFFFFF;             // low bits of ID
   P.dtEntry_Type := TransType;
   P.dtAmount := Amount;
   P.dtGST_Amount := GSTAmount;
@@ -884,6 +887,7 @@ begin
   P.dtQuantity := Quantity;
   P.dtBank_Type_Code_OZ_Only := ''; // Not used in NZ
   P.dtDefault_Code_OZ_Only := ''; // Not used in NZ
+  P.dtBankLink_ID_H := (TransID shr 31) and $7FFFFFFF;  // high bits of ID (2 most significant bits are lost)
 
   DBA.dbTransaction_List.Insert(P);
 

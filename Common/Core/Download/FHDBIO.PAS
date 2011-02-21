@@ -65,6 +65,7 @@ CONST
    tkdbCurrency                         = 41 ;
    tkdbInstitution_ID                   = 42 ;
    tkdbFrequency_ID                     = 43 ;
+   tkdbIs_Provisional                   = 44 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -112,6 +113,7 @@ Begin
       F.WriteShortStringValue( tkdbCurrency , dbCurrency );
       F.WriteIntegerValue( tkdbInstitution_ID , dbInstitution_ID );
       F.WriteIntegerValue( tkdbFrequency_ID , dbFrequency_ID );
+      F.WriteBooleanValue( tkdbIs_Provisional , dbIs_Provisional );
       F.WriteToken( tkEnd_Disk_Bank_Account );
    end;
 end; { of Write_Disk_Bank_Account_Rec }
@@ -156,6 +158,7 @@ Begin
          tkdbCurrency                         : dbCurrency := F.ReadShortStringValue;
          tkdbInstitution_ID                   : dbInstitution_ID := F.ReadIntegerValue;
          tkdbFrequency_ID                     : dbFrequency_ID := F.ReadIntegerValue;
+         tkdbIs_Provisional                   : dbIs_Provisional := F.ReadBooleanValue;
          else
             Raise FHUnknownTokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }

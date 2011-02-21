@@ -59,6 +59,7 @@ CONST
    tkdtGST_Amount_Known                 = 45 ;
    tkdtNarration                        = 46 ;
    tkdtQuantity                         = 47 ;
+   tkdtBankLink_ID_H                    = 48 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -100,6 +101,7 @@ Begin
       F.WriteBooleanValue( tkdtGST_Amount_Known , dtGST_Amount_Known );
       F.WriteShortStringValue( tkdtNarration , dtNarration );
       F.WriteInt64Value( tkdtQuantity , dtQuantity );
+      F.WriteIntegerValue( tkdtBankLink_ID_H , dtBankLink_ID_H );
       F.WriteToken( tkEnd_Disk_Transaction );
    end;
 end; { of Write_Disk_Transaction_Rec }
@@ -138,6 +140,7 @@ Begin
          tkdtGST_Amount_Known                 : dtGST_Amount_Known := F.ReadBooleanValue;
          tkdtNarration                        : dtNarration := F.ReadShortStringValue;
          tkdtQuantity                         : dtQuantity := F.ReadInt64Value;
+         tkdtBankLink_ID_H                    : dtBankLink_ID_H := F.ReadIntegerValue;
          else
             Raise FHUnknownTokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }

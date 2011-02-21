@@ -9,8 +9,8 @@ Interface
 {  -------------------------------------------------------------------  }
 
 Const
-   FH_IOLIB_Version : Integer = 108;
-   FH_IOLIB_Date    = '19/03/10';
+   FH_IOLIB_Version : Integer = 110;
+   FH_IOLIB_Date    = '21/01/11';
    DISK_FILE_VERSION  = 01;
 
 {  -------------------------------------------------------------------  }
@@ -69,6 +69,7 @@ Type
       dbCurrency                         : String[ 3 ];       { Stored }
       dbInstitution_ID                   : Integer;       { Stored }
       dbFrequency_ID                     : Integer;       { Stored }
+      dbIs_Provisional                   : Boolean;       { Stored }
       dbEOR                              : Byte;
    end;
 
@@ -92,13 +93,14 @@ Type
       dtGST_Amount_Known                 : Boolean;       { Stored }
       dtNarration                        : String[ 200 ];       { Stored }
       dtQuantity                         : Int64;       { Stored }
+      dtBankLink_ID_H                    : Integer;       { Stored }
       dtEOR                              : Byte;
    end;
 
 Const
    Disk_Header_Rec_Size                      = Sizeof( TDisk_Header_Rec ); 
    Disk_Bank_Account_Rec_Size                = Sizeof( TDisk_Bank_Account_Rec ); 
-   Disk_Transaction_Rec_Size                 = Sizeof( TDisk_Transaction_Rec );
+   Disk_Transaction_Rec_Size                 = Sizeof( TDisk_Transaction_Rec ); 
 
 function CorrectFileName(aName: string): string;
 

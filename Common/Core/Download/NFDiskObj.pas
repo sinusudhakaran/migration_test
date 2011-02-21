@@ -275,6 +275,7 @@ Begin
     WI( DBA.dbFields.dbInstitution_ID );
     WI( DBA.dbFields.dbAccount_LRN );
     WI( DBA.dbFields.dbFrequency_ID );
+    WB( DBA.dbFields.dbIs_Provisional );
     Writeln( OutFile );
 
     For t := DBA.dbTransaction_List.First to DBA.dbTransaction_List.Last do
@@ -297,6 +298,7 @@ Begin
       WS( P.dtParticulars_NZ_Only );
       WS( P.dtOrig_BB );
       WM( P.dtQuantity );
+      WI( P.dtBankLink_ID_H );
       Writeln( OutFile );
     end;
 
@@ -433,6 +435,7 @@ Begin
             DBA.dbFields.dbInstitution_ID          := RID( FieldS( InStr, 15 ), 0 );
             DBA.dbFields.dbAccount_LRN             := RID( FieldS( InStr, 16 ), 0 );
             DBA.dbFields.dbFrequency_ID            := RID( FieldS( InStr, 17 ), 0 );
+            DBA.dbFields.dbIs_Provisional          := ( FieldS( InStr, 18 ) = 'Y' );
 
             dhAccount_List.Insert( DBA );
             Inc( dhFields.dhNo_Of_Accounts );
@@ -456,6 +459,7 @@ Begin
             P.dtParticulars_NZ_Only         := FieldS( InStr, 15 );
             P.dtOrig_BB                     := FieldS( InStr, 16 );
             P.dtQuantity                    := RM( FieldS( InStr, 17 ) );
+            P.dtBankLink_ID_H               := RID( FieldS( InStr, 18 ), 0 );
 
             if (DBA.dbFields.dbFirst_Transaction_Date=0) or
                (DBA.dbFields.dbFirst_Transaction_Date>P.dtEffective_Date) then
