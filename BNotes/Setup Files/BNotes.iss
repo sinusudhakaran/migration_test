@@ -2,7 +2,7 @@
 ;Bits=32
 AppName=BankLink BNotes
 AppVerName=BankLink BNotes
-AppCopyright=Copyright © 2001,2002 BankLink Limited
+AppCopyright=Copyright © 2001-2011 BankLink Limited
 ChangesAssociations=yes
 DefaultDirName={sd}\BNotes
 DefaultGroupName=BankLink
@@ -90,7 +90,7 @@ begin
     ChosenCountry := StrToInt(Copy(ParamStr(ParamCount), 9, 3)); // 3 instead of 1 for a bit of future proofing
 
   //Select Country Page
-  CountryPage := CreateInputOptionPage(wpWelcome, 'Country', 'Please select a country for InvoicePlus.', '', True, False);
+  CountryPage := CreateInputOptionPage(wpWelcome, 'Country', 'Please select a country for BankLink Notes.', '', True, False);
   CountryPage.Add('Australia');
   CountryPage.Add('New Zealand');
   CountryPage.Add('United Kingdom');
