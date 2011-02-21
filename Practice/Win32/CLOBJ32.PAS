@@ -78,7 +78,7 @@ type
     function HasExchangeRates(var ISOCodeText: string;
       const FromDate: integer = 0; const ToDate: integer = MaxInt;
       ForReport: boolean = False; AllBankAccounts: boolean = true): Boolean;
-    procedure RefreshExchangeSource;
+    procedure RefreshExchangeSource(DefaultGST: Boolean = True);
     procedure FillIsoCodeList(ISOCodes: TStrings);
     procedure FillAccountingSystemList(Value: Tstrings);
 
@@ -451,7 +451,7 @@ begin
 end;
 
 {$IFNDEF ParserDll}
-procedure TClientObj.RefreshExchangeSource;
+procedure TClientObj.RefreshExchangeSource(DefaultGST: Boolean = True);
 var
   LExchangeRates: TExchangeRateList;
 begin
@@ -462,7 +462,8 @@ begin
       LExchangeRates := GetExchangeRates;
       try
         ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
-        ApplyDefaultGST(False);
+        if DefaultGST then
+          ApplyDefaultGST(False);
       finally
         LExchangeRates.Free;
       end;
@@ -542,7 +543,10 @@ begin
 {$ELSE}
       UpdateRefs;
       UpgradeClientToLatestVersion( Self);
-       //update temporary fields
+      //Update local country code to the base currency if it's not already set
+      if clExtra.ceLocal_Currency_Code = '' then
+        clExtra.ceLocal_Currency_Code := whCurrencyCodes[clFields.clCountry];
+      //update temporary fields
       With clFields do
       Begin
          clFile_Save_Required       := FALSE;

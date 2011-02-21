@@ -4875,6 +4875,8 @@ begin
              baCurrency_Code := Adminsystem.fCurrencyCode;
       end;
       TempClient.clBank_Account_List.Insert(TempAccount);
+      TempClient.RefreshExchangeSource(False); //Don't apply default GST for provisional
+
       MyClient := TempClient;
       //Create form and show modally
       with TdlgHistorical.CreateAndSetup(TempAccount,0, true) do try
