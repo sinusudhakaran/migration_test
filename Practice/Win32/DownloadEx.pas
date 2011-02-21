@@ -600,6 +600,8 @@ begin //ProcessDiskImages
               SystemAccount.sbWas_On_Latest_Disk := true;
 
               SystemAccount.sbAccount_Type := sbtData;
+              if DiskAccount.dbFields.dbIs_Provisional then
+                SystemAccount.sbAccount_Type := sbtProvisional;
 
               //set the closing balance if known,
               //NOTE:  The balances in the production system and disk image
