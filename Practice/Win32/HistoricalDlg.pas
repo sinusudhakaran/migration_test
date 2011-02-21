@@ -272,6 +272,7 @@ type
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
     procedure mniSortByAltCodeClick(Sender: TObject);
     procedure ConvertAmount1Click(Sender: TObject);
+    procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
   private
     { Private declarations }
     BankAccount                   : TBank_Account;
@@ -696,6 +697,13 @@ begin
 
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgHistorical.FormShortCut(var Msg: TWMKey; var Handled: Boolean);
+begin
+  Handled := False;
+  if Msg.CharCode = VK_ESCAPE then
+    ModalResult := mrCancel;
+end;
+
 procedure TdlgHistorical.FormShow(Sender: TObject);
 //note: needs the form position parameter to be poDesigned to get this to work,
 //otherwise the controls were not automatical positioned correctly
