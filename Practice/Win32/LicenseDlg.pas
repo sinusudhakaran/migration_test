@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,
   bkXPThemes,
-  OsFont, ExtCtrls;
+  OsFont, ExtCtrls, ComCtrls;
 
 type
   TDlgLicense = class(TForm)

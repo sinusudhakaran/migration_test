@@ -3801,6 +3801,7 @@ end;
 procedure TdlgHistorical.SetProvisional(const Value: Boolean);
 begin
   FProvisional := Value;
+  HelpContext := BKH_Manually_enter_Provisional_Transactions;
   if FProvisional then begin
       lblTransRange.Caption := 'You may enter transactions for this provisional account.';
       tbChart.Visible := false;

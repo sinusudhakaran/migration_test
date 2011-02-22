@@ -332,7 +332,8 @@ begin
       Ldlg.BankAccount := BankAccount;
       Ldlg.HistTranList := HistTranList;
       Ldlg.SetBounds(HDEForm.Left + 20,HDEForm.Top + 20, HDEForm.Width - 40, HDEForm.Height - 40);
-
+      Ldlg.SetUpHelp;
+      
       Result := ldlg.ShowModal = mrOK;
    finally
       Ldlg.Free;
@@ -1899,6 +1900,9 @@ procedure TImportHist.SetUpHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
    Self.HelpContext := BKH_Importing_historical_data;
+   //Setup Help
+   if BankAccount.IsProvisional then
+     Self.HelpContext := BKH_Importing_Provisional_data;
 end;
 
 function TImportHist.StrToCurr(Value: string): Currency;
