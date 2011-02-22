@@ -75,4 +75,6 @@ copy "Uncompressed\BK5WIN.exe" "Practice CD\Software\Support\Uncompressed\BK5WIN
 REM Toolkit
 xcopy "Practice CD Files\Toolkit\Australia\*" "Practice CD\Toolkit\Australia" /i /s /y
 xcopy "Practice CD Files\Toolkit\New Zealand\*" "Practice CD\Toolkit\New Zealand" /i /s /y
+copy  "Practice CD Files\Toolkit\United Kingdom\The BankLink Toolkit UK.pdf" "Practice CD\Toolkit\United Kingdom\The BankLink Toolkit UK.pdf"
+
 pause
