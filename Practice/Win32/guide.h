@@ -626,3 +626,8 @@
 #define Importing_a_CSV_format_chart_into_BankLink_Practice	2124
 #define Copying_a_chart_from_QuickBooks_Pro_into_BankLink_Practice	2125
 #define QuickBooks_Pro	2126
+#define Importing_Provisional_data	2127
+#define Manually_enter_Provisional_Transactions	2131
+#define List_Provisional_Accounts	2132
+#define What_s_New_in_BankLink_Practice_2011_	2133
+#define Accessing_a_Customer_Authority_Form	2134
