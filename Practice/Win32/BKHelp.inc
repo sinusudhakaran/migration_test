@@ -633,6 +633,11 @@ const
   BKH_Importing_a_CSV_format_chart_into_BankLink_Practice = 2124;
   BKH_Copying_a_chart_from_QuickBooks_Pro_into_BankLink_Practice = 2125;
   BKH_QuickBooks_Pro = 2126;
+  BKH_Importing_Provisional_data = 2127;
+  BKH_Manually_enter_Provisional_Transactions = 2131;
+  BKH_List_Provisional_Accounts = 2132;
+  BKH_What_s_New_in_BankLink_Practice_2011_ = 2133;
+  BKH_Accessing_a_Customer_Authority_Form = 2134;
 
 var
   //filename of HTML help file
