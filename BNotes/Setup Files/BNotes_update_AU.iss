@@ -10,7 +10,7 @@ DisableStartupPrompt=yes
 LicenseFile=OtherFiles\bnotes_eula.rtf
 MinVersion=4.1,5
 OutputDir=..\Binaries\BNotes Install Update
-OutputBaseFilename=setupbnotes_update
+OutputBaseFilename=setupbnotes_update_AU
 DirExistsWarning=false
 
 [Tasks]
