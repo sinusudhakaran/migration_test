@@ -139,7 +139,7 @@ begin
 
   lblTitle.Caption := ecGlobalConst.APP_NAME + ' ' + GetAppYearVersionStr;
   lblVersion.Caption := 'Version ' + WinUtils.GetAppVersionStr;
-  lblCopyrightDate.Caption := 'Copyright © 2000 - 2009 ' + COPYRIGHTNAME;
+  lblCopyrightDate.Caption := 'Copyright © 2000 - 2011 ' + COPYRIGHTNAME;
   lblWinVer.Caption  := WinUtils.GetWinVer;
 
   if Assigned(MyClientFile) then
