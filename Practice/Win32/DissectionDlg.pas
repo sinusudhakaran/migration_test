@@ -1339,6 +1339,7 @@ var
   NewClass   : byte;
   NewGST     : money;
 begin
+  UpdateBaseAmounts(pD);
   with pD^ do begin
      if MyClient.clChart.CanCodeTo( dtAccount) then begin
         CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtLocal_Amount, NewClass, NewGST);
