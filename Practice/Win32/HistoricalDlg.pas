@@ -3305,18 +3305,18 @@ function TdlgHistorical.CalcClosingBalAt(D: Integer; Seq: Integer = -1): Money;
 var
    ClosingBal : Money;
    i : integer;
+   Txn: pTransaction_Rec;
 begin
    ClosingBal := Double2Money(abs(nfOpeningBal.AsFloat));
    if cmbSign.ItemIndex = BAL_INFUNDS then
       ClosingBal := -ClosingBal;
 
-   with HistTranList do begin
-      for i := 0 to Pred(ItemCount) do with Transaction_At(i)^ do begin
-         if (txDate_Effective < D) or (D = 0) or // earlier or
-            // if same date then based on seq no
-            ((txDate_Effective = D) and ((Seq = -1) or (txSequence_No <= Seq))) then
-           ClosingBal := ClosingBal + Statement_Amount;
-      end;
+   for i := 0 to Pred(HistTranList.ItemCount) do begin
+      Txn := HistTranList.Transaction_At(i);
+      if (Txn^.txDate_Effective < D) or (D = 0) or // earlier or
+         // if same date then based on seq no
+         ((Txn^.txDate_Effective = D) and ((Seq = -1) or (Txn^.txSequence_No <= Seq))) then
+            ClosingBal := ClosingBal + Txn^.Statement_Amount;
    end;
    Result := ClosingBal;
 end;

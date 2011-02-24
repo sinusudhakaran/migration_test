@@ -541,7 +541,8 @@ procedure TfrmMaintainPracBank.UpdateActions;
          actCharge.Enabled := True;
          actSendDelete.Enabled := True;
          actSendFrequencyRequest.Enabled := not Value.sbMark_As_Deleted;
-         acAddProvTrans.Enabled := Value.sbAccount_Type = sbtProvisional;
+         acAddProvTrans.Enabled := (Value.sbAccount_Type = sbtProvisional) and
+                                   (Value.sbWas_On_Latest_Disk);
 
          Result := True;
       finally
