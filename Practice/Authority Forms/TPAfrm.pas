@@ -215,6 +215,7 @@ begin
   rbDaily.Checked := False;
   rbReDate.Checked := False;
   rbDate.Checked := False;
+  cbProvisional.Checked := False;
 end;
 
 procedure TfrmTPA.btnEmailClick(Sender: TObject);

@@ -685,7 +685,6 @@ object frmCAF: TfrmCAF
       Align = alBottom
       BevelOuter = bvNone
       TabOrder = 5
-      ExplicitTop = 620
       object Panel1: TPanel
         Tag = 29
         Left = 29

@@ -197,6 +197,7 @@ begin
   rbMonthly.Checked := False;
   rbWeekly.Checked := False;
   rbDaily.Checked := False;
+  cbProvisional.Checked := False;
 end;
 
 procedure TfrmCAF.btnEmailClick(Sender: TObject);
