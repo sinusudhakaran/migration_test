@@ -482,6 +482,30 @@ procedure TfrmBatchReports.BatchOnStatus(Value: TObject);
          addGroupItem( SettingsGroup.Items,'','Selected Payees');
          Exit;
       end;
+      //Correct spelling of Transferring
+      if Sametext(Value.NodeName,'Show_Non_Transfering_Journals') then begin
+         nxn := Value.FirstChild;
+         if assigned(nxn) then
+           if Sametext(nxn.NodeValue, 'Yes') then
+             addGroupItem( SettingsGroup.Items,'','Show Non Transferring Journals');
+         Exit;
+      end;
+      //Add space LastYear
+      if Sametext(Value.NodeName,'YTD_with_LastYear') then begin
+         nxn := Value.FirstChild;
+         if assigned(nxn) then
+           if Sametext(nxn.NodeValue, 'Yes') then
+             addGroupItem( SettingsGroup.Items,'','YTD with Last Year');
+         Exit;
+      end;
+      //Correct spelling of Quantities
+      if Sametext(Value.NodeName,'Show_Budget_Quantaties') then begin
+         nxn := Value.FirstChild;
+         if assigned(nxn) then
+           if Sametext(nxn.NodeValue, 'Yes') then
+             addGroupItem( SettingsGroup.Items,'','Show Budget Quantities');
+         Exit;
+      end;
       nxn := Value.FirstChild;
       while assigned(nxn) do begin
           if (nxn.NodeType in [TEXT_NODE])
