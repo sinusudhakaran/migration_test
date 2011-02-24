@@ -191,6 +191,9 @@ begin
       for i := low(MyClient.ExchangeSource.Header.ehISO_Codes) to high(MyClient.ExchangeSource.Header.ehISO_Codes) do
         if MyClient.ExchangeSource.Header.ehISO_Codes[i] > '' then
           cmbCurrency.Items.Add(MyClient.ExchangeSource.Header.ehISO_Codes[i]);
+        //Must have the base currency
+        if cmbCurrency.Items.Count = 0 then
+          cmbCurrency.Items.Add(MyClient.clExtra.ceLocal_Currency_Code);
     end;
   finally
     cmbCurrency.Items.EndUpdate;
