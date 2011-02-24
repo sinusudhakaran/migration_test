@@ -336,7 +336,7 @@ type
     procedure SetUpHelp;
 
     procedure ConfigureColumns;
-    procedure RemindUserToSave;
+    procedure RemindUserToSave(Imported: Boolean = False);
 
 
     procedure AccountEdited(pT: pTransaction_Rec);
@@ -4092,15 +4092,24 @@ begin
    btnCancel.Cancel := true;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TdlgHistorical.RemindUserToSave;
+procedure TdlgHistorical.RemindUserToSave(Imported: Boolean = False);
 //Remind the user to accept the current session and save the client file.
+var
+  Msg: string;
+  HowEntered: string;
 begin
+   HowEntered := 'entered';
+   if Imported then
+     HowEntered := 'imported';
+
    if ( HistTranList.ItemCount - LastReminderAt) > NoEntriesBeforeReminder then begin
-      HelpfulInfoMsg(
-           format('You have entered %d %s Transactions.'#13+
-                  'It is recommended that you now leave %1:s Data Entry and Save the Client File. (Click File|Save from the menu)',
-                  [Pred(HistTranList.ItemCount), AccountType]
-                 ),0);
+      Msg := Format('You have %s %d %s Transactions.'#13+
+                    'It is recommended that you now leave %2:s Data Entry and Save the Client File. (Click File|Save from the menu)',
+                    [HowEntered, Pred(HistTranList.ItemCount), AccountType]);
+      if Provisional then
+         Msg := Format('You have entered %s %d %s Transactions.',
+                       [HowEntered, Pred(HistTranList.ItemCount), AccountType]);
+      HelpfulInfoMsg(Msg, 0);
       LastReminderAt := HistTranList.ItemCount-1;
    end;
 end;
@@ -5248,7 +5257,7 @@ begin
    Refresh;
 
    //Reminder the user that they should not enter too many before saving
-   RemindUserToSave;
+   RemindUserToSave(True);
 end;
 
 procedure TdlgHistorical.SaveTempLayout;

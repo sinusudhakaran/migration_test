@@ -487,7 +487,7 @@ var R: Integer;
        if Result > '' then
           Result := Format( 'Some transactions match existing ones:'#13'%s.'#13#13'Are you sure you want to contiue?',[Result]);
 
-    end;
+    end;                                                       
 
 
 begin
