@@ -4107,7 +4107,7 @@ begin
                     'It is recommended that you now leave %2:s Data Entry and Save the Client File. (Click File|Save from the menu)',
                     [HowEntered, Pred(HistTranList.ItemCount), AccountType]);
       if Provisional then
-         Msg := Format('You have entered %s %d %s Transactions.',
+         Msg := Format('You have %s %d %s Transactions.',
                        [HowEntered, Pred(HistTranList.ItemCount), AccountType]);
       HelpfulInfoMsg(Msg, 0);
       LastReminderAt := HistTranList.ItemCount-1;
