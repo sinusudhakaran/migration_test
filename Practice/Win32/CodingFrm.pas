@@ -3204,14 +3204,13 @@ var
             ceAction :if TestText(GetFormattedAction(pT)) then
                Exit;
 
-//            ceForexAmount: if TestMoney(pT.txForeign_Currency_Amount) then
             ceForexAmount: if TestMoney(pT.txAmount) then
                Exit;
 
-            ceForexRate : if testText( FloatToStr(PT.txForex_Conversion_Rate)) then
+            ceForexRate : if testText( FloatToStr(PT.Default_Forex_Rate)) then
                Exit;
 
-            ceLocalCurrencyAmount : if TestMoney(pT.txAmount) then
+            ceLocalCurrencyAmount : if TestMoney(pT.Local_Amount) then
                Exit;
 
             end;
