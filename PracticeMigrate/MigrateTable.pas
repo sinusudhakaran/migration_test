@@ -142,17 +142,30 @@ procedure TMigrateTable.SetFields(FieldList: array of string; SFFieldList: array
 var
    Fields, values: string;
    I: Integer;
+
+   function TestField (name: string): Boolean;
+   begin
+      try
+      SQL.Text := format('SELECT [%s] FROM [%s]', [name,TableName]);
+      self.ExecSQL;
+      except
+         raise exception.Create(Format('Field %s not found in table %s',[name, TableName]));
+      end;
+
+   end;
 begin
    // Build The Field and Vlaue list
   Fields := Format('[%s]',[FieldList[0]]);
   Values := Format(':%s',[FieldList[0]]);
   for I := Low(FieldList) + 1 to High(FieldList) do begin
+     TestField( FieldList[I]);
      Fields := Fields + Format(',[%s]',[FieldList[I]]);
      Values := Values + Format(',:%s',[FieldList[I]]);
   end;
 
   if FDoSuperfund then // add the super fields
      for I := Low(SFFieldList) to High(SFFieldList) do begin
+        TestField( SFFieldList[I]);
         Fields := Fields + Format(',[%s]',[SFFieldList[I]]);
         Values := Values + Format(',:%s',[SFFieldList[I]]);
      end;
