@@ -130,6 +130,7 @@ public
    function Insert(MyID: TGuid;
                    AccountID: TGuid;
                    AccountingSystemID: TGuid;
+                   SequenceNo: Integer;
                    Value: pMemorisation_Detail_Rec): Boolean;
 end;
 
@@ -304,6 +305,7 @@ end;
 implementation
 
 uses
+Variants,
    SysUtils,
    SQLHelpers,
    bkConst,
@@ -445,20 +447,25 @@ begin  with Value^ do
 
           ],[
 
-{1}       ToSQL(Value.txSF_Super_Fields_Edited), ToSQL(txSF_Franked),ToSQL(txSF_Unfranked),ToSQL(txSF_Interest)
-              ,ToSQL(txSF_Capital_Gains_Foreign_Disc),ToSQL(txSF_Rent)
-{2}       ,ToSQL(txSF_Special_Income),ToSQL(txSF_Other_Tax_Credit),ToSQL(txSF_Non_Resident_Tax)
-              ,ToSQL(txSF_Member_ID)
-{3}       ,ToSQL(txSF_Foreign_Capital_Gains_Credit),ToSQL(txSF_Member_Component),ToSQL(txSF_Fund_ID)
-              ,ToSQL(txSF_Member_Account_ID)
-{4}       ,ToSQL(txSF_Fund_Code),ToSQL(txSF_Member_Account_Code),ToSQL(txSF_Transaction_ID),ToSQL(txSF_Transaction_Code)
-              ,ToSQL(txSF_Capital_Gains_Fraction_Half)
-{5}       ,ToSQL(txSF_Imputed_Credit),ToSQL(txSF_Capital_Gains_Other),ToSQL(txSF_Other_Expenses)
-              ,DateToSQL(txSF_CGT_Date)
-{6}       ,ToSQL(txSF_Tax_Free_Dist),ToSQL(txSF_Tax_Exempt_Dist),ToSQL(txSF_Tax_Deferred_Dist)
-              ,ToSQL(txSF_TFN_Credits),ToSQL(txSF_Foreign_Income)
-{7}       ,ToSQL(txSF_Foreign_Tax_Credits),ToSQL(txSF_Capital_Gains_Indexed)
-              ,ToSQL(Value.txSF_Capital_Gains_Disc), ToSQL(txSF_Super_Fields_Edited)]);
+{1}       ToSQL(value.txSF_Super_Fields_Edited ), ToSQL(txSF_Franked),ToSQL(txSF_UnFranked),
+{2}       ToSQL(txSF_Member_ID), ToSQL(txSF_Fund_ID ), ToSQL(txSF_Fund_Code),
+
+{3}       ToSQL(txSF_Transaction_ID), ToSQL(txSF_Transaction_Code), ToSQL(txSF_Member_Account_ID), ToSQL(txSF_Member_Account_Code), null,
+
+{4}       ToSQL(txSF_Member_Component), ToSQL(txSF_Other_Expenses), ToSQL(txSF_Interest), ToSQL(txSF_Rent),
+              ToSQL(txSF_Special_Income), null,
+
+{5}       ToSQL(txSF_Tax_Free_Dist), ToSQL(txSF_Tax_Exempt_Dist), ToSQL(txSF_Tax_Deferred_Dist), ToSQL(txSF_TFN_Credits),
+              ToSQL(txSF_Other_Tax_Credit), ToSQL(txSF_Non_Resident_Tax),
+
+{6}       ToSQL(txSF_Foreign_Income), ToSQL(txSF_Foreign_Tax_Credits), ToSQL(txSF_Capital_Gains_Indexed),
+               ToSQL(txSF_Capital_Gains_Disc),
+
+{7}       ToSQL(txSF_Capital_Gains_Other), ToSQL(txSF_Capital_Gains_Foreign_Disc), ToSQL(txSF_Foreign_Capital_Gains_Credit),
+
+{8}       DateToSQl(txSF_CGT_Date), ToSQL(txSF_Capital_Gains_Fraction_Half)
+
+]);
 
 end;
 
@@ -474,15 +481,8 @@ begin
 {7}       ,'ExternalGUID','DocumentTitle','JobCode'
 {8}       ,'DocumentStatusUpdateRequired','BankLinkUID','NotesRead','ImportNotesRead'
 
-          ],[
+          ],SFLineFields);
 
-{1}       'SFEdited','SFFranked','SFUnFranked','SFinterest','SFCapitalGainsForeignDisc','SFRent'
-{2}       ,'SFSpecialIncome','SFOtherTaxCredit','SFNonResidentTax','SFMemberID'
-{3}       ,'SFForeignCapitalGainsCredit','SFMemberComponent','SFFundID','SFMemberAccountID'
-{4}       ,'SFFundCode','SFMemberAccountCode','SFTransactionID','SFTransactionCode','SFCapitalGainsFractionHalf'
-{5}       ,'SFImputedCredit','SFCapitalGainsOther','SFOtherExpenses','SFCGTDate'
-{6}       ,'SFTaxFreeDist','SFTaxExemptDist','SFTaxDeferredDist','SFTFNCredits','SFForeignIncome'
-{7}       ,'SFForeignTaxCredits','SFCapitalGainsIndexed','SFCapitalGainsDisc','SFSuperFieldsEdited']);
 
 end;
 
@@ -490,9 +490,27 @@ end;
 
 function TDissection_RecTable.Insert(MyID, TransactionID: TGuid;
   Value: PDissection_Rec): Boolean;
+
+  function GetPercent : Variant;
+  begin
+     if value.dsAmount_Type_Is_Percent then
+        Result := PercentToSQL(value.dsPercent_Amount)
+     else
+        Result := null;
+  end;
+
+   function GetLineType : Variant;
+  begin
+     if value.dsAmount_Type_Is_Percent then
+        Result := ToSQL(0)
+     else
+        Result := ToSQL(1)
+  end;
+
+
 begin with Value^ do
    Result := RunValues([ ToSQL(MyId),ToSQL(TransactionID),ToSQL(dsSequence_No)
-{2}       ,ToSQL(dsAmount) ,ToSQL(dsGST_Class),ToSQL(dsGST_Amount)
+{2}       ,ToSQL(dsAmount),GetPercent, GetLineType ,ToSQL(dsGST_Class),ToSQL(dsGST_Amount)
                   ,ToSQL(dsHas_Been_Edited),QtyToSQL(dsQuantity),ToSQL(dsReference)
 {3}       ,ToSQL(dsAccount),nullToSQL(dsPayee_Number),ToSQL(dsGST_Has_Been_Edited)
 {4}       ,ToSQL(dsNotes),ToSQL(dsECoding_Import_Notes),ToSQL(dsGL_Narration), ToSQL(dsTax_Invoice)
@@ -500,59 +518,56 @@ begin with Value^ do
 {8}       ,ToSQL(dsDocument_Status_Update_Required),ToSQL(dsNotes_Read),ToSQL(dsImport_Notes_Read)
 
    ],[
+{1}       ToSQL(value.dsSF_Super_Fields_Edited ), ToSQL(dsSF_Franked),ToSQL(dsSF_UnFranked),
+{2}       ToSQL(dsSF_Member_ID), ToSQL(dsSF_Fund_ID ), ToSQL(dsSF_Fund_Code),
 
-          ToSQL(dsSF_Franked),ToSQL(dsSF_Unfranked),ToSQL(dsSF_Interest)
-              ,ToSQL(dsSF_Capital_Gains_Foreign_Disc),ToSQL(dsSF_Rent)
-{2}       ,ToSQL(dsSF_Special_Income),ToSQL(dsSF_Other_Tax_Credit),ToSQL(dsSF_Non_Resident_Tax)
-              ,ToSQL(dsSF_Member_ID)
-{3}       ,ToSQL(dsSF_Foreign_Capital_Gains_Credit),ToSQL(dsSF_Member_Component),ToSQL(dsSF_Fund_ID)
-              ,ToSQL(dsSF_Member_Account_ID)
-{4}       ,ToSQL(dsSF_Fund_Code),ToSQL(dsSF_Member_Account_Code),ToSQL(dsSF_Transaction_ID),ToSQL(dsSF_Transaction_Code)
-              ,ToSQL(dsSF_Capital_Gains_Fraction_Half)
-{5}       ,ToSQL(dsSF_Imputed_Credit),ToSQL(dsSF_Capital_Gains_Other),ToSQL(dsSF_Other_Expenses)
-              ,DateToSQL(dsSF_CGT_Date)
-{6}       ,ToSQL(dsSF_Tax_Free_Dist),ToSQL(dsSF_Tax_Exempt_Dist),ToSQL(dsSF_Tax_Deferred_Dist)
-              ,ToSQL(dsSF_TFN_Credits),ToSQL(dsSF_Foreign_Income)
-{7}       ,ToSQL(dsSF_Foreign_Tax_Credits),ToSQL(dsSF_Capital_Gains_Indexed)
-              ,ToSQL(Value.dsSF_Capital_Gains_Disc),ToSQL(dsSF_Super_Fields_Edited)]);
+{3}       ToSQL(dsSF_Transaction_ID), ToSQL(dsSF_Transaction_Code), ToSQL(dsSF_Member_Account_ID), ToSQL(dsSF_Member_Account_Code), null,
+
+{4}       ToSQL(dsSF_Member_Component), ToSQL(dsSF_Other_Expenses), ToSQL(dsSF_Interest), ToSQL(dsSF_Rent),
+              ToSQL(dsSF_Special_Income), null,
+
+{5}       ToSQL(dsSF_Tax_Free_Dist), ToSQL(dsSF_Tax_Exempt_Dist), ToSQL(dsSF_Tax_Deferred_Dist), ToSQL(dsSF_TFN_Credits),
+              ToSQL(dsSF_Other_Tax_Credit), ToSQL(dsSF_Non_Resident_Tax),
+
+{6}       ToSQL(dsSF_Foreign_Income), ToSQL(dsSF_Foreign_Tax_Credits), ToSQL(dsSF_Capital_Gains_Indexed),
+               ToSQL(dsSF_Capital_Gains_Disc),
+
+{7}       ToSQL(dsSF_Capital_Gains_Other), ToSQL(dsSF_Capital_Gains_Foreign_Disc), ToSQL(dsSF_Foreign_Capital_Gains_Credit),
+
+{8}       DateToSQl(dsSF_CGT_Date), ToSQL(dsSF_Capital_Gains_Fraction_Half)]);
 end;
 
 procedure TDissection_RecTable.SetupTable;
 begin
  TableName := 'Dissections';
   SetFields(['Id','Transaction_Id','SequenceNo'
-{2}       ,'Amount','GSTClass','GSTAmount','HasBeenEdited','Quantity','Reference'
+{2}       ,'Amount','Percentage','LineType','GSTClass','GSTAmount','HasBeenEdited','Quantity','Reference'
 {3}       ,'ChartCode','PayeeNumber','GSTHasBeenEdited'
 {4}       ,'Notes','ECodingImportNotes','GLNarration','TaxInvoice'
 {5}       ,'ExternalGUID','DocumentTitle','JobCode'
 {6}       ,'DocumentStatusUpdateRequired','NotesRead','ImportNotesRead'
 
-          ],[
+          ],SFLineFields);
 
-{1}       'SFFranked','SFUnFranked','SFinterest','SFCapitalGainsForeignDisc','SFRent'
-{2}       ,'SFSpecialIncome','SFOtherTaxCredit','SFNonResidentTax','SFMemberID'
-{3}       ,'SFForeignCapitalGainsCredit','SFMemberComponent','SFFundID','SFMemberAccountID'
-{4}       ,'SFFundCode','SFMemberAccountCode','SFTransactionID','SFTransactionCode','SFCapitalGainsFractionHalf'
-{5}       ,'SFImputedCredit','SFCapitalGainsOther','SFOtherExpenses','SFCGTDate'
-{6}       ,'SFTaxFreeDist','SFTaxExemptDist','SFTaxDeferredDist','SFTFNCredits','SFForeignIncome'
-{7}       ,'SFForeignTaxCredits','SFCapitalGainsIndexed','SFCapitalGainsDisc','SFEdited']);
+
 
 end;
 
 { TMemorisation_Detail_RecTable }
 
 function TMemorisation_Detail_RecTable.Insert(MyID, AccountID,
-  AccountingSystemID: TGuid; Value: pMemorisation_Detail_Rec): Boolean;
+      AccountingSystemID: TGuid; SequenceNo: Integer;
+      Value: pMemorisation_Detail_Rec): Boolean;
 
 begin with Value^ do
- Result := RunValues([ ToSql(MyID),ToSql(AccountID),ToSQL(mdSequence_No),ToSQL(mdType)
+ Result := RunValues([ ToSql(MyID),ToSql(AccountID),ToSQL(SequenceNo),ToSQL(mdType)
                ,ToSQL(mdAmount),ToSQL(mdReference),ToSQL(mdParticulars)
 {2}      ,ToSQL(mdAnalysis),ToSQL(mdOther_Party),ToSQL(mdStatement_Details)
-               ,ToSQL(mdMatch_on_Amount),ToSQL(mdMatch_on_Analysis)
+               ,ToSQL(mdMatch_on_Amount <> 0),ToSQL(mdMatch_on_Analysis)
 {3}      ,ToSQL(mdMatch_on_Other_Party),ToSQL(mdMatch_on_Notes)
                ,ToSQL(mdMatch_on_Particulars), ToSQL(mdMatch_on_Refce)
 {4}      ,ToSQL(mdMatch_On_Statement_Details),NullToSQL(mdPayee_Number)
-               ,ToSQL(mdFrom_Master_List),ToSQL(mdNotes )
+               ,ToSQL(mdFrom_Master_List),ToSQL(mdNotes ), ToSQL(Value.mdMatch_on_Amount)
 {5}      ,DateToSQL(mdDate_Last_Applied),ToSQL(mdUse_Accounting_System)
                ,ToSQL(AccountingSystemID),DateToSQL(mdFrom_Date),DateToSQL(mdUntil_Date)],[]);
 
@@ -564,7 +579,7 @@ begin
   SetFields(['Id','BankAccount_Id','SequenceNo','MemorisationType','Amount','Reference','Particulars'
 {2}       ,'Analysis','OtherParty','StatementDetails','MatchOnAmount','MatchOnAnalysis'
 {3}       ,'MatchOnOther_Party','MatchOnNotes','MatchOnParticulars','MatchOnRefce'
-{4}       ,'MatchOnStatement_Details','PayeeNumber','FromMasterList','Notes'
+{4}       ,'MatchOnStatement_Details','PayeeNumber','FromMasterList','Notes' , 'MatchOnAmountType'
 {5}       ,'DateLastApplied','UseAccountingSystem','AccountingSystem','FromDate','UntilDate'],[]);
 
 end;
@@ -577,17 +592,17 @@ begin with Value^ do
   Result := RunValues([ ToSql(MyID),ToSql(MemorisationID),ToSQL(SequenceNo),PercentToSQL(mlPercentage)
                ,ToSQL(mlGST_Class),ToSQL(mlGST_Has_Been_Edited)
 {2}       , NullToSQL(mlPayee), ToSQL(mlGL_Narration) ,ToSQL(mlLine_Type)
-               ,ToSQL(mlGST_Amount),ToSQL(mlAccount),ToSQL(mlJob_code)
+               ,ToSQL(mlGST_Amount),ToSQL(mlAccount),ToSQL(mlJob_code), QtyToSQL(mlQuantity)
 
    ],[
 
 {1}       ToSQL(mlSF_Edited), PercentToSQL(mlSF_PCFranked),PercentToSQL(mlSF_PCUnFranked),
 {2}       ToSQL(mlSF_Member_ID), ToSQL(mlSF_Fund_ID ), ToSQL(mlSF_Fund_Code),
 
-{3}       ToSQL(mlSF_Trans_ID), ToSQL(mlSF_Trans_Code), ToSQL(mlSF_Member_Account_ID), ToSQL(mlSF_Member_Account_Code), toSQL(0),
+{3}       ToSQL(mlSF_Trans_ID), ToSQL(mlSF_Trans_Code), ToSQL(mlSF_Member_Account_ID), ToSQL(mlSF_Member_Account_Code), null,
 
 {4}       ToSQL(mlSF_Member_Component), PercentToSQL(mlSF_Other_Expenses), PercentToSQL(mlSF_Interest), PercentToSQL(mlSF_Rent),
-              PercentToSQL(mlSF_Special_Income), PercentToSQL(0),
+              PercentToSQL(mlSF_Special_Income), null,
 
 {5}       PercentToSQL(mlSF_Tax_Free_Dist), PercentToSQL(mlSF_Tax_Exempt_Dist), PercentToSQL(mlSF_Tax_Deferred_Dist), PercentToSQL(mlSF_TFN_Credits),
               PercentToSQL(mlSF_Other_Tax_Credit), PercentToSQL(mlSF_Non_Resident_Tax),
@@ -598,7 +613,7 @@ begin with Value^ do
 {7}       PercentToSQL(mlSF_Capital_Gains_Other), PercentToSQL(mlSF_Capital_Gains_Foreign_Disc), PercentToSQL(mlSF_Foreign_Capital_Gains_Credit),
 
 
-{8}       DateToSQl(mlSF_GDT_Date), QtyToSQL(mlQuantity),ToSQL(mlSF_Capital_Gains_Fraction_Half)
+{8}       DateToSQl(mlSF_GDT_Date), ToSQL(mlSF_Capital_Gains_Fraction_Half)
     ]);
 
 end;
@@ -607,19 +622,10 @@ procedure TMemorisation_Line_RecTable.SetupTable;
 begin
   TableName := 'MemorisationLines';
   SetFields([ 'Id','Memorisation_Id','SequenceNo','Percentage','GSTClass','GSTHasBeenEdited'
-           ,'PayeeNumber','GLNarration','LineType','GSTAmount','ChartCode','JobCode'
+           ,'PayeeNumber','GLNarration','LineType','GSTAmount','ChartCode','JobCode','Quantity'
 
    ],SFLineFields);
-   (*
-{1}         'SFFranked','SFUnFranked','SFMemberID','SFFundID','SFFundCode'
-{2}         ,'SFTransactionID','SFTransactionCode','SFMemberComponent','SFMemberAccountID','SFMemberAccountCode'
-{3}         ,'SFGDTDate','SFTaxFreeDist','SFTaxDeferredDist'
-{4}         ,'SFTaxExemptDist','SFTFNCredits','SFForeignIncome','SFForeignTaxCredits','SFCapitalGainsIndexed'
-{5}         ,'SFCapitalGainsDisc','SFCapitalGainsOther','SFInterest','SFOtherExpenses'
-{6}         ,'SFCapitalGainsForeignDisc','SFRent','SFSpecialIncome','SFOtherTaxCredit'
-{7}         ,'SFNonResidentTax','SFForeignCapitalGainsCredit','Quantity','SFEdited'
-{8}         ,'SFCapitalGainsFractionHalf']);
-      *)
+
 end;
 
 { TChart_RecTable }
@@ -678,26 +684,27 @@ begin with Value^ do
     Result := RunValues([ToSQL(MyID),ToSQL(PayeeID),PercentToSQL(plPercentage)
                ,ToSQL(plGST_Class),ToSQL(plGST_Has_Been_Edited)
 {2}        ,ToSQL(plGL_Narration),ToSQL(plLine_Type),ToSQL(plGST_Amount)
-               ,ToSQL(plAccount),ToSQL(SequenceNo)
+               ,ToSQL(plAccount),ToSQL(SequenceNo),QtyToSQL(plQuantity)
 
     ],[
 
-{1}        PercentToSQL(plSF_PCFranked),PercentToSQL(plSF_PCUnFranked),ToSQL(plSF_Member_ID)
-                ,ToSQL(plSF_Fund_ID),ToSQL(plSF_Fund_Code),ToSQL(plSF_Trans_ID)
+{1}       ToSQL(plSF_Edited), PercentToSQL(plSF_PCFranked), PercentToSQL(plSF_PCUnFranked),
+{2}       ToSQL(plSF_Member_ID), ToSQL(plSF_Fund_ID ), ToSQL(plSF_Fund_Code),
 
-{2}        ,ToSQL(plSF_Trans_Code),ToSQL(plSF_Member_Component),ToSQL(plSF_Member_Account_ID),ToSQL(plSF_Member_Account_Code)
+{3}       ToSQL(plSF_Trans_ID), ToSQL(plSF_Trans_Code), ToSQL(plSF_Member_Account_ID), ToSQL(plSF_Member_Account_Code), toSQL(plSF_Ledger_ID),
 
-{3}        ,DateToSQL(plSF_GDT_Date),ToSQL(plSF_Ledger_ID),ToSQL(plSF_Ledger_Name)
-                ,PercentToSQL(plSF_Tax_Free_Dist),PercentToSQL(plSF_Tax_Deferred_Dist)
+{4}       ToSQL(plSF_Member_Component), PercentToSQL(plSF_Other_Expenses), PercentToSQL(plSF_Interest), PercentToSQL(plSF_Rent),
+              PercentToSQL(plSF_Special_Income), null,
 
-{4}        ,PercentToSQL(plSF_Tax_Exempt_Dist),PercentToSQL(plSF_TFN_Credits)
-                ,PercentToSQL(plSF_Foreign_Income),PercentToSQL(plSF_Foreign_Tax_Credits)
-{5}        ,PercentToSQL(plSF_Capital_Gains_Indexed),PercentToSQL(plSF_Capital_Gains_Disc)
-                ,PercentToSQL(plSF_Capital_Gains_Other),PercentToSQL(plSF_Interest)
-{6}        ,PercentToSQL(plSF_Other_Expenses),PercentToSQL(plSF_Capital_Gains_Foreign_Disc)
-                ,PercentToSQL(plSF_Rent),PercentToSQL(plSF_Special_Income),ToSQL(plSF_Capital_Gains_Fraction_Half)
-{7}        ,PercentToSQL(plSF_Other_Tax_Credit),PercentToSQL(plSF_Non_Resident_Tax)
-                ,PercentToSQL(plSF_Foreign_Capital_Gains_Credit),QtyToSQL(plQuantity), ToSQL(plSF_Edited)]);
+{5}       PercentToSQL(plSF_Tax_Free_Dist), PercentToSQL(plSF_Tax_Exempt_Dist), PercentToSQL(plSF_Tax_Deferred_Dist), PercentToSQL(plSF_TFN_Credits),
+              PercentToSQL(plSF_Other_Tax_Credit), PercentToSQL(plSF_Non_Resident_Tax),
+
+{6}       PercentToSQL(plSF_Foreign_Income), PercentToSQL(plSF_Foreign_Tax_Credits), PercentToSQL(plSF_Capital_Gains_Indexed),
+               PercentToSQL(plSF_Capital_Gains_Disc),
+
+{7}       PercentToSQL(plSF_Capital_Gains_Other), PercentToSQL(plSF_Capital_Gains_Foreign_Disc), PercentToSQL(plSF_Foreign_Capital_Gains_Credit),
+
+{8}       DateToSQl(plSF_GDT_Date), ToSQL(plSF_Capital_Gains_Fraction_Half) ]);
 
 end;
 
@@ -705,17 +712,10 @@ procedure TPayee_Line_RecTable.SetupTable;
 begin
   TableName := 'PayeeLines';
   SetFields(['Id','Payee_Id','Percentage','GSTClass','GSTHasBeenEdited'
-{2}      , 'GLNarration','LineType','GSTAmount','ChartCode','SequenceNo'
+{2}      , 'GLNarration','LineType','GSTAmount','ChartCode','SequenceNo', 'Quantity'
 
-       ],[
+       ],SFLineFields);
 
-{1}      'SFFranked','SFUnFranked','SFMemberID','SFFundID','SFFundCode','SFTransactionID'
-{2}      ,'SFTransactionCode','SFMemberComponent','SFMemberAccountID','SFMemberAccountCode'
-{3}      ,'SFGDTDate','SFLedgerID','SFLedgerName','SFTaxFreeDist','SFTaxDeferredDist'
-{4}      ,'SFTaxExemptDist','SFTFNCredits','SFForeignIncome','SFForeignTaxCredits'
-{5}      ,'SFCapitalGainsIndexed','SFCapitalGainsDisc','SFCapitalGainsOther','SFInterest'
-{6}      ,'SFOtherExpenses','SFCapitalGainsForeignDisc','SFRent','SFSpecialIncome','SFCapitalGainsFractionHalf'
-{7}      ,'SFOtherTaxCredit','SFNonResidentTax','SFForeignCapitalGainsCredit','Quantity','SFEdited']);
 
 end;
 

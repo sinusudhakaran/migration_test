@@ -25,6 +25,7 @@ public
    function CloneList(Source: TExtdCollection; Sizeproc: GuidSizeProc = nil): TGuidList;
    function FindLRNObject(Value: Integer): TGuidObject; overload;
    function FindLRNGuid(Value: Integer): TGuid; overload;
+   procedure reverse;
 end;
 
 function GuidSort(Item1, Item2: Pointer): Integer;
@@ -139,6 +140,13 @@ begin
          Exit;
       end;
    Result := nil;
+end;
+
+procedure TGuidList.reverse;
+   var I: integer;
+begin
+   for I := 0 to Count - 1 do
+      TGuidObject(Items[I]).SequenceNo := count -I;
 end;
 
 end.

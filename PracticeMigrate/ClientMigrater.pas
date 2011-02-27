@@ -248,6 +248,7 @@ begin
           Exit;
 
        GuidList.CloneList(Account.baMemorisations_List);
+       GuidList.reverse;
        if not RunGuidList(MyAction,'Memorizations',GuidList,AddMemorisation) then
           Exit;
 
@@ -415,6 +416,7 @@ begin
       if IsEqualGUID(ClassID,emptyGuid) then
         Continue; // Not A Valid Tax Entry..
 
+      try
       CreateGuid(EntryId);
       // Add The Entry
       TaxEntriesTable.Insert
@@ -443,6 +445,10 @@ begin
                 FClient.clFields.clGST_Rates[ClassNo][Rate],
                 FClient.clFields.clGST_Applies_From[Rate]
              );
+      end;
+      except
+         on e: exception do
+            ForAction.Exception(e, 'Adding Tax Rates')
       end;
 
    end;
@@ -473,6 +479,7 @@ begin
                    ForAction.Item.GuidID,
                    GetProviderID(AccountingSystem,FClient.clFields.clCountry,
                               Memorization.mdFields.mdAccounting_System),
+                   Value.SequenceNo,
                    @Memorization.mdFields
                 );
 

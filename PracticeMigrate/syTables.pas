@@ -66,6 +66,7 @@ protected
    procedure SetupTable; override;
 public
    function Insert(MyId, Provider: TGuid;
+                  SequenceNo: integer;
                   Prefix: string;
                   Value: PMemorisation_Detail_Rec): Boolean;
 end;
@@ -75,6 +76,7 @@ protected
    procedure SetupTable; override;
 public
    function Insert(MyiD,MemID: TGuid;
+                   SequenceNo: integer;
                    Value: pMemorisation_Line_Rec): Boolean;
 end;
 
@@ -91,6 +93,27 @@ public
         FileCode,CostCode: string  ): Boolean;
 end;
 
+TTaxEntriesTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyID: TGuid;
+                   ClassID: TGuid;
+                   SequenceNo: Integer;
+                   ID: string;
+                   Description: string;
+                   Account: string ): Boolean;
+end;
+
+TTaxRatesTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyID: TGuid;
+                   ClassID: TGuid;
+                   Rate: Money;
+                   Date: integer): Boolean;
+end;
 
 TDownloadDocumentTable = class (TMigrateTable)
 protected
@@ -278,62 +301,72 @@ end;
 
 function TMasterMemorisationsTable.Insert
                  (MyId, Provider: TGuid;
+                 SequenceNo: integer;
                   Prefix: string;
                   Value: PMemorisation_Detail_Rec): Boolean;
 
 begin with Value^ do
   Result := RunValues(
-          [ToSQL(MyID), ToSQL(mdSequence_No), ToSQL(mdType),ToSQL(mdAmount)
+{1}       [ToSQL(MyID), ToSQL(SequenceNo), ToSQL(mdType),ToSQL(mdAmount)
               ,ToSQL(mdReference), ToSQL(mdParticulars)
-          ,ToSQL(mdAnalysis), ToSQL(mdOther_Party), ToSQL(mdStatement_Details), ToSQL(mdMatch_on_Amount <> mxNo), ToSQL(mdMatch_on_Analysis)
-          ,ToSQL(mdMatch_on_Other_Party), ToSQL(mdMatch_on_Notes), ToSQL(mdMatch_on_Particulars), ToSQL(mdMatch_on_Refce)
-          ,ToSQL(mdMatch_On_Statement_Details), ToSQL(mdPayee_Number), ToSQL(mdFrom_Master_List), ToSQL(mdNotes)
+{2}       ,ToSQL(mdAnalysis), ToSQL(mdOther_Party), ToSQL(mdStatement_Details), ToSQL(mdMatch_on_Amount <> mxNo), ToSQL(mdMatch_on_Analysis)
+{3}       ,ToSQL(mdMatch_on_Other_Party), ToSQL(mdMatch_on_Notes), ToSQL(mdMatch_on_Particulars), ToSQL(mdMatch_on_Refce)
+{4}       ,ToSQL(mdMatch_On_Statement_Details), ToSQL(mdPayee_Number), ToSQL(mdFrom_Master_List), ToSQL(mdNotes)
               ,DateToSQL(mdDate_Last_Applied)
-          ,ToSQL(mdUse_Accounting_System),{ToSQL(Provider)} 0, DateToSQL(mdFrom_Date), DateToSQL(mdUntil_Date)
+{5}       ,ToSQL(mdUse_Accounting_System),ToSQL(Provider), DateToSQL(mdFrom_Date), DateToSQL(mdUntil_Date)
               ,ToSQL(Prefix), ToSQL(mdMatch_on_Amount)],[]);
-         { TODO : Provider }
+
 end;
 
 procedure TMasterMemorisationsTable.SetupTable;
 begin
    Tablename := 'MasterMemorisations';
-   SetFields(['Id','SequenceNo','MemorisationType','Amount','Reference','Particulars'
-      ,'Analysis','OtherParty','StatementDetails','MatchOnAmount','MatchOnAnalysis'
-      ,'MatchOnOtherParty','MatchOnNotes','MatchOnParticulars','MatchOnRefce'
-      ,'MatchOnStatementDetails','PayeeNumber','FromMasterList','Notes' ,'DateLastApplied'
-      ,'UseAccountingSystem','AccountingSystem','AppliesFrom','AppliesTo','BankCode','MatchOnAmountType'],[]);
+{1}   SetFields(['Id','SequenceNo','MemorisationType','Amount','Reference','Particulars'
+{2}      ,'Analysis','OtherParty','StatementDetails','MatchOnAmount','MatchOnAnalysis'
+{3}      ,'MatchOnOtherParty','MatchOnNotes','MatchOnParticulars','MatchOnRefce'
+{4}      ,'MatchOnStatementDetails','PayeeNumber','FromMasterList','Notes' ,'DateLastApplied'
+{5}      ,'UseAccountingSystem','AccountingSystem','AppliesFrom','AppliesTo','BankCode','MatchOnAmountType'],[]);
 
 end;
 
 { TMasterMemlinesTable }
 
-function TMasterMemlinesTable.Insert(MyiD, MemID: TGuid; Value: pMemorisation_Line_Rec): Boolean;
+function TMasterMemlinesTable.Insert(MyiD, MemID: TGuid;  SequenceNo: integer; Value: pMemorisation_Line_Rec): Boolean;
 begin with Value^ do
    Result := RunValues(
-       [ToSQL(MyID), ToSQL(MemID), ToSQL(mlAccount), PercentToSQL(mlPercentage), ToSQL(mlGST_Class), ToSQL(mlGST_Has_Been_Edited)
+       [ToSQL(MyID), ToSQL(MemID), ToSQL(SequenceNo), ToSQL(mlAccount), PercentToSQL(mlPercentage), ToSQL(mlGST_Class), ToSQL(mlGST_Has_Been_Edited)
               ,ToSQL(mlGL_Narration)
-       ,ToSQL(mlLine_Type), ToSQL(mlGST_Amount), {ToSQL(mlPayee)} null, ToSQL(mlJob_Code)
-        { TODO : Payee }
-       ],[
+       ,ToSQL(mlLine_Type), ToSQL(mlGST_Amount), NullToSQL(mlPayee), ToSQL(mlJob_Code), QtyToSQL(mlQuantity)
 
-       PercentToSQL(mlSF_PCFranked), ToSQL(mlSF_Member_ID), ToSQL(mlSF_Fund_ID), ToSQL(mlSF_Fund_Code), ToSQL(mlSF_Trans_ID)
-       ,ToSQL(mlSF_Trans_Code), ToSQL(mlSF_Member_Account_ID), ToSQL(mlSF_Member_Account_Code), ToSQL(mlSF_Edited)
-       ,ToSQL(mlSF_Member_Component), PercentToSQL(mlSF_PCUnFranked)
-       ]);
+       ],[
+{1}       ToSQL(mlSF_Edited), PercentToSQL(mlSF_PCFranked),PercentToSQL(mlSF_PCUnFranked),
+{2}       ToSQL(mlSF_Member_ID), ToSQL(mlSF_Fund_ID ), ToSQL(mlSF_Fund_Code),
+
+{3}       ToSQL(mlSF_Trans_ID), ToSQL(mlSF_Trans_Code), ToSQL(mlSF_Member_Account_ID), ToSQL(mlSF_Member_Account_Code), toSQL(0 ),
+
+{4}       ToSQL(mlSF_Member_Component), PercentToSQL(mlSF_Other_Expenses), PercentToSQL(mlSF_Interest), PercentToSQL(mlSF_Rent),
+              PercentToSQL(mlSF_Special_Income), PercentToSQL(0),
+
+{5}       PercentToSQL(mlSF_Tax_Free_Dist), PercentToSQL(mlSF_Tax_Exempt_Dist), PercentToSQL(mlSF_Tax_Deferred_Dist), PercentToSQL(mlSF_TFN_Credits),
+              PercentToSQL(mlSF_Other_Tax_Credit), PercentToSQL(mlSF_Non_Resident_Tax),
+
+{6}       PercentToSQL(mlSF_Foreign_Income), PercentToSQL(mlSF_Foreign_Tax_Credits), PercentToSQL(mlSF_Capital_Gains_Indexed),
+               PercentToSQL(mlSF_Capital_Gains_Disc),
+
+{7}       PercentToSQL(mlSF_Capital_Gains_Other), PercentToSQL(mlSF_Capital_Gains_Foreign_Disc), PercentToSQL(mlSF_Foreign_Capital_Gains_Credit),
+
+
+{8}       DateToSQl(mlSF_GDT_Date), ToSQL(mlSF_Capital_Gains_Fraction_Half)]);
 
 end;
 
 procedure TMasterMemlinesTable.SetupTable;
 begin
    Tablename := 'MasterMemorisationLines';
-   SetFields(['Id','MasterMemorisationId_Id','ChartCode','Percentage','GSTClass','GSTHasBeenEdited','GLNarration'
-      ,'LineType','GSTAmount','PayeeNumber','JobCode'
+   SetFields(['Id','MasterMemorisationId_Id','SequenceNo','ChartCode','Percentage','GSTClass','GSTHasBeenEdited','GLNarration'
+      ,'LineType','GSTAmount','PayeeNumber','JobCode', 'Quantity'
 
-     ],[
-
-      'SFPCFranked','SFMemberID','SFFundID','SFFundCode','SFTransactionID'
-      ,'SFTransactionCode','SFMemberAccountID','SFMemberAccountCode','SFEdited'
-      ,'SFMemberComponent','SFUnFranked']);
+     ],SFLineFields);
 end;
 
 { TChargesTable }
@@ -448,6 +481,43 @@ begin
   Result := UpDate(ParamName, FormatFloat('0.00', ParamValue/100) );
 end;
 
+
+
+
+{ TTaxEntriesTable }
+
+function TTaxEntriesTable.Insert(MyID: TGuid;
+                   ClassID: TGuid;
+                   SequenceNo: Integer;
+                   ID: string;
+                   Description: string;
+                   Account: string): Boolean;
+begin
+   Result := RunValues([ToSQL(MyID),ToSQL(ClassID),ToSQL(ID),ToSQL(SequenceNo),ToSQL(Description)
+                ,ToSQL(Account) ],[]);
+end;
+
+procedure TTaxEntriesTable.SetupTable;
+begin
+  TableName := 'SysTaxEntries';
+  SetFields(['Id','TaxClassType_Id','TaxId','SequenceNo','ClassDescription','ControlAccount'],[]);
+end;
+
+{ TTaxRatesTable }
+
+function TTaxRatesTable.Insert(MyID: TGuid;
+                   ClassID: TGuid;
+                   Rate: Money;
+                   Date: integer): Boolean;
+begin
+   Result := RunValues([ToSQL(MyID),ToSQL(ClassID),PercentToSQL(Rate),DateToSQL(Date)],[]);
+end;
+
+procedure TTaxRatesTable.SetupTable;
+begin
+  TableName := 'SysTaxRates';
+  SetFields(['Id','TaxEntry_Id','Rate','EffectiveDate'],[]);
+end;
 
 
 end.

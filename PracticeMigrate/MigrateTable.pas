@@ -46,7 +46,7 @@ type
 
 var emptyGuid : TGuid;
 
-const SFLineFields : array[0..32] of string = ({1}   'SFEdited', 'SFFranked', 'SFUnFranked',
+const SFLineFields : array[0..31] of string = ({1}   'SFEdited', 'SFFranked', 'SFUnFranked',
 
 {2}   'SFMemberID','SFFundID', 'SFFundCode',
 
@@ -59,7 +59,7 @@ const SFLineFields : array[0..32] of string = ({1}   'SFEdited', 'SFFranked', 'S
 {6}   'SFForeignIncome', 'SFForeignTaxCredits', 'SFCapitalGainsIndexed', 'SFCapitalGainsDisc',
 {7}   'SFCapitalGainsOther', 'SFCapitalGainsForeignDisc','SFForeignCapitalGainsCredit',
 
-{8}   'SFCGTDate', 'Quantity', 'SFCapitalGainsFractionHalf');
+{8}   'SFCGTDate',  'SFCapitalGainsFractionHalf');
 
 
 
@@ -107,6 +107,7 @@ begin
   else
      Result := Value;
 end;
+
 
 function TMigrateTable.PercentToSQL(Value: Money): variant;
 begin

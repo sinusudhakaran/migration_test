@@ -48,7 +48,8 @@ private
     FDownloadDocumentTable: TDownloadDocumentTable;
     FDownloadlogTable: TDownloadlogTable;
     FParameterTable: TParameterTable;
-
+    FTaxEntriesTable: TTaxEntriesTable;
+    FTaxRatesTable: TTaxRatesTable;
     function GetClientGroupList: TGuidList;
     function GetClientList: TGuidList;
     function GetClientTypeList: TGuidList;
@@ -77,6 +78,8 @@ private
     function MigrateDisklog(ForAction: TMigrateAction): Boolean;
     function MigrateSystem(ForAction: TMigrateAction): Boolean;
     function MigrateCustomDocs(ForAction:TMigrateAction): Boolean;
+    function MigrateTax(ForAction: TMigrateAction): Boolean;
+
 
     // Size Items
     function SizeSystemAccount(Value: TGuidObject): Int64;
@@ -106,6 +109,8 @@ private
     function GetDownloadDocumentTable: TDownloadDocumentTable;
     function GetDownloadlogTable: TDownloadlogTable;
     function GetParameterTable: TParameterTable;
+    function GetTaxEntriesTable: TTaxEntriesTable;
+    function GetTaxRatesTable: TTaxRatesTable;
 protected
     procedure OnConnected; override;
 public
@@ -141,7 +146,8 @@ public
     property DownloadDocumentTable: TDownloadDocumentTable read GetDownloadDocumentTable;
     property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable;
     property ParameterTable: TParameterTable read GetParameterTable;
-
+    property TaxEntriesTable: TTaxEntriesTable read GetTaxEntriesTable;
+    property TaxRatesTable: TTaxRatesTable read GetTaxRatesTable;
     //Options
     property DoSystemTransactions: Boolean read FDoSystemTransactions write SetDoSystemTransactions;
     property DoUsers: Boolean read FDoUsers write SetDousers;
@@ -171,6 +177,7 @@ uses
    StDateSt,
    bkDefs,
    MemorisationsObj,
+   GLConst,
    bkconst,
    ClientMigrater,
    winutils,
@@ -406,6 +413,7 @@ begin
         Value.GuidID,
         GetProviderID(AccountingSystem,System.fdFields.fdCountry,
                          Memorisation.mdFields.mdAccounting_System),
+        value.SequenceNo,
         ForAction.Title, // Is a bit dangorous, may need to make a TGuidObject for it...
         @Memorisation.mdFields);
    if not result then
@@ -433,7 +441,8 @@ begin
          Exit;
 
       MasterList := TGuidList.Create(Master_Mems);
-
+      // ReSequence..
+      MasterList.reverse;
       Result := RunGuidList(ForAction,Prefix,MasterList,AddMasterMem);
    finally
       Master_Mems.Free;
@@ -448,6 +457,7 @@ begin
       (
          Value.GuidID,
          ForAction.Item.GuidID,
+         Value.SequenceNo,
          pMemorisation_Line_Rec(Value.Data)
       )
 end;
@@ -614,6 +624,9 @@ begin
       DeleteTable(MyAction,Chargestable,True);
       DeleteTable(MyAction,DownloadDocumentTable, True);
       DeleteTable(MyAction,btTable, True);
+
+      DeleteTable(MyAction,TaxRatesTable);
+      DeleteTable(MyAction,TaxEntriesTable);
 
       DeleteTable(MyAction,'ClientSystemAccounts');;
       DeleteTable(MyAction,'SystemBankAccounts');
@@ -863,6 +876,20 @@ begin
    Result := FSystemUsers;
 end;
 
+function TSystemMigrater.GetTaxEntriesTable: TTaxEntriesTable;
+begin
+   if not Assigned(FTaxEntriesTable) then
+      FTaxEntriesTable := TTaxEntriesTable.Create(Connection);
+   Result := FTaxEntriesTable;
+end;
+
+function TSystemMigrater.GetTaxRatesTable: TTaxRatesTable;
+begin
+   if not Assigned(FTaxRatesTable) then
+      FTaxRatesTable := TTaxRatesTable.Create(Connection);
+   Result := FTaxRatesTable;
+end;
+
 function TSystemMigrater.GetUser(const Value: string): TGuid;
 var I: Integer;
 begin
@@ -1057,6 +1084,60 @@ begin
    Result := true;
 end;
 
+function TSystemMigrater.MigrateTax(ForAction: TMigrateAction): Boolean;
+var ClassNo, Rate: Integer;
+    ClassID,
+    EntryID: TGuid;
+begin
+  if ForAction.CheckCanceled then
+      Exit;
+
+   for ClassNo := 1 to MAX_GST_CLASS do begin
+      if FSystem.fdFields.fdGST_Class_Names[ClassNo] = '' then
+        Continue; // nothing to save...
+      if FSystem.fdFields.fdGST_Class_Codes[ClassNo] = '' then
+        Continue;
+
+      ClassID := GetTaxClassGuid(FSystem.fdFields.fdCountry, FSystem.fdFields.fdGST_Class_Types[ClassNo]);
+      if IsEqualGUID(ClassID,emptyGuid) then
+        Continue; // Not A Valid Tax Entry..
+
+      try
+      CreateGuid(EntryId);
+      // Add The Entry
+      TaxEntriesTable.Insert
+         (
+            EntryId,
+            ClassID,
+            ClassNo,
+            FSystem.fdFields.fdGST_Class_Codes[ClassNo],
+            FSystem.fdFields.fdGST_Class_Names[ClassNo],
+            FSystem.fdFields.fdGST_Account_Codes[ClassNo]
+         );
+
+      // Now add the rates
+      for Rate := 1 to High(FSystem.fdFields.fdGST_Applies_From) do begin
+         if (FSystem.fdFields.fdGST_Applies_From[Rate]) = 0 then
+            Continue;
+         if FSystem.fdFields.fdGST_Rates[ClassNo][Rate] = 0 then
+            Continue;
+
+         TaxRatesTable.Insert
+             (
+                NewGuid,
+                EntryId,
+                FSystem.fdFields.fdGST_Rates[ClassNo][Rate],
+                FSystem.fdFields.fdGST_Applies_From[Rate]
+             );
+      end;
+      except
+         on e: exception do
+            ForAction.Exception(e, 'Adding Tax Rates')
+      end;
+
+   end;
+end;
+
 function TSystemMigrater.MigrateWorkFolder(ForAction: TMigrateAction): Boolean;
 var
   MyAction: TMigrateAction;
@@ -1199,6 +1280,10 @@ begin
       Exit;
 
    MigrateCustomDocs(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
+
+   MigrateTax(MyAction);
    if MyAction.CheckCanceled then
       Exit;
 

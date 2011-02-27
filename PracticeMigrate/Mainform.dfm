@@ -744,16 +744,12 @@ object formMain: TformMain
     Top = 96
     Width = 759
     Height = 415
-    ActivePage = TsProgress
+    ActivePage = tsSelect
     Align = alClient
     TabOrder = 2
     object tsBrowse: TTabSheet
       Caption = 'tsBrowse'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         751
         385)
@@ -852,7 +848,7 @@ object formMain: TformMain
         Width = 722
         Height = 23
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
+        ItemHeight = 15
         TabOrder = 3
         OnDropDown = CbserversDropDown
         OnSelect = CbserversSelect
@@ -870,10 +866,6 @@ object formMain: TformMain
     end
     object tsSelect: TTabSheet
       Caption = 'Select options'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         751
         385)
@@ -1106,10 +1098,6 @@ object formMain: TformMain
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel1: TPanel
         Left = 0
         Top = 0
@@ -1191,7 +1179,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000480018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101040010004C0018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

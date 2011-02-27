@@ -17,7 +17,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
-    <DCC_Define>DEBUG;SSLV6</DCC_Define>
+    <DCC_Define>SSLV6</DCC_Define>
     <DCC_UnitSearchPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(Practice)\Authority Forms\;$(Practice)\BASForm\;$(Practice)\Bconnect\;$(Practice)\Component\;$(Practice)\Extended MAPI\;$(Practice)\Extract\;$(Practice)\Forex\;$(Practice)\Graphs\;$(Practice)\Import\;$(Practice)\Lists\;$(Practice)\Orpheus\;$(Practice)\WebNotes\;$(Practice)\Printing\;$(Practice)\Win32\;$(COMMON)\BNotes;$(COMMON)\BNotes\DataBase;$(Common)\BNotes\database\;$(Common)\BNotes\;$(Practice)\simpleUI</DCC_UnitSearchPath>
     <DCC_ResourcePath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(Practice)\Authority Forms\;$(Practice)\BASForm\;$(Practice)\Bconnect\;$(Practice)\Component\;$(Practice)\Extended MAPI\;$(Practice)\Extract\;$(Practice)\Forex\;$(Practice)\Graphs\;$(Practice)\Import\;$(Practice)\Lists\;$(Practice)\Orpheus\;$(Practice)\WebNotes\;$(Practice)\Printing\;$(Practice)\Win32\;$(COMMON)\BNotes;$(COMMON)\BNotes\DataBase;$(Common)\BNotes\database\;$(Common)\BNotes\;$(Practice)\simpleUI</DCC_ResourcePath>
     <DCC_ObjPath>$(COMMON);$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;$(Practice)\Authority Forms\;$(Practice)\BASForm\;$(Practice)\Bconnect\;$(Practice)\Component\;$(Practice)\Extended MAPI\;$(Practice)\Extract\;$(Practice)\Forex\;$(Practice)\Graphs\;$(Practice)\Import\;$(Practice)\Lists\;$(Practice)\Orpheus\;$(Practice)\WebNotes\;$(Practice)\Printing\;$(Practice)\Win32\;$(COMMON)\BNotes;$(COMMON)\BNotes\DataBase;$(Common)\BNotes\database\;$(Common)\BNotes\;$(Practice)\simpleUI</DCC_ObjPath>
@@ -31,7 +31,7 @@
     <Borland.Personality>Delphi.Personality</Borland.Personality>
     <Borland.ProjectType />
     <BorlandProject>
-<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">True</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">1</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">True</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">BankLink</VersionInfoKeys><VersionInfoKeys Name="FileDescription">Database Migrator</VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.1</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Source><Source Name="MainSource">Migrator.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">True</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">3</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">True</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">BankLink</VersionInfoKeys><VersionInfoKeys Name="FileDescription">Database Migrator</VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.3</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Source><Source Name="MainSource">Migrator.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
   </ProjectExtensions>
   <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
   <ItemGroup>
@@ -42,10 +42,15 @@
     <DCCReference Include="..\Practice\Win32\imagesfrm.pas">
       <Form>AppImages</Form>
     </DCCReference>
+    <DCCReference Include="..\Practice\Win32\RTFEditFme.pas">
+      <Form>fmeEditRTF</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
     <DCCReference Include="..\Practice\Win32\SYSOBJ32.PAS" />
     <DCCReference Include="AvailableSQLServers.pas" />
     <DCCReference Include="bkTables.pas" />
     <DCCReference Include="btTables.pas" />
+    <DCCReference Include="CDTables.pas" />
     <DCCReference Include="ClientMigrater.pas" />
     <DCCReference Include="FromBrowseForm.pas">
       <Form>FromBrowse</Form>
@@ -59,7 +64,6 @@
     <DCCReference Include="MigrateStats.pas" />
     <DCCReference Include="MigrateTable.pas" />
     <DCCReference Include="PasswordHash.pas" />
-    <DCCReference Include="SQLTable.pas" />
     <DCCReference Include="SystemMigrater.pas" />
     <DCCReference Include="syTables.pas" />
   </ItemGroup>

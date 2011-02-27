@@ -8,7 +8,6 @@ uses
   FromBrowseForm in 'FromBrowseForm.pas' {FromBrowse},
   GuidList in 'GuidList.pas',
   syTables in 'syTables.pas',
-  SQLTable in 'SQLTable.pas',
   bkTables in 'bkTables.pas',
   btTables in 'btTables.pas',
   PasswordHash in 'PasswordHash.pas',
@@ -19,7 +18,9 @@ uses
   MigrateTable in 'MigrateTable.pas',
   imagesfrm in '..\Practice\Win32\imagesfrm.pas' {AppImages},
   AvailableSQLServers in 'AvailableSQLServers.pas',
-  MigrateStats in 'MigrateStats.pas';
+  MigrateStats in 'MigrateStats.pas',
+  CDTables in 'CDTables.pas',
+  RTFEditFme in '..\Practice\Win32\RTFEditFme.pas' {fmeEditRTF: TFrame};
 
 {$R *.res}
 
