@@ -487,7 +487,8 @@ begin
    end;
 
    //Save bank accounts
-   fmeAccountSelector1.SaveAccounts(ThisClient, Params);
+   //Don't use account selection for Profit and Loss report TFS 10495
+   //fmeAccountSelector1.SaveAccounts(ThisClient, Params);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgProfitAndLossOptions.SetJob(Value: string);

@@ -142,8 +142,6 @@ begin
        clTemp_FRS_Budget_To_Use                  := '';
        clTemp_FRS_Budget_To_Use_Date             := -1;
        clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
-       //now set temporary flag into bank accounts;
-       FlagAllAccountsForUse( Client);
      end;
 
      //**********************************
@@ -203,8 +201,6 @@ begin
      clTemp_FRS_Budget_To_Use                  := '';
      clTemp_FRS_Budget_To_Use_Date             := -1;
      clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
-     //now set temporary flag into bank accounts;
-     FlagAllAccountsForUse( Client);
    end;
 
    //**********************************
@@ -270,8 +266,6 @@ begin
      clTemp_FRS_Budget_To_Use                  := Budget.buFields.buName;
      clTemp_FRS_Budget_To_Use_Date             := Budget.buFields.buStart_Date;
      clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
-     //now set temporary flag into bank accounts;
-     FlagAllAccountsForUse( Client);
    end;
 
    //*********************************
@@ -336,8 +330,6 @@ begin
      clTemp_FRS_Budget_To_Use                  := Budget.buFields.buName;
      clTemp_FRS_Budget_To_Use_Date             := Budget.buFields.buStart_Date;
      clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
-     //now set temporary flag into bank accounts;
-     FlagAllAccountsForUse( Client);
    end;
 
    //*********************************
@@ -400,8 +392,6 @@ begin
      clTemp_FRS_Budget_To_Use                  := '';
      clTemp_FRS_Budget_To_Use_Date             := -1;
      clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
-     //now set temporary flag into bank accounts;
-     FlagAllAccountsForUse( Client);
    end;
    //*********************************
    LParam.Savedates;
@@ -466,8 +456,6 @@ begin
      clTemp_FRS_Budget_To_Use                  := Budget.buFields.buName;
      clTemp_FRS_Budget_To_Use_Date             := Budget.buFields.buStart_Date;
      clTemp_FRS_Use_Budgeted_Data_If_No_Actual := True;
-     //now set temporary flag into bank accounts;
-     FlagAllAccountsForUse( Client);
    end;
    //*********************************
    LParam.Savedates;
@@ -529,8 +517,6 @@ begin
           clTemp_FRS_Budget_To_Use_Date             := lparam.Budget.buFields.buStart_Date;
           clTemp_FRS_Use_Budgeted_Data_If_No_Actual := true;
         end;
-        //now set temporary flag into bank accounts;
-        FlagAllAccountsForUse( lParam.Client);
         //*********************************
         LParam.Savedates;
         DoProfitAndLossEx(Destination, lparam.ReportType, RptBatch);
@@ -1207,6 +1193,9 @@ var
    FromDate, ToDate: integer;
    ISOCodes: string;
 begin
+   //Don't use account selection for Profit and Loss report TFS 10495
+   FlagAllAccountsForUse( MyClient);
+
    VerifyProfitAndLossPreconditions( MyClient);
 
    case MyClient.clFields.clFRS_Report_Style of
@@ -1596,6 +1585,7 @@ begin
     clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
 
     //now set temporary flag into bank accounts;
+    //Don't use account selection for Profit and Loss report TFS 10495
     FlagAllAccountsForUse( MyClient);
   end;
 
