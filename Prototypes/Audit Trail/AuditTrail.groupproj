@@ -1,0 +1,34 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{8d436233-f389-4d72-ac4c-0eed40bb6238}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Projects Include="AuditTrail.dproj" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+  <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="AuditTrail">
+    <MSBuild Projects="AuditTrail.dproj" Targets="" />
+  </Target>
+  <Target Name="AuditTrail:Clean">
+    <MSBuild Projects="AuditTrail.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="AuditTrail:Make">
+    <MSBuild Projects="AuditTrail.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="AuditTrail" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="AuditTrail:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="AuditTrail:Make" />
+  </Target>
+  <Import Condition="Exists('$(MSBuildBinPath)\Borland.Group.Targets')" Project="$(MSBuildBinPath)\Borland.Group.Targets" />
+</Project>

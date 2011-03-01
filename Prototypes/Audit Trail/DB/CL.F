@@ -1,0 +1,16 @@
+      clSave_Tax_Files_To := '' ;
+      clPractice_Web_Site := '' ;
+      clPractice_Logo := '' ;
+      clWeb_Site_Login_URL := '' ;
+      clScheduled_File_Attachments := '' ;
+      clScheduled_Client_Note_Message := '' ;
+      clExclude_From_Scheduled_Reports := '' ;
+      clExternal_ID := '' ;
+      clAlternate_Extract_ID := '' ;
+      clGroup_Name := '' ;
+      clClient_Type_Name := '' ;
+      clPractice_Code := '' ;
+      clFavourite_Report_XML := '' ;
+      SetLength( clTemp_FRS_Divisions, 0 );
+      SetLength( clTemp_Period_Details_This_Year, 0 );
+      SetLength( clTemp_Period_Details_Last_Year, 0 );

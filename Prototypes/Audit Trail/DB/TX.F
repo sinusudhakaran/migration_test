@@ -1,0 +1,9 @@
+      txNotes := '' ;
+      txECoding_Import_Notes := '' ;
+      txGL_Narration := '' ;
+      txStatement_Details := '' ;
+      txExternal_GUID := '' ;
+      txDocument_Title := '' ;
+      txBankLink_UID := '' ;
+      txSpare_String := '' ;
+      txSF_Transaction_Code := '' ;

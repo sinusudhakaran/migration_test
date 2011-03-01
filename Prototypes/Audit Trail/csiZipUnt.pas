@@ -1,0 +1,238 @@
+{******************************************************************************}
+{                                                                              }
+{ CSI Zip Utility Routines                                                     }
+{                                                                              }
+{ Copyright (c) 1999-2009 Corporate Software Innovations                       }
+{                                                                              }
+{ Permission is hereby granted, free of charge, to any person obtaining a copy }
+{ of this software and associated documentation files (the "Software"), to     }
+{ deal in the Software without restriction, including without limitation the   }
+{ rights to use, copy, modify, merge, publish, distribute, sublicense, and/or  }
+{ sell copies of the Software, and to permit persons to whom the Software is   }
+{ furnished to do so, subject to the following conditions:                     }
+{                                                                              }
+{ The above copyright notice and this permission notice shall be included in   }
+{ all copies or substantial portions of the Software.                          }
+{                                                                              }
+{ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR   }
+{ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,     }
+{ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  }
+{ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER       }
+{ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING      }
+{ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS }
+{ IN THE SOFTWARE.                                                             }
+{                                                                              }
+{******************************************************************************}
+
+unit csiZipUnt;
+
+//
+// This unit defines some generic zip utility routines.
+//
+
+interface
+
+type
+  // define a "generic" enumeration to remove any direct public dependencies on
+  // the Abbrevia components
+  TECsiZipDeflationOption = (zdNormal, zdMaximum, zdFast, zdSuperFast);
+
+function CsiUnzipText(const pText: string): string;
+function CsiZipText(const pText: string;
+                    pCompressionOption: TECsiZipDeflationOption = zdSuperFast):
+                    string;
+
+implementation
+
+uses
+  Classes, SysUtils, AbArcTyp, AbDfBase, AbDfDec, AbDfEnc, AbUnzper,
+  AbZipper, AbZipTyp;
+
+const
+  B64Table = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+function Base64Encode(const S: string): string;
+var
+  InBuf: array[0..2] of Byte;
+  OutBuf: array[0..3] of Char;
+  iI, iJ: Integer;
+begin
+  SetLength(Result, ((Length(S) + 2) div 3) * 4);
+  for iI := 1 to ((Length(S) + 2) div 3) do begin
+    if Length(S) < (iI * 3) then
+      Move(S[(iI - 1) * 3 + 1], InBuf, Length(S) - (iI - 1) * 3)
+    else
+      Move(S[(iI - 1) * 3 + 1], InBuf, 3);
+    OutBuf[0] := B64Table[((InBuf[0] and $FC) shr 2) + 1];
+    OutBuf[1] := B64Table[(((InBuf[0] and $3) shl 4) or ((InBuf[1] and $F0) shr 4)) + 1];
+    OutBuf[2] := B64Table[(((InBuf[1] and $F) shl 2) or ((InBuf[2] and $C0) shr 6)) + 1];
+    OutBuf[3] := B64Table[(InBuf[2] and $3F) + 1];
+    Move(OutBuf, Result[(iI - 1) * 4 + 1], 4);
+  end;
+  if Length(S) mod 3 = 1 then begin
+    Result[Length(Result) - 1] := '=';
+    Result[Length(Result)] := '=';
+  end else if Length(S) mod 3 = 2 then
+    Result[Length(Result)] := '=';
+end;
+
+function Base64Decode(const S: string): string;
+var
+  OutBuf: array[0..2] of Byte;
+  InBuf : array[0..3] of Byte;
+  iI, iJ: Integer;
+begin
+  if Length(S) mod 4 <> 0 then
+    raise Exception.Create('Base64: Incorrect string format');
+  SetLength(Result, ((Length(S) div 4) - 1) * 3);
+  for iI := 1 to (Length(S) div 4) - 1 do begin
+    Move(S[(iI - 1) * 4 + 1], InBuf, 4);
+    for iJ := 0 to 3 do
+      case InBuf[iJ] of
+        43: InBuf[iJ] := 62;
+        48..57: Inc(InBuf[iJ], 4);
+        65..90: Dec(InBuf[iJ], 65);
+        97..122: Dec(InBuf[iJ], 71);
+      else
+        InBuf[iJ] := 63;
+      end;
+    OutBuf[0] := (InBuf[0] shl 2) or ((InBuf[1] shr 4) and $3);
+    OutBuf[1] := (InBuf[1] shl 4) or ((InBuf[2] shr 2) and $F);
+    OutBuf[2] := (InBuf[2] shl 6) or (InBuf[3] and $3F);
+    Move(OutBuf, Result[(iI - 1) * 3 + 1], 3);
+  end;
+  if Length(S) <> 0 then begin
+    Move(S[Length(S) - 3], InBuf, 4);
+    if InBuf[2] = 61 then begin
+      for iJ := 0 to 1 do
+        case InBuf[iJ] of
+          43: InBuf[iJ] := 62;
+          48..57: Inc(InBuf[iJ], 4);
+          65..90: Dec(InBuf[iJ], 65);
+          97..122: Dec(InBuf[iJ], 71);
+        else
+          InBuf[iJ] := 63;
+        end;
+      OutBuf[0] := (InBuf[0] shl 2) or ((InBuf[1] shr 4) and $3);
+      Result := Result + Char(OutBuf[0]);
+    end else if InBuf[3] = 61 then begin
+      for iJ := 0 to 2 do
+        case InBuf[iJ] of
+          43: InBuf[iJ] := 62;
+          48..57: Inc(InBuf[iJ], 4);
+          65..90: Dec(InBuf[iJ], 65);
+          97..122: Dec(InBuf[iJ], 71);
+        else
+          InBuf[iJ] := 63;
+        end;
+      OutBuf[0] := (InBuf[0] shl 2) or ((InBuf[1] shr 4) and $3);
+      OutBuf[1] := (InBuf[1] shl 4) or ((InBuf[2] shr 2) and $F);
+      Result := Result + Char(OutBuf[0]) + Char(OutBuf[1]);
+    end else begin
+      for iJ := 0 to 3 do
+        case InBuf[iJ] of
+          43: InBuf[iJ] := 62;
+          48..57: Inc(InBuf[iJ], 4);
+          65..90: Dec(InBuf[iJ], 65);
+          97..122: Dec(InBuf[iJ], 71);
+        else
+          InBuf[iJ] := 63;
+        end;
+      OutBuf[0] := (InBuf[0] shl 2) or ((InBuf[1] shr 4) and $3);
+      OutBuf[1] := (InBuf[1] shl 4) or ((InBuf[2] shr 2) and $F);
+      OutBuf[2] := (InBuf[2] shl 6) or (InBuf[3] and $3F);
+      Result := Result + Char(OutBuf[0]) + Char(OutBuf[1]) + Char(OutBuf[2]);
+    end;
+  end;
+end;
+
+function CsiUnzipText(const pText: string): string;
+var
+  lSrcStream: TMemoryStream;
+  lDestStream: TMemoryStream;
+  lSize: Integer;
+begin
+  lSrcStream := nil;
+  lDestStream := nil;
+  try
+    // decode the base 64 text as zipped binary data
+ //   Result := Base64Decode(pText);
+    Result := pText;
+
+    lSrcStream := TMemoryStream.Create;
+    lDestStream := TMemoryStream.Create;
+    lSrcStream.WriteBuffer(Pointer(Result)^, Length(Result));
+    lSrcStream.Seek(0, soFromBeginning);
+
+    // unzip the binary data
+    Inflate(lSrcStream, lDestStream, nil);
+
+    lDestStream.Seek(0, soFromBeginning);
+    lSize := lDestStream.Size;
+    SetLength(Result, lSize);
+    lDestStream.ReadBuffer(Pointer(Result)^, lSize);
+  finally
+    lDestStream.Free;
+    lSrcStream.Free;
+  end;
+end;
+
+function CsiZipText(const pText: string;
+                    pCompressionOption: TECsiZipDeflationOption): string;
+var
+  lSrcStream: TMemoryStream;
+  lDestStream: TMemoryStream;
+  lDeflateHelper: TAbDeflateHelper;
+  lSize: Integer;
+begin
+  lSrcStream := nil;
+  lDestStream := nil;
+  try
+    lSrcStream := TMemoryStream.Create;
+    lDestStream := TMemoryStream.Create;
+    lSrcStream.WriteBuffer(Pointer(pText)^, Length(pText));
+    lSrcStream.Seek(0, soFromBeginning);
+
+    // zip up the text
+    lDeflateHelper := TAbDeflateHelper.Create;
+    try
+      case pCompressionOption of
+        zdNormal:
+          lDeflateHelper.PkZipOption := 'n';
+
+        zdMaximum:
+          lDeflateHelper.PkZipOption := 'x';
+
+        zdFast:
+          lDeflateHelper.PkZipOption := 'f';
+
+        zdSuperFast:
+          lDeflateHelper.PkZipOption := 's';
+
+        else
+          raise Exception.Create('Invalid zip text compression option <' +
+                               IntToStr(Ord(pCompressionOption)) + '>');
+
+      end;
+
+      Deflate(lSrcStream, lDestStream, lDeflateHelper);
+    finally
+      lDeflateHelper.Free;
+    end;
+
+    lDestStream.Seek(0, soFromBeginning);
+    lSize := lDestStream.Size;
+    SetLength(Result, lSize);
+    lDestStream.ReadBuffer(Pointer(Result)^, lSize);
+
+    // encode the zipped binary data as base 64 text
+//    Result := Base64Encode(Result);
+  finally
+    lDestStream.Free;
+    lSrcStream.Free;
+  end;
+end;
+
+end.
+
+

@@ -1,0 +1,1 @@
+      baSpare_String := '' ;
