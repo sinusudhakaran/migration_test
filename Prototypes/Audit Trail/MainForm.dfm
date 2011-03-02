@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Audit Trail'
-  ClientHeight = 472
-  ClientWidth = 817
+  ClientHeight = 455
+  ClientWidth = 777
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,25 +14,24 @@ object Form1: TForm1
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  DesignSize = (
-    817
-    472)
   PixelsPerInch = 96
   TextHeight = 13
   object PageControl1: TPageControl
-    Left = 25
-    Top = 21
-    Width = 770
-    Height = 436
-    ActivePage = TabSheet2
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Left = 0
+    Top = 0
+    Width = 777
+    Height = 455
+    ActivePage = TabSheet5
+    Align = alClient
     TabOrder = 0
     object TabSheet2: TTabSheet
       Caption = 'Users (SY)'
       ImageIndex = 1
+      ExplicitWidth = 762
+      ExplicitHeight = 408
       DesignSize = (
-        762
-        408)
+        769
+        427)
       object Label3: TLabel
         Left = 376
         Top = 32
@@ -118,8 +117,8 @@ object Form1: TForm1
       object ListView4: TListView
         Left = 16
         Top = 231
-        Width = 726
-        Height = 163
+        Width = 733
+        Height = 182
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -152,6 +151,8 @@ object Form1: TForm1
         RowSelect = True
         TabOrder = 5
         ViewStyle = vsReport
+        ExplicitWidth = 726
+        ExplicitHeight = 163
       end
       object Button2: TButton
         Left = 529
@@ -165,13 +166,11 @@ object Form1: TForm1
     end
     object TabSheet1: TTabSheet
       Caption = 'Payees (BK)'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 762
+      ExplicitHeight = 408
       DesignSize = (
-        762
-        408)
+        769
+        427)
       object Label1: TLabel
         Left = 344
         Top = 31
@@ -255,8 +254,8 @@ object Form1: TForm1
       object ListView1: TListView
         Left = 16
         Top = 231
-        Width = 726
-        Height = 163
+        Width = 733
+        Height = 182
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -289,44 +288,201 @@ object Form1: TForm1
         RowSelect = True
         TabOrder = 5
         ViewStyle = vsReport
+        ExplicitWidth = 726
+        ExplicitHeight = 163
+      end
+    end
+    object TabSheet4: TTabSheet
+      Caption = 'Practice (SY)'
+      ImageIndex = 3
+      ExplicitLeft = 28
+      ExplicitWidth = 762
+      ExplicitHeight = 408
+      object Label8: TLabel
+        Left = 40
+        Top = 43
+        Width = 68
+        Height = 13
+        Caption = 'Practice Name'
+      end
+      object Label9: TLabel
+        Left = 40
+        Top = 70
+        Width = 30
+        Height = 13
+        Caption = 'Phone'
+      end
+      object Label10: TLabel
+        Left = 40
+        Top = 112
+        Width = 50
+        Height = 13
+        Caption = 'GST Rates'
+      end
+      object Edit5: TEdit
+        Left = 128
+        Top = 40
+        Width = 121
+        Height = 21
+        TabOrder = 0
+      end
+      object Edit6: TEdit
+        Left = 128
+        Top = 67
+        Width = 121
+        Height = 21
+        TabOrder = 1
+      end
+      object StringGrid1: TStringGrid
+        Left = 40
+        Top = 131
+        Width = 425
+        Height = 158
+        ColCount = 4
+        DefaultColWidth = 100
+        DefaultRowHeight = 17
+        FixedCols = 0
+        RowCount = 6
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
+        TabOrder = 2
+      end
+      object Button3: TButton
+        Left = 40
+        Top = 304
+        Width = 75
+        Height = 25
+        Caption = 'Save'
+        TabOrder = 3
+        OnClick = Button3Click
+      end
+    end
+    object TabSheet5: TTabSheet
+      Caption = 'Report'
+      ImageIndex = 4
+      DesignSize = (
+        769
+        427)
+      object Label11: TLabel
+        Left = 16
+        Top = 24
+        Width = 83
+        Height = 13
+        Caption = 'Transaction Type'
+      end
+      object Label12: TLabel
+        Left = 16
+        Top = 56
+        Width = 70
+        Height = 13
+        Caption = 'Transaction ID'
+      end
+      object cbAuditTypes: TComboBox
+        Left = 136
+        Top = 21
+        Width = 209
+        Height = 21
+        Style = csDropDownList
+        ItemHeight = 13
+        TabOrder = 0
+      end
+      object Edit7: TEdit
+        Left = 136
+        Top = 53
+        Width = 121
+        Height = 21
+        TabOrder = 1
+      end
+      object ListView5: TListView
+        Left = 16
+        Top = 88
+        Width = 733
+        Height = 325
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Columns = <
+          item
+            Caption = 'ID'
+          end
+          item
+            Caption = 'Transaction Type'
+            Width = 100
+          end
+          item
+            Caption = 'Transaction ID'
+            Width = 90
+          end
+          item
+            Caption = 'Action'
+            Width = 60
+          end
+          item
+            Caption = 'User Code'
+            Width = 75
+          end
+          item
+            Caption = 'Date/Time'
+            Width = 100
+          end
+          item
+            AutoSize = True
+            Caption = 'Values'
+          end>
+        RowSelect = True
+        TabOrder = 2
+        ViewStyle = vsReport
+      end
+      object Button4: TButton
+        Left = 351
+        Top = 19
+        Width = 43
+        Height = 25
+        Caption = 'Go'
+        TabOrder = 3
+        OnClick = Button4Click
+      end
+      object Button1: TButton
+        Left = 265
+        Top = 51
+        Width = 43
+        Height = 25
+        Caption = 'Go'
+        TabOrder = 4
+        OnClick = Button1Click
       end
     end
     object TabSheet3: TTabSheet
-      Caption = 'Test'
+      Caption = 'Audit Types'
       ImageIndex = 2
-      object Memo1: TMemo
+      ExplicitLeft = 8
+      ExplicitTop = 28
+      object ListView6: TListView
         Left = 24
         Top = 64
-        Width = 241
-        Height = 313
-        ScrollBars = ssVertical
+        Width = 521
+        Height = 337
+        Columns = <
+          item
+            Caption = 'Audit Type'
+            Width = 200
+          end
+          item
+            Caption = 'Database'
+            Width = 100
+          end
+          item
+            Caption = 'Table'
+            Width = 200
+          end>
         TabOrder = 0
+        ViewStyle = vsReport
       end
-      object Button1: TButton
+      object Button5: TButton
         Left = 24
         Top = 33
-        Width = 113
+        Width = 121
         Height = 25
-        Caption = 'List All Tables'
+        Caption = 'List Audit Types'
         TabOrder = 1
-        OnClick = Button1Click
-      end
-      object Button3: TButton
-        Left = 312
-        Top = 33
-        Width = 145
-        Height = 25
-        Caption = 'List Tables to Audit'
-        TabOrder = 2
-        OnClick = Button3Click
-      end
-      object Memo2: TMemo
-        Left = 312
-        Top = 64
-        Width = 241
-        Height = 313
-        ScrollBars = ssVertical
-        TabOrder = 3
+        OnClick = Button5Click
       end
     end
   end

@@ -123,12 +123,13 @@ var
 begin
   Stream := TIOStream.Create;
   try
+    //Audit
+    ClientAuditMgr.DoAudit;
+    //Save
     Stream.Position := 0;
     Stream.WriteIntegerValue(20, FLastAuditRecordID);
     SaveToStream(Stream);
     Stream.SaveToFile(AFilename);
-    //Audit
-    ClientAuditMgr.DoAudit;
     //Reload client copy DB after save
     Stream.Position := 0;
     ClientCopy.LoadFromStream(Stream);

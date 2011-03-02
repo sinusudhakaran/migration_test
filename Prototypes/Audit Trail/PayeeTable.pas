@@ -165,7 +165,7 @@ begin
   end else begin
     //New record
     AAuditInfo.AuditAction := aaAdd;
-    AAuditInfo.AuditRecordID := SystemAuditMgr.NextSystemRecordID;
+    AAuditInfo.AuditRecordID := ClientAuditMgr.NextClientRecordID;
     P1.pdAudit_Record_ID := AAuditInfo.AuditRecordID;
   end;
   //Delta

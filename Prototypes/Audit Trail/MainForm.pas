@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, SYDEFS, ComCtrls, Spin;
+  Dialogs, StdCtrls, SYDEFS, ComCtrls, Spin, Grids, AuditMgr;
 
 type
   TForm1 = class(TForm)
@@ -31,11 +31,25 @@ type
     Label6: TLabel;
     ListView1: TListView;
     TabSheet3: TTabSheet;
-    Memo1: TMemo;
-    Button1: TButton;
     Button2: TButton;
+    TabSheet4: TTabSheet;
+    Label8: TLabel;
+    Edit5: TEdit;
+    Label9: TLabel;
+    Edit6: TEdit;
+    Label10: TLabel;
+    StringGrid1: TStringGrid;
     Button3: TButton;
-    Memo2: TMemo;
+    TabSheet5: TTabSheet;
+    cbAuditTypes: TComboBox;
+    Edit7: TEdit;
+    Label11: TLabel;
+    Label12: TLabel;
+    ListView5: TListView;
+    Button4: TButton;
+    ListView6: TListView;
+    Button5: TButton;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ListView2SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
@@ -47,17 +61,23 @@ type
     procedure ListView2Change(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure btnDeleteClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
     procedure ListView3Change(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
     procedure DisplayClientAuditRecs;
+    procedure DisplayPracticeDetails;
     procedure DisplaySystemAuditRecs;
     procedure DisplayPayees;
     procedure DisplayUsers;
+    procedure LoadAuditTypes;
+    procedure DisplayAuditRecsByAuditType(AAuditType: TAuditType);
+    procedure DisplayAuditRecsByTransactionID(ARecordID: integer);
   public
     { Public declarations }
   end;
@@ -68,7 +88,7 @@ var
 implementation
 
 uses
-  BKDEFS, BKPDIO, SYUSIO, ClientDB, AuditMgr, UserTable, SystemDB,
+  BKDEFS, BKPDIO, SYUSIO, ClientDB, UserTable, SystemDB,
   SYAUDIT, BKAUDIT;
 
 {$R *.dfm}
@@ -105,16 +125,11 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
-  i: integer;
+  RecordID: integer;
 begin
-  //List tables
-  memo1.Clear;
-  for i := 0 to 254 do begin
-    if SYAuditNames.GetAuditTableName(i) <> '' then
-      Memo1.Lines.Add(SYAuditNames.GetAuditTableName(i) + ' (SY)');
-    if BKAuditNames.GetAuditTableName(i) <> '' then
-      Memo1.Lines.Add(BKAuditNames.GetAuditTableName(i) + ' (BK)');
-  end;
+  //Filter audit records by audit type
+  RecordID := StrToInt(Edit7.Text);
+  DisplayAuditRecsByTransactionID(RecordID);
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -141,10 +156,53 @@ begin
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
+var
+  i: integer;
 begin
-  Memo2.Clear;
-  ClientAuditMgr.TablesToAudit(Memo2.Lines);
-  SystemAuditMgr.TablesToAudit(Memo2.Lines);
+  SystemData.PracticeDetails.fdPractice_Name_for_Reports := Edit5.Text;
+  SystemData.PracticeDetails.fdPractice_Phone := Edit6.Text;
+
+  //*** Flag Audit ***
+  SystemAuditMgr.FlagAudit(atPracticeSetup);
+
+  for i := Low(SystemData.PracticeDetails.fdGST_Class_Types) to
+           High(SystemData.PracticeDetails.fdGST_Class_Types) do begin
+    SystemData.PracticeDetails.fdGST_Class_Names[i] := StringGrid1.Cells[0, i];
+    SystemData.PracticeDetails.fdGST_Rates[i+1, 1] := StrToFloat(StringGrid1.Cells[1, i]);
+    SystemData.PracticeDetails.fdGST_Rates[i+1, 2] := StrToFloat(StringGrid1.Cells[1, i]);
+    SystemData.PracticeDetails.fdGST_Rates[i+1, 3] := StrToFloat(StringGrid1.Cells[1, i]);
+  end;
+
+  //*** Flag Audit ***
+  SystemAuditMgr.FlagAudit(atPracticeGSTDefaults);
+
+  //Save
+  SystemData.SaveToFile(SYSTEM_DB);
+
+  //Display
+  DisplaySystemAuditRecs;
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);
+var
+  AuditType: TAuditType;
+begin
+  //Filter audit records by audit type
+  AuditType := TAuditType(cbAuditTypes.Items.Objects[cbAuditTypes.ItemIndex]);
+  DisplayAuditRecsByAuditType(AuditType);
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var
+  i: integer;
+  ListItem: TListItem;
+begin
+  for i := atMin to atMax do begin
+    ListItem := ListView6.Items.Add;
+    ListItem.Caption := ClientAuditMgr.AuditTypeToStr(i);
+    ListItem.SubItems.Add(ClientAuditMgr.AuditTypeToDBStr(i));
+    ListItem.SubItems.Add(ClientAuditMgr.AuditTypeToTableStr(i));
+  end;
 end;
 
 procedure TForm1.btnDeleteClick(Sender: TObject);
@@ -197,6 +255,63 @@ begin
   Edit1.Text := '';
 end;
 
+procedure TForm1.DisplayAuditRecsByAuditType(AAuditType: TAuditType);
+var
+  i: integer;
+  ListItem: TListItem;
+  DB: string;
+begin
+  ListView5.Items.Clear;
+  //Get DB
+  DB := SystemAuditMgr.AuditTypeToDBStr(AAuditType);
+  //Filter records by audit type
+  if (DB = 'SY') then begin
+    with SystemData.AuditTable.AuditRecords do
+      for i := First to Last do begin
+        if SystemData.AuditTable.AuditRecords.Audit_At(i).atTransaction_Type = AAuditType then begin
+          ListItem := ListView5.Items.Add;
+          ListItem.Caption := IntToStr(i);
+          SystemData.AuditTable.SetAuditStrings(i, ListItem.SubItems);
+        end;
+      end;
+  end else begin
+    with Client.AuditTable.AuditRecords do
+      for i := First to Last do begin
+        if Client.AuditTable.AuditRecords.Audit_At(i).atTransaction_Type = AAuditType then begin
+          ListItem := ListView5.Items.Add;
+          ListItem.Caption := IntToStr(i);
+          Client.AuditTable.SetAuditStrings(i, ListItem.SubItems);
+        end;
+      end;
+  end;
+end;
+
+procedure TForm1.DisplayAuditRecsByTransactionID(ARecordID: integer);
+var
+  i: integer;
+  ListItem: TListItem;
+begin
+  ListView5.Items.Clear;
+  //System
+  with SystemData.AuditTable.AuditRecords do
+    for i := First to Last do begin
+      if SystemData.AuditTable.AuditRecords.Audit_At(i).atRecord_ID = ARecordID then begin
+        ListItem := ListView5.Items.Add;
+        ListItem.Caption := IntToStr(i);
+        SystemData.AuditTable.SetAuditStrings(i, ListItem.SubItems);
+      end;
+    end;
+  //Client
+  with Client.AuditTable.AuditRecords do
+    for i := First to Last do begin
+      if Client.AuditTable.AuditRecords.Audit_At(i).atRecord_ID = ARecordID then begin
+        ListItem := ListView5.Items.Add;
+        ListItem.Caption := IntToStr(i);
+        Client.AuditTable.SetAuditStrings(i, ListItem.SubItems);
+      end;
+    end;
+end;
+
 procedure TForm1.DisplayClientAuditRecs;
 var
   i: integer;
@@ -226,6 +341,23 @@ begin
     ListItem.SubItems.Add(Payee.pdName);
   end;
   ListView2.ItemIndex := -1;
+end;
+
+procedure TForm1.DisplayPracticeDetails;
+var
+  i: integer;
+begin
+  Edit5.Text := SystemData.PracticeDetails.fdPractice_Name_for_Reports;
+  Edit6.Text := SystemData.PracticeDetails.fdPractice_Phone;
+
+  StringGrid1.RowCount := High(SystemData.PracticeDetails.fdGST_Class_Types);
+  for i := Low(SystemData.PracticeDetails.fdGST_Class_Types) to
+           High(SystemData.PracticeDetails.fdGST_Class_Types) do begin
+    StringGrid1.Cells[0, i] := SystemData.PracticeDetails.fdGST_Class_Names[i];
+    StringGrid1.Cells[1, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 1]);
+    StringGrid1.Cells[2, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 2]);
+    StringGrid1.Cells[3, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 3]);
+  end;
 end;
 
 procedure TForm1.DisplaySystemAuditRecs;
@@ -270,6 +402,10 @@ begin
   DisplaySystemAuditRecs;
   DisplayUsers;
 
+  DisplayPracticeDetails;
+
+  LoadAuditTypes;
+
   PageControl1.ActivePageIndex := 0;
 end;
 
@@ -308,6 +444,15 @@ begin
   Edit2.Text := pUser_Rec(Item.SubItems.Objects[0]).usCode;
   Edit3.Text := pUser_Rec(Item.SubItems.Objects[0]).usName;
   Edit4.Text := pUser_Rec(Item.SubItems.Objects[0]).usEMail_Address;
+end;
+
+procedure TForm1.LoadAuditTypes;
+var
+  i: integer;
+begin
+  cbAuditTypes.Clear;
+  for i := atMin to atMax do
+    cbAuditTypes.Items.AddObject(ClientAuditMgr.AuditTypeToStr(i), TObject(i));
 end;
 
 end.

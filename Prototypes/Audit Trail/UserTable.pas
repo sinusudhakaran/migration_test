@@ -144,16 +144,18 @@ procedure TUserTable.SetAuditInfo(P1, P2: pUser_Rec; var AAuditInfo: TAuditInfo)
 begin
   AAuditInfo.AuditAction := aaNone;
   if not Assigned(P1) then begin
+    //Delete
     AAuditInfo.AuditAction := aaDelete;
     AAuditInfo.AuditRecordID := P2.usAudit_Record_ID;
   end else if Assigned(P2) then begin
+    //Change
     AAuditInfo.AuditRecordID := P1.usAudit_Record_ID;
     if not ((P1.usCode = P2.usCode) and
             (P1.usName = P2.usName) and
             (P1.usEMail_Address = P2.usEMail_Address)) then
       AAuditInfo.AuditAction := aaChange;
   end else begin
-    //New record
+    //Add
     AAuditInfo.AuditAction := aaAdd;
     AAuditInfo.AuditRecordID := SystemAuditMgr.NextSystemRecordID;
     P1.usAudit_Record_ID := AAuditInfo.AuditRecordID;
