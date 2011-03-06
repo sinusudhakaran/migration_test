@@ -157,35 +157,35 @@ begin
    case country of
     whNewZealand :
        case System of
-          asNone          : result := StringToGuid('{43823DAE-F64C-4B90-9F8F-BF379EFD4760}');
-          snOther         : result := StringToGuid('{13E53DD5-965B-451E-B1A6-B55F24A86A44}');
+          asNone            : result := StringToGuid('{43823DAE-F64C-4B90-9F8F-BF379EFD4760}');
+          snOther           : result := StringToGuid('{13E53DD5-965B-451E-B1A6-B55F24A86A44}');
           snSolution6MAS42  : result := StringToGuid('{91FB467F-FB01-4924-9A7B-85477CC4C3C2}');
           //snHAPAS        : result := StringToGuid('{}');
-          snGLMan        : result := StringToGuid('{EC8C1BB9-3768-4157-A6B0-3A254775330A}');
-          snGlobal       : result := StringToGuid('{BD9B9B4D-2BC1-4F0B-9DF9-B0A81432442C}');
-          snMaster2000   : result := StringToGuid('{168184B0-F563-4456-A343-01637D31453E}');
-          snAdvance      : result := StringToGuid('{37FF38CC-C572-4EF4-8BC8-F16309CBB65B}');
-          snSmartLink    : result := StringToGuid('{D5B48539-A754-41FD-AE2A-BFB651C39EDA}');
-          snJobal        : result := StringToGuid('{56E4C57B-7F2E-466D-A369-3AC1B50384D5}');
-          snCashManager  : result := StringToGuid('{35AC590B-0FE4-491E-A6A4-F9728FB41C48}');
-          snAttache      : result := StringToGuid('{836740E2-E935-4933-8ACE-EAEC5D1434D2}');
-          snASCIICSV     : result := StringToGuid('{E48D0503-298F-4E41-AEAE-8418C96F4653}');
-          snCharterQX    : result := StringToGuid('{EEA40A68-DAF1-4A1D-8FE5-39D114E4D616}');
-          snIntech       : result := StringToGuid('{34A7616B-AFE8-43BA-95C4-E1D228A7155F}');
-          snKelloggs     : result := StringToGuid('{6271AD11-0556-48B2-B4AA-579FE47C016E}');
-          //snAclaim       : result := StringToGuid('{}');  //Coopers & Lybrand Aclaim
-          snIntersoft    : result := StringToGuid('{4503517A-6F61-45EB-8EEA-FC6847995336}');
-          //snLotus123     : result := StringToGuid('{}');
-          snAccPac       : result := StringToGuid('{97D8C97D-4596-4388-B6D7-82014CAAF918}');
-          snCCM          : result := StringToGuid('{0F0D07BA-A658-483D-B9EA-F9D9040A16A1}');
-          snMYOB         : result := StringToGuid('{54FEFFAC-FF75-4B33-BA1E-BCDEB63EF0FF}');
-          snAccPacW      : result := StringToGuid('{10553C02-663E-483B-9687-1F9F0883EEE9}');
-          //snSmartBooks   : result := StringToGuid('{}'); //SmartBooks 2000
-          snBeyond       : result := StringToGuid('{F1336402-83CC-4F6A-91C4-A1A40D04501C}');
-          //snPastel       : result := StringToGuid('{}'); // 'Pastel Accounting'
-          //snSolution6CLS3   : result := StringToGuid('{}');
-          //snSolution6CLS4   : result := StringToGuid('{}');
-          //snSolution6MAS41  : result := StringToGuid('{}');
+          snGLMan           : result := StringToGuid('{EC8C1BB9-3768-4157-A6B0-3A254775330A}');
+          snGlobal          : result := StringToGuid('{BD9B9B4D-2BC1-4F0B-9DF9-B0A81432442C}');
+          snMaster2000      : result := StringToGuid('{168184B0-F563-4456-A343-01637D31453E}');
+          snAdvance         : result := StringToGuid('{37FF38CC-C572-4EF4-8BC8-F16309CBB65B}');
+          snSmartLink       : result := StringToGuid('{D5B48539-A754-41FD-AE2A-BFB651C39EDA}');
+          snJobal           : result := StringToGuid('{56E4C57B-7F2E-466D-A369-3AC1B50384D5}');
+          snCashManager     : result := StringToGuid('{35AC590B-0FE4-491E-A6A4-F9728FB41C48}');
+          snAttache         : result := StringToGuid('{836740E2-E935-4933-8ACE-EAEC5D1434D2}');
+          snASCIICSV        : result := StringToGuid('{E48D0503-298F-4E41-AEAE-8418C96F4653}');
+          snCharterQX       : result := StringToGuid('{EEA40A68-DAF1-4A1D-8FE5-39D114E4D616}');
+          snIntech          : result := StringToGuid('{34A7616B-AFE8-43BA-95C4-E1D228A7155F}');
+          snKelloggs        : result := StringToGuid('{6271AD11-0556-48B2-B4AA-579FE47C016E}');
+          //snAclaim        : result := StringToGuid('{}');  //Coopers & Lybrand Aclaim
+          snIntersoft       : result := StringToGuid('{4503517A-6F61-45EB-8EEA-FC6847995336}');
+          //snLotus123      : result := StringToGuid('{}');
+          snAccPac          : result := StringToGuid('{97D8C97D-4596-4388-B6D7-82014CAAF918}');
+          snCCM             : result := StringToGuid('{0F0D07BA-A658-483D-B9EA-F9D9040A16A1}');
+          snMYOB            : result := StringToGuid('{54FEFFAC-FF75-4B33-BA1E-BCDEB63EF0FF}');
+          snAccPacW         : result := StringToGuid('{10553C02-663E-483B-9687-1F9F0883EEE9}');
+          //snSmartBooks    : result := StringToGuid('{}'); //SmartBooks 2000
+          snBeyond          : result := StringToGuid('{F1336402-83CC-4F6A-91C4-A1A40D04501C}');
+          //snPastel        : result := StringToGuid('{}'); // 'Pastel Accounting'
+          //snSolution6CLS3 : result := StringToGuid('{}');
+          //snSolution6CLS4 : result := StringToGuid('{}');
+          //snSolution6MAS41: result := StringToGuid('{}');
           snAttacheBP       : result := StringToGuid('{C4E90E2A-2C83-4E84-AC0C-1DA061B29D77}');
           snBK5CSV          : result := StringToGuid('{7E964AAA-D1B8-41BF-ABAB-4A687744BCA8}');
           //snCaseWare        : result := StringToGuid('{}'); 'CaseWare'
@@ -201,19 +201,19 @@ begin
           //snQBWN            : result := StringToGuid('{}');  'QuickBooks 2008/2009'
        end;
     whAustralia  : case System of
-          saOther        : result := StringToGuid('{BB6385B8-59A4-4F19-B12A-BB75E178284E}');
-          saSolution6MAS42: result := StringToGuid('{A4549BE0-424A-4509-BBC7-D771EB374FA5}');
-          //saHAPAS        : result := StringToGuid('{}');
-          saCeeData      : result := StringToGuid('{8C420B25-6F06-42CF-9942-A9D5F2732274}');
-          saGLMan        : result := StringToGuid('{09E22FA6-75E1-468B-85F6-6BB5CE6FDE68}');
-          saOmicom       : result := StringToGuid('{EBD934A6-F081-4EAA-B354-5E755331D781}');
-          saASCIICSV     : result := StringToGuid('{0D60FB1E-37B4-4747-B50A-905B79E7CAE7}');
-          //saLotus123     : result := StringToGuid('{}'); // Obsolete
-          saAttache      : result := StringToGuid('{677DBCA1-14D9-44AC-98FF-1F2641E95E16}');
-          saHandiLedger  : result := StringToGuid('{9ED981ED-0A55-4D92-AEDA-7215C7F3DCDA}');
-          saBGLSimpleFund: result := StringToGuid('{EED0EEDB-BC73-4053-BDC0-CEF582CE4EC8}');
-          saMYOB         : result := StringToGuid('{7762B0C0-F18C-4B5D-974A-E825223FAF51}');
-          //saCeeDataCDS1  : result := StringToGuid('{}'); // Obsolete
+          saOther           : result := StringToGuid('{BB6385B8-59A4-4F19-B12A-BB75E178284E}');
+          saSolution6MAS42  : result := StringToGuid('{A4549BE0-424A-4509-BBC7-D771EB374FA5}');
+          //saHAPAS         : result := StringToGuid('{}');
+          saCeeData         : result := StringToGuid('{8C420B25-6F06-42CF-9942-A9D5F2732274}');
+          saGLMan           : result := StringToGuid('{09E22FA6-75E1-468B-85F6-6BB5CE6FDE68}');
+          saOmicom          : result := StringToGuid('{EBD934A6-F081-4EAA-B354-5E755331D781}');
+          saASCIICSV        : result := StringToGuid('{0D60FB1E-37B4-4747-B50A-905B79E7CAE7}');
+          //saLotus123      : result := StringToGuid('{}'); // Obsolete
+          saAttache         : result := StringToGuid('{677DBCA1-14D9-44AC-98FF-1F2641E95E16}');
+          saHandiLedger     : result := StringToGuid('{9ED981ED-0A55-4D92-AEDA-7215C7F3DCDA}');
+          saBGLSimpleFund   : result := StringToGuid('{EED0EEDB-BC73-4053-BDC0-CEF582CE4EC8}');
+          saMYOB            : result := StringToGuid('{7762B0C0-F18C-4B5D-974A-E825223FAF51}');
+          //saCeeDataCDS1   : result := StringToGuid('{}'); // Obsolete
           //saSolution6CLS3   : result := StringToGuid('{}');
           //saSolution6CLS4   : result := StringToGuid('{}');
           //saSolution6MAS41  : result := StringToGuid('{}'); // Obsolete Apr 2003
@@ -221,8 +221,8 @@ begin
           saCaseware        : result := StringToGuid('{B03B396D-7779-4BCA-91C5-9AC392DC4002}');
           saBK5CSV          : result := StringToGuid('{9D971FA2-EDA6-4035-BC63-CED91F747F6F}');
           saAccountSoft     : result := StringToGuid('{4F557383-88B7-4E05-B372-6CCC1930B7BC}');
-          //saProflex         : result := StringToGuid('{}'); // Obsolete
-          //saTeletaxLW       : result := StringToGuid('{}'); // Obsolete
+          //saProflex       : result := StringToGuid('{}'); // Obsolete
+          //saTeletaxLW     : result := StringToGuid('{}'); // Obsolete
           saAttacheBP       : result := StringToGuid('{436DFF20-9B80-4D76-8E97-9412594AB893}');
           //saSolution6CLSY2K : result := StringToGuid('{}');
           saEasyBooks       : result := StringToGuid('{BA363920-A4AF-40C7-8C12-33B80EAD204E}');
@@ -231,37 +231,41 @@ begin
           saXlon            : result := StringToGuid('{0097945A-3AF6-4A8E-A4A4-EF7C3B8F53E9}');
           saCatSoft         : result := StringToGuid('{EAE03EC9-B832-48B2-B76E-765B03D2982C}');
           saBCSAccounting   : result := StringToGuid('{80A13741-5C4C-4248-B353-77A885F2A908}');
-          saMYOBAccountantsOffice : result := StringToGuid('{8A37A89F-8D6F-45F6-8011-1D8BF11788BC}');
-          saSolution6SuperFund : result := StringToGuid('{0879B2F4-DB69-4199-9008-F03175C6EA5F}');
+          saMYOBAccountantsOffice
+                            : result := StringToGuid('{8A37A89F-8D6F-45F6-8011-1D8BF11788BC}');
+          saSolution6SuperFund
+                            : result := StringToGuid('{0879B2F4-DB69-4199-9008-F03175C6EA5F}');
           saTaxAssistant    : result := StringToGuid('{05D3EB7B-68C5-49C0-A883-4D089BA29C89}');
           saMYOBGen         : result := StringToGuid('{0EDE834A-9E85-4A33-91B0-2A44359643DA}');
-          saAccomplishCashManager : result := StringToGuid('{490A5AC9-12DE-486C-92A4-B48E1F3170E8}');
+          saAccomplishCashManager
+                            : result := StringToGuid('{490A5AC9-12DE-486C-92A4-B48E1F3170E8}');
           saPraemium        : result := StringToGuid('{9CFF5638-8B38-4147-A9B1-757B24D51EDF}');
-          saSupervisor : result := StringToGuid('{812D7136-9FA8-4C04-8A71-8A412BF072C8}');
-          saXPA : result := StringToGuid('{226BD4E3-04A3-4B19-8F16-050DC7721FD5}');
-          saQIF : result := StringToGuid('{0B9E4F56-3B54-4B4F-B558-2137DA79180D}');
-          saOFXV1 : result := StringToGuid('{9BE08C6A-AB63-49BC-9979-D96754592A9D}');
-          saOFXV2 : result := StringToGuid('{A12DAFB3-E768-4F19-A875-3F950CEA5311}');
-          saElite : result := StringToGuid('{241ACB76-C69C-4272-8358-40F9ACD48BC7}');
+          saSupervisor      : result := StringToGuid('{812D7136-9FA8-4C04-8A71-8A412BF072C8}');
+          saXPA             : result := StringToGuid('{226BD4E3-04A3-4B19-8F16-050DC7721FD5}');
+          saQIF             : result := StringToGuid('{0B9E4F56-3B54-4B4F-B558-2137DA79180D}');
+          saOFXV1           : result := StringToGuid('{9BE08C6A-AB63-49BC-9979-D96754592A9D}');
+          saOFXV2           : result := StringToGuid('{A12DAFB3-E768-4F19-A875-3F950CEA5311}');
+          saElite           : result := StringToGuid('{241ACB76-C69C-4272-8358-40F9ACD48BC7}');
           //saMYOB_AO_COM : result := StringToGuid('{}');
-          saDesktopSuper : result := StringToGuid('{F5C6AFD8-DEE7-484F-9AD3-AEC568DC5F7E}');
+          saDesktopSuper    : result := StringToGuid('{F5C6AFD8-DEE7-484F-9AD3-AEC568DC5F7E}');
           saBGLSimpleLedger : result := StringToGuid('{CF7F03D1-D424-4E4F-8CE8-D61C3560EA56}');
-          saClassSuperIP : result := StringToGuid('{0BFD02B9-C941-41BB-8233-0F117896E709}');
-          saQBWN : result := StringToGuid('{99BFC68D-C393-41FC-B28B-A45699CE4CCD}');
+          saClassSuperIP    : result := StringToGuid('{0BFD02B9-C941-41BB-8233-0F117896E709}');
+          saQBWN            : result := StringToGuid('{99BFC68D-C393-41FC-B28B-A45699CE4CCD}');
           //saIRESSXplan : result := StringToGuid('{}');
-          saSuperMate : result := StringToGuid('{7FB4338F-BD24-4F24-A21C-9C44A48FAEBB}');
+          saSuperMate       : result := StringToGuid('{7FB4338F-BD24-4F24-A21C-9C44A48FAEBB}');
           //saRewardSuper : result := StringToGuid('{}');
           //saProSuper : result := StringToGuid('{}');
-          saSageHandisoftSuperfund: result := StringToGuid('{D78426F0-C34F-4815-B5E8-32F6B5B11570}');
+          saSageHandisoftSuperfund
+                            : result := StringToGuid('{D78426F0-C34F-4815-B5E8-32F6B5B11570}');
      end;
     whUK : case system of
-          suOther   : result := StringToGuid('{422074AD-B5D8-487D-A874-C7060157EAFC}');
-          //suPA7     : result := StringToGuid('{29830BE7-5745-4E2B-AA83-2C87049C1E1B}');
-          //suXPA     : result := StringToGuid('{ADCAEDBD-5717-43B2-BA21-D532DFCC8EBF}');
-          suQIF     : result := StringToGuid('{15A617EB-ABFB-4F42-B6E2-9E52BA2E574E}');
-          suOFXV1   : result := StringToGuid('{DAC0F0B0-A686-4971-BDAA-F26E00D81F9D}');
-          suOFXV2   : result := StringToGuid('{0EF6D347-7275-493A-B98E-19341B97511B}');
-          suBK5CSV  : result := StringToGuid('{EAD167CC-86FB-436E-A47B-1644B83AA25E}');
+          suOther           : result := StringToGuid('{422074AD-B5D8-487D-A874-C7060157EAFC}');
+          //suPA7           : result := StringToGuid('{29830BE7-5745-4E2B-AA83-2C87049C1E1B}');
+          //suXPA           : result := StringToGuid('{ADCAEDBD-5717-43B2-BA21-D532DFCC8EBF}');
+          suQIF             : result := StringToGuid('{15A617EB-ABFB-4F42-B6E2-9E52BA2E574E}');
+          suOFXV1           : result := StringToGuid('{DAC0F0B0-A686-4971-BDAA-F26E00D81F9D}');
+          suOFXV2           : result := StringToGuid('{0EF6D347-7275-493A-B98E-19341B97511B}');
+          suBK5CSV          : result := StringToGuid('{EAD167CC-86FB-436E-A47B-1644B83AA25E}');
           // suSolution6MAS42 : result := StringToGuid('{554D5BBB-EC02-4167-A65A-F2C8E06F637E}');
           //suMYOBAccountantsOffice : result := StringToGuid('{7B6C02BD-BE2C-40C1-8A63-9ADD08A53C5F}');
           // suMYOB_AO_COM : result := StringToGuid('{5CBF6424-55A0-48FC-B5E8-6F020304DF07}');
@@ -271,43 +275,43 @@ begin
    TaxSystem: case country of
     whAustralia :
       case System of
-          tsBAS_XML       : result := StringToGuid('{ECB190A8-5319-45A7-A07C-2F34E65C10B4}');
-          tsBAS_Sol6ELS   : result := StringToGuid('{9A59247E-7D2A-4A76-9784-487F648013F8}');
-          tsBAS_APS_XML   : result := StringToGuid('{8D34B23B-6758-416C-A3B1-7F7C1580C9F9}');
-          tsElite_XML     : result := StringToGuid('{A6541B50-B6E4-4B21-AEB8-5E0BD8D998B5}');
-          tsBAS_MYOB      : result := StringToGuid('{B87D3D4E-8661-42FF-8F76-AE7850001FCF}');
-          tsBAS_HANDI     : result := StringToGuid('{D40F2660-8B6A-4588-8073-099878D4037E}');
-          else result := StringToGuid('{F96F0C8B-87B5-4512-BBFC-E39288E6BDEF}');
+          tsBAS_XML         : result := StringToGuid('{ECB190A8-5319-45A7-A07C-2F34E65C10B4}');
+          tsBAS_Sol6ELS     : result := StringToGuid('{9A59247E-7D2A-4A76-9784-487F648013F8}');
+          tsBAS_APS_XML     : result := StringToGuid('{8D34B23B-6758-416C-A3B1-7F7C1580C9F9}');
+          tsElite_XML       : result := StringToGuid('{A6541B50-B6E4-4B21-AEB8-5E0BD8D998B5}');
+          tsBAS_MYOB        : result := StringToGuid('{B87D3D4E-8661-42FF-8F76-AE7850001FCF}');
+          tsBAS_HANDI       : result := StringToGuid('{D40F2660-8B6A-4588-8073-099878D4037E}');
+          else result                := StringToGuid('{F96F0C8B-87B5-4512-BBFC-E39288E6BDEF}');
       end;
    end;
 
    ManagementSystem: case Country of
 
       whNewZealand : case System of
-         xcOther : result := StringToGuid( '{bdaa0dd0-d38c-4101-902c-753c813ac581}');
-         xcAPS : result := StringToGuid(   '{f5f4d897-bde6-4612-a1fe-1e18d60bbc2c}');
-         xcMYOB : result := StringToGuid(  '{133ea5a3-5aaa-493f-aeed-a2940137cf15}');
-         xcMYOBAO : result := StringToGuid('{37f51f41-ea59-40cc-8471-56faa95bd039}');
+         xcOther            : result := StringToGuid('{bdaa0dd0-d38c-4101-902c-753c813ac581}');
+         xcAPS              : result := StringToGuid('{f5f4d897-bde6-4612-a1fe-1e18d60bbc2c}');
+         xcMYOB             : result := StringToGuid('{133ea5a3-5aaa-493f-aeed-a2940137cf15}');
+         xcMYOBAO           : result := StringToGuid('{37f51f41-ea59-40cc-8471-56faa95bd039}');
          //xcHandi : result := StringToGuid('{}');
-         else result := StringToGuid(      '{4bb85039-57b4-4651-b19d-a9bf4ca790f3}');
+         else                 result := StringToGuid('{4bb85039-57b4-4651-b19d-a9bf4ca790f3}');
       end;
 
       whAustralia : case System of
-         xcOther : result := StringToGuid( '{20c6e752-b0cc-4b04-baa1-ff6273f5f2b9}');
-         xcAPS : result := StringToGuid(   '{02612bf5-79a8-4cbf-a267-3ecc77c303f9}');
-         xcMYOB : result := StringToGuid(  '{431fb26a-1e49-47c9-a8f5-cfa53648d29a}');
-         xcMYOBAO : result := StringToGuid('{8635dc10-d9cf-4ab0-92e8-4836b84c8ba1}');
-         xcHandi : result := StringToGuid( '{0f2da56b-af41-43ce-8a62-8f6488c89212}');
-         else result := StringToGuid(      '{0570c4d1-6f79-4b01-a55f-c4f9d2d5cf53}');
+         xcOther            : result := StringToGuid('{20c6e752-b0cc-4b04-baa1-ff6273f5f2b9}');
+         xcAPS              : result := StringToGuid('{02612bf5-79a8-4cbf-a267-3ecc77c303f9}');
+         xcMYOB             : result := StringToGuid('{431fb26a-1e49-47c9-a8f5-cfa53648d29a}');
+         xcMYOBAO           : result := StringToGuid('{8635dc10-d9cf-4ab0-92e8-4836b84c8ba1}');
+         xcHandi            : result := StringToGuid('{0f2da56b-af41-43ce-8a62-8f6488c89212}');
+         else                 result := StringToGuid('{0570c4d1-6f79-4b01-a55f-c4f9d2d5cf53}');
       end;
 
       whUK : case system of
-         xcOther : result := StringToGuid( '{ec73e0d6-7562-4305-8cc3-8912e46595ce}');
-         xcAPS : result := StringToGuid(   '{e0a9c6cd-f435-43f8-8b86-6c3be6fd8de7}');
-         xcMYOB : result := StringToGuid(  '{66b5649c-0b1c-4b4c-9718-1e0a48822c7a}');
-         xcMYOBAO : result := StringToGuid('{35031064-c338-41ad-b27d-d507a66b4a6f}');
-         xcHandi : result := StringToGuid( '{42cfaa3c-f95e-42f0-b396-1267f3f641d2}');
-         else result := StringToGuid(      '{27cfd2f4-fbde-4b98-8461-dd32208f25d6}');
+         xcOther            : result := StringToGuid('{ec73e0d6-7562-4305-8cc3-8912e46595ce}');
+         xcAPS              : result := StringToGuid('{e0a9c6cd-f435-43f8-8b86-6c3be6fd8de7}');
+         xcMYOB             : result := StringToGuid('{66b5649c-0b1c-4b4c-9718-1e0a48822c7a}');
+         xcMYOBAO           : result := StringToGuid('{35031064-c338-41ad-b27d-d507a66b4a6f}');
+         xcHandi            : result := StringToGuid('{42cfaa3c-f95e-42f0-b396-1267f3f641d2}');
+         else                 result := StringToGuid('{27cfd2f4-fbde-4b98-8461-dd32208f25d6}');
       end;
 
    end;
@@ -315,21 +319,21 @@ begin
    WebExport: case Country of
 
       whNewZealand : case System of
-          wfWebX : result := StringToGuid(    '{C9CEBA54-50B7-447A-8ACD-1CBD0DF3BAFA}');
-          wfWebNotes : result := StringToGuid('{56BFFE20-3DFC-4DB7-A80B-B0CB77991134}');
-          else result := StringToGuid(        '{C6C3348A-12B0-4869-A823-5521B0DD1609}');
+          wfWebX            : result := StringToGuid('{C9CEBA54-50B7-447A-8ACD-1CBD0DF3BAFA}');
+          wfWebNotes        : result := StringToGuid('{56BFFE20-3DFC-4DB7-A80B-B0CB77991134}');
+          else                result := StringToGuid('{C6C3348A-12B0-4869-A823-5521B0DD1609}');
       end;
 
       whAustralia : case System of
-          wfWebX : result := StringToGuid(    '{D77F3DC1-D639-47BA-A064-233AB71A76C1}');
-          wfWebNotes : result := StringToGuid('{EA06D604-DC10-4224-8A8E-B8467DF0FF7B}');
-          else result := StringToGuid(        '{2211C3E9-66E6-41BA-9AB0-4445BD2871DC}');
+          wfWebX            : result := StringToGuid('{D77F3DC1-D639-47BA-A064-233AB71A76C1}');
+          wfWebNotes        : result := StringToGuid('{EA06D604-DC10-4224-8A8E-B8467DF0FF7B}');
+          else                result := StringToGuid('{2211C3E9-66E6-41BA-9AB0-4445BD2871DC}');
       end;
 
       whUK : case system of
-          wfWebX : result := StringToGuid(    '{32AAEBD0-785F-4CEB-AEFC-25917DD68AD1}');
-          wfWebNotes : result := StringToGuid('{1BA30927-4470-4EC1-93F4-66EE68157321}');
-          else result := StringToGuid(        '{848A4E7A-1EB7-4559-96EF-1B84B4DB56C1}');
+          wfWebX            : result := StringToGuid('{32AAEBD0-785F-4CEB-AEFC-25917DD68AD1}');
+          wfWebNotes        : result := StringToGuid('{1BA30927-4470-4EC1-93F4-66EE68157321}');
+          else                result := StringToGuid('{848A4E7A-1EB7-4559-96EF-1B84B4DB56C1}');
       end;
 
    end;

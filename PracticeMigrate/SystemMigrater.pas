@@ -619,14 +619,15 @@ begin
    try
       Connected := true;
 
+      // Dont use the Table to get the name, Too early and Clear may not work...
       DeleteTable(MyAction,'UserClients');
 
-      DeleteTable(MyAction,Chargestable,True);
-      DeleteTable(MyAction,DownloadDocumentTable, True);
-      DeleteTable(MyAction,btTable, True);
+      DeleteTable(MyAction,'AccountCharges',True);
+      DeleteTable(MyAction,'DownloadDocuments', True);
+      DeleteTable(MyAction,'BankTransactions', True);
 
-      DeleteTable(MyAction,TaxRatesTable);
-      DeleteTable(MyAction,TaxEntriesTable);
+      DeleteTable(MyAction,'SysTaxRates');
+      DeleteTable(MyAction,'SysTaxEntries');
 
       DeleteTable(MyAction,'ClientSystemAccounts');;
       DeleteTable(MyAction,'SystemBankAccounts');

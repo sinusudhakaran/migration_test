@@ -621,10 +621,10 @@ begin
    MyAction := ForAction.NewAction('Clear Clients');
    try
       Connected := true;
-      { TODO : Change to Tables rather than the name.. }
+      // Dont use the Table to get the name, Too early and Clear may not work...
       DeleteTable(MyAction,Job_Heading_RecTable, True);
 
-      DeleteTable(MYAction,DownloadlogTable, True);
+      DeleteTable(MYAction,'ClientDownloads', True);
 
       DeleteTable(MyAction,'FuelSheets', True);
       DeleteTable(MyAction,'Balances');
@@ -662,9 +662,9 @@ begin
       DeleteTable(MyAction,'ReportingOptions');
       DeleteTable(MyAction,'ReportSubGroups');
 
-      DeleteTable(MyAction,ChartDivisionTable);
+      DeleteTable(MyAction,'ClientReportDivisionCharts');
       DeleteTable(MyAction,Chart_RecTable);
-      DeleteTable(MyAction,DivisionsTable);
+      DeleteTable(MyAction,'ReportClientDivisions');
 
       DeleteTable(MyAction,'Reminders');
 

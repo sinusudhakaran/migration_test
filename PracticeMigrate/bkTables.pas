@@ -543,7 +543,7 @@ begin
   SetFields(['Id','Transaction_Id','SequenceNo'
 {2}       ,'Amount','Percentage','LineType','GSTClass','GSTAmount','HasBeenEdited','Quantity','Reference'
 {3}       ,'ChartCode','PayeeNumber','GSTHasBeenEdited'
-{4}       ,'Notes','ECodingImportNotes','GLNarration','TaxInvoice'
+{4}       ,'Notes','ECodingImportNotes','GLNarration','TaxInvoiceAvailable'
 {5}       ,'ExternalGUID','DocumentTitle','JobCode'
 {6}       ,'DocumentStatusUpdateRequired','NotesRead','ImportNotesRead'
 
@@ -1008,13 +1008,13 @@ function TChartDivisionTable.Insert(MyID,
                    Division: Integer
                    ): Boolean;
 begin
-   Result := RunValues([ToSQL(MyID),toSQL(Division),toSQL(ClientId),toSQL(ChartId)],[]);
+   Result := RunValues([ToSQL(MyID),toSQL(Division),{toSQL(ClientId),}toSQL(ChartId)],[]);
 end;
 
 procedure TChartDivisionTable.SetupTable;
 begin
    Tablename := 'ClientReportDivisionCharts';
-   SetFields(['Id','DivisionIndex','Client_Id','Chart_Id'],[]);
+   SetFields(['Id','DivisionIndex',{'Client_Id',}'Chart_Id'],[]);
 end;
 
 { TReminderTable }

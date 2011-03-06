@@ -143,7 +143,7 @@ var
    Fields, values: string;
    I: Integer;
 
-   function TestField (name: string): Boolean;
+   procedure TestField (name: string);
    begin
       try
       SQL.Text := format('SELECT [%s] FROM [%s]', [name,TableName]);
@@ -151,7 +151,6 @@ var
       except
          raise exception.Create(Format('Field %s not found in table %s',[name, TableName]));
       end;
-
    end;
 begin
    // Build The Field and Vlaue list
@@ -162,6 +161,9 @@ begin
      Fields := Fields + Format(',[%s]',[FieldList[I]]);
      Values := Values + Format(',:%s',[FieldList[I]]);
   end;
+
+  for I := Low(SFFieldList) to High(SFFieldList) do
+     TestField( SFFieldList[I]);
 
   if FDoSuperfund then // add the super fields
      for I := Low(SFFieldList) to High(SFFieldList) do begin
