@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 134;
-   SY_IOLIB_Date    = '01/03/11';
+   SY_IOLIB_Version : Integer = 139;
+   SY_IOLIB_Date    = '03/03/11';
    SY_FILE_VERSION   = 122;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -509,7 +509,9 @@ Type
       atDate_Time                        : TDateTime;       { Stored }
       atUser_Code                        : String[ 8 ];       { Stored }
       atRecord_ID                        : Integer;       { Stored }
-      atValues                           : AnsiString;       { Stored }
+      atParent_ID                        : Integer;       { Stored }
+      atAudit_Record_Type                : Byte;       { Stored }
+      atAudit_Record                     : Pointer;
       atEOR                              : Byte;
    end;
 

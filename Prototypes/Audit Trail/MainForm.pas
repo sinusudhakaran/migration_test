@@ -46,10 +46,11 @@ type
     Label11: TLabel;
     Label12: TLabel;
     ListView5: TListView;
-    Button4: TButton;
+    btnByTxnType: TButton;
     ListView6: TListView;
-    Button5: TButton;
-    Button1: TButton;
+    btnListAuditTypes: TButton;
+    btnByTxnID: TButton;
+    btnSaveToCSV: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ListView2SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
@@ -65,9 +66,10 @@ type
       Change: TItemChange);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
-    procedure Button5Click(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btnListAuditTypesClick(Sender: TObject);
+    procedure btnByTxnTypeClick(Sender: TObject);
+    procedure btnByTxnIDClick(Sender: TObject);
+    procedure btnSaveToCSVClick(Sender: TObject);
   private
     { Private declarations }
     procedure DisplayClientAuditRecs;
@@ -123,7 +125,7 @@ begin
   Edit4.Text := '';
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.btnByTxnIDClick(Sender: TObject);
 var
   RecordID: integer;
 begin
@@ -183,7 +185,7 @@ begin
   DisplaySystemAuditRecs;
 end;
 
-procedure TForm1.Button4Click(Sender: TObject);
+procedure TForm1.btnByTxnTypeClick(Sender: TObject);
 var
   AuditType: TAuditType;
 begin
@@ -192,7 +194,7 @@ begin
   DisplayAuditRecsByAuditType(AuditType);
 end;
 
-procedure TForm1.Button5Click(Sender: TObject);
+procedure TForm1.btnListAuditTypesClick(Sender: TObject);
 var
   i: integer;
   ListItem: TListItem;
@@ -202,6 +204,27 @@ begin
     ListItem.Caption := ClientAuditMgr.AuditTypeToStr(i);
     ListItem.SubItems.Add(ClientAuditMgr.AuditTypeToDBStr(i));
     ListItem.SubItems.Add(ClientAuditMgr.AuditTypeToTableStr(i));
+  end;
+end;
+
+procedure TForm1.btnSaveToCSVClick(Sender: TObject);
+var
+  i, j: integer;
+  StringList: TStringList;
+  AuditRec: string;
+begin
+  StringList := TStringList.Create;
+  try
+    for i := 0 to ListView5.Items.Count - 1 do begin
+      AuditRec := ListView5.Items[i].Caption;
+      for j := 0 to ListView5.Items[i].SubItems.Count - 1 do begin
+        AuditRec := AuditRec + ',' + ListView5.Items[i].SubItems[j];
+      end;
+      StringList.Add(AuditRec);
+    end;
+    StringList.SaveToFile('Audit.csv');
+  finally
+    StringList.Free
   end;
 end;
 

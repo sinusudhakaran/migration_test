@@ -18,12 +18,12 @@ type
     FLastAuditRecordID: integer;
     procedure LoadFromStream(var AStream: TIOStream);
     procedure SaveToStream(var AStream: TIOStream);
-    procedure SetAuditInfo(P1, P2: TPractice_Details_Rec; var AAuditInfo: TAuditInfo);
+    procedure SetAuditInfo(P1, P2: pPractice_Details_Rec; var AAuditInfo: TAuditInfo);
   public
     constructor Create;
     destructor Destroy; override;
     function NextAuditRecordID: integer;
-    procedure DoAudit(APracticeDetails: TPractice_Details_Rec);
+    procedure DoAudit(APracticeDetails: pPractice_Details_Rec);
     procedure LoadFromFile(AFileName: TFilename);
     procedure SaveToFile(AFileName: TFilename);
     property UserTable: TUserTable read FUserTable;
@@ -83,14 +83,14 @@ begin
   inherited;
 end;
 
-procedure TSystemDatabase.DoAudit(APracticeDetails: TPractice_Details_Rec);
+procedure TSystemDatabase.DoAudit(APracticeDetails: pPractice_Details_Rec);
 var
   AuditInfo: TAuditInfo;
 begin
   AuditInfo.AuditAction := aaNone;
   AuditInfo.AuditType := atPracticeSetup;
   AuditInfo.AuditUser := 'SCOTT.WI';
-  SetAuditInfo(PracticeDetails, APracticeDetails, AuditInfo);
+  SetAuditInfo(@PracticeDetails, APracticeDetails, AuditInfo);
   if (AuditInfo.AuditAction <> aaNone) then
     AuditTable.AddAuditRec(AuditInfo);
 end;
@@ -169,7 +169,7 @@ begin
   AStream.WriteToken(tkEndSection);
 end;
 
-procedure TSystemDatabase.SetAuditInfo(P1, P2: TPractice_Details_Rec;
+procedure TSystemDatabase.SetAuditInfo(P1, P2: pPractice_Details_Rec;
   var AAuditInfo: TAuditInfo);
 
 type
@@ -208,7 +208,10 @@ begin
      (not SameRatesArray(TRatesArray(P1.fdGST_Rates), TRatesArray(P2.fdGST_Rates))) then begin
     AAuditInfo.AuditAction := aaChange;
     AAuditInfo.AuditRecordID := 0;
-    SystemAuditMgr.AddAuditValue(tkBegin_Practice_Details, 12, P1.fdPractice_Name_for_Reports, AAuditInfo);
+//    SystemAuditMgr.AddAuditValue(tkBegin_Practice_Details, 12, P1.fdPractice_Name_for_Reports, AAuditInfo);
+    AAuditInfo.AuditParentID := -1;
+    AAuditInfo.AuditRecordType := tkBegin_Practice_Details;
+    AAuditInfo.AuditRecord := P1;
   end;
 end;
 

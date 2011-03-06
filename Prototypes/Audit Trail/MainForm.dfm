@@ -21,14 +21,12 @@ object Form1: TForm1
     Top = 0
     Width = 777
     Height = 455
-    ActivePage = TabSheet5
+    ActivePage = TabSheet2
     Align = alClient
     TabOrder = 0
     object TabSheet2: TTabSheet
       Caption = 'Users (SY)'
       ImageIndex = 1
-      ExplicitWidth = 762
-      ExplicitHeight = 408
       DesignSize = (
         769
         427)
@@ -66,7 +64,7 @@ object Form1: TForm1
         Width = 75
         Height = 25
         Caption = 'Save'
-        TabOrder = 0
+        TabOrder = 3
         OnClick = btnSaveUserClick
       end
       object ListView3: TListView
@@ -88,7 +86,7 @@ object Form1: TForm1
             Caption = 'Email'
           end>
         RowSelect = True
-        TabOrder = 1
+        TabOrder = 4
         ViewStyle = vsReport
         OnChange = ListView3Change
         OnSelectItem = ListView3SelectItem
@@ -98,21 +96,21 @@ object Form1: TForm1
         Top = 29
         Width = 121
         Height = 21
-        TabOrder = 2
+        TabOrder = 0
       end
       object Edit3: TEdit
         Left = 448
         Top = 61
         Width = 121
         Height = 21
-        TabOrder = 3
+        TabOrder = 1
       end
       object Edit4: TEdit
         Left = 448
         Top = 92
         Width = 121
         Height = 21
-        TabOrder = 4
+        TabOrder = 2
       end
       object ListView4: TListView
         Left = 16
@@ -123,6 +121,7 @@ object Form1: TForm1
         Columns = <
           item
             Caption = 'ID'
+            Width = 30
           end
           item
             Caption = 'Transaction Type'
@@ -142,7 +141,7 @@ object Form1: TForm1
           end
           item
             Caption = 'Date/Time'
-            Width = 100
+            Width = 120
           end
           item
             AutoSize = True
@@ -151,8 +150,6 @@ object Form1: TForm1
         RowSelect = True
         TabOrder = 5
         ViewStyle = vsReport
-        ExplicitWidth = 726
-        ExplicitHeight = 163
       end
       object Button2: TButton
         Left = 529
@@ -166,8 +163,6 @@ object Form1: TForm1
     end
     object TabSheet1: TTabSheet
       Caption = 'Payees (BK)'
-      ExplicitWidth = 762
-      ExplicitHeight = 408
       DesignSize = (
         769
         427)
@@ -211,7 +206,7 @@ object Form1: TForm1
             Caption = 'Name'
           end>
         RowSelect = True
-        TabOrder = 0
+        TabOrder = 4
         ViewStyle = vsReport
         OnChange = ListView2Change
         OnSelectItem = ListView2SelectItem
@@ -230,7 +225,7 @@ object Form1: TForm1
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 2
+        TabOrder = 0
         Value = 0
       end
       object btnSavePayee: TButton
@@ -239,7 +234,7 @@ object Form1: TForm1
         Width = 75
         Height = 25
         Caption = 'Save'
-        TabOrder = 3
+        TabOrder = 2
         OnClick = btnSavePayeeClick
       end
       object btnDelete: TButton
@@ -248,7 +243,7 @@ object Form1: TForm1
         Width = 75
         Height = 25
         Caption = 'Delete'
-        TabOrder = 4
+        TabOrder = 3
         OnClick = btnDeleteClick
       end
       object ListView1: TListView
@@ -260,6 +255,7 @@ object Form1: TForm1
         Columns = <
           item
             Caption = 'ID'
+            Width = 30
           end
           item
             Caption = 'Transaction Type'
@@ -279,7 +275,7 @@ object Form1: TForm1
           end
           item
             Caption = 'Date/Time'
-            Width = 100
+            Width = 120
           end
           item
             AutoSize = True
@@ -288,16 +284,11 @@ object Form1: TForm1
         RowSelect = True
         TabOrder = 5
         ViewStyle = vsReport
-        ExplicitWidth = 726
-        ExplicitHeight = 163
       end
     end
     object TabSheet4: TTabSheet
       Caption = 'Practice (SY)'
       ImageIndex = 3
-      ExplicitLeft = 28
-      ExplicitWidth = 762
-      ExplicitHeight = 408
       object Label8: TLabel
         Left = 40
         Top = 43
@@ -401,6 +392,7 @@ object Form1: TForm1
         Columns = <
           item
             Caption = 'ID'
+            Width = 30
           end
           item
             Caption = 'Transaction Type'
@@ -420,7 +412,7 @@ object Form1: TForm1
           end
           item
             Caption = 'Date/Time'
-            Width = 100
+            Width = 120
           end
           item
             AutoSize = True
@@ -430,30 +422,37 @@ object Form1: TForm1
         TabOrder = 2
         ViewStyle = vsReport
       end
-      object Button4: TButton
+      object btnByTxnType: TButton
         Left = 351
         Top = 19
         Width = 43
         Height = 25
         Caption = 'Go'
         TabOrder = 3
-        OnClick = Button4Click
+        OnClick = btnByTxnTypeClick
       end
-      object Button1: TButton
+      object btnByTxnID: TButton
         Left = 265
         Top = 51
         Width = 43
         Height = 25
         Caption = 'Go'
         TabOrder = 4
-        OnClick = Button1Click
+        OnClick = btnByTxnIDClick
+      end
+      object btnSaveToCSV: TButton
+        Left = 674
+        Top = 57
+        Width = 75
+        Height = 25
+        Caption = 'Save to CSV'
+        TabOrder = 5
+        OnClick = btnSaveToCSVClick
       end
     end
     object TabSheet3: TTabSheet
       Caption = 'Audit Types'
       ImageIndex = 2
-      ExplicitLeft = 8
-      ExplicitTop = 28
       object ListView6: TListView
         Left = 24
         Top = 64
@@ -475,14 +474,14 @@ object Form1: TForm1
         TabOrder = 0
         ViewStyle = vsReport
       end
-      object Button5: TButton
+      object btnListAuditTypes: TButton
         Left = 24
         Top = 33
         Width = 121
         Height = 25
         Caption = 'List Audit Types'
         TabOrder = 1
-        OnClick = Button5Click
+        OnClick = btnListAuditTypesClick
       end
     end
   end

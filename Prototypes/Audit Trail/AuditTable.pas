@@ -19,7 +19,6 @@ type
     FAuditRecords: TAuditCollection;
     FDatabaseObj: TObject;
     FLastAuditID: integer;
-    procedure SetDatabaseObj(const Value: TObject);
   public
     constructor Create;
     destructor Destroy; override;
@@ -30,7 +29,6 @@ type
     procedure SaveToStream (var S: TIOStream);
     procedure SetAuditStrings(Index: integer; Strings: TStrings);
     property AuditRecords: TAuditCollection read FAuditRecords;
-    property DatabaseObj: TObject read FDatabaseObj write SetDatabaseObj;
   end;
 
 implementation
@@ -54,7 +52,9 @@ begin
   AuditRec.atDate_Time := Now;
   AuditRec.atRecord_ID := AAuditInfo.AuditRecordID;
   AuditRec.atUser_Code := AAuditInfo.AuditUser;
-  AuditRec.atValues := AAuditInfo.AuditValues;
+  AuditRec.atParent_ID := AAuditInfo.AuditParentID;
+  AuditRec.atAudit_Record_Type := AAuditInfo.AuditRecordType;
+  AuditRec.atAudit_Record := AAuditInfo.AuditRecord;
   FAuditRecords.Insert(AuditRec);
 end;
 
@@ -105,6 +105,9 @@ begin
           begin
             pAR := New_Audit_Trail_Rec;
             SYATIO.Read_Audit_Trail_Rec(pAR^, S);
+            //Read record
+            if pAR^.atAudit_Action <> aaDelete then
+              SystemAuditMgr.ReadAuditRecord(pAR^.atAudit_Record_Type, S, pAR^.atAudit_Record);
             FAuditRecords.Insert(pAR);
           end
     else
@@ -139,6 +142,9 @@ begin
   for i := FAuditRecords.First to FAuditRecords.Last do begin
     AuditRec := FAuditRecords.Audit_At(i);
     SYATIO.Write_Audit_Trail_Rec(AuditRec, S);
+    //Write record
+    if AuditRec.atAudit_Action <> aaDelete then
+      SystemAuditMgr.WriteAuditRecord(AuditRec.atAudit_Record_Type, AuditRec.atAudit_Record, S);
   end;
   S.WriteToken( tkEndSection );
 end;
@@ -150,17 +156,18 @@ begin
   AuditRec := AuditRecords.Audit_At(Index);
 
   Strings.Text := '';
-  Strings.Add(ClientAuditMgr.AuditTypeToStr(AuditRec.atTransaction_Type));
+  Strings.Add(SystemAuditMgr.AuditTypeToStr(AuditRec.atTransaction_Type));
   Strings.Add(IntToStr(AuditRec.atRecord_ID));
   Strings.Add(aaNames[AuditRec.atAudit_Action]);
   Strings.Add(AuditRec.atUser_Code);
   Strings.Add(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRec.atDate_Time));
-  Strings.Add(AuditRec.atValues);
-end;
 
-procedure TAuditTable.SetDatabaseObj(const Value: TObject);
-begin
-  FDatabaseObj := Value;
+  if AuditRec.atAudit_Action = aaDelete then Exit;
+
+  case SystemAuditMgr.DBFromAuditType(AuditRec.atTransaction_Type) of
+    dbSystem: SystemAuditMgr.GetValues(AuditRec.atAudit_Record_Type, AuditRec.atAudit_Record, Strings);
+    dbClient: ClientAuditMgr.GetValues(AuditRec.atAudit_Record_Type, AuditRec.atAudit_Record, Strings);
+  end;
 end;
 
 { TAuditRecords }

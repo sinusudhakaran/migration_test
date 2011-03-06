@@ -3,7 +3,7 @@ unit AuditMgr;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, IOStream;
 
 const
   //Audit types
@@ -57,7 +57,9 @@ type
     AuditUser: string;
     AuditType: TAuditType;
     AuditAction: byte;
-    AuditValues: string;
+    AuditParentID: integer;
+    AuditRecordType: byte;
+    AuditRecord: Pointer;
   end;
 
   PScopeInfo = ^TScopeInfo;
@@ -83,10 +85,14 @@ type
     function AuditTypeToStr(AAuditType: TAuditType): string;
     function AuditTypeToDBStr(AAuditType: TAuditType): string;
     function AuditTypeToTableStr(AAuditType: TAuditType): string;
+    function DBFromAuditType(AAuditType: TAuditType): byte;
     procedure DoAudit; virtual; abstract;
     procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); virtual; abstract;
-    procedure AddAuditValue(ATableID, AFieldID: byte; AVaule: string;
-      var AAuditInfo: TAuditInfo); virtual; abstract;
+    procedure AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
+      var AAuditValue: string); virtual; abstract;
+    procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream);
+    procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer);
+    procedure GetValues(ARecordType: byte; ARecord: pointer; Strings: TStrings);
   end;
 
   TSystemAuditManager = class(TAuditManager)
@@ -94,8 +100,8 @@ type
     function NextSystemRecordID: integer;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
-    procedure AddAuditValue(ATableID, AFieldID: byte; AVaule: string;
-      var AAuditInfo: TAuditInfo); override;
+    procedure AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
+      var AAuditValue: string); override;
   end;
 
   TClientAuditManager = class(TAuditManager)
@@ -103,8 +109,8 @@ type
     function NextClientRecordID: integer;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
-    procedure AddAuditValue(ATableID, AFieldID: byte; AVaule: string;
-      var AAuditInfo: TAuditInfo); override;
+    procedure AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
+      var AAuditValue: string); override;
   end;
 
   function SystemAuditMgr: TSystemAuditManager;
@@ -165,21 +171,21 @@ const
      (tkBegin_Payee_Detail, dbClient),        //Payees
      (tkBegin_Memorisation_Detail, dbClient), //Memorisations
      (tkBegin_Client, dbClient),              //GST/VAT Setup
-     (tkBegin_Transaction, dbClient),         //Historical entries
-     (tkBegin_Transaction, dbClient),         //Provisional entries
-     (tkBegin_Transaction, dbClient),         //Manual entries
-     (tkBegin_Transaction, dbClient),         //Delivered transactions
-     (tkBegin_Transaction, dbClient),         //Automatic coding
-     (tkBegin_Transaction, dbClient),         //Cash journals
-     (tkBegin_Transaction, dbClient),         //Accrual journals
-     (tkBegin_Transaction, dbClient),         //Stock/Adjustment journals
-     (tkBegin_Transaction, dbClient),         //Year End Adjustment journals
-     (tkBegin_Transaction, dbClient),         //GST/VAT journals
-     (tkBegin_Transaction, dbClient),         //Opening balances
-     (tkBegin_Transaction, dbClient),         //Unpresented Items
-     (tkBegin_Transaction, dbClient),         //BankLink Notes
-     (tkBegin_Transaction, dbClient),         //BankLink Notes Online
-     (tkBegin_Transaction, dbClient));        //BankLink Books
+     (tkBegin_Bank_Account, dbClient),         //Historical entries
+     (tkBegin_Bank_Account, dbClient),         //Provisional entries
+     (tkBegin_Bank_Account, dbClient),         //Manual entries
+     (tkBegin_Bank_Account, dbClient),         //Delivered transactions
+     (tkBegin_Bank_Account, dbClient),         //Automatic coding
+     (tkBegin_Bank_Account, dbClient),         //Cash journals
+     (tkBegin_Bank_Account, dbClient),         //Accrual journals
+     (tkBegin_Bank_Account, dbClient),         //Stock/Adjustment journals
+     (tkBegin_Bank_Account, dbClient),         //Year End Adjustment journals
+     (tkBegin_Bank_Account, dbClient),         //GST/VAT journals
+     (tkBegin_Bank_Account, dbClient),         //Opening balances
+     (tkBegin_Bank_Account, dbClient),         //Unpresented Items
+     (tkBegin_Bank_Account, dbClient),         //BankLink Notes
+     (tkBegin_Bank_Account, dbClient),         //BankLink Notes Online
+     (tkBegin_Bank_Account, dbClient));        //BankLink Books
 
 //Notes: - Master memorisations are kept outside the System DB
 //       - Some practice details are kept in an INI file (for Books)
@@ -207,6 +213,20 @@ begin
   Result := _ClientAuditMgr;
 end;
 
+function ToString(Value: Variant): String;
+begin
+  case TVarData(Value).VType of
+    varSmallInt,
+    varInteger   : Result := IntToStr(Value);
+    varSingle,
+    varDouble,
+    varCurrency  : Result := FloatToStr(Value);
+    varDate      : Result := FormatDateTime('dd/mm/yyyy', Value);
+    varBoolean   : if Value then Result := 'T' else Result := 'F';
+    varString    : Result := Value;
+    else           Result := '';
+  end;
+end;
 
 { TAuditManager }
 
@@ -258,6 +278,11 @@ begin
   FAuditScope := TList.Create;
 end;
 
+function TAuditManager.DBFromAuditType(AAuditType: TAuditType): byte;
+begin
+  Result := atNameTable[AAuditType, 1];
+end;
+
 destructor TAuditManager.Destroy;
 var
   i: integer;
@@ -282,16 +307,79 @@ begin
   end;
 end;
 
+procedure TAuditManager.GetValues(ARecordType: byte; ARecord: pointer;
+  Strings: TStrings);
+var
+  Values: string;
+begin
+  Values := '';
+  case ARecordType of
+    tkBegin_Payee_Detail    :
+      begin
+        if tPayee_Detail_Rec(ARecord^).pdNumber > 0 then
+          AddAuditValue(tkBegin_Payee_Detail, 91, IntToStr(tPayee_Detail_Rec(ARecord^).pdNumber), Values);
+        AddAuditValue(tkBegin_Payee_Detail, 92, tPayee_Detail_Rec(ARecord^).pdName, Values);
+        Strings.Add(Values);
+      end;
+    tkBegin_Practice_Details:
+      begin
+
+      end;
+    tkBegin_User            :
+      begin
+        AddAuditValue(tkBegin_User, 61, tUser_Rec(ARecord^).usCode, Values);
+        AddAuditValue(tkBegin_User, 62, tUser_Rec(ARecord^).usName, Values);
+        AddAuditValue(tkBegin_User, 64, tUser_Rec(ARecord^).usEMail_Address, Values);
+        Strings.Add(Values);
+      end;
+  end;
+end;
+
+procedure TAuditManager.ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer);
+begin
+  case ARecordType of
+    tkBegin_Payee_Detail    :
+      begin
+        ARecord := New_Payee_Detail_Rec;
+        Read_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
+      end;
+    tkBegin_Practice_Details:
+      begin
+        ARecord := New_Practice_Details_Rec;
+        Read_Practice_Details_Rec(TPractice_Details_Rec(ARecord^), AStream);
+      end;
+    tkBegin_User            :
+      begin
+        ARecord := New_User_Rec;
+        Read_User_Rec(TUser_Rec(ARecord^), AStream);
+      end;
+  end;
+end;
+
+procedure TAuditManager.WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream);
+begin
+  case ARecordType of
+    tkBegin_Payee_Detail    : Write_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
+    tkBegin_Practice_Details: Write_Practice_Details_Rec(TPractice_Details_Rec(ARecord^), AStream);
+    tkBegin_User            : Write_User_Rec(TUser_Rec(ARecord^), AStream);
+  end;
+end;
+
 { TClientAuditManager }
 
-procedure TClientAuditManager.AddAuditValue(ATableID, AFieldID: byte; AVaule: string;
-  var AAuditInfo: TAuditInfo);
+procedure TClientAuditManager.AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
+  var AAuditValue: string);
+var
+  Value: string;
 begin
-  if (AAuditInfo.AuditValues <> '') then
-    AAuditInfo.AuditValues := AAuditInfo.AuditValues + ', ';
-    AAuditInfo.AuditValues := AAuditInfo.AuditValues +
-                              BKAuditNames.GetAuditFieldName(ATableID, AFieldID) +
-                              '=' + AVaule;
+  Value := ToString(AValue);
+  if Value <> '' then begin
+    if (AAuditValue <> '') then
+      AAuditValue := AAuditValue + ',';
+    AAuditValue := AAuditValue +
+                   BKAuditNames.GetAuditFieldName(ATableID, AFieldID) +
+                   '=' + Value;
+  end;
 end;
 
 procedure TClientAuditManager.DoAudit;
@@ -321,14 +409,19 @@ end;
 
 { TSystemAuditManager }
 
-procedure TSystemAuditManager.AddAuditValue(ATableID, AFieldID: byte; AVaule: string;
-  var AAuditInfo: TAuditInfo);
+procedure TSystemAuditManager.AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
+  var AAuditValue: string);
+var
+  Value: string;
 begin
-  if (AAuditInfo.AuditValues <> '') then
-    AAuditInfo.AuditValues := AAuditInfo.AuditValues + ', ';
-    AAuditInfo.AuditValues := AAuditInfo.AuditValues +
-                              SYAuditNames.GetAuditFieldName(ATableID, AFieldID) +
-                              '=' + AVaule;
+  Value := ToString(AValue);
+  if Value <> '' then begin
+    if (AAuditValue <> '') then
+      AAuditValue := AAuditValue + ',';
+    AAuditValue := AAuditValue +
+                   SYAuditNames.GetAuditFieldName(ATableID, AFieldID) +
+                   '=' + Value;
+  end;
 end;
 
 procedure TSystemAuditManager.DoAudit;
@@ -339,7 +432,7 @@ begin
   for i := 0 to FAuditScope.Count - 1 do begin
     TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
     case TableID of
-      tkBegin_Practice_Details: SystemData.DoAudit(SystemCopy.PracticeDetails);
+      tkBegin_Practice_Details: SystemData.DoAudit(@SystemCopy.PracticeDetails);
       tkBegin_User: SystemData.UserTable.DoAudit(SystemData.AuditTable, SystemCopy.UserTable);
     end;
   end;

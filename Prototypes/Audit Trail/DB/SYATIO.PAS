@@ -49,7 +49,8 @@ CONST
    tkatDate_Time                        = 135 ;
    tkatUser_Code                        = 136 ;
    tkatRecord_ID                        = 137 ;
-   tkatValues                           = 138 ;
+   tkatParent_ID                        = 138 ;
+   tkatAudit_Record_Type                = 139 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -81,7 +82,8 @@ Begin
       F.WriteDateTimeValue( tkatDate_Time , atDate_Time );
       F.WriteStringValue( tkatUser_Code , atUser_Code );
       F.WriteIntegerValue( tkatRecord_ID , atRecord_ID );
-      F.WriteAnsiStringValue( tkatValues , atValues );
+      F.WriteIntegerValue( tkatParent_ID , atParent_ID );
+      F.WriteByteValue( tkatAudit_Record_Type , atAudit_Record_Type );
       F.WriteToken( tkEnd_Audit_Trail );
    end;
 end; { of Write_Audit_Trail_Rec }
@@ -110,7 +112,8 @@ Begin
          tkatDate_Time                        : atDate_Time := F.ReadDateTimeValue;
          tkatUser_Code                        : atUser_Code := F.ReadStringValue;
          tkatRecord_ID                        : atRecord_ID := F.ReadIntegerValue;
-         tkatValues                           : atValues := F.ReadAnsiStringValue;
+         tkatParent_ID                        : atParent_ID := F.ReadIntegerValue;
+         tkatAudit_Record_Type                : atAudit_Record_Type := F.ReadByteValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -145,7 +148,6 @@ Begin
    If IsAAudit_Trail_Rec ( @O ) then With O do
    Begin
       { Free any dynamically allocated memory }
-      atValues := '' ;
    end;
 end;
 

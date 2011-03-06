@@ -11,6 +11,8 @@ type
     FUserList: TList;
     function GetCount: integer;
     function GetItems(index: integer): pUser_Rec;
+    procedure CopyUser(P1, P2: pUser_Rec);
+    procedure CompareAndCopyUser(P1, P2, P3: pUser_Rec);
     procedure SetAuditInfo(P1, P2: pUser_Rec; var AAuditInfo: TAuditInfo);
   public
     constructor Create;
@@ -44,6 +46,31 @@ begin
   FUserList.Clear;
 end;
 
+procedure TUserTable.CompareAndCopyUser(P1, P2, P3: pUser_Rec);
+begin
+  //Copy all fields that have changes or only ones that are audited?
+  if P1.usCode <> P2.usCode then
+    P3.usCode := P1.usCode;
+  if P1.usName <> P2.usName then
+    P3.usName := P1.usName;
+  if P1.usEMail_Address <> P2.usEMail_Address then
+    P3.usEMail_Address := P1.usEMail_Address;
+end;
+
+procedure TUserTable.CopyUser(P1, P2: pUser_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_User_Rec(P1^, S);
+    S.Position := 0;
+    Read_User_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
+end;
+
 constructor TUserTable.Create;
 begin
   FUserList := TList.Create;
@@ -68,6 +95,7 @@ var
 begin
   AuditInfo.AuditType := atUsers;
   AuditInfo.AuditUser := 'SCOTT.WI';
+  AuditInfo.AuditRecordType := tkBegin_User;
   //Adds, changes
   for i := 0 to Count - 1 do begin
     P1 := Items[i];
@@ -131,17 +159,8 @@ begin
 end;
 
 procedure TUserTable.SetAuditInfo(P1, P2: pUser_Rec; var AAuditInfo: TAuditInfo);
-
-  procedure AddField(AFieldID: byte; AVaule: string);
-  begin
-    if (AAuditInfo.AuditValues <> '') then
-      AAuditInfo.AuditValues := AAuditInfo.AuditValues + ', ';
-    AAuditInfo.AuditValues := AAuditInfo.AuditValues +
-                              SYAuditNames.GetAuditFieldName(tkBegin_User, AFieldID) +
-                              '=' + AVaule;
-  end;
-
 begin
+  AAuditInfo.AuditRecord := nil;
   AAuditInfo.AuditAction := aaNone;
   if not Assigned(P1) then begin
     //Delete
@@ -152,35 +171,18 @@ begin
     AAuditInfo.AuditRecordID := P1.usAudit_Record_ID;
     if not ((P1.usCode = P2.usCode) and
             (P1.usName = P2.usName) and
-            (P1.usEMail_Address = P2.usEMail_Address)) then
+            (P1.usEMail_Address = P2.usEMail_Address)) then begin
       AAuditInfo.AuditAction := aaChange;
+      AAuditInfo.AuditRecord := New_User_Rec;
+      CompareAndCopyUser(P1, P2, AAuditInfo.AuditRecord);
+    end;
   end else begin
     //Add
     AAuditInfo.AuditAction := aaAdd;
     AAuditInfo.AuditRecordID := SystemAuditMgr.NextSystemRecordID;
     P1.usAudit_Record_ID := AAuditInfo.AuditRecordID;
-  end;
-  //Delta
-  case AAuditInfo.AuditAction of
-    aaAdd    :
-      begin
-        AddField(61, P1.usCode);
-        AddField(62, P1.usName);
-        AddField(64, P1.usEMail_Address);
-      end;
-    aaChange :
-      begin
-        if (P1.usCode <> P2.usCode) then
-          AddField(61, P1.usCode);
-        if (P1.usName <> P2.usName) then
-           AddField(62, P1.usName);
-        if (P1.usEMail_Address <> P2.usEMail_Address) then
-           AddField(64, P1.usEMail_Address);
-      end;
-    aaDelete :
-      begin
-        AAuditInfo.AuditValues := '';
-      end;
+    AAuditInfo.AuditRecord := New_User_Rec;
+    CopyUser(P1, AAuditInfo.AuditRecord);
   end;
 end;
 

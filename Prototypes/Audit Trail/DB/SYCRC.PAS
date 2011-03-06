@@ -245,11 +245,9 @@ Var
 Begin
    With Rec do begin
       RS    := @atRecord_Type;
-      RE    := @atEOR;
+      RE    := @atAudit_Record;
       Len   := Integer( RE ) - Integer( RS );
       CRC32.UpdateCRC( CRC , RS^, Len );
-      Len := Length( atValues );
-      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( atValues )^, Len );
    end;
 end;
 

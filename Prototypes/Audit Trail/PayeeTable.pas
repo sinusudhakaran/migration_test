@@ -12,6 +12,8 @@ type
     function GetCount: integer;
     function GetItems(index: integer): pPayee_Detail_Rec;
     procedure SetAuditInfo(P1, P2: pPayee_Detail_Rec; var AAuditInfo: TAuditInfo);
+    procedure CopyPayee(P1, P2: pPayee_Detail_Rec);
+    procedure CompareAndCopyPayee(P1, P2, P3: pPayee_Detail_Rec);
   public
     constructor Create;
     destructor Destroy; override;
@@ -44,6 +46,29 @@ begin
   FPayeeList.Clear;
 end;
 
+procedure TPayeeTable.CompareAndCopyPayee(P1, P2, P3: pPayee_Detail_Rec);
+begin
+  //Copy all fields that have changes or only ones that are audited?
+  if P1.pdNumber <> P2.pdNumber then
+    P3.pdNumber := P1.pdNumber;
+  if P1.pdName <> P2.pdName then
+    P3.pdName := P1.pdName;
+end;
+
+procedure TPayeeTable.CopyPayee(P1, P2: pPayee_Detail_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Payee_Detail_Rec(P1^, S);
+    S.Position := 0;
+    Read_Payee_Detail_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
+end;
+
 constructor TPayeeTable.Create;
 begin
   FPayeeList := TList.Create;
@@ -68,6 +93,7 @@ var
 begin
   AuditInfo.AuditType := atPayees;
   AuditInfo.AuditUser := 'SCOTT.WI';
+  AuditInfo.AuditRecordType := tkBegin_Payee_Detail;
   //Adds, changes
   for i := 0 to Count - 1 do begin
     P1 := Items[i];
@@ -120,7 +146,7 @@ begin
       BKPDIO.Read_Payee_Detail_Rec(PD^, AStream);
       FPayeeList.Add(PD);
     end;
-    Token := AStream.ReadToken;
+    Token := AStream.ReadToken;               
   end;
 end;
 
@@ -141,51 +167,30 @@ begin
 end;
 
 procedure TPayeeTable.SetAuditInfo(P1, P2: pPayee_Detail_Rec; var AAuditInfo: TAuditInfo);
-
-  procedure AddField(AFieldID: byte; AVaule: string);
-  begin
-    if (AAuditInfo.AuditValues <> '') then
-      AAuditInfo.AuditValues := AAuditInfo.AuditValues + ', ';
-    AAuditInfo.AuditValues := AAuditInfo.AuditValues +
-                              BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, AFieldID) +
-                              '=' + AVaule;
-  end;
-
 begin
+  AAuditInfo.AuditRecord := nil;
   AAuditInfo.AuditAction := aaNone;
   if not Assigned(P1) then begin
+    //Delete
     AAuditInfo.AuditAction := aaDelete;
     AAuditInfo.AuditRecordID := P2.pdAudit_Record_ID;
   end else if Assigned(P2) then begin
+    //Change
     AAuditInfo.AuditRecordID := P1.pdAudit_Record_ID;
     if not ((P1.pdNumber = P2.pdNumber) and
             (P1.pdName = P2.pdName) and
-            (P1.pdAudit_Record_ID  = P2.pdAudit_Record_ID)) then
+            (P1.pdAudit_Record_ID = P2.pdAudit_Record_ID)) then begin
       AAuditInfo.AuditAction := aaChange;
+      AAuditInfo.AuditRecord := New_Payee_Detail_Rec;
+      CompareAndCopyPayee(P1, P2, AAuditInfo.AuditRecord);
+    end;
   end else begin
-    //New record
+    //Add
     AAuditInfo.AuditAction := aaAdd;
     AAuditInfo.AuditRecordID := ClientAuditMgr.NextClientRecordID;
     P1.pdAudit_Record_ID := AAuditInfo.AuditRecordID;
-  end;
-  //Delta
-  case AAuditInfo.AuditAction of
-    aaAdd    :
-      begin
-        AddField(91, IntToStr(P1.pdNumber));
-        AddField(92, P1.pdName);
-      end;
-    aaChange :
-      begin
-        if (P1.pdNumber <> P2.pdNumber) then
-          AddField(91, IntToStr(P1.pdNumber));
-        if (P1.pdName <> P2.pdName) then
-           AddField(92, P1.pdName);
-      end;
-    aaDelete :
-      begin
-        AAuditInfo.AuditValues := '';
-      end;
+    AAuditInfo.AuditRecord := New_Payee_Detail_Rec;
+    CopyPayee(P1, AAuditInfo.AuditRecord);
   end;
 end;
 

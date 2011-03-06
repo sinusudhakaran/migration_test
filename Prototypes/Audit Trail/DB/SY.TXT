@@ -443,5 +443,7 @@ F|Audit Action|B
 F|Date Time|DT
 F|User Code|S|8
 F|Record ID|L
-F|Values|AS
+F|Parent ID|L
+F|Audit Record Type|B
+C|Audit Record|L
 E

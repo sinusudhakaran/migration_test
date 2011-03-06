@@ -387,7 +387,8 @@ begin
     FAuditNamesArray[130,134] := 'Date_Time';
     FAuditNamesArray[130,135] := 'User_Code';
     FAuditNamesArray[130,136] := 'Record_ID';
-    FAuditNamesArray[130,137] := 'Values';
+    FAuditNamesArray[130,137] := 'Parent_ID';
+    FAuditNamesArray[130,138] := 'Audit_Record_Type';
 
 end;
 
