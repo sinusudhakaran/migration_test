@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, baObj32;
+  Dialogs, StdCtrls, baObj32, ForExHelpers;
 
 type
   TfrmCSVImport = class(TForm)
@@ -182,11 +182,11 @@ begin
          Write(f,'T',Sep,
                   bkDateUtils.bkDate2Str(t.txDate_Effective), Sep,
                   Quote,t.txReference,Quote, Sep,
-                  CurrToStr( t.txAmount / 100), Sep);
+                  CurrToStr( t.Local_Amount / 100), Sep);
 
          if IsForex then
             Write(f,Format('%.5f',[t.txForex_Conversion_Rate] ), Sep,
-                    CurrToStr( t.txForeign_Currency_Amount / 100),Sep);
+                    CurrToStr( t.txAmount / 100),Sep);
 
          writeln(f,
                   Quote, t.txAccount,Quote, sep,
