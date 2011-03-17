@@ -522,7 +522,7 @@ begin
                 s := StringReplace( s, ',', '', [rfReplaceAll]);
                 s := StringReplace( s, '(', '-', [rfReplaceAll]);
                 s := StringReplace( s, ')', '', [rfReplaceAll]);
-                pT^.txForeign_Currency_Amount := StrToFloatDef( s, 0.00) * 100;
+                pT^.txAmount := StrToFloatDef( s, 0.00) * 100;
             end else if fieldNo = ColERate then begin
                 //strip comma, change (1,000) to -1000
                 s := StringReplace( s, ',', '', [rfReplaceAll]);
@@ -542,7 +542,7 @@ begin
                 s := StringReplace( s, ',', '', [rfReplaceAll]);
                 s := StringReplace( s, '(', '-', [rfReplaceAll]);
                 s := StringReplace( s, ')', '', [rfReplaceAll]);
-                pT^.txQuantity := ForceSignToMatchAmount( StrToFloatDef( s, 0.0000) * 10000, pT^.txAmount);
+                pT^.txQuantity := ForceSignToMatchAmount( StrToFloatDef( s, 0.0000) * 10000, pT^.Local_Amount);
             end else if fieldNo = ColEntryType then begin
                 p := pos( ':', s);
                 if p > 0 then
