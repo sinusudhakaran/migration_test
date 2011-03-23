@@ -8,7 +8,8 @@ uses
   ClientDB in 'ClientDB.pas',
   AuditMgr in 'AuditMgr.pas',
   SystemDB in 'SystemDB.pas',
-  UserTable in 'UserTable.pas';
+  UserTable in 'UserTable.pas',
+  AuditUtils in 'AuditUtils.pas';
 
 {$R *.res}
 

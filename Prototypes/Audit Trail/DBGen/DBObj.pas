@@ -596,8 +596,8 @@ Begin
    // Pointer
    // --------------------------------------------------------------------------
 
-   F := TFieldType.Create( 'P' );
-   F.fDefn      := 'TPointer;';
+   F := TFieldType.Create( 'PTR' );
+   F.fDefn      := 'Pointer;';
    F.fReadCode  := '%NAME% := F.ReadIntegerValue;' ;
    F.fWriteCode := 'F.WriteIntegerValue( %TOKEN% , %NAME% );' ;
    AddFieldType( F );

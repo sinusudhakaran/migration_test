@@ -56,96 +56,6 @@
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       <Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\5.0\Bpl\VCLZipD2007_3.bpl">File C:\Users\Public\Documents\RAD Studio\5.0\Bpl\VCLZipD2007_3.bpl not found</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
@@ -158,6 +68,7 @@
     </DelphiCompile>
     <DCCReference Include="AuditMgr.pas" />
     <DCCReference Include="AuditTable.pas" />
+    <DCCReference Include="AuditUtils.pas" />
     <DCCReference Include="ClientDB.pas" />
     <DCCReference Include="MainForm.pas">
       <Form>Form1</Form>

@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 139;
-   SY_IOLIB_Date    = '03/03/11';
-   SY_FILE_VERSION   = 122;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 171;
+   SY_IOLIB_Date    = '11/03/11';
+   SY_FILE_VERSION   = 123;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -120,6 +120,7 @@ Const
                            Add Webnotes Email Notification flags.
                            Add WebNotes available status
        5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
+       5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
    *)
 
 {  -------------------------------------------------------------------  }
@@ -210,7 +211,7 @@ Type
       fdSched_Rep_Print_Custom_Doc_GUID  : AnsiString;       { Stored }
       fdSched_Rep_Print_Custom_Doc       : Byte;       { Stored }
       fdLast_ChargeFile_Date             : Integer;       { Stored }
-      fdSpare_Integer_2                  : Integer;       { Stored }
+      fdAudit_Record_ID                  : Integer;       { Stored }
       fdSched_Rep_Fax_Custom_Doc_GUID    : AnsiString;       { Stored }
       fdSched_Rep_Fax_Custom_Doc         : Byte;       { Stored }
       fdSpare_Text_3                     : AnsiString;       { Stored }
@@ -323,6 +324,7 @@ Type
       dlNo_of_Accounts                   : Integer;       { Stored }
       dlNo_of_Entries                    : Integer;       { Stored }
       dlWas_In_Last_Download             : Boolean;       { Stored }
+      dlAudit_Record_ID                  : Integer;       { Stored }
       dlEOR                              : Byte;
    end;
 
@@ -397,6 +399,7 @@ Type
       sbBankLink_Code                    : String[ 8 ];       { Stored }
       sbFrequency                        : Byte;       { Stored }
       sbFrequency_Change_Pending         : Byte;       { Stored }
+      sbAudit_Record_ID                  : Integer;       { Stored }
       sbEOR                              : Byte;
    end;
 
@@ -457,6 +460,7 @@ Type
       cfWebNotesAvailable                : Array[ 1..36 ] of Byte;       { Stored }
       cfWebNotes_Email_Notifications     : Integer;       { Stored }
       cfISO_Codes                        : Array[ 1..99 ] of String[ 3 ];       { Stored }
+      cfAudit_Record_ID                  : Integer;       { Stored }
       cfEOR                              : Byte;
    end;
 
@@ -466,6 +470,7 @@ Type
       acRecord_Type                      : Byte;
       acUser_LRN                         : Integer;       { Stored }
       acClient_File_LRN                  : Integer;       { Stored }
+      acAudit_Record_ID                  : Integer;       { Stored }
       acEOR                              : Byte;
    end;
 
@@ -478,6 +483,7 @@ Type
       amLast_Date_Printed                : Integer;       { Stored }
       amTemp_Last_Date_Printed           : Integer;       { Stored }
       amEarliest_Download_Date           : Integer;       { Stored }
+      amAudit_Record_ID                  : Integer;       { Stored }
       amEOR                              : Byte;
    end;
 
@@ -487,6 +493,7 @@ Type
       grRecord_Type                      : Byte;
       grLRN                              : Integer;       { Stored }
       grName                             : String[ 60 ];       { Stored }
+      grAudit_Record_ID                  : Integer;       { Stored }
       grEOR                              : Byte;
    end;
 
@@ -496,6 +503,7 @@ Type
       ctRecord_Type                      : Byte;
       ctLRN                              : Integer;       { Stored }
       ctName                             : String[ 60 ];       { Stored }
+      ctAudit_Record_ID                  : Integer;       { Stored }
       ctEOR                              : Byte;
    end;
 

@@ -17,9 +17,11 @@ PROCEDURE Write_File_Access_Mapping_Rec ( Var O : TFile_Access_Mapping_Rec ; Var
 PROCEDURE Read_File_Access_Mapping_Rec ( Var O : TFile_Access_Mapping_Rec ; Var F : TIOStream );
 FUNCTION  New_File_Access_Mapping_Rec : pFile_Access_Mapping_Rec ;
 PROCEDURE Free_File_Access_Mapping_Rec_Dynamic_Fields ( Var O : TFile_Access_Mapping_Rec );
+function File_Access_Mapping_Rec_Delta(P1, P2, P3: pFile_Access_Mapping_Rec): boolean;
+procedure Copy_File_Access_Mapping_Rec(P1, P2: pFile_Access_Mapping_Rec);
 
 {  -------------------------------------------------------------------  }
-IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
+IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -45,6 +47,7 @@ end;
 CONST
    tkacUser_LRN                         = 102 ;
    tkacClient_File_LRN                  = 103 ;
+   tkacAudit_Record_ID                  = 104 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -72,6 +75,7 @@ Begin
       F.WriteToken( tkBegin_File_Access_Mapping );
       F.WriteIntegerValue( tkacUser_LRN , acUser_LRN );
       F.WriteIntegerValue( tkacClient_File_LRN , acClient_File_LRN );
+      F.WriteIntegerValue( tkacAudit_Record_ID , acAudit_Record_ID );
       F.WriteToken( tkEnd_File_Access_Mapping );
    end;
 end; { of Write_File_Access_Mapping_Rec }
@@ -96,6 +100,7 @@ Begin
          tkEnd_File_Access_Mapping :; { Do Nothing }
          tkacUser_LRN                         : acUser_LRN := F.ReadIntegerValue;
          tkacClient_File_LRN                  : acClient_File_LRN := F.ReadIntegerValue;
+         tkacAudit_Record_ID                  : acAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -131,6 +136,51 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+Function File_Access_Mapping_Rec_Delta(P1, P2, P3: pFile_Access_Mapping_Rec): boolean;
+begin
+  Result := False;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_File_Access_Mapping_Rec(P1, P3);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  if (P1.acUser_LRN <> P2.acUser_LRN) then begin
+    Result := true;
+    P3.acUser_LRN := P1.acUser_LRN;
+  end;
+  if (P1.acClient_File_LRN <> P2.acClient_File_LRN) then begin
+    Result := true;
+    P3.acClient_File_LRN := P1.acClient_File_LRN;
+  end;
+  if (P1.acAudit_Record_ID <> P2.acAudit_Record_ID) then begin
+    Result := true;
+    P3.acAudit_Record_ID := P1.acAudit_Record_ID;
+  end;
+
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_File_Access_Mapping_Rec(P1, P2: pFile_Access_Mapping_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_File_Access_Mapping_Rec(P1^, S);
+    S.Position := 0;
+    Read_File_Access_Mapping_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

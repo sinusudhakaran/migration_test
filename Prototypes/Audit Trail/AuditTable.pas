@@ -157,6 +157,7 @@ begin
 
   Strings.Text := '';
   Strings.Add(SystemAuditMgr.AuditTypeToStr(AuditRec.atTransaction_Type));
+  Strings.Add(IntToStr(AuditRec.atParent_ID));
   Strings.Add(IntToStr(AuditRec.atRecord_ID));
   Strings.Add(aaNames[AuditRec.atAudit_Action]);
   Strings.Add(AuditRec.atUser_Code);

@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 122;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 123;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -107,6 +107,7 @@ $|    5.17.1 (WebNotes) 121   Add Custom Document for Webnotes email
 $|                        Add Webnotes Email Notification flags.
 $|                        Add WebNotes available status
 $|    5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
+$|    5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
 $|*)
 
 N|Practice Details|fd|10
@@ -180,7 +181,7 @@ F|Practice Logo Filename|AS
 F|Sched Rep Print Custom Doc GUID|AS
 F|Sched Rep Print Custom Doc|B
 F|Last ChargeFile Date|L
-F|Spare Integer 2|L
+F|Audit Record ID|L
 F|Sched Rep Fax Custom Doc GUID|AS
 F|Sched Rep Fax Custom Doc|B
 F|Spare Text 3|AS
@@ -289,6 +290,7 @@ F|Date Downloaded|D
 F|No of Accounts|L
 F|No of Entries|L
 F|Was In Last Download|Y
+F|Audit Record ID|L
 E
 
 N|User|us|60
@@ -355,6 +357,7 @@ F|InActive|Y
 F|BankLink Code|S|8
 F|Frequency|B
 F|Frequency Change Pending|B
+F|Audit Record ID|L
 E
 
 N|Client File|cf|80
@@ -411,11 +414,13 @@ F|Bulk Extract Code|S|8
 F|WebNotesAvailable|BB|36
 F|WebNotes Email Notifications|L
 F|ISO Codes|BS|99|3
+F|Audit Record ID|L
 E
 
 N|File Access Mapping|ac|100
 F|User LRN|L
 F|Client File LRN|L
+F|Audit Record ID|L
 E
 
 N|Client Account Map|am|90
@@ -424,16 +429,19 @@ F|Account LRN|L
 F|Last Date Printed|D
 F|Temp Last Date Printed|L
 F|Earliest Download Date|D
+F|Audit Record ID|L
 E
 
 N|Group|gr|110
 F|LRN|L
 F|Name|S|60
+F|Audit Record ID|L
 E
 
 N|Client Type|ct|120
 F|LRN|L
 F|Name|S|60
+F|Audit Record ID|L
 E
 
 N|Audit Trail|at|130
@@ -445,5 +453,5 @@ F|User Code|S|8
 F|Record ID|L
 F|Parent ID|L
 F|Audit Record Type|B
-C|Audit Record|L
+C|Audit Record|PTR
 E

@@ -164,15 +164,12 @@ begin
   SystemData.PracticeDetails.fdPractice_Name_for_Reports := Edit5.Text;
   SystemData.PracticeDetails.fdPractice_Phone := Edit6.Text;
 
-  //*** Flag Audit ***
-  SystemAuditMgr.FlagAudit(atPracticeSetup);
-
   for i := Low(SystemData.PracticeDetails.fdGST_Class_Types) to
            High(SystemData.PracticeDetails.fdGST_Class_Types) do begin
     SystemData.PracticeDetails.fdGST_Class_Names[i] := StringGrid1.Cells[0, i];
-    SystemData.PracticeDetails.fdGST_Rates[i+1, 1] := StrToFloat(StringGrid1.Cells[1, i]);
-    SystemData.PracticeDetails.fdGST_Rates[i+1, 2] := StrToFloat(StringGrid1.Cells[1, i]);
-    SystemData.PracticeDetails.fdGST_Rates[i+1, 3] := StrToFloat(StringGrid1.Cells[1, i]);
+    SystemData.PracticeDetails.fdGST_Rates[i+1, 1] := StrToFloat(StringGrid1.Cells[1, i]) * 100;
+    SystemData.PracticeDetails.fdGST_Rates[i+1, 2] := StrToFloat(StringGrid1.Cells[2, i]) * 100;
+    SystemData.PracticeDetails.fdGST_Rates[i+1, 3] := StrToFloat(StringGrid1.Cells[3, i]) * 100;
   end;
 
   //*** Flag Audit ***
@@ -377,9 +374,9 @@ begin
   for i := Low(SystemData.PracticeDetails.fdGST_Class_Types) to
            High(SystemData.PracticeDetails.fdGST_Class_Types) do begin
     StringGrid1.Cells[0, i] := SystemData.PracticeDetails.fdGST_Class_Names[i];
-    StringGrid1.Cells[1, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 1]);
-    StringGrid1.Cells[2, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 2]);
-    StringGrid1.Cells[3, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 3]);
+    StringGrid1.Cells[1, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 1] /100);
+    StringGrid1.Cells[2, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 2] /100);
+    StringGrid1.Cells[3, i] := FloatToStr(SystemData.PracticeDetails.fdGST_Rates[i+1, 3] /100);
   end;
 end;
 

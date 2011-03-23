@@ -24,6 +24,7 @@ type
     procedure DeleteUser(AUser: pUser_Rec);
     procedure DoAudit(AAuditTable: TAuditTable; AUserTableCopy: TUserTable);
     procedure LoadFromStream(var AStream: TIOStream);
+    procedure AddAuditValues(var Values: string; ARecord: pointer);    
     procedure SaveToStream(var AStream: TIOStream);
     property Count: integer read GetCount;
     property Items[index: integer]: pUser_Rec read GetItems;
@@ -35,6 +36,16 @@ uses
   TOKENS, SYAUDIT;
 
 { TUserTable }
+
+procedure TUserTable.AddAuditValues(var Values: string; ARecord: pointer);
+begin
+  SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 61),
+                               tUser_Rec(ARecord^).usCode, Values);
+  SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 62),
+                               tUser_Rec(ARecord^).usName, Values);
+  SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 64),
+                               tUser_Rec(ARecord^).usEMail_Address, Values);
+end;
 
 procedure TUserTable.AddUser(AUser: pUser_Rec);
 begin
@@ -113,7 +124,7 @@ begin
       AAuditTable.AddAuditRec(AuditInfo);
   end;
 end;
-
+  
 function TUserTable.FindUser(AAuditRecordID: integer): pUser_Rec;
 var
   i: integer;
@@ -169,6 +180,8 @@ begin
   end else if Assigned(P2) then begin
     //Change
     AAuditInfo.AuditRecordID := P1.usAudit_Record_ID;
+    AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
+                                                                 AAuditInfo.AuditRecordID);
     if not ((P1.usCode = P2.usCode) and
             (P1.usName = P2.usName) and
             (P1.usEMail_Address = P2.usEMail_Address)) then begin
@@ -180,6 +193,8 @@ begin
     //Add
     AAuditInfo.AuditAction := aaAdd;
     AAuditInfo.AuditRecordID := SystemAuditMgr.NextSystemRecordID;
+    AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
+                                                                 AAuditInfo.AuditRecordID);
     P1.usAudit_Record_ID := AAuditInfo.AuditRecordID;
     AAuditInfo.AuditRecord := New_User_Rec;
     CopyUser(P1, AAuditInfo.AuditRecord);

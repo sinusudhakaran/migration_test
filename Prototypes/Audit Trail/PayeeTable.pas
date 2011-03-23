@@ -25,6 +25,7 @@ type
     procedure DoAudit(AAuditTable: TAuditTable; APayeeTableCopy: TPayeeTable);
     procedure LoadFromStream(var AStream: TIOStream);
     procedure SaveToStream(var AStream: TIOStream);
+    procedure AddAuditValues(var Values: string; ARecord: pointer);    
     property Count: integer read GetCount;
     property Items[index: integer]: pPayee_Detail_Rec read GetItems;
   end;
@@ -35,6 +36,15 @@ uses
   TOKENS, BKAUDIT;
 
 { TPayeeTable }
+
+procedure TPayeeTable.AddAuditValues(var Values: string; ARecord: pointer);
+begin
+  if tPayee_Detail_Rec(ARecord^).pdNumber > 0 then
+    ClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 91),
+                                 IntToStr(tPayee_Detail_Rec(ARecord^).pdNumber), Values);
+    ClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 92),
+                                 tPayee_Detail_Rec(ARecord^).pdName, Values);
+end;
 
 procedure TPayeeTable.AddPayee(APayee: pPayee_Detail_Rec);
 begin

@@ -17,9 +17,11 @@ PROCEDURE Write_Client_File_Rec ( Var O : TClient_File_Rec ; Var F : TIOStream )
 PROCEDURE Read_Client_File_Rec ( Var O : TClient_File_Rec ; Var F : TIOStream );
 FUNCTION  New_Client_File_Rec : pClient_File_Rec ;
 PROCEDURE Free_Client_File_Rec_Dynamic_Fields ( Var O : TClient_File_Rec );
+function Client_File_Rec_Delta(P1, P2, P3: pClient_File_Rec): boolean;
+procedure Copy_Client_File_Rec(P1, P2: pClient_File_Rec);
 
 {  -------------------------------------------------------------------  }
-IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
+IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -96,6 +98,7 @@ CONST
    tkcfWebNotesAvailable                = 132 ;
    tkcfWebNotes_Email_Notifications     = 133 ;
    tkcfISO_Codes                        = 134 ;
+   tkcfAudit_Record_ID                  = 135 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -177,6 +180,7 @@ Begin
       For i := 1 to 36 do F.WriteBByteValue( tkcfWebNotesAvailable , i, cfWebNotesAvailable[ i ] );
       F.WriteIntegerValue( tkcfWebNotes_Email_Notifications , cfWebNotes_Email_Notifications );
       For i := 1 to 99 do F.WriteBStringValue( tkcfISO_Codes , i, cfISO_Codes[ i ] );
+      F.WriteIntegerValue( tkcfAudit_Record_ID , cfAudit_Record_ID );
       F.WriteToken( tkEnd_Client_File );
    end;
 end; { of Write_Client_File_Rec }
@@ -285,6 +289,7 @@ Begin
                CheckBounds( I, 1, 99, 'cfISO_Codes' );
                cfISO_Codes[ I ] := S;
             end;
+         tkcfAudit_Record_ID                  : cfAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -322,6 +327,255 @@ Begin
       cfBank_Accounts := '' ;
       cfAccounting_System := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+Function Client_File_Rec_Delta(P1, P2, P3: pClient_File_Rec): boolean;
+begin
+  Result := False;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Client_File_Rec(P1, P3);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  if (P1.cfFile_Code <> P2.cfFile_Code) then begin
+    Result := true;
+    P3.cfFile_Code := P1.cfFile_Code;
+  end;
+  if (P1.cfFile_Name <> P2.cfFile_Name) then begin
+    Result := true;
+    P3.cfFile_Name := P1.cfFile_Name;
+  end;
+  if (P1.cfFile_Type <> P2.cfFile_Type) then begin
+    Result := true;
+    P3.cfFile_Type := P1.cfFile_Type;
+  end;
+  if (P1.cfFile_Status <> P2.cfFile_Status) then begin
+    Result := true;
+    P3.cfFile_Status := P1.cfFile_Status;
+  end;
+  if (P1.cfFile_Password <> P2.cfFile_Password) then begin
+    Result := true;
+    P3.cfFile_Password := P1.cfFile_Password;
+  end;
+  if (P1.cfDate_Last_Accessed <> P2.cfDate_Last_Accessed) then begin
+    Result := true;
+    P3.cfDate_Last_Accessed := P1.cfDate_Last_Accessed;
+  end;
+  if (P1.cfFile_Save_Count <> P2.cfFile_Save_Count) then begin
+    Result := true;
+    P3.cfFile_Save_Count := P1.cfFile_Save_Count;
+  end;
+  if (P1.cfUser_Responsible <> P2.cfUser_Responsible) then begin
+    Result := true;
+    P3.cfUser_Responsible := P1.cfUser_Responsible;
+  end;
+  if (P1.cfCurrent_User <> P2.cfCurrent_User) then begin
+    Result := true;
+    P3.cfCurrent_User := P1.cfCurrent_User;
+  end;
+  if (P1.cfLRN <> P2.cfLRN) then begin
+    Result := true;
+    P3.cfLRN := P1.cfLRN;
+  end;
+  if (P1.cfReport_Start_Date <> P2.cfReport_Start_Date) then begin
+    Result := true;
+    P3.cfReport_Start_Date := P1.cfReport_Start_Date;
+  end;
+  if (P1.cfReporting_Period <> P2.cfReporting_Period) then begin
+    Result := true;
+    P3.cfReporting_Period := P1.cfReporting_Period;
+  end;
+  if (P1.cfForeign_File <> P2.cfForeign_File) then begin
+    Result := true;
+    P3.cfForeign_File := P1.cfForeign_File;
+  end;
+  if (P1.cfUnused_Date_Field <> P2.cfUnused_Date_Field) then begin
+    Result := true;
+    P3.cfUnused_Date_Field := P1.cfUnused_Date_Field;
+  end;
+  if (P1.cfReports_Due <> P2.cfReports_Due) then begin
+    Result := true;
+    P3.cfReports_Due := P1.cfReports_Due;
+  end;
+  if (P1.cfContact_Details_To_Show <> P2.cfContact_Details_To_Show) then begin
+    Result := true;
+    P3.cfContact_Details_To_Show := P1.cfContact_Details_To_Show;
+  end;
+  if (P1.cfFinancial_Year_Starts <> P2.cfFinancial_Year_Starts) then begin
+    Result := true;
+    P3.cfFinancial_Year_Starts := P1.cfFinancial_Year_Starts;
+  end;
+  if (P1.cfSchd_Rep_Method <> P2.cfSchd_Rep_Method) then begin
+    Result := true;
+    P3.cfSchd_Rep_Method := P1.cfSchd_Rep_Method;
+  end;
+  if (P1.cfSpareBoolean <> P2.cfSpareBoolean) then begin
+    Result := true;
+    P3.cfSpareBoolean := P1.cfSpareBoolean;
+  end;
+  if (P1.cfPending_ToDo_Count <> P2.cfPending_ToDo_Count) then begin
+    Result := true;
+    P3.cfPending_ToDo_Count := P1.cfPending_ToDo_Count;
+  end;
+  if (P1.cfNext_ToDo_Desc <> P2.cfNext_ToDo_Desc) then begin
+    Result := true;
+    P3.cfNext_ToDo_Desc := P1.cfNext_ToDo_Desc;
+  end;
+  if (P1.cfNext_ToDo_Rem_Date <> P2.cfNext_ToDo_Rem_Date) then begin
+    Result := true;
+    P3.cfNext_ToDo_Rem_Date := P1.cfNext_ToDo_Rem_Date;
+  end;
+  if (P1.cfHas_Client_Notes <> P2.cfHas_Client_Notes) then begin
+    Result := true;
+    P3.cfHas_Client_Notes := P1.cfHas_Client_Notes;
+  end;
+  if (P1.cfOverdue_ToDo_Count <> P2.cfOverdue_ToDo_Count) then begin
+    Result := true;
+    P3.cfOverdue_ToDo_Count := P1.cfOverdue_ToDo_Count;
+  end;
+  if (P1.cfSched_Rep_Reports_To_Send <> P2.cfSched_Rep_Reports_To_Send) then begin
+    Result := true;
+    P3.cfSched_Rep_Reports_To_Send := P1.cfSched_Rep_Reports_To_Send;
+  end;
+  if (P1.cfContact_Details_Edit_Date <> P2.cfContact_Details_Edit_Date) then begin
+    Result := true;
+    P3.cfContact_Details_Edit_Date := P1.cfContact_Details_Edit_Date;
+  end;
+  if (P1.cfContact_Details_Edit_Time <> P2.cfContact_Details_Edit_Time) then begin
+    Result := true;
+    P3.cfContact_Details_Edit_Time := P1.cfContact_Details_Edit_Time;
+  end;
+  if (P1.cfBank_Accounts <> P2.cfBank_Accounts) then begin
+    Result := true;
+    P3.cfBank_Accounts := P1.cfBank_Accounts;
+  end;
+  if (P1.cfDate_Of_Last_Entry_Printed <> P2.cfDate_Of_Last_Entry_Printed) then begin
+    Result := true;
+    P3.cfDate_Of_Last_Entry_Printed := P1.cfDate_Of_Last_Entry_Printed;
+  end;
+  if (P1.cfLast_Print_Reports_Up_To <> P2.cfLast_Print_Reports_Up_To) then begin
+    Result := true;
+    P3.cfLast_Print_Reports_Up_To := P1.cfLast_Print_Reports_Up_To;
+  end;
+  if (P1.cfClient_Type <> P2.cfClient_Type) then begin
+    Result := true;
+    P3.cfClient_Type := P1.cfClient_Type;
+  end;
+  if Coded_Changed(TCoded_Array(P1.cfCoded), 
+                  TCoded_Array(P2.cfCoded), 
+                  TCoded_Array(P3.cfCoded)) then
+    Result := true;
+  if Finalized_Changed(TFinalized_Array(P1.cfFinalized), 
+                  TFinalized_Array(P2.cfFinalized), 
+                  TFinalized_Array(P3.cfFinalized)) then
+    Result := true;
+  if Transferred_Changed(TTransferred_Array(P1.cfTransferred), 
+                  TTransferred_Array(P2.cfTransferred), 
+                  TTransferred_Array(P3.cfTransferred)) then
+    Result := true;
+  if (P1.cfLast_Processing_Status_Date <> P2.cfLast_Processing_Status_Date) then begin
+    Result := true;
+    P3.cfLast_Processing_Status_Date := P1.cfLast_Processing_Status_Date;
+  end;
+  if (P1.cfSchd_Rep_Method_Filter <> P2.cfSchd_Rep_Method_Filter) then begin
+    Result := true;
+    P3.cfSchd_Rep_Method_Filter := P1.cfSchd_Rep_Method_Filter;
+  end;
+  if (P1.cfArchived <> P2.cfArchived) then begin
+    Result := true;
+    P3.cfArchived := P1.cfArchived;
+  end;
+  if (P1.cfPayee_Count <> P2.cfPayee_Count) then begin
+    Result := true;
+    P3.cfPayee_Count := P1.cfPayee_Count;
+  end;
+  if (P1.cfBank_Account_Count <> P2.cfBank_Account_Count) then begin
+    Result := true;
+    P3.cfBank_Account_Count := P1.cfBank_Account_Count;
+  end;
+  if (P1.cfManual_Account_Count <> P2.cfManual_Account_Count) then begin
+    Result := true;
+    P3.cfManual_Account_Count := P1.cfManual_Account_Count;
+  end;
+  if (P1.cfMem_Count <> P2.cfMem_Count) then begin
+    Result := true;
+    P3.cfMem_Count := P1.cfMem_Count;
+  end;
+  if (P1.cfAccounting_System <> P2.cfAccounting_System) then begin
+    Result := true;
+    P3.cfAccounting_System := P1.cfAccounting_System;
+  end;
+  if Downloaded_Changed(TDownloaded_Array(P1.cfDownloaded), 
+                  TDownloaded_Array(P2.cfDownloaded), 
+                  TDownloaded_Array(P3.cfDownloaded)) then
+    Result := true;
+  if (P1.cfGroup_LRN <> P2.cfGroup_LRN) then begin
+    Result := true;
+    P3.cfGroup_LRN := P1.cfGroup_LRN;
+  end;
+  if (P1.cfClient_Type_LRN <> P2.cfClient_Type_LRN) then begin
+    Result := true;
+    P3.cfClient_Type_LRN := P1.cfClient_Type_LRN;
+  end;
+  if (P1.cfJob_Count <> P2.cfJob_Count) then begin
+    Result := true;
+    P3.cfJob_Count := P1.cfJob_Count;
+  end;
+  if (P1.cfDivision_Count <> P2.cfDivision_Count) then begin
+    Result := true;
+    P3.cfDivision_Count := P1.cfDivision_Count;
+  end;
+  if (P1.cfGST_Period <> P2.cfGST_Period) then begin
+    Result := true;
+    P3.cfGST_Period := P1.cfGST_Period;
+  end;
+  if (P1.cfGST_Start_Month <> P2.cfGST_Start_Month) then begin
+    Result := true;
+    P3.cfGST_Start_Month := P1.cfGST_Start_Month;
+  end;
+  if (P1.cfBulk_Extract_Code <> P2.cfBulk_Extract_Code) then begin
+    Result := true;
+    P3.cfBulk_Extract_Code := P1.cfBulk_Extract_Code;
+  end;
+  if WebNotesAvailable_Changed(TWebNotesAvailable_Array(P1.cfWebNotesAvailable), 
+                  TWebNotesAvailable_Array(P2.cfWebNotesAvailable), 
+                  TWebNotesAvailable_Array(P3.cfWebNotesAvailable)) then
+    Result := true;
+  if (P1.cfWebNotes_Email_Notifications <> P2.cfWebNotes_Email_Notifications) then begin
+    Result := true;
+    P3.cfWebNotes_Email_Notifications := P1.cfWebNotes_Email_Notifications;
+  end;
+  if ISO_Codes_Changed(TISO_Codes_Array(P1.cfISO_Codes), 
+                  TISO_Codes_Array(P2.cfISO_Codes), 
+                  TISO_Codes_Array(P3.cfISO_Codes)) then
+    Result := true;
+  if (P1.cfAudit_Record_ID <> P2.cfAudit_Record_ID) then begin
+    Result := true;
+    P3.cfAudit_Record_ID := P1.cfAudit_Record_ID;
+  end;
+
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Client_File_Rec(P1, P2: pClient_File_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Client_File_Rec(P1^, S);
+    S.Position := 0;
+    Read_Client_File_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

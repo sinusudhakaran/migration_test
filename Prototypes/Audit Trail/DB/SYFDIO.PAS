@@ -17,9 +17,11 @@ PROCEDURE Write_Practice_Details_Rec ( Var O : TPractice_Details_Rec ; Var F : T
 PROCEDURE Read_Practice_Details_Rec ( Var O : TPractice_Details_Rec ; Var F : TIOStream );
 FUNCTION  New_Practice_Details_Rec : pPractice_Details_Rec ;
 PROCEDURE Free_Practice_Details_Rec_Dynamic_Fields ( Var O : TPractice_Details_Rec );
+function Practice_Details_Rec_Delta(P1, P2, P3: pPractice_Details_Rec): boolean;
+procedure Copy_Practice_Details_Rec(P1, P2: pPractice_Details_Rec);
 
 {  -------------------------------------------------------------------  }
-IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
+IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -113,7 +115,7 @@ CONST
    tkfdSched_Rep_Print_Custom_Doc_GUID  = 79 ;
    tkfdSched_Rep_Print_Custom_Doc       = 80 ;
    tkfdLast_ChargeFile_Date             = 81 ;
-   tkfdSpare_Integer_2                  = 82 ;
+   tkfdAudit_Record_ID                  = 82 ;
    tkfdSched_Rep_Fax_Custom_Doc_GUID    = 83 ;
    tkfdSched_Rep_Fax_Custom_Doc         = 84 ;
    tkfdSpare_Text_3                     = 85 ;
@@ -316,7 +318,7 @@ Begin
       F.WriteAnsiStringValue( tkfdSched_Rep_Print_Custom_Doc_GUID , fdSched_Rep_Print_Custom_Doc_GUID );
       F.WriteByteValue( tkfdSched_Rep_Print_Custom_Doc , fdSched_Rep_Print_Custom_Doc );
       F.WriteIntegerValue( tkfdLast_ChargeFile_Date , fdLast_ChargeFile_Date );
-      F.WriteIntegerValue( tkfdSpare_Integer_2 , fdSpare_Integer_2 );
+      F.WriteIntegerValue( tkfdAudit_Record_ID , fdAudit_Record_ID );
       F.WriteAnsiStringValue( tkfdSched_Rep_Fax_Custom_Doc_GUID , fdSched_Rep_Fax_Custom_Doc_GUID );
       F.WriteByteValue( tkfdSched_Rep_Fax_Custom_Doc , fdSched_Rep_Fax_Custom_Doc );
       F.WriteAnsiStringValue( tkfdSpare_Text_3 , fdSpare_Text_3 );
@@ -594,7 +596,7 @@ Begin
          tkfdSched_Rep_Print_Custom_Doc_GUID  : fdSched_Rep_Print_Custom_Doc_GUID := F.ReadAnsiStringValue;
          tkfdSched_Rep_Print_Custom_Doc       : fdSched_Rep_Print_Custom_Doc := F.ReadByteValue;
          tkfdLast_ChargeFile_Date             : fdLast_ChargeFile_Date := F.ReadIntegerValue;
-         tkfdSpare_Integer_2                  : fdSpare_Integer_2 := F.ReadIntegerValue;
+         tkfdAudit_Record_ID                  : fdAudit_Record_ID := F.ReadIntegerValue;
          tkfdSched_Rep_Fax_Custom_Doc_GUID    : fdSched_Rep_Fax_Custom_Doc_GUID := F.ReadAnsiStringValue;
          tkfdSched_Rep_Fax_Custom_Doc         : fdSched_Rep_Fax_Custom_Doc := F.ReadByteValue;
          tkfdSpare_Text_3                     : fdSpare_Text_3 := F.ReadAnsiStringValue;
@@ -789,6 +791,723 @@ Begin
       fdExport_Charges_Remarks := '' ;
       fdCoding_Font := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+Function Practice_Details_Rec_Delta(P1, P2, P3: pPractice_Details_Rec): boolean;
+begin
+  Result := False;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Practice_Details_Rec(P1, P3);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  if (P1.fdPractice_Name_for_Reports <> P2.fdPractice_Name_for_Reports) then begin
+    Result := true;
+    P3.fdPractice_Name_for_Reports := P1.fdPractice_Name_for_Reports;
+  end;
+  if (P1.fdPractice_EMail_Address <> P2.fdPractice_EMail_Address) then begin
+    Result := true;
+    P3.fdPractice_EMail_Address := P1.fdPractice_EMail_Address;
+  end;
+  if (P1.fdAccounting_System_Used <> P2.fdAccounting_System_Used) then begin
+    Result := true;
+    P3.fdAccounting_System_Used := P1.fdAccounting_System_Used;
+  end;
+  if (P1.fdCountry <> P2.fdCountry) then begin
+    Result := true;
+    P3.fdCountry := P1.fdCountry;
+  end;
+  if (P1.fdLoad_Client_Files_From <> P2.fdLoad_Client_Files_From) then begin
+    Result := true;
+    P3.fdLoad_Client_Files_From := P1.fdLoad_Client_Files_From;
+  end;
+  if (P1.fdSave_Client_Files_To <> P2.fdSave_Client_Files_To) then begin
+    Result := true;
+    P3.fdSave_Client_Files_To := P1.fdSave_Client_Files_To;
+  end;
+  if Short_Name_Changed(TShort_Name_Array(P1.fdShort_Name), 
+                  TShort_Name_Array(P2.fdShort_Name), 
+                  TShort_Name_Array(P3.fdShort_Name)) then
+    Result := true;
+  if Long_Name_Changed(TLong_Name_Array(P1.fdLong_Name), 
+                  TLong_Name_Array(P2.fdLong_Name), 
+                  TLong_Name_Array(P3.fdLong_Name)) then
+    Result := true;
+  if GST_Class_Names_Changed(TGST_Class_Names_Array(P1.fdGST_Class_Names), 
+                  TGST_Class_Names_Array(P2.fdGST_Class_Names), 
+                  TGST_Class_Names_Array(P3.fdGST_Class_Names)) then
+    Result := true;
+  if GST_Class_Types_Changed(TGST_Class_Types_Array(P1.fdGST_Class_Types), 
+                  TGST_Class_Types_Array(P2.fdGST_Class_Types), 
+                  TGST_Class_Types_Array(P3.fdGST_Class_Types)) then
+    Result := true;
+  if GST_Account_Codes_Changed(TGST_Account_Codes_Array(P1.fdGST_Account_Codes), 
+                  TGST_Account_Codes_Array(P2.fdGST_Account_Codes), 
+                  TGST_Account_Codes_Array(P3.fdGST_Account_Codes)) then
+    Result := true;
+  if GST_Rates_Changed(TGST_Rates_Array(P1.fdGST_Rates), 
+                  TGST_Rates_Array(P2.fdGST_Rates), 
+                  TGST_Rates_Array(P3.fdGST_Rates)) then
+    Result := true;
+  if GST_Applies_From_Changed(TGST_Applies_From_Array(P1.fdGST_Applies_From), 
+                  TGST_Applies_From_Array(P2.fdGST_Applies_From), 
+                  TGST_Applies_From_Array(P3.fdGST_Applies_From)) then
+    Result := true;
+  if (P1.fdDate_of_Last_Entry_Received <> P2.fdDate_of_Last_Entry_Received) then begin
+    Result := true;
+    P3.fdDate_of_Last_Entry_Received := P1.fdDate_of_Last_Entry_Received;
+  end;
+  if (P1.fdPrint_Reports_Up_To <> P2.fdPrint_Reports_Up_To) then begin
+    Result := true;
+    P3.fdPrint_Reports_Up_To := P1.fdPrint_Reports_Up_To;
+  end;
+  if (P1.fdSpare_Boolean_3 <> P2.fdSpare_Boolean_3) then begin
+    Result := true;
+    P3.fdSpare_Boolean_3 := P1.fdSpare_Boolean_3;
+  end;
+  if (P1.fdPrint_Staff_Member_Header_Page <> P2.fdPrint_Staff_Member_Header_Page) then begin
+    Result := true;
+    P3.fdPrint_Staff_Member_Header_Page := P1.fdPrint_Staff_Member_Header_Page;
+  end;
+  if (P1.fdPrint_Client_Header_Page <> P2.fdPrint_Client_Header_Page) then begin
+    Result := true;
+    P3.fdPrint_Client_Header_Page := P1.fdPrint_Client_Header_Page;
+  end;
+  if (P1.fdPIN_Number <> P2.fdPIN_Number) then begin
+    Result := true;
+    P3.fdPIN_Number := P1.fdPIN_Number;
+  end;
+  if (P1.fdBankLink_Code <> P2.fdBankLink_Code) then begin
+    Result := true;
+    P3.fdBankLink_Code := P1.fdBankLink_Code;
+  end;
+  if (P1.fdDisk_Sequence_No <> P2.fdDisk_Sequence_No) then begin
+    Result := true;
+    P3.fdDisk_Sequence_No := P1.fdDisk_Sequence_No;
+  end;
+  if (P1.fdMagic_Number <> P2.fdMagic_Number) then begin
+    Result := true;
+    P3.fdMagic_Number := P1.fdMagic_Number;
+  end;
+  if (P1.fdCoding_Report_Style <> P2.fdCoding_Report_Style) then begin
+    Result := true;
+    P3.fdCoding_Report_Style := P1.fdCoding_Report_Style;
+  end;
+  if (P1.fdCoding_Report_Sort_Order <> P2.fdCoding_Report_Sort_Order) then begin
+    Result := true;
+    P3.fdCoding_Report_Sort_Order := P1.fdCoding_Report_Sort_Order;
+  end;
+  if (P1.fdCoding_Report_Entry_Selection <> P2.fdCoding_Report_Entry_Selection) then begin
+    Result := true;
+    P3.fdCoding_Report_Entry_Selection := P1.fdCoding_Report_Entry_Selection;
+  end;
+  if (P1.fdCoding_Report_Blank_Lines <> P2.fdCoding_Report_Blank_Lines) then begin
+    Result := true;
+    P3.fdCoding_Report_Blank_Lines := P1.fdCoding_Report_Blank_Lines;
+  end;
+  if (P1.fdCoding_Report_Rule_Line <> P2.fdCoding_Report_Rule_Line) then begin
+    Result := true;
+    P3.fdCoding_Report_Rule_Line := P1.fdCoding_Report_Rule_Line;
+  end;
+  if (P1.fdBank_Account_LRN_Counter <> P2.fdBank_Account_LRN_Counter) then begin
+    Result := true;
+    P3.fdBank_Account_LRN_Counter := P1.fdBank_Account_LRN_Counter;
+  end;
+  if (P1.fdUser_LRN_Counter <> P2.fdUser_LRN_Counter) then begin
+    Result := true;
+    P3.fdUser_LRN_Counter := P1.fdUser_LRN_Counter;
+  end;
+  if (P1.fdTransaction_LRN_Counter <> P2.fdTransaction_LRN_Counter) then begin
+    Result := true;
+    P3.fdTransaction_LRN_Counter := P1.fdTransaction_LRN_Counter;
+  end;
+  if (P1.fdClient_File_LRN_Counter <> P2.fdClient_File_LRN_Counter) then begin
+    Result := true;
+    P3.fdClient_File_LRN_Counter := P1.fdClient_File_LRN_Counter;
+  end;
+  if (P1.fdBankLink_Connect_Password <> P2.fdBankLink_Connect_Password) then begin
+    Result := true;
+    P3.fdBankLink_Connect_Password := P1.fdBankLink_Connect_Password;
+  end;
+  if (P1.fdOld_GST_Class_Codes <> P2.fdOld_GST_Class_Codes) then begin
+    Result := true;
+    P3.fdOld_GST_Class_Codes := P1.fdOld_GST_Class_Codes;
+  end;
+  if (P1.fdAccount_Code_Mask <> P2.fdAccount_Code_Mask) then begin
+    Result := true;
+    P3.fdAccount_Code_Mask := P1.fdAccount_Code_Mask;
+  end;
+  if (P1.fdFile_Version <> P2.fdFile_Version) then begin
+    Result := true;
+    P3.fdFile_Version := P1.fdFile_Version;
+  end;
+  if (P1.fdSched_Rep_Email_Subject <> P2.fdSched_Rep_Email_Subject) then begin
+    Result := true;
+    P3.fdSched_Rep_Email_Subject := P1.fdSched_Rep_Email_Subject;
+  end;
+  if (P1.fdOld_Sched_Rep_Email_Line1 <> P2.fdOld_Sched_Rep_Email_Line1) then begin
+    Result := true;
+    P3.fdOld_Sched_Rep_Email_Line1 := P1.fdOld_Sched_Rep_Email_Line1;
+  end;
+  if (P1.fdOld_Sched_Rep_Email_Line2 <> P2.fdOld_Sched_Rep_Email_Line2) then begin
+    Result := true;
+    P3.fdOld_Sched_Rep_Email_Line2 := P1.fdOld_Sched_Rep_Email_Line2;
+  end;
+  if OLD_BAS_Special_Accounts_Changed(TOLD_BAS_Special_Accounts_Array(P1.fdOLD_BAS_Special_Accounts), 
+                  TOLD_BAS_Special_Accounts_Array(P2.fdOLD_BAS_Special_Accounts), 
+                  TOLD_BAS_Special_Accounts_Array(P3.fdOLD_BAS_Special_Accounts)) then
+    Result := true;
+  if GST_Class_Codes_Changed(TGST_Class_Codes_Array(P1.fdGST_Class_Codes), 
+                  TGST_Class_Codes_Array(P2.fdGST_Class_Codes), 
+                  TGST_Class_Codes_Array(P3.fdGST_Class_Codes)) then
+    Result := true;
+  if BAS_Field_Number_Changed(TBAS_Field_Number_Array(P1.fdBAS_Field_Number), 
+                  TBAS_Field_Number_Array(P2.fdBAS_Field_Number), 
+                  TBAS_Field_Number_Array(P3.fdBAS_Field_Number)) then
+    Result := true;
+  if BAS_Field_Source_Changed(TBAS_Field_Source_Array(P1.fdBAS_Field_Source), 
+                  TBAS_Field_Source_Array(P2.fdBAS_Field_Source), 
+                  TBAS_Field_Source_Array(P3.fdBAS_Field_Source)) then
+    Result := true;
+  if BAS_Field_Account_Code_Changed(TBAS_Field_Account_Code_Array(P1.fdBAS_Field_Account_Code), 
+                  TBAS_Field_Account_Code_Array(P2.fdBAS_Field_Account_Code), 
+                  TBAS_Field_Account_Code_Array(P3.fdBAS_Field_Account_Code)) then
+    Result := true;
+  if BAS_Field_Balance_Changed(TBAS_Field_Balance_Array(P1.fdBAS_Field_Balance), 
+                  TBAS_Field_Balance_Array(P2.fdBAS_Field_Balance), 
+                  TBAS_Field_Balance_Array(P3.fdBAS_Field_Balance)) then
+    Result := true;
+  if (P1.fdSched_Rep_Include_Email <> P2.fdSched_Rep_Include_Email) then begin
+    Result := true;
+    P3.fdSched_Rep_Include_Email := P1.fdSched_Rep_Include_Email;
+  end;
+  if (P1.fdSched_Rep_Email_Only <> P2.fdSched_Rep_Email_Only) then begin
+    Result := true;
+    P3.fdSched_Rep_Email_Only := P1.fdSched_Rep_Email_Only;
+  end;
+  if (P1.fdSched_Rep_Include_Printer <> P2.fdSched_Rep_Include_Printer) then begin
+    Result := true;
+    P3.fdSched_Rep_Include_Printer := P1.fdSched_Rep_Include_Printer;
+  end;
+  if (P1.fdSched_Rep_Include_Fax <> P2.fdSched_Rep_Include_Fax) then begin
+    Result := true;
+    P3.fdSched_Rep_Include_Fax := P1.fdSched_Rep_Include_Fax;
+  end;
+  if (P1.fdSched_Rep_Send_Fax_Off_Peak <> P2.fdSched_Rep_Send_Fax_Off_Peak) then begin
+    Result := true;
+    P3.fdSched_Rep_Send_Fax_Off_Peak := P1.fdSched_Rep_Send_Fax_Off_Peak;
+  end;
+  if Enhanced_Software_Options_Changed(TEnhanced_Software_Options_Array(P1.fdEnhanced_Software_Options), 
+                  TEnhanced_Software_Options_Array(P2.fdEnhanced_Software_Options), 
+                  TEnhanced_Software_Options_Array(P3.fdEnhanced_Software_Options)) then
+    Result := true;
+  if (P1.fdSched_Rep_Include_ECoding <> P2.fdSched_Rep_Include_ECoding) then begin
+    Result := true;
+    P3.fdSched_Rep_Include_ECoding := P1.fdSched_Rep_Include_ECoding;
+  end;
+  if (P1.fdSched_Rep_Cover_Page_Name <> P2.fdSched_Rep_Cover_Page_Name) then begin
+    Result := true;
+    P3.fdSched_Rep_Cover_Page_Name := P1.fdSched_Rep_Cover_Page_Name;
+  end;
+  if (P1.fdSched_Rep_Cover_Page_Subject <> P2.fdSched_Rep_Cover_Page_Subject) then begin
+    Result := true;
+    P3.fdSched_Rep_Cover_Page_Subject := P1.fdSched_Rep_Cover_Page_Subject;
+  end;
+  if (P1.fdSched_Rep_Cover_Page_Message <> P2.fdSched_Rep_Cover_Page_Message) then begin
+    Result := true;
+    P3.fdSched_Rep_Cover_Page_Message := P1.fdSched_Rep_Cover_Page_Message;
+  end;
+  if (P1.fdSched_Rep_Email_Message <> P2.fdSched_Rep_Email_Message) then begin
+    Result := true;
+    P3.fdSched_Rep_Email_Message := P1.fdSched_Rep_Email_Message;
+  end;
+  if (P1.fdDownload_Report_Options <> P2.fdDownload_Report_Options) then begin
+    Result := true;
+    P3.fdDownload_Report_Options := P1.fdDownload_Report_Options;
+  end;
+  if (P1.fdDownload_Report_Hide_Deleted <> P2.fdDownload_Report_Hide_Deleted) then begin
+    Result := true;
+    P3.fdDownload_Report_Hide_Deleted := P1.fdDownload_Report_Hide_Deleted;
+  end;
+  if (P1.fdBulk_Export_Enabled <> P2.fdBulk_Export_Enabled) then begin
+    Result := true;
+    P3.fdBulk_Export_Enabled := P1.fdBulk_Export_Enabled;
+  end;
+  if (P1.fdSpare_Byte_0 <> P2.fdSpare_Byte_0) then begin
+    Result := true;
+    P3.fdSpare_Byte_0 := P1.fdSpare_Byte_0;
+  end;
+  if (P1.fdBulk_Export_Code <> P2.fdBulk_Export_Code) then begin
+    Result := true;
+    P3.fdBulk_Export_Code := P1.fdBulk_Export_Code;
+  end;
+  if (P1.fdSched_Rep_Include_CSV_Export <> P2.fdSched_Rep_Include_CSV_Export) then begin
+    Result := true;
+    P3.fdSched_Rep_Include_CSV_Export := P1.fdSched_Rep_Include_CSV_Export;
+  end;
+  if (P1.fdTax_Interface_Used <> P2.fdTax_Interface_Used) then begin
+    Result := true;
+    P3.fdTax_Interface_Used := P1.fdTax_Interface_Used;
+  end;
+  if (P1.fdSave_Tax_Files_To <> P2.fdSave_Tax_Files_To) then begin
+    Result := true;
+    P3.fdSave_Tax_Files_To := P1.fdSave_Tax_Files_To;
+  end;
+  if (P1.fdLast_Disk_Image_Version <> P2.fdLast_Disk_Image_Version) then begin
+    Result := true;
+    P3.fdLast_Disk_Image_Version := P1.fdLast_Disk_Image_Version;
+  end;
+  if (P1.fdPractice_Web_Site <> P2.fdPractice_Web_Site) then begin
+    Result := true;
+    P3.fdPractice_Web_Site := P1.fdPractice_Web_Site;
+  end;
+  if (P1.fdPractice_Phone <> P2.fdPractice_Phone) then begin
+    Result := true;
+    P3.fdPractice_Phone := P1.fdPractice_Phone;
+  end;
+  if (P1.fdPractice_Logo_Filename <> P2.fdPractice_Logo_Filename) then begin
+    Result := true;
+    P3.fdPractice_Logo_Filename := P1.fdPractice_Logo_Filename;
+  end;
+  if (P1.fdSched_Rep_Print_Custom_Doc_GUID <> P2.fdSched_Rep_Print_Custom_Doc_GUID) then begin
+    Result := true;
+    P3.fdSched_Rep_Print_Custom_Doc_GUID := P1.fdSched_Rep_Print_Custom_Doc_GUID;
+  end;
+  if (P1.fdSched_Rep_Print_Custom_Doc <> P2.fdSched_Rep_Print_Custom_Doc) then begin
+    Result := true;
+    P3.fdSched_Rep_Print_Custom_Doc := P1.fdSched_Rep_Print_Custom_Doc;
+  end;
+  if (P1.fdLast_ChargeFile_Date <> P2.fdLast_ChargeFile_Date) then begin
+    Result := true;
+    P3.fdLast_ChargeFile_Date := P1.fdLast_ChargeFile_Date;
+  end;
+  if (P1.fdAudit_Record_ID <> P2.fdAudit_Record_ID) then begin
+    Result := true;
+    P3.fdAudit_Record_ID := P1.fdAudit_Record_ID;
+  end;
+  if (P1.fdSched_Rep_Fax_Custom_Doc_GUID <> P2.fdSched_Rep_Fax_Custom_Doc_GUID) then begin
+    Result := true;
+    P3.fdSched_Rep_Fax_Custom_Doc_GUID := P1.fdSched_Rep_Fax_Custom_Doc_GUID;
+  end;
+  if (P1.fdSched_Rep_Fax_Custom_Doc <> P2.fdSched_Rep_Fax_Custom_Doc) then begin
+    Result := true;
+    P3.fdSched_Rep_Fax_Custom_Doc := P1.fdSched_Rep_Fax_Custom_Doc;
+  end;
+  if (P1.fdSpare_Text_3 <> P2.fdSpare_Text_3) then begin
+    Result := true;
+    P3.fdSpare_Text_3 := P1.fdSpare_Text_3;
+  end;
+  if (P1.fdSched_Rep_Email_Custom_Doc_GUID <> P2.fdSched_Rep_Email_Custom_Doc_GUID) then begin
+    Result := true;
+    P3.fdSched_Rep_Email_Custom_Doc_GUID := P1.fdSched_Rep_Email_Custom_Doc_GUID;
+  end;
+  if (P1.fdSched_Rep_Email_Custom_Doc <> P2.fdSched_Rep_Email_Custom_Doc) then begin
+    Result := true;
+    P3.fdSched_Rep_Email_Custom_Doc := P1.fdSched_Rep_Email_Custom_Doc;
+  end;
+  if (P1.fdSpare_Text_5 <> P2.fdSpare_Text_5) then begin
+    Result := true;
+    P3.fdSpare_Text_5 := P1.fdSpare_Text_5;
+  end;
+  if (P1.fdSched_Rep_Books_Custom_Doc_GUID <> P2.fdSched_Rep_Books_Custom_Doc_GUID) then begin
+    Result := true;
+    P3.fdSched_Rep_Books_Custom_Doc_GUID := P1.fdSched_Rep_Books_Custom_Doc_GUID;
+  end;
+  if (P1.fdSched_Rep_Books_Custom_Doc <> P2.fdSched_Rep_Books_Custom_Doc) then begin
+    Result := true;
+    P3.fdSched_Rep_Books_Custom_Doc := P1.fdSched_Rep_Books_Custom_Doc;
+  end;
+  if (P1.fdSpare_Integer_3 <> P2.fdSpare_Integer_3) then begin
+    Result := true;
+    P3.fdSpare_Integer_3 := P1.fdSpare_Integer_3;
+  end;
+  if (P1.fdSpare_Integer_4 <> P2.fdSpare_Integer_4) then begin
+    Result := true;
+    P3.fdSpare_Integer_4 := P1.fdSpare_Integer_4;
+  end;
+  if (P1.fdSched_Rep_Notes_Custom_Doc_GUID <> P2.fdSched_Rep_Notes_Custom_Doc_GUID) then begin
+    Result := true;
+    P3.fdSched_Rep_Notes_Custom_Doc_GUID := P1.fdSched_Rep_Notes_Custom_Doc_GUID;
+  end;
+  if (P1.fdSched_Rep_Notes_Custom_Doc <> P2.fdSched_Rep_Notes_Custom_Doc) then begin
+    Result := true;
+    P3.fdSched_Rep_Notes_Custom_Doc := P1.fdSched_Rep_Notes_Custom_Doc;
+  end;
+  if (P1.fdSpare_Text_8 <> P2.fdSpare_Text_8) then begin
+    Result := true;
+    P3.fdSpare_Text_8 := P1.fdSpare_Text_8;
+  end;
+  if (P1.fdSched_Rep_WebNotes_Custom_Doc_GUID <> P2.fdSched_Rep_WebNotes_Custom_Doc_GUID) then begin
+    Result := true;
+    P3.fdSched_Rep_WebNotes_Custom_Doc_GUID := P1.fdSched_Rep_WebNotes_Custom_Doc_GUID;
+  end;
+  if (P1.fdSched_Rep_WebNotes_Custom_Doc <> P2.fdSched_Rep_WebNotes_Custom_Doc) then begin
+    Result := true;
+    P3.fdSched_Rep_WebNotes_Custom_Doc := P1.fdSched_Rep_WebNotes_Custom_Doc;
+  end;
+  if (P1.fdSpare_Integer_5 <> P2.fdSpare_Integer_5) then begin
+    Result := true;
+    P3.fdSpare_Integer_5 := P1.fdSpare_Integer_5;
+  end;
+  if (P1.fdSpare_Integer_6 <> P2.fdSpare_Integer_6) then begin
+    Result := true;
+    P3.fdSpare_Integer_6 := P1.fdSpare_Integer_6;
+  end;
+  if (P1.fdSpare_Text_10 <> P2.fdSpare_Text_10) then begin
+    Result := true;
+    P3.fdSpare_Text_10 := P1.fdSpare_Text_10;
+  end;
+  if (P1.fdSpare_Byte_7 <> P2.fdSpare_Byte_7) then begin
+    Result := true;
+    P3.fdSpare_Byte_7 := P1.fdSpare_Byte_7;
+  end;
+  if (P1.fdSpare_Text_11 <> P2.fdSpare_Text_11) then begin
+    Result := true;
+    P3.fdSpare_Text_11 := P1.fdSpare_Text_11;
+  end;
+  if (P1.fdSpare_Text_12 <> P2.fdSpare_Text_12) then begin
+    Result := true;
+    P3.fdSpare_Text_12 := P1.fdSpare_Text_12;
+  end;
+  if (P1.fdSpare_Byte_8 <> P2.fdSpare_Byte_8) then begin
+    Result := true;
+    P3.fdSpare_Byte_8 := P1.fdSpare_Byte_8;
+  end;
+  if (P1.fdSpare_Text_13 <> P2.fdSpare_Text_13) then begin
+    Result := true;
+    P3.fdSpare_Text_13 := P1.fdSpare_Text_13;
+  end;
+  if (P1.fdSpare_Text_14 <> P2.fdSpare_Text_14) then begin
+    Result := true;
+    P3.fdSpare_Text_14 := P1.fdSpare_Text_14;
+  end;
+  if (P1.fdSpare_Byte_9 <> P2.fdSpare_Byte_9) then begin
+    Result := true;
+    P3.fdSpare_Byte_9 := P1.fdSpare_Byte_9;
+  end;
+  if (P1.fdSpare_Integer_7 <> P2.fdSpare_Integer_7) then begin
+    Result := true;
+    P3.fdSpare_Integer_7 := P1.fdSpare_Integer_7;
+  end;
+  if (P1.fdSpare_Integer_8 <> P2.fdSpare_Integer_8) then begin
+    Result := true;
+    P3.fdSpare_Integer_8 := P1.fdSpare_Integer_8;
+  end;
+  if (P1.fdSched_Rep_WebNotes_Subject <> P2.fdSched_Rep_WebNotes_Subject) then begin
+    Result := true;
+    P3.fdSched_Rep_WebNotes_Subject := P1.fdSched_Rep_WebNotes_Subject;
+  end;
+  if (P1.fdSpare_Byte_10 <> P2.fdSpare_Byte_10) then begin
+    Result := true;
+    P3.fdSpare_Byte_10 := P1.fdSpare_Byte_10;
+  end;
+  if (P1.fdSched_Rep_webNotes_Message <> P2.fdSched_Rep_webNotes_Message) then begin
+    Result := true;
+    P3.fdSched_Rep_webNotes_Message := P1.fdSched_Rep_webNotes_Message;
+  end;
+  if (P1.fdSpare_Byte_11 <> P2.fdSpare_Byte_11) then begin
+    Result := true;
+    P3.fdSpare_Byte_11 := P1.fdSpare_Byte_11;
+  end;
+  if (P1.fdSched_Rep_Header_Message <> P2.fdSched_Rep_Header_Message) then begin
+    Result := true;
+    P3.fdSched_Rep_Header_Message := P1.fdSched_Rep_Header_Message;
+  end;
+  if (P1.fdSched_Rep_BNotes_Subject <> P2.fdSched_Rep_BNotes_Subject) then begin
+    Result := true;
+    P3.fdSched_Rep_BNotes_Subject := P1.fdSched_Rep_BNotes_Subject;
+  end;
+  if (P1.fdSched_Rep_BNotes_Message <> P2.fdSched_Rep_BNotes_Message) then begin
+    Result := true;
+    P3.fdSched_Rep_BNotes_Message := P1.fdSched_Rep_BNotes_Message;
+  end;
+  if (P1.fdSpare_Boolean_4 <> P2.fdSpare_Boolean_4) then begin
+    Result := true;
+    P3.fdSpare_Boolean_4 := P1.fdSpare_Boolean_4;
+  end;
+  if (P1.fdTask_Tracking_Prompt_Type <> P2.fdTask_Tracking_Prompt_Type) then begin
+    Result := true;
+    P3.fdTask_Tracking_Prompt_Type := P1.fdTask_Tracking_Prompt_Type;
+  end;
+  if (P1.fdSpare_Bool_1 <> P2.fdSpare_Bool_1) then begin
+    Result := true;
+    P3.fdSpare_Bool_1 := P1.fdSpare_Bool_1;
+  end;
+  if (P1.fdSpare_Bool_2 <> P2.fdSpare_Bool_2) then begin
+    Result := true;
+    P3.fdSpare_Bool_2 := P1.fdSpare_Bool_2;
+  end;
+  if (P1.fdSpare_Integer_9 <> P2.fdSpare_Integer_9) then begin
+    Result := true;
+    P3.fdSpare_Integer_9 := P1.fdSpare_Integer_9;
+  end;
+  if (P1.fdSched_Rep_Fax_Transport <> P2.fdSched_Rep_Fax_Transport) then begin
+    Result := true;
+    P3.fdSched_Rep_Fax_Transport := P1.fdSched_Rep_Fax_Transport;
+  end;
+  if (P1.fdSched_Rep_Include_WebX <> P2.fdSched_Rep_Include_WebX) then begin
+    Result := true;
+    P3.fdSched_Rep_Include_WebX := P1.fdSched_Rep_Include_WebX;
+  end;
+  if (P1.fdWeb_Export_Format <> P2.fdWeb_Export_Format) then begin
+    Result := true;
+    P3.fdWeb_Export_Format := P1.fdWeb_Export_Format;
+  end;
+  if (P1.fdForce_Login <> P2.fdForce_Login) then begin
+    Result := true;
+    P3.fdForce_Login := P1.fdForce_Login;
+  end;
+  if (P1.fdLogin_Bitmap_Filename <> P2.fdLogin_Bitmap_Filename) then begin
+    Result := true;
+    P3.fdLogin_Bitmap_Filename := P1.fdLogin_Bitmap_Filename;
+  end;
+  if (P1.fdAuto_Print_Sched_Rep_Summary <> P2.fdAuto_Print_Sched_Rep_Summary) then begin
+    Result := true;
+    P3.fdAuto_Print_Sched_Rep_Summary := P1.fdAuto_Print_Sched_Rep_Summary;
+  end;
+  if (P1.fdIgnore_Quantity_In_Download <> P2.fdIgnore_Quantity_In_Download) then begin
+    Result := true;
+    P3.fdIgnore_Quantity_In_Download := P1.fdIgnore_Quantity_In_Download;
+  end;
+  if (P1.fdSpare_Boolean_1 <> P2.fdSpare_Boolean_1) then begin
+    Result := true;
+    P3.fdSpare_Boolean_1 := P1.fdSpare_Boolean_1;
+  end;
+  if (P1.fdspare_Boolean_2 <> P2.fdspare_Boolean_2) then begin
+    Result := true;
+    P3.fdspare_Boolean_2 := P1.fdspare_Boolean_2;
+  end;
+  if (P1.fdCopy_Dissection_Narration <> P2.fdCopy_Dissection_Narration) then begin
+    Result := true;
+    P3.fdCopy_Dissection_Narration := P1.fdCopy_Dissection_Narration;
+  end;
+  if (P1.fdRound_Cashflow_Reports <> P2.fdRound_Cashflow_Reports) then begin
+    Result := true;
+    P3.fdRound_Cashflow_Reports := P1.fdRound_Cashflow_Reports;
+  end;
+  if (P1.fdUse_Xlon_Chart_Order <> P2.fdUse_Xlon_Chart_Order) then begin
+    Result := true;
+    P3.fdUse_Xlon_Chart_Order := P1.fdUse_Xlon_Chart_Order;
+  end;
+  if (P1.fdExtract_Multiple_Accounts_PA <> P2.fdExtract_Multiple_Accounts_PA) then begin
+    Result := true;
+    P3.fdExtract_Multiple_Accounts_PA := P1.fdExtract_Multiple_Accounts_PA;
+  end;
+  if (P1.fdExtract_Journal_Accounts_PA <> P2.fdExtract_Journal_Accounts_PA) then begin
+    Result := true;
+    P3.fdExtract_Journal_Accounts_PA := P1.fdExtract_Journal_Accounts_PA;
+  end;
+  if (P1.fdExtract_Quantity <> P2.fdExtract_Quantity) then begin
+    Result := true;
+    P3.fdExtract_Quantity := P1.fdExtract_Quantity;
+  end;
+  if (P1.fdReports_New_Page <> P2.fdReports_New_Page) then begin
+    Result := true;
+    P3.fdReports_New_Page := P1.fdReports_New_Page;
+  end;
+  if (P1.fdPrint_Merge_Report_Summary <> P2.fdPrint_Merge_Report_Summary) then begin
+    Result := true;
+    P3.fdPrint_Merge_Report_Summary := P1.fdPrint_Merge_Report_Summary;
+  end;
+  if (P1.fdEmail_Merge_Report_Summary <> P2.fdEmail_Merge_Report_Summary) then begin
+    Result := true;
+    P3.fdEmail_Merge_Report_Summary := P1.fdEmail_Merge_Report_Summary;
+  end;
+  if (P1.fdMaximum_Narration_Extract <> P2.fdMaximum_Narration_Extract) then begin
+    Result := true;
+    P3.fdMaximum_Narration_Extract := P1.fdMaximum_Narration_Extract;
+  end;
+  if (P1.fdSched_Rep_Include_CheckOut <> P2.fdSched_Rep_Include_CheckOut) then begin
+    Result := true;
+    P3.fdSched_Rep_Include_CheckOut := P1.fdSched_Rep_Include_CheckOut;
+  end;
+  if (P1.fdSched_Rep_CheckOut_Subject <> P2.fdSched_Rep_CheckOut_Subject) then begin
+    Result := true;
+    P3.fdSched_Rep_CheckOut_Subject := P1.fdSched_Rep_CheckOut_Subject;
+  end;
+  if (P1.fdSched_Rep_CheckOut_Message <> P2.fdSched_Rep_CheckOut_Message) then begin
+    Result := true;
+    P3.fdSched_Rep_CheckOut_Message := P1.fdSched_Rep_CheckOut_Message;
+  end;
+  if (P1.fdSched_Rep_Include_Business_Products <> P2.fdSched_Rep_Include_Business_Products) then begin
+    Result := true;
+    P3.fdSched_Rep_Include_Business_Products := P1.fdSched_Rep_Include_Business_Products;
+  end;
+  if (P1.fdSched_Rep_Business_Products_Subject <> P2.fdSched_Rep_Business_Products_Subject) then begin
+    Result := true;
+    P3.fdSched_Rep_Business_Products_Subject := P1.fdSched_Rep_Business_Products_Subject;
+  end;
+  if (P1.fdSched_Rep_Business_Products_Message <> P2.fdSched_Rep_Business_Products_Message) then begin
+    Result := true;
+    P3.fdSched_Rep_Business_Products_Message := P1.fdSched_Rep_Business_Products_Message;
+  end;
+  if (P1.fdReplace_Narration_With_Payee <> P2.fdReplace_Narration_With_Payee) then begin
+    Result := true;
+    P3.fdReplace_Narration_With_Payee := P1.fdReplace_Narration_With_Payee;
+  end;
+  if (P1.fdLast_Export_Charges_Saved_To <> P2.fdLast_Export_Charges_Saved_To) then begin
+    Result := true;
+    P3.fdLast_Export_Charges_Saved_To := P1.fdLast_Export_Charges_Saved_To;
+  end;
+  if (P1.fdManual_Account_XML <> P2.fdManual_Account_XML) then begin
+    Result := true;
+    P3.fdManual_Account_XML := P1.fdManual_Account_XML;
+  end;
+  if (P1.fdUpdates_Pending <> P2.fdUpdates_Pending) then begin
+    Result := true;
+    P3.fdUpdates_Pending := P1.fdUpdates_Pending;
+  end;
+  if (P1.fdUpdate_Server_For_Offsites <> P2.fdUpdate_Server_For_Offsites) then begin
+    Result := true;
+    P3.fdUpdate_Server_For_Offsites := P1.fdUpdate_Server_For_Offsites;
+  end;
+  if (P1.fdCollect_Usage_Data <> P2.fdCollect_Usage_Data) then begin
+    Result := true;
+    P3.fdCollect_Usage_Data := P1.fdCollect_Usage_Data;
+  end;
+  if (P1.fdFixed_Charge_Increase <> P2.fdFixed_Charge_Increase) then begin
+    Result := true;
+    P3.fdFixed_Charge_Increase := P1.fdFixed_Charge_Increase;
+  end;
+  if (P1.fdPercentage_Charge_Increase <> P2.fdPercentage_Charge_Increase) then begin
+    Result := true;
+    P3.fdPercentage_Charge_Increase := P1.fdPercentage_Charge_Increase;
+  end;
+  if (P1.fdFixed_Dollar_Amount <> P2.fdFixed_Dollar_Amount) then begin
+    Result := true;
+    P3.fdFixed_Dollar_Amount := P1.fdFixed_Dollar_Amount;
+  end;
+  if (P1.fdDistributed_Dollar_Amount <> P2.fdDistributed_Dollar_Amount) then begin
+    Result := true;
+    P3.fdDistributed_Dollar_Amount := P1.fdDistributed_Dollar_Amount;
+  end;
+  if (P1.fdPercentage_Increase_Amount <> P2.fdPercentage_Increase_Amount) then begin
+    Result := true;
+    P3.fdPercentage_Increase_Amount := P1.fdPercentage_Increase_Amount;
+  end;
+  if (P1.fdExtract_Quantity_Decimal_Places <> P2.fdExtract_Quantity_Decimal_Places) then begin
+    Result := true;
+    P3.fdExtract_Quantity_Decimal_Places := P1.fdExtract_Quantity_Decimal_Places;
+  end;
+  if (P1.fdExport_Charges_Remarks <> P2.fdExport_Charges_Remarks) then begin
+    Result := true;
+    P3.fdExport_Charges_Remarks := P1.fdExport_Charges_Remarks;
+  end;
+  if (P1.fdSystem_Report_Password <> P2.fdSystem_Report_Password) then begin
+    Result := true;
+    P3.fdSystem_Report_Password := P1.fdSystem_Report_Password;
+  end;
+  if (P1.fdPrint_Reports_From <> P2.fdPrint_Reports_From) then begin
+    Result := true;
+    P3.fdPrint_Reports_From := P1.fdPrint_Reports_From;
+  end;
+  if (P1.fdHighest_Date_Ever_Downloaded <> P2.fdHighest_Date_Ever_Downloaded) then begin
+    Result := true;
+    P3.fdHighest_Date_Ever_Downloaded := P1.fdHighest_Date_Ever_Downloaded;
+  end;
+  if (P1.fdAuto_Retrieve_New_Transactions <> P2.fdAuto_Retrieve_New_Transactions) then begin
+    Result := true;
+    P3.fdAuto_Retrieve_New_Transactions := P1.fdAuto_Retrieve_New_Transactions;
+  end;
+  if (P1.fdCoding_Font <> P2.fdCoding_Font) then begin
+    Result := true;
+    P3.fdCoding_Font := P1.fdCoding_Font;
+  end;
+  if (P1.fdSort_Reports_Option <> P2.fdSort_Reports_Option) then begin
+    Result := true;
+    P3.fdSort_Reports_Option := P1.fdSort_Reports_Option;
+  end;
+  if (P1.fdSpare_Byte_12 <> P2.fdSpare_Byte_12) then begin
+    Result := true;
+    P3.fdSpare_Byte_12 := P1.fdSpare_Byte_12;
+  end;
+  if (P1.fdGroup_LRN_Counter <> P2.fdGroup_LRN_Counter) then begin
+    Result := true;
+    P3.fdGroup_LRN_Counter := P1.fdGroup_LRN_Counter;
+  end;
+  if (P1.fdClient_Type_LRN_Counter <> P2.fdClient_Type_LRN_Counter) then begin
+    Result := true;
+    P3.fdClient_Type_LRN_Counter := P1.fdClient_Type_LRN_Counter;
+  end;
+  if TAX_Applies_From_Changed(TTAX_Applies_From_Array(P1.fdTAX_Applies_From), 
+                  TTAX_Applies_From_Array(P2.fdTAX_Applies_From), 
+                  TTAX_Applies_From_Array(P3.fdTAX_Applies_From)) then
+    Result := true;
+  if TAX_Rates_Changed(TTAX_Rates_Array(P1.fdTAX_Rates), 
+                  TTAX_Rates_Array(P2.fdTAX_Rates), 
+                  TTAX_Rates_Array(P3.fdTAX_Rates)) then
+    Result := true;
+  if (P1.fdSuperfund_System <> P2.fdSuperfund_System) then begin
+    Result := true;
+    P3.fdSuperfund_System := P1.fdSuperfund_System;
+  end;
+  if (P1.fdSuperfund_Code_Mask <> P2.fdSuperfund_Code_Mask) then begin
+    Result := true;
+    P3.fdSuperfund_Code_Mask := P1.fdSuperfund_Code_Mask;
+  end;
+  if (P1.fdLoad_Client_Super_Files_From <> P2.fdLoad_Client_Super_Files_From) then begin
+    Result := true;
+    P3.fdLoad_Client_Super_Files_From := P1.fdLoad_Client_Super_Files_From;
+  end;
+  if (P1.fdSave_Client_Super_Files_To <> P2.fdSave_Client_Super_Files_To) then begin
+    Result := true;
+    P3.fdSave_Client_Super_Files_To := P1.fdSave_Client_Super_Files_To;
+  end;
+  if (P1.fdSort_Reports_By <> P2.fdSort_Reports_By) then begin
+    Result := true;
+    P3.fdSort_Reports_By := P1.fdSort_Reports_By;
+  end;
+  if (P1.fdSet_Fixed_Dollar_Amount <> P2.fdSet_Fixed_Dollar_Amount) then begin
+    Result := true;
+    P3.fdSet_Fixed_Dollar_Amount := P1.fdSet_Fixed_Dollar_Amount;
+  end;
+  if (P1.fdPrint_Group_Header_Page <> P2.fdPrint_Group_Header_Page) then begin
+    Result := true;
+    P3.fdPrint_Group_Header_Page := P1.fdPrint_Group_Header_Page;
+  end;
+  if (P1.fdPrint_Client_Type_Header_Page <> P2.fdPrint_Client_Type_Header_Page) then begin
+    Result := true;
+    P3.fdPrint_Client_Type_Header_Page := P1.fdPrint_Client_Type_Header_Page;
+  end;
+  if (P1.fdPractice_Management_System <> P2.fdPractice_Management_System) then begin
+    Result := true;
+    P3.fdPractice_Management_System := P1.fdPractice_Management_System;
+  end;
+  if Automatic_Task_Creation_Flags_Changed(TAutomatic_Task_Creation_Flags_Array(P1.fdAutomatic_Task_Creation_Flags), 
+                  TAutomatic_Task_Creation_Flags_Array(P2.fdAutomatic_Task_Creation_Flags), 
+                  TAutomatic_Task_Creation_Flags_Array(P3.fdAutomatic_Task_Creation_Flags)) then
+    Result := true;
+  if Automatic_Task_Reminder_Delay_Changed(TAutomatic_Task_Reminder_Delay_Array(P1.fdAutomatic_Task_Reminder_Delay), 
+                  TAutomatic_Task_Reminder_Delay_Array(P2.fdAutomatic_Task_Reminder_Delay), 
+                  TAutomatic_Task_Reminder_Delay_Array(P3.fdAutomatic_Task_Reminder_Delay)) then
+    Result := true;
+  if Automatic_Task_Closing_Flags_Changed(TAutomatic_Task_Closing_Flags_Array(P1.fdAutomatic_Task_Closing_Flags), 
+                  TAutomatic_Task_Closing_Flags_Array(P2.fdAutomatic_Task_Closing_Flags), 
+                  TAutomatic_Task_Closing_Flags_Array(P3.fdAutomatic_Task_Closing_Flags)) then
+    Result := true;
+
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Practice_Details_Rec(P1, P2: pPractice_Details_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Practice_Details_Rec(P1^, S);
+    S.Position := 0;
+    Read_Practice_Details_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

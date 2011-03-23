@@ -17,9 +17,11 @@ PROCEDURE Write_Audit_Trail_Rec ( Var O : TAudit_Trail_Rec ; Var F : TIOStream )
 PROCEDURE Read_Audit_Trail_Rec ( Var O : TAudit_Trail_Rec ; Var F : TIOStream );
 FUNCTION  New_Audit_Trail_Rec : pAudit_Trail_Rec ;
 PROCEDURE Free_Audit_Trail_Rec_Dynamic_Fields ( Var O : TAudit_Trail_Rec );
+function Audit_Trail_Rec_Delta(P1, P2, P3: pAudit_Trail_Rec): boolean;
+procedure Copy_Audit_Trail_Rec(P1, P2: pAudit_Trail_Rec);
 
 {  -------------------------------------------------------------------  }
-IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
+IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -149,6 +151,71 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+Function Audit_Trail_Rec_Delta(P1, P2, P3: pAudit_Trail_Rec): boolean;
+begin
+  Result := False;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Audit_Trail_Rec(P1, P3);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  if (P1.atAudit_ID <> P2.atAudit_ID) then begin
+    Result := true;
+    P3.atAudit_ID := P1.atAudit_ID;
+  end;
+  if (P1.atTransaction_Type <> P2.atTransaction_Type) then begin
+    Result := true;
+    P3.atTransaction_Type := P1.atTransaction_Type;
+  end;
+  if (P1.atAudit_Action <> P2.atAudit_Action) then begin
+    Result := true;
+    P3.atAudit_Action := P1.atAudit_Action;
+  end;
+  if (P1.atDate_Time <> P2.atDate_Time) then begin
+    Result := true;
+    P3.atDate_Time := P1.atDate_Time;
+  end;
+  if (P1.atUser_Code <> P2.atUser_Code) then begin
+    Result := true;
+    P3.atUser_Code := P1.atUser_Code;
+  end;
+  if (P1.atRecord_ID <> P2.atRecord_ID) then begin
+    Result := true;
+    P3.atRecord_ID := P1.atRecord_ID;
+  end;
+  if (P1.atParent_ID <> P2.atParent_ID) then begin
+    Result := true;
+    P3.atParent_ID := P1.atParent_ID;
+  end;
+  if (P1.atAudit_Record_Type <> P2.atAudit_Record_Type) then begin
+    Result := true;
+    P3.atAudit_Record_Type := P1.atAudit_Record_Type;
+  end;
+
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Audit_Trail_Rec(P1, P2: pAudit_Trail_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Audit_Trail_Rec(P1^, S);
+    S.Position := 0;
+    Read_Audit_Trail_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

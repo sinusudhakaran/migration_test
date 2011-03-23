@@ -3,7 +3,7 @@ unit AuditMgr;
 interface
 
 uses
-  SysUtils, Classes, IOStream;
+  SysUtils, Classes, IOStream, AuditUtils, SYAuditUtils;
 
 const
   //Audit types
@@ -86,10 +86,11 @@ type
     function AuditTypeToDBStr(AAuditType: TAuditType): string;
     function AuditTypeToTableStr(AAuditType: TAuditType): string;
     function DBFromAuditType(AAuditType: TAuditType): byte;
+    function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; virtual; abstract;
     procedure DoAudit; virtual; abstract;
     procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); virtual; abstract;
-    procedure AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
-      var AAuditValue: string); virtual; abstract;
+    procedure AddAuditValue(AFieldName: string; AValue: variant; var AAuditValue: string); virtual;
+//    procedure AddAuditStrArrayValues(AFieldName: string; AValue: TStrArray; var AAuditValue: string); virtual;
     procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream);
     procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer);
     procedure GetValues(ARecordType: byte; ARecord: pointer; Strings: TStrings);
@@ -98,28 +99,29 @@ type
   TSystemAuditManager = class(TAuditManager)
   public
     function NextSystemRecordID: integer;
+    function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
-    procedure AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
-      var AAuditValue: string); override;
   end;
 
   TClientAuditManager = class(TAuditManager)
   public
     function NextClientRecordID: integer;
+    function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
-    procedure AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
-      var AAuditValue: string); override;
   end;
 
   function SystemAuditMgr: TSystemAuditManager;
   function ClientAuditMgr: TClientAuditManager;
 
+  procedure GST_Class_Names_Audit_Values(V1: TGST_Class_Names_Array; var Values: string);
+  procedure GST_Rates_Audit_Values(V1: TGST_Rates_Array; var Values: string);
+
 implementation
 
 uses
-  SystemDB, ClientDB,
+  SystemDB, ClientDB, MoneyDef,
   SYDEFS, SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO,
   BKDEFS, BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO;
 
@@ -228,7 +230,71 @@ begin
   end;
 end;
 
+procedure GST_Class_Names_Audit_Values(V1: TGST_Class_Names_Array; var Values: string);
+var
+  i: integer;
+  Value: string;
+  FieldName: string;
+begin
+  for i := Low(V1) to High(V1) do begin
+    Value := V1[i];
+    if Value <> '' then begin
+      if (Values <> '') then
+        Values := Values + ',';
+      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 19);
+      Values := Format('%s%s[%d]=%s', [Values, FieldName, i, Value]);
+    end;
+  end;
+end;
+
+procedure GST_Rates_Audit_Values(V1: TGST_Rates_Array; var Values: string);
+var
+  i, j: integer;
+  Value: money;
+  FieldName: string;
+begin
+  for i := Low(V1) to High(V1) do
+    for j := Low(V1[i]) to High(V1[i]) do begin
+      Value := V1[i, j];
+      if Value <> 0 then begin
+        if (Values <> '') then
+          Values := Values + ',';
+        FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 22);
+        Values := Format('%s%s[%d, %d]=%s', [Values, FieldName, i, j, FloatToStr(Value /100)]);
+      end;
+    end;
+end;
+
 { TAuditManager }
+
+//procedure TAuditManager.AddAuditStrArrayValues(AFieldName: string;
+//  AValue: TStrArray; var AAuditValue: string);
+//var
+//  i: integer;
+//  Value: string;
+//begin
+//  for i := Low(AValue) to High(AValue) do begin
+//    Value := AValue[i];
+//    if Value <> '' then begin
+//      if (AAuditValue <> '') then
+//        AAuditValue := AAuditValue + ',';
+//      AAuditValue := Format('%s%s[%d]=%s', [AAuditValue, AFieldName, i, Value]);
+//    end;
+//  end;
+//end;
+
+procedure TAuditManager.AddAuditValue(AFieldName: string;
+  AValue: variant; var AAuditValue: string);
+var
+  Value: string;
+begin
+  Value := ToString(AValue);
+  if Value <> '' then begin
+    if (AAuditValue <> '') then
+      AAuditValue := AAuditValue + ',';
+    AAuditValue := AAuditValue + AFieldName + '=' + Value;
+  end;
+end;
 
 procedure TAuditManager.AddScope(AAuditType: TAuditType; ARecordID: integer);
 var
@@ -314,25 +380,11 @@ var
 begin
   Values := '';
   case ARecordType of
-    tkBegin_Payee_Detail    :
-      begin
-        if tPayee_Detail_Rec(ARecord^).pdNumber > 0 then
-          AddAuditValue(tkBegin_Payee_Detail, 91, IntToStr(tPayee_Detail_Rec(ARecord^).pdNumber), Values);
-        AddAuditValue(tkBegin_Payee_Detail, 92, tPayee_Detail_Rec(ARecord^).pdName, Values);
-        Strings.Add(Values);
-      end;
-    tkBegin_Practice_Details:
-      begin
-
-      end;
-    tkBegin_User            :
-      begin
-        AddAuditValue(tkBegin_User, 61, tUser_Rec(ARecord^).usCode, Values);
-        AddAuditValue(tkBegin_User, 62, tUser_Rec(ARecord^).usName, Values);
-        AddAuditValue(tkBegin_User, 64, tUser_Rec(ARecord^).usEMail_Address, Values);
-        Strings.Add(Values);
-      end;
+    tkBegin_Payee_Detail    : Client.PayeeTable.AddAuditValues(Values, ARecord);
+    tkBegin_Practice_Details: SystemData.AddAuditValues(Values, ARecord);
+    tkBegin_User            : SystemData.UserTable.AddAuditValues(Values, ARecord);
   end;
+  Strings.Add(Values);
 end;
 
 procedure TAuditManager.ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer);
@@ -367,21 +419,6 @@ end;
 
 { TClientAuditManager }
 
-procedure TClientAuditManager.AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
-  var AAuditValue: string);
-var
-  Value: string;
-begin
-  Value := ToString(AValue);
-  if Value <> '' then begin
-    if (AAuditValue <> '') then
-      AAuditValue := AAuditValue + ',';
-    AAuditValue := AAuditValue +
-                   BKAuditNames.GetAuditFieldName(ATableID, AFieldID) +
-                   '=' + Value;
-  end;
-end;
-
 procedure TClientAuditManager.DoAudit;
 var
   i: integer;
@@ -401,6 +438,12 @@ begin
   AddScope(AAuditType, 0);
 end;
 
+function TClientAuditManager.GetParentRecordID(ARecordType: byte;
+  ARecordID: integer): integer;
+begin
+  Result := 0;
+end;
+
 function TClientAuditManager.NextClientRecordID: integer;
 begin
   Result := Client.NextAuditRecordID;
@@ -408,21 +451,6 @@ end;
 
 
 { TSystemAuditManager }
-
-procedure TSystemAuditManager.AddAuditValue(ATableID, AFieldID: byte; AValue: variant;
-  var AAuditValue: string);
-var
-  Value: string;
-begin
-  Value := ToString(AValue);
-  if Value <> '' then begin
-    if (AAuditValue <> '') then
-      AAuditValue := AAuditValue + ',';
-    AAuditValue := AAuditValue +
-                   SYAuditNames.GetAuditFieldName(ATableID, AFieldID) +
-                   '=' + Value;
-  end;
-end;
 
 procedure TSystemAuditManager.DoAudit;
 var
@@ -442,6 +470,15 @@ end;
 procedure TSystemAuditManager.FlagAudit(AAuditType: TAuditType; ARecord: Pointer);
 begin
   AddScope(AAuditType, 0);
+end;
+
+function TSystemAuditManager.GetParentRecordID(ARecordType: byte; ARecordID: integer): integer;
+begin
+  Result := -1;
+  case ARecordType of
+    tkBegin_Practice_Details: Result := -1;
+    tkBegin_User: Result := SystemData.PracticeDetails.fdAudit_Record_ID;
+  end;
 end;
 
 function TSystemAuditManager.NextSystemRecordID: integer;

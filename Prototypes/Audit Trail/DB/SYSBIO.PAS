@@ -17,9 +17,11 @@ PROCEDURE Write_System_Bank_Account_Rec ( Var O : TSystem_Bank_Account_Rec ; Var
 PROCEDURE Read_System_Bank_Account_Rec ( Var O : TSystem_Bank_Account_Rec ; Var F : TIOStream );
 FUNCTION  New_System_Bank_Account_Rec : pSystem_Bank_Account_Rec ;
 PROCEDURE Free_System_Bank_Account_Rec_Dynamic_Fields ( Var O : TSystem_Bank_Account_Rec );
+function System_Bank_Account_Rec_Delta(P1, P2, P3: pSystem_Bank_Account_Rec): boolean;
+procedure Copy_System_Bank_Account_Rec(P1, P2: pSystem_Bank_Account_Rec);
 
 {  -------------------------------------------------------------------  }
-IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
+IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -80,6 +82,7 @@ CONST
    tksbBankLink_Code                    = 86 ;
    tksbFrequency                        = 87 ;
    tksbFrequency_Change_Pending         = 88 ;
+   tksbAudit_Record_ID                  = 89 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -142,6 +145,7 @@ Begin
       F.WriteStringValue( tksbBankLink_Code , sbBankLink_Code );
       F.WriteByteValue( tksbFrequency , sbFrequency );
       F.WriteByteValue( tksbFrequency_Change_Pending , sbFrequency_Change_Pending );
+      F.WriteIntegerValue( tksbAudit_Record_ID , sbAudit_Record_ID );
       F.WriteToken( tkEnd_System_Bank_Account );
    end;
 end; { of Write_System_Bank_Account_Rec }
@@ -201,6 +205,7 @@ Begin
          tksbBankLink_Code                    : sbBankLink_Code := F.ReadStringValue;
          tksbFrequency                        : sbFrequency := F.ReadByteValue;
          tksbFrequency_Change_Pending         : sbFrequency_Change_Pending := F.ReadByteValue;
+         tksbAudit_Record_ID                  : sbAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -241,6 +246,191 @@ Begin
       sbAssignment_ID := '' ;
       sbDisbursement_ID := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+Function System_Bank_Account_Rec_Delta(P1, P2, P3: pSystem_Bank_Account_Rec): boolean;
+begin
+  Result := False;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_System_Bank_Account_Rec(P1, P3);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  if (P1.sbAccount_Number <> P2.sbAccount_Number) then begin
+    Result := true;
+    P3.sbAccount_Number := P1.sbAccount_Number;
+  end;
+  if (P1.sbAccount_Name <> P2.sbAccount_Name) then begin
+    Result := true;
+    P3.sbAccount_Name := P1.sbAccount_Name;
+  end;
+  if (P1.sbAccount_Password <> P2.sbAccount_Password) then begin
+    Result := true;
+    P3.sbAccount_Password := P1.sbAccount_Password;
+  end;
+  if (P1.sbLRN <> P2.sbLRN) then begin
+    Result := true;
+    P3.sbLRN := P1.sbLRN;
+  end;
+  if (P1.sbClient <> P2.sbClient) then begin
+    Result := true;
+    P3.sbClient := P1.sbClient;
+  end;
+  if (P1.sbCurrent_Balance <> P2.sbCurrent_Balance) then begin
+    Result := true;
+    P3.sbCurrent_Balance := P1.sbCurrent_Balance;
+  end;
+  if (P1.sbLast_Transaction_LRN <> P2.sbLast_Transaction_LRN) then begin
+    Result := true;
+    P3.sbLast_Transaction_LRN := P1.sbLast_Transaction_LRN;
+  end;
+  if (P1.sbNew_This_Month <> P2.sbNew_This_Month) then begin
+    Result := true;
+    P3.sbNew_This_Month := P1.sbNew_This_Month;
+  end;
+  if (P1.sbNo_of_Entries_This_Month <> P2.sbNo_of_Entries_This_Month) then begin
+    Result := true;
+    P3.sbNo_of_Entries_This_Month := P1.sbNo_of_Entries_This_Month;
+  end;
+  if (P1.sbFrom_Date_This_Month <> P2.sbFrom_Date_This_Month) then begin
+    Result := true;
+    P3.sbFrom_Date_This_Month := P1.sbFrom_Date_This_Month;
+  end;
+  if (P1.sbTo_Date_This_Month <> P2.sbTo_Date_This_Month) then begin
+    Result := true;
+    P3.sbTo_Date_This_Month := P1.sbTo_Date_This_Month;
+  end;
+  if (P1.sbCost_Code <> P2.sbCost_Code) then begin
+    Result := true;
+    P3.sbCost_Code := P1.sbCost_Code;
+  end;
+  if (P1.sbCharges_This_Month <> P2.sbCharges_This_Month) then begin
+    Result := true;
+    P3.sbCharges_This_Month := P1.sbCharges_This_Month;
+  end;
+  if (P1.sbOpening_Balance_from_Disk <> P2.sbOpening_Balance_from_Disk) then begin
+    Result := true;
+    P3.sbOpening_Balance_from_Disk := P1.sbOpening_Balance_from_Disk;
+  end;
+  if (P1.sbClosing_Balance_from_Disk <> P2.sbClosing_Balance_from_Disk) then begin
+    Result := true;
+    P3.sbClosing_Balance_from_Disk := P1.sbClosing_Balance_from_Disk;
+  end;
+  if (P1.sbAttach_Required <> P2.sbAttach_Required) then begin
+    Result := true;
+    P3.sbAttach_Required := P1.sbAttach_Required;
+  end;
+  if (P1.sbWas_On_Latest_Disk <> P2.sbWas_On_Latest_Disk) then begin
+    Result := true;
+    P3.sbWas_On_Latest_Disk := P1.sbWas_On_Latest_Disk;
+  end;
+  if (P1.sbLast_Entry_Date <> P2.sbLast_Entry_Date) then begin
+    Result := true;
+    P3.sbLast_Entry_Date := P1.sbLast_Entry_Date;
+  end;
+  if (P1.sbDate_Of_Last_Entry_Printed <> P2.sbDate_Of_Last_Entry_Printed) then begin
+    Result := true;
+    P3.sbDate_Of_Last_Entry_Printed := P1.sbDate_Of_Last_Entry_Printed;
+  end;
+  if (P1.sbMark_As_Deleted <> P2.sbMark_As_Deleted) then begin
+    Result := true;
+    P3.sbMark_As_Deleted := P1.sbMark_As_Deleted;
+  end;
+  if (P1.sbFile_Code <> P2.sbFile_Code) then begin
+    Result := true;
+    P3.sbFile_Code := P1.sbFile_Code;
+  end;
+  if (P1.sbClient_ID <> P2.sbClient_ID) then begin
+    Result := true;
+    P3.sbClient_ID := P1.sbClient_ID;
+  end;
+  if (P1.sbMatter_ID <> P2.sbMatter_ID) then begin
+    Result := true;
+    P3.sbMatter_ID := P1.sbMatter_ID;
+  end;
+  if (P1.sbAssignment_ID <> P2.sbAssignment_ID) then begin
+    Result := true;
+    P3.sbAssignment_ID := P1.sbAssignment_ID;
+  end;
+  if (P1.sbDisbursement_ID <> P2.sbDisbursement_ID) then begin
+    Result := true;
+    P3.sbDisbursement_ID := P1.sbDisbursement_ID;
+  end;
+  if (P1.sbAccount_Type <> P2.sbAccount_Type) then begin
+    Result := true;
+    P3.sbAccount_Type := P1.sbAccount_Type;
+  end;
+  if (P1.sbJob_Code <> P2.sbJob_Code) then begin
+    Result := true;
+    P3.sbJob_Code := P1.sbJob_Code;
+  end;
+  if (P1.sbActivity_Code <> P2.sbActivity_Code) then begin
+    Result := true;
+    P3.sbActivity_Code := P1.sbActivity_Code;
+  end;
+  if (P1.sbUnused <> P2.sbUnused) then begin
+    Result := true;
+    P3.sbUnused := P1.sbUnused;
+  end;
+  if (P1.sbFirst_Available_Date <> P2.sbFirst_Available_Date) then begin
+    Result := true;
+    P3.sbFirst_Available_Date := P1.sbFirst_Available_Date;
+  end;
+  if (P1.sbNo_Charge_Account <> P2.sbNo_Charge_Account) then begin
+    Result := true;
+    P3.sbNo_Charge_Account := P1.sbNo_Charge_Account;
+  end;
+  if (P1.sbCurrency_Code <> P2.sbCurrency_Code) then begin
+    Result := true;
+    P3.sbCurrency_Code := P1.sbCurrency_Code;
+  end;
+  if (P1.sbInstitution <> P2.sbInstitution) then begin
+    Result := true;
+    P3.sbInstitution := P1.sbInstitution;
+  end;
+  if (P1.sbInActive <> P2.sbInActive) then begin
+    Result := true;
+    P3.sbInActive := P1.sbInActive;
+  end;
+  if (P1.sbBankLink_Code <> P2.sbBankLink_Code) then begin
+    Result := true;
+    P3.sbBankLink_Code := P1.sbBankLink_Code;
+  end;
+  if (P1.sbFrequency <> P2.sbFrequency) then begin
+    Result := true;
+    P3.sbFrequency := P1.sbFrequency;
+  end;
+  if (P1.sbFrequency_Change_Pending <> P2.sbFrequency_Change_Pending) then begin
+    Result := true;
+    P3.sbFrequency_Change_Pending := P1.sbFrequency_Change_Pending;
+  end;
+  if (P1.sbAudit_Record_ID <> P2.sbAudit_Record_ID) then begin
+    Result := true;
+    P3.sbAudit_Record_ID := P1.sbAudit_Record_ID;
+  end;
+
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_System_Bank_Account_Rec(P1, P2: pSystem_Bank_Account_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_System_Bank_Account_Rec(P1^, S);
+    S.Position := 0;
+    Read_System_Bank_Account_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

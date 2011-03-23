@@ -16,6 +16,8 @@ type
     FAuditTable: TAuditTable;
     FUserTable: TUserTable;
     FLastAuditRecordID: integer;
+//    procedure CopySystem(P1, P2: pPractice_Details_Rec);
+//    procedure CompareAndCopySystem(P1, P2, P3: pPractice_Details_Rec);
     procedure LoadFromStream(var AStream: TIOStream);
     procedure SaveToStream(var AStream: TIOStream);
     procedure SetAuditInfo(P1, P2: pPractice_Details_Rec; var AAuditInfo: TAuditInfo);
@@ -28,6 +30,7 @@ type
     procedure SaveToFile(AFileName: TFilename);
     property UserTable: TUserTable read FUserTable;
     property AuditTable: TAuditTable read FAuditTable;
+    procedure AddAuditValues(var Values: string; ARecord: pointer);
   end;
 
   //Client DB singleton
@@ -37,7 +40,7 @@ type
 implementation
 
 uses
-  TOKENS,SYFDIO;
+  TOKENS, SYFDIO, SYAUDIT, SYAuditUtils;
 
 var
   _System: TSystemDatabase;
@@ -58,7 +61,53 @@ begin
   Result := _SystemCopy;
 end;
 
+
 { TSystemDatabase }
+
+procedure TSystemDatabase.AddAuditValues(var Values: string; ARecord: pointer);
+begin
+  SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 11),
+                               tPractice_Details_Rec(ARecord^).fdPractice_Name_for_Reports, Values);
+  SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 76),
+                               tPractice_Details_Rec(ARecord^).fdPractice_Phone, Values);
+  //GST names array
+  GST_Class_Names_Audit_Values(TGST_Class_Names_Array(tPractice_Details_Rec(ARecord^).fdGST_Class_Names), Values);
+  //GST rates array
+  GST_Rates_Audit_Values(TGST_Rates_Array(tPractice_Details_Rec(ARecord^).fdGST_Rates), Values);
+end;
+
+//procedure TSystemDatabase.CompareAndCopySystem(P1, P2, P3: pPractice_Details_Rec);
+//var
+//  i, j: integer;
+//begin
+//  if P1.fdPractice_Name_for_Reports <> P2.fdPractice_Name_for_Reports then
+//    P3.fdPractice_Name_for_Reports := P1.fdPractice_Name_for_Reports;
+//  if P1.fdPractice_Phone <> P2.fdPractice_Phone then
+//    P3.fdPractice_Phone := P1.fdPractice_Phone;
+//  if StringArrayChanged(TStrArray(P1.fdGST_Class_Names), TStrArray(P2.fdGST_Class_Names)) then
+//    for i := Low(P1.fdGST_Class_Names) to high(P1.fdGST_Class_Names) do
+//      if P1.fdGST_Class_Names[i] <> P2.fdGST_Class_Names[i] then
+//        P3.fdGST_Class_Names[i] := P1.fdGST_Class_Names[i];
+//  if RatesArrayChanged(TRatesArray(P1.fdGST_Rates), TRatesArray(P2.fdGST_Rates)) then
+//    for i := Low(P1.fdGST_Rates) to high(P1.fdGST_Rates) do
+//      for j := Low(P1.fdGST_Rates[i]) to High((P1.fdGST_Rates[i])) do
+//        if P1.fdGST_Rates[i, j] <> P2.fdGST_Rates[i, j] then
+//          P3.fdGST_Rates[i, j] := P1.fdGST_Rates[i, j];
+//end;
+
+//procedure TSystemDatabase.CopySystem(P1, P2: pPractice_Details_Rec);
+//var
+//  S: TIOStream;
+//begin
+//  S := TIOStream.Create;
+//  try
+//    Write_Practice_Details_Rec(P1^, S);
+//    S.Position := 0;
+//    Read_Practice_Details_Rec(P2^, S);
+//  finally
+//    S.Free;
+//  end;
+//end;
 
 constructor TSystemDatabase.Create;
 begin
@@ -69,6 +118,9 @@ begin
   PracticeDetails.fdEOR := tkEnd_Practice_Details;
 
   FLastAuditRecordID := 0;
+  if PracticeDetails.fdAudit_Record_ID = 0 then
+    PracticeDetails.fdAudit_Record_ID := NextAuditRecordID;
+
   FAuditTable := TAuditTable.Create;
   FUserTable := TUserTable.Create;
 end;
@@ -171,48 +223,15 @@ end;
 
 procedure TSystemDatabase.SetAuditInfo(P1, P2: pPractice_Details_Rec;
   var AAuditInfo: TAuditInfo);
-
-type
-  TStrArray = array[1..99] of string[60];
-  TRatesArray = array[1..99] of array[1..5] of comp;
-
-  function SameStringArray(A1, A2: TStrArray): boolean;
-  var
-    i: integer;
-  begin
-    Result := True;
-    for i := Low(A1) to High(A2) do
-      if A1[i] <> A2[i] then begin
-        Result := False;
-        Break;
-      end;
-  end;
-
-  function SameRatesArray(A1, A2: TRatesArray): boolean;
-  var
-    i, j: integer;
-  begin
-    Result := True;
-    for i := Low(A1) to High(A1) do
-      for j := Low(A1[i]) to High(A1[i]) do
-        if A1[i, j] <> A2[i, j] then begin
-          Result := False;
-          Break;
-        end;
-  end;
-
 begin
-  if (P1.fdPractice_Name_for_Reports <> P2.fdPractice_Name_for_Reports) or
-     (P1.fdPractice_Phone <> P2.fdPractice_Phone) or
-     (not SameStringArray(TStrArray(P1.fdGST_Class_Names), TStrArray(P2.fdGST_Class_Names))) or
-     (not SameRatesArray(TRatesArray(P1.fdGST_Rates), TRatesArray(P2.fdGST_Rates))) then begin
+  AAuditInfo.AuditRecord := New_Practice_Details_Rec;
+  if Practice_Details_Rec_Delta(P1, P2, AAuditInfo.AuditRecord) then begin
     AAuditInfo.AuditAction := aaChange;
-    AAuditInfo.AuditRecordID := 0;
-//    SystemAuditMgr.AddAuditValue(tkBegin_Practice_Details, 12, P1.fdPractice_Name_for_Reports, AAuditInfo);
-    AAuditInfo.AuditParentID := -1;
+    AAuditInfo.AuditRecordID := P1.fdAudit_Record_ID;
+    AAuditInfo.AuditParentID := -1; //No parent
     AAuditInfo.AuditRecordType := tkBegin_Practice_Details;
-    AAuditInfo.AuditRecord := P1;
-  end;
+  end else
+    FreeAndNil(AAuditInfo.AuditRecord); //No change
 end;
 
 end.

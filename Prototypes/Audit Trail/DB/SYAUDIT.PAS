@@ -133,7 +133,7 @@ begin
     FAuditNamesArray[10,78] := 'Sched_Rep_Print_Custom_Doc_GUID';
     FAuditNamesArray[10,79] := 'Sched_Rep_Print_Custom_Doc';
     FAuditNamesArray[10,80] := 'Last_ChargeFile_Date';
-    FAuditNamesArray[10,81] := 'Spare_Integer_2';
+    FAuditNamesArray[10,81] := 'Audit_Record_ID';
     FAuditNamesArray[10,82] := 'Sched_Rep_Fax_Custom_Doc_GUID';
     FAuditNamesArray[10,83] := 'Sched_Rep_Fax_Custom_Doc';
     FAuditNamesArray[10,84] := 'Spare_Text_3';
@@ -241,6 +241,7 @@ begin
     FAuditNamesArray[40,43] := 'No_of_Accounts';
     FAuditNamesArray[40,44] := 'No_of_Entries';
     FAuditNamesArray[40,45] := 'Was_In_Last_Download';
+    FAuditNamesArray[40,46] := 'Audit_Record_ID';
 
    FAuditTableArray[60] := 'User';
     FAuditNamesArray[60,61] := 'User Code'; //Code
@@ -305,6 +306,7 @@ begin
     FAuditNamesArray[50,85] := 'BankLink_Code';
     FAuditNamesArray[50,86] := 'Frequency';
     FAuditNamesArray[50,87] := 'Frequency_Change_Pending';
+    FAuditNamesArray[50,88] := 'Audit_Record_ID';
 
    FAuditTableArray[80] := 'Client_File';
     FAuditNamesArray[80,81] := 'File_Code';
@@ -360,10 +362,12 @@ begin
     FAuditNamesArray[80,131] := 'WebNotesAvailable';
     FAuditNamesArray[80,132] := 'WebNotes_Email_Notifications';
     FAuditNamesArray[80,133] := 'ISO_Codes';
+    FAuditNamesArray[80,134] := 'Audit_Record_ID';
 
    FAuditTableArray[100] := 'File_Access_Mapping';
     FAuditNamesArray[100,101] := 'User_LRN';
     FAuditNamesArray[100,102] := 'Client_File_LRN';
+    FAuditNamesArray[100,103] := 'Audit_Record_ID';
 
    FAuditTableArray[90] := 'Client_Account_Map';
     FAuditNamesArray[90,91] := 'Client_LRN';
@@ -371,14 +375,17 @@ begin
     FAuditNamesArray[90,93] := 'Last_Date_Printed';
     FAuditNamesArray[90,94] := 'Temp_Last_Date_Printed';
     FAuditNamesArray[90,95] := 'Earliest_Download_Date';
+    FAuditNamesArray[90,96] := 'Audit_Record_ID';
 
    FAuditTableArray[110] := 'Group';
     FAuditNamesArray[110,111] := 'LRN';
     FAuditNamesArray[110,112] := 'Name';
+    FAuditNamesArray[110,113] := 'Audit_Record_ID';
 
    FAuditTableArray[120] := 'Client_Type';
     FAuditNamesArray[120,121] := 'LRN';
     FAuditNamesArray[120,122] := 'Name';
+    FAuditNamesArray[120,123] := 'Audit_Record_ID';
 
    FAuditTableArray[130] := 'Audit_Trail';
     FAuditNamesArray[130,131] := 'Audit_ID';

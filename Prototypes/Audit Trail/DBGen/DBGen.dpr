@@ -36,6 +36,10 @@ begin
    GenerateUnitFiles( SysName );
    Writeln( 'Generating Audit Definitions' );
    GenerateAuditFiles( SysName );
+   Writeln( 'Generating Audit Utils' );
+   GenerateAuditUtils( SysName );
+   Writeln( 'Generating Audit Compare' );
+   GenerateAuditCompare( SysName );
    Writeln( 'Generating Tokens' );
    GenerateTokenFiles( SysName );
    Writeln( 'Generating Read Procedures' );

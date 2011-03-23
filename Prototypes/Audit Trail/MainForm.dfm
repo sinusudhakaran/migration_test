@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Audit Trail'
-  ClientHeight = 455
-  ClientWidth = 777
+  ClientHeight = 472
+  ClientWidth = 875
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,17 +19,17 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 777
-    Height = 455
-    ActivePage = TabSheet2
+    Width = 875
+    Height = 472
+    ActivePage = TabSheet5
     Align = alClient
     TabOrder = 0
     object TabSheet2: TTabSheet
       Caption = 'Users (SY)'
       ImageIndex = 1
       DesignSize = (
-        769
-        427)
+        867
+        444)
       object Label3: TLabel
         Left = 376
         Top = 32
@@ -115,8 +115,8 @@ object Form1: TForm1
       object ListView4: TListView
         Left = 16
         Top = 231
-        Width = 733
-        Height = 182
+        Width = 831
+        Height = 199
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -126,6 +126,10 @@ object Form1: TForm1
           item
             Caption = 'Transaction Type'
             Width = 100
+          end
+          item
+            Caption = 'Parent ID'
+            Width = 90
           end
           item
             Caption = 'Transaction ID'
@@ -164,8 +168,8 @@ object Form1: TForm1
     object TabSheet1: TTabSheet
       Caption = 'Payees (BK)'
       DesignSize = (
-        769
-        427)
+        867
+        444)
       object Label1: TLabel
         Left = 344
         Top = 31
@@ -249,8 +253,8 @@ object Form1: TForm1
       object ListView1: TListView
         Left = 16
         Top = 231
-        Width = 733
-        Height = 182
+        Width = 831
+        Height = 199
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -260,6 +264,10 @@ object Form1: TForm1
           item
             Caption = 'Transaction Type'
             Width = 100
+          end
+          item
+            Caption = 'Parent ID'
+            Width = 90
           end
           item
             Caption = 'Transaction ID'
@@ -350,9 +358,11 @@ object Form1: TForm1
     object TabSheet5: TTabSheet
       Caption = 'Report'
       ImageIndex = 4
+      ExplicitLeft = 44
+      ExplicitTop = 28
       DesignSize = (
-        769
-        427)
+        867
+        444)
       object Label11: TLabel
         Left = 16
         Top = 24
@@ -386,8 +396,8 @@ object Form1: TForm1
       object ListView5: TListView
         Left = 16
         Top = 88
-        Width = 733
-        Height = 325
+        Width = 831
+        Height = 342
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -397,6 +407,10 @@ object Form1: TForm1
           item
             Caption = 'Transaction Type'
             Width = 100
+          end
+          item
+            Caption = 'Parent ID'
+            Width = 90
           end
           item
             Caption = 'Transaction ID'

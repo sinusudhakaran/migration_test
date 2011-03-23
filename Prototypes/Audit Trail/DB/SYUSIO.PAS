@@ -17,9 +17,11 @@ PROCEDURE Write_User_Rec ( Var O : TUser_Rec ; Var F : TIOStream );
 PROCEDURE Read_User_Rec ( Var O : TUser_Rec ; Var F : TIOStream );
 FUNCTION  New_User_Rec : pUser_Rec ;
 PROCEDURE Free_User_Rec_Dynamic_Fields ( Var O : TUser_Rec );
+function User_Rec_Delta(P1, P2, P3: pUser_Rec): boolean;
+procedure Copy_User_Rec(P1, P2: pUser_Rec);
 
 {  -------------------------------------------------------------------  }
-IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
+IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -195,6 +197,131 @@ Begin
       { Free any dynamically allocated memory }
       usEULA_Version := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+Function User_Rec_Delta(P1, P2, P3: pUser_Rec): boolean;
+begin
+  Result := False;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_User_Rec(P1, P3);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  if (P1.usCode <> P2.usCode) then begin
+    Result := true;
+    P3.usCode := P1.usCode;
+  end;
+  if (P1.usName <> P2.usName) then begin
+    Result := true;
+    P3.usName := P1.usName;
+  end;
+  if (P1.usPassword <> P2.usPassword) then begin
+    Result := true;
+    P3.usPassword := P1.usPassword;
+  end;
+  if (P1.usEMail_Address <> P2.usEMail_Address) then begin
+    Result := true;
+    P3.usEMail_Address := P1.usEMail_Address;
+  end;
+  if (P1.usSystem_Access <> P2.usSystem_Access) then begin
+    Result := true;
+    P3.usSystem_Access := P1.usSystem_Access;
+  end;
+  if (P1.usDialog_Colour <> P2.usDialog_Colour) then begin
+    Result := true;
+    P3.usDialog_Colour := P1.usDialog_Colour;
+  end;
+  if (P1.usLogged_In <> P2.usLogged_In) then begin
+    Result := true;
+    P3.usLogged_In := P1.usLogged_In;
+  end;
+  if (P1.usReverse_Mouse_Buttons <> P2.usReverse_Mouse_Buttons) then begin
+    Result := true;
+    P3.usReverse_Mouse_Buttons := P1.usReverse_Mouse_Buttons;
+  end;
+  if (P1.usMASTER_Access <> P2.usMASTER_Access) then begin
+    Result := true;
+    P3.usMASTER_Access := P1.usMASTER_Access;
+  end;
+  if (P1.usLRN <> P2.usLRN) then begin
+    Result := true;
+    P3.usLRN := P1.usLRN;
+  end;
+  if (P1.usSpare_String <> P2.usSpare_String) then begin
+    Result := true;
+    P3.usSpare_String := P1.usSpare_String;
+  end;
+  if (P1.usWorkstation_Logged_In_At <> P2.usWorkstation_Logged_In_At) then begin
+    Result := true;
+    P3.usWorkstation_Logged_In_At := P1.usWorkstation_Logged_In_At;
+  end;
+  if (P1.usIs_Remote_User <> P2.usIs_Remote_User) then begin
+    Result := true;
+    P3.usIs_Remote_User := P1.usIs_Remote_User;
+  end;
+  if (P1.usDirect_Dial <> P2.usDirect_Dial) then begin
+    Result := true;
+    P3.usDirect_Dial := P1.usDirect_Dial;
+  end;
+  if (P1.usShow_CM_on_open <> P2.usShow_CM_on_open) then begin
+    Result := true;
+    P3.usShow_CM_on_open := P1.usShow_CM_on_open;
+  end;
+  if (P1.usShow_Printer_Choice <> P2.usShow_Printer_Choice) then begin
+    Result := true;
+    P3.usShow_Printer_Choice := P1.usShow_Printer_Choice;
+  end;
+  if (P1.usEULA_Version <> P2.usEULA_Version) then begin
+    Result := true;
+    P3.usEULA_Version := P1.usEULA_Version;
+  end;
+  if (P1.usSpare_Boolean <> P2.usSpare_Boolean) then begin
+    Result := true;
+    P3.usSpare_Boolean := P1.usSpare_Boolean;
+  end;
+  if (P1.usLogin_Count <> P2.usLogin_Count) then begin
+    Result := true;
+    P3.usLogin_Count := P1.usLogin_Count;
+  end;
+  if (P1.usReset_Count <> P2.usReset_Count) then begin
+    Result := true;
+    P3.usReset_Count := P1.usReset_Count;
+  end;
+  if (P1.usSuppress_HF <> P2.usSuppress_HF) then begin
+    Result := true;
+    P3.usSuppress_HF := P1.usSuppress_HF;
+  end;
+  if (P1.usShow_Practice_Logo <> P2.usShow_Practice_Logo) then begin
+    Result := true;
+    P3.usShow_Practice_Logo := P1.usShow_Practice_Logo;
+  end;
+  if (P1.usAudit_Record_ID <> P2.usAudit_Record_ID) then begin
+    Result := true;
+    P3.usAudit_Record_ID := P1.usAudit_Record_ID;
+  end;
+
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_User_Rec(P1, P2: pUser_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_User_Rec(P1^, S);
+    S.Position := 0;
+    Read_User_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

@@ -17,9 +17,11 @@ PROCEDURE Write_Group_Rec ( Var O : TGroup_Rec ; Var F : TIOStream );
 PROCEDURE Read_Group_Rec ( Var O : TGroup_Rec ; Var F : TIOStream );
 FUNCTION  New_Group_Rec : pGroup_Rec ;
 PROCEDURE Free_Group_Rec_Dynamic_Fields ( Var O : TGroup_Rec );
+function Group_Rec_Delta(P1, P2, P3: pGroup_Rec): boolean;
+procedure Copy_Group_Rec(P1, P2: pGroup_Rec);
 
 {  -------------------------------------------------------------------  }
-IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
+IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -45,6 +47,7 @@ end;
 CONST
    tkgrLRN                              = 112 ;
    tkgrName                             = 113 ;
+   tkgrAudit_Record_ID                  = 114 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -72,6 +75,7 @@ Begin
       F.WriteToken( tkBegin_Group );
       F.WriteIntegerValue( tkgrLRN , grLRN );
       F.WriteStringValue( tkgrName , grName );
+      F.WriteIntegerValue( tkgrAudit_Record_ID , grAudit_Record_ID );
       F.WriteToken( tkEnd_Group );
    end;
 end; { of Write_Group_Rec }
@@ -96,6 +100,7 @@ Begin
          tkEnd_Group :; { Do Nothing }
          tkgrLRN                              : grLRN := F.ReadIntegerValue;
          tkgrName                             : grName := F.ReadStringValue;
+         tkgrAudit_Record_ID                  : grAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -131,6 +136,51 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+Function Group_Rec_Delta(P1, P2, P3: pGroup_Rec): boolean;
+begin
+  Result := False;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Group_Rec(P1, P3);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  if (P1.grLRN <> P2.grLRN) then begin
+    Result := true;
+    P3.grLRN := P1.grLRN;
+  end;
+  if (P1.grName <> P2.grName) then begin
+    Result := true;
+    P3.grName := P1.grName;
+  end;
+  if (P1.grAudit_Record_ID <> P2.grAudit_Record_ID) then begin
+    Result := true;
+    P3.grAudit_Record_ID := P1.grAudit_Record_ID;
+  end;
+
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Group_Rec(P1, P2: pGroup_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Group_Rec(P1^, S);
+    S.Position := 0;
+    Read_Group_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }
