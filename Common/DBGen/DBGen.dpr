@@ -12,7 +12,8 @@ uses
   DBCRC in 'DBCRC.pas',
   DBIO in 'DBIO.PAS',
   DBObj in 'DBObj.pas',
-  DBFree in 'DBFree.pas';
+  DBFree in 'DBFree.pas',
+  DBAUDIT in 'DBAUDIT.PAS';
 
 Var
    SysName : String[2];
@@ -33,6 +34,12 @@ begin
    end;
    Writeln( 'Generating Record Definitions' );
    GenerateUnitFiles( SysName );
+   Writeln( 'Generating Audit Definitions' );
+   GenerateAuditFiles( SysName );
+   Writeln( 'Generating Audit Utils' );
+   GenerateAuditUtils( SysName );
+   Writeln( 'Generating Audit Compare' );
+   GenerateAuditCompare( SysName );
    Writeln( 'Generating Tokens' );
    GenerateTokenFiles( SysName );
    Writeln( 'Generating Read Procedures' );

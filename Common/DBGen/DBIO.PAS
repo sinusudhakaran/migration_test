@@ -40,6 +40,7 @@ Var
    IntTokenFile: Text;
    ImpTokenFile: Text;
    IOFile      : Text;
+   ACFile      : Text;
    Name        : String[60];
    Prefix      : String[2];
    UPrefix     : String[2];
@@ -50,12 +51,14 @@ Var
    FreeFileName      : ShortString;
    RVFileName        : ShortString;
    WVFileName        : ShortString;
+   ACFileName        : ShortString;
    IntTokenFileName  : ShortString;
    ImpTokenFileName  : ShortString;
    UnitFileName      : ShortString;
    LineType          : String[10];
 
    S : ShortString;
+   FirstToken, LastToken: string;
 
    // --------------------------------------------------------------------------
 
@@ -115,6 +118,7 @@ Begin
 
             WVFileName        := UpperCase( Prefix )+'.WV';
 
+            ACFileName        := UpperCase( Prefix )+'.AC';
             Assign( ReadFile, ReadFileName ); Reset( ReadFile );
             Assign( WriteFile, WriteFileName ); Reset( WriteFile );
             Assign( FreeFile, FreeFileName ); Reset( FreeFile );
@@ -124,6 +128,7 @@ Begin
             Assign( RVFile, RVFileName ); Reset( RVFile );
 
             Assign( WVFile, WVFileName ); Reset( WVFile );
+            Assign( ACFile, ACFileName ); Reset( ACFile );
 
             IOFileName     := SysName+UpperCase( Prefix )+'IO.PAS';
 
@@ -137,7 +142,7 @@ Begin
             Writeln( IOFile, '// when DBGen is run again.' );
             LF;
             NS;
-            Writeln( IOFile, 'INTERFACE USES ',SysName,'DEFS, IOSTREAM;' );
+            Writeln( IOFile, 'INTERFACE USES ',SysName,'DEFS, IOSTREAM, ',SysName,'AUDITUTILS;' );
             NS;
             LF;
             Writeln( IOFile, 'CONST' );
@@ -153,6 +158,9 @@ Begin
             Writeln( IOFile, 'PROCEDURE Read_',Name,'_Rec ( Var O : T', Name, '_Rec ; Var F : TIOStream );' );
             Writeln( IOFile, 'FUNCTION  New_',Name,'_Rec : p',Name,'_Rec ;' );
             Writeln( IOFile, 'PROCEDURE Free_',Name,'_Rec_Dynamic_Fields ( Var O : T', Name, '_Rec );' );
+            Writeln( IOFile, 'FUNCTION ',Name,'_Rec_Delta(P1, P2, P3: p',Name,'_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;' );
+            Writeln( IOFile, 'procedure Copy_',Name,'_Rec(P1, P2: p',Name,'_Rec);' );
+            Writeln( IOFile, 'procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);');
             LF;
             NS;
             Writeln( IOFile, 'IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;' );
@@ -288,6 +296,76 @@ Begin
                Writeln( IOFile, S );
             end;
             Writeln( IOFile, '   end;' );
+            Writeln( IOFile, 'end;' );
+            LF;
+            NS;
+            LF;
+            //All tokens
+            Writeln( IOFile, 'procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);');
+            Writeln( IOFile, 'var' );
+            Writeln( IOFile, '  i, j: integer;' );
+            Writeln( IOFile, 'begin' );
+            Writeln( IOFile, '  for i := Low(ChangedFields) to High(ChangedFields) do' );
+            Writeln( IOFile, '    ChangedFields[i] := 0;');
+
+            Reset( ImpTokenFile );
+            Readln( ImpTokenFile, S );
+            FirstToken := Copy(S, 1, Pos('=', S) - 1);
+            While not EOF( ImpTokenFile ) do
+            Begin
+              Readln( ImpTokenFile, S );
+              LastToken := Copy(S, 1, Pos('=', S) - 1);
+            end;
+            Writeln( IOFile, '  j := 0;');
+            Writeln( IOFile, '  for i := ',Trim(FirstToken),' to ',Trim(LastToken),' do begin' );
+            Writeln( IOFile, '    ChangedFields[j] := i;');
+            Writeln( IOFile, '    Inc(j);');
+            Writeln( IOFile, '  end;' );
+            Writeln( IOFile, 'end;' );
+            LF;
+            NS;
+            LF;
+            //Delta
+            Writeln( IOFile, 'FUNCTION ',Name,'_Rec_Delta(P1, P2, P3: p',Name,'_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;' );
+            Writeln( IOFile, 'var' );
+            Writeln( IOFile, '  i: integer;' );
+            Writeln( IOFile, 'begin' );
+            Writeln( IOFile, '  for i := Low(ChangedFields) to High(ChangedFields) do' );
+            Writeln( IOFile, '    ChangedFields[i] := 0;');
+            Writeln( IOFile );
+            Writeln( IOFile, '  //Add' );
+            Writeln( IOFile, '  if not Assigned(P2) then begin' );
+            Writeln( IOFile, '    Copy_',Name,'_Rec(P1, P3);' );
+            Writeln( IOFile, '    SetAllFieldsChanged(ChangedFields);' );
+            Writeln( IOFile, '    Exit;' );
+            Writeln( IOFile, '  end;' );
+            Writeln( IOFile );
+            Writeln( IOFile, '  //Change' );
+            Writeln( IOFile, '  i := 0;' );
+            While not EOF( ACFile ) do
+            Begin
+               Readln( ACFile, S );
+               Writeln( IOFile, S );
+            end;
+            Writeln( IOFile );
+            Writeln( IOFile, '  Result := (i > 0);');
+            Writeln( IOFile, 'end;' );
+            LF;
+            NS;
+            LF;
+            //Copy
+            Writeln( IOFile, 'procedure Copy_',Name,'_Rec(P1, P2: p',Name,'_Rec);' );
+            Writeln( IOFile, 'var' );
+            Writeln( IOFile, '  S: TIOStream;' );
+            Writeln( IOFile, 'begin' );
+            Writeln( IOFile, '  S := TIOStream.Create;' );
+            Writeln( IOFile, '  try' );
+            Writeln( IOFile, '    Write_',Name,'_Rec(P1^, S);' );
+            Writeln( IOFile, '    S.Position := 0;' );
+            Writeln( IOFile, '    Read_',Name,'_Rec(P2^, S);' );
+            Writeln( IOFile, '  finally' );
+            Writeln( IOFile, '    S.Free;' );
+            Writeln( IOFile, '  end;' );
             Writeln( IOFile, 'end;' );
             LF;
             NS;

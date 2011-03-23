@@ -340,6 +340,13 @@ Begin
 
    // --------------------------------------------------------------------------
 
+   F := TFieldType.Create( 'DT' );
+   F.fDefn      := 'TDateTime;';
+   F.fReadCode  := '%NAME% := F.ReadDateTimeValue;' ;
+   F.fWriteCode := 'F.WriteDateTimeValue( %TOKEN% , %NAME% );' ;
+   AddFieldType( F );
+
+   // --------------------------------------------------------------------------
    F := TFieldType.Create( 'BD' );
    F.fDefn      := 'Array[ 1..%B1% ] of Integer;';
    F.fReadVars  := 'D,I';
@@ -583,6 +590,16 @@ Begin
    // --------------------------------------------------------------------------
    F := TFieldType.Create( 'TO' );
    F.fDefn      := 'TObject;';
+   AddFieldType( F );
+
+   // --------------------------------------------------------------------------
+   // Pointer
+   // --------------------------------------------------------------------------
+
+   F := TFieldType.Create( 'PTR' );
+   F.fDefn      := 'Pointer;';
+   F.fReadCode  := '%NAME% := F.ReadIntegerValue;' ;
+   F.fWriteCode := 'F.WriteIntegerValue( %TOKEN% , %NAME% );' ;
    AddFieldType( F );
 
 end;
