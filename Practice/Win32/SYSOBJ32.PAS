@@ -148,12 +148,12 @@ begin
   fdFields.fdRecord_Type := tkBegin_Practice_Details;
   fdFields.fdEOR := tkEnd_Practice_Details;
   FLastAuditRecordID := 0;
-  if fdFields.fdAudit_Record_ID = 0 then
-    fdFields.fdAudit_Record_ID := NextAuditRecordID;
 {$IFDEF ParserDll}
   systemBackupName := '';
   systemDownloadBackupName := '';
 {$ELSE}
+  if fdFields.fdAudit_Record_ID = 0 then
+    fdFields.fdAudit_Record_ID := NextAuditRecordID;
   systemBackupName := DATADIR + SYSBACKNAME;
   systemDownloadBackupName := DATADIR + SYSSAVEDNAME;
 
