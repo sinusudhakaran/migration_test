@@ -683,6 +683,7 @@ begin
       end;
       UnZipper.ArchiveStream := NIL;
     Finally
+      Files.Free;
       UnZipper.Free;
     end;
   Finally
