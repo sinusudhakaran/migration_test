@@ -4,7 +4,7 @@ unit amList32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-  ECollect, Classes, syDefs, ioStream, sysUtils;
+  ECollect, Classes, syDefs, ioStream, sysUtils, AuditMgr, SysAudit;
 
 Type
    TSystem_Client_Account_Map = class(TExtdSortedCollection)
@@ -13,6 +13,7 @@ Type
       function    Compare( Item1, Item2 : pointer ) : integer; override;
    protected
       procedure   FreeItem( Item : Pointer ); override;
+      function    FindRecordID( ARecordID : integer ):  pClient_Account_Map_Rec;
    public
       function    Client_Account_Map_At( Index : LongInt ): pClient_Account_Map_Rec;
       function    FindLRN( ALRN, CLRN : LongInt ): pClient_Account_Map_Rec;
@@ -22,6 +23,11 @@ Type
       procedure   FindEnd;
       procedure   SaveToFile(var S : TIOStream );
       procedure   LoadFromFile(var S : TIOStream );
+
+      procedure   DoAudit(AAuditType: TAuditType; AClientAccountMapCopy: TSystem_Client_Account_Map; var AAuditTable: TAuditTable);
+      procedure   SetAuditInfo(P1, P2: pClient_Account_Map_Rec; var AAuditInfo: TAuditInfo);
+      procedure   AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
+      procedure   Insert(Item: Pointer); override;
    end;
 
 //******************************************************************************
@@ -32,6 +38,9 @@ uses
 CONST
    DebugMe : Boolean = FALSE;
    UnitName = 'AMLIST32';
+   BANK_ACCOUNT = 'Bank Account';
+   CLIENT_CODE = 'Client Code';
+
 
 { tSystem_Client_Account_Map }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,6 +70,46 @@ begin
    CurrentRecord := -1;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
+procedure TSystem_Client_Account_Map.DoAudit(AAuditType: TAuditType;
+  AClientAccountMapCopy: TSystem_Client_Account_Map;
+  var AAuditTable: TAuditTable);
+var
+  i: integer;
+  P1, P2: pClient_Account_Map_Rec;
+  AuditInfo: TAuditInfo;
+begin
+  AuditInfo.AuditType := atAttachBankAccounts;
+  AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
+  AuditInfo.AuditRecordType := tkBegin_Client_Account_Map;
+  //Adds, changes
+  for I := 0 to Pred( itemCount ) do begin
+    P1 := Items[i];
+    P2 := AClientAccountMapCopy.FindRecordID(P1.amAudit_Record_ID);
+    AuditInfo.AuditRecord := New_Client_Account_Map_Rec;
+    try
+      SetAuditInfo(P1, P2, AuditInfo);
+      if AuditInfo.AuditAction in [aaAdd, aaChange] then
+        AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+  end;
+  //Deletes
+  for i := 0 to AClientAccountMapCopy.ItemCount - 1 do begin
+    P2 := AClientAccountMapCopy.Items[i];
+    P1 := FindRecordID(P2.amAudit_Record_ID);
+    AuditInfo.AuditRecord := New_Client_Account_Map_Rec;
+    try
+      SetAuditInfo(P1, P2, AuditInfo);
+      if (AuditInfo.AuditAction = aaDelete) then
+        AAuditTable.AddAuditRec(AuditInfo);
+    finally
+      Dispose(AuditInfo.AuditRecord);
+    end;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TSystem_Client_Account_Map.FindLRN(ALRN, CLRN: LongInt): pClient_Account_Map_Rec;
 const
@@ -156,6 +205,28 @@ begin
   if (CurrentRecord < ItemCount) and (pClient_Account_Map_Rec(At(CurrentRecord)).amAccount_LRN = ALRN) then
     Result := pClient_Account_Map_Rec(At(CurrentRecord));
 end;
+
+function TSystem_Client_Account_Map.FindRecordID(ARecordID: integer): pClient_Account_Map_Rec;
+const
+  ThisMethodName = 'TSystem_Client_Account_Map.FindRecordID';
+var
+  i : LongInt;
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Called with %d',[ThisMethodName, ARecordID]));
+  Result := NIL;
+  if (itemCount = 0 ) then Exit;
+
+  for I := 0 to Pred( itemCount ) do
+    with Client_Account_Map_At( I )^ do
+      if amAudit_Record_ID = ARecordID then begin
+        Result := Client_Account_Map_At( I );
+        if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Found',[ThisMethodName]));
+          Exit;
+      end;
+
+   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Not Found',[ThisMethodName]));
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TSystem_Client_Account_Map.FindEnd;
 const
@@ -176,6 +247,12 @@ begin
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+procedure TSystem_Client_Account_Map.Insert(Item: Pointer);
+begin
+  pClient_Account_Map_Rec(Item).amAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+  inherited Insert(Item);
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TSystem_Client_Account_Map.LoadFromFile(var S: TIOStream);
 const
@@ -201,7 +278,7 @@ Begin
                   raise EInsufficientMemory.CreateFmt( '%s - %s', [ UnitName, Msg ] );
                end;
                Read_Client_Account_Map_Rec ( pM^, S );
-               Insert( pM );
+               inherited Insert( pM );
             end;
          else
          begin { Should never happen }
@@ -240,7 +317,88 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, Format('%s : %d client account map records were saved',[ThisMethodName,MCount]));
 end;
+
+procedure TSystem_Client_Account_Map.SetAuditInfo(P1,
+  P2: pClient_Account_Map_Rec; var AAuditInfo: TAuditInfo);
+begin
+  AAuditInfo.AuditAction := aaNone;
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.amAudit_Record_ID;
+    AAuditInfo.AuditOtherInfo := Format('%s=%s, %s=%s',
+                                        [BANK_ACCOUNT,
+                                         SystemAuditMgr.BankAccountFromLRN(P2.amAccount_LRN),
+                                         CLIENT_CODE,
+                                         SystemAuditMgr.ClientCodeFromLRN(P2.amClient_LRN)]);
+  end else if Assigned(P2) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.amAudit_Record_ID;
+    AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
+                                                                 AAuditInfo.AuditRecordID);
+    if Client_Account_Map_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      AAuditInfo.AuditAction := aaChange;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.amAudit_Record_ID;
+    AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
+                                                                 AAuditInfo.AuditRecordID);
+    P1.amAudit_Record_ID := AAuditInfo.AuditRecordID;
+    SYAMIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Client_Account_Map_Rec(P1, AAuditInfo.AuditRecord);
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TSystem_Client_Account_Map.AddAuditValues(
+  const AAuditRecord: TAudit_Trail_Rec; var Values: string);
+var
+  Token, Idx: byte;
+  ARecord: Pointer;
+  BankAccount, ClientCode: string;
+begin
+  ARecord := AAuditRecord.atAudit_Record;
+
+  //Delete
+  if ARecord = nil then begin
+    Values := AAuditRecord.atOther_Info;
+    Exit;
+  end;
+
+  Idx := 0;
+  Token := AAuditRecord.atChanged_Fields[idx];
+  while Token <> 0 do begin
+    case Token of
+      //Bank Account
+      92: begin
+            BankAccount := SystemAuditMgr.BankAccountFromLRN(TClient_Account_Map_Rec(ARecord^).amAccount_LRN);
+            SystemAuditMgr.AddAuditValue(BANK_ACCOUNT, BankAccount, Values);
+          end;
+      //Client File
+      93: begin
+            ClientCode := SystemAuditMgr.ClientCodeFromLRN(TClient_Account_Map_Rec(ARecord^).amClient_LRN);
+            SystemAuditMgr.AddAuditValue(CLIENT_CODE, ClientCode, Values);
+          end;
+//   tkamClient_LRN                       = 92 ;
+//   tkamAccount_LRN                      = 93 ;
+//   tkamLast_Date_Printed                = 94 ;
+//   tkamTemp_Last_Date_Printed           = 95 ;
+//   tkamEarliest_Download_Date           = 96 ;
+//   tkamAudit_Record_ID                  = 97 ;
+//
+//    FAuditNamesArray[90,91] := 'Client_LRN';
+//    FAuditNamesArray[90,92] := 'Account_LRN';
+//    FAuditNamesArray[90,93] := 'Last_Date_Printed';
+//    FAuditNamesArray[90,94] := 'Temp_Last_Date_Printed';
+//    FAuditNamesArray[90,95] := 'Earliest_Download_Date';
+//    FAuditNamesArray[90,96] := 'Audit_Record_ID';
+    end;
+    Inc(Idx);
+    Token := AAuditRecord.atChanged_Fields[idx];
+  end;
+end;
+
 function TSystem_Client_Account_Map.Client_Account_Map_At(Index: LongInt): pClient_Account_Map_Rec;
 const
   ThisMethodName = 'TSystem_Client_Account_Map.Client_Account_Map_At';

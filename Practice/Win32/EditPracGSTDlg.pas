@@ -136,7 +136,8 @@ uses
   stStrs,
   ComboUtils,
   StringListHelper,
-  glConst;
+  glConst,
+  AuditMgr;
 
 
 {$I BKHelp.inc}
@@ -431,6 +432,9 @@ begin
             fdTAX_Rates[tt_CompanyTax][2] := Double2GSTRate(eRate2.AsFloat);
             fdTAX_Rates[tt_CompanyTax][3] := Double2GSTRate(eRate3.AsFloat);
          end;
+
+         //*** Flag Audit ***
+         SystemAuditMgr.FlagAudit(atPracticeGSTDefaults);
 
          SaveAdminSystem;
 

@@ -134,7 +134,8 @@ uses
   DownloadUtils,
   WinUtils,
   YesNoDlg, SYDEFS,
-  UsageUtils;
+  UsageUtils,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -574,6 +575,9 @@ begin
 
          //Practice Management System
          fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
+
+         //*** Flag Audit ***
+         SystemAuditMgr.FlagAudit(atPracticeSetup);
 
          SaveAdminSystem;
 

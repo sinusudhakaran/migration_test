@@ -6,7 +6,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, ToolWin, baObj32, ActnList,
+  ComCtrls, ToolWin, baObj32, ActnList, AuditMgr,
   OsFont;
 
 type
@@ -389,6 +389,10 @@ begin
           pS.sbAttach_Required := True;
       end;
     end;
+
+    //*** Flag Audit ***
+    SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+
     SaveAdminSystem;
     result := true;
   end

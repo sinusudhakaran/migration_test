@@ -13,7 +13,7 @@ uses
 {$IFDEF ParserDll}
 {$ELSE}
   usrList32, cflist32, sysDList32, sbaList32, acList32, amList32,
-  grplist32, ctypelist32, ExchangeRateList,mcDefs,
+  grplist32, ctypelist32, ExchangeRateList,mcDefs, sysAudit, AuditMgr,
 {$ENDIF}
   moneydef;
 
@@ -30,8 +30,9 @@ type
       fdSystem_Client_Account_Map: TSystem_Client_Account_Map;
       fdSystem_Group_List        : TSystem_Group_List;
       fdSystem_Client_Type_List  : TSystem_Client_Type_List;
-      fCurrencyCode              : string[3];
+      fCurrencyCode              : string;
       fCurrencyList              : tExchange_Rates_Header_Rec;
+      fAuditTable                : tAuditTable;
 {$ENDIF}
       constructor Create;
       destructor  Destroy; override;
@@ -40,12 +41,14 @@ type
       SystemFileName : string;
       SystemBackupName : string;
       SystemDownloadBackupName : string;
+      FLastAuditRecordID: integer;
       procedure LoadFromStream( Var S : TIOStream );
 {$IFDEF ParserDll}
 {$ELSE}
       procedure SaveToStream( Var S : TIOStream );
       procedure UpdateCache;
       function GetCurrencyCode: string;
+      procedure SetAuditInfo(P1, P2: pPractice_Details_Rec; var AAuditInfo: TAuditInfo);
 {$ENDIF}
   public
       procedure Open(IsEncrypted: Boolean = True);
@@ -55,6 +58,7 @@ type
       procedure DownloadSave;
       procedure OpenAndSnapshot( var aSnapshot : TObject; IsEncrypted: Boolean = True);
       // Common utilities
+      function NextAuditRecordID: integer;
       function DualAccountingSystem: Boolean;
       function MoneyStr(const Amount: Money): string;
       property CurrencyCode: string read GetCurrencyCode;
@@ -66,8 +70,13 @@ type
       procedure SyncCurrenciesToSystemAccounts;
       procedure ForceCurrency(ISO: shortstring; CurType: Byte);
       function NewSystemAccount(AccNumber: string; Delivered: Boolean):pSystem_Bank_Account_Rec;
+      procedure DoAudit(APracticeDetails: pPractice_Details_Rec; AAuditType: TAuditType);
+      procedure AddAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
+      property AuditTable: TAuditTable read FAuditTable;
 {$ENDIF}
   end;
+
+  function SystemCopy: TSystemObj;
 
 //******************************************************************************
 implementation
@@ -93,14 +102,24 @@ uses
 
    StreamUtils,
    KeyUtils,
-   LbCipher;
+   LbCipher,
+   SYAUDIT,
+   SYAUDITUTILS;
 
 const
    UnitName = 'SYSOBJ32';
    BUFFER_SIZE = 8192;
 var
    DebugMe : Boolean = false;
+   _SystemCopy: TSystemObj;
 
+function SystemCopy: TSystemObj;
+begin
+  if not Assigned(_SystemCopy) then begin
+    _SystemCopy := TSystemObj.Create;
+  end;
+  Result := _SystemCopy;
+end;
 
 procedure TSystemObj.LogDebugMsg(S: string; Error: Boolean = false);
 begin
@@ -128,6 +147,9 @@ begin
   FillChar( fdFields, Sizeof( fdFields ), 0 );
   fdFields.fdRecord_Type := tkBegin_Practice_Details;
   fdFields.fdEOR := tkEnd_Practice_Details;
+  FLastAuditRecordID := 0;
+  if fdFields.fdAudit_Record_ID = 0 then
+    fdFields.fdAudit_Record_ID := NextAuditRecordID;
 {$IFDEF ParserDll}
   systemBackupName := '';
   systemDownloadBackupName := '';
@@ -144,6 +166,7 @@ begin
   fdSystem_Client_Account_Map:= TSystem_Client_Account_Map.Create;
   fdSystem_Group_List        := TSystem_Group_List.Create;
   fdSystem_Client_Type_List  := TSystem_Client_Type_List.Create;
+  fAuditTable                := TAuditTable.Create;
   fillChar(fCurrencyList, Sizeof(fCurrencyList), 0);
 {$ENDIF}  
   LogDebugMsg(ThisMethodName + ' Ends' );
@@ -167,6 +190,7 @@ begin
   FreeAndNil(fdSystem_Client_Account_Map);
   FreeAndNil(fdSystem_Group_List);
   FreeAndNil(fdSystem_Client_Type_List);
+  FreeAndNil(fAuditTable);
 {$ENDIF}  
   {free dynamic fields}
   SYFDIO.Free_Practice_Details_Rec_Dynamic_Fields( fdFields);
@@ -194,6 +218,7 @@ Begin
       Token := S.ReadToken;
    end;
 {$ELSE}
+         tkLastAuditRecordID             : FLastAuditRecordID := S.ReadIntegerValue;
          tkBeginSystem_Disk_Log          : fdSystem_Disk_Log.LoadFromFile( S );
          tkBeginSystem_Client_File_List  : fdSystem_Client_File_List.LoadFromFile( S );
          tkBeginSystem_User_List         : fdSystem_User_List.LoadFromFile( S );
@@ -203,6 +228,7 @@ Begin
          tkBeginSystem_Group_List        : fdSystem_Group_List.LoadFromFile( S );
          tkBeginSystem_Client_Type_List  : fdSystem_Client_Type_List.LoadFromFile( S );
          tkBeginExchangeRateHeader       : ReadCurrencyList(fCurrencyList,S);
+         tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);
          else
          begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -258,6 +284,12 @@ Begin
       S.Position := 0;
       S.Read( CRC, Sizeof( LongInt ) );
       LoadFromStream( S );
+      //Reload system copy DB
+      FreeAndNil(_SystemCopy); //Delete current copy
+      S.Position := 0;
+      S.Read( CRC, Sizeof( LongInt ) );
+      SystemCopy.LoadFromStream(S);
+
 {$IFDEF ParserDll}
 {$ELSE}
       UpdateCache;
@@ -277,6 +309,7 @@ const
    ThisMethodName = 'TSystemObj.SaveToStream';
 begin
    LogDebugMsg(ThisMethodName + ' Begins' );
+   S.WriteIntegerValue(tkLastAuditRecordID, FLastAuditRecordID);
    Write_Practice_Details_Rec ( fdFields, S );
    {write lists}
    fdSystem_User_List.SaveToFile( S );
@@ -288,8 +321,20 @@ begin
    fdSystem_Group_List.SaveToFile( S );
    fdSystem_Client_Type_List.SaveToFile( S );
    WriteCurrencyList(fCurrencyList, S);
+   fAuditTable.SaveToStream( S );
 
    LogDebugMsg(ThisMethodName + ' Ends' );
+end;
+
+procedure TSystemObj.SetAuditInfo(P1, P2: pPractice_Details_Rec;
+  var AAuditInfo: TAuditInfo);
+begin
+  if Practice_Details_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then begin
+    AAuditInfo.AuditAction := aaChange;
+    AAuditInfo.AuditRecordID := P1.fdAudit_Record_ID;
+    AAuditInfo.AuditParentID := -1; //No parent
+    AAuditInfo.AuditRecordType := tkBegin_Practice_Details;
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -324,10 +369,19 @@ Begin
 
    S := TIOStream.Create;
    try
+      //Audit
+      SystemAuditMgr.DoAudit;
+      //Save
       L := 0;
       S.Write( L, Sizeof( LongInt ) ); { Leave space for the CRC }
       SaveToStream( S );
       EmbedCRC( S);
+      //Reload system copy DB after save
+      FreeAndNil(_SystemCopy); //Delete current copy
+      S.Position := 0;
+      S.Read( L, Sizeof( LongInt ) );
+      SystemCopy.LoadFromStream(S);
+      //Save to file
       if not IsEncrypted then
         S.SaveToFile( SystemFilename)
       else
@@ -343,6 +397,23 @@ Begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TSystemObj.DoAudit(APracticeDetails: pPractice_Details_Rec; AAuditType: TAuditType);
+var
+  AuditInfo: TAuditInfo;
+begin
+  AuditInfo.AuditAction := aaNone;
+  AuditInfo.AuditType := AAuditType;
+  AuditInfo.AuditUser := Globals.CurrUser.Code;
+  AuditInfo.AuditRecord := New_Practice_Details_Rec;
+  try
+    SetAuditInfo(@fdFields, APracticeDetails, AuditInfo);
+    if (AuditInfo.AuditAction <> aaNone) then
+      AuditTable.AddAuditRec(AuditInfo);
+  finally
+    Dispose(AuditInfo.AuditRecord);
+  end;
+end;
 
 procedure TSystemObj.DownloadSave;
 const
@@ -477,6 +548,266 @@ begin
       pCF.cfISO_Codes[i] := '';
 end;
 
+procedure TSystemObj.AddAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
+var
+  i: integer;
+  PW: string;
+  ARecord: Pointer;
+  Token, idx: byte;
+begin
+  ARecord := AAuditRecord.atAudit_Record;
+  if ARecord = nil then Exit;
+
+  Idx := 0;
+  Token := AAuditRecord.atChanged_Fields[idx];
+  while Token <> 0 do begin
+    case Token of
+      //Name
+      12: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 11),
+                                       tPractice_Details_Rec(ARecord^).fdPractice_Name_for_Reports, Values);
+      //Phone
+      77: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 76),
+                                       tPractice_Details_Rec(ARecord^).fdPractice_Phone, Values);
+      //Email
+      13: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 12),
+                                   tPractice_Details_Rec(ARecord^).fdPractice_EMail_Address, Values);
+      //Website
+      76: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 75),
+                                   tPractice_Details_Rec(ARecord^).fdPractice_Web_Site, Values);
+      //Logo
+      78: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 77),
+                                   tPractice_Details_Rec(ARecord^).fdPractice_Logo_Filename, Values);
+      //Secure Code
+      31: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 30),
+                                   tPractice_Details_Rec(ARecord^).fdBankLink_Code, Values);
+      //Last Download Processed
+      32: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 31),
+                                   tPractice_Details_Rec(ARecord^).fdDisk_Sequence_No, Values);
+      //Accounting system
+      14: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 13),
+                                   suNames[tPractice_Details_Rec(ARecord^).fdAccounting_System_Used], Values);
+      //GST Names
+      20: GST_Class_Names_Audit_Values(TGST_Class_Names_Array(tPractice_Details_Rec(ARecord^).fdGST_Class_Names), Values);
+      //GST Rates
+      23: GST_Rates_Audit_Values(TGST_Rates_Array(tPractice_Details_Rec(ARecord^).fdGST_Rates), Values);
+
+      //***System Options
+
+      //Bulk_Export_Enabled
+      69: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 68),
+                                   tPractice_Details_Rec(ARecord^).fdBulk_Export_Enabled, Values);
+      //Bulk_Export_Code
+      71: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 70),
+                                   tPractice_Details_Rec(ARecord^).fdBulk_Export_Code, Values);
+      //Updates_Pending
+      150: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 149),
+                                   tPractice_Details_Rec(ARecord^).fdUpdates_Pending, Values);
+      //Update_Server_For_Offsites
+      151: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 150),
+                                   tPractice_Details_Rec(ARecord^).fdUpdate_Server_For_Offsites, Values);
+      //Login_Bitmap_Filename
+      126: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 125),
+                                   tPractice_Details_Rec(ARecord^).fdLogin_Bitmap_Filename, Values);
+      //Force_Login
+      125: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 124),
+                                   tPractice_Details_Rec(ARecord^).fdForce_Login, Values);
+      //Auto_Print_Sched_Rep_Summary
+      127: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 126),
+                                   tPractice_Details_Rec(ARecord^).fdAuto_Print_Sched_Rep_Summary, Values);
+      //Ignore_Quantity_In_Download
+      128: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 127),
+                                   tPractice_Details_Rec(ARecord^).fdIgnore_Quantity_In_Download, Values);
+      //Replace_Narration_With_Payee
+      147: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 146),
+                                   tPractice_Details_Rec(ARecord^).fdReplace_Narration_With_Payee, Values);
+      //Collect_Usage_Data
+      152: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 151),
+                                   tPractice_Details_Rec(ARecord^).fdCollect_Usage_Data, Values);
+      //Auto_Retrieve_New_Transactions
+      163: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 162),
+                                   tPractice_Details_Rec(ARecord^).fdAuto_Retrieve_New_Transactions, Values);
+      //Maximum_Narration_Extract
+      140: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 139),
+                                   tPractice_Details_Rec(ARecord^).fdMaximum_Narration_Extract, Values);
+      //System_Report_Password
+      160: begin
+             for i := 1 to Length(tPractice_Details_Rec(ARecord^).fdSystem_Report_Password) do
+               PW := PW + '*';
+             SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 159),
+                                     PW, Values);
+           end;
+      //Coding_Font
+      164: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 163),
+                                   tPractice_Details_Rec(ARecord^).fdCoding_Font, Values);
+      //Copy_Dissection_Narration
+      131: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 130),
+                                   tPractice_Details_Rec(ARecord^).fdCopy_Dissection_Narration, Values);
+      //Use_Xlon_Chart_Order
+      133: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 132),
+                                   tPractice_Details_Rec(ARecord^).fdUse_Xlon_Chart_Order, Values);
+
+      //Extract_Multiple_Accounts_PA
+      134: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 133),
+                                   tPractice_Details_Rec(ARecord^).fdExtract_Multiple_Accounts_PA, Values);
+      //Extract_Journal_Accounts_PA
+      135: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 134),
+                                   tPractice_Details_Rec(ARecord^).fdExtract_Journal_Accounts_PA, Values);
+      //Extract_Quantity
+      136: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 135),
+                                   tPractice_Details_Rec(ARecord^).fdExtract_Quantity, Values);
+      //Extract_Quantity_Decimal_Places
+      158: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 157),
+                                   tPractice_Details_Rec(ARecord^).fdExtract_Quantity_Decimal_Places, Values);
+
+//   tkfdCountry                          = 15 ;
+//   tkfdLoad_Client_Files_From           = 16 ;
+//   tkfdSave_Client_Files_To             = 17 ;
+//   tkfdShort_Name                       = 18 ;
+//   tkfdLong_Name                        = 19 ;
+//   tkfdGST_Class_Types                  = 21 ;
+//   tkfdGST_Account_Codes                = 22 ;
+//   tkfdGST_Applies_From                 = 24 ;
+//   tkfdDate_of_Last_Entry_Received      = 25 ;
+//   tkfdPrint_Reports_Up_To              = 26 ;
+//   tkfdSpare_Boolean_3                  = 27 ;
+//   tkfdPrint_Staff_Member_Header_Page   = 28 ;
+//   tkfdPrint_Client_Header_Page         = 29 ;
+//   tkfdPIN_Number                       = 30 ;
+//   tkfdMagic_Number                     = 33 ;
+//   tkfdCoding_Report_Style              = 34 ;
+//   tkfdCoding_Report_Sort_Order         = 35 ;
+//   tkfdCoding_Report_Entry_Selection    = 36 ;
+//   tkfdCoding_Report_Blank_Lines        = 37 ;
+//   tkfdCoding_Report_Rule_Line          = 38 ;
+//   tkfdBank_Account_LRN_Counter         = 39 ;
+//   tkfdUser_LRN_Counter                 = 40 ;
+//   tkfdTransaction_LRN_Counter          = 41 ;
+//   tkfdClient_File_LRN_Counter          = 42 ;
+//   tkfdBankLink_Connect_Password        = 43 ;
+//   tkfdOld_GST_Class_Codes              = 44 ;
+//   tkfdAccount_Code_Mask                = 45 ;
+//   tkfdFile_Version                     = 46 ;
+//   tkfdSched_Rep_Email_Subject          = 47 ;
+//   tkfdOld_Sched_Rep_Email_Line1        = 48 ;
+//   tkfdOld_Sched_Rep_Email_Line2        = 49 ;
+//   tkfdOLD_BAS_Special_Accounts         = 50 ;
+//   tkfdGST_Class_Codes                  = 51 ;
+//   tkfdBAS_Field_Number                 = 52 ;
+//   tkfdBAS_Field_Source                 = 53 ;
+//   tkfdBAS_Field_Account_Code           = 54 ;
+//   tkfdBAS_Field_Balance                = 55 ;
+//   tkfdSched_Rep_Include_Email          = 56 ;
+//   tkfdSched_Rep_Email_Only             = 57 ;
+//   tkfdSched_Rep_Include_Printer        = 58 ;
+//   tkfdSched_Rep_Include_Fax            = 59 ;
+//   tkfdSched_Rep_Send_Fax_Off_Peak      = 60 ;
+//   tkfdEnhanced_Software_Options        = 61 ;
+//   tkfdSched_Rep_Include_ECoding        = 62 ;
+//   tkfdSched_Rep_Cover_Page_Name        = 63 ;
+//   tkfdSched_Rep_Cover_Page_Subject     = 64 ;
+//   tkfdSched_Rep_Cover_Page_Message     = 65 ;
+//   tkfdSched_Rep_Email_Message          = 66 ;
+//   tkfdDownload_Report_Options          = 67 ;
+//   tkfdDownload_Report_Hide_Deleted     = 68 ;
+//   tkfdSpare_Byte_0                     = 70 ;
+//   tkfdSched_Rep_Include_CSV_Export     = 72 ;
+//   tkfdTax_Interface_Used               = 73 ;
+//   tkfdSave_Tax_Files_To                = 74 ;
+//   tkfdLast_Disk_Image_Version          = 75 ;
+//   tkfdSched_Rep_Print_Custom_Doc_GUID  = 79 ;
+//   tkfdSched_Rep_Print_Custom_Doc       = 80 ;
+//   tkfdLast_ChargeFile_Date             = 81 ;
+//   tkfdAudit_Record_ID                  = 82 ;
+//   tkfdSched_Rep_Fax_Custom_Doc_GUID    = 83 ;
+//   tkfdSched_Rep_Fax_Custom_Doc         = 84 ;
+//   tkfdSpare_Text_3                     = 85 ;
+//   tkfdSched_Rep_Email_Custom_Doc_GUID  = 86 ;
+//   tkfdSched_Rep_Email_Custom_Doc       = 87 ;
+//   tkfdSpare_Text_5                     = 88 ;
+//   tkfdSched_Rep_Books_Custom_Doc_GUID  = 89 ;
+//   tkfdSched_Rep_Books_Custom_Doc       = 90 ;
+//   tkfdSpare_Integer_3                  = 91 ;
+//   tkfdSpare_Integer_4                  = 92 ;
+//   tkfdSched_Rep_Notes_Custom_Doc_GUID  = 93 ;
+//   tkfdSched_Rep_Notes_Custom_Doc       = 94 ;
+//   tkfdSpare_Text_8                     = 95 ;
+//   tkfdSched_Rep_WebNotes_Custom_Doc_GUID = 96 ;
+//   tkfdSched_Rep_WebNotes_Custom_Doc    = 97 ;
+//   tkfdSpare_Integer_5                  = 98 ;
+//   tkfdSpare_Integer_6                  = 99 ;
+//   tkfdSpare_Text_10                    = 100 ;
+//   tkfdSpare_Byte_7                     = 101 ;
+//   tkfdSpare_Text_11                    = 102 ;
+//   tkfdSpare_Text_12                    = 103 ;
+//   tkfdSpare_Byte_8                     = 104 ;
+//   tkfdSpare_Text_13                    = 105 ;
+//   tkfdSpare_Text_14                    = 106 ;
+//   tkfdSpare_Byte_9                     = 107 ;
+//   tkfdSpare_Integer_7                  = 108 ;
+//   tkfdSpare_Integer_8                  = 109 ;
+//   tkfdSched_Rep_WebNotes_Subject       = 110 ;
+//   tkfdSpare_Byte_10                    = 111 ;
+//   tkfdSched_Rep_webNotes_Message       = 112 ;
+//   tkfdSpare_Byte_11                    = 113 ;
+//   tkfdSched_Rep_Header_Message         = 114 ;
+//   tkfdSched_Rep_BNotes_Subject         = 115 ;
+//   tkfdSched_Rep_BNotes_Message         = 116 ;
+//   tkfdSpare_Boolean_4                  = 117 ;
+//   tkfdTask_Tracking_Prompt_Type        = 118 ;
+//   tkfdSpare_Bool_1                     = 119 ;
+//   tkfdSpare_Bool_2                     = 120 ;
+//   tkfdSpare_Integer_9                  = 121 ;
+//   tkfdSched_Rep_Fax_Transport          = 122 ;
+//   tkfdSched_Rep_Include_WebX           = 123 ;
+//   tkfdWeb_Export_Format                = 124 ;
+//   tkfdSpare_Boolean_1                  = 129 ;
+//   tkfdspare_Boolean_2                  = 130 ;
+//   tkfdRound_Cashflow_Reports           = 132 ;
+//   tkfdReports_New_Page                 = 137 ;
+//   tkfdPrint_Merge_Report_Summary       = 138 ;
+//   tkfdEmail_Merge_Report_Summary       = 139 ;
+//   tkfdSched_Rep_Include_CheckOut       = 141 ;
+//   tkfdSched_Rep_CheckOut_Subject       = 142 ;
+//   tkfdSched_Rep_CheckOut_Message       = 143 ;
+//   tkfdSched_Rep_Include_Business_Products = 144 ;
+//   tkfdSched_Rep_Business_Products_Subject = 145 ;
+//   tkfdSched_Rep_Business_Products_Message = 146 ;
+//   tkfdLast_Export_Charges_Saved_To     = 148 ;
+//   tkfdManual_Account_XML               = 149 ;
+//   tkfdFixed_Charge_Increase            = 153 ;
+//   tkfdPercentage_Charge_Increase       = 154 ;
+//   tkfdFixed_Dollar_Amount              = 155 ;
+//   tkfdDistributed_Dollar_Amount        = 156 ;
+//   tkfdPercentage_Increase_Amount       = 157 ;
+//   tkfdExport_Charges_Remarks           = 159 ;
+//   tkfdPrint_Reports_From               = 161 ;
+//   tkfdHighest_Date_Ever_Downloaded     = 162 ;
+//   tkfdSort_Reports_Option              = 165 ;
+//   tkfdSpare_Byte_12                    = 166 ;
+//   tkfdGroup_LRN_Counter                = 167 ;
+//   tkfdClient_Type_LRN_Counter          = 168 ;
+//   tkfdTAX_Applies_From                 = 169 ;
+//   tkfdTAX_Rates                        = 170 ;
+//   tkfdSuperfund_System                 = 171 ;
+//   tkfdSuperfund_Code_Mask              = 172 ;
+//   tkfdLoad_Client_Super_Files_From     = 173 ;
+//   tkfdSave_Client_Super_Files_To       = 174 ;
+//   tkfdSort_Reports_By                  = 175 ;
+//   tkfdSet_Fixed_Dollar_Amount          = 176 ;
+//   tkfdPrint_Group_Header_Page          = 177 ;
+//   tkfdPrint_Client_Type_Header_Page    = 178 ;
+//   tkfdPractice_Management_System       = 179 ;
+//   tkfdAutomatic_Task_Creation_Flags    = 180 ;
+//   tkfdAutomatic_Task_Reminder_Delay    = 181 ;
+//   tkfdAutomatic_Task_Closing_Flags     = 182 ;
+
+
+    end;
+    inc(Idx);
+    Token := AAuditRecord.atChanged_Fields[idx];
+  end;
+end;
+
 procedure TSystemObj.AddISOCode(pCF : pClient_File_Rec; ISOCode: string);
 var
   i: integer;
@@ -556,8 +887,16 @@ begin
 end;
 
 
+function TSystemObj.NextAuditRecordID: integer;
+begin
+  Inc(FLastAuditRecordID);
+  Result := FLastAuditRecordID;
+end;
+
 initialization
    DebugMe := DebugUnit(UnitName);
+finalization
+   FreeAndNil(_SystemCopy);
 {$ENDIF}
 end.
 

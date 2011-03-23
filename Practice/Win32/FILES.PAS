@@ -6,7 +6,7 @@ interface
 
 uses
   Dialogs, Classes, Windows, Sysutils,
-  LogUtil, clObj32, ChkProgressFrm;
+  LogUtil, clObj32, ChkProgressFrm, AuditMgr;
 
 {$IFNDEF TESTLOCKING}
 procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
@@ -953,6 +953,10 @@ begin
         end;
         Client.Free;
         Client := nil;
+
+        //*** Flag Audit ***
+        SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+
         SaveAdminSystem;
      end;
   end;
@@ -1860,7 +1864,10 @@ begin
             FreeAndNil( aClient);
           end;
         end;
-                                          
+
+        //*** Flag Audit ***
+        SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+
         SaveAdminSystem;
       end;
    end
@@ -2255,6 +2262,9 @@ begin
             end;
           end;
 
+           //*** Flag Audit ***
+          SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+          
           SaveAdminSystem;
         end;
      end
@@ -2465,6 +2475,9 @@ begin
            pCF^.cfCurrent_User        := 0;
            pCF^.cfFile_Status         := fsNormal;
          end;
+
+         //*** Flag Audit ***
+         SystemAuditMgr.FlagAudit(atAttachBankAccounts);
 
          SaveAdminSystem;
       end;

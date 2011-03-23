@@ -55,7 +55,8 @@ uses
   sySBio,
   SysUtils,
   YesNoDlg, SYDEFS, BaseDisk, ECollect, dbList, SysObj32, SBAList32, dtList,
-  WinUtils, Windows, Merge32;
+  WinUtils, Windows, Merge32,
+  AuditMgr;
 
 const
   UnitName = 'DownloadEx';
@@ -813,6 +814,10 @@ begin //ProcessDiskImages
         if HighestDate > AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded then
           AdminSystem.fdFields.fdHighest_Date_Ever_Downloaded := HighestDate;
       end;
+
+      //*** Flag Audit ***
+      SystemAuditMgr.FlagAudit(atDownloadingData);
+      SystemAuditMgr.FlagAudit(atSystemBankAccounts);
 
       //save the updated admin system
       SaveAdminSystem;

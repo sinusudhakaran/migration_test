@@ -1156,7 +1156,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
        H_LogoFileAlignment := TAlignment(fdSched_Rep_Print_Custom_Doc); fdSched_Rep_Print_Custom_Doc := 0;
 
        H_LogoFileWidth := fdLast_ChargeFile_Date;         fdLast_ChargeFile_Date  := 0; //Has been re-used
-       H_LogoFileHeight := fdSpare_Integer_2;             fdSpare_Integer_2 := 0;
+       H_LogoFileHeight := fdAudit_Record_ID;             fdAudit_Record_ID := 0;
        //Header Title
        H_Title := fdSched_Rep_fax_Custom_Doc_GUID;        fdSched_Rep_fax_Custom_Doc_GUID := '';
        H_TitleAlignment := TAlignment(fdSched_Rep_Fax_Custom_Doc);    fdSched_Rep_Fax_Custom_Doc := 0;
@@ -1445,6 +1445,40 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     finally
       ISOList.Free;
     end;
+  end;
+
+  procedure UpgradeAdminToVersion123;
+  var
+    i: integer;
+    MemList: TMaster_Memorisations_List;
+  begin
+    //Add unique record ID's to all system tables
+    //User
+    for i := AdminSystem.fdSystem_User_List.First to AdminSystem.fdSystem_User_List.Last do
+      AdminSystem.fdSystem_User_List.User_At(i).usAudit_Record_ID := AdminSystem.NextAuditRecordID;
+    //Clients
+    for i := AdminSystem.fdSystem_Client_File_List.First to AdminSystem.fdSystem_Client_File_List.Last do
+      AdminSystem.fdSystem_Client_File_List.Client_File_At(i).cfAudit_Record_ID := AdminSystem.NextAuditRecordID;
+    //Disks
+    for i := AdminSystem.fdSystem_Disk_Log.First to AdminSystem.fdSystem_Disk_Log.Last do
+      AdminSystem.fdSystem_Disk_Log.Disk_Log_At(i).dlAudit_Record_ID := AdminSystem.NextAuditRecordID;
+    //System bank accounts
+    for i := AdminSystem.fdSystem_Bank_Account_List.First to AdminSystem.fdSystem_Bank_Account_List.Last do
+      AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(i).sbAudit_Record_ID := AdminSystem.NextAuditRecordID;
+    //Access
+    for i := AdminSystem.fdSystem_File_Access_List.First to AdminSystem.fdSystem_File_Access_List.Last do
+      AdminSystem.fdSystem_File_Access_List.Access_At(i).acAudit_Record_ID := AdminSystem.NextAuditRecordID;
+    //Client file map
+    for i := AdminSystem.fdSystem_Client_Account_Map.First to AdminSystem.fdSystem_Client_Account_Map.Last do
+      AdminSystem.fdSystem_Client_Account_Map.Client_Account_Map_At(i).amAudit_Record_ID := AdminSystem.NextAuditRecordID;
+    //Groups
+    for i := AdminSystem.fdSystem_Group_List.First to AdminSystem.fdSystem_Group_List.Last do
+      AdminSystem.fdSystem_Group_List.Group_At(i).grAudit_Record_ID := AdminSystem.NextAuditRecordID;
+    //Client types
+    for i := AdminSystem.fdSystem_Client_Type_List.First to AdminSystem.fdSystem_Client_Type_List.Last do
+      AdminSystem.fdSystem_Client_Type_List.Client_Type_At(i).ctAudit_Record_ID := AdminSystem.NextAuditRecordID;
+
+    //Master Mems
   end;
 
 
@@ -1783,6 +1817,12 @@ Begin
          if ( fdFile_Version < 122) then begin
             Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 122');
             UpgradeAdminToVersion122;
+            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
+         end;
+          // UK audit trail 2011
+         if ( fdFile_Version < 123) then begin
+            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 123');
+            UpgradeAdminToVersion123;
             if (OriginalVersion < 120) then  //No need to update if already on v120
               RefreshAllProcessingStatistics(True, False, True); //Always move to last upgrade
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );

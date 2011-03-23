@@ -140,7 +140,8 @@ begin
                              REPORT_CLIENTS_BY_STAFF, REPORT_CLIENT_REPORT_OPT,
                              REPORT_DOWNLOAD_LOG, REPORT_CLIENT_STATUS,
                              REPORT_FILE_ACCESS_CONTROL, REPORT_SUMMARY_DOWNLOAD,
-                             List_Groups,List_Client_Types, REPORT_CODING_OPTIMISATION] then
+                             List_Groups,List_Client_Types, REPORT_CODING_OPTIMISATION,
+                             Report_System_Audit, Report_Client_Audit] then
             CommandToProcess := mpcDoAdminReport
           else
             CommandToProcess := mpcDoReport;

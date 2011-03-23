@@ -6,7 +6,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls,
+  StdCtrls, ComCtrls, ExtCtrls, AuditMgr,
   OsFont;
 
 type
@@ -365,9 +365,12 @@ begin
         LogUtil.LogMsg(lmInfo,UnitName,'Bank Account '+ lvAdminBank.items[i].caption+' no longer found in Admin System.  Account will be skipped.');
     end; {if selected}
 
-    if ChangedAdmin then
-      SaveAdminSystem
-    else
+    if ChangedAdmin then begin
+      //*** Flag Audit ***
+      SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+
+      SaveAdminSystem;
+    end else
       UnlockAdmin;  //no changes made
   end  //cycle thru selected items
   else

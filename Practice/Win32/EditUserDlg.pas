@@ -16,7 +16,7 @@ Interface
 
 Uses
    Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-      SYDEFS, StdCtrls, ExtCtrls, ComCtrls, CheckLst,
+      SYDEFS, StdCtrls, ExtCtrls, ComCtrls, CheckLst, AuditMgr,
       OsFont;
 
 Type
@@ -504,6 +504,9 @@ begin { EditUser }
 
           UpdateAdminFileAccessList( pu^.usLRN);
 
+          //*** Flag Audit ***
+          SystemAuditMgr.FlagAudit(atUsers);
+
           SaveAdminSystem;
           Result := true;
 
@@ -591,6 +594,9 @@ begin { AddUser }
                AdminSystem.fdSystem_User_List.Insert( pu );
 
                UpdateAdminFileAccessList( pu^.usLRN);
+
+               //*** Flag Audit ***
+               SystemAuditMgr.FlagAudit(atUsers);
 
                SaveAdminSystem;
                Result := true;

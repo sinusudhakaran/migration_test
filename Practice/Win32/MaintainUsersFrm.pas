@@ -61,7 +61,8 @@ uses
   WarningMoreFrm,
   StStrS,
   ErrorMoreFrm,
-  LvUtils;
+  LvUtils,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -147,7 +148,10 @@ begin
      {delete from list}
      AdminSystem.fdSystem_File_Access_List.Delete_User( pu.usLRN );
      AdminSystem.fdSystem_User_List.DelFreeItem(pu);
-     
+
+     //*** Flag Audit ***
+     SystemAuditMgr.FlagAudit(atUsers);
+
      SaveAdminSystem;
      result := true;
      LogUtil.LogMsg(lmDebug,'EDITUSERDLG','User Deleted  User '+Code);

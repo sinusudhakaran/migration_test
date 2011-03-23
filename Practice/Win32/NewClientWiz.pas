@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, Buttons,
+  StdCtrls, ExtCtrls, Buttons, AuditMgr,
   OsFont;
 
 type
@@ -553,6 +553,9 @@ begin
          end;
        end;
      end;
+
+     //*** Flag Audit ***
+     SystemAuditMgr.FlagAudit(atAttachBankAccounts);
 
      SaveAdminSystem;
 

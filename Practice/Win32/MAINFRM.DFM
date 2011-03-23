@@ -1510,6 +1510,17 @@ object frmMain: TfrmMain
         object N24: TMenuItem
           Caption = '-'
         end
+        object mniSystemAuditReport: TMenuItem
+          Caption = 'System Audit Report'
+          OnClick = mniSystemAuditReportClick
+        end
+        object ClientFileAuditReport1: TMenuItem
+          Caption = 'Client File Audit Report'
+          OnClick = ClientFileAuditReport1Click
+        end
+        object N45: TMenuItem
+          Caption = '-'
+        end
         object mniDownloadLog: TMenuItem
           Caption = '&Download Log'
           OnClick = mniDownloadLogClick

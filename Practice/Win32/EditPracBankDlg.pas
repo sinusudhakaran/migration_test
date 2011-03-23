@@ -45,7 +45,8 @@ uses
   ErrorMorefrm,
   enterPwdDlg,
   bkXPThemes,
-  LogUtil;
+  LogUtil,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -120,6 +121,9 @@ begin
               AdminBankAccount^.sbAccount_Password := ePassword.Text;
               AdminBankAccount^.sbMark_As_Deleted  := chkAccountDeleted.Checked;
               AdminBankAccount^.sbNo_Charge_Account := chkNoChargeAccount.Checked;
+
+              //*** Flag Audit ***
+              SystemAuditMgr.FlagAudit(atSystemBankAccounts);
 
               SaveAdminSystem;
             end

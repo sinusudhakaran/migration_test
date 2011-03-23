@@ -19,7 +19,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, Mask, RzEdit, RzSpnEdt, StdCtrls, ComCtrls, Buttons,
   ExtDlgs, ovcbase, ovcef, ovcpb, ovcnf, ReportDefs, NewReportObj,
-  NewReportUtils, upgClientCommon, OmniXML, Tabs, RzCmboBx,
+  NewReportUtils, upgClientCommon, OmniXML, Tabs, RzCmboBx, AuditMgr,
   OSFont, ovcpf;
 
 
@@ -490,7 +490,9 @@ begin
          fdSystem_Report_Password := ReportPassword;
          fdCoding_Font := FontToStr(CESFont);
 
-        
+         //*** Flag Audit ***
+         SystemAuditMgr.FlagAudit(atSystemOptions);
+
          SaveAdminSystem;
        end;
      UpdateMF.UpdateSystemMenus;
@@ -578,6 +580,9 @@ begin
       whAustralia : Globals.PRACINI_InstListLinkAU := edtInstListLink.Text;
       whUK        : Globals.PRACINI_InstListLinkUK := edtInstListLink.Text;
     end;
+
+    //*** Flag Audit ***
+    SystemAuditMgr.FlagAudit(atSystemOptions);
 
     SaveAdminSystem;
     WritePracticeINI_WithLock;

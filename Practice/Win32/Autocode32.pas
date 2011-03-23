@@ -50,7 +50,8 @@ uses
   SuperFieldsUtils,
   transactionUtils,
   ECollect,
-  SysUtils;
+  SysUtils,
+  Admin32;
 
 const
    DebugMe : Boolean = FALSE;
@@ -138,6 +139,9 @@ Begin
          (aClient.clFields.clDownload_From = dlAdminSystem) then
       begin
          Master_Mem_Lists_Collection. ReloadSystemMXList( BankPrefix);
+
+         //Test
+         RefreshAdmin;
 
          MasterMemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
          if Assigned( MasterMemList) then
