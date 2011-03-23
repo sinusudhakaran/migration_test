@@ -5,7 +5,7 @@ UNIT BKdhIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Division_Heading_Rec ( Var O : TDivision_Heading_Rec ; Var F : T
 PROCEDURE Read_Division_Heading_Rec ( Var O : TDivision_Heading_Rec ; Var F : TIOStream );
 FUNCTION  New_Division_Heading_Rec : pDivision_Heading_Rec ;
 PROCEDURE Free_Division_Heading_Rec_Dynamic_Fields ( Var O : TDivision_Heading_Rec );
+FUNCTION Division_Heading_Rec_Delta(P1, P2, P3: pDivision_Heading_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Division_Heading_Rec(P1, P2: pDivision_Heading_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -131,6 +134,69 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkdhHeading to tkdhDivision_No do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Division_Heading_Rec_Delta(P1, P2, P3: pDivision_Heading_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Division_Heading_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.dhHeading <> P2.dhHeading) then begin
+    P3.dhHeading := P1.dhHeading;
+    ChangedFields[i] := tkdhHeading;
+    Inc(i);
+  end;
+  if (P1.dhDivision_No <> P2.dhDivision_No) then begin
+    P3.dhDivision_No := P1.dhDivision_No;
+    ChangedFields[i] := tkdhDivision_No;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Division_Heading_Rec(P1, P2: pDivision_Heading_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Division_Heading_Rec(P1^, S);
+    S.Position := 0;
+    Read_Division_Heading_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

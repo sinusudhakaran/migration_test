@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 345;
-   SY_IOLIB_Date    = '06/12/10';
-   SY_FILE_VERSION   = 122;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 374;
+   SY_IOLIB_Date    = '17/03/11';
+   SY_FILE_VERSION   = 123;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -120,6 +120,7 @@ Const
                            Add Webnotes Email Notification flags.
                            Add WebNotes available status
        5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
+       5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
    *)
 
 {  -------------------------------------------------------------------  }
@@ -134,6 +135,7 @@ Type
    pClient_Account_Map_Rec               = ^tClient_Account_Map_Rec ;
    pGroup_Rec                            = ^tGroup_Rec ;
    pClient_Type_Rec                      = ^tClient_Type_Rec ;
+   pAudit_Trail_Rec                      = ^tAudit_Trail_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -209,7 +211,7 @@ Type
       fdSched_Rep_Print_Custom_Doc_GUID  : AnsiString;       { Stored }
       fdSched_Rep_Print_Custom_Doc       : Byte;       { Stored }
       fdLast_ChargeFile_Date             : Integer;       { Stored }
-      fdSpare_Integer_2                  : Integer;       { Stored }
+      fdAudit_Record_ID                  : Integer;       { Stored }
       fdSched_Rep_Fax_Custom_Doc_GUID    : AnsiString;       { Stored }
       fdSched_Rep_Fax_Custom_Doc         : Byte;       { Stored }
       fdSpare_Text_3                     : AnsiString;       { Stored }
@@ -322,6 +324,7 @@ Type
       dlNo_of_Accounts                   : Integer;       { Stored }
       dlNo_of_Entries                    : Integer;       { Stored }
       dlWas_In_Last_Download             : Boolean;       { Stored }
+      dlAudit_Record_ID                  : Integer;       { Stored }
       dlEOR                              : Byte;
    end;
 
@@ -351,6 +354,7 @@ Type
       usReset_Count                      : Integer;       { Stored }
       usSuppress_HF                      : Byte;       { Stored }
       usShow_Practice_Logo               : Boolean;       { Stored }
+      usAudit_Record_ID                  : Integer;       { Stored }
       usEOR                              : Byte;
    end;
 
@@ -395,6 +399,7 @@ Type
       sbBankLink_Code                    : String[ 8 ];       { Stored }
       sbFrequency                        : Byte;       { Stored }
       sbFrequency_Change_Pending         : Byte;       { Stored }
+      sbAudit_Record_ID                  : Integer;       { Stored }
       sbEOR                              : Byte;
    end;
 
@@ -455,6 +460,7 @@ Type
       cfWebNotesAvailable                : Array[ 1..36 ] of Byte;       { Stored }
       cfWebNotes_Email_Notifications     : Integer;       { Stored }
       cfISO_Codes                        : Array[ 1..99 ] of String[ 3 ];       { Stored }
+      cfAudit_Record_ID                  : Integer;       { Stored }
       cfEOR                              : Byte;
    end;
 
@@ -464,6 +470,7 @@ Type
       acRecord_Type                      : Byte;
       acUser_LRN                         : Integer;       { Stored }
       acClient_File_LRN                  : Integer;       { Stored }
+      acAudit_Record_ID                  : Integer;       { Stored }
       acEOR                              : Byte;
    end;
 
@@ -476,6 +483,7 @@ Type
       amLast_Date_Printed                : Integer;       { Stored }
       amTemp_Last_Date_Printed           : Integer;       { Stored }
       amEarliest_Download_Date           : Integer;       { Stored }
+      amAudit_Record_ID                  : Integer;       { Stored }
       amEOR                              : Byte;
    end;
 
@@ -485,6 +493,7 @@ Type
       grRecord_Type                      : Byte;
       grLRN                              : Integer;       { Stored }
       grName                             : String[ 60 ];       { Stored }
+      grAudit_Record_ID                  : Integer;       { Stored }
       grEOR                              : Byte;
    end;
 
@@ -494,7 +503,26 @@ Type
       ctRecord_Type                      : Byte;
       ctLRN                              : Integer;       { Stored }
       ctName                             : String[ 60 ];       { Stored }
+      ctAudit_Record_ID                  : Integer;       { Stored }
       ctEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tAudit_Trail_Rec = Packed Record
+      atRecord_Type                      : Byte;
+      atAudit_ID                         : Integer;       { Stored }
+      atTransaction_Type                 : Byte;       { Stored }
+      atAudit_Action                     : Byte;       { Stored }
+      atDate_Time                        : TDateTime;       { Stored }
+      atUser_Code                        : String[ 8 ];       { Stored }
+      atRecord_ID                        : Integer;       { Stored }
+      atParent_ID                        : Integer;       { Stored }
+      atChanged_Fields                   : Array[ 0..254 ] of Byte;       { Stored }
+      atOther_Info                       : AnsiString;       { Stored }
+      atAudit_Record_Type                : Byte;       { Stored }
+      atAudit_Record                     : Pointer;
+      atEOR                              : Byte;
    end;
 
 Const
@@ -507,6 +535,7 @@ Const
    Client_Account_Map_Rec_Size               = Sizeof( TClient_Account_Map_Rec ); 
    Group_Rec_Size                            = Sizeof( TGroup_Rec ); 
    Client_Type_Rec_Size                      = Sizeof( TClient_Type_Rec ); 
+   Audit_Trail_Rec_Size                      = Sizeof( TAudit_Trail_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

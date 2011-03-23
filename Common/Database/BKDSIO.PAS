@@ -5,7 +5,7 @@ UNIT BKdsIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Dissection_Rec ( Var O : TDissection_Rec ; Var F : TIOStream );
 PROCEDURE Read_Dissection_Rec ( Var O : TDissection_Rec ; Var F : TIOStream );
 FUNCTION  New_Dissection_Rec : pDissection_Rec ;
 PROCEDURE Free_Dissection_Rec_Dynamic_Fields ( Var O : TDissection_Rec );
+FUNCTION Dissection_Rec_Delta(P1, P2, P3: pDissection_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Dissection_Rec(P1, P2: pDissection_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -314,6 +317,364 @@ Begin
       dsDocument_Title := '' ;
       dsSF_Transaction_Code := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkdsSequence_No to tkdsOpening_Balance_Currency do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Dissection_Rec_Delta(P1, P2, P3: pDissection_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Dissection_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.dsSequence_No <> P2.dsSequence_No) then begin
+    P3.dsSequence_No := P1.dsSequence_No;
+    ChangedFields[i] := tkdsSequence_No;
+    Inc(i);
+  end;
+  if (P1.dsAccount <> P2.dsAccount) then begin
+    P3.dsAccount := P1.dsAccount;
+    ChangedFields[i] := tkdsAccount;
+    Inc(i);
+  end;
+  if (P1.dsAmount <> P2.dsAmount) then begin
+    P3.dsAmount := P1.dsAmount;
+    ChangedFields[i] := tkdsAmount;
+    Inc(i);
+  end;
+  if (P1.dsGST_Class <> P2.dsGST_Class) then begin
+    P3.dsGST_Class := P1.dsGST_Class;
+    ChangedFields[i] := tkdsGST_Class;
+    Inc(i);
+  end;
+  if (P1.dsGST_Amount <> P2.dsGST_Amount) then begin
+    P3.dsGST_Amount := P1.dsGST_Amount;
+    ChangedFields[i] := tkdsGST_Amount;
+    Inc(i);
+  end;
+  if (P1.dsQuantity <> P2.dsQuantity) then begin
+    P3.dsQuantity := P1.dsQuantity;
+    ChangedFields[i] := tkdsQuantity;
+    Inc(i);
+  end;
+  if (P1.dsOld_Narration <> P2.dsOld_Narration) then begin
+    P3.dsOld_Narration := P1.dsOld_Narration;
+    ChangedFields[i] := tkdsOld_Narration;
+    Inc(i);
+  end;
+  if (P1.dsHas_Been_Edited <> P2.dsHas_Been_Edited) then begin
+    P3.dsHas_Been_Edited := P1.dsHas_Been_Edited;
+    ChangedFields[i] := tkdsHas_Been_Edited;
+    Inc(i);
+  end;
+  if (P1.dsJournal_Type <> P2.dsJournal_Type) then begin
+    P3.dsJournal_Type := P1.dsJournal_Type;
+    ChangedFields[i] := tkdsJournal_Type;
+    Inc(i);
+  end;
+  if (P1.dsGST_Has_Been_Edited <> P2.dsGST_Has_Been_Edited) then begin
+    P3.dsGST_Has_Been_Edited := P1.dsGST_Has_Been_Edited;
+    ChangedFields[i] := tkdsGST_Has_Been_Edited;
+    Inc(i);
+  end;
+  if (P1.dsPayee_Number <> P2.dsPayee_Number) then begin
+    P3.dsPayee_Number := P1.dsPayee_Number;
+    ChangedFields[i] := tkdsPayee_Number;
+    Inc(i);
+  end;
+  if (P1.dsNotes <> P2.dsNotes) then begin
+    P3.dsNotes := P1.dsNotes;
+    ChangedFields[i] := tkdsNotes;
+    Inc(i);
+  end;
+  if (P1.dsECoding_Import_Notes <> P2.dsECoding_Import_Notes) then begin
+    P3.dsECoding_Import_Notes := P1.dsECoding_Import_Notes;
+    ChangedFields[i] := tkdsECoding_Import_Notes;
+    Inc(i);
+  end;
+  if (P1.dsGL_Narration <> P2.dsGL_Narration) then begin
+    P3.dsGL_Narration := P1.dsGL_Narration;
+    ChangedFields[i] := tkdsGL_Narration;
+    Inc(i);
+  end;
+  if (P1.dsLinked_Journal_Date <> P2.dsLinked_Journal_Date) then begin
+    P3.dsLinked_Journal_Date := P1.dsLinked_Journal_Date;
+    ChangedFields[i] := tkdsLinked_Journal_Date;
+    Inc(i);
+  end;
+  if (P1.dsSF_Imputed_Credit <> P2.dsSF_Imputed_Credit) then begin
+    P3.dsSF_Imputed_Credit := P1.dsSF_Imputed_Credit;
+    ChangedFields[i] := tkdsSF_Imputed_Credit;
+    Inc(i);
+  end;
+  if (P1.dsSF_Tax_Free_Dist <> P2.dsSF_Tax_Free_Dist) then begin
+    P3.dsSF_Tax_Free_Dist := P1.dsSF_Tax_Free_Dist;
+    ChangedFields[i] := tkdsSF_Tax_Free_Dist;
+    Inc(i);
+  end;
+  if (P1.dsSF_Tax_Exempt_Dist <> P2.dsSF_Tax_Exempt_Dist) then begin
+    P3.dsSF_Tax_Exempt_Dist := P1.dsSF_Tax_Exempt_Dist;
+    ChangedFields[i] := tkdsSF_Tax_Exempt_Dist;
+    Inc(i);
+  end;
+  if (P1.dsSF_Tax_Deferred_Dist <> P2.dsSF_Tax_Deferred_Dist) then begin
+    P3.dsSF_Tax_Deferred_Dist := P1.dsSF_Tax_Deferred_Dist;
+    ChangedFields[i] := tkdsSF_Tax_Deferred_Dist;
+    Inc(i);
+  end;
+  if (P1.dsSF_TFN_Credits <> P2.dsSF_TFN_Credits) then begin
+    P3.dsSF_TFN_Credits := P1.dsSF_TFN_Credits;
+    ChangedFields[i] := tkdsSF_TFN_Credits;
+    Inc(i);
+  end;
+  if (P1.dsSF_Foreign_Income <> P2.dsSF_Foreign_Income) then begin
+    P3.dsSF_Foreign_Income := P1.dsSF_Foreign_Income;
+    ChangedFields[i] := tkdsSF_Foreign_Income;
+    Inc(i);
+  end;
+  if (P1.dsSF_Foreign_Tax_Credits <> P2.dsSF_Foreign_Tax_Credits) then begin
+    P3.dsSF_Foreign_Tax_Credits := P1.dsSF_Foreign_Tax_Credits;
+    ChangedFields[i] := tkdsSF_Foreign_Tax_Credits;
+    Inc(i);
+  end;
+  if (P1.dsSF_Capital_Gains_Indexed <> P2.dsSF_Capital_Gains_Indexed) then begin
+    P3.dsSF_Capital_Gains_Indexed := P1.dsSF_Capital_Gains_Indexed;
+    ChangedFields[i] := tkdsSF_Capital_Gains_Indexed;
+    Inc(i);
+  end;
+  if (P1.dsSF_Capital_Gains_Disc <> P2.dsSF_Capital_Gains_Disc) then begin
+    P3.dsSF_Capital_Gains_Disc := P1.dsSF_Capital_Gains_Disc;
+    ChangedFields[i] := tkdsSF_Capital_Gains_Disc;
+    Inc(i);
+  end;
+  if (P1.dsSF_Super_Fields_Edited <> P2.dsSF_Super_Fields_Edited) then begin
+    P3.dsSF_Super_Fields_Edited := P1.dsSF_Super_Fields_Edited;
+    ChangedFields[i] := tkdsSF_Super_Fields_Edited;
+    Inc(i);
+  end;
+  if (P1.dsSF_Capital_Gains_Other <> P2.dsSF_Capital_Gains_Other) then begin
+    P3.dsSF_Capital_Gains_Other := P1.dsSF_Capital_Gains_Other;
+    ChangedFields[i] := tkdsSF_Capital_Gains_Other;
+    Inc(i);
+  end;
+  if (P1.dsSF_Other_Expenses <> P2.dsSF_Other_Expenses) then begin
+    P3.dsSF_Other_Expenses := P1.dsSF_Other_Expenses;
+    ChangedFields[i] := tkdsSF_Other_Expenses;
+    Inc(i);
+  end;
+  if (P1.dsSF_CGT_Date <> P2.dsSF_CGT_Date) then begin
+    P3.dsSF_CGT_Date := P1.dsSF_CGT_Date;
+    ChangedFields[i] := tkdsSF_CGT_Date;
+    Inc(i);
+  end;
+  if (P1.dsExternal_GUID <> P2.dsExternal_GUID) then begin
+    P3.dsExternal_GUID := P1.dsExternal_GUID;
+    ChangedFields[i] := tkdsExternal_GUID;
+    Inc(i);
+  end;
+  if (P1.dsDocument_Title <> P2.dsDocument_Title) then begin
+    P3.dsDocument_Title := P1.dsDocument_Title;
+    ChangedFields[i] := tkdsDocument_Title;
+    Inc(i);
+  end;
+  if (P1.dsDocument_Status_Update_Required <> P2.dsDocument_Status_Update_Required) then begin
+    P3.dsDocument_Status_Update_Required := P1.dsDocument_Status_Update_Required;
+    ChangedFields[i] := tkdsDocument_Status_Update_Required;
+    Inc(i);
+  end;
+  if (P1.dsNotes_Read <> P2.dsNotes_Read) then begin
+    P3.dsNotes_Read := P1.dsNotes_Read;
+    ChangedFields[i] := tkdsNotes_Read;
+    Inc(i);
+  end;
+  if (P1.dsImport_Notes_Read <> P2.dsImport_Notes_Read) then begin
+    P3.dsImport_Notes_Read := P1.dsImport_Notes_Read;
+    ChangedFields[i] := tkdsImport_Notes_Read;
+    Inc(i);
+  end;
+  if (P1.dsReference <> P2.dsReference) then begin
+    P3.dsReference := P1.dsReference;
+    ChangedFields[i] := tkdsReference;
+    Inc(i);
+  end;
+  if (P1.dsSF_Franked <> P2.dsSF_Franked) then begin
+    P3.dsSF_Franked := P1.dsSF_Franked;
+    ChangedFields[i] := tkdsSF_Franked;
+    Inc(i);
+  end;
+  if (P1.dsSF_Unfranked <> P2.dsSF_Unfranked) then begin
+    P3.dsSF_Unfranked := P1.dsSF_Unfranked;
+    ChangedFields[i] := tkdsSF_Unfranked;
+    Inc(i);
+  end;
+  if (P1.dsSF_Interest <> P2.dsSF_Interest) then begin
+    P3.dsSF_Interest := P1.dsSF_Interest;
+    ChangedFields[i] := tkdsSF_Interest;
+    Inc(i);
+  end;
+  if (P1.dsSF_Capital_Gains_Foreign_Disc <> P2.dsSF_Capital_Gains_Foreign_Disc) then begin
+    P3.dsSF_Capital_Gains_Foreign_Disc := P1.dsSF_Capital_Gains_Foreign_Disc;
+    ChangedFields[i] := tkdsSF_Capital_Gains_Foreign_Disc;
+    Inc(i);
+  end;
+  if (P1.dsSF_Rent <> P2.dsSF_Rent) then begin
+    P3.dsSF_Rent := P1.dsSF_Rent;
+    ChangedFields[i] := tkdsSF_Rent;
+    Inc(i);
+  end;
+  if (P1.dsSF_Special_Income <> P2.dsSF_Special_Income) then begin
+    P3.dsSF_Special_Income := P1.dsSF_Special_Income;
+    ChangedFields[i] := tkdsSF_Special_Income;
+    Inc(i);
+  end;
+  if (P1.dsSF_Other_Tax_Credit <> P2.dsSF_Other_Tax_Credit) then begin
+    P3.dsSF_Other_Tax_Credit := P1.dsSF_Other_Tax_Credit;
+    ChangedFields[i] := tkdsSF_Other_Tax_Credit;
+    Inc(i);
+  end;
+  if (P1.dsSF_Non_Resident_Tax <> P2.dsSF_Non_Resident_Tax) then begin
+    P3.dsSF_Non_Resident_Tax := P1.dsSF_Non_Resident_Tax;
+    ChangedFields[i] := tkdsSF_Non_Resident_Tax;
+    Inc(i);
+  end;
+  if (P1.dsSF_Member_ID <> P2.dsSF_Member_ID) then begin
+    P3.dsSF_Member_ID := P1.dsSF_Member_ID;
+    ChangedFields[i] := tkdsSF_Member_ID;
+    Inc(i);
+  end;
+  if (P1.dsSF_Foreign_Capital_Gains_Credit <> P2.dsSF_Foreign_Capital_Gains_Credit) then begin
+    P3.dsSF_Foreign_Capital_Gains_Credit := P1.dsSF_Foreign_Capital_Gains_Credit;
+    ChangedFields[i] := tkdsSF_Foreign_Capital_Gains_Credit;
+    Inc(i);
+  end;
+  if (P1.dsSF_Member_Component <> P2.dsSF_Member_Component) then begin
+    P3.dsSF_Member_Component := P1.dsSF_Member_Component;
+    ChangedFields[i] := tkdsSF_Member_Component;
+    Inc(i);
+  end;
+  if (P1.dsPercent_Amount <> P2.dsPercent_Amount) then begin
+    P3.dsPercent_Amount := P1.dsPercent_Amount;
+    ChangedFields[i] := tkdsPercent_Amount;
+    Inc(i);
+  end;
+  if (P1.dsAmount_Type_Is_Percent <> P2.dsAmount_Type_Is_Percent) then begin
+    P3.dsAmount_Type_Is_Percent := P1.dsAmount_Type_Is_Percent;
+    ChangedFields[i] := tkdsAmount_Type_Is_Percent;
+    Inc(i);
+  end;
+  if (P1.dsSF_Fund_ID <> P2.dsSF_Fund_ID) then begin
+    P3.dsSF_Fund_ID := P1.dsSF_Fund_ID;
+    ChangedFields[i] := tkdsSF_Fund_ID;
+    Inc(i);
+  end;
+  if (P1.dsSF_Member_Account_ID <> P2.dsSF_Member_Account_ID) then begin
+    P3.dsSF_Member_Account_ID := P1.dsSF_Member_Account_ID;
+    ChangedFields[i] := tkdsSF_Member_Account_ID;
+    Inc(i);
+  end;
+  if (P1.dsSF_Fund_Code <> P2.dsSF_Fund_Code) then begin
+    P3.dsSF_Fund_Code := P1.dsSF_Fund_Code;
+    ChangedFields[i] := tkdsSF_Fund_Code;
+    Inc(i);
+  end;
+  if (P1.dsSF_Member_Account_Code <> P2.dsSF_Member_Account_Code) then begin
+    P3.dsSF_Member_Account_Code := P1.dsSF_Member_Account_Code;
+    ChangedFields[i] := tkdsSF_Member_Account_Code;
+    Inc(i);
+  end;
+  if (P1.dsSF_Transaction_ID <> P2.dsSF_Transaction_ID) then begin
+    P3.dsSF_Transaction_ID := P1.dsSF_Transaction_ID;
+    ChangedFields[i] := tkdsSF_Transaction_ID;
+    Inc(i);
+  end;
+  if (P1.dsSF_Transaction_Code <> P2.dsSF_Transaction_Code) then begin
+    P3.dsSF_Transaction_Code := P1.dsSF_Transaction_Code;
+    ChangedFields[i] := tkdsSF_Transaction_Code;
+    Inc(i);
+  end;
+  if (P1.dsSF_Capital_Gains_Fraction_Half <> P2.dsSF_Capital_Gains_Fraction_Half) then begin
+    P3.dsSF_Capital_Gains_Fraction_Half := P1.dsSF_Capital_Gains_Fraction_Half;
+    ChangedFields[i] := tkdsSF_Capital_Gains_Fraction_Half;
+    Inc(i);
+  end;
+  if (P1.dsSpareL <> P2.dsSpareL) then begin
+    P3.dsSpareL := P1.dsSpareL;
+    ChangedFields[i] := tkdsSpareL;
+    Inc(i);
+  end;
+  if (P1.dsJob_Code <> P2.dsJob_Code) then begin
+    P3.dsJob_Code := P1.dsJob_Code;
+    ChangedFields[i] := tkdsJob_Code;
+    Inc(i);
+  end;
+  if (P1.dsTax_Invoice <> P2.dsTax_Invoice) then begin
+    P3.dsTax_Invoice := P1.dsTax_Invoice;
+    ChangedFields[i] := tkdsTax_Invoice;
+    Inc(i);
+  end;
+  if (P1.dsForex_Conversion_Rate <> P2.dsForex_Conversion_Rate) then begin
+    P3.dsForex_Conversion_Rate := P1.dsForex_Conversion_Rate;
+    ChangedFields[i] := tkdsForex_Conversion_Rate;
+    Inc(i);
+  end;
+  if (P1.dsForeign_Currency_Amount <> P2.dsForeign_Currency_Amount) then begin
+    P3.dsForeign_Currency_Amount := P1.dsForeign_Currency_Amount;
+    ChangedFields[i] := tkdsForeign_Currency_Amount;
+    Inc(i);
+  end;
+  if (P1.dsForex_Document_Date <> P2.dsForex_Document_Date) then begin
+    P3.dsForex_Document_Date := P1.dsForex_Document_Date;
+    ChangedFields[i] := tkdsForex_Document_Date;
+    Inc(i);
+  end;
+  if (P1.dsOpening_Balance_Currency <> P2.dsOpening_Balance_Currency) then begin
+    P3.dsOpening_Balance_Currency := P1.dsOpening_Balance_Currency;
+    ChangedFields[i] := tkdsOpening_Balance_Currency;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Dissection_Rec(P1, P2: pDissection_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Dissection_Rec(P1^, S);
+    S.Position := 0;
+    Read_Dissection_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

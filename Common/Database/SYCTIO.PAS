@@ -5,7 +5,7 @@ UNIT SYctIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES SYDEFS, IOSTREAM;
+INTERFACE USES SYDEFS, IOSTREAM, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Client_Type_Rec ( Var O : TClient_Type_Rec ; Var F : TIOStream )
 PROCEDURE Read_Client_Type_Rec ( Var O : TClient_Type_Rec ; Var F : TIOStream );
 FUNCTION  New_Client_Type_Rec : pClient_Type_Rec ;
 PROCEDURE Free_Client_Type_Rec_Dynamic_Fields ( Var O : TClient_Type_Rec );
+FUNCTION Client_Type_Rec_Delta(P1, P2, P3: pClient_Type_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Client_Type_Rec(P1, P2: pClient_Type_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -45,6 +48,7 @@ end;
 CONST
    tkctLRN                              = 122 ;
    tkctName                             = 123 ;
+   tkctAudit_Record_ID                  = 124 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -72,6 +76,7 @@ Begin
       F.WriteToken( tkBegin_Client_Type );
       F.WriteIntegerValue( tkctLRN , ctLRN );
       F.WriteStringValue( tkctName , ctName );
+      F.WriteIntegerValue( tkctAudit_Record_ID , ctAudit_Record_ID );
       F.WriteToken( tkEnd_Client_Type );
    end;
 end; { of Write_Client_Type_Rec }
@@ -96,6 +101,7 @@ Begin
          tkEnd_Client_Type :; { Do Nothing }
          tkctLRN                              : ctLRN := F.ReadIntegerValue;
          tkctName                             : ctName := F.ReadStringValue;
+         tkctAudit_Record_ID                  : ctAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -131,6 +137,74 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkctLRN to tkctAudit_Record_ID do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Client_Type_Rec_Delta(P1, P2, P3: pClient_Type_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Client_Type_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.ctLRN <> P2.ctLRN) then begin
+    P3.ctLRN := P1.ctLRN;
+    ChangedFields[i] := tkctLRN;
+    Inc(i);
+  end;
+  if (P1.ctName <> P2.ctName) then begin
+    P3.ctName := P1.ctName;
+    ChangedFields[i] := tkctName;
+    Inc(i);
+  end;
+  if (P1.ctAudit_Record_ID <> P2.ctAudit_Record_ID) then begin
+    P3.ctAudit_Record_ID := P1.ctAudit_Record_ID;
+    ChangedFields[i] := tkctAudit_Record_ID;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Client_Type_Rec(P1, P2: pClient_Type_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Client_Type_Rec(P1^, S);
+    S.Position := 0;
+    Read_Client_Type_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

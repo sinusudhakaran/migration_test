@@ -5,7 +5,7 @@ UNIT BKmlIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Memorisation_Line_Rec ( Var O : TMemorisation_Line_Rec ; Var F :
 PROCEDURE Read_Memorisation_Line_Rec ( Var O : TMemorisation_Line_Rec ; Var F : TIOStream );
 FUNCTION  New_Memorisation_Line_Rec : pMemorisation_Line_Rec ;
 PROCEDURE Free_Memorisation_Line_Rec_Dynamic_Fields ( Var O : TMemorisation_Line_Rec );
+FUNCTION Memorisation_Line_Rec_Delta(P1, P2, P3: pMemorisation_Line_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Memorisation_Line_Rec(P1, P2: pMemorisation_Line_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -250,6 +253,264 @@ Begin
       mlGL_Narration := '' ;
       mlSF_Trans_Code := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkmlAccount to tkmlSpare_Boolean do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Memorisation_Line_Rec_Delta(P1, P2, P3: pMemorisation_Line_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Memorisation_Line_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.mlAccount <> P2.mlAccount) then begin
+    P3.mlAccount := P1.mlAccount;
+    ChangedFields[i] := tkmlAccount;
+    Inc(i);
+  end;
+  if (P1.mlPercentage <> P2.mlPercentage) then begin
+    P3.mlPercentage := P1.mlPercentage;
+    ChangedFields[i] := tkmlPercentage;
+    Inc(i);
+  end;
+  if (P1.mlGST_Class <> P2.mlGST_Class) then begin
+    P3.mlGST_Class := P1.mlGST_Class;
+    ChangedFields[i] := tkmlGST_Class;
+    Inc(i);
+  end;
+  if (P1.mlGST_Has_Been_Edited <> P2.mlGST_Has_Been_Edited) then begin
+    P3.mlGST_Has_Been_Edited := P1.mlGST_Has_Been_Edited;
+    ChangedFields[i] := tkmlGST_Has_Been_Edited;
+    Inc(i);
+  end;
+  if (P1.mlGL_Narration <> P2.mlGL_Narration) then begin
+    P3.mlGL_Narration := P1.mlGL_Narration;
+    ChangedFields[i] := tkmlGL_Narration;
+    Inc(i);
+  end;
+  if (P1.mlLine_Type <> P2.mlLine_Type) then begin
+    P3.mlLine_Type := P1.mlLine_Type;
+    ChangedFields[i] := tkmlLine_Type;
+    Inc(i);
+  end;
+  if (P1.mlGST_Amount <> P2.mlGST_Amount) then begin
+    P3.mlGST_Amount := P1.mlGST_Amount;
+    ChangedFields[i] := tkmlGST_Amount;
+    Inc(i);
+  end;
+  if (P1.mlPayee <> P2.mlPayee) then begin
+    P3.mlPayee := P1.mlPayee;
+    ChangedFields[i] := tkmlPayee;
+    Inc(i);
+  end;
+  if (P1.mlSF_PCFranked <> P2.mlSF_PCFranked) then begin
+    P3.mlSF_PCFranked := P1.mlSF_PCFranked;
+    ChangedFields[i] := tkmlSF_PCFranked;
+    Inc(i);
+  end;
+  if (P1.mlSF_Member_ID <> P2.mlSF_Member_ID) then begin
+    P3.mlSF_Member_ID := P1.mlSF_Member_ID;
+    ChangedFields[i] := tkmlSF_Member_ID;
+    Inc(i);
+  end;
+  if (P1.mlSF_Fund_ID <> P2.mlSF_Fund_ID) then begin
+    P3.mlSF_Fund_ID := P1.mlSF_Fund_ID;
+    ChangedFields[i] := tkmlSF_Fund_ID;
+    Inc(i);
+  end;
+  if (P1.mlSF_Fund_Code <> P2.mlSF_Fund_Code) then begin
+    P3.mlSF_Fund_Code := P1.mlSF_Fund_Code;
+    ChangedFields[i] := tkmlSF_Fund_Code;
+    Inc(i);
+  end;
+  if (P1.mlSF_Trans_ID <> P2.mlSF_Trans_ID) then begin
+    P3.mlSF_Trans_ID := P1.mlSF_Trans_ID;
+    ChangedFields[i] := tkmlSF_Trans_ID;
+    Inc(i);
+  end;
+  if (P1.mlSF_Trans_Code <> P2.mlSF_Trans_Code) then begin
+    P3.mlSF_Trans_Code := P1.mlSF_Trans_Code;
+    ChangedFields[i] := tkmlSF_Trans_Code;
+    Inc(i);
+  end;
+  if (P1.mlSF_Member_Account_ID <> P2.mlSF_Member_Account_ID) then begin
+    P3.mlSF_Member_Account_ID := P1.mlSF_Member_Account_ID;
+    ChangedFields[i] := tkmlSF_Member_Account_ID;
+    Inc(i);
+  end;
+  if (P1.mlSF_Member_Account_Code <> P2.mlSF_Member_Account_Code) then begin
+    P3.mlSF_Member_Account_Code := P1.mlSF_Member_Account_Code;
+    ChangedFields[i] := tkmlSF_Member_Account_Code;
+    Inc(i);
+  end;
+  if (P1.mlSF_Edited <> P2.mlSF_Edited) then begin
+    P3.mlSF_Edited := P1.mlSF_Edited;
+    ChangedFields[i] := tkmlSF_Edited;
+    Inc(i);
+  end;
+  if (P1.mlSF_Member_Component <> P2.mlSF_Member_Component) then begin
+    P3.mlSF_Member_Component := P1.mlSF_Member_Component;
+    ChangedFields[i] := tkmlSF_Member_Component;
+    Inc(i);
+  end;
+  if (P1.mlSF_PCUnFranked <> P2.mlSF_PCUnFranked) then begin
+    P3.mlSF_PCUnFranked := P1.mlSF_PCUnFranked;
+    ChangedFields[i] := tkmlSF_PCUnFranked;
+    Inc(i);
+  end;
+  if (P1.mlJob_Code <> P2.mlJob_Code) then begin
+    P3.mlJob_Code := P1.mlJob_Code;
+    ChangedFields[i] := tkmlJob_Code;
+    Inc(i);
+  end;
+  if (P1.mlQuantity <> P2.mlQuantity) then begin
+    P3.mlQuantity := P1.mlQuantity;
+    ChangedFields[i] := tkmlQuantity;
+    Inc(i);
+  end;
+  if (P1.mlSF_GDT_Date <> P2.mlSF_GDT_Date) then begin
+    P3.mlSF_GDT_Date := P1.mlSF_GDT_Date;
+    ChangedFields[i] := tkmlSF_GDT_Date;
+    Inc(i);
+  end;
+  if (P1.mlSF_Tax_Free_Dist <> P2.mlSF_Tax_Free_Dist) then begin
+    P3.mlSF_Tax_Free_Dist := P1.mlSF_Tax_Free_Dist;
+    ChangedFields[i] := tkmlSF_Tax_Free_Dist;
+    Inc(i);
+  end;
+  if (P1.mlSF_Tax_Exempt_Dist <> P2.mlSF_Tax_Exempt_Dist) then begin
+    P3.mlSF_Tax_Exempt_Dist := P1.mlSF_Tax_Exempt_Dist;
+    ChangedFields[i] := tkmlSF_Tax_Exempt_Dist;
+    Inc(i);
+  end;
+  if (P1.mlSF_Tax_Deferred_Dist <> P2.mlSF_Tax_Deferred_Dist) then begin
+    P3.mlSF_Tax_Deferred_Dist := P1.mlSF_Tax_Deferred_Dist;
+    ChangedFields[i] := tkmlSF_Tax_Deferred_Dist;
+    Inc(i);
+  end;
+  if (P1.mlSF_TFN_Credits <> P2.mlSF_TFN_Credits) then begin
+    P3.mlSF_TFN_Credits := P1.mlSF_TFN_Credits;
+    ChangedFields[i] := tkmlSF_TFN_Credits;
+    Inc(i);
+  end;
+  if (P1.mlSF_Foreign_Income <> P2.mlSF_Foreign_Income) then begin
+    P3.mlSF_Foreign_Income := P1.mlSF_Foreign_Income;
+    ChangedFields[i] := tkmlSF_Foreign_Income;
+    Inc(i);
+  end;
+  if (P1.mlSF_Foreign_Tax_Credits <> P2.mlSF_Foreign_Tax_Credits) then begin
+    P3.mlSF_Foreign_Tax_Credits := P1.mlSF_Foreign_Tax_Credits;
+    ChangedFields[i] := tkmlSF_Foreign_Tax_Credits;
+    Inc(i);
+  end;
+  if (P1.mlSF_Capital_Gains_Indexed <> P2.mlSF_Capital_Gains_Indexed) then begin
+    P3.mlSF_Capital_Gains_Indexed := P1.mlSF_Capital_Gains_Indexed;
+    ChangedFields[i] := tkmlSF_Capital_Gains_Indexed;
+    Inc(i);
+  end;
+  if (P1.mlSF_Capital_Gains_Disc <> P2.mlSF_Capital_Gains_Disc) then begin
+    P3.mlSF_Capital_Gains_Disc := P1.mlSF_Capital_Gains_Disc;
+    ChangedFields[i] := tkmlSF_Capital_Gains_Disc;
+    Inc(i);
+  end;
+  if (P1.mlSF_Capital_Gains_Other <> P2.mlSF_Capital_Gains_Other) then begin
+    P3.mlSF_Capital_Gains_Other := P1.mlSF_Capital_Gains_Other;
+    ChangedFields[i] := tkmlSF_Capital_Gains_Other;
+    Inc(i);
+  end;
+  if (P1.mlSF_Other_Expenses <> P2.mlSF_Other_Expenses) then begin
+    P3.mlSF_Other_Expenses := P1.mlSF_Other_Expenses;
+    ChangedFields[i] := tkmlSF_Other_Expenses;
+    Inc(i);
+  end;
+  if (P1.mlSF_Interest <> P2.mlSF_Interest) then begin
+    P3.mlSF_Interest := P1.mlSF_Interest;
+    ChangedFields[i] := tkmlSF_Interest;
+    Inc(i);
+  end;
+  if (P1.mlSF_Capital_Gains_Foreign_Disc <> P2.mlSF_Capital_Gains_Foreign_Disc) then begin
+    P3.mlSF_Capital_Gains_Foreign_Disc := P1.mlSF_Capital_Gains_Foreign_Disc;
+    ChangedFields[i] := tkmlSF_Capital_Gains_Foreign_Disc;
+    Inc(i);
+  end;
+  if (P1.mlSF_Rent <> P2.mlSF_Rent) then begin
+    P3.mlSF_Rent := P1.mlSF_Rent;
+    ChangedFields[i] := tkmlSF_Rent;
+    Inc(i);
+  end;
+  if (P1.mlSF_Special_Income <> P2.mlSF_Special_Income) then begin
+    P3.mlSF_Special_Income := P1.mlSF_Special_Income;
+    ChangedFields[i] := tkmlSF_Special_Income;
+    Inc(i);
+  end;
+  if (P1.mlSF_Other_Tax_Credit <> P2.mlSF_Other_Tax_Credit) then begin
+    P3.mlSF_Other_Tax_Credit := P1.mlSF_Other_Tax_Credit;
+    ChangedFields[i] := tkmlSF_Other_Tax_Credit;
+    Inc(i);
+  end;
+  if (P1.mlSF_Non_Resident_Tax <> P2.mlSF_Non_Resident_Tax) then begin
+    P3.mlSF_Non_Resident_Tax := P1.mlSF_Non_Resident_Tax;
+    ChangedFields[i] := tkmlSF_Non_Resident_Tax;
+    Inc(i);
+  end;
+  if (P1.mlSF_Foreign_Capital_Gains_Credit <> P2.mlSF_Foreign_Capital_Gains_Credit) then begin
+    P3.mlSF_Foreign_Capital_Gains_Credit := P1.mlSF_Foreign_Capital_Gains_Credit;
+    ChangedFields[i] := tkmlSF_Foreign_Capital_Gains_Credit;
+    Inc(i);
+  end;
+  if (P1.mlSF_Capital_Gains_Fraction_Half <> P2.mlSF_Capital_Gains_Fraction_Half) then begin
+    P3.mlSF_Capital_Gains_Fraction_Half := P1.mlSF_Capital_Gains_Fraction_Half;
+    ChangedFields[i] := tkmlSF_Capital_Gains_Fraction_Half;
+    Inc(i);
+  end;
+  if (P1.mlSpare_Boolean <> P2.mlSpare_Boolean) then begin
+    P3.mlSpare_Boolean := P1.mlSpare_Boolean;
+    ChangedFields[i] := tkmlSpare_Boolean;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Memorisation_Line_Rec(P1, P2: pMemorisation_Line_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Memorisation_Line_Rec(P1^, S);
+    S.Position := 0;
+    Read_Memorisation_Line_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

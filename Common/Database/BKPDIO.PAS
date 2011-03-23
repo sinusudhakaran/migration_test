@@ -5,7 +5,7 @@ UNIT BKpdIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Payee_Detail_Rec ( Var O : TPayee_Detail_Rec ; Var F : TIOStream
 PROCEDURE Read_Payee_Detail_Rec ( Var O : TPayee_Detail_Rec ; Var F : TIOStream );
 FUNCTION  New_Payee_Detail_Rec : pPayee_Detail_Rec ;
 PROCEDURE Free_Payee_Detail_Rec_Dynamic_Fields ( Var O : TPayee_Detail_Rec );
+FUNCTION Payee_Detail_Rec_Delta(P1, P2, P3: pPayee_Detail_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Payee_Detail_Rec(P1, P2: pPayee_Detail_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -131,6 +134,69 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkpdNumber to tkpdName do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Payee_Detail_Rec_Delta(P1, P2, P3: pPayee_Detail_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Payee_Detail_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.pdNumber <> P2.pdNumber) then begin
+    P3.pdNumber := P1.pdNumber;
+    ChangedFields[i] := tkpdNumber;
+    Inc(i);
+  end;
+  if (P1.pdName <> P2.pdName) then begin
+    P3.pdName := P1.pdName;
+    ChangedFields[i] := tkpdName;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Payee_Detail_Rec(P1, P2: pPayee_Detail_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Payee_Detail_Rec(P1^, S);
+    S.Position := 0;
+    Read_Payee_Detail_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

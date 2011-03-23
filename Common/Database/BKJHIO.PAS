@@ -5,7 +5,7 @@ UNIT BKjhIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Job_Heading_Rec ( Var O : TJob_Heading_Rec ; Var F : TIOStream )
 PROCEDURE Read_Job_Heading_Rec ( Var O : TJob_Heading_Rec ; Var F : TIOStream );
 FUNCTION  New_Job_Heading_Rec : pJob_Heading_Rec ;
 PROCEDURE Free_Job_Heading_Rec_Dynamic_Fields ( Var O : TJob_Heading_Rec );
+FUNCTION Job_Heading_Rec_Delta(P1, P2, P3: pJob_Heading_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Job_Heading_Rec(P1, P2: pJob_Heading_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -137,6 +140,79 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkjhHeading to tkjhCode do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Job_Heading_Rec_Delta(P1, P2, P3: pJob_Heading_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Job_Heading_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.jhHeading <> P2.jhHeading) then begin
+    P3.jhHeading := P1.jhHeading;
+    ChangedFields[i] := tkjhHeading;
+    Inc(i);
+  end;
+  if (P1.jhLRN <> P2.jhLRN) then begin
+    P3.jhLRN := P1.jhLRN;
+    ChangedFields[i] := tkjhLRN;
+    Inc(i);
+  end;
+  if (P1.jhDate_Completed <> P2.jhDate_Completed) then begin
+    P3.jhDate_Completed := P1.jhDate_Completed;
+    ChangedFields[i] := tkjhDate_Completed;
+    Inc(i);
+  end;
+  if (P1.jhCode <> P2.jhCode) then begin
+    P3.jhCode := P1.jhCode;
+    ChangedFields[i] := tkjhCode;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Job_Heading_Rec(P1, P2: pJob_Heading_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Job_Heading_Rec(P1^, S);
+    S.Position := 0;
+    Read_Job_Heading_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

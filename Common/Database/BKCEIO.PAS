@@ -5,7 +5,7 @@ UNIT BKceIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_ClientExtra_Rec ( Var O : TClientExtra_Rec ; Var F : TIOStream )
 PROCEDURE Read_ClientExtra_Rec ( Var O : TClientExtra_Rec ; Var F : TIOStream );
 FUNCTION  New_ClientExtra_Rec : pClientExtra_Rec ;
 PROCEDURE Free_ClientExtra_Rec_Dynamic_Fields ( Var O : TClientExtra_Rec );
+FUNCTION ClientExtra_Rec_Delta(P1, P2, P3: pClientExtra_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_ClientExtra_Rec(P1, P2: pClientExtra_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -279,6 +282,244 @@ Begin
       ceScheduled_Custom_CR_XML := '' ;
       ceCustom_Ledger_Report_XML := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkceTAX_Applies_From to tkceSend_Job_List do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION ClientExtra_Rec_Delta(P1, P2, P3: pClientExtra_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_ClientExtra_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if TAX_Applies_From_Changed(TTAX_Applies_From_Array(P1.ceTAX_Applies_From), 
+                  TTAX_Applies_From_Array(P2.ceTAX_Applies_From), 
+                  TTAX_Applies_From_Array(P3.ceTAX_Applies_From)) then begin
+    ChangedFields[i] := tkceTAX_Applies_From;
+    Inc(i);
+  end;
+  if TAX_Rates_Changed(TTAX_Rates_Array(P1.ceTAX_Rates), 
+                  TTAX_Rates_Array(P2.ceTAX_Rates), 
+                  TTAX_Rates_Array(P3.ceTAX_Rates)) then begin
+    ChangedFields[i] := tkceTAX_Rates;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_Sort_Order <> P2.ceList_Entries_Sort_Order) then begin
+    P3.ceList_Entries_Sort_Order := P1.ceList_Entries_Sort_Order;
+    ChangedFields[i] := tkceList_Entries_Sort_Order;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_Include <> P2.ceList_Entries_Include) then begin
+    P3.ceList_Entries_Include := P1.ceList_Entries_Include;
+    ChangedFields[i] := tkceList_Entries_Include;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_Two_Column <> P2.ceList_Entries_Two_Column) then begin
+    P3.ceList_Entries_Two_Column := P1.ceList_Entries_Two_Column;
+    ChangedFields[i] := tkceList_Entries_Two_Column;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_Show_Balance <> P2.ceList_Entries_Show_Balance) then begin
+    P3.ceList_Entries_Show_Balance := P1.ceList_Entries_Show_Balance;
+    ChangedFields[i] := tkceList_Entries_Show_Balance;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_Show_Notes <> P2.ceList_Entries_Show_Notes) then begin
+    P3.ceList_Entries_Show_Notes := P1.ceList_Entries_Show_Notes;
+    ChangedFields[i] := tkceList_Entries_Show_Notes;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_Wrap_Narration <> P2.ceList_Entries_Wrap_Narration) then begin
+    P3.ceList_Entries_Wrap_Narration := P1.ceList_Entries_Wrap_Narration;
+    ChangedFields[i] := tkceList_Entries_Wrap_Narration;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_Show_Other_Party <> P2.ceList_Entries_Show_Other_Party) then begin
+    P3.ceList_Entries_Show_Other_Party := P1.ceList_Entries_Show_Other_Party;
+    ChangedFields[i] := tkceList_Entries_Show_Other_Party;
+    Inc(i);
+  end;
+  if (P1.ceBook_Gen_Finance_Reports <> P2.ceBook_Gen_Finance_Reports) then begin
+    P3.ceBook_Gen_Finance_Reports := P1.ceBook_Gen_Finance_Reports;
+    ChangedFields[i] := tkceBook_Gen_Finance_Reports;
+    Inc(i);
+  end;
+  if (P1.ceFRS_Print_NP_Chart_Code_Titles <> P2.ceFRS_Print_NP_Chart_Code_Titles) then begin
+    P3.ceFRS_Print_NP_Chart_Code_Titles := P1.ceFRS_Print_NP_Chart_Code_Titles;
+    ChangedFields[i] := tkceFRS_Print_NP_Chart_Code_Titles;
+    Inc(i);
+  end;
+  if (P1.ceFRS_NP_Chart_Code_Detail_Type <> P2.ceFRS_NP_Chart_Code_Detail_Type) then begin
+    P3.ceFRS_NP_Chart_Code_Detail_Type := P1.ceFRS_NP_Chart_Code_Detail_Type;
+    ChangedFields[i] := tkceFRS_NP_Chart_Code_Detail_Type;
+    Inc(i);
+  end;
+  if (P1.ceAllow_Client_Unlock_Entries <> P2.ceAllow_Client_Unlock_Entries) then begin
+    P3.ceAllow_Client_Unlock_Entries := P1.ceAllow_Client_Unlock_Entries;
+    ChangedFields[i] := tkceAllow_Client_Unlock_Entries;
+    Inc(i);
+  end;
+  if (P1.ceAllow_Client_Edit_Chart <> P2.ceAllow_Client_Edit_Chart) then begin
+    P3.ceAllow_Client_Edit_Chart := P1.ceAllow_Client_Edit_Chart;
+    ChangedFields[i] := tkceAllow_Client_Edit_Chart;
+    Inc(i);
+  end;
+  if (P1.ceECoding_Dont_Send_Jobs <> P2.ceECoding_Dont_Send_Jobs) then begin
+    P3.ceECoding_Dont_Send_Jobs := P1.ceECoding_Dont_Send_Jobs;
+    ChangedFields[i] := tkceECoding_Dont_Send_Jobs;
+    Inc(i);
+  end;
+  if (P1.ceCustom_Coding_Report_XML <> P2.ceCustom_Coding_Report_XML) then begin
+    P3.ceCustom_Coding_Report_XML := P1.ceCustom_Coding_Report_XML;
+    ChangedFields[i] := tkceCustom_Coding_Report_XML;
+    Inc(i);
+  end;
+  if (P1.ceCustom_Coding_Report <> P2.ceCustom_Coding_Report) then begin
+    P3.ceCustom_Coding_Report := P1.ceCustom_Coding_Report;
+    ChangedFields[i] := tkceCustom_Coding_Report;
+    Inc(i);
+  end;
+  if (P1.ceCoding_Report_Column_Line <> P2.ceCoding_Report_Column_Line) then begin
+    P3.ceCoding_Report_Column_Line := P1.ceCoding_Report_Column_Line;
+    ChangedFields[i] := tkceCoding_Report_Column_Line;
+    Inc(i);
+  end;
+  if (P1.ceScheduled_Custom_CR_XML <> P2.ceScheduled_Custom_CR_XML) then begin
+    P3.ceScheduled_Custom_CR_XML := P1.ceScheduled_Custom_CR_XML;
+    ChangedFields[i] := tkceScheduled_Custom_CR_XML;
+    Inc(i);
+  end;
+  if (P1.ceBudget_Include_Quantities <> P2.ceBudget_Include_Quantities) then begin
+    P3.ceBudget_Include_Quantities := P1.ceBudget_Include_Quantities;
+    ChangedFields[i] := tkceBudget_Include_Quantities;
+    Inc(i);
+  end;
+  if (P1.ceScheduled_CR_Column_Line <> P2.ceScheduled_CR_Column_Line) then begin
+    P3.ceScheduled_CR_Column_Line := P1.ceScheduled_CR_Column_Line;
+    ChangedFields[i] := tkceScheduled_CR_Column_Line;
+    Inc(i);
+  end;
+  if (P1.ceCustom_Ledger_Report <> P2.ceCustom_Ledger_Report) then begin
+    P3.ceCustom_Ledger_Report := P1.ceCustom_Ledger_Report;
+    ChangedFields[i] := tkceCustom_Ledger_Report;
+    Inc(i);
+  end;
+  if (P1.ceCustom_Ledger_Report_XML <> P2.ceCustom_Ledger_Report_XML) then begin
+    P3.ceCustom_Ledger_Report_XML := P1.ceCustom_Ledger_Report_XML;
+    ChangedFields[i] := tkceCustom_Ledger_Report_XML;
+    Inc(i);
+  end;
+  if (P1.ceLocal_Currency_Code <> P2.ceLocal_Currency_Code) then begin
+    P3.ceLocal_Currency_Code := P1.ceLocal_Currency_Code;
+    ChangedFields[i] := tkceLocal_Currency_Code;
+    Inc(i);
+  end;
+  if (P1.ceBlock_Client_Edit_Mems <> P2.ceBlock_Client_Edit_Mems) then begin
+    P3.ceBlock_Client_Edit_Mems := P1.ceBlock_Client_Edit_Mems;
+    ChangedFields[i] := tkceBlock_Client_Edit_Mems;
+    Inc(i);
+  end;
+  if (P1.ceSend_Custom_Documents <> P2.ceSend_Custom_Documents) then begin
+    P3.ceSend_Custom_Documents := P1.ceSend_Custom_Documents;
+    ChangedFields[i] := tkceSend_Custom_Documents;
+    Inc(i);
+  end;
+  if Send_Custom_Documents_List_Changed(TSend_Custom_Documents_List_Array(P1.ceSend_Custom_Documents_List), 
+                  TSend_Custom_Documents_List_Array(P2.ceSend_Custom_Documents_List), 
+                  TSend_Custom_Documents_List_Array(P3.ceSend_Custom_Documents_List)) then begin
+    ChangedFields[i] := tkceSend_Custom_Documents_List;
+    Inc(i);
+  end;
+  if (P1.ceList_Payees_Detailed <> P2.ceList_Payees_Detailed) then begin
+    P3.ceList_Payees_Detailed := P1.ceList_Payees_Detailed;
+    ChangedFields[i] := tkceList_Payees_Detailed;
+    Inc(i);
+  end;
+  if (P1.ceList_Payees_SortBy <> P2.ceList_Payees_SortBy) then begin
+    P3.ceList_Payees_SortBy := P1.ceList_Payees_SortBy;
+    ChangedFields[i] := tkceList_Payees_SortBy;
+    Inc(i);
+  end;
+  if (P1.ceList_Payees_Rule_Line <> P2.ceList_Payees_Rule_Line) then begin
+    P3.ceList_Payees_Rule_Line := P1.ceList_Payees_Rule_Line;
+    ChangedFields[i] := tkceList_Payees_Rule_Line;
+    Inc(i);
+  end;
+  if Custom_SFLedger_Titles_Changed(TCustom_SFLedger_Titles_Array(P1.ceCustom_SFLedger_Titles), 
+                  TCustom_SFLedger_Titles_Array(P2.ceCustom_SFLedger_Titles), 
+                  TCustom_SFLedger_Titles_Array(P3.ceCustom_SFLedger_Titles)) then begin
+    ChangedFields[i] := tkceCustom_SFLedger_Titles;
+    Inc(i);
+  end;
+  if (P1.ceSUI_Period_Start <> P2.ceSUI_Period_Start) then begin
+    P3.ceSUI_Period_Start := P1.ceSUI_Period_Start;
+    ChangedFields[i] := tkceSUI_Period_Start;
+    Inc(i);
+  end;
+  if (P1.ceSUI_Period_End <> P2.ceSUI_Period_End) then begin
+    P3.ceSUI_Period_End := P1.ceSUI_Period_End;
+    ChangedFields[i] := tkceSUI_Period_End;
+    Inc(i);
+  end;
+  if (P1.ceSpare_Integer <> P2.ceSpare_Integer) then begin
+    P3.ceSpare_Integer := P1.ceSpare_Integer;
+    ChangedFields[i] := tkceSpare_Integer;
+    Inc(i);
+  end;
+  if SUI_Step_Done_Changed(TSUI_Step_Done_Array(P1.ceSUI_Step_Done), 
+                  TSUI_Step_Done_Array(P2.ceSUI_Step_Done), 
+                  TSUI_Step_Done_Array(P3.ceSUI_Step_Done)) then begin
+    ChangedFields[i] := tkceSUI_Step_Done;
+    Inc(i);
+  end;
+  if (P1.ceSend_Job_List <> P2.ceSend_Job_List) then begin
+    P3.ceSend_Job_List := P1.ceSend_Job_List;
+    ChangedFields[i] := tkceSend_Job_List;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_ClientExtra_Rec(P1, P2: pClientExtra_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_ClientExtra_Rec(P1^, S);
+    S.Position := 0;
+    Read_ClientExtra_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

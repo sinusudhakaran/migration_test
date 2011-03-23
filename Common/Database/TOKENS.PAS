@@ -40,6 +40,7 @@ CONST
    tkBeginSystem_Client_Account_Map    = 35;
    tkBeginSystem_Group_List            = 36;
    tkBeginSystem_Client_Type_List      = 37;
+   tkBeginSystem_Audit_Trail_List      = 38;   
 
    // 40 Is used by ClientExtra
 
@@ -55,6 +56,7 @@ CONST
 
    tkBeginCoding_Stats_List            = 70;
 
+   tkLastAuditRecordID        = 252;
    tkEndRecord                = 253;
    tkEndSection               = 254;
    tkEndOfFile                = 255;

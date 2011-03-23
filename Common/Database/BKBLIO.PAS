@@ -5,7 +5,7 @@ UNIT BKblIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Balances_Rec ( Var O : TBalances_Rec ; Var F : TIOStream );
 PROCEDURE Read_Balances_Rec ( Var O : TBalances_Rec ; Var F : TIOStream );
 FUNCTION  New_Balances_Rec : pBalances_Rec ;
 PROCEDURE Free_Balances_Rec_Dynamic_Fields ( Var O : TBalances_Rec );
+FUNCTION Balances_Rec_Delta(P1, P2, P3: pBalances_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Balances_Rec(P1, P2: pBalances_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -311,6 +314,369 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkblGST_Period_Starts to tkblGST_Cdj_Customs do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Balances_Rec_Delta(P1, P2, P3: pBalances_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Balances_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.blGST_Period_Starts <> P2.blGST_Period_Starts) then begin
+    P3.blGST_Period_Starts := P1.blGST_Period_Starts;
+    ChangedFields[i] := tkblGST_Period_Starts;
+    Inc(i);
+  end;
+  if (P1.blGST_Period_Ends <> P2.blGST_Period_Ends) then begin
+    P3.blGST_Period_Ends := P1.blGST_Period_Ends;
+    ChangedFields[i] := tkblGST_Period_Ends;
+    Inc(i);
+  end;
+  if (P1.blClosing_Debtors_Balance <> P2.blClosing_Debtors_Balance) then begin
+    P3.blClosing_Debtors_Balance := P1.blClosing_Debtors_Balance;
+    ChangedFields[i] := tkblClosing_Debtors_Balance;
+    Inc(i);
+  end;
+  if (P1.blOpening_Debtors_Balance <> P2.blOpening_Debtors_Balance) then begin
+    P3.blOpening_Debtors_Balance := P1.blOpening_Debtors_Balance;
+    ChangedFields[i] := tkblOpening_Debtors_Balance;
+    Inc(i);
+  end;
+  if (P1.blFBT_Adjustments <> P2.blFBT_Adjustments) then begin
+    P3.blFBT_Adjustments := P1.blFBT_Adjustments;
+    ChangedFields[i] := tkblFBT_Adjustments;
+    Inc(i);
+  end;
+  if (P1.blOther_Adjustments <> P2.blOther_Adjustments) then begin
+    P3.blOther_Adjustments := P1.blOther_Adjustments;
+    ChangedFields[i] := tkblOther_Adjustments;
+    Inc(i);
+  end;
+  if (P1.blClosing_Creditors_Balance <> P2.blClosing_Creditors_Balance) then begin
+    P3.blClosing_Creditors_Balance := P1.blClosing_Creditors_Balance;
+    ChangedFields[i] := tkblClosing_Creditors_Balance;
+    Inc(i);
+  end;
+  if (P1.blOpening_Creditors_Balance <> P2.blOpening_Creditors_Balance) then begin
+    P3.blOpening_Creditors_Balance := P1.blOpening_Creditors_Balance;
+    ChangedFields[i] := tkblOpening_Creditors_Balance;
+    Inc(i);
+  end;
+  if (P1.blCredit_Adjustments <> P2.blCredit_Adjustments) then begin
+    P3.blCredit_Adjustments := P1.blCredit_Adjustments;
+    ChangedFields[i] := tkblCredit_Adjustments;
+    Inc(i);
+  end;
+  if (P1.blBAS_Document_ID <> P2.blBAS_Document_ID) then begin
+    P3.blBAS_Document_ID := P1.blBAS_Document_ID;
+    ChangedFields[i] := tkblBAS_Document_ID;
+    Inc(i);
+  end;
+  if (P1.blBAS_1C_PT_Last_Months_Income <> P2.blBAS_1C_PT_Last_Months_Income) then begin
+    P3.blBAS_1C_PT_Last_Months_Income := P1.blBAS_1C_PT_Last_Months_Income;
+    ChangedFields[i] := tkblBAS_1C_PT_Last_Months_Income;
+    Inc(i);
+  end;
+  if (P1.blBAS_1D_PT_Branch_Income <> P2.blBAS_1D_PT_Branch_Income) then begin
+    P3.blBAS_1D_PT_Branch_Income := P1.blBAS_1D_PT_Branch_Income;
+    ChangedFields[i] := tkblBAS_1D_PT_Branch_Income;
+    Inc(i);
+  end;
+  if (P1.blBAS_1E_PT_Assets <> P2.blBAS_1E_PT_Assets) then begin
+    P3.blBAS_1E_PT_Assets := P1.blBAS_1E_PT_Assets;
+    ChangedFields[i] := tkblBAS_1E_PT_Assets;
+    Inc(i);
+  end;
+  if (P1.blBAS_1F_PT_Tax <> P2.blBAS_1F_PT_Tax) then begin
+    P3.blBAS_1F_PT_Tax := P1.blBAS_1F_PT_Tax;
+    ChangedFields[i] := tkblBAS_1F_PT_Tax;
+    Inc(i);
+  end;
+  if (P1.blBAS_1G_PT_Refund_Used <> P2.blBAS_1G_PT_Refund_Used) then begin
+    P3.blBAS_1G_PT_Refund_Used := P1.blBAS_1G_PT_Refund_Used;
+    ChangedFields[i] := tkblBAS_1G_PT_Refund_Used;
+    Inc(i);
+  end;
+  if (P1.blBAS_5B_PT_Ratio <> P2.blBAS_5B_PT_Ratio) then begin
+    P3.blBAS_5B_PT_Ratio := P1.blBAS_5B_PT_Ratio;
+    ChangedFields[i] := tkblBAS_5B_PT_Ratio;
+    Inc(i);
+  end;
+  if (P1.blBAS_6B_GST_Adj_PrivUse <> P2.blBAS_6B_GST_Adj_PrivUse) then begin
+    P3.blBAS_6B_GST_Adj_PrivUse := P1.blBAS_6B_GST_Adj_PrivUse;
+    ChangedFields[i] := tkblBAS_6B_GST_Adj_PrivUse;
+    Inc(i);
+  end;
+  if (P1.blBAS_7_VAT4_GST_Adj_BAssets <> P2.blBAS_7_VAT4_GST_Adj_BAssets) then begin
+    P3.blBAS_7_VAT4_GST_Adj_BAssets := P1.blBAS_7_VAT4_GST_Adj_BAssets;
+    ChangedFields[i] := tkblBAS_7_VAT4_GST_Adj_BAssets;
+    Inc(i);
+  end;
+  if (P1.blBAS_G7_GST_Adj_Assets <> P2.blBAS_G7_GST_Adj_Assets) then begin
+    P3.blBAS_G7_GST_Adj_Assets := P1.blBAS_G7_GST_Adj_Assets;
+    ChangedFields[i] := tkblBAS_G7_GST_Adj_Assets;
+    Inc(i);
+  end;
+  if (P1.blBAS_G18_GST_Adj_Entertain <> P2.blBAS_G18_GST_Adj_Entertain) then begin
+    P3.blBAS_G18_GST_Adj_Entertain := P1.blBAS_G18_GST_Adj_Entertain;
+    ChangedFields[i] := tkblBAS_G18_GST_Adj_Entertain;
+    Inc(i);
+  end;
+  if (P1.blBAS_W1_GST_Adj_Change <> P2.blBAS_W1_GST_Adj_Change) then begin
+    P3.blBAS_W1_GST_Adj_Change := P1.blBAS_W1_GST_Adj_Change;
+    ChangedFields[i] := tkblBAS_W1_GST_Adj_Change;
+    Inc(i);
+  end;
+  if (P1.blBAS_W2_GST_Adj_Exempt <> P2.blBAS_W2_GST_Adj_Exempt) then begin
+    P3.blBAS_W2_GST_Adj_Exempt := P1.blBAS_W2_GST_Adj_Exempt;
+    ChangedFields[i] := tkblBAS_W2_GST_Adj_Exempt;
+    Inc(i);
+  end;
+  if (P1.blBAS_W3_GST_Adj_Other <> P2.blBAS_W3_GST_Adj_Other) then begin
+    P3.blBAS_W3_GST_Adj_Other := P1.blBAS_W3_GST_Adj_Other;
+    ChangedFields[i] := tkblBAS_W3_GST_Adj_Other;
+    Inc(i);
+  end;
+  if (P1.blBAS_W4_GST_Cdj_BusUse <> P2.blBAS_W4_GST_Cdj_BusUse) then begin
+    P3.blBAS_W4_GST_Cdj_BusUse := P1.blBAS_W4_GST_Cdj_BusUse;
+    ChangedFields[i] := tkblBAS_W4_GST_Cdj_BusUse;
+    Inc(i);
+  end;
+  if (P1.blBAS_T1_VAT1_GST_Cdj_PAssets <> P2.blBAS_T1_VAT1_GST_Cdj_PAssets) then begin
+    P3.blBAS_T1_VAT1_GST_Cdj_PAssets := P1.blBAS_T1_VAT1_GST_Cdj_PAssets;
+    ChangedFields[i] := tkblBAS_T1_VAT1_GST_Cdj_PAssets;
+    Inc(i);
+  end;
+  if (P1.blBAS_T2_VAT2_GST_Cdj_Change <> P2.blBAS_T2_VAT2_GST_Cdj_Change) then begin
+    P3.blBAS_T2_VAT2_GST_Cdj_Change := P1.blBAS_T2_VAT2_GST_Cdj_Change;
+    ChangedFields[i] := tkblBAS_T2_VAT2_GST_Cdj_Change;
+    Inc(i);
+  end;
+  if (P1.blBAS_T3_VAT3_GST_Cdj_Other <> P2.blBAS_T3_VAT3_GST_Cdj_Other) then begin
+    P3.blBAS_T3_VAT3_GST_Cdj_Other := P1.blBAS_T3_VAT3_GST_Cdj_Other;
+    ChangedFields[i] := tkblBAS_T3_VAT3_GST_Cdj_Other;
+    Inc(i);
+  end;
+  if (P1.blBAS_T4 <> P2.blBAS_T4) then begin
+    P3.blBAS_T4 := P1.blBAS_T4;
+    ChangedFields[i] := tkblBAS_T4;
+    Inc(i);
+  end;
+  if (P1.blBAS_F1_GST_Closing_Debtors_BalanceA <> P2.blBAS_F1_GST_Closing_Debtors_BalanceA) then begin
+    P3.blBAS_F1_GST_Closing_Debtors_BalanceA := P1.blBAS_F1_GST_Closing_Debtors_BalanceA;
+    ChangedFields[i] := tkblBAS_F1_GST_Closing_Debtors_BalanceA;
+    Inc(i);
+  end;
+  if (P1.blBAS_F2_GST_Opening_Debtors_BalanceB <> P2.blBAS_F2_GST_Opening_Debtors_BalanceB) then begin
+    P3.blBAS_F2_GST_Opening_Debtors_BalanceB := P1.blBAS_F2_GST_Opening_Debtors_BalanceB;
+    ChangedFields[i] := tkblBAS_F2_GST_Opening_Debtors_BalanceB;
+    Inc(i);
+  end;
+  if (P1.blBAS_F3 <> P2.blBAS_F3) then begin
+    P3.blBAS_F3 := P1.blBAS_F3;
+    ChangedFields[i] := tkblBAS_F3;
+    Inc(i);
+  end;
+  if (P1.blBAS_F4 <> P2.blBAS_F4) then begin
+    P3.blBAS_F4 := P1.blBAS_F4;
+    ChangedFields[i] := tkblBAS_F4;
+    Inc(i);
+  end;
+  if (P1.blBAS_Form_Used <> P2.blBAS_Form_Used) then begin
+    P3.blBAS_Form_Used := P1.blBAS_Form_Used;
+    ChangedFields[i] := tkblBAS_Form_Used;
+    Inc(i);
+  end;
+  if (P1.blBAS_GST_Option <> P2.blBAS_GST_Option) then begin
+    P3.blBAS_GST_Option := P1.blBAS_GST_Option;
+    ChangedFields[i] := tkblBAS_GST_Option;
+    Inc(i);
+  end;
+  if (P1.blBAS_GST_Included <> P2.blBAS_GST_Included) then begin
+    P3.blBAS_GST_Included := P1.blBAS_GST_Included;
+    ChangedFields[i] := tkblBAS_GST_Included;
+    Inc(i);
+  end;
+  if (P1.blBAS_G21_GST_Closing_Creditors_BalanceA <> P2.blBAS_G21_GST_Closing_Creditors_BalanceA) then begin
+    P3.blBAS_G21_GST_Closing_Creditors_BalanceA := P1.blBAS_G21_GST_Closing_Creditors_BalanceA;
+    ChangedFields[i] := tkblBAS_G21_GST_Closing_Creditors_BalanceA;
+    Inc(i);
+  end;
+  if (P1.blBAS_G22_GST_Opening_Creditors_BalanceB <> P2.blBAS_G22_GST_Opening_Creditors_BalanceB) then begin
+    P3.blBAS_G22_GST_Opening_Creditors_BalanceB := P1.blBAS_G22_GST_Opening_Creditors_BalanceB;
+    ChangedFields[i] := tkblBAS_G22_GST_Opening_Creditors_BalanceB;
+    Inc(i);
+  end;
+  if (P1.blBAS_G23 <> P2.blBAS_G23) then begin
+    P3.blBAS_G23 := P1.blBAS_G23;
+    ChangedFields[i] := tkblBAS_G23;
+    Inc(i);
+  end;
+  if (P1.blBAS_G24 <> P2.blBAS_G24) then begin
+    P3.blBAS_G24 := P1.blBAS_G24;
+    ChangedFields[i] := tkblBAS_G24;
+    Inc(i);
+  end;
+  if (P1.blBAS_PAYG_Instalment_Option <> P2.blBAS_PAYG_Instalment_Option) then begin
+    P3.blBAS_PAYG_Instalment_Option := P1.blBAS_PAYG_Instalment_Option;
+    ChangedFields[i] := tkblBAS_PAYG_Instalment_Option;
+    Inc(i);
+  end;
+  if (P1.blBAS_T7_VAT7 <> P2.blBAS_T7_VAT7) then begin
+    P3.blBAS_T7_VAT7 := P1.blBAS_T7_VAT7;
+    ChangedFields[i] := tkblBAS_T7_VAT7;
+    Inc(i);
+  end;
+  if (P1.blBAS_T8_VAT8 <> P2.blBAS_T8_VAT8) then begin
+    P3.blBAS_T8_VAT8 := P1.blBAS_T8_VAT8;
+    ChangedFields[i] := tkblBAS_T8_VAT8;
+    Inc(i);
+  end;
+  if (P1.blBAS_T9_VAT9 <> P2.blBAS_T9_VAT9) then begin
+    P3.blBAS_T9_VAT9 := P1.blBAS_T9_VAT9;
+    ChangedFields[i] := tkblBAS_T9_VAT9;
+    Inc(i);
+  end;
+  if (P1.blBAS_1H <> P2.blBAS_1H) then begin
+    P3.blBAS_1H := P1.blBAS_1H;
+    ChangedFields[i] := tkblBAS_1H;
+    Inc(i);
+  end;
+  if (P1.blGST_Adj_PrivUse <> P2.blGST_Adj_PrivUse) then begin
+    P3.blGST_Adj_PrivUse := P1.blGST_Adj_PrivUse;
+    ChangedFields[i] := tkblGST_Adj_PrivUse;
+    Inc(i);
+  end;
+  if (P1.blGST_Adj_BAssets <> P2.blGST_Adj_BAssets) then begin
+    P3.blGST_Adj_BAssets := P1.blGST_Adj_BAssets;
+    ChangedFields[i] := tkblGST_Adj_BAssets;
+    Inc(i);
+  end;
+  if (P1.blGST_Adj_Assets <> P2.blGST_Adj_Assets) then begin
+    P3.blGST_Adj_Assets := P1.blGST_Adj_Assets;
+    ChangedFields[i] := tkblGST_Adj_Assets;
+    Inc(i);
+  end;
+  if (P1.blGST_Adj_Entertain <> P2.blGST_Adj_Entertain) then begin
+    P3.blGST_Adj_Entertain := P1.blGST_Adj_Entertain;
+    ChangedFields[i] := tkblGST_Adj_Entertain;
+    Inc(i);
+  end;
+  if (P1.blGST_Adj_Change <> P2.blGST_Adj_Change) then begin
+    P3.blGST_Adj_Change := P1.blGST_Adj_Change;
+    ChangedFields[i] := tkblGST_Adj_Change;
+    Inc(i);
+  end;
+  if (P1.blGST_Adj_Exempt <> P2.blGST_Adj_Exempt) then begin
+    P3.blGST_Adj_Exempt := P1.blGST_Adj_Exempt;
+    ChangedFields[i] := tkblGST_Adj_Exempt;
+    Inc(i);
+  end;
+  if (P1.blGST_Adj_Other <> P2.blGST_Adj_Other) then begin
+    P3.blGST_Adj_Other := P1.blGST_Adj_Other;
+    ChangedFields[i] := tkblGST_Adj_Other;
+    Inc(i);
+  end;
+  if (P1.blGST_Cdj_BusUse <> P2.blGST_Cdj_BusUse) then begin
+    P3.blGST_Cdj_BusUse := P1.blGST_Cdj_BusUse;
+    ChangedFields[i] := tkblGST_Cdj_BusUse;
+    Inc(i);
+  end;
+  if (P1.blGST_Cdj_PAssets <> P2.blGST_Cdj_PAssets) then begin
+    P3.blGST_Cdj_PAssets := P1.blGST_Cdj_PAssets;
+    ChangedFields[i] := tkblGST_Cdj_PAssets;
+    Inc(i);
+  end;
+  if (P1.blGST_Cdj_Change <> P2.blGST_Cdj_Change) then begin
+    P3.blGST_Cdj_Change := P1.blGST_Cdj_Change;
+    ChangedFields[i] := tkblGST_Cdj_Change;
+    Inc(i);
+  end;
+  if (P1.blGST_Cdj_Other <> P2.blGST_Cdj_Other) then begin
+    P3.blGST_Cdj_Other := P1.blGST_Cdj_Other;
+    ChangedFields[i] := tkblGST_Cdj_Other;
+    Inc(i);
+  end;
+  if (P1.blBAS_7C <> P2.blBAS_7C) then begin
+    P3.blBAS_7C := P1.blBAS_7C;
+    ChangedFields[i] := tkblBAS_7C;
+    Inc(i);
+  end;
+  if (P1.blBAS_7D <> P2.blBAS_7D) then begin
+    P3.blBAS_7D := P1.blBAS_7D;
+    ChangedFields[i] := tkblBAS_7D;
+    Inc(i);
+  end;
+  if (P1.blBAS_T6_VAT6 <> P2.blBAS_T6_VAT6) then begin
+    P3.blBAS_T6_VAT6 := P1.blBAS_T6_VAT6;
+    ChangedFields[i] := tkblBAS_T6_VAT6;
+    Inc(i);
+  end;
+  if (P1.blBAS_T5_VAT5 <> P2.blBAS_T5_VAT5) then begin
+    P3.blBAS_T5_VAT5 := P1.blBAS_T5_VAT5;
+    ChangedFields[i] := tkblBAS_T5_VAT5;
+    Inc(i);
+  end;
+  if (P1.blUsing_Fuel_Percent_Method <> P2.blUsing_Fuel_Percent_Method) then begin
+    P3.blUsing_Fuel_Percent_Method := P1.blUsing_Fuel_Percent_Method;
+    ChangedFields[i] := tkblUsing_Fuel_Percent_Method;
+    Inc(i);
+  end;
+  if (P1.blPT_Form_Type <> P2.blPT_Form_Type) then begin
+    P3.blPT_Form_Type := P1.blPT_Form_Type;
+    ChangedFields[i] := tkblPT_Form_Type;
+    Inc(i);
+  end;
+  if (P1.blGST_Cdj_Customs <> P2.blGST_Cdj_Customs) then begin
+    P3.blGST_Cdj_Customs := P1.blGST_Cdj_Customs;
+    ChangedFields[i] := tkblGST_Cdj_Customs;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Balances_Rec(P1, P2: pBalances_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Balances_Rec(P1^, S);
+    S.Position := 0;
+    Read_Balances_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

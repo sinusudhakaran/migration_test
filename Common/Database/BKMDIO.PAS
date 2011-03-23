@@ -5,7 +5,7 @@ UNIT BKmdIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Memorisation_Detail_Rec ( Var O : TMemorisation_Detail_Rec ; Var
 PROCEDURE Read_Memorisation_Detail_Rec ( Var O : TMemorisation_Detail_Rec ; Var F : TIOStream );
 FUNCTION  New_Memorisation_Detail_Rec : pMemorisation_Detail_Rec ;
 PROCEDURE Free_Memorisation_Detail_Rec_Dynamic_Fields ( Var O : TMemorisation_Detail_Rec );
+FUNCTION Memorisation_Detail_Rec_Delta(P1, P2, P3: pMemorisation_Detail_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Memorisation_Detail_Rec(P1, P2: pMemorisation_Detail_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -194,6 +197,174 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkmdSequence_No to tkmdUntil_Date do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Memorisation_Detail_Rec_Delta(P1, P2, P3: pMemorisation_Detail_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Memorisation_Detail_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.mdSequence_No <> P2.mdSequence_No) then begin
+    P3.mdSequence_No := P1.mdSequence_No;
+    ChangedFields[i] := tkmdSequence_No;
+    Inc(i);
+  end;
+  if (P1.mdType <> P2.mdType) then begin
+    P3.mdType := P1.mdType;
+    ChangedFields[i] := tkmdType;
+    Inc(i);
+  end;
+  if (P1.mdAmount <> P2.mdAmount) then begin
+    P3.mdAmount := P1.mdAmount;
+    ChangedFields[i] := tkmdAmount;
+    Inc(i);
+  end;
+  if (P1.mdReference <> P2.mdReference) then begin
+    P3.mdReference := P1.mdReference;
+    ChangedFields[i] := tkmdReference;
+    Inc(i);
+  end;
+  if (P1.mdParticulars <> P2.mdParticulars) then begin
+    P3.mdParticulars := P1.mdParticulars;
+    ChangedFields[i] := tkmdParticulars;
+    Inc(i);
+  end;
+  if (P1.mdAnalysis <> P2.mdAnalysis) then begin
+    P3.mdAnalysis := P1.mdAnalysis;
+    ChangedFields[i] := tkmdAnalysis;
+    Inc(i);
+  end;
+  if (P1.mdOther_Party <> P2.mdOther_Party) then begin
+    P3.mdOther_Party := P1.mdOther_Party;
+    ChangedFields[i] := tkmdOther_Party;
+    Inc(i);
+  end;
+  if (P1.mdStatement_Details <> P2.mdStatement_Details) then begin
+    P3.mdStatement_Details := P1.mdStatement_Details;
+    ChangedFields[i] := tkmdStatement_Details;
+    Inc(i);
+  end;
+  if (P1.mdMatch_on_Amount <> P2.mdMatch_on_Amount) then begin
+    P3.mdMatch_on_Amount := P1.mdMatch_on_Amount;
+    ChangedFields[i] := tkmdMatch_on_Amount;
+    Inc(i);
+  end;
+  if (P1.mdMatch_on_Analysis <> P2.mdMatch_on_Analysis) then begin
+    P3.mdMatch_on_Analysis := P1.mdMatch_on_Analysis;
+    ChangedFields[i] := tkmdMatch_on_Analysis;
+    Inc(i);
+  end;
+  if (P1.mdMatch_on_Other_Party <> P2.mdMatch_on_Other_Party) then begin
+    P3.mdMatch_on_Other_Party := P1.mdMatch_on_Other_Party;
+    ChangedFields[i] := tkmdMatch_on_Other_Party;
+    Inc(i);
+  end;
+  if (P1.mdMatch_on_Notes <> P2.mdMatch_on_Notes) then begin
+    P3.mdMatch_on_Notes := P1.mdMatch_on_Notes;
+    ChangedFields[i] := tkmdMatch_on_Notes;
+    Inc(i);
+  end;
+  if (P1.mdMatch_on_Particulars <> P2.mdMatch_on_Particulars) then begin
+    P3.mdMatch_on_Particulars := P1.mdMatch_on_Particulars;
+    ChangedFields[i] := tkmdMatch_on_Particulars;
+    Inc(i);
+  end;
+  if (P1.mdMatch_on_Refce <> P2.mdMatch_on_Refce) then begin
+    P3.mdMatch_on_Refce := P1.mdMatch_on_Refce;
+    ChangedFields[i] := tkmdMatch_on_Refce;
+    Inc(i);
+  end;
+  if (P1.mdMatch_On_Statement_Details <> P2.mdMatch_On_Statement_Details) then begin
+    P3.mdMatch_On_Statement_Details := P1.mdMatch_On_Statement_Details;
+    ChangedFields[i] := tkmdMatch_On_Statement_Details;
+    Inc(i);
+  end;
+  if (P1.mdPayee_Number <> P2.mdPayee_Number) then begin
+    P3.mdPayee_Number := P1.mdPayee_Number;
+    ChangedFields[i] := tkmdPayee_Number;
+    Inc(i);
+  end;
+  if (P1.mdFrom_Master_List <> P2.mdFrom_Master_List) then begin
+    P3.mdFrom_Master_List := P1.mdFrom_Master_List;
+    ChangedFields[i] := tkmdFrom_Master_List;
+    Inc(i);
+  end;
+  if (P1.mdNotes <> P2.mdNotes) then begin
+    P3.mdNotes := P1.mdNotes;
+    ChangedFields[i] := tkmdNotes;
+    Inc(i);
+  end;
+  if (P1.mdDate_Last_Applied <> P2.mdDate_Last_Applied) then begin
+    P3.mdDate_Last_Applied := P1.mdDate_Last_Applied;
+    ChangedFields[i] := tkmdDate_Last_Applied;
+    Inc(i);
+  end;
+  if (P1.mdUse_Accounting_System <> P2.mdUse_Accounting_System) then begin
+    P3.mdUse_Accounting_System := P1.mdUse_Accounting_System;
+    ChangedFields[i] := tkmdUse_Accounting_System;
+    Inc(i);
+  end;
+  if (P1.mdAccounting_System <> P2.mdAccounting_System) then begin
+    P3.mdAccounting_System := P1.mdAccounting_System;
+    ChangedFields[i] := tkmdAccounting_System;
+    Inc(i);
+  end;
+  if (P1.mdFrom_Date <> P2.mdFrom_Date) then begin
+    P3.mdFrom_Date := P1.mdFrom_Date;
+    ChangedFields[i] := tkmdFrom_Date;
+    Inc(i);
+  end;
+  if (P1.mdUntil_Date <> P2.mdUntil_Date) then begin
+    P3.mdUntil_Date := P1.mdUntil_Date;
+    ChangedFields[i] := tkmdUntil_Date;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Memorisation_Detail_Rec(P1, P2: pMemorisation_Detail_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Memorisation_Detail_Rec(P1^, S);
+    S.Position := 0;
+    Read_Memorisation_Detail_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

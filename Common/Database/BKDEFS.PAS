@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 627;
-   BK_IOLIB_Date    = '02/02/11';
+   BK_IOLIB_Version : Integer = 631;
+   BK_IOLIB_Date    = '17/03/11';
    BK_FILE_VERSION  = 163;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)

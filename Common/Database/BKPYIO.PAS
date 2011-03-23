@@ -5,7 +5,7 @@ UNIT BKpyIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Payee_Rec ( Var O : TPayee_Rec ; Var F : TIOStream );
 PROCEDURE Read_Payee_Rec ( Var O : TPayee_Rec ; Var F : TIOStream );
 FUNCTION  New_Payee_Rec : pPayee_Rec ;
 PROCEDURE Free_Payee_Rec_Dynamic_Fields ( Var O : TPayee_Rec );
+FUNCTION Payee_Rec_Delta(P1, P2, P3: pPayee_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Payee_Rec(P1, P2: pPayee_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -179,6 +182,99 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkpyNumber to tkpyGL_Narration do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Payee_Rec_Delta(P1, P2, P3: pPayee_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Payee_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.pyNumber <> P2.pyNumber) then begin
+    P3.pyNumber := P1.pyNumber;
+    ChangedFields[i] := tkpyNumber;
+    Inc(i);
+  end;
+  if (P1.pyName <> P2.pyName) then begin
+    P3.pyName := P1.pyName;
+    ChangedFields[i] := tkpyName;
+    Inc(i);
+  end;
+  if Account_Changed(TAccount_Array(P1.pyAccount), 
+                  TAccount_Array(P2.pyAccount), 
+                  TAccount_Array(P3.pyAccount)) then begin
+    ChangedFields[i] := tkpyAccount;
+    Inc(i);
+  end;
+  if Percentage_Changed(TPercentage_Array(P1.pyPercentage), 
+                  TPercentage_Array(P2.pyPercentage), 
+                  TPercentage_Array(P3.pyPercentage)) then begin
+    ChangedFields[i] := tkpyPercentage;
+    Inc(i);
+  end;
+  if GST_Class_Changed(TGST_Class_Array(P1.pyGST_Class), 
+                  TGST_Class_Array(P2.pyGST_Class), 
+                  TGST_Class_Array(P3.pyGST_Class)) then begin
+    ChangedFields[i] := tkpyGST_Class;
+    Inc(i);
+  end;
+  if GST_Has_Been_Edited_Changed(TGST_Has_Been_Edited_Array(P1.pyGST_Has_Been_Edited), 
+                  TGST_Has_Been_Edited_Array(P2.pyGST_Has_Been_Edited), 
+                  TGST_Has_Been_Edited_Array(P3.pyGST_Has_Been_Edited)) then begin
+    ChangedFields[i] := tkpyGST_Has_Been_Edited;
+    Inc(i);
+  end;
+  if GL_Narration_Changed(TGL_Narration_Array(P1.pyGL_Narration), 
+                  TGL_Narration_Array(P2.pyGL_Narration), 
+                  TGL_Narration_Array(P3.pyGL_Narration)) then begin
+    ChangedFields[i] := tkpyGL_Narration;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Payee_Rec(P1, P2: pPayee_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Payee_Rec(P1^, S);
+    S.Position := 0;
+    Read_Payee_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

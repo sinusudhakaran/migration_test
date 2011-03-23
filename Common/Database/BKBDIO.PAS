@@ -5,7 +5,7 @@ UNIT BKbdIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Budget_Detail_Rec ( Var O : TBudget_Detail_Rec ; Var F : TIOStre
 PROCEDURE Read_Budget_Detail_Rec ( Var O : TBudget_Detail_Rec ; Var F : TIOStream );
 FUNCTION  New_Budget_Detail_Rec : pBudget_Detail_Rec ;
 PROCEDURE Free_Budget_Detail_Rec_Dynamic_Fields ( Var O : TBudget_Detail_Rec );
+FUNCTION Budget_Detail_Rec_Delta(P1, P2, P3: pBudget_Detail_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Budget_Detail_Rec(P1, P2: pBudget_Detail_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -157,6 +160,82 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkbdAccount_Code to tkbdEach_Budget do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Budget_Detail_Rec_Delta(P1, P2, P3: pBudget_Detail_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Budget_Detail_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.bdAccount_Code <> P2.bdAccount_Code) then begin
+    P3.bdAccount_Code := P1.bdAccount_Code;
+    ChangedFields[i] := tkbdAccount_Code;
+    Inc(i);
+  end;
+  if Budget_Changed(TBudget_Array(P1.bdBudget), 
+                  TBudget_Array(P2.bdBudget), 
+                  TBudget_Array(P3.bdBudget)) then begin
+    ChangedFields[i] := tkbdBudget;
+    Inc(i);
+  end;
+  if Qty_Budget_Changed(TQty_Budget_Array(P1.bdQty_Budget), 
+                  TQty_Budget_Array(P2.bdQty_Budget), 
+                  TQty_Budget_Array(P3.bdQty_Budget)) then begin
+    ChangedFields[i] := tkbdQty_Budget;
+    Inc(i);
+  end;
+  if Each_Budget_Changed(TEach_Budget_Array(P1.bdEach_Budget), 
+                  TEach_Budget_Array(P2.bdEach_Budget), 
+                  TEach_Budget_Array(P3.bdEach_Budget)) then begin
+    ChangedFields[i] := tkbdEach_Budget;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Budget_Detail_Rec(P1, P2: pBudget_Detail_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Budget_Detail_Rec(P1^, S);
+    S.Position := 0;
+    Read_Budget_Detail_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

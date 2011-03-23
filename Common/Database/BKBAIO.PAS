@@ -5,7 +5,7 @@ UNIT BKbaIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Bank_Account_Rec ( Var O : TBank_Account_Rec ; Var F : TIOStream
 PROCEDURE Read_Bank_Account_Rec ( Var O : TBank_Account_Rec ; Var F : TIOStream );
 FUNCTION  New_Bank_Account_Rec : pBank_Account_Rec ;
 PROCEDURE Free_Bank_Account_Rec_Dynamic_Fields ( Var O : TBank_Account_Rec );
+FUNCTION Bank_Account_Rec_Delta(P1, P2, P3: pBank_Account_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Bank_Account_Rec(P1, P2: pBank_Account_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -366,6 +369,330 @@ Begin
       { Free any dynamically allocated memory }
       baSpare_String := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkbaBank_Account_Number to tkbaSuperFund_Ledger_Code do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Bank_Account_Rec_Delta(P1, P2, P3: pBank_Account_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Bank_Account_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.baBank_Account_Number <> P2.baBank_Account_Number) then begin
+    P3.baBank_Account_Number := P1.baBank_Account_Number;
+    ChangedFields[i] := tkbaBank_Account_Number;
+    Inc(i);
+  end;
+  if (P1.baBank_Account_Name <> P2.baBank_Account_Name) then begin
+    P3.baBank_Account_Name := P1.baBank_Account_Name;
+    ChangedFields[i] := tkbaBank_Account_Name;
+    Inc(i);
+  end;
+  if (P1.baBank_Account_Password <> P2.baBank_Account_Password) then begin
+    P3.baBank_Account_Password := P1.baBank_Account_Password;
+    ChangedFields[i] := tkbaBank_Account_Password;
+    Inc(i);
+  end;
+  if (P1.baContra_Account_Code <> P2.baContra_Account_Code) then begin
+    P3.baContra_Account_Code := P1.baContra_Account_Code;
+    ChangedFields[i] := tkbaContra_Account_Code;
+    Inc(i);
+  end;
+  if (P1.baCurrent_Balance <> P2.baCurrent_Balance) then begin
+    P3.baCurrent_Balance := P1.baCurrent_Balance;
+    ChangedFields[i] := tkbaCurrent_Balance;
+    Inc(i);
+  end;
+  if (P1.baApply_Master_Memorised_Entries <> P2.baApply_Master_Memorised_Entries) then begin
+    P3.baApply_Master_Memorised_Entries := P1.baApply_Master_Memorised_Entries;
+    ChangedFields[i] := tkbaApply_Master_Memorised_Entries;
+    Inc(i);
+  end;
+  if (P1.baAccount_Type <> P2.baAccount_Type) then begin
+    P3.baAccount_Type := P1.baAccount_Type;
+    ChangedFields[i] := tkbaAccount_Type;
+    Inc(i);
+  end;
+  if Column_Order_Changed(TColumn_Order_Array(P1.baColumn_Order), 
+                  TColumn_Order_Array(P2.baColumn_Order), 
+                  TColumn_Order_Array(P3.baColumn_Order)) then begin
+    ChangedFields[i] := tkbaColumn_Order;
+    Inc(i);
+  end;
+  if Column_Width_Changed(TColumn_Width_Array(P1.baColumn_Width), 
+                  TColumn_Width_Array(P2.baColumn_Width), 
+                  TColumn_Width_Array(P3.baColumn_Width)) then begin
+    ChangedFields[i] := tkbaColumn_Width;
+    Inc(i);
+  end;
+  if (P1.baPreferred_View <> P2.baPreferred_View) then begin
+    P3.baPreferred_View := P1.baPreferred_View;
+    ChangedFields[i] := tkbaPreferred_View;
+    Inc(i);
+  end;
+  if (P1.baHighest_BankLink_ID <> P2.baHighest_BankLink_ID) then begin
+    P3.baHighest_BankLink_ID := P1.baHighest_BankLink_ID;
+    ChangedFields[i] := tkbaHighest_BankLink_ID;
+    Inc(i);
+  end;
+  if (P1.baHighest_LRN <> P2.baHighest_LRN) then begin
+    P3.baHighest_LRN := P1.baHighest_LRN;
+    ChangedFields[i] := tkbaHighest_LRN;
+    Inc(i);
+  end;
+  if Column_is_Hidden_Changed(TColumn_is_Hidden_Array(P1.baColumn_is_Hidden), 
+                  TColumn_is_Hidden_Array(P2.baColumn_is_Hidden), 
+                  TColumn_is_Hidden_Array(P3.baColumn_is_Hidden)) then begin
+    ChangedFields[i] := tkbaColumn_is_Hidden;
+    Inc(i);
+  end;
+  if (P1.baAccount_Expiry_Date <> P2.baAccount_Expiry_Date) then begin
+    P3.baAccount_Expiry_Date := P1.baAccount_Expiry_Date;
+    ChangedFields[i] := tkbaAccount_Expiry_Date;
+    Inc(i);
+  end;
+  if (P1.baHighest_Matched_Item_ID <> P2.baHighest_Matched_Item_ID) then begin
+    P3.baHighest_Matched_Item_ID := P1.baHighest_Matched_Item_ID;
+    ChangedFields[i] := tkbaHighest_Matched_Item_ID;
+    Inc(i);
+  end;
+  if (P1.baNotes_Always_Visible <> P2.baNotes_Always_Visible) then begin
+    P3.baNotes_Always_Visible := P1.baNotes_Always_Visible;
+    ChangedFields[i] := tkbaNotes_Always_Visible;
+    Inc(i);
+  end;
+  if (P1.baNotes_Height <> P2.baNotes_Height) then begin
+    P3.baNotes_Height := P1.baNotes_Height;
+    ChangedFields[i] := tkbaNotes_Height;
+    Inc(i);
+  end;
+  if (P1.baLast_ECoding_Transaction_UID <> P2.baLast_ECoding_Transaction_UID) then begin
+    P3.baLast_ECoding_Transaction_UID := P1.baLast_ECoding_Transaction_UID;
+    ChangedFields[i] := tkbaLast_ECoding_Transaction_UID;
+    Inc(i);
+  end;
+  if Column_Is_Not_Editable_Changed(TColumn_Is_Not_Editable_Array(P1.baColumn_Is_Not_Editable), 
+                  TColumn_Is_Not_Editable_Array(P2.baColumn_Is_Not_Editable), 
+                  TColumn_Is_Not_Editable_Array(P3.baColumn_Is_Not_Editable)) then begin
+    ChangedFields[i] := tkbaColumn_Is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.baExtend_Expiry_Date <> P2.baExtend_Expiry_Date) then begin
+    P3.baExtend_Expiry_Date := P1.baExtend_Expiry_Date;
+    ChangedFields[i] := tkbaExtend_Expiry_Date;
+    Inc(i);
+  end;
+  if (P1.baIs_A_Manual_Account <> P2.baIs_A_Manual_Account) then begin
+    P3.baIs_A_Manual_Account := P1.baIs_A_Manual_Account;
+    ChangedFields[i] := tkbaIs_A_Manual_Account;
+    Inc(i);
+  end;
+  if (P1.baAnalysis_Coding_Level <> P2.baAnalysis_Coding_Level) then begin
+    P3.baAnalysis_Coding_Level := P1.baAnalysis_Coding_Level;
+    ChangedFields[i] := tkbaAnalysis_Coding_Level;
+    Inc(i);
+  end;
+  if (P1.baECoding_Account_UID <> P2.baECoding_Account_UID) then begin
+    P3.baECoding_Account_UID := P1.baECoding_Account_UID;
+    ChangedFields[i] := tkbaECoding_Account_UID;
+    Inc(i);
+  end;
+  if (P1.baCoding_Sort_Order <> P2.baCoding_Sort_Order) then begin
+    P3.baCoding_Sort_Order := P1.baCoding_Sort_Order;
+    ChangedFields[i] := tkbaCoding_Sort_Order;
+    Inc(i);
+  end;
+  if (P1.baManual_Account_Type <> P2.baManual_Account_Type) then begin
+    P3.baManual_Account_Type := P1.baManual_Account_Type;
+    ChangedFields[i] := tkbaManual_Account_Type;
+    Inc(i);
+  end;
+  if (P1.baManual_Account_Institution <> P2.baManual_Account_Institution) then begin
+    P3.baManual_Account_Institution := P1.baManual_Account_Institution;
+    ChangedFields[i] := tkbaManual_Account_Institution;
+    Inc(i);
+  end;
+  if (P1.baManual_Account_Sent_To_Admin <> P2.baManual_Account_Sent_To_Admin) then begin
+    P3.baManual_Account_Sent_To_Admin := P1.baManual_Account_Sent_To_Admin;
+    ChangedFields[i] := tkbaManual_Account_Sent_To_Admin;
+    Inc(i);
+  end;
+  if (P1.baSpare_String <> P2.baSpare_String) then begin
+    P3.baSpare_String := P1.baSpare_String;
+    ChangedFields[i] := tkbaSpare_String;
+    Inc(i);
+  end;
+  if (P1.baIs_A_Provisional_Account <> P2.baIs_A_Provisional_Account) then begin
+    P3.baIs_A_Provisional_Account := P1.baIs_A_Provisional_Account;
+    ChangedFields[i] := tkbaIs_A_Provisional_Account;
+    Inc(i);
+  end;
+  if (P1.baSpare_Number <> P2.baSpare_Number) then begin
+    P3.baSpare_Number := P1.baSpare_Number;
+    ChangedFields[i] := tkbaSpare_Number;
+    Inc(i);
+  end;
+  if (P1.baSpare_Byte <> P2.baSpare_Byte) then begin
+    P3.baSpare_Byte := P1.baSpare_Byte;
+    ChangedFields[i] := tkbaSpare_Byte;
+    Inc(i);
+  end;
+  if HDE_Column_Order_Changed(THDE_Column_Order_Array(P1.baHDE_Column_Order), 
+                  THDE_Column_Order_Array(P2.baHDE_Column_Order), 
+                  THDE_Column_Order_Array(P3.baHDE_Column_Order)) then begin
+    ChangedFields[i] := tkbaHDE_Column_Order;
+    Inc(i);
+  end;
+  if HDE_Column_Width_Changed(THDE_Column_Width_Array(P1.baHDE_Column_Width), 
+                  THDE_Column_Width_Array(P2.baHDE_Column_Width), 
+                  THDE_Column_Width_Array(P3.baHDE_Column_Width)) then begin
+    ChangedFields[i] := tkbaHDE_Column_Width;
+    Inc(i);
+  end;
+  if HDE_Column_is_Hidden_Changed(THDE_Column_is_Hidden_Array(P1.baHDE_Column_is_Hidden), 
+                  THDE_Column_is_Hidden_Array(P2.baHDE_Column_is_Hidden), 
+                  THDE_Column_is_Hidden_Array(P3.baHDE_Column_is_Hidden)) then begin
+    ChangedFields[i] := tkbaHDE_Column_is_Hidden;
+    Inc(i);
+  end;
+  if HDE_Column_is_Not_Editable_Changed(THDE_Column_is_Not_Editable_Array(P1.baHDE_Column_is_Not_Editable), 
+                  THDE_Column_is_Not_Editable_Array(P2.baHDE_Column_is_Not_Editable), 
+                  THDE_Column_is_Not_Editable_Array(P3.baHDE_Column_is_Not_Editable)) then begin
+    ChangedFields[i] := tkbaHDE_Column_is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.baHDE_Sort_Order <> P2.baHDE_Sort_Order) then begin
+    P3.baHDE_Sort_Order := P1.baHDE_Sort_Order;
+    ChangedFields[i] := tkbaHDE_Sort_Order;
+    Inc(i);
+  end;
+  if MDE_Column_Order_Changed(TMDE_Column_Order_Array(P1.baMDE_Column_Order), 
+                  TMDE_Column_Order_Array(P2.baMDE_Column_Order), 
+                  TMDE_Column_Order_Array(P3.baMDE_Column_Order)) then begin
+    ChangedFields[i] := tkbaMDE_Column_Order;
+    Inc(i);
+  end;
+  if MDE_Column_Width_Changed(TMDE_Column_Width_Array(P1.baMDE_Column_Width), 
+                  TMDE_Column_Width_Array(P2.baMDE_Column_Width), 
+                  TMDE_Column_Width_Array(P3.baMDE_Column_Width)) then begin
+    ChangedFields[i] := tkbaMDE_Column_Width;
+    Inc(i);
+  end;
+  if MDE_Column_is_Hidden_Changed(TMDE_Column_is_Hidden_Array(P1.baMDE_Column_is_Hidden), 
+                  TMDE_Column_is_Hidden_Array(P2.baMDE_Column_is_Hidden), 
+                  TMDE_Column_is_Hidden_Array(P3.baMDE_Column_is_Hidden)) then begin
+    ChangedFields[i] := tkbaMDE_Column_is_Hidden;
+    Inc(i);
+  end;
+  if MDE_Column_is_Not_Editable_Changed(TMDE_Column_is_Not_Editable_Array(P1.baMDE_Column_is_Not_Editable), 
+                  TMDE_Column_is_Not_Editable_Array(P2.baMDE_Column_is_Not_Editable), 
+                  TMDE_Column_is_Not_Editable_Array(P3.baMDE_Column_is_Not_Editable)) then begin
+    ChangedFields[i] := tkbaMDE_Column_is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.baMDE_Sort_Order <> P2.baMDE_Sort_Order) then begin
+    P3.baMDE_Sort_Order := P1.baMDE_Sort_Order;
+    ChangedFields[i] := tkbaMDE_Sort_Order;
+    Inc(i);
+  end;
+  if DIS_Column_Order_Changed(TDIS_Column_Order_Array(P1.baDIS_Column_Order), 
+                  TDIS_Column_Order_Array(P2.baDIS_Column_Order), 
+                  TDIS_Column_Order_Array(P3.baDIS_Column_Order)) then begin
+    ChangedFields[i] := tkbaDIS_Column_Order;
+    Inc(i);
+  end;
+  if DIS_Column_Width_Changed(TDIS_Column_Width_Array(P1.baDIS_Column_Width), 
+                  TDIS_Column_Width_Array(P2.baDIS_Column_Width), 
+                  TDIS_Column_Width_Array(P3.baDIS_Column_Width)) then begin
+    ChangedFields[i] := tkbaDIS_Column_Width;
+    Inc(i);
+  end;
+  if DIS_Column_is_Hidden_Changed(TDIS_Column_is_Hidden_Array(P1.baDIS_Column_is_Hidden), 
+                  TDIS_Column_is_Hidden_Array(P2.baDIS_Column_is_Hidden), 
+                  TDIS_Column_is_Hidden_Array(P3.baDIS_Column_is_Hidden)) then begin
+    ChangedFields[i] := tkbaDIS_Column_is_Hidden;
+    Inc(i);
+  end;
+  if DIS_Column_is_Not_Editable_Changed(TDIS_Column_is_Not_Editable_Array(P1.baDIS_Column_is_Not_Editable), 
+                  TDIS_Column_is_Not_Editable_Array(P2.baDIS_Column_is_Not_Editable), 
+                  TDIS_Column_is_Not_Editable_Array(P3.baDIS_Column_is_Not_Editable)) then begin
+    ChangedFields[i] := tkbaDIS_Column_is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.baDIS_Sort_Order <> P2.baDIS_Sort_Order) then begin
+    P3.baDIS_Sort_Order := P1.baDIS_Sort_Order;
+    ChangedFields[i] := tkbaDIS_Sort_Order;
+    Inc(i);
+  end;
+  if (P1.baDesktop_Super_Ledger_ID <> P2.baDesktop_Super_Ledger_ID) then begin
+    P3.baDesktop_Super_Ledger_ID := P1.baDesktop_Super_Ledger_ID;
+    ChangedFields[i] := tkbaDesktop_Super_Ledger_ID;
+    Inc(i);
+  end;
+  if (P1.baCurrency_Code <> P2.baCurrency_Code) then begin
+    P3.baCurrency_Code := P1.baCurrency_Code;
+    ChangedFields[i] := tkbaCurrency_Code;
+    Inc(i);
+  end;
+  if (P1.baDefault_Forex_Source <> P2.baDefault_Forex_Source) then begin
+    P3.baDefault_Forex_Source := P1.baDefault_Forex_Source;
+    ChangedFields[i] := tkbaDefault_Forex_Source;
+    Inc(i);
+  end;
+  if (P1.baDefault_Forex_Description <> P2.baDefault_Forex_Description) then begin
+    P3.baDefault_Forex_Description := P1.baDefault_Forex_Description;
+    ChangedFields[i] := tkbaDefault_Forex_Description;
+    Inc(i);
+  end;
+  if (P1.baSuperFund_Ledger_Code <> P2.baSuperFund_Ledger_Code) then begin
+    P3.baSuperFund_Ledger_Code := P1.baSuperFund_Ledger_Code;
+    ChangedFields[i] := tkbaSuperFund_Ledger_Code;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Bank_Account_Rec(P1, P2: pBank_Account_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Bank_Account_Rec(P1^, S);
+    S.Position := 0;
+    Read_Bank_Account_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

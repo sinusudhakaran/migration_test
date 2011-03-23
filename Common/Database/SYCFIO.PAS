@@ -5,7 +5,7 @@ UNIT SYcfIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES SYDEFS, IOSTREAM;
+INTERFACE USES SYDEFS, IOSTREAM, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Client_File_Rec ( Var O : TClient_File_Rec ; Var F : TIOStream )
 PROCEDURE Read_Client_File_Rec ( Var O : TClient_File_Rec ; Var F : TIOStream );
 FUNCTION  New_Client_File_Rec : pClient_File_Rec ;
 PROCEDURE Free_Client_File_Rec_Dynamic_Fields ( Var O : TClient_File_Rec );
+FUNCTION Client_File_Rec_Delta(P1, P2, P3: pClient_File_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Client_File_Rec(P1, P2: pClient_File_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -96,6 +99,7 @@ CONST
    tkcfWebNotesAvailable                = 132 ;
    tkcfWebNotes_Email_Notifications     = 133 ;
    tkcfISO_Codes                        = 134 ;
+   tkcfAudit_Record_ID                  = 135 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -177,6 +181,7 @@ Begin
       For i := 1 to 36 do F.WriteBByteValue( tkcfWebNotesAvailable , i, cfWebNotesAvailable[ i ] );
       F.WriteIntegerValue( tkcfWebNotes_Email_Notifications , cfWebNotes_Email_Notifications );
       For i := 1 to 99 do F.WriteBStringValue( tkcfISO_Codes , i, cfISO_Codes[ i ] );
+      F.WriteIntegerValue( tkcfAudit_Record_ID , cfAudit_Record_ID );
       F.WriteToken( tkEnd_Client_File );
    end;
 end; { of Write_Client_File_Rec }
@@ -285,6 +290,7 @@ Begin
                CheckBounds( I, 1, 99, 'cfISO_Codes' );
                cfISO_Codes[ I ] := S;
             end;
+         tkcfAudit_Record_ID                  : cfAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -322,6 +328,335 @@ Begin
       cfBank_Accounts := '' ;
       cfAccounting_System := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkcfFile_Code to tkcfAudit_Record_ID do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Client_File_Rec_Delta(P1, P2, P3: pClient_File_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Client_File_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.cfFile_Code <> P2.cfFile_Code) then begin
+    P3.cfFile_Code := P1.cfFile_Code;
+    ChangedFields[i] := tkcfFile_Code;
+    Inc(i);
+  end;
+  if (P1.cfFile_Name <> P2.cfFile_Name) then begin
+    P3.cfFile_Name := P1.cfFile_Name;
+    ChangedFields[i] := tkcfFile_Name;
+    Inc(i);
+  end;
+  if (P1.cfFile_Type <> P2.cfFile_Type) then begin
+    P3.cfFile_Type := P1.cfFile_Type;
+    ChangedFields[i] := tkcfFile_Type;
+    Inc(i);
+  end;
+  if (P1.cfFile_Status <> P2.cfFile_Status) then begin
+    P3.cfFile_Status := P1.cfFile_Status;
+    ChangedFields[i] := tkcfFile_Status;
+    Inc(i);
+  end;
+  if (P1.cfFile_Password <> P2.cfFile_Password) then begin
+    P3.cfFile_Password := P1.cfFile_Password;
+    ChangedFields[i] := tkcfFile_Password;
+    Inc(i);
+  end;
+  if (P1.cfDate_Last_Accessed <> P2.cfDate_Last_Accessed) then begin
+    P3.cfDate_Last_Accessed := P1.cfDate_Last_Accessed;
+    ChangedFields[i] := tkcfDate_Last_Accessed;
+    Inc(i);
+  end;
+  if (P1.cfFile_Save_Count <> P2.cfFile_Save_Count) then begin
+    P3.cfFile_Save_Count := P1.cfFile_Save_Count;
+    ChangedFields[i] := tkcfFile_Save_Count;
+    Inc(i);
+  end;
+  if (P1.cfUser_Responsible <> P2.cfUser_Responsible) then begin
+    P3.cfUser_Responsible := P1.cfUser_Responsible;
+    ChangedFields[i] := tkcfUser_Responsible;
+    Inc(i);
+  end;
+  if (P1.cfCurrent_User <> P2.cfCurrent_User) then begin
+    P3.cfCurrent_User := P1.cfCurrent_User;
+    ChangedFields[i] := tkcfCurrent_User;
+    Inc(i);
+  end;
+  if (P1.cfLRN <> P2.cfLRN) then begin
+    P3.cfLRN := P1.cfLRN;
+    ChangedFields[i] := tkcfLRN;
+    Inc(i);
+  end;
+  if (P1.cfReport_Start_Date <> P2.cfReport_Start_Date) then begin
+    P3.cfReport_Start_Date := P1.cfReport_Start_Date;
+    ChangedFields[i] := tkcfReport_Start_Date;
+    Inc(i);
+  end;
+  if (P1.cfReporting_Period <> P2.cfReporting_Period) then begin
+    P3.cfReporting_Period := P1.cfReporting_Period;
+    ChangedFields[i] := tkcfReporting_Period;
+    Inc(i);
+  end;
+  if (P1.cfForeign_File <> P2.cfForeign_File) then begin
+    P3.cfForeign_File := P1.cfForeign_File;
+    ChangedFields[i] := tkcfForeign_File;
+    Inc(i);
+  end;
+  if (P1.cfUnused_Date_Field <> P2.cfUnused_Date_Field) then begin
+    P3.cfUnused_Date_Field := P1.cfUnused_Date_Field;
+    ChangedFields[i] := tkcfUnused_Date_Field;
+    Inc(i);
+  end;
+  if (P1.cfReports_Due <> P2.cfReports_Due) then begin
+    P3.cfReports_Due := P1.cfReports_Due;
+    ChangedFields[i] := tkcfReports_Due;
+    Inc(i);
+  end;
+  if (P1.cfContact_Details_To_Show <> P2.cfContact_Details_To_Show) then begin
+    P3.cfContact_Details_To_Show := P1.cfContact_Details_To_Show;
+    ChangedFields[i] := tkcfContact_Details_To_Show;
+    Inc(i);
+  end;
+  if (P1.cfFinancial_Year_Starts <> P2.cfFinancial_Year_Starts) then begin
+    P3.cfFinancial_Year_Starts := P1.cfFinancial_Year_Starts;
+    ChangedFields[i] := tkcfFinancial_Year_Starts;
+    Inc(i);
+  end;
+  if (P1.cfSchd_Rep_Method <> P2.cfSchd_Rep_Method) then begin
+    P3.cfSchd_Rep_Method := P1.cfSchd_Rep_Method;
+    ChangedFields[i] := tkcfSchd_Rep_Method;
+    Inc(i);
+  end;
+  if (P1.cfSpareBoolean <> P2.cfSpareBoolean) then begin
+    P3.cfSpareBoolean := P1.cfSpareBoolean;
+    ChangedFields[i] := tkcfSpareBoolean;
+    Inc(i);
+  end;
+  if (P1.cfPending_ToDo_Count <> P2.cfPending_ToDo_Count) then begin
+    P3.cfPending_ToDo_Count := P1.cfPending_ToDo_Count;
+    ChangedFields[i] := tkcfPending_ToDo_Count;
+    Inc(i);
+  end;
+  if (P1.cfNext_ToDo_Desc <> P2.cfNext_ToDo_Desc) then begin
+    P3.cfNext_ToDo_Desc := P1.cfNext_ToDo_Desc;
+    ChangedFields[i] := tkcfNext_ToDo_Desc;
+    Inc(i);
+  end;
+  if (P1.cfNext_ToDo_Rem_Date <> P2.cfNext_ToDo_Rem_Date) then begin
+    P3.cfNext_ToDo_Rem_Date := P1.cfNext_ToDo_Rem_Date;
+    ChangedFields[i] := tkcfNext_ToDo_Rem_Date;
+    Inc(i);
+  end;
+  if (P1.cfHas_Client_Notes <> P2.cfHas_Client_Notes) then begin
+    P3.cfHas_Client_Notes := P1.cfHas_Client_Notes;
+    ChangedFields[i] := tkcfHas_Client_Notes;
+    Inc(i);
+  end;
+  if (P1.cfOverdue_ToDo_Count <> P2.cfOverdue_ToDo_Count) then begin
+    P3.cfOverdue_ToDo_Count := P1.cfOverdue_ToDo_Count;
+    ChangedFields[i] := tkcfOverdue_ToDo_Count;
+    Inc(i);
+  end;
+  if (P1.cfSched_Rep_Reports_To_Send <> P2.cfSched_Rep_Reports_To_Send) then begin
+    P3.cfSched_Rep_Reports_To_Send := P1.cfSched_Rep_Reports_To_Send;
+    ChangedFields[i] := tkcfSched_Rep_Reports_To_Send;
+    Inc(i);
+  end;
+  if (P1.cfContact_Details_Edit_Date <> P2.cfContact_Details_Edit_Date) then begin
+    P3.cfContact_Details_Edit_Date := P1.cfContact_Details_Edit_Date;
+    ChangedFields[i] := tkcfContact_Details_Edit_Date;
+    Inc(i);
+  end;
+  if (P1.cfContact_Details_Edit_Time <> P2.cfContact_Details_Edit_Time) then begin
+    P3.cfContact_Details_Edit_Time := P1.cfContact_Details_Edit_Time;
+    ChangedFields[i] := tkcfContact_Details_Edit_Time;
+    Inc(i);
+  end;
+  if (P1.cfBank_Accounts <> P2.cfBank_Accounts) then begin
+    P3.cfBank_Accounts := P1.cfBank_Accounts;
+    ChangedFields[i] := tkcfBank_Accounts;
+    Inc(i);
+  end;
+  if (P1.cfDate_Of_Last_Entry_Printed <> P2.cfDate_Of_Last_Entry_Printed) then begin
+    P3.cfDate_Of_Last_Entry_Printed := P1.cfDate_Of_Last_Entry_Printed;
+    ChangedFields[i] := tkcfDate_Of_Last_Entry_Printed;
+    Inc(i);
+  end;
+  if (P1.cfLast_Print_Reports_Up_To <> P2.cfLast_Print_Reports_Up_To) then begin
+    P3.cfLast_Print_Reports_Up_To := P1.cfLast_Print_Reports_Up_To;
+    ChangedFields[i] := tkcfLast_Print_Reports_Up_To;
+    Inc(i);
+  end;
+  if (P1.cfClient_Type <> P2.cfClient_Type) then begin
+    P3.cfClient_Type := P1.cfClient_Type;
+    ChangedFields[i] := tkcfClient_Type;
+    Inc(i);
+  end;
+  if Coded_Changed(TCoded_Array(P1.cfCoded), 
+                  TCoded_Array(P2.cfCoded), 
+                  TCoded_Array(P3.cfCoded)) then begin
+    ChangedFields[i] := tkcfCoded;
+    Inc(i);
+  end;
+  if Finalized_Changed(TFinalized_Array(P1.cfFinalized), 
+                  TFinalized_Array(P2.cfFinalized), 
+                  TFinalized_Array(P3.cfFinalized)) then begin
+    ChangedFields[i] := tkcfFinalized;
+    Inc(i);
+  end;
+  if Transferred_Changed(TTransferred_Array(P1.cfTransferred), 
+                  TTransferred_Array(P2.cfTransferred), 
+                  TTransferred_Array(P3.cfTransferred)) then begin
+    ChangedFields[i] := tkcfTransferred;
+    Inc(i);
+  end;
+  if (P1.cfLast_Processing_Status_Date <> P2.cfLast_Processing_Status_Date) then begin
+    P3.cfLast_Processing_Status_Date := P1.cfLast_Processing_Status_Date;
+    ChangedFields[i] := tkcfLast_Processing_Status_Date;
+    Inc(i);
+  end;
+  if (P1.cfSchd_Rep_Method_Filter <> P2.cfSchd_Rep_Method_Filter) then begin
+    P3.cfSchd_Rep_Method_Filter := P1.cfSchd_Rep_Method_Filter;
+    ChangedFields[i] := tkcfSchd_Rep_Method_Filter;
+    Inc(i);
+  end;
+  if (P1.cfArchived <> P2.cfArchived) then begin
+    P3.cfArchived := P1.cfArchived;
+    ChangedFields[i] := tkcfArchived;
+    Inc(i);
+  end;
+  if (P1.cfPayee_Count <> P2.cfPayee_Count) then begin
+    P3.cfPayee_Count := P1.cfPayee_Count;
+    ChangedFields[i] := tkcfPayee_Count;
+    Inc(i);
+  end;
+  if (P1.cfBank_Account_Count <> P2.cfBank_Account_Count) then begin
+    P3.cfBank_Account_Count := P1.cfBank_Account_Count;
+    ChangedFields[i] := tkcfBank_Account_Count;
+    Inc(i);
+  end;
+  if (P1.cfManual_Account_Count <> P2.cfManual_Account_Count) then begin
+    P3.cfManual_Account_Count := P1.cfManual_Account_Count;
+    ChangedFields[i] := tkcfManual_Account_Count;
+    Inc(i);
+  end;
+  if (P1.cfMem_Count <> P2.cfMem_Count) then begin
+    P3.cfMem_Count := P1.cfMem_Count;
+    ChangedFields[i] := tkcfMem_Count;
+    Inc(i);
+  end;
+  if (P1.cfAccounting_System <> P2.cfAccounting_System) then begin
+    P3.cfAccounting_System := P1.cfAccounting_System;
+    ChangedFields[i] := tkcfAccounting_System;
+    Inc(i);
+  end;
+  if Downloaded_Changed(TDownloaded_Array(P1.cfDownloaded), 
+                  TDownloaded_Array(P2.cfDownloaded), 
+                  TDownloaded_Array(P3.cfDownloaded)) then begin
+    ChangedFields[i] := tkcfDownloaded;
+    Inc(i);
+  end;
+  if (P1.cfGroup_LRN <> P2.cfGroup_LRN) then begin
+    P3.cfGroup_LRN := P1.cfGroup_LRN;
+    ChangedFields[i] := tkcfGroup_LRN;
+    Inc(i);
+  end;
+  if (P1.cfClient_Type_LRN <> P2.cfClient_Type_LRN) then begin
+    P3.cfClient_Type_LRN := P1.cfClient_Type_LRN;
+    ChangedFields[i] := tkcfClient_Type_LRN;
+    Inc(i);
+  end;
+  if (P1.cfJob_Count <> P2.cfJob_Count) then begin
+    P3.cfJob_Count := P1.cfJob_Count;
+    ChangedFields[i] := tkcfJob_Count;
+    Inc(i);
+  end;
+  if (P1.cfDivision_Count <> P2.cfDivision_Count) then begin
+    P3.cfDivision_Count := P1.cfDivision_Count;
+    ChangedFields[i] := tkcfDivision_Count;
+    Inc(i);
+  end;
+  if (P1.cfGST_Period <> P2.cfGST_Period) then begin
+    P3.cfGST_Period := P1.cfGST_Period;
+    ChangedFields[i] := tkcfGST_Period;
+    Inc(i);
+  end;
+  if (P1.cfGST_Start_Month <> P2.cfGST_Start_Month) then begin
+    P3.cfGST_Start_Month := P1.cfGST_Start_Month;
+    ChangedFields[i] := tkcfGST_Start_Month;
+    Inc(i);
+  end;
+  if (P1.cfBulk_Extract_Code <> P2.cfBulk_Extract_Code) then begin
+    P3.cfBulk_Extract_Code := P1.cfBulk_Extract_Code;
+    ChangedFields[i] := tkcfBulk_Extract_Code;
+    Inc(i);
+  end;
+  if WebNotesAvailable_Changed(TWebNotesAvailable_Array(P1.cfWebNotesAvailable), 
+                  TWebNotesAvailable_Array(P2.cfWebNotesAvailable), 
+                  TWebNotesAvailable_Array(P3.cfWebNotesAvailable)) then begin
+    ChangedFields[i] := tkcfWebNotesAvailable;
+    Inc(i);
+  end;
+  if (P1.cfWebNotes_Email_Notifications <> P2.cfWebNotes_Email_Notifications) then begin
+    P3.cfWebNotes_Email_Notifications := P1.cfWebNotes_Email_Notifications;
+    ChangedFields[i] := tkcfWebNotes_Email_Notifications;
+    Inc(i);
+  end;
+  if ISO_Codes_Changed(TISO_Codes_Array(P1.cfISO_Codes), 
+                  TISO_Codes_Array(P2.cfISO_Codes), 
+                  TISO_Codes_Array(P3.cfISO_Codes)) then begin
+    ChangedFields[i] := tkcfISO_Codes;
+    Inc(i);
+  end;
+  if (P1.cfAudit_Record_ID <> P2.cfAudit_Record_ID) then begin
+    P3.cfAudit_Record_ID := P1.cfAudit_Record_ID;
+    ChangedFields[i] := tkcfAudit_Record_ID;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Client_File_Rec(P1, P2: pClient_File_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Client_File_Rec(P1^, S);
+    S.Position := 0;
+    Read_Client_File_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

@@ -5,7 +5,7 @@ UNIT BKplIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Payee_Line_Rec ( Var O : TPayee_Line_Rec ; Var F : TIOStream );
 PROCEDURE Read_Payee_Line_Rec ( Var O : TPayee_Line_Rec ; Var F : TIOStream );
 FUNCTION  New_Payee_Line_Rec : pPayee_Line_Rec ;
 PROCEDURE Free_Payee_Line_Rec_Dynamic_Fields ( Var O : TPayee_Line_Rec );
+FUNCTION Payee_Line_Rec_Delta(P1, P2, P3: pPayee_Line_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Payee_Line_Rec(P1, P2: pPayee_Line_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -248,6 +251,259 @@ Begin
       plSF_Trans_Code := '' ;
       plSF_Ledger_Name := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkplAccount to tkplSF_Ledger_Name do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Payee_Line_Rec_Delta(P1, P2, P3: pPayee_Line_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Payee_Line_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.plAccount <> P2.plAccount) then begin
+    P3.plAccount := P1.plAccount;
+    ChangedFields[i] := tkplAccount;
+    Inc(i);
+  end;
+  if (P1.plPercentage <> P2.plPercentage) then begin
+    P3.plPercentage := P1.plPercentage;
+    ChangedFields[i] := tkplPercentage;
+    Inc(i);
+  end;
+  if (P1.plGST_Class <> P2.plGST_Class) then begin
+    P3.plGST_Class := P1.plGST_Class;
+    ChangedFields[i] := tkplGST_Class;
+    Inc(i);
+  end;
+  if (P1.plGST_Has_Been_Edited <> P2.plGST_Has_Been_Edited) then begin
+    P3.plGST_Has_Been_Edited := P1.plGST_Has_Been_Edited;
+    ChangedFields[i] := tkplGST_Has_Been_Edited;
+    Inc(i);
+  end;
+  if (P1.plGL_Narration <> P2.plGL_Narration) then begin
+    P3.plGL_Narration := P1.plGL_Narration;
+    ChangedFields[i] := tkplGL_Narration;
+    Inc(i);
+  end;
+  if (P1.plLine_Type <> P2.plLine_Type) then begin
+    P3.plLine_Type := P1.plLine_Type;
+    ChangedFields[i] := tkplLine_Type;
+    Inc(i);
+  end;
+  if (P1.plGST_Amount <> P2.plGST_Amount) then begin
+    P3.plGST_Amount := P1.plGST_Amount;
+    ChangedFields[i] := tkplGST_Amount;
+    Inc(i);
+  end;
+  if (P1.plSF_PCFranked <> P2.plSF_PCFranked) then begin
+    P3.plSF_PCFranked := P1.plSF_PCFranked;
+    ChangedFields[i] := tkplSF_PCFranked;
+    Inc(i);
+  end;
+  if (P1.plSF_Member_ID <> P2.plSF_Member_ID) then begin
+    P3.plSF_Member_ID := P1.plSF_Member_ID;
+    ChangedFields[i] := tkplSF_Member_ID;
+    Inc(i);
+  end;
+  if (P1.plSF_Fund_ID <> P2.plSF_Fund_ID) then begin
+    P3.plSF_Fund_ID := P1.plSF_Fund_ID;
+    ChangedFields[i] := tkplSF_Fund_ID;
+    Inc(i);
+  end;
+  if (P1.plSF_Fund_Code <> P2.plSF_Fund_Code) then begin
+    P3.plSF_Fund_Code := P1.plSF_Fund_Code;
+    ChangedFields[i] := tkplSF_Fund_Code;
+    Inc(i);
+  end;
+  if (P1.plSF_Trans_ID <> P2.plSF_Trans_ID) then begin
+    P3.plSF_Trans_ID := P1.plSF_Trans_ID;
+    ChangedFields[i] := tkplSF_Trans_ID;
+    Inc(i);
+  end;
+  if (P1.plSF_Trans_Code <> P2.plSF_Trans_Code) then begin
+    P3.plSF_Trans_Code := P1.plSF_Trans_Code;
+    ChangedFields[i] := tkplSF_Trans_Code;
+    Inc(i);
+  end;
+  if (P1.plSF_Member_Account_ID <> P2.plSF_Member_Account_ID) then begin
+    P3.plSF_Member_Account_ID := P1.plSF_Member_Account_ID;
+    ChangedFields[i] := tkplSF_Member_Account_ID;
+    Inc(i);
+  end;
+  if (P1.plSF_Member_Account_Code <> P2.plSF_Member_Account_Code) then begin
+    P3.plSF_Member_Account_Code := P1.plSF_Member_Account_Code;
+    ChangedFields[i] := tkplSF_Member_Account_Code;
+    Inc(i);
+  end;
+  if (P1.plSF_Edited <> P2.plSF_Edited) then begin
+    P3.plSF_Edited := P1.plSF_Edited;
+    ChangedFields[i] := tkplSF_Edited;
+    Inc(i);
+  end;
+  if (P1.plSF_Member_Component <> P2.plSF_Member_Component) then begin
+    P3.plSF_Member_Component := P1.plSF_Member_Component;
+    ChangedFields[i] := tkplSF_Member_Component;
+    Inc(i);
+  end;
+  if (P1.plSF_PCUnFranked <> P2.plSF_PCUnFranked) then begin
+    P3.plSF_PCUnFranked := P1.plSF_PCUnFranked;
+    ChangedFields[i] := tkplSF_PCUnFranked;
+    Inc(i);
+  end;
+  if (P1.plQuantity <> P2.plQuantity) then begin
+    P3.plQuantity := P1.plQuantity;
+    ChangedFields[i] := tkplQuantity;
+    Inc(i);
+  end;
+  if (P1.plSF_GDT_Date <> P2.plSF_GDT_Date) then begin
+    P3.plSF_GDT_Date := P1.plSF_GDT_Date;
+    ChangedFields[i] := tkplSF_GDT_Date;
+    Inc(i);
+  end;
+  if (P1.plSF_Tax_Free_Dist <> P2.plSF_Tax_Free_Dist) then begin
+    P3.plSF_Tax_Free_Dist := P1.plSF_Tax_Free_Dist;
+    ChangedFields[i] := tkplSF_Tax_Free_Dist;
+    Inc(i);
+  end;
+  if (P1.plSF_Tax_Exempt_Dist <> P2.plSF_Tax_Exempt_Dist) then begin
+    P3.plSF_Tax_Exempt_Dist := P1.plSF_Tax_Exempt_Dist;
+    ChangedFields[i] := tkplSF_Tax_Exempt_Dist;
+    Inc(i);
+  end;
+  if (P1.plSF_Tax_Deferred_Dist <> P2.plSF_Tax_Deferred_Dist) then begin
+    P3.plSF_Tax_Deferred_Dist := P1.plSF_Tax_Deferred_Dist;
+    ChangedFields[i] := tkplSF_Tax_Deferred_Dist;
+    Inc(i);
+  end;
+  if (P1.plSF_TFN_Credits <> P2.plSF_TFN_Credits) then begin
+    P3.plSF_TFN_Credits := P1.plSF_TFN_Credits;
+    ChangedFields[i] := tkplSF_TFN_Credits;
+    Inc(i);
+  end;
+  if (P1.plSF_Foreign_Income <> P2.plSF_Foreign_Income) then begin
+    P3.plSF_Foreign_Income := P1.plSF_Foreign_Income;
+    ChangedFields[i] := tkplSF_Foreign_Income;
+    Inc(i);
+  end;
+  if (P1.plSF_Foreign_Tax_Credits <> P2.plSF_Foreign_Tax_Credits) then begin
+    P3.plSF_Foreign_Tax_Credits := P1.plSF_Foreign_Tax_Credits;
+    ChangedFields[i] := tkplSF_Foreign_Tax_Credits;
+    Inc(i);
+  end;
+  if (P1.plSF_Capital_Gains_Indexed <> P2.plSF_Capital_Gains_Indexed) then begin
+    P3.plSF_Capital_Gains_Indexed := P1.plSF_Capital_Gains_Indexed;
+    ChangedFields[i] := tkplSF_Capital_Gains_Indexed;
+    Inc(i);
+  end;
+  if (P1.plSF_Capital_Gains_Disc <> P2.plSF_Capital_Gains_Disc) then begin
+    P3.plSF_Capital_Gains_Disc := P1.plSF_Capital_Gains_Disc;
+    ChangedFields[i] := tkplSF_Capital_Gains_Disc;
+    Inc(i);
+  end;
+  if (P1.plSF_Capital_Gains_Other <> P2.plSF_Capital_Gains_Other) then begin
+    P3.plSF_Capital_Gains_Other := P1.plSF_Capital_Gains_Other;
+    ChangedFields[i] := tkplSF_Capital_Gains_Other;
+    Inc(i);
+  end;
+  if (P1.plSF_Other_Expenses <> P2.plSF_Other_Expenses) then begin
+    P3.plSF_Other_Expenses := P1.plSF_Other_Expenses;
+    ChangedFields[i] := tkplSF_Other_Expenses;
+    Inc(i);
+  end;
+  if (P1.plSF_Interest <> P2.plSF_Interest) then begin
+    P3.plSF_Interest := P1.plSF_Interest;
+    ChangedFields[i] := tkplSF_Interest;
+    Inc(i);
+  end;
+  if (P1.plSF_Capital_Gains_Foreign_Disc <> P2.plSF_Capital_Gains_Foreign_Disc) then begin
+    P3.plSF_Capital_Gains_Foreign_Disc := P1.plSF_Capital_Gains_Foreign_Disc;
+    ChangedFields[i] := tkplSF_Capital_Gains_Foreign_Disc;
+    Inc(i);
+  end;
+  if (P1.plSF_Rent <> P2.plSF_Rent) then begin
+    P3.plSF_Rent := P1.plSF_Rent;
+    ChangedFields[i] := tkplSF_Rent;
+    Inc(i);
+  end;
+  if (P1.plSF_Special_Income <> P2.plSF_Special_Income) then begin
+    P3.plSF_Special_Income := P1.plSF_Special_Income;
+    ChangedFields[i] := tkplSF_Special_Income;
+    Inc(i);
+  end;
+  if (P1.plSF_Other_Tax_Credit <> P2.plSF_Other_Tax_Credit) then begin
+    P3.plSF_Other_Tax_Credit := P1.plSF_Other_Tax_Credit;
+    ChangedFields[i] := tkplSF_Other_Tax_Credit;
+    Inc(i);
+  end;
+  if (P1.plSF_Non_Resident_Tax <> P2.plSF_Non_Resident_Tax) then begin
+    P3.plSF_Non_Resident_Tax := P1.plSF_Non_Resident_Tax;
+    ChangedFields[i] := tkplSF_Non_Resident_Tax;
+    Inc(i);
+  end;
+  if (P1.plSF_Foreign_Capital_Gains_Credit <> P2.plSF_Foreign_Capital_Gains_Credit) then begin
+    P3.plSF_Foreign_Capital_Gains_Credit := P1.plSF_Foreign_Capital_Gains_Credit;
+    ChangedFields[i] := tkplSF_Foreign_Capital_Gains_Credit;
+    Inc(i);
+  end;
+  if (P1.plSF_Capital_Gains_Fraction_Half <> P2.plSF_Capital_Gains_Fraction_Half) then begin
+    P3.plSF_Capital_Gains_Fraction_Half := P1.plSF_Capital_Gains_Fraction_Half;
+    ChangedFields[i] := tkplSF_Capital_Gains_Fraction_Half;
+    Inc(i);
+  end;
+  if (P1.plSF_Ledger_ID <> P2.plSF_Ledger_ID) then begin
+    P3.plSF_Ledger_ID := P1.plSF_Ledger_ID;
+    ChangedFields[i] := tkplSF_Ledger_ID;
+    Inc(i);
+  end;
+  if (P1.plSF_Ledger_Name <> P2.plSF_Ledger_Name) then begin
+    P3.plSF_Ledger_Name := P1.plSF_Ledger_Name;
+    ChangedFields[i] := tkplSF_Ledger_Name;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Payee_Line_Rec(P1, P2: pPayee_Line_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Payee_Line_Rec(P1^, S);
+    S.Position := 0;
+    Read_Payee_Line_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

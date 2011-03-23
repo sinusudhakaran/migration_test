@@ -5,7 +5,7 @@ UNIT BKmcIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_MoreClient_Rec ( Var O : TMoreClient_Rec ; Var F : TIOStream );
 PROCEDURE Read_MoreClient_Rec ( Var O : TMoreClient_Rec ; Var F : TIOStream );
 FUNCTION  New_MoreClient_Rec : pMoreClient_Rec ;
 PROCEDURE Free_MoreClient_Rec_Dynamic_Fields ( Var O : TMoreClient_Rec );
+FUNCTION MoreClient_Rec_Delta(P1, P2, P3: pMoreClient_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_MoreClient_Rec(P1, P2: pMoreClient_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -134,6 +137,74 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkmcBAS_Dont_Print_Fuel_Sheet to tkmcJournal_Processing_Duration do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION MoreClient_Rec_Delta(P1, P2, P3: pMoreClient_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_MoreClient_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.mcBAS_Dont_Print_Fuel_Sheet <> P2.mcBAS_Dont_Print_Fuel_Sheet) then begin
+    P3.mcBAS_Dont_Print_Fuel_Sheet := P1.mcBAS_Dont_Print_Fuel_Sheet;
+    ChangedFields[i] := tkmcBAS_Dont_Print_Fuel_Sheet;
+    Inc(i);
+  end;
+  if (P1.mcArchived <> P2.mcArchived) then begin
+    P3.mcArchived := P1.mcArchived;
+    ChangedFields[i] := tkmcArchived;
+    Inc(i);
+  end;
+  if (P1.mcJournal_Processing_Duration <> P2.mcJournal_Processing_Duration) then begin
+    P3.mcJournal_Processing_Duration := P1.mcJournal_Processing_Duration;
+    ChangedFields[i] := tkmcJournal_Processing_Duration;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_MoreClient_Rec(P1, P2: pMoreClient_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_MoreClient_Rec(P1^, S);
+    S.Position := 0;
+    Read_MoreClient_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

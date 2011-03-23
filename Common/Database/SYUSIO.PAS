@@ -5,7 +5,7 @@ UNIT SYusIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES SYDEFS, IOSTREAM;
+INTERFACE USES SYDEFS, IOSTREAM, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_User_Rec ( Var O : TUser_Rec ; Var F : TIOStream );
 PROCEDURE Read_User_Rec ( Var O : TUser_Rec ; Var F : TIOStream );
 FUNCTION  New_User_Rec : pUser_Rec ;
 PROCEDURE Free_User_Rec_Dynamic_Fields ( Var O : TUser_Rec );
+FUNCTION User_Rec_Delta(P1, P2, P3: pUser_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_User_Rec(P1, P2: pUser_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -65,6 +68,7 @@ CONST
    tkusReset_Count                      = 81 ;
    tkusSuppress_HF                      = 82 ;
    tkusShow_Practice_Logo               = 83 ;
+   tkusAudit_Record_ID                  = 84 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -112,6 +116,7 @@ Begin
       F.WriteIntegerValue( tkusReset_Count , usReset_Count );
       F.WriteByteValue( tkusSuppress_HF , usSuppress_HF );
       F.WriteBooleanValue( tkusShow_Practice_Logo , usShow_Practice_Logo );
+      F.WriteIntegerValue( tkusAudit_Record_ID , usAudit_Record_ID );
       F.WriteToken( tkEnd_User );
    end;
 end; { of Write_User_Rec }
@@ -156,6 +161,7 @@ Begin
          tkusReset_Count                      : usReset_Count := F.ReadIntegerValue;
          tkusSuppress_HF                      : usSuppress_HF := F.ReadByteValue;
          tkusShow_Practice_Logo               : usShow_Practice_Logo := F.ReadBooleanValue;
+         tkusAudit_Record_ID                  : usAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -192,6 +198,174 @@ Begin
       { Free any dynamically allocated memory }
       usEULA_Version := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkusCode to tkusAudit_Record_ID do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION User_Rec_Delta(P1, P2, P3: pUser_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_User_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.usCode <> P2.usCode) then begin
+    P3.usCode := P1.usCode;
+    ChangedFields[i] := tkusCode;
+    Inc(i);
+  end;
+  if (P1.usName <> P2.usName) then begin
+    P3.usName := P1.usName;
+    ChangedFields[i] := tkusName;
+    Inc(i);
+  end;
+  if (P1.usPassword <> P2.usPassword) then begin
+    P3.usPassword := P1.usPassword;
+    ChangedFields[i] := tkusPassword;
+    Inc(i);
+  end;
+  if (P1.usEMail_Address <> P2.usEMail_Address) then begin
+    P3.usEMail_Address := P1.usEMail_Address;
+    ChangedFields[i] := tkusEMail_Address;
+    Inc(i);
+  end;
+  if (P1.usSystem_Access <> P2.usSystem_Access) then begin
+    P3.usSystem_Access := P1.usSystem_Access;
+    ChangedFields[i] := tkusSystem_Access;
+    Inc(i);
+  end;
+  if (P1.usDialog_Colour <> P2.usDialog_Colour) then begin
+    P3.usDialog_Colour := P1.usDialog_Colour;
+    ChangedFields[i] := tkusDialog_Colour;
+    Inc(i);
+  end;
+  if (P1.usLogged_In <> P2.usLogged_In) then begin
+    P3.usLogged_In := P1.usLogged_In;
+    ChangedFields[i] := tkusLogged_In;
+    Inc(i);
+  end;
+  if (P1.usReverse_Mouse_Buttons <> P2.usReverse_Mouse_Buttons) then begin
+    P3.usReverse_Mouse_Buttons := P1.usReverse_Mouse_Buttons;
+    ChangedFields[i] := tkusReverse_Mouse_Buttons;
+    Inc(i);
+  end;
+  if (P1.usMASTER_Access <> P2.usMASTER_Access) then begin
+    P3.usMASTER_Access := P1.usMASTER_Access;
+    ChangedFields[i] := tkusMASTER_Access;
+    Inc(i);
+  end;
+  if (P1.usLRN <> P2.usLRN) then begin
+    P3.usLRN := P1.usLRN;
+    ChangedFields[i] := tkusLRN;
+    Inc(i);
+  end;
+  if (P1.usSpare_String <> P2.usSpare_String) then begin
+    P3.usSpare_String := P1.usSpare_String;
+    ChangedFields[i] := tkusSpare_String;
+    Inc(i);
+  end;
+  if (P1.usWorkstation_Logged_In_At <> P2.usWorkstation_Logged_In_At) then begin
+    P3.usWorkstation_Logged_In_At := P1.usWorkstation_Logged_In_At;
+    ChangedFields[i] := tkusWorkstation_Logged_In_At;
+    Inc(i);
+  end;
+  if (P1.usIs_Remote_User <> P2.usIs_Remote_User) then begin
+    P3.usIs_Remote_User := P1.usIs_Remote_User;
+    ChangedFields[i] := tkusIs_Remote_User;
+    Inc(i);
+  end;
+  if (P1.usDirect_Dial <> P2.usDirect_Dial) then begin
+    P3.usDirect_Dial := P1.usDirect_Dial;
+    ChangedFields[i] := tkusDirect_Dial;
+    Inc(i);
+  end;
+  if (P1.usShow_CM_on_open <> P2.usShow_CM_on_open) then begin
+    P3.usShow_CM_on_open := P1.usShow_CM_on_open;
+    ChangedFields[i] := tkusShow_CM_on_open;
+    Inc(i);
+  end;
+  if (P1.usShow_Printer_Choice <> P2.usShow_Printer_Choice) then begin
+    P3.usShow_Printer_Choice := P1.usShow_Printer_Choice;
+    ChangedFields[i] := tkusShow_Printer_Choice;
+    Inc(i);
+  end;
+  if (P1.usEULA_Version <> P2.usEULA_Version) then begin
+    P3.usEULA_Version := P1.usEULA_Version;
+    ChangedFields[i] := tkusEULA_Version;
+    Inc(i);
+  end;
+  if (P1.usSpare_Boolean <> P2.usSpare_Boolean) then begin
+    P3.usSpare_Boolean := P1.usSpare_Boolean;
+    ChangedFields[i] := tkusSpare_Boolean;
+    Inc(i);
+  end;
+  if (P1.usLogin_Count <> P2.usLogin_Count) then begin
+    P3.usLogin_Count := P1.usLogin_Count;
+    ChangedFields[i] := tkusLogin_Count;
+    Inc(i);
+  end;
+  if (P1.usReset_Count <> P2.usReset_Count) then begin
+    P3.usReset_Count := P1.usReset_Count;
+    ChangedFields[i] := tkusReset_Count;
+    Inc(i);
+  end;
+  if (P1.usSuppress_HF <> P2.usSuppress_HF) then begin
+    P3.usSuppress_HF := P1.usSuppress_HF;
+    ChangedFields[i] := tkusSuppress_HF;
+    Inc(i);
+  end;
+  if (P1.usShow_Practice_Logo <> P2.usShow_Practice_Logo) then begin
+    P3.usShow_Practice_Logo := P1.usShow_Practice_Logo;
+    ChangedFields[i] := tkusShow_Practice_Logo;
+    Inc(i);
+  end;
+  if (P1.usAudit_Record_ID <> P2.usAudit_Record_ID) then begin
+    P3.usAudit_Record_ID := P1.usAudit_Record_ID;
+    ChangedFields[i] := tkusAudit_Record_ID;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_User_Rec(P1, P2: pUser_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_User_Rec(P1^, S);
+    S.Position := 0;
+    Read_User_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

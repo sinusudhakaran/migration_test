@@ -5,7 +5,7 @@ UNIT BKmxIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Memorised_Transaction_Rec ( Var O : TMemorised_Transaction_Rec ;
 PROCEDURE Read_Memorised_Transaction_Rec ( Var O : TMemorised_Transaction_Rec ; Var F : TIOStream );
 FUNCTION  New_Memorised_Transaction_Rec : pMemorised_Transaction_Rec ;
 PROCEDURE Free_Memorised_Transaction_Rec_Dynamic_Fields ( Var O : TMemorised_Transaction_Rec );
+FUNCTION Memorised_Transaction_Rec_Delta(P1, P2, P3: pMemorised_Transaction_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Memorised_Transaction_Rec(P1, P2: pMemorised_Transaction_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -235,6 +238,185 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkmxSequence_No to tkmxLine_Type do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Memorised_Transaction_Rec_Delta(P1, P2, P3: pMemorised_Transaction_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Memorised_Transaction_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.mxSequence_No <> P2.mxSequence_No) then begin
+    P3.mxSequence_No := P1.mxSequence_No;
+    ChangedFields[i] := tkmxSequence_No;
+    Inc(i);
+  end;
+  if (P1.mxType <> P2.mxType) then begin
+    P3.mxType := P1.mxType;
+    ChangedFields[i] := tkmxType;
+    Inc(i);
+  end;
+  if (P1.mxAmount <> P2.mxAmount) then begin
+    P3.mxAmount := P1.mxAmount;
+    ChangedFields[i] := tkmxAmount;
+    Inc(i);
+  end;
+  if (P1.mxReference <> P2.mxReference) then begin
+    P3.mxReference := P1.mxReference;
+    ChangedFields[i] := tkmxReference;
+    Inc(i);
+  end;
+  if (P1.mxParticulars <> P2.mxParticulars) then begin
+    P3.mxParticulars := P1.mxParticulars;
+    ChangedFields[i] := tkmxParticulars;
+    Inc(i);
+  end;
+  if (P1.mxAnalysis <> P2.mxAnalysis) then begin
+    P3.mxAnalysis := P1.mxAnalysis;
+    ChangedFields[i] := tkmxAnalysis;
+    Inc(i);
+  end;
+  if (P1.mxOther_Party <> P2.mxOther_Party) then begin
+    P3.mxOther_Party := P1.mxOther_Party;
+    ChangedFields[i] := tkmxOther_Party;
+    Inc(i);
+  end;
+  if (P1.mxStatement_Details <> P2.mxStatement_Details) then begin
+    P3.mxStatement_Details := P1.mxStatement_Details;
+    ChangedFields[i] := tkmxStatement_Details;
+    Inc(i);
+  end;
+  if (P1.mxMatch_on_Amount <> P2.mxMatch_on_Amount) then begin
+    P3.mxMatch_on_Amount := P1.mxMatch_on_Amount;
+    ChangedFields[i] := tkmxMatch_on_Amount;
+    Inc(i);
+  end;
+  if (P1.mxMatch_on_Refce <> P2.mxMatch_on_Refce) then begin
+    P3.mxMatch_on_Refce := P1.mxMatch_on_Refce;
+    ChangedFields[i] := tkmxMatch_on_Refce;
+    Inc(i);
+  end;
+  if (P1.mxMatch_on_Particulars <> P2.mxMatch_on_Particulars) then begin
+    P3.mxMatch_on_Particulars := P1.mxMatch_on_Particulars;
+    ChangedFields[i] := tkmxMatch_on_Particulars;
+    Inc(i);
+  end;
+  if (P1.mxMatch_on_Analysis <> P2.mxMatch_on_Analysis) then begin
+    P3.mxMatch_on_Analysis := P1.mxMatch_on_Analysis;
+    ChangedFields[i] := tkmxMatch_on_Analysis;
+    Inc(i);
+  end;
+  if (P1.mxMatch_on_Other_Party <> P2.mxMatch_on_Other_Party) then begin
+    P3.mxMatch_on_Other_Party := P1.mxMatch_on_Other_Party;
+    ChangedFields[i] := tkmxMatch_on_Other_Party;
+    Inc(i);
+  end;
+  if (P1.mxMatch_On_Statement_Details <> P2.mxMatch_On_Statement_Details) then begin
+    P3.mxMatch_On_Statement_Details := P1.mxMatch_On_Statement_Details;
+    ChangedFields[i] := tkmxMatch_On_Statement_Details;
+    Inc(i);
+  end;
+  if Account_Changed(TAccount_Array(P1.mxAccount), 
+                  TAccount_Array(P2.mxAccount), 
+                  TAccount_Array(P3.mxAccount)) then begin
+    ChangedFields[i] := tkmxAccount;
+    Inc(i);
+  end;
+  if Percentage_Changed(TPercentage_Array(P1.mxPercentage), 
+                  TPercentage_Array(P2.mxPercentage), 
+                  TPercentage_Array(P3.mxPercentage)) then begin
+    ChangedFields[i] := tkmxPercentage;
+    Inc(i);
+  end;
+  if GST_Class_Changed(TGST_Class_Array(P1.mxGST_Class), 
+                  TGST_Class_Array(P2.mxGST_Class), 
+                  TGST_Class_Array(P3.mxGST_Class)) then begin
+    ChangedFields[i] := tkmxGST_Class;
+    Inc(i);
+  end;
+  if (P1.mxPayee_Number <> P2.mxPayee_Number) then begin
+    P3.mxPayee_Number := P1.mxPayee_Number;
+    ChangedFields[i] := tkmxPayee_Number;
+    Inc(i);
+  end;
+  if (P1.mxFrom_Master_List <> P2.mxFrom_Master_List) then begin
+    P3.mxFrom_Master_List := P1.mxFrom_Master_List;
+    ChangedFields[i] := tkmxFrom_Master_List;
+    Inc(i);
+  end;
+  if GST_Has_Been_Edited_Changed(TGST_Has_Been_Edited_Array(P1.mxGST_Has_Been_Edited), 
+                  TGST_Has_Been_Edited_Array(P2.mxGST_Has_Been_Edited), 
+                  TGST_Has_Been_Edited_Array(P3.mxGST_Has_Been_Edited)) then begin
+    ChangedFields[i] := tkmxGST_Has_Been_Edited;
+    Inc(i);
+  end;
+  if (P1.mxMatch_on_Notes <> P2.mxMatch_on_Notes) then begin
+    P3.mxMatch_on_Notes := P1.mxMatch_on_Notes;
+    ChangedFields[i] := tkmxMatch_on_Notes;
+    Inc(i);
+  end;
+  if (P1.mxNotes <> P2.mxNotes) then begin
+    P3.mxNotes := P1.mxNotes;
+    ChangedFields[i] := tkmxNotes;
+    Inc(i);
+  end;
+  if GL_Narration_Changed(TGL_Narration_Array(P1.mxGL_Narration), 
+                  TGL_Narration_Array(P2.mxGL_Narration), 
+                  TGL_Narration_Array(P3.mxGL_Narration)) then begin
+    ChangedFields[i] := tkmxGL_Narration;
+    Inc(i);
+  end;
+  if Line_Type_Changed(TLine_Type_Array(P1.mxLine_Type), 
+                  TLine_Type_Array(P2.mxLine_Type), 
+                  TLine_Type_Array(P3.mxLine_Type)) then begin
+    ChangedFields[i] := tkmxLine_Type;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Memorised_Transaction_Rec(P1, P2: pMemorised_Transaction_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Memorised_Transaction_Rec(P1^, S);
+    S.Position := 0;
+    Read_Memorised_Transaction_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

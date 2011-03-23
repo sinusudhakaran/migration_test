@@ -5,7 +5,7 @@ UNIT SYfdIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES SYDEFS, IOSTREAM;
+INTERFACE USES SYDEFS, IOSTREAM, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Practice_Details_Rec ( Var O : TPractice_Details_Rec ; Var F : T
 PROCEDURE Read_Practice_Details_Rec ( Var O : TPractice_Details_Rec ; Var F : TIOStream );
 FUNCTION  New_Practice_Details_Rec : pPractice_Details_Rec ;
 PROCEDURE Free_Practice_Details_Rec_Dynamic_Fields ( Var O : TPractice_Details_Rec );
+FUNCTION Practice_Details_Rec_Delta(P1, P2, P3: pPractice_Details_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Practice_Details_Rec(P1, P2: pPractice_Details_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -113,7 +116,7 @@ CONST
    tkfdSched_Rep_Print_Custom_Doc_GUID  = 79 ;
    tkfdSched_Rep_Print_Custom_Doc       = 80 ;
    tkfdLast_ChargeFile_Date             = 81 ;
-   tkfdSpare_Integer_2                  = 82 ;
+   tkfdAudit_Record_ID                  = 82 ;
    tkfdSched_Rep_Fax_Custom_Doc_GUID    = 83 ;
    tkfdSched_Rep_Fax_Custom_Doc         = 84 ;
    tkfdSpare_Text_3                     = 85 ;
@@ -316,7 +319,7 @@ Begin
       F.WriteAnsiStringValue( tkfdSched_Rep_Print_Custom_Doc_GUID , fdSched_Rep_Print_Custom_Doc_GUID );
       F.WriteByteValue( tkfdSched_Rep_Print_Custom_Doc , fdSched_Rep_Print_Custom_Doc );
       F.WriteIntegerValue( tkfdLast_ChargeFile_Date , fdLast_ChargeFile_Date );
-      F.WriteIntegerValue( tkfdSpare_Integer_2 , fdSpare_Integer_2 );
+      F.WriteIntegerValue( tkfdAudit_Record_ID , fdAudit_Record_ID );
       F.WriteAnsiStringValue( tkfdSched_Rep_Fax_Custom_Doc_GUID , fdSched_Rep_Fax_Custom_Doc_GUID );
       F.WriteByteValue( tkfdSched_Rep_Fax_Custom_Doc , fdSched_Rep_Fax_Custom_Doc );
       F.WriteAnsiStringValue( tkfdSpare_Text_3 , fdSpare_Text_3 );
@@ -594,7 +597,7 @@ Begin
          tkfdSched_Rep_Print_Custom_Doc_GUID  : fdSched_Rep_Print_Custom_Doc_GUID := F.ReadAnsiStringValue;
          tkfdSched_Rep_Print_Custom_Doc       : fdSched_Rep_Print_Custom_Doc := F.ReadByteValue;
          tkfdLast_ChargeFile_Date             : fdLast_ChargeFile_Date := F.ReadIntegerValue;
-         tkfdSpare_Integer_2                  : fdSpare_Integer_2 := F.ReadIntegerValue;
+         tkfdAudit_Record_ID                  : fdAudit_Record_ID := F.ReadIntegerValue;
          tkfdSched_Rep_Fax_Custom_Doc_GUID    : fdSched_Rep_Fax_Custom_Doc_GUID := F.ReadAnsiStringValue;
          tkfdSched_Rep_Fax_Custom_Doc         : fdSched_Rep_Fax_Custom_Doc := F.ReadByteValue;
          tkfdSpare_Text_3                     : fdSpare_Text_3 := F.ReadAnsiStringValue;
@@ -789,6 +792,933 @@ Begin
       fdExport_Charges_Remarks := '' ;
       fdCoding_Font := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkfdPractice_Name_for_Reports to tkfdAutomatic_Task_Closing_Flags do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Practice_Details_Rec_Delta(P1, P2, P3: pPractice_Details_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Practice_Details_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.fdPractice_Name_for_Reports <> P2.fdPractice_Name_for_Reports) then begin
+    P3.fdPractice_Name_for_Reports := P1.fdPractice_Name_for_Reports;
+    ChangedFields[i] := tkfdPractice_Name_for_Reports;
+    Inc(i);
+  end;
+  if (P1.fdPractice_EMail_Address <> P2.fdPractice_EMail_Address) then begin
+    P3.fdPractice_EMail_Address := P1.fdPractice_EMail_Address;
+    ChangedFields[i] := tkfdPractice_EMail_Address;
+    Inc(i);
+  end;
+  if (P1.fdAccounting_System_Used <> P2.fdAccounting_System_Used) then begin
+    P3.fdAccounting_System_Used := P1.fdAccounting_System_Used;
+    ChangedFields[i] := tkfdAccounting_System_Used;
+    Inc(i);
+  end;
+  if (P1.fdCountry <> P2.fdCountry) then begin
+    P3.fdCountry := P1.fdCountry;
+    ChangedFields[i] := tkfdCountry;
+    Inc(i);
+  end;
+  if (P1.fdLoad_Client_Files_From <> P2.fdLoad_Client_Files_From) then begin
+    P3.fdLoad_Client_Files_From := P1.fdLoad_Client_Files_From;
+    ChangedFields[i] := tkfdLoad_Client_Files_From;
+    Inc(i);
+  end;
+  if (P1.fdSave_Client_Files_To <> P2.fdSave_Client_Files_To) then begin
+    P3.fdSave_Client_Files_To := P1.fdSave_Client_Files_To;
+    ChangedFields[i] := tkfdSave_Client_Files_To;
+    Inc(i);
+  end;
+  if Short_Name_Changed(TShort_Name_Array(P1.fdShort_Name), 
+                  TShort_Name_Array(P2.fdShort_Name), 
+                  TShort_Name_Array(P3.fdShort_Name)) then begin
+    ChangedFields[i] := tkfdShort_Name;
+    Inc(i);
+  end;
+  if Long_Name_Changed(TLong_Name_Array(P1.fdLong_Name), 
+                  TLong_Name_Array(P2.fdLong_Name), 
+                  TLong_Name_Array(P3.fdLong_Name)) then begin
+    ChangedFields[i] := tkfdLong_Name;
+    Inc(i);
+  end;
+  if GST_Class_Names_Changed(TGST_Class_Names_Array(P1.fdGST_Class_Names), 
+                  TGST_Class_Names_Array(P2.fdGST_Class_Names), 
+                  TGST_Class_Names_Array(P3.fdGST_Class_Names)) then begin
+    ChangedFields[i] := tkfdGST_Class_Names;
+    Inc(i);
+  end;
+  if GST_Class_Types_Changed(TGST_Class_Types_Array(P1.fdGST_Class_Types), 
+                  TGST_Class_Types_Array(P2.fdGST_Class_Types), 
+                  TGST_Class_Types_Array(P3.fdGST_Class_Types)) then begin
+    ChangedFields[i] := tkfdGST_Class_Types;
+    Inc(i);
+  end;
+  if GST_Account_Codes_Changed(TGST_Account_Codes_Array(P1.fdGST_Account_Codes), 
+                  TGST_Account_Codes_Array(P2.fdGST_Account_Codes), 
+                  TGST_Account_Codes_Array(P3.fdGST_Account_Codes)) then begin
+    ChangedFields[i] := tkfdGST_Account_Codes;
+    Inc(i);
+  end;
+  if GST_Rates_Changed(TGST_Rates_Array(P1.fdGST_Rates), 
+                  TGST_Rates_Array(P2.fdGST_Rates), 
+                  TGST_Rates_Array(P3.fdGST_Rates)) then begin
+    ChangedFields[i] := tkfdGST_Rates;
+    Inc(i);
+  end;
+  if GST_Applies_From_Changed(TGST_Applies_From_Array(P1.fdGST_Applies_From), 
+                  TGST_Applies_From_Array(P2.fdGST_Applies_From), 
+                  TGST_Applies_From_Array(P3.fdGST_Applies_From)) then begin
+    ChangedFields[i] := tkfdGST_Applies_From;
+    Inc(i);
+  end;
+  if (P1.fdDate_of_Last_Entry_Received <> P2.fdDate_of_Last_Entry_Received) then begin
+    P3.fdDate_of_Last_Entry_Received := P1.fdDate_of_Last_Entry_Received;
+    ChangedFields[i] := tkfdDate_of_Last_Entry_Received;
+    Inc(i);
+  end;
+  if (P1.fdPrint_Reports_Up_To <> P2.fdPrint_Reports_Up_To) then begin
+    P3.fdPrint_Reports_Up_To := P1.fdPrint_Reports_Up_To;
+    ChangedFields[i] := tkfdPrint_Reports_Up_To;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Boolean_3 <> P2.fdSpare_Boolean_3) then begin
+    P3.fdSpare_Boolean_3 := P1.fdSpare_Boolean_3;
+    ChangedFields[i] := tkfdSpare_Boolean_3;
+    Inc(i);
+  end;
+  if (P1.fdPrint_Staff_Member_Header_Page <> P2.fdPrint_Staff_Member_Header_Page) then begin
+    P3.fdPrint_Staff_Member_Header_Page := P1.fdPrint_Staff_Member_Header_Page;
+    ChangedFields[i] := tkfdPrint_Staff_Member_Header_Page;
+    Inc(i);
+  end;
+  if (P1.fdPrint_Client_Header_Page <> P2.fdPrint_Client_Header_Page) then begin
+    P3.fdPrint_Client_Header_Page := P1.fdPrint_Client_Header_Page;
+    ChangedFields[i] := tkfdPrint_Client_Header_Page;
+    Inc(i);
+  end;
+  if (P1.fdPIN_Number <> P2.fdPIN_Number) then begin
+    P3.fdPIN_Number := P1.fdPIN_Number;
+    ChangedFields[i] := tkfdPIN_Number;
+    Inc(i);
+  end;
+  if (P1.fdBankLink_Code <> P2.fdBankLink_Code) then begin
+    P3.fdBankLink_Code := P1.fdBankLink_Code;
+    ChangedFields[i] := tkfdBankLink_Code;
+    Inc(i);
+  end;
+  if (P1.fdDisk_Sequence_No <> P2.fdDisk_Sequence_No) then begin
+    P3.fdDisk_Sequence_No := P1.fdDisk_Sequence_No;
+    ChangedFields[i] := tkfdDisk_Sequence_No;
+    Inc(i);
+  end;
+  if (P1.fdMagic_Number <> P2.fdMagic_Number) then begin
+    P3.fdMagic_Number := P1.fdMagic_Number;
+    ChangedFields[i] := tkfdMagic_Number;
+    Inc(i);
+  end;
+  if (P1.fdCoding_Report_Style <> P2.fdCoding_Report_Style) then begin
+    P3.fdCoding_Report_Style := P1.fdCoding_Report_Style;
+    ChangedFields[i] := tkfdCoding_Report_Style;
+    Inc(i);
+  end;
+  if (P1.fdCoding_Report_Sort_Order <> P2.fdCoding_Report_Sort_Order) then begin
+    P3.fdCoding_Report_Sort_Order := P1.fdCoding_Report_Sort_Order;
+    ChangedFields[i] := tkfdCoding_Report_Sort_Order;
+    Inc(i);
+  end;
+  if (P1.fdCoding_Report_Entry_Selection <> P2.fdCoding_Report_Entry_Selection) then begin
+    P3.fdCoding_Report_Entry_Selection := P1.fdCoding_Report_Entry_Selection;
+    ChangedFields[i] := tkfdCoding_Report_Entry_Selection;
+    Inc(i);
+  end;
+  if (P1.fdCoding_Report_Blank_Lines <> P2.fdCoding_Report_Blank_Lines) then begin
+    P3.fdCoding_Report_Blank_Lines := P1.fdCoding_Report_Blank_Lines;
+    ChangedFields[i] := tkfdCoding_Report_Blank_Lines;
+    Inc(i);
+  end;
+  if (P1.fdCoding_Report_Rule_Line <> P2.fdCoding_Report_Rule_Line) then begin
+    P3.fdCoding_Report_Rule_Line := P1.fdCoding_Report_Rule_Line;
+    ChangedFields[i] := tkfdCoding_Report_Rule_Line;
+    Inc(i);
+  end;
+  if (P1.fdBank_Account_LRN_Counter <> P2.fdBank_Account_LRN_Counter) then begin
+    P3.fdBank_Account_LRN_Counter := P1.fdBank_Account_LRN_Counter;
+    ChangedFields[i] := tkfdBank_Account_LRN_Counter;
+    Inc(i);
+  end;
+  if (P1.fdUser_LRN_Counter <> P2.fdUser_LRN_Counter) then begin
+    P3.fdUser_LRN_Counter := P1.fdUser_LRN_Counter;
+    ChangedFields[i] := tkfdUser_LRN_Counter;
+    Inc(i);
+  end;
+  if (P1.fdTransaction_LRN_Counter <> P2.fdTransaction_LRN_Counter) then begin
+    P3.fdTransaction_LRN_Counter := P1.fdTransaction_LRN_Counter;
+    ChangedFields[i] := tkfdTransaction_LRN_Counter;
+    Inc(i);
+  end;
+  if (P1.fdClient_File_LRN_Counter <> P2.fdClient_File_LRN_Counter) then begin
+    P3.fdClient_File_LRN_Counter := P1.fdClient_File_LRN_Counter;
+    ChangedFields[i] := tkfdClient_File_LRN_Counter;
+    Inc(i);
+  end;
+  if (P1.fdBankLink_Connect_Password <> P2.fdBankLink_Connect_Password) then begin
+    P3.fdBankLink_Connect_Password := P1.fdBankLink_Connect_Password;
+    ChangedFields[i] := tkfdBankLink_Connect_Password;
+    Inc(i);
+  end;
+  if (P1.fdOld_GST_Class_Codes <> P2.fdOld_GST_Class_Codes) then begin
+    P3.fdOld_GST_Class_Codes := P1.fdOld_GST_Class_Codes;
+    ChangedFields[i] := tkfdOld_GST_Class_Codes;
+    Inc(i);
+  end;
+  if (P1.fdAccount_Code_Mask <> P2.fdAccount_Code_Mask) then begin
+    P3.fdAccount_Code_Mask := P1.fdAccount_Code_Mask;
+    ChangedFields[i] := tkfdAccount_Code_Mask;
+    Inc(i);
+  end;
+  if (P1.fdFile_Version <> P2.fdFile_Version) then begin
+    P3.fdFile_Version := P1.fdFile_Version;
+    ChangedFields[i] := tkfdFile_Version;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Email_Subject <> P2.fdSched_Rep_Email_Subject) then begin
+    P3.fdSched_Rep_Email_Subject := P1.fdSched_Rep_Email_Subject;
+    ChangedFields[i] := tkfdSched_Rep_Email_Subject;
+    Inc(i);
+  end;
+  if (P1.fdOld_Sched_Rep_Email_Line1 <> P2.fdOld_Sched_Rep_Email_Line1) then begin
+    P3.fdOld_Sched_Rep_Email_Line1 := P1.fdOld_Sched_Rep_Email_Line1;
+    ChangedFields[i] := tkfdOld_Sched_Rep_Email_Line1;
+    Inc(i);
+  end;
+  if (P1.fdOld_Sched_Rep_Email_Line2 <> P2.fdOld_Sched_Rep_Email_Line2) then begin
+    P3.fdOld_Sched_Rep_Email_Line2 := P1.fdOld_Sched_Rep_Email_Line2;
+    ChangedFields[i] := tkfdOld_Sched_Rep_Email_Line2;
+    Inc(i);
+  end;
+  if OLD_BAS_Special_Accounts_Changed(TOLD_BAS_Special_Accounts_Array(P1.fdOLD_BAS_Special_Accounts), 
+                  TOLD_BAS_Special_Accounts_Array(P2.fdOLD_BAS_Special_Accounts), 
+                  TOLD_BAS_Special_Accounts_Array(P3.fdOLD_BAS_Special_Accounts)) then begin
+    ChangedFields[i] := tkfdOLD_BAS_Special_Accounts;
+    Inc(i);
+  end;
+  if GST_Class_Codes_Changed(TGST_Class_Codes_Array(P1.fdGST_Class_Codes), 
+                  TGST_Class_Codes_Array(P2.fdGST_Class_Codes), 
+                  TGST_Class_Codes_Array(P3.fdGST_Class_Codes)) then begin
+    ChangedFields[i] := tkfdGST_Class_Codes;
+    Inc(i);
+  end;
+  if BAS_Field_Number_Changed(TBAS_Field_Number_Array(P1.fdBAS_Field_Number), 
+                  TBAS_Field_Number_Array(P2.fdBAS_Field_Number), 
+                  TBAS_Field_Number_Array(P3.fdBAS_Field_Number)) then begin
+    ChangedFields[i] := tkfdBAS_Field_Number;
+    Inc(i);
+  end;
+  if BAS_Field_Source_Changed(TBAS_Field_Source_Array(P1.fdBAS_Field_Source), 
+                  TBAS_Field_Source_Array(P2.fdBAS_Field_Source), 
+                  TBAS_Field_Source_Array(P3.fdBAS_Field_Source)) then begin
+    ChangedFields[i] := tkfdBAS_Field_Source;
+    Inc(i);
+  end;
+  if BAS_Field_Account_Code_Changed(TBAS_Field_Account_Code_Array(P1.fdBAS_Field_Account_Code), 
+                  TBAS_Field_Account_Code_Array(P2.fdBAS_Field_Account_Code), 
+                  TBAS_Field_Account_Code_Array(P3.fdBAS_Field_Account_Code)) then begin
+    ChangedFields[i] := tkfdBAS_Field_Account_Code;
+    Inc(i);
+  end;
+  if BAS_Field_Balance_Changed(TBAS_Field_Balance_Array(P1.fdBAS_Field_Balance), 
+                  TBAS_Field_Balance_Array(P2.fdBAS_Field_Balance), 
+                  TBAS_Field_Balance_Array(P3.fdBAS_Field_Balance)) then begin
+    ChangedFields[i] := tkfdBAS_Field_Balance;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_Email <> P2.fdSched_Rep_Include_Email) then begin
+    P3.fdSched_Rep_Include_Email := P1.fdSched_Rep_Include_Email;
+    ChangedFields[i] := tkfdSched_Rep_Include_Email;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Email_Only <> P2.fdSched_Rep_Email_Only) then begin
+    P3.fdSched_Rep_Email_Only := P1.fdSched_Rep_Email_Only;
+    ChangedFields[i] := tkfdSched_Rep_Email_Only;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_Printer <> P2.fdSched_Rep_Include_Printer) then begin
+    P3.fdSched_Rep_Include_Printer := P1.fdSched_Rep_Include_Printer;
+    ChangedFields[i] := tkfdSched_Rep_Include_Printer;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_Fax <> P2.fdSched_Rep_Include_Fax) then begin
+    P3.fdSched_Rep_Include_Fax := P1.fdSched_Rep_Include_Fax;
+    ChangedFields[i] := tkfdSched_Rep_Include_Fax;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Send_Fax_Off_Peak <> P2.fdSched_Rep_Send_Fax_Off_Peak) then begin
+    P3.fdSched_Rep_Send_Fax_Off_Peak := P1.fdSched_Rep_Send_Fax_Off_Peak;
+    ChangedFields[i] := tkfdSched_Rep_Send_Fax_Off_Peak;
+    Inc(i);
+  end;
+  if Enhanced_Software_Options_Changed(TEnhanced_Software_Options_Array(P1.fdEnhanced_Software_Options), 
+                  TEnhanced_Software_Options_Array(P2.fdEnhanced_Software_Options), 
+                  TEnhanced_Software_Options_Array(P3.fdEnhanced_Software_Options)) then begin
+    ChangedFields[i] := tkfdEnhanced_Software_Options;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_ECoding <> P2.fdSched_Rep_Include_ECoding) then begin
+    P3.fdSched_Rep_Include_ECoding := P1.fdSched_Rep_Include_ECoding;
+    ChangedFields[i] := tkfdSched_Rep_Include_ECoding;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Cover_Page_Name <> P2.fdSched_Rep_Cover_Page_Name) then begin
+    P3.fdSched_Rep_Cover_Page_Name := P1.fdSched_Rep_Cover_Page_Name;
+    ChangedFields[i] := tkfdSched_Rep_Cover_Page_Name;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Cover_Page_Subject <> P2.fdSched_Rep_Cover_Page_Subject) then begin
+    P3.fdSched_Rep_Cover_Page_Subject := P1.fdSched_Rep_Cover_Page_Subject;
+    ChangedFields[i] := tkfdSched_Rep_Cover_Page_Subject;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Cover_Page_Message <> P2.fdSched_Rep_Cover_Page_Message) then begin
+    P3.fdSched_Rep_Cover_Page_Message := P1.fdSched_Rep_Cover_Page_Message;
+    ChangedFields[i] := tkfdSched_Rep_Cover_Page_Message;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Email_Message <> P2.fdSched_Rep_Email_Message) then begin
+    P3.fdSched_Rep_Email_Message := P1.fdSched_Rep_Email_Message;
+    ChangedFields[i] := tkfdSched_Rep_Email_Message;
+    Inc(i);
+  end;
+  if (P1.fdDownload_Report_Options <> P2.fdDownload_Report_Options) then begin
+    P3.fdDownload_Report_Options := P1.fdDownload_Report_Options;
+    ChangedFields[i] := tkfdDownload_Report_Options;
+    Inc(i);
+  end;
+  if (P1.fdDownload_Report_Hide_Deleted <> P2.fdDownload_Report_Hide_Deleted) then begin
+    P3.fdDownload_Report_Hide_Deleted := P1.fdDownload_Report_Hide_Deleted;
+    ChangedFields[i] := tkfdDownload_Report_Hide_Deleted;
+    Inc(i);
+  end;
+  if (P1.fdBulk_Export_Enabled <> P2.fdBulk_Export_Enabled) then begin
+    P3.fdBulk_Export_Enabled := P1.fdBulk_Export_Enabled;
+    ChangedFields[i] := tkfdBulk_Export_Enabled;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Byte_0 <> P2.fdSpare_Byte_0) then begin
+    P3.fdSpare_Byte_0 := P1.fdSpare_Byte_0;
+    ChangedFields[i] := tkfdSpare_Byte_0;
+    Inc(i);
+  end;
+  if (P1.fdBulk_Export_Code <> P2.fdBulk_Export_Code) then begin
+    P3.fdBulk_Export_Code := P1.fdBulk_Export_Code;
+    ChangedFields[i] := tkfdBulk_Export_Code;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_CSV_Export <> P2.fdSched_Rep_Include_CSV_Export) then begin
+    P3.fdSched_Rep_Include_CSV_Export := P1.fdSched_Rep_Include_CSV_Export;
+    ChangedFields[i] := tkfdSched_Rep_Include_CSV_Export;
+    Inc(i);
+  end;
+  if (P1.fdTax_Interface_Used <> P2.fdTax_Interface_Used) then begin
+    P3.fdTax_Interface_Used := P1.fdTax_Interface_Used;
+    ChangedFields[i] := tkfdTax_Interface_Used;
+    Inc(i);
+  end;
+  if (P1.fdSave_Tax_Files_To <> P2.fdSave_Tax_Files_To) then begin
+    P3.fdSave_Tax_Files_To := P1.fdSave_Tax_Files_To;
+    ChangedFields[i] := tkfdSave_Tax_Files_To;
+    Inc(i);
+  end;
+  if (P1.fdLast_Disk_Image_Version <> P2.fdLast_Disk_Image_Version) then begin
+    P3.fdLast_Disk_Image_Version := P1.fdLast_Disk_Image_Version;
+    ChangedFields[i] := tkfdLast_Disk_Image_Version;
+    Inc(i);
+  end;
+  if (P1.fdPractice_Web_Site <> P2.fdPractice_Web_Site) then begin
+    P3.fdPractice_Web_Site := P1.fdPractice_Web_Site;
+    ChangedFields[i] := tkfdPractice_Web_Site;
+    Inc(i);
+  end;
+  if (P1.fdPractice_Phone <> P2.fdPractice_Phone) then begin
+    P3.fdPractice_Phone := P1.fdPractice_Phone;
+    ChangedFields[i] := tkfdPractice_Phone;
+    Inc(i);
+  end;
+  if (P1.fdPractice_Logo_Filename <> P2.fdPractice_Logo_Filename) then begin
+    P3.fdPractice_Logo_Filename := P1.fdPractice_Logo_Filename;
+    ChangedFields[i] := tkfdPractice_Logo_Filename;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Print_Custom_Doc_GUID <> P2.fdSched_Rep_Print_Custom_Doc_GUID) then begin
+    P3.fdSched_Rep_Print_Custom_Doc_GUID := P1.fdSched_Rep_Print_Custom_Doc_GUID;
+    ChangedFields[i] := tkfdSched_Rep_Print_Custom_Doc_GUID;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Print_Custom_Doc <> P2.fdSched_Rep_Print_Custom_Doc) then begin
+    P3.fdSched_Rep_Print_Custom_Doc := P1.fdSched_Rep_Print_Custom_Doc;
+    ChangedFields[i] := tkfdSched_Rep_Print_Custom_Doc;
+    Inc(i);
+  end;
+  if (P1.fdLast_ChargeFile_Date <> P2.fdLast_ChargeFile_Date) then begin
+    P3.fdLast_ChargeFile_Date := P1.fdLast_ChargeFile_Date;
+    ChangedFields[i] := tkfdLast_ChargeFile_Date;
+    Inc(i);
+  end;
+  if (P1.fdAudit_Record_ID <> P2.fdAudit_Record_ID) then begin
+    P3.fdAudit_Record_ID := P1.fdAudit_Record_ID;
+    ChangedFields[i] := tkfdAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Fax_Custom_Doc_GUID <> P2.fdSched_Rep_Fax_Custom_Doc_GUID) then begin
+    P3.fdSched_Rep_Fax_Custom_Doc_GUID := P1.fdSched_Rep_Fax_Custom_Doc_GUID;
+    ChangedFields[i] := tkfdSched_Rep_Fax_Custom_Doc_GUID;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Fax_Custom_Doc <> P2.fdSched_Rep_Fax_Custom_Doc) then begin
+    P3.fdSched_Rep_Fax_Custom_Doc := P1.fdSched_Rep_Fax_Custom_Doc;
+    ChangedFields[i] := tkfdSched_Rep_Fax_Custom_Doc;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Text_3 <> P2.fdSpare_Text_3) then begin
+    P3.fdSpare_Text_3 := P1.fdSpare_Text_3;
+    ChangedFields[i] := tkfdSpare_Text_3;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Email_Custom_Doc_GUID <> P2.fdSched_Rep_Email_Custom_Doc_GUID) then begin
+    P3.fdSched_Rep_Email_Custom_Doc_GUID := P1.fdSched_Rep_Email_Custom_Doc_GUID;
+    ChangedFields[i] := tkfdSched_Rep_Email_Custom_Doc_GUID;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Email_Custom_Doc <> P2.fdSched_Rep_Email_Custom_Doc) then begin
+    P3.fdSched_Rep_Email_Custom_Doc := P1.fdSched_Rep_Email_Custom_Doc;
+    ChangedFields[i] := tkfdSched_Rep_Email_Custom_Doc;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Text_5 <> P2.fdSpare_Text_5) then begin
+    P3.fdSpare_Text_5 := P1.fdSpare_Text_5;
+    ChangedFields[i] := tkfdSpare_Text_5;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Books_Custom_Doc_GUID <> P2.fdSched_Rep_Books_Custom_Doc_GUID) then begin
+    P3.fdSched_Rep_Books_Custom_Doc_GUID := P1.fdSched_Rep_Books_Custom_Doc_GUID;
+    ChangedFields[i] := tkfdSched_Rep_Books_Custom_Doc_GUID;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Books_Custom_Doc <> P2.fdSched_Rep_Books_Custom_Doc) then begin
+    P3.fdSched_Rep_Books_Custom_Doc := P1.fdSched_Rep_Books_Custom_Doc;
+    ChangedFields[i] := tkfdSched_Rep_Books_Custom_Doc;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Integer_3 <> P2.fdSpare_Integer_3) then begin
+    P3.fdSpare_Integer_3 := P1.fdSpare_Integer_3;
+    ChangedFields[i] := tkfdSpare_Integer_3;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Integer_4 <> P2.fdSpare_Integer_4) then begin
+    P3.fdSpare_Integer_4 := P1.fdSpare_Integer_4;
+    ChangedFields[i] := tkfdSpare_Integer_4;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Notes_Custom_Doc_GUID <> P2.fdSched_Rep_Notes_Custom_Doc_GUID) then begin
+    P3.fdSched_Rep_Notes_Custom_Doc_GUID := P1.fdSched_Rep_Notes_Custom_Doc_GUID;
+    ChangedFields[i] := tkfdSched_Rep_Notes_Custom_Doc_GUID;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Notes_Custom_Doc <> P2.fdSched_Rep_Notes_Custom_Doc) then begin
+    P3.fdSched_Rep_Notes_Custom_Doc := P1.fdSched_Rep_Notes_Custom_Doc;
+    ChangedFields[i] := tkfdSched_Rep_Notes_Custom_Doc;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Text_8 <> P2.fdSpare_Text_8) then begin
+    P3.fdSpare_Text_8 := P1.fdSpare_Text_8;
+    ChangedFields[i] := tkfdSpare_Text_8;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_WebNotes_Custom_Doc_GUID <> P2.fdSched_Rep_WebNotes_Custom_Doc_GUID) then begin
+    P3.fdSched_Rep_WebNotes_Custom_Doc_GUID := P1.fdSched_Rep_WebNotes_Custom_Doc_GUID;
+    ChangedFields[i] := tkfdSched_Rep_WebNotes_Custom_Doc_GUID;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_WebNotes_Custom_Doc <> P2.fdSched_Rep_WebNotes_Custom_Doc) then begin
+    P3.fdSched_Rep_WebNotes_Custom_Doc := P1.fdSched_Rep_WebNotes_Custom_Doc;
+    ChangedFields[i] := tkfdSched_Rep_WebNotes_Custom_Doc;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Integer_5 <> P2.fdSpare_Integer_5) then begin
+    P3.fdSpare_Integer_5 := P1.fdSpare_Integer_5;
+    ChangedFields[i] := tkfdSpare_Integer_5;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Integer_6 <> P2.fdSpare_Integer_6) then begin
+    P3.fdSpare_Integer_6 := P1.fdSpare_Integer_6;
+    ChangedFields[i] := tkfdSpare_Integer_6;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Text_10 <> P2.fdSpare_Text_10) then begin
+    P3.fdSpare_Text_10 := P1.fdSpare_Text_10;
+    ChangedFields[i] := tkfdSpare_Text_10;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Byte_7 <> P2.fdSpare_Byte_7) then begin
+    P3.fdSpare_Byte_7 := P1.fdSpare_Byte_7;
+    ChangedFields[i] := tkfdSpare_Byte_7;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Text_11 <> P2.fdSpare_Text_11) then begin
+    P3.fdSpare_Text_11 := P1.fdSpare_Text_11;
+    ChangedFields[i] := tkfdSpare_Text_11;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Text_12 <> P2.fdSpare_Text_12) then begin
+    P3.fdSpare_Text_12 := P1.fdSpare_Text_12;
+    ChangedFields[i] := tkfdSpare_Text_12;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Byte_8 <> P2.fdSpare_Byte_8) then begin
+    P3.fdSpare_Byte_8 := P1.fdSpare_Byte_8;
+    ChangedFields[i] := tkfdSpare_Byte_8;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Text_13 <> P2.fdSpare_Text_13) then begin
+    P3.fdSpare_Text_13 := P1.fdSpare_Text_13;
+    ChangedFields[i] := tkfdSpare_Text_13;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Text_14 <> P2.fdSpare_Text_14) then begin
+    P3.fdSpare_Text_14 := P1.fdSpare_Text_14;
+    ChangedFields[i] := tkfdSpare_Text_14;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Byte_9 <> P2.fdSpare_Byte_9) then begin
+    P3.fdSpare_Byte_9 := P1.fdSpare_Byte_9;
+    ChangedFields[i] := tkfdSpare_Byte_9;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Integer_7 <> P2.fdSpare_Integer_7) then begin
+    P3.fdSpare_Integer_7 := P1.fdSpare_Integer_7;
+    ChangedFields[i] := tkfdSpare_Integer_7;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Integer_8 <> P2.fdSpare_Integer_8) then begin
+    P3.fdSpare_Integer_8 := P1.fdSpare_Integer_8;
+    ChangedFields[i] := tkfdSpare_Integer_8;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_WebNotes_Subject <> P2.fdSched_Rep_WebNotes_Subject) then begin
+    P3.fdSched_Rep_WebNotes_Subject := P1.fdSched_Rep_WebNotes_Subject;
+    ChangedFields[i] := tkfdSched_Rep_WebNotes_Subject;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Byte_10 <> P2.fdSpare_Byte_10) then begin
+    P3.fdSpare_Byte_10 := P1.fdSpare_Byte_10;
+    ChangedFields[i] := tkfdSpare_Byte_10;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_webNotes_Message <> P2.fdSched_Rep_webNotes_Message) then begin
+    P3.fdSched_Rep_webNotes_Message := P1.fdSched_Rep_webNotes_Message;
+    ChangedFields[i] := tkfdSched_Rep_webNotes_Message;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Byte_11 <> P2.fdSpare_Byte_11) then begin
+    P3.fdSpare_Byte_11 := P1.fdSpare_Byte_11;
+    ChangedFields[i] := tkfdSpare_Byte_11;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Header_Message <> P2.fdSched_Rep_Header_Message) then begin
+    P3.fdSched_Rep_Header_Message := P1.fdSched_Rep_Header_Message;
+    ChangedFields[i] := tkfdSched_Rep_Header_Message;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_BNotes_Subject <> P2.fdSched_Rep_BNotes_Subject) then begin
+    P3.fdSched_Rep_BNotes_Subject := P1.fdSched_Rep_BNotes_Subject;
+    ChangedFields[i] := tkfdSched_Rep_BNotes_Subject;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_BNotes_Message <> P2.fdSched_Rep_BNotes_Message) then begin
+    P3.fdSched_Rep_BNotes_Message := P1.fdSched_Rep_BNotes_Message;
+    ChangedFields[i] := tkfdSched_Rep_BNotes_Message;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Boolean_4 <> P2.fdSpare_Boolean_4) then begin
+    P3.fdSpare_Boolean_4 := P1.fdSpare_Boolean_4;
+    ChangedFields[i] := tkfdSpare_Boolean_4;
+    Inc(i);
+  end;
+  if (P1.fdTask_Tracking_Prompt_Type <> P2.fdTask_Tracking_Prompt_Type) then begin
+    P3.fdTask_Tracking_Prompt_Type := P1.fdTask_Tracking_Prompt_Type;
+    ChangedFields[i] := tkfdTask_Tracking_Prompt_Type;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Bool_1 <> P2.fdSpare_Bool_1) then begin
+    P3.fdSpare_Bool_1 := P1.fdSpare_Bool_1;
+    ChangedFields[i] := tkfdSpare_Bool_1;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Bool_2 <> P2.fdSpare_Bool_2) then begin
+    P3.fdSpare_Bool_2 := P1.fdSpare_Bool_2;
+    ChangedFields[i] := tkfdSpare_Bool_2;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Integer_9 <> P2.fdSpare_Integer_9) then begin
+    P3.fdSpare_Integer_9 := P1.fdSpare_Integer_9;
+    ChangedFields[i] := tkfdSpare_Integer_9;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Fax_Transport <> P2.fdSched_Rep_Fax_Transport) then begin
+    P3.fdSched_Rep_Fax_Transport := P1.fdSched_Rep_Fax_Transport;
+    ChangedFields[i] := tkfdSched_Rep_Fax_Transport;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_WebX <> P2.fdSched_Rep_Include_WebX) then begin
+    P3.fdSched_Rep_Include_WebX := P1.fdSched_Rep_Include_WebX;
+    ChangedFields[i] := tkfdSched_Rep_Include_WebX;
+    Inc(i);
+  end;
+  if (P1.fdWeb_Export_Format <> P2.fdWeb_Export_Format) then begin
+    P3.fdWeb_Export_Format := P1.fdWeb_Export_Format;
+    ChangedFields[i] := tkfdWeb_Export_Format;
+    Inc(i);
+  end;
+  if (P1.fdForce_Login <> P2.fdForce_Login) then begin
+    P3.fdForce_Login := P1.fdForce_Login;
+    ChangedFields[i] := tkfdForce_Login;
+    Inc(i);
+  end;
+  if (P1.fdLogin_Bitmap_Filename <> P2.fdLogin_Bitmap_Filename) then begin
+    P3.fdLogin_Bitmap_Filename := P1.fdLogin_Bitmap_Filename;
+    ChangedFields[i] := tkfdLogin_Bitmap_Filename;
+    Inc(i);
+  end;
+  if (P1.fdAuto_Print_Sched_Rep_Summary <> P2.fdAuto_Print_Sched_Rep_Summary) then begin
+    P3.fdAuto_Print_Sched_Rep_Summary := P1.fdAuto_Print_Sched_Rep_Summary;
+    ChangedFields[i] := tkfdAuto_Print_Sched_Rep_Summary;
+    Inc(i);
+  end;
+  if (P1.fdIgnore_Quantity_In_Download <> P2.fdIgnore_Quantity_In_Download) then begin
+    P3.fdIgnore_Quantity_In_Download := P1.fdIgnore_Quantity_In_Download;
+    ChangedFields[i] := tkfdIgnore_Quantity_In_Download;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Boolean_1 <> P2.fdSpare_Boolean_1) then begin
+    P3.fdSpare_Boolean_1 := P1.fdSpare_Boolean_1;
+    ChangedFields[i] := tkfdSpare_Boolean_1;
+    Inc(i);
+  end;
+  if (P1.fdspare_Boolean_2 <> P2.fdspare_Boolean_2) then begin
+    P3.fdspare_Boolean_2 := P1.fdspare_Boolean_2;
+    ChangedFields[i] := tkfdspare_Boolean_2;
+    Inc(i);
+  end;
+  if (P1.fdCopy_Dissection_Narration <> P2.fdCopy_Dissection_Narration) then begin
+    P3.fdCopy_Dissection_Narration := P1.fdCopy_Dissection_Narration;
+    ChangedFields[i] := tkfdCopy_Dissection_Narration;
+    Inc(i);
+  end;
+  if (P1.fdRound_Cashflow_Reports <> P2.fdRound_Cashflow_Reports) then begin
+    P3.fdRound_Cashflow_Reports := P1.fdRound_Cashflow_Reports;
+    ChangedFields[i] := tkfdRound_Cashflow_Reports;
+    Inc(i);
+  end;
+  if (P1.fdUse_Xlon_Chart_Order <> P2.fdUse_Xlon_Chart_Order) then begin
+    P3.fdUse_Xlon_Chart_Order := P1.fdUse_Xlon_Chart_Order;
+    ChangedFields[i] := tkfdUse_Xlon_Chart_Order;
+    Inc(i);
+  end;
+  if (P1.fdExtract_Multiple_Accounts_PA <> P2.fdExtract_Multiple_Accounts_PA) then begin
+    P3.fdExtract_Multiple_Accounts_PA := P1.fdExtract_Multiple_Accounts_PA;
+    ChangedFields[i] := tkfdExtract_Multiple_Accounts_PA;
+    Inc(i);
+  end;
+  if (P1.fdExtract_Journal_Accounts_PA <> P2.fdExtract_Journal_Accounts_PA) then begin
+    P3.fdExtract_Journal_Accounts_PA := P1.fdExtract_Journal_Accounts_PA;
+    ChangedFields[i] := tkfdExtract_Journal_Accounts_PA;
+    Inc(i);
+  end;
+  if (P1.fdExtract_Quantity <> P2.fdExtract_Quantity) then begin
+    P3.fdExtract_Quantity := P1.fdExtract_Quantity;
+    ChangedFields[i] := tkfdExtract_Quantity;
+    Inc(i);
+  end;
+  if (P1.fdReports_New_Page <> P2.fdReports_New_Page) then begin
+    P3.fdReports_New_Page := P1.fdReports_New_Page;
+    ChangedFields[i] := tkfdReports_New_Page;
+    Inc(i);
+  end;
+  if (P1.fdPrint_Merge_Report_Summary <> P2.fdPrint_Merge_Report_Summary) then begin
+    P3.fdPrint_Merge_Report_Summary := P1.fdPrint_Merge_Report_Summary;
+    ChangedFields[i] := tkfdPrint_Merge_Report_Summary;
+    Inc(i);
+  end;
+  if (P1.fdEmail_Merge_Report_Summary <> P2.fdEmail_Merge_Report_Summary) then begin
+    P3.fdEmail_Merge_Report_Summary := P1.fdEmail_Merge_Report_Summary;
+    ChangedFields[i] := tkfdEmail_Merge_Report_Summary;
+    Inc(i);
+  end;
+  if (P1.fdMaximum_Narration_Extract <> P2.fdMaximum_Narration_Extract) then begin
+    P3.fdMaximum_Narration_Extract := P1.fdMaximum_Narration_Extract;
+    ChangedFields[i] := tkfdMaximum_Narration_Extract;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_CheckOut <> P2.fdSched_Rep_Include_CheckOut) then begin
+    P3.fdSched_Rep_Include_CheckOut := P1.fdSched_Rep_Include_CheckOut;
+    ChangedFields[i] := tkfdSched_Rep_Include_CheckOut;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_CheckOut_Subject <> P2.fdSched_Rep_CheckOut_Subject) then begin
+    P3.fdSched_Rep_CheckOut_Subject := P1.fdSched_Rep_CheckOut_Subject;
+    ChangedFields[i] := tkfdSched_Rep_CheckOut_Subject;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_CheckOut_Message <> P2.fdSched_Rep_CheckOut_Message) then begin
+    P3.fdSched_Rep_CheckOut_Message := P1.fdSched_Rep_CheckOut_Message;
+    ChangedFields[i] := tkfdSched_Rep_CheckOut_Message;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_Business_Products <> P2.fdSched_Rep_Include_Business_Products) then begin
+    P3.fdSched_Rep_Include_Business_Products := P1.fdSched_Rep_Include_Business_Products;
+    ChangedFields[i] := tkfdSched_Rep_Include_Business_Products;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Business_Products_Subject <> P2.fdSched_Rep_Business_Products_Subject) then begin
+    P3.fdSched_Rep_Business_Products_Subject := P1.fdSched_Rep_Business_Products_Subject;
+    ChangedFields[i] := tkfdSched_Rep_Business_Products_Subject;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Business_Products_Message <> P2.fdSched_Rep_Business_Products_Message) then begin
+    P3.fdSched_Rep_Business_Products_Message := P1.fdSched_Rep_Business_Products_Message;
+    ChangedFields[i] := tkfdSched_Rep_Business_Products_Message;
+    Inc(i);
+  end;
+  if (P1.fdReplace_Narration_With_Payee <> P2.fdReplace_Narration_With_Payee) then begin
+    P3.fdReplace_Narration_With_Payee := P1.fdReplace_Narration_With_Payee;
+    ChangedFields[i] := tkfdReplace_Narration_With_Payee;
+    Inc(i);
+  end;
+  if (P1.fdLast_Export_Charges_Saved_To <> P2.fdLast_Export_Charges_Saved_To) then begin
+    P3.fdLast_Export_Charges_Saved_To := P1.fdLast_Export_Charges_Saved_To;
+    ChangedFields[i] := tkfdLast_Export_Charges_Saved_To;
+    Inc(i);
+  end;
+  if (P1.fdManual_Account_XML <> P2.fdManual_Account_XML) then begin
+    P3.fdManual_Account_XML := P1.fdManual_Account_XML;
+    ChangedFields[i] := tkfdManual_Account_XML;
+    Inc(i);
+  end;
+  if (P1.fdUpdates_Pending <> P2.fdUpdates_Pending) then begin
+    P3.fdUpdates_Pending := P1.fdUpdates_Pending;
+    ChangedFields[i] := tkfdUpdates_Pending;
+    Inc(i);
+  end;
+  if (P1.fdUpdate_Server_For_Offsites <> P2.fdUpdate_Server_For_Offsites) then begin
+    P3.fdUpdate_Server_For_Offsites := P1.fdUpdate_Server_For_Offsites;
+    ChangedFields[i] := tkfdUpdate_Server_For_Offsites;
+    Inc(i);
+  end;
+  if (P1.fdCollect_Usage_Data <> P2.fdCollect_Usage_Data) then begin
+    P3.fdCollect_Usage_Data := P1.fdCollect_Usage_Data;
+    ChangedFields[i] := tkfdCollect_Usage_Data;
+    Inc(i);
+  end;
+  if (P1.fdFixed_Charge_Increase <> P2.fdFixed_Charge_Increase) then begin
+    P3.fdFixed_Charge_Increase := P1.fdFixed_Charge_Increase;
+    ChangedFields[i] := tkfdFixed_Charge_Increase;
+    Inc(i);
+  end;
+  if (P1.fdPercentage_Charge_Increase <> P2.fdPercentage_Charge_Increase) then begin
+    P3.fdPercentage_Charge_Increase := P1.fdPercentage_Charge_Increase;
+    ChangedFields[i] := tkfdPercentage_Charge_Increase;
+    Inc(i);
+  end;
+  if (P1.fdFixed_Dollar_Amount <> P2.fdFixed_Dollar_Amount) then begin
+    P3.fdFixed_Dollar_Amount := P1.fdFixed_Dollar_Amount;
+    ChangedFields[i] := tkfdFixed_Dollar_Amount;
+    Inc(i);
+  end;
+  if (P1.fdDistributed_Dollar_Amount <> P2.fdDistributed_Dollar_Amount) then begin
+    P3.fdDistributed_Dollar_Amount := P1.fdDistributed_Dollar_Amount;
+    ChangedFields[i] := tkfdDistributed_Dollar_Amount;
+    Inc(i);
+  end;
+  if (P1.fdPercentage_Increase_Amount <> P2.fdPercentage_Increase_Amount) then begin
+    P3.fdPercentage_Increase_Amount := P1.fdPercentage_Increase_Amount;
+    ChangedFields[i] := tkfdPercentage_Increase_Amount;
+    Inc(i);
+  end;
+  if (P1.fdExtract_Quantity_Decimal_Places <> P2.fdExtract_Quantity_Decimal_Places) then begin
+    P3.fdExtract_Quantity_Decimal_Places := P1.fdExtract_Quantity_Decimal_Places;
+    ChangedFields[i] := tkfdExtract_Quantity_Decimal_Places;
+    Inc(i);
+  end;
+  if (P1.fdExport_Charges_Remarks <> P2.fdExport_Charges_Remarks) then begin
+    P3.fdExport_Charges_Remarks := P1.fdExport_Charges_Remarks;
+    ChangedFields[i] := tkfdExport_Charges_Remarks;
+    Inc(i);
+  end;
+  if (P1.fdSystem_Report_Password <> P2.fdSystem_Report_Password) then begin
+    P3.fdSystem_Report_Password := P1.fdSystem_Report_Password;
+    ChangedFields[i] := tkfdSystem_Report_Password;
+    Inc(i);
+  end;
+  if (P1.fdPrint_Reports_From <> P2.fdPrint_Reports_From) then begin
+    P3.fdPrint_Reports_From := P1.fdPrint_Reports_From;
+    ChangedFields[i] := tkfdPrint_Reports_From;
+    Inc(i);
+  end;
+  if (P1.fdHighest_Date_Ever_Downloaded <> P2.fdHighest_Date_Ever_Downloaded) then begin
+    P3.fdHighest_Date_Ever_Downloaded := P1.fdHighest_Date_Ever_Downloaded;
+    ChangedFields[i] := tkfdHighest_Date_Ever_Downloaded;
+    Inc(i);
+  end;
+  if (P1.fdAuto_Retrieve_New_Transactions <> P2.fdAuto_Retrieve_New_Transactions) then begin
+    P3.fdAuto_Retrieve_New_Transactions := P1.fdAuto_Retrieve_New_Transactions;
+    ChangedFields[i] := tkfdAuto_Retrieve_New_Transactions;
+    Inc(i);
+  end;
+  if (P1.fdCoding_Font <> P2.fdCoding_Font) then begin
+    P3.fdCoding_Font := P1.fdCoding_Font;
+    ChangedFields[i] := tkfdCoding_Font;
+    Inc(i);
+  end;
+  if (P1.fdSort_Reports_Option <> P2.fdSort_Reports_Option) then begin
+    P3.fdSort_Reports_Option := P1.fdSort_Reports_Option;
+    ChangedFields[i] := tkfdSort_Reports_Option;
+    Inc(i);
+  end;
+  if (P1.fdSpare_Byte_12 <> P2.fdSpare_Byte_12) then begin
+    P3.fdSpare_Byte_12 := P1.fdSpare_Byte_12;
+    ChangedFields[i] := tkfdSpare_Byte_12;
+    Inc(i);
+  end;
+  if (P1.fdGroup_LRN_Counter <> P2.fdGroup_LRN_Counter) then begin
+    P3.fdGroup_LRN_Counter := P1.fdGroup_LRN_Counter;
+    ChangedFields[i] := tkfdGroup_LRN_Counter;
+    Inc(i);
+  end;
+  if (P1.fdClient_Type_LRN_Counter <> P2.fdClient_Type_LRN_Counter) then begin
+    P3.fdClient_Type_LRN_Counter := P1.fdClient_Type_LRN_Counter;
+    ChangedFields[i] := tkfdClient_Type_LRN_Counter;
+    Inc(i);
+  end;
+  if TAX_Applies_From_Changed(TTAX_Applies_From_Array(P1.fdTAX_Applies_From), 
+                  TTAX_Applies_From_Array(P2.fdTAX_Applies_From), 
+                  TTAX_Applies_From_Array(P3.fdTAX_Applies_From)) then begin
+    ChangedFields[i] := tkfdTAX_Applies_From;
+    Inc(i);
+  end;
+  if TAX_Rates_Changed(TTAX_Rates_Array(P1.fdTAX_Rates), 
+                  TTAX_Rates_Array(P2.fdTAX_Rates), 
+                  TTAX_Rates_Array(P3.fdTAX_Rates)) then begin
+    ChangedFields[i] := tkfdTAX_Rates;
+    Inc(i);
+  end;
+  if (P1.fdSuperfund_System <> P2.fdSuperfund_System) then begin
+    P3.fdSuperfund_System := P1.fdSuperfund_System;
+    ChangedFields[i] := tkfdSuperfund_System;
+    Inc(i);
+  end;
+  if (P1.fdSuperfund_Code_Mask <> P2.fdSuperfund_Code_Mask) then begin
+    P3.fdSuperfund_Code_Mask := P1.fdSuperfund_Code_Mask;
+    ChangedFields[i] := tkfdSuperfund_Code_Mask;
+    Inc(i);
+  end;
+  if (P1.fdLoad_Client_Super_Files_From <> P2.fdLoad_Client_Super_Files_From) then begin
+    P3.fdLoad_Client_Super_Files_From := P1.fdLoad_Client_Super_Files_From;
+    ChangedFields[i] := tkfdLoad_Client_Super_Files_From;
+    Inc(i);
+  end;
+  if (P1.fdSave_Client_Super_Files_To <> P2.fdSave_Client_Super_Files_To) then begin
+    P3.fdSave_Client_Super_Files_To := P1.fdSave_Client_Super_Files_To;
+    ChangedFields[i] := tkfdSave_Client_Super_Files_To;
+    Inc(i);
+  end;
+  if (P1.fdSort_Reports_By <> P2.fdSort_Reports_By) then begin
+    P3.fdSort_Reports_By := P1.fdSort_Reports_By;
+    ChangedFields[i] := tkfdSort_Reports_By;
+    Inc(i);
+  end;
+  if (P1.fdSet_Fixed_Dollar_Amount <> P2.fdSet_Fixed_Dollar_Amount) then begin
+    P3.fdSet_Fixed_Dollar_Amount := P1.fdSet_Fixed_Dollar_Amount;
+    ChangedFields[i] := tkfdSet_Fixed_Dollar_Amount;
+    Inc(i);
+  end;
+  if (P1.fdPrint_Group_Header_Page <> P2.fdPrint_Group_Header_Page) then begin
+    P3.fdPrint_Group_Header_Page := P1.fdPrint_Group_Header_Page;
+    ChangedFields[i] := tkfdPrint_Group_Header_Page;
+    Inc(i);
+  end;
+  if (P1.fdPrint_Client_Type_Header_Page <> P2.fdPrint_Client_Type_Header_Page) then begin
+    P3.fdPrint_Client_Type_Header_Page := P1.fdPrint_Client_Type_Header_Page;
+    ChangedFields[i] := tkfdPrint_Client_Type_Header_Page;
+    Inc(i);
+  end;
+  if (P1.fdPractice_Management_System <> P2.fdPractice_Management_System) then begin
+    P3.fdPractice_Management_System := P1.fdPractice_Management_System;
+    ChangedFields[i] := tkfdPractice_Management_System;
+    Inc(i);
+  end;
+  if Automatic_Task_Creation_Flags_Changed(TAutomatic_Task_Creation_Flags_Array(P1.fdAutomatic_Task_Creation_Flags), 
+                  TAutomatic_Task_Creation_Flags_Array(P2.fdAutomatic_Task_Creation_Flags), 
+                  TAutomatic_Task_Creation_Flags_Array(P3.fdAutomatic_Task_Creation_Flags)) then begin
+    ChangedFields[i] := tkfdAutomatic_Task_Creation_Flags;
+    Inc(i);
+  end;
+  if Automatic_Task_Reminder_Delay_Changed(TAutomatic_Task_Reminder_Delay_Array(P1.fdAutomatic_Task_Reminder_Delay), 
+                  TAutomatic_Task_Reminder_Delay_Array(P2.fdAutomatic_Task_Reminder_Delay), 
+                  TAutomatic_Task_Reminder_Delay_Array(P3.fdAutomatic_Task_Reminder_Delay)) then begin
+    ChangedFields[i] := tkfdAutomatic_Task_Reminder_Delay;
+    Inc(i);
+  end;
+  if Automatic_Task_Closing_Flags_Changed(TAutomatic_Task_Closing_Flags_Array(P1.fdAutomatic_Task_Closing_Flags), 
+                  TAutomatic_Task_Closing_Flags_Array(P2.fdAutomatic_Task_Closing_Flags), 
+                  TAutomatic_Task_Closing_Flags_Array(P3.fdAutomatic_Task_Closing_Flags)) then begin
+    ChangedFields[i] := tkfdAutomatic_Task_Closing_Flags;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Practice_Details_Rec(P1, P2: pPractice_Details_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Practice_Details_Rec(P1^, S);
+    S.Position := 0;
+    Read_Practice_Details_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

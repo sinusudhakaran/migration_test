@@ -17,6 +17,7 @@ PROCEDURE UpdateCRC( CONST Rec : TFile_Access_Mapping_Rec; VAR CRC : LongWord );
 PROCEDURE UpdateCRC( CONST Rec : TClient_Account_Map_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TGroup_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TClient_Type_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TAudit_Trail_Rec; VAR CRC : LongWord ); OVERLOAD;
 
 // ------------------------------------------------------------------- 
 Implementation uses CRC32, MoneyDef;
@@ -232,6 +233,23 @@ Begin
       RE    := @ctEOR;
       Len   := Integer( RE ) - Integer( RS );
       CRC32.UpdateCRC( CRC , RS^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
+PROCEDURE UpdateCRC( CONST Rec : TAudit_Trail_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @atRecord_Type;
+      RE    := @atAudit_Record;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
+      Len := Length( atOther_Info );
+      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( atOther_Info )^, Len );
    end;
 end;
 

@@ -44,6 +44,7 @@ Type
     Function ReadByteValue : Byte;
     Function ReadIntegerValue : Integer;
     Function ReadDateValue : Integer;
+    Function ReadDateTimeValue : TDateTime;
     Function ReadMoneyValue : Money;
     Function ReadBMoneyValue(Var Index: Byte) : Money;
     Function ReadStringValue : ShortString;
@@ -65,6 +66,7 @@ Type
     Procedure WriteByteValue(CONST AToken: Byte; CONST AValue: Byte);
     Procedure WriteIntegerValue(CONST AToken: Byte; CONST AValue: Integer);
     Procedure WriteDateValue(CONST AToken: Byte; CONST AValue: Integer);
+    Procedure WriteDateTimeValue(CONST AToken: Byte; CONST AValue: TDateTime);
     Procedure WriteMoneyValue(CONST AToken: Byte; CONST AValue: Money);
     Procedure WriteBMoneyValue(CONST AToken: Byte; CONST AIndex: Byte; CONST AValue: Money);
     Procedure WriteStringValue(CONST AToken: Byte; CONST AValue: ShortString);
@@ -119,6 +121,7 @@ Const
   ftBBString : Byte = 17;
   ftBBDate : Byte = 18;
   ftBDouble : byte = 19;
+  ftDateTime: Byte = 20;
 
 CONST
   flInteger     = 4;
@@ -126,6 +129,7 @@ CONST
   flMoney       = 8;
   flByte        = 1;
   flBoolean     = 1;
+  flDateTime    = 8;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -188,6 +192,16 @@ Begin
    CheckType( ftByte, SProcName );
    Read(Result, flByte );
 End;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function TIOStream.ReadDateTimeValue: TDateTime;
+Const
+   SProcName = 'ReadDateTimeValue';
+Begin
+   CheckType( ftDateTime, SProcName );
+   Read( Result, flDateTime );
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -428,6 +442,18 @@ Begin
   End
 End;
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TIOStream.WriteDateTimeValue(const AToken: Byte;
+  const AValue: TDateTime);
+begin
+  If AValue <> 0 Then Begin
+    Write(AToken, flByte );
+    Write(ftDateTime, flByte );
+    Write(AValue, flDateTime );
+  End
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

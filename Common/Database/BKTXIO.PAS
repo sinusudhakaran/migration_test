@@ -5,7 +5,7 @@ UNIT BKtxIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Transaction_Rec ( Var O : TTransaction_Rec ; Var F : TIOStream )
 PROCEDURE Read_Transaction_Rec ( Var O : TTransaction_Rec ; Var F : TIOStream );
 FUNCTION  New_Transaction_Rec : pTransaction_Rec ;
 PROCEDURE Free_Transaction_Rec_Dynamic_Fields ( Var O : TTransaction_Rec );
+FUNCTION Transaction_Rec_Delta(P1, P2, P3: pTransaction_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Transaction_Rec(P1, P2: pTransaction_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -383,6 +386,474 @@ Begin
       txSpare_String := '' ;
       txSF_Transaction_Code := '' ;
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tktxSequence_No to tktxSpare_Money_2 do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Transaction_Rec_Delta(P1, P2, P3: pTransaction_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Transaction_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.txSequence_No <> P2.txSequence_No) then begin
+    P3.txSequence_No := P1.txSequence_No;
+    ChangedFields[i] := tktxSequence_No;
+    Inc(i);
+  end;
+  if (P1.txLRN_NOW_UNUSED <> P2.txLRN_NOW_UNUSED) then begin
+    P3.txLRN_NOW_UNUSED := P1.txLRN_NOW_UNUSED;
+    ChangedFields[i] := tktxLRN_NOW_UNUSED;
+    Inc(i);
+  end;
+  if (P1.txType <> P2.txType) then begin
+    P3.txType := P1.txType;
+    ChangedFields[i] := tktxType;
+    Inc(i);
+  end;
+  if (P1.txSource <> P2.txSource) then begin
+    P3.txSource := P1.txSource;
+    ChangedFields[i] := tktxSource;
+    Inc(i);
+  end;
+  if (P1.txDate_Presented <> P2.txDate_Presented) then begin
+    P3.txDate_Presented := P1.txDate_Presented;
+    ChangedFields[i] := tktxDate_Presented;
+    Inc(i);
+  end;
+  if (P1.txDate_Effective <> P2.txDate_Effective) then begin
+    P3.txDate_Effective := P1.txDate_Effective;
+    ChangedFields[i] := tktxDate_Effective;
+    Inc(i);
+  end;
+  if (P1.txDate_Transferred <> P2.txDate_Transferred) then begin
+    P3.txDate_Transferred := P1.txDate_Transferred;
+    ChangedFields[i] := tktxDate_Transferred;
+    Inc(i);
+  end;
+  if (P1.txAmount <> P2.txAmount) then begin
+    P3.txAmount := P1.txAmount;
+    ChangedFields[i] := tktxAmount;
+    Inc(i);
+  end;
+  if (P1.txGST_Class <> P2.txGST_Class) then begin
+    P3.txGST_Class := P1.txGST_Class;
+    ChangedFields[i] := tktxGST_Class;
+    Inc(i);
+  end;
+  if (P1.txGST_Amount <> P2.txGST_Amount) then begin
+    P3.txGST_Amount := P1.txGST_Amount;
+    ChangedFields[i] := tktxGST_Amount;
+    Inc(i);
+  end;
+  if (P1.txHas_Been_Edited <> P2.txHas_Been_Edited) then begin
+    P3.txHas_Been_Edited := P1.txHas_Been_Edited;
+    ChangedFields[i] := tktxHas_Been_Edited;
+    Inc(i);
+  end;
+  if (P1.txQuantity <> P2.txQuantity) then begin
+    P3.txQuantity := P1.txQuantity;
+    ChangedFields[i] := tktxQuantity;
+    Inc(i);
+  end;
+  if (P1.txCheque_Number <> P2.txCheque_Number) then begin
+    P3.txCheque_Number := P1.txCheque_Number;
+    ChangedFields[i] := tktxCheque_Number;
+    Inc(i);
+  end;
+  if (P1.txReference <> P2.txReference) then begin
+    P3.txReference := P1.txReference;
+    ChangedFields[i] := tktxReference;
+    Inc(i);
+  end;
+  if (P1.txParticulars <> P2.txParticulars) then begin
+    P3.txParticulars := P1.txParticulars;
+    ChangedFields[i] := tktxParticulars;
+    Inc(i);
+  end;
+  if (P1.txAnalysis <> P2.txAnalysis) then begin
+    P3.txAnalysis := P1.txAnalysis;
+    ChangedFields[i] := tktxAnalysis;
+    Inc(i);
+  end;
+  if (P1.txOrigBB <> P2.txOrigBB) then begin
+    P3.txOrigBB := P1.txOrigBB;
+    ChangedFields[i] := tktxOrigBB;
+    Inc(i);
+  end;
+  if (P1.txOther_Party <> P2.txOther_Party) then begin
+    P3.txOther_Party := P1.txOther_Party;
+    ChangedFields[i] := tktxOther_Party;
+    Inc(i);
+  end;
+  if (P1.txOld_Narration <> P2.txOld_Narration) then begin
+    P3.txOld_Narration := P1.txOld_Narration;
+    ChangedFields[i] := tktxOld_Narration;
+    Inc(i);
+  end;
+  if (P1.txAccount <> P2.txAccount) then begin
+    P3.txAccount := P1.txAccount;
+    ChangedFields[i] := tktxAccount;
+    Inc(i);
+  end;
+  if (P1.txCoded_By <> P2.txCoded_By) then begin
+    P3.txCoded_By := P1.txCoded_By;
+    ChangedFields[i] := tktxCoded_By;
+    Inc(i);
+  end;
+  if (P1.txPayee_Number <> P2.txPayee_Number) then begin
+    P3.txPayee_Number := P1.txPayee_Number;
+    ChangedFields[i] := tktxPayee_Number;
+    Inc(i);
+  end;
+  if (P1.txLocked <> P2.txLocked) then begin
+    P3.txLocked := P1.txLocked;
+    ChangedFields[i] := tktxLocked;
+    Inc(i);
+  end;
+  if (P1.txBankLink_ID <> P2.txBankLink_ID) then begin
+    P3.txBankLink_ID := P1.txBankLink_ID;
+    ChangedFields[i] := tktxBankLink_ID;
+    Inc(i);
+  end;
+  if (P1.txGST_Has_Been_Edited <> P2.txGST_Has_Been_Edited) then begin
+    P3.txGST_Has_Been_Edited := P1.txGST_Has_Been_Edited;
+    ChangedFields[i] := tktxGST_Has_Been_Edited;
+    Inc(i);
+  end;
+  if (P1.txMatched_Item_ID <> P2.txMatched_Item_ID) then begin
+    P3.txMatched_Item_ID := P1.txMatched_Item_ID;
+    ChangedFields[i] := tktxMatched_Item_ID;
+    Inc(i);
+  end;
+  if (P1.txUPI_State <> P2.txUPI_State) then begin
+    P3.txUPI_State := P1.txUPI_State;
+    ChangedFields[i] := tktxUPI_State;
+    Inc(i);
+  end;
+  if (P1.txOriginal_Reference <> P2.txOriginal_Reference) then begin
+    P3.txOriginal_Reference := P1.txOriginal_Reference;
+    ChangedFields[i] := tktxOriginal_Reference;
+    Inc(i);
+  end;
+  if (P1.txOriginal_Source <> P2.txOriginal_Source) then begin
+    P3.txOriginal_Source := P1.txOriginal_Source;
+    ChangedFields[i] := tktxOriginal_Source;
+    Inc(i);
+  end;
+  if (P1.txOriginal_Type <> P2.txOriginal_Type) then begin
+    P3.txOriginal_Type := P1.txOriginal_Type;
+    ChangedFields[i] := tktxOriginal_Type;
+    Inc(i);
+  end;
+  if (P1.txOriginal_Cheque_Number <> P2.txOriginal_Cheque_Number) then begin
+    P3.txOriginal_Cheque_Number := P1.txOriginal_Cheque_Number;
+    ChangedFields[i] := tktxOriginal_Cheque_Number;
+    Inc(i);
+  end;
+  if (P1.txOriginal_Amount <> P2.txOriginal_Amount) then begin
+    P3.txOriginal_Amount := P1.txOriginal_Amount;
+    ChangedFields[i] := tktxOriginal_Amount;
+    Inc(i);
+  end;
+  if (P1.txNotes <> P2.txNotes) then begin
+    P3.txNotes := P1.txNotes;
+    ChangedFields[i] := tktxNotes;
+    Inc(i);
+  end;
+  if (P1.txECoding_Import_Notes <> P2.txECoding_Import_Notes) then begin
+    P3.txECoding_Import_Notes := P1.txECoding_Import_Notes;
+    ChangedFields[i] := tktxECoding_Import_Notes;
+    Inc(i);
+  end;
+  if (P1.txECoding_Transaction_UID <> P2.txECoding_Transaction_UID) then begin
+    P3.txECoding_Transaction_UID := P1.txECoding_Transaction_UID;
+    ChangedFields[i] := tktxECoding_Transaction_UID;
+    Inc(i);
+  end;
+  if (P1.txGL_Narration <> P2.txGL_Narration) then begin
+    P3.txGL_Narration := P1.txGL_Narration;
+    ChangedFields[i] := tktxGL_Narration;
+    Inc(i);
+  end;
+  if (P1.txStatement_Details <> P2.txStatement_Details) then begin
+    P3.txStatement_Details := P1.txStatement_Details;
+    ChangedFields[i] := tktxStatement_Details;
+    Inc(i);
+  end;
+  if (P1.txTax_Invoice_Available <> P2.txTax_Invoice_Available) then begin
+    P3.txTax_Invoice_Available := P1.txTax_Invoice_Available;
+    ChangedFields[i] := tktxTax_Invoice_Available;
+    Inc(i);
+  end;
+  if (P1.txSF_Imputed_Credit <> P2.txSF_Imputed_Credit) then begin
+    P3.txSF_Imputed_Credit := P1.txSF_Imputed_Credit;
+    ChangedFields[i] := tktxSF_Imputed_Credit;
+    Inc(i);
+  end;
+  if (P1.txSF_Tax_Free_Dist <> P2.txSF_Tax_Free_Dist) then begin
+    P3.txSF_Tax_Free_Dist := P1.txSF_Tax_Free_Dist;
+    ChangedFields[i] := tktxSF_Tax_Free_Dist;
+    Inc(i);
+  end;
+  if (P1.txSF_Tax_Exempt_Dist <> P2.txSF_Tax_Exempt_Dist) then begin
+    P3.txSF_Tax_Exempt_Dist := P1.txSF_Tax_Exempt_Dist;
+    ChangedFields[i] := tktxSF_Tax_Exempt_Dist;
+    Inc(i);
+  end;
+  if (P1.txSF_Tax_Deferred_Dist <> P2.txSF_Tax_Deferred_Dist) then begin
+    P3.txSF_Tax_Deferred_Dist := P1.txSF_Tax_Deferred_Dist;
+    ChangedFields[i] := tktxSF_Tax_Deferred_Dist;
+    Inc(i);
+  end;
+  if (P1.txSF_TFN_Credits <> P2.txSF_TFN_Credits) then begin
+    P3.txSF_TFN_Credits := P1.txSF_TFN_Credits;
+    ChangedFields[i] := tktxSF_TFN_Credits;
+    Inc(i);
+  end;
+  if (P1.txSF_Foreign_Income <> P2.txSF_Foreign_Income) then begin
+    P3.txSF_Foreign_Income := P1.txSF_Foreign_Income;
+    ChangedFields[i] := tktxSF_Foreign_Income;
+    Inc(i);
+  end;
+  if (P1.txSF_Foreign_Tax_Credits <> P2.txSF_Foreign_Tax_Credits) then begin
+    P3.txSF_Foreign_Tax_Credits := P1.txSF_Foreign_Tax_Credits;
+    ChangedFields[i] := tktxSF_Foreign_Tax_Credits;
+    Inc(i);
+  end;
+  if (P1.txSF_Capital_Gains_Indexed <> P2.txSF_Capital_Gains_Indexed) then begin
+    P3.txSF_Capital_Gains_Indexed := P1.txSF_Capital_Gains_Indexed;
+    ChangedFields[i] := tktxSF_Capital_Gains_Indexed;
+    Inc(i);
+  end;
+  if (P1.txSF_Capital_Gains_Disc <> P2.txSF_Capital_Gains_Disc) then begin
+    P3.txSF_Capital_Gains_Disc := P1.txSF_Capital_Gains_Disc;
+    ChangedFields[i] := tktxSF_Capital_Gains_Disc;
+    Inc(i);
+  end;
+  if (P1.txSF_Super_Fields_Edited <> P2.txSF_Super_Fields_Edited) then begin
+    P3.txSF_Super_Fields_Edited := P1.txSF_Super_Fields_Edited;
+    ChangedFields[i] := tktxSF_Super_Fields_Edited;
+    Inc(i);
+  end;
+  if (P1.txSF_Capital_Gains_Other <> P2.txSF_Capital_Gains_Other) then begin
+    P3.txSF_Capital_Gains_Other := P1.txSF_Capital_Gains_Other;
+    ChangedFields[i] := tktxSF_Capital_Gains_Other;
+    Inc(i);
+  end;
+  if (P1.txSF_Other_Expenses <> P2.txSF_Other_Expenses) then begin
+    P3.txSF_Other_Expenses := P1.txSF_Other_Expenses;
+    ChangedFields[i] := tktxSF_Other_Expenses;
+    Inc(i);
+  end;
+  if (P1.txSF_CGT_Date <> P2.txSF_CGT_Date) then begin
+    P3.txSF_CGT_Date := P1.txSF_CGT_Date;
+    ChangedFields[i] := tktxSF_CGT_Date;
+    Inc(i);
+  end;
+  if (P1.txExternal_GUID <> P2.txExternal_GUID) then begin
+    P3.txExternal_GUID := P1.txExternal_GUID;
+    ChangedFields[i] := tktxExternal_GUID;
+    Inc(i);
+  end;
+  if (P1.txDocument_Title <> P2.txDocument_Title) then begin
+    P3.txDocument_Title := P1.txDocument_Title;
+    ChangedFields[i] := tktxDocument_Title;
+    Inc(i);
+  end;
+  if (P1.txDocument_Status_Update_Required <> P2.txDocument_Status_Update_Required) then begin
+    P3.txDocument_Status_Update_Required := P1.txDocument_Status_Update_Required;
+    ChangedFields[i] := tktxDocument_Status_Update_Required;
+    Inc(i);
+  end;
+  if (P1.txBankLink_UID <> P2.txBankLink_UID) then begin
+    P3.txBankLink_UID := P1.txBankLink_UID;
+    ChangedFields[i] := tktxBankLink_UID;
+    Inc(i);
+  end;
+  if (P1.txNotes_Read <> P2.txNotes_Read) then begin
+    P3.txNotes_Read := P1.txNotes_Read;
+    ChangedFields[i] := tktxNotes_Read;
+    Inc(i);
+  end;
+  if (P1.txImport_Notes_Read <> P2.txImport_Notes_Read) then begin
+    P3.txImport_Notes_Read := P1.txImport_Notes_Read;
+    ChangedFields[i] := tktxImport_Notes_Read;
+    Inc(i);
+  end;
+  if (P1.txSpare_String <> P2.txSpare_String) then begin
+    P3.txSpare_String := P1.txSpare_String;
+    ChangedFields[i] := tktxSpare_String;
+    Inc(i);
+  end;
+  if (P1.txSpare_Boolean <> P2.txSpare_Boolean) then begin
+    P3.txSpare_Boolean := P1.txSpare_Boolean;
+    ChangedFields[i] := tktxSpare_Boolean;
+    Inc(i);
+  end;
+  if (P1.txSF_Franked <> P2.txSF_Franked) then begin
+    P3.txSF_Franked := P1.txSF_Franked;
+    ChangedFields[i] := tktxSF_Franked;
+    Inc(i);
+  end;
+  if (P1.txSF_Unfranked <> P2.txSF_Unfranked) then begin
+    P3.txSF_Unfranked := P1.txSF_Unfranked;
+    ChangedFields[i] := tktxSF_Unfranked;
+    Inc(i);
+  end;
+  if (P1.txSF_Interest <> P2.txSF_Interest) then begin
+    P3.txSF_Interest := P1.txSF_Interest;
+    ChangedFields[i] := tktxSF_Interest;
+    Inc(i);
+  end;
+  if (P1.txSF_Capital_Gains_Foreign_Disc <> P2.txSF_Capital_Gains_Foreign_Disc) then begin
+    P3.txSF_Capital_Gains_Foreign_Disc := P1.txSF_Capital_Gains_Foreign_Disc;
+    ChangedFields[i] := tktxSF_Capital_Gains_Foreign_Disc;
+    Inc(i);
+  end;
+  if (P1.txSF_Rent <> P2.txSF_Rent) then begin
+    P3.txSF_Rent := P1.txSF_Rent;
+    ChangedFields[i] := tktxSF_Rent;
+    Inc(i);
+  end;
+  if (P1.txSF_Special_Income <> P2.txSF_Special_Income) then begin
+    P3.txSF_Special_Income := P1.txSF_Special_Income;
+    ChangedFields[i] := tktxSF_Special_Income;
+    Inc(i);
+  end;
+  if (P1.txSF_Other_Tax_Credit <> P2.txSF_Other_Tax_Credit) then begin
+    P3.txSF_Other_Tax_Credit := P1.txSF_Other_Tax_Credit;
+    ChangedFields[i] := tktxSF_Other_Tax_Credit;
+    Inc(i);
+  end;
+  if (P1.txSF_Non_Resident_Tax <> P2.txSF_Non_Resident_Tax) then begin
+    P3.txSF_Non_Resident_Tax := P1.txSF_Non_Resident_Tax;
+    ChangedFields[i] := tktxSF_Non_Resident_Tax;
+    Inc(i);
+  end;
+  if (P1.txSF_Member_ID <> P2.txSF_Member_ID) then begin
+    P3.txSF_Member_ID := P1.txSF_Member_ID;
+    ChangedFields[i] := tktxSF_Member_ID;
+    Inc(i);
+  end;
+  if (P1.txSF_Foreign_Capital_Gains_Credit <> P2.txSF_Foreign_Capital_Gains_Credit) then begin
+    P3.txSF_Foreign_Capital_Gains_Credit := P1.txSF_Foreign_Capital_Gains_Credit;
+    ChangedFields[i] := tktxSF_Foreign_Capital_Gains_Credit;
+    Inc(i);
+  end;
+  if (P1.txSF_Member_Component <> P2.txSF_Member_Component) then begin
+    P3.txSF_Member_Component := P1.txSF_Member_Component;
+    ChangedFields[i] := tktxSF_Member_Component;
+    Inc(i);
+  end;
+  if (P1.txSF_Fund_ID <> P2.txSF_Fund_ID) then begin
+    P3.txSF_Fund_ID := P1.txSF_Fund_ID;
+    ChangedFields[i] := tktxSF_Fund_ID;
+    Inc(i);
+  end;
+  if (P1.txSF_Member_Account_ID <> P2.txSF_Member_Account_ID) then begin
+    P3.txSF_Member_Account_ID := P1.txSF_Member_Account_ID;
+    ChangedFields[i] := tktxSF_Member_Account_ID;
+    Inc(i);
+  end;
+  if (P1.txSF_Fund_Code <> P2.txSF_Fund_Code) then begin
+    P3.txSF_Fund_Code := P1.txSF_Fund_Code;
+    ChangedFields[i] := tktxSF_Fund_Code;
+    Inc(i);
+  end;
+  if (P1.txSF_Member_Account_Code <> P2.txSF_Member_Account_Code) then begin
+    P3.txSF_Member_Account_Code := P1.txSF_Member_Account_Code;
+    ChangedFields[i] := tktxSF_Member_Account_Code;
+    Inc(i);
+  end;
+  if (P1.txSF_Transaction_ID <> P2.txSF_Transaction_ID) then begin
+    P3.txSF_Transaction_ID := P1.txSF_Transaction_ID;
+    ChangedFields[i] := tktxSF_Transaction_ID;
+    Inc(i);
+  end;
+  if (P1.txSF_Transaction_Code <> P2.txSF_Transaction_Code) then begin
+    P3.txSF_Transaction_Code := P1.txSF_Transaction_Code;
+    ChangedFields[i] := tktxSF_Transaction_Code;
+    Inc(i);
+  end;
+  if (P1.txSF_Capital_Gains_Fraction_Half <> P2.txSF_Capital_Gains_Fraction_Half) then begin
+    P3.txSF_Capital_Gains_Fraction_Half := P1.txSF_Capital_Gains_Fraction_Half;
+    ChangedFields[i] := tktxSF_Capital_Gains_Fraction_Half;
+    Inc(i);
+  end;
+  if (P1.txSpareL <> P2.txSpareL) then begin
+    P3.txSpareL := P1.txSpareL;
+    ChangedFields[i] := tktxSpareL;
+    Inc(i);
+  end;
+  if (P1.txJob_Code <> P2.txJob_Code) then begin
+    P3.txJob_Code := P1.txJob_Code;
+    ChangedFields[i] := tktxJob_Code;
+    Inc(i);
+  end;
+  if (P1.txForex_Conversion_Rate <> P2.txForex_Conversion_Rate) then begin
+    P3.txForex_Conversion_Rate := P1.txForex_Conversion_Rate;
+    ChangedFields[i] := tktxForex_Conversion_Rate;
+    Inc(i);
+  end;
+  if (P1.txSpare_Money_1 <> P2.txSpare_Money_1) then begin
+    P3.txSpare_Money_1 := P1.txSpare_Money_1;
+    ChangedFields[i] := tktxSpare_Money_1;
+    Inc(i);
+  end;
+  if (P1.txOriginal_Forex_Conversion_Rate <> P2.txOriginal_Forex_Conversion_Rate) then begin
+    P3.txOriginal_Forex_Conversion_Rate := P1.txOriginal_Forex_Conversion_Rate;
+    ChangedFields[i] := tktxOriginal_Forex_Conversion_Rate;
+    Inc(i);
+  end;
+  if (P1.txSpare_Money_2 <> P2.txSpare_Money_2) then begin
+    P3.txSpare_Money_2 := P1.txSpare_Money_2;
+    ChangedFields[i] := tktxSpare_Money_2;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Transaction_Rec(P1, P2: pTransaction_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Transaction_Rec(P1^, S);
+    S.Position := 0;
+    Read_Transaction_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

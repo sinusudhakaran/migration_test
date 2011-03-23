@@ -5,7 +5,7 @@ UNIT BKchIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Account_Rec ( Var O : TAccount_Rec ; Var F : TIOStream );
 PROCEDURE Read_Account_Rec ( Var O : TAccount_Rec ; Var F : TIOStream );
 FUNCTION  New_Account_Rec : pAccount_Rec ;
 PROCEDURE Free_Account_Rec_Dynamic_Fields ( Var O : TAccount_Rec );
+FUNCTION Account_Rec_Delta(P1, P2, P3: pAccount_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Account_Rec(P1, P2: pAccount_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -201,6 +204,156 @@ Begin
       DBR_SetLength( chTemp_Amount, 0 );
       DBR_SetLength( chTemp_Base_Amount, 0 );
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkchAccount_Code to tkchHide_In_Basic_Chart do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Account_Rec_Delta(P1, P2, P3: pAccount_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Account_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.chAccount_Code <> P2.chAccount_Code) then begin
+    P3.chAccount_Code := P1.chAccount_Code;
+    ChangedFields[i] := tkchAccount_Code;
+    Inc(i);
+  end;
+  if (P1.chChart_ID <> P2.chChart_ID) then begin
+    P3.chChart_ID := P1.chChart_ID;
+    ChangedFields[i] := tkchChart_ID;
+    Inc(i);
+  end;
+  if (P1.chAccount_Description <> P2.chAccount_Description) then begin
+    P3.chAccount_Description := P1.chAccount_Description;
+    ChangedFields[i] := tkchAccount_Description;
+    Inc(i);
+  end;
+  if (P1.chGST_Class <> P2.chGST_Class) then begin
+    P3.chGST_Class := P1.chGST_Class;
+    ChangedFields[i] := tkchGST_Class;
+    Inc(i);
+  end;
+  if (P1.chPosting_Allowed <> P2.chPosting_Allowed) then begin
+    P3.chPosting_Allowed := P1.chPosting_Allowed;
+    ChangedFields[i] := tkchPosting_Allowed;
+    Inc(i);
+  end;
+  if (P1.chAccount_Type <> P2.chAccount_Type) then begin
+    P3.chAccount_Type := P1.chAccount_Type;
+    ChangedFields[i] := tkchAccount_Type;
+    Inc(i);
+  end;
+  if (P1.chEnter_Quantity <> P2.chEnter_Quantity) then begin
+    P3.chEnter_Quantity := P1.chEnter_Quantity;
+    ChangedFields[i] := tkchEnter_Quantity;
+    Inc(i);
+  end;
+  if Print_in_Division_Changed(TPrint_in_Division_Array(P1.chPrint_in_Division), 
+                  TPrint_in_Division_Array(P2.chPrint_in_Division), 
+                  TPrint_in_Division_Array(P3.chPrint_in_Division)) then begin
+    ChangedFields[i] := tkchPrint_in_Division;
+    Inc(i);
+  end;
+  if (P1.chMoney_Variance_Up <> P2.chMoney_Variance_Up) then begin
+    P3.chMoney_Variance_Up := P1.chMoney_Variance_Up;
+    ChangedFields[i] := tkchMoney_Variance_Up;
+    Inc(i);
+  end;
+  if (P1.chMoney_Variance_Down <> P2.chMoney_Variance_Down) then begin
+    P3.chMoney_Variance_Down := P1.chMoney_Variance_Down;
+    ChangedFields[i] := tkchMoney_Variance_Down;
+    Inc(i);
+  end;
+  if (P1.chPercent_Variance_Up <> P2.chPercent_Variance_Up) then begin
+    P3.chPercent_Variance_Up := P1.chPercent_Variance_Up;
+    ChangedFields[i] := tkchPercent_Variance_Up;
+    Inc(i);
+  end;
+  if (P1.chPercent_Variance_Down <> P2.chPercent_Variance_Down) then begin
+    P3.chPercent_Variance_Down := P1.chPercent_Variance_Down;
+    ChangedFields[i] := tkchPercent_Variance_Down;
+    Inc(i);
+  end;
+  if Last_Years_Totals_SB_Only_Changed(TLast_Years_Totals_SB_Only_Array(P1.chLast_Years_Totals_SB_Only), 
+                  TLast_Years_Totals_SB_Only_Array(P2.chLast_Years_Totals_SB_Only), 
+                  TLast_Years_Totals_SB_Only_Array(P3.chLast_Years_Totals_SB_Only)) then begin
+    ChangedFields[i] := tkchLast_Years_Totals_SB_Only;
+    Inc(i);
+  end;
+  if (P1.chOpening_Balance_SB_Only <> P2.chOpening_Balance_SB_Only) then begin
+    P3.chOpening_Balance_SB_Only := P1.chOpening_Balance_SB_Only;
+    ChangedFields[i] := tkchOpening_Balance_SB_Only;
+    Inc(i);
+  end;
+  if (P1.chSubtype <> P2.chSubtype) then begin
+    P3.chSubtype := P1.chSubtype;
+    ChangedFields[i] := tkchSubtype;
+    Inc(i);
+  end;
+  if (P1.chAlternative_Code <> P2.chAlternative_Code) then begin
+    P3.chAlternative_Code := P1.chAlternative_Code;
+    ChangedFields[i] := tkchAlternative_Code;
+    Inc(i);
+  end;
+  if (P1.chLinked_Account_OS <> P2.chLinked_Account_OS) then begin
+    P3.chLinked_Account_OS := P1.chLinked_Account_OS;
+    ChangedFields[i] := tkchLinked_Account_OS;
+    Inc(i);
+  end;
+  if (P1.chLinked_Account_CS <> P2.chLinked_Account_CS) then begin
+    P3.chLinked_Account_CS := P1.chLinked_Account_CS;
+    ChangedFields[i] := tkchLinked_Account_CS;
+    Inc(i);
+  end;
+  if (P1.chHide_In_Basic_Chart <> P2.chHide_In_Basic_Chart) then begin
+    P3.chHide_In_Basic_Chart := P1.chHide_In_Basic_Chart;
+    ChangedFields[i] := tkchHide_In_Basic_Chart;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Account_Rec(P1, P2: pAccount_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Account_Rec(P1^, S);
+    S.Position := 0;
+    Read_Account_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

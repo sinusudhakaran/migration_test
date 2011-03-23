@@ -5,7 +5,7 @@ UNIT SYacIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES SYDEFS, IOSTREAM;
+INTERFACE USES SYDEFS, IOSTREAM, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_File_Access_Mapping_Rec ( Var O : TFile_Access_Mapping_Rec ; Var
 PROCEDURE Read_File_Access_Mapping_Rec ( Var O : TFile_Access_Mapping_Rec ; Var F : TIOStream );
 FUNCTION  New_File_Access_Mapping_Rec : pFile_Access_Mapping_Rec ;
 PROCEDURE Free_File_Access_Mapping_Rec_Dynamic_Fields ( Var O : TFile_Access_Mapping_Rec );
+FUNCTION File_Access_Mapping_Rec_Delta(P1, P2, P3: pFile_Access_Mapping_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_File_Access_Mapping_Rec(P1, P2: pFile_Access_Mapping_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -45,6 +48,7 @@ end;
 CONST
    tkacUser_LRN                         = 102 ;
    tkacClient_File_LRN                  = 103 ;
+   tkacAudit_Record_ID                  = 104 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -72,6 +76,7 @@ Begin
       F.WriteToken( tkBegin_File_Access_Mapping );
       F.WriteIntegerValue( tkacUser_LRN , acUser_LRN );
       F.WriteIntegerValue( tkacClient_File_LRN , acClient_File_LRN );
+      F.WriteIntegerValue( tkacAudit_Record_ID , acAudit_Record_ID );
       F.WriteToken( tkEnd_File_Access_Mapping );
    end;
 end; { of Write_File_Access_Mapping_Rec }
@@ -96,6 +101,7 @@ Begin
          tkEnd_File_Access_Mapping :; { Do Nothing }
          tkacUser_LRN                         : acUser_LRN := F.ReadIntegerValue;
          tkacClient_File_LRN                  : acClient_File_LRN := F.ReadIntegerValue;
+         tkacAudit_Record_ID                  : acAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -131,6 +137,74 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkacUser_LRN to tkacAudit_Record_ID do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION File_Access_Mapping_Rec_Delta(P1, P2, P3: pFile_Access_Mapping_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_File_Access_Mapping_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.acUser_LRN <> P2.acUser_LRN) then begin
+    P3.acUser_LRN := P1.acUser_LRN;
+    ChangedFields[i] := tkacUser_LRN;
+    Inc(i);
+  end;
+  if (P1.acClient_File_LRN <> P2.acClient_File_LRN) then begin
+    P3.acClient_File_LRN := P1.acClient_File_LRN;
+    ChangedFields[i] := tkacClient_File_LRN;
+    Inc(i);
+  end;
+  if (P1.acAudit_Record_ID <> P2.acAudit_Record_ID) then begin
+    P3.acAudit_Record_ID := P1.acAudit_Record_ID;
+    ChangedFields[i] := tkacAudit_Record_ID;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_File_Access_Mapping_Rec(P1, P2: pFile_Access_Mapping_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_File_Access_Mapping_Rec(P1^, S);
+    S.Position := 0;
+    Read_File_Access_Mapping_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

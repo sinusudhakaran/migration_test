@@ -5,7 +5,7 @@ UNIT BKhdIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Custom_Heading_Rec ( Var O : TCustom_Heading_Rec ; Var F : TIOSt
 PROCEDURE Read_Custom_Heading_Rec ( Var O : TCustom_Heading_Rec ; Var F : TIOStream );
 FUNCTION  New_Custom_Heading_Rec : pCustom_Heading_Rec ;
 PROCEDURE Free_Custom_Heading_Rec_Dynamic_Fields ( Var O : TCustom_Heading_Rec );
+FUNCTION Custom_Heading_Rec_Delta(P1, P2, P3: pCustom_Heading_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Custom_Heading_Rec(P1, P2: pCustom_Heading_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -137,6 +140,79 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkhdHeading_Type to tkhdMinor_ID do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Custom_Heading_Rec_Delta(P1, P2, P3: pCustom_Heading_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Custom_Heading_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.hdHeading_Type <> P2.hdHeading_Type) then begin
+    P3.hdHeading_Type := P1.hdHeading_Type;
+    ChangedFields[i] := tkhdHeading_Type;
+    Inc(i);
+  end;
+  if (P1.hdHeading <> P2.hdHeading) then begin
+    P3.hdHeading := P1.hdHeading;
+    ChangedFields[i] := tkhdHeading;
+    Inc(i);
+  end;
+  if (P1.hdMajor_ID <> P2.hdMajor_ID) then begin
+    P3.hdMajor_ID := P1.hdMajor_ID;
+    ChangedFields[i] := tkhdMajor_ID;
+    Inc(i);
+  end;
+  if (P1.hdMinor_ID <> P2.hdMinor_ID) then begin
+    P3.hdMinor_ID := P1.hdMinor_ID;
+    ChangedFields[i] := tkhdMinor_ID;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Custom_Heading_Rec(P1, P2: pCustom_Heading_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Custom_Heading_Rec(P1^, S);
+    S.Position := 0;
+    Read_Custom_Heading_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

@@ -5,7 +5,7 @@ UNIT BKshIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_SubGroup_Heading_Rec ( Var O : TSubGroup_Heading_Rec ; Var F : T
 PROCEDURE Read_SubGroup_Heading_Rec ( Var O : TSubGroup_Heading_Rec ; Var F : TIOStream );
 FUNCTION  New_SubGroup_Heading_Rec : pSubGroup_Heading_Rec ;
 PROCEDURE Free_SubGroup_Heading_Rec_Dynamic_Fields ( Var O : TSubGroup_Heading_Rec );
+FUNCTION SubGroup_Heading_Rec_Delta(P1, P2, P3: pSubGroup_Heading_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_SubGroup_Heading_Rec(P1, P2: pSubGroup_Heading_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -134,6 +137,74 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkshHeading to tkshSub_Group_No do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION SubGroup_Heading_Rec_Delta(P1, P2, P3: pSubGroup_Heading_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_SubGroup_Heading_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.shHeading <> P2.shHeading) then begin
+    P3.shHeading := P1.shHeading;
+    ChangedFields[i] := tkshHeading;
+    Inc(i);
+  end;
+  if (P1.shReport_Group_No <> P2.shReport_Group_No) then begin
+    P3.shReport_Group_No := P1.shReport_Group_No;
+    ChangedFields[i] := tkshReport_Group_No;
+    Inc(i);
+  end;
+  if (P1.shSub_Group_No <> P2.shSub_Group_No) then begin
+    P3.shSub_Group_No := P1.shSub_Group_No;
+    ChangedFields[i] := tkshSub_Group_No;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_SubGroup_Heading_Rec(P1, P2: pSubGroup_Heading_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_SubGroup_Heading_Rec(P1^, S);
+    S.Position := 0;
+    Read_SubGroup_Heading_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

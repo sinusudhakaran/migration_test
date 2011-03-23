@@ -5,7 +5,7 @@ UNIT BKbuIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Budget_Header_Rec ( Var O : TBudget_Header_Rec ; Var F : TIOStre
 PROCEDURE Read_Budget_Header_Rec ( Var O : TBudget_Header_Rec ; Var F : TIOStream );
 FUNCTION  New_Budget_Header_Rec : pBudget_Header_Rec ;
 PROCEDURE Free_Budget_Header_Rec_Dynamic_Fields ( Var O : TBudget_Header_Rec );
+FUNCTION Budget_Header_Rec_Delta(P1, P2, P3: pBudget_Header_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Budget_Header_Rec(P1, P2: pBudget_Header_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -137,6 +140,79 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkbuStart_Date to tkbuIs_Inclusive do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Budget_Header_Rec_Delta(P1, P2, P3: pBudget_Header_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Budget_Header_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.buStart_Date <> P2.buStart_Date) then begin
+    P3.buStart_Date := P1.buStart_Date;
+    ChangedFields[i] := tkbuStart_Date;
+    Inc(i);
+  end;
+  if (P1.buName <> P2.buName) then begin
+    P3.buName := P1.buName;
+    ChangedFields[i] := tkbuName;
+    Inc(i);
+  end;
+  if (P1.buEstimated_Opening_Bank_Balance <> P2.buEstimated_Opening_Bank_Balance) then begin
+    P3.buEstimated_Opening_Bank_Balance := P1.buEstimated_Opening_Bank_Balance;
+    ChangedFields[i] := tkbuEstimated_Opening_Bank_Balance;
+    Inc(i);
+  end;
+  if (P1.buIs_Inclusive <> P2.buIs_Inclusive) then begin
+    P3.buIs_Inclusive := P1.buIs_Inclusive;
+    ChangedFields[i] := tkbuIs_Inclusive;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Budget_Header_Rec(P1, P2: pBudget_Header_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Budget_Header_Rec(P1^, S);
+    S.Position := 0;
+    Read_Budget_Header_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

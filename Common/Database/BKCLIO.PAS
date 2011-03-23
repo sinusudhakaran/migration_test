@@ -5,7 +5,7 @@ UNIT BKclIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Client_Rec ( Var O : TClient_Rec ; Var F : TIOStream );
 PROCEDURE Read_Client_Rec ( Var O : TClient_Rec ; Var F : TIOStream );
 FUNCTION  New_Client_Rec : pClient_Rec ;
 PROCEDURE Free_Client_Rec_Dynamic_Fields ( Var O : TClient_Rec );
+FUNCTION Client_Rec_Delta(P1, P2, P3: pClient_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Client_Rec(P1, P2: pClient_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -1080,6 +1083,1273 @@ Begin
       SetLength( clTemp_Period_Details_This_Year, 0 );
       SetLength( clTemp_Period_Details_Last_Year, 0 );
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkclCode to tkclBudget_Column_Width do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Client_Rec_Delta(P1, P2, P3: pClient_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Client_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.clCode <> P2.clCode) then begin
+    P3.clCode := P1.clCode;
+    ChangedFields[i] := tkclCode;
+    Inc(i);
+  end;
+  if (P1.clName <> P2.clName) then begin
+    P3.clName := P1.clName;
+    ChangedFields[i] := tkclName;
+    Inc(i);
+  end;
+  if (P1.clAddress_L1 <> P2.clAddress_L1) then begin
+    P3.clAddress_L1 := P1.clAddress_L1;
+    ChangedFields[i] := tkclAddress_L1;
+    Inc(i);
+  end;
+  if (P1.clAddress_L2 <> P2.clAddress_L2) then begin
+    P3.clAddress_L2 := P1.clAddress_L2;
+    ChangedFields[i] := tkclAddress_L2;
+    Inc(i);
+  end;
+  if (P1.clAddress_L3 <> P2.clAddress_L3) then begin
+    P3.clAddress_L3 := P1.clAddress_L3;
+    ChangedFields[i] := tkclAddress_L3;
+    Inc(i);
+  end;
+  if (P1.clContact_Name <> P2.clContact_Name) then begin
+    P3.clContact_Name := P1.clContact_Name;
+    ChangedFields[i] := tkclContact_Name;
+    Inc(i);
+  end;
+  if (P1.clPhone_No <> P2.clPhone_No) then begin
+    P3.clPhone_No := P1.clPhone_No;
+    ChangedFields[i] := tkclPhone_No;
+    Inc(i);
+  end;
+  if (P1.clFax_No <> P2.clFax_No) then begin
+    P3.clFax_No := P1.clFax_No;
+    ChangedFields[i] := tkclFax_No;
+    Inc(i);
+  end;
+  if (P1.clFile_Password <> P2.clFile_Password) then begin
+    P3.clFile_Password := P1.clFile_Password;
+    ChangedFields[i] := tkclFile_Password;
+    Inc(i);
+  end;
+  if (P1.clPractice_Name <> P2.clPractice_Name) then begin
+    P3.clPractice_Name := P1.clPractice_Name;
+    ChangedFields[i] := tkclPractice_Name;
+    Inc(i);
+  end;
+  if (P1.clStaff_Member_Name <> P2.clStaff_Member_Name) then begin
+    P3.clStaff_Member_Name := P1.clStaff_Member_Name;
+    ChangedFields[i] := tkclStaff_Member_Name;
+    Inc(i);
+  end;
+  if (P1.clPractice_EMail_Address <> P2.clPractice_EMail_Address) then begin
+    P3.clPractice_EMail_Address := P1.clPractice_EMail_Address;
+    ChangedFields[i] := tkclPractice_EMail_Address;
+    Inc(i);
+  end;
+  if (P1.clStaff_Member_EMail_Address <> P2.clStaff_Member_EMail_Address) then begin
+    P3.clStaff_Member_EMail_Address := P1.clStaff_Member_EMail_Address;
+    ChangedFields[i] := tkclStaff_Member_EMail_Address;
+    Inc(i);
+  end;
+  if (P1.clClient_EMail_Address <> P2.clClient_EMail_Address) then begin
+    P3.clClient_EMail_Address := P1.clClient_EMail_Address;
+    ChangedFields[i] := tkclClient_EMail_Address;
+    Inc(i);
+  end;
+  if (P1.clCountry <> P2.clCountry) then begin
+    P3.clCountry := P1.clCountry;
+    ChangedFields[i] := tkclCountry;
+    Inc(i);
+  end;
+  if (P1.clFile_Name <> P2.clFile_Name) then begin
+    P3.clFile_Name := P1.clFile_Name;
+    ChangedFields[i] := tkclFile_Name;
+    Inc(i);
+  end;
+  if (P1.clFile_Type <> P2.clFile_Type) then begin
+    P3.clFile_Type := P1.clFile_Type;
+    ChangedFields[i] := tkclFile_Type;
+    Inc(i);
+  end;
+  if (P1.clFile_Version <> P2.clFile_Version) then begin
+    P3.clFile_Version := P1.clFile_Version;
+    ChangedFields[i] := tkclFile_Version;
+    Inc(i);
+  end;
+  if (P1.clFile_Save_Count <> P2.clFile_Save_Count) then begin
+    P3.clFile_Save_Count := P1.clFile_Save_Count;
+    ChangedFields[i] := tkclFile_Save_Count;
+    Inc(i);
+  end;
+  if (P1.clBankLink_Connect_Password <> P2.clBankLink_Connect_Password) then begin
+    P3.clBankLink_Connect_Password := P1.clBankLink_Connect_Password;
+    ChangedFields[i] := tkclBankLink_Connect_Password;
+    Inc(i);
+  end;
+  if (P1.clPIN_Number <> P2.clPIN_Number) then begin
+    P3.clPIN_Number := P1.clPIN_Number;
+    ChangedFields[i] := tkclPIN_Number;
+    Inc(i);
+  end;
+  if (P1.clOld_Restrict_Analysis_Codes <> P2.clOld_Restrict_Analysis_Codes) then begin
+    P3.clOld_Restrict_Analysis_Codes := P1.clOld_Restrict_Analysis_Codes;
+    ChangedFields[i] := tkclOld_Restrict_Analysis_Codes;
+    Inc(i);
+  end;
+  if (P1.clFinancial_Year_Starts <> P2.clFinancial_Year_Starts) then begin
+    P3.clFinancial_Year_Starts := P1.clFinancial_Year_Starts;
+    ChangedFields[i] := tkclFinancial_Year_Starts;
+    Inc(i);
+  end;
+  if (P1.clReport_Start_Date <> P2.clReport_Start_Date) then begin
+    P3.clReport_Start_Date := P1.clReport_Start_Date;
+    ChangedFields[i] := tkclReport_Start_Date;
+    Inc(i);
+  end;
+  if (P1.clReporting_Period <> P2.clReporting_Period) then begin
+    P3.clReporting_Period := P1.clReporting_Period;
+    ChangedFields[i] := tkclReporting_Period;
+    Inc(i);
+  end;
+  if (P1.clOld_Send_Reports_To <> P2.clOld_Send_Reports_To) then begin
+    P3.clOld_Send_Reports_To := P1.clOld_Send_Reports_To;
+    ChangedFields[i] := tkclOld_Send_Reports_To;
+    Inc(i);
+  end;
+  if (P1.clSend_Coding_Report <> P2.clSend_Coding_Report) then begin
+    P3.clSend_Coding_Report := P1.clSend_Coding_Report;
+    ChangedFields[i] := tkclSend_Coding_Report;
+    Inc(i);
+  end;
+  if (P1.clSend_Chart_of_Accounts <> P2.clSend_Chart_of_Accounts) then begin
+    P3.clSend_Chart_of_Accounts := P1.clSend_Chart_of_Accounts;
+    ChangedFields[i] := tkclSend_Chart_of_Accounts;
+    Inc(i);
+  end;
+  if (P1.clSend_Unpresented_Cheque_List <> P2.clSend_Unpresented_Cheque_List) then begin
+    P3.clSend_Unpresented_Cheque_List := P1.clSend_Unpresented_Cheque_List;
+    ChangedFields[i] := tkclSend_Unpresented_Cheque_List;
+    Inc(i);
+  end;
+  if (P1.clSend_Payee_List <> P2.clSend_Payee_List) then begin
+    P3.clSend_Payee_List := P1.clSend_Payee_List;
+    ChangedFields[i] := tkclSend_Payee_List;
+    Inc(i);
+  end;
+  if (P1.clSend_Payee_Report <> P2.clSend_Payee_Report) then begin
+    P3.clSend_Payee_Report := P1.clSend_Payee_Report;
+    ChangedFields[i] := tkclSend_Payee_Report;
+    Inc(i);
+  end;
+  if Short_Name_Changed(TShort_Name_Array(P1.clShort_Name), 
+                  TShort_Name_Array(P2.clShort_Name), 
+                  TShort_Name_Array(P3.clShort_Name)) then begin
+    ChangedFields[i] := tkclShort_Name;
+    Inc(i);
+  end;
+  if Long_Name_Changed(TLong_Name_Array(P1.clLong_Name), 
+                  TLong_Name_Array(P2.clLong_Name), 
+                  TLong_Name_Array(P3.clLong_Name)) then begin
+    ChangedFields[i] := tkclLong_Name;
+    Inc(i);
+  end;
+  if (P1.clGST_Number <> P2.clGST_Number) then begin
+    P3.clGST_Number := P1.clGST_Number;
+    ChangedFields[i] := tkclGST_Number;
+    Inc(i);
+  end;
+  if (P1.clGST_Period <> P2.clGST_Period) then begin
+    P3.clGST_Period := P1.clGST_Period;
+    ChangedFields[i] := tkclGST_Period;
+    Inc(i);
+  end;
+  if (P1.clGST_Start_Month <> P2.clGST_Start_Month) then begin
+    P3.clGST_Start_Month := P1.clGST_Start_Month;
+    ChangedFields[i] := tkclGST_Start_Month;
+    Inc(i);
+  end;
+  if GST_Applies_From_Changed(TGST_Applies_From_Array(P1.clGST_Applies_From), 
+                  TGST_Applies_From_Array(P2.clGST_Applies_From), 
+                  TGST_Applies_From_Array(P3.clGST_Applies_From)) then begin
+    ChangedFields[i] := tkclGST_Applies_From;
+    Inc(i);
+  end;
+  if GST_Class_Names_Changed(TGST_Class_Names_Array(P1.clGST_Class_Names), 
+                  TGST_Class_Names_Array(P2.clGST_Class_Names), 
+                  TGST_Class_Names_Array(P3.clGST_Class_Names)) then begin
+    ChangedFields[i] := tkclGST_Class_Names;
+    Inc(i);
+  end;
+  if GST_Class_Types_Changed(TGST_Class_Types_Array(P1.clGST_Class_Types), 
+                  TGST_Class_Types_Array(P2.clGST_Class_Types), 
+                  TGST_Class_Types_Array(P3.clGST_Class_Types)) then begin
+    ChangedFields[i] := tkclGST_Class_Types;
+    Inc(i);
+  end;
+  if GST_Account_Codes_Changed(TGST_Account_Codes_Array(P1.clGST_Account_Codes), 
+                  TGST_Account_Codes_Array(P2.clGST_Account_Codes), 
+                  TGST_Account_Codes_Array(P3.clGST_Account_Codes)) then begin
+    ChangedFields[i] := tkclGST_Account_Codes;
+    Inc(i);
+  end;
+  if GST_Rates_Changed(TGST_Rates_Array(P1.clGST_Rates), 
+                  TGST_Rates_Array(P2.clGST_Rates), 
+                  TGST_Rates_Array(P3.clGST_Rates)) then begin
+    ChangedFields[i] := tkclGST_Rates;
+    Inc(i);
+  end;
+  if (P1.clGST_Basis <> P2.clGST_Basis) then begin
+    P3.clGST_Basis := P1.clGST_Basis;
+    ChangedFields[i] := tkclGST_Basis;
+    Inc(i);
+  end;
+  if (P1.clGST_on_Presentation_Date <> P2.clGST_on_Presentation_Date) then begin
+    P3.clGST_on_Presentation_Date := P1.clGST_on_Presentation_Date;
+    ChangedFields[i] := tkclGST_on_Presentation_Date;
+    Inc(i);
+  end;
+  if (P1.clGST_Excludes_Accruals <> P2.clGST_Excludes_Accruals) then begin
+    P3.clGST_Excludes_Accruals := P1.clGST_Excludes_Accruals;
+    ChangedFields[i] := tkclGST_Excludes_Accruals;
+    Inc(i);
+  end;
+  if (P1.clGST_Inclusive_Cashflow <> P2.clGST_Inclusive_Cashflow) then begin
+    P3.clGST_Inclusive_Cashflow := P1.clGST_Inclusive_Cashflow;
+    ChangedFields[i] := tkclGST_Inclusive_Cashflow;
+    Inc(i);
+  end;
+  if (P1.clAccounting_System_Used <> P2.clAccounting_System_Used) then begin
+    P3.clAccounting_System_Used := P1.clAccounting_System_Used;
+    ChangedFields[i] := tkclAccounting_System_Used;
+    Inc(i);
+  end;
+  if (P1.clAccount_Code_Mask <> P2.clAccount_Code_Mask) then begin
+    P3.clAccount_Code_Mask := P1.clAccount_Code_Mask;
+    ChangedFields[i] := tkclAccount_Code_Mask;
+    Inc(i);
+  end;
+  if (P1.clLoad_Client_Files_From <> P2.clLoad_Client_Files_From) then begin
+    P3.clLoad_Client_Files_From := P1.clLoad_Client_Files_From;
+    ChangedFields[i] := tkclLoad_Client_Files_From;
+    Inc(i);
+  end;
+  if (P1.clSave_Client_Files_To <> P2.clSave_Client_Files_To) then begin
+    P3.clSave_Client_Files_To := P1.clSave_Client_Files_To;
+    ChangedFields[i] := tkclSave_Client_Files_To;
+    Inc(i);
+  end;
+  if (P1.clChart_Is_Locked <> P2.clChart_Is_Locked) then begin
+    P3.clChart_Is_Locked := P1.clChart_Is_Locked;
+    ChangedFields[i] := tkclChart_Is_Locked;
+    Inc(i);
+  end;
+  if (P1.clChart_Last_Updated <> P2.clChart_Last_Updated) then begin
+    P3.clChart_Last_Updated := P1.clChart_Last_Updated;
+    ChangedFields[i] := tkclChart_Last_Updated;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_Style <> P2.clCoding_Report_Style) then begin
+    P3.clCoding_Report_Style := P1.clCoding_Report_Style;
+    ChangedFields[i] := tkclCoding_Report_Style;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_Sort_Order <> P2.clCoding_Report_Sort_Order) then begin
+    P3.clCoding_Report_Sort_Order := P1.clCoding_Report_Sort_Order;
+    ChangedFields[i] := tkclCoding_Report_Sort_Order;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_Entry_Selection <> P2.clCoding_Report_Entry_Selection) then begin
+    P3.clCoding_Report_Entry_Selection := P1.clCoding_Report_Entry_Selection;
+    ChangedFields[i] := tkclCoding_Report_Entry_Selection;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_Blank_Lines <> P2.clCoding_Report_Blank_Lines) then begin
+    P3.clCoding_Report_Blank_Lines := P1.clCoding_Report_Blank_Lines;
+    ChangedFields[i] := tkclCoding_Report_Blank_Lines;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_Rule_Line <> P2.clCoding_Report_Rule_Line) then begin
+    P3.clCoding_Report_Rule_Line := P1.clCoding_Report_Rule_Line;
+    ChangedFields[i] := tkclCoding_Report_Rule_Line;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_New_Page <> P2.clCoding_Report_New_Page) then begin
+    P3.clCoding_Report_New_Page := P1.clCoding_Report_New_Page;
+    ChangedFields[i] := tkclCoding_Report_New_Page;
+    Inc(i);
+  end;
+  if Old_Division_Names_Changed(TOld_Division_Names_Array(P1.clOld_Division_Names), 
+                  TOld_Division_Names_Array(P2.clOld_Division_Names), 
+                  TOld_Division_Names_Array(P3.clOld_Division_Names)) then begin
+    ChangedFields[i] := tkclOld_Division_Names;
+    Inc(i);
+  end;
+  if CF_Headings_Changed(TCF_Headings_Array(P1.clCF_Headings), 
+                  TCF_Headings_Array(P2.clCF_Headings), 
+                  TCF_Headings_Array(P3.clCF_Headings)) then begin
+    ChangedFields[i] := tkclCF_Headings;
+    Inc(i);
+  end;
+  if PR_Headings_Changed(TPR_Headings_Array(P1.clPR_Headings), 
+                  TPR_Headings_Array(P2.clPR_Headings), 
+                  TPR_Headings_Array(P3.clPR_Headings)) then begin
+    ChangedFields[i] := tkclPR_Headings;
+    Inc(i);
+  end;
+  if (P1.clMagic_Number <> P2.clMagic_Number) then begin
+    P3.clMagic_Number := P1.clMagic_Number;
+    ChangedFields[i] := tkclMagic_Number;
+    Inc(i);
+  end;
+  if (P1.clException_Options <> P2.clException_Options) then begin
+    P3.clException_Options := P1.clException_Options;
+    ChangedFields[i] := tkclException_Options;
+    Inc(i);
+  end;
+  if (P1.clPeriod_Start_Date <> P2.clPeriod_Start_Date) then begin
+    P3.clPeriod_Start_Date := P1.clPeriod_Start_Date;
+    ChangedFields[i] := tkclPeriod_Start_Date;
+    Inc(i);
+  end;
+  if (P1.clPeriod_End_Date <> P2.clPeriod_End_Date) then begin
+    P3.clPeriod_End_Date := P1.clPeriod_End_Date;
+    ChangedFields[i] := tkclPeriod_End_Date;
+    Inc(i);
+  end;
+  if (P1.clFRS_Print_Chart_Codes <> P2.clFRS_Print_Chart_Codes) then begin
+    P3.clFRS_Print_Chart_Codes := P1.clFRS_Print_Chart_Codes;
+    ChangedFields[i] := tkclFRS_Print_Chart_Codes;
+    Inc(i);
+  end;
+  if (P1.clBankLink_Code <> P2.clBankLink_Code) then begin
+    P3.clBankLink_Code := P1.clBankLink_Code;
+    ChangedFields[i] := tkclBankLink_Code;
+    Inc(i);
+  end;
+  if (P1.clDisk_Sequence_No <> P2.clDisk_Sequence_No) then begin
+    P3.clDisk_Sequence_No := P1.clDisk_Sequence_No;
+    ChangedFields[i] := tkclDisk_Sequence_No;
+    Inc(i);
+  end;
+  if (P1.clStaff_Member_LRN <> P2.clStaff_Member_LRN) then begin
+    P3.clStaff_Member_LRN := P1.clStaff_Member_LRN;
+    ChangedFields[i] := tkclStaff_Member_LRN;
+    Inc(i);
+  end;
+  if (P1.clSuppress_Check_for_New_TXns <> P2.clSuppress_Check_for_New_TXns) then begin
+    P3.clSuppress_Check_for_New_TXns := P1.clSuppress_Check_for_New_TXns;
+    ChangedFields[i] := tkclSuppress_Check_for_New_TXns;
+    Inc(i);
+  end;
+  if (P1.clDownload_From <> P2.clDownload_From) then begin
+    P3.clDownload_From := P1.clDownload_From;
+    ChangedFields[i] := tkclDownload_From;
+    Inc(i);
+  end;
+  if (P1.clLast_Batch_Number <> P2.clLast_Batch_Number) then begin
+    P3.clLast_Batch_Number := P1.clLast_Batch_Number;
+    ChangedFields[i] := tkclLast_Batch_Number;
+    Inc(i);
+  end;
+  if (P1.clOld_GST_Class_Codes <> P2.clOld_GST_Class_Codes) then begin
+    P3.clOld_GST_Class_Codes := P1.clOld_GST_Class_Codes;
+    ChangedFields[i] := tkclOld_GST_Class_Codes;
+    Inc(i);
+  end;
+  if Division_Code_List_Changed(TDivision_Code_List_Array(P1.clDivision_Code_List), 
+                  TDivision_Code_List_Array(P2.clDivision_Code_List), 
+                  TDivision_Code_List_Array(P3.clDivision_Code_List)) then begin
+    ChangedFields[i] := tkclDivision_Code_List;
+    Inc(i);
+  end;
+  if (P1.clSB_Export_As <> P2.clSB_Export_As) then begin
+    P3.clSB_Export_As := P1.clSB_Export_As;
+    ChangedFields[i] := tkclSB_Export_As;
+    Inc(i);
+  end;
+  if (P1.clSB_Upload_To <> P2.clSB_Upload_To) then begin
+    P3.clSB_Upload_To := P1.clSB_Upload_To;
+    ChangedFields[i] := tkclSB_Upload_To;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_Print_TI <> P2.clCoding_Report_Print_TI) then begin
+    P3.clCoding_Report_Print_TI := P1.clCoding_Report_Print_TI;
+    ChangedFields[i] := tkclCoding_Report_Print_TI;
+    Inc(i);
+  end;
+  if (P1.clV31_GST_Format_Used <> P2.clV31_GST_Format_Used) then begin
+    P3.clV31_GST_Format_Used := P1.clV31_GST_Format_Used;
+    ChangedFields[i] := tkclV31_GST_Format_Used;
+    Inc(i);
+  end;
+  if (P1.clEmail_Scheduled_Reports <> P2.clEmail_Scheduled_Reports) then begin
+    P3.clEmail_Scheduled_Reports := P1.clEmail_Scheduled_Reports;
+    ChangedFields[i] := tkclEmail_Scheduled_Reports;
+    Inc(i);
+  end;
+  if OLD_BAS_Special_Accounts_Changed(TOLD_BAS_Special_Accounts_Array(P1.clOLD_BAS_Special_Accounts), 
+                  TOLD_BAS_Special_Accounts_Array(P2.clOLD_BAS_Special_Accounts), 
+                  TOLD_BAS_Special_Accounts_Array(P3.clOLD_BAS_Special_Accounts)) then begin
+    ChangedFields[i] := tkclOLD_BAS_Special_Accounts;
+    Inc(i);
+  end;
+  if GST_Class_Codes_Changed(TGST_Class_Codes_Array(P1.clGST_Class_Codes), 
+                  TGST_Class_Codes_Array(P2.clGST_Class_Codes), 
+                  TGST_Class_Codes_Array(P3.clGST_Class_Codes)) then begin
+    ChangedFields[i] := tkclGST_Class_Codes;
+    Inc(i);
+  end;
+  if (P1.clTax_Ledger_Code <> P2.clTax_Ledger_Code) then begin
+    P3.clTax_Ledger_Code := P1.clTax_Ledger_Code;
+    ChangedFields[i] := tkclTax_Ledger_Code;
+    Inc(i);
+  end;
+  if (P1.clEOY_Locked_SB_Only <> P2.clEOY_Locked_SB_Only) then begin
+    P3.clEOY_Locked_SB_Only := P1.clEOY_Locked_SB_Only;
+    ChangedFields[i] := tkclEOY_Locked_SB_Only;
+    Inc(i);
+  end;
+  if BAS_Field_Number_Changed(TBAS_Field_Number_Array(P1.clBAS_Field_Number), 
+                  TBAS_Field_Number_Array(P2.clBAS_Field_Number), 
+                  TBAS_Field_Number_Array(P3.clBAS_Field_Number)) then begin
+    ChangedFields[i] := tkclBAS_Field_Number;
+    Inc(i);
+  end;
+  if BAS_Field_Source_Changed(TBAS_Field_Source_Array(P1.clBAS_Field_Source), 
+                  TBAS_Field_Source_Array(P2.clBAS_Field_Source), 
+                  TBAS_Field_Source_Array(P3.clBAS_Field_Source)) then begin
+    ChangedFields[i] := tkclBAS_Field_Source;
+    Inc(i);
+  end;
+  if BAS_Field_Account_Code_Changed(TBAS_Field_Account_Code_Array(P1.clBAS_Field_Account_Code), 
+                  TBAS_Field_Account_Code_Array(P2.clBAS_Field_Account_Code), 
+                  TBAS_Field_Account_Code_Array(P3.clBAS_Field_Account_Code)) then begin
+    ChangedFields[i] := tkclBAS_Field_Account_Code;
+    Inc(i);
+  end;
+  if BAS_Field_Balance_Type_Changed(TBAS_Field_Balance_Type_Array(P1.clBAS_Field_Balance_Type), 
+                  TBAS_Field_Balance_Type_Array(P2.clBAS_Field_Balance_Type), 
+                  TBAS_Field_Balance_Type_Array(P3.clBAS_Field_Balance_Type)) then begin
+    ChangedFields[i] := tkclBAS_Field_Balance_Type;
+    Inc(i);
+  end;
+  if BAS_Field_Percent_Changed(TBAS_Field_Percent_Array(P1.clBAS_Field_Percent), 
+                  TBAS_Field_Percent_Array(P2.clBAS_Field_Percent), 
+                  TBAS_Field_Percent_Array(P3.clBAS_Field_Percent)) then begin
+    ChangedFields[i] := tkclBAS_Field_Percent;
+    Inc(i);
+  end;
+  if GST_Business_Percent_Changed(TGST_Business_Percent_Array(P1.clGST_Business_Percent), 
+                  TGST_Business_Percent_Array(P2.clGST_Business_Percent), 
+                  TGST_Business_Percent_Array(P3.clGST_Business_Percent)) then begin
+    ChangedFields[i] := tkclGST_Business_Percent;
+    Inc(i);
+  end;
+  if (P1.clBAS_Calculation_Method <> P2.clBAS_Calculation_Method) then begin
+    P3.clBAS_Calculation_Method := P1.clBAS_Calculation_Method;
+    ChangedFields[i] := tkclBAS_Calculation_Method;
+    Inc(i);
+  end;
+  if (P1.clBAS_Dont_Print_Calc_Sheet <> P2.clBAS_Dont_Print_Calc_Sheet) then begin
+    P3.clBAS_Dont_Print_Calc_Sheet := P1.clBAS_Dont_Print_Calc_Sheet;
+    ChangedFields[i] := tkclBAS_Dont_Print_Calc_Sheet;
+    Inc(i);
+  end;
+  if (P1.clBAS_PAYG_Withheld_Period <> P2.clBAS_PAYG_Withheld_Period) then begin
+    P3.clBAS_PAYG_Withheld_Period := P1.clBAS_PAYG_Withheld_Period;
+    ChangedFields[i] := tkclBAS_PAYG_Withheld_Period;
+    Inc(i);
+  end;
+  if (P1.clFax_Scheduled_Reports <> P2.clFax_Scheduled_Reports) then begin
+    P3.clFax_Scheduled_Reports := P1.clFax_Scheduled_Reports;
+    ChangedFields[i] := tkclFax_Scheduled_Reports;
+    Inc(i);
+  end;
+  if Graph_Headings_Changed(TGraph_Headings_Array(P1.clGraph_Headings), 
+                  TGraph_Headings_Array(P2.clGraph_Headings), 
+                  TGraph_Headings_Array(P3.clGraph_Headings)) then begin
+    ChangedFields[i] := tkclGraph_Headings;
+    Inc(i);
+  end;
+  if Notes_Changed(TNotes_Array(P1.clNotes), 
+                  TNotes_Array(P2.clNotes), 
+                  TNotes_Array(P3.clNotes)) then begin
+    ChangedFields[i] := tkclNotes;
+    Inc(i);
+  end;
+  if (P1.clCheques_Expire_When <> P2.clCheques_Expire_When) then begin
+    P3.clCheques_Expire_When := P1.clCheques_Expire_When;
+    ChangedFields[i] := tkclCheques_Expire_When;
+    Inc(i);
+  end;
+  if (P1.clShow_Notes_On_Open <> P2.clShow_Notes_On_Open) then begin
+    P3.clShow_Notes_On_Open := P1.clShow_Notes_On_Open;
+    ChangedFields[i] := tkclShow_Notes_On_Open;
+    Inc(i);
+  end;
+  if (P1.clECoding_Entry_Selection <> P2.clECoding_Entry_Selection) then begin
+    P3.clECoding_Entry_Selection := P1.clECoding_Entry_Selection;
+    ChangedFields[i] := tkclECoding_Entry_Selection;
+    Inc(i);
+  end;
+  if (P1.clECoding_Dont_Send_Chart <> P2.clECoding_Dont_Send_Chart) then begin
+    P3.clECoding_Dont_Send_Chart := P1.clECoding_Dont_Send_Chart;
+    ChangedFields[i] := tkclECoding_Dont_Send_Chart;
+    Inc(i);
+  end;
+  if (P1.clECoding_Dont_Send_Payees <> P2.clECoding_Dont_Send_Payees) then begin
+    P3.clECoding_Dont_Send_Payees := P1.clECoding_Dont_Send_Payees;
+    ChangedFields[i] := tkclECoding_Dont_Send_Payees;
+    Inc(i);
+  end;
+  if (P1.clECoding_Dont_Show_Quantity <> P2.clECoding_Dont_Show_Quantity) then begin
+    P3.clECoding_Dont_Show_Quantity := P1.clECoding_Dont_Show_Quantity;
+    ChangedFields[i] := tkclECoding_Dont_Show_Quantity;
+    Inc(i);
+  end;
+  if (P1.clECoding_Last_File_No <> P2.clECoding_Last_File_No) then begin
+    P3.clECoding_Last_File_No := P1.clECoding_Last_File_No;
+    ChangedFields[i] := tkclECoding_Last_File_No;
+    Inc(i);
+  end;
+  if (P1.clECoding_Last_File_No_Imported <> P2.clECoding_Last_File_No_Imported) then begin
+    P3.clECoding_Last_File_No_Imported := P1.clECoding_Last_File_No_Imported;
+    ChangedFields[i] := tkclECoding_Last_File_No_Imported;
+    Inc(i);
+  end;
+  if (P1.clECoding_Export_Scheduled_Reports <> P2.clECoding_Export_Scheduled_Reports) then begin
+    P3.clECoding_Export_Scheduled_Reports := P1.clECoding_Export_Scheduled_Reports;
+    ChangedFields[i] := tkclECoding_Export_Scheduled_Reports;
+    Inc(i);
+  end;
+  if (P1.clEmail_Report_Format <> P2.clEmail_Report_Format) then begin
+    P3.clEmail_Report_Format := P1.clEmail_Report_Format;
+    ChangedFields[i] := tkclEmail_Report_Format;
+    Inc(i);
+  end;
+  if (P1.clBAS_PAYG_Instalment_Period <> P2.clBAS_PAYG_Instalment_Period) then begin
+    P3.clBAS_PAYG_Instalment_Period := P1.clBAS_PAYG_Instalment_Period;
+    ChangedFields[i] := tkclBAS_PAYG_Instalment_Period;
+    Inc(i);
+  end;
+  if (P1.clBAS_Include_FBT_WET_LCT <> P2.clBAS_Include_FBT_WET_LCT) then begin
+    P3.clBAS_Include_FBT_WET_LCT := P1.clBAS_Include_FBT_WET_LCT;
+    ChangedFields[i] := tkclBAS_Include_FBT_WET_LCT;
+    Inc(i);
+  end;
+  if (P1.clBAS_Last_GST_Option <> P2.clBAS_Last_GST_Option) then begin
+    P3.clBAS_Last_GST_Option := P1.clBAS_Last_GST_Option;
+    ChangedFields[i] := tkclBAS_Last_GST_Option;
+    Inc(i);
+  end;
+  if (P1.clBAS_Last_PAYG_Instalment_Option <> P2.clBAS_Last_PAYG_Instalment_Option) then begin
+    P3.clBAS_Last_PAYG_Instalment_Option := P1.clBAS_Last_PAYG_Instalment_Option;
+    ChangedFields[i] := tkclBAS_Last_PAYG_Instalment_Option;
+    Inc(i);
+  end;
+  if (P1.clECoding_Default_Password <> P2.clECoding_Default_Password) then begin
+    P3.clECoding_Default_Password := P1.clECoding_Default_Password;
+    ChangedFields[i] := tkclECoding_Default_Password;
+    Inc(i);
+  end;
+  if (P1.clECoding_Import_Options <> P2.clECoding_Import_Options) then begin
+    P3.clECoding_Import_Options := P1.clECoding_Import_Options;
+    ChangedFields[i] := tkclECoding_Import_Options;
+    Inc(i);
+  end;
+  if (P1.clECoding_Last_Import_Dir <> P2.clECoding_Last_Import_Dir) then begin
+    P3.clECoding_Last_Import_Dir := P1.clECoding_Last_Import_Dir;
+    ChangedFields[i] := tkclECoding_Last_Import_Dir;
+    Inc(i);
+  end;
+  if (P1.clECoding_Last_Export_Dir <> P2.clECoding_Last_Export_Dir) then begin
+    P3.clECoding_Last_Export_Dir := P1.clECoding_Last_Export_Dir;
+    ChangedFields[i] := tkclECoding_Last_Export_Dir;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_Show_OP <> P2.clCoding_Report_Show_OP) then begin
+    P3.clCoding_Report_Show_OP := P1.clCoding_Report_Show_OP;
+    ChangedFields[i] := tkclCoding_Report_Show_OP;
+    Inc(i);
+  end;
+  if (P1.clFRS_Show_Quantity <> P2.clFRS_Show_Quantity) then begin
+    P3.clFRS_Show_Quantity := P1.clFRS_Show_Quantity;
+    ChangedFields[i] := tkclFRS_Show_Quantity;
+    Inc(i);
+  end;
+  if (P1.clCflw_Cash_On_Hand_Style <> P2.clCflw_Cash_On_Hand_Style) then begin
+    P3.clCflw_Cash_On_Hand_Style := P1.clCflw_Cash_On_Hand_Style;
+    ChangedFields[i] := tkclCflw_Cash_On_Hand_Style;
+    Inc(i);
+  end;
+  if (P1.clCSV_Export_Scheduled_Reports <> P2.clCSV_Export_Scheduled_Reports) then begin
+    P3.clCSV_Export_Scheduled_Reports := P1.clCSV_Export_Scheduled_Reports;
+    ChangedFields[i] := tkclCSV_Export_Scheduled_Reports;
+    Inc(i);
+  end;
+  if (P1.clFRS_Show_YTD <> P2.clFRS_Show_YTD) then begin
+    P3.clFRS_Show_YTD := P1.clFRS_Show_YTD;
+    ChangedFields[i] := tkclFRS_Show_YTD;
+    Inc(i);
+  end;
+  if (P1.clFRS_Show_Variance <> P2.clFRS_Show_Variance) then begin
+    P3.clFRS_Show_Variance := P1.clFRS_Show_Variance;
+    ChangedFields[i] := tkclFRS_Show_Variance;
+    Inc(i);
+  end;
+  if (P1.clFRS_Compare_Type <> P2.clFRS_Compare_Type) then begin
+    P3.clFRS_Compare_Type := P1.clFRS_Compare_Type;
+    ChangedFields[i] := tkclFRS_Compare_Type;
+    Inc(i);
+  end;
+  if (P1.clFRS_Reporting_Period_Type <> P2.clFRS_Reporting_Period_Type) then begin
+    P3.clFRS_Reporting_Period_Type := P1.clFRS_Reporting_Period_Type;
+    ChangedFields[i] := tkclFRS_Reporting_Period_Type;
+    Inc(i);
+  end;
+  if (P1.clFRS_Report_Style <> P2.clFRS_Report_Style) then begin
+    P3.clFRS_Report_Style := P1.clFRS_Report_Style;
+    ChangedFields[i] := tkclFRS_Report_Style;
+    Inc(i);
+  end;
+  if (P1.clReporting_Year_Starts <> P2.clReporting_Year_Starts) then begin
+    P3.clReporting_Year_Starts := P1.clReporting_Year_Starts;
+    ChangedFields[i] := tkclReporting_Year_Starts;
+    Inc(i);
+  end;
+  if (P1.clFRS_Report_Detail_Type <> P2.clFRS_Report_Detail_Type) then begin
+    P3.clFRS_Report_Detail_Type := P1.clFRS_Report_Detail_Type;
+    ChangedFields[i] := tkclFRS_Report_Detail_Type;
+    Inc(i);
+  end;
+  if (P1.clFRS_Prompt_User_to_use_Budgeted_figures <> P2.clFRS_Prompt_User_to_use_Budgeted_figures) then begin
+    P3.clFRS_Prompt_User_to_use_Budgeted_figures := P1.clFRS_Prompt_User_to_use_Budgeted_figures;
+    ChangedFields[i] := tkclFRS_Prompt_User_to_use_Budgeted_figures;
+    Inc(i);
+  end;
+  if Balance_Sheet_Headings_Changed(TBalance_Sheet_Headings_Array(P1.clBalance_Sheet_Headings), 
+                  TBalance_Sheet_Headings_Array(P2.clBalance_Sheet_Headings), 
+                  TBalance_Sheet_Headings_Array(P3.clBalance_Sheet_Headings)) then begin
+    ChangedFields[i] := tkclBalance_Sheet_Headings;
+    Inc(i);
+  end;
+  if (P1.clLast_Financial_Year_Start <> P2.clLast_Financial_Year_Start) then begin
+    P3.clLast_Financial_Year_Start := P1.clLast_Financial_Year_Start;
+    ChangedFields[i] := tkclLast_Financial_Year_Start;
+    Inc(i);
+  end;
+  if (P1.cl520_Reference_Fix_Run <> P2.cl520_Reference_Fix_Run) then begin
+    P3.cl520_Reference_Fix_Run := P1.cl520_Reference_Fix_Run;
+    ChangedFields[i] := tkcl520_Reference_Fix_Run;
+    Inc(i);
+  end;
+  if (P1.clTax_Interface_Used <> P2.clTax_Interface_Used) then begin
+    P3.clTax_Interface_Used := P1.clTax_Interface_Used;
+    ChangedFields[i] := tkclTax_Interface_Used;
+    Inc(i);
+  end;
+  if (P1.clSave_Tax_Files_To <> P2.clSave_Tax_Files_To) then begin
+    P3.clSave_Tax_Files_To := P1.clSave_Tax_Files_To;
+    ChangedFields[i] := tkclSave_Tax_Files_To;
+    Inc(i);
+  end;
+  if (P1.clJournal_Processing_Period <> P2.clJournal_Processing_Period) then begin
+    P3.clJournal_Processing_Period := P1.clJournal_Processing_Period;
+    ChangedFields[i] := tkclJournal_Processing_Period;
+    Inc(i);
+  end;
+  if (P1.clLast_Disk_Image_Version <> P2.clLast_Disk_Image_Version) then begin
+    P3.clLast_Disk_Image_Version := P1.clLast_Disk_Image_Version;
+    ChangedFields[i] := tkclLast_Disk_Image_Version;
+    Inc(i);
+  end;
+  if (P1.clPractice_Web_Site <> P2.clPractice_Web_Site) then begin
+    P3.clPractice_Web_Site := P1.clPractice_Web_Site;
+    ChangedFields[i] := tkclPractice_Web_Site;
+    Inc(i);
+  end;
+  if (P1.clPractice_Phone <> P2.clPractice_Phone) then begin
+    P3.clPractice_Phone := P1.clPractice_Phone;
+    ChangedFields[i] := tkclPractice_Phone;
+    Inc(i);
+  end;
+  if (P1.clPractice_Logo <> P2.clPractice_Logo) then begin
+    P3.clPractice_Logo := P1.clPractice_Logo;
+    ChangedFields[i] := tkclPractice_Logo;
+    Inc(i);
+  end;
+  if (P1.clWeb_Site_Login_URL <> P2.clWeb_Site_Login_URL) then begin
+    P3.clWeb_Site_Login_URL := P1.clWeb_Site_Login_URL;
+    ChangedFields[i] := tkclWeb_Site_Login_URL;
+    Inc(i);
+  end;
+  if (P1.clStaff_Member_Direct_Dial <> P2.clStaff_Member_Direct_Dial) then begin
+    P3.clStaff_Member_Direct_Dial := P1.clStaff_Member_Direct_Dial;
+    ChangedFields[i] := tkclStaff_Member_Direct_Dial;
+    Inc(i);
+  end;
+  if (P1.clContact_Details_To_Show <> P2.clContact_Details_To_Show) then begin
+    P3.clContact_Details_To_Show := P1.clContact_Details_To_Show;
+    ChangedFields[i] := tkclContact_Details_To_Show;
+    Inc(i);
+  end;
+  if (P1.clECoding_Dont_Allow_UPIs <> P2.clECoding_Dont_Allow_UPIs) then begin
+    P3.clECoding_Dont_Allow_UPIs := P1.clECoding_Dont_Allow_UPIs;
+    ChangedFields[i] := tkclECoding_Dont_Allow_UPIs;
+    Inc(i);
+  end;
+  if (P1.clECoding_Dont_Show_Account <> P2.clECoding_Dont_Show_Account) then begin
+    P3.clECoding_Dont_Show_Account := P1.clECoding_Dont_Show_Account;
+    ChangedFields[i] := tkclECoding_Dont_Show_Account;
+    Inc(i);
+  end;
+  if (P1.clECoding_Dont_Show_Payees <> P2.clECoding_Dont_Show_Payees) then begin
+    P3.clECoding_Dont_Show_Payees := P1.clECoding_Dont_Show_Payees;
+    ChangedFields[i] := tkclECoding_Dont_Show_Payees;
+    Inc(i);
+  end;
+  if (P1.clECoding_Dont_Show_GST <> P2.clECoding_Dont_Show_GST) then begin
+    P3.clECoding_Dont_Show_GST := P1.clECoding_Dont_Show_GST;
+    ChangedFields[i] := tkclECoding_Dont_Show_GST;
+    Inc(i);
+  end;
+  if (P1.clECoding_Dont_Show_TaxInvoice <> P2.clECoding_Dont_Show_TaxInvoice) then begin
+    P3.clECoding_Dont_Show_TaxInvoice := P1.clECoding_Dont_Show_TaxInvoice;
+    ChangedFields[i] := tkclECoding_Dont_Show_TaxInvoice;
+    Inc(i);
+  end;
+  if (P1.clScheduled_File_Attachments <> P2.clScheduled_File_Attachments) then begin
+    P3.clScheduled_File_Attachments := P1.clScheduled_File_Attachments;
+    ChangedFields[i] := tkclScheduled_File_Attachments;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_Style <> P2.clScheduled_Coding_Report_Style) then begin
+    P3.clScheduled_Coding_Report_Style := P1.clScheduled_Coding_Report_Style;
+    ChangedFields[i] := tkclScheduled_Coding_Report_Style;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_Sort_Order <> P2.clScheduled_Coding_Report_Sort_Order) then begin
+    P3.clScheduled_Coding_Report_Sort_Order := P1.clScheduled_Coding_Report_Sort_Order;
+    ChangedFields[i] := tkclScheduled_Coding_Report_Sort_Order;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_Entry_Selection <> P2.clScheduled_Coding_Report_Entry_Selection) then begin
+    P3.clScheduled_Coding_Report_Entry_Selection := P1.clScheduled_Coding_Report_Entry_Selection;
+    ChangedFields[i] := tkclScheduled_Coding_Report_Entry_Selection;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_Blank_Lines <> P2.clScheduled_Coding_Report_Blank_Lines) then begin
+    P3.clScheduled_Coding_Report_Blank_Lines := P1.clScheduled_Coding_Report_Blank_Lines;
+    ChangedFields[i] := tkclScheduled_Coding_Report_Blank_Lines;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_Rule_Line <> P2.clScheduled_Coding_Report_Rule_Line) then begin
+    P3.clScheduled_Coding_Report_Rule_Line := P1.clScheduled_Coding_Report_Rule_Line;
+    ChangedFields[i] := tkclScheduled_Coding_Report_Rule_Line;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_New_Page <> P2.clScheduled_Coding_Report_New_Page) then begin
+    P3.clScheduled_Coding_Report_New_Page := P1.clScheduled_Coding_Report_New_Page;
+    ChangedFields[i] := tkclScheduled_Coding_Report_New_Page;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_Print_TI <> P2.clScheduled_Coding_Report_Print_TI) then begin
+    P3.clScheduled_Coding_Report_Print_TI := P1.clScheduled_Coding_Report_Print_TI;
+    ChangedFields[i] := tkclScheduled_Coding_Report_Print_TI;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_Show_OP <> P2.clScheduled_Coding_Report_Show_OP) then begin
+    P3.clScheduled_Coding_Report_Show_OP := P1.clScheduled_Coding_Report_Show_OP;
+    ChangedFields[i] := tkclScheduled_Coding_Report_Show_OP;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Client_Note_Message <> P2.clScheduled_Client_Note_Message) then begin
+    P3.clScheduled_Client_Note_Message := P1.clScheduled_Client_Note_Message;
+    ChangedFields[i] := tkclScheduled_Client_Note_Message;
+    Inc(i);
+  end;
+  if (P1.clCustom_Contact_Name <> P2.clCustom_Contact_Name) then begin
+    P3.clCustom_Contact_Name := P1.clCustom_Contact_Name;
+    ChangedFields[i] := tkclCustom_Contact_Name;
+    Inc(i);
+  end;
+  if (P1.clCustom_Contact_EMail_Address <> P2.clCustom_Contact_EMail_Address) then begin
+    P3.clCustom_Contact_EMail_Address := P1.clCustom_Contact_EMail_Address;
+    ChangedFields[i] := tkclCustom_Contact_EMail_Address;
+    Inc(i);
+  end;
+  if (P1.clCustom_Contact_Phone <> P2.clCustom_Contact_Phone) then begin
+    P3.clCustom_Contact_Phone := P1.clCustom_Contact_Phone;
+    ChangedFields[i] := tkclCustom_Contact_Phone;
+    Inc(i);
+  end;
+  if (P1.clEmpty_Journals_Removed <> P2.clEmpty_Journals_Removed) then begin
+    P3.clEmpty_Journals_Removed := P1.clEmpty_Journals_Removed;
+    ChangedFields[i] := tkclEmpty_Journals_Removed;
+    Inc(i);
+  end;
+  if (P1.clHighest_Manual_Account_No <> P2.clHighest_Manual_Account_No) then begin
+    P3.clHighest_Manual_Account_No := P1.clHighest_Manual_Account_No;
+    ChangedFields[i] := tkclHighest_Manual_Account_No;
+    Inc(i);
+  end;
+  if (P1.clContact_Details_Edit_Date <> P2.clContact_Details_Edit_Date) then begin
+    P3.clContact_Details_Edit_Date := P1.clContact_Details_Edit_Date;
+    ChangedFields[i] := tkclContact_Details_Edit_Date;
+    Inc(i);
+  end;
+  if (P1.clContact_Details_Edit_Time <> P2.clContact_Details_Edit_Time) then begin
+    P3.clContact_Details_Edit_Time := P1.clContact_Details_Edit_Time;
+    ChangedFields[i] := tkclContact_Details_Edit_Time;
+    Inc(i);
+  end;
+  if (P1.clCopy_Narration_Dissection <> P2.clCopy_Narration_Dissection) then begin
+    P3.clCopy_Narration_Dissection := P1.clCopy_Narration_Dissection;
+    ChangedFields[i] := tkclCopy_Narration_Dissection;
+    Inc(i);
+  end;
+  if (P1.clClient_CC_EMail_Address <> P2.clClient_CC_EMail_Address) then begin
+    P3.clClient_CC_EMail_Address := P1.clClient_CC_EMail_Address;
+    ChangedFields[i] := tkclClient_CC_EMail_Address;
+    Inc(i);
+  end;
+  if (P1.clBAS_Report_Format <> P2.clBAS_Report_Format) then begin
+    P3.clBAS_Report_Format := P1.clBAS_Report_Format;
+    ChangedFields[i] := tkclBAS_Report_Format;
+    Inc(i);
+  end;
+  if (P1.clWebX_Export_Scheduled_Reports <> P2.clWebX_Export_Scheduled_Reports) then begin
+    P3.clWebX_Export_Scheduled_Reports := P1.clWebX_Export_Scheduled_Reports;
+    ChangedFields[i] := tkclWebX_Export_Scheduled_Reports;
+    Inc(i);
+  end;
+  if (P1.clECoding_WebSpace <> P2.clECoding_WebSpace) then begin
+    P3.clECoding_WebSpace := P1.clECoding_WebSpace;
+    ChangedFields[i] := tkclECoding_WebSpace;
+    Inc(i);
+  end;
+  if (P1.clLast_ECoding_Account_UID <> P2.clLast_ECoding_Account_UID) then begin
+    P3.clLast_ECoding_Account_UID := P1.clLast_ECoding_Account_UID;
+    ChangedFields[i] := tkclLast_ECoding_Account_UID;
+    Inc(i);
+  end;
+  if (P1.clWeb_Export_Format <> P2.clWeb_Export_Format) then begin
+    P3.clWeb_Export_Format := P1.clWeb_Export_Format;
+    ChangedFields[i] := tkclWeb_Export_Format;
+    Inc(i);
+  end;
+  if (P1.clMobile_No <> P2.clMobile_No) then begin
+    P3.clMobile_No := P1.clMobile_No;
+    ChangedFields[i] := tkclMobile_No;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Summary <> P2.clLedger_Report_Summary) then begin
+    P3.clLedger_Report_Summary := P1.clLedger_Report_Summary;
+    ChangedFields[i] := tkclLedger_Report_Summary;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Show_Notes <> P2.clLedger_Report_Show_Notes) then begin
+    P3.clLedger_Report_Show_Notes := P1.clLedger_Report_Show_Notes;
+    ChangedFields[i] := tkclLedger_Report_Show_Notes;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Show_Quantities <> P2.clLedger_Report_Show_Quantities) then begin
+    P3.clLedger_Report_Show_Quantities := P1.clLedger_Report_Show_Quantities;
+    ChangedFields[i] := tkclLedger_Report_Show_Quantities;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Show_Non_Trf <> P2.clLedger_Report_Show_Non_Trf) then begin
+    P3.clLedger_Report_Show_Non_Trf := P1.clLedger_Report_Show_Non_Trf;
+    ChangedFields[i] := tkclLedger_Report_Show_Non_Trf;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Show_Inactive_Codes <> P2.clLedger_Report_Show_Inactive_Codes) then begin
+    P3.clLedger_Report_Show_Inactive_Codes := P1.clLedger_Report_Show_Inactive_Codes;
+    ChangedFields[i] := tkclLedger_Report_Show_Inactive_Codes;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Bank_Contra <> P2.clLedger_Report_Bank_Contra) then begin
+    P3.clLedger_Report_Bank_Contra := P1.clLedger_Report_Bank_Contra;
+    ChangedFields[i] := tkclLedger_Report_Bank_Contra;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_GST_Contra <> P2.clLedger_Report_GST_Contra) then begin
+    P3.clLedger_Report_GST_Contra := P1.clLedger_Report_GST_Contra;
+    ChangedFields[i] := tkclLedger_Report_GST_Contra;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Show_Balances <> P2.clLedger_Report_Show_Balances) then begin
+    P3.clLedger_Report_Show_Balances := P1.clLedger_Report_Show_Balances;
+    ChangedFields[i] := tkclLedger_Report_Show_Balances;
+    Inc(i);
+  end;
+  if (P1.clFile_Read_Only <> P2.clFile_Read_Only) then begin
+    P3.clFile_Read_Only := P1.clFile_Read_Only;
+    ChangedFields[i] := tkclFile_Read_Only;
+    Inc(i);
+  end;
+  if (P1.clCheckOut_Scheduled_Reports <> P2.clCheckOut_Scheduled_Reports) then begin
+    P3.clCheckOut_Scheduled_Reports := P1.clCheckOut_Scheduled_Reports;
+    ChangedFields[i] := tkclCheckOut_Scheduled_Reports;
+    Inc(i);
+  end;
+  if (P1.clExclude_From_Scheduled_Reports <> P2.clExclude_From_Scheduled_Reports) then begin
+    P3.clExclude_From_Scheduled_Reports := P1.clExclude_From_Scheduled_Reports;
+    ChangedFields[i] := tkclExclude_From_Scheduled_Reports;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Show_Gross_And_GST <> P2.clLedger_Report_Show_Gross_And_GST) then begin
+    P3.clLedger_Report_Show_Gross_And_GST := P1.clLedger_Report_Show_Gross_And_GST;
+    ChangedFields[i] := tkclLedger_Report_Show_Gross_And_GST;
+    Inc(i);
+  end;
+  if (P1.clSalutation <> P2.clSalutation) then begin
+    P3.clSalutation := P1.clSalutation;
+    ChangedFields[i] := tkclSalutation;
+    Inc(i);
+  end;
+  if (P1.clExternal_ID <> P2.clExternal_ID) then begin
+    P3.clExternal_ID := P1.clExternal_ID;
+    ChangedFields[i] := tkclExternal_ID;
+    Inc(i);
+  end;
+  if (P1.clSystem_LRN <> P2.clSystem_LRN) then begin
+    P3.clSystem_LRN := P1.clSystem_LRN;
+    ChangedFields[i] := tkclSystem_LRN;
+    Inc(i);
+  end;
+  if (P1.clBusiness_Products_Scheduled_Reports <> P2.clBusiness_Products_Scheduled_Reports) then begin
+    P3.clBusiness_Products_Scheduled_Reports := P1.clBusiness_Products_Scheduled_Reports;
+    ChangedFields[i] := tkclBusiness_Products_Scheduled_Reports;
+    Inc(i);
+  end;
+  if (P1.clBusiness_Products_Report_Format <> P2.clBusiness_Products_Report_Format) then begin
+    P3.clBusiness_Products_Report_Format := P1.clBusiness_Products_Report_Format;
+    ChangedFields[i] := tkclBusiness_Products_Report_Format;
+    Inc(i);
+  end;
+  if (P1.clCoding_Report_Wrap_Narration <> P2.clCoding_Report_Wrap_Narration) then begin
+    P3.clCoding_Report_Wrap_Narration := P1.clCoding_Report_Wrap_Narration;
+    ChangedFields[i] := tkclCoding_Report_Wrap_Narration;
+    Inc(i);
+  end;
+  if (P1.clLedger_Report_Wrap_Narration <> P2.clLedger_Report_Wrap_Narration) then begin
+    P3.clLedger_Report_Wrap_Narration := P1.clLedger_Report_Wrap_Narration;
+    ChangedFields[i] := tkclLedger_Report_Wrap_Narration;
+    Inc(i);
+  end;
+  if (P1.clScheduled_Coding_Report_Wrap_Narration <> P2.clScheduled_Coding_Report_Wrap_Narration) then begin
+    P3.clScheduled_Coding_Report_Wrap_Narration := P1.clScheduled_Coding_Report_Wrap_Narration;
+    ChangedFields[i] := tkclScheduled_Coding_Report_Wrap_Narration;
+    Inc(i);
+  end;
+  if (P1.clForce_Offsite_Check_Out <> P2.clForce_Offsite_Check_Out) then begin
+    P3.clForce_Offsite_Check_Out := P1.clForce_Offsite_Check_Out;
+    ChangedFields[i] := tkclForce_Offsite_Check_Out;
+    Inc(i);
+  end;
+  if (P1.clDisable_Offsite_Check_Out <> P2.clDisable_Offsite_Check_Out) then begin
+    P3.clDisable_Offsite_Check_Out := P1.clDisable_Offsite_Check_Out;
+    ChangedFields[i] := tkclDisable_Offsite_Check_Out;
+    Inc(i);
+  end;
+  if (P1.clAlternate_Extract_ID <> P2.clAlternate_Extract_ID) then begin
+    P3.clAlternate_Extract_ID := P1.clAlternate_Extract_ID;
+    ChangedFields[i] := tkclAlternate_Extract_ID;
+    Inc(i);
+  end;
+  if (P1.clUse_Alterate_ID_for_extract <> P2.clUse_Alterate_ID_for_extract) then begin
+    P3.clUse_Alterate_ID_for_extract := P1.clUse_Alterate_ID_for_extract;
+    ChangedFields[i] := tkclUse_Alterate_ID_for_extract;
+    Inc(i);
+  end;
+  if (P1.clLast_Use_Date <> P2.clLast_Use_Date) then begin
+    P3.clLast_Use_Date := P1.clLast_Use_Date;
+    ChangedFields[i] := tkclLast_Use_Date;
+    Inc(i);
+  end;
+  if (P1.clUse_Basic_Chart <> P2.clUse_Basic_Chart) then begin
+    P3.clUse_Basic_Chart := P1.clUse_Basic_Chart;
+    ChangedFields[i] := tkclUse_Basic_Chart;
+    Inc(i);
+  end;
+  if (P1.clGroup_Name <> P2.clGroup_Name) then begin
+    P3.clGroup_Name := P1.clGroup_Name;
+    ChangedFields[i] := tkclGroup_Name;
+    Inc(i);
+  end;
+  if (P1.clClient_Type_Name <> P2.clClient_Type_Name) then begin
+    P3.clClient_Type_Name := P1.clClient_Type_Name;
+    ChangedFields[i] := tkclClient_Type_Name;
+    Inc(i);
+  end;
+  if (P1.clBAS_Include_Fuel <> P2.clBAS_Include_Fuel) then begin
+    P3.clBAS_Include_Fuel := P1.clBAS_Include_Fuel;
+    ChangedFields[i] := tkclBAS_Include_Fuel;
+    Inc(i);
+  end;
+  if (P1.clProfit_Report_Show_Percentage <> P2.clProfit_Report_Show_Percentage) then begin
+    P3.clProfit_Report_Show_Percentage := P1.clProfit_Report_Show_Percentage;
+    ChangedFields[i] := tkclProfit_Report_Show_Percentage;
+    Inc(i);
+  end;
+  if (P1.clECoding_Send_Superfund <> P2.clECoding_Send_Superfund) then begin
+    P3.clECoding_Send_Superfund := P1.clECoding_Send_Superfund;
+    ChangedFields[i] := tkclECoding_Send_Superfund;
+    Inc(i);
+  end;
+  if (P1.clGroup_LRN <> P2.clGroup_LRN) then begin
+    P3.clGroup_LRN := P1.clGroup_LRN;
+    ChangedFields[i] := tkclGroup_LRN;
+    Inc(i);
+  end;
+  if (P1.clClient_Type_LRN <> P2.clClient_Type_LRN) then begin
+    P3.clClient_Type_LRN := P1.clClient_Type_LRN;
+    ChangedFields[i] := tkclClient_Type_LRN;
+    Inc(i);
+  end;
+  if (P1.clSpare_Byte_1 <> P2.clSpare_Byte_1) then begin
+    P3.clSpare_Byte_1 := P1.clSpare_Byte_1;
+    ChangedFields[i] := tkclSpare_Byte_1;
+    Inc(i);
+  end;
+  if (P1.clSpare_Byte_2 <> P2.clSpare_Byte_2) then begin
+    P3.clSpare_Byte_2 := P1.clSpare_Byte_2;
+    ChangedFields[i] := tkclSpare_Byte_2;
+    Inc(i);
+  end;
+  if (P1.clPractice_Code <> P2.clPractice_Code) then begin
+    P3.clPractice_Code := P1.clPractice_Code;
+    ChangedFields[i] := tkclPractice_Code;
+    Inc(i);
+  end;
+  if CashJ_Column_Order_Changed(TCashJ_Column_Order_Array(P1.clCashJ_Column_Order), 
+                  TCashJ_Column_Order_Array(P2.clCashJ_Column_Order), 
+                  TCashJ_Column_Order_Array(P3.clCashJ_Column_Order)) then begin
+    ChangedFields[i] := tkclCashJ_Column_Order;
+    Inc(i);
+  end;
+  if CashJ_Column_Width_Changed(TCashJ_Column_Width_Array(P1.clCashJ_Column_Width), 
+                  TCashJ_Column_Width_Array(P2.clCashJ_Column_Width), 
+                  TCashJ_Column_Width_Array(P3.clCashJ_Column_Width)) then begin
+    ChangedFields[i] := tkclCashJ_Column_Width;
+    Inc(i);
+  end;
+  if CashJ_Column_is_Hidden_Changed(TCashJ_Column_is_Hidden_Array(P1.clCashJ_Column_is_Hidden), 
+                  TCashJ_Column_is_Hidden_Array(P2.clCashJ_Column_is_Hidden), 
+                  TCashJ_Column_is_Hidden_Array(P3.clCashJ_Column_is_Hidden)) then begin
+    ChangedFields[i] := tkclCashJ_Column_is_Hidden;
+    Inc(i);
+  end;
+  if CashJ_Column_is_Not_Editable_Changed(TCashJ_Column_is_Not_Editable_Array(P1.clCashJ_Column_is_Not_Editable), 
+                  TCashJ_Column_is_Not_Editable_Array(P2.clCashJ_Column_is_Not_Editable), 
+                  TCashJ_Column_is_Not_Editable_Array(P3.clCashJ_Column_is_Not_Editable)) then begin
+    ChangedFields[i] := tkclCashJ_Column_is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.clCashJ_Sort_Order <> P2.clCashJ_Sort_Order) then begin
+    P3.clCashJ_Sort_Order := P1.clCashJ_Sort_Order;
+    ChangedFields[i] := tkclCashJ_Sort_Order;
+    Inc(i);
+  end;
+  if AcrlJ_Column_Order_Changed(TAcrlJ_Column_Order_Array(P1.clAcrlJ_Column_Order), 
+                  TAcrlJ_Column_Order_Array(P2.clAcrlJ_Column_Order), 
+                  TAcrlJ_Column_Order_Array(P3.clAcrlJ_Column_Order)) then begin
+    ChangedFields[i] := tkclAcrlJ_Column_Order;
+    Inc(i);
+  end;
+  if AcrlJ_Column_Width_Changed(TAcrlJ_Column_Width_Array(P1.clAcrlJ_Column_Width), 
+                  TAcrlJ_Column_Width_Array(P2.clAcrlJ_Column_Width), 
+                  TAcrlJ_Column_Width_Array(P3.clAcrlJ_Column_Width)) then begin
+    ChangedFields[i] := tkclAcrlJ_Column_Width;
+    Inc(i);
+  end;
+  if AcrlJ_Column_is_Hidden_Changed(TAcrlJ_Column_is_Hidden_Array(P1.clAcrlJ_Column_is_Hidden), 
+                  TAcrlJ_Column_is_Hidden_Array(P2.clAcrlJ_Column_is_Hidden), 
+                  TAcrlJ_Column_is_Hidden_Array(P3.clAcrlJ_Column_is_Hidden)) then begin
+    ChangedFields[i] := tkclAcrlJ_Column_is_Hidden;
+    Inc(i);
+  end;
+  if AcrlJ_Column_is_Not_Editable_Changed(TAcrlJ_Column_is_Not_Editable_Array(P1.clAcrlJ_Column_is_Not_Editable), 
+                  TAcrlJ_Column_is_Not_Editable_Array(P2.clAcrlJ_Column_is_Not_Editable), 
+                  TAcrlJ_Column_is_Not_Editable_Array(P3.clAcrlJ_Column_is_Not_Editable)) then begin
+    ChangedFields[i] := tkclAcrlJ_Column_is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.clAcrlJ_Sort_Order <> P2.clAcrlJ_Sort_Order) then begin
+    P3.clAcrlJ_Sort_Order := P1.clAcrlJ_Sort_Order;
+    ChangedFields[i] := tkclAcrlJ_Sort_Order;
+    Inc(i);
+  end;
+  if StockJ_Column_Order_Changed(TStockJ_Column_Order_Array(P1.clStockJ_Column_Order), 
+                  TStockJ_Column_Order_Array(P2.clStockJ_Column_Order), 
+                  TStockJ_Column_Order_Array(P3.clStockJ_Column_Order)) then begin
+    ChangedFields[i] := tkclStockJ_Column_Order;
+    Inc(i);
+  end;
+  if StockJ_Column_Width_Changed(TStockJ_Column_Width_Array(P1.clStockJ_Column_Width), 
+                  TStockJ_Column_Width_Array(P2.clStockJ_Column_Width), 
+                  TStockJ_Column_Width_Array(P3.clStockJ_Column_Width)) then begin
+    ChangedFields[i] := tkclStockJ_Column_Width;
+    Inc(i);
+  end;
+  if StockJ_Column_is_Hidden_Changed(TStockJ_Column_is_Hidden_Array(P1.clStockJ_Column_is_Hidden), 
+                  TStockJ_Column_is_Hidden_Array(P2.clStockJ_Column_is_Hidden), 
+                  TStockJ_Column_is_Hidden_Array(P3.clStockJ_Column_is_Hidden)) then begin
+    ChangedFields[i] := tkclStockJ_Column_is_Hidden;
+    Inc(i);
+  end;
+  if StockJ_Column_is_Not_Editable_Changed(TStockJ_Column_is_Not_Editable_Array(P1.clStockJ_Column_is_Not_Editable), 
+                  TStockJ_Column_is_Not_Editable_Array(P2.clStockJ_Column_is_Not_Editable), 
+                  TStockJ_Column_is_Not_Editable_Array(P3.clStockJ_Column_is_Not_Editable)) then begin
+    ChangedFields[i] := tkclStockJ_Column_is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.clStockJ_Sort_Order <> P2.clStockJ_Sort_Order) then begin
+    P3.clStockJ_Sort_Order := P1.clStockJ_Sort_Order;
+    ChangedFields[i] := tkclStockJ_Sort_Order;
+    Inc(i);
+  end;
+  if YrEJ_Column_Order_Changed(TYrEJ_Column_Order_Array(P1.clYrEJ_Column_Order), 
+                  TYrEJ_Column_Order_Array(P2.clYrEJ_Column_Order), 
+                  TYrEJ_Column_Order_Array(P3.clYrEJ_Column_Order)) then begin
+    ChangedFields[i] := tkclYrEJ_Column_Order;
+    Inc(i);
+  end;
+  if YrEJ_Column_Width_Changed(TYrEJ_Column_Width_Array(P1.clYrEJ_Column_Width), 
+                  TYrEJ_Column_Width_Array(P2.clYrEJ_Column_Width), 
+                  TYrEJ_Column_Width_Array(P3.clYrEJ_Column_Width)) then begin
+    ChangedFields[i] := tkclYrEJ_Column_Width;
+    Inc(i);
+  end;
+  if YrEJ_Column_is_Hidden_Changed(TYrEJ_Column_is_Hidden_Array(P1.clYrEJ_Column_is_Hidden), 
+                  TYrEJ_Column_is_Hidden_Array(P2.clYrEJ_Column_is_Hidden), 
+                  TYrEJ_Column_is_Hidden_Array(P3.clYrEJ_Column_is_Hidden)) then begin
+    ChangedFields[i] := tkclYrEJ_Column_is_Hidden;
+    Inc(i);
+  end;
+  if YrEJ_Column_is_Not_Editable_Changed(TYrEJ_Column_is_Not_Editable_Array(P1.clYrEJ_Column_is_Not_Editable), 
+                  TYrEJ_Column_is_Not_Editable_Array(P2.clYrEJ_Column_is_Not_Editable), 
+                  TYrEJ_Column_is_Not_Editable_Array(P3.clYrEJ_Column_is_Not_Editable)) then begin
+    ChangedFields[i] := tkclYrEJ_Column_is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.clYrEJ_Sort_Order <> P2.clYrEJ_Sort_Order) then begin
+    P3.clYrEJ_Sort_Order := P1.clYrEJ_Sort_Order;
+    ChangedFields[i] := tkclYrEJ_Sort_Order;
+    Inc(i);
+  end;
+  if gstJ_Column_Order_Changed(TgstJ_Column_Order_Array(P1.clgstJ_Column_Order), 
+                  TgstJ_Column_Order_Array(P2.clgstJ_Column_Order), 
+                  TgstJ_Column_Order_Array(P3.clgstJ_Column_Order)) then begin
+    ChangedFields[i] := tkclgstJ_Column_Order;
+    Inc(i);
+  end;
+  if gstJ_Column_Width_Changed(TgstJ_Column_Width_Array(P1.clgstJ_Column_Width), 
+                  TgstJ_Column_Width_Array(P2.clgstJ_Column_Width), 
+                  TgstJ_Column_Width_Array(P3.clgstJ_Column_Width)) then begin
+    ChangedFields[i] := tkclgstJ_Column_Width;
+    Inc(i);
+  end;
+  if gstJ_Column_is_Hidden_Changed(TgstJ_Column_is_Hidden_Array(P1.clgstJ_Column_is_Hidden), 
+                  TgstJ_Column_is_Hidden_Array(P2.clgstJ_Column_is_Hidden), 
+                  TgstJ_Column_is_Hidden_Array(P3.clgstJ_Column_is_Hidden)) then begin
+    ChangedFields[i] := tkclgstJ_Column_is_Hidden;
+    Inc(i);
+  end;
+  if gstJ_Column_is_Not_Editable_Changed(TgstJ_Column_is_Not_Editable_Array(P1.clgstJ_Column_is_Not_Editable), 
+                  TgstJ_Column_is_Not_Editable_Array(P2.clgstJ_Column_is_Not_Editable), 
+                  TgstJ_Column_is_Not_Editable_Array(P3.clgstJ_Column_is_Not_Editable)) then begin
+    ChangedFields[i] := tkclgstJ_Column_is_Not_Editable;
+    Inc(i);
+  end;
+  if (P1.clgstJ_Sort_Order <> P2.clgstJ_Sort_Order) then begin
+    P3.clgstJ_Sort_Order := P1.clgstJ_Sort_Order;
+    ChangedFields[i] := tkclgstJ_Sort_Order;
+    Inc(i);
+  end;
+  if (P1.clFavourite_Report_XML <> P2.clFavourite_Report_XML) then begin
+    P3.clFavourite_Report_XML := P1.clFavourite_Report_XML;
+    ChangedFields[i] := tkclFavourite_Report_XML;
+    Inc(i);
+  end;
+  if (P1.clAll_EditMode_CES <> P2.clAll_EditMode_CES) then begin
+    P3.clAll_EditMode_CES := P1.clAll_EditMode_CES;
+    ChangedFields[i] := tkclAll_EditMode_CES;
+    Inc(i);
+  end;
+  if (P1.clAll_EditMode_DIS <> P2.clAll_EditMode_DIS) then begin
+    P3.clAll_EditMode_DIS := P1.clAll_EditMode_DIS;
+    ChangedFields[i] := tkclAll_EditMode_DIS;
+    Inc(i);
+  end;
+  if (P1.clTFN <> P2.clTFN) then begin
+    P3.clTFN := P1.clTFN;
+    ChangedFields[i] := tkclTFN;
+    Inc(i);
+  end;
+  if All_EditMode_Journals_Changed(TAll_EditMode_Journals_Array(P1.clAll_EditMode_Journals), 
+                  TAll_EditMode_Journals_Array(P2.clAll_EditMode_Journals), 
+                  TAll_EditMode_Journals_Array(P3.clAll_EditMode_Journals)) then begin
+    ChangedFields[i] := tkclAll_EditMode_Journals;
+    Inc(i);
+  end;
+  if Budget_Column_Width_Changed(TBudget_Column_Width_Array(P1.clBudget_Column_Width), 
+                  TBudget_Column_Width_Array(P2.clBudget_Column_Width), 
+                  TBudget_Column_Width_Array(P3.clBudget_Column_Width)) then begin
+    ChangedFields[i] := tkclBudget_Column_Width;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Client_Rec(P1, P2: pClient_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Client_Rec(P1^, S);
+    S.Position := 0;
+    Read_Client_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

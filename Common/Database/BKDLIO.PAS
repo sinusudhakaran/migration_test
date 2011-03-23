@@ -5,7 +5,7 @@ UNIT BKdlIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES BKDEFS, IOSTREAM;
+INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Disk_Log_Rec ( Var O : TDisk_Log_Rec ; Var F : TIOStream );
 PROCEDURE Read_Disk_Log_Rec ( Var O : TDisk_Log_Rec ; Var F : TIOStream );
 FUNCTION  New_Disk_Log_Rec : pDisk_Log_Rec ;
 PROCEDURE Free_Disk_Log_Rec_Dynamic_Fields ( Var O : TDisk_Log_Rec );
+FUNCTION Disk_Log_Rec_Delta(P1, P2, P3: pDisk_Log_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Disk_Log_Rec(P1, P2: pDisk_Log_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -137,6 +140,79 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkdlDisk_ID to tkdlNo_of_Entries do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Disk_Log_Rec_Delta(P1, P2, P3: pDisk_Log_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Disk_Log_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.dlDisk_ID <> P2.dlDisk_ID) then begin
+    P3.dlDisk_ID := P1.dlDisk_ID;
+    ChangedFields[i] := tkdlDisk_ID;
+    Inc(i);
+  end;
+  if (P1.dlDate_Downloaded <> P2.dlDate_Downloaded) then begin
+    P3.dlDate_Downloaded := P1.dlDate_Downloaded;
+    ChangedFields[i] := tkdlDate_Downloaded;
+    Inc(i);
+  end;
+  if (P1.dlNo_of_Accounts <> P2.dlNo_of_Accounts) then begin
+    P3.dlNo_of_Accounts := P1.dlNo_of_Accounts;
+    ChangedFields[i] := tkdlNo_of_Accounts;
+    Inc(i);
+  end;
+  if (P1.dlNo_of_Entries <> P2.dlNo_of_Entries) then begin
+    P3.dlNo_of_Entries := P1.dlNo_of_Entries;
+    ChangedFields[i] := tkdlNo_of_Entries;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Disk_Log_Rec(P1, P2: pDisk_Log_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Disk_Log_Rec(P1^, S);
+    S.Position := 0;
+    Read_Disk_Log_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

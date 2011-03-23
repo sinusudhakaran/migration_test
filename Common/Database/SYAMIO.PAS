@@ -5,7 +5,7 @@ UNIT SYamIO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES SYDEFS, IOSTREAM;
+INTERFACE USES SYDEFS, IOSTREAM, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Client_Account_Map_Rec ( Var O : TClient_Account_Map_Rec ; Var F
 PROCEDURE Read_Client_Account_Map_Rec ( Var O : TClient_Account_Map_Rec ; Var F : TIOStream );
 FUNCTION  New_Client_Account_Map_Rec : pClient_Account_Map_Rec ;
 PROCEDURE Free_Client_Account_Map_Rec_Dynamic_Fields ( Var O : TClient_Account_Map_Rec );
+FUNCTION Client_Account_Map_Rec_Delta(P1, P2, P3: pClient_Account_Map_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Client_Account_Map_Rec(P1, P2: pClient_Account_Map_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -48,6 +51,7 @@ CONST
    tkamLast_Date_Printed                = 94 ;
    tkamTemp_Last_Date_Printed           = 95 ;
    tkamEarliest_Download_Date           = 96 ;
+   tkamAudit_Record_ID                  = 97 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -78,6 +82,7 @@ Begin
       F.WriteDateValue( tkamLast_Date_Printed , amLast_Date_Printed );
       F.WriteIntegerValue( tkamTemp_Last_Date_Printed , amTemp_Last_Date_Printed );
       F.WriteDateValue( tkamEarliest_Download_Date , amEarliest_Download_Date );
+      F.WriteIntegerValue( tkamAudit_Record_ID , amAudit_Record_ID );
       F.WriteToken( tkEnd_Client_Account_Map );
    end;
 end; { of Write_Client_Account_Map_Rec }
@@ -105,6 +110,7 @@ Begin
          tkamLast_Date_Printed                : amLast_Date_Printed := F.ReadDateValue;
          tkamTemp_Last_Date_Printed           : amTemp_Last_Date_Printed := F.ReadIntegerValue;
          tkamEarliest_Download_Date           : amEarliest_Download_Date := F.ReadDateValue;
+         tkamAudit_Record_ID                  : amAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -140,6 +146,89 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tkamClient_LRN to tkamAudit_Record_ID do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Client_Account_Map_Rec_Delta(P1, P2, P3: pClient_Account_Map_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Client_Account_Map_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.amClient_LRN <> P2.amClient_LRN) then begin
+    P3.amClient_LRN := P1.amClient_LRN;
+    ChangedFields[i] := tkamClient_LRN;
+    Inc(i);
+  end;
+  if (P1.amAccount_LRN <> P2.amAccount_LRN) then begin
+    P3.amAccount_LRN := P1.amAccount_LRN;
+    ChangedFields[i] := tkamAccount_LRN;
+    Inc(i);
+  end;
+  if (P1.amLast_Date_Printed <> P2.amLast_Date_Printed) then begin
+    P3.amLast_Date_Printed := P1.amLast_Date_Printed;
+    ChangedFields[i] := tkamLast_Date_Printed;
+    Inc(i);
+  end;
+  if (P1.amTemp_Last_Date_Printed <> P2.amTemp_Last_Date_Printed) then begin
+    P3.amTemp_Last_Date_Printed := P1.amTemp_Last_Date_Printed;
+    ChangedFields[i] := tkamTemp_Last_Date_Printed;
+    Inc(i);
+  end;
+  if (P1.amEarliest_Download_Date <> P2.amEarliest_Download_Date) then begin
+    P3.amEarliest_Download_Date := P1.amEarliest_Download_Date;
+    ChangedFields[i] := tkamEarliest_Download_Date;
+    Inc(i);
+  end;
+  if (P1.amAudit_Record_ID <> P2.amAudit_Record_ID) then begin
+    P3.amAudit_Record_ID := P1.amAudit_Record_ID;
+    ChangedFields[i] := tkamAudit_Record_ID;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Client_Account_Map_Rec(P1, P2: pClient_Account_Map_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Client_Account_Map_Rec(P1^, S);
+    S.Position := 0;
+    Read_Client_Account_Map_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }
