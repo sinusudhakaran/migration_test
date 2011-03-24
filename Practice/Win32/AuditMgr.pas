@@ -142,7 +142,7 @@ type
 implementation
 
 uses
-  Globals, SysObj32, clObj32, MoneyDef, MoneyUtils,
+  Globals, SysObj32, MoneyDef, MoneyUtils,
   SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO,
   BKDEFS, {BKAUDIT,} BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO;
 
@@ -362,7 +362,11 @@ end;
 
 function TAuditManager.CurrentUserCode: string;
 begin
+{$IFDEF LOOKUPDLL}
+  Result := '';
+{$ELSE}
   Result := Globals.CurrUser.Code;
+{$ENDIF}
 end;
 
 function TAuditManager.DBFromAuditType(AAuditType: TAuditType): byte;
