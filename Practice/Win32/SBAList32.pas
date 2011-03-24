@@ -75,7 +75,10 @@ begin
 //   tksbCurrent_Balance                  = 57 ;
 //   tksbLast_Transaction_LRN             = 58 ;
 //   tksbNew_This_Month                   = 59 ;
-//   tksbNo_of_Entries_This_Month         = 60 ;
+      //No of Entries
+      60: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, 59),
+                                       TSystem_Bank_Account_Rec(ARecord^).sbNo_of_Entries_This_Month, Values);
+
 //   tksbFrom_Date_This_Month             = 61 ;
 //   tksbTo_Date_This_Month               = 62 ;
 //   tksbCost_Code                        = 63 ;

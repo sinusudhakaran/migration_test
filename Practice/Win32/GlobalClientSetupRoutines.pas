@@ -77,7 +77,8 @@ uses
   progress,
   updatemf,
   Windows,
-  ToDoHandler;
+  ToDoHandler,
+  AuditMgr;
 
 procedure NotSynchronizedMsg;
 begin
@@ -325,6 +326,10 @@ begin
             sysClientRec^.cfFile_Name := ClientDetailsCache.Name;
             sysClientRec^.cfContact_Details_Edit_Date := StDate.CurrentDate;
             sysClientRec^.cfContact_Details_Edit_Time := StDate.CurrentTime;
+
+            //*** Flag Audit ***
+            SystemAuditMgr.FlagAudit(atClientFiles);
+
             SaveAdminSystem;
           end
           else
@@ -502,6 +507,10 @@ begin
                   begin
                     Client := Globals.AdminSystem.fdSystem_Client_File_List.FindCode(SelectedList[i]);
                     Client^.cfUser_Responsible := UserLRN;
+
+                    //*** Flag Audit ***
+                    SystemAuditMgr.FlagAudit(atClientFiles);
+
                     SaveAdminSystem;
                     Inc(SuccessCount);
                   end
@@ -1613,6 +1622,10 @@ begin
        AdminSystem.fdSystem_File_Access_List.Delete_Client_File( ClientLRN );
        AdminSystem.fdSystem_Client_File_List.DelFreeItem( ClientFile );
        LogUtil.LogMsg(lmInfo,'ThisMethodName','Client '+ClientCode+' deleted from Admin System OK');
+
+       //*** Flag Audit ***
+       SystemAuditMgr.FlagAudit(atClientFiles);
+
        SaveAdminSystem;
 
        //delete contact details, task list and comments
@@ -1744,7 +1757,12 @@ begin
                   ClientFile.cfFile_Status := fsNormal;
                   //clear the current user
                   ClientFile.cfCurrent_User := 0;
+
+                  //*** Flag Audit ***
+                  SystemAuditMgr.FlagAudit(atClientFiles);
+
                   SaveAdminSystem;
+
                   CloseCheckOutTask(ClientFile);
                   Inc(ResetCount);
                   LogUtil.LogMsg( lmInfo, ThisMethodName,
@@ -1869,6 +1887,10 @@ begin
           AdminSystem.fdSystem_File_Access_List.Delete_Client_File( ClientLRN );
           AdminSystem.fdSystem_Client_File_List.DelFreeItem( ClientFile );
           LogUtil.LogMsg(lmInfo,'ThisMethodName','Prospect '+ClientCode+' deleted from Admin System OK');
+
+          //*** Flag Audit ***
+          SystemAuditMgr.FlagAudit(atClientFiles);
+
           SaveAdminSystem;
 
           //delete contact details, task list and comments
@@ -1962,9 +1984,12 @@ begin
           if Assigned(TempClient) then
           begin
             TempClient.clMoreFields.mcArchived := not TempClient.clMoreFields.mcArchived;
-            if not UseCurrentlyOpenClient then
+            if not UseCurrentlyOpenClient then begin
+              //*** Flag Audit ***
+              //Audit here so that an audit record isn't created every time a client file is opened
+              SystemAuditMgr.FlagAudit(atClientFiles);
               CloseAClient(TempClient)
-            else
+            end else
             begin
               TempClient := nil;
               CurrentClientUpdated := true;

@@ -447,7 +447,8 @@ uses
   ECollect,
   Software,
   CountryUtils,
-  PayeeObj, baUtils, EditBankDlg, TransactionUtils,ImportHistDlg, Finalise32;
+  PayeeObj, baUtils, EditBankDlg, TransactionUtils,ImportHistDlg, Finalise32,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -4809,6 +4810,7 @@ var
 
            //transaction has been constructed
            Write(eFile, Entry);
+           Inc(SelectedBA.sbNo_of_Entries_This_Month);
 
            // Update the account record
            SelectedBA.sbLast_Transaction_LRN := Entry.aLRN;
@@ -4855,6 +4857,12 @@ var
      finally
         CloseFile(eFile);
      end;
+      //*** Flag Audit ***
+     SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+     //The following may need to be audited at a later date?
+     //SystemAuditMgr.FlagAudit(atPracticeSetup);
+     //SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+
      SaveAdminSystem;
      Result := True;
   end;

@@ -110,7 +110,8 @@ uses
   GenUtils,
   FrequencyRequestFrm,
   SendProvAccRequestFrm,
-  HistoricalDlg;
+  HistoricalDlg,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -132,7 +133,7 @@ begin
   acCurrencies.Visible := (AdminSystem.fdFields.fdCountry = whUK);
   acExchangeRates.Visible := (AdminSystem.fdFields.fdCountry = whUK);
 
-  acSendProvReq.Visible := False;
+//  acSendProvReq.Visible := False;
 
   //SetListViewColWidth(lvBank,1);
   SetUpHelp;
@@ -278,6 +279,10 @@ begin
         end;
         //delete from list
         AdminSystem.fdSystem_Bank_Account_List.DelFreeItem( ba);
+
+        //*** Flag Audit ***
+        SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+
         SaveAdminSystem;
 
         LogUtil.LogMsg( lmInfo, 'DELETE_SYSTEM_BANK_ACCOUNT', 'User Deleted System Account ' + AcctNo);
@@ -331,6 +336,10 @@ begin
                ba^.sbNo_Charge_Account := actCharge.ImageIndex in [Manager_DoubleTick,Manager_SingleTick];
            end;
         end;
+
+        //*** Flag Audit ***
+        SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+
         SaveAdminSystem;
       end;
 
@@ -462,6 +471,10 @@ begin
                   SelAccounts := SelAccounts + ',' + AccountNo;
               end;
             end;
+
+            //*** Flag Audit ***
+            SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+
             SaveAdminSystem;
             RefreshBankAccountList(SelAccounts);
           end;
@@ -750,6 +763,9 @@ var
                       Result := True; // Atleast one is sucsessful
                    end;
                 end;
+                //*** Flag Audit ***
+                SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+
                 SaveAdminSystem;
              end;
              RefreshBankAccountList(Selected.DelimitedText);
@@ -928,10 +944,15 @@ begin
            SystemAccount := AdminSystem.NewSystemAccount(SendProvAccRequestForm.AccountNumber, True);
            SystemAccount.sbAccount_Name := SendProvAccRequestForm.AccountName;
            SystemAccount.sbAccount_Type := sbtProvisional;
+           SystemAccount.sbWas_On_Latest_Disk := True;
            SystemAccount.sbInstitution := SendProvAccRequestForm.Institution;
            SystemAccount.sbCurrency_Code := SendProvAccRequestForm.Currency;
            // So we can select it..
            lsel := SystemAccount.sbAccount_Number;
+
+           //*** Flag Audit ***
+           SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+
            SaveAdminSystem;
         end;
      end;

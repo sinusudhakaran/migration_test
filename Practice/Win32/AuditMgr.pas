@@ -39,7 +39,7 @@ const
   atBankLinkBooks                 = 29; atMax = 29;
   atAll = 254;
 
-  SystemAuditTypes = [atPracticeSetup..atSystemBankAccounts, atAll];
+  SystemAuditTypes = [atPracticeSetup..atClientFiles, atAll];
 
   //Audit actions
   aaNone   = 0;  aaMin = 0;
@@ -143,7 +143,7 @@ implementation
 
 uses
   Globals, SysObj32, clObj32, MoneyDef, MoneyUtils,
-  SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO,
+  SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO,
   BKDEFS, {BKAUDIT,} BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO;
 
 const
@@ -189,7 +189,7 @@ const
      (tkBegin_System_Disk_Log, dbSystem),     //Downloading Data
      (tkBegin_System_Bank_Account, dbSystem), //System Bank Accounts
      (0, dbSystem),                           //Provisional Data Entry
-     (tkBegin_Client, dbClient),              //Client Files
+     (tkBegin_Client_File, dbSystem),         //System Client Files
      (tkBegin_Client_Account_Map, dbClient),  //Attach Bank Accounts
      (tkBegin_Bank_Account, dbClient),        //Client Bank Accounts
      (tkBegin_Account, dbClient),             //Chart of Accounts
@@ -467,6 +467,11 @@ begin
         P2 := New_Client_Account_Map_Rec;
         Copy_Client_Account_Map_Rec(P1, P2);
       end;
+    tkBegin_Client_File:
+      begin
+        P2 := New_Client_File_Rec;
+        Copy_Client_File_Rec(P1, P2);
+      end;
   end;
 end;
 
@@ -491,6 +496,9 @@ begin
       tkBegin_Client_Account_Map: AdminSystem.fdSystem_Client_Account_Map.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                            SystemCopy.fdSystem_Client_Account_Map,
                                                            AdminSystem.fAuditTable);
+      tkBegin_Client_File: AdminSystem.fdSystem_Client_File_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                           SystemCopy.fdSystem_Client_File_List,
+                                                           AdminSystem.fAuditTable);
     end;
   end;
   FAuditScope.Clear;
@@ -509,7 +517,8 @@ begin
     tkBegin_User,
     tkBegin_System_Disk_Log,
     tkBegin_System_Bank_Account,
-    tkBegin_Client_Account_Map : Result := AdminSystem.fdFields.fdAudit_Record_ID;
+    tkBegin_Client_Account_Map,
+    tkBegin_Client_File: Result := AdminSystem.fdFields.fdAudit_Record_ID;
   end;
 end;
 
@@ -523,6 +532,7 @@ begin
     tkBegin_System_Disk_Log : AdminSystem.fdSystem_Disk_Log.AddAuditValues(AAuditRecord, Values);
     tkBegin_System_Bank_Account : AdminSystem.fdSystem_Bank_Account_List.AddAuditValues(AAuditRecord, Values);
     tkBegin_Client_Account_Map  : AdminSystem.fdSystem_Client_Account_Map.AddAuditValues(AAuditRecord, Values);
+    tkBegin_Client_File         : AdminSystem.fdSystem_Client_File_List.AddAuditValues(AAuditRecord, Values);
   end;
 end;
 
@@ -560,6 +570,11 @@ begin
         ARecord := New_Client_Account_Map_Rec;
         Read_Client_Account_Map_Rec(TClient_Account_Map_Rec(ARecord^), AStream);
       end;
+    tkBegin_Client_File:
+      begin
+        ARecord := New_Client_File_Rec;
+        Read_Client_File_Rec(TClient_File_Rec(ARecord^), AStream);
+      end;
   end;
 end;
 
@@ -572,6 +587,7 @@ begin
     tkBegin_System_Disk_Log : Write_System_Disk_Log_Rec(TSystem_Disk_Log_Rec(ARecord^), AStream);
     tkBegin_System_Bank_Account : Write_System_Bank_Account_Rec(TSystem_Bank_Account_Rec(ARecord^), AStream);
     tkBegin_Client_Account_Map  : Write_Client_Account_Map_Rec(TClient_Account_Map_Rec(ARecord^), AStream);
+    tkBegin_Client_File         : Write_Client_File_Rec(TClient_File_Rec(ARecord^), AStream);
   end;
 end;
 

@@ -34,7 +34,8 @@ const
 implementation
 
 uses SysUtils, ClientDetailCacheObj, Globals, SyDefs, SycfIO, BkConst, Admin32,
-  ErrorMoreFrm, LogUtil, trxList32, bkdateutils, stdate, baObj32,clObj32, Files;
+  ErrorMoreFrm, LogUtil, trxList32, bkdateutils, stdate, baObj32,clObj32, Files,
+  AuditMgr;
 
 // Check to see if a given client code is valid
 function IsABadCode( S : String ): Boolean;
@@ -196,6 +197,10 @@ begin
     cfrec^.cfFile_Name := ClientDetailsCache.Name;
     cfrec^.cfContact_Details_Edit_Date := StDate.CurrentDate;
     cfrec^.cfContact_Details_Edit_Time := StDate.CurrentTime;
+
+    //*** Flag Audit ***
+    SystemAuditMgr.FlagAudit(atClientFiles);
+
     SaveAdminSystem;
   end
   else
@@ -240,6 +245,10 @@ begin
       Save(cfrec^.cfLRN);
     end;
     cfrec^.cfFile_Name := ClientDetailsCache.Name;
+
+    //*** Flag Audit ***
+    SystemAuditMgr.FlagAudit(atClientFiles);
+    
     SaveAdminSystem;
   end
   else

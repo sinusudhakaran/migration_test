@@ -555,6 +555,7 @@ begin
      end;
 
      //*** Flag Audit ***
+     SystemAuditMgr.FlagAudit(atClientFiles);
      SystemAuditMgr.FlagAudit(atAttachBankAccounts);
 
      SaveAdminSystem;
@@ -696,6 +697,9 @@ begin
             p.sbAttach_Required := True;
         end;
       end;
+      //*** Flag Audit ***
+      SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+
       SaveAdminSystem;
       ModalResult := mrCancel;
      end
