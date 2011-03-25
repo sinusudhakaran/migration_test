@@ -134,6 +134,7 @@ object frmAuditReportOption: TfrmAuditReportOption
           Width = 121
           Height = 21
           TabOrder = 3
+          OnKeyPress = Edit1KeyPress
         end
       end
       object btnPreview: TButton

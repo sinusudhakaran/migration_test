@@ -94,6 +94,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure Edit1KeyPress(Sender: TObject; var Key: Char);
   private
     { Private declarations }
     FBtnPressed : integer;
@@ -378,6 +379,15 @@ begin
     end;
 end;
 
+procedure TfrmAuditReportOption.Edit1KeyPress(Sender: TObject; var Key: Char);
+begin
+  // #8 is Backspace
+  if not (Key in [#8, '0'..'9']) then begin
+    // Discard the key
+    Key := #0;
+  end;
+end;
+
 procedure TfrmAuditReportOption.FormCreate(Sender: TObject);
 var
   i: integer;
@@ -393,7 +403,7 @@ begin
   DateSelector.InitDateSelect( MinValidDate, MaxValidDate, btnPreview);
   DateSelector.eDateFrom.asStDate := -1;
   DateSelector.eDateTo.asStDate   := -1;
-  DateSelector.Last2Months1.Visible := False; //
+  DateSelector.Last2Months1.Visible := False;
   DateSelector.btnQuik.Visible := true;
 end;
 
