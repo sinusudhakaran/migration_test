@@ -18,7 +18,7 @@ type
     procedure btnSelectAllAccountsClick(Sender: TObject);
     procedure btnClearAllAccountsClick(Sender: TObject);
   private
-    function AllAccountsSelected: boolean;
+//    function AllAccountsSelected: boolean;
     procedure CMShowingChanged(var M: TMessage); message CM_SHOWINGCHANGED;
     { Private declarations }
   public
@@ -91,7 +91,7 @@ begin
     ba.baFields.baTemp_Include_In_Report := false;
   end;
   aParams.AccountList.Clear;
-  if not AllAccountsSelected then begin
+//  if not AllAccountsSelected then begin
     //now turn back on accounts which are selected
     for i := 0 to Pred(AccountCheckBox.Items.Count) do begin
       ba := TBank_Account(AccountCheckBox.Items.Objects[ i]);
@@ -99,7 +99,7 @@ begin
       if AccountCheckBox.Checked[ i] then
         aParams.AccountList.Add(ba);
     end;
-  end;
+//  end;
 end;
 
 procedure TfmeAccountSelector.UpdateSelectedAccounts(
@@ -119,18 +119,18 @@ begin
     btnSelectAllAccounts.Click;
 end;
 
-function TfmeAccountSelector.AllAccountsSelected: boolean;
-var
-  i: integer;
-begin
-  Result := True;
-  for i := 0 to chkAccounts.items.Count - 1 do begin
-    if not chkAccounts.checked[i] then begin
-      Result := False;
-      Break;
-    end;
-  end;
-end;
+//function TfmeAccountSelector.AllAccountsSelected: boolean;
+//var
+//  i: integer;
+//begin
+//  Result := True;
+//  for i := 0 to chkAccounts.items.Count - 1 do begin
+//    if not chkAccounts.checked[i] then begin
+//      Result := False;
+//      Break;
+//    end;
+//  end;
+//end;
 
 procedure TfmeAccountSelector.btnClearAllAccountsClick(Sender: TObject);
 var
