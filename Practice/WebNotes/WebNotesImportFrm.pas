@@ -26,7 +26,7 @@ type
     lAvailable: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
-   
+
   private
 
     NeedConfig: Boolean;
@@ -914,7 +914,11 @@ begin
     //determine if the UPC matches an existing bk5 transaction
     //the transaction may have been downloaded since, or already imported from
     //this bnotes file
-
+    case lState of
+      upUPD : BKT.txType := whDepositEntryType [Client.clFields.clCountry];
+      upUPC : BKT.txType := whChequeEntryType [Client.clFields.clCountry];
+      upUPW : BKT.txType := whWithdrawalEntryType [Client.clFields.clCountry];
+    end;
     //set up a new blank transaction, fill cheque details
     BKT := bktxio.New_Transaction_Rec;
     ClearSuperFundFields(BKT);
