@@ -373,12 +373,14 @@ begin
       //Bank Account
       92: begin
             BankAccount := SystemAuditMgr.BankAccountFromLRN(TClient_Account_Map_Rec(ARecord^).amAccount_LRN);
-            SystemAuditMgr.AddAuditValue(BANK_ACCOUNT, BankAccount, Values);
+            if BankAccount <> '' then
+              SystemAuditMgr.AddAuditValue(BANK_ACCOUNT, BankAccount, Values);
           end;
       //Client File
       93: begin
             ClientCode := SystemAuditMgr.ClientCodeFromLRN(TClient_Account_Map_Rec(ARecord^).amClient_LRN);
-            SystemAuditMgr.AddAuditValue(CLIENT_CODE, ClientCode, Values);
+            if ClientCode <> '' then
+              SystemAuditMgr.AddAuditValue(CLIENT_CODE, ClientCode, Values);
           end;
 //   tkamClient_LRN                       = 92 ;
 //   tkamAccount_LRN                      = 93 ;
