@@ -48,7 +48,6 @@ var
   ARecord: Pointer;
 begin
   ARecord := AAuditRecord.atAudit_Record;
-  if ARecord = nil then Exit;
 
   if ARecord = nil then begin
     Values := AAuditRecord.atOther_Info;
