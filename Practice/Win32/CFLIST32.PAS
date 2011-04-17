@@ -44,15 +44,16 @@ procedure tSystem_Client_File_List.AddAuditValues(
 var
   i: integer;
   Token, Idx: byte;
-  PW: string;
+  PW, FileStatus: string;
   ARecord: Pointer;
+
 begin
   ARecord := AAuditRecord.atAudit_Record;
 
-  if ARecord = nil then begin
+  if Values = '' then
     Values := AAuditRecord.atOther_Info;
+  if ARecord = nil then
     Exit;
-  end;
 
   Idx := 0;
   Token := AAuditRecord.atChanged_Fields[idx];
@@ -68,8 +69,13 @@ begin
 //      84: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 83),
 //                                       TClient_File_Rec(ARecord^).cfFile_Type, Values);
       //File Status
-      85: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 84),
-                                       fsNames[TClient_File_Rec(ARecord^).cfFile_Status], Values);
+      85: begin
+            FileStatus := fsNames[TClient_File_Rec(ARecord^).cfFile_Status];
+            if FileStatus = '' then
+              FileStatus := 'Closed';
+            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 84),
+                                         FileStatus, Values);
+          end;
       //File Password
       86: begin
             for i := 1 to Length(TClient_File_Rec(ARecord^).cfFile_Password) do
@@ -356,6 +362,8 @@ end;
 
 procedure tSystem_Client_File_List.SetAuditInfo(P1, P2: pClient_File_Rec;
   var AAuditInfo: TAuditInfo);
+var
+  i: integer;
 begin
   AAuditInfo.AuditAction := aaNone;
   if not Assigned(P1) then begin
@@ -370,8 +378,15 @@ begin
     AAuditInfo.AuditRecordID := P1.cfAudit_Record_ID;
     AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
                                                                  AAuditInfo.AuditRecordID);
-    if Client_File_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+    if Client_File_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then begin
       AAuditInfo.AuditAction := aaChange;
+      //Always show the Client File Code
+      pClient_File_Rec(AAuditInfo.AuditRecord).cfFile_Code := P1.cfFile_Code;
+      i := 0;
+      while AAuditInfo.AuditChangedFields[i] <> 0 do
+        Inc(i);
+      AAuditInfo.AuditChangedFields[i] := 82;
+    end;
   end else begin
     //Add
     AAuditInfo.AuditAction := aaAdd;
