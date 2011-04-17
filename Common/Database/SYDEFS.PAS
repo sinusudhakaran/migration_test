@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 374;
-   SY_IOLIB_Date    = '17/03/11';
-   SY_FILE_VERSION   = 123;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 382;
+   SY_IOLIB_Date    = '15/04/11';
+   SY_FILE_VERSION   = 124;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -121,6 +121,7 @@ Const
                            Add WebNotes available status
        5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
        5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
+                         124   Added System Memorisation List for storing Master Memorisations
    *)
 
 {  -------------------------------------------------------------------  }
@@ -136,6 +137,7 @@ Type
    pGroup_Rec                            = ^tGroup_Rec ;
    pClient_Type_Rec                      = ^tClient_Type_Rec ;
    pAudit_Trail_Rec                      = ^tAudit_Trail_Rec ;
+   pSystem_Memorisation_List_Rec         = ^tSystem_Memorisation_List_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -525,6 +527,16 @@ Type
       atEOR                              : Byte;
    end;
 
+{  -------------------------------------------------------------------  }
+
+   tSystem_Memorisation_List_Rec = Packed Record
+      smRecord_Type                      : Byte;
+      smAudit_Record_ID                  : Integer;       { Stored }
+      smBank_Prefix                      : String[ 5 ];       { Stored }
+      smMemorisations                    : Pointer;
+      smEOR                              : Byte;
+   end;
+
 Const
    Practice_Details_Rec_Size                 = Sizeof( TPractice_Details_Rec ); 
    System_Disk_Log_Rec_Size                  = Sizeof( TSystem_Disk_Log_Rec ); 
@@ -536,6 +548,7 @@ Const
    Group_Rec_Size                            = Sizeof( TGroup_Rec ); 
    Client_Type_Rec_Size                      = Sizeof( TClient_Type_Rec ); 
    Audit_Trail_Rec_Size                      = Sizeof( TAudit_Trail_Rec ); 
+   System_Memorisation_List_Rec_Size         = Sizeof( TSystem_Memorisation_List_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

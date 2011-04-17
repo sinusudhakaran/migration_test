@@ -336,12 +336,31 @@ begin
     //Function defs
     for i := 0 to FunctionDefList.Count - 1 do
       Writeln( AuditUtilsFile, FunctionDefList[i] );
+    Writeln( AuditUtilsFile, ' function Changed_Fields_Changed(const V1, V2: TChanged_Fields_Array; var V3: TChanged_Fields_Array): boolean;');
     Writeln( AuditUtilsFile );
     Writeln( AuditUtilsFile, 'implementation' );
     Writeln( AuditUtilsFile );
     //Functions
     for i := 0 to FunctionList.Count - 1 do
       Writeln( AuditUtilsFile, FunctionList[i] );
+    Writeln( AuditUtilsFile );
+
+    //Audot Fields Changed Function
+    Writeln( AuditUtilsFile, 'function Changed_Fields_Changed(const V1, V2: TChanged_Fields_Array; var V3: TChanged_Fields_Array): boolean;' );
+    Writeln( AuditUtilsFile, 'var' );
+    Writeln( AuditUtilsFile, '  i: integer;' );
+    Writeln( AuditUtilsFile, 'begin' );
+    Writeln( AuditUtilsFile, '  Result := False;' );
+    Writeln( AuditUtilsFile, '  for i := Low(V1) to High(V2) do' );
+    Writeln( AuditUtilsFile, '    if V1[i] <> V2[i] then begin' );
+    Writeln( AuditUtilsFile, '      Result := True;' );
+    Writeln( AuditUtilsFile, '      Break;' );
+    Writeln( AuditUtilsFile, '    end;' );
+    Writeln( AuditUtilsFile, '  if Result then' );
+    Writeln( AuditUtilsFile, '    for i := Low(V1) to High(V1) do' );
+    Writeln( AuditUtilsFile, '        V3[i] := V1[i];' );
+    Writeln( AuditUtilsFile, 'end;');
+
     Writeln( AuditUtilsFile );
     Writeln( AuditUtilsFile, 'end.' );
   finally

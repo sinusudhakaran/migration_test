@@ -86,7 +86,7 @@ CONST
    tkmlSF_Non_Resident_Tax              = 184 ;
    tkmlSF_Foreign_Capital_Gains_Credit  = 185 ;
    tkmlSF_Capital_Gains_Fraction_Half   = 186 ;
-   tkmlSpare_Boolean                    = 187 ;
+   tkmlAudit_Record_ID                  = 187 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -152,7 +152,7 @@ Begin
       F.WriteMoneyValue( tkmlSF_Non_Resident_Tax , mlSF_Non_Resident_Tax );
       F.WriteMoneyValue( tkmlSF_Foreign_Capital_Gains_Credit , mlSF_Foreign_Capital_Gains_Credit );
       F.WriteBooleanValue( tkmlSF_Capital_Gains_Fraction_Half , mlSF_Capital_Gains_Fraction_Half );
-      F.WriteIntegerValue( tkmlSpare_Boolean , mlSpare_Boolean );
+      F.WriteIntegerValue( tkmlAudit_Record_ID , mlAudit_Record_ID );
       F.WriteToken( tkEnd_Memorisation_Line );
    end;
 end; { of Write_Memorisation_Line_Rec }
@@ -215,7 +215,7 @@ Begin
          tkmlSF_Non_Resident_Tax              : mlSF_Non_Resident_Tax := F.ReadMoneyValue;
          tkmlSF_Foreign_Capital_Gains_Credit  : mlSF_Foreign_Capital_Gains_Credit := F.ReadMoneyValue;
          tkmlSF_Capital_Gains_Fraction_Half   : mlSF_Capital_Gains_Fraction_Half := F.ReadBooleanValue;
-         tkmlSpare_Boolean                    : mlSpare_Boolean := F.ReadIntegerValue;
+         tkmlAudit_Record_ID                  : mlAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -264,7 +264,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkmlAccount to tkmlSpare_Boolean do begin
+  for i := tkmlAccount to tkmlAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -488,9 +488,9 @@ begin
     ChangedFields[i] := tkmlSF_Capital_Gains_Fraction_Half;
     Inc(i);
   end;
-  if (P1.mlSpare_Boolean <> P2.mlSpare_Boolean) then begin
-    P3.mlSpare_Boolean := P1.mlSpare_Boolean;
-    ChangedFields[i] := tkmlSpare_Boolean;
+  if (P1.mlAudit_Record_ID <> P2.mlAudit_Record_ID) then begin
+    P3.mlAudit_Record_ID := P1.mlAudit_Record_ID;
+    ChangedFields[i] := tkmlAudit_Record_ID;
     Inc(i);
   end;
 

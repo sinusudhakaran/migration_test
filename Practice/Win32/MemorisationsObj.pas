@@ -36,15 +36,13 @@ type
   TMemorisation = class
      mdFields : TMemorisation_Detail_Rec;
      mdLines  : TMemorisationLinesList;
-
+   public
      constructor Create;
      destructor Destroy; override;
-   public
      function  mdLinesCount : integer;
      function  FirstLine : pMemorisation_Line_Rec;
      function  IsDissected : boolean;
      function  DateText : string;
-
      procedure SaveToStream( Var S : TIOStream );
      procedure LoadFromStream( Var S : TIOStream );
      procedure UpdateCRC(var CRC : Longword);
@@ -53,23 +51,22 @@ type
   TMemsArray = Array[0..255] of TMemorisation;
 
   TMemorisations_List = class( TExtdSortedCollection)
-      constructor Create;
-      function Compare(Item1,Item2 : Pointer): Integer; override;
    protected
       procedure FreeItem(Item : Pointer); override;
+      function FindRecordID(ARecordID: integer): TMemorisation;
    private
       LastSeq : integer;
       procedure Resequence;
    public
       mxFirstByEntryType : TMemsArray;
       mxLastByEntryType : TMemsArray;
-
+      constructor Create;
+      function Compare(Item1,Item2 : Pointer): Integer; override;
       procedure Insert(Item : Pointer); override;
       procedure FreeAll; override;
       procedure Insert_Memorisation(m : TMemorisation); virtual;
       function  Memorisation_At(Index : longint) : TMemorisation;
       procedure SwapItems(m1 : TMemorisation; m2: TMemorisation);
-
       procedure LoadFromStream(var S : TIOStream);
       procedure SaveToStream(var S: TIOStream);
       procedure DumpMasters;
@@ -77,7 +74,14 @@ type
       function  GetCurrentCRC : LongWord;
       procedure CheckIntegrity;
       procedure UpdateLinkedLists;
+//      procedure DoAudit(AAuditType: TAuditType; AMemorisationListCopy: TMemorisations_List; var AAuditTable: TAuditTable);
+//      procedure SetAuditInfo(P1, P2: pUser_Rec; var AAuditInfo: TAuditInfo);
+//      procedure AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
   end;
+
+//****************************************************************
+//The following classes get replaced by SystemMemorisationList.pas
+//Still needed for upgrades.
 
 type
   //extends the client memorisations object by adding the ability to save
@@ -93,11 +97,10 @@ type
     procedure SetsymxLast_CRC(const Value: LongWord);
 
     procedure UpgradeMasterMemFileToLatestVersion( VersionFound : integer);
+    procedure Refresh;  //reloads the list if needed    
   public
     property symxLast_Updated : Int64 read FsymxLast_Updated write SetsymxLast_Updated;
     property symxLast_CRC : LongWord read FsymxLast_CRC write SetsymxLast_CRC;
-
-    procedure Refresh;  //reloads the list if needed
     function SaveToFile : boolean;
     procedure QuickRead; //Read without locking Used by Migrator only 
     procedure Insert_Memorisation(m : TMemorisation); override;
@@ -145,9 +148,11 @@ uses
   StStrs,
   CrcFileUtils,
   winutils,
-  Tokens;
+  Tokens,
+  AuditMgr;
 
 const
+  DebugMe : Boolean = FALSE;
   UnitName = 'MemorisationsObj';
 
 { TMemorisationLinesList }
@@ -413,6 +418,27 @@ begin
         AtFree( i );
 end;
 
+function TMemorisations_List.FindRecordID(ARecordID: integer): TMemorisation;
+const
+  ThisMethodName = 'TMemorisations_List.FindRecordID';
+var
+  i : LongInt;
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Called with %d',[ThisMethodName, ARecordID]));
+  Result := NIL;
+  if (itemCount = 0 ) then Exit;
+
+  for I := 0 to Pred( ItemCount ) do
+    with Memorisation_At( I ) do
+      if mdFields.mdAudit_Record_ID = ARecordID then begin
+        Result := Memorisation_At( I );
+        if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Found',[ThisMethodName]));
+          Exit;
+      end;
+
+   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Not Found',[ThisMethodName]));
+end;
+
 procedure TMemorisations_List.FreeAll;
 begin
   inherited;
@@ -448,6 +474,12 @@ procedure TMemorisations_List.Insert_Memorisation(m : TMemorisation);
 begin
   Inc( LastSeq );
   M.mdFields.mdSequence_No := LastSeq;
+
+  if M.mdFields.mdFrom_Master_List then
+    M.mdFields.mdAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+//  else
+//    M.mdFields.mdAudit_Record_ID := ClientAuditMgr.NextSystemRecordID;
+
   inherited Insert( M );
 end;
 
@@ -463,6 +495,7 @@ begin
    while ( Token <> tkEndSection ) do
    begin
       case Token of
+         tkBeginMemorisationsList: ; // Do nothing
          tkBegin_Memorisation_Detail :
            begin
               M := TMemorisation.Create;
@@ -829,7 +862,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 initialization
    Master_Mem_Lists_Collection := TMaster_Mem_Lists_Collection.Create;
-
+   DebugMe := DebugUnit(UnitName);
 finalization
    FreeAndNil( Master_Mem_Lists_Collection);
 

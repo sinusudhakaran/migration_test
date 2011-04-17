@@ -12,6 +12,7 @@ uses
 
 type
 
+  TChanged_Fields_Array = Array[ 0..254 ] of Byte;
   TShort_Name_Array = Array[ 0..100 ] of String[ 10 ];
   TLong_Name_Array = Array[ 0..100 ] of String[ 30 ];
   TGST_Class_Names_Array = Array[ 1..99 ] of String[ 60 ];
@@ -37,7 +38,6 @@ type
   TDownloaded_Array = Array[ 1..36 ] of Byte;
   TWebNotesAvailable_Array = Array[ 1..36 ] of Byte;
   TISO_Codes_Array = Array[ 1..99 ] of String[ 3 ];
-  TChanged_Fields_Array = Array[ 0..254 ] of Byte;
 
  function Short_Name_Changed(const V1, V2: TShort_Name_Array; var V3: TShort_Name_Array): boolean;
  function Long_Name_Changed(const V1, V2: TLong_Name_Array; var V3: TLong_Name_Array): boolean;
@@ -449,6 +449,7 @@ begin
         V3[i] := V1[i];
 end;
 
+
 function Changed_Fields_Changed(const V1, V2: TChanged_Fields_Array; var V3: TChanged_Fields_Array): boolean;
 var
   i: integer;
@@ -463,6 +464,5 @@ begin
     for i := Low(V1) to High(V1) do
         V3[i] := V1[i];
 end;
-
 
 end.

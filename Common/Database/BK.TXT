@@ -1,4 +1,4 @@
-$|BK_FILE_VERSION  = 163;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 164;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -188,6 +188,7 @@ $|                         Change txForeign_Currency_Amount, and txOriginal_Fore
 $|                         Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
 $|                         Add IsProvisional to Bank account
 $|                         Add Opening Balance Curreny field to Dissection and temp fields to Account
+$|  5.21 (2011AUDIT)164    Add Audit Record ID field to all records
 $|*)
 
 N|Client|cl|20
@@ -611,6 +612,7 @@ F|Use Accounting System|Y
 F|Accounting System|B
 F|From Date|D
 F|Until Date|D
+F|Audit Record ID|L
 C|Next Memorisation|TO
 C|Temp Tag|L
 E
@@ -656,7 +658,7 @@ F|SF Other Tax Credit|$
 F|SF Non Resident Tax|$
 F|SF Foreign Capital Gains Credit|$
 F|SF Capital Gains Fraction Half|Y
-F|Spare Boolean|L
+F|Audit Record ID|L
 C|Temp Tag|L
 E
 
@@ -1005,6 +1007,7 @@ F|Match on Notes|Y
 F|Notes|S|40
 F|GL Narration|BS|50|40
 F|Line Type|BB|50
+F|Audit Record ID|L
 C|Next|P|Memorised Transaction Rec
 E
 

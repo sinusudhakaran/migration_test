@@ -70,6 +70,7 @@ CONST
    tkmxNotes                            = 243 ;
    tkmxGL_Narration                     = 244 ;
    tkmxLine_Type                        = 245 ;
+   tkmxAudit_Record_ID                  = 246 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -122,6 +123,7 @@ Begin
       F.WriteStringValue( tkmxNotes , mxNotes );
       For i := 1 to 50 do F.WriteBStringValue( tkmxGL_Narration , i, mxGL_Narration[ i ] );
       For i := 1 to 50 do F.WriteBByteValue( tkmxLine_Type , i, mxLine_Type[ i ] );
+      F.WriteIntegerValue( tkmxAudit_Record_ID , mxAudit_Record_ID );
       F.WriteToken( tkEnd_Memorised_Transaction );
    end;
 end; { of Write_Memorised_Transaction_Rec }
@@ -203,6 +205,7 @@ Begin
                CheckBounds( I, 1, 50, 'mxLine_Type' );
                mxLine_Type[ I ] := B;
             end;
+         tkmxAudit_Record_ID                  : mxAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -249,7 +252,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkmxSequence_No to tkmxLine_Type do begin
+  for i := tkmxSequence_No to tkmxAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -397,6 +400,11 @@ begin
                   TLine_Type_Array(P2.mxLine_Type), 
                   TLine_Type_Array(P3.mxLine_Type)) then begin
     ChangedFields[i] := tkmxLine_Type;
+    Inc(i);
+  end;
+  if (P1.mxAudit_Record_ID <> P2.mxAudit_Record_ID) then begin
+    P3.mxAudit_Record_ID := P1.mxAudit_Record_ID;
+    ChangedFields[i] := tkmxAudit_Record_ID;
     Inc(i);
   end;
 

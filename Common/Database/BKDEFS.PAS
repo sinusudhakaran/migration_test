@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 631;
-   BK_IOLIB_Date    = '17/03/11';
-   BK_FILE_VERSION  = 163;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 633;
+   BK_IOLIB_Date    = '01/04/11';
+   BK_FILE_VERSION  = 164;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -201,6 +201,7 @@ Const
                             Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
                             Add IsProvisional to Bank account
                             Add Opening Balance Curreny field to Dissection and temp fields to Account
+     5.21 (2011AUDIT)164    Add Audit Record ID field to all records
    *)
 
 {  -------------------------------------------------------------------  }
@@ -686,6 +687,7 @@ Type
       mdAccounting_System                : Byte;       { Stored }
       mdFrom_Date                        : Integer;       { Stored }
       mdUntil_Date                       : Integer;       { Stored }
+      mdAudit_Record_ID                  : Integer;       { Stored }
       mdNext_Memorisation                : TObject;
       mdTemp_Tag                         : Integer;
       mdEOR                              : Byte;
@@ -735,7 +737,7 @@ Type
       mlSF_Non_Resident_Tax              : Money;       { Stored }
       mlSF_Foreign_Capital_Gains_Credit  : Money;       { Stored }
       mlSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
-      mlSpare_Boolean                    : Integer;       { Stored }
+      mlAudit_Record_ID                  : Integer;       { Stored }
       mlTemp_Tag                         : Integer;
       mlEOR                              : Byte;
    end;
@@ -1112,6 +1114,7 @@ Type
       mxNotes                            : String[ 40 ];       { Stored }
       mxGL_Narration                     : Array[ 1..50 ] of String[ 40 ];       { Stored }
       mxLine_Type                        : Array[ 1..50 ] of Byte;       { Stored }
+      mxAudit_Record_ID                  : Integer;       { Stored }
       mxNext                             : pMemorised_Transaction_Rec;
       mxEOR                              : Byte;
    end;

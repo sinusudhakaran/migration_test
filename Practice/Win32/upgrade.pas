@@ -75,7 +75,8 @@ uses
   Inisettings,
   Windows,
   ReportTypes,
-  YesNoDlg, pyList32, cfList32, WinUtils, SYamIO, mxFiles32, BasUtils, Software;
+  YesNoDlg, pyList32, cfList32, WinUtils, SYamIO, mxFiles32, BasUtils, Software,
+  SystemMemorisationList, IOStream;
 // ----------------------------------------------------------------------------
 
 Const
@@ -1450,8 +1451,8 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   procedure UpgradeAdminToVersion123;
   var
     i: integer;
-    MemList: TMaster_Memorisations_List;
   begin
+     UpgradingToVersion := 123;
     //Add unique record ID's to all system tables
     //User
     for i := AdminSystem.fdSystem_User_List.First to AdminSystem.fdSystem_User_List.Last do
@@ -1477,9 +1478,42 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     //Client types
     for i := AdminSystem.fdSystem_Client_Type_List.First to AdminSystem.fdSystem_Client_Type_List.Last do
       AdminSystem.fdSystem_Client_Type_List.Client_Type_At(i).ctAudit_Record_ID := AdminSystem.NextAuditRecordID;
-
-    //Master Mems
   end;
+
+  procedure UpgradeAdminToVersion124;
+  var
+    i: integer;
+    Prefix: BankPrefixStr;
+    MemList: TMaster_Memorisations_List;
+    PrefixList: TStringList;
+    sba: pSystem_Bank_Account_Rec;
+  begin
+    UpgradingToVersion := 124;
+    //Copy master memorisations from MXL files into the System DB
+    PrefixList := TStringList.Create;
+    try
+      //Get list of bank prefixes
+      for i := AdminSystem.fdSystem_Bank_Account_List.First to AdminSystem.fdSystem_Bank_Account_List.Last do
+      begin
+        sba := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(i);
+        Prefix := mxFiles32.GetBankPrefix(sba.sbAccount_Number);
+        if PrefixList.IndexOf(Prefix) = -1 then
+          PrefixList.Add(Prefix);
+      end;
+
+      for i := 0 to Pred(PrefixList.Count) do
+      begin
+        Master_Mem_Lists_Collection.ReloadSystemMXList(PrefixList[i]);
+        MemList := Master_Mem_Lists_Collection.FindPrefix(PrefixList[i]);
+        if Assigned(MemList) then
+          //Add to System DB
+          AdminSystem.fSystem_Memorisation_List.AddMemorisation(PrefixList[i], TMemorisations_List(MemList));
+      end;
+    finally
+      PrefixList.Free;
+    end;
+  end;
+
 
 
 Const
@@ -1823,10 +1857,18 @@ Begin
          if ( fdFile_Version < 123) then begin
             Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 123');
             UpgradeAdminToVersion123;
+            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
+         end;
+          // UK audit trail 2011 - Master memorisations
+         if ( fdFile_Version < 124) then begin
+            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 124');
+            UpgradeAdminToVersion124;
             if (OriginalVersion < 120) then  //No need to update if already on v120
               RefreshAllProcessingStatistics(True, False, True); //Always move to last upgrade
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
          end;
+
+
 
       end;
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1902,7 +1944,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MasterMemsBackupNeeded( const OriginalVersion, NewVersion : integer) : boolean;
 begin
-  result := ((OriginalVersion > 54) and (OriginalVersion < 68)) or (NewVersion = 80) or (NewVersion = 87);
+  result := ((OriginalVersion > 54) and (OriginalVersion < 68)) or
+            (NewVersion = 80) or (NewVersion = 87) or (NewVersion = 124);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function BackupMasterMemFiles : boolean;

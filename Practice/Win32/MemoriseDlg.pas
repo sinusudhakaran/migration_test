@@ -252,7 +252,8 @@ type
   end;
 
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean): boolean;
-  function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List; pM: TMemorisation; IsCopy: Boolean = False) : boolean;
+  function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
+                            pM: TMemorisation; IsCopy: Boolean = False; Prefix: string = '') : boolean;
 
 //******************************************************************************
 implementation
@@ -287,7 +288,10 @@ uses
   WinUtils,
   StdHints,
   YesNoDlg, ECollect, MemUtils,
-  CountryUtils;
+  CountryUtils,
+  SystemMemorisationList,
+  SYDEFS,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -1384,6 +1388,7 @@ var
   FMemorisationsList : TMemorisations_List; //list of other memorisations to check for duplicates
   BankPrefix : string;
   ValidLineFound : boolean;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
 begin
    Result := false;
 
@@ -1501,8 +1506,13 @@ begin
              begin
                //memorise to relevant master file then reload to get new global list
                BankPrefix := mxFiles32.GetBankPrefix( SourceBankAccount.baFields.baBank_Account_Number);
-               Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
-               FMemorisationsList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
+
+//               Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
+//               FMemorisationsList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
+               SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+               if Assigned(SystemMemorisation) then
+                 FMemorisationsList := TMemorisations_List(SystemMemorisation.smMemorisations);
+
                TempMem.mdFields.mdFrom_Master_List := true;
              end
           else
@@ -1786,7 +1796,9 @@ var
   MemDlg : TdlgMemorise;
   Memorised_Trans : TMemorisation;
   BankPrefix : BankPrefixStr;
-  MasterMemList : TMaster_Memorisations_List;
+//  MasterMemList : TMaster_Memorisations_List;
+  MasterMemList : TMemorisations_List;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
 begin
    result := false;
    IsAMasterMem := false;
@@ -1824,10 +1836,7 @@ begin
          else
             eNotes.text    := txNotes;
 
-//         if SourceBankAccount.IsAForexAccount then
-//           AmountToMatch := txForeign_Currency_Amount
-//         else
-           AmountToMatch := txAmount;
+         AmountToMatch := txAmount;
 
          if AmountToMatch < 0 then
          begin
@@ -1886,21 +1895,28 @@ begin
              begin
                //memorise to relevant master file then reload to get new global list
                BankPrefix := mxFiles32.GetBankPrefix( ba.baFields.baBank_Account_Number);
-               //get master mem list for the prefix, if one exists
-               MasterMemList := Master_Mem_Lists_Collection.FindPrefix(BankPrefix);
-               if not Assigned( MasterMemList) then
-                 MasterMemList := TMaster_Memorisations_List.Create( BankPrefix);
 
-               //insert into list
-               Memorised_Trans.mdFields.mdFrom_Master_List := true;
+               //--ADD MASTER MEM---
+               if LoadAdminSystem(true, 'MemoriseEntry') then begin
+                 SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+                 if not Assigned(SystemMemorisation) then
+                   UnlockAdmin
+                 else begin
+                   MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+                   if not Assigned( MasterMemList) then
+                     MasterMemList := TMaster_Memorisations_List.Create(BankPrefix);
+                   //insert into list
+                   Memorised_Trans.mdFields.mdFrom_Master_List := true;
+                   MasterMemList.Insert_Memorisation(Memorised_Trans);
+                   IsAMasterMem := True;
+                   //*** Flag Audit ***
+                   SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                   SaveAdminSystem;
+                 end;
+               end else
+                 HelpfulErrorMsg('Could not add master memorisation at this time. Admin System unavailable.', 0);
+               //--END ADD MASTER MEM---
 
-               MasterMemList.Insert_Memorisation(Memorised_Trans);
-               //save master mem list
-               MasterMemList.SaveToFile;
-
-               Master_Mem_Lists_Collection.ReloadSystemMXList(BankPrefix);
-
-               IsAMasterMem := True;
              end
              else
                ba.baMemorisations_List.Insert_Memorisation(Memorised_Trans);
@@ -1919,16 +1935,17 @@ begin
      MemDlg.Free;
    end;
 end;
-//------------------------------------------------------------------------------
 
-function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List; pM: TMemorisation; IsCopy: Boolean = False) : boolean;
+//------------------------------------------------------------------------------
+function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
+  pM: TMemorisation; IsCopy: Boolean = False; Prefix: string = '') : boolean;
 // edits an existing memorisation
 //
 // parameters: pM   Memorisation to edit
 //
 // Returns true if ok pressed
 const
-   MethodName = 'EditMemorisation';
+   ThisMethodName = 'EditMemorisation';
 var
    MemDlg : TdlgMemorise;
    pAcct : pAccount_Rec;
@@ -1936,7 +1953,8 @@ var
    AmountMatchType : byte;
    MemLine : pMemorisation_Line_Rec;
    Memorised_Trans: TMemorisation;
-
+   SystemMemorisation: pSystem_Memorisation_List_Rec;
+   SaveSeq: integer;
 begin
    Result := false;
    if not Assigned(pM) then
@@ -2161,27 +2179,87 @@ begin
          case ShowModal of
            mrok : begin
                //save new values back
-               SaveToMemRec(pM, nil, chkMaster.Checked);
+               if chkMaster.Checked then begin
+                 //---EDIT MASTER MEM---
+                 SaveSeq := pM.mdFields.mdSequence_No;
+                 if LoadAdminSystem(true, ThisMethodName) then begin
+                   SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+                   if not Assigned(SystemMemorisation) then begin
+                     UnlockAdmin;
+                     HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
+                     Exit;
+                   end else if not Assigned(SystemMemorisation.smMemorisations) then begin
+                     UnlockAdmin;
+                     HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
+                     Exit;
+                   end else begin
+                     EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+                     //Find and save memorisation
+                     for i := EditMemorisedList.First to EditMemorisedList.Last do begin
+                       Memorised_Trans := EditMemorisedList.Memorisation_At(i);
+                       if Assigned(Memorised_Trans) then begin
+                         if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then begin
+                           SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
+                           Break;
+                         end;
+                       end;
+                     end;
+                     //*** Flag Audit ***
+                     SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                     SaveAdminSystem;
+                   end;
+                 end else
+                   HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
+                 //---END EDIT MASTER MEM---
+               end else
+                 SaveToMemRec(pM, nil, chkMaster.Checked);
                Result := true;
            end;
            mrCopy : begin
                SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
-
                //{have enough data to create a memorised entry record
                Memorised_Trans := TMemorisation.Create;
                SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
-               MemorisedList.Insert_Memorisation(Memorised_Trans);
-               //have details of the new master memorisation, now need to update to relevant location
                if chkMaster.Checked then begin
-
                   //save master mem list
+//                  TMaster_Memorisations_List(MemorisedList).SaveToFile;
+//                  EditMemorisation(ba,MemorisedList,Memorised_Trans, True);
+                 //---COPY MASTER MEM---
+                 if LoadAdminSystem(true, ThisMethodName) then begin
+                   SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+                   if not Assigned(SystemMemorisation) then begin
+                     UnlockAdmin;
+                     HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
+                     Exit;
+                   end else if not Assigned(SystemMemorisation.smMemorisations) then begin
+                     UnlockAdmin;
+                     HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
+                     Exit;
+                   end else begin
+                     Memorised_Trans.mdFields.mdFrom_Master_List := True;
+                     EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+                     EditMemorisedList.Insert_Memorisation(Memorised_Trans);
+                     SaveSeq := Memorised_Trans.mdFields.mdSequence_No;
+                     //*** Flag Audit ***
+                     SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                     SaveAdminSystem;
+                     Memorised_Trans.mdFields.mdSequence_No := SaveSeq;
 
-                  TMaster_Memorisations_List(MemorisedList).SaveToFile;
+                     //Have to get list again after save
+                     SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+                     if Assigned(SystemMemorisation) then
+                       MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
 
-
-                  EditMemorisation(ba,MemorisedList,Memorised_Trans, True);
+                     //Edit copy
+                     if Assigned(MemorisedList) then
+                       EditMemorisation(ba, MemorisedList, Memorised_Trans, True, Prefix);
+                   end;
+                 end else
+                   HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
+                 //---END COPY MASTER MEM---
                end else begin
+                  MemorisedList.Insert_Memorisation(Memorised_Trans);
                   EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, True);
                end;
                Result := true;
@@ -2191,7 +2269,7 @@ begin
                //need to remove the copy..
                if pm.mdFields.mdFrom_Master_List then begin
                    MemorisedList.DelFreeItem(pm);
-                   TMaster_Memorisations_List(MemorisedList).SaveToFile;
+//                   TMaster_Memorisations_List(MemorisedList).SaveToFile;
                end else begin
                    ba.baMemorisations_List.DelFreeItem(pm);
                end;
@@ -2199,7 +2277,6 @@ begin
            end;
          end;
    //**********************
-
 
       finally
          Free;

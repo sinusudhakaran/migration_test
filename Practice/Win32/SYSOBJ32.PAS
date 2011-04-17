@@ -14,6 +14,7 @@ uses
 {$ELSE}
   usrList32, cflist32, sysDList32, sbaList32, acList32, amList32,
   grplist32, ctypelist32, ExchangeRateList,mcDefs, sysAudit, AuditMgr,
+  SystemMemorisationList,
 {$ENDIF}
   moneydef;
 
@@ -31,8 +32,9 @@ type
       fdSystem_Group_List        : TSystem_Group_List;
       fdSystem_Client_Type_List  : TSystem_Client_Type_List;
       fCurrencyCode              : string;
-      fCurrencyList              : tExchange_Rates_Header_Rec;
-      fAuditTable                : tAuditTable;
+      fCurrencyList              : TExchange_Rates_Header_Rec;
+      fAuditTable                : TAuditTable;
+      fSystem_Memorisation_List  : TSystem_Memorisation_List;
 {$ENDIF}
       constructor Create;
       destructor  Destroy; override;
@@ -73,6 +75,7 @@ type
       procedure DoAudit(APracticeDetails: pPractice_Details_Rec; AAuditType: TAuditType);
       procedure AddAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
       property AuditTable: TAuditTable read FAuditTable;
+      property SystemMemorisationList: TSystem_Memorisation_List read FSystem_Memorisation_List;
 {$ENDIF}
   end;
 
@@ -167,6 +170,7 @@ begin
   fdSystem_Group_List        := TSystem_Group_List.Create;
   fdSystem_Client_Type_List  := TSystem_Client_Type_List.Create;
   fAuditTable                := TAuditTable.Create;
+  fSystem_Memorisation_List  := TSystem_Memorisation_List.Create;
   fillChar(fCurrencyList, Sizeof(fCurrencyList), 0);
 {$ENDIF}  
   LogDebugMsg(ThisMethodName + ' Ends' );
@@ -191,6 +195,7 @@ begin
   FreeAndNil(fdSystem_Group_List);
   FreeAndNil(fdSystem_Client_Type_List);
   FreeAndNil(fAuditTable);
+  FreeAndNil(fSystem_Memorisation_List);
 {$ENDIF}  
   {free dynamic fields}
   SYFDIO.Free_Practice_Details_Rec_Dynamic_Fields( fdFields);
@@ -229,6 +234,7 @@ Begin
          tkBeginSystem_Client_Type_List  : fdSystem_Client_Type_List.LoadFromFile( S );
          tkBeginExchangeRateHeader       : ReadCurrencyList(fCurrencyList,S);
          tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);
+         tkBeginSystem_Memorisation_List : fSystem_Memorisation_List.LoadFromStream(S);
          else
          begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -321,6 +327,7 @@ begin
    fdSystem_Group_List.SaveToFile( S );
    fdSystem_Client_Type_List.SaveToFile( S );
    WriteCurrencyList(fCurrencyList, S);
+   fSystem_Memorisation_List.SaveToStream( S );
    fAuditTable.SaveToStream( S );
 
    LogDebugMsg(ThisMethodName + ' Ends' );

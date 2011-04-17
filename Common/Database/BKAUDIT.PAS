@@ -419,6 +419,7 @@ begin
     FAuditNamesArray[140,161] := 'Accounting_System';
     FAuditNamesArray[140,162] := 'From_Date';
     FAuditNamesArray[140,163] := 'Until_Date';
+    FAuditNamesArray[140,164] := 'Audit_Record_ID';
 
    FAuditTableArray[145] := 'Memorisation_Line';
     FAuditNamesArray[145,146] := 'Account';
@@ -461,7 +462,7 @@ begin
     FAuditNamesArray[145,183] := 'SF_Non_Resident_Tax';
     FAuditNamesArray[145,184] := 'SF_Foreign_Capital_Gains_Credit';
     FAuditNamesArray[145,185] := 'SF_Capital_Gains_Fraction_Half';
-    FAuditNamesArray[145,186] := 'Spare_Boolean';
+    FAuditNamesArray[145,186] := 'Audit_Record_ID';
 
    FAuditTableArray[150] := 'Bank_Account';
     FAuditNamesArray[150,151] := 'Bank_Account_Number';
@@ -762,6 +763,7 @@ begin
     FAuditNamesArray[220,242] := 'Notes';
     FAuditNamesArray[220,243] := 'GL_Narration';
     FAuditNamesArray[220,244] := 'Line_Type';
+    FAuditNamesArray[220,245] := 'Audit_Record_ID';
 
    FAuditTableArray[230] := 'Custom_Heading';
     FAuditNamesArray[230,231] := 'Heading_Type';

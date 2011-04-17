@@ -142,8 +142,8 @@ type
 implementation
 
 uses
-  Globals, SysObj32, MoneyDef, MoneyUtils,
-  SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO,
+  Globals, SysObj32, MoneyDef, MoneyUtils, SystemMemorisationList,
+  SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKDEFS, {BKAUDIT,} BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO;
 
 const
@@ -183,7 +183,7 @@ const
   atNameTable : array[ atMin..atMax ] of array[0..1] of byte =
     ((tkBegin_Practice_Details, dbSystem),    //Practice Setup
      (tkBegin_Practice_Details, dbSystem),    //Practice GST/VAT Defaults
-     (0, dbSystem),                           //Master Memorisations
+     (tkBegin_System_Memorisation_List, dbSystem), //Master Memorisations
      (tkBegin_User, dbSystem),                //Users
      (tkBegin_Practice_Details, dbSystem),    //System Options
      (tkBegin_System_Disk_Log, dbSystem),     //Downloading Data
@@ -434,13 +434,23 @@ end;
 { TSystemAuditManager }
 
 function TSystemAuditManager.BankAccountFromLRN(ALRN: integer): string;
+var
+  System_Bank_Account_Rec: pSystem_Bank_Account_Rec;
 begin
-  Result := pSystem_Bank_Account_Rec(AdminSystem.fdSystem_Bank_Account_List.FindLRN(ALRN)).sbAccount_Number;
+  Result := '';
+  System_Bank_Account_Rec := AdminSystem.fdSystem_Bank_Account_List.FindLRN(ALRN);
+  if Assigned(System_Bank_Account_Rec) then
+    Result := System_Bank_Account_Rec.sbAccount_Number;
 end;
 
 function TSystemAuditManager.ClientCodeFromLRN(ALRN: integer): string;
+var
+  Client_File_Rec: pClient_File_Rec;
 begin
-  Result := pClient_File_Rec(AdminSystem.fdSystem_Client_File_List.FindLRN(ALRN)).cfFile_Code;
+  Result := '';
+  Client_File_Rec := AdminSystem.fdSystem_Client_File_List.FindLRN(ALRN);
+  if Assigned(Client_File_Rec) then
+    Result := Client_File_Rec.cfFile_Code;
 end;
 
 procedure TSystemAuditManager.CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer);
@@ -476,6 +486,12 @@ begin
         P2 := New_Client_File_Rec;
         Copy_Client_File_Rec(P1, P2);
       end;
+    tkBegin_System_Memorisation_List:
+      begin
+        //Speacial copy
+        P2 := New_System_Memorisation_List_Rec;
+        CopySystemMemorisation(P1, P2);
+      end;
   end;
 end;
 
@@ -503,6 +519,9 @@ begin
       tkBegin_Client_File: AdminSystem.fdSystem_Client_File_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                            SystemCopy.fdSystem_Client_File_List,
                                                            AdminSystem.fAuditTable);
+      tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                           SystemCopy.fSystem_Memorisation_List,
+                                                           AdminSystem.fAuditTable);
     end;
   end;
   FAuditScope.Clear;
@@ -522,7 +541,8 @@ begin
     tkBegin_System_Disk_Log,
     tkBegin_System_Bank_Account,
     tkBegin_Client_Account_Map,
-    tkBegin_Client_File: Result := AdminSystem.fdFields.fdAudit_Record_ID;
+    tkBegin_Client_File,
+    tkBegin_System_Memorisation_List: Result := AdminSystem.fdFields.fdAudit_Record_ID;
   end;
 end;
 
@@ -537,6 +557,7 @@ begin
     tkBegin_System_Bank_Account : AdminSystem.fdSystem_Bank_Account_List.AddAuditValues(AAuditRecord, Values);
     tkBegin_Client_Account_Map  : AdminSystem.fdSystem_Client_Account_Map.AddAuditValues(AAuditRecord, Values);
     tkBegin_Client_File         : AdminSystem.fdSystem_Client_File_List.AddAuditValues(AAuditRecord, Values);
+    tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
   end;
 end;
 
@@ -579,6 +600,11 @@ begin
         ARecord := New_Client_File_Rec;
         Read_Client_File_Rec(TClient_File_Rec(ARecord^), AStream);
       end;
+    tkBegin_System_Memorisation_List:
+      begin
+        ARecord := New_System_Memorisation_List_Rec;
+        Read_System_Memorisation_List_Rec(TSystem_Memorisation_List_Rec(ARecord^), AStream);
+      end;
   end;
 end;
 
@@ -592,6 +618,8 @@ begin
     tkBegin_System_Bank_Account : Write_System_Bank_Account_Rec(TSystem_Bank_Account_Rec(ARecord^), AStream);
     tkBegin_Client_Account_Map  : Write_Client_Account_Map_Rec(TClient_Account_Map_Rec(ARecord^), AStream);
     tkBegin_Client_File         : Write_Client_File_Rec(TClient_File_Rec(ARecord^), AStream);
+    tkBegin_System_Memorisation_List: Write_System_Memorisation_List_Rec(TSystem_Memorisation_List_Rec(ARecord^), AStream);
+//    tkBegin_System_Memorisation_List: TSystem_Memorisation(ARecord^).SaveToStream(AStream); //Speacial write
   end;
 end;
 

@@ -58,10 +58,10 @@ type
     procedure LoadMasters( BankPrefix : ShortString);
 
     function  DeleteMemorised(MemorisedList : TMemorisations_List;
-      Mem : TMemorisation; Multiple : Boolean) : boolean;
+      Mem : TMemorisation; Multiple : Boolean; Prefix: string = '') : boolean;
     procedure MoveItem(MoveItemUp : boolean);
 
-    procedure CheckMasterSaveNeeded;
+//    procedure CheckMasterSaveNeeded;
     procedure EditSelectedMemorisation;
   public
     { Public declarations }
@@ -97,7 +97,10 @@ uses
   ErrorMoreFrm,
   MemoriseDlg,
   Math,
-  yesnodlg, clObj32, ECollect, AppUserObj, MoneyDef, WinUtils;
+  yesnodlg, clObj32, ECollect, AppUserObj, MoneyDef, WinUtils,
+  AuditMgr,
+  SYDEFS,
+  SystemMemorisationList;
 
 
 {$R *.DFM}
@@ -114,7 +117,7 @@ const
   colNotes = 8;
   colLastApplied = 9;
   colAppliesFrom = 10;
-  colAppliesTo = 11; 
+  colAppliesTo = 11;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function  CriteriaStr(S : string; b : boolean) : string;
@@ -217,7 +220,8 @@ var
   FilePrefixLength : integer;
   SearchRec        : TSearchRec;
   Found            : Integer;
-
+  
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
 
   function AccountState  (Ba : tBank_Account ): Integer;
   var I,J : Integer;
@@ -275,7 +279,7 @@ begin
        end;
 
        //load MASTER memorisations
-       if Assigned( AdminSystem) and (not HideMasters )then begin
+{       if Assigned( AdminSystem) and (not HideMasters )then begin
          NewNode1 := trvAccountView.Items.Add(nil,'MASTER Memorisations');
          NewNode1.ImageIndex    := MAINTAIN_MASTER_MEM_PAGE_BMP;
          NewNode1.SelectedIndex := MAINTAIN_MASTER_MEM_PAGE_BMP;
@@ -347,7 +351,68 @@ begin
          //see if any found, if not there removed parent node
          if not MasterMemFound then
             trvAccountView.Items.Delete( NewNode1);
+       end;    }
+
+
+       //load MASTER memorisations
+       if Assigned(AdminSystem) and (not HideMasters) then begin
+         NewNode1 := trvAccountView.Items.Add(nil,'MASTER Memorisations');
+         NewNode1.ImageIndex    := MAINTAIN_MASTER_MEM_PAGE_BMP;
+         NewNode1.SelectedIndex := MAINTAIN_MASTER_MEM_PAGE_BMP;
+         //Load all system memorisations if there is no open client
+         if MastersOnly or ( not Assigned( MyClient)) then begin
+           for i := AdminSystem.SystemMemorisationList.First to AdminSystem.SystemMemorisationList.Last do begin
+             Prefix := AdminSystem.SystemMemorisationList.System_Memorisation_At(i).smBank_Prefix;
+             MasterMemFound := true;
+             NewNode2       := AddChild( NewNode1, Prefix);
+             NewNode2.ImageIndex    := MAINTAIN_FOLDER_CLOSED_BMP;
+             NewNode2.SelectedIndex := MAINTAIN_FOLDER_OPEN_BMP;
+             NewNode2.OverlayIndex := 1;
+             NewNode2.StateIndex   := 0;
+             if FirstAcc = nil then 
+               FirstAcc := NewNode2;
+           end;
+         end
+         else begin
+           //only show system memorisations that are relevant for this client
+           //load system memorisations for accounts, load prefix as caption
+           PrefixList := TStringList.Create;
+           try
+             //first build a list of unique prefixs
+             with MyClient.clBank_Account_List do begin
+               for i := 0 to Pred(itemCount) do begin
+                 b := Bank_Account_At(i);
+                 if not (b.isAJournalAccount) then begin
+                   Prefix := mxFiles32.GetBankPrefix( b.baFields.baBank_Account_Number);
+                   if PrefixList.IndexOf( Prefix) = - 1 then
+                     PrefixList.Add( Prefix);
+                 end;
+               end;
+             end;
+
+             for i := 0 to Pred(PrefixList.Count) do begin
+               SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(PrefixList[i]);
+               if Assigned(SystemMemorisation) then begin
+                 MasterMemFound := true;
+                 NewNode2 := AddChild( NewNode1, PrefixList[ i]);
+                 NewNode2.ImageIndex    := MAINTAIN_FOLDER_CLOSED_BMP;
+                 NewNode2.SelectedIndex := MAINTAIN_FOLDER_OPEN_BMP;
+                 NewNode2.OverlayIndex := 1;
+                 NewNode2.StateIndex := 0;
+                 if FirstAcc = nil then 
+                   FirstAcc := NewNode2;
+               end;
+             end;
+           finally
+             PrefixList.Free;
+           end;
+         end;
+
+         //see if any found, if not there removed parent node
+         if not MasterMemFound then
+            trvAccountView.Items.Delete( NewNode1);
        end;
+
        //now select first account in list
        trvAccountView.Selected := FirstAcc;
    end;
@@ -369,7 +434,7 @@ var
 begin
    //check if we were working on a MASTER file and if we need to save it.
    Result := 0;
-   CheckMasterSaveNeeded;
+//   CheckMasterSaveNeeded;
    WorkingOnMasterPrefix := '';
    BA := Bank_Account;
    //update client memorisations
@@ -511,6 +576,8 @@ var
   MemorisedList : TMemorisations_List;
   Accsel        : TTreeNode;
   I: Integer;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
+  Prefix: string;
 begin
   if(lvMemorised.Selected = nil) then
      Exit; // nothing selected
@@ -523,7 +590,12 @@ begin
   MemorisedList := nil;
   case AccSel.OverlayIndex of
     0 : MemorisedList := tBank_Account(AccSel.Data).baMemorisations_List;
-    1 : MemorisedList := Master_Mem_Lists_Collection.FindPrefix(AccSel.Text);
+//    1 : MemorisedList := Master_Mem_Lists_Collection.FindPrefix(AccSel.Text);
+    1 : begin
+          SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(AccSel.Text);
+          if Assigned(SystemMemorisation) then
+            MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+        end;
   end;
 
   //check that a valid list
@@ -532,8 +604,11 @@ begin
 
 
   with lvMemorised do begin
+     Prefix := '';
+     if AccSel.OverlayIndex = 1 then 
+       Prefix := AccSel.Text;
      pM := TMemorisation( Selected.SubItems.Objects[0] );
-     if EditMemorisation(BA, MemorisedList, pM) then begin
+     if EditMemorisation(BA, MemorisedList, pM, False, Prefix) then begin
         //Set changed to true so that CES reloads edited transactions
         FMemorisationChanged := True;
         //if the edit was succesful we need to reload the memorisations to display them
@@ -563,7 +638,10 @@ var
   PrevTopItemIndex: Integer;
   MemorisedList : TMemorisations_List;
   AccSel : TTreeNode;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
+  Prefix: string; 
 begin
+  Prefix := '';
   AccSel := trvAccountView.Selected;
   if not Assigned(AccSel) then Exit;
   if ( lvMemorised.Selected = nil ) then Exit;
@@ -572,7 +650,14 @@ begin
   MemorisedList := nil;
   case trvAccountView.Selected.OverlayIndex {StateIndex} of
       0 : MemorisedList := tBank_Account(AccSel.Data).baMemorisations_List;
-      1 : MemorisedList := Master_Mem_Lists_Collection.FindPrefix(AccSel.Text);
+//      1 : MemorisedList := Master_Mem_Lists_Collection.FindPrefix(AccSel.Text);
+    1 : begin
+          SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(AccSel.Text);
+          if Assigned(SystemMemorisation) then begin
+            MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+            Prefix := AccSel.Text;
+          end;
+        end;
   end; //case
 
   if ( MemorisedList = nil ) then Exit;
@@ -580,7 +665,7 @@ begin
   m := TMemorisation( lvMemorised.Selected.SubItems.Objects[0] );
   PrevSelectedIndex := lvMemorised.Selected.Index;
   PrevTopItemIndex := lvMemorised.TopItem.Index;	
-  if DeleteMemorised( MemorisedList, m, (lvMemorised.SelCount > 1)) then
+  if DeleteMemorised( MemorisedList, m, (lvMemorised.SelCount > 1), Prefix) then
   begin
     case AccSel.OverlayIndex {StateIndex} of
        0: AccSel.StateIndex :=  LoadMemorisations (tBank_Account(AccSel.Data));
@@ -597,9 +682,11 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TfrmMaintainMem.DeleteMemorised(MemorisedList : TMemorisations_List;
-  Mem: TMemorisation; Multiple : Boolean): boolean;
+  Mem: TMemorisation; Multiple : Boolean; Prefix: string = ''): boolean;
+const
+  ThisMethodName = 'DeleteMemorised';
 var
-  j : integer;
+  i, j : integer;
   CodedTo,
   MemDesc   : string;
   CodeType  : string;
@@ -608,8 +695,11 @@ var
   Country   : Byte;
   Item: TListItem;
   MemLine : pMemorisation_Line_Rec;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
+  SystemMem: TMemorisation;
+  SaveSeq: integer;
 begin
-   Result := false;                         
+   Result := false;
    MasterMsg := '';
    ExtraMsg := '';
 
@@ -675,7 +765,36 @@ begin
      end; { Case clCountry }
 
      if AskYesNo('Delete Memorisation?','OK to Delete '+MasterMSG+' Memorisation?'+#13+MemDesc+ExtraMsg,DLG_YES,0) <> DLG_YES then exit;
-     MemorisedList.DelFreeItem(Mem);
+     if Assigned(AdminSystem) and (Prefix <> '') then begin
+       //---DELETE MASTER MEM---
+       SaveSeq := Mem.mdFields.mdSequence_No;
+       if LoadAdminSystem(true, ThisMethodName) then begin
+         //Get mem list
+         SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+         if not Assigned(SystemMemorisation) then
+           UnlockAdmin
+         else if not Assigned(SystemMemorisation.smMemorisations) then
+           UnlockAdmin
+         else begin
+           //Delete memorisation
+           for i := TMemorisations_List(SystemMemorisation.smMemorisations).First to TMemorisations_List(SystemMemorisation.smMemorisations).Last do begin
+             SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i);
+             if Assigned(SystemMem) then begin
+               if (SystemMem.mdFields.mdSequence_No = SaveSeq) then begin
+                 TMemorisations_List(SystemMemorisation.smMemorisations).DelFreeItem(SystemMem);
+                 Break;
+               end;
+             end;
+           end;
+           //*** Flag Audit ***
+           SystemAuditMgr.FlagAudit(atMasterMemorisations);
+           SaveAdminSystem;
+         end;
+       end else
+         HelpfulErrorMsg('Could not delete master memorisation at this time. Admin System unavailable.', 0);
+       //---END DELETE MASTER MEM---
+     end else
+       MemorisedList.DelFreeItem(Mem);
    end;
 
    FMemorisationChanged := True;
@@ -750,7 +869,7 @@ begin
      end else
      begin
        //was open, now close this node and clear the details panel
-       CheckMasterSaveNeeded;
+//       CheckMasterSaveNeeded;
 
        stTitle.caption := ' ';
        lvMemorised.Items.BeginUpdate;
@@ -765,7 +884,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.tbCloseClick(Sender: TObject);
 begin
-   CheckMasterSaveNeeded;
+//   CheckMasterSaveNeeded;
    close;
 end;
 //------------------------------------------------------------------------------
@@ -824,6 +943,7 @@ var
   m1, m2 : TMemorisation;
   SelIndex : integer;
   MemorisedList : TMemorisations_List;
+  SystemMemorisation: pSystem_Memorisation_List_Rec; 
 begin
   //must have the items sorted by EntryType and SeqNo to perform this
   if not (SortCol = 1) then
@@ -841,7 +961,12 @@ begin
   begin
     case trvAccountView.Selected.OverlayIndex{StateIndex} of
       0 : MemorisedList := tBank_Account(trvAccountView.selected.Data).baMemorisations_List;
-      1 : MemorisedList := Master_Mem_Lists_Collection.FindPrefix( trvAccountView.selected.Text);
+//      1 : MemorisedList := Master_Mem_Lists_Collection.FindPrefix( trvAccountView.selected.Text);
+      1 : begin
+            SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(trvAccountView.selected.Text);
+            if Assigned(SystemMemorisation) then
+              MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+          end;
     end; //case
   end
   else
@@ -888,14 +1013,16 @@ var
   rev       : boolean;
   Country   : Byte;
 
-  MemList : TMaster_Memorisations_List;
+//  MemList : TMaster_Memorisations_List;
+  MemList : TMemorisations_List;
   MemLine : pMemorisation_Line_Rec;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;  
 begin
    if (not Assigned(AdminSystem)) then
       Exit;  //should only be used with admin system present
    BA := nil;
    //test to see if we have just left a MASTER file and if that file was changed
-   CheckMasterSaveNeeded;
+//   CheckMasterSaveNeeded;
 
    if Assigned( MyClient ) then
       Country := MyClient.clFields.clCountry
@@ -937,13 +1064,16 @@ begin
      end;
 
      //add MASTER memorisations, refresh list to get any changes
-     Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
-     MemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
+//     Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
+     SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+     if SystemMemorisation = nil then exit;
 
+//     MemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
+     MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
      if MemList = nil then exit;
 
      //store the CRC for testing later
-     MemList.symxLast_CRC := MemList.GetCurrentCRC;
+//     MemList.symxLast_CRC := MemList.GetCurrentCRC;
      WorkingOnMasterPrefix := BankPrefix;
 
      for i := MemList.Last downto MemList.First do
@@ -1019,26 +1149,26 @@ begin
    end;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmMaintainMem.CheckMasterSaveNeeded;
-var
-   MemList : TMaster_Memorisations_List;
-begin
-   if WorkingOnMasterPrefix <> '' then begin
-      MemList := Master_Mem_Lists_Collection.FindPrefix( WorkingOnMasterPrefix);
-      if Assigned( MemList) then begin
-         if ( MemList.symxLast_CRC <> MemList.GetCurrentCRC) then begin
-            //update required
-            if MemList.SaveToFile then
-               FMemorisationChanged := true  //this will force a reload of any coding windows when exiting
-            else
-               HelpfulErrorMsg('Unable to lock Master Memorisation File ' +
-                                MasterFileName( WorkingOnMasterPrefix)+
-                                '.  Changes cannot be saved at this time.',0);
-         end;
-      end;
-      WorkingOnMasterPrefix := '';
-   end;
-end;
+//procedure TfrmMaintainMem.CheckMasterSaveNeeded;
+//var
+//   MemList : TMaster_Memorisations_List;
+//begin
+//   if WorkingOnMasterPrefix <> '' then begin
+//      MemList := Master_Mem_Lists_Collection.FindPrefix( WorkingOnMasterPrefix);
+//      if Assigned( MemList) then begin
+//         if ( MemList.symxLast_CRC <> MemList.GetCurrentCRC) then begin
+//            //update required
+//            if MemList.SaveToFile then
+//               FMemorisationChanged := true  //this will force a reload of any coding windows when exiting
+//            else
+//               HelpfulErrorMsg('Unable to lock Master Memorisation File ' +
+//                                MasterFileName( WorkingOnMasterPrefix)+
+//                                '.  Changes cannot be saved at this time.',0);
+//         end;
+//      end;
+//      WorkingOnMasterPrefix := '';
+//   end;
+//end;
 //------------------------------------------------------------------------------
 function TfrmMaintainMem.Execute: boolean;
 {returns true if memorisations changed}

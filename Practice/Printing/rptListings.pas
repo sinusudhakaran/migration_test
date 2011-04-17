@@ -102,7 +102,9 @@ uses
    PrintDestDlg,
    AccountInfoObj, BKUtil32, CalculateAccountTotals, WarningMoreFrm,
    ChartReportDlg,
-   CountryUtils;
+   CountryUtils,
+   SystemMemorisationList,
+   SYDEFS;
 
 const
   NUMBER_FORMAT = '#,##0.00;(#,##0.00);-';
@@ -2712,6 +2714,7 @@ var
    Sequence_Next     : Integer;
    Sequence_No       : Integer;
    BankPrefix        : string;
+   SystemMemorisation: pSystem_Memorisation_List_Rec;
    MasterMemList     : TMemorisations_List;
 begin
   EntryTypeList := Tlist.Create;
@@ -2788,72 +2791,74 @@ begin
                 (MyClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number) and
                 (MyClient.clFields.clDownload_From = dlAdminSystem) then
              begin
-               Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
-               MasterMemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
-                if Assigned( MasterMemList) then
-                begin
-                  //place unique entry types into a list
-                  EntryTypeList.Clear;
-                  for j := MasterMemList.First to MasterMemList.Last do
+                SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+                if Assigned(SystemMemorisation) then begin
+                  MasterMemList :=  TMemorisations_List(SystemMemorisation.smMemorisations);
+                  if Assigned( MasterMemList) then
                   begin
-                    mem := MasterMemList.Memorisation_At(j);
-                    if (EntryTypeList.IndexOf(Pointer(mem.mdFields.mdType)) = -1) then
-                      EntryTypeList.Add(Pointer(mem.mdFields.mdType));
-                  end;
-                  //sort the list
-                  EntryTypeList.Sort(EntryTypeSort);
-
-                  for EntryNo := 0 to EntryTypeList.Count-1 do
-                  begin
-                    //render client memorisations by entry type
-                    Sequence_Last := -1;
+                    //place unique entry types into a list
+                    EntryTypeList.Clear;
                     for j := MasterMemList.First to MasterMemList.Last do
                     begin
-                      //memorisation loop for a single entry type
-                      Sequence_Next := -1;
-                      Sequence_No   := -1;
-                      //find the next memorisation in the sequence
-                      for k := MasterMemList.First to MasterMemList.Last do
+                      mem := MasterMemList.Memorisation_At(j);
+                      if (EntryTypeList.IndexOf(Pointer(mem.mdFields.mdType)) = -1) then
+                        EntryTypeList.Add(Pointer(mem.mdFields.mdType));
+                    end;
+                    //sort the list
+                    EntryTypeList.Sort(EntryTypeSort);
+
+                    for EntryNo := 0 to EntryTypeList.Count-1 do
+                    begin
+                      //render client memorisations by entry type
+                      Sequence_Last := -1;
+                      for j := MasterMemList.First to MasterMemList.Last do
                       begin
-                        mem := MasterMemList.Memorisation_At( k);
-                        if (mem.mdFields.mdType = Integer(EntryTypeList[EntryNo])) then
+                        //memorisation loop for a single entry type
+                        Sequence_Next := -1;
+                        Sequence_No   := -1;
+                        //find the next memorisation in the sequence
+                        for k := MasterMemList.First to MasterMemList.Last do
                         begin
-                          if (Sequence_Last = -1) or (mem.mdFields.mdSequence_No < Sequence_Last) then
+                          mem := MasterMemList.Memorisation_At( k);
+                          if (mem.mdFields.mdType = Integer(EntryTypeList[EntryNo])) then
                           begin
-                            if (Sequence_Next = -1) or (mem.mdFields.mdSequence_No > Sequence_Next) then
+                            if (Sequence_Last = -1) or (mem.mdFields.mdSequence_No < Sequence_Last) then
                             begin
-                              Sequence_Next := mem.mdFields.mdSequence_No;
-                              Sequence_No := k;
+                              if (Sequence_Next = -1) or (mem.mdFields.mdSequence_No > Sequence_Next) then
+                              begin
+                                Sequence_Next := mem.mdFields.mdSequence_No;
+                                Sequence_No := k;
+                              end;
                             end;
                           end;
                         end;
-                      end;
-                      if (Sequence_No >= 0) then
-                      begin
-                        //list memorisation for this bank account
-                        mem := MasterMemList.Memorisation_At(Sequence_No);
-                        //make sure that a header has been written for this account
-                        if not AccountHeaderDone then
+                        if (Sequence_No >= 0) then
                         begin
-                          RenderTitleLine( ba.baFields.baBank_Account_Number + ' ' +
-                                           ba.AccountName + ' ');
-                          AccountHeaderDone := true;
+                          //list memorisation for this bank account
+                          mem := MasterMemList.Memorisation_At(Sequence_No);
+                          //make sure that a header has been written for this account
+                          if not AccountHeaderDone then
+                          begin
+                            RenderTitleLine( ba.baFields.baBank_Account_Number + ' ' +
+                                             ba.AccountName + ' ');
+                            AccountHeaderDone := true;
+                          end;
+                          //make sure that we have written a header for master mems
+                          if not MasterHeaderDone then
+                          begin
+                            RenderTitleLine('Master Memorisations');
+                            MasterHeaderDone := true;
+                          end;
+                          RenderMemorisation( ba, mem);
+                          Sequence_Last := Sequence_Next;
                         end;
-                        //make sure that we have written a header for master mems
-                        if not MasterHeaderDone then
-                        begin
-                          RenderTitleLine('Master Memorisations');
-                          MasterHeaderDone := true;
-                        end;
-                        RenderMemorisation( ba, mem);
-                        Sequence_Last := Sequence_Next;
                       end;
                     end;
                   end;
                 end;
              end;
              //done
-           end;
+           end;   
          end;
       end;
    end;

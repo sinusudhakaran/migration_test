@@ -69,6 +69,7 @@ CONST
    tkmdAccounting_System                = 162 ;
    tkmdFrom_Date                        = 163 ;
    tkmdUntil_Date                       = 164 ;
+   tkmdAudit_Record_ID                  = 165 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -117,6 +118,7 @@ Begin
       F.WriteByteValue( tkmdAccounting_System , mdAccounting_System );
       F.WriteDateValue( tkmdFrom_Date , mdFrom_Date );
       F.WriteDateValue( tkmdUntil_Date , mdUntil_Date );
+      F.WriteIntegerValue( tkmdAudit_Record_ID , mdAudit_Record_ID );
       F.WriteToken( tkEnd_Memorisation_Detail );
    end;
 end; { of Write_Memorisation_Detail_Rec }
@@ -162,6 +164,7 @@ Begin
          tkmdAccounting_System                : mdAccounting_System := F.ReadByteValue;
          tkmdFrom_Date                        : mdFrom_Date := F.ReadDateValue;
          tkmdUntil_Date                       : mdUntil_Date := F.ReadDateValue;
+         tkmdAudit_Record_ID                  : mdAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -208,7 +211,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkmdSequence_No to tkmdUntil_Date do begin
+  for i := tkmdSequence_No to tkmdAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -345,6 +348,11 @@ begin
   if (P1.mdUntil_Date <> P2.mdUntil_Date) then begin
     P3.mdUntil_Date := P1.mdUntil_Date;
     ChangedFields[i] := tkmdUntil_Date;
+    Inc(i);
+  end;
+  if (P1.mdAudit_Record_ID <> P2.mdAudit_Record_ID) then begin
+    P3.mdAudit_Record_ID := P1.mdAudit_Record_ID;
+    ChangedFields[i] := tkmdAudit_Record_ID;
     Inc(i);
   end;
 

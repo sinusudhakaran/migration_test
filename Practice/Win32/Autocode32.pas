@@ -51,7 +51,9 @@ uses
   transactionUtils,
   ECollect,
   SysUtils,
-  Admin32;
+  Admin32,
+  SystemMemorisationList,
+  SYDEFS;
 
 const
    DebugMe : Boolean = FALSE;
@@ -84,7 +86,8 @@ VAR
    IsDissected    : Boolean;
    checkMasterMX  : boolean;
 
-   MasterMemList  : TMaster_Memorisations_List;
+//   MasterMemList  : TMaster_Memorisations_List;
+   MasterMemList  : TMemorisations_List;
    MemorisationLine : pMemorisation_Line_Rec;
 
    AnalysisMatchFound : boolean;
@@ -115,6 +118,7 @@ Var
   Amount : Money;
   Msg : String;
   Forex : Boolean;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
 Begin
    With aClient, BA do
    Begin
@@ -143,7 +147,11 @@ Begin
          //Test
          RefreshAdmin;
 
-         MasterMemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
+//         MasterMemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
+         SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+         if Assigned(SystemMemorisation) then
+           MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+
          if Assigned( MasterMemList) then
            begin
              MasterMemList.UpdateLinkedLists;
