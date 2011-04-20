@@ -31,6 +31,7 @@ const
   PRACINI_TicksToWaitForAdmin = 30000;
   PRACINI_AlwaysReloadAdmin = false;
   PRACINI_DisableBankLRNCheck = true;
+  PRACINI_ExtractDecimalPlaces = 4;
 
 var
   DataDir : string;
