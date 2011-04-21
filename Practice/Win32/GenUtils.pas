@@ -780,9 +780,11 @@ begin
   end;
   if Result = '' then
     if Account_Type in [btCashJournals..btStockBalances] then
+{$IFNDEF LOOKUPDLL}
       if Assigned(MyClient) then
         Result := Localise(MyClient.clFields.clCountry, btReferences[Account_Type])
       else
+{$ENDIF}
         Result := btReferences[Account_Type];
 
 end;
@@ -858,9 +860,11 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function UseXlonSort : boolean;
 begin
+{$IFNDEF LOOKUPDLL}
   if not Assigned(MyClient) then
     Result := False
   else
+{$ENDIF}  
     //see if xlon sort needed
     Result := ( MyClient.clFields.clCountry = whAustralia) and
               ( MyClient.clFields.clAccounting_System_Used = saXlon) and

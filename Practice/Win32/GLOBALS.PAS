@@ -33,6 +33,9 @@ const
   PRACINI_DisableBankLRNCheck = true;
   PRACINI_ExtractDecimalPlaces = 4;
 
+  INI_CustomColors = '';
+  INI_MAX_EXTRACT_NARRATION_LENGTH = 200;
+
 var
   DataDir : string;
   AdminSystem              : TSystemObj       = nil;
