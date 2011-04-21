@@ -864,11 +864,11 @@ begin
   if not Assigned(MyClient) then
     Result := False
   else
-{$ENDIF}  
     //see if xlon sort needed
     Result := ( MyClient.clFields.clCountry = whAustralia) and
               ( MyClient.clFields.clAccounting_System_Used = saXlon) and
               ( Globals.PRACINI_UseXLonChartOrder);
+{$ENDIF}              
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
