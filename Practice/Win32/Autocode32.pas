@@ -292,7 +292,7 @@ Begin
 
                //if mx found then autocode this transactions
                MX := MXFound;
-               If MX<>NIL then With MX.mdFields do
+               If MX<>NIL then With MX.mdFields^ do
                Begin
                   if mdFrom_Master_List then
                     txCoded_By := BKCONST.cbMemorisedM

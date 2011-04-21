@@ -599,6 +599,8 @@ begin
       20: GST_Class_Names_Audit_Values(TGST_Class_Names_Array(tPractice_Details_Rec(ARecord^).fdGST_Class_Names), Values);
       //GST Rates
       23: GST_Rates_Audit_Values(TGST_Rates_Array(tPractice_Details_Rec(ARecord^).fdGST_Rates), Values);
+      //GST Dates
+      24: GST_Applies_From_Array(TGST_Applies_From_Array(tPractice_Details_Rec(ARecord^).fdGST_Applies_From), Values);
 
       //***System Options
 

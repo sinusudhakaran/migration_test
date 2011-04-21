@@ -17,40 +17,6 @@ uses
 type
   pMemorisations_List = ^TMemorisations_List;
 
-//  TSystem_Memorisation = class(TObject)
-//  private
-//    FSystem_Memorisation_List_Rec: pSystem_Memorisation_List_Rec;
-//    FMemorisations_List: TMemorisations_List;
-//    function GetPrefix: string;
-//    procedure SetMemorisations_List(const Value: TMemorisations_List);
-//    procedure SetPrefix(const Value: string);
-//  public
-//    constructor Create;
-//    destructor Destroy; override;
-//    procedure DoAudit(AAuditType: TAuditType; ASystemMemCopy: TSystem_Memorisation; var AAuditTable: TAuditTable);
-//    procedure SaveToStream(var S: TIOStream);
-//    procedure LoadFromStream(var S: TIOStream);
-//    property Prefix: string read GetPrefix write SetPrefix;
-//    property Memorisations_List: TMemorisations_List read FMemorisations_List write SetMemorisations_List;
-//  end;
-
-//  TSystem_Memorisation_List = class(TExtdSortedCollection)
-//  protected
-//    function FindRecordID(ARecordID: integer): TSystem_Memorisation;
-//    procedure FreeItem(Item: Pointer); override;
-//    procedure SetAuditInfo(P1, P2: TSystem_Memorisation; var AAuditInfo: TAuditInfo);
-//  public
-//    function Compare(Item1, Item2: Pointer): integer; override;
-//    function FindPrefix(const APrefix: string): TSystem_Memorisation;
-//    function System_Memorisation_At(Index: LongInt): TSystem_Memorisation;
-//    procedure AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
-//    procedure AddMemorisation(APrefix: string; AMemorisationsList: TMemorisations_List);
-//    procedure DoAudit(AAuditType: TAuditType; ASystemMemorisationsCopy: TSystem_Memorisation_List; var AAuditTable: TAuditTable);
-//    procedure Insert(Item: Pointer); override;
-//    procedure LoadFromStream(var S: TIOStream);
-//    procedure SaveToStream(var S: TIOStream);
-//  end;
-
   TSystem_Memorisation_List = class(TExtdSortedCollection)
   protected
     function FindRecordID(ARecordID: integer): pSystem_Memorisation_List_Rec;
@@ -61,20 +27,21 @@ type
     function FindPrefix(const APrefix: string): pSystem_Memorisation_List_Rec;
     function System_Memorisation_At(Index: LongInt): pSystem_Memorisation_List_Rec;
     procedure AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
-    procedure AddMemorisation(APrefix: string; AMemorisationsList: TMemorisations_List);
-    procedure DoAudit(AAuditType: TAuditType; ASystemMemorisationsCopy: TSystem_Memorisation_List; var AAuditTable: TAuditTable);
+    function AddMemorisation(APrefix: string; AMemorisationsList: TMemorisations_List): pSystem_Memorisation_List_Rec;
+    procedure DoAudit(AAuditType: TAuditType; ASystemMemorisationsCopy:
+              TSystem_Memorisation_List; var AAuditTable: TAuditTable);
     procedure Insert(Item: Pointer); override;
     procedure LoadFromStream(var S: TIOStream);
     procedure SaveToStream(var S: TIOStream);
   end;
-
 
   procedure CopySystemMemorisation(P1, P2: pSystem_Memorisation_List_Rec);
 
 implementation
 
 uses
-  TOKENS, SYSMIO, StStrS, LogUtil, BKDbExcept, SYAUDIT;
+  TOKENS, SYSMIO, StStrS, LogUtil, BKDbExcept, SYAUDIT, BKAUDIT, BKMDIO,
+  MoneyUtils, bkdateutils;
 
 const
   UNIT_NAME = 'SystemMemorisationList';
@@ -95,27 +62,108 @@ begin
     Exit;
   end;
 
-  Idx := 0;
-  Token := AAuditRecord.atChanged_Fields[idx];
-  while Token <> 0 do begin
-    case Token of
-      //Prefix
-      143: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Memorisation_List, 142),
-                                       TSystem_Memorisation_List_Rec(ARecord^).smBank_Prefix, Values);
-    end;
-    Inc(Idx);
-    Token := AAuditRecord.atChanged_Fields[idx];
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_System_Memorisation_List:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Prefix
+            153: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Memorisation_List, 152),
+                                             TSystem_Memorisation_List_Rec(ARecord^).smBank_Prefix, Values);
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
+    tkBegin_Memorisation_Detail :
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Sequence_No
+            142: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 141),
+                                              TMemorisation_Detail_Rec(ARecord^).mdSequence_No, Values);
+//    FAuditNamesArray[140,142] := 'Type';
+            //Amount
+            144: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 143),
+                                              MoneyStrNoSymbol(TMemorisation_Detail_Rec(ARecord^).mdAmount), Values);
+            //Reference
+            145: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 144),
+                                              TMemorisation_Detail_Rec(ARecord^).mdReference, Values);
+            //Particulars
+            146: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 145),
+                                              TMemorisation_Detail_Rec(ARecord^).mdParticulars, Values);
+            //Analysis
+            147: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 146),
+                                              TMemorisation_Detail_Rec(ARecord^).mdAnalysis, Values);
+            //Other_Party
+            148: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 147),
+                                              TMemorisation_Detail_Rec(ARecord^).mdOther_Party, Values);
+            //Statement_Details
+            149: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 148),
+                                              TMemorisation_Detail_Rec(ARecord^).mdStatement_Details, Values);
+            //Match_on_Amount
+            150: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 149),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Amount, Values);
+            //Match_on_Analysis
+            151: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 150),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Analysis, Values);
+            //Match_on_Other_Party
+            152: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 151),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Other_Party, Values);
+            //Match_on_Notes
+            153: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 152),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Notes, Values);
+            //Match_on_Particulars
+            154: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 153),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Particulars, Values);
+            //Match_on_Refce
+            155: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 154),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Refce, Values);
+            //Match_On_Statement_Details
+            156: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 155),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_On_Statement_Details, Values);
+            //Payee_Number
+            157: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 156),
+                                              TMemorisation_Detail_Rec(ARecord^).mdPayee_Number, Values);
+//    FAuditNamesArray[140,157] := 'From_Master_List';
+            //Notes
+            159: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 158),
+                                              TMemorisation_Detail_Rec(ARecord^).mdNotes, Values);
+            //Date_Last_Applied
+            160: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 159),
+                                              bkDate2Str(TMemorisation_Detail_Rec(ARecord^).mdDate_Last_Applied), Values);
+            161: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 160),
+                                              TMemorisation_Detail_Rec(ARecord^).mdUse_Accounting_System, Values);
+            //Accounting_System
+            162: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 161),
+                                              GetAccountingSystemName(TMemorisation_Detail_Rec(ARecord^).mdAccounting_System), Values);
+            //From_Date
+            163: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 162),
+                                              bkDate2Str(TMemorisation_Detail_Rec(ARecord^).mdFrom_Date), Values);
+            //Until_Date
+            164: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 163),
+                                              bkDate2Str(TMemorisation_Detail_Rec(ARecord^).mdUntil_Date), Values);
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
   end;
+
 end;
 
-procedure TSystem_Memorisation_List.AddMemorisation(APrefix: string;
-  AMemorisationsList: TMemorisations_List);
+function TSystem_Memorisation_List.AddMemorisation(APrefix: string;
+  AMemorisationsList: TMemorisations_List): pSystem_Memorisation_List_Rec;
 var
   S: TIOStream;
   System_Memorisation: pSystem_Memorisation_List_Rec;
 begin
+  Result := nil; 
   if Assigned(AMemorisationsList) then begin
-//    System_Memorisation := TSystem_Memorisation.Create;
     System_Memorisation := New_System_Memorisation_List_Rec;
     System_Memorisation.smBank_Prefix := APrefix;
     //Copy memorisations
@@ -129,6 +177,7 @@ begin
       S.Free;
     end;
     Insert(System_Memorisation);
+    Result := System_Memorisation;
   end;
 end;
 
@@ -145,7 +194,7 @@ procedure TSystem_Memorisation_List.DoAudit(AAuditType: TAuditType;
   ASystemMemorisationsCopy: TSystem_Memorisation_List;
   var AAuditTable: TAuditTable);
 var
-  i: integer;
+  i, j: integer;
   P1, P2: pSystem_Memorisation_List_Rec;
   AuditInfo: TAuditInfo;
 begin
@@ -156,15 +205,14 @@ begin
   for I := 0 to Pred( itemCount ) do begin
     P1 := Items[i];
     P2 := ASystemMemorisationsCopy.FindRecordID(P1.smAudit_Record_ID);
-//    AuditInfo.AuditRecord := New_System_Memorisation_List_Rec;
     AuditInfo.AuditRecord := New_System_Memorisation_List_Rec;
     try
       SetAuditInfo(P1, P2, AuditInfo);
       if AuditInfo.AuditAction in [aaAdd, aaChange] then
         AAuditTable.AddAuditRec(AuditInfo);
-      finally
-        Dispose(AuditInfo.AuditRecord);
-      end;
+    finally
+      Dispose(AuditInfo.AuditRecord);
+    end;
   end;
   //Deletes
   for i := 0 to ASystemMemorisationsCopy.ItemCount - 1 do begin
@@ -179,11 +227,15 @@ begin
       Dispose(AuditInfo.AuditRecord);
     end;
   end;
-  //Test - audit sub items
-//  for I := 0 to Pred( itemCount ) do begin
-//    P1 := Items[i];
-//    P1.DoAudit(
-//  end;
+
+  //Test - audit each master memorisation for the institution
+  for I := 0 to Pred( itemCount ) do begin
+    P1 := Items[i];
+    P2 := ASystemMemorisationsCopy.FindRecordID(P1.smAudit_Record_ID);
+    if Assigned(P1.smMemorisations) then begin
+      TMemorisations_List(P1.smMemorisations).DoAudit(atMasterMemorisations, P2.smMemorisations, AAuditTable);
+    end;
+  end;
 end;
 
 function TSystem_Memorisation_List.FindPrefix(
@@ -222,10 +274,7 @@ end;
 
 procedure TSystem_Memorisation_List.FreeItem(Item: Pointer);
 begin
-//  TSystem_Memorisation(Item).Free;
   Dispose(Item);
-//  Free_System_Memorisation_List_Rec_Dynamic_Fields(pSystem_Memorisation_List_Rec(Item)^);
-//  SafeFreeMem( Item, System_Memorisation_List_Rec_Size );
 end;
 
 procedure TSystem_Memorisation_List.Insert(Item: Pointer);
@@ -243,7 +292,7 @@ var
   System_Memorisation: pSystem_Memorisation_List_Rec;
 begin
   Token := S.ReadToken;
-  repeat
+  while Token <> tkEndSection do begin
     case Token of
       tkBegin_System_Memorisation_List:
         begin
@@ -252,7 +301,7 @@ begin
           //Load memorisation list
           System_Memorisation.smMemorisations := TMemorisations_List.Create;
           TMemorisations_List(System_Memorisation.smMemorisations).LoadFromStream(S);
-          Self.Insert(System_Memorisation);
+          inherited Insert(System_Memorisation);
         end
     else
       begin { Should never happen }
@@ -262,7 +311,7 @@ begin
       end;
     end; { of Case }
     Token := S.ReadToken;
-  until Token = tkEndSection;
+  end;
 end;
 
 function TSystem_Memorisation_List.System_Memorisation_At(
@@ -285,10 +334,11 @@ begin
   for i := First to Last do begin
     System_Memorisation := System_Memorisation_At(i);
     if Assigned(System_Memorisation) then
-      Write_System_Memorisation_List_Rec(System_Memorisation^, S);
-    //Save memorisation list
-    if Assigned(System_Memorisation.smMemorisations) then
-      TMemorisations_List(System_Memorisation.smMemorisations).SaveToStream(S);
+      if Assigned(System_Memorisation.smMemorisations) then
+        if TMemorisations_List(System_Memorisation.smMemorisations).ItemCount > 0 then begin
+          Write_System_Memorisation_List_Rec(System_Memorisation^, S);
+          TMemorisations_List(System_Memorisation.smMemorisations).SaveToStream(S);
+        end;
   end;
   S.WriteToken( tkEndSection );
 end;
@@ -331,7 +381,7 @@ begin
     AAuditInfo.AuditRecordID := P1.smAudit_Record_ID;
     AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
                                                                  AAuditInfo.AuditRecordID);
-    if SYSMIO.System_Memorisation_List_Rec_Delta(@P1, @P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+    if SYSMIO.System_Memorisation_List_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
       AAuditInfo.AuditAction := aaChange;
   end else begin
     //Add
@@ -342,60 +392,9 @@ begin
     P1.smAudit_Record_ID := AAuditInfo.AuditRecordID;
     SYSMIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
     //Special Copy
-    P2 := New_System_Memorisation_List_Rec;
-    CopySystemMemorisation(P1, P2);
+    CopySystemMemorisation(P1, AAuditInfo.AuditRecord);
   end;
 end;
 
-{ TSystem_Memorisation }
-
-//constructor TSystem_Memorisation.Create;
-//begin
-//  FSystem_Memorisation_List_Rec := New_System_Memorisation_List_Rec;
-//  FMemorisations_List := TMemorisations_List.Create;
-//end;
-//
-//destructor TSystem_Memorisation.Destroy;
-//begin
-//  FMemorisations_List.FreeAll;
-//  Dispose(FSystem_Memorisation_List_Rec);
-//
-//  inherited;
-//end;
-//
-//procedure TSystem_Memorisation.DoAudit(AAuditType: TAuditType;
-//  ASystemMemCopy: TSystem_Memorisation; var AAuditTable: TAuditTable);
-//begin
-////
-//end;
-//
-//function TSystem_Memorisation.GetPrefix: string;
-//begin
-//  Result := FSystem_Memorisation_List_Rec.smBank_Prefix;
-//end;
-//
-//procedure TSystem_Memorisation.LoadFromStream(var S: TIOStream);
-//begin
-//  Read_System_Memorisation_List_Rec(FSystem_Memorisation_List_Rec^, S);
-//  FMemorisations_List.LoadFromStream(S);
-//end;
-//
-//procedure TSystem_Memorisation.SaveToStream(var S: TIOStream);
-//begin
-//  Write_System_Memorisation_List_Rec(FSystem_Memorisation_List_Rec^, S);
-//  FMemorisations_List.SaveToStream(S);
-//end;
-//
-//procedure TSystem_Memorisation.SetMemorisations_List(
-//  const Value: TMemorisations_List);
-//begin
-//  FMemorisations_List := Value;
-//end;
-//
-//
-//procedure TSystem_Memorisation.SetPrefix(const Value: string);
-//begin
-//  FSystem_Memorisation_List_Rec.smBank_Prefix := Value;
-//end;
 
 end.

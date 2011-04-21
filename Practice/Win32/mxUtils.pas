@@ -70,7 +70,7 @@ var
 Begin
    Result := FALSE;
 
-   With T^, M.mdFields do
+   With T^, M.mdFields^ do
    Begin
       If mdType <> txType then exit;
 

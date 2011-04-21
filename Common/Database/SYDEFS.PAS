@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 382;
-   SY_IOLIB_Date    = '15/04/11';
+   SY_IOLIB_Version : Integer = 385;
+   SY_IOLIB_Date    = '19/04/11';
    SY_FILE_VERSION   = 124;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -123,6 +123,8 @@ Const
        5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
                          124   Added System Memorisation List for storing Master Memorisations
    *)
+   //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
+   //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
 
 {  -------------------------------------------------------------------  }
 

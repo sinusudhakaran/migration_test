@@ -1524,18 +1524,18 @@ begin
        if Assigned(editMem) then
            TempMem.mdFields.mdType := editMem.mdFields.mdType;
 
-       if Assigned( FMemorisationsList)
-       and (HasDuplicateMem(TempMem, FMemorisationsList, EditMem)) then begin
-          if TempMem.mdFields.mdFrom_Master_List then
+       if Assigned( FMemorisationsList) and Assigned(EditMem) then
+         if (HasDuplicateMem(TempMem, FMemorisationsList, EditMem)) then begin
+           if TempMem.mdFields.mdFrom_Master_List then
              aMsg := 'A Master Memorisation already exists that uses the same Match-On criteria. '+
                                 'You cannot add duplicate Master Memorisations.'
-          else
+           else
              aMsg := 'A Memorisation already exists that uses the same Match-On criteria. '+
                                 'You cannot add duplicate Memorisations.';
 
-          HelpfulErrorMsg( aMsg, 0);
-          Exit;
-       end;
+           HelpfulErrorMsg( aMsg, 0);
+           Exit;
+         end;
 
        //Warn the user if the selected transaction does not match the criteria
        if assigned(SourceTransaction) then
@@ -1899,20 +1899,22 @@ begin
                //--ADD MASTER MEM---
                if LoadAdminSystem(true, 'MemoriseEntry') then begin
                  SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
-                 if not Assigned(SystemMemorisation) then
-                   UnlockAdmin
-                 else begin
-                   MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
-                   if not Assigned( MasterMemList) then
-                     MasterMemList := TMaster_Memorisations_List.Create(BankPrefix);
-                   //insert into list
-                   Memorised_Trans.mdFields.mdFrom_Master_List := true;
-                   MasterMemList.Insert_Memorisation(Memorised_Trans);
-                   IsAMasterMem := True;
-                   //*** Flag Audit ***
-                   SystemAuditMgr.FlagAudit(atMasterMemorisations);
-                   SaveAdminSystem;
+                 if not Assigned(SystemMemorisation) then begin
+                   MasterMemList := TMemorisations_List.Create;
+                   try
+                     SystemMemorisation := AdminSystem.SystemMemorisationList.AddMemorisation(BankPrefix, MasterMemList);
+                   finally
+                     MasterMemList.Free;
+                   end;
                  end;
+                 MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+                 //insert into list
+                 Memorised_Trans.mdFields.mdFrom_Master_List := true;
+                 MasterMemList.Insert_Memorisation(Memorised_Trans);
+                 IsAMasterMem := True;
+                 //*** Flag Audit ***
+                 SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                 SaveAdminSystem;
                end else
                  HelpfulErrorMsg('Could not add master memorisation at this time. Admin System unavailable.', 0);
                //--END ADD MASTER MEM---

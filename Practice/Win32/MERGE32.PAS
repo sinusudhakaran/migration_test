@@ -80,7 +80,8 @@ uses
 //  ForexUtils,
 //  CurrencyConversions,
   CodingStatsList32,
-  UsageUtils;
+  UsageUtils,
+  AuditMgr;
 
 const
   UnitName = 'MERGE32';
@@ -860,6 +861,9 @@ begin
        if (clBAS_PAYG_Instalment_Period > 0) and ((cfGST_Period = 0) or (clBAS_PAYG_Instalment_Period < cfGST_Period)) then
          cfGST_Period := clBAS_PAYG_Instalment_Period;
      end;
+
+     //*** Flag Audit ***
+     SystemAuditMgr.FlagAudit(atClientFiles);
   end;
 
   //sync client bank accounts with admin system

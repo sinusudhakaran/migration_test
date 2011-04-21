@@ -402,9 +402,9 @@ begin
     FAuditNamesArray[130,139] := 'Other_Info';
     FAuditNamesArray[130,140] := 'Audit_Record_Type';
 
-   FAuditTableArray[140] := 'System_Memorisation_List';
-    FAuditNamesArray[140,141] := 'Audit_Record_ID';
-    FAuditNamesArray[140,142] := 'Bank_Prefix';
+   FAuditTableArray[150] := 'System_Memorisation_List';
+    FAuditNamesArray[150,151] := 'Audit_Record_ID';
+    FAuditNamesArray[150,152] := 'Bank_Prefix';
 
 end;
 

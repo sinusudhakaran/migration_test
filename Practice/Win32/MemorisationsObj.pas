@@ -18,8 +18,12 @@ uses
   Classes,
   BKConst,
   BKDefs,
+  BKMDIO,
   IOStream,
-  ECollect;
+  ECollect,
+  AuditMgr,
+  SysAudit,
+  SYDEFS;
 
 type
   TMemorisationLinesList = class( TExtdCollection)
@@ -34,7 +38,8 @@ type
   end;
 
   TMemorisation = class
-     mdFields : TMemorisation_Detail_Rec;
+//     mdFields : TMemorisation_Detail_Rec;
+     mdFields : pMemorisation_Detail_Rec;
      mdLines  : TMemorisationLinesList;
    public
      constructor Create;
@@ -56,6 +61,7 @@ type
       function FindRecordID(ARecordID: integer): TMemorisation;
    private
       LastSeq : integer;
+      FLoading: Boolean;
       procedure Resequence;
    public
       mxFirstByEntryType : TMemsArray;
@@ -74,9 +80,8 @@ type
       function  GetCurrentCRC : LongWord;
       procedure CheckIntegrity;
       procedure UpdateLinkedLists;
-//      procedure DoAudit(AAuditType: TAuditType; AMemorisationListCopy: TMemorisations_List; var AAuditTable: TAuditTable);
-//      procedure SetAuditInfo(P1, P2: pUser_Rec; var AAuditInfo: TAuditInfo);
-//      procedure AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
+      procedure DoAudit(AAuditType: TAuditType; AMemorisationListCopy: TMemorisations_List; var AAuditTable: TAuditTable);
+      procedure SetAuditInfo(P1, P2: pMemorisation_Detail_Rec; var AAuditInfo: TAuditInfo);
   end;
 
 //****************************************************************
@@ -141,7 +146,6 @@ uses
   BK5Except,
   BKCRC,
   BKDbExcept,
-  BKMDIO,
   BKMLIO,
   LogUtil,
   mxFiles32,
@@ -149,7 +153,8 @@ uses
   CrcFileUtils,
   winutils,
   Tokens,
-  AuditMgr;
+  SYAUDIT,
+  BKAUDIT;
 
 const
   DebugMe : Boolean = FALSE;
@@ -237,12 +242,13 @@ constructor TMemorisation.Create;
 begin
   inherited Create;
 
-  FillChar( mdFields, Sizeof( mdFields ), 0 );
-  with mdFields do
-  begin
-    mdRecord_Type := tkBegin_Memorisation_Detail;
-    mdEOR := tkEnd_Memorisation_Detail;
-  end;
+//  FillChar( mdFields, Sizeof( mdFields ), 0 );
+//  with mdFields do
+//  begin
+//    mdRecord_Type := tkBegin_Memorisation_Detail;
+//    mdEOR := tkEnd_Memorisation_Detail;
+//  end;
+  mdFields := New_Memorisation_Detail_Rec;
 
   mdLines := TMemorisationLinesList.Create;
 end;
@@ -263,7 +269,7 @@ end;
 destructor TMemorisation.Destroy;
 begin
   mdLines.Free;
-  Free_Memorisation_Detail_Rec_Dynamic_Fields(mdFields);
+  Free_Memorisation_Detail_Rec_Dynamic_Fields(mdFields^);
   inherited Destroy;
 end;
 
@@ -291,7 +297,7 @@ begin
    repeat
       case Token of
          tkBegin_Memorisation_Detail :
-           BKMDIO.Read_Memorisation_Detail_Rec(mdFields, S);
+           BKMDIO.Read_Memorisation_Detail_Rec(mdFields^, S);
          tkBeginMemorisationLinesList :
            mdLines.LoadFromStream(S);
       else
@@ -312,14 +318,14 @@ end;
 
 procedure TMemorisation.SaveToStream(var S: TIOStream);
 begin
-  BKMDIO.Write_Memorisation_Detail_Rec(mdFields, S);
+  BKMDIO.Write_Memorisation_Detail_Rec(mdFields^, S);
   mdLines.SaveToStream(S);
   S.WriteToken(tkEndSection);
 end;
 
 procedure TMemorisation.UpdateCRC(var CRC: Longword);
 begin
-  BKCRC.UpdateCRC(mdFields, CRC);
+  BKCRC.UpdateCRC(mdFields^, CRC);
   mdLines.UpdateCRC(CRC);
 end;
 
@@ -407,6 +413,55 @@ begin
   LastSeq := 0;
 end;
 
+procedure TMemorisations_List.DoAudit(AAuditType: TAuditType;
+  AMemorisationListCopy: TMemorisations_List; var AAuditTable: TAuditTable);
+var
+  i: integer;
+  P1, P2: pMemorisation_Detail_Rec;
+  AuditInfo: TAuditInfo;
+  Memorisation: TMemorisation;
+begin
+  AuditInfo.AuditType := atMasterMemorisations;
+  AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
+  AuditInfo.AuditRecordType := tkBegin_Memorisation_Detail;
+  //Adds, changes
+  for I := 0 to Pred( itemCount ) do begin
+    P1 := TMemorisation(Items[i]).mdFields;
+    P2 := nil;
+    Memorisation := nil;
+    if Assigned(AMemorisationListCopy) then //Sub list - may not be assigned
+      Memorisation := AMemorisationListCopy.FindRecordID(P1.mdAudit_Record_ID);
+    if Assigned(Memorisation) then
+      P2 := Memorisation.mdFields;
+    AuditInfo.AuditRecord := New_Memorisation_Detail_Rec;
+    try
+      SetAuditInfo(P1, P2, AuditInfo);
+      if AuditInfo.AuditAction in [aaAdd, aaChange] then
+        AAuditTable.AddAuditRec(AuditInfo);
+    finally
+      Dispose(AuditInfo.AuditRecord);
+    end;
+  end;
+  //Deletes
+  if Assigned(AMemorisationListCopy) then begin //Sub list - may not be assigned
+    for i := 0 to AMemorisationListCopy.ItemCount - 1 do begin
+      P2 := TMemorisation(AMemorisationListCopy.Items[i]).mdFields;
+      Memorisation := FindRecordID(P2.mdAudit_Record_ID);
+      P1 := nil;
+      if Assigned(Memorisation) then
+        P1 := Memorisation.mdFields;
+      AuditInfo.AuditRecord := New_Memorisation_Detail_Rec;
+      try
+        SetAuditInfo(P1, P2, AuditInfo);
+        if (AuditInfo.AuditAction = aaDelete) then
+          AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+    end;
+  end;
+end;
+
 procedure TMemorisations_List.DumpMasters;
 //remove any memorisations that were copied from the Master Memorisations
 var
@@ -475,10 +530,12 @@ begin
   Inc( LastSeq );
   M.mdFields.mdSequence_No := LastSeq;
 
-  if M.mdFields.mdFrom_Master_List then
-    M.mdFields.mdAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
-//  else
-//    M.mdFields.mdAudit_Record_ID := ClientAuditMgr.NextSystemRecordID;
+  if not FLoading then begin
+    if M.mdFields.mdFrom_Master_List then
+      M.mdFields.mdAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+  //  else
+  //    M.mdFields.mdAudit_Record_ID := ClientAuditMgr.NextSystemRecordID;
+  end;
 
   inherited Insert( M );
 end;
@@ -491,6 +548,8 @@ var
   M        : TMemorisation;
   msg      : string;
 begin
+  FLoading := True;
+  try
    Token := S.ReadToken;
    while ( Token <> tkEndSection ) do
    begin
@@ -517,6 +576,9 @@ begin
       end; { of Case }
       Token := S.ReadToken;
    end;
+  finally
+    FLoading := False;
+  end;
 end;
 
 function TMemorisations_List.Memorisation_At(
@@ -543,6 +605,33 @@ begin
    for i := First to Last do
      Memorisation_At(i).SaveToStream(S);
    S.WriteToken( tkEndSection );
+end;
+
+procedure TMemorisations_List.SetAuditInfo(P1, P2: pMemorisation_Detail_Rec;
+  var AAuditInfo: TAuditInfo);
+begin
+  AAuditInfo.AuditAction := aaNone;
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.mdAudit_Record_ID;
+  end else if Assigned(P2) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.mdAudit_Record_ID;
+    AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
+                                                                 AAuditInfo.AuditRecordID);
+    if Memorisation_Detail_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      AAuditInfo.AuditAction := aaChange;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.mdAudit_Record_ID;
+    AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
+                                                                 AAuditInfo.AuditRecordID);
+    P1.mdAudit_Record_ID := AAuditInfo.AuditRecordID;
+    BKMDIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Memorisation_Detail_Rec(P1, AAuditInfo.AuditRecord);
+  end;
 end;
 
 procedure TMemorisations_List.SwapItems(m1,
@@ -580,7 +669,7 @@ begin
    For i := Last downto First do
    Begin
       O := Memorisation_At( i);
-      With O.mdFields do
+      With O.mdFields^ do
       Begin
          mdNext_Memorisation := NIL;
          If mxFirstByEntryType[ mdType ] = NIL then

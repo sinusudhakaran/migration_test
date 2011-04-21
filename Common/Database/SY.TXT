@@ -459,7 +459,11 @@ F|Audit Record Type|B
 C|Audit Record|PTR
 E
 
-N|System Memorisation List|sm|140
+$|//Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
+
+$|//Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
+
+N|System Memorisation List|sm|150
 F|Audit Record ID|L
 F|Bank Prefix|S|5
 C|Memorisations|PTR

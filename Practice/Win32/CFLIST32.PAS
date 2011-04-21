@@ -30,7 +30,7 @@ Type
 implementation
 uses
    SYCFIO, TOKENS, LogUtil, STStrS, MALLOC, bkdbExcept,
-   bk5except, SYAUDIT, bkConst;
+   bk5except, SYAUDIT, bkConst, bkdateutils;
 
 CONST
    DebugMe : Boolean = FALSE;
@@ -86,16 +86,33 @@ begin
 //   tkcfDate_Last_Accessed               = 87 ;
 //   tkcfFile_Save_Count                  = 88 ;
 //   tkcfUser_Responsible                 = 89 ;
+      //User_Responsible
+      89: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 88),
+                                       GetUserCode(TClient_File_Rec(ARecord^).cfUser_Responsible), Values);
 //   tkcfCurrent_User                     = 90 ;
 //   tkcfLRN                              = 91 ;
-//   tkcfReport_Start_Date                = 92 ;
-//   tkcfReporting_Period                 = 93 ;
+      //Report_Start_Date
+      92: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 91),
+                                       bkDate2Str(TClient_File_Rec(ARecord^).cfReport_Start_Date), Values);
+      //Reporting_Period
+      93: if TClient_File_Rec(ARecord^).cfReporting_Period in [roMin..roMax] then
+            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 92),
+                                         roNames[TClient_File_Rec(ARecord^).cfReporting_Period], Values);
 //   tkcfForeign_File                     = 94 ;
 //   tkcfUnused_Date_Field                = 95 ;
-//   tkcfReports_Due                      = 96 ;
+      //Reports_Due
+      96: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 95),
+                                       TClient_File_Rec(ARecord^).cfReports_Due, Values);
 //   tkcfContact_Details_To_Show          = 97 ;
-//   tkcfFinancial_Year_Starts            = 98 ;
-//   tkcfSchd_Rep_Method                  = 99 ;
+      //Contact_Details_To_Show
+      97: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 96),
+                                       cdtNames[TClient_File_Rec(ARecord^).cfContact_Details_To_Show], Values);
+      //Financial_Year_Starts
+      98: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 97),
+                                       bkDate2Str(TClient_File_Rec(ARecord^).cfFinancial_Year_Starts), Values);
+      //Schd_Rep_Method
+      99: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 98),
+                                       srdNames[TClient_File_Rec(ARecord^).cfSchd_Rep_Method], Values);
 //   tkcfSpareBoolean                     = 100 ;
 //   tkcfPending_ToDo_Count               = 101 ;
 //   tkcfNext_ToDo_Desc                   = 102 ;
@@ -103,6 +120,9 @@ begin
 //   tkcfHas_Client_Notes                 = 104 ;
 //   tkcfOverdue_ToDo_Count               = 105 ;
 //   tkcfSched_Rep_Reports_To_Send        = 106 ;
+      //Sched_Rep_Reports_To_Send
+//      99: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 98),
+//                                       TClient_File_Rec(ARecord^).cfSched_Rep_Reports_To_Send, Values);
 //   tkcfContact_Details_Edit_Date        = 107 ;
 //   tkcfContact_Details_Edit_Time        = 108 ;
 //   tkcfBank_Accounts                    = 109 ;
@@ -123,8 +143,12 @@ begin
 //   tkcfMem_Count                        = 122 ;
 //   tkcfAccounting_System                = 123 ;
 //   tkcfDownloaded                       = 124 ;
-//   tkcfGroup_LRN                        = 125 ;
-//   tkcfClient_Type_LRN                  = 126 ;
+      //Group
+      125: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 124),
+                                        GetGroupName(TClient_File_Rec(ARecord^).cfGroup_LRN), Values);
+      //Client_Type_LRN
+      126: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 125),
+                                        GetClientFileType(TClient_File_Rec(ARecord^).cfClient_Type_LRN), Values);
 //   tkcfJob_Count                        = 127 ;
 //   tkcfDivision_Count                   = 128 ;
 //   tkcfGST_Period                       = 129 ;
@@ -133,7 +157,6 @@ begin
 //   tkcfWebNotesAvailable                = 132 ;
 //   tkcfWebNotes_Email_Notifications     = 133 ;
 //   tkcfISO_Codes                        = 134 ;
-//   tkcfAudit_Record_ID                  = 135 ;
     end;
     Inc(Idx);
     Token := AAuditRecord.atChanged_Fields[idx];

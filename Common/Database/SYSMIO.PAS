@@ -9,8 +9,8 @@ INTERFACE USES SYDEFS, IOSTREAM, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tkBegin_System_Memorisation_List     = 140 ;
-   tkEnd_System_Memorisation_List       = 141 ;
+   tkBegin_System_Memorisation_List     = 150 ;
+   tkEnd_System_Memorisation_List       = 151 ;
 
 FUNCTION  IsASystem_Memorisation_List_Rec ( P : Pointer ): Boolean;
 PROCEDURE Write_System_Memorisation_List_Rec ( Var O : TSystem_Memorisation_List_Rec ; Var F : TIOStream );
@@ -46,8 +46,8 @@ end;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tksmAudit_Record_ID                  = 142 ;
-   tksmBank_Prefix                      = 143 ;
+   tksmAudit_Record_ID                  = 152 ;
+   tksmBank_Prefix                      = 153 ;
 
 {  -------------------------------------------------------------------  }
 

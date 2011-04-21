@@ -41,7 +41,7 @@ CONST
    tkBeginSystem_Group_List            = 36;
    tkBeginSystem_Client_Type_List      = 37;
    tkBeginSystem_Audit_Trail_List      = 38;
-   tkBeginSystem_Memorisation_List     = 39; 
+   tkBeginSystem_Memorisation_List     = 39;
 
    // 40 Is used by ClientExtra
 

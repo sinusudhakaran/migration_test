@@ -14,6 +14,8 @@ Unit MONEYDEF;
 INTERFACE
 
 TYPE
+   TChanged_Fields_Array = Array[ 0..254 ] of Byte;
+
    Money = Comp;
 
    pTLBRec = ^TLBRec;

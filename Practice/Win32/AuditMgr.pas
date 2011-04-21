@@ -136,13 +136,18 @@ type
   function SystemAuditMgr: TSystemAuditManager;
 //  function ClientAuditMgr: TClientAuditManager;
 
+  function GetAccountingSystemName(AAccountingSystem: byte): string;
+  function GetUserCode(AUserLRN: integer): string;
+  function GetGroupName(AGroupLRN: integer): string;
+  function GetClientFileType(AClientTypeLRN: integer): string;
   procedure GST_Class_Names_Audit_Values(V1: TGST_Class_Names_Array; var Values: string);
   procedure GST_Rates_Audit_Values(V1: TGST_Rates_Array; var Values: string);
+  procedure GST_Applies_From_Array(V1: TGST_Applies_From_Array; var Values: string);
 
 implementation
 
 uses
-  Globals, SysObj32, MoneyDef, MoneyUtils, SystemMemorisationList,
+  Globals, bkConst, SysObj32, MoneyDef, MoneyUtils, SystemMemorisationList, bkdateutils,
   SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKDEFS, {BKAUDIT,} BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO;
 
@@ -238,6 +243,49 @@ end;
 //  Result := _ClientAuditMgr;
 //end;
 
+function GetAccountingSystemName(AAccountingSystem: byte): string;
+begin
+  Result := '';
+  case AdminSystem.fdFields.fdCountry of
+    whNewZealand: if AAccountingSystem in [snMin..snMax] then
+                    Result := snNames[AAccountingSystem];
+    whAustralia : if AAccountingSystem in [saMin..saMax] then
+                    Result := saNames[AAccountingSystem];
+    whUK        : if AAccountingSystem in [suMin..suMax] then
+                    Result := suNames[AAccountingSystem];
+  end;
+end;
+
+function GetUserCode(AUserLRN: integer): string;
+var
+  User: pUser_Rec;
+begin
+  Result := '';
+  User := AdminSystem.fdSystem_User_List.FindLRN(AUserLRN);
+  if Assigned(User) then
+    Result := User.usCode;
+end;
+
+function GetGroupName(AGroupLRN: integer): string;
+var
+  Group: pGroup_Rec;
+begin
+  Result := '';
+  Group := AdminSystem.fdSystem_Group_List.FindLRN(AGroupLRN);
+  if Assigned(Group) then
+    Result := Group.grName;
+end;
+
+function GetClientFileType(AClientTypeLRN: integer): string;
+var
+  ClientType: pClient_Type_Rec;
+begin
+  Result := '';
+  ClientType := AdminSystem.fdSystem_Client_Type_List.FindLRN(AClientTypeLRN);
+  if Assigned(ClientType) then
+    Result := ClientType.ctName;
+end;
+
 function ToString(Value: Variant): String;
 begin
   case TVarData(Value).VType of
@@ -291,6 +339,26 @@ begin
         TempStr := Format('%s%s[%d, %d]=%s', [TempStr, FieldName, i, j, MoneyStrNoSymbol(Value / 100)]);
       end;
     end;
+  Values := Values + TempStr;
+end;
+
+procedure GST_Applies_From_Array(V1: TGST_Applies_From_Array; var Values: string);
+var
+  i: integer;
+  Value: string;
+  FieldName: string;
+  TempStr: string;
+begin
+  TempStr := '';
+  for i := Low(V1) to High(V1) do begin
+    Value := bkDate2Str(V1[i]);
+    if Value <> '' then begin
+      if (Values <> '') or (TempStr <> '') then
+        TempStr := TempStr + VALUES_DELIMITER;
+      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 23);
+      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
+    end;
+  end;
   Values := Values + TempStr;
 end;
 
@@ -492,6 +560,11 @@ begin
         P2 := New_System_Memorisation_List_Rec;
         CopySystemMemorisation(P1, P2);
       end;
+    tkBegin_Memorisation_Detail:
+      begin
+        P2 := New_Memorisation_Detail_Rec;
+        Copy_Memorisation_Detail_Rec(P1, P2);
+      end;
   end;
 end;
 
@@ -522,6 +595,7 @@ begin
       tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                            SystemCopy.fSystem_Memorisation_List,
                                                            AdminSystem.fAuditTable);
+      tkBegin_Memorisation_Detail: ; //Do nothing - sub list of fSystem_Memorisation_List
     end;
   end;
   FAuditScope.Clear;
@@ -543,6 +617,7 @@ begin
     tkBegin_Client_Account_Map,
     tkBegin_Client_File,
     tkBegin_System_Memorisation_List: Result := AdminSystem.fdFields.fdAudit_Record_ID;
+    tkBegin_Memorisation_Detail: Result := 0; //Should be ID of system master mem list
   end;
 end;
 
@@ -558,6 +633,7 @@ begin
     tkBegin_Client_Account_Map  : AdminSystem.fdSystem_Client_Account_Map.AddAuditValues(AAuditRecord, Values);
     tkBegin_Client_File         : AdminSystem.fdSystem_Client_File_List.AddAuditValues(AAuditRecord, Values);
     tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
+    tkBegin_Memorisation_Detail : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
   end;
 end;
 
@@ -605,6 +681,11 @@ begin
         ARecord := New_System_Memorisation_List_Rec;
         Read_System_Memorisation_List_Rec(TSystem_Memorisation_List_Rec(ARecord^), AStream);
       end;
+    tkBegin_Memorisation_Detail:
+      begin
+        ARecord := New_Memorisation_Detail_Rec;
+        Read_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
+      end;
   end;
 end;
 
@@ -619,7 +700,7 @@ begin
     tkBegin_Client_Account_Map  : Write_Client_Account_Map_Rec(TClient_Account_Map_Rec(ARecord^), AStream);
     tkBegin_Client_File         : Write_Client_File_Rec(TClient_File_Rec(ARecord^), AStream);
     tkBegin_System_Memorisation_List: Write_System_Memorisation_List_Rec(TSystem_Memorisation_List_Rec(ARecord^), AStream);
-//    tkBegin_System_Memorisation_List: TSystem_Memorisation(ARecord^).SaveToStream(AStream); //Speacial write
+    tkBegin_Memorisation_Detail : Write_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
   end;
 end;
 
