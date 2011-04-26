@@ -24,7 +24,7 @@ object dlgLedgerRep: TdlgLedgerRep
     Top = 0
     Width = 600
     Height = 472
-    ActivePage = tbsSuperDetails
+    ActivePage = tsOptions
     Align = alClient
     TabOrder = 0
     object tsOptions: TTabSheet
@@ -77,7 +77,7 @@ object dlgLedgerRep: TdlgLedgerRep
           Top = 92
           Width = 241
           Height = 17
-          Hint = 'Check to include opening and closing balances on the Report'
+          Hint = 'Check to include superfund details on the Report'
           Caption = 'Show Super&fund Details'
           TabOrder = 3
           OnClick = chkSuperfundDetailsClick

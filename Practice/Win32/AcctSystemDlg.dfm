@@ -394,7 +394,6 @@ object dlgAcctSystem: TdlgAcctSystem
       ItemHeight = 13
       Sorted = True
       TabOrder = 0
-      OnChange = cmbTaxInterfaceChange
     end
   end
   object btndefault: TButton

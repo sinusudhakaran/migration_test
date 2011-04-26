@@ -485,7 +485,7 @@ var R: Integer;
        Addmessage(NarrationCount,'date, amount, reference, analysis and narration');
 
        if Result > '' then
-          Result := Format( 'Some transactions match existing ones:'#13'%s.'#13#13'Are you sure you want to contiue?',[Result]);
+          Result := Format( 'Some transactions match existing ones:'#13'%s.'#13#13'Are you sure you want to continue?',[Result]);
 
     end;                                                       
 
@@ -587,7 +587,7 @@ begin
 
    if FailCount > 0 then
       if AskSelection('Transactions will be skipped',
-         Format ('%D Transactions will be skipped, do you want to contiue?',[FailCount]) , TsDate,cbDate) then
+         Format ('%D Transactions will be skipped, do you want to continue?',[FailCount]) , TsDate,cbDate) then
             Exit;
 
     if AskSelection('Matching Transactions Found',

@@ -2119,25 +2119,30 @@ var
   PanelHeight : integer;
   PrevToolbar : TRzToolbar;
 begin
-  //file toolbar is always positioned top left
-  rztFile.Left := 1;
-  rztFile.Top := 2;
-  ResetToolbarSize( rztFile);
+  rzToolBars.OnResize := nil;
+  try
+    //file toolbar is always positioned top left
+    rztFile.Left := 1;
+    rztFile.Top := 2;
+    ResetToolbarSize( rztFile);
 
-  PrevToolbar := rztFile;
-  PanelHeight := rztFile.Top + rztFile.Height + 1;
+    PrevToolbar := rztFile;
+    PanelHeight := rztFile.Top + rztFile.Height + 1;
 
-  if rztClient.Visible then
-  begin
-    PositionToolbar( rztClient, PrevToolbar, PanelHeight);
+    if rztClient.Visible then
+    begin
+      PositionToolbar( rztClient, PrevToolbar, PanelHeight);
 
-    if ( rztCoding.Visible) then
-      PositionToolbar( rztCoding, PrevToolbar, PanelHeight);
+      if ( rztCoding.Visible) then
+        PositionToolbar( rztCoding, PrevToolbar, PanelHeight);
 
-    if ( rztBudget.Visible) then
-      PositionToolbar( rztBudget, PrevToolbar, PanelHeight);
+      if ( rztBudget.Visible) then
+        PositionToolbar( rztBudget, PrevToolbar, PanelHeight);
+    end;
+    rzToolbars.Height := PanelHeight + 2;
+  finally
+    rzToolBars.OnResize := rzToolBarsResize;
   end;
-  rzToolbars.Height := PanelHeight + 2;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.DoBudgetTBarCommand(command: TExternalCmdBudget);

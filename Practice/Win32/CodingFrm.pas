@@ -971,7 +971,7 @@ begin
    NarrationIndex := CurrentIndex;
    Inc( CurrentIndex);
 
-   if (MyClient.clFields.clCountry = whUK) then begin
+   if (MyClient.clFields.clCountry = whUK) and  (BankAccount.IsAForexAccount) then begin
      poiCoding[CurrentIndex] := TMenuItem.Create(Self);
      with poiCoding[CurrentIndex] do begin
         Name := 'mniConvertAmount';
@@ -8187,7 +8187,7 @@ begin
 
       end else begin
          ShowMenuItem(mniEditUPCAmount, pT^.txDate_Presented=0);
-
+         ShowMenuItem('mniConvertAmount', ColumnFmtList.ColumnDefn_At(tblCoding.ActiveCol)^.cdFieldID = ceGSTAmount);
          if (pT^.txLocked)
          or (pT^.txDate_Transferred <> 0) then begin
             // Remove them regardless
