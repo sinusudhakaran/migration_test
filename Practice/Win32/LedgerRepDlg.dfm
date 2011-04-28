@@ -67,7 +67,7 @@ object dlgLedgerRep: TdlgLedgerRep
           Top = 64
           Width = 241
           Height = 17
-          Hint = 'Check to include opening and closing balances on the Report'
+          Hint = 'Check to include opening and closing balances on the report'
           Caption = 'Show Opening/Closing &Balances'
           TabOrder = 2
           OnClick = chkBalancesClick
@@ -77,7 +77,7 @@ object dlgLedgerRep: TdlgLedgerRep
           Top = 92
           Width = 241
           Height = 17
-          Hint = 'Check to include superfund details on the Report'
+          Hint = 'Check to include superfund details on the report'
           Caption = 'Show Super&fund Details'
           TabOrder = 3
           OnClick = chkSuperfundDetailsClick

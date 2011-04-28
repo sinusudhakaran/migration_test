@@ -911,6 +911,10 @@ begin
   // - - - - - - - - - - - - - - - - - - - - - - - - - - -
   lState := GetUPIStateAttr(FromNode,nUPIState);
   if lState in [upUPD, upUPC, upUPW] then begin
+    //set up a new blank transaction, fill cheque details
+    BKT := bktxio.New_Transaction_Rec;
+    ClearSuperFundFields(BKT);
+
     //determine if the UPC matches an existing bk5 transaction
     //the transaction may have been downloaded since, or already imported from
     //this bnotes file
@@ -919,9 +923,6 @@ begin
       upUPC : BKT.txType := whChequeEntryType [Client.clFields.clCountry];
       upUPW : BKT.txType := whWithdrawalEntryType [Client.clFields.clCountry];
     end;
-    //set up a new blank transaction, fill cheque details
-    BKT := bktxio.New_Transaction_Rec;
-    ClearSuperFundFields(BKT);
 
     //set up the new transaction
     //BKT.txType                := ECT^.txType;

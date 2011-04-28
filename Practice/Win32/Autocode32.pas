@@ -186,8 +186,12 @@ Begin
 
             if txHas_Been_Edited then begin
                // Check if this is actualy True..
-               if txAccount > '' then
+               if txAccount > '' then begin
+                  //TFS 12252 - update alternative account codes when chart has been refreshed
+                  if HasAlternativeChartCode(aClient.clFields.clCountry, aClient.clFields.clAccounting_System_Used) then
+                    txAccount := aCLient.clChart.MatchAltCode(txAccount);
                   Continue; // Must be True
+               end;
                if txSF_Super_Fields_Edited then
                   if txCoded_By in [cbManualSuper,cbECodingManual] then
                      Continue; // Must be True

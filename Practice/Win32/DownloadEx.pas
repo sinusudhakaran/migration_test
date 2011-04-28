@@ -854,19 +854,27 @@ begin //ProcessDiskImages
                Inc( NumAccounts);
          end;
 
+         //TFS 13323 - there is no highest date if there are no transactions.
+         if HighestDate = 0 then
+            HighestDate := LowestDate;
+
          if (StartupParam_Action <> sa_Connect) then begin //Don't do if command line download
            aMsg := 'Download Complete.  ' +
                inttoStr( ImagesProcessed) + ' disk image(s). ' +
                inttoStr( NumAccounts) + ' accounts received. ' +
-               inttoStr( NumEntries)  + ' entries from ' +
-               bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate) + '.';
+               inttoStr( NumEntries)  + ' entries';
+           if NumEntries > 0 then
+             aMsg := aMsg + ' from ' + bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate);
+           aMsg := aMsg + '.';             
            LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + aMsg);
 
            aMsg := 'Download Complete.  '#13#13 +
                inttoStr( ImagesProcessed) + ' file(s) downloaded. '#13 +
                inttoStr( NumAccounts) + ' accounts received. '#13 +
-               inttoStr( NumEntries)  + ' entries from ' +
-               bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate) + '.';
+               inttoStr( NumEntries)  + ' entries';
+           if NumEntries > 0 then
+             aMsg := aMsg + ' from ' + bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate);
+           aMsg := aMsg + '.';             
            HelpfulInfoMsg(aMsg,0);
          end;
       end;

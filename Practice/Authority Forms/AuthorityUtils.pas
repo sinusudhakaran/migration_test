@@ -44,7 +44,7 @@ type
     fcDay,
     fcMonth,
     fcYear : Integer;
-    fcFrequency: integer;
+    fcProvisional, fcFrequency: integer;
     fImportCount: Integer;
     fFailedDateCount: Integer;
     fNeedNewpage: Boolean;
@@ -101,7 +101,7 @@ const // Import Column Titles
   ct_Month = 'Month';
   ct_Year = 'Year';
   ct_Frequency = 'Frequency';
-
+  ct_Provisional = 'Provisional Accounts';
 
 // The forms are quite big so resize to fit the screen, minus the taskbar
 
@@ -182,7 +182,9 @@ begin
     fcDay := -1;
     fcMonth := -1;
     fcYear := -1;
+    fcProvisional := -1;
     fcFrequency := -1;
+
     //Reset The counters
     fImportCount := 0;
     fFailedDateCount := 0;
@@ -208,6 +210,7 @@ begin //TestColumnTitles
       if TestTitle(ct_Bank,fcBank) then exit;
       if TestTitle(ct_Month,fcMonth) then exit;
       if TestTitle(ct_Year,fcYear) then exit;
+      if TestTitle(ct_Provisional,fcProvisional) then exit;
       if TestTitle(ct_Frequency,fcFrequency) then exit;
       if TestTitle(ct_CostCode,fcCostCode) then exit;
       case Country of
@@ -492,6 +495,8 @@ begin
       Result := '';
    end else if c.Col = fcFrequency then begin
      Result := UpperCase(Copy(Result,1,1));
+   end else if c.Col = fcProvisional then begin
+     Result := UpperCase(Copy(Result,1,1));
    end;
 
 end;
@@ -531,6 +536,9 @@ var
             if GetCellText(C) > '' then
                Exit;
          end else if C.Col = fcFrequency then begin
+            if GetCellText(C) > '' then
+               Exit;
+         end else if C.Col = fcProvisional then begin
             if GetCellText(C) > '' then
                Exit;
          end;

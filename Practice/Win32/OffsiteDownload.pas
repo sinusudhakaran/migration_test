@@ -628,19 +628,27 @@ begin
     end;
     ClearStatus;
 
+    //TFS 13323 - there is no highest date if there are no transactions.
+    if HighestDate = 0 then
+      HighestDate := LowestDate;
+
     //build final message for user
     aMsg := 'Download Complete.  ' +
            inttoStr( ImagesProcessed) + ' disk image(s). ' +
            inttoStr( NumAccounts) + ' accounts received. ' +
-           inttoStr( NumEntries)  + ' entries from ' +
-           bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate) + '.';
+           inttoStr( NumEntries)  + ' entries';
+    if NumEntries > 0 then
+           aMsg := aMsg + ' from ' + bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate);
+    aMsg := aMsg + '.';
     LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + aMsg);
 
     aMsg := 'Download Complete.  '#13#13 +
            inttoStr( ImagesProcessed) + ' file(s) downloaded. '#13 +
            inttoStr( NumAccounts) + ' accounts received. '#13 +
-           inttoStr( NumEntries)  + ' entries from ' +
-           bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate) + '.';
+           inttoStr( NumEntries)  + ' entries';
+   if NumEntries > 0 then
+           aMsg := aMsg + ' from ' + bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate);
+    aMsg := aMsg + '.';
     HelpfulInfoMsg(aMsg,0);
   finally
     //clear progress window

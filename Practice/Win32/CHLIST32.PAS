@@ -14,7 +14,7 @@ type
    public
       function Account_At( Index : LongInt ): pAccount_Rec;
       function Compare( Item1, Item2 : pointer ) : integer; override;
-      function FindCode( ACode : String ): pAccount_Rec;
+      function FindCode( ACode : String ): pAccount_Rec; virtual;
       function SearchForCode( ACode : String ): LongInt;
    end;
 
@@ -30,7 +30,7 @@ type
       FAltChart: TAltChart;
       procedure SetAccumulatorPeriods(const Value: integer);
       procedure   CheckLinkedAccounts;
-      procedure   ResortAltCodes;
+      procedure   ResortAltCodes;      
     protected
       procedure   FreeItem( Item : Pointer ); override;
     public
@@ -63,6 +63,7 @@ type
       function    AllowLowerCase : boolean;
       procedure   RefreshDependencies;
 
+      function FindCode( ACode : String ): pAccount_Rec; override;      
 
       property    AccumulatorPeriods : integer read FAccumulatorPeriods write SetAccumulatorPeriods;
    end;
@@ -76,7 +77,7 @@ type
       procedure CopyChart(aChart: TChart);
    end;
 
-  
+
 //******************************************************************************
 implementation
 uses
@@ -594,6 +595,17 @@ Begin
 
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TChart.FindCode(ACode: String): pAccount_Rec;
+begin
+  Result := inherited FindCode(ACode);
+  //Check for alternative code
+  if Result = nil then begin
+    Result := FAltChart.FindCode(ACode);
+    if Result <> nil then
+      Result := inherited FindCode(Result.chAccount_Code);
+  end;
+end;
+
 function tChart.FindDesc( ACode : String ): String;
 const
   ThisMethodName = 'TChart.FindDesc';
@@ -690,6 +702,7 @@ Var
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Called' );
    CRC         := 0;
+   ResortAltCodes;
    UpdateCRC( CRC);
    GetCurrentCRC := CRC;
 end;

@@ -380,7 +380,6 @@ object frmPracticeDetails: TfrmPracticeDetails
           ItemHeight = 13
           Sorted = True
           TabOrder = 0
-          OnChange = cmbTaxInterfaceChange
         end
       end
       object gbxTaxInterface: TGroupBox

@@ -667,30 +667,33 @@ begin
             lblTransRange.Caption := 'You may enter transactions for any date.';
       end else begin
          // Must be Historical...
-         with BankAccount.baTransaction_List do
-               for i := 0 to Pred( itemCount ) do
-                   with Transaction_At( i )^ do begin
-                      //look for the first bank entry on historical entry
-                      if (txSource = orBank) then begin
-                         if (FirstBankDate=0)
-                         or ((FirstBankDate > 0) and (txDate_Presented < FirstBankDate) and (txDate_Presented > 0)) then
-                              FirstBankDate := txDate_Presented;
-                      end;
+         with BankAccount.baTransaction_List do begin
+            for i := 0 to Pred( itemCount ) do
+               with Transaction_At( i )^ do begin
+                  //look for the first bank entry on historical entry
+                  if (txSource = orBank) then begin
+                     if (FirstBankDate=0)
+                     or ((FirstBankDate > 0) and (txDate_Presented < FirstBankDate) and (txDate_Presented > 0)) then
+                          FirstBankDate := txDate_Presented;
+                  end;
 
-                      //store date of first presented transaction
-                      if (FirstPDate = 0)
-                      or ((FirstPDate > 0) and (txDate_Presented < FirstPDate) and (txDate_Presented > 0)) then
-                         FirstPDate := txDate_Presented;
+                  //store date of first presented transaction
+                  if (FirstPDate = 0)
+                  or ((FirstPDate > 0) and (txDate_Presented < FirstPDate) and (txDate_Presented > 0)) then
+                     FirstPDate := txDate_Presented;
 
-                      //Populate the List with all the ChequeNos, for cheques that have been
-                      //presented, from the transactions list.
-                      if (txCheque_Number <> 0)
-                      and (txDate_Presented <> 0) then
-                         with ExistingCheques do
-                            if not ChequeIsThere(txCheque_Number) then
-                               InsChequeRec(txCheque_Number);
-                   end; // transaction
-
+                  //Populate the List with all the ChequeNos, for cheques that have been
+                  //presented, from the transactions list.
+                  if (txCheque_Number <> 0)
+                  and (txDate_Presented <> 0) then
+                     with ExistingCheques do
+                        if not ChequeIsThere(txCheque_Number) then
+                           InsChequeRec(txCheque_Number);
+               end; // transaction
+            MaxHistTranDate := FirstBankDate -1;
+            lblTransRange.caption := 'Enter Transactions up to and including ' +
+                                     bkDate2Str(MaxHistTranDate) + '.';
+         end;
 
       end;// Historical
       Setup;

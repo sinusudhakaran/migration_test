@@ -265,7 +265,7 @@ end;
 procedure TExchangeRatesfrm.acUnlockExecute(Sender: TObject);
 const
   UNLOCK_WARNING = 'If you edit the exchange rates BankLink Practice will ' +
-                   'update the base amounts of coded transactions and journals ' +
+                   'update the base amounts of coded transactions ' +
                    'that are not transferred or finalised.'#13#13 +
                    'Are you sure you want to do this?';
 var

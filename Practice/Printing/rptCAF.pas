@@ -242,8 +242,11 @@ begin
       Values.rbMonthly.Checked := (GetCellText(C) = 'M');
       Values.rbWeekly.Checked  := (GetCellText(C) = 'W');
       Values.rbDaily.Checked   := (GetCellText(C) = 'D');
+   end else if C.Col = fcProvisional then begin
+      Values.cbProvisional.Checked := True;
+      if (GetCellText(C) = 'N') then
+        Values.cbProvisional.Checked := False;
    end;
-
 end;
 
 function TCAFReport.HaveNewdata: Boolean;
