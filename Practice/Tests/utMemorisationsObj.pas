@@ -13,14 +13,12 @@ type
  private
    FMemorisationsList : TMemorisations_List;
    FOrder : integer;
-
    function AddMemorisation( aTypeNo : integer) : TMemorisation;
  protected
    procedure Setup; override;
    procedure TearDown; override;
    procedure CheckException(AMethod: TTestMethod; AExceptionClass: ExceptionClass);
  published
-
    procedure AddAndRemoveAMemorisation;
    procedure AddAndRemoveMemorisationLines;
    procedure AddAndRemoveAMemorisationWithLines;
@@ -30,9 +28,7 @@ type
    procedure Resequence;
    procedure TestLinksAreUpdated;
    procedure MastersAreDumped;
-
    procedure SwapItems;
-
    procedure LoadAndSaveToStream;
  end;
 
@@ -52,7 +48,11 @@ uses
   bkDefs,
   bkmlio,
   Tokens,
-  ioStream, ECollect, bk5except;
+  ioStream, ECollect, bk5except,
+  globals,
+  bkConst,
+  DBCreate,
+  Admin32;
 
 { TMemorisationsTestCase }
 
@@ -256,6 +256,7 @@ end;
 procedure TMemorisationsTestCase.Setup;
 begin
   inherited;
+  NewAdminSystem(whNewZealand, 'MEMTEST', 'Test Admin system for unit testing');
   FMemorisationsList := TMemorisations_List.Create;
   FOrder := 1;
 end;
@@ -286,6 +287,7 @@ end;
 procedure TMemorisationsTestCase.TearDown;
 begin
   FMemorisationsList.Free;
+  FreeAndNil(AdminSystem);
   inherited;
 end;
 
@@ -409,7 +411,8 @@ begin
   Check( SaveOK, 'Save Master Mem File Failed');
 
   FMasterMemsList.symxLast_Updated := 0;
-  FMasterMemsList.Refresh;
+//  FMasterMemsList.Refresh;
+  FMasterMemsList.QuickRead;
 
   FMasterMemsList.UpdateCRC( CRCAfterReload);
   CheckEquals( CRCAfterInsert, CRCAfterReload , 'Check CRC after reload');
@@ -418,12 +421,14 @@ end;
 procedure TMasterMemorisationsTestCase.Setup;
 begin
   inherited;
+  NewAdminSystem(whNewZealand, 'MEMTEST', 'Test Admin system for unit testing');
   FMasterMemsList := TMaster_Memorisations_List.Create( 'ZZ');
 end;
 
 procedure TMasterMemorisationsTestCase.TearDown;
 begin
   FMasterMemsList.Free;
+  FreeAndNil(AdminSystem);
   inherited;
 end;
 

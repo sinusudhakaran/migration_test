@@ -91,7 +91,6 @@ type
 type
   //extends the client memorisations object by adding the ability to save
   TMaster_Memorisations_List = Class( TMemorisations_List )
-    constructor Create( ACode : BankPrefixStr );
   private
     FPrefix : BankPrefixStr;
     FFilename : String;
@@ -102,8 +101,9 @@ type
     procedure SetsymxLast_CRC(const Value: LongWord);
 
     procedure UpgradeMasterMemFileToLatestVersion( VersionFound : integer);
-    procedure Refresh;  //reloads the list if needed    
+    procedure Refresh;  //reloads the list if needed
   public
+    constructor Create( ACode : BankPrefixStr );
     property symxLast_Updated : Int64 read FsymxLast_Updated write SetsymxLast_Updated;
     property symxLast_CRC : LongWord read FsymxLast_CRC write SetsymxLast_CRC;
     function SaveToFile : boolean;
