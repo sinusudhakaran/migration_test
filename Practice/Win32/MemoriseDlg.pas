@@ -2715,8 +2715,11 @@ begin
              AuditIDList.Delete(0);
            end else if ATempMem then
              pM.mdLines.Insert(MemLine)
-           else
-             pM.mdLines.Insert_Memorisation_Line(MemLine);
+           else begin
+             if IsMaster then
+               MemLine.mlAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+             pM.mdLines.Insert(MemLine)
+           end;
          end;
        end;
      finally

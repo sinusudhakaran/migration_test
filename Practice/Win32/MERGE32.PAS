@@ -81,7 +81,8 @@ uses
 //  CurrencyConversions,
   CodingStatsList32,
   UsageUtils,
-  AuditMgr;
+  AuditMgr,
+  SystemMemorisationList;
 
 const
   UnitName = 'MERGE32';
@@ -191,7 +192,7 @@ Var
 
    AccountPasswordOK : boolean;
    Msg               : string;
-   ForeignCurrency : Boolean;
+//   ForeignCurrency : Boolean;
    BCode, CCode : String[3];
    Rate : Extended;
 Begin
@@ -221,7 +222,7 @@ Begin
            Begin
               BCode := baCurrency_Code;
               CCode := aClient.clExtra.ceLocal_Currency_Code;
-              ForeignCurrency := Bank_Account.IsAForexAccount;
+//              ForeignCurrency := Bank_Account.IsAForexAccount;
 //              if ForeignCurrency and ( Bank_Account.baForex_Info = NIL  ) then
 //              Begin { We check for a valid source before allowing the user to retrieve transactions }
 //                Msg := Format( 'Client %s, Bank Account %s : Unable to find an exchange rate currency data source for converting %s to %s with the description %s (%s)',
@@ -504,10 +505,10 @@ end;
 {-----------------------------------------------------------------}
 
 function CanMergeNewDataNow( Client : TClientObj ): Boolean;
-Var
-  fBadForexCurrencyCode : String;
-  fBadForexAccountCode : String;
-  fBadForexFileName : String;
+//Var
+//  fBadForexCurrencyCode : String;
+//  fBadForexAccountCode : String;
+//  fBadForexFileName : String;
 Begin
   Result := False;
   if not NewDataAvailable( Client ) then
@@ -920,6 +921,7 @@ var
   Msg         : String;
 //  MemFrom, MemTo : TMemorisation;
   MasterLine, ClientLine : pMemorisation_Line_Rec;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not (Assigned(aClient) and Assigned(AdminSystem)) then begin
@@ -942,8 +944,13 @@ begin
            baMemorisations_List.DumpMasters;  //double check no existing entries
 
            BankPrefix := mxfiles32.GetBankPrefix( baFields.baBank_Account_Number);
-           Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
-           MasterMemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
+//           Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
+//           MasterMemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
+           SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+           MasterMemList := nil;
+           if Assigned(SystemMemorisation) then
+             MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+
            if Assigned( MasterMemList) then begin
              for M := MasterMemList.First to MasterMemList.Last do begin
                MasterMemX  := MasterMemList.Memorisation_At(m);
