@@ -857,7 +857,7 @@ function GetLRParameters( Param : TLRParameters;
      Mydlg := TdlgLedgerRep.Create(Application.MainForm);
      Param.SpanYear := False;
      try
-        BKHelpSetUp(MyDlg, BKH_List_ledger);
+        BKHelpSetUp(MyDlg, BKH_Ledger_Report);
 
         //Custom coding report settings
         Mydlg.fmeCustomColumn1.CustomReportType := crSuper;

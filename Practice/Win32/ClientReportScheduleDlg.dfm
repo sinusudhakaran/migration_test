@@ -31,16 +31,12 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     Top = 0
     Width = 632
     Height = 449
-    ActivePage = tbsAdvanced
+    ActivePage = tbsOptions
     Align = alTop
     TabOrder = 0
     OnChange = PageControl1Change
     object tbsOptions: TTabSheet
       Caption = '&Options'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label1: TLabel
         Left = 5
         Top = 2
@@ -76,7 +72,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Width = 305
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = cmbPeriodChange
       end
@@ -86,7 +82,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Width = 305
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 1
         OnChange = cmbPeriodChange
       end
@@ -204,7 +200,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Width = 175
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 3
           Items.Strings = (
             'Text File '
@@ -267,7 +263,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Font.Height = -11
           Font.Name = 'MS Sans Serif'
           Font.Style = []
-          ItemHeight = 0
+          ItemHeight = 13
           ParentFont = False
           TabOrder = 10
           Visible = False
@@ -360,7 +356,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Width = 143
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnDropDown = cmbCustomDocListDropDown
         end
@@ -369,10 +365,6 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsMessage: TTabSheet
       Caption = 'Messa&ge'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         624
         421)
@@ -389,10 +381,6 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsAttachments: TTabSheet
       Caption = 'A&ttachments'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         624
         421)

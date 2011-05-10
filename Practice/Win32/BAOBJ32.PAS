@@ -70,7 +70,6 @@ type
       Function HasTransactionsWithin( StartDate, EndDate : Integer ): Boolean;
       Function IsAForexAccount : Boolean;
       Function IsManual: Boolean;
-      Function IsProvisional: Boolean;
       function CanEditTransactions: Boolean;
       Function IsAnEldersAccount : Boolean;
       Function Default_Forex_Conversion_Rate( ADate : Integer ): Double;
@@ -506,8 +505,7 @@ end;
 
 function TBank_Account.CanEditTransactions: Boolean;
 begin
-   Result := IsManual
-          or IsProvisional;
+   Result := IsManual;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -648,11 +646,6 @@ end;
 function TBank_Account.IsManual: Boolean;
 begin
    result := baFields.baIs_A_Manual_Account;
-end;
-
-function TBank_Account.IsProvisional: Boolean;
-begin
-   result := baFields.baIs_A_Provisional_Account;
 end;
 
 //------------------------------------------------------------------------------

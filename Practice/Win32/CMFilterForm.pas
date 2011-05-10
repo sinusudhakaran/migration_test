@@ -183,7 +183,7 @@ end;
 
 procedure TfrmFilter.FormCreate(Sender: TObject);
 begin
-  BKHelpSetUp(Self, BKH_Filtering_data_in_the_Clients_page);
+  BKHelpSetUp(Self, BKH_Filtering_files_in_the_Clients_page);
   bkXPThemes.ThemeForm(Self);
   SetVistaTreeView(tvFilter.Handle);
 end;

@@ -40,7 +40,9 @@ type
     function Execute : boolean;
   end;
 
-  function SelectBankAccount(Title:string; SelectType:byte; d1,d2: integer; IncludeJournals: boolean; HelpCtx : integer) : TBank_Account;
+  function SelectBankAccount(Title:string; SelectType:byte; d1,d2: integer;
+                             IncludeJournals: boolean; HelpCtx : integer;
+                             var ABankAccount: TBank_Account) : TModalResult;
 
   function SelectBankAccounts(Title: string; SelectedList : TstringList; SelectType : byte;
                               d1,d2 : integer; IncludeJournals : boolean;
@@ -339,7 +341,17 @@ begin
 
            SelectManual: include := Bank_Account_At(i).IsManual;
 
-           SelectDeliveredTrx: Include := not (Bank_Account_At(i).IsManual or Bank_Account_At(i).IsProvisional);
+           SelectDeliveredTrx:
+               if not Bank_Account_At(i).IsManual then
+                 with Bank_Account_At(i) do
+                   if baFields.baAccount_Type in [btBank, btCashJournals, btAccrualJournals] then
+                     for j := 0 to Pred(baTransaction_List.ItemCount) do
+                       with baTransaction_List.Transaction_At(j)^ do
+                         if (txSource = orBank) then
+                         begin
+                           Include := true;
+                           break;
+                         end;
 
            SelectWithUncodedTrx:
              with Bank_Account_At(i) do
@@ -411,14 +423,16 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectBankAccount(Title:string; SelectType:byte; d1,d2: integer; IncludeJournals: boolean; HelpCtx : integer) : TBank_Account;
+function SelectBankAccount(Title:string; SelectType:byte; d1,d2: integer;
+  IncludeJournals: boolean; HelpCtx : integer; var ABankAccount: TBank_Account) : TModalResult;
 var
   MyDlg : TdlgAccounts;
   i,j : integer;
   Include : boolean;
   NewItem : TListItem;
 begin
-  result := nil;
+  ABankAccount := nil;
+  Result := mrNone;
   if not Assigned(MyClient) then exit;
 
   MyDlg := TdlgAccounts.Create(Application.MainForm);
@@ -470,7 +484,18 @@ begin
 
            SelectManual: include := Bank_Account_At(i).IsManual;
 
-           SelectDeliveredTrx: include := not (Bank_Account_At(i).IsManual or Bank_Account_At(i).IsProvisional); 
+           SelectDeliveredTrx:
+               if not Bank_Account_At(i).IsManual then
+                 with Bank_Account_At(i) do
+                   if baFields.baAccount_Type in [btBank, btCashJournals, btAccrualJournals] then
+                     for j := 0 to Pred(baTransaction_List.ItemCount) do
+                       with baTransaction_List.Transaction_At(j)^ do
+                         if (txSource = orBank) then
+                         begin
+                           Include := true;
+                           break;
+                         end;
+
          end; {case}
 
          if Include then  {add account to available list}
@@ -490,18 +515,21 @@ begin
        begin
          if Execute then
          begin
+           Result := mrOk;
            if lvAccounts.Selected <> nil then
-             result := TBank_Account(lvAccounts.Selected.SubItems.Objects[0])
+             ABankAccount := TBank_Account(lvAccounts.Selected.SubItems.Objects[0])
            else
-             result := nil;
+             ABankAccount := nil;
          end
-         else
-           result := nil;
+         else begin
+           Result := mrCancel;
+           ABankAccount := nil;
+         end;
        end
        else
        begin
          if lvAccounts.Items.Count =1 then
-           result := TBank_Account(lvAccounts.items[0].SubItems.Objects[0]);
+           ABankAccount := TBank_Account(lvAccounts.items[0].SubItems.Objects[0]);
        end;
 
      end; {with}

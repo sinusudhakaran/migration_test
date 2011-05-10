@@ -24,10 +24,8 @@ const
   BKH_Adding_unpresented_deposits = 1017;
   BKH_Analysis_coding_New_Zealand_ = 1018;
   BKH_Appendix_1_Accounting_system_interfaces = 1019;
-  BKH_Assigning_client_files_to_a_staff_member = 1020;
   BKH_Assigning_divisions = 1021;
   BKH_Assigning_divisions_by_merging_charts_of_accounts = 1022;
-  BKH_Assigning_GST_classes_to_chart_of_account_codes = 1023;
   BKH_Assigning_report_groups = 1024;
   BKH_Assigning_report_groups_by_merging_charts_of_accounts = 1025;
   BKH_Assigning_sub_groups = 1026;
@@ -76,7 +74,6 @@ const
   BKH_Chapter_4_Dissecting = 1071;
   BKH_Chapter_5_Memorisations = 1072;
   BKH_Chapter_6_Unpresented_items = 1073;
-  BKH_Chapter_7_Historical_data_entry = 1074;
   BKH_Chapter_8_Coding_reports_and_BNotes = 1075;
   BKH_Chapter_9_Budgets = 1076;
   BKH_Chapter_A1_Installing_BankLink = 1077;
@@ -160,7 +157,6 @@ const
   BKH_Download_Log = 1161;
   BKH_Downloading = 1162;
   BKH_Downloading_at_an_off_site_client_using_BankLink_Connect = 1163;
-  BKH_Downloading_from_diskette = 1164;
   BKH_Downloading_with_BankLink_Connect = 1165;
   BKH_E_mailing_a_transaction_file_to_a_client = 1166;
   BKH_E_mailing_from_within_BankLink = 1167;
@@ -184,9 +180,7 @@ const
   BKH_Flagging_transactions = 1185;
   BKH_From_date_to_date = 1186;
   BKH_Generating_journals_in_a_future_period = 1190;
-  BKH_Get_the_latest_version_free = 1191;
   BKH_Getting_started_with_BankLink_Connect = 1192;
-  BKH_Global_set_up = 1193;
   BKH_GST_audit_trail_report = 1194;
   BKH_GST_Journals = 1195;
   BKH_Generate_scheduled_reports_the_Fax_Set_up_tab = 1187;
@@ -228,7 +222,6 @@ const
   BKH_List_entries = 1232;
   BKH_List_GST_details = 1233;
   BKH_List_journals = 1234;
-  BKH_List_ledger = 1235;
   BKH_List_memorisations = 1236;
   BKH_List_missing_cheques_report = 1237;
   BKH_List_payees = 1238;
@@ -252,7 +245,6 @@ const
   BKH_Memorising_on_entry_type_only = 1257;
   BKH_Memorising_on_narrative = 1258;
   BKH_Merging_a_payee_list = 1259;
-  BKH_Merging_charts_of_account_and_payees = 1260;
   BKH_Merging_charts_of_accounts = 1261;
   BKH_Mouse_conventions = 1263;
   BKH_MYOB_Accountants_Office_Previously_CA_Systems_GL = 1266;
@@ -260,11 +252,8 @@ const
   BKH_New_Payee_Name = 1268;
   BKH_Off_site_BankLink_client = 1269;
   BKH_Off_site_BankLink_Connect_client = 1270;
-  BKH_One_page_summary = 1272;
   BKH_Opening_a_client_file = 1273;
   BKH_Opening_balances = 1274;
-  BKH_Operations_on_multiple_client_files = 1275;
-  BKH_Overdue_tasks = 1276;
   BKH_Overriding_GST = 1277;
   BKH_Payees = 1278;
   BKH_Payments_graph = 1279;
@@ -307,9 +296,7 @@ const
   BKH_Setting_Practice_GST_Defaults = 1318;
   BKH_Setting_up_BankLink_users = 1321;
   BKH_Setting_up_new_accounts = 1322;
-  BKH_Setting_up_Report_Schedules = 1323;
   BKH_Setting_up_workstations = 1324;
-  BKH_Signing_clients_onto_the_BankLink_service = 1326;
   BKH_Solution_6_Accounts_Xlon_ATI_for_version_8_onwards_Australia_ = 1327;
   BKH_Solution_6_MAS_Australia_ = 1328;
   BKH_Solution_6_MAS_New_Zealand_ = 1329;
@@ -360,7 +347,6 @@ const
   BKH_Summary_of_the_interface_with_Solution_6_Accounts = 1377;
   BKH_Summary_of_the_interface_with_Solution_6_MAS_Australia_ = 1378;
   BKH_Summary_of_the_interface_with_Tax_Assistant = 1380;
-  BKH_Summary_of_the_interface_with_XPA = 1381;
   BKH_Synchronising_client_files = 1382;
   BKH_System_Options = 1383;
   BKH_System_Options_Advanced_tab = 1384;
@@ -371,18 +357,11 @@ const
   BKH_Tax_Assistant = 1392;
   BKH_Template_files = 1393;
   BKH_The_BankLink_Menu_Bar = 1394;
-  BKH_The_BankLink_Status_bar = 1395;
-  BKH_The_basics = 1399;
   BKH_The_Client_Manager = 1400;
   BKH_The_download_process = 1401;
   BKH_The_Guide = 1402;
   BKH_The_help_viewer = 1403;
   BKH_The_transaction_data_columns = 1405;
-  BKH_To_copy_a_help_topic = 1406;
-  BKH_To_find_a_help_topic = 1407;
-  BKH_To_get_help_in_a_BankLink_window = 1408;
-  BKH_To_print_help = 1409;
-  BKH_Total_bank_balances_graph = 1410;
   BKH_Trading_results_graph = 1411;
   BKH_Transaction_with_notes = 1413;
   BKH_Transactions_in_BankLink_after_a_BNotes_import = 1414;
@@ -416,7 +395,6 @@ const
   BKH_Updating_a_client_file_with_new_transactions = 1443;
   BKH_User_security = 1444;
   BKH_Using_the_Code_Entries_Screen = 1446;
-  BKH_Using_this_help_facility = 1447;
   BKH_Viewing_and_editing_master_memorisations = 1448;
   BKH_Viewing_editing_and_deleting_memorisations = 1449;
   BKH_What_data_does_BankLink_report_on_ = 1451;
@@ -452,7 +430,6 @@ const
   BKH_Generate_Scheduled_Reports_Message_Setup = 1522;
   BKH_Interfacing_with_Solution_6_Superfund = 1523;
   BKH_Interfacing_with_Supercorp_Supervisor_II = 1524;
-  BKH_Matching_unpresented_withdrawals = 1525;
   BKH_Merging_and_printing_documents_using_Client_Manager = 1526;
   BKH_Merging_and_sending_e_mails_using_Client_Manager = 1527;
   BKH_Praemium = 1528;
@@ -467,10 +444,7 @@ const
   BKH_Transferring_transactions_from_BankLink_to_CatSoft_LedgerCat = 1537;
   BKH_Transferring_transactions_from_BankLink_to_Praemium = 1538;
   BKH_Transferring_transactions_from_BankLink_to_XPA_Version_8 = 1539;
-  BKH_Un_Matching_unpresented_withdrawals = 1540;
   BKH_Unpresented_withdrawals = 1541;
-  BKH_Editing_manual_bank_accounts = 1542;
-  BKH_Transferring_manual_account_entries = 1543;
   BKH_Creating_documents_and_e_mails_using_Client_Manager = 1544;
   BKH_Bank_Accounts1 = 1545;
   BKH_Choosing_files_to_display_in_the_Clients_page = 1601;
@@ -486,12 +460,10 @@ const
   BKH_Contact_Clients = 1611;
   BKH_Copying_a_chart_from_MYOB_Accountants_Enterprise_MAS_into_BankLink = 1612;
   BKH_Copying_a_chart_from_MYOB_AO_into_BankLink = 1613;
-  BKH_Copying_a_chart_from_MYOB_AO_into_BankLink_Manual_Posting_ = 1614;
   BKH_Copying_a_chart_from_MYOB_AO_into_BankLink_NZ = 1615;
   BKH_Copying_a_chart_from_XPA_Version_8_into_BankLink = 1617;
   BKH_Exporting_charges_to_HandiSoft_Time_and_Billing = 1618;
   BKH_Exporting_charges_to_MYOB_Accountants_Office = 1619;
-  BKH_Filtering_data_in_the_Clients_page = 1620;
   BKH_How_BankLink_populates_the_Fuel_Tax_Worksheet = 1621;
   BKH_Interface_to_APS_Tax = 1622;
   BKH_Interface_to_MYOB_Accountants_Office_Tax = 1623;
@@ -501,7 +473,6 @@ const
   BKH_Summary_of_the_interface_with_MYOB_Accountants_Office = 1627;
   BKH_System_Options_Updates = 1628;
   BKH_The_Client_Home_Page = 1629;
-  BKH_The_Processing_column = 1630;
   BKH_Xcede_Professional_Accounting_Version_8 = 1631;
   BKH_Favourite_Reports = 1632;
   BKH_Adding_reports_to_the_Favourite_reports_list = 1633;
@@ -607,7 +578,6 @@ const
   BKH_Summary_of_the_interface_with_Ledger_Elite = 2099;
   BKH_Summary_of_the_interface_with_M_GL = 2100;
   BKH_Summary_of_the_interface_with_MYOB_AO = 2103;
-  BKH_Summary_of_the_interface_with_MYOB_AO_Manual_Posting_ = 2104;
   BKH_Summary_of_the_interface_with_QuickBooks = 2101;
   BKH_Copying_a_chart_from_MYOB_Accounting_into_BankLink_Practice = 2102;
   BKH_Transferring_transactions_from_BankLink_to_Desktop_Super = 2105;
@@ -629,15 +599,36 @@ const
   BKH_Copying_a_chart_from_TASBooks_into_BankLink_Practice = 2120;
   BKH_Maintain_Currencies = 2121;
   BKH_Maintain_Exchange_Rates = 2122;
-  BKH_Adding_manual_bank_accounts_in_different_currencies = 2123;
   BKH_Importing_a_CSV_format_chart_into_BankLink_Practice = 2124;
   BKH_Copying_a_chart_from_QuickBooks_Pro_into_BankLink_Practice = 2125;
   BKH_QuickBooks_Pro = 2126;
-  BKH_Importing_Provisional_data = 2127;
-  BKH_Manually_enter_Provisional_Transactions = 2131;
   BKH_List_Provisional_Accounts = 2132;
   BKH_What_s_New_in_BankLink_Practice_2011_ = 2133;
-  BKH_Accessing_a_Customer_Authority_Form = 2134;
+  BKH_Chapter_7_Historical_and_manual_data_entry = 1074;
+  BKH_Adding_provisional_data = 2131;
+  BKH_Importing_provisional_data = 2127;
+  BKH_Signing_clients_onto_The_BankLink_Service = 1326;
+  BKH_Combining_manual_and_system_bank_accounts = 1543;
+  BKH_Adding_manual_bank_accounts_uk = 2123;
+  BKH_Merging = 1260;
+  BKH_Filtering_files_in_the_Clients_page = 1620;
+  BKH_The_Processing_Status_column = 1630;
+  BKH_Copying_a_help_topic = 1406;
+  BKH_Printing_a_help_topic = 1409;
+  BKH_Setting_up_report_schedules = 1323;
+  BKH_Assigning_client_files_to_users = 1020;
+  BKH_To_get_help_in_a_BankLink_window = 1408;
+  BKH_Finding_a_help_topic = 1407;
+  BKH_Using_the_Guide = 1447;
+  BKH_Editing_manual_bank_accounts_details = 1542;
+  BKH_The_basics = 1399;
+  BKH_The_status_bar = 1395;
+  BKH_Matching_unpresented_withdrawals = 1525;
+  BKH_Un_matching_unpresented_withdrawals = 1540;
+  BKH_Assigning_GST_classes_to_chart_of_account_codes = 1023;
+  BKH_Ledger_Report = 1235;
+  BKH_Total_bank_balance_graph = 1410;
+  BKH_One_page_summary = 1272;
 
 var
   //filename of HTML help file

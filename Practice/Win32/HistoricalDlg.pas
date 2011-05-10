@@ -382,7 +382,8 @@ type
     procedure SetProvisional(const Value: Boolean);
     function AccountType: string;
   public
-    class function CreateAndSetup(aBankAccount: TBank_Account; HelpId:Integer; isProvisional: Boolean = false): TdlgHistorical; 
+    class function CreateAndSetup(aBankAccount: TBank_Account; 
+                                  AProvisional: Boolean = false): TdlgHistorical;
     property CurrentSortOrder : Integer read TranSortOrder;
     function GetComboIndexForEntryType(EntryType: Integer): Byte;
     procedure AmountEdited(pT: pTransaction_Rec; Doupdate: Boolean = true);
@@ -591,7 +592,7 @@ end;
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class function TdlgHistorical.CreateAndSetup(aBankAccount: TBank_Account; HelpId:Integer; isProvisional: Boolean = false): TdlgHistorical;
+class function TdlgHistorical.CreateAndSetup(aBankAccount: TBank_Account; AProvisional: Boolean = false): TdlgHistorical;
 var
   i              : integer;
   FirstPDate     : integer;
@@ -605,6 +606,7 @@ begin
       BankAccount := aBankAccount;
 
       fIsForex := BankAccount.IsAForexAccount;
+      Provisional := AProvisional;
 
       CCode := MyClient.clExtra.ceLocal_Currency_Code;
       BCode := BankAccount.baFields.baCurrency_Code;
@@ -614,7 +616,6 @@ begin
       tblHist.Hint:= Format(
                     'Enter the details for each %0:s Entry|'+
                     'Enter the details for each %0:s Entry',[AccountType]);
-      BKHelpSetup(Result, HelpId);              
 
       LoadLayoutForThisAcct(BankAccount.IsManual);
 
@@ -625,8 +626,6 @@ begin
       celGSTCode.MaxLength := GST_CLASS_CODE_LENGTH;
       celAccount.MaxLength := MaxBk5CodeLen;
       celNarration.MaxLength := MaxNarrationEditLength;
-
-      Provisional := isProvisional;
 
       if BankAccount.IsManual then
         SetSortOrder( BankAccount.baFields.baMDE_Sort_Order )
@@ -652,10 +651,13 @@ begin
       FirstBankDate := 0;
       FirstPDate    := 0;
 
-      if BankAccount.IsProvisional then begin
-         MaxHistTranDate := 0; // unlimited
-         lblTransRange.Caption := 'You may enter transactions for any date.';
-      end else if BankAccount.IsManual then begin
+      //Should never be able to enter historical txns into a provisional account
+//      if BankAccount.IsProvisional then begin
+//         MaxHistTranDate := 0; // unlimited
+//         lblTransRange.Caption := 'You may enter transactions for any date.';
+//      end else if BankAccount.IsManual then begin
+
+      if BankAccount.IsManual then begin
          MaxHistTranDate := 0; // unlimited
          ED := GetMDEExpiryDate(MyClient.clBank_Account_List);
          TD := GetLatestTransDate(MyClient.clBank_Account_List);
@@ -3659,7 +3661,7 @@ begin
          pT.txHas_Been_Edited := (pT.txCoded_By <> cbNotcoded);
 
          //set source
-         if BankAccount.IsProvisional then
+         if Provisional then
             pT.txSource := orProvisional
          else if BankAccount.IsManual then
             pT.txSource  := orMDE
@@ -3805,7 +3807,7 @@ end;
 procedure TdlgHistorical.SetProvisional(const Value: Boolean);
 begin
   FProvisional := Value;
-  HelpContext := BKH_Manually_enter_Provisional_Transactions;
+  HelpContext := BKH_Adding_provisional_data;
   if FProvisional then begin
       lblTransRange.Caption := 'You may enter transactions for this provisional account.';
       tbChart.Visible := false;
@@ -3869,7 +3871,7 @@ end;
 function TdlgHistorical.AccountType: string;
 begin
 
-   if BankAccount.IsProvisional then
+   if Provisional then
      Result := 'Provisional'
    else if BankAccount.IsManual then
       Result := 'Manual'
@@ -4623,27 +4625,25 @@ begin
    end;
 
    //Select a bank account to add historical data to
-   SelectedBA := SelectBankAccount( 'Select Account to add Historical Transactions to',
-                                     SelectDeliveredTrx, 0,0, false,
-                                     BKH_Chapter_7_Historical_data_entry);
-
-   if not Assigned(SelectedBA) then exit;
-
-
-   //check that bank account has transactions from the bank
-   if SelectedBA.baTransaction_List.ItemCount = 0 then begin
-      HelpfulWarningMsg( 'No entries have been downloaded into this Bank Account.  You cannot '+
-                            'add Historical Entries until a download has been done.',0);
-      exit;
+   if SelectBankAccount( 'Select Account to add Historical Transactions to',
+                         SelectDeliveredTrx, 0,0, false,
+                         BKH_Adding_historical_data,
+                         SelectedBA) = mrCancel then begin
+     Exit;
    end;
 
+   if not Assigned(SelectedBA) then begin
+      HelpfulInfoMsg( 'You cannot add historical entries to this client file ' +
+                      'until you have attached a bank account with delivered transactions.',0);
+     exit;
+   end;
 
    //Create form and show modally
-   Historical := TdlgHistorical.CreateAndSetup( SelectedBA,BKH_Chapter_7_Historical_data_entry );
+   Historical := TdlgHistorical.CreateAndSetup( SelectedBA );
    with Historical do begin
       try
         IsManual := False;
-
+        HelpContext := BKH_Adding_historical_data;
         tbImportTrans.Visible := Assigned(AdminSystem)
                               or PRACINI_AllowHistoricalImport;
 
@@ -4682,9 +4682,10 @@ begin
    end;
 
    //Select a bank account to add historical data to
-   SelectedBA := SelectBankAccount( 'Select Account to add Manual Transactions to',
-                                     SelectManual, 0,0, false,
-                                     BKH_Adding_manual_data);
+   SelectBankAccount( 'Select Account to add Manual Transactions to',
+                      SelectManual, 0,0, false,
+                      BKH_Adding_manual_data,
+                      SelectedBA);
 
    if not Assigned(SelectedBA) then
       exit;
@@ -4717,9 +4718,9 @@ begin
    end;
 
    //Create form and show modally
-   with TdlgHistorical.CreateAndSetup(SelectedBA,BKH_Adding_manual_data) do try
+   with TdlgHistorical.CreateAndSetup(SelectedBA) do try
       IsManual := True;
-
+      HelpContext := BKH_Adding_manual_data;
       tbImportTrans.Visible := False;
 
       Result := ShowModal = mroK;
@@ -4908,9 +4909,10 @@ begin
 
       MyClient := TempClient;
       //Create form and show modally
-      with TdlgHistorical.CreateAndSetup(TempAccount,0, true) do try
+      with TdlgHistorical.CreateAndSetup(TempAccount, True) do try
          Provisional := True;
          IsManual := True;
+         MaxHistTranDate := MaxValidDate; 
 
          if  ShowModal = mrOK then begin
             // Now try and copy tans to
@@ -5243,7 +5245,7 @@ end;
 
 procedure TdlgHistorical.tbHelpClick(Sender: TObject);
 begin
-  BKHelpShow(Self);
+  BKHelpShow(Forms.TForm(Self));
 end;
 
 procedure TdlgHistorical.tbImportTransClick(Sender: TObject);

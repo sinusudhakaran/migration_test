@@ -858,7 +858,8 @@ begin
   //Disable Attachments for non-email destinations
   AttachmentsEnabled := rbToEmail.Checked
                      or rbToECoding.Checked
-                     or rbCheckOut.Checked;
+                     or rbCheckOut.Checked
+                     or (rbToWebX.Checked and (ECodingOptions.WebFormat = wfWebNotes));
   // Disabeling the Tabsheet, does not sop you to get in.
   // It Does disable the controls, but they don't show gray.
   // We could hide it altogether (TabVisible) but that is not a good UI practice

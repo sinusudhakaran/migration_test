@@ -901,10 +901,8 @@ begin
      for i := 0 to Pred( ItemCount ) do begin
         with Bank_Account_At( i ) do begin
            if (not IsManual)
-           and (not IsAJournalAccount)
-           and (not IsProvisional) then begin
-              Inc( Result );
-           end;
+           and (not IsAJournalAccount) then
+             Inc( Result );
         end;
      end;
   end;

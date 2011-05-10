@@ -6,7 +6,7 @@ interface
 uses
   Windows, sysaccountsfme, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ComCtrls, ToolWin, syDefs, StdCtrls, ExtCtrls, Math,
-  ActnList, RzGroupBar, Menus,
+  ActnList, RzGroupBar, Menus, Globals,
   OSFont;
 
 type
@@ -61,6 +61,7 @@ type
     procedure acAddProvTransExecute(Sender: TObject);
     procedure ManuallyAddProvTrans(ForAccount: string);
     procedure SysAccountsbtnFilterClick(Sender: TObject);
+    procedure WMDoRefresh (var message: TMessage); message BK_SYSTEMDB_LOADED;
   private
     { Private declarations }
     fChanged : boolean;
@@ -100,7 +101,6 @@ uses
   EditPracBankDlg,
   EnterPwdDlg,
   ErrorMoreFrm,
-  Globals,
   Imagesfrm,
   LogUtil,
   LvUtils,
@@ -133,7 +133,7 @@ begin
   acCurrencies.Visible := (AdminSystem.fdFields.fdCountry = whUK);
   acExchangeRates.Visible := (AdminSystem.fdFields.fdCountry = whUK);
 
-//  acSendProvReq.Visible := False;
+  acSendProvReq.Visible := False;
 
   //SetListViewColWidth(lvBank,1);
   SetUpHelp;
@@ -655,6 +655,11 @@ begin
   end;
 end;
 
+
+procedure TfrmMaintainPracBank.WMDoRefresh(var message: TMessage);
+begin
+  RefreshBankAccountList;
+end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.FormShortCut(var Msg: TWMKey;

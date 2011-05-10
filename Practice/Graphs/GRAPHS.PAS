@@ -1184,7 +1184,7 @@ begin
 
          Division := -1;  //tells dialog not to display division box
          if not GetGYearParameters('Graph Total Monthly Bank Balance',FromDate ,
-          false, false, true, false, BKH_Total_bank_balances_graph,LParams) then exit;
+          false, false, true, false, BKH_Total_bank_balance_graph,LParams) then exit;
 
          if Batchsave then begin
             SaveNodeSettings;

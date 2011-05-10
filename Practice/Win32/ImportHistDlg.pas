@@ -343,7 +343,7 @@ end;
 
 function TImportHist.AccountType: string;
 begin
-   if BankAccount.IsProvisional then
+   if FHDEForm.Provisional then
       Result := 'Provisional'
    else if BankAccount.IsManual then
        Result := 'Manual'
@@ -606,7 +606,7 @@ begin
         pT := BankAccount.baTransaction_List.New_Transaction;
         //Set Some defaults
         ClearSuperFundFields(Pt);
-        if BankAccount.IsProvisional then
+        if FHDEForm.Provisional then
            pT.txSource := orProvisional
         else
            pT.txSource := orHistorical;
@@ -1901,7 +1901,7 @@ begin
    Self.ShowHint    := INI_ShowFormHints;
    Self.HelpContext := BKH_Importing_historical_data;
    //Setup Help
-   if BankAccount.IsProvisional then
+   if FHDEForm.Provisional then
      Self.HelpContext := BKH_Importing_Provisional_data;
 end;
 
@@ -2294,7 +2294,10 @@ begin
   if lMaxHistDate > 0 then
      FValidDateRange.ToDate := min(lMaxHistDate,FValidDateRange.ToDate);
 
-  MatchTransactions.Account := FBankAccount;
+  if FHDEForm.Provisional then
+    MatchTransactions.FillArchiveList(FBankAccount.baFields.baBank_Account_Number)
+  else
+    MatchTransactions.FillTransList(FBankAccount.baTransaction_List);
 
   EPath.Text := GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kFile);
   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kSkipLines),SkipLine);

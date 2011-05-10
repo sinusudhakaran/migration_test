@@ -4207,6 +4207,7 @@ begin
          if ( GetGSTClassRate( MyClient, pT^.txDate_Effective, pT^.txGST_Class) = 0) then
             exit;
       end;
+
    end;
 
    //is ok to edit this field
@@ -7281,17 +7282,18 @@ begin
       ShowAllTran   := SHOW_ALL_TX;  //start off showing all transactions
       SetSortOrder( BankAccount.baFields.baCoding_Sort_Order );
 
-      // Allow ref editing for manual accounts
+      //Setup EditDate defaults
+      with celEditDate do begin
+        Epoch := BKDATEEPOCH;
+        PictureMask := BKDATEFORMAT;
+        MaxLength := Length(BKDATEFORMAT);
+      end;
+      celRef.Access := otxReadOnly;
+
+      // Allow date editing for manual accounts and journals
       if (BankAccount.CanEditTransactions)
-      or BankAccount.IsAJournalAccount then begin
+      or BankAccount.IsAJournalAccount then
          celRef.Access := otxDefault;
-         with celEditDate do begin
-            Epoch := BKDATEEPOCH;
-            PictureMask := BKDATEFORMAT;
-            MaxLength := Length(BKDATEFORMAT);
-         end;
-      end else
-         celRef.Access := otxReadOnly;
 
       LoadWorkTranList;
 
@@ -7564,12 +7566,12 @@ begin
       if Globals.Active_UI_Style in [UIS_Simple] then
       begin
         //simple UI only allows the selection of one account at a time
-        BankAccount := SelectBankAccount( 'Select Bank Account for Coding',
-                                          SelectWithTrx,
-                                          DateFrom,
-                                          DateTo,
-                                          False, //no jnls
-                                          BKH_Selecting_from_multiple_bank_accounts);
+        SelectBankAccount( 'Select Bank Account for Coding',
+                           SelectWithTrx,
+                           DateFrom, DateTo,
+                           False, //no jnls
+                           BKH_Selecting_from_multiple_bank_accounts,
+                           BankAccount);
         if Assigned( BankAccount) then
         begin
           SelectedList.Clear;

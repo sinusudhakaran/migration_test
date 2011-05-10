@@ -29,18 +29,17 @@ private
    FTransTree: TStTree;
    MT: TMatchTrans;
    function GetTransTree: TStTree;
-   procedure FillArchiveList(LRN: Integer); overload;
-   procedure FillArchiveList(AccountNum: string); overload;
-   procedure FillTransList(FromList: tTransaction_List);
    procedure DateCompare(Sender : TObject; Data1, Data2 : Pointer;  var Compare : Integer);
    function Match(Item1, Item2: TMatchTrans): TTransMatch;
-   procedure SetAccount(const Value: TBank_Account);
-
+//   procedure SetAccount(const Value: TBank_Account);
 public
    constructor Create;
    destructor Destroy; override;
    property  TransTree: TStTree read GetTransTree;
-   property Account: TBank_Account write SetAccount;
+//   property Account: TBank_Account write SetAccount;
+   procedure FillArchiveList(LRN: Integer); overload;
+   procedure FillArchiveList(AccountNum: string); overload;
+   procedure FillTransList(FromList: tTransaction_List);
    function FindMatch(Date: integer; Amount: Money; Reference, Analysis, Narration: string):TTransMatch;
 end;
 
@@ -278,14 +277,14 @@ begin
   Result := tmNarration; // Narration is the same..
 end;
 
-procedure TMatchTransactions.SetAccount(const Value: TBank_Account);
-begin
-   if Value.IsProvisional then
-      FillArchiveList(Value.baFields.baBank_Account_Number)
-   else
-      FillTransList(Value.baTransaction_List);
-end;
-
+//procedure TMatchTransactions.SetAccount(const Value: TBank_Account);
+//begin
+//   if Value.IsProvisional then
+//      FillArchiveList(Value.baFields.baBank_Account_Number)
+//   else
+//      FillTransList(Value.baTransaction_List);
+//end;
+//
 
 constructor TMatchTrans.Create(Value: tArchived_Transaction);
 begin

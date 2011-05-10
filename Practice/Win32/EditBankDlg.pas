@@ -811,7 +811,7 @@ begin
       if IsNew then
         BKHelpSetUp(MyDlg, BKH_Adding_manual_bank_accounts)
       else
-        BKHelpSetUp(MyDlg, BKH_Editing_manual_bank_accounts);
+        BKHelpSetUp(MyDlg, BKH_Editing_manual_bank_accounts_details);
     end
     else
       BKHelpSetUp(MyDlg, BKH_Edit_bank_account_details);

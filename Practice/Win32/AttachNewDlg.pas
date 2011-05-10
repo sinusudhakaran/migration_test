@@ -391,6 +391,7 @@ procedure TdlgAttachNew.tbNewClick(Sender: TObject);
 var
    StoredCode : string;
    SelectItem : TListItem;
+   WndHandle : HWND;
 begin
   if CreateClient(false) then begin
     StoredCode := MyClient.clFields.clCode;
@@ -398,6 +399,12 @@ begin
     //if we have just created one then we need to close it so we can attach bank accounts
     CloseClientHomePage;
     RefreshClientList;
+
+    //TFS 13322 - The system bank account list grid has invalid data because the
+    //system DB is reloaded by CreateClient. This message reloads the bank
+    //accounts into the virtual treeview.
+    WndHandle := FindWindow('TfrmMaintainPracBank', nil);
+    PostMessage(WndHandle, BK_SYSTEMDB_LOADED, Handle, 0);
 
     //now find code in list and select it
     SelectItem := lvFiles.FindCaption(0,StoredCode,false,true,true);

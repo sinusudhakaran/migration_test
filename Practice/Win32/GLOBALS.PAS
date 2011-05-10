@@ -70,7 +70,8 @@ uses
    WinUtils,
    GlobalDirectories,
    OneInst,
-   Classes;
+   Classes,
+   Messages;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONST
@@ -241,8 +242,10 @@ CONST
     // actions that require system users
     System_Actions   = [sa_BulkExport, sa_Connect];
 
-const
-  ClientCodeDelimiter = '~';
+    ClientCodeDelimiter = '~';
+
+    //User Messages
+    BK_SYSTEMDB_LOADED = WM_USER + 380;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var

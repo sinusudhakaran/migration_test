@@ -553,7 +553,7 @@ end;
 
 procedure TdlgTransferEntries.FormShow(Sender: TObject);
 begin
-  BKHelpSetup(Self, BKH_Transferring_manual_account_entries);
+  BKHelpSetup(Self, BKH_Combining_manual_and_system_bank_accounts);
 end;
 
 end.

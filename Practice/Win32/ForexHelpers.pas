@@ -191,15 +191,12 @@ procedure TTransactionHelper.SetStatement_Amount(const Value: Money);
 begin
   if Locked then
      exit;
-
   txAmount := Value;  //Statement_Amount should be removed and ues txAmount directly instead?
-
-//This is no longer used!!!
-
-//  if Bank_Account.IsAForexAccount then
-//     Foreign_Amount := Value
-//  else
-//     Local_Amount := Value;
+  if txFirst_Dissection = nil then
+  begin
+    CalculateGST( Client, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount );
+    txGST_Has_Been_Edited := False;
+  end;
 end;
 
 // ----------------------------------------------------------------------------
