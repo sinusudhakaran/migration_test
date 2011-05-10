@@ -144,7 +144,7 @@ object dlgMemorise: TdlgMemorise
       Style = csDropDownList
       Ctl3D = False
       Enabled = False
-      ItemHeight = 0
+      ItemHeight = 13
       ParentCtl3D = False
       TabOrder = 14
       OnChange = cmbValueChange
@@ -437,7 +437,7 @@ object dlgMemorise: TdlgMemorise
         Margins.Bottom = 1
         Align = alClient
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         Sorted = True
         TabOrder = 2
       end
@@ -487,7 +487,16 @@ object dlgMemorise: TdlgMemorise
       OnMouseDown = tblSplitMouseDown
       OnUserCommand = tblSplitUserCommand
       CellData = (
-        'dlgMemorise.Header')
+        'dlgMemorise.Header'
+        'dlgMemorise.ColAcct'
+        'dlgMemorise.ColDesc'
+        'dlgMemorise.colNarration'
+        'dlgMemorise.ColPayee'
+        'dlgMemorise.colJob'
+        'dlgMemorise.ColGSTCode'
+        'dlgMemorise.ColAmount'
+        'dlgMemorise.ColPercent'
+        'dlgMemorise.colLineType')
       RowData = (
         21)
       ColData = (

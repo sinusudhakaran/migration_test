@@ -76,7 +76,7 @@ uses
   Windows,
   ReportTypes,
   YesNoDlg, pyList32, cfList32, WinUtils, SYamIO, mxFiles32, BasUtils, Software,
-  SystemMemorisationList, IOStream;
+  SystemMemorisationList, IOStream, AuditMgr;
 // ----------------------------------------------------------------------------
 
 Const
@@ -1482,11 +1482,13 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
 
   procedure UpgradeAdminToVersion124;
   var
-    i: integer;
+    i, j, k: integer;
     Prefix: BankPrefixStr;
     MemList: TMaster_Memorisations_List;
     PrefixList: TStringList;
     sba: pSystem_Bank_Account_Rec;
+    M: Tmemorisation;
+    ML: pMemorisation_Line_Rec;
   begin
     UpgradingToVersion := 124;
     //Copy master memorisations from MXL files into the System DB
@@ -1505,9 +1507,19 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
       begin
         Master_Mem_Lists_Collection.ReloadSystemMXList(PrefixList[i]);
         MemList := Master_Mem_Lists_Collection.FindPrefix(PrefixList[i]);
-        if Assigned(MemList) then
+        if Assigned(MemList) then begin
+          //Add audit record ID's
+          for j := 0 to MemList.ItemCount - 1 do begin
+             M := MemList.Memorisation_At(j);
+             M.mdFields.mdAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+             for k := 0 to M.mdLines.ItemCount - 1 do begin
+               ML := M.mdLines.MemorisationLine_At(k);
+               ML.mlAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+             end;
+          end;
           //Add to System DB
           AdminSystem.fSystem_Memorisation_List.AddMemorisation(PrefixList[i], TMemorisations_List(MemList));
+        end;
       end;
     finally
       PrefixList.Free;

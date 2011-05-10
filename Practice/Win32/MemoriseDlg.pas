@@ -233,7 +233,7 @@ type
 
     procedure SetFirstLineDefaultAmount;
 
-    procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean);
+    procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean; ATempMem: boolean = false);
     procedure DoDeleteCell;
     procedure DoDitto;
     procedure DoSuperEdit;
@@ -1500,7 +1500,7 @@ begin
      //check that this transaction will be coded
      TempMem := TMemorisation.Create;
      try
-       SaveToMemRec( TempMem, SourceTransaction, chkMaster.Checked);
+       SaveToMemRec( TempMem, SourceTransaction, chkMaster.Checked, True);
        if Assigned( SourceBankAccount) then begin
           if chkMaster.Checked then
              begin
@@ -1888,7 +1888,6 @@ begin
 
             //{have enough data to create a memorised entry record
             Memorised_Trans := TMemorisation.Create;
-            SaveToMemRec(Memorised_Trans, Tr, chkMaster.Checked);
 
              //have details of the new master memorisation, now need to update to relevant location
              if chkMaster.Checked then
@@ -1898,6 +1897,7 @@ begin
 
                //--ADD MASTER MEM---
                if LoadAdminSystem(true, 'MemoriseEntry') then begin
+                 SaveToMemRec(Memorised_Trans, Tr, True);
                  SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
                  if not Assigned(SystemMemorisation) then begin
                    MasterMemList := TMemorisations_List.Create;
@@ -1920,8 +1920,10 @@ begin
                //--END ADD MASTER MEM---
 
              end
-             else
+             else begin
+               SaveToMemRec(Memorised_Trans, Tr, False);
                ba.baMemorisations_List.Insert_Memorisation(Memorised_Trans);
+             end;
 
              if txDate_Transferred <> 0 then
                 HelpfulInfoMsg('The transaction was memorised OK.' + #13+#13+
@@ -2550,10 +2552,12 @@ begin
     Key := #0;
 end;
 
-procedure TdlgMemorise.SaveToMemRec(var pM: TMemorisation; pT: pTransaction_Rec; IsMaster: Boolean);
+procedure TdlgMemorise.SaveToMemRec(var pM: TMemorisation; pT: pTransaction_Rec;
+  IsMaster: Boolean; ATempMem: boolean = false);
 var
   i : integer;
   MemLine : pMemorisation_Line_Rec;
+  AuditIDList: TList;
 begin
   with pM do begin
      //see if this is a new memorisation
@@ -2631,77 +2635,92 @@ begin
         mdFields.mdAccounting_System := 0; // -1 ??
      end;
 
-
-     pM.mdLines.FreeAll;
-     for i := 1 to GLCONST.Max_mx_Lines do
-     begin
-       if SplitLineIsValid( i) then
+     AuditIDList := TList.Create;
+     try
+       //Save audit ID's for reuse
+       for i := 0 to Pred(pM.mdLines.ItemCount) do
+         AuditIDList.Add(Pointer(pM.mdLines.MemorisationLine_At(i).mlAudit_Record_ID));
+       pM.mdLines.FreeAll;
+       for i := 1 to GLCONST.Max_mx_Lines do
        begin
-         MemLine := BKMLIO.New_Memorisation_Line_Rec;
-         with MemLine^ do
+         if SplitLineIsValid( i) then
          begin
-           mlAccount := SplitData[i].AcctCode;
-           if SplitData[i].LineType = mltPercentage then
-              mlPercentage := Double2Percent(SplitData[i].Amount)
-           else
-              mlPercentage := Double2Money(SplitData[i].Amount);
-           mlGst_Class := GetGSTClassNo( MyClient, SplitData[i].GSTClassCode);
-           mlGST_Has_Been_Edited := SplitData[i].GST_Has_Been_Edited;
-           mlGL_Narration  := SplitData[i].Narration;
+           MemLine := BKMLIO.New_Memorisation_Line_Rec;
+           with MemLine^ do
+           begin
+             mlAccount := SplitData[i].AcctCode;
+             if SplitData[i].LineType = mltPercentage then
+                mlPercentage := Double2Percent(SplitData[i].Amount)
+             else
+                mlPercentage := Double2Money(SplitData[i].Amount);
+             mlGst_Class := GetGSTClassNo( MyClient, SplitData[i].GSTClassCode);
+             mlGST_Has_Been_Edited := SplitData[i].GST_Has_Been_Edited;
+             mlGL_Narration  := SplitData[i].Narration;
 
 
-           if SplitData[i].LineType = -1 then
-              mlLine_Type := 0
-           else
-              mlLine_Type := SplitData[i].LineType;
-           // No payees or Jobs for master mems
-           if IsMaster then begin
-              mlPayee := 0;
-              mlJob_Code := '';
-           end else begin
-              mlPayee := SplitData[i].Payee;
-              mlJob_Code := SplitData[i].JobCode;
+             if SplitData[i].LineType = -1 then
+                mlLine_Type := 0
+             else
+                mlLine_Type := SplitData[i].LineType;
+             // No payees or Jobs for master mems
+             if IsMaster then begin
+                mlPayee := 0;
+                mlJob_Code := '';
+             end else begin
+                mlPayee := SplitData[i].Payee;
+                mlJob_Code := SplitData[i].JobCode;
+             end;
+             mlSF_PCFranked := SplitData[i].SF_PCFranked;
+             mlSF_PCUnFranked := SplitData[i].SF_PCUnFranked;
+             mlSF_Member_ID := SplitData[i].SF_Member_ID;
+             mlSF_Fund_ID := SplitData[i].SF_Fund_ID;
+             mlSF_Fund_Code := SplitData[i].SF_Fund_Code;
+             mlSF_Trans_ID := SplitData[i].SF_Trans_ID;
+             mlSF_Trans_Code := SplitData[i].SF_Trans_Code;
+
+             mlSF_Member_Account_ID := SplitData[i].SF_Member_Account_ID;
+             mlSF_Member_Account_Code := SplitData[i].SF_Member_Account_Code;
+             mlSF_Member_Component := SplitData[i].SF_Member_Component;
+
+             mlQuantity := SplitData[i].Quantity;
+
+             mlSF_GDT_Date := SplitData[i].SF_GDT_Date;
+             mlSF_Tax_Free_Dist := SplitData[i].SF_Tax_Free_Dist;
+             mlSF_Tax_Exempt_Dist := SplitData[i].SF_Tax_Exempt_Dist;
+             mlSF_Tax_Deferred_Dist := SplitData[i].SF_Tax_Deferred_Dist;
+             mlSF_TFN_Credits := SplitData[i].SF_TFN_Credits;
+             mlSF_Foreign_Income := SplitData[i].SF_Foreign_Income;
+             mlSF_Foreign_Tax_Credits := SplitData[i].SF_Foreign_Tax_Credits;
+             mlSF_Capital_Gains_Indexed := SplitData[i].SF_Capital_Gains_Indexed;
+             mlSF_Capital_Gains_Disc := SplitData[i].SF_Capital_Gains_Disc;
+             mlSF_Capital_Gains_Other := SplitData[i].SF_Capital_Gains_Other;
+             mlSF_Other_Expenses := SplitData[i].SF_Other_Expenses;
+             mlSF_Interest := SplitData[i].SF_Interest;
+             mlSF_Capital_Gains_Foreign_Disc := SplitData[i].SF_Capital_Gains_Foreign_Disc;
+             mlSF_Rent := SplitData[i].SF_Rent;
+             mlSF_Special_Income := SplitData[i].SF_Special_Income;
+             mlSF_Other_Tax_Credit := SplitData[i].SF_Other_Tax_Credit;
+             mlSF_Non_Resident_Tax := SplitData[i].SF_Non_Resident_Tax;
+             mlSF_Foreign_Capital_Gains_Credit := SplitData[i].SF_Foreign_Capital_Gains_Credit;
+             mlSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
+
+
+
+             mlSF_edited := SplitData[i].SF_edited;
            end;
-           mlSF_PCFranked := SplitData[i].SF_PCFranked;
-           mlSF_PCUnFranked := SplitData[i].SF_PCUnFranked;
-           mlSF_Member_ID := SplitData[i].SF_Member_ID;
-           mlSF_Fund_ID := SplitData[i].SF_Fund_ID;
-           mlSF_Fund_Code := SplitData[i].SF_Fund_Code;
-           mlSF_Trans_ID := SplitData[i].SF_Trans_ID;
-           mlSF_Trans_Code := SplitData[i].SF_Trans_Code;
 
-           mlSF_Member_Account_ID := SplitData[i].SF_Member_Account_ID;
-           mlSF_Member_Account_Code := SplitData[i].SF_Member_Account_Code;
-           mlSF_Member_Component := SplitData[i].SF_Member_Component;
-
-           mlQuantity := SplitData[i].Quantity;
-
-           mlSF_GDT_Date := SplitData[i].SF_GDT_Date;
-           mlSF_Tax_Free_Dist := SplitData[i].SF_Tax_Free_Dist;
-           mlSF_Tax_Exempt_Dist := SplitData[i].SF_Tax_Exempt_Dist;
-           mlSF_Tax_Deferred_Dist := SplitData[i].SF_Tax_Deferred_Dist;
-           mlSF_TFN_Credits := SplitData[i].SF_TFN_Credits;
-           mlSF_Foreign_Income := SplitData[i].SF_Foreign_Income;
-           mlSF_Foreign_Tax_Credits := SplitData[i].SF_Foreign_Tax_Credits;
-           mlSF_Capital_Gains_Indexed := SplitData[i].SF_Capital_Gains_Indexed;
-           mlSF_Capital_Gains_Disc := SplitData[i].SF_Capital_Gains_Disc;
-           mlSF_Capital_Gains_Other := SplitData[i].SF_Capital_Gains_Other;
-           mlSF_Other_Expenses := SplitData[i].SF_Other_Expenses;
-           mlSF_Interest := SplitData[i].SF_Interest;
-           mlSF_Capital_Gains_Foreign_Disc := SplitData[i].SF_Capital_Gains_Foreign_Disc;
-           mlSF_Rent := SplitData[i].SF_Rent;
-           mlSF_Special_Income := SplitData[i].SF_Special_Income;
-           mlSF_Other_Tax_Credit := SplitData[i].SF_Other_Tax_Credit;
-           mlSF_Non_Resident_Tax := SplitData[i].SF_Non_Resident_Tax;
-           mlSF_Foreign_Capital_Gains_Credit := SplitData[i].SF_Foreign_Capital_Gains_Credit;
-           mlSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
-
-
-
-           mlSF_edited := SplitData[i].SF_edited;
+           if AuditIDList.Count > 0 then begin
+             MemLine.mlAudit_Record_ID := integer(AuditIDList.Items[0]);
+             pM.mdLines.Insert(MemLine);
+             AuditIDList.Delete(0);
+           end else if ATempMem then
+             pM.mdLines.Insert(MemLine)
+           else
+             pM.mdLines.Insert_Memorisation_Line(MemLine);
          end;
-         pM.mdLines.Insert(MemLine);
        end;
+     finally
+       AuditIDList.Free;
      end;
 
      Assert( pM.mdLines.ItemCount > 0, 'Memorisation is empty');

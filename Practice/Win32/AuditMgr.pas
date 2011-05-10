@@ -149,7 +149,7 @@ implementation
 uses
   Globals, bkConst, SysObj32, MoneyDef, MoneyUtils, SystemMemorisationList, bkdateutils,
   SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKDEFS, {BKAUDIT,} BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO;
+  BKDEFS, {BKAUDIT,} BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO;
 
 const
   //Audit type strings
@@ -565,6 +565,11 @@ begin
         P2 := New_Memorisation_Detail_Rec;
         Copy_Memorisation_Detail_Rec(P1, P2);
       end;
+    tkBegin_Memorisation_Line:
+      begin
+        P2 := New_Memorisation_Line_Rec;
+        Copy_Memorisation_Line_Rec(P1, P2);
+      end;
   end;
 end;
 
@@ -593,9 +598,10 @@ begin
                                                            SystemCopy.fdSystem_Client_File_List,
                                                            AdminSystem.fAuditTable);
       tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                           SystemCopy.fSystem_Memorisation_List,
+                                                           SystemCopy.fSystem_Memorisation_List, 0,
                                                            AdminSystem.fAuditTable);
-      tkBegin_Memorisation_Detail: ; //Do nothing - sub list of fSystem_Memorisation_List
+      tkBegin_Memorisation_Detail: ; //Do nothing - sub list (TSystem_Memorisation_List - TMemorisations_List)
+      tkBegin_Memorisation_Line: ;   //Do nothing - sub list (TSystem_Memorisation_List - TMemorisations_List - TMemorisation)
     end;
   end;
   FAuditScope.Clear;
@@ -618,13 +624,17 @@ begin
     tkBegin_Client_File,
     tkBegin_System_Memorisation_List: Result := AdminSystem.fdFields.fdAudit_Record_ID;
     tkBegin_Memorisation_Detail: Result := 0; //Should be ID of system master mem list
+    tkBegin_Memorisation_Line: Result := 0; //Should be ID of mem list
   end;
 end;
 
 procedure TSystemAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
   var Values: string);
 begin
-  Values := '';
+  Values := AAuditRecord.atOther_Info;
+  if AAuditRecord.atAudit_Record = nil then
+    Exit;
+
   case AAuditRecord.atAudit_Record_Type of
     tkBegin_Practice_Details: AdminSystem.AddAuditValues(AAuditRecord, Values);
     tkBegin_User            : AdminSystem.fdSystem_User_List.AddAuditValues(AAuditRecord, Values);
@@ -634,6 +644,7 @@ begin
     tkBegin_Client_File         : AdminSystem.fdSystem_Client_File_List.AddAuditValues(AAuditRecord, Values);
     tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
     tkBegin_Memorisation_Detail : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
+    tkBegin_Memorisation_Line   : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
   end;
 end;
 
@@ -686,6 +697,11 @@ begin
         ARecord := New_Memorisation_Detail_Rec;
         Read_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
       end;
+    tkBegin_Memorisation_Line:
+      begin
+        ARecord := New_Memorisation_Line_Rec;
+        Read_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
+      end;
   end;
 end;
 
@@ -701,6 +717,7 @@ begin
     tkBegin_Client_File         : Write_Client_File_Rec(TClient_File_Rec(ARecord^), AStream);
     tkBegin_System_Memorisation_List: Write_System_Memorisation_List_Rec(TSystem_Memorisation_List_Rec(ARecord^), AStream);
     tkBegin_Memorisation_Detail : Write_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
+    tkBegin_Memorisation_Line   : Write_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
   end;
 end;
 

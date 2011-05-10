@@ -21,7 +21,7 @@ type
   protected
     function FindRecordID(ARecordID: integer): pSystem_Memorisation_List_Rec;
     procedure FreeItem(Item: Pointer); override;
-    procedure SetAuditInfo(P1, P2: pSystem_Memorisation_List_Rec; var AAuditInfo: TAuditInfo);
+    procedure SetAuditInfo(P1, P2: pSystem_Memorisation_List_Rec; AParentID: integer; var AAuditInfo: TAuditInfo);
   public
     function Compare(Item1, Item2: Pointer): integer; override;
     function FindPrefix(const APrefix: string): pSystem_Memorisation_List_Rec;
@@ -29,7 +29,8 @@ type
     procedure AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
     function AddMemorisation(APrefix: string; AMemorisationsList: TMemorisations_List): pSystem_Memorisation_List_Rec;
     procedure DoAudit(AAuditType: TAuditType; ASystemMemorisationsCopy:
-              TSystem_Memorisation_List; var AAuditTable: TAuditTable);
+              TSystem_Memorisation_List; AParentID: integer;
+              var AAuditTable: TAuditTable);
     procedure Insert(Item: Pointer); override;
     procedure LoadFromStream(var S: TIOStream);
     procedure SaveToStream(var S: TIOStream);
@@ -40,8 +41,8 @@ type
 implementation
 
 uses
-  TOKENS, SYSMIO, StStrS, LogUtil, BKDbExcept, SYAUDIT, BKAUDIT, BKMDIO,
-  MoneyUtils, bkdateutils;
+  TOKENS, SYSMIO, StStrS, LogUtil, BKDbExcept, SYAUDIT, BKAUDIT, BKMDIO, BKMLIO,
+  MoneyUtils, bkdateutils, Dialogs;
 
 const
   UNIT_NAME = 'SystemMemorisationList';
@@ -152,6 +153,63 @@ begin
           Token := AAuditRecord.atChanged_Fields[idx];
         end;
       end;
+    tkBegin_Memorisation_Line:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Account
+            147: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 146),
+                                              TMemorisation_Line_Rec(ARecord^).mlAccount, Values);
+            //Percentage
+            148: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 147),
+                                              TMemorisation_Line_Rec(ARecord^).mlPercentage, Values);
+//    FAuditNamesArray[145,148] := 'GST_Class';
+//    FAuditNamesArray[145,149] := 'GST_Has_Been_Edited';
+            //GL_Narration
+            151: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 150),
+                                              TMemorisation_Line_Rec(ARecord^).mlGL_Narration, Values);
+//    FAuditNamesArray[145,151] := 'Line_Type';
+//    FAuditNamesArray[145,152] := 'GST_Amount';
+//    FAuditNamesArray[145,153] := 'Payee';
+//    FAuditNamesArray[145,154] := 'SF_PCFranked';
+//    FAuditNamesArray[145,155] := 'SF_Member_ID';
+//    FAuditNamesArray[145,156] := 'SF_Fund_ID';
+//    FAuditNamesArray[145,157] := 'SF_Fund_Code';
+//    FAuditNamesArray[145,158] := 'SF_Trans_ID';
+//    FAuditNamesArray[145,159] := 'SF_Trans_Code';
+//    FAuditNamesArray[145,160] := 'SF_Member_Account_ID';
+//    FAuditNamesArray[145,161] := 'SF_Member_Account_Code';
+//    FAuditNamesArray[145,162] := 'SF_Edited';
+//    FAuditNamesArray[145,163] := 'SF_Member_Component';
+//    FAuditNamesArray[145,164] := 'SF_PCUnFranked';
+//    FAuditNamesArray[145,165] := 'Job_Code';
+//    FAuditNamesArray[145,166] := 'Quantity';
+//    FAuditNamesArray[145,167] := 'SF_GDT_Date';
+//    FAuditNamesArray[145,168] := 'SF_Tax_Free_Dist';
+//    FAuditNamesArray[145,169] := 'SF_Tax_Exempt_Dist';
+//    FAuditNamesArray[145,170] := 'SF_Tax_Deferred_Dist';
+//    FAuditNamesArray[145,171] := 'SF_TFN_Credits';
+//    FAuditNamesArray[145,172] := 'SF_Foreign_Income';
+//    FAuditNamesArray[145,173] := 'SF_Foreign_Tax_Credits';
+//    FAuditNamesArray[145,174] := 'SF_Capital_Gains_Indexed';
+//    FAuditNamesArray[145,175] := 'SF_Capital_Gains_Disc';
+//    FAuditNamesArray[145,176] := 'SF_Capital_Gains_Other';
+//    FAuditNamesArray[145,177] := 'SF_Other_Expenses';
+//    FAuditNamesArray[145,178] := 'SF_Interest';
+//    FAuditNamesArray[145,179] := 'SF_Capital_Gains_Foreign_Disc';
+//    FAuditNamesArray[145,180] := 'SF_Rent';
+//    FAuditNamesArray[145,181] := 'SF_Special_Income';
+//    FAuditNamesArray[145,182] := 'SF_Other_Tax_Credit';
+//    FAuditNamesArray[145,183] := 'SF_Non_Resident_Tax';
+//    FAuditNamesArray[145,184] := 'SF_Foreign_Capital_Gains_Credit';
+//    FAuditNamesArray[145,185] := 'SF_Capital_Gains_Fraction_Half';
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
   end;
 
 end;
@@ -162,7 +220,7 @@ var
   S: TIOStream;
   System_Memorisation: pSystem_Memorisation_List_Rec;
 begin
-  Result := nil; 
+  Result := nil;
   if Assigned(AMemorisationsList) then begin
     System_Memorisation := New_System_Memorisation_List_Rec;
     System_Memorisation.smBank_Prefix := APrefix;
@@ -191,7 +249,7 @@ begin
 end;
 
 procedure TSystem_Memorisation_List.DoAudit(AAuditType: TAuditType;
-  ASystemMemorisationsCopy: TSystem_Memorisation_List;
+  ASystemMemorisationsCopy: TSystem_Memorisation_List; AParentID: integer;
   var AAuditTable: TAuditTable);
 var
   i, j: integer;
@@ -207,7 +265,7 @@ begin
     P2 := ASystemMemorisationsCopy.FindRecordID(P1.smAudit_Record_ID);
     AuditInfo.AuditRecord := New_System_Memorisation_List_Rec;
     try
-      SetAuditInfo(P1, P2, AuditInfo);
+      SetAuditInfo(P1, P2, AParentID, AuditInfo);
       if AuditInfo.AuditAction in [aaAdd, aaChange] then
         AAuditTable.AddAuditRec(AuditInfo);
     finally
@@ -220,7 +278,7 @@ begin
     P1 := FindRecordID(P2.smAudit_Record_ID);
     AuditInfo.AuditRecord := New_System_Memorisation_List_Rec;
     try
-      SetAuditInfo(P1, P2, AuditInfo);
+      SetAuditInfo(P1, P2, AParentID, AuditInfo);
       if (AuditInfo.AuditAction = aaDelete) then
         AAuditTable.AddAuditRec(AuditInfo);
     finally
@@ -232,9 +290,16 @@ begin
   for I := 0 to Pred( itemCount ) do begin
     P1 := Items[i];
     P2 := ASystemMemorisationsCopy.FindRecordID(P1.smAudit_Record_ID);
-    if Assigned(P1.smMemorisations) then begin
-      TMemorisations_List(P1.smMemorisations).DoAudit(atMasterMemorisations, P2.smMemorisations, AAuditTable);
-    end;
+    if Assigned(P1.smMemorisations) and Assigned(P2) then begin
+      TMemorisations_List(P1.smMemorisations).DoAudit(atMasterMemorisations,
+                                                      P2.smMemorisations,
+                                                      P1.smAudit_Record_ID,
+                                                      AAuditTable);
+    end else
+      TMemorisations_List(P1.smMemorisations).DoAudit(atMasterMemorisations,
+                                                      nil,
+                                                      P1.smAudit_Record_ID,
+                                                      AAuditTable);
   end;
 end;
 
@@ -366,29 +431,32 @@ begin
 end;
 
 procedure TSystem_Memorisation_List.SetAuditInfo(P1, P2: pSystem_Memorisation_List_Rec;
-  var AAuditInfo: TAuditInfo);
+  AParentID: integer; var AAuditInfo: TAuditInfo);
 begin
+  AAuditInfo.AuditParentID := AParentID;
   AAuditInfo.AuditAction := aaNone;
+  AAuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType','System Memorisation List']) +
+                               VALUES_DELIMITER +
+                               Format('%s=%d', ['ParentID', AParentID]);
   if not Assigned(P1) then begin
     //Delete
     AAuditInfo.AuditAction := aaDelete;
     AAuditInfo.AuditRecordID := P2.smAudit_Record_ID;
-    AAuditInfo.AuditOtherInfo := Format('%s=%s',
+    AAuditInfo.AuditOtherInfo := AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
+                                 Format('%s=%s',
                                         [SYAuditNames.GetAuditFieldName(tkBegin_System_Memorisation_List, 61),
                                          P2.smBank_Prefix]);
   end else if Assigned(P2) then begin
     //Change
     AAuditInfo.AuditRecordID := P1.smAudit_Record_ID;
-    AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
-                                                                 AAuditInfo.AuditRecordID);
+//    AAuditInfo.AuditParentID := AParentID;
     if SYSMIO.System_Memorisation_List_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
       AAuditInfo.AuditAction := aaChange;
   end else begin
     //Add
     AAuditInfo.AuditAction := aaAdd;
     AAuditInfo.AuditRecordID := P1.smAudit_Record_ID;
-    AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
-                                                                 AAuditInfo.AuditRecordID);
+//    AAuditInfo.AuditParentID := AParentID;
     P1.smAudit_Record_ID := AAuditInfo.AuditRecordID;
     SYSMIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
     //Special Copy
