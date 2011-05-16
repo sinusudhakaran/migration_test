@@ -75,16 +75,15 @@ end;
 
 procedure TfrmMain.btnBooksClick(Sender: TObject);
 begin
-  ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\setupbnotes.exe'),nil ,nil,SW_SHOWNORMAL);
+  ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\setup.exe'),nil ,nil,SW_SHOWNORMAL);
 end;
 
 procedure TfrmMain.btnUpdateClick(Sender: TObject);
 var
   cid: integer;
 begin
-//   ShellExecute(Handle,'open',pChar( CDDrive + '\SOFTWARE\UPDATES\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
-    CDDrive := ExtractFilePath(Application.ExeName);
-   //Ask for country
+  CDDrive := ExtractFilePath(Application.ExeName);
+  //Ask for country
   cid := CountryFrm.GetCountry;
   case cid of
     0 : ShellExecute(Handle,'open',pChar( CDDrive + '\UPDATES\NZ\SETUP.EXE'),nil ,nil,SW_SHOWNORMAL);
