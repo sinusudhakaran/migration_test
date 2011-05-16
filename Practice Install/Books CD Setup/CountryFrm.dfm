@@ -44,11 +44,10 @@ object frmLocation: TfrmLocation
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
-    ItemIndex = 0
     TabOrder = 1
-    Text = 'Australia'
     Items.Strings = (
       'Australia'
-      'New Zealand')
+      'New Zealand'
+      'United Kingdom')
   end
 end

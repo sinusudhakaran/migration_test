@@ -754,10 +754,10 @@ CONST
    ( 'http://www.banklink.co.nz', 'http://www.banklink.com.au', 'http://www.banklink.co.uk' );
 
    whSupportPhoneNo : Array[ whMin..whMax ] of String[ 20 ] =
-   ( '0800 226 554', '1 800 123 242', 'To Be Advised' );
+   ( '0800 226 554', '1 800 123 242', '0800 500 3081' );
 
    whSupportEmail : Array[ whMin..whMax ] of String[ 30 ] =
-   ( 'support@banklink.co.nz', 'support@banklink.com.au', 'To Be Advised' );
+   ( 'support@banklink.co.nz', 'support@banklink.com.au', 'support@banklink.co.uk' );
 
    whClientServicesEmail : Array[ whMin..whMax ] of String[ 30 ] =
    ( 'clientservices@banklink.co.nz', 'clientservices@banklink.com.au', 'clientservices@banklink.co.uk' );

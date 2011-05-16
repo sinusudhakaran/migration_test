@@ -20,12 +20,12 @@ md "Practice CD\Documents\Australia\Books"
 md "Practice CD\Documents\Australia\Practice"
 md "Practice CD\Documents\New Zealand\Books"
 md "Practice CD\Documents\New Zealand\Practice"
-REM md "Practice CD\Documents\United Kingdom\Books"
+md "Practice CD\Documents\United Kingdom\Books"
 md "Practice CD\Documents\United Kingdom\Practice"
 md "Practice CD\Redist
 md "Practice CD\Software\BankLink\Books\AU"
 md "Practice CD\Software\BankLink\Books\NZ"
-REM md "Practice CD\Software\BankLink\Books\UK"
+md "Practice CD\Software\BankLink\Books\UK"
 md "Practice CD\Software\BankLink\Practice\AU"
 md "Practice CD\Software\BankLink\Practice\NZ"
 md "Practice CD\Software\BankLink\Practice\UK"
@@ -48,13 +48,13 @@ copy "Books CD Files\Guide_AU.chm" "Practice CD\Documents\Australia\Books\Guide.
 copy "Practice CD Files\Guide_NZ.chm" "Practice CD\Documents\New Zealand\Practice\Guide.chm
 copy "Books CD Files\Guide_NZ.chm" "Practice CD\Documents\New Zealand\Books\Guide.chm
 copy "Practice CD Files\Guide_UK.chm" "Practice CD\Documents\United Kingdom\Practice\Guide.chm
-REM copy "Books CD Files\Guide_UK.chm" "Practice CD\Documents\United Kingdom\Books\Guide.chm
+copy "Books CD Files\Guide_UK.chm" "Practice CD\Documents\United Kingdom\Books\Guide.chm
 REM Redist
 xcopy "Practice CD Files\Redist\*" "Practice CD\Redist" /i /s /y
 REM Software
 copy BooksInstall_AU\setup_books.exe "Practice CD\Software\BankLink\Books\AU\Setup.exe
 copy BooksInstall_NZ\setup_books.exe "Practice CD\Software\BankLink\Books\NZ\Setup.exe
-REM copy BooksInstall_UK\setup_books.exe "Practice CD\Software\BankLink\Books\UK\Setup.exe
+copy BooksInstall_UK\setup_books.exe "Practice CD\Software\BankLink\Books\UK\Setup.exe
 copy PracticeInstall_AU\setup_practice_au.exe "Practice CD\Software\BankLink\Practice\AU\Setup.exe
 copy PracticeInstall_NZ\setup_practice_nz.exe "Practice CD\Software\BankLink\Practice\NZ\Setup.exe
 copy PracticeInstall_UK\setup_practice_uk.exe "Practice CD\Software\BankLink\Practice\UK\Setup.exe

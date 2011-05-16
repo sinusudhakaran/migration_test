@@ -20,7 +20,7 @@ md "Books CD\Software\Updates\UK"
 REM Copy the files
 copy "Books CD Files\AUTORUN.INF" "Books CD\AUTORUN.INF"
 copy "Books CD Files\BK2002.ICO" "Books CD\BK2002.ICO"
-copy "Books CD Files\SETUP.EXE" "Books CD\SETUP.EXE"
+copy "BOOKSSETUP.EXE" "Books CD\SETUP.EXE"
 REM Documents   
 copy "Books CD Files\Documents\Australia\BankLink_Books_installation.pdf" "Books CD\Documents\Australia\BankLink_Books_installation.pdf"
 copy "Books CD Files\Documents\New Zealand\BankLink_Books_installation.pdf" "Books CD\Documents\New Zealand\BankLink_Books_installation.pdf"

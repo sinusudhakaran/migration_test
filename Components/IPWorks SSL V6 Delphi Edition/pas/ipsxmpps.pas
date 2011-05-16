@@ -266,6 +266,9 @@ type
       function get_BuddySubscription(BuddyIndex: Word): TipsxmppsBuddySubscriptions;
 
 
+      function get_Connected: Boolean;
+
+
       function get_MessageHTML: String;
       procedure set_MessageHTML(valMessageHTML: String);
 
@@ -311,8 +314,7 @@ type
 
 
 
-      function get_Connected: Boolean;
-      procedure set_Connected(valConnected: Boolean);
+
 
       function get_FirewallHost: String;
       procedure set_FirewallHost(valFirewallHost: String);
@@ -429,7 +431,9 @@ type
                read get_BuddySubscription
                ;
 
-
+      property Connected: Boolean
+               read get_Connected
+               ;
 
 
 
@@ -562,11 +566,7 @@ type
 
 
 
-      property Connected: Boolean
-                   read get_Connected
-                   write set_Connected
-                   default False
-                   ;
+
       property FirewallHost: String
                    read get_FirewallHost
                    write set_FirewallHost
@@ -1601,7 +1601,6 @@ begin
     if @_XMPPS_Do <> nil then
       _XMPPS_Do(m_ctl, 2001{MID_ENABLEASYNCEVENTS}, 0, NIL, NIL);
 {$ENDIF}
-    try set_Connected(false) except on E:Exception do end;
     try set_FirewallHost('') except on E:Exception do end;
     try set_FirewallPassword('') except on E:Exception do end;
     try set_FirewallPort(0) except on E:Exception do end;
@@ -1877,18 +1876,7 @@ begin
   result := BOOL(tmp);
 {$ENDIF}
 end;
-procedure TipsXMPPS.set_Connected(valConnected: Boolean);
-var
-  err: integer;
-begin
-{$IFDEF CLR}
-  err := _XMPPS_SetBOOL(m_ctl, PID_XMPPS_Connected, 0, valConnected, 0);
-{$ELSE}
-	if @_XMPPS_Set = nil then exit;
-  err := _XMPPS_Set(m_ctl, PID_XMPPS_Connected, 0, Integer(valConnected), 0);
-{$ENDIF}
-  if err <> 0 then TreatErr(err, '');
-end;
+
 
 function TipsXMPPS.get_FirewallHost: String;
 var
@@ -2063,7 +2051,7 @@ var
 
 begin
 {$IFDEF CLR}
-	result := Integer(_XMPPS_GetINT(m_ctl, PID_XMPPS_IMPort, 0, err));
+	result := Integer(_XMPPS_GetLONG(m_ctl, PID_XMPPS_IMPort, 0, err));
 {$ELSE}
   result := Integer(0);
 
@@ -2077,7 +2065,7 @@ var
   err: integer;
 begin
 {$IFDEF CLR}
-  err := _XMPPS_SetINT(m_ctl, PID_XMPPS_IMPort, 0, valIMPort, 0);
+  err := _XMPPS_SetLONG(m_ctl, PID_XMPPS_IMPort, 0, valIMPort, 0);
 {$ELSE}
 	if @_XMPPS_Set = nil then exit;
   err := _XMPPS_Set(m_ctl, PID_XMPPS_IMPort, 0, Integer(valIMPort), 0);

@@ -216,6 +216,9 @@ type
       function get_MessageId: String;
 
 
+      function get_Recipient: String;
+      procedure set_Recipient(valRecipient: String);
+
       function get_RecipientAddress(RecipientIdx: Word): String;
       procedure set_RecipientAddress(RecipientIdx: Word; valRecipientAddress: String);
 
@@ -261,8 +264,7 @@ type
       function get_Password: String;
       procedure set_Password(valPassword: String);
 
-      function get_Recipient: String;
-      procedure set_Recipient(valRecipient: String);
+
 
 
 
@@ -356,7 +358,9 @@ type
 
 
 
-
+      property Recipient: String
+               read get_Recipient
+               write set_Recipient               ;
 
       property RecipientAddress[RecipientIdx: Word]: String
                read get_RecipientAddress
@@ -476,11 +480,7 @@ type
                    write set_Password
                    
                    ;
-      property Recipient: String
-                   read get_Recipient
-                   write set_Recipient
-                   
-                   ;
+
 
 
 
@@ -1208,7 +1208,6 @@ begin
     try set_MessageExpiration('') except on E:Exception do end;
     try set_MessagePriority(smppMessagePriorityLow) except on E:Exception do end;
     try set_Password('') except on E:Exception do end;
-    try set_Recipient('') except on E:Exception do end;
     try set_ScheduledDelivery('') except on E:Exception do end;
     try set_ServiceType(smppServiceDefault) except on E:Exception do end;
     try set_SMPPPort(3551) except on E:Exception do end;
