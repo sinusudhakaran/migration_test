@@ -589,7 +589,7 @@ begin
     M1 := Items[i];
     M2 := nil;
     if Assigned(AMemorisationListCopy) then
-      M2 := AMemorisationListCopy.FindRecordID(P1.mdAudit_Record_ID);
+      M2 := AMemorisationListCopy.FindRecordID(M1.mdFields.mdAudit_Record_ID);
     if Assigned(M1) then
       if Assigned(M2) then
         TMemorisation(M1).mdLines.DoAudit(atMasterMemorisations,

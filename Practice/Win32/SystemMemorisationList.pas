@@ -42,7 +42,7 @@ implementation
 
 uses
   TOKENS, SYSMIO, StStrS, LogUtil, BKDbExcept, SYAUDIT, BKAUDIT, BKMDIO, BKMLIO,
-  MoneyUtils, bkdateutils, Dialogs;
+  MoneyUtils, bkdateutils, Dialogs, bkConst;
 
 const
   UNIT_NAME = 'SystemMemorisationList';
@@ -164,15 +164,33 @@ begin
                                               TMemorisation_Line_Rec(ARecord^).mlAccount, Values);
             //Percentage
             148: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 147),
-                                              TMemorisation_Line_Rec(ARecord^).mlPercentage, Values);
-//    FAuditNamesArray[145,148] := 'GST_Class';
-//    FAuditNamesArray[145,149] := 'GST_Has_Been_Edited';
+                                              MoneyStrNoSymbol(TMemorisation_Line_Rec(ARecord^).mlPercentage), Values);
+            //GST_Class
+            149: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 148),
+                                              TMemorisation_Line_Rec(ARecord^).mlGST_Class, Values);
+            //GST_Has_Been_Edited
+            150: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 149),
+                                              TMemorisation_Line_Rec(ARecord^).mlGST_Has_Been_Edited, Values);
             //GL_Narration
             151: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 150),
                                               TMemorisation_Line_Rec(ARecord^).mlGL_Narration, Values);
-//    FAuditNamesArray[145,151] := 'Line_Type';
-//    FAuditNamesArray[145,152] := 'GST_Amount';
-//    FAuditNamesArray[145,153] := 'Payee';
+            //Line_Type
+            152: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 151),
+                                              mltNames[TMemorisation_Line_Rec(ARecord^).mlLine_Type], Values);
+            //GST_Amount
+            153: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 152),
+                                              MoneyStrNoSymbol(TMemorisation_Line_Rec(ARecord^).mlGST_Amount), Values);
+            //Payee
+            154: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 153),
+                                              TMemorisation_Line_Rec(ARecord^).mlPayee, Values);
+            //Job_Code
+            166: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 165),
+                                              TMemorisation_Line_Rec(ARecord^).mlJob_Code, Values);
+            //Quantity
+            167: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 166),
+                                              MoneyStrNoSymbol(TMemorisation_Line_Rec(ARecord^).mlQuantity), Values);
+
+//**** No need to audit superfund fields as auditing is UK only
 //    FAuditNamesArray[145,154] := 'SF_PCFranked';
 //    FAuditNamesArray[145,155] := 'SF_Member_ID';
 //    FAuditNamesArray[145,156] := 'SF_Fund_ID';
@@ -184,8 +202,6 @@ begin
 //    FAuditNamesArray[145,162] := 'SF_Edited';
 //    FAuditNamesArray[145,163] := 'SF_Member_Component';
 //    FAuditNamesArray[145,164] := 'SF_PCUnFranked';
-//    FAuditNamesArray[145,165] := 'Job_Code';
-//    FAuditNamesArray[145,166] := 'Quantity';
 //    FAuditNamesArray[145,167] := 'SF_GDT_Date';
 //    FAuditNamesArray[145,168] := 'SF_Tax_Free_Dist';
 //    FAuditNamesArray[145,169] := 'SF_Tax_Exempt_Dist';
