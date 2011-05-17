@@ -786,6 +786,9 @@ begin
                end;
              end;
            end;
+           //Delete pSystem_Memorisation_List_Rec if there are no memorisations
+           if TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount = 0 then
+             AdminSystem.SystemMemorisationList.Delete(SystemMemorisation);
            //*** Flag Audit ***
            SystemAuditMgr.FlagAudit(atMasterMemorisations);
            SaveAdminSystem;
