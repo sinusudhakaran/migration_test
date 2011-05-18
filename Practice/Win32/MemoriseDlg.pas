@@ -1502,7 +1502,7 @@ begin
      try
        SaveToMemRec( TempMem, SourceTransaction, chkMaster.Checked, True);
        if Assigned( SourceBankAccount) then begin
-          if chkMaster.Checked then
+          if chkMaster.Checked and Assigned(AdminSystem) then
              begin
                //memorise to relevant master file then reload to get new global list
                BankPrefix := mxFiles32.GetBankPrefix( SourceBankAccount.baFields.baBank_Account_Number);
@@ -1890,7 +1890,7 @@ begin
             Memorised_Trans := TMemorisation.Create;
 
              //have details of the new master memorisation, now need to update to relevant location
-             if chkMaster.Checked then
+             if chkMaster.Checked and Assigned(AdminSystem) then
              begin
                //memorise to relevant master file then reload to get new global list
                BankPrefix := mxFiles32.GetBankPrefix( ba.baFields.baBank_Account_Number);
@@ -2183,7 +2183,7 @@ begin
          case ShowModal of
            mrok : begin
                //save new values back
-               if chkMaster.Checked then begin
+               if chkMaster.Checked and Assigned(AdminSystem) then begin
                  //---EDIT MASTER MEM---
                  SaveSeq := pM.mdFields.mdSequence_No;
                  if LoadAdminSystem(true, ThisMethodName) then begin
@@ -2225,7 +2225,7 @@ begin
                Memorised_Trans := TMemorisation.Create;
                SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
-               if chkMaster.Checked then begin
+               if chkMaster.Checked and Assigned(AdminSystem) then begin
                   //save master mem list
 //                  TMaster_Memorisations_List(MemorisedList).SaveToFile;
 //                  EditMemorisation(ba,MemorisedList,Memorised_Trans, True);

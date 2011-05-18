@@ -942,11 +942,46 @@ end;
 procedure TfrmMaintainMem.MoveItem(MoveItemUp: boolean);
 //provides ability to change the priority of a memorisation.  The priority can
 //only be change for memorisations of the same entry type
+const
+  ThisMethodName = 'MoveItem';
 var
   m1, m2 : TMemorisation;
   SelIndex : integer;
   MemorisedList : TMemorisations_List;
-  SystemMemorisation: pSystem_Memorisation_List_Rec; 
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
+
+  function SwapItems: Boolean;
+  begin
+    Result := False;
+    //should now have the items and the list that they belong to
+    if Assigned(lvMemorised.Selected) and Assigned(MemorisedList) then
+    begin
+       SelIndex := lvMemorised.Items.IndexOf(lvMemorised.Selected);
+       if (MoveItemUp and (SelIndex=0)) or ((not MoveItemUp) and (SelIndex >= lvMemorised.items.Count-1)) then
+         Exit;
+
+       //select items to move from list
+       if MoveItemUp then
+       begin
+         m1 := TMemorisation(lvMemorised.Selected.SubItems.Objects[0]);
+         m2 := TMemorisation(lvMemorised.Items[SelIndex-1].SubItems.Objects[0]);
+       end
+       else
+       begin
+         m1 := TMemorisation(lvMemorised.Items[SelIndex+1].SubItems.Objects[0]);
+         m2 := TMemorisation(lvMemorised.Selected.SubItems.Objects[0]);
+       end;
+
+       //check are the same transaction type
+       if m1.mdFields.mdType <> m2.mdFields.mdType then Exit;
+
+       //at this point we have m1,m2 which are the memorisations to swap
+       MemorisedList.SwapItems(m1,m2);
+       FMemorisationChanged := true;
+       Result := True;
+       lvMemorised.Alphasort;
+    end;
+  end;
 begin
   //must have the items sorted by EntryType and SeqNo to perform this
   if not (SortCol = 1) then
@@ -963,44 +998,26 @@ begin
   if Assigned(trvAccountView.Selected) then
   begin
     case trvAccountView.Selected.OverlayIndex{StateIndex} of
-      0 : MemorisedList := tBank_Account(trvAccountView.selected.Data).baMemorisations_List;
-//      1 : MemorisedList := Master_Mem_Lists_Collection.FindPrefix( trvAccountView.selected.Text);
+      0 : begin
+            MemorisedList := tBank_Account(trvAccountView.selected.Data).baMemorisations_List;
+            SwapItems;
+          end;
       1 : begin
-            SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(trvAccountView.selected.Text);
-            if Assigned(SystemMemorisation) then
-              MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+            //Lock and load the system db
+            if LoadAdminSystem(true, ThisMethodName) then begin
+              SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(trvAccountView.selected.Text);
+              if Assigned(SystemMemorisation) then begin
+                MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+                if SwapItems then begin
+                  //*** Flag Audit ***
+                  SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                  SaveAdminSystem;
+                end else
+                  UnlockAdmin;
+              end;
+            end;
           end;
     end; //case
-  end
-  else
-    exit;
-
-  //should now have the items and the list that they belong to
-  if Assigned(lvMemorised.Selected) and Assigned(MemorisedList) then
-  begin
-     SelIndex := lvMemorised.Items.IndexOf(lvMemorised.Selected);
-     if (MoveItemUp and (SelIndex=0)) or ((not MoveItemUp) and (SelIndex >= lvMemorised.items.Count-1)) then
-        exit;
-
-     //select items to move from list
-     if MoveItemUp then
-     begin
-       m1 := TMemorisation(lvMemorised.Selected.SubItems.Objects[0]);
-       m2 := TMemorisation(lvMemorised.Items[SelIndex-1].SubItems.Objects[0]);
-     end
-     else
-     begin
-       m1 := TMemorisation(lvMemorised.Items[SelIndex+1].SubItems.Objects[0]);
-       m2 := TMemorisation(lvMemorised.Selected.SubItems.Objects[0]);
-     end;
-
-     //check are the same transaction type
-     if m1.mdFields.mdType <> m2.mdFields.mdType then exit;
-
-     //at this point we have m1,m2 which are the memorisations to swap
-     MemorisedList.SwapItems(m1,m2);
-     FMemorisationChanged := true;
-     lvMemorised.Alphasort;
   end;
 end;
 

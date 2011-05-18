@@ -42,7 +42,7 @@ implementation
 
 uses
   TOKENS, SYSMIO, StStrS, LogUtil, BKDbExcept, SYAUDIT, BKAUDIT, BKMDIO, BKMLIO,
-  MoneyUtils, bkdateutils, Dialogs, bkConst;
+  GenUtils, bkdateutils, Dialogs, bkConst;
 
 const
   UNIT_NAME = 'SystemMemorisationList';
@@ -53,7 +53,6 @@ procedure TSystem_Memorisation_List.AddAuditValues(
   const AAuditRecord: TAudit_Trail_Rec; var Values: string);
 var
   Token, Idx: byte;
-  UserType: string;
   ARecord: Pointer;
 begin
   ARecord := AAuditRecord.atAudit_Record;
@@ -90,7 +89,7 @@ begin
 //    FAuditNamesArray[140,142] := 'Type';
             //Amount
             144: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 143),
-                                              MoneyStrNoSymbol(TMemorisation_Detail_Rec(ARecord^).mdAmount), Values);
+                                              Money2Str(TMemorisation_Detail_Rec(ARecord^).mdAmount), Values);
             //Reference
             145: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, 144),
                                               TMemorisation_Detail_Rec(ARecord^).mdReference, Values);
@@ -163,8 +162,12 @@ begin
             147: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 146),
                                               TMemorisation_Line_Rec(ARecord^).mlAccount, Values);
             //Percentage
-            148: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 147),
-                                              MoneyStrNoSymbol(TMemorisation_Line_Rec(ARecord^).mlPercentage), Values);
+            148: case TMemorisation_Line_Rec(ARecord^).mlLine_Type of
+                   mltPercentage: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 147),
+                                                               Percent2Str(TMemorisation_Line_Rec(ARecord^).mlPercentage) + '%', Values);
+                    mltDollarAmt: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 147),
+                                                               Money2Str(TMemorisation_Line_Rec(ARecord^).mlPercentage), Values);
+                 end;
             //GST_Class
             149: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 148),
                                               TMemorisation_Line_Rec(ARecord^).mlGST_Class, Values);
@@ -179,7 +182,7 @@ begin
                                               mltNames[TMemorisation_Line_Rec(ARecord^).mlLine_Type], Values);
             //GST_Amount
             153: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 152),
-                                              MoneyStrNoSymbol(TMemorisation_Line_Rec(ARecord^).mlGST_Amount), Values);
+                                              Money2Str(TMemorisation_Line_Rec(ARecord^).mlGST_Amount), Values);
             //Payee
             154: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 153),
                                               TMemorisation_Line_Rec(ARecord^).mlPayee, Values);
@@ -188,7 +191,7 @@ begin
                                               TMemorisation_Line_Rec(ARecord^).mlJob_Code, Values);
             //Quantity
             167: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 166),
-                                              MoneyStrNoSymbol(TMemorisation_Line_Rec(ARecord^).mlQuantity), Values);
+                                              Money2Str(TMemorisation_Line_Rec(ARecord^).mlQuantity), Values);
 
 //**** No need to audit superfund fields as auditing is UK only
 //    FAuditNamesArray[145,154] := 'SF_PCFranked';
@@ -268,7 +271,7 @@ procedure TSystem_Memorisation_List.DoAudit(AAuditType: TAuditType;
   ASystemMemorisationsCopy: TSystem_Memorisation_List; AParentID: integer;
   var AAuditTable: TAuditTable);
 var
-  i, j: integer;
+  i: integer;
   P1, P2: pSystem_Memorisation_List_Rec;
   AuditInfo: TAuditInfo;
 begin
