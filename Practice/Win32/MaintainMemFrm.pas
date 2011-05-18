@@ -10,6 +10,11 @@ uses
   OSFont;
 
 type
+  TMasterMemInfoRec = record
+    AuditID: integer;
+    SequenceNumber: integer;
+  end;
+
   TfrmMaintainMem = class(TForm)
     Splitter1: TSplitter;
     ToolBar1: TToolBar;
@@ -697,7 +702,7 @@ var
   MemLine : pMemorisation_Line_Rec;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
   SystemMem: TMemorisation;
-  SaveSeq: integer;
+  MasterMemInfoRec: TMasterMemInfoRec;
 begin
    Result := false;
    MasterMsg := '';
@@ -767,7 +772,8 @@ begin
      if AskYesNo('Delete Memorisation?','OK to Delete '+MasterMSG+' Memorisation?'+#13+MemDesc+ExtraMsg,DLG_YES,0) <> DLG_YES then exit;
      if Assigned(AdminSystem) and (Prefix <> '') then begin
        //---DELETE MASTER MEM---
-       SaveSeq := Mem.mdFields.mdSequence_No;
+       MasterMemInfoRec.AuditID := Mem.mdFields.mdAudit_Record_ID;
+       MasterMemInfoRec.SequenceNumber := Mem.mdFields.mdSequence_No;
        if LoadAdminSystem(true, ThisMethodName) then begin
          //Get mem list
          SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
@@ -780,12 +786,16 @@ begin
            for i := TMemorisations_List(SystemMemorisation.smMemorisations).First to TMemorisations_List(SystemMemorisation.smMemorisations).Last do begin
              SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i);
              if Assigned(SystemMem) then begin
-               if (SystemMem.mdFields.mdSequence_No = SaveSeq) then begin
+               if (SystemMem.mdFields.mdAudit_Record_ID = MasterMemInfoRec.AuditID) and
+                  (SystemMem.mdFields.mdSequence_No = MasterMemInfoRec.SequenceNumber) then begin
                  TMemorisations_List(SystemMemorisation.smMemorisations).DelFreeItem(SystemMem);
+                 Result := True;
                  Break;
                end;
              end;
            end;
+           if not Result then
+             HelpfulErrorMsg('Could not delete master memorisation because it has been changed by another user.', 0);
            //Delete pSystem_Memorisation_List_Rec if there are no memorisations
            if TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount = 0 then
              AdminSystem.SystemMemorisationList.Delete(SystemMemorisation);
@@ -945,10 +955,33 @@ procedure TfrmMaintainMem.MoveItem(MoveItemUp: boolean);
 const
   ThisMethodName = 'MoveItem';
 var
+  i: integer;
   m1, m2 : TMemorisation;
   SelIndex : integer;
   MemorisedList : TMemorisations_List;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
+  AuditID : integer;
+  MasterMemInfoRec1, MasterMemInfoRec2: TMasterMemInfoRec;
+  Swapped: Boolean;
+
+  procedure SetMemsToSwap;
+  begin
+    m1 := nil;
+    m2 := nil;
+    SelIndex := lvMemorised.Items.IndexOf(lvMemorised.Selected);
+    if (MoveItemUp and (SelIndex=0)) or ((not MoveItemUp) and (SelIndex >= lvMemorised.items.Count-1)) then
+      Exit;
+
+    //select items to move from list
+    if MoveItemUp then
+    begin
+      m1 := TMemorisation(lvMemorised.Selected.SubItems.Objects[0]);
+      m2 := TMemorisation(lvMemorised.Items[SelIndex-1].SubItems.Objects[0]);
+    end else begin
+      m1 := TMemorisation(lvMemorised.Items[SelIndex+1].SubItems.Objects[0]);
+      m2 := TMemorisation(lvMemorised.Selected.SubItems.Objects[0]);
+    end;
+  end;
 
   function SwapItems: Boolean;
   begin
@@ -956,21 +989,7 @@ var
     //should now have the items and the list that they belong to
     if Assigned(lvMemorised.Selected) and Assigned(MemorisedList) then
     begin
-       SelIndex := lvMemorised.Items.IndexOf(lvMemorised.Selected);
-       if (MoveItemUp and (SelIndex=0)) or ((not MoveItemUp) and (SelIndex >= lvMemorised.items.Count-1)) then
-         Exit;
-
-       //select items to move from list
-       if MoveItemUp then
-       begin
-         m1 := TMemorisation(lvMemorised.Selected.SubItems.Objects[0]);
-         m2 := TMemorisation(lvMemorised.Items[SelIndex-1].SubItems.Objects[0]);
-       end
-       else
-       begin
-         m1 := TMemorisation(lvMemorised.Items[SelIndex+1].SubItems.Objects[0]);
-         m2 := TMemorisation(lvMemorised.Selected.SubItems.Objects[0]);
-       end;
+       SetMemsToSwap;
 
        //check are the same transaction type
        if m1.mdFields.mdType <> m2.mdFields.mdType then Exit;
@@ -983,6 +1002,7 @@ var
     end;
   end;
 begin
+  Swapped := False;
   //must have the items sorted by EntryType and SeqNo to perform this
   if not (SortCol = 1) then
   begin
@@ -1003,17 +1023,58 @@ begin
             SwapItems;
           end;
       1 : begin
-            //Lock and load the system db
-            if LoadAdminSystem(true, ThisMethodName) then begin
-              SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(trvAccountView.selected.Text);
-              if Assigned(SystemMemorisation) then begin
-                MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
-                if SwapItems then begin
-                  //*** Flag Audit ***
-                  SystemAuditMgr.FlagAudit(atMasterMemorisations);
-                  SaveAdminSystem;
-                end else
-                  UnlockAdmin;
+            SetMemsToSwap;
+            if Assigned(m1) and Assigned(m2) then begin
+              //Save Audit ID and Seq of mems to swap
+              MasterMemInfoRec1.AuditID := m1.mdFields.mdAudit_Record_ID;
+              MasterMemInfoRec1.SequenceNumber := m1.mdFields.mdSequence_No;
+              MasterMemInfoRec2.AuditID := m2.mdFields.mdAudit_Record_ID;
+              MasterMemInfoRec2.SequenceNumber := m2.mdFields.mdSequence_No;
+              //Lock and load the system db
+              if LoadAdminSystem(true, ThisMethodName) then begin
+                SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(trvAccountView.selected.Text);
+                if Assigned(SystemMemorisation) then begin
+                  MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+                  if Assigned(MemorisedList) then begin
+                    //Reload master mems
+                    LoadMasters(trvAccountView.selected.Text);
+                    //Select mems to swap
+                    m1 := nil;
+                    m2 := nil;
+                    SelIndex := -1;
+                    for i := 0 to Pred(lvMemorised.Items.Count) do begin
+                      if (MasterMemInfoRec1.AuditID = TMemorisation(lvMemorised.Items[i].SubItems.Objects[0]).mdFields.mdAudit_Record_ID) and
+                         (MasterMemInfoRec1.SequenceNumber = TMemorisation(lvMemorised.Items[i].SubItems.Objects[0]).mdFields.mdSequence_No) then begin
+                        m1 := TMemorisation(lvMemorised.Items[i].SubItems.Objects[0]);
+                        if not MoveItemUp then SelIndex := i;
+                      end;
+                      if (MasterMemInfoRec2.AuditID = TMemorisation(lvMemorised.Items[i].SubItems.Objects[0]).mdFields.mdAudit_Record_ID) and
+                         (MasterMemInfoRec2.SequenceNumber = TMemorisation(lvMemorised.Items[i].SubItems.Objects[0]).mdFields.mdSequence_No) then begin
+                        m2 := TMemorisation(lvMemorised.Items[i].SubItems.Objects[0]);
+                        if MoveItemUp then SelIndex := i;
+                      end;
+                    end;
+                    if Assigned(m1) and Assigned(m2) then begin
+                      //They must be in the same order if the sequence numbers still match
+                     if m1.mdFields.mdType = m2.mdFields.mdType then begin
+                       //at this point we have m1,m2 which are the memorisations to swap
+                       MemorisedList.SwapItems(m1,m2);
+                       FMemorisationChanged := true;
+                       lvMemorised.Alphasort;
+                       if SelIndex <> -1 then
+                         lvMemorised.Items[SelIndex].Selected := True;
+                       //*** Flag Audit ***
+                       SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                       SaveAdminSystem;
+                       Swapped := True;                       
+                     end;
+                    end;
+                  end;
+                end;
+              end;
+              if not Swapped then begin
+                UnlockAdmin;
+                HelpfulErrorMsg('Could not move master memorisation because they have been changed by another user.', 0);
               end;
             end;
           end;
