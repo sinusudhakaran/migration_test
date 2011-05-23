@@ -86,39 +86,6 @@ type
     function Compare(Item1,Item2 : Pointer): Integer; override;
   end;
 
-{  TAuditTableClass = class of TAuditTable;
-
-  TAuditTable = class(TObject)
-  private
-    FAuditRecords: TAuditCollection;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure AddAuditRec(AAuditInfo: TAuditInfo); virtual; abstract;
-    procedure LoadFromFile(AFileName: TFileName);
-    procedure LoadFromStream( var S: TIOStream); virtual; abstract;
-    procedure SaveToFile (AFileName: TFileName);
-    procedure SaveToStream (var S: TIOStream); virtual; abstract;
-    procedure SetAuditStrings(Index: integer; Strings: TStrings); virtual; abstract;
-    property AuditRecords: TAuditCollection read FAuditRecords;
-  end;
-
-  TSystemAuditTable = class(TAuditTable)
-  public
-    procedure AddAuditRec(AAuditInfo: TAuditInfo); override;
-    procedure LoadFromStream( var S: TIOStream); override;
-    procedure SaveToStream (var S: TIOStream); override;
-    procedure SetAuditStrings(Index: integer; Strings: TStrings); override;
-  end;
-
-  TClientAuditTable = class(TAuditTable)
-  public
-    procedure AddAuditRec(AAuditInfo: TAuditInfo); override;
-    procedure LoadFromStream( var S: TIOStream); override;
-    procedure SaveToStream (var S: TIOStream); override;
-    procedure SetAuditStrings(Index: integer; Strings: TStrings); override;
-  end; }
-
   PScopeInfo = ^TScopeInfo;
   TScopeInfo = record
     AuditType: TAuditType;
@@ -151,7 +118,6 @@ type
     procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); virtual; abstract;
     procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer); virtual; abstract;
     procedure GetValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string); virtual; abstract;
-    //test
     procedure CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer); virtual; abstract;
   end;
 
@@ -212,6 +178,12 @@ type
 
 implementation
 
+{$IFDEF LOOKUPDLL}
+uses
+  TOKENS, BKDbExcept,
+  SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
+  BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO;
+{$ELSE}
 uses
   Globals, bkConst, SysObj32, clObj32, MoneyUtils, SystemMemorisationList,
   bkdateutils, TOKENS,  BKDbExcept,
@@ -283,6 +255,7 @@ const
      (tkBegin_Bank_Account, dbClient),         //BankLink Notes
      (tkBegin_Bank_Account, dbClient),         //BankLink Notes Online
      (tkBegin_Bank_Account, dbClient));        //BankLink Books
+{$ENDIF}
 
 //Notes: - Master memorisations are kept outside the System DB
 //       - Some practice details are kept in an INI file (for Books)
@@ -291,7 +264,6 @@ const
 //       - What to audit for provisional data entry? Where to get it from (Archive?)
 //       - Payees and Memorisations have detail lines
 //       - If a Transaction/Disection is changes then limit audit to the Bank Account
-
 var
   _SystemAuditMgr: TSystemAuditManager;
   _ClientAuditMgr: TClientAuditManager;
@@ -312,6 +284,7 @@ end;
 
 function GetAccountingSystemName(AAccountingSystem: byte): string;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   case AdminSystem.fdFields.fdCountry of
     whNewZealand: if AAccountingSystem in [snMin..snMax] then
@@ -321,36 +294,43 @@ begin
     whUK        : if AAccountingSystem in [suMin..suMax] then
                     Result := suNames[AAccountingSystem];
   end;
+{$ENDIF}
 end;
 
 function GetUserCode(AUserLRN: integer): string;
 var
   User: pUser_Rec;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   User := AdminSystem.fdSystem_User_List.FindLRN(AUserLRN);
   if Assigned(User) then
     Result := User.usCode;
+{$ENDIF}
 end;
 
 function GetGroupName(AGroupLRN: integer): string;
 var
   Group: pGroup_Rec;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   Group := AdminSystem.fdSystem_Group_List.FindLRN(AGroupLRN);
   if Assigned(Group) then
     Result := Group.grName;
+{$ENDIF}
 end;
 
 function GetClientFileType(AClientTypeLRN: integer): string;
 var
   ClientType: pClient_Type_Rec;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   ClientType := AdminSystem.fdSystem_Client_Type_List.FindLRN(AClientTypeLRN);
   if Assigned(ClientType) then
     Result := ClientType.ctName;
+{$ENDIF}
 end;
 
 function ToString(Value: Variant): String;
@@ -375,6 +355,7 @@ var
   FieldName: string;
   TempStr: string;
 begin
+{$IFNDEF LOOKUPDLL}
   TempStr := '';
   for i := Low(V1) to High(V1) do begin
     Value := V1[i];
@@ -386,6 +367,7 @@ begin
     end;
   end;
   Values := Values + TempStr;
+{$ENDIF}
 end;
 
 procedure GST_Rates_Audit_Values(V1: TGST_Rates_Array; var Values: string);
@@ -395,6 +377,7 @@ var
   FieldName: string;
   TempStr: string;
 begin
+{$IFNDEF LOOKUPDLL}
   TempStr := '';
   for i := Low(V1) to High(V1) do
     for j := Low(V1[i]) to High(V1[i]) do begin
@@ -407,6 +390,7 @@ begin
       end;
     end;
   Values := Values + TempStr;
+{$ENDIF}
 end;
 
 procedure GST_Applies_From_Array(V1: TGST_Applies_From_Array; var Values: string);
@@ -416,6 +400,7 @@ var
   FieldName: string;
   TempStr: string;
 begin
+{$IFNDEF LOOKUPDLL}
   TempStr := '';
   for i := Low(V1) to High(V1) do begin
     Value := bkDate2Str(V1[i]);
@@ -427,6 +412,7 @@ begin
     end;
   end;
   Values := Values + TempStr;
+{$ENDIF}
 end;
 
 { TAuditManager }
@@ -458,36 +444,44 @@ end;
 
 function TAuditManager.AuditTypeToDBStr(AAuditType: TAuditType): string;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   if (AAuditType <= atMax)then
     case atNameTable[AAuditType, 1] of
       dbSystem: Result := 'SY';
       dbClient: Result := 'BK';
     end;
+{$ENDIF}
 end;
 
 function TAuditManager.AuditTypeToStr(AAuditType: Byte): string;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   if (AAuditType <= atMax)then
     Result := atNames[AAuditType]
   else if AAuditType = atAll then
     Result := 'All';
+{$ENDIF}
 end;
 
 function TAuditManager.AuditTypeToTableID(AAuditType: TAuditType): byte;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := atNameTable[AAuditType, 0];
+{$ENDIF}
 end;
 
 function TAuditManager.AuditTypeToTableStr(AAuditType: TAuditType): string;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   if (AAuditType <= atMax)then
     case atNameTable[AAuditType, 1] of
       dbSystem: Result := SYAuditNames.GetAuditTableName(atNameTable[AAuditType, 0]);
 //      dbClient: Result := BKAuditNames.GetAuditTableName(atNameTable[AAuditType, 0]);
     end;
+{$ENDIF}
 end;
 
 constructor TAuditManager.Create;
@@ -506,7 +500,9 @@ end;
 
 function TAuditManager.DBFromAuditType(AAuditType: TAuditType): byte;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := atNameTable[AAuditType, 1];
+{$ENDIF}
 end;
 
 destructor TAuditManager.Destroy;
@@ -540,24 +536,29 @@ function TSystemAuditManager.BankAccountFromLRN(ALRN: integer): string;
 var
   System_Bank_Account_Rec: pSystem_Bank_Account_Rec;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   System_Bank_Account_Rec := AdminSystem.fdSystem_Bank_Account_List.FindLRN(ALRN);
   if Assigned(System_Bank_Account_Rec) then
     Result := System_Bank_Account_Rec.sbAccount_Number;
+{$ENDIF}
 end;
 
 function TSystemAuditManager.ClientCodeFromLRN(ALRN: integer): string;
 var
   Client_File_Rec: pClient_File_Rec;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := '';
   Client_File_Rec := AdminSystem.fdSystem_Client_File_List.FindLRN(ALRN);
   if Assigned(Client_File_Rec) then
     Result := Client_File_Rec.cfFile_Code;
+{$ENDIF}
 end;
 
 procedure TSystemAuditManager.CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer);
 begin
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Practice_Details:
       begin
@@ -606,6 +607,7 @@ begin
         Copy_Memorisation_Line_Rec(P1, P2);
       end;
   end;
+{$ENDIF}
 end;
 
 procedure TSystemAuditManager.DoAudit;
@@ -613,6 +615,7 @@ var
   i: integer;
   TableID: byte;
 begin
+{$IFNDEF LOOKUPDLL}
   for i := 0 to FAuditScope.Count - 1 do begin
     TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
     case TableID of
@@ -640,6 +643,7 @@ begin
     end;
   end;
   FAuditScope.Clear;
+{$ENDIF}
 end;
 
 procedure TSystemAuditManager.FlagAudit(AAuditType: TAuditType; ARecord: Pointer);
@@ -649,6 +653,7 @@ end;
 
 function TSystemAuditManager.GetParentRecordID(ARecordType: byte; ARecordID: integer): integer;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := -1;
   case ARecordType of
     tkBegin_Practice_Details: Result := -1;
@@ -661,11 +666,13 @@ begin
     tkBegin_Memorisation_Detail: Result := 0; //Should be ID of system master mem list
     tkBegin_Memorisation_Line: Result := 0; //Should be ID of mem list
   end;
+{$ENDIF}
 end;
 
 procedure TSystemAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
   var Values: string);
 begin
+{$IFNDEF LOOKUPDLL}
   Values := AAuditRecord.atOther_Info;
   if AAuditRecord.atAudit_Record = nil then
     Exit;
@@ -681,16 +688,20 @@ begin
     tkBegin_Memorisation_Detail : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
     tkBegin_Memorisation_Line   : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
   end;
+{$ENDIF}
 end;
 
 function TSystemAuditManager.NextSystemRecordID: integer;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := AdminSystem.NextAuditRecordID;
+{$ENDIF}
 end;   
 
 procedure TSystemAuditManager.ReadAuditRecord(ARecordType: byte;
   AStream: TIOStream; var ARecord: pointer);
 begin
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Practice_Details:
       begin
@@ -738,11 +749,13 @@ begin
         Read_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
       end;
   end;
+{$ENDIF}
 end;
 
 procedure TSystemAuditManager.WriteAuditRecord(ARecordType: byte;
   ARecord: pointer; AStream: TIOStream);
 begin
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Practice_Details: Write_Practice_Details_Rec(TPractice_Details_Rec(ARecord^), AStream);
     tkBegin_User            : Write_User_Rec(TUser_Rec(ARecord^), AStream);
@@ -754,6 +767,7 @@ begin
     tkBegin_Memorisation_Detail : Write_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
     tkBegin_Memorisation_Line   : Write_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
   end;
+{$ENDIF}
 end;
 
 { TClientAuditManager }
@@ -761,6 +775,7 @@ end;
 procedure TClientAuditManager.CopyAuditRecord(const ARecordType: byte;
   P1: Pointer; var P2: Pointer);
 begin
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Payee_Detail:
       begin
@@ -768,6 +783,7 @@ begin
         Copy_Payee_Detail_Rec(P1, P2);
       end;
   end;
+{$ENDIF}
 end;
 
 procedure TClientAuditManager.DoAudit;
@@ -775,6 +791,7 @@ var
   i: integer;
   TableID: byte;
 begin
+{$IFNDEF LOOKUPDLL}
   for i := 0 to FAuditScope.Count - 1 do begin
     TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
     case TableID of
@@ -783,6 +800,7 @@ begin
     end;
   end;
   FAuditScope.Clear;
+{$ENDIF}
 end;
 
 procedure TClientAuditManager.FlagAudit(AAuditType: TAuditType;
@@ -800,6 +818,7 @@ end;
 procedure TClientAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
   var Values: string);
 begin
+{$IFNDEF LOOKUPDLL}
   Values := AAuditRecord.atOther_Info;
   if AAuditRecord.atAudit_Record = nil then
     Exit;
@@ -807,16 +826,20 @@ begin
   case AAuditRecord.atAudit_Record_Type of
     tkBegin_Payee_Detail: MyClient.clPayee_List.AddAuditValues(AAuditRecord, Values);
   end;
+{$ENDIF}
 end;
 
 function TClientAuditManager.NextClientRecordID: integer;
 begin
+{$IFNDEF LOOKUPDLL}
   Result := MyClient.NextAuditRecordID;
+{$ENDIF}
 end;
 
 procedure TClientAuditManager.ReadAuditRecord(ARecordType: byte;
   AStream: TIOStream; var ARecord: pointer);
 begin
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Payee_Detail:
       begin
@@ -824,14 +847,17 @@ begin
         Read_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
       end;
   end;
+{$ENDIF}
 end;
 
 procedure TClientAuditManager.WriteAuditRecord(ARecordType: byte;
   ARecord: pointer; AStream: TIOStream);
 begin
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Payee_Detail: Write_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
   end;
+{$ENDIF}
 end;
 
 { TAuditTable }
@@ -841,6 +867,7 @@ var
   AuditRec: pAudit_Trail_Rec;
   i: integer;
 begin
+{$IFNDEF LOOKUPDLL}
   AuditRec := SYATIO.New_Audit_Trail_Rec;
   AuditRec.atAudit_ID := FAuditRecords.ItemCount + 1;
   AuditRec.atTransaction_Type := AAuditInfo.AuditType;
@@ -858,6 +885,7 @@ begin
   else if Assigned(AAuditInfo.AuditRecord) then
     FAuditManager.CopyAuditRecord(AuditRec.atAudit_Record_Type, AAuditInfo.AuditRecord, AuditRec.atAudit_Record);
   FAuditRecords.Insert(AuditRec);
+{$ENDIF}
 end;
 
 constructor TAuditTable.Create(AAuditManager: TAuditManager);
@@ -886,6 +914,7 @@ var
   InFile: TIOStream;
   Token: byte;
 begin
+{$IFNDEF LOOKUPDLL}
   if not FileExists(AFileName) then Exit;
 
   InFile := TIOStream.Create;
@@ -898,6 +927,7 @@ begin
   finally
     InFile.Free;
   end;
+{$ENDIF}
 end;
 
 procedure TAuditTable.LoadFromStream(var S: TIOStream);
