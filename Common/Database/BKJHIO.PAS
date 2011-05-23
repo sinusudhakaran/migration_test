@@ -50,6 +50,7 @@ CONST
    tkjhLRN                              = 213 ;
    tkjhDate_Completed                   = 214 ;
    tkjhCode                             = 215 ;
+   tkjhAudit_Record_ID                  = 216 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -79,6 +80,7 @@ Begin
       F.WriteIntegerValue( tkjhLRN , jhLRN );
       F.WriteDateValue( tkjhDate_Completed , jhDate_Completed );
       F.WriteStringValue( tkjhCode , jhCode );
+      F.WriteIntegerValue( tkjhAudit_Record_ID , jhAudit_Record_ID );
       F.WriteToken( tkEnd_Job_Heading );
    end;
 end; { of Write_Job_Heading_Rec }
@@ -105,6 +107,7 @@ Begin
          tkjhLRN                              : jhLRN := F.ReadIntegerValue;
          tkjhDate_Completed                   : jhDate_Completed := F.ReadDateValue;
          tkjhCode                             : jhCode := F.ReadStringValue;
+         tkjhAudit_Record_ID                  : jhAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -151,7 +154,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkjhHeading to tkjhCode do begin
+  for i := tkjhHeading to tkjhAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -193,6 +196,11 @@ begin
   if (P1.jhCode <> P2.jhCode) then begin
     P3.jhCode := P1.jhCode;
     ChangedFields[i] := tkjhCode;
+    Inc(i);
+  end;
+  if (P1.jhAudit_Record_ID <> P2.jhAudit_Record_ID) then begin
+    P3.jhAudit_Record_ID := P1.jhAudit_Record_ID;
+    ChangedFields[i] := tkjhAudit_Record_ID;
     Inc(i);
   end;
 

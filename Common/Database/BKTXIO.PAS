@@ -123,7 +123,7 @@ CONST
    tktxSF_Transaction_ID                = 236 ;
    tktxSF_Transaction_Code              = 237 ;
    tktxSF_Capital_Gains_Fraction_Half   = 238 ;
-   tktxSpareL                           = 239 ;
+   tktxAudit_Record_ID                  = 239 ;
    tktxJob_Code                         = 240 ;
    tktxForex_Conversion_Rate            = 241 ;
    tktxSpare_Money_1                    = 242 ;
@@ -231,7 +231,7 @@ Begin
       F.WriteIntegerValue( tktxSF_Transaction_ID , txSF_Transaction_ID );
       F.WriteAnsiStringValue( tktxSF_Transaction_Code , txSF_Transaction_Code );
       F.WriteBooleanValue( tktxSF_Capital_Gains_Fraction_Half , txSF_Capital_Gains_Fraction_Half );
-      F.WriteIntegerValue( tktxSpareL , txSpareL );
+      F.WriteIntegerValue( tktxAudit_Record_ID , txAudit_Record_ID );
       F.WriteStringValue( tktxJob_Code , txJob_Code );
       F.WriteDoubleValue( tktxForex_Conversion_Rate, txForex_Conversion_Rate );
       F.WriteMoneyValue( tktxSpare_Money_1 , txSpare_Money_1 );
@@ -336,7 +336,7 @@ Begin
          tktxSF_Transaction_ID                : txSF_Transaction_ID := F.ReadIntegerValue;
          tktxSF_Transaction_Code              : txSF_Transaction_Code := F.ReadAnsiStringValue;
          tktxSF_Capital_Gains_Fraction_Half   : txSF_Capital_Gains_Fraction_Half := F.ReadBooleanValue;
-         tktxSpareL                           : txSpareL := F.ReadIntegerValue;
+         tktxAudit_Record_ID                  : txAudit_Record_ID := F.ReadIntegerValue;
          tktxJob_Code                         : txJob_Code := F.ReadStringValue;
          tktxForex_Conversion_Rate            : txForex_Conversion_Rate := F.ReadDoubleValue;
          tktxSpare_Money_1                    : txSpare_Money_1 := F.ReadMoneyValue;
@@ -806,9 +806,9 @@ begin
     ChangedFields[i] := tktxSF_Capital_Gains_Fraction_Half;
     Inc(i);
   end;
-  if (P1.txSpareL <> P2.txSpareL) then begin
-    P3.txSpareL := P1.txSpareL;
-    ChangedFields[i] := tktxSpareL;
+  if (P1.txAudit_Record_ID <> P2.txAudit_Record_ID) then begin
+    P3.txAudit_Record_ID := P1.txAudit_Record_ID;
+    ChangedFields[i] := tktxAudit_Record_ID;
     Inc(i);
   end;
   if (P1.txJob_Code <> P2.txJob_Code) then begin

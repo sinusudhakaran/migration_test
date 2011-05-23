@@ -18,179 +18,251 @@ object frmAuditReportOption: TfrmAuditReportOption
     Top = 0
     Width = 889
     Height = 527
-    ActivePage = tsSystem
+    ActivePage = tsTesting
     Align = alClient
     Style = tsButtons
     TabOrder = 0
     object tsSystem: TTabSheet
       Caption = 'System Audit Report'
-      object gbxReportPeriod: TGroupBox
-        Left = 3
-        Top = 3
-        Width = 438
-        Height = 102
-        Caption = 'Select Date Range'
+      object pnlSelectClient: TPanel
+        Left = 0
+        Top = 0
+        Width = 881
+        Height = 88
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 0
-        inline DateSelector: TfmeDateSelector
-          Left = 16
-          Top = 28
-          Width = 276
-          Height = 70
+        ExplicitLeft = 461
+        ExplicitTop = 191
+        ExplicitWidth = 448
+        object GroupBox5: TGroupBox
+          Left = 4
+          Top = 4
+          Width = 440
+          Height = 80
+          Caption = 'Select Client File'
           TabOrder = 0
-          TabStop = True
-          ExplicitLeft = 16
-          ExplicitTop = 28
-          inherited Label2: TLabel
-            Top = 3
-            ExplicitTop = 3
+          object Label1: TLabel
+            Left = 16
+            Top = 37
+            Width = 74
+            Height = 13
+            Caption = 'Client File Code'
           end
-          inherited btnPrev: TSpeedButton
-            Top = 3
-            ExplicitTop = 3
-          end
-          inherited btnNext: TSpeedButton
-            Top = 3
-            ExplicitTop = 3
-          end
-          inherited btnQuik: TSpeedButton
-            Top = 3
-            ExplicitTop = 3
-          end
-          inherited Label3: TLabel
-            Top = 29
-            ExplicitTop = 29
-          end
-          inherited eDateFrom: TOvcPictureField
-            Top = 3
-            Epoch = 0
-            ExplicitTop = 3
-            RangeHigh = {25600D00000000000000}
-            RangeLow = {00000000000000000000}
-          end
-          inherited eDateTo: TOvcPictureField
-            Top = 29
-            Epoch = 0
-            ExplicitTop = 29
-            RangeHigh = {25600D00000000000000}
-            RangeLow = {00000000000000000000}
-          end
-          inherited pmDates: TPopupMenu
-            Top = 27
-          end
-          inherited OvcController1: TOvcController
-            EntryCommands.TableList = (
-              'Default'
-              True
-              ()
-              'WordStar'
-              False
-              ()
-              'Grid'
-              False
-              ())
-            Top = 27
+          object cbClientFileCodes: TComboBox
+            Left = 154
+            Top = 34
+            Width = 215
+            Height = 21
+            Style = csDropDownList
+            ItemHeight = 13
+            TabOrder = 0
           end
         end
       end
-      object GroupBox1: TGroupBox
-        Left = 3
-        Top = 111
-        Width = 438
-        Height = 106
-        Caption = 'Select Transactions'
+      object pnlSelectDate: TPanel
+        Left = 0
+        Top = 88
+        Width = 881
+        Height = 110
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 1
-        object rbSytemTransactionType: TRadioButton
-          Left = 16
-          Top = 32
-          Width = 113
-          Height = 17
-          Caption = 'Transaction type'
-          Checked = True
+        ExplicitLeft = 94
+        ExplicitTop = 287
+        ExplicitWidth = 448
+        object gbxReportPeriod: TGroupBox
+          Left = 4
+          Top = 4
+          Width = 440
+          Height = 102
+          Caption = 'Select Date Range'
           TabOrder = 0
-          TabStop = True
-          OnClick = rbSytemTransactionTypeClick
-        end
-        object rbSytemTransactionID: TRadioButton
-          Left = 16
-          Top = 64
-          Width = 113
-          Height = 17
-          Caption = 'Transaction ID'
-          TabOrder = 1
-          OnClick = rbSytemTransactionTypeClick
-        end
-        object ComboBox1: TComboBox
-          Left = 154
-          Top = 30
-          Width = 263
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 13
-          TabOrder = 2
-        end
-        object Edit1: TEdit
-          Left = 154
-          Top = 62
-          Width = 121
-          Height = 21
-          TabOrder = 3
-          OnKeyPress = Edit1KeyPress
+          inline DateSelector: TfmeDateSelector
+            Left = 16
+            Top = 28
+            Width = 276
+            Height = 70
+            TabOrder = 0
+            TabStop = True
+            ExplicitLeft = 16
+            ExplicitTop = 28
+            inherited Label2: TLabel
+              Top = 3
+              ExplicitTop = 3
+            end
+            inherited btnPrev: TSpeedButton
+              Top = 3
+              ExplicitTop = 3
+            end
+            inherited btnNext: TSpeedButton
+              Top = 3
+              ExplicitTop = 3
+            end
+            inherited btnQuik: TSpeedButton
+              Top = 3
+              ExplicitTop = 3
+            end
+            inherited Label3: TLabel
+              Top = 29
+              ExplicitTop = 29
+            end
+            inherited eDateFrom: TOvcPictureField
+              Top = 3
+              Epoch = 0
+              ExplicitTop = 3
+              RangeHigh = {25600D00000000000000}
+              RangeLow = {00000000000000000000}
+            end
+            inherited eDateTo: TOvcPictureField
+              Top = 29
+              Epoch = 0
+              ExplicitTop = 29
+              RangeHigh = {25600D00000000000000}
+              RangeLow = {00000000000000000000}
+            end
+            inherited pmDates: TPopupMenu
+              Top = 27
+            end
+            inherited OvcController1: TOvcController
+              EntryCommands.TableList = (
+                'Default'
+                True
+                ()
+                'WordStar'
+                False
+                ()
+                'Grid'
+                False
+                ())
+              Top = 27
+            end
+          end
         end
       end
-      object btnPreview: TButton
-        Left = 3
-        Top = 223
-        Width = 75
-        Height = 25
-        Caption = 'Previe&w'
-        Default = True
+      object pnlSelectTransaction: TPanel
+        Left = 0
+        Top = 198
+        Width = 881
+        Height = 114
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 2
-        OnClick = btnPreviewClick
+        ExplicitLeft = 32
+        ExplicitTop = 282
+        ExplicitWidth = 729
+        object GroupBox1: TGroupBox
+          Left = 4
+          Top = 4
+          Width = 438
+          Height = 106
+          Caption = 'Select Transactions'
+          TabOrder = 0
+          object rbSytemTransactionType: TRadioButton
+            Left = 16
+            Top = 32
+            Width = 113
+            Height = 17
+            Caption = 'Transaction type'
+            Checked = True
+            TabOrder = 0
+            TabStop = True
+            OnClick = rbSytemTransactionTypeClick
+          end
+          object rbSytemTransactionID: TRadioButton
+            Left = 16
+            Top = 64
+            Width = 113
+            Height = 17
+            Caption = 'Transaction ID'
+            TabOrder = 1
+            OnClick = rbSytemTransactionTypeClick
+          end
+          object ComboBox1: TComboBox
+            Left = 154
+            Top = 30
+            Width = 263
+            Height = 21
+            Style = csDropDownList
+            ItemHeight = 13
+            TabOrder = 2
+          end
+          object Edit1: TEdit
+            Left = 154
+            Top = 62
+            Width = 121
+            Height = 21
+            TabOrder = 3
+            OnKeyPress = Edit1KeyPress
+          end
+        end
       end
-      object btnFile: TButton
-        Left = 84
-        Top = 223
-        Width = 75
-        Height = 25
-        Caption = 'Fil&e'
+      object pnlButtons: TPanel
+        Left = 0
+        Top = 312
+        Width = 881
+        Height = 33
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 3
-        OnClick = btnFileClick
-      end
-      object btnPrint: TButton
-        Left = 285
-        Top = 223
-        Width = 75
-        Height = 25
-        Caption = '&Print'
-        TabOrder = 4
-      end
-      object Button1: TButton
-        Left = 366
-        Top = 223
-        Width = 75
-        Height = 25
-        Cancel = True
-        Caption = 'Cancel'
-        ModalResult = 2
-        TabOrder = 5
-        OnClick = Button1Click
+        object Button1: TButton
+          Left = 366
+          Top = 4
+          Width = 75
+          Height = 25
+          Cancel = True
+          Caption = 'Cancel'
+          ModalResult = 2
+          TabOrder = 0
+          OnClick = Button1Click
+        end
+        object btnPrint: TButton
+          Left = 285
+          Top = 4
+          Width = 75
+          Height = 25
+          Caption = '&Print'
+          TabOrder = 1
+        end
+        object btnFile: TButton
+          Left = 85
+          Top = 4
+          Width = 75
+          Height = 25
+          Caption = 'Fil&e'
+          TabOrder = 2
+          OnClick = btnFileClick
+        end
+        object btnPreview: TButton
+          Left = 4
+          Top = 4
+          Width = 75
+          Height = 25
+          Caption = 'Previe&w'
+          Default = True
+          TabOrder = 3
+          OnClick = btnPreviewClick
+        end
       end
     end
     object tsClient: TTabSheet
       Caption = 'Client File Audit Report'
       ImageIndex = 1
+      ExplicitLeft = 8
+      ExplicitTop = 31
       inline ClientSelect: TFmeClientSelect
         Left = 0
-        Top = 170
+        Top = 166
         Width = 629
         Height = 142
         TabOrder = 0
-        ExplicitTop = 170
+        Visible = False
+        ExplicitTop = 166
         inherited grpSettings: TGroupBox
           Left = 3
-          Top = 0
+          Top = 5
           ExplicitLeft = 3
-          ExplicitTop = 0
+          ExplicitTop = 5
         end
       end
       object GroupBox2: TGroupBox
@@ -263,7 +335,7 @@ object frmAuditReportOption: TfrmAuditReportOption
       end
       object GroupBox3: TGroupBox
         Left = 3
-        Top = 310
+        Top = 311
         Width = 621
         Height = 106
         Caption = 'Select Transactions'
@@ -305,11 +377,12 @@ object frmAuditReportOption: TfrmAuditReportOption
       end
       object GroupBox4: TGroupBox
         Left = 3
-        Top = 111
+        Top = 107
         Width = 621
         Height = 53
         Caption = 'Select Level'
         TabOrder = 3
+        Visible = False
         object RadioButton5: TRadioButton
           Left = 16
           Top = 24
@@ -328,8 +401,8 @@ object frmAuditReportOption: TfrmAuditReportOption
         end
       end
       object Button2: TButton
-        Left = 3
-        Top = 422
+        Left = 5
+        Top = 423
         Width = 75
         Height = 25
         Caption = 'Previe&w'
@@ -338,8 +411,8 @@ object frmAuditReportOption: TfrmAuditReportOption
         OnClick = btnPreviewClick
       end
       object Button3: TButton
-        Left = 84
-        Top = 422
+        Left = 86
+        Top = 423
         Width = 75
         Height = 25
         Caption = 'Fil&e'
@@ -347,16 +420,16 @@ object frmAuditReportOption: TfrmAuditReportOption
         OnClick = Button3Click
       end
       object Button4: TButton
-        Left = 467
-        Top = 422
+        Left = 285
+        Top = 423
         Width = 75
         Height = 25
         Caption = '&Print'
         TabOrder = 6
       end
       object Button5: TButton
-        Left = 548
-        Top = 422
+        Left = 366
+        Top = 423
         Width = 75
         Height = 25
         Cancel = True

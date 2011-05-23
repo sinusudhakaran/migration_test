@@ -167,6 +167,7 @@ type
  function Send_Custom_Documents_List_Changed(const V1, V2: TSend_Custom_Documents_List_Array; var V3: TSend_Custom_Documents_List_Array): boolean;
  function Custom_SFLedger_Titles_Changed(const V1, V2: TCustom_SFLedger_Titles_Array; var V3: TCustom_SFLedger_Titles_Array): boolean;
  function SUI_Step_Done_Changed(const V1, V2: TSUI_Step_Done_Array; var V3: TSUI_Step_Done_Array): boolean;
+ function Changed_Fields_Changed(const V1, V2: TChanged_Fields_Array; var V3: TChanged_Fields_Array): boolean;
 
 implementation
 
@@ -1316,5 +1317,20 @@ begin
         V3[i] := V1[i];
 end;
 
+
+function Changed_Fields_Changed(const V1, V2: TChanged_Fields_Array; var V3: TChanged_Fields_Array): boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  for i := Low(V1) to High(V2) do
+    if V1[i] <> V2[i] then begin
+      Result := True;
+      Break;
+    end;
+  if Result then
+    for i := Low(V1) to High(V1) do
+        V3[i] := V1[i];
+end;
 
 end.

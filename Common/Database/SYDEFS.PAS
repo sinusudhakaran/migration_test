@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 385;
-   SY_IOLIB_Date    = '19/04/11';
+   SY_IOLIB_Version : Integer = 386;
+   SY_IOLIB_Date    = '20/05/11';
    SY_FILE_VERSION   = 124;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)

@@ -321,6 +321,7 @@ begin
     FAuditNamesArray[80,97] := 'Linked_Account_OS';
     FAuditNamesArray[80,98] := 'Linked_Account_CS';
     FAuditNamesArray[80,99] := 'Hide_In_Basic_Chart';
+    FAuditNamesArray[80,100] := 'Audit_Record_ID';
 
    FAuditTableArray[100] := 'Payee';
     FAuditNamesArray[100,101] := 'Number';
@@ -330,10 +331,12 @@ begin
     FAuditNamesArray[100,105] := 'GST_Class';
     FAuditNamesArray[100,106] := 'GST_Has_Been_Edited';
     FAuditNamesArray[100,107] := 'GL_Narration';
+    FAuditNamesArray[100,108] := 'Audit_Record_ID';
 
    FAuditTableArray[90] := 'Payee_Detail';
     FAuditNamesArray[90,91] := 'Number';
     FAuditNamesArray[90,92] := 'Name';
+    FAuditNamesArray[90,93] := 'Audit_Record_ID';
 
    FAuditTableArray[95] := 'Payee_Line';
     FAuditNamesArray[95,96] := 'Account';
@@ -376,6 +379,7 @@ begin
     FAuditNamesArray[95,133] := 'SF_Capital_Gains_Fraction_Half';
     FAuditNamesArray[95,134] := 'SF_Ledger_ID';
     FAuditNamesArray[95,135] := 'SF_Ledger_Name';
+    FAuditNamesArray[95,136] := 'Audit_Record_ID';
 
    FAuditTableArray[110] := 'Budget_Header';
     FAuditNamesArray[110,111] := 'Start_Date';
@@ -516,6 +520,7 @@ begin
     FAuditNamesArray[150,199] := 'Default_Forex_Source';
     FAuditNamesArray[150,200] := 'Default_Forex_Description';
     FAuditNamesArray[150,201] := 'SuperFund_Ledger_Code';
+    FAuditNamesArray[150,202] := 'Audit_Record_ID';
 
    FAuditTableArray[160] := 'Transaction';
     FAuditNamesArray[160,161] := 'Sequence_No';
@@ -595,7 +600,7 @@ begin
     FAuditNamesArray[160,235] := 'SF_Transaction_ID';
     FAuditNamesArray[160,236] := 'SF_Transaction_Code';
     FAuditNamesArray[160,237] := 'SF_Capital_Gains_Fraction_Half';
-    FAuditNamesArray[160,238] := 'SpareL';
+    FAuditNamesArray[160,238] := 'Audit_Record_ID';
     FAuditNamesArray[160,239] := 'Job_Code';
     FAuditNamesArray[160,240] := 'Forex_Conversion_Rate';
     FAuditNamesArray[160,241] := 'Spare_Money_1';
@@ -657,7 +662,7 @@ begin
     FAuditNamesArray[180,232] := 'SF_Transaction_ID';
     FAuditNamesArray[180,233] := 'SF_Transaction_Code';
     FAuditNamesArray[180,234] := 'SF_Capital_Gains_Fraction_Half';
-    FAuditNamesArray[180,235] := 'SpareL';
+    FAuditNamesArray[180,235] := 'Audit_Record_ID';
     FAuditNamesArray[180,236] := 'Job_Code';
     FAuditNamesArray[180,237] := 'Tax_Invoice';
     FAuditNamesArray[180,238] := 'Forex_Conversion_Rate';
@@ -728,15 +733,18 @@ begin
     FAuditNamesArray[190,250] := 'Using_Fuel_Percent_Method';
     FAuditNamesArray[190,251] := 'PT_Form_Type';
     FAuditNamesArray[190,252] := 'GST_Cdj_Customs';
+    FAuditNamesArray[190,253] := 'Audit_Record_ID';
 
    FAuditTableArray[200] := 'SubGroup_Heading';
     FAuditNamesArray[200,201] := 'Heading';
     FAuditNamesArray[200,202] := 'Report_Group_No';
     FAuditNamesArray[200,203] := 'Sub_Group_No';
+    FAuditNamesArray[200,204] := 'Audit_Record_ID';
 
    FAuditTableArray[210] := 'Division_Heading';
     FAuditNamesArray[210,211] := 'Heading';
     FAuditNamesArray[210,212] := 'Division_No';
+    FAuditNamesArray[210,213] := 'Audit_Record_ID';
 
    FAuditTableArray[220] := 'Memorised_Transaction';
     FAuditNamesArray[220,221] := 'Sequence_No';
@@ -770,6 +778,7 @@ begin
     FAuditNamesArray[230,232] := 'Heading';
     FAuditNamesArray[230,233] := 'Major_ID';
     FAuditNamesArray[230,234] := 'Minor_ID';
+    FAuditNamesArray[230,235] := 'Audit_Record_ID';
 
    FAuditTableArray[240] := 'Macro';
     FAuditNamesArray[240,241] := 'Code';
@@ -794,6 +803,7 @@ begin
     FAuditNamesArray[210,212] := 'LRN';
     FAuditNamesArray[210,213] := 'Date_Completed';
     FAuditNamesArray[210,214] := 'Code';
+    FAuditNamesArray[210,215] := 'Audit_Record_ID';
 
    FAuditTableArray[40] := 'ClientExtra';
     FAuditNamesArray[40,41] := 'TAX_Applies_From';
@@ -829,7 +839,7 @@ begin
     FAuditNamesArray[40,71] := 'Custom_SFLedger_Titles';
     FAuditNamesArray[40,72] := 'SUI_Period_Start';
     FAuditNamesArray[40,73] := 'SUI_Period_End';
-    FAuditNamesArray[40,74] := 'Spare_Integer';
+    FAuditNamesArray[40,74] := 'Audit_Record_ID';
     FAuditNamesArray[40,75] := 'SUI_Step_Done';
     FAuditNamesArray[40,76] := 'Send_Job_List';
 

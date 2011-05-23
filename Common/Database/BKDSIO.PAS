@@ -100,7 +100,7 @@ CONST
    tkdsSF_Transaction_ID                = 233 ;
    tkdsSF_Transaction_Code              = 234 ;
    tkdsSF_Capital_Gains_Fraction_Half   = 235 ;
-   tkdsSpareL                           = 236 ;
+   tkdsAudit_Record_ID                  = 236 ;
    tkdsJob_Code                         = 237 ;
    tkdsTax_Invoice                      = 238 ;
    tkdsForex_Conversion_Rate            = 239 ;
@@ -186,7 +186,7 @@ Begin
       F.WriteIntegerValue( tkdsSF_Transaction_ID , dsSF_Transaction_ID );
       F.WriteAnsiStringValue( tkdsSF_Transaction_Code , dsSF_Transaction_Code );
       F.WriteBooleanValue( tkdsSF_Capital_Gains_Fraction_Half , dsSF_Capital_Gains_Fraction_Half );
-      F.WriteIntegerValue( tkdsSpareL , dsSpareL );
+      F.WriteIntegerValue( tkdsAudit_Record_ID , dsAudit_Record_ID );
       F.WriteStringValue( tkdsJob_Code , dsJob_Code );
       F.WriteBooleanValue( tkdsTax_Invoice , dsTax_Invoice );
       F.WriteDoubleValue( tkdsForex_Conversion_Rate, dsForex_Conversion_Rate );
@@ -269,7 +269,7 @@ Begin
          tkdsSF_Transaction_ID                : dsSF_Transaction_ID := F.ReadIntegerValue;
          tkdsSF_Transaction_Code              : dsSF_Transaction_Code := F.ReadAnsiStringValue;
          tkdsSF_Capital_Gains_Fraction_Half   : dsSF_Capital_Gains_Fraction_Half := F.ReadBooleanValue;
-         tkdsSpareL                           : dsSpareL := F.ReadIntegerValue;
+         tkdsAudit_Record_ID                  : dsAudit_Record_ID := F.ReadIntegerValue;
          tkdsJob_Code                         : dsJob_Code := F.ReadStringValue;
          tkdsTax_Invoice                      : dsTax_Invoice := F.ReadBooleanValue;
          tkdsForex_Conversion_Rate            : dsForex_Conversion_Rate := F.ReadDoubleValue;
@@ -622,9 +622,9 @@ begin
     ChangedFields[i] := tkdsSF_Capital_Gains_Fraction_Half;
     Inc(i);
   end;
-  if (P1.dsSpareL <> P2.dsSpareL) then begin
-    P3.dsSpareL := P1.dsSpareL;
-    ChangedFields[i] := tkdsSpareL;
+  if (P1.dsAudit_Record_ID <> P2.dsAudit_Record_ID) then begin
+    P3.dsAudit_Record_ID := P1.dsAudit_Record_ID;
+    ChangedFields[i] := tkdsAudit_Record_ID;
     Inc(i);
   end;
   if (P1.dsJob_Code <> P2.dsJob_Code) then begin

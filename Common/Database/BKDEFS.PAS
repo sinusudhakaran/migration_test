@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 633;
-   BK_IOLIB_Date    = '01/04/11';
-   BK_FILE_VERSION  = 164;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 636;
+   BK_IOLIB_Date    = '19/05/11';
+   BK_FILE_VERSION  = 165;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.20';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.21';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -201,7 +201,9 @@ Const
                             Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
                             Add IsProvisional to Bank account
                             Add Opening Balance Curreny field to Dissection and temp fields to Account
-     5.21 (2011AUDIT)164    Add Audit Record ID field to all records
+     5.21 (2011AUDIT)164    Add Audit Record ID field to memorisation records
+                     165    Add remaining Audit Record ID fields to records
+                            Add Audit Table 
    *)
 
 {  -------------------------------------------------------------------  }
@@ -532,6 +534,7 @@ Type
       chLinked_Account_OS                : String[ 20 ];       { Stored }
       chLinked_Account_CS                : String[ 20 ];       { Stored }
       chHide_In_Basic_Chart              : Boolean;       { Stored }
+      chAudit_Record_ID                  : Integer;       { Stored }
       chTemp_Quantity                    : TDynamic_Balances_Rec;
       chTemp_Amount                      : TDynamic_Balances_Rec;
       chTemp_Base_Amount                 : TDynamic_Balances_Rec;
@@ -562,6 +565,7 @@ Type
       pyGST_Class                        : Array[ 1..50 ] of Byte;       { Stored }
       pyGST_Has_Been_Edited              : Array[ 1..50 ] of Boolean;       { Stored }
       pyGL_Narration                     : Array[ 1..50 ] of String[ 40 ];       { Stored }
+      pyAudit_Record_ID                  : Integer;       { Stored }
       pyAmount                           : TLBRec;
       pyTotal                            : Money;
       pyEOR                              : Byte;
@@ -573,6 +577,7 @@ Type
       pdRecord_Type                      : Byte;
       pdNumber                           : Integer;       { Stored }
       pdName                             : String[ 40 ];       { Stored }
+      pdAudit_Record_ID                  : Integer;       { Stored }
       pdAmount                           : TLBRec;
       pdTotal                            : Money;
       pdTemp_Tag                         : Integer;
@@ -623,6 +628,7 @@ Type
       plSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
       plSF_Ledger_ID                     : Integer;       { Stored }
       plSF_Ledger_Name                   : AnsiString;       { Stored }
+      plAudit_Record_ID                  : Integer;       { Stored }
       plTemp_Tag                         : Integer;
       plEOR                              : Byte;
    end;
@@ -797,6 +803,7 @@ Type
       baDefault_Forex_Source             : String[ 80 ];       { Stored }
       baDefault_Forex_Description        : String[ 80 ];       { Stored }
       baSuperFund_Ledger_Code            : String[ 20 ];       { Stored }
+      baAudit_Record_ID                  : Integer;       { Stored }
       baLast_Sequence_No                 : Integer;
       baNumber                           : Integer;
       baOpening_Bank_Balance             : TLBRec;
@@ -898,7 +905,7 @@ Type
       txSF_Transaction_ID                : Integer;       { Stored }
       txSF_Transaction_Code              : AnsiString;       { Stored }
       txSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
-      txSpareL                           : Integer;       { Stored }
+      txAudit_Record_ID                  : Integer;       { Stored }
       txJob_Code                         : String[ 8 ];       { Stored }
       txForex_Conversion_Rate            : Double;       { Stored }
       txSpare_Money_1                    : Money;       { Stored }
@@ -981,7 +988,7 @@ Type
       dsSF_Transaction_ID                : Integer;       { Stored }
       dsSF_Transaction_Code              : AnsiString;       { Stored }
       dsSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
-      dsSpareL                           : Integer;       { Stored }
+      dsAudit_Record_ID                  : Integer;       { Stored }
       dsJob_Code                         : String[ 8 ];       { Stored }
       dsTax_Invoice                      : Boolean;       { Stored }
       dsForex_Conversion_Rate            : Double;       { Stored }
@@ -1062,6 +1069,7 @@ Type
       blUsing_Fuel_Percent_Method        : Boolean;       { Stored }
       blPT_Form_Type                     : Byte;       { Stored }
       blGST_Cdj_Customs                  : Money;       { Stored }
+      blAudit_Record_ID                  : Integer;       { Stored }
       blFirst_Fuel_Sheet                 : pFuel_Sheet_Rec;
       blLast_Fuel_Sheet                  : pFuel_Sheet_Rec;
       blEOR                              : Byte;
@@ -1074,6 +1082,7 @@ Type
       shHeading                          : String[ 60 ];       { Stored }
       shReport_Group_No                  : Integer;       { Stored }
       shSub_Group_No                     : Integer;       { Stored }
+      shAudit_Record_ID                  : Integer;       { Stored }
       shEOR                              : Byte;
    end;
 
@@ -1083,6 +1092,7 @@ Type
       dhRecord_Type                      : Byte;
       dhHeading                          : String[ 60 ];       { Stored }
       dhDivision_No                      : Integer;       { Stored }
+      dhAudit_Record_ID                  : Integer;       { Stored }
       dhEOR                              : Byte;
    end;
 
@@ -1127,6 +1137,7 @@ Type
       hdHeading                          : String[ 60 ];       { Stored }
       hdMajor_ID                         : Integer;       { Stored }
       hdMinor_ID                         : Integer;       { Stored }
+      hdAudit_Record_ID                  : Integer;       { Stored }
       hdEOR                              : Byte;
    end;
 
@@ -1172,6 +1183,7 @@ Type
       jhLRN                              : Integer;       { Stored }
       jhDate_Completed                   : Integer;       { Stored }
       jhCode                             : String[ 8 ];       { Stored }
+      jhAudit_Record_ID                  : Integer;       { Stored }
       jhEOR                              : Byte;
    end;
 
@@ -1212,7 +1224,7 @@ Type
       ceCustom_SFLedger_Titles           : Array[ 1..1 ] of String[ 60 ];       { Stored }
       ceSUI_Period_Start                 : Integer;       { Stored }
       ceSUI_Period_End                   : Integer;       { Stored }
-      ceSpare_Integer                    : Integer;       { Stored }
+      ceAudit_Record_ID                  : Integer;       { Stored }
       ceSUI_Step_Done                    : Array[ 0..32 ] of Boolean;       { Stored }
       ceSend_Job_List                    : Boolean;       { Stored }
       ceEOR                              : Byte;

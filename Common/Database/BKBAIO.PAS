@@ -97,6 +97,7 @@ CONST
    tkbaDefault_Forex_Source             = 200 ;
    tkbaDefault_Forex_Description        = 201 ;
    tkbaSuperFund_Ledger_Code            = 202 ;
+   tkbaAudit_Record_ID                  = 203 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -176,6 +177,7 @@ Begin
       F.WriteStringValue( tkbaDefault_Forex_Source , baDefault_Forex_Source );
       F.WriteStringValue( tkbaDefault_Forex_Description , baDefault_Forex_Description );
       F.WriteStringValue( tkbaSuperFund_Ledger_Code , baSuperFund_Ledger_Code );
+      F.WriteIntegerValue( tkbaAudit_Record_ID , baAudit_Record_ID );
       F.WriteToken( tkEnd_Bank_Account );
    end;
 end; { of Write_Bank_Account_Rec }
@@ -333,6 +335,7 @@ Begin
          tkbaDefault_Forex_Source             : baDefault_Forex_Source := F.ReadStringValue;
          tkbaDefault_Forex_Description        : baDefault_Forex_Description := F.ReadStringValue;
          tkbaSuperFund_Ledger_Code            : baSuperFund_Ledger_Code := F.ReadStringValue;
+         tkbaAudit_Record_ID                  : baAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -380,7 +383,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkbaBank_Account_Number to tkbaSuperFund_Ledger_Code do begin
+  for i := tkbaBank_Account_Number to tkbaAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -673,6 +676,11 @@ begin
   if (P1.baSuperFund_Ledger_Code <> P2.baSuperFund_Ledger_Code) then begin
     P3.baSuperFund_Ledger_Code := P1.baSuperFund_Ledger_Code;
     ChangedFields[i] := tkbaSuperFund_Ledger_Code;
+    Inc(i);
+  end;
+  if (P1.baAudit_Record_ID <> P2.baAudit_Record_ID) then begin
+    P3.baAudit_Record_ID := P1.baAudit_Record_ID;
+    ChangedFields[i] := tkbaAudit_Record_ID;
     Inc(i);
   end;
 

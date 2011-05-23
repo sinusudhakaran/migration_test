@@ -50,6 +50,7 @@ CONST
    tkhdHeading                          = 233 ;
    tkhdMajor_ID                         = 234 ;
    tkhdMinor_ID                         = 235 ;
+   tkhdAudit_Record_ID                  = 236 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -79,6 +80,7 @@ Begin
       F.WriteStringValue( tkhdHeading , hdHeading );
       F.WriteIntegerValue( tkhdMajor_ID , hdMajor_ID );
       F.WriteIntegerValue( tkhdMinor_ID , hdMinor_ID );
+      F.WriteIntegerValue( tkhdAudit_Record_ID , hdAudit_Record_ID );
       F.WriteToken( tkEnd_Custom_Heading );
    end;
 end; { of Write_Custom_Heading_Rec }
@@ -105,6 +107,7 @@ Begin
          tkhdHeading                          : hdHeading := F.ReadStringValue;
          tkhdMajor_ID                         : hdMajor_ID := F.ReadIntegerValue;
          tkhdMinor_ID                         : hdMinor_ID := F.ReadIntegerValue;
+         tkhdAudit_Record_ID                  : hdAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -151,7 +154,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkhdHeading_Type to tkhdMinor_ID do begin
+  for i := tkhdHeading_Type to tkhdAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -193,6 +196,11 @@ begin
   if (P1.hdMinor_ID <> P2.hdMinor_ID) then begin
     P3.hdMinor_ID := P1.hdMinor_ID;
     ChangedFields[i] := tkhdMinor_ID;
+    Inc(i);
+  end;
+  if (P1.hdAudit_Record_ID <> P2.hdAudit_Record_ID) then begin
+    P3.hdAudit_Record_ID := P1.hdAudit_Record_ID;
+    ChangedFields[i] := tkhdAudit_Record_ID;
     Inc(i);
   end;
 

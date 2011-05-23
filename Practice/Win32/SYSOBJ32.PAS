@@ -13,7 +13,7 @@ uses
 {$IFDEF ParserDll}
 {$ELSE}
   usrList32, cflist32, sysDList32, sbaList32, acList32, amList32,
-  grplist32, ctypelist32, ExchangeRateList,mcDefs, sysAudit, AuditMgr,
+  grplist32, ctypelist32, ExchangeRateList, mcDefs, AuditMgr,
   SystemMemorisationList,
 {$ENDIF}
   moneydef;
@@ -169,7 +169,7 @@ begin
   fdSystem_Client_Account_Map:= TSystem_Client_Account_Map.Create;
   fdSystem_Group_List        := TSystem_Group_List.Create;
   fdSystem_Client_Type_List  := TSystem_Client_Type_List.Create;
-  fAuditTable                := TAuditTable.Create;
+  fAuditTable                := TAuditTable.Create(SystemAuditMgr);
   fSystem_Memorisation_List  := TSystem_Memorisation_List.Create;
   fillChar(fCurrencyList, Sizeof(fCurrencyList), 0);
 {$ENDIF}  

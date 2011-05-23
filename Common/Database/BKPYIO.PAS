@@ -53,6 +53,7 @@ CONST
    tkpyGST_Class                        = 106 ;
    tkpyGST_Has_Been_Edited              = 107 ;
    tkpyGL_Narration                     = 108 ;
+   tkpyAudit_Record_ID                  = 109 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -88,6 +89,7 @@ Begin
       For i := 1 to 50 do F.WriteBByteValue( tkpyGST_Class , i, pyGST_Class[ i ] );
       For i := 1 to 50 do F.WriteBBooleanValue( tkpyGST_Has_Been_Edited , i, pyGST_Has_Been_Edited[ i ] );
       For i := 1 to 50 do F.WriteBStringValue( tkpyGL_Narration , i, pyGL_Narration[ i ] );
+      F.WriteIntegerValue( tkpyAudit_Record_ID , pyAudit_Record_ID );
       F.WriteToken( tkEnd_Payee );
    end;
 end; { of Write_Payee_Rec }
@@ -147,6 +149,7 @@ Begin
                CheckBounds( I, 1, 50, 'pyGL_Narration' );
                pyGL_Narration[ I ] := S;
             end;
+         tkpyAudit_Record_ID                  : pyAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -193,7 +196,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkpyNumber to tkpyGL_Narration do begin
+  for i := tkpyNumber to tkpyAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -255,6 +258,11 @@ begin
                   TGL_Narration_Array(P2.pyGL_Narration), 
                   TGL_Narration_Array(P3.pyGL_Narration)) then begin
     ChangedFields[i] := tkpyGL_Narration;
+    Inc(i);
+  end;
+  if (P1.pyAudit_Record_ID <> P2.pyAudit_Record_ID) then begin
+    P3.pyAudit_Record_ID := P1.pyAudit_Record_ID;
+    ChangedFields[i] := tkpyAudit_Record_ID;
     Inc(i);
   end;
 

@@ -59,6 +59,8 @@ procedure DoCodingOptimisationReport(var Dest : TReportDest);
 
 procedure DoSystemAuditReport(var Dest : TReportDest);
 
+procedure DoClientAuditReport(var Dest : TReportDest);
+
 //******************************************************************************
 implementation
 uses
@@ -3726,7 +3728,7 @@ var
 begin
   AuditReportOptions := TAuditReportOptions.Create;
   try
-     //Set valid date range 
+     //Set valid date range
      AuditReportOptions.DateFrom := MinValidDate;
      AuditReportOptions.DateTo := MaxValidDate;
      if AdminSystem.fAuditTable.AuditRecords.ItemCount > 0 then begin
@@ -3783,6 +3785,142 @@ begin
         AddCommonFooter(Job);
 
         Job.OnBKPrint := AuditReportDetail;
+        Job.ReportOptions := AuditReportOptions;
+        Job.Generate(Dest);
+      finally
+        Job.Free;
+      end;
+    Dest := rdNone;
+    end;
+  finally
+    AuditReportOptions.Free;
+  end;
+end;
+
+procedure ClientAuditReportDetail(Sender : TObject);
+var
+  i, j : integer;
+  Report: TAuditReport;
+  AuditRecord: TAudit_Trail_Rec;
+  AuditFields: TStringList;
+  Values: string;
+  PrintAuditRec: Boolean;
+  TempClientFile: TClientObj;
+begin
+  Report := TAuditReport(Sender);
+
+  TempClientFile := nil;
+  OpenAClient(Report.ReportOptions.ClientCode, TempClientFile , True, True);
+  if Assigned(TempClientFile) then try
+    AuditFields := TStringList.Create;
+    try
+      AuditFields.StrictDelimiter := True;
+      AuditFields.Delimiter := VALUES_DELIMITER;
+      for i := 0 to Pred(TempClientFile.FAuditTable.AuditRecords.ItemCount) do begin
+        AuditRecord := TempClientFile.fAuditTable.AuditRecords.Audit_At(i);
+
+        //Date selection
+        if (stDate.DateTimeToStDate(AuditRecord.atDate_Time) < Report.ReportOptions.DateFrom) or
+           (stDate.DateTimeToStDate(AuditRecord.atDate_Time) > Report.ReportOptions.DateTo) then
+           Continue;
+
+        //Transaction selection
+        case Report.ReportOptions.AuditSelection of
+          byAll: PrintAuditRec := True;
+          byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
+                                              (Report.ReportOptions.TransactionType = atAll);
+          byTransactionID  : PrintAuditRec := (Report.ReportOptions.TransactionID = AuditRecord.atRecord_ID);
+        end;
+
+        //Output
+        if PrintAuditRec then begin
+          Report.PutString(ClientAuditMgr.AuditTypeToStr(AuditRecord.atTransaction_Type));
+          Report.PutString(IntToStr(AuditRecord.atRecord_ID));
+          Report.PutString(aaNames[AuditRecord.atAudit_Action]);
+          Report.PutString(AuditRecord.atUser_Code);
+          Report.PutString(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRecord.atDate_Time));
+
+          Report.RenderDetailLine;
+
+          Values := '';
+          ClientAuditMgr.GetValues(AuditRecord, Values);
+          AuditFields.DelimitedText := Values;
+          for j := 0 to AuditFields.Count - 1 do
+            Report.RenderTextLine('        ' + AuditFields[j]);
+        end;
+      end;
+    finally
+      AuditFields.Free;
+    end;
+  finally
+    CloseAClient(TempClientFile);
+  end;
+end;
+
+procedure DoClientAuditReport(var Dest : TReportDest);
+var
+  AuditReportOptions: TAuditReportOptions;
+  Job: TAuditReport;
+  CLeft: Double;
+begin
+  AuditReportOptions := TAuditReportOptions.Create;
+  try
+     //Set valid date range
+     AuditReportOptions.DateFrom := MinValidDate;
+     AuditReportOptions.DateTo := MaxValidDate;
+     if AdminSystem.fAuditTable.AuditRecords.ItemCount > 0 then begin
+       AuditReportOptions.DateFrom :=
+         DateTimeToStDate(AdminSystem.fAuditTable.AuditRecords.Audit_At(AdminSystem.fAuditTable.AuditRecords.First).atDate_Time);
+       AuditReportOptions.DateTo :=
+         DateTimeToStDate(AdminSystem.fAuditTable.AuditRecords.Audit_At(AdminSystem.fAuditTable.AuditRecords.Last).atDate_Time);
+     end;
+
+     AuditReportOptions.AuditReportType := arClient;
+
+     while Dest = rdNone do begin
+       AuditReportOptions.Destination := rdNone;
+
+       if GetAuditReportOptions(AuditReportOptions) then
+         Dest := AuditReportOptions.Destination;
+
+      //Exit report
+      if Dest = rdNone then
+        Exit;
+
+      //Generate report
+      Job := TAuditReport.Create;
+      try
+        Job.IsAdmin := True;
+        //construct report
+        Job.LoadReportSettings(UserPrintSettings, Report_List_Names[ REPORT_CLIENT_AUDIT]);
+
+        {Add Headers: Job, Alignment, Font Factor, Caption, DoNewLine }
+        AddAdminHeader(Job);
+
+        AddJobHeader(Job, siTitle, 'CLIENT FILE AUDIT REPORT', true);
+        AddJobHeader(Job, siSubTitle, 'From ' +
+                                      StDatetoDateString('dd/MM/yyyy', AuditReportOptions.DateFrom, true) +
+                                      ' to ' +
+                                      StDatetoDateString('dd/MM/yyyy', AuditReportOptions.DateTo, true),
+                                      true);
+        case AuditReportOptions.AuditSelection of
+          byTransactionType: AddJobHeader(Job, siSubTitle, 'Transaction Type - ' +
+                                          SystemAuditMgr.AuditTypeToStr(AuditReportOptions.TransactionType), true);
+          byTransactionID  : AddJobHeader(Job, siSubTitle, 'Transaction ID - ' +
+                                          IntToStr(AuditReportOptions.TransactionID), true);
+        end;
+        AddJobHeader( Job, siSubTitle, '', true);
+
+        CLeft := GCLeft;
+        AddColAuto( Job, cLeft, 20.0,gCgap, 'Transaction Type', jtLeft);
+        AddColAuto( Job, cLeft, 15.0,gCgap, 'Transaction ID', jtLeft);
+        AddColAuto( Job, cLeft, 15.0,gCgap, 'Audit Action', jtLeft);
+        AddColAuto( Job, cLeft, 10.0,gCgap, 'User Code', jtLeft);
+        AddColAuto( Job, cLeft, 40.0,gCgap, 'Date/Time', jtLeft);
+
+        AddCommonFooter(Job);
+
+        Job.OnBKPrint := ClientAuditReportDetail;
         Job.ReportOptions := AuditReportOptions;
         Job.Generate(Dest);
       finally

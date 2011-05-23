@@ -390,17 +390,17 @@ begin
     FAuditNamesArray[120,122] := 'Name';
     FAuditNamesArray[120,123] := 'Audit_Record_ID';
 
-   FAuditTableArray[130] := 'Audit_Trail';
-    FAuditNamesArray[130,131] := 'Audit_ID';
-    FAuditNamesArray[130,132] := 'Transaction_Type';
-    FAuditNamesArray[130,133] := 'Audit_Action';
-    FAuditNamesArray[130,134] := 'Date_Time';
-    FAuditNamesArray[130,135] := 'User_Code';
-    FAuditNamesArray[130,136] := 'Record_ID';
-    FAuditNamesArray[130,137] := 'Parent_ID';
-    FAuditNamesArray[130,138] := 'Changed_Fields';
-    FAuditNamesArray[130,139] := 'Other_Info';
-    FAuditNamesArray[130,140] := 'Audit_Record_Type';
+   FAuditTableArray[135] := 'Audit_Trail';
+    FAuditNamesArray[135,136] := 'Audit_ID';
+    FAuditNamesArray[135,137] := 'Transaction_Type';
+    FAuditNamesArray[135,138] := 'Audit_Action';
+    FAuditNamesArray[135,139] := 'Date_Time';
+    FAuditNamesArray[135,140] := 'User_Code';
+    FAuditNamesArray[135,141] := 'Record_ID';
+    FAuditNamesArray[135,142] := 'Parent_ID';
+    FAuditNamesArray[135,143] := 'Changed_Fields';
+    FAuditNamesArray[135,144] := 'Other_Info';
+    FAuditNamesArray[135,145] := 'Audit_Record_Type';
 
    FAuditTableArray[150] := 'System_Memorisation_List';
     FAuditNamesArray[150,151] := 'Audit_Record_ID';

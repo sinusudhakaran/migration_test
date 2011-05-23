@@ -1452,8 +1452,11 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   var
     i: integer;
   begin
+     LogMsg( lmDebug, Unitname, 'Audit Trail System DB Upgrade Start');
      UpgradingToVersion := 123;
     //Add unique record ID's to all system tables
+    //Practice
+    AdminSystem.fdFields.fdAudit_Record_ID := 0;
     //User
     for i := AdminSystem.fdSystem_User_List.First to AdminSystem.fdSystem_User_List.Last do
       AdminSystem.fdSystem_User_List.User_At(i).usAudit_Record_ID := AdminSystem.NextAuditRecordID;
@@ -1478,6 +1481,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     //Client types
     for i := AdminSystem.fdSystem_Client_Type_List.First to AdminSystem.fdSystem_Client_Type_List.Last do
       AdminSystem.fdSystem_Client_Type_List.Client_Type_At(i).ctAudit_Record_ID := AdminSystem.NextAuditRecordID;
+    LogMsg( lmDebug, Unitname, 'Audit Trail System DB Upgrade Finish');      
   end;
 
   procedure UpgradeAdminToVersion124;
@@ -3816,13 +3820,13 @@ const
             //cycle thru each bank account, including all journals
             for I := 0 to Pred( baTransaction_List.ItemCount) do
                with baTransaction_List.Transaction_At(I)^ do begin
-                  if txSpareL <> 0 then // Job LRN
-                     txJob_Code := IntToStr(txSpareL);
+                  if txAudit_Record_ID <> 0 then // Job LRN
+                     txJob_Code := IntToStr(txAudit_Record_ID);
 
                   pD := txFirst_Dissection;
                   while assigned(Pd) do begin
-                     if pD.dsSpareL <> 0 then
-                        pD.dsJob_Code := IntToStr(pD.dsSpareL);
+                     if pD.dsAudit_Record_ID <> 0 then
+                        pD.dsJob_Code := IntToStr(pD.dsAudit_Record_ID);
                      pd := PD.dsNext;
                   end;
 
@@ -3997,6 +4001,87 @@ const
        end;
      end;
    end;
+
+  procedure UpgradeToVersion165;
+  //Audit trail - adds audit ID values for existing records
+  var
+    i, j, k: Integer;
+    BA: TBank_Account;
+    TX: pTransaction_Rec;
+    DS: pDissection_Rec;
+    PD: TPayee;
+    MD: TMemorisation;
+    CHL: TNew_Custom_Headings_List;
+  begin
+    LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Start');
+    //CL Client
+    aClient.clExtra.ceAudit_Record_ID := 0;
+    //CH Chart of Accounts
+    for i := aClient.clChart.First to aClient.clChart.Last do
+      aClient.clChart.Account_At(i).chAudit_Record_ID := aClient.NextAuditRecordID;
+    //PY Payees
+    for i := aClient.clPayee_List_V53.First to aClient.clPayee_List_V53.Last do
+      aClient.clPayee_List_V53.Payee_At(i).pyAudit_Record_ID := aClient.NextAuditRecordID;
+    //PD Payee Detail
+    for i := aClient.clPayee_List.First to aClient.clPayee_List.Last do begin
+      PD := aClient.clPayee_List.Payee_At(i);
+      if Assigned(PD) then begin
+        PD.pdFields.pdAudit_Record_ID := aClient.NextAuditRecordID;
+        //PL Payee Lines
+        for j := PD.pdLines.First to PD.pdLines.Last do
+          PD.pdLines.PayeeLine_At(j).plAudit_Record_ID := aClient.NextAuditRecordID;
+      end;
+    end;
+    //BA Bank Accounts
+    for i := aClient.clBank_Account_List.First to aClient.clBank_Account_List.Last do begin
+      BA := aClient.clBank_Account_List.Bank_Account_At(i);
+      if Assigned(BA) then begin
+        BA.baFields.baAudit_Record_ID := aClient.NextAuditRecordID;
+        //TX Transactions
+        for j := BA.baTransaction_List.First to BA.baTransaction_List.Last do begin
+          TX := BA.baTransaction_List.Transaction_At(j);
+          if Assigned(TX) then begin
+            TX.txAudit_Record_ID := aClient.NextAuditRecordID;
+            //DS Dissections
+            DS := TX.txFirst_Dissection;
+            while (DS <> nil) do begin
+              DS.dsAudit_Record_ID := aClient.NextAuditRecordID;
+              DS := DS.dsNext;
+            end;
+          end;
+        end;
+        //MD Memorisations
+        for j := BA.baMemorisations_List.First to BA.baMemorisations_List.Last do begin
+          MD := BA.baMemorisations_List.Memorisation_At(j);
+          if Assigned(MD) then begin
+            MD.mdFields.mdAudit_Record_ID := aClient.NextAuditRecordID;
+            //ML Memorisation Lines
+            for k := MD.mdLines.First to MD.mdLines.Last do
+              MD.mdLines.MemorisationLine_At(k).mlAudit_Record_ID := aClient.NextAuditRecordID;
+          end;
+        end;
+      end;
+    end;
+    //Balances
+    for i := aClient.clBalances_List.First to aClient.clBalances_List.Last do
+      aClient.clBalances_List.Balances_At(i).blAudit_Record_ID := aClient.NextAuditRecordID;
+
+    //SubGroup Heading - not used
+    //Division Heading - not used
+
+    //Custom Heading
+    for i := aClient.clCustom_Headings_List.First to aClient.clCustom_Headings_List.Last do begin
+      CHL := TNew_Custom_Headings_List(aClient.clCustom_Headings_List.Items[i]);
+      if Assigned(CHL) then begin
+        for j := 0 to Pred(CHL.ItemCount) do
+          pCustom_Heading_Rec(CHL.Items[j]).hdAudit_Record_ID := aClient.NextAuditRecordID;
+      end;
+    end;
+    //Job Heading
+    for i := aClient.clJobs.First to aClient.clJobs.Last do
+      aClient.clJobs.Job_At(i).jhAudit_Record_ID := aClient.NextAuditRecordID;
+    LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Finish');      
+  end;
 
 begin
    with aClient.clFields do begin
@@ -4326,6 +4411,11 @@ begin
       if (CLFile_Version < 163) then begin
         UpgradeToVersion163;
         clFile_Version := 163;
+      end;
+      // 2011 Audit Trail
+      if (CLFile_Version < 165) then begin
+        UpgradeToVersion165;
+        clFile_Version := 165;
       end;
 
    end;

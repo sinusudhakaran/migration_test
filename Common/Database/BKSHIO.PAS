@@ -49,6 +49,7 @@ CONST
    tkshHeading                          = 202 ;
    tkshReport_Group_No                  = 203 ;
    tkshSub_Group_No                     = 204 ;
+   tkshAudit_Record_ID                  = 205 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -77,6 +78,7 @@ Begin
       F.WriteStringValue( tkshHeading , shHeading );
       F.WriteIntegerValue( tkshReport_Group_No , shReport_Group_No );
       F.WriteIntegerValue( tkshSub_Group_No , shSub_Group_No );
+      F.WriteIntegerValue( tkshAudit_Record_ID , shAudit_Record_ID );
       F.WriteToken( tkEnd_SubGroup_Heading );
    end;
 end; { of Write_SubGroup_Heading_Rec }
@@ -102,6 +104,7 @@ Begin
          tkshHeading                          : shHeading := F.ReadStringValue;
          tkshReport_Group_No                  : shReport_Group_No := F.ReadIntegerValue;
          tkshSub_Group_No                     : shSub_Group_No := F.ReadIntegerValue;
+         tkshAudit_Record_ID                  : shAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -148,7 +151,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkshHeading to tkshSub_Group_No do begin
+  for i := tkshHeading to tkshAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -185,6 +188,11 @@ begin
   if (P1.shSub_Group_No <> P2.shSub_Group_No) then begin
     P3.shSub_Group_No := P1.shSub_Group_No;
     ChangedFields[i] := tkshSub_Group_No;
+    Inc(i);
+  end;
+  if (P1.shAudit_Record_ID <> P2.shAudit_Record_ID) then begin
+    P3.shAudit_Record_ID := P1.shAudit_Record_ID;
+    ChangedFields[i] := tkshAudit_Record_ID;
     Inc(i);
   end;
 

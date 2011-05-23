@@ -445,7 +445,7 @@ F|Name|S|60
 F|Audit Record ID|L
 E
 
-N|Audit Trail|at|130
+N|Audit Trail|at|135
 F|Audit ID|L
 F|Transaction Type|B
 F|Audit Action|B

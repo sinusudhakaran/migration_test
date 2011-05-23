@@ -597,7 +597,7 @@ begin
       REPORT_CLIENT_STATUS   : DoClientStatusReport(Destination);
       REPORT_CODING_OPTIMISATION : DoCodingOptimisationReport(Destination);
       REPORT_SYSTEM_AUDIT        : DoSystemAuditreport(Destination);
-      REPORT_CLIENT_AUDIT        : DoSystemAuditreport(Destination);
+      REPORT_CLIENT_AUDIT        : DoClientAuditreport(Destination);
 
       List_Groups            : DoGroupList(Destination);
       List_Client_Types      : DoClientTypelistList(Destination);

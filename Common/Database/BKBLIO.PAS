@@ -108,6 +108,7 @@ CONST
    tkblUsing_Fuel_Percent_Method        = 251 ;
    tkblPT_Form_Type                     = 252 ;
    tkblGST_Cdj_Customs                  = 253 ;
+   tkblAudit_Record_ID                  = 254 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -195,6 +196,7 @@ Begin
       F.WriteBooleanValue( tkblUsing_Fuel_Percent_Method , blUsing_Fuel_Percent_Method );
       F.WriteByteValue( tkblPT_Form_Type , blPT_Form_Type );
       F.WriteMoneyValue( tkblGST_Cdj_Customs , blGST_Cdj_Customs );
+      F.WriteIntegerValue( tkblAudit_Record_ID , blAudit_Record_ID );
       F.WriteToken( tkEnd_Balances );
    end;
 end; { of Write_Balances_Rec }
@@ -279,6 +281,7 @@ Begin
          tkblUsing_Fuel_Percent_Method        : blUsing_Fuel_Percent_Method := F.ReadBooleanValue;
          tkblPT_Form_Type                     : blPT_Form_Type := F.ReadByteValue;
          tkblGST_Cdj_Customs                  : blGST_Cdj_Customs := F.ReadMoneyValue;
+         tkblAudit_Record_ID                  : blAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -325,7 +328,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkblGST_Period_Starts to tkblGST_Cdj_Customs do begin
+  for i := tkblGST_Period_Starts to tkblAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -657,6 +660,11 @@ begin
   if (P1.blGST_Cdj_Customs <> P2.blGST_Cdj_Customs) then begin
     P3.blGST_Cdj_Customs := P1.blGST_Cdj_Customs;
     ChangedFields[i] := tkblGST_Cdj_Customs;
+    Inc(i);
+  end;
+  if (P1.blAudit_Record_ID <> P2.blAudit_Record_ID) then begin
+    P3.blAudit_Record_ID := P1.blAudit_Record_ID;
+    ChangedFields[i] := tkblAudit_Record_ID;
     Inc(i);
   end;
 

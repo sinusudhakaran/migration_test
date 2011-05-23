@@ -4,7 +4,7 @@ UNIT SysDList32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 INTERFACE
 USES
-   eCollect, SYDEFS, IOSTREAM, AuditMgr, SysAudit;
+   eCollect, SYDEFS, IOSTREAM, AuditMgr;
 
 Type
    tSystem_Disk_Log = class( TExtdCollection )

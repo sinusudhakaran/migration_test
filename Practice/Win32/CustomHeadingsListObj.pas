@@ -37,48 +37,48 @@ uses
   IOSTREAM,
   BKDEFS;
 
-type
-  TPointerListBaseObj = class
-    constructor Create;
-    destructor  Destroy; override;
-  private
-    procedure VerifyRecord;                      virtual; abstract;
-  public
-    function  SortKey : string;                  virtual; abstract;
-    procedure SaveToFile( Var S : TIOStream );   virtual; abstract;
-    procedure LoadFromFile( Var S : TIOStream ); virtual; abstract;
-    procedure UpdateCRC( var CRC : LongWord);    virtual; abstract;
-
-    class function ClassSortKey : string; virtual; abstract;
-  end;
-
-  TSubGroupHeading = class( TPointerListBaseObj)
-  private
-    procedure VerifyRecord;                      override;
-  public
-    shFields : tSubGroup_Heading_Rec;
-
-    function  SortKey : string;                  override;
-    procedure SaveToFile( Var S : TIOStream );   override;
-    procedure LoadFromFile( Var S : TIOStream ); override;
-    procedure UpdateCRC( var CRC : LongWord);    override;
-
-    class function ClassSortKey( ReportGroupNo : integer; SubGroupNo : integer) : string; reintroduce;
-  end;
-
-  TDivisionHeading = class( TPointerListBaseObj)
-  private
-    procedure VerifyRecord;                      override;
-  public
-    dhFields : tDivision_Heading_Rec;
-
-    function  SortKey : string;                  override;
-    procedure SaveToFile( Var S : TIOStream );   override;
-    procedure LoadFromFile( Var S : TIOStream ); override;
-    procedure UpdateCRC( var CRC : LongWord);    override;
-
-    class function ClassSortKey( DivisionNo : integer) : string; reintroduce;
-  end;
+//type
+//  TPointerListBaseObj = class
+//    constructor Create;
+//    destructor  Destroy; override;
+//  private
+//    procedure VerifyRecord;                      virtual; abstract;
+//  public
+//    function  SortKey : string;                  virtual; abstract;
+//    procedure SaveToFile( Var S : TIOStream );   virtual; abstract;
+//    procedure LoadFromFile( Var S : TIOStream ); virtual; abstract;
+//    procedure UpdateCRC( var CRC : LongWord);    virtual; abstract;
+//
+//    class function ClassSortKey : string; virtual; abstract;
+//  end;
+//
+//  TSubGroupHeading = class( TPointerListBaseObj)
+//  private
+//    procedure VerifyRecord;                      override;
+//  public
+//    shFields : tSubGroup_Heading_Rec;
+//
+//    function  SortKey : string;                  override;
+//    procedure SaveToFile( Var S : TIOStream );   override;
+//    procedure LoadFromFile( Var S : TIOStream ); override;
+//    procedure UpdateCRC( var CRC : LongWord);    override;
+//
+//    class function ClassSortKey( ReportGroupNo : integer; SubGroupNo : integer) : string; reintroduce;
+//  end;
+//
+//  TDivisionHeading = class( TPointerListBaseObj)
+//  private
+//    procedure VerifyRecord;                      override;
+//  public
+//    dhFields : tDivision_Heading_Rec;
+//
+//    function  SortKey : string;                  override;
+//    procedure SaveToFile( Var S : TIOStream );   override;
+//    procedure LoadFromFile( Var S : TIOStream ); override;
+//    procedure UpdateCRC( var CRC : LongWord);    override;
+//
+//    class function ClassSortKey( DivisionNo : integer) : string; reintroduce;
+//  end;
 
 {
    A simple list object to hold the report headings. Each item in the list is a pointer pCustom_Heading_Rec that
@@ -130,94 +130,94 @@ const
   SUnknownToken = 'HDList Error: Unknown token %d';
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-{ TPointerListBaseObj }
-
-constructor TPointerListBaseObj.Create;
-begin
-  inherited Create;
-end;
-
-destructor TPointerListBaseObj.Destroy;
-begin
-  inherited;
-end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-{ TSubGroupHeading }
-
-class function TSubGroupHeading.ClassSortKey(ReportGroupNo,
-  SubGroupNo: integer): string;
-begin
-  result := LongToKey( htSubGroupHeading) +
-            LongtoKey( ReportGroupNo) +
-            LongtoKey( SubGroupNo);
-end;
-
-procedure TSubGroupHeading.LoadFromFile(var S: TIOStream);
-begin
-  Read_SubGroup_Heading_Rec( shFields, s);
-end;
-
-procedure TSubGroupHeading.SaveToFile(var S: TIOStream);
-begin
-  Write_SubGroup_Heading_Rec( shFields, S);
-end;
-
-function TSubGroupHeading.SortKey: string;
-begin
-  result := LongToKey( htSubGroupHeading) +
-            LongtoKey( shFields.shReport_Group_No) +
-            LongtoKey( shFields.shSub_Group_No);
-end;
-
-procedure TSubGroupHeading.UpdateCRC(var CRC: LongWord);
-begin
-  BKCRC.UpdateCRC( shFields, CRC);
-end;
-
-procedure TSubGroupHeading.VerifyRecord;
-var
-  P : Pointer;
-begin
-  P := @Self.shFields;
-  bkshio.IsASubGroup_Heading_Rec( P);
-end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-{ TDivisionHeading }
-
-class function TDivisionHeading.ClassSortKey(DivisionNo: integer): string;
-begin
-  result := LongToKey( htDivisionHeading) +
-            LongtoKey( DivisionNo);
-end;
-
-procedure TDivisionHeading.LoadFromFile(var S: TIOStream);
-begin
-  Read_Division_Heading_Rec( dhFields, S);
-end;
-
-procedure TDivisionHeading.SaveToFile(var S: TIOStream);
-begin
-  Write_Division_Heading_Rec( dhFields, S);
-end;
-
-function TDivisionHeading.SortKey: string;
-begin
-  result := LongToKey( htDivisionHeading) +
-            LongtoKey( dhFields.dhDivision_No);
-end;
-
-procedure TDivisionHeading.UpdateCRC(var CRC: LongWord);
-begin
-  BKCRC.UpdateCRC( dhFields, CRC);
-end;
-
-procedure TDivisionHeading.VerifyRecord;
-var
-  P : Pointer;
-begin
-  P := @Self.dhFields;
-  bkdhio.IsADivision_Heading_Rec( P);
-end;
+//{ TPointerListBaseObj }
+//
+//constructor TPointerListBaseObj.Create;
+//begin
+//  inherited Create;
+//end;
+//
+//destructor TPointerListBaseObj.Destroy;
+//begin
+//  inherited;
+//end;
+//// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//{ TSubGroupHeading }
+//
+//class function TSubGroupHeading.ClassSortKey(ReportGroupNo,
+//  SubGroupNo: integer): string;
+//begin
+//  result := LongToKey( htSubGroupHeading) +
+//            LongtoKey( ReportGroupNo) +
+//            LongtoKey( SubGroupNo);
+//end;
+//
+//procedure TSubGroupHeading.LoadFromFile(var S: TIOStream);
+//begin
+//  Read_SubGroup_Heading_Rec( shFields, s);
+//end;
+//
+//procedure TSubGroupHeading.SaveToFile(var S: TIOStream);
+//begin
+//  Write_SubGroup_Heading_Rec( shFields, S);
+//end;
+//
+//function TSubGroupHeading.SortKey: string;
+//begin
+//  result := LongToKey( htSubGroupHeading) +
+//            LongtoKey( shFields.shReport_Group_No) +
+//            LongtoKey( shFields.shSub_Group_No);
+//end;
+//
+//procedure TSubGroupHeading.UpdateCRC(var CRC: LongWord);
+//begin
+//  BKCRC.UpdateCRC( shFields, CRC);
+//end;
+//
+//procedure TSubGroupHeading.VerifyRecord;
+//var
+//  P : Pointer;
+//begin
+//  P := @Self.shFields;
+//  bkshio.IsASubGroup_Heading_Rec( P);
+//end;
+//// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//{ TDivisionHeading }
+//
+//class function TDivisionHeading.ClassSortKey(DivisionNo: integer): string;
+//begin
+//  result := LongToKey( htDivisionHeading) +
+//            LongtoKey( DivisionNo);
+//end;
+//
+//procedure TDivisionHeading.LoadFromFile(var S: TIOStream);
+//begin
+//  Read_Division_Heading_Rec( dhFields, S);
+//end;
+//
+//procedure TDivisionHeading.SaveToFile(var S: TIOStream);
+//begin
+//  Write_Division_Heading_Rec( dhFields, S);
+//end;
+//
+//function TDivisionHeading.SortKey: string;
+//begin
+//  result := LongToKey( htDivisionHeading) +
+//            LongtoKey( dhFields.dhDivision_No);
+//end;
+//
+//procedure TDivisionHeading.UpdateCRC(var CRC: LongWord);
+//begin
+//  BKCRC.UpdateCRC( dhFields, CRC);
+//end;
+//
+//procedure TDivisionHeading.VerifyRecord;
+//var
+//  P : Pointer;
+//begin
+//  P := @Self.dhFields;
+//  bkdhio.IsADivision_Heading_Rec( P);
+//end;
 
 { tNew_Custom_Headings_List }
 

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ReportDefs, ComCtrls, AuditMgr, DateSelectorFme,
-  OSFont, ClientSelectFme, SYDEFS;
+  OSFont, ClientSelectFme, SYDEFS, ExtCtrls;
 
 type
   TAuditReportType = (arSystem, arClient, arTest);
@@ -13,7 +13,7 @@ type
 
   TAuditReportOptions = class(TObject)
   private
-    FClientSelectOptions: TClientSelectOptions;
+//    FClientSelectOptions: TClientSelectOptions;
     FDateTo: integer;
     FDateFrom: integer;
     FDestination: TReportDest;
@@ -21,7 +21,8 @@ type
     FTransactionID: integer;
     FTransactionType: Byte;
     FAuditSelection: TAuditSelection;
-    procedure SetClientSelectOptions(const Value: TClientSelectOptions);
+    FClientCode: string;
+//    procedure SetClientSelectOptions(const Value: TClientSelectOptions);
     procedure SetDateFrom(const Value: integer);
     procedure SetDateTo(const Value: integer);
     procedure SetDestination(const Value: TReportDest);
@@ -32,11 +33,12 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    function ClientInSelection(AClient: Pointer): Boolean;
+//    function ClientInSelection(AClient: Pointer): Boolean;
     function AuditRecordInSelection(AAuditRecord: TAudit_Trail_Rec): Boolean;
+    property ClientCode: string read FClientCode;
     property DateFrom : integer read FDateFrom write SetDateFrom;
     property DateTo   : integer read FDateTo write SetDateTo;
-    property ClientSelectOptions: TClientSelectOptions read FClientSelectOptions write SetClientSelectOptions;
+//    property ClientSelectOptions: TClientSelectOptions read FClientSelectOptions write SetClientSelectOptions;
     property Destination: TReportDest read FDestination write SetDestination;
     property AuditReportType: TAuditReportType read FAuditReportType write SetAuditReportType;
     property TransactionType: Byte read FTransactionType write SetTransactionType;
@@ -58,13 +60,6 @@ type
     btnByTxnID: TButton;
     btnSaveToCSV: TButton;
     btnCancel: TButton;
-    gbxReportPeriod: TGroupBox;
-    DateSelector: TfmeDateSelector;
-    GroupBox1: TGroupBox;
-    rbSytemTransactionType: TRadioButton;
-    rbSytemTransactionID: TRadioButton;
-    ComboBox1: TComboBox;
-    Edit1: TEdit;
     ClientSelect: TFmeClientSelect;
     GroupBox2: TGroupBox;
     fmeDateSelector1: TfmeDateSelector;
@@ -76,14 +71,28 @@ type
     GroupBox4: TGroupBox;
     RadioButton5: TRadioButton;
     RadioButton6: TRadioButton;
-    btnPreview: TButton;
-    btnFile: TButton;
-    btnPrint: TButton;
-    Button1: TButton;
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
     Button5: TButton;
+    pnlSelectClient: TPanel;
+    pnlSelectDate: TPanel;
+    pnlSelectTransaction: TPanel;
+    pnlButtons: TPanel;
+    GroupBox5: TGroupBox;
+    Label1: TLabel;
+    cbClientFileCodes: TComboBox;
+    gbxReportPeriod: TGroupBox;
+    DateSelector: TfmeDateSelector;
+    GroupBox1: TGroupBox;
+    rbSytemTransactionType: TRadioButton;
+    rbSytemTransactionID: TRadioButton;
+    ComboBox1: TComboBox;
+    Edit1: TEdit;
+    Button1: TButton;
+    btnPrint: TButton;
+    btnFile: TButton;
+    btnPreview: TButton;
     procedure btnSaveToCSVClick(Sender: TObject);
     procedure btnByTxnTypeClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -98,16 +107,16 @@ type
   private
     { Private declarations }
     FBtnPressed : integer;
-    function Validate: Boolean;    
+    function Validate: Boolean;
     procedure DisplayAuditRecords;
     procedure LoadAuditTypes;
+    procedure LoadClientFileCodes;
     procedure DisplayAuditRecsByAuditType(AAuditType: TAuditType);
     procedure DisplayAuditRecsByTransactionID(ARecordID: integer);
   public
     { Public declarations }
   end;
 
-//  procedure DoAuditreport(var Dest : TReportDest; AuditReportType: TAuditReportType);
   function GetAuditReportOptions(var AuditReportOptions: TAuditReportOptions): boolean;
 
 implementation
@@ -117,57 +126,6 @@ uses
   bkXPThemes;
 
 {$R *.dfm}
-
-{procedure DoAuditreport(var Dest : TReportDest; AuditReportType: TAuditReportType);
-var
-  frmAuditReportOption: TfrmAuditReportOption;
-  Margin: integer;
-begin
-  frmAuditReportOption := TfrmAuditReportOption.Create(Application.MainForm);
-  try
-    frmAuditReportOption.DisplayAuditRecords;
-    case AuditReportType of
-      arSystem :
-        begin
-          //System
-          frmAuditReportOption.Caption := frmAuditReportOption.tsSystem.Caption;
-          frmAuditReportOption.PageControl1.ActivePage := frmAuditReportOption.tsSystem;
-          Margin := frmAuditReportOption.PageControl1.Margins.Left +
-                    frmAuditReportOption.tsSystem.Margins.Left +
-                    frmAuditReportOption.tsSystem.Left +
-                    frmAuditReportOption.gbxReportPeriod.Left;
-          frmAuditReportOption.Width := Margin +
-                                        frmAuditReportOption.gbxReportPeriod.Width +
-                                        Margin;
-          frmAuditReportOption.Height := (frmAuditReportOption.Height - frmAuditReportOption.ClientHeight) +
-                                         frmAuditReportOption.btnPreview.Top +
-                                         frmAuditReportOption.btnPreview.Height +
-                                         Margin;
-          frmAuditReportOption.radioButton1Click(frmAuditReportOption);
-        end;
-      arClient :
-        begin
-          //Client
-          frmAuditReportOption.Caption := frmAuditReportOption.tsClient.Caption;
-          frmAuditReportOption.PageControl1.ActivePage := frmAuditReportOption.tsClient;
-          Margin := frmAuditReportOption.PageControl1.Margins.Left +
-                    frmAuditReportOption.tsClient.Margins.Left +
-                    frmAuditReportOption.tsClient.Left +
-                    frmAuditReportOption.GroupBox2.Left;
-          frmAuditReportOption.Width := Margin +
-                                        frmAuditReportOption.GroupBox2.Width +
-                                        Margin;
-          frmAuditReportOption.Height := (frmAuditReportOption.Height - frmAuditReportOption.ClientHeight) +
-                                         frmAuditReportOption.Button2.Top +
-                                         frmAuditReportOption.Button2.Height +
-                                         Margin;
-        end;
-    end;
-    frmAuditReportOption.ShowModal;
-  finally
-    frmAuditReportOption.Free;
-  end;
-end; }
 
 function GetAuditReportOptions(var AuditReportOptions: TAuditReportOptions): boolean;
 var
@@ -184,30 +142,36 @@ begin
           begin
             //System
             Caption := frmAuditReportOption.tsSystem.Caption;
-            PageControl1.ActivePage := tsSystem;
-            Margin := PageControl1.Margins.Left +
-                      tsSystem.Margins.Left +
-                      tsSystem.Left +
-                      gbxReportPeriod.Left;
-            Width := Margin + gbxReportPeriod.Width + Margin;
-            Height := (Height - ClientHeight) + btnPreview.Top +
-                      btnPreview.Height + Margin;
-            DateSelector.eDateFrom.AsStDate := AuditReportOptions.DateFrom;
-            DateSelector.eDateTo.AsStDate := AuditReportOptions.DateTo;
-            rbSytemTransactionTypeClick(frmAuditReportOption);
+            pnlSelectClient.Visible := False;
           end;
         arClient :
           begin
             //Client
             Caption := tsClient.Caption;
-            PageControl1.ActivePage := tsClient;
-            Margin := PageControl1.Margins.Left + tsClient.Margins.Left +
-                      tsClient.Left + GroupBox2.Left;
-            Width := Margin + GroupBox2.Width + Margin;
-            Height := (Height - ClientHeight) + Button2.Top +
-                      Button2.Height + Margin;
+            pnlSelectClient.Visible := True;
+//            PageControl1.ActivePage := tsClient;
+//            Margin := PageControl1.Margins.Left + tsClient.Margins.Left +
+//                      tsClient.Left + GroupBox2.Left;
+//            Width := Margin + GroupBox2.Width + Margin;
+//            Height := (Height - ClientHeight) + Button2.Top +
+//                      Button2.Height + Margin;
           end;
       end;
+
+      PageControl1.ActivePage := tsSystem;
+      Margin := PageControl1.Margins.Left +
+                tsSystem.Margins.Left +
+                tsSystem.Left +
+                gbxReportPeriod.Left;
+      Width := Margin + gbxReportPeriod.Width + Margin;
+//      Height := (Height - ClientHeight) + btnPreview.Top +
+//                btnPreview.Height + Margin;
+      Height := (Height - ClientHeight) + pnlButtons.Top +
+                pnlButtons.Height + Margin;
+
+      DateSelector.eDateFrom.AsStDate := AuditReportOptions.DateFrom;
+      DateSelector.eDateTo.AsStDate := AuditReportOptions.DateTo;
+      rbSytemTransactionTypeClick(frmAuditReportOption);
 
       ShowModal;
       if FBtnPressed in [BTN_PREVIEW, BTN_PRINT, BTN_FILE] then begin
@@ -229,11 +193,12 @@ begin
                 end;
               arClient:
                 begin
-                  ClientSelectOptions.ReportSort := ClientSelect.ReportSort;
-                  ClientSelectOptions.RangeOption := ClientSelect.RangeOption;
-                  ClientSelectOptions.FromCode := ClientSelect.edtFromCode.Text;
-                  ClientSelectOptions.ToCode := ClientSelect.edtToCode.Text;
-                  ClientSelectOptions.CodeSelectionList.DelimitedText := ClientSelect.edtSelection.Text;
+//                  ClientSelectOptions.ReportSort := ClientSelect.ReportSort;
+//                  ClientSelectOptions.RangeOption := ClientSelect.RangeOption;
+//                  ClientSelectOptions.FromCode := ClientSelect.edtFromCode.Text;
+//                  ClientSelectOptions.ToCode := ClientSelect.edtToCode.Text;
+//                  ClientSelectOptions.CodeSelectionList.DelimitedText := ClientSelect.edtSelection.Text;
+                    AuditReportOptions.FClientCode := cbClientFileCodes.Items[cbClientFileCodes.ItemIndex];
                 end;
             end;
             case FBtnPressed of
@@ -395,6 +360,7 @@ begin
   bkXPThemes.ThemeForm( Self);
 
   LoadAuditTypes;
+  LoadClientFileCodes;
 
   for i := 0 to PageControl1.PageCount - 1 do
     PageControl1.Pages[i].TabVisible := False;
@@ -439,6 +405,16 @@ begin
   ComboBox2.ItemIndex := 0;      
 end;
 
+procedure TfrmAuditReportOption.LoadClientFileCodes;
+var
+  i: integer;
+begin
+  cbClientFileCodes.Clear;
+  if Assigned(AdminSystem) then
+    for i := AdminSystem.fdSystem_Client_File_List.First to AdminSystem.fdSystem_Client_File_List.Last do
+      cbClientFileCodes.Items.Add(AdminSystem.fdSystem_Client_File_List.Client_File_At(i).cfFile_Code);
+end;
+
 procedure TfrmAuditReportOption.rbSytemTransactionTypeClick(Sender: TObject);
 begin
   ComboBox1.Enabled := rbSytemTransactionType.Checked;
@@ -466,10 +442,10 @@ begin
   Result := False;
 end;
 
-function TAuditReportOptions.ClientInSelection(AClient: Pointer): Boolean;
-begin
-  Result := False;
-end;
+//function TAuditReportOptions.ClientInSelection(AClient: Pointer): Boolean;
+//begin
+//  Result := False;
+//end;
 
 constructor TAuditReportOptions.Create;
 begin
@@ -493,11 +469,11 @@ begin
   FAuditSelection := Value;
 end;
 
-procedure TAuditReportOptions.SetClientSelectOptions(
-  const Value: TClientSelectOptions);
-begin
-  FClientSelectOptions := Value;
-end;
+//procedure TAuditReportOptions.SetClientSelectOptions(
+//  const Value: TClientSelectOptions);
+//begin
+//  FClientSelectOptions := Value;
+//end;
 
 procedure TAuditReportOptions.SetDateFrom(const Value: integer);
 begin

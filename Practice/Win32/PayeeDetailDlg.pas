@@ -181,7 +181,8 @@ uses
   CanvasUtils,
   StdHints,
   Math,
-  Software;
+  Software,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -1285,6 +1286,9 @@ begin
        SavePayee(aPayee);
        {insert into client}
        MyClient.clPayee_List.Insert(aPayee);
+
+       //Flag Audit
+       ClientAuditMgr.FlagAudit(atPayees);
 
        Result := true;
      end;

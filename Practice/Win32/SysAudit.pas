@@ -3,9 +3,72 @@ unit SysAudit;
 interface
 
 uses
-  Classes, SysUtils, IOStream, ECollect, SYDEFS, AuditMgr;
+  Classes, SysUtils, IOStream, ECollect, SYDEFS, MoneyDef;
+
+const
+  //Audit types
+  atPracticeSetup                 = 0;  atMin = 0;
+  atPracticeGSTDefaults           = 1;
+  atMasterMemorisations           = 2;
+  atUsers                         = 3;
+  atSystemOptions                 = 4;
+  atDownloadingData               = 5;
+  atSystemBankAccounts            = 6;
+  atProvisionalDataEntry          = 7;
+  atClientFiles                   = 8;
+  atAttachBankAccounts            = 9;
+  atClientBankAccounts            = 10;
+  atChartOfAccounts               = 11;
+  atPayees                        = 12;
+  atMemorisations                 = 13;
+  atGSTSetup                      = 14;
+  atHistoricalentries             = 15;
+  atProvisionalEntries            = 16;
+  atManualEntries                 = 17;
+  atDeliveredTransactions         = 18;
+  atAutomaticCoding               = 19;
+  atCashJournals                  = 20;
+  atAccrualJournals               = 21;
+  atStockAdjustmentJournals       = 22;
+  atYearEndAdjustmentJournals     = 23;
+  atGSTJournals                   = 24;
+  atOpeningBalances               = 25;
+  atUnpresentedItems              = 26;
+  atBankLinkNotes                 = 27;
+  atBankLinkNotesOnline           = 28;
+  atBankLinkBooks                 = 29; atMax = 29;
+  atAll = 254;
+
+  //Audit actions
+  aaNone   = 0;  aaMin = 0;
+  aaAdd    = 1;
+  aaChange = 2;
+  aaDelete = 3;  aaMax = 3;
+
+  //Audit action strings
+  aaNames : array[ aaMin..aaMax ] of string = ('None', 'Add', 'Change', 'Delete');
+
+  SystemAuditTypes = [atPracticeSetup..atClientFiles, atAll];
 
 type
+  TChanged_Fields_Array = MoneyDef.TChanged_Fields_Array;
+
+  TAuditType = atMin..atMax;
+
+  TAuditInfo = record
+    AuditRecordID: integer;
+    AuditUser: string;
+    AuditType: TAuditType;
+    AuditAction: byte;
+    AuditParentID: integer;
+    AuditRecordType: byte;
+    AuditChangedFields: TChanged_Fields_Array;
+    AuditOtherInfo: string;
+    AuditRecord: Pointer;
+  end;
+
+  TAudit_Trail_Rec = SYDEFS.tAudit_Trail_Rec;
+
   TAuditCollection = class(TExtdSortedCollection)
   protected
     procedure FreeItem(Item : Pointer); override;
@@ -34,12 +97,12 @@ type
 implementation
 
 uses
-  TOKENS, BKDbExcept, SYATIO, BKDEFS, BKCHIO, BKPDIO;
+  AuditMgr, TOKENS, BKDbExcept, SYATIO, BKDEFS, BKCHIO, BKPDIO;
 
 const
   UNIT_NAME = 'AuditMgr';
 
-{ TAuditObj }
+{ TAuditTable }
 
 procedure TAuditTable.AddAuditRec(AAuditInfo: TAuditInfo);
 var

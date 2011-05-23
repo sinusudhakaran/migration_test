@@ -13,7 +13,7 @@ uses
    BaList32, chList32, pyList32, maList32, dlList32,
    buList32, blList32, jobobj,
    PayeeObj,
-   CustomHeadingsListObj, ExchangeRateList, mcDefs,
+   CustomHeadingsListObj, ExchangeRateList, mcDefs, AuditMgr,
 {$ENDIF}
    sysutils, MoneyDef;
 
@@ -34,6 +34,7 @@ type
     clMoreFields           : TMoreClient_Rec;
     clJobs                 : TClient_Job_List;
     clExtra                : TClientExtra_Rec;
+    FAuditTable            : TAuditTable;
 {$ENDIF}
     clWas_Code             : string;  //store the client code to detect a rename
     clRawStreamSize        : integer; //store stream size on open so can estimate for save
@@ -43,6 +44,7 @@ type
 {$IFDEF ParserDll}
 {$ELSE}
     FExchangeSource: TExchangeSource;
+    FLastAuditRecordID: integer;
 {$ENDIF}
     procedure LoadFromStream( var s:TIOStream);
     procedure GetZipStreamFromFile( const Filename : String; const ZipStream : TBigMemoryStream);
@@ -109,8 +111,12 @@ type
     // ----------------------------------------------------------------------------
 
     function GetForexISOCodeForContra(AContraCode: string): string;
+    function NextAuditRecordID: integer;
+    property AuditTable: TAuditTable read FAuditTable;
 {$ENDIF}
   end;
+
+  function ClientCopy: TClientObj;
 
 {$IFDEF ParserDll}
    var  // So we don't need Globals or WinUtils
@@ -121,8 +127,6 @@ type
      ShortAppName : string = 'BankLink';
      function BKFileExists(Filename: string): Boolean;
 {$ELSE}
-
-
 {$ENDIF}
 
 //******************************************************************************
@@ -177,6 +181,15 @@ const
 
 var
   DebugMe     : Boolean = false;
+  _ClientCopy : TClientObj;
+
+function ClientCopy: TClientObj;
+begin
+  if not Assigned(_ClientCopy) then begin
+    _ClientCopy := TClientObj.Create;
+  end;
+  Result := _ClientCopy;
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TClientObj.Create;
@@ -191,6 +204,7 @@ begin
    clWas_Code             := '';
 {$IFDEF ParserDll}
 {$ELSE}
+   FLastAuditRecordID := 0;
    FillChar(clMoreFields,SizeOf(clMoreFields),0);
    clMoreFields.mcRecord_Type := tkBegin_MoreClient;
    clMoreFields.mcEOR         := tkEnd_MoreClient;
@@ -210,6 +224,9 @@ begin
    clBalances_List        := TBalances_List.Create;
    clJobs                 := TClient_Job_List.Create;
    clCustom_Headings_List := TNew_Custom_Headings_List.Create;
+
+   //Audit table
+   FAuditTable            := TAuditTable.Create(ClientAuditMgr);
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;
@@ -244,7 +261,8 @@ begin
 {$IFDEF ParserDll}
 {$ELSE}
    FreeAndNil(FExchangeSource);
-
+   FreeAndNil(fAuditTable);
+      
    clBank_Account_List.Free;
    clChart.Free;
    clPayee_List_V53.Free;
@@ -332,6 +350,7 @@ begin
        else Break; //Where are done..
     end;
 {$ELSE}
+       tkLastAuditRecordID       : FLastAuditRecordID := S.ReadIntegerValue;
        tkBeginBankAccountList    : clBank_Account_List.LoadFromFile( S );
        tkBeginChart              : clChart.LoadFromFile( S );
        tkBeginPayees             : clPayee_List_V53.LoadFromFile( S );
@@ -345,6 +364,7 @@ begin
        tkBeginJobList            : clJobs.LoadFromFile(S);
        tkBegin_ClientExtra       : Read_ClientExtra_Rec (clExtra,s);
        tkBeginExchangeRateHeader : FExchangeSource.LoadFromStream( S );
+       tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);       
     else
        begin { Should never happen }
           Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -448,6 +468,11 @@ begin
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   Self.LoadFromStream( S);
+  //Reload client copy DB
+  FreeAndNil(_ClientCopy); //Delete current copy
+  S.Position := 0;
+  S.Read( CRC, Sizeof( LongWord ) );
+  ClientCopy.LoadFromStream(S);
 end;
 
 {$IFNDEF ParserDll}
@@ -603,6 +628,12 @@ begin
   Result := MoneyUtils.MoneyStrNoSymbol( Amount );
 end;
 
+function TClientObj.NextAuditRecordID: integer;
+begin
+  Inc(FLastAuditRecordID);
+  Result := FLastAuditRecordID;
+end;
+
 {$ENDIF}
 
 {$IFDEF ParserDll}
@@ -676,6 +707,7 @@ const
   ThisMethodName = 'TClientObj.SaveToStream';
 begin
    LogDebugMsg( ThisMethodName + ' Begins' );
+   S.WriteIntegerValue(tkLastAuditRecordID, FLastAuditRecordID);
    BKCLIO.Write_Client_Rec ( clFields, S );
    {write components}
    clBank_Account_List.SaveToFile( S );
@@ -690,6 +722,7 @@ begin
    clJobs.SaveToFile(S);
    BKCEIO.Write_ClientExtra_Rec(clExtra,S);
    FExchangeSource.SaveToStream( S );
+   fAuditTable.SaveToStream( S );   
    S.WriteToken( tkEndSection );
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;
@@ -1015,6 +1048,9 @@ procedure TClientObj.SaveToDataStream(var S: TIOStream; DefaultSize : integer = 
 var
   CRC : LongWord;
 begin
+  //Audit
+  ClientAuditMgr.DoAudit;
+  //Save
   S.Clear;
   S.Size := DefaultSize;
   S.Position := 0;
@@ -1023,6 +1059,11 @@ begin
   Self.SaveToStream( S);
   S.Size := S.Position;
   EmbedCRC( S);
+  //Reload client copy DB after save
+  FreeAndNil(_ClientCopy); //Delete current copy
+  S.Position := 0;
+  S.Read( CRC, Sizeof( LongWord ) );
+  ClientCopy.LoadFromStream(S);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1302,4 +1343,6 @@ initialization
 {$ELSE}
    DebugMe := DebugUnit(UnitName);
 {$ENDIF}
+finalization
+   FreeAndNil(_ClientCopy);
 end.

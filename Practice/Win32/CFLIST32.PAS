@@ -4,7 +4,7 @@ unit cfList32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-  ECollect,Classes, syDefs, ioStream, sysUtils, AuditMgr, SysAudit;
+  ECollect,Classes, syDefs, ioStream, sysUtils, AuditMgr;
 
 Type
    tSystem_Client_File_List = class(TExtdSortedCollection)

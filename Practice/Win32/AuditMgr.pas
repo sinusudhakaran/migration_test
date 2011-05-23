@@ -3,9 +3,12 @@ unit AuditMgr;
 interface
 
 uses
-  SysUtils, Classes, IOStream, SYAuditUtils, stTree, SYDEFS;
+  SysUtils, Classes, IOStream, SYAuditUtils, stTree, SYDEFS, BKDEFS, MoneyDef,
+  ECollect;
 
 const
+  UNIT_NAME = 'AuditMgr';
+
   //Audit types
   atPracticeSetup                 = 0;  atMin = 0;
   atPracticeGSTDefaults           = 1;
@@ -39,8 +42,6 @@ const
   atBankLinkBooks                 = 29; atMax = 29;
   atAll = 254;
 
-  SystemAuditTypes = [atPracticeSetup..atClientFiles, atAll];
-
   //Audit actions
   aaNone   = 0;  aaMin = 0;
   aaAdd    = 1;
@@ -50,12 +51,18 @@ const
   //Audit action strings
   aaNames : array[ aaMin..aaMax ] of string = ('None', 'Add', 'Change', 'Delete');
 
+  SystemAuditTypes = [atPracticeSetup..atClientFiles, atAll];
+
   dbSystem = 0;
   dbClient = 1;
 
   VALUES_DELIMITER = '¦'; //non-keyboard character
 
 type
+  //This is defined in MONEYDEF because all the IO units use MONEYDEF.
+  TChanged_Fields_Array = MoneyDef.TChanged_Fields_Array;
+
+  TAudit_Trail_Rec = SYDEFS.tAudit_Trail_Rec;
 
   TAuditType = atMin..atMax;
 
@@ -70,6 +77,47 @@ type
     AuditOtherInfo: string;
     AuditRecord: Pointer;
   end;
+
+  TAuditCollection = class(TExtdSortedCollection)
+  protected
+    procedure FreeItem(Item : Pointer); override;
+  public
+    function Audit_At(Index : longint) : TAudit_Trail_Rec;
+    function Compare(Item1,Item2 : Pointer): Integer; override;
+  end;
+
+{  TAuditTableClass = class of TAuditTable;
+
+  TAuditTable = class(TObject)
+  private
+    FAuditRecords: TAuditCollection;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure AddAuditRec(AAuditInfo: TAuditInfo); virtual; abstract;
+    procedure LoadFromFile(AFileName: TFileName);
+    procedure LoadFromStream( var S: TIOStream); virtual; abstract;
+    procedure SaveToFile (AFileName: TFileName);
+    procedure SaveToStream (var S: TIOStream); virtual; abstract;
+    procedure SetAuditStrings(Index: integer; Strings: TStrings); virtual; abstract;
+    property AuditRecords: TAuditCollection read FAuditRecords;
+  end;
+
+  TSystemAuditTable = class(TAuditTable)
+  public
+    procedure AddAuditRec(AAuditInfo: TAuditInfo); override;
+    procedure LoadFromStream( var S: TIOStream); override;
+    procedure SaveToStream (var S: TIOStream); override;
+    procedure SetAuditStrings(Index: integer; Strings: TStrings); override;
+  end;
+
+  TClientAuditTable = class(TAuditTable)
+  public
+    procedure AddAuditRec(AAuditInfo: TAuditInfo); override;
+    procedure LoadFromStream( var S: TIOStream); override;
+    procedure SaveToStream (var S: TIOStream); override;
+    procedure SetAuditStrings(Index: integer; Strings: TStrings); override;
+  end; }
 
   PScopeInfo = ^TScopeInfo;
   TScopeInfo = record
@@ -122,19 +170,37 @@ type
     procedure CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer); override;
   end;
 
-//  TClientAuditManager = class(TAuditManager)
-//  public
-//    function NextClientRecordID: integer;
-//    function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
-//    procedure DoAudit; override;
-//    procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
-//    procedure GetValues(AAuditRecord: TAudit_Trail_Rec; Strings: TStrings); override;
-//    procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer; var ChangedFields: string); override;
-//    procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); override;
-//  end;
+  TClientAuditManager = class(TAuditManager)
+  private
+  public
+    function NextClientRecordID: integer;
+    function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
+    procedure DoAudit; override;
+    procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
+    procedure GetValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string); override;
+    procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer); override;
+    procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); override;
+    procedure CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer); override;
+  end;
+
+  TAuditTable = class(TObject)
+  private
+    FAuditRecords: TAuditCollection;
+    FAuditManager: TAuditManager;
+  public
+    constructor Create(AAuditManager: TAuditManager);
+    destructor Destroy; override;
+    procedure AddAuditRec(AAuditInfo: TAuditInfo);
+    procedure LoadFromFile(AFileName: TFileName);
+    procedure LoadFromStream( var S: TIOStream);
+    procedure SaveToFile (AFileName: TFileName);
+    procedure SaveToStream (var S: TIOStream);
+    procedure SetAuditStrings(Index: integer; Strings: TStrings);
+    property AuditRecords: TAuditCollection read FAuditRecords;
+  end;
 
   function SystemAuditMgr: TSystemAuditManager;
-//  function ClientAuditMgr: TClientAuditManager;
+  function ClientAuditMgr: TClientAuditManager;
 
   function GetAccountingSystemName(AAccountingSystem: byte): string;
   function GetUserCode(AUserLRN: integer): string;
@@ -147,9 +213,10 @@ type
 implementation
 
 uses
-  Globals, bkConst, SysObj32, MoneyDef, MoneyUtils, SystemMemorisationList, bkdateutils,
-  SYAUDIT, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKDEFS, {BKAUDIT,} BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO;
+  Globals, bkConst, SysObj32, clObj32, MoneyUtils, SystemMemorisationList,
+  bkdateutils, TOKENS,  BKDbExcept,
+  SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
+  BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO;
 
 const
   //Audit type strings
@@ -227,7 +294,7 @@ const
 
 var
   _SystemAuditMgr: TSystemAuditManager;
-//  _ClientAuditMgr: TClientAuditManager;
+  _ClientAuditMgr: TClientAuditManager;
 
 function SystemAuditMgr: TSystemAuditManager;
 begin
@@ -236,12 +303,12 @@ begin
   Result := _SystemAuditMgr;
 end;
 
-//function ClientAuditMgr: TClientAuditManager;
-//begin
-//  if not Assigned(_ClientAuditMgr) then
-//    _ClientAuditMgr := TClientAuditManager.Create;
-//  Result := _ClientAuditMgr;
-//end;
+function ClientAuditMgr: TClientAuditManager;
+begin
+  if not Assigned(_ClientAuditMgr) then
+    _ClientAuditMgr := TClientAuditManager.Create;
+  Result := _ClientAuditMgr;
+end;
 
 function GetAccountingSystemName(AAccountingSystem: byte): string;
 begin
@@ -466,38 +533,6 @@ begin
   end;
 end;
 
-{ TClientAuditManager }
-
-//procedure TClientAuditManager.DoAudit;
-//var
-//  i: integer;
-//  TableID: byte;
-//begin
-//  for i := 0 to FAuditScope.Count - 1 do begin
-//    TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
-//    case TableID of
-//      tkBegin_Payee_Detail: Client.PayeeTable.DoAudit(Client.AuditTable, ClientCopy.PayeeTable);
-//    end;
-//  end;
-//  FAuditScope.Clear;
-//end;
-//
-//procedure TClientAuditManager.FlagAudit(AAuditType: TAuditType; ARecord: Pointer);
-//begin
-//  AddScope(AAuditType, 0);
-//end;
-//
-//function TClientAuditManager.GetParentRecordID(ARecordType: byte;
-//  ARecordID: integer): integer;
-//begin
-//  Result := 0;
-//end;
-//
-//function TClientAuditManager.NextClientRecordID: integer;
-//begin
-//  Result := Client.NextAuditRecordID;
-//end;
-
 
 { TSystemAuditManager }
 
@@ -720,6 +755,469 @@ begin
     tkBegin_Memorisation_Line   : Write_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
   end;
 end;
+
+{ TClientAuditManager }
+
+procedure TClientAuditManager.CopyAuditRecord(const ARecordType: byte;
+  P1: Pointer; var P2: Pointer);
+begin
+  case ARecordType of
+    tkBegin_Payee_Detail:
+      begin
+        P2 := New_Payee_Detail_Rec;
+        Copy_Payee_Detail_Rec(P1, P2);
+      end;
+  end;
+end;
+
+procedure TClientAuditManager.DoAudit;
+var
+  i: integer;
+  TableID: byte;
+begin
+  for i := 0 to FAuditScope.Count - 1 do begin
+    TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
+    case TableID of
+      tkBegin_Payee_Detail: MyClient.clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                          ClientCopy.clPayee_List, 0, MyClient.fAuditTable);
+    end;
+  end;
+  FAuditScope.Clear;
+end;
+
+procedure TClientAuditManager.FlagAudit(AAuditType: TAuditType;
+  ARecord: Pointer);
+begin
+  AddScope(AAuditType, 0);
+end;
+
+function TClientAuditManager.GetParentRecordID(ARecordType: byte;
+  ARecordID: integer): integer;
+begin
+  Result := 0;
+end;
+
+procedure TClientAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
+  var Values: string);
+begin
+  Values := AAuditRecord.atOther_Info;
+  if AAuditRecord.atAudit_Record = nil then
+    Exit;
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Payee_Detail: MyClient.clPayee_List.AddAuditValues(AAuditRecord, Values);
+  end;
+end;
+
+function TClientAuditManager.NextClientRecordID: integer;
+begin
+  Result := MyClient.NextAuditRecordID;
+end;
+
+procedure TClientAuditManager.ReadAuditRecord(ARecordType: byte;
+  AStream: TIOStream; var ARecord: pointer);
+begin
+  case ARecordType of
+    tkBegin_Payee_Detail:
+      begin
+        ARecord := New_Payee_Detail_Rec;
+        Read_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
+      end;
+  end;
+end;
+
+procedure TClientAuditManager.WriteAuditRecord(ARecordType: byte;
+  ARecord: pointer; AStream: TIOStream);
+begin
+  case ARecordType of
+    tkBegin_Payee_Detail: Write_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
+  end;
+end;
+
+{ TAuditTable }
+
+procedure TAuditTable.AddAuditRec(AAuditInfo: TAuditInfo);
+var
+  AuditRec: pAudit_Trail_Rec;
+  i: integer;
+begin
+  AuditRec := SYATIO.New_Audit_Trail_Rec;
+  AuditRec.atAudit_ID := FAuditRecords.ItemCount + 1;
+  AuditRec.atTransaction_Type := AAuditInfo.AuditType;
+  AuditRec.atAudit_Action := AAuditInfo.AuditAction;
+  AuditRec.atDate_Time := Now;
+  AuditRec.atRecord_ID := AAuditInfo.AuditRecordID;
+  AuditRec.atUser_Code := AAuditInfo.AuditUser;
+  AuditRec.atParent_ID := AAuditInfo.AuditParentID;
+  AuditRec.atAudit_Record_Type := AAuditInfo.AuditRecordType;
+  for i := Low(AAuditInfo.AuditChangedFields) to High(AAuditInfo.AuditChangedFields) do
+    AuditRec.atChanged_Fields[i] := AAuditInfo.AuditChangedFields[i];
+  AuditRec.atOther_Info := AAuditInfo.AuditOtherInfo;
+  if AuditRec.atAudit_Action = aaDelete then
+    AuditRec.atAudit_Record := nil
+  else if Assigned(AAuditInfo.AuditRecord) then
+    FAuditManager.CopyAuditRecord(AuditRec.atAudit_Record_Type, AAuditInfo.AuditRecord, AuditRec.atAudit_Record);
+  FAuditRecords.Insert(AuditRec);
+end;
+
+constructor TAuditTable.Create(AAuditManager: TAuditManager);
+begin
+  inherited Create;
+  FAuditManager := AAuditManager;
+  FAuditRecords := TAuditCollection.Create;
+end;
+
+destructor TAuditTable.Destroy;
+var
+  i: integer;
+begin
+  //Dispose audit records
+  for i := 0 to Pred(FAuditRecords.ItemCount) do
+    Dispose(FAuditRecords.Audit_At(i).atAudit_Record);
+
+  FAuditRecords.FreeAll;
+  FAuditRecords.SetLimit(0);
+  FAuditRecords.Free;
+  inherited;
+end;
+
+procedure TAuditTable.LoadFromFile(AFileName: TFileName);
+var
+  InFile: TIOStream;
+  Token: byte;
+begin
+  if not FileExists(AFileName) then Exit;
+
+  InFile := TIOStream.Create;
+  try
+    InFile.LoadFromFile(AFileName);
+    InFile.Position := soFromBeginning;
+    Token := InFile.ReadToken;
+    Assert(tkBeginSystem_Audit_Trail_List = Token, 'Start Audit list token wrong');
+    LoadFromStream(InFile);
+  finally
+    InFile.Free;
+  end;
+end;
+
+procedure TAuditTable.LoadFromStream(var S: TIOStream);
+const
+  THIS_METHOD_NAME = 'TAuditObj.LoadFromStream';
+var
+  Token: Byte;
+  pAR: pAudit_Trail_Rec;
+  msg: string;
+begin
+  Token := S.ReadToken;
+  while (Token <> tkEndSection) do begin
+    case Token of
+      tkBegin_Audit_Trail:
+          begin
+            pAR := New_Audit_Trail_Rec;
+            SYATIO.Read_Audit_Trail_Rec(pAR^, S);
+            //Read record
+            if pAR^.atAudit_Action <> aaDelete then
+              FAuditManager.ReadAuditRecord(pAR^.atAudit_Record_Type, S, pAR^.atAudit_Record);
+            FAuditRecords.Insert(pAR);
+          end
+    else
+      //Should never happen
+      Msg := Format('%s : Unknown Token %d', [THIS_METHOD_NAME, Token]);
+      raise ETokenException.CreateFmt('%s - %s', [UNIT_NAME, Msg]);
+    end;
+    Token := S.ReadToken;
+  end;
+end;
+
+procedure TAuditTable.SaveToFile(AFileName: TFileName);
+var
+  OutFile: TIOStream;
+begin
+  OutFile := TIOStream.Create;
+  try
+    OutFile.Position := soFromBeginning;
+    SaveToStream(OutFile);
+    OutFile.SaveToFile(AFileName);
+  finally
+    OutFile.Free;
+  end;
+end;
+
+procedure TAuditTable.SaveToStream(var s: TIOStream);
+var
+  i: Integer;
+  AuditRec: TAudit_Trail_Rec;
+begin
+  S.WriteToken(tkBeginSystem_Audit_Trail_List);
+  for i := FAuditRecords.First to FAuditRecords.Last do begin
+    AuditRec := FAuditRecords.Audit_At(i);
+    SYATIO.Write_Audit_Trail_Rec(AuditRec, S);
+    //Write record
+    if (AuditRec.atAudit_Action <> aaDelete) then begin
+      if not Assigned(AuditRec.atAudit_Record) then
+        raise ECorruptData.CreateFmt('%s - %s', [UNIT_NAME, 'Audit record not assigned.']);
+      FAuditManager.WriteAuditRecord(AuditRec.atAudit_Record_Type, AuditRec.atAudit_Record, S);
+    end;
+  end;
+  S.WriteToken( tkEndSection );
+  //Not sure why this is needed - or why an extra tkEndSection wasn't needed before!!!
+  S.WriteToken( tkEndSection );
+end;
+
+procedure TAuditTable.SetAuditStrings(Index: integer; Strings: TStrings);
+var
+  AuditRec: TAudit_Trail_Rec;
+  Values: string;
+begin
+  AuditRec := AuditRecords.Audit_At(Index);
+
+  Strings.Text := '';
+  Strings.Add(FAuditManager.AuditTypeToStr(AuditRec.atTransaction_Type));
+  Strings.Add(IntToStr(AuditRec.atParent_ID));
+  Strings.Add(IntToStr(AuditRec.atRecord_ID));
+  Strings.Add(aaNames[AuditRec.atAudit_Action]);
+  Strings.Add(AuditRec.atUser_Code);
+  Strings.Add(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRec.atDate_Time));
+
+  FAuditManager.GetValues(AuditRec, Values);
+  Strings.Add(Values);
+end;
+
+{ TAuditRecords }
+
+function TAuditCollection.Audit_At(Index: Integer): TAudit_Trail_Rec;
+begin
+  Result := pAudit_Trail_Rec(At(Index))^;
+end;
+
+function TAuditCollection.Compare(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAudit_Trail_Rec(Item1^).atAudit_ID - TAudit_Trail_Rec(Item2^).atAudit_ID;
+end;
+
+procedure TAuditCollection.FreeItem(Item: Pointer);
+begin
+  Dispose(pAudit_Trail_Rec(Item));
+//  SYATIO.Free_Audit_Trail_Rec_Dynamic_Fields( pAudit_Trail_Rec( Item)^);
+//  SafeFreeMem( Item, Audit_Trail_Rec_Size );
+end;
+
+{ TAuditTable }
+
+{constructor TAuditTable.Create(AAuditManager: TAuditManager);
+begin
+  inherited Create;
+  FAuditManager := AAuditManager;
+  FAuditRecords := TAuditCollection.Create;
+end;
+
+destructor TAuditTable.Destroy;
+var
+  i: integer;
+begin
+  //Dispose audit records
+  for i := 0 to Pred(FAuditRecords.ItemCount) do
+    Dispose(FAuditRecords.Audit_At(i).atAudit_Record);
+
+  FAuditRecords.FreeAll;
+  FAuditRecords.SetLimit(0);
+  FAuditRecords.Free;
+
+  inherited;
+end;
+
+procedure TAuditTable.LoadFromFile(AFileName: TFileName);
+var
+  InFile: TIOStream;
+  Token: byte;
+begin
+  if not FileExists(AFileName) then Exit;
+
+  InFile := TIOStream.Create;
+  try
+    InFile.LoadFromFile(AFileName);
+    InFile.Position := soFromBeginning;
+    Token := InFile.ReadToken;
+    Assert(tkBeginSystem_Audit_Trail_List = Token, 'Start Audit list token wrong');
+    LoadFromStream(InFile);
+  finally
+    InFile.Free;
+  end;
+end;
+
+procedure TAuditTable.SaveToFile(AFileName: TFileName);
+var
+  OutFile: TIOStream;
+begin
+  OutFile := TIOStream.Create;
+  try
+    OutFile.Position := soFromBeginning;
+    SaveToStream(OutFile);
+    OutFile.SaveToFile(AFileName);
+  finally
+    OutFile.Free;
+  end;
+end; }
+
+{ TSystemAuditTable }
+
+{procedure TSystemAuditTable.AddAuditRec(AAuditInfo: TAuditInfo);
+var
+  AuditRec: pAudit_Trail_Rec;
+  i: integer;
+begin
+  AuditRec := SYATIO.New_Audit_Trail_Rec;
+  AuditRec.atAudit_ID := FAuditRecords.ItemCount + 1;
+  AuditRec.atTransaction_Type := AAuditInfo.AuditType;
+  AuditRec.atAudit_Action := AAuditInfo.AuditAction;
+  AuditRec.atDate_Time := Now;
+  AuditRec.atRecord_ID := AAuditInfo.AuditRecordID;
+  AuditRec.atUser_Code := AAuditInfo.AuditUser;
+  AuditRec.atParent_ID := AAuditInfo.AuditParentID;
+  AuditRec.atAudit_Record_Type := AAuditInfo.AuditRecordType;
+  for i := Low(AAuditInfo.AuditChangedFields) to High(AAuditInfo.AuditChangedFields) do
+    AuditRec.atChanged_Fields[i] := AAuditInfo.AuditChangedFields[i];
+  AuditRec.atOther_Info := AAuditInfo.AuditOtherInfo;
+  if AuditRec.atAudit_Action = aaDelete then
+    AuditRec.atAudit_Record := nil
+  else if Assigned(AAuditInfo.AuditRecord) then
+    SystemAuditMgr.CopyAuditRecord(AuditRec.atAudit_Record_Type, AAuditInfo.AuditRecord, AuditRec.atAudit_Record);
+  FAuditRecords.Insert(AuditRec);
+end;
+
+procedure TSystemAuditTable.LoadFromStream(var S: TIOStream);
+const
+  THIS_METHOD_NAME = 'TAuditObj.LoadFromStream';
+var
+  Token: Byte;
+  pAR: pAudit_Trail_Rec;
+  msg: string;
+begin
+  Token := S.ReadToken;
+  while (Token <> tkEndSection) do begin
+    case Token of
+      tkBegin_Audit_Trail:
+          begin
+            pAR := New_Audit_Trail_Rec;
+            SYATIO.Read_Audit_Trail_Rec(pAR^, S);
+            //Read record
+            if pAR^.atAudit_Action <> aaDelete then
+              SystemAuditMgr.ReadAuditRecord(pAR^.atAudit_Record_Type, S, pAR^.atAudit_Record);
+            FAuditRecords.Insert(pAR);
+          end
+    else
+      //Should never happen
+      Msg := Format('%s : Unknown Token %d', [THIS_METHOD_NAME, Token]);
+      raise ETokenException.CreateFmt('%s - %s', [UNIT_NAME, Msg]);
+    end;
+    Token := S.ReadToken;
+  end;
+end;
+
+procedure TSystemAuditTable.SaveToStream(var S: TIOStream);
+var
+  i: Integer;
+  AuditRec: TAudit_Trail_Rec;
+begin
+  S.WriteToken(tkBeginSystem_Audit_Trail_List);
+  for i := FAuditRecords.First to FAuditRecords.Last do begin
+    AuditRec := FAuditRecords.Audit_At(i);
+    SYATIO.Write_Audit_Trail_Rec(AuditRec, S);
+    //Write record
+    if (AuditRec.atAudit_Action <> aaDelete) then begin
+      if not Assigned(AuditRec.atAudit_Record) then
+        raise ECorruptData.CreateFmt('%s - %s', [UNIT_NAME, 'Audit record not assigned.']);
+      SystemAuditMgr.WriteAuditRecord(AuditRec.atAudit_Record_Type, AuditRec.atAudit_Record, S);
+    end;
+  end;
+  S.WriteToken( tkEndSection );
+  //Not sure why this is needed - or why an extra tkEndSection wasn't needed before!!!
+  S.WriteToken( tkEndSection );
+end;
+
+procedure TSystemAuditTable.SetAuditStrings(Index: integer; Strings: TStrings);
+var
+  AuditRec: TAudit_Trail_Rec;
+  Values: string;
+begin
+  AuditRec := AuditRecords.Audit_At(Index);
+
+  Strings.Text := '';
+  Strings.Add(SystemAuditMgr.AuditTypeToStr(AuditRec.atTransaction_Type));
+  Strings.Add(IntToStr(AuditRec.atParent_ID));
+  Strings.Add(IntToStr(AuditRec.atRecord_ID));
+  Strings.Add(aaNames[AuditRec.atAudit_Action]);
+  Strings.Add(AuditRec.atUser_Code);
+  Strings.Add(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRec.atDate_Time));
+
+  SystemAuditMgr.GetValues(AuditRec, Values);
+  Strings.Add(Values);
+end;
+ }
+{ TClientAuditTable }
+
+{procedure TClientAuditTable.AddAuditRec(AAuditInfo: TAuditInfo);
+var
+  AuditRec: pAudit_Trail_Rec;
+  i: integer;
+begin
+  AuditRec := SYATIO.New_Audit_Trail_Rec;
+  AuditRec.atAudit_ID := FAuditRecords.ItemCount + 1;
+  AuditRec.atTransaction_Type := AAuditInfo.AuditType;
+  AuditRec.atAudit_Action := AAuditInfo.AuditAction;
+  AuditRec.atDate_Time := Now;
+  AuditRec.atRecord_ID := AAuditInfo.AuditRecordID;
+  AuditRec.atUser_Code := AAuditInfo.AuditUser;
+  AuditRec.atParent_ID := AAuditInfo.AuditParentID;
+  AuditRec.atAudit_Record_Type := AAuditInfo.AuditRecordType;
+  for i := Low(AAuditInfo.AuditChangedFields) to High(AAuditInfo.AuditChangedFields) do
+    AuditRec.atChanged_Fields[i] := AAuditInfo.AuditChangedFields[i];
+  AuditRec.atOther_Info := AAuditInfo.AuditOtherInfo;
+  if AuditRec.atAudit_Action = aaDelete then
+    AuditRec.atAudit_Record := nil
+  else if Assigned(AAuditInfo.AuditRecord) then
+    ClientAuditMgr.CopyAuditRecord(AuditRec.atAudit_Record_Type, AAuditInfo.AuditRecord, AuditRec.atAudit_Record);
+  FAuditRecords.Insert(AuditRec);
+end;
+
+procedure TClientAuditTable.LoadFromStream(var S: TIOStream);
+const
+  THIS_METHOD_NAME = 'TAuditObj.LoadFromStream';
+var
+  Token: Byte;
+  pAR: pAudit_Trail_Rec;
+  msg: string;
+begin
+  Token := S.ReadToken;
+  while (Token <> tkEndSection) do begin
+    case Token of
+      tkBegin_Audit_Trail:
+          begin
+            pAR := New_Audit_Trail_Rec;
+            SYATIO.Read_Audit_Trail_Rec(pAR^, S);
+            //Read record
+            if pAR^.atAudit_Action <> aaDelete then
+              ClientAuditMgr.ReadAuditRecord(pAR^.atAudit_Record_Type, S, pAR^.atAudit_Record);
+            FAuditRecords.Insert(pAR);
+          end
+    else
+      //Should never happen
+      Msg := Format('%s : Unknown Token %d', [THIS_METHOD_NAME, Token]);
+      raise ETokenException.CreateFmt('%s - %s', [UNIT_NAME, Msg]);
+    end;
+    Token := S.ReadToken;
+  end;
+end;
+
+procedure TClientAuditTable.SaveToStream(var S: TIOStream);
+begin
+
+end;
+
+procedure TClientAuditTable.SetAuditStrings(Index: integer; Strings: TStrings);
+begin
+
+end;     }
 
 initialization
   _SystemAuditMgr := nil;

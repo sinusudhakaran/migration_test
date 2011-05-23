@@ -86,6 +86,7 @@ CONST
    tkplSF_Capital_Gains_Fraction_Half   = 134 ;
    tkplSF_Ledger_ID                     = 135 ;
    tkplSF_Ledger_Name                   = 136 ;
+   tkplAudit_Record_ID                  = 137 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -151,6 +152,7 @@ Begin
       F.WriteBooleanValue( tkplSF_Capital_Gains_Fraction_Half , plSF_Capital_Gains_Fraction_Half );
       F.WriteIntegerValue( tkplSF_Ledger_ID , plSF_Ledger_ID );
       F.WriteAnsiStringValue( tkplSF_Ledger_Name , plSF_Ledger_Name );
+      F.WriteIntegerValue( tkplAudit_Record_ID , plAudit_Record_ID );
       F.WriteToken( tkEnd_Payee_Line );
    end;
 end; { of Write_Payee_Line_Rec }
@@ -213,6 +215,7 @@ Begin
          tkplSF_Capital_Gains_Fraction_Half   : plSF_Capital_Gains_Fraction_Half := F.ReadBooleanValue;
          tkplSF_Ledger_ID                     : plSF_Ledger_ID := F.ReadIntegerValue;
          tkplSF_Ledger_Name                   : plSF_Ledger_Name := F.ReadAnsiStringValue;
+         tkplAudit_Record_ID                  : plAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -262,7 +265,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkplAccount to tkplSF_Ledger_Name do begin
+  for i := tkplAccount to tkplAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -484,6 +487,11 @@ begin
   if (P1.plSF_Ledger_Name <> P2.plSF_Ledger_Name) then begin
     P3.plSF_Ledger_Name := P1.plSF_Ledger_Name;
     ChangedFields[i] := tkplSF_Ledger_Name;
+    Inc(i);
+  end;
+  if (P1.plAudit_Record_ID <> P2.plAudit_Record_ID) then begin
+    P3.plAudit_Record_ID := P1.plAudit_Record_ID;
+    ChangedFields[i] := tkplAudit_Record_ID;
     Inc(i);
   end;
 

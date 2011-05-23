@@ -79,7 +79,7 @@ CONST
    tkceCustom_SFLedger_Titles           = 72 ;
    tkceSUI_Period_Start                 = 73 ;
    tkceSUI_Period_End                   = 74 ;
-   tkceSpare_Integer                    = 75 ;
+   tkceAudit_Record_ID                  = 75 ;
    tkceSUI_Step_Done                    = 76 ;
    tkceSend_Job_List                    = 77 ;
 
@@ -149,7 +149,7 @@ Begin
       For i := 1 to 1 do F.WriteBStringValue( tkceCustom_SFLedger_Titles , i, ceCustom_SFLedger_Titles[ i ] );
       F.WriteDateValue( tkceSUI_Period_Start , ceSUI_Period_Start );
       F.WriteDateValue( tkceSUI_Period_End , ceSUI_Period_End );
-      F.WriteIntegerValue( tkceSpare_Integer , ceSpare_Integer );
+      F.WriteIntegerValue( tkceAudit_Record_ID , ceAudit_Record_ID );
       For i := 0 to 32 do F.WriteBBooleanValue( tkceSUI_Step_Done , i, ceSUI_Step_Done[ i ] );
       F.WriteBooleanValue( tkceSend_Job_List , ceSend_Job_List );
       F.WriteToken( tkEnd_ClientExtra );
@@ -236,7 +236,7 @@ Begin
             end;
          tkceSUI_Period_Start                 : ceSUI_Period_Start := F.ReadDateValue;
          tkceSUI_Period_End                   : ceSUI_Period_End := F.ReadDateValue;
-         tkceSpare_Integer                    : ceSpare_Integer := F.ReadIntegerValue;
+         tkceAudit_Record_ID                  : ceAudit_Record_ID := F.ReadIntegerValue;
          tkceSUI_Step_Done                    : 
             Begin
                Y := F.ReadBBooleanValue( I );
@@ -486,9 +486,9 @@ begin
     ChangedFields[i] := tkceSUI_Period_End;
     Inc(i);
   end;
-  if (P1.ceSpare_Integer <> P2.ceSpare_Integer) then begin
-    P3.ceSpare_Integer := P1.ceSpare_Integer;
-    ChangedFields[i] := tkceSpare_Integer;
+  if (P1.ceAudit_Record_ID <> P2.ceAudit_Record_ID) then begin
+    P3.ceAudit_Record_ID := P1.ceAudit_Record_ID;
+    ChangedFields[i] := tkceAudit_Record_ID;
     Inc(i);
   end;
   if SUI_Step_Done_Changed(TSUI_Step_Done_Array(P1.ceSUI_Step_Done), 

@@ -48,6 +48,7 @@ end;
 CONST
    tkdhHeading                          = 212 ;
    tkdhDivision_No                      = 213 ;
+   tkdhAudit_Record_ID                  = 214 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -75,6 +76,7 @@ Begin
       F.WriteToken( tkBegin_Division_Heading );
       F.WriteStringValue( tkdhHeading , dhHeading );
       F.WriteIntegerValue( tkdhDivision_No , dhDivision_No );
+      F.WriteIntegerValue( tkdhAudit_Record_ID , dhAudit_Record_ID );
       F.WriteToken( tkEnd_Division_Heading );
    end;
 end; { of Write_Division_Heading_Rec }
@@ -99,6 +101,7 @@ Begin
          tkEnd_Division_Heading :; { Do Nothing }
          tkdhHeading                          : dhHeading := F.ReadStringValue;
          tkdhDivision_No                      : dhDivision_No := F.ReadIntegerValue;
+         tkdhAudit_Record_ID                  : dhAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -145,7 +148,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkdhHeading to tkdhDivision_No do begin
+  for i := tkdhHeading to tkdhAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -177,6 +180,11 @@ begin
   if (P1.dhDivision_No <> P2.dhDivision_No) then begin
     P3.dhDivision_No := P1.dhDivision_No;
     ChangedFields[i] := tkdhDivision_No;
+    Inc(i);
+  end;
+  if (P1.dhAudit_Record_ID <> P2.dhAudit_Record_ID) then begin
+    P3.dhAudit_Record_ID := P1.dhAudit_Record_ID;
+    ChangedFields[i] := tkdhAudit_Record_ID;
     Inc(i);
   end;
 

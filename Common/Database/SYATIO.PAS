@@ -9,8 +9,8 @@ INTERFACE USES SYDEFS, IOSTREAM, SYAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tkBegin_Audit_Trail                  = 130 ;
-   tkEnd_Audit_Trail                    = 131 ;
+   tkBegin_Audit_Trail                  = 135 ;
+   tkEnd_Audit_Trail                    = 136 ;
 
 FUNCTION  IsAAudit_Trail_Rec ( P : Pointer ): Boolean;
 PROCEDURE Write_Audit_Trail_Rec ( Var O : TAudit_Trail_Rec ; Var F : TIOStream );
@@ -46,16 +46,16 @@ end;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tkatAudit_ID                         = 132 ;
-   tkatTransaction_Type                 = 133 ;
-   tkatAudit_Action                     = 134 ;
-   tkatDate_Time                        = 135 ;
-   tkatUser_Code                        = 136 ;
-   tkatRecord_ID                        = 137 ;
-   tkatParent_ID                        = 138 ;
-   tkatChanged_Fields                   = 139 ;
-   tkatOther_Info                       = 140 ;
-   tkatAudit_Record_Type                = 141 ;
+   tkatAudit_ID                         = 137 ;
+   tkatTransaction_Type                 = 138 ;
+   tkatAudit_Action                     = 139 ;
+   tkatDate_Time                        = 140 ;
+   tkatUser_Code                        = 141 ;
+   tkatRecord_ID                        = 142 ;
+   tkatParent_ID                        = 143 ;
+   tkatChanged_Fields                   = 144 ;
+   tkatOther_Info                       = 145 ;
+   tkatAudit_Record_Type                = 146 ;
 
 {  -------------------------------------------------------------------  }
 

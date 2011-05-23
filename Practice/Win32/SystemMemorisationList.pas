@@ -11,7 +11,7 @@ unit SystemMemorisationList;
 interface
 
 uses
-  ECollect, Classes, SYDefs, BKDefs, ioStream, sysUtils, AuditMgr, SysAudit,
+  ECollect, Classes, SYDefs, BKDefs, ioStream, sysUtils, AuditMgr, 
   MemorisationsObj;
 
 type

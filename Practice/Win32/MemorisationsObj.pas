@@ -22,7 +22,6 @@ uses
   IOStream,
   ECollect,
   AuditMgr,
-  SysAudit,
   SYDEFS;
 
 type

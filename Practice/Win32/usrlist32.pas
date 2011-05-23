@@ -4,7 +4,7 @@ unit usrlist32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-  ECollect, Classes, syDefs, ioStream, sysUtils, AuditMgr, SysAudit;
+  ECollect, Classes, syDefs, ioStream, sysUtils, AuditMgr;
 
 Type
    tSystem_User_List = class(TExtdSortedCollection)

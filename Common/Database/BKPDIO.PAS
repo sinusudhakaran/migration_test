@@ -48,6 +48,7 @@ end;
 CONST
    tkpdNumber                           = 92 ;
    tkpdName                             = 93 ;
+   tkpdAudit_Record_ID                  = 94 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -75,6 +76,7 @@ Begin
       F.WriteToken( tkBegin_Payee_Detail );
       F.WriteIntegerValue( tkpdNumber , pdNumber );
       F.WriteStringValue( tkpdName , pdName );
+      F.WriteIntegerValue( tkpdAudit_Record_ID , pdAudit_Record_ID );
       F.WriteToken( tkEnd_Payee_Detail );
    end;
 end; { of Write_Payee_Detail_Rec }
@@ -99,6 +101,7 @@ Begin
          tkEnd_Payee_Detail :; { Do Nothing }
          tkpdNumber                           : pdNumber := F.ReadIntegerValue;
          tkpdName                             : pdName := F.ReadStringValue;
+         tkpdAudit_Record_ID                  : pdAudit_Record_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -145,7 +148,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkpdNumber to tkpdName do begin
+  for i := tkpdNumber to tkpdAudit_Record_ID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -177,6 +180,11 @@ begin
   if (P1.pdName <> P2.pdName) then begin
     P3.pdName := P1.pdName;
     ChangedFields[i] := tkpdName;
+    Inc(i);
+  end;
+  if (P1.pdAudit_Record_ID <> P2.pdAudit_Record_ID) then begin
+    P3.pdAudit_Record_ID := P1.pdAudit_Record_ID;
+    ChangedFields[i] := tkpdAudit_Record_ID;
     Inc(i);
   end;
 

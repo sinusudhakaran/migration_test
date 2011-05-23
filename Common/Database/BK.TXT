@@ -1,8 +1,8 @@
-$|BK_FILE_VERSION  = 164;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 165;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.20';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.21';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -188,7 +188,9 @@ $|                         Change txForeign_Currency_Amount, and txOriginal_Fore
 $|                         Add temp fields txTemp_Forex_Rate, txTemp_Base_Amount, and dxTemp_Base_Amount,
 $|                         Add IsProvisional to Bank account
 $|                         Add Opening Balance Curreny field to Dissection and temp fields to Account
-$|  5.21 (2011AUDIT)164    Add Audit Record ID field to all records
+$|  5.21 (2011AUDIT)164    Add Audit Record ID field to memorisation records
+$|                  165    Add remaining Audit Record ID fields to records
+$|                         Add Audit Table (Defined in SY.TXT) 
 $|*)
 
 N|Client|cl|20
@@ -485,6 +487,7 @@ F|Alternative Code|S|20
 F|Linked Account OS|S|20
 F|Linked Account CS|S|20
 F|Hide In Basic Chart|Y
+F|Audit Record ID|L
 C|Temp_Quantity|DBR
 C|Temp_Amount|DBR
 C|Temp_Base_Amount|DBR
@@ -511,6 +514,7 @@ F|Percentage|B$|50
 F|GST Class|BB|50
 F|GST Has Been Edited|BY|50
 F|GL Narration|BS|50|40
+F|Audit Record ID|L
 C|Amount|TLB
 C|Total|$
 E
@@ -518,6 +522,7 @@ E
 N|Payee Detail|pd|90
 F|Number|L
 F|Name|S|40
+F|Audit Record ID|L
 C|Amount|TLB
 C|Total|$
 C|Temp Tag|L
@@ -564,6 +569,7 @@ F|SF Foreign Capital Gains Credit|$
 F|SF Capital Gains Fraction Half|Y
 F|SF Ledger ID|L
 F|SF Ledger Name|AS
+F|Audit Record ID|L
 C|Temp Tag|L
 E
 
@@ -587,6 +593,8 @@ F|Date Downloaded|D
 F|No of Accounts|L
 F|No of Entries|L
 E
+
+$|//Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
 N|Memorisation Detail|md|140
 F|Sequence No|L
@@ -714,6 +722,7 @@ F|Currency Code|S|3
 F|Default Forex Source|S|80
 F|Default Forex Description|S|80
 F|SuperFund Ledger Code|S|20
+F|Audit Record ID|L
 C|Last Sequence No|L
 C|Number|L
 C|Opening Bank Balance|TLB
@@ -811,7 +820,7 @@ F|SF Member Account Code|S|41
 F|SF Transaction ID|L
 F|SF Transaction Code|AS
 F|SF Capital Gains Fraction Half|Y
-F|SpareL|L
+F|Audit Record ID|L
 F|Job Code|S|8
 F|Forex Conversion Rate|R
 F|Spare Money 1|$
@@ -890,7 +899,7 @@ F|SF Member Account Code|S|41
 F|SF Transaction ID|L
 F|SF Transaction Code|AS
 F|SF Capital Gains Fraction Half|Y
-F|SpareL|L
+F|Audit Record ID|L
 F|Job Code|S|8
 F|Tax Invoice|Y
 F|Forex Conversion Rate|R
@@ -967,6 +976,7 @@ F|BAS T5 VAT5|$
 F|Using Fuel Percent Method|Y
 F|PT Form Type|B
 F|GST Cdj Customs|$
+F|Audit Record ID|L
 C|First Fuel Sheet|P|Fuel Sheet Rec
 C|Last Fuel Sheet|P|Fuel Sheet Rec
 E
@@ -975,11 +985,13 @@ N|SubGroup Heading|sh|200
 F|Heading|S|60
 F|Report Group No|L
 F|Sub Group No|L
+F|Audit Record ID|L
 E
 
 N|Division Heading|dh|210
 F|Heading|S|60
 F|Division No|L
+F|Audit Record ID|L
 E
 
 N|Memorised Transaction|mx|220
@@ -1016,6 +1028,7 @@ F|Heading Type|B
 F|Heading|S|60
 F|Major ID|L
 F|Minor ID|L
+F|Audit Record ID|L
 E
 
 N|Macro|ma|240
@@ -1045,6 +1058,7 @@ F|Heading|S|60
 F|LRN|L
 F|Date Completed|D
 F|Code|S|8
+F|Audit Record ID|L
 E
 
 N|ClientExtra|ce|40
@@ -1081,7 +1095,7 @@ F|List Payees Rule_Line|Y
 F|Custom SFLedger Titles|BS|1|60
 F|SUI Period Start|D
 F|SUI Period End|D
-F|Spare Integer|L
+F|Audit Record ID|L
 F|SUI Step Done|BY0|32
 F|Send Job List|Y
 E

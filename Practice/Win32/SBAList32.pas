@@ -4,7 +4,7 @@ unit SBAList32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-  ECollect,Classes, syDefs, ioStream, sysUtils, AuditMgr, SysAudit;
+  ECollect,Classes, syDefs, ioStream, sysUtils, AuditMgr;
 
 Type
    tSystem_Bank_Account_List = class(TExtdSortedCollection)
