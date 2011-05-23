@@ -2638,8 +2638,10 @@ begin
      AuditIDList := TList.Create;
      try
        //Save audit ID's for reuse
-       for i := 0 to Pred(pM.mdLines.ItemCount) do
-         AuditIDList.Add(Pointer(pM.mdLines.MemorisationLine_At(i).mlAudit_Record_ID));
+       if ModalResult <> mrCopy then
+         for i := 0 to Pred(pM.mdLines.ItemCount) do
+           AuditIDList.Add(Pointer(pM.mdLines.MemorisationLine_At(i).mlAudit_Record_ID));
+
        pM.mdLines.FreeAll;
        for i := 1 to GLCONST.Max_mx_Lines do
        begin

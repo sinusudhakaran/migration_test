@@ -1072,9 +1072,21 @@ begin
                   end;
                 end;
               end;
-              if not Swapped then begin
+              if (not Swapped) then begin
                 UnlockAdmin;
-                HelpfulErrorMsg('Could not move master memorisation because they have been changed by another user.', 0);
+                if Assigned(m1) and Assigned(m2) then
+                  if m1.mdFields.mdType = m2.mdFields.mdType then //Fix 15433
+                    //This should be the only reason for the memorisations not being swapped
+                    HelpfulErrorMsg('Could not move master memorisation because they have been changed by another user.', 0);
+                //Select item
+                for i := 0 to Pred(lvMemorised.Items.Count) do
+                  if MoveItemUp then begin
+                    if (MasterMemInfoRec1.AuditID = TMemorisation(lvMemorised.Items[i].SubItems.Objects[0]).mdFields.mdAudit_Record_ID) then
+                      lvMemorised.Items[i].Selected := True;
+                  end else begin
+                    if (MasterMemInfoRec2.AuditID = TMemorisation(lvMemorised.Items[i].SubItems.Objects[0]).mdFields.mdAudit_Record_ID) then
+                      lvMemorised.Items[i].Selected := True;
+                  end;
               end;
             end;
           end;
