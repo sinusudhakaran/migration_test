@@ -2718,7 +2718,7 @@ begin
            end else if ATempMem then
              pM.mdLines.Insert(MemLine)
            else begin
-             if IsMaster then
+             if IsMaster and Assigned(AdminSystem) then
                MemLine.mlAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
              pM.mdLines.Insert(MemLine)
            end;
