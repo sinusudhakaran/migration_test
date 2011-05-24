@@ -3810,7 +3810,8 @@ begin
   Report := TAuditReport(Sender);
 
   TempClientFile := nil;
-  OpenAClient(Report.ReportOptions.ClientCode, TempClientFile , True, True);
+//  OpenAClient(Report.ReportOptions.ClientCode, TempClientFile , True, True);
+  OpenAClientForRead(Report.ReportOptions.ClientCode, TempClientFile);
   if Assigned(TempClientFile) then try
     AuditFields := TStringList.Create;
     try
@@ -3853,7 +3854,8 @@ begin
       AuditFields.Free;
     end;
   finally
-    CloseAClient(TempClientFile);
+//    CloseAClient(TempClientFile);
+    FreeAndNil(TempClientFile);
   end;
 end;
 

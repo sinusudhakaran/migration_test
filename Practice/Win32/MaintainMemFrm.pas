@@ -22,7 +22,7 @@ type
     ToolButton5: TToolButton;
     tbClose: TToolButton;
     Panel1: TPanel;
-    lvMemorised: TListView;                                                                                     
+    lvMemorised: TListView;
     stTitle: TStaticText;
     tbMoveUp: TToolButton;
     tbMoveDown: TToolButton;
@@ -56,17 +56,14 @@ type
     SortCol               : integer;
     MastersOnly           : boolean;
     WorkingOnMasterPrefix : BankPrefixStr;
-    FMemorisationChanged  : boolean;  //needed so that we can tell if the MASTER file needs saving
+    FMemorisationChanged  : boolean;  //needed so that CES reloads edited transactions
     BA: TBank_Account;
     procedure LoadAccounts;
     function LoadMemorisations(Bank_Account : TBank_Account): integer;
     procedure LoadMasters( BankPrefix : ShortString);
-
     function  DeleteMemorised(MemorisedList : TMemorisations_List;
       Mem : TMemorisation; Multiple : Boolean; Prefix: string = '') : boolean;
     procedure MoveItem(MoveItemUp : boolean);
-
-//    procedure CheckMasterSaveNeeded;
     procedure EditSelectedMemorisation;
   public
     { Public declarations }
@@ -644,7 +641,7 @@ var
   MemorisedList : TMemorisations_List;
   AccSel : TTreeNode;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
-  Prefix: string; 
+  Prefix: string;
 begin
   Prefix := '';
   AccSel := trvAccountView.Selected;
@@ -669,7 +666,7 @@ begin
 
   m := TMemorisation( lvMemorised.Selected.SubItems.Objects[0] );
   PrevSelectedIndex := lvMemorised.Selected.Index;
-  PrevTopItemIndex := lvMemorised.TopItem.Index;	
+  PrevTopItemIndex := lvMemorised.TopItem.Index;
   if DeleteMemorised( MemorisedList, m, (lvMemorised.SelCount > 1), Prefix) then
   begin
     case AccSel.OverlayIndex {StateIndex} of
@@ -719,11 +716,10 @@ begin
        MemorisedList.DelFreeItem(Mem);
        Item := lvMemorised.GetNextItem(Item, sdAll, [isSelected]);
      end;
-   end else
-   begin
+   end else begin
+     //Single delete
      CodedTo := '';
-     for j := Mem.mdLines.First to Mem.mdLines.Last do
-     begin
+     for j := Mem.mdLines.First to Mem.mdLines.Last do begin
        MemLine := Mem.mdLines.MemorisationLine_At(j);
        if MemLine^.mlAccount <> '' then
          CodedTo := CodedTo + MemLine^.mlaccount+ ' ';
@@ -734,8 +730,7 @@ begin
          MasterMsg := 'MASTER';
          ExtraMsg := #13+#13+'This will only delete the MASTER memorisation TEMPORARILY.  To delete it permanently it must be deleted at the PRACTICE.';
        end;
-     end
-     else begin
+     end else begin
        CodeType := AdminSystem.fdFields.fdShort_Name[mem.mdFields.mdType];
        MasterMsg := 'MASTER';
        ExtraMsg := #13+#13+'NOTE: This will apply to ALL clients in your practice that have accounts with this bank and use MASTER memorisations.';
@@ -786,18 +781,20 @@ begin
            for i := TMemorisations_List(SystemMemorisation.smMemorisations).First to TMemorisations_List(SystemMemorisation.smMemorisations).Last do begin
              SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i);
              if Assigned(SystemMem) then begin
-               if (SystemMem.mdFields.mdAudit_Record_ID = MasterMemInfoRec.AuditID) and
-                  (SystemMem.mdFields.mdSequence_No = MasterMemInfoRec.SequenceNumber) then begin
+//               if (SystemMem.mdFields.mdAudit_Record_ID = MasterMemInfoRec.AuditID) and
+//                  (SystemMem.mdFields.mdSequence_No = MasterMemInfoRec.SequenceNumber) then begin
+               //Don't care about the sequence for deletes?
+               if (SystemMem.mdFields.mdAudit_Record_ID = MasterMemInfoRec.AuditID) then begin
                  TMemorisations_List(SystemMemorisation.smMemorisations).DelFreeItem(SystemMem);
                  Result := True;
                  Break;
                end;
              end;
            end;
-           if not Result then
+           if Assigned(SystemMem) and (not Result) then
              HelpfulErrorMsg('Could not delete master memorisation because it has been changed by another user.', 0);
            //Delete pSystem_Memorisation_List_Rec if there are no memorisations
-           if TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount = 0 then
+          if TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount = 0 then
              AdminSystem.SystemMemorisationList.Delete(SystemMemorisation);
            //*** Flag Audit ***
            SystemAuditMgr.FlagAudit(atMasterMemorisations);
@@ -990,15 +987,17 @@ var
     if Assigned(lvMemorised.Selected) and Assigned(MemorisedList) then
     begin
        SetMemsToSwap;
-
-       //check are the same transaction type
-       if m1.mdFields.mdType <> m2.mdFields.mdType then Exit;
-
-       //at this point we have m1,m2 which are the memorisations to swap
-       MemorisedList.SwapItems(m1,m2);
-       FMemorisationChanged := true;
-       Result := True;
-       lvMemorised.Alphasort;
+       if Assigned(m1) and Assigned(m2) then begin
+         //check are the same transaction type
+         if m1.mdFields.mdType <> m2.mdFields.mdType then Exit;
+         //check that not master and normal mem
+         if m1.mdFields.mdFrom_Master_List <> m2.mdFields.mdFrom_Master_List then Exit;
+         //at this point we have m1,m2 which are the memorisations to swap
+         MemorisedList.SwapItems(m1,m2);
+         FMemorisationChanged := true;
+         Result := True;
+         lvMemorised.Alphasort;
+       end;
     end;
   end;
 begin
@@ -1095,7 +1094,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TfrmMaintainMem.LoadMasters(BankPrefix : ShortString);
 var
   i,j : integer;
@@ -1109,13 +1107,11 @@ var
 //  MemList : TMaster_Memorisations_List;
   MemList : TMemorisations_List;
   MemLine : pMemorisation_Line_Rec;
-  SystemMemorisation: pSystem_Memorisation_List_Rec;  
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
 begin
    if (not Assigned(AdminSystem)) then
       Exit;  //should only be used with admin system present
    BA := nil;
-   //test to see if we have just left a MASTER file and if that file was changed
-//   CheckMasterSaveNeeded;
 
    if Assigned( MyClient ) then
       Country := MyClient.clFields.clCountry
@@ -1156,17 +1152,13 @@ begin
            end;
      end;
 
-     //add MASTER memorisations, refresh list to get any changes
-//     Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
+     //get MASTER memorisations
      SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
      if SystemMemorisation = nil then exit;
 
-//     MemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
      MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
      if MemList = nil then exit;
 
-     //store the CRC for testing later
-//     MemList.symxLast_CRC := MemList.GetCurrentCRC;
      WorkingOnMasterPrefix := BankPrefix;
 
      for i := MemList.Last downto MemList.First do
@@ -1241,27 +1233,7 @@ begin
      lvMemorised.items.EndUpdate;
    end;
 end;
-//------------------------------------------------------------------------------
-//procedure TfrmMaintainMem.CheckMasterSaveNeeded;
-//var
-//   MemList : TMaster_Memorisations_List;
-//begin
-//   if WorkingOnMasterPrefix <> '' then begin
-//      MemList := Master_Mem_Lists_Collection.FindPrefix( WorkingOnMasterPrefix);
-//      if Assigned( MemList) then begin
-//         if ( MemList.symxLast_CRC <> MemList.GetCurrentCRC) then begin
-//            //update required
-//            if MemList.SaveToFile then
-//               FMemorisationChanged := true  //this will force a reload of any coding windows when exiting
-//            else
-//               HelpfulErrorMsg('Unable to lock Master Memorisation File ' +
-//                                MasterFileName( WorkingOnMasterPrefix)+
-//                                '.  Changes cannot be saved at this time.',0);
-//         end;
-//      end;
-//      WorkingOnMasterPrefix := '';
-//   end;
-//end;
+
 //------------------------------------------------------------------------------
 function TfrmMaintainMem.Execute: boolean;
 {returns true if memorisations changed}
