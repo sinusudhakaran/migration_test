@@ -24,12 +24,23 @@ type
    TPayeeLinesList = class(TExtdCollection)
    protected
      procedure FreeItem( Item : Pointer ); override;
+   private
+     function FindRecordID(ARecordID: integer): pPayee_Line_Rec;
    public
      function  PayeeLine_At( Index : LongInt ): pPayee_Line_Rec;
      procedure SaveToFile( Var S : TIOStream );
      procedure LoadFromFile( Var S : TIOStream );
      procedure UpdateCRC(var CRC : Longword);
      procedure CheckIntegrity;
+     procedure DoAudit(AAuditType: TAuditType;
+                       APayeeLinesListCopy: TPayeeLinesList;
+                       AParentID: integer;
+                       AAuditMgr : TClientAuditManager;
+                       var AAuditTable: TAuditTable);
+     procedure SetAuditInfo(P1, P2: pPayee_Line_Rec;
+                            AParentID: integer;
+                            var AAuditInfo: TAuditInfo);
+     procedure Insert(Item: Pointer; AAuditMgr: TClientAuditManager); overload;
    end;
 
    TPayee = class
@@ -99,7 +110,9 @@ uses
   LogUtil,
   StStrS,
   Tokens,
-  BKAUDIT;
+  BKAUDIT,
+  bkConst,
+  GenUtils;
 
 const
   UnitName = 'PayeeObj';
@@ -140,19 +153,65 @@ begin
     Exit;
   end;
 
-  Idx := 0;
-  Token := AAuditRecord.atChanged_Fields[idx];
-  while Token <> 0 do begin
-    case Token of
-      //Number
-      92: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 91),
-                                  tPayee_Detail_Rec(ARecord^).pdNumber, Values);
-      //Name
-      93: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 92),
-                                  tPayee_Detail_Rec(ARecord^).pdName, Values);
-    end;
-    Inc(Idx);
-    Token := AAuditRecord.atChanged_Fields[idx];    
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Payee_Detail:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Number
+            92: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 91),
+                                        tPayee_Detail_Rec(ARecord^).pdNumber, Values);
+            //Name
+            93: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 92),
+                                        tPayee_Detail_Rec(ARecord^).pdName, Values);
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
+    tkBegin_Payee_Line:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Account
+            97: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 96),
+                                        tPayee_Line_Rec(ARecord^).plAccount, Values);
+            //Percentage
+            98: case tPayee_Line_Rec(ARecord^).plLine_Type of
+                  pltPercentage : FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 97),
+                                                          Percent2Str(tPayee_Line_Rec(ARecord^).plPercentage), Values);
+                  pltDollarAmt  : FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 97),
+                                                          Money2Str(tPayee_Line_Rec(ARecord^).plPercentage), Values);
+                end;
+            //GST Class
+            99: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 98),
+                                        tPayee_Line_Rec(ARecord^).plGST_Class, Values);
+            //GST has been edited
+            100: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 99),
+                                         tPayee_Line_Rec(ARecord^).plGST_Has_Been_Edited, Values);
+
+            //GL_Narration
+            101: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 100),
+                                         tPayee_Line_Rec(ARecord^).plGL_Narration, Values);
+            //Line type
+            102: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 101),
+                                        pltNames[tPayee_Line_Rec(ARecord^).plLine_Type], Values);
+            //GST_Amount
+            103: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 102),
+                                         Money2Str(tPayee_Line_Rec(ARecord^).plGST_Amount), Values);
+            //Quantity
+            115: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 114),
+                                         Quantity2Str(tPayee_Line_Rec(ARecord^).plQuantity), Values);
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
   end;
 end;
 
@@ -200,6 +259,7 @@ var
   P1, P2: pPayee_Detail_Rec;
   AuditInfo: TAuditInfo;
   Payee: TPayee;
+  M1, M2: TPayee;
 begin
   AuditInfo.AuditType := atPayees;
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
@@ -239,6 +299,27 @@ begin
         Dispose(AuditInfo.AuditRecord);
       end;
     end;
+  end;
+
+  //Audit Payee Lines
+  for I := 0 to Pred(itemCount) do begin
+    M1 := Items[i];
+    M2 := nil;
+    if Assigned(APayeeDetailCopy) then
+      M2 := APayeeDetailCopy.FindRecordID(M1.pdFields.pdAudit_Record_ID);
+    if Assigned(M1) then
+      if Assigned(M2) then
+        TPayee(M1).pdLines.DoAudit(atPayees,
+                                   M2.pdLines,
+                                   M1.pdFields.pdAudit_Record_ID,
+                                   FAuditMgr,
+                                   AAuditTable)
+      else
+        M1.pdLines.DoAudit(atPayees,
+                           nil,
+                           M1.pdFields.pdAudit_Record_ID,
+                           FAuditMgr,
+                           AAuditTable);
   end;
 end;
 
@@ -333,7 +414,7 @@ var
   Token    : Byte;
   P        : TPayee;
   msg      : string;
-begin
+begin                                  
    Token := S.ReadToken;
    while ( Token <> tkEndSection ) do
    begin
@@ -493,12 +574,76 @@ begin
     with PayeeLine_At(i)^ do;
 end;
 
+procedure TPayeeLinesList.DoAudit(AAuditType: TAuditType;
+  APayeeLinesListCopy: TPayeeLinesList; AParentID: integer;
+  AAuditMgr : TClientAuditManager;
+  var AAuditTable: TAuditTable);
+var
+  i: integer;
+  P1, P2: pPayee_Line_Rec;
+  AuditInfo: TAuditInfo;
+begin
+  AuditInfo.AuditType := atPayees;
+  AuditInfo.AuditUser := AAuditMgr.CurrentUserCode;
+  AuditInfo.AuditRecordType := tkBegin_Payee_Line;
+  //Adds, changes
+  for i := 0 to Pred(ItemCount) do begin
+    P1 := PayeeLine_At(i);
+    P2 := nil;
+    if Assigned(APayeeLinesListCopy) then //Sub list - may not be assigned
+      P2 := APayeeLinesListCopy.FindRecordID(P1.plAudit_Record_ID);
+    AuditInfo.AuditRecord := New_Payee_Line_Rec;
+    try
+      SetAuditInfo(P1, P2, AParentID, AuditInfo);
+      if AuditInfo.AuditAction in [aaAdd, aaChange] then
+        AAuditTable.AddAuditRec(AuditInfo);
+    finally
+      Dispose(AuditInfo.AuditRecord);
+    end;
+  end;
+  //Deletes
+  if Assigned(APayeeLinesListCopy) then begin //Sub list - may not be assigned
+    for i := 0 to APayeeLinesListCopy.ItemCount - 1 do begin
+      P2 := APayeeLinesListCopy.PayeeLine_At(i);
+      P1 := FindRecordID(P2.plAudit_Record_ID);
+      AuditInfo.AuditRecord := New_Payee_Line_Rec;
+      try
+        SetAuditInfo(P1, P2, AParentID, AuditInfo);
+        if (AuditInfo.AuditAction = aaDelete) then
+          AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+    end;
+  end;
+end;
+
+function TPayeeLinesList.FindRecordID(ARecordID: integer): pPayee_Line_Rec;
+var
+  i : integer;
+begin
+  Result := nil;
+  if (ItemCount = 0) then Exit;
+
+  for i := 0 to Pred(ItemCount) do
+    if PayeeLine_At(i).plAudit_Record_ID = ARecordID then begin
+      Result := PayeeLine_At(i);
+      Exit;
+    end;
+end;
+
 procedure TPayeeLinesList.FreeItem(Item: Pointer);
 begin
   if BKPLIO.IsAPayee_Line_Rec( Item ) then begin
     BKPLIO.Free_Payee_Line_Rec_Dynamic_Fields( pPayee_Line_Rec( Item)^ );
     SafeFreeMem( Item, Payee_Line_Rec_Size );
   end;
+end;
+
+procedure TPayeeLinesList.Insert(Item: Pointer; AAuditMgr: TClientAuditManager);
+begin
+  pPayee_Line_Rec(Item).plAudit_Record_ID := AAuditMgr.NextClientRecordID;
+  inherited Insert(Item);
 end;
 
 procedure TPayeeLinesList.LoadFromFile(var S: TIOStream);
@@ -548,6 +693,33 @@ begin
   for i := First To Last do
     BKPLIO.Write_Payee_Line_Rec(PayeeLine_At(i)^, S);
   S.WriteToken(tkEndSection);
+end;
+
+procedure TPayeeLinesList.SetAuditInfo(P1, P2: pPayee_Line_Rec;
+  AParentID: integer; var AAuditInfo: TAuditInfo);
+begin
+  AAuditInfo.AuditAction := aaNone;
+  AAuditInfo.AuditParentID := AParentID;
+  AAuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType','Payee Line']) +
+                               VALUES_DELIMITER +
+                               Format('%s=%d', ['ParentID', AParentID]);
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.plAudit_Record_ID;
+  end else if Assigned(P2) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.plAudit_Record_ID;
+    if Payee_Line_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      AAuditInfo.AuditAction := aaChange;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.plAudit_Record_ID;
+    P1.plAudit_Record_ID := AAuditInfo.AuditRecordID;
+    BKPLIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Payee_Line_Rec(P1, AAuditInfo.AuditRecord);
+  end;
 end;
 
 procedure TPayeeLinesList.UpdateCRC(var CRC: Longword);

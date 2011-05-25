@@ -18,7 +18,7 @@ object frmAuditReportOption: TfrmAuditReportOption
     Top = 0
     Width = 889
     Height = 527
-    ActivePage = tsTesting
+    ActivePage = tsSystem
     Align = alClient
     Style = tsButtons
     TabOrder = 0
@@ -32,9 +32,6 @@ object frmAuditReportOption: TfrmAuditReportOption
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitLeft = 461
-        ExplicitTop = 191
-        ExplicitWidth = 448
         object GroupBox5: TGroupBox
           Left = 4
           Top = 4
@@ -68,9 +65,6 @@ object frmAuditReportOption: TfrmAuditReportOption
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitLeft = 94
-        ExplicitTop = 287
-        ExplicitWidth = 448
         object gbxReportPeriod: TGroupBox
           Left = 4
           Top = 4
@@ -148,9 +142,6 @@ object frmAuditReportOption: TfrmAuditReportOption
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 2
-        ExplicitLeft = 32
-        ExplicitTop = 282
-        ExplicitWidth = 729
         object GroupBox1: TGroupBox
           Left = 4
           Top = 4
@@ -248,8 +239,6 @@ object frmAuditReportOption: TfrmAuditReportOption
     object tsClient: TTabSheet
       Caption = 'Client File Audit Report'
       ImageIndex = 1
-      ExplicitLeft = 8
-      ExplicitTop = 31
       inline ClientSelect: TFmeClientSelect
         Left = 0
         Top = 166

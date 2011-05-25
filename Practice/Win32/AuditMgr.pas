@@ -185,13 +185,13 @@ implementation
 uses
   TOKENS, BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO;
+  BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
 {$ELSE}
 uses
   Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList,
   bkdateutils, TOKENS,  BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO;
+  BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
 
 const
   //Audit type strings
@@ -777,6 +777,11 @@ begin
         P2 := New_Payee_Detail_Rec;
         Copy_Payee_Detail_Rec(P1, P2);
       end;
+    tkBegin_Payee_Line:
+      begin
+        P2 := New_Payee_Line_Rec;
+        Copy_Payee_Line_Rec(P1, P2);
+      end;
   end;
 {$ENDIF}
 end;
@@ -802,6 +807,7 @@ begin
       case TableID of
         tkBegin_Payee_Detail: clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                             ClientCopy.clPayee_List, 0, fAuditTable);
+        tkBegin_Payee_Line  : ;//Done in payee detail                                                           
       end;
     end;
   FAuditScope.Clear;
@@ -830,7 +836,8 @@ begin
 
   with FOwner as TClientObj do
     case AAuditRecord.atAudit_Record_Type of
-      tkBegin_Payee_Detail: clPayee_List.AddAuditValues(AAuditRecord, Values);
+      tkBegin_Payee_Detail,
+      tkBegin_Payee_Line: clPayee_List.AddAuditValues(AAuditRecord, Values);
     end;
 {$ENDIF}
 end;
@@ -853,6 +860,11 @@ begin
         ARecord := New_Payee_Detail_Rec;
         Read_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
       end;
+    tkBegin_Payee_Line:
+      begin
+        ARecord := New_Payee_Line_Rec;
+        Read_Payee_Line_Rec(TPayee_Line_Rec(ARecord^), AStream);
+      end;
   end;
 {$ENDIF}
 end;
@@ -863,6 +875,7 @@ begin
 {$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Payee_Detail: Write_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
+    tkBegin_Payee_Line  : Write_Payee_Line_Rec(TPayee_Line_Rec(ARecord^), AStream);
   end;
 {$ENDIF}
 end;

@@ -1491,7 +1491,7 @@ begin
       PayeeLine.plSF_Ledger_ID := SplitData[i].SF_Ledger_ID;
       PayeeLine.plSF_Ledger_Name := SplitData[i].SF_Ledger_Name;
       
-      aPayee.pdLines.Insert(PayeeLine);
+      aPayee.pdLines.Insert(PayeeLine, MyClient.ClientAuditMgr);
     end;
   end;
 end;

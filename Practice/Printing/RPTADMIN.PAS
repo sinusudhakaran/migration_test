@@ -3902,7 +3902,8 @@ begin
         AddAdminHeader(Job);
 
         AddJobHeader(Job, siTitle, 'CLIENT FILE AUDIT REPORT', true);
-        AddJobHeader(Job, siSubTitle, 'From ' +
+        AddJobHeader(Job, siSubTitle, 'For ' + AuditReportOptions.ClientCode +
+                                      ' From ' +
                                       StDatetoDateString('dd/MM/yyyy', AuditReportOptions.DateFrom, true) +
                                       ' to ' +
                                       StDatetoDateString('dd/MM/yyyy', AuditReportOptions.DateTo, true),

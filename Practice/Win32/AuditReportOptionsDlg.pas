@@ -109,7 +109,7 @@ type
     FBtnPressed : integer;
     function Validate: Boolean;
     procedure DisplayAuditRecords;
-    procedure LoadAuditTypes;
+    procedure LoadAuditTypes(AAuditReportType: TAuditReportType);
     procedure LoadClientFileCodes;
     procedure DisplayAuditRecsByAuditType(AAuditType: TAuditType);
     procedure DisplayAuditRecsByTransactionID(ARecordID: integer);
@@ -137,6 +137,7 @@ begin
   try
     with frmAuditReportOption do begin
       DisplayAuditRecords;
+      LoadAuditTypes(AuditReportOptions.AuditReportType);
       case AuditReportOptions.AuditReportType of
         arSystem :
           begin
@@ -178,29 +179,25 @@ begin
           with AuditReportOptions do begin
             DateFrom  := DateSelector.eDateFrom.AsStDate;
             DateTo    := DateSelector.eDateTo.AsStDate;
-            case AuditReportOptions.AuditReportType of
-              arSystem:
-                begin
-                  AuditReportOptions.AuditSelection := byTransactionType;
-                  AuditReportOptions.TransactionType := byte(ComboBox1.Items.Objects[ComboBox1.ItemIndex]);
-                  if rbSytemTransactionID.Checked then
-                    AuditReportOptions.AuditSelection := byTransactionID;
+            AuditReportOptions.AuditSelection := byTransactionType;
+            AuditReportOptions.TransactionType := byte(ComboBox1.Items.Objects[ComboBox1.ItemIndex]);
+            if rbSytemTransactionID.Checked then
+              AuditReportOptions.AuditSelection := byTransactionID;
 
-                  if ComboBox1.ItemIndex > 0 then
-                    AuditReportOptions.TransactionType := TAuditType(ComboBox1.Items.Objects[ComboBox1.ItemIndex]);
-                  if Edit1.Text <> '' then
-                    AuditReportOptions.TransactionID := StrToInt(Edit1.Text);
-                end;
-              arClient:
-                begin
-//                  ClientSelectOptions.ReportSort := ClientSelect.ReportSort;
-//                  ClientSelectOptions.RangeOption := ClientSelect.RangeOption;
-//                  ClientSelectOptions.FromCode := ClientSelect.edtFromCode.Text;
-//                  ClientSelectOptions.ToCode := ClientSelect.edtToCode.Text;
-//                  ClientSelectOptions.CodeSelectionList.DelimitedText := ClientSelect.edtSelection.Text;
-                    AuditReportOptions.FClientCode := cbClientFileCodes.Items[cbClientFileCodes.ItemIndex];
-                end;
+            if ComboBox1.ItemIndex > 0 then
+              AuditReportOptions.TransactionType := TAuditType(ComboBox1.Items.Objects[ComboBox1.ItemIndex]);
+            if Edit1.Text <> '' then
+              AuditReportOptions.TransactionID := StrToInt(Edit1.Text);
+
+            if AuditReportOptions.AuditReportType = arClient then begin
+              AuditReportOptions.FClientCode := cbClientFileCodes.Items[cbClientFileCodes.ItemIndex];            
+//              ClientSelectOptions.ReportSort := ClientSelect.ReportSort;
+//              ClientSelectOptions.RangeOption := ClientSelect.RangeOption;
+//              ClientSelectOptions.FromCode := ClientSelect.edtFromCode.Text;
+//              ClientSelectOptions.ToCode := ClientSelect.edtToCode.Text;
+//              ClientSelectOptions.CodeSelectionList.DelimitedText := ClientSelect.edtSelection.Text;
             end;
+
             case FBtnPressed of
               BTN_PREVIEW :  Destination := rdScreen;
               BTN_PRINT   :  Destination := rdPrinter;
@@ -359,7 +356,7 @@ var
 begin
   bkXPThemes.ThemeForm( Self);
 
-  LoadAuditTypes;
+//  LoadAuditTypes;
   LoadClientFileCodes;
 
   for i := 0 to PageControl1.PageCount - 1 do
@@ -379,16 +376,30 @@ begin
     DateSelector.eDateFrom.SetFocus;
 end;
 
-procedure TfrmAuditReportOption.LoadAuditTypes;
+procedure TfrmAuditReportOption.LoadAuditTypes(AAuditReportType: TAuditReportType);
 var
   i: integer;
 begin
+  //Test
   cbAuditTypes.Clear;
   cbAuditTypes.Items.Add('<All>');
   for i := atMin to atMax do
     cbAuditTypes.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
 
-  //System
+  //Normal
+  ComboBox1.Clear;
+  ComboBox1.Items.AddObject('<All>', TObject(atAll));
+  case AAuditReportType of
+    arSystem: for i := atMin to atMax do
+                if SystemAuditMgr.AuditTypeToDBStr(i) = 'SY' then
+                  ComboBox1.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
+    arClient: for i := atMin to atMax do
+                if SystemAuditMgr.AuditTypeToDBStr(i) = 'BK' then
+                  ComboBox1.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
+  end;
+  ComboBox1.ItemIndex := 0;
+
+{  //System
   ComboBox1.Clear;
   ComboBox1.Items.AddObject('<All>', TObject(atAll));
   for i := atMin to atMax do
@@ -402,7 +413,7 @@ begin
   for i := atMin to atMax do
     if SystemAuditMgr.AuditTypeToDBStr(i) = 'BK' then
       ComboBox2.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
-  ComboBox2.ItemIndex := 0;      
+  ComboBox2.ItemIndex := 0; }
 end;
 
 procedure TfrmAuditReportOption.LoadClientFileCodes;

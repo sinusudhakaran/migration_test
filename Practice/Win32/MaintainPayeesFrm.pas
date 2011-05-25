@@ -474,7 +474,7 @@ begin
              NewPayeeLine.plGST_Has_Been_Edited := false;
            end;
 
-           nPayee.pdLines.Insert(NewPayeeLine);
+           nPayee.pdLines.Insert(NewPayeeLine, MyClient.ClientAuditMgr);
          end;
 
          MyClient.clPayee_List.Insert(nPayee);
