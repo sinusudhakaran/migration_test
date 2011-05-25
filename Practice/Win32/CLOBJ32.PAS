@@ -466,11 +466,13 @@ begin
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   Self.LoadFromStream( S);
+{$IFNDEF ParserDll}
   //Reload client copy DB
   FreeAndNil(FClientCopy); //Delete current copy
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   ClientCopy.LoadFromStream(S);
+{$ENDIF}
 end;
 
 {$IFNDEF ParserDll}
@@ -745,7 +747,7 @@ Begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+{$IFNDEF ParserDll}
 function TClientObj.GetClientCopy: TClientObj;
 begin
   if not Assigned(FClientCopy) then begin
@@ -753,6 +755,7 @@ begin
   end;
   Result := FClientCopy;
 end;
+{$ENDIF}
 
 Function TClientObj.GetCurrentCRC : LongInt;
 const
@@ -1065,11 +1068,13 @@ begin
   Self.SaveToStream( S);
   S.Size := S.Position;
   EmbedCRC( S);
+{$IFNDEF ParserDll}
   //Reload client copy DB after save
   FreeAndNil(FClientCopy); //Delete current copy
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   ClientCopy.LoadFromStream(S);
+{$ENDIF}  
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
