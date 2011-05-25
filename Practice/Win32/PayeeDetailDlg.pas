@@ -1288,7 +1288,7 @@ begin
        MyClient.clPayee_List.Insert(aPayee);
 
        //Flag Audit
-       ClientAuditMgr.FlagAudit(atPayees);
+       MyClient.ClientAuditMgr.FlagAudit(atPayees);
 
        Result := true;
      end;

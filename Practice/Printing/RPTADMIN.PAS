@@ -3712,7 +3712,8 @@ begin
         SystemAuditMgr.GetValues(AuditRecord, Values);
         AuditFields.DelimitedText := Values;
         for j := 0 to AuditFields.Count - 1 do
-          Report.RenderTextLine('        ' + AuditFields[j]);
+          if (AuditFields[j] <> 'ParentID=0') then
+            Report.RenderTextLine('        ' + AuditFields[j]);
       end;
     end;
   finally
@@ -3835,7 +3836,7 @@ begin
 
         //Output
         if PrintAuditRec then begin
-          Report.PutString(ClientAuditMgr.AuditTypeToStr(AuditRecord.atTransaction_Type));
+          Report.PutString(TempClientFile.ClientAuditMgr.AuditTypeToStr(AuditRecord.atTransaction_Type));
           Report.PutString(IntToStr(AuditRecord.atRecord_ID));
           Report.PutString(aaNames[AuditRecord.atAudit_Action]);
           Report.PutString(AuditRecord.atUser_Code);
@@ -3844,10 +3845,11 @@ begin
           Report.RenderDetailLine;
 
           Values := '';
-          ClientAuditMgr.GetValues(AuditRecord, Values);
+          TempClientFile.ClientAuditMgr.GetValues(AuditRecord, Values);
           AuditFields.DelimitedText := Values;
           for j := 0 to AuditFields.Count - 1 do
-            Report.RenderTextLine('        ' + AuditFields[j]);
+            if (AuditFields[j] <> 'ParentID=0') then
+              Report.RenderTextLine('        ' + AuditFields[j]);
         end;
       end;
     finally

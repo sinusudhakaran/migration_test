@@ -35,6 +35,7 @@ type
     clJobs                 : TClient_Job_List;
     clExtra                : TClientExtra_Rec;
     FAuditTable            : TAuditTable;
+    FClientAuditMgr        : TClientAuditManager;
 {$ENDIF}
     clWas_Code             : string;  //store the client code to detect a rename
     clRawStreamSize        : integer; //store stream size on open so can estimate for save
@@ -45,6 +46,7 @@ type
 {$ELSE}
     FExchangeSource: TExchangeSource;
     FLastAuditRecordID: integer;
+    FClientCopy: TClientObj;
 {$ENDIF}
     procedure LoadFromStream( var s:TIOStream);
     procedure GetZipStreamFromFile( const Filename : String; const ZipStream : TBigMemoryStream);
@@ -57,6 +59,7 @@ type
     procedure SaveToStream (var s:TIOStream);
     procedure WriteFileFromZipStream(const Filename: string; const ZipStream: TBigMemoryStream);
     function GetAccountingSystemName: string;
+    function GetClientCopy: TClientObj;
 {$ENDIF}
   public
     procedure Open(FileCode, FileExtension : String);
@@ -113,10 +116,10 @@ type
     function GetForexISOCodeForContra(AContraCode: string): string;
     function NextAuditRecordID: integer;
     property AuditTable: TAuditTable read FAuditTable;
+    property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
+    property ClientCopy: TClientObj read GetClientCopy;
 {$ENDIF}
   end;
-
-  function ClientCopy: TClientObj;
 
 {$IFDEF ParserDll}
    var  // So we don't need Globals or WinUtils
@@ -181,15 +184,6 @@ const
 
 var
   DebugMe     : Boolean = false;
-  _ClientCopy : TClientObj;
-
-function ClientCopy: TClientObj;
-begin
-  if not Assigned(_ClientCopy) then begin
-    _ClientCopy := TClientObj.Create;
-  end;
-  Result := _ClientCopy;
-end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TClientObj.Create;
@@ -204,7 +198,11 @@ begin
    clWas_Code             := '';
 {$IFDEF ParserDll}
 {$ELSE}
+   //Audit table
    FLastAuditRecordID := 0;
+   FClientAuditMgr        := TClientAuditManager.Create(Self);
+   FAuditTable            := TAuditTable.Create(FClientAuditMgr);
+
    FillChar(clMoreFields,SizeOf(clMoreFields),0);
    clMoreFields.mcRecord_Type := tkBegin_MoreClient;
    clMoreFields.mcEOR         := tkEnd_MoreClient;
@@ -217,16 +215,13 @@ begin
    clBank_Account_List    := TBank_Account_List.Create( Self );
    clChart                := TChart.Create;
    clPayee_List_V53       := TPayee_List_V53.Create;
-   clPayee_List           := TPayee_List.Create;
+   clPayee_List           := TPayee_List.Create(FClientAuditMgr);
    clMacro_List           := TMacro_List.Create;
    clDisk_Log             := TDisk_List.Create;
    clBudget_List          := TBudget_List.Create;
    clBalances_List        := TBalances_List.Create;
    clJobs                 := TClient_Job_List.Create;
    clCustom_Headings_List := TNew_Custom_Headings_List.Create;
-
-   //Audit table
-   FAuditTable            := TAuditTable.Create(ClientAuditMgr);
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;
@@ -261,8 +256,7 @@ begin
 {$IFDEF ParserDll}
 {$ELSE}
    FreeAndNil(FExchangeSource);
-   FreeAndNil(fAuditTable);
-      
+
    clBank_Account_List.Free;
    clChart.Free;
    clPayee_List_V53.Free;
@@ -275,6 +269,10 @@ begin
    clJobs.Free;
    BKMCIO.Free_MoreClient_Rec_Dynamic_Fields(clMoreFields);
    BKCEIO.Free_ClientExtra_Rec_Dynamic_Fields (clExtra);
+
+   //Audit table
+   FreeAndNil(fAuditTable);
+   FreeAndNil(FClientAuditMgr);
 {$ENDIF}
    inherited Destroy;
    LogDebugMsg( ThisMethodName + ' Ends');
@@ -469,7 +467,7 @@ begin
   S.Read( CRC, Sizeof( LongWord ) );
   Self.LoadFromStream( S);
   //Reload client copy DB
-  FreeAndNil(_ClientCopy); //Delete current copy
+  FreeAndNil(FClientCopy); //Delete current copy
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   ClientCopy.LoadFromStream(S);
@@ -747,6 +745,14 @@ Begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function TClientObj.GetClientCopy: TClientObj;
+begin
+  if not Assigned(FClientCopy) then begin
+    FClientCopy := TClientObj.Create;
+  end;
+  Result := FClientCopy;
+end;
 
 Function TClientObj.GetCurrentCRC : LongInt;
 const
@@ -1049,7 +1055,7 @@ var
   CRC : LongWord;
 begin
   //Audit
-  ClientAuditMgr.DoAudit;
+  FClientAuditMgr.DoAudit;
   //Save
   S.Clear;
   S.Size := DefaultSize;
@@ -1060,7 +1066,7 @@ begin
   S.Size := S.Position;
   EmbedCRC( S);
   //Reload client copy DB after save
-  FreeAndNil(_ClientCopy); //Delete current copy
+  FreeAndNil(FClientCopy); //Delete current copy
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   ClientCopy.LoadFromStream(S);
@@ -1343,6 +1349,4 @@ initialization
 {$ELSE}
    DebugMe := DebugUnit(UnitName);
 {$ENDIF}
-finalization
-   FreeAndNil(_ClientCopy);
 end.

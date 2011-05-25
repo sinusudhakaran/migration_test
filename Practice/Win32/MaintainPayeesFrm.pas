@@ -81,7 +81,8 @@ uses
   Progress,
   BKPLIO,
   GSTCalc32,
-  GenUtils;
+  GenUtils,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -177,31 +178,21 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPayees.tbEditClick(Sender: TObject);
 var
-  p              : TPayee;
-  pIndex         : integer;
-  NameBeforeEdit : string;
+  p: TPayee;
 begin
   SearchTerm := '';
   if lvPayees.Selected <> nil then
   begin
-    //force only the first item to be selected
+    //Force only the first item to be selected
     ForceOnlyOneSelected;
     p := TPayee(lvPayees.Selected.SubItems.Objects[0]);
-    //store the name and index in the list in case the name is changed
-    //during the edit
-    NameBeforeEdit := p.pdName;
-    pIndex := MyClient.clPayee_List.IndexOf(p);
     if EditPayeeDetail(p) then begin
-       if NameBeforeEdit <> p.pdName then begin
-          //Name has changed.  Since this is the sort key for the list we
-          //must delete and read it to the payee list
-          with MyClient.clPayee_List do begin
-             AtDelete(pIndex);
-             Insert(p);
-          end;
-       end;
-       RefreshPayeeList;
-       RepositionOnNumber( IntToStr(p.pdFields.pdNumber));
+      //Flag Audit
+      MyClient.ClientAuditMgr.FlagAudit(atPayees);
+      //Reload payees
+      MyClient.clPayee_List.Sort(PayeeCompare);
+      RefreshPayeeList;
+      RepositionOnNumber(IntToStr(p.pdFields.pdNumber));
     end;
   end;
 end;
@@ -286,6 +277,9 @@ begin
       ReselectAndScroll(lvPayees, PrevSelectedIndex, PrevTopIndex);      
     end;
   end;
+
+  //Flag Audit
+  MyClient.ClientAuditMgr.FlagAudit(atPayees);
 end;
 //------------------------------------------------------------------------------
 function ColSort( Item1, Item2, ColNo : Integer ) : Integer; stdcall;
@@ -484,6 +478,9 @@ begin
          end;
 
          MyClient.clPayee_List.Insert(nPayee);
+
+         //Flag Audit
+         MyClient.ClientAuditMgr.FlagAudit(atPayees);
        end;
      end;
    finally

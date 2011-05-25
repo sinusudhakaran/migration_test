@@ -53,13 +53,17 @@ type
      procedure UpdateCRC(var CRC : Longword);
    end;
 
+
+   //Compare function has been moved outside the Payee list so that it can be
+   //used for sorting elsewhere.
    TPayee_List = class(TExtdSortedCollection)
-      constructor Create;
-      function Compare( Item1, Item2 : Pointer ) : integer; override;
-      function FindRecordID( ARecordID : integer ):  TPayee;
    protected
       procedure FreeItem( Item : Pointer ); override;
+   private
+      FAuditMgr: TClientAuditManager;
    public
+      constructor Create(AAuditMgr: TClientAuditManager);
+      function FindRecordID( ARecordID : integer ):  TPayee;
       function  Payee_At( Index : LongInt ): TPayee;
       function  Find_Payee_Number( CONST ANumber: LongInt ): TPayee;
       function  Find_Payee_Name( CONST AName: String ): TPayee;
@@ -79,6 +83,8 @@ type
       procedure AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
       procedure Insert(Item: Pointer); override;
    end;
+
+   function PayeeCompare(Item1, Item2: Pointer): integer;
 
 implementation
 
@@ -139,11 +145,11 @@ begin
   while Token <> 0 do begin
     case Token of
       //Number
-      92: ClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 91),
-                                       tPayee_Detail_Rec(ARecord^).pdNumber, Values);
+      92: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 91),
+                                  tPayee_Detail_Rec(ARecord^).pdNumber, Values);
       //Name
-      93: ClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 92),
-                                       tPayee_Detail_Rec(ARecord^).pdName, Values);
+      93: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 92),
+                                  tPayee_Detail_Rec(ARecord^).pdName, Values);
     end;
     Inc(Idx);
     Token := AAuditRecord.atChanged_Fields[idx];    
@@ -167,14 +173,24 @@ begin
   end;
 end;
 
-function TPayee_List.Compare(Item1, Item2: Pointer): integer;
+//function TPayee_List.Compare(Item1, Item2: Pointer): integer;
+function PayeeCompare(Item1, Item2: Pointer): integer;
+var
+  S1, S2: string;
 begin
-  Result := StStrS.CompStringS(TPayee(Item1).pdName,TPayee(Item2).pdName);
+  S1 := '';
+  S2 := '';
+  if Assigned(Item1) then S1 := TPayee(Item1).pdName;
+  if Assigned(Item1) then S2 := TPayee(Item2).pdName;
+  Result := StStrS.CompStringS(S1, S2);
 end;
 
-constructor TPayee_List.Create;
+constructor TPayee_List.Create(AAuditMgr: TClientAuditManager);
 begin
-  inherited;
+  inherited Create;
+
+  FAuditMgr := AAuditMgr;
+  FCompare := PayeeCompare;
 end;
 
 procedure TPayee_List.DoAudit(AAuditType: TAuditType;
@@ -186,7 +202,7 @@ var
   Payee: TPayee;
 begin
   AuditInfo.AuditType := atPayees;
-  AuditInfo.AuditUser := ClientAuditMgr.CurrentUserCode;
+  AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Payee_Detail;
   //Adds, changes
   for i := 0 to Pred(ItemCount) do begin
@@ -301,8 +317,8 @@ end;
 
 procedure TPayee_List.Insert(Item: Pointer);
 begin
-  TPayee(Item).pdFields.pdAudit_Record_ID := ClientAuditMgr.NextClientRecordID;
-  inherited;
+  TPayee(Item).pdFields.pdAudit_Record_ID := FAuditMgr.NextClientRecordID;
+  inherited Insert(Item);
 end;
 
 procedure TPayee_List.FreeItem(Item: Pointer);
@@ -378,6 +394,11 @@ begin
     //Delete
     AAuditInfo.AuditAction := aaDelete;
     AAuditInfo.AuditRecordID := P2.pdAudit_Record_ID;
+    AAuditInfo.AuditOtherInfo :=
+      AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
+      Format('%s=%d',[BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 91), P2.pdNumber]) +
+      VALUES_DELIMITER +
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 92), P2.pdName]);
   end else if Assigned(P2) then begin
     //Change
     AAuditInfo.AuditRecordID := P1.pdAudit_Record_ID;
