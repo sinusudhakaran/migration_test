@@ -791,8 +791,10 @@ begin
   inherited Create;
 
   FOwner := nil;
+{$IFNDEF LOOKUPDLL}
   if Owner is TClientObj then
     FOwner := Owner;
+{$ENDIF}
 end;
 
 procedure TClientAuditManager.DoAudit;
