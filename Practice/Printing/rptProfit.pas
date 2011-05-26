@@ -476,7 +476,7 @@ begin
   try
     repeat
       if not GetFYearParameters( REPORT_LIST_NAMES[REPORT_PROFIT_12BUD],
-         lparam, 0, True,True, True, False, False, False, True) then //help link to be added in later
+         lparam, BKH_12_months_budget, True,True, True, False, False, False, True) then //help link to be added in later
          exit;
 
       case lParam.RunBtn of

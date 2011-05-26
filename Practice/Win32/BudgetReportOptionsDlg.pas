@@ -105,7 +105,7 @@ end;
 procedure TdlgBudgetReportOptions.SetupHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
-   Self.HelpContext :=  BKH_12_months_budget; //BKH_Budget_report;
+   Self.HelpContext :=  BKH_Budget_report;
 
    //Components
    cmbBudget.Hint   := 'Select a Budget to print|'+
