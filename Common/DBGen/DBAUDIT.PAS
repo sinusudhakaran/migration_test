@@ -148,7 +148,7 @@ begin
         TableBeginToken := GetLField( 4 );
         Writeln( AuditConstFile, '   FAuditTableArray[', TableBeginToken, '] := ''', TableName, ''';');
         TokenNo := TableBeginToken;
-        Inc( TokenNo );
+        Inc( TokenNo, 2 ); //Inc by 2 because second token is end-of-record
       end else if LineType='F' then begin
         //Field names
         FieldName := MakeName( GetAField( 2 ) );
