@@ -284,6 +284,7 @@ begin
    LogDebugMsg( ThisMethodName + ' Ends');
 end;
 
+{$IFNDEF ParserDll}
 procedure TClientObj.DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
 var
   AuditInfo: TAuditInfo;
@@ -306,7 +307,7 @@ begin
     Dispose(AuditInfo.AuditRecord);
   end;
   //Client Extra
-  AuditInfo.AuditAction := aaNone;  
+  AuditInfo.AuditAction := aaNone;
   AuditInfo.AuditRecord := New_ClientExtra_Rec;
   try
     ceFieldsCopy := AClientCopy.clExtra;
@@ -317,6 +318,7 @@ begin
     Dispose(AuditInfo.AuditRecord);
   end;
 end;
+{$ENDIF}
 
 {$IFNDEF ParserDll}
 
@@ -1123,8 +1125,10 @@ procedure TClientObj.SaveToDataStream(var S: TIOStream; DefaultSize : integer = 
 var
   CRC : LongWord;
 begin
+{$IFNDEF ParserDll}
   //Audit
   FClientAuditMgr.DoAudit;
+{$ENDIF}  
   //Save
   S.Clear;
   S.Size := DefaultSize;
@@ -1140,7 +1144,7 @@ begin
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   ClientCopy.LoadFromStream(S);
-{$ENDIF}  
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1414,7 +1418,6 @@ begin
             29: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 28),
                                               tClient_Rec(ARecord^).clFax_No, Values);
       //    FAuditNamesArray[20,29] := 'File_Password';
-      //    FAuditNamesArray[20,30] := 'Practice_Name';
             //Practice_Name
             31: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 30),
                                               tClient_Rec(ARecord^).clPractice_Name, Values);
