@@ -328,7 +328,7 @@ begin
             sysClientRec^.cfContact_Details_Edit_Time := StDate.CurrentTime;
 
             //*** Flag Audit ***
-            SystemAuditMgr.FlagAudit(atClientFiles);
+            SystemAuditMgr.FlagAudit(atSystemClientFiles);
 
             SaveAdminSystem;
           end
@@ -509,7 +509,7 @@ begin
                     Client^.cfUser_Responsible := UserLRN;
 
                     //*** Flag Audit ***
-                    SystemAuditMgr.FlagAudit(atClientFiles);
+                    SystemAuditMgr.FlagAudit(atSystemClientFiles);
 
                     SaveAdminSystem;
                     Inc(SuccessCount);
@@ -1624,7 +1624,7 @@ begin
        LogUtil.LogMsg(lmInfo,'ThisMethodName','Client '+ClientCode+' deleted from Admin System OK');
 
        //*** Flag Audit ***
-       SystemAuditMgr.FlagAudit(atClientFiles);
+       SystemAuditMgr.FlagAudit(atSystemClientFiles);
 
        SaveAdminSystem;
 
@@ -1759,7 +1759,7 @@ begin
                   ClientFile.cfCurrent_User := 0;
 
                   //*** Flag Audit ***
-                  SystemAuditMgr.FlagAudit(atClientFiles);
+                  SystemAuditMgr.FlagAudit(atSystemClientFiles);
 
                   SaveAdminSystem;
 
@@ -1889,7 +1889,7 @@ begin
           LogUtil.LogMsg(lmInfo,'ThisMethodName','Prospect '+ClientCode+' deleted from Admin System OK');
 
           //*** Flag Audit ***
-          SystemAuditMgr.FlagAudit(atClientFiles);
+          SystemAuditMgr.FlagAudit(atSystemClientFiles);
 
           SaveAdminSystem;
 
@@ -1987,7 +1987,7 @@ begin
             if not UseCurrentlyOpenClient then begin
               //*** Flag Audit ***
               //Audit here so that an audit record isn't created every time a client file is opened
-              SystemAuditMgr.FlagAudit(atClientFiles);
+              SystemAuditMgr.FlagAudit(atSystemClientFiles);
               CloseAClient(TempClient)
             end else
             begin

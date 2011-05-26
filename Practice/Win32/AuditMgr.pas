@@ -18,28 +18,29 @@ const
   atDownloadingData               = 5;
   atSystemBankAccounts            = 6;
   atProvisionalDataEntry          = 7;
-  atClientFiles                   = 8;
+  atSystemClientFiles             = 8;
   atAttachBankAccounts            = 9;
   atClientBankAccounts            = 10;
   atChartOfAccounts               = 11;
   atPayees                        = 12;
-  atMemorisations                 = 13;
-  atGSTSetup                      = 14;
-  atHistoricalentries             = 15;
-  atProvisionalEntries            = 16;
-  atManualEntries                 = 17;
-  atDeliveredTransactions         = 18;
-  atAutomaticCoding               = 19;
-  atCashJournals                  = 20;
-  atAccrualJournals               = 21;
-  atStockAdjustmentJournals       = 22;
-  atYearEndAdjustmentJournals     = 23;
-  atGSTJournals                   = 24;
-  atOpeningBalances               = 25;
-  atUnpresentedItems              = 26;
-  atBankLinkNotes                 = 27;
-  atBankLinkNotesOnline           = 28;
-  atBankLinkBooks                 = 29; atMax = 29;
+  atClientFiles                   = 13;
+  atMemorisations                 = 14;
+  atGSTSetup                      = 15;
+  atHistoricalentries             = 16;
+  atProvisionalEntries            = 17;
+  atManualEntries                 = 18;
+  atDeliveredTransactions         = 19;
+  atAutomaticCoding               = 20;
+  atCashJournals                  = 21;
+  atAccrualJournals               = 22;
+  atStockAdjustmentJournals       = 23;
+  atYearEndAdjustmentJournals     = 24;
+  atGSTJournals                   = 25;
+  atOpeningBalances               = 26;
+  atUnpresentedItems              = 27;
+  atBankLinkNotes                 = 28;
+  atBankLinkNotesOnline           = 29;
+  atBankLinkBooks                 = 30; atMax = 30;
   atAll = 254;
 
   //Audit actions
@@ -51,7 +52,7 @@ const
   //Audit action strings
   aaNames : array[ aaMin..aaMax ] of string = ('None', 'Add', 'Change', 'Delete');
 
-  SystemAuditTypes = [atPracticeSetup..atClientFiles, atAll];
+  SystemAuditTypes = [atPracticeSetup..atSystemClientFiles, atAll];
 
   dbSystem = 0;
   dbClient = 1;
@@ -185,13 +186,13 @@ implementation
 uses
   TOKENS, BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
+  BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
 {$ELSE}
 uses
   Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList,
   bkdateutils, TOKENS,  BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKAUDIT, BKPDIO, BKCLIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
+  BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
 
 const
   //Audit type strings
@@ -209,6 +210,7 @@ const
      'Client Bank Accounts',
      'Chart of Accounts',
      'Payees',
+     'Client File',
      'Memorisations',
      'GST/VAT Setup',
      'Historical entries',
@@ -241,6 +243,7 @@ const
      (tkBegin_Bank_Account, dbClient),        //Client Bank Accounts
      (tkBegin_Account, dbClient),             //Chart of Accounts
      (tkBegin_Payee_Detail, dbClient),        //Payees
+     (tkBegin_Client, dbClient),              //Client Files
      (tkBegin_Memorisation_Detail, dbClient), //Memorisations
      (tkBegin_Client, dbClient),              //GST/VAT Setup
      (tkBegin_Bank_Account, dbClient),         //Historical entries
@@ -772,6 +775,16 @@ procedure TClientAuditManager.CopyAuditRecord(const ARecordType: byte;
 begin
 {$IFNDEF LOOKUPDLL}
   case ARecordType of
+    tkBegin_Client :
+      begin
+        P2 := New_Client_Rec;
+        Copy_Client_Rec(P1, P2);
+      end;
+    tkBegin_ClientExtra :
+      begin
+        P2 := New_ClientExtra_Rec;
+        Copy_ClientExtra_Rec(P1, P2);
+      end;
     tkBegin_Payee_Detail:
       begin
         P2 := New_Payee_Detail_Rec;
@@ -807,9 +820,10 @@ begin
     for i := 0 to FAuditScope.Count - 1 do begin
       TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
       case TableID of
+        tkBegin_Client      : DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType, ClientCopy);
         tkBegin_Payee_Detail: clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                            ClientCopy.clPayee_List, 0, fAuditTable);
-        tkBegin_Payee_Line  : ;//Done in payee detail                                                           
+                                                   ClientCopy.clPayee_List, 0, fAuditTable);
+        tkBegin_Payee_Line  : ;//Done in payee detail
       end;
     end;
   FAuditScope.Clear;
@@ -838,6 +852,8 @@ begin
 
   with FOwner as TClientObj do
     case AAuditRecord.atAudit_Record_Type of
+      tkBegin_Client,
+      tkBegin_ClientExtra: AddAuditValues(AAuditRecord, Values);
       tkBegin_Payee_Detail,
       tkBegin_Payee_Line: clPayee_List.AddAuditValues(AAuditRecord, Values);
     end;
@@ -857,6 +873,16 @@ procedure TClientAuditManager.ReadAuditRecord(ARecordType: byte;
 begin
 {$IFNDEF LOOKUPDLL}
   case ARecordType of
+    tkBegin_Client:
+      begin
+        ARecord := New_Client_Rec;
+        Read_Client_Rec(TClient_Rec(ARecord^), AStream);
+      end;
+    tkBegin_ClientExtra:
+      begin
+        ARecord := New_ClientExtra_Rec;
+        Read_ClientExtra_Rec(TClientExtra_Rec(ARecord^), AStream);
+      end;
     tkBegin_Payee_Detail:
       begin
         ARecord := New_Payee_Detail_Rec;
@@ -876,6 +902,8 @@ procedure TClientAuditManager.WriteAuditRecord(ARecordType: byte;
 begin
 {$IFNDEF LOOKUPDLL}
   case ARecordType of
+    tkBegin_Client      : Write_Client_Rec(TClient_Rec(ARecord^), AStream);
+    tkBegin_ClientExtra : Write_ClientExtra_Rec(TClientExtra_Rec(ARecord^), AStream);
     tkBegin_Payee_Detail: Write_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
     tkBegin_Payee_Line  : Write_Payee_Line_Rec(TPayee_Line_Rec(ARecord^), AStream);
   end;

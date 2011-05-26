@@ -168,7 +168,7 @@ uses
    stDate,
    bkXPThemes,
    ThirdPartyHelper,
-   bkConst, BKDEFS, ClientUtils;
+   bkConst, BKDEFS, ClientUtils, AuditMgr;
 
 {$R *.DFM}
 
@@ -989,8 +989,11 @@ begin
         clExternal_ID := edtFingertipsClientID.Text;
 {$ENDIF}
 
-        if FileRenamed then  //force a save immediately
+        if FileRenamed then begin //force a save immediately
+           //Flag Audit
+           MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
            SaveClient;
+        end;
      end;   // if okPressed
    end;  //with MyClient
    result := okPressed;
@@ -1011,6 +1014,9 @@ begin
         CreatingClient := false;
         FViewNotes := ViewNotes;
         Result := Execute('');
+        //Flag Audit
+        if Result then
+          MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
         RefreshHomepage([HPR_Client]);
      finally
         Free;

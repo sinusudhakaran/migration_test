@@ -199,7 +199,7 @@ begin
     cfrec^.cfContact_Details_Edit_Time := StDate.CurrentTime;
 
     //*** Flag Audit ***
-    SystemAuditMgr.FlagAudit(atClientFiles);
+    SystemAuditMgr.FlagAudit(atSystemClientFiles);
 
     SaveAdminSystem;
   end
@@ -247,7 +247,7 @@ begin
     cfrec^.cfFile_Name := ClientDetailsCache.Name;
 
     //*** Flag Audit ***
-    SystemAuditMgr.FlagAudit(atClientFiles);
+    SystemAuditMgr.FlagAudit(atSystemClientFiles);
     
     SaveAdminSystem;
   end

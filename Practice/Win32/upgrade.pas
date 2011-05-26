@@ -4011,7 +4011,7 @@ const
     DS: pDissection_Rec;
     PD: TPayee;
     MD: TMemorisation;
-    CHL: TNew_Custom_Headings_List;
+    CHL: PCustom_Heading_Rec;
   begin
     LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Start');
     //CL Client
@@ -4071,11 +4071,9 @@ const
 
     //Custom Heading
     for i := aClient.clCustom_Headings_List.First to aClient.clCustom_Headings_List.Last do begin
-      CHL := TNew_Custom_Headings_List(aClient.clCustom_Headings_List.Items[i]);
-      if Assigned(CHL) then begin
-        for j := 0 to Pred(CHL.ItemCount) do
-          pCustom_Heading_Rec(CHL.Items[j]).hdAudit_Record_ID := aClient.NextAuditRecordID;
-      end;
+      CHL := PCustom_Heading_Rec(aClient.clCustom_Headings_List.Items[i]);
+      if Assigned(CHL) then
+        CHL.hdAudit_Record_ID := aClient.NextAuditRecordID;
     end;
     //Job Heading
     for i := aClient.clJobs.First to aClient.clJobs.Last do

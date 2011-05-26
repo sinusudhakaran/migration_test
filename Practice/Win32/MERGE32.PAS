@@ -864,7 +864,7 @@ begin
      end;
 
      //*** Flag Audit ***
-     SystemAuditMgr.FlagAudit(atClientFiles);
+     SystemAuditMgr.FlagAudit(atSystemClientFiles);
   end;
 
   //sync client bank accounts with admin system

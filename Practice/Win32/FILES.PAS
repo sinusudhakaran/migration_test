@@ -2478,7 +2478,7 @@ begin
 
          //*** Flag Audit ***
          SystemAuditMgr.FlagAudit(atAttachBankAccounts);
-         SystemAuditMgr.FlagAudit(atClientFiles);
+         SystemAuditMgr.FlagAudit(atSystemClientFiles);
 
          SaveAdminSystem;
       end;

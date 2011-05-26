@@ -193,6 +193,10 @@ begin
               MyClient.clFields.clAll_EditMode_DIS := PRACINI_DefaultDissectionMode = 0;
               for i := btMin to btMax do
                 MyClient.clFields.clAll_EditMode_Journals[i] := True;
+
+              //Flag Audit
+              MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
+
               SaveClient;
            end;
            if Assigned(MyClient) then
@@ -555,7 +559,7 @@ begin
      end;
 
      //*** Flag Audit ***
-     SystemAuditMgr.FlagAudit(atClientFiles);
+     SystemAuditMgr.FlagAudit(atSystemClientFiles);
      SystemAuditMgr.FlagAudit(atAttachBankAccounts);
 
      SaveAdminSystem;

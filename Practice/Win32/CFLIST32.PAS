@@ -199,7 +199,7 @@ var
   P1, P2: pClient_File_Rec;
   AuditInfo: TAuditInfo;
 begin
-  AuditInfo.AuditType := atClientFiles;
+  AuditInfo.AuditType := atSystemClientFiles;
   AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Client_File;
   //Adds, changes
