@@ -148,7 +148,8 @@ begin
         TableBeginToken := GetLField( 4 );
         Writeln( AuditConstFile, '   FAuditTableArray[', TableBeginToken, '] := ''', TableName, ''';');
         TokenNo := TableBeginToken;
-        Inc( TokenNo, 2 ); //Inc by 2 because second token is end-of-record
+        Inc( TokenNo );
+        Inc( TokenNo ); //Inc by again because second token is end-of-record        
       end else if LineType='F' then begin
         //Field names
         FieldName := MakeName( GetAField( 2 ) );
@@ -243,7 +244,8 @@ begin
   TypeList := TStringList.Create;
 
   //Add definition for fields changed array
-  TypeList.Add('  TChanged_Fields_Array = Array[ 0..254 ] of Byte;');
+//  TypeList.Add('  TChanged_Fields_Array = Array[ 0..254 ] of Byte;');
+  TypeList.Add('  TChanged_Fields_Array = MoneyDef.TChanged_Fields_Array;');
 
   FunctionDefList := TStringList.Create;
   FunctionList := TStringList.Create;
@@ -274,7 +276,7 @@ begin
             DBObj.ReplaceCodes( Definition, '%A4%', A4 );
 
             TypeDef := Format('  T%s_Array = %s',[FieldName, Definition]);
-            if TypeList.IndexOf(TypeDef) = -1 then begin
+            if (TypeList.IndexOf(TypeDef) = -1) and (FieldName <> 'Changed_Fields') then begin
               TypeList.Add(TypeDef);
               FunctionDef := 'function ' + FieldName + '_Changed(const V1, V2: T' +
                              FieldName + '_Array; var V3: T' + FieldName +
@@ -345,7 +347,7 @@ begin
       Writeln( AuditUtilsFile, FunctionList[i] );
     Writeln( AuditUtilsFile );
 
-    //Audot Fields Changed Function
+    //Audit Fields Changed Function
     Writeln( AuditUtilsFile, 'function Changed_Fields_Changed(const V1, V2: TChanged_Fields_Array; var V3: TChanged_Fields_Array): boolean;' );
     Writeln( AuditUtilsFile, 'var' );
     Writeln( AuditUtilsFile, '  i: integer;' );
