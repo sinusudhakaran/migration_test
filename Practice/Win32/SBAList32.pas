@@ -58,16 +58,16 @@ begin
   while Token <> 0 do begin
     case Token of
       //Account number
-      52: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, 51),
+      52: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
                                        TSystem_Bank_Account_Rec(ARecord^).sbAccount_Number, Values);
       //Account name
-      53: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, 52),
+      53: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
                                        TSystem_Bank_Account_Rec(ARecord^).sbAccount_Name, Values);
       //Password
       54: begin
             for i := 1 to Length(TSystem_Bank_Account_Rec(ARecord^).sbAccount_Password) do
               PW := PW + '*';
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, 53),
+            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
                                          PW, Values);
           end;
 //   tksbLRN                              = 55 ;
@@ -76,7 +76,7 @@ begin
 //   tksbLast_Transaction_LRN             = 58 ;
 //   tksbNew_This_Month                   = 59 ;
       //No of Entries
-      60: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, 59),
+      60: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
                                        TSystem_Bank_Account_Rec(ARecord^).sbNo_of_Entries_This_Month, Values);
 
 //   tksbFrom_Date_This_Month             = 61 ;
@@ -90,7 +90,7 @@ begin
 //   tksbLast_Entry_Date                  = 69 ;
 //   tksbDate_Of_Last_Entry_Printed       = 70 ;
       //Mark as deleted
-      71: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, 70),
+      71: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
                                        TSystem_Bank_Account_Rec(ARecord^).sbMark_As_Deleted, Values);
 //   tksbFile_Code                        = 72 ;
 //   tksbClient_ID                        = 73 ;
@@ -103,7 +103,7 @@ begin
 //   tksbUnused                           = 80 ;
 //   tksbFirst_Available_Date             = 81 ;
       //Account name
-      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, 81),
+      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
                                        TSystem_Bank_Account_Rec(ARecord^).sbNo_Charge_Account, Values);
 //   tksbCurrency_Code                    = 83 ;
 //   tksbInstitution                      = 84 ;

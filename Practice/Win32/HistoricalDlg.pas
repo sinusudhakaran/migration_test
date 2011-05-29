@@ -449,7 +449,7 @@ uses
   Software,
   CountryUtils,
   PayeeObj, baUtils, EditBankDlg, TransactionUtils,ImportHistDlg, Finalise32,
-  AuditMgr;
+  AuditMgr, SYPEIO;
 
 {$R *.DFM}
 
@@ -4745,6 +4745,7 @@ var
 
   TempAccount: TBank_Account;
   TempClient, KeepClient: TClientObj;
+  PE: pProvisional_Entries_Log_Rec;
 
   function SaveToArchives: Boolean;
   const ThisMethodName = 'ProvisionalToArchive';
@@ -4754,6 +4755,7 @@ var
      Entry: tArchived_Transaction;
      I: integer;
      ClientAccountMap: pClient_Account_Map_Rec;
+     FirstProvisionalLRN, LastProvisionalLRN: integer;
   begin
      Result := False;
      LoadAdminSystem(True,'Save Provisional');
@@ -4792,6 +4794,8 @@ var
      //SelectedBA.sbCharges_This_Month:= 0;
 
      try
+        FirstProvisionalLRN := 0;
+        LastProvisionalLRN  := 0;
         for I := TempAccount.baTransaction_List.First to TempAccount.baTransaction_List.Last do
         with TempAccount.baTransaction_List.Transaction_At(I)^ do begin
            FillChar(Entry, Sizeof(Entry), 0);
@@ -4811,6 +4815,11 @@ var
            //allocate new lrn for this transaction and write to txn file
            Inc(AdminSystem.fdFields.fdTransaction_LRN_Counter);
            Entry.aLRN := AdminSystem.fdFields.fdTransaction_LRN_Counter;
+           //Save LRN range for auditing
+           if i = TempAccount.baTransaction_List.First then
+             FirstProvisionalLRN := Entry.aLRN;
+           if i = TempAccount.baTransaction_List.Last then
+             LastProvisionalLRN := Entry.aLRN;
 
            //transaction has been constructed
            Write(eFile, Entry);
@@ -4844,6 +4853,13 @@ var
 
         end;// Trans Loop
 
+        //Save username, datetime, and LRN range to System DB for auditing
+        PE := SYPEIO.New_Provisional_Entries_Log_Rec;
+        PE.peDate_Time := Now;
+        PE.peUser_Code := Globals.CurrUser.Code;
+        PE.peFirst_LRN := FirstProvisionalLRN;
+        PE.peLast_LRN := LastProvisionalLRN;
+        AdminSystem.fSystem_Provisional_List.Insert(PE);
 
         //update the Earliest Download Date to the Client Account Maps
         for I := AdminSystem.fdSystem_Client_Account_Map.First to AdminSystem.fdSystem_Client_Account_Map.Last do begin

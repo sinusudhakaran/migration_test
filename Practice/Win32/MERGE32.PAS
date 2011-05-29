@@ -371,19 +371,7 @@ Begin
                                  txDate_Effective     := aDate_Presented;
                                  txDate_Transferred   := 0;
 
-//                                 if ForeignCurrency then
-//                                 Begin
-//                                   txForeign_Currency_Amount := aAmount;
-//                                   Rate   := baForex_Info.Rate( BCode, CCode, aDate_Presented );
-//                                   Rate := 0;
-//                                   if Rate <> 0.0 then
-//                                     txAmount := Round( txForeign_Currency_Amount / Rate )
-//                                   else
-//                                     txAmount := 0;
-//                                   txForex_Conversion_Rate   := Rate;
-//                                 End
-//                                 else
-                                   txAmount             := aAmount;
+                                 txAmount             := aAmount;
 
                                  txQuantity           := ForceSignToMatchAmount( aQuantity, aAmount);
                                  txCheque_Number      := aCheque_Number;
@@ -397,6 +385,11 @@ Begin
                                  txBank_Seq           := baFields.baNumber;  //setbank account sequence no to current bank index
                               end;
                               baTransaction_List.Insert_Transaction_Rec( Transaction );
+                              //Flag Audit for provisional accounts
+                              if Entry.aSource = orProvisional then
+                                MyClient.ClientAuditMgr.FlagAudit(atProvisionalEntries);
+                              //else
+                              //  MyClient.ClientAuditMgr.FlagAudit(atDeliveredTransactions);
                            end;
 
                            If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;

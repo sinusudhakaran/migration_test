@@ -287,9 +287,11 @@ end;
 {$IFNDEF ParserDll}
 procedure TClientObj.DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
 var
+  i: integer;
   AuditInfo: TAuditInfo;
   clFieldsCopy: TClient_Rec;
   ceFieldsCopy: TClientExtra_Rec;
+  BA1, BA2: TBank_Account;
 begin
   AuditInfo.AuditAction := aaNone;
   AuditInfo.AuditType := AAuditType;
@@ -316,6 +318,29 @@ begin
       AuditTable.AddAuditRec(AuditInfo);
   finally
     Dispose(AuditInfo.AuditRecord);
+  end;
+
+  //Bank Account auditing
+  if AAuditType in [atProvisionalEntries, atManualEntries,
+                    atDeliveredTransactions, atHistoricalentries] then begin
+    for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
+      BA1 := clBank_Account_List.Bank_Account_At(i);
+      BA2 := nil;
+      if Assigned(AClientCopy) then
+        BA2 := AClientCopy.clBank_Account_List.FindCode(BA1.baFields.baBank_Account_Number);
+//      if Assigned(BA2) then
+//        TBank_Account(BA1).DoAudit(AAuditType,
+//                                   BA2.baFields,
+//                                   BA1.baFields.baAudit_Record_ID,
+//                                   FAuditMgr,
+//                                   AAuditTable)
+//      else
+//        BA1.DoAudit(AAuditType,
+//                    nil,
+//                    BA1.baFields.baAudit_Record_ID,
+//                    FAuditMgr,
+//                    AAuditTable);
+    end;
   end;
 end;
 {$ENDIF}
@@ -1394,44 +1419,44 @@ begin
         while Token <> 0 do begin
           case Token of
             //Code
-            22: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 21),
+            22: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clCode, Values);
             //Name
-            23: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 22),
+            23: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clName, Values);
             //Address_L1
-            24: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 23),
+            24: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clAddress_L1, Values);
             //Address_L2
-            25: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 24),
+            25: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clAddress_L2, Values);
             //Address_L3
-            26: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 25),
+            26: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clAddress_L3, Values);
             //Contact_Name
-            27: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 26),
+            27: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clContact_Name, Values);
             //Phone_No
-            28: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 27),
+            28: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clPhone_No, Values);
             //Fax_No
-            29: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 28),
+            29: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clFax_No, Values);
       //    FAuditNamesArray[20,29] := 'File_Password';
             //Practice_Name
-            31: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 30),
+            31: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clPractice_Name, Values);
             //Staff_Member_Name
-            32: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 31),
+            32: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clStaff_Member_Name, Values);
             //Practice_EMail_Address
-            33: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 32),
+            33: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clPractice_EMail_Address, Values);
             //Staff_Member_EMail_Address
-            34: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 33),
+            34: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clStaff_Member_EMail_Address, Values);
             //Client_EMail_Address
-            35: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 34),
+            35: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clClient_EMail_Address, Values);
       //    FAuditNamesArray[20,35] := 'Country';
       //    FAuditNamesArray[20,36] := 'File_Name';
@@ -1442,7 +1467,7 @@ begin
       //    FAuditNamesArray[20,41] := 'PIN_Number';
       //    FAuditNamesArray[20,42] := 'Old_Restrict_Analysis_Codes';
             //Financial_Year_Starts
-            44: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 43),
+            44: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               BkDate2Str(tClient_Rec(ARecord^).clFinancial_Year_Starts), Values);
     //    FAuditNamesArray[20,44] := 'Report_Start_Date';
     //    FAuditNamesArray[20,45] := 'Reporting_Period';
@@ -1488,16 +1513,16 @@ begin
       //    FAuditNamesArray[20,85] := 'FRS_Print_Chart_Codes';
       //    FAuditNamesArray[20,86] := 'BankLink_Code';
             //BankLink_Code
-            87: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 86),
+            87: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clBankLink_Code, Values);
       //    FAuditNamesArray[20,87] := 'Disk_Sequence_No';
       //    FAuditNamesArray[20,88] := 'Staff_Member_LRN';
       //    FAuditNamesArray[20,89] := 'Suppress_Check_for_New_TXns';
             //Download_From
-            91: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 90),
+            91: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               dlNames[tClient_Rec(ARecord^).clDownload_From], Values);
             //Last_Batch_Number
-            92: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 91),
+            92: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                               tClient_Rec(ARecord^).clLast_Batch_Number, Values);
       //    FAuditNamesArray[20,92] := 'Old_GST_Class_Codes';
       //    FAuditNamesArray[20,93] := 'Division_Code_List';
@@ -1595,7 +1620,7 @@ begin
       //    FAuditNamesArray[20,185] := 'Last_ECoding_Account_UID';
       //    FAuditNamesArray[20,186] := 'Web_Export_Format';
             //Mobile_No
-            188: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 187),
+            188: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                                tClient_Rec(ARecord^).clMobile_No, Values);
       //    FAuditNamesArray[20,188] := 'Ledger_Report_Summary';
       //    FAuditNamesArray[20,189] := 'Ledger_Report_Show_Notes';
@@ -1619,7 +1644,7 @@ begin
       //    FAuditNamesArray[20,207] := 'Scheduled_Coding_Report_Wrap_Narration';
       //    FAuditNamesArray[20,208] := 'Force_Offsite_Check_Out';
             //Disable_Offsite_Check_Out
-            210: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 209),
+            210: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                                tClient_Rec(ARecord^).clDisable_Offsite_Check_Out, Values);
       //    FAuditNamesArray[20,210] := 'Alternate_Extract_ID';
       //    FAuditNamesArray[20,211] := 'Use_Alterate_ID_for_extract';
@@ -1627,10 +1652,10 @@ begin
       //    FAuditNamesArray[20,213] := 'Use_Basic_Chart';
       //    FAuditNamesArray[20,214] := 'Group_Name';
             //Group_Name
-            215: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 214),
+            215: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                                tClient_Rec(ARecord^).clGroup_Name, Values);
             //Client_Type_Name
-            216: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, 215),
+            216: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                                tClient_Rec(ARecord^).clClient_Type_Name, Values);
       //    FAuditNamesArray[20,216] := 'BAS_Include_Fuel';
       //    FAuditNamesArray[20,217] := 'Profit_Report_Show_Percentage';
@@ -1685,7 +1710,7 @@ begin
 //    FAuditNamesArray[40,41] := 'TAX_Applies_From';
 //    FAuditNamesArray[40,42] := 'TAX_Rates';
             //List_Entries_Sort_Order
-            40: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, 43),
+            44: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
                                              tClientExtra_Rec(ARecord^).ceList_Entries_Sort_Order, Values);
 //    FAuditNamesArray[40,44] := 'List_Entries_Include';
 //    FAuditNamesArray[40,45] := 'List_Entries_Two_Column';
@@ -1695,15 +1720,15 @@ begin
 //    FAuditNamesArray[40,49] := 'List_Entries_Show_Other_Party';
 //    FAuditNamesArray[40,50] := 'Book_Gen_Finance_Reports';
             //Book_Gen_Finance_Reports
-            51: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, 50),
+            51: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
                                              tClientExtra_Rec(ARecord^).ceBook_Gen_Finance_Reports, Values);
 //    FAuditNamesArray[40,51] := 'FRS_Print_NP_Chart_Code_Titles';
 //    FAuditNamesArray[40,52] := 'FRS_NP_Chart_Code_Detail_Type';
             //Allow_Client_Unlock_Entries
-            54: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, 53),
+            54: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
                                              tClientExtra_Rec(ARecord^).ceAllow_Client_Unlock_Entries, Values);
             //Allow_Client_Edit_Chart
-            55: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, 54),
+            55: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
                                              tClientExtra_Rec(ARecord^).ceAllow_Client_Edit_Chart, Values);
 //    FAuditNamesArray[40,55] := 'ECoding_Dont_Send_Jobs';
 //    FAuditNamesArray[40,56] := 'Custom_Coding_Report_XML';
@@ -1716,7 +1741,7 @@ begin
 //    FAuditNamesArray[40,63] := 'Custom_Ledger_Report_XML';
 //    FAuditNamesArray[40,64] := 'Local_Currency_Code';
             //Block_Client_Edit_Mems
-            66: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, 65),
+            66: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
                                               tClientExtra_Rec(ARecord^).ceBlock_Client_Edit_Mems, Values);
 //    FAuditNamesArray[40,66] := 'Send_Custom_Documents';
 //    FAuditNamesArray[40,67] := 'Send_Custom_Documents_List';

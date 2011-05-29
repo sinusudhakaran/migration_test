@@ -235,32 +235,33 @@ const
      (tkBegin_System_Memorisation_List, dbSystem), //Master Memorisations
      (tkBegin_User, dbSystem),                //Users
      (tkBegin_Practice_Details, dbSystem),    //System Options
-     (tkBegin_System_Disk_Log, dbSystem),     //Downloading Data
+     (0, dbSystem),                           //Downloading Data - NOT AUDITED
      (tkBegin_System_Bank_Account, dbSystem), //System Bank Accounts
      (0, dbSystem),                           //Provisional Data Entry
      (tkBegin_Client_File, dbSystem),         //System Client Files
      (tkBegin_Client_Account_Map, dbClient),  //Attach Bank Accounts
-     (tkBegin_Bank_Account, dbClient),        //Client Bank Accounts
+
+     (tkBegin_Client, dbClient),              //Client Bank Accounts
      (tkBegin_Account, dbClient),             //Chart of Accounts
      (tkBegin_Payee_Detail, dbClient),        //Payees
      (tkBegin_Client, dbClient),              //Client Files
-     (tkBegin_Memorisation_Detail, dbClient), //Memorisations
-     (tkBegin_Client, dbClient),              //GST/VAT Setup
-     (tkBegin_Bank_Account, dbClient),         //Historical entries
-     (tkBegin_Bank_Account, dbClient),         //Provisional entries
-     (tkBegin_Bank_Account, dbClient),         //Manual entries
-     (tkBegin_Bank_Account, dbClient),         //Delivered transactions
-     (tkBegin_Bank_Account, dbClient),         //Automatic coding
-     (tkBegin_Bank_Account, dbClient),         //Cash journals
-     (tkBegin_Bank_Account, dbClient),         //Accrual journals
-     (tkBegin_Bank_Account, dbClient),         //Stock/Adjustment journals
-     (tkBegin_Bank_Account, dbClient),         //Year End Adjustment journals
-     (tkBegin_Bank_Account, dbClient),         //GST/VAT journals
-     (tkBegin_Bank_Account, dbClient),         //Opening balances
-     (tkBegin_Bank_Account, dbClient),         //Unpresented Items
-     (tkBegin_Bank_Account, dbClient),         //BankLink Notes
-     (tkBegin_Bank_Account, dbClient),         //BankLink Notes Online
-     (tkBegin_Bank_Account, dbClient));        //BankLink Books
+     (tkBegin_Client, dbClient),         //Memorisations
+     (tkBegin_Client, dbClient),         //GST/VAT Setup
+     (tkBegin_Client, dbClient),         //Historical entries
+     (tkBegin_Client, dbClient),         //Provisional entries
+     (tkBegin_Client, dbClient),         //Manual entries
+     (tkBegin_Client, dbClient),         //Delivered transactions
+     (tkBegin_Client, dbClient),         //Automatic coding
+     (tkBegin_Client, dbClient),         //Cash journals
+     (tkBegin_Client, dbClient),         //Accrual journals
+     (tkBegin_Client, dbClient),         //Stock/Adjustment journals
+     (tkBegin_Client, dbClient),         //Year End Adjustment journals
+     (tkBegin_Client, dbClient),         //GST/VAT journals
+     (tkBegin_Client, dbClient),         //Opening balances
+     (tkBegin_Client, dbClient),         //Unpresented Items
+     (tkBegin_Client, dbClient),         //BankLink Notes
+     (tkBegin_Client, dbClient),         //BankLink Notes Online
+     (tkBegin_Client, dbClient));        //BankLink Books
 {$ENDIF}
 
 //Notes: - Master memorisations are kept outside the System DB
@@ -360,7 +361,7 @@ begin
     if Value <> '' then begin
       if (Values <> '') or (TempStr <> '') then
         TempStr := TempStr + VALUES_DELIMITER;
-      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 19);
+      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 20);
       TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
     end;
   end;
@@ -383,7 +384,7 @@ begin
       if Value <> 0 then begin
         if (Values <> '') or (TempStr <> '') then
           TempStr := TempStr + VALUES_DELIMITER;
-        FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 22);
+        FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 23);
         TempStr := Format('%s%s[%d, %d]=%s', [TempStr, FieldName, i, j, MoneyStrNoSymbol(Value / 100)]);
       end;
     end;
@@ -405,7 +406,7 @@ begin
     if Value <> '' then begin
       if (Values <> '') or (TempStr <> '') then
         TempStr := TempStr + VALUES_DELIMITER;
-      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 23);
+      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 24);
       TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
     end;
   end;
@@ -568,11 +569,11 @@ begin
         P2 := New_User_Rec;
         Copy_User_Rec(P1, P2);
       end;
-    tkBegin_System_Disk_Log:
-      begin
-        P2 := New_System_Disk_Log_Rec;
-        Copy_System_Disk_Log_Rec(P1, P2);
-      end;
+//    tkBegin_System_Disk_Log:
+//      begin
+//        P2 := New_System_Disk_Log_Rec;
+//        Copy_System_Disk_Log_Rec(P1, P2);
+//      end;
     tkBegin_System_Bank_Account:
       begin
         P2 := New_System_Bank_Account_Rec;
@@ -621,9 +622,9 @@ begin
       tkBegin_User: AdminSystem.fdSystem_User_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                            SystemCopy.fdSystem_User_List,
                                                            AdminSystem.fAuditTable);
-      tkBegin_System_Disk_Log: AdminSystem.fdSystem_Disk_Log.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                           SystemCopy.fdSystem_Disk_Log,
-                                                           AdminSystem.fAuditTable);
+//      tkBegin_System_Disk_Log: AdminSystem.fdSystem_Disk_Log.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+//                                                           SystemCopy.fdSystem_Disk_Log,
+//                                                           AdminSystem.fAuditTable);
       tkBegin_System_Bank_Account: AdminSystem.fdSystem_Bank_Account_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                            SystemCopy.fdSystem_Bank_Account_List,
                                                            AdminSystem.fAuditTable);
@@ -656,7 +657,7 @@ begin
   case ARecordType of
     tkBegin_Practice_Details: Result := -1;
     tkBegin_User,
-    tkBegin_System_Disk_Log,
+//    tkBegin_System_Disk_Log,
     tkBegin_System_Bank_Account,
     tkBegin_Client_Account_Map,
     tkBegin_Client_File,
@@ -678,12 +679,12 @@ begin
   case AAuditRecord.atAudit_Record_Type of
     tkBegin_Practice_Details: AdminSystem.AddAuditValues(AAuditRecord, Values);
     tkBegin_User            : AdminSystem.fdSystem_User_List.AddAuditValues(AAuditRecord, Values);
-    tkBegin_System_Disk_Log : AdminSystem.fdSystem_Disk_Log.AddAuditValues(AAuditRecord, Values);
+//    tkBegin_System_Disk_Log : AdminSystem.fdSystem_Disk_Log.AddAuditValues(AAuditRecord, Values);
     tkBegin_System_Bank_Account : AdminSystem.fdSystem_Bank_Account_List.AddAuditValues(AAuditRecord, Values);
     tkBegin_Client_Account_Map  : AdminSystem.fdSystem_Client_Account_Map.AddAuditValues(AAuditRecord, Values);
     tkBegin_Client_File         : AdminSystem.fdSystem_Client_File_List.AddAuditValues(AAuditRecord, Values);
-    tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
-    tkBegin_Memorisation_Detail : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
+    tkBegin_System_Memorisation_List,
+    tkBegin_Memorisation_Detail,
     tkBegin_Memorisation_Line   : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
   end;
 {$ENDIF}
@@ -711,11 +712,11 @@ begin
         ARecord := New_User_Rec;
         Read_User_Rec(TUser_Rec(ARecord^), AStream);
       end;
-    tkBegin_System_Disk_Log :
-      begin
-        ARecord := New_System_Disk_Log_Rec;
-        Read_System_Disk_Log_Rec(TSystem_Disk_Log_Rec(ARecord^), AStream);
-      end;
+//    tkBegin_System_Disk_Log :
+//      begin
+//        ARecord := New_System_Disk_Log_Rec;
+//        Read_System_Disk_Log_Rec(TSystem_Disk_Log_Rec(ARecord^), AStream);
+//      end;
     tkBegin_System_Bank_Account :
       begin
         ARecord := New_System_Bank_Account_Rec;
@@ -757,7 +758,7 @@ begin
   case ARecordType of
     tkBegin_Practice_Details: Write_Practice_Details_Rec(TPractice_Details_Rec(ARecord^), AStream);
     tkBegin_User            : Write_User_Rec(TUser_Rec(ARecord^), AStream);
-    tkBegin_System_Disk_Log : Write_System_Disk_Log_Rec(TSystem_Disk_Log_Rec(ARecord^), AStream);
+//    tkBegin_System_Disk_Log : Write_System_Disk_Log_Rec(TSystem_Disk_Log_Rec(ARecord^), AStream);
     tkBegin_System_Bank_Account : Write_System_Bank_Account_Rec(TSystem_Bank_Account_Rec(ARecord^), AStream);
     tkBegin_Client_Account_Map  : Write_Client_Account_Map_Rec(TClient_Account_Map_Rec(ARecord^), AStream);
     tkBegin_Client_File         : Write_Client_File_Rec(TClient_File_Rec(ARecord^), AStream);

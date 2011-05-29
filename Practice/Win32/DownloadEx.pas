@@ -816,7 +816,7 @@ begin //ProcessDiskImages
       end;
 
       //*** Flag Audit ***
-      SystemAuditMgr.FlagAudit(atDownloadingData);
+//      SystemAuditMgr.FlagAudit(atDownloadingData); - NOT AUDITED because same information is in Disk Log
       SystemAuditMgr.FlagAudit(atSystemBankAccounts);
 
       //save the updated admin system

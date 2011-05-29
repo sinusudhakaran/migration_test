@@ -60,58 +60,58 @@ begin
   while Token <> 0 do begin
     case Token of
       //File Code
-      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 81),
+      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                        TClient_File_Rec(ARecord^).cfFile_Code, Values);
       //File Name
-      83: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 82),
+      83: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                        TClient_File_Rec(ARecord^).cfFile_Name, Values);
       //File Type
-//      84: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 83),
+//      84: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
 //                                       TClient_File_Rec(ARecord^).cfFile_Type, Values);
       //File Status
       85: begin
             FileStatus := fsNames[TClient_File_Rec(ARecord^).cfFile_Status];
             if FileStatus = '' then
               FileStatus := 'Closed';
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 84),
+            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                          FileStatus, Values);
           end;
       //File Password
       86: begin
             for i := 1 to Length(TClient_File_Rec(ARecord^).cfFile_Password) do
               PW := PW + '*';
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 85),
+            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                          PW, Values);
           end;
 //   tkcfDate_Last_Accessed               = 87 ;
 //   tkcfFile_Save_Count                  = 88 ;
 //   tkcfUser_Responsible                 = 89 ;
       //User_Responsible
-      89: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 88),
+      89: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                        GetUserCode(TClient_File_Rec(ARecord^).cfUser_Responsible), Values);
 //   tkcfCurrent_User                     = 90 ;
 //   tkcfLRN                              = 91 ;
       //Report_Start_Date
-      92: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 91),
+      92: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                        bkDate2Str(TClient_File_Rec(ARecord^).cfReport_Start_Date), Values);
       //Reporting_Period
       93: if TClient_File_Rec(ARecord^).cfReporting_Period in [roMin..roMax] then
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 92),
+            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                          roNames[TClient_File_Rec(ARecord^).cfReporting_Period], Values);
 //   tkcfForeign_File                     = 94 ;
 //   tkcfUnused_Date_Field                = 95 ;
       //Reports_Due
-      96: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 95),
+      96: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                        TClient_File_Rec(ARecord^).cfReports_Due, Values);
 //   tkcfContact_Details_To_Show          = 97 ;
       //Contact_Details_To_Show
-      97: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 96),
+      97: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                        cdtNames[TClient_File_Rec(ARecord^).cfContact_Details_To_Show], Values);
       //Financial_Year_Starts
-      98: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 97),
+      98: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                        bkDate2Str(TClient_File_Rec(ARecord^).cfFinancial_Year_Starts), Values);
       //Schd_Rep_Method
-      99: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 98),
+      99: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                        srdNames[TClient_File_Rec(ARecord^).cfSchd_Rep_Method], Values);
 //   tkcfSpareBoolean                     = 100 ;
 //   tkcfPending_ToDo_Count               = 101 ;
@@ -135,7 +135,7 @@ begin
 //   tkcfLast_Processing_Status_Date      = 116 ;
 //   tkcfSchd_Rep_Method_Filter           = 117 ;
       //Archived
-      118: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 117),
+      118: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                         TClient_File_Rec(ARecord^).cfArchived, Values);
 //   tkcfPayee_Count                      = 119 ;
 //   tkcfBank_Account_Count               = 120 ;
@@ -144,10 +144,10 @@ begin
 //   tkcfAccounting_System                = 123 ;
 //   tkcfDownloaded                       = 124 ;
       //Group
-      125: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 124),
+      125: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                         GetGroupName(TClient_File_Rec(ARecord^).cfGroup_LRN), Values);
       //Client_Type_LRN
-      126: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 125),
+      126: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
                                         GetClientFileType(TClient_File_Rec(ARecord^).cfClient_Type_LRN), Values);
 //   tkcfJob_Count                        = 127 ;
 //   tkcfDivision_Count                   = 128 ;

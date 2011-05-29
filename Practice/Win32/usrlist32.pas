@@ -58,23 +58,23 @@ begin
   while Token <> 0 do begin
     case Token of
       //Code
-      62: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 61),
+      62: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                        tUser_Rec(ARecord^).usCode, Values);
       //Name
-      63: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 62),
+      63: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                        tUser_Rec(ARecord^).usName, Values);
       //Email
-      65: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 64),
+      65: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                        tUser_Rec(ARecord^).usEMail_Address, Values);
       //Password
       64: begin
             for i := 1 to Length(tUser_Rec(ARecord^).usPassword) do
               PW := PW + '*';
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 63),
+            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                          PW, Values);
           end;
       //Direct Dial
-      75: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 74),
+      75: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                        tUser_Rec(ARecord^).usDirect_Dial, Values);
       //Type
       66: begin
@@ -84,21 +84,21 @@ begin
               UserType := ustNames[ustRestricted]
             else
               UserType := ustNames[ustNormal];
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 65),
+            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                          UserType, Values);
           end;
       //Master mems
-      70: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 69),
+      70: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                        tUser_Rec(ARecord^).usMASTER_Access, Values);
 
       //Print options
-      77: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 76),
+      77: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                        tUser_Rec(ARecord^).usShow_Printer_Choice, Values);
       //Headers
-      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 81),
+      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                        tUser_Rec(ARecord^).usSuppress_HF, Values);
       //Logo
-      83: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, 82),
+      83: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
                                        tUser_Rec(ARecord^).usShow_Practice_Logo, Values);
     end;
     Inc(Idx);

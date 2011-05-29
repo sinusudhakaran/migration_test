@@ -162,10 +162,10 @@ begin
         while Token <> 0 do begin
           case Token of
             //Number
-            92: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 91),
+            92: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, Token),
                                         tPayee_Detail_Rec(ARecord^).pdNumber, Values);
             //Name
-            93: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, 92),
+            93: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Detail, Token),
                                         tPayee_Detail_Rec(ARecord^).pdName, Values);
           end;
           Inc(Idx);
@@ -179,33 +179,33 @@ begin
         while Token <> 0 do begin
           case Token of
             //Account
-            97: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 96),
+            97: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                         tPayee_Line_Rec(ARecord^).plAccount, Values);
             //Percentage
             98: case tPayee_Line_Rec(ARecord^).plLine_Type of
-                  pltPercentage : FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 97),
+                  pltPercentage : FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                                           Percent2Str(tPayee_Line_Rec(ARecord^).plPercentage), Values);
-                  pltDollarAmt  : FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 97),
+                  pltDollarAmt  : FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                                           Money2Str(tPayee_Line_Rec(ARecord^).plPercentage), Values);
                 end;
             //GST Class
-            99: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 98),
+            99: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                         tPayee_Line_Rec(ARecord^).plGST_Class, Values);
             //GST has been edited
-            100: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 99),
+            100: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                          tPayee_Line_Rec(ARecord^).plGST_Has_Been_Edited, Values);
 
             //GL_Narration
-            101: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 100),
+            101: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                          tPayee_Line_Rec(ARecord^).plGL_Narration, Values);
             //Line type
-            102: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 101),
+            102: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                         pltNames[tPayee_Line_Rec(ARecord^).plLine_Type], Values);
             //GST_Amount
-            103: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 102),
+            103: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                          Money2Str(tPayee_Line_Rec(ARecord^).plGST_Amount), Values);
             //Quantity
-            115: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, 114),
+            115: FAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                          Quantity2Str(tPayee_Line_Rec(ARecord^).plQuantity), Values);
           end;
           Inc(Idx);
