@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 124;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 125;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -109,6 +109,7 @@ $|                        Add WebNotes available status
 $|    5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
 $|    5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
 $|                      124   Added System Memorisation List for storing Master Memorisations
+$|                      125   Added Provisional Entries Log 
 $|*)
 
 N|Practice Details|fd|10
@@ -457,6 +458,13 @@ F|Changed Fields|BB0|254
 F|Other Info|AS
 F|Audit Record Type|B
 C|Audit Record|PTR
+E
+
+N|Provisional Entries Log|pe|137
+F|Date Time|DT
+F|User Code|S|8
+F|First LRN|L
+F|Last LRN|L
 E
 
 $|//Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems

@@ -42,8 +42,8 @@ CONST
    tkBeginSystem_Client_Type_List      = 37;
    tkBeginSystem_Audit_Trail_List      = 38;
    tkBeginSystem_Memorisation_List     = 39;
-
    // 40 Is used by ClientExtra
+   tkBeginSystem_Provisional_Entries_Log = 41;
 
    tkBeginExchangeRateHeader           = 50; //Just the header on its own
    tkBeginExchangeRateList             = 51; //List of sources

@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 386;
-   SY_IOLIB_Date    = '20/05/11';
-   SY_FILE_VERSION   = 124;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 395;
+   SY_IOLIB_Date    = '27/05/11';
+   SY_FILE_VERSION   = 125;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -122,6 +122,7 @@ Const
        5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
        5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
                          124   Added System Memorisation List for storing Master Memorisations
+                         125   Added Provisional Entries Log 
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -139,6 +140,7 @@ Type
    pGroup_Rec                            = ^tGroup_Rec ;
    pClient_Type_Rec                      = ^tClient_Type_Rec ;
    pAudit_Trail_Rec                      = ^tAudit_Trail_Rec ;
+   pProvisional_Entries_Log_Rec          = ^tProvisional_Entries_Log_Rec ;
    pSystem_Memorisation_List_Rec         = ^tSystem_Memorisation_List_Rec ;
 
 {  -------------------------------------------------------------------  }
@@ -531,6 +533,17 @@ Type
 
 {  -------------------------------------------------------------------  }
 
+   tProvisional_Entries_Log_Rec = Packed Record
+      peRecord_Type                      : Byte;
+      peDate_Time                        : TDateTime;       { Stored }
+      peUser_Code                        : String[ 8 ];       { Stored }
+      peFirst_LRN                        : Integer;       { Stored }
+      peLast_LRN                         : Integer;       { Stored }
+      peEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
    tSystem_Memorisation_List_Rec = Packed Record
       smRecord_Type                      : Byte;
       smAudit_Record_ID                  : Integer;       { Stored }
@@ -550,6 +563,7 @@ Const
    Group_Rec_Size                            = Sizeof( TGroup_Rec ); 
    Client_Type_Rec_Size                      = Sizeof( TClient_Type_Rec ); 
    Audit_Trail_Rec_Size                      = Sizeof( TAudit_Trail_Rec ); 
+   Provisional_Entries_Log_Rec_Size          = Sizeof( TProvisional_Entries_Log_Rec ); 
    System_Memorisation_List_Rec_Size         = Sizeof( TSystem_Memorisation_List_Rec ); 
 
 {  -------------------------------------------------------------------  }

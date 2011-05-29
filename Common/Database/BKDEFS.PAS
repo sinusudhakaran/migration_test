@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 636;
-   BK_IOLIB_Date    = '19/05/11';
+   BK_IOLIB_Version : Integer = 641;
+   BK_IOLIB_Date    = '27/05/11';
    BK_FILE_VERSION  = 165;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -203,8 +203,9 @@ Const
                             Add Opening Balance Curreny field to Dissection and temp fields to Account
      5.21 (2011AUDIT)164    Add Audit Record ID field to memorisation records
                      165    Add remaining Audit Record ID fields to records
-                            Add Audit Table 
+                            Add Audit Table (Defined in SY.TXT) 
    *)
+   //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
 {  -------------------------------------------------------------------  }
 

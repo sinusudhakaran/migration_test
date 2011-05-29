@@ -12,7 +12,6 @@ uses
 
 type
 
-//  TChanged_Fields_Array = Array[ 0..254 ] of Byte;
   TChanged_Fields_Array = MoneyDef.TChanged_Fields_Array;
   TShort_Name_Array = Array[ 0..100 ] of String[ 10 ];
   TLong_Name_Array = Array[ 0..100 ] of String[ 30 ];
