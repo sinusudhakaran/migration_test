@@ -228,31 +228,35 @@ var
 
 begin
   if not assigned(FClientHomePage) then begin
-     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Create Homepage');
-     ProcessFrm := TdlgModalProcessor.Create(Application);
-     ApplicationUtils.DisableMainForm;
-     UpDateMF.LockMainForm;
-     try try
-        ProcessFrm.Show;
-        //global var determine which UI to load
-        if Active_UI_Style = UIS_Standard then
-        begin
-          FClientHomePage := TfrmClientHomePage.Create(MDIParentForm);
-        end
-        else
-        begin
-           FClientHomepage := TfrmSimpleUIHomepage.Create(MDIParentForm);
+    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Create Homepage');
+    ProcessFrm := TdlgModalProcessor.Create(Application);
+    try
+      ApplicationUtils.DisableMainForm;
+      UpDateMF.LockMainForm;
+      try
+        try
+          ProcessFrm.Show;
+          //global var determine which UI to load
+          if Active_UI_Style = UIS_Standard then
+          begin
+            FClientHomePage := TfrmClientHomePage.Create(MDIParentForm);
+          end
+          else
+          begin
+             FClientHomepage := TfrmSimpleUIHomepage.Create(MDIParentForm);
+          end;
+        except
+          FClientHomePage := nil;
+          if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Homepage Failed');
         end;
-     except
-        FClientHomePage := nil;
-        if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Homepage Failed');
-     end;
-     finally
+      finally
         UpDateMF.UnLockMainForm;
         ApplicationUtils.EnableMainForm;
-        ProcessFrm.Free;
-     end;
-      if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Homepage Created');
+      end;
+    finally
+      ProcessFrm.Free;
+    end;
+    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Homepage Created');
   end;
   Result := FClientHomePage;
 end;
@@ -305,6 +309,7 @@ begin
      Temp := FClientHomePage;
      FClientHomePage := NIL;
      Temp.Close;
+     Temp.Free;
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit CloseHomepage');
 end;
@@ -1743,6 +1748,8 @@ end;
 initialization
   DebugMe := DebugUnit(UnitName);
   FClientHomePage := nil;
+finalization
+  FreeAndNil(FClientHomePage);
 end.
 
 
