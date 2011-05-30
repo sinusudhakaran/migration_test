@@ -211,7 +211,10 @@ begin
         end;
         UpdateName;
         UpdateMenus;
-        ClientHomePageFrm.RefreshHomepage;
+        if ProspectCode <> '' then
+          Files.CloseClient(False, False) //There is no client home page open for Prospects
+        else
+          ClientHomePageFrm.RefreshHomepage;
      finally
        Free;
      end;
