@@ -1132,7 +1132,7 @@ begin
      exit;
   end;
 
-  BAList := TBank_Account_List.Create( NIL );
+  BAList := TBank_Account_List.Create( NIL, aClient.FClientAuditMgr );
   try
     //get the client details
     try

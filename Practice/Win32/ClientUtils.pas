@@ -440,7 +440,7 @@ begin
         if (BankAccountList = nil) or
            (BankAccountList.IndexOf(baFields.baBank_Account_Number) > -1) then
         begin
-          NewTransactionList := TTransaction_List.Create( MyClient, BankAccount );
+          NewTransactionList := TTransaction_List.Create( MyClient, BankAccount, MyClient.FClientAuditMgr );
           NoDeleted := 0;
               //look thru each transaction
           for i := 0 to Pred( baTransaction_List.ItemCount) do

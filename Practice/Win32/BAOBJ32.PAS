@@ -33,8 +33,6 @@ type
       destructor   Destroy; override;
   private
       baMatched_Items_List     : tMatched_Items_List;
-//      fForex_Info : TExchangeRateFileInfo;
-//      function GetForexInfo: TExchangeRateFileInfo;
       procedure ApplyDefaultGST(pT: pTransaction_Rec);
   public
       procedure    SaveToFile(var s: TIOStream);
@@ -74,7 +72,6 @@ type
       Function IsAnEldersAccount : Boolean;
       Function Default_Forex_Conversion_Rate( ADate : Integer ): Double;
       function Default_Forex_Concersion_DateRange: TDateRange;
-//      Property baForex_Info : TExchangeRateFileInfo read GetForexInfo write fForex_Info;
       Function Local_Currency_Equivalent( Const Foreign_Currency_Amount : Money; Const AsAt : Integer; Out Rate : Double ): Money;
       Function Title : String;
       function AccountName: string;
@@ -526,10 +523,8 @@ begin
       baEOR := tkEnd_Bank_Account;
    end;
 
-//   fForex_Info := NIL;
-
    baTransaction_List           := nil;
-   baTransaction_List := TTransaction_List.Create( NIL, Self );
+   baTransaction_List := TTransaction_List.Create( NIL, Self, NIL );
    If not Assigned( baTransaction_List ) then
    Begin
       Msg := Format( '%s : Unable to Allocate baTransaction_List',[ThisMethodName]);
@@ -537,7 +532,7 @@ begin
       raise EInsufficientMemory.CreateFmt( '%s - %s', [ UnitName, Msg ] );
    end;
 
-   baMatched_Items_List := tMatched_Items_List.Create( NIL, Self );   // No longer used
+   baMatched_Items_List := tMatched_Items_List.Create( NIL, Self, NIL );   // No longer used
    baMemorisations_List := TMemorisations_List.Create;
    baOld_Memorised_Transaction_List := TMemorised_Transaction_List_V53.Create;
 
@@ -552,13 +547,8 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TBank_Account.Default_Forex_Concersion_DateRange: TDateRange;
 begin
-//   if IsAForexAccount then begin
-//      Result.FromDate := baForex_Info.FromDate;
-//      Result.ToDate := baForex_Info.ToDate;
-//   end else begin
-      Result.FromDate := MinValidDate;
-      Result.ToDate := MaxValidDate;
-//   end;
+  Result.FromDate := MinValidDate;
+  Result.ToDate := MaxValidDate;
 end;
 
 function TBank_Account.Default_Forex_Conversion_Rate(ADate: Integer): Double;
@@ -576,7 +566,6 @@ begin
     Client := TClientObj( baClient );
     if Assigned(Client.ExchangeSource) then begin
       CCode := Client.clExtra.ceLocal_Currency_Code;
-  //    Result := baForex_Info.Rate( BCode, CCode, ADate );
       IsoIndex := Client.ExchangeSource.GetISOIndex(BCode,
                                                     Client.ExchangeSource.Header);
       if IsoIndex <> 0 then begin
@@ -598,7 +587,7 @@ begin
    baMemorisations_List.Free;
    baMatched_Items_List.Free;
    BKBAIO.Free_Bank_Account_Rec_Dynamic_Fields( baFields);
-//   fForex_Info := NIL;
+
    inherited Destroy;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -839,35 +828,6 @@ begin
    Result := MoneyUtils.FmtMoneyStrBrackets( baFields.baCurrency_Code );
 end;
 
-{function TBank_Account.GetForexInfo : TExchangeRateFileInfo;
-var
-  Client : TClientObj;
-  BCode, CCode : String[3];
-  ForexSource : TExchangeRateSource;
-begin
-  Result := NIL;
-  if not IsAForexAccount then exit;
-
-  if fForex_Info = NIL then
-  Begin
-    Client := TClientObj( baClient );
-    Assert ( Assigned( Client ), 'Client is NIL in TBank_Account.GetForexInfo!' );
-    CCode := Client.clExtra.ceLocal_Currency_Code;
-    BCode := baFields.baCurrency_Code;
-
-    With ExchangeRateFinder.SuggestSources( BCode, CCode ), baFields do
-    Try
-      ForexSource := FindSourceByDescriptionAndDataSource( baDefault_Forex_Description, baDefault_Forex_Source );
-      if Assigned( ForexSource ) then
-        fForex_Info := ForexSource.ForexInfo;
-    Finally
-      Free;
-    End;
-  End;
-  Result := fForex_Info;
-end; }
-
-
 procedure TBank_Account.ApplyDefaultGST(pT: pTransaction_Rec);
 // This does the same as ApplyDefaultGST in GSTUTIL32 except it doesn't update
 //memorisations or payees.
@@ -922,7 +882,7 @@ var
   D: pDissection_Rec;
 begin
   Result := True;
-//  if not IsAForexAccount then Exit;
+
   for i := 0 to Pred( baTransaction_List.ItemCount ) do
   begin
     T := baTransaction_List.Transaction_At(i);

@@ -511,7 +511,7 @@ begin
   JobNameRendered := False;
   Client := Params.Client;
 
-  Transaction_List := TTransaction_List.Create( NIL, NIL );
+  Transaction_List := TTransaction_List.Create( NIL, NIL, NIL );
   try
     //Copy the transactions for the reporting client into a new list,
     //include only transaction inside the reporting dates.

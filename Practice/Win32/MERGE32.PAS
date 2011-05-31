@@ -385,11 +385,11 @@ Begin
                                  txBank_Seq           := baFields.baNumber;  //setbank account sequence no to current bank index
                               end;
                               baTransaction_List.Insert_Transaction_Rec( Transaction );
-                              //Flag Audit for provisional accounts
-                              if Entry.aSource = orProvisional then
-                                MyClient.ClientAuditMgr.FlagAudit(atProvisionalEntries);
-                              //else
-                              //  MyClient.ClientAuditMgr.FlagAudit(atDeliveredTransactions);
+
+                              //Flag Audit for transactions
+                              with MyClient.ClientAuditMgr do
+                                FlagAudit(GetTransactionAuditType(Transaction^.txSource,
+                                                                  Bank_Account.baFields.baAccount_Type));
                            end;
 
                            If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;

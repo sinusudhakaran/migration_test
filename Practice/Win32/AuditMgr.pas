@@ -145,6 +145,7 @@ type
     constructor Create(Owner: TObject);
     function NextClientRecordID: integer;
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
+    function GetTransactionAuditType(ABankAccountSource: byte; ABankAccountType: byte): TAuditType;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
     procedure GetValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string); override;
@@ -184,12 +185,12 @@ implementation
 
 {$IFDEF LOOKUPDLL}
 uses
-  TOKENS, BKDbExcept,
+  TOKENS, BKDbExcept, BKAuditValues,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
 {$ELSE}
 uses
-  Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList,
+  Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList, BKAuditValues,
   bkdateutils, TOKENS,  BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
@@ -245,20 +246,20 @@ const
      (tkBegin_Account, dbClient),             //Chart of Accounts
      (tkBegin_Payee_Detail, dbClient),        //Payees
      (tkBegin_Client, dbClient),              //Client Files
-     (tkBegin_Client, dbClient),         //Memorisations
+     (tkBegin_Bank_Account, dbClient),         //Memorisations
      (tkBegin_Client, dbClient),         //GST/VAT Setup
-     (tkBegin_Client, dbClient),         //Historical entries
-     (tkBegin_Client, dbClient),         //Provisional entries
-     (tkBegin_Client, dbClient),         //Manual entries
-     (tkBegin_Client, dbClient),         //Delivered transactions
-     (tkBegin_Client, dbClient),         //Automatic coding
-     (tkBegin_Client, dbClient),         //Cash journals
-     (tkBegin_Client, dbClient),         //Accrual journals
-     (tkBegin_Client, dbClient),         //Stock/Adjustment journals
-     (tkBegin_Client, dbClient),         //Year End Adjustment journals
-     (tkBegin_Client, dbClient),         //GST/VAT journals
-     (tkBegin_Client, dbClient),         //Opening balances
-     (tkBegin_Client, dbClient),         //Unpresented Items
+     (tkBegin_Bank_Account, dbClient),         //Historical entries
+     (tkBegin_Bank_Account, dbClient),         //Provisional entries
+     (tkBegin_Bank_Account, dbClient),         //Manual entries
+     (tkBegin_Bank_Account, dbClient),         //Delivered transactions
+     (tkBegin_Bank_Account, dbClient),         //Automatic coding
+     (tkBegin_Bank_Account, dbClient),         //Cash journals
+     (tkBegin_Bank_Account, dbClient),         //Accrual journals
+     (tkBegin_Bank_Account, dbClient),         //Stock/Adjustment journals
+     (tkBegin_Bank_Account, dbClient),         //Year End Adjustment journals
+     (tkBegin_Bank_Account, dbClient),         //GST/VAT journals
+     (tkBegin_Bank_Account, dbClient),         //Opening balances
+     (tkBegin_Bank_Account, dbClient),         //Unpresented Items
      (tkBegin_Client, dbClient),         //BankLink Notes
      (tkBegin_Client, dbClient),         //BankLink Notes Online
      (tkBegin_Client, dbClient));        //BankLink Books
@@ -796,6 +797,16 @@ begin
         P2 := New_Payee_Line_Rec;
         Copy_Payee_Line_Rec(P1, P2);
       end;
+    tkBegin_Bank_Account:
+      begin
+        P2 := New_Bank_Account_Rec;
+        Copy_Bank_Account_Rec(P1, P2);
+      end;
+    tkBegin_Transaction:
+      begin
+        P2 := New_Transaction_Rec;
+        Copy_Transaction_Rec(P1, P2);
+      end;
   end;
 {$ENDIF}
 end;
@@ -825,6 +836,10 @@ begin
         tkBegin_Payee_Detail: clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                    ClientCopy.clPayee_List, 0, fAuditTable);
         tkBegin_Payee_Line  : ;//Done in payee detail
+        tkBegin_Transaction : ;//Done in bank account
+        tkBegin_Bank_Account: clBank_Account_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                          ClientCopy.clBank_Account_List,
+                                                          0, fAuditTable);
       end;
     end;
   FAuditScope.Clear;
@@ -843,6 +858,27 @@ begin
   Result := 0;
 end;
 
+function TClientAuditManager.GetTransactionAuditType(ABankAccountSource: byte;
+  ABankAccountType: byte): TAuditType;
+begin
+  case ABankAccountSource of
+    orBank         : Result := atDeliveredTransactions;
+    orGenerated    : Result := atUnpresentedItems;
+    orManual       :
+       case ABankAccountType of
+         btCashJournals   : Result := atCashJournals;
+         btAccrualJournals: Result := atAccrualJournals;
+         btGSTJournals    : Result := atGSTJournals;
+       end;
+    orHistorical   : Result := atHistoricalentries;
+    orGeneratedRev : Result := atUnpresentedItems;
+    orMDE          : Result := atManualEntries;
+    orProvisional  : Result := atProvisionalEntries;
+  else
+    Result := atDeliveredTransactions;
+  end;
+end;
+
 procedure TClientAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
   var Values: string);
 begin
@@ -854,9 +890,13 @@ begin
   with FOwner as TClientObj do
     case AAuditRecord.atAudit_Record_Type of
       tkBegin_Client,
-      tkBegin_ClientExtra: AddAuditValues(AAuditRecord, Values);
+      tkBegin_ClientExtra : BKAuditValues.AddClientAuditValues(AAuditRecord, Self, Values);
       tkBegin_Payee_Detail,
-      tkBegin_Payee_Line: clPayee_List.AddAuditValues(AAuditRecord, Values);
+      tkBegin_Payee_Line  : BKAuditValues.AddPayeeAuditValues(AAuditRecord, Self, Values);
+      tkBegin_Transaction : BKAuditValues.AddTransactionAuditValues(AAuditRecord, Self, clFields, Values);
+      tkBegin_Bank_Account: BKAuditValues.AddBankAccountAuditValues(AAuditRecord, Self, Values);
+    else
+      Values := Format('%s%sAUDIT RECORD TYPE UNKNOWN',[Values, VALUES_DELIMITER]);
     end;
 {$ENDIF}
 end;
@@ -894,6 +934,16 @@ begin
         ARecord := New_Payee_Line_Rec;
         Read_Payee_Line_Rec(TPayee_Line_Rec(ARecord^), AStream);
       end;
+    tkBegin_Bank_Account:
+      begin
+        ARecord := New_Bank_Account_Rec;
+        Read_Bank_Account_Rec(TBank_Account_Rec(ARecord^), AStream);
+      end;
+    tkBegin_Transaction:
+      begin
+        ARecord := New_Transaction_Rec;
+        Read_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
+      end;
   end;
 {$ENDIF}
 end;
@@ -907,6 +957,8 @@ begin
     tkBegin_ClientExtra : Write_ClientExtra_Rec(TClientExtra_Rec(ARecord^), AStream);
     tkBegin_Payee_Detail: Write_Payee_Detail_Rec(TPayee_Detail_Rec(ARecord^), AStream);
     tkBegin_Payee_Line  : Write_Payee_Line_Rec(TPayee_Line_Rec(ARecord^), AStream);
+    tkBegin_Bank_Account: Write_Bank_Account_Rec(TBank_Account_Rec(ARecord^), AStream);
+    tkBegin_Transaction : Write_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
   end;
 {$ENDIF}
 end;

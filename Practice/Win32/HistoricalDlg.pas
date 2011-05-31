@@ -3734,6 +3734,11 @@ begin
                 BankAccount.baFields.baCurrent_Balance := BankAccount.baFields.baCurrent_Balance + pT.txAmount;
             end;
             BankAccount.baTransaction_List.Insert_Transaction_Rec(pT);
+
+            //Flag Audit for transactions
+            with MyClient.ClientAuditMgr do
+              FlagAudit(GetTransactionAuditType(pT.txSource, BankAccount.baFields.baAccount_Type));
+
             Inc(i); //move onto next transaction is while loop
          end;
          Inc(Count);

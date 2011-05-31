@@ -61,7 +61,8 @@ type
     function GetAccountingSystemName: string;
     function GetClientCopy: TClientObj;
     procedure SetAuditInfo(P1, P2: pClient_Rec; var AAuditInfo: TAuditInfo);
-    procedure SetExtraAuditInfo(P1, P2: pClientExtra_Rec; var AAuditInfo: TAuditInfo; NewClient: boolean = false);
+    procedure SetExtraAuditInfo(P1, P2: pClientExtra_Rec; var AAuditInfo: TAuditInfo;
+                                NewClient: boolean = false);
 {$ENDIF}
   public
     procedure Open(FileCode, FileExtension : String);
@@ -118,7 +119,6 @@ type
     function GetForexISOCodeForContra(AContraCode: string): string;
     function NextAuditRecordID: integer;
     procedure DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
-    procedure AddAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
     property AuditTable: TAuditTable read FAuditTable;
     property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
     property ClientCopy: TClientObj read GetClientCopy;
@@ -168,8 +168,6 @@ uses
    StStrS,
    ForexHelpers,
    GSTUTIL32,
-   BKAUDIT,
-   bkdateutils,
 {$ENDIF}
    bk5Except,
    VclZip;
@@ -218,7 +216,7 @@ begin
    clExtra.ceEOR         := tkEnd_ClientExtra;
 
    {create all the rest, must be read in order!}
-   clBank_Account_List    := TBank_Account_List.Create( Self );
+   clBank_Account_List    := TBank_Account_List.Create( Self, FClientAuditMgr );
    clChart                := TChart.Create;
    clPayee_List_V53       := TPayee_List_V53.Create;
    clPayee_List           := TPayee_List.Create(FClientAuditMgr);
@@ -318,29 +316,6 @@ begin
       AuditTable.AddAuditRec(AuditInfo);
   finally
     Dispose(AuditInfo.AuditRecord);
-  end;
-
-  //Bank Account auditing
-  if AAuditType in [atProvisionalEntries, atManualEntries,
-                    atDeliveredTransactions, atHistoricalentries] then begin
-    for i := 0 to Pred(clBank_Account_List.ItemCount) do begin
-      BA1 := clBank_Account_List.Bank_Account_At(i);
-      BA2 := nil;
-      if Assigned(AClientCopy) then
-        BA2 := AClientCopy.clBank_Account_List.FindCode(BA1.baFields.baBank_Account_Number);
-//      if Assigned(BA2) then
-//        TBank_Account(BA1).DoAudit(AAuditType,
-//                                   BA2.baFields,
-//                                   BA1.baFields.baAudit_Record_ID,
-//                                   FAuditMgr,
-//                                   AAuditTable)
-//      else
-//        BA1.DoAudit(AAuditType,
-//                    nil,
-//                    BA1.baFields.baAudit_Record_ID,
-//                    FAuditMgr,
-//                    AAuditTable);
-    end;
   end;
 end;
 {$ENDIF}
@@ -813,7 +788,7 @@ begin
   if ClientExtra_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then begin
     AAuditInfo.AuditAction := aaChange;
     if NewClient then
-      AAuditInfo.AuditAction := aaAdd;    
+      AAuditInfo.AuditAction := aaAdd;
     AAuditInfo.AuditRecordID := 0; //Root
     AAuditInfo.AuditParentID := -1; //No parent
     AAuditInfo.AuditRecordType := tkBegin_ClientExtra;
@@ -821,7 +796,6 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure TClientObj.UpdateRefs;
 const
   ThisMethodName = 'TClientObj.UpdateRefs';
@@ -1398,370 +1372,6 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-procedure TClientObj.AddAuditValues(AAuditRecord: TAudit_Trail_Rec;
-  var Values: string);
-var
-//  i: integer;
-//  PW: string;
-  ARecord: Pointer;
-  Token, idx: byte;
-begin
-  ARecord := AAuditRecord.atAudit_Record;
-  if ARecord = nil then Exit;
-
-
-  case AAuditRecord.atAudit_Record_Type of
-    tkBegin_Client:
-      begin
-        Idx := 0;
-        Token := AAuditRecord.atChanged_Fields[idx];
-        while Token <> 0 do begin
-          case Token of
-            //Code
-            22: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clCode, Values);
-            //Name
-            23: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clName, Values);
-            //Address_L1
-            24: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clAddress_L1, Values);
-            //Address_L2
-            25: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clAddress_L2, Values);
-            //Address_L3
-            26: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clAddress_L3, Values);
-            //Contact_Name
-            27: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clContact_Name, Values);
-            //Phone_No
-            28: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clPhone_No, Values);
-            //Fax_No
-            29: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clFax_No, Values);
-      //    FAuditNamesArray[20,29] := 'File_Password';
-            //Practice_Name
-            31: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clPractice_Name, Values);
-            //Staff_Member_Name
-            32: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clStaff_Member_Name, Values);
-            //Practice_EMail_Address
-            33: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clPractice_EMail_Address, Values);
-            //Staff_Member_EMail_Address
-            34: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clStaff_Member_EMail_Address, Values);
-            //Client_EMail_Address
-            35: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clClient_EMail_Address, Values);
-      //    FAuditNamesArray[20,35] := 'Country';
-      //    FAuditNamesArray[20,36] := 'File_Name';
-      //    FAuditNamesArray[20,37] := 'File_Type';
-      //    FAuditNamesArray[20,38] := 'File_Version';
-      //    FAuditNamesArray[20,39] := 'File_Save_Count';
-      //    FAuditNamesArray[20,40] := 'BankLink_Connect_Password';
-      //    FAuditNamesArray[20,41] := 'PIN_Number';
-      //    FAuditNamesArray[20,42] := 'Old_Restrict_Analysis_Codes';
-            //Financial_Year_Starts
-            44: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              BkDate2Str(tClient_Rec(ARecord^).clFinancial_Year_Starts), Values);
-    //    FAuditNamesArray[20,44] := 'Report_Start_Date';
-    //    FAuditNamesArray[20,45] := 'Reporting_Period';
-      //    FAuditNamesArray[20,46] := 'Old_Send_Reports_To';
-    //    FAuditNamesArray[20,47] := 'Send_Coding_Report';
-    //    FAuditNamesArray[20,48] := 'Send_Chart_of_Accounts';
-    //    FAuditNamesArray[20,49] := 'Send_Unpresented_Cheque_List';
-    //    FAuditNamesArray[20,50] := 'Send_Payee_List';
-    //    FAuditNamesArray[20,51] := 'Send_Payee_Report';
-    //    FAuditNamesArray[20,52] := 'Short_Name';
-    //    FAuditNamesArray[20,53] := 'Long_Name';
-    //    FAuditNamesArray[20,54] := 'GST_Number';
-    //    FAuditNamesArray[20,55] := 'GST_Period';
-      //    FAuditNamesArray[20,56] := 'GST_Start_Month';
-      //    FAuditNamesArray[20,57] := 'GST_Applies_From';
-      //    FAuditNamesArray[20,58] := 'GST_Class_Names';
-      //    FAuditNamesArray[20,59] := 'GST_Class_Types';
-      //    FAuditNamesArray[20,60] := 'GST_Account_Codes';
-      //    FAuditNamesArray[20,61] := 'GST_Rates';
-      //    FAuditNamesArray[20,62] := 'GST_Basis';
-      //    FAuditNamesArray[20,63] := 'GST_on_Presentation_Date';
-      //    FAuditNamesArray[20,64] := 'GST_Excludes_Accruals';
-      //    FAuditNamesArray[20,65] := 'GST_Inclusive_Cashflow';
-      //    FAuditNamesArray[20,66] := 'Accounting_System_Used';
-      //    FAuditNamesArray[20,67] := 'Account_Code_Mask';
-      //    FAuditNamesArray[20,68] := 'Load_Client_Files_From';
-      //    FAuditNamesArray[20,69] := 'Save_Client_Files_To';
-      //    FAuditNamesArray[20,70] := 'Chart_Is_Locked';
-      //    FAuditNamesArray[20,71] := 'Chart_Last_Updated';
-      //    FAuditNamesArray[20,72] := 'Coding_Report_Style';
-      //    FAuditNamesArray[20,73] := 'Coding_Report_Sort_Order';
-      //    FAuditNamesArray[20,74] := 'Coding_Report_Entry_Selection';
-      //    FAuditNamesArray[20,75] := 'Coding_Report_Blank_Lines';
-      //    FAuditNamesArray[20,76] := 'Coding_Report_Rule_Line';
-      //    FAuditNamesArray[20,77] := 'Coding_Report_New_Page';
-      //    FAuditNamesArray[20,78] := 'Old_Division_Names';
-      //    FAuditNamesArray[20,79] := 'CF_Headings';
-      //    FAuditNamesArray[20,80] := 'PR_Headings';
-      //    FAuditNamesArray[20,81] := 'Magic_Number';
-      //    FAuditNamesArray[20,82] := 'Exception_Options';
-      //    FAuditNamesArray[20,83] := 'Period_Start_Date';
-      //    FAuditNamesArray[20,84] := 'Period_End_Date';
-      //    FAuditNamesArray[20,85] := 'FRS_Print_Chart_Codes';
-      //    FAuditNamesArray[20,86] := 'BankLink_Code';
-            //BankLink_Code
-            87: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clBankLink_Code, Values);
-      //    FAuditNamesArray[20,87] := 'Disk_Sequence_No';
-      //    FAuditNamesArray[20,88] := 'Staff_Member_LRN';
-      //    FAuditNamesArray[20,89] := 'Suppress_Check_for_New_TXns';
-            //Download_From
-            91: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              dlNames[tClient_Rec(ARecord^).clDownload_From], Values);
-            //Last_Batch_Number
-            92: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                              tClient_Rec(ARecord^).clLast_Batch_Number, Values);
-      //    FAuditNamesArray[20,92] := 'Old_GST_Class_Codes';
-      //    FAuditNamesArray[20,93] := 'Division_Code_List';
-      //    FAuditNamesArray[20,94] := 'SB_Export_As';
-      //    FAuditNamesArray[20,95] := 'SB_Upload_To';
-      //    FAuditNamesArray[20,96] := 'Coding_Report_Print_TI';
-      //    FAuditNamesArray[20,97] := 'V31_GST_Format_Used';
-      //    FAuditNamesArray[20,98] := 'Email_Scheduled_Reports';
-      //    FAuditNamesArray[20,99] := 'OLD_BAS_Special_Accounts';
-      //    FAuditNamesArray[20,100] := 'GST_Class_Codes';
-      //    FAuditNamesArray[20,101] := 'Tax_Ledger_Code';
-      //    FAuditNamesArray[20,102] := 'EOY_Locked_SB_Only';
-      //    FAuditNamesArray[20,103] := 'BAS_Field_Number';
-      //    FAuditNamesArray[20,104] := 'BAS_Field_Source';
-      //    FAuditNamesArray[20,105] := 'BAS_Field_Account_Code';
-      //    FAuditNamesArray[20,106] := 'BAS_Field_Balance_Type';
-      //    FAuditNamesArray[20,107] := 'BAS_Field_Percent';
-      //    FAuditNamesArray[20,108] := 'GST_Business_Percent';
-      //    FAuditNamesArray[20,109] := 'BAS_Calculation_Method';
-      //    FAuditNamesArray[20,110] := 'BAS_Dont_Print_Calc_Sheet';
-      //    FAuditNamesArray[20,111] := 'BAS_PAYG_Withheld_Period';
-      //    FAuditNamesArray[20,112] := 'Fax_Scheduled_Reports';
-      //    FAuditNamesArray[20,113] := 'Graph_Headings';
-      //    FAuditNamesArray[20,114] := 'Notes';
-      //    FAuditNamesArray[20,115] := 'Cheques_Expire_When';
-      //    FAuditNamesArray[20,116] := 'Show_Notes_On_Open';
-      //    FAuditNamesArray[20,117] := 'ECoding_Entry_Selection';
-      //    FAuditNamesArray[20,118] := 'ECoding_Dont_Send_Chart';
-      //    FAuditNamesArray[20,119] := 'ECoding_Dont_Send_Payees';
-      //    FAuditNamesArray[20,120] := 'ECoding_Dont_Show_Quantity';
-      //    FAuditNamesArray[20,121] := 'ECoding_Last_File_No';
-      //    FAuditNamesArray[20,122] := 'ECoding_Last_File_No_Imported';
-      //    FAuditNamesArray[20,123] := 'ECoding_Export_Scheduled_Reports';
-      //    FAuditNamesArray[20,124] := 'Email_Report_Format';
-      //    FAuditNamesArray[20,125] := 'BAS_PAYG_Instalment_Period';
-      //    FAuditNamesArray[20,126] := 'BAS_Include_FBT_WET_LCT';
-      //    FAuditNamesArray[20,127] := 'BAS_Last_GST_Option';
-      //    FAuditNamesArray[20,128] := 'BAS_Last_PAYG_Instalment_Option';
-      //    FAuditNamesArray[20,129] := 'ECoding_Default_Password';
-      //    FAuditNamesArray[20,130] := 'ECoding_Import_Options';
-      //    FAuditNamesArray[20,131] := 'ECoding_Last_Import_Dir';
-      //    FAuditNamesArray[20,132] := 'ECoding_Last_Export_Dir';
-      //    FAuditNamesArray[20,133] := 'Coding_Report_Show_OP';
-      //    FAuditNamesArray[20,134] := 'FRS_Show_Quantity';
-      //    FAuditNamesArray[20,135] := 'Cflw_Cash_On_Hand_Style';
-      //    FAuditNamesArray[20,136] := 'CSV_Export_Scheduled_Reports';
-      //    FAuditNamesArray[20,137] := 'FRS_Show_YTD';
-      //    FAuditNamesArray[20,138] := 'FRS_Show_Variance';
-      //    FAuditNamesArray[20,139] := 'FRS_Compare_Type';
-      //    FAuditNamesArray[20,140] := 'FRS_Reporting_Period_Type';
-      //    FAuditNamesArray[20,141] := 'FRS_Report_Style';
-      //    FAuditNamesArray[20,142] := 'Reporting_Year_Starts';
-      //    FAuditNamesArray[20,143] := 'FRS_Report_Detail_Type';
-      //    FAuditNamesArray[20,144] := 'FRS_Prompt_User_to_use_Budgeted_figures';
-      //    FAuditNamesArray[20,145] := 'Balance_Sheet_Headings';
-      //    FAuditNamesArray[20,146] := 'Last_Financial_Year_Start';
-      //    FAuditNamesArray[20,147] := '520_Reference_Fix_Run';
-      //    FAuditNamesArray[20,148] := 'Tax_Interface_Used';
-      //    FAuditNamesArray[20,149] := 'Save_Tax_Files_To';
-      //    FAuditNamesArray[20,150] := 'Journal_Processing_Period';
-      //    FAuditNamesArray[20,151] := 'Last_Disk_Image_Version';
-      //    FAuditNamesArray[20,152] := 'Practice_Web_Site';
-      //    FAuditNamesArray[20,153] := 'Practice_Phone';
-      //    FAuditNamesArray[20,154] := 'Practice_Logo';
-      //    FAuditNamesArray[20,155] := 'Web_Site_Login_URL';
-      //    FAuditNamesArray[20,156] := 'Staff_Member_Direct_Dial';
-      //    FAuditNamesArray[20,157] := 'Contact_Details_To_Show';
-      //    FAuditNamesArray[20,158] := 'ECoding_Dont_Allow_UPIs';
-      //    FAuditNamesArray[20,159] := 'ECoding_Dont_Show_Account';
-      //    FAuditNamesArray[20,160] := 'ECoding_Dont_Show_Payees';
-      //    FAuditNamesArray[20,161] := 'ECoding_Dont_Show_GST';
-      //    FAuditNamesArray[20,162] := 'ECoding_Dont_Show_TaxInvoice';
-      //    FAuditNamesArray[20,163] := 'Scheduled_File_Attachments';
-      //    FAuditNamesArray[20,164] := 'Scheduled_Coding_Report_Style';
-      //    FAuditNamesArray[20,165] := 'Scheduled_Coding_Report_Sort_Order';
-      //    FAuditNamesArray[20,166] := 'Scheduled_Coding_Report_Entry_Selection';
-      //    FAuditNamesArray[20,167] := 'Scheduled_Coding_Report_Blank_Lines';
-      //    FAuditNamesArray[20,168] := 'Scheduled_Coding_Report_Rule_Line';
-      //    FAuditNamesArray[20,169] := 'Scheduled_Coding_Report_New_Page';
-      //    FAuditNamesArray[20,170] := 'Scheduled_Coding_Report_Print_TI';
-      //    FAuditNamesArray[20,171] := 'Scheduled_Coding_Report_Show_OP';
-      //    FAuditNamesArray[20,172] := 'Scheduled_Client_Note_Message';
-      //    FAuditNamesArray[20,173] := 'Custom_Contact_Name';
-      //    FAuditNamesArray[20,174] := 'Custom_Contact_EMail_Address';
-      //    FAuditNamesArray[20,175] := 'Custom_Contact_Phone';
-      //    FAuditNamesArray[20,176] := 'Empty_Journals_Removed';
-      //    FAuditNamesArray[20,177] := 'Highest_Manual_Account_No';
-      //    FAuditNamesArray[20,178] := 'Contact_Details_Edit_Date';
-      //    FAuditNamesArray[20,179] := 'Contact_Details_Edit_Time';
-      //    FAuditNamesArray[20,180] := 'Copy_Narration_Dissection';
-      //    FAuditNamesArray[20,181] := 'Client_CC_EMail_Address';
-      //    FAuditNamesArray[20,182] := 'BAS_Report_Format';
-      //    FAuditNamesArray[20,183] := 'WebX_Export_Scheduled_Reports';
-      //    FAuditNamesArray[20,184] := 'ECoding_WebSpace';
-      //    FAuditNamesArray[20,185] := 'Last_ECoding_Account_UID';
-      //    FAuditNamesArray[20,186] := 'Web_Export_Format';
-            //Mobile_No
-            188: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                               tClient_Rec(ARecord^).clMobile_No, Values);
-      //    FAuditNamesArray[20,188] := 'Ledger_Report_Summary';
-      //    FAuditNamesArray[20,189] := 'Ledger_Report_Show_Notes';
-      //    FAuditNamesArray[20,190] := 'Ledger_Report_Show_Quantities';
-      //    FAuditNamesArray[20,191] := 'Ledger_Report_Show_Non_Trf';
-      //    FAuditNamesArray[20,192] := 'Ledger_Report_Show_Inactive_Codes';
-      //    FAuditNamesArray[20,193] := 'Ledger_Report_Bank_Contra';
-      //    FAuditNamesArray[20,194] := 'Ledger_Report_GST_Contra';
-      //    FAuditNamesArray[20,195] := 'Ledger_Report_Show_Balances';
-      //    FAuditNamesArray[20,196] := 'File_Read_Only';
-      //    FAuditNamesArray[20,197] := 'CheckOut_Scheduled_Reports';
-      //    FAuditNamesArray[20,198] := 'Exclude_From_Scheduled_Reports';
-      //    FAuditNamesArray[20,199] := 'Ledger_Report_Show_Gross_And_GST';
-      //    FAuditNamesArray[20,200] := 'Salutation';
-      //    FAuditNamesArray[20,201] := 'External_ID';
-      //    FAuditNamesArray[20,202] := 'System_LRN';
-      //    FAuditNamesArray[20,203] := 'Business_Products_Scheduled_Reports';
-      //    FAuditNamesArray[20,204] := 'Business_Products_Report_Format';
-      //    FAuditNamesArray[20,205] := 'Coding_Report_Wrap_Narration';
-      //    FAuditNamesArray[20,206] := 'Ledger_Report_Wrap_Narration';
-      //    FAuditNamesArray[20,207] := 'Scheduled_Coding_Report_Wrap_Narration';
-      //    FAuditNamesArray[20,208] := 'Force_Offsite_Check_Out';
-            //Disable_Offsite_Check_Out
-            210: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                               tClient_Rec(ARecord^).clDisable_Offsite_Check_Out, Values);
-      //    FAuditNamesArray[20,210] := 'Alternate_Extract_ID';
-      //    FAuditNamesArray[20,211] := 'Use_Alterate_ID_for_extract';
-      //    FAuditNamesArray[20,212] := 'Last_Use_Date';
-      //    FAuditNamesArray[20,213] := 'Use_Basic_Chart';
-      //    FAuditNamesArray[20,214] := 'Group_Name';
-            //Group_Name
-            215: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                               tClient_Rec(ARecord^).clGroup_Name, Values);
-            //Client_Type_Name
-            216: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
-                                               tClient_Rec(ARecord^).clClient_Type_Name, Values);
-      //    FAuditNamesArray[20,216] := 'BAS_Include_Fuel';
-      //    FAuditNamesArray[20,217] := 'Profit_Report_Show_Percentage';
-      //    FAuditNamesArray[20,218] := 'ECoding_Send_Superfund';
-      //    FAuditNamesArray[20,219] := 'Group_LRN';
-      //    FAuditNamesArray[20,220] := 'Client_Type_LRN';
-      //    FAuditNamesArray[20,221] := 'Spare_Byte_1';
-      //    FAuditNamesArray[20,222] := 'Spare_Byte_2';
-      //    FAuditNamesArray[20,223] := 'Practice_Code';
-      //    FAuditNamesArray[20,224] := 'CashJ_Column_Order';
-      //    FAuditNamesArray[20,225] := 'CashJ_Column_Width';
-      //    FAuditNamesArray[20,226] := 'CashJ_Column_is_Hidden';
-      //    FAuditNamesArray[20,227] := 'CashJ_Column_is_Not_Editable';
-      //    FAuditNamesArray[20,228] := 'CashJ_Sort_Order';
-      //    FAuditNamesArray[20,229] := 'AcrlJ_Column_Order';
-      //    FAuditNamesArray[20,230] := 'AcrlJ_Column_Width';
-      //    FAuditNamesArray[20,231] := 'AcrlJ_Column_is_Hidden';
-      //    FAuditNamesArray[20,232] := 'AcrlJ_Column_is_Not_Editable';
-      //    FAuditNamesArray[20,233] := 'AcrlJ_Sort_Order';
-      //    FAuditNamesArray[20,234] := 'StockJ_Column_Order';
-      //    FAuditNamesArray[20,235] := 'StockJ_Column_Width';
-      //    FAuditNamesArray[20,236] := 'StockJ_Column_is_Hidden';
-      //    FAuditNamesArray[20,237] := 'StockJ_Column_is_Not_Editable';
-      //    FAuditNamesArray[20,238] := 'StockJ_Sort_Order';
-      //    FAuditNamesArray[20,239] := 'YrEJ_Column_Order';
-      //    FAuditNamesArray[20,240] := 'YrEJ_Column_Width';
-      //    FAuditNamesArray[20,241] := 'YrEJ_Column_is_Hidden';
-      //    FAuditNamesArray[20,242] := 'YrEJ_Column_is_Not_Editable';
-      //    FAuditNamesArray[20,243] := 'YrEJ_Sort_Order';
-      //    FAuditNamesArray[20,244] := 'gstJ_Column_Order';
-      //    FAuditNamesArray[20,245] := 'gstJ_Column_Width';
-      //    FAuditNamesArray[20,246] := 'gstJ_Column_is_Hidden';
-      //    FAuditNamesArray[20,247] := 'gstJ_Column_is_Not_Editable';
-      //    FAuditNamesArray[20,248] := 'gstJ_Sort_Order';
-      //    FAuditNamesArray[20,249] := 'Favourite_Report_XML';
-      //    FAuditNamesArray[20,250] := 'All_EditMode_CES';
-      //    FAuditNamesArray[20,251] := 'All_EditMode_DIS';
-      //    FAuditNamesArray[20,252] := 'TFN';
-      //    FAuditNamesArray[20,253] := 'All_EditMode_Journals';
-      //    FAuditNamesArray[20,254] := 'Budget_Column_Width';
-          end;
-          inc(Idx);
-          Token := AAuditRecord.atChanged_Fields[idx];
-        end;
-      end;
-    tkBegin_ClientExtra :
-      begin
-        Idx := 0;
-        Token := AAuditRecord.atChanged_Fields[idx];
-        while Token <> 0 do begin
-          case Token of
-//    FAuditNamesArray[40,41] := 'TAX_Applies_From';
-//    FAuditNamesArray[40,42] := 'TAX_Rates';
-            //List_Entries_Sort_Order
-            44: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
-                                             tClientExtra_Rec(ARecord^).ceList_Entries_Sort_Order, Values);
-//    FAuditNamesArray[40,44] := 'List_Entries_Include';
-//    FAuditNamesArray[40,45] := 'List_Entries_Two_Column';
-//    FAuditNamesArray[40,46] := 'List_Entries_Show_Balance';
-//    FAuditNamesArray[40,47] := 'List_Entries_Show_Notes';
-//    FAuditNamesArray[40,48] := 'List_Entries_Wrap_Narration';
-//    FAuditNamesArray[40,49] := 'List_Entries_Show_Other_Party';
-//    FAuditNamesArray[40,50] := 'Book_Gen_Finance_Reports';
-            //Book_Gen_Finance_Reports
-            51: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
-                                             tClientExtra_Rec(ARecord^).ceBook_Gen_Finance_Reports, Values);
-//    FAuditNamesArray[40,51] := 'FRS_Print_NP_Chart_Code_Titles';
-//    FAuditNamesArray[40,52] := 'FRS_NP_Chart_Code_Detail_Type';
-            //Allow_Client_Unlock_Entries
-            54: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
-                                             tClientExtra_Rec(ARecord^).ceAllow_Client_Unlock_Entries, Values);
-            //Allow_Client_Edit_Chart
-            55: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
-                                             tClientExtra_Rec(ARecord^).ceAllow_Client_Edit_Chart, Values);
-//    FAuditNamesArray[40,55] := 'ECoding_Dont_Send_Jobs';
-//    FAuditNamesArray[40,56] := 'Custom_Coding_Report_XML';
-//    FAuditNamesArray[40,57] := 'Custom_Coding_Report';
-//    FAuditNamesArray[40,58] := 'Coding_Report_Column_Line';
-//    FAuditNamesArray[40,59] := 'Scheduled_Custom_CR_XML';
-//    FAuditNamesArray[40,60] := 'Budget_Include_Quantities';
-//    FAuditNamesArray[40,61] := 'Scheduled_CR_Column_Line';
-//    FAuditNamesArray[40,62] := 'Custom_Ledger_Report';
-//    FAuditNamesArray[40,63] := 'Custom_Ledger_Report_XML';
-//    FAuditNamesArray[40,64] := 'Local_Currency_Code';
-            //Block_Client_Edit_Mems
-            66: FClientAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_ClientExtra, Token),
-                                              tClientExtra_Rec(ARecord^).ceBlock_Client_Edit_Mems, Values);
-//    FAuditNamesArray[40,66] := 'Send_Custom_Documents';
-//    FAuditNamesArray[40,67] := 'Send_Custom_Documents_List';
-//    FAuditNamesArray[40,68] := 'List_Payees_Detailed';
-//    FAuditNamesArray[40,69] := 'List_Payees_SortBy';
-//    FAuditNamesArray[40,70] := 'List_Payees_Rule_Line';
-//    FAuditNamesArray[40,71] := 'Custom_SFLedger_Titles';
-//    FAuditNamesArray[40,72] := 'SUI_Period_Start';
-//    FAuditNamesArray[40,73] := 'SUI_Period_End';
-//    FAuditNamesArray[40,74] := 'Audit_Record_ID';
-//    FAuditNamesArray[40,75] := 'SUI_Step_Done';
-//    FAuditNamesArray[40,76] := 'Send_Job_List';
-          end;
-          inc(Idx);
-          Token := AAuditRecord.atChanged_Fields[idx];
-        end;
-      end;
-  end;
-end;
-
 procedure TClientObj.AutoSave;
 const
   ThisMethodName = 'TClientObj.AutoSave';

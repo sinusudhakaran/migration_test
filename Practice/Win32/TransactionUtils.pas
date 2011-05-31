@@ -17,7 +17,7 @@ unit TransactionUtils;
 //------------------------------------------------------------------------------
 
 interface
-  uses  bkdefs;
+  uses  bkdefs, bkAuditUtils;
 
 procedure  ClearSuperFundFields( pT : pTransaction_Rec); overload;
 procedure  ClearSuperFundFields( pD : pDissection_Rec); overload;
@@ -52,7 +52,8 @@ function getDsctReference (pd: pDissection_Rec; Account_Type: Byte  ) : String; 
 function getDsctReference (pd: pDissection_Rec;pT: pTransaction_Rec; Account_Type: Byte  ) : String; overload;
 
 // Typicaly used in Coding screen
-function GetFormattedEntryType(const T: pTransaction_Rec ): ShortString;
+function GetFormattedEntryType(const T: pTransaction_Rec ): ShortString; overload;
+function GetFormattedEntryType(const ClientFields: TClient_Rec; AType: Byte; HasBeenEdited: boolean): ShortString; overload;
 function GetFormattedAction(const T: pTransaction_Rec): ShortString;
 
 procedure GetPayeeInfoForDissection( const pT : pTransaction_Rec;
@@ -286,6 +287,13 @@ begin
 
    if T.txHas_Been_Edited then
       Result := 'E-' + Result;
+end;
+
+function GetFormattedEntryType(const ClientFields: TClient_Rec; AType: Byte; HasBeenEdited: boolean): ShortString;
+begin
+  Result := format('%d:%s', [AType, ClientFields.clShort_Name[AType]]);
+  if HasBeenEdited then
+    Result := 'E-' + Result;
 end;
 
 //------------------------------------------------------------------------------

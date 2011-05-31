@@ -279,7 +279,7 @@ begin
 
    //Build temporary transaction list of client transactions on the pres date only
    //Temp resync date is set for all accounts before calling this routine
-   TempTransList := TTransaction_List.Create( NIL, NIL );
+   TempTransList := TTransaction_List.Create( NIL, NIL, NIL );
    try
       for i := 0 to Pred ( ClientBankAccount.baTransaction_List.ItemCount ) do begin
          Transaction := ClientBankAccount.baTransaction_List.Transaction_At(i);
@@ -645,7 +645,7 @@ begin
    //Client file is ok to resync now load transactions from the admin system into a
    //temporary bank account list
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName+' Build Admin System Accounts List');
-   AdminAccountsList := TBank_Account_List.Create;
+   AdminAccountsList := TBank_Account_List.Create(nil, nil);
    try
       AdminHasTrx := True;
       with aClient.clBank_Account_List do for i := 0 to Pred(ItemCount) do begin

@@ -125,7 +125,7 @@ begin
       begin
         // Add new bank account
         BA := TBank_Account.Create;
-        BA.baTransaction_List := TTransaction_List.Create( aClient, BA );
+        BA.baTransaction_List := TTransaction_List.Create( aClient, BA, aClient.FClientAuditMgr );
         BA.baFields.baECoding_Account_UID := uid;
         BA.baFields.baRecord_Type := tkBegin_Bank_Account;
         BA.baFields.baEOR := tkEnd_Bank_Account;

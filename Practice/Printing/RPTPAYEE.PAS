@@ -192,7 +192,7 @@ Var
       dy, m, y: Integer;
     Trans: pTransaction_Rec;
    Begin
-      Transaction_List := TTransaction_List.Create( NIL, NIL );
+      Transaction_List := TTransaction_List.Create( NIL, NIL, NIL );
       try
       NameRendered := False;
       with Report, params, Client, clFields, Payee do

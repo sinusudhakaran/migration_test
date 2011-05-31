@@ -4,21 +4,25 @@ unit trxList32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-   classes, bkdefs, ecollect, iostream;
+   classes, bkdefs, ecollect, iostream, AuditMgr;
 
 type
    TTransaction_List = class(TExtdSortedCollection)
-      lastSeq : integer;
-
- //     constructor Create; Overload;
-      Constructor Create( AClient, ABank_Account : TObject ); // Overload;
-      function Compare(Item1,Item2 : Pointer): Integer; override;
    protected
       procedure FreeItem(Item : Pointer); override;
    private
+      FLastSeq      : integer;
+      FClient       : TObject;
+      FBank_Account : TObject;
+      FAuditMgr     : TClientAuditManager;
+      FLoading: boolean;
+      function FindRecordID(ARecordID: integer):  pTransaction_Rec;
+      procedure SetClient(const Value: TObject);
+      procedure SetBank_Account(const Value: TObject);
+    procedure SetAuditMgr(const Value: TClientAuditManager);
    public
-      fClient       : TObject;
-      fBank_Account : TObject;
+      constructor Create( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager );
+      function Compare(Item1,Item2 : Pointer): Integer; override;
       procedure Insert(Item:Pointer); override;
       procedure Insert_Transaction_Rec(var p: pTransaction_Rec);
       procedure LoadFromFile(var S : TIOStream);
@@ -30,8 +34,16 @@ type
 
       function  FirstPresDate : LongInt;
       function  LastPresDate : LongInt;
-
+      
       procedure UpdateCRC(var CRC : Longword);
+      procedure DoAudit(AAuditType: TAuditType; ATransactionListCopy: TTransaction_List;
+                        AParentID: integer; AAccountType: byte; var AAuditTable: TAuditTable);
+      procedure SetAuditInfo(P1, P2: pTransaction_Rec; AParentID: integer;
+                             var AAuditInfo: TAuditInfo);
+      property LastSeq : integer read FLastSeq;
+      property TxnClient: TObject read FClient write SetClient;
+      property TxnBankAccount: TObject read FBank_Account write SetBank_Account;
+      property AuditMgr: TClientAuditManager read FAuditMgr write SetAuditMgr;
    end;
 
    procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
@@ -51,7 +63,8 @@ uses
    bkdbExcept,
    bk5Except,
    bkcrc,
-   bkconst;
+   bkconst,
+   BKAudit;
 
 const
    DebugMe : boolean = false;
@@ -146,21 +159,7 @@ Begin
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-(*
-constructor TTransaction_List.Create;
-const
-  ThisMethodName = 'TTransaction_List.Create';
-begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   inherited Create;
-   Duplicates := false;
-   LastSeq := 0;
-   fClient := NIL;
-   fBank_Account := NIL;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
-end;
-*)
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TTransaction_List.Compare(Item1, Item2 : pointer): integer;
 begin
@@ -195,10 +194,15 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    If BKTXIO.IsATransaction_Rec( P ) then
    Begin
-      Inc( LastSeq );
-      P^.txSequence_No  := LastSeq;
+      Inc( FLastSeq );
+      P^.txSequence_No  := FLastSeq;
       P^.txBank_Account := fBank_Account;
       P^.txClient       := fClient;
+
+      //Get next audit ID for new transactions
+      if not FLoading then
+        P^.txAudit_Record_ID := fAuditMgr.NextClientRecordID;
+
       Inherited Insert( P );
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -214,33 +218,38 @@ Var
    msg         : string;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   pTX := NIL;
-   Token := S.ReadToken;
-   While ( Token <> tkEndSection ) do
-   Begin
-      Case Token of
-         tkBegin_Transaction :
-            Begin
-               pTX := New_Transaction_Rec;
-               Read_Transaction_Rec ( pTX^, S );
-               Insert_Transaction_Rec( pTX );
-            end;
+   FLoading := True;
+   try
+     pTX := NIL;
+     Token := S.ReadToken;
+     While ( Token <> tkEndSection ) do
+     Begin
+        Case Token of
+           tkBegin_Transaction :
+              Begin
+                 pTX := New_Transaction_Rec;
+                 Read_Transaction_Rec ( pTX^, S );
+                 Insert_Transaction_Rec( pTX );
+              end;
 
-         tkBegin_Dissection :
-            Begin
-               pDS := New_Dissection_Rec;
-               Read_Dissection_Rec ( pDS^, S );
-               AppendDissection( pTX, pDS );
-            end;
+           tkBegin_Dissection :
+              Begin
+                 pDS := New_Dissection_Rec;
+                 Read_Dissection_Rec ( pDS^, S );
+                 AppendDissection( pTX, pDS );
+              end;
 
-         else
-         begin { Should never happen }
-            Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
-            LogUtil.LogMsg(lmError, UnitName, Msg );
-            raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
-         end;
-      end; { of Case }
-      Token := S.ReadToken;
+           else
+           begin { Should never happen }
+              Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
+              LogUtil.LogMsg(lmError, UnitName, Msg );
+              raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+           end;
+        end; { of Case }
+        Token := S.ReadToken;
+     end;
+   finally
+     FLoading := False;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -296,6 +305,54 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, Format('%s : %d transactions %d dissection saved',[ThisMethodName, txCount, dsCount]));
 end;
+
+procedure TTransaction_List.SetAuditInfo(P1, P2: pTransaction_Rec;
+  AParentID: integer; var AAuditInfo: TAuditInfo);
+begin
+  AAuditInfo.AuditAction := aaNone;
+  AAuditInfo.AuditParentID := AParentID;
+  AAuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType','Transaction']) +
+                               VALUES_DELIMITER +
+                               Format('%s=%d', ['ParentID', AParentID]);
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.txAudit_Record_ID;
+    AAuditInfo.AuditOtherInfo :=
+      AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
+      Format('%s=%d',[BKAuditNames.GetAuditFieldName(tkBegin_Transaction, 166), P2.txDate_Presented]) +
+      VALUES_DELIMITER +
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Transaction, 169), P2.txAmount]);
+  end else if Assigned(P2) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.txAudit_Record_ID;
+    if Transaction_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      AAuditInfo.AuditAction := aaChange;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.txAudit_Record_ID;
+    P1.txAudit_Record_ID := AAuditInfo.AuditRecordID;
+    BKTXIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Transaction_Rec(P1, AAuditInfo.AuditRecord);
+  end;
+end;
+
+procedure TTransaction_List.SetAuditMgr(const Value: TClientAuditManager);
+begin
+  FAuditMgr := Value;
+end;
+
+procedure TTransaction_List.SetBank_Account(const Value: TObject);
+begin
+  FBank_Account := Value;
+end;
+
+procedure TTransaction_List.SetClient(const Value: TObject);
+begin
+  FClient := Value;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TTransaction_List.Transaction_At(Index : longint) : pTransaction_Rec;
 const
@@ -375,13 +432,92 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-constructor TTransaction_List.Create(AClient, ABank_Account: TObject);
+constructor TTransaction_List.Create(AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager);
 begin
   inherited Create;
+  FLoading := False;
   Duplicates := false;
-  LastSeq := 0;
-  fClient := AClient;
-  fBank_Account := ABank_Account;
+  FLastSeq := 0;
+  FClient := AClient;
+  FBank_Account := ABank_Account;
+  FAuditMgr := AAuditMgr;
+end;
+
+procedure TTransaction_List.DoAudit(AAuditType: TAuditType;
+  ATransactionListCopy: TTransaction_List; AParentID: integer;
+  AAccountType: byte; var AAuditTable: TAuditTable);
+var
+  i: integer;
+  P1, P2: pTransaction_Rec;
+  AuditInfo: TAuditInfo;
+
+  procedure SetAuditType(ATnx: pTransaction_Rec);
+  begin
+    case ATnx.txSource of
+      orBank         : AuditInfo.AuditType := atDeliveredTransactions;
+      orGenerated    : AuditInfo.AuditType := atUnpresentedItems;
+      orManual       : //Journal transactions
+                       case AAccountType of
+                         btCashJournals   : AuditInfo.AuditType := atCashJournals;
+                         btAccrualJournals: AuditInfo.AuditType := atAccrualJournals;
+                         btGSTJournals    : AuditInfo.AuditType := atGSTJournals;
+                       end;
+      orHistorical   : AuditInfo.AuditType := atHistoricalentries;
+      orGeneratedRev : AuditInfo.AuditType := atUnpresentedItems;
+      orMDE          : AuditInfo.AuditType := atManualEntries;
+      orProvisional  : AuditInfo.AuditType := atProvisionalEntries;
+    end;
+  end;
+begin
+  //Note: AuditType is dependant on the type of bank account
+  AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
+  AuditInfo.AuditRecordType := tkBegin_Transaction;
+  //Adds, changes
+  for i := 0 to Pred(ItemCount) do begin
+    P1 := Items[i];
+    P2 := nil;
+    if Assigned(ATransactionListCopy) then
+      P2 := ATransactionListCopy.FindRecordID(P1.txAudit_Record_ID);
+    AuditInfo.AuditRecord := New_Transaction;
+    try
+      SetAuditType(P1);
+      SetAuditInfo(P1, P2, AParentID, AuditInfo);
+      if AuditInfo.AuditAction in [aaAdd, aaChange] then
+        AAuditTable.AddAuditRec(AuditInfo);
+    finally
+      Dispose(AuditInfo.AuditRecord);
+    end;
+  end;
+  //Deletes
+  if Assigned(ATransactionListCopy) then begin //Sub list - may not be assigned
+    for i := 0 to ATransactionListCopy.ItemCount - 1 do begin
+      P2 := ATransactionListCopy.Items[i];
+      SetAuditType(P2);      
+      P1 := FindRecordID(P2.txAudit_Record_ID);
+      AuditInfo.AuditRecord := New_Transaction;
+      try
+        SetAuditInfo(P1, P2, AParentID, AuditInfo);
+        if (AuditInfo.AuditAction = aaDelete) then
+          AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+    end;
+  end;
+end;
+
+function TTransaction_List.FindRecordID(ARecordID: integer): pTransaction_Rec;
+var
+  i : integer;
+begin
+  Result := nil;
+  if (ItemCount = 0) then Exit;
+
+  for i := 0 to Pred(ItemCount) do
+    if Transaction_At(i).txAudit_Record_ID = ARecordID then begin
+      Result := Transaction_At(i);
+      Exit;
+    end;
 end;
 
 function TTransaction_List.FindTransactionFromECodingUID(
