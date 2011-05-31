@@ -143,7 +143,7 @@ begin
 //    End;
 
     //create a temporary transaction list
-    TempTransList := TTransaction_List.Create( MyClient, BankAccount );
+    TempTransList := TTransaction_List.Create( MyClient, BankAccount, MyClient.ClientAuditMgr );
     try
       for dTNo := DiskAccount.dbTransaction_List.First to DiskAccount.dbTransaction_List.Last do
       begin
