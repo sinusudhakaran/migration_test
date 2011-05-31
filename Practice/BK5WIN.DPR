@@ -59,7 +59,9 @@ uses
   ECodingExportFme in 'Win32\ECodingExportFme.pas' {fmeECodingExport: TFrame},
   ExistingChequesFme in 'Win32\ExistingChequesFme.pas' {fmeExistingCheques: TFrame},
   RTFEditFme in 'Win32\RTFEditFme.pas' {fmeEditRTF: TFrame},
-  sysaccountsfme in 'Win32\sysaccountsfme.pas' {fmeSysAccounts: TFrame};
+  SysAccountsfme in 'Win32\SysAccountsfme.pas' {fmeSysAccounts: TFrame},
+  peList32 in 'Win32\peList32.pas',
+  BKAuditValues in 'Win32\BKAuditValues.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
