@@ -450,6 +450,7 @@ var
   i: integer;
   P1, P2: pTransaction_Rec;
   AuditInfo: TAuditInfo;
+  ProvDateStr: string;
 
   procedure SetAuditType(ATnx: pTransaction_Rec);
   begin
@@ -482,8 +483,22 @@ begin
     try
       SetAuditType(P1);
       SetAuditInfo(P1, P2, AParentID, AuditInfo);
-      if AuditInfo.AuditAction in [aaAdd, aaChange] then
+      if AuditInfo.AuditAction in [aaAdd, aaChange] then begin
+        //Add provisional info
+        if (P1.txSource = orProvisional) then begin
+          if (P1^.txTemp_Prov_Date_Time = 0) then
+            ProvDateStr := 'UNKNOWN'
+          else
+            ProvDateStr := FormatDateTime('dd/MM/yy hh:mm:ss', P1^.txTemp_Prov_Date_Time);
+          AuditInfo.AuditOtherInfo := Format('%s%sEntered By=%s%sEntered At=%s',
+                                             [AuditInfo.AuditOtherInfo,
+                                              VALUES_DELIMITER,
+                                              P1^.txTemp_Prov_Entered_By,
+                                              VALUES_DELIMITER,
+                                              ProvDateStr]);
+        end;
         AAuditTable.AddAuditRec(AuditInfo);
+      end;
     finally
       Dispose(AuditInfo.AuditRecord);
     end;

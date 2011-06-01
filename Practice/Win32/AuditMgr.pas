@@ -57,6 +57,7 @@ const
   dbSystem = 0;
   dbClient = 1;
 
+  OTHER_INFO_FLAG = '*';
   VALUES_DELIMITER = '¦'; //non-keyboard character
 
 type
@@ -177,6 +178,9 @@ type
   function GetUserCode(AUserLRN: integer): string;
   function GetGroupName(AGroupLRN: integer): string;
   function GetClientFileType(AClientTypeLRN: integer): string;
+
+  procedure SetProvisionalInfo(ATxnLRN: integer; var AUserCode: shortstring; var ADateTime: TDateTime);
+
   procedure GST_Class_Names_Audit_Values(V1: TGST_Class_Names_Array; var Values: string);
   procedure GST_Rates_Audit_Values(V1: TGST_Rates_Array; var Values: string);
   procedure GST_Applies_From_Array(V1: TGST_Applies_From_Array; var Values: string);
@@ -185,7 +189,7 @@ implementation
 
 {$IFDEF LOOKUPDLL}
 uses
-  TOKENS, BKDbExcept, BKAuditValues,
+  TOKENS, BKDbExcept, BKAuditValues,                                
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
 {$ELSE}
@@ -330,6 +334,27 @@ begin
   ClientType := AdminSystem.fdSystem_Client_Type_List.FindLRN(AClientTypeLRN);
   if Assigned(ClientType) then
     Result := ClientType.ctName;
+{$ENDIF}
+end;
+
+procedure SetProvisionalInfo(ATxnLRN: integer; var AUserCode: shortstring; var ADateTime: TDateTime);
+var
+  i: integer;
+begin
+{$IFNDEF LOOKUPDLL}
+   AUserCode := 'UNKNOWN';
+   ADateTime := 0;
+  if Assigned(AdminSystem) then begin
+    with AdminSystem.fSystem_Provisional_List do begin
+      for i := First to Last do
+        if (ATxnLRN >= Provisional_Entry_At(i).peFirst_LRN) and
+           (ATxnLRN <= Provisional_Entry_At(i).peLast_LRN) then begin
+          AUserCode := Provisional_Entry_At(i).peUser_Code;
+          ADateTime := Provisional_Entry_At(i).peDate_Time;
+          Exit;
+        end;
+    end;
+  end;
 {$ENDIF}
 end;
 
@@ -879,6 +904,24 @@ begin
   end;
 end;
 
+procedure AddOtherInfoFlag(var AValuesString: string);
+var
+  i: integer;
+  ValuesList: TStringList;
+begin
+  ValuesList := TStringList.Create;
+  try
+    ValuesList.Delimiter := VALUES_DELIMITER;
+    ValuesList.StrictDelimiter := true;
+    ValuesList.DelimitedText := AValuesString;
+    for i := 0 to ValuesList.Count - 1 do
+      ValuesList.Strings[i] := OTHER_INFO_FLAG + ValuesList.Strings[i];
+    AValuesString := ValuesList.DelimitedText;
+  finally
+    ValuesList.Free;
+  end;
+end;
+
 procedure TClientAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
   var Values: string);
 begin
@@ -886,6 +929,9 @@ begin
   Values := AAuditRecord.atOther_Info;
   if AAuditRecord.atAudit_Record = nil then
     Exit;
+
+  //Test - add other info flag
+  AddOtherInfoFlag(Values);
 
   with FOwner as TClientObj do
     case AAuditRecord.atAudit_Record_Type of
@@ -1092,8 +1138,6 @@ begin
       FAuditManager.WriteAuditRecord(AuditRec.atAudit_Record_Type, AuditRec.atAudit_Record, S);
     end;
   end;
-  S.WriteToken( tkEndSection );
-  //Not sure why this is needed - or why an extra tkEndSection wasn't needed before!!!
   S.WriteToken( tkEndSection );
 end;
 

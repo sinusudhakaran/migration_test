@@ -47,7 +47,7 @@ begin
   Token := S.ReadToken;
   while (Token <> tkEndSection) do begin
     case Token of
-      tkBeginSystem_Provisional_Entries_Log:
+      tkBegin_Provisional_Entries_Log:
         begin
           PELR := New_Provisional_Entries_Log_Rec;
           Read_Provisional_Entries_Log_Rec(PELR^, S);
@@ -78,6 +78,8 @@ begin
   for i := 0 to Pred(ItemCount) do
     SYPEIO.Write_Provisional_Entries_Log_Rec(Provisional_Entry_At(i)^, S);
   S.WriteToken(tkEndSection);
+  //Not sure why this is needed - or why an extra tkEndSection wasn't needed before!!!
+  S.WriteToken( tkEndSection );
 end;
 
 end.
