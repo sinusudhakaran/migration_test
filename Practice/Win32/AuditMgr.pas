@@ -189,7 +189,7 @@ implementation
 
 {$IFDEF LOOKUPDLL}
 uses
-  TOKENS, BKDbExcept, BKAuditValues,                                
+  TOKENS, BKDbExcept, 
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
 {$ELSE}
@@ -886,6 +886,7 @@ end;
 function TClientAuditManager.GetTransactionAuditType(ABankAccountSource: byte;
   ABankAccountType: byte): TAuditType;
 begin
+{$IFNDEF LOOKUPDLL}
   case ABankAccountSource of
     orBank         : Result := atDeliveredTransactions;
     orGenerated    : Result := atUnpresentedItems;
@@ -902,6 +903,7 @@ begin
   else
     Result := atDeliveredTransactions;
   end;
+{$ENDIF}
 end;
 
 procedure AddOtherInfoFlag(var AValuesString: string);
