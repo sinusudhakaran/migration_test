@@ -190,7 +190,8 @@ $|                         Add IsProvisional to Bank account
 $|                         Add Opening Balance Curreny field to Dissection and temp fields to Account
 $|  5.21 (2011AUDIT)164    Add Audit Record ID field to memorisation records
 $|                  165    Add remaining Audit Record ID fields to records
-$|                         Add Audit Table (Defined in SY.TXT) 
+$|                         Add Audit Table (Defined in SY.TXT)
+$|                         Add temp fileds to Txn for Provisional info
 $|*)
 
 N|Client|cl|20
@@ -842,6 +843,8 @@ C|Bank Account|TO
 C|Client|TO
 C|Temp Forex Rate|R
 C|Temp Base Amount|$
+C|Temp Prov Entered By|S|8
+C|Temp Prov Date Time|DT
 E
 
 N|Dissection|ds|180
