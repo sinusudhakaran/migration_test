@@ -142,6 +142,8 @@ type
   TClientAuditManager = class(TAuditManager)
   private
     FOwner: TObject;
+    FProvisionalAccountAttached: boolean;
+    procedure SetProvisionalAccountAttached(const Value: boolean);
   public
     constructor Create(Owner: TObject);
     function NextClientRecordID: integer;
@@ -153,6 +155,7 @@ type
     procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer); override;
     procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); override;
     procedure CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer); override;
+    property ProvisionalAccountAttached: boolean read FProvisionalAccountAttached write SetProvisionalAccountAttached;
   end;
 
   TAuditTable = class(TObject)
@@ -246,24 +249,24 @@ const
      (tkBegin_Client_File, dbSystem),         //System Client Files
      (tkBegin_Client_Account_Map, dbClient),  //Attach Bank Accounts
 
-     (tkBegin_Client, dbClient),              //Client Bank Accounts
+     (tkBegin_Bank_Account, dbClient),        //Client Bank Accounts
      (tkBegin_Account, dbClient),             //Chart of Accounts
      (tkBegin_Payee_Detail, dbClient),        //Payees
      (tkBegin_Client, dbClient),              //Client Files
-     (tkBegin_Bank_Account, dbClient),         //Memorisations
-     (tkBegin_Client, dbClient),         //GST/VAT Setup
-     (tkBegin_Bank_Account, dbClient),         //Historical entries
-     (tkBegin_Bank_Account, dbClient),         //Provisional entries
-     (tkBegin_Bank_Account, dbClient),         //Manual entries
-     (tkBegin_Bank_Account, dbClient),         //Delivered transactions
-     (tkBegin_Bank_Account, dbClient),         //Automatic coding
-     (tkBegin_Bank_Account, dbClient),         //Cash journals
-     (tkBegin_Bank_Account, dbClient),         //Accrual journals
-     (tkBegin_Bank_Account, dbClient),         //Stock/Adjustment journals
-     (tkBegin_Bank_Account, dbClient),         //Year End Adjustment journals
-     (tkBegin_Bank_Account, dbClient),         //GST/VAT journals
-     (tkBegin_Bank_Account, dbClient),         //Opening balances
-     (tkBegin_Bank_Account, dbClient),         //Unpresented Items
+     (tkBegin_Bank_Account, dbClient),        //Memorisations
+     (tkBegin_Client, dbClient),              //GST/VAT Setup
+     (tkBegin_Bank_Account, dbClient),        //Historical entries
+     (tkBegin_Bank_Account, dbClient),        //Provisional entries
+     (tkBegin_Bank_Account, dbClient),        //Manual entries
+     (tkBegin_Bank_Account, dbClient),        //Delivered transactions
+     (tkBegin_Bank_Account, dbClient),        //Automatic coding
+     (tkBegin_Bank_Account, dbClient),        //Cash journals
+     (tkBegin_Bank_Account, dbClient),        //Accrual journals
+     (tkBegin_Bank_Account, dbClient),        //Stock/Adjustment journals
+     (tkBegin_Bank_Account, dbClient),        //Year End Adjustment journals
+     (tkBegin_Bank_Account, dbClient),        //GST/VAT journals
+     (tkBegin_Bank_Account, dbClient),        //Opening balances
+     (tkBegin_Bank_Account, dbClient),        //Unpresented Items
      (tkBegin_Client, dbClient),         //BankLink Notes
      (tkBegin_Client, dbClient),         //BankLink Notes Online
      (tkBegin_Client, dbClient));        //BankLink Books
@@ -841,6 +844,7 @@ begin
   inherited Create;
 
   FOwner := nil;
+  FProvisionalAccountAttached := False;
 {$IFNDEF LOOKUPDLL}
   if Owner is TClientObj then
     FOwner := Owner;
@@ -926,26 +930,37 @@ end;
 
 procedure TClientAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
   var Values: string);
+var
+  OtherInfo: string;
+  AuditInfo: string;
 begin
 {$IFNDEF LOOKUPDLL}
-  Values := AAuditRecord.atOther_Info;
+  OtherInfo := AAuditRecord.atOther_Info;
   if AAuditRecord.atAudit_Record = nil then
     Exit;
 
-  //Test - add other info flag
-  AddOtherInfoFlag(Values);
+  AddOtherInfoFlag(OtherInfo);
 
   with FOwner as TClientObj do
     case AAuditRecord.atAudit_Record_Type of
       tkBegin_Client,
-      tkBegin_ClientExtra : BKAuditValues.AddClientAuditValues(AAuditRecord, Self, Values);
+      tkBegin_ClientExtra : BKAuditValues.AddClientAuditValues(AAuditRecord, Self, AuditInfo);
       tkBegin_Payee_Detail,
-      tkBegin_Payee_Line  : BKAuditValues.AddPayeeAuditValues(AAuditRecord, Self, Values);
-      tkBegin_Transaction : BKAuditValues.AddTransactionAuditValues(AAuditRecord, Self, clFields, Values);
-      tkBegin_Bank_Account: BKAuditValues.AddBankAccountAuditValues(AAuditRecord, Self, Values);
+      tkBegin_Payee_Line  : BKAuditValues.AddPayeeAuditValues(AAuditRecord, Self, AuditInfo);
+      tkBegin_Transaction : BKAuditValues.AddTransactionAuditValues(AAuditRecord, Self, clFields, AuditInfo);
+      tkBegin_Bank_Account: BKAuditValues.AddBankAccountAuditValues(AAuditRecord, Self, AuditInfo);
     else
-      Values := Format('%s%sAUDIT RECORD TYPE UNKNOWN',[Values, VALUES_DELIMITER]);
+      AuditInfo := Format('%s%sAUDIT RECORD TYPE UNKNOWN',[Values, VALUES_DELIMITER]);
     end;
+
+  //Put it togeather - if there is no audit information then values will be
+  //blank and the audit record will not appear on the report. This is because
+  //fields that are not audited may have changed.
+  if (AuditInfo <> '') then
+    if (OtherInfo <> '') then
+      Values := Format('%s%s%s',[OtherInfo, VALUES_DELIMITER, AuditInfo])
+    else
+      Values := AuditInfo;
 {$ENDIF}
 end;
 
@@ -994,6 +1009,12 @@ begin
       end;
   end;
 {$ENDIF}
+end;
+
+procedure TClientAuditManager.SetProvisionalAccountAttached(
+  const Value: boolean);
+begin
+  FProvisionalAccountAttached := Value;
 end;
 
 procedure TClientAuditManager.WriteAuditRecord(ARecordType: byte;

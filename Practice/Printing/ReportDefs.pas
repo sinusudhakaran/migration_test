@@ -139,8 +139,7 @@ type
                        Report_Coding_Optimisation,
                        Report_Custom_Document,
                        Report_System_Accounts,
-                       Report_System_Audit,
-                       Report_Client_Audit,
+                       Report_Audit,
                        Report_Last);
 
 const
@@ -266,8 +265,7 @@ const
                         'Coding Optimisation Report',
                         'Custom Document',
                         'System Accounts',
-                        'System Audit Report',
-                        'Client File Audit Report',                        
+                        'Audit Report',
                         'ZZZ');
    {$ENDIF}
 

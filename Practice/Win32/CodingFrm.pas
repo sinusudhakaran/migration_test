@@ -7103,7 +7103,7 @@ begin
                  pNew^.txDate_Effective := TmpDate;
                  if not IsJournal then
                     pNew^.txDate_Presented := TmpDate;
-                 BankAccount.baTransaction_List.Insert_Transaction_Rec(pNew);
+                 BankAccount.baTransaction_List.Insert_Transaction_Rec(pNew, False);
 
                  AdjustDateRange(TmpDate);
                  LoadWorkTranList;

@@ -279,7 +279,7 @@ begin
     AAuditInfo.AuditRecordID := P2.baAudit_Record_ID;
     AAuditInfo.AuditOtherInfo :=
       AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
-      Format('%s=%d',[BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, 152), P2.baBank_Account_Number]);
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, 152), P2.baBank_Account_Number]);
   end else if Assigned(P2) then begin
     //Change
     AAuditInfo.AuditRecordID := P1.baAudit_Record_ID;

@@ -336,9 +336,13 @@ begin
                  baFields.baApply_Master_Memorised_Entries := true;
                  baFields.baDesktop_Super_Ledger_ID := -1;
                  baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
-
-                 if AdminBankAccount.sbAccount_Type = sbtProvisional then
+                 //Provisional bank account
+                 if AdminBankAccount.sbAccount_Type = sbtProvisional then begin
                     baFields.baIs_A_Provisional_Account := True;
+                    //Needed to force client file save so transactions can't be
+                    //altered before audit.
+                    MyClient.ClientAuditMgr.ProvisionalAccountAttached := True;
+                 end;
 
               end;
 

@@ -24,7 +24,7 @@ type
       constructor Create( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager );
       function Compare(Item1,Item2 : Pointer): Integer; override;
       procedure Insert(Item:Pointer); override;
-      procedure Insert_Transaction_Rec(var p: pTransaction_Rec);
+      procedure Insert_Transaction_Rec(var p: pTransaction_Rec; NewAuditID: Boolean = True);
       procedure LoadFromFile(var S : TIOStream);
       procedure SaveToFile(var S: TIOStream);
       function  Transaction_At(Index : longint) : pTransaction_Rec;
@@ -64,7 +64,9 @@ uses
    bk5Except,
    bkcrc,
    bkconst,
-   BKAudit;
+   BKAudit,
+   GenUtils,
+   bkDateUtils;
 
 const
    DebugMe : boolean = false;
@@ -187,7 +189,8 @@ begin
    Dispose_Transaction_Rec(pTransaction_Rec(item));
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TTransaction_List.Insert_Transaction_Rec(var p: pTransaction_Rec);
+procedure TTransaction_List.Insert_Transaction_Rec(var p: pTransaction_Rec;
+  NewAuditID: Boolean = True);
 const
   ThisMethodName = 'TTransaction_List.Insert_Transaction_Rec';
 Begin
@@ -200,7 +203,7 @@ Begin
       P^.txClient       := fClient;
 
       //Get next audit ID for new transactions
-      if not FLoading then
+      if (not FLoading) and NewAuditID then
         P^.txAudit_Record_ID := fAuditMgr.NextClientRecordID;
 
       Inherited Insert( P );
@@ -320,9 +323,9 @@ begin
     AAuditInfo.AuditRecordID := P2.txAudit_Record_ID;
     AAuditInfo.AuditOtherInfo :=
       AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
-      Format('%s=%d',[BKAuditNames.GetAuditFieldName(tkBegin_Transaction, 166), P2.txDate_Presented]) +
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Transaction, 166), BkDate2Str(P2.txDate_Presented)]) +
       VALUES_DELIMITER +
-      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Transaction, 169), P2.txAmount]);
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Transaction, 169), Money2Str(P2.txAmount)]);
   end else if Assigned(P2) then begin
     //Change
     AAuditInfo.AuditRecordID := P1.txAudit_Record_ID;
@@ -451,24 +454,6 @@ var
   P1, P2: pTransaction_Rec;
   AuditInfo: TAuditInfo;
   ProvDateStr: string;
-
-  procedure SetAuditType(ATnx: pTransaction_Rec);
-  begin
-    case ATnx.txSource of
-      orBank         : AuditInfo.AuditType := atDeliveredTransactions;
-      orGenerated    : AuditInfo.AuditType := atUnpresentedItems;
-      orManual       : //Journal transactions
-                       case AAccountType of
-                         btCashJournals   : AuditInfo.AuditType := atCashJournals;
-                         btAccrualJournals: AuditInfo.AuditType := atAccrualJournals;
-                         btGSTJournals    : AuditInfo.AuditType := atGSTJournals;
-                       end;
-      orHistorical   : AuditInfo.AuditType := atHistoricalentries;
-      orGeneratedRev : AuditInfo.AuditType := atUnpresentedItems;
-      orMDE          : AuditInfo.AuditType := atManualEntries;
-      orProvisional  : AuditInfo.AuditType := atProvisionalEntries;
-    end;
-  end;
 begin
   //Note: AuditType is dependant on the type of bank account
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
@@ -481,11 +466,11 @@ begin
       P2 := ATransactionListCopy.FindRecordID(P1.txAudit_Record_ID);
     AuditInfo.AuditRecord := New_Transaction;
     try
-      SetAuditType(P1);
+      AuditInfo.AuditType := FAuditMgr.GetTransactionAuditType(P1^.txSource, AAccountType);
       SetAuditInfo(P1, P2, AParentID, AuditInfo);
       if AuditInfo.AuditAction in [aaAdd, aaChange] then begin
         //Add provisional info
-        if (P1.txSource = orProvisional) then begin
+        if (AuditInfo.AuditAction = aaAdd) and (P1.txSource = orProvisional) then begin
           if (P1^.txTemp_Prov_Date_Time = 0) then
             ProvDateStr := 'UNKNOWN'
           else
@@ -507,7 +492,7 @@ begin
   if Assigned(ATransactionListCopy) then begin //Sub list - may not be assigned
     for i := 0 to ATransactionListCopy.ItemCount - 1 do begin
       P2 := ATransactionListCopy.Items[i];
-      SetAuditType(P2);      
+      AuditInfo.AuditType := FAuditMgr.GetTransactionAuditType(P2^.txSource, AAccountType);
       P1 := FindRecordID(P2.txAudit_Record_ID);
       AuditInfo.AuditRecord := New_Transaction;
       try

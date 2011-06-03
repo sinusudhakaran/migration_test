@@ -416,7 +416,6 @@ type
     mniFileExchangeRates: TMenuItem;
     N45: TMenuItem;
     mniSystemAuditReport: TMenuItem;
-    ClientFileAuditReport1: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -691,7 +690,6 @@ type
     procedure mniFileExchangeRatesClick(Sender: TObject);
     procedure mniSystemAuditReportClick(Sender: TObject);
     procedure AUDITREPORTTEST1Click(Sender: TObject);
-    procedure ClientFileAuditReport1Click(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -3269,7 +3267,7 @@ end;
 
 procedure TfrmMain.mniSystemAuditReportClick(Sender: TObject);
 begin
-  DoModalReport(Report_System_Audit, rdNone);
+  DoModalReport(Report_Audit, rdNone);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3633,11 +3631,6 @@ begin
      Exit;
    end;
    DoModalReport( Report_List_Divisions, rdAsk, BKH_List_divisions);
-end;
-
-procedure TfrmMain.ClientFileAuditReport1Click(Sender: TObject);
-begin
-  DoModalReport(Report_Client_Audit, rdNone);
 end;
 
 procedure TfrmMain.ClientTypes1Click(Sender: TObject);

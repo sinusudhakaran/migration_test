@@ -359,7 +359,8 @@ uses
    stdate,
    BKDEFS,
    //SelectJournalDlg,
-   ReportImages;
+   ReportImages,
+   AuditMgr;
 
 const
 
@@ -969,6 +970,9 @@ begin
      EditBankAccount(FAccount, False);
      if B.IsManual then
        FClient.clBank_Account_List.Insert(B);
+
+     //Flag Audit
+     FClient.FClientAuditMgr.FlagAudit(atClientBankAccounts);
    end;
 end;
 

@@ -389,10 +389,8 @@ Begin
                               end;
                               baTransaction_List.Insert_Transaction_Rec( Transaction );
 
-                              //Flag Audit for transactions
-                              with MyClient.ClientAuditMgr do
-                                FlagAudit(GetTransactionAuditType(Transaction^.txSource,
-                                                                  Bank_Account.baFields.baAccount_Type));
+                              //Flag Audit for bank account
+                              MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts);
                            end;
 
                            If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;

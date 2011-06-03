@@ -422,39 +422,70 @@ begin
           case Token of
             //Bank Account Number
             152: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
-                                        tBank_Account_Rec(ARecord^).baBank_Account_Number, Values);
+                                         tBank_Account_Rec(ARecord^).baBank_Account_Number, Values);
             //Bank Account Name
             153: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
-                                        tBank_Account_Rec(ARecord^).baBank_Account_Name, Values);
+                                         tBank_Account_Rec(ARecord^).baBank_Account_Name, Values);
+
 //    FAuditNamesArray[150,154] := 'Bank_Account_Password';
-//    FAuditNamesArray[150,155] := 'Contra_Account_Code';
-//    FAuditNamesArray[150,156] := 'Current_Balance';
-//    FAuditNamesArray[150,157] := 'Apply_Master_Memorised_Entries';
-//    FAuditNamesArray[150,158] := 'Account_Type';
+
+            //Contra_Account_Code
+            155: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baContra_Account_Code, Values);
+            //Current_Balance
+            156: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         Money2Str(tBank_Account_Rec(ARecord^).baCurrent_Balance), Values);
+            //Apply_Master_Memorised_Entries
+            157: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baApply_Master_Memorised_Entries, Values);
+            //Account_Type
+            158: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         btNames[tBank_Account_Rec(ARecord^).baAccount_Type], Values);
+
 //    FAuditNamesArray[150,159] := 'Column_Order';
 //    FAuditNamesArray[150,160] := 'Column_Width';
 //    FAuditNamesArray[150,161] := 'Preferred_View';
 //    FAuditNamesArray[150,162] := 'Highest_BankLink_ID';
 //    FAuditNamesArray[150,163] := 'Highest_LRN';
 //    FAuditNamesArray[150,164] := 'Column_is_Hidden';
-//    FAuditNamesArray[150,165] := 'Account_Expiry_Date';
+
+            //Account_Expiry_Date
+            165: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                        bkDate2Str(tBank_Account_Rec(ARecord^).baAccount_Expiry_Date), Values);
+
 //    FAuditNamesArray[150,166] := 'Highest_Matched_Item_ID';
 //    FAuditNamesArray[150,167] := 'Notes_Always_Visible';
 //    FAuditNamesArray[150,168] := 'Notes_Height';
 //    FAuditNamesArray[150,169] := 'Last_ECoding_Transaction_UID';
 //    FAuditNamesArray[150,170] := 'Column_Is_Not_Editable';
-//    FAuditNamesArray[150,171] := 'Extend_Expiry_Date';
-//    FAuditNamesArray[150,172] := 'Is_A_Manual_Account';
-//    FAuditNamesArray[150,173] := 'Analysis_Coding_Level';
+
+            //Extend_Expiry_Date
+            171: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baExtend_Expiry_Date, Values);
+            //Is_A_Manual_Account
+            172: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baIs_A_Manual_Account, Values);
+            //Analysis_Coding_Level
+            173: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baAnalysis_Coding_Level, Values);
+
 //    FAuditNamesArray[150,174] := 'ECoding_Account_UID';
-//    FAuditNamesArray[150,175] := 'Coding_Sort_Order';
-//    FAuditNamesArray[150,176] := 'Manual_Account_Type';
-//    FAuditNamesArray[150,177] := 'Manual_Account_Institution';
-//    FAuditNamesArray[150,178] := 'Manual_Account_Sent_To_Admin';
-//    FAuditNamesArray[150,179] := 'Spare_String';
-//    FAuditNamesArray[150,180] := 'Is_A_Provisional_Account';
-//    FAuditNamesArray[150,181] := 'Spare_Number';
-//    FAuditNamesArray[150,182] := 'Spare_Byte';
+
+            //Coding_Sort_Order
+            175: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baCoding_Sort_Order, Values);
+            //Manual_Account_Type
+            176: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         mtNames[tBank_Account_Rec(ARecord^).baManual_Account_Type], Values);
+            //Manual_Account_Institution
+            177: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baManual_Account_Institution, Values);
+            //Manual_Account_Sent_To_Admin
+            178: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baManual_Account_Sent_To_Admin, Values);
+            //Is_A_Provisional_Account
+            180: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baIs_A_Provisional_Account, Values);
 //    FAuditNamesArray[150,183] := 'HDE_Column_Order';
 //    FAuditNamesArray[150,184] := 'HDE_Column_Width';
 //    FAuditNamesArray[150,185] := 'HDE_Column_is_Hidden';
@@ -470,13 +501,11 @@ begin
 //    FAuditNamesArray[150,195] := 'DIS_Column_is_Hidden';
 //    FAuditNamesArray[150,196] := 'DIS_Column_is_Not_Editable';
 //    FAuditNamesArray[150,197] := 'DIS_Sort_Order';
-//    FAuditNamesArray[150,198] := 'Desktop_Super_Ledger_ID';
-//    FAuditNamesArray[150,199] := 'Currency_Code';
-//    FAuditNamesArray[150,200] := 'Default_Forex_Source';
-//    FAuditNamesArray[150,201] := 'Default_Forex_Description';
-//    FAuditNamesArray[150,202] := 'SuperFund_Ledger_Code';
-//    FAuditNamesArray[150,203] := 'Audit_Record_ID';
+            //Currency_Code
+            199: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baCurrency_Code, Values);
           end;
+
           Inc(Idx);
           Token := AAuditRecord.atChanged_Fields[idx];
         end;
@@ -508,8 +537,8 @@ begin
             162: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txSequence_No, Values);
             //LRN_NOW_UNUSED
-            163: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txLRN_NOW_UNUSED, Values);
+//            163: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txLRN_NOW_UNUSED, Values);
             //Type
             164: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          GetFormattedEntryType(ClientFields,
@@ -556,8 +585,8 @@ begin
             177: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txAnalysis, Values);
             //OrigBB
-            178: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txOrigBB, Values);
+//            178: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txOrigBB, Values);
             //Other_Party
             179: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txOther_Party, Values);
@@ -569,7 +598,7 @@ begin
                                          tTransaction_Rec(ARecord^).txAccount, Values);
             //Coded_By
             182: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txCoded_By, Values);
+                                         cbNames[tTransaction_Rec(ARecord^).txCoded_By], Values);
             //Payee_Number
             183: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txPayee_Number, Values);
@@ -577,8 +606,8 @@ begin
             184: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txLocked, Values);
             //BankLink_ID
-            185: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txBankLink_ID, Values);
+//            185: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txBankLink_ID, Values);
             //GST_Has_Been_Edited
             186: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txGST_Has_Been_Edited, Values);
@@ -589,23 +618,23 @@ begin
             188: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          upNames[tTransaction_Rec(ARecord^).txUPI_State], Values);
             //Original_Reference
-            189: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txOriginal_Reference, Values);
+//            189: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txOriginal_Reference, Values);
             //Original_Source
-            190: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         orNames[tTransaction_Rec(ARecord^).txOriginal_Source], Values);
+//            190: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         orNames[tTransaction_Rec(ARecord^).txOriginal_Source], Values);
             //Original_Type
-            191: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         GetFormattedEntryType(ClientFields,
-                                                               tTransaction_Rec(ARecord^).txOriginal_Type,
-                                                               tTransaction_Rec(ARecord^).txHas_Been_Edited),
-                                         Values);                                                               
+//            191: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         GetFormattedEntryType(ClientFields,
+//                                                               tTransaction_Rec(ARecord^).txOriginal_Type,
+//                                                               tTransaction_Rec(ARecord^).txHas_Been_Edited),
+//                                         Values);
             //Original_Cheque_Number
-            192: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txOriginal_Cheque_Number, Values);
+//            192: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txOriginal_Cheque_Number, Values);
             //Original_Amount
-            193: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         Money2Str(tTransaction_Rec(ARecord^).txOriginal_Amount), Values);
+//            193: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         Money2Str(tTransaction_Rec(ARecord^).txOriginal_Amount), Values);
             //Notes
             194: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txNotes, Values);
@@ -625,8 +654,8 @@ begin
             199: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txTax_Invoice_Available, Values);
             //External_GUID
-            213: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txExternal_GUID, Values);
+//            213: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txExternal_GUID, Values);
             //Document_Title
             214: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txDocument_Title, Values);
@@ -634,8 +663,8 @@ begin
             215: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txDocument_Status_Update_Required, Values);
             //BankLink_UID
-            216: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txBankLink_UID, Values);
+//            216: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txBankLink_UID, Values);
             //Notes_Read
             217: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txNotes_Read, Values);

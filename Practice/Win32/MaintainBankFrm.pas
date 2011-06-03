@@ -422,6 +422,9 @@ begin
     begin
       AccountChanged := True;
       RefreshBankAccountList;
+
+      //*** Flag Audit ***
+      MyClient.FClientAuditMgr.FlagAudit(atClientBankAccounts);
     end;
   end;
 end;
@@ -472,6 +475,10 @@ begin
        UpdateRefNeeded := true;
        AccountChanged := True;
        RefreshBankAccountList;
+
+       //*** Flag Audit ***
+       MyClient.FClientAuditMgr.FlagAudit(atClientBankAccounts);
+
        //Update ISO Codes in Client_File_Rec
        UpdateISOCodes;
        ReselectAndScroll(lvBank, PrevSelectedIndex, PrevTopIndex);
@@ -620,6 +627,15 @@ begin
 
       //try to download any new transactions into the client
       SyncClientToAdmin(MyClient,false);
+
+      //*** Flag Audit ***
+      MyClient.FClientAuditMgr.FlagAudit(atClientBankAccounts);
+      //Have to save Client file if bank account is provisional so that
+      //transactions cannot be altered before audit.
+      if MyClient.ClientAuditMgr.ProvisionalAccountAttached then begin
+        MyClient.Save;
+        MyClient.ClientAuditMgr.ProvisionalAccountAttached := False;
+      end;
     end;
   end;
 end;

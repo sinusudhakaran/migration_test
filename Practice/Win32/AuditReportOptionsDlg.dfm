@@ -24,52 +24,20 @@ object frmAuditReportOption: TfrmAuditReportOption
     TabOrder = 0
     object tsSystem: TTabSheet
       Caption = 'System Audit Report'
-      object pnlSelectClient: TPanel
-        Left = 0
-        Top = 0
-        Width = 881
-        Height = 88
-        Align = alTop
-        BevelOuter = bvNone
-        TabOrder = 0
-        object GroupBox5: TGroupBox
-          Left = 4
-          Top = 4
-          Width = 440
-          Height = 80
-          Caption = 'Select Client File'
-          TabOrder = 0
-          object Label1: TLabel
-            Left = 16
-            Top = 37
-            Width = 74
-            Height = 13
-            Caption = 'Client File Code'
-          end
-          object cbClientFileCodes: TComboBox
-            Left = 154
-            Top = 34
-            Width = 215
-            Height = 21
-            Style = csDropDownList
-            ItemHeight = 13
-            TabOrder = 0
-          end
-        end
-      end
       object pnlSelectDate: TPanel
         Left = 0
-        Top = 88
+        Top = 102
         Width = 881
-        Height = 110
+        Height = 107
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
+        ExplicitTop = 105
         object gbxReportPeriod: TGroupBox
           Left = 4
           Top = 4
           Width = 440
-          Height = 102
+          Height = 100
           Caption = 'Select Date Range'
           TabOrder = 0
           inline DateSelector: TfmeDateSelector
@@ -136,17 +104,18 @@ object frmAuditReportOption: TfrmAuditReportOption
       end
       object pnlSelectTransaction: TPanel
         Left = 0
-        Top = 198
+        Top = 209
         Width = 881
-        Height = 114
+        Height = 131
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 2
+        ExplicitTop = 215
         object GroupBox1: TGroupBox
           Left = 4
           Top = 4
           Width = 438
-          Height = 106
+          Height = 123
           Caption = 'Select Transactions'
           TabOrder = 0
           object rbSytemTransactionType: TRadioButton
@@ -170,7 +139,7 @@ object frmAuditReportOption: TfrmAuditReportOption
             OnClick = rbSytemTransactionTypeClick
           end
           object ComboBox1: TComboBox
-            Left = 154
+            Left = 145
             Top = 30
             Width = 263
             Height = 21
@@ -179,23 +148,33 @@ object frmAuditReportOption: TfrmAuditReportOption
             TabOrder = 2
           end
           object Edit1: TEdit
-            Left = 154
+            Left = 145
             Top = 62
-            Width = 121
+            Width = 93
             Height = 21
             TabOrder = 3
             OnKeyPress = Edit1KeyPress
+          end
+          object cbIncludeChildren: TCheckBox
+            Left = 18
+            Top = 94
+            Width = 172
+            Height = 17
+            Caption = 'Include child transactions'
+            TabOrder = 4
           end
         end
       end
       object pnlButtons: TPanel
         Left = 0
-        Top = 312
+        Top = 340
         Width = 881
         Height = 33
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 3
+        ExplicitLeft = 3
+        ExplicitTop = 352
         object Button1: TButton
           Left = 366
           Top = 4
@@ -233,6 +212,52 @@ object frmAuditReportOption: TfrmAuditReportOption
           Default = True
           TabOrder = 3
           OnClick = btnPreviewClick
+        end
+      end
+      object pnlSelectClient: TPanel
+        Left = 0
+        Top = 0
+        Width = 881
+        Height = 102
+        Align = alTop
+        BevelOuter = bvNone
+        TabOrder = 0
+        object GroupBox6: TGroupBox
+          Left = 6
+          Top = 6
+          Width = 438
+          Height = 94
+          Caption = 'Select Level'
+          TabOrder = 0
+          object rbSystem: TRadioButton
+            Left = 16
+            Top = 24
+            Width = 113
+            Height = 14
+            Caption = '&System'
+            Checked = True
+            TabOrder = 0
+            TabStop = True
+            OnClick = rbSystemClick
+          end
+          object rbClient: TRadioButton
+            Left = 16
+            Top = 58
+            Width = 113
+            Height = 14
+            Caption = '&Client'
+            TabOrder = 1
+            OnClick = rbSystemClick
+          end
+          object cbClientFileCodes: TComboBox
+            Left = 143
+            Top = 54
+            Width = 263
+            Height = 21
+            Style = csDropDownList
+            ItemHeight = 13
+            TabOrder = 2
+          end
         end
       end
     end
