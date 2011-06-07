@@ -225,7 +225,8 @@ uses
    bkDefs,
    Globals,
    clOBJ32,
-   bkXPThemes;
+   bkXPThemes,
+   AuditMgr;
 
 {$R *.dfm}
 
@@ -300,7 +301,11 @@ begin
    lDlg := TfrmRemapChart.Create(Application.MainForm);
    try
       case ldlg.ShowModal of
-         mrOK    : RefreshHomepage;
+         mrOK    : begin
+                     //*** Flag Audit ***
+                     MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+                     RefreshHomepage;
+                   end;
       end;
    finally
       LDlg.Free;
@@ -1376,6 +1381,7 @@ var
   I, A, J: Integer;
   CI: TChartItem;
   Dis: pDissection_Rec;
+  SaveAuditMgr: TClientAuditManager;
 
   procedure ResortBudget(var bdList: TBudget_Detail_List);
   var LL: PPointerList;
@@ -1427,7 +1433,13 @@ begin
           chLinked_Account_CS  := Value.Remap(chLinked_Account_CS,LCountA);
        end;
     if LCount > 0 then begin // Need to Re-sort the Chart...
-       MyClient.clChart.Sort(true);
+       //Prevent Audit ID's from being regenerated on sort
+       MyClient.clChart.Sorting := True;
+       try
+         MyClient.clChart.Sort(true);
+       finally
+         MyClient.clChart.Sorting := False;
+       end;
        AddCount(LCount,'Chart codes');
     end;
 

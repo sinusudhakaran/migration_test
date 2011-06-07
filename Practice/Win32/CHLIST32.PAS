@@ -29,10 +29,12 @@ type
       FAccumulatorPeriods: integer;
       FAltChart: TAltChart;
       FAuditMgr: TClientAuditManager;
+      FSorting: boolean;
       procedure SetAccumulatorPeriods(const Value: integer);
       procedure   CheckLinkedAccounts;
       procedure   ResortAltCodes;
       function FindRecordID( ARecordID : integer ):  pAccount_Rec;
+      procedure SetSorting(const Value: boolean);
     protected
       procedure   FreeItem( Item : Pointer ); override;
     public
@@ -73,7 +75,8 @@ type
 
       function FindCode( ACode : String ): pAccount_Rec; override;
 
-      property    AccumulatorPeriods : integer read FAccumulatorPeriods write SetAccumulatorPeriods;
+      property AccumulatorPeriods : integer read FAccumulatorPeriods write SetAccumulatorPeriods;
+      property Sorting: boolean read FSorting write SetSorting;
    end;
 
    TCustomSortChart = class(TChart)
@@ -112,10 +115,11 @@ const
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    inherited Create;
-   FAuditMgr := AAuditMgr; 
+   FAuditMgr := AAuditMgr;
    Duplicates := false;
    FAltChart := TAltChart.Create;
    FAltChart.Duplicates := True;
+   FSorting := False;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -888,7 +892,7 @@ end;
 
 procedure TChart.Insert(Item: Pointer);
 begin
-  if Assigned(FAuditMgr) then
+  if Assigned(FAuditMgr) and (not Sorting) then
     pAccount_Rec(Item).chAudit_Record_ID := FAuditMgr.NextClientRecordID;
 
   inherited Insert(Item);
@@ -938,6 +942,11 @@ begin
     BKCHIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
     Copy_Account_Rec(P1, AAuditInfo.AuditRecord);
   end;
+end;
+
+procedure TChart.SetSorting(const Value: boolean);
+begin
+  FSorting := Value;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
