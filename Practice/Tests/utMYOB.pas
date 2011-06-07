@@ -736,7 +736,7 @@ begin
         '</xml>';
 
   // for au
-  bk5Chart := chList32.TChart.Create;
+  bk5Chart := chList32.TChart.Create(nil);
   try
     MYOBAO.ProcessXMLChart_AU( RawXML, bk5Chart, Duplicates);
 
@@ -1056,7 +1056,7 @@ begin
         '</xml>';
 
   // again for NZ
-  bk5Chart := chList32.TChart.Create;
+  bk5Chart := chList32.TChart.Create(nil);
   try
     MYOBAO.ProcessXMLChart_NZ( RawXML, bk5Chart, Duplicates);
 

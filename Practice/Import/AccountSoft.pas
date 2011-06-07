@@ -79,7 +79,7 @@ begin
            //have a file to import - import into a new chart object
            AssignFile(F,ChartFileName);
            Reset(F);
-           NewChart := TChart.Create;
+           NewChart := TChart.Create(MyClient.ClientAuditMgr);
            try
               UpdateAppStatusLine2('Reading');
               While not EOF( F ) do Begin

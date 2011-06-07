@@ -52,7 +52,7 @@ begin
       LogUtil.LogMsg(lmError, UnitName, format('%s : %s', [ThisMethodName, Msg]));
       raise ERefreshFailed.Create(Msg);
    end;
-   Result := TChart.Create;
+   Result := TChart.Create(MyClient.ClientAuditMgr);
    lFile := TStringList.Create;
    lLine := TStringList.Create;
    try

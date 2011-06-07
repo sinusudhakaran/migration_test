@@ -186,7 +186,7 @@ begin
          raise exception.Create('Wrong file format');
 
       // Good to go..
-      NewChart := TChart.Create;
+      NewChart := TChart.Create(MyClient.ClientAuditMgr);
       for I := 0 to CNode.ChildNodes.Count - 1 do
          AddAccount(CNode.ChildNodes[I]);
 

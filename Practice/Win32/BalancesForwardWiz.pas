@@ -534,7 +534,7 @@ begin
   end;
 
   //load sorted chart codes
-  FChart := TCustomSortChart.Create;
+  FChart := TCustomSortChart.Create(nil);
   try
     FChart.CopyChart(MyClient.clChart);
     if UseXlonSort then

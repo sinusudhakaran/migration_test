@@ -227,7 +227,7 @@ Begin
    end;
 
    OK     := False;
-   AChart := TChart.Create;
+   AChart := TChart.Create(MyClient.ClientAuditMgr);
    Try
       Try
          AssignFile( F, FileName );

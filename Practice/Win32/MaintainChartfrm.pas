@@ -160,7 +160,8 @@ uses
   GenUtils,
   ComboUtils,
   Progress,
-  CountryUtils;
+  CountryUtils,
+  AuditMgr;
 
 
 {$R *.DFM}
@@ -222,6 +223,9 @@ begin
   MyClient.clChart.DelFreeItem(Account);
   result := true;
 
+  //*** Flag Audit ***
+  MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+
   LogUtil.LogMsg(lmInfo,UnitName,'User Deleted Account '+ Name + ' '+Code);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -250,6 +254,10 @@ begin
      //tells calling routine that GST will need to be applied to all entries.
      //is triggered by the gst class being edited for an account
      result := ApplyGSTRequired;
+
+   //*** Flag Audit ***
+   if ChartChanged then
+     MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
 
    with MyClient, MyClient.clFields do
    if (LockRequired)

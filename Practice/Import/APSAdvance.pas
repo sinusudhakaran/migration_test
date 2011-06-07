@@ -120,7 +120,7 @@ begin
           Templates.LoadTemplate(TemplateFilename, tpl_DontCreateChart);
       end;
 
-      NewChart := TChart.Create;
+      NewChart := TChart.Create(MyClient.ClientAuditMgr);
       try
         //Subscript 1 (values 0 to 3) identifies the fields
         //Subscript 2 is dimensioned to the number of accounts returned (values 1 to recordcount)
@@ -267,7 +267,7 @@ begin
         AssignFile( F,ChartFileName );
         SetTextBuf( F, Buffer );
         Reset( F );
-        NewChart := TChart.Create;
+        NewChart := TChart.Create(MyClient.ClientAuditMgr);
         try
            While not EOF( F ) do Begin
               Readln( F, Line );

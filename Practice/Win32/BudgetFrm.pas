@@ -326,7 +326,7 @@ var
   i: Integer;
 begin
    //Use a copy of the client chart that can be sorted
-   FChart := TCustomSortChart.Create;
+   FChart := TCustomSortChart.Create(nil);
    FChart.CopyChart(MyClient.clChart);
    if UseXlonSort then
       FChart.Sort(XlonCompare);

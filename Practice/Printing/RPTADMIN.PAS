@@ -3808,7 +3808,7 @@ begin
         //Get changed values
         Values := '';
         TempClientFile.ClientAuditMgr.GetValues(AuditRecord, Values);
-        PrintAuditRec := (Values <> '');
+        PrintAuditRec := PrintAuditRec and (Values <> '');
 
         //Output
         if PrintAuditRec then begin

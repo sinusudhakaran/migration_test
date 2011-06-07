@@ -136,6 +136,10 @@ var
 begin
    with TdlgOpeningBalances.Create(Application.MainForm) do begin
       try
+        FAccountList := TCustomSortChart.Create(aClient.ClientAuditMgr);
+        if UseXlonSort then
+          FAccountList.Sort(XlonCompare);
+
          ThisClient := aClient;
          Journal_Account := nil;
          //check linked accounts and set temp soh flag
@@ -191,6 +195,10 @@ begin
    Result := True;
    with TdlgOpeningBalances.Create(Application.MainForm) do begin
       try
+         FAccountList := TCustomSortChart.Create(aClient.ClientAuditMgr);
+         if UseXlonSort then
+           FAccountList.Sort(XlonCompare);
+
          ThisClient := aClient;
          Journal_Account := nil;
          //check linked accounts and set temp soh flag
@@ -505,10 +513,6 @@ begin
    lblFinYear.Font.Style := [fsBold];
    lblInvalidAccountsUsed.Font.Name := Font.Name;
    tgBalances.HeadingFont.Style := [fsBold];
-
-   FAccountList := TCustomSortChart.Create;
-   if UseXlonSort then
-     FAccountList.Sort(XlonCompare);
 
    if Screen.WorkAreaHeight > 480 then
       Self.Height := Round( Screen.WorkAreaHeight * 0.8);

@@ -217,7 +217,7 @@ begin
 
    {create all the rest, must be read in order!}
    clBank_Account_List    := TBank_Account_List.Create( Self, FClientAuditMgr );
-   clChart                := TChart.Create;
+   clChart                := TChart.Create(FClientAuditMgr);
    clPayee_List_V53       := TPayee_List_V53.Create;
    clPayee_List           := TPayee_List.Create(FClientAuditMgr);
    clMacro_List           := TMacro_List.Create;
@@ -1125,6 +1125,10 @@ var
   CRC : LongWord;
 begin
 {$IFNDEF ParserDll}
+  //*** Flag Audit ***
+  //Can't select which bank accounts to audit yet - so all
+  //need to be checked on client save.
+  FClientAuditMgr.FlagAudit(atClientBankAccounts);
   //Audit
   FClientAuditMgr.DoAudit;
 {$ENDIF}  

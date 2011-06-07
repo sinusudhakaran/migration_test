@@ -703,7 +703,7 @@ end;
 procedure TRPTParameters.LoadChart;
 begin
   //Use a copy of the client chart that can be sorted
-  FChart := TCustomSortChart.Create;
+  FChart := TCustomSortChart.Create(FClient.ClientAuditMgr);
   FChart.CopyChart(FClient.clChart);
   if UseXlonSort then
     FChart.Sort(XlonCompare);

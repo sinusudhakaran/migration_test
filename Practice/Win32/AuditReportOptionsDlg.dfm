@@ -32,7 +32,6 @@ object frmAuditReportOption: TfrmAuditReportOption
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitTop = 105
         object gbxReportPeriod: TGroupBox
           Left = 4
           Top = 4
@@ -110,7 +109,6 @@ object frmAuditReportOption: TfrmAuditReportOption
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 2
-        ExplicitTop = 215
         object GroupBox1: TGroupBox
           Left = 4
           Top = 4
@@ -138,7 +136,7 @@ object frmAuditReportOption: TfrmAuditReportOption
             TabOrder = 1
             OnClick = rbSytemTransactionTypeClick
           end
-          object ComboBox1: TComboBox
+          object cbTransactionType: TComboBox
             Left = 145
             Top = 30
             Width = 263
@@ -173,8 +171,6 @@ object frmAuditReportOption: TfrmAuditReportOption
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 3
-        ExplicitLeft = 3
-        ExplicitTop = 352
         object Button1: TButton
           Left = 366
           Top = 4

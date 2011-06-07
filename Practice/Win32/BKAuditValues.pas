@@ -11,13 +11,13 @@ unit BKAuditValues;
 interface
 
 uses
-  BKDEFS, AuditMgr, BKAuditUtils;
+  BKDEFS, AuditMgr, BKAuditUtils, CustomHeadingsListObj;
 
   procedure AddClientAuditValues(AAuditRecord: TAudit_Trail_Rec;
                                  AAuditMgr: TClientAuditManager;
                                  var Values: string);
   procedure AddBankAccountAuditValues(const AAuditRecord: TAudit_Trail_Rec;
-                                      AAuditMgr: TClientAuditManager;  
+                                      AAuditMgr: TClientAuditManager;
                                       var Values: string);
   procedure AddTransactionAuditValues(const AAuditRecord: TAudit_Trail_Rec;
                                       AAuditMgr: TClientAuditManager;
@@ -26,13 +26,18 @@ uses
   procedure AddPayeeAuditValues(const AAuditRecord: TAudit_Trail_Rec;
                                 AAuditMgr: TClientAuditManager;
                                 var Values: string);
+  procedure AddAccountAuditValues(const AAuditRecord: TAudit_Trail_Rec;
+                                  AAuditMgr: TClientAuditManager;
+                                  ACustomHeadingsList: TNew_Custom_Headings_List;
+                                  var Values: string);
 
 implementation
 
 uses
-  BKCONST, GenUtils, MoneyUtils, BkDateUtils, TransactionUtils,
+  BKCONST, GenUtils, MoneyUtils, BkDateUtils, TransactionUtils, SysUtils,
   BKAudit,
   BKCLIO,
+  BKCHIO,
   BKCEIO,
   BKBAIO,
   BKTXIO,
@@ -534,8 +539,8 @@ begin
         while Token <> 0 do begin
           case Token of
             //Sequence_No
-            162: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txSequence_No, Values);
+//            162: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txSequence_No, Values);
             //LRN_NOW_UNUSED
 //            163: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
 //                                         tTransaction_Rec(ARecord^).txLRN_NOW_UNUSED, Values);
@@ -754,6 +759,121 @@ begin
             //Quantity
             115: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Payee_Line, Token),
                                          Quantity2Str(tPayee_Line_Rec(ARecord^).plQuantity), Values);
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
+  end;
+end;
+
+
+procedure Set_Print_in_Division_Audit_Values(const V1: TPrint_in_Division_Array;
+  const ACustomHeadingsList: TNew_Custom_Headings_List;var Values: string);
+var
+  i: integer;
+  Value: Boolean;
+  FieldName: string;
+  TempStr: string;
+begin
+{$IFNDEF LOOKUPDLL}
+  TempStr := '';
+  for i := Low(V1) to High(V1) do begin
+    Value := V1[i];
+    //Only show the divisions that this account code will used for
+    if Value then begin
+      if (TempStr <> '') then
+        TempStr := TempStr + VALUES_DELIMITER;
+      FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Account, 89);
+      TempStr := Format('%s%s[%s]=%s', [TempStr,
+                                        FieldName,
+                                        ACustomHeadingsList.Get_Division_Heading(i),
+                                        BoolToStr(Value, True)]);
+    end;
+  end;
+  Values := Values + TempStr;
+{$ENDIF}
+end;
+
+procedure AddAccountAuditValues(const AAuditRecord: TAudit_Trail_Rec;
+  AAuditMgr: TClientAuditManager; ACustomHeadingsList: TNew_Custom_Headings_List;
+  var Values: string);
+var
+  Token, Idx: byte;
+  ARecord: Pointer;
+begin
+  ARecord := AAuditRecord.atAudit_Record;
+
+  if ARecord = nil then begin
+    Values := AAuditRecord.atOther_Info;
+    Exit;
+  end;
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Account:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Account_Code
+            82: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chAccount_Code, Values);
+            //Chart_ID
+            83: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chChart_ID, Values);
+            //Account_Description
+            84: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chAccount_Description, Values);
+            //GST_Class
+            85: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chGST_Class, Values);
+            //Posting_Allowed
+            86: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chPosting_Allowed, Values);
+            //Account_Type
+            87: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        atNames[tAccount_Rec(ARecord^).chAccount_Type], Values);
+            //Enter_Quantity
+            88: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chEnter_Quantity, Values);
+            //Print_in_Division
+            89: Set_Print_in_Division_Audit_Values(TPrint_in_Division_Array(tAccount_Rec(ARecord^).chPrint_in_Division),
+                                                   ACustomHeadingsList,
+                                                   Values);
+            //Money_Variance_Up
+            90: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        Money2Str(tAccount_Rec(ARecord^).chMoney_Variance_Up), Values);
+            //Money_Variance_Down
+            91: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        Money2Str(tAccount_Rec(ARecord^).chMoney_Variance_Down), Values);
+            //Percent_Variance_Up
+            92: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        Percent2Str(tAccount_Rec(ARecord^).chPercent_Variance_Up), Values);
+            //Percent_Variance_Down
+            93: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        Percent2Str(tAccount_Rec(ARecord^).chPercent_Variance_Down), Values);
+            //Last_Years_Totals_SB_Only
+//            94: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+//                                        tAccount_Rec(ARecord^).chLast_Years_Totals_SB_Only, Values);
+            //Opening_Balance_SB_Only
+            95: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        Money2Str(tAccount_Rec(ARecord^).chOpening_Balance_SB_Only), Values);
+            //Subtype
+            96: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        ACustomHeadingsList.Get_SubGroup_Heading(tAccount_Rec(ARecord^).chSubtype), Values);
+            //Alternative_Code
+            97: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chAlternative_Code, Values);
+            //Linked_Account_OS
+            98: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chLinked_Account_OS, Values);
+            //Linked_Account_CS
+            99: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chLinked_Account_CS, Values);
+            //Hide_In_Basic_Chart
+            100: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        tAccount_Rec(ARecord^).chHide_In_Basic_Chart, Values);
           end;
           Inc(Idx);
           Token := AAuditRecord.atChanged_Fields[idx];

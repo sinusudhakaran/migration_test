@@ -838,6 +838,11 @@ begin
         P2 := New_Transaction_Rec;
         Copy_Transaction_Rec(P1, P2);
       end;
+    tkBegin_Account:
+      begin
+        P2 := New_Account_Rec;
+        Copy_Account_Rec(P1, P2);
+      end;
   end;
 {$ENDIF}
 end;
@@ -879,6 +884,9 @@ begin
         tkBegin_Bank_Account: clBank_Account_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                           ClientCopy.clBank_Account_List,
                                                           0, fAuditTable);
+        tkBegin_Account: clChart.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                         ClientCopy.clChart,
+                                         0, fAuditTable);
       end;
     end;
   FAuditScope.Clear;
@@ -946,8 +954,12 @@ var
 begin
 {$IFNDEF LOOKUPDLL}
   OtherInfo := AAuditRecord.atOther_Info;
-  if AAuditRecord.atAudit_Record = nil then
+  if AAuditRecord.atAudit_Record = nil then begin
+    //Add deletes
+    if AAuditRecord.atAudit_Action = aaDelete then
+      Values := OtherInfo;
     Exit;
+  end;
 
   AddOtherInfoFlag(OtherInfo);
 
@@ -959,11 +971,12 @@ begin
       tkBegin_Payee_Line  : BKAuditValues.AddPayeeAuditValues(AAuditRecord, Self, AuditInfo);
       tkBegin_Transaction : BKAuditValues.AddTransactionAuditValues(AAuditRecord, Self, clFields, AuditInfo);
       tkBegin_Bank_Account: BKAuditValues.AddBankAccountAuditValues(AAuditRecord, Self, AuditInfo);
+      tkBegin_Account     : BKAuditValues.AddAccountAuditValues(AAuditRecord, Self, clCustom_Headings_List, AuditInfo);
     else
       AuditInfo := Format('%s%sAUDIT RECORD TYPE UNKNOWN',[Values, VALUES_DELIMITER]);
     end;
 
-  //Put it togeather - if there is no audit information then values will be
+  //Put it together - if there is no audit information then values will be
   //blank and the audit record will not appear on the report. This is because
   //fields that are not audited may have changed.
   if (AuditInfo <> '') then
@@ -1017,6 +1030,11 @@ begin
         ARecord := New_Transaction_Rec;
         Read_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
       end;
+    tkBegin_Account:
+      begin
+        ARecord := New_Account_Rec;
+        Read_Account_Rec(TAccount_Rec(ARecord^), AStream);
+      end;
   end;
 {$ENDIF}
 end;
@@ -1043,6 +1061,7 @@ begin
     tkBegin_Payee_Line  : Write_Payee_Line_Rec(TPayee_Line_Rec(ARecord^), AStream);
     tkBegin_Bank_Account: Write_Bank_Account_Rec(TBank_Account_Rec(ARecord^), AStream);
     tkBegin_Transaction : Write_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
+    tkBegin_Account     : Write_Account_Rec(TAccount_Rec(ARecord^), AStream);
   end;
 {$ENDIF}
 end;

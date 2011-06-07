@@ -86,7 +86,7 @@ type
     GroupBox1: TGroupBox;
     rbSytemTransactionType: TRadioButton;
     rbSytemTransactionID: TRadioButton;
-    ComboBox1: TComboBox;
+    cbTransactionType: TComboBox;
     Edit1: TEdit;
     Button1: TButton;
     btnPrint: TButton;
@@ -174,12 +174,12 @@ begin
             DateFrom  := DateSelector.eDateFrom.AsStDate;
             DateTo    := DateSelector.eDateTo.AsStDate;
             AuditReportOptions.AuditSelection := byTransactionType;
-            AuditReportOptions.TransactionType := byte(ComboBox1.Items.Objects[ComboBox1.ItemIndex]);
+            AuditReportOptions.TransactionType := byte(cbTransactionType.Items.Objects[cbTransactionType.ItemIndex]);
             if rbSytemTransactionID.Checked then
               AuditReportOptions.AuditSelection := byTransactionID;
 
-            if ComboBox1.ItemIndex > 0 then
-              AuditReportOptions.TransactionType := TAuditType(ComboBox1.Items.Objects[ComboBox1.ItemIndex]);
+            if cbTransactionType.ItemIndex > 0 then
+              AuditReportOptions.TransactionType := TAuditType(cbTransactionType.Items.Objects[cbTransactionType.ItemIndex]);
             if Edit1.Text <> '' then
               AuditReportOptions.TransactionID := StrToInt(Edit1.Text);
 
@@ -383,17 +383,17 @@ begin
     cbAuditTypes.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
 
   //Normal
-  ComboBox1.Clear;
-  ComboBox1.Items.AddObject('<All>', TObject(atAll));
+  cbTransactionType.Clear;
+  cbTransactionType.Items.AddObject('<All>', TObject(atAll));
   case AAuditReportType of
     arSystem: for i := atMin to atMax do
                 if SystemAuditMgr.AuditTypeToDBStr(i) = 'SY' then
-                  ComboBox1.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
+                  cbTransactionType.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
     arClient: for i := atMin to atMax do
                 if SystemAuditMgr.AuditTypeToDBStr(i) = 'BK' then
-                  ComboBox1.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
+                  cbTransactionType.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
   end;
-  ComboBox1.ItemIndex := 0;
+  cbTransactionType.ItemIndex := 0;
 
 {  //System
   ComboBox1.Clear;
@@ -438,7 +438,7 @@ end;
 
 procedure TfrmAuditReportOption.rbSytemTransactionTypeClick(Sender: TObject);
 begin
-  ComboBox1.Enabled := rbSytemTransactionType.Checked;
+  cbTransactionType.Enabled := rbSytemTransactionType.Checked;
   Edit1.Enabled := rbSytemTransactionID.Checked;  
 end;
 

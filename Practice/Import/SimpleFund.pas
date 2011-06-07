@@ -162,7 +162,7 @@ begin
     end;
     LoadFromPath := ExtractFilePath(ChartFileName);
     try
-      NewChart := TChart.Create;
+      NewChart := TChart.Create(MyClient.ClientAuditMgr);
       UpdateAppStatus('Loading Chart','Reading Chart',0);
       try
         ReadDBaseFile(clCode, LoadFromPath, NewChart);

@@ -209,7 +209,7 @@ begin
     Doc := CreateOleObject('Microsoft.XMLDOM'); // as IXMLDomDocument;
     if (not VarIsEmpty(Doc)) then
     begin
-      AChart := TChart.Create;
+      AChart := TChart.Create(MyClient.ClientAuditMgr);
       Doc.loadXML(XMLResponse);
       for i := 0 to Doc.childNodes.length - 1 do
       begin

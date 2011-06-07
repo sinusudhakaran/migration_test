@@ -130,7 +130,7 @@ begin
         AssignFile( F,ChartFileName );
         SetTextBuf( F, Buffer );
         Reset( F );
-        NewChart := TChart.Create;
+        NewChart := TChart.Create(MyClient.ClientAuditMgr);
         try
            While not EOF( F ) do Begin
               Readln( F, Line );

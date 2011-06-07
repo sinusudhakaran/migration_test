@@ -12,13 +12,13 @@ implementation
 
 uses
    Globals, SysUtils, chList32, bkchio, BK5Except,
-   bkdefs, ovcDate, ErrorMoreFrm, Classes, LogUtil, ChartUtils, 
-   GenUtils;
+   bkdefs, ovcDate, ErrorMoreFrm, Classes, LogUtil, ChartUtils,
+   GenUtils, AuditMgr;
 
 Const
    UnitName = '!!';
    DebugMe  : Boolean = False;
-   
+
 //------------------------------------------------------------------------------
 
 function LoadChart( FileName : string ) : TChart;
@@ -49,7 +49,7 @@ Begin
    end;
 
    OK     := False;
-   AChart := TChart.Create;
+   AChart := TChart.Create(MyClient.ClientAuditMgr);
    
    Try
       Try

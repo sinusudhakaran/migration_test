@@ -2,7 +2,7 @@ unit chList32;
 // Chart List
 interface
 uses
-   Classes, bkdefs, iostream, ECollect;
+   Classes, bkdefs, iostream, ECollect, AuditMgr;
 
 type
 
@@ -28,13 +28,15 @@ type
     private
       FAccumulatorPeriods: integer;
       FAltChart: TAltChart;
+      FAuditMgr: TClientAuditManager;
       procedure SetAccumulatorPeriods(const Value: integer);
       procedure   CheckLinkedAccounts;
-      procedure   ResortAltCodes;      
+      procedure   ResortAltCodes;
+      function FindRecordID( ARecordID : integer ):  pAccount_Rec;
     protected
       procedure   FreeItem( Item : Pointer ); override;
     public
-      constructor Create;
+      constructor Create(AAuditMgr: TClientAuditManager);
       destructor  Destroy; override;
       function    SearchClosestCode( ACode : String ): pAccount_Rec;
       function    FindNextCode( ACode : String; PostingOnly: Boolean = True ): pAccount_Rec;
@@ -53,6 +55,7 @@ type
       function    MaxCodeLength : Integer;
       function    HasGSTClasses : Boolean;
 
+      procedure Insert( Item : Pointer ); override;
 
       procedure   SaveToFile( Var S : TIOStream );
       procedure   LoadFromFile( Var S : TIOStream );
@@ -63,7 +66,12 @@ type
       function    AllowLowerCase : boolean;
       procedure   RefreshDependencies;
 
-      function FindCode( ACode : String ): pAccount_Rec; override;      
+      procedure DoAudit(AAuditType: TAuditType; AChartCopy: TChart;
+                        AParentID: integer; var AAuditTable: TAuditTable);
+      procedure SetAuditInfo(P1, P2: pAccount_Rec; AParentID: integer;
+                             var AAuditInfo: TAuditInfo);
+
+      function FindCode( ACode : String ): pAccount_Rec; override;
 
       property    AccumulatorPeriods : integer read FAccumulatorPeriods write SetAccumulatorPeriods;
    end;
@@ -91,18 +99,20 @@ uses
    bkcrc,
    bkconst,
    bkdbExcept,
-   GenUtils;
+   GenUtils,
+   BKAudit;
 
 const
    UnitName = 'CHLIST32';
    DebugMe : Boolean = FALSE;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-constructor TChart.Create;
+constructor TChart.Create(AAuditMgr: TClientAuditManager);
 const
    ThisMethodName = 'TChart.Create';
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    inherited Create;
+   FAuditMgr := AAuditMgr; 
    Duplicates := false;
    FAltChart := TAltChart.Create;
    FAltChart.Duplicates := True;
@@ -113,6 +123,49 @@ destructor TChart.Destroy;
 begin
   FAltChart.Free;
   inherited;
+end;
+
+procedure TChart.DoAudit(AAuditType: TAuditType; AChartCopy: TChart;
+  AParentID: integer; var AAuditTable: TAuditTable);
+var
+  i: integer;
+  P1, P2: pAccount_Rec;
+  AuditInfo: TAuditInfo;
+  ProvDateStr: string;
+begin
+  AuditInfo.AuditType := atChartOfAccounts;
+  AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
+  AuditInfo.AuditRecordType := tkBegin_Account;
+  //Adds, changes
+  for i := 0 to Pred(ItemCount) do begin
+    P1 := Items[i];
+    P2 := nil;
+    if Assigned(AChartCopy) then
+      P2 := AChartCopy.FindRecordID(P1.chAudit_Record_ID);
+    AuditInfo.AuditRecord := New_Account_Rec;
+    try
+      SetAuditInfo(P1, P2, AParentID, AuditInfo);
+      if AuditInfo.AuditAction in [aaAdd, aaChange] then
+        AAuditTable.AddAuditRec(AuditInfo);
+    finally
+      Dispose(AuditInfo.AuditRecord);
+    end;
+  end;
+  //Deletes
+  if Assigned(AChartCopy) then begin //Sub list - may not be assigned
+    for i := 0 to AChartCopy.ItemCount - 1 do begin
+      P2 := AChartCopy.Items[i];
+      P1 := FindRecordID(P2.chAudit_Record_ID);
+      AuditInfo.AuditRecord := New_Account_Rec;
+      try
+        SetAuditInfo(P1, P2, AParentID, AuditInfo);
+        if (AuditInfo.AuditAction = aaDelete) then
+          AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+    end;
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -191,7 +244,7 @@ Begin
                pCh := New_Account_Rec;
                Read_Account_Rec ( pCH^, S );
                if Self.FindCode(pCh^.chAccount_Code) = nil then
-                 Insert( pCH )
+                 inherited Insert( pCH )
                else begin
                  Msg := Format( 'Duplicate account code in chart: %s', [pCh^.chAccount_Code] );
                  LogUtil.LogMsg(lmError,UnitName, Msg );
@@ -422,6 +475,21 @@ begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + Format( '%s Not Found in List', [ ACode ] ) );
 end;
+
+function TChart.FindRecordID(ARecordID: integer): pAccount_Rec;
+var
+  i : integer;
+begin
+  Result := nil;
+  if (ItemCount = 0) then Exit;
+
+  for i := 0 to Pred(ItemCount) do
+    if Account_At(i).chAudit_Record_ID = ARecordID then begin
+      Result := Account_At(i);
+      Exit;
+    end;  
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Find this Code, or if it doesn't exist, find the closest match in the list
 function TChart.GuessNextCode( ACode : String ): pAccount_Rec;
@@ -817,6 +885,15 @@ Begin
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ends' );
 end;
+
+procedure TChart.Insert(Item: Pointer);
+begin
+  if Assigned(FAuditMgr) then
+    pAccount_Rec(Item).chAudit_Record_ID := FAuditMgr.NextClientRecordID;
+
+  inherited Insert(Item);
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TChart.SetAccumulatorPeriods(const Value: integer);
@@ -832,6 +909,37 @@ begin
      FAccumulatorPeriods := Value;
    end;
 end;
+
+procedure TChart.SetAuditInfo(P1, P2: pAccount_Rec; AParentID: integer;
+  var AAuditInfo: TAuditInfo);
+begin
+  AAuditInfo.AuditAction := aaNone;
+  AAuditInfo.AuditParentID := AParentID;
+  AAuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType','Chart of Accounts']) +
+                               VALUES_DELIMITER +
+                               Format('%s=%d', ['ParentID', AParentID]);
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.chAudit_Record_ID;
+    AAuditInfo.AuditOtherInfo :=
+      AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Account, 82), P2.chAccount_Code]);
+  end else if Assigned(P2) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.chAudit_Record_ID;
+    if Account_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      AAuditInfo.AuditAction := aaChange;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.chAudit_Record_ID;
+    P1.chAudit_Record_ID := AAuditInfo.AuditRecordID;
+    BKCHIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Account_Rec(P1, AAuditInfo.AuditRecord);
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TChart.CheckLinkedAccounts;
 //this procedure checks the linked accounts for each account in the chart
@@ -931,7 +1039,7 @@ begin
   Limit := aChart.ItemCount;
   for I := 0 to aChart.Last do
   begin
-    Insert(aChart.At(I));
+    inherited Insert(aChart.At(I));
   end;
   self.FAccumulatorPeriods := aChart.AccumulatorPeriods;
   FCopiedChart := true;

@@ -761,11 +761,6 @@ begin
       if not Silent then
          UpdateAppStatus('Saving Client File ',Code,0);
       try
-        //*** Flag Audit ***
-        //Can't select which bank accounts to audit yet - so all
-        //need to be checked on client save.
-        Client.ClientAuditMgr.FlagAudit(atClientBankAccounts);
-
         Client.Save;
         if RenameRequired then
           LogUtil.LogMsg(lmInfo, UnitName, Format('%s: Client File %s SAVED by %s', [ ThisMethodName, Client.clFields.clCode, UserCode ]))

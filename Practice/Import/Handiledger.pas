@@ -166,7 +166,7 @@ begin
         AssignFile( F,ChartFileName );
         SetTextBuf( F, Buffer );
         Reset( F );
-        NewChart := TChart.Create;
+        NewChart := TChart.Create(MyClient.ClientAuditMgr);
         try
            While not EOF( F ) do 
            Begin
@@ -239,7 +239,7 @@ begin
      If FileExt = '.CHT' then
      try
         SL := TStringList.Create;
-        NewChart := TChart.Create;
+        NewChart := TChart.Create(MyClient.ClientAuditMgr);
         try
            SL.LoadFromFile( ChartFileName );
 

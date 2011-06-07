@@ -119,7 +119,7 @@ begin
       AssignFile(F,ChartFileName);
       SetTextBuf( F, Buffer );
       Reset(F);
-      NewChart := TChart.Create;
+      NewChart := TChart.Create(MyClient.ClientAuditMgr);
       try
         CodeRec := TStringList.Create;
         try

@@ -170,7 +170,7 @@ if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
         AssignFile(F,TempFileName);
         Reset(F);
 
-        NewChart := TChart.Create;
+        NewChart := TChart.Create(MyClient.ClientAuditMgr);
         try
           UpdateAppStatusLine2('Reading');
 

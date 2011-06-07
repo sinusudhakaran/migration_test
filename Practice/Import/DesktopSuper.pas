@@ -72,7 +72,7 @@ begin
         AssignFile( F,ChartFileName );
         SetTextBuf( F, Buffer );
         Reset( F );
-        NewChart := TChart.Create;
+        NewChart := TChart.Create(MyClient.ClientAuditMgr);
         try
            if not EOF(F) then
             ReadLn(F, Line); // skip header line

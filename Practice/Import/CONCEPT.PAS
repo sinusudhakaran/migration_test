@@ -108,7 +108,7 @@ begin
            ExtendedFileName := SourceDir + 'EXTENDED.TXT';
 
            Try
-              NewChart := TChart.Create;
+              NewChart := TChart.Create(MyClient.ClientAuditMgr);
 
               If BKFileExists( CategoryFileName ) then
               Begin

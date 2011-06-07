@@ -541,7 +541,7 @@ begin
   with MyClient.clFields do
   begin
     try
-      NewChart := TChart.Create;
+      NewChart := TChart.Create(MyClient.ClientAuditMgr);
       UpdateAppStatus('Loading Chart', 'Reading Chart', 0);
       try
         if IsCOMInterface then
