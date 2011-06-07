@@ -59,7 +59,8 @@ uses
   CustomHeadingsListObj,
   files,
   Globals,
-  WarningMoreFrm;
+  WarningMoreFrm,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -95,6 +96,10 @@ begin
       BKHelpSetUp(SetupSubGroups, BKH_Adding_sub_groups);
       LoadSubgroups;
       if ( ShowModal = mrOK) then begin
+
+        //*** Flag Audit ***
+        MyClient.ClientAuditMgr.FlagAudit(atCustomHeadings);
+
         SaveSubgroups;
         Result := true;
       end;

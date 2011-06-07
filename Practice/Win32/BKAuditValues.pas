@@ -30,6 +30,9 @@ uses
                                   AAuditMgr: TClientAuditManager;
                                   ACustomHeadingsList: TNew_Custom_Headings_List;
                                   var Values: string);
+  procedure AddCustomHeadingValues(const AAuditRecord: TAudit_Trail_Rec;
+                                   AAuditMgr: TClientAuditManager;
+                                   var Values: string);
 
 implementation
 
@@ -42,7 +45,8 @@ uses
   BKBAIO,
   BKTXIO,
   BKPDIO,
-  BKPLIO;
+  BKPLIO,
+  BKHDIO;
 
 procedure AddClientAuditValues(AAuditRecord: TAudit_Trail_Rec;
   AAuditMgr: TClientAuditManager; var Values: string);
@@ -477,8 +481,8 @@ begin
 //    FAuditNamesArray[150,174] := 'ECoding_Account_UID';
 
             //Coding_Sort_Order
-            175: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
-                                         tBank_Account_Rec(ARecord^).baCoding_Sort_Order, Values);
+//            175: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+//                                         tBank_Account_Rec(ARecord^).baCoding_Sort_Order, Values);
             //Manual_Account_Type
             176: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
                                          mtNames[tBank_Account_Rec(ARecord^).baManual_Account_Type], Values);
@@ -882,5 +886,42 @@ begin
   end;
 end;
 
+procedure AddCustomHeadingValues(const AAuditRecord: TAudit_Trail_Rec;
+  AAuditMgr: TClientAuditManager; var Values: string);
+var
+  Token, Idx: byte;
+  ARecord: Pointer;
+begin
+  ARecord := AAuditRecord.atAudit_Record;
+
+  if ARecord = nil then begin
+    Values := AAuditRecord.atOther_Info;
+    Exit;
+  end;
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Custom_Heading:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+//    FAuditNamesArray[230,232] := 'Heading_Type';
+            //Heading
+            233: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Custom_Heading, Token),
+                                         TCustom_Heading_Rec(ARecord^).hdHeading, Values);
+            //Major_ID
+            234: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Custom_Heading, Token),
+                                         TCustom_Heading_Rec(ARecord^).hdMajor_ID, Values);
+            //Minor_ID
+            235: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Custom_Heading, Token),
+                                         TCustom_Heading_Rec(ARecord^).hdMinor_ID, Values);
+           end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
+  end;
+end;
 
 end.

@@ -8,26 +8,9 @@ unit CustomHeadingsListObj;
 
    Author:      Matthew Hopkins  Jun 2002
 
-   Remarks:     The custom headings list is basically a list of pointers.  Normally
-                all items in the list are of the same type, however I have choosen
-                to make the list generic so that it can hold different types of
-                headings.
-
-                The list is designed to hold objects that descend from a base
-                object.  The base object defines a number of abstract methods
-                that are used to load, sort and save each of the elements in the
-                list.
-
-                Elements in the list are accessed through specific set and get
-                routines that allow you to retrieve or set a specific type of
-                heading.
-
-                Each object in the list must be able to tell you its sort key.
-                The first element in the sort key is the "type" of heading that
-                this element represents.
-
-                A class function has been added so that a sort key can be obtained
-                for a particular type of object without actually creating that object.
+   Remarks:     A simple list object to hold the report headings. Each item in
+                the list is a pointer pCustom_Heading_Rec that points to a
+                TCustom_Heading_Rec structure:
 }
 //------------------------------------------------------------------------------
 
@@ -35,55 +18,8 @@ interface
 uses
   eCollect,
   IOSTREAM,
-  BKDEFS;
-
-//type
-//  TPointerListBaseObj = class
-//    constructor Create;
-//    destructor  Destroy; override;
-//  private
-//    procedure VerifyRecord;                      virtual; abstract;
-//  public
-//    function  SortKey : string;                  virtual; abstract;
-//    procedure SaveToFile( Var S : TIOStream );   virtual; abstract;
-//    procedure LoadFromFile( Var S : TIOStream ); virtual; abstract;
-//    procedure UpdateCRC( var CRC : LongWord);    virtual; abstract;
-//
-//    class function ClassSortKey : string; virtual; abstract;
-//  end;
-//
-//  TSubGroupHeading = class( TPointerListBaseObj)
-//  private
-//    procedure VerifyRecord;                      override;
-//  public
-//    shFields : tSubGroup_Heading_Rec;
-//
-//    function  SortKey : string;                  override;
-//    procedure SaveToFile( Var S : TIOStream );   override;
-//    procedure LoadFromFile( Var S : TIOStream ); override;
-//    procedure UpdateCRC( var CRC : LongWord);    override;
-//
-//    class function ClassSortKey( ReportGroupNo : integer; SubGroupNo : integer) : string; reintroduce;
-//  end;
-//
-//  TDivisionHeading = class( TPointerListBaseObj)
-//  private
-//    procedure VerifyRecord;                      override;
-//  public
-//    dhFields : tDivision_Heading_Rec;
-//
-//    function  SortKey : string;                  override;
-//    procedure SaveToFile( Var S : TIOStream );   override;
-//    procedure LoadFromFile( Var S : TIOStream ); override;
-//    procedure UpdateCRC( var CRC : LongWord);    override;
-//
-//    class function ClassSortKey( DivisionNo : integer) : string; reintroduce;
-//  end;
-
-{
-   A simple list object to hold the report headings. Each item in the list is a pointer pCustom_Heading_Rec that
-   points to a TCustom_Heading_Rec structure:
-}
+  BKDEFS,
+  AuditMgr;
 
 type
   tNew_Custom_Headings_List = class ( TExtdCollection )
@@ -91,17 +27,27 @@ type
     procedure FreeItem(Item : Pointer); override;
     function  Custom_Heading_At(Index : Integer): pCustom_Heading_Rec;
     function  Find_Heading( const HeadingType, MajorID, MinorID : integer ): pCustom_Heading_Rec;
+    function FindRecordID( ARecordID : integer ):  pCustom_Heading_Rec;
+  private
+    FAuditMgr: TClientAuditManager;
   public
+    constructor Create(AAuditMgr: TClientAuditManager);
     procedure LoadFromFile(var S : TIOStream);
     procedure SaveToFile(var S : TIOStream);
     procedure UpdateCRC(var CRC : LongWord);
     procedure CheckIntegrity;
+    function  Insert( Item : Pointer ) : integer; override;
 
     function    Get_SubGroup_Heading( const SubGroupNo : integer ) : string;
     procedure   Set_SubGroup_Heading( const SubGroupNo : integer; Heading : string );
 
     function    Get_Division_Heading( const DivisionNo : integer) : string;
     procedure   Set_Division_Heading( const DivisionNo : integer; Heading : string);
+
+    procedure DoAudit(AAuditType: TAuditType; ACustomHeadingListCopy: tNew_Custom_Headings_List;
+                      AParentID: integer; var AAuditTable: TAuditTable);
+    procedure SetAuditInfo(P1, P2: pCustom_Heading_Rec; AParentID: integer;
+                           var AAuditInfo: TAuditInfo);
   end;
 
 //******************************************************************************
@@ -112,12 +58,13 @@ uses
   bkdbExcept,
   GenUtils,
   LogUtil,
-  bkshio,
-  bkdhio,
+//  bkshio,
+//  bkdhio,
   bkhdio,
   malloc,
   SysUtils,
-  Tokens;
+  Tokens,
+  BKAudit;
 
 const
   Unitname = 'CustomHeadingsListObj';
@@ -129,96 +76,6 @@ const
 
   SUnknownToken = 'HDList Error: Unknown token %d';
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//{ TPointerListBaseObj }
-//
-//constructor TPointerListBaseObj.Create;
-//begin
-//  inherited Create;
-//end;
-//
-//destructor TPointerListBaseObj.Destroy;
-//begin
-//  inherited;
-//end;
-//// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//{ TSubGroupHeading }
-//
-//class function TSubGroupHeading.ClassSortKey(ReportGroupNo,
-//  SubGroupNo: integer): string;
-//begin
-//  result := LongToKey( htSubGroupHeading) +
-//            LongtoKey( ReportGroupNo) +
-//            LongtoKey( SubGroupNo);
-//end;
-//
-//procedure TSubGroupHeading.LoadFromFile(var S: TIOStream);
-//begin
-//  Read_SubGroup_Heading_Rec( shFields, s);
-//end;
-//
-//procedure TSubGroupHeading.SaveToFile(var S: TIOStream);
-//begin
-//  Write_SubGroup_Heading_Rec( shFields, S);
-//end;
-//
-//function TSubGroupHeading.SortKey: string;
-//begin
-//  result := LongToKey( htSubGroupHeading) +
-//            LongtoKey( shFields.shReport_Group_No) +
-//            LongtoKey( shFields.shSub_Group_No);
-//end;
-//
-//procedure TSubGroupHeading.UpdateCRC(var CRC: LongWord);
-//begin
-//  BKCRC.UpdateCRC( shFields, CRC);
-//end;
-//
-//procedure TSubGroupHeading.VerifyRecord;
-//var
-//  P : Pointer;
-//begin
-//  P := @Self.shFields;
-//  bkshio.IsASubGroup_Heading_Rec( P);
-//end;
-//// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//{ TDivisionHeading }
-//
-//class function TDivisionHeading.ClassSortKey(DivisionNo: integer): string;
-//begin
-//  result := LongToKey( htDivisionHeading) +
-//            LongtoKey( DivisionNo);
-//end;
-//
-//procedure TDivisionHeading.LoadFromFile(var S: TIOStream);
-//begin
-//  Read_Division_Heading_Rec( dhFields, S);
-//end;
-//
-//procedure TDivisionHeading.SaveToFile(var S: TIOStream);
-//begin
-//  Write_Division_Heading_Rec( dhFields, S);
-//end;
-//
-//function TDivisionHeading.SortKey: string;
-//begin
-//  result := LongToKey( htDivisionHeading) +
-//            LongtoKey( dhFields.dhDivision_No);
-//end;
-//
-//procedure TDivisionHeading.UpdateCRC(var CRC: LongWord);
-//begin
-//  BKCRC.UpdateCRC( dhFields, CRC);
-//end;
-//
-//procedure TDivisionHeading.VerifyRecord;
-//var
-//  P : Pointer;
-//begin
-//  P := @Self.dhFields;
-//  bkdhio.IsADivision_Heading_Rec( P);
-//end;
-
 { tNew_Custom_Headings_List }
 
 procedure tNew_Custom_Headings_List.CheckIntegrity;
@@ -227,6 +84,13 @@ var
 begin
   for i := First to Last do
     with Custom_Heading_At( i )^ do;
+end;
+
+constructor tNew_Custom_Headings_List.Create(AAuditMgr: TClientAuditManager);
+begin
+  inherited Create;
+
+  FAuditMgr := AAuditMgr;
 end;
 
 function tNew_Custom_Headings_List.Custom_Heading_At(
@@ -238,6 +102,66 @@ begin
   P := At( Index );
   if BKHDIO.IsACustom_Heading_Rec( P ) then
     result := P;
+end;
+
+procedure tNew_Custom_Headings_List.DoAudit(AAuditType: TAuditType;
+  ACustomHeadingListCopy: tNew_Custom_Headings_List; AParentID: integer;
+  var AAuditTable: TAuditTable);
+var
+  i: integer;
+  P1, P2: pCustom_Heading_Rec;
+  AuditInfo: TAuditInfo;
+begin
+  AuditInfo.AuditType := atCustomHeadings;
+  AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
+  AuditInfo.AuditRecordType := tkBegin_Custom_Heading;
+  //Adds, changes
+  for i := 0 to Pred(ItemCount) do begin
+    P1 := Items[i];
+    P2 := nil;
+    if Assigned(ACustomHeadingListCopy) then
+      P2 := ACustomHeadingListCopy.Find_Heading(P1.hdHeading_Type,
+                                                P1.hdMajor_ID,
+                                                P1.hdMinor_ID);
+    AuditInfo.AuditRecord := New_Custom_Heading_Rec;
+    try
+      SetAuditInfo(P1, P2, AParentID, AuditInfo);
+      if AuditInfo.AuditAction in [aaAdd, aaChange] then
+        AAuditTable.AddAuditRec(AuditInfo);
+    finally
+      Dispose(AuditInfo.AuditRecord);
+    end;
+  end;
+  //Deletes
+  if Assigned(ACustomHeadingListCopy) then begin //Sub list - may not be assigned
+    for i := 0 to ACustomHeadingListCopy.ItemCount - 1 do begin
+      P2 := ACustomHeadingListCopy.Items[i];
+      P1 := FindRecordID(P2.hdAudit_Record_ID);
+      AuditInfo.AuditRecord := New_Custom_Heading_Rec;
+      try
+        SetAuditInfo(P1, P2, AParentID, AuditInfo);
+        if (AuditInfo.AuditAction = aaDelete) then
+          AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+    end;
+  end;
+end;
+
+function tNew_Custom_Headings_List.FindRecordID(
+  ARecordID: integer): pCustom_Heading_Rec;
+var
+  i : integer;
+begin
+  Result := nil;
+  if (ItemCount = 0) then Exit;
+
+  for i := 0 to Pred(ItemCount) do
+    if Custom_Heading_At(i).hdAudit_Record_ID = ARecordID then begin
+      Result := Custom_Heading_At(i);
+      Exit;
+    end;
 end;
 
 function tNew_Custom_Headings_List.Find_Heading(const HeadingType, MajorID, MinorID: integer): pCustom_Heading_Rec;
@@ -292,6 +216,14 @@ begin
     Result := '';
 end;
 
+function tNew_Custom_Headings_List.Insert(Item: Pointer): integer;
+begin
+  if Assigned(FAuditMgr) then
+    pCustom_Heading_Rec(Item)^.hdAudit_Record_ID := FAuditMgr.NextClientRecordID;
+
+  inherited Insert(Item);
+end;
+
 procedure tNew_Custom_Headings_List.LoadFromFile(var S: TIOStream);
 var
   Token: Byte;
@@ -305,7 +237,7 @@ begin
         begin
           pH := New_Custom_Heading_Rec;
           Read_Custom_Heading_Rec( pH^, S );
-          Insert( pH );
+          inherited Insert( pH );
         end;
       else
         Raise Exception.CreateFmt( SUnknownToken, [ Token ] );
@@ -321,6 +253,52 @@ begin
   S.WriteToken( tkBeginCustomHeadingsListEx );
   for i := 0 to Pred( ItemCount ) do BKHDIO.Write_Custom_Heading_Rec( Custom_Heading_At( i )^, S );
   S.WriteToken( tkEndSection );
+end;
+
+procedure tNew_Custom_Headings_List.SetAuditInfo(P1, P2: pCustom_Heading_Rec;
+  AParentID: integer; var AAuditInfo: TAuditInfo);
+var
+  TempStr: string;
+  HeadingType: byte;
+begin
+  AAuditInfo.AuditAction := aaNone;
+  AAuditInfo.AuditParentID := AParentID;
+
+  //Get heading type
+  if Assigned(P1) then
+    HeadingType := P1.hdHeading_Type
+  else if Assigned(P2) then
+    HeadingType := P2.hdHeading_Type
+  else
+    Exit;
+
+  //other info
+  case HeadingType of
+    htDivisionHeading: TempStr := 'Divisional Heading';
+    htSubGroupHeading: TempStr := 'Sub-group Heading';
+  end;
+  AAuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType', TempStr]);
+
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.hdAudit_Record_ID;
+    AAuditInfo.AuditOtherInfo :=
+      AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Custom_Heading, 233), P2.hdHeading]);
+  end else if Assigned(P2) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.hdAudit_Record_ID;
+    if Custom_Heading_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      AAuditInfo.AuditAction := aaChange;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.hdAudit_Record_ID;
+    P1.hdAudit_Record_ID := AAuditInfo.AuditRecordID;
+    bkhdio.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Custom_Heading_Rec(P1, AAuditInfo.AuditRecord);
+  end;
 end;
 
 procedure tNew_Custom_Headings_List.Set_Division_Heading(

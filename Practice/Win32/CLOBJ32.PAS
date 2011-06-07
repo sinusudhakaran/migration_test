@@ -225,7 +225,7 @@ begin
    clBudget_List          := TBudget_List.Create;
    clBalances_List        := TBalances_List.Create;
    clJobs                 := TClient_Job_List.Create;
-   clCustom_Headings_List := TNew_Custom_Headings_List.Create;
+   clCustom_Headings_List := TNew_Custom_Headings_List.Create(FClientAuditMgr);
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;

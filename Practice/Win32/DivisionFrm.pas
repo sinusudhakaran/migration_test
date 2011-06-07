@@ -58,7 +58,8 @@ uses
   CustomHeadingsListObj,
   files,
   Globals,
-  WarningMorefrm;
+  WarningMorefrm,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -74,6 +75,10 @@ begin
       BKHelpSetUp(Division, BKH_Adding_divisions);
       LoadDivisions;
       if ( ShowModal = mrOK) then begin
+
+        //*** Flag Audit ***
+        MyClient.ClientAuditMgr.FlagAudit(atCustomHeadings);
+
         SaveDivisions;
         Result := true;
       end;

@@ -38,9 +38,10 @@ const
   atGSTJournals                   = 25;
   atOpeningBalances               = 26;
   atUnpresentedItems              = 27;
-  atBankLinkNotes                 = 28;
-  atBankLinkNotesOnline           = 29;
-  atBankLinkBooks                 = 30; atMax = 30;
+  atCustomHeadings                = 28;
+  atBankLinkNotes                 = 29;
+  atBankLinkNotesOnline           = 30;
+  atBankLinkBooks                 = 31; atMax = 31;
   atAll = 254;
 
   //Audit actions
@@ -195,15 +196,17 @@ implementation
 
 {$IFDEF LOOKUPDLL}
 uses
-  TOKENS, BKDbExcept, 
+  TOKENS, BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
+  BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
+  BKPLIO, BKHDIO;
 {$ELSE}
 uses
   Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList, BKAuditValues,
   bkdateutils, TOKENS,  BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO, BKPLIO;
+  BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
+  BKPLIO, BKHDIO;
 
 const
   //Audit type strings
@@ -236,6 +239,7 @@ const
      'GST/VAT journals',
      'Opening balances',
      'Unpresented Items',
+     'Division & Sub-Group Headings',
      'BankLink Notes',
      'BankLink Notes Online',
      'BankLink Books');
@@ -270,6 +274,7 @@ const
      (tkBegin_Bank_Account, dbClient),        //GST/VAT journals
      (tkBegin_Bank_Account, dbClient),        //Opening balances
      (tkBegin_Bank_Account, dbClient),        //Unpresented Items
+     (tkBegin_Custom_Heading, dbClient),      //Division & Sub-Group headings
      (tkBegin_Client, dbClient),         //BankLink Notes
      (tkBegin_Client, dbClient),         //BankLink Notes Online
      (tkBegin_Client, dbClient));        //BankLink Books
@@ -843,6 +848,11 @@ begin
         P2 := New_Account_Rec;
         Copy_Account_Rec(P1, P2);
       end;
+    tkBegin_Custom_Heading:
+      begin
+        P2 := New_Custom_Heading_Rec;
+        Copy_Custom_Heading_Rec(P1, P2);
+      end;
   end;
 {$ENDIF}
 end;
@@ -887,6 +897,9 @@ begin
         tkBegin_Account: clChart.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                          ClientCopy.clChart,
                                          0, fAuditTable);
+        tkBegin_Custom_Heading: clCustom_Headings_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                               ClientCopy.clCustom_Headings_List,
+                                                               0, fAuditTable);
       end;
     end;
   FAuditScope.Clear;
@@ -908,6 +921,7 @@ end;
 function TClientAuditManager.GetTransactionAuditType(ABankAccountSource: byte;
   ABankAccountType: byte): TAuditType;
 begin
+  Result := atDeliveredTransactions;
 {$IFNDEF LOOKUPDLL}
   case ABankAccountSource of
     orBank         : Result := atDeliveredTransactions;
@@ -972,6 +986,7 @@ begin
       tkBegin_Transaction : BKAuditValues.AddTransactionAuditValues(AAuditRecord, Self, clFields, AuditInfo);
       tkBegin_Bank_Account: BKAuditValues.AddBankAccountAuditValues(AAuditRecord, Self, AuditInfo);
       tkBegin_Account     : BKAuditValues.AddAccountAuditValues(AAuditRecord, Self, clCustom_Headings_List, AuditInfo);
+      tkBegin_Custom_Heading: BKAuditValues.AddCustomHeadingValues(AAuditRecord, Self, AuditInfo);
     else
       AuditInfo := Format('%s%sAUDIT RECORD TYPE UNKNOWN',[Values, VALUES_DELIMITER]);
     end;
@@ -1035,6 +1050,11 @@ begin
         ARecord := New_Account_Rec;
         Read_Account_Rec(TAccount_Rec(ARecord^), AStream);
       end;
+    tkBegin_Custom_Heading:
+      begin
+        ARecord := New_Custom_Heading_Rec;
+        Read_Custom_Heading_Rec(TCustom_Heading_Rec(ARecord^), AStream);
+      end;
   end;
 {$ENDIF}
 end;
@@ -1062,6 +1082,7 @@ begin
     tkBegin_Bank_Account: Write_Bank_Account_Rec(TBank_Account_Rec(ARecord^), AStream);
     tkBegin_Transaction : Write_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
     tkBegin_Account     : Write_Account_Rec(TAccount_Rec(ARecord^), AStream);
+    tkBegin_Custom_Heading: Write_Custom_Heading_Rec(TCustom_Heading_Rec(ARecord^), AStream);
   end;
 {$ENDIF}
 end;
