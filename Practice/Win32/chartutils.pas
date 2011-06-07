@@ -50,7 +50,8 @@ Uses
    classes,
    controls,
    logUtil,
-   YesNoWithListDlg, Globals;
+   YesNoWithListDlg, Globals,
+   AuditMgr;
 
 const
    UnitName = 'CHARTUTILS';
@@ -236,6 +237,9 @@ begin
        //copy across stored fields
        if Assigned(ExistingAccount) then
        begin
+          //Keep the same Audit ID
+          NewAccount.chAudit_Record_ID := ExistingAccount.chAudit_Record_ID;
+
           if ( ExistingAccount.chGST_Class > 0) then
           begin
             //account has an existing GST class, use this if we are not setting
@@ -285,6 +289,10 @@ begin
    aClient.clChart := nil;
 
    aClient.clChart := NewChart;
+
+   //*** Flag Audit ***
+   aClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+
    NewChart := nil;   {only kill the pointer, DON'T kill the data}
    result := true;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
