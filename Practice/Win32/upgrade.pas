@@ -1515,10 +1515,10 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
           //Add audit record ID's
           for j := 0 to MemList.ItemCount - 1 do begin
              M := MemList.Memorisation_At(j);
-             M.mdFields.mdAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+             M.mdFields.mdAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
              for k := 0 to M.mdLines.ItemCount - 1 do begin
                ML := M.mdLines.MemorisationLine_At(k);
-               ML.mlAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+               ML.mlAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
              end;
           end;
           //Add to System DB
@@ -3500,7 +3500,7 @@ const
            for j := baOld_Memorised_Transaction_List.First to baOld_Memorised_Transaction_List.Last do
              begin
                OldMxRec := baOld_Memorised_Transaction_List.Memorised_Transaction_At( j);
-               NewMem := TMemorisation.Create;
+               NewMem := TMemorisation.Create(nil);
                NewMem.mdFields.mdType := OldMxRec.mxType;
 
                NewMem.mdFields.mdAmount := OldMxRec.mxAmount;

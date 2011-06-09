@@ -1498,7 +1498,7 @@ begin
        end;
 
      //check that this transaction will be coded
-     TempMem := TMemorisation.Create;
+     TempMem := TMemorisation.Create(nil);
      try
        SaveToMemRec( TempMem, SourceTransaction, chkMaster.Checked, True);
        if Assigned( SourceBankAccount) then begin
@@ -1887,11 +1887,11 @@ begin
          //**************************
 
             //{have enough data to create a memorised entry record
-            Memorised_Trans := TMemorisation.Create;
 
              //have details of the new master memorisation, now need to update to relevant location
              if chkMaster.Checked and Assigned(AdminSystem) then
              begin
+               Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
                //memorise to relevant master file then reload to get new global list
                BankPrefix := mxFiles32.GetBankPrefix( ba.baFields.baBank_Account_Number);
 
@@ -1900,7 +1900,7 @@ begin
                  SaveToMemRec(Memorised_Trans, Tr, True);
                  SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
                  if not Assigned(SystemMemorisation) then begin
-                   MasterMemList := TMemorisations_List.Create;
+                   MasterMemList := TMemorisations_List.Create(SystemAuditMgr);
                    try
                      SystemMemorisation := AdminSystem.SystemMemorisationList.AddMemorisation(BankPrefix, MasterMemList);
                    finally
@@ -1921,6 +1921,7 @@ begin
 
              end
              else begin
+               Memorised_Trans := TMemorisation.Create(MyClient.ClientAuditMgr);
                SaveToMemRec(Memorised_Trans, Tr, False);
                ba.baMemorisations_List.Insert_Memorisation(Memorised_Trans);
              end;
@@ -2215,20 +2216,18 @@ begin
                  end else
                    HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
                  //---END EDIT MASTER MEM---
-               end else
+               end else begin
                  SaveToMemRec(pM, nil, chkMaster.Checked);
+               end;
                Result := true;
            end;
            mrCopy : begin
                SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
                //{have enough data to create a memorised entry record
-               Memorised_Trans := TMemorisation.Create;
-               SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
-               Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
                if chkMaster.Checked and Assigned(AdminSystem) then begin
-                  //save master mem list
-//                  TMaster_Memorisations_List(MemorisedList).SaveToFile;
-//                  EditMemorisation(ba,MemorisedList,Memorised_Trans, True);
+                 Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
+                 SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
+                 Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
                  //---COPY MASTER MEM---
                  if LoadAdminSystem(true, ThisMethodName) then begin
                    SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
@@ -2263,6 +2262,9 @@ begin
                    HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
                  //---END COPY MASTER MEM---
                end else begin
+                  Memorised_Trans := TMemorisation.Create(BA.AuditMgr);
+                  SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
+                  Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
                   MemorisedList.Insert_Memorisation(Memorised_Trans);
                   EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, True);
                end;
@@ -2719,7 +2721,7 @@ begin
              pM.mdLines.Insert(MemLine)
            else begin
              if IsMaster and Assigned(AdminSystem) then
-               MemLine.mlAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+               MemLine.mlAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
              pM.mdLines.Insert(MemLine)
            end;
          end;

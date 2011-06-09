@@ -410,7 +410,7 @@ begin
             ClientAccount := MyClient.clBank_Account_List.FindCode( DiskAccount.dbFields.dbAccount_Number);
             if not Assigned( ClientAccount) then
             begin
-              ClientAccount := TBank_Account.Create;
+              ClientAccount := TBank_Account.Create(MyClient);
               with ClientAccount.baFields do
               begin
                 baAccount_Type        := btBank;

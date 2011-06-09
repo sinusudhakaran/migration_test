@@ -658,7 +658,7 @@ begin
                   Continue;
 
                //account exists in client and admin so load details
-               NewBankAccount := TBank_Account.Create;
+               NewBankAccount := TBank_Account.Create(aClient);
 
                with NewBankAccount, baFields, pSb^ do begin
                   baAccount_Type         := btBank;
@@ -666,7 +666,7 @@ begin
                   baBank_Account_Name    := sbAccount_Name;
                   sbAttach_Required      := False;
                   baCurrency_Code        := sbCurrency_Code;
-                  baClient               := aClient;
+//                  baClient               := aClient;
                end;
 
                AdminAccountsList.Insert(NewBankAccount);

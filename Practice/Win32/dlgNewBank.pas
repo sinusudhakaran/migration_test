@@ -325,7 +325,7 @@ begin
         with MyClient.clBank_Account_List do begin
            if ( FindCode(AdminBankAccount.sbAccount_Number) = nil ) then begin
               {update bankaccount in client file}
-              NewBankAccount := TBank_Account.Create;
+              NewBankAccount := TBank_Account.Create(MyClient);
 
               with NewBankAccount do begin
                  baFields.baBank_Account_Number     := AdminBankAccount.sbAccount_Number;

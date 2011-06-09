@@ -719,6 +719,10 @@ object wizBalancesForward: TwizBalancesForward
         Tag = 1
         Caption = 'Page2'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object tgEarnings: TtsGrid
           Left = 0
           Top = 35

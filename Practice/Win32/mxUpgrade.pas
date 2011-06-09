@@ -956,7 +956,7 @@ begin
                while not EOF( OldFile ) do
                begin
                   Read( OldFile, OldMxRec );
-                  Memorisation := TMemorisation.Create;
+                  Memorisation := TMemorisation.Create(nil);
                   with Memorisation, OldMxRec do
                   begin
                      Assert( V66_mxRecord_Type = tkBegin_Memorised_Transaction );

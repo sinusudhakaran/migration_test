@@ -249,7 +249,7 @@ begin
 end;
 procedure TSystem_Client_Account_Map.Insert(Item: Pointer);
 begin
-  pClient_Account_Map_Rec(Item).amAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+  pClient_Account_Map_Rec(Item).amAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
   inherited Insert(Item);
 end;
 

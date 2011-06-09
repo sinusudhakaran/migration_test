@@ -33,6 +33,9 @@ uses
   procedure AddCustomHeadingValues(const AAuditRecord: TAudit_Trail_Rec;
                                    AAuditMgr: TClientAuditManager;
                                    var Values: string);
+  procedure AddMemorisationValues(const AAuditRecord: TAudit_Trail_Rec;
+                                   AAuditMgr: TClientAuditManager;
+                                   var Values: string);
 
 implementation
 
@@ -46,7 +49,9 @@ uses
   BKTXIO,
   BKPDIO,
   BKPLIO,
-  BKHDIO;
+  BKHDIO,
+  BKMDIO,
+  BKMLIO;
 
 procedure AddClientAuditValues(AAuditRecord: TAudit_Trail_Rec;
   AAuditMgr: TClientAuditManager; var Values: string);
@@ -923,5 +928,175 @@ begin
       end;
   end;
 end;
+
+procedure AddMemorisationValues(const AAuditRecord: TAudit_Trail_Rec;
+  AAuditMgr: TClientAuditManager; var Values: string);
+var
+  Token, Idx: byte;
+  ARecord: Pointer;
+begin
+  ARecord := AAuditRecord.atAudit_Record;
+
+  if ARecord = nil then begin
+    Values := AAuditRecord.atOther_Info;
+    Exit;
+  end;
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Memorisation_Detail :
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Sequence_No
+            142: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdSequence_No, Values);
+//    FAuditNamesArray[140,142] := 'Type';
+            //Amount
+            144: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              Money2Str(TMemorisation_Detail_Rec(ARecord^).mdAmount), Values);
+            //Reference
+            145: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdReference, Values);
+            //Particulars
+            146: SystemAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdParticulars, Values);
+            //Analysis
+            147: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdAnalysis, Values);
+            //Other_Party
+            148: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdOther_Party, Values);
+            //Statement_Details
+            149: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdStatement_Details, Values);
+            //Match_on_Amount
+            150: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Amount, Values);
+            //Match_on_Analysis
+            151: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Analysis, Values);
+            //Match_on_Other_Party
+            152: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Other_Party, Values);
+            //Match_on_Notes
+            153: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Notes, Values);
+            //Match_on_Particulars
+            154: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Particulars, Values);
+            //Match_on_Refce
+            155: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_on_Refce, Values);
+            //Match_On_Statement_Details
+            156: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdMatch_On_Statement_Details, Values);
+            //Payee_Number
+            157: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdPayee_Number, Values);
+//    FAuditNamesArray[140,157] := 'From_Master_List';
+            //Notes
+            159: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdNotes, Values);
+            //Date_Last_Applied
+            160: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              bkDate2Str(TMemorisation_Detail_Rec(ARecord^).mdDate_Last_Applied), Values);
+            161: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              TMemorisation_Detail_Rec(ARecord^).mdUse_Accounting_System, Values);
+            //Accounting_System
+            162: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              GetAccountingSystemName(TMemorisation_Detail_Rec(ARecord^).mdAccounting_System), Values);
+            //From_Date
+            163: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              bkDate2Str(TMemorisation_Detail_Rec(ARecord^).mdFrom_Date), Values);
+            //Until_Date
+            164: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Detail, Token),
+                                              bkDate2Str(TMemorisation_Detail_Rec(ARecord^).mdUntil_Date), Values);
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
+    tkBegin_Memorisation_Line:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Account
+            147: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              TMemorisation_Line_Rec(ARecord^).mlAccount, Values);
+            //Percentage
+            148: case TMemorisation_Line_Rec(ARecord^).mlLine_Type of
+                   mltPercentage: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 147),
+                                                               Percent2Str(TMemorisation_Line_Rec(ARecord^).mlPercentage) + '%', Values);
+                    mltDollarAmt: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, 147),
+                                                               Money2Str(TMemorisation_Line_Rec(ARecord^).mlPercentage), Values);
+                 end;
+            //GST_Class
+            149: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              TMemorisation_Line_Rec(ARecord^).mlGST_Class, Values);
+            //GST_Has_Been_Edited
+            150: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              TMemorisation_Line_Rec(ARecord^).mlGST_Has_Been_Edited, Values);
+            //GL_Narration
+            151: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              TMemorisation_Line_Rec(ARecord^).mlGL_Narration, Values);
+            //Line_Type
+            152: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              mltNames[TMemorisation_Line_Rec(ARecord^).mlLine_Type], Values);
+            //GST_Amount
+            153: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              Money2Str(TMemorisation_Line_Rec(ARecord^).mlGST_Amount), Values);
+            //Payee
+            154: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              TMemorisation_Line_Rec(ARecord^).mlPayee, Values);
+            //Job_Code
+            166: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              TMemorisation_Line_Rec(ARecord^).mlJob_Code, Values);
+            //Quantity
+            167: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Memorisation_Line, Token),
+                                              Money2Str(TMemorisation_Line_Rec(ARecord^).mlQuantity), Values);
+
+//**** No need to audit superfund fields as auditing is UK only
+//    FAuditNamesArray[145,154] := 'SF_PCFranked';
+//    FAuditNamesArray[145,155] := 'SF_Member_ID';
+//    FAuditNamesArray[145,156] := 'SF_Fund_ID';
+//    FAuditNamesArray[145,157] := 'SF_Fund_Code';
+//    FAuditNamesArray[145,158] := 'SF_Trans_ID';
+//    FAuditNamesArray[145,159] := 'SF_Trans_Code';
+//    FAuditNamesArray[145,160] := 'SF_Member_Account_ID';
+//    FAuditNamesArray[145,161] := 'SF_Member_Account_Code';
+//    FAuditNamesArray[145,162] := 'SF_Edited';
+//    FAuditNamesArray[145,163] := 'SF_Member_Component';
+//    FAuditNamesArray[145,164] := 'SF_PCUnFranked';
+//    FAuditNamesArray[145,167] := 'SF_GDT_Date';
+//    FAuditNamesArray[145,168] := 'SF_Tax_Free_Dist';
+//    FAuditNamesArray[145,169] := 'SF_Tax_Exempt_Dist';
+//    FAuditNamesArray[145,170] := 'SF_Tax_Deferred_Dist';
+//    FAuditNamesArray[145,171] := 'SF_TFN_Credits';
+//    FAuditNamesArray[145,172] := 'SF_Foreign_Income';
+//    FAuditNamesArray[145,173] := 'SF_Foreign_Tax_Credits';
+//    FAuditNamesArray[145,174] := 'SF_Capital_Gains_Indexed';
+//    FAuditNamesArray[145,175] := 'SF_Capital_Gains_Disc';
+//    FAuditNamesArray[145,176] := 'SF_Capital_Gains_Other';
+//    FAuditNamesArray[145,177] := 'SF_Other_Expenses';
+//    FAuditNamesArray[145,178] := 'SF_Interest';
+//    FAuditNamesArray[145,179] := 'SF_Capital_Gains_Foreign_Disc';
+//    FAuditNamesArray[145,180] := 'SF_Rent';
+//    FAuditNamesArray[145,181] := 'SF_Special_Income';
+//    FAuditNamesArray[145,182] := 'SF_Other_Tax_Credit';
+//    FAuditNamesArray[145,183] := 'SF_Non_Resident_Tax';
+//    FAuditNamesArray[145,184] := 'SF_Foreign_Capital_Gains_Credit';
+//    FAuditNamesArray[145,185] := 'SF_Capital_Gains_Fraction_Half';
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
+  end;
+end;
+
 
 end.

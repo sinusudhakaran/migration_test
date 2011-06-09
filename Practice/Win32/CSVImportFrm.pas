@@ -238,7 +238,7 @@ begin
        exit;
    end;
 
-   ba := TBank_Account.Create;
+   ba := TBank_Account.Create(MyClient);
 
    ba.baFields.baBank_Account_Number     := Trim( edtAcctNo.Text);
    ba.baFields.baBank_Account_Name       := Trim( edtAcctName.Text);

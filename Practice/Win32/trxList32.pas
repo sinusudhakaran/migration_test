@@ -36,8 +36,8 @@ type
       function  LastPresDate : LongInt;
       
       procedure UpdateCRC(var CRC : Longword);
-      procedure DoAudit(AAuditType: TAuditType; ATransactionListCopy: TTransaction_List;
-                        AParentID: integer; AAccountType: byte; var AAuditTable: TAuditTable);
+      procedure DoAudit(ATransactionListCopy: TTransaction_List; AParentID: integer;
+                        AAccountType: byte; var AAuditTable: TAuditTable);
       procedure SetAuditInfo(P1, P2: pTransaction_Rec; AParentID: integer;
                              var AAuditInfo: TAuditInfo);
       property LastSeq : integer read FLastSeq;
@@ -204,7 +204,7 @@ Begin
 
       //Get next audit ID for new transactions
       if (not FLoading) and NewAuditID then
-        P^.txAudit_Record_ID := fAuditMgr.NextClientRecordID;
+        P^.txAudit_Record_ID := fAuditMgr.NextAuditRecordID;
 
       Inherited Insert( P );
    end;
@@ -446,9 +446,8 @@ begin
   FAuditMgr := AAuditMgr;
 end;
 
-procedure TTransaction_List.DoAudit(AAuditType: TAuditType;
-  ATransactionListCopy: TTransaction_List; AParentID: integer;
-  AAccountType: byte; var AAuditTable: TAuditTable);
+procedure TTransaction_List.DoAudit(ATransactionListCopy: TTransaction_List;
+  AParentID: integer; AAccountType: byte; var AAuditTable: TAuditTable);
 var
   i: integer;
   P1, P2: pTransaction_Rec;

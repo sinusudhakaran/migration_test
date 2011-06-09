@@ -849,7 +849,7 @@ begin
          nBalance.AsFloat := 0;
          cmbBalance.ItemIndex := BAL_UNKNOWN;
 
-         BankAcct := TBank_Account.Create;
+         BankAcct := TBank_Account.Create(MyClient);
          BankAcct.baFields.baBank_Account_Number := '';
          BankAcct.baFields.baBank_Account_Name   := '';
          BankAcct.baFields.baAccount_Type        := btBank;

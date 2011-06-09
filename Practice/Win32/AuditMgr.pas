@@ -114,6 +114,7 @@ type
     function AuditTypeToTableStr(AAuditType: TAuditType): string;
     function DBFromAuditType(AAuditType: TAuditType): byte;
     function CurrentUserCode: string;
+    function NextAuditRecordID: integer; virtual; abstract;
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; virtual; abstract;
     procedure AddAuditValue(AFieldName: string; AValue: variant; var AAuditValue: string); virtual;
     procedure DoAudit; virtual; abstract;
@@ -128,7 +129,7 @@ type
   TSystemAuditManager = class(TAuditManager)
   private
   public
-    function NextSystemRecordID: integer;
+    function NextAuditRecordID: integer; override;
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
     function BankAccountFromLRN(ALRN: integer): string;
     function ClientCodeFromLRN(ALRN: integer): string;
@@ -149,7 +150,7 @@ type
     procedure SetUpgradingClientFile(const Value: Boolean);
   public
     constructor Create(Owner: TObject);
-    function NextClientRecordID: integer;
+    function NextAuditRecordID: integer; override;
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
     function GetTransactionAuditType(ABankAccountSource: byte; ABankAccountType: byte): TAuditType;
     procedure DoAudit; override;
@@ -727,7 +728,7 @@ begin
 {$ENDIF}
 end;
 
-function TSystemAuditManager.NextSystemRecordID: integer;
+function TSystemAuditManager.NextAuditRecordID: integer;
 begin
 {$IFNDEF LOOKUPDLL}
   Result := AdminSystem.NextAuditRecordID;
@@ -853,6 +854,16 @@ begin
         P2 := New_Custom_Heading_Rec;
         Copy_Custom_Heading_Rec(P1, P2);
       end;
+    tkBegin_Memorisation_Detail:
+      begin
+        P2 := New_Memorisation_Detail_Rec;
+        Copy_Memorisation_Detail_Rec(P1, P2);
+      end;
+    tkBegin_Memorisation_Line:
+      begin
+        P2 := New_Memorisation_Line_Rec;
+        Copy_Memorisation_Line_Rec(P1, P2);
+      end;
   end;
 {$ENDIF}
 end;
@@ -887,12 +898,13 @@ begin
       TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
       case TableID of
         tkBegin_Client      : DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType, ClientCopy);
+        tkBegin_Payee_Line  :         ;//Done in payee detail
         tkBegin_Payee_Detail: clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                    ClientCopy.clPayee_List, 0, fAuditTable);
-        tkBegin_Payee_Line  : ;//Done in payee detail
-        tkBegin_Transaction : ;//Done in bank account
-        tkBegin_Bank_Account: clBank_Account_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                          ClientCopy.clBank_Account_List,
+        tkBegin_Transaction :         ;//Done in bank account
+        tkBegin_Memorisation_Detail:  ;//Done in bank account
+        tkBegin_Memorisation_Line:    ;//Done in bank account
+        tkBegin_Bank_Account: clBank_Account_List.DoAudit(ClientCopy.clBank_Account_List,
                                                           0, fAuditTable);
         tkBegin_Account: clChart.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                          ClientCopy.clChart,
@@ -987,6 +999,8 @@ begin
       tkBegin_Bank_Account: BKAuditValues.AddBankAccountAuditValues(AAuditRecord, Self, AuditInfo);
       tkBegin_Account     : BKAuditValues.AddAccountAuditValues(AAuditRecord, Self, clCustom_Headings_List, AuditInfo);
       tkBegin_Custom_Heading: BKAuditValues.AddCustomHeadingValues(AAuditRecord, Self, AuditInfo);
+      tkBegin_Memorisation_Line,
+      tkBegin_Memorisation_Detail: BKAuditValues.AddMemorisationValues(AAuditRecord, Self, AuditInfo);
     else
       AuditInfo := Format('%s%sAUDIT RECORD TYPE UNKNOWN',[Values, VALUES_DELIMITER]);
     end;
@@ -1002,7 +1016,7 @@ begin
 {$ENDIF}
 end;
 
-function TClientAuditManager.NextClientRecordID: integer;
+function TClientAuditManager.NextAuditRecordID: integer;
 begin
 {$IFNDEF LOOKUPDLL}
   with FOwner as TClientObj do
@@ -1055,6 +1069,16 @@ begin
         ARecord := New_Custom_Heading_Rec;
         Read_Custom_Heading_Rec(TCustom_Heading_Rec(ARecord^), AStream);
       end;
+    tkBegin_Memorisation_Detail:
+      begin
+        ARecord := New_Memorisation_Detail_Rec;
+        Read_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
+      end;
+    tkBegin_Memorisation_Line:
+      begin
+        ARecord := New_Memorisation_Line_Rec;
+        Read_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
+      end;
   end;
 {$ENDIF}
 end;
@@ -1083,6 +1107,8 @@ begin
     tkBegin_Transaction : Write_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
     tkBegin_Account     : Write_Account_Rec(TAccount_Rec(ARecord^), AStream);
     tkBegin_Custom_Heading: Write_Custom_Heading_Rec(TCustom_Heading_Rec(ARecord^), AStream);
+    tkBegin_Memorisation_Detail: Write_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
+    tkBegin_Memorisation_Line: Write_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);    
   end;
 {$ENDIF}
 end;

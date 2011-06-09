@@ -414,7 +414,7 @@ end;
 
 procedure tSystem_Bank_Account_List.Insert(Item: Pointer); 
 begin
-  pSystem_Bank_Account_Rec(Item).sbAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+  pSystem_Bank_Account_Rec(Item).sbAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
   inherited Insert(Item);
 end;
 

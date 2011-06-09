@@ -133,6 +133,9 @@ begin
   Old_Show_YTD := MyClient.clFields.clFRS_Show_YTD;
   MyClient.clFields.clFRS_Show_YTD := False;
 
+  //TFS 16666
+  FlagAllAccountsForUse(MyClient);
+
   VerifyBalanceSheetPreconditions( MyClient);
 
    case MyClient.clFields.clFRS_Report_Style of

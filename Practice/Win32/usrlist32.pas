@@ -245,7 +245,7 @@ end;
 
 procedure tSystem_User_List.Insert(Item: Pointer);
 begin
-  pUser_Rec(Item).usAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+  pUser_Rec(Item).usAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
   inherited Insert(Item);
 end;
 

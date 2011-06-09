@@ -108,7 +108,7 @@ begin
     begin
 {$IFDEF ADD_IN_UPDATE}
       //account not found, create one
-      BankAccount := TBank_Account.Create;
+      BankAccount := TBank_Account.Create(MyClient);
       with BankAccount.baFields do
       begin
         baAccount_Type        := btBank;

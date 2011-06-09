@@ -893,7 +893,7 @@ end;
 procedure TChart.Insert(Item: Pointer);
 begin
   if Assigned(FAuditMgr) and (not Sorting) then
-    pAccount_Rec(Item).chAudit_Record_ID := FAuditMgr.NextClientRecordID;
+    pAccount_Rec(Item).chAudit_Record_ID := FAuditMgr.NextAuditRecordID;
 
   inherited Insert(Item);
 end;

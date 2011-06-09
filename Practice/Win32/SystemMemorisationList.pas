@@ -248,7 +248,7 @@ begin
     try
       TMemorisations_List(AMemorisationsList).SaveToStream(S);
       S.Position := 0;
-      System_Memorisation.smMemorisations := TMemorisations_List.Create;
+      System_Memorisation.smMemorisations := TMemorisations_List.Create(SystemAuditMgr);
       TMemorisations_List(System_Memorisation.smMemorisations).LoadFromStream(S);
     finally
       S.Free;
@@ -310,13 +310,11 @@ begin
     P1 := Items[i];
     P2 := ASystemMemorisationsCopy.FindRecordID(P1.smAudit_Record_ID);
     if Assigned(P1.smMemorisations) and Assigned(P2) then begin
-      TMemorisations_List(P1.smMemorisations).DoAudit(atMasterMemorisations,
-                                                      P2.smMemorisations,
+      TMemorisations_List(P1.smMemorisations).DoAudit(P2.smMemorisations,
                                                       P1.smAudit_Record_ID,
                                                       AAuditTable);
     end else
-      TMemorisations_List(P1.smMemorisations).DoAudit(atMasterMemorisations,
-                                                      nil,
+      TMemorisations_List(P1.smMemorisations).DoAudit(nil,
                                                       P1.smAudit_Record_ID,
                                                       AAuditTable);
   end;
@@ -363,7 +361,7 @@ end;
 
 procedure TSystem_Memorisation_List.Insert(Item: Pointer);
 begin
-  pSystem_Memorisation_List_Rec(Item).smAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+  pSystem_Memorisation_List_Rec(Item).smAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
   inherited Insert(Item);
 end;
 
@@ -383,7 +381,7 @@ begin
           System_Memorisation := New_System_Memorisation_List_Rec;
           Read_System_Memorisation_List_Rec(System_Memorisation^, S);
           //Load memorisation list
-          System_Memorisation.smMemorisations := TMemorisations_List.Create;
+          System_Memorisation.smMemorisations := TMemorisations_List.Create(SystemAuditMgr);
           TMemorisations_List(System_Memorisation.smMemorisations).LoadFromStream(S);
           inherited Insert(System_Memorisation);
         end
@@ -438,7 +436,7 @@ begin
     if Assigned(P1.smMemorisations) then begin
       S := TIOStream.Create;
       try
-        P2.smMemorisations := TMemorisations_List.Create;
+        P2.smMemorisations := TMemorisations_List.Create(SystemAuditMgr);
         TMemorisations_List(P1.smMemorisations).SaveToStream(S);
         S.Position := 0;
         TMemorisations_List(P2.smMemorisations).LoadFromStream(S);

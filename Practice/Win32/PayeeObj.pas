@@ -321,7 +321,7 @@ end;
 
 procedure TPayee_List.Insert(Item: Pointer);
 begin
-  TPayee(Item).pdFields.pdAudit_Record_ID := FAuditMgr.NextClientRecordID;
+  TPayee(Item).pdFields.pdAudit_Record_ID := FAuditMgr.NextAuditRecordID;
   inherited Insert(Item);
 end;
 
@@ -565,7 +565,7 @@ end;
 
 procedure TPayeeLinesList.Insert(Item: Pointer; AAuditMgr: TClientAuditManager);
 begin
-  pPayee_Line_Rec(Item).plAudit_Record_ID := AAuditMgr.NextClientRecordID;
+  pPayee_Line_Rec(Item).plAudit_Record_ID := AAuditMgr.NextAuditRecordID;
   inherited Insert(Item);
 end;
 

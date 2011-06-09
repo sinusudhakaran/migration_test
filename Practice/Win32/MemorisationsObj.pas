@@ -33,15 +33,19 @@ type
    protected
      procedure FreeItem( Item : Pointer ); override;
      function FindRecordID(ARecordID: integer): pMemorisation_Line_Rec;
+   private
+     FAuditMgr: TAuditManager;
+     FLoading : Boolean;
    public
-     function  MemorisationLine_At( Index : LongInt ): pMemorisation_Line_Rec;
+     constructor Create(AAuditMgr: TAuditManager);
+     function MemorisationLine_At( Index : LongInt ): pMemorisation_Line_Rec;
+     function Insert(Item: Pointer): integer; override;
      procedure FreeAll; override;
      procedure SaveToStream( Var S : TIOStream );
      procedure LoadFromStream( Var S : TIOStream );
      procedure UpdateCRC(var CRC : Longword);
      procedure CheckIntegrity;
-     procedure DoAudit(AAuditType: TAuditType;
-                       AMemorisationLinesListCopy: TMemorisationLinesList;
+     procedure DoAudit(AMemorisationLinesListCopy: TMemorisationLinesList;
                        AParentID: integer;
                        var AAuditTable: TAuditTable);
      procedure SetAuditInfo(P1, P2: pMemorisation_Line_Rec;
@@ -52,8 +56,10 @@ type
   TMemorisation = class
      mdFields : pMemorisation_Detail_Rec;
      mdLines  : TMemorisationLinesList;
+   private
+     FAuditMgr: TAuditManager;
    public
-     constructor Create;
+     constructor Create(AAuditMgr: TAuditManager);
      destructor Destroy; override;
      function  mdLinesCount : integer;
      function  FirstLine : pMemorisation_Line_Rec;
@@ -73,11 +79,13 @@ type
    private
       LastSeq : integer;
       FLoading: Boolean;
+      FAuditMgr: TAuditManager;
       procedure Resequence;
    public
       mxFirstByEntryType : TMemsArray;
       mxLastByEntryType : TMemsArray;
-      constructor Create;
+      constructor Create(AAuditMgr: TAuditManager); overload;
+      constructor Create; overload;
       function Compare(Item1,Item2 : Pointer): Integer; override;
       procedure Insert(Item : Pointer); override;
       procedure FreeAll; override;
@@ -91,11 +99,11 @@ type
       function  GetCurrentCRC : LongWord;
       procedure CheckIntegrity;
       procedure UpdateLinkedLists;
-      procedure DoAudit(AAuditType: TAuditType;
-                        AMemorisationListCopy: TMemorisations_List;
+      procedure DoAudit(AMemorisationListCopy: TMemorisations_List;
                         AParentID: integer; var AAuditTable: TAuditTable);
       procedure SetAuditInfo(P1, P2: pMemorisation_Detail_Rec;
                              AParentID: integer; var AAuditInfo: TAuditInfo);
+      property AuditMgr: TAuditManager read FAuditMgr;
   end;
 
 //****************************************************************
@@ -121,7 +129,7 @@ type
     property symxLast_Updated : Int64 read FsymxLast_Updated write SetsymxLast_Updated;
     property symxLast_CRC : LongWord read FsymxLast_CRC write SetsymxLast_CRC;
     function SaveToFile : boolean;
-    procedure QuickRead; //Read without locking Used by Migrator only 
+    procedure QuickRead; //Read without locking Used by Migrator only
     procedure Insert_Memorisation(m : TMemorisation; NewAuditID: boolean = True); override;
    end;
 
@@ -184,17 +192,26 @@ begin
     with MemorisationLine_At(i)^ do;
 end;
 
-procedure TMemorisationLinesList.DoAudit(AAuditType: TAuditType;
-  AMemorisationLinesListCopy: TMemorisationLinesList;
-  AParentID: integer;
-  var AAuditTable: TAuditTable);
+constructor TMemorisationLinesList.Create(AAuditMgr: TAuditManager);
+begin
+  inherited Create;
+
+  FLoading := False;
+  FAuditMgr := AAuditMgr;
+end;
+
+procedure TMemorisationLinesList.DoAudit(AMemorisationLinesListCopy: TMemorisationLinesList;
+  AParentID: integer; var AAuditTable: TAuditTable);
 var
   i: integer;
   P1, P2: pMemorisation_Line_Rec;
   AuditInfo: TAuditInfo;
 begin
-  AuditInfo.AuditType := atMasterMemorisations;
-  AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
+  if FAuditMgr is TClientAuditManager then
+    AuditInfo.AuditType := atMemorisations
+  else
+    AuditInfo.AuditType := atMasterMemorisations;
+  AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Memorisation_Line;
   //Adds, changes
   for I := 0 to Pred( itemCount ) do begin
@@ -250,7 +267,7 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Not Found',[ThisMethodName]));
 end;
 
-procedure TMemorisationLinesList.FreeAll;
+procedure TMemorisationLinesList.FreeAll; 
 var
   i : integer;
 begin
@@ -267,6 +284,14 @@ begin
   end;
 end;
 
+function TMemorisationLinesList.Insert(Item: Pointer): integer;
+begin
+  if (not FLoading) and Assigned(FAuditMgr) then
+    pMemorisation_Line_Rec(Item).mlAudit_Record_ID := FAuditMgr.NextAuditRecordID;
+
+  Result := inherited Insert(Item);
+end;
+
 procedure TMemorisationLinesList.LoadFromStream(var S: TIOStream);
 const
   ThisMethodName = 'TMemorisationLinesList.LoadFromStream';
@@ -275,25 +300,29 @@ var
   pML       : pMemorisation_Line_Rec;
   msg      : string;
 begin
-   Token := S.ReadToken;
-   while ( Token <> tkEndSection ) do
-   begin
+  FLoading := True;
+  try
+    Token := S.ReadToken;
+    while ( Token <> tkEndSection ) do begin
       case Token of
-         tkBegin_Memorisation_Line :
-           begin
-              pML := New_Memorisation_Line_Rec;
-              BKMLIO.Read_Memorisation_Line_Rec(pML^, S);
-              inherited Insert(pML);
-           end;
+        tkBegin_Memorisation_Line :
+          begin
+            pML := New_Memorisation_Line_Rec;
+            BKMLIO.Read_Memorisation_Line_Rec(pML^, S);
+            inherited Insert(pML);
+          end;
       else
-         begin { Should never happen }
-            Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
-            LogUtil.LogMsg(lmError, UnitName, Msg );
-            raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
-         end;
+        begin { Should never happen }
+          Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
+          LogUtil.LogMsg(lmError, UnitName, Msg );
+          raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+        end;
       end; { of Case }
       Token := S.ReadToken;
-   end;
+    end;
+  finally
+    FLoading := False;
+  end;
 end;
 
 function TMemorisationLinesList.MemorisationLine_At(
@@ -358,7 +387,7 @@ end;
 
 { TMemorisation }
 
-constructor TMemorisation.Create;
+constructor TMemorisation.Create(AAuditMgr: TAuditManager);
 begin
   inherited Create;
 
@@ -368,9 +397,10 @@ begin
 //    mdRecord_Type := tkBegin_Memorisation_Detail;
 //    mdEOR := tkEnd_Memorisation_Detail;
 //  end;
-  mdFields := New_Memorisation_Detail_Rec;
 
-  mdLines := TMemorisationLinesList.Create;
+  FAuditMgr := AAuditMgr;
+  mdFields := New_Memorisation_Detail_Rec;
+  mdLines := TMemorisationLinesList.Create(FAuditMgr);
 end;
 
 function TMemorisation.DateText: string;
@@ -528,14 +558,20 @@ end;
 
 constructor TMemorisations_List.Create;
 begin
-  inherited;
+  //Client not needed for Master mem list
+  Create(nil); 
+end;
+
+constructor TMemorisations_List.Create(AAuditMgr: TAuditManager);
+begin
+  inherited create;
+  FAuditMgr := AAuditMgr;
   Duplicates := false;
   LastSeq := 0;
 end;
 
-procedure TMemorisations_List.DoAudit(AAuditType: TAuditType;
-  AMemorisationListCopy: TMemorisations_List; AParentID: integer;
-  var AAuditTable: TAuditTable);
+procedure TMemorisations_List.DoAudit(AMemorisationListCopy: TMemorisations_List;
+  AParentID: integer; var AAuditTable: TAuditTable);
 var
   i: integer;
   P1, P2: pMemorisation_Detail_Rec;
@@ -543,8 +579,12 @@ var
   Memorisation: TMemorisation;
   M1, M2: TMemorisation;
 begin
-  AuditInfo.AuditType := atMasterMemorisations;
-  AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
+  if FAuditMgr is TClientAuditManager then
+    AuditInfo.AuditType := atMemorisations
+  else
+    AuditInfo.AuditType := atMasterMemorisations;
+//  AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
+  AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Memorisation_Detail;
   //Adds, changes
   for I := 0 to Pred( itemCount ) do begin
@@ -591,13 +631,11 @@ begin
       M2 := AMemorisationListCopy.FindRecordID(M1.mdFields.mdAudit_Record_ID);
     if Assigned(M1) then
       if Assigned(M2) then
-        TMemorisation(M1).mdLines.DoAudit(atMasterMemorisations,
-                                          M2.mdLines,
+        TMemorisation(M1).mdLines.DoAudit(M2.mdLines,
                                           TMemorisation(M1).mdFields.mdAudit_Record_ID,
                                           AAuditTable)
       else
-        TMemorisation(M1).mdLines.DoAudit(atMasterMemorisations,
-                                          nil,
+        TMemorisation(M1).mdLines.DoAudit(nil,
                                           TMemorisation(M1).mdFields.mdAudit_Record_ID,
                                           AAuditTable);
   end;
@@ -671,12 +709,8 @@ begin
   Inc( LastSeq );
   M.mdFields.mdSequence_No := LastSeq;
 
-  if NewAuditID and (not FLoading) then begin
-    if M.mdFields.mdFrom_Master_List then
-      M.mdFields.mdAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
-  //  else
-  //    M.mdFields.mdAudit_Record_ID := ClientAuditMgr.NextSystemRecordID;
-  end;
+  if NewAuditID and (not FLoading) and Assigned(FAuditMgr) then
+    M.mdFields.mdAudit_Record_ID := FAuditMgr.NextAuditRecordID;
 
   inherited Insert( M );
 end;
@@ -698,7 +732,7 @@ begin
          tkBeginMemorisationsList: ; // Do nothing
          tkBegin_Memorisation_Detail :
            begin
-              M := TMemorisation.Create;
+              M := TMemorisation.Create(FAuditMgr);
               if not Assigned( M ) then
               begin
                  Msg := Format( '%s : Unable to allocate M',[ThisMethodName]);
@@ -841,7 +875,7 @@ procedure TMaster_Memorisations_List.Insert_Memorisation(m: TMemorisation; NewAu
 begin
   m.mdFields.mdFrom_Master_List := true;
   if NewAuditID then
-    M.mdFields.mdAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+    M.mdFields.mdAudit_Record_ID := FAuditMgr.NextAuditRecordID;
 
   inherited;
 end;

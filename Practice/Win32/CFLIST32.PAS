@@ -318,7 +318,7 @@ begin
 end;
 procedure tSystem_Client_File_List.Insert(Item: Pointer);
 begin
-  pClient_File_Rec(Item).cfAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+  pClient_File_Rec(Item).cfAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
   inherited;
 end;
 

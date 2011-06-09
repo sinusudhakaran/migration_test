@@ -355,7 +355,7 @@ begin
 
    if Journal_Account = nil then begin
       //there is no journal account currently, so create one
-      Journal_Account := TBank_Account.Create;
+      Journal_Account := TBank_Account.Create(ThisClient);
       With Journal_Account.baFields do Begin
          baBank_Account_Number   := btNames[ btOpeningBalances ];
          baBank_Account_Name     := btNames[ btOpeningBalances ];

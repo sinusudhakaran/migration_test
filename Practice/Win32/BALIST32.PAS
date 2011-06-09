@@ -8,31 +8,31 @@ uses
    ECollect,Classes, bkDefs, ioStream, sysUtils, baObj32, AuditMgr;
 
 type
-   TBank_Account_List = class(TExtdSortedCollection)
-   protected
-      procedure FreeItem(Item : Pointer); override;
-   private
-     fLoading : Boolean;
-     fClient  : TObject; // Owner
-     fAuditMgr: TClientAuditManager; //Audit Manager
-     function FindRecordID(ARecordID: integer):  TBank_Account;
-   public
-      constructor Create( Owner : TObject; AAuditMgr: TClientAuditManager );
-      function Compare(Item1,Item2 : Pointer): Integer; override;
-      procedure LoadFromFile(var S : TIOStream);
-      procedure SaveToFile(var S: TIOStream);
-      function  Bank_Account_At(Index : longint) : TBank_Account;
-      function  FindCode(ACode: String): TBank_Account;
-      function  Get_Journal_Account( Journal_Type : Byte ): TBank_Account;
-      function  New_Journal_Account( Journal_Type : Byte ): TBank_Account;
-      function  FindAccountFromECodingUID( UID : integer) : TBank_Account;
-      procedure Insert( Item : Pointer ); override;
-      procedure UpdateCRC(var CRC : LongWord);
-      procedure DoAudit(AAuditType: TAuditType; ABankAccountListCopy: TBank_Account_List;
-                        AParentID: integer; var AAuditTable: TAuditTable);
-      procedure SetAuditInfo(P1, P2: pBank_Account_Rec; AParentID: integer;
-                             var AAuditInfo: TAuditInfo);
-   end;
+  TBank_Account_List = class(TExtdSortedCollection)
+  protected
+    procedure FreeItem(Item : Pointer); override;
+  private
+    fLoading: Boolean;
+    fClient: TObject; // Owner
+    fAuditMgr: TClientAuditManager; //Audit Manager
+    function FindRecordID(ARecordID: integer):  TBank_Account;
+  public
+    constructor Create( Owner : TObject; AAuditMgr: TClientAuditManager );
+    function Compare(Item1,Item2 : Pointer): Integer; override;
+    procedure LoadFromFile(var S : TIOStream);
+    procedure SaveToFile(var S: TIOStream);
+    function Bank_Account_At(Index : longint) : TBank_Account;
+    function FindCode(ACode: String): TBank_Account;
+    function Get_Journal_Account( Journal_Type : Byte ): TBank_Account;
+    function New_Journal_Account( Journal_Type : Byte ): TBank_Account;
+    function FindAccountFromECodingUID( UID : integer) : TBank_Account;
+    procedure Insert( Item : Pointer ); override;
+    procedure UpdateCRC(var CRC : LongWord);
+    procedure DoAudit(ABankAccountListCopy: TBank_Account_List;
+                      AParentID: integer; var AAuditTable: TAuditTable);
+    procedure SetAuditInfo(P1, P2: pBank_Account_Rec; AParentID: integer;
+                           var AAuditInfo: TAuditInfo);
+ end;
 
 //******************************************************************************
 implementation
@@ -71,9 +71,8 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
-procedure TBank_Account_List.DoAudit(AAuditType: TAuditType;
-  ABankAccountListCopy: TBank_Account_List; AParentID: integer;
-  var AAuditTable: TAuditTable);
+procedure TBank_Account_List.DoAudit(ABankAccountListCopy: TBank_Account_List;
+  AParentID: integer;  var AAuditTable: TAuditTable);
 var
   i: integer;
   P1, P2: pBank_Account_Rec;
@@ -121,25 +120,14 @@ begin
     end;
   end;
 
-  //Audit transactions
+  //Audit bank account child lists
   for i := 0 to Pred(itemCount) do begin
     B1 := Items[i];
     B2 := nil;
     if Assigned(ABankAccountListCopy) then
       B2 := ABankAccountListCopy.FindRecordID(B1.baFields.baAudit_Record_ID);
     if Assigned(B1) then
-      if Assigned(B2) then
-        B1.baTransaction_List.DoAudit(AAuditType,
-                                      B2.baTransaction_List,
-                                      B1.baFields.baAudit_Record_ID,
-                                      B1.baFields.baAccount_Type,
-                                      AAuditTable)
-      else
-        B1.baTransaction_List.DoAudit(AAuditType,
-                                      nil,
-                                      B1.baFields.baAudit_Record_ID,
-                                      B1.baFields.baAccount_Type,
-                                      AAuditTable);
+      B1.DoAudit(B2, AAuditTable)
   end;
 end;
 
@@ -227,14 +215,14 @@ Begin
       Case Token of
          tkBegin_Bank_Account :
             Begin
-               P := TBank_Account.Create;
+               P := TBank_Account.Create(fClient);
                If not Assigned( P ) then
                Begin
                   Msg := Format( '%s : Unable to allocate P',[ThisMethodName]);
                   LogUtil.LogMsg(lmError, UnitName, Msg );
                   raise EInsufficientMemory.CreateFmt( '%s - %s', [ UnitName, Msg ] );
                end;
-               P.baClient := fClient;
+//               P.baClient := fClient;
                P.baTransaction_List.TxnClient := fClient;
                P.baTransaction_List.TxnBankAccount := P;
                P.LoadFromFile( S );
@@ -340,7 +328,7 @@ Var
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   B := TBank_Account( Item );
-  B.baClient := fClient;
+//  B.baClient := fClient;
   B.baTransaction_List.AuditMgr := fAuditMgr;
   B.baTransaction_List.TxnClient := fClient;
   B.baTransaction_List.TxnBankAccount := B;
@@ -354,7 +342,7 @@ begin
       raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
     End;
     //Get next audit ID for new bank accounts
-    B.baFields.baAudit_Record_ID := fAuditMgr.NextClientRecordID;
+    B.baFields.baAudit_Record_ID := FAuditMgr.NextAuditRecordID;
   End;
 
   inherited Insert( Item );
@@ -384,7 +372,7 @@ Begin
       raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
    end;
 
-   Result := TBank_Account.Create;
+   Result := TBank_Account.Create(fClient);
    With Result.baFields do
    Begin
 

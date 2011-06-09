@@ -105,8 +105,8 @@ begin
   BK5TestClient.clChart.Insert( Chart400);
 
   //create two bank accounts
-  ba := TBank_Account.Create;
-  ba.baClient := bk5testClient;
+  ba := TBank_Account.Create(nil);
+//  ba.baClient := bk5testClient;
   ba.baFields.baBank_Account_Number := '12345';
   ba.baFields.baBank_Account_Name   := 'Account 1';
   ba.baFields.baCurrent_Balance := 100;
@@ -168,8 +168,8 @@ begin
   ba.baTransaction_List.Insert_Transaction_Rec( pT);
 
   //create 2nd bank account
-  ba := TBank_Account.Create;
-  ba.baClient := bk5testClient;
+  ba := TBank_Account.Create(nil);
+//  ba.baClient := bk5testClient;
   ba.baFields.baBank_Account_Number := '67890';
   ba.baFields.baBank_Account_Name   := 'Account 2';
   ba.baFields.baCurrent_Balance := 100;

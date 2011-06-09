@@ -203,7 +203,7 @@ begin
           begin
             MemFrom := FromBa.baMemorisations_List.Memorisation_At(i);
             if HasDuplicateMem(MemFrom, ToBa.baMemorisations_List) then Continue;
-            MemTo := TMemorisation.Create;
+            MemTo := TMemorisation.Create(ToBa.AuditMgr);
             MemTo.mdFields := MemFrom.mdFields;
             for j := MemFrom.mdLines.First to MemFrom.mdLines.Last do
             begin

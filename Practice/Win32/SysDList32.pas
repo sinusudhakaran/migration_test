@@ -113,7 +113,7 @@ end;
 
 function tSystem_Disk_Log.Insert(Item: Pointer): integer; 
 begin
-  pSystem_Disk_Log_Rec(Item).dlAudit_Record_ID := SystemAuditMgr.NextSystemRecordID;
+  pSystem_Disk_Log_Rec(Item).dlAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
   Result := inherited Insert(Item);
 end;
 

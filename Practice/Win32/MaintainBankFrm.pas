@@ -587,7 +587,7 @@ begin
    MyClient.clFields.clHighest_Manual_Account_No := MyClient.clFields.clHighest_Manual_Account_No + 1;
 
    //create a dummy bank account
-   DummyAccount := TBank_Account.Create;
+   DummyAccount := TBank_Account.Create(MyClient);
    with DummyAccount.baFields do begin
       baBank_Account_Number := '';
       baCurrent_Balance     := UNKNOWN;

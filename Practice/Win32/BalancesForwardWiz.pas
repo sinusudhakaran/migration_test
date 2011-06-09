@@ -651,7 +651,7 @@ begin
 
   if YE_Journal_Account = nil then begin
      //there is no journal account currently, so create one
-     YE_Journal_Account := TBank_Account.Create;
+     YE_Journal_Account := TBank_Account.Create(ThisClient);
      With YE_Journal_Account.baFields do Begin
         baBank_Account_Number   := btNames[ btYearEndAdjustments ];
         baBank_Account_Name     := btNames[ btYearEndAdjustments ];
@@ -1656,7 +1656,7 @@ begin
 
   if OpeningBalancesAccount = nil then begin
      //there is no journal account currently, so create one
-     OpeningBalancesAccount := TBank_Account.Create;
+     OpeningBalancesAccount := TBank_Account.Create(ThisClient);
      With OpeningBalancesAccount.baFields do Begin
         baBank_Account_Number   := btNames[ btOpeningBalances ];
         baBank_Account_Name     := btNames[ btOpeningBalances ];

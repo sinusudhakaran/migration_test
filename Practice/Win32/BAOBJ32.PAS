@@ -13,71 +13,73 @@ unit baObj32;
 //------------------------------------------------------------------------------
 interface
 uses
-   bkdateutils,classes, bkdefs, iostream, trxList32, mxList32, moneydef, MatchedItemsList,
-   MemorisationsObj;
+  bkdateutils,classes, bkdefs, iostream, trxList32, mxList32, moneydef, MatchedItemsList,
+  MemorisationsObj, AuditMgr;
 
 type
-   pDailyBalancesRec = ^tDailyBalancesRec;
-   tDailyBalancesRec = Array[ 0..366 ] of Money;
+  pDailyBalancesRec = ^tDailyBalancesRec;
+  tDailyBalancesRec = Array[ 0..366 ] of Money;
 
 type
-   TBank_Account = class
-      baClient : TObject;
-      baFields : tBank_Account_Rec;
-      baTransaction_List : tTransaction_List;
-      baOld_Memorised_Transaction_List : tMemorised_Transaction_List_V53;
-      baMemorisations_List : MemorisationsObj.TMemorisations_List;
-
-      constructor  Create;
-
-      destructor   Destroy; override;
+  TBank_Account = class
+//    baClient : TObject;
+    baFields : tBank_Account_Rec;
+    baTransaction_List : tTransaction_List;
+    baOld_Memorised_Transaction_List : tMemorised_Transaction_List_V53;
+    baMemorisations_List : MemorisationsObj.TMemorisations_List;
   private
-      baMatched_Items_List     : tMatched_Items_List;
-      procedure ApplyDefaultGST(pT: pTransaction_Rec);
+    FMatched_Items_List : tMatched_Items_List;
+    FClient : TObject;
+    procedure ApplyDefaultGST(pT: pTransaction_Rec);
+    function GetAuditMgr: TAuditManager;
   public
-      procedure    SaveToFile(var s: TIOStream);
-      procedure    LoadFromFile(var s: TIOStream);
-      procedure    CalculateBalances( YSD : LongInt );
-      procedure    CalculatePDBalances( D1, D2 : LongInt; VAR OpBankBal, ClBankBal, OpCashbookBal, ClCashbookBal : Money );
-      procedure    CalculatePDBalancesInLocalCurrency( D1, D2 : LongInt;
-                      Out LocalOpBankBal, LocalClBankBal, LocalOpCashbookBal, LocalClCashbookBal,
-                          LocalBankMovement, LocalCashbookMovement, LocalBankForexGainOrLoss, LocalCashbookForexGainOrLoss : Money );
+    constructor  Create(AClient: TObject);
+    destructor   Destroy; override;
+    procedure    SaveToFile(var s: TIOStream);
+    procedure    LoadFromFile(var s: TIOStream);
+    procedure    CalculateBalances( YSD : LongInt );
+    procedure    CalculatePDBalances( D1, D2 : LongInt; VAR OpBankBal, ClBankBal, OpCashbookBal, ClCashbookBal : Money );
+    procedure    CalculatePDBalancesInLocalCurrency( D1, D2 : LongInt;
+                    Out LocalOpBankBal, LocalClBankBal, LocalOpCashbookBal, LocalClCashbookBal,
+                        LocalBankMovement, LocalCashbookMovement, LocalBankForexGainOrLoss, LocalCashbookForexGainOrLoss : Money );
 
-      procedure    UpdateSequenceNumbers;
+    procedure    UpdateSequenceNumbers;
 
-      function     IsAJournalAccount : boolean;
+    function     IsAJournalAccount : boolean;
 
-      function     FindOriginalItem( Match_ID : integer) : pTransaction_Rec;
-      function     MatchChildCount( OrigTrans : pTransaction_Rec) : integer;
+    function     FindOriginalItem( Match_ID : integer) : pTransaction_Rec;
+    function     MatchChildCount( OrigTrans : pTransaction_Rec) : integer;
 
-      function     MaxHistoricalDate: Integer;
-      procedure    UpdateCRC(var CRC : LongWord);
+    function     MaxHistoricalDate: Integer;
+    procedure    UpdateCRC(var CRC : LongWord);
 
-
-      Function MoneyStrNoSymbol( Const Amount : Money ): String;
-      Function MoneyStr( Const Amount : Money ): String;
-      Function MoneyStrBrackets( Const Amount : Money ): String;
-      Function BalanceStr( Const Amount : Money ): String;
-      Function BalanceStrNoSymbol( Const Amount : Money ): String;
-      Function DrCrStr( Const Amount : Money ): String;
-      Function DrCrStrNoSymbol( Const Amount : Money ): String;
-      Function FmtBalanceStr : String;
-      Function FmtMoneyStr : String;
-      Function FmtMoneyStrBrackets : String;
-      Function CurrencySymbol : String;
-      Function HasTransactionsWithin( StartDate, EndDate : Integer ): Boolean;
-      Function IsAForexAccount : Boolean;
-      Function IsManual: Boolean;
-      function CanEditTransactions: Boolean;
-      Function IsAnEldersAccount : Boolean;
-      Function Default_Forex_Conversion_Rate( ADate : Integer ): Double;
-      function Default_Forex_Concersion_DateRange: TDateRange;
-      Function Local_Currency_Equivalent( Const Foreign_Currency_Amount : Money; Const AsAt : Integer; Out Rate : Double ): Money;
-      Function Title : String;
-      function AccountName: string;
-      function ValidPayeeCode(PayeeNumber: integer): Boolean;
-      function HasExchangeRates(StartDate, EndDate: Integer; StoreRates: boolean = false): Boolean;
-   end;
+    function MoneyStrNoSymbol( Const Amount : Money ): String;
+    function MoneyStr( const Amount : Money ): String;
+    function MoneyStrBrackets( const Amount : Money ): String;
+    function BalanceStr( const Amount : Money ): String;
+    function BalanceStrNoSymbol( const Amount : Money ): String;
+    function DrCrStr( const Amount : Money ): String;
+    function DrCrStrNoSymbol( const Amount : Money ): String;
+    function FmtBalanceStr : String;
+    function FmtMoneyStr : String;
+    function FmtMoneyStrBrackets : String;
+    function CurrencySymbol : String;
+    function HasTransactionsWithin( StartDate, EndDate : Integer ): Boolean;
+    function IsAForexAccount : Boolean;
+    function IsManual: Boolean;
+    function CanEditTransactions: Boolean;
+    function IsAnEldersAccount : Boolean;
+    function Default_Forex_Conversion_Rate( ADate : Integer ): Double;
+    function Default_Forex_Concersion_DateRange: TDateRange;
+    function Local_Currency_Equivalent( const Foreign_Currency_Amount : Money; const AsAt : Integer; Out Rate : Double ): Money;
+    function Title : String;
+    function AccountName: string;
+    function ValidPayeeCode(PayeeNumber: integer): Boolean;
+    function HasExchangeRates(StartDate, EndDate: Integer; StoreRates: boolean = false): Boolean;
+    procedure DoAudit(ABankAccountCopy: TBank_Account;
+                      var AAuditTable: TAuditTable);
+    property AuditMgr: TAuditManager read GetAuditMgr;                  
+  end;
 
 const
    UserDefinedBankAccountDesc   = 'Manual Bank Account';
@@ -90,7 +92,7 @@ uses
    bkbaio,
    dateDef,
    ovcDate,
-   bkConst,
+   bkconst,
    SysUtils,
    Globals,
    MoneyUtils,
@@ -507,14 +509,18 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-constructor TBank_Account.Create;
+constructor TBank_Account.Create(AClient: TObject);
 const
   ThisMethodName = 'TBank_Account.Create';
 var
   Msg : string;
+  AuditMgr: TClientAuditManager;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    inherited Create;
+
+   if Assigned(AClient) and (AClient is TClientObj) then
+     FClient := AClient;
 
    FillChar( baFields, Sizeof( baFields ), 0 );
    With baFields do
@@ -532,8 +538,13 @@ begin
       raise EInsufficientMemory.CreateFmt( '%s - %s', [ UnitName, Msg ] );
    end;
 
-   baMatched_Items_List := tMatched_Items_List.Create( NIL, Self, NIL );   // No longer used
-   baMemorisations_List := TMemorisations_List.Create;
+   FMatched_Items_List := tMatched_Items_List.Create( NIL, Self, NIL );   // No longer used
+
+   AuditMgr := nil;
+   if Assigned(FClient) then
+     AuditMgr := TClientObj(FClient).ClientAuditMgr;
+
+   baMemorisations_List := TMemorisations_List.Create(AuditMgr);
    baOld_Memorised_Transaction_List := TMemorised_Transaction_List_V53.Create;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -563,7 +574,8 @@ begin
   if IsAForexAccount then
   Begin
     BCode := baFields.baCurrency_Code;
-    Client := TClientObj( baClient );
+//    Client := TClientObj( baClient );
+    Client := TClientObj( FClient );
     if Assigned(Client.ExchangeSource) then begin
       CCode := Client.clExtra.ceLocal_Currency_Code;
       IsoIndex := Client.ExchangeSource.GetISOIndex(BCode,
@@ -585,11 +597,34 @@ begin
    baTransaction_List.Free;
    baOld_Memorised_Transaction_List.Free;
    baMemorisations_List.Free;
-   baMatched_Items_List.Free;
+   FMatched_Items_List.Free;
    BKBAIO.Free_Bank_Account_Rec_Dynamic_Fields( baFields);
 
    inherited Destroy;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+procedure TBank_Account.DoAudit(ABankAccountCopy: TBank_Account; 
+  var AAuditTable: TAuditTable);
+var
+  TransactionList: TTransaction_List;
+  MemorisationsList: TMemorisations_List;  
+begin
+  //Audit transactions
+  TransactionList := nil;
+  if Assigned(ABankAccountCopy) then
+    TransactionList := ABankAccountCopy.baTransaction_List;
+  baTransaction_List.DoAudit(TransactionList,
+                             baFields.baAudit_Record_ID,
+                             baFields.baAccount_Type,
+                             AAuditTable);
+  //Audit memorisations
+  MemorisationsList := nil;
+  if Assigned(ABankAccountCopy) then
+    MemorisationsList := ABankAccountCopy.baMemorisations_List;
+  baMemorisations_List.DoAudit(MemorisationsList,
+                               baFields.baAudit_Record_ID,
+                               AAuditTable);
 end;
 
 function TBank_Account.DrCrStr(const Amount: Money): String;
@@ -606,10 +641,10 @@ end;
 
 function TBank_Account.IsAForexAccount: Boolean;
 begin
-  if baClient = NIL then
+  if FClient = NIL then
      Result := False
   else
-     Result := TClientObj(baClient).clExtra.ceLocal_Currency_Code <> baFields.baCurrency_Code;
+     Result := TClientObj(FClient).clExtra.ceLocal_Currency_Code <> baFields.baCurrency_Code;
 end;
 
 function TBank_Account.IsAJournalAccount: boolean;
@@ -627,9 +662,12 @@ function TBank_Account.IsAnEldersAccount: Boolean;
 var
   Client : TClientObj;
 begin
-  Client := TClientObj( baClient );
-  Result := ( Client.clFields.clCountry = whAustralia ) and
-    ( Copy( baFields.baBank_Account_Number, 1, 2 ) = BKConst.EldersPrefix );
+  Result := False;
+  if Assigned(FClient) then begin
+    Client := TClientObj( FClient );
+    Result := ( Client.clFields.clCountry = whAustralia ) and
+              ( Copy( baFields.baBank_Account_Number, 1, 2 ) = BKconst.EldersPrefix );
+  end;
 end;
 
 function TBank_Account.IsManual: Boolean;
@@ -655,7 +693,7 @@ Begin
          tkBegin_Bank_Account    : Read_Bank_Account_Rec ( baFields, S );
          tkBeginEntries          : baTransaction_List.LoadFromFile( S );
          tkBeginMemorisedEntries : baOld_Memorised_Transaction_List.LoadFromFile( S );
-         tkBeginMatchedItems     : baMatched_Items_List.LoadFromFile( S);
+         tkBeginMatchedItems     : FMatched_Items_List.LoadFromFile( S);
          tkBeginMemorisationsList : baMemorisations_List.LoadFromStream(S);
          else
          begin { Should never happen }
@@ -803,7 +841,7 @@ begin
    result := nil;
    if Match_ID = 0 then exit;
 
-   with baMatched_Items_List do for i := 0 to Pred( ItemCount) do begin
+   with FMatched_Items_List do for i := 0 to Pred( ItemCount) do begin
       t := Transaction_At( i);
       with t^ do begin
          if txMatched_Item_ID = Match_ID then begin
@@ -826,6 +864,13 @@ end;
 function TBank_Account.FmtMoneyStrBrackets: String;
 begin
    Result := MoneyUtils.FmtMoneyStrBrackets( baFields.baCurrency_Code );
+end;
+
+function TBank_Account.GetAuditMgr: TAuditManager;
+begin
+  Result := nil;
+  if Assigned(FClient) then
+    Result := TClientObj(FClient).ClientAuditMgr;
 end;
 
 procedure TBank_Account.ApplyDefaultGST(pT: pTransaction_Rec);

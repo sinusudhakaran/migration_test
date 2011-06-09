@@ -4911,7 +4911,7 @@ begin
       TempClient.clFields.clCountry := Adminsystem.fdFields.fdCountry;
       TempClient.clExtra.ceLocal_Currency_Code := Adminsystem.CurrencyCode;
 
-      TempAccount := TBank_Account.Create;
+      TempAccount := TBank_Account.Create(TempClient);
       with TempAccount.baFields do begin
           baCurrent_Balance := SelectedBA.sbCurrent_Balance;
           baAccount_Type := btBank;

@@ -948,7 +948,7 @@ begin
            if Assigned( MasterMemList) then begin
              for M := MasterMemList.First to MasterMemList.Last do begin
                MasterMemX  := MasterMemList.Memorisation_At(m);
-               ClientMemX  := TMemorisation.Create;
+               ClientMemX  := TMemorisation.Create(aClient.ClientAuditMgr);
 
                ClientMemX.mdFields := MasterMemX.mdFields;
                for j := MasterMemX.mdLines.First to MasterMemX.mdLines.Last do

@@ -1354,7 +1354,7 @@ begin
           for i := lvMemorised.Items.Count-1 downto 0 do
           begin
             MemFrom := TMemorisation( lvMemorised.Items.Item[i].SubItems.Objects[0]);
-            MemTo := TMemorisation.Create;
+            MemTo := TMemorisation.Create(BATo.AuditMgr);
             MemTo.mdFields := MemFrom.mdFields;
             for j := MemFrom.mdLines.First to MemFrom.mdLines.Last do
             begin
@@ -1386,7 +1386,7 @@ begin
             if (Item.Selected) then
             begin
               MemFrom := TMemorisation( Item.SubItems.Objects[0]);
-              MemTo := TMemorisation.Create;
+              MemTo := TMemorisation.Create(BATo.AuditMgr);
               MemTo.mdFields := MemFrom.mdFields;
               for j := MemFrom.mdLines.First to MemFrom.mdLines.Last do
               begin

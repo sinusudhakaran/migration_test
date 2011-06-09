@@ -219,7 +219,7 @@ end;
 function tNew_Custom_Headings_List.Insert(Item: Pointer): integer;
 begin
   if Assigned(FAuditMgr) then
-    pCustom_Heading_Rec(Item)^.hdAudit_Record_ID := FAuditMgr.NextClientRecordID;
+    pCustom_Heading_Rec(Item)^.hdAudit_Record_ID := FAuditMgr.NextAuditRecordID;
 
   inherited Insert(Item);
 end;
