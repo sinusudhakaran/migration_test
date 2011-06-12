@@ -260,7 +260,8 @@ uses
   StringListHelper,
   ComboUtils,
   StrUtils,
-  BKDEFS;
+  BKDEFS,
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -857,6 +858,10 @@ begin
   tblRates.StopEditingState(True);
   if okToPost then begin
     okpressed := true;
+
+    //Flag Audit
+    MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
+
     close;
   end;
 end;

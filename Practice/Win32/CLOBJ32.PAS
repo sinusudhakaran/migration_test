@@ -770,12 +770,24 @@ begin
 end;
 
 procedure TClientObj.SetAuditInfo(P1, P2: pClient_Rec; var AAuditInfo: TAuditInfo);
+var
+  i: integer;
 begin
   if Client_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then begin
     if P2.clName = '' then
       AAuditInfo.AuditAction := aaAdd
-    else
+    else begin
       AAuditInfo.AuditAction := aaChange;
+      //Save GST/VAT class code so that field changed to blank or zero get shown in audit
+      for i := Low(P1.clGST_Class_Codes) to High(P1.clGST_Class_Codes) do
+        if P1.clGST_Class_Codes[i] <> '' then
+          pClient_Rec(AAuditInfo.AuditRecord).clGST_Class_Codes[i] := P1.clGST_Class_Codes[i];
+      //Save the original class code in case the row was deleted
+      for i := Low(P2.clGST_Class_Codes) to High(P2.clGST_Class_Codes) do
+        if (P2.clGST_Class_Codes[i] <> '') and (P1.clGST_Class_Codes[i] = '') then
+          //Set to space so it still shows in the Audit Report
+          pClient_Rec(AAuditInfo.AuditRecord).clGST_Class_Codes[i] := ' ';
+    end;
     AAuditInfo.AuditRecordID := 0; //Root
     AAuditInfo.AuditParentID := -1; //No parent
     AAuditInfo.AuditRecordType := tkBegin_Client;

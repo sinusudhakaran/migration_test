@@ -24,16 +24,12 @@ object dlgEditGST: TdlgEditGST
     Top = 0
     Width = 627
     Height = 406
-    ActivePage = tsTaxRates
+    ActivePage = tsGSTRates
     Align = alTop
     TabOrder = 0
     OnChange = pcGSTChange
     object pgDetails: TTabSheet
       Caption = '&Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object bvlBAS: TBevel
         Left = 8
         Top = 185
@@ -132,7 +128,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 3
         OnChange = cmbBasisChange
       end
@@ -142,7 +138,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 5
         OnChange = cmbPeriodChange
       end
@@ -152,7 +148,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 4
         OnChange = cmbPeriodChange
       end
@@ -184,7 +180,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 6
         OnChange = cmbPAYGWithheldChange
       end
@@ -194,7 +190,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 7
         OnChange = cmbPAYGWithheldChange
       end
@@ -275,10 +271,6 @@ object dlgEditGST: TdlgEditGST
     object tsGSTRates: TTabSheet
       Caption = '&Rates'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label5: TLabel
         Left = 176
         Top = 30
@@ -358,7 +350,15 @@ object dlgEditGST: TdlgEditGST
         OnGetCellAttributes = tblRatesGetCellAttributes
         OnUserCommand = tblRatesUserCommand
         CellData = (
-          'dlgEditGST.colHeader')
+          'dlgEditGST.colHeader'
+          'dlgEditGST.colNormPercent'
+          'dlgEditGST.colAccount'
+          'dlgEditGST.colRate3'
+          'dlgEditGST.colRate2'
+          'dlgEditGST.colRate1'
+          'dlgEditGST.celGSTType'
+          'dlgEditGST.colDesc'
+          'dlgEditGST.ColID')
         RowData = (
           22)
         ColData = (
@@ -492,10 +492,6 @@ object dlgEditGST: TdlgEditGST
     object pgBASRules: TTabSheet
       Caption = '&BAS Fields'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label10: TLabel
         Left = 8
         Top = 8
@@ -548,10 +544,6 @@ object dlgEditGST: TdlgEditGST
     object pgReportSettings: TTabSheet
       Caption = 'Report O&ptions'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxAccrual: TGroupBox
         Left = 8
         Top = 4
@@ -691,10 +683,6 @@ object dlgEditGST: TdlgEditGST
     object pgCalcMethod: TTabSheet
       Caption = 'Calculation &Method'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label12: TLabel
         Left = 16
         Top = 64
@@ -863,10 +851,6 @@ object dlgEditGST: TdlgEditGST
     object tsTaxRates: TTabSheet
       Caption = '&Other Rates'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label3: TLabel
         Left = 311
         Top = 25
@@ -1156,7 +1140,6 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 176
@@ -1173,7 +1156,6 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 216
@@ -1190,7 +1172,6 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 256
@@ -1255,7 +1236,6 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.##'
     Table = tblRates
     Left = 328
