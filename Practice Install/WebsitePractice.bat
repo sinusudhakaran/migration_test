@@ -59,13 +59,13 @@ copy "%DirRelease%\bnotes.exe" "%DirPracticeAU%\bnotes.exe" /Y
 copy "%DirRelease%\bnotes.exe" "%DirPracticeNZ%\bnotes.exe" /Y
 copy "%DirRelease%\bnotes.exe" "%DirPracticeUK%\bnotes.exe" /Y
 REM Copy Books Install
-xcopy "%DirRelease%\BooksInstall_AU\*" "%DirPracticeAU%" /i /s /y
-xcopy "%DirRelease%\BooksInstall_NZ\*" "%DirPracticeNZ%" /i /s /y
-xcopy "%DirRelease%\BooksInstall_UK\*" "%DirPracticeUK%" /i /s /y
+xcopy "%DirRelease%\BooksInstall_AU\setup_books_au.exe" "%DirPracticeAU%" /i /s /y
+xcopy "%DirRelease%\BooksInstall_NZ\setup_books_nz.exe" "%DirPracticeNZ%" /i /s /y
+xcopy "%DirRelease%\BooksInstall_UK\setup_books_uk.exe" "%DirPracticeUK%" /i /s /y
 REM Copy Books Update
-xcopy "%DirRelease%\Books_Update_NZ\*" "%DirPracticeAU%" /i /s /y
-xcopy "%DirRelease%\Books_Update_NZ\*" "%DirPracticeNZ%" /i /s /y
-xcopy "%DirRelease%\Books_Update_NZ\*" "%DirPracticeUK%" /i /s /y
+xcopy "%DirRelease%\Books_Update_NZ\setup_update_books_nz.exe" "%DirPracticeAU%" /i /s /y
+xcopy "%DirRelease%\Books_Update_NZ\setup_update_books_au.exe" "%DirPracticeNZ%" /i /s /y
+xcopy "%DirRelease%\Books_Update_NZ\setup_update_books_uk.exe" "%DirPracticeUK%" /i /s /y
 REM Copy Practice Update
 xcopy "%DirRelease%\Prac_Update_AU\*" "%DirPracticeAU%" /i /s /y
 xcopy "%DirRelease%\Prac_Update_NZ\*" "%DirPracticeNZ%" /i /s /y
