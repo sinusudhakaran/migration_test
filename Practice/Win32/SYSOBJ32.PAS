@@ -416,9 +416,7 @@ var
 begin
   AuditInfo.AuditAction := aaNone;
   AuditInfo.AuditType := AAuditType;
-{$IFNDEF LOOKUPDLL}
-  AuditInfo.AuditUser := Globals.CurrUser.Code;
-{$ENDIF}  
+  AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecord := New_Practice_Details_Rec;
   try
     SetAuditInfo(@fdFields, APracticeDetails, AuditInfo);

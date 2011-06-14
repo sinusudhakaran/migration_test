@@ -291,9 +291,7 @@ var
 begin
   AuditInfo.AuditAction := aaNone;
   AuditInfo.AuditType := AAuditType;
-{$IFNDEF LOOKUPDLL}
-  AuditInfo.AuditUser := Globals.CurrUser.Code;
-{$ENDIF}
+  AuditInfo.AuditUser := ClientAuditMgr.CurrentUserCode;
   //Client
   AuditInfo.AuditRecord := New_Client_Rec;
   try

@@ -559,7 +559,14 @@ begin
 {$IFDEF LOOKUPDLL}
   Result := '';
 {$ELSE}
-  Result := Globals.CurrUser.Code;
+  if Assigned(AdminSystem) then
+    Result := Globals.CurrUser.Code
+  else if Assigned(MyClient) then begin
+     if (MyClient.clFields.clDownload_From <> dlAdminSystem) then
+       Result := 'Books Secure'
+     else
+       Result := 'Books';
+  end;
 {$ENDIF}
 end;
 
@@ -677,12 +684,13 @@ begin
 {$ENDIF}
 end;
 
-procedure AddSpecailAuditRec(ARecordType: Byte; AParentID: integer; AScopeInfo: PScopeInfo; AAuditTable: TAuditTable);
+procedure AddSpecailAuditRec(ARecordType: Byte; AParentID: integer;
+  AScopeInfo: PScopeInfo; AAuditTable: TAuditTable; AUser: string);
 var
   Auditinfo: TAuditinfo;
 begin
   Auditinfo.AuditRecordID := AScopeInfo.AuditRecordID;
-  Auditinfo.AuditUser     := Globals.CurrUser.Code;
+  Auditinfo.AuditUser     := AUser;
   Auditinfo.AuditType     := AScopeInfo.AuditType;
   Auditinfo.AuditAction   := AScopeInfo.AuditAction;
   Auditinfo.AuditParentID := AParentID;
@@ -708,7 +716,8 @@ begin
       AddSpecailAuditRec(TableID,
                          GetParentRecordID(TableID, PScopeInfo(FAuditScope.Items[i]).AuditRecordID),
                          PScopeInfo(FAuditScope.Items[i]),
-                         AdminSystem.fAuditTable);
+                         AdminSystem.fAuditTable,
+                         CurrentUserCode);
     end else begin
       case TableID of
         tkBegin_Practice_Details: AdminSystem.DoAudit(@SystemCopy.fdFields, PScopeInfo(FAuditScope.Items[i]).AuditType);
@@ -978,7 +987,8 @@ begin
         AddSpecailAuditRec(TableID,
                            GetParentRecordID(TableID, PScopeInfo(FAuditScope.Items[i]).AuditRecordID),
                            PScopeInfo(FAuditScope.Items[i]),
-                           fAuditTable);
+                           fAuditTable,
+                           CurrentUserCode);
       end else begin
         case TableID of
           tkBegin_Client      : DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType, ClientCopy);
