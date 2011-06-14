@@ -285,11 +285,9 @@ end;
 {$IFNDEF ParserDll}
 procedure TClientObj.DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
 var
-  i: integer;
   AuditInfo: TAuditInfo;
   clFieldsCopy: TClient_Rec;
   ceFieldsCopy: TClientExtra_Rec;
-  BA1, BA2: TBank_Account;
 begin
   AuditInfo.AuditAction := aaNone;
   AuditInfo.AuditType := AAuditType;

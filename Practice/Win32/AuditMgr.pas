@@ -20,7 +20,7 @@ const
   atProvisionalDataEntry          = 7;
   atSystemClientFiles             = 8;
   atAttachBankAccounts            = 9;
-  atClientBankAccounts            = 10;
+  atClientBankAccounts            = 10; //Client starts here
   atChartOfAccounts               = 11;
   atPayees                        = 12;
   atClientFiles                   = 13;
@@ -53,7 +53,7 @@ const
   //Audit action strings
   aaNames : array[ aaMin..aaMax ] of string = ('None', 'Add', 'Change', 'Delete');
 
-  SystemAuditTypes = [atPracticeSetup..atSystemClientFiles, atAll];
+  SystemAuditTypes = [atPracticeSetup..atAttachBankAccounts, atAll];
 
   dbSystem = 0;
   dbClient = 1;
@@ -69,6 +69,7 @@ type
 
   TAuditType = atMin..atMax;
 
+  PAuditInfo = ^TAuditInfo;
   TAuditInfo = record
     AuditRecordID: integer;
     AuditUser: string;
@@ -92,7 +93,9 @@ type
   PScopeInfo = ^TScopeInfo;
   TScopeInfo = record
     AuditType: TAuditType;
-    RecordID: integer;
+    AuditRecordID: integer;
+    AuditAction: byte;
+    OtherInfo: string
   end;
 
   TAuditTypeInfo = record
@@ -105,7 +108,8 @@ type
     FAuditScope: TList;
     function AuditTypeToTableID(AAuditType: TAuditType): byte;
     function FindScopeInfo(AScopeInfo: PScopeInfo): integer;
-    procedure AddScope(AAuditType: TAuditType; ARecordID: integer);
+    procedure AddScope(AAuditType: TAuditType; AAuditRecordID: integer;
+                       AAuditAction: byte; AOtherInfo: string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -118,7 +122,8 @@ type
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; virtual; abstract;
     procedure AddAuditValue(AFieldName: string; AValue: variant; var AAuditValue: string); virtual;
     procedure DoAudit; virtual; abstract;
-    procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); virtual; abstract;
+    procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
+                        AAuditAction: byte = aaNone; AOtherInfo: string = ''); virtual; abstract;
     procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); virtual; abstract;
     procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer); virtual; abstract;
     procedure GetValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string); virtual; abstract;
@@ -134,7 +139,8 @@ type
     function BankAccountFromLRN(ALRN: integer): string;
     function ClientCodeFromLRN(ALRN: integer): string;
     procedure DoAudit; override;
-    procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
+    procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
+                        AAuditAction: byte = aaNone; AOtherInfo: string = ''); override;
     procedure GetValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string); override;
     procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer); override;
     procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); override;
@@ -154,7 +160,8 @@ type
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
     function GetTransactionAuditType(ABankAccountSource: byte; ABankAccountType: byte): TAuditType;
     procedure DoAudit; override;
-    procedure FlagAudit(AAuditType: TAuditType; ARecord: Pointer = nil); override;
+    procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
+                        AAuditAction: byte = aaNone; AOtherInfo: string = ''); override;
     procedure GetValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string); override;
     procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer); override;
     procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); override;
@@ -452,6 +459,24 @@ begin
 {$ENDIF}
 end;
 
+procedure AddOtherInfoFlag(var AValuesString: string);
+var
+  i: integer;
+  ValuesList: TStringList;
+begin
+  ValuesList := TStringList.Create;
+  try
+    ValuesList.Delimiter := VALUES_DELIMITER;
+    ValuesList.StrictDelimiter := true;
+    ValuesList.DelimitedText := AValuesString;
+    for i := 0 to ValuesList.Count - 1 do
+      ValuesList.Strings[i] := OTHER_INFO_FLAG + ValuesList.Strings[i];
+    AValuesString := ValuesList.DelimitedText;
+  finally
+    ValuesList.Free;
+  end;
+end;
+
 { TAuditManager }
 
 procedure TAuditManager.AddAuditValue(AFieldName: string;
@@ -468,13 +493,16 @@ begin
   AAuditValue := AAuditValue + AFieldName + '=' + Value;
 end;
 
-procedure TAuditManager.AddScope(AAuditType: TAuditType; ARecordID: integer);
+procedure TAuditManager.AddScope(AAuditType: TAuditType; AAuditRecordID: integer;
+  AAuditAction: byte; AOtherInfo: string);
 var
   ScopeInfo: PScopeInfo;
 begin
   New(ScopeInfo);
   ScopeInfo.AuditType := AAuditType;
-  ScopeInfo.RecordID := ARecordID;
+  ScopeInfo.AuditRecordID := AAuditRecordID;
+  ScopeInfo.AuditAction := AAuditAction;
+  ScopeInfo.OtherInfo := AOtherInfo;
   if FindScopeInfo(ScopeInfo) = - 1 then
     FAuditScope.Add(ScopeInfo);
 end;
@@ -559,7 +587,9 @@ begin
   Result := -1;
   for i := 0 to FAuditScope.Count - 1 do begin
     if (AScopeInfo.AuditType = PScopeInfo(FAuditScope.Items[i]).AuditType) and
-       (AScopeInfo.RecordID = PScopeInfo(FAuditScope.Items[i]).RecordID) then begin
+       (AScopeInfo.AuditRecordID = PScopeInfo(FAuditScope.Items[i]).AuditRecordID) and
+       (AScopeInfo.AuditAction = PScopeInfo(FAuditScope.Items[i]).AuditAction) and
+       (AScopeInfo.OtherInfo = PScopeInfo(FAuditScope.Items[i]).OtherInfo) then begin
       Result := i;
       Break;
     end;
@@ -647,6 +677,22 @@ begin
 {$ENDIF}
 end;
 
+procedure AddSpecailAuditRec(ARecordType: Byte; AParentID: integer; AScopeInfo: PScopeInfo; AAuditTable: TAuditTable);
+var
+  Auditinfo: TAuditinfo;
+begin
+  Auditinfo.AuditRecordID := AScopeInfo.AuditRecordID;
+  Auditinfo.AuditUser     := Globals.CurrUser.Code;
+  Auditinfo.AuditType     := AScopeInfo.AuditType;
+  Auditinfo.AuditAction   := AScopeInfo.AuditAction;
+  Auditinfo.AuditParentID := AParentID;
+  Auditinfo.AuditRecordType := ARecordType;
+//  Auditinfo.AuditChangedFields - no values required
+  Auditinfo.AuditOtherInfo := AScopeInfo.OtherInfo;
+  Auditinfo.AuditRecord := nil;
+  AAuditTable.AddAuditRec(Auditinfo);
+end;
+
 procedure TSystemAuditManager.DoAudit;
 var
   i: integer;
@@ -655,37 +701,48 @@ begin
 {$IFNDEF LOOKUPDLL}
   for i := 0 to FAuditScope.Count - 1 do begin
     TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
-    case TableID of
-      tkBegin_Practice_Details: AdminSystem.DoAudit(@SystemCopy.fdFields, PScopeInfo(FAuditScope.Items[i]).AuditType);
-      tkBegin_User: AdminSystem.fdSystem_User_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                           SystemCopy.fdSystem_User_List,
-                                                           AdminSystem.fAuditTable);
-//      tkBegin_System_Disk_Log: AdminSystem.fdSystem_Disk_Log.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-//                                                           SystemCopy.fdSystem_Disk_Log,
-//                                                           AdminSystem.fAuditTable);
-      tkBegin_System_Bank_Account: AdminSystem.fdSystem_Bank_Account_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                           SystemCopy.fdSystem_Bank_Account_List,
-                                                           AdminSystem.fAuditTable);
-      tkBegin_Client_Account_Map: AdminSystem.fdSystem_Client_Account_Map.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                           SystemCopy.fdSystem_Client_Account_Map,
-                                                           AdminSystem.fAuditTable);
-      tkBegin_Client_File: AdminSystem.fdSystem_Client_File_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                           SystemCopy.fdSystem_Client_File_List,
-                                                           AdminSystem.fAuditTable);
-      tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                           SystemCopy.fSystem_Memorisation_List, 0,
-                                                           AdminSystem.fAuditTable);
-      tkBegin_Memorisation_Detail: ; //Do nothing - sub list (TSystem_Memorisation_List - TMemorisations_List)
-      tkBegin_Memorisation_Line: ;   //Do nothing - sub list (TSystem_Memorisation_List - TMemorisations_List - TMemorisation)
+    if (PScopeInfo(FAuditScope.Items[i]).AuditRecordID <> -1) then begin
+      //This audits a change to a specific record which may include info
+      //that doesn't get audited when the database is saved (i.e no delta
+      //record is created).
+      AddSpecailAuditRec(TableID,
+                         GetParentRecordID(TableID, PScopeInfo(FAuditScope.Items[i]).AuditRecordID),
+                         PScopeInfo(FAuditScope.Items[i]),
+                         AdminSystem.fAuditTable);
+    end else begin
+      case TableID of
+        tkBegin_Practice_Details: AdminSystem.DoAudit(@SystemCopy.fdFields, PScopeInfo(FAuditScope.Items[i]).AuditType);
+        tkBegin_User: AdminSystem.fdSystem_User_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                             SystemCopy.fdSystem_User_List,
+                                                             AdminSystem.fAuditTable);
+  //      tkBegin_System_Disk_Log: AdminSystem.fdSystem_Disk_Log.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+  //                                                           SystemCopy.fdSystem_Disk_Log,
+  //                                                           AdminSystem.fAuditTable);
+        tkBegin_System_Bank_Account: AdminSystem.fdSystem_Bank_Account_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                             SystemCopy.fdSystem_Bank_Account_List,
+                                                             AdminSystem.fAuditTable);
+        tkBegin_Client_Account_Map: AdminSystem.fdSystem_Client_Account_Map.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                             SystemCopy.fdSystem_Client_Account_Map,
+                                                             AdminSystem.fAuditTable);
+        tkBegin_Client_File: AdminSystem.fdSystem_Client_File_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                             SystemCopy.fdSystem_Client_File_List,
+                                                             AdminSystem.fAuditTable);
+        tkBegin_System_Memorisation_List: AdminSystem.fSystem_Memorisation_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                             SystemCopy.fSystem_Memorisation_List, 0,
+                                                             AdminSystem.fAuditTable);
+        tkBegin_Memorisation_Detail: ; //Do nothing - sub list (TSystem_Memorisation_List - TMemorisations_List)
+        tkBegin_Memorisation_Line: ;   //Do nothing - sub list (TSystem_Memorisation_List - TMemorisations_List - TMemorisation)
+      end;
     end;
   end;
   FAuditScope.Clear;
 {$ENDIF}
 end;
 
-procedure TSystemAuditManager.FlagAudit(AAuditType: TAuditType; ARecord: Pointer);
+procedure TSystemAuditManager.FlagAudit(AAuditType: TAuditType;
+  AAuditRecordID: integer; AAuditAction: byte; AOtherInfo: string);
 begin
-  AddScope(AAuditType, 0);
+  AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
 end;
 
 function TSystemAuditManager.GetParentRecordID(ARecordType: byte; ARecordID: integer): integer;
@@ -708,23 +765,41 @@ end;
 
 procedure TSystemAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
   var Values: string);
+var
+  OtherInfo: string;
+  AuditInfo: string;
 begin
 {$IFNDEF LOOKUPDLL}
-  Values := AAuditRecord.atOther_Info;
-  if AAuditRecord.atAudit_Record = nil then
+  OtherInfo := AAuditRecord.atOther_Info;
+  if AAuditRecord.atAudit_Record = nil then begin
+    //Add deletes
+    if (AAuditRecord.atAudit_Action in [aaDelete, aaNone])then
+      Values := OtherInfo;
     Exit;
+  end;
+
+  AddOtherInfoFlag(OtherInfo);
 
   case AAuditRecord.atAudit_Record_Type of
-    tkBegin_Practice_Details: AdminSystem.AddAuditValues(AAuditRecord, Values);
-    tkBegin_User            : AdminSystem.fdSystem_User_List.AddAuditValues(AAuditRecord, Values);
+    tkBegin_Practice_Details: AdminSystem.AddAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_User            : AdminSystem.fdSystem_User_List.AddAuditValues(AAuditRecord, AuditInfo);
 //    tkBegin_System_Disk_Log : AdminSystem.fdSystem_Disk_Log.AddAuditValues(AAuditRecord, Values);
-    tkBegin_System_Bank_Account : AdminSystem.fdSystem_Bank_Account_List.AddAuditValues(AAuditRecord, Values);
-    tkBegin_Client_Account_Map  : AdminSystem.fdSystem_Client_Account_Map.AddAuditValues(AAuditRecord, Values);
-    tkBegin_Client_File         : AdminSystem.fdSystem_Client_File_List.AddAuditValues(AAuditRecord, Values);
+    tkBegin_System_Bank_Account : AdminSystem.fdSystem_Bank_Account_List.AddAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_Client_Account_Map  : AdminSystem.fdSystem_Client_Account_Map.AddAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_Client_File         : AdminSystem.fdSystem_Client_File_List.AddAuditValues(AAuditRecord, AuditInfo);
     tkBegin_System_Memorisation_List,
     tkBegin_Memorisation_Detail,
-    tkBegin_Memorisation_Line   : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, Values);
+    tkBegin_Memorisation_Line   : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, AuditInfo);
   end;
+
+  //Put it together - if there is no audit information then values will be
+  //blank and the audit record will not appear on the report. This is because
+  //fields that are not audited may have changed.
+  if (AuditInfo <> '') then
+    if (OtherInfo <> '') then
+      Values := Format('%s%s%s',[OtherInfo, VALUES_DELIMITER, AuditInfo])
+    else
+      Values := AuditInfo;
 {$ENDIF}
 end;
 
@@ -896,32 +971,42 @@ begin
   with FOwner as TClientObj do
     for i := 0 to FAuditScope.Count - 1 do begin
       TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
-      case TableID of
-        tkBegin_Client      : DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType, ClientCopy);
-        tkBegin_Payee_Line  :         ;//Done in payee detail
-        tkBegin_Payee_Detail: clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                   ClientCopy.clPayee_List, 0, fAuditTable);
-        tkBegin_Transaction :         ;//Done in bank account
-        tkBegin_Memorisation_Detail:  ;//Done in bank account
-        tkBegin_Memorisation_Line:    ;//Done in bank account
-        tkBegin_Bank_Account: clBank_Account_List.DoAudit(ClientCopy.clBank_Account_List,
-                                                          0, fAuditTable);
-        tkBegin_Account: clChart.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                         ClientCopy.clChart,
-                                         0, fAuditTable);
-        tkBegin_Custom_Heading: clCustom_Headings_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-                                                               ClientCopy.clCustom_Headings_List,
-                                                               0, fAuditTable);
+      if (PScopeInfo(FAuditScope.Items[i]).AuditRecordID <> -1) then begin
+        //This audits a change to a specific record which may include info
+        //that doesn't get audited when the database is saved (i.e no delta
+        //record is created).
+        AddSpecailAuditRec(TableID,
+                           GetParentRecordID(TableID, PScopeInfo(FAuditScope.Items[i]).AuditRecordID),
+                           PScopeInfo(FAuditScope.Items[i]),
+                           fAuditTable);
+      end else begin
+        case TableID of
+          tkBegin_Client      : DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType, ClientCopy);
+          tkBegin_Payee_Line  :         ;//Done in payee detail
+          tkBegin_Payee_Detail: clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                     ClientCopy.clPayee_List, 0, fAuditTable);
+          tkBegin_Transaction :         ;//Done in bank account
+          tkBegin_Memorisation_Detail:  ;//Done in bank account
+          tkBegin_Memorisation_Line:    ;//Done in bank account
+          tkBegin_Bank_Account: clBank_Account_List.DoAudit(ClientCopy.clBank_Account_List,
+                                                            0, fAuditTable);
+          tkBegin_Account: clChart.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                           ClientCopy.clChart,
+                                           0, fAuditTable);
+          tkBegin_Custom_Heading: clCustom_Headings_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                                 ClientCopy.clCustom_Headings_List,
+                                                                 0, fAuditTable);
+        end;
       end;
     end;
   FAuditScope.Clear;
 {$ENDIF}
 end;
 
-procedure TClientAuditManager.FlagAudit(AAuditType: TAuditType;
-  ARecord: Pointer);
+procedure TClientAuditManager.FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer;
+  AAuditAction: byte; AOtherInfo: string);
 begin
-  AddScope(AAuditType, 0);
+  AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
 end;
 
 function TClientAuditManager.GetParentRecordID(ARecordType: byte;
@@ -954,24 +1039,6 @@ begin
 {$ENDIF}
 end;
 
-procedure AddOtherInfoFlag(var AValuesString: string);
-var
-  i: integer;
-  ValuesList: TStringList;
-begin
-  ValuesList := TStringList.Create;
-  try
-    ValuesList.Delimiter := VALUES_DELIMITER;
-    ValuesList.StrictDelimiter := true;
-    ValuesList.DelimitedText := AValuesString;
-    for i := 0 to ValuesList.Count - 1 do
-      ValuesList.Strings[i] := OTHER_INFO_FLAG + ValuesList.Strings[i];
-    AValuesString := ValuesList.DelimitedText;
-  finally
-    ValuesList.Free;
-  end;
-end;
-
 procedure TClientAuditManager.GetValues(const AAuditRecord: TAudit_Trail_Rec;
   var Values: string);
 var
@@ -982,7 +1049,7 @@ begin
   OtherInfo := AAuditRecord.atOther_Info;
   if AAuditRecord.atAudit_Record = nil then begin
     //Add deletes
-    if AAuditRecord.atAudit_Action = aaDelete then
+    if (AAuditRecord.atAudit_Action in [aaDelete, aaNone])then
       Values := OtherInfo;
     Exit;
   end;
@@ -1133,7 +1200,7 @@ begin
   for i := Low(AAuditInfo.AuditChangedFields) to High(AAuditInfo.AuditChangedFields) do
     AuditRec.atChanged_Fields[i] := AAuditInfo.AuditChangedFields[i];
   AuditRec.atOther_Info := AAuditInfo.AuditOtherInfo;
-  if AuditRec.atAudit_Action = aaDelete then
+  if (AuditRec.atAudit_Action in [aaDelete, aaNone]) then
     AuditRec.atAudit_Record := nil
   else if Assigned(AAuditInfo.AuditRecord) then
     FAuditManager.CopyAuditRecord(AuditRec.atAudit_Record_Type, AAuditInfo.AuditRecord, AuditRec.atAudit_Record);
@@ -1199,7 +1266,7 @@ begin
             pAR := New_Audit_Trail_Rec;
             SYATIO.Read_Audit_Trail_Rec(pAR^, S);
             //Read record
-            if pAR^.atAudit_Action <> aaDelete then
+            if not (pAR^.atAudit_Action in [aaDelete, aaNone]) then
               FAuditManager.ReadAuditRecord(pAR^.atAudit_Record_Type, S, pAR^.atAudit_Record);
             FAuditRecords.Insert(pAR);
           end
@@ -1236,7 +1303,7 @@ begin
     AuditRec := FAuditRecords.Audit_At(i);
     SYATIO.Write_Audit_Trail_Rec(AuditRec, S);
     //Write record
-    if (AuditRec.atAudit_Action <> aaDelete) then begin
+    if not (AuditRec.atAudit_Action in [aaDelete, aaNone]) then begin
       if not Assigned(AuditRec.atAudit_Record) then
         raise ECorruptData.CreateFmt('%s - %s', [UNIT_NAME, 'Audit record not assigned.']);
       FAuditManager.WriteAuditRecord(AuditRec.atAudit_Record_Type, AuditRec.atAudit_Record, S);

@@ -90,7 +90,8 @@ uses
   Progress,
   baUtils,
   bkHelp,
-  ECodingUtils;
+  ECodingUtils,
+  AuditMgr;
 
 Const
    UnitName = 'TransferEntriesDlg';
@@ -509,6 +510,19 @@ begin
 
             LogUtil.LogMsg( lmInfo, UnitName, aMsg);
             HelpfulInfoMsg( aMsg, 0);
+
+            //*** Flag Audit ***
+            //Set audit info here so no system client file record
+            //needs to be saved to the audit table.
+            aMsg := Format('Transfered manual bank account %s%sFrom %s%sTo %s%sTransactions Added=%d',
+                           [EntryWord(TransferCount), VALUES_DELIMITER,
+                            TempBa.Title, VALUES_DELIMITER,
+                            BankBa.Title, VALUES_DELIMITER,
+                            TransferCount]);
+            MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts,
+                                              BankBa.baFields.baAudit_Record_ID,
+                                              aaNone,
+                                              aMsg);
 
             //if there are no entries left in the Temp account then prompt user
             //to delete the account.

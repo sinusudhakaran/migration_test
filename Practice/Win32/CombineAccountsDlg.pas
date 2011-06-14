@@ -51,7 +51,8 @@ implementation
 
 uses Globals, bkConst, YesNoDlg, WarningMoreFrm, baObj32, progress, LogUtil,
   InfoMoreFrm, ErrorMoreFrm, baUtils, bkDateUtils, bkDefs, syDefs, Admin32,
-  MemorisationsObj, MemUtils, BKMLIO, bkHelp, bkXPThemes, ECodingUtils;
+  MemorisationsObj, MemUtils, BKMLIO, bkHelp, bkXPThemes, ECodingUtils,
+  AuditMgr;
 
 const
    UnitName = 'CombineAccountsDlg';
@@ -242,6 +243,10 @@ begin
                 end;
               end;
             end;
+
+            //*** Flag Audit ***
+            SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+
             SaveAdminSystem;
           end
           else
@@ -254,6 +259,18 @@ begin
                     '" with "' + ToBa.Title+ '".';
         LogUtil.LogMsg( lmInfo, UnitName, aMsg + ' ' + IntToStr(TransferCount) + ' transactions were combined.');
         HelpfulInfoMsg( aMsg, 0);
+
+        //*** Flag Audit ***
+        //Set audit info here so no system client file record
+        //needs to be saved to the audit table.
+        aMsg := Format('Combined system bank accounts%sFrom %s %s%sTo %s%sTransactions Added=%d',
+                       [VALUES_DELIMITER, AcctNo, AcctName, VALUES_DELIMITER,
+                        ToBa.Title, VALUES_DELIMITER,
+                        TransferCount]);
+        MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts,
+                                          ToBa.baFields.baAudit_Record_ID,
+                                          aaNone,
+                                          aMsg);
       end;
     finally
       Free;

@@ -3699,6 +3699,11 @@ begin
                                              (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
       end;
 
+      //Get changed values
+      Values := '';
+      SystemAuditMgr.GetValues(AuditRecord, Values);
+      PrintAuditRec := PrintAuditRec and (Values <> '');
+
       //Output
       if PrintAuditRec then begin
         Report.PutString(SystemAuditMgr.AuditTypeToStr(AuditRecord.atTransaction_Type));
@@ -3709,8 +3714,6 @@ begin
 
         Report.RenderDetailLine;
 
-        Values := '';
-        SystemAuditMgr.GetValues(AuditRecord, Values);
         AuditFields.DelimitedText := Values;
         for j := 0 to AuditFields.Count - 1 do
           if (AuditFields[j] <> 'ParentID=0') then

@@ -78,7 +78,8 @@ uses
   updatemf,
   Windows,
   ToDoHandler,
-  AuditMgr;
+  AuditMgr,
+  SYAUDIT;
 
 procedure NotSynchronizedMsg;
 begin
@@ -1759,8 +1760,14 @@ begin
                   ClientFile.cfCurrent_User := 0;
 
                   //*** Flag Audit ***
-                  SystemAuditMgr.FlagAudit(atSystemClientFiles);
-
+                  //Set audit info here so no system client file record
+                  //needs to be saved to the audit table.
+                  SystemAuditMgr.FlagAudit(atSystemClientFiles,
+                                           ClientFile.cfAudit_Record_ID,
+                                           aaNone,
+                                           Format('Client Reset%sClient Code=%s',
+                                                  [VALUES_DELIMITER,
+                                                   ClientFile.cfFile_Code]));
                   SaveAdminSystem;
 
                   CloseCheckOutTask(ClientFile);

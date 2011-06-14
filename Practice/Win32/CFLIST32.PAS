@@ -211,9 +211,9 @@ begin
       SetAuditInfo(P1, P2, AuditInfo);
       if AuditInfo.AuditAction in [aaAdd, aaChange] then
         AAuditTable.AddAuditRec(AuditInfo);
-      finally
-        Dispose(AuditInfo.AuditRecord);
-      end;
+    finally
+      Dispose(AuditInfo.AuditRecord);
+    end;
   end;
   //Deletes
   for i := 0 to AClientFileListCopy.ItemCount - 1 do begin
@@ -383,6 +383,15 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : %d records saved',[ThisMethodName,itemCount]));
 end;
 
+function OnlyChangeIsClientFileClosed(P1: pClient_File_Rec; AAuditInfo: TAuditInfo): boolean;
+begin
+  Result := (AAuditInfo.AuditChangedFields[0] = 85) and //Status fields changed are Status
+            (AAuditInfo.AuditChangedFields[1] = 88) and //Save Count,
+            (AAuditInfo.AuditChangedFields[2] = 90) and //and User
+            (AAuditInfo.AuditChangedFields[3] = 0 ) and //No other fields changed
+            (P1.cfFile_Status = fsNormal); //Status=Closed
+end;
+
 procedure tSystem_Client_File_List.SetAuditInfo(P1, P2: pClient_File_Rec;
   var AAuditInfo: TAuditInfo);
 var
@@ -394,22 +403,17 @@ begin
     AAuditInfo.AuditAction := aaDelete;
     AAuditInfo.AuditRecordID := P2.cfAudit_Record_ID;
     AAuditInfo.AuditOtherInfo := Format('%s=%s',
-                                        [SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 81),
+                                        [SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 82),
                                          P2.cfFile_Code]);
   end else if Assigned(P2) then begin
     //Change
     AAuditInfo.AuditRecordID := P1.cfAudit_Record_ID;
     AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
                                                                  AAuditInfo.AuditRecordID);
-    if Client_File_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then begin
-      AAuditInfo.AuditAction := aaChange;
-      //Always show the Client File Code
-      pClient_File_Rec(AAuditInfo.AuditRecord).cfFile_Code := P1.cfFile_Code;
-      i := 0;
-      while AAuditInfo.AuditChangedFields[i] <> 0 do
-        Inc(i);
-      AAuditInfo.AuditChangedFields[i] := 82;
-    end;
+    if Client_File_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      //Don't audit Status=closed
+      if not OnlyChangeIsClientFileClosed(P1, AAuditInfo) then
+        AAuditInfo.AuditAction := aaChange;
   end else begin
     //Add
     AAuditInfo.AuditAction := aaAdd;
