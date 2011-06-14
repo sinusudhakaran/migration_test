@@ -272,7 +272,9 @@ begin
                                         tClient_Rec(ARecord^).clGST_Number, Values);
 
 //    //    FAuditNamesArray[20,56] := 'GST_Period';
-
+            //GST_Period
+            56: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
+                                        gpNames[tClient_Rec(ARecord^).clGST_Period], Values);
             //GST_Start_Month
             57: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                         moNames[tClient_Rec(ARecord^).clGST_Start_Month], Values);
