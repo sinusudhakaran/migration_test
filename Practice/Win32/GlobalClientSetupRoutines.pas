@@ -225,6 +225,10 @@ begin
             TempClient.clFields.clFax_No             := eFax.text;
             TempClient.clFields.clClient_EMail_Address := eMail.text;
           end;
+
+          //*** Flag Audit ***
+          TempClient.ClientAuditMgr.FlagAudit(atClientFiles); 
+
         finally
           Free;
         end;

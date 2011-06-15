@@ -71,10 +71,9 @@ begin
       //File Status
       85: begin
             FileStatus := fsNames[TClient_File_Rec(ARecord^).cfFile_Status];
-            if FileStatus = '' then
-              FileStatus := 'Closed';
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                         FileStatus, Values);
+            if FileStatus <> '' then //don't show File_Status=Closed
+              SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
+                                           FileStatus, Values);
           end;
       //File Password
       86: begin
