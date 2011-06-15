@@ -51,7 +51,7 @@ const
   aaDelete = 3;  aaMax = 3;
 
   //Audit action strings
-  aaNames : array[ aaMin..aaMax ] of string = ('None', 'Add', 'Change', 'Delete');
+  aaNames : array[ aaMin..aaMax ] of string = ('Action', 'Add', 'Change', 'Delete');
 
   SystemAuditTypes = [atPracticeSetup..atAttachBankAccounts, atAll];
 
@@ -60,6 +60,8 @@ const
 
   OTHER_INFO_FLAG = '*';
   VALUES_DELIMITER = '¦'; //non-keyboard character
+  USER_BOOKS = 'Books';
+  USER_BOOKS_SECURE = 'Books Secure';
 
 type
   //This is defined in MONEYDEF because all the IO units use MONEYDEF.
@@ -563,9 +565,9 @@ begin
     Result := Globals.CurrUser.Code
   else if Assigned(MyClient) then begin
      if (MyClient.clFields.clDownload_From <> dlAdminSystem) then
-       Result := 'Books Secure'
+       Result := USER_BOOKS_SECURE
      else
-       Result := 'Books';
+       Result := USER_BOOKS;
   end;
 {$ENDIF}
 end;

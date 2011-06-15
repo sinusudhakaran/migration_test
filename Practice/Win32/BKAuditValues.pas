@@ -53,7 +53,6 @@ uses
   BKMDIO,
   BKMLIO;
 
-
 procedure SetGST_Applies_From_Array(V1: TGST_Applies_From_Array;
   Token: byte; var Values: string);
 var
@@ -587,6 +586,25 @@ procedure AddBankAccountAuditValues(const AAuditRecord: TAudit_Trail_Rec;
 var
   Token, Idx: byte;
   ARecord: Pointer;
+
+  //The values saved to baManual_Account_Type do not match the
+  //order of mtNames (bkconst.pas) - so we have to remap them
+  function GetManualAccountType(AManual_Account_Type: byte): string;
+  begin
+    //baManual_Account_Type = names sorted alphabetically
+    case AManual_Account_Type of
+      0: Result := mtnames[2]; //Business credit card
+      1: Result := mtnames[4]; //Cash
+      2: Result := mtnames[6]; //Cheque
+      3: Result := mtnames[0]; //Loan
+      4: Result := mtnames[7]; //Other
+      5: Result := mtnames[1]; //Personal credit card
+      6: Result := mtnames[5]; //Savings
+      7: Result := mtnames[8]; //Self-managed superfund
+      8: Result := mtnames[3]; //Trust (CMT)
+    end;
+  end;
+
 begin
   ARecord := AAuditRecord.atAudit_Record;
 
@@ -658,7 +676,7 @@ begin
 //                                         tBank_Account_Rec(ARecord^).baCoding_Sort_Order, Values);
             //Manual_Account_Type
             176: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
-                                         mtNames[tBank_Account_Rec(ARecord^).baManual_Account_Type], Values);
+                                         GetManualAccountType(tBank_Account_Rec(ARecord^).baManual_Account_Type), Values);
             //Manual_Account_Institution
             177: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
                                          tBank_Account_Rec(ARecord^).baManual_Account_Institution, Values);

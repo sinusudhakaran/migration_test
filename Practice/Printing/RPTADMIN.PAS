@@ -3755,11 +3755,11 @@ begin
     AddJobHeader( Job, siSubTitle, '', true);
 
     CLeft := GCLeft;
-    AddColAuto( Job, cLeft, 20.0,gCgap, 'Transaction Type', jtLeft);
+    AddColAuto( Job, cLeft, 25.0,gCgap, 'Transaction Type', jtLeft);
     AddColAuto( Job, cLeft, 15.0,gCgap, 'Transaction ID', jtLeft);
-    AddColAuto( Job, cLeft, 15.0,gCgap, 'Audit Action', jtLeft);
-    AddColAuto( Job, cLeft, 10.0,gCgap, 'User Code', jtLeft);
-    AddColAuto( Job, cLeft, 40.0,gCgap, 'Date/Time', jtLeft);
+    AddColAuto( Job, cLeft, 15.0,gCgap, 'Audit Type', jtLeft);
+    AddColAuto( Job, cLeft, 15.0,gCgap, 'User Code', jtLeft);
+    AddColAuto( Job, cLeft, 30.0,gCgap, 'Date/Time', jtLeft);
 
     AddCommonFooter(Job);
 
@@ -3818,7 +3818,10 @@ begin
           Report.PutString(TempClientFile.ClientAuditMgr.AuditTypeToStr(AuditRecord.atTransaction_Type));
           Report.PutString(IntToStr(AuditRecord.atRecord_ID));
           Report.PutString(aaNames[AuditRecord.atAudit_Action]);
-          Report.PutString(AuditRecord.atUser_Code);
+          if (AuditRecord.atUser_Code = Copy(USER_BOOKS_SECURE, 1, 8)) then
+            Report.PutString(USER_BOOKS_SECURE)
+          else
+            Report.PutString(AuditRecord.atUser_Code);
           Report.PutString(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRecord.atDate_Time));
 
           Report.RenderDetailLine;
@@ -3868,11 +3871,11 @@ begin
     AddJobHeader( Job, siSubTitle, '', true);
 
     CLeft := GCLeft;
-    AddColAuto( Job, cLeft, 20.0,gCgap, 'Transaction Type', jtLeft);
+    AddColAuto( Job, cLeft, 25.0,gCgap, 'Transaction Type', jtLeft);
     AddColAuto( Job, cLeft, 15.0,gCgap, 'Transaction ID', jtLeft);
-    AddColAuto( Job, cLeft, 15.0,gCgap, 'Audit Action', jtLeft);
-    AddColAuto( Job, cLeft, 10.0,gCgap, 'User Code', jtLeft);
-    AddColAuto( Job, cLeft, 40.0,gCgap, 'Date/Time', jtLeft);
+    AddColAuto( Job, cLeft, 15.0,gCgap, 'Audit Type', jtLeft);
+    AddColAuto( Job, cLeft, 15.0,gCgap, 'User Code', jtLeft);
+    AddColAuto( Job, cLeft, 30.0,gCgap, 'Date/Time', jtLeft);
 
     AddCommonFooter(Job);
 
