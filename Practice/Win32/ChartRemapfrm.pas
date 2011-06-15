@@ -304,6 +304,8 @@ begin
          mrOK    : begin
                      //*** Flag Audit ***
                      MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+                     MyClient.ClientAuditMgr.FlagAudit(atClientFiles); //VAT changes
+
                      RefreshHomepage;
                    end;
       end;

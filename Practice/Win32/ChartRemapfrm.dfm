@@ -64,6 +64,10 @@ object frmRemapChart: TfrmRemapChart
     object tsChart: TTabSheet
       Caption = 'Chart'
       OnShow = tsChartShow
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object ChartGrid: TVirtualStringTree
         Left = 0
         Top = 65
@@ -211,6 +215,10 @@ object frmRemapChart: TfrmRemapChart
       Caption = 'GST'
       ImageIndex = 1
       OnShow = tsGSTShow
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pGSTTop: TPanel
         Left = 0
         Top = 0
