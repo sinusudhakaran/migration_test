@@ -67,7 +67,12 @@ REM Install exe
 copy "%DirRelease%\bkinstall.exe" "%DirPracticeUpdateAU%\bkinstall.exe"
 copy "%DirRelease%\bkinstall.exe" "%DirPracticeUpdateNZ%\bkinstall.exe"
 copy "%DirRelease%\bkinstall.exe" "%DirPracticeUpdateUK%\bkinstall.exe"
-REM %BNOTESDIR%\Parsebnotes.dll ???
-REM %RELEASEDIR%\parsebk5win.dll ???
-REM xcopy "folder\*" "Path\folder" /i /s /y
+REM BK5 Parser
+copy "%DirRelease%\parsebk5win.dll" "%DirPracticeUpdateAU%\parsebk5win.dll"
+copy "%DirRelease%\parsebk5win.dll" "%DirPracticeUpdateNZ%\parsebk5win.dll"
+copy "%DirRelease%\parsebk5win.dll" "%DirPracticeUpdateUK%\parsebk5win.dll"
+REM BNotes Parser
+copy "%DirRelease%\ParseBNotes.dll" "%DirPracticeUpdateAU%\ParseBNotes.dll"
+copy "%DirRelease%\ParseBNotes.dll" "%DirPracticeUpdateNZ%\ParseBNotes.dll"
+copy "%DirRelease%\ParseBNotes.dll" "%DirPracticeUpdateUK%\ParseBNotes.dll"
 pause
