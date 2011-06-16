@@ -144,10 +144,10 @@ Begin
       begin
          Master_Mem_Lists_Collection. ReloadSystemMXList( BankPrefix);
 
-         //Test
+         //Master memorisations are now stored in the System DB - so it
+         //must be reloaded if the datetime stamp has changed (i.e another
+         //user has updated it and master mems may have changed).
          RefreshAdmin;
-
-//         MasterMemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
          SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
          if Assigned(SystemMemorisation) then
            MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
