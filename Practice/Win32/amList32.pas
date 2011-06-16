@@ -26,7 +26,6 @@ Type
 
       procedure   DoAudit(AAuditType: TAuditType; AClientAccountMapCopy: TSystem_Client_Account_Map; var AAuditTable: TAuditTable);
       procedure   SetAuditInfo(P1, P2: pClient_Account_Map_Rec; var AAuditInfo: TAuditInfo);
-      procedure   AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
       procedure   Insert(Item: Pointer); override;
    end;
 
@@ -351,56 +350,6 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TSystem_Client_Account_Map.AddAuditValues(
-  const AAuditRecord: TAudit_Trail_Rec; var Values: string);
-var
-  Token, Idx: byte;
-  ARecord: Pointer;
-  BankAccount, ClientCode: string;
-begin
-  ARecord := AAuditRecord.atAudit_Record;
-
-  //Delete
-  if ARecord = nil then begin
-    Values := AAuditRecord.atOther_Info;
-    Exit;
-  end;
-
-  Idx := 0;
-  Token := AAuditRecord.atChanged_Fields[idx];
-  while Token <> 0 do begin
-    case Token of
-      //Bank Account
-      92: begin
-            BankAccount := SystemAuditMgr.BankAccountFromLRN(TClient_Account_Map_Rec(ARecord^).amAccount_LRN);
-            if BankAccount <> '' then
-              SystemAuditMgr.AddAuditValue(BANK_ACCOUNT, BankAccount, Values);
-          end;
-      //Client File
-      93: begin
-            ClientCode := SystemAuditMgr.ClientCodeFromLRN(TClient_Account_Map_Rec(ARecord^).amClient_LRN);
-            if ClientCode <> '' then
-              SystemAuditMgr.AddAuditValue(CLIENT_CODE, ClientCode, Values);
-          end;
-//   tkamClient_LRN                       = 92 ;
-//   tkamAccount_LRN                      = 93 ;
-//   tkamLast_Date_Printed                = 94 ;
-//   tkamTemp_Last_Date_Printed           = 95 ;
-//   tkamEarliest_Download_Date           = 96 ;
-//   tkamAudit_Record_ID                  = 97 ;
-//
-//    FAuditNamesArray[90,91] := 'Client_LRN';
-//    FAuditNamesArray[90,92] := 'Account_LRN';
-//    FAuditNamesArray[90,93] := 'Last_Date_Printed';
-//    FAuditNamesArray[90,94] := 'Temp_Last_Date_Printed';
-//    FAuditNamesArray[90,95] := 'Earliest_Download_Date';
-//    FAuditNamesArray[90,96] := 'Audit_Record_ID';
-    end;
-    Inc(Idx);
-    Token := AAuditRecord.atChanged_Fields[idx];
-  end;
-end;
-
 function TSystem_Client_Account_Map.Client_Account_Map_At(Index: LongInt): pClient_Account_Map_Rec;
 const
   ThisMethodName = 'TSystem_Client_Account_Map.Client_Account_Map_At';

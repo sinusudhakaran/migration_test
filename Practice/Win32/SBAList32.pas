@@ -26,7 +26,6 @@ Type
 
       procedure   DoAudit(AAuditType: TAuditType; ASysBankAccountTableCopy: tSystem_Bank_Account_List; var AAuditTable: TAuditTable);
       procedure   SetAuditInfo(P1, P2: pSystem_Bank_Account_Rec; var AAuditInfo: TAuditInfo);
-      procedure   AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
       procedure   Insert(Item: Pointer); override;
    end;
 
@@ -42,82 +41,6 @@ CONST
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 { tSystem_Bank_Account_List }
-procedure tSystem_Bank_Account_List.AddAuditValues(
-  const AAuditRecord: TAudit_Trail_Rec; var Values: string);
-var
-  i: integer;
-  Token, Idx: byte;
-  PW: string;
-  ARecord: Pointer;
-begin
-  ARecord := AAuditRecord.atAudit_Record;
-  if ARecord = nil then Exit;
-
-  Idx := 0;
-  Token := AAuditRecord.atChanged_Fields[idx];
-  while Token <> 0 do begin
-    case Token of
-      //Account number
-      52: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
-                                       TSystem_Bank_Account_Rec(ARecord^).sbAccount_Number, Values);
-      //Account name
-      53: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
-                                       TSystem_Bank_Account_Rec(ARecord^).sbAccount_Name, Values);
-      //Password
-      54: begin
-            for i := 1 to Length(TSystem_Bank_Account_Rec(ARecord^).sbAccount_Password) do
-              PW := PW + '*';
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
-                                         PW, Values);
-          end;
-//   tksbLRN                              = 55 ;
-//   tksbClient                           = 56 ;
-//   tksbCurrent_Balance                  = 57 ;
-//   tksbLast_Transaction_LRN             = 58 ;
-//   tksbNew_This_Month                   = 59 ;
-      //No of Entries
-      60: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
-                                       TSystem_Bank_Account_Rec(ARecord^).sbNo_of_Entries_This_Month, Values);
-
-//   tksbFrom_Date_This_Month             = 61 ;
-//   tksbTo_Date_This_Month               = 62 ;
-//   tksbCost_Code                        = 63 ;
-//   tksbCharges_This_Month               = 64 ;
-//   tksbOpening_Balance_from_Disk        = 65 ;
-//   tksbClosing_Balance_from_Disk        = 66 ;
-//   tksbAttach_Required                  = 67 ;
-//   tksbWas_On_Latest_Disk               = 68 ;
-//   tksbLast_Entry_Date                  = 69 ;
-//   tksbDate_Of_Last_Entry_Printed       = 70 ;
-      //Mark as deleted
-      71: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
-                                       TSystem_Bank_Account_Rec(ARecord^).sbMark_As_Deleted, Values);
-//   tksbFile_Code                        = 72 ;
-//   tksbClient_ID                        = 73 ;
-//   tksbMatter_ID                        = 74 ;
-//   tksbAssignment_ID                    = 75 ;
-//   tksbDisbursement_ID                  = 76 ;
-//   tksbAccount_Type                     = 77 ;
-//   tksbJob_Code                         = 78 ;
-//   tksbActivity_Code                    = 79 ;
-//   tksbUnused                           = 80 ;
-//   tksbFirst_Available_Date             = 81 ;
-      //Account name
-      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Bank_Account, Token),
-                                       TSystem_Bank_Account_Rec(ARecord^).sbNo_Charge_Account, Values);
-//   tksbCurrency_Code                    = 83 ;
-//   tksbInstitution                      = 84 ;
-//   tksbInActive                         = 85 ;
-//   tksbBankLink_Code                    = 86 ;
-//   tksbFrequency                        = 87 ;
-//   tksbFrequency_Change_Pending         = 88 ;
-//   tksbAudit_Record_ID                  = 89 ;
-
-    end;
-    Inc(Idx);
-    Token := AAuditRecord.atChanged_Fields[idx];
-  end;
-end;
 
 function tSystem_Bank_Account_List.ChargingAccountsCount: Integer;
 var i: Integer;

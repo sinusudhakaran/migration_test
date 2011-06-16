@@ -23,7 +23,6 @@ Type
 
       procedure   DoAudit(AAuditType: TAuditType; AUserTableCopy: tSystem_User_List; var AAuditTable: TAuditTable);
       procedure   SetAuditInfo(P1, P2: pUser_Rec; var AAuditInfo: TAuditInfo);
-      procedure   AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
       procedure   Insert(Item: Pointer); override;
    end;
 
@@ -39,73 +38,6 @@ CONST
 
 { tSystem_User_List }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure tSystem_User_List.AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
-var
-  i: integer;
-  Token, Idx: byte;
-  PW, UserType: string;
-  ARecord: Pointer;
-begin
-  ARecord := AAuditRecord.atAudit_Record;
-
-  if ARecord = nil then begin
-    Values := AAuditRecord.atOther_Info;
-    Exit;
-  end;
-
-  Idx := 0;
-  Token := AAuditRecord.atChanged_Fields[idx];
-  while Token <> 0 do begin
-    case Token of
-      //Code
-      62: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                       tUser_Rec(ARecord^).usCode, Values);
-      //Name
-      63: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                       tUser_Rec(ARecord^).usName, Values);
-      //Email
-      65: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                       tUser_Rec(ARecord^).usEMail_Address, Values);
-      //Password
-      64: begin
-            for i := 1 to Length(tUser_Rec(ARecord^).usPassword) do
-              PW := PW + '*';
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                         PW, Values);
-          end;
-      //Direct Dial
-      75: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                       tUser_Rec(ARecord^).usDirect_Dial, Values);
-      //Type
-      66: begin
-            if (tUser_Rec(ARecord^).usSystem_Access) then
-              UserType := ustNames[ustSystem]
-            else if (tUser_Rec(ARecord^).usIs_Remote_User) then
-              UserType := ustNames[ustRestricted]
-            else
-              UserType := ustNames[ustNormal];
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                         UserType, Values);
-          end;
-      //Master mems
-      70: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                       tUser_Rec(ARecord^).usMASTER_Access, Values);
-
-      //Print options
-      77: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                       tUser_Rec(ARecord^).usShow_Printer_Choice, Values);
-      //Headers
-      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                       tUser_Rec(ARecord^).usSuppress_HF, Values);
-      //Logo
-      83: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_User, Token),
-                                       tUser_Rec(ARecord^).usShow_Practice_Logo, Values);
-    end;
-    Inc(Idx);
-    Token := AAuditRecord.atChanged_Fields[idx];
-  end;
-end;
-
 function tSystem_User_List.Compare(Item1, Item2: pointer): integer;
 begin
   Compare := StStrS.CompStringS( pUser_Rec(Item1).usCode, pUser_Rec(Item2).usCode );

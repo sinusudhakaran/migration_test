@@ -19,7 +19,6 @@ Type
 
       procedure DoAudit(AAuditType: TAuditType; ASystemDiskLogCopy: tSystem_Disk_Log; var AAuditTable: TAuditTable);
       procedure SetAuditInfo(P1, P2: pSystem_Disk_Log_Rec; var AAuditInfo: TAuditInfo);
-      procedure AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
       function Insert(Item: Pointer): integer; override;
    end;
 
@@ -33,40 +32,6 @@ CONST
    UnitName  = 'SYSDLIST32';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure tSystem_Disk_Log.AddAuditValues(const AAuditRecord: TAudit_Trail_Rec;
-  var Values: string);
-var
-  Token, Idx: byte;
-  ARecord: Pointer;
-begin
-  ARecord := AAuditRecord.atAudit_Record;
-  if ARecord = nil then Exit;
-
-  Idx := 0;
-  Token := AAuditRecord.atChanged_Fields[idx];
-  while Token <> 0 do begin
-    case Token of
-      //Disk_ID
-      42: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Disk_Log, 41),
-                                       TSystem_Disk_Log_Rec(ARecord^).dlDisk_ID, Values);
-      //Date_Downloaded
-      43: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Disk_Log, 42),
-                                       bkDate2Str(TSystem_Disk_Log_Rec(ARecord^).dlDate_Downloaded), Values);
-      //No_of_Accounts
-      44: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Disk_Log, 43),
-                                       TSystem_Disk_Log_Rec(ARecord^).dlNo_of_Accounts, Values);
-      //No_of_Entries
-      45: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Disk_Log, 44),
-                                       TSystem_Disk_Log_Rec(ARecord^).dlNo_of_Entries, Values);
-      //Was_In_Last_Download
-      46: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_System_Disk_Log, 45),
-                                       TSystem_Disk_Log_Rec(ARecord^).dlWas_In_Last_Download, Values);
-    end;
-    Inc(Idx);
-    Token := AAuditRecord.atChanged_Fields[idx];
-  end;
-end;
-
 Constructor tSystem_Disk_Log.Create;
 const
   ThisMethodName = 'TSystem_Disk_Log';

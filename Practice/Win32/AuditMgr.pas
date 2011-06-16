@@ -212,7 +212,8 @@ uses
   BKPLIO, BKHDIO;
 {$ELSE}
 uses
-  Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList, BKAuditValues,
+  Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList,
+  BKAuditValues, SYAuditValues,
   bkdateutils, TOKENS,  BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
@@ -726,9 +727,6 @@ begin
         tkBegin_User: AdminSystem.fdSystem_User_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                              SystemCopy.fdSystem_User_List,
                                                              AdminSystem.fAuditTable);
-  //      tkBegin_System_Disk_Log: AdminSystem.fdSystem_Disk_Log.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
-  //                                                           SystemCopy.fdSystem_Disk_Log,
-  //                                                           AdminSystem.fAuditTable);
         tkBegin_System_Bank_Account: AdminSystem.fdSystem_Bank_Account_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                              SystemCopy.fdSystem_Bank_Account_List,
                                                              AdminSystem.fAuditTable);
@@ -792,15 +790,14 @@ begin
   AddOtherInfoFlag(OtherInfo);
 
   case AAuditRecord.atAudit_Record_Type of
-    tkBegin_Practice_Details: AdminSystem.AddAuditValues(AAuditRecord, AuditInfo);
-    tkBegin_User            : AdminSystem.fdSystem_User_List.AddAuditValues(AAuditRecord, AuditInfo);
-//    tkBegin_System_Disk_Log : AdminSystem.fdSystem_Disk_Log.AddAuditValues(AAuditRecord, Values);
-    tkBegin_System_Bank_Account : AdminSystem.fdSystem_Bank_Account_List.AddAuditValues(AAuditRecord, AuditInfo);
-    tkBegin_Client_Account_Map  : AdminSystem.fdSystem_Client_Account_Map.AddAuditValues(AAuditRecord, AuditInfo);
-    tkBegin_Client_File         : AdminSystem.fdSystem_Client_File_List.AddAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_Practice_Details    : AddSystemAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_User                : AddUserAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_System_Bank_Account : AddSystemBankAccountAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_Client_Account_Map  : AddClientAccountMapAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_Client_File         : AddClientFileAuditValues(AAuditRecord, AuditInfo);
     tkBegin_System_Memorisation_List,
     tkBegin_Memorisation_Detail,
-    tkBegin_Memorisation_Line   : AdminSystem.fSystem_Memorisation_List.AddAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_Memorisation_Line   : AddMasterMemorisationAuditValues(AAuditRecord, AuditInfo);
   end;
 
   //Put it together - if there is no audit information then values will be

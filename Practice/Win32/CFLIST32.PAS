@@ -22,7 +22,6 @@ Type
 
       procedure   DoAudit(AAuditType: TAuditType; AClientFileListCopy: tSystem_Client_File_List; var AAuditTable: TAuditTable);
       procedure   SetAuditInfo(P1, P2: pClient_File_Rec; var AAuditInfo: TAuditInfo);
-      procedure   AddAuditValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string);
       procedure   Insert(Item: Pointer); override;
    end;
 
@@ -39,129 +38,6 @@ CONST
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // tSystem_Client_File_List
 
-procedure tSystem_Client_File_List.AddAuditValues(
-  const AAuditRecord: TAudit_Trail_Rec; var Values: string);
-var
-  i: integer;
-  Token, Idx: byte;
-  PW, FileStatus: string;
-  ARecord: Pointer;
-
-begin
-  ARecord := AAuditRecord.atAudit_Record;
-
-  if Values = '' then
-    Values := AAuditRecord.atOther_Info;
-  if ARecord = nil then
-    Exit;
-
-  Idx := 0;
-  Token := AAuditRecord.atChanged_Fields[idx];
-  while Token <> 0 do begin
-    case Token of
-      //File Code
-      82: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       TClient_File_Rec(ARecord^).cfFile_Code, Values);
-      //File Name
-      83: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       TClient_File_Rec(ARecord^).cfFile_Name, Values);
-      //File Type
-//      84: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-//                                       TClient_File_Rec(ARecord^).cfFile_Type, Values);
-      //File Status
-      85: begin
-            FileStatus := fsNames[TClient_File_Rec(ARecord^).cfFile_Status];
-            if FileStatus <> '' then //don't show File_Status=Closed
-              SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                           FileStatus, Values);
-          end;
-      //File Password
-      86: begin
-            for i := 1 to Length(TClient_File_Rec(ARecord^).cfFile_Password) do
-              PW := PW + '*';
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                         PW, Values);
-          end;
-//   tkcfDate_Last_Accessed               = 87 ;
-//   tkcfFile_Save_Count                  = 88 ;
-//   tkcfUser_Responsible                 = 89 ;
-      //User_Responsible
-      89: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       GetUserCode(TClient_File_Rec(ARecord^).cfUser_Responsible), Values);
-//   tkcfCurrent_User                     = 90 ;
-//   tkcfLRN                              = 91 ;
-      //Report_Start_Date
-      92: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       bkDate2Str(TClient_File_Rec(ARecord^).cfReport_Start_Date), Values);
-      //Reporting_Period
-      93: if TClient_File_Rec(ARecord^).cfReporting_Period in [roMin..roMax] then
-            SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                         roNames[TClient_File_Rec(ARecord^).cfReporting_Period], Values);
-//   tkcfForeign_File                     = 94 ;
-//   tkcfUnused_Date_Field                = 95 ;
-      //Reports_Due
-      96: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       TClient_File_Rec(ARecord^).cfReports_Due, Values);
-//   tkcfContact_Details_To_Show          = 97 ;
-      //Contact_Details_To_Show
-      97: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       cdtNames[TClient_File_Rec(ARecord^).cfContact_Details_To_Show], Values);
-      //Financial_Year_Starts
-      98: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       bkDate2Str(TClient_File_Rec(ARecord^).cfFinancial_Year_Starts), Values);
-      //Schd_Rep_Method
-      99: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       srdNames[TClient_File_Rec(ARecord^).cfSchd_Rep_Method], Values);
-//   tkcfSpareBoolean                     = 100 ;
-//   tkcfPending_ToDo_Count               = 101 ;
-//   tkcfNext_ToDo_Desc                   = 102 ;
-//   tkcfNext_ToDo_Rem_Date               = 103 ;
-//   tkcfHas_Client_Notes                 = 104 ;
-//   tkcfOverdue_ToDo_Count               = 105 ;
-//   tkcfSched_Rep_Reports_To_Send        = 106 ;
-      //Sched_Rep_Reports_To_Send
-//      99: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 98),
-//                                       TClient_File_Rec(ARecord^).cfSched_Rep_Reports_To_Send, Values);
-//   tkcfContact_Details_Edit_Date        = 107 ;
-//   tkcfContact_Details_Edit_Time        = 108 ;
-//   tkcfBank_Accounts                    = 109 ;
-//   tkcfDate_Of_Last_Entry_Printed       = 110 ;
-//   tkcfLast_Print_Reports_Up_To         = 111 ;
-//   tkcfClient_Type                      = 112 ;
-//   tkcfCoded                            = 113 ;
-//   tkcfFinalized                        = 114 ;
-//   tkcfTransferred                      = 115 ;
-//   tkcfLast_Processing_Status_Date      = 116 ;
-//   tkcfSchd_Rep_Method_Filter           = 117 ;
-      //Archived
-      118: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                        TClient_File_Rec(ARecord^).cfArchived, Values);
-//   tkcfPayee_Count                      = 119 ;
-//   tkcfBank_Account_Count               = 120 ;
-//   tkcfManual_Account_Count             = 121 ;
-//   tkcfMem_Count                        = 122 ;
-//   tkcfAccounting_System                = 123 ;
-//   tkcfDownloaded                       = 124 ;
-      //Group
-      125: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                        GetGroupName(TClient_File_Rec(ARecord^).cfGroup_LRN), Values);
-      //Client_Type_LRN
-      126: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                        GetClientFileType(TClient_File_Rec(ARecord^).cfClient_Type_LRN), Values);
-//   tkcfJob_Count                        = 127 ;
-//   tkcfDivision_Count                   = 128 ;
-//   tkcfGST_Period                       = 129 ;
-//   tkcfGST_Start_Month                  = 130 ;
-//   tkcfBulk_Extract_Code                = 131 ;
-//   tkcfWebNotesAvailable                = 132 ;
-//   tkcfWebNotes_Email_Notifications     = 133 ;
-//   tkcfISO_Codes                        = 134 ;
-    end;
-    Inc(Idx);
-    Token := AAuditRecord.atChanged_Fields[idx];
-  end;
-end;
-
 function tSystem_Client_File_List.Client_File_At(Index: Integer): pClient_File_Rec;
 const
   ThisMethodName = 'TSystem_Client_File_List.File_At';
@@ -171,7 +47,7 @@ begin
    Client_File_At := NIL;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    P := At( Index );
-   If SYCFIO.IsAClient_File_Rec ( P ) then 
+   If SYCFIO.IsAClient_File_Rec ( P ) then
       Client_File_At := P;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
