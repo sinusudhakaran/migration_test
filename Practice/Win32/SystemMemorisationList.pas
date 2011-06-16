@@ -274,6 +274,7 @@ var
   i: integer;
   P1, P2: pSystem_Memorisation_List_Rec;
   AuditInfo: TAuditInfo;
+  MemorisationsListCopy: TMemorisations_List;
 begin
   AuditInfo.AuditType := atMasterMemorisations;
   AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
@@ -305,16 +306,15 @@ begin
     end;
   end;
 
-  //Test - audit each master memorisation for the institution
-  for I := 0 to Pred( itemCount ) do begin
+  //Audit each master memorisation for the institution
+  for i := 0 to Pred(ItemCount) do begin
+    MemorisationsListCopy := nil;
     P1 := Items[i];
     P2 := ASystemMemorisationsCopy.FindRecordID(P1.smAudit_Record_ID);
-    if Assigned(P1.smMemorisations) and Assigned(P2) then begin
-      TMemorisations_List(P1.smMemorisations).DoAudit(P2.smMemorisations,
-                                                      P1.smAudit_Record_ID,
-                                                      AAuditTable);
-    end else
-      TMemorisations_List(P1.smMemorisations).DoAudit(nil,
+    if Assigned(P2) then
+      MemorisationsListCopy := P2.smMemorisations;
+    if Assigned(P1.smMemorisations) then
+      TMemorisations_List(P1.smMemorisations).DoAudit(MemorisationsListCopy,
                                                       P1.smAudit_Record_ID,
                                                       AAuditTable);
   end;
