@@ -4716,6 +4716,9 @@ begin
 
      MyClient.clBank_Account_List.Delete(SelectedBA);
      R := EditBankAccount(SelectedBA);
+     //Must be a manual bank account so that the Audit ID is not overwritten
+     //when it's inserted into the list.
+     SelectedBA.baFields.baIs_A_Manual_Account := True;
      MyClient.clBank_Account_List.Insert(SelectedBA);
      if not R then
         exit;

@@ -341,8 +341,11 @@ begin
       LogUtil.LogMsg(lmError, UnitName, Msg );
       raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
     End;
-    //Get next audit ID for new bank accounts
-    B.baFields.baAudit_Record_ID := FAuditMgr.NextAuditRecordID;
+    //Some manual bank accounts are re-inserted after the account number has
+    //been edited to keep the correct order.
+    if (not B.IsManual) or (B.baFields.baAudit_Record_ID = 0) then
+      //Get next audit ID for new bank accounts
+      B.baFields.baAudit_Record_ID := FAuditMgr.NextAuditRecordID;
   End;
 
   inherited Insert( Item );
