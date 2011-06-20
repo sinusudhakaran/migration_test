@@ -3,8 +3,8 @@ unit AuditMgr;
 interface
 
 uses
-  SysUtils, Classes, IOStream, SYAuditUtils, stTree, SYDEFS, BKDEFS, MoneyDef,
-  ECollect;
+  Windows, SysUtils, Classes, IOStream, SYAuditUtils, stTree, SYDEFS, BKDEFS,
+  MoneyDef, ECollect;
 
 const
   UNIT_NAME = 'AuditMgr';
@@ -68,6 +68,12 @@ type
   TChanged_Fields_Array = MoneyDef.TChanged_Fields_Array;
 
   TAudit_Trail_Rec = SYDEFS.tAudit_Trail_Rec;
+  TAudit_Trail_Rec_Helper = record helper for TAudit_Trail_Rec
+  public
+    //Audit datetimes are stored as UTC, so they need to be converted back to
+    //local time for display.
+    function AuditDateTimeAsLocalDateTime: TDateTime;
+  end;
 
   TAuditType = atMin..atMax;
 
@@ -290,6 +296,7 @@ const
      (tkBegin_Client, dbClient),         //BankLink Notes Online
      (tkBegin_Client, dbClient));        //BankLink Books
 {$ENDIF}
+
 
 //Notes: - Master memorisations are kept outside the System DB
 //       - Some practice details are kept in an INI file (for Books)
@@ -1195,13 +1202,18 @@ procedure TAuditTable.AddAuditRec(AAuditInfo: TAuditInfo);
 var
   AuditRec: pAudit_Trail_Rec;
   i: integer;
+  SystemTime: TSystemTime;
 begin
 {$IFNDEF LOOKUPDLL}
   AuditRec := SYATIO.New_Audit_Trail_Rec;
   AuditRec.atAudit_ID := FAuditRecords.ItemCount + 1;
   AuditRec.atTransaction_Type := AAuditInfo.AuditType;
   AuditRec.atAudit_Action := AAuditInfo.AuditAction;
-  AuditRec.atDate_Time := Now;
+
+  //Save datetime as UTC
+  GetSystemTime(SystemTime);
+  AuditRec.atDate_Time := SystemTimeToDateTime(SystemTime);
+
   AuditRec.atRecord_ID := AAuditInfo.AuditRecordID;
   AuditRec.atUser_Code := AAuditInfo.AuditUser;
   AuditRec.atParent_ID := AAuditInfo.AuditParentID;
@@ -1334,8 +1346,7 @@ begin
   Strings.Add(IntToStr(AuditRec.atRecord_ID));
   Strings.Add(aaNames[AuditRec.atAudit_Action]);
   Strings.Add(AuditRec.atUser_Code);
-  Strings.Add(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRec.atDate_Time));
-
+  Strings.Add(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRec.AuditDateTimeAsLocalDateTime));
   FAuditManager.GetValues(AuditRec, Values);
   Strings.Add(Values);
 end;
@@ -1355,8 +1366,23 @@ end;
 procedure TAuditCollection.FreeItem(Item: Pointer);
 begin
   Dispose(pAudit_Trail_Rec(Item));
-//  SYATIO.Free_Audit_Trail_Rec_Dynamic_Fields( pAudit_Trail_Rec( Item)^);
-//  SafeFreeMem( Item, Audit_Trail_Rec_Size );
+end;
+
+{ TAudit_Trail_Rec_Helper }
+
+function TAudit_Trail_Rec_Helper.AuditDateTimeAsLocalDateTime: TDateTime;
+var
+  TimeZoneInf: _TIME_ZONE_INFORMATION;
+  UTCTime, LocalDateTime: TSystemTime;
+begin
+  if GetTimeZoneInformation(TimeZoneInf) < $FFFFFFFF then begin
+    DatetimetoSystemTime(atDate_Time, UTCTime);
+    if SystemTimeToTzSpecificLocalTime(@TimeZoneInf, UTCTime, LocalDateTime) then begin
+      Result := SystemTimeToDateTime(LocalDateTime);
+    end else
+      Result := atDate_Time;
+  end else
+    Result := atDate_Time;
 end;
 
 initialization

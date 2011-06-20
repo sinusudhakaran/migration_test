@@ -3685,8 +3685,8 @@ begin
       AuditRecord := AdminSystem.fAuditTable.AuditRecords.Audit_At(i);
 
       //Date selection
-      if (stDate.DateTimeToStDate(AuditRecord.atDate_Time) < Report.ReportOptions.DateFrom) or
-         (stDate.DateTimeToStDate(AuditRecord.atDate_Time) > Report.ReportOptions.DateTo) then
+      if (stDate.DateTimeToStDate(AuditRecord.AuditDateTimeAsLocalDateTime) < Report.ReportOptions.DateFrom) or
+         (stDate.DateTimeToStDate(AuditRecord.AuditDateTimeAsLocalDateTime) > Report.ReportOptions.DateTo) then
          Continue;
 
       //Transaction selection
@@ -3710,7 +3710,7 @@ begin
         Report.PutString(IntToStr(AuditRecord.atRecord_ID));
         Report.PutString(aaNames[AuditRecord.atAudit_Action]);
         Report.PutString(AuditRecord.atUser_Code);
-        Report.PutString(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRecord.atDate_Time));
+        Report.PutString(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRecord.AuditDateTimeAsLocalDateTime));
 
         Report.RenderDetailLine;
 
@@ -3794,8 +3794,8 @@ begin
         AuditRecord := TempClientFile.fAuditTable.AuditRecords.Audit_At(i);
 
         //Date selection
-        if (stDate.DateTimeToStDate(AuditRecord.atDate_Time) < Report.ReportOptions.DateFrom) or
-           (stDate.DateTimeToStDate(AuditRecord.atDate_Time) > Report.ReportOptions.DateTo) then
+        if (stDate.DateTimeToStDate(AuditRecord.AuditDateTimeAsLocalDateTime) < Report.ReportOptions.DateFrom) or
+           (stDate.DateTimeToStDate(AuditRecord.AuditDateTimeAsLocalDateTime) > Report.ReportOptions.DateTo) then
            Continue;
 
         //Transaction selection
@@ -3822,7 +3822,7 @@ begin
             Report.PutString(USER_BOOKS_SECURE)
           else
             Report.PutString(AuditRecord.atUser_Code);
-          Report.PutString(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRecord.atDate_Time));
+          Report.PutString(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRecord.AuditDateTimeAsLocalDateTime));
 
           Report.RenderDetailLine;
 
@@ -3898,9 +3898,9 @@ begin
     AuditReportOptions.DateTo := MaxValidDate;
     if AdminSystem.fAuditTable.AuditRecords.ItemCount > 0 then begin
       AuditReportOptions.DateFrom :=
-        DateTimeToStDate(AdminSystem.fAuditTable.AuditRecords.Audit_At(AdminSystem.fAuditTable.AuditRecords.First).atDate_Time);
+        DateTimeToStDate(AdminSystem.fAuditTable.AuditRecords.Audit_At(AdminSystem.fAuditTable.AuditRecords.First).AuditDateTimeAsLocalDateTime);
       AuditReportOptions.DateTo :=
-        DateTimeToStDate(AdminSystem.fAuditTable.AuditRecords.Audit_At(AdminSystem.fAuditTable.AuditRecords.Last).atDate_Time);
+        DateTimeToStDate(AdminSystem.fAuditTable.AuditRecords.Audit_At(AdminSystem.fAuditTable.AuditRecords.Last).AuditDateTimeAsLocalDateTime);
     end;
 
     Dest := rdNone;
