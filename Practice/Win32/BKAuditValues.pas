@@ -23,6 +23,10 @@ uses
                                       AAuditMgr: TClientAuditManager;
                                       ClientFields: TClient_Rec;
                                       var Values: string);
+  procedure AddDissectionAuditValues(const AAuditRecord: TAudit_Trail_Rec;
+                                      AAuditMgr: TClientAuditManager;
+                                      ClientFields: TClient_Rec;
+                                      var Values: string);
   procedure AddPayeeAuditValues(const AAuditRecord: TAudit_Trail_Rec;
                                 AAuditMgr: TClientAuditManager;
                                 var Values: string);
@@ -51,7 +55,8 @@ uses
   BKPLIO,
   BKHDIO,
   BKMDIO,
-  BKMLIO;
+  BKMLIO,
+  BKDSIO;
 
 procedure SetGST_Applies_From_Array(V1: TGST_Applies_From_Array;
   Token: byte; var Values: string);
@@ -880,6 +885,103 @@ begin
             //Original_Forex_Conversion_Rate
             243: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txOriginal_Forex_Conversion_Rate, Values);
+          end;
+          Inc(Idx);
+          Token := AAuditRecord.atChanged_Fields[idx];
+        end;
+      end;
+  end;
+end;
+
+procedure AddDissectionAuditValues(const AAuditRecord: TAudit_Trail_Rec;
+  AAuditMgr: TClientAuditManager; ClientFields: TClient_Rec; var Values: string);
+var
+  Token, Idx: byte;
+  ARecord: Pointer;
+begin
+  ARecord := AAuditRecord.atAudit_Record;
+
+  if ARecord = nil then begin
+    Values := AAuditRecord.atOther_Info;
+    Exit;
+  end;
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Dissection:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+        while Token <> 0 do begin
+          case Token of
+            //Sequence_No
+            182: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsSequence_No, Values);
+            //Account
+            183: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsAccount, Values);
+            //Amount
+            184: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         Money2Str(tDissection_Rec(ARecord^).dsAmount), Values);
+            //GST_Class
+            185: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsGST_Class, Values);
+            //GST_Amount
+            186: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         Money2Str(tDissection_Rec(ARecord^).dsGST_Amount), Values);
+            //Quantity
+            187: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         Quantity2Str(tDissection_Rec(ARecord^).dsQuantity), Values);
+            //Old_Narration
+            188: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsOld_Narration, Values);
+            //Has_Been_Edited
+            189: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsHas_Been_Edited, Values);
+            //Journal_Type
+            190: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         jtNames[tDissection_Rec(ARecord^).dsJournal_Type], Values);
+            //GST_Has_Been_Edited
+            191: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsGST_Has_Been_Edited, Values);
+            //Payee_Number
+            192: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsPayee_Number, Values);
+            //Notes
+            193: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsNotes, Values);
+            //ECoding_Import_Notes
+            194: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsECoding_Import_Notes, Values);
+            //GL_Narration
+            195: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsGL_Narration, Values);
+            //Linked_Journal_Date
+            196: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         bkDate2Str(tDissection_Rec(ARecord^).dsLinked_Journal_Date), Values);
+//    FAuditNamesArray[180,210] := 'External_GUID';
+//    FAuditNamesArray[180,211] := 'Document_Title';
+//    FAuditNamesArray[180,212] := 'Document_Status_Update_Required';
+//    FAuditNamesArray[180,213] := 'Notes_Read';
+//    FAuditNamesArray[180,214] := 'Import_Notes_Read';
+            //Reference
+            215: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsReference, Values);
+            //Percent_Amount
+            227: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         Percent2Str(tDissection_Rec(ARecord^).dsPercent_Amount), Values);
+            //Amount_Type_Is_Percent
+            228: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsAmount_Type_Is_Percent, Values);
+            //Job_Code
+            237: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsJob_Code, Values);
+            //Tax_Invoice
+            238: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+                                         tDissection_Rec(ARecord^).dsTax_Invoice, Values);
+//    FAuditNamesArray[180,239] := 'Forex_Conversion_Rate';
+//    FAuditNamesArray[180,240] := 'Foreign_Currency_Amount';
+//    FAuditNamesArray[180,241] := 'Forex_Document_Date';
+//    FAuditNamesArray[180,242] := 'Opening_Balance_Currency';
           end;
           Inc(Idx);
           Token := AAuditRecord.atChanged_Fields[idx];

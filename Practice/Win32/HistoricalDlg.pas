@@ -2123,7 +2123,7 @@ begin
                  dsHas_Been_Edited     := FALSE;
                  dsSF_Member_Account_ID:= -1;
                  dsSF_Fund_ID          := -1;
-                 AppendDissection( pT, Dissection );
+                 AppendDissection( pT, Dissection, MyClient.ClientAuditMgr );
               end;
         end;
         if fIsForex then pT.ApplyAnyLocalCurrencyRoundingDiscrepancyToTheBiggestDissectionAmount;
@@ -3432,7 +3432,7 @@ begin
     pDC.dsPayee_Number := pD.dsPayee_Number;
     pDC.dsNotes := pD.dsNotes;
     pDC.dsGL_Narration := pD.dsGL_Narration;
-    trxlist32.AppendDissection(pTo, pDC);
+    trxlist32.AppendDissection(pTo, pDC );
     pD := pD.dsNext;
   end;
   pTo.txAmount := pFrom.txAmount;

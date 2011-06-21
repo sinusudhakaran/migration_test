@@ -712,7 +712,7 @@ begin
           dsJournal_Type        := jtNormal;
           dsSF_Member_Account_ID:= -1;
           dsSF_Fund_ID          := -1;
-          TrxList32.AppendDissection( TempYEAdjustment, pJournalLine );
+          TrxList32.AppendDissection( TempYEAdjustment, pJournalLine, ThisClient.ClientAuditMgr );
         end;
      end;
   end;

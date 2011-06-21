@@ -4113,7 +4113,7 @@ begin
 
 
 
-               AppendDissection( pT, Dissection );
+               AppendDissection( pT, Dissection, MyClient.ClientAuditMgr );
             end;
         end;
 

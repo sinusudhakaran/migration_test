@@ -215,7 +215,7 @@ uses
   TOKENS, BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
-  BKPLIO, BKHDIO;
+  BKPLIO, BKHDIO, BKDSIO;
 {$ELSE}
 uses
   Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList,
@@ -223,7 +223,7 @@ uses
   bkdateutils, TOKENS,  BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
-  BKPLIO, BKHDIO;
+  BKPLIO, BKHDIO, BKDSIO;
 
 const
   //Audit type strings
@@ -654,11 +654,6 @@ begin
         P2 := New_User_Rec;
         Copy_User_Rec(P1, P2);
       end;
-//    tkBegin_System_Disk_Log:
-//      begin
-//        P2 := New_System_Disk_Log_Rec;
-//        Copy_System_Disk_Log_Rec(P1, P2);
-//      end;
     tkBegin_System_Bank_Account:
       begin
         P2 := New_System_Bank_Account_Rec;
@@ -768,7 +763,6 @@ begin
   case ARecordType of
     tkBegin_Practice_Details: Result := -1;
     tkBegin_User,
-//    tkBegin_System_Disk_Log,
     tkBegin_System_Bank_Account,
     tkBegin_Client_Account_Map,
     tkBegin_Client_File,
@@ -840,11 +834,6 @@ begin
         ARecord := New_User_Rec;
         Read_User_Rec(TUser_Rec(ARecord^), AStream);
       end;
-//    tkBegin_System_Disk_Log :
-//      begin
-//        ARecord := New_System_Disk_Log_Rec;
-//        Read_System_Disk_Log_Rec(TSystem_Disk_Log_Rec(ARecord^), AStream);
-//      end;
     tkBegin_System_Bank_Account :
       begin
         ARecord := New_System_Bank_Account_Rec;
@@ -886,7 +875,6 @@ begin
   case ARecordType of
     tkBegin_Practice_Details: Write_Practice_Details_Rec(TPractice_Details_Rec(ARecord^), AStream);
     tkBegin_User            : Write_User_Rec(TUser_Rec(ARecord^), AStream);
-//    tkBegin_System_Disk_Log : Write_System_Disk_Log_Rec(TSystem_Disk_Log_Rec(ARecord^), AStream);
     tkBegin_System_Bank_Account : Write_System_Bank_Account_Rec(TSystem_Bank_Account_Rec(ARecord^), AStream);
     tkBegin_Client_Account_Map  : Write_Client_Account_Map_Rec(TClient_Account_Map_Rec(ARecord^), AStream);
     tkBegin_Client_File         : Write_Client_File_Rec(TClient_File_Rec(ARecord^), AStream);
@@ -933,6 +921,11 @@ begin
       begin
         P2 := New_Transaction_Rec;
         Copy_Transaction_Rec(P1, P2);
+      end;
+    tkBegin_Dissection:
+      begin
+        P2 := New_Dissection_Rec;
+        Copy_Dissection_Rec(P1, P2);
       end;
     tkBegin_Account:
       begin
@@ -1002,6 +995,7 @@ begin
           tkBegin_Payee_Detail: clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                      ClientCopy.clPayee_List, 0, fAuditTable);
           tkBegin_Transaction :         ;//Done in bank account
+          tkBegin_Dissection:           ;//Done in bank account
           tkBegin_Memorisation_Detail:  ;//Done in bank account
           tkBegin_Memorisation_Line:    ;//Done in bank account
           tkBegin_Bank_Account: clBank_Account_List.DoAudit(ClientCopy.clBank_Account_List,
@@ -1079,6 +1073,7 @@ begin
       tkBegin_Payee_Detail,
       tkBegin_Payee_Line  : BKAuditValues.AddPayeeAuditValues(AAuditRecord, Self, AuditInfo);
       tkBegin_Transaction : BKAuditValues.AddTransactionAuditValues(AAuditRecord, Self, clFields, AuditInfo);
+      tkBegin_Dissection  : BKAuditValues.AddDissectionAuditValues(AAuditRecord, Self, clFields, AuditInfo);
       tkBegin_Bank_Account: BKAuditValues.AddBankAccountAuditValues(AAuditRecord, Self, AuditInfo);
       tkBegin_Account     : BKAuditValues.AddAccountAuditValues(AAuditRecord, Self, clCustom_Headings_List, AuditInfo);
       tkBegin_Custom_Heading: BKAuditValues.AddCustomHeadingValues(AAuditRecord, Self, AuditInfo);
@@ -1142,6 +1137,11 @@ begin
         ARecord := New_Transaction_Rec;
         Read_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
       end;
+    tkBegin_Dissection:
+      begin
+        ARecord := New_Dissection_Rec;
+        Read_Dissection_Rec(TDissection_Rec(ARecord^), AStream);
+      end;
     tkBegin_Account:
       begin
         ARecord := New_Account_Rec;
@@ -1188,6 +1188,7 @@ begin
     tkBegin_Payee_Line  : Write_Payee_Line_Rec(TPayee_Line_Rec(ARecord^), AStream);
     tkBegin_Bank_Account: Write_Bank_Account_Rec(TBank_Account_Rec(ARecord^), AStream);
     tkBegin_Transaction : Write_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
+    tkBegin_Dissection  : Write_Dissection_Rec(TDissection_Rec(ARecord^), AStream);
     tkBegin_Account     : Write_Account_Rec(TAccount_Rec(ARecord^), AStream);
     tkBegin_Custom_Heading: Write_Custom_Heading_Rec(TCustom_Heading_Rec(ARecord^), AStream);
     tkBegin_Memorisation_Detail: Write_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);

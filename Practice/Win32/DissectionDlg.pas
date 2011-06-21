@@ -3262,13 +3262,14 @@ var
    Msg         :  String;
    i, j        : Integer;
    Count       : Integer;
-   Total, 
+   Total,
    Remain,
    Percent,
    GST         : Double;
    vsbWidth    : integer; //width of vertical scroll bar
    lDlg: TdlgDissection;
    W : Integer;
+   AuditIDList: TList;
 begin
    Result := false;
    if not Assigned(pT) then
@@ -3594,162 +3595,174 @@ begin
          If HasBlank then //Remove blank record in between records
             RemoveBlanks;
          CalcControlTotals( Count, Total, Remain, GST, Percent );
-         Dump_Dissections( pTran ); //Clear current dissection lines
 
-         //if there is only 1 line in the dissection then
-         //remove dissection and treat like normal transaction
-         if (Count = 1) then begin
-           pD := WorkDissect.Items[0];
-           with pTran^, pD^ do begin
-              txAccount    := dtAccount;
-              txGST_Class  := dtGST_Class;       //GetGSTClassNo( MyClient, Chr( dtGST_Class ));
-              txGST_Amount := dtGST_Amount;      //GenUtils.Double2Money(dtGST_Amount);
-              txGL_Narration := dtNarration;
-              txTax_Invoice_Available := dtTax_Invoice;
-              txHas_Been_Edited := dtHas_Been_Edited;
-              txGST_Has_Been_Edited := dtGST_Has_Been_Edited;
-              txQuantity     := dtQuantity;
-              txPayee_Number := dtPayee_Number;
-              txJob_Code     := dtJob;
-              //move dissection line amounts into transaction
-              txSF_Imputed_Credit      := dtSF_Imputed_Credit;
-              txSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
-              txSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
-              txSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
-              txSF_TFN_Credits         := dtSF_TFN_Credits;
-              txSF_Foreign_Income      := dtSF_Foreign_Income;
-              txSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
-              txSF_Capital_Gains_Indexed := dtSF_Capital_Gains_Indexed;
-              txSF_Capital_Gains_Other := dtSF_Capital_Gains_Other;
-              txSF_Other_Expenses      := dtSF_Other_Expenses;
-              txSF_CGT_Date            := dtSF_CGT_Date;
-              txSF_Capital_Gains_Disc  := dtSF_Capital_Gains_Disc;
-              txSF_Franked             := dtSF_Franked;
-              txSF_Unfranked           := dtSF_Unfranked;
-              txSF_Interest            := dtSF_Interest;
-              txSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
-              txSF_Rent                := dtSF_Rent;
-              txSF_Special_Income      := dtSF_Special_Income;
-              txSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
-              txSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
-              txSF_Member_ID           := dtSF_Member_ID;
-              txSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
-              txSF_Member_Component    := dtSF_Member_Component;
-              txSF_Member_Account_ID   := dtSF_Member_Account_ID;
-              txSF_Fund_ID             := dtSF_Fund_ID;
-              txSF_Fund_Code           := dtSF_Fund_Code;
-              txSF_Member_Account_Code := dtSF_Member_Account_Code;
-              txSF_Transaction_ID      := dtSF_Transaction_Type_ID;
-              txSF_Transaction_Code    := dtSF_Transaction_Type_Code;
-              txSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
-              txSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
+         AuditIDList := TList.Create;
+         try
+           //Save audit ID's for reuse
+           Dump_Dissections( pTran, AuditIDList); //Clear current dissection lines
 
-              txNotes_Read := dtNotes_Read;
-              txImport_Notes_Read := dtImport_Notes_Read;
+           //if there is only 1 line in the dissection then
+           //remove dissection and treat like normal transaction
+           if (Count = 1) then begin
+             pD := WorkDissect.Items[0];
+             with pTran^, pD^ do begin
+                txAccount    := dtAccount;
+                txGST_Class  := dtGST_Class;       //GetGSTClassNo( MyClient, Chr( dtGST_Class ));
+                txGST_Amount := dtGST_Amount;      //GenUtils.Double2Money(dtGST_Amount);
+                txGL_Narration := dtNarration;
+                txTax_Invoice_Available := dtTax_Invoice;
+                txHas_Been_Edited := dtHas_Been_Edited;
+                txGST_Has_Been_Edited := dtGST_Has_Been_Edited;
+                txQuantity     := dtQuantity;
+                txPayee_Number := dtPayee_Number;
+                txJob_Code     := dtJob;
+                //move dissection line amounts into transaction
+                txSF_Imputed_Credit      := dtSF_Imputed_Credit;
+                txSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
+                txSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
+                txSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
+                txSF_TFN_Credits         := dtSF_TFN_Credits;
+                txSF_Foreign_Income      := dtSF_Foreign_Income;
+                txSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
+                txSF_Capital_Gains_Indexed := dtSF_Capital_Gains_Indexed;
+                txSF_Capital_Gains_Other := dtSF_Capital_Gains_Other;
+                txSF_Other_Expenses      := dtSF_Other_Expenses;
+                txSF_CGT_Date            := dtSF_CGT_Date;
+                txSF_Capital_Gains_Disc  := dtSF_Capital_Gains_Disc;
+                txSF_Franked             := dtSF_Franked;
+                txSF_Unfranked           := dtSF_Unfranked;
+                txSF_Interest            := dtSF_Interest;
+                txSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
+                txSF_Rent                := dtSF_Rent;
+                txSF_Special_Income      := dtSF_Special_Income;
+                txSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
+                txSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
+                txSF_Member_ID           := dtSF_Member_ID;
+                txSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
+                txSF_Member_Component    := dtSF_Member_Component;
+                txSF_Member_Account_ID   := dtSF_Member_Account_ID;
+                txSF_Fund_ID             := dtSF_Fund_ID;
+                txSF_Fund_Code           := dtSF_Fund_Code;
+                txSF_Member_Account_Code := dtSF_Member_Account_Code;
+                txSF_Transaction_ID      := dtSF_Transaction_Type_ID;
+                txSF_Transaction_Code    := dtSF_Transaction_Type_Code;
+                txSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
+                txSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
 
-              txCoded_By     := cbManual;
-           end;
-         end
-         else begin
-            // Store dissection lines
-            // re-sort - store $ lines first followed by % lines
-            Has100 := HasSingle100PercentLine;
-            for j := 0 to 1 do begin
-              for i := 0 to Pred( Count ) do begin
-                pD := WorkDissect.Items[i];
-                if ((j = 0) and (pD.dtPercent_Amount <> 0))
-                or ((j = 1) and (pD.dtPercent_Amount = 0)) then
-                   Continue;
-                pDissection := New_Dissection_Rec;
-                with pDissection^, pD^ do begin
-                   dsTransaction     := pTran;
-                   dsAccount         := dtAccount;
-                   dsAmount          := dtAmount;
-                   dsGST_Class       := dtGST_Class;
-                   dsGST_Amount      := dtGST_Amount;
-                   dsQuantity        := dtQuantity;
-                   dsPayee_Number    := dtPayee_Number;
-                   dsJob_Code         := dtJob;
-                   if dsJob_Code <> pT.txJob_Code then begin
-                      //  pT.txJob_LRN can only be the same as ALL disections
-                      pT.txJob_Code := '';
-                   end;
+                txNotes_Read := dtNotes_Read;
+                txImport_Notes_Read := dtImport_Notes_Read;
 
-                   dsForex_Conversion_Rate    := dtForex_Conversion_Rate    ;
+                txCoded_By     := cbManual;
+             end;
+           end
+           else begin
+              // Store dissection lines
+              // re-sort - store $ lines first followed by % lines
+              Has100 := HasSingle100PercentLine;
+              for j := 0 to 1 do begin
+                for i := 0 to Pred( Count ) do begin
+                  pD := WorkDissect.Items[i];
+                  if ((j = 0) and (pD.dtPercent_Amount <> 0))
+                  or ((j = 1) and (pD.dtPercent_Amount = 0)) then
+                     Continue;
+                  pDissection := New_Dissection_Rec;
+                  with pDissection^, pD^ do begin
+                     dsTransaction     := pTran;
+                     dsAccount         := dtAccount;
+                     dsAmount          := dtAmount;
+                     dsGST_Class       := dtGST_Class;
+                     dsGST_Amount      := dtGST_Amount;
+                     dsQuantity        := dtQuantity;
+                     dsPayee_Number    := dtPayee_Number;
+                     dsJob_Code         := dtJob;
+                     if dsJob_Code <> pT.txJob_Code then begin
+                        //  pT.txJob_LRN can only be the same as ALL disections
+                        pT.txJob_Code := '';
+                     end;
 
-                   dsGL_Narration             := dtNarration;
-                   dsTax_Invoice := dtTax_Invoice;
-                   dsHas_Been_Edited := dtHas_Been_Edited;
-                   dsGST_Has_Been_Edited  := dtGST_Has_Been_Edited;
-                   dsNotes                := dtNotes;
-                   dsECoding_Import_Notes := dtImportNotes;
+                     dsForex_Conversion_Rate    := dtForex_Conversion_Rate    ;
 
-                   //smartlink
-                   dsDocument_Title       := dtDocument_Title;
-                   dsDocument_Status_Update_Required := dtDocument_Status_Update_Required;
-                   dsExternal_GUID := dtExternal_GUID;
+                     dsGL_Narration             := dtNarration;
+                     dsTax_Invoice := dtTax_Invoice;
+                     dsHas_Been_Edited := dtHas_Been_Edited;
+                     dsGST_Has_Been_Edited  := dtGST_Has_Been_Edited;
+                     dsNotes                := dtNotes;
+                     dsECoding_Import_Notes := dtImportNotes;
 
-                   //super fields
-                   dsSF_Imputed_Credit      := dtSF_Imputed_Credit;
-                   dsSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
-                   dsSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
-                   dsSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
-                   dsSF_TFN_Credits         := dtSF_TFN_Credits;
-                   dsSF_Foreign_Income      := dtSF_Foreign_Income;
-                   dsSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
-                   dsSF_Capital_Gains_Indexed  := dtSF_Capital_Gains_Indexed;
-                   dsSF_Capital_Gains_Disc  := dtSF_Capital_Gains_Disc;
-                   dsSF_Capital_Gains_Other := dtSF_Capital_Gains_Other;
-                   dsSF_Other_Expenses      := dtSF_Other_Expenses;
-                   dsSF_CGT_Date            := dtSF_CGT_Date;
-                   dsSF_Franked             := dtSF_Franked;
-                   dsSF_Unfranked           := dtSF_Unfranked;
-                   dsSF_Interest            := dtSF_Interest;
-                   dsSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
-                   dsSF_Rent                := dtSF_Rent;
-                   dsSF_Special_Income      := dtSF_Special_Income;
-                   dsSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
-                   dsSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
-                   dsSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
-                   dsSF_Member_ID           := dtSF_Member_ID;
-                   dsSF_Member_Component    := dtSF_Member_Component;
-                   dsSF_Member_Account_ID   := dtSF_Member_Account_ID;
-                   dsSF_Fund_ID             := dtSF_Fund_ID;
-                   dsSF_Fund_Code           := dtSF_Fund_Code;
-                   dsSF_Member_Account_Code := dtSF_Member_Account_Code;
-                   dsSF_Transaction_ID      := dtSF_Transaction_Type_ID;
-                   dsSF_Transaction_Code    := dtSF_Transaction_Type_Code;
-                   dsSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
-                   dsSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
+                     //smartlink
+                     dsDocument_Title       := dtDocument_Title;
+                     dsDocument_Status_Update_Required := dtDocument_Status_Update_Required;
+                     dsExternal_GUID := dtExternal_GUID;
 
-                   dsNotes_Read := dtNotes_Read;
-                   dsImport_Notes_Read := dtImport_Notes_Read;
+                     //super fields
+                     dsSF_Imputed_Credit      := dtSF_Imputed_Credit;
+                     dsSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
+                     dsSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
+                     dsSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
+                     dsSF_TFN_Credits         := dtSF_TFN_Credits;
+                     dsSF_Foreign_Income      := dtSF_Foreign_Income;
+                     dsSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
+                     dsSF_Capital_Gains_Indexed  := dtSF_Capital_Gains_Indexed;
+                     dsSF_Capital_Gains_Disc  := dtSF_Capital_Gains_Disc;
+                     dsSF_Capital_Gains_Other := dtSF_Capital_Gains_Other;
+                     dsSF_Other_Expenses      := dtSF_Other_Expenses;
+                     dsSF_CGT_Date            := dtSF_CGT_Date;
+                     dsSF_Franked             := dtSF_Franked;
+                     dsSF_Unfranked           := dtSF_Unfranked;
+                     dsSF_Interest            := dtSF_Interest;
+                     dsSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
+                     dsSF_Rent                := dtSF_Rent;
+                     dsSF_Special_Income      := dtSF_Special_Income;
+                     dsSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
+                     dsSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
+                     dsSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
+                     dsSF_Member_ID           := dtSF_Member_ID;
+                     dsSF_Member_Component    := dtSF_Member_Component;
+                     dsSF_Member_Account_ID   := dtSF_Member_Account_ID;
+                     dsSF_Fund_ID             := dtSF_Fund_ID;
+                     dsSF_Fund_Code           := dtSF_Fund_Code;
+                     dsSF_Member_Account_Code := dtSF_Member_Account_Code;
+                     dsSF_Transaction_ID      := dtSF_Transaction_Type_ID;
+                     dsSF_Transaction_Code    := dtSF_Transaction_Type_Code;
+                     dsSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
+                     dsSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
 
-                   if not Has100 then
-                   begin
-                     dsPercent_Amount         := dtPercent_Amount;
-                     dsAmount_Type_Is_Percent := dtPercent_Amount <> 0;
-                   end
-                   else
-                   begin
-                     dsAmount_Type_Is_Percent := False;
-                     dsPercent_Amount := 0;
-                   end;
+                     dsNotes_Read := dtNotes_Read;
+                     dsImport_Notes_Read := dtImport_Notes_Read;
 
-                   TrxList32.AppendDissection( pTran, pDissection );
+                     if not Has100 then
+                     begin
+                       dsPercent_Amount         := dtPercent_Amount;
+                       dsAmount_Type_Is_Percent := dtPercent_Amount <> 0;
+                     end
+                     else
+                     begin
+                       dsAmount_Type_Is_Percent := False;
+                       dsPercent_Amount := 0;
+                     end;
+
+                     if AuditIDList.Count > 0 then begin
+                       pDissection.dsAudit_Record_ID := integer(AuditIDList.Items[0]);
+                       TrxList32.AppendDissection( pTran, pDissection, nil );
+                       AuditIDList.Delete(0);
+                     end else
+                       TrxList32.AppendDissection( pTran, pDissection, MyClient.ClientAuditMgr );
+                  end;
                 end;
               end;
-            end;
-            pTran^.txCoded_By    := cbManual;
-            pTran^.txAccount     := DISSECT_DESC;
-            //clean up any gst amounts that are left on the transaction
-            ClearGSTFields( pTran);
-            ClearSuperFundFields( pTran);
-            Result := True;
-        end;
-     finally
+           end;
+           pTran^.txCoded_By    := cbManual;
+           pTran^.txAccount     := DISSECT_DESC;
+           //clean up any gst amounts that are left on the transaction
+           ClearGSTFields( pTran);
+           ClearSuperFundFields( pTran);
+           Result := True;
+         finally
+           AuditIDList.Free;
+         end;
+      finally
         Free;
-     end;
+      end;
 end;
 //------------------------------------------------------------------------------
 

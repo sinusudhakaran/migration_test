@@ -17,9 +17,11 @@ type
       FAuditMgr     : TClientAuditManager;
       FLoading: boolean;
       function FindRecordID(ARecordID: integer):  pTransaction_Rec;
+      function FindDissectionRecordID(ATransaction: pTransaction_Rec;
+                                      ARecordID: integer): pDissection_Rec;
       procedure SetClient(const Value: TObject);
       procedure SetBank_Account(const Value: TObject);
-    procedure SetAuditMgr(const Value: TClientAuditManager);
+      procedure SetAuditMgr(const Value: TClientAuditManager);
    public
       constructor Create( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager );
       function Compare(Item1,Item2 : Pointer): Integer; override;
@@ -34,12 +36,17 @@ type
 
       function  FirstPresDate : LongInt;
       function  LastPresDate : LongInt;
-      
+
       procedure UpdateCRC(var CRC : Longword);
       procedure DoAudit(ATransactionListCopy: TTransaction_List; AParentID: integer;
                         AAccountType: byte; var AAuditTable: TAuditTable);
+      procedure DoDissectionAudit(ATransaction, ATransactionCopy: pTransaction_Rec;
+                                  AAccountType: byte;
+                                  var AAuditTable: TAuditTable);
       procedure SetAuditInfo(P1, P2: pTransaction_Rec; AParentID: integer;
                              var AAuditInfo: TAuditInfo);
+      procedure SetDissectionAuditInfo(P1, P2: pDissection_Rec; AParentID: integer;
+                                       var AAuditInfo: TAuditInfo);
       property LastSeq : integer read FLastSeq;
       property TxnClient: TObject read FClient write SetClient;
       property TxnBankAccount: TObject read FBank_Account write SetBank_Account;
@@ -47,8 +54,9 @@ type
    end;
 
    procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
-   procedure Dump_Dissections(var p : pTransaction_Rec);
-   procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec );
+   procedure Dump_Dissections(var p : pTransaction_Rec; AAuditIDList: TList = nil);
+   procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
+                               AClientAuditManager: TClientAuditManager = nil );
 
 //******************************************************************************
 implementation
@@ -109,7 +117,7 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure Dump_Dissections(var p : pTransaction_Rec);
+procedure Dump_Dissections(var p : pTransaction_Rec; AAuditIDList: TList = nil);
 const
   ThisMethodName = 'Dump_Dissections';
 Var
@@ -123,6 +131,11 @@ Begin
       While ( This<>NIL ) do
       Begin
          Next := pDissection_Rec( This^.dsNext );
+
+         //Save audit ID's for reuse when dissections are edited
+         if Assigned(AAuditIDList) then
+           AAuditIDList.Add(Pointer(This^.dsAudit_Record_ID));
+
          Dispose_Dissection_Rec( This );
          This := Next;
       end;
@@ -134,8 +147,8 @@ Begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec );
-
+Procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
+  AClientAuditManager: TClientAuditManager);
 const
   ThisMethodName = 'AppendDissection';
 Var
@@ -152,6 +165,8 @@ Begin
       dsNext         := NIL;
       dsClient       := T.txClient;
       dsBank_Account := T.txBank_Account;
+      if Assigned(AClientAuditManager) then
+        dsAudit_Record_ID := AClientAuditManager.NextAuditRecordID;
    end;
    With T^ do
    Begin
@@ -356,6 +371,37 @@ begin
   FClient := Value;
 end;
 
+procedure TTransaction_List.SetDissectionAuditInfo(P1, P2: pDissection_Rec;
+  AParentID: integer; var AAuditInfo: TAuditInfo);
+begin
+  AAuditInfo.AuditAction := aaNone;
+  AAuditInfo.AuditParentID := AParentID;
+  AAuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType','Dissection']) +
+                               VALUES_DELIMITER +
+                               Format('%s=%d', ['ParentID', AParentID]);
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.dsAudit_Record_ID;
+    AAuditInfo.AuditOtherInfo :=
+      AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
+      Format('%s=%d',[BKAuditNames.GetAuditFieldName(tkBegin_Dissection, 182), P2.dsSequence_No]);
+  end else if Assigned(P2) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.dsAudit_Record_ID;
+    if Dissection_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      AAuditInfo.AuditAction := aaChange;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.dsAudit_Record_ID;
+    P1.dsAudit_Record_ID := AAuditInfo.AuditRecordID;
+    BKDSIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Dissection_Rec(P1, AAuditInfo.AuditRecord);
+  end;
+
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TTransaction_List.Transaction_At(Index : longint) : pTransaction_Rec;
 const
@@ -453,6 +499,7 @@ var
   P1, P2: pTransaction_Rec;
   AuditInfo: TAuditInfo;
   ProvDateStr: string;
+  T1, T2: pTransaction_Rec;
 begin
   //Note: AuditType is dependant on the type of bank account
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
@@ -501,6 +548,84 @@ begin
       finally
         Dispose(AuditInfo.AuditRecord);
       end;
+    end;
+  end;
+
+  //Dissections
+  for i := 0 to Pred(itemCount) do begin
+    T1 := Items[i];
+    T2 := nil;
+    if Assigned(ATransactionListCopy) then
+      T2 := ATransactionListCopy.FindRecordID(T1.txAudit_Record_ID);
+    if Assigned(T1) then
+      DoDissectionAudit(T1, T2, AAccountType, AAuditTable)
+  end;
+end;
+
+procedure TTransaction_List.DoDissectionAudit(ATransaction,
+  ATransactionCopy: pTransaction_Rec; AAccountType: byte; var AAuditTable: TAuditTable);
+var
+  i: integer;
+  P1, P2: pDissection_Rec;
+  AuditInfo: TAuditInfo;
+begin
+  //Note: AuditType is dependant on the type of bank account
+  AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
+  AuditInfo.AuditRecordType := tkBegin_Dissection;
+  //Adds, changes
+  if Assigned(ATransaction) then begin
+    P1 := ATransaction.txFirst_Dissection;
+    P2 := nil;
+    while (P1 <> nil) do begin
+      if Assigned(ATransactionCopy) then
+        P2 := FindDissectionRecordID(ATransactionCopy, P1.dsAudit_Record_ID);
+      AuditInfo.AuditRecord := New_Dissection_Rec;
+      try
+        AuditInfo.AuditType := FAuditMgr.GetTransactionAuditType(ATransaction^.txSource, AAccountType);
+        SetDissectionAuditInfo(P1, P2, ATransaction.txAudit_Record_ID , AuditInfo);
+        if AuditInfo.AuditAction in [aaAdd, aaChange] then
+          AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+      P1 := P1^.dsNext;
+    end;
+  end;
+  //Deletes
+  if Assigned(ATransactionCopy) then begin //Sub list - may not be assigned
+    P1 := nil;
+    P2 := ATransactionCopy.txFirst_Dissection;
+    while P2 <> nil do begin
+      AuditInfo.AuditType := FAuditMgr.GetTransactionAuditType(ATransactionCopy.txSource, AAccountType);
+      if Assigned(ATransaction) then
+        P1 := FindDissectionRecordID(ATransaction, P2.dsAudit_Record_ID);
+      AuditInfo.AuditRecord := New_Dissection_Rec;
+      try
+        SetDissectionAuditInfo(P1, P2, ATransactionCopy.txAudit_Record_ID, AuditInfo);
+        if (AuditInfo.AuditAction = aaDelete) then
+          AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+      P2 := P2^.dsNext;
+    end;
+  end;
+end;
+
+function TTransaction_List.FindDissectionRecordID(
+  ATransaction: pTransaction_Rec; ARecordID: integer): pDissection_Rec;
+var
+  Dissection: pDissection_Rec;
+begin
+  Result := nil;
+  if Assigned(ATransaction) then begin
+    Dissection := ATransaction.txFirst_Dissection;
+    while Dissection <> nil do begin
+      if Dissection.dsAudit_Record_ID = ARecordID then begin
+        Result := Dissection;
+        Break;
+      end;
+      Dissection := Dissection.dsNext;
     end;
   end;
 end;

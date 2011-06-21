@@ -484,7 +484,7 @@ Begin
 
                             end;
 
-                          AppendDissection( Transaction, Dissection );
+                          AppendDissection( Transaction, Dissection, aClient.ClientAuditMgr );
                         end;
 
                     end;
@@ -603,7 +603,7 @@ Begin
                                  end;
 
                               end;
-                              AppendDissection( Transaction, Dissection );
+                              AppendDissection( Transaction, Dissection, aClient.ClientAuditMgr );
                             end;
                           End;
 

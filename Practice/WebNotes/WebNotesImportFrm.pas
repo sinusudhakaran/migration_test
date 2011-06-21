@@ -362,7 +362,7 @@ begin
 
 
       //Add the new dissection to the transaction
-      TrxList32.AppendDissection( BKT, BKD);
+      TrxList32.AppendDissection( BKT, BKD, Client.ClientAuditMgr);
 
       // Do this after because it need the transaction
       ImportSuperfund(DNode, BKD);
