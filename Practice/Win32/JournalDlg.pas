@@ -4022,6 +4022,7 @@ var
    HasBlank    : boolean;
    JournalCount : Integer;
    msg: string;
+   AuditIDList: TList;
 begin
    Result := False;
    //make sure not editing
@@ -4378,70 +4379,82 @@ begin
       RemoveBlanks;
 
    CalcControlTotals( Count, Total, GST, Remain );
-   Dump_Dissections( pTran ); //Clear current dissection lines
-   // Store dissection lines
-   for i := 0 to Pred( Count ) do begin
-     pDissection := New_Dissection_Rec;
-     pJ := WorkJournal.Items[i];
-     with pDissection^, pJ^ do begin
-        dsTransaction     := pTran;
-        dsAccount         := dtAccount;
-        dsReference       := dtReference;
-        dsAmount          := dtAmount;
-        dsPayee_Number    := dtPayee_Number;
-        dsGST_Class       := dtGST_Class;
-        dsGST_Amount      := dtGST_Amount;
-        dsQuantity        := dtQuantity;
-        dsGL_Narration       := dtNarration;
-        dsHas_Been_Edited := dtHas_Been_Edited;
-        dsGST_Has_Been_Edited := dtGST_Has_Been_Edited;
-        dsLinked_Journal_Date := dtLinkedJnlDate;
-        dsJob_Code            := dtJob;
+   AuditIDList := TList.Create;
+   try
+     Dump_Dissections( pTran, AuditIDList ); //Clear current dissection lines
 
-        //super fields
-        dsSF_Imputed_Credit      := dtSF_Imputed_Credit;
-        dsSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
-        dsSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
-        dsSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
-        dsSF_TFN_Credits         := dtSF_TFN_Credits;
-        dsSF_Foreign_Income      := dtSF_Foreign_Income;
-        dsSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
-        dsSF_Capital_Gains_Indexed  := dtSF_Capital_Gains_Indexed;
-        dsSF_Capital_Gains_Disc := dtSF_Capital_Gains_Disc;
-        dsSF_Capital_Gains_Other   := dtSF_Capital_Gains_Other;
-        dsSF_Other_Expenses        := dtSF_Other_Expenses;
-        dsSF_CGT_Date              := dtSF_CGT_Date;
-        dsSF_Franked               := dtSF_Franked;
-        dsSF_Unfranked             := dtSF_Unfranked;
-        dsSF_Interest            := dtSF_Interest;
-        dsSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
-        dsSF_Rent                := dtSF_Rent;
-        dsSF_Special_Income      := dtSF_Special_Income;
-        dsSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
-        dsSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
-        dsSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
-        dsSF_Member_ID           := dtSF_Member_ID;
-        dsSF_Member_Component    := dtSF_Member_Component;
-        dsSF_Member_Account_ID   := dtSF_Member_Account_ID;
-        dsSF_Fund_ID             := dtSF_Fund_ID;
-        dsSF_Fund_Code           := dtSF_Fund_Code;
-        dsSF_Member_Account_Code := dtSF_Member_Account_Code;
-        dsSF_Transaction_ID      := dtSF_Transaction_Type_ID;
-        dsSF_Transaction_Code    := dtSF_Transaction_Type_Code;
-        dsSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
-        dsSF_Super_Fields_Edited := dtSF_Super_Fields_Edited ;
+     // Store dissection lines
+     for i := 0 to Pred( Count ) do begin
+       pDissection := New_Dissection_Rec;
+       pJ := WorkJournal.Items[i];
+       with pDissection^, pJ^ do begin
+          dsTransaction     := pTran;
+          dsAccount         := dtAccount;
+          dsReference       := dtReference;
+          dsAmount          := dtAmount;
+          dsPayee_Number    := dtPayee_Number;
+          dsGST_Class       := dtGST_Class;
+          dsGST_Amount      := dtGST_Amount;
+          dsQuantity        := dtQuantity;
+          dsGL_Narration       := dtNarration;
+          dsHas_Been_Edited := dtHas_Been_Edited;
+          dsGST_Has_Been_Edited := dtGST_Has_Been_Edited;
+          dsLinked_Journal_Date := dtLinkedJnlDate;
+          dsJob_Code            := dtJob;
 
-        dsDocument_Title       := dtDocument_Title;
-        dsDocument_Status_Update_Required := dtDocument_Status_Update_Required;
-        dsExternal_GUID := dtExternal_GUID;
+          //super fields
+          dsSF_Imputed_Credit      := dtSF_Imputed_Credit;
+          dsSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
+          dsSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
+          dsSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
+          dsSF_TFN_Credits         := dtSF_TFN_Credits;
+          dsSF_Foreign_Income      := dtSF_Foreign_Income;
+          dsSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
+          dsSF_Capital_Gains_Indexed  := dtSF_Capital_Gains_Indexed;
+          dsSF_Capital_Gains_Disc := dtSF_Capital_Gains_Disc;
+          dsSF_Capital_Gains_Other   := dtSF_Capital_Gains_Other;
+          dsSF_Other_Expenses        := dtSF_Other_Expenses;
+          dsSF_CGT_Date              := dtSF_CGT_Date;
+          dsSF_Franked               := dtSF_Franked;
+          dsSF_Unfranked             := dtSF_Unfranked;
+          dsSF_Interest            := dtSF_Interest;
+          dsSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
+          dsSF_Rent                := dtSF_Rent;
+          dsSF_Special_Income      := dtSF_Special_Income;
+          dsSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
+          dsSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
+          dsSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
+          dsSF_Member_ID           := dtSF_Member_ID;
+          dsSF_Member_Component    := dtSF_Member_Component;
+          dsSF_Member_Account_ID   := dtSF_Member_Account_ID;
+          dsSF_Fund_ID             := dtSF_Fund_ID;
+          dsSF_Fund_Code           := dtSF_Fund_Code;
+          dsSF_Member_Account_Code := dtSF_Member_Account_Code;
+          dsSF_Transaction_ID      := dtSF_Transaction_Type_ID;
+          dsSF_Transaction_Code    := dtSF_Transaction_Type_Code;
+          dsSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
+          dsSF_Super_Fields_Edited := dtSF_Super_Fields_Edited ;
 
-        //make sure that a valid type is used.  If it is undefined (-1) use jtNormal
-        if ( not (dtStatus in [jtMin..jtMax])) then
-           dsJournal_Type := jtNormal
-        else
-           dsJournal_Type := dtStatus;
-        TrxList32.AppendDissection( pTran, pDissection );
+          dsDocument_Title       := dtDocument_Title;
+          dsDocument_Status_Update_Required := dtDocument_Status_Update_Required;
+          dsExternal_GUID := dtExternal_GUID;
+
+          //make sure that a valid type is used.  If it is undefined (-1) use jtNormal
+          if ( not (dtStatus in [jtMin..jtMax])) then
+             dsJournal_Type := jtNormal
+          else
+             dsJournal_Type := dtStatus;
+
+          if AuditIDList.Count > 0 then begin
+            pDissection.dsAudit_Record_ID := integer(AuditIDList.Items[0]);
+            TrxList32.AppendDissection( pTran, pDissection, nil );
+            AuditIDList.Delete(0);
+          end else
+            TrxList32.AppendDissection( pTran, pDissection, MyClient.ClientAuditMgr );
+       end;
      end;
+   finally
+     AuditIDList.Free;
    end;
    pTran^.txCoded_By := cbManual;
    pTran^.txAccount  := DISSECT_DESC;

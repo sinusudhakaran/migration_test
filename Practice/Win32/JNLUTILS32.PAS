@@ -281,7 +281,7 @@ Begin
                      dsSF_Member_Account_ID:= -1;
                      dsSF_Fund_ID          := -1;
                   end;
-                  AppendDissection( Destination, jNew );
+                  AppendDissection( Destination, jNew, aClient.ClientAuditMgr );
                   Result := true;
                end;
 
@@ -315,7 +315,7 @@ Begin
                         dsSF_Member_Account_ID:= -1;
                         dsSF_Fund_ID          := -1;
                      end;
-                     AppendDissection( Destination, jNew );
+                     AppendDissection( Destination, jNew, aClient.ClientAuditMgr );
                   end;
                   jThis := dsNext;
                end;
@@ -348,7 +348,7 @@ Begin
                   dsSF_Member_Account_ID:= -1;
                   dsSF_Fund_ID          := -1;
                end;
-               AppendDissection(Destination, jNew);
+               AppendDissection(Destination, jNew, aClient.ClientAuditMgr);
                Result := true;
             end;
             jThis := dsNext;

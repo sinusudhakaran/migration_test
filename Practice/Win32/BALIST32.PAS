@@ -80,12 +80,13 @@ var
   BankAccount: TBank_Account;
   B1, B2: TBank_Account;
 begin
-  AuditInfo.AuditType := atClientBankAccounts;
+  //  AuditInfo.AuditType := - depends on bank account type
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Bank_Account;
   //Adds, changes
   for i := 0 to Pred(ItemCount) do begin
     P1 := @TBank_Account(Items[i]).baFields;
+    AuditInfo.AuditType := FAuditMgr.GetBankAccountAuditType(P1^.baAccount_Type);
     P2 := nil;
     BankAccount := nil;
     if Assigned(ABankAccountListCopy) then //Sub list - may not be assigned
@@ -105,6 +106,7 @@ begin
   if Assigned(ABankAccountListCopy) then begin //Sub list - may not be assigned
     for i := 0 to ABankAccountListCopy.ItemCount - 1 do begin
       P2 := @TBank_Account(ABankAccountListCopy.Items[i]).baFields;
+      AuditInfo.AuditType := FAuditMgr.GetBankAccountAuditType(P2^.baAccount_Type);      
       BankAccount := FindRecordID(P2.baAudit_Record_ID);
       P1 := nil;
       if Assigned(BankAccount) then

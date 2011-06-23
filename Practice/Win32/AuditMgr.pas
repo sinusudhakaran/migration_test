@@ -167,6 +167,7 @@ type
     function NextAuditRecordID: integer; override;
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
     function GetTransactionAuditType(ABankAccountSource: byte; ABankAccountType: byte): TAuditType;
+    function GetBankAccountAuditType(ABankAccountType: byte): TAuditType;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
                         AAuditAction: byte = aaNone; AOtherInfo: string = ''); override;
@@ -1019,6 +1020,21 @@ begin
   AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
 end;
 
+function TClientAuditManager.GetBankAccountAuditType(ABankAccountType: byte): TAuditType;
+begin
+  case ABankAccountType of
+    btCashJournals       : Result := atCashJournals;
+    btAccrualJournals    : Result := atAccrualJournals;
+    btGSTJournals        : Result := atGSTJournals;
+    btStockBalances,
+    btStockJournals      : Result := atStockAdjustmentJournals;
+    btOpeningBalances    : Result := atOpeningBalances;
+    btYearEndAdjustments : Result := atYearEndAdjustmentJournals;
+  else
+    Result := atClientBankAccounts;  
+  end;
+end;
+
 function TClientAuditManager.GetParentRecordID(ARecordType: byte;
   ARecordID: integer): integer;
 begin
@@ -1035,10 +1051,13 @@ begin
     orGenerated    : Result := atUnpresentedItems;
     orManual       :
        case ABankAccountType of
-         btCashJournals   : Result := atCashJournals;
-         btAccrualJournals: Result := atAccrualJournals;
-         btGSTJournals    : Result := atGSTJournals;
-         btOpeningBalances: Result := atOpeningBalances;
+         btCashJournals      : Result := atCashJournals;
+         btAccrualJournals   : Result := atAccrualJournals;
+         btGSTJournals       : Result := atGSTJournals;
+         btOpeningBalances   : Result := atOpeningBalances;
+         btStockBalances,
+         btStockJournals     : Result := atStockAdjustmentJournals;
+         btYearEndAdjustments: Result := atYearEndAdjustmentJournals;
        end;
     orHistorical   : Result := atHistoricalentries;
     orGeneratedRev : Result := atUnpresentedItems;
