@@ -134,7 +134,7 @@ Begin
 
          //Save audit ID's for reuse when dissections are edited
          if Assigned(AAuditIDList) then
-           AAuditIDList.Add(Pointer(This^.dsAudit_Record_ID));
+            AAuditIDList.Add(Pointer(This^.dsAudit_Record_ID));
 
          Dispose_Dissection_Rec( This );
          This := Next;
@@ -385,7 +385,10 @@ begin
     AAuditInfo.AuditRecordID := P2.dsAudit_Record_ID;
     AAuditInfo.AuditOtherInfo :=
       AAuditInfo.AuditOtherInfo + VALUES_DELIMITER +
-      Format('%s=%d',[BKAuditNames.GetAuditFieldName(tkBegin_Dissection, 182), P2.dsSequence_No]);
+      //Save Account and Amount
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Dissection, 183), P2.dsAccount]) +
+      VALUES_DELIMITER +
+      Format('%s=%s',[BKAuditNames.GetAuditFieldName(tkBegin_Dissection, 184), Money2Str(P2.dsAmount)]);
   end else if Assigned(P2) then begin
     //Change
     AAuditInfo.AuditRecordID := P1.dsAudit_Record_ID;

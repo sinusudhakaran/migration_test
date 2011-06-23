@@ -335,6 +335,7 @@ var
    pJournalLine          : pDissection_Rec;
    pAccount              : pAccount_Rec;
    i                     : integer;
+   AuditIDList: TList;   
 begin
    {//test to see if a journal entry needs to be written
    NeedJournal := false;
@@ -373,54 +374,64 @@ begin
    If pJ = nil then
      pJ := NewJournalFor( ThisClient, Journal_Account, ThisClient.clFields.clFinancial_Year_Starts);
 
-   //Clear current dissection lines
-   TrxList32.Dump_Dissections( pJ );
+   AuditIDList := TList.Create;
+   try
+     //Clear current dissection lines - but save audit ID's
+     TrxList32.Dump_Dissections( pJ, AuditIDList );
 
-   //change temp amounts so that the sign is correct
-   //+ve amounts should take the expected sign, -ve amounts take reversed sign
-   for i := 0 to Pred( ThisClient.clChart.ItemCount ) do begin
-      pAccount := ThisClient.clChart.Account_At( i);
+     //change temp amounts so that the sign is correct
+     //+ve amounts should take the expected sign, -ve amounts take reversed sign
+     for i := 0 to Pred( ThisClient.clChart.ItemCount ) do begin
+        pAccount := ThisClient.clChart.Account_At( i);
 
-      if pAccount.chTemp_Money_Value < 0 then begin
-         pAccount.chTemp_Money_Value := SetSign( pAccount.chTemp_Money_Value, ReverseSign( ExpectedSign( pAccount.chAccount_Type)));
-      end
-      else if pAccount.chTemp_Money_Value > 0 then begin
-         pAccount.chTemp_Money_Value := SetSign( pAccount.chTemp_Money_Value, ExpectedSign( pAccount.chAccount_Type));
-      end;
-   end;
-   //Reload values for linked accounts
-   ReloadLinkedAccountBalances;
+        if pAccount.chTemp_Money_Value < 0 then begin
+           pAccount.chTemp_Money_Value := SetSign( pAccount.chTemp_Money_Value, ReverseSign( ExpectedSign( pAccount.chAccount_Type)));
+        end
+        else if pAccount.chTemp_Money_Value > 0 then begin
+           pAccount.chTemp_Money_Value := SetSign( pAccount.chTemp_Money_Value, ExpectedSign( pAccount.chAccount_Type));
+        end;
+     end;
+     //Reload values for linked accounts
+     ReloadLinkedAccountBalances;
 
-   // Store dissection lines
-   for i := 0 to Pred( ThisClient.clChart.ItemCount ) do begin
-      pAccount := ThisClient.clChart.Account_At( i);
-      if pAccount.chTemp_Money_Value <> 0 then begin
-         //need to write a dissection line for this account
-         pJournalLine        :=  New_Dissection_Rec;
-         with pJournalLine^ do begin
-           dsTransaction         := pJ;
-           dsAccount             := pAccount.chAccount_Code;
-           dsAmount              := pAccount.chTemp_Money_Value;
-           dsOpening_Balance_Currency := pAccount.chTemp_Opening_Balance_Currency;
-           dsForeign_Currency_Amount  := pAccount.chTemp_Opening_Balance_Forex_Amount;
-           dsPayee_Number        := 0;
-           dsGST_Class           := pAccount.chGST_Class;
-           //The GST for opening balance journals MUST be zero, set this and
-           //set edit flag if not already zero
-           dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient, pJ.txDate_Effective, Local_Amount, pAccount.chGST_Class);
-           if ( dsGST_Amount <> 0) then begin
-             dsGST_Amount := 0;
-             dsGST_Has_Been_Edited := True;
+     // Store dissection lines
+     for i := 0 to Pred( ThisClient.clChart.ItemCount ) do begin
+        pAccount := ThisClient.clChart.Account_At( i);
+        if pAccount.chTemp_Money_Value <> 0 then begin
+           //need to write a dissection line for this account
+           pJournalLine        :=  New_Dissection_Rec;
+           with pJournalLine^ do begin
+             dsTransaction         := pJ;
+             dsAccount             := pAccount.chAccount_Code;
+             dsAmount              := pAccount.chTemp_Money_Value;
+             dsOpening_Balance_Currency := pAccount.chTemp_Opening_Balance_Currency;
+             dsForeign_Currency_Amount  := pAccount.chTemp_Opening_Balance_Forex_Amount;
+             dsPayee_Number        := 0;
+             dsGST_Class           := pAccount.chGST_Class;
+             //The GST for opening balance journals MUST be zero, set this and
+             //set edit flag if not already zero
+             dsGST_Amount          := GSTCalc32.CalculateGSTForClass( ThisClient, pJ.txDate_Effective, Local_Amount, pAccount.chGST_Class);
+             if ( dsGST_Amount <> 0) then begin
+               dsGST_Amount := 0;
+               dsGST_Has_Been_Edited := True;
+             end;
+             dsQuantity            := 0;
+             dsGL_Narration        := '';
+             dsHas_Been_Edited     := True;
+             dsJournal_Type        := jtNormal;
+             dsSF_Member_Account_ID:= -1;
+             dsSF_Fund_ID          := -1;
+             if AuditIDList.Count > 0 then begin
+               pJournalLine.dsAudit_Record_ID := integer(AuditIDList.Items[0]);
+               TrxList32.AppendDissection( pJ, pJournalLine, nil );
+               AuditIDList.Delete(0);
+             end else
+               TrxList32.AppendDissection( pJ, pJournalLine, ThisClient.ClientAuditMgr);
            end;
-           dsQuantity            := 0;
-           dsGL_Narration        := '';
-           dsHas_Been_Edited     := True;
-           dsJournal_Type        := jtNormal;
-           dsSF_Member_Account_ID:= -1;
-           dsSF_Fund_ID          := -1;
-           TrxList32.AppendDissection( pJ, pJournalLine );
-         end;
-      end;
+        end;
+     end;
+   finally
+     AuditIDList.Free;
    end;
 
    if pJ^.txFirst_Dissection <> nil then begin

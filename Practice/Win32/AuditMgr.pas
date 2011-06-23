@@ -1038,6 +1038,7 @@ begin
          btCashJournals   : Result := atCashJournals;
          btAccrualJournals: Result := atAccrualJournals;
          btGSTJournals    : Result := atGSTJournals;
+         btOpeningBalances: Result := atOpeningBalances;
        end;
     orHistorical   : Result := atHistoricalentries;
     orGeneratedRev : Result := atUnpresentedItems;

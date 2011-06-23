@@ -737,6 +737,11 @@ begin
         Idx := 0;
         Token := AAuditRecord.atChanged_Fields[idx];
         while Token <> 0 do begin
+
+          //Only display the relevant fields for Opening Balances - Date_Effective
+          if (AAuditRecord.atTransaction_Type = atOpeningBalances)and not (Token in [167]) then
+            Token := 0;     
+
           case Token of
             //Sequence_No
 //            162: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
@@ -753,7 +758,7 @@ begin
             //Source
             165: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          orNames[tTransaction_Rec(ARecord^).txSource], Values);
-            //Source
+            //Date_Presented
             166: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          BKDate2Str(tTransaction_Rec(ARecord^).txDate_Presented), Values);
             //Date_Effective
@@ -912,6 +917,11 @@ begin
         Idx := 0;
         Token := AAuditRecord.atChanged_Fields[idx];
         while Token <> 0 do begin
+
+          //Only display the relevant fields for Opening Balances - Account, Amount.
+          if (AAuditRecord.atTransaction_Type = atOpeningBalances)and not (Token in [183, 184]) then
+            Token := 0;
+
           case Token of
             //Sequence_No
             182: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
