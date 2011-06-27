@@ -1037,6 +1037,8 @@ end;
 
 function TClientAuditManager.GetBankAccountAuditType(ABankAccountType: byte): TAuditType;
 begin
+  Result := atClientBankAccounts;
+{$IFNDEF LOOKUPDLL}
   case ABankAccountType of
     btCashJournals       : Result := atCashJournals;
     btAccrualJournals    : Result := atAccrualJournals;
@@ -1048,6 +1050,7 @@ begin
   else
     Result := atClientBankAccounts;
   end;
+{$ENDIF}
 end;
 
 function TClientAuditManager.GetParentRecordID(ARecordType: byte;
