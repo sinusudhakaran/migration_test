@@ -713,6 +713,7 @@ var
   TableID: byte;
 begin
 {$IFNDEF LOOKUPDLL}
+  //Output the info only audit records first
   for i := 0 to FAuditScope.Count - 1 do begin
     TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
     if (PScopeInfo(FAuditScope.Items[i]).AuditRecordID <> -1) then begin
@@ -724,7 +725,13 @@ begin
                          PScopeInfo(FAuditScope.Items[i]),
                          AdminSystem.fAuditTable,
                          CurrentUserCode);
-    end else begin
+    end;
+  end;
+
+  //Now output the changes to the database
+  for i := 0 to FAuditScope.Count - 1 do begin
+    TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
+    if (PScopeInfo(FAuditScope.Items[i]).AuditRecordID = -1) then begin
       case TableID of
         tkBegin_Practice_Details: AdminSystem.DoAudit(@SystemCopy.fdFields, PScopeInfo(FAuditScope.Items[i]).AuditType);
         tkBegin_User: AdminSystem.fdSystem_User_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
@@ -977,7 +984,8 @@ begin
     Exit;
   end;
 
-  with FOwner as TClientObj do
+  with FOwner as TClientObj do begin
+    //Output the info only audit records first
     for i := 0 to FAuditScope.Count - 1 do begin
       TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
       if (PScopeInfo(FAuditScope.Items[i]).AuditRecordID <> -1) then begin
@@ -989,7 +997,13 @@ begin
                            PScopeInfo(FAuditScope.Items[i]),
                            fAuditTable,
                            CurrentUserCode);
-      end else begin
+      end;
+    end;
+
+    //Now output the changes to the database
+    for i := 0 to FAuditScope.Count - 1 do begin
+      TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
+      if (PScopeInfo(FAuditScope.Items[i]).AuditRecordID = -1) then begin
         case TableID of
           tkBegin_Client      : DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType, ClientCopy);
           tkBegin_Payee_Line  :         ;//Done in payee detail
@@ -1010,6 +1024,7 @@ begin
         end;
       end;
     end;
+  end;
   FAuditScope.Clear;
 {$ENDIF}
 end;
@@ -1031,7 +1046,7 @@ begin
     btOpeningBalances    : Result := atOpeningBalances;
     btYearEndAdjustments : Result := atYearEndAdjustmentJournals;
   else
-    Result := atClientBankAccounts;  
+    Result := atClientBankAccounts;
   end;
 end;
 

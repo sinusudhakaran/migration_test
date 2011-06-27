@@ -598,7 +598,7 @@ uses
 {$ENDIF PLAYSOUNDS}
    SwapUtils, clObj32, pyList32, ECollect, mainfrm,
    PayeeObj, UsageUtils, QueryTx, NewReportUtils,
-   CountryUtils, SetClearTransferFlags, ExchangeRateList;
+   CountryUtils, SetClearTransferFlags, ExchangeRateList, AuditMgr;
 
 const
    UnitName = 'CODINGFRM';
@@ -2032,7 +2032,15 @@ begin
                  ' on ' + bkDate2Str( pT^.txDate_Effective) +
                  ' with ' + GetFormattedReference( pUPI) +
                  ' on ' + bkDate2Str( pT^.txDate_Effective);
-         LogUtil.LogMsg( lmInfo, UnitName, sMsg);
+         LogUtil.LogMsg( lmInfo, UnitName, sMsg); 
+
+         //*** Flag Audit ***
+         sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
+         MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                                           pUPI^.txAudit_Record_ID,
+                                           aaNone,
+                                           sMsg);
+
          //Details from matched transaction have been transfered to the UE Transaction
          //Now we delete the matched transaction and call LoadWTLMaintainPos to reload
          //the WorkTranList and reload the UEList
@@ -2120,6 +2128,13 @@ begin
                  ' on ' + bkDate2Str( pUPI^.txDate_Effective)+
                  ' Original Entry adjusted to ' + BankAccount.CurrencySymbol + MakeAmount( Diff);
          LogUtil.LogMsg( lmInfo, UnitName, sMsg);
+
+         //*** Flag Audit ***
+         sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
+         MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                                           pUPI^.txAudit_Record_ID,
+                                           aaNone,
+                                           sMsg);
 
          //update the original transaction
          //Removes any dissection in transaction
@@ -2581,6 +2596,9 @@ var
    d, m, y, BOM, EOM : integer;
    i              : integer;
    NewState       : byte;
+   sMsg: string;
+   AuditId: integer;
+   AuditType: TAuditType;
 begin
    with tblCoding do begin
       if not ValidDataRow(ActiveRow) then exit;
@@ -2659,7 +2677,15 @@ begin
                   pNewTrans^.txSF_Fund_ID          := -1;
 
                   BankAccount.baTransaction_List.Insert_Transaction_Rec( pNewTrans);
-                  LogUtil.LogMsg(lmInfo,UnitName,'Cancelled UPC Transaction ' + TransRef);
+                  sMsg := 'Cancelled UPC Transaction ' + TransRef;
+                  LogUtil.LogMsg(lmInfo,UnitName, sMsg);
+
+                  //*** Flag Audit ***
+                  sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
+                  MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                                                    pNewTrans^.txAudit_Record_ID,
+                                                    aaNone,
+                                                    sMsg);
                end;
                //reload and reposition
                LoadWTLMaintainPos;
@@ -2710,10 +2736,19 @@ begin
                         ActiveRow := ActiveRow - 1;
                   end;
                   tblCoding.AllowRedraw := False;
+                  AuditId := pT^.txAudit_Record_ID;
                   BankAccount.baTransaction_List.DelFreeItem( pT );
                   LoadWTLMaintainPos;
                   tblCoding.AllowRedraw := True;
-                  LogUtil.LogMsg(lmInfo,UnitName,'Deleted UPC Transaction '+TransRef);
+                  sMsg := 'Deleted UPC Transaction ' + TransRef;
+                  LogUtil.LogMsg(lmInfo,UnitName,sMsg);
+
+                  //*** Flag Audit ***
+                  sMsg := Format('%s (AuditID=%d)',[sMsg, AuditId]);
+                  MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                                                    AuditId,
+                                                    aaNone,
+                                                    sMsg);
                   exit;
                end;
                DLG_RANGE :  begin
@@ -2782,7 +2817,14 @@ begin
 
             //reinstating transaction
             tblCoding.AllowRedraw := False;
+            AuditId := pT^.txAudit_Record_ID;
             BankAccount.baTransaction_List.Delete( pT );
+
+            //*** Flag Audit ***
+            MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                                              AuditId,
+                                              aaNone,
+                                              sMsg);
             //recreate the bank entry
 
             pNewTrans := BankAccount.baTransaction_List.New_Transaction;
@@ -2863,10 +2905,19 @@ begin
             RepositionOn( pT);
             tblCoding.AllowRedraw := True;
             tblCoding.Refresh;
-            LogUtil.LogMsg( lmInfo, UnitName, 'Unmatched Transaction '+ TransRef +
-                                              bkDate2Str( pT^.txDate_Effective) +
-                                              '  Original Ref ' + GetFormattedReference( pNewTrans) +
-                                              bkDate2str( pNewTrans^.txDate_Effective));
+            sMsg := 'Unmatched Transaction ' + TransRef +
+                    bkDate2Str( pT^.txDate_Effective) +
+                    '  Original Ref ' + GetFormattedReference( pNewTrans) +
+                    bkDate2str( pNewTrans^.txDate_Effective);
+            LogUtil.LogMsg( lmInfo, UnitName, sMsg);
+
+            //*** Flag Audit ***
+            sMsg := Format('%s (AuditID=%d)',[sMsg, pNewTrans.txAudit_Record_ID]);
+            MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                                              pT.txAudit_Record_ID,
+                                              aaNone,
+                                              sMsg);
+
             exit;
          end;
 
@@ -2919,13 +2970,23 @@ begin
             //remove link
             pCancelled^.txMatched_Item_ID := 0;
             //Remove reversing entry from bank account
+            AuditId := pT^.txAudit_Record_ID;
+            AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(pT^.txSource,
+                                                                         BankAccount.baFields.baAccount_Type);
             BankAccount.baTransaction_List.DelFreeItem( pT);
             //reload and reposition
             LoadWTLMaintainPos;
             tblCoding.AllowRedraw := True;
             tblCoding.Refresh;
             //log event
-            LogUtil.LogMsg(lmInfo,UnitName, 'Deleted Cancelled UPI ' + TransRef);
+            sMsg := 'Deleted Cancelled UPI ' + TransRef;
+            LogUtil.LogMsg(lmInfo,UnitName, sMsg);
+
+            //*** Flag Audit ***
+            MyClient.ClientAuditMgr.FlagAudit(AuditType,
+                                              AuditId,
+                                              aaNone,
+                                              sMsg);
             exit;
          end;
       else
@@ -2947,8 +3008,19 @@ begin
       //OK, the user really wants to remove this entry
 
       tblCoding.AllowRedraw := False;
+      AuditId := pT^.txAudit_Record_ID;
+      AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(pT^.txSource,
+                                                                   BankAccount.baFields.baAccount_Type);
       BankAccount.baTransaction_List.DelFreeItem( pT );
-      LogUtil.LogMsg(lmInfo,UnitName, 'Deleted Transaction '+ TransRef+' ' + MakeAmount( TransAmt));
+      sMsg := 'Deleted Transaction '+ TransRef+' ' + MakeAmount( TransAmt);
+      LogUtil.LogMsg(lmInfo,UnitName, sMsg);
+
+      //*** Flag Audit ***
+      MyClient.ClientAuditMgr.FlagAudit(AuditType,
+                                        AuditId,
+                                        aaNone,
+                                        sMsg);
+
       LoadWTLMaintainPos;  //reload and reposition
       tblCoding.AllowRedraw := True;
       tblCoding.Refresh;

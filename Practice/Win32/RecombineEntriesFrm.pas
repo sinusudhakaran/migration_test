@@ -84,7 +84,8 @@ uses
   WarningMoreFrm,
   LogUtil,
   ForexHelpers,
-  Globals;
+  Globals,
+  AuditMgr;
 {$R *.DFM}
 
 CONST
@@ -106,6 +107,9 @@ var
    CheckedCount : integer;
    CheckedTotal : Money;
    CheckedForexTotal : Money;
+   sMsg, AuditIDs: string;
+   AuditID: integer;
+   AuditType: TAuditType;
 begin
   Result := nil;
 
@@ -167,17 +171,32 @@ begin
          CheckedCount := 0;
          CheckedTotal := 0;
          CheckedForexTotal := 0;
+         AuditIDs := '';
          //get total of all checked transactions
          for i := 0 to Pred( lvEntries.Items.Count) do begin
             if lvEntries.Items[ i].Checked then begin
                Inc( CheckedCount);
                CurrTrans    := pTransaction_Rec( lvEntries.Items[ i].SubItems.Objects[0]);
                //log event
-               LogUtil.LogMsg(lmInfo,UnitName, 'Recombine entry ' +
-                                               BkDate2Str( CurrTrans^.txDate_Effective) + ' ' +
-                                               GetFormattedReference( CurrTrans ) + ' ' + BankAccount.MoneyStr( Currtrans^.Statement_Amount ) );
+               sMsg := 'Recombine entry ' +
+                       BkDate2Str( CurrTrans^.txDate_Effective) + ' ' +
+                       GetFormattedReference( CurrTrans ) + ' ' +
+                       BankAccount.MoneyStr( Currtrans^.Statement_Amount );
+               LogUtil.LogMsg(lmInfo,UnitName, sMsg );
+
+               //*** Flag Audit ***
+               MyClient.ClientAuditMgr.FlagAudit(MyClient.ClientAuditMgr.GetTransactionAuditType(CurrTrans^.txSource,
+                                                                                                 BankAccount.baFields.baAccount_Type),
+                                                 Currtrans^.txAudit_Record_ID,
+                                                 aaNone,
+                                                 sMsg);
+
                CheckedTotal := CheckedTotal + CurrTrans^.Local_Amount;
                CheckedForexTotal := CheckedForexTotal + CurrTrans^.txAmount;
+               if AuditIDs = '' then
+                 AuditIDs := intToStr(CurrTrans^.txAudit_Record_ID)
+               else
+                 AuditIDs := AuditIDs + ',' + intToStr(CurrTrans^.txAudit_Record_ID);
             end;
          end;
 
@@ -203,9 +222,19 @@ begin
             end;
             BankAccount.baTransaction_List.Insert_Transaction_Rec( NewTrans);
             //log event
-            LogUtil.LogMsg( lmInfo, UnitName, 'Original entry recreated ' +
-                                              bkDate2Str( NewTrans^.txDate_Effective) + ' ' +
-                                              GetFormattedReference( NewTrans) + ' ' + MyClient.MoneyStr( NewTrans^.txAmount ) );
+            sMsg := 'Original entry recreated ' +
+                    bkDate2Str( NewTrans^.txDate_Effective) + ' ' +
+                    GetFormattedReference( NewTrans) + ' ' +
+                    MyClient.MoneyStr( NewTrans^.txAmount );
+            LogUtil.LogMsg( lmInfo, UnitName, sMsg );
+
+            //*** Flag Audit ***
+            sMsg := Format('%s (AuditIDs=%s)', [sMsg, AuditIDs]);
+            MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                                              NewTrans^.txAudit_Record_ID,
+                                              aaNone,
+                                              sMsg);
+
             result := NewTrans;
          end
          else begin
@@ -239,18 +268,36 @@ begin
             end;
             BankAccount.baTransaction_List.Insert_Transaction_Rec( NewTrans);
             //log event
-            LogUtil.LogMsg(lmInfo,UnitName, 'New balancing entry ' +
-                                            BkDate2Str( NewTrans^.txDate_Effective) + ' ' +
-                                            GetFormattedReference( NewTrans) +
-                                            ' ' + MakeAmount( NewTrans^.txAmount));
+            sMsg := 'New balancing entry ' +
+                    BkDate2Str( NewTrans^.txDate_Effective) + ' ' +
+                    GetFormattedReference( NewTrans) + ' ' +
+                    MakeAmount( NewTrans^.txAmount);
+            LogUtil.LogMsg(lmInfo,UnitName, sMsg);
+
+            //*** Flag Audit ***
+            sMsg := Format('%s (AuditIDs=%s)', [sMsg, AuditIDs]);
+            MyClient.ClientAuditMgr.FlagAudit(MyClient.ClientAuditMgr.GetTransactionAuditType(NewTrans^.txSource,
+                                                                                              BankAccount.baFields.baAccount_Type),
+                                              NewTrans^.txAudit_Record_ID,
+                                              aaNone,
+                                              sMsg);
             result := NewTrans;
          end;
          //remove entries that are checked from the bank account
          for i := 0 to Pred( lvEntries.Items.Count) do begin
             if lvEntries.Items[ i].Checked then begin
                CurrTrans    := pTransaction_Rec( lvEntries.Items[ i].SubItems.Objects[0]);
+               AuditID := CurrTrans^.txAudit_Record_ID;
+               AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(CurrTrans^.txSource,
+                                                                            BankAccount.baFields.baAccount_Type);
                BankAccount.baTransaction_List.DelFreeItem( CurrTrans);
                lvEntries.Items[ i].SubItems.Objects[0] := nil;
+
+               //*** Flag Audit ***
+               MyClient.ClientAuditMgr.FlagAudit(AuditType,
+                                                 AuditID,
+                                                 aaNone,
+                                                 'Recombined Transaction Deleted');
             end;
          end;
       end;
