@@ -31,6 +31,7 @@ CONST AllEntries : Byte = 255;
 //******************************************************************************
 implementation
 uses
+  Classes,
   software,
   BKCONST,
   BKDSIO,
@@ -101,6 +102,7 @@ VAR
    DoAnalysisCoding : boolean;
    SubCode          : string;
    //WasEdited        : Boolean;
+   AuditIDList: TList;   
 
    function DoSuperFund: Boolean;
    begin
@@ -256,371 +258,388 @@ Begin
             ClearSuperFundFields(Transaction);
             {if not WasEdited then
                txJob_Code := '';  Job is not Blanked }
-            //Remove any dissections
-            Dump_Dissections( Transaction );
+
+            AuditIDList := TList.Create;
+            try
+              //Remove any dissections
+              Dump_Dissections( Transaction, AuditIDList );
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //                   M E M O R I S A T I O N S
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            With baMemorisations_List do
-            Begin
-               //check for client memorisations
-               MX :=  MXFirstByEntryType[ txType ];
-               MXFound := NIL;
-               while (MX<>NIL)
-               and (MXFound=NIL) do begin
-                  if CanMemorise (Transaction, MX) then begin
-                     if (not (MX.mdFields.mdFrom_Master_List)) // Don't care
-                     or (not (MX.mdFields.mdUse_Accounting_System)) // Don't care
-                     or (MX.mdFields.mdAccounting_System = aClient.clFields.clAccounting_System_Used) {Does match} then
-                        if MX.FirstLine <> nil then
-                           MXFound := MX;
-                  end;
-                  MX := TMemorisation(MX.mdFields.mdNext_Memorisation);
-               end;
+              With baMemorisations_List do
+              Begin
+                 //check for client memorisations
+                 MX :=  MXFirstByEntryType[ txType ];
+                 MXFound := NIL;
+                 while (MX<>NIL)
+                 and (MXFound=NIL) do begin
+                    if CanMemorise (Transaction, MX) then begin
+                       if (not (MX.mdFields.mdFrom_Master_List)) // Don't care
+                       or (not (MX.mdFields.mdUse_Accounting_System)) // Don't care
+                       or (MX.mdFields.mdAccounting_System = aClient.clFields.clAccounting_System_Used) {Does match} then
+                          if MX.FirstLine <> nil then
+                             MXFound := MX;
+                    end;
+                    MX := TMemorisation(MX.mdFields.mdNext_Memorisation);
+                 end;
 
-               //check for MASTER memorisations
-               if (MXFound = nil)
-               and CheckMasterMX then begin
-                  MX := MasterMemList.mxFirstByEntryType[txType];
-                  while (mx <> nil)
-                  and (mxFound = nil) do begin
-                     // Check if we should apply this..
-                     if (not (MX.mdFields.mdUse_Accounting_System)) // Dont care
-                     or (MX.mdFields.mdAccounting_System = aClient.clFields.clAccounting_System_Used) {Does match} then
-                        if MxUtils.CanMemorise(Transaction, mx) then
-                           mxFound := MX;
-                     Mx := TMemorisation(Mx.mdFields.mdNext_Memorisation);
-                  end;
-               end;
+                 //check for MASTER memorisations
+                 if (MXFound = nil)
+                 and CheckMasterMX then begin
+                    MX := MasterMemList.mxFirstByEntryType[txType];
+                    while (mx <> nil)
+                    and (mxFound = nil) do begin
+                       // Check if we should apply this..
+                       if (not (MX.mdFields.mdUse_Accounting_System)) // Dont care
+                       or (MX.mdFields.mdAccounting_System = aClient.clFields.clAccounting_System_Used) {Does match} then
+                          if MxUtils.CanMemorise(Transaction, mx) then
+                             mxFound := MX;
+                       Mx := TMemorisation(Mx.mdFields.mdNext_Memorisation);
+                    end;
+                 end;
 
-               //if mx found then autocode this transactions
-               MX := MXFound;
-               If MX<>NIL then With MX.mdFields^ do
-               Begin
-                  if mdFrom_Master_List then
-                    txCoded_By := BKCONST.cbMemorisedM
-                  else
-                    txCoded_By := BKCONST.cbMemorisedC;
+                 //if mx found then autocode this transactions
+                 MX := MXFound;
+                 If MX<>NIL then With MX.mdFields^ do
+                 Begin
+                    if mdFrom_Master_List then
+                      txCoded_By := BKCONST.cbMemorisedM
+                    else
+                      txCoded_By := BKCONST.cbMemorisedC;
 
-                  mdDate_Last_Applied := txDate_Effective;
+                    mdDate_Last_Applied := txDate_Effective;
 
-                  if not Mx.IsDissected then
-                    begin
-                      //code the single line
-                      MemorisationLine := Mx.FirstLine;
-                      if HasAlternativeChartCode (aClient.clFields.clCountry,aClient.clFields.clAccounting_System_Used ) then
-                         txAccount := aCLient.clChart.MatchAltCode(MemorisationLine.mlAccount)
-                      else
-                         txAccount := MemorisationLine.mlAccount;
+                    if not Mx.IsDissected then
+                      begin
+                        //code the single line
+                        MemorisationLine := Mx.FirstLine;
+                        if HasAlternativeChartCode (aClient.clFields.clCountry,aClient.clFields.clAccounting_System_Used ) then
+                           txAccount := aCLient.clChart.MatchAltCode(MemorisationLine.mlAccount)
+                        else
+                           txAccount := MemorisationLine.mlAccount;
 
-                      txPayee_Number := MemorisationLine.mlPayee;
-                      if MemorisationLine.mlJob_Code > '' then
-                         txJob_Code := MemorisationLine.mlJob_Code;
-                      //calculate GST class and Amounts.  If the gst has not been edited then use the default for
-                      //the chart
-                      if MemorisationLine.mlGST_Has_Been_Edited then
-                        begin
-                          txGST_Class := MemorisationLine.mlGST_Class;
-                          txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class );
-                          txGST_Has_Been_Edited := true;
-                        end
-                      else
-                        begin
-                          CalculateGST( aClient,txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
-                          txGST_Has_Been_Edited := false;
+                        txPayee_Number := MemorisationLine.mlPayee;
+                        if MemorisationLine.mlJob_Code > '' then
+                           txJob_Code := MemorisationLine.mlJob_Code;
+                        //calculate GST class and Amounts.  If the gst has not been edited then use the default for
+                        //the chart
+                        if MemorisationLine.mlGST_Has_Been_Edited then
+                          begin
+                            txGST_Class := MemorisationLine.mlGST_Class;
+                            txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class );
+                            txGST_Has_Been_Edited := true;
+                          end
+                        else
+                          begin
+                            CalculateGST( aClient,txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
+                            txGST_Has_Been_Edited := false;
+                          end;
+
+                        //set narration
+                        if MemorisationLine.mlGL_Narration <> '' then
+                           txGL_Narration := MemorisationLine.mlGL_Narration;
+
+                        if DoSuperFund then begin
+                           if MemorisationLine.mlSF_PCFranked <> 0 then begin
+                               txSF_Franked := abs(Double2Money (Percent2Double(MemorisationLine.mlSF_PCFranked) * Money2Double(txAmount)/100));
+                               txSF_Imputed_Credit := FrankingCredit(txSF_Franked, txDate_Effective);
+                           end;
+                           if MemorisationLine.mlSF_PCUnFranked <> 0 then begin
+                               if (MemorisationLine.mlSF_PCUnFranked + MemorisationLine.mlSF_PCFranked) = 1000000 then
+                                   txSF_UnFranked := Abs(txAmount) - txSF_Franked  // No Rounding Isues
+                               else
+                                   txSF_UnFranked := abs(Double2Money (Percent2Double(MemorisationLine.mlSF_PCUnFranked) * Money2Double(txAmount)/100));
+                           end;
+                           txSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
+                           txSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
+                           txSF_Fund_ID              := MemorisationLine.mlSF_Fund_ID;
+                           txSF_Fund_Code            := MemorisationLine.mlSF_Fund_Code;
+                           txSF_Member_ID            := MemorisationLine.mlSF_Member_ID;
+                           txSF_Transaction_ID       := MemorisationLine.mlSF_Trans_ID;
+                           txSF_Transaction_Code     := MemorisationLine.mlSF_Trans_Code;
+                           txSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
+                           txSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
+                           txSF_Member_Component     := MemorisationLine.mlSF_Member_Component;
+
+                           if MemorisationLine.mlQuantity <> 0 then
+                              txQuantity := MemorisationLine.mlQuantity;
+                           if MemorisationLine.mlSF_GDT_Date <> 0 then
+                              txSF_CGT_Date := MemorisationLine.mlSF_GDT_Date;
+
+                           txSF_Capital_Gains_Fraction_Half := MemorisationLine.mlSF_Capital_Gains_Fraction_Half;
+
+                           SplitRevenue(txAmount,
+                                         txSF_Tax_Free_Dist,
+                                         txSF_Tax_Exempt_Dist,
+                                         txSF_Tax_Deferred_Dist,
+                                         txSF_Foreign_Income,
+                                         txSF_Capital_Gains_Indexed,
+                                         txSF_Capital_Gains_Disc,
+                                         txSF_Capital_Gains_Other,
+                                         txSF_Capital_Gains_Foreign_Disc,
+                                         txSF_Other_Expenses,
+                                         txSF_Interest,
+                                         txSF_Rent,
+                                         txSF_Special_Income,
+                                         MemorisationLine);
+                           txSF_Super_Fields_Edited  := True;
+                        end else begin
+                           ClearSuperFundFields(Transaction);
                         end;
-
-                      //set narration
-                      if MemorisationLine.mlGL_Narration <> '' then
-                         txGL_Narration := MemorisationLine.mlGL_Narration;
-
-                      if DoSuperFund then begin
-                         if MemorisationLine.mlSF_PCFranked <> 0 then begin
-                             txSF_Franked := abs(Double2Money (Percent2Double(MemorisationLine.mlSF_PCFranked) * Money2Double(txAmount)/100));
-                             txSF_Imputed_Credit := FrankingCredit(txSF_Franked, txDate_Effective);
-                         end;
-                         if MemorisationLine.mlSF_PCUnFranked <> 0 then begin
-                             if (MemorisationLine.mlSF_PCUnFranked + MemorisationLine.mlSF_PCFranked) = 1000000 then
-                                 txSF_UnFranked := Abs(txAmount) - txSF_Franked  // No Rounding Isues
-                             else
-                                 txSF_UnFranked := abs(Double2Money (Percent2Double(MemorisationLine.mlSF_PCUnFranked) * Money2Double(txAmount)/100));
-                         end;
-                         txSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
-                         txSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
-                         txSF_Fund_ID              := MemorisationLine.mlSF_Fund_ID;
-                         txSF_Fund_Code            := MemorisationLine.mlSF_Fund_Code;
-                         txSF_Member_ID            := MemorisationLine.mlSF_Member_ID;
-                         txSF_Transaction_ID       := MemorisationLine.mlSF_Trans_ID;
-                         txSF_Transaction_Code     := MemorisationLine.mlSF_Trans_Code;
-                         txSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
-                         txSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
-                         txSF_Member_Component     := MemorisationLine.mlSF_Member_Component;
-
-                         if MemorisationLine.mlQuantity <> 0 then
-                            txQuantity := MemorisationLine.mlQuantity;
-                         if MemorisationLine.mlSF_GDT_Date <> 0 then
-                            txSF_CGT_Date := MemorisationLine.mlSF_GDT_Date;
-
-                         txSF_Capital_Gains_Fraction_Half := MemorisationLine.mlSF_Capital_Gains_Fraction_Half;
-
-                         SplitRevenue(txAmount,
-                                       txSF_Tax_Free_Dist,
-                                       txSF_Tax_Exempt_Dist,
-                                       txSF_Tax_Deferred_Dist,
-                                       txSF_Foreign_Income,
-                                       txSF_Capital_Gains_Indexed,
-                                       txSF_Capital_Gains_Disc,
-                                       txSF_Capital_Gains_Other,
-                                       txSF_Capital_Gains_Foreign_Disc,
-                                       txSF_Other_Expenses,
-                                       txSF_Interest,
-                                       txSF_Rent,
-                                       txSF_Special_Income,
-                                       MemorisationLine);
-                         txSF_Super_Fields_Edited  := True;
-                      end else begin
-                         ClearSuperFundFields(Transaction);
+                        Continue;
                       end;
-                      Continue;
-                    end;
 
-                  //Dissected memorisation
-                  Amount := Transaction.txAmount;
+                    //Dissected memorisation
+                    Amount := Transaction.txAmount;
 
-                  //Entry needs to be dissected
-                  mxUtils.MemorisationSplit( Amount, MX, Split, SplitPct );
-                  txAccount      := DISSECT_DESC;
-                  txPayee_Number := 0;
-                  ClearGSTFields( Transaction);
-                  ClearSuperFundFields( Transaction);
+                    //Entry needs to be dissected
+                    mxUtils.MemorisationSplit( Amount, MX, Split, SplitPct );
+                    txAccount      := DISSECT_DESC;
+                    txPayee_Number := 0;
+                    ClearGSTFields( Transaction);
+                    ClearSuperFundFields( Transaction);
 
-                  for i := MX.mdLines.First to MX.mdLines.Last do
-                    begin
-                      MemorisationLine := MX.mdLines.MemorisationLine_At(i);
-                      if ( MemorisationLine.mlAccount <> '') or ( Split[i] <> 0) then
-                        begin
-                          New( Dissection );
-                          FillChar( Dissection^, Dissection_Rec_Size, 0);
-                          Dissection.dsBank_Account := Transaction.txBank_Account;
-                          with Dissection^ do
-                            begin
-                              dsRecord_Type := tkBegin_Dissection;
-                              dsEOR := tkEnd_Dissection;
-                              dsTransaction  := Transaction;
-                              if HasAlternativeChartCode (aClient.clFields.clCountry,aClient.clFields.clAccounting_System_Used ) then
-                                 dsAccount := aCLient.clChart.MatchAltCode(MemorisationLine.mlAccount)
-                              else
-                                 dsAccount := MemorisationLine.mlAccount;
-                              dsAmount := Split[i];
-                              dsPercent_Amount := SplitPct[i];
-                              dsAmount_Type_Is_Percent := SplitPct[i] <> 0;
-                              dsPayee_Number := MemorisationLine.mlPayee;
-                              if MemorisationLine.mlJob_Code > '' then begin
-                                 txJob_Code := '';
-                                 dsJob_Code := MemorisationLine.mlJob_Code;
+                    for i := MX.mdLines.First to MX.mdLines.Last do
+                      begin
+                        MemorisationLine := MX.mdLines.MemorisationLine_At(i);
+                        if ( MemorisationLine.mlAccount <> '') or ( Split[i] <> 0) then
+                          begin
+                            New( Dissection );
+                            FillChar( Dissection^, Dissection_Rec_Size, 0);
+                            Dissection.dsBank_Account := Transaction.txBank_Account;
+                            with Dissection^ do
+                              begin
+                                dsRecord_Type := tkBegin_Dissection;
+                                dsEOR := tkEnd_Dissection;
+                                dsTransaction  := Transaction;
+                                if HasAlternativeChartCode (aClient.clFields.clCountry,aClient.clFields.clAccounting_System_Used ) then
+                                   dsAccount := aCLient.clChart.MatchAltCode(MemorisationLine.mlAccount)
+                                else
+                                   dsAccount := MemorisationLine.mlAccount;
+                                dsAmount := Split[i];
+                                dsPercent_Amount := SplitPct[i];
+                                dsAmount_Type_Is_Percent := SplitPct[i] <> 0;
+                                dsPayee_Number := MemorisationLine.mlPayee;
+                                if MemorisationLine.mlJob_Code > '' then begin
+                                   txJob_Code := '';
+                                   dsJob_Code := MemorisationLine.mlJob_Code;
+                                end;
+
+                                dsGST_Has_Been_Edited := false;
+                                if MemorisationLine.mlGST_Has_Been_Edited then begin
+                                    dsGST_Class := MemorisationLine.mlGST_Class;
+                                    dsGST_Has_Been_Edited := true;
+                                end;
+
+                                if MemorisationLine.mlGL_Narration <> '' then
+                                   dsGL_Narration := MemorisationLine.mlGL_Narration
+                                else
+                                   dsGL_Narration := txGL_Narration;
+
+                                if DoSuperFund then begin
+                                   if MemorisationLine.mlSF_PCFranked <> 0 then begin
+                                      dsSF_Franked := abs(Double2Money (Percent2Double(MemorisationLine.mlSF_PCFranked) * Money2Double(dsAmount)/100));
+                                      dsSF_Imputed_Credit := FrankingCredit(dsSF_Franked, txDate_Effective);
+                                   end;
+
+                                   if MemorisationLine.mlSF_PCUnFranked <> 0 then begin
+
+                                      if (MemorisationLine.mlSF_PCUnFranked + MemorisationLine.mlSF_PCFranked) = 1000000 then
+                                         dsSF_UnFranked := Abs(dsAmount) - dsSF_Franked  // No Rounding Isues
+                                      else
+                                         dsSF_UnFranked := abs(Double2Money (Percent2Double(MemorisationLine.mlSF_PCUnFranked) * Money2Double(dsAmount)/100));
+                                   end;
+
+                                   dsSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
+                                   dsSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
+                                   dsSF_Fund_ID              := MemorisationLine.mlSF_Fund_ID;
+                                   dsSF_Fund_Code            := MemorisationLine.mlSF_Fund_Code;
+                                   dsSF_Member_ID            := MemorisationLine.mlSF_Member_ID;
+                                   dsSF_Transaction_ID       := MemorisationLine.mlSF_Trans_ID;
+                                   dsSF_Transaction_Code     := MemorisationLine.mlSF_Trans_Code;
+                                   dsSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
+                                   dsSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
+                                   dsSF_Member_Component     := MemorisationLine.mlSF_Member_Component;
+
+                                   if MemorisationLine.mlQuantity <> 0 then
+                                      dsQuantity := MemorisationLine.mlQuantity;
+
+                                   if MemorisationLine.mlSF_GDT_Date <> 0 then
+                                      dsSF_CGT_Date := MemorisationLine.mlSF_GDT_Date;
+
+                                   dsSF_Capital_Gains_Fraction_Half := MemorisationLine.mlSF_Capital_Gains_Fraction_Half;
+                                   SplitRevenue(dsAmount,
+                                         dsSF_Tax_Free_Dist,
+                                         dsSF_Tax_Exempt_Dist,
+                                         dsSF_Tax_Deferred_Dist,
+                                         dsSF_Foreign_Income,
+                                         dsSF_Capital_Gains_Indexed,
+                                         dsSF_Capital_Gains_Disc,
+                                         dsSF_Capital_Gains_Other,
+                                         dsSF_Capital_Gains_Foreign_Disc,
+                                         dsSF_Other_Expenses,
+                                         dsSF_Interest,
+                                         dsSF_Rent,
+                                         dsSF_Special_Income,
+                                         MemorisationLine);
+                                   dsSF_Super_Fields_Edited  := True;
+                                end;
+
+
                               end;
 
-                              dsGST_Has_Been_Edited := false;
-                              if MemorisationLine.mlGST_Has_Been_Edited then begin
-                                  dsGST_Class := MemorisationLine.mlGST_Class;
-                                  dsGST_Has_Been_Edited := true;
-                              end;
+//                            AppendDissection( Transaction, Dissection, aClient.ClientAuditMgr );
+                            if AuditIDList.Count > 0 then begin
+                              Dissection.dsAudit_Record_ID := integer(AuditIDList.Items[0]);
+                              AppendDissection( Transaction, Dissection, nil );
+                              AuditIDList.Delete(0);
+                            end else
+                              TrxList32.AppendDissection( Transaction, Dissection, aClient.ClientAuditMgr );
+                          end;
+                      end;
 
-                              if MemorisationLine.mlGL_Narration <> '' then
-                                 dsGL_Narration := MemorisationLine.mlGL_Narration
-                              else
-                                 dsGL_Narration := txGL_Narration;
+                      //Calculate the GST for dissections
+                      Dissection := Transaction.txFirst_Dissection;
+                      while (Dissection <> nil) do begin
+                        if Dissection.dsGST_Has_Been_Edited then
+                          Dissection.dsGST_Amount := CalculateGSTForClass(aClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
+                        else
+                          CalculateGST(aClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
+                        Dissection := Dissection.dsNext;
+                      end;
 
-                              if DoSuperFund then begin
-                                 if MemorisationLine.mlSF_PCFranked <> 0 then begin
-                                    dsSF_Franked := abs(Double2Money (Percent2Double(MemorisationLine.mlSF_PCFranked) * Money2Double(dsAmount)/100));
-                                    dsSF_Imputed_Credit := FrankingCredit(dsSF_Franked, txDate_Effective);
-                                 end;
-
-                                 if MemorisationLine.mlSF_PCUnFranked <> 0 then begin
-
-                                    if (MemorisationLine.mlSF_PCUnFranked + MemorisationLine.mlSF_PCFranked) = 1000000 then
-                                       dsSF_UnFranked := Abs(dsAmount) - dsSF_Franked  // No Rounding Isues
-                                    else
-                                       dsSF_UnFranked := abs(Double2Money (Percent2Double(MemorisationLine.mlSF_PCUnFranked) * Money2Double(dsAmount)/100));
-                                 end;
-
-                                 dsSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
-                                 dsSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
-                                 dsSF_Fund_ID              := MemorisationLine.mlSF_Fund_ID;
-                                 dsSF_Fund_Code            := MemorisationLine.mlSF_Fund_Code;
-                                 dsSF_Member_ID            := MemorisationLine.mlSF_Member_ID;
-                                 dsSF_Transaction_ID       := MemorisationLine.mlSF_Trans_ID;
-                                 dsSF_Transaction_Code     := MemorisationLine.mlSF_Trans_Code;
-                                 dsSF_Member_Account_ID    := MemorisationLine.mlSF_Member_Account_ID;
-                                 dsSF_Member_Account_Code  := MemorisationLine.mlSF_Member_Account_Code;
-                                 dsSF_Member_Component     := MemorisationLine.mlSF_Member_Component;
-
-                                 if MemorisationLine.mlQuantity <> 0 then
-                                    dsQuantity := MemorisationLine.mlQuantity;
-
-                                 if MemorisationLine.mlSF_GDT_Date <> 0 then
-                                    dsSF_CGT_Date := MemorisationLine.mlSF_GDT_Date;
-
-                                 dsSF_Capital_Gains_Fraction_Half := MemorisationLine.mlSF_Capital_Gains_Fraction_Half;
-                                 SplitRevenue(dsAmount,
-                                       dsSF_Tax_Free_Dist,
-                                       dsSF_Tax_Exempt_Dist,
-                                       dsSF_Tax_Deferred_Dist,
-                                       dsSF_Foreign_Income,
-                                       dsSF_Capital_Gains_Indexed,
-                                       dsSF_Capital_Gains_Disc,
-                                       dsSF_Capital_Gains_Other,
-                                       dsSF_Capital_Gains_Foreign_Disc,
-                                       dsSF_Other_Expenses,
-                                       dsSF_Interest,
-                                       dsSF_Rent,
-                                       dsSF_Special_Income,
-                                       MemorisationLine);
-                                 dsSF_Super_Fields_Edited  := True;
-                              end;
-
-
-                            end;
-
-                          AppendDissection( Transaction, Dissection, aClient.ClientAuditMgr );
-                        end;
-
-                    end;
-
-                    //Calculate the GST for dissections
-                    Dissection := Transaction.txFirst_Dissection;
-                    while (Dissection <> nil) do begin
-                      if Dissection.dsGST_Has_Been_Edited then
-                        Dissection.dsGST_Amount := CalculateGSTForClass(aClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
-                      else
-                        CalculateGST(aClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
-                      Dissection := Dissection.dsNext;
-                    end;
-
-                  Continue;
-               end;
-            end; { Scope of Memorised_Transaction_List^ }
+                    Continue;
+                 end;
+              end; { Scope of Memorised_Transaction_List^ }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //      A N A L Y S I S   C O D I N G   B Y   P A Y E E
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            if ( aClient.clFields.clCountry = whNewZealand ) and ( aClient.clPayee_List.ItemCount > 0 ) then
-            begin
-               // Aug 02  Added two deposit types 56,57 for Wayne Campbell so can uses as payeers
-               // Change in 5.3 so that uses the same types as codes
-               // txTypes 0, 4, 5, 8, 9 are NO LONGER checked in 5.3 >
-               // Old code -> ( txType in [ 0,4..9, 56, 57 ] ) and  ///note 0,4..9 and cheques, 56, 57 are deposits
+              if ( aClient.clFields.clCountry = whNewZealand ) and ( aClient.clPayee_List.ItemCount > 0 ) then
+              begin
+                 // Aug 02  Added two deposit types 56,57 for Wayne Campbell so can uses as payeers
+                 // Change in 5.3 so that uses the same types as codes
+                 // txTypes 0, 4, 5, 8, 9 are NO LONGER checked in 5.3 >
+                 // Old code -> ( txType in [ 0,4..9, 56, 57 ] ) and  ///note 0,4..9 and cheques, 56, 57 are deposits
 
-               DoAnalysisCoding := true;
-               case baFields.baAnalysis_Coding_Level of
-                 acRestrictedLevel1 : DoAnalysisCoding := ( txType in [ 6, 7, 15, 30, 50, 56, 57 ] );
-                 acRestrictedLevel2 : DoAnalysisCoding := ( txType in [ 6, 7, 56, 57 ] );
-                 acDisabled         : DoAnalysisCoding := False;
-               end;
+                 DoAnalysisCoding := true;
+                 case baFields.baAnalysis_Coding_Level of
+                   acRestrictedLevel1 : DoAnalysisCoding := ( txType in [ 6, 7, 15, 30, 50, 56, 57 ] );
+                   acRestrictedLevel2 : DoAnalysisCoding := ( txType in [ 6, 7, 56, 57 ] );
+                   acDisabled         : DoAnalysisCoding := False;
+                 end;
 
-               if DoAnalysisCoding then
-               begin
-                 Analysis := StStrS.TrimSpacesS( txAnalysis );
-                 if GenUtils.IsNumeric( Analysis ) then
+                 if DoAnalysisCoding then
                  begin
-                    ZTrim( Analysis );
-                    //remove leading zeros
-                    While (Analysis <> '') and (Analysis[1] = '0') do
-                      System.Delete(Analysis, 1, 1);
-                    No := StrToIntSafe( Analysis );
-                    If ( No>0 ) then
-                    Begin
-                       Payee := clPayee_List.Find_Payee_Number( No );
-                       If Assigned( Payee ) then
-                       Begin
-                          if not Payee.IsDissected then
-                          begin
-                             //Single line entry, just modify existing transaction
-                             txCoded_By     := cbAutoPayee;
-                             txPayee_Number := Payee.pdNumber;
-
-                             PayeeLine := Payee.FirstLine;
-                             if Assigned( PayeeLine) then
-                               begin
-                                 txAccount      := PayeeLine.plAccount;
-                                 if PayeeLine.plGL_Narration <> '' then
-                                   txGL_Narration := PayeeLine.plGL_Narration;
-                                 //calculate GST.  If has been edited then use class, otherwise use default
-                                 if ( PayeeLine.plGST_Has_Been_Edited) then begin
-                                    txGST_Class    := PayeeLine.plGST_Class;
-                                    txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class);
-                                    txGST_Has_Been_Edited := true;
-                                 end
-                                 else begin
-                                    CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);
-                                    txGST_Has_Been_Edited := false;
-                                 end;
-                               end;
-                             Continue;
-                          end;
-
-                          Amount := Transaction.txAmount;
-
-                          //Entry needs to be dissected
-                          PayeePercentageSplit( Amount, Payee, PayeeSplit, PayeeSplitPct );
-                          txCoded_By     := cbAutoPayee;
-                          txPayee_Number := Payee.pdNumber;
-                          txAccount      := DISSECT_DESC;
-                          //txGL_Narration := Payee.pdName;
-
-                          ClearGSTFields( Transaction);
-                          ClearSuperFundFields( Transaction);
-
-                          for i := Payee.pdLines.First to Payee.pdLines.Last do
-                          Begin
-                            if PayeeSplit[i] <> 0 then
+                   Analysis := StStrS.TrimSpacesS( txAnalysis );
+                   if GenUtils.IsNumeric( Analysis ) then
+                   begin
+                      ZTrim( Analysis );
+                      //remove leading zeros
+                      While (Analysis <> '') and (Analysis[1] = '0') do
+                        System.Delete(Analysis, 1, 1);
+                      No := StrToIntSafe( Analysis );
+                      If ( No>0 ) then
+                      Begin
+                         Payee := clPayee_List.Find_Payee_Number( No );
+                         If Assigned( Payee ) then
+                         Begin
+                            if not Payee.IsDissected then
                             begin
-                              PayeeLine := Payee.pdLines.PayeeLine_At(i);
+                               //Single line entry, just modify existing transaction
+                               txCoded_By     := cbAutoPayee;
+                               txPayee_Number := Payee.pdNumber;
 
-                              New( Dissection );
-                              FillChar( Dissection^, Dissection_Rec_Size, 0 );
-                              Dissection.dsBank_Account := Transaction.txBank_Account;
-                              With Dissection^ do
-                              begin
-                                 dsRecord_Type  := tkBegin_Dissection;
-                                 dsEOR          := tkEnd_Dissection;
-                                 dsTransaction  := Transaction;
-                                 dsAccount      := PayeeLine.plAccount;
-                                 dsAmount       := PayeeSplit[i];
-                                 dsPercent_Amount := PayeeSplitPct[i];
-                                 dsAmount_type_Is_Percent := PayeesplitPct[i] <> 0;
-                                 if PayeeLine.plGL_Narration <> '' then
-                                   dsGL_Narration := PayeeLine.plGL_Narration
-                                 else
-                                   dsGL_Narration := Transaction.txGL_Narration;
-
-                                 dsGST_Has_Been_Edited := false;
-                                 if PayeeLine.plGST_Has_Been_Edited then begin
-                                    dsGST_Class := PayeeLine.plGST_Class;
-                                    dsGST_Has_Been_Edited := true;
+                               PayeeLine := Payee.FirstLine;
+                               if Assigned( PayeeLine) then
+                                 begin
+                                   txAccount      := PayeeLine.plAccount;
+                                   if PayeeLine.plGL_Narration <> '' then
+                                     txGL_Narration := PayeeLine.plGL_Narration;
+                                   //calculate GST.  If has been edited then use class, otherwise use default
+                                   if ( PayeeLine.plGST_Has_Been_Edited) then begin
+                                      txGST_Class    := PayeeLine.plGST_Class;
+                                      txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class);
+                                      txGST_Has_Been_Edited := true;
+                                   end
+                                   else begin
+                                      CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);
+                                      txGST_Has_Been_Edited := false;
+                                   end;
                                  end;
-
-                              end;
-                              AppendDissection( Transaction, Dissection, aClient.ClientAuditMgr );
+                               Continue;
                             end;
-                          End;
 
-                          //Calculate GST for dissection
-                          Dissection := Transaction.txFirst_Dissection;
-                          while (Dissection <> nil) do begin
-                            if Dissection.dsGST_Has_Been_Edited then
-                              Dissection.dsGST_Amount := CalculateGSTForClass(aClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
-                            else
-                              CalculateGST(aClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
-                            Dissection := Dissection.dsNext;
-                          end;
+                            Amount := Transaction.txAmount;
 
-                       end; //matching payee
-                    end;
-                 end; //if DoAnalysisCoding
-               end;
+                            //Entry needs to be dissected
+                            PayeePercentageSplit( Amount, Payee, PayeeSplit, PayeeSplitPct );
+                            txCoded_By     := cbAutoPayee;
+                            txPayee_Number := Payee.pdNumber;
+                            txAccount      := DISSECT_DESC;
+                            //txGL_Narration := Payee.pdName;
+
+                            ClearGSTFields( Transaction);
+                            ClearSuperFundFields( Transaction);
+
+                            for i := Payee.pdLines.First to Payee.pdLines.Last do
+                            Begin
+                              if PayeeSplit[i] <> 0 then
+                              begin
+                                PayeeLine := Payee.pdLines.PayeeLine_At(i);
+
+                                New( Dissection );
+                                FillChar( Dissection^, Dissection_Rec_Size, 0 );
+                                Dissection.dsBank_Account := Transaction.txBank_Account;
+                                With Dissection^ do
+                                begin
+                                   dsRecord_Type  := tkBegin_Dissection;
+                                   dsEOR          := tkEnd_Dissection;
+                                   dsTransaction  := Transaction;
+                                   dsAccount      := PayeeLine.plAccount;
+                                   dsAmount       := PayeeSplit[i];
+                                   dsPercent_Amount := PayeeSplitPct[i];
+                                   dsAmount_type_Is_Percent := PayeesplitPct[i] <> 0;
+                                   if PayeeLine.plGL_Narration <> '' then
+                                     dsGL_Narration := PayeeLine.plGL_Narration
+                                   else
+                                     dsGL_Narration := Transaction.txGL_Narration;
+
+                                   dsGST_Has_Been_Edited := false;
+                                   if PayeeLine.plGST_Has_Been_Edited then begin
+                                      dsGST_Class := PayeeLine.plGST_Class;
+                                      dsGST_Has_Been_Edited := true;
+                                   end;
+
+                                end;
+  //                              AppendDissection( Transaction, Dissection, aClient.ClientAuditMgr );
+                              if AuditIDList.Count > 0 then begin
+                                Dissection.dsAudit_Record_ID := integer(AuditIDList.Items[0]);
+                                AppendDissection( Transaction, Dissection, nil );
+                                AuditIDList.Delete(0);
+                              end else
+                                TrxList32.AppendDissection( Transaction, Dissection, aClient.ClientAuditMgr );
+                              end;
+                            End;
+
+                            //Calculate GST for dissection
+                            Dissection := Transaction.txFirst_Dissection;
+                            while (Dissection <> nil) do begin
+                              if Dissection.dsGST_Has_Been_Edited then
+                                Dissection.dsGST_Amount := CalculateGSTForClass(aClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
+                              else
+                                CalculateGST(aClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
+                              Dissection := Dissection.dsNext;
+                            end;
+
+                         end; //matching payee
+                      end;
+                   end; //if DoAnalysisCoding
+                 end;
+              end;
+            finally
+              AuditIDList.Free;
             end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
