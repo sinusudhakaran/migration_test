@@ -111,7 +111,7 @@ uses
    Windows,
    ReportImages,
    ClientSelectFme,
-   AuditMgr;
+   AuditMgr, BKtxIO;
 
 type
    //Client status record for whats due list
@@ -253,7 +253,7 @@ type
      ClientList         : TList;
      procedure ClearClientList;
    public
-     constructor Create; 
+     constructor Create;
      destructor Destroy; override;
    end;
 
@@ -3771,6 +3771,27 @@ begin
   end;
 end;
 
+function IsAutoCodedTransaction(ATransactionType: byte; AAuditRecord: TAudit_Trail_Rec): Boolean;
+begin
+  Result := False;
+  //Filter by Automatic Coding
+  if (ATransactionType = atAutomaticCoding) then
+    if (AAuditRecord.atTransaction_Type in TransactionAuditTypes) and
+       (AAuditRecord.atAudit_Record_Type = tkBegin_Transaction) then
+      Result := pTransaction_Rec(AAuditRecord.atAudit_Record).txCoded_By in [cbAutoPayee, cbMemorisedM, cbMemorisedC, cbAnalysis];
+end;
+
+function IsChildTransaction(AAuditTable: TAuditTable; AAuditType: TAuditType; AAuditRecord: TAudit_Trail_Rec): boolean;
+var
+  ParentAuditRec: pAudit_Trail_Rec;
+begin
+  Result := False;
+  ParentAuditRec := AAuditTable.AuditRecords.FindAuditID(AAuditRecord.atParent_ID);
+  if Assigned(ParentAuditRec) then
+    Result := (ParentAuditRec.atTransaction_Type = AAuditType) or
+              (IsAutoCodedTransaction(AAuditType, TAudit_Trail_Rec(ParentAuditRec^)));
+end;
+
 procedure ClientAuditReportDetail(Sender : TObject);
 var
   i, j : integer;
@@ -3802,7 +3823,14 @@ begin
         case Report.ReportOptions.AuditSelection of
           byAll: PrintAuditRec := True;
           byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
-                                              (Report.ReportOptions.TransactionType = atAll);
+                                              (Report.ReportOptions.TransactionType = atAll) or
+                                              //Print child records
+                                              (Report.ReportOptions.IncludeChild and
+                                               (IsChildTransaction(TempClientFile.FAuditTable,
+                                                                   Report.ReportOptions.TransactionType,
+                                                                   AuditRecord))) or
+                                              //Auto Coded
+                                              IsAutoCodedTransaction(Report.ReportOptions.TransactionType, AuditRecord);
           byTransactionID  : PrintAuditRec := (Report.ReportOptions.TransactionID = AuditRecord.atRecord_ID) or
                                               (Report.ReportOptions.IncludeChild and
                                                (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));

@@ -87,7 +87,7 @@ type
     rbSytemTransactionType: TRadioButton;
     rbSytemTransactionID: TRadioButton;
     cbTransactionType: TComboBox;
-    Edit1: TEdit;
+    eTransactionID: TEdit;
     Button1: TButton;
     btnPrint: TButton;
     btnFile: TButton;
@@ -108,7 +108,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
-    procedure Edit1KeyPress(Sender: TObject; var Key: Char);
+    procedure eTransactionIDKeyPress(Sender: TObject; var Key: Char);
     procedure rbSystemClick(Sender: TObject);
   private
     { Private declarations }
@@ -180,8 +180,8 @@ begin
 
             if cbTransactionType.ItemIndex > 0 then
               AuditReportOptions.TransactionType := TAuditType(cbTransactionType.Items.Objects[cbTransactionType.ItemIndex]);
-            if Edit1.Text <> '' then
-              AuditReportOptions.TransactionID := StrToInt(Edit1.Text);
+            if eTransactionID.Text <> '' then
+              AuditReportOptions.TransactionID := StrToInt(eTransactionID.Text);
 
             if AuditReportOptions.AuditReportType = arClient then begin
               AuditReportOptions.FClientCode := cbClientFileCodes.Items[cbClientFileCodes.ItemIndex];
@@ -336,7 +336,7 @@ begin
     end;
 end;
 
-procedure TfrmAuditReportOption.Edit1KeyPress(Sender: TObject; var Key: Char);
+procedure TfrmAuditReportOption.eTransactionIDKeyPress(Sender: TObject; var Key: Char);
 begin
   // #8 is Backspace
   if not (Key in [#8, '0'..'9']) then begin
@@ -439,7 +439,7 @@ end;
 procedure TfrmAuditReportOption.rbSytemTransactionTypeClick(Sender: TObject);
 begin
   cbTransactionType.Enabled := rbSytemTransactionType.Checked;
-  Edit1.Enabled := rbSytemTransactionID.Checked;  
+  eTransactionID.Enabled := rbSytemTransactionID.Checked;  
 end;
 
 function TfrmAuditReportOption.Validate: Boolean;

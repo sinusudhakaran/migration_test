@@ -54,6 +54,7 @@ const
   aaNames : array[ aaMin..aaMax ] of string = ('Action', 'Add', 'Change', 'Delete');
 
   SystemAuditTypes = [atPracticeSetup..atAttachBankAccounts, atAll];
+  TransactionAuditTypes = [atHistoricalentries..atDeliveredTransactions];
 
   dbSystem = 0;
   dbClient = 1;
@@ -95,7 +96,9 @@ type
     procedure FreeItem(Item : Pointer); override;
   public
     function Audit_At(Index : longint) : TAudit_Trail_Rec;
+    function Audit_Pointer_At(Index : longint) : pAudit_Trail_Rec;
     function Compare(Item1,Item2 : Pointer): Integer; override;
+    function FindAuditID(AAuditID: integer): pAudit_Trail_Rec;
   end;
 
   PScopeInfo = ^TScopeInfo;
@@ -1397,9 +1400,43 @@ begin
   Result := pAudit_Trail_Rec(At(Index))^;
 end;
 
+function TAuditCollection.Audit_Pointer_At(Index: Integer): pAudit_Trail_Rec;
+begin
+  Result := pAudit_Trail_Rec(At(Index));
+end;
+
 function TAuditCollection.Compare(Item1, Item2: Pointer): Integer;
 begin
   Result := TAudit_Trail_Rec(Item1^).atAudit_ID - TAudit_Trail_Rec(Item2^).atAudit_ID;
+end;
+
+function TAuditCollection.FindAuditID(AAuditID: integer): pAudit_Trail_Rec;
+var
+  L, H, I, C: Integer;
+  AuditRec: pAudit_Trail_Rec;
+begin
+  Result := nil;
+  L := 0;
+  H := ItemCount - 1;
+
+  //No items in list
+  if L > H then Exit;
+
+  repeat
+    i := (L + H) shr 1;
+    AuditRec := Audit_Pointer_At(i);
+    if AAuditID < AuditRec^.atRecord_ID then
+      C := -1
+    else if AAuditID = AuditRec^.atRecord_ID then begin
+      Result := AuditRec;
+      C := 0
+    end else
+      C := 1;
+    if C > 0 then
+      L := i + 1
+    else
+      H := i - 1;
+  until (C = 0) or (L > H);
 end;
 
 procedure TAuditCollection.FreeItem(Item: Pointer);

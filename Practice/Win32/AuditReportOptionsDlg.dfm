@@ -105,7 +105,7 @@ object frmAuditReportOption: TfrmAuditReportOption
         Left = 0
         Top = 209
         Width = 881
-        Height = 131
+        Height = 129
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 2
@@ -113,7 +113,7 @@ object frmAuditReportOption: TfrmAuditReportOption
           Left = 4
           Top = 4
           Width = 438
-          Height = 123
+          Height = 120
           Caption = 'Select Transactions'
           TabOrder = 0
           object rbSytemTransactionType: TRadioButton
@@ -145,19 +145,19 @@ object frmAuditReportOption: TfrmAuditReportOption
             ItemHeight = 13
             TabOrder = 2
           end
-          object Edit1: TEdit
+          object eTransactionID: TEdit
             Left = 145
             Top = 62
             Width = 93
             Height = 21
             TabOrder = 3
-            OnKeyPress = Edit1KeyPress
+            OnKeyPress = eTransactionIDKeyPress
           end
           object cbIncludeChildren: TCheckBox
-            Left = 18
-            Top = 94
+            Left = 145
+            Top = 89
             Width = 172
-            Height = 17
+            Height = 21
             Caption = 'Include child transactions'
             TabOrder = 4
           end
@@ -165,15 +165,16 @@ object frmAuditReportOption: TfrmAuditReportOption
       end
       object pnlButtons: TPanel
         Left = 0
-        Top = 340
+        Top = 338
         Width = 881
         Height = 33
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 3
+        ExplicitTop = 340
         object Button1: TButton
           Left = 366
-          Top = 4
+          Top = 5
           Width = 75
           Height = 25
           Cancel = True
@@ -184,7 +185,7 @@ object frmAuditReportOption: TfrmAuditReportOption
         end
         object btnPrint: TButton
           Left = 285
-          Top = 4
+          Top = 5
           Width = 75
           Height = 25
           Caption = '&Print'
@@ -192,7 +193,7 @@ object frmAuditReportOption: TfrmAuditReportOption
         end
         object btnFile: TButton
           Left = 85
-          Top = 4
+          Top = 5
           Width = 75
           Height = 25
           Caption = 'Fil&e'
@@ -201,7 +202,7 @@ object frmAuditReportOption: TfrmAuditReportOption
         end
         object btnPreview: TButton
           Left = 4
-          Top = 4
+          Top = 5
           Width = 75
           Height = 25
           Caption = 'Previe&w'
