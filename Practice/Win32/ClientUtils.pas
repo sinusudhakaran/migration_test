@@ -457,7 +457,7 @@ begin
             else
             begin
               //transaction should be kept so add to New Transaction List
-              NewTransactionList.Insert_Transaction_Rec( pT );
+              NewTransactionList.Insert_Transaction_Rec( pT, False);
             end;
           end;
           //Check to see if anything changed
@@ -467,11 +467,18 @@ begin
             baTransaction_List.DeleteAll;
             baTransaction_List.Free;
             baTransaction_List := NewTransactionList;
-            sMsg := '%d Entries with a presentation date prior to %s were purged from account %s';
-            LogUtil.LogMsg(lmInfo, UnitName, Format( sMsg,
-                                                     [ NoDeleted,
-                                                       BkDate2Str( PurgeDate),
-                                                       baFields.baBank_Account_Number]));
+            sMsg := Format('%d Entries with a presentation date prior to ' +
+                           '%s were purged from account %s',
+                           [ NoDeleted,
+                             BkDate2Str(PurgeDate),
+                             baFields.baBank_Account_Number]);
+            LogUtil.LogMsg(lmInfo, UnitName, sMsg);
+
+            //*** Flag Audit ***
+            MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts,
+                                              baFields.baAudit_Record_ID,
+                                              aaNone,
+                                              sMsg);
           end
           else
           begin
