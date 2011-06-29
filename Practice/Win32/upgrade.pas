@@ -4014,7 +4014,6 @@ const
     CHL: PCustom_Heading_Rec;
   begin
     LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Start');
-    aClient.ClientAuditMgr.UpgradingClientFile := True;
     //CL Client
     aClient.clExtra.ceAudit_Record_ID := 0;
     //CH Chart of Accounts
@@ -4080,6 +4079,9 @@ const
     for i := aClient.clJobs.First to aClient.clJobs.Last do
       aClient.clJobs.Job_At(i).jhAudit_Record_ID := aClient.NextAuditRecordID;
     LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Finish');
+
+    //Reload the client copy so that anything changed from here on gets audited.
+    aClient.ClientCopyReset;
   end;
 
 begin

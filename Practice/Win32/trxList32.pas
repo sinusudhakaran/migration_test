@@ -578,8 +578,8 @@ begin
   //Adds, changes
   if Assigned(ATransaction) then begin
     P1 := ATransaction.txFirst_Dissection;
-    P2 := nil;
     while (P1 <> nil) do begin
+      P2 := nil;
       if Assigned(ATransactionCopy) then
         P2 := FindDissectionRecordID(ATransactionCopy, P1.dsAudit_Record_ID);
       AuditInfo.AuditRecord := New_Dissection_Rec;
@@ -596,10 +596,10 @@ begin
   end;
   //Deletes
   if Assigned(ATransactionCopy) then begin //Sub list - may not be assigned
-    P1 := nil;
     P2 := ATransactionCopy.txFirst_Dissection;
     while P2 <> nil do begin
       AuditInfo.AuditType := FAuditMgr.GetTransactionAuditType(ATransactionCopy.txSource, AAccountType);
+      P1 := nil;
       if Assigned(ATransaction) then
         P1 := FindDissectionRecordID(ATransaction, P2.dsAudit_Record_ID);
       AuditInfo.AuditRecord := New_Dissection_Rec;

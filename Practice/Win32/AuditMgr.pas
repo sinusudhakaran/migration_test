@@ -164,7 +164,6 @@ type
     FProvisionalAccountAttached: boolean;
     FUpgradingClientFile: Boolean;
     procedure SetProvisionalAccountAttached(const Value: boolean);
-    procedure SetUpgradingClientFile(const Value: Boolean);
   public
     constructor Create(Owner: TObject);
     function NextAuditRecordID: integer; override;
@@ -179,7 +178,6 @@ type
     procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); override;
     procedure CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer); override;
     property ProvisionalAccountAttached: boolean read FProvisionalAccountAttached write SetProvisionalAccountAttached;
-    property UpgradingClientFile: Boolean read FUpgradingClientFile write SetUpgradingClientFile;
   end;
 
   TAuditTable = class(TObject)
@@ -981,12 +979,6 @@ var
   TableID: byte;
 begin
 {$IFNDEF LOOKUPDLL}
-  if UpgradingClientFile then begin
-    UpgradingClientFile := false;
-    FAuditScope.Clear;
-    Exit;
-  end;
-
   with FOwner as TClientObj do begin
     //Output the info only audit records first
     for i := 0 to FAuditScope.Count - 1 do begin
@@ -1211,11 +1203,6 @@ procedure TClientAuditManager.SetProvisionalAccountAttached(
   const Value: boolean);
 begin
   FProvisionalAccountAttached := Value;
-end;
-
-procedure TClientAuditManager.SetUpgradingClientFile(const Value: Boolean);
-begin
-  FUpgradingClientFile := Value;
 end;
 
 procedure TClientAuditManager.WriteAuditRecord(ARecordType: byte;

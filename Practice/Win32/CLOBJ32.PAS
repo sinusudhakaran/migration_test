@@ -119,6 +119,7 @@ type
     function GetForexISOCodeForContra(AContraCode: string): string;
     function NextAuditRecordID: integer;
     procedure DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
+    procedure ClientCopyReset;
     property AuditTable: TAuditTable read FAuditTable;
     property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
     property ClientCopy: TClientObj read GetClientCopy;
@@ -1139,7 +1140,7 @@ begin
   FClientAuditMgr.FlagAudit(atClientBankAccounts);
   //Audit
   FClientAuditMgr.DoAudit;
-{$ENDIF}  
+{$ENDIF}
   //Save
   S.Clear;
   S.Size := DefaultSize;
@@ -1262,6 +1263,26 @@ end;
 function TClientObj.ChequeEntryType: Byte;
 begin
   Result := whChequeEntryType[ clFields.clCountry ];
+end;
+
+procedure TClientObj.ClientCopyReset;
+var
+  S: TIOStream;
+  CRC: longword;
+begin
+  //This should only be done after a client file upgrade so that all existing
+  //data is not audited.
+  FreeAndNil(FClientCopy); //Delete current copy
+  S := TIOStream.Create;
+  try
+    S.Write(CRC, SizeOf(CRC));
+    Self.SaveToStream(S);
+    S.Position := 0;
+    S.Read(CRC, SizeOf(CRC));
+    ClientCopy.LoadFromStream(S);
+  finally
+    S.Free;
+  end;
 end;
 
 procedure TClientObj.CommonSave(FileExtension : String; Backup : Boolean);
