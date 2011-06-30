@@ -3801,12 +3801,28 @@ var
   Values: string;
   PrintAuditRec: Boolean;
   TempClientFile: TClientObj;
+  AuditCount: integer;
 begin
   Report := TAuditReport(Sender);
+  AuditCount := 0;
 
   TempClientFile := nil;
   OpenAClientForRead(Report.ReportOptions.ClientCode, TempClientFile);
   if Assigned(TempClientFile) then try
+
+    //Restricted to UK Client Files
+    if TempClientFile.clFields.clCountry <> whUK then begin
+      Report.RenderTextLine('Nothing to report because this is not a UK client file.');
+      Exit;
+    end;
+
+    //Nothing audited
+    if TempClientFile.FAuditTable.AuditRecords.ItemCount =  0 then begin
+      Report.RenderTextLine('Nothing to report.');
+      Exit;
+    end;
+
+
     AuditFields := TStringList.Create;
     try
       AuditFields.StrictDelimiter := True;
@@ -3858,10 +3874,17 @@ begin
           for j := 0 to AuditFields.Count - 1 do
             if (AuditFields[j] <> 'ParentID=0') then
               Report.RenderTextLine('        ' + AuditFields[j]);
+          Inc(AuditCount);
         end;
       end;
     finally
       AuditFields.Free;
+    end;
+
+    //Nothing matches filter
+    if (AuditCount =  0) then begin
+      Report.RenderTextLine('No audit records match the selected filter.');
+      Exit;
     end;
   finally
     FreeAndNil(TempClientFile);

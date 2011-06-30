@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, IOStream, SYAuditUtils, stTree, SYDEFS, BKDEFS,
-  MoneyDef, ECollect;
+  MoneyDef, ECollect, bkConst;
 
 const
   UNIT_NAME = 'AuditMgr';
@@ -114,13 +114,17 @@ type
     TableID: byte;
   end;
 
+  TCountry = whNewZealand..whUK;
+
   TAuditManager = class(TObject)
   private
     FAuditScope: TList;
+    FCountry: TCountry;
     function AuditTypeToTableID(AAuditType: TAuditType): byte;
     function FindScopeInfo(AScopeInfo: PScopeInfo): integer;
     procedure AddScope(AAuditType: TAuditType; AAuditRecordID: integer;
                        AAuditAction: byte; AOtherInfo: string);
+    procedure SetCountry(const Value: TCountry);
   public
     constructor Create;
     destructor Destroy; override;
@@ -140,6 +144,7 @@ type
     procedure GetValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string); virtual; abstract;
     procedure CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer); virtual; abstract;
     property AuditScope: TList read FAuditScope;
+    property Country: TCountry read FCountry write SetCountry;
   end;
 
   TSystemAuditManager = class(TAuditManager)
@@ -220,9 +225,9 @@ uses
   BKPLIO, BKHDIO, BKDSIO;
 {$ELSE}
 uses
-  Globals, bkConst, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList,
+  Globals, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList,
   BKAuditValues, SYAuditValues,
-  bkdateutils, TOKENS,  BKDbExcept,
+  bkdateutils, TOKENS,  BKDbExcept, CountryUtils, 
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
   BKPLIO, BKHDIO, BKDSIO;
@@ -502,7 +507,8 @@ begin
     Value := ToString(AValue);
   if (AAuditValue <> '') then
     AAuditValue := AAuditValue + VALUES_DELIMITER;
-  AAuditValue := AAuditValue + AFieldName + '=' + Value;
+    //Field names are localised - Tax System, currency name, and currency symbol
+    AAuditValue := AAuditValue + Localise(Country, AFieldName) + '=' + Value;
 end;
 
 procedure TAuditManager.AddScope(AAuditType: TAuditType; AAuditRecordID: integer;
@@ -615,6 +621,11 @@ begin
   end;
 end;
 
+
+procedure TAuditManager.SetCountry(const Value: TCountry);
+begin
+  FCountry := Value;
+end;
 
 { TSystemAuditManager }
 
@@ -762,6 +773,9 @@ end;
 procedure TSystemAuditManager.FlagAudit(AAuditType: TAuditType;
   AAuditRecordID: integer; AAuditAction: byte; AOtherInfo: string);
 begin
+  //Restricted auditing to UK
+  if (Country <> whUK) then Exit;
+
   AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
 end;
 
@@ -1027,6 +1041,9 @@ end;
 procedure TClientAuditManager.FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer;
   AAuditAction: byte; AOtherInfo: string);
 begin
+  //Restricted auditing to UK
+  if (Country <> whUK) then Exit;
+
   AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
 end;
 

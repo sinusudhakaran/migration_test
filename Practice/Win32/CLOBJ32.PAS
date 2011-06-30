@@ -57,6 +57,7 @@ type
     function  GetLongName  : string;
     procedure SaveToDataStream( var S : TIOStream; DefaultSize : integer = 0);
     procedure SaveToStream (var s:TIOStream);
+    procedure ClientCopyReload(var S: TIOStream);
     procedure WriteFileFromZipStream(const Filename: string; const ZipStream: TBigMemoryStream);
     function GetAccountingSystemName: string;
     function GetClientCopy: TClientObj;
@@ -505,13 +506,7 @@ begin
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   Self.LoadFromStream( S);
-{$IFNDEF ParserDll}
-  //Reload client copy DB
-  FreeAndNil(FClientCopy); //Delete current copy
-  S.Position := 0;
-  S.Read( CRC, Sizeof( LongWord ) );
-  ClientCopy.LoadFromStream(S);
-{$ENDIF}
+  ClientCopyReload(S);
 end;
 
 {$IFNDEF ParserDll}
@@ -1138,8 +1133,9 @@ begin
   //Can't select which bank accounts to audit yet - so all
   //need to be checked on client save.
   FClientAuditMgr.FlagAudit(atClientBankAccounts);
-  //Audit
-  FClientAuditMgr.DoAudit;
+  //Restricted auditing to UK
+  if (clFields.clCountry = whUK) then
+    FClientAuditMgr.DoAudit;
 {$ENDIF}
   //Save
   S.Clear;
@@ -1150,13 +1146,7 @@ begin
   Self.SaveToStream( S);
   S.Size := S.Position;
   EmbedCRC( S);
-{$IFNDEF ParserDll}
-  //Reload client copy DB after save
-  FreeAndNil(FClientCopy); //Delete current copy
-  S.Position := 0;
-  S.Read( CRC, Sizeof( LongWord ) );
-  ClientCopy.LoadFromStream(S);
-{$ENDIF}
+  ClientCopyReload(S);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1265,21 +1255,33 @@ begin
   Result := whChequeEntryType[ clFields.clCountry ];
 end;
 
+procedure TClientObj.ClientCopyReload(var S: TIOStream);
+begin
+  FClientAuditMgr.Country := clFields.clCountry;
+
+  //Restricted auditing to UK
+  if (clFields.clCountry <> whUK) then Exit;
+
+{$IFNDEF ParserDll}
+  //Reload client copy DB
+  FreeAndNil(FClientCopy); //Delete current copy
+  S.Seek(Sizeof(LongWord), soFromBeginning);
+  ClientCopy.LoadFromStream(S);
+{$ENDIF}
+end;
+
 procedure TClientObj.ClientCopyReset;
 var
   S: TIOStream;
   CRC: longword;
 begin
-  //This should only be done after a client file upgrade so that all existing
-  //data is not audited.
-  FreeAndNil(FClientCopy); //Delete current copy
+  //This should only be done after a client file upgrade
+  //so that existing data is not audited.
   S := TIOStream.Create;
   try
     S.Write(CRC, SizeOf(CRC));
     Self.SaveToStream(S);
-    S.Position := 0;
-    S.Read(CRC, SizeOf(CRC));
-    ClientCopy.LoadFromStream(S);
+    ClientCopyReload(S);
   finally
     S.Free;
   end;

@@ -52,6 +52,7 @@ type
       procedure UpdateCache;
       function GetCurrencyCode: string;
       procedure SetAuditInfo(P1, P2: pPractice_Details_Rec; var AAuditInfo: TAuditInfo);
+      procedure SystemCopyReload(var S: TIOStream);
 {$ENDIF}
   public
       procedure Open(IsEncrypted: Boolean = True);
@@ -293,12 +294,7 @@ Begin
       S.Position := 0;
       S.Read( CRC, Sizeof( LongInt ) );
       LoadFromStream( S );
-      //Reload system copy DB
-      FreeAndNil(_SystemCopy); //Delete current copy
-      S.Position := 0;
-      S.Read( CRC, Sizeof( LongInt ) );
-      SystemCopy.LoadFromStream(S);
-
+      SystemCopyReload(S);
 {$IFDEF ParserDll}
 {$ELSE}
       UpdateCache;
@@ -380,18 +376,15 @@ Begin
 
    S := TIOStream.Create;
    try
-      //Audit
-      SystemAuditMgr.DoAudit;
+      //Restricted auditing to UK
+      if (fdFields.fdCountry = whUK) then
+        SystemAuditMgr.DoAudit;
       //Save
       L := 0;
       S.Write( L, Sizeof( LongInt ) ); { Leave space for the CRC }
       SaveToStream( S );
       EmbedCRC( S);
-      //Reload system copy DB after save
-      FreeAndNil(_SystemCopy); //Delete current copy
-      S.Position := 0;
-      S.Read( L, Sizeof( LongInt ) );
-      SystemCopy.LoadFromStream(S);
+      SystemCopyReload(S);
       //Save to file
       if not IsEncrypted then
         S.SaveToFile( SystemFilename)
@@ -611,7 +604,15 @@ begin
             ForceCurrency(sbCurrency_Code,ct_System);
 end;
 
+procedure TSystemObj.SystemCopyReload(var S: TIOStream);
+begin
+  //Restricted auditing to UK
+  if (fdFields.fdCountry <> whUK) then Exit;
 
+  FreeAndNil(_SystemCopy); //Delete current copy
+  S.Seek(SizeOf(LongInt), soFromBeginning);
+  SystemCopy.LoadFromStream(S);
+end;
 
 function TSystemObj.NewSystemAccount(AccNumber: string; Delivered: Boolean):pSystem_Bank_Account_Rec;
 begin

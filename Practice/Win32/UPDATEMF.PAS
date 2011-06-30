@@ -449,6 +449,11 @@ begin
       mnsTest.Visible := false;
     end;
 
+    //Audit Report
+    mniSystemAuditReport.Visible := False;
+    if Assigned( AdminSystem) then
+      mniSystemAuditReport.Visible := (AdminSystem.fdFields.fdCountry = whUK);
+
     rztFile.PositionControls;
     bkArrangeToolBars;
   end;
