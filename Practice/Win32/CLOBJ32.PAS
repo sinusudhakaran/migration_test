@@ -506,7 +506,9 @@ begin
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   Self.LoadFromStream( S);
+{$IFNDEF ParserDll}
   ClientCopyReload(S);
+{$ENDIF}
 end;
 
 {$IFNDEF ParserDll}
@@ -1146,7 +1148,10 @@ begin
   Self.SaveToStream( S);
   S.Size := S.Position;
   EmbedCRC( S);
+{$IFNDEF ParserDll}
   ClientCopyReload(S);
+{$ENDIF}
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1255,6 +1260,7 @@ begin
   Result := whChequeEntryType[ clFields.clCountry ];
 end;
 
+{$IFNDEF ParserDll}
 procedure TClientObj.ClientCopyReload(var S: TIOStream);
 begin
   FClientAuditMgr.Country := clFields.clCountry;
@@ -1262,13 +1268,12 @@ begin
   //Restricted auditing to UK
   if (clFields.clCountry <> whUK) then Exit;
 
-{$IFNDEF ParserDll}
   //Reload client copy DB
   FreeAndNil(FClientCopy); //Delete current copy
   S.Seek(Sizeof(LongWord), soFromBeginning);
   ClientCopy.LoadFromStream(S);
-{$ENDIF}
 end;
+{$ENDIF}
 
 procedure TClientObj.ClientCopyReset;
 var
@@ -1281,7 +1286,9 @@ begin
   try
     S.Write(CRC, SizeOf(CRC));
     Self.SaveToStream(S);
+{$IFNDEF ParserDll}    
     ClientCopyReload(S);
+{$ENDIF}
   finally
     S.Free;
   end;
