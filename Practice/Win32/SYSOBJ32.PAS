@@ -294,9 +294,9 @@ Begin
       S.Position := 0;
       S.Read( CRC, Sizeof( LongInt ) );
       LoadFromStream( S );
-      SystemCopyReload(S);
 {$IFDEF ParserDll}
 {$ELSE}
+      SystemCopyReload(S);
       UpdateCache;
 {$ENDIF}
    finally
