@@ -76,7 +76,7 @@ uses
   Windows,
   ReportTypes,
   YesNoDlg, pyList32, cfList32, WinUtils, SYamIO, mxFiles32, BasUtils, Software,
-  SystemMemorisationList, IOStream, AuditMgr;
+  SystemMemorisationList, IOStream, AuditMgr, CountryUtils;
 // ----------------------------------------------------------------------------
 
 Const
@@ -4037,6 +4037,17 @@ const
       BA := aClient.clBank_Account_List.Bank_Account_At(i);
       if Assigned(BA) then begin
         BA.baFields.baAudit_Record_ID := aClient.NextAuditRecordID;
+
+        //Localise UK VAT journal names
+        if (aClient.clFields.clCountry = whUK) then begin
+          if (BA.baFields.baAccount_Type = btGSTJournals) then begin
+            BA.baFields.baBank_Account_Number := Localise(aClient.clFields.clCountry,
+                                                          BA.baFields.baBank_Account_Number);
+            BA.baFields.baBank_Account_Name := Localise(aClient.clFields.clCountry,
+                                                        BA.baFields.baBank_Account_Name);
+          end;
+        end;
+
         //TX Transactions
         for j := BA.baTransaction_List.First to BA.baTransaction_List.Last do begin
           TX := BA.baTransaction_List.Transaction_At(j);

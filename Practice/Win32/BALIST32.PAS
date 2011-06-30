@@ -388,9 +388,11 @@ Begin
       if Journal_Type = btStockJournals  then
          baBank_Account_Number :=  'Stock/Adjustment Jnl' //Name is too long as a number
       else
-         baBank_Account_Number := btNames[Journal_Type];
+         baBank_Account_Number := Localise(TClientOBJ(fClient).clFields.clCountry,
+                                           btNames[Journal_Type]);
 
-       baBank_Account_Name  :=  btNames[Journal_Type];
+       baBank_Account_Name  :=  Localise(TClientOBJ(fClient).clFields.clCountry,
+                                         btNames[Journal_Type]);
        baCurrency_Code := TClientOBJ(fClient).clExtra.ceLocal_Currency_Code;
    end;
    Insert(Result);
