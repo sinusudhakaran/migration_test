@@ -624,6 +624,12 @@ begin
         Idx := 0;
         Token := AAuditRecord.atChanged_Fields[idx];
         while Token <> 0 do begin
+
+          //Don't display these fields for journals
+          if (AAuditRecord.atTransaction_Type in [atCashJournals..atGSTJournals]) and
+             (Token in [158, 176..178, 180]) then
+            Token := 0;
+
           case Token of
             //Bank Account Number
             152: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
@@ -739,8 +745,8 @@ begin
         while Token <> 0 do begin
 
           //Only display the relevant fields for Opening Balances - Date_Effective
-          if (AAuditRecord.atTransaction_Type = atOpeningBalances)and not (Token in [167]) then
-            Token := 0;     
+          if (AAuditRecord.atTransaction_Type = atOpeningBalances) and not (Token in [167]) then
+            Token := 0;
 
           case Token of
             //Sequence_No
