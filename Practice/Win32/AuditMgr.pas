@@ -501,6 +501,7 @@ procedure TAuditManager.AddAuditValue(AFieldName: string;
 var
   Value: string;
 begin
+{$IFNDEF LOOKUPDLL}
   if TVarData(AValue).VType = varByte then
     Value := IntToStr(AValue)
   else
@@ -509,6 +510,7 @@ begin
     AAuditValue := AAuditValue + VALUES_DELIMITER;
     //Field names are localised - Tax System, currency name, and currency symbol
     AAuditValue := AAuditValue + Localise(Country, AFieldName) + '=' + Value;
+{$ENDIF}
 end;
 
 procedure TAuditManager.AddScope(AAuditType: TAuditType; AAuditRecordID: integer;
@@ -516,6 +518,7 @@ procedure TAuditManager.AddScope(AAuditType: TAuditType; AAuditRecordID: integer
 var
   ScopeInfo: PScopeInfo;
 begin
+{$IFNDEF LOOKUPDLL}
   New(ScopeInfo);
   ScopeInfo.AuditType := AAuditType;
   ScopeInfo.AuditRecordID := AAuditRecordID;
@@ -523,6 +526,7 @@ begin
   ScopeInfo.OtherInfo := AOtherInfo;
   if FindScopeInfo(ScopeInfo) = - 1 then
     FAuditScope.Add(ScopeInfo);
+{$ENDIF}    
 end;
 
 function TAuditManager.AuditTypeToDBStr(AAuditType: TAuditType): string;
