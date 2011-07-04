@@ -348,7 +348,7 @@ begin
   case Country of
      whNewZealand : begin
         case TaxClass of
-         gtUndefined           : Result := StringToGuid('{C84C13A5-4F06-4CC5-9757-000AEBC34C9C}');
+         //gtUndefined           : Result := StringToGuid('{C84C13A5-4F06-4CC5-9757-000AEBC34C9C}');
          gtIncomeGST           : Result := StringToGuid('{E3CEC74B-735D-45F7-8D6C-0010E56E4E16}');
          gtExpenditureGST      : Result := StringToGuid('{CCC94EFB-91C3-401C-9FDE-002982BDEE62}');
          gtExempt              : Result := StringToGuid('{360240FC-9E69-489E-9C80-0039EF7D72B8}');
@@ -358,7 +358,7 @@ begin
      end;
      whUK: begin
        case TaxClass of
-        vtNoVAT                : Result := StringToGuid('{99991C52-22BF-462C-81C8-006D22A09CD8}');
+        //vtNoVAT                : Result := StringToGuid('{99991C52-22BF-462C-81C8-006D22A09CD8}');
         vtSalesStandard        : Result := StringToGuid('{2781E33A-5409-4B13-9D5E-00768C4956A6}');
         vtSalesReduced         : Result := StringToGuid('{A60B11F8-6300-4261-B8B4-008E5B2A1E6E}');
         vtSalesZeroRated       : Result := StringToGuid('{DAEF3463-6208-464F-8BCE-0095E1C6F986}');

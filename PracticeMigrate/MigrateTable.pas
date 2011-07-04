@@ -21,32 +21,36 @@ type
     procedure MakeQuery;
   protected
     procedure SetCount(const Value: Integer);
-    function ToSQL(Value: TGuid): variant; overload;
-    function ToSQL(Value: Money): variant; overload;
-    function QtyToSQL(Value: Money): variant; overload;
-    function PercentToSQL(Value: Money): variant; overload;
-    function ToSQL (Value: Integer):variant; overload;
-    function DateToSQL(Value: Integer):variant;
-    function NullToSQL (Value: Integer):variant;
-    function ToSQL(Value: Boolean):variant; overload;
-    function ToSQL(Value: string):variant; overload;
-    function ToSQL(Date: Integer; Time: Integer):variant; overload;
+
 
     procedure SetFields(FieldList: array of string; SFFieldList: array of string);
     procedure SetupTable; virtual; abstract;
 
   published
   public
-     constructor Create(AConnection: TAdoConnection);
-     function RunValues(values: array of Variant; SFValues: array of Variant):Boolean;
-     property Count: Integer read FCount write SetCount;
-     property Tablename: string read FTablename write SetTablename;
-     property DoSuperfund: Boolean read FDoSuperfund write SetDoSuperfund default false;
+    constructor Create(AConnection: TAdoConnection);
+    function RunValues(values: array of Variant; SFValues: array of Variant):Boolean;
+    property Count: Integer read FCount write SetCount;
+    property Tablename: string read FTablename write SetTablename;
+    property DoSuperfund: Boolean read FDoSuperfund write SetDoSuperfund default false;
+
+    class function ToSQL(Value: TGuid): variant; overload; static;
+    class function ToSQL(Value: Money): variant; overload; static;
+    class function QtyToSQL(Value: Money): variant;overload;  static;
+    class function PercentToSQL(Value: Money): variant;overload;  static;
+    class function ToSQL (Value: Integer):variant;overload;  static;
+    class function DateToSQL(Value: Integer):variant;static;
+    class function NullToSQL (Value: Integer):variant; static ;
+    class function ToSQL(Value: Boolean):variant;overload;  static;
+    class function ToSQL(Value: string):variant;overload;  static;
+    class function ToSQL(Date: Integer; Time: Integer):variant;overload;  static;
+    function GuidToText(Value: TGuid): string;
   end;
 
 var emptyGuid : TGuid;
 
-const SFLineFields : array[0..31] of string = ({1}   'SFEdited', 'SFFranked', 'SFUnFranked',
+const SFLineFields : array[0..31] of string = (
+{1}   'SFEdited', 'SFFranked', 'SFUnFranked',
 
 {2}   'SFMemberID','SFFundID', 'SFFundCode',
 
@@ -82,7 +86,7 @@ begin
   Count := 0;
 end;
 
-function TMigrateTable.DateToSQL(Value: Integer): variant;
+class  function TMigrateTable.DateToSQL(Value: Integer): variant;
 begin
    if Value <= 0 then
       Result := Null // Bad date or null date
@@ -90,6 +94,14 @@ begin
       result := Null // clould make a 'maxdate'
    else
       Result := StDate.StDateToDateTime(Value);
+end;
+
+function TMigrateTable.GuidToText(Value: TGuid): string;
+begin
+ if IsEqualGUID(Value,emptyGuid) then
+     Result := 'Null'
+  else
+     Result := GuidTostring(Value);
 end;
 
 procedure TMigrateTable.MakeQuery;
@@ -100,7 +112,7 @@ begin
    Prepared := true;
 end;
 
-function TMigrateTable.NullToSQL(Value: Integer): variant;
+class function TMigrateTable.NullToSQL(Value: Integer): variant;
 begin
   if value = 0 then
      Result := Null
@@ -109,7 +121,7 @@ begin
 end;
 
 
-function TMigrateTable.PercentToSQL(Value: Money): variant;
+class function TMigrateTable.PercentToSQL(Value: Money): variant;
 begin
    if Value=Unknown then
        Result:= Null
@@ -117,7 +129,7 @@ begin
        Result:= Value/10000;
 end;
 
-function TMigrateTable.QtyToSQL(Value: Money): variant;
+class function TMigrateTable.QtyToSQL(Value: Money): variant;
 begin
     if Value=Unknown then
        Result:= Null
@@ -183,7 +195,7 @@ begin
 end;
 
 
-function TMigrateTable.ToSQL(Date, Time: Integer): variant;
+class function TMigrateTable.ToSQL(Date, Time: Integer): variant;
 begin
    if Date <= 0 then
       Result := Null // Bad date or null date
@@ -234,7 +246,7 @@ begin
    end;
 end;
 
-function TMigrateTable.ToSQL(Value: Money): variant;
+class function TMigrateTable.ToSQL(Value: Money): variant;
 begin
    if Value = Unknown then
        Result:= Null
@@ -242,31 +254,31 @@ begin
        Result:= Value/100;
 end;
 
-function TMigrateTable.ToSQL(Value: TGuid): variant;
+class function TMigrateTable.ToSQL(Value: TGuid): variant;
 begin
   if IsEqualGUID(Value,emptyGuid) then
      Result := Null
   else
      Result := GuidTostring(Value);
-    // Result := format('''%.8x-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x''',[Value.D1,Value.D2,Value.D3,
-    //  Value.D4[0],Value.D4[1],Value.D4[2],Value.D4[3],Value.D4[4],Value.D4[5],Value.D4[6],Value.D4[7]]);
+
 end;
 
-function TMigrateTable.ToSQL(Value: string): variant;
+class function TMigrateTable.ToSQL(Value: string): variant;
+var ls: string;
 begin
-   if Value = '' then
+   ls := trim(value);
+   if ls = '' then
       Result := Null
    else
-      //Result := AnsiQuotedStr(Value, '''');
-      Result := Value;
+      Result := ls;
 end;
 
-function TMigrateTable.ToSQL(Value: Boolean): variant;
+class function TMigrateTable.ToSQL(Value: Boolean): variant;
 begin
    Result := Value;
 end;
 
-function TMigrateTable.ToSQL(Value: Integer): variant;
+class function TMigrateTable.ToSQL(Value: Integer): variant; 
 begin
    Result := Value;
 end;

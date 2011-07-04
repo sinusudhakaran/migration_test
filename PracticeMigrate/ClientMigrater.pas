@@ -5,6 +5,9 @@ unit ClientMigrater;
 interface
 
 uses
+   Classes,
+   DB,
+   ADODB,
    syDefs,
    bkTables,
    CDTables,
@@ -41,7 +44,7 @@ TClientMigrater = class (TMigrater)
     FTaxRatesTable: TTaxRatesTable;
     FClient_ScheduleTable: TClient_ScheduleTable;
     FSubGroupTable: TSubGroupTable;
-    FClient_ReportOptionsTable: TClient_ReportOptionsTable;
+    //FClient_ReportOptionsTable: TClient_ReportOptionsTable;
     FClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable;
     FCodingReportOptionsTable: TCodingReportOptionsTable;
     FCustomDocSceduleTable: TCustomDocSceduleTable;
@@ -55,6 +58,11 @@ TClientMigrater = class (TMigrater)
     FFuelSheetTable: TFuelSheetTable;
     FBAS_OptionsTable: TBAS_OptionsTable;
     FNotesOptionsTable: TNotesOptionsTable;
+    FMatchIDList: TGuidList;
+    FUpdateAccountStatus: TADOStoredProc;
+    FUpdateProcessingStatusForAllClients : TADOStoredProc;
+    FExcludedFromScheduledReports: TStringList;
+    FReportingParameterTable: TReportingParameterTable;
     procedure SetClientID(const Value: TGuid);
     procedure SetCode(const Value: string);
 
@@ -63,6 +71,7 @@ TClientMigrater = class (TMigrater)
     procedure AddSubGroups(ForAction: TMigrateAction);
     procedure AddReminders(ForAction: TMigrateAction);
     procedure MigrateDiskLog(ForAction: TMigrateAction);
+  
 
     // List iteration functions
     function AddTransaction(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
@@ -98,7 +107,7 @@ TClientMigrater = class (TMigrater)
     function GetTaxRatesTable: TTaxRatesTable;
     function GetClient_ScheduleTable: TClient_ScheduleTable;
     function GetSubGroupTable: TSubGroupTable;
-    function GetClient_ReportOptionsTable: TClient_ReportOptionsTable;
+    //function GetClient_ReportOptionsTable: TClient_ReportOptionsTable;
     function GetClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable;
     function GetCodingReportOptionsTable: TCodingReportOptionsTable;
     procedure SetDoSuperfund(const Value: Boolean);
@@ -114,6 +123,10 @@ TClientMigrater = class (TMigrater)
     function GetCustomDocSceduleTable: TCustomDocSceduleTable;
     function GetTBAS_OptionsTable: TBAS_OptionsTable;
     function GetNotesOptionsTable: TNotesOptionsTable;
+    function GetMatchIDList: TGuidList;
+    function GetUpdateAccountStatus: TADOStoredProc;
+    function GetUpdateProcessingStatusForAllClients: TADOStoredProc;
+    function GetReportingParameterTable: TReportingParameterTable;
   public
    constructor Create(AConnection: string);
    destructor Destroy; override;
@@ -125,9 +138,11 @@ TClientMigrater = class (TMigrater)
                     AUserID,
                     AGroupID,
                     ATypeID: TGuid;
+                    AMagicNumber,
+                    ACountry: Integer;
                     AClient: pClient_File_Rec = nil): Boolean;
 
-   function MigrateCustomDocs(ForAction:TMigrateAction): Boolean;
+
    // Tables
    property Client_RecFieldsTable: TClient_RecFieldsTable read GetClient_RecFieldsTable;
    property Account_RecTable: TAccount_RecTable read GetAccount_RecTable;
@@ -149,7 +164,7 @@ TClientMigrater = class (TMigrater)
    property Balances_RecTable: TBalances_RecTable read GetBalances_RecTable;
    property FuelSheetTable: TFuelSheetTable read GetFuelSheetTable;
    property Client_ScheduleTable: TClient_ScheduleTable read GetClient_ScheduleTable;
-   property Client_ReportOptionsTable: TClient_ReportOptionsTable read GetClient_ReportOptionsTable;
+   //property Client_ReportOptionsTable: TClient_ReportOptionsTable read GetClient_ReportOptionsTable;
    property ClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable read GetClientFinacialReportOptionsTable;
    property CodingReportOptionsTable: TCodingReportOptionsTable read GetCodingReportOptionsTable;
    property ChartDivisionTable: TChartDivisionTable read GetChartDivisionTable;
@@ -158,9 +173,18 @@ TClientMigrater = class (TMigrater)
    property CustomDocSceduleTable: TCustomDocSceduleTable read GetCustomDocSceduleTable;
    property BAS_OptionsTable: TBAS_OptionsTable read GetTBAS_OptionsTable;
    property NotesOptionsTable: TNotesOptionsTable read GetNotesOptionsTable;
+   property ReportingParameterTable: TReportingParameterTable read GetReportingParameterTable;
 
    // Lists
    property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
+   property MatchIDList: TGuidList read GetMatchIDList;
+
+   // Stored Procs
+   property UpdateAccountStatus: TADOStoredProc read GetUpdateAccountStatus;
+   procedure UpdateClientsStatus(ForAction: TMigrateAction);
+
+   property UpdateProcessingStatusForAllClients: TADOStoredProc read GetUpdateProcessingStatusForAllClients;
+   procedure UpdateProcessingStatusAllClients(ForAction: TMigrateAction);
 
    property DoSuperfund: Boolean read FDoSuperfund write SetDoSuperfund;
    property Code: string read FCode write SetCode;
@@ -174,6 +198,10 @@ end;
 
 implementation
 uses
+   ClientDetailCacheObj,
+   variants,
+   MigrateTable,
+   MoneyDef,
    UBatchBase,
    CustomDocEditorFrm,
    ToDoListUnit,
@@ -201,7 +229,7 @@ var
    Map: TGuidObject; //pClient_Account_Map_Rec;
 
 
-   procedure AddClientAccountMap;
+   function AddClientAccountMap: pClient_Account_Map_Rec;
    var System: TSystemMigrater;
 
        function GetClientMap: TGuidObject;
@@ -217,6 +245,7 @@ var
                 end;
        end;
    begin
+      Result := nil;
       if not Assigned(SystemMirater) then
          Exit;
       System := SystemMirater as TSystemMigrater;
@@ -228,7 +257,32 @@ var
          Exit;
       // Now we can have a go...
       System.ClientAccountMapTable.Insert(Map.GuidID,ClientID,Value.GuidID,AdminBankAccount.GuidID,pClient_Account_Map_Rec(Map.Data));
+      Result := pClient_Account_Map_Rec(Map.Data);
    end;
+
+   function ExcludedFromScheduledReports : Boolean;
+   begin
+       Result := false;
+       if not assigned(FExcludedFromScheduledReports) then
+          Exit;
+       result := FExcludedFromScheduledReports.IndexOf(Account.baFields.baBank_Account_Number)>=0;
+   end;
+     (*
+   procedure  DoUpdateAccountStatus(ForAction:TMigrateAction);
+   var MyAction : TMigrateAction;
+   begin
+      MyAction := ForAction.InsertAction ('Update status');
+      try
+         UpdateAccountStatus.Parameters.ParamByName('@CLIENTID').Value := TMigrateTable.toSQL(ClientID);
+         UpdateAccountStatus.Parameters.ParamByName('@BANKACCOUNTID').Value := TMigrateTable.toSQL(Value.GuidID);
+         UpdateAccountStatus.ExecProc;
+         MyAction.Status := Success;
+      except
+         on E: Exception do
+           MyAction.Error := E.Message;
+      end;
+   end;
+     *)
 
 begin
    Result := False;
@@ -240,7 +294,9 @@ begin
           (
              Value.GuidID,
              ClientID,
-             @Account.baFields
+             @Account.baFields,
+             AddClientAccountMap,
+             ExcludedFromScheduledReports
           );
 
        GuidList := TGuidList.Create(Account.baTransaction_List);
@@ -253,7 +309,10 @@ begin
           Exit;
 
        MyAction.Status := Success;
-       AddClientAccountMap;
+
+
+       //DoUpdateAccountStatus(MyAction);
+
        Result := True;
    except
       on E: Exception do
@@ -589,12 +648,24 @@ function TClientMigrater.AddTransaction(ForAction: TMigrateAction;
 var
    Diss: PDissection_Rec;
    Transaction: PTransaction_Rec;
+   GST: money;
 begin
    Transaction := PTransaction_Rec(Value.Data);
+
+   // Collect the GST First...
+   GST := 0;
+   Diss := Transaction.txFirst_Dissection;
+   while Assigned(Diss) do begin
+      GST := GST + Diss.dsGST_Amount;
+      Diss := Diss.dsNext;
+   end;
+   Transaction.txGST_Amount := GST;
+
    Transaction_RecTable.Insert
                        (
                             Value.GuidID,
                             ForAction.Item.GuidID,
+                            MatchIDList.GetIDGuid(Transaction.txMatched_Item_ID),
                             Transaction
                        );
 
@@ -616,12 +687,56 @@ end;
 function TClientMigrater.ClearData(ForAction: TMigrateAction): Boolean;
 var myAction: TMigrateAction;
     KeepTime: Integer;
+
+    function ClearConfig : Boolean;
+    var ClearAction: TMigrateAction;
+    begin
+       result := true;
+       ClearAction := MyAction.InsertAction('Clear Column configuration');
+       try
+       RunSQL(MyAction,
+       'DELETE ccc FROM ( SELECT c.Id as confid FROM  CodingColumnConfigurations c where c.IsDefault = 0) cc INNER JOIN Codingcolumns ccc ON cc.confid = ccc.CodingColumnConfiguration_Id'
+             );
+        RunSQL(MyAction,
+       'DELETE c FROM CodingColumnConfigurations c where c.IsDefault = 0'
+             );
+
+         ClearAction.Status := Success;
+       except
+           on e: Exception do begin
+              ClearAction.Exception(e);
+              result := false;
+           end;
+       end;
+    end;
+
+    function ClearReportParameters : Boolean;
+     var ClearAction: TMigrateAction;
+    begin
+       result := true;
+
+       ClearAction := MyAction.InsertAction('Clear Report parameters');
+       try
+           RunSQL(MyAction, 'DELETE rp FROM [ReportingParameters] rp where rp.[Client_ID] is not null' );
+            ClearAction.Status := Success;
+          except
+           on e: Exception do begin
+              ClearAction.Exception(e);
+              result := false;
+           end;
+       end;
+
+    end;
 begin
    Result := false;
    MyAction := ForAction.NewAction('Clear Clients');
    try
       Connected := true;
       // Dont use the Table to get the name, Too early and Clear may not work...
+
+
+      DeleteTable(MyAction,'ClientBankAccountsProcessingStatus',True);
+      
       DeleteTable(MyAction,Job_Heading_RecTable, True);
 
       DeleteTable(MYAction,'ClientDownloads', True);
@@ -635,7 +750,7 @@ begin
       DeleteTable(MyAction,'Headings');
 
       DeleteTable(MyAction,CustomDocSceduleTable);
-      DeleteTable(MyAction,'CustomDocuments');
+      //DeleteTable(MyAction,'CustomDocuments');
 
       DeleteTable(MyAction,'ScheduledTaskValues');
 
@@ -657,9 +772,13 @@ begin
       DeleteTable(MyAction,'Transactions');
       Connection.CommandTimeout := KeepTime;
 
+
+
+      ClearConfig;
+
       DeleteTable(MyAction,'BankAccounts');
       DeleteTable(MyAction,'CodingReportOptions');
-      DeleteTable(MyAction,'ReportingOptions');
+      //DeleteTable(MyAction,'ReportingOptions');
       DeleteTable(MyAction,'ReportSubGroups');
 
       DeleteTable(MyAction,'ClientReportDivisionCharts');
@@ -669,6 +788,11 @@ begin
       DeleteTable(MyAction,'Reminders');
 
       DeleteTable(MyAction,ClientFinacialReportOptionsTable, True);
+
+      // Still To do..     
+      DeleteTable(MyAction,'FavouriteReports', True);
+      
+      ClearReportParameters;
 
       DeleteTable(MyAction,'Clients');
 
@@ -709,7 +833,7 @@ begin
    FBalances_RecTable := nil;
    FFuelSheetTable := nil;
    FClient_ScheduleTable := nil;
-   FClient_ReportOptionsTable := nil;
+   //FClient_ReportOptionsTable := nil;
    FClientFinacialReportOptionsTable := nil;
    FCodingReportOptionsTable := nil;
    FChartDivisionTable := nil;
@@ -718,6 +842,8 @@ begin
    FCustomDocSceduleTable := nil;
    FBAS_OptionsTable := nil;
    FNotesOptionsTable := nil;
+   FExcludedFromScheduledReports := nil;
+   FReportingParameterTable := nil;
 end;
 
 destructor TClientMigrater.Destroy;
@@ -743,7 +869,7 @@ begin
   FreeAndNil(FBalances_RecTable);
   FreeAndnil(FFuelSheetTable);
   FreeAndNil(FClient_ScheduleTable);
-  FreeAndNil(FClient_ReportOptionsTable);
+  //FreeAndNil(FClient_ReportOptionsTable);
   FreeAndNil(FClientFinacialReportOptionsTable);
   FreeAndNil(FCodingReportOptionsTable);
   FreeAndNil(FCustomDocSceduleTable);
@@ -752,6 +878,9 @@ begin
   FreeAndNil(FDownloadlogTable);
   FreeAndNil(FBAS_OptionsTable);
   FreeAndNil(FNotesOptionsTable);
+  FreeAndNil(FMatchIDList);
+  FreeAndNil(FExcludedFromScheduledReports);
+  FreeAndNil (FReportingParameterTable);
   inherited;
 end;
 
@@ -817,13 +946,14 @@ begin
       FClient_RecFieldsTable := TClient_RecFieldsTable.Create(Connection);
    Result := FClient_RecFieldsTable;
 end;
-
+    {
 function TClientMigrater.GetClient_ReportOptionsTable: TClient_ReportOptionsTable;
 begin
    if not Assigned(FClient_ReportOptionsTable) then
       FClient_ReportOptionsTable := TClient_ReportOptionsTable.Create(Connection);
    Result := FClient_ReportOptionsTable;
 end;
+}
 
 function TClientMigrater.GetClient_ScheduleTable: TClient_ScheduleTable;
 begin
@@ -888,6 +1018,14 @@ begin
    Result := FJob_Heading_RecTable;
 end;
 
+function TClientMigrater.GetMatchIDList: TGuidList;
+begin
+
+   if not assigned (FMatchIDList) then
+       FMatchIDList := TGuidList.Create();
+   result := FMatchIDList;
+end;
+
 function TClientMigrater.GetMemorisation_Detail_RecTable: TMemorisation_Detail_RecTable;
 begin
    if not Assigned(FMemorisation_Detail_RecTable) then
@@ -930,6 +1068,13 @@ begin
    Result := FReminderTable;
 end;
 
+function TClientMigrater.GetReportingParameterTable: TReportingParameterTable;
+begin
+  if not Assigned(FReportingParameterTable) then
+      FReportingParameterTable := TReportingParameterTable.Create(Connection);
+   Result := FReportingParameterTable;
+end;
+
 function TClientMigrater.GetSubGroupTable: TSubGroupTable;
 begin
    if not Assigned(FSubGroupTable) then
@@ -965,6 +1110,39 @@ begin
    Result := FTransaction_RecTable;
 end;
 
+function TClientMigrater.GetUpdateAccountStatus: TADOStoredProc;
+begin
+   if not assigned (FUpdateAccountStatus) then begin
+      FUpdateAccountStatus := TADOStoredProc.Create(nil);
+
+      FUpdateAccountStatus.Connection := connection;
+      FUpdateAccountStatus.ProcedureName := 'UpdateProcessingStatusForAClient';
+      FUpdateAccountStatus.Parameters.Refresh;
+
+
+      FUpdateAccountStatus.Prepared := true;
+      //FUpdateAccountStatus.Parameters.ParamByName('@PeriodEndDate').Value := null;
+      //FUpdateAccountStatus.Parameters.ParamByName('@DurationInMonths').Value := null;
+   end;
+   result := FUpdateAccountStatus;
+end;
+
+function TClientMigrater.GetUpdateProcessingStatusForAllClients: TADOStoredProc;
+begin
+  if not assigned (FUpdateProcessingStatusForAllClients) then begin
+      FUpdateProcessingStatusForAllClients := TADOStoredProc.Create(nil);
+
+      FUpdateProcessingStatusForAllClients.Connection := connection;
+      FUpdateProcessingStatusForAllClients.ProcedureName := 'UpdateProcessingStatusForAllClients';
+      FUpdateProcessingStatusForAllClients.Parameters.Refresh;
+
+
+      FUpdateProcessingStatusForAllClients.Prepared := true;
+
+   end;
+   result := FUpdateProcessingStatusForAllClients;
+end;
+
 function TClientMigrater.GetUser(const Value: string): TGuid;
 begin
    fillChar(result,SizeOf(result),0);
@@ -982,6 +1160,8 @@ function TClientMigrater.Migrate(ForAction:TMigrateAction;
                     AUserID,
                     AGroupID,
                     ATypeID: TGuid;
+                    AMagicNumber,
+                    ACountry: Integer;
                     AClient: pClient_File_Rec = nil): Boolean;
 
 
@@ -994,29 +1174,67 @@ var
    procedure AddScheduledCustomDoc(Doc: TReportBase);
    begin
       if not Assigned(Doc) then
-        Exit;
-      CustomDocSceduleTable.Insert(NewGuid,LID,Doc.GetGUID);
+         Exit;
+      CustomDocSceduleTable.Insert(NewGuid, LID, Doc.GetGUID);
+   end;
+
+   function Acrchived: Boolean;
+   begin
+       if Assigned(AClient) then
+          result := AClient.cfArchived
+       else
+          result := false;
    end;
 begin
    Result := False;
    Reset;
-
+   // set some global bits
    Code := ACode;
    ClientID := AClientID;
 
-   if Assigned(AClient) then
-      ClientLRN := AClient.cfLRN
-   else
-      ClientLRN := 0;
+
 
    GuidList := nil;
    MyAction := ForAction.InsertAction(Code);
 
    try try
+      if Assigned(AClient) then begin
+         ClientLRN := AClient.cfLRN;
+         if AClient.cfClient_Type = ctProspect then begin
+            if ClientDetailsCache.Load(ClientLRN) then
+                Client_RecFieldsTable.InsertProspect
+                    (
+                      ClientID,
+                      AUserID,
+                      AGroupID,
+                      ATypeID,
+                      Acrchived,
+                      AMagicNumber,
+                      ACountry,
+                      GetNotesForClient(ClientLRN),
+                      ClientDetailsCache,
+                      AClient
+                    );
+            
+            Exit;
+         end;
+      end else
+         ClientLRN := 0;
 
       files.OpenAClientForRead(Code, FClient);
       if not Assigned(FClient) then
          raise exception.Create('Could not open File');
+
+
+      if FClient.clFields.clExclude_From_Scheduled_Reports > '' then begin
+         if  not assigned(FExcludedFromScheduledReports) then begin
+            FExcludedFromScheduledReports := TStringList.Create;
+            FExcludedFromScheduledReports.StrictDelimiter := true;
+            FExcludedFromScheduledReports.Delimiter := ','
+         end;
+         FExcludedFromScheduledReports.DelimitedText := FClient.clFields.clExclude_From_Scheduled_Reports;
+      end else
+         FreeAndNil(FExcludedFromScheduledReports);
 
 
       DoSuperFund := Software.IsSuperFund(FClient.clFields.clCountry, FClient.clFields.clAccounting_System_Used);
@@ -1030,7 +1248,7 @@ begin
                       AGroupID,
                       ATypeID,
                       GetProviderID(WebExport, FClient.clFields.clCountry, FClient.clFields.clWeb_Export_Format ),
-                      False,
+                      Acrchived,
                       GetNotesForClient(ClientLRN),
                       @FClient.clFields,
                       @FClient.clMoreFields,
@@ -1059,6 +1277,10 @@ begin
         on E: Exception do MyAction.AddWarining(E);
       end;
 
+
+      ReportingParameterTable.Update('GstReport_IncludeFuelTaxCalculationSheet',FClient.clFields.clBAS_Include_Fuel, ClientID );
+
+        {
       try
          Client_ReportOptionsTable.Insert( NewGuid,
                       ClientID,
@@ -1069,6 +1291,7 @@ begin
       except
         on E: Exception do MyAction.AddWarining(E);
       end;
+      }
       if MyAction.CheckCanceled then
          Exit;
 
@@ -1185,29 +1408,6 @@ begin
    end;
 end;
 
-function TClientMigrater.MigrateCustomDocs(ForAction: TMigrateAction): Boolean;
-var I: Integer;
-    CustomDocTable: TCustomDocTable;
-
-    procedure AddCostomDoc(Doc: TReportBase);
-    begin
-       CustomDocTable.Insert(Doc,GetUser(Doc.Createdby));
-    end;
-begin
-   if CustomDocManager.ReportList.Count = 0 then begin
-      Result := true; // No failure...
-      exit;
-   end;
-
-   CustomDocTable := TCustomDocTable.Create(Connection);
-   try
-      for I := 0 to CustomDocManager.ReportList.Count - 1 do
-         AddCostomDoc(TReportBase(CustomDocManager.ReportList[I]));
-      result := true;   
-   finally
-      CustomDocTable.Free;
-   end;
-end;
 
 procedure TClientMigrater.Reset;
 begin
@@ -1262,7 +1462,7 @@ begin
    TaxRatesTable.DoSuperfund := FDoSuperfund;
    Client_ScheduleTable.DoSuperfund := FDoSuperfund;
    SubGroupTable.DoSuperfund := FDoSuperfund;
-   Client_ReportOptionsTable.DoSuperfund := FDoSuperfund;
+   //Client_ReportOptionsTable.DoSuperfund := FDoSuperfund;
    ClientFinacialReportOptionsTable.DoSuperfund := FDoSuperfund;
    CodingReportOptionsTable.DoSuperfund := FDoSuperfund;
 
@@ -1273,5 +1473,44 @@ begin
   FSystemMirater := Value;
 end;
 
+
+procedure TClientMigrater.UpdateClientsStatus(ForAction: TMigrateAction);
+
+var MyAction : TMigrateAction;
+begin
+   MyAction := ForAction.InsertAction ('Update Client status');
+   try
+      UpdateAccountStatus.Parameters.ParamByName('@CLIENTID').Value := TMigrateTable.toSQL(ClientID);
+
+      UpdateAccountStatus.ExecProc;
+      MyAction.Status := Success;
+   except
+      on E: Exception do
+         MyAction.Error := E.Message;
+   end;
+end;
+
+procedure TClientMigrater.UpdateProcessingStatusAllClients(
+  ForAction: TMigrateAction);
+var
+   MyAction : TMigrateAction;
+   KeepTime : Integer;
+begin
+   MyAction := ForAction.InsertAction ('Update all Clients status');
+   try
+
+      KeepTime := Connection.CommandTimeout;
+      Connection.CommandTimeout := 10 * 60;
+
+      UpdateProcessingStatusForAllClients.ExecProc;
+
+      Connection.CommandTimeout := KeepTime;
+
+      MyAction.Status := Success;
+   except
+      on E: Exception do
+         MyAction.Error := E.Message;
+   end;
+end;
 
 end.

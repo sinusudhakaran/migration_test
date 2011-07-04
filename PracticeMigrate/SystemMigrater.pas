@@ -1,3 +1,4 @@
+
 unit SystemMigrater;
 
 interface
@@ -50,6 +51,8 @@ private
     FParameterTable: TParameterTable;
     FTaxEntriesTable: TTaxEntriesTable;
     FTaxRatesTable: TTaxRatesTable;
+    FDoClients: Boolean;
+    FDoDocuments: Boolean;
     function GetClientGroupList: TGuidList;
     function GetClientList: TGuidList;
     function GetClientTypeList: TGuidList;
@@ -86,7 +89,7 @@ private
     function SizeClientFile(Value: TGuidObject): Int64;
 
     function GetSystemUsers: TADODataSet;
-    function GetUserRoleID(user: pUser_Rec): TGuid;
+    function GetUserRoleID(user: pUser_Rec; Resrticted: Boolean): TGuid;
     procedure SetSystem(const Value: TSystemObj);
     function GetUserList: TGuidList;
     function GetbtTable: TbtTable;
@@ -97,20 +100,17 @@ private
     function GetSystemClientFileTable: TSystemClientFileTable;
     function GetUserTable: TUserTable;
     procedure SetClientMigrater(const Value: TMigrater);
-    procedure SetDoArchived(const Value: Boolean);
-    procedure SetDoUnsynchronised(const Value: Boolean);
-    procedure SetDoUsers(const Value: Boolean);
     function GetUserMappingTable: TUserMappingTable;
     function GetClientAccountMap: tGuidList;
     function GetMasterMemorisationsTable: TMasterMemorisationsTable;
     function GetMasterMemlinesTable: TMasterMemlinesTable;
     function GetChargesTable: TChargesTable;
-    procedure SetDoSystemTransactions(const Value: Boolean);
     function GetDownloadDocumentTable: TDownloadDocumentTable;
     function GetDownloadlogTable: TDownloadlogTable;
     function GetParameterTable: TParameterTable;
     function GetTaxEntriesTable: TTaxEntriesTable;
     function GetTaxRatesTable: TTaxRatesTable;
+
 protected
     procedure OnConnected; override;
 public
@@ -149,10 +149,12 @@ public
     property TaxEntriesTable: TTaxEntriesTable read GetTaxEntriesTable;
     property TaxRatesTable: TTaxRatesTable read GetTaxRatesTable;
     //Options
-    property DoSystemTransactions: Boolean read FDoSystemTransactions write SetDoSystemTransactions;
-    property DoUsers: Boolean read FDoUsers write SetDousers;
-    property DoArchived: Boolean read FDoArchived write SetDoArchived;
-    property DoUnsynchronised: Boolean read FDoUnsynchronised write SetDoUnsynchronised;
+    property DoSystemTransactions: Boolean read FDoSystemTransactions write FDoSystemTransactions;
+    property DoUsers: Boolean read FDoUsers write FDoUsers;
+    property DoArchived: Boolean read FDoArchived write FDoArchived;
+    property DoUnsynchronised: Boolean read FDoUnsynchronised write FDoUnsynchronised;
+    property DoClients: Boolean read FDoClients write FDoClients;
+    property DoDocuments: Boolean read FDoDocuments write FDoDocuments;
     //Migrate functions ..
     property ClientMigrater: TMigrater read FClientMigrater write SetClientMigrater;
     function Migrate(ForAction:TMigrateAction): Boolean;
@@ -160,6 +162,8 @@ public
     // Helper for the Client
     function GetUser(const Value: string): TGuid; overload;
     function GetUser(const Value: integer): TGuid; overload;
+    function GetClient(const Value: Integer): tGuid;
+
 
     // Work Documents
     function GetWorkFileList:TStringList;
@@ -176,6 +180,7 @@ uses
    Globals,
    StDateSt,
    bkDefs,
+   cdTables,
    MemorisationsObj,
    GLConst,
    bkconst,
@@ -320,18 +325,23 @@ begin
 
    Clients := ClientMigrater as TClientMigrater;
    Clientrec := pClient_File_Rec(Value.Data);
-   if DoUnsynchronised
-   or (not Clientrec.cfForeign_File) then
+
+   if DoClients
+   and (DoUnsynchronised or (not Clientrec.cfForeign_File))
+   and (DoArchived or (not Clientrec.cfArchived))  then begin
       Result := Clients.Migrate
-         (
-            ForAction,
-            Clientrec.cfFile_Code,
-            Value.GuidID,
-            GetUser(Clientrec.cfUser_Responsible),
-            ClientGroupList.FindLrnGuid(Clientrec.cfGroup_LRN),
-            ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN),
-            Clientrec
-         );
+                        (
+                            ForAction,
+                            Clientrec.cfFile_Code,
+                            Value.GuidID,
+                            GetUser(Clientrec.cfUser_Responsible),
+                            ClientGroupList.FindLrnGuid(Clientrec.cfGroup_LRN),
+                            ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN),
+                            Fsystem.fdFields.fdMagic_Number,
+                            Fsystem.fdFields.fdCountry,
+                            Clientrec
+                       );
+   end;
 end;
 
 function TSystemMigrater.AddClientGroup(ForAction: TMigrateAction;
@@ -529,7 +539,7 @@ var
 begin
    Account := pSystem_Bank_Account_Rec(Value.Data);
    // Do the record
-   Result := SystemAccountTable.Insert(Value.GuidID,Account);
+   Result := SystemAccountTable.Insert(Value.GuidID, Account);
 
    if not FDoSystemTransactions then
       Exit;
@@ -580,8 +590,8 @@ function TSystemMigrater.AddSystemClient(ForAction: TMigrateAction;
 var Clientrec: pClient_File_Rec;
 begin
    Clientrec := pClient_File_Rec(Value.Data);
-   if DoUnsynchronised
-   or ( not Clientrec.cfForeign_File) then
+   if (DoUnsynchronised or (not Clientrec.cfForeign_File))
+   and (DoArchived or (not Clientrec.cfArchived)) then
       Result := SystemClientFileTable.Insert
         (
           Value.GuidID,
@@ -604,7 +614,7 @@ begin
       UserID := GetUser(acUser_LRN);
       if IsEqualGUID(UserID,emptyGuid) then
          Exit;
-      ClientID := ClientList.FindLRNGuid(acClient_File_LRN);
+      ClientID := GetClient(acClient_File_LRN);
       if IsEqualGUID(ClientID,emptyGuid) then
          Exit;
       Result := UserMappingTable.Insert(Value.GuidID, UserID, ClientID);
@@ -619,6 +629,9 @@ begin
    try
       Connected := true;
 
+      {
+      exit;
+      {}
       // Dont use the Table to get the name, Too early and Clear may not work...
       DeleteTable(MyAction,'UserClients');
 
@@ -632,11 +645,16 @@ begin
       DeleteTable(MyAction,'ClientSystemAccounts');;
       DeleteTable(MyAction,'SystemBankAccounts');
 
+      DeleteTable(MyAction,'FavouriteReports');
+      DeleteTable(MyAction,'ReportItems');
+      DeleteTable(MyAction,'ReportStyles');
+
       DeleteTable(MyAction,'PracticeClients');
 
       DeleteTable(MyAction,'ClientGroups');
       DeleteTable(MyAction,'ClientTypes');
 
+      DeleteTable(MyAction,'SystemBlobs');
       DeleteTable(MyAction,'MasterMemorisationLines', true);
       DeleteTable(MyAction,'MasterMemorisations');
 
@@ -700,6 +718,7 @@ begin
    FreeAndNil(FParameterTable);
    inherited;
 end;
+
 
 function TSystemMigrater.GetbtTable: TbtTable;
 begin
@@ -913,6 +932,19 @@ begin
       end;
 end;
 
+function TSystemMigrater.GetClient(const Value: Integer): tGuid;
+var I: Integer;
+begin
+   FillChar(Result, Sizeof(Result), 0);
+   for I := 0 to ClientList.Count - 1 do
+      if(PClient_File_Rec(TGuidObject(ClientList.Items[i]).Data)^.cfLRN = Value) then begin
+         Result := TGuidObject(ClientList.Items[i]).GuidID;
+         Exit;
+      end;
+end;
+
+
+
 function TSystemMigrater.GetUserList: TGuidList;
 begin
    if not Assigned(FUserList) then
@@ -927,13 +959,13 @@ begin
    Result := FUserMappingTable;
 end;
 
-function TSystemMigrater.GetUserRoleID(user: pUser_Rec): TGuid;
+function TSystemMigrater.GetUserRoleID(user: pUser_Rec; Resrticted: Boolean): TGuid;
 begin
-   if user.usSystem_Access then
-      Result :=  StringToGuid('{23C33A8C-BF2C-4655-9135-6EF3B77EC1A1}')
-   else if user.usIs_Remote_User then
+   if Resrticted then
       Result :=  StringToGuid('{54BB8CA5-091B-46B6-915A-5C8760DC7631}')
-   else
+   else if user.usSystem_Access then
+      Result :=  StringToGuid('{23C33A8C-BF2C-4655-9135-6EF3B77EC1A1}')
+   else  // must be Normal...
       Result :=  StringToGuid('{26767464-57F4-4B2F-AC57-0222AFE36521}');
 end;
 
@@ -995,85 +1027,117 @@ begin
 end;
 
 function TSystemMigrater.MigrateSystem(ForAction: TMigrateAction): Boolean;
+
+function DateToValue(Value: Integer):string;
 begin
-   ParameterTable.Update('AccountCodeMask', System.fdFields.fdAccount_Code_Mask);
+   if Value <= 0 then
+      Result := 'null' { Bad date or null date }
+   else if value = maxint then
+      result := 'null' // clould make a 'maxdate'
+   else
+      Result := StDateSt.StDateToDateString( 'mm/dd/yyyy', Value, False );
+end;
+
+
+begin
+   ParameterTable.Update('AccountCodeMask', System.fdFields.fdAccount_Code_Mask,'nvarchar(20)');
    ParameterTable.Update('AccountingSystem', GetProviderID(AccountingSystem,System.fdFields.fdCountry, System.fdFields.fdAccounting_System_Used));
    ParameterTable.Update('AutoPrintScheduledReportSummary', System.fdFields.fdAuto_Print_Sched_Rep_Summary);
-   ParameterTable.Update('BankLinkCode', System.fdFields.fdBankLink_Code);
+   ParameterTable.Update('BankLinkCode', System.fdFields.fdBankLink_Code,'nvarchar(20)');
 
-   ParameterTable.Update('BankLinkConnectPassword', System.fdFields.fdBankLink_Connect_Password);
+   ParameterTable.Update('BankLinkConnectPassword', System.fdFields.fdBankLink_Connect_Password,'nvarchar(80)');
    ParameterTable.Update('EnableBulkexport', System.fdFields.fdBulk_Export_Enabled);
-   ParameterTable.Update('BulkExportFormat', System.fdFields.fdBulk_Export_Code);
+   ParameterTable.Update('BulkExportFormat', System.fdFields.fdBulk_Export_Code,'nvarchar(20)');
 
-   ParameterTable.Update('CodingFont', System.fdFields.fdCoding_Font);
+   ParameterTable.Update('CodingFont', System.fdFields.fdCoding_Font,'nvarchar(255)');
    ParameterTable.Update('CollectUsageData', System.fdFields.fdCollect_Usage_Data);
 
    ParameterTable.Update('CopyDissectionNarration', System.fdFields.fdCopy_Dissection_Narration);
 
-   ParameterTable.Update('DiskSequenceNo', System.fdFields.fdDisk_Sequence_No);
-
-   ParameterTable.Update('ExportChargesRemarks', System.fdFields.fdExport_Charges_Remarks);
+   ParameterTable.Update('LastEntryReceived', format('%u3', [System.fdFields.fdDisk_Sequence_No]),'nvarchar(4)');
+   ParameterTable.Update('HighestDateEverDownloaded', DateTovalue(System.fdFields.fdDate_of_Last_Entry_Received),'datetime');
+   //ParameterTable.Update('LastEntryReceived'  fdDate_of_Last_Entry_Received
+   ParameterTable.Update('SRDoReportsUpto', DateToValue(System.fdFields.fdPrint_Reports_Up_To),'datetime');
+   ParameterTable.Update('ExportChargesRemarks', System.fdFields.fdExport_Charges_Remarks,'nvarchar(255)');
 
    //ParameterTable.Update('ExportTaxFileTo', System.fdFields);
 
-   ParameterTable.Update('ExtractJournalAccountsPA', System.fdFields.fdExtract_Journal_Accounts_PA);
-   ParameterTable.Update('ExtractMultipleAccountsPA', System.fdFields.fdExtract_Multiple_Accounts_PA);
+   ParameterTable.Update('ExtractJournalAccountsPA',System.fdFields.fdExtract_Journal_Accounts_PA);
+   ParameterTable.Update('ExtractMultipleAccountsPA',System.fdFields.fdExtract_Multiple_Accounts_PA);
    ParameterTable.Update('ExtractQuantity', System.fdFields.fdExtract_Quantity);
    ParameterTable.Update('ExtractQuantityDecimalPlaces', System.fdFields.fdExtract_Quantity_Decimal_Places);
 
    ParameterTable.Update('FixedChargeIncrease', System.fdFields.fdFixed_Charge_Increase);
    ParameterTable.Update('FixedDollarAmount', System.fdFields.fdFixed_Dollar_Amount);
 
-   ParameterTable.Update('ForceLogin', System.fdFields.fdForce_Login );
+   ParameterTable.Update('ForceLogin',System.fdFields.fdForce_Login);
 
    ParameterTable.Update('IgnoreQuantityInDownload', System.fdFields.fdIgnore_Quantity_In_Download);
 
    ParameterTable.Update('LastDiskImageVersion', System.fdFields.fdLast_Disk_Image_Version);
 
-   ParameterTable.Update('LastExportChargesSavedTo', System.fdFields.fdLast_Export_Charges_Saved_To);
+   ParameterTable.Update('LastExportChargesSavedTo', System.fdFields.fdLast_Export_Charges_Saved_To,'nvarchar(255)');
 
-   ParameterTable.Update('LoadChartFrom', System.fdFields.fdLoad_Client_Files_From);
-   ParameterTable.Update('LoadClientSuperFilesFrom', System.fdFields.fdLoad_Client_Super_Files_From);
-   ParameterTable.Update('LoginBitmapFilename', System.fdFields.fdLogin_Bitmap_Filename);
+
+   ParameterTable.Update('LoadChartFrom', System.fdFields.fdLoad_Client_Files_From,'nvarchar(255)');
+   ParameterTable.Update('LoadClientSuperFilesFrom', System.fdFields.fdLoad_Client_Super_Files_From,'nvarchar(255)');
+   ParameterTable.Update('LoginBitmapFilename', System.fdFields.fdLogin_Bitmap_Filename,'nvarchar(255)');
 
    ParameterTable.Update('PracticeManagementSystem', GetProviderID(ManagementSystem,System.fdFields.fdCountry, System.fdFields.fdPractice_Management_System));
 
    ParameterTable.Update('PINNumber', System.fdFields.fdPIN_Number);
+   ParameterTable.Update('MagicNumber', System.fdFields.fdMagic_Number);
 
-   ParameterTable.Update('PracticeName', System.fdFields.fdPractice_Name_for_Reports);
-   ParameterTable.Update('PracticePhone', System.fdFields.fdPractice_Phone);
-   ParameterTable.Update('PracticeWebSite', System.fdFields.fdPractice_Web_Site);
-   ParameterTable.Update('PracticeEmail', System.fdFields.fdPractice_EMail_Address);
+   ParameterTable.Update('PracticeName', System.fdFields.fdPractice_Name_for_Reports,'nvarchar(60)');
+   ParameterTable.Update('PracticePhone', System.fdFields.fdPractice_Phone,'nvarchar(60)');
+   ParameterTable.Update('PracticeWebSite', System.fdFields.fdPractice_Web_Site,'nvarchar(255)');
+   ParameterTable.Update('PracticeEmail', System.fdFields.fdPractice_EMail_Address,'nvarchar(255)');
 
    ParameterTable.Update('PrintClientTypeHeaderPage', System.fdFields.fdPrint_Client_Type_Header_Page);
    ParameterTable.Update('PrintGroupHeaderPage', System.fdFields.fdPrint_Group_Header_Page);
 
    ParameterTable.Update('ReplaceNarrationWithPayee', System.fdFields.fdReplace_Narration_With_Payee);
 
-   ParameterTable.Update('SaveClientSuperFilesTo', System.fdFields.fdSave_Client_Super_Files_To);
-   ParameterTable.Update('SaveEntriesTo', System.fdFields.fdSave_Client_Files_To);//???
-   ParameterTable.Update('SaveTaxFilesTo', System.fdFields.fdSave_Tax_Files_To);
+   ParameterTable.Update('SaveClientSuperFilesTo', System.fdFields.fdSave_Client_Super_Files_To,'nvarchar(255)');
+   ParameterTable.Update('SaveEntriesTo', System.fdFields.fdSave_Client_Files_To,'nvarchar(255)');//???
+   ParameterTable.Update('SaveTaxFilesTo', System.fdFields.fdSave_Tax_Files_To,'nvarchar(255)');
    ParameterTable.Update('SetFixedDollarAmount', System.fdFields.fdSet_Fixed_Dollar_Amount);
 
 
 
-   ParameterTable.Update('SystemReportPassword', System.fdFields.fdSystem_Report_Password);
+   ParameterTable.Update('SystemReportPassword', System.fdFields.fdSystem_Report_Password,'nvarchar(60)');
    ParameterTable.Update('TaskTrackingPromptType', System.fdFields.fdTask_Tracking_Prompt_Type);
    ParameterTable.Update('TaxInterfaceUsed', GetProviderID(TaxSystem,System.fdFields.fdCountry, System.fdFields.fdTax_Interface_Used));
-   ParameterTable.Update('UpdateServerForOffsites', System.fdFields.fdUpdate_Server_For_Offsites);
+   ParameterTable.Update('UpdateServerForOffsites', System.fdFields.fdUpdate_Server_For_Offsites,'nvarchar(255)');
 
    ParameterTable.Update('UseXlonChartOrder', System.fdFields.fdUse_Xlon_Chart_Order);
    ParameterTable.Update('WebExportFormat',GetProviderID (WebExport,System.fdFields.fdCountry, System.fdFields.fdWeb_Export_Format));
+
+   ParameterTable.Update('SRBooksCustomDocument',System.fdFields.fdSched_Rep_Books_Custom_Doc_GUID,'nvarchar(255)');
+   ParameterTable.Update('SREmailCustomDocument',System.fdFields.fdSched_Rep_Email_Custom_Doc_GUID,'nvarchar(255)');
+   ParameterTable.Update('SRFaxCustomDocument',System.fdFields.fdSched_Rep_Fax_Custom_Doc_GUID,'nvarchar(255)');
+   ParameterTable.Update('SRNotesCustomDocument',System.fdFields.fdSched_Rep_Notes_Custom_Doc_GUID,'nvarchar(255)');
+   ParameterTable.Update('SRNotesOnlineCustomDocument',System.fdFields.fdSched_Rep_WebNotes_Custom_Doc_GUID,'nvarchar(255)');
+   ParameterTable.Update('SRPrintCustomDocument',System.fdFields.fdSched_Rep_Print_Custom_Doc_GUID,'nvarchar(255)');
+
+   ParameterTable.Update('SRDoEmailedReports', System.fdFields.fdSched_Rep_Include_Email);
+   ParameterTable.Update('SRDoFaxedReports', System.fdFields.fdSched_Rep_Include_Fax);
+   ParameterTable.Update('SRDoSendBooks', System.fdFields.fdSched_Rep_Include_Checkout);
+   ParameterTable.Update('SRDoSendNotes', System.fdFields.fdSched_Rep_Include_ECoding);
+   ParameterTable.Update('SRDoSendNotesOnline', System.fdFields.fdSched_Rep_Include_WebX);
+   ParameterTable.Update('SRDoPrintedReports', System.fdFields.fdSched_Rep_Include_Printer);
+
+   //ParameterTable.Update('SRNewTransactionsOnly', ToSQL(System. ,false));
 
    //Pracini
    ReadPracticeINI;
    case System.fdFields.fdCountry of
       whNewZealand : begin
-         ParameterTable.Update('GSTReturnLink', PRACINI_GST101Link);
-         ParameterTable.Update('Institutionslink',PRACINI_InstListLinkNZ);
+         ParameterTable.Update('GSTReturnLink', PRACINI_GST101Link,'nvarchar(255)');
+         ParameterTable.Update('Institutionslink',PRACINI_InstListLinkNZ,'nvarchar(255)');
       end;
       whAustralia : begin
-         ParameterTable.Update('Institutionslink',PRACINI_InstListLinkAU);
+         ParameterTable.Update('Institutionslink',PRACINI_InstListLinkAU,'nvarchar(255)');
       end;
    end;
 
@@ -1090,7 +1154,8 @@ var ClassNo, Rate: Integer;
     ClassID,
     EntryID: TGuid;
 begin
-  if ForAction.CheckCanceled then
+   Result := False;
+   if ForAction.CheckCanceled then
       Exit;
 
    for ClassNo := 1 to MAX_GST_CLASS do begin
@@ -1199,6 +1264,7 @@ end;
 function TSystemMigrater.MergeUser(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 var User: PUser_rec;
+    Restricted: Boolean;
 begin
 
    User := PUser_rec(Value.Data);
@@ -1208,9 +1274,11 @@ begin
    Systemusers.Parameters.ParamValues['Code']:= User.usCode;
    Systemusers.Active := True;
    if Systemusers.RecordCount > 0 then begin
+      /// PrintSetup..
+      RunSQL(ForAction,format('Delete from [UserClients] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
       RunSQL(ForAction,format('Delete from [UserRoles] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
       RunSQL(ForAction,format('Delete from [Users] where [Code] = ''%s''',[User.usCode]));
-           //RunSystemSQL(format('Delete from [UserClients] where [userID_ID] = %s',[ToSQL(UserId, false)]), 'Delete User clients', false);
+
            //Exit; // Merge....
    end;
 
@@ -1218,15 +1286,18 @@ begin
    if User.usName = '' then
       User.usName := User.usCode;
 
+   // Check if restricted..
+   Restricted := System.fdSystem_File_Access_List.Restricted_User(User.usLRN);
+
    // Add the user..
-   UserTable.Insert(Value.GuidID,user);
+   UserTable.Insert(Value.GuidID,user,Restricted);
 
    // Add the role
    InsertTable(
       ForAction,
       'UserRoles',
       '[Id],[User_Id],[Role_Id]',
-      ToSql(NewGuid) + ToSQL(Value.GuidID) + ToSQL(GetUserRoleID(User),False),
+      ToSql(NewGuid) + ToSQL(Value.GuidID) + ToSQL(GetUserRoleID(User,Restricted),False),
       'User Role');
    Result := true;
 end;
@@ -1239,7 +1310,7 @@ begin
    result := false;
    if not Assigned(System) then
       Exit;
-
+          
    MyAction := ForAction.InsertAction(Format('Migrate %s',[System.fdFields.fdPractice_Name_for_Reports]));
    MyAction.Target := 100;
    MyAction.LogMessage('Migration Start');
@@ -1267,13 +1338,17 @@ begin
 
    MyAction.Counter := 25;
 
+
+
    // User map..
-   lList := TGuidList.Create(System.fdSystem_File_Access_List);
-   try
-      if not RunGuidList(MyAction,'User Clients',LList, AddUserMap) then
-         Exit;
-   finally
-      FreeAndNil(lList);
+   if DoUsers then begin
+      lList := TGuidList.Create(System.fdSystem_File_Access_List);
+      try
+         if not RunGuidList(MyAction,'User Clients',LList, AddUserMap) then
+            Exit;
+      finally
+         FreeAndNil(lList);
+      end;
    end;
 
    MigrateMasterMems(MyAction);
@@ -1293,11 +1368,16 @@ begin
       Exit;
    MyAction.Counter := 75;
 
+   TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
+
    MigrateSystem(MyAction);
 
-   MigrateWorkFolder(MyAction);
-   if MyAction.CheckCanceled then
-      Exit;
+
+   if DoDocuments then begin
+      MigrateWorkFolder(MyAction);
+      if MyAction.CheckCanceled then
+         Exit;
+   end;
 
    MigrateDisklog(MyAction);
    if MyAction.CheckCanceled then
@@ -1311,12 +1391,48 @@ end;
 
 
 function TSystemMigrater.MigrateCustomDocs(ForAction: TMigrateAction): Boolean;
+
+   var I: Integer;
+    CustomDocTable: TCustomDocTable;
+
+    procedure AddCostomDoc(Doc: TReportBase);
+    begin
+       try
+          CustomDocTable.Insert(Doc,GetUser(Doc.Createdby));
+       except
+          on e: exception  do
+             ForAction.Exception(e,'Add Custom document');
+       end;
+    end;
 begin
-   Result := false;
-   if not (ClientMigrater is TClientMigrater) then
-      Exit; // Raise exception... or set error..
-   Result := TClientMigrater(ClientMigrater).MigrateCustomDocs(ForAction);
+
+   CustomDocTable := TCustomDocTable.Create(Connection);
+   try
+      for I := 0 to CustomDocManager.ReportList.Count - 1 do
+         AddCostomDoc(TReportBase(CustomDocManager.ReportList[I]));
+
+      // Do The Messages..  (Text, Name, Description, DocType: string)
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Email_Subject,      'SREmailSubject', 'Scheduled report Email Subject', 'Subject Line');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Cover_Page_Subject ,'SRFaxSubject',   'Scheduled report Fax Subject', 'Subject Line');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_BNotes_Subject ,    'SRNotesSubject', 'Scheduled report Notes Subject', 'Subject Line');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_WebNotes_Subject ,  'SRNotesOnlineSubject', 'Scheduled report Notes Online Subject', 'Subject Line');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_CheckOut_Subject ,  'SRBooksSubject', 'Scheduled report Books Subject', 'Subject Line');
+
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Header_Message,     'SRPrintMessage', 'Scheduled report Print Message', 'Message');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Email_Message,      'SREmailMessage', 'Scheduled report Email Message', 'Message');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Cover_Page_Message ,'SRFaxMessage',   'Scheduled report Fax Message', 'Message');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_BNotes_Message ,    'SRNotesMessage', 'Scheduled report Notes Message', 'Message');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_WebNotes_Message ,  'SRNotesOnlineMessage', 'Scheduled report Notes Online Message', 'Message');
+      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_CheckOut_Message ,  'SRBooksMessage', 'Scheduled report Books Message', 'Message');
+
+      result := true;   
+   finally
+      CustomDocTable.Free;
+   end;
 end;
+
+
+
 
 function TSystemMigrater.MigrateDisklog(ForAction: TMigrateAction): Boolean;
 var lList: TGuidList;
@@ -1341,27 +1457,6 @@ begin
   FClientMigrater := Value;
 end;
 
-
-procedure TSystemMigrater.SetDoArchived(const Value: Boolean);
-begin
-  FDoArchived := Value;
-end;
-
-
-procedure TSystemMigrater.SetDoSystemTransactions(const Value: Boolean);
-begin
-  FDoSystemTransactions := Value;
-end;
-
-procedure TSystemMigrater.SetDoUnsynchronised(const Value: Boolean);
-begin
-  FDoUnsynchronised := Value;
-end;
-
-procedure TSystemMigrater.SetDousers(const Value: Boolean);
-begin
-  FDousers := Value;
-end;
 
 
 procedure TSystemMigrater.SetSystem(const Value: TSystemObj);

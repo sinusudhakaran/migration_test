@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, DB, ADODB, GuidList, sydefs, VirtualTreeHandler,
-  VirtualTrees, MigrateActions,ClientMigrater,SystemMigrater, jpeg, ImgList;
+  VirtualTrees, MigrateActions,ClientMigrater,SystemMigrater, jpeg, ImgList,
+  FMTBcd, SqlExpr;
 
 type
    Tprogress = (SelectSource, Selection, Migrate, Done);
@@ -83,6 +84,8 @@ type
     procedure btnDefClick(Sender: TObject);
     procedure CbserversDropDown(Sender: TObject);
     procedure cbSysTransClick(Sender: TObject);
+    procedure cbClientsClick(Sender: TObject);
+    procedure cbDocumentsClick(Sender: TObject);
 
   private
     Fprogress: Tprogress;
@@ -263,6 +266,16 @@ begin
    FSystemMigrater.DoArchived := cbArchive.Checked;
 end;
 
+procedure TformMain.cbClientsClick(Sender: TObject);
+begin
+   FSystemMigrater.DoClients := cbClients.Checked;
+end;
+
+procedure TformMain.cbDocumentsClick(Sender: TObject);
+begin
+   FSystemMigrater.DoDocuments := cbDocuments.Checked;
+end;
+
 procedure TformMain.BtnCancelClick(Sender: TObject);
 begin
   case Progress of
@@ -308,6 +321,8 @@ procedure TformMain.btnDefClick(Sender: TObject);
 begin
   cbUsers.Checked := cbUsers.Enabled;
   cbArchive.Checked := cbArchive.Enabled;
+  cbClients.Checked := cbClients.Enabled;
+  cbDocuments.Checked := cbDocuments.Enabled;
   cbUnsync.Checked := false;
 end;
 
@@ -624,14 +639,14 @@ function TformMain.TestSystem: boolean;
        kc: Tcursor;
 
 
-  function SetCheckBox(Value: TCheckBox; Caption: string; Count: Integer; Disable: boolean = false; unticked: boolean = false): boolean;
+  function SetCheckBox(Value: TCheckBox; Caption: string; Count: Double; Disable: boolean = false; unticked: boolean = false): boolean;
   var CountText: string;
   begin
      Result := Count > 0 ;
      if Result then begin
         Value.Checked := not unticked;
         Value.Enabled := not Disable;
-        CountText := format('(%d) ',[count]);
+        CountText := format('(%.0n) ',[count]);
      end else begin
         Value.Checked := false;
         Value.Enabled := false;
@@ -801,7 +816,7 @@ begin
 
          FSystemMigrater.ClearData(MyAction);
          FClientMigrater.ClearData(MyAction);
-
+               
          FSystemMigrater.ClientMigrater := FClientMigrater;
          //FSystemMigrater.System := Adminsystem; already done ??
 

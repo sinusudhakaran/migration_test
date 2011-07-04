@@ -6,6 +6,8 @@ uses
    MoneyDef,
    MigrateTable,
    ToDoListUnit,
+   ClientDetailCacheobj,
+   syDefs, //  pClient_File_Rec
    bkDefs;
 
 type
@@ -26,6 +28,18 @@ public
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec): Boolean;
+
+    function InsertProspect(MyId: TGuid;
+                   UserID: TGuid;
+                   GroupID: TGuid;
+                   TypeID: TGuid;
+                   Archived: Boolean;
+                   Magic_Number: integer;
+                   Country: Integer;
+                   SystemComments: string;
+                   ClientDetailsCache: TClientDetailsCache;
+                   AClient: pClient_File_Rec
+                  ): Boolean;
 end;
 
 TClient_ScheduleTable = class (TMigrateTable)
@@ -51,6 +65,7 @@ public
                    Notification: Integer): Boolean;
 end;
 
+(*
 TClient_ReportOptionsTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
@@ -62,6 +77,7 @@ public
                    Extra: pClientExtra_Rec): Boolean;
 end;
 
+*)
 TClientFinacialReportOptionsTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
@@ -100,7 +116,10 @@ protected
 public
    function Insert(MyID: TGuid;
                    ClientID: TGuid;
-                   Value: pBank_Account_Rec): Boolean;
+                   Value: pBank_Account_Rec;
+                   Map: pClient_Account_Map_Rec;
+                   Excluded: boolean
+                   ): Boolean;
 end;
 
 
@@ -110,6 +129,7 @@ protected
 public
    function Insert(MyID: TGuid;
                    AccountID: TGuid;
+                   MatchedItemID: TGuid;
                    Value: PTransaction_Rec): Boolean;
 end;
 
@@ -302,6 +322,19 @@ public
 end;
 
 
+TReportingParameterTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Update(ParamName, ParamValue, ParamType: string; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
+   function Update(ParamName: string; ParamValue: Boolean; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
+   function Update(ParamName: string; ParamValue: TGuid; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
+   function Update(ParamName: string;ParamValue: Integer; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
+   function Update(ParamName: string; ParamValue: Money; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
+end;
+
+
+
 implementation
 
 uses
@@ -312,6 +345,9 @@ Variants,
    PasswordHash;
 
 
+
+
+(*******************************************************************************)
 
 { TClient_RecFieldsTable }
 
@@ -338,7 +374,8 @@ function TClient_RecFieldsTable.Insert(MyId: TGuid;
 
    function GetGSTRatio: Money;
    begin
-      if (Value.clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
+      if  (Value.clCountry = whNewZealand)
+      and (Value.clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
       and (Value.clBAS_Field_Number[bfGSTProvisional] = GSTRatio) then
          Result := Value.clBAS_Field_Percent[bfGSTProvisional] * 1000 // seems in one decimal place ??
       else
@@ -370,7 +407,51 @@ begin with Value^, Extra^, More^ do
               ,ToSQL(ceBudget_Include_Quantities),ToSQL(Archived)
 {16}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
               ,ToSql(clBAS_Field_Number[bfGSTProvisional] = GSTRatio),PercentToSQL(GetGSTRatio)
-{17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems),ToSQL(ComputePWHash(clFile_Password,MyId))],[]);
+{17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems)
+              ,ToSQL(ComputePWHash(clFile_Password,MyId)),ToSQL(False)],[]);
+end;
+
+function TClient_RecFieldsTable.InsertProspect(
+                   MyId: TGuid;
+                   UserID: TGuid;
+                   GroupID: TGuid;
+                   TypeID: TGuid;
+                   Archived: Boolean;
+                   Magic_Number: integer;
+                   Country: Integer;
+                   SystemComments: string;
+                   ClientDetailsCache: TClientDetailsCache;
+                   AClient: pClient_File_Rec
+                  ):Boolean;
+begin
+with  AClient^, ClientDetailsCache do begin
+  Result := RunValues([ToSQL(MyId),ToSQL(cfFile_Code),ToSQL(cfFile_Name),ToSQL(Address_L1),ToSQL(Address_L2),ToSQL(Address_L3)
+               ,ToSQL(Contact_Name),ToSQL(Phone_No),ToSQL(Fax_No),ToSQL(EMail_Address)
+{2}        ,ToSQL(Country),null,null,null
+{3}        ,null,ToSQL(cfGST_Period),ToSQL(cfGST_Start_Month),null
+              ,null,null,null
+{4}        ,null,null,null,null
+               ,null,null
+{5}        ,ToSQL(Magic_Number),null,null,null,null
+{6}        ,null,ToSQL(UserID),null,null,null
+{7}        ,null,null,null
+{8}        ,null, DateToSQL(cfFinancial_Year_Starts),null,null
+              ,null,null
+{9}        ,null,ToSQL(cfContact_Details_To_Show),null
+              ,null,null
+{10}       ,null,null,ToSQL(SystemComments)
+{11}       ,null,null,null,ToSQL(Mobile_No)
+              ,null,ToSQL(Salutation),null
+{12}       ,null,null,null,null
+{13}       ,DateToSQL(cfDate_Last_Accessed),null,ToSQL(GroupID),ToSQL(TypeID)
+              ,null,null,null
+{14}       , null,null
+              ,null,ToSQL(Archived)
+{16}       , null,null
+              ,null,null
+{17}       , null,null,null
+              ,ToSQL(ComputePWHash(cfFile_Password,MyId)),ToSQL(True)],[]);
+end;
 end;
 
 procedure TClient_RecFieldsTable.SetupTable;
@@ -391,14 +472,32 @@ begin
 {13}    ,'LastUseDate','UseBasicChart','ClientGroupId','ClientTypeId','AllEditModeCES','AllEditModeDIS','TFN'
 {14}    ,'AllowClientUnlockEntries','AllowClientEditChart','BudgetIncludeQuantities','Archived'
 {15}    ,'JournalProcessingDuration','GSTIncludeProvisionalTax','GSTUseRatioOption','GSTRatio'
-{16}    ,'Comments','GenerateFinancialReports','EditMemorisations','Password'],[]);
+{16}    ,'Comments','GenerateFinancialReports','EditMemorisations','Password','IsProspect'],[]);
 
 end;
 
+
+(*******************************************************************************)
+
 { TAccount_RecTable }
 
-function TAccount_RecTable.Insert(MyID, ClientID: TGuid;
-  Value: pBank_Account_Rec): Boolean;
+function TAccount_RecTable.Insert(MyID: TGuid;
+                   ClientID: TGuid;
+                   Value: pBank_Account_Rec;
+                   Map: pClient_Account_Map_Rec;
+                   Excluded: boolean
+                   ): Boolean;
+
+    function LastScheduledReportDate : Variant;
+    begin
+        Result := null;
+        if not assigned(map) then
+           exit;
+        Result := ToSQL(map.amLast_Date_Printed);
+    end;
+
+
+
 begin with value^ do
   Result := RunValues([ ToSQL(MyId),ToSQL(ClientID),ToSQL(baBank_Account_Number),ToSQL(baBank_Account_Name)
               ,ToSQL(baBank_Account_Password),ToSQL(baContra_Account_Code)
@@ -410,7 +509,8 @@ begin with value^ do
               ,ToSQL(baECoding_Account_UID),ToSQL(baCoding_Sort_Order),ToSQL(baManual_Account_Type)
  {5}     ,ToSQL(baManual_Account_Institution),ToSQL(baManual_Account_Sent_To_Admin)
               ,ToSQL(baHDE_Sort_Order),ToSQL(baMDE_Sort_Order),ToSQL(baDIS_Sort_Order)
- {6}     ,ToSQL(baDesktop_Super_Ledger_ID), ToSQL(Value.baSuperFund_Ledger_Code),ToSql(baCurrency_Code)],[]);
+ {6}     ,ToSQL(baDesktop_Super_Ledger_ID), ToSQL(Value.baSuperFund_Ledger_Code),ToSql(baCurrency_Code)
+              ,ToSQL(Excluded), LastScheduledReportDate ],[]);
 
 end;
 
@@ -422,13 +522,16 @@ begin
  {3}   , 'LastSequenceNo','AccountExpiryDate','HighestMatchedItemID','NotesAlwaysVisible','NotesHeight','LastECodingTransactionUID'
  {4}   , 'ExtendExpiryDate','IsAManualAccount','AnalysisCodingLevel','ECodingAccountUID','CodingSortOrder','ManualAccountType'
  {5}   , 'ManualAccountInstitution','ManualAccountSentToAdmin','HDESortOrder','MDESortOrder','DISSortOrder'
- {6}   , 'SFLedgerID','SFLedgerCode','Currency'],[]);
+ {6}   , 'SFLedgerID','SFLedgerCode','Currency','ExcludedFromScheduledReports','LastScheduledReportDate'],[]);
 
 end;
 
+
+(*******************************************************************************)
+
 { TTransaction_RecTable }
 
-function TTransaction_RecTable.Insert(MyID, AccountID: TGuid;
+function TTransaction_RecTable.Insert(MyID, AccountID,MatchedItemID: TGuid;
   Value: PTransaction_Rec): Boolean;
 begin  with Value^ do
   Result := RunValues([ ToSQL(MyId),ToSQL(AccountID),ToSQL(txSequence_No)
@@ -438,7 +541,7 @@ begin  with Value^ do
 {3}       ,ToSQL(txReference),ToSQL(txParticulars),ToSQL(txAnalysis), ToSQL(txOrigBB), ToSQL(txOther_Party)
                   ,ToSQL(txAccount), ToSQL(txCoded_By)
 {4}       ,nullToSQL(txPayee_Number),ToSQL(txLocked),ToSQL(txBankLink_ID),ToSQL(txGST_Has_Been_Edited)
-                  ,ToSQL(txMatched_Item_ID), ToSQL(txUPI_State), ToSQL(txOriginal_Reference)
+                  ,ToSQL(MatchedItemID), ToSQL(txUPI_State), ToSQL(txOriginal_Reference)
 {5}       ,ToSQL(txOriginal_Source),ToSQL(txOriginal_Type),ToSQL(txOriginal_Cheque_Number),ToSQL(txOriginal_Amount)
                   ,ToSQL(txNotes),ToSQL(txECoding_Import_Notes)
 {6}       ,ToSQL(txECoding_Transaction_UID), ToSQL(txGL_Narration), ToSQL(txStatement_Details), ToSQL(txTax_Invoice_Available)
@@ -486,6 +589,9 @@ begin
 
 end;
 
+
+(*******************************************************************************)
+
 { TDissection_RecTable }
 
 function TDissection_RecTable.Insert(MyID, TransactionID: TGuid;
@@ -515,7 +621,7 @@ begin with Value^ do
 {3}       ,ToSQL(dsAccount),nullToSQL(dsPayee_Number),ToSQL(dsGST_Has_Been_Edited)
 {4}       ,ToSQL(dsNotes),ToSQL(dsECoding_Import_Notes),ToSQL(dsGL_Narration), ToSQL(dsTax_Invoice)
 {5}       ,ToSQL(dsExternal_GUID),ToSQl(dsDocument_Title),ToSQL(dsJob_Code)
-{8}       ,ToSQL(dsDocument_Status_Update_Required),ToSQL(dsNotes_Read),ToSQL(dsImport_Notes_Read)
+{8}       ,ToSQL(dsDocument_Status_Update_Required),ToSQL(dsNotes_Read),ToSQL(dsImport_Notes_Read),ToSQL(value.dsJournal_Type)
 
    ],[
 {1}       ToSQL(value.dsSF_Super_Fields_Edited ), ToSQL(dsSF_Franked),ToSQL(dsSF_UnFranked),
@@ -545,13 +651,16 @@ begin
 {3}       ,'ChartCode','PayeeNumber','GSTHasBeenEdited'
 {4}       ,'Notes','ECodingImportNotes','GLNarration','TaxInvoiceAvailable'
 {5}       ,'ExternalGUID','DocumentTitle','JobCode'
-{6}       ,'DocumentStatusUpdateRequired','NotesRead','ImportNotesRead'
+{6}       ,'DocumentStatusUpdateRequired','NotesRead','ImportNotesRead' ,'JournalType'
 
           ],SFLineFields);
 
 
 
 end;
+
+
+(*******************************************************************************)
 
 { TMemorisation_Detail_RecTable }
 
@@ -584,15 +693,34 @@ begin
 
 end;
 
+
+(*******************************************************************************)
+
 { TMemorisation_Line_RecTable }
 
 function TMemorisation_Line_RecTable.Insert(MyID, MemorisationID: TGuid;
   SequenceNo: Integer; Value: pMemorisation_Line_Rec): Boolean;
+
+   function Amount : variant;
+  begin
+      if value.mlLine_Type = mltDollarAmt then
+         result := ToSQL(value.mlPercentage)
+      else
+         result := null;
+  end;
+
+  function percentage : variant;
+  begin
+      if value.mlLine_Type = mltPercentage then
+         result := PercentToSQL(value.mlPercentage)
+      else
+         result := null;
+  end;
 begin with Value^ do
-  Result := RunValues([ ToSql(MyID),ToSql(MemorisationID),ToSQL(SequenceNo),PercentToSQL(mlPercentage)
+  Result := RunValues([ ToSql(MyID),ToSql(MemorisationID),ToSQL(SequenceNo),Percentage
                ,ToSQL(mlGST_Class),ToSQL(mlGST_Has_Been_Edited)
 {2}       , NullToSQL(mlPayee), ToSQL(mlGL_Narration) ,ToSQL(mlLine_Type)
-               ,ToSQL(mlGST_Amount),ToSQL(mlAccount),ToSQL(mlJob_code), QtyToSQL(mlQuantity)
+               ,Amount ,ToSQL(mlAccount),ToSQL(mlJob_code), QtyToSQL(mlQuantity)
 
    ],[
 
@@ -622,11 +750,14 @@ procedure TMemorisation_Line_RecTable.SetupTable;
 begin
   TableName := 'MemorisationLines';
   SetFields([ 'Id','Memorisation_Id','SequenceNo','Percentage','GSTClass','GSTHasBeenEdited'
-           ,'PayeeNumber','GLNarration','LineType','GSTAmount','ChartCode','JobCode','Quantity'
+           ,'PayeeNumber','GLNarration','LineType','Amount','ChartCode','JobCode','Quantity'
 
    ],SFLineFields);
 
 end;
+
+
+(*******************************************************************************)
 
 { TChart_RecTable }
 
@@ -650,6 +781,9 @@ begin
 
 end;
 
+
+(*******************************************************************************)
+
 { TCustom_Heading_RecTable }
 
 function TCustom_Heading_RecTable.Insert(MyID, ClientID: TGuid; Value: pCustom_Heading_Rec): Boolean;
@@ -662,6 +796,9 @@ begin
    TableName := 'Headings';
    SetFields([ 'Id','Client_Id','HeadingType','HeadingText','MajorId','MinorId'],[]);
 end;
+
+
+(*******************************************************************************)
 
 { TPayee_Detail_RecTable }
 
@@ -676,14 +813,34 @@ begin
   SetFields(['Id','Client_Id','Number','Name'],[]);
 end;
 
+
+(*******************************************************************************)
+
 { TPayee_Line_RecTable }
 
 function TPayee_Line_RecTable.Insert(SequenceNo: Integer; MyID, PayeeID: TGuid;
   Value: pPayee_Line_Rec): Boolean;
+
+  function Amount : variant;
+  begin
+      if value.plLine_Type = mltDollarAmt then
+         result := ToSQL(value.plPercentage)
+      else
+         result := null;
+  end;
+
+  function percentage : variant;
+  begin
+      if value.plLine_Type = mltPercentage then
+         result := PercentToSQL(value.plPercentage)
+      else
+         result := null;
+  end;
+
 begin with Value^ do
-    Result := RunValues([ToSQL(MyID),ToSQL(PayeeID),PercentToSQL(plPercentage)
+    Result := RunValues([ToSQL(MyID),ToSQL(PayeeID),Percentage
                ,ToSQL(plGST_Class),ToSQL(plGST_Has_Been_Edited)
-{2}        ,ToSQL(plGL_Narration),ToSQL(plLine_Type),ToSQL(plGST_Amount)
+{2}        ,ToSQL(plGL_Narration),ToSQL(plLine_Type), Amount
                ,ToSQL(plAccount),ToSQL(SequenceNo),QtyToSQL(plQuantity)
 
     ],[
@@ -712,12 +869,15 @@ procedure TPayee_Line_RecTable.SetupTable;
 begin
   TableName := 'PayeeLines';
   SetFields(['Id','Payee_Id','Percentage','GSTClass','GSTHasBeenEdited'
-{2}      , 'GLNarration','LineType','GSTAmount','ChartCode','SequenceNo', 'Quantity'
+{2}      , 'GLNarration','LineType','Amount','ChartCode','SequenceNo', 'Quantity'
 
        ],SFLineFields);
 
 
 end;
+
+
+(*******************************************************************************)
 
 { TJob_Heading_RecTable }
 
@@ -731,6 +891,9 @@ begin
    TableName := 'Jobs';
    SetFields(['Id','Client_Id','Name','DateCompleted','Code'],[]);
 end;
+
+
+(*******************************************************************************)
 
 { TBudget_Header_RecTable }
 
@@ -746,6 +909,9 @@ begin
   TableName := 'Budgets';
   SetFields(['Id','Client_Id','StartDate','Name','EstimatedOpeningBankBalance','IsInclusive'],[]);
 end;
+
+
+(*******************************************************************************)
 
 { TBudget_Detail_RecTable }
 
@@ -763,6 +929,9 @@ begin
 end;
 
 
+
+(*******************************************************************************)
+
 { TDivisionsTable }
 
 function TDivisionsTable.Insert(MyID: TGuid;  ClientID: TGuid; Division: Integer; Name: string): Boolean;
@@ -775,6 +944,9 @@ begin
    TableName := 'ReportClientDivisions';
    SetFields(['Id','Client_Id','Division','Description'],[]);
 end;
+
+
+(*******************************************************************************)
 
 { TTaxEntriesTable }
 
@@ -797,6 +969,9 @@ begin
   SetFields(['Id','TaxClassType_Id','Client_Id','TaxId','SequenceNo','ClassDescription','ControlAccount','Norm'],[]);
 end;
 
+
+(*******************************************************************************)
+
 { TTaxRatesTable }
 
 function TTaxRatesTable.Insert(MyID: TGuid;
@@ -812,6 +987,9 @@ begin
   TableName := 'TaxRates';
   SetFields(['Id','TaxEntry_Id','Rate','EffectiveDate'],[]);
 end;
+
+
+(*******************************************************************************)
 
 { TClient_ScheduleTable }
 
@@ -839,7 +1017,7 @@ begin with Value^, Extra^ do
               ,ToSQL(clBusiness_Products_Scheduled_Reports), ToSQL(clSend_Coding_Report)
 
 {5}       ,ToSQL(clSend_Chart_of_Accounts), ToSQL(clSend_Payee_List), ToSQL(Extra.ceSend_Job_List)
-              ,ToSQL(clExclude_From_Scheduled_Reports), ToSQL(clReporting_Period) , ToSQL(extra.ceSend_Custom_Documents)
+              , ToSQL(clReporting_Period) , ToSQL(extra.ceSend_Custom_Documents)
 
 {6}       ,ToSQL(clScheduled_Client_Note_Message), ToSQL(clEmail_Report_Format), ToSQL(ceScheduled_Custom_CR_XML)
               ,ToSQL(ceScheduled_CR_Column_Line)
@@ -858,12 +1036,16 @@ begin
 
 {4}      ,'TaskEmail','TaskFax','TaskCheckOut','TaskWebExport','TaskCSVExport','TaskBusinessProduct','SendCoding'
 
-{5}      ,'SendChart','Sendpayees','SendJobs', 'ExcludeFromScheduledReports','ReportingPeriod' ,'IncludeCustomDocument'
+{5}      ,'SendChart','Sendpayees','SendJobs', 'ReportingPeriod' ,'IncludeCustomDocument'
 
 {6}      ,'ClientNoteMessage','EmailReportFormat','CustomCodingReportXML','CodingReportRuleLineBetweenColumns'
      ],[]);
 
 end;
+
+(*
+
+(*******************************************************************************
 
 { TClient_ReportOptionsTable }
 
@@ -894,6 +1076,10 @@ begin
 {6}      ,'CustomLedgerReport','CustomLedgerReportXML','BookGenFinanceReports' ],[]);
 end;
 
+*)
+
+(*******************************************************************************)
+
 { TSubGroupTable }
 
 function TSubGroupTable.Insert(MyID, ClientID: TGuid; SubGroup: Integer; Name: string): Boolean;
@@ -906,6 +1092,8 @@ begin
    TableName := 'ReportSubGroups';
    SetFields(['Id','Client_Id','SubGroupNo','Description'],[]);
 end;
+
+(*******************************************************************************)
 
 { TClientFinacialReportOptionsTable }
 
@@ -931,6 +1119,8 @@ begin
       ],[]);
 end;
 
+(*******************************************************************************)
+
 { TCodingReportOptionsTable }
 
 function TCodingReportOptionsTable.Insert(MyId, ClientID: TGuid;
@@ -953,6 +1143,8 @@ begin
 {4}   ,'CustomReport','ColumnLine'],[]);
 
 end;
+
+(*******************************************************************************)
 
 { TBalances_RecTable }
 
@@ -1000,6 +1192,9 @@ begin
 {10}   ,'UsingFuelPercentMethod','PTFormType','BASCdjCustoms'],[]);
 end;
 
+
+(*******************************************************************************)
+
 { TChartDivisionTable }
 
 function TChartDivisionTable.Insert(MyID,
@@ -1016,6 +1211,9 @@ begin
    Tablename := 'ClientReportDivisionCharts';
    SetFields(['Id','DivisionIndex',{'Client_Id',}'Chart_Id'],[]);
 end;
+
+
+(*******************************************************************************)
 
 { TReminderTable }
 
@@ -1039,6 +1237,9 @@ begin
 
 end;
 
+
+(*******************************************************************************)
+
 { TDownloadlogTable }
 
 function TDownloadlogTable.Insert(MyiD, ClientID: TGuid;
@@ -1053,6 +1254,9 @@ begin
    TableName := 'ClientDownloads';
    SetFields(['Id','Client_Id','DiskID','DateDownloaded','NoOfAccounts','NoOfEntries'], []);
 end;
+
+
+(*******************************************************************************)
 
 { TFuelSheetTable }
 
@@ -1070,6 +1274,9 @@ begin
       ,'FuelEligible','CreditRate'],[]);
 
 end;
+
+
+(*******************************************************************************)
 
 { TBAS_OptionsTable }
 
@@ -1089,6 +1296,9 @@ begin
       ,'BASIncludeFBTWETLCT','BASLastGSTOption','BASLastPAYGInstalmentOption'],[]);
 
 end;
+
+
+(*******************************************************************************)
 
 { TNotesOptionsTable }
 
@@ -1115,6 +1325,78 @@ begin
 {2}      ,'WebSpace','DefaultPassword' ,'ImportOptions','LastImportDir','LastExportDir'
 {3}      ,'EntrySelection','SendChart' ,'SendPayees' ,'ShowQuantity' ,'LastFileNo' ,'LastFileNoImported'
 {4}      ,'SendJobs' ,'SendSuperfund' ,'SendtoClientonExport' ,'SendtoPracticeTransactionsAvailable'],[]);
+end;
+
+
+(*******************************************************************************)
+
+{ TReportingParameterTable }
+
+procedure TReportingParameterTable.SetupTable;
+begin
+   TableName := 'ReportingParameters';
+
+end;
+
+function TReportingParameterTable.Update(ParamName: string; ParamValue: Boolean; ClientID:TGuid; ReportID: Integer): Boolean;
+  function value : string;
+  begin
+   if ParamValue then
+      Result := 'true'
+   else
+      Result := 'false';
+  end;
+begin
+   Result :=  Update (ParamName,value ,'bool',ClientID, ReportID);
+end;
+
+function TReportingParameterTable.Update(ParamName, ParamValue, ParamType: string; ClientID:TGuid; ReportID: Integer): Boolean;
+  var sql : string;
+  function GetReportID : string;
+  begin
+     if ReportID = 0 then
+        result := 'NULL'
+     else
+        result := format('''%d''',[ReportID]);
+  end;
+
+  function NewGuid : TGuid;
+  begin
+    CreateGuid(result);
+  end;
+begin
+   Result := false;
+   try
+   sql :=  format('if (exists (select * from  [%0:s] as t1 where t1.ParameterName = ''%1:s'' and t1.Client_Id = ''%4:s'' and t1.ReportID = %5:s ))'   +
+   ' begin update [%0:s] set [ParameterValue] = ''%2:s'' where [ParameterName] = ''%1:s''  and [Client_Id] = ''%4:s'' and [ReportID] = %5:s end else begin' +
+   ' insert into [%0:s] ([ParameterName], [ParameterType], [ParameterValue], [ReportID], [Client_Id], [ID] ) values '+
+                        '(''%1:s'',''%3:s'',''%2:s'',%5:s, ''%4:s'',  ''%6:s'' ) end',
+     // 0     1         2          3               4          5            6
+   [TableName,ParamName,Paramvalue,Paramtype,ToSQL(ClientID), GetReportID, ToSQL(NewGuid)]);
+
+      connection.Execute( sql );
+      Result := true;
+   except
+      on e: exception do begin
+         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+      end;
+   end;
+end;
+
+function TReportingParameterTable.Update(ParamName: string;
+  ParamValue: Money; ClientID:TGuid; ReportID: Integer): Boolean;
+begin
+
+end;
+
+function TReportingParameterTable.Update(ParamName: string; ParamValue: Integer; ClientID:TGuid; ReportID: Integer): Boolean;
+begin
+    Result := UpDate(ParamName, IntToStr(ParamValue), 'int',ClientID, ReportID);
+end;
+
+function TReportingParameterTable.Update(ParamName: string; ParamValue: TGuid; ClientID:TGuid; ReportID: Integer): Boolean;
+begin
+
 end;
 
 end.

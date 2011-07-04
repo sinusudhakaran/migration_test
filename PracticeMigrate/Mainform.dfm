@@ -947,6 +947,7 @@ object formMain: TformMain
           Checked = True
           State = cbChecked
           TabOrder = 0
+          OnClick = cbClientsClick
         end
         object cbSync: TCheckBox
           Left = 32
@@ -1010,6 +1011,7 @@ object formMain: TformMain
         Height = 17
         Caption = 'Invoices and Charges'
         TabOrder = 8
+        OnClick = cbDocumentsClick
       end
     end
     object TsProgress: TTabSheet
@@ -1179,7 +1181,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C0101040010004C0018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000700018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

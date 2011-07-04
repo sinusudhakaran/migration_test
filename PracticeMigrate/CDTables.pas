@@ -12,7 +12,8 @@ TCustomDocTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
 public
-   function Insert(Value: TReportBase; CreatedBy: TGuid): Boolean;
+   function Insert(Value: TReportBase; CreatedBy: TGuid): Boolean; overload;
+   function Insert(Text, Name, Description, DocType: string): Boolean; overload;
 end;
 
 TCustomDocSceduleTable = class (TMigrateTable)
@@ -31,6 +32,9 @@ uses
   DB,
   classes,
   sysutils;
+
+(******************************************************************************)
+
 { TCustomDocTable }
 
 function TCustomDocTable.Insert(Value: TReportBase; CreatedBy: TGuid): Boolean;
@@ -51,12 +55,14 @@ function TCustomDocTable.Insert(Value: TReportBase; CreatedBy: TGuid): Boolean;
 
 begin
    Parameters[0].Value := ToSQL(Value.GetGUID);
-   Parameters[1].Value := ToSQL(Value.Name);
+   Parameters[1].Value := 'RTF';
+
    GetRTFData;
-   Parameters[3].Value := 1;
-   Parameters[4].Value := ToSQL(Createdby);
-   Parameters[5].Value := Value.Createdon;
-   Parameters[6].Value := 'RTF';
+   Parameters[3].Value := ToSQL('Custom Document');
+   Parameters[4].Value := ToSQL(Value.Name);
+   Parameters[5].Value := ToSQL(Createdby);
+   Parameters[6].Value := Value.Createdon;
+
    // Run the query
    try
       Result := ExecSQL = 1;
@@ -69,12 +75,62 @@ begin
 
 end;
 
+(*
 procedure TCustomDocTable.SetupTable;
 begin
    TableName := 'CustomDocuments';
    SetFields (['Id','Description','DocumentBlob','CustomDocumentType','CreatedBy'
       ,'CreatedOn','DataFormatStringType'],[]);
 end;
+ *)
+
+function TCustomDocTable.Insert(Text, Name, Description, DocType: string): Boolean;
+   procedure GetRTFData;
+   var ls: TStringStream;
+   begin
+      ls := TStringStream.Create(Text);
+      try
+         ls.position := 0;
+         Parameters[2].LoadFromStream(ls,ftBlob);
+      finally
+        ls.Free;
+      end;
+   end;
+begin
+   if Length(Text) = 0 then begin
+      Result := true;
+      Exit;
+   end;
+
+   Parameters[0].Value := ToSQL(Name);
+   Parameters[1].Value := 'Text';
+   GetRTFData;
+   Parameters[3].Value := ToSQL(DocType);
+   Parameters[4].Value := ToSQL(Description);
+   Parameters[5].Value := ToSQL('Migrator');
+   Parameters[6].Value := ToSQL(Date);
+
+   // Run the query
+   try
+      Result := ExecSQL = 1;
+   except
+      on e: exception do begin
+         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+      end;
+   end;
+end;
+
+procedure TCustomDocTable.SetupTable;
+begin
+   TableName := 'SystemBlobs';
+             //      0          1             2       3         4            5
+   SetFields (['BlobName','ContentType','BlobValue','Type','Description','CreatedBy'
+      ,'CreatedOn'],[]);
+end;
+
+
+
+(******************************************************************************)
 
 
 { TCustomDocSceduleTable }
@@ -87,7 +143,7 @@ end;
 procedure TCustomDocSceduleTable.SetupTable;
 begin
   TableName := 'CustomDocumentScheduleTasks';
-  SetFields (['Id','CustomDocument_Id','ScheduledTaskValue_Id'],[]);
+  SetFields (['Id','CustomDocument','ScheduledTaskValue_Id'],[]);
 end;
 
 end.

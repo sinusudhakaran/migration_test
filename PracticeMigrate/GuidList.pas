@@ -25,6 +25,7 @@ public
    function CloneList(Source: TExtdCollection; Sizeproc: GuidSizeProc = nil): TGuidList;
    function FindLRNObject(Value: Integer): TGuidObject; overload;
    function FindLRNGuid(Value: Integer): TGuid; overload;
+   function GetIDGuid(Value: Integer): TGuid; 
    procedure reverse;
 end;
 
@@ -140,6 +141,28 @@ begin
          Exit;
       end;
    Result := nil;
+end;
+
+function TGuidList.GetIDGuid(Value: Integer): TGuid;
+var I: Integer;
+    nItem : TGuidObject;
+begin
+   FillChar(Result,Sizeof(Result),0);
+   if value = 0 then
+      Exit;
+
+   for I := 0 to Count - 1 do
+      if TGuidObject(Items[I]).SequenceNo = Value then begin
+         result := TGuidObject(Items[I]).GuidID;
+         Exit; // Found it...
+      end;
+   // Make it up...
+
+   nItem := TGuidObject.Create;
+   nitem.SequenceNo := Value;
+   CreateGUID(nitem.GuidID);
+   Add(nItem);
+   result := nitem.GuidID;
 end;
 
 procedure TGuidList.reverse;

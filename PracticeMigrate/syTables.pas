@@ -43,7 +43,7 @@ TUserTable = class (TMigrateTable)
   protected
      procedure SetupTable; override;
   public
-     function Insert(MyId:TGuid; Value: pUser_Rec): Boolean;
+     function Insert(MyId:TGuid; Value: pUser_Rec; Restricted: Boolean): Boolean;
 end;
 
 TClientAccountMapTable = class (TMigrateTable)
@@ -58,7 +58,7 @@ TUserMappingTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
 public
-   function Insert(MyiD,ClientID,UserID: TGuid): Boolean;
+   function Insert(MyiD, UserID, ClientID: TGuid): Boolean;
 end;
 
 TMasterMemorisationsTable = class (TMigrateTable)
@@ -138,7 +138,7 @@ TParameterTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
 public
-   function Update(ParamName, ParamValue: string): Boolean; overload;
+   function Update(ParamName, ParamValue, ParamType: string): Boolean; overload;
    function Update(ParamName: string; ParamValue: Boolean): Boolean; overload;
    function Update(ParamName: string; ParamValue: TGuid): Boolean; overload;
    function Update(ParamName: string;ParamValue: Integer): Boolean; overload;
@@ -156,6 +156,8 @@ uses
   PasswordHash,
   SQLHelpers;
 
+
+(******************************************************************************)
 
 { TSystemBankAccountTable }
 
@@ -192,6 +194,8 @@ begin with Value^ do
           ,ToSQL(Value.sbFrequency) ,ToSQL(Value.sbFrequency_Change_Pending), ToSQL(0)],[]);
 end;
 
+(******************************************************************************)
+
 { TClientGroupTable }
 
 procedure TClientGroupTable.SetupTable;
@@ -206,6 +210,8 @@ begin
 end;
 
 
+(******************************************************************************)
+
 { TClientTypeTable }
 procedure TClientTypeTable.SetupTable;
 begin
@@ -218,6 +224,8 @@ begin
     Result := RunValues([ToSQL(Id) ,ToSQL(Value.ctName)],[]);
 end;
 
+
+(******************************************************************************)
 
 { TSystemClientFileTable }
 
@@ -236,6 +244,8 @@ begin with Value^ do
 end;
 
 
+(******************************************************************************)
+
 { TUserTable }
 
 procedure TUserTable.SetupTable;
@@ -248,7 +258,7 @@ begin
 {5}         ,'IsDeleted','CanAccessAllClients','IncorrectLoginCount','IsLockedOut'],[]);
 end;
 
-function TUserTable.Insert(MyId: TGuid; Value: pUser_Rec): Boolean;
+function TUserTable.Insert(MyId: TGuid; Value: pUser_Rec; Restricted: Boolean): Boolean;
 begin
     with Value^ do
     Result := RunValues([
@@ -257,9 +267,11 @@ begin
 {2}          ,ToSQL(usReverse_Mouse_Buttons) ,ToSQL(usMASTER_Access) ,ToSQL(usIs_Remote_User) ,ToSQL(usDirect_Dial)
 {3}          ,ToSQL(usShow_CM_on_open) ,ToSQL(usShow_Printer_Choice) ,ToSQL(usEULA_Version)
 {4}          ,ToSQL(usSuppress_HF) ,ToSQL(usShow_Practice_Logo)
-{5}          ,ToSQL(False) ,ToSQL(usSystem_Access) ,ToSQL(0) ,ToSQL(False)],[]);
+{5}          ,ToSQL(False) ,ToSQL(not Restricted) ,ToSQL(0) ,ToSQL(False)],[]);
 end;
 
+
+(******************************************************************************)
 
 { TClientAccountMapTable }
 
@@ -282,10 +294,11 @@ begin
 end;
 
 
+(******************************************************************************)
+
 { TFile_Access_Mapping_RecTable }
 
-function TUserMappingTable.Insert(MyiD, ClientID,
-  UserID: TGuid): Boolean;
+function TUserMappingTable.Insert(MyiD, UserID, ClientID: TGuid): Boolean;
 begin
   Result := RunValues(
           [ToSQL(MyID), ToSQL(UserID), ToSQL(ClientID)],[]);
@@ -296,6 +309,8 @@ begin
   Tablename := 'UserClients';
   SetFields(['Id','User_Id','Client_Id'],[]);
 end;
+
+(******************************************************************************)
 
 { TMasterMemorisationsTable }
 
@@ -329,14 +344,31 @@ begin
 
 end;
 
+(******************************************************************************)
+
 { TMasterMemlinesTable }
 
 function TMasterMemlinesTable.Insert(MyiD, MemID: TGuid;  SequenceNo: integer; Value: pMemorisation_Line_Rec): Boolean;
+  function Amount : variant;
+  begin
+      if value.mlLine_Type = mltDollarAmt then
+         result := ToSQL(value.mlPercentage)
+      else
+         result := null;
+  end;
+
+  function percentage : variant;
+  begin
+      if value.mlLine_Type = mltPercentage then
+         result := PercentToSQL(value.mlPercentage)
+      else
+         result := null;
+  end;
 begin with Value^ do
    Result := RunValues(
-       [ToSQL(MyID), ToSQL(MemID), ToSQL(SequenceNo), ToSQL(mlAccount), PercentToSQL(mlPercentage), ToSQL(mlGST_Class), ToSQL(mlGST_Has_Been_Edited)
+       [ToSQL(MyID), ToSQL(MemID), ToSQL(SequenceNo), ToSQL(mlAccount), Percentage, ToSQL(mlGST_Class), ToSQL(mlGST_Has_Been_Edited)
               ,ToSQL(mlGL_Narration)
-       ,ToSQL(mlLine_Type), ToSQL(mlGST_Amount), NullToSQL(mlPayee), ToSQL(mlJob_Code), QtyToSQL(mlQuantity)
+       ,ToSQL(mlLine_Type), Amount, NullToSQL(mlPayee), ToSQL(mlJob_Code), QtyToSQL(mlQuantity)
 
        ],[
 {1}       ToSQL(mlSF_Edited), PercentToSQL(mlSF_PCFranked),PercentToSQL(mlSF_PCUnFranked),
@@ -364,10 +396,12 @@ procedure TMasterMemlinesTable.SetupTable;
 begin
    Tablename := 'MasterMemorisationLines';
    SetFields(['Id','MasterMemorisationId_Id','SequenceNo','ChartCode','Percentage','GSTClass','GSTHasBeenEdited','GLNarration'
-      ,'LineType','GSTAmount','PayeeNumber','JobCode', 'Quantity'
+      ,'LineType','Amount','PayeeNumber','JobCode', 'Quantity'
 
      ],SFLineFields);
 end;
+
+(******************************************************************************)
 
 { TChargesTable }
 
@@ -392,6 +426,8 @@ begin
       ],[]);
 
 end;
+
+(******************************************************************************)
 
 { TDownloadDocumentTable }
 
@@ -425,6 +461,8 @@ begin
    SetFields(['Id','DocumentType','ForDate','Document','FileName'],[]);
 end;
 
+(******************************************************************************)
+
 { TDownloadlogTable }
 
 function TDownloadlogTable.Insert(MyiD: TGuid;
@@ -441,48 +479,70 @@ begin
    SetFields(['Id','DiskId','DateDownloaded','NoOfAccounts','NoOfEntries','WasInLastDownload'],[]);
 end;
 
+(******************************************************************************)
+
 { TParameterTable }
 
-function TParameterTable.Update(ParamName, ParamValue: string): Boolean;
+function TParameterTable.Update(ParamName, ParamValue, ParamType: string): Boolean;
+var sql: string;
 begin
-    Result := RunValues([ToSQL(ParamValue), ToSQL(ParamName)],[]);
+    sql :=  format('if (exists (select * from  [%0:s] as t1 where t1.ParameterName = ''%1:s''))'   +
+   ' begin update [%0:s] set [ParameterValue] = ''%2:s'' where [ParameterName] = ''%1:s'' end else begin' +
+   ' insert into [%0:s] ([ParameterName], [ParameterType], [ParameterValue], [IsRequired]) values (''%1:s'',''%3:s'',''%2:s'',0) end',
+//  0         1         2          3
+   [TableName,ParamName,Paramvalue,Paramtype]);
+   Result := false;
+   try
+      connection.Execute(sql);
+      Result := true;
+   except
+      on e: exception do begin
+         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+      end;
+   end;
+
 end;
 
 procedure TParameterTable.SetupTable;
 begin
    TableName := 'SystemParameters';
-
+    (*
   // Make the query
-  SQL.Text := Format('update [%s] set [ParameterValue] = :ParameterValue where [ParameterName] = :ParameterName',[TableName]);
-
+   SQL.Text := Format('IF (EXISTS (SELECT * FROM  [%0:s] AS t1 WHERE t1.ParameterName = :ParameterName))'   +
+   'begin update [%0:s] set [ParameterValue] = :ParameterValue where [ParameterName] = :ParameterName end else begin' +
+   'INSERT INTO [%0:s] (ParameterName, ParameterType, ParameterValue, IsRequired) VALUES(:ParameterName, :ParameterType, :ParameterValue, 0) end'
+   ,[TableName]);
+       *)
 end;
 
 function TParameterTable.Update(ParamName: string;
   ParamValue: Boolean): Boolean;
 begin
    if ParamValue then
-      Result := Update(ParamName,'true')
+      Result := Update(ParamName,'true', 'bool')
    else
-      Result := Update(ParamName,'false')
+      Result := Update(ParamName,'false', 'bool')
 end;
 
 function TParameterTable.Update(ParamName: string; ParamValue: TGuid): Boolean;
 begin
-   Result := RunValues([ToSQL(ParamValue), ToSQL(ParamName)],[]);
+   Result :=  Update(ParamName, GuidToText(ParamValue), 'nvarchar(60)');
 end;
 
 function TParameterTable.Update(ParamName: string;ParamValue: Integer): Boolean;
 begin
-   Result := UpDate(ParamName, IntToStr(ParamValue));
+   Result := UpDate(ParamName, IntToStr(ParamValue), 'int');
 end;
 
 function TParameterTable.Update(ParamName: string; ParamValue: Money): Boolean;
 begin
-  Result := UpDate(ParamName, FormatFloat('0.00', ParamValue/100) );
+  Result := UpDate(ParamName, FormatFloat('0.00', ParamValue/100), 'decimal' );
 end;
 
 
 
+
+(******************************************************************************)
 
 { TTaxEntriesTable }
 
@@ -502,6 +562,8 @@ begin
   TableName := 'SysTaxEntries';
   SetFields(['Id','TaxClassType_Id','TaxId','SequenceNo','ClassDescription','ControlAccount'],[]);
 end;
+
+(******************************************************************************)
 
 { TTaxRatesTable }
 
