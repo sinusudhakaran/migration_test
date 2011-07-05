@@ -197,7 +197,7 @@ type
     procedure LoadFromStream( var S: TIOStream);
     procedure SaveToFile (AFileName: TFileName);
     procedure SaveToStream (var S: TIOStream);
-    procedure SetAuditStrings(Index: integer; Strings: TStrings);
+//    procedure SetAuditStrings(Index: integer; Strings: TStrings);
     property AuditRecords: TAuditCollection read FAuditRecords;
   end;
 
@@ -581,6 +581,9 @@ begin
 {$IFDEF LOOKUPDLL}
   Result := '';
 {$ELSE}
+{$IFDEF BK_UNITTESTINGON}
+  Result := 'UNITTEST';
+{$ELSE}
   if Assigned(AdminSystem) then
     Result := Globals.CurrUser.Code
   else if Assigned(MyClient) then begin
@@ -589,6 +592,7 @@ begin
      else
        Result := USER_BOOKS;
   end;
+{$ENDIF}
 {$ENDIF}
 end;
 
@@ -1383,23 +1387,25 @@ begin
   S.WriteToken( tkEndSection );
 end;
 
-procedure TAuditTable.SetAuditStrings(Index: integer; Strings: TStrings);
-var
-  AuditRec: TAudit_Trail_Rec;
-  Values: string;
-begin
-  AuditRec := AuditRecords.Audit_At(Index);
-
-  Strings.Text := '';
-  Strings.Add(FAuditManager.AuditTypeToStr(AuditRec.atTransaction_Type));
-  Strings.Add(IntToStr(AuditRec.atParent_ID));
-  Strings.Add(IntToStr(AuditRec.atRecord_ID));
-  Strings.Add(aaNames[AuditRec.atAudit_Action]);
-  Strings.Add(AuditRec.atUser_Code);
-  Strings.Add(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRec.AuditDateTimeAsLocalDateTime));
-  FAuditManager.GetValues(AuditRec, Values);
-  Strings.Add(Values);
-end;
+//procedure TAuditTable.SetAuditStrings(Index: integer; Strings: TStrings);
+////Used to output audit records to a csv file
+//var
+//  AuditRec: TAudit_Trail_Rec;
+//  Values: string;
+//begin
+//
+//  AuditRec := AuditRecords.Audit_At(Index);
+//
+//  Strings.Text := '';
+//  Strings.Add(FAuditManager.AuditTypeToStr(AuditRec.atTransaction_Type));
+//  Strings.Add(IntToStr(AuditRec.atParent_ID));
+//  Strings.Add(IntToStr(AuditRec.atRecord_ID));
+//  Strings.Add(aaNames[AuditRec.atAudit_Action]);
+//  Strings.Add(AuditRec.atUser_Code);
+//  Strings.Add(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRec.AuditDateTimeAsLocalDateTime));
+//  FAuditManager.GetValues(AuditRec, Values);
+//  Strings.Add(Values);
+//end;
 
 { TAuditRecords }
 

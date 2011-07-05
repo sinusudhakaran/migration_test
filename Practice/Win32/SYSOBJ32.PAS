@@ -54,6 +54,9 @@ type
       procedure SetAuditInfo(P1, P2: pPractice_Details_Rec; var AAuditInfo: TAuditInfo);
       procedure SystemCopyReload(var S: TIOStream);
 {$ENDIF}
+{$IFDEF BK_UNITTESTINGON}
+      procedure SetSystemFileName(const Value: string);
+{$ENDIF}
   public
       procedure Open(IsEncrypted: Boolean = True);
 {$IFDEF ParserDll}
@@ -77,6 +80,9 @@ type
       procedure DoAudit(APracticeDetails: pPractice_Details_Rec; AAuditType: TAuditType);
       property AuditTable: TAuditTable read FAuditTable;
       property SystemMemorisationList: TSystem_Memorisation_List read FSystem_Memorisation_List;
+{$ENDIF}
+{$IFDEF BK_UNITTESTINGON}
+      property TestSystemFileName: string read SystemFileName write SetSystemFileName;
 {$ENDIF}
   end;
 
@@ -343,6 +349,13 @@ begin
     AAuditInfo.AuditRecordType := tkBegin_Practice_Details;
   end;
 end;
+
+{$IFDEF BK_UNITTESTINGON}
+procedure TSystemObj.SetSystemFileName(const Value: string);
+begin
+  SystemFileName := Value;
+end;
+{$ENDIF}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

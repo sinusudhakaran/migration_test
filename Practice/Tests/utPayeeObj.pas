@@ -189,7 +189,7 @@ end;
 
 procedure TPayeesTestCase.Setup;
 begin
-  FPayeeList := TPayee_List.Create;
+  FPayeeList := TPayee_List.Create(nil);
 end;
 
 procedure TPayeesTestCase.TearDown;

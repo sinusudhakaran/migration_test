@@ -34,7 +34,7 @@ type
 
  TMasterMemorisationsTestCase = class(TTestCase)
  private
-   FMasterMemsList : TMaster_Memorisations_List;
+//   FMasterMemsList : TMaster_Memorisations_List;
  protected
    procedure Setup; override;
    procedure TearDown; override;
@@ -52,7 +52,11 @@ uses
   globals,
   bkConst,
   DBCreate,
-  Admin32;
+  Admin32,
+  SYDEFS,
+  SystemMemorisationList,
+  AuditMgr,
+  SysObj32;
 
 { TMemorisationsTestCase }
 
@@ -63,7 +67,7 @@ var
 begin
   Count := FMemorisationsList.ItemCount;
 
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
   CheckEquals( Count + 1, FMemorisationsList.ItemCount, '1 added');
 
@@ -79,7 +83,7 @@ var
 begin
   Count := FMemorisationsList.ItemCount;
 
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   NewMemorisation.mdFields.mdReference := 'REF';
   NewMemorisation.mdFields.mdMatch_on_Refce := True;
 
@@ -103,7 +107,7 @@ var
   LinesList : TMemorisationLinesList;
   NewLine : pMemorisation_Line_Rec;
 begin
-  LinesList := TMemorisationLinesList.create;
+  LinesList := TMemorisationLinesList.create(SystemAuditMgr);
   try
     NewLine := bkmlio.New_Memorisation_Line_Rec;
     NewLine.mlAccount := '230';
@@ -128,7 +132,7 @@ function TMemorisationsTestCase.AddMemorisation( aTypeNo : integer) : TMemorisat
 var
   NewMemorisation : TMemorisation;
 begin
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   NewMemorisation.mdFields.mdType := aTypeNo;
   NewMemorisation.mdFields.mdTemp_Tag := FOrder;
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
@@ -140,13 +144,13 @@ procedure TMemorisationsTestCase.AddMultipleMemorisations;
 var
   NewMemorisation : TMemorisation;
 begin
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
 
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
 
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   NewMemorisation.mdFields.mdFrom_Master_List := true;
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
 
@@ -180,7 +184,7 @@ begin
   CRCAfterReload := 0;
   CRCAfterInsert := 0;
 
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   NewMemorisation.mdFields.mdReference := 'REF 1';
   NewMemorisation.mdFields.mdMatch_on_Refce := True;
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
@@ -195,7 +199,7 @@ begin
   NewLine.mlPercentage := 5000;
   NewMemorisation.mdLines.Insert(NewLine);
 
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   NewMemorisation.mdFields.mdReference := 'REF 2';
   NewMemorisation.mdFields.mdMatch_on_Refce := True;
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
@@ -266,12 +270,12 @@ var
   Mem1, Mem2 : TMemorisation;
   Seq1, Seq2 : integer;
 begin
-  Mem1 := TMemorisation.Create;
+  Mem1 := TMemorisation.Create(SystemAuditMgr);
   Mem1.mdFields.mdReference := 'REF1';
   FMemorisationsList.Insert_Memorisation(Mem1);
   Seq1 := Mem1.mdFields.mdSequence_No;
 
-  Mem2 := TMemorisation.Create;
+  Mem2 := TMemorisation.Create(SystemAuditMgr);
   Mem2.mdFields.mdReference := 'REF2';
   FMemorisationsList.Insert_Memorisation(Mem2);
   Seq2 := Mem2.mdFields.mdSequence_No;
@@ -339,11 +343,11 @@ var
   NewMemorisation : TMemorisation;
   Seq1, Seq2 : integer;
 begin
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
   Seq1 := NewMemorisation.mdFields.mdSequence_No;
 
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   FMemorisationsList.Insert_Memorisation(NewMemorisation);
   Seq2 := NewMemorisation.mdFields.mdSequence_No;
 
@@ -365,69 +369,114 @@ end;
 { TMasterMemorisationsTestCase }
 
 procedure TMasterMemorisationsTestCase.LoadAndSaveToFile;
+const
+  BANK_PREFIX = 'AA';
 var
+  MasterMemList: TMemorisations_List;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
   NewMemorisation : TMemorisation;
   NewLine : pMemorisation_Line_Rec;
-  CRCAfterInsert : LongWord;
-  CRCAfterReload : LongWord;
-  SaveOK : boolean;
 begin
-  CRCAfterReload := 0;
-  CRCAfterInsert := 0;
+  //Create a new System memorisation list
+  MasterMemList := TMemorisations_List.Create(SystemAuditMgr);
+  try
+    SystemMemorisation := AdminSystem.SystemMemorisationList.AddMemorisation(BANK_PREFIX, MasterMemList);
+  finally
+    MasterMemList.Free;
+  end;
+  MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
 
-  NewMemorisation := TMemorisation.Create;
+  //Memorisation 1.
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
+  NewMemorisation.mdFields.mdSequence_No := 1;
   NewMemorisation.mdFields.mdReference := 'REF 1';
   NewMemorisation.mdFields.mdMatch_on_Refce := True;
-  FMasterMemsList.Insert_Memorisation(NewMemorisation);
-
+  NewMemorisation.mdFields.mdFrom_Master_List := true;
+  //Memorisation line 1
   NewLine := bkmlio.New_Memorisation_Line_Rec;
-  NewLine.mlAccount := '230';
+  NewLine.mlAccount := '200';
   NewLine.mlPercentage := 5000;
   NewMemorisation.mdLines.Insert(NewLine);
-
+  //Memorisation line 2
   NewLine := bkmlio.New_Memorisation_Line_Rec;
-  NewLine.mlAccount := '230';
+  NewLine.mlAccount := '210';
   NewLine.mlPercentage := 5000;
   NewMemorisation.mdLines.Insert(NewLine);
+  //Insert mem
+  MasterMemList.Insert_Memorisation(NewMemorisation);
 
-  NewMemorisation := TMemorisation.Create;
+  //Memorisation 2.
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
+  NewMemorisation.mdFields.mdSequence_No := 2;
   NewMemorisation.mdFields.mdReference := 'REF 2';
   NewMemorisation.mdFields.mdMatch_on_Refce := True;
-  FMasterMemsList.Insert_Memorisation(NewMemorisation);
-
+  NewMemorisation.mdFields.mdFrom_Master_List := true;
+  //Memorisation line 1
+  NewLine := bkmlio.New_Memorisation_Line_Rec;
+  NewLine.mlAccount := '220';
+  NewLine.mlPercentage := 5000;
+  NewMemorisation.mdLines.Insert(NewLine);
+  //Memorisation line 2
   NewLine := bkmlio.New_Memorisation_Line_Rec;
   NewLine.mlAccount := '230';
   NewLine.mlPercentage := 5000;
   NewMemorisation.mdLines.Insert(NewLine);
+  //Insert mem
+  MasterMemList.Insert_Memorisation(NewMemorisation);
 
-  NewLine := bkmlio.New_Memorisation_Line_Rec;
-  NewLine.mlAccount := '230';
-  NewLine.mlPercentage := 5000;
-  NewMemorisation.mdLines.Insert(NewLine);
 
-  FMasterMemsList.UpdateCRC( CRCAfterInsert);
+  //Save and free Admin System
+  AdminSystem.Save;
+  FreeAndNil(AdminSystem);
 
-  SaveOK := FMasterMemsList.SaveToFile;
-  Check( SaveOK, 'Save Master Mem File Failed');
+  //Reload Admin System
+  AdminSystem := TSystemObj.Create;
+  AdminSystem.TestSystemFileName := DATADIR + 'TESTSYSTEM.DB';
+  AdminSystem.Open;
 
-  FMasterMemsList.symxLast_Updated := 0;
-//  FMasterMemsList.Refresh;
-  FMasterMemsList.QuickRead;
-
-  FMasterMemsList.UpdateCRC( CRCAfterReload);
-  CheckEquals( CRCAfterInsert, CRCAfterReload , 'Check CRC after reload');
+  //Tests
+  CheckEquals(AdminSystem.SystemMemorisationList.ItemCount, 1, 'Check system memorisation list count after reload');
+  SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BANK_PREFIX);
+  if Assigned(SystemMemorisation) then begin
+    MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+    if assigned(MasterMemList) then begin
+      CheckEquals(MasterMemList.ItemCount, 2, 'Check memorisation count after reload');
+      //Check mem 1
+      NewMemorisation := MasterMemList.Memorisation_At(0);
+      if Assigned(NewMemorisation) then begin
+        CheckEquals(NewMemorisation.mdFields.mdSequence_No, 1, 'Check memorisation 1 sequence number');
+        CheckEquals(NewMemorisation.mdFields.mdReference, 'REF 1', 'Check memorisation 1 reference');
+        CheckEquals(NewMemorisation.mdFields.mdMatch_on_Refce, True, 'Check memorisation 1 match on reference');
+        CheckEquals(NewMemorisation.mdFields.mdFrom_Master_List, True, 'Check memorisation 1 is master mem');
+      end else
+        Fail('Master memorisation not found');
+      //Check mem 2
+      NewMemorisation := MasterMemList.Memorisation_At(1);
+      if Assigned(NewMemorisation) then begin
+        CheckEquals(NewMemorisation.mdFields.mdSequence_No, 2, 'Check memorisation 2 sequence number');
+        CheckEquals(NewMemorisation.mdFields.mdReference, 'REF 2', 'Check memorisation 2 reference');
+        CheckEquals(NewMemorisation.mdFields.mdMatch_on_Refce, True, 'Check memorisation 2 match on reference');
+        CheckEquals(NewMemorisation.mdFields.mdFrom_Master_List, True, 'Check memorisation 2 is master mem');
+      end else
+        Fail('Master memorisation not found');
+    end else
+      Fail('Master memorisation list not found');
+  end else
+    Fail('System memorisation list for bank prefix ' + BANK_PREFIX + ' not found');
 end;
 
 procedure TMasterMemorisationsTestCase.Setup;
 begin
   inherited;
   NewAdminSystem(whNewZealand, 'MEMTEST', 'Test Admin system for unit testing');
-  FMasterMemsList := TMaster_Memorisations_List.Create( 'ZZ');
+  AdminSystem.TestSystemFileName := DATADIR + 'TESTSYSTEM.DB';
+  AdminSystem.Save;
+//  FMasterMemsList := TMaster_Memorisations_List.Create( 'ZZ');
 end;
 
 procedure TMasterMemorisationsTestCase.TearDown;
 begin
-  FMasterMemsList.Free;
+//  FMasterMemsList.Free;
   FreeAndNil(AdminSystem);
   inherited;
 end;

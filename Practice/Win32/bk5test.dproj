@@ -40,6 +40,7 @@
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
     <DCCReference Include="..Tests\utWebXOffice.pas" />
+    <DCCReference Include="..\Tests\utAuditTrail.pas" />
     <DCCReference Include="..\Tests\utFileExtensionUtils.pas" />
     <DCCReference Include="..\Tests\utGUIReportSchedule.pas" />
     <DCCReference Include="..\Tests\utMemorisationsObj.pas" />

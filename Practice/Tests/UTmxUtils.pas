@@ -2,6 +2,7 @@ unit UTmxUtils;
 {$TYPEINFO ON} //Needed for classes with published methods
 interface
 uses
+  SysUtils,
   TestFramework,  //DUnit
   PayeeObj,
   MemorisationsObj;
@@ -11,7 +12,8 @@ type
  private
 
  protected
-
+   procedure Setup; override;
+   procedure TearDown; override;
  published
    procedure TestPayeeSplitWithSimplePayee;
    procedure TestPayeeSplitWithDollarLines;
@@ -22,7 +24,8 @@ type
 
 implementation
 uses
-  mxUtils, bkdefs, bkplio, bkmlio, bkconst, moneydef;
+  mxUtils, bkdefs, bkplio, bkmlio, bkconst, moneydef, AuditMgr, DBCreate,
+  Globals;
 
 { TAutoCodeTests }
 
@@ -136,6 +139,19 @@ begin
 end;
 
 
+procedure TAutoCodeTests.Setup;
+begin
+  inherited;
+  NewAdminSystem(whNewZealand, 'MEMTEST', 'Test Admin system for unit testing');
+end;
+
+procedure TAutoCodeTests.TearDown;
+begin
+  FreeAndNil(AdminSystem);
+
+  inherited;
+end;
+
 procedure TAutoCodeTests.TestMemsWithDollarLines;
 var
   NewMemorisation : TMemorisation;
@@ -146,9 +162,9 @@ var
   Total : Money;
   Amount : Money;
 begin
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   try
-    NewMemorisation := TMemorisation.Create;
+    NewMemorisation := TMemorisation.Create(SystemAuditMgr);
     NewMemorisation.mdFields.mdReference := 'REF 1';
     NewMemorisation.mdFields.mdMatch_on_Refce := True;
 
@@ -205,9 +221,9 @@ var
   Total : Money;
   Amount : Money;
 begin
-  NewMemorisation := TMemorisation.Create;
+  NewMemorisation := TMemorisation.Create(SystemAuditMgr);
   try
-    NewMemorisation := TMemorisation.Create;
+    NewMemorisation := TMemorisation.Create(SystemAuditMgr);
     NewMemorisation.mdFields.mdReference := 'REF 1';
     NewMemorisation.mdFields.mdMatch_on_Refce := True;
 
