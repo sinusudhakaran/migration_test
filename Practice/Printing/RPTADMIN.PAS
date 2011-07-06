@@ -3675,14 +3675,23 @@ var
   AuditFields: TStringList;
   Values: string;
   PrintAuditRec: Boolean;
+  AuditCount: integer;
 begin
+  AuditCount := 0;
   Report := TAuditReport(Sender);
   AuditFields := TStringList.Create;
   try
     AuditFields.StrictDelimiter := True;
     AuditFields.Delimiter := VALUES_DELIMITER;
-    for i := 0 to Pred(AdminSystem.fAuditTable.AuditRecords.ItemCount) do begin
-      AuditRecord := AdminSystem.fAuditTable.AuditRecords.Audit_At(i);
+
+    //Nothing audited
+    if AdminSystem.AuditTable.AuditRecords.ItemCount =  0 then begin
+      Report.RenderTextLine('Nothing to report.');
+      Exit;
+    end;
+
+    for i := 0 to Pred(AdminSystem.AuditTable.AuditRecords.ItemCount) do begin
+      AuditRecord := AdminSystem.AuditTable.AuditRecords.Audit_At(i);
 
       //Date selection
       if (stDate.DateTimeToStDate(AuditRecord.AuditDateTimeAsLocalDateTime) < Report.ReportOptions.DateFrom) or
@@ -3718,6 +3727,13 @@ begin
         for j := 0 to AuditFields.Count - 1 do
           if (AuditFields[j] <> 'ParentID=0') then
             Report.RenderTextLine('        ' + AuditFields[j]);
+        Inc(AuditCount);
+      end;
+
+      //Nothing matches filter
+      if (AuditCount =  0) then begin
+        Report.RenderTextLine('No audit records match the selected filter.');
+        Exit;
       end;
     end;
   finally
@@ -3793,8 +3809,10 @@ begin
 end;
 
 procedure ClientAuditReportDetail(Sender : TObject);
+const
+  MAX_CHARS = 100;
 var
-  i, j : integer;
+  i, j, k : integer;
   Report: TAuditReport;
   AuditRecord: TAudit_Trail_Rec;
   AuditFields: TStringList;
@@ -3802,6 +3820,7 @@ var
   PrintAuditRec: Boolean;
   TempClientFile: TClientObj;
   AuditCount: integer;
+  TextLines: TStringList;
 begin
   Report := TAuditReport(Sender);
   AuditCount := 0;
@@ -3817,7 +3836,7 @@ begin
     end;
 
     //Nothing audited
-    if TempClientFile.FAuditTable.AuditRecords.ItemCount =  0 then begin
+    if TempClientFile.AuditTable.AuditRecords.ItemCount =  0 then begin
       Report.RenderTextLine('Nothing to report.');
       Exit;
     end;
@@ -3827,8 +3846,8 @@ begin
     try
       AuditFields.StrictDelimiter := True;
       AuditFields.Delimiter := VALUES_DELIMITER;
-      for i := 0 to Pred(TempClientFile.FAuditTable.AuditRecords.ItemCount) do begin
-        AuditRecord := TempClientFile.fAuditTable.AuditRecords.Audit_At(i);
+      for i := 0 to Pred(TempClientFile.AuditTable.AuditRecords.ItemCount) do begin
+        AuditRecord := TempClientFile.AuditTable.AuditRecords.Audit_At(i);
 
         //Date selection
         if (stDate.DateTimeToStDate(AuditRecord.AuditDateTimeAsLocalDateTime) < Report.ReportOptions.DateFrom) or
@@ -3842,7 +3861,7 @@ begin
                                               (Report.ReportOptions.TransactionType = atAll) or
                                               //Print child records
                                               (Report.ReportOptions.IncludeChild and
-                                               (IsChildTransaction(TempClientFile.FAuditTable,
+                                               (IsChildTransaction(TempClientFile.AuditTable,
                                                                    Report.ReportOptions.TransactionType,
                                                                    AuditRecord))) or
                                               //Auto Coded
@@ -3862,6 +3881,7 @@ begin
           Report.PutString(TempClientFile.ClientAuditMgr.AuditTypeToStr(AuditRecord.atTransaction_Type));
           Report.PutString(IntToStr(AuditRecord.atRecord_ID));
           Report.PutString(aaNames[AuditRecord.atAudit_Action]);
+          //Books secure user code is saved as "Books Se" because of 8 char limit
           if (AuditRecord.atUser_Code = Copy(USER_BOOKS_SECURE, 1, 8)) then
             Report.PutString(USER_BOOKS_SECURE)
           else
@@ -3873,7 +3893,20 @@ begin
           AuditFields.DelimitedText := Values;
           for j := 0 to AuditFields.Count - 1 do
             if (AuditFields[j] <> 'ParentID=0') then
-              Report.RenderTextLine('        ' + AuditFields[j]);
+              if (Pos('NOTE', UpperCase(AuditFields[j])) > 0) or
+                 (Pos('NARRATION', UpperCase(AuditFields[j])) > 0) then begin
+                //Wrap the text
+                TextLines := TStringList.Create;
+                try
+                  TextLines.Text := GenUtils.WrapText(AuditFields[j], MAX_CHARS);
+                  //Now render each line
+                  for k := 0 to Pred(TextLines.Count) do
+                    Report.RenderTextLine('        ' + TextLines[k], False);
+                finally
+                  TextLines.Free;
+                end;
+              end else
+                Report.RenderTextLine('        ' + AuditFields[j]);
           Inc(AuditCount);
         end;
       end;
@@ -3947,12 +3980,15 @@ begin
     //Set valid date range
     AuditReportOptions.DateFrom := MinValidDate;
     AuditReportOptions.DateTo := MaxValidDate;
-    if AdminSystem.fAuditTable.AuditRecords.ItemCount > 0 then begin
+    if AdminSystem.AuditTable.AuditRecords.ItemCount > 0 then begin
       AuditReportOptions.DateFrom :=
-        DateTimeToStDate(AdminSystem.fAuditTable.AuditRecords.Audit_At(AdminSystem.fAuditTable.AuditRecords.First).AuditDateTimeAsLocalDateTime);
+        DateTimeToStDate(AdminSystem.AuditTable.AuditRecords.Audit_At(AdminSystem.AuditTable.AuditRecords.First).AuditDateTimeAsLocalDateTime);
       AuditReportOptions.DateTo :=
-        DateTimeToStDate(AdminSystem.fAuditTable.AuditRecords.Audit_At(AdminSystem.fAuditTable.AuditRecords.Last).AuditDateTimeAsLocalDateTime);
+        DateTimeToStDate(AdminSystem.AuditTable.AuditRecords.Audit_At(AdminSystem.AuditTable.AuditRecords.Last).AuditDateTimeAsLocalDateTime);
     end;
+    if AuditReportOptions.DateTo <= CurrentDate then
+      AuditReportOptions.DateTo := CurrentDate;
+    
 
     Dest := rdNone;
     while Dest = rdNone do begin

@@ -13,7 +13,6 @@ type
 
   TAuditReportOptions = class(TObject)
   private
-//    FClientSelectOptions: TClientSelectOptions;
     FDateTo: integer;
     FDateFrom: integer;
     FDestination: TReportDest;
@@ -23,7 +22,6 @@ type
     FAuditSelection: TAuditSelection;
     FClientCode: string;
     FIncludeChild: Boolean;
-//    procedure SetClientSelectOptions(const Value: TClientSelectOptions);
     procedure SetDateFrom(const Value: integer);
     procedure SetDateTo(const Value: integer);
     procedure SetDestination(const Value: TReportDest);
@@ -33,14 +31,10 @@ type
     procedure SetAuditSelection(const Value: TAuditSelection);
     procedure SetIncludeChild(const Value: Boolean);
   public
-    constructor Create;
-    destructor Destroy; override;
-//    function ClientInSelection(AClient: Pointer): Boolean;
     function AuditRecordInSelection(AAuditRecord: TAudit_Trail_Rec): Boolean;
     property ClientCode: string read FClientCode;
     property DateFrom : integer read FDateFrom write SetDateFrom;
     property DateTo   : integer read FDateTo write SetDateTo;
-//    property ClientSelectOptions: TClientSelectOptions read FClientSelectOptions write SetClientSelectOptions;
     property Destination: TReportDest read FDestination write SetDestination;
     property AuditReportType: TAuditReportType read FAuditReportType write SetAuditReportType;
     property TransactionType: Byte read FTransactionType write SetTransactionType;
@@ -50,75 +44,40 @@ type
   end;
 
   TfrmAuditReportOption = class(TForm)
-    PageControl1: TPageControl;
-    tsSystem: TTabSheet;
-    tsClient: TTabSheet;
-    tsTesting: TTabSheet;
-    Label11: TLabel;
-    Label12: TLabel;
-    ListView5: TListView;
-    cbAuditTypes: TComboBox;
-    btnByTxnType: TButton;
-    Edit7: TEdit;
-    btnByTxnID: TButton;
-    btnSaveToCSV: TButton;
-    btnCancel: TButton;
-    ClientSelect: TFmeClientSelect;
-    GroupBox2: TGroupBox;
-    fmeDateSelector1: TfmeDateSelector;
-    GroupBox3: TGroupBox;
-    RadioButton3: TRadioButton;
-    RadioButton4: TRadioButton;
-    ComboBox2: TComboBox;
-    Edit2: TEdit;
-    GroupBox4: TGroupBox;
-    RadioButton5: TRadioButton;
-    RadioButton6: TRadioButton;
-    Button2: TButton;
-    Button3: TButton;
-    Button4: TButton;
-    Button5: TButton;
-    pnlSelectDate: TPanel;
-    pnlSelectTransaction: TPanel;
-    pnlButtons: TPanel;
-    gbxReportPeriod: TGroupBox;
-    DateSelector: TfmeDateSelector;
-    GroupBox1: TGroupBox;
-    rbSytemTransactionType: TRadioButton;
-    rbSytemTransactionID: TRadioButton;
-    cbTransactionType: TComboBox;
-    eTransactionID: TEdit;
-    Button1: TButton;
-    btnPrint: TButton;
-    btnFile: TButton;
-    btnPreview: TButton;
     pnlSelectClient: TPanel;
     GroupBox6: TGroupBox;
     rbSystem: TRadioButton;
     rbClient: TRadioButton;
     cbClientFileCodes: TComboBox;
+    pnlSelectDate: TPanel;
+    gbxReportPeriod: TGroupBox;
+    DateSelector: TfmeDateSelector;
+    pnlSelectTransaction: TPanel;
+    GroupBox1: TGroupBox;
+    rbSytemTransactionType: TRadioButton;
+    rbSytemTransactionID: TRadioButton;
+    cbTransactionType: TComboBox;
+    eTransactionID: TEdit;
     cbIncludeChildren: TCheckBox;
-    procedure btnSaveToCSVClick(Sender: TObject);
-    procedure btnByTxnTypeClick(Sender: TObject);
+    pnlButtons: TPanel;
+    btnCancel: TButton;
+    btnPrint: TButton;
+    btnFile: TButton;
+    btnPreview: TButton;
     procedure FormCreate(Sender: TObject);
-    procedure btnByTxnIDClick(Sender: TObject);
     procedure btnPreviewClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure rbSytemTransactionTypeClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
     procedure eTransactionIDKeyPress(Sender: TObject; var Key: Char);
     procedure rbSystemClick(Sender: TObject);
   private
     { Private declarations }
     FBtnPressed : integer;
     function Validate: Boolean;
-    procedure DisplayAuditRecords;
     procedure LoadAuditTypes(AAuditReportType: TAuditReportType);
     procedure LoadClientFileCodes;
-    procedure DisplayAuditRecsByAuditType(AAuditType: TAuditType);
-    procedure DisplayAuditRecsByTransactionID(ARecordID: integer);
   public
     { Public declarations }
   end;
@@ -129,7 +88,9 @@ implementation
 
 uses
   Globals,
-  bkXPThemes;
+  bkXPThemes,
+  WarningMoreFrm,
+  Files;
 
 {$R *.dfm}
 
@@ -142,14 +103,9 @@ begin
   frmAuditReportOption := TfrmAuditReportOption.Create(Application.MainForm);
   try
     with frmAuditReportOption do begin
-//      DisplayAuditRecords;
       Caption := 'Audit Report';
       pnlSelectClient.Visible := True;
-      PageControl1.ActivePage := tsSystem;
-      Margin := PageControl1.Margins.Left +
-                tsSystem.Margins.Left +
-                tsSystem.Left +
-                gbxReportPeriod.Left;
+      Margin :=  frmAuditReportOption.Left + frmAuditReportOption.Margins.Left + gbxReportPeriod.Left;
       Width := Margin + gbxReportPeriod.Width + Margin;
       Height := (Height - ClientHeight) + pnlButtons.Top +
                 pnlButtons.Height + Margin;
@@ -185,11 +141,6 @@ begin
 
             if AuditReportOptions.AuditReportType = arClient then begin
               AuditReportOptions.FClientCode := cbClientFileCodes.Items[cbClientFileCodes.ItemIndex];
-//              ClientSelectOptions.ReportSort := ClientSelect.ReportSort;
-//              ClientSelectOptions.RangeOption := ClientSelect.RangeOption;
-//              ClientSelectOptions.FromCode := ClientSelect.edtFromCode.Text;
-//              ClientSelectOptions.ToCode := ClientSelect.edtToCode.Text;
-//              ClientSelectOptions.CodeSelectionList.DelimitedText := ClientSelect.edtSelection.Text;
             end;
             IncludeChild := cbIncludeChildren.Checked;
 
@@ -211,32 +162,8 @@ end;
 
 { TfrmAuditReportOption }
 
-procedure TfrmAuditReportOption.btnByTxnIDClick(Sender: TObject);
-begin
-  DisplayAuditRecsByTransactionID(StrToInt(Edit7.Text));
-end;
-
-procedure TfrmAuditReportOption.btnByTxnTypeClick(Sender: TObject);
-var
-  AuditType: TAuditType;
-begin
-  //All
-  if (cbAuditTypes.ItemIndex = 0) then begin
-    DisplayAuditRecords;
-    Exit;
-  end;
-  //Filter audit records by audit type
-  AuditType := TAuditType(cbAuditTypes.Items.Objects[cbAuditTypes.ItemIndex]);
-  DisplayAuditRecsByAuditType(AuditType);
-end;
-
 procedure TfrmAuditReportOption.btnFileClick(Sender: TObject);
 begin
-//  PageControl1.ActivePage := tsTesting;
-//  BorderStyle := bsSizeable;
-//  Position := poScreenCenter;
-//  Height := 600;
-//  Width := 900;
   if not Validate then
      Exit;
   FBtnPressed := BTN_FILE;
@@ -245,95 +172,15 @@ end;
 
 procedure TfrmAuditReportOption.btnPreviewClick(Sender: TObject);
 begin
+  if not Validate then
+     Exit;
   FBtnPressed := BTN_PREVIEW;
   Close;
 end;
 
-procedure TfrmAuditReportOption.btnSaveToCSVClick(Sender: TObject);
-var
-  i, j: integer;
-  StringList: TStringList;
-  AuditRec: string;
-begin
-  StringList := TStringList.Create;
-  try
-    for i := 0 to ListView5.Items.Count - 1 do begin
-      AuditRec := ListView5.Items[i].Caption;
-      for j := 0 to ListView5.Items[i].SubItems.Count - 1 do begin
-        AuditRec := AuditRec + ',' + ListView5.Items[i].SubItems[j];
-      end;
-      StringList.Add(AuditRec);
-    end;
-    StringList.SaveToFile('SYAudit.csv');
-  finally
-    StringList.Free
-  end;
-end;
-
-procedure TfrmAuditReportOption.Button1Click(Sender: TObject);
+procedure TfrmAuditReportOption.btnCancelClick(Sender: TObject);
 begin
   FBtnPressed := BTN_NONE;
-end;
-
-procedure TfrmAuditReportOption.Button3Click(Sender: TObject);
-begin
-  if not Validate then
-     Exit;
-  FBtnPressed := BTN_FILE;
-  Close;
-end;
-
-procedure TfrmAuditReportOption.DisplayAuditRecords;
-var
-  i: integer;
-  ListItem: TListItem;
-begin
-  ListView5.Items.Clear;
-  with AdminSystem.AuditTable.AuditRecords do
-    for i := First to Last do begin
-      ListItem := ListView5.Items.Add;
-      ListItem.Caption := IntToStr(i);
-      AdminSystem.AuditTable.SetAuditStrings(i, ListItem.SubItems);
-    end;
-end;
-
-procedure TfrmAuditReportOption.DisplayAuditRecsByAuditType(
-  AAuditType: TAuditType);
-var
-  i: integer;
-  ListItem: TListItem;
-  DB: string;
-begin
-  ListView5.Items.Clear;
-  //Get DB
-  DB := SystemAuditMgr.AuditTypeToDBStr(AAuditType);
-  //Filter records by audit type
-  with AdminSystem.AuditTable.AuditRecords do
-    for i := First to Last do begin
-      if AdminSystem.AuditTable.AuditRecords.Audit_At(i).atTransaction_Type = AAuditType then begin
-        ListItem := ListView5.Items.Add;
-        ListItem.Caption := IntToStr(i);
-        AdminSystem.AuditTable.SetAuditStrings(i, ListItem.SubItems);
-      end;
-    end;
-end;
-
-procedure TfrmAuditReportOption.DisplayAuditRecsByTransactionID(
-  ARecordID: integer);
-var
-  i: integer;
-  ListItem: TListItem;
-begin
-  ListView5.Items.Clear;
-  //System
-  with AdminSystem.AuditTable.AuditRecords do
-    for i := First to Last do begin
-      if AdminSystem.AuditTable.AuditRecords.Audit_At(i).atRecord_ID = ARecordID then begin
-        ListItem := ListView5.Items.Add;
-        ListItem.Caption := IntToStr(i);
-        AdminSystem.AuditTable.SetAuditStrings(i, ListItem.SubItems);
-      end;
-    end;
 end;
 
 procedure TfrmAuditReportOption.eTransactionIDKeyPress(Sender: TObject; var Key: Char);
@@ -351,11 +198,7 @@ var
 begin
   bkXPThemes.ThemeForm( Self);
 
-//  LoadAuditTypes;
   LoadClientFileCodes;
-
-  for i := 0 to PageControl1.PageCount - 1 do
-    PageControl1.Pages[i].TabVisible := False;
 
   //set date bounds
   DateSelector.InitDateSelect( MinValidDate, MaxValidDate, btnPreview);
@@ -376,13 +219,7 @@ procedure TfrmAuditReportOption.LoadAuditTypes(AAuditReportType: TAuditReportTyp
 var
   i: integer;
 begin
-  //Test
-  cbAuditTypes.Clear;
-  cbAuditTypes.Items.Add('<All>');
-  for i := atMin to atMax do
-    cbAuditTypes.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
-
-  //Normal
+  //Load audit types
   cbTransactionType.Clear;
   cbTransactionType.Items.AddObject('<All>', TObject(atAll));
   case AAuditReportType of
@@ -394,22 +231,6 @@ begin
                   cbTransactionType.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
   end;
   cbTransactionType.ItemIndex := 0;
-
-{  //System
-  ComboBox1.Clear;
-  ComboBox1.Items.AddObject('<All>', TObject(atAll));
-  for i := atMin to atMax do
-    if SystemAuditMgr.AuditTypeToDBStr(i) = 'SY' then
-      ComboBox1.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
-  ComboBox1.ItemIndex := 0;
-
-  //Client
-  ComboBox2.Clear;
-  ComboBox2.Items.AddObject('<All>', TObject(atAll));
-  for i := atMin to atMax do
-    if SystemAuditMgr.AuditTypeToDBStr(i) = 'BK' then
-      ComboBox2.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
-  ComboBox2.ItemIndex := 0; }
 end;
 
 procedure TfrmAuditReportOption.LoadClientFileCodes;
@@ -426,7 +247,6 @@ end;
 
 procedure TfrmAuditReportOption.rbSystemClick(Sender: TObject);
 begin
-//  lblClientCode.Enabled := rbClient.Checked;
   cbClientFileCodes.Enabled := rbClient.Checked;
   //Load audit types
   if rbClient.Checked then begin
@@ -439,18 +259,31 @@ end;
 procedure TfrmAuditReportOption.rbSytemTransactionTypeClick(Sender: TObject);
 begin
   cbTransactionType.Enabled := rbSytemTransactionType.Checked;
-  eTransactionID.Enabled := rbSytemTransactionID.Checked;  
+  eTransactionID.Enabled := rbSytemTransactionID.Checked;
 end;
 
 function TfrmAuditReportOption.Validate: Boolean;
 begin
   Result := False;
 
+  //Dates
   if not DateSelector.ValidateDates(true) then
     Exit;
 
-  if not ClientSelect.Validate(True) then
-    Exit;
+  //Client File
+  if rbClient.Checked then begin
+    if (cbClientFileCodes.ItemIndex = -1) then begin
+      HelpfulWarningMsg('Please select a client file.', 0);
+      if cbClientFileCodes.CanFocus then
+        cbClientFileCodes.SetFocus;
+      Exit;
+    end else if not ClientFileExists(cbClientFileCodes.Items[cbClientFileCodes.ItemIndex]) then begin
+      HelpfulWarningMsg('The client file does not exist.', 0);
+      if cbClientFileCodes.CanFocus then
+        cbClientFileCodes.SetFocus;
+      Exit;
+    end;
+  end;
 
   Result := True;
 end;
@@ -463,23 +296,6 @@ begin
   Result := False;
 end;
 
-//function TAuditReportOptions.ClientInSelection(AClient: Pointer): Boolean;
-//begin
-//  Result := False;
-//end;
-
-constructor TAuditReportOptions.Create;
-begin
-
-end;
-
-destructor TAuditReportOptions.Destroy;
-begin
-
-  inherited;
-end;
-
-
 procedure TAuditReportOptions.SetAuditReportType(const Value: TAuditReportType);
 begin
   FAuditReportType := Value;
@@ -489,12 +305,6 @@ procedure TAuditReportOptions.SetAuditSelection(const Value: TAuditSelection);
 begin
   FAuditSelection := Value;
 end;
-
-//procedure TAuditReportOptions.SetClientSelectOptions(
-//  const Value: TClientSelectOptions);
-//begin
-//  FClientSelectOptions := Value;
-//end;
 
 procedure TAuditReportOptions.SetDateFrom(const Value: integer);
 begin

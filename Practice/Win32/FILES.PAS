@@ -35,7 +35,7 @@ procedure CloseAClient(var Client : TClientObj; AllowReadOnlyToBeSaved : boolean
 procedure SaveAClient(Client :TClientObj); // AJ: Is this ever used (Not in BK5)
 procedure AbandonAClient(var Client : TClientObj);
 function DoClientSave(Closing: Boolean; Client: TClientObj; const Silent: Boolean = False): Boolean;
-
+function ClientFileExists(ClientCode : string): boolean;
 procedure OpenAClientForRead(OpenCode :string; var Client : TClientObj);
 
 

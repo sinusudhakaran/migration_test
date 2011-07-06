@@ -390,8 +390,10 @@ Begin
    S := TIOStream.Create;
    try
       //Restricted auditing to UK
-      if (fdFields.fdCountry = whUK) then
+      if (fdFields.fdCountry = whUK) then begin
+        SystemAuditMgr.Country := whUK;
         SystemAuditMgr.DoAudit;
+      end;
       //Save
       L := 0;
       S.Write( L, Sizeof( LongInt ) ); { Leave space for the CRC }
