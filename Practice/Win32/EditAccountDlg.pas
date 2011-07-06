@@ -23,7 +23,7 @@ type
   TdlgEditAccount = class(TForm)
     pgAccountDetails: TPageControl;
     tsDetails: TTabSheet;
-    Label4: TLabel;
+    lblDivision: TLabel;
     Label3: TLabel;
     cmbGroup: TComboBox;
     cmbGST: TComboBox;
