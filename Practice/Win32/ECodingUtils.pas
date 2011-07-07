@@ -690,13 +690,15 @@ begin
          and (Dest = ecDestWebX) then begin
             sMsg := Inttostr(Count) + ' entries successfully exported to ' + wfNames[wfWebNotes];
             HelpfulInfoMsg(sMsg, 0);
-         end else
+            //*** Flag Audit ***
+            aClient.ClientAuditMgr.FlagAudit(atBankLinkNotesOnline, 0, aaNone, sMsg);
+         end else begin
             sMsg := Inttostr(Count) + ' entries successfully exported to ' + Filename;
+            //*** Flag Audit ***
+            aClient.ClientAuditMgr.FlagAudit(atBankLinkNotes, 0, aaNone, sMsg);
+         end;
 
          LogUtil.LogMsg( lmInfo, Unitname, sMsg);
-
-         //*** Flag Audit ***
-         aClient.ClientAuditMgr.FlagAudit(atBankLinkNotes, 0, aaNone, sMsg);
 
          if ( Dest = ecDestFile)
          or ( (Dest = ecDestWebX) and  (aClient.clFields.clWeb_Export_Format = wfWebX)   ) then begin

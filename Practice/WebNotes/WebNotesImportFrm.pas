@@ -131,7 +131,8 @@ uses
    WebNotesClient,
    bkXPThemes,
    WebNotesSchema,
-   bkConst, trxList32, ForexHelpers;
+   bkConst, trxList32, ForexHelpers,
+   AuditMgr;
 
 const
    UnitName = 'WebNotesService';
@@ -1540,6 +1541,11 @@ begin
       // log and Display
       HelpfulInfoMsg(msg, 0);
       LogUtil.LogMsg(lmInfo, UnitName, msg);
+
+      //*** Flag Audit ***
+      //Notes online import
+      Msg := StringReplace(Msg, #13, VALUES_DELIMITER, [rfReplaceAll, rfIgnoreCase]);
+      MyClient.ClientAuditMgr.FlagAudit(atBankLinkNotesOnline, 0, aaNone, Msg);
    end;
 
    if not GetAvailableData(False) then
