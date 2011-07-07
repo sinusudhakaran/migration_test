@@ -39,11 +39,11 @@ uses
      BNotesInterface, LogUtil, baObj32, GlobalDirectories, Globals,
      PracticeLogo, MailFrm, todoHandler, StDate, Windows,
      ClientHomepagefrm, Forms, Admin32, WebNotesService, WebNotesImportFrm,
-     ForexHelpers;
+     ForexHelpers, AuditMgr;
 
 const
    UnitName = 'ECodingUtils';
-  
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure UpdateTransGSTFields( aClient : TClientObj; pT : BKDEFS.pTransaction_Rec;
   BankPrefix : string; CodedBy: Byte);
@@ -290,7 +290,7 @@ var
   ImportedCount        : integer;
   ECFile               : TEcClient;
   NextNo               : integer;
-  EMsg                 : string;
+  Msg                  : string;
   WebXFile             : string;
   ShowDialog           : Boolean;
   HasBankEntries       : Boolean;
@@ -417,8 +417,8 @@ begin
       //crash system because client file will have been updated
       On E : Exception do
       begin
-        EMsg := 'An error occured during the import of ' + filename +'. ' + E.Message;
-        Raise Exception.Create( EMsg);
+        Msg := 'An error occured during the import of ' + filename +'. ' + E.Message;
+        Raise Exception.Create( Msg);
         Exit;
       end;
     end;
@@ -455,29 +455,29 @@ begin
 
         //check that this is not an older file
         if ( ECFile.ecFields.ecFile_Number < aClient.clFields.clECoding_Last_File_No_Imported) then begin
-           EMsg := 'This file is older than the last file you have imported.  It '+
-                   'contains transactions from ' + bkDate2Str( ECFile.ecFields.ecDate_Range_From) +
-                   ' to ' + bkDate2Str( ECFile.ecFields.ecDate_Range_To) + '. '#13#13+
+           Msg := 'This file is older than the last file you have imported.  It '+
+                  'contains transactions from ' + bkDate2Str( ECFile.ecFields.ecDate_Range_From) +
+                  ' to ' + bkDate2Str( ECFile.ecFields.ecDate_Range_To) + '. '#13#13+
 
                    'Please confirm that you wish to import this file?';
-            if AskYesNo( 'Import file', eMsg, DLG_NO, 0) <> DLG_YES then exit;
+            if AskYesNo( 'Import file', Msg, DLG_NO, 0) <> DLG_YES then exit;
         end;
 
         //prompt the user if this is an old file
         if ( ECFile.ecFields.ecFile_Number = aClient.clFields.clECoding_Last_File_No_Imported) then begin
-           EMsg := 'You have already imported this file.  If you import it again any '+
-                   'new transactions will be duplicated'#13#13+
-                   'Please confirm that you wish to do this?';
+           Msg := 'You have already imported this file.  If you import it again any '+
+                  'new transactions will be duplicated'#13#13+
+                  'Please confirm that you wish to do this?';
 
-           if AskYesNo( 'Import file', eMsg, DLG_NO, 0) <> DLG_YES then exit;
+           if AskYesNo( 'Import file', Msg, DLG_NO, 0) <> DLG_YES then exit;
         end;
 
       except
         //catch file open exceptions, these can be handled, all others must
         //crash application because may have begun updating client
         on E :Exception do begin
-          EMsg := 'Cannot import file ' + filename + '. ' + E.Message;
-          HelpfulErrorMsg( EMsg, 0);
+          Msg := 'Cannot import file ' + filename + '. ' + E.Message;
+          HelpfulErrorMsg( Msg, 0);
           if ShowDialog then
           begin
             Filename := '';
@@ -502,8 +502,8 @@ begin
         //crash system because client file will have been updated
         On E : Exception do
         begin
-          EMsg := 'An error occured during the import of ' + filename +'. ' + E.Message;
-          Raise Exception.Create( EMsg);
+          Msg := 'An error occured during the import of ' + filename +'. ' + E.Message;
+          Raise Exception.Create( Msg);
           Exit;
         end;
       end;
@@ -516,13 +516,18 @@ begin
   end;
 
 
-  
+
   //import successful
   HelpfulInfoMsg( 'Import Successful', 0);
-  LogUtil.LogMsg( lmInfo, UnitName, 'File imported successfully ' +
-                    inttostr( ImportedCount) + ' transaction(s) updated '+
-                    inttostr( NewCount)      + ' new transaction(s) ' +
-                    inttostr( RejectedCount) + ' rejected transaction(s)');
+  Msg :=  'File imported successfully ' +
+          inttostr( ImportedCount) + ' transaction(s) updated '+
+          inttostr( NewCount)      + ' new transaction(s) ' +
+          inttostr( RejectedCount) + ' rejected transaction(s)';
+  LogUtil.LogMsg(lmInfo, UnitName, Msg);
+
+  //*** Flag Audit ***
+  Msg := Format('%s (Filename=%s)',[Msg, Filename]);
+  aClient.ClientAuditMgr.FlagAudit(atBankLinkNotes, 0, aaNone, Msg);
   finally
      RefreshHomepage;
   end;
@@ -689,6 +694,9 @@ begin
             sMsg := Inttostr(Count) + ' entries successfully exported to ' + Filename;
 
          LogUtil.LogMsg( lmInfo, Unitname, sMsg);
+
+         //*** Flag Audit ***
+         aClient.ClientAuditMgr.FlagAudit(atBankLinkNotes, 0, aaNone, sMsg);
 
          if ( Dest = ecDestFile)
          or ( (Dest = ecDestWebX) and  (aClient.clFields.clWeb_Export_Format = wfWebX)   ) then begin

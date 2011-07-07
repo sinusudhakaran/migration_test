@@ -1798,7 +1798,7 @@ begin
     end;
 
     //Add the new dissection to the transaction
-    TrxList32.AppendDissection( BKT, BKD);
+    TrxList32.AppendDissection( BKT, BKD, aClient.ClientAuditMgr);
     ECD := ECD.dsNext;
   end;
 end;
@@ -2016,7 +2016,7 @@ begin
        end;
     end;
     //Add the new dissection to the transaction
-    TrxList32.AppendDissection( BKT, BKD);
+    TrxList32.AppendDissection( BKT, BKD, aClient.ClientAuditMgr);
     ECD := ECD.dsNext;
     Inc( DissectionLineNo);
   end;
@@ -2238,7 +2238,7 @@ begin
        end;
     end;
     //Add the new dissection to the transaction
-    TrxList32.AppendDissection( BKT, BKD);
+    TrxList32.AppendDissection( BKT, BKD, aClient.ClientAuditMgr);
     ECD := ECD.dsNext;
   end;
 end;
