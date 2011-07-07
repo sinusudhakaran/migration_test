@@ -498,10 +498,11 @@ var
 begin
   ARecord := AAuditRecord.atAudit_Record;
 
-  if Values = '' then
+  //Delete
+  if ARecord = nil then begin
     Values := AAuditRecord.atOther_Info;
-  if ARecord = nil then
     Exit;
+  end;
 
   Idx := 0;
   Token := AAuditRecord.atChanged_Fields[idx];

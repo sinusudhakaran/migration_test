@@ -1445,6 +1445,10 @@ begin
 
             if not IsScheduledReport then //Scheduled report tasks will be added after email has been successfully sent
               AddAutomaticToDoItem( CFRec, ttyCheckOut, Format(ToDoMsg_Checkout, [bkDate2Str(CurrentDate)]));
+
+            //*** Flag Audit ***
+            SystemAuditMgr.FlagAudit(atSystemClientFiles);
+
             SaveAdminSystem;
          end;
       finally
@@ -1552,6 +1556,7 @@ begin
 
    Msg := Format('Check Out %s to %s succeeded',[Code,RemoteFileName]);
    LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' : '+Msg);
+
    if not IsScheduledReport then
    begin
      ProgressFrm.mProgress.Lines.Add(Msg);
@@ -1867,6 +1872,10 @@ begin
 
         //*** Flag Audit ***
         SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+        //Add audit info for check-in  - this has to be aaNone because
+        //File_Status=fsNormal is not audited to prevent too many audit records.
+        Msg := Format('*File_Code=%s%sFile_Status=Checked In',[CFRec.cfFile_Code, VALUES_DELIMITER]);
+        SystemAuditMgr.FlagAudit(atSystemClientFiles, CFRec.cfAudit_Record_ID, aaNone, Msg);
 
         SaveAdminSystem;
       end;

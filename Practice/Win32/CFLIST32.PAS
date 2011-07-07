@@ -267,6 +267,18 @@ begin
             (P1.cfFile_Status = fsNormal); //Status=Closed
 end;
 
+function FileCodeChanged(P1: pClient_File_Rec; AAuditInfo: TAuditInfo): boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  for i := Low(AAuditInfo.AuditChangedFields) to High(AAuditInfo.AuditChangedFields) do begin
+    Result := (AAuditInfo.AuditChangedFields[i] = 82); //File Code
+    if Result then Exit;
+  end;
+end;
+
+
 procedure tSystem_Client_File_List.SetAuditInfo(P1, P2: pClient_File_Rec;
   var AAuditInfo: TAuditInfo);
 var
@@ -285,10 +297,16 @@ begin
     AAuditInfo.AuditRecordID := P1.cfAudit_Record_ID;
     AAuditInfo.AuditParentID := SystemAuditMgr.GetParentRecordID(AAuditInfo.AuditRecordType,
                                                                  AAuditInfo.AuditRecordID);
-    if Client_File_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+    if Client_File_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then begin
       //Don't audit Status=closed
-      if not OnlyChangeIsClientFileClosed(P1, AAuditInfo) then
+      if not OnlyChangeIsClientFileClosed(P1, AAuditInfo) then begin
+        if not FileCodeChanged(P1, AAuditInfo) then
+          AAuditInfo.AuditOtherInfo := Format('%s=%s',
+                                              [SYAuditNames.GetAuditFieldName(tkBegin_Client_File, 82),
+                                               P1.cfFile_Code]);
         AAuditInfo.AuditAction := aaChange;
+      end;
+    end;
   end else begin
     //Add
     AAuditInfo.AuditAction := aaAdd;
