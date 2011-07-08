@@ -141,6 +141,7 @@ begin
       if (Values <> '') or (TempStr <> '') then
         TempStr := TempStr + VALUES_DELIMITER;
       FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Client, Token);
+
       TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
     end;
   end;

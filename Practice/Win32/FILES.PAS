@@ -1874,7 +1874,7 @@ begin
         SystemAuditMgr.FlagAudit(atAttachBankAccounts);
         //Add audit info for check-in  - this has to be aaNone because
         //File_Status=fsNormal is not audited to prevent too many audit records.
-        Msg := Format('*File_Code=%s%sFile_Status=Checked In',[CFRec.cfFile_Code, VALUES_DELIMITER]);
+        Msg := Format('File_Code=%s%sFile_Status=Checked In',[CFRec.cfFile_Code, VALUES_DELIMITER]);
         SystemAuditMgr.FlagAudit(atSystemClientFiles, CFRec.cfAudit_Record_ID, aaNone, Msg);
 
         SaveAdminSystem;

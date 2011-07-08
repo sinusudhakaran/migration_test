@@ -26,13 +26,78 @@ uses
 implementation
 
 uses
-  SYAUDIT, BKAUDIT, SYDEFS, BKCONST, MoneyDef, bkdateutils, GenUtils,
+  SYAUDIT, BKAUDIT, SYDEFS, BKCONST, MoneyDef, bkdateutils, GenUtils, SysUtils, CountryUtils,
   SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKMDIO, BKMLIO;
 
 const
   BANK_ACCOUNT = 'Bank Account';
   CLIENT_CODE = 'Client Code';
+
+procedure GST_Class_Names_Audit_Values(V1: TGST_Class_Names_Array; var Values: string);
+var
+  i: integer;
+  Value: string;
+  FieldName: string;
+  TempStr: string;
+begin
+  TempStr := '';
+  for i := Low(V1) to High(V1) do begin
+    Value := V1[i];
+    if Value <> '' then begin
+      if (Values <> '') or (TempStr <> '') then
+        TempStr := TempStr + VALUES_DELIMITER;
+      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 20);
+      FieldName := Localise(SystemAuditMgr.Country, FieldName);      
+      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
+    end;
+  end;
+  Values := Values + TempStr;
+end;
+
+procedure GST_Rates_Audit_Values(V1: TGST_Rates_Array; var Values: string);
+var
+  i, j: integer;
+  Value: money;
+  FieldName: string;
+  TempStr: string;
+begin
+  TempStr := '';
+  for i := Low(V1) to High(V1) do
+    for j := Low(V1[i]) to High(V1[i]) do begin
+      Value := V1[i, j];
+      if Value <> 0 then begin
+        if (Values <> '') or (TempStr <> '') then
+          TempStr := TempStr + VALUES_DELIMITER;
+        FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 23);
+        FieldName := Localise(SystemAuditMgr.Country, FieldName);
+        TempStr := Format('%s%s[%d, %d]=%s', [TempStr, FieldName, i, j, Money2Str(Value / 100)]);
+      end;
+    end;
+  Values := Values + TempStr;
+end;
+
+procedure GST_Applies_From_Array(V1: TGST_Applies_From_Array; var Values: string);
+var
+  i: integer;
+  Value: string;
+  FieldName: string;
+  TempStr: string;
+begin
+  TempStr := '';
+  for i := Low(V1) to High(V1) do begin
+    Value := bkDate2Str(V1[i]);
+    if Value <> '' then begin
+      if (Values <> '') or (TempStr <> '') then
+        TempStr := TempStr + VALUES_DELIMITER;
+      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 24);
+      FieldName := Localise(SystemAuditMgr.Country, FieldName);
+      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
+    end;
+  end;
+  Values := Values + TempStr;
+end;
+
 
 procedure AddSystemAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
 var

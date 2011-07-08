@@ -211,10 +211,6 @@ type
 
   procedure SetProvisionalInfo(ATxnLRN: integer; var AUserCode: shortstring; var ADateTime: TDateTime);
 
-  procedure GST_Class_Names_Audit_Values(V1: TGST_Class_Names_Array; var Values: string);
-  procedure GST_Rates_Audit_Values(V1: TGST_Rates_Array; var Values: string);
-  procedure GST_Applies_From_Array(V1: TGST_Applies_From_Array; var Values: string);
-
 implementation
 
 {$IFDEF LOOKUPDLL}
@@ -236,7 +232,7 @@ const
   //Audit type strings
   atNames : array[ atMin..atMax ] of string =
     ('Practice Setup',
-     'Practice GST/VAT Defaults',
+     'Practice VAT Defaults',
      'Master Memorisations',
      'Users',
      'System Options',
@@ -250,7 +246,7 @@ const
      'Payees',
      'Client File',
      'Memorisations',
-     'GST/VAT Setup',
+     'VAT Setup',
      'Historical entries',
      'Provisional entries',
      'Manual entries',
@@ -260,7 +256,7 @@ const
      'Accrual journals',
      'Stock/Adjustment journals',
      'Year End Adjustment journals',
-     'GST/VAT journals',
+     'VAT journals',
      'Opening balances',
      'Unpresented Items',
      'Division & Sub-Group Headings',
@@ -407,73 +403,6 @@ begin
     varString    : Result := Value;
     else           Result := '';
   end;
-end;
-
-procedure GST_Class_Names_Audit_Values(V1: TGST_Class_Names_Array; var Values: string);
-var
-  i: integer;
-  Value: string;
-  FieldName: string;
-  TempStr: string;
-begin
-{$IFNDEF LOOKUPDLL}
-  TempStr := '';
-  for i := Low(V1) to High(V1) do begin
-    Value := V1[i];
-    if Value <> '' then begin
-      if (Values <> '') or (TempStr <> '') then
-        TempStr := TempStr + VALUES_DELIMITER;
-      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 20);
-      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
-    end;
-  end;
-  Values := Values + TempStr;
-{$ENDIF}
-end;
-
-procedure GST_Rates_Audit_Values(V1: TGST_Rates_Array; var Values: string);
-var
-  i, j: integer;
-  Value: money;
-  FieldName: string;
-  TempStr: string;
-begin
-{$IFNDEF LOOKUPDLL}
-  TempStr := '';
-  for i := Low(V1) to High(V1) do
-    for j := Low(V1[i]) to High(V1[i]) do begin
-      Value := V1[i, j];
-      if Value <> 0 then begin
-        if (Values <> '') or (TempStr <> '') then
-          TempStr := TempStr + VALUES_DELIMITER;
-        FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 23);
-        TempStr := Format('%s%s[%d, %d]=%s', [TempStr, FieldName, i, j, MoneyStrNoSymbol(Value / 100)]);
-      end;
-    end;
-  Values := Values + TempStr;
-{$ENDIF}
-end;
-
-procedure GST_Applies_From_Array(V1: TGST_Applies_From_Array; var Values: string);
-var
-  i: integer;
-  Value: string;
-  FieldName: string;
-  TempStr: string;
-begin
-{$IFNDEF LOOKUPDLL}
-  TempStr := '';
-  for i := Low(V1) to High(V1) do begin
-    Value := bkDate2Str(V1[i]);
-    if Value <> '' then begin
-      if (Values <> '') or (TempStr <> '') then
-        TempStr := TempStr + VALUES_DELIMITER;
-      FieldName := SYAuditNames.GetAuditFieldName(tkBegin_Practice_Details, 24);
-      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
-    end;
-  end;
-  Values := Values + TempStr;
-{$ENDIF}
 end;
 
 procedure AddOtherInfoFlag(var AValuesString: string);
@@ -814,8 +743,10 @@ begin
   OtherInfo := AAuditRecord.atOther_Info;
   if AAuditRecord.atAudit_Record = nil then begin
     //Add deletes
-    if (AAuditRecord.atAudit_Action in [aaDelete, aaNone])then
+    if (AAuditRecord.atAudit_Action in [aaDelete, aaNone])then begin
+      AddOtherInfoFlag(OtherInfo);
       Values := OtherInfo;
+    end;
     Exit;
   end;
 

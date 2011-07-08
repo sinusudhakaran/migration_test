@@ -325,9 +325,10 @@ begin
     //Delete
     AAuditInfo.AuditAction := aaDelete;
     AAuditInfo.AuditRecordID := P2.amAudit_Record_ID;
-    AAuditInfo.AuditOtherInfo := Format('%s=%s, %s=%s',
+    AAuditInfo.AuditOtherInfo := Format('%s=%s%s%s=%s',
                                         [BANK_ACCOUNT,
                                          SystemAuditMgr.BankAccountFromLRN(P2.amAccount_LRN),
+                                         VALUES_DELIMITER,
                                          CLIENT_CODE,
                                          SystemAuditMgr.ClientCodeFromLRN(P2.amClient_LRN)]);
   end else if Assigned(P2) then begin

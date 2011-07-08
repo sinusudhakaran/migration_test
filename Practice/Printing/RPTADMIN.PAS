@@ -111,7 +111,7 @@ uses
    Windows,
    ReportImages,
    ClientSelectFme,
-   AuditMgr, BKtxIO;
+   AuditMgr, BKTXIO, BKCLIO;
 
 type
    //Client status record for whats due list
@@ -3667,7 +3667,7 @@ end;
 
 {Audit reports}
 
-procedure AuditReportDetail(Sender : TObject);
+procedure SystemAuditReportDetail(Sender : TObject);
 var
   i, j : integer;
   Report: TAuditReport;
@@ -3729,12 +3729,11 @@ begin
             Report.RenderTextLine('        ' + AuditFields[j]);
         Inc(AuditCount);
       end;
-
-      //Nothing matches filter
-      if (AuditCount =  0) then begin
-        Report.RenderTextLine('No audit records match the selected filter.');
-        Exit;
-      end;
+    end;
+    //Nothing matches filter
+    if (AuditCount =  0) then begin
+      Report.RenderTextLine('No audit records match the selected filter.');
+      Exit;
     end;
   finally
     AuditFields.Free;
@@ -3777,9 +3776,10 @@ begin
     AddColAuto( Job, cLeft, 15.0,gCgap, 'User Code', jtLeft);
     AddColAuto( Job, cLeft, 30.0,gCgap, 'Date/Time', jtLeft);
 
+    AddJobFooter(Job, siFootNote, OTHER_INFO_FLAG + 'Additional information. The field values have not changed.', true);
     AddCommonFooter(Job);
 
-    Job.OnBKPrint := AuditReportDetail;
+    Job.OnBKPrint := SystemAuditReportDetail;
     Job.ReportOptions := AAuditReportOptions;
     Job.Generate(AAuditReportOptions.Destination);
   finally
@@ -3795,6 +3795,24 @@ begin
     if (AAuditRecord.atTransaction_Type in TransactionAuditTypes) and
        (AAuditRecord.atAudit_Record_Type = tkBegin_Transaction) then
       Result := pTransaction_Rec(AAuditRecord.atAudit_Record).txCoded_By in [cbAutoPayee, cbMemorisedM, cbMemorisedC, cbAnalysis];
+end;
+
+function IsVATSetup(ATransactionType: byte; AAuditRecord: TAudit_Trail_Rec): Boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  //Filter by VAT setup even though these fields are in the client file rec
+  if (ATransactionType = atGSTSetup) then
+    if (AAuditRecord.atTransaction_Type = atClientFiles) and
+       (AAuditRecord.atAudit_Record_Type = tkBegin_Client) then begin
+       for i := Low(AAuditRecord.atChanged_Fields) to High(AAuditRecord.atChanged_Fields) do begin
+         //Check changes to VAT field tokens in BKCLIO
+         Result := AAuditRecord.atChanged_Fields[i] in [55..63, 101];
+         if Result or (AAuditRecord.atChanged_Fields[i] = 0) then
+           Exit
+       end;
+     end;
 end;
 
 function IsChildTransaction(AAuditTable: TAuditTable; AAuditType: TAuditType; AAuditRecord: TAudit_Trail_Rec): boolean;
@@ -3865,7 +3883,8 @@ begin
                                                                    Report.ReportOptions.TransactionType,
                                                                    AuditRecord))) or
                                               //Auto Coded
-                                              IsAutoCodedTransaction(Report.ReportOptions.TransactionType, AuditRecord);
+                                              IsAutoCodedTransaction(Report.ReportOptions.TransactionType, AuditRecord) or
+                                              IsVATSetup(Report.ReportOptions.TransactionType, AuditRecord);
           byTransactionID  : PrintAuditRec := (Report.ReportOptions.TransactionID = AuditRecord.atRecord_ID) or
                                               (Report.ReportOptions.IncludeChild and
                                                (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
@@ -3961,6 +3980,7 @@ begin
     AddColAuto( Job, cLeft, 15.0,gCgap, 'User Code', jtLeft);
     AddColAuto( Job, cLeft, 30.0,gCgap, 'Date/Time', jtLeft);
 
+    AddJobFooter(Job, siFootNote, OTHER_INFO_FLAG + 'Additional information. The field values have not changed.', true);
     AddCommonFooter(Job);
 
     Job.OnBKPrint := ClientAuditReportDetail;
