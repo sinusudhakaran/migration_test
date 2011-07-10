@@ -10,7 +10,8 @@ uses
   utMYOB in '..\Tests\utMYOB.pas',
   utPayeeObj in '..\Tests\utPayeeObj.pas',
   utUpgrade in '..\Tests\utUpgrade.pas',
-  utWebXOffice in '..\Tests\utWebXOffice.pas';
+  utWebXOffice in '..\Tests\utWebXOffice.pas',
+  utAuditTrail in '..\Tests\utAuditTrail.pas';
 
 {$R *.res}
 
