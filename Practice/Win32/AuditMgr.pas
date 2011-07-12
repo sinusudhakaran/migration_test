@@ -41,7 +41,8 @@ const
   atCustomHeadings                = 28;
   atBankLinkNotes                 = 29;
   atBankLinkNotesOnline           = 30;
-  atBankLinkBooks                 = 31; atMax = 31;
+  atBankLinkBooks                 = 31;
+  atExchangeRates                 = 32; atMax = 32;
   atAll = 254;
 
   //Audit actions
@@ -55,9 +56,11 @@ const
 
   SystemAuditTypes = [atPracticeSetup..atAttachBankAccounts, atAll];
   TransactionAuditTypes = [atHistoricalentries..atDeliveredTransactions];
+  ExchangeRateAuditTypes = [atExchangeRates];
 
   dbSystem = 0;
   dbClient = 1;
+  dbExchangeRates = 2;
 
   OTHER_INFO_FLAG = '*';
   VALUES_DELIMITER = '¦'; //non-keyboard character
@@ -185,6 +188,22 @@ type
     property ProvisionalAccountAttached: boolean read FProvisionalAccountAttached write SetProvisionalAccountAttached;
   end;
 
+  TExchangeRateAuditManager = class(TAuditManager)
+  private
+    FOwner: TObject;
+  public
+    constructor Create(Owner: TObject);
+    function NextAuditRecordID: integer; override;
+    function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
+    procedure DoAudit; override;
+    procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
+                        AAuditAction: byte = aaNone; AOtherInfo: string = ''); override;
+    procedure GetValues(const AAuditRecord: TAudit_Trail_Rec; var Values: string); override;
+    procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer); override;
+    procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); override;
+    procedure CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer); override;
+  end;
+
   TAuditTable = class(TObject)
   private
     FAuditRecords: TAuditCollection;
@@ -218,15 +237,17 @@ uses
   TOKENS, BKDbExcept,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
-  BKPLIO, BKHDIO, BKDSIO;
+  BKPLIO, BKHDIO, BKDSIO,
+  MCAUDIT, MCEHIO, MCERIO;
 {$ELSE}
 uses
-  Globals, SysObj32, ClObj32, MoneyUtils, SystemMemorisationList,
+  Globals, SysObj32, ClObj32, ExchangeRateList, MoneyUtils, SystemMemorisationList,
   BKAuditValues, SYAuditValues,
-  bkdateutils, TOKENS,  BKDbExcept, CountryUtils, 
+  bkdateutils, TOKENS,  BKDbExcept, CountryUtils,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
-  BKPLIO, BKHDIO, BKDSIO;
+  BKPLIO, BKHDIO, BKDSIO,
+  MCAUDIT, MCEHIO, MCERIO;
 
 const
   //Audit type strings
@@ -262,7 +283,8 @@ const
      'Division & Sub-Group Headings',
      'BankLink Notes',
      'BankLink Notes Online',
-     'BankLink Books');
+     'BankLink Books',
+     'Exchange Rates');
 
   atNameTable : array[ atMin..atMax ] of array[0..1] of byte =
     ((tkBegin_Practice_Details, dbSystem),    //Practice Setup
@@ -297,7 +319,9 @@ const
      (tkBegin_Custom_Heading, dbClient),      //Division & Sub-Group headings
      (tkBegin_Client, dbClient),         //BankLink Notes
      (tkBegin_Client, dbClient),         //BankLink Notes Online
-     (tkBegin_Client, dbClient));        //BankLink Books
+     (tkBegin_Client, dbClient),         //BankLink Books
+
+     (tkBegin_Exchange_Rates_Header, dbExchangeRates)); //Exchange Rate Source
 {$ENDIF}
 
 
@@ -466,6 +490,7 @@ begin
     case atNameTable[AAuditType, 1] of
       dbSystem: Result := 'SY';
       dbClient: Result := 'BK';
+      dbExchangeRates: Result := 'ER';      
     end;
 {$ENDIF}
 end;
@@ -496,6 +521,7 @@ begin
     case atNameTable[AAuditType, 1] of
       dbSystem: Result := SYAuditNames.GetAuditTableName(atNameTable[AAuditType, 0]);
       dbClient: Result := BKAuditNames.GetAuditTableName(atNameTable[AAuditType, 0]);
+      dbExchangeRates: Result := MCAuditNames.GetAuditTableName(atNameTable[AAuditType, 0]);
     end;
 {$ENDIF}
 end;
@@ -779,7 +805,7 @@ begin
 {$IFNDEF LOOKUPDLL}
   Result := AdminSystem.NextAuditRecordID;
 {$ENDIF}
-end;   
+end;
 
 procedure TSystemAuditManager.ReadAuditRecord(ARecordType: byte;
   AStream: TIOStream; var ARecord: pointer);
@@ -919,7 +945,7 @@ begin
 
   FOwner := nil;
   FProvisionalAccountAttached := False;
-  FUpgradingClientFile := False;  
+  FUpgradingClientFile := False;
 {$IFNDEF LOOKUPDLL}
   if Owner is TClientObj then
     FOwner := Owner;
@@ -998,8 +1024,6 @@ begin
     btStockJournals      : Result := atStockAdjustmentJournals;
     btOpeningBalances    : Result := atOpeningBalances;
     btYearEndAdjustments : Result := atYearEndAdjustmentJournals;
-  else
-    Result := atClientBankAccounts;
   end;
 {$ENDIF}
 end;
@@ -1404,6 +1428,96 @@ begin
       Result := atDate_Time;
   end else
     Result := atDate_Time;
+end;
+
+{ TExchangeRateAuditManager }
+
+procedure TExchangeRateAuditManager.CopyAuditRecord(const ARecordType: byte;
+  P1: Pointer; var P2: Pointer);
+begin
+
+end;
+
+constructor TExchangeRateAuditManager.Create(Owner: TObject);
+begin
+  inherited Create;
+
+  FOwner := nil;
+  if Owner is TExchangeRateList then
+    FOwner := Owner;
+end;
+
+procedure TExchangeRateAuditManager.DoAudit;
+var
+  i: integer;
+  TableID: byte;
+  ExchangeRateList: TExchangeRateList;
+begin
+  if Assigned(FOwner) then begin
+    ExchangeRateList := TExchangeRateList(FOwner);
+    //Output the info only audit records first
+    for i := 0 to FAuditScope.Count - 1 do begin
+      TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
+      if (PScopeInfo(FAuditScope.Items[i]).AuditRecordID <> -1) then begin
+        //This audits a change to a specific record which may include info
+        //that doesn't get audited when the database is saved (i.e no delta
+        //record is created).
+        AddSpecailAuditRec(TableID,
+                           GetParentRecordID(TableID, PScopeInfo(FAuditScope.Items[i]).AuditRecordID),
+                           PScopeInfo(FAuditScope.Items[i]),
+                           ExchangeRateList.AuditTable,
+                           CurrentUserCode);
+      end;
+    end;
+    //Now output the changes to the database
+    for i := 0 to FAuditScope.Count - 1 do begin
+      TableID :=  AuditTypeToTableID(PScopeInfo(FAuditScope.Items[i]).AuditType);
+      if (PScopeInfo(FAuditScope.Items[i]).AuditRecordID = -1) then begin
+        case TableID of
+          tkBegin_Exchange_Rate,
+          tkBegin_Exchange_Rates_Header: ExchangeRateList.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
+                                                                  ExchangeRateList.ExchangeRateListCopy);
+        end;
+      end;
+    end;
+    FAuditScope.Clear;
+  end;
+end;
+
+procedure TExchangeRateAuditManager.FlagAudit(AAuditType: TAuditType;
+  AAuditRecordID: integer; AAuditAction: byte; AOtherInfo: string);
+begin
+  AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
+end;
+
+function TExchangeRateAuditManager.GetParentRecordID(ARecordType: byte;
+  ARecordID: integer): integer;
+begin
+  Result := 0;
+end;
+
+procedure TExchangeRateAuditManager.GetValues(
+  const AAuditRecord: TAudit_Trail_Rec; var Values: string);
+begin
+
+end;
+
+function TExchangeRateAuditManager.NextAuditRecordID: integer;
+begin
+  with FOwner as TExchangeRateList do
+    Result := NextAuditRecordID;
+end;
+
+procedure TExchangeRateAuditManager.ReadAuditRecord(ARecordType: byte;
+  AStream: TIOStream; var ARecord: pointer);
+begin
+
+end;
+
+procedure TExchangeRateAuditManager.WriteAuditRecord(ARecordType: byte;
+  ARecord: pointer; AStream: TIOStream);
+begin
+
 end;
 
 initialization

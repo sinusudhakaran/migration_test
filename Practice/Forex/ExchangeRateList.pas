@@ -13,99 +13,115 @@ unit ExchangeRateList;
 interface
 
 uses
-  ECollect, stDate, Classes, mcDefs, ioStream, stTree,stBase, sysUtils;
+  ECollect, stDate, Classes, mcDefs, ioStream, stTree,stBase, sysUtils,
+  AuditMgr;
 
 type
-   RateArray = array of Double;
+  RateArray = array of Double;
 
-   TExchangeRecord = class(TPersistent)
-   // Record for each date
-   // The rates are in a Dinamic array to save memory
-   // These rates should be in step with the Header of the Source
-   private
-     FRates: RateArray;
-     function GetRates(index: Integer): Double;
-     procedure SetRates(index: Integer; const Value: Double);
-     function Getwidth: integer;
-     procedure SetDate(const Value: TstDate);
-     procedure SetLocked(const Value: Boolean);
-   public
-     FDate: TStdate;
-     FLocked: Boolean;
-     constructor Create(Fromrec: pExchange_Rate_Rec; Width: Integer); overload;
-     constructor Create(ForDate: tstDate; Width: Integer); overload;
-     destructor Destroy; override;
-     procedure Assign(Source: TPersistent); override;
-     procedure loadFromExchange_Rate_Rec(Value: pExchange_Rate_Rec);
-     procedure SaveToExchange_Rate_Rec(Value: pExchange_Rate_Rec);
-     property Rates [index: Integer]: Double read GetRates write SetRates;
-     property Width: integer read Getwidth;
-     property Date: TstDate read FDate write SetDate;
-     property Locked: Boolean read FLocked write SetLocked;
-   end;
+  TExchangeRecord = class(TPersistent)
+  // Record for each date
+  // The rates are in a Dinamic array to save memory
+  // These rates should be in step with the Header of the Source
+  private
+    FRates: RateArray;
+    function GetRates(index: Integer): Double;
+    procedure SetRates(index: Integer; const Value: Double);
+    function Getwidth: integer;
+    procedure SetDate(const Value: TstDate);
+    procedure SetLocked(const Value: Boolean);
+  public
+    FDate: TStdate;
+    FLocked: Boolean;
+    constructor Create(Fromrec: pExchange_Rate_Rec; Width: Integer); overload;
+    constructor Create(ForDate: tstDate; Width: Integer); overload;
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    procedure loadFromExchange_Rate_Rec(Value: pExchange_Rate_Rec);
+    procedure SaveToExchange_Rate_Rec(Value: pExchange_Rate_Rec);
+    property Rates [index: Integer]: Double read GetRates write SetRates;
+    property Width: integer read Getwidth;
+    property Date: TstDate read FDate write SetDate;
+    property Locked: Boolean read FLocked write SetLocked;
+  end;
 
-   PExchangeSource = ^TExchangeSource;
-   TExchangeSource = class(TPersistent)
-   // A specific Exchange rate source in a list, or just in the Client file as is.
-   // Has a BinaryTree to store the records as above
-   private
-     FHeader: TExchange_Rates_Header_Rec;
-     FExchangeTree: TStTree;
-     function GetHeaderWidth(Value: TExchange_Rates_Header_Rec): Integer;
-     function GetWidth: Integer;
-     procedure LoadExchangeRates(var S : TIOStream);
-   public
-     constructor Create; overload;
-     constructor Create(var S: TIOStream); overload;
-     destructor Destroy; override;
-     function GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
-     procedure SaveToStream(var S : TIOStream );
-     procedure LoadFromStream(var S : TIOStream );
-     procedure MapToHeader(NewHeader: TExchange_Rates_Header_Rec);
-     procedure Assign(Source: TPersistent); override;
-     property Width: Integer read GetWidth;
-     property Header: TExchange_Rates_Header_Rec read FHeader;
-     property ExchangeTree: TStTree read FExchangeTree;
-     function GetDateRates(Value: tstDate): TExchangeRecord;
-     function Iterate (Action: TIterateFunc; Up: Boolean;
-                       OtherData: Pointer): TStTreeNode;
-   end;
+  PExchangeSource = ^TExchangeSource;
+  TExchangeSource = class(TPersistent)
+  // A specific Exchange rate source in a list, or just in the Client file as is.
+  // Has a BinaryTree to store the records as above
+  private
+    FHeader: TExchange_Rates_Header_Rec;
+    FExchangeTree: TStTree;
+    function GetHeaderWidth(Value: TExchange_Rates_Header_Rec): Integer;
+    function GetWidth: Integer;
+    procedure LoadExchangeRates(var S : TIOStream);
+    function GetAuditTrialID: integer;
+    procedure SetAuditTrialID(const Value: integer);
+    function GetFileVersion: integer;
+    procedure SetFileVersion(const Value: integer);
+  public
+    constructor Create; overload;
+    constructor Create(var S: TIOStream); overload;
+    destructor Destroy; override;
+    function GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
+    procedure SaveToStream(var S : TIOStream );
+    procedure LoadFromStream(var S : TIOStream );
+    procedure MapToHeader(NewHeader: TExchange_Rates_Header_Rec);
+    procedure Assign(Source: TPersistent); override;
+    property Width: Integer read GetWidth;
+    property Header: TExchange_Rates_Header_Rec read FHeader;
+    property ExchangeTree: TStTree read FExchangeTree;
+    function GetDateRates(Value: tstDate): TExchangeRecord;
+    function Iterate (Action: TIterateFunc; Up: Boolean;
+                      OtherData: Pointer): TStTreeNode;
+    property AuditTrialID: integer read GetAuditTrialID write SetAuditTrialID;
+    property FileVersion: integer read GetFileVersion write SetFileVersion;                  
+  end;
 
-   TExchangeRateList = class(TExtdSortedCollection)
-   private
-      FLocked: Boolean;
+  TExchangeRateList = class(TExtdSortedCollection)
+  private
+    FAuditTable: TAuditTable;
+    FAuditManager: TExchangeRateAuditManager;
+    FLocked: Boolean;
+    FLastAuditRecordID: integer;
+    FExchangeRateListCopy: TExchangeRateList;
+    function Lock: Boolean;
+    procedure SaveToFile(Filename: string);
+    procedure ReadFromFile(Filename: string);
+    procedure ExchangeRateCopyReload(var S: TIOStream);
+    function GetExchangeRateListCopy: TExchangeRateList;
+  protected
+    procedure FreeItem( Item : Pointer ); override;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function Compare( Item1, Item2 : pointer ) : integer; override;
+    function ExchangeSource( Index : LongInt ): TExchangeSource;
+    procedure SaveToStream(var S : TIOStream );
+    procedure LoadFromStream(var S : TIOStream );
+    function LockAndLoad(const KeepLock: Boolean = False): Boolean;
+    function Unlock: Boolean;
+    function Save: Boolean;// Saves and unlocks
+    function GetSource(const Value: string):TExchangeSource; // Forces if not there
+    function GiveMeSource(const Value: string):TExchangeSource; // As above but takes it from the list
+    function FindSource(const Value: string):TExchangeSource; // is it in the list
+    function MergeSource(Value:TExchangeSource):TExchangeSource; // update in the list...
+    function NextAuditRecordID: integer;
+    procedure DoAudit(AAuditType: TAuditType; AExchangeRateListCopy: TExchangeRateList);
+    property AuditTable: TAuditTable read FAuditTable;
+    property AuditMgr: TExchangeRateAuditManager read FAuditManager;
+    property ExchangeRateListCopy: TExchangeRateList read GetExchangeRateListCopy;
+  end;
 
-      function Lock: Boolean;
-      procedure SaveToFile(Filename: string);
-      procedure ReadFromFile(Filename: string);
+  // So I Can use them in the admin system...
+  procedure WriteCurrencyList(var Rec: TExchange_Rates_Header_Rec; var S : TIOStream);
+  procedure ReadCurrencyList(var Rec: TExchange_Rates_Header_Rec; var S : TIOStream);
 
-   protected
-      procedure FreeItem( Item : Pointer ); override;
-   public
-      constructor Create;
-      function Compare( Item1, Item2 : pointer ) : integer; override;
-      function ExchangeSource( Index : LongInt ): TExchangeSource;
-      procedure SaveToStream(var S : TIOStream );
-      procedure LoadFromStream(var S : TIOStream );
-      function LockAndLoad(const KeepLock: Boolean = False): Boolean;
-      function Unlock: Boolean;
-      function Save: Boolean;// Saves and unlocks
-
-      function GetSource(const Value: string):TExchangeSource; // Forces if not there
-      function GiveMeSource(const Value: string):TExchangeSource; // As above but takes it from the list
-      function FindSource(const Value: string):TExchangeSource; // is it in the list
-      function MergeSource(Value:TExchangeSource):TExchangeSource; // update in the list...
-   end;
-
-   // So I Can use them in the admin system...
-   procedure WriteCurrencyList(var Rec: TExchange_Rates_Header_Rec; var S : TIOStream);
-   procedure ReadCurrencyList(var Rec: TExchange_Rates_Header_Rec; var S : TIOStream);
-
-
-   const // Could make this a Type, but the record cannot handle it direct...
-     ct_System = 0;
-     ct_Base = 1;
-     ct_User = 2;
+  const // Could make this a Type, but the record cannot handle it direct...
+    ct_System = 0;
+    ct_Base = 1;
+    ct_User = 2;
+    EXCHANGE_RATE_FILENAME = 'ExchangeRates.db';
 
   function GetExchangeRates(const KeepLock: Boolean = False): TExchangeRateList;
 
@@ -130,8 +146,6 @@ uses
 const
   DEBUG_ME : Boolean = FALSE;
   UNIT_NAME = 'ExchangeRateList';
-  EXCHANGE_RATE_FILENAME = 'ExchangeRates.db';
-
 
 function GetExchangeRates(const KeepLock: Boolean = False): TExchangeRateList;
 begin
@@ -245,6 +259,11 @@ begin
       Result := FExchangeTree.Iterate(Action, Up, OtherData);
 end;
 
+function TExchangeSource.GetAuditTrialID: integer;
+begin
+  Result := FHeader.ehAudit_Record_ID;
+end;
+
 function TExchangeSource.GetDateRates(Value: tstDate): TExchangeRecord;
 var LR: TExchangeRecord;
     lt: TStTreeNode;
@@ -260,6 +279,11 @@ begin
          FreeAndNil(LR);
       end;
    end;
+end;
+
+function TExchangeSource.GetFileVersion: integer;
+begin
+  Result := FHeader.ehFile_Version;
 end;
 
 function TExchangeSource.GetHeaderWidth(Value: TExchange_Rates_Header_Rec): Integer;
@@ -329,14 +353,7 @@ begin
      end; { of Case }
      Token := S.ReadToken;
   end;
-
-  if FHeader.ehFile_Version <> MC_FILE_VERSION then begin
-     // Handle upgrades??
-     FHeader.ehFile_Version := MC_FILE_VERSION;
-  end;
 end;
-
-
 
 //******************************************************************************
 function WriteExchangeRates(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
@@ -378,6 +395,16 @@ begin
 end;
 
 
+
+procedure TExchangeSource.SetAuditTrialID(const Value: integer);
+begin
+  FHeader.ehAudit_Record_ID := Value;
+end;
+
+procedure TExchangeSource.SetFileVersion(const Value: integer);
+begin
+  FHeader.ehFile_Version := Value;
+end;
 
 type
    RemapArray = array[1..2] of integer;
@@ -454,6 +481,33 @@ end;
 constructor TExchangeRateList.Create;
 begin
    inherited create;
+
+   FLastAuditRecordID := 0;
+   FAuditManager := TExchangeRateAuditManager.Create(Self);
+   FAuditTable := TAuditTable.Create(FAuditManager);
+end;
+
+destructor TExchangeRateList.Destroy;
+begin
+  //Audit table
+  FreeAndNil(FAuditTable);
+  FreeAndNil(FAuditManager);
+
+  inherited;
+end;
+
+procedure TExchangeRateList.DoAudit(AAuditType: TAuditType;
+  AExchangeRateListCopy: TExchangeRateList);
+begin
+  //
+end;
+
+procedure TExchangeRateList.ExchangeRateCopyReload(var S: TIOStream);
+begin
+  //Reload exchange rate copy DB
+  FreeAndNil(FExchangeRateListCopy); //Delete current copy
+  S.Seek(Sizeof(LongInt), soFromBeginning);
+  ExchangeRateListCopy.LoadFromStream(S);
 end;
 
 function TExchangeRateList.ExchangeSource(Index: Integer): TExchangeSource;
@@ -477,6 +531,14 @@ begin
    FreeAndNil(TExchangeSource(Item));
 end;
 
+function TExchangeRateList.GetExchangeRateListCopy: TExchangeRateList;
+begin
+  if not Assigned(FExchangeRateListCopy) then begin
+    FExchangeRateListCopy := TExchangeRateList.Create;
+  end;
+  Result := FExchangeRateListCopy;
+end;
+
 function TExchangeRateList.GetSource(const Value: string): TExchangeSource;
 begin
    Result := FindSource(Value);
@@ -484,6 +546,7 @@ begin
       Result := TExchangeSource.Create;
       Result.FHeader.ehLRN := ItemCount;
       Result.FHeader.ehName := Value;
+      Result.FHeader.ehAudit_Record_ID := FAuditManager.NextAuditRecordID;
       Self.Insert(Result);
    end;
 end;
@@ -508,6 +571,7 @@ begin
    Token := S.ReadToken;
    while (Token <> tkEndSection) do begin
       case token of
+         tkLastAuditRecordID: FLastAuditRecordID := S.ReadIntegerValue;
          tkBeginExchangeRateHeader: ;
          tkBeginExchangeRateList:; // In the Client file ill already be past this
                                    // But in the file version, it will be here..
@@ -532,6 +596,8 @@ begin
   // Write the exchange rates
   if ItemCount > 0 then begin
     S.WriteToken(tkBeginExchangeRateList);
+    //Write last audit ID
+    S.WriteIntegerValue(tkLastAuditRecordID, FLastAuditRecordID);
     for I := First to Last do begin
       ExchangeSource(I).FHeader.ehLRN := I;
       S.WriteToken(tkBeginExchangeRateSource);
@@ -583,6 +649,12 @@ begin
    end;
 end;
 
+function TExchangeRateList.NextAuditRecordID: integer;
+begin
+  Inc(FLastAuditRecordID);
+  Result := FLastAuditRecordID;
+end;
+
 procedure TExchangeRateList.ReadFromFile(Filename: string);
 var
   S: TIOStream;
@@ -598,6 +670,8 @@ begin
 
         LoadFromStream(S);
 
+        //Load audit copy
+        ExchangeRateCopyReload(S);
      finally
        S.Free;
      end;
@@ -626,12 +700,16 @@ var
   S: TIOStream;
   L: LongInt;
 begin
-  //Delete old stats
+  //Delete old file
   if BKFileExists(Filename) then
      SysUtils.DeleteFile(Filename);
   //Write out new List
   S := TIOStream.Create;
   try
+    //*** Flag Audit ***
+    FAuditManager.FlagAudit(atExchangeRates);
+    FAuditManager.DoAudit;
+
     L := 0;
     S.Write(L, Sizeof(LongInt)); //Leave space for the CRC
 
@@ -640,6 +718,9 @@ begin
     EmbedCRC(S);
 
     S.SaveToFile(Filename);
+
+    //Load audit copy
+    ExchangeRateCopyReload(S);
   finally
     S.Free;
   end;

@@ -23,6 +23,7 @@ uses
 
 Procedure UpgradeAdminToLatestVersion;
 Procedure UpgradeClientToLatestVersion( aClient : TClientObj );
+Procedure UpgradeExchangeRatesToLatestVersion;
 
 // ----------------------------------------------------------------------------
 implementation
@@ -76,7 +77,8 @@ uses
   Windows,
   ReportTypes,
   YesNoDlg, pyList32, cfList32, WinUtils, SYamIO, mxFiles32, BasUtils, Software,
-  SystemMemorisationList, IOStream, AuditMgr, CountryUtils;
+  SystemMemorisationList, IOStream, AuditMgr, CountryUtils,
+  ExchangeRateList, MCDEFS, stTree, stBase;
 // ----------------------------------------------------------------------------
 
 Const
@@ -4431,6 +4433,151 @@ begin
       end;
 
    end;
+end;
+
+function AddAuditID(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+var
+  ER: TExchangeRecord;
+  ERR: TExchange_Rate_Rec;
+  AuditManager: TExchangeRateAuditManager;
+begin
+  Result := true;
+  ER := TExchangeRecord(Node.Data);
+  AuditManager := TExchangeRateAuditManager(OtherData);
+  ER.SaveToExchange_Rate_Rec(@ERR);
+  ERR.erAudit_Record_ID := AuditManager.NextAuditRecordID;
+  ER.loadFromExchange_Rate_Rec(@ERR);
+end;
+
+procedure DoUpgradeExchangeRatesToLatestVersion(var UpgradingToVersion: integer;
+  const OriginalVersion: integer; AExchangeSource: TExchangeSource;
+  AAuditManager: TExchangeRateAuditManager);
+const
+   ThisMethodName = 'DoUpgradeExchangeRatesToLatestVersion';
+var
+  ArchiveCheckNeeded : boolean;
+
+  procedure  UpgradeExchangeRatesBefore101ToVersion102;
+  var
+    ExchangeRecord: TExchangeRecord;
+  begin
+    AExchangeSource.AuditTrialID := AAuditManager.NextAuditRecordID;
+    //Add audit ID's to existing records
+    AExchangeSource.Iterate(AddAuditID, True, AAuditManager);
+    AExchangeSource.FileVersion := 102;
+  end;
+
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : Begins');
+  try
+    if (AExchangeSource.FileVersion < 102) then Begin
+      LogUtil.LogMsg(lmInfo, ThisMethodName, 'Upgrading Database  < 101 to 102');
+      UpgradeExchangeRatesBefore101ToVersion102;
+      LogUtil.LogMsg(lmInfo, ThisMethodName, 'Upgrade completed normally');
+    end;
+  finally
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : Ends');
+    ClearStatus;
+  end;
+end;
+
+function BackupExchangeRates: boolean;
+var
+  BkBackup: TBkBackup;
+  BackupFilename: string;
+  ExchangeRatesFilename: string;
+  Msg: string;
+begin
+  Result := False;
+  try
+    ExchangeRatesFilename := DataDir + EXCHANGE_RATE_FILENAME;
+    BackupFilename := ChangeFileExt(ExchangeRatesFilename, '.zip');
+    BkBackup := TBkBackup.Create;
+    try
+      BkBackup.ZipFilename := Backup.ZipFilenameToUse(BackupFilename);
+      BkBackup.FilesTypesToInclude := [biSpecifiedFile];
+      BkBackup.FileToAdd := ExchangeRatesFilename;
+      BkBackup.RootDir     := DataDir;
+      BkBackup.OnProgressEvent := ShowBackupProgress;
+      BkBackup.OnLogEvent      := LogBackupMessage;
+      BkBackup.ZipFiles;
+      Result := True;      
+    finally
+      BkBackup.Free;
+      ClearStatus;
+    end;
+  except
+    on E: Exception do begin
+      Msg := Format('Exchange Rates Backup Failed. %s [%s]', [E.Message, E.Classname]);
+      ShowMessage(Msg);
+      LogMsg(lmError, Unitname, Msg);
+    end;
+  end;
+end;
+
+procedure UpgradeExchangeRatesToLatestVersion;
+const
+  ThisMethodName = 'UpgradeExchangeRatesToLatestVersion';
+var
+  OriginalVersion     : integer;
+  NewVersion          : integer;
+  UpgradingToVersion  : integer;
+  ErrorMessage        : string;
+  ExchangeRates: TExchangeRateList;
+  ExchangeSource: TExchangeSource;
+  Upgraded: Boolean;
+begin
+  Upgraded := False;
+  //Load exchange rates info
+  ExchangeRates := GetExchangeRates(True);
+  try
+    //Only upgrade if an exchange rate source exists
+    if ExchangeRates.ItemCount > 0 then begin
+      //We only have one Master exchage rate source at the moment
+      ExchangeSource := ExchangeRates.GiveMeSource('Master');
+      //See if it needs upgrading
+      if (ExchangeSource.FileVersion <> MCDEFS.MC_FILE_VERSION) then begin
+        LogUtil.LogMsg(lmInfo, ThisMethodName, 'Starting Upgrade');
+        //Exchange rates still locked at this point
+        OriginalVersion := ExchangeSource.FileVersion;
+        NewVersion := MCDEFS.MC_FILE_VERSION;
+        //Backup exchange rates
+        if not BackupExchangeRates then begin
+          ExchangeRates.Unlock;
+          Application.Terminate;
+          Halt;
+        end;
+        //Upgrade exchange rates
+        Progress.UpdateAppStatus( 'Upgrading Exchage Rates', 'This process may take several minutes', 1, ProcessMessages_On);
+        try
+          try
+            //upgrade, this will unlock the exchange rates db
+            //upgradingToVersion is set within DoUpgradeExchangeRatesToLatestVersion
+            //so that we know what step we need to rollback from
+            DoUpgradeExchangeRatesToLatestVersion(UpgradingToVersion, OriginalVersion, ExchangeSource, ExchangeRates.AuditMgr);
+            ExchangeRates.MergeSource(ExchangeSource);
+            ExchangeRates.Save;
+            Upgraded := True;
+          except
+            on E : Exception do begin
+              ErrorMessage := Format('Upgrade Failed [%s] Original ver = %d Upgrade reached ver %d',
+                                     [E.Message, OriginalVersion, UpgradingToVersion]);
+              LogUtil.LogMsg( lmInfo, ThisMethodName, ErrorMessage );
+              //Raise exception
+              raise Exception.Create( ErrorMessage);
+            end;
+          end;
+        finally
+          //clean up temp files
+          Progress.ClearStatus;
+        end;
+      end;
+    end;
+  finally
+    if not Upgraded then
+      ExchangeRates.Unlock;
+    ExchangeRates.Free;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

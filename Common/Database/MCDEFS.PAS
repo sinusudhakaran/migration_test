@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   MC_IOLIB_Version : Integer = 122;
-   MC_IOLIB_Date    = '01/11/10';
-   MC_FILE_VERSION  = 101;  (* Current Version counter for files
+   MC_IOLIB_Version : Integer = 123;
+   MC_IOLIB_Date    = '11/07/11';
+   MC_FILE_VERSION  = 102;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -19,6 +19,7 @@ Const
    (*
        2010 UK          : 100     Introduction
                         : 101     Added header token to SaveToStream method
+                        : 102     Added audit ID fields
    
    *)
 
@@ -38,6 +39,7 @@ Type
       ehList_Type                        : Byte;       { Stored }
       ehISO_Codes                        : Array[ 1..99 ] of String[ 3 ];       { Stored }
       ehCur_Type                         : Array[ 1..99 ] of Byte;       { Stored }
+      ehAudit_Record_ID                  : Integer;       { Stored }
       ehEOR                              : Byte;
    end;
 
@@ -48,6 +50,7 @@ Type
       erApplies_Until                    : Integer;       { Stored }
       erRate                             : Array[ 1..99 ] of Double;       { Stored }
       erLocked                           : Boolean;       { Stored }
+      erAudit_Record_ID                  : Integer;       { Stored }
       erEOR                              : Byte;
    end;
 

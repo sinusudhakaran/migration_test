@@ -313,6 +313,7 @@ begin
   begin
     StartUpStep := 'Checking for admin upgrade';
     Upgrade.UpgradeAdminToLatestVersion;
+    Upgrade.UpgradeExchangeRatesToLatestVersion;
   end;
 
   StartUpStep := 'Checking for custom bitmap';

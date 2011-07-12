@@ -3,7 +3,7 @@
 ; The items are split over Admin system, Client file and exchange rates
 ;
 
-$|MC_FILE_VERSION  = 101;  (* Current Version counter for files
+$|MC_FILE_VERSION  = 102;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -11,11 +11,9 @@ $|
 $|(*
 $|    2010 UK          : 100     Introduction
 $|                     : 101     Added header token to SaveToStream method
+$|                     : 102     Added audit ID fields
 $|
 $|*)
-
-
-
 
 
 N|Exchange Rates Header|eh|10
@@ -25,10 +23,12 @@ F|Name|S|200
 F|List Type|B
 F|ISO Codes|BS|99|3
 F|Cur Type|BB|99
+F|Audit Record ID|L
 E
 
 N|Exchange Rate|er|15
 F|Applies Until|D
 F|Rate|BR|99
 F|Locked|Y
+F|Audit Record ID|L
 E
