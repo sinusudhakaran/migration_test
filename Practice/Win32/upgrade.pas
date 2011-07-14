@@ -4435,23 +4435,9 @@ begin
    end;
 end;
 
-function AddAuditID(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
-var
-  ER: TExchangeRecord;
-  ERR: TExchange_Rate_Rec;
-  AuditManager: TExchangeRateAuditManager;
-begin
-  Result := true;
-  ER := TExchangeRecord(Node.Data);
-  AuditManager := TExchangeRateAuditManager(OtherData);
-  ER.SaveToExchange_Rate_Rec(@ERR);
-  ERR.erAudit_Record_ID := AuditManager.NextAuditRecordID;
-  ER.loadFromExchange_Rate_Rec(@ERR);
-end;
-
 procedure DoUpgradeExchangeRatesToLatestVersion(var UpgradingToVersion: integer;
   const OriginalVersion: integer; AExchangeSource: TExchangeSource;
-  AAuditManager: TExchangeRateAuditManager);
+  AExchangeRateList: TExchangeRateList);
 const
    ThisMethodName = 'DoUpgradeExchangeRatesToLatestVersion';
 var
@@ -4461,9 +4447,14 @@ var
   var
     ExchangeRecord: TExchangeRecord;
   begin
-    AExchangeSource.AuditTrialID := AAuditManager.NextAuditRecordID;
+    AExchangeSource.AuditTrialID := AExchangeRateList.AuditMgr.NextAuditRecordID;
     //Add audit ID's to existing records
-    AExchangeSource.Iterate(AddAuditID, True, AAuditManager);
+    AExchangeSource.Iterate(AddAuditIDs, True, @AExchangeRateList);
+    //Merge into source
+    AExchangeRateList.MergeSource(AExchangeSource);
+    //Reload the exchange rates copy so that anything changed from here on gets audited.
+    AExchangeRateList.ExchangeRateCopyReset;
+    //Update version
     AExchangeSource.FileVersion := 102;
   end;
 
@@ -4551,11 +4542,11 @@ begin
         Progress.UpdateAppStatus( 'Upgrading Exchage Rates', 'This process may take several minutes', 1, ProcessMessages_On);
         try
           try
-            //upgrade, this will unlock the exchange rates db
+            //upgrade
             //upgradingToVersion is set within DoUpgradeExchangeRatesToLatestVersion
             //so that we know what step we need to rollback from
-            DoUpgradeExchangeRatesToLatestVersion(UpgradingToVersion, OriginalVersion, ExchangeSource, ExchangeRates.AuditMgr);
-            ExchangeRates.MergeSource(ExchangeSource);
+            DoUpgradeExchangeRatesToLatestVersion(UpgradingToVersion, OriginalVersion, ExchangeSource, ExchangeRates);
+            //Save will also unlock the exchange rates db
             ExchangeRates.Save;
             Upgraded := True;
           except

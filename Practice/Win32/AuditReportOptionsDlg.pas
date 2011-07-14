@@ -8,7 +8,7 @@ uses
   OSFont, ClientSelectFme, SYDEFS, ExtCtrls;
 
 type
-  TAuditReportType = (arSystem, arClient, arTest);
+  TAuditReportType = (arSystem, arClient, arExchangeRates);
   TAuditSelection = (byAll, byClient, byTransactionType, byTransactionID);
 
   TAuditReportOptions = class(TObject)
@@ -64,6 +64,7 @@ type
     btnPrint: TButton;
     btnFile: TButton;
     btnPreview: TButton;
+    rbExchangeRates: TRadioButton;
     procedure FormCreate(Sender: TObject);
     procedure btnPreviewClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -116,6 +117,7 @@ begin
       case AuditReportOptions.AuditReportType of
         arSystem: rbSystem.Checked := True;
         arClient: rbClient.Checked := True;
+        arExchangeRates: rbExchangeRates.Checked := True;
       end;
       cbClientFileCodes.ItemIndex := cbClientFileCodes.Items.IndexOf(AuditReportOptions.ClientCode);
       rbSystemClick(frmAuditReportOption);
@@ -124,9 +126,14 @@ begin
       ShowModal;
       if FBtnPressed in [BTN_PREVIEW, BTN_PRINT, BTN_FILE] then begin
           with AuditReportOptions do begin
-            AuditReportType := arSystem;
-            if rbClient.Checked then
+            //Set report type
+            if rbSystem.Checked then
+              AuditReportType := arSystem
+            else if rbExchangeRates.Checked then
+              AuditReportType := arExchangeRates
+            else if rbClient.Checked then
               AuditReportType := arClient;
+
             DateFrom  := DateSelector.eDateFrom.AsStDate;
             DateTo    := DateSelector.eDateTo.AsStDate;
             AuditReportOptions.AuditSelection := byTransactionType;
@@ -229,6 +236,9 @@ begin
     arClient: for i := atMin to atMax do
                 if SystemAuditMgr.AuditTypeToDBStr(i) = 'BK' then
                   cbTransactionType.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
+    arExchangeRates: for i := atMin to atMax do
+                if SystemAuditMgr.AuditTypeToDBStr(i) = 'MC' then
+                  cbTransactionType.Items.AddObject(SystemAuditMgr.AuditTypeToStr(i), TObject(i));
   end;
   cbTransactionType.ItemIndex := 0;
 end;
@@ -249,11 +259,12 @@ procedure TfrmAuditReportOption.rbSystemClick(Sender: TObject);
 begin
   cbClientFileCodes.Enabled := rbClient.Checked;
   //Load audit types
-  if rbClient.Checked then begin
-    LoadAuditTypes(arClient);
-  end else begin
-    LoadAuditTypes(arSystem);
-  end;
+  if rbClient.Checked then
+    LoadAuditTypes(arClient)
+  else if rbExchangeRates.Checked then
+    LoadAuditTypes(arExchangeRates)
+  else
+    LoadAuditTypes(arSystem)
 end;
 
 procedure TfrmAuditReportOption.rbSytemTransactionTypeClick(Sender: TObject);

@@ -111,7 +111,7 @@ uses
    Windows,
    ReportImages,
    ClientSelectFme,
-   AuditMgr, BKTXIO, BKCLIO;
+   AuditMgr, BKTXIO, BKCLIO, ExchangeRateList;
 
 type
    //Client status record for whats due list
@@ -3991,6 +3991,142 @@ begin
   end;
 end;
 
+procedure ExchangeRatesAuditReportDetail(Sender: TObject);
+const
+  MAX_CHARS = 100;
+var
+  i, j: integer;
+  Report: TAuditReport;
+  AuditRecord: TAudit_Trail_Rec;
+  AuditFields: TStringList;
+  Values: string;
+  PrintAuditRec: Boolean;
+  AuditCount: integer;
+  ExchangeRates: TExchangeRateList;
+begin
+  Report := TAuditReport(Sender);
+  AuditCount := 0;
+
+  //Open exchange rates DB
+  ExchangeRates := GetExchangeRates(False);
+  try
+    //Nothing audited
+    if ExchangeRates.AuditTable.AuditRecords.ItemCount =  0 then begin
+      Report.RenderTextLine('Nothing to report.');
+      Exit;
+    end;
+
+    AuditFields := TStringList.Create;
+    try
+      AuditFields.StrictDelimiter := True;
+      AuditFields.Delimiter := VALUES_DELIMITER;
+      for i := 0 to Pred(ExchangeRates.AuditTable.AuditRecords.ItemCount) do begin
+        AuditRecord := ExchangeRates.AuditTable.AuditRecords.Audit_At(i);
+
+        //Date selection
+        if (stDate.DateTimeToStDate(AuditRecord.AuditDateTimeAsLocalDateTime) < Report.ReportOptions.DateFrom) or
+           (stDate.DateTimeToStDate(AuditRecord.AuditDateTimeAsLocalDateTime) > Report.ReportOptions.DateTo) then
+           Continue;
+
+        //Transaction selection
+        case Report.ReportOptions.AuditSelection of
+          byAll: PrintAuditRec := True;
+          byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
+                                              (Report.ReportOptions.TransactionType = atAll) or
+                                              //Print child records
+                                              (Report.ReportOptions.IncludeChild and
+                                               (IsChildTransaction(ExchangeRates.AuditTable,
+                                                                   Report.ReportOptions.TransactionType,
+                                                                   AuditRecord)));
+          byTransactionID  : PrintAuditRec := (Report.ReportOptions.TransactionID = AuditRecord.atRecord_ID) or
+                                              (Report.ReportOptions.IncludeChild and
+                                               (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
+        end;
+
+        //Get changed values
+        Values := '';
+        ExchangeRates.AuditMgr.GetValues(AuditRecord, Values);
+        PrintAuditRec := PrintAuditRec and (Values <> '');
+
+        //Output
+        if PrintAuditRec then begin
+          Report.PutString(ExchangeRates.AuditMgr.AuditTypeToStr(AuditRecord.atTransaction_Type));
+          Report.PutString(IntToStr(AuditRecord.atRecord_ID));
+          Report.PutString(aaNames[AuditRecord.atAudit_Action]);
+          Report.PutString(AuditRecord.atUser_Code);
+          Report.PutString(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRecord.AuditDateTimeAsLocalDateTime));
+
+          Report.RenderDetailLine;
+
+          AuditFields.DelimitedText := Values;
+          for j := 0 to AuditFields.Count - 1 do
+            if (AuditFields[j] <> 'ParentID=0') and (AuditFields.Names[j] <> OTHER_INFO_FLAG + 'ISO Codes') then
+              Report.RenderTextLine('        ' + AuditFields[j]);
+          Inc(AuditCount);
+        end;
+      end;
+    finally
+      AuditFields.Free;
+    end;
+
+    //Nothing matches filter
+    if (AuditCount =  0) then begin
+      Report.RenderTextLine('No audit records match the selected filter.');
+      Exit;
+    end;
+  finally
+    FreeAndNil(ExchangeRates);
+  end;
+end;
+
+procedure DoExchangeRatesAuditReport(AAuditReportOptions: TAuditReportOptions);
+var
+  Job: TAuditReport;
+  CLeft: Double;
+begin
+  //Generate report
+  Job := TAuditReport.Create;
+  try
+    Job.IsAdmin := True;
+    //construct report
+    Job.LoadReportSettings(UserPrintSettings, 'Exchange Rates ' + Report_List_Names[ REPORT_AUDIT]);
+
+    {Add Headers: Job, Alignment, Font Factor, Caption, DoNewLine }
+    AddAdminHeader(Job);
+
+    AddJobHeader(Job, siTitle, 'EXCHANGE RATES AUDIT REPORT', true);
+    AddJobHeader(Job, siSubTitle, ' From ' +
+                                  StDatetoDateString('dd/MM/yyyy', AAuditReportOptions.DateFrom, true) +
+                                  ' to ' +
+                                  StDatetoDateString('dd/MM/yyyy', AAuditReportOptions.DateTo, true),
+                                  true);
+    case AAuditReportOptions.AuditSelection of
+      byTransactionType: AddJobHeader(Job, siSubTitle, 'Transaction Type - ' +
+                                      SystemAuditMgr.AuditTypeToStr(AAuditReportOptions.TransactionType), true);
+      byTransactionID  : AddJobHeader(Job, siSubTitle, 'Transaction ID - ' +
+                                      IntToStr(AAuditReportOptions.TransactionID), true);
+    end;
+    AddJobHeader( Job, siSubTitle, '', true);
+
+    CLeft := GCLeft;
+    AddColAuto( Job, cLeft, 25.0,gCgap, 'Transaction Type', jtLeft);
+    AddColAuto( Job, cLeft, 15.0,gCgap, 'Transaction ID', jtLeft);
+    AddColAuto( Job, cLeft, 15.0,gCgap, 'Audit Type', jtLeft);
+    AddColAuto( Job, cLeft, 15.0,gCgap, 'User Code', jtLeft);
+    AddColAuto( Job, cLeft, 30.0,gCgap, 'Date/Time', jtLeft);
+
+    AddJobFooter(Job, siFootNote, OTHER_INFO_FLAG + 'Additional information. The field values have not changed.', true);
+    AddCommonFooter(Job);
+
+    Job.OnBKPrint := ExchangeRatesAuditReportDetail;
+    Job.ReportOptions := AAuditReportOptions;
+    Job.Generate(AAuditReportOptions.Destination);
+  finally
+    Job.Free;
+  end;
+end;
+
+
 procedure DoAuditReport(var Dest : TReportDest);
 var
   AuditReportOptions: TAuditReportOptions;
@@ -4008,7 +4144,7 @@ begin
     end;
     if AuditReportOptions.DateTo <= CurrentDate then
       AuditReportOptions.DateTo := CurrentDate;
-    
+
 
     Dest := rdNone;
     while Dest = rdNone do begin
@@ -4018,6 +4154,7 @@ begin
         case AuditReportOptions.AuditReportType of
           arSystem: DoSystemAuditReport(AuditReportOptions);
           arClient: DoClientAuditReport(AuditReportOptions);
+          arExchangeRates: DoExchangeRatesAuditReport(AuditReportOptions);
         end;
         Dest := rdNone;
       end else

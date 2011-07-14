@@ -3,7 +3,8 @@ unit AuditMgr;
 interface
 
 uses
-  Windows, SysUtils, Classes, IOStream, SYAuditUtils, stTree, SYDEFS, BKDEFS,
+  Windows, SysUtils, Classes, IOStream, SYAuditUtils, stTree,
+  SYDEFS, BKDEFS, MCDEFS,
   MoneyDef, ECollect, bkConst;
 
 const
@@ -242,7 +243,7 @@ uses
 {$ELSE}
 uses
   Globals, SysObj32, ClObj32, ExchangeRateList, MoneyUtils, SystemMemorisationList,
-  BKAuditValues, SYAuditValues,
+  BKAuditValues, SYAuditValues, MCAuditValues,
   bkdateutils, TOKENS,  BKDbExcept, CountryUtils,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
@@ -490,7 +491,7 @@ begin
     case atNameTable[AAuditType, 1] of
       dbSystem: Result := 'SY';
       dbClient: Result := 'BK';
-      dbExchangeRates: Result := 'ER';      
+      dbExchangeRates: Result := 'MC';      
     end;
 {$ENDIF}
 end;
@@ -1435,7 +1436,18 @@ end;
 procedure TExchangeRateAuditManager.CopyAuditRecord(const ARecordType: byte;
   P1: Pointer; var P2: Pointer);
 begin
-
+  case ARecordType of
+    tkBegin_Exchange_Rates_Header :
+      begin
+        P2 := New_Exchange_Rates_Header_Rec;
+        Copy_Exchange_Rates_Header_Rec(P1, P2);
+      end;
+    tkBegin_Exchange_Rate :
+      begin
+        P2 := New_Exchange_Rate_Rec;
+        Copy_Exchange_Rate_Rec(P1, P2);
+      end;
+  end;
 end;
 
 constructor TExchangeRateAuditManager.Create(Owner: TObject);
@@ -1498,8 +1510,39 @@ end;
 
 procedure TExchangeRateAuditManager.GetValues(
   const AAuditRecord: TAudit_Trail_Rec; var Values: string);
+var
+  OtherInfo: string;
+  AuditInfo: string;
 begin
+{$IFNDEF LOOKUPDLL}
+  OtherInfo := AAuditRecord.atOther_Info;
+  if AAuditRecord.atAudit_Record = nil then begin
+    //Add deletes
+    if (AAuditRecord.atAudit_Action in [aaDelete, aaNone])then begin
+      AddOtherInfoFlag(OtherInfo);
+      Values := OtherInfo;
+    end;
+    Exit;
+  end;
 
+  AddOtherInfoFlag(OtherInfo);
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Exchange_Rates_Header : AddExchangeSourceAuditValues(AAuditRecord, Self, AuditInfo);
+    tkBegin_Exchange_Rate         : AddExchangeRateAuditValues(AAuditRecord, Self,
+                                                               AdminSystem.fCurrencyList,
+                                                               AuditInfo);
+  end;
+
+  //Put it together - if there is no audit information then values will be
+  //blank and the audit record will not appear on the report. This is because
+  //fields that are not audited may have changed.
+  if (AuditInfo <> '') then
+    if (OtherInfo <> '') then
+      Values := Format('%s%s%s',[OtherInfo, VALUES_DELIMITER, AuditInfo])
+    else
+      Values := AuditInfo;
+{$ENDIF}
 end;
 
 function TExchangeRateAuditManager.NextAuditRecordID: integer;
@@ -1511,13 +1554,27 @@ end;
 procedure TExchangeRateAuditManager.ReadAuditRecord(ARecordType: byte;
   AStream: TIOStream; var ARecord: pointer);
 begin
-
+  case ARecordType of
+    tkBegin_Exchange_Rates_Header:
+      begin
+        ARecord := New_Exchange_Rates_Header_Rec;
+        Read_Exchange_Rates_Header_Rec(TExchange_Rates_Header_Rec(ARecord^), AStream);
+      end;
+    tkBegin_Exchange_Rate:
+      begin
+        ARecord := New_Exchange_Rate_Rec;
+        Read_Exchange_Rate_Rec(TExchange_Rate_Rec(ARecord^), AStream);
+      end;
+  end;
 end;
 
 procedure TExchangeRateAuditManager.WriteAuditRecord(ARecordType: byte;
   ARecord: pointer; AStream: TIOStream);
 begin
-
+  case ARecordType of
+    tkBegin_Exchange_Rates_Header: Write_Exchange_Rates_Header_Rec(TExchange_Rates_Header_Rec(ARecord^), AStream);
+    tkBegin_Exchange_Rate        : Write_Exchange_Rate_Rec(TExchange_Rate_Rec(ARecord^), AStream);
+  end;
 end;
 
 initialization

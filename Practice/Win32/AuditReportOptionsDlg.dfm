@@ -3,7 +3,7 @@ object frmAuditReportOption: TfrmAuditReportOption
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Audit Report'
-  ClientHeight = 377
+  ClientHeight = 400
   ClientWidth = 455
   Color = clBtnFace
   ParentFont = True
@@ -17,7 +17,7 @@ object frmAuditReportOption: TfrmAuditReportOption
     Left = 0
     Top = 0
     Width = 455
-    Height = 102
+    Height = 124
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
@@ -25,7 +25,7 @@ object frmAuditReportOption: TfrmAuditReportOption
       Left = 8
       Top = 6
       Width = 438
-      Height = 94
+      Height = 114
       Caption = 'Select Level'
       TabOrder = 0
       object rbSystem: TRadioButton
@@ -41,7 +41,7 @@ object frmAuditReportOption: TfrmAuditReportOption
       end
       object rbClient: TRadioButton
         Left = 16
-        Top = 58
+        Top = 83
         Width = 113
         Height = 14
         Caption = '&Client'
@@ -50,18 +50,27 @@ object frmAuditReportOption: TfrmAuditReportOption
       end
       object cbClientFileCodes: TComboBox
         Left = 143
-        Top = 54
+        Top = 79
         Width = 263
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
         TabOrder = 2
       end
+      object rbExchangeRates: TRadioButton
+        Left = 16
+        Top = 53
+        Width = 113
+        Height = 17
+        Caption = 'Exchange Rates'
+        TabOrder = 3
+        OnClick = rbSystemClick
+      end
     end
   end
   object pnlSelectDate: TPanel
     Left = 0
-    Top = 102
+    Top = 124
     Width = 455
     Height = 107
     Align = alTop
@@ -138,7 +147,7 @@ object frmAuditReportOption: TfrmAuditReportOption
   end
   object pnlSelectTransaction: TPanel
     Left = 0
-    Top = 209
+    Top = 231
     Width = 455
     Height = 129
     Align = alTop
@@ -200,12 +209,13 @@ object frmAuditReportOption: TfrmAuditReportOption
   end
   object pnlButtons: TPanel
     Left = 0
-    Top = 338
+    Top = 360
     Width = 455
     Height = 33
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 3
+    ExplicitTop = 338
     object btnCancel: TButton
       Left = 371
       Top = 5

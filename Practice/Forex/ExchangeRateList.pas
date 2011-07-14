@@ -25,11 +25,13 @@ type
   // These rates should be in step with the Header of the Source
   private
     FRates: RateArray;
+    FAuditID: integer;
     function GetRates(index: Integer): Double;
     procedure SetRates(index: Integer; const Value: Double);
     function Getwidth: integer;
     procedure SetDate(const Value: TstDate);
     procedure SetLocked(const Value: Boolean);
+    procedure SetAuditID(const Value: integer);
   public
     FDate: TStdate;
     FLocked: Boolean;
@@ -43,6 +45,7 @@ type
     property Width: integer read Getwidth;
     property Date: TstDate read FDate write SetDate;
     property Locked: Boolean read FLocked write SetLocked;
+    property AuditID: integer read FAuditID write SetAuditID;
   end;
 
   PExchangeSource = ^TExchangeSource;
@@ -52,6 +55,7 @@ type
   private
     FHeader: TExchange_Rates_Header_Rec;
     FExchangeTree: TStTree;
+    FAuditTable: TAuditTable;  //used in AuditExchangeRates    
     function GetHeaderWidth(Value: TExchange_Rates_Header_Rec): Integer;
     function GetWidth: Integer;
     procedure LoadExchangeRates(var S : TIOStream);
@@ -59,6 +63,8 @@ type
     procedure SetAuditTrialID(const Value: integer);
     function GetFileVersion: integer;
     procedure SetFileVersion(const Value: integer);
+    procedure SetAuditInfo(P1, P2: pExchange_Rates_Header_Rec; var AAuditInfo: TAuditInfo);
+    function ISOCodesAsStr: string;
   public
     constructor Create; overload;
     constructor Create(var S: TIOStream); overload;
@@ -74,8 +80,10 @@ type
     function GetDateRates(Value: tstDate): TExchangeRecord;
     function Iterate (Action: TIterateFunc; Up: Boolean;
                       OtherData: Pointer): TStTreeNode;
+    procedure DoAudit(AAuditType: TAuditType; AExchangeRateSourceCopy: TExchangeSource;
+                      AAuditManager: TExchangeRateAuditManager; AAuditTable: TAuditTable);
     property AuditTrialID: integer read GetAuditTrialID write SetAuditTrialID;
-    property FileVersion: integer read GetFileVersion write SetFileVersion;                  
+    property FileVersion: integer read GetFileVersion write SetFileVersion;
   end;
 
   TExchangeRateList = class(TExtdSortedCollection)
@@ -85,6 +93,7 @@ type
     FLocked: Boolean;
     FLastAuditRecordID: integer;
     FExchangeRateListCopy: TExchangeRateList;
+    FLoading: Boolean;
     function Lock: Boolean;
     procedure SaveToFile(Filename: string);
     procedure ReadFromFile(Filename: string);
@@ -107,6 +116,7 @@ type
     function FindSource(const Value: string):TExchangeSource; // is it in the list
     function MergeSource(Value:TExchangeSource):TExchangeSource; // update in the list...
     function NextAuditRecordID: integer;
+    procedure ExchangeRateCopyReset;
     procedure DoAudit(AAuditType: TAuditType; AExchangeRateListCopy: TExchangeRateList);
     property AuditTable: TAuditTable read FAuditTable;
     property AuditMgr: TExchangeRateAuditManager read FAuditManager;
@@ -125,6 +135,8 @@ type
 
   function GetExchangeRates(const KeepLock: Boolean = False): TExchangeRateList;
 
+  function AddAuditIDs(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+
 //******************************************************************************
 
 implementation
@@ -141,7 +153,12 @@ uses
   mcehIO,
   mcerIO,
   TOKENS,
-  logutil, MALLOC, StStrS, bkdbExcept, bk5Except;
+  logutil,
+  MALLOC,
+  StStrS,
+  bkdbExcept,
+  bk5Except,
+  bkdateutils;
 
 const
   DEBUG_ME : Boolean = FALSE;
@@ -237,6 +254,100 @@ begin
   inherited;
 end;
 
+function AuditExchangeRates(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+var
+  ER: TExchangeRecord;
+  P1, P2: pExchange_Rate_Rec;
+  ExchangeRateSourceCopy: TExchangeSource;
+  AuditInfo: TAuditInfo;
+begin
+  ER := TExchangeRecord(Node.Data);
+  New(P1);
+  try
+    ER.SaveToExchange_Rate_Rec(P1);
+    ExchangeRateSourceCopy := TExchangeSource(OtherData^);
+
+    AuditInfo.AuditType := atExchangeRates;
+    AuditInfo.AuditUser := '';
+    AuditInfo.AuditRecordType := tkBegin_Exchange_Rate;
+    //Adds, changes
+    if Assigned(ExchangeRateSourceCopy) then begin
+      ER := ExchangeRateSourceCopy.GetDateRates(P1.erApplies_Until);
+      AuditInfo.AuditRecord := New_Exchange_Rate_Rec;
+      try
+        AuditInfo.AuditAction := aaNone;
+        //Parent ID will always be zero because we only have one ER source
+        AuditInfo.AuditParentID := 0;
+        AuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType','Exchange Rates']) +
+                                    VALUES_DELIMITER +
+                                    Format('%s=%d', ['ParentID', 0]) +
+                                    VALUES_DELIMITER +
+                                    Format('%s=%s', ['Date', bkDate2Str(P1^.erApplies_Until)]) +
+                                    VALUES_DELIMITER +
+                                    Format('%s=%s', ['ISO Codes', ExchangeRateSourceCopy.ISOCodesAsStr]);
+
+        if Assigned(ER) then begin
+          New(P2);
+          try
+            ER.SaveToExchange_Rate_Rec(P2);
+            //Change
+            AuditInfo.AuditRecordID := P1.erAudit_Record_ID;
+            if Exchange_Rate_Rec_Delta(P1, P2, AuditInfo.AuditRecord, AuditInfo.AuditChangedFields) then
+              AuditInfo.AuditAction := aaChange;
+          finally
+            Dispose(P2);
+          end;
+        end else begin
+          //Add
+          AuditInfo.AuditAction := aaAdd;
+          AuditInfo.AuditRecordID := P1.erAudit_Record_ID;
+          P1.erAudit_Record_ID := AuditInfo.AuditRecordID;
+          MCERIO.SetAllFieldsChanged(AuditInfo.AuditChangedFields);
+          Copy_Exchange_Rate_Rec(P1, AuditInfo.AuditRecord);
+        end;
+        if AuditInfo.AuditAction in [aaAdd, aaChange] then
+           ExchangeRateSourceCopy.FAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+    end;
+  finally
+    Dispose(P1);
+  end;
+  Result := True;
+end;
+
+procedure TExchangeSource.DoAudit(AAuditType: TAuditType;
+  AExchangeRateSourceCopy: TExchangeSource; AAuditManager: TExchangeRateAuditManager;
+  AAuditTable: TAuditTable);
+var
+  AuditInfo: TAuditInfo;
+  HeaderCopy: TExchange_Rates_Header_Rec;
+begin
+  AuditInfo.AuditAction := aaNone;
+  AuditInfo.AuditType := atExchangeRates;
+  AuditInfo.AuditRecordType := tkBegin_Exchange_Rates_Header;
+  //Exchange source
+  AuditInfo.AuditRecord := New_Exchange_Rates_Header_Rec;
+  try
+    HeaderCopy := AExchangeRateSourceCopy.Header;
+    SetAuditInfo(@Header, @HeaderCopy, AuditInfo);
+    if (AuditInfo.AuditAction <> aaNone) then begin
+      AuditInfo.AuditUser := AAuditManager.CurrentUserCode;
+      AAuditTable.AddAuditRec(AuditInfo);
+    end;
+  finally
+    Dispose(AuditInfo.AuditRecord);
+  end;
+
+  //Exchange Rates
+  //Exchangr rates are stored in a binary tree. Need to iterate both the current
+  //tree (adds/changes) and the copy (deletes)
+  //May need new object to be able to audit in the interate function: AuditManager, Rates Copy, AuditTable
+  AExchangeRateSourceCopy.FAuditTable := AAuditTable;
+  FExchangeTree.Iterate(AuditExchangeRates, True, @AExchangeRateSourceCopy);
+end;
+
 function TExchangeSource.GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
 begin
    for Result := low(FromHeader.ehISO_Codes) to High(FromHeader.ehISO_Codes) do
@@ -249,6 +360,21 @@ end;
 function TExchangeSource.GetWidth: Integer;
 begin
    Result := GetHeaderWidth(FHeader);
+end;
+
+function TExchangeSource.ISOCodesAsStr: string;
+var
+  i: integer;
+begin
+  Result := '';
+  i := 1;
+  while FHeader.ehISO_Codes[i] <> '' do begin
+    if Result = '' then
+      Result := FHeader.ehISO_Codes[i]
+    else
+      Result := Result + ',' + FHeader.ehISO_Codes[i];
+    Inc(i);
+  end;
 end;
 
 function TExchangeSource.Iterate(Action: TIterateFunc; Up: Boolean;
@@ -394,7 +520,38 @@ begin
   end;
 end;
 
-
+procedure TExchangeSource.SetAuditInfo(P1, P2: pExchange_Rates_Header_Rec;
+  var AAuditInfo: TAuditInfo);
+var
+  i: integer;
+begin
+  AAuditInfo.AuditAction := aaNone;
+  AAuditInfo.AuditParentID := 0;
+  AAuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType','Currencies']);
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.ehAudit_Record_ID;
+  end else if Assigned(P2) and (P2^.ehAudit_Record_ID = P1^.ehAudit_Record_ID) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.ehAudit_Record_ID;
+    if Exchange_Rates_Header_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then begin
+      //Always set the currency types to match the ISO codes
+      for i := Low(P1^.ehCur_Type) to High(P1^.ehCur_Type) do
+        pExchange_Rates_Header_Rec(AAuditInfo.AuditRecord)^.ehCur_Type[i] := P1^.ehCur_Type[i];
+      AAuditInfo.AuditAction := aaChange;
+    end;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.ehAudit_Record_ID;
+    P1.ehAudit_Record_ID := AAuditInfo.AuditRecordID;
+    P1.ehRecord_Type := tkBegin_Exchange_Rates_Header;
+    P1.ehEOR := tkEnd_Exchange_Rates_Header;
+    MCEHIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Exchange_Rates_Header_Rec(P1, AAuditInfo.AuditRecord);
+  end;
+end;
 
 procedure TExchangeSource.SetAuditTrialID(const Value: integer);
 begin
@@ -485,6 +642,7 @@ begin
    FLastAuditRecordID := 0;
    FAuditManager := TExchangeRateAuditManager.Create(Self);
    FAuditTable := TAuditTable.Create(FAuditManager);
+   FExchangeRateListCopy := nil;
 end;
 
 destructor TExchangeRateList.Destroy;
@@ -496,10 +654,36 @@ begin
   inherited;
 end;
 
+function AddAuditIDs(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+var
+  ER : TExchangeRecord;
+  ExchangeRateList: TExchangeRateList;
+begin
+  ExchangeRateList := TExchangeRateList(OtherData^);
+  ER := TExchangeRecord(Node.Data);
+  if (ER.AuditID = 0) then
+    ER.AuditID := ExchangeRateList.NextAuditRecordID;
+  Result := True;
+end;
+
 procedure TExchangeRateList.DoAudit(AAuditType: TAuditType;
   AExchangeRateListCopy: TExchangeRateList);
+var
+  i: integer;
+  ExchangeRateSource, ExchangeRateSourceCopy: TExchangeSource;
 begin
-  //
+  //Audit each exchange source
+  for i := 0 to Pred(ItemCount) do begin
+    ExchangeRateSource := ExchangeSource(i);
+    ExchangeRateSourceCopy := AExchangeRateListCopy.ExchangeSource(i);
+
+    //Because we are comparing exchange rates by data, not audit ID, we can add
+    //audit ID's here.
+    ExchangeRateSource.ExchangeTree.Iterate(AddAuditIDs, True, @Self);
+    
+    //Audit exchage rates
+    ExchangeRateSource.DoAudit(AAuditType, ExchangeRateSourceCopy, FAuditManager, AuditTable);
+  end;
 end;
 
 procedure TExchangeRateList.ExchangeRateCopyReload(var S: TIOStream);
@@ -507,7 +691,29 @@ begin
   //Reload exchange rate copy DB
   FreeAndNil(FExchangeRateListCopy); //Delete current copy
   S.Seek(Sizeof(LongInt), soFromBeginning);
-  ExchangeRateListCopy.LoadFromStream(S);
+  FLoading := True;
+  try
+    ExchangeRateListCopy.LoadFromStream(S);
+  finally
+    FLoading := False;
+  end;
+end;
+
+procedure TExchangeRateList.ExchangeRateCopyReset;
+var
+  S: TIOStream;
+  CRC: longword;
+begin
+  //This should only be done after an exchange rates db upgrade
+  //so that existing data is not audited.
+  S := TIOStream.Create;
+  try
+    S.Write(CRC, SizeOf(CRC));
+    Self.SaveToStream(S);
+    ExchangeRateCopyReload(S);
+  finally
+    S.Free;
+  end;
 end;
 
 function TExchangeRateList.ExchangeSource(Index: Integer): TExchangeSource;
@@ -532,9 +738,33 @@ begin
 end;
 
 function TExchangeRateList.GetExchangeRateListCopy: TExchangeRateList;
+var
+  i: integer;
+  ExchangeSource, ExchangeSourceCopy: TExchangeSource;
+  Header, HeaderCopy: TExchange_Rates_Header_Rec;
 begin
   if not Assigned(FExchangeRateListCopy) then begin
     FExchangeRateListCopy := TExchangeRateList.Create;
+    if not FLoading then begin
+      //Make header the same (no auditing of exchange source at the moment
+      //because there is only one)
+      for i := 0 to ItemCount - 1 do begin
+        ExchangeSource := TExchangeSource(Items[i]);
+        ExchangeSourceCopy := FExchangeRateListCopy.GetSource(ExchangeSource.FHeader.ehName);
+
+        //GetSource increments the Audit ID, but the ExchangeSourceCopy is
+        //not saved, so we have to decrement it
+        Dec(FLastAuditRecordID);
+
+        Header := ExchangeSource.Header;
+        Header.ehRecord_Type := tkBegin_Exchange_Rates_Header;
+        Header.ehEOR := tkEnd_Exchange_Rates_Header;
+        HeaderCopy := ExchangeSourceCopy.Header;
+        HeaderCopy.ehRecord_Type := tkBegin_Exchange_Rates_Header;
+        HeaderCopy.ehEOR := tkEnd_Exchange_Rates_Header;
+        Copy_Exchange_Rates_Header_Rec(@Header, @HeaderCopy);
+      end;
+    end;
   end;
   Result := FExchangeRateListCopy;
 end;
@@ -546,7 +776,7 @@ begin
       Result := TExchangeSource.Create;
       Result.FHeader.ehLRN := ItemCount;
       Result.FHeader.ehName := Value;
-      Result.FHeader.ehAudit_Record_ID := FAuditManager.NextAuditRecordID;
+      Result.FHeader.ehAudit_Record_ID := NextAuditRecordID;
       Self.Insert(Result);
    end;
 end;
@@ -568,8 +798,10 @@ var
    Token: Byte;
    msg: string;
 begin
-   Token := S.ReadToken;
-   while (Token <> tkEndSection) do begin
+  FLoading := True;
+  try
+    Token := S.ReadToken;
+    while (Token <> tkEndSection) do begin
       case token of
          tkLastAuditRecordID: FLastAuditRecordID := S.ReadIntegerValue;
          tkBeginExchangeRateHeader: ;
@@ -578,6 +810,7 @@ begin
          tkBeginExchangeRateSource: begin
             Insert(TExchangeSource.Create(S));
          end;
+         tkBeginSystem_Audit_Trail_List  : FAuditTable.LoadFromStream(S);
 
          else begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ 'TExchangeRateList.LoadFromStream', Token ] );
@@ -586,7 +819,10 @@ begin
          end;
       end;
       Token := S.ReadToken;
-   end;
+    end;
+  finally
+    FLoading := False;
+  end;
 end;
 
 procedure TExchangeRateList.SaveToStream(var S: TIOStream);
@@ -602,6 +838,7 @@ begin
       ExchangeSource(I).FHeader.ehLRN := I;
       S.WriteToken(tkBeginExchangeRateSource);
       ExchangeSource(I).SaveToStream(S);
+      fAuditTable.SaveToStream( S );
       S.WriteToken(tkEndSection);
     end;
     S.WriteToken(tkEndSection);
@@ -787,6 +1024,7 @@ end;
 procedure TExchangeRecord.loadFromExchange_Rate_Rec(Value: pExchange_Rate_Rec);
 var I: Integer;
 begin
+   AuditID := Value.erAudit_Record_ID;
    Date := Value.erApplies_Until;
    Locked := Value.erLocked;
    for I := low(FRates) to High(FRates) do
@@ -807,6 +1045,12 @@ begin
 
    Value.erApplies_Until := Date;
    Value.erLocked := Locked;
+   Value.erAudit_Record_ID := AuditID;
+end;
+
+procedure TExchangeRecord.SetAuditID(const Value: integer);
+begin
+  FAuditID := Value;
 end;
 
 procedure TExchangeRecord.SetDate(const Value: TstDate);
