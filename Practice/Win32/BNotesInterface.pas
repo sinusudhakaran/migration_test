@@ -923,7 +923,7 @@ begin
     if (BKT.Default_Forex_Rate <> 0) then
       ECT.txGST_Amount := (ECT.txGST_Amount / BKT.Default_Forex_Rate)
     else
-      ECT.txGST_Has_Been_Edited := True;
+      ECT.txGST_Has_Been_Edited := (ECT.txGST_Amount <> 0); // Fix for Bug 19876
   end;
 
   if BKT^.txFirst_Dissection = nil then
