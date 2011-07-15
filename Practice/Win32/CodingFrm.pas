@@ -1738,7 +1738,8 @@ begin
            Refresh;
          end;
          Msg.CharCode := VK_RIGHT;
-         celAccount.SendKeyToTable(Msg);
+         if ShowAllTran <> SHOW_UNCODED_TX then
+           celAccount.SendKeyToTable(Msg);
       end;
    end;
 end;
