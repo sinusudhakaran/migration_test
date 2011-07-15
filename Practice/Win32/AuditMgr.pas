@@ -1463,10 +1463,12 @@ begin
 end;
 
 procedure TExchangeRateAuditManager.DoAudit;
+{$IFNDEF LOOKUPDLL}
 var
   i: integer;
   TableID: byte;
   ExchangeRateList: TExchangeRateList;
+{$ENDIF}
 begin
 {$IFNDEF LOOKUPDLL}
   if Assigned(FOwner) then begin
