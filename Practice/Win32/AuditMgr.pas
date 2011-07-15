@@ -1436,6 +1436,7 @@ end;
 procedure TExchangeRateAuditManager.CopyAuditRecord(const ARecordType: byte;
   P1: Pointer; var P2: Pointer);
 begin
+{$IFDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Exchange_Rates_Header :
       begin
@@ -1448,15 +1449,17 @@ begin
         Copy_Exchange_Rate_Rec(P1, P2);
       end;
   end;
+{$ENDIF}
 end;
 
 constructor TExchangeRateAuditManager.Create(Owner: TObject);
 begin
   inherited Create;
-
+{$IFDEF LOOKUPDLL}
   FOwner := nil;
   if Owner is TExchangeRateList then
     FOwner := Owner;
+{$ENDIF}
 end;
 
 procedure TExchangeRateAuditManager.DoAudit;
@@ -1465,6 +1468,7 @@ var
   TableID: byte;
   ExchangeRateList: TExchangeRateList;
 begin
+{$IFDEF LOOKUPDLL}
   if Assigned(FOwner) then begin
     ExchangeRateList := TExchangeRateList(FOwner);
     //Output the info only audit records first
@@ -1494,12 +1498,15 @@ begin
     end;
     FAuditScope.Clear;
   end;
+{$ENDIF}
 end;
 
 procedure TExchangeRateAuditManager.FlagAudit(AAuditType: TAuditType;
   AAuditRecordID: integer; AAuditAction: byte; AOtherInfo: string);
 begin
+{$IFDEF LOOKUPDLL}
   AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
+{$ENDIF}
 end;
 
 function TExchangeRateAuditManager.GetParentRecordID(ARecordType: byte;
@@ -1547,13 +1554,16 @@ end;
 
 function TExchangeRateAuditManager.NextAuditRecordID: integer;
 begin
+{$IFDEF LOOKUPDLL}
   with FOwner as TExchangeRateList do
     Result := NextAuditRecordID;
+{$ENDIF}    
 end;
 
 procedure TExchangeRateAuditManager.ReadAuditRecord(ARecordType: byte;
   AStream: TIOStream; var ARecord: pointer);
 begin
+{$IFDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Exchange_Rates_Header:
       begin
@@ -1566,15 +1576,18 @@ begin
         Read_Exchange_Rate_Rec(TExchange_Rate_Rec(ARecord^), AStream);
       end;
   end;
+{$ENDIF}
 end;
 
 procedure TExchangeRateAuditManager.WriteAuditRecord(ARecordType: byte;
   ARecord: pointer; AStream: TIOStream);
 begin
+{$IFDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Exchange_Rates_Header: Write_Exchange_Rates_Header_Rec(TExchange_Rates_Header_Rec(ARecord^), AStream);
     tkBegin_Exchange_Rate        : Write_Exchange_Rate_Rec(TExchange_Rate_Rec(ARecord^), AStream);
   end;
+{$ENDIF}
 end;
 
 initialization
