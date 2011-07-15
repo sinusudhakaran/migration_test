@@ -1436,7 +1436,7 @@ end;
 procedure TExchangeRateAuditManager.CopyAuditRecord(const ARecordType: byte;
   P1: Pointer; var P2: Pointer);
 begin
-{$IFDEF LOOKUPDLL}
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Exchange_Rates_Header :
       begin
@@ -1455,7 +1455,7 @@ end;
 constructor TExchangeRateAuditManager.Create(Owner: TObject);
 begin
   inherited Create;
-{$IFDEF LOOKUPDLL}
+{$IFNDEF LOOKUPDLL}
   FOwner := nil;
   if Owner is TExchangeRateList then
     FOwner := Owner;
@@ -1468,7 +1468,7 @@ var
   TableID: byte;
   ExchangeRateList: TExchangeRateList;
 begin
-{$IFDEF LOOKUPDLL}
+{$IFNDEF LOOKUPDLL}
   if Assigned(FOwner) then begin
     ExchangeRateList := TExchangeRateList(FOwner);
     //Output the info only audit records first
@@ -1504,7 +1504,7 @@ end;
 procedure TExchangeRateAuditManager.FlagAudit(AAuditType: TAuditType;
   AAuditRecordID: integer; AAuditAction: byte; AOtherInfo: string);
 begin
-{$IFDEF LOOKUPDLL}
+{$IFNDEF LOOKUPDLL}
   AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
 {$ENDIF}
 end;
@@ -1554,7 +1554,7 @@ end;
 
 function TExchangeRateAuditManager.NextAuditRecordID: integer;
 begin
-{$IFDEF LOOKUPDLL}
+{$IFNDEF LOOKUPDLL}
   with FOwner as TExchangeRateList do
     Result := NextAuditRecordID;
 {$ENDIF}    
@@ -1563,7 +1563,7 @@ end;
 procedure TExchangeRateAuditManager.ReadAuditRecord(ARecordType: byte;
   AStream: TIOStream; var ARecord: pointer);
 begin
-{$IFDEF LOOKUPDLL}
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Exchange_Rates_Header:
       begin
@@ -1582,7 +1582,7 @@ end;
 procedure TExchangeRateAuditManager.WriteAuditRecord(ARecordType: byte;
   ARecord: pointer; AStream: TIOStream);
 begin
-{$IFDEF LOOKUPDLL}
+{$IFNDEF LOOKUPDLL}
   case ARecordType of
     tkBegin_Exchange_Rates_Header: Write_Exchange_Rates_Header_Rec(TExchange_Rates_Header_Rec(ARecord^), AStream);
     tkBegin_Exchange_Rate        : Write_Exchange_Rate_Rec(TExchange_Rate_Rec(ARecord^), AStream);
