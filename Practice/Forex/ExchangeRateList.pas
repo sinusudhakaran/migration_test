@@ -55,7 +55,8 @@ type
   private
     FHeader: TExchange_Rates_Header_Rec;
     FExchangeTree: TStTree;
-    FAuditTable: TAuditTable;  //used in AuditExchangeRates    
+    FAuditTable: TAuditTable;  //used in Audit iteration functions
+    FCurrentUser: string;      //used in Audit iteration functions
     function GetHeaderWidth(Value: TExchange_Rates_Header_Rec): Integer;
     function GetWidth: Integer;
     procedure LoadExchangeRates(var S : TIOStream);
@@ -268,7 +269,7 @@ begin
     ExchangeRateSourceCopy := TExchangeSource(OtherData^);
 
     AuditInfo.AuditType := atExchangeRates;
-    AuditInfo.AuditUser := '';
+    AuditInfo.AuditUser := ExchangeRateSourceCopy.FCurrentUser;
     AuditInfo.AuditRecordType := tkBegin_Exchange_Rate;
     //Adds, changes
     if Assigned(ExchangeRateSourceCopy) then begin
@@ -317,6 +318,49 @@ begin
   Result := True;
 end;
 
+function AuditExchangeRateDeletes(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+var
+  ER: TExchangeRecord;
+  P1: pExchange_Rate_Rec;
+  ExchangeRateSource: TExchangeSource;
+  AuditInfo: TAuditInfo;
+begin
+  ER := TExchangeRecord(Node.Data);
+  New(P1);
+  try
+    ER.SaveToExchange_Rate_Rec(P1);
+    ExchangeRateSource := TExchangeSource(OtherData^);
+
+    AuditInfo.AuditType := atExchangeRates;
+    AuditInfo.AuditUser := ExchangeRateSource.FCurrentUser;
+    AuditInfo.AuditRecordType := tkBegin_Exchange_Rate;
+    //Deletes
+    if Assigned(ExchangeRateSource) then begin
+      ER := ExchangeRateSource.GetDateRates(P1.erApplies_Until);
+      if not Assigned(ER) then begin
+        AuditInfo.AuditAction := aaNone;
+        //Parent ID will always be zero because we only have one ER source
+        AuditInfo.AuditParentID := 0;
+        AuditInfo.AuditOtherInfo := Format('%s=%s', ['RecordType','Exchange Rates']) +
+                                    VALUES_DELIMITER +
+                                    Format('%s=%d', ['ParentID', 0]) +
+                                    VALUES_DELIMITER +
+                                    Format('%s=%s', ['Date', bkDate2Str(P1^.erApplies_Until)]) +
+                                    VALUES_DELIMITER +
+                                    Format('%s=%s', ['ISO Codes', ExchangeRateSource.ISOCodesAsStr]);
+
+        //Delete
+        AuditInfo.AuditRecordID := P1.erAudit_Record_ID;
+        AuditInfo.AuditAction := aaDelete;
+        ExchangeRateSource.FAuditTable.AddAuditRec(AuditInfo);
+      end;
+    end;
+  finally
+    Dispose(P1);
+  end;
+  Result := True;
+end;
+
 procedure TExchangeSource.DoAudit(AAuditType: TAuditType;
   AExchangeRateSourceCopy: TExchangeSource; AAuditManager: TExchangeRateAuditManager;
   AAuditTable: TAuditTable);
@@ -345,7 +389,12 @@ begin
   //tree (adds/changes) and the copy (deletes)
   //May need new object to be able to audit in the interate function: AuditManager, Rates Copy, AuditTable
   AExchangeRateSourceCopy.FAuditTable := AAuditTable;
-  FExchangeTree.Iterate(AuditExchangeRates, True, @AExchangeRateSourceCopy);
+  AExchangeRateSourceCopy.FCurrentUser := AAuditManager.CurrentUserCode;
+  ExchangeTree.Iterate(AuditExchangeRates, True, @AExchangeRateSourceCopy);
+  //Audit Deletes
+  FAuditTable := AAuditTable;
+  FCurrentUser := AAuditManager.CurrentUserCode;
+  AExchangeRateSourceCopy.ExchangeTree.Iterate(AuditExchangeRateDeletes, True, @Self);
 end;
 
 function TExchangeSource.GetISOIndex(Value: string; FromHeader: TExchange_Rates_Header_Rec): Integer;
