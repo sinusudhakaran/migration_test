@@ -379,8 +379,13 @@ var
       try
          FillExtractorComboBox (ldlg.cbExtractor,AdminSystem.fdFields.fdBulk_Export_Code ,False);
          // default to last month;
-         ldlg.DateSelector.eDateTo.AsStDate :=  GetLastDayOfMonth(IncDate(CurrentDate, 0, -1, 0));
-         ldlg.DateSelector.eDateFrom.AsStDate :=  GetFirstDayOfMonth(ldlg.DateSelector.eDateTo.AsStDate);
+         if Globals.StartupParam_Action = sa_BulkExport then begin
+            ldlg.DateSelector.eDateTo.AsStDate := CurrentDate;
+            ldlg.DateSelector.eDateFrom.AsStDate :=  GetFirstDayOfMonth(IncDate(ldlg.DateSelector.eDateTo.AsStDate, 0, -1, 0));
+         end else begin
+            ldlg.DateSelector.eDateTo.AsStDate :=  GetLastDayOfMonth(IncDate(CurrentDate, 0, -1, 0));
+            ldlg.DateSelector.eDateFrom.AsStDate :=  GetFirstDayOfMonth(ldlg.DateSelector.eDateTo.AsStDate);
+         end;
          // Update the Dialog caption
          if ClearExtract then  begin
             lDlg.Caption := 'Bulk Clear Transfer Flags';
