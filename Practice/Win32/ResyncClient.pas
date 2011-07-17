@@ -581,7 +581,7 @@ begin
                         'exist in your Admin System. You must contact support to proceed. '+ #13#13 +
                         'Are you sure that you want to synchronise this file?',
                         DLG_NO, 0) <> DLG_YES) or
-            ( not EnterPwdDlg.EnterPassword( 'Synchonise Client File',
+            ( not EnterPwdDlg.EnterPassword( 'Synchronise Client File',
                                              aClient.clFields.clCode,
                                              0,        //help context
                                              True,     //requires support code
@@ -686,7 +686,7 @@ begin
                      'download. You must contact support to proceed. '+ #13#13 +
                      'Are you sure that you want to synchronise this file?',
                      DLG_NO, 0) <> DLG_YES) or
-           (not EnterPwdDlg.EnterPassword('Synchonise Client File',
+           (not EnterPwdDlg.EnterPassword('Synchronise Client File',
                                           aClient.clFields.clCode,
                                           0, True, False)) then
         begin
