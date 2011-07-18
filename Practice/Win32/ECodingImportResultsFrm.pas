@@ -32,6 +32,7 @@ type
     Label1: TLabel;
     btnYes: TButton;
     btnNo: TButton;
+    lblClientSave: TLabel;
     procedure btnViewClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -46,19 +47,21 @@ type
                           importCount : integer; newCount : integer;
                           rejectedCount : integer; rejectFilename : string;
                           importType: string = 'transaction(s)';
-                          importVerb: string = 'imported') : boolean;
+                          importVerb: string = 'imported';
+                          Country: byte = 0) : boolean;
 
 //******************************************************************************
 implementation
 uses
-   ShellAPI;
+   ShellAPI, bkConst;
 {$R *.DFM}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function ConfirmImport( fromFile : string;
                         importCount : integer; newCount : integer;
                         rejectedCount : integer; rejectFilename : string;
                         importType: string = 'transaction(s)';
-                        importVerb: string = 'imported') : boolean;
+                        importVerb: string = 'imported';
+                        Country: byte = 0) : boolean;
 begin
    with TfrmEcodingImportResults.Create(Application.MainForm) do begin
       try
@@ -77,6 +80,14 @@ begin
          if rejectedCount > 0 then begin
             btnYes.Default := false;
             btnNo.Default := true;
+         end else begin
+            Height := (Height - pnlRejects.Height);
+         end;
+
+         lblClientSave.Visible := False;
+         if (Country = whUK) then begin
+           lblClientSave.Visible := True;
+            Height := (Height - lblClientSave.Height);
          end;
 
          result := ( ShowModal = mrYes);

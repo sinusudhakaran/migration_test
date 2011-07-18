@@ -39,7 +39,7 @@ uses
      BNotesInterface, LogUtil, baObj32, GlobalDirectories, Globals,
      PracticeLogo, MailFrm, todoHandler, StDate, Windows,
      ClientHomepagefrm, Forms, Admin32, WebNotesService, WebNotesImportFrm,
-     ForexHelpers, AuditMgr;
+     ForexHelpers, AuditMgr, Files;
 
 const
    UnitName = 'ECodingUtils';
@@ -297,6 +297,7 @@ var
   i                    : Integer;
   ba                   : TBank_Account;
   WebXFileNumber: Integer;
+  SaveUserCode: string;
 begin
   try
   //make sure that there are bank accounts to import into
@@ -497,7 +498,22 @@ begin
       //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       LogUtil.LogMsg( lmInfo, Unitname, 'Importing file ' + filename);
       try
+         //Save for audit
+         if aClient.clFields.clCountry = whUK then
+          SaveAClient(aClient);
+
          ProcessBNotesFile( ECFile, aClient, ImportedCount, NewCount, RejectedCount);
+
+         //Save for audit
+         if aClient.clFields.clCountry = whUK then begin
+            SaveUserCode := CurrUser.Code;
+            try
+              CurrUser.Code := 'Notes';
+              SaveAClient(aClient);
+            finally
+              CurrUser.Code := SaveUserCode;
+            end;
+         end;
       except
         //crash system because client file will have been updated
         On E : Exception do

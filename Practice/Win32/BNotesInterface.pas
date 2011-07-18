@@ -819,7 +819,7 @@ begin
                     inttostr( NewCount)      + ' new transaction(s) ' +
                     inttostr( RejectedCount) + ' rejected transaction(s)');
 
-       if not ConfirmImport( filename, ImportedCount, NewCount, RejectedCount, RejectedLogFilename)
+       if not ConfirmImport( filename, ImportedCount, NewCount, RejectedCount, RejectedLogFilename, 'transaction(s)', 'imported', aClient.clFields.clCountry)
        then
        begin
           LogUtil.LogMsg( lmInfo, unitname, 'User aborted import');

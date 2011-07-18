@@ -3,7 +3,7 @@ object frmEcodingImportResults: TfrmEcodingImportResults
   Top = 247
   BorderStyle = bsDialog
   Caption = 'Verify Results'
-  ClientHeight = 232
+  ClientHeight = 236
   ClientWidth = 344
   Color = clWindow
   DefaultMonitor = dmMainForm
@@ -16,6 +16,9 @@ object frmEcodingImportResults: TfrmEcodingImportResults
   Position = poScreenCenter
   Scaled = False
   OnCreate = FormCreate
+  DesignSize = (
+    344
+    236)
   PixelsPerInch = 96
   TextHeight = 13
   object lblImported: TLabel
@@ -134,15 +137,26 @@ object frmEcodingImportResults: TfrmEcodingImportResults
     Caption = 'lblFile'
   end
   object Label1: TLabel
-    Left = 80
-    Top = 154
+    Left = 79
+    Top = 173
     Width = 120
     Height = 13
+    Anchors = [akLeft, akBottom]
     Caption = 'Do you wish to continue?'
+    ExplicitTop = 171
+  end
+  object lblClientSave: TLabel
+    Left = 16
+    Top = 146
+    Width = 246
+    Height = 13
+    Anchors = [akLeft, akBottom]
+    Caption = 'Note: The client file will be saved during the import.'
+    ExplicitTop = 144
   end
   object pnlRejects: TPanel
     Left = 16
-    Top = 88
+    Top = 84
     Width = 313
     Height = 46
     BevelOuter = bvNone
@@ -170,21 +184,25 @@ object frmEcodingImportResults: TfrmEcodingImportResults
   end
   object btnYes: TButton
     Left = 180
-    Top = 199
+    Top = 202
     Width = 75
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = '&Yes'
     Default = True
     ModalResult = 6
     TabOrder = 1
+    ExplicitTop = 200
   end
   object btnNo: TButton
     Left = 261
-    Top = 199
+    Top = 202
     Width = 75
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = '&No'
     ModalResult = 7
     TabOrder = 2
+    ExplicitTop = 200
   end
 end

@@ -24,6 +24,7 @@ type
     pList: TPanel;
     DateSelector: TfmeDateSelector;
     lAvailable: TLabel;
+    lblClientSave: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
 
@@ -132,7 +133,8 @@ uses
    bkXPThemes,
    WebNotesSchema,
    bkConst, trxList32, ForexHelpers,
-   AuditMgr;
+   AuditMgr,
+   Files;
 
 const
    UnitName = 'WebNotesService';
@@ -148,6 +150,7 @@ begin
    ldlg := TWebNotesImportForm.Create(application.MainForm);
    try
       ldlg.Client := aClient;
+      ldlg.lblClientSave.Visible := (aClient.clFields.clCountry = whUK);
 
       if ldlg.GetAvailableData then
          if ldlg.ShowModal = mrOK then begin
@@ -1508,6 +1511,7 @@ end;
 procedure TWebNotesImportForm.btnOKClick(Sender: TObject);
 var I: Integer;
     msg: string;
+    SaveClientCode: string;
 begin
    if not DateSelector.ValidateDates(True) then
       Exit;
@@ -1519,9 +1523,21 @@ begin
    NeedConfig := True;
    Stop := False;
 
-
+   //Save client for audit
+   if Client.clFields.clCountry = whUK then
+     Files.SaveAClient(Client);
 
    if DownLoadData then begin
+     //Save client for audit
+     if Client.clFields.clCountry = whUK then begin
+       SaveClientCode := CurrUser.Code;
+       try
+         CurrUser.Code := 'Notes Online';
+         Files.SaveAClient(Client);
+       finally
+         CurrUser.Code := SaveClientCode;
+       end;
+     end;
       // Build the message
       msg := 'Import Successful';
       if (ImportedCount = 0)
