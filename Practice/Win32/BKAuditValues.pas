@@ -784,32 +784,32 @@ begin
             171: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          Money2Str(tTransaction_Rec(ARecord^).txGST_Amount), Values);
             //Has_Been_Edited
-            172: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txHas_Been_Edited, Values);
+//            172: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txHas_Been_Edited, Values);
             //Quantity
             173: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          Quantity2Str(tTransaction_Rec(ARecord^).txQuantity), Values);
             //Cheque_Number
-            174: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txCheque_Number, Values);
+//            174: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txCheque_Number, Values);
             //Reference
             175: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txReference, Values);
             //Particulars
-            176: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txParticulars, Values);
+//            176: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txParticulars, Values);
             //Analysis
-            177: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txAnalysis, Values);
+//            177: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txAnalysis, Values);
             //OrigBB
 //            178: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
 //                                         tTransaction_Rec(ARecord^).txOrigBB, Values);
             //Other_Party
-            179: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txOther_Party, Values);
+//            179: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txOther_Party, Values);
             //Old_Narration
-            180: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txOld_Narration, Values);
+//            180: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txOld_Narration, Values);
             //Account
             181: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txAccount, Values);
@@ -829,8 +829,8 @@ begin
             186: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txGST_Has_Been_Edited, Values);
             //Matched_Item_ID
-            187: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txMatched_Item_ID, Values);
+//            187: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txMatched_Item_ID, Values);
             //UPI_State
             188: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          upNames[tTransaction_Rec(ARecord^).txUPI_State], Values);
@@ -859,8 +859,8 @@ begin
             195: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txECoding_Import_Notes, Values);
             //ECoding_Transaction_UID
-            196: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txECoding_Transaction_UID, Values);
+//            196: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txECoding_Transaction_UID, Values);
             //GL_Narration
             197: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
                                          tTransaction_Rec(ARecord^).txGL_Narration, Values);
@@ -874,11 +874,11 @@ begin
 //            213: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
 //                                         tTransaction_Rec(ARecord^).txExternal_GUID, Values);
             //Document_Title
-            214: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txDocument_Title, Values);
+//            214: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txDocument_Title, Values);
             //Document_Status_Update_Required
-            215: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
-                                         tTransaction_Rec(ARecord^).txDocument_Status_Update_Required, Values);
+//            215: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
+//                                         tTransaction_Rec(ARecord^).txDocument_Status_Update_Required, Values);
             //BankLink_UID
 //            216: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Transaction, Token),
 //                                         tTransaction_Rec(ARecord^).txBankLink_UID, Values);
@@ -949,11 +949,11 @@ begin
             187: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
                                          Quantity2Str(tDissection_Rec(ARecord^).dsQuantity), Values);
             //Old_Narration
-            188: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
-                                         tDissection_Rec(ARecord^).dsOld_Narration, Values);
+//            188: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+//                                         tDissection_Rec(ARecord^).dsOld_Narration, Values);
             //Has_Been_Edited
-            189: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
-                                         tDissection_Rec(ARecord^).dsHas_Been_Edited, Values);
+//            189: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
+//                                         tDissection_Rec(ARecord^).dsHas_Been_Edited, Values);
             //Journal_Type
             190: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Dissection, Token),
                                          jtNames[tDissection_Rec(ARecord^).dsJournal_Type], Values);

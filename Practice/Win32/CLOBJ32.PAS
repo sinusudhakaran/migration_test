@@ -1134,6 +1134,7 @@ begin
   //*** Flag Audit ***
   //Can't select which bank accounts to audit yet - so all
   //need to be checked on client save.
+  FClientAuditMgr.Country := clFields.clCountry;   
   FClientAuditMgr.FlagAudit(atClientBankAccounts);
   //Restricted auditing to UK
   if (clFields.clCountry = whUK) then
