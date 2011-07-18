@@ -202,7 +202,7 @@ begin
 
       if not LE_HasTransactions(Fromdate, Todate, Bank_Account) then exit;
 
-      NumOfAccounts := NumOfAccounts+1;
+      // NumOfAccounts := NumOfAccounts+1;
 
       if (NumOfAccounts > 1) and ReportTypeParams.NewPageforAccounts then ReportNewPage;
 
@@ -546,7 +546,7 @@ begin
 
       NumOfAccounts := NumOfAccounts+1;
 
-      if (NumOfAccounts > 1) and ReportTypeParams.NewPageforAccounts then ReportNewPage;
+      if (NumOfAccounts > 2) and ReportTypeParams.NewPageforAccounts then ReportNewPage;
 
       RenderTitleLine( Bank_Account.Title );
 
