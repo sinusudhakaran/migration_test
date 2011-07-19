@@ -543,6 +543,8 @@ begin
       MoneyUtils.BalanceStr( 0, BCode );
       SetupColumnFmtList;
 
+      LoadLayoutForThisAcct(BankAccount.IsManual);
+
       BuildTableColumns;
 
 
