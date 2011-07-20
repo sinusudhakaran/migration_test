@@ -1205,7 +1205,7 @@ var
    GSTTotal   : Double;
    Percent: Double;
 begin
-   FStartedEdit := False;                                 
+   FStartedEdit := False;
    if not ValidDataRow(RowNum) then exit;
 
    pD := WorkDissect.Items[ RowNum-1 ];
@@ -1423,6 +1423,7 @@ begin
     UpdateControlTotals;
     Remainder := pTran.txAmount - fControlTotals.ctLocal_Specified_Amount;
     dtAmount := Remainder * ( dtPercent_Amount / 1000000.0 );
+    UpdateBaseAmounts(pD);
     dtHas_Been_Edited := True;
     dtAmount_Type_Is_Percent := True;
     if MyClient.clChart.CanCodeTo( dtAccount) then
@@ -3311,6 +3312,7 @@ begin
                   with pD^ do begin
                      dtAccount         := dsAccount;
                      dtAmount          := dsAmount;
+                     dtLocal_Amount    := Local_Amount;
                      dtDate            := pTran.txDate_Effective;
                      dtGST_Class       := dsGST_Class;
                      dtGST_Amount      := dsGST_Amount;
