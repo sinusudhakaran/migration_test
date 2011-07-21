@@ -3903,6 +3903,8 @@ begin
           //Books secure user code is saved as "Books Se" because of 8 char limit
           if (AuditRecord.atUser_Code = Copy(USER_BOOKS_SECURE, 1, 8)) then
             Report.PutString(USER_BOOKS_SECURE)
+          else if (AuditRecord.atUser_Code = Copy(USER_NOTES_ONLINE, 1, 8)) then
+            Report.PutString(USER_NOTES_ONLINE)
           else
             Report.PutString(AuditRecord.atUser_Code);
           Report.PutString(FormatDateTime('dd/MM/yyyy hh:mm:ss', AuditRecord.AuditDateTimeAsLocalDateTime));
@@ -3913,6 +3915,7 @@ begin
           for j := 0 to AuditFields.Count - 1 do
             if (AuditFields[j] <> 'ParentID=0') then
               if (Pos('NOTE', UpperCase(AuditFields[j])) > 0) or
+                 (Pos('PRINT_IN_DIVISION', UpperCase(AuditFields[j])) > 0) or
                  (Pos('NARRATION', UpperCase(AuditFields[j])) > 0) then begin
                 //Wrap the text
                 TextLines := TStringList.Create;

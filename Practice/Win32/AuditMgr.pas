@@ -67,6 +67,7 @@ const
   VALUES_DELIMITER = '¦'; //non-keyboard character
   USER_BOOKS = 'Books';
   USER_BOOKS_SECURE = 'Books Secure';
+  USER_NOTES_ONLINE = 'Notes Online';
 
 type
   //This is defined in MONEYDEF because all the IO units use MONEYDEF.

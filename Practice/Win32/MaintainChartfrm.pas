@@ -734,6 +734,9 @@ begin
            p.chPrint_in_Division[ DivNo] := not p.chPrint_in_Division[ DivNo];
         RefreshItem(p,lvChart.Items[ i]);
         lvChart.UpdateItems( i,i );
+
+        //*** Flag Audit ***
+        MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
      end;
   end;
 
@@ -757,6 +760,9 @@ begin
            RefreshItem(p,lvChart.Items[ i]);
            lvChart.UpdateItems( i,i );
         end;
+
+        //*** Flag Audit ***
+        MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
      end;
   end;
 

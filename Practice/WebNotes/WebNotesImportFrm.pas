@@ -1532,7 +1532,7 @@ begin
      if Client.clFields.clCountry = whUK then begin
        SaveClientCode := CurrUser.Code;
        try
-         CurrUser.Code := 'Notes Online';
+         CurrUser.Code := USER_NOTES_ONLINE;
          Files.SaveAClient(Client);
        finally
          CurrUser.Code := SaveClientCode;

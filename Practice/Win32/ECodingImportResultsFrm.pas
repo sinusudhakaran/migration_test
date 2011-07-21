@@ -85,10 +85,10 @@ begin
          end;
 
          lblClientSave.Visible := False;
-         if (Country = whUK) then begin
-           lblClientSave.Visible := True;
-            Height := (Height - lblClientSave.Height);
-         end;
+         if (Country = whUK) then
+           lblClientSave.Visible := True
+         else
+           Height := (Height - lblClientSave.Height);
 
          result := ( ShowModal = mrYes);
       finally

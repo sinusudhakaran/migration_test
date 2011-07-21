@@ -1081,7 +1081,6 @@ begin
   end;
 end;
 
-
 procedure Set_Print_in_Division_Audit_Values(const V1: TPrint_in_Division_Array;
   const ACustomHeadingsList: TNew_Custom_Headings_List;var Values: string);
 var
@@ -1089,20 +1088,23 @@ var
   Value: Boolean;
   FieldName: string;
   TempStr: string;
+  FirstValue: Boolean;
 begin
 {$IFNDEF LOOKUPDLL}
-  TempStr := '';
+  FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Account, 89);
+  TempStr := Format('%s=',[FieldName]);
+  FirstValue := True;
   for i := Low(V1) to High(V1) do begin
     Value := V1[i];
     //Only show the divisions that this account code will used for
     if Value then begin
-      if (TempStr <> '') then
-        TempStr := TempStr + VALUES_DELIMITER;
-      FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Account, 89);
-      TempStr := Format('%s%s[%s]=%s', [TempStr,
-                                        FieldName,
-                                        ACustomHeadingsList.Get_Division_Heading(i),
-                                        BoolToStr(Value, True)]);
+      if FirstValue then begin
+        TempStr := Format('%s%s', [TempStr,
+                                    ACustomHeadingsList.Get_Division_Heading(i)]);
+        FirstValue := False;
+      end else
+        TempStr := Format('%s, %s', [TempStr,
+                                     ACustomHeadingsList.Get_Division_Heading(i)]);
     end;
   end;
   Values := Values + TempStr;

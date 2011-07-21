@@ -62,10 +62,12 @@ object WebNotesImportForm: TWebNotesImportForm
     end
     object lblClientSave: TLabel
       Left = 96
-      Top = 152
-      Width = 246
-      Height = 13
+      Top = 140
+      Width = 249
+      Height = 37
+      AutoSize = False
       Caption = 'Note: The client file will be saved during the import.'
+      WordWrap = True
     end
     inline DateSelector: TfmeDateSelector
       Left = 32

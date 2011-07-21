@@ -194,8 +194,11 @@ begin
               for i := btMin to btMax do
                 MyClient.clFields.clAll_EditMode_Journals[i] := True;
 
-              //Flag Audit
+              //Flag Audit - need to audit everything that can be changed in
+              //the new client wizard.
               MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
+              MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+              MyClient.ClientAuditMgr.FlagAudit(atPayees);
 
               SaveClient;
            end;
