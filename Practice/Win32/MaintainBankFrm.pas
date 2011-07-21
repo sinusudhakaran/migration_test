@@ -118,6 +118,7 @@ begin
   UpdateRefNeeded := false;
   SetUpHelp;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMaintainBank.SetUpHelp;
 begin
@@ -146,41 +147,66 @@ var
    NewItem : TListItem;
    BankAcct  : TBank_Account;
    i : integer;
+   CurrencyColumn: TListColumn;
+   ColumnStrings: TStrings;
+   CurrencyColumnAdded: boolean;
 begin
+  CurrencyColumnAdded := false;
+
+  if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
+  begin
+    if (lvBank.Columns.Items[2].Caption <> 'Currency') then
+    begin
+      CurrencyColumn := TListColumn(lvBank.Columns.Insert(2));
+      CurrencyColumn.Caption := 'Currency';
+      CurrencyColumn.Width := 80;
+      CurrencyColumnAdded := true;
+    end;
+  end else
+    lvBank.Columns.Delete(2);
+
    lvBank.Items.beginUpdate;
-   try
+   try                     
+     lvBank.Items.Clear;
 
-   lvBank.Items.Clear;
+     with MyClient, clBank_Account_List do
+     for i := 0 to Pred(itemCount) do
+     begin
+        BankAcct :=  Bank_Account_At(i);
 
-   with MyClient, clBank_Account_List do
-   for i := 0 to Pred(itemCount) do
-   begin
-      BankAcct :=  Bank_Account_At(i);
+        //if not (BankAcct.IsAJournalAccount) then
+        if BankAcct.baFields.baAccount_Type <> btStockBalances then
+        begin
+          NewItem := lvBank.Items.Add;
+          NewItem.Caption := BankAcct.baFields.baBank_Account_Number;
 
-      //if not (BankAcct.IsAJournalAccount) then
-      if BankAcct.baFields.baAccount_Type <> btStockBalances then
-      begin
-        NewItem := lvBank.Items.Add;
-        NewItem.Caption := BankAcct.baFields.baBank_Account_Number;
+          if AccountVisible(BankAcct) then  {check if visible in coding window}
+            NewItem.ImageIndex := MAINTAIN_PAGE_OPEN_BMP
+          else
+             NewItem.ImageIndex := MAINTAIN_PAGE_NORMAL_BMP;
 
-        if AccountVisible(BankAcct) then  {check if visible in coding window}
-          NewItem.ImageIndex := MAINTAIN_PAGE_OPEN_BMP
-        else
-           NewItem.ImageIndex := MAINTAIN_PAGE_NORMAL_BMP;
+          if ( BankAcct.baFields.baAccount_Type = btBank ) and
+             ContraCodeRequired( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used )
+             and ( BankAcct.baFields.baContra_Account_Code = '' ) then
+              NewItem.ImageIndex := MAINTAIN_ALERT;
 
-        if ( BankAcct.baFields.baAccount_Type = btBank ) and
-           ContraCodeRequired( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used )
-           and ( BankAcct.baFields.baContra_Account_Code = '' ) then
-            NewItem.ImageIndex := MAINTAIN_ALERT;
+          NewItem.SubItems.AddObject(BankAcct.baFields.baBank_Account_Name,BankAcct);
 
-        NewItem.SubItems.AddObject(BankAcct.baFields.baBank_Account_Name,BankAcct);
-
-        if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then 
-          NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
-
-        NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
-      end;
-   end;
+          if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
+          begin
+            if CurrencyColumnAdded then
+            begin
+              NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+              NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
+            end else
+            begin
+              NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
+              NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+            end;
+          end else
+            NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+        end;
+     end;
    finally
       lvBank.items.EndUpdate;
    end;
