@@ -335,7 +335,9 @@ Begin
             end
             else
             begin
-               Writeln( XFile, '"Number","Bank","Date","Reference","Account","Amount","Narration","Quantity","GST Class","GST Amount"');
+               if (MyClient.clFields.clCountry = whUK)
+                 then Writeln( XFile, '"Number","Bank","Date","Reference","Account","Amount","Narration","Quantity","VAT Class","VAT Amount"')
+                 else Writeln( XFile, '"Number","Bank","Date","Reference","Account","Amount","Narration","Quantity","GST Class","GST Amount"');
                DoBankAccount := False;
                DoChartDescription := False;
                DoClientDescription := false;
