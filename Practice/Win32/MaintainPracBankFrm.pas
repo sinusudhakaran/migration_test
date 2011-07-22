@@ -310,6 +310,7 @@ end;
 procedure TfrmMaintainPracBank.acCurrenciesExecute(Sender: TObject);
 begin
    MaintainCurrencies;
+   RefreshBankAccountList;
 end;
 
 procedure TfrmMaintainPracBank.acExchangeRatesExecute(Sender: TObject);
