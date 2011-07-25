@@ -1099,12 +1099,12 @@ begin
     //Only show the divisions that this account code will used for
     if Value then begin
       if FirstValue then begin
-        TempStr := Format('%s%s', [TempStr,
-                                    ACustomHeadingsList.Get_Division_Heading(i)]);
+        TempStr := Format('%s[%d]%s', [TempStr, i,
+                                       ACustomHeadingsList.Get_Division_Heading(i)]);
         FirstValue := False;
       end else
-        TempStr := Format('%s, %s', [TempStr,
-                                     ACustomHeadingsList.Get_Division_Heading(i)]);
+        TempStr := Format('%s, [%d]%s', [TempStr, i,
+                                         ACustomHeadingsList.Get_Division_Heading(i)]);
     end;
   end;
   Values := Values + TempStr;
@@ -1177,6 +1177,7 @@ begin
                                         Money2Str(tAccount_Rec(ARecord^).chOpening_Balance_SB_Only), Values);
             //Subtype
             96: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),
+                                        Format('[%d]',[tAccount_Rec(ARecord^).chSubtype]) + 
                                         ACustomHeadingsList.Get_SubGroup_Heading(tAccount_Rec(ARecord^).chSubtype), Values);
             //Alternative_Code
             97: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Account, Token),

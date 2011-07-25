@@ -3914,7 +3914,8 @@ begin
           AuditFields.DelimitedText := Values;
           for j := 0 to AuditFields.Count - 1 do
             if (AuditFields[j] <> 'ParentID=0') then
-              if (Pos('NOTE', UpperCase(AuditFields[j])) > 0) or
+              if (AuditRecord.atAudit_Action = aaNone) or
+                 (Pos('NOTE', UpperCase(AuditFields[j])) > 0) or
                  (Pos('PRINT_IN_DIVISION', UpperCase(AuditFields[j])) > 0) or
                  (Pos('NARRATION', UpperCase(AuditFields[j])) > 0) then begin
                 //Wrap the text
