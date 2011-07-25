@@ -789,17 +789,37 @@ var I: Integer;
     var
       j: integer;
       IPWorksHeaderList: TStringList;
+      IndyHeaderList: TStringList;
+      ls: TStringStream;
     begin
       Result := '';
-      //TFS 4762 - Remove duplicate headers 
+      //TFS 4762 - Remove duplicate headers
       IPWorksHeaderList := TStringList.Create;
       try
-        IPWorksHeaderList.Text := ipsSMTPS1.MessageText;
-        for j := Pred(smtpMessage.Headers.Count) downto 0 do begin
-          if IPWorksHeaderList.IndexOfName(smtpMessage.Headers.Names[j]) >= 0 then
-            smtpMessage.Headers.Delete(j);
+        IPWorksHeaderList.NameValueSeparator := ':';
+        IPWorksHeaderList.Text := ipsSMTPS1.MessageHeaders;
+
+        IndyHeaderList := TStringList.Create;
+        try
+          IndyHeaderList.NameValueSeparator := ':';
+          ls := TStringStream.Create('');
+          try
+            smtpMessage.SaveToStream(ls, True);
+            IndyHeaderList.Text := ls.DataString;
+          finally
+            ls.Free;
+          end;
+
+          for j := Pred(IndyHeaderList.Count) downto 0 do begin
+            if IPWorksHeaderList.IndexOfName(IndyHeaderList.Names[j]) >= 0 then
+              IndyHeaderList.Delete(j);
+          end;
+
+          Result := IndyHeaderList.Text;
+
+        finally
+          IndyHeaderList.Free;
         end;
-        Result := smtpMessage.Headers.Text;
       finally
         IPWorksHeaderList.Free;
       end;
@@ -888,9 +908,9 @@ begin
 
 
     try
-       //Add Indy message headers
-//       ipsSMTPS1.OtherHeaders := GetMsgString(True); //looks like a double up, but makes outlook work..
+       //Add Indy headers
        ipsSMTPS1.OtherHeaders := GetOtherHeaders;
+       //Add Indy message
        ipsSMTPS1.MessageText := GetMsgString(False);
        ipsSMTPS1.Send;
        Result := True;
