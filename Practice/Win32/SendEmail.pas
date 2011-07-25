@@ -785,6 +785,26 @@ var I: Integer;
        end;
     end;
 
+    function GetOtherHeaders: string;
+    var
+      j: integer;
+      IPWorksHeaderList: TStringList;
+    begin
+      Result := '';
+      //TFS 4762 - Remove duplicate headers 
+      IPWorksHeaderList := TStringList.Create;
+      try
+        IPWorksHeaderList.Text := ipsSMTPS1.MessageText;
+        for j := Pred(smtpMessage.Headers.Count) downto 0 do begin
+          if IPWorksHeaderList.IndexOfName(smtpMessage.Headers.Names[j]) >= 0 then
+            smtpMessage.Headers.Delete(j);
+        end;
+        Result := smtpMessage.Headers.Text;
+      finally
+        IPWorksHeaderList.Free;
+      end;
+    end;
+
 begin
     Result := false;
     if DebugMe then begin
@@ -868,7 +888,9 @@ begin
 
 
     try
-       ipsSMTPS1.OtherHeaders := GetMsgString(True); //looks like a double up, but makes outlook work..
+       //Add Indy message headers
+//       ipsSMTPS1.OtherHeaders := GetMsgString(True); //looks like a double up, but makes outlook work..
+       ipsSMTPS1.OtherHeaders := GetOtherHeaders;
        ipsSMTPS1.MessageText := GetMsgString(False);
        ipsSMTPS1.Send;
        Result := True;

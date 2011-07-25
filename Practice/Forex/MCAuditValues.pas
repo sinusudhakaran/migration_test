@@ -91,17 +91,23 @@ begin
   end;
 end;
 
-function GetISOCodeArray(AAuditRecord: TAudit_Trail_Rec;
-  AExchangeRatesHeader: TExchange_Rates_Header_Rec): TISO_Codes_Array;
+procedure SetISOCodeList(AAuditRecord: TAudit_Trail_Rec;
+  AExchangeRatesHeader: TExchange_Rates_Header_Rec; var AISOCodeList: TStringList);
 var
   i: integer;
   StringList: TStringList;
   ISOCodes: string;
+  CurrentISOCodes: TISO_Codes_Array;
 begin
-  //Clear array
-  for i := Low(Result) to High(Result) do
-    Result[i] := '';
-  //Get ISO Codes      
+  //Current ISO Codes
+  CurrentISOCodes := TISO_Codes_Array(AExchangeRatesHeader.ehISO_Codes);
+  for i := Low(CurrentISOCodes) to High(CurrentISOCodes) do begin
+    if (CurrentISOCodes[i] <> '') then
+      AISOCodeList.Add(CurrentISOCodes[i] + '=')
+    else
+      Break;
+  end;
+
   StringList := TStringList.Create;
   try
     StringList.StrictDelimiter := True;
@@ -113,13 +119,22 @@ begin
       StringList.Delimiter := ',';
       StringList.DelimitedText := ISOCodes;
       for i := 0 to StringList.Count - 1 do
-        Result[i+1] := StringList.Strings[i];
-    end else
-      Result := TISO_Codes_Array(AExchangeRatesHeader.ehISO_Codes);
+        StringList[i] := StringList[i] + '=';
+      //Added ISO Codes
+      for i := 0 to AISOCodeList.Count - 1 do begin
+        if StringList.IndexOfName(AISOCodeList.Names[i]) = -1  then
+          AISOCodeList[i] := AISOCodeList[i] + ' Added';
+      end;
+      //Deleted ISO Codes
+      for i := 0 to StringList.Count - 1 do begin
+        if AISOCodeList.IndexOfName(StringList.Names[i]) = -1  then
+          AISOCodeList.Add(StringList[i] + ' Deleted');
+      end;
+    end;
   finally
     StringList.Free;
   end;
-end;
+end;   
 
 procedure Rate_Audit_Values(AAuditRecord: TAudit_Trail_Rec;
   AExchangeRatesHeader: TExchange_Rates_Header_Rec; var Values: string);
@@ -127,18 +142,22 @@ var
   i: integer;
   Value: Double;
   TempStr: string;
-  ISOCodes: TISO_Codes_Array;
+  ISOCodeList: TStringList;
 begin
-  TempStr := '';
-  ISOCodes := GetISOCodeArray(AAuditRecord, AExchangeRatesHeader);
-  i := Low(ISOCodes);
   //Use ISO codes to restrict the number of rates in the audit report
-  while ISOCodes[i] <> '' do begin
-    Value := TExchange_Rate_Rec(AAuditRecord.atAudit_Record^).erRate[i];
-    if (Values <> '') or (TempStr <> '') then
-      TempStr := TempStr + VALUES_DELIMITER;
-    TempStr := Format('%s%s=%0.4f', [TempStr, ISOCodes[i], Value]);
-    Inc(i);
+  TempStr := '';
+  ISOCodeList := TStringList.Create;
+  try
+    SetISOCodeList(AAuditRecord, AExchangeRatesHeader, ISOCodeList);
+    for i := 0 to ISOCodeList.Count - 1 do begin
+      Value := TExchange_Rate_Rec(AAuditRecord.atAudit_Record^).erRate[i +1];
+      if (Values <> '') or (TempStr <> '') then
+        TempStr := TempStr + VALUES_DELIMITER;
+        TempStr := Format('%s%s=%0.4f%s', [TempStr, ISOCodeList.Names[i],
+                                          Value, ISOCodeList.ValueFromIndex[i]]);
+    end;
+  finally
+    ISOCodeList.Free;
   end;
   Values := Values + TempStr;
 end;

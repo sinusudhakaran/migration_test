@@ -193,6 +193,7 @@ type
   TExchangeRateAuditManager = class(TAuditManager)
   private
     FOwner: TObject;
+    FExchangeRateHeader: TExchange_Rates_Header_Rec;
   public
     constructor Create(Owner: TObject);
     function NextAuditRecordID: integer; override;
@@ -204,6 +205,7 @@ type
     procedure ReadAuditRecord(ARecordType: byte; AStream: TIOStream; var ARecord: pointer); override;
     procedure WriteAuditRecord(ARecordType: byte; ARecord: pointer; AStream: TIOStream); override;
     procedure CopyAuditRecord(const ARecordType: byte; P1: Pointer; var P2: Pointer); override;
+    procedure SetExchangeRateHeader(AAuditRecord: TAudit_Trail_Rec);
   end;
 
   TAuditTable = class(TObject)
@@ -1540,7 +1542,7 @@ begin
   case AAuditRecord.atAudit_Record_Type of
     tkBegin_Exchange_Rates_Header : AddExchangeSourceAuditValues(AAuditRecord, Self, AuditInfo);
     tkBegin_Exchange_Rate         : AddExchangeRateAuditValues(AAuditRecord, Self,
-                                                               AdminSystem.fCurrencyList,
+                                                               FExchangeRateHeader,
                                                                AuditInfo);
   end;
 
@@ -1581,6 +1583,14 @@ begin
   end;
 {$ENDIF}
 end;
+
+procedure TExchangeRateAuditManager.SetExchangeRateHeader(
+  AAuditRecord: TAudit_Trail_Rec);
+begin
+  if (AAuditRecord.atAudit_Record_Type = tkBegin_Exchange_Rates_Header) then
+    FExchangeRateHeader := TExchange_Rates_Header_Rec(AAuditRecord.atAudit_Record^);
+end;
+
 
 procedure TExchangeRateAuditManager.WriteAuditRecord(ARecordType: byte;
   ARecord: pointer; AStream: TIOStream);

@@ -4046,6 +4046,9 @@ begin
                                                (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
         end;
 
+        //Set the excahnge rate header as at time of audit
+        ExchangeRates.AuditMgr.SetExchangeRateHeader(AuditRecord);
+
         //Get changed values
         Values := '';
         ExchangeRates.AuditMgr.GetValues(AuditRecord, Values);
