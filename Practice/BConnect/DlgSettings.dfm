@@ -61,7 +61,6 @@ object dlgSettings: TdlgSettings
         Align = alTop
         BorderOuter = fsNone
         TabOrder = 0
-        ExplicitTop = 18
         object chkUseWinINet: TCheckBox
           Left = 8
           Top = 1
@@ -77,13 +76,15 @@ object dlgSettings: TdlgSettings
         Top = 37
         Width = 432
         Height = 215
-        ActivePage = tshtProxySettings
+        ActivePage = tshtFirewallSettings
         Align = alClient
         TabOrder = 1
         object tshtProxySettings: TTabSheet
           Caption = 'Proxy Settings'
-          ExplicitTop = 27
-          ExplicitHeight = 181
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             424
             187)
@@ -174,7 +175,7 @@ object dlgSettings: TdlgSettings
             Ctl3D = False
             Enabled = False
             FrameController = RzFrameController1
-            ItemHeight = 13
+            ItemHeight = 0
             ParentCtl3D = False
             TabOrder = 4
             Text = 'None'
@@ -209,8 +210,10 @@ object dlgSettings: TdlgSettings
         object tshtFirewallSettings: TTabSheet
           Caption = 'Firewall Settings'
           ImageIndex = 1
-          ExplicitTop = 27
-          ExplicitHeight = 181
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             424
             187)
@@ -262,7 +265,7 @@ object dlgSettings: TdlgSettings
             Ctl3D = False
             Enabled = False
             FrameController = RzFrameController1
-            ItemHeight = 13
+            ItemHeight = 0
             ParentCtl3D = False
             TabOrder = 3
             OnChange = cboFirewallTypeChange
