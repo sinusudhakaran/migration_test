@@ -183,7 +183,7 @@ object formMain: TformMain
   end
   object btnGo: TButton
     Left = 439
-    Top = 62
+    Top = 63
     Width = 75
     Height = 25
     Hint = 'Starts the Muddle Process'

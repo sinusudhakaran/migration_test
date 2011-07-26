@@ -89,6 +89,7 @@ type
     procedure DoProgress(ProgressPercent : single);
     procedure ResetControls;
     function Validate : boolean;
+    procedure EnableControls(Enable : boolean);
   end;
 
 var
@@ -212,6 +213,18 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TformMain.EnableControls(Enable: boolean);
+begin
+  edtSourceDirectory.Enabled := Enable;
+  btnSourceDirectory.Enabled := Enable;
+  btnDestinationDirectory.Enabled := Enable;
+  edtDestinationDirectory.Enabled := Enable;
+  btnGo.Enabled := Enable;
+  btnExit.Enabled := Enable;
+  mnuFile.Enabled := Enable;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TformMain.actLoadDataFileExecute(Sender: TObject);
 begin
   OpenDialog.Filter := FILE_EXT_DATA_FILTER;
@@ -311,6 +324,7 @@ begin
   Self.Cursor := crHourGlass;
   try
     try
+      EnableControls(False);
       fMuddler.Execute(edtSourceDirectory.Text, edtDestinationDirectory.Text);
 
       Messagedlg(MSG_FINNISHED, mtInformation, [mbOk], 0);
@@ -320,6 +334,7 @@ begin
     end;
   finally
     Self.Cursor := crDefault;
+    EnableControls(True);
   end;
 end;
 
