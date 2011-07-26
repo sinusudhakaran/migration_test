@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{8dbe1bef-4acf-4073-9bac-3627479f5d52}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+    <DCC_DependencyCheckOutputName>Muddler.exe</DCC_DependencyCheckOutputName>
+    <MainSource>Muddler.dpr</MainSource>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_DebugInformation>False</DCC_DebugInformation>
+    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    <DCC_Define>RELEASE</DCC_Define>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_Define>DEBUG;Delphi7;sslv6</DCC_Define>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_IncludePath>
+    <DCC_Optimize>False</DCC_Optimize>
+    <DCC_MapFile>3</DCC_MapFile>
+    <DCC_DebugInfoInExe>True</DCC_DebugInfoInExe>
+    <DCC_DebugVN>True</DCC_DebugVN>
+    <DCC_RemoteDebug>True</DCC_RemoteDebug>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Delphi.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">False</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <Excluded_Packages Name="$(BDS)\bin\bcboffice2k100.bpl">CodeGear C++Builder Office 2000 Servers Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\bcbofficexp100.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+    </Excluded_Packages><Source><Source Name="MainSource">Muddler.dpr</Source></Source>  
+    
+    
+    
+    
+    
+    <DebugEnvironmentVariables>
+      <DebugEnvironmentVariables Name="ComponentsDir">'..\..\Components'</DebugEnvironmentVariables>
+      <DebugEnvironmentVariables Name="LOGONSERVER">'\\BANKLINK-DC'</DebugEnvironmentVariables>
+    </DebugEnvironmentVariables>
+    <DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="ALLUSERSPROFILE">'C:\ProgramData'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="APPDATA">'C:\Users\ralph.austen\AppData\Roaming'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="BDS">'c:\program files (x86)\codegear\rad studio\5.0'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="BDSCOMMONDIR">'C:\Users\Public\Documents\RAD Studio\5.0'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="BDSPROJECTSDIR">'C:\Users\ralph.austen\Documents\RAD Studio\Projects'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="BDSUSERDIR">'C:\Users\ralph.austen\Documents\RAD Studio\5.0'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="CommonProgramFiles(x86)">'C:\Program Files (x86)\Common Files'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="CommonProgramFiles">'C:\Program Files (x86)\Common Files'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="CommonProgramW6432">'C:\Program Files\Common Files'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="COMPUTERNAME">'BANKLINK-RA'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="ComSpec">'C:\Windows\system32\cmd.exe'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="DELPHI">'c:\program files (x86)\codegear\rad studio\5.0'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="DXVCL">'C:\Program Files\Developer Express.VCL'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="FP_NO_HOST_CHECK">'NO'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="FPPUILang">'en-US'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="HOMEDRIVE">'Z:'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="HOMEPATH">'\'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="HOMESHARE">'\\banklink-fp\home\Ralph.Austen'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="LOCALAPPDATA">'C:\Users\ralph.austen\AppData\Local'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="NUMBER_OF_PROCESSORS">'8'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="OnlineServices">'Online Services'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="OOBEUILang">'en-US'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="OS">'Windows_NT'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="Path">'C:\Program Files (x86)\CodeGear\RAD Studio\5.0\bin;C:\Users\Public\Documents\RAD Studio\5.0\Bpl;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;c:\Program Files\Intel\DMIX;C:\Program Files (x86)\Intel\Services\IPT\;C:\Program Files\Developer Express.VCL\Library\Delphi11;c:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files\Microsoft SQL Server\100\DTS\Binn\;C:\Users\Public\Documents\RAD Studio\5.0\Bpl'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PATHEXT">'.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="Platform">'BPC'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PROCESSOR_ARCHITECTURE">'x86'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PROCESSOR_ARCHITEW6432">'AMD64'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PROCESSOR_IDENTIFIER">'Intel64 Family 6 Model 42 Stepping 7, GenuineIntel'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PROCESSOR_LEVEL">'6'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PROCESSOR_REVISION">'2a07'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="ProgramData">'C:\ProgramData'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="ProgramFiles(x86)">'C:\Program Files (x86)'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="ProgramFiles">'C:\Program Files (x86)'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="ProgramW6432">'C:\Program Files'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PSModulePath">'C:\Windows\system32\WindowsPowerShell\v1.0\Modules\'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PTSMInstallPath_X86">'c:\Program Files (x86)\Hewlett-Packard\HP ProtectTools Security Manager\'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="PUBLIC">'C:\Users\Public'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="SESSIONNAME">'Console'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="SystemDrive">'C:'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="SystemRoot">'C:\Windows'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="TEMP">'C:\Users\RALPH~1.AUS\AppData\Local\Temp'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="TMP">'C:\Users\RALPH~1.AUS\AppData\Local\Temp'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="USERDNSDOMAIN">'BANKLINK.CO.NZ'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="USERDOMAIN">'BANKLINK'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="USERNAME">'Ralph.Austen'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="USERPROFILE">'C:\Users\ralph.austen'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="VS100COMNTOOLS">'C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\Tools\'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="windir">'C:\Windows'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="windows_tracing_flags">'3'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="windows_tracing_logfile">'C:\BVTBin\Tests\installpackage\csilogfile.log'</DebugSysEnvironmentVariables>
+    </DebugSysEnvironmentVariables>
+  </Delphi.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
+  <ItemGroup>
+    <DelphiCompile Include="Muddler.dpr">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+    <DCCReference Include="DataGenerator.pas" />
+    <DCCReference Include="Mainform.pas">
+      <Form>formMain</Form>
+    </DCCReference>
+    <DCCReference Include="Muddle.pas" />
+  </ItemGroup>
+</Project>
