@@ -305,7 +305,8 @@ end;
 procedure TdlgEditPracGST.SetTaxName(const Value: String);
 begin
   FTaxName := Value;
-  Caption := 'Practice ' + TaxName + ' Defaults';
+  if Country <> whAustralia then // Fix for bug 21586
+    Caption := 'Practice ' + TaxName + ' Defaults';
   OvcTCColHead1.Headings[ TypeCol ] := TaxName + ' Type';
   tsGST.Caption := TaxName + ' Rates';
 end;

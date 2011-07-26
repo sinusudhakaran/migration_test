@@ -25,6 +25,10 @@ object dlgEditPracGST: TdlgEditPracGST
     TabOrder = 0
     object tsGST: TTabSheet
       Caption = 'GST Rates'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label1: TLabel
         Left = 8
         Top = 4
@@ -110,14 +114,7 @@ object dlgEditPracGST: TdlgEditPracGST
           OnGetCellAttributes = tblRatesGetCellAttributes
           OnUserCommand = tblRatesUserCommand
           CellData = (
-            'dlgEditPracGST.OvcTCColHead1'
-            'dlgEditPracGST.colAccount'
-            'dlgEditPracGST.colRate3'
-            'dlgEditPracGST.colRate2'
-            'dlgEditPracGST.colRate1'
-            'dlgEditPracGST.celGSTType'
-            'dlgEditPracGST.colDesc'
-            'dlgEditPracGST.ColID')
+            'dlgEditPracGST.OvcTCColHead1')
           RowData = (
             22)
           ColData = (
@@ -543,7 +540,6 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 168
@@ -560,7 +556,6 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 208
@@ -577,7 +572,6 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 248
