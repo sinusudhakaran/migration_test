@@ -84,7 +84,7 @@ Type
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   TMuddler = class
   private
-    fAdminObj             : TSystemObj;
+
     fClientList           : TClientList;
     fOnProgressUpdate     : TProgressEvent;
     fSourceDirectory      : string;
@@ -97,6 +97,7 @@ Type
     procedure SetProgressUpdate(ProgressPercent : single);
     procedure CopyFolder(SourceDirectory, DestinationDirectory: string; FileCount : integer; var FileIndex : integer);
     procedure CountItemsInFolder(SourceDirectory : string; var FileCount : integer);
+    procedure ClearFilesInFolder(Directory : string);
     function IsClientFileNameUsed(FileName : string) : Boolean;
     function ReplaceNumbers(Instring : string; MinLength : integer) : string;
     procedure AddAccountOldNew(OldAccNumber, NewAccNumber, NewAccName : string);
@@ -182,7 +183,10 @@ uses
   dbObj,
   FHDEFS,
   GlobalDirectories,
-  MemorisationsObj;
+  MemorisationsObj,
+  Upgrade,
+  Admin32,
+  Progress;
 
 const
   MIN_NUM_REPLACE_LENGTH = 4;
@@ -441,6 +445,32 @@ begin
       else if ((SearchRec.Attr and faAnyfile) <> 0) then
         if FileInCopyList(SearchRec.Name) then
           inc(FileCount);
+
+      FindResult := FindNext(SearchRec);
+    end;
+  finally
+    SysUtils.FindClose(SearchRec);
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TMuddler.ClearFilesInFolder(Directory : string);
+var
+  SearchRec  : TSearchRec;
+  FindResult : integer;
+begin
+  FindResult := FindFirst(Directory + '\*.*', (faAnyfile and faDirectory) , SearchRec);
+  try
+    while FindResult = 0 do
+    begin
+      if ((SearchRec.Attr and faDirectory) <> 0) then
+      begin
+        if not (SearchRec.Name = '.') and
+           not (SearchRec.Name = '..') then
+          ClearFilesInFolder(Directory + '\' + SearchRec.Name);
+      end
+      else if ((SearchRec.Attr and faAnyfile) <> 0) then
+        DeleteFile(PChar(Directory + '\' + SearchRec.Name));
 
       FindResult := FindNext(SearchRec);
     end;
@@ -715,9 +745,9 @@ begin
   AccountName   := fDataGenerator.GeneratePersonName(1,2);
 
   // Accounts in Database
-  for AccountIndex := 0 to fAdminObj.fdSystem_Bank_Account_List.ItemCount - 1 do
+  for AccountIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount - 1 do
   begin
-    AccountField := fAdminObj.fdSystem_Bank_Account_List.System_Bank_Account_At(AccountIndex);
+    AccountField := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(AccountIndex);
 
     if AccountObj.baFields.baBank_Account_Number = AccountField.sbAccount_Number then
     begin
@@ -999,6 +1029,9 @@ begin
   FileCount := 0;
   FileIndex := 0;
 
+  if SysUtils.DirectoryExists(fDestinationDirectory) then
+    ClearFilesInFolder(fDestinationDirectory);
+
   CountItemsInFolder(fSourceDirectory, FileCount);
 
   CopyFolder(fSourceDirectory, fDestinationDirectory, FileCount, FileIndex);
@@ -1014,9 +1047,15 @@ var
   FileCount  : integer;
   FileIndex  : integer;
 begin
-  // Open Admin DB
-  fAdminObj := TSystemObj.Create;
-  fAdminObj.Open;
+  // Upgrade DB
+  LoadAdminSystem(false, 'StartUp');
+
+  Progress.StatusSilent := True;
+  Progress.OnUpdateMessageBar := nil;
+
+  UpgradeAdminToLatestVersion;
+  UpgradeExchangeRatesToLatestVersion;
+
   SetProgressUpdate(35);
 
   FileCount := 0;
@@ -1085,7 +1124,7 @@ begin
   PracticeCode       := 'Prac0001';
   BankLinkCode       := 'Bank0001';
 
-  MuddlePracticeSys(fAdminObj.fdFields,
+  MuddlePracticeSys(AdminSystem.fdFields,
                     PracticeName,
                     PracticePhone,
                     PracticeEmail,
@@ -1093,18 +1132,18 @@ begin
                     BankLinkCode);
 
   //  Users in Database
-  for UserIndex := 0 to fAdminObj.fdSystem_User_List.ItemCount-1 do
+  for UserIndex := 0 to AdminSystem.fdSystem_User_List.ItemCount-1 do
   begin
-    UserDBItem := fAdminObj.fdSystem_User_List.User_At(UserIndex);
+    UserDBItem := AdminSystem.fdSystem_User_List.User_At(UserIndex);
 
-    MuddleUserSys(fAdminObj.fdSystem_User_List.User_At(UserIndex),
+    MuddleUserSys(AdminSystem.fdSystem_User_List.User_At(UserIndex),
                   PracticeName);
   end;
 
   // Clients in Database
-  for ClientIndex := 0 to fAdminObj.fdSystem_Client_File_List.ItemCount-1 do
+  for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
   begin
-    ClientDBItem := fAdminObj.fdSystem_Client_File_List.Client_File_At(ClientIndex);
+    ClientDBItem := AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex);
     // Look for Client File with the Same Code
     ClientFileBase := fClientList.GetClientFromCodeandLRN(ClientDBItem.cfFile_Code,
                                                           ClientDBItem.cfLRN);
@@ -1159,9 +1198,9 @@ begin
     end;
   end;
 
-  for MemorizationIndex := 0 to fAdminObj.fSystem_Memorisation_List.ItemCount - 1 do
+  for MemorizationIndex := 0 to AdminSystem.fSystem_Memorisation_List.ItemCount - 1 do
   begin
-    MuddleMemorizationSys(fAdminObj.fSystem_Memorisation_List.System_Memorisation_At(MemorizationIndex));
+    MuddleMemorizationSys(AdminSystem.fSystem_Memorisation_List.System_Memorisation_At(MemorizationIndex));
   end;
 
   //Muddle all TXN files
@@ -1176,8 +1215,8 @@ var
   ClientIndex : integer;
 begin
   // Save Admin DB
-  fAdminObj.Save;
-  FreeAndNil(fAdminObj);
+  AdminSystem.Save;
+  FreeAndNil(AdminSystem);
   SetProgressUpdate(85);
 
   // Save Client Files
