@@ -47,6 +47,18 @@ Type
 
   TArrFileOldNew = Array of TFileOldNew;
 
+  TBillingInfo = record
+    ClientName      : string;
+    AccountNumber   : string;
+    AccountName     : string;
+    NumOfTrans      : integer;
+    CurrentBalance  : Currency;
+    LastTranDate    : TDateTime;
+    InstitutionName : String;
+  end;
+
+  TArrBillingInfo = Array of TBillingInfo;
+
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   TClientItem = class
   private
@@ -92,6 +104,7 @@ Type
     fDataGenerator        : TDataGenerator;
     fArrAccOldNew         : TArrAccOldNew;
     fArrFileOldNew        : TArrFileOldNew;
+    fArrBillingInfo       : TArrBillingInfo;
     fClientDetailsCache   : TClientDetailsCache;
 
     procedure SetProgressUpdate(ProgressPercent : single);
@@ -104,8 +117,17 @@ Type
     procedure AddAccountOldNew(OldAccNumber, NewAccNumber, NewAccName : string);
     function FindOldAccount(OldAccNumber : string; var NewAccNumber, NewAccName : string) : boolean;
     procedure AddFileOldNew(OldName, NewName : string);
+    procedure AddBillingInfo(ClientName      : string;
+                             AccountNumber   : string;
+                             AccountName     : string;
+                             NumOfTrans      : integer;
+                             CurrentBalance  : Currency;
+                             LastTranDate    : TDateTime;
+                             InstitutionName : String);
     function FileInCopyList(FileName : string) : Boolean;
+
     function GetFileExt(FileName : string) : string;
+    procedure CreateWorkCsvFile;
   protected
     procedure MuddlePracticeSys(var PracticeFields : tPractice_Details_Rec;
                                 Name         : string;
@@ -137,7 +159,8 @@ Type
 
     procedure MuddleJobBk5(JobObj : pJob_Heading_Rec);
 
-    procedure MuddleAccountBk5(AccountObj : TBank_Account);
+    procedure MuddleAccountBk5(AccountObj : TBank_Account;
+                               ClientName : String);
 
     procedure MuddleTransactionBk5(TransField : pTransaction_Rec);
 
@@ -187,7 +210,9 @@ uses
   MemorisationsObj,
   Upgrade,
   Admin32,
-  Progress;
+  Progress,
+  DateUtils,
+  stDate;
 
 const
   MIN_NUM_REPLACE_LENGTH = 4;
@@ -337,6 +362,29 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TMuddler.AddBillingInfo(ClientName      : string;
+                                  AccountNumber   : string;
+                                  AccountName     : string;
+                                  NumOfTrans      : integer;
+                                  CurrentBalance  : Currency;
+                                  LastTranDate    : TDateTime;
+                                  InstitutionName : String);
+var
+  ArrIndex : integer;
+begin
+  SetLength(fArrBillingInfo,Length(fArrBillingInfo)+1);
+  ArrIndex := Length(fArrBillingInfo)-1;
+
+  fArrBillingInfo[ArrIndex].ClientName      := ClientName;
+  fArrBillingInfo[ArrIndex].AccountNumber   := AccountNumber;
+  fArrBillingInfo[ArrIndex].AccountName     := AccountName;
+  fArrBillingInfo[ArrIndex].NumOfTrans      := NumOfTrans;
+  fArrBillingInfo[ArrIndex].CurrentBalance  := CurrentBalance;
+  fArrBillingInfo[ArrIndex].LastTranDate    := LastTranDate;
+  fArrBillingInfo[ArrIndex].InstitutionName := InstitutionName;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TMuddler.FileInCopyList(FileName : string) : Boolean;
 var
   FileExt : string;
@@ -387,6 +435,107 @@ begin
       Result := RightStr(FileName, Length(FileName) - StrIndex);
       Exit;
     end;
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TMuddler.CreateWorkCsvFile;
+const
+  WORK_FILE_HEADER = '"Client","Account No","Account Name","File Code","Cost Code",' +
+                     '"Charges","No Of Transactions","New Account","Load Charge Billed"' +
+                     ',"Off-site charge included","Is Active","Current Balance",'+
+                     '"Last Transaction Date","Currency","Institution Name"';
+  WORK_FILE_DATA = '"%s","%s","%s","","",%s,%s,No,No,No,Yes,%s,%s/%s/%s,"%s","%s"';
+var
+  WorkFile  : TextFile;
+  FirstDate : TDateTime;
+  FileIndex : integer;
+  ArrIndex  : integer;
+  LoopLength : integer;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - -
+  function GetFirstDate : TDateTime;
+  var
+    ArrIndex : integer;
+    Year     : word;
+    Month    : word;
+    Day      : word;
+  begin
+    Result := encodedate(2000,1,1);
+    for ArrIndex := 0 to length(fArrBillingInfo) - 1 do
+    begin
+      DecodeDate(fArrBillingInfo[ArrIndex].LastTranDate, Year, Month, Day);
+      if (Year > Yearof(Result)) then
+        Result := fArrBillingInfo[ArrIndex].LastTranDate
+      else if (Year = Yearof(Result)) and
+              (Month > Monthof(Result)) then
+        Result := fArrBillingInfo[ArrIndex].LastTranDate;
+    end;
+  end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - -
+  function GetCharge : string;
+  begin
+    Result := inttostr(random(13)+1) + '.' +
+              inttostr(random(9)) +
+              inttostr(random(9));
+  end;
+
+  //- - - - - - - - - - - - - - - - - - - - - - - -
+  function LastMonth(InDate : TDateTime) : TDateTime;
+  var
+    Year     : word;
+    Month    : word;
+    Day      : word;
+  begin
+    DecodeDate(InDate, Year, Month, Day);
+    Dec(Month);
+    if Month = 0 then
+    begin
+      Month := 12;
+      Dec(Year);
+    end;
+    Result := encodedate(Year,Month,1);
+  end;
+begin
+  if length(fArrBillingInfo) < 4 then
+    Exit;
+
+  FirstDate := GetFirstDate;
+
+  for FileIndex := 1 to 3 do
+  begin
+    AssignFile(WorkFile, DataDir + 'Work\' + inttostr(Monthof(FirstDate)) + '-' +
+                         inttostr(Yearof(FirstDate)) + '.csv');
+    ReWrite(WorkFile);
+
+    Try
+      WriteLn(WorkFile, WORK_FILE_HEADER);
+
+      LoopLength := Length(fArrBillingInfo)-1;
+
+      if LoopLength > 50 then
+        LoopLength := 50;
+
+      for ArrIndex := 0 to LoopLength do
+      begin
+        WriteLn(WorkFile, Format(WORK_FILE_DATA,[fArrBillingInfo[ArrIndex].ClientName,
+                                                 fArrBillingInfo[ArrIndex].AccountNumber,
+                                                 fArrBillingInfo[ArrIndex].AccountName,
+                                                 GetCharge,
+                                                 inttostr(round(fArrBillingInfo[ArrIndex].NumOfTrans/FileIndex)),
+                                                 currtostr(fArrBillingInfo[ArrIndex].CurrentBalance/FileIndex),
+                                                 inttostr(Random(28)),
+                                                 inttostr(Monthof(FirstDate)),
+                                                 inttostr(Yearof(FirstDate)),
+                                                 'N$',
+                                                 fArrBillingInfo[ArrIndex].InstitutionName]));
+      end;
+    Finally
+      CloseFile(WorkFile);
+    End;
+
+    FirstDate := LastMonth(FirstDate);
   end;
 end;
 
@@ -746,7 +895,7 @@ begin
   //Accounts
   for AccountIndex := 0 to ClientObj.clBank_Account_List.ItemCount-1 do
   begin
-    MuddleAccountBk5(ClientObj.clBank_Account_List.Bank_Account_At(AccountIndex));
+    MuddleAccountBk5(ClientObj.clBank_Account_List.Bank_Account_At(AccountIndex), Name);
   end;
 end;
 
@@ -765,13 +914,17 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TMuddler.MuddleAccountBk5(AccountObj : TBank_Account);
+procedure TMuddler.MuddleAccountBk5(AccountObj : TBank_Account;
+                                    ClientName : String);
 var
   TransIndex    : integer;
   AccountField  : pSystem_Bank_Account_Rec;
   AccountNumber : string;
   AccountName   : string;
   AccountIndex  : integer;
+  Day   : integer;
+  Month : integer;
+  Year  : integer;
 begin
   AccountNumber := '1111' + fDataGenerator.GenerateCode(8);
   AccountName   := fDataGenerator.GeneratePersonName(1,2);
@@ -795,6 +948,16 @@ begin
 
   AccountObj.baFields.baBank_Account_Number := AccountNumber;
   AccountObj.baFields.baBank_Account_Name   := AccountName;
+
+  StDateToDMY(AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed, Day, Month, Year);
+  AddBillingInfo(ClientName,
+                 AccountNumber,
+                 AccountName,
+                 Random(49),
+                 AccountObj.baFields.baCurrent_Balance,
+                 EncodeDate(Year, Month, Day),
+                 fDataGenerator.GenerateCompanyName('Bank'));
+
 
   AccountObj.baFields.baBank_Account_Password := '';
 
@@ -1245,6 +1408,9 @@ begin
 
   //Muddle all TXN files
   SearchForTXNFiles(fDestinationDirectory);
+
+  // Billing csv files in work Directory
+  CreateWorkCsvFile;
 
   SetProgressUpdate(75);
 end;
