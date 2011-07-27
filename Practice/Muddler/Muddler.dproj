@@ -19,15 +19,12 @@
     <Version>7.0</Version>
     <DCC_Define>DEBUG;Delphi7;sslv6</DCC_Define>
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
-    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_IncludePath>
-    <DCC_Optimize>False</DCC_Optimize>
+    <DCC_UnitSearchPath>$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_ResourcePath>
+    <DCC_ObjPath>$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_ObjPath>
+    <DCC_IncludePath>$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_IncludePath>
     <DCC_MapFile>3</DCC_MapFile>
-    <DCC_DebugInfoInExe>True</DCC_DebugInfoInExe>
-    <DCC_DebugVN>True</DCC_DebugVN>
-    <DCC_RemoteDebug>True</DCC_RemoteDebug>
+    <DCC_SymbolReferenceInfo>2</DCC_SymbolReferenceInfo>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
@@ -42,17 +39,11 @@
       
       
       
-      
-      
-      
-      
       <Excluded_Packages Name="$(BDS)\bin\bcboffice2k100.bpl">CodeGear C++Builder Office 2000 Servers Package</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\bcbofficexp100.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
     </Excluded_Packages><Source><Source Name="MainSource">Muddler.dpr</Source></Source>  
-    
-    
     
     
     

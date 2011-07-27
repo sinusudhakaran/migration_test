@@ -97,7 +97,8 @@ Type
     procedure SetProgressUpdate(ProgressPercent : single);
     procedure CopyFolder(SourceDirectory, DestinationDirectory: string; FileCount : integer; var FileIndex : integer);
     procedure CountItemsInFolder(SourceDirectory : string; var FileCount : integer);
-    procedure ClearFilesInFolder(Directory : string);
+    procedure ClearFilesInFolder(Directory : string; var FileCount : integer; var FileIndex : integer);
+    procedure CountFilesToClearInFolder(Directory : string; var FileCount : integer);
     function IsClientFileNameUsed(FileName : string) : Boolean;
     function ReplaceNumbers(Instring : string; MinLength : integer) : string;
     procedure AddAccountOldNew(OldAccNumber, NewAccNumber, NewAccName : string);
@@ -190,8 +191,9 @@ uses
 
 const
   MIN_NUM_REPLACE_LENGTH = 4;
-  FILE_EXT_LIST : Array[0..14] of string =
-    ('bk5','Exe','Inf','rsm','html','db','dat','ini','chm','dll','map','prs','ovl','current','Txn');
+  FILE_EXT_LIST : Array[0..17] of string =
+    ('bk5','Exe','Inf','rsm','html','db','dat','ini','chm','dll','map','prs',
+     'ovl','current','Txn','tpm','bk!','xml');
 
 { TClientItem }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -356,16 +358,16 @@ var
     end;
   end;
 begin
-  Result := False;
+  Result := false;
 
   FileExt := GetFileExt(FileName);
 
   if FileExtUsed then
-    Result := True;
+    Result := true;
 
   if (Length(FileExt) = 3) and
     (trystrtoint(FileExt, Value)) then
-    Result := True;
+    Result := true;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -416,7 +418,7 @@ begin
                          DestinationDirectory + '\' + SearchRec.Name);
 
           inc(FileIndex);
-          SetProgressUpdate(((FileIndex/FileCount) * 25));
+          SetProgressUpdate(((FileIndex/FileCount) * 15) + 10);
         end;
       end;
       FindResult := FindNext(SearchRec);
@@ -454,7 +456,7 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TMuddler.ClearFilesInFolder(Directory : string);
+procedure TMuddler.ClearFilesInFolder(Directory : string; var FileCount : integer; var FileIndex : integer);
 var
   SearchRec  : TSearchRec;
   FindResult : integer;
@@ -467,10 +469,40 @@ begin
       begin
         if not (SearchRec.Name = '.') and
            not (SearchRec.Name = '..') then
-          ClearFilesInFolder(Directory + '\' + SearchRec.Name);
+          ClearFilesInFolder(Directory + '\' + SearchRec.Name, FileCount, FileIndex);
       end
       else if ((SearchRec.Attr and faAnyfile) <> 0) then
+      begin
         DeleteFile(PChar(Directory + '\' + SearchRec.Name));
+        inc(FileIndex);
+        SetProgressUpdate(((FileIndex/FileCount) * 10));
+      end;
+
+      FindResult := FindNext(SearchRec);
+    end;
+  finally
+    SysUtils.FindClose(SearchRec);
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TMuddler.CountFilesToClearInFolder(Directory : string; var FileCount : integer);
+var
+  SearchRec  : TSearchRec;
+  FindResult : integer;
+begin
+  FindResult := FindFirst(Directory + '\*.*', (faAnyfile and faDirectory) , SearchRec);
+  try
+    while FindResult = 0 do
+    begin
+      if ((SearchRec.Attr and faDirectory) <> 0) then
+      begin
+        if not (SearchRec.Name = '.') and
+           not (SearchRec.Name = '..') then
+          CountFilesToClearInFolder(Directory + '\' + SearchRec.Name, FileCount);
+      end
+      else if ((SearchRec.Attr and faAnyfile) <> 0) then
+        inc(FileCount);
 
       FindResult := FindNext(SearchRec);
     end;
@@ -1026,11 +1058,17 @@ var
   FileCount : integer;
   FileIndex : integer;
 begin
+  if SysUtils.DirectoryExists(fDestinationDirectory) then
+  begin
+    FileCount := 0;
+    FileIndex := 0;
+
+    CountFilesToClearInFolder(fDestinationDirectory, FileCount);
+    ClearFilesInFolder(fDestinationDirectory, FileCount, FileIndex);
+  end;
+
   FileCount := 0;
   FileIndex := 0;
-
-  if SysUtils.DirectoryExists(fDestinationDirectory) then
-    ClearFilesInFolder(fDestinationDirectory);
 
   CountItemsInFolder(fSourceDirectory, FileCount);
 
@@ -1049,6 +1087,8 @@ var
 begin
   // Upgrade DB
   LoadAdminSystem(false, 'StartUp');
+
+
 
   Progress.StatusSilent := True;
   Progress.OnUpdateMessageBar := nil;

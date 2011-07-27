@@ -109,6 +109,7 @@ Const
   MSG_FINNISHED             = 'Finnished the muddle!';
   MSG_ERROR_OCCURED         = 'Error : Muddle Process : %s';
   MSG_SHOULD_WRITE_MUDDLER  = 'The muddler application uses a default data file. Should both files be written to?';
+  MSG_DAT_FILE_NOT_FOUND    = 'The %s (Muddler Data File) was not found! some default name data will be used instead.';
 
   ADDON_MUDDLED        = '(Muddled)';
   FILENAME_MUDDLE_DAT  = 'Muddler.dat';
@@ -157,7 +158,10 @@ begin
   if FileExists(fMuddleDatFileName) then
     fMuddler.DataGenerator.Load(fMuddleDatFileName)
   else
+  begin
+    Messagedlg(format(MSG_DAT_FILE_NOT_FOUND,[fMuddleDatFileName]), mtInformation, [mbOk], 0);
     fMuddler.MakeBasicData;
+  end;
 
   fMuddler.DataGenerator.ShuffleLists;
 
@@ -186,6 +190,7 @@ begin
   ProgressBar.Min := 0;
   ProgressBar.Max := 10000;
   ProgressBar.Position := 0;
+  EnableControls(True);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -334,7 +339,7 @@ begin
     end;
   finally
     Self.Cursor := crDefault;
-    EnableControls(True);
+    ResetControls;
   end;
 end;
 
