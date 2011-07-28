@@ -45,6 +45,9 @@ type
     SortCol : integer;
     FUpdateRefNeeded: boolean;
     AccountChanged : Boolean;
+    CurrencyColumnShowing: boolean;
+    procedure ShowCurrencyColumn;
+    procedure HideCurrencyColumn;
     procedure RefreshBankAccountList;
     function DeleteBankAccount(BankAccount : TBank_Account) :boolean;
     procedure SetUpdateRefNeeded(const Value: boolean);
@@ -87,13 +90,18 @@ uses
   MoneyDef, InfoMoreFrm, BKDEFS, clObj32, BaList32, sydefs, ErrorMoreFrm,
   BKUtil32, BAUtils, Math;
 
+const
+  COL_ACCOUNT_NO    = 0;
+  COL_ACCOUNT_NAME  = 1;
+  COL_CURRENCY      = 2;
+  COL_CHART_CODE    = 3;
 
 {$R *.DFM}
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormCreate(Sender: TObject);
 var
-  CurrencyColumn: TListColumn;
+  ContraColumn: TListColumn;
 begin
   bkXPThemes.ThemeForm( Self);
 
@@ -103,16 +111,14 @@ begin
   actCreate.Enabled := (not MyClient.clFields.clFile_Read_Only) and ((not Assigned(AdminSystem)) or CurrUser.CanAccessAdmin);
 
   //Add currency column for UK multi-currency
-  if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then begin
-    CurrencyColumn := lvBank.Columns.Add;
-    CurrencyColumn.Caption := 'Currency';
-    CurrencyColumn.Width := 80;
-  end;
+  if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts)
+    then ShowCurrencyColumn
+    else HideCurrencyColumn;
 
   //Contra column
-  CurrencyColumn := lvBank.Columns.Add;
-  CurrencyColumn.Caption := 'Contra';
-  CurrencyColumn.Width := 100;
+  ContraColumn := lvBank.Columns.Add;
+  ContraColumn.Caption := 'Contra';
+  ContraColumn.Width := 100;
 
   LVUTILS.SetListViewColWidth(lvBank,1);
   UpdateRefNeeded := false;
@@ -142,6 +148,19 @@ begin
    tbHelpSep.Visible := tbHelp.Visible;
 end;
 //------------------------------------------------------------------------------
+
+procedure TfrmMaintainBank.ShowCurrencyColumn;
+begin
+  lvBank.Columns.Items[COL_CURRENCY].Width := 80;
+  CurrencyColumnShowing := true;
+end;
+
+procedure TfrmMaintainBank.HideCurrencyColumn;
+begin
+  lvBank.Columns.Items[COL_CURRENCY].Width := 0;
+  CurrencyColumnShowing := false;
+end;
+
 procedure TfrmMaintainBank.RefreshBankAccountList;
 var
    NewItem : TListItem;
@@ -149,21 +168,14 @@ var
    i : integer;
    CurrencyColumn: TListColumn;
    ColumnStrings: TStrings;
-   CurrencyColumnAdded: boolean;
 begin
-  CurrencyColumnAdded := false;
-
   if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
   begin
-    if (lvBank.Columns.Items[2].Caption <> 'Currency') then
-    begin
-      CurrencyColumn := TListColumn(lvBank.Columns.Insert(2));
-      CurrencyColumn.Caption := 'Currency';
-      CurrencyColumn.Width := 80;
-      CurrencyColumnAdded := true;
-    end;
+    if not CurrencyColumnShowing then
+      ShowCurrencyColumn;
   end else
-    lvBank.Columns.Delete(2);
+    if CurrencyColumnShowing then
+      HideCurrencyColumn;
 
    lvBank.Items.beginUpdate;
    try                     
@@ -194,16 +206,17 @@ begin
 
           if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
           begin
-            if CurrencyColumnAdded then
+            if CurrencyColumnShowing then
             begin
-              NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
               NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
+              NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
             end else
             begin
               NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
               NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
             end;
           end else
+            NewItem.SubItems.Add(''); // blank currency code
             NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
         end;
      end;
