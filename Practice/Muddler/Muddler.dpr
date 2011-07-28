@@ -14,6 +14,8 @@ var
 begin
   if ParamCount = 1 then
   begin
+    // A full path of the New BK5Exe is passed and the Muddler will add it
+    // into the Muddler.dat file
     MuddlerTemp := TMuddler.Create;
     try
       MuddlerTemp.AddBk5ExeToDataFile(ParamStr(1));
