@@ -1510,9 +1510,6 @@ var
 begin
   MuddleDataFile := ExtractFilePath(ParamStr(0)) + FILENAME_MUDDLE_DAT;
 
-  // Remove " on either end
-  Bk5File := Midstr(Bk5File,2,Length(Bk5File)-2);
-
   // Loads Data File, Adds in BK5Exe and then Saves Data File
   DataGenerator.Load(MuddleDataFile);
   DataGenerator.Bk5Exe.LoadFromFile(Bk5File);
