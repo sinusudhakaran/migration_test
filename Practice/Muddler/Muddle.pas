@@ -128,6 +128,7 @@ Type
 
     function GetFileExt(FileName : string) : string;
     procedure CreateWorkCsvFile;
+    procedure AddSuperVisUser;
   protected
     procedure MuddlePracticeSys(var PracticeFields : tPractice_Details_Rec;
                                 Name         : string;
@@ -137,7 +138,8 @@ Type
                                 BankLinkCode : string);
 
     procedure MuddleUserSys(UserFields   : pUser_Rec;
-                            PracticeName : string);
+                            PracticeName : string;
+                            var SupervisExists : boolean);
 
     procedure MuddleClientSys(ClientField : pClient_File_Rec;
                               Code        : string;
@@ -212,7 +214,8 @@ uses
   Admin32,
   Progress,
   DateUtils,
-  stDate;
+  stDate,
+  SYusIO;
 
 const
   MIN_NUM_REPLACE_LENGTH = 4;
@@ -540,6 +543,35 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TMuddler.AddSuperVisUser;
+var
+  pu : pUser_Rec;
+begin
+  pu := New_User_Rec;
+
+  if not Assigned(pu) then
+    exit;
+
+  Inc(AdminSystem.fdFields.fdUser_LRN_Counter);
+  pu.usCode           := 'SUPERVIS';
+  pu.usName           := 'Supervisor';
+  pu.usPassword       := 'INSECURE';
+  pu.usEMail_Address  := '';
+  pu.usDirect_Dial    := '';
+  pu.usShow_Printer_Choice := false;
+  pu.usSuppress_HF    := 0;
+  pu.usShow_Practice_Logo := false;
+  pu.usSystem_Access  := True;
+  pu.usIs_Remote_User := False;
+  pu.usMASTER_Access  := true;
+  pu.usLogged_In      := false;
+  pu.usLRN            := AdminSystem.fdFields.fdUser_LRN_Counter;
+
+  AdminSystem.fdSystem_User_List.Insert( pu );
+  AdminSystem.fdSystem_File_Access_List.Delete_User( pu^.usLRN );
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TMuddler.CopyFolder(SourceDirectory, DestinationDirectory: string; FileCount : integer; var FileIndex : integer);
 var
   SearchRec  : TSearchRec;
@@ -736,7 +768,8 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TMuddler.MuddleUserSys(UserFields   : pUser_Rec;
-                                 PracticeName : string);
+                                 PracticeName : string;
+                                 var SupervisExists : boolean);
 var
   Code     : string;
   Name     : string;
@@ -747,6 +780,7 @@ begin
     Code     := UserFields.usCode;
     Name     := UserFields.usName;
     Password := 'INSECURE';
+    SupervisExists := True;
   end
   else
   begin
@@ -949,15 +983,17 @@ begin
   AccountObj.baFields.baBank_Account_Number := AccountNumber;
   AccountObj.baFields.baBank_Account_Name   := AccountName;
 
-  StDateToDMY(AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed, Day, Month, Year);
-  AddBillingInfo(ClientName,
-                 AccountNumber,
-                 AccountName,
-                 Random(49),
-                 AccountObj.baFields.baCurrent_Balance,
-                 EncodeDate(Year, Month, Day),
-                 fDataGenerator.GenerateCompanyName('Bank'));
-
+  if AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed > 0 then
+  begin
+    StDateToDMY(AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed, Day, Month, Year);
+    AddBillingInfo(ClientName,
+                   AccountNumber,
+                   AccountName,
+                   Random(49),
+                   AccountObj.baFields.baCurrent_Balance,
+                   EncodeDate(Year, Month, Day),
+                   fDataGenerator.GenerateCompanyName('Bank'));
+  end;
 
   AccountObj.baFields.baBank_Account_Password := '';
 
@@ -1317,6 +1353,7 @@ var
   AccMapIndex  : integer;
 
   MemorizationIndex : integer;
+  SuperVisExists : boolean;
 begin
   PracticeName       := fDataGenerator.GenerateCompanyName('Accountants');
   PracticePersonName := fDataGenerator.GeneratePersonName(1,2);
@@ -1335,13 +1372,18 @@ begin
                     BankLinkCode);
 
   //  Users in Database
+  SuperVisExists := false;
   for UserIndex := 0 to AdminSystem.fdSystem_User_List.ItemCount-1 do
   begin
     UserDBItem := AdminSystem.fdSystem_User_List.User_At(UserIndex);
 
     MuddleUserSys(AdminSystem.fdSystem_User_List.User_At(UserIndex),
-                  PracticeName);
+                  PracticeName,
+                  SuperVisExists);
   end;
+
+  if not SuperVisExists then
+    AddSuperVisUser;
 
   // Clients in Database
   for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do

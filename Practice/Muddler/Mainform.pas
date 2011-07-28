@@ -106,7 +106,7 @@ Const
   MSG_SELECT_FOLDER         = 'Select a %S directory';
   MSG_SOURCE_DIR_NOT_EXISTS = 'Error : The source directory does not exist!';
   MSG_DEST_DIR_EXISTS       = 'The destination directory already exists. Clear all and overwrite it?';
-  MSG_FINNISHED             = 'Finnished the muddle!';
+  MSG_FINISHED              = 'Finished the muddle!';
   MSG_ERROR_OCCURED         = 'Error : Muddle Process : %s';
   MSG_SHOULD_WRITE_MUDDLER  = 'The muddler application uses a default data file. Should both files be written to?';
   MSG_DAT_FILE_NOT_FOUND    = 'The %s (Muddler Data File) was not found! some default name data will be used instead.';
@@ -332,7 +332,7 @@ begin
       EnableControls(False);
       fMuddler.Execute(edtSourceDirectory.Text, edtDestinationDirectory.Text);
 
-      Messagedlg(MSG_FINNISHED, mtInformation, [mbOk], 0);
+      Messagedlg(MSG_FINISHED, mtInformation, [mbOk], 0);
     except
       On E : Exception do
         Messagedlg(format(MSG_ERROR_OCCURED,[E.Message]), mtError, [mbOk], 0);
