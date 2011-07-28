@@ -595,7 +595,7 @@ begin
      reProxyPassword.Text                      := iniProxyPassword;
      chkUseFirewall.Checked                    := iniUseFirewall;
      reFirewallHost.Text                       := iniFirewallHost;
-     rnProxyPort.IntValue                      := iniFirewallPort;
+     rnProxyPort.IntValue                      := iniProxyPort;
      rnFirewallPort.IntValue                   := iniFirewallPort; // Part of fix for bug 13413
      cboFirewallType.ItemIndex                 := SocksVersionToInt (iniFirewallType);
      chkUseFirewallAuthentication.Checked      := iniUseFirewallAuthentication;

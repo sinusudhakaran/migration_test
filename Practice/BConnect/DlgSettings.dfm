@@ -76,15 +76,11 @@ object dlgSettings: TdlgSettings
         Top = 37
         Width = 432
         Height = 215
-        ActivePage = tshtFirewallSettings
+        ActivePage = tshtProxySettings
         Align = alClient
         TabOrder = 1
         object tshtProxySettings: TTabSheet
           Caption = 'Proxy Settings'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             424
             187)
@@ -175,7 +171,7 @@ object dlgSettings: TdlgSettings
             Ctl3D = False
             Enabled = False
             FrameController = RzFrameController1
-            ItemHeight = 0
+            ItemHeight = 13
             ParentCtl3D = False
             TabOrder = 4
             Text = 'None'
@@ -210,10 +206,6 @@ object dlgSettings: TdlgSettings
         object tshtFirewallSettings: TTabSheet
           Caption = 'Firewall Settings'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             424
             187)
@@ -265,7 +257,7 @@ object dlgSettings: TdlgSettings
             Ctl3D = False
             Enabled = False
             FrameController = RzFrameController1
-            ItemHeight = 0
+            ItemHeight = 13
             ParentCtl3D = False
             TabOrder = 3
             OnChange = cboFirewallTypeChange
