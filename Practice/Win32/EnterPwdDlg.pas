@@ -184,6 +184,7 @@ begin
        dlg.lblCaption.caption := Title;
 
      Dlg.HelpContext := ht;
+     Dlg.Label2.Left := Dlg.lblPassword.Left;
 
      if Hidden then
      begin
