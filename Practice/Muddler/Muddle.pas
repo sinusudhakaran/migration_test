@@ -1477,6 +1477,10 @@ begin
       DeleteFile(PCHar(DataDir + fClientList[ClientIndex].FileName + FILEEXTN));
   end;
 
+  //Copy Bk5Exe if it exists
+  if fDataGenerator.Bk5Exe.Size > 0 then
+    fDataGenerator.Bk5Exe.SaveToFile(fDestinationDirectory + '\BK5WIN.EXE');
+
   SetProgressUpdate(100);
 end;
 

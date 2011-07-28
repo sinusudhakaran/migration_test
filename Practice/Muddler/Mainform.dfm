@@ -530,6 +530,9 @@ object formMain: TformMain
       object mnuLoadCompanyTypeNames: TMenuItem
         Action = actLoadCompanyTypeNames
       end
+      object mnuLoadBK5Exe: TMenuItem
+        Action = actLoadBK5Exe
+      end
       object N1: TMenuItem
         Caption = '-'
       end
@@ -544,6 +547,9 @@ object formMain: TformMain
       end
       object mnuSaveCompanyTypeNames: TMenuItem
         Action = actSaveCompanyTypeNames
+      end
+      object mnuSaveBk5Exe: TMenuItem
+        Action = actSaveBk5Exe
       end
       object N2: TMenuItem
         Caption = '-'
@@ -604,6 +610,14 @@ object formMain: TformMain
     object actExit: TAction
       Caption = 'Exit'
       OnExecute = actExitExecute
+    end
+    object actLoadBK5Exe: TAction
+      Caption = 'Load Bk5 Exe'
+      OnExecute = actLoadBK5ExeExecute
+    end
+    object actSaveBk5Exe: TAction
+      Caption = 'Save Bk5 Exe'
+      OnExecute = actSaveBk5ExeExecute
     end
   end
 end

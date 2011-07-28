@@ -32,6 +32,7 @@ type
     fCompTypeIndex : integer;
     fCompTypeList  : TStringList;
     fCodeNumber    : integer;
+    fBk5Exe        : TMemoryStream;
 
     procedure WriteStreamInt(Stream : TStream; Num : integer);
     function ReadStreamInt(Stream : TStream; var Num : integer) : boolean;
@@ -69,6 +70,7 @@ type
     property NameList        : TStringList read fNameList     write fNameList;
     property SurnameList     : TStringList read fSurnameList  write fSurnameList;
     property CompanyTypeList : TStringList read fCompTypeList write fCompTypeList;
+    property Bk5Exe        : TMemoryStream read fBk5Exe       write fBk5Exe;
   end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -341,6 +343,7 @@ begin
   fNameList     := TStringList.Create;
   fSurnameList  := TStringList.Create;
   fCompTypeList := TStringList.Create;
+  fBk5Exe       := TMemoryStream.Create;
 
   Initialize;
 end;
@@ -353,6 +356,7 @@ var
   FirstNameSize   : integer;
   SurnameSize     : integer;
   CompanyTypeSize : integer;
+  Bk5ExeSize      : integer;
 begin
   FileStream   := TFileStream.Create(FullFileName, fmOpenRead);
   MemoryStream := TMemoryStream.Create;
@@ -363,6 +367,7 @@ begin
     ReadStreamInt(FileStream, FirstNameSize);
     ReadStreamInt(FileStream, SurnameSize);
     ReadStreamInt(FileStream, CompanyTypeSize);
+    ReadStreamInt(FileStream, Bk5ExeSize);
 
     MemoryStream.Clear;
     MemoryStream.CopyFrom(FileStream, FirstNameSize);
@@ -378,6 +383,10 @@ begin
     MemoryStream.CopyFrom(FileStream, CompanyTypeSize);
     MemoryStream.Position := 0;
     fCompTypeList.LoadFromStream(MemoryStream);
+
+    fBk5Exe.Clear;
+    fBk5Exe.CopyFrom(FileStream, Bk5ExeSize);
+    fBk5Exe.Position := 0;
   finally
     FreeAndNil(MemoryStream);
     FreeAndNil(FileStream);
@@ -387,13 +396,14 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TDataGenerator.Save(FullFileName: string);
 var
-  FileStream   : TFileStream;
-  FirstNameStr : TMemoryStream;
-  SurnameStr   : TMemoryStream;
-  CompanyStr   : TMemoryStream;
+  FileStream      : TFileStream;
+  FirstNameStr    : TMemoryStream;
+  SurnameStr      : TMemoryStream;
+  CompanyStr      : TMemoryStream;
   FirstNameSize   : integer;
   SurnameSize     : integer;
   CompanyTypeSize : integer;
+  Bk5ExeSize      : integer;
 begin
   FileStream   := TFileStream.Create(FullFileName, fmCreate);
   FirstNameStr := TMemoryStream.Create;
@@ -408,14 +418,17 @@ begin
     FirstNameSize   := FirstNameStr.Size;
     SurnameSize     := SurnameStr.Size;
     CompanyTypeSize := CompanyStr.Size;
+    Bk5ExeSize      := fBk5Exe.Size;
 
     WriteStreamInt(FileStream, FirstNameSize);
     WriteStreamInt(FileStream, SurnameSize);
     WriteStreamInt(FileStream, CompanyTypeSize);
+    WriteStreamInt(FileStream, Bk5ExeSize);
 
     FileStream.CopyFrom(FirstNameStr, 0);
     FileStream.CopyFrom(SurnameStr, 0);
     FileStream.CopyFrom(CompanyStr, 0);
+    FileStream.CopyFrom(fBk5Exe, 0);
   finally
     FreeAndNil(FirstNameStr);
     FreeAndNil(SurnameStr);
@@ -430,6 +443,7 @@ begin
   FreeAndNil(fNameList);
   FreeAndNil(fSurnameList);
   FreeAndNil(fCompTypeList);
+  FreeAndNil(fBk5Exe);
 
   inherited;
 end;

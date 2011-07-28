@@ -68,6 +68,10 @@ type
     actExecute: TAction;
     actExit: TAction;
     mnuExit: TMenuItem;
+    actLoadBK5Exe: TAction;
+    actSaveBk5Exe: TAction;
+    mnuLoadBK5Exe: TMenuItem;
+    mnuSaveBk5Exe: TMenuItem;
     procedure btnSourceDirectoryClick(Sender: TObject);
     procedure btnDestinationDirectoryClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -82,6 +86,8 @@ type
     procedure actExecuteExecute(Sender: TObject);
     procedure actExitExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure actLoadBK5ExeExecute(Sender: TObject);
+    procedure actSaveBk5ExeExecute(Sender: TObject);
   private
     fMuddler : TMuddler;
     fMuddleDatFileName : string;
@@ -115,6 +121,7 @@ Const
   FILENAME_MUDDLE_DAT  = 'Muddler.dat';
   FILE_EXT_DATA_FILTER = 'Muddler Data File|*.dat';
   FILE_EXT_TEXT_FILTER = 'Text File|*.txt';
+  FILE_EXT_EXE_FILTER  = 'Bk5 Exe File|*.exe';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TformMain.btnSourceDirectoryClick(Sender: TObject);
@@ -274,6 +281,14 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TformMain.actLoadBK5ExeExecute(Sender: TObject);
+begin
+  OpenDialog.Filter := FILE_EXT_EXE_FILTER;
+  if OpenDialog.Execute then
+    fMuddler.DataGenerator.Bk5Exe.LoadFromFile(OpenDialog.FileName);
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TformMain.actSaveDataFileExecute(Sender: TObject);
 begin
   SaveDialog.Filter := FILE_EXT_DATA_FILTER;
@@ -316,6 +331,16 @@ begin
   if SaveDialog.Execute then
   begin
     fMuddler.DataGenerator.CompanyTypeList.SaveToFile(SaveDialog.FileName);
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TformMain.actSaveBk5ExeExecute(Sender: TObject);
+begin
+  SaveDialog.Filter := FILE_EXT_EXE_FILTER;
+  if SaveDialog.Execute then
+  begin
+    fMuddler.DataGenerator.Bk5Exe.SaveToFile(SaveDialog.FileName);
   end;
 end;
 
