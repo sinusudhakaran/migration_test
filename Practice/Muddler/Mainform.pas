@@ -118,7 +118,6 @@ Const
   MSG_DAT_FILE_NOT_FOUND    = 'The %s (Muddler Data File) was not found! some default name data will be used instead.';
 
   ADDON_MUDDLED        = '(Muddled)';
-  FILENAME_MUDDLE_DAT  = 'Muddler.dat';
   FILE_EXT_DATA_FILTER = 'Muddler Data File|*.dat';
   FILE_EXT_TEXT_FILTER = 'Text File|*.txt';
   FILE_EXT_EXE_FILTER  = 'Bk5 Exe File|*.exe';

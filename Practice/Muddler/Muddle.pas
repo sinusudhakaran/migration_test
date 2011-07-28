@@ -29,6 +29,9 @@ uses
   trxList32,
   ClientDetailCacheObj;
 
+Const
+  FILENAME_MUDDLE_DAT  = 'Muddler.dat';
+
 Type
   TProgressEvent = procedure (ProgressPercent : single) of object;
 
@@ -185,6 +188,7 @@ Type
     constructor Create;
     destructor Destroy; override;
 
+    procedure AddBk5ExeToDataFile(Bk5File : string);
     procedure Execute(SourceDirectory, DestinationDirectory : string);
     procedure MakeBasicData;
 
@@ -1287,8 +1291,6 @@ begin
   // Upgrade DB
   LoadAdminSystem(false, 'StartUp');
 
-
-
   Progress.StatusSilent := True;
   Progress.OnUpdateMessageBar := nil;
 
@@ -1499,6 +1501,22 @@ begin
   FreeAndNil(fDataGenerator);
   FreeAndNil(fClientList);
   inherited;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TMuddler.AddBk5ExeToDataFile(Bk5File: string);
+var
+  MuddleDataFile : String;
+begin
+  MuddleDataFile := ExtractFilePath(ParamStr(0)) + FILENAME_MUDDLE_DAT;
+
+  // Remove " on either end
+  Bk5File := Midstr(Bk5File,2,Length(Bk5File)-2);
+
+  // Loads Data File, Adds in BK5Exe and then Saves Data File
+  DataGenerator.Load(MuddleDataFile);
+  DataGenerator.Bk5Exe.LoadFromFile(Bk5File);
+  DataGenerator.Save(MuddleDataFile);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
