@@ -363,7 +363,10 @@ begin
    // Amount
    if AmountType = vSingle then begin
       if rbSingle.Enabled then
+      begin
          rbSingle.Checked := true;
+         rbDebitCredit.Enabled := true;
+      end;
       SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
    end else if AmountType = vDouble then begin
       if rbDebitCredit.Enabled then
@@ -377,7 +380,9 @@ begin
 
       SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
       SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol), CBAmount2);
-   end;
+   end else
+     if rbSingle.Enabled then
+       rbDebitCredit.Enabled := true;
 
    SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kReverseSign), cbSign);
 
@@ -1766,10 +1771,10 @@ begin
 
        if RBSign.Enabled then
           RBSign.Checked := true
-       else if RBdebitCredit.Enabled then
-          RBdebitCredit.Checked := true
        else if RBSingle.Enabled then
-          RBSingle.Checked := true;
+          RBSingle.Checked := true
+       else if RBdebitCredit.Enabled then
+          RBdebitCredit.Checked := true;
        // Apply previous settings
        ApplyDefaults;
    finally

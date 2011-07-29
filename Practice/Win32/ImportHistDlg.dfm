@@ -380,7 +380,6 @@ object ImportHist: TImportHist
         Header.Options = [hoColumnResize, hoDrag, hoVisible]
         Header.ParentFont = True
         HintMode = hmHint
-        ParentBackground = False
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0
@@ -517,11 +516,12 @@ object ImportHist: TImportHist
       object lbFile: TLabel
         Left = 1
         Top = 1
-        Width = 3
+        Width = 1025
         Height = 13
         Align = alTop
         Constraints.MaxHeight = 100
         WordWrap = True
+        ExplicitWidth = 3
       end
       object vsFile: TVirtualStringTree
         Left = 1
@@ -539,7 +539,6 @@ object ImportHist: TImportHist
         Header.MainColumn = -1
         Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoVisible]
         Header.ParentFont = True
-        ParentBackground = False
         TabOrder = 0
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages]
         TreeOptions.SelectionOptions = [toFullRowSelect]
