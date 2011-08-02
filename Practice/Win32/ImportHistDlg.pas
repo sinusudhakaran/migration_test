@@ -1731,7 +1731,7 @@ begin
 
        vsFile.Header.AutoFitColumns(False);
 
-       AmountColumnCount := 0;
+       // AmountColumnCount := 0;
        for C := 0 to vsFile.Header.Columns.Count - 1 do begin
           if IsAlphaOnly(C) then begin
              // has no digits.. cannot be a Date or amount
@@ -1748,8 +1748,8 @@ begin
              Amount : begin
                    vsFile.Header.Columns[C].Tag := TagAmount;
                    rbSingle.Enabled := True;
-                   inc(AmountColumnCount);
-                   if AmountColumnCount >= 2 then
+                   // inc(AmountColumnCount);
+                   // if AmountColumnCount >= 2 then
                       rbDebitCredit.Enabled := True;
 
                 end;
