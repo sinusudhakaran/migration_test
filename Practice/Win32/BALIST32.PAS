@@ -15,10 +15,11 @@ type
     fLoading: Boolean;
     fClient: TObject; // Owner
     fAuditMgr: TClientAuditManager; //Audit Manager
-    function FindRecordID(ARecordID: integer):  TBank_Account;
+//    function FindRecordID(ARecordID: integer):  TBank_Account;
   public
     constructor Create( Owner : TObject; AAuditMgr: TClientAuditManager );
     function Compare(Item1,Item2 : Pointer): Integer; override;
+    function FindRecordID(ARecordID: integer):  TBank_Account;
     procedure LoadFromFile(var S : TIOStream);
     procedure SaveToFile(var S: TIOStream);
     function Bank_Account_At(Index : longint) : TBank_Account;

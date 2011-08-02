@@ -630,6 +630,9 @@ begin
      clExtra.ceAllow_Client_Edit_Chart := True;
      clExtra.ceAllow_Client_Unlock_Entries := True;
 
+     //Set country for client audit
+     MyClient.ClientAuditMgr.Country := clCountry;
+
      {matches client file to this admin system - VERY IMPORTANT}
      clMagic_Number                     := fdMagic_Number;
 
