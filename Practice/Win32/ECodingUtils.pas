@@ -38,7 +38,7 @@ uses
      ImportFromECodingDlg, ExportToECodingDlg, bkDateUtils, YesNoDlg,
      BNotesInterface, LogUtil, baObj32, GlobalDirectories, Globals,
      PracticeLogo, MailFrm, todoHandler, StDate, Windows,
-     ClientHomepagefrm, Forms, Admin32, WebNotesService, WebNotesImportFrm,
+     ClientHomepagefrm, Forms, Admin32, WebNotesDataUpload, WebNotesImportFrm,
      ForexHelpers, AuditMgr, Files;
 
 const
@@ -691,7 +691,7 @@ begin
               BNotesInterface.GenerateBNotesFile( aClient, Filename, DateFrom, DateTo, Count, false, nil, false, nil, EncodedLogoString, AccountList);
             end;
          except
-            on E : EWebNotesServiceError do begin
+            on E : EWebNotesDataUploadError do begin
                // Already Handled 
                exit;
             end;

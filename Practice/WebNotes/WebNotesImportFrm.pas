@@ -11,9 +11,20 @@ uses
   XMLIntf,
   imagesfrm,
   xmldom,
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, ExtCtrls,
-  clObj32, DateSelectorFme,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ComCtrls,
+  StdCtrls,
+  ExtCtrls,
+  clObj32,
+  DateSelectorFme,
   OSFont;
 
 type
@@ -104,40 +115,41 @@ function ImportWebNotesFile(const aClient: TClientObj): string;
 implementation
 
 uses
-   bkHelp,
-   admin32,
-   math,
-   bkdsio,
-   bktxio,
-   SuperFieldsUtils,
-   software,
-   glConst,
-   GSTCALC32,
-   ECodingUtils,
-   MONEYDEF,
-   GenUtils,
-   TransactionUtils,
-   ImportFromECodingDlg,
-   LogUtil,
-   //CompUtils,
-   StStrS,
-   bkDateUtils,
-   STDateSt,
-  
-   InfoMoreFrm,
-   Progress,
-   Globals,
-   INISettings,
-   WebNotesService,
-   WebNotesClient,
-   bkXPThemes,
-   WebNotesSchema,
-   bkConst, trxList32, ForexHelpers,
-   AuditMgr,
-   Files;
+  bkHelp,
+  admin32,
+  math,
+  bkdsio,
+  bktxio,
+  SuperFieldsUtils,
+  software,
+  glConst,
+  GSTCALC32,
+  ECodingUtils,
+  MONEYDEF,
+  GenUtils,
+  TransactionUtils,
+  ImportFromECodingDlg,
+  LogUtil,
+  StStrS,
+  bkDateUtils,
+  STDateSt,
+  InfoMoreFrm,
+  Progress,
+  Globals,
+  INISettings,
+  WebNotesDataUpload,
+  WebNotesClient,
+  bkXPThemes,
+  WebNotesSchema,
+  bkConst,
+  trxList32,
+  ForexHelpers,
+  AuditMgr,
+  Files,
+  WebUtils;
 
 const
-   UnitName = 'WebNotesService';
+   UnitName = 'WebNotesDataUpload';
    DebugMe : boolean = False;
 
 
@@ -1953,3 +1965,5 @@ end;
 initialization
    DebugMe := DebugUnit(UnitName);
 end.
+
+

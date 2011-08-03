@@ -122,7 +122,7 @@ const
 implementation
 
 uses
-  WebNotesService,
+  WebNotesDataUpload,
   WarningMoreFrm,
   LockUtils,
   Forms,

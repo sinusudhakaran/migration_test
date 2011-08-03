@@ -75,6 +75,7 @@ uses
   INIsettings,
   Globals,
   WebNotesSchema,
+  WebUtils,
   SysUtils;
 
 const
