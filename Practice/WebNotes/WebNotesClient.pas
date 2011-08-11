@@ -9,12 +9,9 @@ unit WebNotesClient;
         Connection details based on the Bconnect settings
         The actual URL comes from BK5ini file (Hand written)
 
-
    Author: Andre' Joosten
 
    Remarks:
-
-
 }
 //------------------------------------------------------------------------------
 interface
@@ -23,84 +20,60 @@ uses
   stDate,
   IpsSoaps,
   Classes,
-  SysUtils;
+  SysUtils,
+  WebClient;
 
 {$M+}
-
 type
   //----------------------------------------------------------------------------
-  EWebNotesClientError = class(Exception)
-  private
-    FErrorCode: integer;
-  public
-    constructor Create(Msg: string; ErrorCode: integer); overload;
-  published
-    property ErrorCode: integer read FErrorCode write FErrorCode;
-    function IsConnectionProblem: boolean;
+  EWebNotesClientError = class(EWebSoapClientError)
   end;
 
   //----------------------------------------------------------------------------
-  TWebNotesClient = class
+  TWebNotesClient = class(TWebClient)
   private
-    FSOAPRequester: TipsSOAPS;
-    FServiceURL1: string;
-    FServiceURL2: string;
-    FCurrentURLIndex: Integer;
-    FTriedBothServers: Boolean;
-    FCountry: string;
-    FPassWord: string;
-    FPracticeCode: string;
-    FOtherHeaders: TStringList;
-    Fprogress: double;
-    FHidden: Boolean;
+    FCountry      : string;
+    FPassWord     : string;
+    FPracticeCode : string;
+    FProgress     : double;
+    FHidden       : boolean;
 
-    procedure SetMethod(Method: string);
-    procedure AddStringParam(Name, Value: string);
-    procedure AddCustomHeader(Name, Value: string);
-    procedure AddBooleanParam(Name: string; Value: Boolean);
-    procedure AddDateParam(Name: string; Value: tStDate);
-   
-    procedure AddIntParam(Name: string; Value: Integer);
-    procedure CallMethod;
-    procedure SetCurrentURLIndex(const Value: Integer);
+  protected
+    procedure RaiseSoapError(ErrMessage : String; ErrCode : integer); override;
 
     procedure SetCountry(const Value: string);
-    procedure SetPassWord(const Value: string);
+    procedure SetPassword(const Value: string);
     procedure SetPracticeCode(const Value: string);
-
-    procedure AppendCustomHeaders;
-    procedure StatusEvent (Sender: TObject;
-                            const ConnectionEvent: String;
-                            StatusCode: Integer;
-                            const Description: String);
-    procedure SSLEvent( Sender: TObject;
-                            CertEncoded: String;
-                            const CertSubject: String;
-                            const CertIssuer: String;
-                            const Status: String;
-                           var  Accept: Boolean);
     procedure SetHidden(const Value: Boolean);
 
+    procedure DoSoapConnectionStatus(Sender: TObject;
+                                     const ConnectionEvent: String;
+                                     StatusCode: Integer;
+                                     const Description: String); Override;
+
+    procedure DoSoapSSLServerAuthentication(Sender: TObject;
+                                            CertEncoded: String;
+                                            const CertSubject: String;
+                                            const CertIssuer: String;
+                                            const Status: String;
+                                            var  Accept: Boolean); Override;
+
+    procedure WaitForServerMessage(Message : String); override;
   public
-    constructor Create(IniFileName: string);
-
+    constructor Create; override;
+    constructor CreateUsingIni(IniFileName: string);
     destructor Destroy; override;
-    //procedure LoadConfig(Config: string);
-    procedure Interupt;
-
-    property PassWord: string read FPassWord write SetPassWord;
-    property PracticeCode: string read FPracticeCode write SetPracticeCode;
-    property Country: string read FCountry write SetCountry;
-
-
-    property Hidden: Boolean read FHidden write SetHidden;
-
 
     // Actual Web service calls
     function Upload(const Batch: string; var Reply: string ): Boolean;
     function DownloadData(const Company, user: string; FromDate, ToDate: TStDate;  var Reply: string): Boolean;
     function GetAvailableData(const Client: string; var Reply: string): Boolean;
     function SetDownloadStatus(const DataId, Status: string; var Reply: string): Boolean;
+
+    property PassWord     : string  read FPassWord     write SetPassWord;
+    property PracticeCode : string  read FPracticeCode write SetPracticeCode;
+    property Country      : string  read FCountry      write SetCountry;
+    property Hidden       : boolean read FHidden       write SetHidden;
   published
 
   end;
@@ -122,20 +95,12 @@ uses
   WebUtils;
 
 const
-  UnitName = 'WebNotesDataUpload';
-
-  IniWebNotesSection = 'WebNotesDataUpload';
-  // DefaultWebNotesURL =  'http://localhost:8731/';
-  //DefaultWebNotesURL =  'http://bessielou.banklinkonline.com/services/practiceintegrationfacade.svc';
+  //UnitName = 'WebNotesService';
+  //IniWebNotesSection = 'WebNotesService';
+  UnitName = 'WebNotesClient';
+  IniWebNotesSection = 'WebNotesService';
   DefaultWebNotesURL =  'https://www.banklinkonline.com/services/practiceintegrationfacade.svc';
-  //DefaultWebNotesMethodURI =  'http://BankLink.WebNotesTest.Interfaces/ITestService';
   DefaultWebNotesMethodURI ='http://BankLink.WebNotes.Interfaces/IPracticeIntegrationFacade';
-
-  //DefaultWebNotesMethodURI = '';
-  GrpBConnect = 'BConnect'; // Borrowed from The Bconnect setting...
-
-var
-  DebugMe: Boolean = False;
 
 //------------------------------------------------------------------------------
 procedure HandleWNException(e: Exception; UnitName, Action : string; Prompt: Boolean = true );
@@ -164,45 +129,95 @@ begin
       'Error: %s',
       [Action, BankLinkLiveName, e.message]),0);
   end;
-
 end;
 
-{ TWebNotesDataUpload }
+{ TWebNotesClient }
 //------------------------------------------------------------------------------
-constructor TWebNotesClient.Create(IniFileName: string);
+procedure TWebNotesClient.RaiseSoapError(ErrMessage : String; ErrCode : integer);
+begin
+  raise EWebNotesClientError.Create(ErrMessage, ErrCode);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebNotesClient.SetCountry(const Value: string);
+begin
+  FCountry := Value;
+  AddSoapHeaderInfo('countrycode',FCountry);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebNotesClient.SetPassWord(const Value: string);
+begin
+  FPassWord := Value;
+  AddSoapHeaderInfo('password',FPassWord);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebNotesClient.SetPracticeCode(const Value: string);
+begin
+  FPracticeCode := Value;
+  AddSoapHeaderInfo('practicecode',FPracticeCode);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebNotesClient.SetHidden(const Value: Boolean);
+begin
+  FHidden := Value;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebNotesClient.DoSoapConnectionStatus(Sender: TObject;
+                                                 const ConnectionEvent: String;
+                                                 StatusCode: Integer;
+                                                 const Description: String);
+begin
+  UpdateAppStatusLine2(Format('%s server %d',[ConnectionEvent, SoapURLIndex]));
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebNotesClient.DoSoapSSLServerAuthentication(Sender: TObject;
+                                                        CertEncoded: String;
+                                                        const CertSubject: String;
+                                                        const CertIssuer: String;
+                                                        const Status: String;
+                                                        var  Accept: Boolean);
+begin
+  UpdateAppStatusLine2(Format('%s Authenticate %d',[Status, SoapURLIndex]));
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebNotesClient.WaitForServerMessage(Message : String);
+begin
+  if not Hidden then
+  begin
+    UpdateAppStatusPerc(FProgress);
+    FProgress := FProgress + 30;
+    UpdateAppStatusLine2(Message);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+constructor TWebNotesClient.Create;
+begin
+  inherited Create;
+
+  //other configuration settings
+  SOAPRequester.Config('useragent=BankLinkPractice/5.0');
+  SOAPRequester.Config('usewininet=true');
+end;
+
+//------------------------------------------------------------------------------
+constructor TWebNotesClient.CreateUsingIni(IniFileName: string);
 var
   IniFile: TIniFile;
   IniURL1, IniURL2: string;
   IniMethodURI: string;
 begin
-  FTriedBothServers := false;
-  FOtherHeaders := TStringList.Create;
-  FOtherHeaders.NameValueSeparator := ':';
-  FSOAPRequester := TipsSOAPS.Create(nil);
-  FSOAPRequester.OnConnectionStatus := StatusEvent;
-  FSOAPRequester.FOnSSLServerAuthentication := SSLEvent;
-  FSOAPRequester.Config ('SSLSecurityFlags=0x80000000');
-  FSOAPRequester.Config ('SSLEnabledProtocols=140');
+  Create;
 
   IniURL1 := '';
   IniURL2 := '';
   IniMethodURI := '';
-
-  // Reset to Default...
-  FSOAPRequester.ProxyServer := '*';
-  FSOAPRequester.ProxyPort := 0;
-  FSOAPRequester.ProxyAuthorization := '';
-
-  //set up firewall
-  FSOAPRequester.FirewallHost := '';
-  FSOAPRequester.FirewallPort := 0;
-  FSOAPRequester.FirewallUser := '';
-  FSOAPRequester.FirewallPassword := '';
-  FSOAPRequester.FirewallType := fwNone;
-
-  //other configuration settings
-  FSOAPRequester.Config('useragent=BankLinkPractice/5.0');
-  FSOAPRequester.Config('usewininet=true');
 
   if FileExists(IniFileName) then
   begin
@@ -213,279 +228,31 @@ begin
       IniMethodURI := IniFile.ReadString(IniWebNotesSection, 'MethodURI', '');
 
     finally
-      IniFile.Free;
+      FreeAndNil(IniFile);
     end;
   end;
 
   if IniURL1 <> '' then
-    FServiceURL1 := IniURL1
+    SoapURLList.Add(IniURL1)
   else
-    FServiceURL1 := DefaultWebNotesURL;
+    SoapURLList.Add(DefaultWebNotesURL);
 
   if IniURL2 <> '' then
-    FServiceURL2 := IniURL2
-  else
-    FServiceURL2 := DefaultWebNotesURL;
-
-  SetCurrentURLIndex(1);  
+    SoapURLList.Add(IniURL2);
 
   if IniMethodURI <> '' then
-    FSOAPRequester.MethodURI := IniMethodURI
+    SOAPRequester.MethodURI := IniMethodURI
   else
-    FSOAPRequester.MethodURI := DefaultWebNotesMethodURI;
+    SOAPRequester.MethodURI := DefaultWebNotesMethodURI;
 
-
-  // For Now just take the rsst from the BConnect settings...
-
-  if INI_BCCustomConfig then
-  begin
-    if INI_BCUseProxy then
-    begin
-      FSOAPRequester.ProxyServer := INI_BCProxyHost;
-      FSOAPRequester.ProxyPort := INI_BCProxyPort;
-      case INI_BCProxyAuthMethod of
-        1 : begin //basic
-              FSOAPRequester.Config('ProxyUser=' + INI_BCProxyUsername);
-              FSOAPRequester.Config('ProxyPassword=' + INI_BCProxyPassword);
-            end;
-        2 : begin //ntlm
-              FSOAPRequester.ProxyServer := Format('*%s*%s',
-                [INI_BCProxyUsername, INI_BCProxyPassword]);
-            end;
-      end;
-    end;
-
-    if not INI_BCUseWinInet then
-      FSOAPRequester.Config('usewininet=false');
-
-    if INI_BCUseFirewall then
-    begin
-      FSOAPRequester.FirewallHost := INI_BCFirewallHost;
-      FSOAPRequester.FirewallPort := INI_BCFirewallPort;
-      FSOAPRequester.FirewallUser := INI_BCFirewallUsername;
-      FSOAPRequester.FirewallPassword := INI_BCFirewallPassword;
-      FSOAPRequester.FirewallType :=  TipssoapsFirewallTypes(INI_BCFirewallType);
-    end;
-
-  end;
+  SoapURLIndex := 0;
+  SetSoapURL;
 end;
 
 //------------------------------------------------------------------------------
 destructor TWebNotesClient.Destroy;
 begin
-  FreeAndNil(FSOAPRequester);
-  FreeAndNil(FOtherHeaders);
   inherited;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.Interupt;
-begin
-  FSOAPRequester.Interrupt;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.CallMethod;
-var
-  s: string;
-  httpCode: Integer;
-begin
-  try
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug,UnitName,
-        format( 'SendRequest %s, %s', [FSOAPRequester.URL,  FSOAPRequester.ActionURI]) );
-
-    if not Hidden then
-    begin
-      UpdateAppStatusPerc(FProgress);
-      FProgress := FProgress + 30;
-      UpdateAppStatusLine2(Format('Waiting for server %d',[FCurrentURLIndex]));
-    end;
-
-    // Could just do FSOAPRequester.SendRequest;
-    // but this way we can caputre the actual packet
-
-    FSOAPRequester.BuildPacket;
-
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug,UnitName,format('Sending %s ',[FSOAPRequester.SOAPPacket]));
-
-    FSOAPRequester.SendPacket;
-
-    FSOAPRequester.EvalPacket;
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug,UnitName,format('Reply %s ',[FSOAPRequester.ReturnValue]));
-
-    // Had no exceptions Set for next time
-    FTriedBothServers := False;
-  except
-    on E: EipsSOAPS do
-    begin
-      if DebugMe then
-        LogUtil.LogMsg(lmDebug,UnitName,format('Exception %s ',[ E.Message]));
-
-      //Try the second one (unless we're already on second).
-      if (FCurrentURLIndex = 1) and
-        (not FTriedBothServers) then
-      begin
-        SetCurrentURLIndex(2);
-        // Try again...
-        CallMethod;
-      end
-      else if (FCurrentURLIndex = 2) then
-      begin
-        //If the second one fails, try one again to get the original error back.
-        FTriedBothServers := true;
-        SetCurrentURLIndex(1);
-        // Try Again
-        CallMethod;
-      end
-      else
-      begin
-        // Have tryed enough, Deal with the error
-        // Cannot use a case statement Code can be too big
-        if E.Code in [169, 170, 171, 172, 173] then
-        begin
-          raise EWebNotesClientError.Create(Format('%s. (<%s>, <%s>)',
-            [E.Message, FSOAPRequester.FaultCode, FSOAPRequester.FaultString]), E.Code)
-        end
-        else if E.Code in [210] then
-        begin
-          // typically happens when the WebNotes facade server fails (No proper SOAP message back)
-          raise EWebNotesClientError.Create('Wrong server response', 210);
-        end
-        else if E.Code = 151 then
-        begin
-          //Could be either. Need to look at response code
-          //e.message is in format 151: <HTTPCODE> <HTTPMESSAGE>
-          try
-            s := MidStr(E.Message, 6, 3); //Actually just interested in first digit
-          except
-            raise EWebNotesClientError.Create(E.Message, 151);
-          end;
-          httpCode := StrToIntDef(s, 0);
-          raise EWebNotesClientError.Create(E.Message, httpCode);
-        end
-        else
-          // What else..
-          raise EWebNotesClientError.Create(E.Message, E.Code)
-      end;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.AddStringParam(Name, Value: string);
-begin
-  FSOAPRequester.AddParam(Name, Value);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.AppendCustomHeaders;
-var
-  Headers: string;
-begin
-  if FOtherHeaders.Count <= 0 then
-    Exit; // nothing to do
-
-  Headers :=  FSOAPRequester.OtherHeaders;
-  if (Headers > '') and
-    (Headers[Length(Headers)]<> #10 ) then
-  begin
-    //Add separator
-    Headers :=  Headers + #13#10
-  end;
-
-  FSOAPRequester.OtherHeaders := Headers + FOtherHeaders.Text;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.AddCustomHeader(Name, Value: string);
-begin
-  FOtherHeaders.Values[Name] := Value;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.AddDateParam(Name: string; Value: tStDate);
-begin
-  FSOAPRequester.AddParam(Name, FormatXMLdate (Value));
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.AddIntParam(Name: string; Value: Integer);
-begin
-  FSOAPRequester.AddParam(Name, IntToStr(Value));
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.AddBooleanParam(Name: string; Value: Boolean);
-begin
-  if Value then
-    FSOAPRequester.AddParam(Name, '1')
-  else
-    FSOAPRequester.AddParam(Name, '0')
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.SetCountry(const Value: string);
-begin
-  FCountry := Value;
-  AddCustomHeader('countrycode',FCountry);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.SetCurrentURLIndex(const Value: Integer);
-begin
-  FCurrentURLIndex := Value;
-  if Value = 2 then
-    FSOAPRequester.URL := FServiceURL2
-  else
-    FSOAPRequester.URL := FServiceURL1;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.SetHidden(const Value: Boolean);
-begin
-  FHidden := Value;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.SetMethod(Method: string);
-begin
-  // This will also set the internal custom headers
-  FSOAPRequester.Method := Method;
-  //FSOAPRequester.MethodURI := DefaultWebNotesMethodURI;
-  FSOAPRequester.ActionURI := FSOAPRequester.MethodURI + '/' + FSOAPRequester.Method;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.SetPassWord(const Value: string);
-begin
-  FPassWord := Value;
-  AddCustomHeader('password',FPassWord);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.SetPracticeCode(const Value: string);
-begin
-  FPracticeCode := Value;
-  AddCustomHeader('practicecode',FPracticeCode);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.SSLEvent(Sender: TObject; CertEncoded: String;
-  const CertSubject, CertIssuer, Status: String; var Accept: Boolean);
-begin
-  UpdateAppStatusLine2(Format('%s Authenticate %d',[Status, FCurrentURLIndex]));
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebNotesClient.StatusEvent(Sender: TObject;
-                            const ConnectionEvent: String;
-                            StatusCode: Integer;
-                            const Description: String);
-begin
-  UpdateAppStatusLine2(Format('%s server %d',[ConnectionEvent, FCurrentURLIndex]));
 end;
 
 {$IFDEF WebNotesLocal}
@@ -514,16 +281,16 @@ begin
 
   Reply := '';
   Fprogress := 10;
-  SetMethod('UploadBatch');
-  AppendCustomHeaders;
-  AddStringParam('requestXml',EncodeText(Batch));
-  AddStringParam('practiceCode', PracticeCode);
-  AddStringParam('countryCode', country);
-  AddIntParam('xmlVersion', 1);
+  SetSoapMethod('UploadBatch');
+  AppendSoapHeaderInfo;
+  AddSoapStringParam('requestXml',EncodeText(Batch));
+  AddSoapStringParam('practiceCode', PracticeCode);
+  AddSoapStringParam('countryCode', country);
+  AddSoapIntParam('xmlVersion', 1);
 
-  CallMethod;
+  CallSoapMethod;
 
-  Reply := DecodeText(FSOAPRequester.ReturnValue);
+  Reply := DecodeText(SOAPRequester.ReturnValue);
   Result := Reply > '';
 end;
 {$ENDIF}
@@ -534,22 +301,22 @@ begin
   Result := False;
   Reply := '';
   Fprogress := 10;
-  SetMethod('SetDownloadDataStatus');
-  AppendCustomHeaders;
-  AddStringParam('downloadDataId', DataId);
-  AddStringParam('status', Status);
-  AddStringParam('practiceCode', PracticeCode);
-  AddStringParam('countryCode', country);
-  AddIntParam('xmlVersion', 1);
+  SetSoapMethod('SetDownloadDataStatus');
+  AppendSoapHeaderInfo;
+  AddSoapStringParam('downloadDataId', DataId);
+  AddSoapStringParam('status', Status);
+  AddSoapStringParam('practiceCode', PracticeCode);
+  AddSoapStringParam('countryCode', country);
+  AddSoapIntParam('xmlVersion', 1);
 
   {$IFDEF WebNotesLocal}
     Reply :=
     '<?xml version="1.0" encoding="utf-8"?><ResponseType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><Success xmlns="http://banklink.co.nz/oct/schema">true</Success></ResponseType>';
 
   {$ELSE}
-    CallMethod;
+    CallSoapMethod;
 
-    Reply := DecodeText(FSOAPRequester.ReturnValue);
+    Reply := DecodeText(SOAPRequester.ReturnValue);
   {$ENDIF}
 
    Result := Reply > '';
@@ -579,19 +346,19 @@ begin
   Result := False;
   Reply := '';
   Fprogress := 10;
-  SetMethod('RequestDownloadData');
-  AppendCustomHeaders;
-  AddStringParam('companyCode', Company);
-  AddStringParam('user', User);
-  AddDateParam ('fromDate',Fromdate);
-  AddDateParam ('toDate',Todate);
-  AddStringParam('practiceCode', PracticeCode);
-  AddStringParam('countryCode', country);
-  AddIntParam('xmlVersion', 1);
+  SetSoapMethod('RequestDownloadData');
+  AppendSoapHeaderInfo;
+  AddSoapStringParam('companyCode', Company);
+  AddSoapStringParam('user', User);
+  AddSoapDateParam ('fromDate',Fromdate);
+  AddSoapDateParam ('toDate',Todate);
+  AddSoapStringParam('practiceCode', PracticeCode);
+  AddSoapStringParam('countryCode', country);
+  AddSoapIntParam('xmlVersion', 1);
 
-  CallMethod;
+  CallSoapMethod;
 
-  Reply := DecodeText(FSOAPRequester.ReturnValue);
+  Reply := DecodeText(SOAPRequester.ReturnValue);
 
   Result := Reply > '';
 end;
@@ -604,13 +371,13 @@ begin
   Result := False;
   Reply := '';
   Fprogress := 10;
-  SetMethod('GetAvailableData');
-  AppendCustomHeaders;
-  AddStringParam('companyCode', Client);
-  AddStringParam('practiceCode', PracticeCode);
-  AddStringParam('countryCode', country);
+  SetSoapMethod('GetAvailableData');
+  AppendSoapHeaderInfo;
+  AddSoapStringParam('companyCode', Client);
+  AddSoapStringParam('practiceCode', PracticeCode);
+  AddSoapStringParam('countryCode', country);
 
-  AddIntParam('xmlVersion', 1);
+  AddSoapIntParam('xmlVersion', 1);
   {$IFDEF WebNotesLocal}
     Reply := format(
       '<?xml version="1.0" encoding="utf-8"?><AvailableDataResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"' +
@@ -618,40 +385,17 @@ begin
       [Client]);
 
   {$ELSE}
-     CallMethod;
-     Reply := DecodeText(FSOAPRequester.ReturnValue);
+     CallSoapMethod;
+     Reply := DecodeText(SOAPRequester.ReturnValue);
   {$ENDIF}
 
   Result := Reply > '';
 end;
 
-{ EWebNotesClientError }
-//------------------------------------------------------------------------------
-constructor EWebNotesClientError.Create(Msg: string; ErrorCode: integer);
-begin
-  inherited Create(Msg);
-  FErrorCode := ErrorCode;
-
-  if DebugMe then
-    LogUtil.LogMsg(lmError,UnitName,Msg);
-end;
-
-//------------------------------------------------------------------------------
-function EWebNotesClientError.IsConnectionProblem: Boolean;
-begin
-  Result := true;
-  if (ErrorCode in [100..102, 104,105,106,107,112,116,117,211..213, 135 ]) then
-    exit; //IPPort Errors
-
-  if (ErrorCode > 1000) then
-    exit;  //TCP/IP and Port error
-
-  Result := False;
-end;
-
 //------------------------------------------------------------------------------
 initialization
   DebugMe := DebugUnit(UnitName);
+  WebClient.DebugMe := DebugMe;
 
 end.
 

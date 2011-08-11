@@ -152,8 +152,6 @@ const
    UnitName = 'WebNotesDataUpload';
    DebugMe : boolean = False;
 
-
-
 {$R *.dfm}
 
 function ImportWebNotesFile(const aClient: TClientObj): string;
@@ -1599,7 +1597,7 @@ begin
    // Get going...
    lAvailable.Caption := Format('Checking for %s transactions', [wfNames[wfWebNotes]]);
    UpdateAppStatus(lAvailable.Caption,'Initializing', 0);
-   WebClient := TWebNotesClient.Create(GetBK5Ini);
+   WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
    kc := Screen.Cursor;
    Screen.Cursor := crHourglass;
    try  try
@@ -1836,7 +1834,7 @@ begin
     Result := false;
 
     UpdateAppStatus(Format('Downloading %s transactions', [wfNames[wfWebNotes]]),'Initializing', 0);
-    WebClient := TWebNotesClient.Create(GetBK5Ini);
+    WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
 
 
     try  try

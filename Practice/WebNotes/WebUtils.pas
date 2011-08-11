@@ -1,5 +1,16 @@
 unit WebUtils;
+//------------------------------------------------------------------------------
+{
+   Title: WebUtils
 
+   Description:
+     Some XML helpers for reading wnd writing field types.
+     similar EncodeText and DecodeText
+
+   Author: Ralph Austen
+
+   Remarks:
+}
 //------------------------------------------------------------------------------
 interface
 
@@ -12,37 +23,37 @@ uses
   XMLIntf,
   xmldom;
 
-  function FormatXMLdate(Value: TstDate): string;
-  procedure AddBooleanOption(var ToNode: IXMLNode; name: string; Value: Boolean);
-  procedure SetTextAttr(var OnNode: IXMLNode; Name, Value: string);
-  procedure SetSourceAttr(var OnNode: IXMLNode; Name: string;  Value: Integer);
-  procedure SetMoneyAttr(var OnNode: IXMLNode; Name: string; Value: Money);
-  procedure SetBoolAttr(var OnNode: IXMLNode; Name: string; Value: Boolean);
-  procedure SetQtyAttr(var OnNode: IXMLNode; Name: string; Value: Money);
-  procedure SetRateAttr(var OnNode: IXMLNode; Name: string; Value: Money);
-  procedure SetDateAttr(var OnNode: IXMLNode; Name: string; Value: TstDate);
-  procedure SetCodeByAttr(var OnNode: IXMLNode; Name: string; Value: Byte);
-  procedure SetUPIState(var OnNode: IXMLNode; Name: string; Value: Byte);
+function FormatXMLdate(Value: TstDate): string;
+procedure AddBooleanOption(var ToNode: IXMLNode; name: string; Value: Boolean);
+procedure SetTextAttr(var OnNode: IXMLNode; Name, Value: string);
+procedure SetSourceAttr(var OnNode: IXMLNode; Name: string;  Value: Integer);
+procedure SetMoneyAttr(var OnNode: IXMLNode; Name: string; Value: Money);
+procedure SetBoolAttr(var OnNode: IXMLNode; Name: string; Value: Boolean);
+procedure SetQtyAttr(var OnNode: IXMLNode; Name: string; Value: Money);
+procedure SetRateAttr(var OnNode: IXMLNode; Name: string; Value: Money);
+procedure SetDateAttr(var OnNode: IXMLNode; Name: string; Value: TstDate);
+procedure SetCodeByAttr(var OnNode: IXMLNode; Name: string; Value: Byte);
+procedure SetUPIState(var OnNode: IXMLNode; Name: string; Value: Byte);
 
-  function GetIntAttr(FromNode: IXMLNode; Name: string): Integer;
-  function GetDateAttr(FromNode: IXMLNode; Name : string): TStDate;
-  function GetStringAttr(FromNode: IXMLNode; Name : string): string;
-  function GetUPIStateAttr(FromNode: IXMLNode; Name : string): Integer;
-  function GetMoneyAttr(FromNode: IXMLNode; Name : string): Money;
-  function GetQtyAttr(FromNode: IXMLNode; Name : string): Money;
-  function GetBoolAttr(FromNode: IXMLNode; Name : string): Boolean;
-  function GetCodeByAttr(FromNode: IXMLNode; Name: string): Integer;
-  function GetFirstDissection(FromNode: IXMLNode): IXMLNode;
-  function GetDissectionCount(FromNode: IXMLNode): Integer;
+function GetIntAttr(FromNode: IXMLNode; Name: string): Integer;
+function GetDateAttr(FromNode: IXMLNode; Name : string): TStDate;
+function GetStringAttr(FromNode: IXMLNode; Name : string): string;
+function GetUPIStateAttr(FromNode: IXMLNode; Name : string): Integer;
+function GetMoneyAttr(FromNode: IXMLNode; Name : string): Money;
+function GetQtyAttr(FromNode: IXMLNode; Name : string): Money;
+function GetBoolAttr(FromNode: IXMLNode; Name : string): Boolean;
+function GetCodeByAttr(FromNode: IXMLNode; Name: string): Integer;
+function GetFirstDissection(FromNode: IXMLNode): IXMLNode;
+function GetDissectionCount(FromNode: IXMLNode): Integer;
 
-  function EncodeText(Value: string): string;
-  function DecodeText(Value: string): string;
+function EncodeText(Value: string): string;
+function DecodeText(Value: string): string;
 
-  function CountryText(Value: byte):string;
+function CountryText(Value: byte):string;
 
-  function TestResponse(Value: IXMLNode; name: string): Boolean;
+function TestResponse(Value: IXMLNode; name: string): Boolean;
 
-  function MakeXMLDoc (FromXML: string): IXMLDocument;
+function MakeXMLDoc (FromXML: string): IXMLDocument;
 
 //------------------------------------------------------------------------------
 implementation

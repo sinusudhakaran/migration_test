@@ -1,5 +1,4 @@
-unit WebNotesDataUpload;
-
+﻿unit WebNotesDataUpload;
 //------------------------------------------------------------------------------
 {
    Title: WebNotesDataUpload
@@ -13,7 +12,6 @@ unit WebNotesDataUpload;
 
 }
 //------------------------------------------------------------------------------
-
 interface
 
 uses
@@ -187,7 +185,7 @@ begin
   EmailMessage := '';
   NotifyClient := False;
   UpdateAppStatus(Format('Export to %s', [wfNames[wfWebNotes]]),'Initializing', 5);
-  WebClient := TWebNotesClient.Create(GetBK5Ini);
+  WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
   service := TWebNotesDataUpload.Create;
   try
     try

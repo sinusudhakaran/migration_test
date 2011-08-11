@@ -391,7 +391,7 @@ end;
 //------------------------------------------------------------------------------
 procedure WebNotesCheckThread.MyTerminate(Sender: TObject);
 begin
-  FClient.Free;
+  FreeAndNil(FClient);
 
   Mythread := nil;
 end;
@@ -484,7 +484,7 @@ begin
   FreeOnTerminate := true;
   self.OnTerminate := MyTerminate;
   // Everything set up. just have a go...
-  FClient := TWebNotesClient.Create(GetBK5Ini);
+  FClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
 
   FClient.Country := CountryText(AdminSystem.fdFields.fdCountry);
   FClient.PracticeCode := AdminSystem.fdFields.fdBankLink_Code;

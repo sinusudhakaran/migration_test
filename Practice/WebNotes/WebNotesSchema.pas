@@ -6,19 +6,7 @@ unit WebNotesSchema;
    Description:
 
       Holds most of the Field and atribute names, matching the Webnotes schema
-
-      also has Some XML helpers for reading wnd writing field types.
-
-      Used in 
-         CheckWebNotesdata
-         WebNotesDataUpload   (Upload to webnotes)
-         WebNotesImportfrm (Download from webNotes)
-
-      similar EncodeText and DecodeText
-
       this code should not be altered unless the Webnotes schema demands it.
-
-
 
    Author: Andre' Joosten
 
