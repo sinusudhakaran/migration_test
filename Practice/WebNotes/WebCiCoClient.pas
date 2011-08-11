@@ -23,12 +23,15 @@ uses
 
 {$M+}
 type
+  TDirectionIndicator = (dirFromClient, dirFromServer);
+  TTransferStatus = (trsStartTrans, trsTransInProgress, trsEndTrans);
+
   //----------------------------------------------------------------------------
   EWebCiCoClientError = class(EWebSoapClientError)
   end;
 
-  TTransferFileEvent = procedure (Direction: Integer;
-                                  Status : Integer;
+  TTransferFileEvent = procedure (Direction: TDirectionIndicator;
+                                  TransferStatus : TTransferStatus;
                                   BytesTransferred: LongInt;
                                   TotalBytes: LongInt) of object;
 
@@ -169,7 +172,7 @@ begin
   end;
 
   if Assigned(fTransferFileEvent) then
-    fTransferFileEvent(Direction, 1, 0, fTotalBytes);
+    fTransferFileEvent(Direction, trsStartTrans, 0, fTotalBytes);
 end;
 
 //------------------------------------------------------------------------------
@@ -191,7 +194,7 @@ begin
   end;
 
   if Assigned(fTransferFileEvent) then
-    fTransferFileEvent(Direction, 2, BytesTransferred, fTotalBytes);
+    fTransferFileEvent(Direction, trsTransInProgress, BytesTransferred, fTotalBytes);
 end;
 
 //------------------------------------------------------------------------------
@@ -207,7 +210,7 @@ begin
   end;
 
   if Assigned(fTransferFileEvent) then
-    fTransferFileEvent(Direction, 3, fTotalBytes, fTotalBytes);
+    fTransferFileEvent(Direction, trsEndTrans, fTotalBytes, fTotalBytes);
 end;
 
 //------------------------------------------------------------------------------
