@@ -76,17 +76,12 @@ type
 
     procedure UploadFile(FileName : string;
                          HttpAddress : string);
+
+    procedure GetDetailsToSend(ClientID : string);
   public
     constructor Create; Override;
 
-    procedure UploadFileToPractice(Filename : string;
-                                   PracticeUser : string;
-                                   CountryCode : string;
-                                   PracticePassword : string;
-                                   ClientID : string;
-                                   ClientEmail : string;
-                                   GUID : string;
-                                   HttpAddress : string);
+    procedure UploadFileToPractice(ClientCode : string);
 
     procedure DownLoadFileFromPractice(Filename : string;
                                        HttpAddress : string);
@@ -97,13 +92,31 @@ type
 
   end;
 
+  //----------------------------------------------------------------------------
+  Function CiCoClient : TWebCiCoClient;
+
+//------------------------------------------------------------------------------
 implementation
 
 uses
   progress,
   IdHashSHA1,
   IdHash,
-  Base64;
+  Base64,
+  Globals,
+  SysDefs;
+
+var
+  fWebCiCoClient : TWebCiCoClient;
+
+//------------------------------------------------------------------------------
+function CiCoClient : TWebCiCoClient;
+begin
+  if not Assigned( fWebCiCoClient) then
+    fWebCiCoClient := TWebCiCoClient.Create;
+
+  result := fWebCiCoClient;
+end;
 
 { TWebCiCoClient }
 //------------------------------------------------------------------------------
@@ -253,21 +266,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.UploadFileToPractice(Filename : string;
-                                              PracticeUser : string;
-                                              CountryCode : string;
-                                              PracticePassword : string;
-                                              ClientID : string;
-                                              ClientEmail : string;
-                                              GUID : string;
-                                              HttpAddress : string);
+procedure TWebCiCoClient.UploadFileToPractice(ClientCode : string);
 begin
   HttpAddress := 'http://posttestserver.com/post.php';
 
   ClearHttpHeader;
 
-  UploadFile(Filename,
-             HttpAddress);
+  UploadFile(Filename, HttpAddress);
 end;
 
 //------------------------------------------------------------------------------
@@ -278,5 +283,39 @@ begin
 
   HttpGetFile(HttpAddress, Filename);
 end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.GetDetailsToSend(ClientCode : string);
+var
+  ClientFileRec : pClient_File_Rec;
+  FileName : String;
+  BankLinkCode : String;
+  Guid : TGuid;
+  fClientObj : TClientObj;
+begin
+  ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(ClientCode);
+
+  if Assigned(ClientFileRec) then
+  begin
+    BankLinkCode := AdminSystem.fdFields.fdBankLink_Code;
+    CreateGUID(Guid);
+    FileName     := ClientFileRec^.cfFile_Name;
+
+    fClientObj := TClientObj.Create;
+    Try
+      fClientObj.Open(fFileName, FILEEXTN);
+    Finally
+      FreeAndNil(fClientObj);
+    End;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+initialization
+  fWebCiCoClient := nil;
+
+//------------------------------------------------------------------------------
+finalization
+  FreeAndNil(fWebCiCoClient);
 
 end.
