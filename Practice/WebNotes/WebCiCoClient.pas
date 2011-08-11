@@ -23,13 +23,14 @@ uses
 
 {$M+}
 type
+  TDirectionIndicator = (dirFromClient, dirFromServer);
   TTransferStatus = (trsStartTrans, trsTransInProgress, trsEndTrans);
 
   //----------------------------------------------------------------------------
   EWebCiCoClientError = class(EWebSoapClientError)
   end;
 
-  TTransferFileEvent = procedure (Direction: Integer;
+  TTransferFileEvent = procedure (Direction: TDirectionIndicator;
                                   TransferStatus : TTransferStatus;
                                   BytesTransferred: LongInt;
                                   TotalBytes: LongInt) of object;
@@ -79,7 +80,11 @@ type
     procedure UploadFile(FileName : string;
                          HttpAddress : string);
 
-    procedure GetDetailsToSend(ClientCode : string);
+    procedure GetPracticeDetailsToSend(ClientCode       : string;
+                                       var FileName     : String;
+                                       var BankLinkCode : String;
+                                       var Guid         : TGuid;
+                                       var ClientEmail  : String);
   public
     constructor Create; Override;
 
@@ -148,6 +153,7 @@ begin
   UpdateAppStatusLine2(Format('%s Authenticate %d',[Status, SoapURLIndex]));
 end;
 
+//------------------------------------------------------------------------------
 procedure TWebCiCoClient.DoHttpConnectionStatus(Sender: TObject;
                                                 const ConnectionEvent: String;
                                                 StatusCode: Integer;
@@ -262,42 +268,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-constructor TWebCiCoClient.Create;
-begin
-  inherited;
-  fTotalBytes := 0;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebCiCoClient.UploadFileToPractice(ClientCode : string);
-var
-  HttpAddress : string;
-  Filename    : string;
-begin
-  HttpAddress := 'http://posttestserver.com/post.php';
-
-  ClearHttpHeader;
-
-  UploadFile(Filename, HttpAddress);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebCiCoClient.DownLoadFileFromPractice(Filename : string;
-                                                  HttpAddress : string);
-begin
-  HttpAddress := 'http://www.getfiddler.com/dl/Fiddler2Setup.exe';
-
-  HttpGetFile(HttpAddress, Filename);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetDetailsToSend(ClientCode : string);
+procedure TWebCiCoClient.GetPracticeDetailsToSend(ClientCode       : string;
+                                                  var FileName     : String;
+                                                  var BankLinkCode : String;
+                                                  var Guid         : TGuid;
+                                                  var ClientEmail  : String);
 var
   ClientFileRec : pClient_File_Rec;
-  FileName : String;
-  BankLinkCode : String;
-  Guid : TGuid;
-  fClientObj : TClientObj;
+  fClientObj    : TClientObj;
 begin
   ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(ClientCode);
 
@@ -310,10 +288,49 @@ begin
     fClientObj := TClientObj.Create;
     Try
       fClientObj.Open(FileName, FILEEXTN);
+
+      ClientEmail := fClientObj.clFields.clClient_EMail_Address;
     Finally
       FreeAndNil(fClientObj);
     End;
   end;
+end;
+
+//------------------------------------------------------------------------------
+constructor TWebCiCoClient.Create;
+begin
+  inherited;
+  fTotalBytes := 0;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.UploadFileToPractice(ClientCode : string);
+var
+  HttpAddress : string;
+  FileName     : String;
+  BankLinkCode : String;
+  Guid         : TGuid;
+  ClientEmail  : String;
+begin
+  HttpAddress := 'http://posttestserver.com/post.php';
+
+  GetPracticeDetailsToSend(ClientCode, FileName, BankLinkCode, Guid, ClientEmail);
+  ClearHttpHeader;
+
+  AddHttpHeaderInfo('ClientId',    ClientCode);
+  AddHttpHeaderInfo('ClientEmail', ClientEmail);
+  AddHttpHeaderInfo('Guid',        Guid);
+
+  UploadFile(Filename, HttpAddress);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.DownLoadFileFromPractice(Filename : string;
+                                                  HttpAddress : string);
+begin
+  HttpAddress := 'http://www.getfiddler.com/dl/Fiddler2Setup.exe';
+
+  HttpGetFile(HttpAddress, Filename);
 end;
 
 //------------------------------------------------------------------------------
