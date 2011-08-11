@@ -27,7 +27,10 @@ type
   TTransferStatus = (trsStartTrans, trsTransInProgress, trsEndTrans);
 
   //----------------------------------------------------------------------------
-  EWebCiCoClientError = class(EWebSoapClientError)
+  EWebSoapCiCoClientError = class(EWebSoapClientError)
+  end;
+
+  EWebHttpCiCoClientError = class(EWebSoapClientError)
   end;
 
   TTransferFileEvent = procedure (Direction: TDirectionIndicator;
@@ -46,6 +49,7 @@ type
 
   protected
     procedure RaiseSoapError(ErrMessage : String; ErrCode : integer); override;
+    procedure RaiseHttpError(ErrMessage : String; ErrCode : integer); override;
 
     procedure DoSoapConnectionStatus(Sender: TObject;
                                      const ConnectionEvent: String;
@@ -82,16 +86,25 @@ type
 
     procedure GetPracticeDetailsToSend(ClientCode       : string;
                                        var FileName     : String;
-                                       var BankLinkCode : String;
                                        var Guid         : TGuid;
-                                       var ClientEmail  : String);
+                                       var ClientEmail  : String;
+                                       var PracUser     : String;
+                                       var CountryCode  : String;
+                                       var PracPass     : String);
+
+    procedure GetBooksDetailsToSend(ClientCode       : string;
+                                    var FileName     : String;
+                                    var Guid         : TGuid;
+                                    var ClientEmail  : String);
   public
     constructor Create; Override;
 
-    procedure UploadFileToPractice(ClientCode : string);
+    procedure UploadFileFromPractice(ClientCode : string);
+    procedure UploadFileFromBooks(ClientCode : string);
 
-    procedure DownLoadFileFromPractice(Filename : string;
-                                       HttpAddress : string);
+    procedure DownLoadFileToPractice(ClientCode : string);
+    procedure DownLoadFileToBooks(ClientCode : string);
+
 
     property OnStatusEvent : TStatusEvent read fStatusEvent write fStatusEvent;
     property OnTransferFileEvent : TTransferFileEvent read fTransferFileEvent write fTransferFileEvent;
@@ -112,7 +125,8 @@ uses
   Base64,
   Globals,
   SyDefs,
-  clObj32;
+  clObj32,
+  WebUtils;
 
 var
   fWebCiCoClient : TWebCiCoClient;
@@ -130,7 +144,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.RaiseSoapError(ErrMessage: String; ErrCode: integer);
 begin
-  raise EWebCiCoClientError.Create(ErrMessage, ErrCode);
+  raise EWebSoapCiCoClientError.Create(ErrMessage, ErrCode);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.RaiseHttpError(ErrMessage : String; ErrCode : integer);
+begin
+  raise EWebHttpCiCoClientError.Create(ErrMessage, ErrCode);
 end;
 
 //------------------------------------------------------------------------------
@@ -178,7 +198,7 @@ begin
   end;
 
   if Assigned(fTransferFileEvent) then
-    fTransferFileEvent(Direction, trsStartTrans, 0, fTotalBytes);
+    fTransferFileEvent(TDirectionIndicator(Direction), trsStartTrans, 0, fTotalBytes);
 end;
 
 //------------------------------------------------------------------------------
@@ -200,7 +220,7 @@ begin
   end;
 
   if Assigned(fTransferFileEvent) then
-    fTransferFileEvent(Direction, trsTransInProgress, BytesTransferred, fTotalBytes);
+    fTransferFileEvent(TDirectionIndicator(Direction), trsTransInProgress, BytesTransferred, fTotalBytes);
 end;
 
 //------------------------------------------------------------------------------
@@ -216,7 +236,7 @@ begin
   end;
 
   if Assigned(fTransferFileEvent) then
-    fTransferFileEvent(Direction, trsEndTrans, fTotalBytes, fTotalBytes);
+    fTransferFileEvent(TDirectionIndicator(Direction), trsEndTrans, fTotalBytes, fTotalBytes);
 end;
 
 //------------------------------------------------------------------------------
@@ -270,9 +290,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetPracticeDetailsToSend(ClientCode       : string;
                                                   var FileName     : String;
-                                                  var BankLinkCode : String;
                                                   var Guid         : TGuid;
-                                                  var ClientEmail  : String);
+                                                  var ClientEmail  : String;
+                                                  var PracUser     : String;
+                                                  var CountryCode  : String;
+                                                  var PracPass     : String);
 var
   ClientFileRec : pClient_File_Rec;
   fClientObj    : TClientObj;
@@ -281,9 +303,29 @@ begin
 
   if Assigned(ClientFileRec) then
   begin
-    BankLinkCode := AdminSystem.fdFields.fdBankLink_Code;
+    PracUser    := CurrUser.Code;
+    PracPass    := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN).usPassword;
+    CountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+  end;
+
+  GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.GetBooksDetailsToSend(ClientCode       : string;
+                                               var FileName     : String;
+                                               var Guid         : TGuid;
+                                               var ClientEmail  : String);
+var
+  ClientFileRec : pClient_File_Rec;
+  fClientObj    : TClientObj;
+begin
+  ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(ClientCode);
+
+  if Assigned(ClientFileRec) then
+  begin
     CreateGUID(Guid);
-    FileName     := ClientFileRec^.cfFile_Name;
+    FileName   := ClientFileRec^.cfFile_Name;
 
     fClientObj := TClientObj.Create;
     Try
@@ -304,7 +346,33 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.UploadFileToPractice(ClientCode : string);
+procedure TWebCiCoClient.UploadFileFromPractice(ClientCode : string);
+var
+  HttpAddress : String;
+  FileName    : String;
+  Guid        : TGuid;
+  ClientEmail : String;
+  PracName    : String;
+  CountryCode : String;
+  PracPass    : String;
+begin
+  HttpAddress := 'http://posttestserver.com/post.php';
+
+  GetPracticeDetailsToSend(ClientCode, FileName, Guid, ClientEmail, PracName, CountryCode, PracPass);
+  ClearHttpHeader;
+
+  AddHttpHeaderInfo('ClientId',         ClientCode);
+  AddHttpHeaderInfo('ClientEmail',      ClientEmail);
+  AddHttpHeaderInfo('Guid',             GuidToString(Guid));
+  AddHttpHeaderInfo('PracticeCode',     PracName);
+  AddHttpHeaderInfo('CountryCode',      CountryCode);
+  AddHttpHeaderInfo('PracticePassword', PracPass);
+
+  UploadFile(Filename, HttpAddress);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.UploadFileFromBooks(ClientCode : string);
 var
   HttpAddress : string;
   FileName     : String;
@@ -314,19 +382,32 @@ var
 begin
   HttpAddress := 'http://posttestserver.com/post.php';
 
-  GetPracticeDetailsToSend(ClientCode, FileName, BankLinkCode, Guid, ClientEmail);
+  GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail);
   ClearHttpHeader;
 
   AddHttpHeaderInfo('ClientId',    ClientCode);
   AddHttpHeaderInfo('ClientEmail', ClientEmail);
-  AddHttpHeaderInfo('Guid',        Guid);
+  AddHttpHeaderInfo('Guid',        GuidToString(Guid));
 
   UploadFile(Filename, HttpAddress);
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.DownLoadFileFromPractice(Filename : string;
-                                                  HttpAddress : string);
+procedure TWebCiCoClient.DownLoadFileToPractice(ClientCode : string);
+var
+  HttpAddress : string;
+  FileName    : String;
+begin
+  HttpAddress := 'http://www.getfiddler.com/dl/Fiddler2Setup.exe';
+
+  HttpGetFile(HttpAddress, Filename);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.DownLoadFileToBooks(ClientCode : string);
+var
+  HttpAddress : string;
+  FileName    : String;
 begin
   HttpAddress := 'http://www.getfiddler.com/dl/Fiddler2Setup.exe';
 
