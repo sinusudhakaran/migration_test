@@ -23,14 +23,13 @@ uses
 
 {$M+}
 type
-  TDirectionIndicator = (dirFromClient, dirFromServer);
   TTransferStatus = (trsStartTrans, trsTransInProgress, trsEndTrans);
 
   //----------------------------------------------------------------------------
   EWebCiCoClientError = class(EWebSoapClientError)
   end;
 
-  TTransferFileEvent = procedure (Direction: TDirectionIndicator;
+  TTransferFileEvent = procedure (Direction: Integer;
                                   TransferStatus : TTransferStatus;
                                   BytesTransferred: LongInt;
                                   TotalBytes: LongInt) of object;
@@ -80,7 +79,7 @@ type
     procedure UploadFile(FileName : string;
                          HttpAddress : string);
 
-    procedure GetDetailsToSend(ClientID : string);
+    procedure GetDetailsToSend(ClientCode : string);
   public
     constructor Create; Override;
 
@@ -107,7 +106,8 @@ uses
   IdHash,
   Base64,
   Globals,
-  SysDefs;
+  SyDefs,
+  clObj32;
 
 var
   fWebCiCoClient : TWebCiCoClient;
@@ -270,6 +270,9 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileToPractice(ClientCode : string);
+var
+  HttpAddress : string;
+  Filename    : string;
 begin
   HttpAddress := 'http://posttestserver.com/post.php';
 
@@ -306,7 +309,7 @@ begin
 
     fClientObj := TClientObj.Create;
     Try
-      fClientObj.Open(fFileName, FILEEXTN);
+      fClientObj.Open(FileName, FILEEXTN);
     Finally
       FreeAndNil(fClientObj);
     End;
