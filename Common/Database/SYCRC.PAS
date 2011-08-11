@@ -175,6 +175,8 @@ Begin
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( cfBank_Accounts )^, Len );
       Len := Length( cfAccounting_System );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( cfAccounting_System )^, Len );
+      Len := Length( cfClient_File_GUID );
+      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( cfClient_File_GUID )^, Len );
    end;
 end;
 

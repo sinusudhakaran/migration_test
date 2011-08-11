@@ -33,6 +33,17 @@ type
     ePath: TEdit;
     btnFolder: TSpeedButton;
     ClientLookupFrame: TfmeClientLookup;
+    pnSendOptions: TPanel;
+    lblPreferredMethod: TLabel;
+    rbStandard: TRadioButton;
+    rbBankLinkOnline: TRadioButton;
+    pnlPassword: TPanel;
+    Label2: TLabel;
+    eUsername: TEdit;
+    Label3: TLabel;
+    ePassword: TEdit;
+    BitBtn1: TBitBtn;
+    btnChangePassword: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -41,6 +52,9 @@ type
     procedure ePathEnter(Sender: TObject);
     procedure ePathExit(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure rbStandardClick(Sender: TObject);
+    procedure btnChangePasswordClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -49,11 +63,14 @@ type
 
     procedure FrameDblClick(Sender: TObject);
     procedure SetupFrame;
+    procedure SetupColumns;
+    function GetSendMethod: byte;
   public
     { Public declarations }
+    property SendMethod: byte read GetSendMethod;
   end;
 
-  function SelectCodesToCheckout( Title : string) : string;
+  function SelectCodesToCheckout( Title : string; var ASendMethod: byte; SelectedCodes: string = '') : string;
   function SelectCodesToCheckin( Title : string; DefaultCodes : string = '') : string;
   function SelectCodesToAttach( Title : string) : string;
   function SelectCodeToLookup( Title : string; DefaultCode: string = ''; Multiple: Boolean = True) : string;
@@ -70,7 +87,13 @@ uses
   ImagesFrm,
   WarningMoreFrm,
   BKConst,
-  Virtualtrees;
+  Virtualtrees,
+  ChangePasswordFrm,
+  IniSettings;
+
+const
+  MIN_STANDARD_WIDTH = 615;
+  MIN_ONLINE_WIDTH = 1000;
 
 {$R *.dfm}
 
@@ -81,13 +104,36 @@ begin
   ClientLookupFrame.DoCreate;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnFolder.Glyph);
 end;
+procedure TfrmCheckInOut.FormKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Shift = [ssCtrl]) then begin
+    if Key in [Ord(66), Ord(98)] then
+      rbBankLinkOnline.Checked := True
+    else if Key in [Ord(83), Ord(115)] then
+      rbStandard.Checked := True;
+  end;
+end;
+
 // - - - - - - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.FrameDblClick(Sender: TObject);
 begin
   btnOK.Click;
 end;
+function TfrmCheckInOut.GetSendMethod: byte;
+begin
+  Result := smBankLinkOnline;
+  if rbStandard.Checked then
+    Result := smStandardFileTransfer;
+end;
+
+procedure TfrmCheckInOut.rbStandardClick(Sender: TObject);
+begin
+  SetupColumns;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectCodesToCheckout( Title : string) : string;
+function SelectCodesToCheckout( Title : string; var ASendMethod: byte; SelectedCodes: string = '') : string;
 //the path is the path to check the files out to
 var
   CheckInOut : TfrmCheckInOut;
@@ -99,6 +145,7 @@ begin
   begin
     try
       BKHelpSetup(CheckInOut, BKH_Check_out_facility);
+
       if Assigned( AdminSystem) then
         Admin32.ReloadAdminAndTakeSnapshot( ClientLookupFrame.AdminSnapshot);
 
@@ -107,11 +154,28 @@ begin
       chkAvailOnly.Visible   := True;
       //chkAvailOnly.Checked   := True;
       ePath.Text             := Globals.INI_CheckOutDir;
+
+      pnSendOptions.Visible    := True;
+      rbBankLinkOnline.Enabled := True;
+//      rbBankLinkOnline.Checked := True;
+      pnlPassword.Visible := False;
+
       SetupFrame;
+
+      if SelectedCodes <> '' then
+        ClientLookupFrame.SelectedCodes := SelectedCodes;
+
+      //Set the send method based in the send methods of the client files  
+      case ClientLookupFrame.GetSendMethod of
+        smBankLinkOnline       : rbBankLinkOnline.Checked := True;
+        smStandardFileTransfer : rbStandard.Checked := True;
+      end;
+
       if ShowModal = mrOK then
       begin
         Globals.INI_CheckOutDir := AddSlash( ePath.Text);
-        result := ClientLookupFrame.SelectedCodes;
+        ASendMethod := CheckInOut.SendMethod;
+        Result := ClientLookupFrame.SelectedCodes;
       end;
     finally
       Free;
@@ -141,12 +205,24 @@ begin
       ePath.Text             := Globals.INI_CheckInDir;
       TempCheckinPath        := ePath.Text;
 
+      pnSendOptions.Visible := False;
+      pnlPassword.Visible   := False;
+      if not Assigned( AdminSystem) then begin
+        pnSendOptions.Visible := True;
+        lblPreferredMethod.Caption := 'Select the preferred method of importing the selected client(s)';
+        pnlPassword.Visible := True;
+        eUsername.Text := Globals.INI_BankLink_Online_Username;
+        ePassword.Text := Globals.INI_BankLink_Online_Password;
+      end;
+
       SetupFrame;
       ClientLookupFrame.SelectedCodes := DefaultCodes;
 
       if ShowModal = mrOK then
       begin
         Globals.INI_CheckInDir := AddSlash( ePath.Text);
+        Globals.INI_BankLink_Online_Username := Trim(eUsername.Text);
+        Globals.INI_BankLink_Online_Password := Trim(ePassword.Text);        
         result := ClientLookupFrame.SelectedCodes;
       end;
     finally
@@ -172,6 +248,12 @@ begin
       ePath.Visible          := false;
       btnFolder.Visible      := false;
       pnlFooter.Height       := pnlFooter.Height - 25;
+
+      pnSendOptions.Visible    := True;
+      rbStandard.Checked     := True;
+      rbBankLinkOnline.Enabled := False;
+      Width := MIN_STANDARD_WIDTH;
+      pnlPassword.Visible := False;
 
       //chkAvailOnly.Checked   := True;
       ePath.Text             := '';
@@ -203,9 +285,13 @@ begin
       ePath.Visible          := false;
       btnFolder.Visible      := false;
       pnlFooter.Height       := pnlFooter.Height - 25;
-      if not Multiple then      
+      if not Multiple then
         ClientLookupFrame.SelectMode := smSingle;
       ePath.Text             := '';
+
+      pnSendOptions.Visible := False;
+      pnlPassword.Visible := False;      
+
       SetupFrame;
       ClientLookupFrame.SelectedCodes := DefaultCode;
       if ShowModal = mrOK then
@@ -277,6 +363,17 @@ begin
   UserINI_Client_Lookup_Sort_Direction := Ord(ClientLookupFrame.SortDirection);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCheckInOut.btnChangePasswordClick(Sender: TObject);
+var
+  NewPassword: string;
+begin
+  if ChangePasswordFrm.ChangeBankLinkOnlinePassword(eUserName.Text, ePassword.Text, NewPassword) then begin
+    ePassword.Text := NewPassword;
+    Globals.INI_BankLink_Online_Password := NewPassword;
+    IniSettings.BK5WriteINI;
+  end;
+end;
+
 procedure TfrmCheckInOut.chkAvailOnlyClick(Sender: TObject);
 begin
   if chkAvailOnly.checked then
@@ -306,17 +403,50 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCheckInOut.SetupColumns;
+var
+  i: integer;
+  Column: TCluColumnDefn;
+  ShowDir: boolean;
+begin
+  for i := 0 to ClientLookupFrame.Columns.Count - 1 do begin
+    Column := ClientLookupFrame.Columns.ColumnDefn_At(i);
+    if Column.FieldID in [cluBankLinkOnline, cluModifiedBy, cluModifiedDate] then
+      Column.Visible := rbBankLinkOnline.Checked;
+  end;
+
+  if rbBankLinkOnline.Checked then
+    Constraints.MinWidth := MIN_ONLINE_WIDTH
+  else begin
+    Constraints.MinWidth := MIN_STANDARD_WIDTH;
+    Width := MIN_STANDARD_WIDTH;
+  end;
+
+  //Show 'Check out files to'
+  ShowDir := rbStandard.Checked and rbBankLinkOnline.Enabled;
+  lblDirLabel.Visible := ShowDir;
+  ePath.Visible := ShowDir;
+  btnFolder.Visible := ShowDir;
+
+  ClientLookupFrame.BuildGrid(ClientLookupFrame.SortColumn);
+end;
+
 procedure TfrmCheckInOut.SetupFrame;
 var
   DefaultSort: TClientLookupCol;
 begin
   with ClientLookupFrame do
   begin
-    //add columns and build the grid
     ClearColumns;
-    AddColumn( 'Code', 150, cluCode);
+    AddColumn( 'Code', 110, cluCode);
     AddColumn( 'Name', -1, cluName);
     AddColumn( 'Status', 150, cluStatus);
+    AddColumn( 'BankLink Online', 245, cluBankLinkOnline);
+    AddColumn( 'Modified By', 100, cluModifiedBy);
+    AddColumn( 'Modified Date', 100, cluModifiedDate);
+
+    SetupColumns;
+
     DefaultSort := TClientLookupCol(UserINI_Client_Lookup_Sort_Column);
     if Ord(DefaultSort) > Ord(cluStatus) then
       DefaultSort := cluStatus;

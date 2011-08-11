@@ -247,6 +247,8 @@ CONST
     //User Messages
     BK_SYSTEMDB_LOADED = WM_USER + 380;
 
+    //BankLink Online Pass Key
+    BANKLINK_ONLINE_PASS_KEY = 'jucuene88d8uje9whdwjhi9dc!';
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -428,6 +430,9 @@ var
 
     INI_UI_Style : integer = 0;
     Active_UI_Style : integer = 0;     //independant of INI setting so can override in Practice
+
+    INI_BankLink_Online_Username: string = '';
+    INI_BankLink_Online_Password: string = '';
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //general user settings

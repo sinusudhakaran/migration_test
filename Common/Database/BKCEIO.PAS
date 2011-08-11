@@ -82,6 +82,7 @@ CONST
    tkceAudit_Record_ID                  = 75 ;
    tkceSUI_Step_Done                    = 76 ;
    tkceSend_Job_List                    = 77 ;
+   tkceClient_File_GUID                 = 78 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -152,6 +153,7 @@ Begin
       F.WriteIntegerValue( tkceAudit_Record_ID , ceAudit_Record_ID );
       For i := 0 to 32 do F.WriteBBooleanValue( tkceSUI_Step_Done , i, ceSUI_Step_Done[ i ] );
       F.WriteBooleanValue( tkceSend_Job_List , ceSend_Job_List );
+      F.WriteAnsiStringValue( tkceClient_File_GUID , ceClient_File_GUID );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -244,6 +246,7 @@ Begin
                ceSUI_Step_Done[ I ] := Y;
             end;
          tkceSend_Job_List                    : ceSend_Job_List := F.ReadBooleanValue;
+         tkceClient_File_GUID                 : ceClient_File_GUID := F.ReadAnsiStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -281,6 +284,7 @@ Begin
       ceCustom_Coding_Report_XML := '' ;
       ceScheduled_Custom_CR_XML := '' ;
       ceCustom_Ledger_Report_XML := '' ;
+      ceClient_File_GUID := '' ;
    end;
 end;
 
@@ -293,7 +297,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkceTAX_Applies_From to tkceSend_Job_List do begin
+  for i := tkceTAX_Applies_From to tkceClient_File_GUID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -500,6 +504,11 @@ begin
   if (P1.ceSend_Job_List <> P2.ceSend_Job_List) then begin
     P3.ceSend_Job_List := P1.ceSend_Job_List;
     ChangedFields[i] := tkceSend_Job_List;
+    Inc(i);
+  end;
+  if (P1.ceClient_File_GUID <> P2.ceClient_File_GUID) then begin
+    P3.ceClient_File_GUID := P1.ceClient_File_GUID;
+    ChangedFields[i] := tkceClient_File_GUID;
     Inc(i);
   end;
 

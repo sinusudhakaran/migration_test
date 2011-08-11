@@ -120,7 +120,6 @@
 #define Copying_a_chart_from_Solution_6_Accounts_into_BankLink	1128
 #define Copying_a_chart_from_Solution_6_into_BankLink_Australia_	1129
 #define Copying_a_chart_from_Tax_Assistant_into_BankLink	1131
-#define Copying_a_chart_from_XPA_into_BankLink	1132
 #define Copying_divisions_from_another_client	1133
 #define Copying_report_titles_and_headings_from_another_client	1134
 #define Copying_sub_groups_from_another_client	1135
@@ -267,7 +266,6 @@
 #define QuickBooks	1296
 #define Recent_enhancements	1297
 #define Refresh_chart	1298
-#define Registering_an_off_site_BankLink_Connect_client	1299
 #define Report_Groups	1300
 #define Reporting_on_tasks	1301
 #define Reset_the_status_of_a_client	1302
@@ -377,7 +375,6 @@
 #define Transferring_transactions_from_BankLink_to_Solution_6_New_Zealand_	1432
 #define Transferring_transactions_from_BankLink_to_Solution_6_Accounts	1433
 #define Transferring_transactions_from_BankLink_to_Tax_Assistant	1434
-#define Transferring_transactions_from_BankLink_to_XPA	1435
 #define Trial_balance_report	1436
 #define Un_matching_unpresented_cheques	1437
 #define Un_matching_unpresented_deposits	1438
@@ -393,7 +390,6 @@
 #define What_data_does_BankLink_report_on_	1451
 #define What_happens_if_you_do_not_assign_report_groups_	1452
 #define What_is_in_the_Guide_	1453
-#define Xcede_Professional_Accounting_XPA_	1457
 #define Year_end_adjustment_journals	1458
 #define Interfacing_with_Acclipse_WebXOffice	1459
 #define Exporting_transactions_from_BankLink_to_Acclipse_WebXOffice	1460
@@ -622,3 +618,7 @@
 #define Ledger_Report	1235
 #define Total_bank_balance_graph	1410
 #define One_page_summary	1272
+#define Copying_a_chart_from_PA_7_into_BankLink	1132
+#define Transferring_transactions_from_BankLink_to_PA_7	1435
+#define Professional_Accounting_7	1457
+#define Audit_Report	2134

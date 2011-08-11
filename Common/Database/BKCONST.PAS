@@ -2329,7 +2329,11 @@ const
 
 Const
   ForexDP : Integer = 5;
-      
+
+  //Client checkout send methods
+  smNone                 = 0;
+  smStandardFileTransfer = 1;
+  smBankLinkOnline       = 2;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 IMPLEMENTATION
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 642;
-   BK_IOLIB_Date    = '01/06/11';
-   BK_FILE_VERSION  = 165;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 643;
+   BK_IOLIB_Date    = '10/08/11';
+   BK_FILE_VERSION  = 166;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.21';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.22';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -205,6 +205,7 @@ Const
                      165    Add remaining Audit Record ID fields to records
                             Add Audit Table (Defined in SY.TXT)
                             Add temp fileds to Txn for Provisional info
+     5.22 (2011 CICO)166    Add Client File GUID to Client Extra
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -1231,6 +1232,7 @@ Type
       ceAudit_Record_ID                  : Integer;       { Stored }
       ceSUI_Step_Done                    : Array[ 0..32 ] of Boolean;       { Stored }
       ceSend_Job_List                    : Boolean;       { Stored }
+      ceClient_File_GUID                 : AnsiString;       { Stored }
       ceEOR                              : Byte;
    end;
 

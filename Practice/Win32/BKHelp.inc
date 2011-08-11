@@ -127,7 +127,6 @@ const
   BKH_Copying_a_chart_from_Solution_6_Accounts_into_BankLink = 1128;
   BKH_Copying_a_chart_from_Solution_6_into_BankLink_Australia_ = 1129;
   BKH_Copying_a_chart_from_Tax_Assistant_into_BankLink = 1131;
-  BKH_Copying_a_chart_from_XPA_into_BankLink = 1132;
   BKH_Copying_divisions_from_another_client = 1133;
   BKH_Copying_report_titles_and_headings_from_another_client = 1134;
   BKH_Copying_sub_groups_from_another_client = 1135;
@@ -274,7 +273,6 @@ const
   BKH_QuickBooks = 1296;
   BKH_Recent_enhancements = 1297;
   BKH_Refresh_chart = 1298;
-  BKH_Registering_an_off_site_BankLink_Connect_client = 1299;
   BKH_Report_Groups = 1300;
   BKH_Reporting_on_tasks = 1301;
   BKH_Reset_the_status_of_a_client = 1302;
@@ -384,7 +382,6 @@ const
   BKH_Transferring_transactions_from_BankLink_to_Solution_6_New_Zealand_ = 1432;
   BKH_Transferring_transactions_from_BankLink_to_Solution_6_Accounts = 1433;
   BKH_Transferring_transactions_from_BankLink_to_Tax_Assistant = 1434;
-  BKH_Transferring_transactions_from_BankLink_to_XPA = 1435;
   BKH_Trial_balance_report = 1436;
   BKH_Un_matching_unpresented_cheques = 1437;
   BKH_Un_matching_unpresented_deposits = 1438;
@@ -400,7 +397,6 @@ const
   BKH_What_data_does_BankLink_report_on_ = 1451;
   BKH_What_happens_if_you_do_not_assign_report_groups_ = 1452;
   BKH_What_is_in_the_Guide_ = 1453;
-  BKH_Xcede_Professional_Accounting_XPA_ = 1457;
   BKH_Year_end_adjustment_journals = 1458;
   BKH_Interfacing_with_Acclipse_WebXOffice = 1459;
   BKH_Exporting_transactions_from_BankLink_to_Acclipse_WebXOffice = 1460;
@@ -629,6 +625,10 @@ const
   BKH_Ledger_Report = 1235;
   BKH_Total_bank_balance_graph = 1410;
   BKH_One_page_summary = 1272;
+  BKH_Copying_a_chart_from_PA_7_into_BankLink = 1132;
+  BKH_Transferring_transactions_from_BankLink_to_PA_7 = 1435;
+  BKH_Professional_Accounting_7 = 1457;
+  BKH_Audit_Report = 2134;
 
 var
   //filename of HTML help file

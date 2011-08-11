@@ -1,8 +1,8 @@
-$|BK_FILE_VERSION  = 165;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 166;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.21';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.22';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -192,6 +192,7 @@ $|  5.21 (2011AUDIT)164    Add Audit Record ID field to memorisation records
 $|                  165    Add remaining Audit Record ID fields to records
 $|                         Add Audit Table (Defined in SY.TXT)
 $|                         Add temp fileds to Txn for Provisional info
+$|  5.22 (2011 CICO)166    Add Client File GUID to Client Extra
 $|*)
 
 N|Client|cl|20
@@ -1101,4 +1102,5 @@ F|SUI Period End|D
 F|Audit Record ID|L
 F|SUI Step Done|BY0|32
 F|Send Job List|Y
+F|Client File GUID|AS
 E

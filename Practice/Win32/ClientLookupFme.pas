@@ -48,7 +48,10 @@ type
                        cluStarts,
                        cluGroup,
                        cluClientType,
-                       cluNextGSTDue
+                       cluNextGSTDue,
+                       cluBankLinkOnline,
+                       cluModifiedBy,
+                       cluModifiedDate
                        );
 
   TCluColumnDefn = class
@@ -81,6 +84,10 @@ type
     imData    : pointer;
     imTag     : integer;
     imType    : Byte;
+    imSendMethod    : Byte;
+    imBankLinkOnline: string[60];
+    imModifiedBy    : string[20];
+    imModifiedDate  : string[20];
   end;
 
   TIntermediateDataList = class(TExtdCollection) //not sorted
@@ -319,6 +326,7 @@ type
     property ProcStatOffset: Integer read FProcStatOffset write SetProcStatOffset;
     procedure UpdateActions;
     property OnUpdateCount: TNotifyEvent read FOnUpdateCount write SetOnUpdateCount;
+    function GetSendMethod: byte;
   end;
 
   const
@@ -632,6 +640,8 @@ end;
 
 procedure TfmeClientLookup.DoCreate;
 begin
+  Randomize;
+
   vtClients.Clear;
   vtClients.Header.Columns.Clear;
   vtClients.NodeDataSize := SizeOf( TTreeData);
@@ -1442,6 +1452,19 @@ begin
            pIDRec^.imData    := sysClientRec;
            pIDRec^.imTag     := 0;
            pIDRec^.imType    := sysClientRec^.cfClient_Type;
+
+           pIDRec^.imSendMethod := sysClientRec^.cfSend_Method;
+           //*** TEST ***
+           case Random(5) of
+             0: pIDRec^.imBankLinkOnline := 'Checked In To Practice';
+             1: pIDRec^.imBankLinkOnline := 'Checked In To Practice (Copy Available)';
+             2: pIDRec^.imBankLinkOnline := 'Checked In To Books';
+             3: pIDRec^.imBankLinkOnline := 'Checked In To Support';
+             4: pIDRec^.imBankLinkOnline := 'Available';
+           end;
+
+           pIDRec^.imModifiedBy := 'WWWWWWWW';
+           pIDRec^.imModifiedDate := '99/99/99';
         end;
       end;
     end;
@@ -1477,6 +1500,10 @@ begin
           pIDRec^.imData    := nil;
           pIDRec^.imTag     := 0;
           pIDRec^.imType    := ctActive;
+          pIDRec^.imSendMethod     := smBankLinkOnline;
+          pIDRec^.imBankLinkOnline := '<unknown>';
+          pIDRec^.imModifiedBy     := '<unknown>';
+          pIDRec^.imModifiedDate   := '<unknown>';
 
           //if we are doing a check in and we have an admin system then check
           //the file status
@@ -1531,6 +1558,9 @@ begin
           pIDRec^.imGroupID := 0;
           pIDRec^.imData    := nil;
           pIDRec^.imTag     := Tag_CheckInConflict;
+          pIDRec^.imBankLinkOnline := '<unknown>';
+          pIDRec^.imModifiedBy     := '<unknown>';
+          pIDRec^.imModifiedDate   := '<unknown>';          
         end;
 
         Found := FindNext( SearchRec );
@@ -1676,6 +1706,9 @@ begin
       case FColumns.ColumnDefn_At( Column).FieldID of
         cluCode : CellText := pIDRec^.imCode;
         cluName : CellText := PIDRec^.imName;
+        cluBankLinkOnline : CellText := PIDRec^.imBankLinkOnline;
+        cluModifiedBy     : CellText := PIDRec^.imModifiedBy;
+        cluModifiedDate   : CellText := PIDRec^.imModifiedDate;
       end;
 
       //now look for fields inside data
@@ -3512,6 +3545,36 @@ begin
     end;
     aNode := vtClients.GetNextSelected( aNode);
   end;
+end;
+
+function TfmeClientLookup.GetSendMethod: byte;
+var
+  aNode : pVirtualNode;
+  NodeData : pTreeData;
+  pIDRec : pIntermediateDataRec;
+begin
+  Result := smNone;
+  //Checks the send method of the SELECTED clients in the grid:
+  //If all are smNone then set to smBankLink
+  //If all are smStandardFileTransfer then set to smStandardFileTransfer
+  //If any are smBankLink then set to smBankLink
+  aNode := vtClients.GetFirstSelected;
+  while Assigned(aNode) do begin
+    NodeData := vtClients.GetNodeData(aNode);
+    if NodeData.tdNodeType = ntClient then begin
+      pIDRec := GetIntermediateDataFromNode(aNode);
+      case pIDRec^.imSendMethod of
+        smBankLinkOnline: begin
+                            Result := smBankLinkOnline;
+                            Break;
+                          end;
+        smStandardFileTransfer: Result := smStandardFileTransfer;
+      end;
+    end;
+    aNode := vtClients.GetNextSelected(aNode);
+  end;
+  if (Result = smNone) then
+    Result := smBankLinkOnline;
 end;
 
 procedure TfmeClientLookup.GetArchiveStates(var Unarchived, Archived: Boolean);

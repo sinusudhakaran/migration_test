@@ -28,7 +28,6 @@ Type
     ImageList1: TImageList;
     OpenDialog1: TOpenDialog;
     popAttachments: TPopupMenu;
-    AttachClientFile1: TMenuItem;
     AttachOtherFile1: TMenuItem;
     N1: TMenuItem;
     pmiDelete: TMenuItem;
@@ -51,7 +50,7 @@ Type
     Label2: TLabel;
     lblCC: TLabel;
     Image1: TImage;
-    Label1: TLabel;
+    lblAttachments: TLabel;
     txtRecipient: TEdit;
     eReturnAddr: TEdit;
     txtSubject: TEdit;
@@ -62,6 +61,12 @@ Type
     btnCC: TRzMenuButton;
     lvAttach: TListView;
     Editor: TfmeEditRTF;
+    lvClientFiles: TListView;
+    lblClientFiles: TLabel;
+    popClientFiles: TPopupMenu;
+    MenuItem1: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
 
     procedure btnSelectClick(Sender: TObject);
     procedure formCreate(Sender: TObject);
@@ -81,6 +86,11 @@ Type
     procedure txtRecipientExit(Sender: TObject);
     procedure lvAttachDblClick(Sender: TObject);
     procedure ERichTextMailMergeGetText(Sender: TObject; const inspname: string; Contents: TWPMMInsertTextContents);
+    procedure lvClientFilesKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure lvClientFilesEnter(Sender: TObject);
+    procedure popClientFilesPopup(Sender: TObject);
+    procedure MenuItem4Click(Sender: TObject);
 
 
   Private
@@ -105,7 +115,7 @@ Type
     procedure DisableForm;
     procedure EnableForm;
     procedure DoAttachClientFile;
-    procedure DoDeleteSelected;
+    procedure DoDeleteSelected(AListView: TListView);
     procedure DoAttachFile;
     procedure DoSendMail;
     function SignatureFilename: string;
@@ -124,7 +134,7 @@ Type
     procedure SetEditMode(const Value: Boolean);
     procedure MergeText;
 
-   
+    procedure HideClientFiles;
 
   protected
   Public
@@ -382,6 +392,7 @@ begin
   fBodyText := TStringList.Create;
   FHideDropDowns := False;
   lvAttach.items.Clear;
+  lvClientFiles.Clear;
   //MessageText.Lines.Clear;
 
   lblReturn.visible   := (INI_Mail_Type = SMTP_MAIL);
@@ -694,10 +705,10 @@ begin
         //now have a list of clients, add each one to the list of attachments
         for i := 0 to CodeList.Count - 1 do
         begin
-          if lvAttach.FindCaption(0, CodeList[i], false, true, false) = Nil then
+          if lvClientFiles.FindCaption(0, CodeList[i], false, true, false) = Nil then
           begin
             //not already in list
-            NewItem := lvAttach.items.Add;
+            NewItem := lvClientFiles.items.Add;
             NewItem.caption := CodeList[i];
             NewItem.SubItems.Add( DataDir + CodeList[i] + FILEEXTN); //full filename
             NewItem.SubItems.Add( FileExtn);
@@ -709,7 +720,7 @@ begin
         CodeList.Free;
       end { try };
    end;
-   lvAttach.SetFocus;
+   lvClientFiles.SetFocus;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -959,6 +970,7 @@ var
   i : integer;
   li : TListITem;
   aMsg, ClientWasOpen : string;
+  TempClient: TClientObj;
 begin
   //Initialise
   MailSentOk := False;
@@ -991,13 +1003,19 @@ begin
 
   //verify that all attachments are available
   aMsg := '';
+  //Client files
+  for i := 0 to lvClientFiles.Items.Count - 1 do
+  begin
+    li := lvClientFiles.Items[i];
+    if not FileExists( li.SubItems[0]) then
+      aMsg := aMsg + li.subItems[0] + #13;
+  end;
+  //Other attachments
   for i := 0 to lvAttach.Items.Count - 1 do
   begin
     li := lvAttach.Items[i];
     if not FileExists( li.SubItems[0]) then
-    begin
       aMsg := aMsg + li.subItems[0] + #13;
-    end;
   end;
 
   if aMsg <> '' then
@@ -1015,9 +1033,15 @@ begin
      for i := 0 to lvAttach.Items.Count - 1 do begin
         li := lvAttach.Items[i];
         if li.SubItems.Strings[1] = FileExtn then
-           BK5Attachments.Add( li.Caption)                //client code
+           BK5Attachments.Add( li.Caption) //client code - BK5 File may be added as attachment
         else
            OtherAttachments.Add( li.SubItems.Strings[0]); //filename
+        if li.SubItems.Strings[0] = BNotesFile then
+           BNotesAttachSent := True;
+     end;
+     for i := 0 to lvClientFiles.Items.Count - 1 do begin
+        li := lvClientFiles.Items[i];
+           BK5Attachments.Add(li.Caption); //client code
         if li.SubItems.Strings[0] = BNotesFile then
            BNotesAttachSent := True;
      end;
@@ -1033,6 +1057,26 @@ begin
            CloseClientHomePage;
         end else
            SaveClient;
+     end;
+
+     //Get available transactions for each client file
+     if Assigned( AdminSystem) then begin
+       for i := 0 to lvClientFiles.Items.Count - 1 do begin
+         li := lvClientFiles.Items[i];
+         if FileExists(li.SubItems[0]) then begin
+           TempClient := nil;
+           //Open client file
+           Files.OpenAClient(li.Caption, TempClient, True);
+           try
+             //Merge new transactions
+             if Assigned(TempClient) then begin
+               MergeNewDataYN(TempClient, False, True);
+             end;
+           finally
+             CloseAClient(TempClient);
+           end;
+         end;
+       end;
      end;
 
      DisableForm;
@@ -1076,52 +1120,72 @@ begin
    else Close;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmMail.DoDeleteSelected;
+procedure TfrmMail.DoDeleteSelected(AListView: TListView);
 var
   i, j, SelectedNo  : Integer;
 begin { TfrmMail.lvAttachKeyUp }
-  if (lvAttach.SelCount = 0) then
+  if (AListView.SelCount = 0) then
     //don't allow deletes if nothing is selected
     exit;
 
   SelectedNo := -1;
   i := 0;
-  while (i <= (lvAttach.items.Count - 1)) do
+  while (i <= (AListView.items.Count - 1)) do
   begin
-     if lvAttach.items[i].Selected then
+     if AListView.items[i].Selected then
      begin
        SelectedNo := i;
 
        //search through the attachment list
        j := 0;
-       while (j < AttachmentList.Count) and (ExtractFilename(AttachmentList[j]) <> lvAttach.items[SelectedNo].Caption) do
+       while (j < AttachmentList.Count) and (ExtractFilename(AttachmentList[j]) <> AListView.items[SelectedNo].Caption) do
          Inc(j);
        if (j < AttachmentList.Count) then
          //delete the attachment from the internal list
          AttachmentList.Delete(j);
-       lvAttach.items[SelectedNo].Delete;
+       AListView.items[SelectedNo].Delete;
      end else
        Inc(i);
-  end; { (i <= (lvAttach.items.Count - 1)) };
+  end; 
 
   if (SelectedNo <> -1) then
   begin
-    if (lvAttach.Items.Count > i) then
-      lvAttach.Items[SelectedNo].Selected := True
+    if (AListView.Items.Count > i) then
+      AListView.Items[SelectedNo].Selected := True
     else
-      if (lvAttach.Items.Count > 0) then
-        lvAttach.Items[lvAttach.Items.Count - 1].Selected := True;
+      if (AListView.Items.Count > 0) then
+        AListView.Items[AListView.Items.Count - 1].Selected := True;
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.lvAttachKeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
-begin { TfrmMail.lvAttachKeyUp }
+begin
   if (Key = VK_DELETE) then
+    DoDeleteSelected(lvAttach);
+end;
+
+
+procedure TfrmMail.lvClientFilesEnter(Sender: TObject);
+begin
+  if (lvClientFiles.Items.Count > 0)
+  and (lvClientFiles.SelCount = 0) then
   begin
-    DoDeleteSelected;
+    lvClientFiles.Items[0].Focused := True;
+    lvClientFiles.Items[0].Selected := True;
   end;
 end;
 
+procedure TfrmMail.lvClientFilesKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Key = VK_DELETE) then
+    DoDeleteSelected(lvClientFiles);
+end;
+
+procedure TfrmMail.MenuItem4Click(Sender: TObject);
+begin
+  DoDeleteSelected(lvClientFiles);
+end;
 
 procedure TfrmMail.MergeText;
 var par : TParagraph;
@@ -1154,6 +1218,7 @@ begin
     AttachmentList.Clear;
     fBodyText.Clear;
     lvAttach.items.Clear;
+    lvClientFiles.items.Clear;
 end;
 
 { TfrmMail.lvAttachKeyUp }
@@ -1175,7 +1240,7 @@ begin
       //comparisons need to be in the same case because Windows takes the path
       //from the Shortcut. If they are different cases, the test will fail.
       if (Uppercase(ExtractFilePath(Filename)) = Uppercase(DataDir))
-      and (Uppercase(ExtractFileExt(Filename)) = '.BK5') then
+      and (Uppercase(ExtractFileExt(Filename)) = FILEEXTN) then
         HelpfulErrorMsg('You must use Attach Client File to attach *.BK5 files.',0)
       else
       begin
@@ -1230,26 +1295,25 @@ begin
             lvAttach.Clear;
             for i := 0 to Pred(A.Count) do
             begin
-               With lvAttach do
-               begin
-                 //causes the icon to be retrieved
-                 NewItem            := lvAttach.Items.Add;
-                 if ExtractFileExt(A[i]) = FILEEXTN then
-                   NewItem.ImageIndex := FILES_NORMAL_BMP
-                 else
-                 begin
-                   SHGetFileInfo(PChar(A[i]), 0, aSHFi, sizeOf(aSHFi), SHGFI_ICON );
-                   Image1.Picture.Icon.Handle := aSHFi.hIcon;
-                   ImageList1.AddIcon(Image1.Picture.Icon);
-                 end;
-                 if ExtractFileExt(A[i]) = FILEEXTN then
-                   NewItem.Caption    := Copy(ExtractFilename( A[i]), 1, Length(ExtractFilename( A[i]))-4)
-                 else
-                   NewItem.Caption    := ExtractFilename( A[i]);
-                 NewItem.SubItems.Add( A[i]);
-                 NewItem.SubItems.Add( ExtractFileExt( A[i]));
+               if ExtractFileExt(A[i]) = FILEEXTN then begin
+                 //Client files
+                 NewItem := lvClientFiles.Items.Add;
+                 NewItem.ImageIndex := FILES_NORMAL_BMP;
+                 NewItem.Caption := Copy(ExtractFilename(A[i]), 1, Length(ExtractFilename(A[i]))-4);
+                 NewItem.SubItems.Add(A[i]);
+                 NewItem.SubItems.Add(ExtractFileExt(A[i]));
                  NewItem.ImageIndex := ImageList1.Count-1;
-               end { with lvAttach }
+               end else begin
+                 //Other attachments
+                 NewItem := lvAttach.Items.Add;
+                 SHGetFileInfo(PChar(A[i]), 0, aSHFi, sizeOf(aSHFi), SHGFI_ICON );
+                 Image1.Picture.Icon.Handle := aSHFi.hIcon;
+                 ImageList1.AddIcon(Image1.Picture.Icon);
+                 NewItem.Caption := ExtractFilename(A[i]);
+                 NewItem.SubItems.Add(A[i]);
+                 NewItem.SubItems.Add(ExtractFileExt(A[i]));
+                 NewItem.ImageIndex := ImageList1.Count-1;
+               end;
             end;
           finally
             A.Free;
@@ -1285,6 +1349,7 @@ Var
    ContactName, ContactPhone, ContactEmail, WebsiteAddress : string;
    CodeList    : TStringList;
    i: Integer;
+   par: TParagraph;
 begin
    SendDlg := TfrmMail.Create(Application.MainForm);
    CodeList := TStringList.Create;
@@ -1357,7 +1422,7 @@ begin
          if CodeList.Count > 0 then
          begin
            for i := 0 to Pred(CodeList.Count) do
-             With lvAttach do begin
+             With lvClientFiles do begin
                 NewItem := items.Add;
                 NewItem.caption := CodeList[i];
                 NewItem.SubItems.Add( DataDir + NewItem.Caption + FileExtn);
@@ -1373,7 +1438,7 @@ begin
          //do we have a client open.. if so automatically put in list
          else if Assigned(MyClient) then
          begin
-             With lvAttach do begin
+             With lvClientFiles do begin
                 NewItem := items.Add;
                 NewItem.caption := MyClient.clFields.clCode;
                 NewItem.SubItems.Add( DataDir + NewItem.Caption + FileExtn);
@@ -1396,12 +1461,14 @@ begin
           if (CodeList.Count > 1) then
             txtSubject.Text := Format('BankLink Books Files for %s', [CodeList.CommaText])
           else
-            txtSubject.Text := Format('BankLink Books File for %s', [CodeList.CommaText])
-        end else
-        if Assigned( MyClient) then
-          txtSubject.Text := Format('BankLink Books File for %s',[MyClient.clFields.clCode])
-        else
+            txtSubject.Text := Format('BankLink Books File for %s', [CodeList.CommaText]);
+        end else if Assigned( MyClient) then
+          txtSubject.Text := Format('BankLink Books File for %s',[MyClient.clFields.clCode]);
 
+        //Default message
+        if (fBodyText.Text = '') and (CodesToSend <> '') then
+          BodyText := Format('The following Client File(s) are now available: %s', [CodesToSend]);
+        
       end { with SendDlg };
 
       Result := SendDlg.Execute;
@@ -1422,7 +1489,8 @@ begin
       With SendDlg do begin
          EditMode := False;
          FShowPracDetails := ShowPracDetails;
-         btnAttachClient.Visible := False;
+//         btnAttachClient.Visible := False;
+         HideClientFiles;
          chkCheckout.Checked := False;
          chkCheckout.Visible := False;
          BKHelpSetUp(SendDlg, BKH_Send_to_facility);
@@ -1432,18 +1500,21 @@ begin
          BodyText := Body;
          if Attachment <> '' then
          begin
-           With lvAttach do
-           begin
-             //causes the icon to be retrieved
-             SHGetFileInfo(PChar(Attachment), 0, aSHFi, sizeOf(aSHFi), SHGFI_ICON );
-             Image1.Picture.Icon.Handle := aSHFi.hIcon;
-             ImageList1.AddIcon(Image1.Picture.Icon);
-             NewItem            := lvAttach.Items.Add;
+           //causes the icon to be retrieved
+           SHGetFileInfo(PChar(Attachment), 0, aSHFi, sizeOf(aSHFi), SHGFI_ICON );
+           Image1.Picture.Icon.Handle := aSHFi.hIcon;
+           ImageList1.AddIcon(Image1.Picture.Icon);
+
+           if (ExtractFileExt(Attachment) = FILEEXTN) then
+             NewItem := lvClientFiles.Items.Add
+           else
+             NewItem := lvAttach.Items.Add;
+           if Assigned(NewItem) then begin
              NewItem.Caption    := ExtractFilename( Attachment);
              NewItem.SubItems.Add( Attachment);
              NewItem.SubItems.Add( ExtractFileExt( Attachment));
              NewItem.ImageIndex := ImageList1.Count-1;
-           end { with lvAttach }
+           end;
          end;
       end { with SendDlg };
 
@@ -1464,37 +1535,42 @@ Var
    I: Integer;
 
    procedure AttachFile(filename: string);
-   begin with SendDlg, lvAttach do begin
-      //causes the icon to be retrieved
-      SHGetFileInfo(PChar(FileName), 0, aSHFi, sizeOf(aSHFi), SHGFI_ICON );
-      Image1.Picture.Icon.Handle := aSHFi.hIcon;
-      ImageList1.AddIcon(Image1.Picture.Icon);
-      NewItem            := lvAttach.Items.Add;
-      NewItem.Caption    := ExtractFilename(FileName);
-      //OK for here... But mail need s afull path....
-      if ExtractFilepath(FileName) = '' then
+   begin
+     with SendDlg do begin
+       //causes the icon to be retrieved
+       SHGetFileInfo(PChar(FileName), 0, aSHFi, sizeOf(aSHFi), SHGFI_ICON );
+       Image1.Picture.Icon.Handle := aSHFi.hIcon;
+       ImageList1.AddIcon(Image1.Picture.Icon);
+       NewItem            := lvAttach.Items.Add;
+       NewItem.Caption    := ExtractFilename(FileName);
+       //OK for here... But mail need s afull path....
+       if ExtractFilepath(FileName) = '' then
          NewItem.SubItems.Add( IncludeTrailingbackslash(GetCurrentDir) + FileName)
-      else
+       else
          NewItem.SubItems.Add(FileName);
-      NewItem.SubItems.Add(ExtractFileExt(FileName));
-      NewItem.ImageIndex := ImageList1.Count-1;
-   end; end; { with lvAttach }
+       NewItem.SubItems.Add(ExtractFileExt(FileName));
+       NewItem.ImageIndex := ImageList1.Count-1;
+     end;
+   end; { with lvAttach }
 
    procedure AttachBK5File(filename: string);
-   begin with SendDlg, lvAttach do begin
-      NewItem := lvAttach.items.Add;
-      NewItem.caption := filename;
-      NewItem.SubItems.Add( DataDir + ExtractFilename(FileName) + FileExtn); //full filename
-      NewItem.SubItems.Add( FileExtn);
-      NewItem.ImageIndex := FILES_NORMAL_BMP;
-   end; end; { with lvAttach }
+   begin
+     with SendDlg do begin
+       NewItem := lvClientFiles.items.Add;
+       NewItem.caption := filename;
+       NewItem.SubItems.Add( DataDir + ExtractFilename(FileName) + FileExtn); //full filename
+       NewItem.SubItems.Add( FileExtn);
+       NewItem.ImageIndex := FILES_NORMAL_BMP;
+     end;
+   end;
 
 begin
    SendDlg := TfrmMail.Create(Application.MainForm);
    Try
       With SendDlg do begin
          EditMode := False;
-         btnAttachClient.Visible := False;
+//         btnAttachClient.Visible := False;
+         HideClientFiles;
          AllowCheckOutToSupport := CheckOut;
          chkCheckout.Checked := CheckOut;
          chkCheckout.Visible := True;
@@ -1526,28 +1602,43 @@ Var
    I: Integer;
 
    procedure AttachFile(filename: string);
-   begin with SendDlg, lvAttach do begin
-      //causes the icon to be retrieved
-      SHGetFileInfo(PChar(FileName), 0, aSHFi, sizeOf(aSHFi), SHGFI_ICON );
-      Image1.Picture.Icon.Handle := aSHFi.hIcon;
-      ImageList1.AddIcon(Image1.Picture.Icon);
-      NewItem            := lvAttach.Items.Add;
-      NewItem.Caption    := ExtractFilename(FileName);
-      //OK for here... But mail need s afull path....
-      if ExtractFilepath(FileName) = '' then
-         NewItem.SubItems.Add( IncludeTrailingbackslash(GetCurrentDir) + FileName)
-      else
-         NewItem.SubItems.Add(FileName);
-      NewItem.SubItems.Add(ExtractFileExt(FileName));
-      NewItem.ImageIndex := ImageList1.Count-1;
-   end; end; { with lvAttach }
+   var
+     ExtendedFileName: string;
+   begin
+     with SendDlg do begin
+       //Get filename with full path
+       ExtendedFileName := FileName;
+       if ExtractFilepath(ExtendedFileName) = '' then
+         ExtendedFileName := IncludeTrailingbackslash(GetCurrentDir) + FileName;
+
+       //Causes the icon to be retrieved
+       SHGetFileInfo(PChar(FileName), 0, aSHFi, sizeOf(aSHFi), SHGFI_ICON);
+       Image1.Picture.Icon.Handle := aSHFi.hIcon;
+       ImageList1.AddIcon(Image1.Picture.Icon);
+
+       if ExtractFileExt(FileName) = FILEEXTN then begin
+         NewItem            := lvClientFiles.Items.Add;
+         NewItem.SubItems.Add(ExtendedFileName);
+         NewItem.Caption    := ExtractFilename(FileName);
+         NewItem.SubItems.Add(ExtractFileExt(FileName));
+         NewItem.ImageIndex := ImageList1.Count-1;
+       end else begin
+         NewItem            := lvAttach.Items.Add;
+         NewItem.SubItems.Add(ExtendedFileName);
+         NewItem.Caption    := ExtractFilename(FileName);
+         NewItem.SubItems.Add(ExtractFileExt(FileName));
+         NewItem.ImageIndex := ImageList1.Count-1;
+       end;
+     end;
+   end;
 
 begin
    SendDlg := TfrmMail.Create(Application.MainForm);
    Try
       With SendDlg do begin
          EditMode := False;
-         btnAttachClient.Visible := False;
+//         btnAttachClient.Visible := False;
+         HideClientFiles;
          chkCheckout.Checked := False;
          chkCheckout.Visible := False;
          BKHelpSetUp(SendDlg, BKH_Send_to_facility);
@@ -1630,16 +1721,20 @@ begin
         actClientFile.Visible := false;
         chkCheckout.Visible := false;
         ClientFileExpected := false;
+        HideClientFiles;
       end;
 
       if Filename <> '' then begin
-        with lvAttach do begin
-          NewItem            := items.Add;
+        if (ExtractFileExt(FileName) = FILEEXTN) and CanSelectClient then
+          NewItem := lvClientFiles.Items.Add
+        else
+          NewItem := lvAttach.Items.Add;
+        if Assigned(NewItem) then begin
           NewItem.caption    := ExtractFilename( Filename);
           NewItem.SubItems.Add( Filename);
           NewItem.SubItems.Add( ExtractFileExt( Filename));
           NewItem.ImageIndex := 0; //FILES_NORMAL_BMP;
-        end { with lvAttach }
+        end;
       end;
     end { with SendDlg };
 
@@ -2051,12 +2146,17 @@ end;
 
 procedure TfrmMail.pmiDeleteClick(Sender: TObject);
 begin
-  DoDeleteSelected;
+  DoDeleteSelected(lvAttach);
 end;
 
 procedure TfrmMail.popAttachmentsPopup(Sender: TObject);
 begin
   pmiDelete.Enabled := lvAttach.SelCount > 0;
+end;
+
+procedure TfrmMail.popClientFilesPopup(Sender: TObject);
+begin
+  pmiDelete.Enabled := lvClientFiles.SelCount > 0;
 end;
 
 procedure TfrmMail.lvAttachDblClick(Sender: TObject);
@@ -2112,9 +2212,6 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.FormShow(Sender: TObject);
-
-
-
 begin
   SetupUI;
   Editor.FullPageMode := False;
@@ -2128,6 +2225,21 @@ begin
        txtRecipient.SetFocus;
   end;
   Editor.LoadGlobalMergeMenues;
+end;
+
+procedure TfrmMail.HideClientFiles;
+begin
+  //Hide client files components
+  lvClientFiles.Visible := False;
+  lblClientFiles.Visible := False;
+  btnAttachClient.Visible := False;
+  //Move and resize attachments components
+  lvAttach.Height := lvAttach.Height + (lblClientFiles.Height +
+                     //plus gap
+                     (lvAttach.Top - (lblClientFiles.Top + lblClientFiles.Height)));
+  lvAttach.Top := lvClientFiles.Top;
+  lblAttachments.Top := lblClientFiles.Top;
+  btnAttach.Top := btnAttachClient.Top;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

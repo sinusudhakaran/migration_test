@@ -100,6 +100,8 @@ CONST
    tkcfWebNotes_Email_Notifications     = 133 ;
    tkcfISO_Codes                        = 134 ;
    tkcfAudit_Record_ID                  = 135 ;
+   tkcfSend_Method                      = 136 ;
+   tkcfClient_File_GUID                 = 137 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -182,6 +184,8 @@ Begin
       F.WriteIntegerValue( tkcfWebNotes_Email_Notifications , cfWebNotes_Email_Notifications );
       For i := 1 to 99 do F.WriteBStringValue( tkcfISO_Codes , i, cfISO_Codes[ i ] );
       F.WriteIntegerValue( tkcfAudit_Record_ID , cfAudit_Record_ID );
+      F.WriteByteValue( tkcfSend_Method , cfSend_Method );
+      F.WriteAnsiStringValue( tkcfClient_File_GUID , cfClient_File_GUID );
       F.WriteToken( tkEnd_Client_File );
    end;
 end; { of Write_Client_File_Rec }
@@ -291,6 +295,8 @@ Begin
                cfISO_Codes[ I ] := S;
             end;
          tkcfAudit_Record_ID                  : cfAudit_Record_ID := F.ReadIntegerValue;
+         tkcfSend_Method                      : cfSend_Method := F.ReadByteValue;
+         tkcfClient_File_GUID                 : cfClient_File_GUID := F.ReadAnsiStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -327,6 +333,7 @@ Begin
       { Free any dynamically allocated memory }
       cfBank_Accounts := '' ;
       cfAccounting_System := '' ;
+      cfClient_File_GUID := '' ;
    end;
 end;
 
@@ -339,7 +346,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkcfFile_Code to tkcfAudit_Record_ID do begin
+  for i := tkcfFile_Code to tkcfClient_File_GUID do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -637,6 +644,16 @@ begin
   if (P1.cfAudit_Record_ID <> P2.cfAudit_Record_ID) then begin
     P3.cfAudit_Record_ID := P1.cfAudit_Record_ID;
     ChangedFields[i] := tkcfAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.cfSend_Method <> P2.cfSend_Method) then begin
+    P3.cfSend_Method := P1.cfSend_Method;
+    ChangedFields[i] := tkcfSend_Method;
+    Inc(i);
+  end;
+  if (P1.cfClient_File_GUID <> P2.cfClient_File_GUID) then begin
+    P3.cfClient_File_GUID := P1.cfClient_File_GUID;
+    ChangedFields[i] := tkcfClient_File_GUID;
     Inc(i);
   end;
 

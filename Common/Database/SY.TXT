@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 125;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 126;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -109,7 +109,8 @@ $|                        Add WebNotes available status
 $|    5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
 $|    5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
 $|                      124   Added System Memorisation List for storing Master Memorisations
-$|                      125   Added Provisional Entries Log 
+$|                      125   Added Provisional Entries Log
+$|    5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client rec
 $|*)
 
 N|Practice Details|fd|10
@@ -417,6 +418,8 @@ F|WebNotesAvailable|BB|36
 F|WebNotes Email Notifications|L
 F|ISO Codes|BS|99|3
 F|Audit Record ID|L
+F|Send Method|B
+F|Client File GUID|AS
 E
 
 N|File Access Mapping|ac|100

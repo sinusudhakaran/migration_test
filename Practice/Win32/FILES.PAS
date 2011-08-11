@@ -8,35 +8,39 @@ uses
   Dialogs, Classes, Windows, Sysutils,
   LogUtil, clObj32, ChkProgressFrm, AuditMgr;
 
-{$IFNDEF TESTLOCKING}
-procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
-function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
-procedure SaveClient;
-function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
-procedure CheckOut( CodesToCheckOut : string = '');
-function CheckoutClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
-  IsScheduledReport: Boolean = False; Silent: Boolean = False;AllowMultiplePwdFiles: Boolean = False) : Boolean;
-function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress; IsScheduledReports: Boolean = False) : boolean;
-function CheckInRemoteClient( filename : string) : boolean;
+type
+  EUploadFailed = class(Exception);
 
-procedure Checkin( CodesToCheckIn : string = '');
-procedure SaveAs;
-procedure OpenFromMRU(Sender: TObject);
-{$ENDIF}
+  {$IFNDEF TESTLOCKING}
+  procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
+  function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
+  procedure SaveClient;
+  function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
+  procedure CheckOut(CodesToCheckOut : string = ''; ASendMethod: byte = 0);
+  function CheckoutClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
+                          IsScheduledReport: Boolean = False; Silent: Boolean = False;
+                          AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0) : Boolean;
+  function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress; IsScheduledReports: Boolean = False) : boolean;
+  function CheckInRemoteClient( filename : string) : boolean;
 
-{operations on a specified client}
-procedure OpenAClient(OpenCode : string;
-                      var Client : TClientObj;
-                      Silent : boolean;
-                      AllowOpenReadOnly : boolean = false;
-                      PasswordVerified: Boolean = false;
-                      IsDDE: Boolean = False);
-procedure CloseAClient(var Client : TClientObj; AllowReadOnlyToBeSaved : boolean = false);
-procedure SaveAClient(Client :TClientObj); // AJ: Is this ever used (Not in BK5)
-procedure AbandonAClient(var Client : TClientObj);
-function DoClientSave(Closing: Boolean; Client: TClientObj; const Silent: Boolean = False): Boolean;
-function ClientFileExists(ClientCode : string): boolean;
-procedure OpenAClientForRead(OpenCode :string; var Client : TClientObj);
+  procedure Checkin( CodesToCheckIn : string = '');
+  procedure SaveAs;
+  procedure OpenFromMRU(Sender: TObject);
+  {$ENDIF}
+
+  //Operations on a specified client
+  procedure OpenAClient(OpenCode : string;
+                        var Client : TClientObj;
+                        Silent : boolean;
+                        AllowOpenReadOnly : boolean = false;
+                        PasswordVerified: Boolean = false;
+                        IsDDE: Boolean = False);
+  procedure CloseAClient(var Client : TClientObj; AllowReadOnlyToBeSaved : boolean = false);
+  procedure SaveAClient(Client :TClientObj); // AJ: Is this ever used (Not in BK5)
+  procedure AbandonAClient(var Client : TClientObj);
+  function DoClientSave(Closing: Boolean; Client: TClientObj; const Silent: Boolean = False): Boolean;
+  function ClientFileExists(ClientCode : string): boolean;
+  procedure OpenAClientForRead(OpenCode :string; var Client : TClientObj);
 
 
 //******************************************************************************
@@ -1307,328 +1311,422 @@ begin
   OpenClient(S);
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function CheckoutClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
-  IsScheduledReport: Boolean = False; Silent: Boolean = False; AllowMultiplePwdFiles: Boolean = False) : Boolean;
-{code for checking out and individual client}
+function UploadToBanklinkOnline(AClientCode, AClientFilename: string;
+  AProgressFrm: TfrmChkProgress): boolean;
 const
-   ThisMethodName = 'CheckoutClient';
+  ThisMethodName = 'UploadToBanklinkOnline';
 var
-   TempClient     : TClientObj;
-   TempClientIsOffsite : boolean;
-   CFRec          : pClient_File_Rec;
-   LocalFileName  : string;
-   RemoteFileName : string;
-   BackupFileName : string;
-   Msg            : String;
+  i: integer;
+  ClientFileRec: pClient_File_Rec;
 begin
-   Result := True;
+  Result := False;
 
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   TempClient := nil;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   if not IsScheduledReport then
-     ProgressFrm.mProgress.Lines.Add( 'Checking out client ' + Code);
+  //AdminSystem should always be assigned here
+  if Assigned(AdminSystem) then begin
+    ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(AClientCode);
+    if Assigned(ClientFileRec) then begin
+      //User client details to get status from web service
+    end;
+  end;
 
-   LocalFileName  := DATADIR + CODE + FILEEXTN;
-   RemoteFileName := Path + CODE + FILEEXTN;
-   BackupFileName := DATADIR + CODE + BACKUPEXTN;
+  raise EUploadFailed.CreateFmt('not implemented yet',
+                                [AClientFilename]);
 
-   if Assigned( AdminSystem) then begin
-      TempClient   := nil;
-
-      //check if this is the code for the current client
-      if Assigned(MyClient)
-      and (MyClient.clFields.clCode = Code )then begin
-         //make sure this is not a read only file
-         if MyClient.clFields.clFile_Read_Only then
-         begin
-           Msg := 'Cannot check out a Read-Only file [' + Code + ']';
-           LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' : '+Msg);
-           if not IsScheduledReport then
-             ProgressFrm.mProgress.Lines.Add('Skipped '+Code+' - '+Msg);
-           Result := False;
-           exit;
-         end;
-
-         //file is not read only, proceed using the currently selected client
-         if not CloseMDIChildren(True) then
-         begin
-           //could not close all the child windows
-           Result := False;
-           Exit;
-         end;
-         if IsScheduledReport then
-          TempClient := MyClient
-         else
-          OpenAClient(Code, TempClient,silent,False,AllowMultiplePwdFiles);
-         if not IsScheduledReport then
-           MyClient   := nil;
-         UpdateName;
-         UpdateMenus;
-         RefreshHomepage([HPR_Client]);
-      end
-      else
-         OpenAClient(Code, TempClient,silent,False,AllowMultiplePwdFiles);
-
-      if not Assigned(TempClient) then begin
-         Msg := Format('Cannot Open Client %s',[Code]);
-         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' : '+Msg);
-         if not IsScheduledReport then
-           ProgressFrm.mProgress.Lines.Add('Skipped '+Code+' - '+Msg);
-         exit;
-      end;
-
-      try
-         StatusSilent := false;   //what is this doing? (Matt&Andy)
-         SyncClientToAdmin( TempClient, IsScheduledReport, True, Silent );
-         SyncMasterMemorised( TempClient );
-         EmbedCustomLogo( TempClient);
-         TempClientIsOffsite := ( TempClient.clFields.clDownload_From <> dlAdminSystem );
-         StatusSilent := true;
-         if not IsScheduledReport then
-           CloseAClient( TempClient )
-         else
-         begin
-          TempClient.clWas_Code := TempClient.clFields.clCode;
-          DoClientSave(false, Tempclient);
-         end;
-
-         //Copy file
-         Try
-            FCopy.CopyFile( LocalFileName, RemoteFileName );
-         except
-           on E : EFCopyFailed do begin
-              Msg := Format( 'File Copy Failed %s.', [ E.Message ] );
-              LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' : '+Msg);
-              if not IsScheduledReport then
-                ProgressFrm.mProgress.Lines.Add('Skipped '+Code+' - '+Msg);
-              exit;
-           end;
-         end;
-         if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Copied to %s',[ThisMethodName,RemoteFileName]));
-
-         //check that crc is valid of new file
-         try
-            CrcFileUtils.CheckEmbeddedCRC( RemoteFileName);
-         except
-            on E : EInOutError do begin
-               Msg := '** CRC Check failed for '+CODE+'.  Error: ' + E.Message;
-               LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-               if not IsScheduledReport then
-                 ProgressFrm.mProgress.Lines.Add(Msg);
-               exit;
-            end;
-
-            on E : ECRCCheckFailed do begin
-               Msg := '** CRC Check failed for '+CODE;
-               LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg +'  Error: ' + E.Message);
-               if not IsScheduledReport then
-                 ProgressFrm.mProgress.Lines.Add(Msg);
-               exit;
-            end
-         end;
-
-         if LoadAdminSystem(true, ThisMethodName ) then begin
-            CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
-            If not Assigned( CFRec ) then begin
-               Msg := Format( 'Could not find CF Record for %s',[Code]);
-               LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
-               Raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-            end;
-
-            CFRec.cfCurrent_User := CurrUser.LRN;
-            if TempClientIsOffsite then
-               CFRec.cfFile_Status := fsOffsite
-            else
-               CFRec.cfFile_Status := fsCheckedOut;
-
-            if not IsScheduledReport then //Scheduled report tasks will be added after email has been successfully sent
-              AddAutomaticToDoItem( CFRec, ttyCheckOut, Format(ToDoMsg_Checkout, [bkDate2Str(CurrentDate)]));
-
-            //*** Flag Audit ***
-            SystemAuditMgr.FlagAudit(atSystemClientFiles);
-
-            SaveAdminSystem;
-         end;
-      finally
-         if not IsScheduledReport then
-         begin
-           TempClient.Free;
-           TempClient := nil;
-           ProgressFrm.Refresh;
-         end;
-      end;
-   end
-   else begin // never comes in here for SR - admin system must exist
-      //admin system does not exists so is an off-site client
-      if Assigned(MyClient) and (MyClient.clFields.clCode = Code )then begin
-         if MyClient.clFields.clDisable_Offsite_Check_Out then
-         begin
-           Msg := 'Cannot check out client file '+CODE + ' because it is marked as Check Out Disabled';
-           LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-           ProgressFrm.mProgress.Lines.Add(Msg);
-           exit;
-         end
-         else if not CloseClient then
-         begin
-           Msg := 'Cannot close client file '+CODE;
-           LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-           ProgressFrm.mProgress.Lines.Add(Msg);
-           exit;
-         end;
-      end
-      else // is check out disabled?
-      begin
-        OpenAClient( Code, TempClient, true, false, true);
-        if Assigned( TempClient) then
-        begin
-          if TempClient.clFields.clDisable_Offsite_Check_Out then
-          begin
-            CloseAClient(TempClient);
-            Msg := 'Cannot check out client file '+CODE + ' because it is marked as Check Out Disabled';
-            LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-            ProgressFrm.mProgress.Lines.Add(Msg);
-            exit;
-          end;
-          CloseAClient(TempClient);
-        end;
-      end;
-
-      //Take a backup copy
-      if BKFileExists( BackupFileName) then
-         DeleteFile(BackupFileName);
-      FCOPY.CopyFile( LocalFileName, BackupFileName);
-
-      if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,Format('%s : Checkout Copy to %s',[ThisMethodName, RemoteFileName]));
-
-      //Copy file
-      Try
-         FCopy.CopyFile( LocalFileName, RemoteFileName );
-      Except
-         on E : EFCopyFailed do begin
-            Msg := Format( 'File Copy Failed %s.', [ E.Message ] );
-            LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' : '+Msg);
-            ProgressFrm.mProgress.Lines.Add('Skipped '+Code+': '+Msg);
-            exit;
-         end;
-      end;
-
-      //check that crc is valid
-      try
-         CrcFileUtils.CheckEmbeddedCRC( RemoteFileName);
-      except
-         on E : EInOutError do begin
-            Msg := '** CRC Check failed for '+CODE+'.  Error: ' + E.Message;
-            LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-            ProgressFrm.mProgress.Lines.Add(Msg);
-            exit;
-         end;
-
-         on E : ECRCCheckFailed do begin
-            Msg := '** CRC Check failed for '+CODE;
-            LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg +'  Error: ' + E.Message);
-            ProgressFrm.mProgress.Lines.Add(Msg);
-            exit;
-         end
-      end;
-
-      //backup exists, remote file has been crc checked make the local file as
-      //read only
-
-      OpenAClient( Code, TempClient, true, false, true);
-      if Assigned( TempClient) then
-      begin
-        if not TempClient.clFields.clFile_Read_Only then
-        begin
-          //Decrement the file save count so it matches the checked-out file
-          Dec(TempClient.clFields.clFile_Save_Count);  
-          TempClient.clFields.clFile_Read_Only := true;
-          //force to save so that read only flag is saved
-          CloseAClient( TempClient, True);
-        end
-        else
-          CloseAClient( TempClient);
-      end
-      else
-        LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' Could not mark ' + Code + ' as read-only');
-   end;
-
-   Msg := Format('Check Out %s to %s succeeded',[Code,RemoteFileName]);
-   LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' : '+Msg);
-
-   if not IsScheduledReport then
-   begin
-     ProgressFrm.mProgress.Lines.Add(Msg);
-     ProgressFrm.BringToFront;
-     ProgressFrm.SetFocus;
-   end;
-
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure CheckOut( CodesToCheckOut : string = '');
-const
-   ThisMethodName = 'Checkout';
-var
-  CodeList    : TStringList;
-  i           : integer;
-  ProgressFrm : TfrmChkProgress;
-  Failures    : Integer;
-begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   CodeList := TStringList.Create;
-   ProgressFrm := TfrmChkProgress.Create(Application.MainForm);
-   try
-      StatusSilent := true;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function CheckoutPracticeClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
+  IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
+const
+  ThisMethodName = 'CheckoutPracticeClient';
+var
+  TempClient: TClientObj;
+  TempClientIsOffsite: boolean;
+  CFRec: pClient_File_Rec;
+  LocalFileName: string;
+  RemoteFileName: string;
+  Msg: string;
+begin
+  Result := True;
+  TempClient := nil;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  LocalFileName  := DATADIR + CODE + FILEEXTN;
+  RemoteFileName := Path + CODE + FILEEXTN;
+
+  //check if this is the code for the current client
+  if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
+    //make sure this is not a read only file
+    if MyClient.clFields.clFile_Read_Only then begin
+      Msg := 'Cannot check out a Read-Only file [' + Code + ']';
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+      if not IsScheduledReport then
+        ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
+      Result := False;
+      Exit;
+    end;
+
+    //file is not read only, proceed using the currently selected client
+    if not CloseMDIChildren(True) then begin
+      //could not close all the child windows
+      Result := False;
+      Exit;
+    end;
+    if IsScheduledReport then
+      TempClient := MyClient
+    else
+      OpenAClient(Code, TempClient,silent,False,AllowMultiplePwdFiles);
+    if not IsScheduledReport then
+      MyClient := nil;
+    UpdateName;
+    UpdateMenus;
+    RefreshHomepage([HPR_Client]);
+  end else
+    OpenAClient(Code, TempClient, Silent, False, AllowMultiplePwdFiles);
+
+  if not Assigned(TempClient) then begin
+    Msg := Format('Cannot Open Client %s',[Code]);
+    LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+    if not IsScheduledReport then
+      ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
+    Exit;
+  end;
+
+  try
+    StatusSilent := false;   //what is this doing? (Matt&Andy)
+    try
+      SyncClientToAdmin( TempClient, IsScheduledReport, True, Silent );
+      SyncMasterMemorised( TempClient );
+      EmbedCustomLogo( TempClient);
+      TempClientIsOffsite := (TempClient.clFields.clDownload_From <> dlAdminSystem);
+    finally
+      StatusSilent := true;
+    end;
+
+    //Close client
+    if not IsScheduledReport then
+      CloseAClient( TempClient )
+    else begin
+      TempClient.clWas_Code := TempClient.clFields.clCode;
+      DoClientSave(false, Tempclient);
+    end;
+
+    //Copy file
+    try
+      case ASendMethod of
+        smNone,
+        smStandardFileTransfer: FCopy.CopyFile(LocalFileName, RemoteFileName);
+        smBankLinkOnline      : UploadToBanklinkOnline(Code, LocalFileName, ProgressFrm);
+      end;
+    except
+      on E : EFCopyFailed do begin
+        Msg := Format( 'File Copy Failed %s.', [ E.Message ] );
+        LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' : '+Msg);
+        if not IsScheduledReport then
+          ProgressFrm.mProgress.Lines.Add('Skipped '+Code+' - '+Msg);
+        Exit;
+      end;
+      on E : EUploadFailed do begin
+        Msg := Format( 'File upload to BankLink Online Failed - %s.', [E.Message]);
+        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+        if not IsScheduledReport then
+          ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
+//        Exit;
+      end;
+    end;
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Copied to %s',
+                                               [ThisMethodName, RemoteFileName]));
+
+    //check that crc is valid of new file
+    try
+      CrcFileUtils.CheckEmbeddedCRC( RemoteFileName);
+    except
+      on E : EInOutError do begin
+        Msg := '** CRC Check failed for '+CODE+'.  Error: ' + E.Message;
+        LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
+        if not IsScheduledReport then
+          ProgressFrm.mProgress.Lines.Add(Msg);
+        Exit;
+      end;
+
+      on E : ECRCCheckFailed do begin
+        Msg := '** CRC Check failed for '+CODE;
+        LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg +'  Error: ' + E.Message);
+        if not IsScheduledReport then
+          ProgressFrm.mProgress.Lines.Add(Msg);
+        Exit;
+      end
+    end;
+
+    if LoadAdminSystem(true, ThisMethodName ) then begin
+      CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
+      if not Assigned( CFRec ) then begin
+        Msg := Format( 'Could not find CF Record for %s',[Code]);
+        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
+        raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
+      end;
+
+      CFRec.cfCurrent_User := CurrUser.LRN;
+      if TempClientIsOffsite then
+        CFRec.cfFile_Status := fsOffsite
+      else
+        CFRec.cfFile_Status := fsCheckedOut;
+
+      //Update send method
+      if ASendMethod <> smNone then
+        CFRec.cfSend_Method := ASendMethod;
+
+      //Scheduled report tasks will be added after email has been successfully sent
+      if not IsScheduledReport then
+        AddAutomaticToDoItem(CFRec, ttyCheckOut, Format(ToDoMsg_Checkout, [bkDate2Str(CurrentDate)]));
+
+      //*** Flag Audit ***
+      SystemAuditMgr.FlagAudit(atSystemClientFiles);
+
+      SaveAdminSystem;
+    end;
+  finally
+    if not IsScheduledReport then begin
+      TempClient.Free;
+      TempClient := nil;
+      ProgressFrm.Refresh;
+    end;
+  end;
+
+  case ASendMethod of
+    smNone,
+    smStandardFileTransfer: Msg := Format('Check Out %s to %s succeeded',[Code, RemoteFileName]);
+    smBankLinkOnline      : Msg := Format('Check Out %s to BankLink Online ''%s\%s'' succeeded',
+                                          [Code, AdminSystem.fdFields.fdBankLink_Code, Code]);
+  end;
+  LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+  if not IsScheduledReport then
+    ProgressFrm.mProgress.Lines.Add(Msg);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function CheckoutBooksClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
+  IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
+const
+  ThisMethodName = 'CheckoutBooksClient';
+var
+  TempClient: TClientObj;
+  LocalFileName: string;
+  RemoteFileName: string;
+  BackupFileName: string;
+  Msg: string;
+begin
+  //Never comes in here for scheduled reports - admin system must exist
+  //admin system does not exists so is an off-site client
+  Result := True;
+  TempClient := nil;
+
+  LocalFileName  := DATADIR + CODE + FILEEXTN;
+  RemoteFileName := Path + CODE + FILEEXTN;
+  BackupFileName := DATADIR + CODE + BACKUPEXTN;
+
+  if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
+    if MyClient.clFields.clDisable_Offsite_Check_Out then begin
+      Msg := 'Cannot check out client file ' + CODE +
+             ' because it is marked as Check Out Disabled';
+      LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
+      ProgressFrm.mProgress.Lines.Add(Msg);
+      Exit;
+    end else if not CloseClient then begin
+      Msg := 'Cannot close client file '+CODE;
+      LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
+      ProgressFrm.mProgress.Lines.Add(Msg);
+      Exit;
+    end;
+  end else begin //is check out disabled?
+    OpenAClient( Code, TempClient, true, false, true);
+    if Assigned( TempClient) then begin
+      if TempClient.clFields.clDisable_Offsite_Check_Out then begin
+        CloseAClient(TempClient);
+        Msg := 'Cannot check out client file ' + CODE +
+               ' because it is marked as Check Out Disabled';
+        LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
+        ProgressFrm.mProgress.Lines.Add(Msg);
+        Exit;
+      end;
+      CloseAClient(TempClient);
+    end;
+  end;
+
+  //Take a backup copy
+  if BKFileExists(BackupFileName) then
+    DeleteFile(BackupFileName);
+  FCOPY.CopyFile(LocalFileName, BackupFileName);
+
+  if DebugMe then begin
+    Msg := Format('%s : Checkout Copy to %s', [ThisMethodName, RemoteFileName]);
+    LogUtil.LogMsg(lmDebug, UnitName, Msg);
+  end;
+
+  //Copy file
+  try
+    FCopy.CopyFile(LocalFileName, RemoteFileName);
+  except
+    on E : EFCopyFailed do begin
+      Msg := Format( 'File Copy Failed %s.', [E.Message]);
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+      ProgressFrm.mProgress.Lines.Add('Skipped '+ Code + ': ' + Msg);
+      Exit;
+    end;
+  end;
+
+  //check that crc is valid
+  try
+    CrcFileUtils.CheckEmbeddedCRC(RemoteFileName);
+  except
+    on E : EInOutError do begin
+      Msg := '** CRC Check failed for ' + CODE + '.  Error: ' + E.Message;
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' ' + Msg);
+      ProgressFrm.mProgress.Lines.Add(Msg);
+      Exit;
+    end;
+
+    on E : ECRCCheckFailed do begin
+      Msg := '** CRC Check failed for ' + CODE;
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' ' + Msg +
+                     '  Error: ' + E.Message);
+      ProgressFrm.mProgress.Lines.Add(Msg);
+      Exit;
+    end
+  end;
+
+  //Backup exists, remote file has been crc checked
+  OpenAClient(Code, TempClient, true, false, true);
+  if Assigned(TempClient) then begin
+    if not TempClient.clFields.clFile_Read_Only then begin
+      //Decrement the file save count so it matches the checked-out file
+      Dec(TempClient.clFields.clFile_Save_Count);
+      //Mark the local file as read only
+      TempClient.clFields.clFile_Read_Only := true;
+      //Force to save so that read only flag is saved
+      CloseAClient(TempClient, True);
+    end else
+      CloseAClient( TempClient);
+  end else
+    LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' Could not mark ' +
+                                     Code + ' as read-only');
+
+  Msg := Format('Check Out %s to %s succeeded',[Code, RemoteFileName]);
+  LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+  if not IsScheduledReport then
+    ProgressFrm.mProgress.Lines.Add(Msg);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//Code for checking out and individual client
+function CheckoutClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
+  IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
+const
+  ThisMethodName = 'CheckoutClient';
+begin
+  Result := True;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  if not IsScheduledReport then
+    ProgressFrm.mProgress.Lines.Add( 'Checking out client ' + Code);
+
+  if Assigned( AdminSystem) then
+    //Practice Client File
+    CheckoutPracticeClient(Code, Path, ProgressFrm, IsScheduledReport, Silent,
+                           AllowMultiplePwdFiles, ASendMethod)
+  else
+    //Books Client File
+    CheckoutBooksClient(Code, Path, ProgressFrm, IsScheduledReport, Silent,
+                        AllowMultiplePwdFiles, ASendMethod);
+
+  if not IsScheduledReport then begin
+    ProgressFrm.BringToFront;
+    ProgressFrm.SetFocus;
+  end;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure CheckOut(CodesToCheckOut : string = ''; ASendMethod: byte = 0);
+const
+  ThisMethodName = 'Checkout';
+var
+  i: integer;
+  CodeList: TStringList;
+  SendMethod: byte;
+  ProgressFrm: TfrmChkProgress;
+  Failures: Integer;
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  //Needs to be a variable so it can be set in CheckInOutFrm
+  SendMethod := ASendMethod;
+
+  CodeList := TStringList.Create;
+  try
+    StatusSilent := true;
+    try
       CodeList.Delimiter := ClientCodeDelimiter;
       CodeList.StrictDelimiter := true;
       if CodesToCheckOut <> '' then
         CodeList.DelimitedText := CodesToCheckOut
-      else
-      begin
-        CodeList.DelimitedText := SelectCodesToCheckout('Select Client(s) to Check Out');
+      else begin
+        CodeList.DelimitedText := SelectCodesToCheckout('Select Client(s) to Check Out', ASendMethod);
         if CodeList.DelimitedText = '' then
-          exit;
+          Exit;
       end;
 
-      with ProgressFrm do begin
-        mProgress.Lines.Add('');
-        mProgress.Lines.Add('Checking-Out files');
-        mProgress.Lines.Add('');
-        Caption := 'Check Out Progress';
-        btnOK.Enabled := false;
-        Show;
-        Refresh;
-      end;
-      //now have a list of client to checkout and a valid dir
-      //cycle thru each client, updating transactions without asking
-      Failures := 0;
+      ProgressFrm := TfrmChkProgress.Create(Application.MainForm);
+      try
+        ProgressFrm.mProgress.Lines.Add('');
+        ProgressFrm.mProgress.Lines.Add('Checking-Out files');
+        ProgressFrm.mProgress.Lines.Add('');
+        ProgressFrm.Caption := 'Check Out Progress';
+        ProgressFrm.btnOK.Enabled := false;
+        ProgressFrm.Show;
+        ProgressFrm.Refresh;
+        //Cycle thru each client, updating transactions without asking
+        Failures := 0;
 
-      for i := 0 to CodeList.Count -1 do begin
-        if (not CheckoutClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, False, CodeList.Count > 1, True)) then
-          Inc(Failures);
-      end;
+        for i := 0 to CodeList.Count -1 do begin
+          if not CheckoutClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm,
+                                False, (CodeList.Count > 1) , True, ASendMethod) then
+            Inc(Failures);
+        end;
 
-      with ProgressFrm do begin
         ProgressFrm.mProgress.Lines.Add('');
         ProgressFrm.mProgress.Lines.Add('Check Out Completed');
-        if (Failures > 0) then
-        begin
+        if (Failures > 0) then begin
           ProgressFrm.mProgress.Lines.Add('');
-          ProgressFrm.mProgress.Lines.Add(IntToStr(Failures) + ' Clients failed to be checked out.');
+          ProgressFrm.mProgress.Lines.Add(Format('%d Clients failed to be checked out.',
+                                                 [Failures]));
         end;
-        btnOK.Enabled := true;
-        Hide;
-        ShowModal;
+        ProgressFrm.btnOK.Enabled := true;
+        ProgressFrm.Hide;
+        ProgressFrm.ShowModal;
+      finally
+        ProgressFrm.Free;
       end;
-   finally
-     StatusSilent := false;
-     ProgressFrm.Free;
-     CodeList.Free;
-   end;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+    finally
+      StatusSilent := false;
+    end;
+  finally
+    CodeList.Free;
+  end;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress; IsScheduledReports: Boolean = False) : boolean;
@@ -2420,7 +2518,7 @@ begin
          {create new client file rec}
          CFRec := New_Client_File_Rec;
          with AdminSystem, cfRec^ do
-         begin                                     
+         begin
            cfFile_Code           := NewCode;
            cfFile_Name           := pCf^.cfFile_Name;
            cfFile_Type           := pCf^.cfFile_Type;

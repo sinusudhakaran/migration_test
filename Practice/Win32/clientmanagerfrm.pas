@@ -335,7 +335,8 @@ uses
   ComCtrls, UpdateClientDetailsDlg,
   ClientUtils, WinUtils, ShellAPI, stdate, bkdateutils, BK5Except,
   AuthorityUtils, CAFfrm, rptCAF, TPAfrm, rptTPA, ReportDefs, ovcDate,
-  rptClientManager, CMFilterForm, bkBranding, ClientHomePageFrm, Merge32, rptAdmin, MainFrm;
+  rptClientManager, CMFilterForm, bkBranding, ClientHomePageFrm, Merge32,
+  rptAdmin, MainFrm, CheckInOutFrm;
 
 {$R *.dfm}
 
@@ -1495,18 +1496,26 @@ end;
 procedure TfrmClientManager.DoCheckOut;
 var
   Codes : string;
+  SendMethod: byte;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoCheckOut');
-  Codes := ClientLookup.SelectedCodes;
+//  Codes := ClientLookup.SelectedCodes;
+//  if Codes <> '' then
+//  begin
+//    if not UpdateGlobalCheckoutDir then
+//      Exit;
+//
+//    Files.Checkout( Codes);
+//    RefreshLookup( '');
+//    ClientLookup.SelectedCodes := Codes;
+//  end;
+  SendMethod := smBankLinkOnline; //Set to selected client file send method
+  Codes := CheckInOutFrm.SelectCodesToCheckout('Select Client(s) to Check Out',
+                                               SendMethod,
+                                               ClientLookup.SelectedCodes);
   if Codes <> '' then
-  begin
-    if not UpdateGlobalCheckoutDir then
-      Exit;
+    Files.CheckOut(Codes, SendMethod);
 
-    Files.Checkout( Codes);
-    RefreshLookup( '');
-    ClientLookup.SelectedCodes := Codes;
-  end;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoCheckOut');
 end;
 

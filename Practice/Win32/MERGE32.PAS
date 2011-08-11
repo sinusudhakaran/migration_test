@@ -390,7 +390,7 @@ Begin
                               baTransaction_List.Insert_Transaction_Rec( Transaction );
 
                               //Flag Audit for bank account
-                              MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts);
+                              aClient.ClientAuditMgr.FlagAudit(atClientBankAccounts);
                            end;
 
                            If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;

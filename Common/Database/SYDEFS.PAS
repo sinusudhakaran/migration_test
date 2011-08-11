@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 395;
-   SY_IOLIB_Date    = '27/05/11';
-   SY_FILE_VERSION   = 125;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 396;
+   SY_IOLIB_Date    = '10/08/11';
+   SY_FILE_VERSION   = 126;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -122,7 +122,8 @@ Const
        5.20.0 (UK 2011)  122   Add ISO Codes array for quick access to a list of currencies used in the Client File
        5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all tables
                          124   Added System Memorisation List for storing Master Memorisations
-                         125   Added Provisional Entries Log 
+                         125   Added Provisional Entries Log
+       5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client rec
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -467,6 +468,8 @@ Type
       cfWebNotes_Email_Notifications     : Integer;       { Stored }
       cfISO_Codes                        : Array[ 1..99 ] of String[ 3 ];       { Stored }
       cfAudit_Record_ID                  : Integer;       { Stored }
+      cfSend_Method                      : Byte;       { Stored }
+      cfClient_File_GUID                 : AnsiString;       { Stored }
       cfEOR                              : Byte;
    end;
 
