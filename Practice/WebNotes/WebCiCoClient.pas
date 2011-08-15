@@ -15,7 +15,7 @@ unit WebCiCoClient;
 interface
 
 uses
-  stDate,
+  StDate,
   IpsSoaps,
   Classes,
   SysUtils,
@@ -68,6 +68,13 @@ type
                                      StatusCode: Integer;
                                      const Description: String); Override;
 
+    procedure DoHttpSSLServerAuthentication(Sender: TObject;
+                                            CertEncoded: String;
+                                            const CertSubject: String;
+                                            const CertIssuer: String;
+                                            const Status: String;
+                                            var  Accept: Boolean); Override;
+
     procedure DoHttpStartTransfer(Sender: TObject;
                                   Direction: Integer); Override;
     procedure DoHttpTransfer(Sender: TObject;
@@ -102,9 +109,8 @@ type
     procedure UploadFileFromPractice(ClientCode : string);
     procedure UploadFileFromBooks(ClientCode : string);
 
-    procedure DownLoadFileToPractice(ClientCode : string);
-    procedure DownLoadFileToBooks(ClientCode : string);
-
+    procedure DownloadFileToPractice(ClientCode : string);
+    procedure DownloadFileToBooks(ClientCode : string);
 
     property OnStatusEvent : TStatusEvent read fStatusEvent write fStatusEvent;
     property OnTransferFileEvent : TTransferFileEvent read fTransferFileEvent write fTransferFileEvent;
@@ -119,13 +125,13 @@ type
 implementation
 
 uses
-  progress,
+  Progress,
   IdHashSHA1,
   IdHash,
   Base64,
   Globals,
   SyDefs,
-  clObj32,
+  ClObj32,
   WebUtils;
 
 var
@@ -164,11 +170,11 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DoSoapSSLServerAuthentication(Sender: TObject;
-                                                        CertEncoded: String;
-                                                        const CertSubject: String;
-                                                        const CertIssuer: String;
-                                                        const Status: String;
-                                                        var  Accept: Boolean);
+                                                       CertEncoded: String;
+                                                       const CertSubject: String;
+                                                       const CertIssuer: String;
+                                                       const Status: String;
+                                                       var  Accept: Boolean);
 begin
   UpdateAppStatusLine2(Format('%s Authenticate %d',[Status, SoapURLIndex]));
 end;
@@ -183,6 +189,21 @@ begin
     fStatusEvent('ConnectionEvent : ' + ConnectionEvent + ', ' +
                  'Status Code : ' + InttoStr(StatusCode) + ', ' +
                  'Description : ' + Description);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.DoHttpSSLServerAuthentication(Sender: TObject;
+                                                       CertEncoded: String;
+                                                       const CertSubject: String;
+                                                       const CertIssuer: String;
+                                                       const Status: String;
+                                                       var  Accept: Boolean);
+begin
+  if Assigned(fStatusEvent) then
+    fStatusEvent('Cert Encoded : ' + CertEncoded + ', ' +
+                 'Cert Subject : ' + CertSubject + ', ' +
+                 'Cert Issuer : ' + CertIssuer + ', ' +
+                 'Status : ' + Status);
 end;
 
 //------------------------------------------------------------------------------
@@ -211,12 +232,10 @@ begin
   begin
     if Direction = 0 then
       fStatusEvent('Transfer : from Client, ' +
-                   'Bytes Transferred : ' + InttoStr(BytesTransferred) + ', ' +
-                   'Text : ' + Text )
+                   'Bytes Transferred : ' + InttoStr(BytesTransferred))
     else
       fStatusEvent('Transfer : from Server, ' +
-                   'Bytes Transferred : ' + InttoStr(BytesTransferred) + ', ' +
-                   'Text : ' + Text );
+                   'Bytes Transferred : ' + InttoStr(BytesTransferred));
   end;
 
   if Assigned(fTransferFileEvent) then
@@ -244,6 +263,8 @@ procedure TWebCiCoClient.DoHttpHeader(Sender: TObject;
                                       const Field: String;
                                       const Value: String);
 begin
+  Inherited;
+
   if Assigned(fStatusEvent) then
     fStatusEvent('Header Field : ' + Field + ', ' +
                  'Header Value : ' + Value);
@@ -306,9 +327,9 @@ begin
     PracUser    := CurrUser.Code;
     PracPass    := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN).usPassword;
     CountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-  end;
 
-  GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail);
+    GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -325,16 +346,23 @@ begin
   if Assigned(ClientFileRec) then
   begin
     CreateGUID(Guid);
-    FileName   := ClientFileRec^.cfFile_Name;
+    ClientFileRec.cfClient_File_GUID := GuidToString(Guid);
+    FileName   := ClientFileRec^.cfFile_Code;
 
     fClientObj := TClientObj.Create;
     Try
       fClientObj.Open(FileName, FILEEXTN);
 
+      FileName := DataDir + FileName + FILEEXTN;
+      fClientObj.clExtra.ceClient_File_GUID := GuidToString(Guid);
       ClientEmail := fClientObj.clFields.clClient_EMail_Address;
+
+      fClientObj.Save;
     Finally
       FreeAndNil(fClientObj);
     End;
+
+    AdminSystem.Save;
   end;
 end;
 
@@ -359,6 +387,9 @@ begin
   HttpAddress := 'http://posttestserver.com/post.php';
 
   GetPracticeDetailsToSend(ClientCode, FileName, Guid, ClientEmail, PracName, CountryCode, PracPass);
+  if not FileExists(FileName) then
+    Exit;
+
   ClearHttpHeader;
 
   AddHttpHeaderInfo('ClientId',         ClientCode);
@@ -393,7 +424,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.DownLoadFileToPractice(ClientCode : string);
+procedure TWebCiCoClient.DownloadFileToPractice(ClientCode : string);
 var
   HttpAddress : string;
   FileName    : String;
@@ -404,7 +435,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.DownLoadFileToBooks(ClientCode : string);
+procedure TWebCiCoClient.DownloadFileToBooks(ClientCode : string);
 var
   HttpAddress : string;
   FileName    : String;
