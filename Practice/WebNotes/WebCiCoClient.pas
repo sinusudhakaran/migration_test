@@ -115,7 +115,7 @@ type
                                    NewPassword : string);
 
     procedure GetClientFileStatus(FromBooks : Boolean;
-                                  var ClientList : TStringList;
+                                  var ClientStatuses : TStringList;
                                   ClientCode : string = '');
 
     procedure UploadFileFromPractice(ClientCode : string);
@@ -417,46 +417,46 @@ begin
   AddSoapStringParam('OldPassword', OldPassword);
   AddSoapStringParam('NewPassword', NewPassword);
 
-  CallSoapMethod;
+  CallSoapMethod; }
 
-  Reply := DecodeText(SOAPRequester.ReturnValue);}
+  //Reply := DecodeText(SOAPRequester.ReturnValue);
 end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetClientFileStatus(FromBooks : Boolean;
-                                             var ClientList : TStringList;
+                                             var ClientStatuses : TStringList;
                                              ClientCode : string = '');
 var
-  HttpAddress : String;
-  FileName    : String;
-  Guid        : TGuid;
-  ClientEmail : String;
-  PracName    : String;
-  CountryCode : String;
-  PracPass    : String;
+  ClientFileRec : pClient_File_Rec;
+  ClientIndex : integer;
+
+  //-------------------------------------
+  function ReturnRandomStatus : String;
+  begin
+    case Random(4) of
+      0 : Result := 'Not Valid';
+      1 : Result := 'PracticeUpload';
+      2 : Result := 'BooksDownload';
+      3 : Result := 'BooksUpload';
+      4 : Result := 'PracticeDownload';
+    end;
+  end;
 begin
-  {HttpAddress := 'http://posttestserver.com/post.php';
-
-  GetPracticeDetailsToSend(ClientCode, FileName, Guid, ClientEmail, PracName,
-                           CountryCode, PracPass, True);
-
-  if not Assigned(ClientList) then
+  if not Assigned(ClientStatuses) then
     Exit;
 
-  if FromBooks then
-    Exit;
+  Assert((FromBooks = False) or ((FromBooks = True) and (ClientCode <> '')),
+         'If This is from books the Client Code should not be empty');
 
-  SetSoapMethod('GetClientFileStatus');
-
-  AppendSoapHeaderInfo;
-
-  AddSoapStringParam('ClientEmail', ClientEmail);
-  AddSoapStringParam('OldPassword', OldPassword);
-  AddSoapStringParam('NewPassword', NewPassword);
-
-  CallSoapMethod;
-
-  Reply := DecodeText(SOAPRequester.ReturnValue);}
+  if (ClientCode = '') then
+  begin
+    for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
+      ClientStatuses.Values[AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code] := ReturnRandomStatus;
+  end
+  else
+  begin
+    ClientStatuses.Values['ClientCode'] := ReturnRandomStatus;
+  end;
 end;
 
 //------------------------------------------------------------------------------
