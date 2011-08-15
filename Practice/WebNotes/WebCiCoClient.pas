@@ -51,6 +51,7 @@ type
     procedure RaiseSoapError(ErrMessage : String; ErrCode : integer); override;
     procedure RaiseHttpError(ErrMessage : String; ErrCode : integer); override;
 
+    // Soap Used Events
     procedure DoSoapConnectionStatus(Sender: TObject;
                                      const ConnectionEvent: String;
                                      StatusCode: Integer;
@@ -63,6 +64,7 @@ type
                                             const Status: String;
                                             var  Accept: Boolean); Override;
 
+    // Http Used Events
     procedure DoHttpConnectionStatus(Sender: TObject;
                                      const ConnectionEvent: String;
                                      StatusCode: Integer;
@@ -97,14 +99,24 @@ type
                                        var ClientEmail  : String;
                                        var PracUser     : String;
                                        var CountryCode  : String;
-                                       var PracPass     : String);
+                                       var PracPass     : String;
+                                       CreateNewGuid   : Boolean);
 
-    procedure GetBooksDetailsToSend(ClientCode       : string;
-                                    var FileName     : String;
-                                    var Guid         : TGuid;
-                                    var ClientEmail  : String);
+    procedure GetBooksDetailsToSend(ClientCode      : string;
+                                    var FileName    : String;
+                                    var Guid        : TGuid;
+                                    var ClientEmail : string;
+                                    CreateNewGuid   : Boolean);
   public
     constructor Create; Override;
+
+    procedure SetBooksUserPassword(ClientCode  : string;
+                                   OldPassword : string;
+                                   NewPassword : string);
+
+    procedure GetClientFileStatus(FromBooks : Boolean;
+                                  var ClientList : TStringList;
+                                  ClientCode : string = '');
 
     procedure UploadFileFromPractice(ClientCode : string);
     procedure UploadFileFromBooks(ClientCode : string);
@@ -174,7 +186,7 @@ procedure TWebCiCoClient.DoSoapSSLServerAuthentication(Sender: TObject;
                                                        const CertSubject: String;
                                                        const CertIssuer: String;
                                                        const Status: String;
-                                                       var  Accept: Boolean);
+                                                       var   Accept: Boolean);
 begin
   UpdateAppStatusLine2(Format('%s Authenticate %d',[Status, SoapURLIndex]));
 end;
@@ -315,7 +327,8 @@ procedure TWebCiCoClient.GetPracticeDetailsToSend(ClientCode       : string;
                                                   var ClientEmail  : String;
                                                   var PracUser     : String;
                                                   var CountryCode  : String;
-                                                  var PracPass     : String);
+                                                  var PracPass     : String;
+                                                  CreateNewGuid   : Boolean);
 var
   ClientFileRec : pClient_File_Rec;
   fClientObj    : TClientObj;
@@ -328,15 +341,16 @@ begin
     PracPass    := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN).usPassword;
     CountryCode := CountryText(AdminSystem.fdFields.fdCountry);
 
-    GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail);
+    GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail, CreateNewGuid);
   end;
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetBooksDetailsToSend(ClientCode       : string;
-                                               var FileName     : String;
-                                               var Guid         : TGuid;
-                                               var ClientEmail  : String);
+procedure TWebCiCoClient.GetBooksDetailsToSend(ClientCode      : string;
+                                               var FileName    : String;
+                                               var Guid        : TGuid;
+                                               var ClientEmail : String;
+                                               CreateNewGuid   : Boolean);
 var
   ClientFileRec : pClient_File_Rec;
   fClientObj    : TClientObj;
@@ -345,8 +359,14 @@ begin
 
   if Assigned(ClientFileRec) then
   begin
-    CreateGUID(Guid);
-    ClientFileRec.cfClient_File_GUID := GuidToString(Guid);
+    if CreateNewGuid then
+    begin
+      CreateGUID(Guid);
+      ClientFileRec.cfClient_File_GUID := GuidToString(Guid);
+    end
+    else
+      Guid := StringToGuid(ClientFileRec.cfClient_File_GUID);
+
     FileName   := ClientFileRec^.cfFile_Code;
 
     fClientObj := TClientObj.Create;
@@ -354,15 +374,19 @@ begin
       fClientObj.Open(FileName, FILEEXTN);
 
       FileName := DataDir + FileName + FILEEXTN;
-      fClientObj.clExtra.ceClient_File_GUID := GuidToString(Guid);
       ClientEmail := fClientObj.clFields.clClient_EMail_Address;
 
-      fClientObj.Save;
+      if CreateNewGuid then
+      begin
+        fClientObj.clExtra.ceClient_File_GUID := GuidToString(Guid);
+        fClientObj.Save;
+      end;
     Finally
       FreeAndNil(fClientObj);
     End;
 
-    AdminSystem.Save;
+    if CreateNewGuid then
+      AdminSystem.Save;
   end;
 end;
 
@@ -371,6 +395,68 @@ constructor TWebCiCoClient.Create;
 begin
   inherited;
   fTotalBytes := 0;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.SetBooksUserPassword(ClientCode  : string;
+                                              OldPassword : string;
+                                              NewPassword : string);
+var
+  ClientEmail : String;
+  FileName    : String;
+  Guid        : TGuid;
+  Reply       : String;
+begin
+  {SetSoapMethod('SetUserPassword');
+
+  GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail, False);
+
+  AppendSoapHeaderInfo;
+
+  AddSoapStringParam('ClientEmail', ClientEmail);
+  AddSoapStringParam('OldPassword', OldPassword);
+  AddSoapStringParam('NewPassword', NewPassword);
+
+  CallSoapMethod;
+
+  Reply := DecodeText(SOAPRequester.ReturnValue);}
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.GetClientFileStatus(FromBooks : Boolean;
+                                             var ClientList : TStringList;
+                                             ClientCode : string = '');
+var
+  HttpAddress : String;
+  FileName    : String;
+  Guid        : TGuid;
+  ClientEmail : String;
+  PracName    : String;
+  CountryCode : String;
+  PracPass    : String;
+begin
+  {HttpAddress := 'http://posttestserver.com/post.php';
+
+  GetPracticeDetailsToSend(ClientCode, FileName, Guid, ClientEmail, PracName,
+                           CountryCode, PracPass, True);
+
+  if not Assigned(ClientList) then
+    Exit;
+
+  if FromBooks then
+    Exit;
+
+  SetSoapMethod('GetClientFileStatus');
+
+  AppendSoapHeaderInfo;
+
+  AddSoapStringParam('ClientEmail', ClientEmail);
+  AddSoapStringParam('OldPassword', OldPassword);
+  AddSoapStringParam('NewPassword', NewPassword);
+
+  CallSoapMethod;
+
+  Reply := DecodeText(SOAPRequester.ReturnValue);}
 end;
 
 //------------------------------------------------------------------------------
@@ -386,7 +472,9 @@ var
 begin
   HttpAddress := 'http://posttestserver.com/post.php';
 
-  GetPracticeDetailsToSend(ClientCode, FileName, Guid, ClientEmail, PracName, CountryCode, PracPass);
+  GetPracticeDetailsToSend(ClientCode, FileName, Guid, ClientEmail, PracName,
+                           CountryCode, PracPass, True);
+
   if not FileExists(FileName) then
     Exit;
 
@@ -405,7 +493,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromBooks(ClientCode : string);
 var
-  HttpAddress : string;
+  HttpAddress  : string;
   FileName     : String;
   BankLinkCode : String;
   Guid         : TGuid;
@@ -413,7 +501,7 @@ var
 begin
   HttpAddress := 'http://posttestserver.com/post.php';
 
-  GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail);
+  GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail, True);
   ClearHttpHeader;
 
   AddHttpHeaderInfo('ClientId',    ClientCode);

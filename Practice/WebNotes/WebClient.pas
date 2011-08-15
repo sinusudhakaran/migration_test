@@ -430,6 +430,52 @@ begin
   FHttpRequester.OnEndTransfer             := DoHttpEndTransfer;
   FHttpRequester.OnHeader                  := DoHttpHeader;
 
+  // Reset to Default...
+  FHttpRequester.ProxyServer := '*';
+  FHttpRequester.ProxyPort := 0;
+  FHttpRequester.ProxyAuthorization := '';
+  FHttpRequester.ProxyUser := '';
+  FHttpRequester.ProxyPassword := '';
+
+  //set up firewall
+  FHttpRequester.FirewallHost := '';
+  FHttpRequester.FirewallPort := 0;
+  FHttpRequester.FirewallUser := '';
+  FHttpRequester.FirewallPassword := '';
+  FHttpRequester.FirewallType := TipshttpsFirewallTypes(fwNone);
+
+  // For Now just take the rsst from the BConnect settings...
+  if INI_BCCustomConfig then
+  begin
+    if INI_BCUseProxy then
+    begin
+      FHttpRequester.ProxyServer := INI_BCProxyHost;
+      FHttpRequester.ProxyPort := INI_BCProxyPort;
+      case INI_BCProxyAuthMethod of
+        1 : begin //basic
+              FHttpRequester.ProxyUser := INI_BCProxyUsername;
+              FHttpRequester.ProxyPassword := INI_BCProxyPassword;
+            end;
+        2 : begin //ntlm
+              FHttpRequester.ProxyServer := Format('*%s*%s',
+                [INI_BCProxyUsername, INI_BCProxyPassword]);
+            end;
+      end;
+    end;
+
+    if not INI_BCUseWinInet then
+      FHttpRequester.Config('usewininet=false');
+
+    if INI_BCUseFirewall then
+    begin
+      FHttpRequester.FirewallHost := INI_BCFirewallHost;
+      FHttpRequester.FirewallPort := INI_BCFirewallPort;
+      FHttpRequester.FirewallUser := INI_BCFirewallUsername;
+      FHttpRequester.FirewallPassword := INI_BCFirewallPassword;
+      FHttpRequester.FirewallType :=  TipshttpsFirewallTypes(INI_BCFirewallType);
+    end;
+  end;
+
   FHttpHeaderInfo.NameValueSeparator := ':';
   FHttpServerHeaderInfo.NameValueSeparator := ':';
 end;
