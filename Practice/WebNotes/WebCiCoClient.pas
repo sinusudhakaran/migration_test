@@ -26,6 +26,32 @@ type
   TDirectionIndicator = (dirFromClient, dirFromServer);
   TTransferStatus = (trsStartTrans, trsTransInProgress, trsEndTrans);
 
+  TClientStatusItem = class
+  private
+    fClientCode   : string;
+    fStatus       : string;
+    fUserModified : string;
+    fDateModified : TDatetime;
+  public
+    property ClientCode    : String    read fClientCode   write fClientCode;
+    property Status        : string    read fStatus       write fStatus;
+    property UserModified  : string    read fUserModified write fUserModified;
+    property DateModified  : TDatetime read fDateModified write fDateModified;
+  end;
+
+  //------------------------------------------------------------------------------
+  TClientStatusList = class(TList)
+  protected
+    function Get(Index: Integer): TClientStatusItem;
+    procedure Put(Index: Integer; Item: TClientStatusItem);
+  public
+    destructor Destroy; override;
+
+    function GetStatusFromCode(ClientCode : string) : TClientStatusItem;
+
+    property Items[Index: Integer]: TClientStatusItem read Get write Put; default;
+  end;
+
   //----------------------------------------------------------------------------
   EWebSoapCiCoClientError = class(EWebSoapClientError)
   end;
@@ -115,7 +141,7 @@ type
                                    NewPassword : string);
 
     procedure GetClientFileStatus(FromBooks : Boolean;
-                                  var ClientStatuses : TStringList;
+                                  var ClientStatusList : TClientStatusList;
                                   ClientCode : string = '');
 
     procedure UploadFileFromPractice(ClientCode : string);
@@ -156,6 +182,49 @@ begin
     fWebCiCoClient := TWebCiCoClient.Create;
 
   result := fWebCiCoClient;
+end;
+
+{ TClientStatusList }
+//------------------------------------------------------------------------------
+function TClientStatusList.Get(Index: Integer): TClientStatusItem;
+begin
+  Result := inherited Get(Index);
+end;
+
+//------------------------------------------------------------------------------
+procedure TClientStatusList.Put(Index: Integer; Item: TClientStatusItem);
+begin
+  inherited Put(Index, Item);
+end;
+
+//------------------------------------------------------------------------------
+destructor TClientStatusList.Destroy;
+var
+  ItemIndex : integer;
+begin
+  for ItemIndex := Count - 1 downto 0 do
+  begin
+    Items[ItemIndex].Free;
+    Self.Remove(Items[ItemIndex]);
+  end;
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+function TClientStatusList.GetStatusFromCode(ClientCode : string) : TClientStatusItem;
+var
+  ClientIndex : integer;
+begin
+  Result := nil;
+  for ClientIndex := 0 to Count-1 do
+  begin
+    if Self.Items[ClientIndex].ClientCode = ClientCode then
+    begin
+      Result := Self.Items[ClientIndex];
+      Exit;
+    end;
+  end;
 end;
 
 { TWebCiCoClient }
@@ -424,11 +493,12 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetClientFileStatus(FromBooks : Boolean;
-                                             var ClientStatuses : TStringList;
+                                             var ClientStatusList : TClientStatusList;
                                              ClientCode : string = '');
 var
   ClientFileRec : pClient_File_Rec;
   ClientIndex : integer;
+  NewClientStatusItem : TClientStatusItem;
 
   //-------------------------------------
   function ReturnRandomStatus : String;
@@ -442,7 +512,7 @@ var
     end;
   end;
 begin
-  if not Assigned(ClientStatuses) then
+  if not Assigned(ClientStatusList) then
     Exit;
 
   Assert((FromBooks = False) or ((FromBooks = True) and (ClientCode <> '')),
@@ -451,11 +521,23 @@ begin
   if (ClientCode = '') then
   begin
     for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
-      ClientStatuses.Values[AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code] := ReturnRandomStatus;
+    begin
+      NewClientStatusItem := TClientStatusItem.Create;
+      NewClientStatusItem.ClientCode   := AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code;
+      NewClientStatusItem.Status       := ReturnRandomStatus;
+      NewClientStatusItem.UserModified := 'Test User';
+      NewClientStatusItem.DateModified := Now;
+      ClientStatusList.Add(NewClientStatusItem);
+    end;
   end
   else
   begin
-    ClientStatuses.Values['ClientCode'] := ReturnRandomStatus;
+    NewClientStatusItem := TClientStatusItem.Create;
+    NewClientStatusItem.ClientCode   := ClientCode;
+    NewClientStatusItem.Status       := ReturnRandomStatus;
+    NewClientStatusItem.UserModified := 'Test User';
+    NewClientStatusItem.DateModified := Now;
+    ClientStatusList.Add(NewClientStatusItem);
   end;
 end;
 
