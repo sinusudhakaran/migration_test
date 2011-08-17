@@ -116,7 +116,7 @@ Type
     procedure ClearFilesInFolder(Directory : string; var FileCount : integer; var FileIndex : integer);
     procedure CountFilesToClearInFolder(Directory : string; var FileCount : integer);
     function IsClientFileNameUsed(FileName : string) : Boolean;
-    function ReplaceNumbers(Instring : string; MinLength : integer) : string;
+    function MuddleNumericData(Instring : string) : string;
     procedure AddAccountOldNew(OldAccNumber, NewAccNumber, NewAccName : string);
     function FindOldAccount(OldAccNumber : string; var NewAccNumber, NewAccName : string) : boolean;
     procedure AddFileOldNew(OldName, NewName : string);
@@ -713,45 +713,28 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function TMuddler.ReplaceNumbers(Instring : string; MinLength : integer) : string;
+function TMuddler.MuddleNumericData(Instring : string) : string;
 var
   StrIndex : integer;
-  StartPos : integer;
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  procedure ReplaceSection(FirstPos, LastPos : integer);
+  function MuddleDigit(InNumber : integer) : integer;
+  const
+    NumSet : Array[0..9] of integer = (6,2,4,3,1,0,9,2,8,7);
   var
     ReplaceIndex : integer;
   begin
-    for ReplaceIndex := FirstPos to LastPos do
-      Result[ReplaceIndex] := '#';
+    Result := NumSet[InNumber];
   end;
 begin
-  Result := Instring;
-
-  if length(Instring) < MinLength  then
-    Exit;
-
-  StartPos := 0;
-
-  for StrIndex := 1 to Length(Result) do
+  Result := '';
+  for StrIndex := 1 to Length(Instring) do
   begin
-    if (Result[StrIndex] in ['0'..'9']) and
-       (StartPos = 0) then
-      StartPos := StrIndex
-    else if not (Result[StrIndex] in ['0'..'9']) and
-            (StartPos > 0) then
+    if (Instring[StrIndex] in ['0'..'9']) then
     begin
-      if ((StrIndex-1) - StartPos) >= (MinLength-1) then
-        ReplaceSection(StartPos, (StrIndex-1));
-
-      StartPos := 0;
+      Result := Result + inttostr(MuddleDigit(strtoint(Instring[StrIndex])));
     end;
   end;
-
-  if (StartPos > 0) and
-     ((Length(Result) - StartPos) >= (MinLength-1)) then
-    ReplaceSection(StartPos, Length(Result));
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1002,20 +985,20 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TMuddler.MuddleTransactionBk5(TransField : pTransaction_Rec);
 begin
-  TransField.txReference            := ReplaceNumbers(TransField.txReference,MIN_NUM_REPLACE_LENGTH);
-  TransField.txParticulars          := ReplaceNumbers(TransField.txParticulars,MIN_NUM_REPLACE_LENGTH);
-  TransField.txAnalysis             := ReplaceNumbers(TransField.txAnalysis,MIN_NUM_REPLACE_LENGTH);
-  TransField.txOrigBB               := ReplaceNumbers(TransField.txOrigBB,MIN_NUM_REPLACE_LENGTH);
-  TransField.txOther_Party          := ReplaceNumbers(TransField.txOther_Party,MIN_NUM_REPLACE_LENGTH);
-  TransField.txOld_Narration        := ReplaceNumbers(TransField.txOld_Narration,MIN_NUM_REPLACE_LENGTH);
-  TransField.txOriginal_Reference   := ReplaceNumbers(TransField.txOriginal_Reference,MIN_NUM_REPLACE_LENGTH);
-  TransField.txNotes                := ReplaceNumbers(TransField.txNotes,MIN_NUM_REPLACE_LENGTH);
-  TransField.txECoding_Import_Notes := ReplaceNumbers(TransField.txECoding_Import_Notes,MIN_NUM_REPLACE_LENGTH);
-  TransField.txGL_Narration         := ReplaceNumbers(TransField.txGL_Narration,MIN_NUM_REPLACE_LENGTH);
-  TransField.txStatement_Details    := ReplaceNumbers(TransField.txStatement_Details,MIN_NUM_REPLACE_LENGTH);
-  TransField.txDocument_Title       := ReplaceNumbers(TransField.txDocument_Title,MIN_NUM_REPLACE_LENGTH);
-  TransField.txSpare_string         := ReplaceNumbers(TransField.txSpare_string,MIN_NUM_REPLACE_LENGTH);
-  TransField.txTemp_Prov_Entered_By := ReplaceNumbers(TransField.txTemp_Prov_Entered_By,MIN_NUM_REPLACE_LENGTH);
+  TransField.txReference            := MuddleNumericData(TransField.txReference);
+  TransField.txParticulars          := MuddleNumericData(TransField.txParticulars);
+  TransField.txAnalysis             := MuddleNumericData(TransField.txAnalysis);
+  TransField.txOrigBB               := MuddleNumericData(TransField.txOrigBB);
+  TransField.txOther_Party          := MuddleNumericData(TransField.txOther_Party);
+  TransField.txOld_Narration        := MuddleNumericData(TransField.txOld_Narration);
+  TransField.txOriginal_Reference   := MuddleNumericData(TransField.txOriginal_Reference);
+  TransField.txNotes                := MuddleNumericData(TransField.txNotes);
+  TransField.txECoding_Import_Notes := MuddleNumericData(TransField.txECoding_Import_Notes);
+  TransField.txGL_Narration         := MuddleNumericData(TransField.txGL_Narration);
+  TransField.txStatement_Details    := MuddleNumericData(TransField.txStatement_Details);
+  TransField.txDocument_Title       := MuddleNumericData(TransField.txDocument_Title);
+  TransField.txSpare_string         := MuddleNumericData(TransField.txSpare_string);
+  TransField.txTemp_Prov_Entered_By := MuddleNumericData(TransField.txTemp_Prov_Entered_By);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1031,12 +1014,12 @@ begin
   begin
     Memorisation := Memorisations_List.Memorisation_At(MemIndex);
 
-    Memorisation.mdFields.mdReference         := ReplaceNumbers(Memorisation.mdFields.mdReference, MIN_NUM_REPLACE_LENGTH);
-    Memorisation.mdFields.mdParticulars       := ReplaceNumbers(Memorisation.mdFields.mdParticulars, MIN_NUM_REPLACE_LENGTH);
-    Memorisation.mdFields.mdAnalysis          := ReplaceNumbers(Memorisation.mdFields.mdAnalysis, MIN_NUM_REPLACE_LENGTH);
-    Memorisation.mdFields.mdOther_Party       := ReplaceNumbers(Memorisation.mdFields.mdOther_Party, MIN_NUM_REPLACE_LENGTH);
-    Memorisation.mdFields.mdStatement_Details := ReplaceNumbers(Memorisation.mdFields.mdStatement_Details, MIN_NUM_REPLACE_LENGTH);
-    Memorisation.mdFields.mdNotes             := ReplaceNumbers(Memorisation.mdFields.mdNotes, MIN_NUM_REPLACE_LENGTH);
+    Memorisation.mdFields.mdReference         := MuddleNumericData(Memorisation.mdFields.mdReference);
+    Memorisation.mdFields.mdParticulars       := MuddleNumericData(Memorisation.mdFields.mdParticulars);
+    Memorisation.mdFields.mdAnalysis          := MuddleNumericData(Memorisation.mdFields.mdAnalysis);
+    Memorisation.mdFields.mdOther_Party       := MuddleNumericData(Memorisation.mdFields.mdOther_Party);
+    Memorisation.mdFields.mdStatement_Details := MuddleNumericData(Memorisation.mdFields.mdStatement_Details);
+    Memorisation.mdFields.mdNotes             := MuddleNumericData(Memorisation.mdFields.mdNotes);
   end;
 end;
 
@@ -1063,13 +1046,13 @@ begin
       begin
         Read( InArchiveFile, Trans_Record );
 
-        Trans_Record.aReference         := ReplaceNumbers(Trans_Record.aReference,MIN_NUM_REPLACE_LENGTH);
-        Trans_Record.aParticulars       := ReplaceNumbers(Trans_Record.aParticulars,MIN_NUM_REPLACE_LENGTH);
-        Trans_Record.aAnalysis          := ReplaceNumbers(Trans_Record.aAnalysis,MIN_NUM_REPLACE_LENGTH);
-        Trans_Record.aOrigBB            := ReplaceNumbers(Trans_Record.aOrigBB,MIN_NUM_REPLACE_LENGTH);
-        Trans_Record.aOther_Party       := ReplaceNumbers(Trans_Record.aOther_Party,MIN_NUM_REPLACE_LENGTH);
-        Trans_Record.aNarration         := ReplaceNumbers(Trans_Record.aNarration,MIN_NUM_REPLACE_LENGTH);
-        Trans_Record.aStatement_Details := ReplaceNumbers(Trans_Record.aStatement_Details,MIN_NUM_REPLACE_LENGTH);
+        Trans_Record.aReference         := MuddleNumericData(Trans_Record.aReference);
+        Trans_Record.aParticulars       := MuddleNumericData(Trans_Record.aParticulars);
+        Trans_Record.aAnalysis          := MuddleNumericData(Trans_Record.aAnalysis);
+        Trans_Record.aOrigBB            := MuddleNumericData(Trans_Record.aOrigBB);
+        Trans_Record.aOther_Party       := MuddleNumericData(Trans_Record.aOther_Party);
+        Trans_Record.aNarration         := MuddleNumericData(Trans_Record.aNarration);
+        Trans_Record.aStatement_Details := MuddleNumericData(Trans_Record.aStatement_Details);
 
         Write( OutArchiveFile, Trans_Record );
       end;
@@ -1193,11 +1176,11 @@ begin
       begin
         DiskTxn := DiskAccount.dbTransaction_List.Disk_Transaction_At(TransIndex);
 
-        DiskTxn.dtReference           := ReplaceNumbers(DiskTxn.dtReference, MIN_NUM_REPLACE_LENGTH);
-        DiskTxn.dtParticulars_NZ_Only := ReplaceNumbers(DiskTxn.dtParticulars_NZ_Only, MIN_NUM_REPLACE_LENGTH);
-        DiskTxn.dtOther_Party_NZ_Only := ReplaceNumbers(DiskTxn.dtOther_Party_NZ_Only, MIN_NUM_REPLACE_LENGTH);
-        DiskTxn.dtOrig_BB             := ReplaceNumbers(DiskTxn.dtOrig_BB, MIN_NUM_REPLACE_LENGTH);
-        DiskTxn.dtNarration           := ReplaceNumbers(DiskTxn.dtNarration, MIN_NUM_REPLACE_LENGTH);
+        DiskTxn.dtReference           := MuddleNumericData(DiskTxn.dtReference);
+        DiskTxn.dtParticulars_NZ_Only := MuddleNumericData(DiskTxn.dtParticulars_NZ_Only);
+        DiskTxn.dtOther_Party_NZ_Only := MuddleNumericData(DiskTxn.dtOther_Party_NZ_Only);
+        DiskTxn.dtOrig_BB             := MuddleNumericData(DiskTxn.dtOrig_BB);
+        DiskTxn.dtNarration           := MuddleNumericData(DiskTxn.dtNarration);
       end;
     end;
 
