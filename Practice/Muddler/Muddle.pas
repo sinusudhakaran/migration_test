@@ -871,7 +871,6 @@ begin
   ClientObj.clFields.clClient_EMail_Address := fDataGenerator.GenerateEmail(ContactUser,Name,'co','nz');
   ClientObj.clFields.clFile_Name := Code;
   ClientObj.clFields.clBankLink_Connect_Password := '';
-  ClientObj.clFields.clPIN_Number := 0;
   ClientObj.clFields.clGST_Number := 'GST' + fDataGenerator.GenerateCode(5);
   ClientObj.clFields.clBankLink_Code := BankLinkCode;
   ClientObj.clFields.clECoding_Default_Password := '';
@@ -885,12 +884,7 @@ begin
   ClientObj.clFields.clCustom_Contact_Phone := fDataGenerator.GeneratePhoneNumber;
   ClientObj.clFields.clClient_CC_EMail_Address := StaffEmail;
   ClientObj.clFields.clMobile_No := fDataGenerator.GeneratePhoneNumber;
-  ClientObj.clFields.clGroup_Name := '';
   ClientObj.clFields.clPractice_Code := PracticeCode;
-  ClientObj.clFields.clTFN := '';
-  ClientObj.clFields.clTemp_FRS_Budget_To_Use := '';
-  ClientObj.clFields.clTemp_FRS_Job_To_Use := '';
-
 
   // Go through Cache for each System Client
   if (InSystem) and
@@ -1351,8 +1345,11 @@ var
   ClientCode     : string;
   ClientName     : string;
 
-  AccountIndex : integer;
-  AccMapIndex  : integer;
+  AccountIndex   : integer;
+  SysBankAccItem : pSystem_Bank_Account_Rec;
+  AccMapIndex    : integer;
+  NewAccNumber   : String;
+  NewAccName     : String;
 
   MemorizationIndex : integer;
   SuperVisExists : boolean;
@@ -1445,9 +1442,28 @@ begin
     end;
   end;
 
+  // Admin Memorizations
   for MemorizationIndex := 0 to AdminSystem.fSystem_Memorisation_List.ItemCount - 1 do
   begin
     MuddleMemorizationSys(AdminSystem.fSystem_Memorisation_List.System_Memorisation_At(MemorizationIndex));
+  end;
+
+  // System Bank Accounts
+  for AccountIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount-1 do
+  begin
+    SysBankAccItem := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(AccountIndex);
+
+    if FindOldAccount(SysBankAccItem.sbAccount_Number, NewAccNumber, NewAccName) then
+    begin
+      SysBankAccItem.sbAccount_Number := NewAccNumber;
+      SysBankAccItem.sbAccount_Name   := NewAccName;
+    end
+    else
+    begin
+      SysBankAccItem.sbAccount_Number := '1111' + fDataGenerator.GenerateCode(8);
+      SysBankAccItem.sbAccount_Name   := fDataGenerator.GeneratePersonName(1,2);
+    end;
+    SysBankAccItem.sbAccount_Password := '';
   end;
 
   //Muddle all TXN files
