@@ -1344,7 +1344,7 @@ begin
   PracticeWebSite    := fDataGenerator.GenerateWebSite(PracticeName,'co','nz');
   PracticePhone      := fDataGenerator.GeneratePhoneNumber;
   PracticeCode       := 'Prac0001';
-  BankLinkCode       := 'Bank0001';
+  BankLinkCode       := UpperCase('Bank0001');
 
   MuddlePracticeSys(AdminSystem.fdFields,
                     PracticeName,
