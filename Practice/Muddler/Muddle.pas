@@ -219,13 +219,21 @@ uses
   Progress,
   DateUtils,
   stDate,
-  SYusIO;
+  SYusIO,
+  BkConst;
 
 const
   MIN_NUM_REPLACE_LENGTH = 4;
   FILE_EXT_LIST : Array[0..17] of string =
     ('bk5','Exe','Inf','rsm','html','db','dat','ini','chm','dll','map','prs',
      'ovl','current','Txn','tpm','bk!','xml');
+  ACC_TYPE_NOT_MUDDLED = [btCashJournals,
+                          btAccrualJournals,
+                          btGSTJournals,
+                          btStockJournals,
+                          btOpeningBalances,
+                          btYearEndAdjustments,
+                          btStockBalances];
 
 { TClientItem }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -912,6 +920,7 @@ begin
   begin
     MuddleAccountBk5(ClientObj.clBank_Account_List.Bank_Account_At(AccountIndex), Name);
   end;
+  ClientObj.clBank_Account_List.Sort;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -941,42 +950,32 @@ var
   Month : integer;
   Year  : integer;
 begin
-  AccountNumber := '1111' + fDataGenerator.GenerateCode(8);
-  AccountName   := fDataGenerator.GeneratePersonName(1,2);
-
-  // Accounts in Database
-  for AccountIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount - 1 do
+  if not (AccountObj.baFields.baAccount_Type in ACC_TYPE_NOT_MUDDLED) then
   begin
-    AccountField := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(AccountIndex);
+    AccountNumber := '1111' + fDataGenerator.GenerateCode(8);
+    AccountName   := fDataGenerator.GeneratePersonName(1,2);
 
-    if AccountObj.baFields.baBank_Account_Number = AccountField.sbAccount_Number then
+    AddAccountOldNew(AccountObj.baFields.baBank_Account_Number,
+                     AccountNumber,
+                     AccountName);
+
+    AccountObj.baFields.baBank_Account_Number := AccountNumber;
+    AccountObj.baFields.baBank_Account_Name   := AccountName;
+
+    if AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed > 0 then
     begin
-      AccountField.sbAccount_Number   := AccountNumber;
-      AccountField.sbAccount_Name     := AccountName;
-      AccountField.sbAccount_Password := '';
+      StDateToDMY(AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed, Day, Month, Year);
+      AddBillingInfo(ClientName,
+                     AccountNumber,
+                     AccountName,
+                     Random(49),
+                     AccountObj.baFields.baCurrent_Balance,
+                     EncodeDate(Year, Month, Day),
+                     fDataGenerator.GenerateCompanyName('Bank'));
     end;
+
+    AccountObj.baFields.baBank_Account_Password := '';
   end;
-
-  AddAccountOldNew(AccountObj.baFields.baBank_Account_Number,
-                   AccountNumber,
-                   AccountName);
-
-  AccountObj.baFields.baBank_Account_Number := AccountNumber;
-  AccountObj.baFields.baBank_Account_Name   := AccountName;
-
-  if AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed > 0 then
-  begin
-    StDateToDMY(AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed, Day, Month, Year);
-    AddBillingInfo(ClientName,
-                   AccountNumber,
-                   AccountName,
-                   Random(49),
-                   AccountObj.baFields.baCurrent_Balance,
-                   EncodeDate(Year, Month, Day),
-                   fDataGenerator.GenerateCompanyName('Bank'));
-  end;
-
-  AccountObj.baFields.baBank_Account_Password := '';
 
   for TransIndex := 0 to AccountObj.baTransaction_List.ItemCount - 1 do
     MuddleTransactionBk5(AccountObj.baTransaction_List.Transaction_At(TransIndex));
@@ -1364,6 +1363,7 @@ begin
                   SuperVisExists);
   end;
 
+  // Add Supervisor user and password if it does not exist already
   if not SuperVisExists then
     AddSuperVisUser;
 
@@ -1425,28 +1425,32 @@ begin
     end;
   end;
 
-  // Admin Memorizations
-  for MemorizationIndex := 0 to AdminSystem.fSystem_Memorisation_List.ItemCount - 1 do
-  begin
-    MuddleMemorizationSys(AdminSystem.fSystem_Memorisation_List.System_Memorisation_At(MemorizationIndex));
-  end;
-
   // System Bank Accounts
   for AccountIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount-1 do
   begin
     SysBankAccItem := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(AccountIndex);
 
-    if FindOldAccount(SysBankAccItem.sbAccount_Number, NewAccNumber, NewAccName) then
+    if not (SysBankAccItem.sbAccount_Type in ACC_TYPE_NOT_MUDDLED) then
     begin
+
+      if not FindOldAccount(SysBankAccItem.sbAccount_Number,
+                            NewAccNumber,
+                            NewAccName) then
+      begin
+        NewAccNumber := '1111' + fDataGenerator.GenerateCode(8);;
+        NewAccName   := fDataGenerator.GeneratePersonName(1,2);;
+      end;
+
       SysBankAccItem.sbAccount_Number := NewAccNumber;
       SysBankAccItem.sbAccount_Name   := NewAccName;
-    end
-    else
-    begin
-      SysBankAccItem.sbAccount_Number := '1111' + fDataGenerator.GenerateCode(8);
-      SysBankAccItem.sbAccount_Name   := fDataGenerator.GeneratePersonName(1,2);
+      SysBankAccItem.sbAccount_Password := '';
     end;
-    SysBankAccItem.sbAccount_Password := '';
+  end;
+
+  // Admin Memorizations
+  for MemorizationIndex := 0 to AdminSystem.fSystem_Memorisation_List.ItemCount - 1 do
+  begin
+    MuddleMemorizationSys(AdminSystem.fSystem_Memorisation_List.System_Memorisation_At(MemorizationIndex));
   end;
 
   //Muddle all TXN files
