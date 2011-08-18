@@ -117,6 +117,7 @@ Type
     procedure CountFilesToClearInFolder(Directory : string; var FileCount : integer);
     function IsClientFileNameUsed(FileName : string) : Boolean;
     function MuddleNumericData(Instring : string) : string;
+    function GetFirstAlphaCharFromAcc(AccNumber : String) : String;
     procedure AddAccountOldNew(OldAccNumber, NewAccNumber, NewAccName : string);
     function FindOldAccount(OldAccNumber : string; var NewAccNumber, NewAccName : string) : boolean;
     procedure AddFileOldNew(OldName, NewName : string);
@@ -746,6 +747,26 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TMuddler.GetFirstAlphaCharFromAcc(AccNumber : String) : String;
+var
+  Max4Length : integer;
+  Index : integer;
+begin
+  Result := '';
+  Max4Length := length(AccNumber);
+  if Max4Length > 4 then
+    Max4Length := 4;
+
+  for Index := 1 to Max4Length do
+  begin
+    if not (AccNumber[Index] in ['0'..'9']) then
+      Result := Result + AccNumber[Index]
+    else
+      Exit;
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TMuddler.MuddlePracticeSys(var PracticeFields : tPractice_Details_Rec;
                                      Name         : string;
                                      Phone        : string;
@@ -952,8 +973,10 @@ var
 begin
   if not (AccountObj.baFields.baAccount_Type in ACC_TYPE_NOT_MUDDLED) then
   begin
-    AccountNumber := '1111' + fDataGenerator.GenerateCode(8);
+    AccountNumber := '1111' + fDataGenerator.GenerateCode(6);
     AccountName   := fDataGenerator.GeneratePersonName(1,2);
+
+    AccountNumber := GetFirstAlphaCharFromAcc(AccountObj.baFields.baBank_Account_Number) + AccountNumber;
 
     AddAccountOldNew(AccountObj.baFields.baBank_Account_Number,
                      AccountNumber,
@@ -1437,8 +1460,10 @@ begin
                             NewAccNumber,
                             NewAccName) then
       begin
-        NewAccNumber := '1111' + fDataGenerator.GenerateCode(8);;
-        NewAccName   := fDataGenerator.GeneratePersonName(1,2);;
+        NewAccNumber := '1111' + fDataGenerator.GenerateCode(6);
+        NewAccName   := fDataGenerator.GeneratePersonName(1,2);
+
+        NewAccNumber := GetFirstAlphaCharFromAcc(SysBankAccItem.sbAccount_Number) + NewAccNumber;
       end;
 
       SysBankAccItem.sbAccount_Number := NewAccNumber;
