@@ -996,9 +996,11 @@ begin
                      EncodeDate(Year, Month, Day),
                      fDataGenerator.GenerateCompanyName('Bank'));
     end;
+  end
+  else
+    AccountObj.baFields.baBank_Account_Name := fDataGenerator.GeneratePersonName(1,2);
 
-    AccountObj.baFields.baBank_Account_Password := '';
-  end;
+  AccountObj.baFields.baBank_Account_Password := '';
 
   for TransIndex := 0 to AccountObj.baTransaction_List.ItemCount - 1 do
     MuddleTransactionBk5(AccountObj.baTransaction_List.Transaction_At(TransIndex));
@@ -1468,8 +1470,11 @@ begin
 
       SysBankAccItem.sbAccount_Number := NewAccNumber;
       SysBankAccItem.sbAccount_Name   := NewAccName;
-      SysBankAccItem.sbAccount_Password := '';
-    end;
+    end
+    else
+      SysBankAccItem.sbAccount_Name := fDataGenerator.GeneratePersonName(1,2);
+
+    SysBankAccItem.sbAccount_Password := '';
   end;
 
   // Admin Memorizations
