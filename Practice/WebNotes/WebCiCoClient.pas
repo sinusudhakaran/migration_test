@@ -129,10 +129,8 @@ type
                                        CreateNewGuid   : Boolean);
 
     procedure GetBooksDetailsToSend(ClientCode      : string;
-                                    var FileName    : String;
-                                    var Guid        : TGuid;
-                                    var ClientEmail : string;
-                                    CreateNewGuid   : Boolean);
+                                    var FileName    : string;
+                                    var ClientEmail : string);
   public
     constructor Create; Override;
 
@@ -410,53 +408,25 @@ begin
     PracPass    := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN).usPassword;
     CountryCode := CountryText(AdminSystem.fdFields.fdCountry);
 
-    GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail, CreateNewGuid);
+    GetBooksDetailsToSend(ClientCode, FileName, ClientEmail);
   end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetBooksDetailsToSend(ClientCode      : string;
-                                               var FileName    : String;
-                                               var Guid        : TGuid;
-                                               var ClientEmail : String;
-                                               CreateNewGuid   : Boolean);
+                                               var FileName    : string;
+                                               var ClientEmail : string);
 var
-  ClientFileRec : pClient_File_Rec;
   fClientObj    : TClientObj;
 begin
-  ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(ClientCode);
-
-  if Assigned(ClientFileRec) then
-  begin
-    if CreateNewGuid then
-    begin
-      CreateGUID(Guid);
-      ClientFileRec.cfClient_File_GUID := GuidToString(Guid);
-    end
-    else
-      Guid := StringToGuid(ClientFileRec.cfClient_File_GUID);
-
-    FileName   := ClientFileRec^.cfFile_Code;
-
-    fClientObj := TClientObj.Create;
-    Try
-      fClientObj.Open(FileName, FILEEXTN);
-
-      FileName := DataDir + FileName + FILEEXTN;
-      ClientEmail := fClientObj.clFields.clClient_EMail_Address;
-
-      if CreateNewGuid then
-      begin
-        fClientObj.clExtra.ceClient_File_GUID := GuidToString(Guid);
-        fClientObj.Save;
-      end;
-    Finally
-      FreeAndNil(fClientObj);
-    End;
-
-    if CreateNewGuid then
-      AdminSystem.Save;
-  end;
+  fClientObj := TClientObj.Create;
+  Try
+    fClientObj.Open(ClientCode, FILEEXTN);
+    FileName    :=  DataDir + ClientCode + FILEEXTN;
+    ClientEmail := fClientObj.clFields.clClient_EMail_Address;
+  Finally
+    FreeAndNil(fClientObj);
+  End;
 end;
 
 //------------------------------------------------------------------------------
@@ -478,7 +448,7 @@ var
 begin
   {SetSoapMethod('SetUserPassword');
 
-  GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail, False);
+  GetBooksDetailsToSend(ClientCode, FileName, ClientEmail);
 
   AppendSoapHeaderInfo;
 
@@ -584,7 +554,7 @@ var
 begin
   HttpAddress := 'http://posttestserver.com/post.php';
 
-  GetBooksDetailsToSend(ClientCode, FileName, Guid, ClientEmail, True);
+  GetBooksDetailsToSend(ClientCode, FileName, ClientEmail);
   ClearHttpHeader;
 
   AddHttpHeaderInfo('ClientId',    ClientCode);

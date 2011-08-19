@@ -28,7 +28,8 @@ type
       wRead_Only        : Boolean;
       wUpdateServer     : String[60];    //dont use this! it will cause 5.12 to fail upgrading
       wPwdHash          : String[32];
-      wSpare            : Array[ 1..18] of Byte;
+      wHasGUID          : ByteBool;
+      wSpare            : Array[ 1..17] of Byte;
    end;
 
 procedure GetClientWrapper(FileName: string; var W: TClientWrapper; AllowReadOnly: Boolean);

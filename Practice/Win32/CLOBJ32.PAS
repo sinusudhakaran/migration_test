@@ -1199,6 +1199,7 @@ begin
     wRead_Only         := clFile_Read_Only;
     wSignature         := BankLink_Signature;
     wUpdateServer      := '';
+    wHasGUID           := (clExtra.ceClient_File_GUID <> '');
   end;
 
   //create file

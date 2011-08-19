@@ -1555,10 +1555,10 @@ begin
            pIDRec^.imData    := sysClientRec;
            pIDRec^.imTag     := 0;
            pIDRec^.imType    := sysClientRec^.cfClient_Type;
-           pIDRec^.imSendMethod := sysClientRec^.cfSend_Method;
+           pIDRec^.imSendMethod     := sysClientRec^.cfSend_Method;
            pIDRec^.imBankLinkOnline := '';
-           pIDRec^.imModifiedBy := '';
-           pIDRec^.imModifiedDate := '';
+           pIDRec^.imModifiedBy     := '';
+           pIDRec^.imModifiedDate   := '';
         end;
       end;
     end;
@@ -1589,81 +1589,83 @@ begin
           end;
         end;
 
-        //Load into client files list
-        if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
-        begin
-          pIDRec := FIntermediateDataList.Add;
-          pIDRec^.imCode    := Wrapper.wCode;
-          pIDRec^.imName    := Wrapper.wName;
-          pIDRec^.imGroupID := 0;
-          pIDRec^.imData    := nil;
-          pIDRec^.imTag     := 0;
-          pIDRec^.imType    := ctActive;
-          pIDRec^.imSendMethod     := smBankLinkOnline;
-          pIDRec^.imBankLinkOnline := '';
-          pIDRec^.imModifiedBy     := '';
-          pIDRec^.imModifiedDate   := '';
-
-          //if we are doing a check in and we have an admin system then check
-          //the file status
-          if FUsingAdminSystem then
+        //Don't display books client files for banklink online if it doesn't have a GUID
+        if (not FUsingBankLinkOnline) or Wrapper.wHasGUID then begin
+          //Load into client files list
+          if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
           begin
-            sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode( Wrapper.wCode);
-            pIDRec^.imData := sysClientRec;
-          end
-          else
-            if ( FFilterMode = fmFilesForCheckIn) then
+            pIDRec := FIntermediateDataList.Add;
+            pIDRec^.imCode    := Wrapper.wCode;
+            pIDRec^.imName    := Wrapper.wName;
+            pIDRec^.imGroupID := 0;
+            pIDRec^.imData    := nil;
+            pIDRec^.imTag     := 0;
+            pIDRec^.imType    := ctActive;
+            pIDRec^.imSendMethod     := smBankLinkOnline;
+            pIDRec^.imBankLinkOnline := '';
+            pIDRec^.imModifiedBy     := '';
+            pIDRec^.imModifiedDate   := '';
+
+            //if we are doing a check in and we have an admin system then check
+            //the file status
+            if FUsingAdminSystem then
             begin
-              //checkin at offsite, see if file already exists
-              //a conflict situation occurs only if the existing file is
-              //currently writable
-              //ie user is trying to check in a file over the top of an
-              //existing valid file.
-              if BKFileExists( DataDir + SearchRec.Name) then
-              begin
-                try
-                  GetClientWrapper( DataDir + SearchRec.Name, WrapperOfExistingFile, False);
-                  if WrapperOfExistingFile.wRead_Only then
-                    pIDRec^.imTag := 0
-                  else
-                    pIDRec^.imTag := Tag_CheckInConflict;
-                except
-                  on E : Exception do
-                  begin
-                    //unable to read the wrapper, create a dummy wrapper with the error
-                    //assume that a conflict will exist
-                    pIDRec^.imTag := Tag_CheckInConflict;
-                  end;
-                end;
-              end;
+              sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode( Wrapper.wCode);
+              pIDRec^.imData := sysClientRec;
             end
             else
-              if ( Wrapper.wRead_Only) then
-                pIDRec^.imTag := Tag_ReadOnlyFile;
-        end
-        else
-        begin
-          //this is not a banklink file!
-          S := Copy( SearchRec.Name, 1, Pos( '.', SearchRec.Name) -1);
-
-          pIDRec := FIntermediateDataList.Add;
-          pIDRec^.imCode    := S;
-
-          if Wrapper.wSignature = ERROR_SIGNATURE then
-            pIDRec^.imName := Wrapper.wName
+              if ( FFilterMode = fmFilesForCheckIn) then
+              begin
+                //checkin at offsite, see if file already exists
+                //a conflict situation occurs only if the existing file is
+                //currently writable
+                //ie user is trying to check in a file over the top of an
+                //existing valid file.
+                if BKFileExists( DataDir + SearchRec.Name) then
+                begin
+                  try
+                    GetClientWrapper( DataDir + SearchRec.Name, WrapperOfExistingFile, False);
+                    if WrapperOfExistingFile.wRead_Only then
+                      pIDRec^.imTag := 0
+                    else
+                      pIDRec^.imTag := Tag_CheckInConflict;
+                  except
+                    on E : Exception do
+                    begin
+                      //unable to read the wrapper, create a dummy wrapper with the error
+                      //assume that a conflict will exist
+                      pIDRec^.imTag := Tag_CheckInConflict;
+                    end;
+                  end;
+                end;
+              end
+              else
+                if ( Wrapper.wRead_Only) then
+                  pIDRec^.imTag := Tag_ReadOnlyFile;
+          end
           else
-            pIDRec^.imName    := 'ERROR: This is not a BankLink file!';
+          begin
+            //this is not a banklink file!
+            S := Copy( SearchRec.Name, 1, Pos( '.', SearchRec.Name) -1);
 
-          pIDRec^.imGroupID := 0;
-          pIDRec^.imData    := nil;
-          pIDRec^.imTag     := Tag_CheckInConflict;
-          pIDRec^.imBankLinkOnline := '';
-          pIDRec^.imModifiedBy     := '';
-          pIDRec^.imModifiedDate   := '';
+            pIDRec := FIntermediateDataList.Add;
+            pIDRec^.imCode    := S;
+
+            if Wrapper.wSignature = ERROR_SIGNATURE then
+              pIDRec^.imName := Wrapper.wName
+            else
+              pIDRec^.imName    := 'ERROR: This is not a BankLink file!';
+
+            pIDRec^.imGroupID := 0;
+            pIDRec^.imData    := nil;
+            pIDRec^.imTag     := Tag_CheckInConflict;
+            pIDRec^.imBankLinkOnline := '';
+            pIDRec^.imModifiedBy     := '';
+            pIDRec^.imModifiedDate   := '';
+          end;
         end;
-
         Found := FindNext( SearchRec );
-      End;
+      end;
 
       //Update the banklink online status for checkout from practice
       if FUsingBankLinkOnline then
