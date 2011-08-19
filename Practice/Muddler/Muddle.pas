@@ -521,8 +521,7 @@ begin
 
   for FileIndex := 1 to 3 do
   begin
-    AssignFile(WorkFile, DataDir + 'Work\' + inttostr(Monthof(FirstDate)) + '-' +
-                         inttostr(Yearof(FirstDate)) + '.csv');
+    AssignFile(WorkFile, DataDir + 'Work\' + FormatDateTime('mmmyyyy', FirstDate) + rfFileExtn[rfCSV]);
     ReWrite(WorkFile);
 
     Try
@@ -985,9 +984,11 @@ begin
     AccountObj.baFields.baBank_Account_Number := AccountNumber;
     AccountObj.baFields.baBank_Account_Name   := AccountName;
 
-    if AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed > 0 then
+
+
+    if AccountObj.baTransaction_List.LastPresDate > 0 then
     begin
-      StDateToDMY(AccountObj.baFields.baTemp_New_Date_Last_Trx_Printed, Day, Month, Year);
+      StDateToDMY(AccountObj.baTransaction_List.LastPresDate, Day, Month, Year);
       AddBillingInfo(ClientName,
                      AccountNumber,
                      AccountName,
