@@ -20,125 +20,94 @@ object frmCheckInOut: TfrmCheckInOut
   TextHeight = 13
   object pnlFooter: TPanel
     Left = 0
-    Top = 394
+    Top = 427
     Width = 984
-    Height = 73
+    Height = 40
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
       984
-      73)
-    object lblDirLabel: TLabel
-      Left = 7
-      Top = 10
-      Width = 86
-      Height = 13
-      Anchors = [akLeft, akBottom]
-      Caption = '&Check out files to '
-      FocusControl = ePath
-    end
-    object btnFolder: TSpeedButton
-      Left = 940
-      Top = 8
-      Width = 25
-      Height = 22
-      Hint = 'Click to Select a Folder'
-      Anchors = [akRight, akBottom]
-      ParentShowHint = False
-      ShowHint = True
-      OnClick = btnFolderClick
-      ExplicitLeft = 556
-    end
+      40)
     object btnOK: TButton
-      Left = 820
-      Top = 40
+      Left = 819
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&OK'
       Default = True
       ModalResult = 1
-      TabOrder = 2
+      TabOrder = 1
     end
     object btnCancel: TButton
       Left = 900
-      Top = 40
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
       ModalResult = 2
-      TabOrder = 3
+      TabOrder = 2
     end
     object chkAvailOnly: TCheckBox
-      Left = 16
-      Top = 48
+      Left = 7
+      Top = 7
       Width = 377
       Height = 17
       Caption = 'Only &show files that can be checked out'
       Checked = True
       State = cbChecked
-      TabOrder = 1
-      OnClick = chkAvailOnlyClick
-    end
-    object ePath: TEdit
-      Left = 128
-      Top = 8
-      Width = 809
-      Height = 21
-      Anchors = [akLeft, akRight, akBottom]
       TabOrder = 0
-      OnEnter = ePathEnter
-      OnExit = ePathExit
+      OnClick = chkAvailOnlyClick
     end
   end
   object pnlFrameHolder: TPanel
     Left = 0
     Top = 0
     Width = 984
-    Height = 394
+    Height = 392
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 1
     inline ClientLookupFrame: TfmeClientLookup
       Left = 0
-      Top = 183
+      Top = 171
       Width = 984
-      Height = 211
+      Height = 221
       Align = alClient
       TabOrder = 0
       TabStop = True
-      ExplicitTop = 183
+      ExplicitTop = 171
       ExplicitWidth = 984
-      ExplicitHeight = 211
+      ExplicitHeight = 221
       inherited vtClients: TVirtualStringTree
         Width = 984
-        Height = 211
+        Height = 221
         Header.Font.Height = -13
         ExplicitWidth = 984
-        ExplicitHeight = 211
+        ExplicitHeight = 221
       end
     end
     object pnSendOptions: TPanel
       Left = 0
       Top = 0
       Width = 984
-      Height = 103
+      Height = 95
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
       object lblPreferredMethod: TLabel
         Left = 16
-        Top = 16
+        Top = 8
         Width = 292
         Height = 13
         Caption = 'Select the preferred method of sending the selected client(s)'
       end
       object rbStandard: TRadioButton
         Left = 64
-        Top = 45
+        Top = 37
         Width = 276
         Height = 17
         Caption = 'via standard file transfer'
@@ -147,7 +116,7 @@ object frmCheckInOut: TfrmCheckInOut
       end
       object rbBankLinkOnline: TRadioButton
         Left = 64
-        Top = 74
+        Top = 66
         Width = 276
         Height = 17
         Caption = 'via BankLink Online'
@@ -159,9 +128,9 @@ object frmCheckInOut: TfrmCheckInOut
     end
     object pnlPassword: TPanel
       Left = 0
-      Top = 103
+      Top = 95
       Width = 984
-      Height = 80
+      Height = 76
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 2
@@ -196,13 +165,14 @@ object frmCheckInOut: TfrmCheckInOut
         PasswordChar = '*'
         TabOrder = 1
       end
-      object BitBtn1: TBitBtn
+      object btnRefresh: TBitBtn
         Left = 528
         Top = 3
         Width = 121
         Height = 25
         Caption = 'Refresh'
         TabOrder = 2
+        OnClick = btnRefreshClick
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
           18000000000000030000120B0000120B00000000000000000000FF00FFFF00FF
@@ -240,6 +210,48 @@ object frmCheckInOut: TfrmCheckInOut
         TabOrder = 3
         OnClick = btnChangePasswordClick
       end
+    end
+  end
+  object pnlBrowseDir: TPanel
+    Left = 0
+    Top = 392
+    Width = 984
+    Height = 35
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 2
+    DesignSize = (
+      984
+      35)
+    object lblDirLabel: TLabel
+      Left = 7
+      Top = 8
+      Width = 86
+      Height = 13
+      Anchors = [akLeft, akBottom]
+      Caption = '&Check out files to '
+      FocusControl = ePath
+    end
+    object btnFolder: TSpeedButton
+      Left = 940
+      Top = 6
+      Width = 25
+      Height = 22
+      Hint = 'Click to Select a Folder'
+      Anchors = [akRight, akBottom]
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = btnFolderClick
+    end
+    object ePath: TEdit
+      Left = 128
+      Top = 6
+      Width = 809
+      Height = 21
+      Anchors = [akLeft, akRight, akBottom]
+      TabOrder = 0
+      OnEnter = ePathEnter
+      OnExit = ePathExit
     end
   end
 end

@@ -18,8 +18,10 @@ type
   function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
   procedure CheckOut(CodesToCheckOut : string = ''; ASendMethod: byte = 0);
   function CheckoutClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
+                          var AEmail: string;
                           IsScheduledReport: Boolean = False; Silent: Boolean = False;
-                          AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0) : Boolean;
+                          AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0) : Boolean; overload;
+  function CheckoutClient(Code : string; Path : string; ASendMethod: byte = 0): Boolean; overload;
   function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress; IsScheduledReports: Boolean = False) : boolean;
   function CheckInRemoteClient( filename : string) : boolean;
 
@@ -91,7 +93,8 @@ uses
   UBatchBase,
   RadioOptionsDlg, BKDEFS, SysObj32, cfList32, GenUtils, syamio, WebXUtils,
   ECodingUtils, BKUtil32, baObj32, baUtils, bkDateUtils,
-  UpgradeHelper, ClientManagerFrm, ClientUtils, ExchangeRateList;
+  UpgradeHelper, ClientManagerFrm, ClientUtils, ExchangeRateList,
+  WebCiCoClient, MailFrm, ClientDetailCacheObj;
 
 const
   UnitName = 'FILES';
@@ -1312,35 +1315,146 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
+procedure CheckBankLinkOnineStatus(AClientCode, AClientFilename: string);
+//  STATUS_AVAILABLE               = 'Available';
+//  STATUS_PRACTICE                = 'Checked in to Practice';
+//  STATUS_PRACTICE_COPY_AVAILABLE = 'Checked in to Practice (Copy Available)';
+//  STATUS_BOOKS                   = 'Checked in to Books';
+//  STATUS_SUPPORT                 = 'Checked in to Support';
+var
+  Msg: string;
+  StatusList: TClientStatusList;
+  Status: TClientStatusItem;
+begin
+  //Get client status from BankLink Online
+  StatusList := TClientStatusList.Create;
+  try
+    try
+      CiCoClient.GetClientFileStatus(Assigned(AdminSystem), StatusList, AClientCode);
+    except
+      on E: Exception do begin
+        //Can't get status - what do we do? Retry?
+        Msg := Format('Unable to get client file status: %s',  [E.Message]);
+        raise EUploadFailed.CreateFmt(Msg, [AClientFilename]);
+      end;
+    end;
+    //Prompts depending on status
+    if StatusList.Count > 0 then begin
+      Status := StatusList.Items[0];
+
+      //*** TEST ****
+//      Status.Status := 'PracticeUpload';
+//      Status.UserModified := 'Practice';
+      { TODO -oSW : Update status text }
+
+      if Assigned(AdminSystem) then begin
+        //Practice status error messages
+        if (Status.ClientCode = AClientCode) then begin
+          if (Status.Status = 'BooksDownload') then begin
+            //Checked out by books
+            Msg := Format('The client file ''%s'' is currently checked in by your client. ' +
+                          'The client file must have an ''Available'' status. ' +
+                          'Please contact your client',[AClientCode]);
+            HelpfulErrorMsg(Msg, 0);
+            raise EUploadFailed.CreateFmt('The client file has been checked in by the client.', [AClientFilename]);
+          end else if (Status.Status = 'BooksUpload') then begin
+            //Updated by books
+            Msg := Format('The client file ''%s'' has been updated by your client ' +
+                          'since this file was last checked out. Would you like to ' +
+                          'overwrite this file with the version you currently have?',
+                          [AClientCode]);
+            if AskYesNo('Check Out to BankLink Online', Msg, mrYes, 0) <> DLG_YES then
+              raise EUploadFailed.CreateFmt('The client file has been updated by the client.', [AClientFilename]);
+          end else if (Status.Status = 'SupportUpload') then begin
+            //Updated by support
+            Msg := Format('You have selected to check out the client file ''%s'' ' +
+                          'which will cause the BankLink Online version of this client file ' +
+                          'to be overwritten, which was last updated by BankLink Support. ' +
+                          'Are you sure you want to continue?', [AClientCode]);
+            if AskYesNo('Check Out to BankLink Online', Msg, mrYes, 0) <> DLG_YES then
+              raise EUploadFailed.CreateFmt('The client file has been updated by BankLink Support.', [AClientFilename]);
+          end else if (Status.Status = 'SupportDownload') then begin
+            //Checked out by support
+            Msg := Format('The client file ''%s'' is currently checked in by BankLink Support. ' +
+                          'Would you like to reset the status and send this version to BankLink Online?',
+                          [AClientCode]);
+            if AskYesNo('Check Out to BankLink Online', Msg, mrYes, 0) <> DLG_YES then
+              raise EUploadFailed.CreateFmt('The client file has been checked in by BankLink Support.', [AClientFilename]);
+          end;
+        end else
+          raise EUploadFailed.CreateFmt('Unable to get client file status', [AClientFilename]);
+      end else begin
+        //Books status error messages
+        if (Status.ClientCode = AClientCode) then begin
+          if (Status.Status = 'PracticeDownload') then begin
+            //Checked in by accountant
+            Msg := Format('The client file ''%s'' is currently checked in by your Accountant. ' +
+                          'Please contact your Accountant',[AClientCode]);
+            HelpfulErrorMsg(Msg, 0);
+            raise EUploadFailed.CreateFmt('The client file has been checked in by your Accountant.', [AClientFilename]);
+          end else if (Status.Status = 'SupportUpload') then begin
+            //Checked in by support
+            Msg := Format('The client file ''%s'' is currently checked in by BankLink Support. ' +
+                          'Please contact your Accountant',[AClientCode]);
+            HelpfulErrorMsg(Msg, 0);
+            raise EUploadFailed.CreateFmt('The client file has been checked in by BankLink Support.', [AClientFilename]);
+          end else if (Status.Status = 'PracticeUpload') and (Status.UserModified = 'Practice') then begin
+            //Updated by practice
+            Msg := Format('Your Accountant has provided a more recent version of this client file ''%s''. ' +
+                          'Please contact your Accountant',[AClientCode]);
+            HelpfulErrorMsg(Msg, 0);
+            raise EUploadFailed.CreateFmt('The client file has been updated your Accountant.', [AClientFilename]);
+          end else if (Status.Status = 'PracticeUpload') and (Status.UserModified = 'Books') then begin
+            //Already uploaded from books
+            Msg := Format('You have selected to check out a client file that has already ' +
+                          'been made available. Would you like to overwrite the client ' +
+                          'file ''%s'' on BankLink Online with this client file?',
+                          [AClientCode]);
+            if AskYesNo('Check Out to BankLink Online', Msg, mrYes, 0) <> DLG_YES then
+              raise EUploadFailed.CreateFmt('The client file has already been checked out.', [AClientFilename]);
+          end;
+        end;
+      end;
+    end else
+      raise EUploadFailed.CreateFmt('Unable to get client file status', [AClientFilename]);
+  finally
+    StatusList.Free;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function UploadToBanklinkOnline(AClientCode, AClientFilename: string;
-  AProgressFrm: TfrmChkProgress): boolean;
+procedure UploadToBanklinkOnline(AClientCode, AClientFilename: string;
+  AProgressFrm: TfrmChkProgress; var AEmail: string);
 const
   ThisMethodName = 'UploadToBanklinkOnline';
 var
-  i: integer;
   ClientFileRec: pClient_File_Rec;
+  Msg: string;
 begin
-  Result := False;
-
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-  //AdminSystem should always be assigned here
-  if Assigned(AdminSystem) then begin
-    ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(AClientCode);
-    if Assigned(ClientFileRec) then begin
-      //User client details to get status from web service
+  CheckBankLinkOnineStatus(AClientCode, AClientFilename);
+
+  try
+    //Upload to BankLink Online
+    CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
+    if Assigned(AdminSystem) then
+      CiCoClient.UploadFileFromPractice(AClientCode, AEmail)
+    else
+      CiCoClient.UploadFileFromBooks(AClientCode);
+  except
+    on E: Exception do begin
+      Msg := Format( 'File upload to BankLink Online Failed: %s.', [E.Message]);
+      raise EUploadFailed.CreateFmt(Msg, [AClientFilename]);
     end;
   end;
-
-  raise EUploadFailed.CreateFmt('not implemented yet',
-                                [AClientFilename]);
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function CheckoutPracticeClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
+  var AEmail: string;
   IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
 const
@@ -1418,14 +1532,29 @@ begin
       DoClientSave(false, Tempclient);
     end;
 
-    //Copy file
+    //Copy/Upload client file
     try
       case ASendMethod of
         smNone,
-        smStandardFileTransfer: FCopy.CopyFile(LocalFileName, RemoteFileName);
-        smBankLinkOnline      : UploadToBanklinkOnline(Code, LocalFileName, ProgressFrm);
+        smStandardFileTransfer:
+              begin
+                FCopy.CopyFile(LocalFileName, RemoteFileName);
+                if DebugMe then
+                  LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Copied to %s',
+                                 [ThisMethodName, RemoteFileName]));
+                //Check that crc is valid of new file
+                CrcFileUtils.CheckEmbeddedCRC( RemoteFileName);
+              end;
+        smBankLinkOnline:
+              begin
+                UploadToBanklinkOnline(Code, LocalFileName, ProgressFrm, AEmail);
+                if DebugMe then
+                  LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
+                                 [ThisMethodName, BankLinkLiveName]));
+              end;
       end;
     except
+      //Copy file exception
       on E : EFCopyFailed do begin
         Msg := Format( 'File Copy Failed %s.', [ E.Message ] );
         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' : '+Msg);
@@ -1433,22 +1562,7 @@ begin
           ProgressFrm.mProgress.Lines.Add('Skipped '+Code+' - '+Msg);
         Exit;
       end;
-      on E : EUploadFailed do begin
-        Msg := Format( 'File upload to BankLink Online Failed - %s.', [E.Message]);
-        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
-        if not IsScheduledReport then
-          ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
-//        Exit;
-      end;
-    end;
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Copied to %s',
-                                               [ThisMethodName, RemoteFileName]));
-
-    //check that crc is valid of new file
-    try
-      CrcFileUtils.CheckEmbeddedCRC( RemoteFileName);
-    except
+      //CRC exception
       on E : EInOutError do begin
         Msg := '** CRC Check failed for '+CODE+'.  Error: ' + E.Message;
         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
@@ -1456,16 +1570,24 @@ begin
           ProgressFrm.mProgress.Lines.Add(Msg);
         Exit;
       end;
-
+      //CRC failed
       on E : ECRCCheckFailed do begin
         Msg := '** CRC Check failed for '+CODE;
         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg +'  Error: ' + E.Message);
         if not IsScheduledReport then
           ProgressFrm.mProgress.Lines.Add(Msg);
         Exit;
-      end
+      end;
+      //BankLink Online exception
+      on E : EUploadFailed do begin
+        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + E.Message);
+        if not IsScheduledReport then
+          ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + E.Message);
+        Exit;
+      end;
     end;
 
+    //Update admin system client file rec
     if LoadAdminSystem(true, ThisMethodName ) then begin
       CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
       if not Assigned( CFRec ) then begin
@@ -1514,7 +1636,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function CheckoutBooksClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
-  IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  var AEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
 const
   ThisMethodName = 'CheckoutBooksClient';
@@ -1527,7 +1649,7 @@ var
 begin
   //Never comes in here for scheduled reports - admin system must exist
   //admin system does not exists so is an off-site client
-  Result := True;
+  Result := False;
   TempClient := nil;
 
   LocalFileName  := DATADIR + CODE + FILEEXTN;
@@ -1572,9 +1694,27 @@ begin
     LogUtil.LogMsg(lmDebug, UnitName, Msg);
   end;
 
-  //Copy file
+  //Copy/Upload client file
   try
-    FCopy.CopyFile(LocalFileName, RemoteFileName);
+    case ASendMethod of
+      smNone,
+      smStandardFileTransfer:
+            begin
+              FCopy.CopyFile(LocalFileName, RemoteFileName);
+              if DebugMe then
+                LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Copied to %s',
+                               [ThisMethodName, RemoteFileName]));
+              //Check that crc is valid of new file
+              CrcFileUtils.CheckEmbeddedCRC(RemoteFileName);
+            end;
+      smBankLinkOnline:
+            begin
+              UploadToBanklinkOnline(Code, LocalFileName, ProgressFrm, AEmail);
+              if DebugMe then
+                LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
+                               [ThisMethodName, BankLinkLiveName]));
+            end;
+    end;
   except
     on E : EFCopyFailed do begin
       Msg := Format( 'File Copy Failed %s.', [E.Message]);
@@ -1582,26 +1722,25 @@ begin
       ProgressFrm.mProgress.Lines.Add('Skipped '+ Code + ': ' + Msg);
       Exit;
     end;
-  end;
-
-  //check that crc is valid
-  try
-    CrcFileUtils.CheckEmbeddedCRC(RemoteFileName);
-  except
     on E : EInOutError do begin
       Msg := '** CRC Check failed for ' + CODE + '.  Error: ' + E.Message;
       LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' ' + Msg);
       ProgressFrm.mProgress.Lines.Add(Msg);
       Exit;
     end;
-
     on E : ECRCCheckFailed do begin
       Msg := '** CRC Check failed for ' + CODE;
-      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' ' + Msg +
-                     '  Error: ' + E.Message);
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' ' + Msg + '  Error: ' + E.Message);
       ProgressFrm.mProgress.Lines.Add(Msg);
       Exit;
-    end
+    end;
+    //BankLink Online exception
+    on E : EUploadFailed do begin
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + E.Message);
+      if not IsScheduledReport then
+        ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + E.Message);
+      Exit;
+    end;
   end;
 
   //Backup exists, remote file has been crc checked
@@ -1620,6 +1759,7 @@ begin
     LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' Could not mark ' +
                                      Code + ' as read-only');
 
+  Result := True;                                     
   Msg := Format('Check Out %s to %s succeeded',[Code, RemoteFileName]);
   LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
   if not IsScheduledReport then
@@ -1629,6 +1769,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //Code for checking out and individual client
 function CheckoutClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
+  var AEmail: string;
   IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
 const
@@ -1641,14 +1782,16 @@ begin
   if not IsScheduledReport then
     ProgressFrm.mProgress.Lines.Add( 'Checking out client ' + Code);
 
-  if Assigned( AdminSystem) then
+  if Assigned(AdminSystem) then
     //Practice Client File
-    CheckoutPracticeClient(Code, Path, ProgressFrm, IsScheduledReport, Silent,
-                           AllowMultiplePwdFiles, ASendMethod)
+    Result := CheckoutPracticeClient(Code, Path, ProgressFrm, AEmail,
+                                     IsScheduledReport, Silent,
+                                     AllowMultiplePwdFiles, ASendMethod)
   else
     //Books Client File
-    CheckoutBooksClient(Code, Path, ProgressFrm, IsScheduledReport, Silent,
-                        AllowMultiplePwdFiles, ASendMethod);
+    Result := CheckoutBooksClient(Code, Path, ProgressFrm, AEmail,
+                                  IsScheduledReport, Silent,
+                                  AllowMultiplePwdFiles, ASendMethod);
 
   if not IsScheduledReport then begin
     ProgressFrm.BringToFront;
@@ -1658,6 +1801,45 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
+function CheckoutClient(Code : string; Path : string; ASendMethod: byte = 0) : Boolean;
+const
+  ThisMethodName = 'CheckoutClient';
+var
+  TempStr: string;
+begin
+  Result := True;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  if not Assigned( AdminSystem) then
+    Exit;
+
+  //Check out client file for scheduled reports
+  CheckoutPracticeClient(Code, Path, nil, TempStr, True, True, False, ASendMethod);
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+function GetEmailAddress(ACodeList: TStringList): string;
+var
+  i: integer;
+  LastEmail: string;
+begin
+  Result := '';
+  LastEmail := '';
+  for i := 0 to ACodeList.Count - 1 do begin
+    if (ACodeList.ValueFromIndex[i] <> '') then begin
+      if (LastEmail = '') then begin
+        LastEmail := ACodeList.ValueFromIndex[i];
+        Result := LastEmail;
+      end else if (ACodeList.ValueFromIndex[i] <> LastEmail) then begin
+        Result := '';
+        Exit;
+      end;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure CheckOut(CodesToCheckOut : string = ''; ASendMethod: byte = 0);
 const
@@ -1665,9 +1847,11 @@ const
 var
   i: integer;
   CodeList: TStringList;
+  SentClientCodes: string;
   SendMethod: byte;
   ProgressFrm: TfrmChkProgress;
   Failures: Integer;
+  EMail: string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -1700,10 +1884,21 @@ begin
         //Cycle thru each client, updating transactions without asking
         Failures := 0;
 
+        SentClientCodes := '';
         for i := 0 to CodeList.Count -1 do begin
-          if not CheckoutClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm,
+          EMail := '';
+          if not CheckoutClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, EMail,
                                 False, (CodeList.Count > 1) , True, ASendMethod) then
-            Inc(Failures);
+            Inc(Failures)
+          else begin
+            //Add to comma delimited list of client codes
+            if i = 0 then
+              SentClientCodes := CodeList[i]
+            else
+              SentClientCodes := SentClientCodes + ', ' + CodeList[i];
+            //Save the email address
+            CodeList[i] := CodeList[i] + '=' + EMail;
+          end;
         end;
 
         ProgressFrm.mProgress.Lines.Add('');
@@ -1716,6 +1911,22 @@ begin
         ProgressFrm.btnOK.Enabled := true;
         ProgressFrm.Hide;
         ProgressFrm.ShowModal;
+        ProgressFrm.BringToFront;
+
+        //If checkout from practice,
+        //   to banklink online,
+        //   and at least one file has been uploaded...
+        if (Assigned(AdminSystem)) and
+           (ASendMethod = smBankLinkOnline) and
+           (CodeList.Count > Failures) then begin
+          //Send email
+          SendMailTo('Send Client File(s) via ' + BankLinkLiveName,
+                     GetEmailAddress(CodeList),
+                     'BankLink Books File for ' + SentClientCodes,
+                     'The following Client File(s) are now available:' + SentClientCodes,
+                     '', False);
+        end;
+
       finally
         ProgressFrm.Free;
       end;

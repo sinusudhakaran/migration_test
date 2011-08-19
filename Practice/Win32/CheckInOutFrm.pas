@@ -29,9 +29,6 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     chkAvailOnly: TCheckBox;
-    lblDirLabel: TLabel;
-    ePath: TEdit;
-    btnFolder: TSpeedButton;
     ClientLookupFrame: TfmeClientLookup;
     pnSendOptions: TPanel;
     lblPreferredMethod: TLabel;
@@ -42,8 +39,12 @@ type
     eUsername: TEdit;
     Label3: TLabel;
     ePassword: TEdit;
-    BitBtn1: TBitBtn;
+    btnRefresh: TBitBtn;
     btnChangePassword: TButton;
+    pnlBrowseDir: TPanel;
+    lblDirLabel: TLabel;
+    ePath: TEdit;
+    btnFolder: TSpeedButton;
 
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -55,6 +56,7 @@ type
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure rbStandardClick(Sender: TObject);
     procedure btnChangePasswordClick(Sender: TObject);
+    procedure btnRefreshClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -92,7 +94,8 @@ uses
   IniSettings;
 
 const
-  MIN_STANDARD_WIDTH = 615;
+//  MIN_STANDARD_WIDTH = 615; //Original dialog width
+  MIN_STANDARD_WIDTH = 1000;
   MIN_ONLINE_WIDTH = 1000;
 
 {$R *.dfm}
@@ -107,7 +110,7 @@ end;
 procedure TfrmCheckInOut.FormKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if (Shift = [ssCtrl]) then begin
+  if (Shift = [ssAlt]) then begin
     if Key in [Ord(66), Ord(98)] then
       rbBankLinkOnline.Checked := True
     else if Key in [Ord(83), Ord(115)] then
@@ -130,6 +133,7 @@ end;
 procedure TfrmCheckInOut.rbStandardClick(Sender: TObject);
 begin
   SetupColumns;
+  ClientLookupFrame.Reload;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -152,12 +156,9 @@ begin
       Caption                := Title;
       DialogMode             := dmCheckout;
       chkAvailOnly.Visible   := True;
-      //chkAvailOnly.Checked   := True;
       ePath.Text             := Globals.INI_CheckOutDir;
-
       pnSendOptions.Visible    := True;
       rbBankLinkOnline.Enabled := True;
-//      rbBankLinkOnline.Checked := True;
       pnlPassword.Visible := False;
 
       SetupFrame;
@@ -205,10 +206,9 @@ begin
       ePath.Text             := Globals.INI_CheckInDir;
       TempCheckinPath        := ePath.Text;
 
-      pnSendOptions.Visible := False;
+      pnSendOptions.Visible := True;
       pnlPassword.Visible   := False;
       if not Assigned( AdminSystem) then begin
-        pnSendOptions.Visible := True;
         lblPreferredMethod.Caption := 'Select the preferred method of importing the selected client(s)';
         pnlPassword.Visible := True;
         eUsername.Text := Globals.INI_BankLink_Online_Username;
@@ -244,10 +244,7 @@ begin
       Caption                := Title;
       DialogMode             := dmSend;
       chkAvailOnly.Visible   := True;
-      lblDirLabel.Visible    := False;
-      ePath.Visible          := false;
-      btnFolder.Visible      := false;
-      pnlFooter.Height       := pnlFooter.Height - 25;
+      pnlBrowseDir.Visible   := False;
 
       pnSendOptions.Visible    := True;
       rbStandard.Checked     := True;
@@ -281,10 +278,7 @@ begin
       Caption                := Title;
       DialogMode             := dmSend;
       chkAvailOnly.Visible   := True;
-      lblDirLabel.Visible    := False;
-      ePath.Visible          := false;
-      btnFolder.Visible      := false;
-      pnlFooter.Height       := pnlFooter.Height - 25;
+      pnlBrowseDir.Visible   := False;
       if not Multiple then
         ClientLookupFrame.SelectMode := smSingle;
       ePath.Text             := '';
@@ -363,6 +357,11 @@ begin
   UserINI_Client_Lookup_Sort_Direction := Ord(ClientLookupFrame.SortDirection);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCheckInOut.btnRefreshClick(Sender: TObject);
+begin
+  ClientLookupFrame.Reload;
+end;
+
 procedure TfrmCheckInOut.btnChangePasswordClick(Sender: TObject);
 var
   NewPassword: string;
@@ -407,7 +406,6 @@ procedure TfrmCheckInOut.SetupColumns;
 var
   i: integer;
   Column: TCluColumnDefn;
-  ShowDir: boolean;
 begin
   for i := 0 to ClientLookupFrame.Columns.Count - 1 do begin
     Column := ClientLookupFrame.Columns.ColumnDefn_At(i);
@@ -415,20 +413,22 @@ begin
       Column.Visible := rbBankLinkOnline.Checked;
   end;
 
-  if rbBankLinkOnline.Checked then
+  if rbBankLinkOnline.Checked then begin
     Constraints.MinWidth := MIN_ONLINE_WIDTH
-  else begin
+  end else begin
     Constraints.MinWidth := MIN_STANDARD_WIDTH;
     Width := MIN_STANDARD_WIDTH;
   end;
 
   //Show 'Check out files to'
-  ShowDir := rbStandard.Checked and rbBankLinkOnline.Enabled;
-  lblDirLabel.Visible := ShowDir;
-  ePath.Visible := ShowDir;
-  btnFolder.Visible := ShowDir;
+  pnlBrowseDir.Visible := rbStandard.Checked;
+
+  //Hide username and password in Books for standard file transfer
+  if not Assigned(AdminSystem) then
+    pnlPassword.Visible := rbBankLinkOnline.Checked;
 
   ClientLookupFrame.BuildGrid(ClientLookupFrame.SortColumn);
+  ClientLookupFrame.UsingBankLinkOnline := rbBankLinkOnline.Checked;
 end;
 
 procedure TfrmCheckInOut.SetupFrame;

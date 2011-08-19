@@ -144,7 +144,7 @@ type
                                   var ClientStatusList : TClientStatusList;
                                   ClientCode : string = '');
 
-    procedure UploadFileFromPractice(ClientCode : string);
+    procedure UploadFileFromPractice(ClientCode : string; var Email: string);
     procedure UploadFileFromBooks(ClientCode : string);
 
     procedure DownloadFileToPractice(ClientCode : string);
@@ -542,7 +542,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.UploadFileFromPractice(ClientCode : string);
+procedure TWebCiCoClient.UploadFileFromPractice(ClientCode : string; var Email: string);
 var
   HttpAddress : String;
   FileName    : String;
@@ -556,6 +556,7 @@ begin
 
   GetPracticeDetailsToSend(ClientCode, FileName, Guid, ClientEmail, PracName,
                            CountryCode, PracPass, True);
+  Email := ClientEmail;
 
   if not FileExists(FileName) then
     Exit;

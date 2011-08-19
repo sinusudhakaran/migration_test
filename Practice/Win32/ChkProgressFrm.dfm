@@ -4,7 +4,7 @@ object frmChkProgress: TfrmChkProgress
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Checkout Progress'
-  ClientHeight = 357
+  ClientHeight = 391
   ClientWidth = 574
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -17,9 +17,16 @@ object frmChkProgress: TfrmChkProgress
   OnResize = FormResize
   DesignSize = (
     574
-    357)
+    391)
   PixelsPerInch = 96
   TextHeight = 13
+  object lblStatus: TLabel
+    Left = 8
+    Top = 352
+    Width = 31
+    Height = 13
+    Caption = 'Status'
+  end
   object mProgress: TMemo
     Left = 4
     Top = 5
@@ -34,8 +41,8 @@ object frmChkProgress: TfrmChkProgress
     WordWrap = False
   end
   object btnOK: TButton
-    Left = 491
-    Top = 329
+    Left = 475
+    Top = 358
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -43,5 +50,12 @@ object frmChkProgress: TfrmChkProgress
     Caption = '&OK'
     TabOrder = 0
     OnClick = btnOKClick
+  end
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Top = 329
+    Width = 558
+    Height = 17
+    TabOrder = 2
   end
 end

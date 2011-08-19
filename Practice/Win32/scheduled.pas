@@ -1403,7 +1403,7 @@ begin
   end else
   begin // Check out the client file
    try
-    if CheckOutClient(aClient.clFields.clCode, EMailOutboxDir, nil, True) then
+    if CheckOutClient(aClient.clFields.clCode, EMailOutboxDir, pCF.cfSend_Method) then
     begin
       IncUsage('Check Out (Scheduled)');
       Result := True;
