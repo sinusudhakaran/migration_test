@@ -391,7 +391,7 @@ end;
 //------------------------------------------------------------------------------
 procedure WebNotesCheckThread.MyTerminate(Sender: TObject);
 begin
-  FreeAndNil(FClient);
+  FClient.Free;
 
   Mythread := nil;
 end;
@@ -502,7 +502,8 @@ var
 begin
   if CheckDue then
   begin
-    if GetLock(ltWebNotesupdate) then try
+    if GetLock(ltWebNotesupdate) then
+    try
       Getdata;
     finally
       ReleaseLock(ltWebNotesupdate);
