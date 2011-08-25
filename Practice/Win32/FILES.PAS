@@ -1611,7 +1611,7 @@ begin
         AddAutomaticToDoItem(CFRec, ttyCheckOut, Format(ToDoMsg_Checkout, [bkDate2Str(CurrentDate)]));
 
       //*** Flag Audit ***
-      SystemAuditMgr.FlagAudit(atSystemClientFiles);
+      SystemAuditMgr.FlagAudit(arSystemClientFiles);
 
       SaveAdminSystem;
     end;
