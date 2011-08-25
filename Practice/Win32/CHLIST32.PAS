@@ -137,7 +137,7 @@ var
   AuditInfo: TAuditInfo;
   ProvDateStr: string;
 begin
-  AuditInfo.AuditType := atChartOfAccounts;
+  AuditInfo.AuditType := arChartOfAccounts;
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Account;
   //Adds, changes

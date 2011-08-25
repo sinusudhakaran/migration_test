@@ -370,7 +370,7 @@ begin
 
     if ChangedAdmin then begin
       //*** Flag Audit ***
-      SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+      SystemAuditMgr.FlagAudit(arAttachBankAccounts);
       
       SaveAdminSystem;
     end else

@@ -44,7 +44,7 @@ uses
 implementation
 
 uses
-  BKCONST, GenUtils, MoneyUtils, BkDateUtils, TransactionUtils, SysUtils,
+  BKCONST, GenUtils, MoneyUtils, BkDateUtils, TransactionUtils, SysUtils, CountryUtils,
   BKAudit,
   BKCLIO,
   BKCHIO,
@@ -58,7 +58,7 @@ uses
   BKMLIO,
   BKDSIO;
 
-procedure SetGST_Applies_From_Array(V1: TGST_Applies_From_Array;
+procedure SetGST_Applies_From_Array(ACountry: byte; V1: TGST_Applies_From_Array;
   Token: byte; var Values: string);
 var
   i: integer;
@@ -73,13 +73,13 @@ begin
       if (Values <> '') or (TempStr <> '') then
         TempStr := TempStr + VALUES_DELIMITER;
       FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Client, Token);
-      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
+      TempStr := Format('%s%s[%d]=%s', [TempStr, Localise(ACountry, FieldName), i, Value]);
     end;
   end;
   Values := Values + TempStr;
 end;
 
-procedure SetGST_Rates_Audit_Values(V1: TGST_Rates_Array;
+procedure SetGST_Rates_Audit_Values(ACountry: byte; V1: TGST_Rates_Array;
   V2: TGST_Class_Codes_Array; Token: byte; var Values: string);
 const
   MAX_RATE = 3; //We only allow editing for 3 VAT rates in the UI
@@ -99,13 +99,13 @@ begin
         if (Values <> '') or (TempStr <> '') then
           TempStr := TempStr + VALUES_DELIMITER;
         FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Client, Token);
-        TempStr := Format('%s%s[%d, %d]=%s', [TempStr, FieldName, i, j, MoneyStrNoSymbol(Value / 100)]);
+        TempStr := Format('%s%s[%d, %d]=%s', [TempStr, Localise(ACountry, FieldName), i, j, MoneyStrNoSymbol(Value / 100)]);
       end;
     end;
   Values := Values + TempStr;
 end;
 
-procedure SetGST_Class_Code_Values(V1: TGST_Class_Codes_Array; Token: byte; var Values: string);
+procedure SetGST_Class_Code_Values(ACountry: byte; V1: TGST_Class_Codes_Array; Token: byte; var Values: string);
 var
   i: integer;
   Value: string;
@@ -119,13 +119,13 @@ begin
       if (Values <> '') or (TempStr <> '') then
         TempStr := TempStr + VALUES_DELIMITER;
       FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Client, Token);
-      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
+      TempStr := Format('%s%s[%d]=%s', [TempStr, Localise(ACountry, FieldName), i, Value]);
     end;
   end;
   Values := Values + TempStr;
 end;
 
-procedure SetGST_Class_Names_Values(V1: TGST_Class_Names_Array;
+procedure SetGST_Class_Names_Values(ACountry: byte; V1: TGST_Class_Names_Array;
   V2: TGST_Class_Codes_Array; Token: byte; var Values: string);
 var
   i: integer;
@@ -142,13 +142,13 @@ begin
         TempStr := TempStr + VALUES_DELIMITER;
       FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Client, Token);
 
-      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
+      TempStr := Format('%s%s[%d]=%s', [TempStr, Localise(ACountry, FieldName), i, Value]);
     end;
   end;
   Values := Values + TempStr;
 end;
 
-procedure SetGST_Class_Types_Values(V1: TGST_Class_Types_Array;
+procedure SetGST_Class_Types_Values(ACountry: byte; V1: TGST_Class_Types_Array;
   V2: TGST_Class_Codes_Array; Token: byte; var Values: string);
 var
   i: integer;
@@ -164,13 +164,13 @@ begin
       if (Values <> '') or (TempStr <> '') then
         TempStr := TempStr + VALUES_DELIMITER;
       FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Client, Token);
-      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
+      TempStr := Format('%s%s[%d]=%s', [TempStr, Localise(ACountry, FieldName), i, Value]);
     end;
   end;
   Values := Values + TempStr;
 end;
 
-procedure SetGST_Account_Codes_Values(V1: TGST_Account_Codes_Array;
+procedure SetGST_Account_Codes_Values(ACountry: byte; V1: TGST_Account_Codes_Array;
   V2: TGST_Class_Codes_Array; Token: byte; var Values: string);
 var
   i: integer;
@@ -186,7 +186,7 @@ begin
       if (Values <> '') or (TempStr <> '') then
         TempStr := TempStr + VALUES_DELIMITER;
       FieldName := BKAuditNames.GetAuditFieldName(tkBegin_Client, Token);
-      TempStr := Format('%s%s[%d]=%s', [TempStr, FieldName, i, Value]);
+      TempStr := Format('%s%s[%d]=%s', [TempStr, Localise(ACountry, FieldName), i, Value]);
     end;
   end;
   Values := Values + TempStr;
@@ -284,24 +284,29 @@ begin
             57: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Client, Token),
                                         moNames[tClient_Rec(ARecord^).clGST_Start_Month], Values);
             //GST_Applies_From
-            58: SetGST_Applies_From_Array(TGST_Applies_From_Array(tClient_Rec(ARecord^).clGST_Applies_From),
+            58: SetGST_Applies_From_Array(AAuditMgr.Country,
+                                          TGST_Applies_From_Array(tClient_Rec(ARecord^).clGST_Applies_From),
                                           Token, Values);
 
             //GST_Class_Names
-            59: SetGST_Class_Names_Values(TGST_Class_Names_Array(tClient_Rec(ARecord^).clGST_Class_Names),
-                                          TGST_Class_Codes_Array(tClient_Rec(ARecord^).clGST_Class_Codes),            
+            59: SetGST_Class_Names_Values(AAuditMgr.Country,
+                                          TGST_Class_Names_Array(tClient_Rec(ARecord^).clGST_Class_Names),
+                                          TGST_Class_Codes_Array(tClient_Rec(ARecord^).clGST_Class_Codes),
                                           Token, Values);
             //GST_Class_Types
-            60: SetGST_Class_Types_Values(TGST_Class_Types_Array(tClient_Rec(ARecord^).clGST_Class_Types),
+            60: SetGST_Class_Types_Values(AAuditMgr.Country,
+                                          TGST_Class_Types_Array(tClient_Rec(ARecord^).clGST_Class_Types),
                                           TGST_Class_Codes_Array(tClient_Rec(ARecord^).clGST_Class_Codes),
                                           Token, Values);
             //GST_Account_Codes
-            61: SetGST_Account_Codes_Values(TGST_Account_Codes_Array(tClient_Rec(ARecord^).clGST_Account_Codes),
+            61: SetGST_Account_Codes_Values(AAuditMgr.Country,
+                                            TGST_Account_Codes_Array(tClient_Rec(ARecord^).clGST_Account_Codes),
                                             TGST_Class_Codes_Array(tClient_Rec(ARecord^).clGST_Class_Codes),
                                             Token, Values);
 
             //GST_Rates
-            62: SetGST_Rates_Audit_Values(TGST_Rates_Array(tClient_Rec(ARecord^).clGST_Rates),
+            62: SetGST_Rates_Audit_Values(AAuditMgr.Country,
+                                          TGST_Rates_Array(tClient_Rec(ARecord^).clGST_Rates),
                                           TGST_Class_Codes_Array(tClient_Rec(ARecord^).clGST_Class_Codes),            
                                           Token, Values);
             //GST_Basis
@@ -356,7 +361,8 @@ begin
 
       //      //    FAuditNamesArray[20,101] := 'GST_Class_Codes';
             //GST_Class_Codes
-            101: SetGST_Class_Code_Values(TGST_Class_Codes_Array(tClient_Rec(ARecord^).clGST_Class_Codes),
+            101: SetGST_Class_Code_Values(AAuditMgr.Country,
+                                          TGST_Class_Codes_Array(tClient_Rec(ARecord^).clGST_Class_Codes),
                                           Token, Values);
 
 //      //    FAuditNamesArray[20,102] := 'Tax_Ledger_Code';
@@ -627,7 +633,7 @@ begin
         while Token <> 0 do begin
 
           //Don't display these fields for journals
-          if (AAuditRecord.atTransaction_Type in [atCashJournals..atGSTJournals]) and
+          if (AAuditRecord.atTransaction_Type in [arCashJournals..arGSTJournals]) and
              (Token in [158, 176..178, 180]) then
             Token := 0;
 
@@ -746,7 +752,7 @@ begin
         while Token <> 0 do begin
 
           //Only display the relevant fields for Opening Balances - Date_Effective
-          if (AAuditRecord.atTransaction_Type = atOpeningBalances) and not (Token in [167]) then
+          if (AAuditRecord.atTransaction_Type = arOpeningBalances) and not (Token in [167]) then
             Token := 0;
 
           case Token of
@@ -926,7 +932,7 @@ begin
         while Token <> 0 do begin
 
           //Only display the relevant fields for Opening Balances - Account, Amount.
-          if (AAuditRecord.atTransaction_Type = atOpeningBalances)and not (Token in [183, 184]) then
+          if (AAuditRecord.atTransaction_Type = arOpeningBalances)and not (Token in [183, 184]) then
             Token := 0;
 
           case Token of

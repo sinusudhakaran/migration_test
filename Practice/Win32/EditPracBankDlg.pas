@@ -123,7 +123,7 @@ begin
               AdminBankAccount^.sbNo_Charge_Account := chkNoChargeAccount.Checked;
 
               //*** Flag Audit ***
-              SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+              SystemAuditMgr.FlagAudit(arSystemBankAccounts);
 
               SaveAdminSystem;
             end

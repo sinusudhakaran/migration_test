@@ -577,7 +577,7 @@ begin
          fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
 
          //*** Flag Audit ***
-         SystemAuditMgr.FlagAudit(atPracticeSetup);
+         SystemAuditMgr.FlagAudit(arPracticeSetup);
 
          SaveAdminSystem;
 

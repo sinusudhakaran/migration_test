@@ -291,7 +291,7 @@ begin
    aClient.clChart := NewChart;
 
    //*** Flag Audit ***
-   aClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+   aClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
 
    NewChart := nil;   {only kill the pointer, DON'T kill the data}
    result := true;

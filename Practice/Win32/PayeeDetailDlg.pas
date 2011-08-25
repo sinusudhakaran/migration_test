@@ -131,7 +131,7 @@ type
     GSTClassEditable : boolean;
     FTaxName      : string;
     FsuperTop, FSuperLeft: Integer;
-    
+
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
     function  OKtoPost : boolean;
@@ -140,7 +140,7 @@ type
 
     procedure CompletePercentage;
     procedure DoGSTLookup;
-    procedure SavePayee(aPayee : TPayee);
+    procedure SavePayee(aPayee : TPayee; DeleteFirst: boolean = false);
     procedure CalcRemaining(var Fixed, TotalPerc, RemainingPerc: Money;
       var HasDollarLines, HasPercentLines: boolean);
     function SplitLineIsValid( Index : integer) : boolean;
@@ -1251,9 +1251,8 @@ begin
      if MyDlg.execute then
      with Mydlg do
      begin
-       aPayee.pdLines.FreeAll;
        {save back values}
-       SavePayee(aPayee);
+       SavePayee(aPayee, True);
 
        Result := true;
      end;
@@ -1288,7 +1287,7 @@ begin
        MyClient.clPayee_List.Insert(aPayee);
 
        //Flag Audit
-       MyClient.ClientAuditMgr.FlagAudit(atPayees);
+       MyClient.ClientAuditMgr.FlagAudit(arPayees);
 
        Result := true;
      end;
@@ -1427,72 +1426,90 @@ begin
    end;
 end;
 
-procedure TdlgPayeeDetail.SavePayee(aPayee: TPayee);
+procedure TdlgPayeeDetail.SavePayee(aPayee: TPayee; DeleteFirst: boolean = false);
 //only valid lines will be added to the list of payee lines
 var
   i : Integer;
   PayeeLine : pPayee_Line_Rec;
+  AuditIDList: TList;
 begin
-  {save back values}
-  aPayee.pdFields.pdNumber := nPayeeNo.AsInteger;
-  aPayee.pdFields.pdName   := Trim( eName.Text);
-
-  aPayee.pdLines.FreeAll;
-  for i := 1 to GLCONST.Max_py_Lines do
-  begin
-    if SplitLineIsValid( i) then
-    begin
-      PayeeLine := New_Payee_Line_Rec;
-
-      PayeeLine^.plAccount := SplitData[i].AcctCode;
-      if SplitData[i].LineType = pltPercentage then
-        PayeeLine.plPercentage := Double2Percent(SplitData[i].Amount)
-      else
-        PayeeLine.plPercentage := Double2Money(SplitData[i].Amount);
-      PayeeLine.plGST_Has_Been_Edited := SplitData[i].GST_Has_Been_Edited;
-      PayeeLine.plGST_Class := GetGSTClassNo( MyClient, SplitData[i].GSTClassCode);
-      PayeeLine.plGL_Narration := SplitData[i].Narration;
-      PayeeLine.plLine_Type := SplitData[i].LineType;
-
-      PayeeLine.plSF_Edited := SplitData[i].SF_Edited;
-      PayeeLine.plSF_PCFranked := SplitData[i].SF_PCFranked;
-      PayeeLine.plSF_PCUnFranked := SplitData[i].SF_PCUnFranked;
-      PayeeLine.plSF_Member_ID := SplitData[i].SF_Member_ID;
-      PayeeLine.plSF_Fund_ID := SplitData[i].SF_Fund_ID;
-      PayeeLine.plSF_Fund_Code := SplitData[i].SF_Fund_Code;
-      PayeeLine.plSF_Trans_ID := SplitData[i].SF_Trans_ID;
-      PayeeLine.plSF_Trans_Code := SplitData[i].SF_Trans_Code;
-
-      PayeeLine.plSF_Member_Account_ID := SplitData[i].SF_Member_Account_ID;
-      PayeeLine.plSF_Member_Account_Code := SplitData[i].SF_Member_Account_Code;
-      PayeeLine.plSF_Member_Component := SplitData[i].SF_Member_Component;
-
-      PayeeLine.plQuantity := SplitData[i].Quantity;
-
-      PayeeLine.plSF_GDT_Date := SplitData[i].SF_GDT_Date;
-      PayeeLine.plSF_Tax_Free_Dist := SplitData[i].SF_Tax_Free_Dist;
-      PayeeLine.plSF_Tax_Exempt_Dist := SplitData[i].SF_Tax_Exempt_Dist;
-      PayeeLine.plSF_Tax_Deferred_Dist := SplitData[i].SF_Tax_Deferred_Dist;
-      PayeeLine.plSF_TFN_Credits := SplitData[i].SF_TFN_Credits;
-      PayeeLine.plSF_Foreign_Income := SplitData[i].SF_Foreign_Income;
-      PayeeLine.plSF_Foreign_Tax_Credits := SplitData[i].SF_Foreign_Tax_Credits;
-      PayeeLine.plSF_Capital_Gains_Indexed := SplitData[i].SF_Capital_Gains_Indexed;
-      PayeeLine.plSF_Capital_Gains_Disc := SplitData[i].SF_Capital_Gains_Disc;
-      PayeeLine.plSF_Capital_Gains_Other := SplitData[i].SF_Capital_Gains_Other;
-      PayeeLine.plSF_Other_Expenses := SplitData[i].SF_Other_Expenses;
-      PayeeLine.plSF_Interest := SplitData[i].SF_Interest;
-      PayeeLine.plSF_Capital_Gains_Foreign_Disc := SplitData[i].SF_Capital_Gains_Foreign_Disc;
-      PayeeLine.plSF_Rent := SplitData[i].SF_Rent;
-      PayeeLine.plSF_Special_Income := SplitData[i].SF_Special_Income;
-      PayeeLine.plSF_Other_Tax_Credit := SplitData[i].SF_Other_Tax_Credit;
-      PayeeLine.plSF_Non_Resident_Tax := SplitData[i].SF_Non_Resident_Tax;
-      PayeeLine.plSF_Foreign_Capital_Gains_Credit := SplitData[i].SF_Foreign_Capital_Gains_Credit;
-      PayeeLine.plSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
-      PayeeLine.plSF_Ledger_ID := SplitData[i].SF_Ledger_ID;
-      PayeeLine.plSF_Ledger_Name := SplitData[i].SF_Ledger_Name;
-      
-      aPayee.pdLines.Insert(PayeeLine, MyClient.ClientAuditMgr);
+  AuditIDList := TList.Create;
+  try
+    if DeleteFirst then begin
+      //Pool the audit ID's
+      for i := aPayee.pdLines.First to aPayee.pdLines.Last do
+        AuditIDList.Add(Pointer(aPayee.pdLines.PayeeLine_At(i).plAudit_Record_ID));
+      aPayee.pdLines.FreeAll;
     end;
+
+    {save back values}
+    aPayee.pdFields.pdNumber := nPayeeNo.AsInteger;
+    aPayee.pdFields.pdName   := Trim( eName.Text);
+
+    aPayee.pdLines.FreeAll;
+    for i := 1 to GLCONST.Max_py_Lines do
+    begin
+      if SplitLineIsValid( i) then
+      begin
+        PayeeLine := New_Payee_Line_Rec;
+
+        PayeeLine^.plAccount := SplitData[i].AcctCode;
+        if SplitData[i].LineType = pltPercentage then
+          PayeeLine.plPercentage := Double2Percent(SplitData[i].Amount)
+        else
+          PayeeLine.plPercentage := Double2Money(SplitData[i].Amount);
+        PayeeLine.plGST_Has_Been_Edited := SplitData[i].GST_Has_Been_Edited;
+        PayeeLine.plGST_Class := GetGSTClassNo( MyClient, SplitData[i].GSTClassCode);
+        PayeeLine.plGL_Narration := SplitData[i].Narration;
+        PayeeLine.plLine_Type := SplitData[i].LineType;
+
+        PayeeLine.plSF_Edited := SplitData[i].SF_Edited;
+        PayeeLine.plSF_PCFranked := SplitData[i].SF_PCFranked;
+        PayeeLine.plSF_PCUnFranked := SplitData[i].SF_PCUnFranked;
+        PayeeLine.plSF_Member_ID := SplitData[i].SF_Member_ID;
+        PayeeLine.plSF_Fund_ID := SplitData[i].SF_Fund_ID;
+        PayeeLine.plSF_Fund_Code := SplitData[i].SF_Fund_Code;
+        PayeeLine.plSF_Trans_ID := SplitData[i].SF_Trans_ID;
+        PayeeLine.plSF_Trans_Code := SplitData[i].SF_Trans_Code;
+
+        PayeeLine.plSF_Member_Account_ID := SplitData[i].SF_Member_Account_ID;
+        PayeeLine.plSF_Member_Account_Code := SplitData[i].SF_Member_Account_Code;
+        PayeeLine.plSF_Member_Component := SplitData[i].SF_Member_Component;
+
+        PayeeLine.plQuantity := SplitData[i].Quantity;
+
+        PayeeLine.plSF_GDT_Date := SplitData[i].SF_GDT_Date;
+        PayeeLine.plSF_Tax_Free_Dist := SplitData[i].SF_Tax_Free_Dist;
+        PayeeLine.plSF_Tax_Exempt_Dist := SplitData[i].SF_Tax_Exempt_Dist;
+        PayeeLine.plSF_Tax_Deferred_Dist := SplitData[i].SF_Tax_Deferred_Dist;
+        PayeeLine.plSF_TFN_Credits := SplitData[i].SF_TFN_Credits;
+        PayeeLine.plSF_Foreign_Income := SplitData[i].SF_Foreign_Income;
+        PayeeLine.plSF_Foreign_Tax_Credits := SplitData[i].SF_Foreign_Tax_Credits;
+        PayeeLine.plSF_Capital_Gains_Indexed := SplitData[i].SF_Capital_Gains_Indexed;
+        PayeeLine.plSF_Capital_Gains_Disc := SplitData[i].SF_Capital_Gains_Disc;
+        PayeeLine.plSF_Capital_Gains_Other := SplitData[i].SF_Capital_Gains_Other;
+        PayeeLine.plSF_Other_Expenses := SplitData[i].SF_Other_Expenses;
+        PayeeLine.plSF_Interest := SplitData[i].SF_Interest;
+        PayeeLine.plSF_Capital_Gains_Foreign_Disc := SplitData[i].SF_Capital_Gains_Foreign_Disc;
+        PayeeLine.plSF_Rent := SplitData[i].SF_Rent;
+        PayeeLine.plSF_Special_Income := SplitData[i].SF_Special_Income;
+        PayeeLine.plSF_Other_Tax_Credit := SplitData[i].SF_Other_Tax_Credit;
+        PayeeLine.plSF_Non_Resident_Tax := SplitData[i].SF_Non_Resident_Tax;
+        PayeeLine.plSF_Foreign_Capital_Gains_Credit := SplitData[i].SF_Foreign_Capital_Gains_Credit;
+        PayeeLine.plSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
+        PayeeLine.plSF_Ledger_ID := SplitData[i].SF_Ledger_ID;
+        PayeeLine.plSF_Ledger_Name := SplitData[i].SF_Ledger_Name;
+
+        if AuditIDList.Count > 0 then begin
+          PayeeLine.plAudit_Record_ID := integer(AuditIDList.Items[0]);
+          aPayee.pdLines.Insert(PayeeLine, nil);
+          AuditIDList.Delete(0);
+        end else
+          aPayee.pdLines.Insert(PayeeLine, MyClient.ClientAuditMgr);
+      end;
+    end;
+  finally
+    AuditIDList.Free;
   end;
 end;
 

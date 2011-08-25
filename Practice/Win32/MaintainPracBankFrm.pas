@@ -281,7 +281,7 @@ begin
         AdminSystem.fdSystem_Bank_Account_List.DelFreeItem( ba);
 
         //*** Flag Audit ***
-        SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+        SystemAuditMgr.FlagAudit(arSystemBankAccounts);
 
         SaveAdminSystem;
 
@@ -339,7 +339,7 @@ begin
         end;
 
         //*** Flag Audit ***
-        SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+        SystemAuditMgr.FlagAudit(arSystemBankAccounts);
 
         SaveAdminSystem;
       end;
@@ -474,7 +474,7 @@ begin
             end;
 
             //*** Flag Audit ***
-            SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+            SystemAuditMgr.FlagAudit(arSystemBankAccounts);
 
             SaveAdminSystem;
             RefreshBankAccountList(SelAccounts);
@@ -770,7 +770,7 @@ var
                    end;
                 end;
                 //*** Flag Audit ***
-                SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+                SystemAuditMgr.FlagAudit(arSystemBankAccounts);
 
                 SaveAdminSystem;
              end;
@@ -957,7 +957,7 @@ begin
            lsel := SystemAccount.sbAccount_Number;
 
            //*** Flag Audit ***
-           SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+           SystemAuditMgr.FlagAudit(arSystemBankAccounts);
 
            SaveAdminSystem;
         end;

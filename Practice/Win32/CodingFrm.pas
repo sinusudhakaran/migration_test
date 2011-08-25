@@ -2037,7 +2037,7 @@ begin
 
          //*** Flag Audit ***
          sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
-         MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+         MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
                                            pUPI^.txAudit_Record_ID,
                                            aaNone,
                                            sMsg);
@@ -2132,7 +2132,7 @@ begin
 
          //*** Flag Audit ***
          sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
-         MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+         MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
                                            pUPI^.txAudit_Record_ID,
                                            aaNone,
                                            sMsg);
@@ -2683,7 +2683,7 @@ begin
 
                   //*** Flag Audit ***
                   sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
-                  MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                  MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
                                                     pNewTrans^.txAudit_Record_ID,
                                                     aaNone,
                                                     sMsg);
@@ -2746,7 +2746,7 @@ begin
 
                   //*** Flag Audit ***
                   sMsg := Format('%s (AuditID=%d)',[sMsg, AuditId]);
-                  MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+                  MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
                                                     AuditId,
                                                     aaNone,
                                                     sMsg);
@@ -2822,7 +2822,7 @@ begin
             BankAccount.baTransaction_List.Delete( pT );
 
             //*** Flag Audit ***
-            MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+            MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
                                               AuditId,
                                               aaNone,
                                               sMsg);
@@ -2914,7 +2914,7 @@ begin
 
             //*** Flag Audit ***
             sMsg := Format('%s (AuditID=%d)',[sMsg, pNewTrans.txAudit_Record_ID]);
-            MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+            MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
                                               pT.txAudit_Record_ID,
                                               aaNone,
                                               sMsg);

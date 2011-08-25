@@ -972,7 +972,7 @@ begin
        FClient.clBank_Account_List.Insert(B);
 
      //Flag Audit
-     FClient.FClientAuditMgr.FlagAudit(atClientBankAccounts);
+     FClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);
    end;
 end;
 

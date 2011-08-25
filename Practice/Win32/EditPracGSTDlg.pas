@@ -435,7 +435,7 @@ begin
          end;
 
          //*** Flag Audit ***
-         SystemAuditMgr.FlagAudit(atPracticeGSTDefaults);
+         SystemAuditMgr.FlagAudit(arPracticeGSTDefaults);
 
          SaveAdminSystem;
 

@@ -250,6 +250,17 @@ begin { TdlgEditUser.OKtoPost }
        end;
    end;
 
+   if AdminSystem.fdFields.fdCountry = whUK then begin
+     //All UK users must have a password TFS 19605
+     if (ePass.Text = '') then
+     begin
+        HelpfulWarningMsg('Users must have a password.', 0);
+        pcMain.ActivePage := tsDetails;
+        ePass.SetFocus;
+        exit;
+     end;
+   end;
+
    if not (ePass.text = eConfirmPass.text) Then begin
       HelpfulWarningMsg('The passwords you have entered do not match. Please re-enter them.', 0);
       pcMain.ActivePage := tsDetails;
@@ -505,7 +516,7 @@ begin { EditUser }
           UpdateAdminFileAccessList( pu^.usLRN);
 
           //*** Flag Audit ***
-          SystemAuditMgr.FlagAudit(atUsers);
+          SystemAuditMgr.FlagAudit(arUsers);
 
           SaveAdminSystem;
           Result := true;
@@ -596,7 +607,7 @@ begin { AddUser }
                UpdateAdminFileAccessList( pu^.usLRN);
 
                //*** Flag Audit ***
-               SystemAuditMgr.FlagAudit(atUsers);
+               SystemAuditMgr.FlagAudit(arUsers);
 
                SaveAdminSystem;
                Result := true;

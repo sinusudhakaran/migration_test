@@ -230,7 +230,7 @@ begin
 
             //*** Flag Audit ***
             sMsg := Format('%s (AuditIDs=%s)', [sMsg, AuditIDs]);
-            MyClient.ClientAuditMgr.FlagAudit(atUnpresentedItems,
+            MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
                                               NewTrans^.txAudit_Record_ID,
                                               aaNone,
                                               sMsg);

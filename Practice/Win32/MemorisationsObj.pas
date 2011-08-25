@@ -208,9 +208,9 @@ var
   AuditInfo: TAuditInfo;
 begin
   if FAuditMgr is TClientAuditManager then
-    AuditInfo.AuditType := atMemorisations
+    AuditInfo.AuditType := arMemorisations
   else
-    AuditInfo.AuditType := atMasterMemorisations;
+    AuditInfo.AuditType := arMasterMemorisations;
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Memorisation_Line;
   //Adds, changes
@@ -580,9 +580,9 @@ var
   M1, M2: TMemorisation;
 begin
   if FAuditMgr is TClientAuditManager then
-    AuditInfo.AuditType := atMemorisations
+    AuditInfo.AuditType := arMemorisations
   else
-    AuditInfo.AuditType := atMasterMemorisations;
+    AuditInfo.AuditType := arMasterMemorisations;
 //  AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Memorisation_Detail;

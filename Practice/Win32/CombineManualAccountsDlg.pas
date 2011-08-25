@@ -226,7 +226,7 @@ begin
                        [VALUES_DELIMITER, AcctNo, AcctName, VALUES_DELIMITER,
                         ToBa.Title, VALUES_DELIMITER,
                         TransferCount]);
-        MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts,
+        MyClient.ClientAuditMgr.FlagAudit(arClientBankAccounts,
                                           ToBa.baFields.baAudit_Record_ID,
                                           aaNone,
                                           aMsg);

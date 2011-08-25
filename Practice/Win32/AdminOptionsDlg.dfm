@@ -56,6 +56,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsGeneral: TTabSheet
       Caption = 'General'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh1: TLabel
         Left = 16
         Top = 3
@@ -223,7 +227,7 @@ object dlgAdminOptions: TdlgAdminOptions
         Left = 136
         Top = 309
         Width = 201
-        Height = 24
+        Height = 22
         PreviewFontSize = 8
         PreviewText = 'Coding Hint'
         DropDownWidth = 200
@@ -258,6 +262,10 @@ object dlgAdminOptions: TdlgAdminOptions
     end
     object tsExporting: TTabSheet
       Caption = 'Exporting'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh2: TLabel
         Left = 16
         Top = 3
@@ -300,7 +308,7 @@ object dlgAdminOptions: TdlgAdminOptions
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
         end
       end
@@ -317,6 +325,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsAdvanced: TTabSheet
       Caption = 'Advanced'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh3: TLabel
         Left = 16
         Top = 3
@@ -510,6 +522,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsInterfaces: TTabSheet
       Caption = 'Interfaces'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PInterfaceOptions: TPanel
         Left = 0
         Top = 0
@@ -685,6 +701,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 6
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh7: TLabel
         Left = 16
         Top = 3
@@ -755,6 +775,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsUpdates: TTabSheet
       Caption = 'Updates'
       ImageIndex = 7
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh8: TLabel
         Left = 16
         Top = 3
@@ -797,6 +821,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsLinks: TTabSheet
       Caption = 'Links'
       ImageIndex = 8
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pInstitute: TPanel
         Left = 0
         Top = 30

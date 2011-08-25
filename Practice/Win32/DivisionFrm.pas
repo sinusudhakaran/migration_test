@@ -77,7 +77,7 @@ begin
       if ( ShowModal = mrOK) then begin
 
         //*** Flag Audit ***
-        MyClient.ClientAuditMgr.FlagAudit(atCustomHeadings);
+        MyClient.ClientAuditMgr.FlagAudit(arCustomHeadings);
 
         SaveDivisions;
         Result := true;

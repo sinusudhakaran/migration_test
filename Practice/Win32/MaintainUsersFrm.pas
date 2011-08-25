@@ -150,7 +150,7 @@ begin
      AdminSystem.fdSystem_User_List.DelFreeItem(pu);
 
      //*** Flag Audit ***
-     SystemAuditMgr.FlagAudit(atUsers);
+     SystemAuditMgr.FlagAudit(arUsers);
 
      SaveAdminSystem;
      result := true;

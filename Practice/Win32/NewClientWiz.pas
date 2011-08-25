@@ -196,9 +196,9 @@ begin
 
               //Flag Audit - need to audit everything that can be changed in
               //the new client wizard.
-              MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
-              MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
-              MyClient.ClientAuditMgr.FlagAudit(atPayees);
+              MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
+              MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
+              MyClient.ClientAuditMgr.FlagAudit(arPayees);
 
               SaveClient;
            end;
@@ -565,8 +565,8 @@ begin
      end;
 
      //*** Flag Audit ***
-     SystemAuditMgr.FlagAudit(atSystemClientFiles);
-     SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+     SystemAuditMgr.FlagAudit(arSystemClientFiles);
+     SystemAuditMgr.FlagAudit(arAttachBankAccounts);
 
      SaveAdminSystem;
 
@@ -711,7 +711,7 @@ begin
         end;
       end;
       //*** Flag Audit ***
-      SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+      SystemAuditMgr.FlagAudit(arAttachBankAccounts);
 
       SaveAdminSystem;
       ModalResult := mrCancel;

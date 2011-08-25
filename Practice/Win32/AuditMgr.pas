@@ -10,41 +10,41 @@ uses
 const
   UNIT_NAME = 'AuditMgr';
 
-  //Audit types
-  atPracticeSetup                 = 0;  atMin = 0;
-  atPracticeGSTDefaults           = 1;
-  atMasterMemorisations           = 2;
-  atUsers                         = 3;
-  atSystemOptions                 = 4;
-  atDownloadingData               = 5;
-  atSystemBankAccounts            = 6;
-  atProvisionalDataEntry          = 7;
-  atSystemClientFiles             = 8;
-  atAttachBankAccounts            = 9;
-  atClientBankAccounts            = 10; //Client starts here
-  atChartOfAccounts               = 11;
-  atPayees                        = 12;
-  atClientFiles                   = 13;
-  atMemorisations                 = 14;
-  atGSTSetup                      = 15;
-  atHistoricalentries             = 16;
-  atProvisionalEntries            = 17;
-  atManualEntries                 = 18;
-  atDeliveredTransactions         = 19;
-  atAutomaticCoding               = 20;
-  atCashJournals                  = 21;
-  atAccrualJournals               = 22;
-  atStockAdjustmentJournals       = 23;
-  atYearEndAdjustmentJournals     = 24;
-  atGSTJournals                   = 25;
-  atOpeningBalances               = 26;
-  atUnpresentedItems              = 27;
-  atCustomHeadings                = 28;
-  atBankLinkNotes                 = 29;
-  atBankLinkNotesOnline           = 30;
-  atBankLinkBooks                 = 31;
-  atExchangeRates                 = 32; atMax = 32;
-  atAll = 254;
+  //Audit record types
+  arPracticeSetup                 = 0;  arMin = 0;
+  arPracticeGSTDefaults           = 1;
+  arMasterMemorisations           = 2;
+  arUsers                         = 3;
+  arSystemOptions                 = 4;
+  arDownloadingData               = 5;
+  arSystemBankAccounts            = 6;
+  arProvisionalDataEntry          = 7;
+  arSystemClientFiles             = 8;
+  arAttachBankAccounts            = 9;
+  arClientBankAccounts            = 10; //Client starts here
+  arChartOfAccounts               = 11;
+  arPayees                        = 12;
+  arClientFiles                   = 13;
+  arMemorisations                 = 14;
+  arGSTSetup                      = 15;
+  arHistoricalentries             = 16;
+  arProvisionalEntries            = 17;
+  arManualEntries                 = 18;
+  arDeliveredTransactions         = 19;
+  arAutomaticCoding               = 20;
+  arCashJournals                  = 21;
+  arAccrualJournals               = 22;
+  arStockAdjustmentJournals       = 23;
+  arYearEndAdjustmentJournals     = 24;
+  arGSTJournals                   = 25;
+  arOpeningBalances               = 26;
+  arUnpresentedItems              = 27;
+  arCustomHeadings                = 28;
+  arBankLinkNotes                 = 29;
+  arBankLinkNotesOnline           = 30;
+  arBankLinkBooks                 = 31;
+  arExchangeRates                 = 32; arMax = 32;
+  arAll = 254;
 
   //Audit actions
   aaNone   = 0;  aaMin = 0;
@@ -55,9 +55,9 @@ const
   //Audit action strings
   aaNames : array[ aaMin..aaMax ] of string = ('Action', 'Add', 'Change', 'Delete');
 
-  SystemAuditTypes = [atPracticeSetup..atAttachBankAccounts, atAll];
-  TransactionAuditTypes = [atHistoricalentries..atDeliveredTransactions];
-  ExchangeRateAuditTypes = [atExchangeRates];
+  SystemAuditTypes = [arPracticeSetup..arAttachBankAccounts, arAll];
+  TransactionAuditTypes = [arHistoricalentries..arDeliveredTransactions];
+  ExchangeRateAuditTypes = [arExchangeRates];
 
   dbSystem = 0;
   dbClient = 1;
@@ -81,7 +81,7 @@ type
     function AuditDateTimeAsLocalDateTime: TDateTime;
   end;
 
-  TAuditType = atMin..atMax;
+  TAuditType = arMin..arMax;
 
   PAuditInfo = ^TAuditInfo;
   TAuditInfo = record
@@ -255,7 +255,7 @@ uses
 
 const
   //Audit type strings
-  atNames : array[ atMin..atMax ] of string =
+  arNames : array[ arMin..arMax ] of string =
     ('Practice Setup',
      'Practice VAT Defaults',
      'Master Memorisations',
@@ -290,7 +290,7 @@ const
      'BankLink Books',
      'Exchange Rates');
 
-  atNameTable : array[ atMin..atMax ] of array[0..1] of byte =
+  atNameTable : array[ arMin..arMax ] of array[0..1] of byte =
     ((tkBegin_Practice_Details, dbSystem),    //Practice Setup
      (tkBegin_Practice_Details, dbSystem),    //Practice GST/VAT Defaults
      (tkBegin_System_Memorisation_List, dbSystem), //Master Memorisations
@@ -504,8 +504,8 @@ begin
 {$IFNDEF LOOKUPDLL}
   Result := '';
   if (AAuditType <= atMax)then
-    Result := atNames[AAuditType]
-  else if AAuditType = atAll then
+    Result := arNames[AAuditType]
+  else if AAuditType = arAll then
     Result := 'All';
 {$ENDIF}
 end;
@@ -1018,16 +1018,16 @@ end;
 
 function TClientAuditManager.GetBankAccountAuditType(ABankAccountType: byte): TAuditType;
 begin
-  Result := atClientBankAccounts;
+  Result := arClientBankAccounts;
 {$IFNDEF LOOKUPDLL}
   case ABankAccountType of
-    btCashJournals       : Result := atCashJournals;
-    btAccrualJournals    : Result := atAccrualJournals;
-    btGSTJournals        : Result := atGSTJournals;
+    btCashJournals       : Result := arCashJournals;
+    btAccrualJournals    : Result := arAccrualJournals;
+    btGSTJournals        : Result := arGSTJournals;
     btStockBalances,
-    btStockJournals      : Result := atStockAdjustmentJournals;
-    btOpeningBalances    : Result := atOpeningBalances;
-    btYearEndAdjustments : Result := atYearEndAdjustmentJournals;
+    btStockJournals      : Result := arStockAdjustmentJournals;
+    btOpeningBalances    : Result := arOpeningBalances;
+    btYearEndAdjustments : Result := arYearEndAdjustmentJournals;
   end;
 {$ENDIF}
 end;
@@ -1041,27 +1041,27 @@ end;
 function TClientAuditManager.GetTransactionAuditType(ABankAccountSource: byte;
   ABankAccountType: byte): TAuditType;
 begin
-  Result := atDeliveredTransactions;
+  Result := arDeliveredTransactions;
 {$IFNDEF LOOKUPDLL}
   case ABankAccountSource of
-    orBank         : Result := atDeliveredTransactions;
-    orGenerated    : Result := atUnpresentedItems;
+    orBank         : Result := arDeliveredTransactions;
+    orGenerated    : Result := arUnpresentedItems;
     orManual       :
        case ABankAccountType of
-         btCashJournals      : Result := atCashJournals;
-         btAccrualJournals   : Result := atAccrualJournals;
-         btGSTJournals       : Result := atGSTJournals;
-         btOpeningBalances   : Result := atOpeningBalances;
+         btCashJournals      : Result := arCashJournals;
+         btAccrualJournals   : Result := arAccrualJournals;
+         btGSTJournals       : Result := arGSTJournals;
+         btOpeningBalances   : Result := arOpeningBalances;
          btStockBalances,
-         btStockJournals     : Result := atStockAdjustmentJournals;
-         btYearEndAdjustments: Result := atYearEndAdjustmentJournals;
+         btStockJournals     : Result := arStockAdjustmentJournals;
+         btYearEndAdjustments: Result := arYearEndAdjustmentJournals;
        end;
-    orHistorical   : Result := atHistoricalentries;
-    orGeneratedRev : Result := atUnpresentedItems;
-    orMDE          : Result := atManualEntries;
-    orProvisional  : Result := atProvisionalEntries;
+    orHistorical   : Result := arHistoricalentries;
+    orGeneratedRev : Result := arUnpresentedItems;
+    orMDE          : Result := arManualEntries;
+    orProvisional  : Result := arProvisionalEntries;
   else
-    Result := atDeliveredTransactions;
+    Result := arDeliveredTransactions;
   end;
 {$ENDIF}
 end;

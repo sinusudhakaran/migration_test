@@ -519,7 +519,7 @@ begin
                             TempBa.Title, VALUES_DELIMITER,
                             BankBa.Title, VALUES_DELIMITER,
                             TransferCount]);
-            MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts,
+            MyClient.ClientAuditMgr.FlagAudit(arClientBankAccounts,
                                               BankBa.baFields.baAudit_Record_ID,
                                               aaNone,
                                               aMsg);

@@ -3738,7 +3738,7 @@ begin
             BankAccount.baTransaction_List.Insert_Transaction_Rec(pT);
 
             //Flag Audit for bank account
-            MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts);
+            MyClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
 
             Inc(i); //move onto next transaction is while loop
          end;
@@ -4887,10 +4887,10 @@ var
         CloseFile(eFile);
      end;
       //*** Flag Audit ***
-     SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+     SystemAuditMgr.FlagAudit(arSystemBankAccounts);
      //The following may need to be audited at a later date?
-     //SystemAuditMgr.FlagAudit(atPracticeSetup);
-     //SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+     //SystemAuditMgr.FlagAudit(arPracticeSetup);
+     //SystemAuditMgr.FlagAudit(arAttachBankAccounts);
 
      SaveAdminSystem;
      Result := True;

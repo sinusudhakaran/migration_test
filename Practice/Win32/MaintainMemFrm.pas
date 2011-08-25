@@ -797,7 +797,7 @@ begin
           if TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount = 0 then
              AdminSystem.SystemMemorisationList.Delete(SystemMemorisation);
            //*** Flag Audit ***
-           SystemAuditMgr.FlagAudit(atMasterMemorisations);
+           SystemAuditMgr.FlagAudit(arMasterMemorisations);
            SaveAdminSystem;
          end;
        end else
@@ -1063,7 +1063,7 @@ begin
                        if SelIndex <> -1 then
                          lvMemorised.Items[SelIndex].Selected := True;
                        //*** Flag Audit ***
-                       SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                       SystemAuditMgr.FlagAudit(arMasterMemorisations);
                        SaveAdminSystem;
                        Swapped := True;                       
                      end;

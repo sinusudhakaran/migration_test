@@ -60,7 +60,7 @@ var
   P1, P2: pUser_Rec;
   AuditInfo: TAuditInfo;
 begin
-  AuditInfo.AuditType := atUsers;
+  AuditInfo.AuditType := arUsers;
   AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_User;
   //Adds, changes

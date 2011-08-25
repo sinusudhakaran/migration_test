@@ -303,8 +303,8 @@ begin
       case ldlg.ShowModal of
          mrOK    : begin
                      //*** Flag Audit ***
-                     MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
-                     MyClient.ClientAuditMgr.FlagAudit(atClientFiles); //VAT changes
+                     MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
+                     MyClient.ClientAuditMgr.FlagAudit(arClientFiles); //VAT changes
 
                      RefreshHomepage;
                    end;

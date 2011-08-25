@@ -543,7 +543,7 @@ begin
 
   //*** Flag Audit ***
   Msg := Format('%s (Filename=%s)',[Msg, Filename]);
-  aClient.ClientAuditMgr.FlagAudit(atBankLinkNotes, 0, aaNone, Msg);
+  aClient.ClientAuditMgr.FlagAudit(arBankLinkNotes, 0, aaNone, Msg);
   finally
      RefreshHomepage;
   end;
@@ -707,11 +707,11 @@ begin
             sMsg := Inttostr(Count) + ' entries successfully exported to ' + wfNames[wfWebNotes];
             HelpfulInfoMsg(sMsg, 0);
             //*** Flag Audit ***
-            aClient.ClientAuditMgr.FlagAudit(atBankLinkNotesOnline, 0, aaNone, sMsg);
+            aClient.ClientAuditMgr.FlagAudit(arBankLinkNotesOnline, 0, aaNone, sMsg);
          end else begin
             sMsg := Inttostr(Count) + ' entries successfully exported to ' + Filename;
             //*** Flag Audit ***
-            aClient.ClientAuditMgr.FlagAudit(atBankLinkNotes, 0, aaNone, sMsg);
+            aClient.ClientAuditMgr.FlagAudit(arBankLinkNotes, 0, aaNone, sMsg);
          end;
 
          LogUtil.LogMsg( lmInfo, Unitname, sMsg);

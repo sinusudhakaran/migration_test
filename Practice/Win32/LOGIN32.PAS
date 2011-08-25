@@ -319,6 +319,17 @@ begin
     exit;
   end;
 
+  //UK only - don't allow login if the user doesn't have a password
+  if User.usPassword = '' then begin
+   if AdminSystem.fdFields.fdCountry = whUK then begin
+     ErrorSound;
+     HelpfulWarningMsg('You do not have a valid Password. Please see your administrator.',0);
+     okPressed := false;
+     Close;
+     Exit;
+   end;
+  end;
+
   {user found now check password}
   If (User.usPassword <> pass) then
   begin

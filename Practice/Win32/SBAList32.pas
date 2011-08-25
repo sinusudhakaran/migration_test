@@ -78,7 +78,7 @@ var
   P1, P2: pSystem_Bank_Account_Rec;
   AuditInfo: TAuditInfo;
 begin
-  AuditInfo.AuditType := atSystemBankAccounts;
+  AuditInfo.AuditType := arSystemBankAccounts;
   AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_System_Bank_Account;
   //Adds, changes

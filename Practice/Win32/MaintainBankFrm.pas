@@ -430,7 +430,7 @@ begin
     end;
 
     //*** Flag Audit ***
-    SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+    SystemAuditMgr.FlagAudit(arAttachBankAccounts);
 
     SaveAdminSystem;
     result := true;
@@ -463,7 +463,7 @@ begin
       RefreshBankAccountList;
 
       //*** Flag Audit ***
-      MyClient.FClientAuditMgr.FlagAudit(atClientBankAccounts);
+      MyClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);
     end;
   end;
 end;
@@ -516,7 +516,7 @@ begin
        RefreshBankAccountList;
 
        //*** Flag Audit ***
-       MyClient.FClientAuditMgr.FlagAudit(atClientBankAccounts);
+       MyClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);
 
        //Update ISO Codes in Client_File_Rec
        UpdateISOCodes;
@@ -668,7 +668,7 @@ begin
       SyncClientToAdmin(MyClient,false);
 
       //*** Flag Audit ***
-      MyClient.FClientAuditMgr.FlagAudit(atClientBankAccounts);
+      MyClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);
       //Have to save Client file if bank account is provisional so that
       //transactions cannot be altered before audit.
       if MyClient.ClientAuditMgr.ProvisionalAccountAttached then begin

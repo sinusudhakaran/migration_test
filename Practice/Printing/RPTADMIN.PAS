@@ -3702,7 +3702,7 @@ begin
       case Report.ReportOptions.AuditSelection of
         byAll: PrintAuditRec := True;
         byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
-                                            (Report.ReportOptions.TransactionType = atAll);
+                                            (Report.ReportOptions.TransactionType = arAll);
         byTransactionID  : PrintAuditRec := (Report.ReportOptions.TransactionID = AuditRecord.atRecord_ID) or
                                             (Report.ReportOptions.IncludeChild and
                                              (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
@@ -3791,7 +3791,7 @@ function IsAutoCodedTransaction(ATransactionType: byte; AAuditRecord: TAudit_Tra
 begin
   Result := False;
   //Filter by Automatic Coding
-  if (ATransactionType = atAutomaticCoding) then
+  if (ATransactionType = arAutomaticCoding) then
     if (AAuditRecord.atTransaction_Type in TransactionAuditTypes) and
        (AAuditRecord.atAudit_Record_Type = tkBegin_Transaction) then
       Result := pTransaction_Rec(AAuditRecord.atAudit_Record).txCoded_By in [cbAutoPayee, cbMemorisedM, cbMemorisedC, cbAnalysis];
@@ -3803,8 +3803,8 @@ var
 begin
   Result := False;
   //Filter by VAT setup even though these fields are in the client file rec
-  if (ATransactionType = atGSTSetup) then
-    if (AAuditRecord.atTransaction_Type = atClientFiles) and
+  if (ATransactionType = arGSTSetup) then
+    if (AAuditRecord.atTransaction_Type = arClientFiles) and
        (AAuditRecord.atAudit_Record_Type = tkBegin_Client) then begin
        for i := Low(AAuditRecord.atChanged_Fields) to High(AAuditRecord.atChanged_Fields) do begin
          //Check changes to VAT field tokens in BKCLIO
@@ -3876,7 +3876,7 @@ begin
         case Report.ReportOptions.AuditSelection of
           byAll: PrintAuditRec := True;
           byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
-                                              (Report.ReportOptions.TransactionType = atAll) or
+                                              (Report.ReportOptions.TransactionType = arAll) or
                                               //Print child records
                                               (Report.ReportOptions.IncludeChild and
                                                (IsChildTransaction(TempClientFile.AuditTable,
@@ -4036,7 +4036,7 @@ begin
         case Report.ReportOptions.AuditSelection of
           byAll: PrintAuditRec := True;
           byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
-                                              (Report.ReportOptions.TransactionType = atAll) or
+                                              (Report.ReportOptions.TransactionType = arAll) or
                                               //Print child records
                                               (Report.ReportOptions.IncludeChild and
                                                (IsChildTransaction(ExchangeRates.AuditTable,
@@ -4159,9 +4159,9 @@ begin
       if GetAuditReportOptions(AuditReportOptions) then begin
         Dest := AuditReportOptions.Destination;
         case AuditReportOptions.AuditReportType of
-          arSystem: DoSystemAuditReport(AuditReportOptions);
-          arClient: DoClientAuditReport(AuditReportOptions);
-          arExchangeRates: DoExchangeRatesAuditReport(AuditReportOptions);
+          artSystem: DoSystemAuditReport(AuditReportOptions);
+          artClient: DoClientAuditReport(AuditReportOptions);
+          artExchangeRates: DoExchangeRatesAuditReport(AuditReportOptions);
         end;
         Dest := rdNone;
       end else

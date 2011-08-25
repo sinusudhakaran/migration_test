@@ -227,7 +227,7 @@ begin
           end;
 
           //*** Flag Audit ***
-          TempClient.ClientAuditMgr.FlagAudit(atClientFiles); 
+          TempClient.ClientAuditMgr.FlagAudit(arClientFiles);
 
         finally
           Free;
@@ -333,7 +333,7 @@ begin
             sysClientRec^.cfContact_Details_Edit_Time := StDate.CurrentTime;
 
             //*** Flag Audit ***
-            SystemAuditMgr.FlagAudit(atSystemClientFiles);
+            SystemAuditMgr.FlagAudit(arSystemClientFiles);
 
             SaveAdminSystem;
           end
@@ -514,7 +514,7 @@ begin
                     Client^.cfUser_Responsible := UserLRN;
 
                     //*** Flag Audit ***
-                    SystemAuditMgr.FlagAudit(atSystemClientFiles);
+                    SystemAuditMgr.FlagAudit(arSystemClientFiles);
 
                     SaveAdminSystem;
                     Inc(SuccessCount);
@@ -1629,7 +1629,7 @@ begin
        LogUtil.LogMsg(lmInfo,'ThisMethodName','Client '+ClientCode+' deleted from Admin System OK');
 
        //*** Flag Audit ***
-       SystemAuditMgr.FlagAudit(atSystemClientFiles);
+       SystemAuditMgr.FlagAudit(arSystemClientFiles);
 
        SaveAdminSystem;
 
@@ -1766,7 +1766,7 @@ begin
                   //*** Flag Audit ***
                   //Set audit info here so no system client file record
                   //needs to be saved to the audit table.
-                  SystemAuditMgr.FlagAudit(atSystemClientFiles,
+                  SystemAuditMgr.FlagAudit(arSystemClientFiles,
                                            ClientFile.cfAudit_Record_ID,
                                            aaNone,
                                            Format('Client Reset%sClient Code=%s',
@@ -1900,7 +1900,7 @@ begin
           LogUtil.LogMsg(lmInfo,'ThisMethodName','Prospect '+ClientCode+' deleted from Admin System OK');
 
           //*** Flag Audit ***
-          SystemAuditMgr.FlagAudit(atSystemClientFiles);
+          SystemAuditMgr.FlagAudit(arSystemClientFiles);
 
           SaveAdminSystem;
 
@@ -1998,7 +1998,7 @@ begin
             if not UseCurrentlyOpenClient then begin
               //*** Flag Audit ***
               //Audit here so that an audit record isn't created every time a client file is opened
-              SystemAuditMgr.FlagAudit(atSystemClientFiles);
+              SystemAuditMgr.FlagAudit(arSystemClientFiles);
               CloseAClient(TempClient)
             end else
             begin

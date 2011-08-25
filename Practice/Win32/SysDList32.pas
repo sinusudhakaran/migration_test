@@ -105,7 +105,7 @@ var
   P1, P2: pSystem_Disk_Log_Rec;
   AuditInfo: TAuditInfo;
 begin
-  AuditInfo.AuditType := atDownloadingData;
+  AuditInfo.AuditType := arDownloadingData;
   AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_System_Disk_Log;
   //Adds, changes

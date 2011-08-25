@@ -111,7 +111,7 @@ begin
     Chart100^.chGST_Class := 1;
     Chart100^.chPosting_Allowed := true;
     BK5TestClient.clChart.Insert(Chart100);
-    BK5TestClient.ClientAuditMgr.FlagAudit(atChartofAccounts);
+    BK5TestClient.ClientAuditMgr.FlagAudit(arChartofAccounts);
 
     //Bank account
     ba := TBank_Account.Create(BK5TestClient);
@@ -225,7 +225,7 @@ begin
     //Users
     User_Rec := New_User_Rec;
     AdminSystem.fdSystem_User_List.Insert(User_Rec);
-    SystemAuditMgr.FlagAudit(atUsers);
+    SystemAuditMgr.FlagAudit(arUsers);
     AdminSystem.Save;
     OutputValues;
     //Client File List
@@ -233,7 +233,7 @@ begin
     Client_File_Rec.cfLRN := 1;
     Client_File_Rec.cfFile_Code := 'TESTCODE';
     AdminSystem.fdSystem_Client_File_List.Insert(Client_File_Rec);
-    SystemAuditMgr.FlagAudit(atSystemClientFiles);
+    SystemAuditMgr.FlagAudit(arSystemClientFiles);
     AdminSystem.Save;
     OutputValues;
     //Bank Account List
@@ -242,7 +242,7 @@ begin
     System_Bank_Account_Rec.sbAccount_Number := '99999999999';
     System_Bank_Account_Rec.sbAccount_Name := 'TEST SYSTEM BANK ACCOUNT';    
     AdminSystem.fdSystem_Bank_Account_List.Insert(System_Bank_Account_Rec);
-    SystemAuditMgr.FlagAudit(atSystemBankAccounts);
+    SystemAuditMgr.FlagAudit(arSystemBankAccounts);
     AdminSystem.Save;
     OutputValues;
     //Client Account Map
@@ -250,19 +250,19 @@ begin
     Client_Account_Map_Rec.amClient_LRN := 1;
     Client_Account_Map_Rec.amAccount_LRN := 1;
     AdminSystem.fdSystem_Client_Account_Map.Insert(Client_Account_Map_Rec);
-    SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+    SystemAuditMgr.FlagAudit(arAttachBankAccounts);
     AdminSystem.Save;
     OutputValues;
 //    //Client Type List
 //    Client_Type_Rec := New_Client_Type_Rec;
 //    AdminSystem.fdSystem_Client_Type_List.Insert(Client_Type_Rec);
-//    SystemAuditMgr.FlagAudit(atSystemClientFiles); //No seperate audit type
+//    SystemAuditMgr.FlagAudit(arSystemClientFiles); //No seperate audit type
 //    AdminSystem.Save;
 //    OutputValues;
     //Memorisation List
     System_Memorisation_List_Rec := New_System_Memorisation_List_Rec;
     AdminSystem.fSystem_Memorisation_List.Insert(System_Memorisation_List_Rec);
-    SystemAuditMgr.FlagAudit(atMasterMemorisations);
+    SystemAuditMgr.FlagAudit(arMasterMemorisations);
     AdminSystem.Save;
     OutputValues;
   finally
@@ -337,7 +337,7 @@ begin
   AuditRecord := New_Audit_Trail_Rec;
   try
     AuditRecord.atAudit_ID := 0;
-    AuditRecord.atTransaction_Type := atPracticeSetup;
+    AuditRecord.atTransaction_Type := arPracticeSetup;
     AuditRecord.atAudit_Action := aaAdd;
     AuditRecord.atDate_Time := Now;
     AuditRecord.atUser_Code := 'SYSTEM';
@@ -355,7 +355,7 @@ begin
 
   //Flag audit
   AdminSystem.fdFields.fdAudit_Record_ID := 0;
-  SystemAuditMgr.FlagAudit(atPracticeSetup);
+  SystemAuditMgr.FlagAudit(arPracticeSetup);
 
   //Save and free the admin system
   AdminSystem.Save;

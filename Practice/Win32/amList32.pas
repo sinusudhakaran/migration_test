@@ -78,7 +78,7 @@ var
   P1, P2: pClient_Account_Map_Rec;
   AuditInfo: TAuditInfo;
 begin
-  AuditInfo.AuditType := atAttachBankAccounts;
+  AuditInfo.AuditType := arAttachBankAccounts;
   AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Client_Account_Map;
   //Adds, changes

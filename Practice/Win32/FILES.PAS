@@ -962,7 +962,7 @@ begin
         Client := nil;
 
         //*** Flag Audit ***
-        SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+        SystemAuditMgr.FlagAudit(arAttachBankAccounts);
 
         SaveAdminSystem;
      end;
@@ -2193,11 +2193,11 @@ begin
         end;
 
         //*** Flag Audit ***
-        SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+        SystemAuditMgr.FlagAudit(arAttachBankAccounts);
         //Add audit info for check-in  - this has to be aaNone because
         //File_Status=fsNormal is not audited to prevent too many audit records.
         Msg := Format('File_Code=%s%sFile_Status=Checked In',[CFRec.cfFile_Code, VALUES_DELIMITER]);
-        SystemAuditMgr.FlagAudit(atSystemClientFiles, CFRec.cfAudit_Record_ID, aaNone, Msg);
+        SystemAuditMgr.FlagAudit(arSystemClientFiles, CFRec.cfAudit_Record_ID, aaNone, Msg);
 
         SaveAdminSystem;
       end;
@@ -2594,7 +2594,7 @@ begin
           end;
 
            //*** Flag Audit ***
-          SystemAuditMgr.FlagAudit(atAttachBankAccounts);
+          SystemAuditMgr.FlagAudit(arAttachBankAccounts);
           
           SaveAdminSystem;
         end;
@@ -2808,8 +2808,8 @@ begin
          end;
 
          //*** Flag Audit ***
-         SystemAuditMgr.FlagAudit(atAttachBankAccounts);
-         SystemAuditMgr.FlagAudit(atSystemClientFiles);
+         SystemAuditMgr.FlagAudit(arAttachBankAccounts);
+         SystemAuditMgr.FlagAudit(arSystemClientFiles);
 
          SaveAdminSystem;
       end;

@@ -1571,7 +1571,7 @@ begin
       //*** Flag Audit ***
       //Notes online import
       Msg := StringReplace(Msg, #13, VALUES_DELIMITER, [rfReplaceAll, rfIgnoreCase]);
-      MyClient.ClientAuditMgr.FlagAudit(atBankLinkNotesOnline, 0, aaNone, Msg);
+      MyClient.ClientAuditMgr.FlagAudit(arBankLinkNotesOnline, 0, aaNone, Msg);
    end;
 
    if not GetAvailableData(False) then

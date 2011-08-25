@@ -188,7 +188,7 @@ begin
     p := TPayee(lvPayees.Selected.SubItems.Objects[0]);
     if EditPayeeDetail(p) then begin
       //Flag Audit
-      MyClient.ClientAuditMgr.FlagAudit(atPayees);
+      MyClient.ClientAuditMgr.FlagAudit(arPayees);
       //Reload payees
       MyClient.clPayee_List.Sort(PayeeCompare);
       RefreshPayeeList;
@@ -279,7 +279,7 @@ begin
   end;
 
   //Flag Audit
-  MyClient.ClientAuditMgr.FlagAudit(atPayees);
+  MyClient.ClientAuditMgr.FlagAudit(arPayees);
 end;
 //------------------------------------------------------------------------------
 function ColSort( Item1, Item2, ColNo : Integer ) : Integer; stdcall;
@@ -480,7 +480,7 @@ begin
          MyClient.clPayee_List.Insert(nPayee);
 
          //Flag Audit
-         MyClient.ClientAuditMgr.FlagAudit(atPayees);
+         MyClient.ClientAuditMgr.FlagAudit(arPayees);
        end;
      end;
    finally

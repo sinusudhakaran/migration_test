@@ -991,7 +991,7 @@ begin
 
         if FileRenamed then begin //force a save immediately
            //Flag Audit
-           MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
+           MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
            SaveClient;
         end;
      end;   // if okPressed
@@ -1016,7 +1016,7 @@ begin
         Result := Execute('');
         //Flag Audit
         if Result then
-          MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
+          MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
         RefreshHomepage([HPR_Client]);
      finally
         Free;

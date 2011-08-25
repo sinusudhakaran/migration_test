@@ -239,6 +239,10 @@ object dlgEditPracGST: TdlgEditPracGST
     object tsOther: TTabSheet
       Caption = 'Tax Rates'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label2: TLabel
         Left = 311
         Top = 49
@@ -540,6 +544,7 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 168
@@ -556,6 +561,7 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 208
@@ -572,6 +578,7 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 248

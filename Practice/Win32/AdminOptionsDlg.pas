@@ -491,7 +491,7 @@ begin
          fdCoding_Font := FontToStr(CESFont);
 
          //*** Flag Audit ***
-         SystemAuditMgr.FlagAudit(atSystemOptions);
+         SystemAuditMgr.FlagAudit(arSystemOptions);
 
          SaveAdminSystem;
        end;
@@ -582,7 +582,7 @@ begin
     end;
 
     //*** Flag Audit ***
-    SystemAuditMgr.FlagAudit(atSystemOptions);
+    SystemAuditMgr.FlagAudit(arSystemOptions);
 
     SaveAdminSystem;
     WritePracticeINI_WithLock;

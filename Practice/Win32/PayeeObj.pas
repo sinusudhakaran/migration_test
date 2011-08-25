@@ -184,7 +184,7 @@ var
   Payee: TPayee;
   M1, M2: TPayee;
 begin
-  AuditInfo.AuditType := atPayees;
+  AuditInfo.AuditType := arPayees;
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Payee_Detail;
   //Adds, changes
@@ -232,13 +232,13 @@ begin
       M2 := APayeeDetailCopy.FindRecordID(M1.pdFields.pdAudit_Record_ID);
     if Assigned(M1) then
       if Assigned(M2) then
-        TPayee(M1).pdLines.DoAudit(atPayees,
+        TPayee(M1).pdLines.DoAudit(arPayees,
                                    M2.pdLines,
                                    M1.pdFields.pdAudit_Record_ID,
                                    FAuditMgr,
                                    AAuditTable)
       else
-        M1.pdLines.DoAudit(atPayees,
+        M1.pdLines.DoAudit(arPayees,
                            nil,
                            M1.pdFields.pdAudit_Record_ID,
                            FAuditMgr,
@@ -321,7 +321,9 @@ end;
 
 procedure TPayee_List.Insert(Item: Pointer);
 begin
-  if Assigned(FAuditMgr) then
+  //TExtdSortedCollection sort uses insert - so check if the Payee already has
+  //an audit ID.
+  if Assigned(FAuditMgr) and (TPayee(Item).pdFields.pdAudit_Record_ID = 0)then
     TPayee(Item).pdFields.pdAudit_Record_ID := FAuditMgr.NextAuditRecordID;
   inherited Insert(Item);
 end;
@@ -507,7 +509,7 @@ var
   P1, P2: pPayee_Line_Rec;
   AuditInfo: TAuditInfo;
 begin
-  AuditInfo.AuditType := atPayees;
+  AuditInfo.AuditType := arPayees;
   AuditInfo.AuditUser := AAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Payee_Line;
   //Adds, changes

@@ -112,7 +112,7 @@ var
   P1, P2: pCustom_Heading_Rec;
   AuditInfo: TAuditInfo;
 begin
-  AuditInfo.AuditType := atCustomHeadings;
+  AuditInfo.AuditType := arCustomHeadings;
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_Custom_Heading;
   //Adds, changes

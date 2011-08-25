@@ -1483,7 +1483,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     //Client types
     for i := AdminSystem.fdSystem_Client_Type_List.First to AdminSystem.fdSystem_Client_Type_List.Last do
       AdminSystem.fdSystem_Client_Type_List.Client_Type_At(i).ctAudit_Record_ID := AdminSystem.NextAuditRecordID;
-    LogMsg( lmDebug, Unitname, 'Audit Trail System DB Upgrade Finish');      
+    LogMsg( lmDebug, Unitname, 'Audit Trail System DB Upgrade Finish');
   end;
 
   procedure UpgradeAdminToVersion124;
@@ -1531,8 +1531,6 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
       PrefixList.Free;
     end;
   end;
-
-
 
 Const
    ThisMethodName = 'DoUpgradeAdminToLatestVersion';
@@ -1881,6 +1879,13 @@ Begin
          if ( fdFile_Version < 124) then begin
             Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 124');
             UpgradeAdminToVersion124;
+            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
+         end;
+          // UK audit trail 2011 - compulsory passwords for UK only
+         if ( fdFile_Version < 125) then begin
+            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 125');
+            UpgradingToVersion := 125;
+            //Nothing to do
             if (OriginalVersion < 120) then  //No need to update if already on v120
               RefreshAllProcessingStatistics(True, False, True); //Always move to last upgrade
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );

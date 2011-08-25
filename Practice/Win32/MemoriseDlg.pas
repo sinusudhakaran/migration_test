@@ -1913,7 +1913,7 @@ begin
                  MasterMemList.Insert_Memorisation(Memorised_Trans);
                  IsAMasterMem := True;
                  //*** Flag Audit ***
-                 SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                 SystemAuditMgr.FlagAudit(arMasterMemorisations);
                  SaveAdminSystem;
                end else
                  HelpfulErrorMsg('Could not add master memorisation at this time. Admin System unavailable.', 0);
@@ -2210,7 +2210,7 @@ begin
                        end;
                      end;
                      //*** Flag Audit ***
-                     SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                     SystemAuditMgr.FlagAudit(arMasterMemorisations);
                      SaveAdminSystem;
                    end;
                  end else
@@ -2245,7 +2245,7 @@ begin
                      EditMemorisedList.Insert_Memorisation(Memorised_Trans);
                      SaveSeq := Memorised_Trans.mdFields.mdSequence_No;
                      //*** Flag Audit ***
-                     SystemAuditMgr.FlagAudit(atMasterMemorisations);
+                     SystemAuditMgr.FlagAudit(arMasterMemorisations);
                      SaveAdminSystem;
                      Memorised_Trans.mdFields.mdSequence_No := SaveSeq;
 

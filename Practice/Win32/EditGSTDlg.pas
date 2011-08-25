@@ -860,7 +860,7 @@ begin
     okpressed := true;
 
     //Flag Audit
-    MyClient.ClientAuditMgr.FlagAudit(atClientFiles);
+    MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
 
     close;
   end;

@@ -390,7 +390,7 @@ Begin
                               baTransaction_List.Insert_Transaction_Rec( Transaction );
 
                               //Flag Audit for bank account
-                              aClient.ClientAuditMgr.FlagAudit(atClientBankAccounts);
+                              aClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
                            end;
 
                            If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;
@@ -858,7 +858,7 @@ begin
      end;
 
      //*** Flag Audit ***
-     SystemAuditMgr.FlagAudit(atSystemClientFiles);
+     SystemAuditMgr.FlagAudit(arSystemClientFiles);
   end;
 
   //sync client bank accounts with admin system

@@ -224,7 +224,7 @@ begin
   result := true;
 
   //*** Flag Audit ***
-  MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+  MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
 
   LogUtil.LogMsg(lmInfo,UnitName,'User Deleted Account '+ Name + ' '+Code);
 end;
@@ -257,7 +257,7 @@ begin
 
    //*** Flag Audit ***
    if ChartChanged then
-     MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+     MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
 
    with MyClient, MyClient.clFields do
    if (LockRequired)
@@ -736,7 +736,7 @@ begin
         lvChart.UpdateItems( i,i );
 
         //*** Flag Audit ***
-        MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+        MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
      end;
   end;
 
@@ -762,7 +762,7 @@ begin
         end;
 
         //*** Flag Audit ***
-        MyClient.ClientAuditMgr.FlagAudit(atChartOfAccounts);
+        MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
      end;
   end;
 

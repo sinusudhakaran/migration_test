@@ -73,14 +73,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
       OnMouseDown = tblSplitMouseDown
       OnUserCommand = tblSplitUserCommand
       CellData = (
-        'dlgPayeeDetail.Header'
-        'dlgPayeeDetail.colLineType'
-        'dlgPayeeDetail.colPercent'
-        'dlgPayeeDetail.ColAmount'
-        'dlgPayeeDetail.ColGSTCode'
-        'dlgPayeeDetail.colNarration'
-        'dlgPayeeDetail.ColDesc'
-        'dlgPayeeDetail.ColAcct')
+        'dlgPayeeDetail.Header')
       RowData = (
         21)
       ColData = (

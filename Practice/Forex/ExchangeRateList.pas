@@ -268,7 +268,7 @@ begin
     ER.SaveToExchange_Rate_Rec(P1);
     ExchangeRateSourceCopy := TExchangeSource(OtherData^);
 
-    AuditInfo.AuditType := atExchangeRates;
+    AuditInfo.AuditType := arExchangeRates;
     AuditInfo.AuditUser := ExchangeRateSourceCopy.FCurrentUser;
     AuditInfo.AuditRecordType := tkBegin_Exchange_Rate;
     //Adds, changes
@@ -331,7 +331,7 @@ begin
     ER.SaveToExchange_Rate_Rec(P1);
     ExchangeRateSource := TExchangeSource(OtherData^);
 
-    AuditInfo.AuditType := atExchangeRates;
+    AuditInfo.AuditType := arExchangeRates;
     AuditInfo.AuditUser := ExchangeRateSource.FCurrentUser;
     AuditInfo.AuditRecordType := tkBegin_Exchange_Rate;
     //Deletes
@@ -369,7 +369,7 @@ var
   HeaderCopy: TExchange_Rates_Header_Rec;
 begin
   AuditInfo.AuditAction := aaNone;
-  AuditInfo.AuditType := atExchangeRates;
+  AuditInfo.AuditType := arExchangeRates;
   AuditInfo.AuditRecordType := tkBegin_Exchange_Rates_Header;
   //Exchange source
   AuditInfo.AuditRecord := New_Exchange_Rates_Header_Rec;
@@ -993,7 +993,7 @@ begin
   S := TIOStream.Create;
   try
     //*** Flag Audit ***
-    FAuditManager.FlagAudit(atExchangeRates);
+    FAuditManager.FlagAudit(arExchangeRates);
     FAuditManager.DoAudit;
 
     L := 0;

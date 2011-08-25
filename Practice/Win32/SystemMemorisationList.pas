@@ -91,7 +91,7 @@ var
   AuditInfo: TAuditInfo;
   MemorisationsListCopy: TMemorisations_List;
 begin
-  AuditInfo.AuditType := atMasterMemorisations;
+  AuditInfo.AuditType := arMasterMemorisations;
   AuditInfo.AuditUser := SystemAuditMgr.CurrentUserCode;
   AuditInfo.AuditRecordType := tkBegin_System_Memorisation_List;
   //Adds, changes
