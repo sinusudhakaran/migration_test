@@ -1646,6 +1646,7 @@ var
   RemoteFileName: string;
   BackupFileName: string;
   Msg: string;
+  Wrapper: TClientWrapper;
 begin
   //Never comes in here for scheduled reports - admin system must exist
   //admin system does not exists so is an off-site client
@@ -1681,6 +1682,18 @@ begin
         Exit;
       end;
       CloseAClient(TempClient);
+    end;
+  end;
+
+  //Check that client file has GUID for BankLink Online
+  if (ASendMethod = smBankLinkOnline) then begin
+    GetClientWrapper(LocalFileName, Wrapper, True);
+    if not Wrapper.wHasGUID then begin
+      Msg := 'Cannot check out client file ' + CODE +
+             ' because it is not BankLink Online ready';
+      LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
+      ProgressFrm.mProgress.Lines.Add(Msg);
+      Exit;
     end;
   end;
 

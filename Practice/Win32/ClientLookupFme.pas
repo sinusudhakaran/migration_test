@@ -88,6 +88,7 @@ type
     imBankLinkOnline: string[60];
     imModifiedBy    : string[20];
     imModifiedDate  : string[20];
+    imHasGUID       : Boolean;
   end;
 
   TIntermediateDataList = class(TExtdCollection) //not sorted
@@ -409,7 +410,9 @@ const
 
   gidForeignFile          = 32;  //This should always be the last group!!
 
-  gidMax  = 36;
+  gidNotBanklinkOnlineReady = 37;
+
+  gidMax  = 37;
 
   gidNames : Array[ gidMin..gidMax] of string[30] =
     (
@@ -459,13 +462,15 @@ const
       'Conflict',
       'Invalid Files',
       'Read-Only',
-      'Archived'
+      'Archived',
+      'Not BankLink Online Ready'
      );
 
 const
   Tag_CheckInConflict = 1;
   Tag_InvalidFile = 2;
   Tag_ReadOnlyFile = 3;
+  Tag_NotBanklinkReady = 4;
 
 const LEDOffset = 6;
       LEDWidth = 8;
@@ -995,6 +1000,8 @@ begin
            pIDRec^.imGroupID := gidStatus_InvalidFile;
         Tag_ReadOnlyFile :
            pIDRec^.imGroupID := gidStatus_ReadOnly;
+        Tag_NotBanklinkReady :
+           pIDRec^.imGroupID := gidNotBanklinkOnlineReady;
       else
         begin
           //it will also happen when a file is being checked in for the first time
@@ -1179,6 +1186,7 @@ begin
         pIDRec^.imBankLinkOnline := ClientStatus.Status;
         pIDRec^.imModifiedBy     := ClientStatus.UserModified;
         pIDRec^.imModifiedDate   := FormatDateTime('dd/MM/yy', ClientStatus.DateModified);
+        pIDRec^.imHasGUID        := True;
       end;
     end;
   end;
@@ -1214,6 +1222,7 @@ begin
       pIDRec^.imBankLinkOnline := ClientStatus.Status;
       pIDRec^.imModifiedBy     := ClientStatus.UserModified;
       pIDRec^.imModifiedDate   := FormatDateTime('dd/MM/yy', ClientStatus.DateModified);
+      pIDRec^.imHasGUID        := True;
 
       //if we are doing a check in and we have an admin system then check
       //the file status
@@ -1559,6 +1568,7 @@ begin
            pIDRec^.imBankLinkOnline := '';
            pIDRec^.imModifiedBy     := '';
            pIDRec^.imModifiedDate   := '';
+           pIDRec^.imHasGUID        := False;
         end;
       end;
     end;
@@ -1590,7 +1600,7 @@ begin
         end;
 
         //Don't display books client files for banklink online if it doesn't have a GUID
-        if (not FUsingBankLinkOnline) or Wrapper.wHasGUID then begin
+        if (not FUsingBankLinkOnline) or (FFilterMode = fmNoFilter) or Wrapper.wHasGUID then begin
           //Load into client files list
           if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
           begin
@@ -1605,6 +1615,7 @@ begin
             pIDRec^.imBankLinkOnline := '';
             pIDRec^.imModifiedBy     := '';
             pIDRec^.imModifiedDate   := '';
+            pIDRec^.imHasGUID        := Wrapper.wHasGUID;
 
             //if we are doing a check in and we have an admin system then check
             //the file status
@@ -1614,8 +1625,7 @@ begin
               pIDRec^.imData := sysClientRec;
             end
             else
-              if ( FFilterMode = fmFilesForCheckIn) then
-              begin
+              if ( FFilterMode = fmFilesForCheckIn) then begin
                 //checkin at offsite, see if file already exists
                 //a conflict situation occurs only if the existing file is
                 //currently writable
@@ -1638,10 +1648,10 @@ begin
                     end;
                   end;
                 end;
-              end
-              else
-                if ( Wrapper.wRead_Only) then
-                  pIDRec^.imTag := Tag_ReadOnlyFile;
+              end else if ( Wrapper.wRead_Only) then
+                pIDRec^.imTag := Tag_ReadOnlyFile
+              else if (not Wrapper.wHasGUID) then
+                pIDRec^.imTag := Tag_NotBanklinkReady;
           end
           else
           begin
@@ -1662,6 +1672,7 @@ begin
             pIDRec^.imBankLinkOnline := '';
             pIDRec^.imModifiedBy     := '';
             pIDRec^.imModifiedDate   := '';
+            pIDRec^.imHasGUID        := False;
           end;
         end;
         Found := FindNext( SearchRec );
@@ -2084,7 +2095,11 @@ begin
            ( TargetCanvas.Brush.Color <> clHighlight) then
           TargetCanvas.Font.Color := clBlue;
       end;
-
+      if Assigned(pIDRec) then begin
+        if FUsingBankLinkOnline and (not pIDRec.imHasGUID) then
+          //Gray out
+          TargetCanvas.Font.Color := clGrayText;
+      end;
     end;
   end;
 end;
