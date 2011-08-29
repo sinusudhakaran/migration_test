@@ -87,7 +87,7 @@ type
   TOpPropDirection = (pdToServer, pdFromServer);
   TOpCallType = (ctMethod, ctProperty);
   TOpClientState = set of (csConnecting, csDisconnecting, csInEvent);
-  TOpOfficeVersion = (ovUnknown, ov97, ov98, ov2000, ovXP);          {!!.63}
+  TOpOfficeVersion = (ovUnknown, ov97, ov98, ov2000, ovXP, ov2007, ov2010);          {!!.63}
 
   TOpGetInstanceEvent = procedure (Sender: TObject; var Instance: IDispatch;
     const CLSID, IID: TGUID) of object;
@@ -747,6 +747,10 @@ begin
       Result := ov2000                                               {!!.63}
     else if (Code = 0) and (MajorVer = 10) then                      {!!.63}
       Result := ovXP                                                 {!!.63}
+    else if (Code = 0) and (MajorVer = 12) then
+      Result := ov2007
+    else if (Code = 0) and (MajorVer = 14) then
+      Result := ov2010 
     else
       Result := ov97;
   end;

@@ -1174,8 +1174,11 @@ end;
 
 procedure TOpWord.SetUserName(const Value: WideString);
 begin
+try
   if (Connected) then
     FServer.UserName := Value;
+except
+end;
   FUserName := Value;
 end;
 
@@ -1214,11 +1217,19 @@ procedure TOpWord.GetAppInfo(Info: TStrings);
 var
   App: _Application;
   Mcp: string;
+  b: OleVariant;
+  Created : boolean;
 begin
   if not Connected then
+  begin
+    Created := True;
     OleCheck(CoCreate(CLASS_Application_, _Application, App))
+  end
   else
+  begin
+    Created := False;
     App := FServer;
+  end;
   if assigned(Info) then
   begin
     with Info do
@@ -1232,6 +1243,11 @@ begin
       else Mcp := 'No';
       Add('Math CoProcessorAvailable=' + Mcp);
     end;
+  end;
+  if Created then
+  begin
+    b := False;
+    App.Quit(b, emptyParam, emptyParam);
   end;
 end;
 
@@ -1556,7 +1572,7 @@ end;
 procedure TOpWord.DoConnect;
 begin
   OleCheck(CoCreate(CLASS_Application_, _Application, FServer));
-  if (OfficeVersion = ov2000) or (OfficeVersion = ovXP) then         {!!.63}
+  if (OfficeVersion = ov2000) or (OfficeVersion = ovXP) or (OfficeVersion in [ov2007, ov2010]) then         {!!.63}
     CreateEvents(FServer, DIID_ApplicationEvents2);
   if OfficeVersion = ov97 then
     CreateEvents(FServer, DIID_ApplicationEvents);
@@ -1620,14 +1636,16 @@ begin
   inherited Connect;
   if (PropDirection = pdFromServer) then
     DocFile:= FDocFile;
-  ShowSummary:= FShowSummary;
+  if not (TOpWord(RootComponent).OfficeVersion = ov2010) then
+    ShowSummary:= FShowSummary;
   DocumentKind:= FDocumentKind;
   MailMerge:= FMailMerge;
   AutoHyphenation:= FAutoHyphenation;
   HyphenateCaps:= FHyphenateCaps;
   HyphenationZone:= 1;  //FHyphenationZone;
   ConsecutiveHyphensLimit:= FConsecutiveHyphensLimit;
-  HasRoutingSlip:= FHasRoutingSlip;
+  if not (TOpWord(RootComponent).OfficeVersion = ov2010) then
+    HasRoutingSlip:= FHasRoutingSlip;
   Saved:= FSaved;
   DefaultTabStop:= FDefaultTabStop;
   EmbedTrueTypeFonts:= FEmbedTrueTypeFonts;
@@ -1639,8 +1657,10 @@ begin
   SpellingChecked:= FSpellingChecked;
   ShowGrammaticalErrors:= FShowGrammaticalErrors;
   ShowSpellingErrors:= FShowSpellingErrors;
-  SummaryViewMode:= FSummaryViewMode;
-  SummaryLength:= FSummaryLength;
+  if not (TOpWord(RootComponent).OfficeVersion = ov2010) then begin
+    SummaryViewMode:= FSummaryViewMode;
+    SummaryLength:= FSummaryLength;
+  end;
   PrintPostScriptOverText:= FPrintPostScriptOverText;
   PrintFormsData:= FPrintFormsData;
   UserControl:= FUserControl;
@@ -2229,7 +2249,7 @@ begin
           DocumentOwner := TOpWordDocuments(self.GetOwner);            {!!.64}
           BaseComponent := TOpWord(DocumentOwner.GetOwner);            {!!.64}
           OleSubType := wdMergeSubTypeWord2000;                        {!!.64}          
-          if BaseComponent.FOfficeVersion = ovXP then                  {!!.64}
+          if (BaseComponent.FOfficeVersion = ovXP) or (BaseComponent.FOfficeVersion in [ov2007, ov2010]) then   {!!.64}
           begin                                                        {!!.64}
             (*this procedure is used only in XP*)
             FMailMerge.AsMailMerge.OpenDataSource('', emptyParam,emptyParam,  {!!.64}
@@ -2431,8 +2451,11 @@ end;
 procedure TOpWordDocument.SetHasRoutingSlip(const Value: WordBool);
 begin
   FHasRoutingSlip := Value;
+  try
   if CheckActive(False,ctProperty) then
     AsDocument.HasRoutingSlip:= Value;
+  except
+  end;
 end;
 
 procedure TOpWordDocument.SetHyphenateCaps(const Value: WordBool);
@@ -2970,7 +2993,8 @@ begin
   FAddress:= Value;
   if CheckActive(False,ctProperty) then
     if (TOpWord(RootComponent).OfficeVersion = ov2000) or
-       (TOpWord(RootComponent).OfficeVersion = ovXP) then            {!!.63}
+       (TOpWord(RootComponent).OfficeVersion = ovXP) or
+       (TOpWord(RootComponent).OfficeVersion  in [ov2007, ov2010]) then            {!!.63}
       (Intf as HyperLink).Address:= Value
     else
       ShowMessage(SHyperlinkLinkAddress);

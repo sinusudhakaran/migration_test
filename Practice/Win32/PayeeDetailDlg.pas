@@ -657,6 +657,7 @@ begin
 
    UpdateTotal;
 
+   tblSplit.InvalidateCell(RowNum,AccountCol);  {Account}
    tblSplit.InvalidateCell(RowNum,GSTCol);  {gst class}
    tblSplit.InvalidateCell(RowNum,DescCol);  {desc}
    tblSplit.InvalidateCell(RowNum,NarrationCol);

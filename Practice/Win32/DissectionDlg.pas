@@ -3447,8 +3447,8 @@ begin
             Left    := btnView.left + 50;
             Visible := false;
          end;
-         // Analysis not shown for OZ
-         if MyClient.clFields.clCountry = whAustralia  then begin
+         // Analysis not shown for OZ or UK
+         if MyClient.clFields.clCountry in [whAustralia, whUK] then begin
             lblAnalysis.Visible      := false;
             lblAnalysisField.Visible := false;
          end;

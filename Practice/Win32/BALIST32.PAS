@@ -344,11 +344,14 @@ begin
       LogUtil.LogMsg(lmError, UnitName, Msg );
       raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
     End;
-    //Some manual bank accounts are re-inserted after the account number has
-    //been edited to keep the correct order.
-    if (not B.IsManual) or (B.baFields.baAudit_Record_ID = 0) then
-      //Get next audit ID for new bank accounts
-      B.baFields.baAudit_Record_ID := FAuditMgr.NextAuditRecordID;
+    //FAuditMgr is not assigned for ResyncClient temporary bank account list
+    if Assigned(FAuditMgr) then begin
+      //Some manual bank accounts are re-inserted after the account number has
+      //been edited to keep the correct order.
+      if (not B.IsManual) or (B.baFields.baAudit_Record_ID = 0) then
+        //Get next audit ID for new bank accounts
+        B.baFields.baAudit_Record_ID := FAuditMgr.NextAuditRecordID;
+    end;
   End;
 
   inherited Insert( Item );
