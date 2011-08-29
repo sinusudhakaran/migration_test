@@ -27,7 +27,8 @@ uses
   BkDefs,
   PayeeObj,
   trxList32,
-  ClientDetailCacheObj;
+  ClientDetailCacheObj,
+  MONEYDEF;
 
 Const
   FILENAME_MUDDLE_DAT  = 'Muddler.dat';
@@ -55,7 +56,7 @@ Type
     AccountNumber   : string;
     AccountName     : string;
     NumOfTrans      : integer;
-    CurrentBalance  : Currency;
+    CurrentBalance  : Money;
     LastTranDate    : TDateTime;
     InstitutionName : String;
   end;
@@ -125,7 +126,7 @@ Type
                              AccountNumber   : string;
                              AccountName     : string;
                              NumOfTrans      : integer;
-                             CurrentBalance  : Currency;
+                             CurrentBalance  : Money;
                              LastTranDate    : TDateTime;
                              InstitutionName : String);
     function FileInCopyList(FileName : string) : Boolean;
@@ -382,7 +383,7 @@ procedure TMuddler.AddBillingInfo(ClientName      : string;
                                   AccountNumber   : string;
                                   AccountName     : string;
                                   NumOfTrans      : integer;
-                                  CurrentBalance  : Currency;
+                                  CurrentBalance  : Money;
                                   LastTranDate    : TDateTime;
                                   InstitutionName : String);
 var
@@ -969,6 +970,10 @@ var
   Day   : integer;
   Month : integer;
   Year  : integer;
+  CompanyName : string;
+  BillingDate : TDateTime;
+  CurrentBalance : Money;
+  RandNumber : integer;
 begin
   if not (AccountObj.baFields.baAccount_Type in ACC_TYPE_NOT_MUDDLED) then
   begin
@@ -984,18 +989,22 @@ begin
     AccountObj.baFields.baBank_Account_Number := AccountNumber;
     AccountObj.baFields.baBank_Account_Name   := AccountName;
 
-
-
     if AccountObj.baTransaction_List.LastPresDate > 0 then
     begin
       StDateToDMY(AccountObj.baTransaction_List.LastPresDate, Day, Month, Year);
+
+      CompanyName := fDataGenerator.GenerateCompanyName('Bank');
+      CurrentBalance := AccountObj.baFields.baCurrent_Balance;
+      RandNumber := Random(49);
+      BillingDate := EncodeDate(Year, Month, Day);
+
       AddBillingInfo(ClientName,
                      AccountNumber,
                      AccountName,
-                     Random(49),
-                     AccountObj.baFields.baCurrent_Balance,
-                     EncodeDate(Year, Month, Day),
-                     fDataGenerator.GenerateCompanyName('Bank'));
+                     RandNumber,
+                     CurrentBalance,
+                     BillingDate,
+                     CompanyName);
     end;
   end
   else
