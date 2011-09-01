@@ -187,7 +187,7 @@ Begin
                  txBank_Seq           := aBankAccount.baFields.baNumber;  //setbank account sequence no to current bank index
                  txMatched_In_Resync  := false;
               end;
-              aBankAccount.baTransaction_List.Insert_Transaction_Rec( Transaction );
+              aBankAccount.baTransaction_List.Insert_Transaction_Rec( Transaction, False );
            end
            else begin
               //if trxDate before PresDate, store LRN.
@@ -286,7 +286,7 @@ begin
 
          if ( Transaction^.txDate_Presented = ClientBankAccount.baFields.baTemp_Resync_Date ) then begin
             Transaction^.txMatched_In_Resync := false;
-            TempTransList.Insert_Transaction_Rec(Transaction);
+            TempTransList.Insert_Transaction_Rec(Transaction, False);
          end;
       end;
 
