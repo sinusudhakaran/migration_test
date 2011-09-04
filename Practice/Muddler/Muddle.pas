@@ -740,9 +740,9 @@ begin
   for StrIndex := 1 to Length(Instring) do
   begin
     if (Instring[StrIndex] in ['0'..'9']) then
-    begin
-      Result := Result + inttostr(MuddleDigit(strtoint(Instring[StrIndex])));
-    end;
+      Result := Result + inttostr(MuddleDigit(strtoint(Instring[StrIndex])))
+    else
+      Result := Result + Instring[StrIndex];
   end;
 end;
 
