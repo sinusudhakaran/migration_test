@@ -420,7 +420,7 @@ begin
   FHttpHeaderInfo.NameValueSeparator := ':';
 
   FHttpRequester.OnConnectionStatus        := DoHttpConnectionStatus;
-  FSOAPRequester.OnSSLServerAuthentication := DoHttpSSLServerAuthentication;
+  FHttpRequester.OnSSLServerAuthentication := DoHttpSSLServerAuthentication;
   FHttpRequester.OnStartTransfer           := DoHttpStartTransfer;
   FHttpRequester.OnTransfer                := DoHttpTransfer;
   FHttpRequester.OnEndTransfer             := DoHttpEndTransfer;
@@ -449,7 +449,7 @@ begin
     if not INI_BCUseWinInet then
       FHttpRequester.Config('usewininet=false')
     else
-      FSOAPRequester.Config ('usewininet=True');
+      FHttpRequester.Config ('usewininet=True');
 
     if INI_BCUseProxy then
     begin
