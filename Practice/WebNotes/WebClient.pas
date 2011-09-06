@@ -428,10 +428,9 @@ begin
 
   FHttpRequester.Config ('SSLSecurityFlags=0x80000000');
   FHttpRequester.Config ('SSLEnabledProtocols=140');
-  FSOAPRequester.Config ('usewininet=True');
 
-  // Reset to Default...
-  {FHttpRequester.ProxyServer := '*';
+  {// Reset to Default...
+  FHttpRequester.ProxyServer := '*';
   FHttpRequester.ProxyPort := 0;
   FHttpRequester.ProxyAuthorization := '';
   FHttpRequester.ProxyUser := '';
@@ -444,9 +443,14 @@ begin
   FHttpRequester.FirewallPassword := '';
   FHttpRequester.FirewallType := TipshttpsFirewallTypes(fwNone);}
 
-  {// For Now just take the rsst from the BConnect settings...
+  // For Now just take the rsst from the BConnect settings...
   if INI_BCCustomConfig then
   begin
+    if not INI_BCUseWinInet then
+      FHttpRequester.Config('usewininet=false')
+    else
+      FSOAPRequester.Config ('usewininet=True');
+
     if INI_BCUseProxy then
     begin
       FHttpRequester.ProxyServer := INI_BCProxyHost;
@@ -463,9 +467,6 @@ begin
       end;
     end;
 
-    if not INI_BCUseWinInet then
-      FHttpRequester.Config('usewininet=false');
-
     if INI_BCUseFirewall then
     begin
       FHttpRequester.FirewallHost := INI_BCFirewallHost;
@@ -474,7 +475,7 @@ begin
       FHttpRequester.FirewallPassword := INI_BCFirewallPassword;
       FHttpRequester.FirewallType :=  TipshttpsFirewallTypes(INI_BCFirewallType);
     end;
-  end;}
+  end;
 end;
 
 //------------------------------------------------------------------------------
