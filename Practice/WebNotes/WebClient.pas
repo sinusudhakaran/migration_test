@@ -651,14 +651,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebClient.HttpSendRequest(Address: string);
 begin
-  try
-    FHttpRequester.Get(Address)
-  except
-    on E : EipsHTTPS do
-    begin
-
-    end;
-  end;
+  FHttpRequester.Get(Address)
 end;
 
 //------------------------------------------------------------------------------
@@ -667,14 +660,7 @@ begin
   if FileName <> '' then
     FHttpRequester.AttachedFile := FileName;
 
-  try
-    FHttpRequester.Post(Address);
-  except
-    on E : EipsHTTPS do
-    begin
-
-    end;
-  end;
+  FHttpRequester.Post(Address);
 end;
 
 //------------------------------------------------------------------------------
@@ -682,14 +668,7 @@ procedure TWebClient.HttpGetFile(Address, FileName: string);
 begin
   FHttpRequester.LocalFile := FileName;
 
-  try
-    FHttpRequester.Get(Address);
-  except
-    on E : EipsHTTPS do
-    begin
-
-    end;
-  end;
+  FHttpRequester.Get(Address);
 end;
 
 //------------------------------------------------------------------------------

@@ -82,6 +82,7 @@ type
     fIsBooks          : Boolean;
     fServerReply      : string;
     fContentType      : string;
+    FServerCrc        : string;
 
     fProcessState     : TProcessState;
 
@@ -91,6 +92,8 @@ type
     fServerClientStatusList : TClientStatusList;
 
   protected
+    function TrimedGuid(Guid : TGuid) : String;
+
     procedure RaiseHttpError(ErrMessage : String; ErrCode : integer); override;
 
     // Http Used Events
@@ -124,7 +127,6 @@ type
     Function CreateAndSaveGuid(ClientCode : String) : TGuid;
     function GetClientGuid(ClientCode : String) : TGuid;
 
-    function TrimedGuid(Guid : TGuid) : String;
     procedure UploadFile(HttpAddress : string;
                          FileName : string);
 
@@ -135,6 +137,7 @@ type
                                        var PracCode     : String;
                                        var CountryCode  : String;
                                        var PracPass     : String);
+
     procedure GetBooksDetailsToSend(ClientCode      : string;
                                     var FileName    : string;
                                     var ClientEmail : string;
@@ -408,7 +411,9 @@ begin
   if Field = 'Content-Length' then
     trystrtoint(Value, fTotalBytes)
   else if Field = 'Content-Type' then
-    fContentType := Value;
+    fContentType := Value
+  else if Field = 'CRC' then
+    FServerCrc := Value;
 end;
 
 //------------------------------------------------------------------------------
@@ -601,7 +606,7 @@ var
   CurrentNode : IXMLNode;
 begin
   if pos('<' + XML_STATUS_HEADNAME + '>', fServerReply) = 0 then
-    RaiseHttpError('Cico - Error in XML Server Responce!', 1000);
+    RaiseHttpError('Cico - Error in XML Server Responce!', 303);
 
   XMLDoc := MakeXMLDoc(fServerReply);
   try
@@ -657,7 +662,7 @@ begin
   while (fProcessState <> psNothing) do
   begin
     if ((GetTickCount - StartTick) >= WAIT_TIMEOUT) then
-      RaiseHttpError('Cico - Timeout reached!', 1000);
+      RaiseHttpError('Cico - Operation timeout!', 301);
   end;
 end;
 
@@ -882,6 +887,8 @@ var
   Email       : String;
   Guid        : TGuid;
   StrGuid     : String;
+  FileCrc     : String;
+  FileSize    : Integer;
 begin
   fProcessState := psDownloadPrac;
   try
@@ -903,9 +910,14 @@ begin
 
     AppendHttpHeaderInfo;
 
-    HttpGetFile(HttpAddress, 'C:\Temp\110906_101924.bk5');
+    FileName := 'C:\Temp\110906_101924.bk5';
+    HttpGetFile(HttpAddress, FileName);
 
     WaitForProcess;
+
+    FileInfo(FileName, FileCrc, FileSize);
+    if FServerCrc <> FileCrc then
+      RaiseHttpError('Cico - File CRC Error!', 304);
 
     Status       := fServerStatus;
     Description  := fServerDescription;
@@ -948,7 +960,7 @@ var
   ClientName   : String;
   PracCode     : String;
   CountryCode  : String;
-  StrGuid     : String;
+  StrGuid      : String;
 begin
   fProcessState := psUploadBooks;
   try
@@ -1012,7 +1024,9 @@ var
   PracCode     : String;
   CountryCode  : String;
   Guid         : TGuid;
-  StrGuid     : String;
+  StrGuid      : String;
+  FileCrc      : String;
+  FileSize     : Integer;
 begin
   fProcessState := psDownloadBooks;
   try
@@ -1034,9 +1048,14 @@ begin
 
     AppendHttpHeaderInfo;
 
-    HttpGetFile(HttpAddress, 'C:\Temp\110906_013259.bk5');
+    FileName := 'C:\Temp\110906_013259.bk5';
+    HttpGetFile(HttpAddress, FileName);
 
     WaitForProcess;
+
+    FileInfo(FileName, FileCrc, FileSize);
+    if FServerCrc <> FileCrc then
+      RaiseHttpError('Cico - File CRC Error!', 304);
 
     Status       := fServerStatus;
     Description  := fServerDescription;
