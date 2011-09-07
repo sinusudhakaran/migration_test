@@ -91,8 +91,12 @@ type
     fServerDetailedDesc : String;
     fServerClientStatusList : TClientStatusList;
 
-  protected
     function TrimedGuid(Guid : TGuid) : String;
+    procedure FileInfo(Filename     : String;
+                       var FileCRC  : String;
+                       var FileSize : Integer);
+  protected
+
 
     procedure RaiseHttpError(ErrMessage : String; ErrCode : integer); override;
 
@@ -120,15 +124,8 @@ type
                            const Field: String;
                            const Value: String); Override;
 
-    procedure FileInfo(Filename     : String;
-                       var FileCRC  : String;
-                       var FileSize : Integer);
-
     Function CreateAndSaveGuid(ClientCode : String) : TGuid;
     function GetClientGuid(ClientCode : String) : TGuid;
-
-    procedure UploadFile(HttpAddress : string;
-                         FileName : string);
 
     procedure GetPracticeDetailsToSend(ClientCode       : string;
                                        var FileName     : String;
@@ -144,6 +141,9 @@ type
                                     var ClientName  : string;
                                     var PracCode    : String;
                                     var CountryCode : String);
+
+    procedure UploadFile(HttpAddress : string;
+                         FileName : string);
 
     function GetValueFromNode(ParentNode : IXMLNode; NodeName : String) : String;
     procedure GetUpdateServerReply;
@@ -281,6 +281,52 @@ end;
 
 { TWebCiCoClient }
 //------------------------------------------------------------------------------
+function TWebCiCoClient.TrimedGuid(Guid: TGuid): String;
+begin
+  // Trims the { and } off the ends of the Guid to pass to the server
+  Result := midstr(GuidToString(Guid),2,length(GuidToString(Guid))-2);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.FileInfo(Filename     : String;
+                                  var FileCRC  : String;
+                                  var FileSize : Integer);
+var
+  CrcHash    : T5x4LongWordRecord;
+  IdHashSHA1 : TIdHashSHA1;
+  FileStream : TFileStream;
+  Sha1String : String[20];
+  Index : integer;
+  Value : Byte;
+begin
+  // Opening the File to Work out the SHA1 hash which is then
+  // Base 64 encoded and sent as a CRC header
+  FileStream := TFileStream.Create(Filename, fmOpenRead);
+  Try
+    FileSize := FileStream.Size;
+
+    IdHashSHA1 := TIdHashSHA1.Create;
+    Try
+      FileStream.Position := 0;
+      CrcHash := IdHashSHA1.HashValue(FileStream);
+
+      Sha1String := '';
+      for Index := 0 to 19 do
+      begin
+        Value := TByteArr20(CrcHash)[Index];
+        Sha1String := Sha1String + chr(Value);
+      end;
+
+      FileCRC := EncodeString(Sha1String);
+    Finally
+      FreeAndNil(IdHashSHA1);
+    End;
+  Finally
+    FreeAndNil(FileStream);
+  End;
+end;
+
+//------------------------------------------------------------------------------
 procedure TWebCiCoClient.RaiseHttpError(ErrMessage : String; ErrCode : integer);
 begin
   raise EWebHttpCiCoClientError.Create(ErrMessage, ErrCode);
@@ -366,7 +412,7 @@ begin
   if Assigned(fTransferFileEvent) then
     fTransferFileEvent(TDirectionIndicator(Direction), trsTransInProgress, BytesTransferred, fTotalBytes, fContentType);
 
-  // Attempts to retrieve Server Message
+  // Builds Server Message
   if TDirectionIndicator(Direction) = dirFromServer then
     fServerReply := fServerReply + Text;
 end;
@@ -407,52 +453,13 @@ begin
     fStatusEvent('Header Field : ' + Field + ', ' +
                  'Header Value : ' + Value);
 
-  // works out content length and type
+  // works out Content Length, Type and CRC from headers
   if Field = 'Content-Length' then
     trystrtoint(Value, fTotalBytes)
   else if Field = 'Content-Type' then
     fContentType := Value
   else if Field = 'CRC' then
     FServerCrc := Value;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebCiCoClient.FileInfo(Filename     : String;
-                                  var FileCRC  : String;
-                                  var FileSize : Integer);
-var
-  CrcHash    : T5x4LongWordRecord;
-  IdHashSHA1 : TIdHashSHA1;
-  FileStream : TFileStream;
-  Sha1String : String[20];
-  Index : integer;
-  Value : Byte;
-begin
-  // Opening the File to Work out the SHA1 hash which is then
-  // Base 64 encoded and sent as a CRC header
-  FileStream := TFileStream.Create(Filename, fmOpenRead);
-  Try
-    FileSize := FileStream.Size;
-
-    IdHashSHA1 := TIdHashSHA1.Create;
-    Try
-      FileStream.Position := 0;
-      CrcHash := IdHashSHA1.HashValue(FileStream);
-
-      Sha1String := '';
-      for Index := 0 to 19 do
-      begin
-        Value := TByteArr20(CrcHash)[Index];
-        Sha1String := Sha1String + chr(Value);
-      end;
-
-      FileCRC := EncodeString(Sha1String);
-    Finally
-      FreeAndNil(IdHashSHA1);
-    End;
-  Finally
-    FreeAndNil(FileStream);
-  End;
 end;
 
 //------------------------------------------------------------------------------
@@ -490,34 +497,6 @@ function TWebCiCoClient.GetClientGuid(ClientCode : String) : TGuid;
 begin
   if Assigned(MyClient) then
     Result := StringToGuid(MyClient.clExtra.ceClient_File_GUID);
-end;
-
-//------------------------------------------------------------------------------
-function TWebCiCoClient.TrimedGuid(Guid: TGuid): String;
-begin
-  Result := midstr(GuidToString(Guid),2,length(GuidToString(Guid))-2);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebCiCoClient.UploadFile(HttpAddress : string;
-                                    FileName : string);
-var
-  FileCRC      : String;
-  FileLength   : Integer;
-begin
-  if not FileExists(Filename) then
-    Exit;
-
-  FileInfo(Filename, FileCRC, FileLength);
-
-  // Adding Crc to Header Section
-  AddHttpHeaderInfo('FileCRC',    FileCRC);
-  AddHttpHeaderInfo('FileLength', inttostr(FileLength));
-  HttpRequester.ContentType := 'bk5/xml';
-  fContentType := HttpRequester.ContentType;
-  AppendHttpHeaderInfo;
-
-  HttpPostFile(HttpAddress, Filename);
 end;
 
 //------------------------------------------------------------------------------
@@ -565,6 +544,28 @@ begin
   Finally
     FreeAndNil(fClientObj);
   End;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.UploadFile(HttpAddress : string;
+                                    FileName : string);
+var
+  FileCRC      : String;
+  FileLength   : Integer;
+begin
+  if not FileExists(Filename) then
+    Exit;
+
+  FileInfo(Filename, FileCRC, FileLength);
+
+  // Adding Crc to Header Section
+  AddHttpHeaderInfo('FileCRC',    FileCRC);
+  AddHttpHeaderInfo('FileLength', inttostr(FileLength));
+  HttpRequester.ContentType := 'bk5/xml';
+  fContentType := HttpRequester.ContentType;
+  AppendHttpHeaderInfo;
+
+  HttpPostFile(HttpAddress, Filename);
 end;
 
 //------------------------------------------------------------------------------
