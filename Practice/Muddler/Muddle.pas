@@ -751,15 +751,22 @@ function TMuddler.GetFirstAlphaCharFromAcc(AccNumber : String) : String;
 var
   Max4Length : integer;
   Index : integer;
+  AllNonNumeric : Boolean;
 begin
   Result := '';
   Max4Length := length(AccNumber);
   if Max4Length > 4 then
     Max4Length := 4;
 
+  AllNonNumeric := True;
+
   for Index := 1 to Max4Length do
   begin
-    if not (AccNumber[Index] in ['0'..'9']) then
+    if (AccNumber[Index] in ['0'..'9']) then
+      AllNonNumeric := False;
+
+    if (AllNonNumeric) or
+      (Index < 3) then
       Result := Result + AccNumber[Index]
     else
       Exit;
@@ -1048,7 +1055,6 @@ begin
   begin
     Memorisation := Memorisations_List.Memorisation_At(MemIndex);
 
-    Memorisation.mdFields.mdReference         := MuddleNumericData(Memorisation.mdFields.mdReference);
     Memorisation.mdFields.mdParticulars       := MuddleNumericData(Memorisation.mdFields.mdParticulars);
     Memorisation.mdFields.mdAnalysis          := MuddleNumericData(Memorisation.mdFields.mdAnalysis);
     Memorisation.mdFields.mdOther_Party       := MuddleNumericData(Memorisation.mdFields.mdOther_Party);
