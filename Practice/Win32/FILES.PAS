@@ -1324,13 +1324,13 @@ var
   Msg: string;
   StatusList: TClientStatusList;
   Status: TClientStatusItem;
-  StatusStr, Description, Detail: string;
+  ServerResponce : TSeverResponce;
 begin
   //Get client status from BankLink Online
   StatusList := TClientStatusList.Create;
   try
     try
-//      CiCoClient.GetClientFileStatus(StatusStr, Description, Detail, AClientCode);
+      CiCoClient.GetClientFileStatus(ServerResponce, StatusList, AClientCode);
     except
       on E: Exception do begin
         //Can't get status - what do we do? Retry?
