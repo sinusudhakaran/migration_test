@@ -1431,6 +1431,7 @@ const
 var
   ClientFileRec: pClient_File_Rec;
   Msg: string;
+  ServerResponce : TSeverResponce;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -1446,12 +1447,11 @@ begin
 
   //Upload to BankLink Online
   try
-//    CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
+    CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
     if Assigned(AdminSystem) then
-//      CiCoClient.UploadFileFromPractice(AClientCode, AEmail)
-      raise Exception.Create('Not implemented yet!')
+      CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
     else
-//      CiCoClient.UploadFileFromBooks(AClientCode);
+      CiCoClient.UploadFileFromBooks(AClientCode, ServerResponce);
   except
     on E: Exception do begin
       Msg := Format( 'File upload to BankLink Online Failed: %s.', [E.Message]);

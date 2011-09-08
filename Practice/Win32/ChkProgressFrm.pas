@@ -26,7 +26,8 @@ type
     procedure UpdateCICOProgress(Direction: TDirectionIndicator;
                                  TransferStatus : TTransferStatus;
                                  BytesTransferred: LongInt;
-                                 TotalBytes: LongInt);
+                                 TotalBytes: LongInt;
+                                 ContentType: String);
   end;
 
 implementation
@@ -51,7 +52,8 @@ begin
 end;
 
 procedure TfrmChkProgress.UpdateCICOProgress(Direction: TDirectionIndicator;
-  TransferStatus: TTransferStatus; BytesTransferred, TotalBytes: Integer);
+  TransferStatus: TTransferStatus; BytesTransferred, TotalBytes: Integer;
+  ContentType: String);
 begin
   ProgressBar1.Max := TotalBytes;
   ProgressBar1.Step := 1;
@@ -63,10 +65,12 @@ begin
     trsEndTrans        : lblStatus.Caption := 'Uploaded to BankLink Online';
   end;
 end;
+
 procedure TfrmChkProgress.UpdateCICOStatus(StatusMessage: string);
 begin
   mProgress.Lines.Add(StatusMessage);
 end;
+
 procedure TfrmChkProgress.ActivateApplication(Sender: TObject);
 begin
   Application.BringToFront;

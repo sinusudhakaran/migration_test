@@ -207,6 +207,7 @@ type
     FProcStatDate: Integer;
     FOnUpdateCount: TNotifyEvent;
     FClientStatusList: TClientStatusList;
+    FSeverResponce : TSeverResponce;
     FUsingBankLinkOnline: Boolean;
     procedure LoadNodes( ReloadData : boolean);
     procedure LoadColumns;
@@ -1164,14 +1165,13 @@ end;
 procedure TfmeClientLookup.RefeshBankLinkOnlineStatus;
 var
   i, j: integer;
-  ClientStatus: TClientStatusItem;
+  ClientStatus : TClientStatusItem;
   pIDRec: pIntermediateDataRec;
-  Status, Description, Detail: string;
 begin
   FClientStatusList.Clear;
   //Get status of all banklink online client files
   if Assigned(AdminSystem) then begin
-    CiCoClient.GetClientFileStatus(Status, Description, Detail, FClientStatusList);
+    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
     //Update banklink online status
     if Assigned(FClientStatusList) then begin
       for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
@@ -1189,7 +1189,7 @@ begin
     end;
   end else begin
     //*** Temp - remove when CiCoClient can return status of all client codes
-    CiCoClient.GetClientFileStatus(Status, Description, Detail, FClientStatusList);
+    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
   end;
 end;
 
@@ -1222,7 +1222,7 @@ begin
       pIDRec^.imHasGUID        := True;
 
       //Get status of client files (async)
-     // CiCoClient.GetClientFileStatus(TempClientCode);
+      CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, TempClientCode);
 
       //if we are doing a check in and we have an admin system then check
       //the file status
