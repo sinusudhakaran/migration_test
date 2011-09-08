@@ -244,8 +244,8 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         end
         object rbBusinessProducts: TRadioButton
           Left = 6
-          Top = 192
-          Width = 161
+          Top = 220
+          Width = 160
           Height = 17
           Caption = 'Bu&siness Products'
           TabOrder = 9
@@ -254,7 +254,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         end
         object cmbBusinessProducts: TComboBox
           Left = 137
-          Top = 190
+          Top = 218
           Width = 175
           Height = 21
           Style = csDropDownList
@@ -270,6 +270,15 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Items.Strings = (
             'Text File '
             'CSV File')
+        end
+        object rbCheckoutOnline: TRadioButton
+          Left = 6
+          Top = 192
+          Width = 259
+          Height = 17
+          Caption = 'BankLink Books File via BankLink Online'
+          TabOrder = 11
+          OnClick = rbToPrinterClick
         end
       end
       object gbDetails: TGroupBox

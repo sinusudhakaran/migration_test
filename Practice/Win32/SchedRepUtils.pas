@@ -14,6 +14,7 @@ const
    EMAIL_CHECKOUT = 2;
    EMAIL_WEBNOTES = 3;
    EMAIL_BUSINESS_PRODUCT = 4;
+   EMAIL_BANKLINK_ONLINE = 5;
 
 type
    //this record is passed into most of the routines used in schedule reports.

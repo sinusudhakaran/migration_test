@@ -1,8 +1,8 @@
 object frmMain: TfrmMain
   Left = 315
   Top = 258
-  Caption = '*'
-  ClientHeight = 843
+  Caption = 'TT'
+  ClientHeight = 1012
   ClientWidth = 881
   Color = 10459904
   Constraints.MinHeight = 360
@@ -24,7 +24,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     881
-    843)
+    1012)
   PixelsPerInch = 96
   TextHeight = 13
   object Image1: TImage
@@ -94,7 +94,7 @@ object frmMain: TfrmMain
   end
   object MainStatus: TStatusBar
     Left = 0
-    Top = 819
+    Top = 988
     Width = 881
     Height = 24
     Panels = <
@@ -114,6 +114,7 @@ object frmMain: TfrmMain
       end>
     ParentFont = True
     UseSystemFont = False
+    ExplicitTop = 819
   end
   object rzToolbars: TPanel
     Left = 0
@@ -131,7 +132,7 @@ object frmMain: TfrmMain
     object rztFile: TRzToolbar
       Left = 3
       Top = 1
-      Width = 649
+      Width = 814
       Align = alNone
       AutoResize = False
       AutoStyle = False
@@ -188,18 +189,24 @@ object frmMain: TfrmMain
       object tbCheckIn: TRzToolButton
         Left = 255
         Top = 4
-        Width = 70
+        Width = 145
+        DropDownMenu = PopGetClients
         ImageIndex = 9
-        Caption = 'Check In'
-        OnClick = mniFileCheckInClick
+        UseToolbarButtonSize = False
+        ToolStyle = tsDropDown
+        Caption = 'Get Client Files'
+        Constraints.MinWidth = 145
       end
       object tbCheckOut: TRzToolButton
-        Left = 325
+        Left = 400
         Top = 4
-        Width = 78
+        Width = 145
+        DropDownMenu = PopSendClients
         ImageIndex = 10
-        Caption = 'Check Out'
-        OnClick = mniFileCheckOutClick
+        UseToolbarButtonSize = False
+        ToolStyle = tsDropDown
+        Caption = 'Send Client Files'
+        Constraints.MinWidth = 145
       end
       object tbHome: TRzToolButton
         Left = 75
@@ -207,11 +214,11 @@ object frmMain: TfrmMain
         Action = ActHomePage
       end
       object RzSpacer1: TRzSpacer
-        Left = 622
+        Left = 764
         Top = 4
       end
       object tbOnline: TRzToolButton
-        Left = 403
+        Left = 545
         Top = 4
         Width = 99
         ImageIndex = 20
@@ -219,14 +226,14 @@ object frmMain: TfrmMain
         OnClick = tbOnlineClick
       end
       object tbAbout: TRzToolButton
-        Left = 502
+        Left = 644
         Top = 4
         Caption = 'About'
         Visible = False
         OnClick = mniHelpAboutClick
       end
       object tbClose: TRzToolButton
-        Left = 562
+        Left = 704
         Top = 4
         ImageIndex = 2
         Images = AppImages.Maintain
@@ -1899,5 +1906,33 @@ object frmMain: TfrmMain
     OnTimer = tmrReportRunTimer
     Left = 40
     Top = 272
+  end
+  object PopGetClients: TPopupMenu
+    Left = 640
+    Top = 256
+    object fromFolder1: TMenuItem
+      Caption = 'from Folder'
+      OnClick = mniFileCheckInClick
+    end
+    object fromBankLinkOnline1: TMenuItem
+      Caption = 'from BankLink Online'
+      OnClick = mniFileCheckInClick
+    end
+  end
+  object PopSendClients: TPopupMenu
+    Left = 672
+    Top = 256
+    object toFile1: TMenuItem
+      Caption = 'to File'
+      OnClick = mniFileCheckOutClick
+    end
+    object viaEmail1: TMenuItem
+      Caption = 'via Email'
+      OnClick = tbSendToClick
+    end
+    object viaBankLinkOnline1: TMenuItem
+      Caption = 'via BankLink Online'
+      OnClick = mniFileCheckOutClick
+    end
   end
 end

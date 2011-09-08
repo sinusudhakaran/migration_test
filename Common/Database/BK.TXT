@@ -1,4 +1,4 @@
-$|BK_FILE_VERSION  = 166;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 167;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -193,6 +193,7 @@ $|                  165    Add remaining Audit Record ID fields to records
 $|                         Add Audit Table (Defined in SY.TXT)
 $|                         Add temp fileds to Txn for Provisional info
 $|  5.22 (2011 CICO)166    Add Client File GUID to Client Extra
+$|                  167    Add field for CheckOut Online Scheduled Reports
 $|*)
 
 N|Client|cl|20
@@ -1103,4 +1104,5 @@ F|Audit Record ID|L
 F|SUI Step Done|BY0|32
 F|Send Job List|Y
 F|Client File GUID|AS
+F|Online Scheduled Reports|Y
 E

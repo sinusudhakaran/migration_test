@@ -416,6 +416,13 @@ type
     mniFileExchangeRates: TMenuItem;
     N45: TMenuItem;
     mniSystemAuditReport: TMenuItem;
+    PopGetClients: TPopupMenu;
+    PopSendClients: TPopupMenu;
+    fromFolder1: TMenuItem;
+    fromBankLinkOnline1: TMenuItem;
+    toFile1: TMenuItem;
+    viaEmail1: TMenuItem;
+    viaBankLinkOnline1: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);

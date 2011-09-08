@@ -880,7 +880,7 @@ begin
     vtClients.EndUpdate;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 procedure TfmeClientLookup.BtnLeftClick(Sender: TObject);
 begin
    if ProcStatOffset < MaxProcOffset then
@@ -1164,70 +1164,71 @@ end;
 procedure TfmeClientLookup.RefeshBankLinkOnlineStatus;
 var
   i, j: integer;
-  pIDRec: pIntermediateDataRec;
   ClientStatus: TClientStatusItem;
+  pIDRec: pIntermediateDataRec;
 begin
   FClientStatusList.Clear;
   //Get status of all banklink online client files
-  if Assigned(AdminSystem) then
-    CiCoClient.GetClientFileStatus(False, FClientStatusList)
-  else begin
-    //*** Temp - remove when CiCoClient can return status of all client codes
-    CiCoClient.GetClientFileStatus(True, FClientStatusList, 'TEST1');
-    CiCoClient.GetClientFileStatus(True, FClientStatusList, 'TEST2');
-    CiCoClient.GetClientFileStatus(True, FClientStatusList, 'TEST3');
-  end;
-
-  for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
-    pIDRec := FIntermediateDataList.IntermediateData_At(i);
-    for j := 0 to FClientStatusList.Count - 1 do begin
-      ClientStatus := FClientStatusList.Items[j];
-      if (pIDRec^.imCode = ClientStatus.ClientCode) then begin
-        pIDRec^.imBankLinkOnline := ClientStatus.Status;
-        pIDRec^.imModifiedBy     := ClientStatus.UserModified;
-        pIDRec^.imModifiedDate   := FormatDateTime('dd/MM/yy', ClientStatus.DateModified);
-        pIDRec^.imHasGUID        := True;
+  if Assigned(AdminSystem) then begin
+    CiCoClient.GetClientFileStatus();
+    //Update banklink online status
+    if Assigned(FClientStatusList) then begin
+      for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
+        pIDRec := FIntermediateDataList.IntermediateData_At(i);
+        for j := 0 to FClientStatusList.Count - 1 do begin
+          ClientStatus := FClientStatusList.Items[j];
+          if (pIDRec^.imCode = ClientStatus.ClientCode) then begin
+            pIDRec^.imBankLinkOnline := ClientStatus.StatusDesc;
+            pIDRec^.imModifiedBy     := '<nknown>';
+            pIDRec^.imModifiedDate   := '<nknown>';
+            pIDRec^.imHasGUID        := True;
+          end;
+        end;
       end;
     end;
+  end else begin
+    //*** Temp - remove when CiCoClient can return status of all client codes
+    CiCoClient.GetClientFileStatus('TEST1');
+    CiCoClient.GetClientFileStatus('TEST2');
+    CiCoClient.GetClientFileStatus('TEST3');
   end;
 end;
 
 procedure TfmeClientLookup.RefeshFromBankLinkOnline;
 var
   i: integer;
-  ClientStatus: TClientStatusItem;
   pIDRec: pIntermediateDataRec;
   BK5FileName: string;
   WrapperOfExistingFile: TClientWrapper;
   sysClientRec: pClient_File_Rec;
+  TempClientCode: string;
 begin
   Screen.Cursor := crHourGlass;
   try
-    //Get status of client files
-    FClientStatusList.Clear;
-    CiCoClient.GetClientFileStatus(True, FClientStatusList, 'TEST1');
-    CiCoClient.GetClientFileStatus(True, FClientStatusList, 'TEST2');
-    CiCoClient.GetClientFileStatus(True, FClientStatusList, 'TEST3');
-    for i := 0 to FClientStatusList.Count - 1 do begin
-      ClientStatus := FClientStatusList.Items[i];
+    //*** TEST ***
+    for i := 1 to 3 do begin
+      TempClientCode := Format('TEST%d',[i]);
 
       pIDRec := FIntermediateDataList.Add;
-      pIDRec^.imCode    := ClientStatus.ClientCode;
+      pIDRec^.imCode    := TempClientCode;
       pIDRec^.imName    := '<unknown>';
       pIDRec^.imGroupID := 0;
       pIDRec^.imData    := nil;
       pIDRec^.imTag     := 0;
       pIDRec^.imType    := ctActive;
       pIDRec^.imSendMethod     := smBankLinkOnline;
-      pIDRec^.imBankLinkOnline := ClientStatus.Status;
-      pIDRec^.imModifiedBy     := ClientStatus.UserModified;
-      pIDRec^.imModifiedDate   := FormatDateTime('dd/MM/yy', ClientStatus.DateModified);
+      pIDRec^.imBankLinkOnline := '<unknown>';
+      pIDRec^.imModifiedBy     := '<unknown>';
+      pIDRec^.imModifiedDate   := '<unknown>';
       pIDRec^.imHasGUID        := True;
+
+      //Get status of client files (async)
+      CiCoClient.GetClientFileStatus(TempClientCode);
 
       //if we are doing a check in and we have an admin system then check
       //the file status
       if FUsingAdminSystem then begin
-        sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode(ClientStatus.ClientCode);
+        sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode(TempClientCode);
         pIDRec^.imData := sysClientRec;
       end else begin
         //checkin at offsite, see if file already exists
@@ -1235,7 +1236,7 @@ begin
         //currently writable
         //ie user is trying to check in a file over the top of an
         //existing valid file.
-        BK5FileName := Format('%s%s%s', [DataDir, ClientStatus.ClientCode, FILEEXTN]);
+        BK5FileName := Format('%s%s%s', [DataDir, TempClientCode, FILEEXTN]);
         if BKFileExists(BK5FileName) then begin
           try
             GetClientWrapper(BK5FileName , WrapperOfExistingFile, False);

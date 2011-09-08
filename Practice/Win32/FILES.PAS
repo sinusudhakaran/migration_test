@@ -6,7 +6,7 @@ interface
 
 uses
   Dialogs, Classes, Windows, Sysutils,
-  LogUtil, clObj32, ChkProgressFrm, AuditMgr;
+  LogUtil, clObj32, ChkProgressFrm, AuditMgr, WebCiCoClient;
 
 type
   EUploadFailed = class(Exception);
@@ -43,7 +43,6 @@ type
   function DoClientSave(Closing: Boolean; Client: TClientObj; const Silent: Boolean = False): Boolean;
   function ClientFileExists(ClientCode : string): boolean;
   procedure OpenAClientForRead(OpenCode :string; var Client : TClientObj);
-
 
 //******************************************************************************
 implementation
@@ -94,7 +93,7 @@ uses
   RadioOptionsDlg, BKDEFS, SysObj32, cfList32, GenUtils, syamio, WebXUtils,
   ECodingUtils, BKUtil32, baObj32, baUtils, bkDateUtils,
   UpgradeHelper, ClientManagerFrm, ClientUtils, ExchangeRateList,
-  WebCiCoClient, MailFrm, ClientDetailCacheObj;
+  MailFrm, ClientDetailCacheObj;
 
 const
   UnitName = 'FILES';
@@ -1325,12 +1324,13 @@ var
   Msg: string;
   StatusList: TClientStatusList;
   Status: TClientStatusItem;
+  StatusStr, Description, Detail: string;
 begin
   //Get client status from BankLink Online
   StatusList := TClientStatusList.Create;
   try
     try
-      CiCoClient.GetClientFileStatus(Assigned(AdminSystem), StatusList, AClientCode);
+//      CiCoClient.GetClientFileStatus(StatusStr, Description, Detail, AClientCode);
     except
       on E: Exception do begin
         //Can't get status - what do we do? Retry?
@@ -1341,6 +1341,7 @@ begin
     //Prompts depending on status
     if StatusList.Count > 0 then begin
       Status := StatusList.Items[0];
+    if Assigned(Status) then begin
 
       //*** TEST ****
 //      Status.Status := 'PracticeUpload';
@@ -1350,14 +1351,14 @@ begin
       if Assigned(AdminSystem) then begin
         //Practice status error messages
         if (Status.ClientCode = AClientCode) then begin
-          if (Status.Status = 'BooksDownload') then begin
+          if (Status.StatusCode = '5') then begin
             //Checked out by books
             Msg := Format('The client file ''%s'' is currently checked in by your client. ' +
                           'The client file must have an ''Available'' status. ' +
                           'Please contact your client',[AClientCode]);
             HelpfulErrorMsg(Msg, 0);
             raise EUploadFailed.CreateFmt('The client file has been checked in by the client.', [AClientFilename]);
-          end else if (Status.Status = 'BooksUpload') then begin
+          end else if (Status.StatusCode = '2') then begin
             //Updated by books
             Msg := Format('The client file ''%s'' has been updated by your client ' +
                           'since this file was last checked out. Would you like to ' +
@@ -1365,7 +1366,7 @@ begin
                           [AClientCode]);
             if AskYesNo('Check Out to BankLink Online', Msg, mrYes, 0) <> DLG_YES then
               raise EUploadFailed.CreateFmt('The client file has been updated by the client.', [AClientFilename]);
-          end else if (Status.Status = 'SupportUpload') then begin
+          end else if (Status.StatusCode = '3') then begin
             //Updated by support
             Msg := Format('You have selected to check out the client file ''%s'' ' +
                           'which will cause the BankLink Online version of this client file ' +
@@ -1373,7 +1374,7 @@ begin
                           'Are you sure you want to continue?', [AClientCode]);
             if AskYesNo('Check Out to BankLink Online', Msg, mrYes, 0) <> DLG_YES then
               raise EUploadFailed.CreateFmt('The client file has been updated by BankLink Support.', [AClientFilename]);
-          end else if (Status.Status = 'SupportDownload') then begin
+          end else if (Status.StatusCode = '6') then begin
             //Checked out by support
             Msg := Format('The client file ''%s'' is currently checked in by BankLink Support. ' +
                           'Would you like to reset the status and send this version to BankLink Online?',
@@ -1386,25 +1387,25 @@ begin
       end else begin
         //Books status error messages
         if (Status.ClientCode = AClientCode) then begin
-          if (Status.Status = 'PracticeDownload') then begin
+          if (Status.StatusCode = '4') then begin
             //Checked in by accountant
             Msg := Format('The client file ''%s'' is currently checked in by your Accountant. ' +
                           'Please contact your Accountant',[AClientCode]);
             HelpfulErrorMsg(Msg, 0);
             raise EUploadFailed.CreateFmt('The client file has been checked in by your Accountant.', [AClientFilename]);
-          end else if (Status.Status = 'SupportUpload') then begin
+          end else if (Status.StatusCode = '3') then begin
             //Checked in by support
             Msg := Format('The client file ''%s'' is currently checked in by BankLink Support. ' +
                           'Please contact your Accountant',[AClientCode]);
             HelpfulErrorMsg(Msg, 0);
             raise EUploadFailed.CreateFmt('The client file has been checked in by BankLink Support.', [AClientFilename]);
-          end else if (Status.Status = 'PracticeUpload') and (Status.UserModified = 'Practice') then begin
+          end else if (Status.StatusCode = '1') then begin
             //Updated by practice
             Msg := Format('Your Accountant has provided a more recent version of this client file ''%s''. ' +
                           'Please contact your Accountant',[AClientCode]);
             HelpfulErrorMsg(Msg, 0);
             raise EUploadFailed.CreateFmt('The client file has been updated your Accountant.', [AClientFilename]);
-          end else if (Status.Status = 'PracticeUpload') and (Status.UserModified = 'Books') then begin
+          end else if (Status.StatusCode = '2') then begin
             //Already uploaded from books
             Msg := Format('You have selected to check out a client file that has already ' +
                           'been made available. Would you like to overwrite the client ' +
@@ -1433,13 +1434,22 @@ var
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-  CheckBankLinkOnineStatus(AClientCode, AClientFilename);
-
+  //Check status
   try
-    //Upload to BankLink Online
-    CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
+    CheckBankLinkOnineStatus(AClientCode, AClientFilename);
+  except
+    on E: Exception do begin
+      Msg := Format( 'File upload to BankLink Online Failed: %s.', [E.Message]);
+      raise EUploadFailed.CreateFmt(Msg, [AClientFilename]);
+    end;
+  end;
+
+  //Upload to BankLink Online
+  try
+//    CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
     if Assigned(AdminSystem) then
-      CiCoClient.UploadFileFromPractice(AClientCode, AEmail)
+//      CiCoClient.UploadFileFromPractice(AClientCode, AEmail)
+      raise Exception.Create('Not implemented yet!')
     else
       CiCoClient.UploadFileFromBooks(AClientCode);
   except
@@ -1583,6 +1593,7 @@ begin
         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + E.Message);
         if not IsScheduledReport then
           ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + E.Message);
+        Result := False;  
         Exit;
       end;
     end;
@@ -1820,15 +1831,14 @@ const
 var
   TempStr: string;
 begin
-  Result := True;
-
+  Result := False;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
   if not Assigned( AdminSystem) then
     Exit;
 
   //Check out client file for scheduled reports
-  CheckoutPracticeClient(Code, Path, nil, TempStr, True, True, False, ASendMethod);
+  Result := CheckoutPracticeClient(Code, Path, nil, TempStr, True, True, False, ASendMethod);
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -2866,7 +2876,7 @@ end;
 
 
 {$ENDIF}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 initialization
    DebugMe := DebugUnit(UnitName);
 end.

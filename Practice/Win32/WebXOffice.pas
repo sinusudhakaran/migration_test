@@ -968,8 +968,10 @@ begin
            SendBy             := rdWebX;
            UserResponsible    := 0;
            Completed          := True;
-           TxLastMonth        := (aClient.clFields.clReporting_Period = roSendEveryMonth) and (DateFrom < ReportStartDate) and
-               (not aClient.clFields.clCheckOut_Scheduled_Reports);
+           TxLastMonth        := (aClient.clFields.clReporting_Period = roSendEveryMonth) and
+                                 (DateFrom < ReportStartDate) and
+                                 (not aClient.clFields.clCheckOut_Scheduled_Reports) and
+                                 (not aClient.clExtra.ceOnline_Scheduled_Reports);
         end;
         SchdSummaryList.Add( NewSummaryRec);
      end;

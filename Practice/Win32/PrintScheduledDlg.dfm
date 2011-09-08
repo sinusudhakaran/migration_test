@@ -2,17 +2,17 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
   Left = 340
   Top = 277
   Caption = 'Generate Scheduled Reports'
-  ClientHeight = 541
+  ClientHeight = 596
   ClientWidth = 632
   OldCreateOrder = True
   OnDestroy = FormDestroy
   ExplicitWidth = 638
-  ExplicitHeight = 569
+  ExplicitHeight = 624
   PixelsPerInch = 96
   TextHeight = 13
   object Bevel1: TBevel [0]
     Left = 0
-    Top = 504
+    Top = 559
     Width = 632
     Height = 37
     Align = alBottom
@@ -21,7 +21,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
   end
   inherited btnOK: TButton
     Left = 467
-    Top = 511
+    Top = 566
     Hint = 'Save the scheduled report settings'
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
@@ -34,7 +34,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
   end
   inherited btnCancel: TButton
     Left = 550
-    Top = 511
+    Top = 566
     Hint = 'Cancel changes'
     ModalResult = 0
     TabOrder = 4
@@ -44,7 +44,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
   end
   object btnPreview: TButton
     Left = 8
-    Top = 511
+    Top = 566
     Width = 75
     Height = 25
     Hint = 'Preview the Scheduled Reports'
@@ -53,17 +53,20 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     Default = True
     TabOrder = 1
     OnClick = btnPreviewClick
+    ExplicitTop = 511
   end
   object PageControl1: TPageControl
     Left = 0
     Top = 0
     Width = 632
-    Height = 504
-    ActivePage = TabSheet1
+    Height = 559
+    ActivePage = tbsOptions
     Align = alClient
     TabOrder = 0
+    ExplicitHeight = 504
     object tbsOptions: TTabSheet
       Caption = '&Scheduled Reporting Options'
+      ExplicitHeight = 476
       object grpSettings: TGroupBox
         Left = 0
         Top = 68
@@ -289,13 +292,22 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         end
         object cbToBusinessProducts: TCheckBox
           Left = 300
-          Top = 71
+          Top = 95
           Width = 259
           Height = 17
           Hint = 'Include reports to be sent to Business Products'
           Caption = 'Business Product Files (&QIF and OFX)'
           TabOrder = 4
           Visible = False
+        end
+        object cbOnline: TCheckBox
+          Left = 300
+          Top = 71
+          Width = 277
+          Height = 17
+          Hint = 'Include reports to be sent via a checked out file'
+          Caption = 'BankLink Books Files via BankLink &Online'
+          TabOrder = 7
         end
       end
       object GroupBox7: TGroupBox
@@ -375,6 +387,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object tsMessages: TTabSheet
       Caption = '&Message Setup'
       ImageIndex = 3
+      ExplicitHeight = 476
       object GroupBox6: TGroupBox
         Left = 0
         Top = 6
@@ -628,10 +641,47 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           TabOrder = 2
         end
       end
+      object GroupBox5: TGroupBox
+        Left = 1
+        Top = 468
+        Width = 621
+        Height = 56
+        Caption = 'Send Banklink Books files via BankLink Online'
+        TabOrder = 6
+        object btnOnlineMsg: TButton
+          Left = 410
+          Top = 17
+          Width = 205
+          Height = 25
+          Caption = 'BankLink Boo&ks Message'
+          TabOrder = 0
+          OnClick = btnOnlineMsgClick
+        end
+        object cbCDOnline: TComboBox
+          Left = 190
+          Top = 20
+          Width = 217
+          Height = 21
+          Style = csDropDownList
+          Enabled = False
+          ItemHeight = 13
+          TabOrder = 1
+        end
+        object ckCDOnline: TCheckBox
+          Left = 17
+          Top = 24
+          Width = 170
+          Height = 17
+          Caption = 'Attach Cust&om Document'
+          TabOrder = 2
+          OnClick = ckCDClick
+        end
+      end
     end
     object tbsReportSetup: TTabSheet
       Caption = '&Report Setup'
       ImageIndex = 1
+      ExplicitHeight = 476
       object GroupBox2: TGroupBox
         Left = 0
         Top = 6
@@ -707,6 +757,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object TabSheet1: TTabSheet
       Caption = 'Fa&x Setup'
       ImageIndex = 2
+      ExplicitHeight = 476
       object GroupBox3: TGroupBox
         Left = 0
         Top = 253
@@ -901,7 +952,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
   end
   object btnPrint: TButton
     Left = 90
-    Top = 511
+    Top = 566
     Width = 75
     Height = 25
     Hint = 'Generate the Scheduled Reports'
@@ -909,6 +960,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     Caption = '&Generate'
     TabOrder = 2
     OnClick = btnPrintClick
+    ExplicitTop = 511
   end
   object OvcController1: TOvcController
     EntryCommands.TableList = (

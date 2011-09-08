@@ -76,6 +76,7 @@ type
     chkUseCustomDoc: TCheckBox;
     cmbCustomDocList: TComboBox;
     chkJobReport: TCheckBox;
+    rbCheckoutOnline: TRadioButton;
 
     procedure lvReportsEnter(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -235,6 +236,7 @@ begin
     rbToECoding.checked        := clECoding_Export_Scheduled_Reports;
     rbToWebX.Checked           := clWebX_Export_Scheduled_Reports;
     rbCheckOut.Checked         := clCheckOut_Scheduled_Reports;
+    rbCheckoutOnline.Checked   := aClient.clExtra.ceOnline_Scheduled_Reports;
     rbBusinessProducts.Checked := clBusiness_Products_Scheduled_Reports;
 
 
@@ -351,6 +353,7 @@ begin
     clCSV_Export_Scheduled_Reports     := false;
     clWebX_Export_Scheduled_Reports := rbToWebX.Checked;
     clCheckOut_Scheduled_Reports := rbCheckOut.Checked;
+    aClient.clExtra.ceOnline_Scheduled_Reports := rbCheckoutOnline.Checked;    
     clBusiness_Products_Scheduled_Reports := rbBusinessProducts.Checked;
 
     if not ( crsDontUpdateClientSpecificFields in Options) then
@@ -706,6 +709,7 @@ begin
             or (rbToECoding.checked)
             or (rbBusinessProducts.Checked)
             or (rbCheckOut.Checked)
+            or (rbCheckoutOnline.Checked)
             or (rbToWebX.Checked and (ECodingOptions.WebFormat = wfWebNotes))
           )
        and (Trim( eMail.Text) = '') then begin
@@ -859,6 +863,7 @@ begin
   AttachmentsEnabled := rbToEmail.Checked
                      or rbToECoding.Checked
                      or rbCheckOut.Checked
+                     or rbCheckoutOnline.Checked
                      or (rbToWebX.Checked and (ECodingOptions.WebFormat = wfWebNotes));
   // Disabeling the Tabsheet, does not sop you to get in.
   // It Does disable the controls, but they don't show gray.
@@ -873,11 +878,11 @@ begin
   btnECodingSetup.Enabled   := rbToECoding.Checked;
   btnWebXSetup.Enabled      := rbToWebX.Checked;
 
-  if rbCheckOut.Checked then
+  if rbCheckOut.Checked or rbCheckoutOnline.Checked then
    fmeAccountSelector1.btnSelectAllAccounts.Click;
-  fmeAccountSelector1.btnSelectAllAccounts.Enabled := not rbCheckOut.Checked;
-  fmeAccountSelector1.btnClearAllAccounts.Enabled := not rbCheckOut.Checked;
-  fmeAccountSelector1.chkAccounts.Enabled := not rbCheckOut.Checked;
+  fmeAccountSelector1.btnSelectAllAccounts.Enabled := (not rbCheckOut.Checked) and (not rbCheckoutOnline.Checked);
+  fmeAccountSelector1.btnClearAllAccounts.Enabled  := (not rbCheckOut.Checked) and (not rbCheckoutOnline.Checked);
+  fmeAccountSelector1.chkAccounts.Enabled          := (not rbCheckOut.Checked) and (not rbCheckoutOnline.Checked);
 end;
 
 procedure TdlgClientReportSchedule.rbCSVExportClick(Sender: TObject);

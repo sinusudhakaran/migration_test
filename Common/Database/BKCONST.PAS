@@ -1642,10 +1642,11 @@ const
    srdCSVExport  = 5;
    srdWebX       = 6;
    srdCheckOut   = 7;
-   srdBusinessProducts = 8; srdMax = 8;
+   srdBusinessProducts = 8;
+   srdOnline     = 9; srdMax = 9;
 
    srdNames : Array[ srdMin..srdMax] of String[ 20] =
-     ( 'None', 'Printer', 'Email', 'Fax', ECodingDisplayName, 'CSV Export', 'Web', 'BankLink Books', 'Business Products');
+     ( 'None', 'Printer', 'Email', 'Fax', ECodingDisplayName, 'CSV Export', 'Web', 'BankLink Books', 'Business Products', 'BankLink Online');
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Scheduled Reports Report To Send

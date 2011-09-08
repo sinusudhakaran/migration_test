@@ -217,6 +217,11 @@ CONST
    tkfdAutomatic_Task_Creation_Flags    = 180 ;
    tkfdAutomatic_Task_Reminder_Delay    = 181 ;
    tkfdAutomatic_Task_Closing_Flags     = 182 ;
+   tkfdSched_Rep_Include_Online         = 183 ;
+   tkfdSched_Rep_Online_Subject         = 184 ;
+   tkfdSched_Rep_Online_Message         = 185 ;
+   tkfdSched_Rep_Online_Custom_Doc_GUID = 186 ;
+   tkfdSched_Rep_Online_Custom_Doc      = 187 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -425,6 +430,11 @@ Begin
       For i := 1 to 7 do
          F.WriteBIntegerValue( tkfdAutomatic_Task_Reminder_Delay , i, fdAutomatic_Task_Reminder_Delay[ i ] );
       For i := 1 to 7 do F.WriteBBooleanValue( tkfdAutomatic_Task_Closing_Flags , i, fdAutomatic_Task_Closing_Flags[ i ] );
+      F.WriteBooleanValue( tkfdSched_Rep_Include_Online , fdSched_Rep_Include_Online );
+      F.WriteStringValue( tkfdSched_Rep_Online_Subject , fdSched_Rep_Online_Subject );
+      F.WriteAnsiStringValue( tkfdSched_Rep_Online_Message , fdSched_Rep_Online_Message );
+      F.WriteAnsiStringValue( tkfdSched_Rep_Online_Custom_Doc_GUID , fdSched_Rep_Online_Custom_Doc_GUID );
+      F.WriteByteValue( tkfdSched_Rep_Online_Custom_Doc , fdSched_Rep_Online_Custom_Doc );
       F.WriteToken( tkEnd_Practice_Details );
    end;
 end; { of Write_Practice_Details_Rec }
@@ -725,6 +735,11 @@ Begin
                CheckBounds( I, 1, 7, 'fdAutomatic_Task_Closing_Flags' );
                fdAutomatic_Task_Closing_Flags[ I ] := Y;
             end;
+         tkfdSched_Rep_Include_Online         : fdSched_Rep_Include_Online := F.ReadBooleanValue;
+         tkfdSched_Rep_Online_Subject         : fdSched_Rep_Online_Subject := F.ReadStringValue;
+         tkfdSched_Rep_Online_Message         : fdSched_Rep_Online_Message := F.ReadAnsiStringValue;
+         tkfdSched_Rep_Online_Custom_Doc_GUID : fdSched_Rep_Online_Custom_Doc_GUID := F.ReadAnsiStringValue;
+         tkfdSched_Rep_Online_Custom_Doc      : fdSched_Rep_Online_Custom_Doc := F.ReadByteValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -791,6 +806,8 @@ Begin
       fdUpdate_Server_For_Offsites := '' ;
       fdExport_Charges_Remarks := '' ;
       fdCoding_Font := '' ;
+      fdSched_Rep_Online_Message := '' ;
+      fdSched_Rep_Online_Custom_Doc_GUID := '' ;
    end;
 end;
 
@@ -803,7 +820,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkfdPractice_Name_for_Reports to tkfdAutomatic_Task_Closing_Flags do begin
+  for i := tkfdPractice_Name_for_Reports to tkfdSched_Rep_Online_Custom_Doc do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -1699,6 +1716,31 @@ begin
                   TAutomatic_Task_Closing_Flags_Array(P2.fdAutomatic_Task_Closing_Flags), 
                   TAutomatic_Task_Closing_Flags_Array(P3.fdAutomatic_Task_Closing_Flags)) then begin
     ChangedFields[i] := tkfdAutomatic_Task_Closing_Flags;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Include_Online <> P2.fdSched_Rep_Include_Online) then begin
+    P3.fdSched_Rep_Include_Online := P1.fdSched_Rep_Include_Online;
+    ChangedFields[i] := tkfdSched_Rep_Include_Online;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Online_Subject <> P2.fdSched_Rep_Online_Subject) then begin
+    P3.fdSched_Rep_Online_Subject := P1.fdSched_Rep_Online_Subject;
+    ChangedFields[i] := tkfdSched_Rep_Online_Subject;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Online_Message <> P2.fdSched_Rep_Online_Message) then begin
+    P3.fdSched_Rep_Online_Message := P1.fdSched_Rep_Online_Message;
+    ChangedFields[i] := tkfdSched_Rep_Online_Message;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Online_Custom_Doc_GUID <> P2.fdSched_Rep_Online_Custom_Doc_GUID) then begin
+    P3.fdSched_Rep_Online_Custom_Doc_GUID := P1.fdSched_Rep_Online_Custom_Doc_GUID;
+    ChangedFields[i] := tkfdSched_Rep_Online_Custom_Doc_GUID;
+    Inc(i);
+  end;
+  if (P1.fdSched_Rep_Online_Custom_Doc <> P2.fdSched_Rep_Online_Custom_Doc) then begin
+    P3.fdSched_Rep_Online_Custom_Doc := P1.fdSched_Rep_Online_Custom_Doc;
+    ChangedFields[i] := tkfdSched_Rep_Online_Custom_Doc;
     Inc(i);
   end;
 

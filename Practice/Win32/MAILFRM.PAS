@@ -1766,7 +1766,8 @@ begin
     case EmailInfo.EmailType of
       EMAIL_MESSAGE          : Result := CODING_REPORT;
       EMAIL_ECODING          : Result := NOTES_FILE;
-      EMAIL_CHECKOUT         : Result := BOOKS_FILE;
+      EMAIL_CHECKOUT,
+      EMAIL_BANKLINK_ONLINE  : Result := BOOKS_FILE;
       EMAIL_WEBNOTES         : begin
                                   Result := format('New %s transactions are available', [WebNotesName]);
                                   Exit;
@@ -1905,7 +1906,13 @@ begin //SendSceduledEmail
 
                     if (fdSched_Rep_CheckOut_Message <> '') then
                                   ClientMessage := ClientMessage + #13 + fdSched_Rep_CheckOut_Message;
+                end;
 
+                EMAIL_BANKLINK_ONLINE : begin
+                    MailObj.Subject := GetEmailSubject(EmailInfo, fdSched_Rep_Online_Subject);
+
+                    if (fdSched_Rep_Online_Message <> '') then
+                                  ClientMessage := ClientMessage + #13 + fdSched_Rep_Online_Message;
                 end;
 
                 EMAIL_WEBNOTES : begin
@@ -2004,7 +2011,7 @@ begin //SendSceduledEmail
                    LogUtil.LogMsg( lmInfo, UnitName, sMsg);
 
                    // add to do item once email sent
-                   if EmailInfo.EmailType = EMAIL_CHECKOUT then begin
+                   if EmailInfo.EmailType in [EMAIL_CHECKOUT, EMAIL_BANKLINK_ONLINE] then begin
                       if LoadAdminSystem( true, ThisMethodName +' '+ EmailInfo.ClientCode) then begin
                          cfRec := AdminSystem.fdSystem_Client_File_List.FindCode(EmailInfo.ClientCode);
                          if Assigned(cfRec) then
@@ -2027,7 +2034,7 @@ begin //SendSceduledEmail
                       LogUtil.LogMsg( lmError, UnitName, sMsg);
                       SomeFailed := true;
                       // Undo checkout
-                      if EmailInfo.EmailType = EMAIL_CHECKOUT then // check back in
+                      if EmailInfo.EmailType in [EMAIL_CHECKOUT, EMAIL_BANKLINK_ONLINE] then // check back in
                          CheckInClient(EmailInfo.ClientCode, EmailOutboxDir, nil, True);
                       // Decrement ecoding sequence
                       if EmailInfo.EmailType = EMAIL_ECODING then begin

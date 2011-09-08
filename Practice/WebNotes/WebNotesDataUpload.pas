@@ -435,7 +435,8 @@ begin
       Completed          := True;
       TxLastMonth        := (fClient.clFields.clReporting_Period = roSendEveryMonth)
                             and (AccFirstEntryDate < ReportStartDate)
-                            and (not fClient.clFields.clCheckOut_Scheduled_Reports);
+                            and (not fClient.clFields.clCheckOut_Scheduled_Reports)
+                            and (not fClient.clExtra.ceOnline_Scheduled_Reports);
     end;
     SchdSummaryList.Add( NewSummaryRec);
     //store a pointer to the first record so that we can update it with the

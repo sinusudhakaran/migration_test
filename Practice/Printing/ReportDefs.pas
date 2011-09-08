@@ -8,7 +8,8 @@ interface
 
 type
    TReportDest = ( rdScreen, rdPrinter, rdFile, rdAsk, rdSetup, rdNone,
-                   rdEmail, rdFax, rdEcoding, rdCSVExport, rdWebX, rdCheckOut, rdBusinessProduct) ;
+                   rdEmail, rdFax, rdEcoding, rdCSVExport, rdWebX, rdCheckOut,
+                   rdBusinessProduct, rdBankLinkOnline) ;
 
   //export file formats                 
   TFileFormats = (ffCSV, ffFixedWidth, ffExcel, ffPDF, ffAcclipse,ffRtf);

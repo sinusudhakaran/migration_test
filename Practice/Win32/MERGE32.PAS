@@ -763,6 +763,12 @@ begin
        cfSchd_Rep_Method_Filter := srdCheckOut;
      end
      else
+     if aClient.clExtra.ceOnline_Scheduled_Reports then
+     begin
+       cfSchd_Rep_Method        := srdOnline;
+       cfSchd_Rep_Method_Filter := srdOnline;
+     end
+     else
      if clBusiness_Products_Scheduled_Reports then
      begin
        cfSchd_Rep_Method        := srdBusinessProducts;

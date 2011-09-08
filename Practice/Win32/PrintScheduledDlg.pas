@@ -122,6 +122,11 @@ type
     cbCDwebNotes: TComboBox;
     btnFaxJobs: TButton;
     btnJobs: TButton;
+    GroupBox5: TGroupBox;
+    btnOnlineMsg: TButton;
+    cbCDOnline: TComboBox;
+    ckCDOnline: TCheckBox;
+    cbOnline: TCheckBox;
 
     procedure rbStaffMemberClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -161,6 +166,7 @@ type
     procedure btnWebNotesMsgClick(Sender: TObject);
     procedure btnFaxJobsClick(Sender: TObject);
     procedure btnJobsClick(Sender: TObject);
+    procedure btnOnlineMsgClick(Sender: TObject);
   private
     { Private declarations }
     ButtonPressed : integer;
@@ -175,6 +181,9 @@ type
     BNotesMessage : String;
     CheckOutSubject : String;
     CheckOutMessage : String;
+    OnlineSubject : String;
+    OnlineMessage : String;
+
     BusinessProductSubject : String;
     BusinessProductMessage : String;
     WebNotesSubject : String;
@@ -447,6 +456,7 @@ begin
            cbToEMail.Checked or
            cbToECoding.Checked or
            cbCheckOut.Checked or
+           cbOnline.Checked or
            cbToBusinessProducts.Checked or
            cbToWebX.Checked) then
   begin
@@ -472,6 +482,7 @@ begin
             cbToEMail.Checked or
             cbToECoding.Checked or
             cbCheckOut.Checked or
+            cbOnline.Checked or
             cbToBusinessProducts.Checked or
             cbToWebX.Checked) then
    begin
@@ -494,6 +505,16 @@ begin
       ButtonPressed := btn_ok;
       Close;
    end;
+end;
+
+procedure TdlgPrintScheduled.btnOnlineMsgClick(Sender: TObject);
+begin
+  EditScheduledReportsMessage( 'BankLink Books Message',
+                               'Type a subject and a message which will be added to all ' +
+                               'BankLink Books files sent via BankLink Online when ' +
+                               'Scheduled Reports are generated.',
+                               OnlineSubject,
+                               OnlineMessage);
 end;
 
 //------------------------------------------------------------------------------
@@ -567,6 +588,7 @@ begin
    cbCDBooks.Enabled := ckCDBooks.Checked;
    cbCDNotes.Enabled := ckCDNotes.Checked;
    cbCDWebNotes.Enabled := ckCDwebNotes.Checked;
+   cbCDOnline.Enabled := ckCDOnline.Checked;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -660,6 +682,7 @@ begin
            cbToEMail.Checked or
            cbToECoding.Checked or
            cbCheckOut.Checked or
+           cbOnline.Checked or
            cbToBusinessProducts.Checked or
            cbToWebX.Checked) then
   begin
@@ -711,6 +734,7 @@ begin
             fdSched_Rep_Include_ECoding      := cbToECoding.Checked;
             fdSched_Rep_Include_CSV_Export   := false;
             fdSched_Rep_Include_CheckOut     := cbCheckOut.Checked;
+            fdSched_Rep_Include_Online       := cbOnline.Checked;
             fdSched_Rep_Include_Business_Products := cbToBusinessProducts.Checked;
             fdSort_Reports_By := GetSortByValue;
             
@@ -862,6 +886,10 @@ begin
       cbCDBooks.ItemIndex :=
           cbCDBooks.Items.IndexOfObject(CustomDocManager.GetReportByGUID(fdSched_Rep_Books_Custom_Doc_GUID));
 
+      ckCDOnline.Checked := Boolean(fdSched_Rep_Online_Custom_Doc);
+      cbCDOnline.ItemIndex :=
+          cbCDOnline.Items.IndexOfObject(CustomDocManager.GetReportByGUID(fdSched_Rep_Online_Custom_Doc_GUID));
+
       ckCDNotes.Checked := Boolean(fdSched_Rep_Notes_Custom_Doc);
       cbCDNotes.ItemIndex :=
           cbCDNotes.Items.IndexOfObject(CustomDocManager.GetReportByGUID(fdSched_Rep_Notes_Custom_Doc_GUID));
@@ -879,6 +907,7 @@ begin
       cbToECoding.Checked     := fdSched_Rep_Include_ECoding;
       cbToWebX.Checked        := fdSched_Rep_Include_WebX;
       cbCheckOut.Checked      := fdSched_Rep_Include_CheckOut;
+      cbOnline.Checked        := fdSched_Rep_Include_Online;
       cbToBusinessProducts.Checked := fdSched_Rep_Include_Business_Products;
 
       if fdSched_Rep_Send_Fax_Off_Peak then begin
@@ -914,6 +943,9 @@ begin
       WebNotesMessage  := fdSched_Rep_WebNotes_Message;
       CheckOutSubject  := fdSched_Rep_CheckOut_Subject;
       CheckOutMessage  := fdSched_Rep_CheckOut_Message;
+      OnlineSubject    := fdSched_Rep_Online_Subject;
+      OnlineMessage    := fdSched_Rep_Online_Message;
+
       BusinessProductSubject  := fdSched_Rep_Business_Products_Subject;
       BusinessProductMessage  := fdSched_Rep_Business_Products_Message;
 
@@ -1006,6 +1038,7 @@ begin
              fdSched_Rep_Include_WebX         := MyDlg.cbToWebX.Checked;
              fdSched_Rep_Include_CSV_Export   := False;
              fdSched_Rep_Include_CheckOut     := MyDlg.cbCheckOut.Checked;
+             fdSched_Rep_Include_Online       := MyDlg.cbOnline.Checked;
              fdSched_Rep_Include_Business_Products := MyDlg.cbToBusinessProducts.Checked;
              if MyDlg.rbSelectAll.Checked then             
                fdSort_Reports_Option := 0
@@ -1028,6 +1061,8 @@ begin
                   IncUsage('Sched Rep - Web');
                if MyDlg.cbCheckOut.Checked then
                   IncUsage('Sched Rep - Checked Out');
+               if MyDlg.cbOnline.Checked then
+                  IncUsage('Sched Rep - BankLink Online');
              end;
 
              fdSched_Rep_Send_Fax_Off_Peak    := MyDlg.rbSendOffPeak.checked;
@@ -1044,6 +1079,8 @@ begin
              fdSched_Rep_WebNotes_Message     := MyDlg.webNotesMessage;
              fdSched_Rep_CheckOut_Subject     := MyDlg.CheckOutSubject;
              fdSched_Rep_CheckOut_Message     := MyDlg.CheckOutMessage;
+             fdSched_Rep_Online_Subject       := MyDlg.OnlineSubject;
+             fdSched_Rep_Online_Message       := MyDlg.OnlineMessage;
              fdSched_Rep_Business_Products_Subject     := MyDlg.BusinessProductSubject;
              fdSched_Rep_Business_Products_Message     := MyDlg.BusinessProductMessage;
 

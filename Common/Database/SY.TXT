@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 126;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 127;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -111,6 +111,7 @@ $|    5.21.0 (UK AUDIT) 123   Added Audit table and Audit Record ID to all table
 $|                      124   Added System Memorisation List for storing Master Memorisations
 $|                      125   Added Provisional Entries Log
 $|    5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client rec
+$|                      127   Added fields for BankLink Online scheduled reports
 $|*)
 
 N|Practice Details|fd|10
@@ -285,6 +286,11 @@ F|Practice Management System|B
 F|Automatic Task Creation Flags|BY|7
 F|Automatic Task Reminder Delay|BL|7
 F|Automatic Task Closing Flags|BY|7
+F|Sched Rep Include Online|Y
+F|Sched Rep Online Subject|S|128
+F|Sched Rep Online Message|AS
+F|Sched Rep Online Custom Doc GUID|AS
+F|Sched Rep Online Custom Doc|B
 E
 
 N|System Disk Log|dl|40

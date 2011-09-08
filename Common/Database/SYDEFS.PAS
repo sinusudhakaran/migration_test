@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 396;
-   SY_IOLIB_Date    = '10/08/11';
-   SY_FILE_VERSION   = 126;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 398;
+   SY_IOLIB_Date    = '02/09/11';
+   SY_FILE_VERSION   = 127;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -124,6 +124,7 @@ Const
                          124   Added System Memorisation List for storing Master Memorisations
                          125   Added Provisional Entries Log
        5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client rec
+                         127   Added fields for BankLink Online scheduled reports
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -319,6 +320,11 @@ Type
       fdAutomatic_Task_Creation_Flags    : Array[ 1..7 ] of Boolean;       { Stored }
       fdAutomatic_Task_Reminder_Delay    : Array[ 1..7 ] of Integer;       { Stored }
       fdAutomatic_Task_Closing_Flags     : Array[ 1..7 ] of Boolean;       { Stored }
+      fdSched_Rep_Include_Online         : Boolean;       { Stored }
+      fdSched_Rep_Online_Subject         : String[ 128 ];       { Stored }
+      fdSched_Rep_Online_Message         : AnsiString;       { Stored }
+      fdSched_Rep_Online_Custom_Doc_GUID : AnsiString;       { Stored }
+      fdSched_Rep_Online_Custom_Doc      : Byte;       { Stored }
       fdEOR                              : Byte;
    end;
 

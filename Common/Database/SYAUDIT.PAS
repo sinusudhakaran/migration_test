@@ -237,6 +237,11 @@ begin
     FAuditNamesArray[10,180] := 'Automatic_Task_Creation_Flags';
     FAuditNamesArray[10,181] := 'Automatic_Task_Reminder_Delay';
     FAuditNamesArray[10,182] := 'Automatic_Task_Closing_Flags';
+    FAuditNamesArray[10,183] := 'Sched_Rep_Include_Online';
+    FAuditNamesArray[10,184] := 'Sched_Rep_Online_Subject';
+    FAuditNamesArray[10,185] := 'Sched_Rep_Online_Message';
+    FAuditNamesArray[10,186] := 'Sched_Rep_Online_Custom_Doc_GUID';
+    FAuditNamesArray[10,187] := 'Sched_Rep_Online_Custom_Doc';
 
    FAuditTableArray[40] := 'System_Disk_Log';
     FAuditNamesArray[40,42] := 'Disk_ID';

@@ -189,6 +189,13 @@ begin
             ((ReportSelectionOption = srslSelection) and ((Selections.Count = 0) or (Selections.IndexOf(' ') > -1) ))
 end;
 
+function ShowTransLastMonth(aClient: TClientObj; srOptions : TSchReportOptions): boolean;
+begin
+  Result := (aClient.clFields.clReporting_Period = roSendEveryMonth) and
+            (srOptions.srTrxFromDate <> srOptions.srDisplayFromDate) and
+            (not aClient.clFields.clCheckOut_Scheduled_Reports) and
+            (not aClient.clExtra.ceOnline_Scheduled_Reports);
+end;
 
 function PrepareEmailOutbox( Path : string) : boolean;
 // make sure the directory exists and is empty
@@ -311,7 +318,7 @@ begin
   try
     With aSysClient^ do
     Begin { Do we need to print this client? }
-      If ( cfFile_Password <> '' ) and (cfSchd_Rep_Method <> srdCheckOut) then exit;  // We don't print any password protected files.
+      If ( cfFile_Password <> '' ) and (not cfSchd_Rep_Method in [srdCheckOut, srdOnline]) then exit;  // We don't print any password protected files.
       If ( cfReport_Start_Date<=0 ) then exit; // No report start date, so don't print.
       If cfForeign_File then exit;             // There is no data for foreign files.
       If not ( cfReporting_Period in [ roSendEveryMonth..roSendEveryTwoMonthsMonth ] ) then exit; // No reporting period set up.
@@ -345,6 +352,7 @@ begin
                 ( fdSched_Rep_Include_ECoding and ( cfSchd_Rep_Method = srdECoding)) or
                 ( fdSched_Rep_Include_WebX and ( cfSchd_Rep_Method = srdWebX)) or
                 ( fdSched_Rep_Include_CheckOut and ( cfSchd_Rep_Method = srdCheckOut)) or
+                ( fdSched_Rep_Include_Online and ( cfSchd_Rep_Method = srdOnline)) or
                 ( fdSched_Rep_Include_Business_Products and ( cfSchd_Rep_Method = srdBusinessProducts)) or
                 ( fdSched_Rep_Include_CSV_Export and ( cfSchd_Rep_Method = srdCSVExport))) then
           Exit;
@@ -457,7 +465,8 @@ begin
                  else if (not RptPrintAllForThisClient) and (TempClient.clFields.clReporting_Period = roSendEveryMonth) and
                          (txDate_Effective > LastDateForPrevMonthTest) and (txDate_Effective < RptStartDate) and
                          (not (txUPI_State in [upUPC, upUPD, upUPW])) and
-                         (not TempClient.clFields.clCheckOut_Scheduled_Reports) then // are there some old unprinted txs
+                         (not TempClient.clFields.clCheckOut_Scheduled_Reports) and
+                         (not TempClient.clExtra.ceOnline_Scheduled_Reports) then // are there some old unprinted txs
                  begin
                    TxIsIncluded := False;
                    case TempClient.clFields.clScheduled_Coding_Report_Entry_Selection of
@@ -681,6 +690,9 @@ begin { DoScheduledReportsForClient }
       If ( clCheckOut_Scheduled_Reports ) then
          ClientDest := rdCheckOut
       else
+      If ( clExtra.ceOnline_Scheduled_Reports ) then
+         ClientDest := rdBankLinkOnline
+      else
       If ( clBusiness_Products_Scheduled_Reports ) then
          ClientDest := rdBusinessProduct
       else
@@ -693,6 +705,7 @@ begin { DoScheduledReportsForClient }
          rdECoding : if not fdSched_Rep_Include_ECoding then exit;
          rdWebX    : if not fdSched_Rep_Include_WebX then exit;
          rdCheckOut: if not fdSched_Rep_Include_CheckOut then exit;
+         rdBankLinkOnline : if not fdSched_Rep_Include_Online then exit;
          rdBusinessProduct: if not fdSched_Rep_Include_Business_Products then exit;
       end;
 
@@ -724,7 +737,7 @@ begin { DoScheduledReportsForClient }
       //check to see if this is an email client, if it is then redirect the output
       //to email IF current destination is printer, otherwise use current destination
 
-      if GetOutputDest in [rdEMail, rdCheckOut, rdBusinessProduct{, dECoding}] then
+      if GetOutputDest in [rdEMail, rdCheckOut, rdBankLinkOnline, rdBusinessProduct{, dECoding}] then
       Begin
          //Create an email info record for this client.  It will be used later when the
          //emails are actually begin sent.
@@ -1387,9 +1400,11 @@ begin
           AcctsPrinted   := 0;
           AcctsFound     := 0;
           UserResponsible := User;
-          SendBy         := rdCheckOut;
-          TxLastMonth    := (aClient.clFields.clReporting_Period = roSendEveryMonth) and (srOptions.srTrxFromDate <> srOptions.srDisplayFromDate) and
-               (not aClient.clFields.clCheckOut_Scheduled_Reports);
+          if aClient.clFields.clCheckOut_Scheduled_Reports then
+            SendBy       := rdCheckOut
+          else if aClient.clExtra.ceOnline_Scheduled_Reports then
+            SendBy       := rdBankLinkOnline;
+          TxLastMonth    := ShowTransLastMonth(aClient, srOptions);
           Completed      := False;
         end;
         if FirstSummaryRec = nil then
@@ -1403,6 +1418,10 @@ begin
   end else
   begin // Check out the client file
    try
+    //Override cleint file rec send method with client file sceduled report destination
+    if aClient.clExtra.ceOnline_Scheduled_Reports then
+      pCF.cfSend_Method := smBankLinkOnline;
+
     if CheckOutClient(aClient.clFields.clCode, EMailOutboxDir, pCF.cfSend_Method) then
     begin
       IncUsage('Check Out (Scheduled)');
@@ -1480,8 +1499,7 @@ begin
             AcctsFound     := 0; // changed at end
             UserResponsible := User;
             SendBy         := rdCheckOut;
-            TxLastMonth    := (aClient.clFields.clReporting_Period = roSendEveryMonth) and (srOptions.srTrxFromDate <> srOptions.srDisplayFromDate) and
-               (not aClient.clFields.clCheckOut_Scheduled_Reports);
+            TxLastMonth    := ShowTransLastMonth(aClient, srOptions);
             Completed      := True;
           end;
           if FirstSummaryRec = nil then
@@ -1632,8 +1650,7 @@ begin
                           AcctsFound         := 0; // Will be updated at the end once we know!
                           SendBy             := rdWebX;
                           UserResponsible    := 0;
-                          TxLastMonth        := (aClient.clFields.clReporting_Period = roSendEveryMonth) and (srOptions.srTrxFromDate <> srOptions.srDisplayFromDate) and
-                            (not aClient.clFields.clCheckOut_Scheduled_Reports);
+                          TxLastMonth        := ShowTransLastMonth(aClient, srOptions);
                           Completed          := False;
                        end;
                        srOptions.srSummaryInfoList.Add(NewSummaryRec);
@@ -1871,7 +1888,9 @@ begin
    pCFRec := AdminSystem.fdSystem_Client_File_List.FindCode( ClientCode);
    if (pCFRec.cfFile_Status in [fsNormal, fsOpen]) and
         ((not MyClient.clFields.clCheckOut_Scheduled_Reports) or
-         (MyClient.clFields.clCheckOut_Scheduled_Reports and (pCFRec.cfFile_Status = fsNormal))) then
+         (MyClient.clFields.clCheckOut_Scheduled_Reports and (pCFRec.cfFile_Status = fsNormal))) and
+        ((not MyClient.clExtra.ceOnline_Scheduled_Reports) or
+         (MyClient.clExtra.ceOnline_Scheduled_Reports and (pCFRec.cfFile_Status = fsNormal))) then
    begin
      //initialise client specific values in srOptions
      srOptions.srTrxFromDate := 0;
@@ -1900,6 +1919,9 @@ begin
              ReportsDoneOK := DoExportScheduledECodingFile( MyClient, Dest, srOptions, rdWebX)
            else
            if MyClient.clFields.clCheckOut_Scheduled_Reports then
+             ReportsDoneOK := DoExportScheduledCheckOutFile( MyClient, Dest, srOptions)
+           else if MyClient.clExtra.ceOnline_Scheduled_Reports then
+             //BankLink Online
              ReportsDoneOK := DoExportScheduledCheckOutFile( MyClient, Dest, srOptions)
            else
              ReportsDoneOK := DoScheduledReportsForClient(Dest, srOptions);
@@ -1999,6 +2021,7 @@ begin
                              end;
                rdCSVExport : DestString := 'CSV Export';
                rdCheckOut  : DestString := 'BankLink Books';
+               rdBankLinkOnline : DestString := 'BankLink Online';
                rdBusinessProduct: DestString := 'Business Prod';
             end;
           end;
@@ -2156,8 +2179,7 @@ begin
     AcctsFound     := 0;
     SendBy         := Dest;
     UserResponsible := pCFRec.cfUser_Responsible;
-    TxLastMonth    := (MyClient.clFields.clReporting_Period = roSendEveryMonth) and (srOptions.srTrxFromDate <> srOptions.srDisplayFromDate) and
-      (not MyClient.clFields.clCheckOut_Scheduled_Reports);
+    TxLastMonth    := ShowTransLastMonth(MyClient, srOptions);
     Completed      := IsCompleted;
   end;
   srOptions.srSummaryInfoList.Add(NewSummaryRec);

@@ -99,6 +99,10 @@ Begin
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdExport_Charges_Remarks )^, Len );
       Len := Length( fdCoding_Font );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdCoding_Font )^, Len );
+      Len := Length( fdSched_Rep_Online_Message );
+      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdSched_Rep_Online_Message )^, Len );
+      Len := Length( fdSched_Rep_Online_Custom_Doc_GUID );
+      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdSched_Rep_Online_Custom_Doc_GUID )^, Len );
    end;
 end;
 

@@ -941,6 +941,8 @@ begin //called when the client details change
                S := 'Business Product'
          end else if clCheckOut_Scheduled_Reports then
             S := 'Check Out and E-Mail'
+         else if FtheClient.clExtra.ceOnline_Scheduled_Reports then
+            S := 'Check Out to BankLink Online'
          else if clEmail_Scheduled_Reports then begin
             if clEmail_Report_Format in [rfMin.. rfMax] then
                S := 'E-Mail ' + rfNames[clEmail_Report_Format]

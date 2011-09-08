@@ -852,7 +852,8 @@ const
           srdECoding: PutString( glConst.ECODING_APP_NAME);
           srdCSVExport: PutString( 'CSV Export');
           srdWebX: PutString(glConst.WEBX_GENERIC_APP_NAME);
-          srdCheckOut: PutString('BankLink Books');
+          srdCheckOut: PutString('BankLink Books (Email)');
+          srdOnline  : PutString('BankLink Books (Online)');
           srdBusinessProducts: PutString('Business Prod');
         else
           SkipColumn;
@@ -1305,12 +1306,12 @@ begin
         cLeft := GcLeft;
         AddColAuto(Job,cLeft, 9.0,GcGap,'Client Code',jtLeft);
         AddColAuto(Job,cLeft,30.0,GcGap,'Name',jtLeft);
-        AddColAuto(Job,cLeft, 9.0,GcGap,'From',jtLeft);
-        AddColAuto(Job,cLeft, 9.0,GcGap,'To',jtLeft);
+        AddColAuto(Job,cLeft, 7.0,GcGap,'From',jtLeft);
+        AddColAuto(Job,cLeft, 7.0,GcGap,'To',jtLeft);
 
         if (AdminSystem.fdFields.fdSort_Reports_By = srsoStaffMember) then
         begin
-          AddColAuto(Job,cLeft,10.0,GcGap,'Coding',jtLeft);
+          AddColAuto(Job,cLeft,8.0,GcGap,'Coding',jtLeft);
           AddColAuto(Job,cLeft,8.0,GcGap,'Chart',jtLeft);
           AddColAuto(Job,cLeft,8.0,GcGap,'Payees',jtLeft);
           AddColAuto(Job,cLeft,6.0,GcGap,'Jobs',jtLeft);
@@ -1323,7 +1324,7 @@ begin
           AddColAuto(Job,cLeft,4.0,GcGap,'Jobs',jtLeft);
           AddColAuto(Job,cLeft,10,GcGap,'Staff Member', jtLeft);
         end;
-        AddColAuto(Job,cLeft,9.9,GcGap,'Send To',jtLeft);
+        AddColAuto(Job,cLeft,15,GcGap,'Send To',jtLeft);
 
         AddCommonFooter(Job);
 
