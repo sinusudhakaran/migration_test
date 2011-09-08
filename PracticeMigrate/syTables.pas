@@ -36,7 +36,7 @@ TSystemClientFileTable = class (TMigrateTable)
   protected
      procedure SetupTable; override;
   public
-     function Insert(MyId:TGuid; Database:string; GroupID:tGuid; TypeID:tGuid; Value: pClient_File_Rec): Boolean;
+     function Insert(MyId:TGuid; Database:string;  Value: pClient_File_Rec): Boolean;
 end;
 
 TUserTable = class (TMigrateTable)
@@ -166,11 +166,11 @@ begin
   TableName := 'SystemBankAccounts';
   SetFields(
    ['Id','AccountNumber','AccountName','AccountPassword','CurrentBalance','LastSequenceNo'
-   ,'NewThisMonth','NoOfEntriesThisMonth','FromDateThisMonth','ToDateThisMonth','CostCode','ChargesThisMonth'
-   ,'OpeningBalanceFromDisk','ClosingBalanceFromDisk','WasOnLatestDisk','LastEntryDate'
-   ,'DateOfLastEntryPrinted','MarkAsDeleted','FileCode','MatterID','AssignmentID','DisbursementID','AccountType'
-   ,'JobCode','ActivityCode','FirstAvailableDate','NoChargeAccount','CurrencyCode','InstitutionName','SecureCode','Inactive'
-   ,'Frequency','FrequencyChangePending','LastBankLink_ID'],[]);
+{2}   ,'NewThisMonth','NoOfEntriesThisMonth','FromDateThisMonth','ToDateThisMonth','CostCode','ChargesThisMonth'
+{3}   ,'OpeningBalanceFromDisk','ClosingBalanceFromDisk','WasOnLatestDisk','LastEntryDate'
+{4}   ,'DateOfLastEntryPrinted','MarkAsDeleted','FileCode','MatterID','AssignmentID','DisbursementID','AccountType'
+{5}   ,'JobCode','ActivityCode','FirstAvailableDate','NoChargeAccount','CurrencyCode','InstitutionName','SecureCode','Inactive'
+{6}   ,'Frequency','FrequencyChangePending','LastBankLink_ID'],[]);
 
 end;
 
@@ -179,19 +179,19 @@ begin with Value^ do
    result := RunValues([ToSQL(MyId) ,ToSQL(Value.sbAccount_Number) ,ToSQL(Value.sbAccount_Name) ,ToSQL(Value.sbAccount_Password)
               ,ToSQL(Value.sbCurrent_Balance) ,toSQL(Value.sbLast_Transaction_LRN)
 
-          ,ToSQL(Value.sbNew_This_Month) ,ToSQL(Value.sbNo_of_Entries_This_Month) ,DateToSQL(Value.sbFrom_Date_This_Month)
+{2}         ,ToSQL(Value.sbNew_This_Month) ,ToSQL(Value.sbNo_of_Entries_This_Month) ,DateToSQL(Value.sbFrom_Date_This_Month)
               ,DateToSQL(Value.sbTo_Date_This_Month) ,ToSQL(Value.sbCost_Code) , ToSQL(Value.sbCharges_This_Month)
 
-          ,ToSQL(Value.sbOpening_Balance_from_Disk) ,ToSQL(Value.sbClosing_Balance_from_Disk)
+{4}         ,ToSQL(Value.sbOpening_Balance_from_Disk) ,ToSQL(Value.sbClosing_Balance_from_Disk)
               ,ToSQL(Value.sbWas_On_Latest_Disk) ,DateToSQL(Value.sbLast_Entry_Date)
 
-          ,DateToSQL(Value.sbDate_Of_Last_Entry_Printed) ,ToSQL(Value.sbMark_As_Deleted) ,ToSQL(Value.sbFile_Code) ,ToSQL(Value.sbMatter_ID)
+{4}         ,DateToSQL(Value.sbDate_Of_Last_Entry_Printed) ,ToSQL(Value.sbMark_As_Deleted) ,ToSQL(Value.sbFile_Code) ,ToSQL(Value.sbMatter_ID)
               ,ToSQL(Value.sbAssignment_ID) ,ToSQL(Value.sbDisbursement_ID) ,ToSQL(Value.sbAccount_Type)
 
-          ,ToSQL(Value.sbJob_Code) ,ToSQL(Value.sbActivity_Code) , DateToSQL(Value.sbFirst_Available_Date) ,ToSQL(Value.sbNo_Charge_Account)
-              ,ToSQL(Value.sbCurrency_Code) ,ToSQL(Value.sbInstitution) ,ToSQL(Value.sbBankLink_Code) ,toSQL(false)
+{5}         ,ToSQL(Value.sbJob_Code) ,ToSQL(Value.sbActivity_Code) , DateToSQL(Value.sbFirst_Available_Date) ,ToSQL(Value.sbNo_Charge_Account)
+              ,ToSQL(Value.sbCurrency_Code) ,ToSQL(Value.sbInstitution) ,ToSQL(Value.sbBankLink_Code) ,toSQL(value.sbInActive)
 
-          ,ToSQL(Value.sbFrequency) ,ToSQL(Value.sbFrequency_Change_Pending), ToSQL(0)],[]);
+{6}         ,ToSQL(Value.sbFrequency) ,ToSQL(Value.sbFrequency_Change_Pending), ToSQL(0)],[]);
 end;
 
 (******************************************************************************)
@@ -232,15 +232,14 @@ end;
 procedure TSystemClientFileTable.SetupTable;
 begin
    TableName := 'PracticeClients';
-   SetFields(['Id','ClientName','ClientDB','Code','ClientGroups_Id','ClientTypes_Id'],[]);
+   SetFields(['Id','ClientName','ClientDB','Code'],[]);
 end;
 
 
-function TSystemClientFileTable.Insert(MyId: TGuid; Database: string; GroupID,
-  TypeID: tGuid; Value: pClient_File_Rec): Boolean;
+function TSystemClientFileTable.Insert(MyId:TGuid; Database:string;  Value: pClient_File_Rec): Boolean;
 begin with Value^ do
    Result := RunValues([ToSQL(MyId) ,ToSQL(cfFile_Name) ,ToSQL(Database) ,ToSql(cfFile_Code)
-               ,ToSQL(GroupID) , ToSQL(TypeID)],[]);
+               ],[]);
 end;
 
 
@@ -485,19 +484,21 @@ end;
 
 function TParameterTable.Update(ParamName, ParamValue, ParamType: string): Boolean;
 var sql: string;
+
+
 begin
     sql :=  format('if (exists (select * from  [%0:s] as t1 where t1.ParameterName = ''%1:s''))'   +
    ' begin update [%0:s] set [ParameterValue] = ''%2:s'' where [ParameterName] = ''%1:s'' end else begin' +
    ' insert into [%0:s] ([ParameterName], [ParameterType], [ParameterValue], [IsRequired]) values (''%1:s'',''%3:s'',''%2:s'',0) end',
 //  0         1         2          3
-   [TableName,ParamName,Paramvalue,Paramtype]);
+   [TableName,CleanToSQL(ParamName),CleanToSQL(Paramvalue),Paramtype]);
    Result := false;
    try
       connection.Execute(sql);
       Result := true;
    except
       on e: exception do begin
-         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+         raise exception.Create(Format('Error : %s in table %s  sql %s',[e.Message,TableName,sql]));
       end;
    end;
 

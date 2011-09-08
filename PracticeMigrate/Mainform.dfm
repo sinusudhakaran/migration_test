@@ -1017,6 +1017,10 @@ object formMain: TformMain
     object TsProgress: TTabSheet
       Caption = 'Progress'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object StatusTree: TVirtualStringTree
         Left = 0
         Top = 57
@@ -1071,7 +1075,7 @@ object formMain: TformMain
           item
             Position = 5
             Tag = 4
-            Width = 237
+            Width = 241
           end>
       end
       object pTitle: TPanel
@@ -1100,6 +1104,10 @@ object formMain: TformMain
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Panel1: TPanel
         Left = 0
         Top = 0
@@ -1181,7 +1189,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000700018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000840018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

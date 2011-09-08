@@ -55,6 +55,7 @@ TClientMigrater = class (TMigrater)
     FReminderTable: TReminderTable;
     FDownloadlogTable: TDownloadlogTable;
     FBalances_RecTable: TBalances_RecTable;
+    FBalances_ParamTable: TBalances_ParamTable;
     FFuelSheetTable: TFuelSheetTable;
     FBAS_OptionsTable: TBAS_OptionsTable;
     FNotesOptionsTable: TNotesOptionsTable;
@@ -119,6 +120,7 @@ TClientMigrater = class (TMigrater)
     function GetReminderTable: TReminderTable;
     function GetDownloadlogTable: TDownloadlogTable;
     function GetBalances_RecTable: TBalances_RecTable;
+    function GetBalances_ParamTable: TBalances_ParamTable;
     function GetFuelSheetTable: TFuelSheetTable;
     function GetCustomDocSceduleTable: TCustomDocSceduleTable;
     function GetTBAS_OptionsTable: TBAS_OptionsTable;
@@ -162,6 +164,7 @@ TClientMigrater = class (TMigrater)
    property TaxEntriesTable: TTaxEntriesTable read GetTaxEntriesTable;
    property TaxRatesTable: TTaxRatesTable read GetTaxRatesTable;
    property Balances_RecTable: TBalances_RecTable read GetBalances_RecTable;
+   property Balances_ParamTable: TBalances_ParamTable read GetBalances_ParamTable;
    property FuelSheetTable: TFuelSheetTable read GetFuelSheetTable;
    property Client_ScheduleTable: TClient_ScheduleTable read GetClient_ScheduleTable;
    //property Client_ReportOptionsTable: TClient_ReportOptionsTable read GetClient_ReportOptionsTable;
@@ -256,7 +259,7 @@ var
       if not Assigned(Map) then
          Exit;
       // Now we can have a go...
-      System.ClientAccountMapTable.Insert(Map.GuidID,ClientID,Value.GuidID,AdminBankAccount.GuidID,pClient_Account_Map_Rec(Map.Data));
+      System.ClientAccountMapTable.Insert(Map.GuidID, ClientID, Value.GuidID, AdminBankAccount.GuidID, pClient_Account_Map_Rec(Map.Data));
       Result := pClient_Account_Map_Rec(Map.Data);
    end;
 
@@ -330,6 +333,10 @@ var Balance : pBalances_Rec;
 begin
    Balance := pBalances_Rec(Value.Data);
    Result := Balances_RecTable.Insert(Value.GuidID, ClientID, Balance);
+   if not Result then
+      Exit;
+
+   Result := Balances_ParamTable.Insert(Value.GuidID, Balance);
    if not Result then
       Exit;
 
@@ -539,7 +546,7 @@ begin
                    GetProviderID(AccountingSystem,FClient.clFields.clCountry,
                               Memorization.mdFields.mdAccounting_System),
                    Value.SequenceNo,
-                   @Memorization.mdFields
+                   Memorization.mdFields
                 );
 
     if not Result then
@@ -710,14 +717,15 @@ var myAction: TMigrateAction;
        end;
     end;
 
-    function ClearReportParameters : Boolean;
-     var ClearAction: TMigrateAction;
+
+    function ClearParametersTable(Name, Table: string) : Boolean;
+    var ClearAction: TMigrateAction;
     begin
        result := true;
 
-       ClearAction := MyAction.InsertAction('Clear Report parameters');
+       ClearAction := MyAction.InsertAction(format('Clear %s',[Name]));
        try
-           RunSQL(MyAction, 'DELETE rp FROM [ReportingParameters] rp where rp.[Client_ID] is not null' );
+           RunSQL(MyAction, format('DELETE rp FROM [%s] rp where rp.[Client_ID] is not null',[Table]) );
             ClearAction.Status := Success;
           except
            on e: Exception do begin
@@ -725,8 +733,9 @@ var myAction: TMigrateAction;
               result := false;
            end;
        end;
-
     end;
+
+
 begin
    Result := false;
    MyAction := ForAction.NewAction('Clear Clients');
@@ -772,9 +781,9 @@ begin
       DeleteTable(MyAction,'Transactions');
       Connection.CommandTimeout := KeepTime;
 
-
-
       ClearConfig;
+
+      DeleteTable(MyAction,'ProcessingStatuses');
 
       DeleteTable(MyAction,'BankAccounts');
       DeleteTable(MyAction,'CodingReportOptions');
@@ -789,10 +798,20 @@ begin
 
       DeleteTable(MyAction,ClientFinacialReportOptionsTable, True);
 
-      // Still To do..     
+      // Still To do..
+      DeleteTable(MyAction,'TaxReturnParameters', True);
+      DeleteTable(MyAction,'TaxReturns');
+
       DeleteTable(MyAction,'FavouriteReports', True);
-      
-      ClearReportParameters;
+      DeleteTable(MyAction,'ClientAttachments', True);
+
+      DeleteTable(MyAction,'ClientTasks');
+
+      ClearParametersTable('Client Parameters','ClientParameters');
+
+
+      ClearParametersTable('Report Parameters','ReportingParameters');
+
 
       DeleteTable(MyAction,'Clients');
 
@@ -903,6 +922,18 @@ begin
    if not Assigned(FBalances_RecTable) then
       FBalances_RecTable := TBalances_RecTable.Create(Connection);
    Result := FBalances_RecTable;
+end;
+
+function TClientMigrater.GetBalances_ParamTable: TBalances_ParamTable;
+begin
+   if not assigned( FBalances_ParamTable)
+   and assigned(FCLient) then
+      case FCLient.clFields.clCountry   of
+      whNewZealand : FBalances_ParamTable := TBalances_ParamTableNZ.Create(connection)
+      end;
+
+      
+   result := FBalances_ParamTable;
 end;
 
 function TClientMigrater.GetBudget_Detail_RecTable: TBudget_Detail_RecTable;
@@ -1133,11 +1164,13 @@ begin
       FUpdateProcessingStatusForAllClients := TADOStoredProc.Create(nil);
 
       FUpdateProcessingStatusForAllClients.Connection := connection;
-      FUpdateProcessingStatusForAllClients.ProcedureName := 'UpdateProcessingStatusForAllClients';
+      //FUpdateProcessingStatusForAllClients.ProcedureName := 'UpdateProcessingStatusForAllClients';
+      FUpdateProcessingStatusForAllClients.ProcedureName := 'UpdateProcessingStatus';
       FUpdateProcessingStatusForAllClients.Parameters.Refresh;
 
 
       FUpdateProcessingStatusForAllClients.Prepared := true;
+      FUpdateProcessingStatusForAllClients.CommandTimeout := 60 * 10;
 
    end;
    result := FUpdateProcessingStatusForAllClients;
@@ -1421,6 +1454,8 @@ end;
 procedure TClientMigrater.SetClientID(const Value: TGuid);
 begin
   FClientID := Value;
+  if assigned(FBalances_ParamTable) then
+     FreeAndNil(FBalances_ParamTable);
 end;
 
 procedure TClientMigrater.SetClientLRN(const Value: Integer);
@@ -1494,18 +1529,11 @@ procedure TClientMigrater.UpdateProcessingStatusAllClients(
   ForAction: TMigrateAction);
 var
    MyAction : TMigrateAction;
-   KeepTime : Integer;
+
 begin
    MyAction := ForAction.InsertAction ('Update all Clients status');
    try
-
-      KeepTime := Connection.CommandTimeout;
-      Connection.CommandTimeout := 10 * 60;
-
       UpdateProcessingStatusForAllClients.ExecProc;
-
-      Connection.CommandTimeout := KeepTime;
-
       MyAction.Status := Success;
    except
       on E: Exception do

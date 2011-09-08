@@ -293,6 +293,21 @@ public
                    value: pBalances_Rec): Boolean;
 end;
 
+TBalances_ParamTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+   procedure AddMoney(BalanceID: TGuid; Name: string; value: Money);
+   procedure AddRate(BalanceID: TGuid; Name: string; value: Money);
+public
+    function Insert(BalanceID: TGuid;
+                   value: pBalances_Rec): Boolean;  virtual; abstract;
+end;
+
+TBalances_ParamTableNZ = class (TBalances_ParamTable)
+public
+  function Insert(BalanceID: TGuid;
+                   value: pBalances_Rec): Boolean;  override;
+end;
 
 TFuelSheetTable = class (TMigrateTable)
 protected
@@ -338,7 +353,8 @@ end;
 implementation
 
 uses
-Variants,
+   STDate,
+   Variants,
    SysUtils,
    SQLHelpers,
    bkConst,
@@ -998,9 +1014,16 @@ function TClient_ScheduleTable.Insert(MyId: TGuid;
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec): Boolean;
+
+    function GetMonth(Date: Integer): Integer;
+    var t: Integer;
+    begin
+       stDate.StDateToDMY(Date, t, result, t);
+    end;
+
 begin with Value^, Extra^ do
   Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(clScheduled_Coding_Report_Style)
-              ,ToSQL(clScheduled_Coding_Report_Sort_Order), DateToSQL(value.clReport_Start_Date)
+              ,ToSQL(clScheduled_Coding_Report_Sort_Order), GetMonth(value.clReport_Start_Date)
 
 {2}       ,ToSQL(clScheduled_Coding_Report_Entry_Selection), ToSQL(clScheduled_Coding_Report_Blank_Lines)
               ,ToSql(clScheduled_Coding_Report_Rule_Line), ToSQL(clScheduled_Coding_Report_New_Page)
@@ -1009,11 +1032,12 @@ begin with Value^, Extra^ do
               ,ToSQL(clScheduled_Coding_Report_Wrap_Narration)
               ,ToSQL(not (clFax_Scheduled_Reports
                       or clCheckOut_Scheduled_Reports
+                      or clECoding_Export_Scheduled_Reports
                       or clWebX_Export_Scheduled_Reports
                       or clEmail_Scheduled_Reports))
 
 {4}       ,ToSQL(clEmail_Scheduled_Reports), ToSQL(clFax_Scheduled_Reports), ToSQL(clCheckOut_Scheduled_Reports)
-              ,ToSQL(clWebX_Export_Scheduled_Reports), ToSQL(clCSV_Export_Scheduled_Reports)
+              ,ToSQL(clWebX_Export_Scheduled_Reports), ToSQL(clCSV_Export_Scheduled_Reports) , ToSQL(Value.clECoding_Export_Scheduled_Reports)
               ,ToSQL(clBusiness_Products_Scheduled_Reports), ToSQL(clSend_Coding_Report)
 
 {5}       ,ToSQL(clSend_Chart_of_Accounts), ToSQL(clSend_Payee_List), ToSQL(Extra.ceSend_Job_List)
@@ -1028,13 +1052,13 @@ end;
 procedure TClient_ScheduleTable.SetupTable;
 begin
   TableName := 'ScheduledTaskValues';
-  SetFields(['Id','Client_Id','CodingReportStyle','CodingReportSortOrder', 'ReportYearStart'
+  SetFields(['Id','Client_Id','CodingReportStyle','CodingReportSortOrder', 'ReportYearStartMonth'
 
 {2}      ,'CodingReportEntrySelection','CodingReportBlankLines','CodingReportRuleLineBetweenEntries','CodingReportNewPage'
 
 {3}      ,'CodingReportShowTaxInvoice','CodingReportShowOtherParty','CodingReportWrapNarration','TaskPrint'
 
-{4}      ,'TaskEmail','TaskFax','TaskCheckOut','TaskWebExport','TaskCSVExport','TaskBusinessProduct','SendCoding'
+{4}      ,'TaskEmail','TaskFax','TaskCheckOut','TaskWebExport','TaskCSVExport','TaskSendNotes','TaskBusinessProduct','SendCoding'
 
 {5}      ,'SendChart','Sendpayees','SendJobs', 'ReportingPeriod' ,'IncludeCustomDocument'
 
@@ -1147,6 +1171,7 @@ end;
 (*******************************************************************************)
 
 { TBalances_RecTable }
+(*
 
 function TBalances_RecTable.Insert(MyID, ClientID: TGuid;
   value: pBalances_Rec): Boolean;
@@ -1191,6 +1216,108 @@ begin
 {9}    ,'BASCdjPAssets','BASCdjChange','BASCdjOther','BAS7C','BAS7D','BAST6','BAST5'
 {10}   ,'UsingFuelPercentMethod','PTFormType','BASCdjCustoms'],[]);
 end;
+  *)
+
+
+function TBalances_RecTable.Insert(MyID: TGuid;
+                   ClientID: TGuid;
+                   value: pBalances_Rec): Boolean;
+begin
+    Result := RunValues([ToSQL(MyID),DateToSQL(value.blGST_Period_Starts),DateToSQL(value.blGST_Period_Ends),ToSQL(ClientID)],[]);
+end;
+
+procedure TBalances_RecTable.SetupTable;
+begin
+  TableName := 'TaxReturns';
+  SetFields(['Id','PeriodStart','PeriodEnd','Client_Id'],[])
+end;
+
+(*******************************************************************************)
+{ TBalances_ParamTable }
+
+
+procedure TBalances_ParamTable.AddMoney(BalanceID: TGuid; Name: string;
+  value: Money);
+begin
+   if (value = 0)
+   or (value = Unknown) then
+      Exit; // Don't need to save..
+   RunValues([ToSQL(NewGuid),name,'decimal',FormatFloat('0.00', Value/100),ToSql(BalanceID)],[]);
+end;
+
+procedure TBalances_ParamTable.AddRate(BalanceID: TGuid; Name: string;
+  value: Money);
+begin
+  if (value = 0)
+  or (value = Unknown) then
+      Exit; // Don't need to save..
+   RunValues([ToSQL(NewGuid),name,'decimal',FormatFloat('0.0000', Value/10000),ToSql(BalanceID)],[]);
+end;
+
+procedure TBalances_ParamTable.SetupTable;
+begin
+   TableName := 'TaxReturnParameters';
+   SetFields(['Id','ParameterName','ParameterType','ParameterValue','TaxReturn_Id'],[])
+end;
+
+
+{ TBalances_ParamTableNZ }
+
+function TBalances_ParamTableNZ.Insert(BalanceID: TGuid;
+  value: pBalances_Rec): Boolean;
+begin
+
+
+     AddMoney(BalanceID, 'GST_101_Workpaper_LessOpeningDebtors',        value.blOpening_Debtors_Balance );
+     AddMoney(BalanceID, 'GST_101_Workpaper_LessOpeningDebtors_Part2',  value.blBAS_F2_GST_Opening_Debtors_BalanceB );
+     AddMoney(BalanceID, 'GST_101_Workpaper_PlusClosingDebtors',        value.blBAS_F1_GST_Closing_Debtors_BalanceA );
+     AddMoney(BalanceID, 'GST_101_Workpaper_PlusClosingDebtors_Part2',  value.blClosing_Debtors_Balance );
+
+     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_LessOpeningCreditors', value.blOpening_Creditors_Balance  );
+     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_LessOpeningCreditors_Part2', value.blBAS_F2_GST_Opening_Debtors_BalanceB );
+     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_PlusClosingCreditors', value.blBAS_G22_GST_Opening_Creditors_BalanceB);
+     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_PlusClosingCreditors_Part2', value.blClosing_Creditors_Balance);
+
+     AddMoney(BalanceID, 'GST_103B_PaymentCalculation_CompulsoryOrVoluntaryTax', value.blBAS_1F_PT_Tax);
+     //AddMoney(BalanceID, 'GST_103B_PaymentCalculation_TransferToProvisional', value.);
+     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_AdjustmentForTheAssetsWorth', value.blBAS_1E_PT_Assets);
+     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_MonthlyTotalSalesAndIncome', value.blBAS_1C_PT_Last_Months_Income);
+     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_OtherBranchesTotalSalesAndIncome', value.blBAS_1D_PT_Branch_Income);
+
+     AddRate(BalanceID, 'GST_103B_ProvisionalTax_Ratio', value.blBAS_5B_PT_Ratio);
+
+     AddMoney(BalanceID, 'GST_372_Adjustments_AssetsKeptAfterCeasing', value.blBAS_7_VAT4_GST_Adj_BAssets);
+     AddMoney(BalanceID, 'GST_372_Adjustments_AssetsKeptAfterCeasing_Part2', value.blGST_Adj_BAssets);
+     AddMoney(BalanceID, 'GST_372_Adjustments_BusinessAssetsUsedPrivately', value.blBAS_6B_GST_Adj_PrivUse);
+     AddMoney(BalanceID, 'GST_372_Adjustments_BusinessAssetsUsedPrivately_Part2', value.blGST_Adj_PrivUse);
+     AddMoney(BalanceID, 'GST_372_Adjustments_ChangeOfAccountingBasis', value.blBAS_W1_GST_Adj_Change);
+     AddMoney(BalanceID, 'GST_372_Adjustments_ChangeOfAccountingBasis_Part2', value.blGST_Adj_Change);
+     AddMoney(BalanceID, 'GST_372_Adjustments_EntertainmentExpenses', value.blBAS_G18_GST_Adj_Entertain );
+     AddMoney(BalanceID, 'GST_372_Adjustments_EntertainmentExpenses_Part2', value.blGST_Adj_Entertain);
+
+     AddMoney(BalanceID, 'GST_372_Adjustments_GoodsAndServicesUsedInMakingExemptSupplies', value.blBAS_W2_GST_Adj_Exempt);
+     AddMoney(BalanceID, 'GST_372_Adjustments_GoodsAndServicesUsedInMakingExemptSupplies_Part2', value.blGST_Adj_Exempt);
+     AddMoney(BalanceID, 'GST_372_Adjustments_Other', value.blBAS_W3_GST_Adj_Other   );
+     AddMoney(BalanceID, 'GST_372_Adjustments_Other_Part2', value.blGST_Adj_Other   );
+     AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices', value.blBAS_6B_GST_Adj_PrivUse);
+     AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices_Part2', value.blGST_Adj_PrivUse );
+
+
+     AddMoney(BalanceID, 'GST_372_Adjustments_Total', value.blOther_Adjustments );
+     //AddMoney(BalanceID, 'GST_372_Adjustments_Total_Part2', value.);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_BusinessUseOfExemptGoodsAndServices', value.blBAS_W4_GST_Cdj_BusUse);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_BusinessUseOfExemptGoodsAndServices_Part2', value.blGST_Cdj_PAssets);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_ChangeOfAccountingBasis', value.blBAS_T2_VAT2_GST_Cdj_Change );
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_ChangeOfAccountingBasis_Part2', value.blGST_Cdj_BusUse);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_Other', value.blBAS_T3_VAT3_GST_Cdj_Other );
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_Other_Part2', value.blGST_Cdj_Other);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_PrivateAssetsForBusinessCostingLessThan', value.blBAS_W4_GST_Cdj_BusUse );
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_PrivateAssetsForBusinessCostingLessThan_Part2', value.blGST_Cdj_BusUse);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_Total', value.blCredit_Adjustments);
+     //AddMoney(BalanceID, 'GST_372_CreditAdjustments_Total_Part2', value.);
+
+end;
+
 
 
 (*******************************************************************************)
@@ -1226,7 +1353,7 @@ function TReminderTable.Insert(
 begin with ToDoItem^ do
    Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(tdDate_Entered, tdTime_Entered), ToSQL(ByUser),
                   ToSQL(tdDescription)
-             ,ToSQL(tdReminderDate), ToSQL(tdIs_Completed), DateToSQL(tdDate_Completed)],[]);
+             ,ToSQL(tdReminderDate), ToSQL((tdDate_Completed > 0) and (tdDate_Completed < maxint) ), DateToSQL( tdDate_Completed)],[]);
 end;
 
 procedure TReminderTable.SetupTable;
@@ -1360,10 +1487,7 @@ function TReportingParameterTable.Update(ParamName, ParamValue, ParamType: strin
         result := format('''%d''',[ReportID]);
   end;
 
-  function NewGuid : TGuid;
-  begin
-    CreateGuid(result);
-  end;
+
 begin
    Result := false;
    try
@@ -1398,5 +1522,6 @@ function TReportingParameterTable.Update(ParamName: string; ParamValue: TGuid; C
 begin
 
 end;
+
 
 end.

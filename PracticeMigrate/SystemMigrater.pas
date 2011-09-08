@@ -69,7 +69,8 @@ private
     function AddDiskLog(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 
     procedure MigrateMasterMems(ForAction: TMigrateAction);
-    function AddMasterMemFile(ForAction: TMigrateAction; Prefix: string): Boolean;
+    //function AddMasterMemFile(ForAction: TMigrateAction; Prefix: string): Boolean;
+    function AddMasterMemLists(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddMasterMem(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddMasterMemLine(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 
@@ -424,8 +425,8 @@ begin
         GetProviderID(AccountingSystem,System.fdFields.fdCountry,
                          Memorisation.mdFields.mdAccounting_System),
         value.SequenceNo,
-        ForAction.Title, // Is a bit dangorous, may need to make a TGuidObject for it...
-        @Memorisation.mdFields);
+        ForAction.Title, //as the Prefix .. Is a bit dangorous, may need to make a TGuidObject for it...
+        Memorisation.mdFields);
    if not result then
       Exit;
 
@@ -438,6 +439,7 @@ begin
    end;
 end;
 
+(*
 function TSystemMigrater.AddMasterMemFile(ForAction: TMigrateAction; prefix: string): Boolean;
 var Master_Mems: TMaster_Memorisations_List;
     MasterList: TGuidList;
@@ -459,6 +461,30 @@ begin
       FreeAndNil(MasterList);
    end;
 end;
+  *)
+
+function TSystemMigrater.AddMasterMemLists(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
+var Master_Mems: pSystem_Memorisation_List_Rec;
+    MasterList: TGuidList;
+begin
+   Result := True;
+   MasterList := nil;
+   Master_Mems := pSystem_Memorisation_List_Rec(Value.Data);
+   try
+
+      if TMemorisations_List(Master_Mems.smMemorisations). ItemCount = 0 then
+         Exit;
+
+      MasterList := TGuidList.Create(TMemorisations_List(Master_Mems.smMemorisations));
+      // ReSequence..
+      MasterList.reverse;
+      Result := RunGuidList(ForAction,Master_Mems.smBank_Prefix ,MasterList, AddMasterMem);
+   finally
+      //Master_Mems.Free;
+      FreeAndNil(MasterList);
+   end;
+end;
+
 
 function TSystemMigrater.AddMasterMemLine(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
@@ -596,8 +622,6 @@ begin
         (
           Value.GuidID,
           'PracticeClient',
-          ClientGroupList.FindLrnGuid(Clientrec.cfGroup_LRN),
-          ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN),
           Clientrec
         )
     else
@@ -623,6 +647,29 @@ end;
 
 function TSystemMigrater.ClearData(ForAction: TMigrateAction): Boolean;
 var MyAction: TMigrateAction;
+
+    procedure ClearStyles ;
+    var ClearAction: TMigrateAction;
+    begin
+       result := true;
+       ClearAction := MyAction.InsertAction('Clear report styles');
+       try
+       RunSQL(MyAction,
+      'DELETE FROM [dbo].[ReportItems] WHERE [ReportStyles_Id] <> ''1330918F-862E-428A-B5FE-A1F13E553FCA'''
+             );
+        RunSQL(MyAction,
+      'DELETE FROM [dbo].[ReportStyles] WHERE [Id] <> ''1330918F-862E-428A-B5FE-A1F13E553FCA'''
+             );
+
+         ClearAction.Status := Success;
+       except
+           on e: Exception do begin
+              ClearAction.Exception(e);
+              result := false;
+           end;
+       end;
+    end;
+
 begin
    Result := false;
    MyAction := ForAction.NewAction('Clear System');
@@ -645,9 +692,10 @@ begin
       DeleteTable(MyAction,'ClientSystemAccounts');;
       DeleteTable(MyAction,'SystemBankAccounts');
 
-      DeleteTable(MyAction,'FavouriteReports');
-      DeleteTable(MyAction,'ReportItems');
-      DeleteTable(MyAction,'ReportStyles');
+      //DeleteTable(MyAction,'FavouriteReports'); In PracticeClient
+
+      ClearStyles;
+
 
       DeleteTable(MyAction,'PracticeClients');
 
@@ -998,7 +1046,7 @@ begin
    end;
 end;
 
-
+(*
 procedure TSystemMigrater.MigrateMasterMems(ForAction: TMigrateAction);
 var
    PrefixList: TStringList;
@@ -1025,6 +1073,19 @@ begin
        PrefixList.Free;
     end;
 end;
+ *)
+
+ procedure TSystemMigrater.MigrateMasterMems(ForAction: TMigrateAction);
+ var lMemlist : TGuidList;
+ begin
+   lMemlist := TGuidList.Create(fsystem.fSystem_Memorisation_List);
+   try
+      RunGuidList(ForAction,'Master Mems',lMemlist,AddMasterMemLists);
+   finally
+      FreeAndNil(lMemlist);
+   end;
+ end;
+
 
 function TSystemMigrater.MigrateSystem(ForAction: TMigrateAction): Boolean;
 
@@ -1054,7 +1115,7 @@ begin
 
    ParameterTable.Update('CopyDissectionNarration', System.fdFields.fdCopy_Dissection_Narration);
 
-   ParameterTable.Update('LastEntryReceived', format('%u3', [System.fdFields.fdDisk_Sequence_No]),'nvarchar(4)');
+   ParameterTable.Update('DiskSequenceNo', format('%u3', [System.fdFields.fdDisk_Sequence_No]),'nvarchar(4)');
    ParameterTable.Update('HighestDateEverDownloaded', DateTovalue(System.fdFields.fdDate_of_Last_Entry_Received),'datetime');
    //ParameterTable.Update('LastEntryReceived'  fdDate_of_Last_Entry_Received
    ParameterTable.Update('SRDoReportsUpto', DateToValue(System.fdFields.fdPrint_Reports_Up_To),'datetime');
@@ -1265,6 +1326,7 @@ function TSystemMigrater.MergeUser(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 var User: PUser_rec;
     Restricted: Boolean;
+    I : Integer;
 begin
 
    User := PUser_rec(Value.Data);
@@ -1274,9 +1336,22 @@ begin
    Systemusers.Parameters.ParamValues['Code']:= User.usCode;
    Systemusers.Active := True;
    if Systemusers.RecordCount > 0 then begin
-      /// PrintSetup..
-      RunSQL(ForAction,format('Delete from [UserClients] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
-      RunSQL(ForAction,format('Delete from [UserRoles] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
+
+      repeat
+
+          RunSQL(ForAction,format('Delete from [UserClients] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
+          RunSQL(ForAction,format('Delete from [UserRoles] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
+
+          RunSQL(ForAction,format(
+        'DELETE uea FROM ( SELECT e.Id as eid FROM  Emails e where e.[UserId] = ''%s'' ) ee INNER JOIN EmailAttachments uea ON ee.eid = uea.EmailId',
+         [SystemUsers.Fields[0].AsString]));
+         
+         RunSQL(ForAction,format('Delete from [Emails] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]));
+
+         RunSQL(ForAction,format('Delete from [Faxes] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
+      until not Systemusers.FindNext;
+
+
       RunSQL(ForAction,format('Delete from [Users] where [Code] = ''%s''',[User.usCode]));
 
            //Exit; // Merge....
@@ -1310,9 +1385,10 @@ begin
    result := false;
    if not Assigned(System) then
       Exit;
-          
+
    MyAction := ForAction.InsertAction(Format('Migrate %s',[System.fdFields.fdPractice_Name_for_Reports]));
    MyAction.Target := 100;
+
    MyAction.LogMessage('Migration Start');
 
    if DoUsers then
@@ -1369,6 +1445,7 @@ begin
    MyAction.Counter := 75;
 
    TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
+
 
    MigrateSystem(MyAction);
 

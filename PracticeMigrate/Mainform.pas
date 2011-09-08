@@ -4,6 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+ 
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, DB, ADODB, GuidList, sydefs, VirtualTreeHandler,
   VirtualTrees, MigrateActions,ClientMigrater,SystemMigrater, jpeg, ImgList,
   FMTBcd, SqlExpr;
@@ -87,6 +88,7 @@ type
     procedure cbClientsClick(Sender: TObject);
     procedure cbDocumentsClick(Sender: TObject);
 
+     procedure WMPOWERBROADCAST(var Msg: Tmessage ); message WM_POWERBROADCAST;
   private
     Fprogress: Tprogress;
 
@@ -119,6 +121,7 @@ type
     { Private declarations }
   protected
     procedure UpdateActions; override;
+
   public
     property PreLoaded: Boolean read FPreLoaded write SetPreLoaded;
     property FromDir: string read GetFromDir write SetFromDir;
@@ -135,6 +138,8 @@ var
 implementation
 
 uses
+Progress,
+Upgrade,
 ReportTypes,
 CustomDocEditorFrm,
 GlobalDirectories,
@@ -165,6 +170,26 @@ bkHelpers,
 syhelpers;
 
 {$R *.dfm}
+
+
+type
+  TSystemCritical = class
+  private
+    FIsCritical: Boolean;
+    procedure SetIsCritical(const Value: Boolean) ;
+  protected
+    procedure UpdateCritical(Value: Boolean) ; virtual;
+  public
+    constructor Create;
+    property IsCritical: Boolean read FIsCritical write SetIsCritical;
+  end;
+
+
+
+
+
+var
+  SystemCritical: TSystemCritical;
 
 
 const
@@ -445,6 +470,9 @@ begin
   end;
 end;
 
+
+
+
 procedure TformMain.FormCreate(Sender: TObject);
 var I: Integer;
 begin
@@ -460,7 +488,9 @@ begin
 
    for I := 0 to pcmain.PageCount - 1 do
       pcmain.Pages[I].TabVisible := False;
-     
+
+
+
 end;
 
 procedure TformMain.FormDestroy(Sender: TObject);
@@ -721,6 +751,8 @@ begin
          //LoadAdminSystem(false,'Migrator');
          AdminSystem := TSystemObj.Create;
          AdminSystem.Open;
+         UpgradeAdminToLatestVersion;
+
          ClientFiles := Adminsystem.fdSystem_Client_File_List.ItemCount;
          SysAccounts := Adminsystem.fdSystem_Bank_Account_List.ItemCount;
          TypeCount :=  Adminsystem.fdSystem_Client_Type_List.ItemCount;
@@ -735,7 +767,9 @@ begin
             on e: Exception do begin
                HelpfulErrorMsg(format('Could not open %s'#13'Please select a valid location',[DATADIR + SYSFILENAME]), 0,false);
                FreeAndnil(AdminSystem);
+               Exit;
             end;
+
          end;
 
          LPractice.Caption := Format('%s: %s',[Adminsystem.fdFields.fdBankLink_Code, Adminsystem.fdFields.fdPractice_Name_for_Reports]);
@@ -802,6 +836,12 @@ begin
   end;
 end;
 
+procedure TformMain.WMPOWERBROADCAST(var Msg: Tmessage);
+begin // This won't work after vista...
+   if msg.wParam = PBT_APMQUERYSUSPEND then
+     msg.Result :=  BROADCAST_QUERY_DENY
+end;
+
 procedure TformMain.MigrateSystem;
  var Myaction : TMigrateAction;
 begin
@@ -810,6 +850,7 @@ begin
    FTreeList.Tree.Clear;
    Myaction := NewAction('Migrate');
    progress := migrate;
+   SystemCritical.IsCritical := true;
    try
       if ConnectSystem(MyAction)
       and ConnectClient(MyAction) then begin
@@ -828,8 +869,66 @@ begin
           MyAction.Status := failed;
    finally
       progress := Done;
+      SystemCritical.IsCritical := false;
    end;
 
 end;
 
+
+ 
+type
+
+   EXECUTION_STATE = DWORD;
+const
+  ES_SYSTEM_REQUIRED = $00000001;
+  ES_DISPLAY_REQUIRED = $00000002;
+  ES_USER_PRESENT = $00000004;
+  ES_AWAYMODE_REQUIRED = $00000040;
+  ES_CONTINUOUS = $80000000;
+  KernelDLL = 'kernel32.dll';
+
+
+
+  (*
+    SetThreadExecutionState Function
+
+   Enables an application to inform the system that it is in use,
+   thereby preventing the system from entering sleep or turning off the display while the application is running.
+  *)
+
+procedure SetThreadExecutionState(ESFlags: EXECUTION_STATE) ; stdcall; external kernel32 name 'SetThreadExecutionState';
+
+constructor TSystemCritical.Create;
+begin
+  inherited;
+  FIsCritical := False;
+end;
+
+procedure TSystemCritical.SetIsCritical(const Value: Boolean) ;
+begin
+  if FIsCritical = Value then Exit;
+
+  FIsCritical := Value;
+  UpdateCritical(FIsCritical);
+end;
+
+procedure TSystemCritical.UpdateCritical(Value: Boolean) ;
+begin
+  if Value then //Prevent the sleep idle time-out and Power off.
+    SetThreadExecutionState(ES_SYSTEM_REQUIRED or ES_CONTINUOUS)
+  else //Clear EXECUTION_STATE flags to disable away mode and allow the system to idle to sleep normally.
+    SetThreadExecutionState(ES_CONTINUOUS) ;
+end;
+
+
+
+
+initialization
+   Progress.OnUpdateMessageBar := nil;
+   SystemCritical := TSystemCritical.Create;
+
+finalization
+   SystemCritical.IsCritical := False;
+   SystemCritical.Free;
 end.
+

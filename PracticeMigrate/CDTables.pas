@@ -58,7 +58,7 @@ begin
    Parameters[1].Value := 'RTF';
 
    GetRTFData;
-   Parameters[3].Value := ToSQL('Custom Document');
+   Parameters[3].Value := ToSQL('CustomDocument');
    Parameters[4].Value := ToSQL(Value.Name);
    Parameters[5].Value := ToSQL(Createdby);
    Parameters[6].Value := Value.Createdon;

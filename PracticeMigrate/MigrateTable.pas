@@ -44,6 +44,10 @@ type
     class function ToSQL(Value: Boolean):variant;overload;  static;
     class function ToSQL(Value: string):variant;overload;  static;
     class function ToSQL(Date: Integer; Time: Integer):variant;overload;  static;
+
+    class function CleanToSQL(Value: string): string;
+    class function NewGuid : TGuid;
+
     function GuidToText(Value: TGuid): string;
   end;
 
@@ -69,11 +73,17 @@ const SFLineFields : array[0..31] of string = (
 
 implementation
 uses
+   strUtils,
    stDate,
    Variants,
    SysUtils;
 
 { TMigateTable }
+
+class function TMigrateTable.CleanToSQL(Value: string): string;
+begin
+   result := AnsiReplaceStr(Value,'''', '''''' );
+end;
 
 constructor TMigrateTable.Create(AConnection: TAdoConnection);
 begin
@@ -110,6 +120,11 @@ begin
    SetupTable;
 
    Prepared := true;
+end;
+
+class function TMigrateTable.NewGuid: TGuid;
+begin
+    CreateGuid(result);
 end;
 
 class function TMigrateTable.NullToSQL(Value: Integer): variant;
