@@ -1166,11 +1166,12 @@ var
   i, j: integer;
   ClientStatus: TClientStatusItem;
   pIDRec: pIntermediateDataRec;
+  Status, Description, Detail: string;
 begin
   FClientStatusList.Clear;
   //Get status of all banklink online client files
   if Assigned(AdminSystem) then begin
-    CiCoClient.GetClientFileStatus();
+    CiCoClient.GetClientFileStatus(Status, Description, Detail, FClientStatusList);
     //Update banklink online status
     if Assigned(FClientStatusList) then begin
       for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
@@ -1188,9 +1189,7 @@ begin
     end;
   end else begin
     //*** Temp - remove when CiCoClient can return status of all client codes
-    CiCoClient.GetClientFileStatus('TEST1');
-    CiCoClient.GetClientFileStatus('TEST2');
-    CiCoClient.GetClientFileStatus('TEST3');
+    CiCoClient.GetClientFileStatus(Status, Description, Detail, FClientStatusList);
   end;
 end;
 
@@ -1223,7 +1222,7 @@ begin
       pIDRec^.imHasGUID        := True;
 
       //Get status of client files (async)
-      CiCoClient.GetClientFileStatus(TempClientCode);
+     // CiCoClient.GetClientFileStatus(TempClientCode);
 
       //if we are doing a check in and we have an admin system then check
       //the file status

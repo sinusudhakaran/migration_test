@@ -1339,7 +1339,7 @@ begin
       end;
     end;
     //Prompts depending on status
-    if StatusList.Count > 0 then begin
+    if StatusList.Count > 0 then
       Status := StatusList.Items[0];
     if Assigned(Status) then begin
 
@@ -1451,7 +1451,7 @@ begin
 //      CiCoClient.UploadFileFromPractice(AClientCode, AEmail)
       raise Exception.Create('Not implemented yet!')
     else
-      CiCoClient.UploadFileFromBooks(AClientCode);
+//      CiCoClient.UploadFileFromBooks(AClientCode);
   except
     on E: Exception do begin
       Msg := Format( 'File upload to BankLink Online Failed: %s.', [E.Message]);
