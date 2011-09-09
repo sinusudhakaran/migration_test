@@ -63,6 +63,12 @@ type
   EWebHttpCiCoClientError = class(EWebSoapClientError)
   end;
 
+  TServerResponce = record
+    Status : String;
+    Description : String;
+    DetailedDesc : String;
+  end;
+
   TTransferFileEvent = procedure (Direction: TDirectionIndicator;
                                   TransferStatus : TTransferStatus;
                                   BytesTransferred: LongInt;
@@ -71,17 +77,15 @@ type
 
   TStatusEvent = procedure (StatusMessage : string) of object;
 
-  TSeverResponce = record
-    Status : String;
-    Description : String;
-    DetailedDesc : String;
-  end;
+  TServerStatusEvent = procedure (ServerResponce : TServerResponce;
+                                  ClientStatusList : TClientStatusList) of object;
 
   //----------------------------------------------------------------------------
   TWebCiCoClient = class(TWebClient)
   private
     fStatusEvent       : TStatusEvent;
     fTransferFileEvent : TTransferFileEvent;
+    fServerStatusEvent : TServerStatusEvent;
 
     fTotalBytes       : LongInt;
     fClientPassword   : string;
@@ -92,10 +96,10 @@ type
 
     fProcessState     : TProcessState;
 
-    fServerStatus : String;
-    fServerDescription : String;
-    fServerDetailedDesc : String;
+    fServerResponce : TServerResponce;
     fServerClientStatusList : TClientStatusList;
+
+    FASyncCall : Boolean;
 
     function TrimedGuid(Guid : TGuid) : String;
     procedure FileInfo(Filename     : String;
@@ -164,21 +168,23 @@ type
     procedure SetBooksUserPassword(ClientCode  : string;
                                    OldPassword : string;
                                    NewPassword : string);
-    procedure GetClientFileStatus(var ServerResponce : TSeverResponce;
+    procedure GetClientFileStatus(var ServerResponce : TServerResponce;
                                   var ClientStatusList : TClientStatusList;
-                                  ClientCode : string = '');
+                                  ClientCode : string = '';
+                                  ASyncCall : Boolean = False);
     procedure UploadFileFromPractice(ClientCode : string;
                                      var Email: string;
-                                     var ServerResponce : TSeverResponce);
+                                     var ServerResponce : TServerResponce);
     procedure DownloadFileToPractice(ClientCode : string;
-                                     var ServerResponce : TSeverResponce);
+                                     var ServerResponce : TServerResponce);
     procedure UploadFileFromBooks(ClientCode : string;
-                                  var ServerResponce : TSeverResponce);
+                                  var ServerResponce : TServerResponce);
     procedure DownloadFileToBooks(ClientCode : string;
-                                  var ServerResponce : TSeverResponce);
+                                  var ServerResponce : TServerResponce);
 
     property OnStatusEvent : TStatusEvent read fStatusEvent write fStatusEvent;
     property OnTransferFileEvent : TTransferFileEvent read fTransferFileEvent write fTransferFileEvent;
+    property OnServerStatusEvent : TServerStatusEvent read fServerStatusEvent write fServerStatusEvent;
   published
 
   end;
@@ -579,18 +585,18 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetUpdateServerReply;
 begin
-  fServerStatus       := '';
-  fServerDescription  := '';
-  fServerDetailedDesc := '';
+  fServerResponce.Status       := '';
+  fServerResponce.Description  := '';
+  fServerResponce.DetailedDesc := '';
   fServerClientStatusList.Clear;
 
   if fContentType = SERVER_CONTENT_TYPE_XML then
     GetDetailsFromXML
   else if fContentType = SERVER_CONTENT_TYPE_BK5 then
   begin
-    fServerStatus       := '200';
-    fServerDescription  := 'File Downloaded';
-    fServerDetailedDesc := 'BK5 File Downloaded';
+    fServerResponce.Status       := '200';
+    fServerResponce.Description  := 'File Downloaded';
+    fServerResponce.DetailedDesc := 'BK5 File Downloaded';
   end;
 
   fProcessState := psNothing;
@@ -614,11 +620,16 @@ begin
     if XMLDoc.DocumentElement.ChildNodes.Count = 0 then
       Exit;
 
-    fServerStatus       := GetValueFromNode(CurrentNode, XML_STATUS_CODE);
-    fServerDescription  := GetValueFromNode(CurrentNode, XML_STATUS_DESC);
-    fServerDetailedDesc := GetValueFromNode(CurrentNode, XML_STATUS_DETAIL_DESC);
+    fServerResponce.Status       := GetValueFromNode(CurrentNode, XML_STATUS_CODE);
+    fServerResponce.Description  := GetValueFromNode(CurrentNode, XML_STATUS_DESC);
+    fServerResponce.DetailedDesc := GetValueFromNode(CurrentNode, XML_STATUS_DETAIL_DESC);
 
     BuildStatusListFromXml(CurrentNode);
+
+    if (Assigned(fServerStatusEvent)) and
+       (fASyncCall) then
+      fServerStatusEvent(fServerResponce, fServerClientStatusList);
+
   finally
     CurrentNode := Nil;
     XMLDoc := Nil;
@@ -717,9 +728,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetClientFileStatus(var ServerResponce : TSeverResponce;
+procedure TWebCiCoClient.GetClientFileStatus(var ServerResponce : TServerResponce;
                                              var ClientStatusList : TClientStatusList;
-                                             ClientCode : string = '');
+                                             ClientCode : string = '';
+                                             ASyncCall : Boolean = False);
 var
   HttpAddress  : string;
   FileName     : String;
@@ -750,22 +762,25 @@ begin
 
     AppendHttpHeaderInfo;
 
+    FASyncCall := ASyncCall;
+
     HttpSendRequest(HttpAddress);
 
-    WaitForProcess;
-
-    ServerResponce.Status := fServerStatus;
-    ServerResponce.Description := fServerDescription;
-    ServerResponce.DetailedDesc := fServerDetailedDesc;
-
-    for Index := 0 to fServerClientStatusList.Count - 1 do
+    if not ASyncCall then
     begin
-      NewClientStatusItem := TClientStatusItem.Create;
-      NewClientStatusItem.ClientCode := fServerClientStatusList.Items[Index].ClientCode;
-      NewClientStatusItem.FileGuid   := fServerClientStatusList.Items[Index].FileGuid;
-      NewClientStatusItem.StatusCode := fServerClientStatusList.Items[Index].StatusCode;
-      NewClientStatusItem.StatusDesc := fServerClientStatusList.Items[Index].StatusDesc;
-      ClientStatusList.Add(NewClientStatusItem);
+      WaitForProcess;
+
+      ServerResponce := fServerResponce;
+
+      for Index := 0 to fServerClientStatusList.Count - 1 do
+      begin
+        NewClientStatusItem := TClientStatusItem.Create;
+        NewClientStatusItem.ClientCode := fServerClientStatusList.Items[Index].ClientCode;
+        NewClientStatusItem.FileGuid   := fServerClientStatusList.Items[Index].FileGuid;
+        NewClientStatusItem.StatusCode := fServerClientStatusList.Items[Index].StatusCode;
+        NewClientStatusItem.StatusDesc := fServerClientStatusList.Items[Index].StatusDesc;
+        ClientStatusList.Add(NewClientStatusItem);
+      end;
     end;
 
   finally
@@ -800,7 +815,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromPractice(ClientCode : string;
                                                 var Email: string;
-                                                var ServerResponce : TSeverResponce);
+                                                var ServerResponce : TServerResponce);
 var
   HttpAddress : String;
   FileName    : String;
@@ -834,9 +849,7 @@ begin
     WaitForProcess;
 
     Email        := '';
-    ServerResponce.Status := fServerStatus;
-    ServerResponce.Description := fServerDescription;
-    ServerResponce.DetailedDesc := fServerDetailedDesc;
+    ServerResponce := fServerResponce;
   finally
     fProcessState := psNothing;
   end;
@@ -867,7 +880,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DownloadFileToPractice(ClientCode : string;
-                                                var ServerResponce : TSeverResponce);
+                                                var ServerResponce : TServerResponce);
 var
   HttpAddress : String;
   FileName    : String;
@@ -910,9 +923,7 @@ begin
     if FServerCrc <> FileCrc then
       RaiseHttpError('Cico - File CRC Error!', 304);
 
-    ServerResponce.Status := fServerStatus;
-    ServerResponce.Description := fServerDescription;
-    ServerResponce.DetailedDesc := fServerDetailedDesc;
+    ServerResponce := fServerResponce;
   finally
     fProcessState := psNothing;
   end;
@@ -939,7 +950,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromBooks(ClientCode : string;
-                                             var ServerResponce : TSeverResponce);
+                                             var ServerResponce : TServerResponce);
 var
   HttpAddress  : string;
   FileName     : String;
@@ -973,9 +984,7 @@ begin
 
     WaitForProcess;
 
-    ServerResponce.Status := fServerStatus;
-    ServerResponce.Description := fServerDescription;
-    ServerResponce.DetailedDesc := fServerDetailedDesc;
+    ServerResponce := fServerResponce;
   finally
     fProcessState := psNothing;
   end;
@@ -1001,7 +1010,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DownloadFileToBooks(ClientCode : string;
-                                             var ServerResponce : TSeverResponce);
+                                             var ServerResponce : TServerResponce);
 var
   HttpAddress  : string;
   FileName     : String;
@@ -1044,9 +1053,7 @@ begin
     if FServerCrc <> FileCrc then
       RaiseHttpError('Cico - File CRC Error!', 304);
 
-    ServerResponce.Status := fServerStatus;
-    ServerResponce.Description := fServerDescription;
-    ServerResponce.DetailedDesc := fServerDetailedDesc;
+    ServerResponce := fServerResponce;
   finally
     fProcessState := psNothing;
   end;

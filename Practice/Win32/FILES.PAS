@@ -1324,7 +1324,7 @@ var
   Msg: string;
   StatusList: TClientStatusList;
   Status: TClientStatusItem;
-  ServerResponce : TSeverResponce;
+  ServerResponce : TServerResponce;
 begin
   //Get client status from BankLink Online
   StatusList := TClientStatusList.Create;
@@ -1431,7 +1431,7 @@ const
 var
   ClientFileRec: pClient_File_Rec;
   Msg: string;
-  ServerResponce : TSeverResponce;
+  ServerResponce : TServerResponce;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 

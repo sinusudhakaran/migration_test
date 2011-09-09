@@ -207,7 +207,7 @@ type
     FProcStatDate: Integer;
     FOnUpdateCount: TNotifyEvent;
     FClientStatusList: TClientStatusList;
-    FSeverResponce : TSeverResponce;
+    FServerResponce : TServerResponce;
     FUsingBankLinkOnline: Boolean;
     procedure LoadNodes( ReloadData : boolean);
     procedure LoadColumns;
@@ -1171,7 +1171,7 @@ begin
   FClientStatusList.Clear;
   //Get status of all banklink online client files
   if Assigned(AdminSystem) then begin
-    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
+    CiCoClient.GetClientFileStatus(FServerResponce, FClientStatusList);
     //Update banklink online status
     if Assigned(FClientStatusList) then begin
       for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
@@ -1189,7 +1189,7 @@ begin
     end;
   end else begin
     //*** Temp - remove when CiCoClient can return status of all client codes
-    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
+    CiCoClient.GetClientFileStatus(FServerResponce, FClientStatusList);
   end;
 end;
 
@@ -1222,7 +1222,7 @@ begin
       pIDRec^.imHasGUID        := True;
 
       //Get status of client files (async)
-      CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, TempClientCode);
+      CiCoClient.GetClientFileStatus(FServerResponce, FClientStatusList, TempClientCode);
 
       //if we are doing a check in and we have an admin system then check
       //the file status
