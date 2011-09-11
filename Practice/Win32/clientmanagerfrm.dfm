@@ -839,6 +839,11 @@ object frmClientManager: TfrmClientManager
       ImageIndex = 23
       OnExecute = actInActiveExecute
     end
+    object actSendOnline: TAction
+      Caption = 'actSendOnline'
+      ImageIndex = 20
+      OnExecute = actSendOnlineExecute
+    end
   end
   object tmrUpdateClientDetails: TTimer
     Interval = 300

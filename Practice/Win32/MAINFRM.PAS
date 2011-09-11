@@ -697,6 +697,7 @@ type
     procedure mniFileExchangeRatesClick(Sender: TObject);
     procedure mniSystemAuditReportClick(Sender: TObject);
     procedure AUDITREPORTTEST1Click(Sender: TObject);
+    procedure viaBankLinkOnline1Click(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -892,6 +893,7 @@ const
   mf_mcViewCashJournals        = 73;
   mf_mcViewAccrualJournals     = 74;
   mf_mcExchangeRates           = 75;
+  mf_mcSendOnline              = 76;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -4080,6 +4082,15 @@ begin
         FLastActiveMDIChild.Invalidate; // repaint it..
      end;
   end;
+end;
+
+procedure TfrmMain.viaBankLinkOnline1Click(Sender: TObject);
+begin
+  IncUsage('Check Out');
+  if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
+    ClientManagerSendOnline
+  else
+    DoMainFormCommand( mf_mcSendOnline);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

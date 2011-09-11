@@ -114,7 +114,6 @@ object frmMain: TfrmMain
       end>
     ParentFont = True
     UseSystemFont = False
-    ExplicitTop = 819
   end
   object rzToolbars: TPanel
     Left = 0
@@ -1908,31 +1907,38 @@ object frmMain: TfrmMain
     Top = 272
   end
   object PopGetClients: TPopupMenu
+    Images = AppImages.Client
     Left = 640
     Top = 256
     object fromFolder1: TMenuItem
       Caption = 'from Folder'
+      ImageIndex = 1
       OnClick = mniFileCheckInClick
     end
     object fromBankLinkOnline1: TMenuItem
       Caption = 'from BankLink Online'
+      ImageIndex = 20
       OnClick = mniFileCheckInClick
     end
   end
   object PopSendClients: TPopupMenu
+    Images = AppImages.Client
     Left = 672
     Top = 256
     object toFile1: TMenuItem
       Caption = 'to File'
+      ImageIndex = 1
       OnClick = mniFileCheckOutClick
     end
     object viaEmail1: TMenuItem
       Caption = 'via Email'
+      ImageIndex = 8
       OnClick = tbSendToClick
     end
     object viaBankLinkOnline1: TMenuItem
       Caption = 'via BankLink Online'
-      OnClick = mniFileCheckOutClick
+      ImageIndex = 20
+      OnClick = viaBankLinkOnline1Click
     end
   end
 end

@@ -3,7 +3,7 @@ object frmCheckInOut: TfrmCheckInOut
   Top = 164
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Caption'
-  ClientHeight = 467
+  ClientHeight = 486
   ClientWidth = 984
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -20,18 +20,18 @@ object frmCheckInOut: TfrmCheckInOut
   TextHeight = 13
   object pnlFooter: TPanel
     Left = 0
-    Top = 427
+    Top = 382
     Width = 984
-    Height = 40
+    Height = 104
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
       984
-      40)
+      104)
     object btnOK: TButton
       Left = 819
-      Top = 8
+      Top = 72
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -42,7 +42,7 @@ object frmCheckInOut: TfrmCheckInOut
     end
     object btnCancel: TButton
       Left = 900
-      Top = 8
+      Top = 72
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -62,112 +62,108 @@ object frmCheckInOut: TfrmCheckInOut
       TabOrder = 0
       OnClick = chkAvailOnlyClick
     end
+    object cbFlagReadOnly: TCheckBox
+      Left = 7
+      Top = 30
+      Width = 338
+      Height = 17
+      Caption = 'Flag selected client files as read-only after sending'
+      Checked = True
+      State = cbChecked
+      TabOrder = 3
+    end
+    object cbEditEmail: TCheckBox
+      Left = 7
+      Top = 53
+      Width = 306
+      Height = 17
+      Caption = 'Edit message before sending'
+      Checked = True
+      State = cbChecked
+      TabOrder = 4
+    end
+    object cbSendEmail: TCheckBox
+      Left = 7
+      Top = 76
+      Width = 426
+      Height = 17
+      Caption = 
+        'Send an email message after sending client files to BankLink Onl' +
+        'ine'
+      Checked = True
+      State = cbChecked
+      TabOrder = 5
+    end
   end
   object pnlFrameHolder: TPanel
     Left = 0
     Top = 0
     Width = 984
-    Height = 392
+    Height = 347
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 1
     inline ClientLookupFrame: TfmeClientLookup
       Left = 0
-      Top = 171
+      Top = 86
       Width = 984
-      Height = 221
+      Height = 261
       Align = alClient
       TabOrder = 0
       TabStop = True
-      ExplicitTop = 171
+      ExplicitTop = 86
       ExplicitWidth = 984
-      ExplicitHeight = 221
+      ExplicitHeight = 261
       inherited vtClients: TVirtualStringTree
         Width = 984
-        Height = 221
+        Height = 261
         Header.Font.Height = -13
         ExplicitWidth = 984
-        ExplicitHeight = 221
-      end
-    end
-    object pnSendOptions: TPanel
-      Left = 0
-      Top = 0
-      Width = 984
-      Height = 95
-      Align = alTop
-      BevelOuter = bvNone
-      TabOrder = 1
-      object lblPreferredMethod: TLabel
-        Left = 16
-        Top = 8
-        Width = 292
-        Height = 13
-        Caption = 'Select the preferred method of sending the selected client(s)'
-      end
-      object rbStandard: TRadioButton
-        Left = 64
-        Top = 37
-        Width = 276
-        Height = 17
-        Caption = 'via standard file transfer'
-        TabOrder = 0
-        OnClick = rbStandardClick
-      end
-      object rbBankLinkOnline: TRadioButton
-        Left = 64
-        Top = 66
-        Width = 276
-        Height = 17
-        Caption = 'via BankLink Online'
-        Checked = True
-        TabOrder = 1
-        TabStop = True
-        OnClick = rbStandardClick
+        ExplicitHeight = 261
       end
     end
     object pnlPassword: TPanel
       Left = 0
-      Top = 95
+      Top = 0
       Width = 984
-      Height = 76
+      Height = 86
       Align = alTop
       BevelOuter = bvNone
-      TabOrder = 2
+      TabOrder = 1
       object Label2: TLabel
-        Left = 126
-        Top = 8
+        Left = 22
+        Top = 17
         Width = 52
         Height = 13
         Alignment = taRightJustify
         Caption = 'Username:'
       end
       object Label3: TLabel
-        Left = 128
-        Top = 45
+        Left = 24
+        Top = 54
         Width = 50
         Height = 13
         Alignment = taRightJustify
         Caption = 'Password:'
       end
       object eUsername: TEdit
-        Left = 192
-        Top = 5
+        Left = 88
+        Top = 14
         Width = 321
         Height = 21
         TabOrder = 0
       end
       object ePassword: TEdit
-        Left = 192
-        Top = 42
+        Left = 88
+        Top = 51
         Width = 321
         Height = 21
         PasswordChar = '*'
         TabOrder = 1
       end
       object btnRefresh: TBitBtn
-        Left = 528
-        Top = 3
+        Left = 424
+        Top = 12
         Width = 121
         Height = 25
         Caption = 'Refresh'
@@ -202,8 +198,8 @@ object frmCheckInOut: TfrmCheckInOut
           A887DCA887DCA887DCA887B8857AFF00FFFF00FFFF00FFFF00FF}
       end
       object btnChangePassword: TButton
-        Left = 528
-        Top = 40
+        Left = 424
+        Top = 49
         Width = 121
         Height = 25
         Caption = 'Change Password'
@@ -214,7 +210,7 @@ object frmCheckInOut: TfrmCheckInOut
   end
   object pnlBrowseDir: TPanel
     Left = 0
-    Top = 392
+    Top = 347
     Width = 984
     Height = 35
     Align = alBottom

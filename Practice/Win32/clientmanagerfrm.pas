@@ -130,6 +130,7 @@ type
     Assignbulkexportformat1: TMenuItem;
     actUnAttached: TAction;
     actInActive: TAction;
+    actSendOnline: TAction;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
@@ -208,6 +209,7 @@ type
     procedure EBFindChange(Sender: TObject);
     procedure actAssignBulkExportExecute(Sender: TObject);
     procedure actInActiveExecute(Sender: TObject);
+    procedure actSendOnlineExecute(Sender: TObject);
 
   private
 
@@ -229,6 +231,7 @@ type
     procedure DoNew;
     procedure DoCheckIn;
     procedure DoCheckOut;
+    procedure DoSendOnline;
     procedure DoSendFile;
     procedure DoAssignTo;
     procedure DoAssignBulkExport;
@@ -298,6 +301,7 @@ procedure RefreshClientManager(Code: string = ''; restore: Boolean = True);
 procedure DisableClientManager;
 procedure EnableClientManager;
 procedure ClientManagerCheckout;
+procedure ClientManagerSendOnline;
 procedure ClientManagerSend;
 procedure SetDownloadAvailability(Status: Byte);
 procedure UpdateClientManagerCaption(Title: string);
@@ -370,6 +374,7 @@ const
   cm_mcAddMultipleTasks   = 26;
   cm_mcPrintAllTasks      = 27;
   cm_mcAssignBulkExport   = 28;
+  cm_mcSendOnline         = 29;
 
   md_ClientManager   = 0;
   md_GlobalSetup     = 1;
@@ -1496,7 +1501,7 @@ end;
 procedure TfrmClientManager.DoCheckOut;
 var
   Codes : string;
-  SendMethod: byte;
+  SendMethod: Byte;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoCheckOut');
 //  Codes := ClientLookup.SelectedCodes;
@@ -1509,8 +1514,8 @@ begin
 //    RefreshLookup( '');
 //    ClientLookup.SelectedCodes := Codes;
 //  end;
-  SendMethod := smBankLinkOnline; //Set to selected client file send method
-  Codes := CheckInOutFrm.SelectCodesToCheckout('Select Client(s) to Check Out',
+  SendMethod := smStandardFileTransfer; //Set to selected client file send method
+  Codes := CheckInOutFrm.SelectCodesToCheckout('Select Client(s) to Send',
                                                SendMethod,
                                                ClientLookup.SelectedCodes);
   if Codes <> '' then
@@ -1803,6 +1808,7 @@ begin
        cm_mcarchive : DoArchive;
        cm_mcImportClients : DoImportClientsProspects(itClients);
        cm_mcAssignBulkExport : DoAssignBulkExport;
+       cm_mcSendOnline: DoSendOnline;
      end;
      finally
         EnableForm(LoseFocus);
@@ -2683,6 +2689,11 @@ begin
   ProcessModalCommand( cm_mcSend);
 end;
 
+procedure TfrmClientManager.actSendOnlineExecute(Sender: TObject);
+begin
+  ProcessModalCommand(cm_mcSendOnline);
+end;
+
 procedure TfrmClientManager.ActShowInstitutionsExecute(Sender: TObject);
 var link: String;
 begin
@@ -2718,6 +2729,22 @@ begin
     RefreshLookup( '');
     ClientLookup.SelectedCodes := Codes;
   end;
+end;
+
+procedure TfrmClientManager.DoSendOnline;
+var
+  Codes : string;
+  SendMethod: Byte;
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoSendOnline');
+
+  SendMethod := smBankLinkOnline;
+  Codes := CheckInOutFrm.SelectCodesToCheckout('Select Client(s) to Send via BankLink Online',
+                                               SendMethod, ClientLookup.SelectedCodes);
+  if Codes <> '' then
+    Files.CheckOut(Codes, SendMethod);
+
+  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendOnline');
 end;
 
 function TfrmClientManager.GetSelectedEmail: string;
@@ -2895,6 +2922,12 @@ procedure ClientManagerCheckout;
 begin
   if Assigned(GLClientManager) then
     GLClientManager.actCheckOutExecute(GLClientManager);
+end;
+
+procedure ClientManagerSendOnline;
+begin
+  if Assigned(GLClientManager) then
+    GLClientManager.actSendOnlineExecute(GLClientManager);
 end;
 
 procedure ClientManagerSend;
