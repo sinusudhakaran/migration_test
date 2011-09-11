@@ -60,15 +60,17 @@ type
   EWebSoapCiCoClientError = class(EWebSoapClientError)
   end;
 
-  EWebHttpCiCoClientError = class(EWebSoapClientError)
+  EWebHttpCiCoClientError = class(EWebHttpClientError)
   end;
 
+  //----------------------------------------------------------------------------
   TServerResponce = record
     Status : String;
     Description : String;
     DetailedDesc : String;
   end;
 
+  //----------------------------------------------------------------------------
   TTransferFileEvent = procedure (Direction: TDirectionIndicator;
                                   TransferStatus : TTransferStatus;
                                   BytesTransferred: LongInt;
