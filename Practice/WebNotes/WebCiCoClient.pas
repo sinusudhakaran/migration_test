@@ -35,12 +35,10 @@ type
     fClientCode : string;
     fStatusCode : string;
     fStatusDesc : string;
-    fFileGuid   : string;
   public
     property ClientCode : String read fClientCode write fClientCode;
     property StatusCode : string read fStatusCode write fStatusCode;
     property StatusDesc : string read fStatusDesc write fStatusDesc;
-    property FileGuid   : string read fFileGuid   write fFileGuid;
   end;
 
   //------------------------------------------------------------------------------
@@ -103,7 +101,6 @@ type
 
     FASyncCall : Boolean;
 
-    function TrimedGuid(Guid : TGuid) : String;
     procedure FileInfo(Filename     : String;
                        var FileCRC  : String;
                        var FileSize : Integer);
@@ -135,9 +132,6 @@ type
     procedure DoHttpHeader(Sender: TObject;
                            const Field: String;
                            const Value: String); Override;
-
-    Function CreateAndSaveGuid(ClientCode : String) : TGuid;
-    function GetClientGuid(ClientCode : String) : TGuid;
 
     procedure GetPracticeDetailsToSend(ClientCode       : string;
                                        var FileName     : String;
@@ -284,13 +278,6 @@ begin
 end;
 
 { TWebCiCoClient }
-//------------------------------------------------------------------------------
-function TWebCiCoClient.TrimedGuid(Guid: TGuid): String;
-begin
-  // Trims the { and } off the ends of the Guid to pass to the server
-  Result := midstr(GuidToString(Guid),2,length(GuidToString(Guid))-2);
-end;
-
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.FileInfo(Filename     : String;
                                   var FileCRC  : String;
@@ -467,43 +454,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TWebCiCoClient.CreateAndSaveGuid(ClientCode : String): TGuid;
-var
-  ClientFileRec : pClient_File_Rec;
-  fClientObj    : TClientObj;
-  FileName      : String;
-begin
-  ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(ClientCode);
-
-  if Assigned(ClientFileRec) then
-  begin
-    CreateGUID(Result);
-    ClientFileRec.cfClient_File_GUID := GuidToString(Result);
-
-    FileName   := ClientFileRec^.cfFile_Code;
-
-    fClientObj := TClientObj.Create;
-    Try
-      fClientObj.Open(FileName, FILEEXTN);
-
-      fClientObj.clExtra.ceClient_File_GUID := GuidToString(Result);
-      fClientObj.Save;
-    Finally
-      FreeAndNil(fClientObj);
-    End;
-
-    AdminSystem.Save;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TWebCiCoClient.GetClientGuid(ClientCode : String) : TGuid;
-begin
-  if Assigned(MyClient) then
-    Result := StringToGuid(MyClient.clExtra.ceClient_File_GUID);
-end;
-
-//------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetPracticeDetailsToSend(ClientCode       : string;
                                                   var FileName     : String;
                                                   var ClientEmail  : String;
@@ -655,7 +605,6 @@ begin
 
     NewClientStatusItem := TClientStatusItem.Create;
     NewClientStatusItem.ClientCode := LocalNode.Attributes[XML_STATUS_CLIENT_CODE];;
-    NewClientStatusItem.FileGuid   := FileNode.Attributes[XML_STATUS_FILE_ATTR_GUID];
     NewClientStatusItem.StatusCode := FileNode.Attributes[XML_STATUS_FILE_ATTR_STATUSCODE];
     NewClientStatusItem.StatusDesc := FileNode.Attributes[XML_STATUS_FILE_ATTR_STATUSDESC];
     fServerClientStatusList.Add(NewClientStatusItem);
@@ -779,7 +728,6 @@ begin
       begin
         NewClientStatusItem := TClientStatusItem.Create;
         NewClientStatusItem.ClientCode := fServerClientStatusList.Items[Index].ClientCode;
-        NewClientStatusItem.FileGuid   := fServerClientStatusList.Items[Index].FileGuid;
         NewClientStatusItem.StatusCode := fServerClientStatusList.Items[Index].StatusCode;
         NewClientStatusItem.StatusDesc := fServerClientStatusList.Items[Index].StatusDesc;
         ClientStatusList.Add(NewClientStatusItem);
@@ -822,21 +770,16 @@ procedure TWebCiCoClient.UploadFileFromPractice(ClientCode : string;
 var
   HttpAddress : String;
   FileName    : String;
-  Guid        : TGuid;
   PracCode    : String;
   CountryCode : String;
   PracPass    : String;
   ClientName  : String;
-  StrGuid     : String;
 begin
   fProcessState := psUploadPrac;
   try
     ClearHttpHeader;
 
     HttpAddress := 'http://development.banklinkonline.com/cico.upload';
-
-    CreateGuid(Guid);
-    StrGuid := TrimedGuid(Guid);
 
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
@@ -845,7 +788,6 @@ begin
     AddHttpHeaderInfo('ClientName',       'NZ Test client');
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '');
-    AddHttpHeaderInfo('FileGuid',         StrGuid);
 
     UploadFile(HttpAddress, 'c:\temp\UploadPrac.bk5');
 
@@ -892,8 +834,6 @@ var
   PracPass    : String;
   ClientName  : String;
   Email       : String;
-  Guid        : TGuid;
-  StrGuid     : String;
   FileCrc     : String;
   FileSize    : Integer;
 begin
@@ -903,9 +843,6 @@ begin
 
     HttpAddress := 'http://development.banklinkonline.com/cico.download';
 
-    CreateGuid(Guid);
-    StrGuid := TrimedGuid(Guid);
-
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '123');
@@ -913,7 +850,6 @@ begin
     AddHttpHeaderInfo('ClientName',       'NZ Test client');
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '');
-    AddHttpHeaderInfo('FileGuid',         StrGuid);
 
     AppendHttpHeaderInfo;
 
@@ -961,21 +897,16 @@ var
   HttpAddress  : string;
   FileName     : String;
   BankLinkCode : String;
-  Guid         : TGuid;
   ClientEmail  : String;
   ClientName   : String;
   PracCode     : String;
   CountryCode  : String;
-  StrGuid      : String;
 begin
   fProcessState := psUploadBooks;
   try
     ClearHttpHeader;
 
     HttpAddress := 'http://development.banklinkonline.com/cico.upload';
-
-    CreateGuid(Guid);
-    StrGuid := TrimedGuid(Guid);
 
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
@@ -984,7 +915,6 @@ begin
     AddHttpHeaderInfo('ClientName',       'NZ Test client');
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
-    AddHttpHeaderInfo('FileGuid',         StrGuid);
 
     UploadFile(HttpAddress, 'c:\Temp\UploadBooks.bk5');
 
@@ -1025,8 +955,6 @@ var
   ClientName   : String;
   PracCode     : String;
   CountryCode  : String;
-  Guid         : TGuid;
-  StrGuid      : String;
   FileCrc      : String;
   FileSize     : Integer;
 begin
@@ -1036,9 +964,6 @@ begin
 
     HttpAddress := 'http://development.banklinkonline.com/cico.download';
 
-    CreateGuid(Guid);
-    StrGuid := TrimedGuid(Guid);
-
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '');
@@ -1046,7 +971,6 @@ begin
     AddHttpHeaderInfo('ClientName',       'NZ Test client');
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
-    AddHttpHeaderInfo('FileGuid',         StrGuid);
 
     AppendHttpHeaderInfo;
 
