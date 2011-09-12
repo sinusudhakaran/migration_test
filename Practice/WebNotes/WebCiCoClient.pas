@@ -431,9 +431,9 @@ begin
   if Assigned(fStatusEvent) then
   begin
     if Direction = 0 then
-      fStatusEvent('End Transfer : from Client')
+      fStatusEvent('End Transfer : from Client, Total Bytes : ' + InttoStr(fTotalBytes))
     else
-      fStatusEvent('End Transfer : from Server');
+      fStatusEvent('End Transfer : from Server, Total Bytes : ' + InttoStr(fTotalBytes));
   end;
 
   // Transfer File Event
@@ -565,8 +565,9 @@ begin
   // Adding Crc to Header Section
   AddHttpHeaderInfo('FileCRC',    FileCRC);
   AddHttpHeaderInfo('FileLength', inttostr(FileLength));
-  HttpRequester.ContentType := 'bk5/xml';
+  HttpRequester.ContentType := SERVER_CONTENT_TYPE_BK5;
   fContentType := HttpRequester.ContentType;
+  fTotalBytes  := FileLength;
   AppendHttpHeaderInfo;
 
   HttpPostFile(HttpAddress, Filename);
