@@ -921,9 +921,12 @@ begin
 
     WaitForProcess;
 
-    FileInfo(FileName, FileCrc, FileSize);
-    if FServerCrc <> FileCrc then
-      RaiseHttpError('Cico - File CRC Error!', 304);
+    if fContentType = SERVER_CONTENT_TYPE_BK5 then
+    begin
+      FileInfo(FileName, FileCrc, FileSize);
+      if FServerCrc <> FileCrc then
+        RaiseHttpError('Cico - File CRC Error!', 304);
+    end;
 
     ServerResponce := fServerResponce;
   finally
@@ -1051,9 +1054,12 @@ begin
 
     WaitForProcess;
 
-    FileInfo(FileName, FileCrc, FileSize);
-    if FServerCrc <> FileCrc then
-      RaiseHttpError('Cico - File CRC Error!', 304);
+    if fContentType = SERVER_CONTENT_TYPE_BK5 then
+    begin
+      FileInfo(FileName, FileCrc, FileSize);
+      if FServerCrc <> FileCrc then
+        RaiseHttpError('Cico - File CRC Error!', 304);
+    end;
 
     ServerResponce := fServerResponce;
   finally
