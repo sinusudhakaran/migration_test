@@ -50,7 +50,6 @@ type
                        cluClientType,
                        cluNextGSTDue,
                        cluBankLinkOnline,
-                       cluModifiedBy,
                        cluModifiedDate
                        );
 
@@ -86,7 +85,6 @@ type
     imType    : Byte;
     imSendMethod    : Byte;
     imBankLinkOnline: string[60];
-    imModifiedBy    : string[20];
     imModifiedDate  : string[20];
     imHasGUID       : Boolean;
   end;
@@ -258,8 +256,9 @@ type
     procedure SetOnUpdateCount(const Value: TNotifyEvent);
     procedure UpdateCount;
     procedure RefeshFromBankLinkOnline;
-    procedure RefeshBankLinkOnlineStatus;
     procedure SetUsingBankLinkOnline(const Value: Boolean);
+    procedure UpdateOnlineStatus(ServerResponce : TServerResponce;
+                                 ClientStatusList : TClientStatusList);
   public
     { Public declarations }
     AdminSnapshot : TSystemObj;
@@ -333,8 +332,8 @@ type
     property ProcStatOffset: Integer read FProcStatOffset write SetProcStatOffset;
     procedure UpdateActions;
     property OnUpdateCount: TNotifyEvent read FOnUpdateCount write SetOnUpdateCount;
+    procedure RefeshBankLinkOnlineStatus;    
     property UsingBankLinkOnline: Boolean read FUsingBankLinkOnline write SetUsingBankLinkOnline;
-    function GetSendMethod: Byte;
   end;
 
   const
@@ -1164,32 +1163,51 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfmeClientLookup.RefeshBankLinkOnlineStatus;
 var
-  i, j: integer;
-  ClientStatus : TClientStatusItem;
+  i: integer;
   pIDRec: pIntermediateDataRec;
+  Status: TClientStatusItem;
 begin
-  FClientStatusList.Clear;
+  for i := 0 to FClientStatusList.Count - 1 do
+    if Assigned(FClientStatusList.Items[i]) then
+      FClientStatusList.Items[i].Free;
   //Get status of all banklink online client files
-  if Assigned(AdminSystem) then begin
-    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
-    //Update banklink online status
-    if Assigned(FClientStatusList) then begin
+  try
+    CiCoClient.OnServerStatusEvent := UpdateOnlineStatus;
+//    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '', True);
+
+    //No File
+    Status := TClientStatusItem.Create;
+    Status.ClientCode := 'TEST0';
+    Status.StatusCode := '0';
+    Status.StatusDesc := 'No File';    
+    FClientStatusList.Add(Status);
+
+    //Downloaded by Books
+    Status := TClientStatusItem.Create;
+    Status.ClientCode := 'TEST1';
+    Status.StatusCode := '1';
+    Status.StatusDesc := 'Uploaded by Practice';
+    FClientStatusList.Add(Status);
+
+    //Downloaded by Books
+    Status := TClientStatusItem.Create;
+    Status.ClientCode := 'TEST2';
+    Status.StatusCode := '5';
+    Status.StatusDesc := 'Downloaded by Books';
+    FClientStatusList.Add(Status);
+
+    UpdateOnlineStatus(FSeverResponce, FClientStatusList);
+
+  except
+    on E: Exception do begin
       for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
         pIDRec := FIntermediateDataList.IntermediateData_At(i);
-        for j := 0 to FClientStatusList.Count - 1 do begin
-          ClientStatus := FClientStatusList.Items[j];
-          if (pIDRec^.imCode = ClientStatus.ClientCode) then begin
-            pIDRec^.imBankLinkOnline := ClientStatus.StatusDesc;
-            pIDRec^.imModifiedBy     := '<nknown>';
-            pIDRec^.imModifiedDate   := '<nknown>';
-            pIDRec^.imHasGUID        := True;
-          end;
-        end;
+        pIDRec^.imBankLinkOnline := '<error>';
+        pIDRec^.imModifiedDate   := '<error>';
+        pIDRec^.imHasGUID        := True;
       end;
+      ShowMessage(E.Message);
     end;
-  end else begin
-    //*** Temp - remove when CiCoClient can return status of all client codes
-    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
   end;
 end;
 
@@ -1215,14 +1233,13 @@ begin
       pIDRec^.imData    := nil;
       pIDRec^.imTag     := 0;
       pIDRec^.imType    := ctActive;
-      pIDRec^.imSendMethod     := Byte(smBankLinkOnline);
+      pIDRec^.imSendMethod     := Byte(ftmOnline);
       pIDRec^.imBankLinkOnline := '<unknown>';
-      pIDRec^.imModifiedBy     := '<unknown>';
       pIDRec^.imModifiedDate   := '<unknown>';
       pIDRec^.imHasGUID        := True;
 
       //Get status of client files (async)
-      CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, TempClientCode);
+//      CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, TempClientCode);
 
       //if we are doing a check in and we have an admin system then check
       //the file status
@@ -1566,7 +1583,6 @@ begin
            pIDRec^.imType    := sysClientRec^.cfClient_Type;
            pIDRec^.imSendMethod     := sysClientRec^.cfSend_Method;
            pIDRec^.imBankLinkOnline := '';
-           pIDRec^.imModifiedBy     := '';
            pIDRec^.imModifiedDate   := '';
            pIDRec^.imHasGUID        := False;
         end;
@@ -1574,8 +1590,8 @@ begin
     end;
 
     //Update the banklink online status for checkout from practice
-    if FUsingBankLinkOnline then
-      RefeshBankLinkOnlineStatus;
+//    if FUsingBankLinkOnline then
+//      RefeshBankLinkOnlineStatus;
 
   end else if FUsingBankLinkOnline and (FFilterMode = fmFilesForCheckIn) then begin
     RefeshFromBankLinkOnline;
@@ -1611,9 +1627,8 @@ begin
             pIDRec^.imData    := nil;
             pIDRec^.imTag     := 0;
             pIDRec^.imType    := ctActive;
-            pIDRec^.imSendMethod     := Byte(smBankLinkOnline);
+            pIDRec^.imSendMethod     := Byte(ftmOnline);
             pIDRec^.imBankLinkOnline := '';
-            pIDRec^.imModifiedBy     := '';
             pIDRec^.imModifiedDate   := '';
             pIDRec^.imHasGUID        := Wrapper.wHasGUID;
 
@@ -1670,7 +1685,6 @@ begin
             pIDRec^.imData    := nil;
             pIDRec^.imTag     := Tag_CheckInConflict;
             pIDRec^.imBankLinkOnline := '';
-            pIDRec^.imModifiedBy     := '';
             pIDRec^.imModifiedDate   := '';
             pIDRec^.imHasGUID        := False;
           end;
@@ -1679,8 +1693,8 @@ begin
       end;
 
       //Update the banklink online status for checkout from practice
-      if FUsingBankLinkOnline then
-        RefeshBankLinkOnlineStatus;
+//      if FUsingBankLinkOnline then
+//        RefeshBankLinkOnlineStatus;
 
     finally
        FindClose(SearchRec);
@@ -1716,7 +1730,6 @@ begin
          BtnLeft.Visible := False;
          BtnRight.Visible := False;
       end;
-
 end;
 
 
@@ -1724,6 +1737,29 @@ procedure TfmeClientLookup.UpdateCount;
 begin
    if Assigned (OnUpdateCount) then
      OnUpdateCount(Self);
+end;
+
+procedure TfmeClientLookup.UpdateOnlineStatus(ServerResponce: TServerResponce;
+  ClientStatusList: TClientStatusList);
+var
+  i, j: integer;
+  ClientStatus : TClientStatusItem;
+  pIDRec: pIntermediateDataRec;
+begin
+  if Assigned(ClientStatusList) then begin
+    for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
+      pIDRec := FIntermediateDataList.IntermediateData_At(i);
+      for j := 0 to ClientStatusList.Count - 1 do begin
+        ClientStatus := ClientStatusList.Items[j];
+        if (pIDRec^.imCode = ClientStatus.ClientCode) then begin
+          pIDRec^.imBankLinkOnline := ClientStatus.StatusDesc;
+          pIDRec^.imModifiedDate   := '<nknown>';
+          pIDRec^.imHasGUID        := True;
+        end;
+      end;
+    end;
+  end;
+  Self.vtClients.Refresh;
 end;
 
 procedure TfmeClientLookup.vtClientsGetHint(Sender: TBaseVirtualTree;
@@ -1824,7 +1860,6 @@ begin
         cluCode : CellText := pIDRec^.imCode;
         cluName : CellText := PIDRec^.imName;
         cluBankLinkOnline : CellText := PIDRec^.imBankLinkOnline;
-        cluModifiedBy     : CellText := PIDRec^.imModifiedBy;
         cluModifiedDate   : CellText := PIDRec^.imModifiedDate;
       end;
 
@@ -3671,36 +3706,6 @@ begin
     end;
     aNode := vtClients.GetNextSelected( aNode);
   end;
-end;
-
-function TfmeClientLookup.GetSendMethod: Byte;
-var
-  aNode : pVirtualNode;
-  NodeData : pTreeData;
-  pIDRec : pIntermediateDataRec;
-begin
-  Result := smNone;
-  //Checks the send method of the SELECTED clients in the grid:
-  //If all are smNone then set to smBankLink
-  //If all are smStandardFileTransfer then set to smStandardFileTransfer
-  //If any are smBankLink then set to smBankLink
-  aNode := vtClients.GetFirstSelected;
-  while Assigned(aNode) do begin
-    NodeData := vtClients.GetNodeData(aNode);
-    if NodeData.tdNodeType = ntClient then begin
-      pIDRec := GetIntermediateDataFromNode(aNode);
-      case pIDRec^.imSendMethod of
-        smBankLinkOnline: begin
-                            Result := smBankLinkOnline;
-                            Break;
-                          end;
-        smStandardFileTransfer: Result := smStandardFileTransfer;
-      end;
-    end;
-    aNode := vtClients.GetNextSelected(aNode);
-  end;
-  if (Result = smNone) then
-    Result := smBankLinkOnline;
 end;
 
 procedure TfmeClientLookup.GetArchiveStates(var Unarchived, Archived: Boolean);

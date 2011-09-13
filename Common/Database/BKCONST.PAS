@@ -2331,10 +2331,11 @@ const
 Const
   ForexDP : Integer = 5;
 
-  //Client checkout send methods
-  smNone                 = 0;
-  smStandardFileTransfer = 1;
-  smBankLinkOnline       = 2;
+  //Client file transfer methods
+  ftmNone   = 0;
+  ftmFile   = 1;
+  ftmEmail  = 2;
+  ftmOnline = 3;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 IMPLEMENTATION
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -74,18 +74,6 @@ object frmClientManager: TfrmClientManager
           Caption = '-'
         end
         item
-          Action = actCheckIn
-        end
-        item
-          Action = actCheckOut
-        end
-        item
-          Action = actSend
-        end
-        item
-          Caption = '-'
-        end
-        item
           Action = actScheduled
         end
         item
@@ -110,7 +98,7 @@ object frmClientManager: TfrmClientManager
           Action = actHelp
         end>
       Opened = True
-      OpenedHeight = 476
+      OpenedHeight = 396
       Caption = 'Client Files'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText

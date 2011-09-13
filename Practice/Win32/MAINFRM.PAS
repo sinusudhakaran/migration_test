@@ -56,9 +56,7 @@ type
     mniSeparator: TMenuItem;
     mniFileSave: TMenuItem;
     NA2: TMenuItem;
-    mniFileSendTo: TMenuItem;
-    NA3: TMenuItem;
-    mniFileCheckOut: TMenuItem;
+    mniSendClientFiles: TMenuItem;
     mniFileCheckIn: TMenuItem;
     NA4: TMenuItem;
     mniFileAbandonChanges: TMenuItem;
@@ -295,9 +293,8 @@ type
     rztFile: TRzToolbar;
     tbOpen: TRzToolButton;
     tbSave: TRzToolButton;
-    tbSendTo: TRzToolButton;
-    tbCheckIn: TRzToolButton;
-    tbCheckOut: TRzToolButton;
+    tbGetClientFiles: TRzToolButton;
+    tbSendClientFiles: TRzToolButton;
     rztClient: TRzToolbar;
     tbCoding: TRzToolButton;
     tbBudget: TRzToolButton;
@@ -423,6 +420,16 @@ type
     toFile1: TMenuItem;
     viaEmail1: TMenuItem;
     viaBankLinkOnline1: TMenuItem;
+    actSendToFile: TAction;
+    actSendViaEmail: TAction;
+    actSendViaOnline: TAction;
+    oFile1: TMenuItem;
+    viaEmail2: TMenuItem;
+    viaBankLinkOnline2: TMenuItem;
+    fromFile1: TMenuItem;
+    viaBankLinkOnline3: TMenuItem;
+    actGetFromFolder: TAction;
+    actGetFromOnline: TAction;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -509,7 +516,7 @@ type
     procedure mniSystemNewAccountsClick(Sender: TObject);
     procedure mniSystemBankLinkConnectClick(Sender: TObject);
     procedure mniSystemDownloadfromFloppyClick(Sender: TObject);
-    procedure mniFileCheckOutClick(Sender: TObject);
+    procedure mniSendClientFilesClick(Sender: TObject);
     procedure mniFileCheckInClick(Sender: TObject);
     procedure mniOFRefreshChartClick(Sender: TObject);
     procedure mniOFExtractDataClick(Sender: TObject);
@@ -624,8 +631,6 @@ type
     procedure rzToolbarsResize(Sender: TObject);
     procedure mniExportWebXClick(Sender: TObject);
     procedure mniImportWebXClick(Sender: TObject);
-    procedure tbSendToClick(Sender: TObject);
-    procedure mniFileSendToClick(Sender: TObject);
     procedure bk5winExecuteMacro(Sender: TObject; Msg: TStrings);
     procedure DdeStatusPokeData(Sender: TObject);
     procedure mniInstallCheckInExtnClick(Sender: TObject);
@@ -698,6 +703,11 @@ type
     procedure mniSystemAuditReportClick(Sender: TObject);
     procedure AUDITREPORTTEST1Click(Sender: TObject);
     procedure viaBankLinkOnline1Click(Sender: TObject);
+    procedure actSendToFileExecute(Sender: TObject);
+    procedure actSendViaEmailExecute(Sender: TObject);
+    procedure actSendViaOnlineExecute(Sender: TObject);
+    procedure actGetFromFolderExecute(Sender: TObject);
+    procedure actGetFromOnlineExecute(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -822,7 +832,7 @@ const
   mf_mcCloseFile               = 2;
   mf_mcNewFile                 = 3;
   mf_mcCheckIn                 = 4;
-  mf_mcCheckOut                = 5;
+  mf_mcSendClientFiles         = 5;
   mf_mcAbandon                 = 6;
   mf_mcSave                    = 7;
   mf_mcSaveAs                  = 8;
@@ -894,6 +904,7 @@ const
   mf_mcViewAccrualJournals     = 74;
   mf_mcExchangeRates           = 75;
   mf_mcSendOnline              = 76;
+  mf_mcGetOnline               = 77;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -1187,6 +1198,18 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.actGetFromFolderExecute(Sender: TObject);
+begin
+  IncUsage('Check In');
+  DoMainFormCommand( mf_mcCheckIn);
+end;
+
+procedure TfrmMain.actGetFromOnlineExecute(Sender: TObject);
+begin
+  //From BankLink Online
+  DoMainFormCommand( mf_mcGetOnline);
+end;
+
 procedure TfrmMain.ActHomePageExecute(Sender: TObject);
 begin
    RefreshHomepage([HRP_Init]);
@@ -1216,15 +1239,15 @@ begin
    tbSave.Hint  :=
                 'Save Client File|'
                 +'Save the Client File you are working on';
-   tbCheckIn.Hint  :=
+   tbGetClientFiles.Hint  :=
                 'Check in a Client File|'
                 +'Check in a Client File from another '+SHORTAPPNAME+' System or an Off-site Client';
-   tbCheckout.Hint  :=
+   tbSendClientFiles.Hint :=
                 'Check out a Client File|'
                 +'Check out a Client File for coding by another '+SHORTAPPNAME+' System or an Off-site Client';
-   tbSendTo.Hint  :=
-                'E-mail the Client File|'
-                +'E-mail the Client File';
+//   tbSendTo.Hint  :=
+//                'E-mail the Client File|'
+//                +'E-mail the Client File';
 
    //Open client toolbar
    tbCoding.Hint  :=
@@ -2243,18 +2266,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniFileCheckInClick(Sender: TObject);
 begin
-  IncUsage('Check In');
-  DoMainFormCommand( mf_mcCheckIn);
+
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmMain.mniFileCheckOutClick(Sender: TObject);
+
+procedure TfrmMain.mniSendClientFilesClick(Sender: TObject);
 begin
-  IncUsage('Check Out');
-  if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
-    ClientManagerCheckOut
-  else
-    DoMainFormCommand( mf_mcCheckOut);
+
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniFileExitClick(Sender: TObject);
 begin
@@ -4086,11 +4106,7 @@ end;
 
 procedure TfrmMain.viaBankLinkOnline1Click(Sender: TObject);
 begin
-  IncUsage('Check Out');
-  if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
-    ClientManagerSendOnline
-  else
-    DoMainFormCommand( mf_mcSendOnline);
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -4276,8 +4292,10 @@ begin
         mf_mcOpenFromMRU : DoOpenFromMRU( Sender);
         mf_mcSave : SaveClient;
         mf_mcSaveAs : SaveAs;
-        mf_mcCheckIn : CheckIn;
-        mf_mcCheckOut : CheckOut;
+        mf_mcCheckIn         : Files.CheckIn(ftmFile);
+        mf_mcGetOnline       : Files.CheckIn(ftmOnline);
+        mf_mcSendClientFiles : Files.SendClientFiles('', ftmFile);
+        mf_mcSendOnline      : Files.SendClientFiles('', ftmOnline);
         mf_mcAbandon : AbandonChanges(true);
         mf_mcExchangeRates: MaintainExchangeRates;
         mf_mcCoding : DoCoding;
@@ -4400,6 +4418,32 @@ begin
     ToDoHandler.MaintainToDoItems( MyClient.clFields.clCode, false);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.actSendToFileExecute(Sender: TObject);
+begin
+  IncUsage('Check Out');
+  if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
+    ClientManagerCheckOut
+  else
+    DoMainFormCommand( mf_mcSendClientFiles);
+end;
+
+procedure TfrmMain.actSendViaEmailExecute(Sender: TObject);
+begin
+  if (ActiveMDIChild is TfrmClientManager) and SendFilesEnabled then
+    ClientManagerSend
+  else
+    SendClientFileTo('');
+end;
+
+procedure TfrmMain.actSendViaOnlineExecute(Sender: TObject);
+begin
+  IncUsage('Check Out');
+  if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
+    ClientManagerSendOnline
+  else
+    DoMainFormCommand( mf_mcSendOnline);
+end;
+
 procedure TfrmMain.actTasksExecute(Sender: TObject);
 begin
   DoMainFormCommand( mf_mcDoTasks);
@@ -4722,19 +4766,6 @@ end;
 procedure TfrmMain.mniImportWebXClick(Sender: TObject);
 begin
   DoMainFormCommand( mf_mcImportWebX);
-end;
-
-procedure TfrmMain.tbSendToClick(Sender: TObject);
-begin
-  if (ActiveMDIChild is TfrmClientManager) and SendFilesEnabled then
-    ClientManagerSend
-  else
-    SendClientFileTo('');
-end;
-
-procedure TfrmMain.mniFileSendToClick(Sender: TObject);
-begin
-  tbSendToClick(Sender);
 end;
 
 procedure TfrmMain.mniFindandReplaceClick(Sender: TObject);

@@ -4,7 +4,7 @@ object frmCheckInOut: TfrmCheckInOut
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Caption'
   ClientHeight = 486
-  ClientWidth = 984
+  ClientWidth = 884
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -12,6 +12,7 @@ object frmCheckInOut: TfrmCheckInOut
   OldCreateOrder = False
   Position = poOwnerFormCenter
   Scaled = False
+  OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnKeyUp = FormKeyUp
@@ -21,16 +22,16 @@ object frmCheckInOut: TfrmCheckInOut
   object pnlFooter: TPanel
     Left = 0
     Top = 382
-    Width = 984
+    Width = 884
     Height = 104
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
-      984
+      884
       104)
     object btnOK: TButton
-      Left = 819
+      Left = 719
       Top = 72
       Width = 75
       Height = 25
@@ -39,9 +40,10 @@ object frmCheckInOut: TfrmCheckInOut
       Default = True
       ModalResult = 1
       TabOrder = 1
+      OnClick = btnOKClick
     end
     object btnCancel: TButton
-      Left = 900
+      Left = 800
       Top = 72
       Width = 75
       Height = 25
@@ -56,7 +58,7 @@ object frmCheckInOut: TfrmCheckInOut
       Top = 7
       Width = 377
       Height = 17
-      Caption = 'Only &show files that can be checked out'
+      Caption = 'Only &show client files that can be sent'
       Checked = True
       State = cbChecked
       TabOrder = 0
@@ -98,7 +100,7 @@ object frmCheckInOut: TfrmCheckInOut
   object pnlFrameHolder: TPanel
     Left = 0
     Top = 0
-    Width = 984
+    Width = 884
     Height = 347
     Align = alClient
     BevelOuter = bvNone
@@ -106,26 +108,26 @@ object frmCheckInOut: TfrmCheckInOut
     inline ClientLookupFrame: TfmeClientLookup
       Left = 0
       Top = 86
-      Width = 984
+      Width = 884
       Height = 261
       Align = alClient
       TabOrder = 0
       TabStop = True
       ExplicitTop = 86
-      ExplicitWidth = 984
+      ExplicitWidth = 884
       ExplicitHeight = 261
       inherited vtClients: TVirtualStringTree
-        Width = 984
+        Width = 884
         Height = 261
         Header.Font.Height = -13
-        ExplicitWidth = 984
+        ExplicitWidth = 884
         ExplicitHeight = 261
       end
     end
     object pnlPassword: TPanel
       Left = 0
       Top = 0
-      Width = 984
+      Width = 884
       Height = 86
       Align = alTop
       BevelOuter = bvNone
@@ -211,25 +213,25 @@ object frmCheckInOut: TfrmCheckInOut
   object pnlBrowseDir: TPanel
     Left = 0
     Top = 347
-    Width = 984
+    Width = 884
     Height = 35
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
     DesignSize = (
-      984
+      884
       35)
     object lblDirLabel: TLabel
       Left = 7
       Top = 8
-      Width = 86
+      Width = 54
       Height = 13
       Anchors = [akLeft, akBottom]
-      Caption = '&Check out files to '
+      Caption = 'Files Folder'
       FocusControl = ePath
     end
     object btnFolder: TSpeedButton
-      Left = 940
+      Left = 840
       Top = 6
       Width = 25
       Height = 22
@@ -238,11 +240,12 @@ object frmCheckInOut: TfrmCheckInOut
       ParentShowHint = False
       ShowHint = True
       OnClick = btnFolderClick
+      ExplicitLeft = 940
     end
     object ePath: TEdit
       Left = 128
       Top = 6
-      Width = 809
+      Width = 709
       Height = 21
       Anchors = [akLeft, akRight, akBottom]
       TabOrder = 0

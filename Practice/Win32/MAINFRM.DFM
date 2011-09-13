@@ -153,9 +153,8 @@ object frmMain: TfrmMain
         tbOpen
         tbHome
         tbSave
-        tbSendTo
-        tbCheckIn
-        tbCheckOut
+        tbGetClientFiles
+        tbSendClientFiles
         tbOnline
         tbAbout
         tbClose
@@ -178,15 +177,8 @@ object frmMain: TfrmMain
         Caption = 'Save'
         OnClick = mniFileSaveClick
       end
-      object tbSendTo: TRzToolButton
+      object tbGetClientFiles: TRzToolButton
         Left = 195
-        Top = 4
-        ImageIndex = 8
-        Caption = 'Send'
-        OnClick = tbSendToClick
-      end
-      object tbCheckIn: TRzToolButton
-        Left = 255
         Top = 4
         Width = 145
         DropDownMenu = PopGetClients
@@ -196,8 +188,8 @@ object frmMain: TfrmMain
         Caption = 'Get Client Files'
         Constraints.MinWidth = 145
       end
-      object tbCheckOut: TRzToolButton
-        Left = 400
+      object tbSendClientFiles: TRzToolButton
+        Left = 340
         Top = 4
         Width = 145
         DropDownMenu = PopSendClients
@@ -213,26 +205,26 @@ object frmMain: TfrmMain
         Action = ActHomePage
       end
       object RzSpacer1: TRzSpacer
-        Left = 764
+        Left = 688
         Top = 4
       end
       object tbOnline: TRzToolButton
-        Left = 545
+        Left = 485
         Top = 4
-        Width = 99
+        Width = 83
         ImageIndex = 20
         Caption = 'Banklink Online'
         OnClick = tbOnlineClick
       end
       object tbAbout: TRzToolButton
-        Left = 644
+        Left = 568
         Top = 4
         Caption = 'About'
         Visible = False
         OnClick = mniHelpAboutClick
       end
       object tbClose: TRzToolButton
-        Left = 704
+        Left = 628
         Top = 4
         ImageIndex = 2
         Images = AppImages.Maintain
@@ -273,39 +265,37 @@ object frmMain: TfrmMain
       object tbCoding: TRzToolButton
         Left = 1
         Top = 4
-        Width = 61
         ImageIndex = 11
         Caption = 'Coding'
         OnClick = mniDECodeEntriesClick
       end
       object tbBudget: TRzToolButton
-        Left = 62
+        Left = 61
         Top = 4
-        Width = 62
         ImageIndex = 12
         Caption = 'Budget'
         OnClick = mniDEEnterBudgetsClick
       end
       object tbReport: TRzToolButton
-        Left = 124
+        Left = 121
         Top = 4
-        Width = 80
+        Width = 74
         DropDownMenu = popReport
         ImageIndex = 13
         ToolStyle = tsDropDown
         Caption = 'Reports'
       end
       object tbGraph: TRzToolButton
-        Left = 204
+        Left = 195
         Top = 4
-        Width = 76
+        Width = 74
         DropDownMenu = popGraph
         ImageIndex = 14
         ToolStyle = tsDropDown
         Caption = 'Graphs'
       end
       object tbGST: TRzToolButton
-        Left = 280
+        Left = 269
         Top = 4
         Width = 74
         DropDownMenu = popGST
@@ -314,13 +304,13 @@ object frmMain: TfrmMain
         Caption = 'GST'
       end
       object RzToolButton13: TRzToolButton
-        Left = 354
+        Left = 343
         Top = 4
         Action = actTasks
         Caption = 'Tasks'
       end
       object RzSpacer2: TRzSpacer
-        Left = 414
+        Left = 403
         Top = 4
       end
     end
@@ -370,7 +360,7 @@ object frmMain: TfrmMain
         OnClick = tbCodingHelpClick
       end
       object tbUPI: TRzToolButton
-        Left = 754
+        Left = 749
         Top = 4
         Width = 74
         DropDownMenu = popUPI
@@ -380,7 +370,7 @@ object frmMain: TfrmMain
         OnClick = tbUPIClick
       end
       object tbFind: TRzToolButton
-        Left = 694
+        Left = 689
         Top = 4
         AllowAllUp = True
         GroupIndex = 44
@@ -389,7 +379,7 @@ object frmMain: TfrmMain
         OnClick = tbFindClick
       end
       object tbView: TRzToolButton
-        Left = 620
+        Left = 615
         Top = 4
         Width = 74
         DropDownMenu = popView
@@ -398,22 +388,21 @@ object frmMain: TfrmMain
         Caption = 'View'
       end
       object tbRepeat: TRzToolButton
-        Left = 557
+        Left = 555
         Top = 4
-        Width = 63
         ImageIndex = 6
         Caption = 'Repeat'
         OnClick = tbRepeatClick
       end
       object tbGoto: TRzToolButton
-        Left = 497
+        Left = 495
         Top = 4
         ImageIndex = 5
         Caption = 'Goto'
         OnClick = tbGotoClick
       end
       object tbSort: TRzToolButton
-        Left = 423
+        Left = 421
         Top = 4
         Width = 74
         DropDownMenu = popSortBy
@@ -422,7 +411,7 @@ object frmMain: TfrmMain
         Caption = 'Sort'
       end
       object tbSuper: TRzToolButton
-        Left = 363
+        Left = 361
         Top = 4
         ImageIndex = 11
         Caption = 'Super'
@@ -431,7 +420,6 @@ object frmMain: TfrmMain
       object tbDissect: TRzToolButton
         Left = 301
         Top = 4
-        Width = 62
         ImageIndex = 3
         Caption = 'Dissect'
         OnClick = tbDissectClick
@@ -541,55 +529,51 @@ object frmMain: TfrmMain
       object tbGenerate: TRzToolButton
         Left = 149
         Top = 4
-        Width = 73
         ImageIndex = 0
         Caption = 'Generate'
         OnClick = tbGenerateClick
       end
       object tbSmooth: TRzToolButton
-        Left = 222
+        Left = 209
         Top = 4
-        Width = 64
         ImageIndex = 4
         Caption = 'Smooth'
         OnClick = tbSmoothClick
       end
       object RzSpacer8: TRzSpacer
-        Left = 286
+        Left = 269
         Top = 4
       end
       object tbAverage: TRzToolButton
-        Left = 294
+        Left = 277
         Top = 4
-        Width = 69
         ImageIndex = 3
         Caption = 'Average'
         OnClick = tbAverageClick
       end
       object tbCopy: TRzToolButton
-        Left = 363
+        Left = 337
         Top = 4
         ImageIndex = 1
         Caption = 'Copy'
         OnClick = tbCopyClick
       end
       object tbIncrease: TRzToolButton
-        Left = 423
+        Left = 397
         Top = 4
-        Width = 65
         ImageIndex = 6
         Caption = 'Inc/Dec'
         OnClick = tbIncreaseClick
       end
       object tbSplit: TRzToolButton
-        Left = 488
+        Left = 457
         Top = 4
         ImageIndex = 2
         Caption = 'Split'
         OnClick = tbSplitClick
       end
       object tbBudgetHelp: TRzToolButton
-        Left = 707
+        Left = 652
         Top = 4
         ImageIndex = 20
         Images = AppImages.Maintain
@@ -597,21 +581,20 @@ object frmMain: TfrmMain
         OnClick = tbBudgetHelpClick
       end
       object RzSpacer3: TRzSpacer
-        Left = 827
+        Left = 772
         Top = 4
       end
       object tbBudgetHide: TRzToolButton
-        Left = 548
+        Left = 517
         Top = 4
-        Width = 91
+        Width = 75
         ImageIndex = 7
         Caption = 'Hide Unused '
         OnClick = tbBudgetHideClick
       end
       object tbBudgetShow: TRzToolButton
-        Left = 639
+        Left = 592
         Top = 4
-        Width = 68
         Hint = 'Show all rows'
         ImageIndex = 8
         Caption = 'Show All'
@@ -625,7 +608,7 @@ object frmMain: TfrmMain
         OnClick = tbBudgetChartClick
       end
       object tbBudgetClose: TRzToolButton
-        Left = 767
+        Left = 712
         Top = 4
         ImageIndex = 2
         Images = AppImages.Maintain
@@ -689,14 +672,6 @@ object frmMain: TfrmMain
       object NA2: TMenuItem
         Caption = '-'
       end
-      object mniFileSendTo: TMenuItem
-        Caption = 'S&end'
-        ImageIndex = 8
-        OnClick = mniFileSendToClick
-      end
-      object NA3: TMenuItem
-        Caption = '-'
-      end
       object mniFileInformation: TMenuItem
         Caption = '&Information'
         ImageIndex = 6
@@ -710,14 +685,29 @@ object frmMain: TfrmMain
         Caption = '-'
       end
       object mniFileCheckIn: TMenuItem
-        Caption = 'C&heck In'
+        Caption = '&Get Client Files'
         ImageIndex = 9
         OnClick = mniFileCheckInClick
+        object fromFile1: TMenuItem
+          Action = actGetFromFolder
+        end
+        object viaBankLinkOnline3: TMenuItem
+          Action = actGetFromOnline
+        end
       end
-      object mniFileCheckOut: TMenuItem
-        Caption = 'Check O&ut'
+      object mniSendClientFiles: TMenuItem
+        Caption = 'S&end Client Files'
         ImageIndex = 10
-        OnClick = mniFileCheckOutClick
+        OnClick = mniSendClientFilesClick
+        object oFile1: TMenuItem
+          Action = actSendToFile
+        end
+        object viaEmail2: TMenuItem
+          Action = actSendViaEmail
+        end
+        object viaBankLinkOnline2: TMenuItem
+          Action = actSendViaOnline
+        end
       end
       object NA5: TMenuItem
         Caption = '-'
@@ -1874,6 +1864,36 @@ object frmMain: TfrmMain
       ShortCut = 8314
       OnExecute = ActHomePageExecute
     end
+    object actSendToFile: TAction
+      Category = 'SendClientFiles'
+      Caption = 'to &File'
+      ImageIndex = 1
+      OnExecute = actSendToFileExecute
+    end
+    object actSendViaEmail: TAction
+      Category = 'SendClientFiles'
+      Caption = 'via &Email'
+      ImageIndex = 8
+      OnExecute = actSendViaEmailExecute
+    end
+    object actSendViaOnline: TAction
+      Category = 'SendClientFiles'
+      Caption = 'via &BankLink Online'
+      ImageIndex = 20
+      OnExecute = actSendViaOnlineExecute
+    end
+    object actGetFromFolder: TAction
+      Category = 'GetClientFiles'
+      Caption = 'from &Folder'
+      ImageIndex = 1
+      OnExecute = actGetFromFolderExecute
+    end
+    object actGetFromOnline: TAction
+      Category = 'GetClientFiles'
+      Caption = 'from &BankLink Online'
+      ImageIndex = 20
+      OnExecute = actGetFromOnlineExecute
+    end
   end
   object bk5win: TDdeServerConv
     OnExecuteMacro = bk5winExecuteMacro
@@ -1911,14 +1931,10 @@ object frmMain: TfrmMain
     Left = 640
     Top = 256
     object fromFolder1: TMenuItem
-      Caption = 'from Folder'
-      ImageIndex = 1
-      OnClick = mniFileCheckInClick
+      Action = actGetFromFolder
     end
     object fromBankLinkOnline1: TMenuItem
-      Caption = 'from BankLink Online'
-      ImageIndex = 20
-      OnClick = mniFileCheckInClick
+      Action = actGetFromOnline
     end
   end
   object PopSendClients: TPopupMenu
@@ -1926,19 +1942,13 @@ object frmMain: TfrmMain
     Left = 672
     Top = 256
     object toFile1: TMenuItem
-      Caption = 'to File'
-      ImageIndex = 1
-      OnClick = mniFileCheckOutClick
+      Action = actSendToFile
     end
     object viaEmail1: TMenuItem
-      Caption = 'via Email'
-      ImageIndex = 8
-      OnClick = tbSendToClick
+      Action = actSendViaEmail
     end
     object viaBankLinkOnline1: TMenuItem
-      Caption = 'via BankLink Online'
-      ImageIndex = 20
-      OnClick = viaBankLinkOnline1Click
+      Action = actSendViaOnline
     end
   end
 end

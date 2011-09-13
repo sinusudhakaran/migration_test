@@ -308,15 +308,15 @@ begin
     //check in/out send to
     if Assigned(AdminSystem) then
     begin
-      mniFileCheckOut.enabled := CheckInOutAllowed;
-      tbCheckOut.enabled := CheckInOutAllowed;
+      mniSendClientFiles.enabled := CheckInOutAllowed;
+      tbSendClientFiles.enabled := CheckInOutAllowed;
     end else
     begin
-      mniFileCheckOut.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
-      tbCheckOut.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
+      mniSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
+      tbSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
     end;
     mniFileCheckIn.enabled       := CheckInOutAllowed;
-    tbCheckIn.enabled            := CheckInOutAllowed;
+    tbGetClientFiles.enabled            := CheckInOutAllowed;
 
     //Purge Entries - Client
     mniOFPurgeOldEntries.enabled := UserHasAdminAccess or IsOffsiteClient;
@@ -340,9 +340,9 @@ begin
     mniFileNew.Visible              := NotRestrictedUser;
     mniFileSaveAs.Visible           := NotRestrictedUser;
     NA2.Visible                     := NotRestrictedUser;
-    mniFileSendTo.Visible           := NotRestrictedUser;
+//    mniFileSendTo.Visible           := NotRestrictedUser;
     NA4.Visible                     := NotRestrictedUser;
-    mniFileCheckOut.Visible         := NotRestrictedUser;
+    mniSendClientFiles.Visible      := NotRestrictedUser;
     mniFileCheckIn.Visible          := NotRestrictedUser;
     mniFileExchangeRates.Visible    := IsOffsiteClient and (not UsingAdmin);
 
@@ -378,9 +378,9 @@ begin
 
 
     //File Toolbar
-    tbCheckIn.Visible               := NotRestrictedUser;
-    tbCheckOut.Visible              := NotRestrictedUser;
-    tbSendTo.Visible                := NotRestrictedUser;
+    tbGetClientFiles.Visible        := NotRestrictedUser;
+    tbSendClientFiles.Visible       := NotRestrictedUser;
+//    tbSendTo.Visible                := NotRestrictedUser;
 
     actClientManager.Visible        := UsingAdmin;
     actClientManager.Enabled        := actClientManager.Visible;
@@ -426,8 +426,8 @@ begin
     if Active_UI_Style = UIS_Simple then
     begin
       //disable items on main toolbar
-      tbcheckin.visible := false;
-      tbcheckout.visible := false;
+      tbGetClientFiles.visible := false;
+      tbSendClientFiles.visible := false;
       tbOnline.Visible := false;
       tbQuery.Visible := false;
 
@@ -685,7 +685,7 @@ begin
 
      if (not UsingAdmin) then
      begin
-       mniFileCheckOut.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
+       mniSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
      end;
 
      //only show if an admin system exists and allow flag is set

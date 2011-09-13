@@ -230,9 +230,9 @@ type
     procedure DoOpen;
     procedure DoNew;
     procedure DoCheckIn;
-    procedure DoCheckOut;
-    procedure DoSendOnline;
-    procedure DoSendFile;
+    procedure DoSendToFile;
+    procedure DoSendViaOnline;
+    procedure DoSendViaEmail;
     procedure DoAssignTo;
     procedure DoAssignBulkExport;
     procedure DoAssignGroup;
@@ -331,7 +331,6 @@ uses
   NewClientWiz,
   AppUserObj,
   MailFrm,
-  SelectCheckoutDirDlg,
   logutil,
   ModalProcessorDlg,
   syDefs, SysObj32, clObj32, cfList32,
@@ -1492,36 +1491,29 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoCheckIn');
   Codes := ClientLookup.SelectedCodes;
 
-  Files.Checkin( Codes);
+  Files.Checkin(ftmFile, Codes);
   RefreshLookup( '');
   ClientLookup.SelectedCodes := Codes;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoCheckIn');
 end;
 
-procedure TfrmClientManager.DoCheckOut;
+procedure TfrmClientManager.DoSendToFile;
 var
   Codes : string;
-  SendMethod: Byte;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoCheckOut');
-//  Codes := ClientLookup.SelectedCodes;
-//  if Codes <> '' then
-//  begin
-//    if not UpdateGlobalCheckoutDir then
-//      Exit;
-//
-//    Files.Checkout( Codes);
-//    RefreshLookup( '');
-//    ClientLookup.SelectedCodes := Codes;
-//  end;
-  SendMethod := smStandardFileTransfer; //Set to selected client file send method
-  Codes := CheckInOutFrm.SelectCodesToCheckout('Select Client(s) to Send',
-                                               SendMethod,
-                                               ClientLookup.SelectedCodes);
-  if Codes <> '' then
-    Files.CheckOut(Codes, SendMethod);
+  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoSendClientFiles');
 
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoCheckOut');
+  //Standard file transfer
+  Codes := CheckInOutFrm.SelectCodesToSend('Select Client(s) to Send',
+                                           ftmFile,
+                                           ClientLookup.SelectedCodes);
+  if Codes <> '' then begin
+    Files.SendClientFiles(Codes, ftmFile);
+    RefreshLookup( '');
+    ClientLookup.SelectedCodes := Codes;
+  end;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendClientFiles');
 end;
 
 procedure TfrmClientManager.DoAssignTo;
@@ -1783,7 +1775,7 @@ begin
        cm_mcOpen : DoOpen;
        cm_mcNew  : DoNew;
        cm_mcCheckIn : DoCheckIn;
-       cm_mcCheckOut : DoCheckOut;
+       cm_mcCheckOut : DoSendToFile;
        cm_mcAssignTo : DoAssignTo;
        cm_mcAssignGroup : DoAssignGroup;
        cm_mcAssignClientType : DoAssignClientType;
@@ -1804,11 +1796,11 @@ begin
        cm_mcImportProspects : DoImportClientsProspects(itProspects);
        cm_mcConvertToBK : DoConvertToBK;
        cm_mcDeleteProspect : DoDeleteProspect;
-       cm_mcSend : DoSendFile;
+       cm_mcSend : DoSendViaEmail;
        cm_mcarchive : DoArchive;
        cm_mcImportClients : DoImportClientsProspects(itClients);
        cm_mcAssignBulkExport : DoAssignBulkExport;
-       cm_mcSendOnline: DoSendOnline;
+       cm_mcSendOnline: DoSendViaOnline;
      end;
      finally
         EnableForm(LoseFocus);
@@ -2707,7 +2699,7 @@ begin
   ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
 end;
 
-procedure TfrmClientManager.DoSendFile;
+procedure TfrmClientManager.DoSendViaEmail;
 var
   Code, Codes, Recipient : string;
   SysClientRec : pClient_File_Rec;
@@ -2731,18 +2723,17 @@ begin
   end;
 end;
 
-procedure TfrmClientManager.DoSendOnline;
+procedure TfrmClientManager.DoSendViaOnline;
 var
   Codes : string;
-  SendMethod: Byte;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoSendOnline');
 
-  SendMethod := smBankLinkOnline;
-  Codes := CheckInOutFrm.SelectCodesToCheckout('Select Client(s) to Send via BankLink Online',
-                                               SendMethod, ClientLookup.SelectedCodes);
+  //BankLink Online transfer
+  Codes := CheckInOutFrm.SelectCodesToSend('Select Client(s) to Send via BankLink Online',
+                                           ftmOnline, ClientLookup.SelectedCodes);
   if Codes <> '' then
-    Files.CheckOut(Codes, SendMethod);
+    Files.SendClientFiles(Codes, ftmOnline);
 
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendOnline');
 end;

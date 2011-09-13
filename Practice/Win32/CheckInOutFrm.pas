@@ -56,6 +56,8 @@ type
     procedure rbStandardClick(Sender: TObject);
     procedure btnChangePasswordClick(Sender: TObject);
     procedure btnRefreshClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -66,12 +68,13 @@ type
     procedure FrameDblClick(Sender: TObject);
     procedure SetupFrame;
     procedure SetupColumns;
+    procedure CloseupCheckboxes;
   public
     { Public declarations }
   end;
 
-  function SelectCodesToCheckout( Title : string; ASendMethod: Byte; SelectedCodes: string = '') : string;
-  function SelectCodesToCheckin( Title : string; DefaultCodes : string = '') : string;
+  function SelectCodesToSend( Title : string; ASendMethod: Byte; SelectedCodes: string = '') : string;
+  function SelectCodesToGet( Title : string; ASendMethod: Byte; DefaultCodes : string = '') : string;
   function SelectCodesToAttach( Title : string) : string;
   function SelectCodeToLookup( Title : string; DefaultCode: string = ''; Multiple: Boolean = True) : string;
 
@@ -92,8 +95,8 @@ uses
 
 const
 //  MIN_STANDARD_WIDTH = 615; //Original dialog width
-  MIN_STANDARD_WIDTH = 1000;
-  MIN_ONLINE_WIDTH = 1000;
+  MIN_STANDARD_WIDTH = 900;
+  MIN_ONLINE_WIDTH = 900;
 
 {$R *.dfm}
 
@@ -124,7 +127,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectCodesToCheckout( Title : string; ASendMethod: Byte; SelectedCodes: string = '') : string;
+function SelectCodesToSend( Title : string; ASendMethod: Byte; SelectedCodes: string = '') : string;
 //the path is the path to check the files out to
 var
   CheckInOut : TfrmCheckInOut;
@@ -138,21 +141,33 @@ begin
       BKHelpSetup(CheckInOut, BKH_Check_out_facility);
 
       FSendMethod := ASendMethod;
-
-      if Assigned( AdminSystem) then
-        Admin32.ReloadAdminAndTakeSnapshot( ClientLookupFrame.AdminSnapshot);
-
       Caption                := Title;
       DialogMode             := dmCheckout;
-      chkAvailOnly.Visible   := True;
+      lblDirLabel.Caption    := 'Send &files to';
       ePath.Text             := Globals.INI_CheckOutDir;
 
-      pnlPassword.Visible := False;
-      cbEditEmail.Visible := (FSendMethod = smStandardFileTransfer);
-      cbSendEmail.Visible := (FSendMethod = smBankLinkOnline);
-      cbSendEmail.Top := cbEditEmail.Top;
+      if Assigned( AdminSystem) then begin
+        //Practice
+        Admin32.ReloadAdminAndTakeSnapshot( ClientLookupFrame.AdminSnapshot);
+        chkAvailOnly.Visible   := True;
+        cbFlagReadOnly.Visible := false;
+        cbEditEmail.Visible    := False;
+        cbSendEmail.Visible    := (FSendMethod = ftmOnline);
+        pnlPassword.Visible := False;
+      end else begin
+        //Books
+        chkAvailOnly.Visible   := True;
+        cbFlagReadOnly.Visible := not (FSendMethod in [ftmFile]);
+        cbEditEmail.Visible := (FSendMethod = ftmOnline);
+        cbSendEmail.Visible := False;
+        pnlPassword.Visible := True;
+      end;
 
+      CloseupCheckboxes;
       SetupFrame;
+
+      if (FSendMethod = ftmOnline) then
+        btnOK.Caption := '&Upload';
 
       if SelectedCodes <> '' then
         ClientLookupFrame.SelectedCodes := SelectedCodes;
@@ -169,7 +184,7 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectCodesToCheckin( Title : string; DefaultCodes : string = '') : string;
+function SelectCodesToGet( Title : string; ASendMethod: Byte; DefaultCodes : string = '') : string;
 var
   CheckInOut : TfrmCheckInOut;
 begin
@@ -180,24 +195,34 @@ begin
   begin
     try
       BKHelpSetup(CheckInOut, BKH_Check_in_facility);
-      if Assigned( AdminSystem) then
-        Admin32.ReloadAdminAndTakeSnapshot( ClientLookupFrame.AdminSnapshot);
-
+      FSendMethod            := ASendMethod;
       Caption                := Title;
       DialogMode             := dmCheckin;
       chkAvailOnly.Visible   := False;
-      lblDirLabel.Caption    := '&Check files in from';
-
+      lblDirLabel.Caption    := '&Get files from';
       ePath.Text             := Globals.INI_CheckInDir;
       TempCheckinPath        := ePath.Text;
 
-      pnlPassword.Visible   := False;
-      if not Assigned( AdminSystem) then begin
+      if Assigned( AdminSystem) then begin
+        //practice
+        Admin32.ReloadAdminAndTakeSnapshot( ClientLookupFrame.AdminSnapshot);
+        chkAvailOnly.Visible   := False;
+        cbFlagReadOnly.Visible := False;
+        cbEditEmail.Visible    := False;
+        cbSendEmail.Visible    := False;
+        pnlPassword.Visible    := False;
+      end else begin
+        //Books
+        chkAvailOnly.Visible   := False;
+        cbFlagReadOnly.Visible := False;
+        cbEditEmail.Visible    := False;
+        cbSendEmail.Visible    := False;
         pnlPassword.Visible := True;
         eUsername.Text := Globals.INI_BankLink_Online_Username;
         ePassword.Text := Globals.INI_BankLink_Online_Password;
       end;
 
+      CloseupCheckboxes;
       SetupFrame;
       ClientLookupFrame.SelectedCodes := DefaultCodes;
 
@@ -205,7 +230,7 @@ begin
       begin
         Globals.INI_CheckInDir := AddSlash( ePath.Text);
         Globals.INI_BankLink_Online_Username := Trim(eUsername.Text);
-        Globals.INI_BankLink_Online_Password := Trim(ePassword.Text);        
+        Globals.INI_BankLink_Online_Password := Trim(ePassword.Text);
         result := ClientLookupFrame.SelectedCodes;
       end;
     finally
@@ -274,6 +299,13 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCheckInOut.FormActivate(Sender: TObject);
+begin
+  //*** TEST ***
+  if (FSendMethod = ftmOnline) then
+    ClientLookupFrame.RefeshBankLinkOnlineStatus;
+end;
+
 procedure TfrmCheckInOut.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var
@@ -360,6 +392,34 @@ begin
 
   ClientLookupFrame.Reload;
 end;
+procedure TfrmCheckInOut.CloseupCheckboxes;
+var
+  CheckBoxHeight: integer;
+  MinimumHeight: integer;
+begin
+  //Close-up check boxes
+  CheckBoxHeight := (cbFlagReadOnly.Top - chkAvailOnly.Top);
+  MinimumHeight := btnOK.Height + chkAvailOnly.Height;
+
+  if not chkAvailOnly.Visible then begin
+    pnlFooter.Height := (pnlFooter.Height - CheckBoxHeight);
+    cbFlagReadOnly.Top := chkAvailOnly.Top;
+  end;
+  if not cbFlagReadOnly.Visible then begin
+    pnlFooter.Height := (pnlFooter.Height - CheckBoxHeight);
+    cbEditEmail.Top := cbFlagReadOnly.Top;
+  end;
+  if not cbEditEmail.Visible then begin
+    pnlFooter.Height := (pnlFooter.Height - CheckBoxHeight);
+    cbSendEmail.Top := cbEditEmail.Top;
+  end;
+  if not cbSendEmail.Visible then
+    pnlFooter.Height := (pnlFooter.Height - CheckBoxHeight);
+
+  if (pnlFooter.Height < MinimumHeight) then
+    pnlFooter.Height := MinimumHeight;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.btnFolderClick(Sender: TObject);
 var
@@ -379,6 +439,11 @@ begin
     end;
   end;
 end;
+procedure TfrmCheckInOut.btnOKClick(Sender: TObject);
+begin
+
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.SetupColumns;
 var
@@ -387,11 +452,11 @@ var
 begin
   for i := 0 to ClientLookupFrame.Columns.Count - 1 do begin
     Column := ClientLookupFrame.Columns.ColumnDefn_At(i);
-    if Column.FieldID in [cluBankLinkOnline, cluModifiedBy, cluModifiedDate] then
-      Column.Visible := (FSendMethod = smBankLinkOnline);
+    if Column.FieldID in [cluBankLinkOnline, cluModifiedDate] then
+      Column.Visible := (FSendMethod = ftmOnline);
   end;
 
-  if (FSendMethod = smBankLinkOnline) then begin
+  if (FSendMethod = ftmOnline) then begin
     Constraints.MinWidth := MIN_ONLINE_WIDTH
   end else begin
     Constraints.MinWidth := MIN_STANDARD_WIDTH;
@@ -399,14 +464,14 @@ begin
   end;
 
   //Show 'Check out files to'
-  pnlBrowseDir.Visible := not (FSendMethod = smBankLinkOnline);
+  pnlBrowseDir.Visible := not (FSendMethod = ftmOnline);
 
   //Hide username and password in Books for standard file transfer
   if not Assigned(AdminSystem) then
-    pnlPassword.Visible := (FSendMethod = smBankLinkOnline);
+    pnlPassword.Visible := (FSendMethod = ftmOnline);
 
   ClientLookupFrame.BuildGrid(ClientLookupFrame.SortColumn);
-  ClientLookupFrame.UsingBankLinkOnline := (FSendMethod = smBankLinkOnline);
+  ClientLookupFrame.UsingBankLinkOnline := (FSendMethod = ftmOnline);
 end;
 
 procedure TfrmCheckInOut.SetupFrame;
@@ -419,8 +484,7 @@ begin
     AddColumn( 'Code', 110, cluCode);
     AddColumn( 'Name', -1, cluName);
     AddColumn( 'Status', 150, cluStatus);
-    AddColumn( 'BankLink Online', 245, cluBankLinkOnline);
-    AddColumn( 'Modified By', 100, cluModifiedBy);
+    AddColumn( 'BankLink Online Status', 245, cluBankLinkOnline);
     AddColumn( 'Modified Date', 100, cluModifiedDate);
 
     SetupColumns;

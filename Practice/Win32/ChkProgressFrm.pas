@@ -18,8 +18,12 @@ type
     procedure FormResize(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
+    FClientCode: string;
+    FPracticeCode: string;
     { Private declarations }
     procedure ActivateApplication(Sender: TObject);
+    procedure SetClientCode(const Value: string);
+    procedure SetPracticeCode(const Value: string);
   public
     { Public declarations }
     procedure UpdateCICOStatus(StatusMessage : string);
@@ -28,14 +32,23 @@ type
                                  BytesTransferred: LongInt;
                                  TotalBytes: LongInt;
                                  ContentType: String);
+    procedure UpdateStatus(StatusMessage : string);                                 
+    property ClientCode: string read FClientCode write SetClientCode;
+    property PracticeCode: string read FPracticeCode write SetPracticeCode;
   end;
 
 implementation
+
+uses LOGUTIL;
+
+const
+  UnitName = 'ChkProgressFrm';
 
 {$R *.DFM}
 
 procedure TfrmChkProgress.btnOKClick(Sender: TObject);
 begin
+  CiCoClient.OnTransferFileEvent := nil; 
   Close;
 end;
 
@@ -51,22 +64,50 @@ begin
   btnOk.left := (Self.Width - btnOK.Width) div 2;
 end;
 
+procedure TfrmChkProgress.SetClientCode(const Value: string);
+begin
+  FClientCode := Value;
+end;
+
+procedure TfrmChkProgress.SetPracticeCode(const Value: string);
+begin
+  FPracticeCode := Value;
+end;
+
 procedure TfrmChkProgress.UpdateCICOProgress(Direction: TDirectionIndicator;
   TransferStatus: TTransferStatus; BytesTransferred, TotalBytes: Integer;
   ContentType: String);
+const
+  ThisMethodName = 'TfrmChkProgress.UpdateCICOProgress';
+var
+  Msg: string;
 begin
-  ProgressBar1.Max := TotalBytes;
-  ProgressBar1.Step := 1;
-  ProgressBar1.Position := BytesTransferred;
-
-  case TransferStatus of
-    trsStartTrans      : lblStatus.Caption := 'Upload to BankLink Online started';
-    trsTransInProgress : lblStatus.Caption := 'Uploading to BankLink Online';
-    trsEndTrans        : lblStatus.Caption := 'Uploaded to BankLink Online';
+  if (Direction = dirFromClient) then begin
+    case TransferStatus of
+      trsStartTrans      : lblStatus.Caption := 'Upload to BankLink Online started';
+      trsTransInProgress : begin
+                             lblStatus.Caption := 'Uploading to BankLink Online';
+                             ProgressBar1.Max := TotalBytes;
+                             ProgressBar1.Step := 1;
+                             ProgressBar1.Position := BytesTransferred;
+                           end;
+      trsEndTrans        : begin
+                             Msg := Format('Check Out %s to BankLink Online ''%s\%s'' succeeded',
+                                           [FClientCode, FPracticeCode, FClientCode]);
+                             LogUtil.LogMsg(lmInfo, UnitName , ThisMethodName + ' : ' + Msg);
+                             mProgress.Lines.Add(Msg);
+                             lblStatus.Caption := 'Uploaded to BankLink Online';
+                           end;
+    end;
   end;
 end;
 
 procedure TfrmChkProgress.UpdateCICOStatus(StatusMessage: string);
+begin
+  mProgress.Lines.Add(StatusMessage);
+end;
+
+procedure TfrmChkProgress.UpdateStatus(StatusMessage: string);
 begin
   mProgress.Lines.Add(StatusMessage);
 end;
