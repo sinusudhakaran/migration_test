@@ -209,7 +209,7 @@ const
   XML_STATUS_CODE                 = 'Code';
   XML_STATUS_DESC                 = 'Description';
   XML_STATUS_DETAIL_DESC          = 'DetailedDescription';
-  XML_STATUS_CLIENT               = 'Client';
+  XML_STATUS_CLIENT               = 'File';
   XML_STATUS_CLIENT_CODE          = 'ClientCode';
   XML_STATUS_FILE_ATTR_STATUSCODE = 'StatusCode';
   XML_STATUS_FILE_ATTR_STATUSDESC = 'StatusCodeDescription';
