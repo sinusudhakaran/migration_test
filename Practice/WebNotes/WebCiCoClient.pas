@@ -100,7 +100,6 @@ type
     fServerClientStatusList : TClientStatusList;
 
     FASyncCall : Boolean;
-
     procedure FileInfo(Filename     : String;
                        var FileCRC  : String;
                        var FileSize : Integer);
@@ -710,7 +709,6 @@ begin
   try
     ClearHttpHeader;
 
-
     HttpAddress := 'http://development.banklinkonline.com/cico.status';
 
     AddHttpHeaderInfo('CountryCode',      'NZ');
@@ -783,6 +781,8 @@ var
   CountryCode : String;
   PracPass    : String;
   ClientName  : String;
+  Guid        : TGuid;
+  StrGuid     : String;
 begin
   fProcessState := psUploadPrac;
   try
@@ -790,6 +790,9 @@ begin
 
     HttpAddress := 'http://development.banklinkonline.com/cico.upload';
 
+    CreateGuid(Guid);
+    StrGuid := TrimedGuid(Guid);
+    AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '123');
@@ -845,6 +848,8 @@ var
   Email       : String;
   FileCrc     : String;
   FileSize    : Integer;
+  Guid         : TGuid;
+  StrGuid      : String;
 begin
   fProcessState := psDownloadPrac;
   try
@@ -852,6 +857,9 @@ begin
 
     HttpAddress := 'http://development.banklinkonline.com/cico.download';
 
+    CreateGuid(Guid);
+    StrGuid := TrimedGuid(Guid);
+    AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '123');
@@ -910,6 +918,8 @@ var
   ClientName   : String;
   PracCode     : String;
   CountryCode  : String;
+  Guid         : TGuid;
+  StrGuid      : String;
 begin
   fProcessState := psUploadBooks;
   try
@@ -917,6 +927,9 @@ begin
 
     HttpAddress := 'http://development.banklinkonline.com/cico.upload';
 
+    CreateGuid(Guid);
+    StrGuid := TrimedGuid(Guid);
+    AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '');
@@ -966,13 +979,21 @@ var
   CountryCode  : String;
   FileCrc      : String;
   FileSize     : Integer;
+  Guid         : TGuid;
+  StrGuid      : String;
 begin
+
+
+
   fProcessState := psDownloadBooks;
   try
     ClearHttpHeader;
 
     HttpAddress := 'http://development.banklinkonline.com/cico.download';
 
+    CreateGuid(Guid);
+    StrGuid := TrimedGuid(Guid);
+    AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '');
