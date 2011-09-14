@@ -29,16 +29,18 @@ type
   TDirectionIndicator = (dirFromClient, dirFromServer);
   TTransferStatus = (trsStartTrans, trsTransInProgress, trsEndTrans);
   TProcessState = (psNothing, psChangePass, psGetStatus, psUploadBooks, psDownloadBooks, psUploadPrac, psDownloadPrac);
+  TClientFileStatus = (cfsNoFile, cfsUploadedPractice, cfsDownloadedPractice, cfsUploadedBooks, cfsDownloadedBooks, cfsCopyUploadedBooks);
 
   TClientStatusItem = class
   private
     fClientCode : string;
-    fStatusCode : string;
-    fStatusDesc : string;
+    fStatusCode : TClientFileStatus;
+  protected
+    function GetStatusDesc : string;
   public
     property ClientCode : String read fClientCode write fClientCode;
-    property StatusCode : string read fStatusCode write fStatusCode;
-    property StatusDesc : string read fStatusDesc write fStatusDesc;
+    property StatusCode : TClientFileStatus read fStatusCode write fStatusCode;
+    property StatusDesc : string read GetStatusDesc;
   end;
 
   //------------------------------------------------------------------------------
@@ -230,6 +232,20 @@ begin
   end;
 
   result := fWebCiCoClient;
+end;
+
+{ TClientStatusItem }
+//------------------------------------------------------------------------------
+function TClientStatusItem.GetStatusDesc: string;
+begin
+  case fStatusCode of
+    cfsNoFile             : Result := 'No File';
+    cfsUploadedPractice   : Result := 'Uploaded by PRACTICE';
+    cfsDownloadedPractice : Result := 'Downloaded by PRACTICE';
+    cfsUploadedBooks      : Result := 'Downloaded by BOOKS';
+    cfsDownloadedBooks    : Result := 'Uploaded by BOOKS';
+    cfsCopyUploadedBooks  : Result := 'COPY Uploaded by BOOKS';
+  end;
 end;
 
 { TClientStatusList }
@@ -603,15 +619,26 @@ var
   ClientIndex : integer;
   NewClientStatusItem : TClientStatusItem;
   LocalNode : IXMLNode;
+  StatusInt : integer;
 begin
   LocalNode := CurrentNode.ChildNodes.FindNode(XML_STATUS_CLIENT);
 
   while Assigned(LocalNode) do
   begin
     NewClientStatusItem := TClientStatusItem.Create;
-    NewClientStatusItem.ClientCode := LocalNode.Attributes[XML_STATUS_CLIENT_CODE];;
-    NewClientStatusItem.StatusCode := LocalNode.Attributes[XML_STATUS_FILE_ATTR_STATUSCODE];
-    NewClientStatusItem.StatusDesc := LocalNode.Attributes[XML_STATUS_FILE_ATTR_STATUSDESC];
+    NewClientStatusItem.ClientCode := LocalNode.Attributes[XML_STATUS_CLIENT_CODE];
+
+    if TryStrToInt(LocalNode.Attributes[XML_STATUS_FILE_ATTR_STATUSCODE], StatusInt) then
+    begin
+      if (StatusInt >= ord(cfsNoFile)) and
+         (StatusInt <= ord(cfsCopyUploadedBooks)) then
+        NewClientStatusItem.StatusCode := TClientFileStatus(StatusInt)
+      else
+        RaiseHttpError('Cico - Error in XML Server Responce! Status Code Invalid.', 303);
+    end
+    else
+      RaiseHttpError('Cico - Error in XML Server Responce! Status Code Invalid.', 303);
+
     fServerClientStatusList.Add(NewClientStatusItem);
 
     LocalNode := CurrentNode.ChildNodes.FindSibling(LocalNode, 1);
@@ -736,7 +763,6 @@ begin
         NewClientStatusItem := TClientStatusItem.Create;
         NewClientStatusItem.ClientCode := fServerClientStatusList.Items[Index].ClientCode;
         NewClientStatusItem.StatusCode := fServerClientStatusList.Items[Index].StatusCode;
-        NewClientStatusItem.StatusDesc := fServerClientStatusList.Items[Index].StatusDesc;
         ClientStatusList.Add(NewClientStatusItem);
       end;
     end;
@@ -982,9 +1008,6 @@ var
   Guid         : TGuid;
   StrGuid      : String;
 begin
-
-
-
   fProcessState := psDownloadBooks;
   try
     ClearHttpHeader;
