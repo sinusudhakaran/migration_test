@@ -104,6 +104,7 @@ type
     procedure FileInfo(Filename     : String;
                        var FileCRC  : String;
                        var FileSize : Integer);
+    function TrimedGuid(Guid: TGuid): String;
   protected
 
 
@@ -210,8 +211,6 @@ const
   XML_STATUS_DETAIL_DESC          = 'DetailedDescription';
   XML_STATUS_CLIENT               = 'Client';
   XML_STATUS_CLIENT_CODE          = 'ClientCode';
-  XML_STATUS_FILE                 = 'File';
-  XML_STATUS_FILE_ATTR_GUID       = 'GUID';
   XML_STATUS_FILE_ATTR_STATUSCODE = 'StatusCode';
   XML_STATUS_FILE_ATTR_STATUSDESC = 'StatusCodeDescription';
 
@@ -315,6 +314,13 @@ begin
   Finally
     FreeAndNil(FileStream);
   End;
+end;
+
+//------------------------------------------------------------------------------
+function TWebCiCoClient.TrimedGuid(Guid: TGuid): String;
+begin
+  // Trims the { and } off the ends of the Guid to pass to the server
+  Result := midstr(GuidToString(Guid),2,length(GuidToString(Guid))-2);
 end;
 
 //------------------------------------------------------------------------------
@@ -538,21 +544,23 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetUpdateServerReply;
 begin
-  fServerResponce.Status       := '';
-  fServerResponce.Description  := '';
-  fServerResponce.DetailedDesc := '';
-  fServerClientStatusList.Clear;
+  Try
+    fServerResponce.Status       := '';
+    fServerResponce.Description  := '';
+    fServerResponce.DetailedDesc := '';
+    fServerClientStatusList.Clear;
 
-  if fContentType = SERVER_CONTENT_TYPE_XML then
-    GetDetailsFromXML
-  else if fContentType = SERVER_CONTENT_TYPE_BK5 then
-  begin
-    fServerResponce.Status       := '200';
-    fServerResponce.Description  := 'File Downloaded';
-    fServerResponce.DetailedDesc := 'BK5 File Downloaded';
-  end;
-
-  fProcessState := psNothing;
+    if fContentType = SERVER_CONTENT_TYPE_XML then
+      GetDetailsFromXML
+    else if fContentType = SERVER_CONTENT_TYPE_BK5 then
+    begin
+      fServerResponce.Status       := '200';
+      fServerResponce.Description  := 'File Downloaded';
+      fServerResponce.DetailedDesc := 'BK5 File Downloaded';
+    end;
+  finally
+    fProcessState := psNothing;
+  End;
 end;
 
 //------------------------------------------------------------------------------
@@ -601,12 +609,10 @@ begin
 
   while Assigned(LocalNode) do
   begin
-    FileNode := LocalNode.ChildNodes.FindNode(XML_STATUS_FILE);
-
     NewClientStatusItem := TClientStatusItem.Create;
     NewClientStatusItem.ClientCode := LocalNode.Attributes[XML_STATUS_CLIENT_CODE];;
-    NewClientStatusItem.StatusCode := FileNode.Attributes[XML_STATUS_FILE_ATTR_STATUSCODE];
-    NewClientStatusItem.StatusDesc := FileNode.Attributes[XML_STATUS_FILE_ATTR_STATUSDESC];
+    NewClientStatusItem.StatusCode := LocalNode.Attributes[XML_STATUS_FILE_ATTR_STATUSCODE];
+    NewClientStatusItem.StatusDesc := LocalNode.Attributes[XML_STATUS_FILE_ATTR_STATUSDESC];
     fServerClientStatusList.Add(NewClientStatusItem);
 
     LocalNode := CurrentNode.ChildNodes.FindSibling(LocalNode, 1);
@@ -621,6 +627,8 @@ begin
   StartTick := GetTickCount;
   while (fProcessState <> psNothing) do
   begin
+    HttpRequester.DoEvents;
+
     if ((GetTickCount - StartTick) >= WAIT_TIMEOUT) then
       RaiseHttpError('Cico - Operation timeout!', 301);
   end;
@@ -701,6 +709,7 @@ begin
 
   try
     ClearHttpHeader;
+
 
     HttpAddress := 'http://development.banklinkonline.com/cico.status';
 

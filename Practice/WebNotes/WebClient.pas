@@ -63,15 +63,13 @@ Type
                      const URLList   : TStringList;
                      URLIndex        : integer);
     function SearchReplaceStr(InString, Search, Replace : String) : String;
-
-    procedure RaiseSoapErrors(Error : EIpsSOAPS);
-    procedure RaiseHttpErrors(Error : EIpsHTTPS);
   protected
     // Soap
     procedure AppendSoapHeaderInfo;
     procedure AddSoapHeaderInfo(Name, Value: string);
     procedure ClearSoapHeader;
     procedure SetSoapURL;
+    procedure RaiseSoapErrors(Error : EIpsSOAPS);
     procedure RaiseSoapError(ErrMessage : String; ErrCode : integer); virtual;
     procedure SoapSetup;
     procedure AddSoapStringParam(Name, Value: string);
@@ -97,6 +95,7 @@ Type
     procedure AppendHttpHeaderInfo;
     procedure AddHttpHeaderInfo(Name, Value: string);
     procedure ClearHttpHeader;
+    procedure RaiseHttpErrors(Error : EIpsHTTPS);
     procedure RaiseHttpError(ErrMessage : String; ErrCode : integer); virtual;
     procedure HttpSetup;
     procedure DoHttpConnectionStatus(Sender: TObject;
@@ -243,6 +242,30 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TWebClient.AppendSoapHeaderInfo;
+begin
+  AppendHeaderInfo(FSOAPRequester, FSoapHeaderInfo);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebClient.AddSoapHeaderInfo(Name, Value: string);
+begin
+  FSoapHeaderInfo.Values[Name] := Value;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebClient.ClearSoapHeader;
+begin
+  FSoapHeaderInfo.Clear;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebClient.SetSoapURL;
+begin
+  SetURL(FSoapRequester, FSoapURLList, FSoapURLIndex);
+end;
+
+//------------------------------------------------------------------------------
 procedure TWebClient.RaiseSoapErrors(Error : EIpsSOAPS);
 var
   HttpCode : integer;
@@ -274,39 +297,6 @@ begin
   else
     // What else..
     RaiseSoapError(Error.Message, Error.Code);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebClient.RaiseHttpErrors(Error : EIpsHTTPS);
-var
-  HttpCode : integer;
-  ErrorPart : string;
-begin
-  RaiseHttpError(Error.Message, Error.Code);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebClient.AppendSoapHeaderInfo;
-begin
-  AppendHeaderInfo(FSOAPRequester, FSoapHeaderInfo);
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebClient.AddSoapHeaderInfo(Name, Value: string);
-begin
-  FSoapHeaderInfo.Values[Name] := Value;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebClient.ClearSoapHeader;
-begin
-  FSoapHeaderInfo.Clear;
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebClient.SetSoapURL;
-begin
-  SetURL(FSoapRequester, FSoapURLList, FSoapURLIndex);
 end;
 
 //------------------------------------------------------------------------------
@@ -510,6 +500,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TWebClient.RaiseHttpErrors(Error : EIpsHTTPS);
+var
+  HttpCode : integer;
+  ErrorPart : string;
+begin
+  RaiseHttpError(Error.Message, Error.Code);
+end;
+
+//------------------------------------------------------------------------------
 procedure TWebClient.RaiseHttpError(ErrMessage : String; ErrCode : integer);
 begin
   raise EWebHttpClientError.Create(ErrMessage, ErrCode);
@@ -519,6 +518,7 @@ end;
 procedure TWebClient.HttpSetup;
 begin
   FHttpHeaderInfo.NameValueSeparator := ':';
+
 
   FHttpRequester.OnConnectionStatus        := DoHttpConnectionStatus;
   FHttpRequester.OnSSLServerAuthentication := DoHttpSSLServerAuthentication;
@@ -691,10 +691,12 @@ end;
 //------------------------------------------------------------------------------
 destructor TWebClient.Destroy;
 begin
+  // Soap
   FreeAndNil(FSOAPRequester);
   FreeAndNil(FSoapHeaderInfo);
   FreeAndNil(FSoapURLList);
 
+  // Http
   FreeAndNil(FHttpRequester);
   FreeAndNil(FHttpHeaderInfo);
 
