@@ -255,10 +255,11 @@ type
     procedure SetHeaderHeight(Processing: Boolean);
     procedure SetOnUpdateCount(const Value: TNotifyEvent);
     procedure UpdateCount;
-    procedure RefeshFromBankLinkOnline;
+    procedure RefreshFromBankLinkOnline;
     procedure SetUsingBankLinkOnline(const Value: Boolean);
     procedure UpdateOnlineStatus(ServerResponce : TServerResponce;
                                  ClientStatusList : TClientStatusList);
+    procedure ClearOnlineStatusList;                             
   public
     { Public declarations }
     AdminSnapshot : TSystemObj;
@@ -281,7 +282,7 @@ type
     procedure vtClientsGetTextEx(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; cID: TClientLookupCol; ProcAsText: Boolean;
       var CellText: WideString);
-    
+
     property ViewMode : TViewMode read FViewMode write SetViewMode;
     property SelectMode : TSelectedMode read FSelectMode write SetSelectMode;
     property FilterMode : TFilterMode read FFilterMode write SetFilterMode;
@@ -332,7 +333,7 @@ type
     property ProcStatOffset: Integer read FProcStatOffset write SetProcStatOffset;
     procedure UpdateActions;
     property OnUpdateCount: TNotifyEvent read FOnUpdateCount write SetOnUpdateCount;
-    procedure RefeshBankLinkOnlineStatus;    
+    procedure RefeshBankLinkOnlineStatus;
     property UsingBankLinkOnline: Boolean read FUsingBankLinkOnline write SetUsingBankLinkOnline;
   end;
 
@@ -1167,36 +1168,34 @@ var
   pIDRec: pIntermediateDataRec;
   Status: TClientStatusItem;
 begin
-  for i := 0 to FClientStatusList.Count - 1 do
-    if Assigned(FClientStatusList.Items[i]) then
-      FClientStatusList.Items[i].Free;
   //Get status of all banklink online client files
   try
+    ClearOnlineStatusList;
     CiCoClient.OnServerStatusEvent := UpdateOnlineStatus;
-//    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '', True);
+    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '', True);
 
     //No File
-    Status := TClientStatusItem.Create;
-    Status.ClientCode := 'TEST0';
-    Status.StatusCode := '0';
-    Status.StatusDesc := 'No File';    
-    FClientStatusList.Add(Status);
-
-    //Downloaded by Books
-    Status := TClientStatusItem.Create;
-    Status.ClientCode := 'TEST1';
-    Status.StatusCode := '1';
-    Status.StatusDesc := 'Uploaded by Practice';
-    FClientStatusList.Add(Status);
-
-    //Downloaded by Books
-    Status := TClientStatusItem.Create;
-    Status.ClientCode := 'TEST2';
-    Status.StatusCode := '5';
-    Status.StatusDesc := 'Downloaded by Books';
-    FClientStatusList.Add(Status);
-
-    UpdateOnlineStatus(FSeverResponce, FClientStatusList);
+//    Status := TClientStatusItem.Create;
+//    Status.ClientCode := 'TEST0';
+//    Status.StatusCode := cfsNoFile;
+//    Status.StatusDesc := 'No File';
+//    FClientStatusList.Add(Status);
+//
+//    //Downloaded by Books
+//    Status := TClientStatusItem.Create;
+//    Status.ClientCode := 'TEST1';
+//    Status.StatusCode := cfsUploadedPractice;
+//    Status.StatusDesc := 'Uploaded by Practice';
+//    FClientStatusList.Add(Status);
+//
+//    //Downloaded by Books
+//    Status := TClientStatusItem.Create;
+//    Status.ClientCode := 'TEST2';
+//    Status.StatusCode := cfsDownloadedBooks;
+//    Status.StatusDesc := 'Downloaded by Books';
+//    FClientStatusList.Add(Status);
+//
+//    UpdateOnlineStatus(FSeverResponce, FClientStatusList);
 
   except
     on E: Exception do begin
@@ -1211,7 +1210,7 @@ begin
   end;
 end;
 
-procedure TfmeClientLookup.RefeshFromBankLinkOnline;
+procedure TfmeClientLookup.RefreshFromBankLinkOnline;
 var
   i: integer;
   pIDRec: pIntermediateDataRec;
@@ -1224,7 +1223,7 @@ begin
   try
     //*** TEST ***
     for i := 1 to 3 do begin
-      TempClientCode := Format('TEST%d',[i]);
+      TempClientCode := Format('NZSME%d',[i]);
 
       pIDRec := FIntermediateDataList.Add;
       pIDRec^.imCode    := TempClientCode;
@@ -1237,37 +1236,39 @@ begin
       pIDRec^.imBankLinkOnline := '<unknown>';
       pIDRec^.imModifiedDate   := '<unknown>';
       pIDRec^.imHasGUID        := True;
+    end;
 
-      //Get status of client files (async)
-//      CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, TempClientCode);
+    //Get status of client files (sync)
+    ClearOnlineStatusList;
+    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
+    UpdateOnlineStatus(FSeverResponce, FClientStatusList);
 
-      //if we are doing a check in and we have an admin system then check
-      //the file status
-      if FUsingAdminSystem then begin
-        sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode(TempClientCode);
-        pIDRec^.imData := sysClientRec;
-      end else begin
-        //checkin at offsite, see if file already exists
-        //a conflict situation occurs only if the existing file is
-        //currently writable
-        //ie user is trying to check in a file over the top of an
-        //existing valid file.
-        BK5FileName := Format('%s%s%s', [DataDir, TempClientCode, FILEEXTN]);
-        if BKFileExists(BK5FileName) then begin
-          try
-            GetClientWrapper(BK5FileName , WrapperOfExistingFile, False);
-            if WrapperOfExistingFile.wRead_Only then
-              pIDRec^.imTag := 0
-            else
+    //if we are doing a check in and we have an admin system then check
+    //the file status
+    if FUsingAdminSystem then begin
+      sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode(TempClientCode);
+      pIDRec^.imData := sysClientRec;
+    end else begin
+      //checkin at offsite, see if file already exists
+      //a conflict situation occurs only if the existing file is
+      //currently writable
+      //ie user is trying to check in a file over the top of an
+      //existing valid file.
+      BK5FileName := Format('%s%s%s', [DataDir, TempClientCode, FILEEXTN]);
+      if BKFileExists(BK5FileName) then begin
+        try
+          GetClientWrapper(BK5FileName , WrapperOfExistingFile, False);
+          if WrapperOfExistingFile.wRead_Only then
+            pIDRec^.imTag := 0
+          else
+            pIDRec^.imTag := Tag_CheckInConflict;
+        except
+          on E: Exception do
+            begin
+              //unable to read the wrapper, create a dummy wrapper with the error
+              //assume that a conflict will exist
               pIDRec^.imTag := Tag_CheckInConflict;
-          except
-            on E: Exception do
-              begin
-                //unable to read the wrapper, create a dummy wrapper with the error
-                //assume that a conflict will exist
-                pIDRec^.imTag := Tag_CheckInConflict;
-              end;
-          end;
+            end;
         end;
       end;
     end;
@@ -1590,11 +1591,11 @@ begin
     end;
 
     //Update the banklink online status for checkout from practice
-//    if FUsingBankLinkOnline then
-//      RefeshBankLinkOnlineStatus;
+    if FUsingBankLinkOnline then
+      RefeshBankLinkOnlineStatus;
 
   end else if FUsingBankLinkOnline and (FFilterMode = fmFilesForCheckIn) then begin
-    RefeshFromBankLinkOnline;
+    RefreshFromBankLinkOnline;
   end else begin
     //load all files in the bk5 directory
     Found := FindFirst( FFilesDirectory + '*' + Globals.FileExtn, faAnyFile, SearchRec);
@@ -2861,6 +2862,16 @@ procedure TfmeClientLookup.ClearColumns;
 begin
   FColumns.Clear;
 end;
+procedure TfmeClientLookup.ClearOnlineStatusList;
+var
+  i: integer;
+begin
+  for i := 0 to FClientStatusList.Count - 1 do
+    if Assigned(FClientStatusList.Items[i]) then
+      FClientStatusList.Items[i].Free;
+  FClientStatusList.Clear;      
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfmeClientLookup.SetOnGridDblClick(const Value: TNotifyEvent);
 begin

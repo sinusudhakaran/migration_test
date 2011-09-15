@@ -8,9 +8,6 @@ uses
   Dialogs, Classes, Windows, Sysutils,
   LogUtil, clObj32, ChkProgressFrm, AuditMgr, WebCiCoClient;
 
-type
-  EUploadFailed = class(Exception);
-
   {$IFNDEF TESTLOCKING}
   procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
   function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
@@ -93,7 +90,7 @@ uses
   RadioOptionsDlg, BKDEFS, SysObj32, cfList32, GenUtils, syamio, WebXUtils,
   ECodingUtils, BKUtil32, baObj32, baUtils, bkDateUtils,
   UpgradeHelper, ClientManagerFrm, ClientUtils, ExchangeRateList,
-  MailFrm, ClientDetailCacheObj;
+  MailFrm, ClientDetailCacheObj, BankLinkOnline;
 
 const
   UnitName = 'FILES';
@@ -1314,152 +1311,6 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
-procedure CheckBankLinkOnineStatus(AClientCode, AClientFilename: string);
-//*** BankLink Online Status ***
-//0 NoFile
-//1 UploadedByPractice
-//2 UploadedByBooks
-//3 CopyUploadedByBooks
-//4 DownloadedByPractice
-//5 DownloadedByBooks
-var
-  Msg: string;
-  StatusList: TClientStatusList;
-  Status: TClientStatusItem;
-  ServerResponce : TServerResponce;
-begin
-  //Get client status from BankLink Online
-  StatusList := TClientStatusList.Create;
-  try
-    try
-//      CiCoClient.GetClientFileStatus(ServerResponce, StatusList, AClientCode);
-
-//********** TEST DATA *********************************************************
-      Status := TClientStatusItem.Create;
-      Status.ClientCode := AClientCode;
-      Status.StatusCode := '0'; //NoFile
-//      Status.StatusCode := '1'; //UploadedByPractice
-//      Status.StatusCode := '2' ; //UploadedByBooks
-//      Status.StatusCode := '3';  //CopyUploadedByBooks
-//      Status.StatusCode := '4'; //DownloadedByPractice
-//      Status.StatusCode := '5'; //DownloadedByBooks
-      StatusList.Add(Status);
-//********** TEST DATA *********************************************************
-
-    except
-      on E: Exception do begin
-        //Can't get status - what do we do? Retry?
-        Msg := Format('Unable to get client file status: %s',  [E.Message]);
-        raise EUploadFailed.CreateFmt(Msg, [AClientFilename]);
-      end;
-    end;
-    //Prompts depending on status
-    if StatusList.Count > 0 then
-      Status := StatusList.Items[0];
-    if Assigned(Status) then begin
-
-      //*** TEST ****
-//      Status.Status := 'PracticeUpload';
-//      Status.UserModified := 'Practice';
-      { TODO -oSW : Update status text }
-
-      if Assigned(AdminSystem) then begin
-        //Practice status error messages
-        case StrToInt(Status.StatusCode) of
-          0: // NoFile
-            begin
-              Msg := Format('The client file %s is not available via BankLink Online.', [AClientCode]);
-              HelpfulErrorMsg(Msg, 0);
-              raise EUploadFailed.CreateFmt(Msg, [AClientFilename]);
-            end;
-          1: // UploadedByPractice
-            begin
-
-            end;
-          2: // UploadedByBooks
-            begin
-
-            end;
-          3: // CopyUploadedByBooks
-            begin
-
-            end;
-          4: // DownloadedByPractice
-            begin
-
-            end;
-          5: //DownloadedByBooks
-            begin
-              Msg := Format('The client file %s on BankLink Online is currently with your client.', [AClientCode]);
-              HelpfulErrorMsg(Msg, 0);
-              raise EUploadFailed.CreateFmt(Msg, [AClientFilename]);
-            end;
-        else
-          raise EUploadFailed.CreateFmt('Unable to get client file status for %s', [AClientFilename]);
-        end;
-      end else begin
-        //Books status error messages
-        if (Status.ClientCode = AClientCode) then begin
-          if (Status.StatusCode = '4') then begin
-            //Checked in by accountant
-            Msg := Format('The client file ''%s'' is currently checked in by your Accountant. ' +
-                          'Please contact your Accountant',[AClientCode]);
-            HelpfulErrorMsg(Msg, 0);
-            raise EUploadFailed.CreateFmt('The client file has been checked in by your Accountant.', [AClientFilename]);
-          end else if (Status.StatusCode = '1') then begin
-            //Updated by practice
-            Msg := Format('Your Accountant has provided a more recent version of this client file ''%s''. ' +
-                          'Please contact your Accountant',[AClientCode]);
-            HelpfulErrorMsg(Msg, 0);
-            raise EUploadFailed.CreateFmt('The client file has been updated your Accountant.', [AClientFilename]);
-          end else if (Status.StatusCode = '2') then begin
-            //Already uploaded from books
-            Msg := Format('You have selected to check out a client file that has already ' +
-                          'been made available. Would you like to overwrite the client ' +
-                          'file ''%s'' on BankLink Online with this client file?',
-                          [AClientCode]);
-            if AskYesNo('Check Out to BankLink Online', Msg, mrYes, 0) <> DLG_YES then
-              raise EUploadFailed.CreateFmt('The client file has already been checked out.', [AClientFilename]);
-          end;
-        end;
-      end;
-    end else
-      raise EUploadFailed.CreateFmt('Unable to get client file status', [AClientFilename]);
-  finally
-    StatusList.Free;
-  end;
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure UploadToBanklinkOnline(AClientCode, AClientFilename: string;
-  AProgressFrm: TfrmChkProgress; IsScheduledReport: Boolean; var AEmail: string);
-const
-  ThisMethodName = 'UploadToBanklinkOnline';
-var
-  ClientFileRec: pClient_File_Rec;
-  ServerResponce : TServerResponce;
-begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-
-  //Check status
-  CheckBankLinkOnineStatus(AClientCode, AClientFilename);
-
-  //Upload to BankLink Online
-  if not IsScheduledReport then begin
-    CiCoClient.OnStatusEvent := AProgressFrm.UpdateStatus;
-    CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
-  end;
-  if Assigned(AdminSystem) then begin
-    CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce);
-    AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
-    AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
-    AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
-  end else
-    CiCoClient.UploadFileFromBooks(AClientCode, ServerResponce);
-
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
-end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendPracticeClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
   var AEmail: string;
@@ -1555,8 +1406,8 @@ begin
               end;
         ftmOnline:
               begin
-                UploadToBanklinkOnline(Code, LocalFileName, ProgressFrm,
-                                       IsScheduledReport, AEmail);
+                BankLinkOnlineMgr.UploadClient(Code, ProgressFrm,
+                                               IsScheduledReport, AEmail);
                 if DebugMe then
                   LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                  [ThisMethodName, BankLinkLiveName]));
@@ -1732,8 +1583,8 @@ begin
             end;
       ftmOnline:
             begin
-              UploadToBanklinkOnline(Code, LocalFileName, ProgressFrm,
-                                     IsScheduledReport, AEmail);
+              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm,
+                                             IsScheduledReport, AEmail);
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                [ThisMethodName, BankLinkLiveName]));
@@ -1964,8 +1815,10 @@ begin
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress; IsScheduledReports: Boolean = False) : boolean;
+function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
+  IsScheduledReports: Boolean = False) : boolean;
 const
    ThisMethodName = 'CheckInClient';
 var
