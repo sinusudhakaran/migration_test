@@ -29,7 +29,7 @@ type
   TDirectionIndicator = (dirFromClient, dirFromServer);
   TTransferStatus = (trsStartTrans, trsTransInProgress, trsEndTrans);
   TProcessState = (psNothing, psChangePass, psGetStatus, psUploadBooks, psDownloadBooks, psUploadPrac, psDownloadPrac);
-  TClientFileStatus = (cfsNoFile, cfsUploadedPractice, cfsDownloadedPractice, cfsUploadedBooks, cfsDownloadedBooks, cfsCopyUploadedBooks);
+  TClientFileStatus = (cfsNoFile, cfsUploadedPractice, cfsDownloadedBooks, cfsUploadedBooks, cfsCopyUploadedBooks, cfsDownloadedPractice);
 
   TClientStatusItem = class
   private
@@ -174,10 +174,12 @@ type
                                      var Email: string;
                                      var ServerResponce : TServerResponce);
     procedure DownloadFileToPractice(ClientCode : string;
+                                     var TempBk5File : string;
                                      var ServerResponce : TServerResponce);
     procedure UploadFileFromBooks(ClientCode : string;
                                   var ServerResponce : TServerResponce);
     procedure DownloadFileToBooks(ClientCode : string;
+                                  var TempBk5File : string; 
                                   var ServerResponce : TServerResponce);
 
     property OnStatusEvent : TStatusEvent read fStatusEvent write fStatusEvent;
@@ -818,16 +820,20 @@ begin
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
+
+    GetPracticeDetailsToSend(ClientCode, FileName, Email, ClientName,
+                             PracCode, CountryCode, PracPass);
+
     AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '123');
-    AddHttpHeaderInfo('ClientCode',       'NZCLIENT');
-    AddHttpHeaderInfo('ClientName',       'NZ Test client');
+    AddHttpHeaderInfo('ClientCode',       ClientCode);
+    AddHttpHeaderInfo('ClientName',       ClientName);
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '');
 
-    UploadFile(HttpAddress, 'c:\temp\UploadPrac.bk5');
+    UploadFile(HttpAddress, FileName);
 
     WaitForProcess;
 
@@ -863,6 +869,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DownloadFileToPractice(ClientCode : string;
+                                                var TempBk5File : string;
                                                 var ServerResponce : TServerResponce);
 var
   HttpAddress : String;
@@ -874,36 +881,45 @@ var
   Email       : String;
   FileCrc     : String;
   FileSize    : Integer;
-  Guid         : TGuid;
-  StrGuid      : String;
+  Guid        : TGuid;
+  StrGuid     : String;
+  TempPath    : String;
 begin
   fProcessState := psDownloadPrac;
   try
+    TempBk5File := '';
     ClearHttpHeader;
 
     HttpAddress := 'http://development.banklinkonline.com/cico.download';
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
+
+    GetPracticeDetailsToSend(ClientCode, FileName, Email, ClientName,
+                             PracCode, CountryCode, PracPass);
+
     AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '123');
-    AddHttpHeaderInfo('ClientCode',       'NZCLIENT');
-    AddHttpHeaderInfo('ClientName',       'NZ Test client');
+    AddHttpHeaderInfo('ClientCode',       ClientCode);
+    AddHttpHeaderInfo('ClientName',       ClientName);
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '');
 
     AppendHttpHeaderInfo;
 
-    FileName := 'C:\Temp\110906_101924.bk5';
-    HttpGetFile(HttpAddress, FileName);
+    SetLength(TempPath,Max_Path);
+    SetLength(TempPath,GetTempPath(Max_Path,Pchar(TempPath)));
+
+    TempBk5File := TempPath + ExtractFilename(FileName);
+    HttpGetFile(HttpAddress, TempBk5File);
 
     WaitForProcess;
 
     if fContentType = SERVER_CONTENT_TYPE_BK5 then
     begin
-      FileInfo(FileName, FileCrc, FileSize);
+      FileInfo(TempBk5File, FileCrc, FileSize);
       if FServerCrc <> FileCrc then
         RaiseHttpError('Cico - File CRC Error!', 304);
     end;
@@ -955,16 +971,19 @@ begin
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
+
+    GetBooksDetailsToSend(ClientCode, FileName, ClientEmail, ClientName, CountryCode, PracCode);
+
     AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '');
-    AddHttpHeaderInfo('ClientCode',       'NZCLIENT');
-    AddHttpHeaderInfo('ClientName',       'NZ Test client');
+    AddHttpHeaderInfo('ClientCode',       ClientCode);
+    AddHttpHeaderInfo('ClientName',       ClientName);
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
 
-    UploadFile(HttpAddress, 'c:\Temp\UploadBooks.bk5');
+    UploadFile(HttpAddress, FileName);
 
     WaitForProcess;
 
@@ -994,6 +1013,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DownloadFileToBooks(ClientCode : string;
+                                             var TempBk5File : string;
                                              var ServerResponce : TServerResponce);
 var
   HttpAddress  : string;
@@ -1007,34 +1027,42 @@ var
   FileSize     : Integer;
   Guid         : TGuid;
   StrGuid      : String;
+  TempPath     : String;
 begin
   fProcessState := psDownloadBooks;
   try
+    TempBk5File := '';
     ClearHttpHeader;
 
     HttpAddress := 'http://development.banklinkonline.com/cico.download';
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
+
+    GetBooksDetailsToSend(ClientCode, FileName, ClientEmail, ClientName, CountryCode, PracCode);
+
     AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('CountryCode',      'NZ');
     AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '');
-    AddHttpHeaderInfo('ClientCode',       'NZCLIENT');
-    AddHttpHeaderInfo('ClientName',       'NZ Test client');
+    AddHttpHeaderInfo('ClientCode',       ClientCode);
+    AddHttpHeaderInfo('ClientName',       ClientName);
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
 
     AppendHttpHeaderInfo;
 
-    FileName := 'C:\Temp\110906_013259.bk5';
-    HttpGetFile(HttpAddress, FileName);
+    SetLength(TempPath,Max_Path);
+    SetLength(TempPath,GetTempPath(Max_Path,Pchar(TempPath)));
+
+    TempBk5File := TempPath + '\' + ExtractFilename(FileName);
+    HttpGetFile(HttpAddress, TempBk5File);
 
     WaitForProcess;
 
     if fContentType = SERVER_CONTENT_TYPE_BK5 then
     begin
-      FileInfo(FileName, FileCrc, FileSize);
+      FileInfo(TempBk5File, FileCrc, FileSize);
       if FServerCrc <> FileCrc then
         RaiseHttpError('Cico - File CRC Error!', 304);
     end;
