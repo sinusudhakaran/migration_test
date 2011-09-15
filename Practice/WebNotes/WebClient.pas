@@ -545,6 +545,8 @@ begin
   FHttpRequester.FirewallType := TipshttpsFirewallTypes(fwNone);}
 
   // For Now just take the rsst from the BConnect settings...
+  FHttpRequester.Timeout := INI_BCTimeout;
+
   if INI_BCCustomConfig then
   begin
     if not INI_BCUseWinInet then

@@ -220,8 +220,6 @@ const
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
 
-  WAIT_TIMEOUT = 60000; // milliseconds
-
 var
   fWebCiCoClient : TWebCiCoClient;
 
@@ -651,13 +649,15 @@ end;
 procedure TWebCiCoClient.WaitForProcess;
 var
   StartTick : Longword;
+  TimeOut : integer;
 begin
+  TimeOut := (HttpRequester.Timeout*1000);
   StartTick := GetTickCount;
   while (fProcessState <> psNothing) do
   begin
     HttpRequester.DoEvents;
 
-    if ((GetTickCount - StartTick) >= WAIT_TIMEOUT) then
+    if ((GetTickCount - StartTick) >= TimeOut ) then
       RaiseHttpError('Cico - Operation timeout!', 301);
   end;
 end;
