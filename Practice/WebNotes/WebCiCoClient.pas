@@ -34,11 +34,13 @@ type
   TClientStatusItem = class
   private
     fClientCode : string;
+    fClientName : string;
     fStatusCode : TClientFileStatus;
   protected
     function GetStatusDesc : string;
   public
     property ClientCode : String read fClientCode write fClientCode;
+    property ClientName : String read fClientName write fClientName;
     property StatusCode : TClientFileStatus read fStatusCode write fStatusCode;
     property StatusDesc : string read GetStatusDesc;
   end;
@@ -214,6 +216,7 @@ const
   XML_STATUS_DETAIL_DESC          = 'DetailedDescription';
   XML_STATUS_CLIENT               = 'File';
   XML_STATUS_CLIENT_CODE          = 'ClientCode';
+  XML_STATUS_CLIENT_NAME          = 'ClientName';
   XML_STATUS_FILE_ATTR_STATUSCODE = 'StatusCode';
   XML_STATUS_FILE_ATTR_STATUSDESC = 'StatusCodeDescription';
 
@@ -627,11 +630,12 @@ begin
   begin
     NewClientStatusItem := TClientStatusItem.Create;
     NewClientStatusItem.ClientCode := LocalNode.Attributes[XML_STATUS_CLIENT_CODE];
+    NewClientStatusItem.ClientName := LocalNode.Attributes[XML_STATUS_CLIENT_NAME];
 
     if TryStrToInt(LocalNode.Attributes[XML_STATUS_FILE_ATTR_STATUSCODE], StatusInt) then
     begin
       if (StatusInt >= ord(cfsNoFile)) and
-         (StatusInt <= ord(cfsCopyUploadedBooks)) then
+         (StatusInt <= ord(cfsDownloadedPractice)) then
         NewClientStatusItem.StatusCode := TClientFileStatus(StatusInt)
       else
         RaiseHttpError('Cico - Error in XML Server Responce! Status Code Invalid.', 303);
@@ -764,6 +768,7 @@ begin
       begin
         NewClientStatusItem := TClientStatusItem.Create;
         NewClientStatusItem.ClientCode := fServerClientStatusList.Items[Index].ClientCode;
+        NewClientStatusItem.ClientName := fServerClientStatusList.Items[Index].ClientName;
         NewClientStatusItem.StatusCode := fServerClientStatusList.Items[Index].StatusCode;
         ClientStatusList.Add(NewClientStatusItem);
       end;
