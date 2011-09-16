@@ -12,7 +12,6 @@ object frmCheckInOut: TfrmCheckInOut
   OldCreateOrder = False
   Position = poOwnerFormCenter
   Scaled = False
-  OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnKeyUp = FormKeyUp

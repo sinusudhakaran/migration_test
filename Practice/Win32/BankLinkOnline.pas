@@ -3,7 +3,7 @@ unit BankLinkOnline;
 interface
 
 uses
-  Dialogs, Classes, Windows, Sysutils, ChkProgressFrm, WebCiCoClient;
+  Forms, Dialogs, Classes, Windows, Sysutils, ChkProgressFrm, WebCiCoClient;
 
 type
   EUploadFailed = class(Exception);
@@ -29,7 +29,7 @@ type
     function UploadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                           Silent: boolean; var AEmail: string): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
-                            Silent: boolean = False): boolean;
+                            var ARemoteFileName: string; Silent: boolean = False): boolean;
     function GetStatus(AClientCode: string; FromWebService: boolean): TClientStatusItem;
   end;
 
@@ -44,8 +44,10 @@ uses
   bkConst,
   SYDEFS,
   ErrorMoreFrm,
+  CheckInOutFrm,
   LogUtil,
-  YesNoDlg;
+  YesNoDlg,
+  ClientWrapper;
 
 const
   UNIT_NAME = 'BankLinkOnline';
@@ -76,20 +78,6 @@ begin
   try
     try
       CiCoClient.GetClientFileStatus(ServerResponce, StatusList, AClientCode);
-
-////********** TEST STATUS DATA *********************************************************
-//      Status := TClientStatusItem.Create;
-//      Status.ClientCode := AClientCode;
-////      Status.StatusCode := cfsNoFile; //NoFile
-////      Status.StatusCode := cfsUploadedPractice; //UploadedByPractice
-////      Status.StatusCode := cfsDownloadedPractice; //DownloadedByPractice
-////      Status.StatusCode := cfsUploadedBooks ; //UploadedByBooks
-//      Status.StatusCode := cfsDownloadedBooks; //DownloadedByBooks
-////      Status.StatusCode := cfsCopyUploadedBooks;  //CopyUploadedByBooks
-//
-//      StatusList.Add(Status);
-////********** TEST DATA *********************************************************
-
     except
       on E: Exception do begin
         //Can't get status - what do we do? Retry?
@@ -275,9 +263,35 @@ begin
 end;
 
 function TBankLinkOnlineManager.DownloadClient(AClientCode: string;
-  AProgressFrm: TfrmChkProgress; Silent: boolean = False): boolean;
+  AProgressFrm: TfrmChkProgress; var ARemoteFileName: string;
+  Silent: boolean = False): boolean;
+var
+ ServerResponce: TServerResponce;
 begin
+  Result := False;
+  try
+    CheckBankLinkOnlineStatus(AClientCode, oaPracticeDownload);
 
+    //Download from BankLink Online
+    if Silent then begin
+      CiCoClient.OnStatusEvent := AProgressFrm.UpdateStatus;
+      CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
+    end;
+
+    if Assigned(AdminSystem) then begin
+      CicoClient.DownloadFileToPractice(AClientCode, ARemoteFilename, ServerResponce);
+      AProgressFrm.mProgress.Lines.Add('Downloaded file to: ' + ARemoteFilename);
+      AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
+      AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
+      AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
+      Result := True;      
+    end;
+  except
+    on E: Exception do
+      begin
+        raise EDownloadFailed.Create(E.Message);
+      end;
+  end;
 end;
 
 function TBankLinkOnlineManager.GetStatus(AClientCode: string;

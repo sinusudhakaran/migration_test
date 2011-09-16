@@ -56,7 +56,6 @@ type
     procedure rbStandardClick(Sender: TObject);
     procedure btnChangePasswordClick(Sender: TObject);
     procedure btnRefreshClick(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
 
   private
@@ -299,13 +298,6 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmCheckInOut.FormActivate(Sender: TObject);
-begin
-  //*** TEST ***
-  if (FSendMethod = ftmOnline) then
-    ClientLookupFrame.RefeshBankLinkOnlineStatus;
-end;
-
 procedure TfrmCheckInOut.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var

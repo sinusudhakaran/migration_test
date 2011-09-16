@@ -19,7 +19,8 @@ uses
                       IsScheduledReport: Boolean = False; Silent: Boolean = False;
                       AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0) : Boolean; overload;
   function SendClient(Code : string; Path : string; ASendMethod: byte = 0): Boolean; overload;
-  function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress; IsScheduledReports: Boolean = False) : boolean;
+  function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
+                         IsScheduledReports: Boolean = False; ASendMethod: byte = 0) : boolean;
   function CheckInRemoteClient( filename : string) : boolean;
 
   procedure Checkin(ASendMethod: byte; CodesToCheckIn : string = '');
@@ -1818,7 +1819,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
-  IsScheduledReports: Boolean = False) : boolean;
+  IsScheduledReports: Boolean = False; ASendMethod: byte = 0) : boolean;
 const
    ThisMethodName = 'CheckInClient';
 var
@@ -1840,7 +1841,10 @@ begin
    Result := False;
    LocalFileName  := DATADIR + CODE + FILEEXTN;
    RemoteFileName := Path + CODE + FILEEXTN;
-   RemoteRename   := Path + CODE + RENAMEEXTN;
+   if (ASendMethod = ftmOnline) then
+     RemoteRename   := ''
+   else
+     RemoteRename   := Path + CODE + RENAMEEXTN;
    BackupFileName := DATADIR + CODE+ BACKUPEXTN;
 
    Msg := 'Checking In Client '+Code;
@@ -1851,6 +1855,10 @@ begin
      ProgressFrm.mProgress.Lines.Add( Msg);
      ProgressFrm.Refresh;
    end;
+
+   if (ASendMethod = ftmOnline) then
+     //Download the client file from BankLink Online to the temp folder
+     BankLinkOnlineMgr.DownloadClient(Code, ProgressFrm, RemoteFilename);
 
    //see if the file exists, this is in case the wrapper code differs to the
    //file name
@@ -2227,7 +2235,7 @@ begin
       ErrorCount   := 0;
 
       for i := 0 to CodeList.Count -1 do begin
-        if CheckInClient(CodeList[i], Globals.INI_CheckInDir, ProgressFrm) then
+        if CheckInClient(CodeList[i], Globals.INI_CheckInDir, ProgressFrm, False, ASendMethod) then
           Inc( SuccessCount)
         else
           Inc( ErrorCount);

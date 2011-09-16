@@ -357,7 +357,8 @@ uses
   rzGrafx, rzCommon,
   Math, Types,
   WinUtils, YesNoDlg, ErrorMoreFrm,  ClientDetailCacheObj,
-  stDateSt, bkBranding, PDDATES32;
+  stDateSt, bkBranding, PDDATES32,
+  progress;
 
 {$R *.dfm}
 
@@ -1166,37 +1167,21 @@ procedure TfmeClientLookup.RefeshBankLinkOnlineStatus;
 var
   i: integer;
   pIDRec: pIntermediateDataRec;
-  Status: TClientStatusItem;
 begin
   //Get status of all banklink online client files
   try
-    ClearOnlineStatusList;
-    CiCoClient.OnServerStatusEvent := UpdateOnlineStatus;
-    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '', True);
-
-    //No File
-//    Status := TClientStatusItem.Create;
-//    Status.ClientCode := 'TEST0';
-//    Status.StatusCode := cfsNoFile;
-//    Status.StatusDesc := 'No File';
-//    FClientStatusList.Add(Status);
-//
-//    //Downloaded by Books
-//    Status := TClientStatusItem.Create;
-//    Status.ClientCode := 'TEST1';
-//    Status.StatusCode := cfsUploadedPractice;
-//    Status.StatusDesc := 'Uploaded by Practice';
-//    FClientStatusList.Add(Status);
-//
-//    //Downloaded by Books
-//    Status := TClientStatusItem.Create;
-//    Status.ClientCode := 'TEST2';
-//    Status.StatusCode := cfsDownloadedBooks;
-//    Status.StatusDesc := 'Downloaded by Books';
-//    FClientStatusList.Add(Status);
-//
-//    UpdateOnlineStatus(FSeverResponce, FClientStatusList);
-
+    StatusSilent := False;
+    try
+      UpdateAppStatus('BankLink Online', 'Connecting', 5);
+      ClearOnlineStatusList;
+      CiCoClient.OnServerStatusEvent := UpdateOnlineStatus;
+      CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '');
+      UpdateAppStatus('BankLink Online', 'Getting status of client file(s)', 50);
+      UpdateOnlineStatus(FSeverResponce, FClientStatusList);
+    finally
+      ClearStatus;
+      StatusSilent := True;
+    end;
   except
     on E: Exception do begin
       for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
@@ -1212,66 +1197,83 @@ end;
 
 procedure TfmeClientLookup.RefreshFromBankLinkOnline;
 var
-  i: integer;
-  pIDRec: pIntermediateDataRec;
   BK5FileName: string;
   WrapperOfExistingFile: TClientWrapper;
   sysClientRec: pClient_File_Rec;
-  TempClientCode: string;
+  i: integer;
+  pIDRec: pIntermediateDataRec;
+  ClientCode: string;
+  ClientStatus: TClientStatusItem;
 begin
   Screen.Cursor := crHourGlass;
   try
-    //*** TEST ***
-    for i := 1 to 3 do begin
-      TempClientCode := Format('NZSME%d',[i]);
-
-      pIDRec := FIntermediateDataList.Add;
-      pIDRec^.imCode    := TempClientCode;
-      pIDRec^.imName    := '<unknown>';
-      pIDRec^.imGroupID := 0;
-      pIDRec^.imData    := nil;
-      pIDRec^.imTag     := 0;
-      pIDRec^.imType    := ctActive;
-      pIDRec^.imSendMethod     := Byte(ftmOnline);
-      pIDRec^.imBankLinkOnline := '<unknown>';
-      pIDRec^.imModifiedDate   := '<unknown>';
-      pIDRec^.imHasGUID        := True;
-    end;
-
     //Get status of client files (sync)
     ClearOnlineStatusList;
-    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
-    UpdateOnlineStatus(FSeverResponce, FClientStatusList);
+    try
+      StatusSilent := False;
+      try
+        UpdateAppStatus('BankLink Online', 'Connecting', 5);
+        CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
+        UpdateAppStatus('BankLink Online', 'Getting status of client file(s)', 50);
+      finally
+        ClearStatus;
+        StatusSilent := True;
+      end;
+    except
+      on E: EWebHttpCiCoClientError do
+        begin
+          HelpfulErrorMsg('Error getting BankLink Online status: ' + E.Message, 0);
+          Exit;
+        end;
+    end;
+    //List the client files from BankLink Online
+    for i := 0 to FClientStatusList.Count - 1 do begin
+      ClientStatus := FClientStatusList.Items[i];
+      if Assigned(ClientStatus) then begin
+        ClientCode := ClientStatus.ClientCode;
+        pIDRec := FIntermediateDataList.Add;
+        pIDRec^.imCode    := ClientCode;
+        pIDRec^.imName    := '';
+        pIDRec^.imGroupID := 0;
+        pIDRec^.imData    := nil;
+        pIDRec^.imTag     := 0;
+        pIDRec^.imType    := ctActive;
+        pIDRec^.imSendMethod     := Byte(ftmOnline);
+        pIDRec^.imBankLinkOnline := '<unknown>';
+        pIDRec^.imModifiedDate   := '<unknown>';
+        pIDRec^.imHasGUID        := True;
 
-    //if we are doing a check in and we have an admin system then check
-    //the file status
-    if FUsingAdminSystem then begin
-      sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode(TempClientCode);
-      pIDRec^.imData := sysClientRec;
-    end else begin
-      //checkin at offsite, see if file already exists
-      //a conflict situation occurs only if the existing file is
-      //currently writable
-      //ie user is trying to check in a file over the top of an
-      //existing valid file.
-      BK5FileName := Format('%s%s%s', [DataDir, TempClientCode, FILEEXTN]);
-      if BKFileExists(BK5FileName) then begin
-        try
-          GetClientWrapper(BK5FileName , WrapperOfExistingFile, False);
-          if WrapperOfExistingFile.wRead_Only then
-            pIDRec^.imTag := 0
-          else
-            pIDRec^.imTag := Tag_CheckInConflict;
-        except
-          on E: Exception do
-            begin
-              //unable to read the wrapper, create a dummy wrapper with the error
-              //assume that a conflict will exist
-              pIDRec^.imTag := Tag_CheckInConflict;
+        //if we are doing a check in and we have an admin system then check the file status
+        if FUsingAdminSystem then begin
+          sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode(ClientCode);
+          pIDRec^.imData := sysClientRec;
+        end else begin
+          //checkin at offsite, see if file already exists
+          //a conflict situation occurs only if the existing file is
+          //currently writable
+          //ie user is trying to check in a file over the top of an
+          //existing valid file.
+          BK5FileName := Format('%s%s%s', [DataDir, ClientCode, FILEEXTN]);
+          if BKFileExists(BK5FileName) then begin
+            try
+              GetClientWrapper(BK5FileName , WrapperOfExistingFile, False);
+              if WrapperOfExistingFile.wRead_Only then
+                pIDRec^.imTag := 0
+              else
+                pIDRec^.imTag := Tag_CheckInConflict;
+            except
+              on E: Exception do
+                begin
+                  //unable to read the wrapper, create a dummy wrapper with the error
+                  //assume that a conflict will exist
+                  pIDRec^.imTag := Tag_CheckInConflict;
+                end;
             end;
+          end;
         end;
       end;
     end;
+    UpdateOnlineStatus(FSeverResponce, FClientStatusList);
   finally
     Screen.Cursor := crDefault;
   end;
@@ -1595,6 +1597,7 @@ begin
       RefeshBankLinkOnlineStatus;
 
   end else if FUsingBankLinkOnline and (FFilterMode = fmFilesForCheckIn) then begin
+    //Update the banklink online status for check in to practice
     RefreshFromBankLinkOnline;
   end else begin
     //load all files in the bk5 directory
@@ -1693,7 +1696,7 @@ begin
         Found := FindNext( SearchRec );
       end;
 
-      //Update the banklink online status for checkout from practice
+      //Update the banklink online status for checkout from books
 //      if FUsingBankLinkOnline then
 //        RefeshBankLinkOnlineStatus;
 
@@ -1753,8 +1756,11 @@ begin
       for j := 0 to ClientStatusList.Count - 1 do begin
         ClientStatus := ClientStatusList.Items[j];
         if (pIDRec^.imCode = ClientStatus.ClientCode) then begin
+          //Get the client name if intermediate rec was created from BankLink Online status
+          if (pIDRec^.imName = '') then
+            pIDRec^.imName         := ClientStatus.ClientName;
           pIDRec^.imBankLinkOnline := ClientStatus.StatusDesc;
-          pIDRec^.imModifiedDate   := '<nknown>';
+          pIDRec^.imModifiedDate   := '<unknown>';
           pIDRec^.imHasGUID        := True;
         end;
       end;
