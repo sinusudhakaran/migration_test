@@ -179,9 +179,10 @@ type
                                      var TempBk5File : string;
                                      var ServerResponce : TServerResponce);
     procedure UploadFileFromBooks(ClientCode : string;
+                                  IsCopy : Boolean;
                                   var ServerResponce : TServerResponce);
     procedure DownloadFileToBooks(ClientCode : string;
-                                  var TempBk5File : string; 
+                                  var TempBk5File : string;
                                   var ServerResponce : TServerResponce);
 
     property OnStatusEvent : TStatusEvent read fStatusEvent write fStatusEvent;
@@ -956,6 +957,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromBooks(ClientCode : string;
+                                             IsCopy : Boolean;
                                              var ServerResponce : TServerResponce);
 var
   HttpAddress  : string;
@@ -987,6 +989,10 @@ begin
     AddHttpHeaderInfo('ClientName',       ClientName);
     AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
+    if IsCopy then
+      AddHttpHeaderInfo('Copy',           '1')
+    else
+      AddHttpHeaderInfo('Copy',           '0');
 
     UploadFile(HttpAddress, FileName);
 
