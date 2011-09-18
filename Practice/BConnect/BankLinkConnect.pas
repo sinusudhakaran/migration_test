@@ -42,7 +42,8 @@ uses
    baObj32,
    baUtils,
    UsageUtils,
-   FileExtensionUtils;
+   FileExtensionUtils,
+   WebCiCoClient;
 
 const
    Unitname = 'BConnect';
@@ -270,6 +271,8 @@ begin
         INI_BCFirewallUseAuth  := UseFirewallAuthentication;
         INI_BCFirewallUsername := FirewallUserName;
         INI_BCFirewallPassword := FirewallPassword;
+
+        CiCoClient.ReSetup;
       end;
 
       //UserName doesnt change
@@ -403,6 +406,8 @@ begin
         INI_BCFirewallUseAuth  := UseFirewallAuthentication;
         INI_BCFirewallUsername := FirewallUserName;
         INI_BCFirewallPassword := FirewallPassword;
+
+        CiCoClient.ReSetup;
       end;
 
       //UserName doesnt change
