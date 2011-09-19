@@ -35,12 +35,14 @@ type
   private
     fClientCode : string;
     fClientName : string;
+    fLastChange : TDateTime;
     fStatusCode : TClientFileStatus;
   protected
     function GetStatusDesc : string;
   public
     property ClientCode : String read fClientCode write fClientCode;
     property ClientName : String read fClientName write fClientName;
+    property LastChange : TDateTime read fLastChange write fLastChange;
     property StatusCode : TClientFileStatus read fStatusCode write fStatusCode;
     property StatusDesc : string read GetStatusDesc;
   end;
@@ -137,16 +139,16 @@ type
                            const Field: String;
                            const Value: String); Override;
 
-    procedure GetPracticeDetailsToSend(ClientCode       : string;
-                                       var FileName     : String;
-                                       var ClientEmail  : String;
-                                       var ClientName   : String;
-                                       var PracCode     : String;
-                                       var CountryCode  : String;
-                                       var PracPass     : String);
+    procedure GetAdminDetails(ClientCode       : string;
+                              var PracCode     : String;
+                              var PracPass     : String;
+                              var CountryCode  : String);
 
-    procedure GetBooksDetailsToSend(ClientCode      : string;
-                                    var FileName    : string;
+    procedure GetClientDetails(ClientCode      : string;
+                               var ClientEmail : string;
+                               var ClientName  : string);
+
+    procedure GetClientExtraDetails(ClientCode      : string;
                                     var ClientEmail : string;
                                     var ClientName  : string;
                                     var PracCode    : String;
@@ -173,7 +175,7 @@ type
                                   ClientCode : string = '';
                                   ASyncCall : Boolean = False);
     procedure UploadFileFromPractice(ClientCode : string;
-                                     var Email: string;
+                                     var ClientEmail: string;
                                      var ServerResponce : TServerResponce);
     procedure DownloadFileToPractice(ClientCode : string;
                                      var TempBk5File : string;
@@ -208,7 +210,8 @@ uses
   ClObj32,
   WebUtils,
   StrUtils,
-  Windows;
+  Windows,
+  LogUtil;
 
 const
   XML_STATUS_HEADNAME             = 'Result';
@@ -218,11 +221,14 @@ const
   XML_STATUS_CLIENT               = 'File';
   XML_STATUS_CLIENT_CODE          = 'ClientCode';
   XML_STATUS_CLIENT_NAME          = 'ClientName';
+  XML_STATUS_LAST_CHANGE_DATE     = 'LastChange';
   XML_STATUS_FILE_ATTR_STATUSCODE = 'StatusCode';
   XML_STATUS_FILE_ATTR_STATUSDESC = 'StatusCodeDescription';
 
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
+
+  UNIT_NAME = 'WebCiCoClient';
 
 var
   fWebCiCoClient : TWebCiCoClient;
@@ -345,6 +351,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.RaiseHttpError(ErrMessage : String; ErrCode : integer);
 begin
+  logutil.LogError(UNIT_NAME, format('%s Error:<%s>',[InttoStr(ErrCode), ErrMessage] ));
+
   raise EWebHttpCiCoClientError.Create(ErrMessage, ErrCode);
 end;
 
@@ -353,14 +361,21 @@ procedure TWebCiCoClient.DoHttpConnectionStatus(Sender: TObject;
                                                 const ConnectionEvent: String;
                                                 StatusCode: Integer;
                                                 const Description: String);
+var
+  StrMessage : String;
 begin
   inherited;
 
+  StrMessage := 'ConnectionEvent : ' + ConnectionEvent + ', ' +
+                'Status Code : ' + InttoStr(StatusCode) + ', ' +
+                'Description : ' + Description;
+
   // Status Event
   if Assigned(fStatusEvent) then
-    fStatusEvent('ConnectionEvent : ' + ConnectionEvent + ', ' +
-                 'Status Code : ' + InttoStr(StatusCode) + ', ' +
-                 'Description : ' + Description);
+    fStatusEvent(StrMessage);
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, StrMessage);
 end;
 
 //------------------------------------------------------------------------------
@@ -370,31 +385,43 @@ procedure TWebCiCoClient.DoHttpSSLServerAuthentication(Sender: TObject;
                                                        const CertIssuer: String;
                                                        const Status: String;
                                                        var  Accept: Boolean);
+var
+  StrMessage : String;
 begin
   inherited;
 
+  StrMessage := 'Cert Encoded : ' + CertEncoded + ', ' +
+                'Cert Subject : ' + CertSubject + ', ' +
+                'Cert Issuer : ' + CertIssuer + ', ' +
+                'Status : ' + Status;
+
   // Status Event
   if Assigned(fStatusEvent) then
-    fStatusEvent('Cert Encoded : ' + CertEncoded + ', ' +
-                 'Cert Subject : ' + CertSubject + ', ' +
-                 'Cert Issuer : ' + CertIssuer + ', ' +
-                 'Status : ' + Status);
+    fStatusEvent(StrMessage);
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, StrMessage);
 end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DoHttpStartTransfer(Sender: TObject;
                                              Direction: Integer);
+var
+  StrMessage : String;
 begin
   inherited;
 
+  if Direction = 0 then
+    StrMessage := 'Start Transfer : from Client'
+  else
+    StrMessage := 'Start Transfer : from Server';
+
   // Status Event
   if Assigned(fStatusEvent) then
-  begin
-    if Direction = 0 then
-      fStatusEvent('Start Transfer : from Client')
-    else
-      fStatusEvent('Start Transfer : from Server');
-  end;
+    fStatusEvent(StrMessage);
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, StrMessage);
 
   // Transfer File Event
   if Assigned(fTransferFileEvent) then
@@ -410,19 +437,24 @@ procedure TWebCiCoClient.DoHttpTransfer(Sender: TObject;
                                         Direction: Integer;
                                         BytesTransferred: LongInt;
                                         Text: String);
+var
+  StrMessage : String;
 begin
   inherited;
 
+  if Direction = 0 then
+    StrMessage := 'Transfer : from Client, ' +
+                  'Bytes Transferred : ' + InttoStr(BytesTransferred)
+  else
+    StrMessage := 'Transfer : from Server, ' +
+                  'Bytes Transferred : ' + InttoStr(BytesTransferred);
+
   // Status Event
   if Assigned(fStatusEvent) then
-  begin
-    if Direction = 0 then
-      fStatusEvent('Transfer : from Client, ' +
-                   'Bytes Transferred : ' + InttoStr(BytesTransferred))
-    else
-      fStatusEvent('Transfer : from Server, ' +
-                   'Bytes Transferred : ' + InttoStr(BytesTransferred));
-  end;
+    fStatusEvent(StrMessage);
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, StrMessage);
 
   // Transfer File Event
   if Assigned(fTransferFileEvent) then
@@ -436,17 +468,22 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DoHttpEndTransfer(Sender: TObject;
                                            Direction: Integer);
+var
+  StrMessage : String;
 begin
   inherited;
 
+  if Direction = 0 then
+    StrMessage := 'End Transfer : from Client, Total Bytes : ' + InttoStr(fTotalBytes)
+  else
+    StrMessage := 'End Transfer : from Server, Total Bytes : ' + InttoStr(fTotalBytes);
+
   // Status Event
   if Assigned(fStatusEvent) then
-  begin
-    if Direction = 0 then
-      fStatusEvent('End Transfer : from Client, Total Bytes : ' + InttoStr(fTotalBytes))
-    else
-      fStatusEvent('End Transfer : from Server, Total Bytes : ' + InttoStr(fTotalBytes));
-  end;
+    fStatusEvent(StrMessage);
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, StrMessage);
 
   // Transfer File Event
   if Assigned(fTransferFileEvent) then
@@ -461,13 +498,20 @@ end;
 procedure TWebCiCoClient.DoHttpHeader(Sender: TObject;
                                       const Field: String;
                                       const Value: String);
+var
+  StrMessage : String;
 begin
   Inherited;
 
+  StrMessage := 'Header Field : ' + Field + ', ' +
+                'Header Value : ' + Value;
+
   // Status Event
   if Assigned(fStatusEvent) then
-    fStatusEvent('Header Field : ' + Field + ', ' +
-                 'Header Value : ' + Value);
+    fStatusEvent(StrMessage);
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, StrMessage);
 
   // works out Content Length, Type and CRC from headers
   if Field = 'Content-Length' then
@@ -479,23 +523,17 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetPracticeDetailsToSend(ClientCode       : string;
-                                                  var FileName     : String;
-                                                  var ClientEmail  : String;
-                                                  var ClientName   : String;
-                                                  var PracCode     : String;
-                                                  var CountryCode  : String;
-                                                  var PracPass     : String);
+procedure TWebCiCoClient.GetAdminDetails(ClientCode      : string;
+                                         var PracCode    : String;
+                                         var PracPass    : String;
+                                         var CountryCode : String);
 var
   ClientFileRec : pClient_File_Rec;
-  fClientObj    : TClientObj;
 begin
   ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(ClientCode);
 
   if Assigned(ClientFileRec) then
   begin
-    GetBooksDetailsToSend(ClientCode, FileName, ClientEmail, ClientName, PracCode, CountryCode);
-
     PracCode    := AdminSystem.fdFields.fdBankLink_Code;
     PracPass    := AdminSystem.fdFields.fdBankLink_Connect_Password;
     CountryCode := CountryText(AdminSystem.fdFields.fdCountry);
@@ -503,8 +541,24 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetBooksDetailsToSend(ClientCode      : string;
-                                               var FileName    : string;
+procedure TWebCiCoClient.GetClientDetails(ClientCode      : string;
+                                          var ClientEmail : string;
+                                          var ClientName  : string);
+var
+  fClientObj    : TClientObj;
+begin
+  fClientObj := TClientObj.Create;
+  Try
+    fClientObj.Open(ClientCode, FILEEXTN);
+    ClientEmail := fClientObj.clFields.clClient_EMail_Address;
+    ClientName  := fClientObj.clFields.clName;
+  Finally
+    FreeAndNil(fClientObj);
+  End;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.GetClientExtraDetails(ClientCode      : string;
                                                var ClientEmail : string;
                                                var ClientName  : string;
                                                var PracCode    : String;
@@ -515,7 +569,6 @@ begin
   fClientObj := TClientObj.Create;
   Try
     fClientObj.Open(ClientCode, FILEEXTN);
-    FileName    := DataDir + ClientCode + FILEEXTN;
     ClientEmail := fClientObj.clFields.clClient_EMail_Address;
     ClientName  := fClientObj.clFields.clName;
     PracCode    := fClientObj.clFields.clPractice_Code;
@@ -524,6 +577,8 @@ begin
     FreeAndNil(fClientObj);
   End;
 end;
+
+
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFile(HttpAddress : string;
@@ -624,6 +679,49 @@ var
   NewClientStatusItem : TClientStatusItem;
   LocalNode : IXMLNode;
   StatusInt : integer;
+  StringDate : String;
+  LastChange : TDateTime;
+
+  //-------------------------------------------------------
+  function ServerToDateTime(InString : String) : TDateTime;
+  var
+    Year : word;
+    Month : word;
+    Day : word;
+    Hour : word;
+    Minute : word;
+    Second : word;
+    StartStr : Integer;
+    EndStr   : Integer;
+
+    //------------------------------------------------
+    Function GetNextNumber(Search : String) : integer;
+    begin
+      EndStr := Pos(Search, RightStr(InString, Length(InString) - (StartStr-1))) + StartStr-2;
+      Result := StrToInt(MidStr(InString, StartStr, EndStr-StartStr+1));
+      StartStr := EndStr + 2;
+    end;
+  begin
+    StartStr := 1;
+
+    Try
+      Day := GetNextNumber('/');
+      Month := GetNextNumber('/');
+      Year := GetNextNumber(' ');
+      Result := EncodeDate(Year, Month, Day);
+
+      Hour := GetNextNumber(':');
+      Minute := GetNextNumber(':');
+      Second := GetNextNumber(' ');
+
+      if UpperCase(MidStr(InString, StartStr, 1)) = 'P' then
+        Hour := Hour + 12;
+
+      Result := Result + EncodeTime(Hour, Minute, Second, 0);
+    except
+      RaiseHttpError('Cico - Error in XML Server Responce! Last Change Date Invalid.', 303);
+    End;
+  end;
 begin
   LocalNode := CurrentNode.ChildNodes.FindNode(XML_STATUS_CLIENT);
 
@@ -633,6 +731,7 @@ begin
     NewClientStatusItem.ClientCode := LocalNode.Attributes[XML_STATUS_CLIENT_CODE];
     NewClientStatusItem.ClientName := LocalNode.Attributes[XML_STATUS_CLIENT_NAME];
 
+    // Status Code
     if TryStrToInt(LocalNode.Attributes[XML_STATUS_FILE_ATTR_STATUSCODE], StatusInt) then
     begin
       if (StatusInt >= ord(cfsNoFile)) and
@@ -643,6 +742,17 @@ begin
     end
     else
       RaiseHttpError('Cico - Error in XML Server Responce! Status Code Invalid.', 303);
+
+    // Last Change Date
+    if NewClientStatusItem.StatusCode = cfsNoFile  then
+    begin
+      NewClientStatusItem.LastChange := 0;
+    end
+    else
+    begin
+      StringDate := LocalNode.Attributes[XML_STATUS_LAST_CHANGE_DATE];
+      NewClientStatusItem.LastChange := ServerToDateTime(StringDate);
+    end;
 
     fServerClientStatusList.Add(NewClientStatusItem);
 
@@ -703,6 +813,9 @@ var
 begin
   fProcessState := psChangePass;
 
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, 'Called Set Books User Password.');
+
   try
     HttpAddress := 'http://posttestserver.com/post.php';
 
@@ -727,32 +840,38 @@ procedure TWebCiCoClient.GetClientFileStatus(var ServerResponce : TServerResponc
                                              ASyncCall : Boolean = False);
 var
   HttpAddress  : string;
-  FileName     : String;
-  BankLinkCode : String;
-  Guid         : TGuid;
-  ClientEmail  : String;
-  ClientName   : String;
   PracCode     : String;
-  CountryCode  : String;
   PracPass     : String;
+  CountryCode  : String;
   Index        : Integer;
   NewClientStatusItem : TClientStatusItem;
 begin
   fProcessState := psGetStatus;
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, 'Called Client File Status.');
 
   try
     ClearHttpHeader;
 
     HttpAddress := 'http://development.banklinkonline.com/cico.status';
 
-    AddHttpHeaderInfo('CountryCode',      'NZ');
-    AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-    AddHttpHeaderInfo('PracticePassword', '123');
+    GetAdminDetails(ClientCode, PracCode, PracPass, CountryCode);
+
+    {$IFDEF WebCiCoStatic}
+      AddHttpHeaderInfo('CountryCode',      'NZ');
+      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
+      AddHttpHeaderInfo('PracticePassword', '123');
+    {$ELSE}
+      AddHttpHeaderInfo('CountryCode',      CountryCode);
+      AddHttpHeaderInfo('PracticeCode',     PracCode);
+      AddHttpHeaderInfo('PracticePassword', PracPass);
+    {$ENDIF}
+
     AddHttpHeaderInfo('ClientCode',       ClientCode);
     AddHttpHeaderInfo('ClientName',       '');
     AddHttpHeaderInfo('ClientEmail',      '');
     AddHttpHeaderInfo('ClientPassword',   '');
-
     AppendHttpHeaderInfo;
 
     FASyncCall := ASyncCall;
@@ -771,6 +890,7 @@ begin
         NewClientStatusItem.ClientCode := fServerClientStatusList.Items[Index].ClientCode;
         NewClientStatusItem.ClientName := fServerClientStatusList.Items[Index].ClientName;
         NewClientStatusItem.StatusCode := fServerClientStatusList.Items[Index].StatusCode;
+        NewClientStatusItem.LastChange := fServerClientStatusList.Items[Index].LastChange;
         ClientStatusList.Add(NewClientStatusItem);
       end;
     end;
@@ -778,47 +898,26 @@ begin
   finally
     fProcessState := psNothing;
   end;
-
-  {HttpAddress := 'http://development.banklinkonline.com/cico.status';
-
-  PracPass := '';
-  if fIsBooks then
-    GetBooksDetailsToSend(ClientCode, FileName, ClientEmail, ClientName,
-                          CountryCode, PracCode)
-  else
-    GetPracticeDetailsToSend(ClientCode, FileName, ClientEmail, ClientName,
-                             PracCode, CountryCode, PracPass);
-
-  ClearHttpHeader;
-
-  AddHttpHeaderInfo('CountryCode',      CountryCode);
-  AddHttpHeaderInfo('PracticeCode',     PracCode);
-  AddHttpHeaderInfo('PracticePassword', PracPass);
-  AddHttpHeaderInfo('ClientCode',       ClientCode);
-  AddHttpHeaderInfo('ClientName',       ClientName);
-  AddHttpHeaderInfo('ClientEmail',      ClientEmail);
-  AddHttpHeaderInfo('ClientPassword',   fClientPassword);
-
-  AppendHttpHeaderInfo;
-
-  HttpSendRequest(HttpAddress);}
 end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromPractice(ClientCode : string;
-                                                var Email: string;
+                                                var ClientEmail: string;
                                                 var ServerResponce : TServerResponce);
 var
   HttpAddress : String;
-  FileName    : String;
   PracCode    : String;
-  CountryCode : String;
   PracPass    : String;
+  CountryCode : String;
   ClientName  : String;
   Guid        : TGuid;
   StrGuid     : String;
 begin
   fProcessState := psUploadPrac;
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, 'Called Upload File From Practice.');
+
   try
     ClearHttpHeader;
 
@@ -827,50 +926,34 @@ begin
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
 
-    GetPracticeDetailsToSend(ClientCode, FileName, Email, ClientName,
-                             PracCode, CountryCode, PracPass);
+    GetAdminDetails(ClientCode, PracCode, PracPass, CountryCode);
+    GetClientDetails(ClientCode, ClientEmail, ClientName);
+
+    {$IFDEF WebCiCoStatic}
+      AddHttpHeaderInfo('CountryCode',      'NZ');
+      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
+      AddHttpHeaderInfo('PracticePassword', '123');
+      AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
+    {$ELSE}
+      AddHttpHeaderInfo('CountryCode',      CountryCode);
+      AddHttpHeaderInfo('PracticeCode',     PracCode);
+      AddHttpHeaderInfo('PracticePassword', PracPass);
+      AddHttpHeaderInfo('ClientEmail',      ClientEmail);
+    {$ENDIF}
 
     AddHttpHeaderInfo('FileGuid',         StrGuid);
-    AddHttpHeaderInfo('CountryCode',      'NZ');
-    AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-    AddHttpHeaderInfo('PracticePassword', '123');
     AddHttpHeaderInfo('ClientCode',       ClientCode);
     AddHttpHeaderInfo('ClientName',       ClientName);
-    AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     AddHttpHeaderInfo('ClientPassword',   '');
 
-    UploadFile(HttpAddress, FileName);
+    UploadFile(HttpAddress, DataDir + ClientCode + FILEEXTN);
 
     WaitForProcess;
 
-    Email        := '';
     ServerResponce := fServerResponce;
   finally
     fProcessState := psNothing;
   end;
-
-  {if not FileExists(FileName) then
-    Exit;
-
-  HttpAddress := 'http://development.banklinkonline.com/cico.upload';
-
-  GetPracticeDetailsToSend(ClientCode, FileName, Email, ClientName,
-                           PracCode, CountryCode, PracPass);
-
-  Guid := CreateAndSaveGuid(ClientCode);
-
-  ClearHttpHeader;
-
-  AddHttpHeaderInfo('CountryCode',      CountryCode);
-  AddHttpHeaderInfo('PracticeCode',     PracCode);
-  AddHttpHeaderInfo('PracticePassword', PracPass);
-  AddHttpHeaderInfo('ClientCode',       ClientCode);
-  AddHttpHeaderInfo('ClientName',       ClientName);
-  AddHttpHeaderInfo('ClientEmail',      Email);
-  AddHttpHeaderInfo('ClientPassword',   '');
-  AddHttpHeaderInfo('FileGuid',         TrimedGuid(Guid));
-
-  UploadFile(Filename, HttpAddress);}
 end;
 
 //------------------------------------------------------------------------------
@@ -879,12 +962,10 @@ procedure TWebCiCoClient.DownloadFileToPractice(ClientCode : string;
                                                 var ServerResponce : TServerResponce);
 var
   HttpAddress : String;
-  FileName    : String;
   PracCode    : String;
-  CountryCode : String;
   PracPass    : String;
+  CountryCode : String;
   ClientName  : String;
-  Email       : String;
   FileCrc     : String;
   FileSize    : Integer;
   Guid        : TGuid;
@@ -892,6 +973,10 @@ var
   TempPath    : String;
 begin
   fProcessState := psDownloadPrac;
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, 'Called Download File To Practice.');
+
   try
     TempBk5File := '';
     ClearHttpHeader;
@@ -901,16 +986,22 @@ begin
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
 
-    GetPracticeDetailsToSend(ClientCode, FileName, Email, ClientName,
-                             PracCode, CountryCode, PracPass);
+    GetAdminDetails(ClientCode, PracCode, PracPass, CountryCode);
+
+    {$IFDEF WebCiCoStatic}
+      AddHttpHeaderInfo('CountryCode',      'NZ');
+      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
+      AddHttpHeaderInfo('PracticePassword', '123');
+    {$ELSE}
+      AddHttpHeaderInfo('CountryCode',      CountryCode);
+      AddHttpHeaderInfo('PracticeCode',     PracCode);
+      AddHttpHeaderInfo('PracticePassword', PracPass);
+    {$ENDIF}
 
     AddHttpHeaderInfo('FileGuid',         StrGuid);
-    AddHttpHeaderInfo('CountryCode',      'NZ');
-    AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-    AddHttpHeaderInfo('PracticePassword', '123');
     AddHttpHeaderInfo('ClientCode',       ClientCode);
-    AddHttpHeaderInfo('ClientName',       ClientName);
-    AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
+    AddHttpHeaderInfo('ClientName',       '');
+    AddHttpHeaderInfo('ClientEmail',      '');
     AddHttpHeaderInfo('ClientPassword',   '');
 
     AppendHttpHeaderInfo;
@@ -918,7 +1009,7 @@ begin
     SetLength(TempPath,Max_Path);
     SetLength(TempPath,GetTempPath(Max_Path,Pchar(TempPath)));
 
-    TempBk5File := TempPath + ExtractFilename(FileName);
+    TempBk5File := TempPath + ClientCode + '(' + StrGuid + ')' + FILEEXTN;
     HttpGetFile(HttpAddress, TempBk5File);
 
     WaitForProcess;
@@ -934,25 +1025,6 @@ begin
   finally
     fProcessState := psNothing;
   end;
-
-  {HttpAddress := 'http://development.banklinkonline.com/cico.download';
-
-  GetPracticeDetailsToSend(ClientCode, FileName, Email, ClientName,
-                           PracCode, CountryCode, PracPass);
-
-  ClearHttpHeader;
-
-  AddHttpHeaderInfo('CountryCode',      CountryCode);
-  AddHttpHeaderInfo('PracticeCode',     PracCode);
-  AddHttpHeaderInfo('PracticePassword', PracPass);
-  AddHttpHeaderInfo('ClientCode',       ClientCode);
-  AddHttpHeaderInfo('ClientName',       ClientName);
-  AddHttpHeaderInfo('ClientEmail',      Email);
-  AddHttpHeaderInfo('ClientPassword',   '');
-
-  AppendHttpHeaderInfo;
-
-  HttpGetFile(HttpAddress, FileName);}
 end;
 
 //------------------------------------------------------------------------------
@@ -971,6 +1043,10 @@ var
   StrGuid      : String;
 begin
   fProcessState := psUploadBooks;
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, 'Called Upload File From Books.');
+
   try
     ClearHttpHeader;
 
@@ -979,20 +1055,29 @@ begin
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
 
-    GetBooksDetailsToSend(ClientCode, FileName, ClientEmail, ClientName, CountryCode, PracCode);
+    GetClientExtraDetails(ClientCode, ClientEmail, ClientName, PracCode, CountryCode);
+
+    {$IFDEF WebCiCoStatic}
+      AddHttpHeaderInfo('CountryCode',      'NZ');
+      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
+      AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
+      AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
+    {$ELSE}
+      AddHttpHeaderInfo('CountryCode',      CountryCode);
+      AddHttpHeaderInfo('PracticeCode',     PracCode);
+      AddHttpHeaderInfo('ClientEmail',      ClientEmail);
+      AddHttpHeaderInfo('ClientPassword',   '');
+    {$ENDIF}
 
     AddHttpHeaderInfo('FileGuid',         StrGuid);
-    AddHttpHeaderInfo('CountryCode',      'NZ');
-    AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '');
     AddHttpHeaderInfo('ClientCode',       ClientCode);
     AddHttpHeaderInfo('ClientName',       ClientName);
-    AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
-    AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
+
     if IsCopy then
-      AddHttpHeaderInfo('Copy',           '1')
+      AddHttpHeaderInfo('Copy', '1')
     else
-      AddHttpHeaderInfo('Copy',           '0');
+      AddHttpHeaderInfo('Copy', '0');
 
     UploadFile(HttpAddress, FileName);
 
@@ -1002,24 +1087,6 @@ begin
   finally
     fProcessState := psNothing;
   end;
-  {HttpAddress := 'http://development.banklinkonline.com/cico.upload';
-
-  GetBooksDetailsToSend(ClientCode, FileName, ClientEmail, ClientName, CountryCode, PracCode);
-
-  Guid := GetClientGuid(ClientCode);
-
-  ClearHttpHeader;
-
-  AddHttpHeaderInfo('CountryCode',      CountryCode);
-  AddHttpHeaderInfo('PracticeCode',     PracCode);
-  AddHttpHeaderInfo('PracticePassword', '');
-  AddHttpHeaderInfo('ClientCode',       ClientCode);
-  AddHttpHeaderInfo('ClientName',       ClientName);
-  AddHttpHeaderInfo('ClientEmail',      ClientEmail);
-  AddHttpHeaderInfo('ClientPassword',   fClientPassword);
-  AddHttpHeaderInfo('FileGuid',         TrimedGuid(Guid));
-
-  UploadFile(Filename, HttpAddress);}
 end;
 
 //------------------------------------------------------------------------------
@@ -1039,8 +1106,13 @@ var
   Guid         : TGuid;
   StrGuid      : String;
   TempPath     : String;
+  ClientPass   : String;
 begin
   fProcessState := psDownloadBooks;
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, 'Called Download File To Books.');
+
   try
     TempBk5File := '';
     ClearHttpHeader;
@@ -1050,23 +1122,36 @@ begin
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
 
-    GetBooksDetailsToSend(ClientCode, FileName, ClientEmail, ClientName, CountryCode, PracCode);
+    // Todo Need to get details with out client file or Admin System
+    ClientEmail := '';
+    ClientPass  := '';
+    CountryCode := '';
+    PracCode    := '';
+
+    {$IFDEF WebCiCoStatic}
+      AddHttpHeaderInfo('CountryCode',      'NZ');
+      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
+      AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
+      AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
+    {$ELSE}
+      AddHttpHeaderInfo('CountryCode',      CountryCode);
+      AddHttpHeaderInfo('PracticeCode',     PracCode);
+      AddHttpHeaderInfo('ClientEmail',      ClientEmail);
+      AddHttpHeaderInfo('ClientPassword',   '');
+    {$ENDIF}
 
     AddHttpHeaderInfo('FileGuid',         StrGuid);
-    AddHttpHeaderInfo('CountryCode',      'NZ');
-    AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
     AddHttpHeaderInfo('PracticePassword', '');
     AddHttpHeaderInfo('ClientCode',       ClientCode);
     AddHttpHeaderInfo('ClientName',       ClientName);
-    AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
-    AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
 
     AppendHttpHeaderInfo;
 
     SetLength(TempPath,Max_Path);
     SetLength(TempPath,GetTempPath(Max_Path,Pchar(TempPath)));
 
-    TempBk5File := TempPath + '\' + ExtractFilename(FileName);
+    FileName    := ClientCode + FILEEXTN;
+    TempBk5File := TempPath + ClientCode + '(' + StrGuid + ')' + FILEEXTN;
     HttpGetFile(HttpAddress, TempBk5File);
 
     WaitForProcess;
@@ -1082,27 +1167,13 @@ begin
   finally
     fProcessState := psNothing;
   end;
-  {HttpAddress := 'http://development.banklinkonline.com/cico.download';
-
-  GetBooksDetailsToSend(ClientCode, FileName, ClientEmail, ClientName, CountryCode, PracCode);
-  ClearHttpHeader;
-
-  AddHttpHeaderInfo('CountryCode',      CountryCode);
-  AddHttpHeaderInfo('PracticeCode',     PracCode);
-  AddHttpHeaderInfo('PracticePassword', '');
-  AddHttpHeaderInfo('ClientCode',       ClientCode);
-  AddHttpHeaderInfo('ClientName',       ClientName);
-  AddHttpHeaderInfo('ClientEmail',      ClientEmail);
-  AddHttpHeaderInfo('ClientPassword',   fClientPassword);
-
-  AppendHttpHeaderInfo;
-
-  HttpGetFile(HttpAddress, Filename);}
 end;
 
 //------------------------------------------------------------------------------
 initialization
   fWebCiCoClient := nil;
+  DebugMe := DebugUnit(UNIT_NAME);
+  WebClient.DebugMe := DebugMe;
 
 //------------------------------------------------------------------------------
 finalization
