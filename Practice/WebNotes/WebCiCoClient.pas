@@ -31,6 +31,7 @@ type
   TProcessState = (psNothing, psChangePass, psGetStatus, psUploadBooks, psDownloadBooks, psUploadPrac, psDownloadPrac);
   TClientFileStatus = (cfsNoFile, cfsUploadedPractice, cfsDownloadedBooks, cfsUploadedBooks, cfsCopyUploadedBooks, cfsDownloadedPractice);
 
+  //----------------------------------------------------------------------------
   TClientStatusItem = class
   private
     fClientCode : string;
@@ -47,7 +48,7 @@ type
     property StatusDesc : string read GetStatusDesc;
   end;
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   TClientStatusList = class(TList)
   protected
     function Get(Index: Integer): TClientStatusItem;
@@ -252,8 +253,8 @@ begin
     cfsNoFile             : Result := 'No File';
     cfsUploadedPractice   : Result := 'Uploaded by PRACTICE';
     cfsDownloadedPractice : Result := 'Downloaded by PRACTICE';
-    cfsUploadedBooks      : Result := 'Downloaded by BOOKS';
-    cfsDownloadedBooks    : Result := 'Uploaded by BOOKS';
+    cfsUploadedBooks      : Result := 'Uploaded by BOOKS';
+    cfsDownloadedBooks    : Result := 'Downloaded by BOOKS';
     cfsCopyUploadedBooks  : Result := 'COPY Uploaded by BOOKS';
   end;
 end;
