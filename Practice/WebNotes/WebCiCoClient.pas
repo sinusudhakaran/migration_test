@@ -1053,7 +1053,6 @@ procedure TWebCiCoClient.UploadFileFromBooks(ClientCode : string;
                                              var ServerResponce : TServerResponce);
 var
   HttpAddress  : string;
-  FileName     : String;
   ClientEmail  : String;
   ClientName   : String;
   PracCode     : String;
@@ -1098,7 +1097,7 @@ begin
     else
       AddHttpHeaderInfo('Copy', '0');
 
-    UploadFile(HttpAddress, FileName);
+    UploadFile(HttpAddress, DataDir + ClientCode + FILEEXTN);
 
     WaitForProcess;
 
