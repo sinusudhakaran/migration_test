@@ -604,7 +604,7 @@ var
   FileLength   : Integer;
 begin
   if not FileExists(Filename) then
-    Exit;
+    RaiseHttpError('Can''t open AttachedFile. (' + Filename + ')', 302);
 
   FileInfo(Filename, FileCRC, FileLength);
 
@@ -666,10 +666,10 @@ begin
   try
     CurrentNode := XMLDoc.DocumentElement;
     if CurrentNode.NodeName <> XML_STATUS_HEADNAME then
-      Exit;
+      RaiseHttpError('Cico - Error in XML Server Responce!', 303);
 
     if XMLDoc.DocumentElement.ChildNodes.Count = 0 then
-      Exit;
+      RaiseHttpError('Cico - Error in XML Server Responce!', 303);
 
     fServerResponce.Status       := GetValueFromNode(CurrentNode, XML_STATUS_CODE);
     fServerResponce.Description  := GetValueFromNode(CurrentNode, XML_STATUS_DESC);
