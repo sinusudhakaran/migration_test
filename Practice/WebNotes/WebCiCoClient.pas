@@ -26,10 +26,27 @@ uses
 
 {$M+}
 type
-  TDirectionIndicator = (dirFromClient, dirFromServer);
-  TTransferStatus = (trsStartTrans, trsTransInProgress, trsEndTrans);
-  TProcessState = (psNothing, psChangePass, psGetStatus, psUploadBooks, psDownloadBooks, psUploadPrac, psDownloadPrac);
-  TClientFileStatus = (cfsNoFile, cfsUploadedPractice, cfsDownloadedBooks, cfsUploadedBooks, cfsCopyUploadedBooks, cfsDownloadedPractice);
+  TDirectionIndicator = (dirFromClient,
+                         dirFromServer);
+
+  TTransferStatus = (trsStartTrans,
+                     trsTransInProgress,
+                     trsEndTrans);
+
+  TProcessState = (psNothing,
+                   psChangePass,
+                   psGetStatus,
+                   psUploadBooks,
+                   psDownloadBooks,
+                   psUploadPrac,
+                   psDownloadPrac);
+
+  TClientFileStatus = (cfsNoFile,
+                       cfsUploadedPractice,
+                       cfsDownloadedBooks,
+                       cfsUploadedBooks,
+                       cfsCopyUploadedBooks,
+                       cfsDownloadedPractice);
 
   //----------------------------------------------------------------------------
   TClientStatusItem = class
@@ -135,29 +152,29 @@ type
                              Text: String); Override;
     procedure DoHttpEndTransfer(Sender: TObject;
                                 Direction: Integer); Override;
-
     procedure DoHttpHeader(Sender: TObject;
                            const Field: String;
                            const Value: String); Override;
 
+    // Get Details Required by Service
     procedure GetAdminDetails(ClientCode       : string;
                               var PracCode     : String;
                               var PracPass     : String;
                               var CountryCode  : String);
-
     procedure GetClientDetails(ClientCode      : string;
                                var ClientEmail : string;
                                var ClientName  : string);
-
     procedure GetClientExtraDetails(ClientCode      : string;
                                     var ClientEmail : string;
                                     var ClientName  : string;
                                     var PracCode    : String;
                                     var CountryCode : String);
 
+    // Generic Upload File
     procedure UploadFile(HttpAddress : string;
                          FileName : string);
 
+    // Server Responce Handling
     function GetValueFromNode(ParentNode : IXMLNode; NodeName : String) : String;
     procedure GetUpdateServerReply;
     procedure GetDetailsFromXML;
@@ -579,8 +596,6 @@ begin
   End;
 end;
 
-
-
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFile(HttpAddress : string;
                                     FileName : string);
@@ -675,13 +690,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.BuildStatusListFromXml(const CurrentNode : IXMLNode);
 var
-  FileNode    : IXMLNode;
-  ClientIndex : integer;
   NewClientStatusItem : TClientStatusItem;
   LocalNode : IXMLNode;
   StatusInt : integer;
   StringDate : String;
-  LastChange : TDateTime;
 
   //-------------------------------------------------------
   function ServerToDateTime(InString : String) : TDateTime;
@@ -703,6 +715,7 @@ var
       StartStr := EndStr + 2;
     end;
   begin
+    Result := 0;
     StartStr := 1;
 
     Try
@@ -765,9 +778,9 @@ end;
 procedure TWebCiCoClient.WaitForProcess;
 var
   StartTick : Longword;
-  TimeOut : integer;
+  TimeOut   : Longword;
 begin
-  TimeOut := (HttpRequester.Timeout*1000);
+  TimeOut   := (HttpRequester.Timeout * 1000);
   StartTick := GetTickCount;
   while (fProcessState <> psNothing) do
   begin
@@ -966,7 +979,6 @@ var
   PracCode    : String;
   PracPass    : String;
   CountryCode : String;
-  ClientName  : String;
   FileCrc     : String;
   FileSize    : Integer;
   Guid        : TGuid;
@@ -1035,7 +1047,6 @@ procedure TWebCiCoClient.UploadFileFromBooks(ClientCode : string;
 var
   HttpAddress  : string;
   FileName     : String;
-  BankLinkCode : String;
   ClientEmail  : String;
   ClientName   : String;
   PracCode     : String;
@@ -1097,7 +1108,6 @@ procedure TWebCiCoClient.DownloadFileToBooks(ClientCode : string;
 var
   HttpAddress  : string;
   FileName     : String;
-  BankLinkCode : String;
   ClientEmail  : String;
   ClientName   : String;
   PracCode     : String;
