@@ -870,7 +870,14 @@ begin
 
     HttpAddress := 'http://development.banklinkonline.com/cico.status';
 
-    GetAdminDetails(ClientCode, PracCode, PracPass, CountryCode);
+    if Assigned(AdminSystem) then
+    begin
+      GetAdminDetails(ClientCode, PracCode, PracPass, CountryCode);
+    end
+    else
+    begin
+      // Todo Get Books Details
+    end;
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo('CountryCode',      'NZ');
