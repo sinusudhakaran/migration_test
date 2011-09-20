@@ -547,17 +547,10 @@ procedure TWebCiCoClient.GetAdminDetails(ClientCode      : string;
                                          var PracCode    : String;
                                          var PracPass    : String;
                                          var CountryCode : String);
-var
-  ClientFileRec : pClient_File_Rec;
 begin
-  ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(ClientCode);
-
-  if Assigned(ClientFileRec) then
-  begin
-    PracCode    := AdminSystem.fdFields.fdBankLink_Code;
-    PracPass    := AdminSystem.fdFields.fdBankLink_Connect_Password;
-    CountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-  end;
+  PracCode    := AdminSystem.fdFields.fdBankLink_Code;
+  PracPass    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+  CountryCode := CountryText(AdminSystem.fdFields.fdCountry);
 end;
 
 //------------------------------------------------------------------------------
