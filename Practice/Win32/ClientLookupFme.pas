@@ -76,7 +76,7 @@ type
   //objects so that access is faster
   pIntermediateDataRec = ^TIntermediateDataRec;
   TIntermediateDataRec = record
-    imCode    : string[10];
+    imCode    : string[20];
     imName    : string[60];
     imGroupID : integer;
     imSortKey : string[10];
@@ -2137,11 +2137,11 @@ begin
            ( TargetCanvas.Brush.Color <> clHighlight) then
           TargetCanvas.Font.Color := clBlue;
       end;
-      if Assigned(pIDRec) then begin
-        if FUsingBankLinkOnline and (not pIDRec.imHasGUID) then
-          //Gray out
-          TargetCanvas.Font.Color := clGrayText;
-      end;
+//      if Assigned(pIDRec) then begin
+//        if FUsingBankLinkOnline and (not pIDRec.imHasGUID) then
+//          //Gray out
+//          TargetCanvas.Font.Color := clGrayText;
+//      end;
     end;
   end;
 end;

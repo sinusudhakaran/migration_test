@@ -15,10 +15,11 @@ uses
   function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
   procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0);
   function SendClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
-                      var AEmail: string;
-                      IsScheduledReport: Boolean = False; Silent: Boolean = False;
-                      AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0) : Boolean; overload;
-  function SendClient(Code : string; Path : string; ASendMethod: byte = 0): Boolean; overload;
+                      var AEmail: string; IsScheduledReport: Boolean = False;
+                      Silent: Boolean = False; AllowMultiplePwdFiles: Boolean = False;
+                      ASendMethod: byte = 0; FlagReadOnly: boolean = true) : Boolean; overload;
+  function SendClient(Code : string; Path : string; ASendMethod: byte = 0;
+                      FlagReadOnly: boolean = true): Boolean; overload;
   function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
                          IsScheduledReports: Boolean = False; ASendMethod: byte = 0) : boolean;
   function CheckInRemoteClient( filename : string) : boolean;
@@ -1314,9 +1315,9 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendPracticeClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
-  var AEmail: string;
-  IsScheduledReport: Boolean = False; Silent: Boolean = False;
-  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
+  var AEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0;
+  FlagReadOnly: Boolean = True): Boolean;
 const
   ThisMethodName = 'SendPracticeClient';
 var
@@ -1458,10 +1459,13 @@ begin
         raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
       end;
 
+      //Set to read only or offsite in practice
       CFRec.cfCurrent_User := CurrUser.LRN;
       if TempClientIsOffsite then
+        //Offsite
         CFRec.cfFile_Status := fsOffsite
-      else
+      else if FlagReadOnly then
+        //Read Only
         CFRec.cfFile_Status := fsCheckedOut;
 
       //Update send method
@@ -1487,9 +1491,9 @@ begin
 
   case ASendMethod of
     ftmNone,
-    ftmFile: Msg := Format('Check Out %s to %s succeeded',[Code, RemoteFileName]);
-//    smBankLinkOnline      : Msg := Format('Check Out %s to BankLink Online ''%s\%s'' succeeded',
-//                                          [Code, AdminSystem.fdFields.fdBankLink_Code, Code]);
+    ftmFile: Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
+    ftmOnline      : Msg := Format('Send %s to BankLink Online ''%s\%s'' succeeded',
+                                   [Code, AdminSystem.fdFields.fdBankLink_Code, Code]);
   end;
   LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
   if not IsScheduledReport then
@@ -1499,7 +1503,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendBooksClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
   var AEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
-  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
+  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0; FlagReadOnly: boolean = true): Boolean;
 const
   ThisMethodName = 'SendBooksClient';
 var
@@ -1620,20 +1624,22 @@ begin
   end;
 
   //Backup exists, remote file has been crc checked
-  OpenAClient(Code, TempClient, true, false, true);
-  if Assigned(TempClient) then begin
-    if not TempClient.clFields.clFile_Read_Only then begin
-      //Decrement the file save count so it matches the checked-out file
-      Dec(TempClient.clFields.clFile_Save_Count);
-      //Mark the local file as read only
-      TempClient.clFields.clFile_Read_Only := true;
-      //Force to save so that read only flag is saved
-      CloseAClient(TempClient, True);
+  if FlagReadOnly then begin
+    OpenAClient(Code, TempClient, true, false, true);
+    if Assigned(TempClient) then begin
+      if not TempClient.clFields.clFile_Read_Only then begin
+        //Decrement the file save count so it matches the checked-out file
+        Dec(TempClient.clFields.clFile_Save_Count);
+        //Mark the local file as read only
+        TempClient.clFields.clFile_Read_Only := true;
+        //Force to save so that read only flag is saved
+        CloseAClient(TempClient, True);
+      end else
+        CloseAClient( TempClient);
     end else
-      CloseAClient( TempClient);
-  end else
-    LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' Could not mark ' +
-                                     Code + ' as read-only');
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' Could not mark ' +
+                                       Code + ' as read-only');
+  end;
 
   Result := True;
   Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
@@ -1647,7 +1653,8 @@ end;
 function SendClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
   var AEmail: string;
   IsScheduledReport: Boolean = False; Silent: Boolean = False;
-  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0): Boolean;
+  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0;
+  FlagReadOnly: boolean = true): Boolean;
 const
   ThisMethodName = 'SendClient';
 begin
@@ -1664,7 +1671,8 @@ begin
     ProgressFrm.PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
     Result := SendPracticeClient(Code, Path, ProgressFrm, AEmail,
                                  IsScheduledReport, Silent,
-                                 AllowMultiplePwdFiles, ASendMethod)
+                                 AllowMultiplePwdFiles, ASendMethod,
+                                 FlagReadOnly)
   end else
     //Books Client File
     Result := SendBooksClient(Code, Path, ProgressFrm, AEmail,
@@ -1679,7 +1687,8 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
-function SendClient(Code : string; Path : string; ASendMethod: byte = 0) : Boolean;
+function SendClient(Code : string; Path : string; ASendMethod: byte = 0;
+  FlagReadOnly: boolean = true) : Boolean;
 const
   ThisMethodName = 'SendClient';
 var
@@ -1692,12 +1701,13 @@ begin
     Exit;
 
   //Send client file for scheduled reports
-  Result := SendPracticeClient(Code, Path, nil, TempStr, True, True, False, ASendMethod);
+  Result := SendPracticeClient(Code, Path, nil, TempStr, True, True, False, ASendMethod, True);
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 function GetEmailAddress(ACodeList: TStringList): string;
+//Only returns an email address if they are the same for all client files sent
 var
   i: integer;
   LastEmail: string;
@@ -1729,6 +1739,7 @@ var
   ProgressFrm: TfrmChkProgress;
   Failures: Integer;
   EMail: string;
+  FlagReadOnly: Boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -1744,7 +1755,7 @@ begin
       if CodesToSend <> '' then
         CodeList.DelimitedText := CodesToSend
       else begin
-        CodeList.DelimitedText := SelectCodesToSend('Select Client(s) to Send', ASendMethod);
+        CodeList.DelimitedText := SelectCodesToSend('Select Client(s) to Send', ASendMethod, '', FlagReadOnly);
         if CodeList.DelimitedText = '' then
           Exit;
       end;
@@ -1857,8 +1868,18 @@ begin
    end;
 
    if (ASendMethod = ftmOnline) then
+   try
      //Download the client file from BankLink Online to the temp folder
      BankLinkOnlineMgr.DownloadClient(Code, ProgressFrm, RemoteFilename);
+   except
+      on E : EDownloadFailed do begin
+         Msg := 'Download from BankLink Online failed for ' + CODE + '.  Error: ' + E.Message;
+         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
+         if not IsScheduledReports then
+           ProgressFrm.mProgress.Lines.Add( Msg);
+         Exit;
+      end;
+   end;
 
    //see if the file exists, this is in case the wrapper code differs to the
    //file name
@@ -2082,8 +2103,8 @@ begin
          Msg := '';
          try
            GetClientWrapper( LocalFilename, WrapperOfExistingFile, False);
-           //Test if checked-out
-           if not WrapperOfExistingFile.wRead_Only then
+           //Test if checked-out (BankLink Online allows overwriting writable Client files in Books
+           if (ASendMethod <> ftmOnline) and not WrapperOfExistingFile.wRead_Only then
              Msg := Format('**A writable copy of file %s already exists.  Cannot check in',[LocalFileName]);
 
            //Test if file older than current

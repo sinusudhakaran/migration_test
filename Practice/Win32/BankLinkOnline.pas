@@ -27,7 +27,7 @@ type
     destructor Destroy; override;
     procedure RefreshStatus;
     function UploadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
-                          Silent: boolean; var AEmail: string): boolean;
+                          Silent: boolean; var AEmail: string; IsCopy: Boolean = False): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                             var ARemoteFileName: string; Silent: boolean = False): boolean;
     function GetStatus(AClientCode: string; FromWebService: boolean): TClientStatusItem;
@@ -47,7 +47,8 @@ uses
   CheckInOutFrm,
   LogUtil,
   YesNoDlg,
-  ClientWrapper;
+  ClientWrapper,
+  WinUtils;
 
 const
   UNIT_NAME = 'BankLinkOnline';
@@ -72,6 +73,18 @@ var
   StatusList: TClientStatusList;
   Status: TClientStatusItem;
   ServerResponce : TServerResponce;
+
+  procedure DoStatusCheck;
+  begin
+    case AAction of
+      oaPracticeUpload  : CheckPracticeUploadStatus(AClientCode, Status);
+      oaPracticeDownload: CheckPracticeDownloadStatus(AClientCode, Status);
+      oaBooksUpload     : CheckBooksUploadStatus(AClientCode, Status);
+      oaBooksDownload   : CheckBooksDownLoadStatus(AClientCode, Status);
+      oaBooksUploadCopy : CheckBooksUploadCopyStatus(AClientCode, Status);
+    end;
+  end;
+
 begin
   //Get client status from BankLink Online
   StatusList := TClientStatusList.Create;
@@ -89,18 +102,24 @@ begin
     Status := nil;
     if StatusList.Count > 0 then
       Status := StatusList.Items[0];
-
-    if Assigned(Status) then begin
-      case AAction of
-        oaPracticeUpload  : CheckPracticeUploadStatus(AClientCode, Status);
-        oaPracticeDownload: CheckPracticeDownloadStatus(AClientCode, Status);
-        oaBooksUpload     : CheckBooksUploadStatus(AClientCode, Status);
-        oaBooksDownload   : CheckBooksDownLoadStatus(AClientCode, Status);
-        oaBooksUploadCopy : CheckBooksUploadCopyStatus(AClientCode, Status);
+    if Assigned(Status) then
+      DoStatusCheck
+    else begin
+      //Create NoFile status responce
+      if ServerResponce.Status = '103' then begin
+        Status := TClientStatusItem.Create;
+        try
+          Status.ClientCode := 'AClientCode';
+          Status.ClientName := '';
+          Status.StatusCode := cfsNoFile;
+          DoStatusCheck;
+      finally
+        Status.Free;
       end;
     end else
       raise EUploadFailed.CreateFmt('Unable to get client file status for %s',
                                     [AClientCode]);
+    end;
   finally
     StatusList.Free;
   end;
@@ -108,20 +127,153 @@ end;
 
 procedure TBankLinkOnlineManager.CheckBooksDownLoadStatus(AClientCode: string;
   AStatus: TClientStatusItem);
+var
+  ReadOnly: Boolean;
+  Msg: string;
+  LocalFilename: string;
+  WrapperOfExistingFile: TClientWrapper;
 begin
+  //Get the read only status
+  LocalFileName := DATADIR + AClientCode + FILEEXTN;
+  if BKFileExists(LocalFileName) then begin
+    GetClientWrapper(LocalFilename, WrapperOfExistingFile, False);
+    ReadOnly := WrapperOfExistingFile.wRead_Only;
+  end else begin
+    ReadOnly := True; //If no file exists then assume Books has not been editing it! 
+  end;
 
+  if ReadOnly then begin
+    //Checked out
+    case AStatus.StatusCode of
+      cfsNoFile:
+        begin
+          Msg := Format('An error has occurred with client file %s on BankLink Online. ' +
+                        'Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsUploadedPractice: ; //OK
+      cfsDownloadedBooks: ; //Check save count???
+      cfsUploadedBooks: ; //OK
+      cfsCopyUploadedBooks: ; //OK
+      cfsDownloadedPractice:
+        begin
+          Msg := Format('The client file %s on BankLink Online is currently with ' +
+                        'your accountant. Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+    end;
+  end else begin
+    //Checked in
+    case AStatus.StatusCode of
+      cfsNoFile:
+        begin
+          Msg := Format('An error has occurred with client file %s on BankLink Online. ' +
+                        'Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsUploadedPractice:
+        begin
+          Msg := Format('The client file %s has been updated by your accountant. '+
+                        'Would you like to overwrite the client file in BankLink Books ' +
+                        'with the client file on BankLink Online?', [AClientCode]);
+          if AskYesNo('Update from BankLink Online', Msg, DLG_YES, 0) <> DLG_YES then
+            raise EUploadFailed.CreateFmt('The client file %s has been updated by your accountant.',
+                                          [AClientCode]);
+        end;
+      cfsDownloadedBooks: ; //OK
+      cfsUploadedBooks:
+        begin
+          Msg := Format('The client file %s on BankLink Online has already been ' +
+                        'updated to BankLink Books.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsCopyUploadedBooks: ; //OK
+      cfsDownloadedPractice:
+        begin
+          Msg := Format('The client file %s on BankLink Online is currently with ' +
+                        'your accountant. Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+    end;
+  end;
 end;
 
 procedure TBankLinkOnlineManager.CheckBooksUploadCopyStatus(
   AClientCode: string; AStatus: TClientStatusItem);
 begin
-
+  //Currently this is the same as Books Upload
+  CheckBooksUploadStatus(AClientCode, AStatus);
 end;
 
 procedure TBankLinkOnlineManager.CheckBooksUploadStatus(AClientCode: string;
   AStatus: TClientStatusItem);
+var
+  ReadOnly: Boolean;
+  Msg: string;
+  LocalFilename: string;
+  WrapperOfExistingFile: TClientWrapper;
 begin
+  //Get the read only status
+  LocalFileName := DATADIR + AClientCode + FILEEXTN;
+  if BKFileExists(LocalFileName) then begin
+    GetClientWrapper(LocalFilename, WrapperOfExistingFile, False);
+    ReadOnly := WrapperOfExistingFile.wRead_Only;
+  end else begin
+    Msg := Format('File not found %s.', [LocalFileName]);
+    raise EDownloadFailed.Create(Msg);
+  end;
 
+  if ReadOnly then begin
+    //Checked out
+    case AStatus.StatusCode of
+      cfsNoFile:
+        begin
+          Msg := Format('The client file %s on BankLink Online does not exist and ' +
+                        'cannot be sent. Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsUploadedPractice:
+        begin
+          Msg := Format('The client file %s on BankLink Online has been updated ' +
+                        'by your accountant. Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsDownloadedBooks: ; //Check save count???
+      cfsUploadedBooks: ; //OK
+      cfsCopyUploadedBooks: ; //OK
+      cfsDownloadedPractice:
+        begin
+          Msg := Format('The client file %s on BankLink Online is currently with ' +
+                        'your accountant. Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;      
+    end;
+  end else begin
+    //Checked in
+    case AStatus.StatusCode of
+      cfsNoFile:
+        begin
+          Msg := Format('The client file %s on BankLink Online does not exist and ' +
+                        'cannot be sent. Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsUploadedPractice:
+        begin
+          Msg := Format('The client file %s on BankLink Online has been updated ' +
+                        'by your accountant. Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsDownloadedBooks: ; //OK
+      cfsUploadedBooks:  ; //OK
+      cfsCopyUploadedBooks: ; //OK
+      cfsDownloadedPractice:
+        begin
+          Msg := Format('The client file %s on BankLink Online is currently with ' +
+                        'your accountant. Please contact your accountant.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+    end;
+  end;
 end;
 
 procedure TBankLinkOnlineManager.CheckPracticeDownloadStatus(AClientCode: string;
@@ -137,16 +289,39 @@ begin
   //Get the Client File Rec
   CFRec := AdminSystem.fdSystem_Client_File_List.FindCode(AClientCode);
   if Assigned(CFRec) then
-    ReadOnly := (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite]);
+    ReadOnly := (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite])
+  else begin
+    Msg := Format('Client file record not found for %s.', [AClientCode]);
+    raise EDownloadFailed.Create(Msg);
+  end;
 
   if ReadOnly then begin
     //Checked out
+    case AStatus.StatusCode of
+      cfsNoFile:
+        begin
+          Msg := Format('The client file %s is not available via BankLink Online.',
+                        [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsUploadedPractice: ; //OK
+      cfsDownloadedBooks:
+        begin
+          Msg := Format('The client file %s on BankLink Online is currently with ' +
+                        'your client.', [AClientCode]);
+          raise EDownloadFailed.Create(Msg);
+        end;
+      cfsUploadedBooks: ; //OK
+      cfsCopyUploadedBooks: ; //OK
+      cfsDownloadedPractice: ; //OK
+    end;
   end else begin
     //Checked in
     case AStatus.StatusCode of
       cfsNoFile:
         begin
-          Msg := Format('The client file %s is not available via BankLink Online.', [AClientCode]);
+          Msg := Format('The client file %s is not available via BankLink Online.',
+                        [AClientCode]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedPractice:
@@ -183,7 +358,8 @@ begin
           raise EDownloadFailed.Create(Msg);
         end;
     else
-      raise EUploadFailed.CreateFmt('Unable to get client file status for %s', [AClientCode]);
+      raise EUploadFailed.CreateFmt('Unable to get client file status for %s',
+                                    [AClientCode]);
     end;
   end;
 end;
@@ -198,13 +374,14 @@ begin
   if not Assigned(AdminSystem) then
     raise EUploadFailed.CreateFmt('No Admin database for %s', [AClientCode]);
 
-  //Should not get here if client file is checked out (read only)
+  //Checked Out - Should not get here if client file read only
   CFRec := AdminSystem.fdSystem_Client_File_List.FindCode(AClientCode);
-  if Assigned(CFRec) then
+  if Assigned(CFRec) then begin
     ReadOnly := (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite]);
-  if ReadOnly then begin
-    Msg := Format('Cannot check out a Read-Only file %s.', [AClientCode]);
-    raise EUploadFailed.Create(Msg);
+    if ReadOnly then begin
+      Msg := Format('Cannot check out a Read-Only file %s.', [AClientCode]);
+      raise EUploadFailed.Create(Msg);
+    end;
   end;
 
   //Checked In
@@ -262,7 +439,7 @@ begin
   inherited;
 end;
 
-function TBankLinkOnlineManager.DownloadClient(AClientCode: string;
+function TBankLinkOnlineManager.DownloadClient(AClientCode: string; 
   AProgressFrm: TfrmChkProgress; var ARemoteFileName: string;
   Silent: boolean = False): boolean;
 var
@@ -270,7 +447,10 @@ var
 begin
   Result := False;
   try
-    CheckBankLinkOnlineStatus(AClientCode, oaPracticeDownload);
+    if Assigned(AdminSystem) then
+      CheckBankLinkOnlineStatus(AClientCode, oaPracticeDownload)
+    else
+      CheckBankLinkOnlineStatus(AClientCode, oaBooksDownload);
 
     //Download from BankLink Online
     if Silent then begin
@@ -280,11 +460,17 @@ begin
 
     if Assigned(AdminSystem) then begin
       CicoClient.DownloadFileToPractice(AClientCode, ARemoteFilename, ServerResponce);
-      AProgressFrm.mProgress.Lines.Add('Downloaded file to: ' + ARemoteFilename);
-      AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
-      AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
-      AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
-      Result := True;      
+      if ServerResponce.Status = '200' then begin
+        AProgressFrm.mProgress.Lines.Add('Downloaded file to: ' + ARemoteFilename);
+        AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
+        AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
+        AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
+        Result := True;
+      end else begin
+        raise EDownloadFailed.Create(ServerResponce.Description);
+      end;
+    end else begin
+      CicoClient.DownloadFileToBooks(AClientCode, ARemoteFilename, ServerResponce);
     end;
   except
     on E: Exception do
@@ -297,7 +483,7 @@ end;
 function TBankLinkOnlineManager.GetStatus(AClientCode: string;
   FromWebService: boolean): TClientStatusItem;
 begin
-
+  Result := nil;
 end;
 
 procedure TBankLinkOnlineManager.DebugMsg(AMessage: string);
@@ -312,17 +498,20 @@ begin
 end;
 
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;
-  AProgressFrm: TfrmChkProgress; Silent: boolean; var AEmail: string): boolean;
+  AProgressFrm: TfrmChkProgress; Silent: boolean; var AEmail: string;
+  IsCopy: Boolean = False): boolean;
 const
   ThisMethodName = 'UploadClient';
 var
-  ClientFileRec: pClient_File_Rec;
   ServerResponce : TServerResponce;
 begin
   DebugMsg('Begins');
 
   //Check status
-  CheckBankLinkOnlineStatus(AClientCode, oaPracticeUpload);
+  if Assigned(AdminSystem) then 
+    CheckBankLinkOnlineStatus(AClientCode, oaPracticeUpload)
+  else
+    CheckBankLinkOnlineStatus(AClientCode, oaBooksUpload);
 
   //Upload to BankLink Online
   if Silent then begin
@@ -330,14 +519,18 @@ begin
     CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
   end;
 
-  if Assigned(AdminSystem) then begin
-    CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce);
+  if Assigned(AdminSystem) then
+    CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
+  else
+    CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
+
+  if DebugMe then begin
     AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
     AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
     AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
-  end else
-    CiCoClient.UploadFileFromBooks(AClientCode, ServerResponce);
+  end;
 
+  Result := True;    
   DebugMsg('Ends');
 end;
 

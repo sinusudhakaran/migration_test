@@ -68,11 +68,13 @@ type
     procedure SetupFrame;
     procedure SetupColumns;
     procedure CloseupCheckboxes;
+    procedure SelectionChanged(Sender: TObject);
   public
     { Public declarations }
   end;
 
-  function SelectCodesToSend( Title : string; ASendMethod: Byte; SelectedCodes: string = '') : string;
+  function SelectCodesToSend(Title : string; ASendMethod: Byte; SelectedCodes: string = '';
+                             FlagReadOnly: boolean = true) : string;
   function SelectCodesToGet( Title : string; ASendMethod: Byte; DefaultCodes : string = '') : string;
   function SelectCodesToAttach( Title : string) : string;
   function SelectCodeToLookup( Title : string; DefaultCode: string = ''; Multiple: Boolean = True) : string;
@@ -126,7 +128,8 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectCodesToSend( Title : string; ASendMethod: Byte; SelectedCodes: string = '') : string;
+function SelectCodesToSend( Title : string; ASendMethod: Byte;
+  SelectedCodes: string = ''; FlagReadOnly: boolean = true) : string;
 //the path is the path to check the files out to
 var
   CheckInOut : TfrmCheckInOut;
@@ -165,8 +168,11 @@ begin
       CloseupCheckboxes;
       SetupFrame;
 
-      if (FSendMethod = ftmOnline) then
+      if (FSendMethod = ftmOnline) then begin
         btnOK.Caption := '&Upload';
+        btnOK.Enabled := False;
+        ClientLookupFrame.OnSelectionChanged := SelectionChanged;
+      end;
 
       if SelectedCodes <> '' then
         ClientLookupFrame.SelectedCodes := SelectedCodes;
@@ -176,6 +182,7 @@ begin
         Globals.INI_CheckOutDir := AddSlash( ePath.Text);
         ASendMethod := CheckInOut.FSendMethod;
         Result := ClientLookupFrame.SelectedCodes;
+        FlagReadOnly := cbFlagReadOnly.Checked;
       end;
     finally
       Free;
@@ -437,6 +444,13 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCheckInOut.SelectionChanged(Sender: TObject);
+begin
+  //Enable the upload button if one or more clients selected
+  if Sender is TfmeClientLookup then
+    btnOK.Enabled := (TfmeClientLookup(Sender).vtClients.SelectedCount > 0);
+end;
+
 procedure TfrmCheckInOut.SetupColumns;
 var
   i: integer;
