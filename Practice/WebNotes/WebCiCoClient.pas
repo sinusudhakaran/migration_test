@@ -242,6 +242,20 @@ const
   XML_STATUS_FILE_ATTR_STATUSCODE = 'StatusCode';
   XML_STATUS_FILE_ATTR_STATUSDESC = 'StatusCodeDescription';
 
+  HTTP_HEAD_PRACTICE_CODE     = 'PracticeCode';
+  HTTP_HEAD_PRACTICE_PASSWORD = 'PracticePassword';
+  HTTP_HEAD_CLIENT_CODE       = 'ClientCode';
+  HTTP_HEAD_CLIENT_EMAIL      = 'ClientEmail';
+  HTTP_HEAD_CLIENT_PASSWORD   = 'ClientPassword';
+  HTTP_HEAD_COUNTRY_CODE      = 'CountryCode';
+  HTTP_HEAD_BOOKS_COPY        = 'Copy';
+  HTTP_HEAD_BOOKS_NEWPASSWORD = 'NewPassword';
+  HTTP_HEAD_FILE_CRC          = 'FileCRC';
+  HTTP_HEAD_FILE_LENGTH       = 'FileLength';
+  HTTP_HEAD_CONTENT_LENGTH    = 'Content-Length';
+  HTTP_HEAD_CONTENT_TYPE      = 'Content-Type';
+  HTTP_HEAD_SERVER_FILE_CRC   = 'CRC';
+
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
 
@@ -534,11 +548,11 @@ begin
     logutil.LogError(UNIT_NAME, StrMessage);
 
   // works out Content Length, Type and CRC from headers
-  if Field = 'Content-Length' then
+  if Field = HTTP_HEAD_CONTENT_LENGTH then
     trystrtoint(Value, fTotalBytes)
-  else if Field = 'Content-Type' then
+  else if Field = HTTP_HEAD_CONTENT_TYPE then
     fContentType := Value
-  else if Field = 'CRC' then
+  else if Field = HTTP_HEAD_SERVER_FILE_CRC then
     FServerCrc := Value;
 end;
 
@@ -591,8 +605,8 @@ begin
   FileInfo(Filename, FileCRC, FileLength);
 
   // Adding Crc to Header Section
-  AddHttpHeaderInfo('FileCRC',    FileCRC);
-  AddHttpHeaderInfo('FileLength', inttostr(FileLength));
+  AddHttpHeaderInfo(HTTP_HEAD_FILE_CRC,    FileCRC);
+  AddHttpHeaderInfo(HTTP_HEAD_FILE_LENGTH, inttostr(FileLength));
   HttpRequester.ContentType := SERVER_CONTENT_TYPE_BK5;
   fContentType := HttpRequester.ContentType;
   fTotalBytes  := FileLength;
@@ -825,19 +839,19 @@ begin
     GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
     {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo('CountryCode',      'NZ');
-      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-      AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
-      AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,    'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,   'NZPRACTICE');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    'pj.jacobs@banklink.co.nz');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, '1qaz!QAZ');
     {$ELSE}
-      AddHttpHeaderInfo('CountryCode',    CountryCode);
-      AddHttpHeaderInfo('PracticeCode',   PracticeCode);
-      AddHttpHeaderInfo('ClientEmail',    ClientEMail);
-      AddHttpHeaderInfo('ClientPassword', ClientPassword);
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,    CountryCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,   PracticeCode);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    ClientEMail);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, ClientPassword);
     {$ENDIF}
 
-    AddHttpHeaderInfo('ClientCode',     ClientCode);
-    AddHttpHeaderInfo('NewPassword',    NewPassword);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,       ClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_BOOKS_NEWPASSWORD, NewPassword);
     AppendHttpHeaderInfo;
 
     HttpSendRequest(HttpAddress);
@@ -880,38 +894,38 @@ begin
       GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
 
       {$IFDEF WebCiCoStatic}
-        AddHttpHeaderInfo('PracticePassword', '123');
+        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '123');
       {$ELSE}
-        AddHttpHeaderInfo('PracticePassword', PracticePass);
+        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
       {$ENDIF}
 
-      AddHttpHeaderInfo('ClientEmail',    '');
-      AddHttpHeaderInfo('ClientPassword', '');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    '');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, '');
     end
     else
     begin
       GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
       {$IFDEF WebCiCoStatic}
-        AddHttpHeaderInfo('ClientEmail',    'pj.jacobs@banklink.co.nz');
-        AddHttpHeaderInfo('ClientPassword', '1qaz!QAZ');
+        AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    'pj.jacobs@banklink.co.nz');
+        AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, '1qaz!QAZ');
       {$ELSE}
-        AddHttpHeaderInfo('ClientEmail',    ClientEmail);
-        AddHttpHeaderInfo('ClientPassword', ClientPassword);
+        AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    ClientEmail);
+        AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, ClientPassword);
       {$ENDIF}
 
-      AddHttpHeaderInfo('PracticePassword', '');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '');
     end;
 
     {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo('CountryCode',  'NZ');
-      AddHttpHeaderInfo('PracticeCode', 'NZPRACTICE');
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,  'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE, 'NZPRACTICE');
     {$ELSE}
-      AddHttpHeaderInfo('CountryCode',  CountryCode);
-      AddHttpHeaderInfo('PracticeCode', PracticeCode);
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,  CountryCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE, PracticeCode);
     {$ENDIF}
 
-    AddHttpHeaderInfo('ClientCode', ClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, ClientCode);
     AppendHttpHeaderInfo;
 
     FASyncCall := ASyncCall;
@@ -964,19 +978,19 @@ begin
     GetClientDetails(ClientCode, ClientEmail);
 
     {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo('CountryCode',      'NZ');
-      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-      AddHttpHeaderInfo('PracticePassword', '123');
-      AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     'NZPRACTICE');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '123');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      'pj.jacobs@banklink.co.nz');
     {$ELSE}
-      AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracticeCode);
-      AddHttpHeaderInfo('PracticePassword', PracticePass);
-      AddHttpHeaderInfo('ClientEmail',      ClientEmail);
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      ClientEmail);
     {$ENDIF}
 
-    AddHttpHeaderInfo('ClientCode', ClientCode);
-    AddHttpHeaderInfo('ClientPassword', '');
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, ClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, '');
 
     UploadFile(HttpAddress, DataDir + ClientCode + FILEEXTN);
 
@@ -1020,16 +1034,16 @@ begin
     GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
 
     {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo('CountryCode',      'NZ');
-      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-      AddHttpHeaderInfo('PracticePassword', '123');
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     'NZPRACTICE');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '123');
     {$ELSE}
-      AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracticeCode);
-      AddHttpHeaderInfo('PracticePassword', PracticePass);
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
     {$ENDIF}
 
-    AddHttpHeaderInfo('ClientCode',       ClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,       ClientCode);
 
     AppendHttpHeaderInfo;
 
@@ -1079,23 +1093,23 @@ begin
     GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
     {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo('CountryCode',      'NZ');
-      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-      AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
-      AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     'NZPRACTICE');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      'pj.jacobs@banklink.co.nz');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,   '1qaz!QAZ');
     {$ELSE}
-      AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracticeCode);
-      AddHttpHeaderInfo('ClientEmail',      ClientEmail);
-      AddHttpHeaderInfo('ClientPassword',   ClientPassword);
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      ClientEmail);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,   ClientPassword);
     {$ENDIF}
 
-    AddHttpHeaderInfo('ClientCode', ClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, ClientCode);
 
     if IsCopy then
-      AddHttpHeaderInfo('Copy', '1')
+      AddHttpHeaderInfo(HTTP_HEAD_BOOKS_COPY, '1')
     else
-      AddHttpHeaderInfo('Copy', '0');
+      AddHttpHeaderInfo(HTTP_HEAD_BOOKS_COPY, '0');
 
     UploadFile(HttpAddress, DataDir + ClientCode + FILEEXTN);
 
@@ -1140,18 +1154,18 @@ begin
     GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
     {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo('CountryCode',      'NZ');
-      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-      AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
-      AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     'NZPRACTICE');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      'pj.jacobs@banklink.co.nz');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,   '1qaz!QAZ');
     {$ELSE}
-      AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracticeCode);
-      AddHttpHeaderInfo('ClientEmail',      ClientEmail);
-      AddHttpHeaderInfo('ClientPassword',   ClientPassword);
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      ClientEmail);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,   ClientPassword);
     {$ENDIF}
 
-    AddHttpHeaderInfo('ClientCode', ClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, ClientCode);
 
     AppendHttpHeaderInfo;
 
