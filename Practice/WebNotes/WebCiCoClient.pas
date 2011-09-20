@@ -229,8 +229,7 @@ uses
   WebUtils,
   StrUtils,
   Windows,
-  LogUtil,
-  Globals;
+  LogUtil;
 
 const
   XML_STATUS_HEADNAME             = 'Result';
