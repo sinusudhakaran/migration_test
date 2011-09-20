@@ -260,10 +260,15 @@ const
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
 
-  UNIT_NAME = 'WebCiCoClient';
-
   BASE_URL_ADDRESS = 'http://development.banklinkonline.com';
-  APP_URL_NAME = '/cico';
+  PRODUCT_URL_NAME = '/cico';
+  URL_ADDRESS      = BASE_URL_ADDRESS + PRODUCT_URL_NAME;
+  URL_SERVICE_ACTION_UPLOAD      = '.upload';
+  URL_SERVICE_ACTION_DONWNLOAD   = '.download';
+  URL_SERVICE_ACTION_GET_STATUS  = '.status';
+  URL_SERVICE_ACTION_PASS_CHANGE = '.admin';
+
+  UNIT_NAME = 'WebCiCoClient';
 
 var
   fWebCiCoClient : TWebCiCoClient;
@@ -837,7 +842,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.admin';
+    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_PASS_CHANGE;
 
     GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
@@ -890,7 +895,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.status';
+    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_GET_STATUS;
 
     if Assigned(AdminSystem) then
     begin
@@ -975,7 +980,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.upload';
+    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_UPLOAD;
 
     GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
     GetClientDetails(ClientCode, ClientEmail);
@@ -1029,7 +1034,7 @@ begin
     TempBk5File := '';
     ClearHttpHeader;
 
-    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.download';
+    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_DONWNLOAD;
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
@@ -1091,7 +1096,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.upload';
+    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_UPLOAD;
 
     GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
@@ -1149,7 +1154,7 @@ begin
     TempBk5File := '';
     ClearHttpHeader;
 
-    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.download';
+    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_DONWNLOAD;
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
