@@ -609,7 +609,8 @@ begin
   Result := '';
 
   CurrentNode := ParentNode.ChildNodes.FindNode(NodeName);
-  if Assigned(CurrentNode) then
+  if (Assigned(CurrentNode)) and
+     (TVarData(CurrentNode.NodeValue).Vtype = varOleStr) then
     Result := CurrentNode.NodeValue;
 end;
 
