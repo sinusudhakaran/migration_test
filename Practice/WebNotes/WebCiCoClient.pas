@@ -162,13 +162,12 @@ type
                               var PracPass     : String;
                               var CountryCode  : String);
     procedure GetClientDetails(ClientCode      : string;
-                               var ClientEmail : string;
-                               var ClientName  : string);
-    procedure GetClientExtraDetails(ClientCode      : string;
-                                    var ClientEmail : string;
-                                    var ClientName  : string;
-                                    var PracCode    : String;
-                                    var CountryCode : String);
+                               var ClientEmail : string);
+    procedure GetIniDetails(ClientCode      : string;
+                            var ClientEmail : string;
+                            var ClientPass  : string;
+                            var PracCode    : String;
+                            var CountryCode : String);
 
     // Generic Upload File
     procedure UploadFile(HttpAddress : string;
@@ -186,8 +185,8 @@ type
     destructor Destroy; Override;
 
     procedure SetBooksUserPassword(ClientCode  : string;
-                                   OldPassword : string;
-                                   NewPassword : string);
+                                   NewPassword : string;
+                                   var ServerResponce : TServerResponce);
     procedure GetClientFileStatus(var ServerResponce : TServerResponce;
                                   var ClientStatusList : TClientStatusList;
                                   ClientCode : string = '';
@@ -247,6 +246,9 @@ const
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
 
   UNIT_NAME = 'WebCiCoClient';
+
+  BASE_URL_ADDRESS = 'http://development.banklinkonline.com';
+  APP_URL_NAME = '/cico';
 
 var
   fWebCiCoClient : TWebCiCoClient;
@@ -560,8 +562,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetClientDetails(ClientCode      : string;
-                                          var ClientEmail : string;
-                                          var ClientName  : string);
+                                          var ClientEmail : string);
 var
   fClientObj    : TClientObj;
 begin
@@ -569,31 +570,19 @@ begin
   Try
     fClientObj.Open(ClientCode, FILEEXTN);
     ClientEmail := fClientObj.clFields.clClient_EMail_Address;
-    ClientName  := fClientObj.clFields.clName;
   Finally
     FreeAndNil(fClientObj);
   End;
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetClientExtraDetails(ClientCode      : string;
-                                               var ClientEmail : string;
-                                               var ClientName  : string;
-                                               var PracCode    : String;
-                                               var CountryCode : String);
-var
-  fClientObj    : TClientObj;
+procedure TWebCiCoClient.GetIniDetails(ClientCode      : string;
+                                       var ClientEmail : string;
+                                       var ClientPass  : string;
+                                       var PracCode    : String;
+                                       var CountryCode : String);
 begin
-  fClientObj := TClientObj.Create;
-  Try
-    fClientObj.Open(ClientCode, FILEEXTN);
-    ClientEmail := fClientObj.clFields.clClient_EMail_Address;
-    ClientName  := fClientObj.clFields.clName;
-    PracCode    := fClientObj.clFields.clPractice_Code;
-    CountryCode := CountryText(fClientObj.clFields.clCountry);
-  Finally
-    FreeAndNil(fClientObj);
-  End;
+  // Todo Get Ini Details
 end;
 
 //------------------------------------------------------------------------------
@@ -820,10 +809,14 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.SetBooksUserPassword(ClientCode  : string;
-                                              OldPassword : string;
-                                              NewPassword : string);
+                                              NewPassword : string;
+                                              var ServerResponce : TServerResponce);
 var
-  HttpAddress : String;
+  HttpAddress    : String;
+  CountryCode    : String;
+  PracticeCode   : String;
+  ClientEMail    : String;
+  ClientPassword : String;
 begin
   fProcessState := psChangePass;
 
@@ -831,17 +824,33 @@ begin
     logutil.LogError(UNIT_NAME, 'Called Set Books User Password.');
 
   try
-    HttpAddress := 'http://posttestserver.com/post.php';
+    ClearHttpHeader;
 
-    AddHttpHeaderInfo('ClientCode', ClientCode);
-    AddHttpHeaderInfo('OldPassword', OldPassword);
-    AddHttpHeaderInfo('NewPassword', NewPassword);
+    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.admin';
+
+    GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
+
+    {$IFDEF WebCiCoStatic}
+      AddHttpHeaderInfo('CountryCode',      'NZ');
+      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
+      AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
+      AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
+    {$ELSE}
+      AddHttpHeaderInfo('CountryCode',    CountryCode);
+      AddHttpHeaderInfo('PracticeCode',   PracticeCode);
+      AddHttpHeaderInfo('ClientEmail',    ClientEMail);
+      AddHttpHeaderInfo('ClientPassword', ClientPassword);
+    {$ENDIF}
+
+    AddHttpHeaderInfo('ClientCode',     ClientCode);
+    AddHttpHeaderInfo('NewPassword',    NewPassword);
     AppendHttpHeaderInfo;
 
-    HttpPostFile(HttpAddress, '');
+    HttpSendRequest(HttpAddress);
 
-    //WaitForProcess;
+    WaitForProcess;
 
+    ServerResponce := fServerResponce;
   finally
     fProcessState := psNothing;
   end;
@@ -853,11 +862,13 @@ procedure TWebCiCoClient.GetClientFileStatus(var ServerResponce : TServerResponc
                                              ClientCode : string = '';
                                              ASyncCall : Boolean = False);
 var
-  HttpAddress  : string;
-  PracCode     : String;
-  PracPass     : String;
-  CountryCode  : String;
-  Index        : Integer;
+  HttpAddress    : string;
+  PracticeCode   : String;
+  PracticePass   : String;
+  CountryCode    : String;
+  ClientEmail    : String;
+  ClientPassword : String;
+  Index          : Integer;
   NewClientStatusItem : TClientStatusItem;
 begin
   fProcessState := psGetStatus;
@@ -868,31 +879,45 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := 'http://development.banklinkonline.com/cico.status';
+    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.status';
 
     if Assigned(AdminSystem) then
     begin
-      GetAdminDetails(ClientCode, PracCode, PracPass, CountryCode);
+      GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
+
+      {$IFDEF WebCiCoStatic}
+        AddHttpHeaderInfo('PracticePassword', '123');
+      {$ELSE}
+        AddHttpHeaderInfo('PracticePassword', PracticePass);
+      {$ENDIF}
+
+      AddHttpHeaderInfo('ClientEmail',    '');
+      AddHttpHeaderInfo('ClientPassword', '');
     end
     else
     begin
-      // Todo Get Books Details
+      GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
+
+      {$IFDEF WebCiCoStatic}
+        AddHttpHeaderInfo('ClientEmail',    'pj.jacobs@banklink.co.nz');
+        AddHttpHeaderInfo('ClientPassword', '1qaz!QAZ');
+      {$ELSE}
+        AddHttpHeaderInfo('ClientEmail',    ClientEmail);
+        AddHttpHeaderInfo('ClientPassword', ClientPassword);
+      {$ENDIF}
+
+      AddHttpHeaderInfo('PracticePassword', '');
     end;
 
     {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo('CountryCode',      'NZ');
-      AddHttpHeaderInfo('PracticeCode',     'NZPRACTICE');
-      AddHttpHeaderInfo('PracticePassword', '123');
+      AddHttpHeaderInfo('CountryCode',  'NZ');
+      AddHttpHeaderInfo('PracticeCode', 'NZPRACTICE');
     {$ELSE}
-      AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracCode);
-      AddHttpHeaderInfo('PracticePassword', PracPass);
+      AddHttpHeaderInfo('CountryCode',  CountryCode);
+      AddHttpHeaderInfo('PracticeCode', PracticeCode);
     {$ENDIF}
 
-    AddHttpHeaderInfo('ClientCode',       ClientCode);
-    AddHttpHeaderInfo('ClientName',       '');
-    AddHttpHeaderInfo('ClientEmail',      '');
-    AddHttpHeaderInfo('ClientPassword',   '');
+    AddHttpHeaderInfo('ClientCode', ClientCode);
     AppendHttpHeaderInfo;
 
     FASyncCall := ASyncCall;
@@ -926,13 +951,10 @@ procedure TWebCiCoClient.UploadFileFromPractice(ClientCode : string;
                                                 var ClientEmail: string;
                                                 var ServerResponce : TServerResponce);
 var
-  HttpAddress : String;
-  PracCode    : String;
-  PracPass    : String;
-  CountryCode : String;
-  ClientName  : String;
-  Guid        : TGuid;
-  StrGuid     : String;
+  HttpAddress  : String;
+  PracticeCode : String;
+  PracticePass : String;
+  CountryCode  : String;
 begin
   fProcessState := psUploadPrac;
 
@@ -942,13 +964,10 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := 'http://development.banklinkonline.com/cico.upload';
+    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.upload';
 
-    CreateGuid(Guid);
-    StrGuid := TrimedGuid(Guid);
-
-    GetAdminDetails(ClientCode, PracCode, PracPass, CountryCode);
-    GetClientDetails(ClientCode, ClientEmail, ClientName);
+    GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
+    GetClientDetails(ClientCode, ClientEmail);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo('CountryCode',      'NZ');
@@ -957,15 +976,13 @@ begin
       AddHttpHeaderInfo('ClientEmail',      'pj.jacobs@banklink.co.nz');
     {$ELSE}
       AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracCode);
-      AddHttpHeaderInfo('PracticePassword', PracPass);
+      AddHttpHeaderInfo('PracticeCode',     PracticeCode);
+      AddHttpHeaderInfo('PracticePassword', PracticePass);
       AddHttpHeaderInfo('ClientEmail',      ClientEmail);
     {$ENDIF}
 
-    AddHttpHeaderInfo('FileGuid',         StrGuid);
-    AddHttpHeaderInfo('ClientCode',       ClientCode);
-    AddHttpHeaderInfo('ClientName',       ClientName);
-    AddHttpHeaderInfo('ClientPassword',   '');
+    AddHttpHeaderInfo('ClientCode', ClientCode);
+    AddHttpHeaderInfo('ClientPassword', '');
 
     UploadFile(HttpAddress, DataDir + ClientCode + FILEEXTN);
 
@@ -982,15 +999,15 @@ procedure TWebCiCoClient.DownloadFileToPractice(ClientCode : string;
                                                 var TempBk5File : string;
                                                 var ServerResponce : TServerResponce);
 var
-  HttpAddress : String;
-  PracCode    : String;
-  PracPass    : String;
-  CountryCode : String;
-  FileCrc     : String;
-  FileSize    : Integer;
-  Guid        : TGuid;
-  StrGuid     : String;
-  TempPath    : String;
+  HttpAddress  : String;
+  PracticeCode : String;
+  PracticePass : String;
+  CountryCode  : String;
+  FileCrc      : String;
+  FileSize     : Integer;
+  Guid         : TGuid;
+  StrGuid      : String;
+  TempPath     : String;
 begin
   fProcessState := psDownloadPrac;
 
@@ -1001,12 +1018,12 @@ begin
     TempBk5File := '';
     ClearHttpHeader;
 
-    HttpAddress := 'http://development.banklinkonline.com/cico.download';
+    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.download';
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
 
-    GetAdminDetails(ClientCode, PracCode, PracPass, CountryCode);
+    GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo('CountryCode',      'NZ');
@@ -1014,15 +1031,11 @@ begin
       AddHttpHeaderInfo('PracticePassword', '123');
     {$ELSE}
       AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracCode);
-      AddHttpHeaderInfo('PracticePassword', PracPass);
+      AddHttpHeaderInfo('PracticeCode',     PracticeCode);
+      AddHttpHeaderInfo('PracticePassword', PracticePass);
     {$ENDIF}
 
-    AddHttpHeaderInfo('FileGuid',         StrGuid);
     AddHttpHeaderInfo('ClientCode',       ClientCode);
-    AddHttpHeaderInfo('ClientName',       '');
-    AddHttpHeaderInfo('ClientEmail',      '');
-    AddHttpHeaderInfo('ClientPassword',   '');
 
     AppendHttpHeaderInfo;
 
@@ -1052,13 +1065,12 @@ procedure TWebCiCoClient.UploadFileFromBooks(ClientCode : string;
                                              IsCopy : Boolean;
                                              var ServerResponce : TServerResponce);
 var
-  HttpAddress  : string;
-  ClientEmail  : String;
-  ClientName   : String;
-  PracCode     : String;
-  CountryCode  : String;
-  Guid         : TGuid;
-  StrGuid      : String;
+  HttpAddress    : string;
+  ClientEmail    : String;
+  ClientName     : String;
+  PracticeCode   : String;
+  CountryCode    : String;
+  ClientPassword : String;
 begin
   fProcessState := psUploadBooks;
 
@@ -1068,12 +1080,9 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := 'http://development.banklinkonline.com/cico.upload';
+    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.upload';
 
-    CreateGuid(Guid);
-    StrGuid := TrimedGuid(Guid);
-
-    GetClientExtraDetails(ClientCode, ClientEmail, ClientName, PracCode, CountryCode);
+    GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo('CountryCode',      'NZ');
@@ -1082,15 +1091,12 @@ begin
       AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
     {$ELSE}
       AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracCode);
+      AddHttpHeaderInfo('PracticeCode',     PracticeCode);
       AddHttpHeaderInfo('ClientEmail',      ClientEmail);
-      AddHttpHeaderInfo('ClientPassword',   '');
+      AddHttpHeaderInfo('ClientPassword',   ClientPassword);
     {$ENDIF}
 
-    AddHttpHeaderInfo('FileGuid',         StrGuid);
-    AddHttpHeaderInfo('PracticePassword', '');
-    AddHttpHeaderInfo('ClientCode',       ClientCode);
-    AddHttpHeaderInfo('ClientName',       ClientName);
+    AddHttpHeaderInfo('ClientCode', ClientCode);
 
     if IsCopy then
       AddHttpHeaderInfo('Copy', '1')
@@ -1112,18 +1118,16 @@ procedure TWebCiCoClient.DownloadFileToBooks(ClientCode : string;
                                              var TempBk5File : string;
                                              var ServerResponce : TServerResponce);
 var
-  HttpAddress  : string;
-  FileName     : String;
-  ClientEmail  : String;
-  ClientName   : String;
-  PracCode     : String;
-  CountryCode  : String;
-  FileCrc      : String;
-  FileSize     : Integer;
-  Guid         : TGuid;
-  StrGuid      : String;
-  TempPath     : String;
-  ClientPass   : String;
+  HttpAddress    : string;
+  ClientEmail    : String;
+  PracticeCode   : String;
+  CountryCode    : String;
+  ClientPassword : String;
+  FileCrc        : String;
+  FileSize       : Integer;
+  Guid           : TGuid;
+  StrGuid        : String;
+  TempPath       : String;
 begin
   fProcessState := psDownloadBooks;
 
@@ -1134,16 +1138,12 @@ begin
     TempBk5File := '';
     ClearHttpHeader;
 
-    HttpAddress := 'http://development.banklinkonline.com/cico.download';
+    HttpAddress := BASE_URL_ADDRESS + APP_URL_NAME + '.download';
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
 
-    // Todo Need to get details with out client file or Admin System
-    ClientEmail := '';
-    ClientPass  := '';
-    CountryCode := '';
-    PracCode    := '';
+    GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo('CountryCode',      'NZ');
@@ -1152,22 +1152,18 @@ begin
       AddHttpHeaderInfo('ClientPassword',   '1qaz!QAZ');
     {$ELSE}
       AddHttpHeaderInfo('CountryCode',      CountryCode);
-      AddHttpHeaderInfo('PracticeCode',     PracCode);
+      AddHttpHeaderInfo('PracticeCode',     PracticeCode);
       AddHttpHeaderInfo('ClientEmail',      ClientEmail);
-      AddHttpHeaderInfo('ClientPassword',   '');
+      AddHttpHeaderInfo('ClientPassword',   ClientPassword);
     {$ENDIF}
 
-    AddHttpHeaderInfo('FileGuid',         StrGuid);
-    AddHttpHeaderInfo('PracticePassword', '');
-    AddHttpHeaderInfo('ClientCode',       ClientCode);
-    AddHttpHeaderInfo('ClientName',       ClientName);
+    AddHttpHeaderInfo('ClientCode', ClientCode);
 
     AppendHttpHeaderInfo;
 
     SetLength(TempPath,Max_Path);
     SetLength(TempPath,GetTempPath(Max_Path,Pchar(TempPath)));
 
-    FileName    := ClientCode + FILEEXTN;
     TempBk5File := TempPath + ClientCode + '(' + StrGuid + ')' + FILEEXTN;
     HttpGetFile(HttpAddress, TempBk5File);
 
