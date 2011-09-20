@@ -13,7 +13,7 @@ uses
   function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
   procedure SaveClient;
   function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
-  procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0);
+  procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0; FirstUpload: boolean = False);
   function SendClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
                       var AEmail: string; IsScheduledReport: Boolean = False;
                       Silent: Boolean = False; AllowMultiplePwdFiles: Boolean = False;
@@ -1728,7 +1728,8 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0);
+procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0;
+  FirstUpload: boolean = False);
 const
   ThisMethodName = 'SendClientFiles';
 var
@@ -1738,7 +1739,8 @@ var
   SendMethod: byte;
   ProgressFrm: TfrmChkProgress;
   Failures: Integer;
-  EMail: string;
+  EmailAddress: string;
+  EmailBody: string;
   FlagReadOnly: Boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -1755,7 +1757,9 @@ begin
       if CodesToSend <> '' then
         CodeList.DelimitedText := CodesToSend
       else begin
-        CodeList.DelimitedText := SelectCodesToSend('Select Client(s) to Send', ASendMethod, '', FlagReadOnly);
+        CodeList.DelimitedText := SelectCodesToSend('Select Client(s) to Send',
+                                                    ASendMethod, FirstUpload,
+                                                    '', FlagReadOnly);
         if CodeList.DelimitedText = '' then
           Exit;
       end;
@@ -1774,8 +1778,8 @@ begin
 
         SentClientCodes := '';
         for i := 0 to CodeList.Count -1 do begin
-          EMail := '';
-          if not SendClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, EMail,
+          EmailAddress := '';
+          if not SendClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, EmailAddress,
                                 False, (CodeList.Count > 1) , True, ASendMethod) then
             Inc(Failures)
           else begin
@@ -1785,7 +1789,7 @@ begin
             else
               SentClientCodes := SentClientCodes + ', ' + CodeList[i];
             //Save the email address
-            CodeList[i] := CodeList[i] + '=' + EMail;
+            CodeList[i] := CodeList[i] + '=' + EmailAddress;
           end;
         end;
 
@@ -1808,11 +1812,17 @@ begin
            (ASendMethod = ftmOnline) and
            (CodeList.Count > Failures) then begin
           //Send email
+          EmailBody := Format('The following Client File(s) are now available ' +
+                              'via BankLink Online: %s.', [SentClientCodes]);
+          if FirstUpload then
+            EmailBody := EmailBody + #10 + #10 +
+                         'If you are new to BankLink Online, you will receive ' +
+                         'an email shortly which will help you complete the ' +
+                         'setup process. Please wait for this email before continuing.';
           SendMailTo('Send Client File(s) via ' + BankLinkLiveName,
                      GetEmailAddress(CodeList),
                      'BankLink Books File for ' + SentClientCodes,
-                     'The following Client File(s) are now available:' + SentClientCodes,
-                     '', False);
+                     EmailBody, '', False);
         end;
 
       finally

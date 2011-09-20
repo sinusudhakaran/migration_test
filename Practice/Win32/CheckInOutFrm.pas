@@ -72,8 +72,8 @@ type
     { Public declarations }
   end;
 
-  function SelectCodesToSend(Title : string; ASendMethod: Byte; SelectedCodes: string = '';
-                             FlagReadOnly: boolean = true) : string;
+  function SelectCodesToSend(Title : string; ASendMethod: Byte; var FirstUpload: boolean;
+                             SelectedCodes: string = ''; FlagReadOnly: boolean = true) : string;
   function SelectCodesToGet( Title : string; ASendMethod: Byte; DefaultCodes : string = '') : string;
   function SelectCodesToAttach( Title : string) : string;
   function SelectCodeToLookup( Title : string; DefaultCode: string = ''; Multiple: Boolean = True) : string;
@@ -127,7 +127,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectCodesToSend( Title : string; ASendMethod: Byte;
+function SelectCodesToSend( Title : string; ASendMethod: Byte; var FirstUpload: boolean;
   SelectedCodes: string = ''; FlagReadOnly: boolean = true) : string;
 //the path is the path to check the files out to
 var
@@ -177,8 +177,9 @@ begin
       begin
         Globals.INI_CheckOutDir := AddSlash( ePath.Text);
         ASendMethod := CheckInOut.FSendMethod;
-        Result := ClientLookupFrame.SelectedCodes;
         FlagReadOnly := cbFlagReadOnly.Checked;
+        FirstUpload := ClientLookupFrame.FirstUpload;
+        Result := ClientLookupFrame.SelectedCodes;
       end;
     finally
       Free;
@@ -300,6 +301,7 @@ begin
     end;
   end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);

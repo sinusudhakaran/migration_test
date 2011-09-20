@@ -1500,12 +1500,13 @@ end;
 procedure TfrmClientManager.DoSendToFile;
 var
   Codes : string;
+  FirstUpload: Boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoSendClientFiles');
 
   //Standard file transfer
   Codes := CheckInOutFrm.SelectCodesToSend('Select Client(s) to Send',
-                                           ftmFile,
+                                           ftmFile, FirstUpload,
                                            ClientLookup.SelectedCodes);
   if Codes <> '' then begin
     Files.SendClientFiles(Codes, ftmFile);
@@ -2726,14 +2727,15 @@ end;
 procedure TfrmClientManager.DoSendViaOnline;
 var
   Codes : string;
+  FirstUpload: Boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoSendOnline');
 
   //BankLink Online transfer
   Codes := CheckInOutFrm.SelectCodesToSend('Select Client(s) to Send via BankLink Online',
-                                           ftmOnline, ClientLookup.SelectedCodes);
+                                           ftmOnline, FirstUpload, ClientLookup.SelectedCodes);
   if Codes <> '' then
-    Files.SendClientFiles(Codes, ftmOnline);
+    Files.SendClientFiles(Codes, ftmOnline, FirstUpload);
 
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendOnline');
 end;

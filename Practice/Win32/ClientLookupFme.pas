@@ -83,10 +83,10 @@ type
     imData    : pointer;
     imTag     : integer;
     imType    : Byte;
-    imSendMethod    : Byte;
-    imBankLinkOnline: string[60];
-    imModifiedDate  : string[20];
-    imHasGUID       : Boolean;
+    imSendMethod      : Byte;
+    imOnlineStatus    : TClientFileStatus;
+    imOnlineStatusDesc: string[60];
+    imModifiedDate    : string[20];
   end;
 
   TIntermediateDataList = class(TExtdCollection) //not sorted
@@ -335,6 +335,7 @@ type
     property OnUpdateCount: TNotifyEvent read FOnUpdateCount write SetOnUpdateCount;
     procedure RefeshBankLinkOnlineStatus;
     property UsingBankLinkOnline: Boolean read FUsingBankLinkOnline write SetUsingBankLinkOnline;
+    function FirstUpload: Boolean;
   end;
 
   const
@@ -1181,9 +1182,9 @@ begin
     on E: Exception do begin
       for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
         pIDRec := FIntermediateDataList.IntermediateData_At(i);
-        pIDRec^.imBankLinkOnline := '<error>';
+        pIDRec^.imOnlineStatusDesc := '<error>';
         pIDRec^.imModifiedDate   := '<error>';
-        pIDRec^.imHasGUID        := True;
+        pIDRec^.imOnlineStatus   := cfsNoFile;
       end;
       ShowMessage(E.Message);
     end;
@@ -1234,9 +1235,9 @@ begin
         pIDRec^.imTag     := 0;
         pIDRec^.imType    := ctActive;
         pIDRec^.imSendMethod     := Byte(ftmOnline);
-        pIDRec^.imBankLinkOnline := '<unknown>';
+        pIDRec^.imOnlineStatusDesc := '<unknown>';
         pIDRec^.imModifiedDate   := '';
-        pIDRec^.imHasGUID        := True;
+        pIDRec^.imOnlineStatus   := cfsNoFile;
 
         //if we are doing a check in and we have an admin system then check the file status
         if FUsingAdminSystem then begin
@@ -1580,9 +1581,9 @@ begin
            pIDRec^.imTag     := 0;
            pIDRec^.imType    := sysClientRec^.cfClient_Type;
            pIDRec^.imSendMethod     := sysClientRec^.cfSend_Method;
-           pIDRec^.imBankLinkOnline := '';
+           pIDRec^.imOnlineStatusDesc := '';
            pIDRec^.imModifiedDate   := '';
-           pIDRec^.imHasGUID        := False;
+           pIDRec^.imOnlineStatus   := cfsNoFile;
         end;
       end;
     end;
@@ -1627,9 +1628,9 @@ begin
             pIDRec^.imTag     := 0;
             pIDRec^.imType    := ctActive;
             pIDRec^.imSendMethod     := Byte(ftmOnline);
-            pIDRec^.imBankLinkOnline := '';
+            pIDRec^.imOnlineStatusDesc := '';
             pIDRec^.imModifiedDate   := '';
-//            pIDRec^.imHasGUID        := Wrapper.wHasGUID;
+            pIDRec^.imOnlineStatus   := cfsNoFile;
 
             //if we are doing a check in and we have an admin system then check
             //the file status
@@ -1681,9 +1682,9 @@ begin
             pIDRec^.imGroupID := 0;
             pIDRec^.imData    := nil;
             pIDRec^.imTag     := Tag_CheckInConflict;
-            pIDRec^.imBankLinkOnline := '';
+            pIDRec^.imOnlineStatusDesc := '';
             pIDRec^.imModifiedDate   := '';
-            pIDRec^.imHasGUID        := False;
+            pIDRec^.imOnlineStatus   := cfsNoFile;
           end;
         end;
         Found := FindNext( SearchRec );
@@ -1747,10 +1748,10 @@ begin
           //Get the client name if intermediate rec was created from BankLink Online status
           if (pIDRec^.imName = '') then
             pIDRec^.imName         := ClientStatus.ClientName;
-          pIDRec^.imBankLinkOnline := ClientStatus.StatusDesc;
+          pIDRec^.imOnlineStatusDesc := ClientStatus.StatusDesc;
           if (ClientStatus.LastChange <> 0) then
             pIDRec^.imModifiedDate   := FormatDateTime('dd/mm/yyyy', ClientStatus.LastChange);
-          pIDRec^.imHasGUID        := True;
+          pIDRec^.imOnlineStatus     := ClientStatus.StatusCode;
         end;
       end;
     end;
@@ -1855,7 +1856,7 @@ begin
       case FColumns.ColumnDefn_At( Column).FieldID of
         cluCode : CellText := pIDRec^.imCode;
         cluName : CellText := PIDRec^.imName;
-        cluBankLinkOnline : CellText := PIDRec^.imBankLinkOnline;
+        cluBankLinkOnline : CellText := PIDRec^.imOnlineStatusDesc;
         cluModifiedDate   : CellText := PIDRec^.imModifiedDate;
       end;
 
@@ -3683,6 +3684,32 @@ end;
 procedure TfmeClientLookup.FilterBySearchKeys(Value: String);
 begin
 
+end;
+
+function TfmeClientLookup.FirstUpload: Boolean;
+var
+  i, j: integer;
+  SelectedCodes: TSTringList;
+begin
+  Result := True;
+  SelectedCodes := TSTringList.Create;
+  try
+    SelectedCodes.Delimiter := ClientCodeDelimiter;
+    SelectedCodes.StrictDelimiter := true;
+    SelectedCodes.DelimitedText := GetSelectedCodes;
+    for i := 0 to SelectedCodes.Count - 1 do begin
+      for j := 0 to FClientStatusList.Count - 1 do begin
+        if SelectedCodes[i] = FClientStatusList.Items[j].ClientCode then begin
+          if FClientStatusList.Items[j].StatusCode <> cfsNoFile then begin
+            Result := False;
+            Exit;
+          end;
+        end;
+      end;
+    end;
+  finally
+    SelectedCodes.Free;
+  end;
 end;
 
 // See what types of clients are selected
