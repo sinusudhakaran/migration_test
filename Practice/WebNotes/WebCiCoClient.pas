@@ -128,6 +128,7 @@ type
                        var FileCRC  : String;
                        var FileSize : Integer);
     function TrimedGuid(Guid: TGuid): String;
+    function ServerToDateTime(InString : String) : TDateTime;
   protected
 
 
@@ -228,7 +229,8 @@ uses
   WebUtils,
   StrUtils,
   Windows,
-  LogUtil;
+  LogUtil,
+  Globals;
 
 const
   XML_STATUS_HEADNAME             = 'Result';
@@ -380,6 +382,48 @@ function TWebCiCoClient.TrimedGuid(Guid: TGuid): String;
 begin
   // Trims the { and } off the ends of the Guid to pass to the server
   Result := midstr(GuidToString(Guid),2,length(GuidToString(Guid))-2);
+end;
+
+//------------------------------------------------------------------------------
+function TWebCiCoClient.ServerToDateTime(InString : String) : TDateTime;
+var
+  Year : word;
+  Month : word;
+  Day : word;
+  Hour : word;
+  Minute : word;
+  Second : word;
+  StartStr : Integer;
+  EndStr   : Integer;
+
+  //------------------------------------------------
+  Function GetNextNumber(Search : String) : integer;
+  begin
+    EndStr := Pos(Search, RightStr(InString, Length(InString) - (StartStr-1))) + StartStr-2;
+    Result := StrToInt(MidStr(InString, StartStr, EndStr-StartStr+1));
+    StartStr := EndStr + 2;
+  end;
+begin
+  Result := 0;
+  StartStr := 1;
+
+  Try
+    Day := GetNextNumber('/');
+    Month := GetNextNumber('/');
+    Year := GetNextNumber(' ');
+    Result := EncodeDate(Year, Month, Day);
+
+    Hour := GetNextNumber(':');
+    Minute := GetNextNumber(':');
+    Second := GetNextNumber(' ');
+
+    if UpperCase(MidStr(InString, StartStr, 1)) = 'P' then
+      Hour := Hour + 12;
+
+    Result := Result + EncodeTime(Hour, Minute, Second, 0);
+  except
+    RaiseHttpError('Cico - Error in XML Server Responce! Last Change Date Invalid.', 303);
+  End;
 end;
 
 //------------------------------------------------------------------------------
@@ -590,6 +634,8 @@ procedure TWebCiCoClient.GetIniDetails(ClientCode      : string;
                                        var CountryCode : String);
 begin
   // Todo Get Ini Details
+  ClientEmail := StartupParam_UserToLoginAs;
+  ClientPass  := StartupParam_UserPassword;
 end;
 
 //------------------------------------------------------------------------------
@@ -688,51 +734,9 @@ end;
 procedure TWebCiCoClient.BuildStatusListFromXml(const CurrentNode : IXMLNode);
 var
   NewClientStatusItem : TClientStatusItem;
-  LocalNode : IXMLNode;
-  StatusInt : integer;
+  LocalNode  : IXMLNode;
+  StatusInt  : integer;
   StringDate : String;
-
-  //-------------------------------------------------------
-  function ServerToDateTime(InString : String) : TDateTime;
-  var
-    Year : word;
-    Month : word;
-    Day : word;
-    Hour : word;
-    Minute : word;
-    Second : word;
-    StartStr : Integer;
-    EndStr   : Integer;
-
-    //------------------------------------------------
-    Function GetNextNumber(Search : String) : integer;
-    begin
-      EndStr := Pos(Search, RightStr(InString, Length(InString) - (StartStr-1))) + StartStr-2;
-      Result := StrToInt(MidStr(InString, StartStr, EndStr-StartStr+1));
-      StartStr := EndStr + 2;
-    end;
-  begin
-    Result := 0;
-    StartStr := 1;
-
-    Try
-      Day := GetNextNumber('/');
-      Month := GetNextNumber('/');
-      Year := GetNextNumber(' ');
-      Result := EncodeDate(Year, Month, Day);
-
-      Hour := GetNextNumber(':');
-      Minute := GetNextNumber(':');
-      Second := GetNextNumber(' ');
-
-      if UpperCase(MidStr(InString, StartStr, 1)) = 'P' then
-        Hour := Hour + 12;
-
-      Result := Result + EncodeTime(Hour, Minute, Second, 0);
-    except
-      RaiseHttpError('Cico - Error in XML Server Responce! Last Change Date Invalid.', 303);
-    End;
-  end;
 begin
   LocalNode := CurrentNode.ChildNodes.FindNode(XML_STATUS_CLIENT);
 
