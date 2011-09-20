@@ -68,7 +68,6 @@ type
     procedure SetupFrame;
     procedure SetupColumns;
     procedure CloseupCheckboxes;
-    procedure SelectionChanged(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -168,11 +167,8 @@ begin
       CloseupCheckboxes;
       SetupFrame;
 
-      if (FSendMethod = ftmOnline) then begin
+      if (FSendMethod = ftmOnline) then
         btnOK.Caption := '&Upload';
-        btnOK.Enabled := False;
-        ClientLookupFrame.OnSelectionChanged := SelectionChanged;
-      end;
 
       if SelectedCodes <> '' then
         ClientLookupFrame.SelectedCodes := SelectedCodes;
@@ -334,12 +330,17 @@ begin
       end;
 
       //must select something if using checkout
-      if (DialogMode in [ dmCheckOut, dmSend]) and ( Codes = '') then
+      if (DialogMode in [ dmCheckOut, dmSend]) and ( Codes = '') then begin
+        if (FSendMethod = ftmOnline) then
+          HelpfulWarningMsg('Please select a client to send to BankLink Online', 0);
         Exit;
+      end;
 
       //reload the tree if nothing selected during check in
       if ( DialogMode = dmCheckIn) and ( Codes = '') then
       begin
+        if (FSendMethod = ftmOnline) then
+          HelpfulWarningMsg('Please select a client to update from BankLink Online', 0);
         ClientLookupFrame.FilesDirectory := SelectedDir;
         ClientLookupFrame.Reload;
         Exit;
@@ -444,13 +445,6 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmCheckInOut.SelectionChanged(Sender: TObject);
-begin
-  //Enable the upload button if one or more clients selected
-  if Sender is TfmeClientLookup then
-    btnOK.Enabled := (TfmeClientLookup(Sender).vtClients.SelectedCount > 0);
-end;
-
 procedure TfrmCheckInOut.SetupColumns;
 var
   i: integer;

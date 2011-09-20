@@ -412,9 +412,8 @@ const
 
   gidForeignFile          = 32;  //This should always be the last group!!
 
-  gidNotBanklinkOnlineReady = 37;
 
-  gidMax  = 37;
+  gidMax  = 36;
 
   gidNames : Array[ gidMin..gidMax] of string[30] =
     (
@@ -464,15 +463,13 @@ const
       'Conflict',
       'Invalid Files',
       'Read-Only',
-      'Archived',
-      'Not BankLink Online Ready'
+      'Archived'
      );
 
 const
   Tag_CheckInConflict = 1;
   Tag_InvalidFile = 2;
   Tag_ReadOnlyFile = 3;
-  Tag_NotBanklinkReady = 4;
 
 const LEDOffset = 6;
       LEDWidth = 8;
@@ -1002,8 +999,6 @@ begin
            pIDRec^.imGroupID := gidStatus_InvalidFile;
         Tag_ReadOnlyFile :
            pIDRec^.imGroupID := gidStatus_ReadOnly;
-        Tag_NotBanklinkReady :
-           pIDRec^.imGroupID := gidNotBanklinkOnlineReady;
       else
         begin
           //it will also happen when a file is being checked in for the first time
@@ -1240,7 +1235,7 @@ begin
         pIDRec^.imType    := ctActive;
         pIDRec^.imSendMethod     := Byte(ftmOnline);
         pIDRec^.imBankLinkOnline := '<unknown>';
-        pIDRec^.imModifiedDate   := '<unknown>';
+        pIDRec^.imModifiedDate   := '';
         pIDRec^.imHasGUID        := True;
 
         //if we are doing a check in and we have an admin system then check the file status
@@ -1620,7 +1615,7 @@ begin
         end;
 
         //Don't display books client files for banklink online if it doesn't have a GUID
-        if (not FUsingBankLinkOnline) or (FFilterMode = fmNoFilter) or Wrapper.wHasGUID then begin
+        if (not FUsingBankLinkOnline) or (FFilterMode = fmNoFilter) then begin
           //Load into client files list
           if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
           begin
@@ -1634,7 +1629,7 @@ begin
             pIDRec^.imSendMethod     := Byte(ftmOnline);
             pIDRec^.imBankLinkOnline := '';
             pIDRec^.imModifiedDate   := '';
-            pIDRec^.imHasGUID        := Wrapper.wHasGUID;
+//            pIDRec^.imHasGUID        := Wrapper.wHasGUID;
 
             //if we are doing a check in and we have an admin system then check
             //the file status
@@ -1668,9 +1663,7 @@ begin
                   end;
                 end;
               end else if ( Wrapper.wRead_Only) then
-                pIDRec^.imTag := Tag_ReadOnlyFile
-              else if (not Wrapper.wHasGUID) then
-                pIDRec^.imTag := Tag_NotBanklinkReady;
+                pIDRec^.imTag := Tag_ReadOnlyFile;
           end
           else
           begin
@@ -1695,11 +1688,6 @@ begin
         end;
         Found := FindNext( SearchRec );
       end;
-
-      //Update the banklink online status for checkout from books
-//      if FUsingBankLinkOnline then
-//        RefeshBankLinkOnlineStatus;
-
     finally
        FindClose(SearchRec);
     end;
@@ -1760,7 +1748,8 @@ begin
           if (pIDRec^.imName = '') then
             pIDRec^.imName         := ClientStatus.ClientName;
           pIDRec^.imBankLinkOnline := ClientStatus.StatusDesc;
-          pIDRec^.imModifiedDate   := '<unknown>';
+          if (ClientStatus.LastChange <> 0) then
+            pIDRec^.imModifiedDate   := FormatDateTime('dd/mm/yyyy', ClientStatus.LastChange);
           pIDRec^.imHasGUID        := True;
         end;
       end;

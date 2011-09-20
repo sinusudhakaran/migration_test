@@ -1552,16 +1552,16 @@ begin
   end;
 
   //Check that client file has GUID for BankLink Online
-  if (ASendMethod = ftmOnline) then begin
-    GetClientWrapper(LocalFileName, Wrapper, True);
-    if not Wrapper.wHasGUID then begin
-      Msg := 'Cannot send client file ' + CODE +
-             ' because it is not BankLink Online ready';
-      LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-      ProgressFrm.mProgress.Lines.Add(Msg);
-      Exit;
-    end;
-  end;
+//  if (ASendMethod = ftmOnline) then begin
+//    GetClientWrapper(LocalFileName, Wrapper, True);
+//    if not Wrapper.wHasGUID then begin
+//      Msg := 'Cannot send client file ' + CODE +
+//             ' because it is not BankLink Online ready';
+//      LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
+//      ProgressFrm.mProgress.Lines.Add(Msg);
+//      Exit;
+//    end;
+//  end;
 
   //Take a backup copy
   if BKFileExists(BackupFileName) then
