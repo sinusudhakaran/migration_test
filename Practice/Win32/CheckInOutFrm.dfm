@@ -106,9 +106,9 @@ object frmCheckInOut: TfrmCheckInOut
     TabOrder = 1
     inline ClientLookupFrame: TfmeClientLookup
       Left = 0
-      Top = 123
+      Top = 121
       Width = 884
-      Height = 224
+      Height = 226
       Align = alClient
       TabOrder = 0
       TabStop = True
@@ -117,17 +117,17 @@ object frmCheckInOut: TfrmCheckInOut
       ExplicitHeight = 224
       inherited vtClients: TVirtualStringTree
         Width = 884
-        Height = 224
+        Height = 226
         Header.Font.Height = -13
         ExplicitWidth = 884
-        ExplicitHeight = 261
+        ExplicitHeight = 224
       end
     end
     object pnlPassword: TPanel
       Left = 0
       Top = 0
       Width = 884
-      Height = 123
+      Height = 121
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
@@ -149,7 +149,7 @@ object frmCheckInOut: TfrmCheckInOut
       end
       object Label1: TLabel
         Left = 17
-        Top = 94
+        Top = 91
         Width = 57
         Height = 13
         Alignment = taRightJustify
@@ -217,7 +217,7 @@ object frmCheckInOut: TfrmCheckInOut
       end
       object eSubDomain: TEdit
         Left = 88
-        Top = 91
+        Top = 88
         Width = 321
         Height = 21
         TabOrder = 2
