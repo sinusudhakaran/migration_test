@@ -68,14 +68,15 @@ type
   //----------------------------------------------------------------------------
   TClientStatusList = class(TList)
   protected
-    function Get(Index: Integer): TClientStatusItem;
-    procedure Put(Index: Integer; Item: TClientStatusItem);
+    function Get(Index : Integer): TClientStatusItem;
+    procedure Put(Index : Integer;
+                  Item  : TClientStatusItem);
   public
     destructor Destroy; override;
 
     function GetStatusFromCode(AClientCode : string) : TClientStatusItem;
 
-    property Items[Index: Integer]: TClientStatusItem read Get write Put; default;
+    property Items[Index : Integer]: TClientStatusItem read Get write Put; default;
   end;
 
   //----------------------------------------------------------------------------
@@ -93,15 +94,15 @@ type
   end;
 
   //----------------------------------------------------------------------------
-  TTransferFileEvent = procedure (Direction: TDirectionIndicator;
-                                  TransferStatus : TTransferStatus;
-                                  BytesTransferred: LongInt;
-                                  TotalBytes: LongInt;
-                                  ContentType: String) of object;
+  TTransferFileEvent = procedure (Direction        : TDirectionIndicator;
+                                  TransferStatus   : TTransferStatus;
+                                  BytesTransferred : LongInt;
+                                  TotalBytes       : LongInt;
+                                  ContentType      : String) of object;
 
   TStatusEvent = procedure (StatusMessage : string) of object;
 
-  TServerStatusEvent = procedure (ServerResponce : TServerResponce;
+  TServerStatusEvent = procedure (ServerResponce   : TServerResponce;
                                   ClientStatusList : TClientStatusList) of object;
 
   //----------------------------------------------------------------------------
@@ -117,7 +118,6 @@ type
     fServerReply      : string;
     fContentType      : string;
     FServerCrc        : string;
-
     fProcessState     : TProcessState;
 
     fServerResponce : TServerResponce;
@@ -127,40 +127,39 @@ type
     procedure FileInfo(AFilename     : String;
                        var AFileCRC  : String;
                        var AFileSize : Integer);
-    function TrimedGuid(AGuid: TGuid): String;
+    function TrimedGuid(AGuid : TGuid): String;
     function ServerToDateTime(AInString : String) : TDateTime;
   protected
-
-
-    procedure RaiseHttpError(AErrMessage : String; AErrCode : integer); override;
+    procedure RaiseHttpError(AErrMessage : String;
+                             AErrCode    : integer); override;
 
     // Http Used Events
-    procedure DoHttpConnectionStatus(ASender: TObject;
-                                     const AConnectionEvent: String;
-                                     AStatusCode: Integer;
-                                     const ADescription: String); Override;
-    procedure DoHttpSSLServerAuthentication(ASender: TObject;
-                                            ACertEncoded: String;
-                                            const ACertSubject: String;
-                                            const ACertIssuer: String;
-                                            const AStatus: String;
-                                            var  AAccept: Boolean); Override;
-    procedure DoHttpStartTransfer(ASender: TObject;
-                                  ADirection: Integer); Override;
-    procedure DoHttpTransfer(ASender: TObject;
-                             ADirection: Integer;
-                             ABytesTransferred: LongInt;
-                             AText: String); Override;
-    procedure DoHttpEndTransfer(ASender: TObject;
-                                ADirection: Integer); Override;
+    procedure DoHttpConnectionStatus(ASender : TObject;
+                                     const AConnectionEvent : String;
+                                     AStatusCode : Integer;
+                                     const ADescription : String); Override;
+    procedure DoHttpSSLServerAuthentication(ASender      : TObject;
+                                            ACertEncoded : String;
+                                            const ACertSubject : String;
+                                            const ACertIssuer  : String;
+                                            const AStatus      : String;
+                                            var   AAccept      : Boolean); Override;
+    procedure DoHttpStartTransfer(ASender    : TObject;
+                                  ADirection : Integer); Override;
+    procedure DoHttpTransfer(ASender           : TObject;
+                             ADirection        : Integer;
+                             ABytesTransferred : LongInt;
+                             AText             : String); Override;
+    procedure DoHttpEndTransfer(ASender    : TObject;
+                                ADirection : Integer); Override;
     procedure DoHttpHeader(ASender: TObject;
-                           const AField: String;
-                           const AValue: String); Override;
+                           const AField : String;
+                           const AValue : String); Override;
 
     // Get Details Required by Service
-    procedure GetAdminDetails(var APracCode     : String;
-                              var APracPass     : String;
-                              var ACountryCode  : String);
+    procedure GetAdminDetails(var APracCode    : String;
+                              var APracPass    : String;
+                              var ACountryCode : String);
     procedure GetClientDetails(AClientCode      : string;
                                var AClientEmail : string;
                                var AClientName  : string);
@@ -184,31 +183,31 @@ type
     constructor Create; Override;
     destructor Destroy; Override;
 
-    procedure GetBooksUserExists(AClientEmail        : string;
-                                 AClientPassword     : string;
+    procedure GetBooksUserExists(AClientEmail    : string;
+                                 AClientPassword : string;
                                  var AServerResponce : TServerResponce);
     procedure SetBooksUserPassword(AClientEmail    : string;
                                    AClientPassword : string;
                                    ANewPassword    : string;
                                    var AServerResponce : TServerResponce);
-    procedure GetClientFileStatus(var AServerResponce : TServerResponce;
+    procedure GetClientFileStatus(var AServerResponce   : TServerResponce;
                                   var AClientStatusList : TClientStatusList;
                                   AClientCode : string = '';
-                                  AaSyncCall : Boolean = False);
+                                  AaSyncCall  : Boolean = False);
     procedure UploadFileFromPractice(AClientCode : string;
-                                     var AClientEmail: string;
+                                     var AClientEmail    : string;
                                      var AServerResponce : TServerResponce);
     procedure DownloadFileToPractice(AClientCode : string;
-                                     var ATempBk5File : string;
+                                     var ATempBk5File    : string;
                                      var AServerResponce : TServerResponce);
     procedure UploadFileFromBooks(AClientCode : string;
-                                  AIsCopy : Boolean;
+                                  AIsCopy     : Boolean;
                                   var AServerResponce : TServerResponce);
     procedure DownloadFileToBooks(AClientCode : string;
-                                  var ATempBk5File : string;
+                                  var ATempBk5File    : string;
                                   var AServerResponce : TServerResponce);
 
-    property OnStatusEvent : TStatusEvent read fStatusEvent write fStatusEvent;
+    property OnStatusEvent       : TStatusEvent       read fStatusEvent       write fStatusEvent;
     property OnTransferFileEvent : TTransferFileEvent read fTransferFileEvent write fTransferFileEvent;
     property OnServerStatusEvent : TServerStatusEvent read fServerStatusEvent write fServerStatusEvent;
   published
@@ -311,7 +310,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TClientStatusList.Put(Index: Integer; Item: TClientStatusItem);
+procedure TClientStatusList.Put(Index : Integer;
+                                Item  : TClientStatusItem);
 begin
   inherited Put(Index, Item);
 end;
@@ -437,7 +437,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.RaiseHttpError(AErrMessage : String; AErrCode : integer);
+procedure TWebCiCoClient.RaiseHttpError(AErrMessage : String;
+                                        AErrCode    : integer);
 begin
   logutil.LogError(UNIT_NAME, format('%s Error:<%s>',[InttoStr(AErrCode), AErrMessage] ));
 
@@ -855,18 +856,11 @@ begin
 
     GetIniDetails(BooksEmail, BooksPassword, SubDomain);
 
-    {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
-    {$ELSE}
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       AClientEmail);
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    AClientPassword);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
-    {$ENDIF}
-
-    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '');
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE      , '');
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       AClientEmail);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    AClientPassword);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD,  '');
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,        '');
     AppendHttpHeaderInfo;
 
     FASyncCall := False;
@@ -903,17 +897,10 @@ begin
 
     GetIniDetails(BooksEmail, BooksPassword, SubDomain);
 
-    {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
-    {$ELSE}
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       AClientEmail);
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    AClientPassword);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
-    {$ENDIF}
-
-    AddHttpHeaderInfo(HTTP_HEAD_BOOKS_NEWPASSWORD, ANewPassword);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       AClientEmail);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    AClientPassword);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
+    AddHttpHeaderInfo(HTTP_HEAD_BOOKS_NEWPASSWORD,  ANewPassword);
     AppendHttpHeaderInfo;
 
     HttpSendRequest(HttpAddress);
@@ -927,10 +914,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetClientFileStatus(var AServerResponce : TServerResponce;
+procedure TWebCiCoClient.GetClientFileStatus(var AServerResponce   : TServerResponce;
                                              var AClientStatusList : TClientStatusList;
                                              AClientCode : string = '';
-                                             AaSyncCall : Boolean = False);
+                                             AaSyncCall  : Boolean = False);
 var
   HttpAddress    : string;
   PracticeCode   : String;
@@ -956,33 +943,19 @@ begin
     begin
       GetAdminDetails(PracticeCode, PracticePass, CountryCode);
 
-      {$IFDEF WebCiCoStatic}
-        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '123');
-        AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
-        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     'NZPRAC');
-      {$ELSE}
-        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
-        AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
-        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
-      {$ENDIF}
-
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    '');
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, '');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      '');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,   '');
     end
     else
     begin
       GetIniDetails(ClientEmail, ClientPassword, SubDomain);
 
-      {$IFDEF WebCiCoStatic}
-        AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
-        AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
-      {$ELSE}
-        AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
-        AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
-        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
-      {$ENDIF}
-
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
       AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '');
     end;
 
@@ -1017,7 +990,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromPractice(AClientCode : string;
-                                                var AClientEmail: string;
+                                                var AClientEmail    : string;
                                                 var AServerResponce : TServerResponce);
 var
   HttpAddress  : String;
@@ -1039,21 +1012,13 @@ begin
     GetAdminDetails(PracticeCode, PracticePass, CountryCode);
     GetClientDetails(AClientCode, AClientEmail, ClientName);
 
-    {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     'NZPRAC');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '123');
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      'pj.jacobs@banklink.co.nz');
-    {$ELSE}
-      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      AClientEmail);
-    {$ENDIF}
-
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, AClientCode);
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_NAME, ClientName);
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, '');
+    AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      AClientEmail);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,       AClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_NAME,       ClientName);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,   '');
 
     UploadFile(HttpAddress, DataDir + AClientCode + FILEEXTN);
 
@@ -1067,7 +1032,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DownloadFileToPractice(AClientCode : string;
-                                                var ATempBk5File : string;
+                                                var ATempBk5File    : string;
                                                 var AServerResponce : TServerResponce);
 var
   HttpAddress  : String;
@@ -1096,16 +1061,9 @@ begin
 
     GetAdminDetails(PracticeCode, PracticePass, CountryCode);
 
-    {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     'NZPRAC');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '123');
-    {$ELSE}
-      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
-    {$ENDIF}
-
+    AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,       AClientCode);
 
     AppendHttpHeaderInfo;
@@ -1133,7 +1091,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromBooks(AClientCode : string;
-                                             AIsCopy : Boolean;
+                                             AIsCopy     : Boolean;
                                              var AServerResponce : TServerResponce);
 var
   HttpAddress    : string;
@@ -1153,17 +1111,10 @@ begin
 
     GetIniDetails(ClientEmail, ClientPassword, SubDomain);
 
-    {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
-    {$ELSE}
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
-    {$ENDIF}
-
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, AClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,        AClientCode);
 
     if AIsCopy then
       AddHttpHeaderInfo(HTTP_HEAD_BOOKS_COPY, '1')
@@ -1181,7 +1132,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.DownloadFileToBooks(AClientCode : string;
+procedure TWebCiCoClient.DownloadFileToBooks(AClientCode      : string;
                                              var ATempBk5File : string;
                                              var AServerResponce : TServerResponce);
 var
@@ -1211,18 +1162,10 @@ begin
 
     GetIniDetails(ClientEmail, ClientPassword, SubDomain);
 
-    {$IFDEF WebCiCoStatic}
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
-    {$ELSE}
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
-    {$ENDIF}
-
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, AClientCode);
-
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,        AClientCode);
     AppendHttpHeaderInfo;
 
     SetLength(TempPath,Max_Path);
