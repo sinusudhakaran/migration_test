@@ -852,7 +852,7 @@ begin
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
     {$ELSE}
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
@@ -900,7 +900,7 @@ begin
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
     {$ELSE}
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
@@ -970,7 +970,7 @@ begin
       {$IFDEF WebCiCoStatic}
         AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
         AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'NZ');
+        AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
       {$ELSE}
         AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
         AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
@@ -1148,7 +1148,7 @@ begin
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
     {$ELSE}
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
@@ -1206,7 +1206,7 @@ begin
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       'pj.jacobs@banklink.co.nz');
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    '1qaz!QAZ');
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, 'nzpractice');
     {$ELSE}
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
