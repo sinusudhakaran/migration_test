@@ -74,8 +74,8 @@ type
     { Public declarations }
   end;
 
-  function SelectCodesToSend(Title : string; ASendMethod: Byte; SelectedCodes: string = '';
-                             FlagReadOnly: boolean = true) : string;
+  function SelectCodesToSend(Title : string; ASendMethod: Byte; var FirstUpload: boolean;
+                             SelectedCodes: string = '') : string;
   function SelectCodesToGet( Title : string; ASendMethod: Byte; DefaultCodes : string = '') : string;
   function SelectCodesToAttach( Title : string) : string;
   function SelectCodeToLookup( Title : string; DefaultCode: string = ''; Multiple: Boolean = True) : string;
@@ -131,8 +131,8 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectCodesToSend( Title : string; ASendMethod: Byte;
-  SelectedCodes: string = ''; FlagReadOnly: boolean = true) : string;
+function SelectCodesToSend( Title : string; ASendMethod: Byte; var FirstUpload: boolean;
+  SelectedCodes: string = '') : string;
 //the path is the path to check the files out to
 var
   CheckInOut : TfrmCheckInOut;
@@ -188,7 +188,6 @@ begin
         Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
         ASendMethod := CheckInOut.FSendMethod;
         Result := ClientLookupFrame.SelectedCodes;
-        FlagReadOnly := cbFlagReadOnly.Checked;
       end;
     finally
       Free;
@@ -426,6 +425,7 @@ begin
 
   ClientLookupFrame.Reload;
 end;
+
 procedure TfrmCheckInOut.CloseupCheckboxes;
 var
   CheckBoxHeight: integer;

@@ -112,9 +112,9 @@ object frmCheckInOut: TfrmCheckInOut
       Align = alClient
       TabOrder = 0
       TabStop = True
-      ExplicitTop = 86
+      ExplicitTop = 123
       ExplicitWidth = 884
-      ExplicitHeight = 261
+      ExplicitHeight = 224
       inherited vtClients: TVirtualStringTree
         Width = 884
         Height = 224

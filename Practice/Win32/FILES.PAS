@@ -1328,7 +1328,7 @@ var
   RemoteFileName: string;
   Msg: string;
 begin
-  Result := True;
+  Result := False;
   TempClient := nil;
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -1344,14 +1344,12 @@ begin
       LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
       if not IsScheduledReport then
         ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
-      Result := False;
       Exit;
     end;
 
     //file is not read only, proceed using the currently selected client
     if not CloseMDIChildren(True) then begin
       //could not close all the child windows
-      Result := False;
       Exit;
     end;
     if IsScheduledReport then
@@ -1445,7 +1443,6 @@ begin
         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + E.Message);
         if not IsScheduledReport then
           ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + E.Message);
-        Result := False;  
         Exit;
       end;
     end;
@@ -1489,6 +1486,7 @@ begin
     end;
   end;
 
+  Result := True;
   case ASendMethod of
     ftmNone,
     ftmFile: Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
@@ -1512,7 +1510,7 @@ var
   RemoteFileName: string;
   BackupFileName: string;
   Msg: string;
-  Wrapper: TClientWrapper;
+//  Wrapper: TClientWrapper;
 begin
   //Never comes in here for scheduled reports - admin system must exist
   //admin system does not exists so is an off-site client
@@ -1658,8 +1656,6 @@ function SendClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
 const
   ThisMethodName = 'SendClient';
 begin
-  Result := True;
-
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
   ProgressFrm.ClientCode := Code;
@@ -1736,17 +1732,12 @@ var
   i: integer;
   CodeList: TStringList;
   SentClientCodes: string;
-  SendMethod: byte;
   ProgressFrm: TfrmChkProgress;
   Failures: Integer;
   EmailAddress: string;
   EmailBody: string;
-  FlagReadOnly: Boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-
-  //Needs to be a variable so it can be set in CheckInOutFrm
-  SendMethod := ASendMethod;
 
   CodeList := TStringList.Create;
   try
@@ -1758,8 +1749,7 @@ begin
         CodeList.DelimitedText := CodesToSend
       else begin
         CodeList.DelimitedText := SelectCodesToSend('Select Client(s) to Send',
-                                                    ASendMethod, FirstUpload,
-                                                    '', FlagReadOnly);
+                                                    ASendMethod, FirstUpload);
         if CodeList.DelimitedText = '' then
           Exit;
       end;
@@ -2205,7 +2195,10 @@ begin
       end;
    end;
 
-   Msg := Format('Check in %s from %s succeeded',[Code,RemoteFileName]);
+   if (ASendMethod = ftmOnline) then
+     Msg := Format('Check in %s from BankLink Online succeeded',[Code])   
+   else
+     Msg := Format('Check in %s from %s succeeded',[Code,RemoteFileName]);
    LogUtil.LogMsg(lmInfo,unitname,ThisMethodName+' '+Msg);
 
    if not IsScheduledReports and Assigned( AdminSystem) then
@@ -2329,6 +2322,7 @@ begin
    Result := False;
    RemoteFilename := filename;
    RemoteRename := Uppercase(ChangeFileExt( RemoteFilename, RENAMEEXTN));
+   CFRec := nil;
 
    //catch any exceptions are show in error message
    try

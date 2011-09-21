@@ -291,10 +291,8 @@ begin
   CFRec := AdminSystem.fdSystem_Client_File_List.FindCode(AClientCode);
   if Assigned(CFRec) then
     ReadOnly := (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite])
-  else begin
-    Msg := Format('Client file record not found for %s.', [AClientCode]);
-    raise EDownloadFailed.Create(Msg);
-  end;
+  else
+    ReadOnly := True; //If no file exists then assume not checked out from Practice! 
 
   if ReadOnly then begin
     //Checked out
@@ -462,10 +460,12 @@ begin
     if Assigned(AdminSystem) then begin
       CicoClient.DownloadFileToPractice(AClientCode, ARemoteFilename, ServerResponce);
       if ServerResponce.Status = '200' then begin
-        AProgressFrm.mProgress.Lines.Add('Downloaded file to: ' + ARemoteFilename);
-        AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
-        AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
-        AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
+        if DebugMe then begin
+          AProgressFrm.mProgress.Lines.Add('Downloaded file to: ' + ARemoteFilename);
+          AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
+          AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
+          AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
+        end;
         Result := True;
       end else begin
         raise EDownloadFailed.Create(ServerResponce.Description);
@@ -516,7 +516,6 @@ begin
     end;
   end;
 end;
-
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;
   AProgressFrm: TfrmChkProgress; Silent: boolean; var AEmail: string;
   IsCopy: Boolean = False): boolean;

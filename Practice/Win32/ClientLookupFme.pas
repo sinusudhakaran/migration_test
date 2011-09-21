@@ -86,7 +86,7 @@ type
     imSendMethod      : Byte;
     imOnlineStatus    : TClientFileStatus;
     imOnlineStatusDesc: string[60];
-    imModifiedDate    : string[20];
+    imModifiedDate    : TDateTime;
   end;
 
   TIntermediateDataList = class(TExtdCollection) //not sorted
@@ -1183,7 +1183,7 @@ begin
       for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
         pIDRec := FIntermediateDataList.IntermediateData_At(i);
         pIDRec^.imOnlineStatusDesc := '<error>';
-        pIDRec^.imModifiedDate   := '<error>';
+        pIDRec^.imModifiedDate   := 0;
         pIDRec^.imOnlineStatus   := cfsNoFile;
       end;
       ShowMessage(E.Message);
@@ -1225,7 +1225,7 @@ begin
     //List the client files from BankLink Online
     for i := 0 to FClientStatusList.Count - 1 do begin
       ClientStatus := FClientStatusList.Items[i];
-      if Assigned(ClientStatus) then begin
+      if Assigned(ClientStatus) and (ClientStatus.StatusCode <> cfsNoFile) then begin
         ClientCode := ClientStatus.ClientCode;
         pIDRec := FIntermediateDataList.Add;
         pIDRec^.imCode    := ClientCode;
@@ -1236,7 +1236,7 @@ begin
         pIDRec^.imType    := ctActive;
         pIDRec^.imSendMethod     := Byte(ftmOnline);
         pIDRec^.imOnlineStatusDesc := '<unknown>';
-        pIDRec^.imModifiedDate   := '';
+        pIDRec^.imModifiedDate   := 0;
         pIDRec^.imOnlineStatus   := cfsNoFile;
 
         //if we are doing a check in and we have an admin system then check the file status
@@ -1582,7 +1582,7 @@ begin
            pIDRec^.imType    := sysClientRec^.cfClient_Type;
            pIDRec^.imSendMethod     := sysClientRec^.cfSend_Method;
            pIDRec^.imOnlineStatusDesc := '';
-           pIDRec^.imModifiedDate   := '';
+           pIDRec^.imModifiedDate   := 0;
            pIDRec^.imOnlineStatus   := cfsNoFile;
         end;
       end;
@@ -1615,80 +1615,83 @@ begin
           end;
         end;
 
-        //Don't display books client files for banklink online if it doesn't have a GUID
-        if (not FUsingBankLinkOnline) or (FFilterMode = fmNoFilter) then begin
-          //Load into client files list
-          if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
-          begin
-            pIDRec := FIntermediateDataList.Add;
-            pIDRec^.imCode    := Wrapper.wCode;
-            pIDRec^.imName    := Wrapper.wName;
-            pIDRec^.imGroupID := 0;
-            pIDRec^.imData    := nil;
-            pIDRec^.imTag     := 0;
-            pIDRec^.imType    := ctActive;
-            pIDRec^.imSendMethod     := Byte(ftmOnline);
-            pIDRec^.imOnlineStatusDesc := '';
-            pIDRec^.imModifiedDate   := '';
-            pIDRec^.imOnlineStatus   := cfsNoFile;
+        //Load into client files list
+        if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
+        begin
+          pIDRec := FIntermediateDataList.Add;
+          pIDRec^.imCode    := Wrapper.wCode;
+          pIDRec^.imName    := Wrapper.wName;
+          pIDRec^.imGroupID := 0;
+          pIDRec^.imData    := nil;
+          pIDRec^.imTag     := 0;
+          pIDRec^.imType    := ctActive;
+          pIDRec^.imSendMethod     := Byte(ftmOnline);
+          pIDRec^.imOnlineStatusDesc := '';
+          pIDRec^.imModifiedDate   := 0;
+          pIDRec^.imOnlineStatus   := cfsNoFile;
 
-            //if we are doing a check in and we have an admin system then check
-            //the file status
-            if FUsingAdminSystem then
-            begin
-              sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode( Wrapper.wCode);
-              pIDRec^.imData := sysClientRec;
-            end
-            else
-              if ( FFilterMode = fmFilesForCheckIn) then begin
-                //checkin at offsite, see if file already exists
-                //a conflict situation occurs only if the existing file is
-                //currently writable
-                //ie user is trying to check in a file over the top of an
-                //existing valid file.
-                if BKFileExists( DataDir + SearchRec.Name) then
-                begin
-                  try
-                    GetClientWrapper( DataDir + SearchRec.Name, WrapperOfExistingFile, False);
-                    if WrapperOfExistingFile.wRead_Only then
-                      pIDRec^.imTag := 0
-                    else
-                      pIDRec^.imTag := Tag_CheckInConflict;
-                  except
-                    on E : Exception do
-                    begin
-                      //unable to read the wrapper, create a dummy wrapper with the error
-                      //assume that a conflict will exist
-                      pIDRec^.imTag := Tag_CheckInConflict;
-                    end;
-                  end;
-                end;
-              end else if ( Wrapper.wRead_Only) then
-                pIDRec^.imTag := Tag_ReadOnlyFile;
+          //if we are doing a check in and we have an admin system then check
+          //the file status
+          if FUsingAdminSystem then
+          begin
+            sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode( Wrapper.wCode);
+            pIDRec^.imData := sysClientRec;
           end
           else
-          begin
-            //this is not a banklink file!
-            S := Copy( SearchRec.Name, 1, Pos( '.', SearchRec.Name) -1);
+            if ( FFilterMode = fmFilesForCheckIn) then begin
+              //checkin at offsite, see if file already exists
+              //a conflict situation occurs only if the existing file is
+              //currently writable
+              //ie user is trying to check in a file over the top of an
+              //existing valid file.
+              if BKFileExists( DataDir + SearchRec.Name) then
+              begin
+                try
+                  GetClientWrapper( DataDir + SearchRec.Name, WrapperOfExistingFile, False);
+                  if WrapperOfExistingFile.wRead_Only then
+                    pIDRec^.imTag := 0
+                  else
+                    pIDRec^.imTag := Tag_CheckInConflict;
+                except
+                  on E : Exception do
+                  begin
+                    //unable to read the wrapper, create a dummy wrapper with the error
+                    //assume that a conflict will exist
+                    pIDRec^.imTag := Tag_CheckInConflict;
+                  end;
+                end;
+              end;
+            end else if ( Wrapper.wRead_Only) then
+              pIDRec^.imTag := Tag_ReadOnlyFile;
+        end
+        else
+        begin
+          //this is not a banklink file!
+          S := Copy( SearchRec.Name, 1, Pos( '.', SearchRec.Name) -1);
 
-            pIDRec := FIntermediateDataList.Add;
-            pIDRec^.imCode    := S;
+          pIDRec := FIntermediateDataList.Add;
+          pIDRec^.imCode    := S;
 
-            if Wrapper.wSignature = ERROR_SIGNATURE then
-              pIDRec^.imName := Wrapper.wName
-            else
-              pIDRec^.imName    := 'ERROR: This is not a BankLink file!';
+          if Wrapper.wSignature = ERROR_SIGNATURE then
+            pIDRec^.imName := Wrapper.wName
+          else
+            pIDRec^.imName    := 'ERROR: This is not a BankLink file!';
 
-            pIDRec^.imGroupID := 0;
-            pIDRec^.imData    := nil;
-            pIDRec^.imTag     := Tag_CheckInConflict;
-            pIDRec^.imOnlineStatusDesc := '';
-            pIDRec^.imModifiedDate   := '';
-            pIDRec^.imOnlineStatus   := cfsNoFile;
-          end;
+          pIDRec^.imGroupID := 0;
+          pIDRec^.imData    := nil;
+          pIDRec^.imTag     := Tag_CheckInConflict;
+          pIDRec^.imOnlineStatusDesc := '';
+          pIDRec^.imModifiedDate   := 0;
+          pIDRec^.imOnlineStatus   := cfsNoFile;
         end;
         Found := FindNext( SearchRec );
       end;
+
+      //Update the banklink online status for checkout from practice
+  { TODO : Also check that the user has entered an email address and password }
+      if FUsingBankLinkOnline then
+        RefeshBankLinkOnlineStatus;
+        
     finally
        FindClose(SearchRec);
     end;
@@ -1750,7 +1753,7 @@ begin
             pIDRec^.imName         := ClientStatus.ClientName;
           pIDRec^.imOnlineStatusDesc := ClientStatus.StatusDesc;
           if (ClientStatus.LastChange <> 0) then
-            pIDRec^.imModifiedDate   := FormatDateTime('dd/mm/yyyy', ClientStatus.LastChange);
+            pIDRec^.imModifiedDate   := ClientStatus.LastChange;
           pIDRec^.imOnlineStatus     := ClientStatus.StatusCode;
         end;
       end;
@@ -1857,7 +1860,11 @@ begin
         cluCode : CellText := pIDRec^.imCode;
         cluName : CellText := PIDRec^.imName;
         cluBankLinkOnline : CellText := PIDRec^.imOnlineStatusDesc;
-        cluModifiedDate   : CellText := PIDRec^.imModifiedDate;
+        cluModifiedDate   : begin
+                              CellText := ''; 
+                              if (PIDRec^.imModifiedDate <> 0) then
+                                CellText := FormatDateTime('dd/mm/yyyy', PIDRec^.imModifiedDate);
+                            end;
       end;
 
       //now look for fields inside data
@@ -2222,9 +2229,11 @@ begin
 
     if not ( Assigned( sysRec1) and Assigned( sysRec2)) then
     begin
-      //if the sysRecs are not assigned then can only sort by name or code
-      if ( FieldID = cluName) then
-        result := STStrS.CompStringS( Uppercase(pIDRec1.imName), Uppercase( pIDRec2.imName));
+      case FieldID of
+        cluName           : Result := STStrS.CompStringS( Uppercase(pIDRec1.imName), Uppercase( pIDRec2.imName));
+        cluBankLinkOnline : Result := CompareStr( pIDRec1.imOnlineStatusDesc, pIDRec2.imOnlineStatusDesc);
+        cluModifiedDate   : Result := Round(pIDRec1.imModifiedDate - pIDRec2.imModifiedDate);
+      end;
     end
     else
     begin
@@ -2290,6 +2299,14 @@ begin
         begin
           vtClients.Header.SortColumn    := FColumns.FindColumnIndex( cluCode);
           vtClients.Header.SortDirection := SortDirection;
+        end;
+        cluBankLinkOnline :
+        begin
+           result := CompareStr( pIDRec1.imOnlineStatusDesc, pIDRec2.imOnlineStatusDesc);
+        end;
+        cluModifiedDate :
+        begin
+           result := Round(pIDRec1.imModifiedDate - pIDRec2.imModifiedDate);
         end;
       end;
     end;
