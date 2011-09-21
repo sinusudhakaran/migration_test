@@ -158,14 +158,12 @@ type
                            const Value: String); Override;
 
     // Get Details Required by Service
-    procedure GetAdminDetails(ClientCode       : string;
-                              var PracCode     : String;
+    procedure GetAdminDetails(var PracCode     : String;
                               var PracPass     : String;
                               var CountryCode  : String);
     procedure GetClientDetails(ClientCode      : string;
                                var ClientEmail : string);
-    procedure GetIniDetails(ClientCode      : string;
-                            var ClientEmail : string;
+    procedure GetIniDetails(var ClientEmail : string;
                             var ClientPass  : string;
                             var PracCode    : String;
                             var CountryCode : String);
@@ -185,8 +183,12 @@ type
     constructor Create; Override;
     destructor Destroy; Override;
 
-    procedure SetBooksUserPassword(ClientCode  : string;
-                                   NewPassword : string;
+    procedure GetBooksUserExists(ClientEmail        : string;
+                                 ClientPassword     : string;
+                                 var ServerResponce : TServerResponce);
+    procedure SetBooksUserPassword(ClientEmail    : string;
+                                   ClientPassword : string;
+                                   NewPassword    : string;
                                    var ServerResponce : TServerResponce);
     procedure GetClientFileStatus(var ServerResponce : TServerResponce;
                                   var ClientStatusList : TClientStatusList;
@@ -421,7 +423,8 @@ begin
     Minute := GetNextNumber(':');
     Second := GetNextNumber(' ');
 
-    if UpperCase(MidStr(InString, StartStr, 1)) = 'P' then
+    if (UpperCase(MidStr(InString, StartStr, 1)) = 'P') and
+       (Hour < 12) then
       Hour := Hour + 12;
 
     Result := Result + EncodeTime(Hour, Minute, Second, 0);
@@ -605,8 +608,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetAdminDetails(ClientCode      : string;
-                                         var PracCode    : String;
+procedure TWebCiCoClient.GetAdminDetails(var PracCode    : String;
                                          var PracPass    : String;
                                          var CountryCode : String);
 begin
@@ -631,8 +633,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.GetIniDetails(ClientCode      : string;
-                                       var ClientEmail : string;
+procedure TWebCiCoClient.GetIniDetails(var ClientEmail : string;
                                        var ClientPass  : string;
                                        var PracCode    : String;
                                        var CountryCode : String);
@@ -824,15 +825,69 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebCiCoClient.SetBooksUserPassword(ClientCode  : string;
-                                              NewPassword : string;
+procedure TWebCiCoClient.GetBooksUserExists(ClientEmail        : string;
+                                            ClientPassword     : string;
+                                            var ServerResponce : TServerResponce);
+var
+  HttpAddress    : String;
+  BooksEmail     : String;
+  BooksPassword  : String;
+  PracticeCode   : String;
+  CountryCode    : String;
+begin
+  if Assigned(AdminSystem) then
+    Exit;
+
+  fProcessState := psGetStatus;
+
+  if DebugMe then
+    logutil.LogError(UNIT_NAME, 'Called Client File Status.');
+
+  try
+    ClearHttpHeader;
+
+    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_GET_STATUS;
+
+    GetIniDetails(BooksEmail, BooksPassword, PracticeCode, CountryCode);
+
+    {$IFDEF WebCiCoStatic}
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    'pj.jacobs@banklink.co.nz');
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, '1qaz!QAZ');
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,    'NZ');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,   'NZPRACTICE');
+    {$ELSE}
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    ClientEmail);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, ClientPassword);
+      AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,    CountryCode);
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,   PracticeCode);
+    {$ENDIF}
+
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '');
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE      , '');
+    AppendHttpHeaderInfo;
+
+    FASyncCall := False;
+    HttpSendRequest(HttpAddress);
+
+    WaitForProcess;
+
+    ServerResponce := fServerResponce;
+  finally
+    fProcessState := psNothing;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.SetBooksUserPassword(ClientEmail    : string;
+                                              ClientPassword : string;
+                                              NewPassword    : string;
                                               var ServerResponce : TServerResponce);
 var
   HttpAddress    : String;
   CountryCode    : String;
   PracticeCode   : String;
-  ClientEMail    : String;
-  ClientPassword : String;
+  BooksEmail     : String;
+  BooksPassword  : String;
 begin
   fProcessState := psChangePass;
 
@@ -844,7 +899,7 @@ begin
 
     HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_PASS_CHANGE;
 
-    GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
+    GetIniDetails(BooksEmail, BooksPassword, PracticeCode, CountryCode);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,    'NZ');
@@ -854,11 +909,10 @@ begin
     {$ELSE}
       AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,    CountryCode);
       AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,   PracticeCode);
-      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    ClientEMail);
+      AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    ClientEmail);
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, ClientPassword);
     {$ENDIF}
 
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,       ClientCode);
     AddHttpHeaderInfo(HTTP_HEAD_BOOKS_NEWPASSWORD, NewPassword);
     AppendHttpHeaderInfo;
 
@@ -899,7 +953,7 @@ begin
 
     if Assigned(AdminSystem) then
     begin
-      GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
+      GetAdminDetails(PracticeCode, PracticePass, CountryCode);
 
       {$IFDEF WebCiCoStatic}
         AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '123');
@@ -912,7 +966,7 @@ begin
     end
     else
     begin
-      GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
+      GetIniDetails(ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
       {$IFDEF WebCiCoStatic}
         AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,    'pj.jacobs@banklink.co.nz');
@@ -982,7 +1036,7 @@ begin
 
     HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_UPLOAD;
 
-    GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
+    GetAdminDetails(PracticeCode, PracticePass, CountryCode);
     GetClientDetails(ClientCode, ClientEmail);
 
     {$IFDEF WebCiCoStatic}
@@ -1039,7 +1093,7 @@ begin
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
 
-    GetAdminDetails(ClientCode, PracticeCode, PracticePass, CountryCode);
+    GetAdminDetails(PracticeCode, PracticePass, CountryCode);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
@@ -1098,7 +1152,7 @@ begin
 
     HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_UPLOAD;
 
-    GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
+    GetIniDetails(ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
@@ -1159,7 +1213,7 @@ begin
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
 
-    GetIniDetails(ClientCode, ClientEmail, ClientPassword, PracticeCode, CountryCode);
+    GetIniDetails(ClientEmail, ClientPassword, PracticeCode, CountryCode);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');

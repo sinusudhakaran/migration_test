@@ -72,8 +72,8 @@ type
     { Public declarations }
   end;
 
-  function SelectCodesToSend(Title : string; ASendMethod: Byte; var FirstUpload: boolean;
-                             SelectedCodes: string = ''; FlagReadOnly: boolean = true) : string;
+  function SelectCodesToSend(Title : string; ASendMethod: Byte; SelectedCodes: string = '';
+                             FlagReadOnly: boolean = true) : string;
   function SelectCodesToGet( Title : string; ASendMethod: Byte; DefaultCodes : string = '') : string;
   function SelectCodesToAttach( Title : string) : string;
   function SelectCodeToLookup( Title : string; DefaultCode: string = ''; Multiple: Boolean = True) : string;
@@ -91,7 +91,9 @@ uses
   WarningMoreFrm,
   Virtualtrees,
   ChangePasswordFrm,
-  IniSettings;
+  IniSettings,
+  BankLinkOnline,
+  ErrorMoreFrm;
 
 const
 //  MIN_STANDARD_WIDTH = 615; //Original dialog width
@@ -127,7 +129,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectCodesToSend( Title : string; ASendMethod: Byte; var FirstUpload: boolean;
+function SelectCodesToSend( Title : string; ASendMethod: Byte;
   SelectedCodes: string = ''; FlagReadOnly: boolean = true) : string;
 //the path is the path to check the files out to
 var
@@ -162,6 +164,8 @@ begin
         cbEditEmail.Visible := (FSendMethod = ftmOnline);
         cbSendEmail.Visible := False;
         pnlPassword.Visible := True;
+        eUsername.Text      := Globals.INI_BankLink_Online_Username;
+        ePassword.Text      := Globals.INI_BankLink_Online_Password;
       end;
 
       CloseupCheckboxes;
@@ -177,9 +181,8 @@ begin
       begin
         Globals.INI_CheckOutDir := AddSlash( ePath.Text);
         ASendMethod := CheckInOut.FSendMethod;
-        FlagReadOnly := cbFlagReadOnly.Checked;
-        FirstUpload := ClientLookupFrame.FirstUpload;
         Result := ClientLookupFrame.SelectedCodes;
+        FlagReadOnly := cbFlagReadOnly.Checked;
       end;
     finally
       Free;
@@ -301,7 +304,6 @@ begin
     end;
   end;
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
@@ -376,12 +378,34 @@ end;
 
 procedure TfrmCheckInOut.btnChangePasswordClick(Sender: TObject);
 var
-  NewPassword: string;
+  NewPassword : string;
+  UserExists  : Boolean;
+  UserMessage : String;
 begin
-  if ChangePasswordFrm.ChangeBankLinkOnlinePassword(eUserName.Text, ePassword.Text, NewPassword) then begin
-    ePassword.Text := NewPassword;
-    Globals.INI_BankLink_Online_Password := NewPassword;
-    IniSettings.BK5WriteINI;
+  Try
+    UserExists := BankLinkOnlineMgr.CheckBooksUserExists(eUserName.Text, ePassword.Text);
+  except
+    on E: exception do
+      begin
+        HelpfulErrorMsg(E.Message, 0);
+        Exit;
+      end;
+  end;
+
+  if UserExists then begin
+    if ChangePasswordFrm.ChangeBankLinkOnlinePassword(eUserName.Text,
+                                                      ePassword.Text,
+                                                      NewPassword) then begin
+      ePassword.Text := NewPassword;
+      Globals.INI_BankLink_Online_Password := NewPassword;
+      IniSettings.BK5WriteINI;
+    end;
+  end
+  else
+  begin
+    UserMessage := 'The username ''' + eUserName.Text + ''' does not exist. ' +
+                   ' Please try again or contact your accountant for assistance.';
+    HelpfulErrorMsg(UserMessage ,0);
   end;
 end;
 

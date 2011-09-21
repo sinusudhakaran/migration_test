@@ -26,6 +26,8 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure RefreshStatus;
+    function CheckBooksUserExists(AClientEmail : string;
+                                  AClientPassword : string) : Boolean;
     function UploadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                           Silent: boolean; var AEmail: string; IsCopy: Boolean = False): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
@@ -65,7 +67,6 @@ begin
 end;
 
 { TBankLinkOnlineManager }
-
 procedure TBankLinkOnlineManager.CheckBankLinkOnlineStatus(AClientCode: string;
   AAction: TOnlineAction);
 var
@@ -495,6 +496,25 @@ end;
 procedure TBankLinkOnlineManager.RefreshStatus;
 begin
 
+end;
+
+function TBankLinkOnlineManager.CheckBooksUserExists(AClientEmail : string;
+                                                     AClientPassword : string) : Boolean;
+var
+  ServerResponce : TServerResponce;
+begin
+  Result := false;
+  try
+    CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
+
+    if (ServerResponce.Status = '200') then
+      Result := true;
+
+  except
+    on E: Exception do begin
+      raise EUploadFailed.CreateFmt('Error getting BankLink Online User status: %s', [E.Message]);
+    end;
+  end;
 end;
 
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;

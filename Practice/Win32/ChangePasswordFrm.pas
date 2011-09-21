@@ -31,7 +31,8 @@ type
 implementation
 
 uses
-  ErrorMoreFrm;
+  ErrorMoreFrm,
+  WebCiCoClient;
 
 {$R *.dfm}
 
@@ -43,14 +44,9 @@ begin
   ChangePasswordForm := TChangePasswordForm.Create(Application.MainForm);
   try
     ChangePasswordForm.FPassword := APassword;
-    ChangePasswordForm.FEmail := AEmail;
+    ChangePasswordForm.FEmail    := AEmail;
     if ChangePasswordForm.ShowModal = mrOk then begin
-  { TODO : Change Password Web Service Call }
-      //If password change confirmed by web service
-      //must also check that username (email address) exists
-      //Have to make a web service call to verify username (email) exists
       ANewPassword := ChangePasswordForm.eNew.Text;
-      Result := True;
     end;
   finally
     ChangePasswordForm.Free;
@@ -71,6 +67,7 @@ var
   i: integer;
   HasNumbers, HasLetters: Boolean;
   TempStr: string;
+  ServerResponce : TServerResponce;
 begin
   Result := False;
   //Password matches
@@ -117,6 +114,26 @@ begin
     HelpfulErrorMsg('The New Password must contain a combination of letters and numbers.',0);
     Exit;
   end;
+
+  // Finally Contact the Service and Validate
+  Try
+    CiCoClient.SetBooksUserPassword(FEmail, FPassword, eNew.Text, ServerResponce);
+  except
+    on E: exception do
+      begin
+        HelpfulErrorMsg('Error changing BankLink Online User password: ' + E.Message, 0);
+        Exit;
+      end;
+  End;
+
+  if Not ((ServerResponce.Status = '200')
+  and (Lowercase(ServerResponce.Description) = 'password changes')) then
+  begin
+    TempStr := 'Error changing BankLink Online User password: ' + ServerResponce.Description;
+    HelpfulErrorMsg(TempStr ,0);
+    Exit;
+  end;
+
   //Still here then...
   Result := True;
 end;
