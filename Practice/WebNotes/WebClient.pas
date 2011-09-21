@@ -26,12 +26,14 @@ Type
   //----------------------------------------------------------------------------
   EWebClientError = class(Exception)
   private
-    FErrorCode: integer;
+    FErrorCode : integer;
   public
-    constructor Create(Msg: string; ErrorCode: integer); overload;
+    constructor Create(AMsg       : string;
+                       AErrorCode : integer); overload;
   published
-    property ErrorCode: integer read FErrorCode write FErrorCode;
     function IsConnectionProblem : boolean; virtual;
+
+    property ErrorCode : integer read FErrorCode write FErrorCode;
   end;
 
   //----------------------------------------------------------------------------
@@ -48,82 +50,91 @@ Type
   TWebClient = class
   private
     // Soap
-    FSoapURLList   : TStringList;
-    FSoapURLIndex  : integer;
-    FSoapRequester : TIpsSOAPS;
+    FSoapURLList    : TStringList;
+    FSoapURLIndex   : integer;
+    FSoapRequester  : TIpsSOAPS;
     FSoapHeaderInfo : TStringList;
 
     // Http
-    fHttpRequester : TIpsHTTPS;
+    fHttpRequester  : TIpsHTTPS;
     FHttpHeaderInfo : TStringList;
 
-    procedure AppendHeaderInfo(const Requester  : TipsCore;
-                               const HeaderInfo : TStringList);
-    procedure SetURL(const Requester : TipsCore;
-                     const URLList   : TStringList;
-                     URLIndex        : integer);
-    function SearchReplaceStr(InString, Search, Replace : String) : String;
+    procedure AppendHeaderInfo(const ARequester  : TipsCore;
+                               const AHeaderInfo : TStringList);
+    procedure SetURL(const ARequester : TipsCore;
+                     const AURLList   : TStringList;
+                     AURLIndex        : integer);
   protected
     // Soap
     procedure AppendSoapHeaderInfo;
-    procedure AddSoapHeaderInfo(Name, Value: string);
+    procedure AddSoapHeaderInfo(AName  : string;
+                                AValue : string);
     procedure ClearSoapHeader;
     procedure SetSoapURL;
-    procedure RaiseSoapErrors(Error : EIpsSOAPS);
-    procedure RaiseSoapError(ErrMessage : String; ErrCode : integer); virtual;
+    procedure RaiseSoapErrors(AError : EIpsSOAPS);
+    procedure RaiseSoapError(AErrMessage : String;
+                             AErrCode    : integer); virtual;
     procedure SoapSetup;
-    procedure AddSoapStringParam(Name, Value: string);
-    procedure AddSoapBooleanParam(Name: string; Value: Boolean);
-    procedure AddSoapDateParam(Name: string; Value: tStDate);
-    procedure AddSoapIntParam(Name: string; Value: Integer);
-    procedure DoSoapConnectionStatus(Sender: TObject;
-                                     const ConnectionEvent: String;
-                                     StatusCode: Integer;
-                                     const Description: String); Virtual;
-    procedure DoSoapSSLServerAuthentication(Sender: TObject;
-                                            CertEncoded: String;
-                                            const CertSubject: String;
-                                            const CertIssuer: String;
-                                            const Status: String;
-                                            var  Accept: Boolean); Virtual;
-    procedure SetSoapMethod(Method: string);
-    procedure SendSoapRequest(var TriedAllServers : Boolean;
-                              FirstSoapURLIndex : Integer);
+    procedure AddSoapStringParam(AName  : string;
+                                 AValue : string);
+    procedure AddSoapBooleanParam(AName  : string;
+                                  AValue : Boolean);
+    procedure AddSoapDateParam(AName  : string;
+                               AValue : tStDate);
+    procedure AddSoapIntParam(AName  : string;
+                              AValue : Integer);
+    procedure DoSoapConnectionStatus(ASender : TObject;
+                                     const AConnectionEvent : String;
+                                     AStatusCode : Integer;
+                                     const ADescription : String); Virtual;
+    procedure DoSoapSSLServerAuthentication(ASender      : TObject;
+                                            ACertEncoded : String;
+                                            const ACertSubject : String;
+                                            const ACertIssuer  : String;
+                                            const AStatus      : String;
+                                            var   AAccept      : Boolean); Virtual;
+    procedure SetSoapMethod(AMethod : string);
+    procedure SendSoapRequest(var ATriedAllServers : Boolean;
+                              AFirstSoapURLIndex   : Integer);
     procedure CallSoapMethod; Virtual;
 
     // Http
     procedure AppendHttpHeaderInfo;
-    procedure AddHttpHeaderInfo(Name, Value: string);
+    procedure AddHttpHeaderInfo(AName  : string;
+                                AValue : string);
     procedure ClearHttpHeader;
-    procedure RaiseHttpErrors(Error : EIpsHTTPS);
-    procedure RaiseHttpError(ErrMessage : String; ErrCode : integer); virtual;
+    procedure RaiseHttpErrors(AError : EIpsHTTPS);
+    procedure RaiseHttpError(AErrMessage : String;
+                             AErrCode    : integer); virtual;
     procedure HttpSetup;
-    procedure DoHttpConnectionStatus(Sender: TObject;
-                                     const ConnectionEvent: String;
-                                     StatusCode: Integer;
-                                     const Description: String); Virtual;
-    procedure DoHttpSSLServerAuthentication(Sender: TObject;
-                                            CertEncoded: String;
-                                            const CertSubject: String;
-                                            const CertIssuer: String;
-                                            const Status: String;
-                                            var Accept: Boolean); Virtual;
-    procedure DoHttpStartTransfer(Sender: TObject;
-                                  Direction: Integer); Virtual;
-    procedure DoHttpTransfer(Sender: TObject;
-                             Direction: Integer;
-                             BytesTransferred: LongInt;
-                             Text: String); Virtual;
-    procedure DoHttpEndTransfer(Sender: TObject;
-                                Direction: Integer); Virtual;
-    procedure DoHttpHeader(Sender: TObject;
-                           const Field: String;
-                           const Value: String); Virtual;
-    procedure HttpSendRequest(Address : string);
-    procedure HttpPostFile(Address, FileName : string);
-    procedure HttpGetFile(Address, FileName : string);
+    procedure DoHttpConnectionStatus(ASender : TObject;
+                                     const AConnectionEvent : String;
+                                     AStatusCode : Integer;
+                                     const ADescription : String); Virtual;
+    procedure DoHttpSSLServerAuthentication(ASender      : TObject;
+                                            ACertEncoded : String;
+                                            const ACertSubject : String;
+                                            const ACertIssuer  : String;
+                                            const AStatus      : String;
+                                            var   AAccept      : Boolean); Virtual;
+    procedure DoHttpStartTransfer(ASender    : TObject;
+                                  ADirection : Integer); Virtual;
+    procedure DoHttpTransfer(ASender           : TObject;
+                             ADirection        : Integer;
+                             ABytesTransferred : LongInt;
+                             AText             : String); Virtual;
+    procedure DoHttpEndTransfer(ASender    : TObject;
+                                ADirection : Integer); Virtual;
+    procedure DoHttpHeader(ASender : TObject;
+                           const AField : String;
+                           const AValue : String); Virtual;
+    procedure HttpSendRequest(Aaddress : string);
+    procedure HttpPostFile(Aaddress : string;
+                           AFileName : string);
+    procedure HttpGetFile(Aaddress : string;
+                          AFileName : string);
 
-    procedure WaitForServerMessage(Message : String); virtual;
+    procedure WaitForServerMessage(AMessage : String); virtual;
 
     property SoapRequester : TIpsSOAPS   read fSoapRequester write fSoapRequester;
     property SoapURLList   : TStringList read fSoapURLList   write fSoapURLList;
@@ -156,17 +167,18 @@ const
 
 { EWebClientError }
 //------------------------------------------------------------------------------
-constructor EWebClientError.Create(Msg: string; ErrorCode: integer);
+constructor EWebClientError.Create(AMsg       : string;
+                                   AErrorCode : integer);
 begin
-  inherited Create(Msg);
-  FErrorCode := ErrorCode;
+  inherited Create(AMsg);
+  FErrorCode := AErrorCode;
 
   if DebugMe then
-    LogUtil.LogMsg(lmError, UnitName, Msg);
+    LogUtil.LogMsg(lmError, UnitName, AMsg);
 end;
 
 //------------------------------------------------------------------------------
-function EWebClientError.IsConnectionProblem: Boolean;
+function EWebClientError.IsConnectionProblem : Boolean;
 begin
   Result := False;
 end;
@@ -186,17 +198,18 @@ end;
 
 { TWebClient }
 //------------------------------------------------------------------------------
-procedure TWebClient.AppendHeaderInfo(const Requester : TipsCore; const HeaderInfo : TStringList);
+procedure TWebClient.AppendHeaderInfo(const ARequester  : TipsCore;
+                                      const AHeaderInfo : TStringList);
 var
   Headers: string;
 begin
-  if HeaderInfo.Count <= 0 then
+  if AHeaderInfo.Count <= 0 then
     Exit; // nothing to do
 
-  if (Requester is TIpsSOAPS) then
-    Headers := TIpsSOAPS(Requester).OtherHeaders
-  else if (Requester is TIpsHTTPS) then
-    Headers := TIpsHTTPS(Requester).OtherHeaders;
+  if (ARequester is TIpsSOAPS) then
+    Headers := TIpsSOAPS(ARequester).OtherHeaders
+  else if (ARequester is TIpsHTTPS) then
+    Headers := TIpsHTTPS(ARequester).OtherHeaders;
 
   if (Headers > '') and
     (Headers[Length(Headers)]<> #10 ) then
@@ -205,40 +218,25 @@ begin
     Headers := Headers + #13#10
   end;
 
-  if (Requester is TIpsSOAPS) then
-    TIpsSOAPS(Requester).OtherHeaders := Headers + HeaderInfo.Text
-  else if (Requester is TIpsHTTPS) then
-    TIpsHTTPS(Requester).OtherHeaders := Headers + HeaderInfo.Text;
+  if (ARequester is TIpsSOAPS) then
+    TIpsSOAPS(ARequester).OtherHeaders := Headers + AHeaderInfo.Text
+  else if (ARequester is TIpsHTTPS) then
+    TIpsHTTPS(ARequester).OtherHeaders := Headers + AHeaderInfo.Text;
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.SetURL(const Requester : TipsCore;
-                            const URLList   : TStringList;
-                            URLIndex        : integer);
+procedure TWebClient.SetURL(const ARequester : TipsCore;
+                            const AURLList   : TStringList;
+                            AURLIndex        : integer);
 begin
-  if (URLIndex < 0) or
-    (URLIndex > (URLList.Count - 1)) then
+  if (AURLIndex < 0) or
+    (AURLIndex > (AURLList.Count - 1)) then
     Exit;
 
-  if (Requester is TIpsSOAPS) then
-    TIpsSOAPS(Requester).URL := URLList.Strings[URLIndex]
-  else if (Requester is TIpsHTTPS) then
-    TIpsHTTPS(Requester).URL := URLList.Strings[URLIndex];
-end;
-
-//------------------------------------------------------------------------------
-function TWebClient.SearchReplaceStr(InString, Search, Replace : String) : String;
-var
-  StrIndex : integer;
-begin
-  Result := '';
-  for StrIndex := 1 to Length(InString) do
-  begin
-    if InString[StrIndex] = Search[1] then
-      Result := Result + Replace
-    else
-      Result := Result + InString[StrIndex];
-  end;
+  if (ARequester is TIpsSOAPS) then
+    TIpsSOAPS(ARequester).URL := AURLList.Strings[AURLIndex]
+  else if (ARequester is TIpsHTTPS) then
+    TIpsHTTPS(ARequester).URL := AURLList.Strings[AURLIndex];
 end;
 
 //------------------------------------------------------------------------------
@@ -248,9 +246,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.AddSoapHeaderInfo(Name, Value: string);
+procedure TWebClient.AddSoapHeaderInfo(AName  : string;
+                                       AValue : string);
 begin
-  FSoapHeaderInfo.Values[Name] := Value;
+  FSoapHeaderInfo.Values[AName] := AValue;
 end;
 
 //------------------------------------------------------------------------------
@@ -266,43 +265,44 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.RaiseSoapErrors(Error : EIpsSOAPS);
+procedure TWebClient.RaiseSoapErrors(AError : EIpsSOAPS);
 var
   HttpCode : integer;
   ErrorPart : string;
 begin
   // Cannot use a case statement Code can be too big
-  if Error.Code in [169, 170, 171, 172, 173] then
+  if AError.Code in [169, 170, 171, 172, 173] then
   begin
     RaiseSoapError(Format('%s. (<%s>, <%s>)',
-      [Error.Message, SOAPRequester.FaultCode, SOAPRequester.FaultString]), Error.Code)
+      [AError.Message, SOAPRequester.FaultCode, SOAPRequester.FaultString]), AError.Code)
   end
-  else if Error.Code in [210] then
+  else if AError.Code in [210] then
   begin
     // typically happens when the WebNotes facade server fails (No proper SOAP message back)
     RaiseSoapError('Wrong server response', 210);
   end
-  else if Error.Code = 151 then
+  else if AError.Code = 151 then
   begin
     //Could be either. Need to look at response code
     //e.message is in format 151: <HTTPCODE> <HTTPMESSAGE>
     try
-      ErrorPart := MidStr(Error.Message, 6, 3); //Actually just interested in first digit
+      ErrorPart := MidStr(AError.Message, 6, 3); //Actually just interested in first digit
     except
-      RaiseSoapError(Error.Message, 151);
+      RaiseSoapError(AError.Message, 151);
     end;
     HttpCode := StrToIntDef(ErrorPart, 0);
-    RaiseSoapError(Error.Message, HttpCode);
+    RaiseSoapError(AError.Message, HttpCode);
   end
   else
     // What else..
-    RaiseSoapError(Error.Message, Error.Code);
+    RaiseSoapError(AError.Message, AError.Code);
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.RaiseSoapError(ErrMessage : String; ErrCode : integer);
+procedure TWebClient.RaiseSoapError(AErrMessage : String;
+                                    AErrCode    : integer);
 begin
-  raise EWebSoapClientError.Create(ErrMessage, ErrCode);
+  raise EWebSoapClientError.Create(AErrMessage, AErrCode);
 end;
 
 //------------------------------------------------------------------------------
@@ -362,64 +362,68 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.AddSoapStringParam(Name, Value: string);
+procedure TWebClient.AddSoapStringParam(AName  : string;
+                                        AValue : string);
 begin
-  FSOAPRequester.AddParam(Name, Value);
+  FSOAPRequester.AddParam(AName, AValue);
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.AddSoapBooleanParam(Name: string; Value: Boolean);
+procedure TWebClient.AddSoapBooleanParam(AName  : string;
+                                         AValue : Boolean);
 begin
-  if Value then
-    FSOAPRequester.AddParam(Name, '1')
+  if AValue then
+    FSOAPRequester.AddParam(AName, '1')
   else
-    FSOAPRequester.AddParam(Name, '0');
+    FSOAPRequester.AddParam(AName, '0');
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.AddSoapDateParam(Name: string; Value: tStDate);
+procedure TWebClient.AddSoapDateParam(AName  : string;
+                                      AValue : tStDate);
 begin
-  FSOAPRequester.AddParam(Name, FormatXMLdate (Value));
+  FSOAPRequester.AddParam(AName, FormatXMLdate (AValue));
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.AddSoapIntParam(Name: string; Value: Integer);
+procedure TWebClient.AddSoapIntParam(AName  : string;
+                                     AValue : Integer);
 begin
-  FSOAPRequester.AddParam(Name, IntToStr(Value));
+  FSOAPRequester.AddParam(AName, IntToStr(AValue));
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.DoSoapConnectionStatus(Sender: TObject;
-                                            const ConnectionEvent: String;
-                                            StatusCode: Integer;
-                                            const Description: String);
-begin
-
-end;
-
-//------------------------------------------------------------------------------
-procedure TWebClient.DoSoapSSLServerAuthentication(Sender: TObject;
-                                                   CertEncoded: String;
-                                                   const CertSubject: String;
-                                                   const CertIssuer: String;
-                                                   const Status: String;
-                                                   var  Accept: Boolean);
+procedure TWebClient.DoSoapConnectionStatus(ASender : TObject;
+                                            const AConnectionEvent : String;
+                                            AStatusCode : Integer;
+                                            const ADescription : String);
 begin
 
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.SetSoapMethod(Method: string);
+procedure TWebClient.DoSoapSSLServerAuthentication(ASender      : TObject;
+                                                   ACertEncoded : String;
+                                                   const ACertSubject : String;
+                                                   const ACertIssuer  : String;
+                                                   const AStatus      : String;
+                                                   var   AAccept      : Boolean);
+begin
+
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebClient.SetSoapMethod(AMethod: string);
 begin
   // This will also set the internal custom headers
-  fSOAPRequester.Method := Method;
-  //SOAPRequester.MethodURI := DefaultWebNotesMethodURI;
+  fSOAPRequester.Method := AMethod;
+  // SOAPRequester.MethodURI := DefaultWebNotesMethodURI;
   fSOAPRequester.ActionURI := fSOAPRequester.MethodURI + '/' + fSOAPRequester.Method;
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.SendSoapRequest(var TriedAllServers : Boolean;
-                                     FirstSoapURLIndex : Integer);
+procedure TWebClient.SendSoapRequest(var ATriedAllServers : Boolean;
+                                     AFirstSoapURLIndex   : Integer);
 begin
   Try
     if DebugMe then
@@ -443,7 +447,7 @@ begin
   except
     on E : EIpsSOAPS do
     begin
-      if TriedAllServers then
+      if ATriedAllServers then
       begin
         RaiseSoapErrors(E);
       end
@@ -458,11 +462,11 @@ begin
 
         SetSoapURL;
 
-        if SoapURLIndex = FirstSoapURLIndex then
-          TriedAllServers := True;
+        if SoapURLIndex = AFirstSoapURLIndex then
+          ATriedAllServers := True;
 
         // Recalls it self to try with the next Server Settings
-        SendSoapRequest(TriedAllServers, FirstSoapURLIndex);
+        SendSoapRequest(ATriedAllServers, AFirstSoapURLIndex);
       end;
     end;
   end;
@@ -487,9 +491,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.AddHttpHeaderInfo(Name, Value: string);
+procedure TWebClient.AddHttpHeaderInfo(AName  : string;
+                                       AValue : string);
 begin
-  FHttpHeaderInfo.Values[Name] := Value;
+  FHttpHeaderInfo.Values[AName] := AValue;
 end;
 
 //------------------------------------------------------------------------------
@@ -500,25 +505,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.RaiseHttpErrors(Error : EIpsHTTPS);
-var
-  HttpCode : integer;
-  ErrorPart : string;
+procedure TWebClient.RaiseHttpErrors(AError : EIpsHTTPS);
 begin
-  RaiseHttpError(Error.Message, Error.Code);
+  RaiseHttpError(AError.Message, AError.Code);
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.RaiseHttpError(ErrMessage : String; ErrCode : integer);
+procedure TWebClient.RaiseHttpError(AErrMessage : String;
+                                    AErrCode    : integer);
 begin
-  raise EWebHttpClientError.Create(ErrMessage, ErrCode);
+  raise EWebHttpClientError.Create(AErrMessage, AErrCode);
 end;
 
 //------------------------------------------------------------------------------
 procedure TWebClient.HttpSetup;
 begin
   FHttpHeaderInfo.NameValueSeparator := ':';
-
 
   FHttpRequester.OnConnectionStatus        := DoHttpConnectionStatus;
   FHttpRequester.OnSSLServerAuthentication := DoHttpSSLServerAuthentication;
@@ -529,20 +531,6 @@ begin
 
   FHttpRequester.Config ('SSLSecurityFlags=0x80000000');
   FHttpRequester.Config ('SSLEnabledProtocols=140');
-
-  {// Reset to Default...
-  FHttpRequester.ProxyServer := '*';
-  FHttpRequester.ProxyPort := 0;
-  FHttpRequester.ProxyAuthorization := '';
-  FHttpRequester.ProxyUser := '';
-  FHttpRequester.ProxyPassword := '';
-
-  //set up firewall
-  FHttpRequester.FirewallHost := '';
-  FHttpRequester.FirewallPort := 0;
-  FHttpRequester.FirewallUser := '';
-  FHttpRequester.FirewallPassword := '';
-  FHttpRequester.FirewallType := TipshttpsFirewallTypes(fwNone);}
 
   // For Now just take the rsst from the BConnect settings...
   FHttpRequester.Timeout := INI_BCTimeout;
@@ -582,61 +570,61 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.DoHttpConnectionStatus(Sender: TObject;
-                                            const ConnectionEvent: String;
-                                            StatusCode: Integer;
-                                            const Description: String);
+procedure TWebClient.DoHttpConnectionStatus(ASender: TObject;
+                                            const AConnectionEvent: String;
+                                            AStatusCode: Integer;
+                                            const ADescription: String);
 begin
 
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.DoHttpSSLServerAuthentication(Sender: TObject;
-                                                   CertEncoded: String;
-                                                   const CertSubject: String;
-                                                   const CertIssuer: String;
-                                                   const Status: String;
-                                                   var  Accept: Boolean);
+procedure TWebClient.DoHttpSSLServerAuthentication(ASender      : TObject;
+                                                   ACertEncoded : String;
+                                                   const ACertSubject : String;
+                                                   const ACertIssuer  : String;
+                                                   const AStatus      : String;
+                                                   var   AAccept      : Boolean);
 begin
 
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.DoHttpStartTransfer(Sender: TObject;
-                                         Direction: Integer);
+procedure TWebClient.DoHttpStartTransfer(ASender    : TObject;
+                                         ADirection : Integer);
 begin
 
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.DoHttpTransfer(Sender: TObject;
-                                    Direction: Integer;
-                                    BytesTransferred: LongInt;
-                                    Text: String);
+procedure TWebClient.DoHttpTransfer(ASender           : TObject;
+                                    ADirection        : Integer;
+                                    ABytesTransferred : LongInt;
+                                    AText             : String);
 begin
 
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.DoHttpEndTransfer(Sender: TObject;
-                                       Direction: Integer);
+procedure TWebClient.DoHttpEndTransfer(ASender    : TObject;
+                                       ADirection : Integer);
 begin
 
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.DoHttpHeader(Sender: TObject;
-                                  const Field: String;
-                                  const Value: String);
+procedure TWebClient.DoHttpHeader(ASender : TObject;
+                                  const AField : String;
+                                  const AValue : String);
 begin
 
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.HttpSendRequest(Address: string);
+procedure TWebClient.HttpSendRequest(Aaddress: string);
 begin
   Try
-    FHttpRequester.Get(Address);
+    FHttpRequester.Get(Aaddress);
   Except
     on E : EipsHTTPS do
       RaiseHttpErrors(E);
@@ -644,13 +632,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.HttpPostFile(Address, FileName: string);
+procedure TWebClient.HttpPostFile(Aaddress : string;
+                                  AFileName : string);
 begin
-  if FileName <> '' then
-    FHttpRequester.AttachedFile := FileName;
+  if AFileName <> '' then
+    FHttpRequester.AttachedFile := AFileName;
 
   Try
-    FHttpRequester.Post(Address);
+    FHttpRequester.Post(Aaddress);
   Except
     on E : EipsHTTPS do
       RaiseHttpErrors(E);
@@ -658,12 +647,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.HttpGetFile(Address, FileName: string);
+procedure TWebClient.HttpGetFile(Aaddress : string;
+                                 AFileName : string);
 begin
-  FHttpRequester.LocalFile := FileName;
+  FHttpRequester.LocalFile := AFileName;
 
   Try
-    FHttpRequester.Get(Address);
+    FHttpRequester.Get(Aaddress);
   Except
     on E : EipsHTTPS do
       RaiseHttpErrors(E);
@@ -671,7 +661,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TWebClient.WaitForServerMessage(Message : String);
+procedure TWebClient.WaitForServerMessage(AMessage : String);
 begin
 end;
 
