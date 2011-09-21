@@ -47,6 +47,7 @@ begin
     ChangePasswordForm.FEmail    := AEmail;
     if ChangePasswordForm.ShowModal = mrOk then begin
       ANewPassword := ChangePasswordForm.eNew.Text;
+      Result := True;
     end;
   finally
     ChangePasswordForm.Free;

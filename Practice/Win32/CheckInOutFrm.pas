@@ -95,7 +95,8 @@ uses
   ChangePasswordFrm,
   IniSettings,
   BankLinkOnline,
-  ErrorMoreFrm;
+  ErrorMoreFrm,
+  InfoMoreFrm;
 
 const
 //  MIN_STANDARD_WIDTH = 615; //Original dialog width
@@ -380,6 +381,9 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.btnRefreshClick(Sender: TObject);
 begin
+  Globals.INI_BankLink_Online_Username  := Trim(eUsername.Text);
+  Globals.INI_BankLink_Online_Password  := Trim(ePassword.Text);
+  Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
   ClientLookupFrame.Reload;
 end;
 
@@ -406,6 +410,7 @@ begin
       ePassword.Text := NewPassword;
       Globals.INI_BankLink_Online_Password := NewPassword;
       IniSettings.BK5WriteINI;
+      HelpfulInfoMsg('The password change has been successful!',0);
     end;
   end
   else

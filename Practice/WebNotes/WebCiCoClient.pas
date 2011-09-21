@@ -642,8 +642,8 @@ procedure TWebCiCoClient.GetIniDetails(var ClientEmail : string;
                                        var SubDomain   : String);
 begin
   // Todo Get Ini Details
-  ClientEmail := StartupParam_UserToLoginAs;
-  ClientPass  := StartupParam_UserPassword;
+  ClientEmail := INI_BankLink_Online_Username;
+  ClientPass  := INI_BankLink_Online_Password;
   SubDomain   := INI_BankLink_Online_SubDomain;
 end;
 
