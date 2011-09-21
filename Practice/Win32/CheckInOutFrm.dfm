@@ -106,9 +106,9 @@ object frmCheckInOut: TfrmCheckInOut
     TabOrder = 1
     inline ClientLookupFrame: TfmeClientLookup
       Left = 0
-      Top = 86
+      Top = 123
       Width = 884
-      Height = 261
+      Height = 224
       Align = alClient
       TabOrder = 0
       TabStop = True
@@ -117,7 +117,7 @@ object frmCheckInOut: TfrmCheckInOut
       ExplicitHeight = 261
       inherited vtClients: TVirtualStringTree
         Width = 884
-        Height = 261
+        Height = 224
         Header.Font.Height = -13
         ExplicitWidth = 884
         ExplicitHeight = 261
@@ -127,7 +127,7 @@ object frmCheckInOut: TfrmCheckInOut
       Left = 0
       Top = 0
       Width = 884
-      Height = 86
+      Height = 123
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
@@ -146,6 +146,14 @@ object frmCheckInOut: TfrmCheckInOut
         Height = 13
         Alignment = taRightJustify
         Caption = 'Password:'
+      end
+      object Label1: TLabel
+        Left = 17
+        Top = 94
+        Width = 57
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'SubDomain:'
       end
       object eUsername: TEdit
         Left = 88
@@ -168,7 +176,7 @@ object frmCheckInOut: TfrmCheckInOut
         Width = 121
         Height = 25
         Caption = 'Refresh'
-        TabOrder = 2
+        TabOrder = 3
         OnClick = btnRefreshClick
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
@@ -204,8 +212,15 @@ object frmCheckInOut: TfrmCheckInOut
         Width = 121
         Height = 25
         Caption = 'Change Password'
-        TabOrder = 3
+        TabOrder = 4
         OnClick = btnChangePasswordClick
+      end
+      object eSubDomain: TEdit
+        Left = 88
+        Top = 91
+        Width = 321
+        Height = 21
+        TabOrder = 2
       end
     end
   end

@@ -433,6 +433,7 @@ var
 
     INI_BankLink_Online_Username: string = '';
     INI_BankLink_Online_Password: string = '';
+    INI_BankLink_Online_SubDomain: string = '';
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //general user settings

@@ -44,6 +44,8 @@ type
     cbFlagReadOnly: TCheckBox;
     cbEditEmail: TCheckBox;
     cbSendEmail: TCheckBox;
+    Label1: TLabel;
+    eSubDomain: TEdit;
 
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -166,6 +168,7 @@ begin
         pnlPassword.Visible := True;
         eUsername.Text      := Globals.INI_BankLink_Online_Username;
         ePassword.Text      := Globals.INI_BankLink_Online_Password;
+        eSubDomain.Text     := Globals.INI_BankLink_Online_SubDomain;
       end;
 
       CloseupCheckboxes;
@@ -180,6 +183,9 @@ begin
       if ShowModal = mrOK then
       begin
         Globals.INI_CheckOutDir := AddSlash( ePath.Text);
+        Globals.INI_BankLink_Online_Username  := Trim(eUsername.Text);
+        Globals.INI_BankLink_Online_Password  := Trim(ePassword.Text);
+        Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
         ASendMethod := CheckInOut.FSendMethod;
         Result := ClientLookupFrame.SelectedCodes;
         FlagReadOnly := cbFlagReadOnly.Checked;
@@ -223,9 +229,10 @@ begin
         cbFlagReadOnly.Visible := False;
         cbEditEmail.Visible    := False;
         cbSendEmail.Visible    := False;
-        pnlPassword.Visible := True;
-        eUsername.Text := Globals.INI_BankLink_Online_Username;
-        ePassword.Text := Globals.INI_BankLink_Online_Password;
+        pnlPassword.Visible    := True;
+        eUsername.Text         := Globals.INI_BankLink_Online_Username;
+        ePassword.Text         := Globals.INI_BankLink_Online_Password;
+        eSubDomain.Text        := Globals.INI_BankLink_Online_SubDomain;
       end;
 
       CloseupCheckboxes;
@@ -237,6 +244,7 @@ begin
         Globals.INI_CheckInDir := AddSlash( ePath.Text);
         Globals.INI_BankLink_Online_Username := Trim(eUsername.Text);
         Globals.INI_BankLink_Online_Password := Trim(ePassword.Text);
+        Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
         result := ClientLookupFrame.SelectedCodes;
       end;
     finally
