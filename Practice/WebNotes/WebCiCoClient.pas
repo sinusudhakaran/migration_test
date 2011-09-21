@@ -162,7 +162,8 @@ type
                               var PracPass     : String;
                               var CountryCode  : String);
     procedure GetClientDetails(ClientCode      : string;
-                               var ClientEmail : string);
+                               var ClientEmail : string;
+                               var ClientName  : string);
     procedure GetIniDetails(var ClientEmail : string;
                             var ClientPass  : string;
                             var SubDomain   : String);
@@ -250,6 +251,7 @@ const
   HTTP_HEAD_CLIENT_CODE        = 'ClientCode';
   HTTP_HEAD_CLIENT_EMAIL       = 'ClientEmail';
   HTTP_HEAD_CLIENT_PASSWORD    = 'ClientPassword';
+  HTTP_HEAD_CLIENT_NAME        = 'ClientName';
   HTTP_HEAD_COUNTRY_CODE       = 'CountryCode';
   HTTP_HEAD_BOOKS_COPY         = 'Copy';
   HTTP_HEAD_BOOKS_NEWPASSWORD  = 'NewPassword';
@@ -619,7 +621,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetClientDetails(ClientCode      : string;
-                                          var ClientEmail : string);
+                                          var ClientEmail : string;
+                                          var ClientName  : string);
 var
   fClientObj    : TClientObj;
 begin
@@ -627,6 +630,7 @@ begin
   Try
     fClientObj.Open(ClientCode, FILEEXTN);
     ClientEmail := fClientObj.clFields.clClient_EMail_Address;
+    ClientName  := fClientObj.clFields.clName;
   Finally
     FreeAndNil(fClientObj);
   End;
@@ -1018,6 +1022,7 @@ var
   PracticeCode : String;
   PracticePass : String;
   CountryCode  : String;
+  ClientName   : String;
 begin
   fProcessState := psUploadPrac;
 
@@ -1030,7 +1035,7 @@ begin
     HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_UPLOAD;
 
     GetAdminDetails(PracticeCode, PracticePass, CountryCode);
-    GetClientDetails(ClientCode, ClientEmail);
+    GetClientDetails(ClientCode, ClientEmail, ClientName);
 
     {$IFDEF WebCiCoStatic}
       AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      'NZ');
@@ -1045,6 +1050,7 @@ begin
     {$ENDIF}
 
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, ClientCode);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_NAME, ClientName);
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD, '');
 
     UploadFile(HttpAddress, DataDir + ClientCode + FILEEXTN);
