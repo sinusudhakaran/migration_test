@@ -246,6 +246,7 @@ const
 
   HTTP_HEAD_PRACTICE_CODE      = 'PracticeCode';
   HTTP_HEAD_PRACTICE_PASSWORD  = 'PracticePassword';
+  HTTP_HEAD_PRACTICE_SUBDOMAIN = 'PracticeDomain';
   HTTP_HEAD_CLIENT_CODE        = 'ClientCode';
   HTTP_HEAD_CLIENT_EMAIL       = 'ClientEmail';
   HTTP_HEAD_CLIENT_PASSWORD    = 'ClientPassword';
@@ -257,7 +258,6 @@ const
   HTTP_HEAD_CONTENT_LENGTH     = 'Content-Length';
   HTTP_HEAD_CONTENT_TYPE       = 'Content-Type';
   HTTP_HEAD_SERVER_FILE_CRC    = 'CRC';
-  HTTP_HEAD_PRACTICE_SUBDOMAIN = 'PracticeDomain';
 
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
@@ -881,8 +881,6 @@ procedure TWebCiCoClient.SetBooksUserPassword(ClientEmail    : string;
                                               var ServerResponce : TServerResponce);
 var
   HttpAddress    : String;
-  CountryCode    : String;
-  PracticeCode   : String;
   BooksEmail     : String;
   BooksPassword  : String;
   SubDomain      : String;
@@ -1132,7 +1130,6 @@ procedure TWebCiCoClient.UploadFileFromBooks(ClientCode : string;
 var
   HttpAddress    : string;
   ClientEmail    : String;
-  ClientName     : String;
   SubDomain      : String;
   ClientPassword : String;
 begin
