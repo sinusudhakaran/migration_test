@@ -1008,6 +1008,10 @@ begin
     GetAdminDetails(PracticeCode, PracticePass, CountryCode);
     GetClientDetails(AClientCode, AClientEmail, ClientName);
 
+    //Can't do upload without email address. Should raise an exception (but not http except?)
+    if Trim(AClientEmail) = '' then
+      RaiseHttpError('No email address', 302);
+
     AddHttpHeaderInfo(HTTP_HEAD_COUNTRY_CODE,      CountryCode);
     AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_CODE,     PracticeCode);
     AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);

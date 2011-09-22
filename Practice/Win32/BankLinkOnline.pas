@@ -527,7 +527,7 @@ begin
   DebugMsg('Begins');
 
   //Check status
-  if Assigned(AdminSystem) then 
+  if Assigned(AdminSystem) then
     CheckBankLinkOnlineStatus(AClientCode, oaPracticeUpload)
   else
     CheckBankLinkOnlineStatus(AClientCode, oaBooksUpload);
@@ -538,10 +538,15 @@ begin
     CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
   end;
 
-  if Assigned(AdminSystem) then
-    CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
-  else
-    CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
+  try
+    if Assigned(AdminSystem) then
+      CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
+    else
+      CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
+  except
+    on E:Exception do
+      raise EUploadFailed.Create(E.Message);
+  end;
 
   if DebugMe then begin
     AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);

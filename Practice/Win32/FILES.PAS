@@ -1736,6 +1736,8 @@ var
   Failures: Integer;
   EmailAddress: string;
   EmailBody: string;
+  Msg: string;
+  NoEmail: string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -1766,13 +1768,19 @@ begin
         //Cycle thru each client, updating transactions without asking
         Failures := 0;
 
+        NoEmail := '';
         SentClientCodes := '';
         for i := 0 to CodeList.Count -1 do begin
           EmailAddress := '';
           if not SendClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, EmailAddress,
-                                False, (CodeList.Count > 1) , True, ASendMethod) then
-            Inc(Failures)
-          else begin
+                                False, (CodeList.Count > 1) , True, ASendMethod) then begin
+            Inc(Failures);
+            if (Trim(EmailAddress) = '') then
+              if NoEmail = '' then
+                NoEmail := CodeList[i]
+              else
+                NoEmail := NoEmail + ', ' + CodeList[i];
+          end else begin
             //Add to comma delimited list of client codes
             if i = 0 then
               SentClientCodes := CodeList[i]
@@ -1781,6 +1789,14 @@ begin
             //Save the email address
             CodeList[i] := CodeList[i] + '=' + EmailAddress;
           end;
+        end;
+
+        //Missing email addresses
+        if NoEmail <> '' then begin
+          Msg := Format('A valid email address is required for clients files '+
+                        'to be sent via BankLink Online. Please update the '+
+                        'following clients:  %s', [NoEmail]);
+          HelpfulErrorMsg(Msg, 0);
         end;
 
         ProgressFrm.mProgress.Lines.Add('');
@@ -1794,6 +1810,7 @@ begin
         ProgressFrm.Hide;
         ProgressFrm.ShowModal;
         ProgressFrm.BringToFront;
+
 
         //If checkout from practice,
         //   to banklink online,
