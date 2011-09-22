@@ -94,6 +94,8 @@ type
     DetailedDesc : String;
   end;
 
+  TByteArr20 = Array[0..19] of Byte;
+
   //----------------------------------------------------------------------------
   TTransferFileEvent = procedure (Direction        : TDirectionIndicator;
                                   TransferStatus   : TTransferStatus;
@@ -224,7 +226,6 @@ uses
   Progress,
   IdHashSHA1,
   IdHash,
-  Base64,
   Globals,
   SyDefs,
   ClObj32,
