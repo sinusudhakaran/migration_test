@@ -39,7 +39,8 @@ type
                    psUploadBooks,
                    psDownloadBooks,
                    psUploadPrac,
-                   psDownloadPrac);
+                   psDownloadPrac,
+                   psGetBookUserExists);
 
   TClientFileStatus = (cfsNoFile,
                        cfsUploadedPractice,
@@ -113,7 +114,6 @@ type
     fServerStatusEvent : TServerStatusEvent;
 
     fTotalBytes       : LongInt;
-    fClientPassword   : string;
     fIsBooks          : Boolean;
     fServerReply      : string;
     fContentType      : string;
@@ -811,11 +811,6 @@ begin
   fTotalBytes := 0;
   fIsBooks := not Assigned(Globals.AdminSystem);
 
-  if fIsBooks then
-    fClientPassword := Globals.INI_BankLink_Online_Password
-  else
-    fClientPassword := '';
-
   fServerReply := '';
   fContentType := '';
   fProcessState := psNothing;
@@ -841,10 +836,10 @@ var
   BooksPassword  : String;
   SubDomain      : String;
 begin
-  if Assigned(AdminSystem) then
+  if not fIsBooks then
     Exit;
 
-  fProcessState := psGetStatus;
+  fProcessState := psGetBookUserExists;
 
   if DebugMe then
     logutil.LogError(UNIT_NAME, 'Called Client File Status.');
@@ -939,7 +934,7 @@ begin
 
     HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_GET_STATUS;
 
-    if Assigned(AdminSystem) then
+    if not fIsBooks then
     begin
       GetAdminDetails(PracticeCode, PracticePass, CountryCode);
 
