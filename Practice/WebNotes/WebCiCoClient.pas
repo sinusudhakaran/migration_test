@@ -108,12 +108,16 @@ type
   TServerStatusEvent = procedure (ServerResponce   : TServerResponce;
                                   ClientStatusList : TClientStatusList) of object;
 
+  TProgressEvent = procedure (APercentComplete : integer;
+                              AMessage         : string) of object;
+
   //----------------------------------------------------------------------------
   TWebCiCoClient = class(TWebClient)
   private
     fStatusEvent       : TStatusEvent;
     fTransferFileEvent : TTransferFileEvent;
     fServerStatusEvent : TServerStatusEvent;
+    fProgressEvent     : TProgressEvent;
 
     fTotalBytes       : LongInt;
     fIsBooks          : Boolean;
@@ -131,11 +135,18 @@ type
                        var AFileSize : Integer);
     function TrimedGuid(AGuid : TGuid): String;
     function ServerToDateTime(AInString : String) : TDateTime;
+    function GetProgressPercent(aProgressValue : integer) : integer;
   protected
     procedure RaiseHttpError(AErrMessage : String;
                              AErrCode    : integer); override;
 
     // Http Used Events
+    procedure DoHttpConnected(Sender     : TObject;
+                              StatusCode : Integer;
+                              const Description : String); Override;
+    procedure DoHttpDisconnected(Sender     : TObject;
+                                 StatusCode : Integer;
+                                 const Description : String); Override;
     procedure DoHttpConnectionStatus(ASender : TObject;
                                      const AConnectionEvent : String;
                                      AStatusCode : Integer;
@@ -212,6 +223,7 @@ type
     property OnStatusEvent       : TStatusEvent       read fStatusEvent       write fStatusEvent;
     property OnTransferFileEvent : TTransferFileEvent read fTransferFileEvent write fTransferFileEvent;
     property OnServerStatusEvent : TServerStatusEvent read fServerStatusEvent write fServerStatusEvent;
+    property OnProgressEvent     : TProgressEvent     read fProgressEvent     write fProgressEvent;
   published
 
   end;
@@ -438,12 +450,55 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TWebCiCoClient.GetProgressPercent(aProgressValue : integer) : integer;
+begin
+  if fProcessState in [psChangePass, psGetStatus, psGetBookUserExists] then
+    Result := aProgressValue
+  else if fProcessState in [psUploadBooks, psUploadPrac] then
+  begin
+    if aProgressValue <= 50 then
+      Result := trunc(aProgressValue * 1.5)
+    else
+      Result := trunc(aProgressValue * 0.5) + 50;
+  end
+  else
+  begin
+    if aProgressValue <= 50 then
+      Result := trunc(aProgressValue * 0.5)
+    else
+      Result := trunc(aProgressValue * 1.5) - 50;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TWebCiCoClient.RaiseHttpError(AErrMessage : String;
                                         AErrCode    : integer);
 begin
   logutil.LogError(UNIT_NAME, format('%s Error:<%s>',[InttoStr(AErrCode), AErrMessage] ));
 
   raise EWebHttpCiCoClientError.Create(AErrMessage, AErrCode);
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.DoHttpConnected(Sender     : TObject;
+                                         StatusCode : Integer;
+                                         const Description : String);
+begin
+  inherited;
+
+  if Assigned(fProgressEvent) then
+    fProgressEvent(5, 'Connected to the BankLink Online.');
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebCiCoClient.DoHttpDisconnected(Sender     : TObject;
+                                            StatusCode : Integer;
+                                            const Description : String);
+begin
+  inherited;
+
+  if Assigned(fProgressEvent) then
+    fProgressEvent(100, 'BankLink Online Connection Completed.');
 end;
 
 //------------------------------------------------------------------------------
@@ -498,13 +553,14 @@ procedure TWebCiCoClient.DoHttpStartTransfer(ASender: TObject;
                                              ADirection: Integer);
 var
   StrMessage : String;
+  Progress : integer;
 begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'Start Transfer : from Client'
+    StrMessage := 'Start Transfer : to BankLink Online.'
   else
-    StrMessage := 'Start Transfer : from Server';
+    StrMessage := 'Start Transfer : from BankLink Online.';
 
   // Status Event
   if Assigned(fStatusEvent) then
@@ -520,6 +576,10 @@ begin
   // Clears Server Reply
   if TDirectionIndicator(ADirection) = dirFromServer then
     fServerReply := '';
+
+  // Progress Event
+  if Assigned(fProgressEvent) then
+    fProgressEvent(GetProgressPercent((ADirection*45) + 10), StrMessage);
 end;
 
 //------------------------------------------------------------------------------
@@ -533,11 +593,9 @@ begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'Transfer : from Client, ' +
-                  'Bytes Transferred : ' + InttoStr(ABytesTransferred)
+    StrMessage := 'Transfering : to BankLink Online.'
   else
-    StrMessage := 'Transfer : from Server, ' +
-                  'Bytes Transferred : ' + InttoStr(ABytesTransferred);
+    StrMessage := 'Transfering : from BankLink Online.';
 
   // Status Event
   if Assigned(fStatusEvent) then
@@ -553,6 +611,10 @@ begin
   // Builds Server Message
   if TDirectionIndicator(ADirection) = dirFromServer then
     fServerReply := fServerReply + AText;
+
+  // Progress Event
+  if Assigned(fProgressEvent) then
+    fProgressEvent(GetProgressPercent((ADirection*45) + trunc((ABytesTransferred/fTotalBytes) * 35) + 10), StrMessage);
 end;
 
 //------------------------------------------------------------------------------
@@ -564,9 +626,9 @@ begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'End Transfer : from Client, Total Bytes : ' + InttoStr(fTotalBytes)
+    StrMessage := 'End Transfer : to BankLink Online.'
   else
-    StrMessage := 'End Transfer : from Server, Total Bytes : ' + InttoStr(fTotalBytes);
+    StrMessage := 'End Transfer : from BankLink Online.';
 
   // Status Event
   if Assigned(fStatusEvent) then
@@ -582,6 +644,10 @@ begin
   // Handle Server Reply
   if (TDirectionIndicator(ADirection) = dirFromServer) then
     GetUpdateServerReply;
+
+  // Progress Event
+  if Assigned(fProgressEvent) then
+    fProgressEvent(GetProgressPercent((ADirection*45) + 45), StrMessage);
 end;
 
 //------------------------------------------------------------------------------
@@ -952,7 +1018,7 @@ begin
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       ClientEmail);
       AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    ClientPassword);
       AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
-      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, '');
+      AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD,  '');
     end;
 
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE, AClientCode);

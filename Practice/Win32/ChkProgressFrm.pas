@@ -27,11 +27,9 @@ type
   public
     { Public declarations }
     procedure UpdateCICOStatus(StatusMessage : string);
-    procedure UpdateCICOProgress(Direction: TDirectionIndicator;
-                                 TransferStatus : TTransferStatus;
-                                 BytesTransferred: LongInt;
-                                 TotalBytes: LongInt;
-                                 ContentType: String);
+    procedure UpdateCICOProgress(APercentComplete : integer;
+                                 AMessage         : string);
+
     procedure UpdateStatus(StatusMessage : string);                                 
     property ClientCode: string read FClientCode write SetClientCode;
     property PracticeCode: string read FPracticeCode write SetPracticeCode;
@@ -74,32 +72,12 @@ begin
   FPracticeCode := Value;
 end;
 
-procedure TfrmChkProgress.UpdateCICOProgress(Direction: TDirectionIndicator;
-  TransferStatus: TTransferStatus; BytesTransferred, TotalBytes: Integer;
-  ContentType: String);
-const
-  ThisMethodName = 'TfrmChkProgress.UpdateCICOProgress';
-var
-  Msg: string;
+procedure TfrmChkProgress.UpdateCICOProgress(APercentComplete : integer;
+                                             AMessage         : string);
 begin
-  if (Direction = dirFromClient) then begin
-    case TransferStatus of
-      trsStartTrans      : lblStatus.Caption := 'Upload to BankLink Online started';
-      trsTransInProgress : begin
-                             lblStatus.Caption := 'Uploading to BankLink Online';
-                             ProgressBar1.Max := TotalBytes;
-                             ProgressBar1.Step := 1;
-                             ProgressBar1.Position := BytesTransferred;
-                           end;
-      trsEndTrans        : begin
-                             Msg := Format('Check Out %s to BankLink Online ''%s\%s'' succeeded',
-                                           [FClientCode, FPracticeCode, FClientCode]);
-                             LogUtil.LogMsg(lmInfo, UnitName , ThisMethodName + ' : ' + Msg);
-                             mProgress.Lines.Add(Msg);
-                             lblStatus.Caption := 'Uploaded to BankLink Online';
-                           end;
-    end;
-  end;
+  lblStatus.Caption     := AMessage;
+  ProgressBar1.Position := APercentComplete;
+  Refresh;
 end;
 
 procedure TfrmChkProgress.UpdateCICOStatus(StatusMessage: string);

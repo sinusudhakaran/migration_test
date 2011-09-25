@@ -22,6 +22,9 @@ type
     procedure CheckBooksUploadStatus(AClientCode: string; AStatus: TClientStatusItem);
     procedure CheckBooksDownLoadStatus(AClientCode: string; AStatus: TClientStatusItem);
     procedure CheckBooksUploadCopyStatus(AClientCode: string; AStatus: TClientStatusItem);
+
+    procedure DoStatusProgress(APercentComplete : integer;
+                               AMessage         : string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -50,7 +53,8 @@ uses
   LogUtil,
   YesNoDlg,
   ClientWrapper,
-  WinUtils;
+  WinUtils,
+  progress;
 
 const
   UNIT_NAME = 'BankLinkOnline';
@@ -90,6 +94,7 @@ begin
   //Get client status from BankLink Online
   StatusList := TClientStatusList.Create;
   try
+
     try
       CiCoClient.GetClientFileStatus(ServerResponce, StatusList, AClientCode);
     except
@@ -204,6 +209,12 @@ procedure TBankLinkOnlineManager.CheckBooksUploadCopyStatus(
 begin
   //Currently this is the same as Books Upload
   CheckBooksUploadStatus(AClientCode, AStatus);
+end;
+
+procedure TBankLinkOnlineManager.DoStatusProgress(APercentComplete : integer;
+                                                  AMessage         : string);
+begin
+  UpdateAppStatus('BankLink Online', AMessage, APercentComplete);
 end;
 
 procedure TBankLinkOnlineManager.CheckBooksUploadStatus(AClientCode: string;
@@ -452,26 +463,31 @@ begin
       CheckBankLinkOnlineStatus(AClientCode, oaBooksDownload);
 
     //Download from BankLink Online
-    if Silent then begin
-      CiCoClient.OnStatusEvent := AProgressFrm.UpdateStatus;
-      CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
+    if not Silent then begin
+      CiCoClient.OnProgressEvent := AProgressFrm.UpdateCICOProgress;
+      AProgressFrm.ProgressBar1.Max      := 100;
+      AProgressFrm.ProgressBar1.Position := 0;
     end;
 
-    if Assigned(AdminSystem) then begin
-      CicoClient.DownloadFileToPractice(AClientCode, ARemoteFilename, ServerResponce);
-      if ServerResponce.Status = '200' then begin
-        if DebugMe then begin
-          AProgressFrm.mProgress.Lines.Add('Downloaded file to: ' + ARemoteFilename);
-          AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
-          AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
-          AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
+    try
+      if Assigned(AdminSystem) then begin
+        CicoClient.DownloadFileToPractice(AClientCode, ARemoteFilename, ServerResponce);
+        if ServerResponce.Status = '200' then begin
+          if DebugMe then begin
+            AProgressFrm.mProgress.Lines.Add('Downloaded file to: ' + ARemoteFilename);
+            AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
+            AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
+            AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
+          end;
+          Result := True;
+        end else begin
+          raise EDownloadFailed.Create(ServerResponce.Description);
         end;
-        Result := True;
       end else begin
-        raise EDownloadFailed.Create(ServerResponce.Description);
+        CicoClient.DownloadFileToBooks(AClientCode, ARemoteFilename, ServerResponce);
       end;
-    end else begin
-      CicoClient.DownloadFileToBooks(AClientCode, ARemoteFilename, ServerResponce);
+    finally
+      CiCoClient.OnProgressEvent := Nil;
     end;
   except
     on E: Exception do
@@ -505,10 +521,20 @@ var
 begin
   Result := false;
   try
-    CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
+    StatusSilent := False;
+    try
+      UpdateAppStatus('BankLink Online', 'Connecting to the BankLink Online.', 0);
+      CiCoClient.OnProgressEvent := DoStatusProgress;
 
-    if (ServerResponce.Status = '200') then
-      Result := true;
+      CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
+
+      if (ServerResponce.Status = '200') then
+        Result := true;
+    finally
+      StatusSilent := True;
+      CiCoClient.OnProgressEvent := Nil;
+      ClearStatus;
+    end;
 
   except
     on E: Exception do begin
@@ -516,6 +542,7 @@ begin
     end;
   end;
 end;
+
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;
   AProgressFrm: TfrmChkProgress; Silent: boolean; var AEmail: string;
   IsCopy: Boolean = False): boolean;
@@ -533,9 +560,10 @@ begin
     CheckBankLinkOnlineStatus(AClientCode, oaBooksUpload);
 
   //Upload to BankLink Online
-  if Silent then begin
-    CiCoClient.OnStatusEvent := AProgressFrm.UpdateStatus;
-    CiCoClient.OnTransferFileEvent := AProgressFrm.UpdateCICOProgress;
+  if not Silent then begin
+    CiCoClient.OnProgressEvent := AProgressFrm.UpdateCICOProgress;
+    AProgressFrm.ProgressBar1.Max      := 100;
+    AProgressFrm.ProgressBar1.Position := 0;
   end;
 
   try
@@ -543,9 +571,8 @@ begin
       CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
     else
       CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
-  except
-    on E:Exception do
-      raise EUploadFailed.Create(E.Message);
+  finally
+    CiCoClient.OnProgressEvent := Nil;
   end;
 
   if DebugMe then begin
@@ -554,7 +581,7 @@ begin
     AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
   end;
 
-  Result := True;    
+  Result := True;
   DebugMsg('Ends');
 end;
 

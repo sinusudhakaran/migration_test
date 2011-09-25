@@ -68,7 +68,7 @@ object ChangePasswordForm: TChangePasswordForm
     TabOrder = 2
   end
   object btnOk: TButton
-    Left = 188
+    Left = 179
     Top = 158
     Width = 75
     Height = 25
@@ -77,8 +77,6 @@ object ChangePasswordForm: TChangePasswordForm
     Default = True
     ModalResult = 1
     TabOrder = 3
-    ExplicitLeft = 702
-    ExplicitTop = 523
   end
   object btnCancel: TButton
     Left = 268
@@ -90,7 +88,5 @@ object ChangePasswordForm: TChangePasswordForm
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
-    ExplicitLeft = 782
-    ExplicitTop = 523
   end
 end

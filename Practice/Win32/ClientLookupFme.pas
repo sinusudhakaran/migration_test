@@ -259,7 +259,9 @@ type
     procedure SetUsingBankLinkOnline(const Value: Boolean);
     procedure UpdateOnlineStatus(ServerResponce : TServerResponce;
                                  ClientStatusList : TClientStatusList);
-    procedure ClearOnlineStatusList;                             
+    procedure ClearOnlineStatusList;
+    procedure DoStatusProgress(APercentComplete : integer;
+                               AMessage         : string);
   public
     { Public declarations }
     AdminSnapshot : TSystemObj;
@@ -1168,15 +1170,15 @@ begin
   try
     StatusSilent := False;
     try
-      UpdateAppStatus('BankLink Online', 'Connecting', 5);
+      UpdateAppStatus('BankLink Online', 'Connecting to the BankLink Online.', 0);
       ClearOnlineStatusList;
-      CiCoClient.OnServerStatusEvent := UpdateOnlineStatus;
+      CiCoClient.OnProgressEvent := DoStatusProgress;
       CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '');
-      UpdateAppStatus('BankLink Online', 'Getting status of client file(s)', 50);
       UpdateOnlineStatus(FSeverResponce, FClientStatusList);
     finally
-      ClearStatus;
       StatusSilent := True;
+      CiCoClient.OnProgressEvent := Nil;
+      ClearStatus;
     end;
   except
     on E: Exception do begin
@@ -1208,12 +1210,13 @@ begin
     try
       StatusSilent := False;
       try
-        UpdateAppStatus('BankLink Online', 'Connecting', 5);
+	      UpdateAppStatus('BankLink Online', 'Connecting to the BankLink Online.', 0);
+        CiCoClient.OnProgressEvent := DoStatusProgress;
         CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
-        UpdateAppStatus('BankLink Online', 'Getting status of client file(s)', 50);
       finally
-        ClearStatus;
         StatusSilent := True;
+        CiCoClient.OnProgressEvent := Nil;
+        ClearStatus;
       end;
     except
       on E: EWebHttpCiCoClientError do
@@ -2882,7 +2885,14 @@ begin
   for i := 0 to FClientStatusList.Count - 1 do
     if Assigned(FClientStatusList.Items[i]) then
       FClientStatusList.Items[i].Free;
-  FClientStatusList.Clear;      
+  FClientStatusList.Clear;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfmeClientLookup.DoStatusProgress(APercentComplete : integer;
+                                            AMessage         : string);
+begin
+  UpdateAppStatus('BankLink Online', AMessage, APercentComplete);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

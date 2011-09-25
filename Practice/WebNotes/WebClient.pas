@@ -107,6 +107,12 @@ Type
     procedure RaiseHttpError(AErrMessage : String;
                              AErrCode    : integer); virtual;
     procedure HttpSetup;
+    procedure DoHttpConnected(Sender     : TObject;
+                              StatusCode : Integer;
+                              const Description : String); Virtual;
+    procedure DoHttpDisconnected(Sender     : TObject;
+                                 StatusCode : Integer;
+                                 const Description : String); Virtual;
     procedure DoHttpConnectionStatus(ASender : TObject;
                                      const AConnectionEvent : String;
                                      AStatusCode : Integer;
@@ -522,6 +528,8 @@ procedure TWebClient.HttpSetup;
 begin
   FHttpHeaderInfo.NameValueSeparator := ':';
 
+  FHttpRequester.OnConnected               := DoHttpConnected;
+  FHttpRequester.OnDisconnected            := DoHttpDisconnected;
   FHttpRequester.OnConnectionStatus        := DoHttpConnectionStatus;
   FHttpRequester.OnSSLServerAuthentication := DoHttpSSLServerAuthentication;
   FHttpRequester.OnStartTransfer           := DoHttpStartTransfer;
@@ -567,6 +575,22 @@ begin
       FHttpRequester.FirewallType :=  TipshttpsFirewallTypes(INI_BCFirewallType);
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebClient.DoHttpConnected(Sender     : TObject;
+                                     StatusCode : Integer;
+                                     const Description : String);
+begin
+
+end;
+
+//------------------------------------------------------------------------------
+procedure TWebClient.DoHttpDisconnected(Sender     : TObject;
+                                        StatusCode : Integer;
+                                        const Description : String);
+begin
+
 end;
 
 //------------------------------------------------------------------------------

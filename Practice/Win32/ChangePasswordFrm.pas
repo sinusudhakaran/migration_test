@@ -22,6 +22,9 @@ type
     FPassword: string;
     FEmail: string;
     function ValidPassword: Boolean;
+
+    procedure DoStatusProgress(APercentComplete : integer;
+                               AMessage         : string);
   public
     { Public declarations }
   end;
@@ -32,7 +35,8 @@ implementation
 
 uses
   ErrorMoreFrm,
-  WebCiCoClient;
+  WebCiCoClient,
+  progress;
 
 {$R *.dfm}
 
@@ -117,8 +121,18 @@ begin
   end;
 
   // Finally Contact the Service and Validate
-  Try
-    CiCoClient.SetBooksUserPassword(FEmail, FPassword, eNew.Text, ServerResponce);
+  try
+    StatusSilent := False;
+    try
+      UpdateAppStatus('BankLink Online', 'Connecting to the BankLink Online.', 0);
+      CiCoClient.OnProgressEvent := DoStatusProgress;
+
+      CiCoClient.SetBooksUserPassword(FEmail, FPassword, eNew.Text, ServerResponce);
+    finally
+      StatusSilent := True;
+      CiCoClient.OnProgressEvent := Nil;
+      ClearStatus;
+    end;
   except
     on E: exception do
       begin
@@ -137,6 +151,12 @@ begin
 
   //Still here then...
   Result := True;
+end;
+
+procedure TChangePasswordForm.DoStatusProgress(APercentComplete : integer;
+                                               AMessage         : string);
+begin
+  UpdateAppStatus('BankLink Online', AMessage, APercentComplete);
 end;
 
 end.
