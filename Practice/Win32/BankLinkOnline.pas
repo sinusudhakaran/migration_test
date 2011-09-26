@@ -460,7 +460,7 @@ begin
   inherited;
 end;
 
-function TBankLinkOnlineManager.DownloadClient(AClientCode: string; 
+function TBankLinkOnlineManager.DownloadClient(AClientCode: string;
   AProgressFrm: TfrmChkProgress; var ARemoteFileName: string;
   Silent: boolean = False): boolean;
 var
@@ -503,6 +503,7 @@ begin
   except
     on E: Exception do
       begin
+        CiCoClient.OnProgressEvent := Nil;
         raise EDownloadFailed.Create(E.Message);
       end;
   end;
@@ -564,41 +565,48 @@ var
   ServerResponce : TServerResponce;
 begin
   DebugMsg('Begins');
-
-  //Check status
-  if Assigned(AdminSystem) then
-    CheckBankLinkOnlineStatus(AClientCode, oaPracticeUpload)
-  else
-    CheckBankLinkOnlineStatus(AClientCode, oaBooksUpload);
-
-  //Upload to BankLink Online
-  if not Silent then begin
-    CiCoClient.OnProgressEvent := AProgressFrm.UpdateCICOProgress;
-    AProgressFrm.ProgressBar1.Max      := 100;
-    AProgressFrm.ProgressBar1.Position := 0;
-  end;
-
   try
-    try
-      if Assigned(AdminSystem) then
-        CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
-      else
-        CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
-    except
-      on E:Exception do
-        raise EUploadFailed.Create(E.Message);
+    //Check status
+    if Assigned(AdminSystem) then
+      CheckBankLinkOnlineStatus(AClientCode, oaPracticeUpload)
+    else
+      CheckBankLinkOnlineStatus(AClientCode, oaBooksUpload);
+
+    //Upload to BankLink Online
+    if not Silent then begin
+      CiCoClient.OnProgressEvent := AProgressFrm.UpdateCICOProgress;
+      AProgressFrm.ProgressBar1.Max      := 100;
+      AProgressFrm.ProgressBar1.Position := 0;
     end;
-  finally
-    CiCoClient.OnProgressEvent := Nil;
-  end;
 
-  if DebugMe then begin
-    AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
-    AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
-    AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
-  end;
+    try
+      try
+        if Assigned(AdminSystem) then
+          CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
+        else
+          CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
+      except
+        on E:Exception do
+          raise EUploadFailed.Create(E.Message);
+      end;
+    finally
+      CiCoClient.OnProgressEvent := Nil;
+    end;
 
-  Result := True;
+    if DebugMe then begin
+      AProgressFrm.mProgress.Lines.Add(ServerResponce.Status);
+      AProgressFrm.mProgress.Lines.Add(ServerResponce.Description);
+      AProgressFrm.mProgress.Lines.Add(ServerResponce.DetailedDesc);
+    end;
+
+    Result := True;
+  except
+    on E: Exception do
+      begin
+        CiCoClient.OnProgressEvent := Nil;
+        raise EUploadFailed.Create(E.Message);
+      end;
+  end;
   DebugMsg('Ends');
 end;
 

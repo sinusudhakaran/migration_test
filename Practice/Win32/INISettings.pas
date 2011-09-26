@@ -287,12 +287,6 @@ begin
       EncryptedPassword           := IniFile.ReadString(GrpKeyring,'Key3','');
       INI_BCProxyPassword         := DecryptPass16( BConnectPassKey, EncryptedPassword);
 
-      //Books BankLink Online username and password
-      INI_BankLink_Online_Username  := IniFile.ReadString(GrpPracBankLinkOnline, 'BankLinkOnlineUsername', '');
-      EncryptedPassword             := IniFile.ReadString(GrpPracBankLinkOnline, 'BankLinkOnlinePassword', '');
-      INI_BankLink_Online_Password  := DecryptPass16(BANKLINK_ONLINE_PASS_KEY, EncryptedPassword);
-      INI_BankLink_Online_SubDomain := IniFile.ReadString(GrpPracBankLinkOnline, 'BankLinkOnlineSubDomain', '');
-
       //New Settings for v2.5
       INI_BCUseWinInet            := IniFile.ReadBool   ( GrpBConnect, 'UseWinInet', true);
       INI_BCProxyAuthMethod       := IniFile.ReadInteger( GrpBConnect, 'ProxyAuthMethod', 0);
@@ -422,12 +416,6 @@ begin
      iniFile.WriteString(GrpKeyring,'Key1', EncryptedPassword);
      EncryptedPassword := EncryptPass16( MAIL_PASS_KEY, INI_SMTP_Password);
      iniFile.WriteString(GrpKeyring,'Key2', EncryptedPassword);
-
-     //Books BankLink Online username and password
-     IniFile.WriteString(GrpPracBankLinkOnline, 'BankLinkOnlineUsername', INI_BankLink_Online_Username);
-     EncryptedPassword := EncryptPass16(BANKLINK_ONLINE_PASS_KEY, INI_BankLink_Online_Password);
-     IniFile.WriteString(GrpPracBankLinkOnline, 'BankLinkOnlinePassword', EncryptedPassword);
-     IniFile.WriteString(GrpPracBankLinkOnline, 'BankLinkOnlineSubDomain', INI_BankLink_Online_SubDomain);
 
      {$IFDEF SmartBooks}
      IniFile.WriteString(GrpSmartBooks,'Default File',INI_DefaultFile);
@@ -819,6 +807,7 @@ var
   IniFile : TMemIniFile;
   i: integer;
   S: string;
+  EncryptedPassword: string;
 begin
   Filename := ExecDir + UserCode + '.INI';
 
@@ -893,6 +882,12 @@ begin
       UserINI_SPA_Columns := IniFile.ReadString(GrpSysAccounts,'PracticeAccounts','');
       UserINI_Show_Interim_Reports := ReadBool(GrpUserOptions,'ShowInterimReports', False);
 
+      //Books BankLink Online username and password
+      INI_BankLink_Online_Username  := IniFile.ReadString(GrpPracBankLinkOnline, 'BankLinkOnlineUsername', '');
+      EncryptedPassword             := IniFile.ReadString(GrpPracBankLinkOnline, 'BankLinkOnlinePassword', '');
+      INI_BankLink_Online_Password  := DecryptPass16(BANKLINK_ONLINE_PASS_KEY, EncryptedPassword);
+      INI_BankLink_Online_SubDomain := IniFile.ReadString(GrpPracBankLinkOnline, 'BankLinkOnlineSubDomain', '');
+
       UserIniUpgrade(IniFile);
 
     end;
@@ -907,6 +902,7 @@ var
   Filename : string;
   IniFile : TMemIniFile;
   i : integer;
+  EncryptedPassword: string;
 begin
   Filename := ExecDir + UserCode + '.INI';
 
@@ -979,6 +975,12 @@ begin
 
       IniFile.WriteString(GrpSysAccounts,'PracticeAccounts', UserINI_SPA_Columns);
       IniFile.WriteBool( GrpUserOptions, 'ShowInterimReports', UserINI_Show_Interim_Reports);
+
+      //Books BankLink Online username and password
+      IniFile.WriteString(GrpPracBankLinkOnline, 'BankLinkOnlineUsername', INI_BankLink_Online_Username);
+      EncryptedPassword := EncryptPass16(BANKLINK_ONLINE_PASS_KEY, INI_BankLink_Online_Password);
+      IniFile.WriteString(GrpPracBankLinkOnline, 'BankLinkOnlinePassword', EncryptedPassword);
+      IniFile.WriteString(GrpPracBankLinkOnline, 'BankLinkOnlineSubDomain', INI_BankLink_Online_SubDomain);
     end;
   finally
     IniFile.UpdateFile;

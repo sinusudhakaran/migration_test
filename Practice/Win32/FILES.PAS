@@ -1552,27 +1552,10 @@ begin
     end;
   end;
 
-  //Check that client file has GUID for BankLink Online
-//  if (ASendMethod = ftmOnline) then begin
-//    GetClientWrapper(LocalFileName, Wrapper, True);
-//    if not Wrapper.wHasGUID then begin
-//      Msg := 'Cannot send client file ' + CODE +
-//             ' because it is not BankLink Online ready';
-//      LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-//      ProgressFrm.mProgress.Lines.Add(Msg);
-//      Exit;
-//    end;
-//  end;
-
   //Take a backup copy
   if BKFileExists(BackupFileName) then
     DeleteFile(BackupFileName);
   FCOPY.CopyFile(LocalFileName, BackupFileName);
-
-  if DebugMe then begin
-    Msg := Format('%s : Send Copy to %s', [ThisMethodName, RemoteFileName]);
-    LogUtil.LogMsg(lmDebug, UnitName, Msg);
-  end;
 
   //Copy/Upload client file
   try
@@ -1580,6 +1563,10 @@ begin
       ftmNone,
       ftmFile:
             begin
+              if DebugMe then begin
+                Msg := Format('%s : Send Copy to %s', [ThisMethodName, RemoteFileName]);
+                LogUtil.LogMsg(lmDebug, UnitName, Msg);
+              end;
               FCopy.CopyFile(LocalFileName, RemoteFileName);
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Copied to %s',
@@ -1589,6 +1576,10 @@ begin
             end;
       ftmOnline:
             begin
+              if DebugMe then begin
+                Msg := Format('%s : Send Copy to %s', [ThisMethodName, BANKLINK_ONLINE_NAME]);
+                LogUtil.LogMsg(lmDebug, UnitName, Msg);
+              end;
               BankLinkOnlineMgr.UploadClient(Code, ProgressFrm,
                                              IsScheduledReport, AEmail);
               if DebugMe then
@@ -1643,7 +1634,11 @@ begin
   end;
 
   Result := True;
-  Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
+  case ASendMethod of
+    ftmNone,
+    ftmFile  : Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
+    ftmOnline: Msg := Format('Send %s to %s succeeded',[Code, BANKLINK_ONLINE_NAME]);
+  end;
   LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
   if not IsScheduledReport then
     ProgressFrm.mProgress.Lines.Add(Msg);
@@ -1797,7 +1792,7 @@ begin
         end;
 
         //Missing email addresses
-        if NoEmail <> '' then begin
+        if Assigned(AdminSystem) and (NoEmail <> '') then begin
           Msg := Format('A valid email address is required for clients files '+
                         'to be sent via %s. Please update the '+
                         'following clients:  %s', [BANKLINK_ONLINE_NAME, NoEmail]);
@@ -2145,7 +2140,11 @@ begin
                 exit;
              end else
                Msg := '';
-           end else if (Wrapper.wSave_Count = WrapperOfExistingFile.wSave_Count) then begin
+           end else if (Wrapper.wSave_Count = WrapperOfExistingFile.wSave_Count) and
+                       (ASendMethod <> ftmOnline) then begin
+             //The client file save count of a file re-sent by Practice via BankLink Online
+             //can be the same as the client file in Books - but it cannot be read-only -
+             //so we don't need to do this check.
              Msg := 'This file is the same as your current read-only file. ' +
                     'Do you wish to reset the read-only status so you can ' +
                     'make changes to the file?';
