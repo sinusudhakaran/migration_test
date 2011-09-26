@@ -268,7 +268,7 @@ Var
                          if lPayee <> 0 then TR.txPayee_Number :=  lPayee;
                       end;
                     end;
-                    Transaction_List.Insert_Transaction_Rec(TR);
+                    Transaction_List.Insert_Transaction_Rec(TR, False);
                   end;
                end;
             end;

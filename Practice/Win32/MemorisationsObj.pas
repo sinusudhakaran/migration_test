@@ -874,7 +874,7 @@ end;
 procedure TMaster_Memorisations_List.Insert_Memorisation(m: TMemorisation; NewAuditID: boolean = True);
 begin
   m.mdFields.mdFrom_Master_List := true;
-  if NewAuditID then
+  if Assigned(FAuditMgr) and NewAuditID then
     M.mdFields.mdAudit_Record_ID := FAuditMgr.NextAuditRecordID;
 
   inherited;

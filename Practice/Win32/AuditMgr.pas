@@ -543,9 +543,12 @@ begin
 {$IFDEF BK_UNITTESTINGON}
   Result := 'UNITTEST';
 {$ELSE}
-  if Assigned(AdminSystem) then
-    Result := Globals.CurrUser.Code
-  else if Assigned(MyClient) then begin
+  if Assigned(AdminSystem) then begin
+    if Assigned(Globals.CurrUser) then
+      Result := Globals.CurrUser.Code
+    else
+      Result := 'SYSTEM';
+  end else if Assigned(MyClient) then begin
      if (MyClient.clFields.clDownload_From <> dlAdminSystem) then
        Result := USER_BOOKS_SECURE
      else

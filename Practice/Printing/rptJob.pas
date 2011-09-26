@@ -193,7 +193,7 @@ begin
             NewTransaction.txJob_Code := DissectionJobCode;
         end;
         //end;
-        Transaction_List.Insert_Transaction_Rec(NewTransaction);
+        Transaction_List.Insert_Transaction_Rec(NewTransaction, False);
       end;
     end;
   end;

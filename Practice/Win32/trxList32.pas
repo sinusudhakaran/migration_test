@@ -218,7 +218,7 @@ Begin
       P^.txClient       := fClient;
 
       //Get next audit ID for new transactions
-      if (not FLoading) and NewAuditID then
+      if (not FLoading) and Assigned(fAuditMgr) and NewAuditID then
         P^.txAudit_Record_ID := fAuditMgr.NextAuditRecordID;
 
       Inherited Insert( P );
