@@ -184,7 +184,7 @@ begin
                         'Would you like to overwrite the client file in BankLink Books ' +
                         'with the client file on %s?', [AClientCode, BANKLINK_ONLINE_NAME]);
           if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
-            raise EUploadFailed.CreateFmt('The client file %s has been updated by your accountant.',
+            raise EDownloadFailed.CreateFmt('The client file %s has been updated by your accountant.',
                                           [AClientCode]);
         end;
       cfsDownloadedBooks: ; //OK
@@ -234,7 +234,7 @@ begin
     ReadOnly := WrapperOfExistingFile.wRead_Only;
   end else begin
     Msg := Format('File not found %s.', [LocalFileName]);
-    raise EDownloadFailed.Create(Msg);
+    raise EUploadFailed.Create(Msg);
   end;
 
   if ReadOnly then begin
@@ -245,14 +245,14 @@ begin
           Msg := Format('The client file %s on %s does not exist and ' +
                         'cannot be sent. Please contact your accountant.',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
-          raise EDownloadFailed.Create(Msg);
+          raise EUploadFailed.Create(Msg);
         end;
       cfsUploadedPractice:
         begin
           Msg := Format('The client file %s on %s has been updated ' +
                         'by your accountant. Please contact your accountant.',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
-          raise EDownloadFailed.Create(Msg);
+          raise EUploadFailed.Create(Msg);
         end;
       cfsDownloadedBooks: ; //Check save count???
       cfsUploadedBooks: ; //OK
@@ -262,7 +262,7 @@ begin
           Msg := Format('The client file %s on %s is currently with ' +
                         'your accountant. Please contact your accountant.',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
-          raise EDownloadFailed.Create(Msg);
+          raise EUploadFailed.Create(Msg);
         end;      
     end;
   end else begin
@@ -273,14 +273,14 @@ begin
           Msg := Format('The client file %s on %s does not exist and ' +
                         'cannot be sent. Please contact your accountant.',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
-          raise EDownloadFailed.Create(Msg);
+          raise EUploadFailed.Create(Msg);
         end;
       cfsUploadedPractice:
         begin
           Msg := Format('The client file %s on %s has been updated ' +
                         'by your accountant. Please contact your accountant.',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
-          raise EDownloadFailed.Create(Msg);
+          raise EUploadFailed.Create(Msg);
         end;
       cfsDownloadedBooks: ; //OK
       cfsUploadedBooks:  ; //OK
@@ -290,7 +290,7 @@ begin
           Msg := Format('The client file %s on %s is currently with ' +
                         'your accountant. Please contact your accountant.',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
-          raise EDownloadFailed.Create(Msg);
+          raise EUploadFailed.Create(Msg);
         end;
     end;
   end;
@@ -349,9 +349,9 @@ begin
                         'this client. Are you sure you want to continue?',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
           if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
-            raise EUploadFailed.CreateFmt('The client file %s on %s is older ' +
-                                          'than the file currently available.',
-                                          [AClientCode, BANKLINK_ONLINE_NAME]);
+            raise EDownloadFailed.CreateFmt('The client file %s on %s is older ' +
+                                            'than the file currently available.',
+                                            [AClientCode, BANKLINK_ONLINE_NAME]);
         end;
       cfsDownloadedBooks:
         begin
@@ -366,9 +366,9 @@ begin
                         'in BankLink Practice with the client file on %s?',
                         [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
           if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
-            raise EUploadFailed.CreateFmt('The client file %s on %s '+
-                                          'has been updated by your client.',
-                                          [AClientCode, BANKLINK_ONLINE_NAME]);
+            raise EDownloadFailed.CreateFmt('The client file %s on %s '+
+                                            'has been updated by your client.',
+                                            [AClientCode, BANKLINK_ONLINE_NAME]);
         end;
       cfsDownloadedPractice:
         begin
@@ -378,8 +378,8 @@ begin
           raise EDownloadFailed.Create(Msg);
         end;
     else
-      raise EUploadFailed.CreateFmt('Unable to get client file status for %s',
-                                    [AClientCode]);
+      raise EDownloadFailed.CreateFmt('Unable to get client file status for %s',
+                                      [AClientCode]);
     end;
   end;
 end;
