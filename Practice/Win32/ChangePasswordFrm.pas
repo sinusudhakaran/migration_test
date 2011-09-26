@@ -36,7 +36,8 @@ implementation
 uses
   ErrorMoreFrm,
   WebCiCoClient,
-  progress;
+  progress,
+  Globals;
 
 {$R *.dfm}
 
@@ -124,7 +125,7 @@ begin
   try
     StatusSilent := False;
     try
-      UpdateAppStatus('BankLink Online', 'Connecting to the BankLink Online.', 0);
+      UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
       CiCoClient.OnProgressEvent := DoStatusProgress;
 
       CiCoClient.SetBooksUserPassword(FEmail, FPassword, eNew.Text, ServerResponce);
@@ -136,7 +137,8 @@ begin
   except
     on E: exception do
       begin
-        HelpfulErrorMsg('Error changing BankLink Online User password: ' + E.Message, 0);
+        HelpfulErrorMsg(Format('Error changing %s User password: %s',
+                               [BANKLINK_ONLINE_NAME, E.Message]), 0);
         Exit;
       end;
   End;
@@ -144,7 +146,8 @@ begin
   if Not ((ServerResponce.Status = '200')
   and (Lowercase(ServerResponce.Description) = 'password changes')) then
   begin
-    TempStr := 'Error changing BankLink Online User password: ' + ServerResponce.Description;
+    TempStr := Format('Error changing %s User password: %s',
+                      [BANKLINK_ONLINE_NAME, ServerResponce.Description]);
     HelpfulErrorMsg(TempStr ,0);
     Exit;
   end;
@@ -156,7 +159,7 @@ end;
 procedure TChangePasswordForm.DoStatusProgress(APercentComplete : integer;
                                                AMessage         : string);
 begin
-  UpdateAppStatus('BankLink Online', AMessage, APercentComplete);
+  UpdateAppStatus(BANKLINK_ONLINE_NAME, AMessage, APercentComplete);
 end;
 
 end.

@@ -112,15 +112,15 @@ object frmCheckInOut: TfrmCheckInOut
       Align = alClient
       TabOrder = 0
       TabStop = True
-      ExplicitTop = 123
+      ExplicitTop = 121
       ExplicitWidth = 884
-      ExplicitHeight = 224
+      ExplicitHeight = 226
       inherited vtClients: TVirtualStringTree
         Width = 884
         Height = 226
         Header.Font.Height = -13
         ExplicitWidth = 884
-        ExplicitHeight = 224
+        ExplicitHeight = 226
       end
     end
     object pnlPassword: TPanel

@@ -74,7 +74,8 @@ type
     { Public declarations }
   end;
 
-  function SelectCodesToSend(Title : string; ASendMethod: Byte; var FirstUpload: boolean;
+  function SelectCodesToSend(Title : string; ASendMethod: Byte; var AFirstUpload: boolean;
+                             var AFlagReadOnly, AEditEmail, ASendEmail: boolean;
                              SelectedCodes: string = '') : string;
   function SelectCodesToGet( Title : string; ASendMethod: Byte; DefaultCodes : string = '') : string;
   function SelectCodesToAttach( Title : string) : string;
@@ -132,8 +133,8 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SelectCodesToSend( Title : string; ASendMethod: Byte; var FirstUpload: boolean;
-  SelectedCodes: string = '') : string;
+function SelectCodesToSend( Title : string; ASendMethod: Byte; var AFirstUpload: boolean;
+  var AFlagReadOnly, AEditEmail, ASendEmail: boolean; SelectedCodes: string = '') : string;
 //the path is the path to check the files out to
 var
   CheckInOut : TfrmCheckInOut;
@@ -175,6 +176,10 @@ begin
       CloseupCheckboxes;
       SetupFrame;
 
+      //Don't show dialog for BankLink Online if no connection
+      if (FSendMethod = ftmOnline) and ClientLookupFrame.NoOnlineConnection then
+        Exit;
+
       if (FSendMethod = ftmOnline) then
         btnOK.Caption := '&Upload';
 
@@ -187,7 +192,13 @@ begin
         Globals.INI_BankLink_Online_Username  := Trim(eUsername.Text);
         Globals.INI_BankLink_Online_Password  := Trim(ePassword.Text);
         Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
-        ASendMethod := CheckInOut.FSendMethod;
+
+        //Setting
+        AFirstUpload := ClientLookupFrame.FirstUpload;
+        AFlagReadOnly := cbFlagReadOnly.Checked;
+        AEditEmail := cbEditEmail.Checked;
+        ASendEmail := cbSendEmail.Checked;
+
         Result := ClientLookupFrame.SelectedCodes;
       end;
     finally
@@ -237,6 +248,11 @@ begin
 
       CloseupCheckboxes;
       SetupFrame;
+
+      //Don't show dialog for BankLink Online if no connection
+      if (FSendMethod = ftmOnline) and ClientLookupFrame.NoOnlineConnection then
+        Exit;
+
       ClientLookupFrame.SelectedCodes := DefaultCodes;
 
       if ShowModal = mrOK then
@@ -344,7 +360,7 @@ begin
       //must select something if using checkout
       if (DialogMode in [ dmCheckOut, dmSend]) and ( Codes = '') then begin
         if (FSendMethod = ftmOnline) then
-          HelpfulWarningMsg('Please select a client to send to BankLink Online', 0);
+          HelpfulWarningMsg('Please select a client to send to ' + BANKLINK_ONLINE_NAME, 0);
         Exit;
       end;
 
@@ -352,7 +368,7 @@ begin
       if ( DialogMode = dmCheckIn) and ( Codes = '') then
       begin
         if (FSendMethod = ftmOnline) then
-          HelpfulWarningMsg('Please select a client to update from BankLink Online', 0);
+          HelpfulWarningMsg('Please select a client to update from ' + BANKLINK_ONLINE_NAME, 0);
         ClientLookupFrame.FilesDirectory := SelectedDir;
         ClientLookupFrame.Reload;
         Exit;
@@ -523,7 +539,7 @@ begin
     AddColumn( 'Code', 110, cluCode);
     AddColumn( 'Name', -1, cluName);
     AddColumn( 'Status', 150, cluStatus);
-    AddColumn( 'BankLink Online Status', 245, cluBankLinkOnline);
+    AddColumn( BANKLINK_ONLINE_NAME + ' Status', 245, cluBankLinkOnline);
     AddColumn( 'Modified Date', 100, cluModifiedDate);
 
     SetupColumns;
@@ -543,6 +559,7 @@ begin
     end;
     //set the view mode, this will reload the data
     ViewMode   := vmAllFiles;
+
     //set up events
     OnGridDblClick     := FrameDblClick;
 

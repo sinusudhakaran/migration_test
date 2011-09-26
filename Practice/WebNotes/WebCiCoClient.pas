@@ -487,7 +487,7 @@ begin
   inherited;
 
   if Assigned(fProgressEvent) then
-    fProgressEvent(5, 'Connected to the BankLink Online.');
+    fProgressEvent(5, 'Connected to ' + BANKLINK_ONLINE_NAME);
 end;
 
 //------------------------------------------------------------------------------
@@ -498,7 +498,7 @@ begin
   inherited;
 
   if Assigned(fProgressEvent) then
-    fProgressEvent(100, 'BankLink Online Connection Completed.');
+    fProgressEvent(100, BANKLINK_ONLINE_NAME + ' Connection Completed');
 end;
 
 //------------------------------------------------------------------------------
@@ -558,9 +558,9 @@ begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'Start Transfer : to BankLink Online.'
+    StrMessage := 'Start Transfer : to ' + BANKLINK_ONLINE_NAME
   else
-    StrMessage := 'Start Transfer : from BankLink Online.';
+    StrMessage := 'Start Transfer : from ' + BANKLINK_ONLINE_NAME;
 
   // Status Event
   if Assigned(fStatusEvent) then
@@ -593,9 +593,9 @@ begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'Transfering : to BankLink Online.'
+    StrMessage := 'Transfering : to ' + BANKLINK_ONLINE_NAME
   else
-    StrMessage := 'Transfering : from BankLink Online.';
+    StrMessage := 'Transfering : from ' + BANKLINK_ONLINE_NAME;
 
   // Status Event
   if Assigned(fStatusEvent) then
@@ -626,9 +626,9 @@ begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'End Transfer : to BankLink Online.'
+    StrMessage := 'End Transfer : to ' + BANKLINK_ONLINE_NAME
   else
-    StrMessage := 'End Transfer : from BankLink Online.';
+    StrMessage := 'End Transfer : from ' + BANKLINK_ONLINE_NAME;
 
   // Status Event
   if Assigned(fStatusEvent) then

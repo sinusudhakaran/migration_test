@@ -84,6 +84,7 @@ CONST
     BConnectShort       = 'Secure';
     BKBOOKSNAME         = 'BankLink Books';
     BKPRACTICENAME      = 'BankLink Practice';
+    BANKLINK_ONLINE_NAME= 'BankLink Online';
 {$IFDEF SmartLink}
     DocumentManagementSystemName = 'FingerTips';
 {$ENDIF}

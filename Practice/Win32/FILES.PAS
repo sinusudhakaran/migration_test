@@ -13,7 +13,9 @@ uses
   function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
   procedure SaveClient;
   function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
-  procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0; FirstUpload: boolean = False);
+  procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0;
+                            AFirstUpload: boolean = False; AFlagReadOnly: boolean = False;
+                            AEditEmail: boolean = False; ASendEmail: boolean = False);
   function SendClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
                       var AEmail: string; IsScheduledReport: Boolean = False;
                       Silent: Boolean = False; AllowMultiplePwdFiles: Boolean = False;
@@ -1490,8 +1492,9 @@ begin
   case ASendMethod of
     ftmNone,
     ftmFile: Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
-    ftmOnline      : Msg := Format('Send %s to BankLink Online ''%s\%s'' succeeded',
-                                   [Code, AdminSystem.fdFields.fdBankLink_Code, Code]);
+    ftmOnline      : Msg := Format('Send %s to %s ''%s\%s'' succeeded',
+                                   [Code, BANKLINK_ONLINE_NAME,
+                                    AdminSystem.fdFields.fdBankLink_Code, Code]);
   end;
   LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
   if not IsScheduledReport then
@@ -1725,7 +1728,8 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0;
-  FirstUpload: boolean = False);
+  AFirstUpload: boolean = False; AFlagReadOnly: boolean = False;
+  AEditEmail: boolean = False; ASendEmail: boolean = False);
 const
   ThisMethodName = 'SendClientFiles';
 var
@@ -1751,7 +1755,8 @@ begin
         CodeList.DelimitedText := CodesToSend
       else begin
         CodeList.DelimitedText := SelectCodesToSend('Select Client(s) to Send',
-                                                    ASendMethod, FirstUpload);
+                                                    ASendMethod, AFirstUpload,
+                                                    AFlagReadOnly, AEditEmail, ASendEmail);
         if CodeList.DelimitedText = '' then
           Exit;
       end;
@@ -1794,8 +1799,8 @@ begin
         //Missing email addresses
         if NoEmail <> '' then begin
           Msg := Format('A valid email address is required for clients files '+
-                        'to be sent via BankLink Online. Please update the '+
-                        'following clients:  %s', [NoEmail]);
+                        'to be sent via %s. Please update the '+
+                        'following clients:  %s', [BANKLINK_ONLINE_NAME, NoEmail]);
           HelpfulErrorMsg(Msg, 0);
         end;
 
@@ -1817,13 +1822,14 @@ begin
         //   and at least one file has been uploaded...
         if (Assigned(AdminSystem)) and
            (ASendMethod = ftmOnline) and
+           (ASendEmail) and
            (CodeList.Count > Failures) then begin
           //Send email
           EmailBody := Format('The following Client File(s) are now available ' +
-                              'via BankLink Online: %s.', [SentClientCodes]);
-          if FirstUpload then
+                              'via %s: %s.', [BANKLINK_ONLINE_NAME, SentClientCodes]);
+          if AFirstUpload then
             EmailBody := EmailBody + #10 + #10 +
-                         'If you are new to BankLink Online, you will receive ' +
+                         'If you are new to ' + BANKLINK_ONLINE_NAME + ', you will receive ' +
                          'an email shortly which will help you complete the ' +
                          'setup process. Please wait for this email before continuing.';
           SendMailTo('Send Client File(s) via ' + BankLinkLiveName,
@@ -1890,7 +1896,8 @@ begin
      BankLinkOnlineMgr.DownloadClient(Code, ProgressFrm, RemoteFilename);
    except
       on E : EDownloadFailed do begin
-         Msg := 'Download from BankLink Online failed for ' + CODE + '.  Error: ' + E.Message;
+         Msg := Format('Download from %s failed for %s.  Error: %s',
+                       [BANKLINK_ONLINE_NAME, CODE, E.Message]);
          LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
          if not IsScheduledReports then
            ProgressFrm.mProgress.Lines.Add( Msg);
@@ -2213,9 +2220,9 @@ begin
    end;
 
    if (ASendMethod = ftmOnline) then
-     Msg := Format('Check in %s from BankLink Online succeeded',[Code])   
+     Msg := Format('Check in %s from %s succeeded',[Code, BANKLINK_ONLINE_NAME])
    else
-     Msg := Format('Check in %s from %s succeeded',[Code,RemoteFileName]);
+     Msg := Format('Check in %s from %s succeeded',[Code, RemoteFileName]);
    LogUtil.LogMsg(lmInfo,unitname,ThisMethodName+' '+Msg);
 
    if not IsScheduledReports and Assigned( AdminSystem) then
@@ -2254,7 +2261,7 @@ begin
       CodeList.StrictDelimiter := True;
       Title := 'Select Client(s) to Update';
       if (ASendMethod = ftmOnline) then
-        Title := Title + ' from BankLink Online';
+        Title := Title + ' from ' + BANKLINK_ONLINE_NAME;
       CodeList.DelimitedText := SelectCodesToGet(Title, ASendMethod, CodesToCheckIn);
       if CodeList.Count = 0 then
         Exit;

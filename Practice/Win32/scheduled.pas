@@ -2020,8 +2020,8 @@ begin
                                  wfWebNotes :  DestString := WebNotesName;
                              end;
                rdCSVExport : DestString := 'CSV Export';
-               rdCheckOut  : DestString := 'BankLink Books';
-               rdBankLinkOnline : DestString := 'BankLink Online';
+               rdCheckOut  : DestString := BKBOOKSNAME;
+               rdBankLinkOnline : DestString := BANKLINK_ONLINE_NAME;
                rdBusinessProduct: DestString := 'Business Prod';
             end;
           end;

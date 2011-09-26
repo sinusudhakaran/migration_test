@@ -207,6 +207,7 @@ type
     FClientStatusList: TClientStatusList;
     FSeverResponce : TServerResponce;
     FUsingBankLinkOnline: Boolean;
+    FNoOnlineConnection: boolean;
     procedure LoadNodes( ReloadData : boolean);
     procedure LoadColumns;
     procedure RefreshData;
@@ -260,8 +261,11 @@ type
     procedure UpdateOnlineStatus(ServerResponce : TServerResponce;
                                  ClientStatusList : TClientStatusList);
     procedure ClearOnlineStatusList;
+    procedure SetNoOnlineConnection(const Value: boolean);
     procedure DoStatusProgress(APercentComplete : integer;
                                AMessage         : string);
+    procedure InvalidPasswordDlg(AttemptCount: integer);
+    procedure GetClientFileStatus;
   public
     { Public declarations }
     AdminSnapshot : TSystemObj;
@@ -338,6 +342,7 @@ type
     procedure RefeshBankLinkOnlineStatus;
     property UsingBankLinkOnline: Boolean read FUsingBankLinkOnline write SetUsingBankLinkOnline;
     function FirstUpload: Boolean;
+    property NoOnlineConnection: boolean read FNoOnlineConnection write SetNoOnlineConnection;
   end;
 
   const
@@ -361,7 +366,7 @@ uses
   Math, Types,
   WinUtils, YesNoDlg, ErrorMoreFrm,  ClientDetailCacheObj,
   stDateSt, bkBranding, PDDATES32,
-  progress;
+  progress, formPassword, BankLinkConnect, Admin32;
 
 {$R *.dfm}
 
@@ -1160,6 +1165,10 @@ begin
       vtClients.Header.Height := Abs(VTClients.Header.Font.Height) * 10 DIV 6;
 end;
 
+procedure TfmeClientLookup.SetNoOnlineConnection(const Value: boolean);
+begin
+  FNoOnlineConnection := Value;
+end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfmeClientLookup.RefeshBankLinkOnlineStatus;
 var
@@ -1170,10 +1179,10 @@ begin
   try
     StatusSilent := False;
     try
-      UpdateAppStatus('BankLink Online', 'Connecting to the BankLink Online.', 0);
+      UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
       ClearOnlineStatusList;
       CiCoClient.OnProgressEvent := DoStatusProgress;
-      CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '');
+      GetClientFileStatus;
       UpdateOnlineStatus(FSeverResponce, FClientStatusList);
     finally
       StatusSilent := True;
@@ -1184,11 +1193,12 @@ begin
     on E: Exception do begin
       for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
         pIDRec := FIntermediateDataList.IntermediateData_At(i);
-        pIDRec^.imOnlineStatusDesc := '<error>';
+        pIDRec^.imOnlineStatusDesc := '';
         pIDRec^.imModifiedDate   := 0;
         pIDRec^.imOnlineStatus   := cfsNoFile;
       end;
-      ShowMessage(E.Message);
+      FNoOnlineConnection := True;
+      HelpfulErrorMsg('BankLink Practice is unable to connect to ' + BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
     end;
   end;
 end;
@@ -1210,19 +1220,20 @@ begin
     try
       StatusSilent := False;
       try
-	      UpdateAppStatus('BankLink Online', 'Connecting to the BankLink Online.', 0);
+        UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
         CiCoClient.OnProgressEvent := DoStatusProgress;
-        CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList);
+        GetClientFileStatus;
       finally
         StatusSilent := True;
         CiCoClient.OnProgressEvent := Nil;
         ClearStatus;
       end;
     except
-      on E: EWebHttpCiCoClientError do
+      on E: Exception do
         begin
-          HelpfulErrorMsg('Error getting BankLink Online status: ' + E.Message, 0);
-          Exit;
+          ClearStatus; 
+          FNoOnlineConnection := True;
+          HelpfulErrorMsg('BankLink Practice is unable to connect to ' + BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
         end;
     end;
     //List the client files from BankLink Online
@@ -1274,6 +1285,8 @@ begin
     end;
     UpdateOnlineStatus(FSeverResponce, FClientStatusList);
   finally
+    StatusSilent := True;
+    ClearStatus;    
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2802,6 +2815,23 @@ function TfmeClientLookup.GetClientCount: integer;
 begin
   result := FClientCodesList.Count;
 end;
+
+procedure TfmeClientLookup.GetClientFileStatus;
+var
+  Attempt: integer;
+begin
+  Attempt := -1;
+  while (Attempt < 3) do begin
+    Inc(Attempt);
+    CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '');
+    if FSeverResponce.Status = '102' then begin
+      if Attempt > 2 then
+        raise Exception.Create('Password failed on third attempt');
+      InvalidPasswordDlg(Attempt);
+    end else
+      Attempt := 3;  //Password ok
+  end;
+end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfmeClientLookup.GetSelectionCount: integer;
 var
@@ -2892,7 +2922,7 @@ end;
 procedure TfmeClientLookup.DoStatusProgress(APercentComplete : integer;
                                             AMessage         : string);
 begin
-  UpdateAppStatus('BankLink Online', AMessage, APercentComplete);
+  UpdateAppStatus(BANKLINK_ONLINE_NAME, AMessage, APercentComplete);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3576,6 +3606,40 @@ begin
   end;
 end;
 
+procedure TfmeClientLookup.InvalidPasswordDlg(AttemptCount: integer);
+const
+  THIS_METHOD_NAME = 'InvalidPasswordDlg';
+var
+  Msg : String;
+  PasswordDlg: TBkPasswordDialog;
+  PasswordChanged: boolean;
+  NewPassword: string;
+begin
+  if not FUsingAdminSystem then Exit;
+  PasswordDlg := TBkPasswordDialog.Create(self);
+  try
+    PasswordDlg.Caption := 'Log in to ' + BANKLINK_ONLINE_NAME;
+    PasswordDlg.DefaultUser := AdminSystem.fdFields.fdBankLink_Code;
+    if (AdminSystem.fdFields.fdBankLink_Connect_Password = '') and (AttemptCount = 0) then
+      Msg := 'The login password has not been set.  Please enter your password.'
+    else
+      Msg := 'The password supplied is invalid.  Please enter your password (attempt #%d)';
+    PasswordDlg.TextMessage := Format(Msg, [AttemptCount + 1]);
+    if PasswordDlg.Execute then begin
+      NewPassword := EncryptPassword(PasswordDlg.Password);
+      PasswordChanged := (AdminSystem.fdFields.fdBankLink_Connect_Password <> NewPassword);
+      if PasswordChanged then begin
+        if LoadAdminSystem(True, THIS_METHOD_NAME) then begin
+          AdminSystem.fdFields.fdBankLink_Connect_Password := NewPassword;
+          SaveAdminSystem;
+        end;
+      end;
+    end else
+      raise Exception.Create('User cancelled attempt to enter correct password.');
+  finally
+    PasswordDlg.Free;
+  end;
+end;
 function TfmeClientLookup.IsUnCoded(SysClientRec: pClient_File_Rec; Ondate: Integer) : boolean;
 var i: integer;
 begin

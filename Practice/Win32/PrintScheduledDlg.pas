@@ -511,8 +511,8 @@ procedure TdlgPrintScheduled.btnOnlineMsgClick(Sender: TObject);
 begin
   EditScheduledReportsMessage( 'BankLink Books Message',
                                'Type a subject and a message which will be added to all ' +
-                               'BankLink Books files sent via BankLink Online when ' +
-                               'Scheduled Reports are generated.',
+                               BKBOOKSNAME + ' files sent via ' + BANKLINK_ONLINE_NAME +
+                               ' when Scheduled Reports are generated.',
                                OnlineSubject,
                                OnlineMessage);
 end;
@@ -1062,7 +1062,7 @@ begin
                if MyDlg.cbCheckOut.Checked then
                   IncUsage('Sched Rep - Checked Out');
                if MyDlg.cbOnline.Checked then
-                  IncUsage('Sched Rep - BankLink Online');
+                  IncUsage('Sched Rep - ' + BANKLINK_ONLINE_NAME);
              end;
 
              fdSched_Rep_Send_Fax_Off_Peak    := MyDlg.rbSendOffPeak.checked;

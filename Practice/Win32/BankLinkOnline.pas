@@ -153,8 +153,8 @@ begin
     case AStatus.StatusCode of
       cfsNoFile:
         begin
-          Msg := Format('An error has occurred with client file %s on BankLink Online. ' +
-                        'Please contact your accountant.', [AClientCode]);
+          Msg := Format('An error has occurred with client file %s on %s. ' +
+                        'Please contact your accountant.', [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedPractice: ; //OK
@@ -163,8 +163,9 @@ begin
       cfsCopyUploadedBooks: ; //OK
       cfsDownloadedPractice:
         begin
-          Msg := Format('The client file %s on BankLink Online is currently with ' +
-                        'your accountant. Please contact your accountant.', [AClientCode]);
+          Msg := Format('The client file %s on %s is currently with ' +
+                        'your accountant. Please contact your accountant.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
     end;
@@ -173,31 +174,32 @@ begin
     case AStatus.StatusCode of
       cfsNoFile:
         begin
-          Msg := Format('An error has occurred with client file %s on BankLink Online. ' +
-                        'Please contact your accountant.', [AClientCode]);
+          Msg := Format('An error has occurred with client file %s on %s. ' +
+                        'Please contact your accountant.', [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedPractice:
         begin
           Msg := Format('The client file %s has been updated by your accountant. '+
                         'Would you like to overwrite the client file in BankLink Books ' +
-                        'with the client file on BankLink Online?', [AClientCode]);
-          if AskYesNo('Update from BankLink Online', Msg, DLG_YES, 0) <> DLG_YES then
+                        'with the client file on %s?', [AClientCode, BANKLINK_ONLINE_NAME]);
+          if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
             raise EUploadFailed.CreateFmt('The client file %s has been updated by your accountant.',
                                           [AClientCode]);
         end;
       cfsDownloadedBooks: ; //OK
       cfsUploadedBooks:
         begin
-          Msg := Format('The client file %s on BankLink Online has already been ' +
-                        'updated to BankLink Books.', [AClientCode]);
+          Msg := Format('The client file %s on %s has already been ' +
+                        'updated to BankLink Books.', [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsCopyUploadedBooks: ; //OK
       cfsDownloadedPractice:
         begin
-          Msg := Format('The client file %s on BankLink Online is currently with ' +
-                        'your accountant. Please contact your accountant.', [AClientCode]);
+          Msg := Format('The client file %s on %s is currently with ' +
+                        'your accountant. Please contact your accountant.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
     end;
@@ -214,7 +216,7 @@ end;
 procedure TBankLinkOnlineManager.DoStatusProgress(APercentComplete : integer;
                                                   AMessage         : string);
 begin
-  UpdateAppStatus('BankLink Online', AMessage, APercentComplete);
+  UpdateAppStatus(BANKLINK_ONLINE_NAME, AMessage, APercentComplete);
 end;
 
 procedure TBankLinkOnlineManager.CheckBooksUploadStatus(AClientCode: string;
@@ -240,14 +242,16 @@ begin
     case AStatus.StatusCode of
       cfsNoFile:
         begin
-          Msg := Format('The client file %s on BankLink Online does not exist and ' +
-                        'cannot be sent. Please contact your accountant.', [AClientCode]);
+          Msg := Format('The client file %s on %s does not exist and ' +
+                        'cannot be sent. Please contact your accountant.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedPractice:
         begin
-          Msg := Format('The client file %s on BankLink Online has been updated ' +
-                        'by your accountant. Please contact your accountant.', [AClientCode]);
+          Msg := Format('The client file %s on %s has been updated ' +
+                        'by your accountant. Please contact your accountant.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsDownloadedBooks: ; //Check save count???
@@ -255,8 +259,9 @@ begin
       cfsCopyUploadedBooks: ; //OK
       cfsDownloadedPractice:
         begin
-          Msg := Format('The client file %s on BankLink Online is currently with ' +
-                        'your accountant. Please contact your accountant.', [AClientCode]);
+          Msg := Format('The client file %s on %s is currently with ' +
+                        'your accountant. Please contact your accountant.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;      
     end;
@@ -265,14 +270,16 @@ begin
     case AStatus.StatusCode of
       cfsNoFile:
         begin
-          Msg := Format('The client file %s on BankLink Online does not exist and ' +
-                        'cannot be sent. Please contact your accountant.', [AClientCode]);
+          Msg := Format('The client file %s on %s does not exist and ' +
+                        'cannot be sent. Please contact your accountant.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedPractice:
         begin
-          Msg := Format('The client file %s on BankLink Online has been updated ' +
-                        'by your accountant. Please contact your accountant.', [AClientCode]);
+          Msg := Format('The client file %s on %s has been updated ' +
+                        'by your accountant. Please contact your accountant.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsDownloadedBooks: ; //OK
@@ -280,8 +287,9 @@ begin
       cfsCopyUploadedBooks: ; //OK
       cfsDownloadedPractice:
         begin
-          Msg := Format('The client file %s on BankLink Online is currently with ' +
-                        'your accountant. Please contact your accountant.', [AClientCode]);
+          Msg := Format('The client file %s on %s is currently with ' +
+                        'your accountant. Please contact your accountant.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
     end;
@@ -310,15 +318,15 @@ begin
     case AStatus.StatusCode of
       cfsNoFile:
         begin
-          Msg := Format('The client file %s is not available via BankLink Online.',
-                        [AClientCode]);
+          Msg := Format('The client file %s is not available via %s.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedPractice: ; //OK
       cfsDownloadedBooks:
         begin
-          Msg := Format('The client file %s on BankLink Online is currently with ' +
-                        'your client.', [AClientCode]);
+          Msg := Format('The client file %s on %s is currently with ' +
+                        'your client.', [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedBooks: ; //OK
@@ -330,41 +338,43 @@ begin
     case AStatus.StatusCode of
       cfsNoFile:
         begin
-          Msg := Format('The client file %s is not available via BankLink Online.',
-                        [AClientCode]);
+          Msg := Format('The client file %s is not available via %s.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedPractice:
         begin
-          Msg := Format('The client file %s on BankLink Online is older than the file ' +
+          Msg := Format('The client file %s on %s is older than the file ' +
                         'currently available. You may lose some data if you update ' +
-                        'this client. Are you sure you want to continue?', [AClientCode]);
-          if AskYesNo('Update from BankLink Online', Msg, DLG_YES, 0) <> DLG_YES then
-            raise EUploadFailed.CreateFmt('The client file %s on BankLink Online is older ' +
+                        'this client. Are you sure you want to continue?',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
+          if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+            raise EUploadFailed.CreateFmt('The client file %s on %s is older ' +
                                           'than the file currently available.',
-                                          [AClientCode]);
+                                          [AClientCode, BANKLINK_ONLINE_NAME]);
         end;
       cfsDownloadedBooks:
         begin
-          Msg := Format('The client file %s on BankLink Online is currently with ' +
-                        'your client.', [AClientCode]);
+          Msg := Format('The client file %s on %s is currently with ' +
+                        'your client.', [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedBooks:
         begin
-          Msg := Format('The client file %s on BankLink Online has been updated by ' +
+          Msg := Format('The client file %s on %s has been updated by ' +
                         'your client. Would you like to overwrite this client file ' +
-                        'in BankLink Practice with the client file on BankLink Online?',
-                        [AClientCode]);
-          if AskYesNo('Update from BankLink Online', Msg, DLG_YES, 0) <> DLG_YES then
-            raise EUploadFailed.CreateFmt('The client file %s on BankLink Online '+
+                        'in BankLink Practice with the client file on %s?',
+                        [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
+          if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+            raise EUploadFailed.CreateFmt('The client file %s on %s '+
                                           'has been updated by your client.',
-                                          [AClientCode]);
+                                          [AClientCode, BANKLINK_ONLINE_NAME]);
         end;
       cfsDownloadedPractice:
         begin
-          Msg := Format('The client file %s on BankLink Online has already been ' +
-                        'updated to BankLink Practice.', [AClientCode]);
+          Msg := Format('The client file %s on %s has already been ' +
+                        'updated to BankLink Practice.',
+                        [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
     else
@@ -399,24 +409,25 @@ begin
     cfsNoFile: ; //OK to upload
     cfsUploadedPractice:
       begin
-        Msg := Format('The client file %s has already been sent to BankLink Online. '+
-                      'Would you like to overwrite the client file on BankLink Online '+
-                      'with the version you currently have?', [AClientCode]);
-        if AskYesNo('Send to BankLink Online', Msg, DLG_YES, 0) <> DLG_YES then
-          raise EUploadFailed.CreateFmt('The client file %s has already been sent to BankLink Online.',
-                                        [AClientCode]);
+        Msg := Format('The client file %s has already been sent to %s. '+
+                      'Would you like to overwrite the client file on %s '+
+                      'with the version you currently have?',
+                      [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
+        if AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+          raise EUploadFailed.CreateFmt('The client file %s has already been sent to %s.',
+                                        [AClientCode, BANKLINK_ONLINE_NAME]);
       end;
     cfsUploadedBooks,
     cfsCopyUploadedBooks:
       begin
-        Msg := Format('The client file %s on BankLink Online has been updated '+
+        Msg := Format('The client file %s on %s has been updated '+
                       'by your client. Are you sure you want to overwrite the '+
-                      'client file on BankLink Online with the version you '+
-                      'currently have?', [AClientCode]);
-        if AskYesNo('Send to BankLink Online', Msg, DLG_YES, 0) <> DLG_YES then
-          raise EUploadFailed.CreateFmt('The client file %s on BankLink Online '+
+                      'client file on %s with the version you '+
+                      'currently have?', [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
+        if AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+          raise EUploadFailed.CreateFmt('The client file %s on %s '+
                                         'has been updated by your client.',
-                                        [AClientCode]);
+                                        [AClientCode, BANKLINK_ONLINE_NAME]);
 
       end;
     cfsDownloadedPractice: ; //OK to upload
@@ -425,10 +436,10 @@ begin
         Msg := Format('The client file %s is currently with your client. '+
                       'Sending this client file will cause your client''s '+
                       'work to be lost. Are you sure you want to continue?', [AClientCode]);
-        if AskYesNo('Send to BankLink Online', Msg, DLG_YES, 0) <> DLG_YES then
+        if AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
           raise EUploadFailed.CreateFmt('The client file %s is currently with '+
-                                        'your client on BankLink Online.',
-                                        [AClientCode]);
+                                        'your client on %s.',
+                                        [AClientCode, BANKLINK_ONLINE_NAME]);
       end;
   else
     raise EUploadFailed.CreateFmt('Unable to get client file status for %s', [AClientCode]);
@@ -523,7 +534,7 @@ begin
   try
     StatusSilent := False;
     try
-      UpdateAppStatus('BankLink Online', 'Connecting to the BankLink Online.', 0);
+      UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
       CiCoClient.OnProgressEvent := DoStatusProgress;
 
       CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
@@ -538,7 +549,8 @@ begin
 
   except
     on E: Exception do begin
-      raise EUploadFailed.CreateFmt('Error getting BankLink Online User status: %s', [E.Message]);
+      raise EUploadFailed.CreateFmt('Error getting %s User status: %s',
+                                    [BANKLINK_ONLINE_NAME, E.Message]);
     end;
   end;
 end;
@@ -567,10 +579,15 @@ begin
   end;
 
   try
-    if Assigned(AdminSystem) then
-      CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
-    else
-      CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
+    try
+      if Assigned(AdminSystem) then
+        CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
+      else
+        CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
+    except
+      on E:Exception do
+        raise EUploadFailed.Create(E.Message);
+    end;
   finally
     CiCoClient.OnProgressEvent := Nil;
   end;
