@@ -914,18 +914,16 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_GET_STATUS;
+    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_PASS_CHANGE;
 
     GetIniDetails(BooksEmail, BooksPassword, SubDomain);
 
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       AClientEmail);
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    AClientPassword);
     AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
-    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD,  '');
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,        '');
+    AddHttpHeaderInfo(HTTP_HEAD_BOOKS_NEWPASSWORD,  AClientPassword);
     AppendHttpHeaderInfo;
 
-    FASyncCall := False;
     HttpSendRequest(HttpAddress);
 
     WaitForProcess;

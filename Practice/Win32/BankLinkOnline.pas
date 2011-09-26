@@ -540,7 +540,8 @@ begin
 
       CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
 
-      if (ServerResponce.Status = '200') then
+      if (ServerResponce.Status = '200') or
+         (ServerResponce.Status = '103') then
         Result := true;
     finally
       StatusSilent := True;
