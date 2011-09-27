@@ -192,6 +192,7 @@ type
     procedure BuildStatusListFromXml(const ACurrentNode : IXMLNode);
 
     procedure WaitForProcess;
+    function GetHttpAddress : String;
   public
     constructor Create; Override;
     destructor Destroy; Override;
@@ -277,9 +278,7 @@ const
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
 
-  BASE_URL_ADDRESS = 'http://development.banklinkonline.com';
-  PRODUCT_URL_NAME = '/cico';
-  URL_ADDRESS      = BASE_URL_ADDRESS + PRODUCT_URL_NAME;
+  PRODUCT_URL_NAME               = '/cico';
   URL_SERVICE_ACTION_UPLOAD      = '.upload';
   URL_SERVICE_ACTION_DONWNLOAD   = '.download';
   URL_SERVICE_ACTION_GET_STATUS  = '.status';
@@ -364,11 +363,13 @@ end;
 procedure TWebCiCoClient.FileInfo(AFilename     : String;
                                   var AFileCRC  : String;
                                   var AFileSize : Integer);
+const
+  SHA_STR_SIZE = 20;
 var
   CrcHash    : T5x4LongWordRecord;
   IdHashSHA1 : TIdHashSHA1;
   FileStream : TFileStream;
-  Sha1String : String[20];
+  Sha1String : String[SHA_STR_SIZE];
   Index : integer;
   Value : Byte;
 begin
@@ -384,7 +385,7 @@ begin
       CrcHash := IdHashSHA1.HashValue(FileStream);
 
       Sha1String := '';
-      for Index := 0 to 19 do
+      for Index := 0 to SHA_STR_SIZE-1 do
       begin
         Value := TByteArr20(CrcHash)[Index];
         Sha1String := Sha1String + chr(Value);
@@ -579,7 +580,7 @@ begin
 
   // Progress Event
   if Assigned(fProgressEvent) then
-    fProgressEvent(GetProgressPercent((ADirection*45) + 10), StrMessage);
+    fProgressEvent(GetProgressPercent((ADirection * 45) + 10), StrMessage);
 end;
 
 //------------------------------------------------------------------------------
@@ -810,6 +811,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TWebCiCoClient.GetHttpAddress: String;
+begin
+  if fIsBooks then
+    Result := 'https://banklinkonline.com' + PRODUCT_URL_NAME
+  else
+    Result := Globals.PRACINI_OnlineLink + PRODUCT_URL_NAME;
+end;
+
+//------------------------------------------------------------------------------
 procedure TWebCiCoClient.BuildStatusListFromXml(const ACurrentNode : IXMLNode);
 var
   NewClientStatusItem : TClientStatusItem;
@@ -914,7 +924,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_PASS_CHANGE;
+    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_PASS_CHANGE;
 
     GetIniDetails(BooksEmail, BooksPassword, SubDomain);
 
@@ -953,7 +963,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_PASS_CHANGE;
+    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_PASS_CHANGE;
 
     GetIniDetails(BooksEmail, BooksPassword, SubDomain);
 
@@ -997,7 +1007,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_GET_STATUS;
+    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_GET_STATUS;
 
     if not fIsBooks then
     begin
@@ -1067,7 +1077,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_UPLOAD;
+    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_UPLOAD;
 
     GetAdminDetails(PracticeCode, PracticePass, CountryCode);
     GetClientDetails(AClientCode, AClientEmail, ClientName);
@@ -1118,7 +1128,7 @@ begin
     ATempBk5File := '';
     ClearHttpHeader;
 
-    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_DONWNLOAD;
+    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_DONWNLOAD;
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
@@ -1171,7 +1181,7 @@ begin
   try
     ClearHttpHeader;
 
-    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_UPLOAD;
+    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_UPLOAD;
 
     GetIniDetails(ClientEmail, ClientPassword, SubDomain);
 
@@ -1219,7 +1229,7 @@ begin
     ATempBk5File := '';
     ClearHttpHeader;
 
-    HttpAddress := URL_ADDRESS + URL_SERVICE_ACTION_DONWNLOAD;
+    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_DONWNLOAD;
 
     CreateGuid(Guid);
     StrGuid := TrimedGuid(Guid);
