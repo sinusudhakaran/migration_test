@@ -2831,7 +2831,8 @@ begin
   while (Attempt < 3) do begin
     Inc(Attempt);
     CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '');
-    if FSeverResponce.Status = '102' then begin
+    if (FSeverResponce.Status = '101') or
+       (FSeverResponce.Status = '102') then begin
       if Attempt > 2 then
         raise Exception.Create('Password failed on third attempt');
       InvalidPasswordDlg(Attempt);
@@ -2839,6 +2840,7 @@ begin
       Attempt := 3;  //Password ok
   end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfmeClientLookup.GetSelectionCount: integer;
 var
