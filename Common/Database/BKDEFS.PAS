@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 644;
-   BK_IOLIB_Date    = '02/09/11';
+   BK_IOLIB_Version : Integer = 645;
+   BK_IOLIB_Date    = '27/09/11';
    BK_FILE_VERSION  = 167;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -207,6 +207,7 @@ Const
                             Add temp fileds to Txn for Provisional info
      5.22 (2011 CICO)166    Add Client File GUID to Client Extra
                      167    Add field for CheckOut Online Scheduled Reports
+                            Client File GUID not needed. Added field for File Transfer Method
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -1233,8 +1234,9 @@ Type
       ceAudit_Record_ID                  : Integer;       { Stored }
       ceSUI_Step_Done                    : Array[ 0..32 ] of Boolean;       { Stored }
       ceSend_Job_List                    : Boolean;       { Stored }
-      ceClient_File_GUID                 : AnsiString;       { Stored }
+      ceSpare_String                     : AnsiString;       { Stored }
       ceOnline_Scheduled_Reports         : Boolean;       { Stored }
+      ceFile_Transfer_Method             : Byte;       { Stored }
       ceEOR                              : Byte;
    end;
 

@@ -112,6 +112,7 @@ $|                      124   Added System Memorisation List for storing Master 
 $|                      125   Added Provisional Entries Log
 $|    5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client rec
 $|                      127   Added fields for BankLink Online scheduled reports
+$|                            Changed name of Send Method to File Transfer Method (used for Get and Send)
 $|*)
 
 N|Practice Details|fd|10
@@ -424,7 +425,7 @@ F|WebNotesAvailable|BB|36
 F|WebNotes Email Notifications|L
 F|ISO Codes|BS|99|3
 F|Audit Record ID|L
-F|Send Method|B
+F|File Transfer Method|B
 F|Client File GUID|AS
 E
 

@@ -1596,7 +1596,7 @@ begin
            pIDRec^.imData    := sysClientRec;
            pIDRec^.imTag     := 0;
            pIDRec^.imType    := sysClientRec^.cfClient_Type;
-           pIDRec^.imSendMethod     := sysClientRec^.cfSend_Method;
+           pIDRec^.imSendMethod     := sysClientRec^.cfFile_Transfer_Method;
            pIDRec^.imOnlineStatusDesc := '';
            pIDRec^.imModifiedDate   := 0;
            pIDRec^.imOnlineStatus   := cfsNoFile;
@@ -1634,6 +1634,14 @@ begin
         //Load into client files list
         if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
         begin
+          //Filter out non-BankLink Online files
+          if FUsingBankLinkOnline and
+             (FFilterMode = fmFilesForCheckOut) and
+             (Wrapper.wFileTransferMethod <> ftmOnline) then begin
+            Found := FindNext( SearchRec );
+            Continue;
+          end;
+
           pIDRec := FIntermediateDataList.Add;
           pIDRec^.imCode    := Wrapper.wCode;
           pIDRec^.imName    := Wrapper.wName;
@@ -1703,8 +1711,7 @@ begin
         Found := FindNext( SearchRec );
       end;
 
-      //Update the banklink online status for checkout from practice
-  { TODO : Also check that the user has entered an email address and password }
+      //Update the banklink online status for checkout from books
       if FUsingBankLinkOnline then
         RefeshBankLinkOnlineStatus;
         

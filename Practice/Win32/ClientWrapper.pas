@@ -28,7 +28,7 @@ type
       wRead_Only        : Boolean;
       wUpdateServer     : String[60];    //dont use this! it will cause 5.12 to fail upgrading
       wPwdHash          : String[32];
-      wHasGUID          : ByteBool;
+      wFileTransferMethod: Byte;
       wSpare            : Array[ 1..17] of Byte;
    end;
 

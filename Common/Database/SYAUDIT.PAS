@@ -371,7 +371,7 @@ begin
     FAuditNamesArray[80,133] := 'WebNotes_Email_Notifications';
     FAuditNamesArray[80,134] := 'ISO_Codes';
     FAuditNamesArray[80,135] := 'Audit_Record_ID';
-    FAuditNamesArray[80,136] := 'Send_Method';
+    FAuditNamesArray[80,136] := 'File_Transfer_Method';
     FAuditNamesArray[80,137] := 'Client_File_GUID';
 
    FAuditTableArray[100] := 'File_Access_Mapping';

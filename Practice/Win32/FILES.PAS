@@ -666,7 +666,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure ResetReadOnlyFlag( OpenCode : string);
+procedure ResetReadOnlyFlag( OpenCode : string; ASendMethod: Byte);
 const
   ThisMethodname = 'ResetReadOnlyFlag';
   S_RESETERROR = 'Unable to Reset Read-only status for client %s. %s';
@@ -689,6 +689,9 @@ begin
         clFile_Save_Required := FALSE;
         clFile_Read_Only     := False;
       end;
+
+      //Reset file transfer method
+      Client.clExtra.ceFile_Transfer_Method := ASendMethod;
 
       Client.Save;
     finally
@@ -1381,6 +1384,8 @@ begin
       SyncMasterMemorised( TempClient );
       EmbedCustomLogo( TempClient);
       TempClientIsOffsite := (TempClient.clFields.clDownload_From <> dlAdminSystem);
+      //*** Test
+      TempClient.clExtra.ceFile_Transfer_Method := ASendMethod;
     finally
       StatusSilent := true;
     end;
@@ -1469,7 +1474,7 @@ begin
 
       //Update send method
       if ASendMethod <> ftmNone then
-        CFRec.cfSend_Method := ASendMethod;
+        CFRec.cfFile_Transfer_Method := ASendMethod;
 
       //Scheduled report tasks will be added after email has been successfully sent
       if not IsScheduledReport then
@@ -2159,7 +2164,7 @@ begin
              end else begin
                //Reset read-only
                try
-                 ResetReadOnlyFlag(Code);
+                 ResetReadOnlyFlag(Code, ASendMethod);
                except
                  Msg := Format('** Could not reset read-only status for %s.', [ CODE ]);
                  LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
@@ -2213,7 +2218,7 @@ begin
       //open the file and clear the read only flag if set
       if Wrapper.wRead_Only then
       begin
-        ResetReadOnlyFlag( Code);
+        ResetReadOnlyFlag( Code, ASendMethod);
         ProgressFrm.mProgress.Lines.Add( 'Read-only flag cleared');
       end;
    end;
@@ -2576,7 +2581,7 @@ begin
         //open the file and clear the read only flag if set
         if Wrapper.wRead_Only then
         begin
-          ResetReadOnlyFlag( Code);
+          ResetReadOnlyFlag( Code, ftmFile);
         end;
      end;
 

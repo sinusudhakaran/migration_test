@@ -454,8 +454,8 @@ Begin
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( ceScheduled_Custom_CR_XML )^, Len );
       Len := Length( ceCustom_Ledger_Report_XML );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( ceCustom_Ledger_Report_XML )^, Len );
-      Len := Length( ceClient_File_GUID );
-      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( ceClient_File_GUID )^, Len );
+      Len := Length( ceSpare_String );
+      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( ceSpare_String )^, Len );
    end;
 end;
 

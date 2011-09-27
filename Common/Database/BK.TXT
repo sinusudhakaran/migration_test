@@ -194,6 +194,7 @@ $|                         Add Audit Table (Defined in SY.TXT)
 $|                         Add temp fileds to Txn for Provisional info
 $|  5.22 (2011 CICO)166    Add Client File GUID to Client Extra
 $|                  167    Add field for CheckOut Online Scheduled Reports
+$|                         Client File GUID not needed. Added field for File Transfer Method
 $|*)
 
 N|Client|cl|20
@@ -1103,6 +1104,7 @@ F|SUI Period End|D
 F|Audit Record ID|L
 F|SUI Step Done|BY0|32
 F|Send Job List|Y
-F|Client File GUID|AS
+F|Spare String|AS
 F|Online Scheduled Reports|Y
+F|File Transfer Method|B
 E

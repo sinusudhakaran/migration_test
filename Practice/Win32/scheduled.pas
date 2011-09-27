@@ -1420,9 +1420,9 @@ begin
    try
     //Override cleint file rec send method with client file sceduled report destination
     if aClient.clExtra.ceOnline_Scheduled_Reports then
-      pCF.cfSend_Method := ftmOnline;
+      pCF.cfFile_Transfer_Method := ftmOnline;
 
-    if SendClient(aClient.clFields.clCode, EMailOutboxDir, pCF.cfSend_Method) then
+    if SendClient(aClient.clFields.clCode, EMailOutboxDir, pCF.cfFile_Transfer_Method) then
     begin
       IncUsage('Check Out (Scheduled)');
       Result := True;

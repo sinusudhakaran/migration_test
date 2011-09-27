@@ -842,8 +842,9 @@ begin
     FAuditNamesArray[40,75] := 'Audit_Record_ID';
     FAuditNamesArray[40,76] := 'SUI_Step_Done';
     FAuditNamesArray[40,77] := 'Send_Job_List';
-    FAuditNamesArray[40,78] := 'Client_File_GUID';
+    FAuditNamesArray[40,78] := 'Spare_String';
     FAuditNamesArray[40,79] := 'Online_Scheduled_Reports';
+    FAuditNamesArray[40,80] := 'File_Transfer_Method';
 
 end;
 

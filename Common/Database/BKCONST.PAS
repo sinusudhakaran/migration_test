@@ -2332,10 +2332,13 @@ Const
   ForexDP : Integer = 5;
 
   //Client file transfer methods
-  ftmNone   = 0;
+  ftmNone   = 0;  ftmMin = 0;
   ftmFile   = 1;
   ftmEmail  = 2;
-  ftmOnline = 3;
+  ftmOnline = 3;  ftmMax = 3;
+
+  ftmTransferMethods: array[ftmMin..ftmMax] of string[20] = ('None', 'File', 'Email', 'Online');
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 IMPLEMENTATION
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

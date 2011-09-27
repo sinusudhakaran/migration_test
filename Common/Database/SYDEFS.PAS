@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 398;
-   SY_IOLIB_Date    = '02/09/11';
+   SY_IOLIB_Version : Integer = 399;
+   SY_IOLIB_Date    = '27/09/11';
    SY_FILE_VERSION   = 127;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -125,6 +125,7 @@ Const
                          125   Added Provisional Entries Log
        5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client rec
                          127   Added fields for BankLink Online scheduled reports
+                               Changed name of Send Method to File Transfer Method (used for Get and Send)
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -474,7 +475,7 @@ Type
       cfWebNotes_Email_Notifications     : Integer;       { Stored }
       cfISO_Codes                        : Array[ 1..99 ] of String[ 3 ];       { Stored }
       cfAudit_Record_ID                  : Integer;       { Stored }
-      cfSend_Method                      : Byte;       { Stored }
+      cfFile_Transfer_Method             : Byte;       { Stored }
       cfClient_File_GUID                 : AnsiString;       { Stored }
       cfEOR                              : Byte;
    end;
