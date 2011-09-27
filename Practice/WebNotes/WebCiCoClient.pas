@@ -814,7 +814,7 @@ end;
 function TWebCiCoClient.GetHttpAddress: String;
 begin
   if fIsBooks then
-    Result := 'https://banklinkonline.com' + PRODUCT_URL_NAME
+    Result := BANKLINK_ONLINE_BOOKS_DEFAULT_URL + PRODUCT_URL_NAME
   else
     Result := Globals.PRACINI_OnlineLink + PRODUCT_URL_NAME;
 end;

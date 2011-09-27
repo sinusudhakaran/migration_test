@@ -250,6 +250,9 @@ CONST
 
     //BankLink Online Pass Key
     BANKLINK_ONLINE_PASS_KEY = 'jucuene88d8uje9whdwjhi9dc!';
+
+    // BankLink Books Default URL
+    BANKLINK_ONLINE_BOOKS_DEFAULT_URL = 'https://banklinkonline.com';
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -432,9 +435,9 @@ var
     INI_UI_Style : integer = 0;
     Active_UI_Style : integer = 0;     //independant of INI setting so can override in Practice
 
-    INI_BankLink_Online_Username: string = '';
-    INI_BankLink_Online_Password: string = '';
-    INI_BankLink_Online_SubDomain: string = '';
+    INI_BankLink_Online_Username  : string = '';
+    INI_BankLink_Online_Password  : string = '';
+    INI_BankLink_Online_SubDomain : string = '';
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //general user settings
