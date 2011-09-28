@@ -248,6 +248,7 @@ uses
   LogUtil;
 
 const
+  // XML Server packet Names
   XML_STATUS_HEADNAME             = 'Result';
   XML_STATUS_CODE                 = 'Code';
   XML_STATUS_DESC                 = 'Description';
@@ -259,6 +260,7 @@ const
   XML_STATUS_FILE_ATTR_STATUSCODE = 'StatusCode';
   XML_STATUS_FILE_ATTR_STATUSDESC = 'StatusCodeDescription';
 
+  // Http headers been passed to and from the server
   HTTP_HEAD_PRACTICE_CODE      = 'PracticeCode';
   HTTP_HEAD_PRACTICE_PASSWORD  = 'PracticePassword';
   HTTP_HEAD_PRACTICE_SUBDOMAIN = 'PracticeDomain';
@@ -275,9 +277,11 @@ const
   HTTP_HEAD_CONTENT_TYPE       = 'Content-Type';
   HTTP_HEAD_SERVER_FILE_CRC    = 'CRC';
 
+  // Content Type of the data passed to and from the server
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
 
+  // Values used to build the Full URL address to call for each command
   PRODUCT_URL_NAME               = '/cico';
   URL_SERVICE_ACTION_UPLOAD      = '.upload';
   URL_SERVICE_ACTION_DONWNLOAD   = '.download';
@@ -409,6 +413,11 @@ end;
 
 //------------------------------------------------------------------------------
 function TWebCiCoClient.ServerToDateTime(AInString : String) : TDateTime;
+Const
+  DATE_DELIMETER = '/';
+  TIME_DELIMETER = ':';
+  END_DELIMETER  = ' ';
+  PM_START_CHAR  = 'P';
 var
   Year     : word;
   Month    : word;
@@ -422,6 +431,8 @@ var
   //------------------------------------------------
   Function GetNextNumber(ASearch : String) : integer;
   begin
+    // Searchs from the Current position for the ASearch string once found it converts the
+    // charcters from the start to the one before the ASearch string into a number an returns it.
     EndStr := Pos(ASearch, RightStr(AInString, Length(AInString) - (StartStr-1))) + StartStr-2;
     Result := StrToInt(MidStr(AInString, StartStr, EndStr-StartStr+1));
     StartStr := EndStr + 2;
@@ -431,19 +442,19 @@ begin
   StartStr := 1;
 
   Try
-    Day   := GetNextNumber('/');
-    Month := GetNextNumber('/');
-    Year  := GetNextNumber(' ');
+    // Date Encoding
+    Day   := GetNextNumber(DATE_DELIMETER);
+    Month := GetNextNumber(DATE_DELIMETER);
+    Year  := GetNextNumber(END_DELIMETER);
     Result := EncodeDate(Year, Month, Day);
 
-    Hour   := GetNextNumber(':');
-    Minute := GetNextNumber(':');
-    Second := GetNextNumber(' ');
-
-    if (UpperCase(MidStr(AInString, StartStr, 1)) = 'P') and
+    // Time Encoding
+    Hour   := GetNextNumber(TIME_DELIMETER);
+    Minute := GetNextNumber(TIME_DELIMETER);
+    Second := GetNextNumber(END_DELIMETER);
+    if (UpperCase(MidStr(AInString, StartStr, 1)) = PM_START_CHAR) and
        (Hour < 12) then
       Hour := Hour + 12;
-
     Result := Result + EncodeTime(Hour, Minute, Second, 0);
   except
     RaiseHttpError('Cico - Error in XML Server Responce! Last Change Date Invalid.', 303);
@@ -453,6 +464,8 @@ end;
 //------------------------------------------------------------------------------
 function TWebCiCoClient.GetProgressPercent(aProgressValue : integer) : integer;
 begin
+  // This adjusts the percentage progress depending on what the call is doing.
+  // Example : for an upload it will adjust the first part to be larger.
   if fProcessState in [psChangePass, psGetStatus, psGetBookUserExists] then
     Result := aProgressValue
   else if fProcessState in [psUploadBooks, psUploadPrac] then
@@ -711,7 +724,6 @@ procedure TWebCiCoClient.GetIniDetails(var AClientEmail : string;
                                        var AClientPass  : string;
                                        var ASubDomain   : String);
 begin
-  // Todo Get Ini Details
   AClientEmail := INI_BankLink_Online_Username;
   AClientPass  := INI_BankLink_Online_Password;
   ASubDomain   := INI_BankLink_Online_SubDomain;
@@ -729,7 +741,7 @@ begin
 
   FileInfo(AFilename, FileCRC, FileLength);
 
-  // Adding Crc to Header Section
+  // Adding Crc, file length and Content Type to Header Section
   AddHttpHeaderInfo(HTTP_HEAD_FILE_CRC,    FileCRC);
   AddHttpHeaderInfo(HTTP_HEAD_FILE_LENGTH, inttostr(FileLength));
   HttpRequester.ContentType := SERVER_CONTENT_TYPE_BK5;
@@ -748,6 +760,8 @@ var
 begin
   Result := '';
 
+  // Try's to finds the Child XML Node, is sucessful if assigned and the variant
+  // returned is a string.
   CurrentNode := AParentNode.ChildNodes.FindNode(ANodeName);
   if (Assigned(CurrentNode)) and
      (TVarData(CurrentNode.NodeValue).Vtype = varOleStr) then
@@ -782,6 +796,7 @@ var
   XMLDoc : IXMLDocument;
   CurrentNode : IXMLNode;
 begin
+  // Looks for the XML header value
   if pos('<' + XML_STATUS_HEADNAME + '>', fServerReply) = 0 then
     RaiseHttpError('Cico - Error in XML Server Responce!', 303);
 
@@ -794,10 +809,12 @@ begin
     if XMLDoc.DocumentElement.ChildNodes.Count = 0 then
       RaiseHttpError('Cico - Error in XML Server Responce!', 303);
 
+    // Fills the server responce
     fServerResponce.Status       := GetValueFromNode(CurrentNode, XML_STATUS_CODE);
     fServerResponce.Description  := GetValueFromNode(CurrentNode, XML_STATUS_DESC);
     fServerResponce.DetailedDesc := GetValueFromNode(CurrentNode, XML_STATUS_DETAIL_DESC);
 
+    // try's to build the extra status section if present
     BuildStatusListFromXml(CurrentNode);
 
     if (Assigned(fServerStatusEvent)) and
@@ -813,6 +830,7 @@ end;
 //------------------------------------------------------------------------------
 function TWebCiCoClient.GetHttpAddress: String;
 begin
+  //Builds a differant URL address depending if from books or not
   if fIsBooks then
     Result := BANKLINK_ONLINE_BOOKS_DEFAULT_URL + PRODUCT_URL_NAME
   else
@@ -827,6 +845,8 @@ var
   StatusInt  : integer;
   StringDate : String;
 begin
+  // Looks for first node, if node not found there is no Extra xml section so continue
+  // as normal
   LocalNode := ACurrentNode.ChildNodes.FindNode(XML_STATUS_CLIENT);
 
   while Assigned(LocalNode) do
@@ -870,6 +890,7 @@ var
   StartTick : Longword;
   TimeOut   : Longword;
 begin
+  // all working times are in milliseconds
   TimeOut   := (HttpRequester.Timeout * 1000);
   StartTick := GetTickCount;
   while (fProcessState <> psNothing) do
@@ -984,6 +1005,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+// if AaSyncCall is not set the method will work like all the other service call
+// and only exit once done. If set to true it will call the server and exit and
+// you will need to use the Server Status call back event to get the responce
 procedure TWebCiCoClient.GetClientFileStatus(var AServerResponce   : TServerResponce;
                                              var AClientStatusList : TClientStatusList;
                                              AClientCode : string = '';
@@ -1036,6 +1060,8 @@ begin
 
     HttpSendRequest(HttpAddress);
 
+    // if AaSyncCall then it does not get the responce here and the Server Status
+    // call back will need to be used
     if not AaSyncCall then
     begin
       WaitForProcess;
@@ -1082,7 +1108,7 @@ begin
     GetAdminDetails(PracticeCode, PracticePass, CountryCode);
     GetClientDetails(AClientCode, AClientEmail, ClientName);
 
-    //Can't do upload without email address. Should raise an exception (but not http except?)
+    // Can't do upload without email address. Should raise an exception (but not http except?)
     if Trim(AClientEmail) = '' then
       RaiseHttpError('No email address', 302);
 
@@ -1142,6 +1168,8 @@ begin
 
     AppendHttpHeaderInfo;
 
+    // Get a system Temp path and uses a guid to create a unique file and then
+    // downloads to this file.
     SetLength(TempPath,Max_Path);
     SetLength(TempPath,GetTempPath(Max_Path,Pchar(TempPath)));
 
@@ -1150,6 +1178,7 @@ begin
 
     WaitForProcess;
 
+    // Checks if the Crc is correct for the downloaded file.
     if fContentType = SERVER_CONTENT_TYPE_BK5 then
     begin
       FileInfo(ATempBk5File, FileCrc, FileSize);
@@ -1242,6 +1271,8 @@ begin
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,        AClientCode);
     AppendHttpHeaderInfo;
 
+    // Get a system Temp path and uses a guid to create a unique file and then
+    // downloads to this file.
     SetLength(TempPath,Max_Path);
     SetLength(TempPath,GetTempPath(Max_Path,Pchar(TempPath)));
 
@@ -1250,6 +1281,7 @@ begin
 
     WaitForProcess;
 
+    // Checks if the Crc is correct for the downloaded file.
     if fContentType = SERVER_CONTENT_TYPE_BK5 then
     begin
       FileInfo(ATempBk5File, FileCrc, FileSize);
