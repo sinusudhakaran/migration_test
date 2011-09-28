@@ -280,6 +280,7 @@ const
   // Content Type of the data passed to and from the server
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
   SERVER_CONTENT_TYPE_BK5 = '.bk5';
+  SERVER_STATUS_XML_DESC  = 'Status Data';
 
   // Values used to build the Full URL address to call for each command
   PRODUCT_URL_NAME               = '/cico';
@@ -772,19 +773,33 @@ end;
 procedure TWebCiCoClient.GetUpdateServerReply;
 begin
   Try
-    fServerResponce.Status       := '';
-    fServerResponce.Description  := '';
-    fServerResponce.DetailedDesc := '';
-    fServerClientStatusList.Clear;
+    Try
+      fServerResponce.Status       := '';
+      fServerResponce.Description  := '';
+      fServerResponce.DetailedDesc := '';
+      fServerClientStatusList.Clear;
 
-    if fContentType = SERVER_CONTENT_TYPE_XML then
-      GetDetailsFromXML
-    else if fContentType = SERVER_CONTENT_TYPE_BK5 then
-    begin
-      fServerResponce.Status       := '200';
-      fServerResponce.Description  := 'File Downloaded';
-      fServerResponce.DetailedDesc := 'BK5 File Downloaded';
-    end;
+      if fContentType = SERVER_CONTENT_TYPE_XML then
+        GetDetailsFromXML
+      else if fContentType = SERVER_CONTENT_TYPE_BK5 then
+      begin
+        fServerResponce.Status       := '200';
+        fServerResponce.Description  := 'File Downloaded';
+        fServerResponce.DetailedDesc := 'BK5 File Downloaded';
+      end;
+    Except
+      on E : EWebHttpCiCoClientError do
+      begin
+        fServerResponce.Status       := InttoStr(E.ErrorCode);
+        fServerResponce.Description  := 'Server Responce Error';
+        fServerResponce.DetailedDesc := trim(E.Message);
+        fServerClientStatusList.Clear;
+
+        if (Assigned(fServerStatusEvent)) and
+          (fASyncCall) then
+          fServerStatusEvent(fServerResponce, fServerClientStatusList);
+      end;
+    End;
   finally
     fProcessState := psNothing;
   End;
@@ -814,8 +829,10 @@ begin
     fServerResponce.Description  := GetValueFromNode(CurrentNode, XML_STATUS_DESC);
     fServerResponce.DetailedDesc := GetValueFromNode(CurrentNode, XML_STATUS_DETAIL_DESC);
 
-    // try's to build the extra status section if present
-    BuildStatusListFromXml(CurrentNode);
+    // try's to build the extra status section if call is a status call
+    if (fServerResponce.Description = SERVER_STATUS_XML_DESC) and
+       (trim(fServerResponce.DetailedDesc) <> '') then
+      BuildStatusListFromXml(CurrentNode);
 
     if (Assigned(fServerStatusEvent)) and
        (fASyncCall) then
@@ -848,6 +865,9 @@ begin
   // Looks for first node, if node not found there is no Extra xml section so continue
   // as normal
   LocalNode := ACurrentNode.ChildNodes.FindNode(XML_STATUS_CLIENT);
+
+  if Not Assigned(LocalNode) then
+    RaiseHttpError('Cico - Error in XML Server Responce! No Status List.', 303);
 
   while Assigned(LocalNode) do
   begin
@@ -1306,3 +1326,4 @@ finalization
   FreeAndNil(fWebCiCoClient);
 
 end.
+
