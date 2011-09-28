@@ -598,6 +598,9 @@ var
     PRACINI_ER_Column_Widths : Array[ 0..MAX_EXCHANGE_RATE_COLUMNS ] of integer;
     PRACINI_ER_Column_Positions : Array[ 0..MAX_EXCHANGE_RATE_COLUMNS ] of integer;
 
+    //BankLink Online Books URL
+    PRACINI_BankLink_Online_Books_URL  : string = BANKLINK_ONLINE_BOOKS_DEFAULT_URL;
+
     // Remember email details in case it fails
     Email_Saved: Boolean = False;
     Email_To: string = '';

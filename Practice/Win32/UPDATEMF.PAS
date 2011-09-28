@@ -790,6 +790,11 @@ begin
         frmMain.tbSuper.Visible := Software.CanUseSuperFundFields( MyClient.clFields.clCountry,
                                                                    MyClient.clFields.clAccounting_System_Used);
 
+     //Get and send client file menu options
+     viaEmail1.Enabled := True;
+     if ClientFileOpen then
+       viaEmail1.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
+
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
      frmMain.MenuCopyToPopUp('mnsReport', popReport);
   end;

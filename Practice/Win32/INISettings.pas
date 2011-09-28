@@ -635,6 +635,9 @@ begin
           PRACINI_ER_Column_Positions [i] := ReadInteger( GrpExchangeRates, 'ColPos' + inttostr( i), -1);
         end;
 
+        //Overwrite BankLink Online URL
+        PRACINI_BankLink_Online_Books_URL := ReadString( GrpPracEnv, 'BankLinkOnlineBooksURL', BANKLINK_ONLINE_BOOKS_DEFAULT_URL);
+
         if Orig_Version < PRAC_INI_VERSION then begin
           // moved to db
           DeleteKey(GrpPracEnv, 'ForceLogin');

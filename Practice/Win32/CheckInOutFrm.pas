@@ -64,7 +64,7 @@ type
     { Private declarations }
     DialogMode : TDialogMode;
     TempCheckinPath   : string;
-    FSendMethod: Byte;
+    FFileTransferMethod: Byte;
 
     procedure FrameDblClick(Sender: TObject);
     procedure SetupFrame;
@@ -147,7 +147,7 @@ begin
     try
       BKHelpSetup(CheckInOut, BKH_Check_out_facility);
 
-      FSendMethod := ASendMethod;
+      FFileTransferMethod := ASendMethod;
       Caption                := Title;
       DialogMode             := dmCheckout;
       lblDirLabel.Caption    := 'Send &files to';
@@ -159,13 +159,13 @@ begin
         chkAvailOnly.Visible   := True;
         cbFlagReadOnly.Visible := false;
         cbEditEmail.Visible    := False;
-        cbSendEmail.Visible    := (FSendMethod = ftmOnline);
+        cbSendEmail.Visible    := (FFileTransferMethod = ftmOnline);
         pnlPassword.Visible := False;
       end else begin
         //Books
         chkAvailOnly.Visible   := True;
-        cbFlagReadOnly.Visible := not (FSendMethod in [ftmFile]);
-        cbEditEmail.Visible := (FSendMethod = ftmOnline);
+        cbFlagReadOnly.Visible := not (FFileTransferMethod in [ftmFile]);
+        cbEditEmail.Visible := (FFileTransferMethod = ftmOnline);
         cbSendEmail.Visible := False;
         pnlPassword.Visible := True;
         eUsername.Text      := Globals.INI_BankLink_Online_Username;
@@ -177,10 +177,10 @@ begin
       SetupFrame;
 
       //Don't show dialog for BankLink Online if no connection
-      if (FSendMethod = ftmOnline) and ClientLookupFrame.NoOnlineConnection then
+      if (FFileTransferMethod = ftmOnline) and ClientLookupFrame.NoOnlineConnection then
         Exit;
 
-      if (FSendMethod = ftmOnline) then
+      if (FFileTransferMethod = ftmOnline) then
         btnOK.Caption := '&Upload';
 
       if SelectedCodes <> '' then
@@ -218,7 +218,7 @@ begin
   begin
     try
       BKHelpSetup(CheckInOut, BKH_Check_in_facility);
-      FSendMethod            := ASendMethod;
+      FFileTransferMethod    := ASendMethod;
       Caption                := Title;
       DialogMode             := dmCheckin;
       chkAvailOnly.Visible   := False;
@@ -250,7 +250,7 @@ begin
       SetupFrame;
 
       //Don't show dialog for BankLink Online if no connection
-      if (FSendMethod = ftmOnline) and ClientLookupFrame.NoOnlineConnection then
+      if (FFileTransferMethod = ftmOnline) and ClientLookupFrame.NoOnlineConnection then
         Exit;
 
       ClientLookupFrame.SelectedCodes := DefaultCodes;
@@ -359,7 +359,7 @@ begin
 
       //must select something if using checkout
       if (DialogMode in [ dmCheckOut, dmSend]) and ( Codes = '') then begin
-        if (FSendMethod = ftmOnline) then
+        if (FFileTransferMethod = ftmOnline) then
           HelpfulWarningMsg('Please select a client to send to ' + BANKLINK_ONLINE_NAME, 0);
         Exit;
       end;
@@ -367,7 +367,7 @@ begin
       //reload the tree if nothing selected during check in
       if ( DialogMode = dmCheckIn) and ( Codes = '') then
       begin
-        if (FSendMethod = ftmOnline) then
+        if (FFileTransferMethod = ftmOnline) then
           HelpfulWarningMsg('Please select a client to update from ' + BANKLINK_ONLINE_NAME, 0);
         ClientLookupFrame.FilesDirectory := SelectedDir;
         ClientLookupFrame.Reload;
@@ -508,10 +508,10 @@ begin
   for i := 0 to ClientLookupFrame.Columns.Count - 1 do begin
     Column := ClientLookupFrame.Columns.ColumnDefn_At(i);
     if Column.FieldID in [cluBankLinkOnline, cluModifiedDate] then
-      Column.Visible := (FSendMethod = ftmOnline);
+      Column.Visible := (FFileTransferMethod = ftmOnline);
   end;
 
-  if (FSendMethod = ftmOnline) then begin
+  if (FFileTransferMethod = ftmOnline) then begin
     Constraints.MinWidth := MIN_ONLINE_WIDTH
   end else begin
     Constraints.MinWidth := MIN_STANDARD_WIDTH;
@@ -519,14 +519,23 @@ begin
   end;
 
   //Show 'Check out files to'
-  pnlBrowseDir.Visible := not (FSendMethod = ftmOnline);
+  pnlBrowseDir.Visible := not (FFileTransferMethod = ftmOnline);
 
   //Hide username and password in Books for standard file transfer
   if not Assigned(AdminSystem) then
-    pnlPassword.Visible := (FSendMethod = ftmOnline);
+    pnlPassword.Visible := (FFileTransferMethod = ftmOnline);
 
   ClientLookupFrame.BuildGrid(ClientLookupFrame.SortColumn);
-  ClientLookupFrame.UsingBankLinkOnline := (FSendMethod = ftmOnline);
+//  ClientLookupFrame.UsingBankLinkOnline := (FFileTransferMethod = ftmOnline);
+  ClientLookupFrame.OnlineMode := bomNone;
+  if (FFileTransferMethod = ftmOnline) then begin
+    case DialogMode of
+      dmCheckout,
+      dmSend   : ClientLookupFrame.OnlineMode := bomSendFile;
+      dmCheckIn: ClientLookupFrame.OnlineMode := bomGetFile;
+    end;
+  end;
+
 end;
 
 procedure TfrmCheckInOut.SetupFrame;

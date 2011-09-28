@@ -849,7 +849,7 @@ function TWebCiCoClient.GetHttpAddress: String;
 begin
   //Builds a differant URL address depending if from books or not
   if fIsBooks then
-    Result := BANKLINK_ONLINE_BOOKS_DEFAULT_URL + PRODUCT_URL_NAME
+    Result := PRACINI_BankLink_Online_Books_URL + PRODUCT_URL_NAME
   else
     Result := Globals.PRACINI_OnlineLink + PRODUCT_URL_NAME;
 end;
