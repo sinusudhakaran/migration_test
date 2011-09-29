@@ -1023,6 +1023,9 @@ begin
              fdSched_Rep_Books_Custom_Doc   := Byte(MyDlg.ckCDBooks.Checked);
              fdSched_Rep_Books_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDBooks);
 
+             fdSched_Rep_Online_Custom_Doc   := Byte(MyDlg.ckCDOnline.Checked);
+             fdSched_Rep_Online_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDOnline);
+
              fdSched_Rep_Notes_Custom_Doc   := Byte(MyDlg.ckCDNotes.Checked);
              fdSched_Rep_Notes_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDNotes);
 
@@ -1607,6 +1610,7 @@ begin
   cbCDFax.Clear;
   cbCDEmail.Clear;
   cbCDBooks.Clear;
+  cbCDOnline.Clear;
   cbCDNotes.Clear;
   cbCDWebNotes.Clear;
   for i := 0 to Pred(CustomDocManager.ReportList.Count) do begin
@@ -1615,6 +1619,7 @@ begin
      cbCDFax.Items.AddObject(CustomDoc.Name, CustomDoc);
      cbCDEmail.Items.AddObject(CustomDoc.Name, CustomDoc);
      cbCDBooks.Items.AddObject(CustomDoc.Name, CustomDoc);
+     cbCDOnline.Items.AddObject(CustomDoc.Name, CustomDoc);
      cbCDNotes.Items.AddObject(CustomDoc.Name, CustomDoc);
      cbCDWebNotes.Items.AddObject(CustomDoc.Name, CustomDoc);
   end;
