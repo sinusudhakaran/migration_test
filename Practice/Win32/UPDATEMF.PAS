@@ -792,8 +792,13 @@ begin
 
      //Get and send client file menu options
      viaEmail1.Enabled := True;
-     if ClientFileOpen then
+     toFile1.Enabled := True;
+     viaBankLinkOnline1.Enabled := True;
+     if ClientFileOpen then begin
+       toFile1.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
        viaEmail1.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
+       viaBankLinkOnline1.Enabled := (MyClient.clExtra.ceFile_Transfer_Method = ftmOnline);
+     end;
 
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
      frmMain.MenuCopyToPopUp('mnsReport', popReport);

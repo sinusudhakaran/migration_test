@@ -148,12 +148,12 @@ object frmCheckInOut: TfrmCheckInOut
         Caption = 'Password:'
       end
       object Label1: TLabel
-        Left = 17
+        Left = 18
         Top = 91
-        Width = 57
+        Width = 56
         Height = 13
         Alignment = taRightJustify
-        Caption = 'SubDomain:'
+        Caption = 'Subdomain:'
       end
       object eUsername: TEdit
         Left = 88

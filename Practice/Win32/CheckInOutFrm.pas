@@ -286,6 +286,8 @@ begin
       Width := MIN_STANDARD_WIDTH;
       pnlPassword.Visible := False;
 
+      FFileTransferMethod := ftmEmail;
+
       //chkAvailOnly.Checked   := True;
       ePath.Text             := '';
       SetupFrame;
@@ -526,14 +528,23 @@ begin
     pnlPassword.Visible := (FFileTransferMethod = ftmOnline);
 
   ClientLookupFrame.BuildGrid(ClientLookupFrame.SortColumn);
-//  ClientLookupFrame.UsingBankLinkOnline := (FFileTransferMethod = ftmOnline);
-  ClientLookupFrame.OnlineMode := bomNone;
-  if (FFileTransferMethod = ftmOnline) then begin
-    case DialogMode of
-      dmCheckout,
-      dmSend   : ClientLookupFrame.OnlineMode := bomSendFile;
-      dmCheckIn: ClientLookupFrame.OnlineMode := bomGetFile;
-    end;
+
+  //Set a flag in the frame to say what it's being used for
+  ClientLookupFrame.FrameUseMode := fumNone;
+  case FFileTransferMethod of
+    ftmOnline:
+      case DialogMode of
+        dmCheckout,
+        dmSend   : ClientLookupFrame.FrameUseMode := fumSendOnline;
+        dmCheckIn: ClientLookupFrame.FrameUseMode := fumGetOnline;
+      end;
+    ftmFile,
+    ftmEmail:
+      case DialogMode of
+        dmCheckout,
+        dmSend   : ClientLookupFrame.FrameUseMode := fumSendFile;
+        dmCheckIn: ClientLookupFrame.FrameUseMode := fumGetFile;
+      end;
   end;
 
 end;

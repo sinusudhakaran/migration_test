@@ -24,7 +24,8 @@ uses
   Menus, ExtCtrls, WebCiCoClient;
 
 type
-  TBankLinkOnlineMode = (bomNone, bomGetFile, bomSendFile);
+//  TBankLinkOnlineMode = (bomNone, bomGetFile, bomSendFile);
+  TFrameUseMode    = (fumNone, fumOpenFile, fumGetFile, fumSendFile, fumGetOnline, fumSendOnline);
   TSelectedMode    = ( smSingle, smMultiple);
   TFilterMode      = ( fmNoFilter, fmFilesForCheckIn, fmFilesForCheckOut, fmAvailableFiles,
                        fmUpdateableFiles);
@@ -169,6 +170,7 @@ type
       DeltaY: Integer);
     procedure BtnRightClick(Sender: TObject);
     procedure BtnLeftClick(Sender: TObject);
+    function IncludeClientInList(ASendMethod: Byte): Boolean;
   private
     { Private declarations }
     FUsingAdminSystem : boolean;
@@ -208,7 +210,8 @@ type
     FClientStatusList: TClientStatusList;
     FSeverResponce : TServerResponce;
     FNoOnlineConnection: boolean;
-    FOnlineMode: TBankLinkOnlineMode;
+//    FOnlineMode: TBankLinkOnlineMode;
+    FFrameUseMode: TFrameUseMode;
     procedure LoadNodes( ReloadData : boolean);
     procedure LoadColumns;
     procedure RefreshData;
@@ -263,7 +266,8 @@ type
     procedure DoStatusProgress(APercentComplete : integer;
                                AMessage         : string);
     procedure InvalidPasswordDlg(AttemptCount: integer);
-    procedure SetOnlineMode(const Value: TBankLinkOnlineMode);
+//    procedure SetOnlineMode(const Value: TBankLinkOnlineMode);
+    procedure SetFrameUseMode(const Value: TFrameUseMode);
   public
     { Public declarations }
     AdminSnapshot : TSystemObj;
@@ -340,7 +344,8 @@ type
     procedure RefeshBankLinkOnlineStatus;
     function FirstUpload: Boolean;
     property NoOnlineConnection: boolean read FNoOnlineConnection write SetNoOnlineConnection;
-    property OnlineMode: TBankLinkOnlineMode read FOnlineMode write SetOnlineMode;
+//    property OnlineMode: TBankLinkOnlineMode read FOnlineMode write SetOnlineMode;
+    property FrameUseMode: TFrameUseMode read FFrameUseMode write SetFrameUseMode;
   end;
 
   const
@@ -351,8 +356,8 @@ type
 implementation
 uses
   bkDateUtils,
-  ClientWrapper,
   GenUtils,
+  ClientWrapper,
   imagesfrm,
   Imglist,
   infoMoreFrm,
@@ -1191,6 +1196,9 @@ begin
           FNoOnlineConnection := False;  //Connection ok
           UpdateOnlineStatus;
           Attempt := 3;  //Password ok
+        end else if not Assigned(AdminSystem) then begin
+          HelpfulErrorMsg('Please update your username, password, and subdomain and click refresh.', 0);
+          Attempt := 3;  //Authentication failed for Books - user needs to update their settings
         end else if (FSeverResponce.Status = '101') or
                     (FSeverResponce.Status = '102') then begin
           if Attempt > 2 then
@@ -1313,6 +1321,9 @@ begin
                               ( MyClient.clFields.clCode = sysClientRec^.cfFile_Code)
                            ));
         end;
+
+        //Filter BankLink Online files
+        AddToData := AddToData  and IncludeClientInList(sysClientRec.cfFile_Transfer_Method);
 
         if FUsingAdminSystem and AddToData and ((FSubFilter <> 0) or (FUserFilter.Count > 0) or (FGroupFilter.Count > 0) or (FClientTypeFilter.Count > 0))
              and ((FClientFilter = filterAllClients) or (FClientFilter = filterMyClients)) then
@@ -1533,7 +1544,7 @@ begin
         end;
       end;
     end;
-  end else if (FOnlineMode = bomGetFile) and (FFilterMode = fmFilesForCheckIn) then
+  end else if (FFrameUseMode = fumGetOnline) and (FFilterMode = fmFilesForCheckIn) then
     //Client list is generated from Banklink Online status
   else begin
     //load all files in the bk5 directory
@@ -1558,10 +1569,8 @@ begin
         //Load into client files list
         if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
         begin
-          //Filter out non-BankLink Online files
-          if (FOnlineMode = bomGetFile) and
-             (FFilterMode = fmFilesForCheckOut) and
-             (Wrapper.wFileTransferMethod <> ftmOnline) then begin
+          //Filter BankLink Online files
+          if not IncludeClientInList(Wrapper.wFileTransferMethod) then begin
             Found := FindNext( SearchRec );
             Continue;
           end;
@@ -1640,7 +1649,7 @@ begin
   end;
 
   //Get status if using BankLink Online
-  if (FOnlineMode in [bomSendFile, bomGetFile]) then
+  if (FFrameUseMode in [fumGetOnline, fumSendOnline]) then
     RefeshBankLinkOnlineStatus;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1711,6 +1720,8 @@ begin
       AddNew := True;
       if (ClientStatus.StatusCode = cfsNoFile)  then
         AddNew := False
+      else if FFrameUseMode = fumSendOnline then
+        AddNew := False            
       else begin
         for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
           pIDRec := FIntermediateDataList.IntermediateData_At(i);
@@ -2871,6 +2882,12 @@ begin
   except
   end;
 end;
+
+procedure TfmeClientLookup.SetFrameUseMode(const Value: TFrameUseMode);
+begin
+  FFrameUseMode := Value;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfmeClientLookup.ClearColumns;
 begin
@@ -3549,10 +3566,10 @@ begin
   FOnKeyPress := Value;
 end;
 
-procedure TfmeClientLookup.SetOnlineMode(const Value: TBankLinkOnlineMode);
-begin
-  FOnlineMode := Value;
-end;
+//procedure TfmeClientLookup.SetOnlineMode(const Value: TBankLinkOnlineMode);
+//begin
+//  FOnlineMode := Value;
+//end;
 
 function TfmeClientLookup.HasMatch( SearchList : TStringList; aKey : ShortString) : boolean;
 //search thru string list looking for match
@@ -3570,6 +3587,20 @@ begin
     begin
       result := true;
       Exit;
+    end;
+  end;
+end;
+
+function TfmeClientLookup.IncludeClientInList(ASendMethod: Byte): Boolean;
+begin
+  Result := True;
+  //The client files only need to be filtered for Books
+  if not Assigned(AdminSystem) then begin
+    case FFrameUseMode of
+      fumGetFile,
+      fumSendFile  : Result := (ASendMethod <> ftmOnline);
+      fumGetOnline,
+      fumSendOnline: Result := (ASendMethod = ftmOnline);
     end;
   end;
 end;
