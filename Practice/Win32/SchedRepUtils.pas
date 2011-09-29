@@ -63,6 +63,8 @@ type
       srCustomDocGUID: string;
       // if Its printed to an attachment, put it here
       srAttachment: string;
+
+      srSendViaBankLinkOnline : Boolean;
    end;
 
    //This record hold the individual lines for the Schedule Reports Summary Report.

@@ -1430,7 +1430,10 @@ begin
       EmailInfo := TClientEmailInfo.Create;
       with EmailInfo do
       begin
-        EmailType       := EMAIL_CHECKOUT;
+        if srOptions.srSendViaBankLinkOnline then
+          EmailType := EMAIL_BANKLINK_ONLINE
+        else
+          EmailType := EMAIL_CHECKOUT;
         ClientCode      := aClient.clFields.clCode;
         EmailAddress    := Trim( aClient.clFields.clClient_EMail_Address);
         CCEmailAddress  := Trim( aClient.clFields.clClient_CC_EMail_Address);
@@ -1896,6 +1899,7 @@ begin
      srOptions.srTrxFromDate := 0;
      srOptions.srTrxToDate   := 0;                 
      srOptions.srPrintAllForThisClient := false;
+     srOptions.srSendViaBankLinkOnline := MyClient.clExtra.ceOnline_Scheduled_Reports;
 
      try
         GeneratingECodingFile := (MyClient.clFields.clECoding_Export_Scheduled_Reports or
