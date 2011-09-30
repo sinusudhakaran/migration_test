@@ -89,8 +89,8 @@ object frmCheckInOut: TfrmCheckInOut
       Width = 426
       Height = 17
       Caption = 
-        'Send an email message after sending client files to BankLink Onl' +
-        'ine'
+        'Send an &email message after sending client files to BankLink On' +
+        'line'
       Checked = True
       State = cbChecked
       TabOrder = 5

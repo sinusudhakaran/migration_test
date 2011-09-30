@@ -490,6 +490,12 @@ var
     //Include Interim Reports
     UserINI_Show_Interim_Reports: Boolean = False;
 
+    //Get and send client file options
+    UserINI_Client_Lookup_Available_Only : Boolean = True;
+    UserINI_Client_Lookup_Flag_Read_Only : Boolean = True;
+    UserINI_Client_Lookup_Edit_Email     : Boolean = True;
+    UserINI_Client_Lookup_Send_Email     : Boolean = True;
+
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //practice INI settings bk5prac.INI
     PRACINI_REMOVEGST        : boolean = false;

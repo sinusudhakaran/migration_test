@@ -70,6 +70,7 @@ type
     procedure SetupFrame;
     procedure SetupColumns;
     procedure CloseupCheckboxes;
+    procedure SetCheckBocOptions;
   public
     { Public declarations }
   end;
@@ -173,6 +174,7 @@ begin
         eSubDomain.Text     := Globals.INI_BankLink_Online_SubDomain;
       end;
 
+      SetCheckBocOptions;
       CloseupCheckboxes;
       SetupFrame;
 
@@ -246,6 +248,7 @@ begin
         eSubDomain.Text        := Globals.INI_BankLink_Online_SubDomain;
       end;
 
+      SetCheckBocOptions;      
       CloseupCheckboxes;
       SetupFrame;
 
@@ -288,9 +291,9 @@ begin
 
       FFileTransferMethod := ftmEmail;
 
-      //chkAvailOnly.Checked   := True;
       ePath.Text             := '';
       SetupFrame;
+      SetCheckBocOptions;      
       if ShowModal = mrOK then
       begin
         result := ClientLookupFrame.SelectedCodes;
@@ -322,6 +325,7 @@ begin
       pnlPassword.Visible := False;
 
       SetupFrame;
+      SetCheckBocOptions;      
       ClientLookupFrame.SelectedCodes := DefaultCode;
       if ShowModal = mrOK then
         result := ClientLookupFrame.SelectedCodes;
@@ -393,8 +397,12 @@ begin
     end;
     CanClose := true;
   end;
-  UserINI_Client_Lookup_Sort_Column := Ord(ClientLookupFrame.SortColumn);
+  UserINI_Client_Lookup_Sort_Column    := Ord(ClientLookupFrame.SortColumn);
   UserINI_Client_Lookup_Sort_Direction := Ord(ClientLookupFrame.SortDirection);
+  UserINI_Client_Lookup_Available_Only := chkAvailOnly.Checked;
+  UserINI_Client_Lookup_Flag_Read_Only := cbFlagReadOnly.Checked;
+  UserINI_Client_Lookup_Edit_Email     := cbEditEmail.Checked;
+  UserINI_Client_Lookup_Send_Email     := cbSendEmail.Checked;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.btnRefreshClick(Sender: TObject);
@@ -502,6 +510,14 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCheckInOut.SetCheckBocOptions;
+begin
+  chkAvailOnly.Checked   := UserINI_Client_Lookup_Available_Only;
+  cbFlagReadOnly.Checked := UserINI_Client_Lookup_Flag_Read_Only;
+  cbEditEmail.Checked    := UserINI_Client_Lookup_Edit_Email;
+  cbSendEmail.Checked    := UserINI_Client_Lookup_Send_Email;
+end;
+
 procedure TfrmCheckInOut.SetupColumns;
 var
   i: integer;
