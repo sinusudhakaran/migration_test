@@ -791,13 +791,13 @@ begin
                                                                    MyClient.clFields.clAccounting_System_Used);
 
      //Get and send client file menu options
-     viaEmail1.Enabled := True;
-     toFile1.Enabled := True;
-     viaBankLinkOnline1.Enabled := True;
+     actSendViaEmail.Enabled := True;
+     actSendToFile.Enabled := True;
+     actSendViaOnline.Enabled := True;
      if (not UsingAdmin) and ClientFileOpen then begin
-       toFile1.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
-       viaEmail1.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
-       viaBankLinkOnline1.Enabled := (MyClient.clExtra.ceFile_Transfer_Method = ftmOnline);
+       actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
+       actSendViaEmail.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
+       actSendViaOnline.Enabled := (MyClient.clExtra.ceFile_Transfer_Method = ftmOnline);
      end;
 
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
