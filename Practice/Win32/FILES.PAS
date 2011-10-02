@@ -17,7 +17,7 @@ uses
                             AFirstUpload: boolean = False; AFlagReadOnly: boolean = False;
                             AEditEmail: boolean = False; ASendEmail: boolean = False);
   function SendClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
-                      var AEmail: string; IsScheduledReport: Boolean = False;
+                      var AClientEmail: string; IsScheduledReport: Boolean = False;
                       Silent: Boolean = False; AllowMultiplePwdFiles: Boolean = False;
                       ASendMethod: byte = 0; FlagReadOnly: boolean = true) : Boolean; overload;
   function SendClient(Code : string; Path : string; ASendMethod: byte = 0;
@@ -1320,7 +1320,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendPracticeClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
-  var AEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  var AClientEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0;
   FlagReadOnly: Boolean = True): Boolean;
 const
@@ -1332,6 +1332,7 @@ var
   LocalFileName: string;
   RemoteFileName: string;
   Msg: string;
+  ClientName: string;
 begin
   Result := False;
   TempClient := nil;
@@ -1377,6 +1378,9 @@ begin
     Exit;
   end;
 
+  ClientName  := TempClient.clFields.clName;
+  AClientEmail := Trim(TempClient.clFields.clClient_EMail_Address);
+
   try
     StatusSilent := false;   //what is this doing? (Matt&Andy)
     try
@@ -1413,8 +1417,12 @@ begin
               end;
         ftmOnline:
               begin
-                BankLinkOnlineMgr.UploadClient(Code, ProgressFrm,
-                                               IsScheduledReport, AEmail);
+                //Check we have a valid email address for BankLink Online
+                { TODO -oSW : Validate email }
+                if (AClientEmail = '') then
+                  raise EUploadFailed.Create('Invalid email address.');
+                BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, IsScheduledReport,
+                                               ClientName, AClientEmail);
                 if DebugMe then
                   LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                  [ThisMethodName, BankLinkLiveName]));
@@ -1508,7 +1516,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendBooksClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
-  var AEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0; FlagReadOnly: boolean = true): Boolean;
 const
   ThisMethodName = 'SendBooksClient';
@@ -1585,8 +1593,8 @@ begin
                 Msg := Format('%s : Send Copy to %s', [ThisMethodName, BANKLINK_ONLINE_NAME]);
                 LogUtil.LogMsg(lmDebug, UnitName, Msg);
               end;
-              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm,
-                                             IsScheduledReport, AEmail);
+              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, IsScheduledReport,
+                                             '', '');
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                [ThisMethodName, BankLinkLiveName]));
@@ -1652,7 +1660,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //Code for checking out and individual client
 function SendClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
-  var AEmail: string;
+  var AClientEmail: string;
   IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0;
   FlagReadOnly: boolean = true): Boolean;
@@ -1668,13 +1676,13 @@ begin
   if Assigned(AdminSystem) then begin
     //Practice Client File
     ProgressFrm.PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
-    Result := SendPracticeClient(Code, Path, ProgressFrm, AEmail,
+    Result := SendPracticeClient(Code, Path, ProgressFrm, AClientEmail,
                                  IsScheduledReport, Silent,
                                  AllowMultiplePwdFiles, ASendMethod,
                                  FlagReadOnly)
   end else
     //Books Client File
-    Result := SendBooksClient(Code, Path, ProgressFrm, AEmail,
+    Result := SendBooksClient(Code, Path, ProgressFrm,
                               IsScheduledReport, Silent,
                               AllowMultiplePwdFiles, ASendMethod);
 
@@ -1691,7 +1699,7 @@ function SendClient(Code : string; Path : string; ASendMethod: byte = 0;
 const
   ThisMethodName = 'SendClient';
 var
-  TempStr: string;
+  ClientEmail: string;
 begin
   Result := False;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -1700,7 +1708,8 @@ begin
     Exit;
 
   //Send client file for scheduled reports
-  Result := SendPracticeClient(Code, Path, nil, TempStr, True, True, False, ASendMethod, True);
+  Result := SendPracticeClient(Code, Path, nil, ClientEmail,
+                               True, True, False, ASendMethod, True);
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -1726,6 +1735,22 @@ begin
   end;
 end;
 
+function GetClientWithNoEmail(ACodeList: TStringList): string;
+//Returns a delimited list of client codes for clients with invalid email addresses
+var
+  i: integer;
+begin
+  Result := '';
+  for i := 0 to ACodeList.Count - 1 do begin
+    if (ACodeList.ValueFromIndex[i] = '') then begin
+      if (Result = '') then
+        Result := ACodeList.Names[i]
+      else
+        Result := Result + ', ' + ACodeList.Names[i];
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0;
   AFirstUpload: boolean = False; AFlagReadOnly: boolean = False;
@@ -1738,10 +1763,11 @@ var
   SentClientCodes: string;
   ProgressFrm: TfrmChkProgress;
   Failures: Integer;
-  EmailAddress: string;
+  ClientEmail: string;
   EmailBody: string;
   Msg: string;
   NoEmail: string;
+  ClientObj : TClientObj;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -1773,34 +1799,27 @@ begin
         //Cycle thru each client, updating transactions without asking
         Failures := 0;
 
-        NoEmail := '';
+        ClientEmail := '';
         SentClientCodes := '';
         for i := 0 to CodeList.Count -1 do begin
-          EmailAddress := '';
-          if not SendClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, EmailAddress,
-                                False, (CodeList.Count > 1) , True, ASendMethod) then begin
+          if not SendClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, ClientEmail,
+                            False, (CodeList.Count > 1) , True, ASendMethod) then begin
             Inc(Failures);
-            if (Trim(EmailAddress) = '') then
-              if NoEmail = '' then
-                NoEmail := CodeList[i]
-              else
-                NoEmail := NoEmail + ', ' + CodeList[i];
           end else begin
             //Add to comma delimited list of client codes
             if i = 0 then
               SentClientCodes := CodeList[i]
             else
               SentClientCodes := SentClientCodes + ', ' + CodeList[i];
-            //Save the email address
-            CodeList[i] := CodeList[i] + '=' + EmailAddress;
           end;
+          //Save the email address
+          CodeList[i] := CodeList[i] + '=' + ClientEmail;
         end;
 
-        //Missing email addresses
-        if Assigned(AdminSystem) and (NoEmail <> '') then begin
-          Msg := Format('A valid email address is required for clients files '+
-                        'to be sent via %s. Please update the '+
-                        'following clients:  %s', [BANKLINK_ONLINE_NAME, NoEmail]);
+        if Assigned(AdminSystem) and (GetClientWithNoEmail(CodeList) <> '') then begin
+          Msg := Format('A valid email address is required for clients files to '+
+                        'be sent via %s. Please update the following clients: %s',
+                        [BANKLINK_ONLINE_NAME, GetClientWithNoEmail(CodeList)]);
           HelpfulErrorMsg(Msg, 0);
         end;
 

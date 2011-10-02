@@ -32,7 +32,7 @@ type
     function CheckBooksUserExists(AClientEmail : string;
                                   AClientPassword : string) : Boolean;
     function UploadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
-                          Silent: boolean; var AEmail: string; IsCopy: Boolean = False): boolean;
+                          Silent: boolean; AClientName, AClientEmail: string; IsCopy: Boolean = False): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                             var ARemoteFileName: string; Silent: boolean = False): boolean;
     function GetStatus(AClientCode: string; FromWebService: boolean): TClientStatusItem;
@@ -558,7 +558,7 @@ begin
 end;
 
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;
-  AProgressFrm: TfrmChkProgress; Silent: boolean; var AEmail: string;
+  AProgressFrm: TfrmChkProgress; Silent: boolean; AClientName, AClientEmail: string;
   IsCopy: Boolean = False): boolean;
 const
   ThisMethodName = 'UploadClient';
@@ -583,7 +583,7 @@ begin
     try
       try
         if Assigned(AdminSystem) then
-          CiCoClient.UploadFileFromPractice(AClientCode, AEmail, ServerResponce)
+          CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, ServerResponce)
         else
           CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
       except
