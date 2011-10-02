@@ -173,9 +173,6 @@ type
     procedure GetAdminDetails(var APracCode    : String;
                               var APracPass    : String;
                               var ACountryCode : String);
-//    procedure GetClientDetails(AClientCode      : string;
-//                               var AClientEmail : string;
-//                               var AClientName  : string);
     procedure GetIniDetails(var AClientEmail : string;
                             var AClientPass  : string;
                             var ASubDomain   : String);
@@ -704,23 +701,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-//procedure TWebCiCoClient.GetClientDetails(AClientCode      : string;
-//                                          var AClientEmail : string;
-//                                          var AClientName  : string);
-//var
-//  fClientObj : TClientObj;
-//begin
-//  fClientObj := TClientObj.Create;
-//  Try
-//    fClientObj.Open(AClientCode, FILEEXTN);
-//    AClientEmail := fClientObj.clFields.clClient_EMail_Address;
-//    AClientName  := fClientObj.clFields.clName;
-//  Finally
-//    FreeAndNil(fClientObj);
-//  End;
-//end;
-
-//------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetIniDetails(var AClientEmail : string;
                                        var AClientPass  : string;
                                        var ASubDomain   : String);
@@ -1126,7 +1106,6 @@ begin
     HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_UPLOAD;
 
     GetAdminDetails(PracticeCode, PracticePass, CountryCode);
-//    GetClientDetails(AClientCode, AClientEmail, ClientName);
 
     // Can't do upload without email address. Should raise an exception (but not http except?)
     if Trim(AClientEmail) = '' then
