@@ -17,6 +17,9 @@ type
     btnOk: TButton;
     btnCancel: TButton;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure eNewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure eNewConfirmKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Private declarations }
     FPassword: string;
@@ -61,6 +64,26 @@ end;
 
 { TChangePasswordForm }
 
+procedure TChangePasswordForm.eNewConfirmKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Length(eNewConfirm.Text) >= 12) then begin
+    if eNewConfirm.CanFocus then
+      eNewConfirm.SetFocus;
+    HelpfulErrorMsg('Your password cannot be more then 12 characters.',0);
+  end;
+end;
+
+procedure TChangePasswordForm.eNewKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Length(eNew.Text) >= 12) then begin
+    if eNew.CanFocus then
+      eNew.SetFocus;
+    HelpfulErrorMsg('Your password cannot be more then 12 characters.',0);
+  end;
+end;
+
 procedure TChangePasswordForm.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -91,7 +114,7 @@ begin
     Exit;
   end;
   //Min length
-  if (Length(eNew.Text) < 8) then begin
+  if (Length(eNew.Text) < 8) or (Length(eNew.Text) > 12) then begin
     if eNew.CanFocus then
       eNew.SetFocus;
     HelpfulErrorMsg('Your password must be between 8 and 12 characters.',0);

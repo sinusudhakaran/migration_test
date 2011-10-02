@@ -57,6 +57,7 @@ object ChangePasswordForm: TChangePasswordForm
     MaxLength = 12
     PasswordChar = '*'
     TabOrder = 1
+    OnKeyDown = eNewKeyDown
   end
   object eNewConfirm: TEdit
     Left = 160
@@ -66,6 +67,7 @@ object ChangePasswordForm: TChangePasswordForm
     MaxLength = 12
     PasswordChar = '*'
     TabOrder = 2
+    OnKeyDown = eNewConfirmKeyDown
   end
   object btnOk: TButton
     Left = 179
