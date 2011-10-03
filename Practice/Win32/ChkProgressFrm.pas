@@ -3,9 +3,19 @@ unit ChkProgressFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls,bkXPThemes,
-  OsFont, ComCtrls, WebCiCoClient;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  bkXPThemes,
+  OsFont,
+  ComCtrls,
+  WebCiCoClient;
 
 type
   TfrmChkProgress = class(TForm)
@@ -16,20 +26,16 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
   private
     FClientCode: string;
     FPracticeCode: string;
-    { Private declarations }
-    procedure ActivateApplication(Sender: TObject);
+
     procedure SetClientCode(const Value: string);
     procedure SetPracticeCode(const Value: string);
   public
-    { Public declarations }
     procedure UpdateCICOStatus(StatusMessage : string);
     procedure UpdateCICOProgress(APercentComplete : integer;
                                  AMessage         : string);
-
     procedure UpdateStatus(StatusMessage : string);                                 
     property ClientCode: string read FClientCode write SetClientCode;
     property PracticeCode: string read FPracticeCode write SetPracticeCode;
@@ -37,7 +43,8 @@ type
 
 implementation
 
-uses LOGUTIL;
+uses
+  LOGUTIL;
 
 const
   UnitName = 'ChkProgressFrm';
@@ -54,7 +61,6 @@ procedure TfrmChkProgress.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm(Self);
   btnOk.left := (Self.Width - btnOK.Width) div 2;
-  Application.OnActivate := Self.ActivateApplication;
 end;
 
 procedure TfrmChkProgress.FormResize(Sender: TObject);
@@ -88,21 +94,6 @@ end;
 procedure TfrmChkProgress.UpdateStatus(StatusMessage: string);
 begin
   mProgress.Lines.Add(StatusMessage);
-end;
-
-procedure TfrmChkProgress.ActivateApplication(Sender: TObject);
-begin
-  Application.BringToFront;
-  if Self.Visible and Self.Enabled then
-  begin
-    Self.BringToFront;
-    Self.SetFocus;
-  end;
-end;
-
-procedure TfrmChkProgress.FormDestroy(Sender: TObject);
-begin
-  Application.OnActivate := nil;
 end;
 
 end.
