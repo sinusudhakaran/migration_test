@@ -101,8 +101,8 @@ begin
   Result := False;
   //Password matches
   if eCurrent.Text <> FPassword then begin
-     if eNew.CanFocus then
-      eNew.SetFocus;
+     if eCurrent.CanFocus then
+      eCurrent.SetFocus;
     HelpfulErrorMsg('The Current Password entered does not match the password for this username.',0);
     Exit;
   end;
