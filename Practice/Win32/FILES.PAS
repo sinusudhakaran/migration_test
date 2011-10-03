@@ -1845,7 +1845,10 @@ begin
            (CodeList.Count > Failures) then begin
           //Send email
           EmailBody := Format('The following Client File(s) are now available ' +
-                              'via %s: %s.', [BANKLINK_ONLINE_NAME, SentClientCodes]);
+                              'via %s: %s.' + #10 + 'To access the ' +
+                              'client file(s) select ‘Get Client Files | via ' +
+                              'BankLink Online’.',
+                              [BANKLINK_ONLINE_NAME, SentClientCodes]);
           if AFirstUpload then
             EmailBody := EmailBody + #10 + #10 +
                          'If you are new to ' + BANKLINK_ONLINE_NAME + ', you will receive ' +
