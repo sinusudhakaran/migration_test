@@ -1110,8 +1110,6 @@ begin
             pIDRec^.imGroupID := GetDateGroupID( sysClientRec^.cfDate_Last_Accessed);
           end;
 
-
-
           cluType :
           begin
             if sysClientRec^.cfClient_Type = ctProspect then
@@ -1199,8 +1197,9 @@ begin
         end else if not Assigned(AdminSystem) then begin
           HelpfulErrorMsg('Please update your username, password, and subdomain and click refresh.', 0);
           Attempt := 3;  //Authentication failed for Books - user needs to update their settings
-        end else if (FSeverResponce.Status = '101') or
-                    (FSeverResponce.Status = '102') then begin
+        end else if (FSeverResponce.Status = '101') or         //No Practice or Books Password
+                    (FSeverResponce.Status = '102') or         //invalid Country, Practice or password
+                    (FSeverResponce.Status = '103') then begin //invalid Country or Practice
           if Attempt > 2 then
             raise Exception.Create('Password failed on third attempt');
           InvalidPasswordDlg(Attempt);

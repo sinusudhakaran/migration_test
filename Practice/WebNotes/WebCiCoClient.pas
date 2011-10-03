@@ -940,20 +940,23 @@ begin
   fProcessState := psGetBookUserExists;
 
   if DebugMe then
-    logutil.LogError(UNIT_NAME, 'Called Client File Status.');
+    logutil.LogError(UNIT_NAME, 'Called Books User Exists.');
 
   try
     ClearHttpHeader;
 
-    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_PASS_CHANGE;
+    HttpAddress := GetHttpAddress + URL_SERVICE_ACTION_GET_STATUS;
 
     GetIniDetails(BooksEmail, BooksPassword, SubDomain);
 
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,       AClientEmail);
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,    AClientPassword);
     AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_SUBDOMAIN, SubDomain);
-    AddHttpHeaderInfo(HTTP_HEAD_BOOKS_NEWPASSWORD,  AClientPassword);
+    AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD,  '');
+
     AppendHttpHeaderInfo;
+
+    FASyncCall := False;
 
     HttpSendRequest(HttpAddress);
 
