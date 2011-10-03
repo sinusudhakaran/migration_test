@@ -1073,7 +1073,7 @@ begin
                        else
                           Result := result + ' by <Unknown>';
                     end;
-   fsCheckedOut   : Result := ' is checked out';
+   fsCheckedOut   : Result := ' is read-only';
    fsOffsite      : Result := ' is offsite';
    fsError        : Result := ' has an unknown error';
    end;

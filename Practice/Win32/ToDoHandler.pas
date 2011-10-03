@@ -18,13 +18,13 @@ uses
 
 const
   ToDoMsg_ManualCodingReport = 'Coding Report sent for %s to %s on %s';
-  ToDoMsg_Checkout           = 'File checked out on %s';
+  ToDoMsg_Checkout           = 'File sent on %s';
   ToDoMsg_ScheduledReport    = 'Scheduled Report sent via %s for %s to %s on %s';
   ToDoMsg_ManualECoding      = bkConst.ECodingDisplayName + ' file sent for %s to %s on %s';
   ToDoMsg_Acclipse           = bkConst.WebXDisplayName + ' file sent for %s to %s on %s';
   ToDoMsg_Webnotes           = bkConst.WebNotesName + ' transactions sent for %s to %s on %s';
   ToDoMsg_QueryEmail         = 'Query Email sent for %s to %s on %s';
-  ToDoMsg_CheckIn            = 'File checked in on %s';
+  ToDoMsg_CheckIn            = 'File updated on %s';
 
 function  MaintainToDoItems( ClientCode : string; ClosingClient : boolean; OpenOnNotesPage : boolean = false) : boolean;
 function  AddToDoForMultipleClients( ClientCodes: TStringList): boolean;

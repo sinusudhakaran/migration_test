@@ -22,7 +22,7 @@ unit OffsiteDownload;
 
      The transfer method can be set to BankLink Connect or Floppy Disk
 
-  3) The client file is then checked out and installed on the off-site clients
+  3) The client file is then set to read-only and installed on the off-site clients
      PC.
 
   4) Once a client file is setup as an off-site client a new menu item appears on
@@ -51,11 +51,11 @@ unit OffsiteDownload;
   have occured.
 
   Master memorised entries will not be available for off-site clients.
-  Master memorised entries will not be added to the client file when it is checked out.
+  Master memorised entries will not be added to the client file when it is sent.
 
-  The check in process will be altered to allow files to be checked in that have
-  a file status of off-site.  The file status Off-site is equivalent to Checked Out.
-  The off-site status can be reset in ViewClientFileDlg.
+  The read-only process will be altered to allow files to be sent and set to
+  read-only that have a file status of off-site.  The file status Off-site is
+  equivalent to Read-only. The off-site status can be reset in GlobalClientSetupRoutines.
 
   The Off-site checkbox can be unchecked until such time as an off-site
   download has been done for that client.  Once an off-site download has

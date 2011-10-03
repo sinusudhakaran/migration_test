@@ -675,8 +675,8 @@ begin
    btnAttachClient.Hint        :=
                          'Attach a Client File(s) to this E-mail';
    chkCheckOut.Hint      :=
-                         'Check out the selected Client File(s) from your system when sending|' +
-                         'Check out the selected Client File(s) from your system when sending';
+                         'Flag the selected Client File(s) as read-only in your system after sending|' +
+                         'Flag the selected Client File(s) as read-only in your system after sending';
    btnSend.Hint          :=
                          'Send this E-mail|' +
                          'Send this E-mail';
@@ -779,19 +779,19 @@ begin
             Msg := Msg + #13;
           Msg := Msg + Code;
           Inc(CheckOutDisabled);
-          LogUtil.LogMsg( lmInfo, Unitname, 'Cannot check out client file '+CODE + ' because it is marked as Check Out Disabled');
+          LogUtil.LogMsg( lmInfo, Unitname, 'Cannot send client file '+CODE + ' because it is marked as Send Disabled');
         end
         else if not TempClient.clFields.clFile_Read_Only then
         begin
           TempClient.clFields.clFile_Read_Only := true;
           //force to save so that read only flag is saved
           CloseAClient( TempClient, True);
-          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Checked Out. File marked as read-only');
+          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent. File marked as read-only');
         end
         else
         begin
           CloseAClient( TempClient);
-          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Checked Out. File marked as read-only');
+          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent. File marked as read-only');
         end;
       end
       else
@@ -799,9 +799,9 @@ begin
    end;
   end;
   if CheckOutDisabled = 1 then
-    HelpfulErrorMsg('The client file ' + Msg + ' could not be checked out because it is marked as Check Out Disabled', 0)
+    HelpfulErrorMsg('The client file ' + Msg + ' could not be sent because it is marked as Send Disabled', 0)
   else if CheckOutDisabled > 1 then
-    HelpfulErrorMsg('The following client files could not be checked out because they ares marked as Check Out Disabled:' + #13 + Msg, 0);
+    HelpfulErrorMsg('The following client files could not be sent because they ares marked as Send Disabled:' + #13 + Msg, 0);
   result := MailSentOK;
 end;
 
@@ -829,7 +829,7 @@ begin
   //mark selected bk5 files as checkedout, embed logo if required
   ProgressFrm := TfrmChkProgress.Create(self);
   try
-    ProgressFrm.Caption := 'Check Out for sending...';
+    ProgressFrm.Caption := 'Sending...';
     ProgressFrm.btnOK.Enabled := false;
 
     RefreshAdmin;
@@ -892,7 +892,7 @@ begin
             Exit;
           end;
 
-          //mark each as being checked out
+          //mark each as read-only
           LoadAdminSystem( true, ThisMethodName);
           for i := 0 to BK5Files.Count - 1 do
           begin
@@ -900,7 +900,7 @@ begin
             CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code);
             if not Assigned( CFRec) then
               Raise EAdminSystem.Create( 'Could not find CFRec for ' + Code + ' [' + ThisMethodName + ']');
-            //mark client file as checked out in admin system
+            //mark client file as read-only in admin system
             CFRec.cfCurrent_User := CurrUser.LRN;
             if Byte(bk5Files.Objects[i]) <> dlAdminSystem then
               CFRec.cfFile_Status := fsOffsite
@@ -908,7 +908,7 @@ begin
               CFRec.cfFile_Status := fsCheckedOut;
             AddAutomaticToDoItem( CFRec, ttyCheckOut, Format(ToDoMsg_Checkout, [bkDate2Str(CurrentDate)]));
 
-            LogMsg( lmInfo, Unitname, ThisMethodName + ':' + Code + ' Checked Out');
+            LogMsg( lmInfo, Unitname, ThisMethodName + ':' + Code + ' sent and marked as read-only');
           end;
           SaveAdminSystem;
         end;
@@ -930,7 +930,7 @@ begin
     //after send mail
     if (not MailSentOK) and (CheckoutClientFiles) and( bk5Files.Count > 0) then
     begin
-      //undo the checked out status for this bk5 files
+      //undo the read-only out status for this bk5 files
       LoadAdminSystem( true, ThisMethodName);
         for i := 0 to bk5Files.Count - 1 do
         begin
@@ -940,7 +940,7 @@ begin
           begin
             cfRec.cfFile_Status := fsNormal;
             cfRec.cfCurrent_User := 0;
-            LogMsg( lmInfo, Unitname, ThisMethodName + ':' + Code + ' Checkout reversed');
+            LogMsg( lmInfo, Unitname, ThisMethodName + ':' + Code + ' read-only reversed');
           end;
         end;
       SaveAdminSystem;
@@ -2201,7 +2201,7 @@ begin
   if TMenuItem( Sender).Owner.Name = 'pmTo' then
   begin
     txtRecipient.Text := S;
-    //see if this is a banklink address, if so clear the checked out flag
+    //see if this is a banklink address, if so clear the read-only flag
     if (Pos( TestStrforSupport, Uppercase(txtRecipient.Text)) > 0) and chkCheckout.Visible then
     begin
       chkCheckout.checked := false;
@@ -2293,7 +2293,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.txtRecipientExit(Sender: TObject);
 begin
-  //see if this is a banklink address, if so clear the checked out flag
+  //see if this is a banklink address, if so clear the read-only flag
   if (Pos( TestStrforSupport, Uppercase(txtRecipient.Text)) > 0)
   and chkCheckout.Visible
   and (not FAllowCheckOutToSupport) then begin

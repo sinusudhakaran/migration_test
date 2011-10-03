@@ -47,7 +47,7 @@ object frmClientDetails: TfrmClientDetails
     Top = 5
     Width = 589
     Height = 484
-    ActivePage = tbsAdmin
+    ActivePage = tbsOptions
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
@@ -372,10 +372,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object chkNewTrx: TCheckBox
         Left = 16
         Top = 27
@@ -431,7 +427,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 209
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
         end
         object txtLastDiskID: TEdit
@@ -466,12 +462,12 @@ object frmClientDetails: TfrmClientDetails
         object chkForceCheckout: TCheckBox
           Left = 16
           Top = 19
-          Width = 185
+          Width = 313
           Height = 17
           Hint = 
-            'Check to force this client file to be checked out when sending f' +
-            'rom the offsite installation'
-          Caption = '&Force Check Out on Send'
+            'Check to force this client file to be read-only when sending fro' +
+            'm the offsite installation'
+          Caption = '&Force Client to be Read-only on Send'
           TabOrder = 0
           OnClick = chkForceCheckoutClick
         end
@@ -480,8 +476,10 @@ object frmClientDetails: TfrmClientDetails
           Top = 43
           Width = 300
           Height = 17
-          Hint = 'Check to disable check out from the offsite installation'
-          Caption = 'Disa&ble Check Out'
+          Hint = 
+            'Check to not flag as read-only in the offsite installation on se' +
+            'nd'
+          Caption = '&Do not flag as read-only on Send'
           TabOrder = 1
           OnClick = chkDisableCheckoutClick
         end

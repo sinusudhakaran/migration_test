@@ -1530,7 +1530,7 @@ begin
       end;
 
       fsCheckedOut : begin
-         HelpfulInfoMsg( 'Sorry, User '+sUSer+' has checked out this client file.', 0 );
+         HelpfulInfoMsg( 'Sorry, User '+sUSer+' has sent this client file.', 0 );
          exit;
       end;
 

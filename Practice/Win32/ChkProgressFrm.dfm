@@ -13,7 +13,6 @@ object frmChkProgress: TfrmChkProgress
   Position = poOwnerFormCenter
   Scaled = False
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnResize = FormResize
   DesignSize = (
     574

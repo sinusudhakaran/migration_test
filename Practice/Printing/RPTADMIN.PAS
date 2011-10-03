@@ -1048,7 +1048,7 @@ begin //WhatsDueDetail
       RenderTextLine('');
 
     if (j = 1) then
-       RenderTextLine('* Reports may not be generated for these clients, they are currently checked out, off-site, or open.')
+       RenderTextLine('* Reports may not be generated for these clients, they are currently read-only, off-site, or open.')
     else if k > 0 then
        RenderTextLine('# These clients have unprinted transactions from the previous month - these transactions are automatically included.');
   end;
@@ -2312,7 +2312,7 @@ begin
          AddColAuto( Job, cLeft, 9.5,GcGap, 'Staff Member', jtLeft);
 
          //add legend
-         AddJobFooter( Job,siFootNote, 'O = Open     * = Checked Out     ** = ' + BKBOOKSNAME + '     ? = Missing     + = Uncoded      % = Partially Coded      C = Fully Coded      F = Finalised      T = Transferred', true);
+         AddJobFooter( Job,siFootNote, 'O = Open     * = Read-only     ** = ' + BKBOOKSNAME + '     ? = Missing     + = Uncoded      % = Partially Coded      C = Fully Coded      F = Finalised      T = Transferred', true);
          AddCommonFooter(Job);
 
          Job.OnBKPrint    := ClientStatusReportDetail;

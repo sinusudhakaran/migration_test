@@ -380,8 +380,8 @@ const
   gidStatus_Open          = 2;
   gidStatus_CheckedOut    = 3;
   gidStatus_Offsite       = 4;
-  gidStatus_NewFile       = 31;   //new file to check in
-  gidStatus_CheckInConflict = 33; //file is not checked out or offsite
+  gidStatus_NewFile       = 31;   //new file to update
+  gidStatus_CheckInConflict = 33; //file is not read-only out or offsite
   gidStatus_InvalidFile   = 34;   //error reading wrapper, crc, not banklink
   gidStatus_ReadOnly      = 35;
   gidArchived             = 36;
@@ -1012,14 +1012,14 @@ begin
            pIDRec^.imGroupID := gidStatus_ReadOnly;
       else
         begin
-          //it will also happen when a file is being checked in for the first time
+          //it will also happen when a file is being updated for the first time
           if ( FFilterMode = fmFilesForCheckIn) and ( FSelectedColumn = cluStatus) then
           begin
             if FUsingAdminSystem then
               pIDRec^.imGroupID := gidStatus_NewFile
             else
             begin
-              //check in from an offsite, see if the
+              //Update from an offsite, see if the
               if pIDRec^.imTag = Tag_CheckInConflict then
               begin
                 pIDRec^.imGroupID := gidStatus_CheckInConflict
@@ -1046,7 +1046,7 @@ begin
           begin
             if ( FFilterMode = fmFilesForCheckIn) then
             begin
-              //make sure the files are checked out, otherwise there is a
+              //make sure the files are read-only, otherwise there is a
               //conflict
               case sysClientRec^.cfFile_Status of
                 bkconst.fsCheckedOut : pIDRec^.imGroupID := gidStatus_CheckedOut;
@@ -1277,7 +1277,7 @@ begin
                         ( not sysClientRec.cfForeign_File )
                       );
 
-        //if the filter is for files to checkout then only show checked out files
+        //if the filter is for files to send then only show non read-only out files
         //the exception we also include the currently 'OPEN' file
         if FFilterMode = fmFilesForCheckOut then
         begin
@@ -1586,7 +1586,7 @@ begin
           pIDRec^.imModifiedDate   := 0;
           pIDRec^.imOnlineStatus   := cfsNoFile;
 
-          //if we are doing a check in and we have an admin system then check
+          //if we are doing a update and we have an admin system then check
           //the file status
           if FUsingAdminSystem then
           begin
@@ -1595,10 +1595,10 @@ begin
           end
           else
             if ( FFilterMode = fmFilesForCheckIn) then begin
-              //checkin at offsite, see if file already exists
+              //Update at offsite, see if file already exists
               //a conflict situation occurs only if the existing file is
               //currently writable
-              //ie user is trying to check in a file over the top of an
+              //ie user is trying to update a file over the top of an
               //existing valid file.
               if BKFileExists( DataDir + SearchRec.Name) then
               begin
@@ -1743,15 +1743,15 @@ begin
         pIDRec^.imModifiedDate     := ClientStatus.LastChange;
         pIDRec^.imOnlineStatus     := ClientStatus.StatusCode;
 
-        //if we are doing a check in and we have an admin system then check the file status
+        //if we are doing an update and we have an admin system then check the file status
         if FUsingAdminSystem then begin
           sysClientRec := AdminSnapshot.fdSystem_Client_File_List.FindCode(ClientStatus.ClientCode);
           pIDRec^.imData := sysClientRec;
         end else begin
-          //checkin at offsite, see if file already exists
+          //Update at offsite, see if file already exists
           //a conflict situation occurs only if the existing file is
           //currently writable
-          //ie user is trying to check in a file over the top of an
+          //ie user is trying to update a file over the top of an
           //existing valid file.
           BK5FileName := Format('%s%s%s', [DataDir, ClientStatus.ClientCode, FILEEXTN]);
           if BKFileExists(BK5FileName) then begin
@@ -1930,7 +1930,7 @@ begin
                 bkconst.fsCheckedOut,
                 bkconst.fsOffsite:
                   begin
-                    S := 'Checked out';
+                    S := 'Sent';
                     if ByName <> '' then
                       S := S + ' by ' + ByName;
                   end;
@@ -3868,7 +3868,7 @@ begin
   pIDRec := GetIntermediateDataFromNode( vtClients.GetFirstSelected);
   if not Assigned(pIDRec) then exit;
   if AskYesNo('Delete Client File', 'Deleting this read-only client file will remove all ' +
-     'transaction information for this client from your system until you next check in the file.'#13#13+
+     'transaction information for this client from your system until you next update the file.'#13#13+
      'Do you want to delete ' + pIDRec.imCode + '?', DLG_YES, 0) = DLG_YES then
   begin
     if not DeleteFile(DATADIR + pIDRec.imCode + FILEEXTN) then

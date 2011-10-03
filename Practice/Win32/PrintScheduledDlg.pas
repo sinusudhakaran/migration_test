@@ -1263,12 +1263,18 @@ procedure TdlgPrintScheduled.NothingToDoMsg;
 var
   msg: string;
 begin
-  msg := 'You have not specified one of the following options :'+#13#10 +
-    'Include Printed Reports, Include Faxed Reports, Send E-Mailed Reports,' +
-    ' Send ' + glConst.ECODING_APP_NAME + ' Files, Send Checked Out Files';
+  msg := 'You have not specified one of the following destinations :'+#13#10 +
+    'Printed Reports, Faxed Reports, E-Mailed Reports, ' +
+    glConst.ECODING_APP_NAME + ' Files';
 
   if cbToWebX.Visible then
-    msg := msg + ', Send ' + glConst.WEBX_GENERIC_APP_NAME + ' Files';
+    msg := msg + ', ' + glConst.WEBX_GENERIC_APP_NAME + ' Files';
+
+  msg := msg + ', BankLink Books Files, ' +
+    'BankLink Books Files via ' + bkConst.BankLinkLiveName;
+
+  if cbToBusinessProducts.Visible then
+    msg := msg + ', Business Product Files';
 
   HelpfulInfoMsg(msg, 0);
 end;

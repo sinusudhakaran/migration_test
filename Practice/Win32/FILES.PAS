@@ -250,7 +250,7 @@ begin
 
          RefreshAdmin;
 
-         //check if file is currently checked out, offsite etc
+         //check if file is currently read-only, offsite etc
          //This is done before locking the admin system so that we can ask the
          //user if they want to open the file read only.
          //If we did this once the admin system is locked then it is possible that
@@ -259,7 +259,7 @@ begin
          CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
          if Assigned(CFRec) and (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite]) then
          begin
-           //checked out and off site clients may be opened read only
+           //read only and off site clients may be opened read only
            if not Silent then
            begin
              if AllowOpenReadOnly then
@@ -269,7 +269,7 @@ begin
                Msg := '';
                case CFRec.cfFile_Status of
                  fsCheckedOut : begin
-                   Msg := Format( 'Client file %s is currently Checked-Out.', [ Code ] );
+                   Msg := Format( 'Client file %s is currently Read-only.', [ Code ] );
                  end;
 
                  fsOffsite : begin
@@ -375,7 +375,7 @@ begin
                 end;
 
                 fsCheckedOut : begin
-                   Msg := Format( 'User %s has checked out client file %s.', [ User, Code ] );
+                   Msg := Format( 'User %s has marked file %s as read-only.', [ User, Code ] );
                 end;
 
                 fsOffsite : begin
@@ -833,7 +833,7 @@ procedure CloseAClient(var Client : TClientObj; AllowReadOnlyToBeSaved : boolean
 //parameters:
 //   Client    : client object to save
 //   AllowReadOnlyToBeSaved : Allows us to force a save, even if the file is read only
-//                      This is used to set the readonly flag when checking out
+//                      This is used to set the readonly flag when sending
 //                      from an offsite
 const
   ThisMethodName = 'CloseAClient';
@@ -1346,7 +1346,7 @@ begin
   if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
     //make sure this is not a read only file
     if MyClient.clFields.clFile_Read_Only then begin
-      Msg := 'Cannot check out a Read-Only file [' + Code + ']';
+      Msg := 'Cannot send a read-only file [' + Code + ']';
       LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
       if not IsScheduledReport then
         ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
@@ -1540,7 +1540,7 @@ begin
   if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
     if MyClient.clFields.clDisable_Offsite_Check_Out then begin
       Msg := 'Cannot send client file ' + CODE +
-             ' because it is marked as Check Out Disabled';
+             ' because it is marked as Send Disabled';
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
       ProgressFrm.mProgress.Lines.Add(Msg);
       Exit;
@@ -1550,13 +1550,13 @@ begin
       ProgressFrm.mProgress.Lines.Add(Msg);
       Exit;
     end;
-  end else begin //is check out disabled?
+  end else begin //is send disabled?
     OpenAClient( Code, TempClient, true, false, true);
     if Assigned( TempClient) then begin
       if TempClient.clFields.clDisable_Offsite_Check_Out then begin
         CloseAClient(TempClient);
         Msg := 'Cannot send client file ' + CODE +
-               ' because it is marked as Check Out Disabled';
+               ' because it is marked as Send Disabled';
         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
         ProgressFrm.mProgress.Lines.Add(Msg);
         Exit;
@@ -1633,7 +1633,7 @@ begin
     OpenAClient(Code, TempClient, true, false, true);
     if Assigned(TempClient) then begin
       if not TempClient.clFields.clFile_Read_Only then begin
-        //Decrement the file save count so it matches the checked-out file
+        //Decrement the file save count so it matches the sent file
         Dec(TempClient.clFields.clFile_Save_Count);
         //Mark the local file as read only
         TempClient.clFields.clFile_Read_Only := true;
@@ -1658,7 +1658,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//Code for checking out and individual client
+//Code for sending an individual client file
 function SendClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
   var AClientEmail: string;
   IsScheduledReport: Boolean = False; Silent: Boolean = False;
@@ -1836,7 +1836,7 @@ begin
         ProgressFrm.BringToFront;
 
 
-        //If checkout from practice,
+        //If sent from practice,
         //   to banklink online,
         //   and at least one file has been uploaded...
         if (Assigned(AdminSystem)) and
@@ -1903,7 +1903,7 @@ begin
      RemoteRename   := Path + CODE + RENAMEEXTN;
    BackupFileName := DATADIR + CODE+ BACKUPEXTN;
 
-   Msg := 'Checking In Client '+Code;
+   Msg := 'Updating Client '+Code;
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,ThisMethodName+' '+Msg);
 
    if not IsScheduledReports then
@@ -1931,7 +1931,7 @@ begin
    //file name
    if not FileExists( RemoteFilename) then
    begin
-     Msg := 'Cannot check in client ' + code + ' because the file ' + RemoteFilename +
+     Msg := 'Cannot update client ' + code + ' because the file ' + RemoteFilename +
             ' cannot be found.';
      LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
      if not IsScheduledReports then
@@ -1942,7 +1942,7 @@ begin
    //make sure this is not a read only file
    if Assigned( MyClient) and ( MyClient.clFields.clCode = Code) then
    begin
-     Msg := 'Cannot check in file ' + Code + ' because you currently have it open';
+     Msg := 'Cannot update file ' + Code + ' because you currently have it open';
      if (MyClient.clFields.clFile_Read_Only) then
        Msg := Msg + ' in read-only mode';
      Msg := Msg + '.';
@@ -2007,14 +2007,14 @@ begin
    end;
 
    if Assigned( AdminSystem) then begin
-      {test admin system to see make sure status is checked out}
+      {test admin system to see make sure status is read-only}
       if RefreshAdmin then begin
-         //verify is checked out
+         //verify is read-only
          CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
 
-         if Assigned( CFRec ) then begin  {found in admin so test that is checked out}
+         if Assigned( CFRec ) then begin  {found in admin so test that is read-only}
             if not ( CFRec.cfFile_Status in [ fsCheckedOut, fsOffsite ] ) then begin
-               Msg := Format( '** CF Record for %s file status not Checked Out or Off-site',[Code]);
+               Msg := Format( '** CF Record for %s file status not Read-only or Off-site',[Code]);
                LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
                if not IsScheduledReports then
                  ProgressFrm.mProgress.Lines.Add( Msg);
@@ -2023,20 +2023,20 @@ begin
 
             //check the age of the file, Wrapper will have been read above
             if (not IsScheduledReports) and (Wrapper.wSave_Count < cfRec.cfFile_Save_Count) then
-               if AskYesNo('Check In Client','The client file '+ CODE+ ' is OLDER than the file currently held by the Admin system.  You may lose some data '+
-                       'if you check this client in.  Please confirm you want to proceed.',dlg_no,0) <> DLG_YES then
+               if AskYesNo('Update Client','The client file '+ CODE+ ' is OLDER than the file currently held by the Admin system.  You may lose some data '+
+                       'if you update this client.  Please confirm you want to proceed.',dlg_no,0) <> DLG_YES then
                begin
-                  Msg := '** User aborted check in of '+CODE+'.  File version older than in Admin system';
+                  Msg := '** User aborted update of '+CODE+'.  File version older than in Admin system';
                   LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
                   ProgressFrm.mProgress.Lines.Add( Msg);
                   exit;
                end;
          end;
 
-         //check wrapper version now so dont check in a file that cant be openned
+         //check wrapper version now so dont update a file that cant be openned
          if ( Wrapper.wVersion > BKDEFS.BK_FILE_VERSION) then
          begin
-           Msg := 'Invalid version. Version ' + Wrapper.wVersion_Reqd_Str + ' or later required to check in this client file';
+           Msg := 'Invalid version. Version ' + Wrapper.wVersion_Reqd_Str + ' or later required to update this client file';
            LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
            ProgressFrm.mProgress.Lines.Add( Msg);
            exit;
@@ -2064,7 +2064,7 @@ begin
          end;
       end;
 
-      //rename file that was checked in to *.BK!
+      //rename updated file to *.BK!
       DeleteFile(RemoteRename);
       RenameFile(RemoteFileName,RemoteRename);
 
@@ -2081,7 +2081,7 @@ begin
           LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName+' '+Msg);
 
 //        Wrapper is now read above while file is still in remote location
-//          GetxWrapper(LocalFileName, Wrapper, false);  //during checkin
+//          GetxWrapper(LocalFileName, Wrapper, false);  //during update
 
           CFRec := New_Client_File_Rec;
           with AdminSystem, cfRec^, Wrapper do begin
@@ -2134,9 +2134,9 @@ begin
 
         //*** Flag Audit ***
         SystemAuditMgr.FlagAudit(arAttachBankAccounts);
-        //Add audit info for check-in  - this has to be aaNone because
+        //Add audit info for update - this has to be aaNone because
         //File_Status=fsNormal is not audited to prevent too many audit records.
-        Msg := Format('File_Code=%s%sFile_Status=Checked In',[CFRec.cfFile_Code, VALUES_DELIMITER]);
+        Msg := Format('File_Code=%s%sFile_Status=Updated',[CFRec.cfFile_Code, VALUES_DELIMITER]);
         SystemAuditMgr.FlagAudit(arSystemClientFiles, CFRec.cfAudit_Record_ID, aaNone, Msg);
 
         SaveAdminSystem;
@@ -2149,18 +2149,18 @@ begin
          Msg := '';
          try
            GetClientWrapper( LocalFilename, WrapperOfExistingFile, False);
-           //Test if checked-out (BankLink Online allows overwriting writable Client files in Books
+           //Test if read-only (BankLink Online allows overwriting writable Client files in Books
            if (ASendMethod <> ftmOnline) and not WrapperOfExistingFile.wRead_Only then
-             Msg := Format('**A writable copy of file %s already exists.  Cannot check in',[LocalFileName]);
+             Msg := Format('**A writable copy of file %s already exists.  Cannot update',[LocalFileName]);
 
            //Test if file older than current
            if (Wrapper.wSave_Count < WrapperOfExistingFile.wSave_Count) then begin
              Msg := Format('The client file %s is OLDER than the file currently ' +
-                           'available. You may lose some data if you check this ' +
-                           'client in. Please confirm you want to proceed.', [CODE]);
-             if AskYesNo('Check In Client', Msg, dlg_no, 0) <> DLG_YES then
+                           'available. You may lose some data if you update this ' +
+                           'client. Please confirm you want to proceed.', [CODE]);
+             if AskYesNo('Update Client', Msg, dlg_no, 0) <> DLG_YES then
              begin
-                Msg := Format('%s ** User aborted check in of %s. File version ' +
+                Msg := Format('%s ** User aborted update of %s. File version ' +
                               'older than current file', [ThisMethodName, CODE]);
                 LogUtil.LogMsg(lmInfo, UnitName, Msg);
                 ProgressFrm.mProgress.Lines.Add( Msg);
@@ -2177,7 +2177,7 @@ begin
                     'make changes to the file?';
              if AskYesNo('Reset Read-only Status', Msg, dlg_no, 0) <> DLG_YES then
              begin
-                Msg := Format('%s ** User aborted check in of %s. File ' +
+                Msg := Format('%s ** User aborted update of %s. File ' +
                               'is the same as current read-only file',
                               [ThisMethodName, CODE]);
                 LogUtil.LogMsg(lmInfo, UnitName, Msg);
@@ -2205,7 +2205,7 @@ begin
            on E : Exception do
            begin
              //unable to read wrapper, assume that a conflict will exist
-             Msg := Format('**A writable copy of file %s already exists.  Cannot check in',[LocalFileName]);
+             Msg := Format('**A writable copy of file %s already exists.  Cannot update',[LocalFileName]);
            end;
          end;
 
@@ -2246,9 +2246,9 @@ begin
    end;
 
    if (ASendMethod = ftmOnline) then
-     Msg := Format('Check in %s from %s succeeded',[Code, BANKLINK_ONLINE_NAME])
+     Msg := Format('Update %s from %s succeeded',[Code, BANKLINK_ONLINE_NAME])
    else
-     Msg := Format('Check in %s from %s succeeded',[Code, RemoteFileName]);
+     Msg := Format('Update %s from %s succeeded',[Code, RemoteFileName]);
    LogUtil.LogMsg(lmInfo,unitname,ThisMethodName+' '+Msg);
 
    if not IsScheduledReports and Assigned( AdminSystem) then
@@ -2292,12 +2292,12 @@ begin
       if CodeList.Count = 0 then
         Exit;
 
-      //Now have a list of client to check in and a valid dir
+      //Now have a list of clients to update and a valid dir
       //cycle thru each client, updating transactions without asking
       with ProgressFrm do begin
-        Caption := 'Check In Progress';
+        Caption := 'Update Progress';
         ProgressFrm.mProgress.Lines.Add('');
-        ProgressFrm.mProgress.Lines.Add('Checking-In files');
+        ProgressFrm.mProgress.Lines.Add('Updating files');
         ProgressFrm.mProgress.Lines.Add('');
 
         btnOK.Enabled := False;
@@ -2318,13 +2318,13 @@ begin
       with ProgressFrm do begin
         ProgressFrm.mProgress.Lines.Add('');
         if SuccessCount = 0 then
-          ProgressFrm.mProgress.Lines.Add('Check In FAILED')
+          ProgressFrm.mProgress.Lines.Add('Update FAILED')
         else
         begin
           if ErrorCount = 0 then
-            ProgressFrm.mProgress.Lines.Add( 'Check In Completed')
+            ProgressFrm.mProgress.Lines.Add( 'Update Completed')
           else
-            ProgressFrm.mProgress.Lines.Add( 'Check In Completed -  ' +
+            ProgressFrm.mProgress.Lines.Add( 'Update Completed -  ' +
                                              inttostr( SuccessCount) + ' file(s) OK  ' +
                                              inttostr( ErrorCount) + ' file(s) FAILED');
         end;
@@ -2344,7 +2344,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function CheckInRemoteClient( filename : string) : boolean;
 //this function differs from the existing checkinClient in that it accepts
-//a file rather than a code.  This is to allow the file to be checked in
+//a file rather than a code.  This is to allow the file to be updated
 //from a file named AUCODED (1).BK5 when the actual code is AUCODED.BK5
 //
 //Initially this will be used for the right-click checkin, however refactoring
@@ -2426,7 +2426,7 @@ begin
      //make sure this is not a read only file
      if Assigned( MyClient) and ( MyClient.clFields.clCode = Code) then
      begin
-       aMsg := 'Cannot check in file because you currently have client ' + Code + ' open';
+       aMsg := 'Cannot update file because you currently have client ' + Code + ' open';
        if (MyClient.clFields.clFile_Read_Only) then
          aMsg := aMsg + ' in read-only mode';
        aMsg := aMsg + '.';
@@ -2434,31 +2434,31 @@ begin
      end;
 
      if Assigned( AdminSystem) then begin
-        {test admin system to see make sure status is checked out}
+        {test admin system to see make sure status is read-only}
         if RefreshAdmin then begin
-           //verify is checked out
+           //verify is read-only
            CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
 
-           if Assigned( CFRec ) then begin  {found in admin so test that is checked out}
+           if Assigned( CFRec ) then begin  {found in admin so test that is read-only}
               if not ( CFRec.cfFile_Status in [ fsCheckedOut, fsOffsite ] ) then begin
-                 aMsg := Format( '** Client %s file status is not Checked Out or Off-site',[Code]);
+                 aMsg := Format( '** Client %s file status is not Read-only or Off-site',[Code]);
                  raise ECheckIn.Create( aMsg);
               end;
 
               //check the age of the file, Wrapper will have been read above
               if (Wrapper.wSave_Count < cfRec.cfFile_Save_Count) then
-                 if AskYesNo('Check In Client','The file for client '+ CODE+ ' is OLDER than the file currently held by the Admin system.  You may lose some data '+
-                         'if you check this file in.  Please confirm you want to proceed.',dlg_no,0) <> DLG_YES then
+                 if AskYesNo('Update Client','The file for client '+ CODE+ ' is OLDER than the file currently held by the Admin system.  You may lose some data '+
+                         'if you update this file.  Please confirm you want to proceed.',dlg_no,0) <> DLG_YES then
                  begin
-                    aMsg := '** User aborted check in of '+CODE+'.  File version older than in Admin system';
+                    aMsg := '** User aborted update of '+CODE+'.  File version older than in Admin system';
                     raise ECheckIn.Create( aMsg);
                  end;
            end;
 
-           //check wrapper version now so dont check in a file that cant be openned
+           //check wrapper version now so dont update a file that cant be openned
            if ( Wrapper.wVersion > BKDEFS.BK_FILE_VERSION) then
            begin
-             aMsg := 'Invalid version. Version ' + Wrapper.wVersion_Reqd_Str + ' or later required to check in this client file';
+             aMsg := 'Invalid version. Version ' + Wrapper.wVersion_Reqd_Str + ' or later required to update this client file';
              raise ECheckIn.Create( aMsg);
            end;
         end;
@@ -2480,7 +2480,7 @@ begin
            end;
         end;
 
-        //rename file that was checked in to *.BK!
+        //rename updated file to *.BK!
         DeleteFile(RemoteRename);
         RenameFile(RemoteFileName,RemoteRename);
 
@@ -2520,7 +2520,7 @@ begin
               cfLRN                 := fdFields.fdClient_File_LRN_Counter ;
             end;
             AdminSystem.fdSystem_Client_File_List.Insert(CFRec);
-            RemapAccounts := True; // Check anny account mapping  (Books save as..)
+            RemapAccounts := True; // Check any account mapping  (Books save as..)
 
 
           end
@@ -2566,18 +2566,18 @@ begin
 
            //Test if already checked-in
            if not WrapperOfExistingFile.wRead_Only then begin
-             aMsg := Format('** Client %s file status is not Checked Out',[Code]);
+             aMsg := Format('** Client %s file status is not Read-only',[Code]);
              raise ECheckIn.Create( aMsg);
            end;
 
            //Test if file older than current
            if (Wrapper.wSave_Count < WrapperOfExistingFile.wSave_Count) then begin
              aMsg := Format('The client file %s is OLDER than the file currently ' +
-                            'available. You may lose some data if you check this ' +
-                            'client in. Please confirm you want to proceed.', [CODE]);
-             if AskYesNo('Check In Client', aMsg, dlg_no, 0) <> DLG_YES then
+                            'available. You may lose some data if you update this ' +
+                            'client. Please confirm you want to proceed.', [CODE]);
+             if AskYesNo('Update Client', aMsg, dlg_no, 0) <> DLG_YES then
              begin
-                aMsg := Format('%s ** User aborted check in of %s. File version ' +
+                aMsg := Format('%s ** User aborted update of %s. File version ' +
                                'older than the current file', [ThisMethodName, CODE]);
                 raise ECheckIn.Create( aMsg);
              end;
@@ -2611,8 +2611,8 @@ begin
      on E : ECheckIn do
      begin
        LogUtil.LogMsg( lmError, Unitname, ThisMethodName + ': ' +
-                       'Check in from ' + RemoteFilename + ' failed - ' + E.Message);
-       HelpfulErrorMsg( 'Check In of ' + ExtractFilename( RemoteFilename) + ' failed.' + #13#13 + E.Message, 0);
+                       'Update from ' + RemoteFilename + ' failed - ' + E.Message);
+       HelpfulErrorMsg( 'Update of ' + ExtractFilename( RemoteFilename) + ' failed.' + #13#13 + E.Message, 0);
        if Assigned(AdminSystem) then
          DoClientManager(0,0,0,0);
        Exit;
@@ -2620,7 +2620,7 @@ begin
    end;
 
    //no errors prompt user to open file
-   aMsg := Format('Check In %s from %s succeeded',[Code,RemoteFileName]);
+   aMsg := Format('Update %s from %s succeeded',[Code,RemoteFileName]);
    LogUtil.LogMsg(lmInfo,unitname,ThisMethodName+' '+aMsg);
 
    if Assigned( AdminSystem) then
@@ -2631,11 +2631,11 @@ begin
    end;
 
    if Assigned(MyClient) then begin
-      HelpfulInfoMsg( 'Check In of ' + ExtractFilename( RemoteFilename) + ' succeeded.', 0);
+      HelpfulInfoMsg( 'Update of ' + ExtractFilename( RemoteFilename) + ' succeeded.', 0);
       RefreshClientManager;
    end else begin
        if AskYesNo( 'Open Client File',
-                  'Check In of ' + ExtractFilename( RemoteFilename) + ' succeeded.' +
+                  'Update of ' + ExtractFilename( RemoteFilename) + ' succeeded.' +
                   #13#13 + 'Do you want to open this client file now?', dlg_yes, 0) = dlg_yes then
        begin
           if Assigned(AdminSystem) then

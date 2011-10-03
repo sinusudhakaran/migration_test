@@ -149,7 +149,7 @@ begin
   end;
 
   if ReadOnly then begin
-    //Checked out
+    //Send
     case AStatus.StatusCode of
       cfsNoFile:
         begin
@@ -170,7 +170,7 @@ begin
         end;
     end;
   end else begin
-    //Checked in
+    //Update
     case AStatus.StatusCode of
       cfsNoFile:
         begin
@@ -238,7 +238,7 @@ begin
   end;
 
   if ReadOnly then begin
-    //Checked out
+    //Send
     case AStatus.StatusCode of
       cfsNoFile:
         begin
@@ -266,7 +266,7 @@ begin
         end;      
     end;
   end else begin
-    //Checked in
+    //Update
     case AStatus.StatusCode of
       cfsNoFile:
         begin
@@ -311,10 +311,10 @@ begin
   if Assigned(CFRec) then
     ReadOnly := (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite])
   else
-    ReadOnly := True; //If no file exists then assume not checked out from Practice! 
+    ReadOnly := True; //If no file exists then assume not read-only in Practice! 
 
   if ReadOnly then begin
-    //Checked out
+    //Sent
     case AStatus.StatusCode of
       cfsNoFile:
         begin
@@ -334,7 +334,7 @@ begin
       cfsDownloadedPractice: ; //OK
     end;
   end else begin
-    //Checked in
+    //Updated
     case AStatus.StatusCode of
       cfsNoFile:
         begin
@@ -394,17 +394,17 @@ begin
   if not Assigned(AdminSystem) then
     raise EUploadFailed.CreateFmt('No Admin database for %s', [AClientCode]);
 
-  //Checked Out - Should not get here if client file read only
+  //Read-only - Should not get here if client file read only
   CFRec := AdminSystem.fdSystem_Client_File_List.FindCode(AClientCode);
   if Assigned(CFRec) then begin
     ReadOnly := (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite]);
     if ReadOnly then begin
-      Msg := Format('Cannot check out a Read-Only file %s.', [AClientCode]);
+      Msg := Format('Cannot send a Read-only file %s.', [AClientCode]);
       raise EUploadFailed.Create(Msg);
     end;
   end;
 
-  //Checked In
+  //Updated
   case AStatus.StatusCode of
     cfsNoFile: ; //OK to upload
     cfsUploadedPractice:

@@ -865,7 +865,7 @@ begin
     begin
       Result := mrOk;
       if importfailures.Count = 0 then
-        HelpfulInfoMsg(IntToStr(TotalCnt) + GetImportNounStr+' were ' + GetImportVerbStr + ' successfully. Client files that are open or checked out may not be updated until checked in or closed.', 0)
+        HelpfulInfoMsg(IntToStr(TotalCnt) + GetImportNounStr+' were ' + GetImportVerbStr + ' successfully. Client files that are open or read-only may not be updated until updated or closed.', 0)
       else
       begin
         HelpfulErrorMsg('Some'+GetImportNounStr+' could not be ' + GetImportVerbStr + '. Please see log for more details.' + #13#13 +

@@ -280,8 +280,8 @@ begin
                     'Always show printer options before printing';
 
    chkCheckout.Hint :=
-                    'Allow Check out|'+
-                    'Allow files to be checked out';
+                    'Allow send|'+
+                    'Allow files to be sent';
    rsAutoSaveTime.Hint :=
                     'Set the time delay between auto saves|'+
                     'Set the time delay between auto saving the client';
