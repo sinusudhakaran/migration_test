@@ -224,7 +224,7 @@ begin
           if Service.NotifyClient and
             (Service.ReplyURL > '') then
             EmailMessage := format
-              (#13#13'There are new %s transactions available Ã¢â‚¬â€œ click the link below to access %s and log in using your email address and password.'#13#13'%s'#13#13,
+              (#13#13'There are new %s transactions available click the link below to access %s and log in using your email address and password.'#13#13'%s'#13#13,
               [WebNotesName, BankLinkLiveName, Service.ReplyURL]);
 
 
