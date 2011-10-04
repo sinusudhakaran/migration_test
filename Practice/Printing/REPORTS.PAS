@@ -113,7 +113,8 @@ uses
    FaxParametersObj,
    WinUtils,
    CustomDocEditorFrm,
-   AuditReportOptionsDlg;
+   AuditReportOptionsDlg,
+   Files;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const
@@ -126,7 +127,9 @@ var
 procedure DoReport(ReportType: Report_List_Type; Destination: TReportDest;
                     HelpCtx: integer = 0;
                     RptBatch: TReportBase = nil);
-   var RunNow: Boolean;
+var
+   RunNow: Boolean;
+   Msg: string;
 
    function LocalAsk(After: Boolean): Boolean;
    var Params: TRPTParameters;
@@ -165,6 +168,16 @@ procedure DoReport(ReportType: Report_List_Type; Destination: TReportDest;
 
 begin
    if not Assigned(MyClient) then exit;
+
+   //Save client file to ensure UK audit trail matches report
+   if (MyClient.clFields.clCountry = whUK) then begin
+//     Msg := Format('Report Run (%s)',[REPORT_LIST_NAMES[ReportType]]);
+//     MyClient.ClientAuditMgr.FlagAudit(arClientFiles,
+//                                       MyClient.clExtra.ceAudit_Record_ID,
+//                                       aaNone,
+//                                       Msg);
+     SaveClient;
+   end;
 
    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    // check for any budget reports

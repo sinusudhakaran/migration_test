@@ -490,7 +490,7 @@ function TAuditManager.AuditTypeToDBStr(AAuditType: TAuditType): string;
 begin
 {$IFNDEF LOOKUPDLL}
   Result := '';
-  if (AAuditType <= atMax)then
+  if (AAuditType <= arMax)then
     case atNameTable[AAuditType, 1] of
       dbSystem: Result := 'SY';
       dbClient: Result := 'BK';
@@ -503,7 +503,7 @@ function TAuditManager.AuditTypeToStr(AAuditType: Byte): string;
 begin
 {$IFNDEF LOOKUPDLL}
   Result := '';
-  if (AAuditType <= atMax)then
+  if (AAuditType <= arMax)then
     Result := arNames[AAuditType]
   else if AAuditType = arAll then
     Result := 'All';
@@ -521,7 +521,7 @@ function TAuditManager.AuditTypeToTableStr(AAuditType: TAuditType): string;
 begin
 {$IFNDEF LOOKUPDLL}
   Result := '';
-  if (AAuditType <= atMax)then
+  if (AAuditType <= arMax)then
     case atNameTable[AAuditType, 1] of
       dbSystem: Result := SYAuditNames.GetAuditTableName(atNameTable[AAuditType, 0]);
       dbClient: Result := BKAuditNames.GetAuditTableName(atNameTable[AAuditType, 0]);

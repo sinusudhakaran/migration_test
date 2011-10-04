@@ -344,7 +344,6 @@ begin
     NA4.Visible                     := NotRestrictedUser;
     mniSendClientFiles.Visible      := NotRestrictedUser;
     mniFileCheckIn.Visible          := NotRestrictedUser;
-    mniFileExchangeRates.Visible    := IsOffsiteClient and (not UsingAdmin);
 
     //Reports Menu
     mniReportSchedule.Visible       := NotRestrictedUser and UsingAdmin;
@@ -539,9 +538,18 @@ begin
      mniFileSaveAs.Enabled           := ClientFileOpen;
      mniFileInformation.Enabled      := ClientFileOpen;
      mniFileAbandonChanges.Enabled   := ClientFileOpen;
-     mniFileExchangeRates.Enabled    := ClientFileOpen;
-    if (not UsingAdmin) and ClientFileOpen then
-       mniFileExchangeRates.Visible  := (MyClient.clFields.clDownload_From <> dlAdminSystem);
+
+     //Hide abandon changes for UK
+     mniFileExchangeRates.Visible    := False;
+     mniFileAbandonChanges.Visible   := True;
+     if Assigned(AdminSystem) then
+       mniFileAbandonChanges.Visible   := (AdminSystem.fdFields.fdCountry <> whUK)
+     else if Assigned(MyClient) then begin
+       mniFileAbandonChanges.Visible   := (MyClient.clFields.clCountry <> whUK);
+       //Only show exchange rates menu option for Books if UK and is offsite client
+       mniFileExchangeRates.Visible  := (MyClient.clFields.clCountry = whUK) and
+                                        (MyClient.clFields.clDownload_From <> dlAdminSystem);
+     end;
 
      if ClientFileOpen and ( MyClient.clFields.clFile_Read_Only) then
      begin

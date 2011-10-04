@@ -449,7 +449,8 @@ uses
   Software,
   CountryUtils,
   PayeeObj, baUtils, EditBankDlg, TransactionUtils,ImportHistDlg, Finalise32,
-  AuditMgr, SYPEIO;
+  AuditMgr, SYPEIO,
+  Files;
 
 {$R *.DFM}
 
@@ -4658,6 +4659,9 @@ begin
         // Run the dialog
         Result := ShowModal = mrOK;
 
+        //Audit historical data entry
+        if Result and (MyClient.clFields.clCountry = whUK) then
+          SaveClient;
       finally
          Free;
       end;
@@ -4734,6 +4738,9 @@ begin
 
       Result := ShowModal = mroK;
 
+      //Audit manual data entry
+      if Result and (MyClient.clFields.clCountry = whUK) then
+        SaveClient;
    finally
       Free;
    end;

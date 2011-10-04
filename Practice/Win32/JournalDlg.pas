@@ -433,7 +433,8 @@ uses
    trxList32,
    WarningMoreFrm,
    WinUtils,
-   YesNoDlg, ConfigColumnsFrm, NewReportUtils, CountryUtils;
+   YesNoDlg, ConfigColumnsFrm, NewReportUtils, CountryUtils,
+   Files;
 
 {$R *.DFM}
 
@@ -3147,6 +3148,10 @@ begin
 
          RefreshHomepage([HPR_Coding]);
          Result := True;
+
+         //Audit journal edit for UK
+         if (MyClient.clFields.clCountry = whUK) then
+           SaveClient;
       finally
          if ModalResult in [mrOK, mrCancel, mrYes] then
             Free;
