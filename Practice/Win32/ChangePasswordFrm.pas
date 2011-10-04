@@ -22,7 +22,7 @@ type
       Shift: TShiftState);
   private
     { Private declarations }
-    FPassword: string;
+//    FPassword: string;
     FEmail: string;
     function ValidPassword: Boolean;
 
@@ -51,7 +51,7 @@ begin
   Result := False;
   ChangePasswordForm := TChangePasswordForm.Create(Application.MainForm);
   try
-    ChangePasswordForm.FPassword := APassword;
+//    ChangePasswordForm.FPassword := APassword;
     ChangePasswordForm.FEmail    := AEmail;
     if ChangePasswordForm.ShowModal = mrOk then begin
       ANewPassword := ChangePasswordForm.eNew.Text;
@@ -100,12 +100,12 @@ var
 begin
   Result := False;
   //Password matches
-  if eCurrent.Text <> FPassword then begin
-     if eCurrent.CanFocus then
-      eCurrent.SetFocus;
-    HelpfulErrorMsg('The Current Password entered does not match the password for this username.',0);
-    Exit;
-  end;
+//  if eCurrent.Text <> FPassword then begin
+//     if eCurrent.CanFocus then
+//      eCurrent.SetFocus;
+//    HelpfulErrorMsg('The Current Password entered does not match the password for this username.',0);
+//    Exit;
+//  end;
   //Confirmed
   if (eNew.Text <> eNewConfirm.Text) then begin
     if eNew.CanFocus then
@@ -121,7 +121,7 @@ begin
     Exit;
   end;
   //Not the same as current
-  if (eNew.Text = FPassword) then begin
+  if (eNew.Text = eCurrent.Text) then begin
     if eNew.CanFocus then
       eNew.SetFocus;
     HelpfulErrorMsg('The Current and New Passwords must be different.',0);
@@ -151,7 +151,7 @@ begin
       UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
       CiCoClient.OnProgressEvent := DoStatusProgress;
 
-      CiCoClient.SetBooksUserPassword(FEmail, FPassword, eNew.Text, ServerResponce);
+      CiCoClient.SetBooksUserPassword(FEmail, eCurrent.Text, eNew.Text, ServerResponce);
     finally
       StatusSilent := True;
       CiCoClient.OnProgressEvent := Nil;

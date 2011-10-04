@@ -431,7 +431,6 @@ begin
 
   if UserExists then begin
     if ChangePasswordFrm.ChangeBankLinkOnlinePassword(eUserName.Text,
-                                                      ePassword.Text,
                                                       NewPassword) then begin
       ePassword.Text := NewPassword;
       Globals.INI_BankLink_Online_Password := NewPassword;
