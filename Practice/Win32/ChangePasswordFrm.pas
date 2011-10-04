@@ -22,7 +22,6 @@ type
       Shift: TShiftState);
   private
     { Private declarations }
-//    FPassword: string;
     FEmail: string;
     function ValidPassword: Boolean;
 
@@ -32,7 +31,7 @@ type
     { Public declarations }
   end;
 
-  function ChangeBankLinkOnlinePassword(const AEmail, APassword: string; var ANewPassword: string): Boolean;
+  function ChangeBankLinkOnlinePassword(const AEmail: string; var ANewPassword: string): Boolean;
 
 implementation
 
@@ -44,14 +43,13 @@ uses
 
 {$R *.dfm}
 
-function ChangeBankLinkOnlinePassword(const AEmail, APassword: string; var ANewPassword: string): Boolean;
+function ChangeBankLinkOnlinePassword(const AEmail: string; var ANewPassword: string): Boolean;
 var
   ChangePasswordForm: TChangePasswordForm;
 begin
   Result := False;
   ChangePasswordForm := TChangePasswordForm.Create(Application.MainForm);
   try
-//    ChangePasswordForm.FPassword := APassword;
     ChangePasswordForm.FEmail    := AEmail;
     if ChangePasswordForm.ShowModal = mrOk then begin
       ANewPassword := ChangePasswordForm.eNew.Text;
@@ -99,13 +97,6 @@ var
   ServerResponce : TServerResponce;
 begin
   Result := False;
-  //Password matches
-//  if eCurrent.Text <> FPassword then begin
-//     if eCurrent.CanFocus then
-//      eCurrent.SetFocus;
-//    HelpfulErrorMsg('The Current Password entered does not match the password for this username.',0);
-//    Exit;
-//  end;
   //Confirmed
   if (eNew.Text <> eNewConfirm.Text) then begin
     if eNew.CanFocus then
