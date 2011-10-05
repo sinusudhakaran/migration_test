@@ -243,12 +243,12 @@ object frmClientManagerOptions: TfrmClientManagerOptions
       TabOrder = 7
       OnClick = chkTaskClick
     end
-    object chkCheckOut: TCheckBox
+    object chkSend: TCheckBox
       Left = 8
       Top = 221
       Width = 233
       Height = 17
-      Caption = 'Check Out a Client File'
+      Caption = 'Send a Client File'
       Color = clBtnFace
       ParentColor = False
       TabOrder = 8
@@ -266,23 +266,23 @@ object frmClientManagerOptions: TfrmClientManagerOptions
       TabOrder = 9
       OnChange = spinEditChange
     end
-    object chkCheckOutClose: TCheckBox
+    object chkSendClose: TCheckBox
       Left = 31
       Top = 268
       Width = 181
       Height = 17
-      Caption = 'Close Task on Check In'
+      Caption = 'Close Task on Send'
       Color = clBtnFace
       ParentColor = False
       TabOrder = 10
       OnClick = chkTaskClick
     end
-    object chkCheckIn: TCheckBox
+    object chkGet: TCheckBox
       Left = 8
       Top = 299
       Width = 233
       Height = 17
-      Caption = 'Check In a Client File'
+      Caption = 'Get a Client File'
       Color = clBtnFace
       ParentColor = False
       TabOrder = 11

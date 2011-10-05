@@ -15,8 +15,21 @@ unit ClientManagerOptionsFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Mask, RzEdit, RzSpnEdt,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ExtCtrls,
+  ComCtrls,
+  Mask,
+  RzEdit,
+  RzSpnEdt,
   OsFont;
 
 type
@@ -41,12 +54,12 @@ type
     rzsWeb: TRzSpinEdit;
     lblWeb2: TLabel;
     chkWebClose: TCheckBox;
-    chkCheckOut: TCheckBox;
+    chkSend: TCheckBox;
     lblCheckOut1: TLabel;
     rzsCheckOut: TRzSpinEdit;
     lblCheckOut2: TLabel;
-    chkCheckOutClose: TCheckBox;
-    chkCheckIn: TCheckBox;
+    chkSendClose: TCheckBox;
+    chkGet: TCheckBox;
     lblCheckIn1: TLabel;
     rzsCheckIn: TRzSpinEdit;
     lblCheckIn2: TLabel;
@@ -71,16 +84,22 @@ type
 
 procedure UpdateClientManagerOptions;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
+
 uses
   admin32,
   bkconst,
-  globals, SysObj32, SYDEFS, usrlist32,
-  bkXPThemes, glConst;
+  globals,
+  SysObj32,
+  SYDEFS,
+  usrlist32,
+  bkXPThemes,
+  glConst;
+
 {$R *.dfm}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure UpdateClientManagerOptions;
 var
   Dlg: TfrmClientManagerOptions;
@@ -96,7 +115,8 @@ begin
     Dlg.Free;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManagerOptions.chkTaskClick(Sender: TObject);
 var
   SenderChkBox: TCheckBox;
@@ -128,6 +148,7 @@ begin
     CloseChkBox.Enabled := SenderChkBox.Checked;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManagerOptions.spinEditChange(Sender: TObject);
 var
   SpinEdit: TRzSpinEdit;
@@ -164,12 +185,15 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManagerOptions.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
 
   lblWillAdd.Caption := Globals.ShortAppName + ' will add a task to the client when you:';
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManagerOptions.GetReminderLabels(TaskType: Integer;
   var Reminder1, Reminder2: TLabel);
 begin
@@ -212,6 +236,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmClientManagerOptions.GetTaskTypeFromCheckbox(
   CheckBox: TCheckBox): Integer;
 begin
@@ -223,9 +248,9 @@ begin
     Result := ttyExportBNotes
   else if CheckBox = chkWeb then
     Result := ttyExportWeb
-  else if CheckBox = chkCheckOut then
+  else if CheckBox = chkSend then
     Result := ttyCheckOut
-  else if CheckBox = chkCheckIn then
+  else if CheckBox = chkGet then
     Result := ttyCheckIn
   else if CheckBox = chkQueryEmail then
     Result := ttyQueryEmail
@@ -233,6 +258,7 @@ begin
     Result := ttyManual;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmClientManagerOptions.GetTaskTypeFromSpinEdit(
   SpinEdit: TRzSpinEdit): Integer;
 begin
@@ -254,30 +280,33 @@ begin
     Result := ttyManual;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmClientManagerOptions.GetTypeCheckbox(TaskType: Integer): TCheckBox;
 begin
   case TaskType of
     ttyCodingReport:     Result := chkCoding;
     ttyExportBNotes:     Result := chkBNotes;
     ttyExportWeb:        Result := chkWeb;
-    ttyCheckOut:         Result := chkCheckOut;
-    ttyCheckIn:          Result := chkCheckIn;
+    ttyCheckOut:         Result := chkSend;
+    ttyCheckIn:          Result := chkGet;
     ttyQueryEmail:       Result := chkQueryEmail;
     else Result := nil;
   end;
-
 end;
+
+//------------------------------------------------------------------------------
 function TfrmClientManagerOptions.GetTypeCloseCheckBox(
   TaskType: Integer): TCheckBox;
 begin
   case TaskType of
     ttyExportBNotes: Result := chkBNotesClose;
     ttyExportWeb:    Result := chkWebClose;
-    ttyCheckOut:     Result := chkCheckOutClose;
+    ttyCheckOut:     Result := chkSendClose;
     else Result := nil;
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmClientManagerOptions.GetTypeReminderSpinEdit(
   TaskType: Integer): TRzSpinEdit;
 begin
@@ -292,6 +321,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManagerOptions.LoadSettings;
 var
   TaskType: Integer;
@@ -322,6 +352,8 @@ begin
 
   chkShowOverdue.Checked := AdminSystem.fdFields.fdTask_Tracking_Prompt_Type = ttOnlyIfOutstanding;
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManagerOptions.SaveSettings;
 var
   TaskType: Integer;
@@ -350,10 +382,10 @@ begin
       AdminSystem.fdFields.fdTask_Tracking_Prompt_Type := ttOnlyIfOutstanding
     else
       AdminSystem.fdFields.fdTask_Tracking_Prompt_Type := ttNeverPrompt;
-      
+
     SaveAdminSystem;
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 end.
