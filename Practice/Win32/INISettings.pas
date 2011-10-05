@@ -892,10 +892,10 @@ begin
       INI_BankLink_Online_SubDomain := IniFile.ReadString(GrpPracBankLinkOnline, 'BankLinkOnlineSubDomain', '');
 
       //Get and send checkbox options
-      UserINI_Client_Lookup_Available_Only := IniFile.ReadBool(GrpUserOptions, 'ClientLookupAvailableOnly', UserINI_Client_Lookup_Available_Only);
-      UserINI_Client_Lookup_Flag_Read_Only := IniFile.ReadBool(GrpUserOptions, 'ClientLookupFlagReadOnly', UserINI_Client_Lookup_Available_Only);
-      UserINI_Client_Lookup_Edit_Email     := IniFile.ReadBool(GrpUserOptions, 'ClientLookupEditEmail', UserINI_Client_Lookup_Available_Only);
-      UserINI_Client_Lookup_Send_Email     := IniFile.ReadBool(GrpUserOptions, 'ClientLookupSendEmail', UserINI_Client_Lookup_Available_Only);
+//      UserINI_Client_Lookup_Available_Only := IniFile.ReadBool(GrpUserOptions, 'ClientLookupAvailableOnly', UserINI_Client_Lookup_Available_Only);
+      UserINI_Client_Lookup_Flag_Read_Only := IniFile.ReadBool(GrpUserOptions, 'ClientLookupFlagReadOnly', UserINI_Client_Lookup_Flag_Read_Only);
+      UserINI_Client_Lookup_Edit_Email     := IniFile.ReadBool(GrpUserOptions, 'ClientLookupEditEmail', UserINI_Client_Lookup_Edit_Email);
+      UserINI_Client_Lookup_Send_Email     := IniFile.ReadBool(GrpUserOptions, 'ClientLookupSendEmail', UserINI_Client_Lookup_Send_Email);
 
       UserIniUpgrade(IniFile);
 
@@ -992,10 +992,10 @@ begin
       IniFile.WriteString(GrpPracBankLinkOnline, 'BankLinkOnlineSubDomain', INI_BankLink_Online_SubDomain);
 
       //Get and send checkbox options
-      IniFile.WriteBool(GrpUserOptions, 'ClientLookupAvailableOnly', UserINI_Client_Lookup_Available_Only);
-      IniFile.WriteBool(GrpUserOptions, 'ClientLookupFlagReadOnly', UserINI_Client_Lookup_Available_Only);
-      IniFile.WriteBool(GrpUserOptions, 'ClientLookupEditEmail', UserINI_Client_Lookup_Available_Only);
-      IniFile.WriteBool(GrpUserOptions, 'ClientLookupSendEmail', UserINI_Client_Lookup_Available_Only);
+//      IniFile.WriteBool(GrpUserOptions, 'ClientLookupAvailableOnly', UserINI_Client_Lookup_Available_Only);
+      IniFile.WriteBool(GrpUserOptions, 'ClientLookupFlagReadOnly', UserINI_Client_Lookup_Flag_Read_Only);
+      IniFile.WriteBool(GrpUserOptions, 'ClientLookupEditEmail', UserINI_Client_Lookup_Edit_Email);
+      IniFile.WriteBool(GrpUserOptions, 'ClientLookupSendEmail', UserINI_Client_Lookup_Send_Email);
     end;
   finally
     IniFile.UpdateFile;

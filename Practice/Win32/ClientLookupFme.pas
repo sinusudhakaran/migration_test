@@ -210,7 +210,6 @@ type
     FClientStatusList: TClientStatusList;
     FSeverResponce : TServerResponce;
     FNoOnlineConnection: boolean;
-//    FOnlineMode: TBankLinkOnlineMode;
     FFrameUseMode: TFrameUseMode;
     procedure LoadNodes( ReloadData : boolean);
     procedure LoadColumns;
@@ -344,7 +343,6 @@ type
     procedure RefeshBankLinkOnlineStatus;
     function FirstUpload: Boolean;
     property NoOnlineConnection: boolean read FNoOnlineConnection write SetNoOnlineConnection;
-//    property OnlineMode: TBankLinkOnlineMode read FOnlineMode write SetOnlineMode;
     property FrameUseMode: TFrameUseMode read FFrameUseMode write SetFrameUseMode;
   end;
 
@@ -385,6 +383,8 @@ const
   gidStatus_InvalidFile   = 34;   //error reading wrapper, crc, not banklink
   gidStatus_ReadOnly      = 35;
   gidArchived             = 36;
+  gidBankLink_Online      = 37;
+  gidNon_BankLink_Online  = 38;
 
   gidAction_Now           = 5;
   gidAction_Later         = 6;
@@ -424,7 +424,7 @@ const
   gidForeignFile          = 32;  //This should always be the last group!!
 
 
-  gidMax  = 36;
+  gidMax  = 38;
 
   gidNames : Array[ gidMin..gidMax] of string[30] =
     (
@@ -474,7 +474,9 @@ const
       'Conflict',
       'Invalid Files',
       'Read-Only',
-      'Archived'
+      'Archived',
+      'Files via BankLink Online',
+      'Non-BankLink Online Files'
      );
 
 const
@@ -1021,9 +1023,7 @@ begin
             begin
               //Update from an offsite, see if the
               if pIDRec^.imTag = Tag_CheckInConflict then
-              begin
                 pIDRec^.imGroupID := gidStatus_CheckInConflict
-              end
               else
                 pIDRec^.imGroupID := gidStatus_NewFile;
             end;
@@ -1054,9 +1054,7 @@ begin
               else
                 pIDRec^.imGroupID := gidStatus_CheckInConflict;
               end;
-            end
-            else
-            begin
+            end else begin
               case sysClientRec^.cfFile_Status of
                 bkconst.fsNormal     : pIDRec^.imGroupID := gidStatus_Closed;
                 bkconst.fsOpen       : pIDRec^.imGroupID := gidStatus_Open;
@@ -1153,6 +1151,16 @@ begin
         else
           pIDRec^.imGroupID := 0;
         end;
+      end;
+    end;
+
+    //Add extra grouping for BankLink Online for Books Send
+    if not Assigned(AdminSystem) then begin
+      case FFrameUseMode of
+        fumSendFile  : if (pIDRec^.imSendMethod = ftmOnline) then
+                         pIDRec^.imGroupID := gidBankLink_Online;
+        fumSendOnline: if (pIDRec^.imSendMethod <> ftmOnline) then
+                         pIDRec^.imGroupID := gidNon_BankLink_Online;
       end;
     end;
   end;
@@ -1569,7 +1577,8 @@ begin
         if (Wrapper.wSignature = BANKLINK_SIGNATURE) then
         begin
           //Filter BankLink Online files
-          if not IncludeClientInList(Wrapper.wFileTransferMethod) then begin
+          if (FFilterMode = fmFilesForCheckOut) and
+             not IncludeClientInList(Wrapper.wFileTransferMethod) then begin
             Found := FindNext( SearchRec );
             Continue;
           end;
@@ -1581,7 +1590,8 @@ begin
           pIDRec^.imData    := nil;
           pIDRec^.imTag     := 0;
           pIDRec^.imType    := ctActive;
-          pIDRec^.imSendMethod     := Byte(ftmOnline);
+//          pIDRec^.imSendMethod     := Byte(ftmOnline);
+          pIDRec^.imSendMethod       := Wrapper.wFileTransferMethod;
           pIDRec^.imOnlineStatusDesc := '';
           pIDRec^.imModifiedDate   := 0;
           pIDRec^.imOnlineStatus   := cfsNoFile;
@@ -1707,9 +1717,14 @@ begin
         ClientStatus := FClientStatusList.Items[j];
         if (pIDRec^.imCode = ClientStatus.ClientCode) then begin
           pIDRec^.imOnlineStatusDesc := ClientStatus.StatusDesc;
-          if (ClientStatus.LastChange <> 0) then
-            pIDRec^.imModifiedDate   := ClientStatus.LastChange;
+          pIDRec^.imModifiedDate     := ClientStatus.LastChange;
           pIDRec^.imOnlineStatus     := ClientStatus.StatusCode;
+          //Hide online status for non-online files in Books send online
+          if not Assigned(Adminsystem) and (FFrameUseMode = fumSendOnline) and
+             (pIDRec^.imSendMethod <> ftmOnline) then begin
+            pIDRec.imOnlineStatusDesc := '';
+            pIDRec.imModifiedDate := 0;
+          end; 
         end;
       end;
     end;
@@ -1876,7 +1891,7 @@ begin
         cluName : CellText := PIDRec^.imName;
         cluBankLinkOnline : CellText := PIDRec^.imOnlineStatusDesc;
         cluModifiedDate   : begin
-                              CellText := ''; 
+                              CellText := '';
                               if (PIDRec^.imModifiedDate <> 0) then
                                 CellText := FormatDateTime('dd/mm/yyyy', PIDRec^.imModifiedDate);
                             end;
@@ -2148,6 +2163,14 @@ begin
         if ( pIDRec^.imCode = MyClient.clFields.clCode) and
            ( TargetCanvas.Brush.Color <> clHighlight) then
           TargetCanvas.Font.Color := clBlue;
+      end;
+    end;
+    if not Assigned(Adminsystem) and Assigned(pIDRec) then begin
+      case FFrameUseMode of
+        fumSendFile  : if (pIDRec.imSendMethod = ftmOnline) then
+                         Node.States := Node.States + [vsDisabled];
+        fumSendOnline: if (pIDRec.imSendMethod <> ftmOnline) then
+                         Node.States := Node.States + [vsDisabled];
       end;
     end;
   end;
@@ -3564,11 +3587,6 @@ procedure TfmeClientLookup.SetOnKeyPress(const Value: TKeyPressEvent);
 begin
   FOnKeyPress := Value;
 end;
-
-//procedure TfmeClientLookup.SetOnlineMode(const Value: TBankLinkOnlineMode);
-//begin
-//  FOnlineMode := Value;
-//end;
 
 function TfmeClientLookup.HasMatch( SearchList : TStringList; aKey : ShortString) : boolean;
 //search thru string list looking for match

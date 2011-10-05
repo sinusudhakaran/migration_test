@@ -70,7 +70,7 @@ type
     procedure SetupFrame;
     procedure SetupColumns;
     procedure CloseupCheckboxes;
-    procedure SetCheckBocOptions;
+    procedure SetCheckBoxOptions;
   public
     { Public declarations }
   end;
@@ -174,7 +174,7 @@ begin
         eSubDomain.Text     := Globals.INI_BankLink_Online_SubDomain;
       end;
 
-      SetCheckBocOptions;
+      SetCheckBoxOptions;
       CloseupCheckboxes;
       SetupFrame;
 
@@ -248,7 +248,7 @@ begin
         eSubDomain.Text        := Globals.INI_BankLink_Online_SubDomain;
       end;
 
-      SetCheckBocOptions;      
+      SetCheckBoxOptions;
       CloseupCheckboxes;
       SetupFrame;
 
@@ -279,21 +279,30 @@ begin
   with TfrmCheckInOut.Create(Application.MainForm) do
   begin
     try
-      if Assigned( AdminSystem) then
-        Admin32.ReloadAdminAndTakeSnapshot( ClientLookupFrame.AdminSnapshot);
-
+      FFileTransferMethod := ftmEmail;
       Caption                := Title;
       DialogMode             := dmSend;
-      chkAvailOnly.Visible   := True;
       pnlBrowseDir.Visible   := False;
-      Width := MIN_STANDARD_WIDTH;
       pnlPassword.Visible := False;
+      Width := MIN_STANDARD_WIDTH;
 
-      FFileTransferMethod := ftmEmail;
+      if Assigned(AdminSystem) then begin
+        Admin32.ReloadAdminAndTakeSnapshot( ClientLookupFrame.AdminSnapshot);
+        chkAvailOnly.Visible   := True;
+        cbFlagReadOnly.Visible := False;
+        cbEditEmail.Visible    := False;
+        cbSendEmail.Visible    := False
+      end else begin
+        chkAvailOnly.Visible   := True;
+        cbFlagReadOnly.Visible := False;
+        cbEditEmail.Visible := False;
+        cbSendEmail.Visible := False;
+      end;
 
       ePath.Text             := '';
       SetupFrame;
-      SetCheckBocOptions;      
+      SetCheckBoxOptions;
+      CloseupCheckboxes;      
       if ShowModal = mrOK then
       begin
         result := ClientLookupFrame.SelectedCodes;
@@ -325,7 +334,7 @@ begin
       pnlPassword.Visible := False;
 
       SetupFrame;
-      SetCheckBocOptions;      
+      SetCheckBoxOptions;
       ClientLookupFrame.SelectedCodes := DefaultCode;
       if ShowModal = mrOK then
         result := ClientLookupFrame.SelectedCodes;
@@ -399,7 +408,7 @@ begin
   end;
   UserINI_Client_Lookup_Sort_Column    := Ord(ClientLookupFrame.SortColumn);
   UserINI_Client_Lookup_Sort_Direction := Ord(ClientLookupFrame.SortDirection);
-  UserINI_Client_Lookup_Available_Only := chkAvailOnly.Checked;
+//  UserINI_Client_Lookup_Available_Only := chkAvailOnly.Checked;
   UserINI_Client_Lookup_Flag_Read_Only := cbFlagReadOnly.Checked;
   UserINI_Client_Lookup_Edit_Email     := cbEditEmail.Checked;
   UserINI_Client_Lookup_Send_Email     := cbSendEmail.Checked;
@@ -448,9 +457,13 @@ end;
 
 procedure TfrmCheckInOut.chkAvailOnlyClick(Sender: TObject);
 begin
-  if chkAvailOnly.checked then
-    ClientLookupFrame.FilterMode := fmFilesForCheckOut
-  else
+  if chkAvailOnly.checked then begin
+    case DialogMode of
+      dmCheckout,
+      dmSend    : ClientLookupFrame.FilterMode := fmFilesForCheckOut;
+      dmCheckIn : ClientLookupFrame.FilterMode := fmFilesForCheckIn;
+    end;
+  end else
     ClientLookupFrame.FilterMode := fmNoFilter;
 
   ClientLookupFrame.Reload;
@@ -509,9 +522,17 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmCheckInOut.SetCheckBocOptions;
+procedure TfrmCheckInOut.SetCheckBoxOptions;
 begin
-  chkAvailOnly.Checked   := UserINI_Client_Lookup_Available_Only;
+  chkAvailOnly.Checked   := True;
+  if chkAvailOnly.checked then begin
+    case DialogMode of
+      dmCheckout,
+      dmSend    : ClientLookupFrame.FilterMode := fmFilesForCheckOut;
+      dmCheckIn : ClientLookupFrame.FilterMode := fmFilesForCheckIn;
+    end;
+  end else
+    ClientLookupFrame.FilterMode := fmNoFilter;
   cbFlagReadOnly.Checked := UserINI_Client_Lookup_Flag_Read_Only;
   cbEditEmail.Checked    := UserINI_Client_Lookup_Edit_Email;
   cbSendEmail.Checked    := UserINI_Client_Lookup_Send_Email;
@@ -536,7 +557,7 @@ begin
   end;
 
   //Show 'Check out files to'
-  pnlBrowseDir.Visible := not (FFileTransferMethod = ftmOnline);
+  pnlBrowseDir.Visible := not (FFileTransferMethod in [ftmOnline, ftmEmail]);
 
   //Hide username and password in Books for standard file transfer
   if not Assigned(AdminSystem) then
@@ -584,14 +605,18 @@ begin
       DefaultSort := cluStatus;
     BuildGrid( DefaultSort, TSortDirection(UserINI_Client_Lookup_Sort_Direction));
     //set the filter mode
-    case DialogMode of
-      dmCheckout, dmSend : FilterMode := fmFilesForCheckOut;
-      dmCheckIn :
-      begin
-        FilterMode := fmFilesForCheckIn;
-        FilesDirectory := Globals.INI_CheckInDir;
-      end;
-    end;
+//    case DialogMode of
+//      dmCheckout, dmSend : FilterMode := fmFilesForCheckOut;
+//      dmCheckIn :
+//      begin
+//        FilterMode := fmFilesForCheckIn;
+//        FilesDirectory := Globals.INI_CheckInDir;
+//      end;
+//    end;
+
+    if (DialogMode = dmCheckIn) then
+      FilesDirectory := Globals.INI_CheckInDir;
+
     //set the view mode, this will reload the data
     ViewMode   := vmAllFiles;
 

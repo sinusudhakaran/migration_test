@@ -112,7 +112,7 @@ begin
       DoStatusCheck
     else begin
       //Create NoFile status responce
-      if ServerResponce.Status = '103' then begin
+      if ServerResponce.Status = '105' then begin
         Status := TClientStatusItem.Create;
         try
           Status.ClientCode := 'AClientCode';
