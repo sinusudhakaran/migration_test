@@ -1,5 +1,5 @@
 unit ClientDetailsFrm;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 {
   Title:    Client Detail Form
 
@@ -10,14 +10,30 @@ unit ClientDetailsFrm;
                  
   Notes:
 }
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  OvcBase, Buttons, OvcABtn, OvcEF, OvcPB, OvcPF, StdCtrls, ExtCtrls,
-  ComCtrls, OvcNF, WinUtils,
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  OvcBase,
+  Buttons,
+  OvcABtn,
+  OvcEF,
+  OvcPB,
+  OvcPF,
+  StdCtrls,
+  ExtCtrls,
+  ComCtrls,
+  OvcNF,
+  WinUtils,
   OsFont;
 
 type
@@ -147,7 +163,7 @@ type
   function EditClientDetails (ViewNotes : Boolean = False) : boolean;
   function NewClientDetails(PCode: string = '') : boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
 
 uses
@@ -168,13 +184,17 @@ uses
    stDate,
    bkXPThemes,
    ThirdPartyHelper,
-   bkConst, BKDEFS, ClientUtils, AuditMgr;
+   bkConst,
+   BKDEFS,
+   ClientUtils,
+   AuditMgr;
 
 {$R *.DFM}
 
 const
    Unitname = 'ClientDetailsFrm';
    lnone = '<none>';
+
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormCreate(Sender: TObject);
 begin
@@ -198,6 +218,7 @@ begin
    ChangingDiskID := false;
    grpBooks.Caption := BKBOOKSNAME + ' Clients';
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormShow(Sender: TObject);
 begin
@@ -262,6 +283,7 @@ begin
   tsSmartLink.TabVisible := false;
 {$ENDIF}
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.SetUpHelp;
 begin
@@ -358,6 +380,7 @@ begin
                         'Allow Books Users to edit the chart of account items';
 
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnOkClick(Sender: TObject);
 begin
@@ -367,11 +390,13 @@ begin
      Close;
    end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnCancelClick(Sender: TObject);
 begin
    close;
 end;
+
 //------------------------------------------------------------------------------
 function TfrmClientDetails.OkToPost: boolean;
 var
@@ -533,9 +558,9 @@ begin
       end;
   end;
 
-
   Result := true;
 end;
+
 //------------------------------------------------------------------------------
 function TfrmClientDetails.Execute(PCode: string = ''): boolean;
 var
@@ -998,6 +1023,7 @@ begin
    end;  //with MyClient
    result := okPressed;
 end;
+
 //------------------------------------------------------------------------------
 function EditClientDetails (ViewNotes : Boolean = False): boolean;
 var
@@ -1023,6 +1049,7 @@ begin
      end;
    end;
 end;
+
 //------------------------------------------------------------------------------
 function NewClientDetails(PCode: string = '') : boolean;
 var
@@ -1042,8 +1069,8 @@ begin
         Free;
      end;
    end;
-
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.chkOffsiteClick(Sender: TObject);
 begin
@@ -1054,13 +1081,15 @@ begin
        SetComboIndexByIntObject( dfConnect, cmbOSDMethod);
    end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.eFinYearError(Sender: TObject; ErrorCode: Word;
   ErrorMsg: String);
 begin
   SelectDate.ShowDateError(Sender);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.UpdatePracticeContactDetails( ContactType : byte);
 var
   Contact        : string;
@@ -1143,13 +1172,15 @@ begin
     Email := lnone;
   lblEmailView.Caption := Email;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.cmbResponsibleChange(Sender: TObject);
 begin
   if (radStaffMember.Checked)then
     UpdatePracticeContactDetails( cdtStaffMember);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.ShowPracticeContactDetails(ReadOnly : Boolean);
 begin
   if (ReadOnly) then
@@ -1173,6 +1204,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.radPracticeClick(Sender: TObject);
 var
   ReadOnly : boolean;
@@ -1198,6 +1230,7 @@ begin
   ShowPracticeContactDetails( ReadOnly);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.radPracticeWebSiteClick(Sender: TObject);
 var
   ReadOnly : boolean;
@@ -1237,7 +1270,7 @@ begin
   end;
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.txtLastDiskIDChange(Sender: TObject);
 begin
    if PassGenCodeEntered or PRACINI_DontAskForPGDiskNo then
@@ -1266,12 +1299,14 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.chkForceCheckoutClick(Sender: TObject);
 begin
   if chkForceCheckout.Checked then
     chkDisableCheckout.Checked := False;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.chkDisableCheckoutClick(Sender: TObject);
 begin
   if chkDisableCheckout.Checked then

@@ -1540,12 +1540,12 @@ begin
   if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
     if MyClient.clFields.clDisable_Offsite_Check_Out then begin
       Msg := 'Cannot send client file ' + CODE +
-             ' because it is marked as Send Disabled';
+             ' because send is disabled';
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
       ProgressFrm.mProgress.Lines.Add(Msg);
       Exit;
     end else if not CloseClient then begin
-      Msg := 'Cannot close client file '+CODE;
+      Msg := 'Cannot close client file ' + CODE;
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
       ProgressFrm.mProgress.Lines.Add(Msg);
       Exit;
@@ -1556,7 +1556,7 @@ begin
       if TempClient.clFields.clDisable_Offsite_Check_Out then begin
         CloseAClient(TempClient);
         Msg := 'Cannot send client file ' + CODE +
-               ' because it is marked as Send Disabled';
+               ' because send is disabled';
         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
         ProgressFrm.mProgress.Lines.Add(Msg);
         Exit;

@@ -779,7 +779,8 @@ begin
             Msg := Msg + #13;
           Msg := Msg + Code;
           Inc(CheckOutDisabled);
-          LogUtil.LogMsg( lmInfo, Unitname, 'Cannot send client file '+CODE + ' because it is marked as Send Disabled');
+          LogUtil.LogMsg( lmInfo, Unitname, 'Cannot send client file ' + CODE +
+                         ' because send is disabled');
         end
         else if not TempClient.clFields.clFile_Read_Only then
         begin
