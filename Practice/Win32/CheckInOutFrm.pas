@@ -390,7 +390,7 @@ begin
       end;
 
       //check that the directory is valid
-      if not (SelectedDir = 'A:\') then
+      if not (SelectedDir = 'A:\') and (FFileTransferMethod <> ftmOnline) then
       begin
         if not DirectoryExists( SelectedDir) then
         begin
