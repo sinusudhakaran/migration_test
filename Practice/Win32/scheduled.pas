@@ -1434,6 +1434,7 @@ begin
           EmailType := EMAIL_BANKLINK_ONLINE
         else
           EmailType := EMAIL_CHECKOUT;
+
         ClientCode      := aClient.clFields.clCode;
         EmailAddress    := Trim( aClient.clFields.clClient_EMail_Address);
         CCEmailAddress  := Trim( aClient.clFields.clClient_CC_EMail_Address);
@@ -1501,7 +1502,11 @@ begin
             AcctsPrinted   := 0; // changed at end
             AcctsFound     := 0; // changed at end
             UserResponsible := User;
-            SendBy         := rdCheckOut;
+            //SendBy         := rdCheckOut;
+            if aClient.clFields.clCheckOut_Scheduled_Reports then
+              SendBy       := rdCheckOut
+            else if aClient.clExtra.ceOnline_Scheduled_Reports then
+              SendBy       := rdBankLinkOnline;
             TxLastMonth    := ShowTransLastMonth(aClient, srOptions);
             Completed      := True;
           end;

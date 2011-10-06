@@ -697,15 +697,16 @@ begin
              begin
                //only display on the first line for completed items.
                case CurrRec^.SendBy of
-                  rdEmail   : PutString( 'E-Mail');
-                  rdPrinter : PutString( 'Printer');
-                  rdEcoding : PutString( glConst.ECODING_APP_NAME);
-                  rdWebX    : PutString( WEBX_GENERIC_APP_NAME);
-                  rdScreen  : PutString( 'Preview');
-                  rdFax     : PutString( 'Fax');
-                  rdCSVExport: PutString( 'CSV Export');
-                  rdCheckOut: PutString('BankLink Books');
-                  rdBusinessProduct: PutString('Business Prod');
+                  rdEmail           : PutString('E-Mail');
+                  rdPrinter         : PutString('Printer');
+                  rdEcoding         : PutString(glConst.ECODING_APP_NAME);
+                  rdWebX            : PutString(WEBX_GENERIC_APP_NAME);
+                  rdScreen          : PutString('Preview');
+                  rdFax             : PutString('Fax');
+                  rdCSVExport       : PutString('CSV Export');
+                  rdCheckOut        : PutString('BankLink Books (Email)');
+                  rdBankLinkOnline  : PutString('BankLink Books (via Online)');
+                  rdBusinessProduct : PutString('Business Prod');
                else
                   SkipColumn;
                end;
@@ -763,25 +764,25 @@ begin
       Job.OnBKPrint := SummaryRepDetailStaff;
 
       AddColAuto( Job, cLeft,  9,   gCGap, 'Client Code' , jtLeft);
-      AddColAuto( Job, cLeft, 18,   gCGap, 'Account Number' , jtLeft);
-      AddColAuto( Job, cLeft, 32,   gCGap, 'Account Name', jtLeft);
+      AddColAuto( Job, cLeft, 17.5,   gCGap, 'Account Number' , jtLeft);
+      AddColAuto( Job, cLeft, 31.5,   gCGap, 'Account Name', jtLeft);
       AddColAuto( Job, cLeft,  9,   gCGap, 'Generated'     , jtLeft);
       AddColAuto( Job, cLeft,  7,   gCGap, 'From'   , jtLeft);
       AddColAuto( Job, cLeft,  7,   gCGap, 'To'     , jtLeft);
-      AddColAuto( Job, cLeft,  9.5, gCGap, 'Sent To', jtLeft);
+      AddColAuto( Job, cLeft,  10.5, gCGap, 'Sent To', jtLeft);
 
     end else
     begin
       Job.OnBKPrint := SummaryRepDetailClient;
 
       AddColAuto( Job, cLeft,  9,   gCGap, 'Client Code' , jtLeft);
-      AddColAuto( Job, cLeft, 18,   gCGap, 'Account Number' , jtLeft);
-      AddColAuto( Job, cLeft, 22,   gCGap, 'Account Name', jtLeft);
+      AddColAuto( Job, cLeft, 17.5,   gCGap, 'Account Number' , jtLeft);
+      AddColAuto( Job, cLeft, 21.5,   gCGap, 'Account Name', jtLeft);
       AddColAuto( Job, cLeft,  9,   gCGap, 'Generated'     , jtLeft);
       AddColAuto( Job, cLeft,  7,   gCGap, 'From'   , jtLeft);
       AddColAuto( Job, cLeft,  7,   gCGap, 'To'     , jtLeft);
       AddColAuto( Job, cLeft, 10,   gCGap, 'Staff Member', jtLeft);
-      AddColAuto( Job, cLeft,  9.5, gCGap, 'Sent To', jtLeft);
+      AddColAuto( Job, cLeft,  10.5, gCGap, 'Sent To', jtLeft);
     end;
     AddCommonFooter(Job);
     Job.Generate(Dest);
