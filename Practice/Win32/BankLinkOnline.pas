@@ -15,6 +15,8 @@ type
   TBankLinkOnlineManager = class(TObject)
   private
     FClientStatusList: TClientStatusList;
+    FSilent : Boolean;
+
     procedure DebugMsg(AMessage: string);
     procedure CheckBankLinkOnlineStatus(AClientCode: string; AAction: TOnlineAction);
     procedure CheckPracticeUploadStatus(AClientCode: string; AStatus: TClientStatusItem);
@@ -32,10 +34,12 @@ type
     function CheckBooksUserExists(AClientEmail : string;
                                   AClientPassword : string) : Boolean;
     function UploadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
-                          Silent: boolean; AClientName, AClientEmail: string; IsCopy: Boolean = False): boolean;
+                          AClientName, AClientEmail: string; IsCopy: Boolean = False): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
-                            var ARemoteFileName: string; Silent: boolean = False): boolean;
+                            var ARemoteFileName: string): boolean;
     function GetStatus(AClientCode: string; FromWebService: boolean): TClientStatusItem;
+
+    property Silent : Boolean read FSilent write FSilent;
   end;
 
   function BankLinkOnlineMgr: TBankLinkOnlineManager;
@@ -183,7 +187,7 @@ begin
           Msg := Format('The client file %s has been updated by your accountant. '+
                         'Would you like to overwrite the client file in BankLink Books ' +
                         'with the client file on %s?', [AClientCode, BANKLINK_ONLINE_NAME]);
-          if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+          if (Silent) or (AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
             raise EDownloadFailed.CreateFmt('The client file %s has been updated by your accountant.',
                                           [AClientCode]);
         end;
@@ -329,8 +333,8 @@ begin
                         'your client.', [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
-      cfsUploadedBooks: ; //OK
-      cfsCopyUploadedBooks: ; //OK
+      cfsUploadedBooks: ;      //OK
+      cfsCopyUploadedBooks: ;  //OK
       cfsDownloadedPractice: ; //OK
     end;
   end else begin
@@ -348,7 +352,7 @@ begin
                         'currently available. You may lose some data if you update ' +
                         'this client. Are you sure you want to continue?',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
-          if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+          if (Silent) or (AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
             raise EDownloadFailed.CreateFmt('The client file %s on %s is older ' +
                                             'than the file currently available.',
                                             [AClientCode, BANKLINK_ONLINE_NAME]);
@@ -365,7 +369,7 @@ begin
                         'your client. Would you like to overwrite this client file ' +
                         'in BankLink Practice with the client file on %s?',
                         [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
-          if AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+          if (Silent) or (AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
             raise EDownloadFailed.CreateFmt('The client file %s on %s '+
                                             'has been updated by your client.',
                                             [AClientCode, BANKLINK_ONLINE_NAME]);
@@ -413,7 +417,7 @@ begin
                       'Would you like to overwrite the client file on %s '+
                       'with the version you currently have?',
                       [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
-        if AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+        if (Silent) or (AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
           raise EUploadFailed.CreateFmt('The client file %s has already been sent to %s.',
                                         [AClientCode, BANKLINK_ONLINE_NAME]);
       end;
@@ -424,7 +428,7 @@ begin
                       'by your client. Are you sure you want to overwrite the '+
                       'client file on %s with the version you '+
                       'currently have?', [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
-        if AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+        if (Silent) or (AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
           raise EUploadFailed.CreateFmt('The client file %s on %s '+
                                         'has been updated by your client.',
                                         [AClientCode, BANKLINK_ONLINE_NAME]);
@@ -436,7 +440,7 @@ begin
         Msg := Format('The client file %s is currently with your client. '+
                       'Sending this client file will cause your client''s '+
                       'work to be lost. Are you sure you want to continue?', [AClientCode]);
-        if AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES then
+        if (Silent) or (AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
           raise EUploadFailed.CreateFmt('The client file %s is currently with '+
                                         'your client on %s.',
                                         [AClientCode, BANKLINK_ONLINE_NAME]);
@@ -461,8 +465,7 @@ begin
 end;
 
 function TBankLinkOnlineManager.DownloadClient(AClientCode: string;
-  AProgressFrm: TfrmChkProgress; var ARemoteFileName: string;
-  Silent: boolean = False): boolean;
+  AProgressFrm: TfrmChkProgress; var ARemoteFileName: string): boolean;
 var
  ServerResponce: TServerResponce;
 begin
@@ -558,7 +561,7 @@ begin
 end;
 
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;
-  AProgressFrm: TfrmChkProgress; Silent: boolean; AClientName, AClientEmail: string;
+  AProgressFrm: TfrmChkProgress; AClientName, AClientEmail: string;
   IsCopy: Boolean = False): boolean;
 const
   ThisMethodName = 'UploadClient';
@@ -587,7 +590,7 @@ begin
         else
           CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
       except
-        on E:Exception do
+        on E : Exception do
           raise EUploadFailed.Create(E.Message);
       end;
     finally

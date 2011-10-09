@@ -1421,8 +1421,10 @@ begin
                 { TODO -oSW : Validate email }
                 if (AClientEmail = '') then
                   raise EUploadFailed.Create('Invalid email address.');
-                BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, IsScheduledReport,
-                                               ClientName, AClientEmail);
+
+                BankLinkOnlineMgr.Silent := IsScheduledReport;
+                BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, ClientName,
+                                               AClientEmail);
                 if DebugMe then
                   LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                  [ThisMethodName, BankLinkLiveName]));
@@ -1593,8 +1595,8 @@ begin
                 Msg := Format('%s : Send Copy to %s', [ThisMethodName, BANKLINK_ONLINE_NAME]);
                 LogUtil.LogMsg(lmDebug, UnitName, Msg);
               end;
-              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, IsScheduledReport,
-                                             '', '');
+              BankLinkOnlineMgr.Silent := IsScheduledReport;
+              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '');
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                [ThisMethodName, BankLinkLiveName]));
@@ -1915,6 +1917,7 @@ begin
    if (ASendMethod = ftmOnline) then
    try
      //Download the client file from BankLink Online to the temp folder
+     BankLinkOnlineMgr.Silent := IsScheduledReports;
      BankLinkOnlineMgr.DownloadClient(Code, ProgressFrm, RemoteFilename);
    except
       on E : EDownloadFailed do begin
