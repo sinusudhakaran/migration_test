@@ -39,7 +39,9 @@ TYPE
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CONST                                       
+CONST
+   VALUES_DELIMITER = '¦'; //non-keyboard character
+
    cnLPT1         = 0;  cnMin = 0;
    cnLPT2         = 1;
    cnLPT3         = 2;

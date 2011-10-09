@@ -19,7 +19,8 @@ uses
   eCollect,
   IOSTREAM,
   BKDEFS,
-  AuditMgr;
+  AuditMgr,
+  bkConst;
 
 type
   tNew_Custom_Headings_List = class ( TExtdCollection )

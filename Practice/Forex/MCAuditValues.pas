@@ -25,7 +25,7 @@ implementation
 
 uses
   Classes, SysUtils, MCAUDIT, MCEHIO, MCERIO, ExchangeRateList, bkdateutils,
-  frmCurrencies;
+  frmCurrencies, bkConst;
 
 procedure ISO_Code_Audit_Values(V1: TISO_Codes_Array; V2: TCur_Type_Array; var Values: string);
 var

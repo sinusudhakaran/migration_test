@@ -111,7 +111,7 @@ Type
     FEditMode: Boolean;
     FAutomatic: Boolean;
     fBodyMerged: Boolean;
-
+    FMultipleRecipientsList: TStringList;
     procedure DisableForm;
     procedure EnableForm;
     procedure DoAttachClientFile;
@@ -153,7 +153,10 @@ function SendClientFileTo(Recipient: string; CodesToSend: string = '') : boolean
 
 function SendMailToSupport(Recipient: string) : boolean;
 
-function SendMailTo (Title: string; Recipient: string; Subject: string; Body: string; Attachment: string = ''; ShowPracDetails: Boolean = True) : boolean;
+function SendMailTo (Title: string; Recipient: string; Subject: string;
+                     Body: string; Attachment: string = '';
+                     ShowPracDetails: Boolean = True;
+                     MultipleRecipients: string = '') : boolean;
 
 function SendFilesTo(Title: string; Recipient: string; Subject: string; Body: string; Attachments: TStringlist) : boolean;
 
@@ -384,11 +387,10 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.formCreate(Sender: TObject);
-
-
 begin
   bkXPThemes.ThemeForm( Self);
   AttachmentList := TStringList.Create;
+  FMultipleRecipientsList := TStringList.Create;
   fBodyText := TStringList.Create;
   FHideDropDowns := False;
   lvAttach.items.Clear;
@@ -605,9 +607,30 @@ begin
      pmCC.Items.Add( mi);
    end;
 
-  end
-  else
-  begin
+  end else if (FMultipleRecipientsList.Count > 1) then begin
+    //Banklink Online - Multiple client files sent from Books with conflicting email addresses
+    if (FMultipleRecipientsList.Count = 1) then
+      txtRecipient.Text := FMultipleRecipientsList[0]
+    else
+      for i := 0 to FMultipleRecipientsList.Count - 1 do begin
+        mi := TMenuItem.Create(pmTo);
+        mi.Name := 'pmiPracticeEmail' + IntToStr(i);
+        mi.Caption := FMultipleRecipientsList.Strings[i];
+        mi.OnClick := pmSelectEmail;
+        pmTo.Items.Add( mi);
+      end;
+    //create same menu structure for the cc button
+    for i := 0 to pmTo.Items.Count - 1 do
+    begin
+      mi := TMenuItem.Create(pmCC);
+      mi.Caption := pmTo.Items[i].Caption;
+      mi.Name := pmTo.Items[i].Name + '_cc';
+      mi.OnClick := pmSelectEmail;
+      pmCC.Items.Add( mi);
+    end;
+    btnMailTo.Visible := true;
+    btnCC.Visible := true;
+  end else begin
     btnMailTo.Visible := false;
     lblMailTo.Visible := true;
   end;
@@ -623,6 +646,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.FormDestroy(Sender: TObject);
 begin
+  FMultipleRecipientsList.Free;
   AttachmentList.Free;
   fBodyText.Free;
 end;
@@ -1478,8 +1502,11 @@ begin
       CodeList.Free;
    end { try };
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SendMailTo(Title: string; Recipient: string; Subject: string; Body: string; Attachment: string = ''; ShowPracDetails: Boolean = True) : boolean;
+function SendMailTo(Title: string; Recipient: string; Subject: string;
+  Body: string; Attachment: string = ''; ShowPracDetails: Boolean = True;
+  MultipleRecipients: string = '') : boolean;
 Var
    SendDlg : TfrmMail;
    NewItem : TListItem;
@@ -1490,6 +1517,9 @@ begin
       With SendDlg do begin
          EditMode := False;
          FShowPracDetails := ShowPracDetails;
+         FMultipleRecipientsList.StrictDelimiter := True;
+         FMultipleRecipientsList.Delimiter := VALUES_DELIMITER;
+         FMultipleRecipientsList.DelimitedText := MultipleRecipients;
 //         btnAttachClient.Visible := False;
          HideClientFiles;
          chkCheckout.Checked := False;

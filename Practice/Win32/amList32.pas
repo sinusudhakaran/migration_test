@@ -4,7 +4,7 @@ unit amList32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-  ECollect, Classes, syDefs, ioStream, sysUtils, AuditMgr;
+  ECollect, Classes, syDefs, ioStream, sysUtils, AuditMgr, bkConst;
 
 Type
    TSystem_Client_Account_Map = class(TExtdSortedCollection)

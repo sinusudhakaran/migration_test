@@ -1518,7 +1518,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendBooksClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
-  IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  var AClientEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0; FlagReadOnly: boolean = true): Boolean;
 const
   ThisMethodName = 'SendBooksClient';
@@ -1540,6 +1540,11 @@ begin
   BackupFileName := DATADIR + CODE + BACKUPEXTN;
 
   if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
+    AClientEmail := MyClient.clFields.clPractice_Name + #9' ' +
+                    MyClient.clFields.clPractice_EMail_Address;
+    if MyClient.clFields.clCustom_Contact_EMail_Address <> '' then
+      AClientEmail := MyClient.clFields.clContact_Name + #9' ' +
+                      MyClient.clFields.clCustom_Contact_EMail_Address;
     if MyClient.clFields.clDisable_Offsite_Check_Out then begin
       Msg := 'Cannot send client file ' + CODE +
              ' because send is disabled';
@@ -1563,7 +1568,23 @@ begin
         ProgressFrm.mProgress.Lines.Add(Msg);
         Exit;
       end;
+      AClientEmail := TempClient.clFields.clPractice_Name + #9' ' +
+                      TempClient.clFields.clPractice_EMail_Address;
+      if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
+        AClientEmail := TempClient.clFields.clContact_Name + #9' ' +
+                        TempClient.clFields.clCustom_Contact_EMail_Address;
       CloseAClient(TempClient);
+    end else if (ASendMethod = ftmOnline) then begin
+      //Need to get email for banklink online
+      OpenAClientForRead( Code, TempClient);
+      if Assigned( TempClient) then begin
+        AClientEmail := TempClient.clFields.clPractice_Name + #9' ' +
+                        TempClient.clFields.clPractice_EMail_Address;
+        if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
+          AClientEmail := TempClient.clFields.clContact_Name + #9' ' +
+                          TempClient.clFields.clCustom_Contact_EMail_Address;
+        CloseAClient(TempClient);
+      end;
     end;
   end;
 
@@ -1684,7 +1705,7 @@ begin
                                  FlagReadOnly)
   end else
     //Books Client File
-    Result := SendBooksClient(Code, Path, ProgressFrm,
+    Result := SendBooksClient(Code, Path, ProgressFrm, AClientEmail,
                               IsScheduledReport, Silent,
                               AllowMultiplePwdFiles, ASendMethod);
 
@@ -1737,6 +1758,31 @@ begin
   end;
 end;
 
+function GetEmailAddresses(ACodeList: TStringList; var EmailCount: integer): string;
+//Returns non-blank email addresses for the client files sent
+var
+  i: integer;
+  EmailAddress: string;
+  EmailList: TStringList;
+begin
+  Result := '';
+  EmailList := TStringList.Create;
+  try
+    EmailList.StrictDelimiter := True;
+    EmailList.Delimiter := bkConst.VALUES_DELIMITER;
+    for i := 0 to ACodeList.Count - 1 do begin
+      EmailAddress := Trim(ACodeList.ValueFromIndex[i]);
+      if (EmailAddress <> '') then begin
+        if (EmailList.IndexOf(EmailAddress) = -1) then
+          EmailList.Add(EmailAddress);
+      end;
+    end;
+    Result := EmailList.DelimitedText;
+  finally
+    EmailList.Free;
+  end;
+end;
+
 function GetClientWithNoEmail(ACodeList: TStringList): string;
 //Returns a delimited list of client codes for clients with invalid email addresses
 var
@@ -1765,11 +1811,12 @@ var
   SentClientCodes: string;
   ProgressFrm: TfrmChkProgress;
   Failures: Integer;
-  ClientEmail: string;
+  ClientEmail, PracticeEmail: string;
   EmailBody: string;
   Msg: string;
   NoEmail: string;
   ClientObj : TClientObj;
+  EmailCount: integer;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -1838,7 +1885,7 @@ begin
         ProgressFrm.BringToFront;
 
 
-        //If sent from practice,
+        //If sent from Practice,
         //   to banklink online,
         //   and at least one file has been uploaded...
         if (Assigned(AdminSystem)) and
@@ -1848,7 +1895,7 @@ begin
           //Send email
           EmailBody := Format('The following Client File(s) are now available ' +
                               'via %s: %s.' + #10 + 'To access the ' +
-                              'client file(s) select ‘Get Client Files | via ' +
+                              'client file(s) select ‘Get Client Files | from ' +
                               'BankLink Online’.',
                               [BANKLINK_ONLINE_NAME, SentClientCodes]);
           if AFirstUpload then
@@ -1861,6 +1908,25 @@ begin
                      'BankLink Books File for ' + SentClientCodes,
                      EmailBody, '', False);
         end;
+
+        //If sent from Books,
+        //   to banklink online,
+        //   and at least one file has been uploaded...
+        if not (Assigned(AdminSystem)) and
+           (ASendMethod = ftmOnline) and
+           ((AEditEmail) or (GetEmailAddress(CodeList) = '')) and
+           (CodeList.Count > Failures) then begin
+          PracticeEmail := GetEmailAddresses(CodeList, EmailCount);
+          if EmailCount = 1 then 
+            PracticeEmail := '';
+          //Send email
+          EmailBody := '';
+          SendMailTo('Send Client File(s) via ' + BankLinkLiveName,
+                     GetEmailAddress(CodeList),
+                     'BankLink Books File for ' + SentClientCodes,
+                     EmailBody, '', False, PracticeEmail);
+        end;
+
 
       finally
         ProgressFrm.Free;

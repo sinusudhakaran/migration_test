@@ -64,7 +64,6 @@ const
   dbExchangeRates = 2;
 
   OTHER_INFO_FLAG = '*';
-  VALUES_DELIMITER = '¦'; //non-keyboard character
   USER_BOOKS = 'Books';
   USER_BOOKS_SECURE = 'Books Secure';
   USER_NOTES_ONLINE = 'Notes Online';

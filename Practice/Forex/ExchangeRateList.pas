@@ -14,7 +14,7 @@ interface
 
 uses
   ECollect, stDate, Classes, mcDefs, ioStream, stTree,stBase, sysUtils,
-  AuditMgr;
+  AuditMgr, bkConst;
 
 type
   RateArray = array of Double;
