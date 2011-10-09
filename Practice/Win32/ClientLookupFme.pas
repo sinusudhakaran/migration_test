@@ -1185,6 +1185,7 @@ var
   i: integer;
   pIDRec: pIntermediateDataRec;
   Attempt: integer;
+  ErrMsg : string;
 begin
   //Get status of Banklink Online client files
   Screen.Cursor := crHourGlass;
@@ -1225,7 +1226,12 @@ begin
           pIDRec^.imOnlineStatus   := cfsNoFile;
         end;
         FNoOnlineConnection := True;
-        HelpfulErrorMsg('BankLink Practice is unable to connect to ' + BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
+        if E.Message = '301: Interrupted.' then
+          ErrMsg := 'Time out reached!'
+        else
+          ErrMsg := E.Message;
+
+        HelpfulErrorMsg('BankLink Practice is unable to connect to ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg, 0);
       end;
     end;
   finally
