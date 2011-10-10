@@ -1714,25 +1714,33 @@ var
   WrapperOfExistingFile: TClientWrapper;
   sysClientRec: pClient_File_Rec;
   AddNew: Boolean;
+  Online : Boolean;
 begin
   if Assigned(FClientStatusList) then begin
     //Update status of existing intermediate records
     for i := FIntermediateDataList.First to FIntermediateDataList.Last do begin
+      Online := False;
       pIDRec := FIntermediateDataList.IntermediateData_At(i);
       for j := 0 to FClientStatusList.Count - 1 do begin
         ClientStatus := FClientStatusList.Items[j];
         if (pIDRec^.imCode = ClientStatus.ClientCode) then begin
+          Online := True;
           pIDRec^.imOnlineStatusDesc := ClientStatus.StatusDesc;
           pIDRec^.imModifiedDate     := ClientStatus.LastChange;
           pIDRec^.imOnlineStatus     := ClientStatus.StatusCode;
           //Hide online status for non-online files in Books send online
           if not Assigned(Adminsystem) and (FFrameUseMode = fumSendOnline) and
              (pIDRec^.imSendMethod <> ftmOnline) then begin
-            pIDRec.imOnlineStatusDesc := '';
-            pIDRec.imModifiedDate := 0;
-          end; 
+            pIDRec^.imOnlineStatusDesc := '';
+            pIDRec^.imModifiedDate := 0;
+          end;
         end;
       end;
+
+      if (not Online) and
+         (not Assigned(Adminsystem)) and
+         (pIDRec^.imSendMethod = ftmOnline) then
+        pIDRec^.imSendMethod := ftmNone;
     end;
     //Add new intermediate records
     for j := 0 to FClientStatusList.Count - 1 do begin
