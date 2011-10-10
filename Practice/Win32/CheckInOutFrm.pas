@@ -524,7 +524,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.SetCheckBoxOptions;
 begin
-  chkAvailOnly.Checked := not (ClientLookupFrame.FilterMode = fmNoFilter);
+  chkAvailOnly.Checked := (not chkAvailOnly.Visible) or
+                          (not (ClientLookupFrame.FilterMode = fmNoFilter));
   if chkAvailOnly.checked then begin
     case DialogMode of
       dmCheckout,
