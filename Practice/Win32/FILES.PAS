@@ -1528,12 +1528,13 @@ var
   RemoteFileName: string;
   BackupFileName: string;
   Msg: string;
-//  Wrapper: TClientWrapper;
+  SendCopy: Boolean;
 begin
   //Never comes in here for scheduled reports - admin system must exist
   //admin system does not exists so is an off-site client
   Result := False;
   TempClient := nil;
+  SendCopy := False;
 
   LocalFileName  := DATADIR + CODE + FILEEXTN;
   RemoteFileName := Path + CODE + FILEEXTN;
@@ -1545,7 +1546,8 @@ begin
     if MyClient.clFields.clCustom_Contact_EMail_Address <> '' then
       AClientEmail := MyClient.clFields.clContact_Name + #9' ' +
                       MyClient.clFields.clCustom_Contact_EMail_Address;
-    if MyClient.clFields.clDisable_Offsite_Check_Out then begin
+    SendCopy := (ASendMethod = ftmOnline) and (MyClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
+    if (not SendCopy) and MyClient.clFields.clDisable_Offsite_Check_Out then begin
       Msg := 'Cannot send client file ' + CODE +
              ' because send is disabled';
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
@@ -1560,7 +1562,8 @@ begin
   end else begin //is send disabled?
     OpenAClient( Code, TempClient, true, false, true);
     if Assigned( TempClient) then begin
-      if TempClient.clFields.clDisable_Offsite_Check_Out then begin
+      SendCopy := (ASendMethod = ftmOnline) and (TempClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
+      if (not SendCopy) and TempClient.clFields.clDisable_Offsite_Check_Out then begin
         CloseAClient(TempClient);
         Msg := 'Cannot send client file ' + CODE +
                ' because send is disabled';
@@ -1617,7 +1620,7 @@ begin
                 LogUtil.LogMsg(lmDebug, UnitName, Msg);
               end;
               BankLinkOnlineMgr.Silent := IsScheduledReport;
-              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '');
+              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '', SendCopy);
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                [ThisMethodName, BankLinkLiveName]));
@@ -1655,7 +1658,9 @@ begin
   if FlagReadOnly then begin
     OpenAClient(Code, TempClient, true, false, true);
     if Assigned(TempClient) then begin
-      if not TempClient.clFields.clFile_Read_Only then begin
+      if SendCopy then
+        //Copy sent to BankLink Online - do not mark as read-only!
+      else if not TempClient.clFields.clFile_Read_Only then begin
         //Decrement the file save count so it matches the sent file
         Dec(TempClient.clFields.clFile_Save_Count);
         //Mark the local file as read only
@@ -1673,7 +1678,10 @@ begin
   case ASendMethod of
     ftmNone,
     ftmFile  : Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
-    ftmOnline: Msg := Format('Send %s to %s succeeded',[Code, BANKLINK_ONLINE_NAME]);
+    ftmOnline: if SendCopy then
+                 Msg := Format('Send copy %s to %s succeeded',[Code, BANKLINK_ONLINE_NAME]);    
+               else
+                 Msg := Format('Send %s to %s succeeded',[Code, BANKLINK_ONLINE_NAME]);
   end;
   LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
   if not IsScheduledReport then

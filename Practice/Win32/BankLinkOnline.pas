@@ -381,6 +381,7 @@ begin
                         [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
+      cfsCopyUploadedBooks: ;//  
     else
       raise EDownloadFailed.CreateFmt('Unable to get client file status for %s',
                                       [AClientCode]);
