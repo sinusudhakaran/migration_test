@@ -366,8 +366,8 @@ begin
       cfsUploadedBooks:
         begin
           Msg := Format('The client file %s on %s has been updated by ' +
-                        'your client. Would you like to overwrite this client file ' +
-                        'in BankLink Practice with the client file on %s?',
+                        'your client. Would you like to overwrite the client file ' +
+                        'in BankLink Practice with the client file from %s?',
                         [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
           if (Silent) or (AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
             raise EDownloadFailed.CreateFmt('The client file %s on %s '+

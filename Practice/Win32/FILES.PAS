@@ -2086,7 +2086,9 @@ begin
          CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
 
          if Assigned( CFRec ) then begin  {found in admin so test that is read-only}
-            if not ( CFRec.cfFile_Status in [ fsCheckedOut, fsOffsite ] ) then begin
+            //Don't do this check for BankLink Online files because the
+            //user has already said they want to overwrite the Client File.
+            if (ASendMethod <> ftmOnline) and (not (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite])) then begin
                Msg := Format( '** CF Record for %s file status not Read-only or Off-site',[Code]);
                LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
                if not IsScheduledReports then
