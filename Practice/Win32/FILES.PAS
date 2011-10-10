@@ -1707,7 +1707,7 @@ begin
     //Books Client File
     Result := SendBooksClient(Code, Path, ProgressFrm, AClientEmail,
                               IsScheduledReport, Silent,
-                              AllowMultiplePwdFiles, ASendMethod);
+                              AllowMultiplePwdFiles, ASendMethod, FlagReadOnly);
 
   if not IsScheduledReport then begin
     ProgressFrm.BringToFront;
@@ -1811,7 +1811,7 @@ var
   SentClientCodes: string;
   ProgressFrm: TfrmChkProgress;
   Failures: Integer;
-  ClientEmail, PracticeEmail: string;
+  ClientEmail, PracticeEmail, PracticeEmailList: string;
   EmailBody: string;
   Msg: string;
   NoEmail: string;
@@ -1852,7 +1852,9 @@ begin
         SentClientCodes := '';
         for i := 0 to CodeList.Count -1 do begin
           if not SendClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, ClientEmail,
-                            False, (CodeList.Count > 1) , True, ASendMethod) then begin
+                            False, (CodeList.Count > 1) , True, ASendMethod, AFlagReadOnly) then begin
+            //Don't save email for failures
+            ClientEmail := '';
             Inc(Failures);
           end else begin
             //Add to comma delimited list of client codes
@@ -1916,15 +1918,17 @@ begin
            (ASendMethod = ftmOnline) and
            ((AEditEmail) or (GetEmailAddress(CodeList) = '')) and
            (CodeList.Count > Failures) then begin
-          PracticeEmail := GetEmailAddresses(CodeList, EmailCount);
-          if EmailCount = 1 then 
+          PracticeEmail := GetEmailAddress(CodeList);
+          PracticeEmail := Trim(Copy(PracticeEmail, Pos(#9, PracticeEmail) + 2, Length(PracticeEmail)));
+          PracticeEmailList := GetEmailAddresses(CodeList, EmailCount);
+          if EmailCount = 1 then
             PracticeEmail := '';
           //Send email
           EmailBody := '';
           SendMailTo('Send Client File(s) via ' + BankLinkLiveName,
-                     GetEmailAddress(CodeList),
+                     PracticeEmail,
                      'BankLink Books File for ' + SentClientCodes,
-                     EmailBody, '', False, PracticeEmail);
+                     EmailBody, '', False, PracticeEmailList);
         end;
 
 
