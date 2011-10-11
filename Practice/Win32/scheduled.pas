@@ -1419,7 +1419,12 @@ begin
   begin // Check out the client file
    try
     //Override cleint file rec send method with client file sceduled report destination
-    if aClient.clExtra.ceOnline_Scheduled_Reports then
+    pCF.cfFile_Transfer_Method := ftmNone;
+    if aClient.clFields.clCheckOut_Scheduled_Reports then
+      pCF.cfFile_Transfer_Method := ftmFile
+    else if aClient.clFields.clEmail_Scheduled_Reports then
+      pCF.cfFile_Transfer_Method := ftmEmail
+    else if aClient.clExtra.ceOnline_Scheduled_Reports then
       pCF.cfFile_Transfer_Method := ftmOnline;
 
     if SendClient(aClient.clFields.clCode, EMailOutboxDir, pCF.cfFile_Transfer_Method) then
@@ -1523,8 +1528,11 @@ begin
         FirstSummaryRec.AcctsFound   := AcctsTotal;
       end;
     end
-    else
+    else begin
+      if aClient.clExtra.ceOnline_Scheduled_Reports then
+        AddSummaryRec(aClient.clFields.clCode, srOptions, rdBankLinkOnline, False);
       Result := False;
+    end;
    finally
     StatusSilent := False;
    end;
