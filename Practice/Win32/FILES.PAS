@@ -1754,7 +1754,8 @@ begin
   Result := '';
   LastEmail := '';
   for i := 0 to ACodeList.Count - 1 do begin
-    if (ACodeList.ValueFromIndex[i] <> '') then begin
+    if (ACodeList.ValueFromIndex[i] <> '') and
+       (ACodeList.ValueFromIndex[i] <> '*') then begin
       if (LastEmail = '') then begin
         LastEmail := ACodeList.ValueFromIndex[i];
         Result := LastEmail;
@@ -1780,7 +1781,8 @@ begin
     EmailList.Delimiter := bkConst.VALUES_DELIMITER;
     for i := 0 to ACodeList.Count - 1 do begin
       EmailAddress := Trim(ACodeList.ValueFromIndex[i]);
-      if (EmailAddress <> '') then begin
+      if (EmailAddress <> '') and
+         (EmailAddress <> '*') then begin
         if (EmailList.IndexOf(EmailAddress) = -1) then
           EmailList.Add(EmailAddress);
       end;
@@ -1861,8 +1863,8 @@ begin
         for i := 0 to CodeList.Count -1 do begin
           if not SendClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, ClientEmail,
                             False, (CodeList.Count > 1) , True, ASendMethod, AFlagReadOnly) then begin
-            //Don't save email for failures
-            ClientEmail := '';
+            //Flag email for failures
+            ClientEmail := '*';
             Inc(Failures);
           end else begin
             //Add to comma delimited list of client codes

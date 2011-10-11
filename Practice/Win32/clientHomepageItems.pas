@@ -1136,11 +1136,11 @@ end;
 
 function TCHAccountItem.GetBankAccount: TBank_Account;
 begin
-  if Assigned(Client) then
-     FAccount := FClient.clBank_Account_List.FindCode(FbankCode)
-  else
-     FAccount := nil;
-  Result := FAccount;
+  FAccount := nil;
+  if Assigned(FClient) then
+     if Assigned(FClient.clBank_Account_List) then
+       FAccount := FClient.clBank_Account_List.FindCode(FbankCode);
+  Result := FAccount;       
 end;
 
 function TCHAccountItem.GetTagHint(const Tag: Integer; Offset: TPoint): string;
