@@ -123,6 +123,20 @@ begin
    Result := BKFileExists( DataDir+ClientCode+FILEEXTN );
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetBankLinkOnlineSubDomain: string;
+begin
+  Result := '';
+  if (PRACINI_OnlineLink <> '') then begin
+    if (Pos('//', PRACINI_OnlineLink) > 0) and
+       (Pos('.', PRACINI_OnlineLink) > 0) then
+      Result := Copy(PRACINI_OnlineLink,
+                     Pos('//', PRACINI_OnlineLink) + 2,
+                     Pos('.', PRACINI_OnlineLink)- (Pos('//', PRACINI_OnlineLink) + 2));
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure SetAdminStatusToClosed( Code : string);
 const
