@@ -300,9 +300,11 @@ begin
       end;
 
       ePath.Text             := '';
-      SetupFrame;
+
       SetCheckBoxOptions;
-      CloseupCheckboxes;      
+      CloseupCheckboxes;
+      SetupFrame;
+      
       if ShowModal = mrOK then
       begin
         result := ClientLookupFrame.SelectedCodes;
@@ -325,16 +327,26 @@ begin
 
       Caption                := Title;
       DialogMode             := dmSend;
-      chkAvailOnly.Visible   := True;
-      pnlBrowseDir.Visible   := False;
+
       if not Multiple then
         ClientLookupFrame.SelectMode := smSingle;
       ePath.Text             := '';
 
-      pnlPassword.Visible := False;
+      //Don't show any checkbox option for scheduled reports
+      chkAvailOnly.Visible   := False;
+      cbFlagReadOnly.Visible := False;
+      cbEditEmail.Visible    := False;
+      cbSendEmail.Visible    := False;
 
+      chkAvailOnly.checked := False;
+      ClientLookupFrame.FilterMode := fmNoFilter;
+      //SetCheckBoxOptions; - Don't set for scheduled reports
+      CloseupCheckboxes;
       SetupFrame;
-      SetCheckBoxOptions;
+
+      pnlPassword.Visible := False;
+      pnlBrowseDir.Visible := False;
+
       ClientLookupFrame.SelectedCodes := DefaultCode;
       if ShowModal = mrOK then
         result := ClientLookupFrame.SelectedCodes;
@@ -525,7 +537,8 @@ end;
 procedure TfrmCheckInOut.SetCheckBoxOptions;
 begin
   chkAvailOnly.Checked := (not chkAvailOnly.Visible) or
-                          (not (ClientLookupFrame.FilterMode = fmNoFilter));
+                          (not (ClientLookupFrame.FilterMode = fmNoFilter)) or
+                          (DialogMode in [dmSend, dmCheckOut]);
   if chkAvailOnly.checked then begin
     case DialogMode of
       dmCheckout,
@@ -534,6 +547,7 @@ begin
     end;
   end else
     ClientLookupFrame.FilterMode := fmNoFilter;
+
   cbFlagReadOnly.Checked := UserINI_Client_Lookup_Flag_Read_Only;
   cbEditEmail.Checked    := UserINI_Client_Lookup_Edit_Email;
   cbSendEmail.Checked    := UserINI_Client_Lookup_Send_Email;

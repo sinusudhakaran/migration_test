@@ -1911,7 +1911,9 @@ begin
                               'BankLink Online’.',
                               [BANKLINK_ONLINE_NAME, SentClientCodes]);
           if AFirstUpload then
-            EmailBody := EmailBody + #10 + #10 +
+            EmailBody := EmailBody + #10#10 +
+                         'Subdomain: ' + GetBankLinkOnlineSubDomain +  #10 +
+                         'Username: ' + GetEmailAddress(CodeList) + #10#10 +
                          'If you are new to ' + BANKLINK_ONLINE_NAME + ', you will receive ' +
                          'an email shortly which will help you complete the ' +
                          'setup process. Please wait for this email before continuing.';
