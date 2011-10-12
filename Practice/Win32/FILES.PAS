@@ -1555,7 +1555,7 @@ begin
   //admin system does not exists so is an off-site client
   Result := False;
   TempClient := nil;
-  SendCopy := False;
+  SendCopy := (not FlagReadOnly);
 
   LocalFileName  := DATADIR + CODE + FILEEXTN;
   RemoteFileName := Path + CODE + FILEEXTN;
