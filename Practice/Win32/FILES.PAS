@@ -1489,12 +1489,19 @@ begin
 
       //Set to read only or offsite in practice
       CFRec.cfCurrent_User := CurrUser.LRN;
-      if TempClientIsOffsite then
+      if TempClientIsOffsite then begin
         //Offsite
-        CFRec.cfFile_Status := fsOffsite
-      else if FlagReadOnly then
+        CFRec.cfFile_Status := fsOffsite;
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug, UnitName, Format('%s : %s status set to offsite',
+                         [ThisMethodName, Code]));
+      end else if FlagReadOnly then begin
         //Read Only
         CFRec.cfFile_Status := fsCheckedOut;
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug, UnitName, Format('%s : %s status set to read-only',
+                         [ThisMethodName, Code]));
+      end;
 
       //Update send method
       if ASendMethod <> ftmNone then

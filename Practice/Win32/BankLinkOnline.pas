@@ -418,7 +418,10 @@ begin
                       'Would you like to overwrite the client file on %s '+
                       'with the version you currently have?',
                       [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
-        if (Silent) or (AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
+        if (Silent) then
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, Format('Overwrite client file %s on %s.',
+                                                   [AClientCode, BANKLINK_ONLINE_NAME]))
+        else if (AskYesNo('Send to ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
           raise EUploadFailed.CreateFmt('The client file %s has already been sent to %s.',
                                         [AClientCode, BANKLINK_ONLINE_NAME]);
       end;

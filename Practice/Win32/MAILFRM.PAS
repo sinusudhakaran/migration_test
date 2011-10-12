@@ -2017,7 +2017,7 @@ begin //SendSceduledEmail
                 RenameAttachment( EmailOutboxDir + ClientCode + '.JBX',
                                   EmailOutboxDir + 'JOBS.XLS');
 
-                if ECodingFilename <> '' then
+                if (ECodingFilename <> '') and (EmailType <> EMAIL_BANKLINK_ONLINE) then
                    SendDlg.MailObj.Attachments.Add( EmailOutboxDir + EcodingFilename);
 
                 if (EmailInfo.AttachmentList <> '') then
