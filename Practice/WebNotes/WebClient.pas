@@ -141,6 +141,7 @@ Type
                           AFileName : string);
 
     procedure WaitForServerMessage(AMessage : String); virtual;
+    procedure ClearParams;
 
     property SoapRequester : TIpsSOAPS   read fSoapRequester write fSoapRequester;
     property SoapURLList   : TStringList read fSoapURLList   write fSoapURLList;
@@ -510,6 +511,11 @@ begin
   FHttpRequester.OtherHeaders := '';
 end;
 
+procedure TWebClient.ClearParams;
+begin
+  FHttpRequester.AttachedFile := '';
+end;
+
 //------------------------------------------------------------------------------
 procedure TWebClient.RaiseHttpErrors(AError : EIpsHTTPS);
 begin
@@ -648,6 +654,7 @@ end;
 procedure TWebClient.HttpSendRequest(Aaddress: string);
 begin
   Try
+    ClearParams;
     FHttpRequester.Get(Aaddress);
   Except
     on E : EipsHTTPS do
@@ -659,6 +666,7 @@ end;
 procedure TWebClient.HttpPostFile(Aaddress : string;
                                   AFileName : string);
 begin
+  ClearParams;
   if AFileName <> '' then
     FHttpRequester.AttachedFile := AFileName;
 
@@ -674,6 +682,7 @@ end;
 procedure TWebClient.HttpGetFile(Aaddress : string;
                                  AFileName : string);
 begin
+  ClearParams;
   FHttpRequester.LocalFile := AFileName;
 
   Try
