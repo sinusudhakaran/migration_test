@@ -1743,7 +1743,7 @@ begin
         pIDRec^.imSendMethod := ftmNone;
     end;
     //Remove online files that the current Books user doesn't have access to i.e no status returned
-    if (FFilterMode <> fmNoFilter) then begin
+    if (not Assigned(Adminsystem)) and (FFilterMode <> fmNoFilter) then begin
       for i := FIntermediateDataList.Last downto FIntermediateDataList.First do begin
         Online := False;
         pIDRec := FIntermediateDataList.IntermediateData_At(i);
