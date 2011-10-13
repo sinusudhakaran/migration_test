@@ -1206,7 +1206,9 @@ begin
         end else if not Assigned(AdminSystem) then begin
           if FSeverResponce.Status = '104' then
             ErrMsg := 'This process requires a valid subdomain. Please try again or contact your accountant for assistance.'
-          else
+          else if (FSeverResponce.Status = '106') then
+            ErrMsg := Format('BankLink Online could not find user %s. Please try again or contact your accountant for assistance.', [Globals.INI_BankLink_Online_Username])
+          else if (FSeverResponce.Status = '107') then
             ErrMsg := 'This process requires a valid username and password. Please try again or contact your accountant for assistance.';
           HelpfulErrorMsg(ErrMsg, 0);
           Attempt := 3;  //Authentication failed for Books - user needs to update their settings

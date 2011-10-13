@@ -550,7 +550,9 @@ begin
       Result := true //Sucessful
     else if ServerResponce.Status = '104' then
       raise Exception.Create('This process requires a valid subdomain. Please try again or contact your accountant for assistance.')
-    else if (ServerResponce.Status = '106') or (ServerResponce.Status = '107') then
+    else if (ServerResponce.Status = '106') then
+      raise Exception.CreateFmt('BankLink Online could not find user %s. Please try again or contact your accountant for assistance.', [AClientEmail])
+    else if (ServerResponce.Status = '107') then
       raise Exception.Create('This process requires a valid username and password. Please try again or contact your accountant for assistance.')
     else
       raise Exception.CreateFmt('Error getting %s User status', [BANKLINK_ONLINE_NAME]);
