@@ -59,6 +59,9 @@ type
     procedure btnChangePasswordClick(Sender: TObject);
     procedure btnRefreshClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
+    procedure eUsernameChange(Sender: TObject);
+    procedure ePasswordChange(Sender: TObject);
+    procedure eSubDomainChange(Sender: TObject);
 
   private
     { Private declarations }
@@ -428,9 +431,6 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCheckInOut.btnRefreshClick(Sender: TObject);
 begin
-  Globals.INI_BankLink_Online_Username  := Trim(eUsername.Text);
-  Globals.INI_BankLink_Online_Password  := Trim(ePassword.Text);
-  Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
   ClientLookupFrame.Reload;
 end;
 
@@ -440,7 +440,7 @@ var
   UserExists  : Boolean;
   UserMessage : String;
 begin
-  Try
+  try
     UserExists := BankLinkOnlineMgr.CheckBooksUserExists(eUserName.Text, ePassword.Text);
   except
     on E: exception do
@@ -644,6 +644,11 @@ begin
   end;
 end;
 
+procedure TfrmCheckInOut.ePasswordChange(Sender: TObject);
+begin
+  Globals.INI_BankLink_Online_Password  := Trim(ePassword.Text);
+end;
+
 procedure TfrmCheckInOut.ePathEnter(Sender: TObject);
 begin
   TempCheckinPath := ePath.Text;
@@ -663,6 +668,16 @@ begin
       ClientLookupFrame.Reload;
     end;
   end;
+end;
+
+procedure TfrmCheckInOut.eSubDomainChange(Sender: TObject);
+begin
+  Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
+end;
+
+procedure TfrmCheckInOut.eUsernameChange(Sender: TObject);
+begin
+  Globals.INI_BankLink_Online_Username  := Trim(eUsername.Text);
 end;
 
 procedure TfrmCheckInOut.FormShow(Sender: TObject);

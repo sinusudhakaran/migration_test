@@ -161,6 +161,7 @@ object frmCheckInOut: TfrmCheckInOut
         Width = 321
         Height = 21
         TabOrder = 0
+        OnChange = eUsernameChange
       end
       object ePassword: TEdit
         Left = 88
@@ -169,6 +170,7 @@ object frmCheckInOut: TfrmCheckInOut
         Height = 21
         PasswordChar = '*'
         TabOrder = 1
+        OnChange = ePasswordChange
       end
       object btnRefresh: TBitBtn
         Left = 424
@@ -221,6 +223,7 @@ object frmCheckInOut: TfrmCheckInOut
         Width = 321
         Height = 21
         TabOrder = 2
+        OnChange = eSubDomainChange
       end
     end
   end

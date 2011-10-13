@@ -539,33 +539,25 @@ var
   ServerResponce : TServerResponce;
 begin
   Result := false;
+  StatusSilent := False;
   try
-    StatusSilent := False;
-    try
-      UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
-      CiCoClient.OnProgressEvent := DoStatusProgress;
+    UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
+    CiCoClient.OnProgressEvent := DoStatusProgress;
 
-      CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
+    CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
 
-//      if (ServerResponce.Status = '200') or    //Sucessful
-//         (ServerResponce.Status = '107') then  //Password invalid
-      if (ServerResponce.Status = '200') then //Sucessful
-        Result := true
-      else if ServerResponce.Status = '104' then
-        raise Exception.Create('Invalid subdomain')
-      else if (ServerResponce.Status = '106') then
-        raise Exception.Create('Invalid username or password');
-    finally
-      StatusSilent := True;
-      CiCoClient.OnProgressEvent := Nil;
-      ClearStatus;
-    end;
-
-  except
-    on E: Exception do begin
-      raise EUploadFailed.CreateFmt('Error getting %s User status: %s',
-                                    [BANKLINK_ONLINE_NAME, E.Message]);
-    end;
+    if (ServerResponce.Status = '200') then
+      Result := true //Sucessful
+    else if ServerResponce.Status = '104' then
+      raise Exception.Create('This process requires a valid subdomain. Please try again or contact your accountant for assistance.')
+    else if (ServerResponce.Status = '106') or (ServerResponce.Status = '107') then
+      raise Exception.Create('This process requires a valid username and password. Please try again or contact your accountant for assistance.')
+    else
+      raise Exception.CreateFmt('Error getting %s User status', [BANKLINK_ONLINE_NAME]);
+  finally
+    StatusSilent := True;
+    CiCoClient.OnProgressEvent := Nil;
+    ClearStatus;
   end;
 end;
 
