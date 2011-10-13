@@ -547,9 +547,14 @@ begin
 
       CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
 
-      if (ServerResponce.Status = '200') or    //Sucessful
-         (ServerResponce.Status = '107') then  //Password invalid
-        Result := true;
+//      if (ServerResponce.Status = '200') or    //Sucessful
+//         (ServerResponce.Status = '107') then  //Password invalid
+      if (ServerResponce.Status = '200') then //Sucessful
+        Result := true
+      else if ServerResponce.Status = '104' then
+        raise Exception.Create('Invalid subdomain')
+      else if (ServerResponce.Status = '106') then
+        raise Exception.Create('Invalid username or password');
     finally
       StatusSilent := True;
       CiCoClient.OnProgressEvent := Nil;

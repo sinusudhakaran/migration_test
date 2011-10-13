@@ -1204,7 +1204,11 @@ begin
           UpdateOnlineStatus;
           Attempt := 3;  //Password ok
         end else if not Assigned(AdminSystem) then begin
-          HelpfulErrorMsg('Please update your username, password, and subdomain and click refresh.', 0);
+          if FSeverResponce.Status = '104' then
+            ErrMsg := 'This process requires a valid subdomain. Please try again or contact your accountant for assistance.'
+          else
+            ErrMsg := 'This process requires a valid username and password. Please try again or contact your accountant for assistance.';
+          HelpfulErrorMsg(ErrMsg, 0);
           Attempt := 3;  //Authentication failed for Books - user needs to update their settings
         end else if (FSeverResponce.Status = '101') or         //No Practice or Books Password
                     (FSeverResponce.Status = '102') or         //invalid Country, Practice or password
