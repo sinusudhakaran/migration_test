@@ -1714,7 +1714,7 @@ var
   WrapperOfExistingFile: TClientWrapper;
   sysClientRec: pClient_File_Rec;
   AddNew: Boolean;
-  Online : Boolean;
+  Online: Boolean;
 begin
   if Assigned(FClientStatusList) then begin
     //Update status of existing intermediate records
@@ -1741,6 +1741,20 @@ begin
          (not Assigned(Adminsystem)) and
          (pIDRec^.imSendMethod = ftmOnline) then
         pIDRec^.imSendMethod := ftmNone;
+    end;
+    //Remove online files that the current Books user doesn't have access to i.e no status returned
+    if (FFilterMode <> fmNoFilter) then begin
+      for i := FIntermediateDataList.Last downto FIntermediateDataList.First do begin
+        Online := False;
+        pIDRec := FIntermediateDataList.IntermediateData_At(i);
+        for j := 0 to FClientStatusList.Count - 1 do begin
+          ClientStatus := FClientStatusList.Items[j];
+          if (pIDRec^.imCode = ClientStatus.ClientCode) then
+            Online := True;
+        end;
+        if not Online then
+          FIntermediateDataList.Delete(pIDRec);
+      end;
     end;
     //Add new intermediate records
     for j := 0 to FClientStatusList.Count - 1 do begin
