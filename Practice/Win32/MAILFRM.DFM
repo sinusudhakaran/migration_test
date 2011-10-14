@@ -223,7 +223,7 @@ object frmMail: TfrmMail
       end
       inherited ActImages: TImageList
         Bitmap = {
-          494C0101110014003C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+          494C010111001400400010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
           0000000000003600000028000000400000005000000001002000000000000050
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
@@ -902,6 +902,10 @@ object frmMail: TfrmMail
     TabOrder = 3
     object TSEMail: TTabSheet
       Caption = 'TSEMail'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pnlHeader: TPanel
         Left = 0
         Top = 0

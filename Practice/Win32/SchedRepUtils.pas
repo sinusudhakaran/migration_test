@@ -82,6 +82,7 @@ type
      UserResponsible : Integer;
      Completed     : Boolean;
      TxLastMonth   : Boolean;
+     EmailSent     : Boolean;
    end;
 
    TClientEmailInfo = class(Tobject)

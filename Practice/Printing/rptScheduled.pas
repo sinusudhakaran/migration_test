@@ -614,11 +614,12 @@ var
   pCF     : pClient_File_Rec;
   pUser   : pUser_Rec;
   pSB     : pSystem_Bank_Account_Rec;
+  EmailError: Boolean;
 begin
   UnprintedLastMonth := False;
   with TSchdSummaryReport(Sender) do
   begin
-    for j := 0 to 2 do
+    for j := 0 to 3 do
     begin
       LastCode := '';
 
@@ -626,12 +627,16 @@ begin
       begin
          CurrRec := pSchdRepSummaryRec( ReportParam.srSummaryInfoList[i]);
 
+         EmailError := (CurrRec^.SendBy = rdBankLinkOnline) and (not CurrRec^.EmailSent);
+
          if j = 0 then
            PrintRecord := (CurrRec^.Completed)
          else if j = 1 then
-           PrintRecord := (not CurrRec^.Completed)  and (CurrRec^.AccountNo <> CUSTOM_DOCUMENT)
+           PrintRecord := (not CurrRec^.Completed)  and (CurrRec^.AccountNo <> CUSTOM_DOCUMENT) and (not EmailError)
          else if j = 2 then
-           PrintRecord := (not CurrRec^.Completed) and (CurrRec^.AccountNo = CUSTOM_DOCUMENT);
+           PrintRecord := (not CurrRec^.Completed) and (CurrRec^.AccountNo = CUSTOM_DOCUMENT) and (not EmailError)
+         else //Add extra line if error sending BankLink Online email
+           PrintRecord := ((CurrRec^.Completed) and EmailError);
 
          if (PrintRecord) then
          begin
@@ -640,6 +645,9 @@ begin
 
            if (j = 2) and (LastCode = '') then
              RenderTitleLine('Custom documents for the following clients were not generated because they no longer exist');
+
+           if (j = 3) and (LastCode = '') then
+             RenderTitleLine('Emails for the following BankLink Online clients were not generated due to errors');
 
            if ( CurrRec^.ClientCode <> LastCode) then begin
               if CurrRec^.TxLastMonth then
