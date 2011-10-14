@@ -1569,8 +1569,8 @@ begin
                       MyClient.clFields.clCustom_Contact_EMail_Address;
     SendCopy := (ASendMethod = ftmOnline) and (MyClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
     if (not SendCopy) and MyClient.clFields.clDisable_Offsite_Check_Out then begin
-      Msg := 'Cannot send client file ' + CODE +
-             ' because send is disabled';
+      Msg := 'Cannot mark client file ' + CODE +
+             ' as read-only because the option is disabled';
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
       ProgressFrm.mProgress.Lines.Add(Msg);
       Exit;
@@ -1586,8 +1586,8 @@ begin
       SendCopy := (ASendMethod = ftmOnline) and (TempClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
       if (not SendCopy) and TempClient.clFields.clDisable_Offsite_Check_Out then begin
         CloseAClient(TempClient);
-        Msg := 'Cannot send client file ' + CODE +
-               ' because send is disabled';
+        Msg := 'Cannot mark client file ' + CODE +
+               ' as read-only because the option is disabled';
         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
         ProgressFrm.mProgress.Lines.Add(Msg);
         Exit;

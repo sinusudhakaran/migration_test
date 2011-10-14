@@ -475,7 +475,7 @@ object frmClientDetails: TfrmClientDetails
           Hint = 
             'Check to not flag as read-only in the offsite installation on se' +
             'nd'
-          Caption = '&Disable Send'
+          Caption = '&Do not flag as read-only on Send'
           TabOrder = 1
           OnClick = chkDisableCheckoutClick
         end

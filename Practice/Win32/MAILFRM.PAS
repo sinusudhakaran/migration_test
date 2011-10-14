@@ -803,8 +803,8 @@ begin
             Msg := Msg + #13;
           Msg := Msg + Code;
           Inc(CheckOutDisabled);
-          LogUtil.LogMsg( lmInfo, Unitname, 'Cannot send client file ' + CODE +
-                         ' because send is disabled');
+          LogUtil.LogMsg( lmInfo, Unitname, 'Cannot mark client file ' + CODE +
+                         ' as read-only because the option is disabled');
         end
         else if not TempClient.clFields.clFile_Read_Only then
         begin
@@ -824,9 +824,9 @@ begin
    end;
   end;
   if CheckOutDisabled = 1 then
-    HelpfulErrorMsg('The client file ' + Msg + ' could not be sent because it is marked as Send Disabled', 0)
+    HelpfulErrorMsg('Cannot mark client file ' + Msg + ' as read-only because the option is disabled', 0)
   else if CheckOutDisabled > 1 then
-    HelpfulErrorMsg('The following client files could not be sent because they ares marked as Send Disabled:' + #13 + Msg, 0);
+    HelpfulErrorMsg('The following client files cannot be marked as read-only because the option is disabled:' + #13 + Msg, 0);
   result := MailSentOK;
 end;
 
