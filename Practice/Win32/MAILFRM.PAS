@@ -2071,7 +2071,9 @@ begin //SendSceduledEmail
                       LogUtil.LogMsg( lmError, UnitName, sMsg);
                       SomeFailed := true;
                       // Undo checkout
-                      if EmailInfo.EmailType in [EMAIL_CHECKOUT, EMAIL_BANKLINK_ONLINE] then // check back in
+                      if (EmailInfo.EmailType = EMAIL_CHECKOUT) then // check back in
+                         //Note: If we get to this stage for a BankLink Online file then it has
+                         //been uploaded - so we don't need to undo the checkout
                          CheckInClient(EmailInfo.ClientCode, EmailOutboxDir, nil, True);
                       // Decrement ecoding sequence
                       if EmailInfo.EmailType = EMAIL_ECODING then begin
