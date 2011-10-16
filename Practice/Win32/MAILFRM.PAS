@@ -2052,13 +2052,17 @@ begin //SendSceduledEmail
                    end;
 
                    //Flag BankLink Online summary as email sent
-                  if (EmailInfo.EmailType = EMAIL_BANKLINK_ONLINE) then
-                    pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).EmailSent := True;
+                   for j := 0 to srOptions.srSummaryInfoList.Count-1 do begin
+                     if (pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).ClientCode = EmailInfo.ClientCode) then begin
+                       if (EmailInfo.EmailType = EMAIL_BANKLINK_ONLINE) then
+                         pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).EmailSent := True;
+                     end;
+                   end;
 
              except
                    //if mail cannot be sent an exception will be raised
                    on e: EMailSendFailed do begin
-                             //find all occurances of this client in the list and set completed to false.
+                      //find all occurances of this client in the list and set completed to false.
                       for j := 0 to srOptions.srSummaryInfoList.Count-1 do begin
                          if (pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).ClientCode = EmailInfo.ClientCode) then begin
                             if (EmailInfo.EmailType <> EMAIL_BANKLINK_ONLINE) then
