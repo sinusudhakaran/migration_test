@@ -2709,9 +2709,9 @@ begin
         RenameFile(RemoteFileName,RemoteRename);
 
         //open the file and clear the read only flag if set
-        if Wrapper.wRead_Only then
+        if Wrapper.wRead_Only or (Wrapper.wFileTransferMethod <> ftmFile) then
         begin
-          ResetReadOnlyFlag( Code, ftmFile);
+          ResetReadOnlyFlag(Code, ftmFile);
         end;
      end;
 
