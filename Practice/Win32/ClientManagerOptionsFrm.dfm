@@ -271,7 +271,7 @@ object frmClientManagerOptions: TfrmClientManagerOptions
       Top = 268
       Width = 181
       Height = 17
-      Caption = 'Close Task on Send'
+      Caption = 'Close Task on Update'
       Color = clBtnFace
       ParentColor = False
       TabOrder = 10
