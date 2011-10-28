@@ -759,6 +759,7 @@ begin
       LogUtil.LogMsg(lmDebug, UnitName, 'Send Mail Status ' + Status)
    end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmMail.OffsiteSendMail( BK5Files, OtherAttachments : TStringList; CheckoutClientFiles : boolean; WasOpenCode: string) : boolean;
 var
@@ -786,18 +787,14 @@ begin
   //after send mail
   Msg := '';
   CheckOutDisabled := 0;
-  if CheckoutClientFiles and MailSentOK then
-  begin
-    //reopen all bk5 files and mark as read only
-    for i := 0 to BK5Files.Count - 1 do
-    begin
+  if MailSentOK then begin
+    //Reopen bk5 files and mark as read only
+    for i := 0 to BK5Files.Count - 1 do begin
       Code := BK5Files[i];
       IncUsage('Check Out Send');
       OpenAClient( Code, TempClient, true, false, true);
-      if Assigned( TempClient) then
-      begin
-        if TempClient.clFields.clDisable_Offsite_Check_Out then
-        begin
+      if Assigned( TempClient) then begin
+        if TempClient.clFields.clDisable_Offsite_Check_Out then begin
           CloseAClient(TempClient);
           if Msg <> '' then
             Msg := Msg + #13;
@@ -805,24 +802,24 @@ begin
           Inc(CheckOutDisabled);
           LogUtil.LogMsg( lmInfo, Unitname, 'Cannot mark client file ' + CODE +
                          ' as read-only because the option is disabled');
-        end
-        else if not TempClient.clFields.clFile_Read_Only then
-        begin
+        end else if (CheckoutClientFiles and not TempClient.clFields.clFile_Read_Only) or
+                    TempClient.clFields.clForce_Offsite_Check_Out then begin
+          //Close MyClient
+          if (TempClient.clFields.clCode = MyClient.clFields.clCode) then
+            CloseClient;
           TempClient.clFields.clFile_Read_Only := true;
           //force to save so that read only flag is saved
           CloseAClient( TempClient, True);
           LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent. File marked as read-only');
-        end
-        else
-        begin
+        end else if CheckoutClientFiles or TempClient.clFields.clForce_Offsite_Check_Out then begin
           CloseAClient( TempClient);
           LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent. File marked as read-only');
         end;
-      end
-      else
+      end else if CheckoutClientFiles then
         LogUtil.LogMsg(lmInfo,UnitName,' Could not mark ' + Code + ' as read-only');
-   end;
+    end;
   end;
+
   if CheckOutDisabled = 1 then
     HelpfulErrorMsg('Cannot mark client file ' + Msg + ' as read-only because the option is disabled', 0)
   else if CheckOutDisabled > 1 then

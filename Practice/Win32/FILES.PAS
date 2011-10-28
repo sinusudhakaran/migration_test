@@ -1568,6 +1568,7 @@ begin
       AClientEmail := MyClient.clFields.clContact_Name + #9' ' +
                       MyClient.clFields.clCustom_Contact_EMail_Address;
     SendCopy := (ASendMethod = ftmOnline) and (MyClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
+    FlagReadOnly := FlagReadOnly or (MyClient.clFields.clForce_Offsite_Check_Out);
     if (not SendCopy) and MyClient.clFields.clDisable_Offsite_Check_Out then begin
       Msg := 'Cannot mark client file ' + CODE +
              ' as read-only because the option is disabled';
@@ -1584,6 +1585,7 @@ begin
     OpenAClient( Code, TempClient, true, false, true);
     if Assigned( TempClient) then begin
       SendCopy := (ASendMethod = ftmOnline) and (TempClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
+      FlagReadOnly := FlagReadOnly or (TempClient.clFields.clForce_Offsite_Check_Out);
       if (not SendCopy) and TempClient.clFields.clDisable_Offsite_Check_Out then begin
         CloseAClient(TempClient);
         Msg := 'Cannot mark client file ' + CODE +
@@ -1602,6 +1604,7 @@ begin
       //Need to get email for banklink online
       OpenAClientForRead( Code, TempClient);
       if Assigned( TempClient) then begin
+        FlagReadOnly := FlagReadOnly or (TempClient.clFields.clForce_Offsite_Check_Out);      
         AClientEmail := TempClient.clFields.clPractice_Name + #9' ' +
                         TempClient.clFields.clPractice_EMail_Address;
         if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
