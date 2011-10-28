@@ -1337,7 +1337,7 @@ procedure TfrmClientManager.actClientEmailExecute(Sender: TObject);
 var
   unused: Boolean;
 begin
-  MailFrm.SendFileTo( 'Send Mail', actClientEmail.Caption, '', '', unused);
+  MailFrm.SendFileTo( 'Send Mail', actClientEmail.Caption, '', '', unused, CurrUser.CanAccessAdmin);
 end;
 procedure TfrmClientManager.actClientTypeExecute(Sender: TObject);
 begin
