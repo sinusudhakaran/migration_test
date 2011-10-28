@@ -1240,11 +1240,11 @@ begin
                 'Save Client File|'
                 +'Save the Client File you are working on';
    tbGetClientFiles.Hint  :=
-                'Check in a Client File|'
-                +'Check in a Client File from another '+SHORTAPPNAME+' System or an Off-site Client';
+                'Update a Client File|'
+                +'Update a Client File from another '+SHORTAPPNAME+' System or an Off-site Client';
    tbSendClientFiles.Hint :=
-                'Check out a Client File|'
-                +'Check out a Client File for coding by another '+SHORTAPPNAME+' System or an Off-site Client';
+                'Send a Client File|'
+                +'Send a Client File for coding by another '+SHORTAPPNAME+' System or an Off-site Client';
 //   tbSendTo.Hint  :=
 //                'E-mail the Client File|'
 //                +'E-mail the Client File';
@@ -4895,7 +4895,7 @@ begin
       begin
         UPDATEMF.UpdateMenus;
         UPDATEMF.UpdateSystemMenus;
-        HelpfulErrorMsg( 'You do not have sufficient rights to Check In a file,' + #13 +
+        HelpfulErrorMsg( 'You do not have sufficient rights to Update a file,' + #13 +
          'please see your BankLink Administrator.',0);
         if Assigned(AdminSystem) then
           DoClientManager(0,0,0,0);

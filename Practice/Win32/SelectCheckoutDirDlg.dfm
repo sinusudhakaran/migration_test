@@ -2,7 +2,7 @@ object dlgSelectCheckoutDir: TdlgSelectCheckoutDir
   Left = 431
   Top = 338
   BorderStyle = bsDialog
-  Caption = 'Check out file(s)'
+  Caption = 'Send file(s)'
   ClientHeight = 92
   ClientWidth = 494
   Color = clBtnFace
@@ -21,10 +21,10 @@ object dlgSelectCheckoutDir: TdlgSelectCheckoutDir
   object lblDirLabel: TLabel
     Left = 7
     Top = 14
-    Width = 94
+    Width = 70
     Height = 13
     Anchors = [akLeft, akBottom]
-    Caption = 'Check out file(s) to '
+    Caption = 'Send file(s) to '
   end
   object btnFolder: TSpeedButton
     Left = 456
