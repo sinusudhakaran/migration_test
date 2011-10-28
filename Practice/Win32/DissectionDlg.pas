@@ -3752,13 +3752,13 @@ begin
                   end;
                 end;
               end;
+              pTran^.txCoded_By    := cbManual;
+              pTran^.txAccount     := DISSECT_DESC;
+              //clean up any gst amounts that are left on the transaction
+              ClearGSTFields( pTran);
+              ClearSuperFundFields( pTran);
+              Result := True;
            end;
-           pTran^.txCoded_By    := cbManual;
-           pTran^.txAccount     := DISSECT_DESC;
-           //clean up any gst amounts that are left on the transaction
-           ClearGSTFields( pTran);
-           ClearSuperFundFields( pTran);
-           Result := True;
          finally
            AuditIDList.Free;
          end;
