@@ -801,7 +801,7 @@ CONST
    fsNames : Array[ fsMin..fsMax ] of String[ 12 ] =
    ( '',
      'Open',
-     'Checked Out',
+     'Read-only',
      'Off-site',
      'Error'
     );
@@ -2214,7 +2214,7 @@ const
 
   cmfsNames: Array[ cmfsMin..cmfsMax ] of String =
   (
-    'Checked Out',
+    'Read-only',
     'Synchronised',
     'Unsynchronised',
     'BankLink Books',

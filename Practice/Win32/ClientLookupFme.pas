@@ -1979,7 +1979,7 @@ begin
                 bkconst.fsCheckedOut,
                 bkconst.fsOffsite:
                   begin
-                    S := 'Sent';
+                    S := 'Read-only';
                     if ByName <> '' then
                       S := S + ' by ' + ByName;
                   end;
