@@ -5064,7 +5064,7 @@ begin
   if FileExists( filename) then
     ShellExecute(Handle,nil,pChar( filename), nil ,nil,SW_SHOWNORMAL)
   else
-    HelpfulWarningMsg( 'Check-in Extension setup not found.',0);
+    HelpfulWarningMsg( 'Client File Handler setup not found.',0);
 end;
 
 procedure TfrmMain.mniJobsClick(Sender: TObject);

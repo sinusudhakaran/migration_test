@@ -296,14 +296,14 @@ begin
     else
       aMsg := 'BankLink is currently running in folder '#13#13 +
             bk5Dir + #13+#13 +
-            'Would you like to check-in the file ' + ExtractFileName( Filename) +
-            ' to this copy of BankLink?';
+            'Would you like to update the file ' + ExtractFileName( Filename) +
+            ' in this copy of BankLink?';
 
   end
   else
   begin
-    aMsg := 'Would you like to check-in the file ' + ExtractFilename( Filename) + #13#13 +
-            'to the copy of BankLink in the '+  bk5Dir + ' folder?';
+    aMsg := 'Would you like to update the file ' + ExtractFilename( Filename) + #13#13 +
+            'in the copy of BankLink in the '+  bk5Dir + ' folder?';
   end;
 
   if MessageDlg( aMsg, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
@@ -372,7 +372,7 @@ begin
   //test of bk5 in this directory
   if FileExists( Filepath + 'bk5win.exe') then
   begin
-    MessageDlg('Cannot check-in this file because it is already in a BankLink folder.', mtInformation, [mbOK], 0);
+    MessageDlg('Cannot update this file because it is already in a BankLink folder.', mtInformation, [mbOK], 0);
     CleanUpOutlookTempDir;
     exit;
   end;
