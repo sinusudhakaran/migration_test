@@ -2,8 +2,8 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=BankLink Check-In Extensions
-AppVerName=BankLink Check-In Extensions
+AppName=BankLink Client File Handler
+AppVerName=BankLink Client File Handler
 AppPublisher=BankLink
 DefaultDirName={pf}\BankLink Client
 DefaultGroupName=BankLink Client

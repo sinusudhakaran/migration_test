@@ -20,9 +20,9 @@ object frmSelectBK5Folder: TfrmSelectBK5Folder
   object lblCheckin: TLabel
     Left = 16
     Top = 40
-    Width = 205
+    Width = 187
     Height = 13
-    Caption = 'Where do you want to check-in this file to?'
+    Caption = 'Where do you want to update this file?'
   end
   object lblBK5File: TLabel
     Left = 16
@@ -43,7 +43,7 @@ object frmSelectBK5Folder: TfrmSelectBK5Folder
     Top = 248
     Width = 75
     Height = 25
-    Caption = 'Check-In'
+    Caption = 'Update'
     Default = True
     ModalResult = 1
     TabOrder = 1
