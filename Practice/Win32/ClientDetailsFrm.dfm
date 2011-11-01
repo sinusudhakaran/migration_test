@@ -463,7 +463,7 @@ object frmClientDetails: TfrmClientDetails
           Hint = 
             'Check to force this client file to be read-only when sending fro' +
             'm the offsite installation'
-          Caption = '&Force Client to be Read-only on Send'
+          Caption = '&Force Client to be read-only on Send'
           TabOrder = 0
           OnClick = chkForceCheckoutClick
         end
