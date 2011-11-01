@@ -1422,23 +1422,12 @@ begin
          end;
 
          //set the default checkout flag status
-         chkCheckout.Checked := true;
+         chkCheckout.Checked := chkCheckout.Visible;
 
-         if not chkCheckout.Visible then
-           chkCheckout.Checked := false
-         else
-         begin
-           if (Pos( TestStrforSupport, Uppercase(txtRecipient.Text)) > 0)
-           and (not FAllowCheckOutToSupport) then
-              chkCheckout.checked := false
-           else
-           begin
-              if (CodeList.Count = 0)
-              and Assigned( MyClient)
-              and (MyClient.clFields.clFile_Read_Only) then
-                chkCheckout.Checked := False;
-           end;
-         end;
+         if (Pos( TestStrforSupport, Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport) then
+           chkCheckout.checked := False
+         else if (CodeList.Count = 0) and Assigned( MyClient) and (MyClient.clFields.clFile_Read_Only) then
+           chkCheckout.Checked := False;
 
          //from client manager
          if CodeList.Count > 0 then
@@ -1734,7 +1723,7 @@ begin
       txtRecipient.text := Recipient;
       txtSubject.Text := Subject;
       Caption := Title;
-      chkCheckout.Checked := false;
+      chkCheckout.Checked := False;
       if (not Assigned(AdminSystem)) then begin
         if PRACINI_DisableCheckInCheckOut or (not INI_AllowCheckOut) or
            (Assigned(MyClient) and MyClient.clFields.clDisable_Offsite_Check_Out) then
@@ -1743,6 +1732,11 @@ begin
           chkCheckout.Visible := True;
       end else
         chkCheckout.Visible := CurrUser.CanAccessAdmin or (not PRACINI_OSAdminOnly);
+
+      //Set to read-only by default (TFS 34290)
+      chkCheckout.Checked := chkCheckout.Visible;
+      if (Pos(TestStrforSupport, Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport) then
+        chkCheckout.Checked := False;
 
       if not CanSelectClient then begin
         actAttach.Caption := 'Attac&h...';
