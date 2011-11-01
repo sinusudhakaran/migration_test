@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 645;
-   BK_IOLIB_Date    = '27/09/11';
-   BK_FILE_VERSION  = 167;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 647;
+   BK_IOLIB_Date    = '02/11/11';
+   BK_FILE_VERSION  = 168;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -205,6 +205,7 @@ Const
                      165    Add remaining Audit Record ID fields to records
                             Add Audit Table (Defined in SY.TXT)
                             Add temp fileds to Txn for Provisional info
+                     168    Add VAT Adjustments field to Balance rec
      5.22 (2011 CICO)166    Add Client File GUID to Client Extra
                      167    Add field for CheckOut Online Scheduled Reports
                             Client File GUID not needed. Added field for File Transfer Method
@@ -1077,6 +1078,7 @@ Type
       blPT_Form_Type                     : Byte;       { Stored }
       blGST_Cdj_Customs                  : Money;       { Stored }
       blAudit_Record_ID                  : Integer;       { Stored }
+      blVAT_Adjustments                  : Array[ 0..99 ] of Money;       { Stored }
       blFirst_Fuel_Sheet                 : pFuel_Sheet_Rec;
       blLast_Fuel_Sheet                  : pFuel_Sheet_Rec;
       blEOR                              : Byte;

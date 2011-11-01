@@ -1,4 +1,4 @@
-$|BK_FILE_VERSION  = 167;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 168;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -192,6 +192,7 @@ $|  5.21 (2011AUDIT)164    Add Audit Record ID field to memorisation records
 $|                  165    Add remaining Audit Record ID fields to records
 $|                         Add Audit Table (Defined in SY.TXT)
 $|                         Add temp fileds to Txn for Provisional info
+$|                  168    Add VAT Adjustments field to Balance rec
 $|  5.22 (2011 CICO)166    Add Client File GUID to Client Extra
 $|                  167    Add field for CheckOut Online Scheduled Reports
 $|                         Client File GUID not needed. Added field for File Transfer Method
@@ -983,6 +984,7 @@ F|Using Fuel Percent Method|Y
 F|PT Form Type|B
 F|GST Cdj Customs|$
 F|Audit Record ID|L
+F|VAT Adjustments|B$0|99
 C|First Fuel Sheet|P|Fuel Sheet Rec
 C|Last Fuel Sheet|P|Fuel Sheet Rec
 E

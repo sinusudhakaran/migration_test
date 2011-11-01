@@ -734,6 +734,7 @@ begin
     FAuditNamesArray[190,252] := 'PT_Form_Type';
     FAuditNamesArray[190,253] := 'GST_Cdj_Customs';
     FAuditNamesArray[190,254] := 'Audit_Record_ID';
+    FAuditNamesArray[190,255] := 'VAT_Adjustments';
 
    FAuditTableArray[200] := 'SubGroup_Heading';
     FAuditNamesArray[200,202] := 'Heading';
