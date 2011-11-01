@@ -28,6 +28,7 @@ type
      cdDescriptiveName : string[ 60];
      cdWidth        : integer;
      cdTableCell    : TOvcBaseTableCell;
+     cdDefEditMode  : Array[ TEditMode ] of boolean; //Save default edit modes for restore columns
      cdEditMode     : Array[ TEditMode ] of boolean; //Two Edit Modes - Restricted and General
      cdSortOrder    : integer;      //sort order to use when col displaying
                                     //this field is clicked
@@ -171,6 +172,8 @@ begin
       cdWidth        := aWidth;
       cdHeading      := aHeading;
       cdTableCell    := aCell;
+      cdDefEditMode[ emRestrict ]  := aEditRestrict;
+      cdDefEditMode[ emGeneral  ]  := aEditGeneral;
       cdEditMode[ emRestrict ]  := aEditRestrict;
       cdEditMode[ emGeneral  ]  := aEditGeneral;
       cdSortOrder    := aSortOrder;

@@ -4371,12 +4371,14 @@ begin
     //store the active col field id for later use
     CurrentFieldId := ColumnFmtList.ColumnDefn_At(ActiveCol)^.cdFieldID;
     ColumnFmtList.SetToDefault;
-    // and reset visiblity
+    // and reset visiblity and editability
     for i := 0 to Pred( ColumnFmtList.ItemCount) do begin
      Col := ColumnFmtList.ColumnDefn_At( i);
      Col.cdHidden := Col.cdDefHidden;
      if Col.cdHidden and (Col.cdFieldID = CurrentFieldId) then
       CurrentFieldId := 0;
+     Col.cdEditMode[emRestrict] := Col.cdDefEditMode[emRestrict];
+     Col.cdEditMode[emGeneral] := Col.cdDefEditMode[emGeneral];
     end;
     //Rebuild the table
     BuildTableColumns;
