@@ -1511,7 +1511,7 @@ begin
                                            FlagReadOnly, EditEmail, SendEmail,
                                            ClientLookup.SelectedCodes);
   if Codes <> '' then begin
-    Files.SendClientFiles(Codes, ftmFile);
+    Files.SendClientFiles(Codes, ftmFile, False, True);
     RefreshLookup( '');
     ClientLookup.SelectedCodes := Codes;
   end;
