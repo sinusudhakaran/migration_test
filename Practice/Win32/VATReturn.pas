@@ -198,7 +198,6 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnPreviewClick(Sender: TObject);
-    procedure gbDebtorsClick(Sender: TObject);
     procedure CalculateWorksheet(Sender: TObject);
   private
     { Private declarations }
@@ -211,6 +210,7 @@ type
     procedure CalculateVAT;
     procedure SetRptParams(const Value: TrptParameters);
     Procedure Save;
+    function GetBalancesRec(D1, D2: integer): pBalances_Rec;
   public
     { Public declarations }
     function Execute : boolean;
@@ -387,9 +387,20 @@ begin
   FVat_Details.HasUnCodes := FVat_Class_Totals.guHasUncodes;
 end;
 
-procedure TfrmVAT.gbDebtorsClick(Sender: TObject);
+function TfrmVAT.GetBalancesRec(D1, D2: integer): pBalances_Rec;
+var
+  i: integer;
+  Balances: pBalances_Rec;
 begin
-
+  Result := nil;
+  for i := MyClient.clBalances_List.First to MyClient.clBalances_List.Last do begin
+    Balances := MyClient.clBalances_List.Balances_At(i);
+    if Assigned(Balances) then begin
+      if (Balances.blGST_Period_Starts = D1) and
+         (Balances.blGST_Period_Ends = D2) then
+        Result := Balances;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -550,7 +561,8 @@ end;
 //------------------------------------------------------------------------------
 
 function TfrmVAT.Execute: boolean;
-
+var
+  P: pBalances_Rec;
 begin
    Result := false;
    with MyClient, MyClient.clFields do
@@ -562,6 +574,28 @@ begin
       lblAddr3.caption    := clAddress_L3;
 
       lblGSTno.caption := clGST_Number;
+
+      //Load adjustments
+      P := GetBalancesRec(D1, D2);
+      if Assigned(P) then begin
+        cd17.AsFloat := Money2Double(P.blVAT_Adjustments[0]);
+        cd13.AsFloat := Money2Double(P.blVAT_Adjustments[1]);
+        cd5.AsFloat  := Money2Double(P.blVAT_Adjustments[2]);
+        cd0.AsFloat  := Money2Double(P.blVAT_Adjustments[3]);
+        od17.AsFloat := Money2Double(P.blVAT_Adjustments[4]);
+        od13.AsFloat := Money2Double(P.blVAT_Adjustments[5]);
+        od5.AsFloat  := Money2Double(P.blVAT_Adjustments[6]);
+        od0.AsFloat  := Money2Double(P.blVAT_Adjustments[7]);
+        cc17.AsFloat := Money2Double(P.blVAT_Adjustments[8]);
+        cc13.AsFloat := Money2Double(P.blVAT_Adjustments[9]);
+        cc5.AsFloat  := Money2Double(P.blVAT_Adjustments[10]);
+        cc0.AsFloat  := Money2Double(P.blVAT_Adjustments[11]);
+        oc17.AsFloat := Money2Double(P.blVAT_Adjustments[12]);
+        oc13.AsFloat := Money2Double(P.blVAT_Adjustments[13]);
+        oc5.AsFloat  := Money2Double(P.blVAT_Adjustments[14]);
+        oc0.AsFloat  := Money2Double(P.blVAT_Adjustments[15]);
+        CalculateWorksheet(Self);
+      end;
 
       CalculateVAT;
 
@@ -578,8 +612,8 @@ begin
   else
      Self.ShowModal;
 
-//  if okPressed then
-//    Save;
+  if okPressed then
+    Save;
 end;
 
 //------------------------------------------------------------------------------
@@ -654,19 +688,7 @@ Var
   Balances : pBalances_Rec;
   B : Integer;
 begin
-  P := NIL;
-
-  With MyClient.clBalances_List do
-  Begin
-    for B := First to Last do
-    Begin
-      Balances := Balances_At( B );
-      if ( Balances.blGST_Period_Starts =  D1 ) and
-         ( Balances.blGST_Period_Ends = D2 ) then
-         P := Balances;
-    End;
-  End;
-
+  P := GetBalancesRec(D1, D2);
   if P = NIL then
   Begin
     P := New_Balances_Rec;
@@ -686,7 +708,25 @@ begin
     P.blBAS_T7_VAT7 := VAT7;
     P.blBAS_T8_VAT8 := VAT8;
     P.blBAS_T9_VAT9 := VAT9;
+    //Adjustments
+    P.blVAT_Adjustments[0] := CD17;
+    P.blVAT_Adjustments[1] := CD13;
+    P.blVAT_Adjustments[2] := CD5;
+    P.blVAT_Adjustments[3] := CD0;
+    P.blVAT_Adjustments[4] := OD17;
+    P.blVAT_Adjustments[5] := OD13;
+    P.blVAT_Adjustments[6] := OD5;
+    P.blVAT_Adjustments[7] := OD0;
+    P.blVAT_Adjustments[8] := CC17;
+    P.blVAT_Adjustments[9] := CC13;
+    P.blVAT_Adjustments[10] := CC5;
+    P.blVAT_Adjustments[11] := CC0;
+    P.blVAT_Adjustments[12] := OC17;
+    P.blVAT_Adjustments[13] := OC13;
+    P.blVAT_Adjustments[14] := OC5;
+    P.blVAT_Adjustments[15] := OC0;
   end;
+
 end;
 
 procedure TfrmVAT.SetRptParams(const Value: TrptParameters);

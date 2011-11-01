@@ -109,6 +109,7 @@ CONST
    tkblPT_Form_Type                     = 252 ;
    tkblGST_Cdj_Customs                  = 253 ;
    tkblAudit_Record_ID                  = 254 ;
+   tkblVAT_Adjustments                  = 255 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -129,6 +130,9 @@ end;
 {  -------------------------------------------------------------------  }
 
 PROCEDURE Write_Balances_Rec ( Var O : TBalances_Rec ; Var F : TIOStream );
+
+Var
+   I     : Byte;
 
 Begin
    If IsABalances_Rec ( @O ) then With O do
@@ -197,6 +201,7 @@ Begin
       F.WriteByteValue( tkblPT_Form_Type , blPT_Form_Type );
       F.WriteMoneyValue( tkblGST_Cdj_Customs , blGST_Cdj_Customs );
       F.WriteIntegerValue( tkblAudit_Record_ID , blAudit_Record_ID );
+      For i := 0 to 99 do F.WriteBMoneyValue( tkblVAT_Adjustments , i, blVAT_Adjustments[ i ] );
       F.WriteToken( tkEnd_Balances );
    end;
 end; { of Write_Balances_Rec }
@@ -207,6 +212,8 @@ PROCEDURE Read_Balances_Rec ( Var O : TBalances_Rec; Var F : TIOStream );
 
 Var
    Token : Byte;
+   I     : Byte;
+   M     : Money;
 
 Begin
    FillChar( O, Balances_Rec_Size, 0 );
@@ -282,6 +289,12 @@ Begin
          tkblPT_Form_Type                     : blPT_Form_Type := F.ReadByteValue;
          tkblGST_Cdj_Customs                  : blGST_Cdj_Customs := F.ReadMoneyValue;
          tkblAudit_Record_ID                  : blAudit_Record_ID := F.ReadIntegerValue;
+         tkblVAT_Adjustments                  : 
+            Begin
+               M := F.ReadBMoneyValue( I );
+               CheckBounds( I, 0, 99, 'blVAT_Adjustments' );
+               blVAT_Adjustments[ I ] := M;
+            end;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -328,7 +341,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkblGST_Period_Starts to tkblAudit_Record_ID do begin
+  for i := tkblGST_Period_Starts to tkblVAT_Adjustments do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -665,6 +678,12 @@ begin
   if (P1.blAudit_Record_ID <> P2.blAudit_Record_ID) then begin
     P3.blAudit_Record_ID := P1.blAudit_Record_ID;
     ChangedFields[i] := tkblAudit_Record_ID;
+    Inc(i);
+  end;
+  if VAT_Adjustments_Changed(TVAT_Adjustments_Array(P1.blVAT_Adjustments), 
+                  TVAT_Adjustments_Array(P2.blVAT_Adjustments), 
+                  TVAT_Adjustments_Array(P3.blVAT_Adjustments)) then begin
+    ChangedFields[i] := tkblVAT_Adjustments;
     Inc(i);
   end;
 

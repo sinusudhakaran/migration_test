@@ -76,7 +76,7 @@ object frmVAT: TfrmVAT
     Top = 0
     Width = 727
     Height = 567
-    ActivePage = tsVATCalculation
+    ActivePage = tsAdjustments
     Align = alClient
     TabOrder = 1
     object tsVATCalculation: TTabSheet

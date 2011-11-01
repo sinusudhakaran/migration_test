@@ -83,6 +83,7 @@ type
   TDIS_Column_Width_Array = Array[ 0..32 ] of Integer;
   TDIS_Column_is_Hidden_Array = Array[ 0..32 ] of Boolean;
   TDIS_Column_is_Not_Editable_Array = Array[ 0..32 ] of Boolean;
+  TVAT_Adjustments_Array = Array[ 0..99 ] of Money;
   TLine_Type_Array = Array[ 1..50 ] of Byte;
   TTAX_Applies_From_Array = Array[ 1..99, 1..5 ] of Integer;
   TTAX_Rates_Array = Array[ 1..99, 1..5 ] of Money;
@@ -160,6 +161,7 @@ type
  function DIS_Column_Width_Changed(const V1, V2: TDIS_Column_Width_Array; var V3: TDIS_Column_Width_Array): boolean;
  function DIS_Column_is_Hidden_Changed(const V1, V2: TDIS_Column_is_Hidden_Array; var V3: TDIS_Column_is_Hidden_Array): boolean;
  function DIS_Column_is_Not_Editable_Changed(const V1, V2: TDIS_Column_is_Not_Editable_Array; var V3: TDIS_Column_is_Not_Editable_Array): boolean;
+ function VAT_Adjustments_Changed(const V1, V2: TVAT_Adjustments_Array; var V3: TVAT_Adjustments_Array): boolean;
  function Line_Type_Changed(const V1, V2: TLine_Type_Array; var V3: TLine_Type_Array): boolean;
  function TAX_Applies_From_Changed(const V1, V2: TTAX_Applies_From_Array; var V3: TTAX_Applies_From_Array): boolean;
  function TAX_Rates_Changed(const V1, V2: TTAX_Rates_Array; var V3: TTAX_Rates_Array): boolean;
@@ -1208,6 +1210,21 @@ begin
 end;
 
 function DIS_Column_is_Not_Editable_Changed(const V1, V2: TDIS_Column_is_Not_Editable_Array; var V3: TDIS_Column_is_Not_Editable_Array): boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  for i := Low(V1) to High(V2) do
+    if V1[i] <> V2[i] then begin
+      Result := True;
+      Break;
+    end;
+  if Result then
+    for i := Low(V1) to High(V1) do
+        V3[i] := V1[i];
+end;
+
+function VAT_Adjustments_Changed(const V1, V2: TVAT_Adjustments_Array; var V3: TVAT_Adjustments_Array): boolean;
 var
   i: integer;
 begin
