@@ -53,7 +53,7 @@ object frmClientDetails: TfrmClientDetails
       Caption = 'Client Details'
       DesignSize = (
         581
-        456)
+        550)
       object Label1: TLabel
         Left = 16
         Top = 10
@@ -806,7 +806,7 @@ object frmClientDetails: TfrmClientDetails
       ImageIndex = 2
       DesignSize = (
         581
-        456)
+        550)
       object meNotes: TMemo
         Left = 12
         Top = 12
