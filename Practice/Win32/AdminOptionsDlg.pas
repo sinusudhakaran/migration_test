@@ -20,7 +20,7 @@ uses
   Dialogs, ExtCtrls, Mask, RzEdit, RzSpnEdt, StdCtrls, ComCtrls, Buttons,
   ExtDlgs, ovcbase, ovcef, ovcpb, ovcnf, ReportDefs, NewReportObj,
   NewReportUtils, upgClientCommon, OmniXML, Tabs, RzCmboBx, AuditMgr,
-  OSFont, ovcpf;
+  OSFont, ovcpf, CheckLst;
 
 
 
@@ -127,6 +127,19 @@ type
     rsMaxNarration: TRzSpinEdit;
     PZero: TPanel;
     chkZeroAmounts: TCheckBox;
+    TabSheet1: TTabSheet;
+    ckUseBankLinkOnline: TCheckBox;
+    Edit1: TEdit;
+    Label1: TLabel;
+    Label3: TLabel;
+    ComboBox1: TComboBox;
+    Label7: TLabel;
+    Button1: TButton;
+    Button3: TButton;
+    CheckListBox1: TCheckListBox;
+    Panel1: TPanel;
+    Bevel7: TBevel;
+    Label9: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnBackupDirClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);

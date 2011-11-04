@@ -269,7 +269,7 @@ begin
                Case clAccounting_System_Used of
                   suOther       : ;
                   suSageLine50  : ;
-                  suQuickBooks  : ;
+                  suQuickBooks  : QuickBooksX.ExtractData( FD, TD,False, Path );
                   suBK5CSV      : CSVX.ExtractData( FD, TD, Path );
                   suQIF         : DoExtractBusinessProduct(FD, TD, Path);
                   suOFXV1       : DoExtractBusinessProduct(FD, TD, Path);
