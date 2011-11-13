@@ -127,6 +127,9 @@ type
     chkUnlockEntries: TCheckBox;
     chkEditChart: TCheckBox;
     chkEditMems: TCheckBox;
+    grpBOClients: TGroupBox;
+    btnClientSettings: TButton;
+    lblClientBOProducts: TLabel;
 
     procedure btnOkClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -142,6 +145,7 @@ type
     procedure txtLastDiskIDChange(Sender: TObject);
     procedure chkForceCheckoutClick(Sender: TObject);
     procedure chkDisableCheckoutClick(Sender: TObject);
+    procedure btnClientSettingsClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -155,6 +159,7 @@ type
     procedure UpdatePracticeContactDetails( ContactType : byte);
 
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
+    procedure ShowBanklinkOnlineSettings;
   public
     { Public declarations }
     function Execute(PCode: string = '') : boolean;
@@ -187,7 +192,8 @@ uses
    bkConst,
    BKDEFS,
    ClientUtils,
-   AuditMgr;
+   AuditMgr,
+   BanklinkOnlineSettingsFrm;
 
 {$R *.DFM}
 
@@ -282,6 +288,8 @@ begin
 {$ELSE}
   tsSmartLink.TabVisible := false;
 {$ENDIF}
+
+  lblClientBOProducts.Caption := 'This client currently has access to {#} Banklink Online product(s)'; 
 end;
 
 //------------------------------------------------------------------------------
@@ -382,6 +390,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
+begin
+  ShowBanklinkOnlineSettings;
+end;
+
 procedure TfrmClientDetails.btnOkClick(Sender: TObject);
 begin
    if okToPost then
@@ -1181,6 +1194,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmClientDetails.ShowBanklinkOnlineSettings;
+var
+  BanklinkOnlineSettings : TfrmBanklinkOnlineSettings;
+begin
+  BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
+  try
+    BanklinkOnlineSettings.ShowModal;
+  finally
+    BanklinkOnlineSettings.Free;
+  end;
+end;
+
 procedure TfrmClientDetails.ShowPracticeContactDetails(ReadOnly : Boolean);
 begin
   if (ReadOnly) then

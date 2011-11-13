@@ -4,7 +4,7 @@ object frmClientDetails: TfrmClientDetails
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Client Details'
-  ClientHeight = 539
+  ClientHeight = 604
   ClientWidth = 601
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -17,12 +17,12 @@ object frmClientDetails: TfrmClientDetails
   OnShow = FormShow
   DesignSize = (
     601
-    539)
+    604)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOk: TButton
     Left = 438
-    Top = 506
+    Top = 571
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -33,7 +33,7 @@ object frmClientDetails: TfrmClientDetails
   end
   object btnCancel: TButton
     Left = 518
-    Top = 506
+    Top = 571
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -46,14 +46,14 @@ object frmClientDetails: TfrmClientDetails
     Left = 8
     Top = 5
     Width = 589
-    Height = 484
+    Height = 550
     ActivePage = tbsOptions
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
       DesignSize = (
         581
-        550)
+        522)
       object Label1: TLabel
         Left = 16
         Top = 10
@@ -378,7 +378,7 @@ object frmClientDetails: TfrmClientDetails
       end
       object grpDownLoadSettings: TGroupBox
         Left = 16
-        Top = 279
+        Top = 369
         Width = 529
         Height = 137
         TabOrder = 3
@@ -451,7 +451,7 @@ object frmClientDetails: TfrmClientDetails
       end
       object grpBooks: TGroupBox
         Left = 16
-        Top = 73
+        Top = 155
         Width = 529
         Height = 200
         TabOrder = 2
@@ -519,6 +519,32 @@ object frmClientDetails: TfrmClientDetails
           Height = 17
           Caption = 'Allow client to edit &memorisations'
           TabOrder = 5
+        end
+      end
+      object grpBOClients: TGroupBox
+        Left = 16
+        Top = 73
+        Width = 529
+        Height = 67
+        Caption = 'Banklink Online Clients'
+        TabOrder = 4
+        object lblClientBOProducts: TLabel
+          Left = 136
+          Top = 30
+          Width = 309
+          Height = 13
+          Caption = 
+            'This client currently has access to {#} Banklink Online product(' +
+            's)'
+        end
+        object btnClientSettings: TButton
+          Left = 20
+          Top = 24
+          Width = 93
+          Height = 27
+          Caption = 'Client Settings'
+          TabOrder = 0
+          OnClick = btnClientSettingsClick
         end
       end
     end
@@ -806,12 +832,12 @@ object frmClientDetails: TfrmClientDetails
       ImageIndex = 2
       DesignSize = (
         581
-        550)
+        522)
       object meNotes: TMemo
         Left = 12
         Top = 12
         Width = 561
-        Height = 417
+        Height = 483
         Anchors = [akLeft, akTop, akRight, akBottom]
         Ctl3D = False
         Lines.Strings = (
@@ -823,7 +849,7 @@ object frmClientDetails: TfrmClientDetails
       end
       object chkShowOnOpen: TCheckBox
         Left = 12
-        Top = 435
+        Top = 501
         Width = 259
         Height = 17
         Anchors = [akLeft, akBottom]
