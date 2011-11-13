@@ -875,6 +875,8 @@ begin
         AddCustomColumn( 'Last Accessed', 75, 9, cluLastAccessed);
         AddCustomColumn( 'Financial Year Starts', 75, 10, cluFinYearStarts);
         AddCustomColumn( 'Practice Contact', 75, 11, cluContactType);
+        AddCustomColumn( 'test', 75, 12, cluNotesOnline);
+        AddCustomColumn( 'test2', 75, 13, cluNotesOnline);
 
         BuildGrid( cluCode);
 
