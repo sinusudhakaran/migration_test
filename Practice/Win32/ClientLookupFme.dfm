@@ -31,7 +31,6 @@ object fmeClientLookup: TfmeClientLookup
     IncrementalSearchTimeout = 2000
     LineMode = lmBands
     LineStyle = lsSolid
-    ParentBackground = False
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0

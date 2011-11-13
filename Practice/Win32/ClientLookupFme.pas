@@ -52,7 +52,8 @@ type
                        cluClientType,
                        cluNextGSTDue,
                        cluBankLinkOnline,
-                       cluModifiedDate
+                       cluModifiedDate,
+                       cluNotesOnline
                        );
 
   TCluColumnDefn = class
@@ -64,6 +65,7 @@ type
     DisplayPos    : integer;
     DisplayWidth  : integer;
     Visible       : Boolean;
+    Color         : TColor;
   end;
 
   TCluColumnList = class( TList)
@@ -2137,6 +2139,11 @@ begin
                  else CellText := CellText + bkBranding.TextNoData;
               end;
             end;
+
+          cluNotesOnline :
+          begin
+            CellText := #10004; // tick
+          end;
         end;
       end;
     end;
@@ -2190,7 +2197,12 @@ begin
       end;
     end
     else
+    if ColID = cluNotesOnline then
     begin
+      TargetCanvas.Font.Color := clGreen;
+      TVirtualStringTree(Sender).Header.Columns[Column].Alignment := taCenter;
+    end
+    else begin
       pIDRec := GetIntermediateDataFromNode( Node);
       if Assigned( pIDRec) and Assigned( MyClient) then
       begin
