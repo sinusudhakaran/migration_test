@@ -53,7 +53,11 @@ type
                        cluNextGSTDue,
                        cluBankLinkOnline,
                        cluModifiedDate,
-                       cluNotesOnline
+                       cluNotesOnline,
+                       cluBillingFrequency,
+                       cluUserAdmin,
+                       cluSuspended,
+                       cluDeactivated
                        );
 
   TCluColumnDefn = class

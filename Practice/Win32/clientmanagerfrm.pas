@@ -875,8 +875,14 @@ begin
         AddCustomColumn( 'Last Accessed', 75, 9, cluLastAccessed);
         AddCustomColumn( 'Financial Year Starts', 75, 10, cluFinYearStarts);
         AddCustomColumn( 'Practice Contact', 75, 11, cluContactType);
-        AddCustomColumn( 'test', 75, 12, cluNotesOnline);
-        AddCustomColumn( 'test2', 75, 13, cluNotesOnline);
+        AddCustomColumn( 'BO Product 1', 75, 12, cluNotesOnline);
+        AddCustomColumn( 'BO Product 2', 75, 13, cluNotesOnline);
+        AddCustomColumn( 'BO Product 3', 75, 14, cluNotesOnline);
+        AddCustomColumn( 'BO Product 4', 75, 15, cluNotesOnline);
+        AddCustomColumn( 'Billing Frequency', 75, 16, cluBillingFrequency);
+        AddCustomColumn( 'User Admin', 75, 17, cluUserAdmin);
+        AddCustomColumn( 'Suspended', 75, 18, cluSuspended);
+        AddCustomColumn( 'Deactivated', 75, 19, cluDeactivated);
 
         BuildGrid( cluCode);
 
