@@ -64,11 +64,7 @@ type
   ClientList2          = class;                 { "https://banklinkonline.com/2011/10/BLOPI"[GblElm] }
   Client2              = class;                 { "https://banklinkonline.com/2011/10/BLOPI"[GblElm] }
 
-  {$SCOPEDENUMS ON}
-  { "https://banklinkonline.com/2011/10/BLOPI"[GblSmpl] }
   ClientStatus = (Active, Suspended);
-
-  {$SCOPEDENUMS OFF}
 
   guid            =  type WideString;      { "http://schemas.microsoft.com/2003/10/Serialization/"[GblSmpl] }
   ArrayOfCatalogueEntry = array of CatalogueEntry;   { "https://banklinkonline.com/2011/10/BLOPI"[GblCplx] }
