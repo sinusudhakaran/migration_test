@@ -80,7 +80,7 @@ var
   i: integer;
 begin
   for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.Checked := true;
+    chkListProducts.Checked[i] := true;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
@@ -88,7 +88,7 @@ var
   i: integer;
 begin
   for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.Checked := false;
+    chkListProducts.Checked[i] := false;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnTempClick(Sender: TObject);
