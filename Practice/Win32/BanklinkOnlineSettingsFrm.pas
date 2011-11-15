@@ -4,9 +4,33 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, CheckLst;
+  Dialogs, StdCtrls, ExtCtrls, CheckLst, BlopiServiceFacade;
 
 type
+  TClientHelper = Class helper for BlopiServiceFacade.Client
+  private
+    function GetDeactivated: boolean;
+    function GetClientConnectDays: string;
+    function GetFreeTrialEndDate: TDateTime;
+    function GetBillingEndDate: TDateTime;
+    function GetUserOnTrial: boolean;
+    function GetBillingFrequency: string;
+    function GetUseClientDetails: boolean;
+    function GetUserName: string;
+    function GetEmailAddress: string;
+  published
+  public
+    property Deactivated: boolean read GetDeactivated;
+    property ClientConnectDays: string read GetClientConnectDays; // 0 if client must always be online
+    property FreeTrialEndDate: TDateTime read GetFreeTrialEndDate;
+    property BillingEndDate: TDateTime read GetBillingEndDate;
+    property UserOnTrial: boolean read GetUserOnTrial;
+    property BillingFrequency: string read GetBillingFrequency;
+    property UseClientDetails: boolean read GetUseClientDetails;
+    property UserName: string read GetUserName;
+    property EmailAddress: string read GetEmailAddress;
+  End;
+
   TfrmBanklinkOnlineSettings = class(TForm)
     grpProductAccess: TGroupBox;
     lblSelectProducts: TLabel;
@@ -32,9 +56,12 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     chklistProducts: TCheckListBox;
+    btnTemp: TButton;
     procedure rbClientAlwaysOnlineClick(Sender: TObject);
     procedure rbClientMustConnectClick(Sender: TObject);
+    procedure btnTempClick(Sender: TObject);
     procedure btnSelectAllClick(Sender: TObject);
+    procedure btnClearAllClick(Sender: TObject);
   private
     productBoxes: array of TCheckBox;
   public
@@ -46,12 +73,25 @@ var
 
 implementation
 
-uses
-  BlopiServiceFacade;
-
 {$R *.dfm}
 
 procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
+var
+  i: integer;
+begin
+  for i := 0 to chkListProducts.Items.Count - 1 do
+    chkListProducts.Checked := true;
+end;
+
+procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
+var
+  i: integer;
+begin
+  for i := 0 to chkListProducts.Items.Count - 1 do
+    chkListProducts.Checked := false;
+end;
+
+procedure TfrmBanklinkOnlineSettings.btnTempClick(Sender: TObject);
 var
   Cat: CatalogueEntry;
   CatArray: ArrayOfCatalogueEntry;
@@ -63,7 +103,16 @@ var
   Client1: Client;
   GUID1, GUID2: WideString;
 begin
-  // Temporary functionality, move it to FormCreate or FormShow later
+  if btnTemp.Caption = 'Switch to offline' then
+  begin
+    // Switched to offline
+    btnTemp.Caption := 'Switch to online';
+  end else
+  begin
+    // Switched to online
+    btnTemp.Caption := 'Switch to offline';
+
+    // Temporary functionality, move it to FormCreate or FormShow later
     Cat := CatalogueEntry.Create;
     Cat.CatalogueType := 'TestCat1';
     CreateGUID(GUID);
@@ -78,6 +127,30 @@ begin
     ListOfClients.Clients := ClientArray;
 
     Client1 := Client.Create;
+    chkSuspendClient.Checked := Client1.Status = Suspended;
+    chkDeactivateClient.Checked := Client1.Deactivated;
+    if (StrToInt(Client1.ClientConnectDays) = 0) then
+    begin
+      rbClientAlwaysOnline.Checked := true;
+    end else
+    begin
+      rbClientMustConnect.Checked := true;
+      cmbDays.Text := Client1.ClientConnectDays;
+    end;
+    if (Client1.UserOnTrial) then
+    begin
+      lblFreeTrial.Caption := 'Free Trial until ' + DateTimeToStr(Client1.FreeTrialEndDate);
+    end else
+    begin
+      lblFreeTrial.Caption := 'Currently billed {' + Client1.BillingFrequency + '} until ' + DateTimeToStr(Client1.BillingEndDate);
+    end;
+    if (Client1.UseClientDetails) then
+    begin
+      chkUseClientDetails.Checked := true;
+      edtUserName.Text := Client1.UserName;
+      edtEmailAddress.Text := Client1.EmailAddress;
+    end;
+
     CreateGUID(GUID);
     Client1.Id := GuidToString(GUID);
     SetLength(SubArray, 1);
@@ -93,8 +166,10 @@ begin
         GUID1 := Client(ListOfClients.Clients[0]).Subscription[k];
         GUID2 := WideString(chklistProducts.Items.Objects[i]);
         chklistProducts.Checked[i] := (GUID1 = GUID2);
+        // Set deactivated checkbox to checked if client is deactivated
       end;
     end;
+  end;  
 end;
 
 procedure TfrmBanklinkOnlineSettings.rbClientAlwaysOnlineClick(Sender: TObject);
@@ -105,6 +180,53 @@ end;
 procedure TfrmBanklinkOnlineSettings.rbClientMustConnectClick(Sender: TObject);
 begin
   cmbDays.Enabled := true;
+end;
+
+{ TClientHelper }
+
+function TClientHelper.GetClientConnectDays: string;
+begin
+  Result := '90';
+end;
+
+function TClientHelper.GetDeactivated: boolean;
+begin
+  Result := true;
+end;
+
+function TClientHelper.GetEmailAddress: string;
+begin
+  Result := 'someone@somewhere.com';
+end;
+
+function TClientHelper.GetFreeTrialEndDate: TDateTime;
+begin
+  Result := StrToDate('31/12/2011');
+end;
+
+function TClientHelper.GetUseClientDetails: boolean;
+begin
+  Result := true;
+end;
+
+function TClientHelper.GetUserName: string;
+begin
+  Result := 'Joe Bloggs';
+end;
+
+function TClientHelper.GetUserOnTrial: boolean;
+begin
+  Result := false;
+end;
+
+function TClientHelper.GetBillingEndDate: TDateTime;
+begin
+  Result := StrToDate('31/12/2011');
+end;
+
+function TClientHelper.GetBillingFrequency: string;
+begin
+  Result := 'Monthly';
 end;
 
 end.

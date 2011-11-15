@@ -46,7 +46,6 @@ object fmeClientLookup: TfmeClientLookup
     OnCompareNodes = vtClientsCompareNodes
     OnGetText = vtClientsGetText
     OnPaintText = vtClientsPaintText
-    OnGetHint = vtClientsGetHint
     OnHeaderClick = vtClientsHeaderClick
     OnHeaderDraw = vtClientsHeaderDraw
     OnIncrementalSearch = vtClientsIncrementalSearch

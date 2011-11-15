@@ -46,6 +46,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Height = 25
       Caption = '&Clear All'
       TabOrder = 1
+      OnClick = btnClearAllClick
     end
     object chkSuspendClient: TCheckBox
       Left = 23
@@ -103,6 +104,15 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Height = 85
       ItemHeight = 13
       TabOrder = 7
+    end
+    object btnTemp: TButton
+      Left = 344
+      Top = 128
+      Width = 89
+      Height = 25
+      Caption = 'Switch to online'
+      TabOrder = 8
+      OnClick = btnTempClick
     end
   end
   object grpBillingFrequency: TGroupBox
