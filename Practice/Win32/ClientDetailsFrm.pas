@@ -34,7 +34,8 @@ uses
   ComCtrls,
   OvcNF,
   WinUtils,
-  OsFont;
+  OsFont,
+  BanklinkOnlineSettingsFrm;
 
 type
   TfrmClientDetails = class(TForm)
@@ -155,6 +156,8 @@ type
     ChangingDiskID : boolean;
     PassGenCodeEntered : boolean;
     FViewNotes : Boolean;
+    BanklinkOnlineSettings : TfrmBanklinkOnlineSettings;
+    OriginalEmail: string;
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
 
@@ -192,8 +195,7 @@ uses
    bkConst,
    BKDEFS,
    ClientUtils,
-   AuditMgr,
-   BanklinkOnlineSettingsFrm;
+   AuditMgr;
 
 {$R *.DFM}
 
@@ -201,7 +203,7 @@ const
    Unitname = 'ClientDetailsFrm';
    lnone = '<none>';
 var
-   BanklinkOnlineConnected := true;
+   BanklinkOnlineConnected : boolean = true;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormCreate(Sender: TObject);
@@ -225,6 +227,9 @@ begin
 
    ChangingDiskID := false;
    grpBooks.Caption := BKBOOKSNAME + ' Clients';
+
+   BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
+   OriginalEmail := eMail.Text;
 end;
 
 //------------------------------------------------------------------------------
@@ -293,7 +298,7 @@ begin
 
   btnClientSettings.Enabled := BanklinkOnlineConnected;
   lblClientBOProducts.Visible := BanklinkOnlineConnected;
-  lblClientBOProducts.Caption := 'This client currently has access to {#} Banklink Online product(s)'; 
+  lblClientBOProducts.Caption := 'This client currently has access to {#} Banklink Online product(s)';
 end;
 
 //------------------------------------------------------------------------------
@@ -400,7 +405,25 @@ begin
 end;
 
 procedure TfrmClientDetails.btnOkClick(Sender: TObject);
+var
+  buttonSelected: integer;
 begin
+   if (OriginalEmail <> eMail.Text) and BanklinkOnlineSettings.chkUseClientDetails.Checked then
+     buttonSelected := MessageDlg('You have changed the Email Address for this client. Do you ' +
+                                  'want the Banklink Online Default Client Administrator to be ' +
+                                  'updated to this Email Address?', mtConfirmation, 
+                                  [mbYes, mbNo, mbCancel], 0);
+     case buttonSelected of
+       // mbYes: 
+       mbNo:
+         begin
+           BanklinkOnlineSettings.chkUseClientDetails.Checked := false;
+           BanklinkOnlineSettings.Client1.UseClientDetails := false;           
+         end;
+       mbCancel: btnCancelClick; 
+     end;
+
+
    if okToPost then
    begin
      okPressed := true;
@@ -1199,10 +1222,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.ShowBanklinkOnlineSettings;
-var
-  BanklinkOnlineSettings : TfrmBanklinkOnlineSettings;
 begin
-  BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
   try
     BanklinkOnlineSettings.ShowModal;
   finally
