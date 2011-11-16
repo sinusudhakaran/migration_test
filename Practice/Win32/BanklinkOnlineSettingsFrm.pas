@@ -74,6 +74,7 @@ type
 
 var
   frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
+  BanklinkOnlineConnected : boolean = true;
 
 implementation
 
@@ -86,6 +87,13 @@ begin
                 'The new Default Client Administrator will be set to ' +
                 '‘' + edtEmailAddress.Text + '’.' + #10 + #10 +
                 'Are you sure you want to continue?');
+
+  if not BanklinkOnlineConnected then
+  begin
+    ShowMessage('Banklink Practice is unable to connect to Banklink Online and so ' +
+                'cannot update this client''s settings');
+    Exit;
+  end;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
@@ -180,7 +188,7 @@ begin
         // Set deactivated checkbox to checked if client is deactivated
       end;
     end;
-  end;  
+  end;
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
