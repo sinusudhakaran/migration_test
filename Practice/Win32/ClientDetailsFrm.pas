@@ -200,6 +200,8 @@ uses
 const
    Unitname = 'ClientDetailsFrm';
    lnone = '<none>';
+var
+   BanklinkOnlineConnected := true;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormCreate(Sender: TObject);
@@ -289,6 +291,8 @@ begin
   tsSmartLink.TabVisible := false;
 {$ENDIF}
 
+  btnClientSettings.Enabled := BanklinkOnlineConnected;
+  lblClientBOProducts.Visible := BanklinkOnlineConnected;
   lblClientBOProducts.Caption := 'This client currently has access to {#} Banklink Online product(s)'; 
 end;
 
