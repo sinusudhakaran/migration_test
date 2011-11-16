@@ -15,6 +15,7 @@ object frmPracticeDetails: TfrmPracticeDetails
   ShowHint = True
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignSize = (
     632
     431)
@@ -47,14 +48,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tbsInterfaces
+    ActivePage = tsBankLinkOnline
     TabOrder = 0
     object tbsDetails: TTabSheet
       Caption = 'Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         609
         359)
@@ -263,10 +260,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsInterfaces: TTabSheet
       Caption = 'Accounting System'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxClientDefault: TGroupBox
         Left = 8
         Top = 4
@@ -329,7 +322,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSystemChange
@@ -385,7 +378,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
         end
@@ -427,7 +420,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbTaxInterfaceChange
@@ -446,10 +439,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsSuperFundSystem: TTabSheet
       Caption = 'Superfund System'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxSuperSystem: TGroupBox
         Left = 8
         Top = 4
@@ -512,7 +501,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -552,10 +541,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsPracticeManagementSystem: TTabSheet
       Caption = 'Practice Management System'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxPracticeManagementSystem: TGroupBox
         Left = 8
         Top = 4
@@ -576,11 +561,100 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
         end
+      end
+    end
+    object tsBankLinkOnline: TTabSheet
+      Caption = 'BankLink Online'
+      ImageIndex = 4
+      object lblURL: TLabel
+        Left = 16
+        Top = 51
+        Width = 60
+        Height = 13
+        Caption = 'Practice URL'
+      end
+      object lblPrimaryContact: TLabel
+        Left = 16
+        Top = 89
+        Width = 77
+        Height = 13
+        Caption = 'Primary Contact'
+      end
+      object lblSelectProducts: TLabel
+        Left = 16
+        Top = 129
+        Width = 390
+        Height = 13
+        Caption = 
+          'Select the BankLink Online products and services that you wish t' +
+          'o have available:'
+      end
+      object ckUseBankLinkOnline: TCheckBox
+        Left = 16
+        Top = 20
+        Width = 265
+        Height = 17
+        Caption = 'Use BankLink Online'
+        TabOrder = 0
+        OnClick = ckUseBankLinkOnlineClick
+      end
+      object edtURL: TEdit
+        Left = 129
+        Top = 48
+        Width = 383
+        Height = 21
+        TabOrder = 1
+      end
+      object cbPrimaryContact: TComboBox
+        Left = 129
+        Top = 86
+        Width = 249
+        Height = 21
+        Style = csDropDownList
+        ItemHeight = 13
+        TabOrder = 2
+      end
+      object vtProducts: TVirtualStringTree
+        Left = 16
+        Top = 152
+        Width = 496
+        Height = 191
+        Header.AutoSizeIndex = 0
+        Header.Font.Charset = DEFAULT_CHARSET
+        Header.Font.Color = clWindowText
+        Header.Font.Height = -11
+        Header.Font.Name = 'Tahoma'
+        Header.Font.Style = []
+        Header.MainColumn = -1
+        Header.Options = [hoColumnResize, hoDrag]
+        ParentBackground = False
+        TabOrder = 3
+        TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+        OnBeforeItemPaint = vtProductsBeforeItemPaint
+        OnFreeNode = vtProductsFreeNode
+        OnGetText = vtProductsGetText
+        Columns = <>
+      end
+      object btnSelectAll: TButton
+        Left = 522
+        Top = 152
+        Width = 75
+        Height = 25
+        Caption = 'Select All'
+        TabOrder = 4
+      end
+      object btnClearAll: TButton
+        Left = 522
+        Top = 183
+        Width = 75
+        Height = 25
+        Caption = 'Clear All'
+        TabOrder = 5
       end
     end
   end

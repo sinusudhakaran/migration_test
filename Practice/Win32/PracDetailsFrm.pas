@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, OvcBase, OvcEF, OvcPB, OvcNF, Buttons, ExtCtrls, ExtDlgs,
   ComCtrls,
-  OSFont;
+  OSFont, VirtualTrees, BlopiServiceFacade;
 
 type
   TfrmPracticeDetails = class(TForm)
@@ -74,6 +74,16 @@ type
     cmbPracticeManagementSystem: TComboBox;
     Label2: TLabel;
     btnEdit: TButton;
+    tsBankLinkOnline: TTabSheet;
+    ckUseBankLinkOnline: TCheckBox;
+    lblURL: TLabel;
+    edtURL: TEdit;
+    lblPrimaryContact: TLabel;
+    cbPrimaryContact: TComboBox;
+    lblSelectProducts: TLabel;
+    vtProducts: TVirtualStringTree;
+    btnSelectAll: TButton;
+    btnClearAll: TButton;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -91,21 +101,41 @@ type
     procedure btnSuperSaveFolderClick(Sender: TObject);
     procedure cmbSuperSystemChange(Sender: TObject);
     procedure btnEditClick(Sender: TObject);
+    procedure vtProductsBeforeItemPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; ItemRect: TRect;
+      var CustomDraw: Boolean);
+    procedure vtProductsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+    procedure FormDestroy(Sender: TObject);
+    procedure ckUseBankLinkOnlineClick(Sender: TObject);
+    procedure vtProductsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
     okPressed : boolean;
     PassGenCodeEntered : boolean;
     ChangingDiskID : boolean;
     InSetup: Boolean;
+    FPrac: Practice;
+    FOnline: Boolean;
     procedure SetUpHelp;
-
+    function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
+                               PVirtualNode; ACaption: widestring;
+                               AObject: TObject): PVirtualNode;
     function  VerifyForm : boolean;
     procedure ReloadLogo;
     procedure SetUpAccounting(const AccountingSystem: Byte);
     procedure SetUpSuper(const SuperfundSystem: Byte);
+    procedure ConnectToBankLinkOnline;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
+  end;
+
+  //Node data record
+  PTreeData = ^TTreeData;
+  TTreeData = record
+    tdCaption: widestring;
+    tdObject: TObject;
   end;
 
   function EditPracticeDetails (SelPracticeMan: Boolean = False): boolean;
@@ -162,7 +192,14 @@ begin
 
    btnSuperLoadFolder.Glyph := btnLoadFolder.Glyph;
    ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
+
+   FPrac := Practice.Create;
 end;
+procedure TfrmPracticeDetails.FormDestroy(Sender: TObject);
+begin
+  FPrac.Free;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.SetUpAccounting(const AccountingSystem: Byte);
 var
@@ -335,6 +372,11 @@ begin
     eSuperSave.Text := test;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
+begin
+  ConnectToBankLinkOnline;
+end;
+
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
 var
    CurrentSuperSystem: Byte;
@@ -670,6 +712,76 @@ begin
 
   Result := True;
 end;
+
+procedure TfrmPracticeDetails.vtProductsBeforeItemPaint(
+  Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
+  ItemRect: TRect; var CustomDraw: Boolean);
+var
+  NodeData : pTreeData;
+  S        : string;
+  Column   : integer;
+  CRect    : TRect;
+  LRect    : TRect;
+begin
+  NodeData := Sender.GetNodeData( Node);
+
+  if NodeData.tdObject = nil then
+  begin
+    CustomDraw := true;
+
+    //paint background
+    TargetCanvas.Brush.Color := clWindow;
+    TargetCanvas.FillRect( ItemRect);
+
+    //paint text
+    TargetCanvas.Brush.Color := clWindow;
+    TargetCanvas.Brush.Style := bsClear;
+
+    TargetCanvas.Font := appimages.Font;
+//    TargetCanvas.Font.Style := [fsBold];
+    TargetCanvas.Font.Color := clBlue;
+
+    S := Globals.BANKLINK_ONLINE_NAME + ' ' + NodeData.tdCaption;
+
+    InflateRect( ItemRect, -6, -2 );
+    DrawText( TargetCanvas.Handle, PChar( S ), StrLen( PChar( S ) ), ItemRect, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+
+    //paint line
+//    LRect.Left     := 6;
+//    LRect.Top      := ItemRect.Bottom - 5;
+//    LRect.Bottom   := LRect.Top + 1;
+//    LRect.Right    := 200;
+//    RzGrafx.PaintGradient( TargetCanvas, LRect, gdVerticalCenter, clBtnFace, clHighlight);
+  end;
+end;
+
+procedure TfrmPracticeDetails.vtProductsFreeNode(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+var
+  Data: PTreeData;
+begin
+  Data := vtProducts.GetNodeData(Node);
+  if Assigned(Data) then begin
+    Data.tdCaption := '';
+    Data.tdObject := nil;
+  end;
+end;
+
+procedure TfrmPracticeDetails.vtProductsGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: WideString);
+var
+  Data: PTreeData;
+begin
+  Data := vtProducts.GetNodeData(Node);
+  if (Data.tdObject <> nil) then begin
+    case Column of
+      0: Node.CheckType := ctCheckBox;
+      1: CellText := Data.tdCaption;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
@@ -687,6 +799,7 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for exporting Tax File to' ) then
     edtSaveTaxTo.Text := test;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.cmbTaxInterfaceChange(Sender: TObject);
 //set the default directory if the directory is currently blank
@@ -704,7 +817,99 @@ begin
     edtSaveTaxTo.Text := '';
   end;
 end;
- // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TfrmPracticeDetails.ConnectToBankLinkOnline;
+var
+  i: integer;
+  Cat: CatalogueEntry;
+  CatArray: ArrayOfCatalogueEntry;
+  GUID: TGuid;
+  TreeColumn: TVirtualTreeColumn;
+  ProductNode, ServiceNode: PVirtualNode;
+begin
+  edtURL.Text := '';
+  cbPrimaryContact.Clear;
+  vtProducts.Header.Columns.Clear;
+  vtProducts.Clear;
+  if FOnline then begin
+    //Go Offline
+    FOnline := False;
+  end else begin
+    //Go Online
+    FOnline := True;
+    FPrac.DisplayName := 'practice';
+    SetLength(CatArray, 3);
+
+    CreateGUID(GUID);
+    Cat := CatalogueEntry.Create;
+    Cat.Id := GuidToString(GUID);
+    Cat.CatalogueType := 'Product';
+    Cat.Description := 'WagesPlus';
+    CatArray[0] := Cat;
+
+    CreateGUID(GUID);
+    Cat := CatalogueEntry.Create;
+    Cat.Id := GuidToString(GUID);
+    Cat.CatalogueType := 'Product';
+    Cat.Description := 'InvoicePlus';
+    CatArray[1] := Cat;
+
+    CreateGUID(GUID);
+    Cat := CatalogueEntry.Create;
+    Cat.Id := GuidToString(GUID);
+    Cat.CatalogueType := 'Service';
+    Cat.Description := 'BankLink Online';
+    CatArray[2] := Cat;
+
+    FPrac.Catalogue := CatArray;
+
+    //URL
+    edtURL.Text := 'https://' + FPrac.DisplayName + '.' +
+                   Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
+                        Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
+    //Primary Contact
+    cbPrimaryContact.Items.Add('Andrew Will');
+    cbPrimaryContact.ItemIndex := 0;
+
+    //Setup Columns
+    TreeColumn := vtProducts.Header.Columns.Add;
+    TreeColumn.Text := 'TestCol1';
+    TreeColumn.Width := 20;
+    TreeColumn := vtProducts.Header.Columns.Add;
+    TreeColumn.Text := 'TestCol2';
+    TreeColumn.Width := 200;
+
+    //Products and Service
+    vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
+    vtProducts.NodeDataSize := SizeOf(TTreeData);
+    vtProducts.Indent := 0;
+    ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
+    ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
+    for i := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do begin
+      Cat := FPrac.Catalogue[i];
+      if Cat.CatalogueType = 'Product' then
+        AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
+      else if Cat.CatalogueType = 'Service' then
+        AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
+    end;
+    vtProducts.Expanded[ProductNode] := True;
+    vtProducts.Expanded[ServiceNode] := True;
+  end;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TfrmPracticeDetails.AddTreeNode(AVST: TCustomVirtualStringTree;
+  ANode: PVirtualNode; ACaption: widestring; AObject: TObject): PVirtualNode;
+var
+  Data: PTreeData;
+begin
+  Result := AVST.AddChild(ANode);
+  AVST.ValidateNode(Result, False);
+  Data := AVST.GetNodeData(Result);
+  Data^.tdCaption := ACaption;
+  Data^.tdObject := AObject;
+end;
+
 procedure TfrmPracticeDetails.btnBrowseLogoBitmapClick(Sender: TObject);
 const
   RecommendedMaxSize = 100000;   //100K
