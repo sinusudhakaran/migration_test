@@ -401,6 +401,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
 begin
+  if not BanklinkOnlineConnected then 
+  begin
+    ShowMessage('Banklink Practice is unable to connect to Banklink Online');
+    Exit;
+  end;
+  
   ShowBanklinkOnlineSettings;
 end;
 
