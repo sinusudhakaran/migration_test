@@ -12,6 +12,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object grpProductAccess: TGroupBox
@@ -216,6 +217,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Caption = 'OK'
     ModalResult = 1
     TabOrder = 3
+    OnClick = btnOKClick
   end
   object btnCancel: TButton
     Left = 400

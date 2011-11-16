@@ -18,6 +18,7 @@ type
     function GetUseClientDetails: boolean;
     function GetUserName: string;
     function GetEmailAddress: string;
+
   published
   public
     property Deactivated: boolean read GetDeactivated;
@@ -57,11 +58,14 @@ type
     btnCancel: TButton;
     chklistProducts: TCheckListBox;
     btnTemp: TButton;
+    Client1: Client;
     procedure rbClientAlwaysOnlineClick(Sender: TObject);
     procedure rbClientMustConnectClick(Sender: TObject);
     procedure btnTempClick(Sender: TObject);
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     productBoxes: array of TCheckBox;
   public
@@ -74,6 +78,15 @@ var
 implementation
 
 {$R *.dfm}
+
+procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
+begin
+  if (edtEmailAddress.Text <> Client1.EmailAddress) then
+    ShowMessage('You have changed the Default Client Administrator Email Address. ' +
+                'The new Default Client Administrator will be set to ' +
+                '‘' + edtEmailAddress.Text + '’.' + #10 + #10 +
+                'Are you sure you want to continue?');
+end;
 
 procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
 var
@@ -100,7 +113,6 @@ var
   SubArray: ArrayOfGuid;
   GUID: TGuid;
   i, k: integer;
-  Client1: Client;
   GUID1, GUID2: WideString;
 begin
   if btnTemp.Caption = 'Switch to offline' then
@@ -126,7 +138,6 @@ begin
     SetLength(ClientArray, 1);
     ListOfClients.Clients := ClientArray;
 
-    Client1 := Client.Create;
     chkSuspendClient.Checked := Client1.Status = Suspended;
     chkDeactivateClient.Checked := Client1.Deactivated;
     if (StrToInt(Client1.ClientConnectDays) = 0) then
@@ -170,6 +181,11 @@ begin
       end;
     end;
   end;  
+end;
+
+procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
+begin
+  Client1 := Client.Create;
 end;
 
 procedure TfrmBanklinkOnlineSettings.rbClientAlwaysOnlineClick(Sender: TObject);
