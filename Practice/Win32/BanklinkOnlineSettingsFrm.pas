@@ -20,6 +20,7 @@ type
     function GetEmailAddress: string;
 
   published
+    procedure SetUseClientDetails(value: boolean);
   public
     property Deactivated: boolean read GetDeactivated;
     property ClientConnectDays: string read GetClientConnectDays; // 0 if client must always be online
@@ -241,6 +242,11 @@ end;
 function TClientHelper.GetUserOnTrial: boolean;
 begin
   Result := false;
+end;
+
+procedure TClientHelper.SetUseClientDetails(value: boolean);
+begin
+  SetUseClientDetails(value);
 end;
 
 function TClientHelper.GetBillingEndDate: TDateTime;

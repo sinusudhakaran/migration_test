@@ -90,7 +90,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 194
       Width = 61
       Height = 21
-      ItemHeight = 13
+      ItemHeight = 0
       TabOrder = 6
       Text = '30'
       Items.Strings = (

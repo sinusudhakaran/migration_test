@@ -415,20 +415,21 @@ var
   buttonSelected: integer;
 begin
    if (OriginalEmail <> eMail.Text) and BanklinkOnlineSettings.chkUseClientDetails.Checked then
+   begin
      buttonSelected := MessageDlg('You have changed the Email Address for this client. Do you ' +
                                   'want the Banklink Online Default Client Administrator to be ' +
-                                  'updated to this Email Address?', mtConfirmation, 
+                                  'updated to this Email Address?', mtConfirmation,
                                   [mbYes, mbNo, mbCancel], 0);
-     case buttonSelected of
-       // mbYes: 
-       mbNo:
-         begin
-           BanklinkOnlineSettings.chkUseClientDetails.Checked := false;
-           BanklinkOnlineSettings.Client1.UseClientDetails := false;           
-         end;
-       mbCancel: btnCancelClick; 
-     end;
-
+     if buttonSelected = mrYes then
+     begin
+     end else
+     if buttonSelected = mrNo then
+     begin
+       BanklinkOnlineSettings.chkUseClientDetails.Checked := false;
+       BanklinkOnlineSettings.Client1.SetUseClientDetails(false);
+     end else
+       btnCancelClick(Sender);
+   end;
 
    if okToPost then
    begin
