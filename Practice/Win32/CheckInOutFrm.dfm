@@ -131,54 +131,13 @@ object frmCheckInOut: TfrmCheckInOut
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
-      object Label2: TLabel
-        Left = 22
-        Top = 17
-        Width = 52
-        Height = 13
-        Alignment = taRightJustify
-        Caption = 'Username:'
-      end
-      object Label3: TLabel
-        Left = 24
-        Top = 54
-        Width = 50
-        Height = 13
-        Alignment = taRightJustify
-        Caption = 'Password:'
-      end
-      object Label1: TLabel
-        Left = 18
-        Top = 91
-        Width = 56
-        Height = 13
-        Alignment = taRightJustify
-        Caption = 'Subdomain:'
-      end
-      object eUsername: TEdit
-        Left = 88
-        Top = 14
-        Width = 321
-        Height = 21
-        TabOrder = 0
-        OnChange = eUsernameChange
-      end
-      object ePassword: TEdit
-        Left = 88
-        Top = 51
-        Width = 321
-        Height = 21
-        PasswordChar = '*'
-        TabOrder = 1
-        OnChange = ePasswordChange
-      end
       object btnRefresh: TBitBtn
-        Left = 424
+        Left = 360
         Top = 12
         Width = 121
         Height = 25
         Caption = 'Refresh'
-        TabOrder = 3
+        TabOrder = 0
         OnClick = btnRefreshClick
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
@@ -209,21 +168,41 @@ object frmCheckInOut: TfrmCheckInOut
           A887DCA887DCA887DCA887B8857AFF00FFFF00FFFF00FFFF00FF}
       end
       object btnChangePassword: TButton
-        Left = 424
+        Left = 360
         Top = 49
         Width = 121
         Height = 25
         Caption = 'Change Password'
-        TabOrder = 4
+        TabOrder = 1
         OnClick = btnChangePasswordClick
       end
-      object eSubDomain: TEdit
-        Left = 88
-        Top = 88
-        Width = 321
-        Height = 21
+      object btnEditConnection: TButton
+        Left = 360
+        Top = 86
+        Width = 121
+        Height = 25
+        Caption = 'Edit Connection'
         TabOrder = 2
-        OnChange = eSubDomainChange
+        OnClick = btnEditConnectionClick
+      end
+      object Panel1: TPanel
+        Left = 7
+        Top = 12
+        Width = 343
+        Height = 99
+        BevelOuter = bvNone
+        BorderStyle = bsSingle
+        Ctl3D = False
+        ParentCtl3D = False
+        TabOrder = 3
+        object lblBankLinkOnline: TLabel
+          Left = 12
+          Top = 12
+          Width = 316
+          Height = 75
+          AutoSize = False
+          Caption = 'BankLink Online'
+        end
       end
     end
   end

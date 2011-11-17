@@ -30,9 +30,6 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure RefreshStatus;
-    function CheckBooksUserExists(AClientEmail : string;
-                                  AClientPassword : string) : Boolean;
     function UploadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                           AClientName, AClientEmail: string; IsCopy: Boolean = False): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
@@ -81,7 +78,7 @@ var
   Msg: string;
   StatusList: TClientStatusList;
   Status: TClientStatusItem;
-  ServerResponce : TServerResponce;
+  ServerResponce : TServerResponse;
 
   procedure DoStatusCheck;
   begin
@@ -471,7 +468,7 @@ end;
 function TBankLinkOnlineManager.DownloadClient(AClientCode: string;
   AProgressFrm: TfrmChkProgress; var ARemoteFileName: string): boolean;
 var
- ServerResponce: TServerResponce;
+ ServerResponce: TServerResponse;
 begin
   Result := False;
   try
@@ -528,48 +525,13 @@ begin
     LogUtil.LogMsg(lmDebug, UNIT_NAME, AMessage);
 end;
 
-procedure TBankLinkOnlineManager.RefreshStatus;
-begin
-
-end;
-
-function TBankLinkOnlineManager.CheckBooksUserExists(AClientEmail : string;
-                                                     AClientPassword : string) : Boolean;
-var
-  ServerResponce : TServerResponce;
-begin
-  Result := false;
-  StatusSilent := False;
-  try
-    UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
-    CiCoClient.OnProgressEvent := DoStatusProgress;
-
-    CiCoClient.GetBooksUserExists(AClientEmail, AClientPassword, ServerResponce);
-
-    if (ServerResponce.Status = '200') then
-      Result := true //Sucessful
-    else if ServerResponce.Status = '104' then
-      raise Exception.Create('This process requires a valid subdomain. Please try again or contact your accountant for assistance.')
-    else if (ServerResponce.Status = '106') then
-      raise Exception.CreateFmt('BankLink Online could not find user %s. Please try again or contact your accountant for assistance.', [AClientEmail])
-    else if (ServerResponce.Status = '107') then
-      raise Exception.Create('This process requires a valid username and password. Please try again or contact your accountant for assistance.')
-    else
-      raise Exception.CreateFmt('Error getting %s User status', [BANKLINK_ONLINE_NAME]);
-  finally
-    StatusSilent := True;
-    CiCoClient.OnProgressEvent := Nil;
-    ClearStatus;
-  end;
-end;
-
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;
   AProgressFrm: TfrmChkProgress; AClientName, AClientEmail: string;
   IsCopy: Boolean = False): boolean;
 const
   ThisMethodName = 'UploadClient';
 var
-  ServerResponce : TServerResponce;
+  ServerResponce : TServerResponse;
 begin
   DebugMsg('Begins');
   try

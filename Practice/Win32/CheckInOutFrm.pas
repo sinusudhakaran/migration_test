@@ -31,10 +31,6 @@ type
     chkAvailOnly: TCheckBox;
     ClientLookupFrame: TfmeClientLookup;
     pnlPassword: TPanel;
-    Label2: TLabel;
-    eUsername: TEdit;
-    Label3: TLabel;
-    ePassword: TEdit;
     btnRefresh: TBitBtn;
     btnChangePassword: TButton;
     pnlBrowseDir: TPanel;
@@ -44,8 +40,9 @@ type
     cbFlagReadOnly: TCheckBox;
     cbEditEmail: TCheckBox;
     cbSendEmail: TCheckBox;
-    Label1: TLabel;
-    eSubDomain: TEdit;
+    btnEditConnection: TButton;
+    Panel1: TPanel;
+    lblBankLinkOnline: TLabel;
 
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -59,9 +56,7 @@ type
     procedure btnChangePasswordClick(Sender: TObject);
     procedure btnRefreshClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
-    procedure eUsernameChange(Sender: TObject);
-    procedure ePasswordChange(Sender: TObject);
-    procedure eSubDomainChange(Sender: TObject);
+    procedure btnEditConnectionClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -74,6 +69,7 @@ type
     procedure SetupColumns;
     procedure CloseupCheckboxes;
     procedure SetCheckBoxOptions;
+    procedure ShowBanklinkOnlineStatus;
   public
     { Public declarations }
   end;
@@ -97,7 +93,6 @@ uses
   ImagesFrm,
   WarningMoreFrm,
   Virtualtrees,
-  ChangePasswordFrm,
   IniSettings,
   BankLinkOnline,
   ErrorMoreFrm,
@@ -172,9 +167,6 @@ begin
         cbEditEmail.Visible := (FFileTransferMethod = ftmOnline);
         cbSendEmail.Visible := False;
         pnlPassword.Visible := True;
-        eUsername.Text      := Globals.INI_BankLink_Online_Username;
-        ePassword.Text      := Globals.INI_BankLink_Online_Password;
-        eSubDomain.Text     := Globals.INI_BankLink_Online_SubDomain;
       end;
 
       SetCheckBoxOptions;
@@ -185,6 +177,8 @@ begin
       if (FFileTransferMethod = ftmOnline) and ClientLookupFrame.NoOnlineConnection then
         Exit;
 
+      ShowBanklinkOnlineStatus;
+
       if (FFileTransferMethod = ftmOnline) then
         btnOK.Caption := '&Upload';
 
@@ -194,16 +188,11 @@ begin
       if ShowModal = mrOK then
       begin
         Globals.INI_CheckOutDir := AddSlash( ePath.Text);
-        Globals.INI_BankLink_Online_Username  := Trim(eUsername.Text);
-        Globals.INI_BankLink_Online_Password  := Trim(ePassword.Text);
-        Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
-
         //Setting
         AFirstUpload := ClientLookupFrame.FirstUpload;
         AFlagReadOnly := cbFlagReadOnly.Checked;
         AEditEmail := cbEditEmail.Checked;
         ASendEmail := cbSendEmail.Checked;
-
         Result := ClientLookupFrame.SelectedCodes;
       end;
     finally
@@ -246,9 +235,6 @@ begin
         cbEditEmail.Visible    := False;
         cbSendEmail.Visible    := False;
         pnlPassword.Visible    := True;
-        eUsername.Text         := Globals.INI_BankLink_Online_Username;
-        ePassword.Text         := Globals.INI_BankLink_Online_Password;
-        eSubDomain.Text        := Globals.INI_BankLink_Online_SubDomain;
       end;
 
       SetCheckBoxOptions;
@@ -258,16 +244,14 @@ begin
       //Don't show dialog for BankLink Online if no connection
       if (FFileTransferMethod = ftmOnline) and ClientLookupFrame.NoOnlineConnection then
         Exit;
+      ShowBanklinkOnlineStatus;
 
       ClientLookupFrame.SelectedCodes := DefaultCodes;
 
       if ShowModal = mrOK then
       begin
         Globals.INI_CheckInDir := AddSlash( ePath.Text);
-        Globals.INI_BankLink_Online_Username := Trim(eUsername.Text);
-        Globals.INI_BankLink_Online_Password := Trim(ePassword.Text);
-        Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
-        result := ClientLookupFrame.SelectedCodes;
+        Result := ClientLookupFrame.SelectedCodes;
       end;
     finally
       Free;
@@ -398,9 +382,11 @@ begin
       if ( DialogMode = dmCheckIn) and ( Codes = '') then
       begin
         if (FFileTransferMethod = ftmOnline) then
-          HelpfulWarningMsg('Please select a client to update from ' + BANKLINK_ONLINE_NAME, 0);
-        ClientLookupFrame.FilesDirectory := SelectedDir;
-        ClientLookupFrame.Reload;
+          HelpfulWarningMsg('Please select a client to update from ' + BANKLINK_ONLINE_NAME, 0)
+        else begin
+          ClientLookupFrame.FilesDirectory := SelectedDir;
+          ClientLookupFrame.Reload;
+        end;
         Exit;
       end;
 
@@ -432,39 +418,28 @@ end;
 procedure TfrmCheckInOut.btnRefreshClick(Sender: TObject);
 begin
   ClientLookupFrame.Reload;
+  ShowBanklinkOnlineStatus;
+end;
+
+procedure TfrmCheckInOut.btnEditConnectionClick(Sender: TObject);
+begin
+  ClientLookupFrame.EditBooksBankLinkOnlineLogin;
+  ShowBanklinkOnlineStatus
 end;
 
 procedure TfrmCheckInOut.btnChangePasswordClick(Sender: TObject);
-var
-  NewPassword : string;
-  UserExists  : Boolean;
-  UserMessage : String;
 begin
   try
-    UserExists := BankLinkOnlineMgr.CheckBooksUserExists(eUserName.Text, ePassword.Text);
+    if ClientLookupFrame.CheckBooksLogin then
+      ClientLookupFrame.ChangeBooksPassword;
   except
     on E: exception do
       begin
-        HelpfulErrorMsg(E.Message, 0);
+        HelpfulErrorMsg('Unable to change password: ' + E.Message, 0);
         Exit;
       end;
   end;
-
-  if UserExists then begin
-    if ChangePasswordFrm.ChangeBankLinkOnlinePassword(eUserName.Text,
-                                                      NewPassword) then begin
-      ePassword.Text := NewPassword;
-      Globals.INI_BankLink_Online_Password := NewPassword;
-      IniSettings.BK5WriteINI;
-      HelpfulInfoMsg('The password change has been successful!',0);
-    end;
-  end
-  else
-  begin
-    UserMessage := 'The username ''' + eUserName.Text + ''' does not exist. ' +
-                   ' Please try again or contact your accountant for assistance.';
-    HelpfulErrorMsg(UserMessage ,0);
-  end;
+  ShowBanklinkOnlineStatus;  
 end;
 
 procedure TfrmCheckInOut.chkAvailOnlyClick(Sender: TObject);
@@ -644,9 +619,18 @@ begin
   end;
 end;
 
-procedure TfrmCheckInOut.ePasswordChange(Sender: TObject);
+procedure TfrmCheckInOut.ShowBanklinkOnlineStatus;
 begin
-  Globals.INI_BankLink_Online_Password  := Trim(ePassword.Text);
+  if Assigned(AdminSystem) then Exit;
+
+  if ClientLookupFrame.NoOnlineConnection then
+    lblBankLinkOnline.Caption := BANKLINK_ONLINE_NAME + ' Status: NOT CONNECTED'
+  else
+    lblBankLinkOnline.Caption := BANKLINK_ONLINE_NAME + ' Status: CONNECTED';
+  lblBankLinkOnline.Caption := lblBankLinkOnline.Caption + #10 + 'Subdomain: ' +
+                               Globals.INI_BankLink_Online_SubDomain;
+  lblBankLinkOnline.Caption := lblBankLinkOnline.Caption + #10 + 'Username: ' +
+                               Globals.INI_BankLink_Online_Username;
 end;
 
 procedure TfrmCheckInOut.ePathEnter(Sender: TObject);
@@ -668,16 +652,6 @@ begin
       ClientLookupFrame.Reload;
     end;
   end;
-end;
-
-procedure TfrmCheckInOut.eSubDomainChange(Sender: TObject);
-begin
-  Globals.INI_BankLink_Online_SubDomain := Trim(eSubDomain.Text);
-end;
-
-procedure TfrmCheckInOut.eUsernameChange(Sender: TObject);
-begin
-  Globals.INI_BankLink_Online_Username  := Trim(eUsername.Text);
 end;
 
 procedure TfrmCheckInOut.FormShow(Sender: TObject);

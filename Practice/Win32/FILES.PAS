@@ -1906,7 +1906,10 @@ begin
           CodeList[i] := CodeList[i] + '=' + ClientEmail;
         end;
 
-        if Assigned(AdminSystem) and (GetClientWithNoEmail(CodeList) <> '') then begin
+        if Assigned(AdminSystem) and
+          (ASendMethod = ftmOnline) and
+          (ASendEmail) and
+          (GetClientWithNoEmail(CodeList) <> '') then begin
           Msg := Format('A valid email address is required for clients files to '+
                         'be sent via %s. Please update the following clients: %s',
                         [BANKLINK_ONLINE_NAME, GetClientWithNoEmail(CodeList)]);

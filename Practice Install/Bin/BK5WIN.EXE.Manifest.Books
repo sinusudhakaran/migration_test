@@ -12,6 +12,7 @@ manifestVersion="1.0">
       language="*" />
     </dependentAssembly>
   </dependency>
+  <file name="gdiplus.dll" />
 </assembly>
 
 

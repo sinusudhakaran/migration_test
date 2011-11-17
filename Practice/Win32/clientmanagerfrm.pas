@@ -1344,8 +1344,10 @@ end;
 procedure TfrmClientManager.actClientEmailExecute(Sender: TObject);
 var
   unused: Boolean;
+  CanSelectClients: Boolean;
 begin
-  MailFrm.SendFileTo( 'Send Mail', actClientEmail.Caption, '', '', unused, CurrUser.CanAccessAdmin);
+  CanSelectClients := CurrUser.CanAccessAdmin or (not PRACINI_OSAdminOnly);
+  MailFrm.SendFileTo( 'Send Mail', actClientEmail.Caption, '', '', unused, CanSelectClients);
 end;
 procedure TfrmClientManager.actClientTypeExecute(Sender: TObject);
 begin

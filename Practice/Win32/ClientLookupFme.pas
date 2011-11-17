@@ -213,10 +213,11 @@ type
     FProcStatOffset: Integer;
     FProcStatDate: Integer;
     FOnUpdateCount: TNotifyEvent;
-    FClientStatusList: TClientStatusList;
-    FSeverResponce : TServerResponce;
+    FSeverResponce : TServerResponse;
     FNoOnlineConnection: boolean;
     FFrameUseMode: TFrameUseMode;
+    FServerResponse: TServerResponse;
+    FClientStatusList: TClientStatusList;
     procedure LoadNodes( ReloadData : boolean);
     procedure LoadColumns;
     procedure RefreshData;
@@ -273,6 +274,8 @@ type
     procedure InvalidPasswordDlg(AttemptCount: integer);
 //    procedure SetOnlineMode(const Value: TBankLinkOnlineMode);
     procedure SetFrameUseMode(const Value: TFrameUseMode);
+    procedure SetServiceResponse(const Value: TServerResponse);
+    procedure SetClientStatusList(const Value: TClientStatusList);
   public
     { Public declarations }
     AdminSnapshot : TSystemObj;
@@ -287,7 +290,6 @@ type
     procedure BuildGrid( const SelectColumn : TClientLookupCol; const SortDirection: TSortDirection = sdAscending);
     procedure LocateCode( aCode : string);
     procedure SetFocusToGrid;
-
     procedure Reload;
     procedure ResetColumns;
     procedure ClearSelection;
@@ -350,6 +352,12 @@ type
     function FirstUpload: Boolean;
     property NoOnlineConnection: boolean read FNoOnlineConnection write SetNoOnlineConnection;
     property FrameUseMode: TFrameUseMode read FFrameUseMode write SetFrameUseMode;
+    property ServerResponse: TServerResponse read FServerResponse write SetServiceResponse;
+    property ClientStatusList: TClientStatusList read FClientStatusList write SetClientStatusList;
+
+    function EditBooksBankLinkOnlineLogin: Boolean;
+    function CheckBooksLogin: Boolean;
+    function ChangeBooksPassword: Boolean;
   end;
 
   const
@@ -373,7 +381,8 @@ uses
   Math, Types,
   WinUtils, YesNoDlg, ErrorMoreFrm,  ClientDetailCacheObj,
   stDateSt, bkBranding, PDDATES32,
-  progress, formPassword, BankLinkConnect, Admin32;
+  progress, formPassword, BankLinkConnect, Admin32,
+  ChangePasswordFrm, INISettings;
 
 {$R *.dfm}
 
@@ -1204,21 +1213,23 @@ begin
       while (Attempt < 3) do begin
         Inc(Attempt);
         ClearOnlineStatusList;
-        CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '');
+
+        if (FSeverResponce.Status = '') then
+          if Assigned(AdminSystem) then
+            CiCoClient.GetClientFileStatus(FSeverResponce, FClientStatusList, '')
+          else begin
+            //Don't show the password form if the CheckInOut form is already displayed
+            ChangePasswordFrm.LoginToBankLinkOnline(FSeverResponce, FClientStatusList);
+          end;
+
         if (FSeverResponce.Status = '200') then begin
           FNoOnlineConnection := False;  //Connection ok
           UpdateOnlineStatus;
           Attempt := 3;  //Password ok
         end else if not Assigned(AdminSystem) then begin
-          if FSeverResponce.Status = '104' then
-            ErrMsg := 'This process requires a valid subdomain. Please try again or contact your accountant for assistance.'
-          else if (FSeverResponce.Status = '106') then
-            ErrMsg := Format('BankLink Online could not find user %s. Please try again or contact your accountant for assistance.', [Globals.INI_BankLink_Online_Username])
-          else if (FSeverResponce.Status = '107') then
-            ErrMsg := 'This process requires a valid username and password. Please try again or contact your accountant for assistance.';
-          HelpfulErrorMsg(ErrMsg, 0);
-          Attempt := 3;  //Authentication failed for Books - user needs to update their settings
-        end else if (FSeverResponce.Status = '101') or         //No Practice or Books Password
+          FNoOnlineConnection := True;  //not logged on from books
+          Attempt := 3;
+        end else if (FSeverResponce.Status = '101') or         //No Practice Password
                     (FSeverResponce.Status = '102') or         //invalid Country, Practice or password
                     (FSeverResponce.Status = '103') then begin //invalid Country or Practice
           if Attempt > 2 then
@@ -1243,13 +1254,14 @@ begin
         else
           ErrMsg := E.Message;
 
-        HelpfulErrorMsg('BankLink Practice is unable to connect to ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg, 0);
+        HelpfulErrorMsg('Unable to connect to ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg, 0);
       end;
     end;
   finally
+    FSeverResponce.Status := '';
     CiCoClient.OnProgressEvent := Nil;
     StatusSilent := True;
-    ClearStatus;    
+    ClearStatus;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2845,6 +2857,12 @@ begin
   else
     vtClients.TreeOptions.SelectionOptions := vtClients.TreeOptions.SelectionOptions + [ toMultiSelect];
 end;
+
+procedure TfmeClientLookup.SetServiceResponse(const Value: TServerResponse);
+begin
+  FServerResponse := Value;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfmeClientLookup.SetOnSelectionChanged(
   const Value: TNotifyEvent);
@@ -2961,6 +2979,16 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TfmeClientLookup.ChangeBooksPassword: Boolean;
+begin
+  Result := ChangePasswordFrm.ChangeBankLinkOnlinePassword(FServerResponse, FClientStatusList);
+end;
+
+function TfmeClientLookup.CheckBooksLogin: Boolean;
+begin
+  Result := ChangePasswordFrm.LoginToBankLinkOnline(FServerResponse, FClientStatusList, False, True);
+end;
+
 procedure TfmeClientLookup.ClearColumns;
 begin
   FColumns.Clear;
@@ -2980,6 +3008,23 @@ procedure TfmeClientLookup.DoStatusProgress(APercentComplete : integer;
                                             AMessage         : string);
 begin
   UpdateAppStatus(BANKLINK_ONLINE_NAME, AMessage, APercentComplete);
+end;
+
+function TfmeClientLookup.EditBooksBankLinkOnlineLogin: Boolean;
+var
+  SaveSubdomain, SaveUsername, SavePassword: string;
+begin
+  SaveSubdomain := Globals.INI_BankLink_Online_SubDomain;
+  SaveUsername  := Globals.INI_BankLink_Online_Username;
+  SavePassword  := Globals.INI_BankLink_Online_Password;
+  if ChangePasswordFrm.LoginToBankLinkOnline(FServerResponse, FClientStatusList, True) then begin
+    Result := True;
+    Reload;
+  end else begin
+    Globals.INI_BankLink_Online_SubDomain := SaveSubdomain;
+    Globals.INI_BankLink_Online_Username  := SaveUsername;
+    Globals.INI_BankLink_Online_Password  := SavePassword;
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3059,6 +3104,11 @@ end;
 procedure TfmeClientLookup.SetClientFilter(const Value: Byte);
 begin
   FClientFilter := Value;
+end;
+
+procedure TfmeClientLookup.SetClientStatusList(const Value: TClientStatusList);
+begin
+  FClientStatusList := Value;
 end;
 
 procedure TfmeClientLookup.SetFilesDirectory(const Value: string);

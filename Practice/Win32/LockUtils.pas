@@ -203,6 +203,20 @@ const
 
      LockPos      : DWord;
   Begin
+//Uncomment this to trigger an 'Admin is locked by me' error 
+//**** FOR TESTING ONLY *****************************************
+//     DelayForm := TDelayForm.Create( Application );
+//     Try
+//        DelayForm.lblDelay.Caption := 'Waiting for access to the '+ltNames[ LockType ] + '... (' + IntToStr( MaxSecsToWait) + 's)';
+//        WindowList := DisableTaskWindows( DelayForm.Handle );
+//        DelayForm.Show;
+//        EnableTaskWindows( WindowList );
+//        DelayForm.Close;
+//     Finally
+//        DelayForm.Release;
+//     end;
+//**** FOR TESTING ONLY *****************************************
+
      LockPos := GetLockPosition( LockType, LockRef);
      Result := LockFileEx( LockPos );
 

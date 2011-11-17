@@ -88,7 +88,7 @@ type
   end;
 
   //----------------------------------------------------------------------------
-  TServerResponce = record
+  TServerResponse = record
     Status : String;
     Description : String;
     DetailedDesc : String;
@@ -105,7 +105,7 @@ type
 
   TStatusEvent = procedure (StatusMessage : string) of object;
 
-  TServerStatusEvent = procedure (ServerResponce   : TServerResponce;
+  TServerStatusEvent = procedure (ServerResponce   : TServerResponse;
                                   ClientStatusList : TClientStatusList) of object;
 
   TProgressEvent = procedure (APercentComplete : integer;
@@ -126,7 +126,7 @@ type
     FServerCrc        : string;
     fProcessState     : TProcessState;
 
-    fServerResponce : TServerResponce;
+    fServerResponce : TServerResponse;
     fServerClientStatusList : TClientStatusList;
 
     FASyncCall : Boolean;
@@ -196,27 +196,27 @@ type
 
     procedure GetBooksUserExists(AClientEmail    : string;
                                  AClientPassword : string;
-                                 var AServerResponce : TServerResponce);
+                                 var AServerResponce : TServerResponse);
     procedure SetBooksUserPassword(AClientEmail    : string;
                                    AClientPassword : string;
                                    ANewPassword    : string;
-                                   var AServerResponce : TServerResponce);
-    procedure GetClientFileStatus(var AServerResponce   : TServerResponce;
+                                   var AServerResponce : TServerResponse);
+    procedure GetClientFileStatus(var AServerResponce   : TServerResponse;
                                   var AClientStatusList : TClientStatusList;
                                   AClientCode : string = '';
                                   AaSyncCall  : Boolean = False);
     procedure UploadFileFromPractice(AClientCode : string;
                                      AClientName, AClientEmail : string;
-                                     var AServerResponce : TServerResponce);
+                                     var AServerResponce : TServerResponse);
     procedure DownloadFileToPractice(AClientCode : string;
                                      var ATempBk5File    : string;
-                                     var AServerResponce : TServerResponce);
+                                     var AServerResponce : TServerResponse);
     procedure UploadFileFromBooks(AClientCode : string;
                                   AIsCopy     : Boolean;
-                                  var AServerResponce : TServerResponce);
+                                  var AServerResponce : TServerResponse);
     procedure DownloadFileToBooks(AClientCode : string;
                                   var ATempBk5File    : string;
-                                  var AServerResponce : TServerResponce);
+                                  var AServerResponce : TServerResponse);
 
     property OnStatusEvent       : TStatusEvent       read fStatusEvent       write fStatusEvent;
     property OnTransferFileEvent : TTransferFileEvent read fTransferFileEvent write fTransferFileEvent;
@@ -927,7 +927,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.GetBooksUserExists(AClientEmail        : string;
                                             AClientPassword     : string;
-                                            var AServerResponce : TServerResponce);
+                                            var AServerResponce : TServerResponse);
 var
   HttpAddress    : String;
   BooksEmail     : String;
@@ -972,7 +972,7 @@ end;
 procedure TWebCiCoClient.SetBooksUserPassword(AClientEmail    : string;
                                               AClientPassword : string;
                                               ANewPassword    : string;
-                                              var AServerResponce : TServerResponce);
+                                              var AServerResponce : TServerResponse);
 var
   HttpAddress    : String;
   BooksEmail     : String;
@@ -1011,7 +1011,7 @@ end;
 // if AaSyncCall is not set the method will work like all the other service call
 // and only exit once done. If set to true it will call the server and exit and
 // you will need to use the Server Status call back event to get the responce
-procedure TWebCiCoClient.GetClientFileStatus(var AServerResponce   : TServerResponce;
+procedure TWebCiCoClient.GetClientFileStatus(var AServerResponce   : TServerResponse;
                                              var AClientStatusList : TClientStatusList;
                                              AClientCode : string = '';
                                              AaSyncCall  : Boolean = False);
@@ -1090,7 +1090,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromPractice(AClientCode : string;
                                                 AClientName, AClientEmail : string;
-                                                var AServerResponce : TServerResponce);
+                                                var AServerResponce : TServerResponse);
 var
   HttpAddress  : String;
   PracticeCode : String;
@@ -1135,7 +1135,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DownloadFileToPractice(AClientCode : string;
                                                 var ATempBk5File    : string;
-                                                var AServerResponce : TServerResponce);
+                                                var AServerResponce : TServerResponse);
 var
   HttpAddress  : String;
   PracticeCode : String;
@@ -1197,7 +1197,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromBooks(AClientCode : string;
                                              AIsCopy     : Boolean;
-                                             var AServerResponce : TServerResponce);
+                                             var AServerResponce : TServerResponse);
 var
   HttpAddress    : string;
   ClientEmail    : String;
@@ -1239,7 +1239,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.DownloadFileToBooks(AClientCode      : string;
                                              var ATempBk5File : string;
-                                             var AServerResponce : TServerResponce);
+                                             var AServerResponce : TServerResponse);
 var
   HttpAddress    : string;
   ClientEmail    : String;

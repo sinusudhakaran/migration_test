@@ -22,7 +22,7 @@ Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "A
 Source: "..\Binaries\BK5WIN.EXE"; DestDir: "{app}"
 Source: "..\Binaries\bkhandlr.exe"; DestDir: "{app}"
 
-Source: "Bin\BK5WIN.EXE.Manifest"; DestDir: "{app}"
+Source: "Bin\BK5WIN.EXE.Manifest.Books"; DestDir: "{app}"; DestName: "BK5WIN.EXE.Manifest"
 Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\bkExtMapi.dll"; DestDir: "{app}"
@@ -32,6 +32,7 @@ Source: "Books Files\guide_au.chm"; DestDir: "{app}"; DestName: "guide.chm"
 Source: "3rd Party\wPDF200a.DLL"; DestDir: "{app}"
 Source: "3rd Party\wPDFView01.DLL"; DestDir: "{app}"
 Source: "3rd Party\ipwssl6.dll"; DestDir: "{app}"
+Source: "3rd Party\gdiplus.dll"; DestDir: "{app}"
 
 [Icons]
 Name: "{group}\BankLink Books"; Filename: "{app}\BK5WIN.EXE"

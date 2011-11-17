@@ -1382,8 +1382,10 @@ end;
 procedure TfrmClientHomePage.acClientEmailExecute(Sender: TObject);
 var
   unused: Boolean;
+  CanSelectClients: Boolean;
 begin
-  MailFrm.SendFileTo( 'Send Mail', acClientEmail.Caption, '', '', unused);
+  CanSelectClients := CurrUser.CanAccessAdmin or (not PRACINI_OSAdminOnly);
+  MailFrm.SendFileTo( 'Send Mail', acClientEmail.Caption, '', '', unused, CanSelectClients);
 end;
 
 procedure TfrmClientHomePage.acEditClientDetailsExecute(Sender: TObject);

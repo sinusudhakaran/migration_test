@@ -1933,8 +1933,16 @@ begin //SendSceduledEmail
                 EMAIL_BANKLINK_ONLINE : begin
                     MailObj.Subject := GetEmailSubject(EmailInfo, fdSched_Rep_Online_Subject);
 
+                    if (ClientMessage <> '') then
+                      ClientMessage := ClientMessage + #13#13;
+                    ClientMessage := ClientMessage +
+                                     Format('The Client File %s is now available via %s. ' +
+                                            'To access this client file select ‘Get Client Files | from %s’.',
+                                            [EmailInfo.ClientCode, Globals.BANKLINK_ONLINE_NAME,
+                                             Globals.BANKLINK_ONLINE_NAME]);
+
                     if (fdSched_Rep_Online_Message <> '') then
-                                  ClientMessage := ClientMessage + #13 + fdSched_Rep_Online_Message;
+                                  ClientMessage := ClientMessage + #13#13 + fdSched_Rep_Online_Message;
                 end;
 
                 EMAIL_WEBNOTES : begin

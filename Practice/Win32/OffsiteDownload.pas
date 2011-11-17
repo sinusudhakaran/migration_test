@@ -214,7 +214,7 @@ begin
       end;
 
       //do country check
-      if not ( MyClient.clFields.clCountry in [whNewZealand, whAustralia]) then
+      if not ( MyClient.clFields.clCountry in [whNewZealand, whAustralia, whUK]) then
         raise Exception.Create( 'Unknown Country in ' + ThisMethodName);
 
       //create disk image
@@ -456,7 +456,7 @@ begin
 
                 //construct the cheque number from the reference field
                 case MyClient.clFields.clCountry of
-                  whAustralia : begin
+                  whAustralia, whUK : begin
                     if (TrxType = 1) then begin
                       S := Trim( TrxReference);
                       //cheque no is assumed to be last 6 digits
@@ -528,7 +528,7 @@ begin
 
                   //set country specific fields
                   case MyClient.clFields.clCountry of
-                    whAustralia : begin
+                    whAustralia, whUK : begin
                       pT^.txParticulars := DiskTxn.dtBank_Type_Code_OZ_Only;
                     end;
                     whNewZealand : begin
