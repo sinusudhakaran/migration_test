@@ -608,6 +608,8 @@ object frmPracticeDetails: TfrmPracticeDetails
         Top = 48
         Width = 383
         Height = 21
+        Enabled = False
+        ReadOnly = True
         TabOrder = 1
       end
       object cbPrimaryContact: TComboBox
@@ -636,6 +638,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         TabOrder = 3
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
         OnBeforeItemPaint = vtProductsBeforeItemPaint
+        OnChecked = vtProductsChecked
         OnFreeNode = vtProductsFreeNode
         OnGetText = vtProductsGetText
         Columns = <>
@@ -647,6 +650,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Height = 25
         Caption = 'Select All'
         TabOrder = 4
+        OnClick = btnSelectAllClick
       end
       object btnClearAll: TButton
         Left = 522
@@ -655,6 +659,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Height = 25
         Caption = 'Clear All'
         TabOrder = 5
+        OnClick = btnClearAllClick
       end
     end
   end

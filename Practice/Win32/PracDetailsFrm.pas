@@ -109,6 +109,9 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure ckUseBankLinkOnlineClick(Sender: TObject);
     procedure vtProductsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure btnSelectAllClick(Sender: TObject);
+    procedure btnClearAllClick(Sender: TObject);
+    procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
     okPressed : boolean;
@@ -125,7 +128,9 @@ type
     procedure ReloadLogo;
     procedure SetUpAccounting(const AccountingSystem: Byte);
     procedure SetUpSuper(const SuperfundSystem: Byte);
-    procedure ConnectToBankLinkOnline;
+    function ConnectToBankLinkOnline: Boolean;
+    function SubcribedToCat(AProductId: Guid): Boolean;
+    procedure ClearCatalogue;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -197,6 +202,7 @@ begin
 end;
 procedure TfrmPracticeDetails.FormDestroy(Sender: TObject);
 begin
+  ClearCatalogue;
   FPrac.Free;
 end;
 
@@ -305,6 +311,22 @@ begin
     eSuperSave.Text := AdminSystem.fdFields.fdSave_Client_Super_Files_To;
   end;
 end;
+
+function TfrmPracticeDetails.SubcribedToCat(AProductId: Guid): Boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  if Assigned(FPrac) then begin
+    for i := Low(FPrac.Subscription) to High(FPrac.Subscription) do begin
+      if FPrac.Subscription[i] = AProductID then begin
+        Result := True;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnOKClick(Sender: TObject);
 begin
@@ -326,6 +348,26 @@ begin
   OkPressed := False;
   close;
 end;
+procedure TfrmPracticeDetails.btnClearAllClick(Sender: TObject);
+var
+  i: integer;
+  SubArray: ArrayOfGuid;
+begin
+  SubArray := FPrac.Subscription;
+  try
+    //Make sure no memory is left allocated
+    for i := Low(SubArray) to High(SubArray) do
+      SubArray[i] := '';
+    SetLength(SubArray, 0);
+  finally
+    FPrac.Subscription := SubArray;
+  end;
+  vtProducts.Invalidate;
+  Refresh;
+  if vtProducts.CanFocus then
+    vtProducts.SetFocus;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnEditClick(Sender: TObject);
 begin
@@ -351,6 +393,25 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for Saving Entries To' ) then
     eSave.Text := test;
 end;
+procedure TfrmPracticeDetails.btnSelectAllClick(Sender: TObject);
+var
+  i: integer;
+  Cat: CatalogueEntry;
+  SubArray: ArrayOfGuid;
+begin
+  SubArray := FPrac.Subscription;
+  SetLength(SubArray, Length(FPrac.Catalogue));
+  for i := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do begin
+    Cat := FPrac.Catalogue[i];
+    SubArray[i] := Cat.Id;
+  end;
+  FPrac.Subscription := SubArray;
+  vtProducts.Invalidate;
+  Refresh;
+  if vtProducts.CanFocus then
+    vtProducts.SetFocus;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnSuperLoadFolderClick(Sender: TObject);
 var
@@ -374,7 +435,30 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 begin
-  ConnectToBankLinkOnline;
+//  FOnline := True; //Use for testing offline
+  if not ConnectToBankLinkOnline then begin
+    //Error messages
+  end;
+end;
+
+procedure TfrmPracticeDetails.ClearCatalogue;
+var
+  i: integer;
+  CatArray: ArrayOfCatalogueEntry;
+begin
+  //Free catalogue entries
+  CatArray := FPrac.Catalogue;
+  try
+    //Make sure no memory is left allocated
+    for i := Low(CatArray) to High(CatArray) do begin
+      if Assigned(CatArray[i]) then
+        CatalogueEntry(CatArray[i]).Free;
+      CatArray[i] := nil;
+    end;
+    SetLength(CatArray, 0);
+  finally
+    FPrac.Catalogue := CatArray;
+  end;
 end;
 
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
@@ -717,41 +801,66 @@ procedure TfrmPracticeDetails.vtProductsBeforeItemPaint(
   Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
   ItemRect: TRect; var CustomDraw: Boolean);
 var
-  NodeData : pTreeData;
-  S        : string;
-  Column   : integer;
-  CRect    : TRect;
-  LRect    : TRect;
+  NodeData: pTreeData;
+  NodeCaption: string;
 begin
   NodeData := Sender.GetNodeData( Node);
-
-  if NodeData.tdObject = nil then
-  begin
-    CustomDraw := true;
-
-    //paint background
+  if (NodeData.tdObject = nil) then begin
+    CustomDraw := True;
+    //Paint background
     TargetCanvas.Brush.Color := clWindow;
-    TargetCanvas.FillRect( ItemRect);
-
-    //paint text
-    TargetCanvas.Brush.Color := clWindow;
-    TargetCanvas.Brush.Style := bsClear;
-
+    TargetCanvas.FillRect(ItemRect);
+    //Paint text
     TargetCanvas.Font := appimages.Font;
-//    TargetCanvas.Font.Style := [fsBold];
     TargetCanvas.Font.Color := clBlue;
+    NodeCaption := Globals.BANKLINK_ONLINE_NAME + ' ' + NodeData.tdCaption;
+    InflateRect(ItemRect, -6, -2);
+    DrawText(TargetCanvas.Handle, PChar(NodeCaption), StrLen(PChar(NodeCaption)),
+             ItemRect, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+  end;
+end;
 
-    S := Globals.BANKLINK_ONLINE_NAME + ' ' + NodeData.tdCaption;
-
-    InflateRect( ItemRect, -6, -2 );
-    DrawText( TargetCanvas.Handle, PChar( S ), StrLen( PChar( S ) ), ItemRect, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
-
-    //paint line
-//    LRect.Left     := 6;
-//    LRect.Top      := ItemRect.Bottom - 5;
-//    LRect.Bottom   := LRect.Top + 1;
-//    LRect.Right    := 200;
-//    RzGrafx.PaintGradient( TargetCanvas, LRect, gdVerticalCenter, clBtnFace, clHighlight);
+procedure TfrmPracticeDetails.vtProductsChecked(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+var
+  i, j: integer;
+  Data: PTreeData;
+  Cat: CatalogueEntry;
+  SubArray: ArrayOfGuid;
+begin
+  Data := vtProducts.GetNodeData(Node);
+  if Assigned(Data.tdObject) then begin
+    Cat := CatalogueEntry(Data.tdObject);
+    if Node.CheckState = csCheckedNormal then begin
+      //Add product
+      for i := Low(FPrac.Subscription) to High(FPrac.Subscription) do
+        if Cat.Id = FPrac.Subscription[i] then
+          Exit;
+      //Add if still here
+      SubArray := FPrac.Subscription;
+      try
+        SetLength(SubArray, Length(SubArray) + 1);
+        SubArray[High(SubArray)] := Cat.Id;
+      finally
+        FPrac.Subscription := SubArray;
+      end;
+    end else begin
+      //Remove product
+      for i := Low(FPrac.Subscription) to High(FPrac.Subscription) do
+        if Cat.Id = FPrac.Subscription[i] then begin
+          SubArray := FPrac.Subscription;
+          try
+            if (i < 0) or (i > High(SubArray)) then
+              Exit;
+            for j := i to High(SubArray) - 1 do
+              SubArray[j] := SubArray[j+1];
+            SubArray[High(SubArray)] := '';
+            SetLength(SubArray, Length(SubArray) - 1);
+          finally
+            FPrac.Subscription := SubArray;
+          end;
+        end;
+    end;
   end;
 end;
 
@@ -772,11 +881,17 @@ procedure TfrmPracticeDetails.vtProductsGetText(Sender: TBaseVirtualTree;
   var CellText: WideString);
 var
   Data: PTreeData;
+  Cat: CatalogueEntry;
 begin
   Data := vtProducts.GetNodeData(Node);
   if (Data.tdObject <> nil) then begin
     case Column of
-      0: Node.CheckType := ctCheckBox;
+      0: begin
+           Cat := CatalogueEntry(Data.tdObject);
+           Node.CheckState := csUncheckedNormal;
+           if SubcribedToCat(Cat.Id) then
+             Node.CheckState := csCheckedNormal;
+         end;
       1: CellText := Data.tdCaption;
     end;
   end;
@@ -818,15 +933,18 @@ begin
   end;
 end;
 
-procedure TfrmPracticeDetails.ConnectToBankLinkOnline;
+function TfrmPracticeDetails.ConnectToBankLinkOnline: Boolean;
 var
   i: integer;
   Cat: CatalogueEntry;
   CatArray: ArrayOfCatalogueEntry;
+  UserArray: ArrayOfUser;  
   GUID: TGuid;
   TreeColumn: TVirtualTreeColumn;
   ProductNode, ServiceNode: PVirtualNode;
+  AdminUser: User;
 begin
+  Result := False;
   edtURL.Text := '';
   cbPrimaryContact.Clear;
   vtProducts.Header.Columns.Clear;
@@ -834,42 +952,124 @@ begin
   if FOnline then begin
     //Go Offline
     FOnline := False;
+    edtURL.Text := 'Not registered for BankLink Online';
+    cbPrimaryContact.Enabled := False;
   end else begin
     //Go Online
     FOnline := True;
     FPrac.DisplayName := 'practice';
-    SetLength(CatArray, 3);
 
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Product';
-    Cat.Description := 'WagesPlus';
-    CatArray[0] := Cat;
+    ClearCatalogue;
 
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Product';
-    Cat.Description := 'InvoicePlus';
-    CatArray[1] := Cat;
+    //Products and sevices
+    CatArray := FPrac.Catalogue;
+    try
+      SetLength(CatArray, 11);
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Product';
+      Cat.Description := 'WagesPlus';
+      CatArray[0] := Cat;
 
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[2] := Cat;
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Product';
+      Cat.Description := 'InvoicePlus';
+      CatArray[1] := Cat;
 
-    FPrac.Catalogue := CatArray;
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[2] := Cat;
+
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[3] := Cat;
+
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[4] := Cat;
+
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[5] := Cat;
+
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[6] := Cat;
+
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[7] := Cat;
+
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[8] := Cat;
+
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[9] := Cat;
+
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Online';
+      CatArray[10] := Cat;
+    finally
+      FPrac.Catalogue := CatArray;
+    end;
+
+    UserArray := FPrac.Users;
+    try
+      SetLength(UserArray, 2);
+
+      AdminUser := User.Create;
+      AdminUser.FullName := 'Andrew Will';
+      UserArray[0] := AdminUser;
+
+      AdminUser := User.Create;
+      AdminUser.FullName := 'Scott Wilson';
+      UserArray[1] := AdminUser;
+    finally
+      FPrac.Users := UserArray;
+    end;
 
     //URL
     edtURL.Text := 'https://' + FPrac.DisplayName + '.' +
                    Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
                         Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
-    //Primary Contact
-    cbPrimaryContact.Items.Add('Andrew Will');
-    cbPrimaryContact.ItemIndex := 0;
+    //Primary Contacts
+    cbPrimaryContact.Enabled := True;
+    for i := Low(FPrac.Users) to High(FPrac.Users) do
+      cbPrimaryContact.Items.Add(FPrac.Users[i].FullName);
+    if cbPrimaryContact.Items.Count > 0 then
+      cbPrimaryContact.ItemIndex := 0;
 
     //Setup Columns
     TreeColumn := vtProducts.Header.Columns.Add;
@@ -894,6 +1094,8 @@ begin
     end;
     vtProducts.Expanded[ProductNode] := True;
     vtProducts.Expanded[ServiceNode] := True;
+    vtProducts.ScrollIntoView(ProductNode, False);
+    Result := True;    
   end;
 end;
 
@@ -908,6 +1110,8 @@ begin
   Data := AVST.GetNodeData(Result);
   Data^.tdCaption := ACaption;
   Data^.tdObject := AObject;
+  if (AObject <> nil) then
+    Result.CheckType := ctCheckBox;
 end;
 
 procedure TfrmPracticeDetails.btnBrowseLogoBitmapClick(Sender: TObject);
