@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, CheckLst, BlopiServiceFacade;
 
 type
-  TClientHelper = Class helper for BlopiServiceFacade.Client
+  TClientHelper = Class helper for BlopiServiceFacade.ClientSummary
   private
     function GetDeactivated: boolean;
     function GetClientConnectDays: string;
@@ -59,7 +59,7 @@ type
     btnCancel: TButton;
     chklistProducts: TCheckListBox;
     btnTemp: TButton;
-    Client1: Client;
+    Client1: ClientSummary;
     procedure rbClientAlwaysOnlineClick(Sender: TObject);
     procedure rbClientMustConnectClick(Sender: TObject);
     procedure btnTempClick(Sender: TObject);
@@ -118,7 +118,7 @@ var
   Cat: CatalogueEntry;
   CatArray: ArrayOfCatalogueEntry;
   ListOfClients: ClientList;
-  ClientArray: ArrayOfClient;
+  ClientArray: ArrayOfClientSummary;
   SubArray: ArrayOfGuid;
   GUID: TGuid;
   i, k: integer;
@@ -194,7 +194,7 @@ end;
 
 procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
 begin
-  Client1 := Client.Create;
+  Client1 := ClientSummary.Create;
 end;
 
 procedure TfrmBanklinkOnlineSettings.rbClientAlwaysOnlineClick(Sender: TObject);
