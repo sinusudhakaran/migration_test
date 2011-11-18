@@ -2,7 +2,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Left = 0
   Top = 0
   Caption = 'BankLink Online Settings'
-  ClientHeight = 515
+  ClientHeight = 505
   ClientWidth = 495
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -120,7 +120,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Left = 16
     Top = 239
     Width = 465
-    Height = 106
+    Height = 98
     Caption = 'Billing Frequency'
     TabOrder = 1
     object lblFreeTrial: TLabel
@@ -134,40 +134,34 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     end
     object lblNextBillingPeriod: TLabel
       Left = 23
-      Top = 43
+      Top = 47
       Width = 173
       Height = 13
       Caption = 'Next billing period starts: DD/MM/YY'
     end
     object lblNextBillingFrequency: TLabel
       Left = 23
-      Top = 62
+      Top = 70
       Width = 108
       Height = 13
       Caption = 'Next billing frequency:'
     end
-    object rbMonthly: TRadioButton
-      Left = 40
-      Top = 81
-      Width = 91
-      Height = 17
-      Caption = '&Monthly'
-      Checked = True
+    object cmbBillingFrequency: TComboBox
+      Left = 137
+      Top = 68
+      Width = 125
+      Height = 21
+      ItemHeight = 0
       TabOrder = 0
-      TabStop = True
-    end
-    object rbAnnually: TRadioButton
-      Left = 149
-      Top = 81
-      Width = 113
-      Height = 17
-      Caption = 'Annua&lly'
-      TabOrder = 1
+      Text = 'Monthly'
+      Items.Strings = (
+        'Monthly'
+        'Annually')
     end
   end
   object grpDefaultClientAdministrator: TGroupBox
     Left = 16
-    Top = 351
+    Top = 343
     Width = 465
     Height = 114
     Caption = 'Default Client Administrator'
@@ -211,7 +205,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object btnOK: TButton
     Left = 311
-    Top = 482
+    Top = 474
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -221,7 +215,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object btnCancel: TButton
     Left = 400
-    Top = 482
+    Top = 474
     Width = 75
     Height = 25
     Caption = 'Cancel'
