@@ -76,7 +76,7 @@ type
 
 var
   frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
-  BanklinkOnlineConnected : boolean = true;
+  BanklinkOnlineConnected : boolean = false;
 
 implementation
 
@@ -93,6 +93,7 @@ begin
   begin
     ShowMessage('Banklink Practice is unable to connect to Banklink Online and so ' +
                 'cannot update this client''s settings');
+    ModalResult := mrNone;
     Exit;
   end;
 
@@ -179,6 +180,7 @@ var
   i, k: integer;
   GUID1, GUID2: WideString;
 begin
+  BanklinkOnlineConnected := not BanklinkOnlineConnected;
   if btnTemp.Caption = 'Switch to offline' then
   begin
     // Switched to offline
