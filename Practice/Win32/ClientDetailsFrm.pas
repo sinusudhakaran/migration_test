@@ -400,12 +400,16 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
+var
+  ErrorMsg: string;
 begin
   if not Assigned(BanklinkOnlineSettings) then 
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
   if not BanklinkOnlineConnected then 
   begin
-    ShowMessage('Banklink Practice is unable to connect to Banklink Online');
+    ErrorMsg := 'Banklink Practice is unable to connect to Banklink Online';
+    ShowMessage(ErrorMsg);
+    LogUtil.LogMsg(lmError, UnitName, ErrorMsg);
     Exit;
   end;
   
