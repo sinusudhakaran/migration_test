@@ -58,6 +58,7 @@ type
     chklistProducts: TCheckListBox;
     btnTemp: TButton;
     cmbBillingFrequency: TComboBox;
+    ListOfClients: ClientList;
     Client1: ClientSummary;
     procedure rbClientAlwaysOnlineClick(Sender: TObject);
     procedure rbClientMustConnectClick(Sender: TObject);
@@ -66,9 +67,9 @@ type
     procedure btnClearAllClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     SubArray: ArrayOfGuid;
-    productBoxes: array of TCheckBox;
   public
     { Public declarations }
   end;
@@ -85,7 +86,7 @@ procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 var
   EmailChanged, ProductsChanged, BillingFrequencyChanged, ProductFound: boolean;
   NewProducts: TStringList;
-  AllNewProducts, PromptMessage: string;
+  PromptMessage: string;
   i, j, ButtonPressed: integer;
 begin
   if not BanklinkOnlineConnected then
@@ -117,6 +118,7 @@ begin
   ProductsChanged := NewProducts.Count > 0;
   BillingFrequencyChanged := cmbBillingFrequency.Text <> Client1.BillingFrequency;
 
+  ButtonPressed := mrOk;
   if EmailChanged and not (ProductsChanged or BillingFrequencyChanged) then
     ButtonPressed := MessageDlg('You have changed the Default Client Administrator Email Address. ' +
                 'The new Default Client Administrator will be set to ' +
@@ -171,7 +173,6 @@ end;
 procedure TfrmBanklinkOnlineSettings.btnTempClick(Sender: TObject);
 var
   CatArray: ArrayOfCatalogueEntry;
-  ListOfClients: ClientList;
   ClientArray: ArrayOfClientSummary;
   SubArray: ArrayOfGuid;
   GUID: TGuid;
@@ -222,36 +223,39 @@ begin
     begin
       lblFreeTrial.Caption := 'Currently billed {' + Client1.BillingFrequency + '} until ' + DateTimeToStr(Client1.BillingEndDate);
     end;
-    if (Client1.UseClientDetails) then
-    begin
-      chkUseClientDetails.Checked := true;
-      edtUserName.Text := Client1.UserName;
-      edtEmailAddress.Text := Client1.EmailAddress;
-    end;
+    chkUseClientDetails.Checked := Client1.UseClientDetails;
+    edtUserName.Text := Client1.UserName;
+    edtEmailAddress.Text := Client1.EmailAddress;
 
     CreateGUID(GUID);
     Client1.Id := GuidToString(GUID);
-    {
     SetLength(SubArray, 2);
     SubArray[0] := CatArray[0].Id;
     SubArray[1] := CatArray[1].Id;
-    }
-    Client1.Subscription := SubArray;
 
     ListOfClients.Clients[0] := Client1;
+    ListOfClients.Clients[0].Subscription := SubArray;
 
     for i := Low(CatArray) to High(CatArray) do
       chklistProducts.AddItem(ListOfClients.Catalogue[i].CatalogueType, TObject(ListOfClients.Catalogue[i].Id));
 
     for i := 0 to chklistProducts.Items.Count - 1 do begin
-      for k := Low(Client(ListOfClients.Clients[0]).Subscription) to High(Client(ListOfClients.Clients[0]).Subscription) do begin
-        GUID1 := Client(ListOfClients.Clients[0]).Subscription[k];
+      for k := Low(ListOfClients.Clients[0].Subscription) to High(ListOfClients.Clients[0].Subscription) do begin
+        GUID1 := ListOfClients.Clients[0].Subscription[k];
         GUID2 := WideString(chklistProducts.Items.Objects[i]);
         chklistProducts.Checked[i] := (GUID1 = GUID2);
         if chklistProducts.Checked[i] then break;
       end;
     end;
   end;
+end;
+
+procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  ListOfClients.Free;
+  Client1 := nil;
+  chklistProducts.Clear;
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
