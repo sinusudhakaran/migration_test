@@ -48,7 +48,7 @@ end;
 CONST
    tkusCode                             = 62 ;
    tkusName                             = 63 ;
-   tkusPassword                         = 64 ;
+   tkusRedundant_Password               = 64 ;
    tkusEMail_Address                    = 65 ;
    tkusSystem_Access                    = 66 ;
    tkusDialog_Colour                    = 67 ;
@@ -69,6 +69,9 @@ CONST
    tkusSuppress_HF                      = 82 ;
    tkusShow_Practice_Logo               = 83 ;
    tkusAudit_Record_ID                  = 84 ;
+   tkusAllow_Banklink_Online            = 85 ;
+   tkusBankLink_Online_Guid             = 86 ;
+   tkusPassword                         = 87 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -96,7 +99,7 @@ Begin
       F.WriteToken( tkBegin_User );
       F.WriteStringValue( tkusCode , usCode );
       F.WriteStringValue( tkusName , usName );
-      F.WriteStringValue( tkusPassword , usPassword );
+      F.WriteStringValue( tkusRedundant_Password , usRedundant_Password );
       F.WriteStringValue( tkusEMail_Address , usEMail_Address );
       F.WriteBooleanValue( tkusSystem_Access , usSystem_Access );
       F.WriteByteValue( tkusDialog_Colour , usDialog_Colour );
@@ -117,6 +120,9 @@ Begin
       F.WriteByteValue( tkusSuppress_HF , usSuppress_HF );
       F.WriteBooleanValue( tkusShow_Practice_Logo , usShow_Practice_Logo );
       F.WriteIntegerValue( tkusAudit_Record_ID , usAudit_Record_ID );
+      F.WriteBooleanValue( tkusAllow_Banklink_Online , usAllow_Banklink_Online );
+      F.WriteAnsiStringValue( tkusBankLink_Online_Guid , usBankLink_Online_Guid );
+      F.WriteStringValue( tkusPassword , usPassword );
       F.WriteToken( tkEnd_User );
    end;
 end; { of Write_User_Rec }
@@ -141,7 +147,7 @@ Begin
          tkEnd_User :; { Do Nothing }
          tkusCode                             : usCode := F.ReadStringValue;
          tkusName                             : usName := F.ReadStringValue;
-         tkusPassword                         : usPassword := F.ReadStringValue;
+         tkusRedundant_Password               : usRedundant_Password := F.ReadStringValue;
          tkusEMail_Address                    : usEMail_Address := F.ReadStringValue;
          tkusSystem_Access                    : usSystem_Access := F.ReadBooleanValue;
          tkusDialog_Colour                    : usDialog_Colour := F.ReadByteValue;
@@ -162,6 +168,9 @@ Begin
          tkusSuppress_HF                      : usSuppress_HF := F.ReadByteValue;
          tkusShow_Practice_Logo               : usShow_Practice_Logo := F.ReadBooleanValue;
          tkusAudit_Record_ID                  : usAudit_Record_ID := F.ReadIntegerValue;
+         tkusAllow_Banklink_Online            : usAllow_Banklink_Online := F.ReadBooleanValue;
+         tkusBankLink_Online_Guid             : usBankLink_Online_Guid := F.ReadAnsiStringValue;
+         tkusPassword                         : usPassword := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -197,6 +206,7 @@ Begin
    Begin
       { Free any dynamically allocated memory }
       usEULA_Version := '' ;
+      usBankLink_Online_Guid := '' ;
    end;
 end;
 
@@ -209,7 +219,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkusCode to tkusAudit_Record_ID do begin
+  for i := tkusCode to tkusPassword do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -243,9 +253,9 @@ begin
     ChangedFields[i] := tkusName;
     Inc(i);
   end;
-  if (P1.usPassword <> P2.usPassword) then begin
-    P3.usPassword := P1.usPassword;
-    ChangedFields[i] := tkusPassword;
+  if (P1.usRedundant_Password <> P2.usRedundant_Password) then begin
+    P3.usRedundant_Password := P1.usRedundant_Password;
+    ChangedFields[i] := tkusRedundant_Password;
     Inc(i);
   end;
   if (P1.usEMail_Address <> P2.usEMail_Address) then begin
@@ -346,6 +356,21 @@ begin
   if (P1.usAudit_Record_ID <> P2.usAudit_Record_ID) then begin
     P3.usAudit_Record_ID := P1.usAudit_Record_ID;
     ChangedFields[i] := tkusAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.usAllow_Banklink_Online <> P2.usAllow_Banklink_Online) then begin
+    P3.usAllow_Banklink_Online := P1.usAllow_Banklink_Online;
+    ChangedFields[i] := tkusAllow_Banklink_Online;
+    Inc(i);
+  end;
+  if (P1.usBankLink_Online_Guid <> P2.usBankLink_Online_Guid) then begin
+    P3.usBankLink_Online_Guid := P1.usBankLink_Online_Guid;
+    ChangedFields[i] := tkusBankLink_Online_Guid;
+    Inc(i);
+  end;
+  if (P1.usPassword <> P2.usPassword) then begin
+    P3.usPassword := P1.usPassword;
+    ChangedFields[i] := tkusPassword;
     Inc(i);
   end;
 

@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 127;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 128;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -113,6 +113,9 @@ $|                      125   Added Provisional Entries Log
 $|    5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client rec
 $|                      127   Added fields for BankLink Online scheduled reports
 $|                            Changed name of Send Method to File Transfer Method (used for Get and Send)
+$|    5.23.0 (BLOPI)    128   Added Allow Access to Banklink online for a practice user
+$|                            Added Guid to store Unique Id to Banklink Online User
+$|                            Renamed User Password to Redundant Password and created Password of string 12
 $|*)
 
 N|Practice Details|fd|10
@@ -306,7 +309,7 @@ E
 N|User|us|60
 F|Code|S|8|User Code
 F|Name|S|60|User Name
-F|Password|S|8
+F|Redundant Password|S|8
 F|EMail Address|S|80|Email
 F|System Access|Y||System User
 F|Dialog Colour|B
@@ -327,6 +330,9 @@ F|Reset Count|L
 F|Suppress HF|B
 F|Show Practice Logo|Y
 F|Audit Record ID|L
+F|Allow Banklink Online|Y
+F|BankLink Online Guid|AS
+F|Password|S|12
 E
 
 N|System Bank Account|sb|50

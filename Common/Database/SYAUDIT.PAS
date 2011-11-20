@@ -254,7 +254,7 @@ begin
    FAuditTableArray[60] := 'User';
     FAuditNamesArray[60,62] := 'User Code'; //Code
     FAuditNamesArray[60,63] := 'User Name'; //Name
-    FAuditNamesArray[60,64] := 'Password';
+    FAuditNamesArray[60,64] := 'Redundant_Password';
     FAuditNamesArray[60,65] := 'Email'; //EMail_Address
     FAuditNamesArray[60,66] := 'System_Access';
     FAuditNamesArray[60,67] := 'Dialog_Colour';
@@ -275,6 +275,9 @@ begin
     FAuditNamesArray[60,82] := 'Suppress_HF';
     FAuditNamesArray[60,83] := 'Show_Practice_Logo';
     FAuditNamesArray[60,84] := 'Audit_Record_ID';
+    FAuditNamesArray[60,85] := 'Allow_Banklink_Online';
+    FAuditNamesArray[60,86] := 'BankLink_Online_Guid';
+    FAuditNamesArray[60,87] := 'Password';
 
    FAuditTableArray[50] := 'System_Bank_Account';
     FAuditNamesArray[50,52] := 'Account_Number';

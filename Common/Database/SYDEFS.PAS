@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 399;
-   SY_IOLIB_Date    = '27/09/11';
-   SY_FILE_VERSION   = 127;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 403;
+   SY_IOLIB_Date    = '18/11/11';
+   SY_FILE_VERSION   = 128;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -126,6 +126,9 @@ Const
        5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client rec
                          127   Added fields for BankLink Online scheduled reports
                                Changed name of Send Method to File Transfer Method (used for Get and Send)
+       5.23.0 (BLOPI)    128   Added Allow Access to Banklink online for a practice user
+                               Added Guid to store Unique Id to Banklink Online User
+                               Renamed User Password to Redundant Password and created Password of string 12
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -348,7 +351,7 @@ Type
       usRecord_Type                      : Byte;
       usCode                             : String[ 8 ];       { Stored }
       usName                             : String[ 60 ];       { Stored }
-      usPassword                         : String[ 8 ];       { Stored }
+      usRedundant_Password               : String[ 8 ];       { Stored }
       usEMail_Address                    : String[ 80 ];       { Stored }
       usSystem_Access                    : Boolean;       { Stored }
       usDialog_Colour                    : Byte;       { Stored }
@@ -369,6 +372,9 @@ Type
       usSuppress_HF                      : Byte;       { Stored }
       usShow_Practice_Logo               : Boolean;       { Stored }
       usAudit_Record_ID                  : Integer;       { Stored }
+      usAllow_Banklink_Online            : Boolean;       { Stored }
+      usBankLink_Online_Guid             : AnsiString;       { Stored }
+      usPassword                         : String[ 12 ];       { Stored }
       usEOR                              : Byte;
    end;
 

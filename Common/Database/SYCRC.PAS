@@ -135,6 +135,8 @@ Begin
       CRC32.UpdateCRC( CRC , RS^, Len );
       Len := Length( usEULA_Version );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( usEULA_Version )^, Len );
+      Len := Length( usBankLink_Online_Guid );
+      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( usBankLink_Online_Guid )^, Len );
    end;
 end;
 
