@@ -1532,6 +1532,20 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     end;
   end;
 
+  procedure UpgradeAdminToVersion128;
+  var
+    UserIndex : integer;
+  begin
+    UpgradingToVersion := 128;
+
+    // Moves Redundant password to New 12 length Password
+    for UserIndex := 0 to AdminSystem.fdSystem_User_List.ItemCount-1 do
+    begin
+      AdminSystem.fdSystem_User_List.User_At(UserIndex).usPassword :=
+        AdminSystem.fdSystem_User_List.User_At(UserIndex).usRedundant_Password;
+    end;
+  end;
+
 Const
    ThisMethodName = 'DoUpgradeAdminToLatestVersion';
 Var
@@ -1890,7 +1904,12 @@ Begin
               RefreshAllProcessingStatistics(True, False, True); //Always move to last upgrade
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
          end;
-
+           // BLOPI - User Password upgrade to 12 characters
+         if ( fdFile_Version < 128) then begin
+            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 128');
+            UpgradeAdminToVersion128;
+            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
+         end;
 
 
       end;
