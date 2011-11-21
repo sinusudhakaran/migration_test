@@ -20,6 +20,8 @@ type
     //Practice methods
     function GetPractice: Practice;
     function IsPracticeProductEnabled(AProductId: Guid): Boolean;
+    function IsPracticeRegisteredForBankLinkOnline: Boolean;
+    function IsNotesOnlineEnabled: Boolean;
     procedure AddProduct(AProductId: Guid);
     procedure ClearAllProducts;
     procedure RemoveProduct(AProductId: Guid);
@@ -174,7 +176,7 @@ begin
     Cat := CatalogueEntry.Create;
     Cat.Id := GuidToString(GUID);
     Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
+    Cat.Description := 'BankLink Notes Online';
     CatArray[2] := Cat;
 
     CreateGUID(GUID);
@@ -254,6 +256,28 @@ begin
   end;
 end;
 
+function TProductConfigService.IsNotesOnlineEnabled: Boolean;
+var
+  i, j: integer;
+  SubArray: ArrayOfGuid;
+  Cat: CatalogueEntry;
+begin
+  Result := False;
+  if Assigned(FPractice) then begin
+    for i := Low(FPractice.Catalogue) to High(FPractice.Catalogue) do begin
+      Cat := FPractice.Catalogue[i];
+      if Cat.Description = 'BankLink Notes Online' then begin
+        for j := Low(FPractice.Subscription) to High(FPractice.Subscription) do begin
+          if FPractice.Subscription[j] = Cat.Id then begin
+            Result := True;
+            Break;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
 function TProductConfigService.IsPracticeProductEnabled(
   AProductId: Guid): Boolean;
 var
@@ -268,6 +292,12 @@ begin
       end;
     end;
   end;
+end;
+
+function TProductConfigService.IsPracticeRegisteredForBankLinkOnline: Boolean;
+begin
+  Result := True;
+//  Result := False;  
 end;
 
 procedure TProductConfigService.RemoveProduct(AProductId: Guid);

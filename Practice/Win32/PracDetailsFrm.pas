@@ -118,8 +118,6 @@ type
     PassGenCodeEntered : boolean;
     ChangingDiskID : boolean;
     InSetup: Boolean;
-//    FPrac: Practice;
-    FOnline: Boolean;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -129,8 +127,6 @@ type
     procedure SetUpAccounting(const AccountingSystem: Byte);
     procedure SetUpSuper(const SuperfundSystem: Byte);
     function ConnectToBankLinkOnline: Boolean;
-//    function SubcribedToCat(AProductId: Guid): Boolean;
-//    procedure ClearCatalogue;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -199,13 +195,11 @@ begin
 
    btnSuperLoadFolder.Glyph := btnLoadFolder.Glyph;
    ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
-
-//   FPrac := Practice.Create;     
 end;
+
 procedure TfrmPracticeDetails.FormDestroy(Sender: TObject);
 begin
-//  ClearCatalogue;
-//  FPrac.Free;
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -314,21 +308,6 @@ begin
   end;
 end;
 
-//function TfrmPracticeDetails.SubcribedToCat(AProductId: Guid): Boolean;
-//var
-//  i: integer;
-//begin
-//  Result := False;
-//  if Assigned(FPrac) then begin
-//    for i := Low(FPrac.Subscription) to High(FPrac.Subscription) do begin
-//      if FPrac.Subscription[i] = AProductID then begin
-//        Result := True;
-//        Exit;
-//      end;
-//    end;
-//  end;
-//end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnOKClick(Sender: TObject);
 begin
@@ -418,7 +397,6 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 begin
-//  FOnline := True; //Use for testing offline
   if ckUseBankLinkOnline.Checked and (not ConnectToBankLinkOnline) then begin
       //Error messages
       if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
@@ -429,26 +407,6 @@ begin
       ckUseBankLinkOnline.Checked := False;
     end;
 end;
-
-//procedure TfrmPracticeDetails.ClearCatalogue;
-//var
-//  i: integer;
-//  CatArray: ArrayOfCatalogueEntry;
-//begin
-//  //Free catalogue entries
-//  CatArray := FPrac.Catalogue;
-//  try
-//    //Make sure no memory is left allocated
-//    for i := Low(CatArray) to High(CatArray) do begin
-//      if Assigned(CatArray[i]) then
-//        CatalogueEntry(CatArray[i]).Free;
-//      CatArray[i] := nil;
-//    end;
-//    SetLength(CatArray, 0);
-//  finally
-//    FPrac.Catalogue := CatArray;
-//  end;
-//end;
 
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
 var
@@ -854,7 +812,6 @@ begin
       0: begin
            Cat := CatalogueEntry(Data.tdObject);
            Node.CheckState := csUncheckedNormal;
-//           if SubcribedToCat(Cat.Id) then
            if ProductConfigService.IsPracticeProductEnabled(Cat.Id) then 
              Node.CheckState := csCheckedNormal;
          end;
@@ -916,15 +873,10 @@ begin
   cbPrimaryContact.Clear;
   vtProducts.Header.Columns.Clear;
   vtProducts.Clear;
-  if FOnline then begin
-    //Go Offline
-    FOnline := False;
+  if not ProductConfigService.IsPracticeRegisteredForBankLinkOnline then begin
     edtURL.Text := 'Not registered for BankLink Online';
     cbPrimaryContact.Enabled := False;
   end else begin
-    //Go Online
-    FOnline := True;
-
     Prac := ProductConfigService.GetPractice;
     //URL
     edtURL.Text := 'https://' + Prac.DisplayName + '.' +
