@@ -16,7 +16,6 @@ type
   private
     FClientStatusList: TClientStatusList;
     FSilent : Boolean;
-
     procedure DebugMsg(AMessage: string);
     procedure CheckBankLinkOnlineStatus(AClientCode: string; AAction: TOnlineAction);
     procedure CheckPracticeUploadStatus(AClientCode: string; AStatus: TClientStatusItem);
@@ -24,9 +23,6 @@ type
     procedure CheckBooksUploadStatus(AClientCode: string; AStatus: TClientStatusItem);
     procedure CheckBooksDownLoadStatus(AClientCode: string; AStatus: TClientStatusItem);
     procedure CheckBooksUploadCopyStatus(AClientCode: string; AStatus: TClientStatusItem);
-
-    procedure DoStatusProgress(APercentComplete : integer;
-                               AMessage         : string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -34,8 +30,6 @@ type
                           AClientName, AClientEmail: string; IsCopy: Boolean = False): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                             var ARemoteFileName: string): boolean;
-    function GetStatus(AClientCode: string; FromWebService: boolean): TClientStatusItem;
-
     property Silent : Boolean read FSilent write FSilent;
   end;
 
@@ -212,12 +206,6 @@ procedure TBankLinkOnlineManager.CheckBooksUploadCopyStatus(
 begin
   //Currently this is the same as Books Upload
   CheckBooksUploadStatus(AClientCode, AStatus);
-end;
-
-procedure TBankLinkOnlineManager.DoStatusProgress(APercentComplete : integer;
-                                                  AMessage         : string);
-begin
-  UpdateAppStatus(BANKLINK_ONLINE_NAME, AMessage, APercentComplete);
 end;
 
 procedure TBankLinkOnlineManager.CheckBooksUploadStatus(AClientCode: string;
@@ -511,12 +499,6 @@ begin
         raise EDownloadFailed.Create(E.Message);
       end;
   end;
-end;
-
-function TBankLinkOnlineManager.GetStatus(AClientCode: string;
-  FromWebService: boolean): TClientStatusItem;
-begin
-  Result := nil;
 end;
 
 procedure TBankLinkOnlineManager.DebugMsg(AMessage: string);
