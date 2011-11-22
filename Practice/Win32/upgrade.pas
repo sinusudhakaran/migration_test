@@ -1279,10 +1279,11 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   begin
     //If they used to sort by Staff Member (renamed to spare boolean 3) then continue
     //to sort by staff member
-    if AdminSystem.fdFields.fdSpare_Boolean_3 then
+    //Spare Boolean 3 renames to Use BankLink Online in v128
+    if AdminSystem.fdFields.fdUse_BankLink_Online then
     begin
       AdminSystem.fdFields.fdSort_Reports_By := srsoStaffMember;
-      AdminSystem.fdFields.fdSpare_Boolean_3 := false;
+      AdminSystem.fdFields.fdUse_BankLink_Online := false;
     end;
   end;
 

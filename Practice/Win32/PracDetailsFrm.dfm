@@ -260,6 +260,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsInterfaces: TTabSheet
       Caption = 'Accounting System'
       ImageIndex = 1
+      OnShow = tbsInterfacesShow
       object gbxClientDefault: TGroupBox
         Left = 8
         Top = 4
@@ -620,6 +621,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Style = csDropDownList
         ItemHeight = 13
         TabOrder = 2
+        OnClick = cbPrimaryContactClick
       end
       object vtProducts: TVirtualStringTree
         Left = 16

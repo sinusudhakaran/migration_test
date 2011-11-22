@@ -81,7 +81,7 @@ begin
     FAuditNamesArray[10,24] := 'GST_Applies_From';
     FAuditNamesArray[10,25] := 'Date_of_Last_Entry_Received';
     FAuditNamesArray[10,26] := 'Print_Reports_Up_To';
-    FAuditNamesArray[10,27] := 'Spare_Boolean_3';
+    FAuditNamesArray[10,27] := 'Use_BankLink_Online';
     FAuditNamesArray[10,28] := 'Print_Staff_Member_Header_Page';
     FAuditNamesArray[10,29] := 'Print_Client_Header_Page';
     FAuditNamesArray[10,30] := 'PIN_Number';

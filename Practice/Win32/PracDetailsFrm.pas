@@ -112,6 +112,8 @@ type
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure tbsInterfacesShow(Sender: TObject);
+    procedure cbPrimaryContactClick(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -126,7 +128,8 @@ type
     procedure ReloadLogo;
     procedure SetUpAccounting(const AccountingSystem: Byte);
     procedure SetUpSuper(const SuperfundSystem: Byte);
-    function ConnectToBankLinkOnline: Boolean;
+    procedure SetUpWebExport(const WebExportFormat: Byte);
+    procedure LoadPracticeDetails;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -308,6 +311,28 @@ begin
   end;
 end;
 
+procedure TfrmPracticeDetails.SetUpWebExport(const WebExportFormat: Byte);
+var
+  i: integer;
+begin
+  //Notes online option is dependant on the service being enabled
+  cmbWebFormats.Clear;
+  for i := wfMin to wfMax do
+    if (wfNames[i] = WebNotesName) then begin
+      if (ProductConfigService.UseBankLinkOnline) and
+         (ProductConfigService.IsNotesOnlineEnabled) then
+        cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+    end else
+      cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+
+  //Set to default if currently Notes Online and Notes Online is disabled
+  if ((not ProductConfigService.UseBankLinkOnline) or (not ProductConfigService.IsNotesOnlineEnabled)) and
+     (wfNames[WebExportFormat] = WebNotesName)  then
+    ComboUtils.SetComboIndexByIntObject(wfDefault, cmbWebFormats)
+  else
+    ComboUtils.SetComboIndexByIntObject(WebExportFormat, cmbWebFormats);
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnOKClick(Sender: TObject);
 begin
@@ -394,18 +419,42 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for Saving Entries To' ) then
     eSuperSave.Text := test;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
+var
+  TempUser: User;
+begin
+  //Set primary contact
+  TempUser := User(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
+  ProductConfigService.SetPrimaryContact(TempUser);
+end;
+
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 begin
-  if ckUseBankLinkOnline.Checked and (not ConnectToBankLinkOnline) then begin
-      //Error messages
-      if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
-                           'You are not currently registered for BankLink Online. ' +
-                           'Would you like to register now?', dlg_no, 0) = DLG_YES then begin
-        RequestBankLinkOnlineregistration;
-      end;
+  //Clear
+  edtURL.Text := '';
+  cbPrimaryContact.Clear;
+  vtProducts.Header.Columns.Clear;
+  vtProducts.Clear;
+  if ckUseBankLinkOnline.Checked then begin
+    if ProductConfigService.RegisteredForBankLinkOnline then
+      LoadPracticeDetails
+    else begin
+      edtURL.Text := 'Not registered for BankLink Online';
+      cbPrimaryContact.Enabled := False;
       ckUseBankLinkOnline.Checked := False;
+      if Visible then begin
+        if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
+                             'You are not currently registered for BankLink Online. ' +
+                             'Would you like to register now?', dlg_no, 0) = DLG_YES then
+          RequestBankLinkOnlineregistration;
+          //*** TEST ***
+          ProductConfigService.RegisteredForBankLinkOnline := True;
+      end;
     end;
+  end;
+  ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
 end;
 
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
@@ -477,14 +526,13 @@ begin
     cmbSuperSystem.Clear;
     tsSuperFundSystem.TabVisible := (fdFields.fdCountry = whAustralia);
 
-    cmbWebFormats.Clear;
-    for i := wfMin to wfMax do
-      cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+    //Use BankLink Online
+    ckUseBankLinkOnline.Checked := fdFields.fdUse_BankLink_Online;
 
+    //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
        fdFields.fdWeb_Export_Format := wfDefault;
-
-    ComboUtils.SetComboIndexByIntObject( fdFields.fdWeb_Export_Format, cmbWebFormats);
+    SetUpWebExport(fdFields.fdWeb_Export_Format);
 
     lblCountry.caption := whShortNames[ fdFields.fdCountry ];
     case fdFields.fdCountry of
@@ -643,8 +691,15 @@ begin
          else
            fdSave_Tax_Files_To       := AddSlash( Trim( edtSaveTaxTo.Text));
 
-         //Web  
+         //Save BankLink Online settings
+         AdminSystem.fdFields.fdUse_BankLink_Online := ProductConfigService.UseBankLinkOnline;
+         ProductConfigService.SavePractice;
+
+         //Web
          fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
+         if (wfNames[fdWeb_Export_Format] = WebNotesName) and
+            (not ProductConfigService.IsNotesOnlineEnabled) then
+           fdWeb_Export_Format := wfDefault; 
 
          //Practice Management System
          fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
@@ -770,7 +825,6 @@ end;
 procedure TfrmPracticeDetails.vtProductsChecked(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
-  i, j: integer;
   Data: PTreeData;
   Cat: CatalogueEntry;
 begin
@@ -856,65 +910,55 @@ begin
   end;
 end;
 
-function TfrmPracticeDetails.ConnectToBankLinkOnline: Boolean;
+procedure TfrmPracticeDetails.LoadPracticeDetails;
 var
-  i: integer;
+  i, j, AdminId: integer;
   Cat: CatalogueEntry;
-  CatArray: ArrayOfCatalogueEntry;
-  UserArray: ArrayOfUser;  
-  GUID: TGuid;
   TreeColumn: TVirtualTreeColumn;
   ProductNode, ServiceNode: PVirtualNode;
-  AdminUser: User;
   Prac: Practice;
 begin
-  Result := False;
-  edtURL.Text := '';
-  cbPrimaryContact.Clear;
-  vtProducts.Header.Columns.Clear;
-  vtProducts.Clear;
-  if not ProductConfigService.IsPracticeRegisteredForBankLinkOnline then begin
-    edtURL.Text := 'Not registered for BankLink Online';
-    cbPrimaryContact.Enabled := False;
-  end else begin
-    Prac := ProductConfigService.GetPractice;
-    //URL
-    edtURL.Text := 'https://' + Prac.DisplayName + '.' +
-                   Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
-                        Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
-    //Primary Contacts
-    cbPrimaryContact.Enabled := True;
-    for i := Low(Prac.Users) to High(Prac.Users) do
-      cbPrimaryContact.Items.Add(Prac.Users[i].FullName);
-    if cbPrimaryContact.Items.Count > 0 then
-      cbPrimaryContact.ItemIndex := 0;
-
-    //Setup Columns
-    TreeColumn := vtProducts.Header.Columns.Add;
-    TreeColumn.Text := 'TestCol1';
-    TreeColumn.Width := 20;
-    TreeColumn := vtProducts.Header.Columns.Add;
-    TreeColumn.Text := 'TestCol2';
-    TreeColumn.Width := 200;
-
-    //Products and Service
-    vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
-    vtProducts.NodeDataSize := SizeOf(TTreeData);
-    vtProducts.Indent := 0;
-    ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
-    ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
-    for i := Low(Prac.Catalogue) to High(Prac.Catalogue) do begin
-      Cat := Prac.Catalogue[i];
-      if Cat.CatalogueType = 'Product' then
-        AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
-      else if Cat.CatalogueType = 'Service' then
-        AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
-    end;
-    vtProducts.Expanded[ProductNode] := True;
-    vtProducts.Expanded[ServiceNode] := True;
-    vtProducts.ScrollIntoView(ProductNode, False);
-    Result := True;    
+  Prac := ProductConfigService.GetPractice;
+  //URL
+  edtURL.Text := 'https://' + Prac.DisplayName + '.' +
+                 Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
+                      Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
+  //Primary Contacts
+  cbPrimaryContact.Enabled := True;
+  AdminId := -1;
+  for i := Low(Prac.Users) to High(Prac.Users) do begin
+    cbPrimaryContact.Items.AddObject(Prac.Users[i].FullName, TObject(Prac.Users[i]));
+    for j := Low(Prac.Users[i].RoleNames) to High(Prac.Users[i].RoleNames) do
+      if Prac.Users[i].RoleNames[j] = 'Primary Contact' then
+        AdminId := i;
   end;
+  if (cbPrimaryContact.Items.Count >= AdminId) then
+    cbPrimaryContact.ItemIndex := AdminId;
+
+  //Setup Columns
+  TreeColumn := vtProducts.Header.Columns.Add;
+  TreeColumn.Text := 'TestCol1';
+  TreeColumn.Width := 20;
+  TreeColumn := vtProducts.Header.Columns.Add;
+  TreeColumn.Text := 'TestCol2';
+  TreeColumn.Width := 200;
+
+  //Products and Service
+  vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
+  vtProducts.NodeDataSize := SizeOf(TTreeData);
+  vtProducts.Indent := 0;
+  ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
+  ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
+  for i := Low(Prac.Catalogue) to High(Prac.Catalogue) do begin
+    Cat := Prac.Catalogue[i];
+    if Cat.CatalogueType = 'Product' then
+      AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
+    else if Cat.CatalogueType = 'Service' then
+      AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
+  end;
+  vtProducts.Expanded[ProductNode] := True;
+  vtProducts.Expanded[ServiceNode] := True;
+  vtProducts.ScrollIntoView(ProductNode, False);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1010,13 +1054,23 @@ begin
     SetUsage('Practice Logo', 0);
   end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.edtLogoBitmapFilenameChange(Sender: TObject);
 begin
   ReloadLogo;
   edtLogoBitmapFilename.Hint := edtLogoBitmapFilename.Text;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmPracticeDetails.tbsInterfacesShow(Sender: TObject);
+begin
+  if (cmbWebFormats.ItemIndex >= 0) then
+    SetUpWebExport(Byte(cmbWebFormats.Items.Objects[cmbWebFormats.ItemIndex]))
+  else
+    SetUpWebExport(wfDefault);
+end;
+
 procedure TfrmPracticeDetails.txtLastDiskIDChange(Sender: TObject);
 begin
   if PassGenCodeEntered or PRACINI_DontAskForPGDiskNo then

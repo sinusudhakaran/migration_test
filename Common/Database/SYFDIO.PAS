@@ -61,7 +61,7 @@ CONST
    tkfdGST_Applies_From                 = 24 ;
    tkfdDate_of_Last_Entry_Received      = 25 ;
    tkfdPrint_Reports_Up_To              = 26 ;
-   tkfdSpare_Boolean_3                  = 27 ;
+   tkfdUse_BankLink_Online              = 27 ;
    tkfdPrint_Staff_Member_Header_Page   = 28 ;
    tkfdPrint_Client_Header_Page         = 29 ;
    tkfdPIN_Number                       = 30 ;
@@ -269,7 +269,7 @@ Begin
       For i := 1 to 5 do F.WriteBDateValue( tkfdGST_Applies_From , i, fdGST_Applies_From[ i ] );
       F.WriteDateValue( tkfdDate_of_Last_Entry_Received , fdDate_of_Last_Entry_Received );
       F.WriteDateValue( tkfdPrint_Reports_Up_To , fdPrint_Reports_Up_To );
-      F.WriteBooleanValue( tkfdSpare_Boolean_3 , fdSpare_Boolean_3 );
+      F.WriteBooleanValue( tkfdUse_BankLink_Online , fdUse_BankLink_Online );
       F.WriteBooleanValue( tkfdPrint_Staff_Member_Header_Page , fdPrint_Staff_Member_Header_Page );
       F.WriteBooleanValue( tkfdPrint_Client_Header_Page , fdPrint_Client_Header_Page );
       F.WriteIntegerValue( tkfdPIN_Number , fdPIN_Number );
@@ -517,7 +517,7 @@ Begin
             end;
          tkfdDate_of_Last_Entry_Received      : fdDate_of_Last_Entry_Received := F.ReadDateValue;
          tkfdPrint_Reports_Up_To              : fdPrint_Reports_Up_To := F.ReadDateValue;
-         tkfdSpare_Boolean_3                  : fdSpare_Boolean_3 := F.ReadBooleanValue;
+         tkfdUse_BankLink_Online              : fdUse_BankLink_Online := F.ReadBooleanValue;
          tkfdPrint_Staff_Member_Header_Page   : fdPrint_Staff_Member_Header_Page := F.ReadBooleanValue;
          tkfdPrint_Client_Header_Page         : fdPrint_Client_Header_Page := F.ReadBooleanValue;
          tkfdPIN_Number                       : fdPIN_Number := F.ReadIntegerValue;
@@ -926,9 +926,9 @@ begin
     ChangedFields[i] := tkfdPrint_Reports_Up_To;
     Inc(i);
   end;
-  if (P1.fdSpare_Boolean_3 <> P2.fdSpare_Boolean_3) then begin
-    P3.fdSpare_Boolean_3 := P1.fdSpare_Boolean_3;
-    ChangedFields[i] := tkfdSpare_Boolean_3;
+  if (P1.fdUse_BankLink_Online <> P2.fdUse_BankLink_Online) then begin
+    P3.fdUse_BankLink_Online := P1.fdUse_BankLink_Online;
+    ChangedFields[i] := tkfdUse_BankLink_Online;
     Inc(i);
   end;
   if (P1.fdPrint_Staff_Member_Header_Page <> P2.fdPrint_Staff_Member_Header_Page) then begin

@@ -116,6 +116,7 @@ $|                            Changed name of Send Method to File Transfer Metho
 $|    5.23.0 (BLOPI)    128   Added Allow Access to Banklink online for a practice user
 $|                            Added Guid to store Unique Id to Banklink Online User
 $|                            Renamed User Password to Redundant Password and created Password of string 12
+$|                            Changed Spare Boolean 3 to Use BankLink Online
 $|*)
 
 N|Practice Details|fd|10
@@ -134,7 +135,7 @@ F|GST Rates|BB$|99|5
 F|GST Applies From|BD|5
 F|Date of Last Entry Received|D
 F|Print Reports Up To|D
-F|Spare Boolean 3|Y
+F|Use BankLink Online|Y
 F|Print Staff Member Header Page|Y
 F|Print Client Header Page|Y
 F|PIN Number|L

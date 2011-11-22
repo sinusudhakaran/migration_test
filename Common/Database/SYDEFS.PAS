@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 403;
-   SY_IOLIB_Date    = '18/11/11';
+   SY_IOLIB_Version : Integer = 404;
+   SY_IOLIB_Date    = '22/11/11';
    SY_FILE_VERSION   = 128;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -129,6 +129,7 @@ Const
        5.23.0 (BLOPI)    128   Added Allow Access to Banklink online for a practice user
                                Added Guid to store Unique Id to Banklink Online User
                                Renamed User Password to Redundant Password and created Password of string 12
+                               Changed Spare Boolean 3 to Use BankLink Online
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -168,7 +169,7 @@ Type
       fdGST_Applies_From                 : Array[ 1..5 ] of Integer;       { Stored }
       fdDate_of_Last_Entry_Received      : Integer;       { Stored }
       fdPrint_Reports_Up_To              : Integer;       { Stored }
-      fdSpare_Boolean_3                  : Boolean;       { Stored }
+      fdUse_BankLink_Online              : Boolean;       { Stored }
       fdPrint_Staff_Member_Header_Page   : Boolean;       { Stored }
       fdPrint_Client_Header_Page         : Boolean;       { Stored }
       fdPIN_Number                       : Integer;       { Stored }
