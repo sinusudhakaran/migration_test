@@ -37,6 +37,7 @@ type
     SortCol : integer;
     procedure RefreshUserList;
     function DeleteUser(User : PUser_Rec) :boolean;
+    Function PracticeCanUseBankLinkOnline : Boolean;
   public
     { Public declarations }
     function Execute : boolean;
@@ -65,6 +66,9 @@ uses
   AuditMgr;
 
 {$R *.DFM}
+
+const
+  UNITNAME = 'MaintainUsersFrm';
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.FormCreate(Sender: TObject);
@@ -115,6 +119,7 @@ var
   Code : string;
   StoredLRN : integer;
   pu : pUser_Rec;
+  DelMsg : String;
 begin
   result := false;
 
@@ -126,11 +131,19 @@ begin
 
   if User^.usLogged_In then
   begin
-     HelpfulWarningMsg('Cannot delete user '+user^.usCode+' because user is still logged in.',0);
+     HelpfulWarningMsg('Cannot delete user ' + user^.usCode + ' because user is still logged in.',0);
      exit;
   end;
 
-  if AskYesNo('Delete User','OK to Delete User '+User^.uscode+' ?',DLG_NO,0) <> DLG_YES then exit;
+  DelMsg := '';
+  if (User^.usAllow_Banklink_Online) and
+     (PracticeCanUseBankLinkOnline) then
+    DelMsg := 'This user will be deleted from both Banklink Practice and Banklink Online.' + #13;
+
+  DelMsg := DelMsg + 'OK to Delete User $s ?';
+
+  if AskYesNo('Delete User',Format(DelMsg, [User^.uscode]), DLG_NO, 0) <> DLG_YES then
+    exit;
 
   Code := User^.usCode;
   StoredLRN := User^.usLRN;
@@ -141,7 +154,7 @@ begin
      if not Assigned(pu) then
      begin
        UnlockAdmin;
-       HelpfulErrorMsg('The User '+Code+' can no longer be found in the Admin System.',0);
+       HelpfulErrorMsg('The User ' + Code + ' can no longer be found in the Admin System.',0);
        exit;
      end;
 
@@ -159,6 +172,13 @@ begin
   else
      HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.',0);
 end;
+
+//------------------------------------------------------------------------------
+function TfrmMaintainUsers.PracticeCanUseBankLinkOnline : Boolean;
+begin
+  Result := True;
+end;
+
 //------------------------------------------------------------------------------
 function TfrmMaintainUsers.Execute: boolean;
 begin
@@ -314,6 +334,8 @@ begin
     begin
       RefreshUserList;
       ReselectAndScroll(lvUsers, PrevSelectedIndex, PrevTopItemIndex);
+      LogUtil.LogMsg(lmInfo, UNITNAME,
+                     Format('User $s was deleted by $s.', [p.usName, CurrUser.FullName]));
     end;
   end;
 end;

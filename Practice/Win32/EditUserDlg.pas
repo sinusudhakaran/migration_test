@@ -28,7 +28,9 @@ Uses
   ComCtrls,
   CheckLst,
   AuditMgr,
-  OsFont;
+  OsFont,
+  BankLinkOnlineServices,
+  BlopiServiceFacade;
 
 Type
   TdlgEditUser = Class (TForm)
@@ -86,21 +88,26 @@ Type
     procedure chkCanAccessBankLinkOnlineClick(Sender: TObject);
   Private
     { Private declarations }
-    fUserGuid : AnsiString;
+    fUserGuid     : Guid;
+    fIsCreateUser : boolean;
+    fUserCanAccessBankLinkOnline : Boolean;
 
     okPressed  : boolean;
     formLoaded : boolean;
     EditChk    : boolean;
 
     Function OKtoPost : boolean;
+    Function PosttoBankLinkOnline : Boolean;
     Procedure UpdateAdminFileAccessList( UserLRN : integer);
     Function PracticeCanUseBankLinkOnline : Boolean;
     Function IsBankLinkOnlineUser : Boolean;
     Function DoesUserExistOnBankLink : Boolean;
-    Function AddOrUpdateBanklinkUser : Boolean;
   Public
     { Public declarations }
     Function Execute(User: pUser_Rec) : boolean;
+
+    property UserGuid     : Guid    read fUserGuid     write fUserGuid;
+    property IsCreateUser : boolean read fIsCreateUser write fIsCreateUser;
   End;
 
 Function EditUser(User_Code: String) : boolean;
@@ -117,14 +124,14 @@ uses
   bkXPThemes,
   ClientLookUpExFrm,
   ErrorMoreFrm,
+  InfoMoreFrm,
   Globals,
   ImagesFrm,
   LogUtil,
   SyUSIO,
   WarningMoreFrm,
   YesNoDlg,
-  RegExprUtils,
-  BlopiServiceFacade;
+  RegExprUtils;
 
 Const
   UNITNAME = 'EDITUSERDLG';
@@ -217,51 +224,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TdlgEditUser.AddOrUpdateBanklinkUser : Boolean;
-var
-  BlopiServiceFacade : IBlopiServiceFacade;
-  tmpUser: User;
-  CreateUserResponce : MessageResponseOfguid;
-  SaveUserResponce   : MessageResponse;
-begin
-  Result := false;
-  try
-    BlopiServiceFacade := GetIBlopiServiceFacade(False,'',nil);
-
-    tmpUser := User.Create;
-    tmpUser.Id       := fUserGuid;
-    tmpUser.EMail    := eMail.text;
-    tmpUser.FullName := eFullName.text;
-    tmpUser.UserCode := eUserCode.text;
-    // tmpUser.RoleNames    // Security Roles what can the user access
-    // tmpUser.Subscription // what services/apps the user subscribes too
-
-    if fUserGuid = '' then
-    begin
-      CreateUserResponce := BlopiServiceFacade.CreatePracticeUser('','','',tmpUser);
-      if CreateUserResponce.Success then
-      begin
-        fUserGuid := CreateUserResponce.Result;
-        Result := True;
-      end;
-    end
-    else
-    begin
-      SaveUserResponce := BlopiServiceFacade.SavePracticeUser('','','',tmpUser);
-      if SaveUserResponce.Success then
-      begin
-        Result := True;
-      end;
-    end;
-  except
-    on e : exception do
-    begin
-      HelpfulWarningMsg('Error connecting to Banklink Online, ' + E.Message + ' [' + E.Classname + ']', 0);
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 Procedure TdlgEditUser.btnCancelClick(Sender: TObject);
 begin { TdlgEditUser.btnCancelClick }
   okPressed := false;
@@ -272,13 +234,9 @@ End; { TdlgEditUser.btnCancelClick }
 Procedure TdlgEditUser.btnOKClick(Sender: TObject);
 begin { TdlgEditUser.btnOKClick }
   If OKtoPost Then begin
-    if IsBankLinkOnlineUser then
-    begin
-      if DoesUserExistOnBankLink then
-      if not AddOrUpdateBanklinkUser then
-        Exit;
-    end;
-    
+    if not PosttoBankLinkOnline then
+      Exit;
+
     okPressed := true;
     Close;
   End { OKtoPost };
@@ -404,17 +362,94 @@ begin { TdlgEditUser.OKtoPost }
 End; { TdlgEditUser.OKtoPost }
 
 //------------------------------------------------------------------------------
+Function TdlgEditUser.PosttoBankLinkOnline : Boolean;
+var
+  RoleNames     : ArrayOfstring;
+  Subscription  : ArrayOfguid;
+  MsgCreateorUpdate : string;
+begin
+  Result := True;
+
+  // if User was on Banklink Online and now is removed delete user on Banklink online
+  Try
+    if  (fUserCanAccessBankLinkOnline = True)
+    and (chkCanAccessBankLinkOnline.Checked = False) then
+    begin
+      Result := ProductConfigService.DeleteUser(UserGuid);
+
+      if Result then
+        HelpfulInfoMsg(Format('$s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 );
+    end;
+
+    if IsBankLinkOnlineUser then
+    begin
+      Result := ProductConfigService.AddCreateUser(fUserGuid,
+                                                   eMail.Text,
+                                                   eFullName.Text,
+                                                   RoleNames,
+                                                   Subscription,
+                                                   eUserCode.text,
+                                                   fIsCreateUser);
+      if Result then
+      begin
+        if IsCreateUser then
+          MsgCreateorUpdate := 'created on'
+        else
+          MsgCreateorUpdate := 'updated to';
+
+        HelpfulInfoMsg(Format('$s has been successfully $s BankLink Online.', [eFullName.Text, MsgCreateorUpdate]), 0 );
+      end;
+    end;
+  Except
+    on E : Exception do
+    begin
+      HelpfulErrorMsg(E.Message, 0);
+      Result := False;
+    end;
+  End;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgEditUser.chkCanAccessBankLinkOnlineClick(Sender: TObject);
+var
+  MsgCreateorUpdate : String;
+  MsgAddorUpdate    : String;
 begin
   If formLoaded Then begin
-    If not chkCanAccessBankLinkOnline.Checked then
+    // If the Current state is the same as the selected state then don't show
+    // message since the state is not changing if ok is selected.
+    If (not chkCanAccessBankLinkOnline.Checked and not fUserCanAccessBankLinkOnline)
+    or (chkCanAccessBankLinkOnline.Checked and fUserCanAccessBankLinkOnline) then
       Exit;
 
-    If AskYesNo('Add/Update Banklink User', 'This user will be Created on/ Updated to Banlink Online.' + #13
-              + 'Are you sure you want to do this?', DLG_NO, 0) <>
-      DLG_YES Then begin
-      chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
-    End;
+    If (not chkCanAccessBankLinkOnline.Checked)
+    and (fUserCanAccessBankLinkOnline = True) then
+    begin
+      If AskYesNo('Deleted BankLink User', 'This user will be Deleted on BankLink Online.' + #13
+                + 'Are you sure you want to continue?', DLG_NO, 0) <>
+        DLG_YES Then begin
+        chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
+      End;
+    end
+    else
+    begin
+      if IsCreateUser then
+      begin
+        MsgCreateorUpdate := 'created on';
+        MsgAddorUpdate := 'Add'
+      end
+      else
+      begin
+        MsgCreateorUpdate := 'updated to';
+        MsgAddorUpdate := 'Update'
+      end;
+
+      If AskYesNo(MsgAddorUpdate + ' BankLink User', 'This user will be ' + MsgCreateorUpdate + ' BankLink Online.' + #13
+                + 'Are you sure you want to do this?', DLG_NO, 0) <>
+        DLG_YES Then begin
+        chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
+      End;
+    end;
   End; { formLoaded };
 
   if chkCanAccessBankLinkOnline.Checked then
@@ -654,8 +689,8 @@ begin { TdlgEditUser.Execute }
     cbSuppressHeaderFooter.Checked := (User.usSuppress_HF = shfChecked);
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
-
-    fUserGuid := User.usBankLink_Online_Guid;
+    fUserCanAccessBankLinkOnline := User.usAllow_Banklink_Online;
+    UserGuid := User.usBankLink_Online_Guid;
 
     if User.usWorkstation_Logged_In_At <> '' then
       chkLoggedIn.Caption := 'User is &Logged In  (on ' + User.usWorkstation_Logged_In_At +')';
@@ -680,7 +715,8 @@ begin { TdlgEditUser.Execute }
     cbSuppressHeaderFooter.Checked := false;
     rbAllFiles.Checked := true;
     chkCanAccessBankLinkOnline.Checked := false;
-    fUserGuid := '';
+    UserGuid := '';
+    fUserCanAccessBankLinkOnline := false;
   end { not (Assigned(User)) };
 
   chkCanAccessBankLinkOnline.Visible := PracticeCanUseBankLinkOnline;
@@ -723,6 +759,7 @@ begin { EditUser }
 
   MyDlg := TdlgEditUser.Create(Application);
   Try
+    MyDlg.IsCreateUser := False;
     BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
     if Assigned(CurrUser) Then begin
       if (CurrUser.LRN = eUser.usLRN) or (not eUser.usLogged_In) then
@@ -781,6 +818,7 @@ begin { EditUser }
             pu.usIs_Remote_User := False;
           end;
           pu.usMASTER_Access  := chkMaster.Checked;
+          pu.usBankLink_Online_Guid := UserGuid;
 
           If pu.usLogged_In <> chkLoggedIn.Checked Then begin
              If chkLoggedIn.Checked Then begin
@@ -855,6 +893,7 @@ begin { AddUser }
 
    MyDlg := TdlgEditUser.Create(Application);
    Try
+      MyDlg.IsCreateUser := True;
       BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
       If MyDlg.Execute(Nil) Then begin
          With MyDlg Do begin
@@ -904,6 +943,7 @@ begin { AddUser }
                pu.usMASTER_Access  := chkMaster.Checked;
                pu.usLogged_In      := false;
                pu.usLRN            := AdminSystem.fdFields.fdUser_LRN_Counter;
+               pu.usBankLink_Online_Guid := UserGuid;
 
                AdminSystem.fdSystem_User_List.Insert( pu );
 
