@@ -27,6 +27,9 @@ type
                                 const practiceCode : WideString;
                                 const passwordHash : WideString;
                                 const newUser      : NewUser) : MessageResponseOfguid;
+    function IsUserCreatedOnBankLinkOnline(const APractice : Practice;
+                                           const AUserId   : Guid   = '';
+                                           const AUserCode : string = ''): Boolean;
 
     procedure SetUseBankLinkOnline(const Value: Boolean);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
@@ -57,8 +60,6 @@ type
                            const aUserCode      : WideString;
                            var   aIsUserCreated : Boolean ) : Boolean;
     function DeleteUser(AUserId : Guid): Boolean;
-    function IsUserCreatedOnBankLinkOnline(AUserId   : Guid   = '';
-                                           AUserCode : string = ''): Boolean;
   end;
 
   //Product config singleton
@@ -572,6 +573,27 @@ begin
     FPractice.Users := UserArray;
 end;
 
+function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : Practice;
+                                                             const AUserId   : Guid   = '';
+                                                             const AUserCode : string = '') : Boolean;
+var
+  currPractice : Practice;
+  UserIndex : Integer;
+begin
+  Result := False;
+  currPractice := GetPractice;
+
+  for UserIndex := 0 to High(currPractice.Users) do
+  begin
+    if (currPractice.Users[UserIndex].Id       = AUserId)
+    or (currPractice.Users[UserIndex].UserCode = AUserCode) then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
+
 function TProductConfigService.AddCreateUser(var   aUserId        : Guid;
                                              const aEMail         : WideString;
                                              const aFullName      : WideString;
@@ -589,6 +611,7 @@ var
   MsgResponceGuid : MessageResponseOfguid;
   ErrMsg          : String;
   ErrIndex        : integer;
+  CurrPractice    : Practice;
 begin
   Result := false;
 
@@ -596,7 +619,8 @@ begin
   PracCode        := 'PRACTEST';
   PracPassHash    := '123';
   try
-    if IsUserCreatedOnBankLinkOnline(aUserId, aUserCode) then
+    CurrPractice := GetPractice;
+    if IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode) then
     begin
       UpdateUser := User.Create;
       UpdateUser.EMail        := aEMail;
@@ -672,26 +696,6 @@ begin
 
   MsgResponce := DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, AUserId);
   Result := MsgResponce.Success;
-end;
-
-function TProductConfigService.IsUserCreatedOnBankLinkOnline(AUserId   : Guid   = '';
-                                                             AUserCode : string = '') : Boolean;
-var
-  currPractice : Practice;
-  UserIndex : Integer;
-begin
-  Result := False;
-  currPractice := GetPractice;
-
-  for UserIndex := 0 to High(currPractice.Users) do
-  begin
-    if (currPractice.Users[UserIndex].Id       = AUserId)
-    or (currPractice.Users[UserIndex].UserCode = AUserCode) then
-    begin
-      Result := True;
-      Exit;
-    end;
-  end;
 end;
 
 end.
