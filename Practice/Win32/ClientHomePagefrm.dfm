@@ -191,7 +191,6 @@ object frmClientHomePage: TfrmClientHomePage
         Header.Style = hsXPStyle
         HintMode = hmHint
         Indent = 0
-        ParentBackground = False
         ParentShowHint = False
         ShowHint = True
         TabOrder = 4

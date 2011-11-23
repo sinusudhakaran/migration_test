@@ -18,7 +18,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, RzGroupBar, RzCommon, ExtCtrls, ClientLookupFme, ImgList, ActnList,
   StdCtrls, Menus, OpShared, OpWrdXP, OpWord, jpeg, VirtualTrees, RzButton, Grids, RzPanel,
-  OSFont,ImportProspectsDlg;
+  OSFont,ImportProspectsDlg, dxGDIPlusClasses;
 
 type
   TfrmClientManager = class(TForm)
@@ -131,6 +131,8 @@ type
     actUnAttached: TAction;
     actInActive: TAction;
     actSendOnline: TAction;
+    lblCannotConnect: TLabel;
+    imgCannotConnect: TImage;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
@@ -339,7 +341,7 @@ uses
   ClientUtils, WinUtils, ShellAPI, stdate, bkdateutils, BK5Except,
   AuthorityUtils, CAFfrm, rptCAF, TPAfrm, rptTPA, ReportDefs, ovcDate,
   rptClientManager, CMFilterForm, bkBranding, ClientHomePageFrm, Merge32,
-  rptAdmin, MainFrm, CheckInOutFrm;
+  rptAdmin, MainFrm, CheckInOutFrm, Clipbrd;
 
 {$R *.dfm}
 

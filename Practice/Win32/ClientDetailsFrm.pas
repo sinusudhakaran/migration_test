@@ -432,7 +432,7 @@ begin
      if buttonSelected = mrNo then
      begin
        BanklinkOnlineSettings.chkUseClientDetails.Checked := false;
-       BanklinkOnlineSettings.Client1.SetUseClientDetails(false);
+       // BanklinkOnlineSettings.Client1.SetUseClientDetails(false);
      end else
        btnCancelClick(Sender);
    end;

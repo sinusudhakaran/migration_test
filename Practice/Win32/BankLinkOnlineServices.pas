@@ -6,12 +6,35 @@ uses
   BlopiServiceFacade,InvokeRegistry;
 
 type
+  TClientHelper = Class helper for BlopiServiceFacade.ClientSummary
+  private
+    function GetDeactivated: boolean;
+    function GetClientConnectDays: string;
+    function GetFreeTrialEndDate: TDateTime;
+    function GetBillingEndDate: TDateTime;
+    function GetUserOnTrial: boolean;
+    function GetBillingFrequency: string;
+    function GetUseClientDetails: boolean;
+    function GetUserName: string;
+    function GetEmailAddress: string;
+  public
+    procedure AddSubscription(AProductID: guid);
+    property Deactivated: boolean read GetDeactivated;
+    property ClientConnectDays: string read GetClientConnectDays; // 0 if client must always be online
+    property FreeTrialEndDate: TDateTime read GetFreeTrialEndDate;
+    property BillingEndDate: TDateTime read GetBillingEndDate;
+    property UserOnTrial: boolean read GetUserOnTrial;
+    property BillingFrequency: string read GetBillingFrequency;
+    property UseClientDetails: boolean read GetUseClientDetails;
+    property UserName: string read GetUserName;
+    property EmailAddress: string read GetEmailAddress;
+  End;
+
   TProductConfigService = class(TObject)
   private
-    FPractice: Practice;
-    FPracticeCopy: Practice;
-    FUseBankLinkOnline: Boolean;
-    FRegisteredForBankLinkOnline: Boolean;
+    FPractice, FPracticeCopy: Practice;
+    FUseBankLinkOnline, FRegisteredForBankLinkOnline: boolean;
+    FListOfClients: ClientList;
     procedure LoadDummyPractice;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
@@ -35,6 +58,7 @@ type
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
+    procedure LoadDummyClientList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -51,6 +75,9 @@ type
     property UseBankLinkOnline: Boolean read FUseBankLinkOnline write SetUseBankLinkOnline;
     property RegisteredForBankLinkOnline: Boolean read FRegisteredForBankLinkOnline write SetRegisteredForBankLinkOnline;
     //Client methods
+    function AddClient: ClientSummary;
+    function GetClientDetails(ClientID: WideString): ClientSummary;
+    property Clients: ClientList read FListOfClients;
     //User methods
     function AddCreateUser(var   aUserId        : Guid;
                            const aEMail         : WideString;
@@ -145,8 +172,8 @@ begin
   if not LoadRemotableObjectFromFile(FPractice) then
     LoadDummyPractice;
   FUseBankLinkOnline := False;
-  //Create client list
-    //Create clients
+  //Create clients
+  LoadDummyClientList;
 end;
 
 destructor TProductConfigService.Destroy;
@@ -157,6 +184,23 @@ begin
   inherited;
 end;
 
+function TProductConfigService.GetClientDetails(ClientID: WideString): ClientSummary;
+var
+  i: integer;
+  ClientArray: ArrayOfClientSummary;
+begin
+  Result := nil;
+  ClientArray := FListOfClients.Clients;
+  for i := Low(ClientArray) to High(ClientArray) do
+  begin
+    if (ClientArray[i].Id = ClientID) then
+    begin
+      Result := ClientArray[i];
+      break;
+    end;
+  end;
+end;
+
 function TProductConfigService.GetPractice: Practice;
 begin
   //Make a copy for editing
@@ -164,6 +208,37 @@ begin
   FPracticeCopy := Practice.Create;
   CopyRemotableObject(FPractice, FPracticeCopy);
   Result := FPracticeCopy;
+end;
+
+function TProductConfigService.AddClient: ClientSummary;
+var
+  SubArray: ArrayOfGuid;
+  Guid1: TGuid;
+  ClientArray: ArrayOfClientSummary;
+begin
+  ClientArray := FListOfClients.Clients;
+  try
+    SetLength(ClientArray, Length(ClientArray) + 1);
+    ClientArray[High(ClientArray)] := ClientSummary.Create;
+    CreateGUID(Guid1);
+    ClientArray[High(ClientArray)].Id := GuidToString(Guid1);
+    // ClientArray[High(ClientArray)].Subscription := SubArray;
+  finally
+     FListOfClients.Clients := ClientArray;
+  end;
+  Result := FListOfClients.Clients[High(FListOfClients.Clients)];
+end;
+
+procedure TProductConfigService.LoadDummyClientList;
+begin
+  FListOfClients := ClientList.Create;
+  FListOfClients.Catalogue := FPractice.Catalogue;
+  AddClient;
+  if (High(FPractice.Subscription) <> - 1) then
+    if Assigned(FListOfClients.Clients[0]) then
+      ClientSummary(FListOfClients.Clients[0]).AddSubscription(FPractice.Subscription[0]);
+
+  // add subscriptions to client
 end;
 
 procedure TProductConfigService.LoadDummyPractice;
@@ -449,6 +524,71 @@ end;
 procedure TProductConfigService.SetUseBankLinkOnline(const Value: Boolean);
 begin
   FUseBankLinkOnline := Value;
+end;              
+
+{ TClientHelper }
+
+function TClientHelper.GetClientConnectDays: string;
+begin
+  Result := '90';
+end;
+
+function TClientHelper.GetDeactivated: boolean;
+begin
+  Result := true;
+end;
+
+function TClientHelper.GetEmailAddress: string;
+begin
+  Result := 'someone@somewhere.com';
+end;
+
+function TClientHelper.GetFreeTrialEndDate: TDateTime;
+begin
+  Result := StrToDate('31/12/2011');
+end;
+
+function TClientHelper.GetUseClientDetails: boolean;
+begin
+  Result := true;
+end;
+
+function TClientHelper.GetUserName: string;
+begin
+  Result := 'Joe Bloggs';
+end;
+
+function TClientHelper.GetUserOnTrial: boolean;
+begin
+  Result := false;
+end;
+
+procedure TClientHelper.AddSubscription(AProductID: guid);
+var
+  SubArray: arrayofguid;
+  i: integer;
+begin
+  for i := Low(Subscription) to High(Subscription) do
+    if (Subscription[i] = AProductID) then
+      Exit;
+
+  SubArray := Subscription;
+  try
+    SetLength(SubArray, Length(SubArray) + 1);
+    SubArray[High(SubArray)] := AProductId;
+  finally
+    Subscription := SubArray;
+  end;
+end;
+
+function TClientHelper.GetBillingEndDate: TDateTime;
+begin
+  Result := StrToDate('31/12/2011');
+end;
+
+function TClientHelper.GetBillingFrequency: string;
+begin
+  Result := 'Monthly';
 end;
 
 function TProductConfigService.DeletePracticeUser(const countryCode  : WideString;
