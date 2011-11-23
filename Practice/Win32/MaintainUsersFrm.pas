@@ -140,7 +140,7 @@ begin
      (PracticeCanUseBankLinkOnline) then
     DelMsg := 'This user will be deleted from both Banklink Practice and Banklink Online.' + #13;
 
-  DelMsg := DelMsg + 'OK to Delete User $s ?';
+  DelMsg := DelMsg + 'OK to Delete User %s ?';
 
   if AskYesNo('Delete User',Format(DelMsg, [User^.uscode]), DLG_NO, 0) <> DLG_YES then
     exit;
@@ -335,7 +335,7 @@ begin
       RefreshUserList;
       ReselectAndScroll(lvUsers, PrevSelectedIndex, PrevTopItemIndex);
       LogUtil.LogMsg(lmInfo, UNITNAME,
-                     Format('User $s was deleted by $s.', [p.usName, CurrUser.FullName]));
+                     Format('User %s was deleted by %s.', [p.usName, CurrUser.FullName]));
     end;
   end;
 end;

@@ -378,7 +378,7 @@ begin
       Result := ProductConfigService.DeleteUser(UserGuid);
 
       if Result then
-        HelpfulInfoMsg(Format('$s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 );
+        HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 );
     end;
 
     if IsBankLinkOnlineUser then
@@ -397,7 +397,7 @@ begin
         else
           MsgCreateorUpdate := 'updated to';
 
-        HelpfulInfoMsg(Format('$s has been successfully $s BankLink Online.', [eFullName.Text, MsgCreateorUpdate]), 0 );
+        HelpfulInfoMsg(Format('%s has been successfully %s BankLink Online.', [eFullName.Text, MsgCreateorUpdate]), 0 );
       end;
     end;
   Except
@@ -858,7 +858,7 @@ begin { EditUser }
           Result := true;
 
           LogUtil.LogMsg(lmInfo, UNITNAME,
-                         Format('User $s was edited by $s.', [pu^.usName, CurrUser.FullName]));
+                         Format('User %s was edited by %s.', [pu^.usName, CurrUser.FullName]));
 
           If Assigned(CurrUser) Then begin
              If CurrUser.LRN = pu.usLRN Then begin
@@ -956,7 +956,7 @@ begin { AddUser }
                Result := true;
 
                LogUtil.LogMsg(lmInfo, UNITNAME,
-                              Format('User $s was added by $s.', [pu^.usName, CurrUser.FullName]));
+                              Format('User %s was added by %s.', [pu^.usName, CurrUser.FullName]));
             End { LoadAdminSystem(true) }
             Else begin
                HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.', 0)

@@ -14,6 +14,7 @@ type
     FRegisteredForBankLinkOnline: Boolean;
     procedure LoadDummyPractice;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
+
     function DeletePracticeUser(const countryCode  : WideString;
                                 const practiceCode : WideString;
                                 const passwordHash : WideString;
@@ -25,7 +26,8 @@ type
     function CreatePracticeUser(const countryCode  : WideString;
                                 const practiceCode : WideString;
                                 const passwordHash : WideString;
-                                const aUser        : User) : MessageResponseOfguid;
+                                const newUser      : NewUser) : MessageResponseOfguid;
+
     procedure SetUseBankLinkOnline(const Value: Boolean);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
@@ -511,10 +513,22 @@ begin
   and (practiceCode = 'PRACTEST')
   and (passwordHash = '123') then
   begin
+    // Find User to Update
+    UpdateIndex := -1;
+    for UserIndex := 0 to high(UserArray) do
+    begin
+      if UserArray[UserIndex].Id = aUser.Id then
+      begin
+        UpdateIndex := UserIndex;
+        Break;
+      end;
+    end;
 
-
-    UserArray[UserIndex] := aUser;
-    Result.Success := True;
+    if UpdateIndex > -1 then
+    begin
+      UserArray[UserIndex] := aUser;
+      Result.Success := True;
+    end;
   end;
 
   if Result.Success = True then
@@ -524,7 +538,7 @@ end;
 function TProductConfigService.CreatePracticeUser(const countryCode  : WideString;
                                                   const practiceCode : WideString;
                                                   const passwordHash : WideString;
-                                                  const aUser        : User) : MessageResponseOfguid;
+                                                  const newUser      : NewUser) : MessageResponseOfguid;
 var
   UserIndex : integer;
   UpdateIndex : integer;
@@ -541,11 +555,16 @@ begin
   and (passwordHash = '123') then
   begin
     SetLength(UserArray, High(UserArray)+2);
-    UserArray[High(UserArray)] := aUser;
-    CreateGuid(NewGuid);
+    UserArray[High(UserArray)].EMail        := newUser.EMail;
+    UserArray[High(UserArray)].FullName     := newUser.FullName;
+    UserArray[High(UserArray)].RoleNames    := newUser.RoleNames;
+    UserArray[High(UserArray)].Subscription := newUser.Subscription;
+    UserArray[High(UserArray)].UserCode     := newUser.UserCode;
 
+    CreateGuid(NewGuid);
     Result.Result := GuidtoString(NewGuid);
     UserArray[High(UserArray)].Id := Result.Result;
+
     Result.Success := True;
   end;
 
@@ -561,7 +580,8 @@ function TProductConfigService.AddCreateUser(var   aUserId        : Guid;
                                              const aUserCode      : WideString;
                                              var   aIsUserCreated : Boolean ) : Boolean;
 var
-  varUser         : User;
+  UpdateUser      : User;
+  CreateUser      : NewUser;
   PracCountryCode : WideString;
   PracCode        : WideString;
   PracPassHash    : WideString;
@@ -575,19 +595,18 @@ begin
   PracCountryCode := 'NZ';
   PracCode        := 'PRACTEST';
   PracPassHash    := '123';
-
-  varUser := User.Create;
-  varUser.EMail        := aEMail;
-  varUser.FullName     := aFullName;
-  varUser.Id           := aUserId;
-  varUser.RoleNames    := aRoleNames;
-  varUser.Subscription := aSubscription;
-  varUser.UserCode     := aUserCode;
-
   try
     if IsUserCreatedOnBankLinkOnline(aUserId, aUserCode) then
     begin
-      MsgResponce := SavePracticeUser(PracCountryCode, PracCode, PracPassHash, varUser);
+      UpdateUser := User.Create;
+      UpdateUser.EMail        := aEMail;
+      UpdateUser.FullName     := aFullName;
+      UpdateUser.Id           := aUserId;
+      UpdateUser.RoleNames    := aRoleNames;
+      UpdateUser.Subscription := aSubscription;
+      UpdateUser.UserCode     := aUserCode;
+
+      MsgResponce := SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
       Result := MsgResponce.Success;
       if not Result then
       begin
@@ -598,7 +617,7 @@ begin
         if not (ErrMsg = '') then
           ErrMsg := #13 + ErrMsg;
 
-        raise Exception.Create( 'BankLink Practice was unable to create ' + varUser.FullName +
+        raise Exception.Create( 'BankLink Practice was unable to create ' + UpdateUser.FullName +
                                 ' on BankLink Online. ' + ErrMsg );
       end;
 
@@ -606,7 +625,14 @@ begin
     end
     else
     begin
-      MsgResponceGuid := CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, varUser);
+      CreateUser := NewUser.Create;
+      CreateUser.EMail        := aEMail;
+      CreateUser.FullName     := aFullName;
+      CreateUser.RoleNames    := aRoleNames;
+      CreateUser.Subscription := aSubscription;
+      CreateUser.UserCode     := aUserCode;
+
+      MsgResponceGuid := CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
       Result := MsgResponceGuid.Success;
       aUserId := MsgResponceGuid.Result;
 
@@ -619,7 +645,7 @@ begin
         if not (ErrMsg = '') then
           ErrMsg := #13 + ErrMsg;
 
-        raise Exception.Create( 'BankLink Practice was unable to update ' + varUser.FullName +
+        raise Exception.Create( 'BankLink Practice was unable to update ' + CreateUser.FullName +
                                 ' on BankLink Online. ' + ErrMsg );
       end;
 
