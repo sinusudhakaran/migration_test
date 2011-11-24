@@ -78,7 +78,8 @@ uses
   ReportTypes,
   YesNoDlg, pyList32, cfList32, WinUtils, SYamIO, mxFiles32, BasUtils, Software,
   SystemMemorisationList, IOStream, AuditMgr, CountryUtils,
-  ExchangeRateList, MCDEFS, stTree, stBase;
+  ExchangeRateList, MCDEFS, stTree, stBase,
+  BankLinkOnlineServices, BlopiServiceFacade;
 // ----------------------------------------------------------------------------
 
 Const
@@ -1536,6 +1537,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   procedure UpgradeAdminToVersion128;
   var
     UserIndex : integer;
+    Prac: Practice;
   begin
     UpgradingToVersion := 128;
 
@@ -1544,6 +1546,16 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     begin
       AdminSystem.fdSystem_User_List.User_At(UserIndex).usPassword :=
         AdminSystem.fdSystem_User_List.User_At(UserIndex).usRedundant_Password;
+    end;
+
+    if (Trim(Globals.PRACINI_OnlineLink) <> '') then begin
+      AdminSystem.fdFields.fdUse_BankLink_Online := True;
+      //*** TEST ***
+      ProductConfigService.RegisteredForBankLinkOnline := True;
+      //Connect to BankLink Online and get the Practice details
+      Prac := ProductConfigService.GetPractice;
+      if not Assigned(Prac) then
+        AdminSystem.fdFields.fdUse_BankLink_Online := False;
     end;
   end;
 
@@ -4465,12 +4477,8 @@ procedure DoUpgradeExchangeRatesToLatestVersion(var UpgradingToVersion: integer;
   AExchangeRateList: TExchangeRateList);
 const
    ThisMethodName = 'DoUpgradeExchangeRatesToLatestVersion';
-var
-  ArchiveCheckNeeded : boolean;
 
   procedure  UpgradeExchangeRatesBefore101ToVersion102;
-  var
-    ExchangeRecord: TExchangeRecord;
   begin
     AExchangeSource.AuditTrialID := AExchangeRateList.AuditMgr.NextAuditRecordID;
     //Add audit ID's to existing records
@@ -4487,6 +4495,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : Begins');
   try
     if (AExchangeSource.FileVersion < 102) then Begin
+      UpgradingToVersion := 102;
       LogUtil.LogMsg(lmInfo, ThisMethodName, 'Upgrading Database  < 101 to 102');
       UpgradeExchangeRatesBefore101ToVersion102;
       LogUtil.LogMsg(lmInfo, ThisMethodName, 'Upgrade completed normally');
@@ -4536,7 +4545,6 @@ const
   ThisMethodName = 'UpgradeExchangeRatesToLatestVersion';
 var
   OriginalVersion     : integer;
-  NewVersion          : integer;
   UpgradingToVersion  : integer;
   ErrorMessage        : string;
   ExchangeRates: TExchangeRateList;
@@ -4556,7 +4564,7 @@ begin
         LogUtil.LogMsg(lmInfo, ThisMethodName, 'Starting Upgrade');
         //Exchange rates still locked at this point
         OriginalVersion := ExchangeSource.FileVersion;
-        NewVersion := MCDEFS.MC_FILE_VERSION;
+        LogUtil.LogMsg(lmInfo, ThisMethodName, 'Latest Exchange Rates Database Version: ' + IntToStr(MCDEFS.MC_FILE_VERSION));
         //Backup exchange rates
         if not BackupExchangeRates then begin
           ExchangeRates.Unlock;

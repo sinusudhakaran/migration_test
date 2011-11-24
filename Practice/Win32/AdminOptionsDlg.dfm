@@ -49,7 +49,7 @@ object dlgAdminOptions: TdlgAdminOptions
     Top = 0
     Width = 618
     Height = 433
-    ActivePage = TabSheet1
+    ActivePage = tsGeneral
     Align = alTop
     MultiLine = True
     TabOrder = 1
@@ -893,110 +893,6 @@ object dlgAdminOptions: TdlgAdminOptions
           Width = 441
           Height = 21
           TabOrder = 0
-        end
-      end
-    end
-    object TabSheet1: TTabSheet
-      Caption = 'BankLink Online'
-      ImageIndex = 7
-      object Label1: TLabel
-        Left = 24
-        Top = 67
-        Width = 60
-        Height = 13
-        Caption = 'Practice URL'
-      end
-      object Label3: TLabel
-        Left = 24
-        Top = 105
-        Width = 77
-        Height = 13
-        Caption = 'Primary Contact'
-      end
-      object Label7: TLabel
-        Left = 24
-        Top = 149
-        Width = 517
-        Height = 13
-        Caption = 
-          'Select the BankLink Online products and services that you wish t' +
-          'o have available:'
-      end
-      object ckUseBankLinkOnline: TCheckBox
-        Left = 24
-        Top = 36
-        Width = 265
-        Height = 17
-        Caption = 'Use BankLink Online'
-        TabOrder = 0
-      end
-      object Edit1: TEdit
-        Left = 137
-        Top = 64
-        Width = 420
-        Height = 21
-        TabOrder = 1
-      end
-      object ComboBox1: TComboBox
-        Left = 137
-        Top = 102
-        Width = 249
-        Height = 21
-        Style = csDropDownList
-        ItemHeight = 13
-        TabOrder = 2
-      end
-      object Button1: TButton
-        Left = 511
-        Top = 168
-        Width = 75
-        Height = 25
-        Caption = 'Select All'
-        TabOrder = 3
-      end
-      object Button3: TButton
-        Left = 511
-        Top = 199
-        Width = 75
-        Height = 25
-        Caption = 'Clear All'
-        TabOrder = 4
-      end
-      object CheckListBox1: TCheckListBox
-        Left = 24
-        Top = 168
-        Width = 473
-        Height = 217
-        ItemHeight = 13
-        TabOrder = 5
-      end
-      object Panel1: TPanel
-        Left = 0
-        Top = 0
-        Width = 610
-        Height = 30
-        Align = alTop
-        BevelOuter = bvNone
-        TabOrder = 6
-        object Bevel7: TBevel
-          Left = 144
-          Top = 10
-          Width = 449
-          Height = 9
-          Shape = bsTopLine
-        end
-        object Label9: TLabel
-          Left = 16
-          Top = 3
-          Width = 114
-          Height = 13
-          Caption = 'BankLink Online Options'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          ParentFont = False
         end
       end
     end

@@ -38,7 +38,7 @@ type
   TProductConfigService = class(TObject)
   private
     FPractice, FPracticeCopy: Practice;
-    FUseBankLinkOnline, FRegisteredForBankLinkOnline: boolean;
+    FRegisteredForBankLinkOnline: boolean;
     FListOfClients: ClientList;
     FClient: Client;
     procedure LoadDummyPractice;
@@ -59,7 +59,7 @@ type
     function IsUserCreatedOnBankLinkOnline(const APractice : Practice;
                                            const AUserId   : Guid   = '';
                                            const AUserCode : string = ''): Boolean;
-
+    function GetUseBankLinkOnline: Boolean;
     procedure SetUseBankLinkOnline(const Value: Boolean);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
@@ -70,15 +70,17 @@ type
     destructor Destroy; override;
     //Practice methods
     function GetPractice: Practice;
+    function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
     function IsPracticeProductEnabled(AProductId: Guid): Boolean;
     function IsNotesOnlineEnabled: Boolean;
+    function IsCICOEnabled: Boolean;
     function SavePractice: Boolean;
     procedure AddProduct(AProductId: Guid);
     procedure ClearAllProducts;
     procedure RemoveProduct(AProductId: Guid);
     procedure SelectAllProducts;
     procedure SetPrimaryContact(AUser: User);
-    property UseBankLinkOnline: Boolean read FUseBankLinkOnline write SetUseBankLinkOnline;
+    property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
     property RegisteredForBankLinkOnline: Boolean read FRegisteredForBankLinkOnline write SetRegisteredForBankLinkOnline;
     //Client methods
     function AddClient: ClientSummary;
@@ -106,7 +108,10 @@ uses
   XMLIntf, 
   XMLDoc, 
   OPToSOAPDomConv,
-  LogUtil;
+  LogUtil,
+  WarningMoreFrm,
+  IniSettings,
+  WebUtils;
 
 Const
   UNIT_NAME = 'BankLinkOnlineServices';  
@@ -183,9 +188,11 @@ constructor TProductConfigService.Create;
 begin
   //Create practice
   FPractice := Practice.Create;
-  if not LoadRemotableObjectFromFile(FPractice) then
-    LoadDummyPractice;
-  FUseBankLinkOnline := False;
+  //Load practice 
+  if UseBankLinkOnline then
+    if not LoadRemotableObjectFromFile(FPractice) then
+      LoadDummyPractice;
+  RegisteredForBankLinkOnline := UseBankLinkOnline;
   //Create clients
   LoadDummyClientList;
 end;
@@ -196,6 +203,20 @@ begin
   FPracticeCopy.Free;
   FPractice.Free;
   inherited;
+end;
+
+function TProductConfigService.GetCatalogueEntry(
+  AProductId: Guid): CatalogueEntry;
+var
+  i: integer;
+begin
+  Result :=  nil;
+  for i := Low(FPractice.Catalogue) to High(FPractice.Catalogue) do begin
+    if (AProductId = FPractice.Catalogue[i].Id) then begin
+      Result := FPractice.Catalogue[i];
+      Break;
+    end;
+  end;
 end;
 
 function TProductConfigService.GetClientDetails(ClientID: WideString): Client;
@@ -219,11 +240,27 @@ end;
 
 function TProductConfigService.GetPractice: Practice;
 begin
-  //Make a copy for editing
-  FPracticeCopy.Free;
-  FPracticeCopy := Practice.Create;
-  CopyRemotableObject(FPractice, FPracticeCopy);
-  Result := FPracticeCopy;
+  try
+    //Test - make a copy for editing
+    FPracticeCopy.Free;
+    FPracticeCopy := Practice.Create;
+    CopyRemotableObject(FPractice, FPracticeCopy);
+    Result := FPracticeCopy;
+    //Live
+//    Result := GetIBlopiServiceFacade.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
+//                                                       AdminSystem.fdFields.fdBankLink_Code,
+//                                                       AdminSystem.fdFields.fdBankLink_Connect_Password);
+  except
+    on E : Exception do
+      raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+  end;
+end;
+
+function TProductConfigService.GetUseBankLinkOnline: Boolean;
+begin
+  Result := False; 
+  if Assigned(AdminSystem) then
+    Result := AdminSystem.fdFields.fdUse_BankLink_Online;
 end;
 
 function TProductConfigService.AddClient: ClientSummary;
@@ -268,10 +305,14 @@ var
   Cat: CatalogueEntry;
   CatArray: ArrayOfCatalogueEntry;
   UserArray: ArrayOfUser;
+  SubArray: ArrayOfGuid;
   GUID: TGuid;
   AdminUser: User;
 begin
   FPractice.DisplayName := 'practice';
+  FPractice.DomainName := 'Domain';
+  FPractice.EMail := 'scott.wilson@banklink.co.nz';
+  FPractice.Phone := '555 5555';
 
   //Products and sevices
   CatArray := FPractice.Catalogue;
@@ -291,19 +332,29 @@ begin
     Cat.Description := 'InvoicePlus';
     CatArray[1] := Cat;
 
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Notes Online';
-    CatArray[2] := Cat;
+    //Auto Subscribe to these services
+    SubArray := FPractice.Subscription;
+    try
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'BankLink Notes Online';
+      CatArray[2] := Cat;
+      SetLength(SubArray, Length(SubArray) + 1);
+      SubArray[High(SubArray)] := Cat.Id;
 
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[3] := Cat;
+      CreateGUID(GUID);
+      Cat := CatalogueEntry.Create;
+      Cat.Id := GuidToString(GUID);
+      Cat.CatalogueType := 'Service';
+      Cat.Description := 'Send and Receive Client Files';
+      CatArray[3] := Cat;
+      SetLength(SubArray, Length(SubArray) + 1);
+      SubArray[High(SubArray)] := Cat.Id;
+    finally
+      FPractice.Subscription := SubArray;
+    end;
 
     CreateGUID(GUID);
     Cat := CatalogueEntry.Create;
@@ -362,16 +413,23 @@ begin
   try
     SetLength(UserArray, 2);
 
+    CreateGUID(GUID);
     AdminUser := User.Create;
+    AdminUser.Id := GuidToString(GUID);
     AdminUser.FullName := 'Andrew Will';
     UserArray[0] := AdminUser;
 
+    CreateGUID(GUID);
     AdminUser := User.Create;
+    AdminUser.Id := GuidToString(GUID);
     AdminUser.FullName := 'Scott Wilson';
     UserArray[1] := AdminUser;
   finally
     FPractice.Users := UserArray;
   end;
+
+  //Set primary contact
+  FPractice.DefaultAdminUserId := UserArray[1].Id;
 end;
 
 function TProductConfigService.LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
@@ -393,6 +451,27 @@ begin
     ARemotable.SOAPToObject(NodeRoot, NodeObject, Converter);
     RegisteredForBankLinkOnline := True;
     Result := True;    
+  end;
+end;
+
+function TProductConfigService.IsCICOEnabled: Boolean;
+var
+  i, j: integer;
+  Cat: CatalogueEntry;
+begin
+  Result := False;
+  if Assigned(FPracticeCopy) then begin
+    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
+      Cat := FPracticeCopy.Catalogue[i];
+      if Cat.Description = 'Send and Receive Client Files' then begin
+        for j := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
+          if FPracticeCopy.Subscription[j] = Cat.Id then begin
+            Result := True;
+            Break;
+          end;
+        end;
+      end;
+    end;
   end;
 end;
 
@@ -437,7 +516,31 @@ procedure TProductConfigService.RemoveProduct(AProductId: Guid);
 var
   i, j: integer;
   SubArray: ArrayOfGuid;
+  ClientsUsingProduct: integer;
+  Msg: string;
+  TempCatalogueEntry: CatalogueEntry;
 begin
+  ClientsUsingProduct := 1;
+  //Check if any clients are using the product
+//  for i := Low(FListOfClients.Clients) to Low(FListOfClients.Clients) do begin
+//    for j := Low(Client.SubList) to High(Client.SubList) do begin
+//      if AProductId = Client.SubList[j] then
+//        Inc(ClientsUsingProduct);
+//    end;
+//  end;
+
+  TempCatalogueEntry := GetCatalogueEntry(AProductId);
+  if Assigned(TempCatalogueEntry) then begin
+    if ClientsUsingProduct > 0 then begin
+      Msg := Format('There are currently %d clients using %s. Please remove ' +
+                    'access for these clients from this product before ' +
+                    'disabling it',
+                    [ClientsUsingProduct, TempCatalogueEntry.Description]);
+      HelpfulWarningMsg(MSg, 0);
+      Exit;
+    end;
+  end;     
+
   for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
     if AProductId = FPracticeCopy.Subscription[i] then begin
       SubArray := FPracticeCopy.Subscription;
@@ -512,29 +615,8 @@ begin
 end;
 
 procedure TProductConfigService.SetPrimaryContact(AUser: User);
-var
-  i, j: integer;
-  TempUser: User;
-  UserRoles: ArrayofString;
 begin
-  for i := Low(FPracticeCopy.Users) to High(FPracticeCopy.Users) do begin
-    TempUser := FPracticeCopy.Users[i];
-    UserRoles := TempUser.RoleNames;
-    try
-      if (TempUser = AUser) then begin
-        //Primary contact
-        SetLength(UserRoles, 1);
-        UserRoles[0] := 'Primary Contact';
-      end else begin
-        //Normal user
-        for j := Low(UserRoles) to High(UserRoles) do
-          UserRoles[j] := '';
-        SetLength(UserRoles, 0);
-      end;
-    finally
-      TempUser.RoleNames := UserRoles;
-    end;
-  end;
+  FPracticeCopy.DefaultAdminUserId := AUser.Id;
 end;
 
 procedure TProductConfigService.SetRegisteredForBankLinkOnline(
@@ -545,7 +627,8 @@ end;
 
 procedure TProductConfigService.SetUseBankLinkOnline(const Value: Boolean);
 begin
-  FUseBankLinkOnline := Value;
+  if Assigned(AdminSystem) then
+    AdminSystem.fdFields.fdUse_BankLink_Online := Value;
 end;              
 
 { TClientHelper }

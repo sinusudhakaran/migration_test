@@ -102,7 +102,8 @@ uses
    CountryUtils,
    ReportDefs,
    SimpleUIOpenPageFrm,
-   CFHead;
+   CFHead,
+   BankLinkOnlineServices;
 
 var
   ClosingAllMDIForms : boolean = false;
@@ -802,7 +803,10 @@ begin
      actSendViaEmail.Enabled := True;
      actSendToFile.Enabled := True;
      actSendViaOnline.Enabled := True;
-     if (not UsingAdmin) and ClientFileOpen then begin
+     if UsingAdmin then begin
+       actSendViaOnline.Enabled := ProductConfigService.IsCICOEnabled;
+       actGetFromOnline.Enabled := ProductConfigService.IsCICOEnabled;
+     end else if ClientFileOpen then begin
        actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
        actSendViaEmail.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
        actSendViaOnline.Enabled := (MyClient.clExtra.ceFile_Transfer_Method = ftmOnline);

@@ -432,11 +432,6 @@ end;
 
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 begin
-  //Clear
-  edtURL.Text := '';
-  cbPrimaryContact.Clear;
-  vtProducts.Header.Columns.Clear;
-  vtProducts.Clear;
   if ckUseBankLinkOnline.Checked then begin
     if ProductConfigService.RegisteredForBankLinkOnline then
       LoadPracticeDetails
@@ -527,7 +522,7 @@ begin
     tsSuperFundSystem.TabVisible := (fdFields.fdCountry = whAustralia);
 
     //Use BankLink Online
-    ckUseBankLinkOnline.Checked := fdFields.fdUse_BankLink_Online;
+    ckUseBankLinkOnline.Checked := ProductConfigService.UseBankLinkOnline;
 
     //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
@@ -692,7 +687,7 @@ begin
            fdSave_Tax_Files_To       := AddSlash( Trim( edtSaveTaxTo.Text));
 
          //Save BankLink Online settings
-         AdminSystem.fdFields.fdUse_BankLink_Online := ProductConfigService.UseBankLinkOnline;
+         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
          ProductConfigService.SavePractice;
 
          //Web
@@ -912,53 +907,63 @@ end;
 
 procedure TfrmPracticeDetails.LoadPracticeDetails;
 var
-  i, j, AdminId: integer;
+  i, AdminId: integer;
   Cat: CatalogueEntry;
   TreeColumn: TVirtualTreeColumn;
   ProductNode, ServiceNode: PVirtualNode;
   Prac: Practice;
 begin
-  Prac := ProductConfigService.GetPractice;
-  //URL
-  edtURL.Text := 'https://' + Prac.DisplayName + '.' +
-                 Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
-                      Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
-  //Primary Contacts
-  cbPrimaryContact.Enabled := True;
-  AdminId := -1;
-  for i := Low(Prac.Users) to High(Prac.Users) do begin
-    cbPrimaryContact.Items.AddObject(Prac.Users[i].FullName, TObject(Prac.Users[i]));
-    for j := Low(Prac.Users[i].RoleNames) to High(Prac.Users[i].RoleNames) do
-      if Prac.Users[i].RoleNames[j] = 'Primary Contact' then
+  //Clear
+  edtURL.Text := '';
+  cbPrimaryContact.Clear;
+  vtProducts.Header.Columns.Clear;
+  vtProducts.Clear;
+  try
+    Prac := ProductConfigService.GetPractice;
+    //URL
+    edtURL.Text := 'https://' + Prac.DomainName + '.' +
+                   Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
+                        Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
+    //Primary Contacts
+    cbPrimaryContact.Enabled := True;
+    AdminId := -1;
+    for i := Low(Prac.Users) to High(Prac.Users) do begin
+      cbPrimaryContact.Items.AddObject(Prac.Users[i].FullName, TObject(Prac.Users[i]));
+      if (Prac.Users[i].Id = Prac.DefaultAdminUserId) then
         AdminId := i;
-  end;
-  if (cbPrimaryContact.Items.Count >= AdminId) then
-    cbPrimaryContact.ItemIndex := AdminId;
+    end;
+    if (cbPrimaryContact.Items.Count >= AdminId) then
+      cbPrimaryContact.ItemIndex := AdminId;
 
-  //Setup Columns
-  TreeColumn := vtProducts.Header.Columns.Add;
-  TreeColumn.Text := 'TestCol1';
-  TreeColumn.Width := 20;
-  TreeColumn := vtProducts.Header.Columns.Add;
-  TreeColumn.Text := 'TestCol2';
-  TreeColumn.Width := 200;
+    //Setup Columns
+    TreeColumn := vtProducts.Header.Columns.Add;
+    TreeColumn.Text := 'TestCol1';
+    TreeColumn.Width := 20;
+    TreeColumn := vtProducts.Header.Columns.Add;
+    TreeColumn.Text := 'TestCol2';
+    TreeColumn.Width := 200;
 
-  //Products and Service
-  vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
-  vtProducts.NodeDataSize := SizeOf(TTreeData);
-  vtProducts.Indent := 0;
-  ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
-  ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
-  for i := Low(Prac.Catalogue) to High(Prac.Catalogue) do begin
-    Cat := Prac.Catalogue[i];
-    if Cat.CatalogueType = 'Product' then
-      AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
-    else if Cat.CatalogueType = 'Service' then
-      AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
+    //Products and Service
+    vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
+    vtProducts.NodeDataSize := SizeOf(TTreeData);
+    vtProducts.Indent := 0;
+    ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
+    ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
+    for i := Low(Prac.Catalogue) to High(Prac.Catalogue) do begin
+      Cat := Prac.Catalogue[i];
+      if Cat.CatalogueType = 'Product' then
+        AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
+      else if Cat.CatalogueType = 'Service' then
+        AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
+    end;
+    vtProducts.Expanded[ProductNode] := True;
+    vtProducts.Expanded[ServiceNode] := True;
+    vtProducts.ScrollIntoView(ProductNode, False);  
+  except
+    on E: Exception do begin
+      HelpfulErrorMsg(E.Message ,0);
+    end;
   end;
-  vtProducts.Expanded[ProductNode] := True;
-  vtProducts.Expanded[ServiceNode] := True;
-  vtProducts.ScrollIntoView(ProductNode, False);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
