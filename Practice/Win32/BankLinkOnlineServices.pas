@@ -6,7 +6,7 @@ uses
   BlopiServiceFacade,InvokeRegistry;
 
 type
-  TClientHelper = Class helper for BlopiServiceFacade.ClientSummary
+  TClientHelper = Class helper for BlopiServiceFacade.Client
   private
     function GetDeactivated: boolean;
     function GetClientConnectDays: string;
@@ -30,11 +30,17 @@ type
     property EmailAddress: string read GetEmailAddress;
   End;
 
+  TClientSummaryHelper = Class helper for BlopiServiceFacade.ClientSummary
+  public
+    procedure AddSubscription(AProductID: guid);
+  End;
+
   TProductConfigService = class(TObject)
   private
     FPractice, FPracticeCopy: Practice;
     FUseBankLinkOnline, FRegisteredForBankLinkOnline: boolean;
     FListOfClients: ClientList;
+    FClient: Client;
     procedure LoadDummyPractice;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
@@ -76,7 +82,7 @@ type
     property RegisteredForBankLinkOnline: Boolean read FRegisteredForBankLinkOnline write SetRegisteredForBankLinkOnline;
     //Client methods
     function AddClient: ClientSummary;
-    function GetClientDetails(ClientID: WideString): ClientSummary;
+    function GetClientDetails(ClientID: WideString): Client;
     property Clients: ClientList read FListOfClients;
     //User methods
     function AddCreateUser(var   aUserId        : Guid;
@@ -184,7 +190,7 @@ begin
   inherited;
 end;
 
-function TProductConfigService.GetClientDetails(ClientID: WideString): ClientSummary;
+function TProductConfigService.GetClientDetails(ClientID: WideString): Client;
 var
   i: integer;
   ClientArray: ArrayOfClientSummary;
@@ -195,7 +201,9 @@ begin
   begin
     if (ClientArray[i].Id = ClientID) then
     begin
-      Result := ClientArray[i];
+      // Result := ClientArray[i];
+      // Do get client details using ClientArray[i].Id (replace below when Banklink Online is connected properly)
+      Result := FClient;
       break;
     end;
   end;
@@ -233,10 +241,16 @@ procedure TProductConfigService.LoadDummyClientList;
 begin
   FListOfClients := ClientList.Create;
   FListOfClients.Catalogue := FPractice.Catalogue;
+
   AddClient;
   if (High(FPractice.Subscription) <> - 1) then
     if Assigned(FListOfClients.Clients[0]) then
       ClientSummary(FListOfClients.Clients[0]).AddSubscription(FPractice.Subscription[0]);
+
+  FClient := Client.Create;
+  FClient.Id := FListOfClients.Clients[0].Id;
+  FClient.Catalogue := FPractice.Catalogue;
+  FClient.AddSubscription(FPractice.Subscription[0]);
 
   // add subscriptions to client
 end;
@@ -862,6 +876,26 @@ var
 begin
   currPractice := GetPractice;
   Result := (AUserId = currPractice.DefaultAdminUserId);
+end;
+
+{ TClientSummaryHelper }
+
+procedure TClientSummaryHelper.AddSubscription(AProductID: guid);
+var
+  SubArray: arrayofguid;
+  i: integer;
+begin
+  for i := Low(Subscription) to High(Subscription) do
+    if (Subscription[i] = AProductID) then
+      Exit;
+
+  SubArray := Subscription;
+  try
+    SetLength(SubArray, Length(SubArray) + 1);
+    SubArray[High(SubArray)] := AProductId;
+  finally
+    Subscription := SubArray;
+  end;
 end;
 
 end.
