@@ -548,6 +548,13 @@ begin
      ClientLookup.vtClients.SetFocus;
   except
   end;
+
+  if AdminSystem.fdFields.fdUse_BankLink_Online then
+  begin
+    // todo: Check if Banklink Online is connected
+    imgCannotConnect.Visible := true;
+    lblCannotConnect.Visible := true;
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmClientManager.GetINI_ID( aFieldID : TClientLookupCol ) : integer;
