@@ -101,7 +101,15 @@ type
 implementation
 
 uses
-  Globals, SysUtils, XMLIntf, XMLDoc, OPToSOAPDomConv;
+  Globals, 
+  SysUtils, 
+  XMLIntf, 
+  XMLDoc, 
+  OPToSOAPDomConv,
+  LogUtil;
+
+Const
+  UNIT_NAME = 'BankLinkOnlineServices';  
 
 var
   __BankLinkOnlineServiceMgr: TProductConfigService;
@@ -763,72 +771,98 @@ var
   ErrMsg          : String;
   ErrIndex        : integer;
   CurrPractice    : Practice;
+  IsUserOnline    : Boolean;
 begin
   Result := false;
 
   PracCountryCode := 'NZ';
   PracCode        := 'PRACTEST';
   PracPassHash    := '123';
+
   try
     CurrPractice := GetPractice;
-    if IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode) then
-    begin
-      UpdateUser := User.Create;
-      UpdateUser.EMail        := aEMail;
-      UpdateUser.FullName     := aFullName;
-      UpdateUser.Id           := aUserId;
-      UpdateUser.RoleNames    := aRoleNames;
-      UpdateUser.Subscription := CurrPractice.Subscription;
-      UpdateUser.UserCode     := aUserCode;
-
-      MsgResponce := SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
-      Result := MsgResponce.Success;
-      if not Result then
-      begin
-        ErrMsg := '';
-        for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
-          ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
-                             MsgResponce.ErrorMessages[ErrIndex].Message_;
-        if not (ErrMsg = '') then
-          ErrMsg := #13 + ErrMsg;
-
-        raise Exception.Create('BankLink Practice was unable to create ' + UpdateUser.FullName +
-                               ' on BankLink Online. ' + ErrMsg );
-      end;
-
-      aIsUserCreated := false;
-    end
-    else
-    begin
-      CreateUser := NewUser.Create;
-      CreateUser.EMail        := aEMail;
-      CreateUser.FullName     := aFullName;
-      CreateUser.RoleNames    := aRoleNames;
-      CreateUser.Subscription := CurrPractice.Subscription;
-      CreateUser.UserCode     := aUserCode;
-
-      MsgResponceGuid := CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
-      Result := MsgResponceGuid.Success;
-      aUserId := MsgResponceGuid.Result;
-
-      if not Result then
-      begin
-        ErrMsg := '';
-        for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
-          ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
-                             MsgResponce.ErrorMessages[ErrIndex].Message_;
-        if not (ErrMsg = '') then
-          ErrMsg := #13 + ErrMsg;
-
-        raise Exception.Create('BankLink Practice was unable to update ' + CreateUser.FullName +
-                               ' on BankLink Online. ' + ErrMsg );
-      end;
-
-      aIsUserCreated := True;
-    end;
+    IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
   except
     on E : Exception do
+    begin
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running IsUserCreatedOnBankLinkOnline, Error Message : ' + E.Message);
       raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+    end;
+  end;
+
+  if IsUserOnline then
+  begin
+    UpdateUser := User.Create;
+    UpdateUser.EMail        := aEMail;
+    UpdateUser.FullName     := aFullName;
+    UpdateUser.Id           := aUserId;
+    UpdateUser.RoleNames    := aRoleNames;
+    UpdateUser.Subscription := CurrPractice.Subscription;
+    UpdateUser.UserCode     := aUserCode;
+
+    try
+      MsgResponce := SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
+    except
+      on E : Exception do
+      begin
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running SavePracticeUser, Error Message : ' + E.Message);
+        raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+      end;
+    end;
+      
+    Result := MsgResponce.Success;
+    if not Result then
+    begin
+      ErrMsg := '';
+      for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
+        ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
+                           MsgResponce.ErrorMessages[ErrIndex].Message_;
+      if not (ErrMsg = '') then
+        ErrMsg := #13 + ErrMsg;
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running SavePracticeUser, Error Message : ' + ErrMsg);  
+      raise Exception.Create('BankLink Practice was unable to create ' + UpdateUser.FullName +
+                             ' on BankLink Online. ' + ErrMsg );
+    end;
+
+    aIsUserCreated := false;
+  end
+  else
+  begin
+    CreateUser := NewUser.Create;
+    CreateUser.EMail        := aEMail;
+    CreateUser.FullName     := aFullName;
+    CreateUser.RoleNames    := aRoleNames;
+    CreateUser.Subscription := CurrPractice.Subscription;
+    CreateUser.UserCode     := aUserCode;
+
+    try
+      MsgResponceGuid := CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
+    except
+      on E : Exception do
+      begin
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreatePracticeUser, Error Message : ' + E.Message);
+        raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+      end;
+    end;
+    Result  := MsgResponceGuid.Success;
+    aUserId := MsgResponceGuid.Result;
+      
+    if not Result then
+    begin
+      ErrMsg := '';
+      for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
+        ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
+                           MsgResponce.ErrorMessages[ErrIndex].Message_;
+      if not (ErrMsg = '') then
+        ErrMsg := #13 + ErrMsg;
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running CreatePracticeUser, Error Message : ' + ErrMsg);
+      raise Exception.Create('BankLink Practice was unable to update ' + CreateUser.FullName +
+                             ' on BankLink Online. ' + ErrMsg );
+    end;
+
+    aIsUserCreated := True;
   end;
 end;
 
@@ -850,23 +884,26 @@ begin
   try
     MsgResponce := DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, AUserId);
     Result := MsgResponce.Success;
-
-    if not Result then
-    begin
-      ErrMsg := '';
-      for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
-        ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
-                           MsgResponce.ErrorMessages[ErrIndex].Message_;
-      if not (ErrMsg = '') then
-        ErrMsg := #13 + ErrMsg;
-
-      raise Exception.Create('BankLink Practice was unable to delete user ' +
-                             ' from BankLink Online. ' + ErrMsg );
-    end;
-
   except
     on E : Exception do
+    begin
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracticeUser, Error Message : ' + E.Message);
       raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+    end;
+  end;
+
+  if not Result then
+  begin
+    ErrMsg := '';
+    for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
+      ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
+                         MsgResponce.ErrorMessages[ErrIndex].Message_;
+    if not (ErrMsg = '') then
+      ErrMsg := #13 + ErrMsg;
+
+    LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running DeletePracticeUser, Error Message : ' + ErrMsg);
+    raise Exception.Create('BankLink Practice was unable to delete user ' +
+                           ' from BankLink Online. ' + ErrMsg );
   end;
 end;
 
