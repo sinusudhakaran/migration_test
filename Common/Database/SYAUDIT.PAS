@@ -278,6 +278,7 @@ begin
     FAuditNamesArray[60,85] := 'Allow_Banklink_Online';
     FAuditNamesArray[60,86] := 'BankLink_Online_Guid';
     FAuditNamesArray[60,87] := 'Password';
+    FAuditNamesArray[60,88] := 'Use_Practice_Password_Online';
 
    FAuditTableArray[50] := 'System_Bank_Account';
     FAuditNamesArray[50,52] := 'Account_Number';

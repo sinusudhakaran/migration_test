@@ -334,6 +334,7 @@ F|Audit Record ID|L
 F|Allow Banklink Online|Y
 F|BankLink Online Guid|AS
 F|Password|S|12
+F|Use Practice Password Online|Y
 E
 
 N|System Bank Account|sb|50

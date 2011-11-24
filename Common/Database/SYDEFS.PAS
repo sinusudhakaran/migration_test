@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 404;
-   SY_IOLIB_Date    = '22/11/11';
+   SY_IOLIB_Version : Integer = 405;
+   SY_IOLIB_Date    = '24/11/11';
    SY_FILE_VERSION   = 128;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -376,6 +376,7 @@ Type
       usAllow_Banklink_Online            : Boolean;       { Stored }
       usBankLink_Online_Guid             : AnsiString;       { Stored }
       usPassword                         : String[ 12 ];       { Stored }
+      usUse_Practice_Password_Online     : Boolean;       { Stored }
       usEOR                              : Byte;
    end;
 

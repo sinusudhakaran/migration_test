@@ -83,10 +83,10 @@ type
                            const aEMail         : WideString;
                            const aFullName      : WideString;
                            const aRoleNames     : ArrayOfstring;
-                           const aSubscription  : ArrayOfguid;
                            const aUserCode      : WideString;
                            var   aIsUserCreated : Boolean ) : Boolean;
     function DeleteUser(AUserId : Guid): Boolean;
+    function IsPrimaryUser(const AUserId : Guid = ''): Boolean;
   end;
 
   //Product config singleton
@@ -717,16 +717,14 @@ function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : P
                                                              const AUserId   : Guid   = '';
                                                              const AUserCode : string = '') : Boolean;
 var
-  currPractice : Practice;
   UserIndex : Integer;
 begin
   Result := False;
-  currPractice := GetPractice;
 
-  for UserIndex := 0 to High(currPractice.Users) do
+  for UserIndex := 0 to High(APractice.Users) do
   begin
-    if (currPractice.Users[UserIndex].Id       = AUserId)
-    or (currPractice.Users[UserIndex].UserCode = AUserCode) then
+    if (APractice.Users[UserIndex].Id       = AUserId)
+    or (APractice.Users[UserIndex].UserCode = AUserCode) then
     begin
       Result := True;
       Exit;
@@ -738,7 +736,6 @@ function TProductConfigService.AddCreateUser(var   aUserId        : Guid;
                                              const aEMail         : WideString;
                                              const aFullName      : WideString;
                                              const aRoleNames     : ArrayOfstring;
-                                             const aSubscription  : ArrayOfguid;
                                              const aUserCode      : WideString;
                                              var   aIsUserCreated : Boolean ) : Boolean;
 var
@@ -767,7 +764,7 @@ begin
       UpdateUser.FullName     := aFullName;
       UpdateUser.Id           := aUserId;
       UpdateUser.RoleNames    := aRoleNames;
-      UpdateUser.Subscription := aSubscription;
+      UpdateUser.Subscription := CurrPractice.Subscription;
       UpdateUser.UserCode     := aUserCode;
 
       MsgResponce := SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
@@ -781,8 +778,8 @@ begin
         if not (ErrMsg = '') then
           ErrMsg := #13 + ErrMsg;
 
-        raise Exception.Create( 'BankLink Practice was unable to create ' + UpdateUser.FullName +
-                                ' on BankLink Online. ' + ErrMsg );
+        raise Exception.Create('BankLink Practice was unable to create ' + UpdateUser.FullName +
+                               ' on BankLink Online. ' + ErrMsg );
       end;
 
       aIsUserCreated := false;
@@ -793,7 +790,7 @@ begin
       CreateUser.EMail        := aEMail;
       CreateUser.FullName     := aFullName;
       CreateUser.RoleNames    := aRoleNames;
-      CreateUser.Subscription := aSubscription;
+      CreateUser.Subscription := CurrPractice.Subscription;
       CreateUser.UserCode     := aUserCode;
 
       MsgResponceGuid := CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
@@ -809,15 +806,15 @@ begin
         if not (ErrMsg = '') then
           ErrMsg := #13 + ErrMsg;
 
-        raise Exception.Create( 'BankLink Practice was unable to update ' + CreateUser.FullName +
-                                ' on BankLink Online. ' + ErrMsg );
+        raise Exception.Create('BankLink Practice was unable to update ' + CreateUser.FullName +
+                               ' on BankLink Online. ' + ErrMsg );
       end;
 
       aIsUserCreated := True;
     end;
   except
     on E : Exception do
-      raise Exception.Create( 'BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+      raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
   end;
 end;
 
@@ -827,6 +824,8 @@ var
   PracCode        : WideString;
   PracPassHash    : WideString;
   MsgResponce     : MessageResponse;
+  ErrMsg          : String;
+  ErrIndex        : integer;
 begin
   Result := false;
 
@@ -834,8 +833,35 @@ begin
   PracCode        := 'PRACTEST';
   PracPassHash    := '123';
 
-  MsgResponce := DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, AUserId);
-  Result := MsgResponce.Success;
+  try
+    MsgResponce := DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, AUserId);
+    Result := MsgResponce.Success;
+
+    if not Result then
+    begin
+      ErrMsg := '';
+      for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
+        ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
+                           MsgResponce.ErrorMessages[ErrIndex].Message_;
+      if not (ErrMsg = '') then
+        ErrMsg := #13 + ErrMsg;
+
+      raise Exception.Create('BankLink Practice was unable to delete user ' +
+                             ' from BankLink Online. ' + ErrMsg );
+    end;
+
+  except
+    on E : Exception do
+      raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+  end;
+end;
+
+function TProductConfigService.IsPrimaryUser(const AUserId : Guid): Boolean;
+var
+  currPractice : Practice;
+begin
+  currPractice := GetPractice;
+  Result := (AUserId = currPractice.DefaultAdminUserId);
 end;
 
 end.

@@ -72,6 +72,7 @@ CONST
    tkusAllow_Banklink_Online            = 85 ;
    tkusBankLink_Online_Guid             = 86 ;
    tkusPassword                         = 87 ;
+   tkusUse_Practice_Password_Online     = 88 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -123,6 +124,7 @@ Begin
       F.WriteBooleanValue( tkusAllow_Banklink_Online , usAllow_Banklink_Online );
       F.WriteAnsiStringValue( tkusBankLink_Online_Guid , usBankLink_Online_Guid );
       F.WriteStringValue( tkusPassword , usPassword );
+      F.WriteBooleanValue( tkusUse_Practice_Password_Online , usUse_Practice_Password_Online );
       F.WriteToken( tkEnd_User );
    end;
 end; { of Write_User_Rec }
@@ -171,6 +173,7 @@ Begin
          tkusAllow_Banklink_Online            : usAllow_Banklink_Online := F.ReadBooleanValue;
          tkusBankLink_Online_Guid             : usBankLink_Online_Guid := F.ReadAnsiStringValue;
          tkusPassword                         : usPassword := F.ReadStringValue;
+         tkusUse_Practice_Password_Online     : usUse_Practice_Password_Online := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -219,7 +222,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkusCode to tkusPassword do begin
+  for i := tkusCode to tkusUse_Practice_Password_Online do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -371,6 +374,11 @@ begin
   if (P1.usPassword <> P2.usPassword) then begin
     P3.usPassword := P1.usPassword;
     ChangedFields[i] := tkusPassword;
+    Inc(i);
+  end;
+  if (P1.usUse_Practice_Password_Online <> P2.usUse_Practice_Password_Online) then begin
+    P3.usUse_Practice_Password_Online := P1.usUse_Practice_Password_Online;
+    ChangedFields[i] := tkusUse_Practice_Password_Online;
     Inc(i);
   end;
 

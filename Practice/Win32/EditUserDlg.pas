@@ -72,6 +72,8 @@ Type
     CBSuppressHeaderFooter: TCheckBox;
     chkShowPracticeLogo: TCheckBox;
     chkCanAccessBankLinkOnline: TCheckBox;
+    lblPrimaryContact: TLabel;
+    chkUsePracPassInOnline: TCheckBox;
 
     Procedure btnCancelClick(Sender: TObject);
     Procedure btnOKClick(Sender: TObject);
@@ -91,17 +93,17 @@ Type
     fUserGuid     : Guid;
     fIsCreateUser : boolean;
     fUserCanAccessBankLinkOnline : Boolean;
+    fIsPrimaryUser : Boolean;
 
     okPressed  : boolean;
     formLoaded : boolean;
     EditChk    : boolean;
 
+    procedure OnlineControlSetup;
     Function OKtoPost : boolean;
     Function PosttoBankLinkOnline : Boolean;
     Procedure UpdateAdminFileAccessList( UserLRN : integer);
-    Function PracticeCanUseBankLinkOnline : Boolean;
     Function IsBankLinkOnlineUser : Boolean;
-    Function DoesUserExistOnBankLink : Boolean;
   Public
     { Public declarations }
     Function Execute(User: pUser_Rec) : boolean;
@@ -131,10 +133,12 @@ uses
   SyUSIO,
   WarningMoreFrm,
   YesNoDlg,
-  RegExprUtils;
+  RegExprUtils,
+  PickNewPrimaryUser;
 
 Const
   UNITNAME = 'EDITUSERDLG';
+  COMP_VERT_DIFF = 60;
 
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.FormCreate(Sender: TObject);
@@ -214,13 +218,7 @@ End;
 //------------------------------------------------------------------------------
 function TdlgEditUser.IsBankLinkOnlineUser: Boolean;
 begin
-  Result := (PracticeCanUseBankLinkOnline and chkCanAccessBankLinkOnline.Checked);
-end;
-
-//------------------------------------------------------------------------------
-function TdlgEditUser.DoesUserExistOnBankLink : Boolean;
-begin
-
+  Result := (ProductConfigService.UseBankLinkOnline and chkCanAccessBankLinkOnline.Checked);
 end;
 
 //------------------------------------------------------------------------------
@@ -241,6 +239,31 @@ begin { TdlgEditUser.btnOKClick }
     Close;
   End { OKtoPost };
 End; { TdlgEditUser.btnOKClick }
+
+//------------------------------------------------------------------------------
+Procedure TdlgEditUser.OnlineControlSetup;
+begin
+  chkCanAccessBankLinkOnline.Visible := ProductConfigService.UseBankLinkOnline;
+  if not chkCanAccessBankLinkOnline.Visible then
+  begin
+    pcMain.Height  := pcMain.Height  - COMP_VERT_DIFF;
+    Self.Height    := Self.Height    - COMP_VERT_DIFF;
+    pnlSpecial.Top := pnlSpecial.Top - COMP_VERT_DIFF;
+  end;
+
+  if chkCanAccessBankLinkOnline.Checked then
+  begin
+    lblPasswordValidation.Caption  := '(8-12 characters, including at least 1 digit)';
+    chkUsePracPassInOnline.Visible := True;
+    lblPrimaryContact.Visible      := fIsPrimaryUser;
+  end
+  else
+  begin
+    lblPasswordValidation.Caption  := '(Maximum 12 characters)';
+    chkUsePracPassInOnline.Visible := False;
+    lblPrimaryContact.Visible      := False;
+  end;
+end;
 
 //------------------------------------------------------------------------------
 Function TdlgEditUser.OKtoPost : boolean;
@@ -364,9 +387,9 @@ End; { TdlgEditUser.OKtoPost }
 //------------------------------------------------------------------------------
 Function TdlgEditUser.PosttoBankLinkOnline : Boolean;
 var
-  RoleNames     : ArrayOfstring;
-  Subscription  : ArrayOfguid;
+  RoleNames         : ArrayOfstring;
   MsgCreateorUpdate : string;
+
 begin
   Result := True;
 
@@ -375,6 +398,9 @@ begin
     if  (fUserCanAccessBankLinkOnline = True)
     and (chkCanAccessBankLinkOnline.Checked = False) then
     begin
+      PickPrimaryUser;
+      
+
       Result := ProductConfigService.DeleteUser(UserGuid);
 
       if Result then
@@ -387,7 +413,6 @@ begin
                                                    eMail.Text,
                                                    eFullName.Text,
                                                    RoleNames,
-                                                   Subscription,
                                                    eUserCode.text,
                                                    fIsCreateUser);
       if Result then
@@ -416,14 +441,8 @@ var
   MsgAddorUpdate    : String;
 begin
   If formLoaded Then begin
-    // If the Current state is the same as the selected state then don't show
-    // message since the state is not changing if ok is selected.
-    If (not chkCanAccessBankLinkOnline.Checked and not fUserCanAccessBankLinkOnline)
-    or (chkCanAccessBankLinkOnline.Checked and fUserCanAccessBankLinkOnline) then
-      Exit;
-
     If (not chkCanAccessBankLinkOnline.Checked)
-    and (fUserCanAccessBankLinkOnline = True) then
+    and (fUserCanAccessBankLinkOnline) then
     begin
       If AskYesNo('Deleted BankLink User', 'This user will be Deleted on BankLink Online.' + #13
                 + 'Are you sure you want to continue?', DLG_NO, 0) <>
@@ -431,7 +450,8 @@ begin
         chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
       End;
     end
-    else
+    else If (chkCanAccessBankLinkOnline.Checked)
+        and not (fUserCanAccessBankLinkOnline) then
     begin
       if IsCreateUser then
       begin
@@ -449,13 +469,22 @@ begin
         DLG_YES Then begin
         chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
       End;
-    end;
+    End;
   End; { formLoaded };
 
   if chkCanAccessBankLinkOnline.Checked then
-    lblPasswordValidation.Caption := '(Between 8 and 12 characters, contains 1 or more letters and contains 1 or more numbers)'
+  begin
+    lblPasswordValidation.Caption  := '(8-12 characters, including at least 1 digit)';
+    chkUsePracPassInOnline.Visible := True;
+    chkUsePracPassInOnline.Checked := formLoaded;
+    lblPrimaryContact.Visible      := fIsPrimaryUser;
+  end
   else
-    lblPasswordValidation.Caption := '(Maximum 12 characters)';
+  begin
+    lblPasswordValidation.Caption  := '(Maximum 12 characters)';
+    chkUsePracPassInOnline.Visible := False;
+    lblPrimaryContact.Visible      := False;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -502,13 +531,6 @@ begin
       end;
     end;
   end;
-end;
-
-//------------------------------------------------------------------------------
-Function TdlgEditUser.PracticeCanUseBankLinkOnline : Boolean;
-begin
-  // Todo Link up to System -> Practice Details -> BankLink Online -> Use BankLink Online
-  Result := True;
 end;
 
 //------------------------------------------------------------------------------
@@ -690,7 +712,11 @@ begin { TdlgEditUser.Execute }
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
     fUserCanAccessBankLinkOnline := User.usAllow_Banklink_Online;
+    chkUsePracPassInOnline.Checked := User.usUse_Practice_Password_Online
+                                  and fUserCanAccessBankLinkOnline;
+
     UserGuid := User.usBankLink_Online_Guid;
+    fIsPrimaryUser := ProductConfigService.IsPrimaryUser(UserGuid);
 
     if User.usWorkstation_Logged_In_At <> '' then
       chkLoggedIn.Caption := 'User is &Logged In  (on ' + User.usWorkstation_Logged_In_At +')';
@@ -717,15 +743,10 @@ begin { TdlgEditUser.Execute }
     chkCanAccessBankLinkOnline.Checked := false;
     UserGuid := '';
     fUserCanAccessBankLinkOnline := false;
+    chkUsePracPassInOnline.Checked := false;
   end { not (Assigned(User)) };
 
-  chkCanAccessBankLinkOnline.Visible := PracticeCanUseBankLinkOnline;
-  if not chkCanAccessBankLinkOnline.Visible then
-  begin
-    pcMain.Height  := pcMain.Height  - ACCESS_ONLINE_CHK_HEIGHT;
-    Self.Height    := Self.Height    - ACCESS_ONLINE_CHK_HEIGHT;
-    pnlSpecial.Top := pnlSpecial.Top - ACCESS_ONLINE_CHK_HEIGHT;
-  end;
+  OnlineControlSetup;
 
   pnlSelected.Visible := rbSelectedFiles.Checked;
   rbAllFiles.Enabled := (cmbUserType.ItemIndex <> ustRestricted);
@@ -796,6 +817,9 @@ begin { EditUser }
 
           pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
           pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
+
+          pu.usUse_Practice_Password_Online := chkUsePracPassInOnline.Checked
+                                           and chkCanAccessBankLinkOnline.Enabled;
 
           case cmbUserType.ItemIndex of
             ustRestricted :
@@ -919,6 +943,8 @@ begin { AddUser }
 
                pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
                pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
+               pu.usUse_Practice_Password_Online := chkUsePracPassInOnline.Checked
+                                           and chkCanAccessBankLinkOnline.Enabled;
 
                case cmbUserType.ItemIndex of
                  ustRestricted :

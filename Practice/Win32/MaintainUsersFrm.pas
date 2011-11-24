@@ -37,7 +37,6 @@ type
     SortCol : integer;
     procedure RefreshUserList;
     function DeleteUser(User : PUser_Rec) :boolean;
-    Function PracticeCanUseBankLinkOnline : Boolean;
   public
     { Public declarations }
     function Execute : boolean;
@@ -63,7 +62,8 @@ uses
   StStrS,
   ErrorMoreFrm,
   LvUtils,
-  AuditMgr;
+  AuditMgr,
+  BankLinkOnlineServices;
 
 {$R *.DFM}
 
@@ -125,19 +125,19 @@ begin
 
   if User^.usCode = GlobalCache.cache_Current_Username then
   begin
-     HelpfulWarningMsg('Cannot delete the user you are logged in as.',0);
-     exit;
+    HelpfulWarningMsg('Cannot delete the user you are logged in as.',0);
+    exit;
   end;
 
   if User^.usLogged_In then
   begin
-     HelpfulWarningMsg('Cannot delete user ' + user^.usCode + ' because user is still logged in.',0);
-     exit;
+    HelpfulWarningMsg('Cannot delete user ' + user^.usCode + ' because user is still logged in.',0);
+    exit;
   end;
 
   DelMsg := '';
   if (User^.usAllow_Banklink_Online) and
-     (PracticeCanUseBankLinkOnline) then
+     (ProductConfigService.UseBankLinkOnline) then
     DelMsg := 'This user will be deleted from both Banklink Practice and Banklink Online.' + #13;
 
   DelMsg := DelMsg + 'OK to Delete User %s ?';
@@ -145,38 +145,46 @@ begin
   if AskYesNo('Delete User',Format(DelMsg, [User^.uscode]), DLG_NO, 0) <> DLG_YES then
     exit;
 
+  if (User^.usAllow_Banklink_Online) and
+     (ProductConfigService.UseBankLinkOnline) then
+  begin
+    try
+      ProductConfigService.DeleteUser(User^.usBankLink_Online_Guid);
+    except
+      on E : Exception do
+      begin
+        HelpfulErrorMsg(E.Message, 0);
+        exit;
+      end;
+    end;
+  end;
+
   Code := User^.usCode;
   StoredLRN := User^.usLRN;
 
   if LoadAdminSystem(true, ThisMethodName ) then
   begin
-     pu := AdminSystem.fdSystem_User_List.FindLRN(StoredLRN);
-     if not Assigned(pu) then
-     begin
-       UnlockAdmin;
-       HelpfulErrorMsg('The User ' + Code + ' can no longer be found in the Admin System.',0);
-       exit;
-     end;
+    pu := AdminSystem.fdSystem_User_List.FindLRN(StoredLRN);
+    if not Assigned(pu) then
+    begin
+      UnlockAdmin;
+      HelpfulErrorMsg('The User ' + Code + ' can no longer be found in the Admin System.',0);
+      exit;
+    end;
 
-     {delete from list}
-     AdminSystem.fdSystem_File_Access_List.Delete_User( pu.usLRN );
-     AdminSystem.fdSystem_User_List.DelFreeItem(pu);
+    {delete from list}
+    AdminSystem.fdSystem_File_Access_List.Delete_User( pu.usLRN );
+    AdminSystem.fdSystem_User_List.DelFreeItem(pu);
 
-     //*** Flag Audit ***
-     SystemAuditMgr.FlagAudit(arUsers);
+    //*** Flag Audit ***
+    SystemAuditMgr.FlagAudit(arUsers);
 
-     SaveAdminSystem;
-     result := true;
-     LogUtil.LogMsg(lmDebug,'EDITUSERDLG','User Deleted  User '+Code);
+    SaveAdminSystem;
+    result := true;
+    LogUtil.LogMsg(lmDebug,'EDITUSERDLG','User Deleted  User '+Code);
   end
   else
-     HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.',0);
-end;
-
-//------------------------------------------------------------------------------
-function TfrmMaintainUsers.PracticeCanUseBankLinkOnline : Boolean;
-begin
-  Result := True;
+    HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.',0);
 end;
 
 //------------------------------------------------------------------------------
