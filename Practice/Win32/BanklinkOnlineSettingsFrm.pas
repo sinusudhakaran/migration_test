@@ -13,11 +13,6 @@ type
     lblSelectProducts: TLabel;
     btnSelectAll: TButton;
     btnClearAll: TButton;
-    chkSuspendClient: TCheckBox;
-    chkDeactivateClient: TCheckBox;
-    rbClientAlwaysOnline: TRadioButton;
-    rbClientMustConnect: TRadioButton;
-    cmbDays: TComboBox;
     grpBillingFrequency: TGroupBox;
     lblFreeTrial: TLabel;
     lblNextBillingPeriod: TLabel;
@@ -31,18 +26,25 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     chklistProducts: TCheckListBox;
-    btnTemp: TButton;
     cmbBillingFrequency: TComboBox;
-    procedure rbClientAlwaysOnlineClick(Sender: TObject);
-    procedure rbClientMustConnectClick(Sender: TObject);
-    procedure btnTempClick(Sender: TObject);
+    grpClientAccess: TGroupBox;
+    rbActive: TRadioButton;
+    rbSuspended: TRadioButton;
+    rbDeactivated: TRadioButton;
+    lblClientConnect: TLabel;
+    cmbConnectDays: TComboBox;
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
+    procedure rbSuspendedClick(Sender: TObject);
+    procedure CheckClientConnectControls;
+    procedure rbActiveClick(Sender: TObject);
+    procedure rbDeactivatedClick(Sender: TObject);
   private
     SubArray: ArrayOfGuid;
-    FClient: ClientSummary;
+    FClient: Client;
   public
     { Public declarations }
   end;
@@ -53,6 +55,7 @@ var
 
 implementation
 
+uses Globals;
 
 {$R *.dfm}
 
@@ -138,6 +141,12 @@ begin
     chkListProducts.Checked[i] := true;
 end;
 
+procedure TfrmBanklinkOnlineSettings.CheckClientConnectControls;
+begin
+  lblClientConnect.Enabled := rbActive.Checked;
+  cmbConnectDays.Enabled := rbActive.Checked;
+end;
+
 procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
 var
   i: integer;
@@ -146,7 +155,13 @@ begin
     chkListProducts.Checked[i] := false;
 end;
 
-procedure TfrmBanklinkOnlineSettings.btnTempClick(Sender: TObject);
+procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+//  ListOfClients.Free;
+  chklistProducts.Clear;
+end;
+
+procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
 var
   CatArray: ArrayOfCatalogueEntry;
   ClientArray: ArrayOfClientSummary;
@@ -156,47 +171,16 @@ var
   GUID1, GUID2: WideString;
   AClientID: WideString;
 begin
-  AClientID := ProductConfigService.Clients.Clients[0].Id;
-  FClient := ProductConfigService.GetClientDetails(AClientID);
 
-  BanklinkOnlineConnected := not BanklinkOnlineConnected;
-  if btnTemp.Caption = 'Switch to offline' then
+  if AdminSystem.fdFields.fdUse_BankLink_Online then
   begin
-    // Switched to offline
-    btnTemp.Caption := 'Switch to online';
-  end else
-  begin
-    // Switched to online
-    btnTemp.Caption := 'Switch to offline';
+    AClientID := ProductConfigService.Clients.Clients[0].Id;
+    FClient := ProductConfigService.GetClientDetails(AClientID);
 
-    // Temporary functionality, move it to FormCreate or FormShow later
-{    SetLength(CatArray, 2);
-
-    CatArray[0] := CatalogueEntry.Create;
-    CatArray[0].CatalogueType := 'TestCat1';
-    CreateGUID(GUID);
-    CatArray[0].Id := GuidToString(GUID);
-
-    CatArray[1] := CatalogueEntry.Create;
-    CatArray[1].CatalogueType := 'TestCat2';
-    CreateGUID(GUID);
-    CatArray[1].Id := GuidToString(GUID);
-
-    ListOfClients := ClientList.Create;
-    ListOfClients.Catalogue := CatArray;
-    SetLength(ClientArray, 1);
-    ListOfClients.Clients := ClientArray; }
-
-    chkSuspendClient.Checked := FClient.Status = Suspended;
-    chkDeactivateClient.Checked := FClient.Deactivated;
-    if (StrToInt(FClient.ClientConnectDays) = 0) then
-    begin
-      rbClientAlwaysOnline.Checked := true;
-    end else
-    begin
-      rbClientMustConnect.Checked := true;
-      cmbDays.Text := FClient.ClientConnectDays;
-    end;
+    rbActive.Checked := true; // may be overriden by one of the two lines below
+    rbSuspended.Checked := FClient.Status = Suspended;
+    rbDeactivated.Checked := FClient.Deactivated;
+    cmbConnectDays.Text := FClient.ClientConnectDays;
     if (FClient.UserOnTrial) then
     begin
       lblFreeTrial.Caption := 'Free Trial until ' + DateTimeToStr(FClient.FreeTrialEndDate);
@@ -221,23 +205,22 @@ begin
       end;
     end;
   end;
-
 end;
 
-procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TCloseAction);
+
+procedure TfrmBanklinkOnlineSettings.rbActiveClick(Sender: TObject);
 begin
-//  ListOfClients.Free;
-  chklistProducts.Clear;
+  CheckClientConnectControls;
 end;
 
-procedure TfrmBanklinkOnlineSettings.rbClientAlwaysOnlineClick(Sender: TObject);
+procedure TfrmBanklinkOnlineSettings.rbDeactivatedClick(Sender: TObject);
 begin
-  cmbDays.Enabled := false;
+  CheckClientConnectControls;
 end;
 
-procedure TfrmBanklinkOnlineSettings.rbClientMustConnectClick(Sender: TObject);
+procedure TfrmBanklinkOnlineSettings.rbSuspendedClick(Sender: TObject);
 begin
-  cmbDays.Enabled := true;
-end;
+  CheckClientConnectControls;
+end;   
 
 end.

@@ -2,8 +2,8 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Left = 0
   Top = 0
   Caption = 'BankLink Online Settings'
-  ClientHeight = 505
-  ClientWidth = 495
+  ClientHeight = 529
+  ClientWidth = 481
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,13 +13,14 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object grpProductAccess: TGroupBox
-    Left = 16
-    Top = 8
+    Left = 8
+    Top = 120
     Width = 465
-    Height = 225
+    Height = 142
     Caption = 'Product Access'
     TabOrder = 0
     object lblSelectProducts: TLabel
@@ -49,76 +50,18 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       TabOrder = 1
       OnClick = btnClearAllClick
     end
-    object chkSuspendClient: TCheckBox
-      Left = 23
-      Top = 132
-      Width = 97
-      Height = 17
-      Caption = 'Suspend Client'
-      TabOrder = 2
-    end
-    object chkDeactivateClient: TCheckBox
-      Left = 23
-      Top = 150
-      Width = 162
-      Height = 17
-      Caption = 'Deactivate Client'
-      TabOrder = 3
-    end
-    object rbClientAlwaysOnline: TRadioButton
-      Left = 23
-      Top = 173
-      Width = 162
-      Height = 17
-      Caption = 'Clien&t must always be online'
-      TabOrder = 4
-      OnClick = rbClientAlwaysOnlineClick
-    end
-    object rbClientMustConnect: TRadioButton
-      Left = 23
-      Top = 196
-      Width = 239
-      Height = 17
-      Caption = 'Client must connect every                        &days'
-      Checked = True
-      TabOrder = 5
-      TabStop = True
-      OnClick = rbClientMustConnectClick
-    end
-    object cmbDays: TComboBox
-      Left = 172
-      Top = 194
-      Width = 61
-      Height = 21
-      ItemHeight = 0
-      TabOrder = 6
-      Text = '30'
-      Items.Strings = (
-        '30'
-        '90'
-        '365')
-    end
     object chklistProducts: TCheckListBox
       Left = 21
       Top = 44
       Width = 300
       Height = 85
       ItemHeight = 13
-      TabOrder = 7
-    end
-    object btnTemp: TButton
-      Left = 344
-      Top = 128
-      Width = 89
-      Height = 25
-      Caption = 'Switch to online'
-      TabOrder = 8
-      OnClick = btnTempClick
+      TabOrder = 2
     end
   end
   object grpBillingFrequency: TGroupBox
-    Left = 16
-    Top = 239
+    Left = 8
+    Top = 268
     Width = 465
     Height = 98
     Caption = 'Billing Frequency'
@@ -151,7 +94,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 68
       Width = 125
       Height = 21
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 0
       Text = 'Monthly'
       Items.Strings = (
@@ -160,8 +103,8 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     end
   end
   object grpDefaultClientAdministrator: TGroupBox
-    Left = 16
-    Top = 343
+    Left = 8
+    Top = 372
     Width = 465
     Height = 114
     Caption = 'Default Client Administrator'
@@ -204,8 +147,8 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     end
   end
   object btnOK: TButton
-    Left = 311
-    Top = 474
+    Left = 303
+    Top = 495
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -214,12 +157,69 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 400
-    Top = 474
+    Left = 392
+    Top = 495
     Width = 75
     Height = 25
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
+  end
+  object grpClientAccess: TGroupBox
+    Left = 8
+    Top = 8
+    Width = 465
+    Height = 105
+    Caption = 'Client Access'
+    TabOrder = 5
+    object lblClientConnect: TLabel
+      Left = 34
+      Top = 37
+      Width = 125
+      Height = 13
+      Caption = 'Client must connect every'
+    end
+    object rbActive: TRadioButton
+      Left = 16
+      Top = 17
+      Width = 113
+      Height = 17
+      Caption = 'Active'
+      Checked = True
+      TabOrder = 0
+      TabStop = True
+      OnClick = rbActiveClick
+    end
+    object rbSuspended: TRadioButton
+      Left = 16
+      Top = 57
+      Width = 113
+      Height = 17
+      Caption = 'Suspended'
+      TabOrder = 1
+      OnClick = rbSuspendedClick
+    end
+    object rbDeactivated: TRadioButton
+      Left = 16
+      Top = 77
+      Width = 113
+      Height = 17
+      Caption = 'Deactivated'
+      TabOrder = 2
+      OnClick = rbDeactivatedClick
+    end
+    object cmbConnectDays: TComboBox
+      Left = 165
+      Top = 34
+      Width = 84
+      Height = 21
+      ItemHeight = 13
+      TabOrder = 3
+      Text = '30 days'
+      Items.Strings = (
+        '30 days'
+        '90 days'
+        '365 days')
+    end
   end
 end
