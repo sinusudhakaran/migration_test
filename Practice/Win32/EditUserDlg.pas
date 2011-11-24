@@ -398,8 +398,8 @@ begin
     if  (fUserCanAccessBankLinkOnline = True)
     and (chkCanAccessBankLinkOnline.Checked = False) then
     begin
-      PickPrimaryUser;
-      
+      if fIsPrimaryUser then
+        PickPrimaryUser(UserGuid);
 
       Result := ProductConfigService.DeleteUser(UserGuid);
 

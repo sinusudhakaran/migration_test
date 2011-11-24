@@ -4,8 +4,18 @@ unit MaintainUsersFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, ToolWin, SyDefs, Math,
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ComCtrls,
+  ToolWin,
+  SyDefs,
+  Math,
   OSFont;
 
 type
@@ -44,8 +54,10 @@ type
 
   function MaintainUsers : boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
+
+{$R *.DFM}
 
 uses
   Admin32,
@@ -63,9 +75,8 @@ uses
   ErrorMoreFrm,
   LvUtils,
   AuditMgr,
-  BankLinkOnlineServices;
-
-{$R *.DFM}
+  BankLinkOnlineServices,
+  PickNewPrimaryUser;
 
 const
   UNITNAME = 'MaintainUsersFrm';
@@ -76,6 +87,7 @@ begin
    bkXPThemes.ThemeForm( Self);
    SetUpHelp;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.SetUpHelp;
 begin
@@ -92,11 +104,13 @@ begin
                     'Delete the selected User|' +
                     'Delete the selected User';
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.tbCloseClick(Sender: TObject);
 begin
   Close;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.FormShortCut(var Msg: TWMKey;
   var Handled: Boolean);
@@ -111,6 +125,7 @@ begin
     Handled := false;
   end;
 end;
+
 //------------------------------------------------------------------------------
 function TfrmMaintainUsers.DeleteUser(User: PUser_Rec): boolean;
 const
@@ -149,6 +164,9 @@ begin
      (ProductConfigService.UseBankLinkOnline) then
   begin
     try
+      if ProductConfigService.IsPrimaryUser(User^.usBankLink_Online_Guid) then
+        PickPrimaryUser(User^.usBankLink_Online_Guid);
+
       ProductConfigService.DeleteUser(User^.usBankLink_Online_Guid);
     except
       on E : Exception do
@@ -198,6 +216,7 @@ begin
    ShowModal;
    result := true;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.RefreshUserList;
 var
@@ -267,6 +286,7 @@ begin
       lvUsers.items.EndUpdate;
    end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.lvUsersColumnClick(Sender: TObject;
   Column: TListColumn);
@@ -280,6 +300,7 @@ begin
   SortCol := Column.ID;
   LvUsers.AlphaSort;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.lvUsersCompare(Sender: TObject; Item1,
   Item2: TListItem; Data: Integer; var Compare: Integer);
@@ -305,6 +326,7 @@ begin
 
   Compare := StStrS.CompStringS(Key1,Key2);
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.tbEditClick(Sender: TObject);
 var
@@ -321,11 +343,13 @@ begin
     lvUsers.Selected := lvUsers.FindCaption(0,WasCaption,false,false,true);
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.lvUsersDblClick(Sender: TObject);
 begin
   tbEdit.Click;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.tbDeleteClick(Sender: TObject);
 var
@@ -347,11 +371,13 @@ begin
     end;
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.tbNewClick(Sender: TObject);
 begin
   if AddUser then RefreshUserList;
 end;
+
 //------------------------------------------------------------------------------
 function MaintainUsers : boolean;
 var
@@ -368,6 +394,7 @@ begin
     MyDlg.Free;
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.FormShow(Sender: TObject);
 begin
@@ -378,6 +405,7 @@ begin
      lvUsers.Items[0].Focused := True;
    end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.tnHelpClick(Sender: TObject);
 begin

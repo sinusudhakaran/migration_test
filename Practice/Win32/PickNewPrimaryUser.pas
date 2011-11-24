@@ -69,7 +69,7 @@ begin
 
       if MyDlg.cmbPrimaryContact.Items.Count = 0 then
       begin
-        HelpfulWarningMsg('BankLink Practice is unable to delete the user as it is the primary contact' +
+        HelpfulWarningMsg('BankLink Practice is unable to delete the user as it is the primary contact ' +
                           'for this practice. (' + CurrPractice.DisplayName + ')', 0 );
         Exit;
       end;

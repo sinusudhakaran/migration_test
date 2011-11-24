@@ -4,7 +4,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Confirmation'
-  ClientHeight = 145
+  ClientHeight = 136
   ClientWidth = 441
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -41,7 +41,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   end
   object Label1: TLabel
     Left = 76
-    Top = 63
+    Top = 65
     Width = 109
     Height = 18
     AutoSize = False
@@ -52,7 +52,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   end
   object Label2: TLabel
     Left = 76
-    Top = 98
+    Top = 97
     Width = 186
     Height = 18
     AutoSize = False
@@ -63,7 +63,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   end
   object btnYes: TButton
     Left = 261
-    Top = 106
+    Top = 98
     Width = 75
     Height = 25
     Caption = '&Yes'
@@ -72,7 +72,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   end
   object btnNo: TButton
     Left = 353
-    Top = 106
+    Top = 98
     Width = 75
     Height = 25
     Cancel = True
