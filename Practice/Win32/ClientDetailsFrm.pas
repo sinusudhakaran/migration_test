@@ -195,7 +195,8 @@ uses
    bkConst,
    BKDEFS,
    ClientUtils,
-   AuditMgr;
+   AuditMgr,
+   BankLinkOnlineServices;
 
 {$R *.DFM}
 
@@ -296,8 +297,8 @@ begin
   tsSmartLink.TabVisible := false;
 {$ENDIF}
 
-  btnClientSettings.Enabled := BanklinkOnlineConnected;
-  lblClientBOProducts.Visible := BanklinkOnlineConnected;
+  lblClientBOProducts.Visible := AdminSystem.fdFields.fdUse_BankLink_Online;
+  btnClientSettings.Enabled := AdminSystem.fdFields.fdUse_BankLink_Online;
   lblClientBOProducts.Caption := 'This client currently has access to {#} Banklink Online product(s)';
 end;
 
