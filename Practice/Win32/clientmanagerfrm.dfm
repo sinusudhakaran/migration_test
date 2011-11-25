@@ -429,14 +429,17 @@ object frmClientManager: TfrmClientManager
         ExplicitHeight = 13
       end
       object imgCannotConnect: TImage
-        Left = 760
+        Left = 747
         Top = 6
         Width = 16
         Height = 16
+        Hint = 
+          'BankLink Practice will not display any BankLink Online related s' +
+          'ettings or functions'
         Picture.Data = {
           0B546478504E47496D61676589504E470D0A1A0A0000000D4948445200000010
           0000001008060000001FF3FF61000000017352474200AECE1CE9000000046741
-          4D410000B18F0BFC6105000000097048597300000EC100000EC101B8916BED00
+          4D410000B18F0BFC6105000000097048597300000EBF00000EBF013805532400
           00001874455874536F667477617265005061696E742E4E45542076332E313072
           B22592000000AC49444154384F9593DB0DC02008455DC9995CCB995C898AA845
           B8D4F48398281C2E0F13112568AD102D8B7CFABD0FEE41AD66670306400EC0C1
@@ -449,10 +452,13 @@ object frmClientManager: TfrmClientManager
         Visible = False
       end
       object lblCannotConnect: TLabel
-        Left = 782
-        Top = 4
+        Left = 769
+        Top = 5
         Width = 163
         Height = 13
+        Hint = 
+          'BankLink Practice will not display any BankLink Online related s' +
+          'ettings or functions'
         Caption = 'Cannot connect to Banklink Online'
         Visible = False
       end

@@ -335,6 +335,8 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnOKClick(Sender: TObject);
+var
+  i: integer;
 begin
   // Make sure we have an accounting System
   if (GetComboCurrentIntObject(cmbSuperSystem,asNone) = asNone)
@@ -343,6 +345,15 @@ begin
      cmbSystem.SetFocus;
      HelpfulErrorMsg('Please select either an Accounting or Superfund sytem.',0);
      Exit;
+  end;
+
+  for i := 1 to Screen.FormCount - 1 do
+  begin
+    if (Screen.Forms[i].Name = 'frmClientManager') then
+    begin
+      SendMessage(Screen.Forms[i].Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
+      break;
+    end;
   end;
 
   okPressed := true;

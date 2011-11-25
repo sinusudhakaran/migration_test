@@ -295,7 +295,8 @@ begin
   FClient := Client.Create;
   FClient.Id := FListOfClients.Clients[0].Id;
   FClient.Catalogue := FPractice.Catalogue;
-  FClient.AddSubscription(FPractice.Subscription[0]);
+  if (Length(FPractice.Subscription) > 0) then
+    FClient.AddSubscription(FPractice.Subscription[0]);
 
   // add subscriptions to client
 end;

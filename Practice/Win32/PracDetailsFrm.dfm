@@ -636,7 +636,6 @@ object frmPracticeDetails: TfrmPracticeDetails
         Header.Font.Style = []
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDrag]
-        ParentBackground = False
         TabOrder = 3
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
         OnBeforeItemPaint = vtProductsBeforeItemPaint

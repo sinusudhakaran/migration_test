@@ -246,7 +246,8 @@ CONST
     ClientCodeDelimiter = '~';
 
     //User Messages
-    BK_SYSTEMDB_LOADED = WM_USER + 380;
+    BK_SYSTEMDB_LOADED          = WM_USER + 380;
+    BK_PRACTICE_DETAILS_CHANGED = WM_USER + 381;
 
     //BankLink Online Pass Key
     BANKLINK_ONLINE_PASS_KEY = 'jucuene88d8uje9whdwjhi9dc!';

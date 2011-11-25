@@ -18,7 +18,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, RzGroupBar, RzCommon, ExtCtrls, ClientLookupFme, ImgList, ActnList,
   StdCtrls, Menus, OpShared, OpWrdXP, OpWord, jpeg, VirtualTrees, RzButton, Grids, RzPanel,
-  OSFont,ImportProspectsDlg, dxGDIPlusClasses;
+  OSFont,ImportProspectsDlg, dxGDIPlusClasses, Globals;
 
 type
   TfrmClientManager = class(TForm)
@@ -283,6 +283,7 @@ type
     procedure UpdateINI;
     procedure vtClientsHeaderMouseUp(Sender: TVTHeader;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure UpdateConnectWarning (var message: TMessage); message BK_PRACTICE_DETAILS_CHANGED;
   protected
     procedure UpdateActions; override;
   public
@@ -322,7 +323,6 @@ uses
   ClientDetailCacheObj,
   bkconst,
   BKHelp,
-  Globals,
   Files,
   GlobalClientSetupRoutines,
   InfoMoreFrm,
@@ -341,7 +341,7 @@ uses
   ClientUtils, WinUtils, ShellAPI, stdate, bkdateutils, BK5Except,
   AuthorityUtils, CAFfrm, rptCAF, TPAfrm, rptTPA, ReportDefs, ovcDate,
   rptClientManager, CMFilterForm, bkBranding, ClientHomePageFrm, Merge32,
-  rptAdmin, MainFrm, CheckInOutFrm, Clipbrd;
+  rptAdmin, MainFrm, CheckInOutFrm, Clipbrd, BanklinkOnlineServices;
 
 {$R *.dfm}
 
@@ -483,6 +483,9 @@ begin
   FCurrentClientTypeFilter := nil;
   actHelp.Visible := bkHelp.BKHelpFileExists;
   //StartFocus := True;
+
+  imgCannotConnect.Left := Self.Width - 225;
+  lblCannotConnect.Left := Self.Width - 205;
 end;
 
 
@@ -549,12 +552,7 @@ begin
   except
   end;
 
-  if AdminSystem.fdFields.fdUse_BankLink_Online then
-  begin
-    // todo: Check if Banklink Online is connected
-    imgCannotConnect.Visible := true;
-    lblCannotConnect.Visible := true;
-  end;
+  SendMessage(Self.Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmClientManager.GetINI_ID( aFieldID : TClientLookupCol ) : integer;
@@ -648,6 +646,14 @@ begin
     end;
   end;
 end;
+
+procedure TfrmClientManager.UpdateConnectWarning(var message: TMessage);
+begin
+  // todo: Check if Banklink Online is connected
+  imgCannotConnect.Visible := AdminSystem.fdFields.fdUse_BankLink_Online;
+  lblCannotConnect.Visible := AdminSystem.fdFields.fdUse_BankLink_Online;
+end;
+
 procedure TfrmClientManager.ResetIniColumnDefaults;
 { #1665 - if its somehow got to here without reading the ini file
   then its possible all the column settings could be zero which is invalid data
@@ -1067,6 +1073,9 @@ begin
        ShowSelectedNo( Count);
        UpdateMultiTasks();
        actTasks.Caption := 'Task List and Comments';
+
+       if Assigned(AdminSystem) then
+         imgCannotConnect.Visible := ProductConfigService.UseBankLinkOnline;
     end;
     UpdatePrintTasks;
   finally
