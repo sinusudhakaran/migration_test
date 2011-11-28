@@ -1295,7 +1295,7 @@ begin
     //Check the status of the client file. Don't save if it has been openned Read Only
     if (not MyClient.clFields.clFile_Read_Only) then
     begin
-      if not BanklinkOnlineConnected then
+      if BanklinkOnlineConnected then
         ShowMessage('BankLink Practice will not copy the BankLink Online settings for ' +
                     'this client. To set BankLink Online access, please click ‘Other ' +
                     'Functions | Client Details | Client Settings’');
