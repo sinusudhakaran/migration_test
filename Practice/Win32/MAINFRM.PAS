@@ -1032,7 +1032,9 @@ uses
   ListChargesDlg,
   CountryUtils, HSBCDemo,
   CustomDocEditorFrm,
-  frmExchangeRates;
+  frmExchangeRates,
+  BankLinkOnlineServices,
+  BlopiServiceFacade;
   //StockBalancesDlg;
 
 const
@@ -1206,6 +1208,9 @@ end;
 
 procedure TfrmMain.actGetFromOnlineExecute(Sender: TObject);
 begin
+  if not ProductConfigService.IsPracticeActive then
+    Exit;
+
   //From BankLink Online
   DoMainFormCommand( mf_mcGetOnline);
 end;
@@ -4437,6 +4442,9 @@ end;
 
 procedure TfrmMain.actSendViaOnlineExecute(Sender: TObject);
 begin
+  if not ProductConfigService.IsPracticeActive then
+    Exit;
+
   IncUsage('Check Out');
   if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
     ClientManagerSendOnline

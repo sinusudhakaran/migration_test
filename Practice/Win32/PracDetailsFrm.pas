@@ -114,12 +114,14 @@ type
     procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure tbsInterfacesShow(Sender: TObject);
     procedure cbPrimaryContactClick(Sender: TObject);
+    procedure tsBankLinkOnlineShow(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
     PassGenCodeEntered : boolean;
     ChangingDiskID : boolean;
     InSetup: Boolean;
+    FPrac: Practice;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -171,7 +173,8 @@ uses
   UsageUtils,
   AuditMgr,
   RequestRegFrm,
-  BankLinkOnlineServices;
+  BankLinkOnlineServices,
+  UpdateMF;
 
 {$R *.DFM}
 
@@ -532,8 +535,18 @@ begin
     cmbSuperSystem.Clear;
     tsSuperFundSystem.TabVisible := (fdFields.fdCountry = whAustralia);
 
+
     //Use BankLink Online
-    ckUseBankLinkOnline.Checked := ProductConfigService.UseBankLinkOnline;
+    ckUseBankLinkOnline.Checked := False;
+    if ProductConfigService.UseBankLinkOnline then begin
+      //Only call this once!!!
+      FPrac := ProductConfigService.GetPractice; 
+      ckUseBankLinkOnline.Checked := True;
+      if Assigned(FPrac) then begin
+        for i := 0 to tsBanklinkOnline.ControlCount - 1 do
+          tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.IsPracticeActive(False);
+      end;
+    end;
 
     //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
@@ -714,6 +727,7 @@ begin
          SystemAuditMgr.FlagAudit(arPracticeSetup);
 
          SaveAdminSystem;
+         UpdateMenus;
 
          if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Update Practice Details Completed');
       end
@@ -922,7 +936,6 @@ var
   Cat: CatalogueEntry;
   TreeColumn: TVirtualTreeColumn;
   ProductNode, ServiceNode: PVirtualNode;
-  Prac: Practice;
 begin
   //Clear
   edtURL.Text := '';
@@ -930,22 +943,6 @@ begin
   vtProducts.Header.Columns.Clear;
   vtProducts.Clear;
   try
-    Prac := ProductConfigService.GetPractice;
-    //URL
-    edtURL.Text := 'https://' + Prac.DomainName + '.' +
-                   Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
-                        Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
-    //Primary Contacts
-    cbPrimaryContact.Enabled := True;
-    AdminId := -1;
-    for i := Low(Prac.Users) to High(Prac.Users) do begin
-      cbPrimaryContact.Items.AddObject(Prac.Users[i].FullName, TObject(Prac.Users[i]));
-      if (Prac.Users[i].Id = Prac.DefaultAdminUserId) then
-        AdminId := i;
-    end;
-    if (cbPrimaryContact.Items.Count >= AdminId) then
-      cbPrimaryContact.ItemIndex := AdminId;
-
     //Setup Columns
     TreeColumn := vtProducts.Header.Columns.Add;
     TreeColumn.Text := 'TestCol1';
@@ -954,19 +951,37 @@ begin
     TreeColumn.Text := 'TestCol2';
     TreeColumn.Width := 200;
 
-    //Products and Service
-    vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
-    vtProducts.NodeDataSize := SizeOf(TTreeData);
-    vtProducts.Indent := 0;
-    ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
-    ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
-    for i := Low(Prac.Catalogue) to High(Prac.Catalogue) do begin
-      Cat := Prac.Catalogue[i];
-      if Cat.CatalogueType = 'Product' then
-        AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
-      else if Cat.CatalogueType = 'Service' then
-        AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
+    if Assigned(FPrac) then begin
+      //URL
+      edtURL.Text := 'https://' + FPrac.DomainName + '.' +
+                     Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
+                          Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
+      //Primary Contacts
+      cbPrimaryContact.Enabled := True;
+      AdminId := -1;
+      for i := Low(FPrac.Users) to High(FPrac.Users) do begin
+        cbPrimaryContact.Items.AddObject(FPrac.Users[i].FullName, TObject(FPrac.Users[i]));
+        if (FPrac.Users[i].Id = FPrac.DefaultAdminUserId) then
+          AdminId := i;
+      end;
+      if (cbPrimaryContact.Items.Count >= AdminId) then
+        cbPrimaryContact.ItemIndex := AdminId;
+    
+      //Products and Service
+      vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
+      vtProducts.NodeDataSize := SizeOf(TTreeData);
+      vtProducts.Indent := 0;
+      ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
+      ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
+      for i := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do begin
+        Cat := FPrac.Catalogue[i];
+        if Cat.CatalogueType = 'Product' then
+          AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
+        else if Cat.CatalogueType = 'Service' then
+          AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
+      end;
     end;
+    
     vtProducts.Expanded[ProductNode] := True;
     vtProducts.Expanded[ServiceNode] := True;
     vtProducts.ScrollIntoView(ProductNode, False);  
@@ -1085,6 +1100,11 @@ begin
     SetUpWebExport(Byte(cmbWebFormats.Items.Objects[cmbWebFormats.ItemIndex]))
   else
     SetUpWebExport(wfDefault);
+end;
+
+procedure TfrmPracticeDetails.tsBankLinkOnlineShow(Sender: TObject);
+begin
+  ProductConfigService.IsPracticeActive;
 end;
 
 procedure TfrmPracticeDetails.txtLastDiskIDChange(Sender: TObject);

@@ -804,8 +804,8 @@ begin
      actSendToFile.Enabled := True;
      actSendViaOnline.Enabled := True;
      if UsingAdmin then begin
-       actSendViaOnline.Enabled := ProductConfigService.IsCICOEnabled;
-       actGetFromOnline.Enabled := ProductConfigService.IsCICOEnabled;
+       actSendViaOnline.Visible := ProductConfigService.IsCICOEnabled;
+       actGetFromOnline.Visible := ProductConfigService.IsCICOEnabled;
      end else if ClientFileOpen then begin
        actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
        actSendViaEmail.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);

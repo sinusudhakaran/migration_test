@@ -6,6 +6,13 @@ uses
   BlopiServiceFacade,InvokeRegistry;
 
 type
+  TBanklinkOnlineStatus = (bosActive, bosSuspended, bosDeactivated);
+
+  TPracticeHelper = class helper for BlopiServiceFacade.Practice
+  private
+    function GetOnlineStatus: TBanklinkOnlineStatus;
+  end;
+
   TClientHelper = Class helper for BlopiServiceFacade.Client
   private
     function GetDeactivated: boolean;
@@ -70,6 +77,7 @@ type
     destructor Destroy; override;
     //Practice methods
     function GetPractice: Practice;
+    function IsPracticeActive(ShowWarning: Boolean = true): Boolean;    
     function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
     function IsPracticeProductEnabled(AProductId: Guid): Boolean;
     function IsNotesOnlineEnabled: Boolean;
@@ -461,16 +469,17 @@ var
   Cat: CatalogueEntry;
 begin
   Result := False;
-  if Assigned(FPracticeCopy) then begin
-    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
-      Cat := FPracticeCopy.Catalogue[i];
+  if Assigned(FPractice) then begin
+    for i := Low(FPractice.Catalogue) to High(FPractice.Catalogue) do begin
+      Cat := FPractice.Catalogue[i];
       if Cat.Description = 'Send and Receive Client Files' then begin
-        for j := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
-          if FPracticeCopy.Subscription[j] = Cat.Id then begin
+        for j := Low(FPractice.Subscription) to High(FPractice.Subscription) do begin
+          if FPractice.Subscription[j] = Cat.Id then begin
             Result := True;
             Break;
           end;
         end;
+        Break;
       end;
     end;
   end;
@@ -482,12 +491,12 @@ var
   Cat: CatalogueEntry;
 begin
   Result := False;
-  if Assigned(FPracticeCopy) then begin
-    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
-      Cat := FPracticeCopy.Catalogue[i];
+  if Assigned(FPractice) then begin
+    for i := Low(FPractice.Catalogue) to High(FPractice.Catalogue) do begin
+      Cat := FPractice.Catalogue[i];
       if Cat.Description = 'BankLink Notes Online' then begin
-        for j := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
-          if FPracticeCopy.Subscription[j] = Cat.Id then begin
+        for j := Low(FPractice.Subscription) to High(FPractice.Subscription) do begin
+          if FPractice.Subscription[j] = Cat.Id then begin
             Result := True;
             Break;
           end;
@@ -495,6 +504,20 @@ begin
       end;
     end;
   end;
+end;
+
+function TProductConfigService.IsPracticeActive(ShowWarning: Boolean): Boolean;
+begin
+  Result := not (FPractice.GetOnlineStatus in [bosSuspended, bosDeactivated]);
+  if ShowWarning then
+    case FPractice.GetOnlineStatus of
+      bosSuspended: HelpfulWarningMsg('BankLink Online is currently in suspended ' +
+                                      '(read-only) mode. Please contact BankLink ' +
+                                      'Support for further assistance.', 0);
+      bosDeactivated: HelpfulWarningMsg('BankLink Online is currently deactivated. ' +
+                                        'Please contact BankLink Support for further ' +
+                                        'assistance.', 0);
+    end;
 end;
 
 function TProductConfigService.IsPracticeProductEnabled(
@@ -530,17 +553,17 @@ begin
 //    end;
 //  end;
 
-  TempCatalogueEntry := GetCatalogueEntry(AProductId);
-  if Assigned(TempCatalogueEntry) then begin
-    if ClientsUsingProduct > 0 then begin
-      Msg := Format('There are currently %d clients using %s. Please remove ' +
-                    'access for these clients from this product before ' +
-                    'disabling it',
-                    [ClientsUsingProduct, TempCatalogueEntry.Description]);
-      HelpfulWarningMsg(MSg, 0);
-      Exit;
-    end;
-  end;     
+//  TempCatalogueEntry := GetCatalogueEntry(AProductId);
+//  if Assigned(TempCatalogueEntry) then begin
+//    if ClientsUsingProduct > 0 then begin
+//      Msg := Format('There are currently %d clients using %s. Please remove ' +
+//                    'access for these clients from this product before ' +
+//                    'disabling it',
+//                    [ClientsUsingProduct, TempCatalogueEntry.Description]);
+//      HelpfulWarningMsg(MSg, 0);
+//      Exit;
+//    end;
+//  end;
 
   for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
     if AProductId = FPracticeCopy.Subscription[i] then begin
@@ -1017,6 +1040,18 @@ begin
   finally
     Subscription := SubArray;
   end;
+end;
+
+{ TPracticeHelper }
+
+
+{ TPracticeHelper }
+
+function TPracticeHelper.GetOnlineStatus: TBanklinkOnlineStatus;
+begin
+  Result := bosActive;
+//  Result := bosSuspended;
+//  Result := bosDeactivated;
 end;
 
 end.
