@@ -12,13 +12,13 @@ unit ClientManagerFrm;
 }
 //------------------------------------------------------------------------------
 
-interface                 
+interface
                                              
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, RzGroupBar, RzCommon, ExtCtrls, ClientLookupFme, ImgList, ActnList,
   StdCtrls, Menus, OpShared, OpWrdXP, OpWord, jpeg, VirtualTrees, RzButton, Grids, RzPanel,
-  OSFont,ImportProspectsDlg, dxGDIPlusClasses, Globals;
+  OSFont,ImportProspectsDlg, dxGDIPlusClasses, Globals, BanklinkOnlineSettingsFrm;
 
 type
   TfrmClientManager = class(TForm)
@@ -133,6 +133,8 @@ type
     actSendOnline: TAction;
     lblCannotConnect: TLabel;
     imgCannotConnect: TImage;
+    actBOSettings: TAction;
+    mniEditBOSettings: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
@@ -212,6 +214,9 @@ type
     procedure actAssignBulkExportExecute(Sender: TObject);
     procedure actInActiveExecute(Sender: TObject);
     procedure actSendOnlineExecute(Sender: TObject);
+    procedure actBOSettingsExecute(Sender: TObject);
+    procedure mniEditBOSettingsClick(Sender: TObject);
+    procedure EditBOSettings;
 
   private
 
@@ -223,6 +228,7 @@ type
     StartFocus        : Boolean;
     FUserSet: Boolean;
     InModal: Boolean;
+    BankLinkOnlineSettings : TfrmBanklinkOnlineSettings;
     procedure FillClientDetails;
     procedure ShowSelectedNo( Count : integer);
     procedure UpdateClientDetails(Count: integer);
@@ -283,7 +289,7 @@ type
     procedure UpdateINI;
     procedure vtClientsHeaderMouseUp(Sender: TVTHeader;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure UpdateConnectWarning (var message: TMessage); message BK_PRACTICE_DETAILS_CHANGED;
+    procedure CheckBOConnection (var message: TMessage); message BK_PRACTICE_DETAILS_CHANGED;
   protected
     procedure UpdateActions; override;
   public
@@ -385,6 +391,7 @@ const
 var
   GLClientManager: TfrmClientManager;
   DebugMe : boolean = false;
+  BanklinkOnlineConnected : boolean = true;
 
 
 procedure TfrmClientManager.FormActivate(Sender: TObject);
@@ -484,8 +491,8 @@ begin
   actHelp.Visible := bkHelp.BKHelpFileExists;
   //StartFocus := True;
 
-  imgCannotConnect.Left := Self.Width - 225;
-  lblCannotConnect.Left := Self.Width - 205;
+  if not BanklinkOnlineConnected then
+    LogUtil.LogMsg(lmError, UnitName, 'Cannot connect to Banklink Online');
 end;
 
 
@@ -647,11 +654,12 @@ begin
   end;
 end;
 
-procedure TfrmClientManager.UpdateConnectWarning(var message: TMessage);
+procedure TfrmClientManager.CheckBOConnection(var message: TMessage);
 begin
   // todo: Check if Banklink Online is connected
-  imgCannotConnect.Visible := AdminSystem.fdFields.fdUse_BankLink_Online;
-  lblCannotConnect.Visible := AdminSystem.fdFields.fdUse_BankLink_Online;
+  actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and BanklinkOnlineConnected);
+  imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not BanklinkOnlineConnected);
+  lblCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not BanklinkOnlineConnected);
 end;
 
 procedure TfrmClientManager.ResetIniColumnDefaults;
@@ -890,14 +898,18 @@ begin
         AddCustomColumn( 'Last Accessed', 75, 9, cluLastAccessed);
         AddCustomColumn( 'Financial Year Starts', 75, 10, cluFinYearStarts);
         AddCustomColumn( 'Practice Contact', 75, 11, cluContactType);
-        AddCustomColumn( 'BO Product 1', 75, 12, cluNotesOnline);
-        AddCustomColumn( 'BO Product 2', 75, 13, cluNotesOnline);
-        AddCustomColumn( 'BO Product 3', 75, 14, cluNotesOnline);
-        AddCustomColumn( 'BO Product 4', 75, 15, cluNotesOnline);
-        AddCustomColumn( 'Billing Frequency', 75, 16, cluBillingFrequency);
-        AddCustomColumn( 'User Admin', 75, 17, cluUserAdmin);
-        AddCustomColumn( 'Suspended', 75, 18, cluSuspended);
-        AddCustomColumn( 'Deactivated', 75, 19, cluDeactivated);
+
+        if (BanklinkOnlineConnected and AdminSystem.fdFields.fdUse_BankLink_Online) then
+        begin
+          AddCustomColumn( 'BO Product 1', 75, 12, cluBONotes);
+          AddCustomColumn( 'BO Product 2', 75, 13, cluBONotes);
+          AddCustomColumn( 'BO Product 3', 75, 14, cluBONotes);
+          AddCustomColumn( 'BO Product 4', 75, 15, cluBONotes);
+          AddCustomColumn( 'Billing Frequency', 75, 16, cluBOBillingFrequency);
+          AddCustomColumn( 'User Admin', 75, 17, cluBOUserAdmin);
+          AddCustomColumn( 'Suspended', 75, 18, cluBOSuspended);
+          AddCustomColumn( 'Deactivated', 75, 19, cluBODeactivated);
+        end;
 
         BuildGrid( cluCode);
 
@@ -1075,7 +1087,7 @@ begin
        actTasks.Caption := 'Task List and Comments';
 
        if Assigned(AdminSystem) then
-         imgCannotConnect.Visible := ProductConfigService.UseBankLinkOnline;
+         SendMessage(Self.Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
     end;
     UpdatePrintTasks;
   finally
@@ -1350,6 +1362,11 @@ procedure TfrmClientManager.actAssignToExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcAssignTo);
 end;
+procedure TfrmClientManager.actBOSettingsExecute(Sender: TObject);
+begin
+  EditBOSettings;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //
 // set up report schedule
@@ -1862,6 +1879,19 @@ begin
       SearchTimerTimer(nil);
 end;
 
+procedure TfrmClientManager.EditBOSettings;
+begin
+  if not Assigned(BanklinkOnlineSettings) then
+    BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
+
+  try
+    BanklinkOnlineSettings.ShowModal;
+  finally
+    BanklinkOnlineSettings.Free;
+    BanklinkOnlineSettings := nil;
+  end;
+end;
+
 procedure TfrmClientManager.EnableForm(LooseFocus: Boolean);
 begin
   gbClientManager.Enabled := true;
@@ -1947,6 +1977,11 @@ begin
   else
     btnClose.Left := Max(530, pnlFilter.Width  - btnClose.Width - 10);
     *)
+end;
+
+procedure TfrmClientManager.mniEditBOSettingsClick(Sender: TObject);
+begin
+  EditBOSettings;
 end;
 
 procedure TfrmClientManager.mniFilterClick(Sender: TObject);

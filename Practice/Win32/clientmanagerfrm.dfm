@@ -172,6 +172,9 @@ object frmClientManager: TfrmClientManager
           Action = actScheduled
         end
         item
+          Action = actBOSettings
+        end
+        item
           Action = actCodingScreenLayout
         end
         item
@@ -202,7 +205,7 @@ object frmClientManager: TfrmClientManager
           Action = actHelp
         end>
       Opened = True
-      OpenedHeight = 472
+      OpenedHeight = 508
       Caption = 'Client Maintenance'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -439,7 +442,7 @@ object frmClientManager: TfrmClientManager
         Picture.Data = {
           0B546478504E47496D61676589504E470D0A1A0A0000000D4948445200000010
           0000001008060000001FF3FF61000000017352474200AECE1CE9000000046741
-          4D410000B18F0BFC6105000000097048597300000EBF00000EBF013805532400
+          4D410000B18F0BFC6105000000097048597300000EBE00000EBE01EA42B1C000
           00001874455874536F667477617265005061696E742E4E45542076332E313072
           B22592000000AC49444154384F9593DB0DC02008455DC9995CCB995C898AA845
           B8D4F48398281C2E0F13112568AD102D8B7CFABD0FEE41AD66670306400EC0C1
@@ -866,6 +869,12 @@ object frmClientManager: TfrmClientManager
       ImageIndex = 20
       OnExecute = actSendOnlineExecute
     end
+    object actBOSettings: TAction
+      Category = 'FileTasks'
+      Caption = 'Edit BankLink Online Settings'
+      ImageIndex = 17
+      OnExecute = actBOSettingsExecute
+    end
   end
   object tmrUpdateClientDetails: TTimer
     Interval = 300
@@ -964,6 +973,10 @@ object frmClientManager: TfrmClientManager
     end
     object mniGlobalScheduled: TMenuItem
       Action = actScheduled
+    end
+    object mniEditBOSettings: TMenuItem
+      Caption = 'Edit BankLink Online Settings'
+      OnClick = mniEditBOSettingsClick
     end
     object ApplyCodingScreenLayout1: TMenuItem
       Action = actCodingScreenLayout

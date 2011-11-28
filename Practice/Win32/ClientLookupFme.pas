@@ -53,11 +53,11 @@ type
                        cluNextGSTDue,
                        cluBankLinkOnline,
                        cluModifiedDate,
-                       cluNotesOnline,
-                       cluBillingFrequency,
-                       cluUserAdmin,
-                       cluSuspended,
-                       cluDeactivated
+                       cluBONotes,
+                       cluBOBillingFrequency,
+                       cluBOUserAdmin,
+                       cluBOSuspended,
+                       cluBODeactivated
                        );
 
   TCluColumnDefn = class
@@ -2156,7 +2156,7 @@ begin
               end;
             end;
 
-          cluNotesOnline :
+          cluBONotes :
           begin
             CellText := #10004; // tick
           end;
@@ -2213,7 +2213,7 @@ begin
       end;
     end
     else
-    if ColID = cluNotesOnline then
+    if ColID = cluBONotes then
     begin
       TargetCanvas.Font.Color := clGreen;
       TVirtualStringTree(Sender).Header.Columns[Column].Alignment := taCenter;

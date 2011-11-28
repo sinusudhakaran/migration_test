@@ -106,7 +106,6 @@ type
       var CustomDraw: Boolean);
     procedure vtProductsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
-    procedure FormDestroy(Sender: TObject);
     procedure ckUseBankLinkOnlineClick(Sender: TObject);
     procedure vtProductsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure btnSelectAllClick(Sender: TObject);
@@ -114,6 +113,8 @@ type
     procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure tbsInterfacesShow(Sender: TObject);
     procedure cbPrimaryContactClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
     procedure tsBankLinkOnlineShow(Sender: TObject);
   private
     { Private declarations }
@@ -182,6 +183,7 @@ const
   UnitName = 'PRACDETAILSFRM';
 var
   DebugMe : boolean = false;
+  BanklinkOnlineConnected : boolean = true;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.FormCreate(Sender: TObject);
@@ -203,9 +205,9 @@ begin
    ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
 end;
 
-procedure TfrmPracticeDetails.FormDestroy(Sender: TObject);
+procedure TfrmPracticeDetails.FormShow(Sender: TObject);
 begin
-
+  
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -895,6 +897,11 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmPracticeDetails.FormActivate(Sender: TObject);
+begin
+  ckUseBankLinkOnline.Enabled := BanklinkOnlineConnected;
+end;
+
 procedure TfrmPracticeDetails.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin

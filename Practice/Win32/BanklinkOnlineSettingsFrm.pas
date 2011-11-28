@@ -49,13 +49,16 @@ type
     { Public declarations }
   end;
 
+const
+  UnitName = 'BanklinkOnlineSettingsFrm';
+
 var
   frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
   BanklinkOnlineConnected : boolean = false;
 
 implementation
 
-uses Globals;
+uses Globals, LogUtil;
 
 {$R *.dfm}
 
@@ -64,13 +67,15 @@ var
   EmailChanged, ProductsChanged, BillingFrequencyChanged, SuspendChanged,
   DeactivateChanged, ProductFound: boolean;
   NewProducts: TStringList;
-  PromptMessage: string;
+  PromptMessage, ErrorMsg: string;
   i, j, ButtonPressed: integer;
 begin
   if not BanklinkOnlineConnected then
   begin
-    ShowMessage('Banklink Practice is unable to connect to Banklink Online and so ' +
-                'cannot update this client''s settings');
+    ErrorMsg := 'Banklink Practice is unable to connect to Banklink Online and so ' +
+                'cannot update this client''s settings';
+    ShowMessage(ErrorMsg);
+    LogUtil.LogMsg(lmError, UnitName, ErrorMsg);
     ModalResult := mrNone;
     Exit;
   end;

@@ -13,9 +13,10 @@ object frmPracticeDetails: TfrmPracticeDetails
   Position = poScreenCenter
   Scaled = False
   ShowHint = True
+  OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
+  OnShow = FormShow
   DesignSize = (
     632
     431)
