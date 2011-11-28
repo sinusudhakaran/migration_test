@@ -29,8 +29,7 @@ Uses
   CheckLst,
   AuditMgr,
   OsFont,
-  BankLinkOnlineServices,
-  BlopiServiceFacade;
+  BankLinkOnlineServices;
 
 Type
   TdlgEditUser = Class (TForm)

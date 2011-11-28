@@ -12,6 +12,9 @@ type
   private
     function GetOnlineStatus: TBanklinkOnlineStatus;
   end;
+  
+  Guid          =  BlopiServiceFacade.Guid;
+  ArrayOfString =  BlopiServiceFacade.ArrayOfString;
 
   TClientHelper = Class helper for BlopiServiceFacade.Client
   private
@@ -814,6 +817,7 @@ var
   UpdateIndex : integer;
   UserArray : ArrayOfUser;
   NewGuid : TGuid;
+  tmpUser : User;
 begin
   Result := MessageResponseOfguid.Create;
   Result.Success := False;
@@ -825,15 +829,19 @@ begin
   and (passwordHash = '123') then
   begin
     SetLength(UserArray, High(UserArray)+2);
-    UserArray[High(UserArray)].EMail        := newUser.EMail;
-    UserArray[High(UserArray)].FullName     := newUser.FullName;
-    UserArray[High(UserArray)].RoleNames    := newUser.RoleNames;
-    UserArray[High(UserArray)].Subscription := newUser.Subscription;
-    UserArray[High(UserArray)].UserCode     := newUser.UserCode;
+
+    tmpUser := User.Create;
+    tmpUser.EMail        := newUser.EMail;
+    tmpUser.FullName     := newUser.FullName;
+    tmpUser.RoleNames    := newUser.RoleNames;
+    tmpUser.Subscription := newUser.Subscription;
+    tmpUser.UserCode     := newUser.UserCode;
 
     CreateGuid(NewGuid);
     Result.Result := GuidtoString(NewGuid);
-    UserArray[High(UserArray)].Id := Result.Result;
+    tmpUser.Id := Result.Result;
+
+    UserArray[High(UserArray)] := tmpUser;
 
     Result.Success := True;
   end;
@@ -1009,7 +1017,7 @@ begin
       ErrMsg := #13 + ErrMsg;
 
     LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running DeletePracticeUser, Error Message : ' + ErrMsg);
-    raise Exception.Create('BankLink Practice was unable to delete user ' +
+    raise Exception.Create('BankLink Practice was unable to delete user' +
                            ' from BankLink Online. ' + ErrMsg );
   end;
 end;

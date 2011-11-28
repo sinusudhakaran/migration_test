@@ -143,6 +143,9 @@ const
   MAINTAIN_COLOR_BMP      = 21;
   MAINTAIN_COLSORTUP_BMP  = 22;
   MAINTAIN_ALERT          = 23;
+  MAINTAIN_ONLINE_ADMIN   = 24;
+  MAINTAIN_ONLINE         = 25;
+  MAINTAIN_SELECT         = 26;
 
 
   FILES_NORMAL_BMP          = 0;

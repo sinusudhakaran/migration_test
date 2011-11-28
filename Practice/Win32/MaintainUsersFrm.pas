@@ -42,6 +42,8 @@ type
     procedure SetUpHelp;
     procedure FormShow(Sender: TObject);
     procedure tnHelpClick(Sender: TObject);
+    procedure lvUsersCustomDrawSubItem(Sender: TCustomListView; Item: TListItem;
+      SubItem: Integer; State: TCustomDrawState; var DefaultDraw: Boolean);
   private
     { Private declarations }
     SortCol : integer;
@@ -76,10 +78,14 @@ uses
   LvUtils,
   AuditMgr,
   BankLinkOnlineServices,
-  PickNewPrimaryUser;
+  PickNewPrimaryUser,
+  CommCtrl;
 
 const
   UNITNAME = 'MaintainUsersFrm';
+  ONLINE_NO        = 'a. Not Online';
+  ONLINE_YES_ADMIN = 'b. Admin Online';
+  ONLINE_YES       = 'c. Online';
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.FormCreate(Sender: TObject);
@@ -208,83 +214,109 @@ end;
 //------------------------------------------------------------------------------
 function TfrmMaintainUsers.Execute: boolean;
 begin
-   RefreshUserList;
+  RefreshUserList;
 
-   SortCol := 2;
-   lvUsers.AlphaSort;
+  SortCol := 2;
+  lvUsers.AlphaSort;
 
-   ShowModal;
-   result := true;
+  ShowModal;
+  result := true;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.RefreshUserList;
 var
-   NewItem  : TListItem;
-   User     : pUser_Rec;
-   UserType : string;
-   Status   : string;
-   FileAccess: string;
-   scf      : pClient_File_Rec;
-   Count    : integer;
-   i,j      : integer;
+  NewItem  : TListItem;
+  User     : pUser_Rec;
+  UserType : string;
+  Status   : string;
+  FileAccess: string;
+  scf      : pClient_File_Rec;
+  Count    : integer;
+  i,j      : integer;
+  Online   : String;
 begin
-   lvUsers.Items.beginUpdate;
-   try
-
+  lvUsers.Items.beginUpdate;
+  try
    lvUsers.Items.Clear;
-   if not RefreshAdmin then exit;
+
+   if not RefreshAdmin then
+     exit;
+
+   if (not ProductConfigService.UseBankLinkOnline) then
+   begin
+     lvUsers.Column[4].Caption  := '';
+     lvUsers.Column[4].Width    := 0;
+     lvUsers.Column[4].MaxWidth := 0;
+   end;
 
    with AdminSystem, fdSystem_User_List do
    for i := 0 to Pred(itemCount) do
    begin
-      User := User_At(i);
-      if User.usLogged_In then
-         Status := 'Logged In'
-      else
-         Status := '';
+    User := User_At(i);
+    if User.usLogged_In then
+      Status := 'Logged In'
+    else
+      Status := '';
 
-      if User.usSystem_Access then
-         UserType := ustNames[ustSystem] //'System'
-      else if User.usIs_Remote_User then
-         UserType := ustNames[ustRestricted] //'Restricted'
-      else
-         UserType := ustNames[ustNormal]; //'Normal';
+    if User.usSystem_Access then
+      UserType := ustNames[ustSystem] //'System'
+    else if User.usIs_Remote_User then
+      UserType := ustNames[ustRestricted] //'Restricted'
+    else
+      UserType := ustNames[ustNormal]; //'Normal';
 
-      if AdminSystem.fdSystem_File_Access_List.Restricted_User( User.usLRN ) then begin
-         //count how many files the user has access to
-         Count := 0;
-         for j := 0 to Pred( AdminSystem.fdSystem_Client_File_List.ItemCount ) do begin
-            scf := AdminSystem.fdSystem_Client_File_List.Client_File_At( j);
-            If AdminSystem.fdSystem_File_Access_List.Allow_Access( User.usLRN, scf.cfLRN) then
-               Inc( Count);
-         end;
-
-         If Count = 0 then
-            FileAccess := 'None'
-         else
-            FileAccess := 'Selected';
-      end
-      else begin
-         FileAccess := 'All';
+    if AdminSystem.fdSystem_File_Access_List.Restricted_User( User.usLRN ) then begin
+      //count how many files the user has access to
+      Count := 0;
+      for j := 0 to Pred( AdminSystem.fdSystem_Client_File_List.ItemCount ) do begin
+        scf := AdminSystem.fdSystem_Client_File_List.Client_File_At( j);
+          If AdminSystem.fdSystem_File_Access_List.Allow_Access( User.usLRN, scf.cfLRN) then
+            Inc( Count);
       end;
 
-      NewItem := lvUsers.Items.Add;
-      NewItem.Caption := User.usCode;
-      if User.usLogged_In then
-        NewItem.ImageIndex := MAINTAIN_USER_BMP
+      If Count = 0 then
+        FileAccess := 'None'
       else
-        NewItem.ImageIndex := -1;
+        FileAccess := 'Selected';
+    end
+    else begin
+      FileAccess := 'All';
+    end;
 
-      NewItem.SubItems.AddObject(User.usName,TObject(User));
-      NewItem.SubItems.Add(Status);
-      NewItem.subITems.Add(UserType);
-      NewItem.SubItems.Add(FileAccess);         
+    Online := '';
+    if ProductConfigService.UseBankLinkOnline then
+    begin
+      if (User.usAllow_Banklink_Online) then
+      begin
+        if ProductConfigService.IsPrimaryUser(User.usBankLink_Online_Guid) then
+          Online := ONLINE_YES_ADMIN
+        else
+          Online := ONLINE_YES;
+      end
+      else
+      begin
+        Online := ONLINE_NO;
+      end;
+    end;
+
+    NewItem := lvUsers.Items.Add;
+    NewItem.Caption := User.usCode;
+    if User.usLogged_In then
+      NewItem.ImageIndex := MAINTAIN_USER_BMP
+    else
+      NewItem.ImageIndex := -1;
+
+    NewItem.SubItems.AddObject(User.usName,TObject(User));
+    NewItem.SubItems.Add(Status);
+    NewItem.subITems.Add(UserType);
+    NewItem.SubItems.Add(Online);
+    NewItem.SubItems.Add(FileAccess);
    end;
 
-   finally
-      lvUsers.items.EndUpdate;
-   end;
+  finally
+    lvUsers.items.EndUpdate;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -325,6 +357,103 @@ begin
   end;
 
   Compare := StStrS.CompStringS(Key1,Key2);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainUsers.lvUsersCustomDrawSubItem(Sender: TCustomListView;
+  Item: TListItem; SubItem: Integer; State: TCustomDrawState;
+  var DefaultDraw: Boolean);
+
+  //------------------------------------------------------
+  function GetSubItemLeft(aItemIndex : integer) : integer;
+  var
+    ItemIndex : integer;
+  begin
+    Result := 0;
+    for ItemIndex := 0 to aItemIndex do
+      Result := Result + lvUsers.Columns[ItemIndex].Width;
+  end;
+
+const
+  ONLINE_SUBITEM = 3;
+var
+  ItemRect : TRect;
+  SubItemIndex : integer;
+  SubItemLeft : integer;
+  SubItemTop  : integer;
+  bmpOnlineAdmin : TBitmap;
+  bmpOnline : TBitmap;
+  useOnlineAdmin : Boolean;
+  useOnline : Boolean;
+  p : pUser_Rec;
+begin
+  if (not assigned(Item)) or
+    (not ProductConfigService.UseBankLinkOnline) then
+    Exit;
+
+  SubItemIndex := SubItem-1;
+
+  DefaultDraw := false;
+
+  SetBkMode(lvUsers.Canvas.Handle, TRANSPARENT);
+  ListView_SetTextBkColor(lvUsers.Handle, CLR_NONE);
+  ListView_SetBKColor(lvUsers.Handle, CLR_NONE);
+
+  ItemRect := Item.DisplayRect(drBounds);
+  SubItemLeft := ItemRect.Left + GetSubItemLeft(SubItemIndex);
+  SubItemTop  := ItemRect.Top + 2;
+
+  case (SubItemIndex) of
+    ONLINE_SUBITEM : begin
+      if (Item.SubItems[SubItemIndex] = ONLINE_YES) then
+      begin
+        useOnlineAdmin := False;
+        useOnline := True;
+      end
+      else if (Item.SubItems[SubItemIndex] = ONLINE_YES_ADMIN) then
+      begin
+        useOnlineAdmin := True;
+        useOnline := True;
+      end
+      else
+      begin
+        useOnlineAdmin := False;
+        useOnline := False;
+      end;
+
+      bmpOnline := TBitmap.Create;
+      bmpOnlineAdmin := TBitmap.Create;
+      Try
+        If (cdsFocused  in State) or
+           (cdsSelected in State) then
+        begin
+          if useOnlineAdmin then
+            AppImages.Maintain.GetBitmap(MAINTAIN_SELECT, bmpOnlineAdmin);
+          if useOnline then
+            AppImages.Maintain.GetBitmap(MAINTAIN_SELECT, bmpOnline);
+        end;
+
+        if useOnlineAdmin then
+        begin
+          AppImages.Maintain.GetBitmap(MAINTAIN_ONLINE_ADMIN, bmpOnlineAdmin);
+          Sender.Canvas.Draw(SubItemLeft+20, SubItemTop, bmpOnlineAdmin);
+        end;
+
+        if useOnline then
+        begin
+          AppImages.Maintain.GetBitmap(MAINTAIN_ONLINE, bmpOnline);
+          Sender.Canvas.Draw(SubItemLeft+40, SubItemTop, bmpOnline);
+        end;
+
+      Finally
+        FreeAndNil(bmpOnlineAdmin);
+        FreeAndNil(bmpOnline);
+      End;
+    end;
+    0,1,2,4 : begin
+      Sender.Canvas.TextOut(SubItemLeft, SubItemTop, Item.SubItems[SubItemIndex]);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
