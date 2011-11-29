@@ -54,7 +54,8 @@ uses
   ErrorMoreFrm,
   InfoMoreFrm,
   Admin32,
-  LogUtil;
+  LogUtil,
+  OSFont;
 
 const
   UNITNAME = 'EditUserPassword';
@@ -153,6 +154,10 @@ begin
   end;
 
   chkOnlineAndPracticeSamePass.Checked := fUser_Rec.usUse_Practice_Password_Online;
+
+  SetPasswordFont(edtOldPassword);
+  SetPasswordFont(edtNewPassword);
+  SetPasswordFont(edtConfirmPassword);
 end;
 
 //------------------------------------------------------------------------------
