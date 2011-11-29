@@ -35,7 +35,8 @@ uses
   OvcNF,
   WinUtils,
   OsFont,
-  BanklinkOnlineSettingsFrm;
+  BanklinkOnlineSettingsFrm,
+  BlopiServiceFacade;
 
 type
   TfrmClientDetails = class(TForm)
@@ -157,7 +158,9 @@ type
     PassGenCodeEntered : boolean;
     FViewNotes : Boolean;
     BanklinkOnlineSettings : TfrmBanklinkOnlineSettings;
-    OriginalEmail: string;
+    OriginalEmail : string;
+    FClient : Client;
+    FEnableClientSettings : boolean;
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
 
@@ -169,7 +172,7 @@ type
   end;
 
   function EditClientDetails (ViewNotes : Boolean = False) : boolean;
-  function NewClientDetails(PCode: string = '') : boolean;
+  function NewClientDetails(PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -209,6 +212,7 @@ var
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormCreate(Sender: TObject);
 begin
+   FEnableClientSettings := true;
    bkXPThemes.ThemeForm( Self);
    lblCountry.Font.Name := Font.Name;
    lblConnectName.caption := BCONNECTNAME+' Co&de';
@@ -235,6 +239,11 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormShow(Sender: TObject);
+var
+  CatArray: ArrayOfCatalogueEntry;
+  i, k, NumProducts : Integer;
+  GUID1, GUID2: WideString;
+  AClientID: WideString;
 begin
   PageControl1.ActivePage := tbsClient;
 
@@ -297,9 +306,37 @@ begin
   tsSmartLink.TabVisible := false;
 {$ENDIF}
 
-  lblClientBOProducts.Visible := AdminSystem.fdFields.fdUse_BankLink_Online;
-  btnClientSettings.Enabled := AdminSystem.fdFields.fdUse_BankLink_Online;
-  lblClientBOProducts.Caption := 'This client currently has access to {#} Banklink Online product(s)';
+  grpBOClients.Visible := Assigned(AdminSystem) and not CurrUser.HasRestrictedAccess;
+  if grpBOClients.Visible then
+  begin
+    lblClientBOProducts.Visible := AdminSystem.fdFields.fdUse_BankLink_Online;
+    btnClientSettings.Enabled := AdminSystem.fdFields.fdUse_BankLink_Online and FEnableClientSettings;
+
+    CatArray := ProductConfigService.Clients.Catalogue;
+    AClientID := ProductConfigService.Clients.Clients[0].Id;
+    FClient := ProductConfigService.GetClientDetails(AClientID);
+    NumProducts := 0;
+    for i := 0 to High(CatArray) do begin
+      for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
+        GUID1 := FClient.Subscription[k];
+        GUID2 := CatArray[i].Id;
+        if (GUID1 = GUID2) then
+        begin
+          inc(NumProducts);
+          break;
+        end;
+      end;
+    end;
+
+    if not FEnableClientSettings then
+      lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
+    else if (Length(CatArray) > 0) then
+      lblClientBOProducts.Caption := 'This client currently has access to ' +
+                                          IntToStr(NumProducts) +
+                                          ' Banklink Online product(s)'
+    else
+      lblClientBOProducts.Caption := '';
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -406,14 +443,14 @@ var
 begin
   if not Assigned(BanklinkOnlineSettings) then 
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
-  if not BanklinkOnlineConnected then 
+  if not BanklinkOnlineConnected then
   begin
     ErrorMsg := 'Banklink Practice is unable to connect to Banklink Online';
     ShowMessage(ErrorMsg);
     LogUtil.LogMsg(lmError, UnitName, ErrorMsg);
     Exit;
   end;
-  
+
   ShowBanklinkOnlineSettings;
 end;
 
@@ -1105,7 +1142,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function NewClientDetails(PCode: string = '') : boolean;
+function NewClientDetails(PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
 var
   ClientDetails : TfrmClientDetails;
 begin
@@ -1116,6 +1153,7 @@ begin
    with ClientDetails do
    begin
      try
+        FEnableClientSettings := EnableClientSettings;
         BKHelpSetUp(ClientDetails, BKH_Step_1_Client_Details);
         CreatingClient := true;
         Result := Execute(PCode);

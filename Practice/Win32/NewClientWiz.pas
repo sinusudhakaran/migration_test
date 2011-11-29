@@ -423,7 +423,7 @@ begin
                    clClient_Type_LRN := pRec^.cfClient_Type_LRN;
                  end;
                end;
-               if NewClientDetails(FPCode) then begin
+               if NewClientDetails(FPCode, false) then begin
                   Option[ opNewClient ].Complete := True;
                end;
             end
