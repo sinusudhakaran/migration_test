@@ -493,19 +493,21 @@ begin
        CanAccessAdmin      := SysAccess;
        CanMemoriseToMaster := MasterMemorise;
        if User = nil then begin
-          HasRestrictedAccess := false;
-          ShowCMOnOpen        := false;
-          ShowPrinterDialog   := false;
+          HasRestrictedAccess  := false;
+          ShowCMOnOpen         := false;
+          ShowPrinterDialog    := false;
           SuppressHeaderFooter := shfUndefined;
-          ShowPracticeLogo := False;
+          ShowPracticeLogo     := False;
+          AllowBanklinkOnline  := False;
        end else begin
-          HasRestrictedAccess := User^.usIs_Remote_User;
-          ShowCMOnOpen        := (not HasRestrictedAccess) and Assigned(AdminSystem);
+          HasRestrictedAccess  := User^.usIs_Remote_User;
+          ShowCMOnOpen         := (not HasRestrictedAccess) and Assigned(AdminSystem);
           if Assigned(CurrUser) and Assigned(AdminSystem) and CurrUser.HasRestrictedAccess then
              CloseClientManager;
-          ShowPrinterDialog   := User^.usShow_Printer_Choice;
+          ShowPrinterDialog    := User^.usShow_Printer_Choice;
           SuppressHeaderFooter := User^.usSuppress_HF;
-          ShowPracticeLogo := User^.usShow_Practice_Logo;
+          ShowPracticeLogo     := User^.usShow_Practice_Logo;
+          AllowBanklinkOnline  := User^.usAllow_Banklink_Online;
        end;
      end;
 

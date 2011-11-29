@@ -1,23 +1,42 @@
 unit AppUserObj;
 
+//------------------------------------------------------------------------------
 interface
+
 uses
   classes;
 
-type TAppUser = class
-                 Code           : string;
-                 FullName       : string;
-                 CanAccessAdmin : boolean;
-                 LRN            : integer;
-                 SecurityLevel  : integer;
-                 CanMemoriseToMaster : boolean;
-                 HasRestrictedAccess : boolean;
-                 ShowCMOnOpen   : boolean;
-                 ShowPrinterDialog : boolean;
-                 SuppressHeaderFooter: byte;
-                 ShowPracticeLogo: boolean;
-                end;
+type
+  TAppUser = class
+  private
+    fCode                 : string;
+    fFullName             : string;
+    fCanAccessAdmin       : boolean;
+    fLRN                  : integer;
+    fSecurityLevel        : integer;
+    fCanMemoriseToMaster  : boolean;
+    fHasRestrictedAccess  : boolean;
+    fShowCMOnOpen         : boolean;
+    fShowPrinterDialog    : boolean;
+    fSuppressHeaderFooter : byte;
+    fShowPracticeLogo     : boolean;
+    fAllowBanklinkOnline  : boolean;
+  public
+    property Code                 : string  read  fCode                 write fCode;
+    property FullName             : string  read  fFullName             write fFullName;
+    property CanAccessAdmin       : boolean read  fCanAccessAdmin       write fCanAccessAdmin;
+    property LRN                  : integer read  fLRN                  write fLRN;
+    property SecurityLevel        : integer read  fSecurityLevel        write fSecurityLevel;
+    property CanMemoriseToMaster  : boolean read  fCanMemoriseToMaster  write fCanMemoriseToMaster;
+    property HasRestrictedAccess  : boolean read  fHasRestrictedAccess  write fHasRestrictedAccess;
+    property ShowCMOnOpen         : boolean read  fShowCMOnOpen         write fShowCMOnOpen;
+    property ShowPrinterDialog    : boolean read  fShowPrinterDialog    write fShowPrinterDialog;
+    property SuppressHeaderFooter : byte    read  fSuppressHeaderFooter write fSuppressHeaderFooter;
+    property ShowPracticeLogo     : boolean read  fShowPracticeLogo     write fShowPracticeLogo;
+    property AllowBanklinkOnline  : boolean read  fAllowBanklinkOnline  write fAllowBanklinkOnline;
+  end;
 
+//------------------------------------------------------------------------------
 implementation
 
 end.

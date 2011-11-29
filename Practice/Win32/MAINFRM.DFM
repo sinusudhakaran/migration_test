@@ -2,7 +2,7 @@ object frmMain: TfrmMain
   Left = 315
   Top = 258
   Caption = 'TT'
-  ClientHeight = 1008
+  ClientHeight = 1004
   ClientWidth = 881
   Color = 10459904
   Constraints.MinHeight = 360
@@ -24,7 +24,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     881
-    1008)
+    1004)
   PixelsPerInch = 96
   TextHeight = 13
   object Image1: TImage
@@ -94,7 +94,7 @@ object frmMain: TfrmMain
   end
   object MainStatus: TStatusBar
     Left = 0
-    Top = 984
+    Top = 980
     Width = 881
     Height = 24
     Panels = <
@@ -680,6 +680,10 @@ object frmMain: TfrmMain
       end
       object NA2: TMenuItem
         Caption = '-'
+      end
+      object mniChangePassword: TMenuItem
+        Caption = 'Change &Password'
+        OnClick = mniChangePasswordClick
       end
       object mniFileInformation: TMenuItem
         Caption = '&Information'

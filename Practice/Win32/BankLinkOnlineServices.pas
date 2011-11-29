@@ -106,6 +106,9 @@ type
                            var   aIsUserCreated : Boolean ) : Boolean;
     function DeleteUser(AUserId : Guid): Boolean;
     function IsPrimaryUser(const AUserId : Guid = ''): Boolean;
+    function ChangeUserPassword(const aUserId      : Guid;
+                                const aOldPassword : string;
+                                const aNewPassword : string) : Boolean;
   end;
 
   //Product config singleton
@@ -1028,6 +1031,13 @@ var
 begin
   currPractice := GetPractice;
   Result := (AUserId = currPractice.DefaultAdminUserId);
+end;
+
+function TProductConfigService.ChangeUserPassword(const aUserId      : Guid;
+                                                  const aOldPassword : string;
+                                                  const aNewPassword : string) : Boolean;
+begin
+  Result := false;
 end;
 
 { TClientSummaryHelper }

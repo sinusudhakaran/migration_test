@@ -430,6 +430,7 @@ type
     viaBankLinkOnline3: TMenuItem;
     actGetFromFolder: TAction;
     actGetFromOnline: TAction;
+    mniChangePassword: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -708,6 +709,7 @@ type
     procedure actSendViaOnlineExecute(Sender: TObject);
     procedure actGetFromFolderExecute(Sender: TObject);
     procedure actGetFromOnlineExecute(Sender: TObject);
+    procedure mniChangePasswordClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -1034,6 +1036,7 @@ uses
   CustomDocEditorFrm,
   frmExchangeRates,
   BankLinkOnlineServices,
+  EditUserPassword,
   BlopiServiceFacade;
   //StockBalancesDlg;
 
@@ -1073,7 +1076,7 @@ type
   end;
 
 {$R *.DFM}
-  
+
 var
   DebugMe : boolean = false;
 
@@ -1083,9 +1086,9 @@ var
 
 procedure TfrmMain.WMQueryEndSession(var Msg : TWMQueryEndSession);
 begin
-   LogUtil.LogMsg(lmInfo, UnitName, 'Windows is shutting down from main screen');
-   Close;
-   Msg.Result := 1;
+  LogUtil.LogMsg(lmInfo, UnitName, 'Windows is shutting down from main screen');
+  Close;
+  Msg.Result := 1;
 end;
 
 {procedure TfrmMain.WMSyscommand(var Message: TWmSysCommand);
@@ -1217,7 +1220,7 @@ end;
 
 procedure TfrmMain.ActHomePageExecute(Sender: TObject);
 begin
-   RefreshHomepage([HRP_Init]);
+  RefreshHomepage([HRP_Init]);
 end;
 
 procedure TfrmMain.ActivateApplication(Sender: TObject);
@@ -1464,6 +1467,11 @@ begin
        //Self.Tag := 0; case 7071 - everything now goes screen center
 
        AdminSystemFound := Assigned( AdminSystem) or AdminExists;
+
+       if AdminSystemFound then
+         mniChangePassword.Visible := CurrUser.AllowBanklinkOnline
+       else
+         mniChangePassword.Visible := False;
 
        ReloadCustomLogo;
 
@@ -5246,6 +5254,11 @@ end;
 procedure TfrmMain.mniUPIAddInitDepClick(Sender: TObject);
 begin
    DoCodingTBarCommand(ecAddInitDep);
+end;
+
+procedure TfrmMain.mniChangePasswordClick(Sender: TObject);
+begin
+  ChangeUserPassword;
 end;
 
 procedure TfrmMain.mniCheckForUpdatesClick(Sender: TObject);
