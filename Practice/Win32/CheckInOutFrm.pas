@@ -190,7 +190,10 @@ begin
         Globals.INI_CheckOutDir := AddSlash( ePath.Text);
         //Setting
         AFirstUpload := ClientLookupFrame.FirstUpload;
-        AFlagReadOnly := cbFlagReadOnly.Checked;
+        //Only change the flag as read-only default if this option is visible (TFS 36509)
+        AFlagReadOnly := True;
+        if cbFlagReadOnly.Visible then
+          AFlagReadOnly := cbFlagReadOnly.Checked;
         AEditEmail := cbEditEmail.Checked;
         ASendEmail := cbSendEmail.Checked;
         Result := ClientLookupFrame.SelectedCodes;

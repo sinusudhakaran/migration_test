@@ -213,6 +213,8 @@ type
                                      var AServerResponce : TServerResponse);
     procedure UploadFileFromBooks(AClientCode : string;
                                   AIsCopy     : Boolean;
+                                  ANotifyPractice     : Boolean;
+                                  ANotifyEMail: string;                                  
                                   var AServerResponce : TServerResponse);
     procedure DownloadFileToBooks(AClientCode : string;
                                   var ATempBk5File    : string;
@@ -273,6 +275,8 @@ const
   HTTP_HEAD_CONTENT_LENGTH     = 'Content-Length';
   HTTP_HEAD_CONTENT_TYPE       = 'Content-Type';
   HTTP_HEAD_SERVER_FILE_CRC    = 'CRC';
+  HTTP_HEAD_NOTIFY_PRACTICE    = 'NotifyPractice';
+  HTTP_HEAD_NOTIFY_EMAIL       = 'NotifyEMailAddress';
 
   // Content Type of the data passed to and from the server
   SERVER_CONTENT_TYPE_XML = '.xml; charset=utf-8';
@@ -1197,6 +1201,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromBooks(AClientCode : string;
                                              AIsCopy     : Boolean;
+                                             ANotifyPractice: Boolean;
+                                             ANotifyEMail: string;
                                              var AServerResponce : TServerResponse);
 var
   HttpAddress    : string;
@@ -1225,6 +1231,12 @@ begin
       AddHttpHeaderInfo(HTTP_HEAD_BOOKS_COPY, '1')
     else
       AddHttpHeaderInfo(HTTP_HEAD_BOOKS_COPY, '0');
+
+    if ANotifyPractice then begin
+      AddHttpHeaderInfo(HTTP_HEAD_NOTIFY_PRACTICE,    '1');
+      AddHttpHeaderInfo(HTTP_HEAD_NOTIFY_EMAIL, ANotifyEMail);
+    end else
+      AddHttpHeaderInfo(HTTP_HEAD_NOTIFY_PRACTICE,    '0');
 
     UploadFile(HttpAddress, DataDir + AClientCode + FILEEXTN);
 

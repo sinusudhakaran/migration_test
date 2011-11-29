@@ -164,6 +164,14 @@ begin
           FErrors := True;
         end;
       end
+      else if (ps.sbAttach_Required) then
+      begin
+        moResults.Lines.Add('Account number "' + pS.sbAccount_Number +
+                            '" was marked as attached to Client Code "' + pC.cfFile_Code + '".');
+        pS.sbAttach_Required := False; // Fix for Escalation 18654
+        FErrors := True;
+        Inc(i);
+      end
       else
         Inc(i);
     end;

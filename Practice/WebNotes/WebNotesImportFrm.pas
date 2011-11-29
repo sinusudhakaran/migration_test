@@ -296,6 +296,7 @@ var
   bkPayeeLine: pPayee_Line_Rec;
   PayeeDetail: string;
   lTaxamount: Money;
+  DissectionPayee: TPayee;
 begin
    DissectionLineNo := 1;
    DNode := GetFirstDissection(FromNode);
@@ -319,11 +320,9 @@ begin
          //dissection
          //bkpayee will have been set above
          //payee will have been set OUTSIDE the dissection
-
          bkPayeeLine := bkPayee.pdLines.PayeeLine_At(DissectionLineNo - 1);
          BKD.dsGST_Class := bkPayeeLine.plGST_Class;
-//         BKD.dsGST_Amount := CalculateGSTForClass(Client, BKT.txDate_Effective, BKD.dsAmount, BKD.dsGST_Class);
-         BKD.dsGST_Amount := CalculateGSTForClass(Client, BKT.txDate_Effective, BKD.Local_Amount, BKD.dsGST_Class);
+         BKD.dsGST_Amount := CalculateGSTForClass(Client, BKT^.txDate_Effective, BKD^.Local_Amount, BKD^.dsGST_Class);
          BKD.dsGST_Has_Been_Edited := bkPayeeLine.plGST_Has_Been_Edited;
 
          //the payee was specified at the transaction level, the dissection
@@ -335,17 +334,33 @@ begin
              PayeeDetail := bkPayee.pdName;
       end else begin
          // Check the disection for Payee
-         ImportPayee(DNode,BKD,True);
+         DissectionPayee := nil;
+         ImportPayee(DNode, BKD, True);
+         if BKD^.dsPayee_Number <> 0 then
+           DissectionPayee := Client.clPayee_List.Find_Payee_Number(BKD^.dsPayee_Number);
 
+        //Calculate gst using the dissection line's gst class
+        BKD^.dsGST_Class := GetIntAttr(DNode, nTaxCode);
 
+        //gst
+        if Assigned(DissectionPayee) then
+        begin
+          BKD^.dsGST_Amount := CalculateGSTForClass(Client, BKT^.txDate_Effective, BKD^.Local_Amount, BKD^.dsGST_Class);
+          PayeeDetail := GetStringAttr(DNode, nNarration);
+          // if blank then use payee name
+          if Trim(PayeeDetail) = '' then
+            PayeeDetail := DissectionPayee.pdName;
+          BKD^.dsGST_Has_Been_Edited := GetBoolAttr(DNode, nTaxEdited);
+        end
+        else
+        begin
          //set gst information based on the chart
          //payee not found or dissection too long, use default gst
          //calculate gst using information from the chart codes
-
-//         CalculateGST(Client, BKT.txDate_Effective, BKD.dsAccount, BKD.dsAmount, BKD.dsGST_Class, BKD.dsGST_Amount);
-         CalculateGST(Client, BKT.txDate_Effective, BKD.dsAccount, BKD.Local_Amount, BKD.dsGST_Class, BKD.dsGST_Amount);
-         PayeeDetail := '';
-         BKD.dsGST_Has_Been_Edited := False;
+          CalculateGST(Client, BKT^.txDate_Effective, BKD^.dsAccount, BKD^.Local_Amount, BKD^.dsGST_Class, BKD^.dsGST_Amount);
+          PayeeDetail := '';
+          BKD^.dsGST_Has_Been_Edited := False;
+        end;
       end;
 
       //now see if the gst specified in bnotes is different
@@ -1779,7 +1794,7 @@ begin
   DNode := GetFirstDissection(FromNode);
   while Assigned(DNode) do begin
      PayeeLine := bkPayee.pdLines.PayeeLine_At(L);
-     if PayeeLine.plAccount <> GetStringAttr(FromNode,nChartcode) then
+     if PayeeLine.plAccount <> GetStringAttr(DNode,nChartcode) then
         Exit;
 
      DNode := DNode.NextSibling;

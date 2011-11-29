@@ -19,7 +19,8 @@ uses
   function SendClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
                       var AClientEmail: string; IsScheduledReport: Boolean = False;
                       Silent: Boolean = False; AllowMultiplePwdFiles: Boolean = False;
-                      ASendMethod: byte = 0; FlagReadOnly: boolean = true) : Boolean; overload;
+                      ASendMethod: byte = 0; FlagReadOnly: boolean = true;
+                      ANotifyPractice: Boolean = False) : Boolean; overload;
   function SendClient(Code : string; Path : string; ASendMethod: byte = 0;
                       FlagReadOnly: boolean = true): Boolean; overload;
   function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
@@ -1545,7 +1546,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendBooksClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
   var AClientEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
-  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0; FlagReadOnly: boolean = true): Boolean;
+  AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0; FlagReadOnly: boolean = true;
+  ANotifyPractice: Boolean = False): Boolean;
 const
   ThisMethodName = 'SendBooksClient';
 var
@@ -1649,7 +1651,8 @@ begin
                 LogUtil.LogMsg(lmDebug, UnitName, Msg);
               end;
               BankLinkOnlineMgr.Silent := IsScheduledReport;
-              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '', SendCopy);
+              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '', SendCopy,
+                                             ANotifyPractice, AClientEmail);
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                [ThisMethodName, BankLinkLiveName]));
@@ -1723,7 +1726,7 @@ function SendClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
   var AClientEmail: string;
   IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0;
-  FlagReadOnly: boolean = true): Boolean;
+  FlagReadOnly: boolean = true; ANotifyPractice: Boolean = False): Boolean;
 const
   ThisMethodName = 'SendClient';
 begin
@@ -1744,7 +1747,8 @@ begin
     //Books Client File
     Result := SendBooksClient(Code, Path, ProgressFrm, AClientEmail,
                               IsScheduledReport, Silent,
-                              AllowMultiplePwdFiles, ASendMethod, FlagReadOnly);
+                              AllowMultiplePwdFiles, ASendMethod,
+                              FlagReadOnly, ANotifyPractice);
 
   if not IsScheduledReport then begin
     ProgressFrm.BringToFront;
@@ -1891,7 +1895,7 @@ begin
         SentClientCodes := '';
         for i := 0 to CodeList.Count -1 do begin
           if not SendClient(CodeList[i], Globals.INI_CheckOutDir, ProgressFrm, ClientEmail,
-                            False, (CodeList.Count > 1) , True, ASendMethod, AFlagReadOnly) then begin
+                            False, (CodeList.Count > 1) , True, ASendMethod, AFlagReadOnly, (Not AEditEmail)) then begin
             //Flag email for failures
             ClientEmail := '*';
             Inc(Failures);

@@ -27,7 +27,8 @@ type
     constructor Create;
     destructor Destroy; override;
     function UploadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
-                          AClientName, AClientEmail: string; IsCopy: Boolean = False): boolean;
+                          AClientName, AClientEmail: string; IsCopy: Boolean = False;
+                          NotifyPractice: Boolean = False; NotifyEmail: string = ''): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                             var ARemoteFileName: string): boolean;
     property Silent : Boolean read FSilent write FSilent;
@@ -509,7 +510,8 @@ end;
 
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;
   AProgressFrm: TfrmChkProgress; AClientName, AClientEmail: string;
-  IsCopy: Boolean = False): boolean;
+  IsCopy: Boolean = False; NotifyPractice: Boolean = False;
+  NotifyEmail: string = ''): boolean;
 const
   ThisMethodName = 'UploadClient';
 var
@@ -535,7 +537,7 @@ begin
         if Assigned(AdminSystem) then
           CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, ServerResponce)
         else
-          CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, ServerResponce);
+          CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, NotifyPractice, NotifyEmail, ServerResponce);
       except
         on E : Exception do
           raise EUploadFailed.Create(E.Message);
