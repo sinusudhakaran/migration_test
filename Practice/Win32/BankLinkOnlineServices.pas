@@ -496,7 +496,8 @@ begin
       LoadDummyPractice; //This load FPractice with dummy data
       Result := True;
     end;
-  end;
+  end else
+    Result := LoadPracticeDetailsfromSystemDB; //This is the local copy of FPractice
 end;
 
 function TProductConfigService.LoadPracticeDetailsfromSystemDB: Boolean;
@@ -746,9 +747,9 @@ begin
       end;
     end;
   end else begin
-    FPractice.Free;
-    FPractice := TPractice.Create;
-    LoadPracticeDetails
+    //Settings are only saved locally if not using BankLink Online
+    SavePracticeDetailsToSystemDB;
+    Result := True;
   end;
 end;
 

@@ -449,19 +449,17 @@ procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
 begin
-  if ckUseBankLinkOnline.Checked then begin
-    if ProductConfigService.RegisteredForBankLinkOnline then
-      LoadPracticeDetails
-    else begin
-      edtURL.Text := 'Not registered for BankLink Online';
-      cbPrimaryContact.Enabled := False;
-      ckUseBankLinkOnline.Checked := False;
-      if Visible then begin
-        if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
-                             'You are not currently registered for BankLink Online. ' +
-                             'Would you like to register now?', dlg_no, 0) = DLG_YES then
-          RequestBankLinkOnlineregistration;
-      end;
+  if ProductConfigService.RegisteredForBankLinkOnline then
+    LoadPracticeDetails
+  else begin
+    edtURL.Text := 'Not registered for BankLink Online';
+    cbPrimaryContact.Enabled := False;
+    ckUseBankLinkOnline.Checked := False;
+    if Visible then begin
+      if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
+                           'You are not currently registered for BankLink Online. ' +
+                           'Would you like to register now?', dlg_no, 0) = DLG_YES then
+        RequestBankLinkOnlineregistration;
     end;
   end;
   ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
@@ -543,13 +541,10 @@ begin
 
 
     //Use BankLink Online
-    ckUseBankLinkOnline.Checked := False;
-    if ProductConfigService.UseBankLinkOnline then begin
-      //Only call this once!!!
-      FPrac := ProductConfigService.GetPractice;
-      ckUseBankLinkOnline.Checked := True;
-      ckUseBankLinkOnlineClick(Self);
-    end;
+    //Only call this once!!!
+    FPrac := ProductConfigService.GetPractice;
+    ckUseBankLinkOnline.Checked := ProductConfigService.UseBankLinkOnline;
+    ckUseBankLinkOnlineClick(Self);
 
     //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
@@ -713,9 +708,9 @@ begin
          else
            fdSave_Tax_Files_To       := AddSlash( Trim( edtSaveTaxTo.Text));
 
-//         //Save BankLink Online settings
-//         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-//         ProductConfigService.SavePractice;
+         //Save BankLink Online settings
+         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
+         ProductConfigService.SavePractice;
 
          //Web
          fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
@@ -917,7 +912,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.FormActivate(Sender: TObject);
 begin
-  ckUseBankLinkOnline.Enabled := BanklinkOnlineConnected;
+//  ckUseBankLinkOnline.Enabled := BanklinkOnlineConnected;
 end;
 
 procedure TfrmPracticeDetails.FormCloseQuery(Sender: TObject;

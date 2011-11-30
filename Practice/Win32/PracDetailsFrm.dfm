@@ -574,7 +574,6 @@ object frmPracticeDetails: TfrmPracticeDetails
       Caption = 'BankLink Online'
       ImageIndex = 4
       OnShow = tsBankLinkOnlineShow
-      ExplicitTop = 28
       object lblURL: TLabel
         Left = 16
         Top = 51
