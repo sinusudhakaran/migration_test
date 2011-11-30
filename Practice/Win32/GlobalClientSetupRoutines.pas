@@ -28,7 +28,7 @@ function CodingScreenLayout( ClientCodes : string) : boolean;
 function AssignPracticeContact( ClientCodes : string) : boolean;
 function ChangeFinancialYear( ClientCodes : string) : boolean;
 
-function DeleteClientFile(ClientCode : string) : boolean;
+function DeleteClientFile(ClientCode : string; BOMessage : string = '') : boolean;
 function UnlockClientFile( ClientCodes : string) : Boolean;
 
 function DeleteProspects(ClientCodes : string; Silent: Boolean = False; KeepFiles: Boolean = False) : boolean;
@@ -1484,7 +1484,7 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function DeleteClientFile(ClientCode : string) : boolean;
+function DeleteClientFile(ClientCode : string; BOMessage : string = '') : boolean;
 const
   ThisMethodName = 'DeleteClientFile';
 var
@@ -1541,9 +1541,14 @@ begin
     end; {case}
 
     {file is not open}
-    msg := 'Deleting this Client will delete ALL TRANSACTIONS in the Client File and REMOVE '
-          +'the Client File from the Administration System.'+#13+#13+
-          'Please confirm that you really want to delete Client '+#13+#13+clientFile^.cfFile_Code+ ': '+clientfile^.cfFile_Name
+
+
+    if (BOMessage <> '')
+      then msg := BOMessage + 'Are you sure you want to delete Client ' + clientFile^.cfFile_Code +
+                  ' : ' + clientfile^.cfFile_Name + ' from Banklink Practice?'
+      else msg := 'Deleting this Client will delete ALL TRANSACTIONS in the Client File and REMOVE ' +
+                  'the Client File from the Administration System.'+#13+#13+
+                  'Please confirm that you really want to delete Client '+#13+#13+clientFile^.cfFile_Code+ ': '+clientfile^.cfFile_Name
                    +' from '+SHORTAPPNAME+'.';
 
     if (AskYesNo('Delete Client',Msg,DLG_NO,0) <> DLG_YES) then

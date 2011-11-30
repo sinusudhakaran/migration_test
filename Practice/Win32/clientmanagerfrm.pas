@@ -18,7 +18,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, RzGroupBar, RzCommon, ExtCtrls, ClientLookupFme, ImgList, ActnList,
   StdCtrls, Menus, OpShared, OpWrdXP, OpWord, jpeg, VirtualTrees, RzButton, Grids, RzPanel,
-  OSFont,ImportProspectsDlg, dxGDIPlusClasses, Globals, BanklinkOnlineSettingsFrm;
+  OSFont,ImportProspectsDlg, dxGDIPlusClasses, Globals, BanklinkOnlineSettingsFrm,
+  BlopiServiceFacade;
 
 type
   TfrmClientManager = class(TForm)
@@ -228,6 +229,7 @@ type
     StartFocus        : Boolean;
     FUserSet: Boolean;
     InModal: Boolean;
+    FClient: Client;
     BankLinkOnlineSettings : TfrmBanklinkOnlineSettings;
     procedure FillClientDetails;
     procedure ShowSelectedNo( Count : integer);
@@ -1789,14 +1791,47 @@ end;
 
 procedure TfrmClientManager.DoDeleteFile;
 var
-  ScrollPos: Integer;
-  StringCodeToSelect: string;
+  ScrollPos, NumProducts, i, k: Integer;
+  StringCodeToSelect, DeleteStr: string;
+  AClientID, GUID1, GUID2: WideString;
+  ProductList: TStringList;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoDeleteFile');
   //act upon a single client only
   ScrollPos := ClientLookup.LastScrollPosition;
   StringCodeToSelect := ClientLookup.GetCodeBelowSelection;
-  if DeleteClientFile(ClientLookup.FirstSelectedCode) then
+
+  DeleteStr := 'Deleting this client will remove ALL TRANSACTIONS in the ' +
+               'client file and will REMOVE the client file from the ' +
+               'Administration System.' + #13#13;
+  if AdminSystem.fdFields.fdUse_BankLink_Online then
+  begin
+    AClientID := ProductConfigService.Clients.Clients[0].Id;
+    FClient := ProductConfigService.GetClientDetails(AClientID);
+
+    NumProducts := 0;
+    for i := 0 to High(FClient.Catalogue) do begin
+      for k := 0 to High(FClient.Subscription) do begin
+        GUID1 := FClient.Subscription[k];
+        GUID2 := FClient.Catalogue[i].Id;
+        if (GUID1 = GUID2) then
+        begin
+          if not Assigned(ProductList) then
+            ProductList := TStringList.Create;
+          ProductList.Add(FClient.Catalogue[i].Description);
+          inc(NumProducts);
+          break;
+        end;
+      end;
+    end;
+    if (ProductList.Count > 0)
+      then DeleteStr := DeleteStr + 'Deleting this client will also, ' +
+                        'permanently remove ALL CLIENT DATA & ACCESS ' +
+                        'for the following products:' + #13#13 +
+                        ProductList.Text + #13;
+  end;
+
+  if DeleteClientFile(ClientLookup.FirstSelectedCode, DeleteStr) then
   begin
     RefreshLookup(StringCodeToSelect);
     UpdateFilter(Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]));
