@@ -714,7 +714,7 @@ begin { TdlgEditUser.Execute }
     chkUsePracPassInOnline.Checked := User.usUse_Practice_Password_Online
                                   and fUserCanAccessBankLinkOnline;
 
-    UserGuid := User.usBankLink_Online_Guid;
+    UserGuid := ProductConfigService.GetUserGuid(User.usCode);
     fIsPrimaryUser := ProductConfigService.IsPrimaryUser(UserGuid);
 
     if User.usWorkstation_Logged_In_At <> '' then
@@ -841,7 +841,7 @@ begin { EditUser }
             pu.usIs_Remote_User := False;
           end;
           pu.usMASTER_Access  := chkMaster.Checked;
-          pu.usBankLink_Online_Guid := UserGuid;
+//          pu.usBankLink_Online_Guid := UserGuid;
 
           If pu.usLogged_In <> chkLoggedIn.Checked Then begin
              If chkLoggedIn.Checked Then begin
@@ -968,7 +968,7 @@ begin { AddUser }
                pu.usMASTER_Access  := chkMaster.Checked;
                pu.usLogged_In      := false;
                pu.usLRN            := AdminSystem.fdFields.fdUser_LRN_Counter;
-               pu.usBankLink_Online_Guid := UserGuid;
+//               pu.usBankLink_Online_Guid := UserGuid;
 
                AdminSystem.fdSystem_User_List.Insert( pu );
 

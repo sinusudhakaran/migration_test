@@ -1195,7 +1195,8 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
        H_TextAlignment := TAlignment(fdSpare_Byte_8);     fdSpare_Byte_8 := 0;
        GetFont(fdSpare_Text_13,H_TextFont);               fdSpare_Text_13 := '';
        //Footer Logo
-       F_LogoFile := fdSpare_Text_14;                     fdSpare_Text_14 := '';
+//       F_LogoFile := fdSpare_Text_14;                     fdSpare_Text_14 := ''; //Reused as fdBankLink_Online_Config
+       F_LogoFile := fdBankLink_Online_Config;            fdBankLink_Online_Config := '';
        F_LogoFileAlignment := TAlignment(fdSpare_Byte_9); fdSpare_Byte_9 := 0;
        F_LogoFileWidth := fdSpare_Integer_7;              fdSpare_Integer_7 := 0;
        F_LogoFileHeight := fdSpare_Integer_8;             fdSpare_Integer_8 := 0;
@@ -1550,8 +1551,6 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
 
     if (Trim(Globals.PRACINI_OnlineLink) <> '') then begin
       AdminSystem.fdFields.fdUse_BankLink_Online := True;
-      //*** TEST ***
-      ProductConfigService.RegisteredForBankLinkOnline := True;
       //Connect to BankLink Online and get the Practice details
       Prac := ProductConfigService.GetPractice;
       if not Assigned(Prac) then

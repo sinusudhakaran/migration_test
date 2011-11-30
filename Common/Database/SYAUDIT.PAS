@@ -160,7 +160,7 @@ begin
     FAuditNamesArray[10,103] := 'Spare_Text_12';
     FAuditNamesArray[10,104] := 'Spare_Byte_8';
     FAuditNamesArray[10,105] := 'Spare_Text_13';
-    FAuditNamesArray[10,106] := 'Spare_Text_14';
+    FAuditNamesArray[10,106] := 'BankLink_Online_Config';
     FAuditNamesArray[10,107] := 'Spare_Byte_9';
     FAuditNamesArray[10,108] := 'Spare_Integer_7';
     FAuditNamesArray[10,109] := 'Spare_Integer_8';
@@ -242,6 +242,7 @@ begin
     FAuditNamesArray[10,185] := 'Sched_Rep_Online_Message';
     FAuditNamesArray[10,186] := 'Sched_Rep_Online_Custom_Doc_GUID';
     FAuditNamesArray[10,187] := 'Sched_Rep_Online_Custom_Doc';
+    FAuditNamesArray[10,188] := 'Last_BankLink_Online_Update';
 
    FAuditTableArray[40] := 'System_Disk_Log';
     FAuditNamesArray[40,42] := 'Disk_ID';
@@ -276,9 +277,8 @@ begin
     FAuditNamesArray[60,83] := 'Show_Practice_Logo';
     FAuditNamesArray[60,84] := 'Audit_Record_ID';
     FAuditNamesArray[60,85] := 'Allow_Banklink_Online';
-    FAuditNamesArray[60,86] := 'BankLink_Online_Guid';
-    FAuditNamesArray[60,87] := 'Password';
-    FAuditNamesArray[60,88] := 'Use_Practice_Password_Online';
+    FAuditNamesArray[60,86] := 'Password';
+    FAuditNamesArray[60,87] := 'Use_Practice_Password_Online';
 
    FAuditTableArray[50] := 'System_Bank_Account';
     FAuditNamesArray[50,52] := 'Account_Number';

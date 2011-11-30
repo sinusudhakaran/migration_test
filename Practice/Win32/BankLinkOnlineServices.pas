@@ -8,11 +8,9 @@ uses
 type
   TBanklinkOnlineStatus = (bosActive, bosSuspended, bosDeactivated);
 
-  TPracticeHelper = class helper for BlopiServiceFacade.Practice
-  private
-    function GetOnlineStatus: TBanklinkOnlineStatus;
-  end;
-  
+  TPractice = class(BlopiServiceFacade.Practice);
+  TUser = class(BlopiServiceFacade.User);
+  TCatalogueEntry = class(BlopiServiceFacade.CatalogueEntry);
   Guid          =  BlopiServiceFacade.Guid;
   ArrayOfString =  BlopiServiceFacade.ArrayOfString;
 
@@ -47,7 +45,7 @@ type
 
   TProductConfigService = class(TObject)
   private
-    FPractice, FPracticeCopy: Practice;
+    FPractice, FPracticeCopy: TPractice;
     FRegisteredForBankLinkOnline: boolean;
     FListOfClients: ClientList;
     FClient: Client;
@@ -71,16 +69,24 @@ type
                                            const AUserCode : string = ''): Boolean;
     function GetUseBankLinkOnline: Boolean;
     procedure SetUseBankLinkOnline(const Value: Boolean);
+    function RemotableObjectToXML(ARemotable: TRemotable): string;
+    procedure LoadRemotableObjectFromXML(const XML: string; ARemotable: TRemotable);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
+    function LoadPracticeDetailsfromSystemDB: Boolean;
+    procedure SavePracticeDetailsToSystemDB;
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
     procedure LoadDummyClientList;
+    function Online: Boolean;
+    function Registered: Boolean;
+    function OnlineStatus: TBankLinkOnlineStatus;
   public
     constructor Create;
     destructor Destroy; override;
     //Practice methods
-    function GetPractice: Practice;
-    function IsPracticeActive(ShowWarning: Boolean = true): Boolean;    
+    function LoadPracticeDetails: Boolean;
+    function GetPractice: TPractice;
+    function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
     function IsPracticeProductEnabled(AProductId: Guid): Boolean;
     function IsNotesOnlineEnabled: Boolean;
@@ -92,7 +98,7 @@ type
     procedure SelectAllProducts;
     procedure SetPrimaryContact(AUser: User);
     property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
-    property RegisteredForBankLinkOnline: Boolean read FRegisteredForBankLinkOnline write SetRegisteredForBankLinkOnline;
+    property RegisteredForBankLinkOnline: Boolean read Registered;
     //Client methods
     function AddClient: ClientSummary;
     function GetClientDetails(ClientID: WideString): Client;
@@ -106,6 +112,7 @@ type
                            var   aIsUserCreated : Boolean ) : Boolean;
     function DeleteUser(AUserId : Guid): Boolean;
     function IsPrimaryUser(const AUserId : Guid = ''): Boolean;
+    function GetUserGuid(AUserCode: string): Guid;
     function ChangeUserPassword(const aUserId      : Guid;
                                 const aOldPassword : string;
                                 const aNewPassword : string) : Boolean;
@@ -117,18 +124,22 @@ type
 implementation
 
 uses
-  Globals, 
-  SysUtils, 
-  XMLIntf, 
-  XMLDoc, 
+  Globals,
+  SysUtils,
+  XMLIntf,
+  XMLDoc,
   OPToSOAPDomConv,
   LogUtil,
   WarningMoreFrm,
+  ErrorMoreFrm,
   IniSettings,
-  WebUtils;
+  WebUtils,
+  stDate,
+  IniFiles;
 
-Const
-  UNIT_NAME = 'BankLinkOnlineServices';  
+const
+  UNIT_NAME = 'BankLinkOnlineServices';
+  INIFILE_NAME = 'BankLinkOnline.ini';
 
 var
   __BankLinkOnlineServiceMgr: TProductConfigService;
@@ -201,12 +212,9 @@ end;
 constructor TProductConfigService.Create;
 begin
   //Create practice
-  FPractice := Practice.Create;
-  //Load practice 
-  if UseBankLinkOnline then
-    if not LoadRemotableObjectFromFile(FPractice) then
-      LoadDummyPractice;
-  RegisteredForBankLinkOnline := UseBankLinkOnline;
+  FPractice := TPractice.Create;
+  //Load Practice
+  LoadPracticeDetails;
   //Create clients
   LoadDummyClientList;
 end;
@@ -252,18 +260,16 @@ begin
   end;
 end;
 
-function TProductConfigService.GetPractice: Practice;
+function TProductConfigService.GetPractice: TPractice;
 begin
   try
+    //Test - Reload
+    LoadPracticeDetails;
     //Test - make a copy for editing
     FPracticeCopy.Free;
-    FPracticeCopy := Practice.Create;
+    FPracticeCopy := TPractice.Create;
     CopyRemotableObject(FPractice, FPracticeCopy);
     Result := FPracticeCopy;
-    //Live
-//    Result := GetIBlopiServiceFacade.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
-//                                                       AdminSystem.fdFields.fdBankLink_Code,
-//                                                       AdminSystem.fdFields.fdBankLink_Connect_Password);
   except
     on E : Exception do
       raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
@@ -272,9 +278,24 @@ end;
 
 function TProductConfigService.GetUseBankLinkOnline: Boolean;
 begin
-  Result := False; 
+  Result := False;
   if Assigned(AdminSystem) then
     Result := AdminSystem.fdFields.fdUse_BankLink_Online;
+end;
+
+function TProductConfigService.GetUserGuid(AUserCode: string): Guid;
+var
+  i: integer;
+  TempUser: User;
+begin
+  Result := '';
+  for i := Low(FPractice.Users) to High(FPractice.Users) do begin
+    TempUser := FPractice.Users[i];
+    if TempUser.UserCode = AUserCode then begin
+      Result := TempUser.Id;
+      Break;
+    end;
+  end;
 end;
 
 function TProductConfigService.AddClient: ClientSummary;
@@ -447,25 +468,103 @@ begin
   FPractice.DefaultAdminUserId := UserArray[1].Id;
 end;
 
+function TProductConfigService.LoadPracticeDetails: Boolean;
+begin
+  Result := False;
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if not Registered then
+    Exit;
+
+  //Load practice details
+  if UseBankLinkOnline then begin
+    //Reload from BankLink Online
+    if AdminSystem.fdFields.fdLast_BankLink_Online_Update < (StDate.CurrentDate + 1) then begin
+      //Live
+//      Result := GetIBlopiServiceFacade.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
+//                                                         AdminSystem.fdFields.fdBankLink_Code,
+//                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
+      if LoadRemotableObjectFromFile(FPractice) then begin //This represents FPractice from BankLink Online
+        Result := True;
+      end;
+    end;
+    //Load from System DB
+    if not Result then
+      Result := LoadPracticeDetailsfromSystemDB; //This is the local copy of FPractice
+    if not Result then begin
+      LoadDummyPractice; //This load FPractice with dummy data
+      Result := True;
+    end;
+  end;
+end;
+
+function TProductConfigService.LoadPracticeDetailsfromSystemDB: Boolean;
+begin
+  Result := False;
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if AdminSystem.fdFields.fdBankLink_Online_Config <> '' then begin
+    LoadRemotableObjectFromXML(AdminSystem.fdFields.fdBankLink_Online_Config, FPractice);
+    Result := True;
+  end;
+end;
+
 function TProductConfigService.LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
+var
+  XMLDoc: IXMLDocument;
+begin
+  Result := False;
+  if FileExists(ARemotable.ClassName + '.xml') then begin
+    XMLDoc := NewXMLDocument;
+    XMLDoc.LoadFromFile(ARemotable.ClassName + '.xml');
+    LoadRemotableObjectFromXML(XMLDoc.XML.Text, ARemotable);
+    Result := True;
+  end;
+end;
+
+procedure TProductConfigService.LoadRemotableObjectFromXML(const XML: string;
+  ARemotable: TRemotable);
 var
   Converter: IObjConverter;
   NodeObject: IXMLNode;
   NodeParent: IXMLNode;
   NodeRoot: IXMLNode;
-  XML: IXMLDocument;
+  XMLDoc: IXMLDocument;
+begin
+  Converter:= TSOAPDomConv.Create(NIL);
+  XMLDoc := NewXMLDocument;
+  XMLDoc.LoadFromXML(XML);
+  NodeRoot := XMLDoc.ChildNodes.FindNode('Root');
+  NodeParent := NodeRoot.ChildNodes.FindNode('Parent');
+  NodeObject := NodeParent.ChildNodes.FindNode('CopyObject');
+  ARemotable.SOAPToObject(NodeRoot, NodeObject, Converter);
+end;
+
+function TProductConfigService.Online: Boolean;
+var
+  IniFile: TIniFile;
 begin
   Result := False;
-  if FileExists(ARemotable.ClassName + '.xml') then begin
-    Converter:= TSOAPDomConv.Create(NIL);
-    XML := NewXMLDocument;
-    XML.LoadFromFile(ARemotable.ClassName + '.xml');
-    NodeRoot := XML.ChildNodes.FindNode('Root');
-    NodeParent := NodeRoot.ChildNodes.FindNode('Parent');
-    NodeObject := NodeParent.ChildNodes.FindNode('CopyObject');
-    ARemotable.SOAPToObject(NodeRoot, NodeObject, Converter);
-    RegisteredForBankLinkOnline := True;
-    Result := True;    
+  IniFile := TIniFile.Create(ExecDir + INIFILE_NAME);
+  try
+    Result := IniFile.ReadBool('Settings', 'Online', False);
+  finally
+    IniFile.Free;
+  end;
+end;
+
+function TProductConfigService.OnlineStatus: TBankLinkOnlineStatus;
+var
+  IniFile: TIniFile;
+begin
+  Result := bosActive;
+  IniFile := TIniFile.Create(ExecDir + INIFILE_NAME);
+  try
+    Result := TBankLinkOnlineStatus(IniFile.ReadInteger('Settings', 'Status', 0));
+  finally
+    IniFile.Free;
   end;
 end;
 
@@ -514,9 +613,9 @@ end;
 
 function TProductConfigService.IsPracticeActive(ShowWarning: Boolean): Boolean;
 begin
-  Result := not (FPractice.GetOnlineStatus in [bosSuspended, bosDeactivated]);
+  Result := not (OnlineStatus in [bosSuspended, bosDeactivated]);
   if ShowWarning then
-    case FPractice.GetOnlineStatus of
+    case OnlineStatus of
       bosSuspended: HelpfulWarningMsg('BankLink Online is currently in suspended ' +
                                       '(read-only) mode. Please contact BankLink ' +
                                       'Support for further assistance.', 0);
@@ -539,6 +638,44 @@ begin
         Exit;
       end;
     end;
+  end;
+end;
+
+function TProductConfigService.Registered: Boolean;
+var
+  IniFile: TIniFile;
+begin
+  Result := False;
+  IniFile := TIniFile.Create(ExecDir + INIFILE_NAME);
+  try
+    Result := IniFile.ReadBool('Settings', 'Registered', False);
+  finally
+    IniFile.Free;
+  end;
+end;
+
+function TProductConfigService.RemotableObjectToXML(
+  ARemotable: TRemotable): string;
+var
+  Converter: IObjConverter;
+  NodeObject: IXMLNode;
+  NodeParent: IXMLNode;
+  NodeRoot: IXMLNode;
+  XMLDoc: IXMLDocument;
+  XMLStr: WideString;
+begin
+  Result := '';
+  try
+    XMLDoc:= NewXMLDocument;
+    NodeRoot:= XMLDoc.AddChild('Root');
+    NodeParent:= NodeRoot.AddChild('Parent');
+    Converter:= TSOAPDomConv.Create(NIL);
+    NodeObject:= ARemotable.ObjectToSOAP(NodeRoot, NodeParent, Converter,
+                                         'CopyObject', '', [ocoDontPrefixNode],
+                                         XMLStr);
+    Result := XMLDoc.XML.Text;
+  except
+    on E:Exception do HelpfulErrorMsg('Error converting remotable object to text: ' + E.Message, 0);
   end;
 end;
 
@@ -571,20 +708,22 @@ begin
 //    end;
 //  end;
 
-  for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
-    if AProductId = FPracticeCopy.Subscription[i] then begin
-      SubArray := FPracticeCopy.Subscription;
-      try
+  SubArray := FPracticeCopy.Subscription;
+  try
+    for i := Low(SubArray) to High(SubArray) do begin
+      if AProductId = SubArray[i] then begin
         if (i < 0) or (i > High(SubArray)) then
-          Exit;
-        for j := i to High(SubArray) - 1 do
+          Break; 
+        for j := i to High(SubArray) - 1 do begin
           SubArray[j] := SubArray[j+1];
+        end;
         SubArray[High(SubArray)] := '';
         SetLength(SubArray, Length(SubArray) - 1);
-      finally
-        FPracticeCopy.Subscription := SubArray;
+        Break;
       end;
     end;
+  finally
+    FPracticeCopy.Subscription := SubArray;
   end;
 end;
 
@@ -594,36 +733,40 @@ begin
   if UseBankLinkOnline then begin
     if Assigned(FPracticeCopy) then begin
       FPractice.Free;
-      FPractice := Practice.Create;
+      FPractice := TPractice.Create;
       CopyRemotableObject(FPracticeCopy, FPractice);
       //Save to the web service
-      SaveRemotableObjectToFile(FPractice);
-      Result := True;
+      if Online then begin
+        SaveRemotableObjectToFile(FPractice);
+        //If save ok then save an offline copy to System DB
+        SavePracticeDetailsToSystemDB;
+        Result := True;
+      end else begin
+        HelpfulErrorMsg('BankLink Practice is unable to update the Practice settings to BankLink Online', 0);
+      end;
     end;
   end else begin
     FPractice.Free;
-    FPractice := Practice.Create;
-    LoadDummyPractice;
+    FPractice := TPractice.Create;
+    LoadPracticeDetails
   end;
+end;
+
+procedure TProductConfigService.SavePracticeDetailsToSystemDB;
+begin
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  AdminSystem.fdFields.fdBankLink_Online_Config := RemotableObjectToXML(FPractice);
 end;
 
 procedure TProductConfigService.SaveRemotableObjectToFile(ARemotable: TRemotable);
 var
-  Converter: IObjConverter;
-  NodeObject: IXMLNode;
-  NodeParent: IXMLNode;
-  NodeRoot: IXMLNode;
-  XML: IXMLDocument;
-  XMLStr: WideString;
+  XMLDoc: IXMLDocument;
 begin
-  XML:= NewXMLDocument;
-  NodeRoot:= XML.AddChild('Root');
-  NodeParent:= NodeRoot.AddChild('Parent');
-  Converter:= TSOAPDomConv.Create(NIL);
-  NodeObject:= ARemotable.ObjectToSOAP(NodeRoot, NodeParent, Converter,
-                                       'CopyObject', '', [ocoDontPrefixNode],
-                                       XMLStr);
-  XML.SaveToFile(ARemotable.ClassName + '.xml');
+  XMLDoc:= NewXMLDocument;
+  XMLDoc.LoadFromXML(RemotableObjectToXML(ARemotable));
+  XMLDoc.SaveToFile(ARemotable.ClassName + '.xml');
 end;
 
 procedure TProductConfigService.SelectAllProducts;
@@ -1060,16 +1203,5 @@ begin
   end;
 end;
 
-{ TPracticeHelper }
-
-
-{ TPracticeHelper }
-
-function TPracticeHelper.GetOnlineStatus: TBanklinkOnlineStatus;
-begin
-  Result := bosActive;
-//  Result := bosSuspended;
-//  Result := bosDeactivated;
-end;
 
 end.

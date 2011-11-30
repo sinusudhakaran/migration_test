@@ -140,7 +140,7 @@ CONST
    tkfdSpare_Text_12                    = 103 ;
    tkfdSpare_Byte_8                     = 104 ;
    tkfdSpare_Text_13                    = 105 ;
-   tkfdSpare_Text_14                    = 106 ;
+   tkfdBankLink_Online_Config           = 106 ;
    tkfdSpare_Byte_9                     = 107 ;
    tkfdSpare_Integer_7                  = 108 ;
    tkfdSpare_Integer_8                  = 109 ;
@@ -222,6 +222,7 @@ CONST
    tkfdSched_Rep_Online_Message         = 185 ;
    tkfdSched_Rep_Online_Custom_Doc_GUID = 186 ;
    tkfdSched_Rep_Online_Custom_Doc      = 187 ;
+   tkfdLast_BankLink_Online_Update      = 188 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -348,7 +349,7 @@ Begin
       F.WriteAnsiStringValue( tkfdSpare_Text_12 , fdSpare_Text_12 );
       F.WriteByteValue( tkfdSpare_Byte_8 , fdSpare_Byte_8 );
       F.WriteAnsiStringValue( tkfdSpare_Text_13 , fdSpare_Text_13 );
-      F.WriteAnsiStringValue( tkfdSpare_Text_14 , fdSpare_Text_14 );
+      F.WriteAnsiStringValue( tkfdBankLink_Online_Config , fdBankLink_Online_Config );
       F.WriteByteValue( tkfdSpare_Byte_9 , fdSpare_Byte_9 );
       F.WriteIntegerValue( tkfdSpare_Integer_7 , fdSpare_Integer_7 );
       F.WriteIntegerValue( tkfdSpare_Integer_8 , fdSpare_Integer_8 );
@@ -435,6 +436,7 @@ Begin
       F.WriteAnsiStringValue( tkfdSched_Rep_Online_Message , fdSched_Rep_Online_Message );
       F.WriteAnsiStringValue( tkfdSched_Rep_Online_Custom_Doc_GUID , fdSched_Rep_Online_Custom_Doc_GUID );
       F.WriteByteValue( tkfdSched_Rep_Online_Custom_Doc , fdSched_Rep_Online_Custom_Doc );
+      F.WriteDateValue( tkfdLast_BankLink_Online_Update , fdLast_BankLink_Online_Update );
       F.WriteToken( tkEnd_Practice_Details );
    end;
 end; { of Write_Practice_Details_Rec }
@@ -631,7 +633,7 @@ Begin
          tkfdSpare_Text_12                    : fdSpare_Text_12 := F.ReadAnsiStringValue;
          tkfdSpare_Byte_8                     : fdSpare_Byte_8 := F.ReadByteValue;
          tkfdSpare_Text_13                    : fdSpare_Text_13 := F.ReadAnsiStringValue;
-         tkfdSpare_Text_14                    : fdSpare_Text_14 := F.ReadAnsiStringValue;
+         tkfdBankLink_Online_Config           : fdBankLink_Online_Config := F.ReadAnsiStringValue;
          tkfdSpare_Byte_9                     : fdSpare_Byte_9 := F.ReadByteValue;
          tkfdSpare_Integer_7                  : fdSpare_Integer_7 := F.ReadIntegerValue;
          tkfdSpare_Integer_8                  : fdSpare_Integer_8 := F.ReadIntegerValue;
@@ -740,6 +742,7 @@ Begin
          tkfdSched_Rep_Online_Message         : fdSched_Rep_Online_Message := F.ReadAnsiStringValue;
          tkfdSched_Rep_Online_Custom_Doc_GUID : fdSched_Rep_Online_Custom_Doc_GUID := F.ReadAnsiStringValue;
          tkfdSched_Rep_Online_Custom_Doc      : fdSched_Rep_Online_Custom_Doc := F.ReadByteValue;
+         tkfdLast_BankLink_Online_Update      : fdLast_BankLink_Online_Update := F.ReadDateValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -794,7 +797,7 @@ Begin
       fdSpare_Text_11 := '' ;
       fdSpare_Text_12 := '' ;
       fdSpare_Text_13 := '' ;
-      fdSpare_Text_14 := '' ;
+      fdBankLink_Online_Config := '' ;
       fdSched_Rep_WebNotes_Subject := '' ;
       fdSched_Rep_webNotes_Message := '' ;
       fdSched_Rep_Header_Message := '' ;
@@ -820,7 +823,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkfdPractice_Name_for_Reports to tkfdSched_Rep_Online_Custom_Doc do begin
+  for i := tkfdPractice_Name_for_Reports to tkfdLast_BankLink_Online_Update do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -1328,9 +1331,9 @@ begin
     ChangedFields[i] := tkfdSpare_Text_13;
     Inc(i);
   end;
-  if (P1.fdSpare_Text_14 <> P2.fdSpare_Text_14) then begin
-    P3.fdSpare_Text_14 := P1.fdSpare_Text_14;
-    ChangedFields[i] := tkfdSpare_Text_14;
+  if (P1.fdBankLink_Online_Config <> P2.fdBankLink_Online_Config) then begin
+    P3.fdBankLink_Online_Config := P1.fdBankLink_Online_Config;
+    ChangedFields[i] := tkfdBankLink_Online_Config;
     Inc(i);
   end;
   if (P1.fdSpare_Byte_9 <> P2.fdSpare_Byte_9) then begin
@@ -1741,6 +1744,11 @@ begin
   if (P1.fdSched_Rep_Online_Custom_Doc <> P2.fdSched_Rep_Online_Custom_Doc) then begin
     P3.fdSched_Rep_Online_Custom_Doc := P1.fdSched_Rep_Online_Custom_Doc;
     ChangedFields[i] := tkfdSched_Rep_Online_Custom_Doc;
+    Inc(i);
+  end;
+  if (P1.fdLast_BankLink_Online_Update <> P2.fdLast_BankLink_Online_Update) then begin
+    P3.fdLast_BankLink_Online_Update := P1.fdLast_BankLink_Online_Update;
+    ChangedFields[i] := tkfdLast_BankLink_Online_Update;
     Inc(i);
   end;
 

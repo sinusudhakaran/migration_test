@@ -114,9 +114,9 @@ $|    5.22.0 (CICO)     126   Added Send Method and Client File GUID to Client r
 $|                      127   Added fields for BankLink Online scheduled reports
 $|                            Changed name of Send Method to File Transfer Method (used for Get and Send)
 $|    5.23.0 (BLOPI)    128   Added Allow Access to Banklink online for a practice user
-$|                            Added Guid to store Unique Id to Banklink Online User
 $|                            Renamed User Password to Redundant Password and created Password of string 12
-$|                            Changed Spare Boolean 3 to Use BankLink Online
+$|                            Changed fd Spare Boolean 3 to fd Use BankLink Online
+$|                            Added BankLink Online Config (reused fd Spare Text 14) and Last Online Upadate fields to Practice Details
 $|*)
 
 N|Practice Details|fd|10
@@ -214,7 +214,7 @@ F|Spare Text 11|AS
 F|Spare Text 12|AS
 F|Spare Byte 8|B
 F|Spare Text 13|AS
-F|Spare Text 14|AS
+F|BankLink Online Config|AS
 F|Spare Byte 9|B
 F|Spare Integer 7|L
 F|Spare Integer 8|L
@@ -296,6 +296,7 @@ F|Sched Rep Online Subject|S|128
 F|Sched Rep Online Message|AS
 F|Sched Rep Online Custom Doc GUID|AS
 F|Sched Rep Online Custom Doc|B
+F|Last BankLink Online Update|D
 E
 
 N|System Disk Log|dl|40
@@ -332,7 +333,6 @@ F|Suppress HF|B
 F|Show Practice Logo|Y
 F|Audit Record ID|L
 F|Allow Banklink Online|Y
-F|BankLink Online Guid|AS
 F|Password|S|12
 F|Use Practice Password Online|Y
 E

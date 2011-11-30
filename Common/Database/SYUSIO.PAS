@@ -70,9 +70,8 @@ CONST
    tkusShow_Practice_Logo               = 83 ;
    tkusAudit_Record_ID                  = 84 ;
    tkusAllow_Banklink_Online            = 85 ;
-   tkusBankLink_Online_Guid             = 86 ;
-   tkusPassword                         = 87 ;
-   tkusUse_Practice_Password_Online     = 88 ;
+   tkusPassword                         = 86 ;
+   tkusUse_Practice_Password_Online     = 87 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -122,7 +121,6 @@ Begin
       F.WriteBooleanValue( tkusShow_Practice_Logo , usShow_Practice_Logo );
       F.WriteIntegerValue( tkusAudit_Record_ID , usAudit_Record_ID );
       F.WriteBooleanValue( tkusAllow_Banklink_Online , usAllow_Banklink_Online );
-      F.WriteAnsiStringValue( tkusBankLink_Online_Guid , usBankLink_Online_Guid );
       F.WriteStringValue( tkusPassword , usPassword );
       F.WriteBooleanValue( tkusUse_Practice_Password_Online , usUse_Practice_Password_Online );
       F.WriteToken( tkEnd_User );
@@ -171,7 +169,6 @@ Begin
          tkusShow_Practice_Logo               : usShow_Practice_Logo := F.ReadBooleanValue;
          tkusAudit_Record_ID                  : usAudit_Record_ID := F.ReadIntegerValue;
          tkusAllow_Banklink_Online            : usAllow_Banklink_Online := F.ReadBooleanValue;
-         tkusBankLink_Online_Guid             : usBankLink_Online_Guid := F.ReadAnsiStringValue;
          tkusPassword                         : usPassword := F.ReadStringValue;
          tkusUse_Practice_Password_Online     : usUse_Practice_Password_Online := F.ReadBooleanValue;
          else
@@ -209,7 +206,6 @@ Begin
    Begin
       { Free any dynamically allocated memory }
       usEULA_Version := '' ;
-      usBankLink_Online_Guid := '' ;
    end;
 end;
 
@@ -364,11 +360,6 @@ begin
   if (P1.usAllow_Banklink_Online <> P2.usAllow_Banklink_Online) then begin
     P3.usAllow_Banklink_Online := P1.usAllow_Banklink_Online;
     ChangedFields[i] := tkusAllow_Banklink_Online;
-    Inc(i);
-  end;
-  if (P1.usBankLink_Online_Guid <> P2.usBankLink_Online_Guid) then begin
-    P3.usBankLink_Online_Guid := P1.usBankLink_Online_Guid;
-    ChangedFields[i] := tkusBankLink_Online_Guid;
     Inc(i);
   end;
   if (P1.usPassword <> P2.usPassword) then begin

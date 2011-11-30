@@ -164,7 +164,7 @@ end;
 function TEditUserPassword.UpdateOnline: Boolean;
 begin
   try
-    if ProductConfigService.ChangeUserPassword(Guid(fUser_Rec.usBankLink_Online_Guid),
+    if ProductConfigService.ChangeUserPassword(ProductConfigService.GetUserGuid(fUser_Rec.usCode),
                                                Trim(Uppercase(edtOldPassword.text)),
                                                Trim(Uppercase(edtNewPassword.text))) then
     begin

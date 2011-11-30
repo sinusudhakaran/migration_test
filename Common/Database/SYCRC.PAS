@@ -75,8 +75,8 @@ Begin
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdSpare_Text_12 )^, Len );
       Len := Length( fdSpare_Text_13 );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdSpare_Text_13 )^, Len );
-      Len := Length( fdSpare_Text_14 );
-      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdSpare_Text_14 )^, Len );
+      Len := Length( fdBankLink_Online_Config );
+      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdBankLink_Online_Config )^, Len );
       Len := Length( fdSched_Rep_WebNotes_Subject );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( fdSched_Rep_WebNotes_Subject )^, Len );
       Len := Length( fdSched_Rep_webNotes_Message );
@@ -135,8 +135,6 @@ Begin
       CRC32.UpdateCRC( CRC , RS^, Len );
       Len := Length( usEULA_Version );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( usEULA_Version )^, Len );
-      Len := Length( usBankLink_Online_Guid );
-      If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( usBankLink_Online_Guid )^, Len );
    end;
 end;
 

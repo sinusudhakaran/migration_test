@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 405;
-   SY_IOLIB_Date    = '24/11/11';
+   SY_IOLIB_Version : Integer = 407;
+   SY_IOLIB_Date    = '30/11/11';
    SY_FILE_VERSION   = 128;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -127,9 +127,9 @@ Const
                          127   Added fields for BankLink Online scheduled reports
                                Changed name of Send Method to File Transfer Method (used for Get and Send)
        5.23.0 (BLOPI)    128   Added Allow Access to Banklink online for a practice user
-                               Added Guid to store Unique Id to Banklink Online User
                                Renamed User Password to Redundant Password and created Password of string 12
-                               Changed Spare Boolean 3 to Use BankLink Online
+                               Changed fd Spare Boolean 3 to fd Use BankLink Online
+                               Added BankLink Online Config (reused fd Spare Text 14) and Last Online Upadate fields to Practice Details
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -248,7 +248,7 @@ Type
       fdSpare_Text_12                    : AnsiString;       { Stored }
       fdSpare_Byte_8                     : Byte;       { Stored }
       fdSpare_Text_13                    : AnsiString;       { Stored }
-      fdSpare_Text_14                    : AnsiString;       { Stored }
+      fdBankLink_Online_Config           : AnsiString;       { Stored }
       fdSpare_Byte_9                     : Byte;       { Stored }
       fdSpare_Integer_7                  : Integer;       { Stored }
       fdSpare_Integer_8                  : Integer;       { Stored }
@@ -330,6 +330,7 @@ Type
       fdSched_Rep_Online_Message         : AnsiString;       { Stored }
       fdSched_Rep_Online_Custom_Doc_GUID : AnsiString;       { Stored }
       fdSched_Rep_Online_Custom_Doc      : Byte;       { Stored }
+      fdLast_BankLink_Online_Update      : Integer;       { Stored }
       fdEOR                              : Byte;
    end;
 
@@ -374,7 +375,6 @@ Type
       usShow_Practice_Logo               : Boolean;       { Stored }
       usAudit_Record_ID                  : Integer;       { Stored }
       usAllow_Banklink_Online            : Boolean;       { Stored }
-      usBankLink_Online_Guid             : AnsiString;       { Stored }
       usPassword                         : String[ 12 ];       { Stored }
       usUse_Practice_Password_Online     : Boolean;       { Stored }
       usEOR                              : Byte;

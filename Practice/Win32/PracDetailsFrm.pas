@@ -5,8 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, OvcBase, OvcEF, OvcPB, OvcNF, Buttons, ExtCtrls, ExtDlgs,
-  ComCtrls,
-  OSFont, VirtualTrees, BlopiServiceFacade;
+  ComCtrls, BankLinkOnlineServices,
+  OSFont, VirtualTrees;
 
 type
   TfrmPracticeDetails = class(TForm)
@@ -122,7 +122,7 @@ type
     PassGenCodeEntered : boolean;
     ChangingDiskID : boolean;
     InSetup: Boolean;
-    FPrac: Practice;
+    FPrac: TPractice;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -174,7 +174,6 @@ uses
   UsageUtils,
   AuditMgr,
   RequestRegFrm,
-  BankLinkOnlineServices,
   UpdateMF;
 
 {$R *.DFM}
@@ -439,14 +438,16 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
 var
-  TempUser: User;
+  TempUser: TUser;
 begin
   //Set primary contact
-  TempUser := User(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
+  TempUser := TUser(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
   ProductConfigService.SetPrimaryContact(TempUser);
 end;
 
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
+var
+  i: integer;
 begin
   if ckUseBankLinkOnline.Checked then begin
     if ProductConfigService.RegisteredForBankLinkOnline then
@@ -460,12 +461,15 @@ begin
                              'You are not currently registered for BankLink Online. ' +
                              'Would you like to register now?', dlg_no, 0) = DLG_YES then
           RequestBankLinkOnlineregistration;
-          //*** TEST ***
-          ProductConfigService.RegisteredForBankLinkOnline := True;
       end;
     end;
   end;
   ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
+  if Assigned(FPrac) then
+    for i := 0 to tsBanklinkOnline.ControlCount - 1 do
+      tsBanklinkOnline.Controls[i].Enabled := (ProductConfigService.UseBankLinkOnline and
+                                               ProductConfigService.IsPracticeActive(False));
+  ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
 end;
 
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
@@ -542,12 +546,9 @@ begin
     ckUseBankLinkOnline.Checked := False;
     if ProductConfigService.UseBankLinkOnline then begin
       //Only call this once!!!
-      FPrac := ProductConfigService.GetPractice; 
+      FPrac := ProductConfigService.GetPractice;
       ckUseBankLinkOnline.Checked := True;
-      if Assigned(FPrac) then begin
-        for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-          tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.IsPracticeActive(False);
-      end;
+      ckUseBankLinkOnlineClick(Self);
     end;
 
     //Web export format
@@ -712,9 +713,9 @@ begin
          else
            fdSave_Tax_Files_To       := AddSlash( Trim( edtSaveTaxTo.Text));
 
-         //Save BankLink Online settings
-         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-         ProductConfigService.SavePractice;
+//         //Save BankLink Online settings
+//         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
+//         ProductConfigService.SavePractice;
 
          //Web
          fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
@@ -818,6 +819,12 @@ begin
     end;
   end;
 
+  //Save BankLink Online settings
+  ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
+  if not ProductConfigService.SavePractice then begin
+    Exit;
+  end;
+
   Result := True;
 end;
 
@@ -828,7 +835,7 @@ var
   NodeData: pTreeData;
   NodeCaption: string;
 begin
-  NodeData := Sender.GetNodeData( Node);
+  NodeData := Sender.GetNodeData(Node);
   if (NodeData.tdObject = nil) then begin
     CustomDraw := True;
     //Paint background
@@ -848,18 +855,25 @@ procedure TfrmPracticeDetails.vtProductsChecked(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
   Data: PTreeData;
-  Cat: CatalogueEntry;
+  Cat: TCatalogueEntry;
 begin
-  Data := vtProducts.GetNodeData(Node);
-  if Assigned(Data.tdObject) then begin
-    Cat := CatalogueEntry(Data.tdObject);
-    if Node.CheckState = csCheckedNormal then begin
-      //Add product
-      ProductConfigService.AddProduct(Cat.Id);
-    end else begin
-      //Remove product
-      ProductConfigService.RemoveProduct(Cat.Id);
+  vtProducts.BeginUpdate;
+  try
+    Data := vtProducts.GetNodeData(Node);
+    if Assigned(Data.tdObject) then begin
+      Cat := TCatalogueEntry(Data.tdObject);
+      if Node.CheckState = csCheckedNormal then begin
+        //Add product
+        ProductConfigService.AddProduct(Cat.Id);
+      end else begin
+        //Remove product
+        if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Start remove product: ' + Cat.Id);
+        ProductConfigService.RemoveProduct(Cat.Id);
+        if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'End remove product: ' + Cat.Id);
+      end;
     end;
+  finally
+    vtProducts.EndUpdate;
   end;
 end;
 
@@ -880,16 +894,20 @@ procedure TfrmPracticeDetails.vtProductsGetText(Sender: TBaseVirtualTree;
   var CellText: WideString);
 var
   Data: PTreeData;
-  Cat: CatalogueEntry;
+  Cat: TCatalogueEntry;
 begin
   Data := vtProducts.GetNodeData(Node);
   if (Data.tdObject <> nil) then begin
     case Column of
       0: begin
-           Cat := CatalogueEntry(Data.tdObject);
+           if not (Assigned(Data.tdObject)) and DebugMe then
+             LogUtil.LogMsg(lmDebug, UnitName, 'No Node Data!!');
+           Cat := TCatalogueEntry(Data.tdObject);
+           if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Start set product check state:' + Cat.Id);
            Node.CheckState := csUncheckedNormal;
-           if ProductConfigService.IsPracticeProductEnabled(Cat.Id) then 
+           if ProductConfigService.IsPracticeProductEnabled(Cat.Id) then
              Node.CheckState := csCheckedNormal;
+           if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'End set product check state:' + Cat.Id);
          end;
       1: CellText := Data.tdCaption;
     end;
@@ -940,7 +958,7 @@ end;
 procedure TfrmPracticeDetails.LoadPracticeDetails;
 var
   i, AdminId: integer;
-  Cat: CatalogueEntry;
+  Cat: TCatalogueEntry;
   TreeColumn: TVirtualTreeColumn;
   ProductNode, ServiceNode: PVirtualNode;
 begin
@@ -981,17 +999,16 @@ begin
       ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
       ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
       for i := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do begin
-        Cat := FPrac.Catalogue[i];
+        Cat := TCatalogueEntry(FPrac.Catalogue[i]);
         if Cat.CatalogueType = 'Product' then
           AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
         else if Cat.CatalogueType = 'Service' then
           AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
       end;
+      vtProducts.Expanded[ProductNode] := True;
+      vtProducts.Expanded[ServiceNode] := True;
+      vtProducts.ScrollIntoView(ProductNode, False);
     end;
-    
-    vtProducts.Expanded[ProductNode] := True;
-    vtProducts.Expanded[ServiceNode] := True;
-    vtProducts.ScrollIntoView(ProductNode, False);  
   except
     on E: Exception do begin
       HelpfulErrorMsg(E.Message ,0);
@@ -1110,6 +1127,8 @@ begin
 end;
 
 procedure TfrmPracticeDetails.tsBankLinkOnlineShow(Sender: TObject);
+var
+  i: integer;
 begin
   ProductConfigService.IsPracticeActive;
 end;

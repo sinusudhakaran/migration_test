@@ -170,10 +170,10 @@ begin
      (ProductConfigService.UseBankLinkOnline) then
   begin
     try
-      if ProductConfigService.IsPrimaryUser(User^.usBankLink_Online_Guid) then
-        PickPrimaryUser(User^.usBankLink_Online_Guid);
+      if ProductConfigService.IsPrimaryUser(ProductConfigService.GetUserGuid(User^.usCode)) then
+          PickPrimaryUser(ProductConfigService.GetUserGuid(User^.usCode));
 
-      ProductConfigService.DeleteUser(User^.usBankLink_Online_Guid);
+      ProductConfigService.DeleteUser(ProductConfigService.GetUserGuid(User^.usCode));
     except
       on E : Exception do
       begin
@@ -289,7 +289,7 @@ begin
     begin
       if (User.usAllow_Banklink_Online) then
       begin
-        if ProductConfigService.IsPrimaryUser(User.usBankLink_Online_Guid) then
+        if ProductConfigService.IsPrimaryUser(ProductConfigService.GetUserGuid(User.usCode)) then
           Online := ONLINE_YES_ADMIN
         else
           Online := ONLINE_YES;
