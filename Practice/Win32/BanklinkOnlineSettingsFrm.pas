@@ -191,7 +191,8 @@ begin
       lblFreeTrial.Caption := 'Free Trial until ' + DateTimeToStr(FClient.FreeTrialEndDate);
     end else
     begin
-      lblFreeTrial.Caption := 'Currently billed {' + FClient.BillingFrequency + '} until ' + DateTimeToStr(FClient.BillingEndDate);
+      lblFreeTrial.Caption := 'Currently billed ' + AnsiLowerCase(FClient.BillingFrequency) +
+                              ' until ' + DateTimeToStr(FClient.BillingEndDate);
     end;
     chkUseClientDetails.Checked := FClient.UseClientDetails;
     edtUserName.Text := FClient.UserName;

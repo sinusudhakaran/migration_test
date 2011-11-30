@@ -94,7 +94,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 68
       Width = 125
       Height = 21
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 0
       Text = 'Monthly'
       Items.Strings = (
@@ -213,7 +213,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 34
       Width = 84
       Height = 21
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 3
       Text = '30 days'
       Items.Strings = (
