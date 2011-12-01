@@ -80,7 +80,8 @@ uses
   AuditMgr,
   BankLinkOnlineServices,
   PickNewPrimaryUser,
-  CommCtrl;
+  CommCtrl,
+  strutils;
 
 const
   UNITNAME = 'MaintainUsersFrm';
@@ -385,7 +386,11 @@ const
   ONLINE_SUBITEM = 3;
 var
   ItemRect : TRect;
+  SubItemRect : TRect;
+  OutputText : String;
+  TextIndex : integer;
   SubItemIndex : integer;
+  First : Boolean;
   SubItemLeft : integer;
   SubItemTop  : integer;
   bmpOnlineAdmin : TBitmap;
@@ -407,6 +412,10 @@ begin
   ListView_SetBKColor(lvUsers.Handle, CLR_NONE);
 
   ItemRect := Item.DisplayRect(drBounds);
+  SubItemRect := ItemRect;
+  SubItemRect.left  := ItemRect.Left + GetSubItemLeft(SubItemIndex);
+  SubItemRect.right := ItemRect.left + GetSubItemLeft(SubItemIndex+1);
+
   SubItemLeft := ItemRect.Left + GetSubItemLeft(SubItemIndex);
   SubItemTop  := ItemRect.Top + 2;
 
@@ -440,13 +449,15 @@ begin
             AppImages.Maintain.GetBitmap(MAINTAIN_SELECT, bmpOnline);
         end;
 
-        if useOnlineAdmin then
+        if  (useOnlineAdmin)
+        and (SubItemLeft+30 <= SubItemRect.Right) then
         begin
           AppImages.Maintain.GetBitmap(MAINTAIN_ONLINE_ADMIN, bmpOnlineAdmin);
           Sender.Canvas.Draw(SubItemLeft+20, SubItemTop, bmpOnlineAdmin);
         end;
 
-        if useOnline then
+        if useOnline
+        and (SubItemLeft+50 <= SubItemRect.Right) then
         begin
           AppImages.Maintain.GetBitmap(MAINTAIN_ONLINE, bmpOnline);
           Sender.Canvas.Draw(SubItemLeft+40, SubItemTop, bmpOnline);
@@ -458,8 +469,32 @@ begin
       End;
     end;
     0,1,2,4 : begin
-      //Sender.Canvas.FillRect();
-      Sender.Canvas.TextOut(SubItemLeft, SubItemTop, Item.SubItems[SubItemIndex]);
+      First := true;
+      OutputText := Item.SubItems[SubItemIndex];
+
+      while (Sender.Canvas.TextWidth(OutputText) >= (SubItemRect.Right - SubItemRect.Left)) and
+            (length(OutputText) > 0) do
+      begin
+        if (First = True) then
+        begin
+          if length(OutputText) > 2 then
+            OutputText := leftStr(OutputText,length(OutputText)-2) + '...'
+          else
+            OutputText := '';
+
+          First := false;
+        end
+        else
+        begin
+          if length(OutputText) > 4 then
+            OutputText := leftStr(OutputText,length(OutputText)-4) + '...'
+          else
+            OutputText := '';
+        end;
+      end;
+
+      if not (OutputText = '') then
+        Sender.Canvas.TextOut(SubItemLeft, SubItemTop, OutputText);
     end;
   end;
 end;
