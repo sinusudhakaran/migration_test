@@ -2,7 +2,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Left = 0
   Top = 0
   Caption = 'BankLink Online Settings'
-  ClientHeight = 529
+  ClientHeight = 505
   ClientWidth = 481
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -63,35 +63,19 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Left = 8
     Top = 268
     Width = 465
-    Height = 98
+    Height = 61
     Caption = 'Billing Frequency'
     TabOrder = 1
-    object lblFreeTrial: TLabel
-      Left = 23
-      Top = 24
-      Width = 378
-      Height = 13
-      Caption = 
-        'Free Trial until DD/MM/YYYY or Currently billed {Frequency} unti' +
-        'l DD/MM/YYYY}'
-    end
-    object lblNextBillingPeriod: TLabel
-      Left = 23
-      Top = 47
-      Width = 173
-      Height = 13
-      Caption = 'Next billing period starts: DD/MM/YY'
-    end
     object lblNextBillingFrequency: TLabel
-      Left = 23
-      Top = 70
+      Left = 21
+      Top = 30
       Width = 108
       Height = 13
       Caption = 'Next billing frequency:'
     end
     object cmbBillingFrequency: TComboBox
-      Left = 137
-      Top = 68
+      Left = 135
+      Top = 28
       Width = 125
       Height = 21
       ItemHeight = 13
@@ -104,7 +88,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object grpDefaultClientAdministrator: TGroupBox
     Left = 8
-    Top = 372
+    Top = 335
     Width = 465
     Height = 114
     Caption = 'Default Client Administrator'
@@ -147,8 +131,8 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     end
   end
   object btnOK: TButton
-    Left = 303
-    Top = 495
+    Left = 301
+    Top = 471
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -157,8 +141,8 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 392
-    Top = 495
+    Left = 382
+    Top = 471
     Width = 75
     Height = 25
     Caption = 'Cancel'

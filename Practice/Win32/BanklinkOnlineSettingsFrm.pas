@@ -14,8 +14,6 @@ type
     btnSelectAll: TButton;
     btnClearAll: TButton;
     grpBillingFrequency: TGroupBox;
-    lblFreeTrial: TLabel;
-    lblNextBillingPeriod: TLabel;
     lblNextBillingFrequency: TLabel;
     grpDefaultClientAdministrator: TGroupBox;
     chkUseClientDetails: TCheckBox;
@@ -64,8 +62,7 @@ uses Globals, LogUtil;
 
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 var
-  EmailChanged, ProductsChanged, BillingFrequencyChanged, SuspendChanged,
-  DeactivateChanged, ProductFound: boolean;
+  EmailChanged, ProductsChanged, BillingFrequencyChanged, ProductFound: boolean;
   NewProducts: TStringList;
   PromptMessage, ErrorMsg: string;
   i, j, ButtonPressed: integer;
@@ -169,9 +166,6 @@ end;
 procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
 var
   CatArray: ArrayOfCatalogueEntry;
-  ClientArray: ArrayOfClientSummary;
-  SubArray: ArrayOfGuid;
-  GUID: TGuid;
   i, k: integer;
   GUID1, GUID2: WideString;
   AClientID: WideString;
@@ -186,14 +180,6 @@ begin
     rbSuspended.Checked := FClient.Status = Suspended;
     rbDeactivated.Checked := FClient.Deactivated;
     cmbConnectDays.Text := FClient.ClientConnectDays;
-    if (FClient.UserOnTrial) then
-    begin
-      lblFreeTrial.Caption := 'Free Trial until ' + DateTimeToStr(FClient.FreeTrialEndDate);
-    end else
-    begin
-      lblFreeTrial.Caption := 'Currently billed ' + AnsiLowerCase(FClient.BillingFrequency) +
-                              ' until ' + DateTimeToStr(FClient.BillingEndDate);
-    end;
     chkUseClientDetails.Checked := FClient.UseClientDetails;
     edtUserName.Text := FClient.UserName;
     edtEmailAddress.Text := FClient.EmailAddress;

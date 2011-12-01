@@ -393,7 +393,7 @@ const
 var
   GLClientManager: TfrmClientManager;
   DebugMe : boolean = false;
-  BanklinkOnlineConnected : boolean = true;
+  BanklinkOnlineConnected : boolean = false;
 
 
 procedure TfrmClientManager.FormActivate(Sender: TObject);
@@ -1792,7 +1792,7 @@ end;
 procedure TfrmClientManager.DoDeleteFile;
 var
   ScrollPos, NumProducts, i, k: Integer;
-  StringCodeToSelect, DeleteStr: string;
+  StringCodeToSelect, DeleteStr, NoProductsStr: string;
   AClientID, GUID1, GUID2: WideString;
   ProductList: TStringList;
 begin
@@ -1806,6 +1806,12 @@ begin
                'Administration System.' + #13#13;
   if AdminSystem.fdFields.fdUse_BankLink_Online then
   begin
+    if not BanklinkOnlineConnected then
+    begin
+      ShowMessage('BankLink Practice is unable to connect to BankLink Online');
+      // Todo: add relevant error codes/reasons
+      Exit;
+    end;
     AClientID := ProductConfigService.Clients.Clients[0].Id;
     FClient := ProductConfigService.GetClientDetails(AClientID);
 
@@ -1836,6 +1842,15 @@ begin
     RefreshLookup(StringCodeToSelect);
     UpdateFilter(Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]));
     ClientLookup.ScrollBy(0, ScrollPos);
+  end;
+
+  if AdminSystem.fdFields.fdUse_BankLink_Online then
+  begin
+    NoProductsStr := '';
+    if (NumProducts = 0) then
+      NoProductsStr := 'and Banklink Online';
+    ShowMessage('Client ' + FClient.ClientCode + ': ' + FClient.Name_ +
+                ' has been removed from BankLink Practice ' + NoProductsStr + '.');
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoDeleteFile');
 
