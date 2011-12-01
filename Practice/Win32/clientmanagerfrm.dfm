@@ -999,6 +999,25 @@ object frmClientManager: TfrmClientManager
       Action = actEditClientDetails
     end
   end
+  object owMerge: TOpWord
+    Version = '1.64'
+    Documents = <>
+    Visible = False
+    ScreenUpdating = False
+    PrintPreview = False
+    DisplayRecentFiles = False
+    DisplayScrollBars = False
+    ServerLeft = 0
+    ServerTop = 0
+    ServerWidth = 640
+    ServerHeight = 480
+    WindowState = wdwsNormal
+    DisplayAlerts = wdalNone
+    DisplayScreenTips = False
+    EnableCancelKey = wdeckDisabled
+    Left = 443
+    Top = 121
+  end
   object SearchTimer: TTimer
     Enabled = False
     OnTimer = SearchTimerTimer
