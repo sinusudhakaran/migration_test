@@ -51,8 +51,8 @@ uses
   BankLinkOnlineServices,
   RegExprUtils,
   WarningMoreFrm,
-  ErrorMoreFrm,
   InfoMoreFrm,
+  ErrorMoreFrm,
   Admin32,
   LogUtil,
   OSFont;
@@ -163,18 +163,18 @@ end;
 //------------------------------------------------------------------------------
 function TEditUserPassword.UpdateOnline: Boolean;
 begin
+  Result := False;
   try
     if ProductConfigService.ChangeUserPassword(ProductConfigService.GetUserGuid(fUser_Rec.usCode),
                                                Trim(Uppercase(edtOldPassword.text)),
                                                Trim(Uppercase(edtNewPassword.text))) then
     begin
-      HelpfulInfoMsg('The User Password has been successfully Updated to BankLink Online.', 0 );
+      Result := True;
     end;
   Except
     on E : Exception do
     begin
       HelpfulErrorMsg(E.Message, 0);
-      Result := False;
     end;
   End;
 end;
@@ -198,6 +198,7 @@ begin
     Result := true;
 
     LogUtil.LogMsg(lmInfo, UNITNAME, Format('User %s password was changed.', [fUser_Rec^.usName]));
+    HelpfulInfoMsg('The User Password has been successfully Updated.', 0 );
   End { LoadAdminSystem(true) }
   Else
   begin

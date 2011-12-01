@@ -72,6 +72,7 @@ uses
   LogUtil,
   imagesfrm,
   EditUserDlg,
+  InfoMoreFrm,
   WarningMoreFrm,
   StStrS,
   ErrorMoreFrm,
@@ -141,7 +142,10 @@ var
   StoredLRN : integer;
   pu : pUser_Rec;
   DelMsg : String;
+  HasDelOnline : Boolean;
+  Name : String;
 begin
+  HasDelOnline := False;
   result := false;
 
   if User^.usCode = GlobalCache.cache_Current_Username then
@@ -173,7 +177,7 @@ begin
       if ProductConfigService.IsPrimaryUser(ProductConfigService.GetUserGuid(User^.usCode)) then
           PickPrimaryUser(ProductConfigService.GetUserGuid(User^.usCode));
 
-      ProductConfigService.DeleteUser(ProductConfigService.GetUserGuid(User^.usCode));
+      HasDelOnline := ProductConfigService.DeleteUser(ProductConfigService.GetUserGuid(User^.usCode));
     except
       on E : Exception do
       begin
@@ -185,6 +189,7 @@ begin
 
   Code := User^.usCode;
   StoredLRN := User^.usLRN;
+  Name := User^.usName;
 
   if LoadAdminSystem(true, ThisMethodName ) then
   begin
@@ -205,7 +210,9 @@ begin
 
     SaveAdminSystem;
     result := true;
-    LogUtil.LogMsg(lmDebug,'EDITUSERDLG','User Deleted  User '+Code);
+    if HasDelOnline then
+      HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Practice and BankLink Online.', [Name]), 0 );
+    LogUtil.LogMsg(lmDebug,'EDITUSERDLG','Deleted User : ' + Code);
   end
   else
     HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.',0);
@@ -451,6 +458,7 @@ begin
       End;
     end;
     0,1,2,4 : begin
+      //Sender.Canvas.FillRect();
       Sender.Canvas.TextOut(SubItemLeft, SubItemTop, Item.SubItems[SubItemIndex]);
     end;
   end;

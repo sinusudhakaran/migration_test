@@ -289,8 +289,11 @@ var
   TempUser: User;
 begin
   Result := '';
-  for i := Low(FPractice.Users) to High(FPractice.Users) do begin
-    TempUser := FPractice.Users[i];
+
+  GetPractice;
+  for i := Low(FPracticeCopy.Users) to High(FPracticeCopy.Users) do
+  begin
+    TempUser := FPracticeCopy.Users[i];
     if TempUser.UserCode = AUserCode then begin
       Result := TempUser.Id;
       Break;
@@ -882,7 +885,8 @@ begin
   Result := MessageResponse.Create;
   Result.Success := False;
 
-  UserArray := FPractice.Users;
+  GetPractice;
+  UserArray := FPracticeCopy.Users;
 
   if  (countryCode  = 'NZ')
   and (practiceCode = 'PRACTEST')
@@ -912,7 +916,10 @@ begin
   end;
 
   if Result.Success = True then
-    FPractice.Users := UserArray;
+  begin
+    FPracticeCopy.Users := UserArray;
+    Result.Success := SavePractice;
+  end;
 end;
 
 function TProductConfigService.SavePracticeUser(const countryCode  : WideString;
@@ -927,7 +934,8 @@ begin
   Result := MessageResponse.Create;
   Result.Success := False;
 
-  UserArray := FPractice.Users;
+  GetPractice;
+  UserArray := FPracticeCopy.Users;
 
   if  (countryCode  = 'NZ')
   and (practiceCode = 'PRACTEST')
@@ -952,7 +960,10 @@ begin
   end;
 
   if Result.Success = True then
-    FPractice.Users := UserArray;
+  begin
+    FPracticeCopy.Users := UserArray;
+    Result.Success := SavePractice;
+  end;
 end;
 
 function TProductConfigService.CreatePracticeUser(const countryCode  : WideString;
@@ -969,7 +980,8 @@ begin
   Result := MessageResponseOfguid.Create;
   Result.Success := False;
 
-  UserArray := FPractice.Users;
+  GetPractice;
+  UserArray := FPracticeCopy.Users;
 
   if  (countryCode  = 'NZ')
   and (practiceCode = 'PRACTEST')
@@ -994,7 +1006,10 @@ begin
   end;
 
   if Result.Success = True then
-    FPractice.Users := UserArray;
+  begin
+    FPracticeCopy.Users := UserArray;
+    Result.Success := SavePractice;
+  end;
 end;
 
 function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : Practice;
@@ -1173,6 +1188,12 @@ function TProductConfigService.IsPrimaryUser(const AUserId : Guid): Boolean;
 var
   currPractice : Practice;
 begin
+  if AUserId = '' then
+  begin
+    Result := false;
+    Exit;
+  end;
+
   currPractice := GetPractice;
   Result := (AUserId = currPractice.DefaultAdminUserId);
 end;
@@ -1181,7 +1202,7 @@ function TProductConfigService.ChangeUserPassword(const aUserId      : Guid;
                                                   const aOldPassword : string;
                                                   const aNewPassword : string) : Boolean;
 begin
-  Result := false;
+  Result := True;
 end;
 
 { TClientSummaryHelper }
