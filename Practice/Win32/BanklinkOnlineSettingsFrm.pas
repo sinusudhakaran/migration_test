@@ -52,7 +52,7 @@ const
 
 var
   frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
-  BanklinkOnlineConnected : boolean = false;
+  BanklinkOnlineConnected : boolean = true;
 
 implementation
 
