@@ -393,7 +393,7 @@ const
 var
   GLClientManager: TfrmClientManager;
   DebugMe : boolean = false;
-  BanklinkOnlineConnected : boolean = false;
+  BanklinkOnlineConnected : boolean = true;
 
 
 procedure TfrmClientManager.FormActivate(Sender: TObject);
