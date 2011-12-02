@@ -32,7 +32,7 @@ type
   public
   end;
 
-  procedure PickPrimaryUser(CurrentUser : Guid = '');
+  function PickPrimaryUser(CurrentUser : Guid = '') : Boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -46,12 +46,13 @@ uses
   WarningMoreFrm;
 
 //------------------------------------------------------------------------------
-procedure PickPrimaryUser(CurrentUser : Guid = '');
+function PickPrimaryUser(CurrentUser : Guid = '') : Boolean;
 var
   MyDlg : TPickNewPrimaryUser;
   CurrPractice : Practice;
   UserIndex : integer;
 begin
+  Result := False;
   try
     CurrPractice := ProductConfigService.GetPractice;
 
@@ -80,6 +81,7 @@ begin
       begin
         CurrPractice.DefaultAdminUserId := User(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
         ProductConfigService.SavePractice;
+        Result := True;
       end;
 
     Finally

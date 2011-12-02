@@ -86,7 +86,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
     Top = 63
     Width = 237
     Height = 21
-    ItemHeight = 13
+    ItemHeight = 0
     TabOrder = 2
   end
 end

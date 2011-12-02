@@ -398,9 +398,11 @@ begin
     and (chkCanAccessBankLinkOnline.Checked = False) then
     begin
       if fIsPrimaryUser then
-        PickPrimaryUser(UserGuid);
-
-      Result := ProductConfigService.DeleteUser(UserGuid);
+      begin
+        Result := PickPrimaryUser(UserGuid);
+        if Result then
+          Result := ProductConfigService.DeleteUser(UserGuid);
+      end;
 
       if Result then
         HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 );

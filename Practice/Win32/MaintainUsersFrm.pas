@@ -388,7 +388,6 @@ var
   ItemRect : TRect;
   SubItemRect : TRect;
   OutputText : String;
-  TextIndex : integer;
   SubItemIndex : integer;
   First : Boolean;
   SubItemLeft : integer;
@@ -397,7 +396,6 @@ var
   bmpOnline : TBitmap;
   useOnlineAdmin : Boolean;
   useOnline : Boolean;
-  p : pUser_Rec;
 begin
   if (not assigned(Item)) or
     (not ProductConfigService.UseBankLinkOnline) then
