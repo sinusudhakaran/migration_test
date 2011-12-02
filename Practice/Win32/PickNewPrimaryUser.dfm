@@ -5,7 +5,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   BorderStyle = bsDialog
   Caption = 'Confirmation'
   ClientHeight = 136
-  ClientWidth = 441
+  ClientWidth = 440
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -86,7 +86,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
     Top = 63
     Width = 237
     Height = 21
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 2
   end
 end

@@ -14,6 +14,7 @@ uses
   Forms,
   Dialogs,
   StdCtrls,
+  OsFont,
   SyDefs;
 
 type
@@ -54,8 +55,7 @@ uses
   InfoMoreFrm,
   ErrorMoreFrm,
   Admin32,
-  LogUtil,
-  OSFont;
+  LogUtil;
 
 const
   UNITNAME = 'EditUserPassword';

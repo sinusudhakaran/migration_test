@@ -5,7 +5,7 @@ object EditUserPassword: TEditUserPassword
   BorderStyle = bsDialog
   Caption = 'Change Password'
   ClientHeight = 175
-  ClientWidth = 341
+  ClientWidth = 397
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -39,18 +39,18 @@ object EditUserPassword: TEditUserPassword
     Caption = '&Confirm Password'
   end
   object edtOldPassword: TEdit
-    Left = 120
+    Left = 144
     Top = 18
-    Width = 204
+    Width = 245
     Height = 21
     CharCase = ecUpperCase
     PasswordChar = #376
     TabOrder = 0
   end
   object edtNewPassword: TEdit
-    Left = 120
+    Left = 144
     Top = 49
-    Width = 203
+    Width = 244
     Height = 21
     CharCase = ecUpperCase
     PasswordChar = #376
@@ -59,13 +59,13 @@ object EditUserPassword: TEditUserPassword
   object chkOnlineAndPracticeSamePass: TCheckBox
     Left = 16
     Top = 113
-    Width = 318
+    Width = 373
     Height = 17
     Caption = 'Set your BankLink Online password to be the same as above'
     TabOrder = 3
   end
   object btnOk: TButton
-    Left = 159
+    Left = 224
     Top = 136
     Width = 75
     Height = 25
@@ -75,7 +75,7 @@ object EditUserPassword: TEditUserPassword
     OnClick = btnOkClick
   end
   object btnCancel: TButton
-    Left = 249
+    Left = 314
     Top = 136
     Width = 75
     Height = 25
@@ -84,9 +84,9 @@ object EditUserPassword: TEditUserPassword
     TabOrder = 5
   end
   object edtConfirmPassword: TEdit
-    Left = 120
+    Left = 144
     Top = 79
-    Width = 204
+    Width = 245
     Height = 21
     CharCase = ecUpperCase
     PasswordChar = #376

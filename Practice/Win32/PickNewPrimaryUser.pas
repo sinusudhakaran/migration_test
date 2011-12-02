@@ -15,6 +15,7 @@ uses
   Dialogs,
   StdCtrls,
   ExtCtrls,
+  //OsFont,
   BlopiServiceFacade;
 
 type
