@@ -80,8 +80,6 @@
 #define Chapter_A8_Scheduled_reports	1085
 #define Chapter_A9_The_System_menu	1086
 #define Chart_look_up	1087
-#define Check_in_facility	1088
-#define Check_out_facility	1089
 #define Checking_for_inactive_accounts	1090
 #define Checking_the_bank_balance	1091
 #define Client_File_Access_Report	1093
@@ -280,7 +278,6 @@
 #define Selecting_data_for_coding	1311
 #define Selecting_from_multiple_bank_accounts	1312
 #define Selecting_the_client_and_date_range	1313
-#define Send_to_facility	1314
 #define Sending_contact_details	1315
 #define Sequence_of_memorisation	1316
 #define Set_up_GST	1317
@@ -622,3 +619,9 @@
 #define Transferring_transactions_from_BankLink_to_PA_7	1435
 #define Professional_Accounting_7	1457
 #define Audit_Report	2134
+#define Sending_a_client_file_via_BankLink_Online	2135
+#define Updating_a_client_file_from_BankLink_Online	2136
+#define Sending_a_client_file_to_file	1089
+#define Updating_a_client_file_from_a_folder	1088
+#define Sending_a_client_file_via_email	1314
+#define Transferring_transactions_from_BankLink_Practice_to_QuickBooks_Pro	2137

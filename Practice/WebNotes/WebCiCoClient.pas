@@ -206,7 +206,7 @@ type
                                   AClientCode : string = '';
                                   AaSyncCall  : Boolean = False);
     procedure UploadFileFromPractice(AClientCode : string;
-                                     AClientName, AClientEmail : string;
+                                     AClientName, AClientEmail, AClientContact : string;
                                      var AServerResponce : TServerResponse);
     procedure DownloadFileToPractice(AClientCode : string;
                                      var ATempBk5File    : string;
@@ -267,6 +267,7 @@ const
   HTTP_HEAD_CLIENT_EMAIL       = 'ClientEmail';
   HTTP_HEAD_CLIENT_PASSWORD    = 'ClientPassword';
   HTTP_HEAD_CLIENT_NAME        = 'ClientName';
+  HTTP_HEAD_CLIENT_CONTACT     = 'ClientContactName';
   HTTP_HEAD_COUNTRY_CODE       = 'CountryCode';
   HTTP_HEAD_BOOKS_COPY         = 'Copy';
   HTTP_HEAD_BOOKS_NEWPASSWORD  = 'NewPassword';
@@ -1093,14 +1094,13 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TWebCiCoClient.UploadFileFromPractice(AClientCode : string;
-                                                AClientName, AClientEmail : string;
+                                                AClientName, AClientEmail, AClientContact : string;
                                                 var AServerResponce : TServerResponse);
 var
   HttpAddress  : String;
   PracticeCode : String;
   PracticePass : String;
   CountryCode  : String;
-  ClientName   : String;
 begin
   fProcessState := psUploadPrac;
 
@@ -1123,7 +1123,8 @@ begin
     AddHttpHeaderInfo(HTTP_HEAD_PRACTICE_PASSWORD, PracticePass);
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_EMAIL,      AClientEmail);
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CODE,       AClientCode);
-    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_NAME,       ClientName);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_NAME,       AClientName);
+    AddHttpHeaderInfo(HTTP_HEAD_CLIENT_CONTACT,    AClientContact);
     AddHttpHeaderInfo(HTTP_HEAD_CLIENT_PASSWORD,   '');
 
     UploadFile(HttpAddress, DataDir + AClientCode + FILEEXTN);

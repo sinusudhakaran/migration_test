@@ -1387,7 +1387,7 @@ begin
          end;
          Caption := 'Send Client File(s)';
          ClientFileExpected := True;
-         BKHelpSetUp(SendDlg, BKH_Send_to_facility);
+         BKHelpSetUp(SendDlg, BKH_Sending_a_client_file_via_email);
 
          //prefill the address with saved information
          //if at the practice use the last email address entered by the practice
@@ -1510,7 +1510,7 @@ begin
          HideClientFiles;
          chkCheckout.Checked := False;
          chkCheckout.Visible := False;
-         BKHelpSetUp(SendDlg, BKH_Send_to_facility);
+         BKHelpSetUp(SendDlg, BKH_Sending_a_client_file_via_email);
          txtRecipient.text := Recipient;
          txtSubject.text := Subject;
          caption := Title;
@@ -1591,7 +1591,7 @@ begin
          AllowCheckOutToSupport := CheckOut;
          chkCheckout.Checked := CheckOut;
          chkCheckout.Visible := True;
-         BKHelpSetUp(SendDlg, BKH_Send_to_facility);
+         BKHelpSetUp(SendDlg, BKH_Sending_a_client_file_via_email);
          txtRecipient.text := Recipient;
          txtSubject.text := Subject;
          caption := Title;
@@ -1658,7 +1658,7 @@ begin
          HideClientFiles;
          chkCheckout.Checked := False;
          chkCheckout.Visible := False;
-         BKHelpSetUp(SendDlg, BKH_Send_to_facility);
+         BKHelpSetUp(SendDlg, BKH_Sending_a_client_file_via_email);
          txtRecipient.text := Recipient;
          txtSubject.text := Subject;
          caption := Title;
@@ -1684,7 +1684,7 @@ begin
    Try
       With SendDlg do begin
          EditMode := False;
-         BKHelpSetUp(SendDlg, BKH_Send_to_facility);
+         BKHelpSetUp(SendDlg, BKH_Sending_a_client_file_via_email);
          txtRecipient.text := Recipient;
          caption := 'E-mail Support';
          chkCheckout.Checked := false;
@@ -1719,7 +1719,7 @@ begin
       EditMode := False;
       HideDropDowns := HideClientEmail;
       BNotesFile := Filename;
-      BKHelpSetUp(SendDlg, BKH_Send_to_facility);
+      BKHelpSetUp(SendDlg, BKH_Sending_a_client_file_via_email);
       txtRecipient.text := Recipient;
       txtSubject.Text := Subject;
       Caption := Title;

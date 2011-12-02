@@ -1352,7 +1352,7 @@ var
   LocalFileName: string;
   RemoteFileName: string;
   Msg: string;
-  ClientName: string;
+  ClientName, ClientContact : string;
 begin
   Result := False;
   TempClient := nil;
@@ -1399,6 +1399,7 @@ begin
   end;
 
   ClientName  := TempClient.clFields.clName;
+  ClientContact := TempClient.clFields.clContact_Name;
   AClientEmail := Trim(TempClient.clFields.clClient_EMail_Address);
 
   try
@@ -1444,7 +1445,7 @@ begin
 
                 BankLinkOnlineMgr.Silent := IsScheduledReport;
                 BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, ClientName,
-                                               AClientEmail);
+                                               AClientEmail, ClientContact);
                 if DebugMe then
                   LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                  [ThisMethodName, BankLinkLiveName]));
@@ -1550,6 +1551,7 @@ function SendBooksClient(Code: string; Path: string; ProgressFrm: TfrmChkProgres
   ANotifyPractice: Boolean = False): Boolean;
 const
   ThisMethodName = 'SendBooksClient';
+  NAME_EMAIL_SPACER = #9' ';
 var
   TempClient: TClientObj;
   LocalFileName: string;
@@ -1557,6 +1559,7 @@ var
   BackupFileName: string;
   Msg: string;
   SendCopy: Boolean;
+  NotifyEmailAddress: string;
 begin
   //Never comes in here for scheduled reports - admin system must exist
   //admin system does not exists so is an off-site client
@@ -1569,10 +1572,10 @@ begin
   BackupFileName := DATADIR + CODE + BACKUPEXTN;
 
   if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
-    AClientEmail := MyClient.clFields.clPractice_Name + #9' ' +
+    AClientEmail := MyClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
                     MyClient.clFields.clPractice_EMail_Address;
     if MyClient.clFields.clCustom_Contact_EMail_Address <> '' then
-      AClientEmail := MyClient.clFields.clContact_Name + #9' ' +
+      AClientEmail := MyClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
                       MyClient.clFields.clCustom_Contact_EMail_Address;
     SendCopy := (ASendMethod = ftmOnline) and (MyClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
     FlagReadOnly := FlagReadOnly or (MyClient.clFields.clForce_Offsite_Check_Out);
@@ -1601,10 +1604,10 @@ begin
         ProgressFrm.mProgress.Lines.Add(Msg);
         Exit;
       end;
-      AClientEmail := TempClient.clFields.clPractice_Name + #9' ' +
+      AClientEmail := TempClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
                       TempClient.clFields.clPractice_EMail_Address;
       if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
-        AClientEmail := TempClient.clFields.clContact_Name + #9' ' +
+        AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
                         TempClient.clFields.clCustom_Contact_EMail_Address;
       CloseAClient(TempClient);
     end else if (ASendMethod = ftmOnline) then begin
@@ -1612,10 +1615,10 @@ begin
       OpenAClientForRead( Code, TempClient);
       if Assigned( TempClient) then begin
         FlagReadOnly := FlagReadOnly or (TempClient.clFields.clForce_Offsite_Check_Out);      
-        AClientEmail := TempClient.clFields.clPractice_Name + #9' ' +
+        AClientEmail := TempClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
                         TempClient.clFields.clPractice_EMail_Address;
         if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
-          AClientEmail := TempClient.clFields.clContact_Name + #9' ' +
+          AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
                           TempClient.clFields.clCustom_Contact_EMail_Address;
         CloseAClient(TempClient);
       end;
@@ -1651,8 +1654,13 @@ begin
                 LogUtil.LogMsg(lmDebug, UnitName, Msg);
               end;
               BankLinkOnlineMgr.Silent := IsScheduledReport;
-              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '', SendCopy,
-                                             ANotifyPractice, AClientEmail);
+              NotifyEmailAddress := AClientEmail;
+              if Pos(NAME_EMAIL_SPACER, NotifyEmailAddress) > 0 then
+                NotifyEmailAddress := Copy(NotifyEmailAddress,
+                                           Pos(NAME_EMAIL_SPACER, NotifyEmailAddress) + Length(NAME_EMAIL_SPACER),
+                                           Length(NotifyEmailAddress));
+              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '', '', SendCopy,
+                                             ANotifyPractice, NotifyEmailAddress);
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                [ThisMethodName, BankLinkLiveName]));

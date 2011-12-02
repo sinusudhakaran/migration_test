@@ -144,7 +144,10 @@ begin
   with CheckInOut do
   begin
     try
-      BKHelpSetup(CheckInOut, BKH_Check_out_facility);
+      case ASendMethod of
+        ftmOnline: BKHelpSetup(CheckInOut, BKH_Sending_a_client_file_via_BankLink_Online);
+        ftmFile  : BKHelpSetup(CheckInOut, BKH_Sending_a_client_file_to_file);
+      end;
 
       FFileTransferMethod := ASendMethod;
       Caption                := Title;
@@ -214,7 +217,10 @@ begin
   with CheckInOut do
   begin
     try
-      BKHelpSetup(CheckInOut, BKH_Check_in_facility);
+      case ASendMethod of
+        ftmOnline: BKHelpSetup(CheckInOut, BKH_Updating_a_client_file_from_BankLink_Online);
+        ftmFile  : BKHelpSetup(CheckInOut, BKH_Updating_a_client_file_from_a_folder);
+      end;
       FFileTransferMethod    := ASendMethod;
       Caption                := Title;
       DialogMode             := dmCheckin;

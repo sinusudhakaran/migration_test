@@ -87,8 +87,6 @@ const
   BKH_Chapter_A8_Scheduled_reports = 1085;
   BKH_Chapter_A9_The_System_menu = 1086;
   BKH_Chart_look_up = 1087;
-  BKH_Check_in_facility = 1088;
-  BKH_Check_out_facility = 1089;
   BKH_Checking_for_inactive_accounts = 1090;
   BKH_Checking_the_bank_balance = 1091;
   BKH_Client_File_Access_Report = 1093;
@@ -287,7 +285,6 @@ const
   BKH_Selecting_data_for_coding = 1311;
   BKH_Selecting_from_multiple_bank_accounts = 1312;
   BKH_Selecting_the_client_and_date_range = 1313;
-  BKH_Send_to_facility = 1314;
   BKH_Sending_contact_details = 1315;
   BKH_Sequence_of_memorisation = 1316;
   BKH_Set_up_GST = 1317;
@@ -629,6 +626,12 @@ const
   BKH_Transferring_transactions_from_BankLink_to_PA_7 = 1435;
   BKH_Professional_Accounting_7 = 1457;
   BKH_Audit_Report = 2134;
+  BKH_Sending_a_client_file_via_BankLink_Online = 2135;
+  BKH_Updating_a_client_file_from_BankLink_Online = 2136;
+  BKH_Sending_a_client_file_to_file = 1089;
+  BKH_Updating_a_client_file_from_a_folder = 1088;
+  BKH_Sending_a_client_file_via_email = 1314;
+  BKH_Transferring_transactions_from_BankLink_Practice_to_QuickBooks_Pro = 2137;
 
 var
   //filename of HTML help file

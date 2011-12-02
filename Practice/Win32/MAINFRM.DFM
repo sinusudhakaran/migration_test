@@ -183,10 +183,8 @@ object frmMain: TfrmMain
         Width = 145
         DropDownMenu = PopGetClients
         ImageIndex = 9
-        UseToolbarButtonSize = False
         ToolStyle = tsDropDown
         Caption = 'Get Client Files'
-        Constraints.MinWidth = 145
       end
       object tbSendClientFiles: TRzToolButton
         Left = 340
@@ -194,10 +192,8 @@ object frmMain: TfrmMain
         Width = 145
         DropDownMenu = PopSendClients
         ImageIndex = 10
-        UseToolbarButtonSize = False
         ToolStyle = tsDropDown
         Caption = 'Send Client Files'
-        Constraints.MinWidth = 145
       end
       object tbHome: TRzToolButton
         Left = 75

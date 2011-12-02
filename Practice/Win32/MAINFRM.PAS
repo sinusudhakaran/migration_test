@@ -2026,6 +2026,13 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.SetToolBarCaptionState( CaptionOn: boolean);
 begin
+   //Get and Send buttons need minimum width to display the caption correctly
+   tbGetClientFiles.Constraints.MinWidth := 0;
+   tbSendClientFiles.Constraints.MinWidth := 0;
+   if CaptionOn then begin
+     tbGetClientFiles.Constraints.MinWidth := 145;
+     tbSendClientFiles.Constraints.MinWidth := 145;
+   end;
    //resize all of the buttons and turn captions on if needed
    SetCaptionState( rztFile, CaptionOn);
    SetCaptionState( rztClient, CaptionOn);
