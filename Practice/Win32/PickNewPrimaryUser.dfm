@@ -4,8 +4,8 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Confirmation'
-  ClientHeight = 136
-  ClientWidth = 440
+  ClientHeight = 145
+  ClientWidth = 441
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -35,35 +35,53 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
       'This user is the current primary contact for this practice. Anot' +
       'her user will need to be set as the primary contact before the u' +
       'ser can be deleted. '
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     ShowAccelChar = False
     Transparent = True
     WordWrap = True
   end
   object Label1: TLabel
     Left = 76
-    Top = 65
-    Width = 109
+    Top = 69
+    Width = 85
     Height = 18
     AutoSize = False
     Caption = 'New Primary Contact'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     ShowAccelChar = False
     Transparent = True
     WordWrap = True
   end
   object Label2: TLabel
     Left = 76
-    Top = 97
-    Width = 186
+    Top = 107
+    Width = 157
     Height = 18
     AutoSize = False
     Caption = 'Are you sure you want to continue?'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     ShowAccelChar = False
     Transparent = True
     WordWrap = True
   end
   object btnYes: TButton
-    Left = 261
-    Top = 98
+    Left = 270
+    Top = 104
     Width = 75
     Height = 25
     Caption = '&Yes'
@@ -72,7 +90,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   end
   object btnNo: TButton
     Left = 353
-    Top = 98
+    Top = 104
     Width = 75
     Height = 25
     Cancel = True
@@ -83,7 +101,7 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
   end
   object cmbPrimaryContact: TComboBox
     Left = 191
-    Top = 63
+    Top = 69
     Width = 237
     Height = 21
     ItemHeight = 13

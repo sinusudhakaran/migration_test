@@ -98,6 +98,7 @@ Type
     formLoaded : boolean;
     EditChk    : boolean;
 
+    function GetCurrentCode : string;
     procedure OnlineControlSetup;
     Function OKtoPost : boolean;
     Function PosttoBankLinkOnline : Boolean;
@@ -238,6 +239,15 @@ begin { TdlgEditUser.btnOKClick }
     Close;
   End { OKtoPost };
 End; { TdlgEditUser.btnOKClick }
+
+//------------------------------------------------------------------------------
+function TdlgEditUser.GetCurrentCode: string;
+begin
+  if IsCreateUser then
+    Result := eUserCode.text
+  else
+    Result := stUserName.Caption;
+end;
 
 //------------------------------------------------------------------------------
 Procedure TdlgEditUser.OnlineControlSetup;
@@ -414,7 +424,7 @@ begin
                                                    eMail.Text,
                                                    eFullName.Text,
                                                    RoleNames,
-                                                   eUserCode.text,
+                                                   GetCurrentCode,
                                                    fIsCreateUser);
       if Result then
       begin

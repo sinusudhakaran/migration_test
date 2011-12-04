@@ -20,23 +20,41 @@ object EditUserPassword: TEditUserPassword
   object lblOldPassword: TLabel
     Left = 16
     Top = 21
-    Width = 65
-    Height = 13
+    Width = 78
+    Height = 16
     Caption = '&Old Password'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
   end
   object lblNewPassword: TLabel
     Left = 16
     Top = 52
-    Width = 70
-    Height = 13
+    Width = 84
+    Height = 16
     Caption = '&New Password'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
   end
   object lblConfirmPassword: TLabel
     Left = 16
     Top = 82
-    Width = 86
-    Height = 13
+    Width = 104
+    Height = 16
     Caption = '&Confirm Password'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
   end
   object edtOldPassword: TEdit
     Left = 144
@@ -62,6 +80,12 @@ object EditUserPassword: TEditUserPassword
     Width = 373
     Height = 17
     Caption = 'Set your BankLink Online password to be the same as above'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 3
   end
   object btnOk: TButton
