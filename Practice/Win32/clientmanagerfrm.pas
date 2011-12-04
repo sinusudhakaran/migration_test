@@ -531,7 +531,7 @@ begin
         //update user ini settings for columns
         if (ClientLookup.ClientFilter = filterAllClients)
         or (ClientLookup.ClientFilter = filterMyClients) then
-           UpdateColumnINISettings;
+           UpdateColumnINISettings;   
       end;
   end;
 end;
@@ -792,7 +792,7 @@ begin
         FormStyle := fsMDIChild;
         BKHelpSetUp(GLClientManager, BKH_The_Client_Manager);
 
-        IsGlobal := False;
+        IsGlobal := False;    
         //pnlClose.Visible := False;
         pnlClose.Height := 0;
         FCurrentUserFilter := TStringList.Create;
@@ -852,7 +852,8 @@ end;
 function DoGlobalClientSetup(L, T, H, W: Integer) : boolean;
 var
   ClientManager : TfrmClientManager;
-  i: Integer;
+  i, NumColumns: Integer;
+  AClientID: WideString;
 const
    Offset = 30;
 begin
@@ -903,14 +904,19 @@ begin
 
         if (BanklinkOnlineConnected and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
-          AddCustomColumn( 'BO Product 1', 75, 12, cluBONotes);
-          AddCustomColumn( 'BO Product 2', 75, 13, cluBONotes);
-          AddCustomColumn( 'BO Product 3', 75, 14, cluBONotes);
-          AddCustomColumn( 'BO Product 4', 75, 15, cluBONotes);
-          AddCustomColumn( 'Billing Frequency', 75, 16, cluBOBillingFrequency);
-          AddCustomColumn( 'User Admin', 75, 17, cluBOUserAdmin);
-          AddCustomColumn( 'Suspended', 75, 18, cluBOSuspended);
-          AddCustomColumn( 'Deactivated', 75, 19, cluBODeactivated);
+          if not Assigned(FClient) then
+          begin
+            AClientID := ProductConfigService.Clients.Clients[0].Id;
+        		FClient := ProductConfigService.GetClientDetails(AClientID);
+          end;
+        	for i := 0 to High(FClient.Catalogue) do
+        		AddCustomColumn( FClient.Catalogue[i].Description, 75, 12 + i, cluBOProduct);
+          NumColumns := 13 + High(FClient.Catalogue);
+
+          AddCustomColumn( 'Billing Frequency', 75, NumColumns, cluBOBillingFrequency);
+          AddCustomColumn( 'User Admin', 75, NumColumns + 1, cluBOUserAdmin);
+          AddCustomColumn( 'Suspended', 75, NumColumns + 2, cluBOSuspended);
+          AddCustomColumn( 'Deactivated', 75, NumColumns + 3, cluBODeactivated);
         end;
 
         BuildGrid( cluCode);
@@ -1796,6 +1802,7 @@ var
   AClientID, GUID1, GUID2: WideString;
   ProductList: TStringList;
 begin
+  NumProducts := 0;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoDeleteFile');
   //act upon a single client only
   ScrollPos := ClientLookup.LastScrollPosition;
@@ -1815,26 +1822,28 @@ begin
     AClientID := ProductConfigService.Clients.Clients[0].Id;
     FClient := ProductConfigService.GetClientDetails(AClientID);
 
-    NumProducts := 0;
-    for i := 0 to High(FClient.Catalogue) do begin
-      for k := 0 to High(FClient.Subscription) do begin
-        GUID1 := FClient.Subscription[k];
-        GUID2 := FClient.Catalogue[i].Id;
-        if (GUID1 = GUID2) then
-        begin
-          if not Assigned(ProductList) then
-            ProductList := TStringList.Create;
-          ProductList.Add(FClient.Catalogue[i].Description);
-          inc(NumProducts);
-          break;
+    ProductList := TStringList.Create;
+    try
+      for i := 0 to High(FClient.Catalogue) do begin
+        for k := 0 to High(FClient.Subscription) do begin
+          GUID1 := FClient.Subscription[k];
+          GUID2 := FClient.Catalogue[i].Id;
+          if (GUID1 = GUID2) then
+          begin
+            ProductList.Add(FClient.Catalogue[i].Description);
+            inc(NumProducts);
+            break;
+          end;
         end;
       end;
+      if (ProductList.Count > 0)
+        then DeleteStr := DeleteStr + 'Deleting this client will also, ' +
+                          'permanently remove ALL CLIENT DATA & ACCESS ' +
+                          'for the following products:' + #13#13 +
+                          ProductList.Text + #13;
+    finally
+      ProductList.Free;
     end;
-    if (ProductList.Count > 0)
-      then DeleteStr := DeleteStr + 'Deleting this client will also, ' +
-                        'permanently remove ALL CLIENT DATA & ACCESS ' +
-                        'for the following products:' + #13#13 +
-                        ProductList.Text + #13;
   end;
 
   if DeleteClientFile(ClientLookup.FirstSelectedCode, DeleteStr) then
