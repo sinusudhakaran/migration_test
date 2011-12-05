@@ -14,8 +14,12 @@ unit RptScheduled;
 }
 //------------------------------------------------------------------------------
 interface
+
 uses
-   ReportDefs, PrintMgrObj, Scheduled, SchedRepUtils;
+  ReportDefs,
+  PrintMgrObj,
+  Scheduled,
+  SchedRepUtils;
 
 procedure DoClientHeader(Destination : TReportDest; FromDate, ToDate : integer; Settings : TPrintManagerObj);
 procedure DoStaffHeaderPage(Destination : TReportDest; aLRN : integer; Settings : TPrintManagerObj);
@@ -489,15 +493,15 @@ var
           begin
             //only display on the first line for completed items.
             case CurrRec^.SendBy of
-               rdEmail   : PutString( 'E-Mail');
-               rdPrinter : PutString( 'Printer');
-               rdEcoding : PutString( glConst.ECODING_APP_NAME);
-               rdWebX    : PutString( WEBX_GENERIC_APP_NAME);
-               rdScreen  : PutString( 'Preview');
-               rdFax     : PutString( 'Fax');
-               rdCSVExport: PutString( 'CSV Export');
-               rdCheckOut: PutString('BankLink Books');
-               rdBusinessProduct: PutString('Business Prod');
+               rdEmail           : PutString( 'E-Mail');
+               rdPrinter         : PutString( 'Printer');
+               rdEcoding         : PutString( glConst.ECODING_APP_NAME);
+               rdWebX            : PutString( WEBX_GENERIC_APP_NAME);
+               rdScreen          : PutString( 'Preview');
+               rdFax             : PutString( 'Fax');
+               rdCSVExport       : PutString( 'CSV Export');
+               rdCheckOut        : PutString( 'BankLink Books');
+               rdBusinessProduct : PutString( 'Business Prod');
             else
                SkipColumn;
             end;
@@ -602,10 +606,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure SummaryRepDetailClient(Sender : TObject);
+Type
+  TRptSections = (rpsSent, rpsError, rptNoCustDoc, rpsNotesOnlineError,
+                  rpsCiCoOnlineError, rptEmailOnlineError);
 var
-  i, j    : integer;
+  SumInfoIndex : integer;
+  RptSections  : TrptSections;
   CurrRec : pSchdRepSummaryRec;
   LastCode : string;
   FirstLine: boolean;
@@ -614,133 +621,154 @@ var
   pCF     : pClient_File_Rec;
   pUser   : pUser_Rec;
   pSB     : pSystem_Bank_Account_Rec;
-  EmailError: Boolean;
+  SchSumRpt : TSchdSummaryReport;
 begin
   UnprintedLastMonth := False;
-  with TSchdSummaryReport(Sender) do
+
+  SchSumRpt := TSchdSummaryReport(Sender);
+
+  // Go through differant sections of the Report showing data if found
+  for RptSections := low(TRptSections) to high(TRptSections) do
   begin
-    for j := 0 to 3 do
+    LastCode := '';
+
+    // Goes through each account
+    for SumInfoIndex := 0 to Pred( SchSumRpt.ReportParam.srSummaryInfoList.Count) do
     begin
-      LastCode := '';
+       CurrRec := pSchdRepSummaryRec( SchSumRpt.ReportParam.srSummaryInfoList[SumInfoIndex]);
 
-      for i := 0 to Pred( ReportParam.srSummaryInfoList.Count) do
-      begin
-         CurrRec := pSchdRepSummaryRec( ReportParam.srSummaryInfoList[i]);
+       case RptSections of
+         rpsSent :
+           PrintRecord := CurrRec^.Completed;
+         rpsError :
+           PrintRecord := (not CurrRec^.Completed)
+                      and (CurrRec^.AccountNo <> CUSTOM_DOCUMENT)
+                      and not (CurrRec^.SendBy in [rdBankLinkOnline, rdWebX]);
+         rptNoCustDoc :
+           PrintRecord := (not CurrRec^.Completed)
+                      and (CurrRec^.AccountNo = CUSTOM_DOCUMENT)
+                      and not (CurrRec^.SendBy in [rdBankLinkOnline, rdWebX]);
+         rpsNotesOnlineError :
+           PrintRecord := (not CurrRec^.Completed)
+                      and (CurrRec^.SendBy = rdWebX);
+         rpsCiCoOnlineError :
+           PrintRecord := (not CurrRec^.Completed)
+                      and (CurrRec^.SendBy = rdBankLinkOnline)
+                      and (not CurrRec^.EmailSendFail);
+         rptEmailOnlineError :
+           PrintRecord := (not CurrRec^.Completed)
+                      and (CurrRec^.SendBy = rdBankLinkOnline)
+                      and (CurrRec^.EmailSendFail);
+       end;
 
-         EmailError := (CurrRec^.SendBy = rdBankLinkOnline) and (not CurrRec^.EmailSent);
-
-         if j = 0 then
-           PrintRecord := (CurrRec^.Completed)
-         else if j = 1 then
-           PrintRecord := (not CurrRec^.Completed)  and (CurrRec^.AccountNo <> CUSTOM_DOCUMENT) and (not EmailError)
-         else if j = 2 then
-           PrintRecord := (not CurrRec^.Completed) and (CurrRec^.AccountNo = CUSTOM_DOCUMENT) and (not EmailError)
-         else //Add extra line if error sending BankLink Online email
-           PrintRecord := ((CurrRec^.Completed) and EmailError);
-
-         if (PrintRecord) then
+       if (PrintRecord) then
+       begin
+         if (LastCode = '') then
          begin
-           if (j = 1) and (LastCode = '') then
-             RenderTitleLine('Reports for the following clients were not generated due to errors');
-
-           if (j = 2) and (LastCode = '') then
-             RenderTitleLine('Custom documents for the following clients were not generated because they no longer exist');
-
-           if (j = 3) and (LastCode = '') then
-             RenderTitleLine('Emails for the following BankLink Online clients were not generated due to errors');
-
-           if ( CurrRec^.ClientCode <> LastCode) then begin
-              if CurrRec^.TxLastMonth then
-              begin
-                PutString( CurrRec^.ClientCode + '#');
-                UnprintedLastMonth := True;
-              end
-              else
-                PutString( CurrRec^.ClientCode);
-              LastCode  := CurrRec^.ClientCode;
-              FirstLine := true;
-           end
-           else begin
-              SkipColumn;
-              FirstLine := false;
+           case RptSections of
+             rpsError :
+               SchSumRpt.RenderTitleLine('Reports for the following clients were not generated due to errors');
+             rptNoCustDoc :
+               SchSumRpt.RenderTitleLine('Custom documents for the following clients were not generated because they no longer exist');
+             rpsNotesOnlineError :
+               SchSumRpt.RenderTitleLine('BankLink Notes Online data for the following clients were not generated due to errors');
+             rpsCiCoOnlineError  :
+               SchSumRpt.RenderTitleLine('BankLink Books files to be sent via BankLink Online for the following clients were not generated due to errors');
+             rptEmailOnlineError :
+               SchSumRpt.RenderTitleLine('Emails for the following BankLink Online clients were not generated due to errors');
            end;
-
-           if (CurrRec^.AccountNo <> CUSTOM_DOCUMENT) then begin
-             PutString( CurrRec^.AccountNo);
-
-             //get account name
-             pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( CurrRec^.AccountNo);
-             if Assigned( pSB) then
-                PutString( pSB^.sbAccount_Name)
-             else
-                SkipColumn;
-
-             if FirstLine then
-                PutString( '(' + inttostr( CurrRec^.AcctsPrinted) + ' of ' + inttostr( CurrRec^.AcctsFound) + ')')
-             else
-                SkipColumn;
-
-             PutString( BkDate2Str( CurrRec^.PrintedFrom));
-             PutString( BkDate2Str( CurrRec^.PrintedTo));
-
-             if FirstLine then begin
-                //get staff member code
-                with AdminSystem do begin
-                   pCF   := fdSystem_Client_File_List.FindCode( CurrRec^.ClientCode);
-                   if Assigned(pCF) then begin
-                      pUser := fdSystem_User_List.FindLRN(pCF^.cfUser_Responsible);
-                   end else
-                     pUser := nil;
-                   if Assigned(pUser) and Assigned(pCF) then
-                      PutString( pUser^.usCode)
-                   else
-                      SkipColumn;
-                end;
-             end
-             else
-                SkipColumn;
-
-             //sent by
-             if (j = 0) and FirstLine then
-             begin
-               //only display on the first line for completed items.
-               case CurrRec^.SendBy of
-                  rdEmail           : PutString('E-Mail');
-                  rdPrinter         : PutString('Printer');
-                  rdEcoding         : PutString(glConst.ECODING_APP_NAME);
-                  rdWebX            : PutString(WEBX_GENERIC_APP_NAME);
-                  rdScreen          : PutString('Preview');
-                  rdFax             : PutString('Fax');
-                  rdCSVExport       : PutString('CSV Export');
-                  rdCheckOut        : PutString('BankLink Books (Email)');
-                  rdBankLinkOnline  : PutString('BankLink Books (via Online)');
-                  rdBusinessProduct : PutString('Business Prod');
-               else
-                  SkipColumn;
-               end;
-             end
-             else
-                SkipColumn;
-           end else begin
-             SkipColumn; //Account number           
-             SkipColumn; //Account name
-             SkipColumn; //From
-             SkipColumn; //To
-             SkipColumn; //Generated
-             SkipColumn; //Staff
-             SkipColumn; //Sent by
-           end;
-
-
-           RenderDetailLine;
          end;
-      end;
+
+         if ( CurrRec^.ClientCode <> LastCode) then begin
+           if CurrRec^.TxLastMonth then
+           begin
+             SchSumRpt.PutString( CurrRec^.ClientCode + '#');
+             UnprintedLastMonth := True;
+           end
+           else
+             SchSumRpt.PutString( CurrRec^.ClientCode);
+           LastCode  := CurrRec^.ClientCode;
+           FirstLine := true;
+         end
+         else begin
+           SchSumRpt.SkipColumn;
+           FirstLine := false;
+         end;
+
+         if (CurrRec^.AccountNo <> CUSTOM_DOCUMENT) then begin
+           SchSumRpt.PutString( CurrRec^.AccountNo);
+
+           //get account name
+           pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( CurrRec^.AccountNo);
+           if Assigned( pSB) then
+              SchSumRpt.PutString( pSB^.sbAccount_Name)
+           else
+              SchSumRpt.SkipColumn;
+
+           if FirstLine then
+              SchSumRpt.PutString( '(' + inttostr( CurrRec^.AcctsPrinted) + ' of ' + inttostr( CurrRec^.AcctsFound) + ')')
+           else
+              SchSumRpt.SkipColumn;
+
+           SchSumRpt.PutString( BkDate2Str( CurrRec^.PrintedFrom));
+           SchSumRpt.PutString( BkDate2Str( CurrRec^.PrintedTo));
+
+           if FirstLine then begin
+              //get staff member code
+              with AdminSystem do begin
+                 pCF   := fdSystem_Client_File_List.FindCode( CurrRec^.ClientCode);
+                 if Assigned(pCF) then begin
+                    pUser := fdSystem_User_List.FindLRN(pCF^.cfUser_Responsible);
+                 end else
+                   pUser := nil;
+                 if Assigned(pUser) and Assigned(pCF) then
+                    SchSumRpt.PutString( pUser^.usCode)
+                 else
+                    SchSumRpt.SkipColumn;
+              end;
+           end
+           else
+              SchSumRpt.SkipColumn;
+
+           //sent by
+           if (RptSections = rpsSent) and FirstLine then
+           begin
+             //only display on the first line for completed items.
+             case CurrRec^.SendBy of
+                rdEmail           : SchSumRpt.PutString('E-Mail');
+                rdPrinter         : SchSumRpt.PutString('Printer');
+                rdEcoding         : SchSumRpt.PutString(glConst.ECODING_APP_NAME);
+                rdWebX            : SchSumRpt.PutString(WEBX_GENERIC_APP_NAME);
+                rdScreen          : SchSumRpt.PutString('Preview');
+                rdFax             : SchSumRpt.PutString('Fax');
+                rdCSVExport       : SchSumRpt.PutString('CSV Export');
+                rdCheckOut        : SchSumRpt.PutString('BankLink Books (Email)');
+                rdBankLinkOnline  : SchSumRpt.PutString('BankLink Books (via Online)');
+                rdBusinessProduct : SchSumRpt.PutString('Business Prod');
+             else
+                SchSumRpt.SkipColumn;
+             end;
+           end
+           else
+              SchSumRpt.SkipColumn;
+         end else begin
+           SchSumRpt.SkipColumn; //Account number
+           SchSumRpt.SkipColumn; //Account name
+           SchSumRpt.SkipColumn; //From
+           SchSumRpt.SkipColumn; //To
+           SchSumRpt.SkipColumn; //Generated
+           SchSumRpt.SkipColumn; //Staff
+           SchSumRpt.SkipColumn; //Sent by
+         end;
+
+         SchSumRpt.RenderDetailLine;
+       end;
     end;
-    if UnprintedLastMonth then
-    begin
-      RenderTextLine('');
-      RenderTextLine('# These clients have unprinted transactions from the previous month - these transactions are automatically included.');
-    end;
+  end;
+  if UnprintedLastMonth then
+  begin
+    SchSumRpt.RenderTextLine('');
+    SchSumRpt.RenderTextLine('# These clients have unprinted transactions from the previous month - these transactions are automatically included.');
   end;
 end;
 //------------------------------------------------------------------------------
@@ -771,26 +799,25 @@ begin
     begin
       Job.OnBKPrint := SummaryRepDetailStaff;
 
-      AddColAuto( Job, cLeft,  9,   gCGap, 'Client Code' , jtLeft);
-      AddColAuto( Job, cLeft, 17.5,   gCGap, 'Account Number' , jtLeft);
-      AddColAuto( Job, cLeft, 31.5,   gCGap, 'Account Name', jtLeft);
-      AddColAuto( Job, cLeft,  9,   gCGap, 'Generated'     , jtLeft);
-      AddColAuto( Job, cLeft,  7,   gCGap, 'From'   , jtLeft);
-      AddColAuto( Job, cLeft,  7,   gCGap, 'To'     , jtLeft);
-      AddColAuto( Job, cLeft,  10.5, gCGap, 'Sent To', jtLeft);
-
+      AddColAuto( Job, cLeft, 9,    gCGap, 'Client Code',    jtLeft);
+      AddColAuto( Job, cLeft, 17.5, gCGap, 'Account Number', jtLeft);
+      AddColAuto( Job, cLeft, 31.5, gCGap, 'Account Name',   jtLeft);
+      AddColAuto( Job, cLeft, 9,    gCGap, 'Generated',      jtLeft);
+      AddColAuto( Job, cLeft, 7,    gCGap, 'From',           jtLeft);
+      AddColAuto( Job, cLeft, 7,    gCGap, 'To',             jtLeft);
+      AddColAuto( Job, cLeft, 10.5, gCGap, 'Sent To',        jtLeft);
     end else
     begin
       Job.OnBKPrint := SummaryRepDetailClient;
 
-      AddColAuto( Job, cLeft,  9,   gCGap, 'Client Code' , jtLeft);
-      AddColAuto( Job, cLeft, 17.5,   gCGap, 'Account Number' , jtLeft);
-      AddColAuto( Job, cLeft, 21.5,   gCGap, 'Account Name', jtLeft);
-      AddColAuto( Job, cLeft,  9,   gCGap, 'Generated'     , jtLeft);
-      AddColAuto( Job, cLeft,  7,   gCGap, 'From'   , jtLeft);
-      AddColAuto( Job, cLeft,  7,   gCGap, 'To'     , jtLeft);
-      AddColAuto( Job, cLeft, 10,   gCGap, 'Staff Member', jtLeft);
-      AddColAuto( Job, cLeft,  10.5, gCGap, 'Sent To', jtLeft);
+      AddColAuto( Job, cLeft, 9,    gCGap, 'Client Code' ,   jtLeft);
+      AddColAuto( Job, cLeft, 17.5, gCGap, 'Account Number', jtLeft);
+      AddColAuto( Job, cLeft, 21.5, gCGap, 'Account Name',   jtLeft);
+      AddColAuto( Job, cLeft, 9,    gCGap, 'Generated',      jtLeft);
+      AddColAuto( Job, cLeft, 7,    gCGap, 'From',           jtLeft);
+      AddColAuto( Job, cLeft, 7,    gCGap, 'To',             jtLeft);
+      AddColAuto( Job, cLeft, 10,   gCGap, 'Staff Member',   jtLeft);
+      AddColAuto( Job, cLeft, 10.5, gCGap, 'Sent To',        jtLeft);
     end;
     AddCommonFooter(Job);
     Job.Generate(Dest);

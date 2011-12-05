@@ -1348,6 +1348,70 @@ Var
   pCF: pClient_File_Rec;
   RptPeriodToUse: byte;
   User: Integer;
+
+  procedure AddAccountsToSummary(aCompleted : boolean);
+  var
+    i, j : integer;
+  begin
+    // Add summary reports
+    AcctsPrinted := 0;
+    AcctsTotal := 0;
+    for i := 0 to Pred(aClient.clBank_Account_List.ItemCount) do
+    begin
+      Included := False;
+      BA := aClient.clBank_Account_List.Bank_Account_At(i);
+      if BA.baFields.baAccount_Type <> btBank then Continue;
+      for j := BA.baTransaction_List.Last downto BA.baTransaction_List.First do
+      begin
+        T := BA.baTransaction_List.Transaction_At(j);
+        Included := False;
+        //see if transaction is outside date range or earlier than last printed date
+        if ( ( T.txDate_Effective >= srOptions.srTrxFromDate) and
+             ( T.txDate_Effective <= srOptions.srTrxToDate) and
+             ( T.txDate_Effective > BA.baFields.baTemp_Date_Of_Last_Trx_Printed) and
+              (not IsUPCFromPreviousMonth(T.txDate_Effective, T.txUPI_State, srOptions.srDisplayFromDate))) then
+        begin
+          Inc(AcctsPrinted);
+          Included := True;
+          BA.baFields.baTemp_Include_In_Scheduled_Coding_Report := True;
+          BA.baFields.baTemp_New_Date_Last_Trx_Printed := T.txDate_Effective;
+          Break;
+        end;
+      end;
+      if Included then
+      begin
+        GetMem( NewSummaryRec, SizeOf( TSchdRepSummaryRec));
+        with NewSummaryRec^ do
+        begin
+          ClientCode     := aClient.clFields.clCode;
+          AccountNo      := BA.baFields.baBank_Account_Number;
+          PrintedFrom    := srOptions.srDisplayFromDate;
+          PrintedTo      := srOptions.srTrxToDate;
+          AcctsPrinted   := 0; // changed at end
+          AcctsFound     := 0; // changed at end
+          UserResponsible := User;
+          if aClient.clFields.clCheckOut_Scheduled_Reports then
+            SendBy       := rdCheckOut
+          else if aClient.clExtra.ceOnline_Scheduled_Reports then
+            SendBy       := rdBankLinkOnline;
+          TxLastMonth    := ShowTransLastMonth(aClient, srOptions);
+          Completed      := aCompleted;
+        end;
+        if FirstSummaryRec = nil then
+          FirstSummaryRec := NewSummaryRec;
+        srOptions.srSummaryInfoList.Add( NewSummaryRec);
+      end;
+      Inc(AcctsTotal);
+    end;
+
+    //now update first rec details
+    if Assigned( FirstSummaryRec) then
+    begin
+      FirstSummaryRec.AcctsPrinted := AcctsPrinted;
+      FirstSummaryRec.AcctsFound   := AcctsTotal;
+    end;
+  end;
+
 begin
   Assert( OutputDest in [ rdPrinter, rdScreen ], 'DoExportScheduledCheckOutFile.OutputDest in [ rdPrinter, rdScreen ]');
   Result := False;
@@ -1467,70 +1531,14 @@ begin
              AddSummaryRec(aClient.clFields.clCode, srOptions, rdEcoding, False, CUSTOM_DOCUMENT);
        end;
 
-
-
       EmailList.Add( EmailInfo);
-      // Add summary reports
-      AcctsPrinted := 0;
-      AcctsTotal := 0;
-      for i := 0 to Pred(aClient.clBank_Account_List.ItemCount) do
-      begin
-        Included := False;
-        BA := aClient.clBank_Account_List.Bank_Account_At(i);
-        if BA.baFields.baAccount_Type <> btBank then Continue;
-        for j := BA.baTransaction_List.Last downto BA.baTransaction_List.First do
-        begin
-          T := BA.baTransaction_List.Transaction_At(j);
-          Included := False;
-          //see if transaction is outside date range or earlier than last printed date
-          if ( ( T.txDate_Effective >= srOptions.srTrxFromDate) and
-               ( T.txDate_Effective <= srOptions.srTrxToDate) and
-               ( T.txDate_Effective > BA.baFields.baTemp_Date_Of_Last_Trx_Printed) and
-                (not IsUPCFromPreviousMonth(T.txDate_Effective, T.txUPI_State, srOptions.srDisplayFromDate))) then
-          begin
-            Inc(AcctsPrinted);
-            Included := True;
-            BA.baFields.baTemp_Include_In_Scheduled_Coding_Report := True;
-            BA.baFields.baTemp_New_Date_Last_Trx_Printed := T.txDate_Effective;
-            Break;
-          end;
-        end;
-        if Included then
-        begin
-          GetMem( NewSummaryRec, SizeOf( TSchdRepSummaryRec));
-          with NewSummaryRec^ do
-          begin
-            ClientCode     := aClient.clFields.clCode;
-            AccountNo      := BA.baFields.baBank_Account_Number;
-            PrintedFrom    := srOptions.srDisplayFromDate;
-            PrintedTo      := srOptions.srTrxToDate;
-            AcctsPrinted   := 0; // changed at end
-            AcctsFound     := 0; // changed at end
-            UserResponsible := User;
-            //SendBy         := rdCheckOut;
-            if aClient.clFields.clCheckOut_Scheduled_Reports then
-              SendBy       := rdCheckOut
-            else if aClient.clExtra.ceOnline_Scheduled_Reports then
-              SendBy       := rdBankLinkOnline;
-            TxLastMonth    := ShowTransLastMonth(aClient, srOptions);
-            Completed      := True;
-          end;
-          if FirstSummaryRec = nil then
-            FirstSummaryRec := NewSummaryRec;
-          srOptions.srSummaryInfoList.Add( NewSummaryRec);
-        end;
-        Inc(AcctsTotal);
-      end;
-      //now update first rec details
-      if Assigned( FirstSummaryRec) then
-      begin
-        FirstSummaryRec.AcctsPrinted := AcctsPrinted;
-        FirstSummaryRec.AcctsFound   := AcctsTotal;
-      end;
+
+      AddAccountsToSummary(True);
     end
     else begin
       if aClient.clExtra.ceOnline_Scheduled_Reports then
-        AddSummaryRec(aClient.clFields.clCode, srOptions, rdBankLinkOnline, False);
+        AddAccountsToSummary(False);
+
       Result := False;
     end;
    finally
