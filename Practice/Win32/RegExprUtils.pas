@@ -45,7 +45,7 @@ end;
 //------------------------------------------------------------------------------
 function RegExIsEmailValid(aEmail : String) : Boolean;
 begin
-  PerlRegEx.RegEx := '^[\w-]+(\.[\w-]+)*@([a-z0-9-]+(\.[a-z0-9-]+)*?\.[a-z]{2,6}|(\d{1,3}\.){3}\d{1,3})(:\d{4})?$';
+  PerlRegEx.RegEx := '^[\w-]+(\.[\w-]+)*@([A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*?\.[A-Za-z]{2,6}|(\d{1,3}\.){3}\d{1,3})(:\d{4})?$';
   PerlRegEx.Subject := aEmail;
 
   Result := PerlRegEx.Match;
