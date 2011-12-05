@@ -21,7 +21,7 @@ uses
   StdCtrls, VirtualTrees, cfList32, eCollect, syDefs, sysObj32, bkconst,
   StDate,
   ClientCodingStatistics,
-  Menus, ExtCtrls, WebCiCoClient;
+  Menus, ExtCtrls, WebCiCoClient, BlopiServiceFacade;
 
 type
 //  TBankLinkOnlineMode = (bomNone, bomGetFile, bomSendFile);
@@ -53,7 +53,7 @@ type
                        cluNextGSTDue,
                        cluBankLinkOnline,
                        cluModifiedDate,
-                       cluBONotes,
+                       cluBOProduct,
                        cluBOBillingFrequency,
                        cluBOUserAdmin,
                        cluBOSuspended,
@@ -215,6 +215,7 @@ type
     FOnUpdateCount: TNotifyEvent;
     FSeverResponce : TServerResponse;
     FNoOnlineConnection: boolean;
+    FClient: Client;
     FFrameUseMode: TFrameUseMode;
     FServerResponse: TServerResponse;
     FClientStatusList: TClientStatusList;
@@ -2156,7 +2157,7 @@ begin
               end;
             end;
 
-          cluBONotes :
+          cluBOProduct :
           begin
             CellText := #10004; // tick
           end;
@@ -2213,7 +2214,7 @@ begin
       end;
     end
     else
-    if ColID = cluBONotes then
+    if ColID = cluBOProduct then
     begin
       TargetCanvas.Font.Color := clGreen;
       TVirtualStringTree(Sender).Header.Columns[Column].Alignment := taCenter;
