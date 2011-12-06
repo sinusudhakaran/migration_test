@@ -13,6 +13,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -26,8 +27,8 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     object lblSelectProducts: TLabel
       Left = 16
       Top = 20
-      Width = 244
-      Height = 30
+      Width = 241
+      Height = 26
       Caption = 
         'Select the BankLink Online products that you wish to have availa' +
         'ble for this client:'
@@ -115,12 +116,14 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Height = 17
       Caption = '&Use Client Details'
       TabOrder = 0
+      OnClick = chkUseClientDetailsClick
     end
     object edtUserName: TEdit
       Left = 128
       Top = 47
       Width = 321
       Height = 21
+      MaxLength = 60
       TabOrder = 1
     end
     object edtEmailAddress: TEdit
@@ -128,6 +131,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 74
       Width = 321
       Height = 21
+      MaxLength = 80
       TabOrder = 2
     end
   end
@@ -200,8 +204,9 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Height = 21
       ItemHeight = 13
       TabOrder = 3
-      Text = '30 days'
+      Text = 'Always'
       Items.Strings = (
+        'Always'
         '30 days'
         '90 days'
         '365 days')

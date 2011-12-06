@@ -451,6 +451,8 @@ begin
     Exit;
   end;
 
+  BanklinkOnlineSettings.SetContactName(eContact.Text);
+  BanklinkOnlineSettings.SetEmailAddress(eMail.Text);
   ShowBanklinkOnlineSettings;
 end;
 

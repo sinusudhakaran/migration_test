@@ -36,16 +36,21 @@ type
     procedure btnClearAllClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormShow(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
     procedure CheckClientConnectControls;
     procedure rbActiveClick(Sender: TObject);
     procedure rbDeactivatedClick(Sender: TObject);
+    procedure chkUseClientDetailsClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FillClientDetails;
+    procedure FormShow(Sender: TObject);
   private
     SubArray: ArrayOfGuid;
     FClient: Client;
+    FContactName, FEmailAddress: string;
   public
-    { Public declarations }
+    procedure SetContactName(Value: string);
+    procedure SetEmailAddress(Value: string);
   end;
 
 const
@@ -57,7 +62,7 @@ var
 
 implementation
 
-uses Globals, LogUtil;
+uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm;
 
 {$R *.dfm}
 
@@ -68,6 +73,20 @@ var
   PromptMessage, ErrorMsg: string;
   i, j, ButtonPressed: integer;
 begin
+  if (Trim(edtUserName.Text) = '') then
+  begin
+    ShowMessage('You must enter a user name. Please try again');
+    ModalResult := mrNone;
+    Exit;
+  end;
+
+  if not RegExIsEmailValid(edtEmailAddress.Text) then
+  begin
+    ShowMessage('You must enter a valid e-mail address. Please try again');
+    ModalResult := mrNone;
+    Exit;
+  end;
+
   if not BanklinkOnlineConnected then
   begin
     ErrorMsg := 'Banklink Practice is unable to connect to Banklink Online and so ' +
@@ -150,6 +169,11 @@ begin
   cmbConnectDays.Enabled := rbActive.Checked;
 end;
 
+procedure TfrmBanklinkOnlineSettings.chkUseClientDetailsClick(Sender: TObject);
+begin
+  FillClientDetails;
+end;
+
 procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
 var
   i: integer;
@@ -158,20 +182,30 @@ begin
     chkListProducts.Checked[i] := false;
 end;
 
+procedure TfrmBanklinkOnlineSettings.FillClientDetails;
+begin
+  if chkUseClientDetails.Checked then
+  begin
+    edtUserName.Text := FContactName;
+    edtEmailAddress.Text  := FEmailAddress;
+  end;
+  edtUserName.Enabled := not chkUseClientDetails.Checked;
+  edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
+end;
+
 procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 //  ListOfClients.Free;
   chklistProducts.Clear;
 end;
 
-procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
+procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
 var
   CatArray: ArrayOfCatalogueEntry;
   i, k: integer;
   GUID1, GUID2: WideString;
   AClientID: WideString;
 begin
-
   if AdminSystem.fdFields.fdUse_BankLink_Online then
   begin
     AClientID := ProductConfigService.Clients.Clients[0].Id;
@@ -182,9 +216,6 @@ begin
     rbDeactivated.Checked := FClient.Deactivated;
     cmbConnectDays.Text := FClient.ClientConnectDays;
     chkUseClientDetails.Checked := FClient.UseClientDetails;
-    edtUserName.Text := FClient.UserName;
-    edtEmailAddress.Text := FClient.EmailAddress;
-
     CatArray := ProductConfigService.Clients.Catalogue;
     for i := Low(CatArray) to High(CatArray) do
       chklistProducts.AddItem(CatArray[i].Description, TObject(CatArray[i].Id));
@@ -200,6 +231,10 @@ begin
   end;
 end;
 
+procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
+begin
+  FillClientDetails;
+end;
 
 procedure TfrmBanklinkOnlineSettings.rbActiveClick(Sender: TObject);
 begin
@@ -215,5 +250,15 @@ procedure TfrmBanklinkOnlineSettings.rbSuspendedClick(Sender: TObject);
 begin
   CheckClientConnectControls;
 end;   
+
+procedure TfrmBanklinkOnlineSettings.SetContactName(Value: string);
+begin
+  FContactName := Value;
+end;
+
+procedure TfrmBanklinkOnlineSettings.SetEmailAddress(Value: string);
+begin
+  FEmailAddress := Value;
+end;
 
 end.
