@@ -1,5 +1,15 @@
 unit PickNewPrimaryUser;
+//------------------------------------------------------------------------------
+{
+   Title:       Pick New Primary User Dialog
 
+   Description: Picks a new Primary BankLink Online User
+
+   Author:      Ralph Austen
+
+   Remarks:
+
+}
 //------------------------------------------------------------------------------
 interface
 
@@ -20,12 +30,12 @@ uses
 
 type
   TPickNewPrimaryUser = class(TForm)
-    Image1: TImage;
-    btnYes: TButton;
-    btnNo: TButton;
-    lblText: TLabel;
-    Label1: TLabel;
-    Label2: TLabel;
+    Image1  : TImage;
+    btnYes  : TButton;
+    btnNo   : TButton;
+    lblText : TLabel;
+    Label1  : TLabel;
+    Label2  : TLabel;
     cmbPrimaryContact: TComboBox;
     procedure FormCreate(Sender: TObject);
   private
@@ -49,9 +59,9 @@ uses
 //------------------------------------------------------------------------------
 function PickPrimaryUser(CurrentUser : Guid = '') : Boolean;
 var
-  MyDlg : TPickNewPrimaryUser;
+  MyDlg        : TPickNewPrimaryUser;
   CurrPractice : Practice;
-  UserIndex : integer;
+  UserIndex    : integer;
 begin
   Result := False;
   try
@@ -60,6 +70,8 @@ begin
     MyDlg := TPickNewPrimaryUser.Create(Application);
     Try
       MyDlg.cmbPrimaryContact.Clear;
+
+      // Go through users adding to Combo if not current user
       for UserIndex := 0 to high(CurrPractice.Users) do
       begin
         if not (CurrPractice.Users[UserIndex].Id = CurrentUser) then
@@ -69,6 +81,7 @@ begin
         end;
       end;
 
+      // show error if no users
       if MyDlg.cmbPrimaryContact.Items.Count = 0 then
       begin
         HelpfulWarningMsg('BankLink Practice is unable to delete the user as it is the primary contact ' +
@@ -80,6 +93,7 @@ begin
 
       if MyDlg.ShowModal = mrYes then
       begin
+        // Save Default Admin User
         CurrPractice.DefaultAdminUserId := User(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
         ProductConfigService.SavePractice;
         Result := True;

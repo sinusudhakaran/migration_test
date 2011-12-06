@@ -1,5 +1,16 @@
 unit EditUserPassword;
+//------------------------------------------------------------------------------
+{
+   Title:       Edit User Password Dialog
 
+   Description: Changes the password for a user, this dialog is only accessable
+                if the current user has access to BankLink Online
+
+   Author:      Ralph Austen
+
+   Remarks:
+
+}
 //------------------------------------------------------------------------------
 interface
 
@@ -15,7 +26,7 @@ uses
   Dialogs,
   StdCtrls,
   OsFont,
-  SyDefs;
+  SyDefs;       
 
 type
   TEditUserPassword = class(TForm)
@@ -66,7 +77,9 @@ var
   MyDlg : TEditUserPassword;
 begin
   result := false;
-  if not Assigned( AdminSystem) then exit;
+
+  if not Assigned( AdminSystem) then
+    exit;
 
   MyDlg := TEditUserPassword.Create(Application.mainForm);
   try
@@ -107,25 +120,29 @@ function TEditUserPassword.Validate : boolean;
 begin
   Result := false;
 
-  if (Trim(Uppercase(edtOldPassword.text)) <> fUser_Rec.usPassword) then begin
+  if (Trim(Uppercase(edtOldPassword.text)) <> fUser_Rec.usPassword) then
+  begin
     HelpfulWarningMsg('Practice old user password is not correct', 0 );
     edtOldPassword.SetFocus;
     exit;
   end; { (Trim(edtOldPassword.text) <> fUser_Rec.usPassword) }
 
-  if (Trim(edtNewPassword.text) = '') then begin
+  if (Trim(edtNewPassword.text) = '') then
+  begin
     HelpfulWarningMsg('BankLink Online users must have a Password.', 0 );
     edtNewPassword.SetFocus;
     exit;
   end; { (Trim(edtNewPassword.text) = '') }
 
-  if (edtNewPassword.text <> edtConfirmPassword.text) then begin
+  if (edtNewPassword.text <> edtConfirmPassword.text) then
+  begin
     HelpfulWarningMsg('BankLink Online users Password and Confirm Password must be the same.', 0 );
     edtNewPassword.SetFocus;
     exit;
   end; { (edtNewPassword.text <> edtConfirmPassword.text) }
 
-  if not RegExIsPasswordValid(edtNewPassword.text) then begin
+  if not RegExIsPasswordValid(edtNewPassword.text) then
+  begin
     HelpfulWarningMsg('BankLink Online users must have a Password that contains 8-12 characters, including atleast 1 digit.', 0 );
     edtNewPassword.SetFocus;
     exit;
@@ -186,7 +203,8 @@ begin
   If LoadAdminSystem(true, UNITNAME ) Then
   begin
     fUser_Rec := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN);
-    If not Assigned(fUser_Rec) Then begin
+    If not Assigned(fUser_Rec) Then
+    begin
       UnlockAdmin;
       HelpfulErrorMsg('The User ' + CurrUser.FullName + ' can no longer be found in the Admin System.', 0);
       exit;

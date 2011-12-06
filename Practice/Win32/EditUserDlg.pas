@@ -32,7 +32,7 @@ Uses
   BankLinkOnlineServices;
 
 Type
-  TdlgEditUser = Class (TForm)
+  TdlgEditUser = Class(TForm)
     btnOK        : TButton;
     btnCancel    : TButton;
     pcMain: TPageControl;
@@ -88,15 +88,13 @@ Type
     procedure cmbUserTypeSelect(Sender: TObject);
     procedure chkCanAccessBankLinkOnlineClick(Sender: TObject);
   Private
-    { Private declarations }
     fUserGuid     : Guid;
     fIsCreateUser : boolean;
     fUserCanAccessBankLinkOnline : Boolean;
     fIsPrimaryUser : Boolean;
-
-    okPressed  : boolean;
-    formLoaded : boolean;
-    EditChk    : boolean;
+    fokPressed  : boolean;
+    fformLoaded : boolean;
+    fEditChk    : boolean;
 
     function GetCurrentCode : string;
     procedure OnlineControlSetup;
@@ -104,8 +102,11 @@ Type
     Function PosttoBankLinkOnline : Boolean;
     Procedure UpdateAdminFileAccessList( UserLRN : integer);
     Function IsBankLinkOnlineUser : Boolean;
+
+    property okPressed  : boolean read fokPressed  write fokPressed;
+    property formLoaded : boolean read fformLoaded write fformLoaded;
+    property EditChk    : boolean read fEditChk    write fEditChk;
   Public
-    { Public declarations }
     Function Execute(User: pUser_Rec) : boolean;
 
     property UserGuid     : Guid    read fUserGuid     write fUserGuid;
@@ -143,7 +144,7 @@ Const
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.FormCreate(Sender: TObject);
 var
-  i : Integer;
+  UserTypeIndex : Integer;
 begin
   bkXPThemes.ThemeForm( Self);
 
@@ -154,12 +155,9 @@ begin
   SetpasswordFont(ePass);
   SetpasswordFont(eConfirmPass);
 
-  with cmbUserType do
-  begin
-    Clear;
-    for i := ustmin to ustMax do
-      Items.Add(ustNames[i]);
-  end;
+  cmbUserType.Clear;
+  for UserTypeIndex := ustmin to ustMax do
+    cmbUserType.Items.Add(ustNames[UserTypeIndex]);
 End;
 
 //------------------------------------------------------------------------------
@@ -231,7 +229,8 @@ End; { TdlgEditUser.btnCancelClick }
 //------------------------------------------------------------------------------
 Procedure TdlgEditUser.btnOKClick(Sender: TObject);
 begin { TdlgEditUser.btnOKClick }
-  If OKtoPost Then begin
+  If OKtoPost Then
+  begin
     if not PosttoBankLinkOnline then
       Exit;
 
@@ -281,8 +280,10 @@ Var
 begin { TdlgEditUser.OKtoPost }
   Result := false;
 
-  if eUserCode.visible Then begin
-    if (Trim(eUserCode.text) = '') Then begin
+  if eUserCode.visible Then
+  begin
+    if (Trim(eUserCode.text) = '') Then
+    begin
       HelpfulWarningMsg('You must enter a user code.', 0);
       pcMain.ActivePage := tsDetails;
       eUserCode.SetFocus;
@@ -300,36 +301,42 @@ begin { TdlgEditUser.OKtoPost }
     End; { Assigned(URec) or (eUserCode.text = SUPERUSER) };
   End; { eUserCode.visible };
 
-  if IsBankLinkOnlineUser then begin
-    if (Trim(eFullName.text) = '') Then begin
+  if IsBankLinkOnlineUser then
+  begin
+    if (Trim(eFullName.text) = '') Then
+    begin
       HelpfulWarningMsg('BankLink Online users must have a User Name.', 0);
       pcMain.ActivePage := tsDetails;
       eFullName.SetFocus;
       exit;
     end; { (Trim(eUserName.text) = '') };
 
-    If not RegExIsEmailValid(eMail.text) Then begin
+    If not RegExIsEmailValid(eMail.text) Then
+    begin
       HelpfulWarningMsg('BankLink Online users must have a valid Email Address.', 0 );
       pcMain.ActivePage := tsDetails;
       eMail.SetFocus;
       exit;
     end; { ValidEmail(eMail.text) }
 
-    if (Trim(ePass.text) = '') then begin
+    if (Trim(ePass.text) = '') then
+    begin
       HelpfulWarningMsg('BankLink Online users must have a Password.', 0 );
       pcMain.ActivePage := tsDetails;
       ePass.SetFocus;
       exit;
     end; { (Trim(ePass.text) = '') }
 
-    if (ePass.text <> eConfirmPass.text) then begin
+    if (ePass.text <> eConfirmPass.text) then
+    begin
       HelpfulWarningMsg('BankLink Online users Password and Confirm Password must be the same.', 0 );
       pcMain.ActivePage := tsDetails;
       ePass.SetFocus;
       exit;
     end; { (ePass.text <> eConfirmPass.text) }
 
-    if not RegExIsPasswordValid(ePass.text) then begin
+    if not RegExIsPasswordValid(ePass.text) then
+    begin
       HelpfulWarningMsg('BankLink Online users must have a Password that contains 8-12 characters, including atleast 1 digit.', 0 );
       pcMain.ActivePage := tsDetails;
       ePass.SetFocus;
@@ -338,7 +345,8 @@ begin { TdlgEditUser.OKtoPost }
   end  { IsBankLinkOnlineUser }
   else
   begin
-    if AdminSystem.fdFields.fdCountry = whUK then begin
+    if AdminSystem.fdFields.fdCountry = whUK then
+    begin
     //All UK users must have a password TFS 19605
       if (ePass.Text = '') then
       begin
@@ -349,7 +357,8 @@ begin { TdlgEditUser.OKtoPost }
       end;
     end;
 
-    if not (ePass.text = eConfirmPass.text) Then begin
+    if not (ePass.text = eConfirmPass.text) Then
+    begin
       HelpfulWarningMsg('The passwords you have entered do not match. Please re-enter them.', 0);
       pcMain.ActivePage := tsDetails;
       ePass.SetFocus;
@@ -451,13 +460,15 @@ var
   MsgCreateorUpdate : String;
   MsgAddorUpdate    : String;
 begin
-  If formLoaded Then begin
+  If formLoaded Then
+  begin
     If (not chkCanAccessBankLinkOnline.Checked)
     and (fUserCanAccessBankLinkOnline) then
     begin
       If AskYesNo('Deleted BankLink User', 'This user will be Deleted on BankLink Online.' + #13
                 + 'Are you sure you want to continue?', DLG_NO, 0) <>
-        DLG_YES Then begin
+        DLG_YES Then
+      begin
         chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
       End;
     end
@@ -477,7 +488,8 @@ begin
 
       If AskYesNo(MsgAddorUpdate + ' BankLink User', 'This user will be ' + MsgCreateorUpdate + ' BankLink Online.' + #13
                 + 'Are you sure you want to do this?', DLG_NO, 0) <>
-        DLG_YES Then begin
+        DLG_YES Then
+      begin
         chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
       End;
     End;
@@ -501,18 +513,22 @@ end;
 //------------------------------------------------------------------------------
 Procedure TdlgEditUser.chkLoggedInClick(Sender: TObject);
 begin { TdlgEditUser.chkLoggedInClick }
-  If formLoaded Then begin
-    If EditChk Then begin
-       exit
+  If formLoaded Then
+  begin
+    If EditChk Then
+    begin
+      exit;
     End; {already editing}
+
     If AskYesNo('Reset User Status', 'This will reset the User''s login status and reset the Client File '
        + 'open status for any files the user had open.  You should only do this '
        + 'if the user has been unexpectedly disconnected from ' + SHORTAPPNAME+'.'
        + #13 + #13 + 'Please confirm you want to do this.', DLG_NO, 0) <>
-       DLG_YES Then begin
-       EditChk := true;
-       chkLoggedIn.Checked := not chkLoggedIn.Checked;
-       EditChk := false;
+       DLG_YES Then
+    begin
+      EditChk := true;
+      chkLoggedIn.Checked := not chkLoggedIn.Checked;
+      EditChk := false;
     End
        { AskYesNo('Reset User Status', 'This will reset the Users login status and reset the Client File '  };
   End { formLoaded };
@@ -530,13 +546,17 @@ begin
   AdminSystem.fdSystem_File_Access_List.Delete_User( UserLRN );
 
   //set access if selected files checked
-  if rbSelectedFiles.Checked then begin
-    if lvFiles.Items.Count = 0 then begin
+  if rbSelectedFiles.Checked then
+  begin
+    if lvFiles.Items.Count = 0 then
+    begin
       //create a dummy client LRN so that file access will be denied
       AdminSystem.fdSystem_File_Access_List.Insert_Access_Rec( UserLRN, 0 )
     end
-    else begin
-      for i := 0 to Pred( lvFiles.Items.Count ) do begin
+    else
+    begin
+      for i := 0 to Pred( lvFiles.Items.Count ) do
+      begin
         CLRN := Integer( lvFiles.Items[ i].SubItems.Objects[ 0]);
         AdminSystem.fdSystem_File_Access_List.Insert_Access_Rec( UserLRN, CLRN );
       end;
@@ -564,7 +584,11 @@ begin
     Codes.Delimiter := ClientCodeDelimiter;
     Codes.StrictDelimiter := True;
     //ask the user for a list of codes, will reload admin system
-    Codes.DelimitedText := LookupClientCodes( 'Select Files', '', [ coHideStatusColumn, coHideViewButtons, coAllowMultiSelected, coShowAssignedToColumn], 'Add');
+    Codes.DelimitedText :=
+      LookupClientCodes( 'Select Files',
+                         '',
+                         [ coHideStatusColumn, coHideViewButtons, coAllowMultiSelected, coShowAssignedToColumn],
+                         'Add');
 
     for i := 0 to Codes.Count - 1 do
     begin
@@ -577,7 +601,8 @@ begin
           If Integer( lvFiles.Items[ j].SubItems.Objects[ 0]) = pCF.cfLRN then
             Found := True;
 
-        if not Found then begin
+        if not Found then
+        begin
            NewLVItem := lvFiles.Items.Add;
            NewLVItem.caption := pCF^.cfFile_Code;
            NewLVItem.SubItems.AddObject( pCF^.cfFile_Name, Pointer( pCF^.cfLRN ));
@@ -592,7 +617,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.btnRemoveClick(Sender: TObject);
-Var i : Integer;
+Var
+  i : Integer;
 begin
   If lvFiles.SelCount > 0 then
   begin
@@ -607,14 +633,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.rbAllFilesClick(Sender: TObject);
 begin
-   pnlSelected.Visible := rbSelectedFiles.Checked;
+  pnlSelected.Visible := rbSelectedFiles.Checked;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.rbSelectedFilesClick(Sender: TObject);
 begin
-   pnlSelected.Visible := rbSelectedFiles.Checked;
-
+  pnlSelected.Visible := rbSelectedFiles.Checked;
 end;
 
 //------------------------------------------------------------------------------
@@ -683,32 +708,36 @@ begin { TdlgEditUser.Execute }
       cmbUserType.ItemIndex := ustRestricted
     else
       cmbUserType.ItemIndex := ustNormal;
+
     cmbUserTypeSelect(cmbUserType);
 
     //see if user is restricted
-    if AdminSystem.fdSystem_File_Access_List.Restricted_User( User^.usLRN) then begin
-       rbSelectedFiles.Checked := true;
+    if AdminSystem.fdSystem_File_Access_List.Restricted_User( User^.usLRN) then
+    begin
+      rbSelectedFiles.Checked := true;
 
-       //load selected files into list view
-       lvFiles.Items.BeginUpdate;
-       try
-          With AdminSystem.fdSystem_Client_File_List do begin
-             For i := 0 to Pred( ItemCount ) do With AdminSystem.fdSystem_Client_File_List.Client_File_At( i )^ do
-             begin
-                If AdminSystem.fdSystem_File_Access_List.Allow_Access( User^.usLRN, cfLRN ) then begin
-                  NewLVItem := lvFiles.Items.Add;
-                  NewLVItem.caption := cfFile_Code;
-                  NewLVItem.SubItems.AddObject( cfFile_Name, Pointer( cfLRN ));
-                  NewLVItem.ImageIndex := 0;
-                end;
-             end;
+      //load selected files into list view
+      lvFiles.Items.BeginUpdate;
+      try
+        With AdminSystem.fdSystem_Client_File_List do
+        begin
+          For i := 0 to Pred( ItemCount ) do With AdminSystem.fdSystem_Client_File_List.Client_File_At( i )^ do
+          begin
+            If AdminSystem.fdSystem_File_Access_List.Allow_Access( User^.usLRN, cfLRN ) then
+            begin
+              NewLVItem := lvFiles.Items.Add;
+              NewLVItem.caption := cfFile_Code;
+              NewLVItem.SubItems.AddObject( cfFile_Name, Pointer( cfLRN ));
+              NewLVItem.ImageIndex := 0;
+            end;
           end;
-       finally
-          lvFiles.Items.EndUpdate;
-       end;
+        end;
+      finally
+        lvFiles.Items.EndUpdate;
+      end;
     end
     else
-       rbAllFiles.Checked := true;
+      rbAllFiles.Checked := true;
 
     eUserCode.Visible  := false;
     stUserName.Caption := User.usCode;
@@ -731,6 +760,7 @@ begin { TdlgEditUser.Execute }
 
     if User.usWorkstation_Logged_In_At <> '' then
       chkLoggedIn.Caption := 'User is &Logged In  (on ' + User.usWorkstation_Logged_In_At +')';
+
     chkMaster.Checked     := User.usMASTER_Access;
   end { Assigned(User) }
   else
@@ -770,7 +800,7 @@ End; { TdlgEditUser.Execute }
 //------------------------------------------------------------------------------
 Function EditUser(User_Code: String) : boolean;
 const
-   ThisMethodName = 'EditUser';
+  ThisMethodName = 'EditUser';
 Var
   MyDlg       : TdlgEditUser;
   eUser       : pUser_Rec;
@@ -785,15 +815,15 @@ begin { EditUser }
 
   eUser := AdminSystem.fdSystem_User_List.FindCode(User_Code);
 
-  If not (Assigned(AdminSystem) and Assigned(eUser)) Then begin
-     exit
-  End;
+  If not (Assigned(AdminSystem) and Assigned(eUser)) Then
+    exit;
 
   MyDlg := TdlgEditUser.Create(Application);
   Try
     MyDlg.IsCreateUser := False;
     BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
-    if Assigned(CurrUser) Then begin
+    if Assigned(CurrUser) Then
+    begin
       if (CurrUser.LRN = eUser.usLRN) or (not eUser.usLogged_In) then
       begin
         MyDlg.chkLoggedIn.Enabled    := false;
@@ -802,19 +832,23 @@ begin { EditUser }
     end;
     WasLoggedIn := eUser^.usLogged_In;
 
-    If MyDlg.Execute(eUser) Then begin
+    If MyDlg.Execute(eUser) Then
+    begin
       //get the user_rec again as the admin system may have changed in the mean time.
       eUser := AdminSystem.fdSystem_User_List.FindCode(User_Code);
-      With MyDlg Do begin
+      With MyDlg Do
+      begin
         StoredLRN := eUser.usLRN; {user pointer about to be destroyed}
         StoredName := eUser.usCode;
 
-        If LoadAdminSystem(true, ThisMethodName ) Then begin
+        If LoadAdminSystem(true, ThisMethodName ) Then
+        begin
           pu := AdminSystem.fdSystem_User_List.FindLRN(StoredLRN);
-          If not Assigned(pu) Then begin
-             UnlockAdmin;
-             HelpfulErrorMsg('The User ' + StoredName + ' can no longer be found in the Admin System.', 0);
-             exit;
+          If not Assigned(pu) Then
+          begin
+            UnlockAdmin;
+            HelpfulErrorMsg('The User ' + StoredName + ' can no longer be found in the Admin System.', 0);
+            exit;
           End;
 
           pu.usName           := eFullName.text;
@@ -822,9 +856,11 @@ begin { EditUser }
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
+
           if CBSuppressHeaderFooter.Checked then
             pu.usSuppress_HF := shfChecked
-          else pu.usSuppress_HF := shfUnChecked;
+          else
+            pu.usSuppress_HF := shfUnChecked;
 
           pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
           pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
@@ -848,40 +884,48 @@ begin { EditUser }
                 pu.usSystem_Access  := False;
                 pu.usIs_Remote_User := False;
               end;
-          else
-            pu.usSystem_Access  := False;
-            pu.usIs_Remote_User := False;
+            else
+              begin
+                pu.usSystem_Access  := False;
+                pu.usIs_Remote_User := False;
+              end;
           end;
+
           pu.usMASTER_Access  := chkMaster.Checked;
 //          pu.usBankLink_Online_Guid := UserGuid;
 
-          If pu.usLogged_In <> chkLoggedIn.Checked Then begin
-             If chkLoggedIn.Checked Then begin
-                YN := 'YES'
-             End
-             Else begin
-                YN := 'NO'
-             End;
-             LogUtil.LogMsg(lmInfo, UNITNAME,
-                            'User ' + StoredName + ' Logged In reset to ' + YN);
-             pu.usLogged_In := chkLoggedIn.Checked;
+          If pu.usLogged_In <> chkLoggedIn.Checked Then
+          begin
+            If chkLoggedIn.Checked Then
+              YN := 'YES'
+            Else
+              YN := 'NO';
 
-             //have changed to not logged in ( logged out). ie reset user status, so now reset any open files
-             If (not (chkLoggedIn.Checked) and WasLoggedIn) Then begin
-                //clear the workstation identifier
-                pu.usWorkstation_Logged_In_At := '';
-                With AdminSystem.fdSystem_Client_File_List Do begin
-                   For i := 0 to Pred(ItemCount) Do begin
-                      With Client_File_At(i)^ Do begin
-                         If (cfFile_Status = fsOpen) and (cfCurrent_User = pu^.usLRN) Then begin
-                            //reset the file status for files that this user may have open
-                            cfFile_Status := fsNormal;
-                            cfCurrent_User := 0;
-                         End
-                      End
-                   End
-                End
-             End;
+            LogUtil.LogMsg(lmInfo, UNITNAME,
+                          'User ' + StoredName + ' Logged In reset to ' + YN);
+            pu.usLogged_In := chkLoggedIn.Checked;
+
+            //have changed to not logged in ( logged out). ie reset user status, so now reset any open files
+            If (not (chkLoggedIn.Checked) and WasLoggedIn) Then
+            begin
+              //clear the workstation identifier
+              pu.usWorkstation_Logged_In_At := '';
+              With AdminSystem.fdSystem_Client_File_List Do
+              begin
+                For i := 0 to Pred(ItemCount) Do
+                begin
+                  With Client_File_At(i)^ Do
+                  begin
+                    If (cfFile_Status = fsOpen) and (cfCurrent_User = pu^.usLRN) Then
+                    begin
+                      //reset the file status for files that this user may have open
+                      cfFile_Status := fsNormal;
+                      cfCurrent_User := 0;
+                    End;
+                  End;
+                End;
+              End;
+            End;
           End;
 
           UpdateAdminFileAccessList( pu^.usLRN);
@@ -895,114 +939,125 @@ begin { EditUser }
           LogUtil.LogMsg(lmInfo, UNITNAME,
                          Format('User %s was edited by %s.', [pu^.usName, CurrUser.FullName]));
 
-          If Assigned(CurrUser) Then begin
-             If CurrUser.LRN = pu.usLRN Then begin
-                CurrUser.CanMemoriseToMaster := pu.usMASTER_Access;
-                CurrUser.FullName := pu.usName;
-                CurrUser.ShowPrinterDialog := pu.usShow_Printer_Choice;
-             End { CurrUser.LRN = pu.usLRN }
+          If Assigned(CurrUser) Then
+          begin
+            If CurrUser.LRN = pu.usLRN Then
+            begin
+              CurrUser.CanMemoriseToMaster := pu.usMASTER_Access;
+              CurrUser.FullName := pu.usName;
+              CurrUser.ShowPrinterDialog := pu.usShow_Printer_Choice;
+            End; { CurrUser.LRN = pu.usLRN }
           End;
         End { LoadAdminSystem(true) }
-        Else begin
-           HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.', 0)
+        Else
+        begin
+          HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.', 0)
         End;
-      End { with MyDlg }
+      End; { with MyDlg }
     End;
   Finally
-     MyDlg.Free;
-  End { try };
+    MyDlg.Free;
+  End; { try };
 End; { EditUser }
 
 //------------------------------------------------------------------------------
 Function AddUser : boolean;
 const
-   ThisMethodName = 'AddUser';
+  ThisMethodName = 'AddUser';
 Var
-   MyDlg : TdlgEditUser;
-   pu    : pUser_Rec;
+  MyDlg : TdlgEditUser;
+  pu    : pUser_Rec;
 begin { AddUser }
-   Result := false;
-   If not Assigned(AdminSystem) Then begin
-      exit
-   End;
+  Result := false;
+  If not Assigned(AdminSystem) Then
+    exit;
 
-   MyDlg := TdlgEditUser.Create(Application);
-   Try
-      MyDlg.IsCreateUser := True;
-      BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
-      If MyDlg.Execute(Nil) Then begin
-         With MyDlg Do begin
-            If LoadAdminSystem(true, ThisMethodName ) Then begin
-               pu := New_User_Rec;
+  MyDlg := TdlgEditUser.Create(Application);
+  Try
+    MyDlg.IsCreateUser := True;
+    BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
+    If MyDlg.Execute(Nil) Then
+    begin
+      With MyDlg Do
+      begin
+        If LoadAdminSystem(true, ThisMethodName ) Then
+        begin
+          pu := New_User_Rec;
 
-               if not Assigned(pu) Then begin
-                  UnlockAdmin;
-                  HelpfulErrorMsg('New User cannot be created', 0);
-                  exit;
-               end { not Assigned(pu) };
+          if not Assigned(pu) Then
+          begin
+            UnlockAdmin;
+            HelpfulErrorMsg('New User cannot be created', 0);
+            exit;
+          end { not Assigned(pu) };
 
-               Inc(AdminSystem.fdFields.fdUser_LRN_Counter);
-               pu.usCode           := eUserCode.text;
-               pu.usName           := eFullName.text;
-               pu.usPassword       := ePass.text;
-               pu.usEMail_Address  := Trim( eMail.text);
-               pu.usDirect_Dial    := eDirectDial.Text;
-               pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
-               if CBSuppressHeaderFooter.Checked then
-                 pu.usSuppress_HF := shfChecked
-               else pu.usSuppress_HF := shfUnChecked;
+          Inc(AdminSystem.fdFields.fdUser_LRN_Counter);
+          pu.usCode           := eUserCode.text;
+          pu.usName           := eFullName.text;
+          pu.usPassword       := ePass.text;
+          pu.usEMail_Address  := Trim( eMail.text);
+          pu.usDirect_Dial    := eDirectDial.Text;
+          pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
+          if CBSuppressHeaderFooter.Checked then
+            pu.usSuppress_HF := shfChecked
+          else
+            pu.usSuppress_HF := shfUnChecked;
 
-               pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
-               pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
-               pu.usUse_Practice_Password_Online := chkUsePracPassInOnline.Checked
-                                           and chkCanAccessBankLinkOnline.Enabled;
+          pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
+          pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
+          pu.usUse_Practice_Password_Online := chkUsePracPassInOnline.Checked
+                                     and chkCanAccessBankLinkOnline.Enabled;
 
-               case cmbUserType.ItemIndex of
-                 ustRestricted :
-                   begin
-                     pu.usSystem_Access  := False;
-                     pu.usIs_Remote_User := True;
-                   end;
-                 ustSystem :
-                   begin
-                     pu.usSystem_Access  := True;
-                     pu.usIs_Remote_User := False;
-                   end;
-                 ustNormal :
-                   begin
-                     pu.usSystem_Access  := False;
-                     pu.usIs_Remote_User := False;
-                   end;
-               else
-                 pu.usSystem_Access  := False;
-                 pu.usIs_Remote_User := False;
-               end;
-               pu.usMASTER_Access  := chkMaster.Checked;
-               pu.usLogged_In      := false;
-               pu.usLRN            := AdminSystem.fdFields.fdUser_LRN_Counter;
-//               pu.usBankLink_Online_Guid := UserGuid;
+          case cmbUserType.ItemIndex of
+           ustRestricted :
+             begin
+               pu.usSystem_Access  := False;
+               pu.usIs_Remote_User := True;
+             end;
+           ustSystem :
+             begin
+               pu.usSystem_Access  := True;
+               pu.usIs_Remote_User := False;
+             end;
+           ustNormal :
+             begin
+               pu.usSystem_Access  := False;
+               pu.usIs_Remote_User := False;
+             end;
+           else
+             begin
+               pu.usSystem_Access  := False;
+               pu.usIs_Remote_User := False;
+             end;
+          end;
 
-               AdminSystem.fdSystem_User_List.Insert( pu );
+          pu.usMASTER_Access  := chkMaster.Checked;
+          pu.usLogged_In      := false;
+          pu.usLRN            := AdminSystem.fdFields.fdUser_LRN_Counter;
+          //               pu.usBankLink_Online_Guid := UserGuid;
 
-               UpdateAdminFileAccessList( pu^.usLRN);
+          AdminSystem.fdSystem_User_List.Insert( pu );
 
-               //*** Flag Audit ***
-               SystemAuditMgr.FlagAudit(arUsers);
+          UpdateAdminFileAccessList( pu^.usLRN);
 
-               SaveAdminSystem;
-               Result := true;
+          //*** Flag Audit ***
+          SystemAuditMgr.FlagAudit(arUsers);
 
-               LogUtil.LogMsg(lmInfo, UNITNAME,
-                              Format('User %s was added by %s.', [pu^.usName, CurrUser.FullName]));
-            End { LoadAdminSystem(true) }
-            Else begin
-               HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.', 0)
-            End;
-         End { with MyDlg }
-      End;
-   Finally
-      MyDlg.Free;
-   End { try };
+          SaveAdminSystem;
+          Result := true;
+
+          LogUtil.LogMsg(lmInfo, UNITNAME,
+                        Format('User %s was added by %s.', [pu^.usName, CurrUser.FullName]));
+        End { LoadAdminSystem(true) }
+        Else
+        begin
+           HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.', 0)
+        End;
+      End; { with MyDlg }
+    End;
+  Finally
+    MyDlg.Free;
+  End; { try };
 End; { AddUser }
 
 End.
