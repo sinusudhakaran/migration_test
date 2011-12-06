@@ -6,8 +6,9 @@ unit WebUtils;
    Description:
      Some XML helpers for reading wnd writing field types.
      similar EncodeText and DecodeText
+     Used for WebNotes, but also for.Net serialization
 
-   Author: Ralph Austen
+
 
    Remarks:
 }
@@ -23,28 +24,50 @@ uses
   XMLIntf,
   xmldom;
 
+  type test = string[60];
+
 function FormatXMLdate(Value: TstDate): string;
 procedure AddBooleanOption(var ToNode: IXMLNode; name: string; Value: Boolean);
 procedure SetTextAttr(var OnNode: IXMLNode; Name, Value: string);
 procedure SetSourceAttr(var OnNode: IXMLNode; Name: string;  Value: Integer);
 procedure SetMoneyAttr(var OnNode: IXMLNode; Name: string; Value: Money);
+procedure SetMoneyElement(var OnNode: IXMLNode; Name: string; Value: Money);
 procedure SetBoolAttr(var OnNode: IXMLNode; Name: string; Value: Boolean);
+procedure SetIntAttr(var OnNode: IXMLNode; Name: string; Value: Integer);
 procedure SetQtyAttr(var OnNode: IXMLNode; Name: string; Value: Money);
+procedure SetQtyElement(var OnNode: IXMLNode; Name: string; Value: Money);
+
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of byte); overload;
+//procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of test); overload;
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of integer); overload;
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of money); overload;
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of Boolean); overload;
+
 procedure SetRateAttr(var OnNode: IXMLNode; Name: string; Value: Money);
 procedure SetDateAttr(var OnNode: IXMLNode; Name: string; Value: TstDate);
+procedure SetDateElement(var OnNode: IXMLNode; Name: string; Value: TstDate);
 procedure SetCodeByAttr(var OnNode: IXMLNode; Name: string; Value: Byte);
 procedure SetUPIState(var OnNode: IXMLNode; Name: string; Value: Byte);
 
 function GetIntAttr(FromNode: IXMLNode; Name: string): Integer;
 function GetDateAttr(FromNode: IXMLNode; Name : string): TStDate;
+function GetDateElement(FromNode: IXMLNode; Name : string): TStDate;
 function GetStringAttr(FromNode: IXMLNode; Name : string): string;
+function GetTextAttr(FromNode: IXMLNode; Name : string): string;
 function GetUPIStateAttr(FromNode: IXMLNode; Name : string): Integer;
 function GetMoneyAttr(FromNode: IXMLNode; Name : string): Money;
+function GetMoneyElement(FromNode: IXMLNode; Name : string): Money;
 function GetQtyAttr(FromNode: IXMLNode; Name : string): Money;
+function GetQtyElement(FromNode: IXMLNode; Name : string): Money;
 function GetBoolAttr(FromNode: IXMLNode; Name : string): Boolean;
 function GetCodeByAttr(FromNode: IXMLNode; Name: string): Integer;
 function GetFirstDissection(FromNode: IXMLNode): IXMLNode;
 function GetDissectionCount(FromNode: IXMLNode): Integer;
+
+procedure GetArray(OnNode: IXMLNode; Name: string; var Value: array of byte); overload;
+procedure GetArray(OnNode: IXMLNode; Name: string; var Value: array of integer); overload;
+procedure GetArray(OnNode: IXMLNode; Name: string; var Value: array of money); overload;
+procedure GetArray(OnNode: IXMLNode; Name: string; var Value: array of Boolean); overload;
 
 function EncodeText(Value: string): string;
 function DecodeText(Value: string): string;
@@ -63,6 +86,7 @@ uses
   ZLibExGZ,
   glConst,
   Classes,
+  Variants,
   WebNotesSchema,
   stDateSt;
 
@@ -106,6 +130,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure SetIntAttr(var OnNode: IXMLNode; Name: string; Value: Integer);
+begin
+   OnNode.Attributes [Name] := IntToStr(Value)
+end;
+
+//------------------------------------------------------------------------------
 procedure AddBooleanOption(var ToNode: IXMLNode; name: string; Value: Boolean);
 var
   lNode : IXMLNode;
@@ -141,8 +171,18 @@ end;
 //------------------------------------------------------------------------------
 procedure SetDateAttr(var OnNode: IXMLNode; Name: string; Value: TstDate);
 begin
-  if Value <> 0 then
+  if (Value <> 0)
+  and (Value <> -1) then
     OnNode.Attributes [Name] := FormatXMLdate(Value);
+end;
+
+procedure SetDateElement(var OnNode: IXMLNode; Name: string; Value: TstDate);
+begin
+  if (Value = 0)
+  or (Value = -1) then // Null
+     OnNode.AddChild(Name).SetAttributeNS('nil', 'xsi', true)
+  else
+     OnNode.AddChild(Name).NodeValue := FormatXMLdate(Value);
 end;
 
 //------------------------------------------------------------------------------
@@ -152,12 +192,185 @@ begin
     OnNode.Attributes [Name] := (Value / 100);
 end;
 
+//----------------------- Nullable ---------------------------------------------
+procedure SetMoneyElement(var OnNode: IXMLNode; Name: string; Value: Money);
+begin
+  if Value <> Unknown then
+     OnNode.AddChild(Name).NodeValue :=  (Value / 100)
+  else
+     OnNode.AddChild(Name).SetAttributeNS('nil', 'xsi', true);
+end;
+
+
 //------------------------------------------------------------------------------
 procedure SetQtyAttr(var OnNode: IXMLNode; Name: string; Value: Money);
 begin
   if Value <> 0 then
     OnNode.Attributes [Name] := Value / 10000;
 end;
+
+//----------------------- Nullable ---------------------------------------------
+procedure SetQtyElement(var OnNode: IXMLNode; Name: string; Value: Money);
+begin
+  if Value <> Unknown then
+     OnNode.AddChild(Name).NodeValue := (Value / 10000)
+  else
+     OnNode.AddChild(Name).SetAttributeNS('nil', 'xsi', true);
+end;
+
+//------------------------------------------------------------------------------
+function MakeSingleName ( S : String ): String;
+begin
+   Result := S;
+   if Result[ Length(Result)] in ['s', 'S'] then
+      SetLength(Result,Length(Result) -1);
+
+end;
+
+//------------------------------------------------------------------------------
+procedure GetArray(OnNode: IXMLNode; Name: string; var Value: array of byte); overload;
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+
+begin
+    PNode := OnNode.ChildNodes.FindNode(Name);
+    if PNode = nil then exit;
+    I := Low(Value);
+    CNode := PNode.ChildNodes.FindNode(MakeSingleName(Name));
+    while assigned(CNode) and (I <= High(Value)) do begin
+       Value[I] := CNode.Nodevalue;
+       Cnode := CNode.NextSibling;
+    end;
+
+end;
+
+procedure GetArray(OnNode: IXMLNode; Name: string; var Value: array of integer); overload;
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+
+begin
+    PNode := OnNode.ChildNodes.FindNode(Name);
+    if PNode = nil then exit;
+    I := Low(Value);
+    CNode := PNode.ChildNodes.FindNode(MakeSingleName(Name));
+    while assigned(CNode) and (I <= High(Value)) do begin
+       Value[I] := CNode.Nodevalue;
+       Cnode := CNode.NextSibling;
+    end;
+
+end;
+
+
+procedure GetArray(OnNode: IXMLNode; Name: string; var Value: array of money); overload;
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+
+begin
+    PNode := OnNode.ChildNodes.FindNode(Name);
+    if PNode = nil then exit;
+    I := Low(Value);
+    CNode := PNode.ChildNodes.FindNode(MakeSingleName(Name));
+    while assigned(CNode) and (I <= High(Value)) do begin
+       Value[I] := CNode.Nodevalue;
+       Cnode := CNode.NextSibling;
+    end;
+
+end;
+
+
+
+procedure GetArray(OnNode: IXMLNode; Name: string; var Value: array of boolean); overload;
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+
+begin
+    PNode := OnNode.ChildNodes.FindNode(Name);
+    if PNode = nil then exit;
+    I := Low(Value);
+    CNode := PNode.ChildNodes.FindNode(MakeSingleName(Name));
+    while assigned(CNode) and (I <= High(Value)) do begin
+       Value[I] := CNode.Nodevalue;
+       Cnode := CNode.NextSibling;
+    end;
+
+end;
+
+
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of byte);
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+    ChildName: string;
+begin
+   PNode := OnNode.AddChild(name);
+   ChildName := MakeSingleName(Name);
+   for I := low(Value) to High(Value) do begin
+     CNode := PNode.AddChild(ChildName);
+     CNode.NodeValue := Value[I];
+   end;
+end;
+
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of test); overload;
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+    ChildName: string;
+begin
+   PNode := OnNode.AddChild(name);
+   ChildName := MakeSingleName(Name);
+   for I := low(Value) to High(Value) do begin
+     CNode := PNode.AddChild(ChildName);
+     CNode.NodeValue := Value[I];
+   end;
+end;
+
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of integer);
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+    ChildName: string;
+begin
+   PNode := OnNode.AddChild(name);
+   ChildName := MakeSingleName(Name);
+   for I := low(Value) to High(Value) do begin
+     CNode := PNode.AddChild(ChildName);
+     CNode.NodeValue := Value[I];
+   end;
+end;
+
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of money);
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+    ChildName: string;
+begin
+   PNode := OnNode.AddChild(name);
+   ChildName := MakeSingleName(Name);
+   for I := low(Value) to High(Value) do begin
+     CNode := PNode.AddChild(ChildName);
+     CNode.NodeValue := (Value[I] / 100);
+   end;
+end;
+
+
+procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of Boolean);
+var I: Integer;
+    PNode,
+    CNode: IXMLNode;
+    ChildName: string;
+begin
+   PNode := OnNode.AddChild(name);
+   ChildName := MakeSingleName(Name);
+   for I := low(Value) to High(Value) do begin
+     CNode := PNode.AddChild(ChildName);
+     CNode.NodeValue := Value[I];
+   end;
+end;
+
 
 //------------------------------------------------------------------------------
 procedure SetRateAttr(var OnNode: IXMLNode; Name: string; Value: Money);
@@ -220,6 +433,17 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function GetDateElement(FromNode: IXMLNode; Name : string): TStDate;
+var LNode:IXMLNode;
+begin
+   result := 0;
+   LNode := FromNode.ChildNodes.FindNode(Name);
+   if not Assigned(LNode) then exit;
+   if lNode.NodeValue = null then exit;
+   Result := DateStringToStDate(nDateMask, lNode.NodeValue, BKDATEEPOCH);
+end;
+
+//------------------------------------------------------------------------------
 function GetStringAttr(FromNode: IXMLNode; Name : string): string;
 begin
   if Assigned(FromNode.AttributeNodes.FindNode(Name)) then
@@ -228,6 +452,12 @@ begin
   end
   else
     Result := '';
+end;
+
+//------------------------------------------------------------------------------
+function GetTextAttr(FromNode: IXMLNode; Name : string): string;
+begin
+  Result := GetStringAttr(FromNode, Name);
 end;
 
 //------------------------------------------------------------------------------
@@ -258,6 +488,17 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function GetMoneyElement(FromNode: IXMLNode; Name : string): Money;
+var LNode:IXMLNode;
+begin
+   result := UnKnown;
+   LNode := FromNode.ChildNodes.FindNode(Name);
+   if not Assigned(LNode) then exit;
+   if lNode.NodeValue = null then exit;
+   Result := strToFloat(lNode.NodeValue) * 100;
+end;
+
+//------------------------------------------------------------------------------
 function GetQtyAttr(FromNode: IXMLNode; Name : string): Money;
 begin
   if Assigned(FromNode.AttributeNodes.FindNode(Name)) then
@@ -266,6 +507,17 @@ begin
   end
   else
     Result := 0;
+end;
+
+//------------------------------------------------------------------------------
+function GetQtyElement(FromNode: IXMLNode; Name : string): Money;
+var LNode:IXMLNode;
+begin
+   result := UnKnown;
+   LNode := FromNode.ChildNodes.FindNode(Name);
+   if not Assigned(LNode) then exit;
+   if lNode.NodeValue = null then exit;
+   Result := strToFloat(lNode.NodeValue) * 10000;
 end;
 
 //------------------------------------------------------------------------------
@@ -328,6 +580,8 @@ begin
   Result := XMLDoc.NewXMLDocument;
   try
     Result.Active := true;
+    Result.Options := Result.Options+[doAttrNull];
+
     Result.LoadFromXML(FromXML);
   except
     on e: exception do

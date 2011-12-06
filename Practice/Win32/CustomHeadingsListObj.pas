@@ -26,7 +26,7 @@ type
   tNew_Custom_Headings_List = class ( TExtdCollection )
   protected
     procedure FreeItem(Item : Pointer); override;
-    function  Custom_Heading_At(Index : Integer): pCustom_Heading_Rec;
+
     function  Find_Heading( const HeadingType, MajorID, MinorID : integer ): pCustom_Heading_Rec;
     function FindRecordID( ARecordID : integer ):  pCustom_Heading_Rec;
   private
@@ -37,6 +37,8 @@ type
     procedure SaveToFile(var S : TIOStream);
     procedure UpdateCRC(var CRC : LongWord);
     procedure CheckIntegrity;
+    // For export only Donot use direct
+    function  Custom_Heading_At(Index : Integer): pCustom_Heading_Rec;
     function  Insert( Item : Pointer ) : integer; override;
 
     function    Get_SubGroup_Heading( const SubGroupNo : integer ) : string;

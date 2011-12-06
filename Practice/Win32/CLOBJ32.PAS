@@ -49,8 +49,10 @@ type
     FClientCopy: TClientObj;
 {$ENDIF}
     procedure LoadFromStream( var s:TIOStream);
-    procedure GetZipStreamFromFile( const Filename : String; const ZipStream : TBigMemoryStream);
-    procedure OpenFromDataStream( var S : TIOStream);
+    procedure GetZipStreamFromFile(var Filename : String; const ZipStream : TBigMemoryStream);
+    procedure GetZipStreamFromStream(var Filename: String;  const stream: TStream; const ZipStream : TBigMemoryStream);
+    function GetDataStreamFromZipStream(const FileCode: String; const ZipStream : TBigMemoryStream): TIOStream;
+    procedure ReadFromDataStream( var S : TIOStream);
     procedure LogDebugMsg(S: string; Error: Boolean = false);
 {$IFDEF ParserDll}
 {$ELSE}
@@ -58,7 +60,9 @@ type
     procedure SaveToDataStream( var S : TIOStream; DefaultSize : integer = 0);
     procedure SaveToStream (var s:TIOStream);
     procedure ClientCopyReload(var S: TIOStream);
-    procedure WriteFileFromZipStream(const Filename: string; const ZipStream: TBigMemoryStream);
+
+
+
     function GetAccountingSystemName: string;
     function GetClientCopy: TClientObj;
     procedure SetAuditInfo(P1, P2: pClient_Rec; var AAuditInfo: TAuditInfo);
@@ -69,6 +73,9 @@ type
     procedure Open(FileCode, FileExtension : String);
 {$IFDEF ParserDll}
 {$ELSE}
+    procedure SimpleRead(FileCode: string; Stream: TStream);
+    function SaveClientToStream: TBigMemoryStream;
+
     property ExchangeSource: TExchangeSource read FExchangeSource;
     property  clExtendedName : string read GetLongName;   //used in reports
     property  clAccountingSystemName : string read GetAccountingSystemName;
@@ -402,7 +409,7 @@ begin
        tkBeginJobList            : clJobs.LoadFromFile(S);
        tkBegin_ClientExtra       : Read_ClientExtra_Rec (clExtra,s);
        tkBeginExchangeRateHeader : FExchangeSource.LoadFromStream( S );
-       tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);       
+       tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);
     else
        begin { Should never happen }
           Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -423,7 +430,25 @@ end;
 //
 //******************************************************************************
 
-procedure TClientObj.GetZipStreamFromFile(const Filename: String; const ZipStream: TBigMemoryStream);
+procedure TClientObj.GetZipStreamFromFile(var Filename: String; const ZipStream: TBigMemoryStream);
+
+var
+  FileStream               : TFileStream;
+
+begin
+  FileStream := TFileStream.Create( filename, fmOpenRead or fmShareDenyWrite);
+  try
+    GetZipStreamFromStream(Filename, FileStream, ZipStream);
+  finally
+    FileStream.Free;
+  end;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TClientObj.GetZipStreamFromStream(var Filename: String; const stream: TStream;
+  const ZipStream: TBigMemoryStream);
+
 //read a bk5 file and fills the zip stream provided with a zip file
 //removes the wrapper from the bk5 file and then decrypts the remaining file
 const
@@ -431,25 +456,24 @@ const
   ThisMethodName           = 'GetZipStreamFromFile';
   WrapperSize              = SizeOf( TClientWrapper);
 var
-  FileStream               : TFileStream;
   Wrapper                  : TClientWrapper;
   Buffer                   : Pointer;
   NumBytesRead             : integer;
   NumBytesWritten          : integer;
+
 begin
-  FileStream := TFileStream.Create( filename, fmOpenRead or fmShareDenyWrite);
-  try
-    //check the crc
+   //check the crc
     try
-      CrcFileUtils.CheckEmbeddedCRC( FileStream);
+      CrcFileUtils.CheckEmbeddedCRC( Stream);
     except
       On e : exception do
         raise EFileCRCFailure.Create( e.Message + ' [' + e.classname + ']');
     end;
 
+
     //reposition the cursor to the front of the file and read the wrapper
-    FileStream.Position := 0;
-    NumBytesRead        := FileStream.Read( Wrapper, WrapperSize);
+    Stream.Position := 0;
+    NumBytesRead        := Stream.Read( Wrapper, WrapperSize);
     if NumBytesRead <> WrapperSize then
       raise EFileAccess.CreateFmt( SInvalidWrapperSize, [ Filename]);
 
@@ -461,16 +485,19 @@ begin
     if ( Wrapper.wVersion > BKDEFS.BK_FILE_VERSION) then
       raise EIncorrectVersion.CreateFmt( SInvalidVersion, [ Filename, Wrapper.wVersion_Reqd_Str]);
 
+    if length(Filename) = 0 then
+       Filename := Wrapper.wCode;
+
     //read the remainder of the stream into the zip stream, decrypt as we go
     //preset the size to avoid reallocations
     ZipStream.Clear;
     ZipStream.Position   := 0;
-    ZipStream.Size := ( FileStream.Size - WrapperSize);
+    ZipStream.Size := ( Stream.Size - WrapperSize);
 
     GetMem( Buffer, ChunkSize);
     try
       repeat
-        NumBytesRead := FileStream.Read( Buffer^, ChunkSize);
+        NumBytesRead := Stream.Read( Buffer^, ChunkSize);
         if NumBytesRead > 0 then
         begin
           Decrypt( Buffer^, NumBytesRead);
@@ -485,14 +512,11 @@ begin
     end;
 
     ZipStream.Position := 0;
-  finally
-    FileStream.Free;
-  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure TClientObj.OpenFromDataStream(var S: TIOStream);
+procedure TClientObj.ReadFromDataStream(var S: TIOStream);
 var
   CRC : LongWord;
 begin
@@ -506,9 +530,7 @@ begin
   S.Position := 0;
   S.Read( CRC, Sizeof( LongWord ) );
   Self.LoadFromStream( S);
-{$IFNDEF ParserDll}
-  ClientCopyReload(S);
-{$ENDIF}
+
 end;
 
 {$IFNDEF ParserDll}
@@ -542,9 +564,9 @@ var
   SavFilename      : string;  //name of internal file in zip
   DataStream       : TIOStream;
   ZipStream        : TBigMemoryStream;
-  UnZipper         : TVCLZip;
-  MemNeeded        : integer;
-  i                : integer;
+ // UnZipper         : TVCLZip;
+ // MemNeeded        : integer;
+ // i                : integer;
 begin
   LogDebugMsg( ThisMethodName + ' starts');
   Assert( SizeOf( TClientWrapper) = 240, 'Wrapper size error');
@@ -558,44 +580,12 @@ begin
   ZipStream := TBigMemoryStream.Create;
   try
     GetZipStreamFromFile( bk5filename, ZipStream);
-    DataStream := TIOStream.Create;
-    try
-      //unzip the zip stream
-      DataStream.Clear;
-      ZipStream.Position  := 0;
-      savFilename := FileCode + Sav_Extn;
-
-      try
-        UnZipper := TVCLZip.Create( nil);
-        try
-          UnZipper.ArchiveStream := ZipStream;
-          UnZipper.ReadZip;
-
-          //figure out how much memory is needed so we can pre allocate it
-          MemNeeded := 0;
-          for i := 0 to UnZipper.Count - 1 do
-            if UnZipper.Filename[ i] = SavFilename then
-              MemNeeded := UnZipper.UnCompressedSize[ i];
-
-          DataStream.Size := MemNeeded;
-          DataStream.Position := 0;
-
-          //store data stream size so we can use it to estimate the file size
-          //needed to save
-          clRawStreamSize := DataStream.Size;
-
-          Unzipper.UnzipToStream( DataStream, savFilename);
-        finally
-          UnZipper.Free;
-        end;
-      except
-        on e : exception do
-          raise ECompressionFailure.Create( 'Error decompressing from ' + savFilename + ' - ' +
-                                            E.Message + ' [' + E.Classname + ']');
-      end;
-
-      //read values from data stream
-      OpenFromDataStream( DataStream );
+    DataStream := self.GetDataStreamFromZipStream(FileCode,ZipStream);
+    //read values from data stream
+    ReadFromDataStream( DataStream );
+{$IFNDEF ParserDll}
+    ClientCopyReload(DataStream);
+{$ENDIF}
 
 
 {$IFDEF ParserDll}
@@ -622,15 +612,52 @@ begin
       end;
 {$ENDIF}
 
-
-    finally
-      FreeAndNil( DataStream);
-    end;
   finally
     FreeAndNil( ZipStream);
+    FreeAndNil( DataStream);
   end;
   LogDebugMsg( ThisMethodName + ' ends');
 end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TClientObj.SimpleRead(FileCode: string; Stream: TStream);
+var
+   ZipStream : TBigMemoryStream;
+   DataStream: TIOStream; 
+begin
+   //read the file
+  ZipStream := TBigMemoryStream.Create;
+  try
+    GetZipStreamFromStream( FileCode,Stream, ZipStream);
+    DataStream := self.GetDataStreamFromZipStream(FileCode,ZipStream);
+    //read values from data stream
+    ReadFromDataStream( DataStream );
+    UpdateRefs;
+    UpgradeClientToLatestVersion( Self);
+      //Update local country code to the base currency if it's not already set
+      if clExtra.ceLocal_Currency_Code = '' then
+        clExtra.ceLocal_Currency_Code := whCurrencyCodes[clFields.clCountry];
+      //update temporary fields
+      With clFields do
+      Begin
+         clFile_Save_Required       := FALSE;
+         clTime_of_Last_Save        := CurrentTime;
+         clUse_Minus_As_Lookup_Key  := clChart.UseMinusAsLookup;
+         clUppercase_Codes          := not clChart.AllowLowerCase;
+         clCurrent_CRC              := GetCurrentCRC;
+         clCRC_After_Loading        := clCurrent_CRC;
+         clCRC_at_Last_Save         := clCurrent_CRC;
+         clLast_Auto_Save_CRC       := clCurrent_CRC;
+         clTemp_Old_Download_From   := clDownload_From;
+      end;
+
+  finally
+    FreeAndNil(ZipStream);
+    FreeAndNil(DataStream);
+  end;
+end;
+
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TClientObj.LogDebugMsg(S: string; Error: Boolean = false);
@@ -788,6 +815,7 @@ begin
   end;
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TClientObj.SetExtraAuditInfo(P1, P2: pClientExtra_Rec;
   var AAuditInfo: TAuditInfo; NewClient: boolean = false);
 begin
@@ -800,6 +828,7 @@ begin
     AAuditInfo.AuditRecordType := tkBegin_ClientExtra;
   end;
 end;
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TClientObj.UpdateRefs;
@@ -854,6 +883,54 @@ Begin
 
    Result := LongInt( CRC );
    LogDebugMsg( ThisMethodName+' Ends');
+end;
+
+
+
+function TClientObj.GetDataStreamFromZipStream(const FileCode: String;
+  const ZipStream: TBigMemoryStream): TIOstream;
+var
+   savFilename : string;
+   UnZipper : TVCLZip;
+   MemNeeded : Integer;
+   I: Integer;
+begin
+    Result := TIOStream.Create;
+
+    //unzip the zip stream
+    Result.Clear;
+    ZipStream.Position  := 0;
+    savFilename := FileCode + Sav_Extn;
+
+    try
+        UnZipper := TVCLZip.Create( nil);
+        try
+          UnZipper.ArchiveStream := ZipStream;
+          UnZipper.ReadZip;
+
+          //figure out how much memory is needed so we can pre allocate it
+          MemNeeded := 0;
+          for i := 0 to UnZipper.Count - 1 do
+            if UnZipper.Filename[ i] = SavFilename then
+              MemNeeded := UnZipper.UnCompressedSize[ i];
+
+          Result.Size := MemNeeded;
+          Result.Position := 0;
+
+          //store data stream size so we can use it to estimate the file size
+          //needed to save
+          clRawStreamSize := Result.Size;
+
+          Unzipper.UnzipToStream( Result, savFilename);
+        finally
+          UnZipper.Free;
+        end;
+      except
+        on e : exception do
+          raise ECompressionFailure.Create( 'Error decompressing from ' + FileCode + ' - ' +
+                                            E.Message + ' [' + E.Classname + ']');
+      end;
+
 end;
 
 function TClientObj.GetForexISOCodeForContra(AContraCode: string): string;
@@ -1162,58 +1239,94 @@ begin
   Result := whWithdrawalEntryType[ clFields.clCountry ];
 end;
 
-procedure TClientObj.WriteFileFromZipStream( const Filename : string; const ZipStream : TBigMemoryStream);
+function TClientObj.SaveClientToStream: TBigMemoryStream;
 const
   ChunkSize                = 8192;
-  ThisMethodName           = 'WriteFileFromZipStream';
+  ThisMethodName           = 'SaveClientToStream';
   WrapperSize              = SizeOf( TClientWrapper);
 var
-  BK5FileStream            : TBigMemoryStream;
   Wrapper                  : TClientWrapper;
   Buffer                   : Pointer;
   NumBytesRead             : integer;
   NumBytesWritten          : integer;
+  DataStream               : TIOStream;
+  ZipStream                : TBigMemoryStream;
+  Zipper                   : TVCLZip;
+  SavFilename              : string;
 begin
-  //update the wrapper
-  FillChar( Wrapper, WrapperSize, #0);
-  Wrapper.wCRC       := 0;  //will be updated later
-  with Wrapper, clFields do
-  begin
-    wCountry           := clCountry;
-    wCode              := clCode;
-    wName              := clName;
-    wVersion           := clFile_Version;
-    wOldPassword       := '';  //Case 9444. Clear old password and just used the hashed one for the wrapper;
-    wPwdHash           := CreatePasswordHash(clFile_Password);
-    (*  Disabled for now, see case 1743
-    if wVersion > 122 then // If can be removed after debugging..
-       cryptx.Encrypt(wPassword,Sizeof(wPassword));
-    *)
-    wVersion_Reqd_Str  := BKDEFS.BK_FILE_VERSION_STR;
-    wSave_Count        := clFile_Save_Count;
-    wDate_Stored       := CurrentDate;
-    wTime_Stored       := CurrentTime;
-    wMagic_Number      := clMagic_Number;
-    wReport_Start_Date := clReport_Start_Date;
-    wReporting_Period  := clReporting_Period;
-    wRead_Only         := clFile_Read_Only;
-    wSignature         := BankLink_Signature;
-    wUpdateServer      := '';
-    wFileTransferMethod := clExtra.ceFile_Transfer_Method;
-  end;
+  Self.IntegrityCheck;
 
-  //create file
-  BK5FileStream := TBigMemoryStream.Create;
+  //update fields in client file
+  clFields.clFile_Version := BKDEFS.BK_FILE_VERSION;
+
+  SavFilename := clFields.clCode + Sav_Extn;
+  //write values to data stream
+  ZipStream := nil;
+  DataStream := TIOStream.Create;
   try
+    //save raw stream, estimate size based on load size + 256K
+    SaveToDataStream( DataStream, clRawStreamSize + $40000);
+    //store for next save
+    clRawStreamSize := DataStream.Size;
+
+    //compress and encrypt data stream
+    ZipStream := TBigMemoryStream.Create;
+
+    Zipper := TVCLZip.Create( nil);
+    try try
+        Zipper.ArchiveStream := ZipStream;
+        Zipper.ZipFromStream( DataStream, SavFilename);
+    except
+       on e : exception do
+          raise ECompressionFailure.Create( 'Error compressing into ' + savFilename + ' - ' +
+                                              E.Message + ' [' + E.Classname + ']');
+    end;
+    finally
+       //can now do away with the data stream as it is no longer used
+       //do this to reduce memory usage
+       FreeAndNil(Zipper);
+       FreeAndNil(DataStream);
+    end;
+
+    //update the wrapper
+    FillChar( Wrapper, WrapperSize, #0);
+    Wrapper.wCRC       := 0;  //will be updated later
+    with Wrapper, clFields do begin
+       wCountry           := clCountry;
+       wCode              := clCode;
+       wName              := clName;
+       wVersion           := clFile_Version;
+       wOldPassword       := '';  //Case 9444. Clear old password and just used the hashed one for the wrapper;
+       wPwdHash           := CreatePasswordHash(clFile_Password);
+       (*  Disabled for now, see case 1743
+       if wVersion > 122 then // If can be removed after debugging..
+          cryptx.Encrypt(wPassword,Sizeof(wPassword));
+       *)
+       wVersion_Reqd_Str  := BKDEFS.BK_FILE_VERSION_STR;
+       wSave_Count        := clFile_Save_Count;
+       wDate_Stored       := CurrentDate;
+       wTime_Stored       := CurrentTime;
+       wMagic_Number      := clMagic_Number;
+       wReport_Start_Date := clReport_Start_Date;
+       wReporting_Period  := clReporting_Period;
+       wRead_Only         := clFile_Read_Only;
+       wSignature         := BankLink_Signature;
+       wUpdateServer      := '';
+       wFileTransferMethod := clExtra.ceFile_Transfer_Method;
+    end;
+
+    //create result
+    Result := TBigMemoryStream.Create;
+
     //Preset Expected Size
-    BK5FileStream.Clear;
-    BK5FileStream.Size := ZipStream.Size + WrapperSize;
-    Bk5FileStream.Position := 0;
+    Result.Clear;
+    Result.Size := ZipStream.Size + WrapperSize;
+    Result.Position := 0;
 
     //write out wrapper
-    NumBytesWritten := BK5FileStream.Write( Wrapper, WrapperSize);
+    NumBytesWritten := Result.Write( Wrapper, WrapperSize);
     if NumBytesWritten <> WrapperSize then
-      raise EFileAccess.CreateFmt( SInvalidWrapperSize, [ Filename]);
+      raise EFileAccess.CreateFmt( SInvalidWrapperSize, [ clFields.clCode]);
 
     //copy data from zip stream to file stream, encrypt as we go
     GetMem( Buffer, ChunkSize);
@@ -1224,21 +1337,23 @@ begin
         if NumBytesRead > 0 then
         begin
           CryptX.Encrypt( Buffer^, NumBytesRead);
-          NumBytesWritten := BK5FileStream.Write( Buffer^, NumBytesRead);
+          NumBytesWritten := Result.Write( Buffer^, NumBytesRead);
 
           if NumBytesWritten <> NumBytesRead then
-            raise EFileAccess.CreateFmt( sFileStreamWriteError, [ Filename]);
+            raise EFileAccess.CreateFmt( sFileStreamWriteError, [  clFields.clCode]);
         end;
       until ( NumBytesRead =0);
     finally
       FreeMem( Buffer, ChunkSize);
     end;
 
-    EmbedCRC( BK5FileStream);
-    BK5FileStream.SaveToFile( Filename);
+    EmbedCRC( Result);
+    // BK5FileStream.SaveToFile( Filename);
+    Result.Position := 0;
   finally
-    BK5FileStream.Free;
+      FreeAndNil(ZipStream);
   end;
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1305,14 +1420,14 @@ var
   SavFilename : string;
   TmpFilename : string;
 
-  DataStream  : TIOStream;
-  ZipStream   : TBigMemoryStream;
-  Zipper      : TVCLZip;
+
+  FileStream : TBigMemoryStream;
+
 begin
   LogDebugMsg( ThisMethodName + ' Starts');
 
   //check file integrity
-  Self.IntegrityCheck;
+
 
   //set file names
   Bk5Filename := DataDir + clFields.clCode + FileExtension;
@@ -1320,61 +1435,32 @@ begin
   TmpFilename := DataDir + clFields.clCode + Globals.TmpExtn;
   SavFilename := clFields.clCode + Globals.SAV_EXTN;
 
-  //update fields in client file
-  clFields.clFile_Version := BKDEFS.BK_FILE_VERSION;
-
-  //write values to data stream
-  DataStream := TIOStream.Create;
+  FileStream := SaveClientToStream;
   try
-    //save raw stream, estimate size based on load size + 256K
-    SaveToDataStream( DataStream, clRawStreamSize + $40000);
-    //store for next save
-    clRawStreamSize := DataStream.Size;
-
-    //compress and encrypt data stream
-    ZipStream := TBigMemoryStream.Create;
-    try
-      Zipper := TVCLZip.Create( nil);
-      try
-        try
-          Zipper.ArchiveStream := ZipStream;
-          Zipper.ZipFromStream( DataStream, SavFilename);
-        except
-          on e : exception do
-            raise ECompressionFailure.Create( 'Error compressing into ' + savFilename + ' - ' +
-                                              E.Message + ' [' + E.Classname + ']');
-        end;
-      finally
-        Zipper.Free;
-      end;
-
-      //can now do away with the data stream as it is no longer used
-      //do this to reduce memory usage
-      FreeAndNil( DataStream);
 
       //now save to file
-      WriteFileFromZipStream( TmpFilename, ZipStream);
+      FileStream.SaveToFile( TmpFilename);
 
-      //Backup the previous .BK5 file to .BAK
-      if (Backup) and BKFileExists( BK5FileName ) then
-      begin
-        if BKFileExists( BakFileName ) then
-          WinUtils.RemoveFile( BakFilename);
-
-         WinUtils.RenameFileEx( Bk5FileName, BakFileName );
-      end;
-
-      //Rename the new .TMP file as .BK5.
-      if BKFileExists( BK5FileName ) then
-        WinUtils.RemoveFile( BK5FileName );
-
-      WinUtils.RenameFileEx( TmpFileName, BK5FileName );
-    finally
-      ZipStream.Free;
-    end;
   finally
-    DataStream.Free;
+    FileStream.Free;
   end;
+
+
+  //Backup the previous .BK5 file to .BAK
+  if (Backup) and BKFileExists( BK5FileName ) then
+  begin
+     if BKFileExists( BakFileName ) then
+        WinUtils.RemoveFile( BakFilename);
+
+     WinUtils.RenameFileEx( Bk5FileName, BakFileName );
+  end;
+
+  //Rename the new .TMP file as .BK5.
+  if BKFileExists( BK5FileName ) then
+     WinUtils.RemoveFile( BK5FileName );
+
+  WinUtils.RenameFileEx( TmpFileName, BK5FileName );
+
   LogDebugMsg( ThisMethodName + ' Ends');
 end;
 
