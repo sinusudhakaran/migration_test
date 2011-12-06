@@ -2,18 +2,19 @@ program DBGen;
 {$APPTYPE CONSOLE}
 uses
   SysUtils,
-  DBMisc in 'DBMISC.PAS',
-  DBRead in 'DBREAD.PAS',
+  DBMISC in 'DBMISC.PAS',
+  DBREAD in 'DBREAD.PAS',
   DBRV in 'DBRV.PAS',
-  DBTokens in 'DBTOKENS.PAS',
-  DBUnits in 'DBUNITS.PAS',
-  DBWrite in 'DBWRITE.PAS',
+  DBTOKENS in 'DBTOKENS.PAS',
+  DBUNITS in 'DBUNITS.PAS',
+  DBWRITE in 'DBWRITE.PAS',
   DBWV in 'DBWV.PAS',
   DBCRC in 'DBCRC.pas',
   DBIO in 'DBIO.PAS',
   DBObj in 'DBObj.pas',
   DBFree in 'DBFree.pas',
-  DBAUDIT in 'DBAUDIT.PAS';
+  DBAUDIT in 'DBAUDIT.PAS',
+  XMLWrite in 'XMLWrite.pas';
 
 Var
    SysName : String[2];
@@ -56,6 +57,10 @@ begin
    GenerateIOFiles( SysName );
    Writeln( 'Generating CRC Procedures' );
    GenerateCRCFiles( SysName );
+
+   Writeln( 'Generating XML Procedures' );
+   GenerateXMLWriteFiles( SysName );
+
    Writeln( 'Completed OK.' );
 end.
 
