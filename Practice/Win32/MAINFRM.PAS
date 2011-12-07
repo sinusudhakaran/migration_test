@@ -1036,8 +1036,7 @@ uses
   CustomDocEditorFrm,
   frmExchangeRates,
   BankLinkOnlineServices,
-  EditUserPassword,
-  BlopiServiceFacade;
+  EditUserPassword;
   //StockBalancesDlg;
 
 const

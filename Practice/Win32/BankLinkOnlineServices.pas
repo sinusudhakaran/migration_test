@@ -8,11 +8,14 @@ uses
 type
   TBanklinkOnlineStatus = (bosActive, bosSuspended, bosDeactivated);
 
-  TPractice = class(BlopiServiceFacade.Practice);
-  TUser = class(BlopiServiceFacade.User);
-  TCatalogueEntry = class(BlopiServiceFacade.CatalogueEntry);
   Guid          =  BlopiServiceFacade.Guid;
   ArrayOfString =  BlopiServiceFacade.ArrayOfString;
+
+  Practice = BlopiServiceFacade.Practice;
+  Client = BlopiServiceFacade.Client;
+  User = BlopiServiceFacade.User;
+  CatalogueEntry = BlopiServiceFacade.CatalogueEntry;
+  ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
 
   TClientHelper = Class helper for BlopiServiceFacade.Client
   private
@@ -45,7 +48,7 @@ type
 
   TProductConfigService = class(TObject)
   private
-    FPractice, FPracticeCopy: TPractice;
+    FPractice, FPracticeCopy: Practice;
     FRegisteredForBankLinkOnline: boolean;
     FListOfClients: ClientList;
     FClient: Client;
@@ -85,7 +88,7 @@ type
     destructor Destroy; override;
     //Practice methods
     function LoadPracticeDetails: Boolean;
-    function GetPractice: TPractice;
+    function GetPractice: Practice;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
     function IsPracticeProductEnabled(AProductId: Guid): Boolean;
@@ -212,7 +215,7 @@ end;
 constructor TProductConfigService.Create;
 begin
   //Create practice
-  FPractice := TPractice.Create;
+  FPractice := Practice.Create;
   //Load Practice
   LoadPracticeDetails;
   //Create clients
@@ -260,14 +263,14 @@ begin
   end;
 end;
 
-function TProductConfigService.GetPractice: TPractice;
+function TProductConfigService.GetPractice: Practice;
 begin
   try
     //Test - Reload
     LoadPracticeDetails;
     //Test - make a copy for editing
     FPracticeCopy.Free;
-    FPracticeCopy := TPractice.Create;
+    FPracticeCopy := Practice.Create;
     CopyRemotableObject(FPractice, FPracticeCopy);
     Result := FPracticeCopy;
   except
@@ -472,6 +475,9 @@ begin
 end;
 
 function TProductConfigService.LoadPracticeDetails: Boolean;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  PracticeDetailResponse: MessageResponseOfPracticeMIdCYrSK;
 begin
   Result := False;
   if not Assigned(AdminSystem) then
@@ -485,11 +491,19 @@ begin
     //Reload from BankLink Online
     if AdminSystem.fdFields.fdLast_BankLink_Online_Update < (StDate.CurrentDate + 1) then begin
       //Live
-//      Result := GetIBlopiServiceFacade.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
-//                                                         AdminSystem.fdFields.fdBankLink_Code,
-//                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
-      if LoadRemotableObjectFromFile(FPractice) then begin //This represents FPractice from BankLink Online
-        Result := True;
+      try
+        BlopiInterface := GetIBlopiServiceFacade;
+        PracticeDetailResponse := BlopiInterface.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
+        AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
+        if Assigned(PracticeDetailResponse) then
+          FPractice := PracticeDetailResponse.Result;
+        Result := Assigned(FPractice);
+      except
+        on E: Exception do HelpfulErrorMsg('Error geting practice details from BankLink Online: ' + E.Message, 0);
+      end;
+      if not Result  then
+        if LoadRemotableObjectFromFile(FPractice) then begin //This represents FPractice from BankLink Online
+          Result := True;
       end;
     end;
     //Load from System DB
@@ -737,7 +751,7 @@ begin
   if UseBankLinkOnline then begin
     if Assigned(FPracticeCopy) then begin
       FPractice.Free;
-      FPractice := TPractice.Create;
+      FPractice := Practice.Create;
       CopyRemotableObject(FPracticeCopy, FPractice);
       //Save to the web service
       if Online then begin

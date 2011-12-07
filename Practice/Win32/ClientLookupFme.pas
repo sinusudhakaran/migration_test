@@ -20,8 +20,8 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, VirtualTrees, cfList32, eCollect, syDefs, sysObj32, bkconst,
   StDate,
-  ClientCodingStatistics,
-  Menus, ExtCtrls, WebCiCoClient, BlopiServiceFacade;
+  ClientCodingStatistics, BankLinkOnlineServices,
+  Menus, ExtCtrls, WebCiCoClient;
 
 type
 //  TBankLinkOnlineMode = (bomNone, bomGetFile, bomSendFile);

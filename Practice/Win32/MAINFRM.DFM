@@ -180,16 +180,16 @@ object frmMain: TfrmMain
       object tbGetClientFiles: TRzToolButton
         Left = 195
         Top = 4
-        Width = 145
+        Width = 113
         DropDownMenu = PopGetClients
         ImageIndex = 9
         ToolStyle = tsDropDown
         Caption = 'Get Client Files'
       end
       object tbSendClientFiles: TRzToolButton
-        Left = 340
+        Left = 308
         Top = 4
-        Width = 145
+        Width = 120
         DropDownMenu = PopSendClients
         ImageIndex = 10
         ToolStyle = tsDropDown
@@ -201,11 +201,11 @@ object frmMain: TfrmMain
         Action = ActHomePage
       end
       object RzSpacer1: TRzSpacer
-        Left = 704
+        Left = 647
         Top = 4
       end
       object tbOnline: TRzToolButton
-        Left = 485
+        Left = 428
         Top = 4
         Width = 99
         ImageIndex = 20
@@ -213,14 +213,14 @@ object frmMain: TfrmMain
         OnClick = tbOnlineClick
       end
       object tbAbout: TRzToolButton
-        Left = 584
+        Left = 527
         Top = 4
         Caption = 'About'
         Visible = False
         OnClick = mniHelpAboutClick
       end
       object tbClose: TRzToolButton
-        Left = 644
+        Left = 587
         Top = 4
         ImageIndex = 2
         Images = AppImages.Maintain

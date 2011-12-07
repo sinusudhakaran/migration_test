@@ -79,7 +79,7 @@ uses
   YesNoDlg, pyList32, cfList32, WinUtils, SYamIO, mxFiles32, BasUtils, Software,
   SystemMemorisationList, IOStream, AuditMgr, CountryUtils,
   ExchangeRateList, MCDEFS, stTree, stBase,
-  BankLinkOnlineServices, BlopiServiceFacade;
+  BankLinkOnlineServices;
 // ----------------------------------------------------------------------------
 
 Const

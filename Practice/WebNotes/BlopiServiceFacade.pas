@@ -11,7 +11,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (7/12/2011 11:57:10 a.m. - - $Rev: 25127 $)
+// (7/12/2011 3:06:53 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -22,6 +22,9 @@ uses InvokeRegistry, SOAPHTTPClient, Types, XSBuiltIns;
 
 const
   IS_OPTN = $0001;
+  IS_UNBD = $0002;
+  IS_NLBL = $0004;
+  IS_REF  = $0080;
 
 
 type
@@ -61,48 +64,20 @@ type
   ClientSummary        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   Client               = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   NewClient            = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  Echo                 = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  EchoResponse         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetPracticeCatalogue = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetPracticeCatalogueResponse = class;         { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   CatalogueEntry2      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetSmeCatalogue      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetSmeCatalogueResponse = class;              { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetUserCatalogue     = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetUserCatalogueResponse = class;             { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetPracticeDetail    = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetPracticeDetailResponse = class;            { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   Practice2            = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   Role2                = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   User2                = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  CreatePracticeUser   = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   NewUser2             = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  CreatePracticeUserResponse = class;           { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  SavePracticeUser     = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  SavePracticeUserResponse = class;             { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  DeletePracticeUser   = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  DeletePracticeUserResponse = class;           { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetClientList        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetClientListResponse = class;                { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   ClientList2          = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   ClientSummary2       = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetClientDetail      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  GetClientDetailResponse = class;              { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   Client2              = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  CreateClient         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   NewClient2           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  CreateClientResponse = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  SaveClient           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  SaveClientResponse   = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  CreateClientUser     = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  CreateClientUserResponse = class;             { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  SaveclientUser       = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  SaveclientUserResponse = class;               { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
 
   { "http://www.banklinkonline.com/2011/11/Blopi"[GblSmpl] }
   ClientStatus = (Active, Suspended);
 
-  guid            = WideString;      { "http://schemas.microsoft.com/2003/10/Serialization/"[GblSmpl] }
+  guid            =  type WideString;      { "http://schemas.microsoft.com/2003/10/Serialization/"[GblSmpl] }
   ArrayOfCatalogueEntry = array of CatalogueEntry;   { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ArrayOfServiceErrorMessage = array of ServiceErrorMessage;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   ArrayOfExceptionDetails = array of ExceptionDetails;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
@@ -129,8 +104,8 @@ type
   public
     destructor Destroy; override;
   published
-    property ErrorMessages: ArrayOfServiceErrorMessage  Index (IS_OPTN) read FErrorMessages write SetErrorMessages stored ErrorMessages_Specified;
-    property Exceptions:    ArrayOfExceptionDetails     Index (IS_OPTN) read FExceptions write SetExceptions stored Exceptions_Specified;
+    property ErrorMessages: ArrayOfServiceErrorMessage  Index (IS_OPTN or IS_NLBL) read FErrorMessages write SetErrorMessages stored ErrorMessages_Specified;
+    property Exceptions:    ArrayOfExceptionDetails     Index (IS_OPTN or IS_NLBL) read FExceptions write SetExceptions stored Exceptions_Specified;
     property Success:       Boolean                     Index (IS_OPTN) read FSuccess write SetSuccess stored Success_Specified;
   end;
 
@@ -149,7 +124,7 @@ type
   public
     destructor Destroy; override;
   published
-    property Result: ArrayOfCatalogueEntry  Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
+    property Result: ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
   end;
 
 
@@ -169,8 +144,8 @@ type
     procedure SetMessage_(Index: Integer; const AWideString: WideString);
     function  Message__Specified(Index: Integer): boolean;
   published
-    property ErrorCode: WideString  Index (IS_OPTN) read FErrorCode write SetErrorCode stored ErrorCode_Specified;
-    property Message_:  WideString  Index (IS_OPTN) read FMessage_ write SetMessage_ stored Message__Specified;
+    property ErrorCode: WideString  Index (IS_OPTN or IS_NLBL) read FErrorCode write SetErrorCode stored ErrorCode_Specified;
+    property Message_:  WideString  Index (IS_OPTN or IS_NLBL) read FMessage_ write SetMessage_ stored Message__Specified;
   end;
 
 
@@ -194,9 +169,9 @@ type
     procedure SetStackTrace(Index: Integer; const AWideString: WideString);
     function  StackTrace_Specified(Index: Integer): boolean;
   published
-    property Message_:   WideString  Index (IS_OPTN) read FMessage_ write SetMessage_ stored Message__Specified;
-    property Source:     WideString  Index (IS_OPTN) read FSource write SetSource stored Source_Specified;
-    property StackTrace: WideString  Index (IS_OPTN) read FStackTrace write SetStackTrace stored StackTrace_Specified;
+    property Message_:   WideString  Index (IS_OPTN or IS_NLBL) read FMessage_ write SetMessage_ stored Message__Specified;
+    property Source:     WideString  Index (IS_OPTN or IS_NLBL) read FSource write SetSource stored Source_Specified;
+    property StackTrace: WideString  Index (IS_OPTN or IS_NLBL) read FStackTrace write SetStackTrace stored StackTrace_Specified;
   end;
 
 
@@ -214,7 +189,7 @@ type
   public
     destructor Destroy; override;
   published
-    property Result: Practice  Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
+    property Result: Practice  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
   end;
 
 
@@ -248,7 +223,7 @@ type
   public
     destructor Destroy; override;
   published
-    property Result: ClientList  Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
+    property Result: ClientList  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
   end;
 
 
@@ -266,7 +241,7 @@ type
   public
     destructor Destroy; override;
   published
-    property Result: Client  Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
+    property Result: Client  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
   end;
 
 
@@ -380,8 +355,8 @@ type
     procedure SetId(Index: Integer; const Aguid: guid);
     function  Id_Specified(Index: Integer): boolean;
   published
-    property CatalogueType: WideString  Index (IS_OPTN) read FCatalogueType write SetCatalogueType stored CatalogueType_Specified;
-    property Description:   WideString  Index (IS_OPTN) read FDescription write SetDescription stored Description_Specified;
+    property CatalogueType: WideString  Index (IS_OPTN or IS_NLBL) read FCatalogueType write SetCatalogueType stored CatalogueType_Specified;
+    property Description:   WideString  Index (IS_OPTN or IS_NLBL) read FDescription write SetDescription stored Description_Specified;
     property Id:            guid        Index (IS_OPTN) read FId write SetId stored Id_Specified;
   end;
 
@@ -438,16 +413,16 @@ type
   public
     destructor Destroy; override;
   published
-    property Catalogue:          ArrayOfCatalogueEntry  Index (IS_OPTN) read FCatalogue write SetCatalogue stored Catalogue_Specified;
+    property Catalogue:          ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FCatalogue write SetCatalogue stored Catalogue_Specified;
     property DefaultAdminUserId: guid                   Index (IS_OPTN) read FDefaultAdminUserId write SetDefaultAdminUserId stored DefaultAdminUserId_Specified;
-    property DisplayName:        WideString             Index (IS_OPTN) read FDisplayName write SetDisplayName stored DisplayName_Specified;
-    property DomainName:         WideString             Index (IS_OPTN) read FDomainName write SetDomainName stored DomainName_Specified;
-    property EMail:              WideString             Index (IS_OPTN) read FEMail write SetEMail stored EMail_Specified;
+    property DisplayName:        WideString             Index (IS_OPTN or IS_NLBL) read FDisplayName write SetDisplayName stored DisplayName_Specified;
+    property DomainName:         WideString             Index (IS_OPTN or IS_NLBL) read FDomainName write SetDomainName stored DomainName_Specified;
+    property EMail:              WideString             Index (IS_OPTN or IS_NLBL) read FEMail write SetEMail stored EMail_Specified;
     property Id:                 guid                   Index (IS_OPTN) read FId write SetId stored Id_Specified;
-    property Phone:              WideString             Index (IS_OPTN) read FPhone write SetPhone stored Phone_Specified;
-    property Roles:              ArrayOfRole            Index (IS_OPTN) read FRoles write SetRoles stored Roles_Specified;
-    property Subscription:       ArrayOfguid            Index (IS_OPTN) read FSubscription write SetSubscription stored Subscription_Specified;
-    property Users:              ArrayOfUser            Index (IS_OPTN) read FUsers write SetUsers stored Users_Specified;
+    property Phone:              WideString             Index (IS_OPTN or IS_NLBL) read FPhone write SetPhone stored Phone_Specified;
+    property Roles:              ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
+    property Subscription:       ArrayOfguid            Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
+    property Users:              ArrayOfUser            Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
   end;
 
 
@@ -471,9 +446,9 @@ type
     procedure SetRoleName(Index: Integer; const AWideString: WideString);
     function  RoleName_Specified(Index: Integer): boolean;
   published
-    property Description: WideString  Index (IS_OPTN) read FDescription write SetDescription stored Description_Specified;
+    property Description: WideString  Index (IS_OPTN or IS_NLBL) read FDescription write SetDescription stored Description_Specified;
     property Id:          guid        Index (IS_OPTN) read FId write SetId stored Id_Specified;
-    property RoleName:    WideString  Index (IS_OPTN) read FRoleName write SetRoleName stored RoleName_Specified;
+    property RoleName:    WideString  Index (IS_OPTN or IS_NLBL) read FRoleName write SetRoleName stored RoleName_Specified;
   end;
 
 
@@ -509,12 +484,12 @@ type
     procedure SetUserCode(Index: Integer; const AWideString: WideString);
     function  UserCode_Specified(Index: Integer): boolean;
   published
-    property EMail:        WideString     Index (IS_OPTN) read FEMail write SetEMail stored EMail_Specified;
-    property FullName:     WideString     Index (IS_OPTN) read FFullName write SetFullName stored FullName_Specified;
+    property EMail:        WideString     Index (IS_OPTN or IS_NLBL) read FEMail write SetEMail stored EMail_Specified;
+    property FullName:     WideString     Index (IS_OPTN or IS_NLBL) read FFullName write SetFullName stored FullName_Specified;
     property Id:           guid           Index (IS_OPTN) read FId write SetId stored Id_Specified;
-    property RoleNames:    ArrayOfstring  Index (IS_OPTN) read FRoleNames write SetRoleNames stored RoleNames_Specified;
-    property Subscription: ArrayOfguid    Index (IS_OPTN) read FSubscription write SetSubscription stored Subscription_Specified;
-    property UserCode:     WideString     Index (IS_OPTN) read FUserCode write SetUserCode stored UserCode_Specified;
+    property RoleNames:    ArrayOfstring  Index (IS_OPTN or IS_NLBL) read FRoleNames write SetRoleNames stored RoleNames_Specified;
+    property Subscription: ArrayOfguid    Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
+    property UserCode:     WideString     Index (IS_OPTN or IS_NLBL) read FUserCode write SetUserCode stored UserCode_Specified;
   end;
 
 
@@ -546,11 +521,11 @@ type
     procedure SetUserCode(Index: Integer; const AWideString: WideString);
     function  UserCode_Specified(Index: Integer): boolean;
   published
-    property EMail:        WideString     Index (IS_OPTN) read FEMail write SetEMail stored EMail_Specified;
-    property FullName:     WideString     Index (IS_OPTN) read FFullName write SetFullName stored FullName_Specified;
-    property RoleNames:    ArrayOfstring  Index (IS_OPTN) read FRoleNames write SetRoleNames stored RoleNames_Specified;
-    property Subscription: ArrayOfguid    Index (IS_OPTN) read FSubscription write SetSubscription stored Subscription_Specified;
-    property UserCode:     WideString     Index (IS_OPTN) read FUserCode write SetUserCode stored UserCode_Specified;
+    property EMail:        WideString     Index (IS_OPTN or IS_NLBL) read FEMail write SetEMail stored EMail_Specified;
+    property FullName:     WideString     Index (IS_OPTN or IS_NLBL) read FFullName write SetFullName stored FullName_Specified;
+    property RoleNames:    ArrayOfstring  Index (IS_OPTN or IS_NLBL) read FRoleNames write SetRoleNames stored RoleNames_Specified;
+    property Subscription: ArrayOfguid    Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
+    property UserCode:     WideString     Index (IS_OPTN or IS_NLBL) read FUserCode write SetUserCode stored UserCode_Specified;
   end;
 
   ArrayOfClientSummary = array of ClientSummary;   { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
@@ -573,8 +548,8 @@ type
   public
     destructor Destroy; override;
   published
-    property Catalogue: ArrayOfCatalogueEntry  Index (IS_OPTN) read FCatalogue write SetCatalogue stored Catalogue_Specified;
-    property Clients:   ArrayOfClientSummary   Index (IS_OPTN) read FClients write SetClients stored Clients_Specified;
+    property Catalogue: ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FCatalogue write SetCatalogue stored Catalogue_Specified;
+    property Clients:   ArrayOfClientSummary   Index (IS_OPTN or IS_NLBL) read FClients write SetClients stored Clients_Specified;
   end;
 
 
@@ -606,11 +581,11 @@ type
     procedure SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
     function  Subscription_Specified(Index: Integer): boolean;
   published
-    property ClientCode:   WideString    Index (IS_OPTN) read FClientCode write SetClientCode stored ClientCode_Specified;
+    property ClientCode:   WideString    Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
     property Id:           guid          Index (IS_OPTN) read FId write SetId stored Id_Specified;
-    property Name_:        WideString    Index (IS_OPTN) read FName_ write SetName_ stored Name__Specified;
+    property Name_:        WideString    Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
     property Status:       ClientStatus  Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
-    property Subscription: ArrayOfguid   Index (IS_OPTN) read FSubscription write SetSubscription stored Subscription_Specified;
+    property Subscription: ArrayOfguid   Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
   end;
 
 
@@ -656,14 +631,14 @@ type
   public
     destructor Destroy; override;
   published
-    property Catalogue:    ArrayOfCatalogueEntry  Index (IS_OPTN) read FCatalogue write SetCatalogue stored Catalogue_Specified;
-    property ClientCode:   WideString             Index (IS_OPTN) read FClientCode write SetClientCode stored ClientCode_Specified;
+    property Catalogue:    ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FCatalogue write SetCatalogue stored Catalogue_Specified;
+    property ClientCode:   WideString             Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
     property Id:           guid                   Index (IS_OPTN) read FId write SetId stored Id_Specified;
-    property Name_:        WideString             Index (IS_OPTN) read FName_ write SetName_ stored Name__Specified;
-    property Roles:        ArrayOfRole            Index (IS_OPTN) read FRoles write SetRoles stored Roles_Specified;
+    property Name_:        WideString             Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
+    property Roles:        ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
     property Status:       ClientStatus           Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
-    property Subscription: ArrayOfguid            Index (IS_OPTN) read FSubscription write SetSubscription stored Subscription_Specified;
-    property Users:        ArrayOfUser            Index (IS_OPTN) read FUsers write SetUsers stored Users_Specified;
+    property Subscription: ArrayOfguid            Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
+    property Users:        ArrayOfUser            Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
   end;
 
 
@@ -687,85 +662,9 @@ type
     procedure SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
     function  Subscription_Specified(Index: Integer): boolean;
   published
-    property ClientCode:   WideString   Index (IS_OPTN) read FClientCode write SetClientCode stored ClientCode_Specified;
-    property Name_:        WideString   Index (IS_OPTN) read FName_ write SetName_ stored Name__Specified;
-    property Subscription: ArrayOfguid  Index (IS_OPTN) read FSubscription write SetSubscription stored Subscription_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : Echo, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  Echo = class(TRemotable)
-  private
-    FaString: WideString;
-    FaString_Specified: boolean;
-    procedure SetaString(Index: Integer; const AWideString: WideString);
-    function  aString_Specified(Index: Integer): boolean;
-  published
-    property aString: WideString  Index (IS_OPTN) read FaString write SetaString stored aString_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : EchoResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  EchoResponse = class(TRemotable)
-  private
-    FEchoResult: WideString;
-    FEchoResult_Specified: boolean;
-    procedure SetEchoResult(Index: Integer; const AWideString: WideString);
-    function  EchoResult_Specified(Index: Integer): boolean;
-  published
-    property EchoResult: WideString  Index (IS_OPTN) read FEchoResult write SetEchoResult stored EchoResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetPracticeCatalogue, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetPracticeCatalogue = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetPracticeCatalogueResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetPracticeCatalogueResponse = class(TRemotable)
-  private
-    FGetPracticeCatalogueResult: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK;
-    FGetPracticeCatalogueResult_Specified: boolean;
-    procedure SetGetPracticeCatalogueResult(Index: Integer; const AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK);
-    function  GetPracticeCatalogueResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property GetPracticeCatalogueResult: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK  Index (IS_OPTN) read FGetPracticeCatalogueResult write SetGetPracticeCatalogueResult stored GetPracticeCatalogueResult_Specified;
+    property ClientCode:   WideString   Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
+    property Name_:        WideString   Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
+    property Subscription: ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
   end;
 
 
@@ -777,133 +676,6 @@ type
   CatalogueEntry2 = class(CatalogueEntry)
   private
   published
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetSmeCatalogue, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetSmeCatalogue = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetSmeCatalogueResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetSmeCatalogueResponse = class(TRemotable)
-  private
-    FGetSmeCatalogueResult: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK;
-    FGetSmeCatalogueResult_Specified: boolean;
-    procedure SetGetSmeCatalogueResult(Index: Integer; const AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK);
-    function  GetSmeCatalogueResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property GetSmeCatalogueResult: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK  Index (IS_OPTN) read FGetSmeCatalogueResult write SetGetSmeCatalogueResult stored GetSmeCatalogueResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetUserCatalogue, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetUserCatalogue = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FclientCode: WideString;
-    FclientCode_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetclientCode(Index: Integer; const AWideString: WideString);
-    function  clientCode_Specified(Index: Integer): boolean;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property clientCode:   WideString  Index (IS_OPTN) read FclientCode write SetclientCode stored clientCode_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetUserCatalogueResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetUserCatalogueResponse = class(TRemotable)
-  private
-    FGetUserCatalogueResult: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK;
-    FGetUserCatalogueResult_Specified: boolean;
-    procedure SetGetUserCatalogueResult(Index: Integer; const AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK);
-    function  GetUserCatalogueResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property GetUserCatalogueResult: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK  Index (IS_OPTN) read FGetUserCatalogueResult write SetGetUserCatalogueResult stored GetUserCatalogueResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetPracticeDetail, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetPracticeDetail = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetPracticeDetailResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetPracticeDetailResponse = class(TRemotable)
-  private
-    FGetPracticeDetailResult: MessageResponseOfPracticeMIdCYrSK;
-    FGetPracticeDetailResult_Specified: boolean;
-    procedure SetGetPracticeDetailResult(Index: Integer; const AMessageResponseOfPracticeMIdCYrSK: MessageResponseOfPracticeMIdCYrSK);
-    function  GetPracticeDetailResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property GetPracticeDetailResult: MessageResponseOfPracticeMIdCYrSK  Index (IS_OPTN) read FGetPracticeDetailResult write SetGetPracticeDetailResult stored GetPracticeDetailResult_Specified;
   end;
 
 
@@ -942,207 +714,12 @@ type
 
 
   // ************************************************************************ //
-  // XML       : CreatePracticeUser, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  CreatePracticeUser = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    FnewUser: NewUser;
-    FnewUser_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-    procedure SetnewUser(Index: Integer; const ANewUser: NewUser);
-    function  newUser_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-    property newUser:      NewUser     Index (IS_OPTN) read FnewUser write SetnewUser stored newUser_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
   // XML       : NewUser, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
   NewUser2 = class(NewUser)
   private
   published
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : CreatePracticeUserResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  CreatePracticeUserResponse = class(TRemotable)
-  private
-    FCreatePracticeUserResult: MessageResponseOfguid;
-    FCreatePracticeUserResult_Specified: boolean;
-    procedure SetCreatePracticeUserResult(Index: Integer; const AMessageResponseOfguid: MessageResponseOfguid);
-    function  CreatePracticeUserResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property CreatePracticeUserResult: MessageResponseOfguid  Index (IS_OPTN) read FCreatePracticeUserResult write SetCreatePracticeUserResult stored CreatePracticeUserResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : SavePracticeUser, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  SavePracticeUser = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    Fuser: User;
-    Fuser_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-    procedure Setuser(Index: Integer; const AUser: User);
-    function  user_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-    property user:         User        Index (IS_OPTN) read Fuser write Setuser stored user_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : SavePracticeUserResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  SavePracticeUserResponse = class(TRemotable)
-  private
-    FSavePracticeUserResult: MessageResponse;
-    FSavePracticeUserResult_Specified: boolean;
-    procedure SetSavePracticeUserResult(Index: Integer; const AMessageResponse: MessageResponse);
-    function  SavePracticeUserResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property SavePracticeUserResult: MessageResponse  Index (IS_OPTN) read FSavePracticeUserResult write SetSavePracticeUserResult stored SavePracticeUserResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : DeletePracticeUser, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  DeletePracticeUser = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    FuserId: guid;
-    FuserId_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-    procedure SetuserId(Index: Integer; const Aguid: guid);
-    function  userId_Specified(Index: Integer): boolean;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-    property userId:       guid        Index (IS_OPTN) read FuserId write SetuserId stored userId_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : DeletePracticeUserResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  DeletePracticeUserResponse = class(TRemotable)
-  private
-    FDeletePracticeUserResult: MessageResponse;
-    FDeletePracticeUserResult_Specified: boolean;
-    procedure SetDeletePracticeUserResult(Index: Integer; const AMessageResponse: MessageResponse);
-    function  DeletePracticeUserResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property DeletePracticeUserResult: MessageResponse  Index (IS_OPTN) read FDeletePracticeUserResult write SetDeletePracticeUserResult stored DeletePracticeUserResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetClientList, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetClientList = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetClientListResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetClientListResponse = class(TRemotable)
-  private
-    FGetClientListResult: MessageResponseOfClientListMIdCYrSK;
-    FGetClientListResult_Specified: boolean;
-    procedure SetGetClientListResult(Index: Integer; const AMessageResponseOfClientListMIdCYrSK: MessageResponseOfClientListMIdCYrSK);
-    function  GetClientListResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property GetClientListResult: MessageResponseOfClientListMIdCYrSK  Index (IS_OPTN) read FGetClientListResult write SetGetClientListResult stored GetClientListResult_Specified;
   end;
 
 
@@ -1170,94 +747,12 @@ type
 
 
   // ************************************************************************ //
-  // XML       : GetClientDetail, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetClientDetail = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    FclientId: guid;
-    FclientId_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-    procedure SetclientId(Index: Integer; const Aguid: guid);
-    function  clientId_Specified(Index: Integer): boolean;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-    property clientId:     guid        Index (IS_OPTN) read FclientId write SetclientId stored clientId_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : GetClientDetailResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  GetClientDetailResponse = class(TRemotable)
-  private
-    FGetClientDetailResult: MessageResponseOfClientMIdCYrSK;
-    FGetClientDetailResult_Specified: boolean;
-    procedure SetGetClientDetailResult(Index: Integer; const AMessageResponseOfClientMIdCYrSK: MessageResponseOfClientMIdCYrSK);
-    function  GetClientDetailResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property GetClientDetailResult: MessageResponseOfClientMIdCYrSK  Index (IS_OPTN) read FGetClientDetailResult write SetGetClientDetailResult stored GetClientDetailResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
   // XML       : Client, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
   Client2 = class(Client)
   private
   published
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : CreateClient, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  CreateClient = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    FnewClient: NewClient;
-    FnewClient_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-    procedure SetnewClient(Index: Integer; const ANewClient: NewClient);
-    function  newClient_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-    property newClient:    NewClient   Index (IS_OPTN) read FnewClient write SetnewClient stored newClient_Specified;
   end;
 
 
@@ -1272,212 +767,76 @@ type
   end;
 
 
-
-  // ************************************************************************ //
-  // XML       : CreateClientResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  CreateClientResponse = class(TRemotable)
-  private
-    FCreateClientResult: MessageResponseOfguid;
-    FCreateClientResult_Specified: boolean;
-    procedure SetCreateClientResult(Index: Integer; const AMessageResponseOfguid: MessageResponseOfguid);
-    function  CreateClientResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property CreateClientResult: MessageResponseOfguid  Index (IS_OPTN) read FCreateClientResult write SetCreateClientResult stored CreateClientResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : SaveClient, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  SaveClient = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    Fclient: ClientSummary;
-    Fclient_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-    procedure Setclient(Index: Integer; const AClientSummary: ClientSummary);
-    function  client_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property countryCode:  WideString     Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString     Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString     Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-    property client:       ClientSummary  Index (IS_OPTN) read Fclient write Setclient stored client_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : SaveClientResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  SaveClientResponse = class(TRemotable)
-  private
-    FSaveClientResult: MessageResponse;
-    FSaveClientResult_Specified: boolean;
-    procedure SetSaveClientResult(Index: Integer; const AMessageResponse: MessageResponse);
-    function  SaveClientResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property SaveClientResult: MessageResponse  Index (IS_OPTN) read FSaveClientResult write SetSaveClientResult stored SaveClientResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : CreateClientUser, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  CreateClientUser = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    FclientId: guid;
-    FclientId_Specified: boolean;
-    FnewUser: NewUser;
-    FnewUser_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-    procedure SetclientId(Index: Integer; const Aguid: guid);
-    function  clientId_Specified(Index: Integer): boolean;
-    procedure SetnewUser(Index: Integer; const ANewUser: NewUser);
-    function  newUser_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-    property clientId:     guid        Index (IS_OPTN) read FclientId write SetclientId stored clientId_Specified;
-    property newUser:      NewUser     Index (IS_OPTN) read FnewUser write SetnewUser stored newUser_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : CreateClientUserResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  CreateClientUserResponse = class(TRemotable)
-  private
-    FCreateClientUserResult: MessageResponseOfguid;
-    FCreateClientUserResult_Specified: boolean;
-    procedure SetCreateClientUserResult(Index: Integer; const AMessageResponseOfguid: MessageResponseOfguid);
-    function  CreateClientUserResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property CreateClientUserResult: MessageResponseOfguid  Index (IS_OPTN) read FCreateClientUserResult write SetCreateClientUserResult stored CreateClientUserResult_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : SaveclientUser, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  SaveclientUser = class(TRemotable)
-  private
-    FcountryCode: WideString;
-    FcountryCode_Specified: boolean;
-    FpracticeCode: WideString;
-    FpracticeCode_Specified: boolean;
-    FpasswordHash: WideString;
-    FpasswordHash_Specified: boolean;
-    FclientId: guid;
-    FclientId_Specified: boolean;
-    Fuser: User;
-    Fuser_Specified: boolean;
-    procedure SetcountryCode(Index: Integer; const AWideString: WideString);
-    function  countryCode_Specified(Index: Integer): boolean;
-    procedure SetpracticeCode(Index: Integer; const AWideString: WideString);
-    function  practiceCode_Specified(Index: Integer): boolean;
-    procedure SetpasswordHash(Index: Integer; const AWideString: WideString);
-    function  passwordHash_Specified(Index: Integer): boolean;
-    procedure SetclientId(Index: Integer; const Aguid: guid);
-    function  clientId_Specified(Index: Integer): boolean;
-    procedure Setuser(Index: Integer; const AUser: User);
-    function  user_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property countryCode:  WideString  Index (IS_OPTN) read FcountryCode write SetcountryCode stored countryCode_Specified;
-    property practiceCode: WideString  Index (IS_OPTN) read FpracticeCode write SetpracticeCode stored practiceCode_Specified;
-    property passwordHash: WideString  Index (IS_OPTN) read FpasswordHash write SetpasswordHash stored passwordHash_Specified;
-    property clientId:     guid        Index (IS_OPTN) read FclientId write SetclientId stored clientId_Specified;
-    property user:         User        Index (IS_OPTN) read Fuser write Setuser stored user_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : SaveclientUserResponse, global, <element>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  SaveclientUserResponse = class(TRemotable)
-  private
-    FSaveclientUserResult: MessageResponse;
-    FSaveclientUserResult_Specified: boolean;
-    procedure SetSaveclientUserResult(Index: Integer; const AMessageResponse: MessageResponse);
-    function  SaveclientUserResult_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property SaveclientUserResult: MessageResponse  Index (IS_OPTN) read FSaveclientUserResult write SetSaveclientUserResult stored SaveclientUserResult_Specified;
-  end;
-
-
   // ************************************************************************ //
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // soapAction: http://www.banklinkonline.com/2011/11/Blopi/IBlopiServiceFacade/%operationName%
+  // transport : http://schemas.xmlsoap.org/soap/http
+  // style     : document
+  // binding   : BasicHttpBinding_IBlopiServiceFacade
+  // service   : BlopiServiceFacade
+  // port      : BasicHttpBinding_IBlopiServiceFacade
+  // URL       : https://banklinkonline.com/Services/BlopiServiceFacade.svc
   // ************************************************************************ //
   IBlopiServiceFacade = interface(IInvokable)
-  ['{02DF8283-ABAB-2E33-9A44-1B850E27000A}']
-    function  Echo(const parameters: Echo): EchoResponse; stdcall;
-    function  GetPracticeCatalogue(const parameters: GetPracticeCatalogue): GetPracticeCatalogueResponse; stdcall;
-    function  GetSmeCatalogue(const parameters: GetSmeCatalogue): GetSmeCatalogueResponse; stdcall;
-    function  GetUserCatalogue(const parameters: GetUserCatalogue): GetUserCatalogueResponse; stdcall;
-    function  GetPracticeDetail(const parameters: GetPracticeDetail): GetPracticeDetailResponse; stdcall;
-    function  CreatePracticeUser(const parameters: CreatePracticeUser): CreatePracticeUserResponse; stdcall;
-    function  SavePracticeUser(const parameters: SavePracticeUser): SavePracticeUserResponse; stdcall;
-    function  DeletePracticeUser(const parameters: DeletePracticeUser): DeletePracticeUserResponse; stdcall;
-    function  GetClientList(const parameters: GetClientList): GetClientListResponse; stdcall;
-    function  GetClientDetail(const parameters: GetClientDetail): GetClientDetailResponse; stdcall;
-    function  CreateClient(const parameters: CreateClient): CreateClientResponse; stdcall;
-    function  SaveClient(const parameters: SaveClient): SaveClientResponse; stdcall;
-    function  CreateClientUser(const parameters: CreateClientUser): CreateClientUserResponse; stdcall;
-    function  SaveclientUser(const parameters: SaveclientUser): SaveclientUserResponse; stdcall;
+  ['{88E4B606-483E-CC24-1C42-418E3CD2E07E}']
+    function  Echo(const aString: WideString): WideString; stdcall;
+    function  GetPracticeCatalogue(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
+    function  GetSmeCatalogue(const countryCode: WideString; const practiceCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
+    function  GetUserCatalogue(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
+    function  GetPracticeDetail(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeMIdCYrSK; stdcall;
+    function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const newUser: NewUser): MessageResponseOfguid; stdcall;
+    function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: User): MessageResponse; stdcall;
+    function  DeletePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
+    function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
+    function  GetClientDetail(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientMIdCYrSK; stdcall;
+    function  CreateClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const newClient: NewClient): MessageResponseOfguid; stdcall;
+    function  SaveClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const client: ClientSummary): MessageResponse; stdcall;
+    function  CreateClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const newUser: NewUser): MessageResponseOfguid; stdcall;
+    function  SaveclientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: User): MessageResponse; stdcall;
   end;
 
+function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
 
 
 implementation
   uses SysUtils;
+
+function GetIBlopiServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiServiceFacade;
+const
+  defWSDL = 'https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl';
+  defURL  = 'https://banklinkonline.com/Services/BlopiServiceFacade.svc';
+  defSvc  = 'BlopiServiceFacade';
+  defPrt  = 'BasicHttpBinding_IBlopiServiceFacade';
+var
+  RIO: THTTPRIO;
+begin
+  Result := nil;
+  if (Addr = '') then
+  begin
+    if UseWSDL then
+      Addr := defWSDL
+    else
+      Addr := defURL;
+  end;
+  if HTTPRIO = nil then
+    RIO := THTTPRIO.Create(nil)
+  else
+    RIO := HTTPRIO;
+  try
+    Result := (RIO as IBlopiServiceFacade);
+    if UseWSDL then
+    begin
+      RIO.WSDLLocation := Addr;
+      RIO.Service := defSvc;
+      RIO.Port := defPrt;
+    end else
+      RIO.URL := Addr;
+  finally
+    if (Result = nil) and (HTTPRIO = nil) then
+      RIO.Free;
+  end;
+end;
+
 
 destructor MessageResponse.Destroy;
 var
@@ -2203,830 +1562,10 @@ begin
   Result := FSubscription_Specified;
 end;
 
-procedure Echo.SetaString(Index: Integer; const AWideString: WideString);
-begin
-  FaString := AWideString;
-  FaString_Specified := True;
-end;
-
-function Echo.aString_Specified(Index: Integer): boolean;
-begin
-  Result := FaString_Specified;
-end;
-
-procedure EchoResponse.SetEchoResult(Index: Integer; const AWideString: WideString);
-begin
-  FEchoResult := AWideString;
-  FEchoResult_Specified := True;
-end;
-
-function EchoResponse.EchoResult_Specified(Index: Integer): boolean;
-begin
-  Result := FEchoResult_Specified;
-end;
-
-procedure GetPracticeCatalogue.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function GetPracticeCatalogue.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure GetPracticeCatalogue.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function GetPracticeCatalogue.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure GetPracticeCatalogue.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function GetPracticeCatalogue.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-destructor GetPracticeCatalogueResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FGetPracticeCatalogueResult);
-  inherited Destroy;
-end;
-
-procedure GetPracticeCatalogueResponse.SetGetPracticeCatalogueResult(Index: Integer; const AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK);
-begin
-  FGetPracticeCatalogueResult := AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK;
-  FGetPracticeCatalogueResult_Specified := True;
-end;
-
-function GetPracticeCatalogueResponse.GetPracticeCatalogueResult_Specified(Index: Integer): boolean;
-begin
-  Result := FGetPracticeCatalogueResult_Specified;
-end;
-
-procedure GetSmeCatalogue.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function GetSmeCatalogue.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure GetSmeCatalogue.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function GetSmeCatalogue.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-destructor GetSmeCatalogueResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FGetSmeCatalogueResult);
-  inherited Destroy;
-end;
-
-procedure GetSmeCatalogueResponse.SetGetSmeCatalogueResult(Index: Integer; const AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK);
-begin
-  FGetSmeCatalogueResult := AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK;
-  FGetSmeCatalogueResult_Specified := True;
-end;
-
-function GetSmeCatalogueResponse.GetSmeCatalogueResult_Specified(Index: Integer): boolean;
-begin
-  Result := FGetSmeCatalogueResult_Specified;
-end;
-
-procedure GetUserCatalogue.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function GetUserCatalogue.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure GetUserCatalogue.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function GetUserCatalogue.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure GetUserCatalogue.SetclientCode(Index: Integer; const AWideString: WideString);
-begin
-  FclientCode := AWideString;
-  FclientCode_Specified := True;
-end;
-
-function GetUserCatalogue.clientCode_Specified(Index: Integer): boolean;
-begin
-  Result := FclientCode_Specified;
-end;
-
-destructor GetUserCatalogueResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FGetUserCatalogueResult);
-  inherited Destroy;
-end;
-
-procedure GetUserCatalogueResponse.SetGetUserCatalogueResult(Index: Integer; const AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK: MessageResponseOfArrayOfCatalogueEntryMIdCYrSK);
-begin
-  FGetUserCatalogueResult := AMessageResponseOfArrayOfCatalogueEntryMIdCYrSK;
-  FGetUserCatalogueResult_Specified := True;
-end;
-
-function GetUserCatalogueResponse.GetUserCatalogueResult_Specified(Index: Integer): boolean;
-begin
-  Result := FGetUserCatalogueResult_Specified;
-end;
-
-procedure GetPracticeDetail.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function GetPracticeDetail.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure GetPracticeDetail.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function GetPracticeDetail.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure GetPracticeDetail.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function GetPracticeDetail.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-destructor GetPracticeDetailResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FGetPracticeDetailResult);
-  inherited Destroy;
-end;
-
-procedure GetPracticeDetailResponse.SetGetPracticeDetailResult(Index: Integer; const AMessageResponseOfPracticeMIdCYrSK: MessageResponseOfPracticeMIdCYrSK);
-begin
-  FGetPracticeDetailResult := AMessageResponseOfPracticeMIdCYrSK;
-  FGetPracticeDetailResult_Specified := True;
-end;
-
-function GetPracticeDetailResponse.GetPracticeDetailResult_Specified(Index: Integer): boolean;
-begin
-  Result := FGetPracticeDetailResult_Specified;
-end;
-
-destructor CreatePracticeUser.Destroy;
-begin
-  SysUtils.FreeAndNil(FnewUser);
-  inherited Destroy;
-end;
-
-procedure CreatePracticeUser.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function CreatePracticeUser.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure CreatePracticeUser.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function CreatePracticeUser.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure CreatePracticeUser.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function CreatePracticeUser.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-procedure CreatePracticeUser.SetnewUser(Index: Integer; const ANewUser: NewUser);
-begin
-  FnewUser := ANewUser;
-  FnewUser_Specified := True;
-end;
-
-function CreatePracticeUser.newUser_Specified(Index: Integer): boolean;
-begin
-  Result := FnewUser_Specified;
-end;
-
-destructor CreatePracticeUserResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FCreatePracticeUserResult);
-  inherited Destroy;
-end;
-
-procedure CreatePracticeUserResponse.SetCreatePracticeUserResult(Index: Integer; const AMessageResponseOfguid: MessageResponseOfguid);
-begin
-  FCreatePracticeUserResult := AMessageResponseOfguid;
-  FCreatePracticeUserResult_Specified := True;
-end;
-
-function CreatePracticeUserResponse.CreatePracticeUserResult_Specified(Index: Integer): boolean;
-begin
-  Result := FCreatePracticeUserResult_Specified;
-end;
-
-destructor SavePracticeUser.Destroy;
-begin
-  SysUtils.FreeAndNil(Fuser);
-  inherited Destroy;
-end;
-
-procedure SavePracticeUser.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function SavePracticeUser.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure SavePracticeUser.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function SavePracticeUser.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure SavePracticeUser.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function SavePracticeUser.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-procedure SavePracticeUser.Setuser(Index: Integer; const AUser: User);
-begin
-  Fuser := AUser;
-  Fuser_Specified := True;
-end;
-
-function SavePracticeUser.user_Specified(Index: Integer): boolean;
-begin
-  Result := Fuser_Specified;
-end;
-
-destructor SavePracticeUserResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FSavePracticeUserResult);
-  inherited Destroy;
-end;
-
-procedure SavePracticeUserResponse.SetSavePracticeUserResult(Index: Integer; const AMessageResponse: MessageResponse);
-begin
-  FSavePracticeUserResult := AMessageResponse;
-  FSavePracticeUserResult_Specified := True;
-end;
-
-function SavePracticeUserResponse.SavePracticeUserResult_Specified(Index: Integer): boolean;
-begin
-  Result := FSavePracticeUserResult_Specified;
-end;
-
-procedure DeletePracticeUser.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function DeletePracticeUser.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure DeletePracticeUser.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function DeletePracticeUser.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure DeletePracticeUser.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function DeletePracticeUser.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-procedure DeletePracticeUser.SetuserId(Index: Integer; const Aguid: guid);
-begin
-  FuserId := Aguid;
-  FuserId_Specified := True;
-end;
-
-function DeletePracticeUser.userId_Specified(Index: Integer): boolean;
-begin
-  Result := FuserId_Specified;
-end;
-
-destructor DeletePracticeUserResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FDeletePracticeUserResult);
-  inherited Destroy;
-end;
-
-procedure DeletePracticeUserResponse.SetDeletePracticeUserResult(Index: Integer; const AMessageResponse: MessageResponse);
-begin
-  FDeletePracticeUserResult := AMessageResponse;
-  FDeletePracticeUserResult_Specified := True;
-end;
-
-function DeletePracticeUserResponse.DeletePracticeUserResult_Specified(Index: Integer): boolean;
-begin
-  Result := FDeletePracticeUserResult_Specified;
-end;
-
-procedure GetClientList.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function GetClientList.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure GetClientList.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function GetClientList.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure GetClientList.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function GetClientList.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-destructor GetClientListResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FGetClientListResult);
-  inherited Destroy;
-end;
-
-procedure GetClientListResponse.SetGetClientListResult(Index: Integer; const AMessageResponseOfClientListMIdCYrSK: MessageResponseOfClientListMIdCYrSK);
-begin
-  FGetClientListResult := AMessageResponseOfClientListMIdCYrSK;
-  FGetClientListResult_Specified := True;
-end;
-
-function GetClientListResponse.GetClientListResult_Specified(Index: Integer): boolean;
-begin
-  Result := FGetClientListResult_Specified;
-end;
-
-procedure GetClientDetail.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function GetClientDetail.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure GetClientDetail.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function GetClientDetail.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure GetClientDetail.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function GetClientDetail.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-procedure GetClientDetail.SetclientId(Index: Integer; const Aguid: guid);
-begin
-  FclientId := Aguid;
-  FclientId_Specified := True;
-end;
-
-function GetClientDetail.clientId_Specified(Index: Integer): boolean;
-begin
-  Result := FclientId_Specified;
-end;
-
-destructor GetClientDetailResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FGetClientDetailResult);
-  inherited Destroy;
-end;
-
-procedure GetClientDetailResponse.SetGetClientDetailResult(Index: Integer; const AMessageResponseOfClientMIdCYrSK: MessageResponseOfClientMIdCYrSK);
-begin
-  FGetClientDetailResult := AMessageResponseOfClientMIdCYrSK;
-  FGetClientDetailResult_Specified := True;
-end;
-
-function GetClientDetailResponse.GetClientDetailResult_Specified(Index: Integer): boolean;
-begin
-  Result := FGetClientDetailResult_Specified;
-end;
-
-destructor CreateClient.Destroy;
-begin
-  SysUtils.FreeAndNil(FnewClient);
-  inherited Destroy;
-end;
-
-procedure CreateClient.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function CreateClient.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure CreateClient.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function CreateClient.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure CreateClient.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function CreateClient.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-procedure CreateClient.SetnewClient(Index: Integer; const ANewClient: NewClient);
-begin
-  FnewClient := ANewClient;
-  FnewClient_Specified := True;
-end;
-
-function CreateClient.newClient_Specified(Index: Integer): boolean;
-begin
-  Result := FnewClient_Specified;
-end;
-
-destructor CreateClientResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FCreateClientResult);
-  inherited Destroy;
-end;
-
-procedure CreateClientResponse.SetCreateClientResult(Index: Integer; const AMessageResponseOfguid: MessageResponseOfguid);
-begin
-  FCreateClientResult := AMessageResponseOfguid;
-  FCreateClientResult_Specified := True;
-end;
-
-function CreateClientResponse.CreateClientResult_Specified(Index: Integer): boolean;
-begin
-  Result := FCreateClientResult_Specified;
-end;
-
-destructor SaveClient.Destroy;
-begin
-  SysUtils.FreeAndNil(Fclient);
-  inherited Destroy;
-end;
-
-procedure SaveClient.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function SaveClient.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure SaveClient.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function SaveClient.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure SaveClient.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function SaveClient.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-procedure SaveClient.Setclient(Index: Integer; const AClientSummary: ClientSummary);
-begin
-  Fclient := AClientSummary;
-  Fclient_Specified := True;
-end;
-
-function SaveClient.client_Specified(Index: Integer): boolean;
-begin
-  Result := Fclient_Specified;
-end;
-
-destructor SaveClientResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FSaveClientResult);
-  inherited Destroy;
-end;
-
-procedure SaveClientResponse.SetSaveClientResult(Index: Integer; const AMessageResponse: MessageResponse);
-begin
-  FSaveClientResult := AMessageResponse;
-  FSaveClientResult_Specified := True;
-end;
-
-function SaveClientResponse.SaveClientResult_Specified(Index: Integer): boolean;
-begin
-  Result := FSaveClientResult_Specified;
-end;
-
-destructor CreateClientUser.Destroy;
-begin
-  SysUtils.FreeAndNil(FnewUser);
-  inherited Destroy;
-end;
-
-procedure CreateClientUser.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function CreateClientUser.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure CreateClientUser.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function CreateClientUser.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure CreateClientUser.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function CreateClientUser.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-procedure CreateClientUser.SetclientId(Index: Integer; const Aguid: guid);
-begin
-  FclientId := Aguid;
-  FclientId_Specified := True;
-end;
-
-function CreateClientUser.clientId_Specified(Index: Integer): boolean;
-begin
-  Result := FclientId_Specified;
-end;
-
-procedure CreateClientUser.SetnewUser(Index: Integer; const ANewUser: NewUser);
-begin
-  FnewUser := ANewUser;
-  FnewUser_Specified := True;
-end;
-
-function CreateClientUser.newUser_Specified(Index: Integer): boolean;
-begin
-  Result := FnewUser_Specified;
-end;
-
-destructor CreateClientUserResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FCreateClientUserResult);
-  inherited Destroy;
-end;
-
-procedure CreateClientUserResponse.SetCreateClientUserResult(Index: Integer; const AMessageResponseOfguid: MessageResponseOfguid);
-begin
-  FCreateClientUserResult := AMessageResponseOfguid;
-  FCreateClientUserResult_Specified := True;
-end;
-
-function CreateClientUserResponse.CreateClientUserResult_Specified(Index: Integer): boolean;
-begin
-  Result := FCreateClientUserResult_Specified;
-end;
-
-destructor SaveclientUser.Destroy;
-begin
-  SysUtils.FreeAndNil(Fuser);
-  inherited Destroy;
-end;
-
-procedure SaveclientUser.SetcountryCode(Index: Integer; const AWideString: WideString);
-begin
-  FcountryCode := AWideString;
-  FcountryCode_Specified := True;
-end;
-
-function SaveclientUser.countryCode_Specified(Index: Integer): boolean;
-begin
-  Result := FcountryCode_Specified;
-end;
-
-procedure SaveclientUser.SetpracticeCode(Index: Integer; const AWideString: WideString);
-begin
-  FpracticeCode := AWideString;
-  FpracticeCode_Specified := True;
-end;
-
-function SaveclientUser.practiceCode_Specified(Index: Integer): boolean;
-begin
-  Result := FpracticeCode_Specified;
-end;
-
-procedure SaveclientUser.SetpasswordHash(Index: Integer; const AWideString: WideString);
-begin
-  FpasswordHash := AWideString;
-  FpasswordHash_Specified := True;
-end;
-
-function SaveclientUser.passwordHash_Specified(Index: Integer): boolean;
-begin
-  Result := FpasswordHash_Specified;
-end;
-
-procedure SaveclientUser.SetclientId(Index: Integer; const Aguid: guid);
-begin
-  FclientId := Aguid;
-  FclientId_Specified := True;
-end;
-
-function SaveclientUser.clientId_Specified(Index: Integer): boolean;
-begin
-  Result := FclientId_Specified;
-end;
-
-procedure SaveclientUser.Setuser(Index: Integer; const AUser: User);
-begin
-  Fuser := AUser;
-  Fuser_Specified := True;
-end;
-
-function SaveclientUser.user_Specified(Index: Integer): boolean;
-begin
-  Result := Fuser_Specified;
-end;
-
-destructor SaveclientUserResponse.Destroy;
-begin
-  SysUtils.FreeAndNil(FSaveclientUserResult);
-  inherited Destroy;
-end;
-
-procedure SaveclientUserResponse.SetSaveclientUserResult(Index: Integer; const AMessageResponse: MessageResponse);
-begin
-  FSaveclientUserResult := AMessageResponse;
-  FSaveclientUserResult_Specified := True;
-end;
-
-function SaveclientUserResponse.SaveclientUserResult_Specified(Index: Integer): boolean;
-begin
-  Result := FSaveclientUserResult_Specified;
-end;
-
 initialization
   InvRegistry.RegisterInterface(TypeInfo(IBlopiServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi', 'utf-8');
-  InvRegistry.RegisterDefaultSOAPAction(TypeInfo(IBlopiServiceFacade), '');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'Echo', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'GetPracticeCatalogue', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'GetSmeCatalogue', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'GetUserCatalogue', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'GetPracticeDetail', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'CreatePracticeUser', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'SavePracticeUser', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'DeletePracticeUser', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'GetClientList', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'GetClientDetail', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'CreateClient', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'SaveClient', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'CreateClientUser', 'parameters1', 'parameters');
-  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'SaveclientUser', 'parameters1', 'parameters');
+  InvRegistry.RegisterDefaultSOAPAction(TypeInfo(IBlopiServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi/IBlopiServiceFacade/%operationName%');
+  InvRegistry.RegisterInvokeOptions(TypeInfo(IBlopiServiceFacade), ioDocument);
   RemClassRegistry.RegisterXSInfo(TypeInfo(guid), 'http://schemas.microsoft.com/2003/10/Serialization/', 'guid');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfCatalogueEntry), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfCatalogueEntry');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfServiceErrorMessage), 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ArrayOfServiceErrorMessage');
@@ -3067,42 +1606,14 @@ initialization
   RemClassRegistry.RegisterExternalPropName(TypeInfo(Client), 'Name_', 'Name');
   RemClassRegistry.RegisterXSClass(NewClient, 'http://www.banklinkonline.com/2011/11/Blopi', 'NewClient');
   RemClassRegistry.RegisterExternalPropName(TypeInfo(NewClient), 'Name_', 'Name');
-  RemClassRegistry.RegisterXSClass(Echo, 'http://www.banklinkonline.com/2011/11/Blopi', 'Echo');
-  RemClassRegistry.RegisterXSClass(EchoResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'EchoResponse');
-  RemClassRegistry.RegisterXSClass(GetPracticeCatalogue, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetPracticeCatalogue');
-  RemClassRegistry.RegisterXSClass(GetPracticeCatalogueResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetPracticeCatalogueResponse');
   RemClassRegistry.RegisterXSClass(CatalogueEntry2, 'http://www.banklinkonline.com/2011/11/Blopi', 'CatalogueEntry2', 'CatalogueEntry');
-  RemClassRegistry.RegisterXSClass(GetSmeCatalogue, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetSmeCatalogue');
-  RemClassRegistry.RegisterXSClass(GetSmeCatalogueResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetSmeCatalogueResponse');
-  RemClassRegistry.RegisterXSClass(GetUserCatalogue, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetUserCatalogue');
-  RemClassRegistry.RegisterXSClass(GetUserCatalogueResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetUserCatalogueResponse');
-  RemClassRegistry.RegisterXSClass(GetPracticeDetail, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetPracticeDetail');
-  RemClassRegistry.RegisterXSClass(GetPracticeDetailResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetPracticeDetailResponse');
   RemClassRegistry.RegisterXSClass(Practice2, 'http://www.banklinkonline.com/2011/11/Blopi', 'Practice2', 'Practice');
   RemClassRegistry.RegisterXSClass(Role2, 'http://www.banklinkonline.com/2011/11/Blopi', 'Role2', 'Role');
   RemClassRegistry.RegisterXSClass(User2, 'http://www.banklinkonline.com/2011/11/Blopi', 'User2', 'User');
-  RemClassRegistry.RegisterXSClass(CreatePracticeUser, 'http://www.banklinkonline.com/2011/11/Blopi', 'CreatePracticeUser');
   RemClassRegistry.RegisterXSClass(NewUser2, 'http://www.banklinkonline.com/2011/11/Blopi', 'NewUser2', 'NewUser');
-  RemClassRegistry.RegisterXSClass(CreatePracticeUserResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'CreatePracticeUserResponse');
-  RemClassRegistry.RegisterXSClass(SavePracticeUser, 'http://www.banklinkonline.com/2011/11/Blopi', 'SavePracticeUser');
-  RemClassRegistry.RegisterXSClass(SavePracticeUserResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'SavePracticeUserResponse');
-  RemClassRegistry.RegisterXSClass(DeletePracticeUser, 'http://www.banklinkonline.com/2011/11/Blopi', 'DeletePracticeUser');
-  RemClassRegistry.RegisterXSClass(DeletePracticeUserResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'DeletePracticeUserResponse');
-  RemClassRegistry.RegisterXSClass(GetClientList, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetClientList');
-  RemClassRegistry.RegisterXSClass(GetClientListResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetClientListResponse');
   RemClassRegistry.RegisterXSClass(ClientList2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientList2', 'ClientList');
   RemClassRegistry.RegisterXSClass(ClientSummary2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientSummary2', 'ClientSummary');
-  RemClassRegistry.RegisterXSClass(GetClientDetail, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetClientDetail');
-  RemClassRegistry.RegisterXSClass(GetClientDetailResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'GetClientDetailResponse');
   RemClassRegistry.RegisterXSClass(Client2, 'http://www.banklinkonline.com/2011/11/Blopi', 'Client2', 'Client');
-  RemClassRegistry.RegisterXSClass(CreateClient, 'http://www.banklinkonline.com/2011/11/Blopi', 'CreateClient');
   RemClassRegistry.RegisterXSClass(NewClient2, 'http://www.banklinkonline.com/2011/11/Blopi', 'NewClient2', 'NewClient');
-  RemClassRegistry.RegisterXSClass(CreateClientResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'CreateClientResponse');
-  RemClassRegistry.RegisterXSClass(SaveClient, 'http://www.banklinkonline.com/2011/11/Blopi', 'SaveClient');
-  RemClassRegistry.RegisterXSClass(SaveClientResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'SaveClientResponse');
-  RemClassRegistry.RegisterXSClass(CreateClientUser, 'http://www.banklinkonline.com/2011/11/Blopi', 'CreateClientUser');
-  RemClassRegistry.RegisterXSClass(CreateClientUserResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'CreateClientUserResponse');
-  RemClassRegistry.RegisterXSClass(SaveclientUser, 'http://www.banklinkonline.com/2011/11/Blopi', 'SaveclientUser');
-  RemClassRegistry.RegisterXSClass(SaveclientUserResponse, 'http://www.banklinkonline.com/2011/11/Blopi', 'SaveclientUserResponse');
 
 end.

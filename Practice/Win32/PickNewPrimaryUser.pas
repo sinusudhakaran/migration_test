@@ -25,8 +25,8 @@ uses
   Dialogs,
   StdCtrls,
   ExtCtrls,
-  OsFont,
-  BlopiServiceFacade;
+  BankLinkOnlineServices,
+  OsFont;
 
 type
   TPickNewPrimaryUser = class(TForm)
@@ -53,7 +53,6 @@ implementation
 uses
   bkXPThemes,
   imagesfrm,
-  BankLinkOnlineServices,
   WarningMoreFrm;
 
 //------------------------------------------------------------------------------

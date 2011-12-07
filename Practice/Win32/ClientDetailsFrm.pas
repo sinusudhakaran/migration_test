@@ -36,7 +36,7 @@ uses
   WinUtils,
   OsFont,
   BanklinkOnlineSettingsFrm,
-  BlopiServiceFacade;
+  BankLinkOnlineServices;
 
 type
   TfrmClientDetails = class(TForm)
@@ -198,8 +198,7 @@ uses
    bkConst,
    BKDEFS,
    ClientUtils,
-   AuditMgr,
-   BankLinkOnlineServices;
+   AuditMgr;
 
 {$R *.DFM}
 
