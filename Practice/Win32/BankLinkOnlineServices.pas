@@ -41,6 +41,13 @@ type
     property EmailAddress: string read GetEmailAddress;
   End;
 
+  TPracticeHelper = Class helper for Practice
+  private
+    function GetUserRoleGuidFromPracUserType(aUstName : integer) : Guid;
+  public
+    function GetRoleFromPracUserType(aUstName : integer) : Role;
+  End;
+
   TClientSummaryHelper = Class helper for BlopiServiceFacade.ClientSummary
   public
     procedure AddSubscription(AProductID: guid);
@@ -55,18 +62,6 @@ type
     procedure LoadDummyPractice;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
-    function DeletePracticeUser(const countryCode  : WideString;
-                                const practiceCode : WideString;
-                                const passwordHash : WideString;
-                                const userId       : guid) : MessageResponse;
-    function SavePracticeUser(const countryCode  : WideString;
-                              const practiceCode : WideString;
-                              const passwordHash : WideString;
-                              const aUser        : User) : MessageResponse;
-    function CreatePracticeUser(const countryCode  : WideString;
-                                const practiceCode : WideString;
-                                const passwordHash : WideString;
-                                const newUser      : NewUser) : MessageResponseOfguid;
     function IsUserCreatedOnBankLinkOnline(const APractice : Practice;
                                            const AUserId   : Guid   = '';
                                            const AUserCode : string = ''): Boolean;
@@ -110,8 +105,8 @@ type
     function AddCreateUser(var   aUserId        : Guid;
                            const aEMail         : WideString;
                            const aFullName      : WideString;
-                           const aRoleNames     : ArrayOfstring;
                            const aUserCode      : WideString;
+                           const aUstName       : integer;
                            var   aIsUserCreated : Boolean ) : Boolean;
     function DeleteUser(AUserId : Guid): Boolean;
     function IsPrimaryUser(const AUserId : Guid = ''): Boolean;
@@ -138,7 +133,8 @@ uses
   IniSettings,
   WebUtils,
   stDate,
-  IniFiles;
+  IniFiles,
+  BkConst;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -898,145 +894,6 @@ begin
   Result := 'Monthly';
 end;
 
-function TProductConfigService.DeletePracticeUser(const countryCode  : WideString;
-                                                  const practiceCode : WideString;
-                                                  const passwordHash : WideString;
-                                                  const userId       : Guid) : MessageResponse;
-var
-  UserIndex : integer;
-  DeleteIndex : integer;
-  UserArray : ArrayOfUser;
-begin
-  Result := MessageResponse.Create;
-  Result.Success := False;
-
-  GetPractice;
-  UserArray := FPracticeCopy.Users;
-
-  if  (countryCode  = 'NZ')
-  and (practiceCode = 'PRACTEST')
-  and (passwordHash = '123') then
-  begin
-    // Find User to Delete
-    DeleteIndex := -1;
-    for UserIndex := 0 to high(UserArray) do
-    begin
-      if UserArray[UserIndex].Id = userId then
-      begin
-        DeleteIndex := UserIndex;
-        Break;
-      end;
-    end;
-
-    // If found Delete User
-    if DeleteIndex > -1 then
-    begin
-      for UserIndex := high(UserArray) downto DeleteIndex+1 do
-      begin
-        UserArray[UserIndex-1] := UserArray[UserIndex];
-      end;
-      SetLength(UserArray, high(UserArray));
-      Result.Success := True;
-    end;
-  end;
-
-  if Result.Success = True then
-  begin
-    FPracticeCopy.Users := UserArray;
-    Result.Success := SavePractice;
-  end;
-end;
-
-function TProductConfigService.SavePracticeUser(const countryCode  : WideString;
-                                                const practiceCode : WideString;
-                                                const passwordHash : WideString;
-                                                const aUser        : User) : MessageResponse;
-var
-  UserIndex : integer;
-  UpdateIndex : integer;
-  UserArray : ArrayOfUser;
-begin
-  Result := MessageResponse.Create;
-  Result.Success := False;
-
-  GetPractice;
-  UserArray := FPracticeCopy.Users;
-
-  if  (countryCode  = 'NZ')
-  and (practiceCode = 'PRACTEST')
-  and (passwordHash = '123') then
-  begin
-    // Find User to Update
-    UpdateIndex := -1;
-    for UserIndex := 0 to high(UserArray) do
-    begin
-      if UserArray[UserIndex].Id = aUser.Id then
-      begin
-        UpdateIndex := UserIndex;
-        Break;
-      end;
-    end;
-
-    if UpdateIndex > -1 then
-    begin
-      UserArray[UserIndex] := aUser;
-      Result.Success := True;
-    end;
-  end;
-
-  if Result.Success = True then
-  begin
-    FPracticeCopy.Users := UserArray;
-    Result.Success := SavePractice;
-  end;
-end;
-
-function TProductConfigService.CreatePracticeUser(const countryCode  : WideString;
-                                                  const practiceCode : WideString;
-                                                  const passwordHash : WideString;
-                                                  const newUser      : NewUser) : MessageResponseOfguid;
-var
-  UserIndex : integer;
-  UpdateIndex : integer;
-  UserArray : ArrayOfUser;
-  NewGuid : TGuid;
-  tmpUser : User;
-begin
-  Result := MessageResponseOfguid.Create;
-  Result.Success := False;
-
-  GetPractice;
-  UserArray := FPracticeCopy.Users;
-
-  if  (countryCode  = 'NZ')
-  and (practiceCode = 'PRACTEST')
-  and (passwordHash = '123') then
-  begin
-    SetLength(UserArray, High(UserArray)+2);
-
-    tmpUser := User.Create;
-    tmpUser.EMail        := newUser.EMail;
-    tmpUser.FullName     := newUser.FullName;
-    tmpUser.RoleNames    := newUser.RoleNames;
-    tmpUser.Subscription := newUser.Subscription;
-    tmpUser.UserCode     := newUser.UserCode;
-
-    CreateGuid(NewGuid);
-    Result.Result := GuidtoString(NewGuid);
-    tmpUser.Id := Result.Result;
-
-    UserArray[High(UserArray)] := tmpUser;
-
-    Result.Success := True;
-  end;
-
-  if Result.Success = True then
-  begin
-    FPracticeCopy.Users := UserArray;
-    Result.Success := SavePractice;
-  end;
-end;
-
 function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : Practice;
                                                              const AUserId   : Guid   = '';
                                                              const AUserCode : string = '') : Boolean;
@@ -1059,8 +916,8 @@ end;
 function TProductConfigService.AddCreateUser(var   aUserId        : Guid;
                                              const aEMail         : WideString;
                                              const aFullName      : WideString;
-                                             const aRoleNames     : ArrayOfstring;
                                              const aUserCode      : WideString;
+                                             const aUstName       : integer;
                                              var   aIsUserCreated : Boolean ) : Boolean;
 var
   UpdateUser      : User;
@@ -1074,16 +931,22 @@ var
   ErrIndex        : integer;
   CurrPractice    : Practice;
   IsUserOnline    : Boolean;
+  BlopiInterface  : IBlopiServiceFacade;
+  RoleNames       : ArrayOfstring;
 begin
   Result := false;
 
-  PracCountryCode := 'NZ';
-  PracCode        := 'PRACTEST';
-  PracPassHash    := '123';
+  BlopiInterface := GetIBlopiServiceFacade;
+  PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+  PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+  PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
   try
     CurrPractice := GetPractice;
     IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
+
+    SetLength(RoleNames,1);
+    RoleNames[0] := CurrPractice.GetRoleFromPracUserType(aUstName).RoleName;
   except
     on E : Exception do
     begin
@@ -1098,12 +961,12 @@ begin
     UpdateUser.EMail        := aEMail;
     UpdateUser.FullName     := aFullName;
     UpdateUser.Id           := aUserId;
-    UpdateUser.RoleNames    := aRoleNames;
+    UpdateUser.RoleNames    := RoleNames;
     UpdateUser.Subscription := CurrPractice.Subscription;
     UpdateUser.UserCode     := aUserCode;
 
     try
-      MsgResponce := SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
+      MsgResponce := BlopiInterface.SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
     except
       on E : Exception do
       begin
@@ -1134,12 +997,12 @@ begin
     CreateUser := NewUser.Create;
     CreateUser.EMail        := aEMail;
     CreateUser.FullName     := aFullName;
-    CreateUser.RoleNames    := aRoleNames;
+    CreateUser.RoleNames    := RoleNames;
     CreateUser.Subscription := CurrPractice.Subscription;
     CreateUser.UserCode     := aUserCode;
 
     try
-      MsgResponceGuid := CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
+      MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
     except
       on E : Exception do
       begin
@@ -1176,15 +1039,17 @@ var
   MsgResponce     : MessageResponse;
   ErrMsg          : String;
   ErrIndex        : integer;
+  BlopiInterface  : IBlopiServiceFacade;
 begin
   Result := false;
 
-  PracCountryCode := 'NZ';
-  PracCode        := 'PRACTEST';
-  PracPassHash    := '123';
+  BlopiInterface := GetIBlopiServiceFacade;
+  PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+  PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+  PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
   try
-    MsgResponce := DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, AUserId);
+    MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, AUserId);
     Result := MsgResponce.Success;
   except
     on E : Exception do
@@ -1250,5 +1115,42 @@ begin
   end;
 end;
 
+{ TUserHelper }
+function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstName: integer): Guid;
+begin
+  Result := '';
+  if (aUstName < ustMin)
+  or (aUstName > ustMax) then
+    raise Exception.Create('Practice User Type does not exist in the Admin System.');
+
+  case aUstName of
+                            // Accountant Practice Standard User
+    ustRestricted : Result := '8C464F01-5071-4FC1-B257-0104D48D141B';
+                            // Accountant Practice Standard User
+    ustNormal     : Result := '8C464F01-5071-4FC1-B257-0104D48D141B';
+                            // Accountant Practice Administrator
+    ustSystem     : Result := '8C464F01-5071-4FC1-B257-0104D48D1418';
+  end;
+end;
+
+function TPracticeHelper.GetRoleFromPracUserType(aUstName: integer): Role;
+var
+  RoleGuid : Guid;
+  RoleIndex : integer;
+begin
+  Result := Nil;
+  RoleGuid := GetUserRoleGuidFromPracUserType(aUstName);
+
+  for RoleIndex := 0 to High(Self.Roles) do
+  begin
+    if (UpperCase(Self.Roles[RoleIndex].Id) = RoleGuid) then
+    begin
+      Result := Self.Roles[RoleIndex];
+      Exit;
+    end;
+  end;
+
+  raise Exception.Create('Practice User Role does not exist on BankLink Online.');
+end;
 
 end.

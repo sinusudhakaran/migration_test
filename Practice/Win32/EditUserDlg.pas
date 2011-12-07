@@ -432,8 +432,8 @@ begin
       Result := ProductConfigService.AddCreateUser(fUserGuid,
                                                    eMail.Text,
                                                    eFullName.Text,
-                                                   RoleNames,
                                                    GetCurrentCode,
+                                                   cmbUserType.ItemIndex,
                                                    fIsCreateUser);
       if Result then
       begin
