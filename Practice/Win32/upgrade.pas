@@ -1457,8 +1457,8 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   var
     i: integer;
   begin
-     LogMsg( lmDebug, Unitname, 'Audit Trail System DB Upgrade Start');
-     UpgradingToVersion := 123;
+    if DebugMe then LogMsg( lmDebug, Unitname, 'Audit Trail System DB Upgrade Start');
+    UpgradingToVersion := 123;
     //Add unique record ID's to all system tables
     //Practice
     AdminSystem.fdFields.fdAudit_Record_ID := 0;
@@ -1486,7 +1486,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     //Client types
     for i := AdminSystem.fdSystem_Client_Type_List.First to AdminSystem.fdSystem_Client_Type_List.Last do
       AdminSystem.fdSystem_Client_Type_List.Client_Type_At(i).ctAudit_Record_ID := AdminSystem.NextAuditRecordID;
-    LogMsg( lmDebug, Unitname, 'Audit Trail System DB Upgrade Finish');
+    if DebugMe then LogMsg( lmDebug, Unitname, 'Audit Trail System DB Upgrade Finish');
   end;
 
   procedure UpgradeAdminToVersion124;
@@ -4051,7 +4051,7 @@ const
     MD: TMemorisation;
     CHL: PCustom_Heading_Rec;
   begin
-    LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Start');
+    if DebugMe then LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Start');
     //CL Client
     aClient.clExtra.ceAudit_Record_ID := 0;
     //CH Chart of Accounts
@@ -4127,7 +4127,7 @@ const
     //Job Heading
     for i := aClient.clJobs.First to aClient.clJobs.Last do
       aClient.clJobs.Job_At(i).jhAudit_Record_ID := aClient.NextAuditRecordID;
-    LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Finish');
+    if DebugMe then LogMsg( lmDebug, Unitname, 'Audit Trail Client Upgrade Finish');
 
     //Reload the client copy so that anything changed from here on gets audited.
     aClient.ClientCopyReset;
