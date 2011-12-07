@@ -102,12 +102,12 @@ type
     function GetClientDetails(ClientID: WideString): Client;
     property Clients: ClientList read FListOfClients;
     //User methods
-    function AddCreateUser(var   aUserId        : Guid;
-                           const aEMail         : WideString;
-                           const aFullName      : WideString;
-                           const aUserCode      : WideString;
-                           const aUstName       : integer;
-                           var   aIsUserCreated : Boolean ) : Boolean;
+    function UpdateCreateUser(var   aUserId        : Guid;
+                              const aEMail         : WideString;
+                              const aFullName      : WideString;
+                              const aUserCode      : WideString;
+                              const aUstName       : integer;
+                              var   aIsUserCreated : Boolean ) : Boolean;
     function DeleteUser(AUserId : Guid): Boolean;
     function IsPrimaryUser(const AUserId : Guid = ''): Boolean;
     function GetUserGuid(AUserCode: string): Guid;
@@ -913,12 +913,12 @@ begin
   end;
 end;
 
-function TProductConfigService.AddCreateUser(var   aUserId        : Guid;
-                                             const aEMail         : WideString;
-                                             const aFullName      : WideString;
-                                             const aUserCode      : WideString;
-                                             const aUstName       : integer;
-                                             var   aIsUserCreated : Boolean ) : Boolean;
+function TProductConfigService.UpdateCreateUser(var   aUserId        : Guid;
+                                                const aEMail         : WideString;
+                                                const aFullName      : WideString;
+                                                const aUserCode      : WideString;
+                                                const aUstName       : integer;
+                                                var   aIsUserCreated : Boolean ) : Boolean;
 var
   UpdateUser      : User;
   CreateUser      : NewUser;
@@ -986,7 +986,7 @@ begin
         ErrMsg := #13 + ErrMsg;
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running SavePracticeUser, Error Message : ' + ErrMsg);  
-      raise Exception.Create('BankLink Practice was unable to create ' + UpdateUser.FullName +
+      raise Exception.Create('BankLink Practice was unable to update ' + UpdateUser.FullName +
                              ' on BankLink Online. ' + ErrMsg );
     end;
 
@@ -1023,7 +1023,7 @@ begin
         ErrMsg := #13 + ErrMsg;
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running CreatePracticeUser, Error Message : ' + ErrMsg);
-      raise Exception.Create('BankLink Practice was unable to update ' + CreateUser.FullName +
+      raise Exception.Create('BankLink Practice was unable to create ' + CreateUser.FullName +
                              ' on BankLink Online. ' + ErrMsg );
     end;
 

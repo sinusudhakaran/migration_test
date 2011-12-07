@@ -429,12 +429,12 @@ begin
 
     if IsBankLinkOnlineUser then
     begin
-      Result := ProductConfigService.AddCreateUser(fUserGuid,
-                                                   eMail.Text,
-                                                   eFullName.Text,
-                                                   GetCurrentCode,
-                                                   cmbUserType.ItemIndex,
-                                                   fIsCreateUser);
+      Result := ProductConfigService.UpdateCreateUser(fUserGuid,
+                                                      eMail.Text,
+                                                      eFullName.Text,
+                                                      GetCurrentCode,
+                                                      cmbUserType.ItemIndex,
+                                                      fIsCreateUser);
       if Result then
       begin
         if IsCreateUser then
