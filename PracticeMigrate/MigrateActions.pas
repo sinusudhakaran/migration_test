@@ -128,8 +128,8 @@ const
    img_success = 0;
 
    YeildCount = 50;
-   StepSize = 200;
-
+   //StepSize = 200;
+    StepSize = 20;
 var
    ActionCount: Integer;
    FMigrationCanceled: Boolean;
@@ -166,6 +166,7 @@ begin
       ParentList.Tree.Expanded[Self.Node] := True;
       ParentList.Tree.ScrollIntoView(Node, False);
    end;
+   inc(ActionCount,YeildCount);
    Changed;
 end;
 

@@ -29,7 +29,7 @@ TClientTypeTable = class (TMigrateTable)
   protected
      procedure SetupTable; override;
   public
-     function Insert(id:TGuid; Value: pClient_Type_Rec): Boolean;
+     function Insert(id: TGuid; Value: pClient_Type_Rec; CountyCode: string): Boolean;
 end;
 
 TSystemClientFileTable = class (TMigrateTable)
@@ -216,12 +216,12 @@ end;
 procedure TClientTypeTable.SetupTable;
 begin
    TableName := 'ClientTypes';
-   SetFields(['Id','Name'],[]);
+   SetFields(['Id','Name','Country_CountryCode'],[]);
 end;
 
-function TClientTypeTable.Insert(id: TGuid; Value: pClient_Type_Rec): Boolean;
+function TClientTypeTable.Insert(id: TGuid; Value: pClient_Type_Rec; CountyCode: string): Boolean;
 begin
-    Result := RunValues([ToSQL(Id) ,ToSQL(Value.ctName)],[]);
+    Result := RunValues([ToSQL(Id), ToSQL(Value.ctName), ToSQL(CountyCode)],[]);
 end;
 
 
@@ -261,7 +261,7 @@ function TUserTable.Insert(MyId: TGuid; Value: pUser_Rec; Restricted: Boolean): 
 begin
     with Value^ do
     Result := RunValues([
-{1}           ToSQL(MyId), ToSQL(usCode), ToSQL(usName), ToSQL(ComputePWHash(usPassword,MyId))
+{1}           ToSQL(MyId), ToSQL(usCode), ToSQL(usName), ToSQL(ComputePWHash(LowerCase(usPassword),MyId))
                  ,ToSQL(usEMail_Address) ,ToSQL(usSystem_Access) ,ToSQL(usDialog_Colour)
 {2}          ,ToSQL(usReverse_Mouse_Buttons) ,ToSQL(usMASTER_Access) ,ToSQL(usIs_Remote_User) ,ToSQL(usDirect_Dial)
 {3}          ,ToSQL(usShow_CM_on_open) ,ToSQL(usShow_Printer_Choice) ,ToSQL(usEULA_Version)

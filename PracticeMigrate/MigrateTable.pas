@@ -6,11 +6,13 @@ interface
 
 uses
    Moneydef,
+   Classes,
    DB,
    ADODB;
 
 type
   TFieldNameList = array of string;
+
   TMigrateTable = class (TADOQuery)
   private
     FCount: Integer;
@@ -21,15 +23,15 @@ type
     procedure MakeQuery;
   protected
     procedure SetCount(const Value: Integer);
+    procedure TestField (name: string);
 
-
-    procedure SetFields(FieldList: array of string; SFFieldList: array of string);
+    procedure SetFields(FieldList: array of string; SFFieldList: array of string); virtual;
     procedure SetupTable; virtual; abstract;
 
   published
   public
     constructor Create(AConnection: TAdoConnection);
-    function RunValues(values: array of Variant; SFValues: array of Variant):Boolean;
+    function RunValues(values: array of Variant; SFValues: array of Variant):Boolean;overload; virtual;
     property Count: Integer read FCount write SetCount;
     property Tablename: string read FTablename write SetTablename;
     property DoSuperfund: Boolean read FDoSuperfund write SetDoSuperfund default false;
@@ -38,9 +40,9 @@ type
     class function ToSQL(Value: Money): variant; overload; static;
     class function QtyToSQL(Value: Money): variant;overload;  static;
     class function PercentToSQL(Value: Money): variant;overload;  static;
-    class function ToSQL (Value: Integer):variant;overload;  static;
-    class function DateToSQL(Value: Integer):variant;static;
-    class function NullToSQL (Value: Integer):variant; static ;
+    class function ToSQL(Value: Integer):variant;overload;  static;
+    class function DateToSQL(Value: Integer):variant;overload;static;
+    class function NullToSQL(Value: Integer):variant;overload; static ;
     class function ToSQL(Value: Boolean):variant;overload;  static;
     class function ToSQL(Value: string):variant;overload;  static;
     class function ToSQL(Date: Integer; Time: Integer):variant;overload;  static;
@@ -50,6 +52,33 @@ type
 
     function GuidToText(Value: TGuid): string;
   end;
+
+  TBatchMigrateTable = class (TMigrateTable)
+  private
+    // Header: string;
+    // TheFile: Text;
+     baseSQL: string;
+     theValues : TStringList;
+  protected
+     procedure SetFields(FieldList: array of string; SFFieldList: array of string); override;
+     function RunTxtValues(values: array of Shortstring; SFValues: array of Shortstring):Boolean;overload;
+
+  public
+    procedure BeginBatch;
+    procedure PostBatch;
+
+    class function ToTxt(Value: TGuid): string; overload; static;
+    class function ToTxt(Value: Money): string; overload; static;
+    class function QtyToTxt(Value: Money): string;overload;  static;
+    class function PercentToTxt(Value: Money): string;overload;  static;
+    class function ToTxt (Value: Integer):string;overload;  static;
+    class function DateToTxt(Value: Integer):string;overload;static;
+    class function NullToTxt (Value: Integer):string;overload; static ;
+    class function ToTxt(Value: Boolean):string;overload;  static;
+    class function ToTxt(Value: string):string;overload;  static;
+    class function ToTxt(Date, Time: Integer): string; overload; static;
+  end;
+
 
 var emptyGuid : TGuid;
 
@@ -75,6 +104,7 @@ implementation
 uses
    strUtils,
    stDate,
+   StDateSt,
    Variants,
    SysUtils;
 
@@ -106,6 +136,7 @@ begin
       Result := StDate.StDateToDateTime(Value);
 end;
 
+
 function TMigrateTable.GuidToText(Value: TGuid): string;
 begin
  if IsEqualGUID(Value,emptyGuid) then
@@ -127,30 +158,6 @@ begin
     CreateGuid(result);
 end;
 
-class function TMigrateTable.NullToSQL(Value: Integer): variant;
-begin
-  if value = 0 then
-     Result := Null
-  else
-     Result := Value;
-end;
-
-
-class function TMigrateTable.PercentToSQL(Value: Money): variant;
-begin
-   if Value=Unknown then
-       Result:= Null
-   else
-       Result:= Value/10000;
-end;
-
-class function TMigrateTable.QtyToSQL(Value: Money): variant;
-begin
-    if Value=Unknown then
-       Result:= Null
-   else
-       Result:= Value/10000;
-end;
 
 procedure TMigrateTable.SetCount(const Value: Integer);
 begin
@@ -165,22 +172,24 @@ begin
    end;
 end;
 
+procedure TMigrateTable.TestField (name: string);
+begin
+   try
+      SQL.Text := format('SELECT [%s] FROM [%s]', [name,TableName]);
+      self.ExecSQL;
+   except
+      raise exception.Create(Format('Field %s not found in table %s',[name, TableName]));
+   end;
+end;
+
+
 procedure TMigrateTable.SetFields(FieldList: array of string; SFFieldList: array of string);
 var
    Fields, values: string;
    I: Integer;
 
-   procedure TestField (name: string);
-   begin
-      try
-      SQL.Text := format('SELECT [%s] FROM [%s]', [name,TableName]);
-      self.ExecSQL;
-      except
-         raise exception.Create(Format('Field %s not found in table %s',[name, TableName]));
-      end;
-   end;
 begin
-   // Build The Field and Vlaue list
+   // Build The Field and Value list
   Fields := Format('[%s]',[FieldList[0]]);
   Values := Format(':%s',[FieldList[0]]);
   for I := Low(FieldList) + 1 to High(FieldList) do begin
@@ -210,14 +219,10 @@ begin
 end;
 
 
-class function TMigrateTable.ToSQL(Date, Time: Integer): variant;
+
+class function TBatchMigrateTable.ToTxt(Value: Integer): string;
 begin
-   if Date <= 0 then
-      Result := Null // Bad date or null date
-   else if Date = maxint then
-      Result := Null // clould make a 'maxdate'
-   else
-      Result := StDate.StDateToDateTime(Date) + StDate.StTimeToDateTime(Time);
+   Result := IntTostr(Value);
 end;
 
 function TMigrateTable.RunValues(values: array of Variant; SFValues: array of Variant):Boolean;
@@ -296,6 +301,227 @@ end;
 class function TMigrateTable.ToSQL(Value: Integer): variant; 
 begin
    Result := Value;
+end;
+
+
+class function TMigrateTable.ToSQL(Date, Time: Integer): variant;
+begin
+   if Date <= 0 then
+      Result := Null // Bad date or null date
+   else if Date = maxint then
+      Result := Null // clould make a 'maxdate'
+   else
+      Result := StDate.StDateToDateTime(Date) + StDate.StTimeToDateTime(Time);
+end;
+
+
+class function TMigrateTable.NullToSQL(Value: Integer): variant;
+begin
+  if value = 0 then
+     Result := Null
+  else
+     Result := Value;
+end;
+
+
+class function TBatchMigrateTable.NullToTxt(Value: Integer): string;
+begin
+  if value = 0 then
+     Result := 'null'
+  else
+     Result := IntToStr(Value);
+end;
+
+class function TMigrateTable.PercentToSQL(Value: Money): variant;
+begin
+   if Value=Unknown then
+       Result:= Null
+   else
+       Result:= Value/10000;
+end;
+
+class function TBatchMigrateTable.PercentToTxt(Value: Money): string;
+begin
+   if Value=Unknown then
+       Result:= 'null'
+   else
+       Result:= FloatToStr(Value/10000);
+end;
+
+class function TMigrateTable.QtyToSQL(Value: Money): variant;
+begin
+    if Value=Unknown then
+       Result:= Null
+   else
+       Result:= Value/10000;
+end;
+
+
+class function TBatchMigrateTable.QtyToTxt(Value: Money): string;
+begin
+    if Value=Unknown then
+       Result:= 'null'
+   else
+      Result:= FloatToStr(Value/10000);
+end;
+
+
+class function TBatchMigrateTable.DateToTxt(Value: Integer): string;
+begin
+   if Value <= 0 then
+      Result := 'null' // Bad date or null date
+   else if value = maxint then
+      result := 'null' // clould make a 'maxdate'
+   else
+      Result := format('''%s''',[ StDateSt.StDateToDateString( 'yyyy-mm-dd', Value, False )]);
+end;
+
+class function TBatchMigrateTable.ToTxt(Value: TGuid): string; overload;
+begin
+  if IsEqualGUID(Value,emptyGuid) then
+     Result := 'null'
+  else begin
+     Result := GuidTostring(Value);
+     Result[1] := '''';
+     Result[Length(Result)] := '''';
+  end;
+end;
+
+class function TBatchMigrateTable.ToTxt(Value: string): string; overload;
+begin
+   Result := format('''%s''',[CleanToSQL( Value)]);
+end;
+
+class function TBatchMigrateTable.ToTxt(Date, Time: Integer): string;
+begin
+
+end;
+
+class function TBatchMigrateTable.ToTxt(Value: Money): string; overload;
+begin
+   result := floatToStr(Value / 100);
+end;
+
+class function TBatchMigrateTable.ToTxt(Value: Boolean): string; overload;
+begin
+   if Value then
+      result := '1'
+   else
+      result := '0';
+end;
+
+{ TBatchMigrateTable }
+
+procedure TBatchMigrateTable.BeginBatch;
+begin
+  //AssignFile(TheFile,'Data.txt');
+  //Rewrite(TheFile);
+  //WriteLn(TheFile,Header);
+  theValues := TstringList.Create;
+end;
+         {
+procedure TBatchMigrateTable.PostBatch;
+begin
+   //Closefile(TheFile);
+
+
+end;
+   }
+procedure TBatchMigrateTable.PostBatch;
+begin
+   if TheValues.Count > 0  then begin
+      //SQL.text := baseSQL + TheValues.Text;
+      //self.ExecSQL;
+      self.Connection.Execute(baseSQL + TheValues.Text);
+   end;
+   FreeAndNil(theValues);
+end;
+
+
+function TBatchMigrateTable.RuntxtValues(values,
+  SFValues: array of Shortstring): Boolean;
+
+  var valuetxt : string;
+      I: integer;
+   function sep: string;
+   begin
+      if theValues.Count = 0 then
+         result := ''
+      else
+         result := ',';
+   end;
+begin
+   valuetxt := values[0];
+   for I := Low(values) + 1 to High(values) do begin
+      valuetxt := valuetxt + Format(',%s',[values[I]]);
+   end;
+   for I := Low(SFValues) + 1 to High(SFValues) do begin
+      valuetxt := valuetxt + Format(',%s',[SFValues[I]]);
+   end;
+   //WriteLn(TheFile,valuetxt);
+   theValues.Add(format ('%s(%s)',[sep,valuetxt]));
+
+   if theValues.Count > 999 then begin
+      PostBatch;
+      BeginBatch;
+   end;
+
+
+end;
+  {
+procedure TBatchMigrateTable.SetFields(FieldList, SFFieldList: array of string);
+var
+
+   I: Integer;
+begin
+   // Build The Field and Value list
+  Header := FieldList[0];
+
+  TestField( FieldList[Low(FieldList)]);
+
+  for I := Low(FieldList) + 1 to High(FieldList) do begin
+     TestField(FieldList[I]);
+     Header := Header + Format(',%s',[FieldList[I]]);
+  end;
+
+
+
+  if FDoSuperfund then // add the super fields
+     for I := Low(SFFieldList) to High(SFFieldList) do begin
+        TestField( SFFieldList[I]);
+        Header := Header + Format(',%s',[SFFieldList[I]]);
+
+     end;
+end;
+}
+
+procedure TBatchMigrateTable.SetFields(FieldList, SFFieldList: array of string);
+        var
+   Fields, values: string;
+   I: Integer;
+
+begin
+   // Build The Field and Value list
+  Fields := Format('[%s]',[FieldList[0]]);
+
+  for I := Low(FieldList) + 1 to High(FieldList) do begin
+     TestField( FieldList[I]);
+     Fields := Fields + Format(',[%s]',[FieldList[I]]);
+
+  end;
+
+  for I := Low(SFFieldList) to High(SFFieldList) do
+     TestField( SFFieldList[I]);
+
+  if FDoSuperfund then // add the super fields
+     for I := Low(SFFieldList) to High(SFFieldList) do begin
+        TestField( SFFieldList[I]);
+        Fields := Fields + Format(',[%s]',[SFFieldList[I]]);
+     end;
+
+  // Make the query
+  baseSQL := Format('Insert into [%s] (%s)  Values  ',[TableName,Fields]);
+  //self.Prepared := true;
 end;
 
 

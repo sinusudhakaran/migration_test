@@ -33,7 +33,7 @@ public
     function ClearData(ForAction: TMigrateAction) : Boolean; virtual; abstract;
 
     // SQL Helpers..
-    function RunSQL(ForAction: TMigrateAction; SQL: widestring) : Boolean;
+    class function RunSQL(Connection : TADOConnection; ForAction: TMigrateAction; SQL: widestring; Action :string): Boolean; static;
     function DeleteTable(ForAction: TMigrateAction; Tablename: string; Truncate: boolean = false):Boolean; overload;
     function DeleteTable(ForAction: TMigrateAction; Table: TMigrateTable; Truncate: boolean = false):Boolean; overload;
     function InsertTable(ForAction: TMigrateAction; TableName, Fields, Values, Name: string): Boolean;
@@ -95,8 +95,10 @@ var Action: TMigrateAction;
 begin
    Action := ForAction.InsertAction( format('Delete %s',[Tablename]));
    Result := RunSQL (
+                       connection,
                        ForAction,
-                       DeleteQuery(TableName,Truncate)
+                       DeleteQuery(TableName,Truncate),
+                       ForAction.Title
                      );
    if Result then
       Action.Status := Success
@@ -390,8 +392,10 @@ function TMigrater.InsertTable(ForAction: TMigrateAction; TableName, Fields,
   Values, Name: string): Boolean;
 begin
     Result := RunSQL (
+              connection,
               ForAction,
-              Format('Insert into [%s] (%s) Values (%s)',[TableName, Fields,Values])
+              Format('Insert into [%s] (%s) Values (%s)',[TableName, Fields,Values]),
+               Format('Insert into %s',[TableName])
                       );
 end;
 
@@ -455,7 +459,7 @@ begin
    end;
 end;
 
-function TMigrater.RunSQL(ForAction: TMigrateAction; SQL: widestring): Boolean;
+class function TMigrater.RunSQL(Connection : TADOConnection; ForAction: TMigrateAction; SQL: widestring; Action :string): Boolean;
 begin
   Result := False;
   try
@@ -464,7 +468,7 @@ begin
   except
      on e:Exception do begin
          if Assigned(ForAction) then
-            ForAction.Exception(E)
+            ForAction.Exception(E,Action)
          else
             raise exception.Create(E.Message);
      end;

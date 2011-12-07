@@ -60,8 +60,8 @@ TClientMigrater = class (TMigrater)
     FBAS_OptionsTable: TBAS_OptionsTable;
     FNotesOptionsTable: TNotesOptionsTable;
     FMatchIDList: TGuidList;
-    FUpdateAccountStatus: TADOStoredProc;
-    FUpdateProcessingStatusForAllClients : TADOStoredProc;
+    //FUpdateAccountStatus: TADOStoredProc;
+    //FUpdateProcessingStatusForAllClients : TADOStoredProc;
     FExcludedFromScheduledReports: TStringList;
     FReportingParameterTable: TReportingParameterTable;
     procedure SetClientID(const Value: TGuid);
@@ -126,8 +126,8 @@ TClientMigrater = class (TMigrater)
     function GetTBAS_OptionsTable: TBAS_OptionsTable;
     function GetNotesOptionsTable: TNotesOptionsTable;
     function GetMatchIDList: TGuidList;
-    function GetUpdateAccountStatus: TADOStoredProc;
-    function GetUpdateProcessingStatusForAllClients: TADOStoredProc;
+    //function GetUpdateAccountStatus: TADOStoredProc;
+    //function GetUpdateProcessingStatusForAllClients: TADOStoredProc;
     function GetReportingParameterTable: TReportingParameterTable;
   public
    constructor Create(AConnection: string);
@@ -183,11 +183,11 @@ TClientMigrater = class (TMigrater)
    property MatchIDList: TGuidList read GetMatchIDList;
 
    // Stored Procs
-   property UpdateAccountStatus: TADOStoredProc read GetUpdateAccountStatus;
-   procedure UpdateClientsStatus(ForAction: TMigrateAction);
+  // property UpdateAccountStatus: TADOStoredProc read GetUpdateAccountStatus;
+  // procedure UpdateClientsStatus(ForAction: TMigrateAction);
 
-   property UpdateProcessingStatusForAllClients: TADOStoredProc read GetUpdateProcessingStatusForAllClients;
-   procedure UpdateProcessingStatusAllClients(ForAction: TMigrateAction);
+  // property UpdateProcessingStatusForAllClients: TADOStoredProc read GetUpdateProcessingStatusForAllClients;
+  // procedure UpdateProcessingStatusAllClients(ForAction: TMigrateAction);
 
    property DoSuperfund: Boolean read FDoSuperfund write SetDoSuperfund;
    property Code: string read FCode write SetCode;
@@ -342,8 +342,8 @@ begin
 
    FuelSheet := Balance.blFirst_Fuel_Sheet;
    while assigned(FuelSheet) do begin
-
-      Result := FuelSheetTable.Insert(NewGuid,Value.GuidID, Fuelsheet);
+      { TODO : Re do Fuel sheet }
+      //Result := FuelSheetTable.Insert(NewGuid,Value.GuidID, Fuelsheet);
       if not Result then
          Exit;
       FuelSheet := FuelSheet.fsNext;
@@ -409,7 +409,7 @@ begin
          Continue;
       Division := GetDivision(I);
       if Assigned(Division) then begin
-         Result := ChartDivisionTable.Insert(Division.GuidID, Value.GuidID, ClientID, I);
+         Result := ChartDivisionTable.Insert(NewGuid, Value.GuidID, ClientID, I);
          if not Result then
             Exit;
       end;
@@ -701,11 +701,12 @@ var myAction: TMigrateAction;
        result := true;
        ClearAction := MyAction.InsertAction('Clear Column configuration');
        try
-       RunSQL(MyAction,
+       RunSQL(connection,MyAction,
        'DELETE ccc FROM ( SELECT c.Id as confid FROM  CodingColumnConfigurations c where c.IsDefault = 0) cc INNER JOIN Codingcolumns ccc ON cc.confid = ccc.CodingColumnConfiguration_Id'
-             );
-        RunSQL(MyAction,
-       'DELETE c FROM CodingColumnConfigurations c where c.IsDefault = 0'
+            ,'Clear Codingcolumns' );
+        RunSQL(connection,MyAction,
+       'DELETE c FROM CodingColumnConfigurations c where c.IsDefault = 0',
+        'Clear CodingColumnConfigurations'
              );
 
          ClearAction.Status := Success;
@@ -725,7 +726,7 @@ var myAction: TMigrateAction;
 
        ClearAction := MyAction.InsertAction(format('Clear %s',[Name]));
        try
-           RunSQL(MyAction, format('DELETE rp FROM [%s] rp where rp.[Client_ID] is not null',[Table]) );
+           RunSQL(connection,MyAction, format('DELETE rp FROM [%s] rp where rp.[Client_ID] is not null',[Table]),'clear Prarameters' );
             ClearAction.Status := Success;
           except
            on e: Exception do begin
@@ -744,14 +745,17 @@ begin
       // Dont use the Table to get the name, Too early and Clear may not work...
 
 
-      DeleteTable(MyAction,'ClientBankAccountsProcessingStatus',True);
+      //DeleteTable(MyAction,'ClientBankAccountsProcessingStatus',True); Gone...
       
       DeleteTable(MyAction,Job_Heading_RecTable, True);
 
       DeleteTable(MYAction,'ClientDownloads', True);
 
       DeleteTable(MyAction,'FuelSheets', True);
-      DeleteTable(MyAction,'Balances');
+      //DeleteTable(MyAction,'Balances');
+      DeleteTable(MyAction,'TaxReturnParameters', True);
+      DeleteTable(MyAction,'TaxReturns');
+
 
       DeleteTable(MyAction,NotesOptionsTable, True);
       DeleteTable(MyAction,BAS_OptionsTable, True);
@@ -783,7 +787,7 @@ begin
 
       ClearConfig;
 
-      DeleteTable(MyAction,'ProcessingStatuses');
+      //DeleteTable(MyAction,'ProcessingStatuses'); Gone...
 
       DeleteTable(MyAction,'BankAccounts');
       DeleteTable(MyAction,'CodingReportOptions');
@@ -929,7 +933,10 @@ begin
    if not assigned( FBalances_ParamTable)
    and assigned(FCLient) then
       case FCLient.clFields.clCountry   of
-      whNewZealand : FBalances_ParamTable := TBalances_ParamTableNZ.Create(connection)
+      { TODO : Needs implementation for each country }
+      whNewZealand : FBalances_ParamTable := TBalances_ParamTableNZ.Create(connection);
+      whAustralia : FBalances_ParamTable := TBalances_ParamTableNZ.Create(connection);
+      whUK : FBalances_ParamTable := TBalances_ParamTableNZ.Create(connection)
       end;
 
       
@@ -1141,6 +1148,7 @@ begin
    Result := FTransaction_RecTable;
 end;
 
+{
 function TClientMigrater.GetUpdateAccountStatus: TADOStoredProc;
 begin
    if not assigned (FUpdateAccountStatus) then begin
@@ -1175,7 +1183,7 @@ begin
    end;
    result := FUpdateProcessingStatusForAllClients;
 end;
-
+    }
 function TClientMigrater.GetUser(const Value: string): TGuid;
 begin
    fillChar(result,SizeOf(result),0);
@@ -1285,7 +1293,8 @@ begin
                       GetNotesForClient(ClientLRN),
                       @FClient.clFields,
                       @FClient.clMoreFields,
-                      @FClient.clExtra
+                      @FClient.clExtra ,
+                      AClient
                     );
 
 
@@ -1508,7 +1517,7 @@ begin
   FSystemMirater := Value;
 end;
 
-
+ {
 procedure TClientMigrater.UpdateClientsStatus(ForAction: TMigrateAction);
 
 var MyAction : TMigrateAction;
@@ -1540,5 +1549,5 @@ begin
          MyAction.Error := E.Message;
    end;
 end;
-
+   }
 end.

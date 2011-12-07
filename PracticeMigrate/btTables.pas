@@ -36,6 +36,7 @@ begin
 
 end;
 
+
 function TbtTable.Insert(MyId, AccountID: TGuid;
   Value: tArchived_Transaction): Boolean;
 begin
@@ -47,5 +48,16 @@ begin
            , ToSQL(aUnique_ID) , ToSQL(aOther_Party) , ToSQL(AccountID )],[]);
 end;
 
-
+   {
+ function TbtTable.Insert(MyId, AccountID: TGuid;
+  Value: tArchived_Transaction): Boolean;
+begin
+   with Value do
+   Result := RunTxtValues([ToTxt(MyId) , ToTxt(aLRN) , ToTxt(aType) , ToTxt(aSource) , DateTOTxt(aDate_Presented)
+               , DateToTxt(aDate_Transferred) , ToTxt(aAmount), QtyToTxt(aQuantity)
+           , ToTxt(aCheque_Number) , ToTxt(aReference) , ToTxt(aParticulars) , ToTxt(aAnalysis)
+               , ToTxt(aOrigBB) , ToTxt(aNarration) , ToTxt(aStatement_Details)
+           , ToTxt(aUnique_ID) , ToTxt(aOther_Party) , ToTxt(AccountID )],[]);
+end;
+   }
 end.

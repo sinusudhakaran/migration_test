@@ -84,6 +84,8 @@ private
     function MigrateCustomDocs(ForAction:TMigrateAction): Boolean;
     function MigrateTax(ForAction: TMigrateAction): Boolean;
 
+    function StartRetrieve(ForAction: TMigrateAction): Boolean;
+
 
     // Size Items
     function SizeSystemAccount(Value: TGuidObject): Int64;
@@ -173,6 +175,7 @@ end;
 implementation
 
 uses
+   FileExtensionUtils,
    CustomDocEditorFrm,
    INISettings,
    PassWordHash,
@@ -354,7 +357,7 @@ end;
 function TSystemMigrater.AddClientType(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 begin
-  Result := ClientTypeTable.Insert(Value.GuidID, pClient_Type_Rec(Value.Data))
+  Result := ClientTypeTable.Insert(Value.GuidID, pClient_Type_Rec(Value.Data), whShortNames[ FSystem.fdFields.fdCountry])
 end;
 
 function TSystemMigrater.AddDiskLog(ForAction: TMigrateAction;
@@ -583,6 +586,7 @@ begin
    AssignFile(eFile, eFileName);
    Reset(eFile); { TODO : May need to chnge, cannot handle readOnly files.. }
 
+   //BTTable.BeginBatch;
    try
       Count := FileSize(eFile);
       if Count = 0 then
@@ -605,7 +609,7 @@ begin
       CloseFile(eFile);
       if Assigned(Myaction) then
          MyAction.Count := Count;
-
+     // BTTable.PostBatch;
 
 
    end;
@@ -651,21 +655,65 @@ var MyAction: TMigrateAction;
     procedure ClearStyles ;
     var ClearAction: TMigrateAction;
     begin
-       result := true;
+
        ClearAction := MyAction.InsertAction('Clear report styles');
        try
-       RunSQL(MyAction,
-      'DELETE FROM [dbo].[ReportItems] WHERE [ReportStyles_Id] <> ''1330918F-862E-428A-B5FE-A1F13E553FCA'''
-             );
-        RunSQL(MyAction,
-      'DELETE FROM [dbo].[ReportStyles] WHERE [Id] <> ''1330918F-862E-428A-B5FE-A1F13E553FCA'''
-             );
+       RunSQL(connection,MyAction,
+      'DELETE FROM [dbo].[ReportItems] WHERE [ReportStyles_Id] <> ''1330918F-862E-428A-B5FE-A1F13E553FCA''',
+             'Delete ReportItems');
+        RunSQL(connection,MyAction,
+      'DELETE FROM [dbo].[ReportStyles] WHERE [Id] <> ''1330918F-862E-428A-B5FE-A1F13E553FCA''',
+             'Delete ReportStyles');
 
          ClearAction.Status := Success;
        except
            on e: Exception do begin
               ClearAction.Exception(e);
-              result := false;
+
+           end;
+       end;
+    end;
+
+    procedure ClearUserViewConfigurations;
+    var ClearAction: TMigrateAction;
+    begin
+         result := true;
+       ClearAction := MyAction.InsertAction('Clear user view configurations');
+       try
+          RunSQL(connection,MyAction,
+          'DELETE vc FROM  ( SELECT v.Id as vid FROM  UserViewConfigurations v where v.[User_ID] is not null ) vv ' +
+                  'INNER JOIN UserViewConfigurationColumns vc ON vv.vid = vc.UserViewConfiguration_Id'
+                  ,
+             'Delete UserViewConfigurationColumns');
+
+          RunSQL(connection,MyAction,
+          'DELETE FROM UserViewConfigurations where [User_ID] is not null' ,
+             'Delete UserViewConfigurations');
+           ClearAction.Status := Success;
+       except
+           on e: Exception do begin
+              ClearAction.Exception(e);
+
+           end;
+       end;
+    end;
+
+    procedure ClearServerTaskScheduleInstances;
+    var ClearAction: TMigrateAction;
+    begin
+       result := true;
+       ClearAction := MyAction.InsertAction('Clear Server Task Schedule Instances');
+       try
+
+
+          RunSQL(connection,MyAction,
+          'DELETE FROM ServerTaskScheduleInstances where [UserID] = ''00000000-0000-0000-0000-000000000000''' ,
+             'Clear Server Task Schedule Instances');
+           ClearAction.Status := Success;
+       except
+           on e: Exception do begin
+              ClearAction.Exception(e);
+
            end;
        end;
     end;
@@ -680,7 +728,15 @@ begin
       exit;
       {}
       // Dont use the Table to get the name, Too early and Clear may not work...
+
+      Connection.Execute( 'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"');
+      try
       DeleteTable(MyAction,'UserClients');
+      ClearUserViewConfigurations;
+      DeleteTable(MyAction,'UserPrintSettings');
+      DeleteTable(MyAction,'UserParameters');
+
+      DeleteTable(MyAction,'GenericParameters');
 
       DeleteTable(MyAction,'AccountCharges',True);
       DeleteTable(MyAction,'DownloadDocuments', True);
@@ -688,6 +744,8 @@ begin
 
       DeleteTable(MyAction,'SysTaxRates');
       DeleteTable(MyAction,'SysTaxEntries');
+
+      DeleteTable(MyAction,'Tasks');
 
       DeleteTable(MyAction,'ClientSystemAccounts');;
       DeleteTable(MyAction,'SystemBankAccounts');
@@ -703,12 +761,23 @@ begin
       DeleteTable(MyAction,'ClientTypes');
 
       DeleteTable(MyAction,'SystemBlobs');
+
       DeleteTable(MyAction,'MasterMemorisationLines', true);
       DeleteTable(MyAction,'MasterMemorisations');
 
+      DeleteTable(MyAction,'FaxBodyFiles');
+      DeleteTable(MyAction,'Faxes');
+      DeleteTable(MyAction,'EmailAttachments');
+      DeleteTable(MyAction,'Emails');
+
+      DeleteTable(MyAction,'ServerTaskMessages');
+      ClearServerTaskScheduleInstances;
 
       Result := True;
       MyAction.Status := Success;
+      finally
+         Connection.Execute( 'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"');
+      end;
    except
       on E: Exception do
          MyAction.Error := E.Message;
@@ -1089,18 +1158,29 @@ end;
 
 function TSystemMigrater.MigrateSystem(ForAction: TMigrateAction): Boolean;
 
-function DateToValue(Value: Integer):string;
-begin
-   if Value <= 0 then
-      Result := 'null' { Bad date or null date }
-   else if value = maxint then
-      result := 'null' // clould make a 'maxdate'
-   else
-      Result := StDateSt.StDateToDateString( 'mm/dd/yyyy', Value, False );
-end;
+   function DateToValue(Value: Integer):string;
+   begin
+      if Value <= 0 then
+         Result := 'null' { Bad date or null date }
+      else if value = maxint then
+         result := 'null' // clould make a 'maxdate'
+      else
+         Result := StDateSt.StDateToDateString( 'dd/mm/yyyy', Value, False );
+   end;
 
+   function SortByText(value: byte): string ;
+   begin
+      case value of
+         srsoStaffMember : result :=  'User';
+         srsoGroup : result := 'Group';
+         srsoClientType  : result :=  'Type';
+         else result := 'Client';
+      end;
+   end;
 
 begin
+   ParameterTable.Update('Country', whShortNames[ FSystem.fdFields.fdCountry],'nvarchar(2)');
+
    ParameterTable.Update('AccountCodeMask', System.fdFields.fdAccount_Code_Mask,'nvarchar(20)');
    ParameterTable.Update('AccountingSystem', GetProviderID(AccountingSystem,System.fdFields.fdCountry, System.fdFields.fdAccounting_System_Used));
    ParameterTable.Update('AutoPrintScheduledReportSummary', System.fdFields.fdAuto_Print_Sched_Rep_Summary);
@@ -1115,12 +1195,13 @@ begin
 
    ParameterTable.Update('CopyDissectionNarration', System.fdFields.fdCopy_Dissection_Narration);
 
-   ParameterTable.Update('DiskSequenceNo', format('%u3', [System.fdFields.fdDisk_Sequence_No]),'nvarchar(4)');
+   ParameterTable.Update('DiskSequenceNo', FileExtensionUtils.MakeSuffix(System.fdFields.fdDisk_Sequence_No),'nvarchar(4)');
    ParameterTable.Update('HighestDateEverDownloaded', DateTovalue(System.fdFields.fdDate_of_Last_Entry_Received),'datetime');
    //ParameterTable.Update('LastEntryReceived'  fdDate_of_Last_Entry_Received
    ParameterTable.Update('SRDoReportsUpto', DateToValue(System.fdFields.fdPrint_Reports_Up_To),'datetime');
    ParameterTable.Update('ExportChargesRemarks', System.fdFields.fdExport_Charges_Remarks,'nvarchar(255)');
 
+   ParameterTable.Update('AutoRetrieveNewTransactions',System.fdFields.fdAuto_Retrieve_New_Transactions);
    //ParameterTable.Update('ExportTaxFileTo', System.fdFields);
 
    ParameterTable.Update('ExtractJournalAccountsPA',System.fdFields.fdExtract_Journal_Accounts_PA);
@@ -1167,7 +1248,8 @@ begin
 
 
    ParameterTable.Update('SystemReportPassword', System.fdFields.fdSystem_Report_Password,'nvarchar(60)');
-   ParameterTable.Update('TaskTrackingPromptType', System.fdFields.fdTask_Tracking_Prompt_Type);
+   ParameterTable.Update('ShowOverDueWhenClosingClientFile', System.fdFields.fdTask_Tracking_Prompt_Type = ttOnlyIfOutstanding);
+   //ParameterTable.Update('TaskTrackingPromptType', System.fdFields.fdTask_Tracking_Prompt_Type);
    ParameterTable.Update('TaxInterfaceUsed', GetProviderID(TaxSystem,System.fdFields.fdCountry, System.fdFields.fdTax_Interface_Used));
    ParameterTable.Update('UpdateServerForOffsites', System.fdFields.fdUpdate_Server_For_Offsites,'nvarchar(255)');
 
@@ -1187,6 +1269,7 @@ begin
    ParameterTable.Update('SRDoSendNotes', System.fdFields.fdSched_Rep_Include_ECoding);
    ParameterTable.Update('SRDoSendNotesOnline', System.fdFields.fdSched_Rep_Include_WebX);
    ParameterTable.Update('SRDoPrintedReports', System.fdFields.fdSched_Rep_Include_Printer);
+   ParameterTable.Update('SRSortBy', SortByText(System.fdFields.fdSort_Reports_By),'nvarchar(20)' );
 
    //ParameterTable.Update('SRNewTransactionsOnly', ToSQL(System. ,false));
 
@@ -1339,9 +1422,22 @@ begin
 
       repeat
 
-          RunSQL(ForAction,format('Delete from [UserClients] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
-          RunSQL(ForAction,format('Delete from [UserRoles] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
+          RunSQL(connection,ForAction,format('Delete from [UserClients] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]),
+              format('Delete User Clients for %s ',[User.usCode]));
 
+          RunSQL(connection,ForAction,format('Delete from [UserRoles] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]),
+              format('Delete User Clients for %s ',[User.usCode]));
+
+          RunSQL(connection,ForAction,format('Delete from [UserParameters] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]),
+              format('Delete User Parameters for %s ',[User.usCode]));
+
+          RunSQL(connection,ForAction,format('Delete from [UserPrintSettings] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]),
+              format('Delete User Print Settings for %s ',[User.usCode]));
+
+          RunSQL(connection,ForAction,format('Delete from [ServerTaskScheduleInstances] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]),
+              format('Delete User Server Task Schedule for %s ',[User.usCode]));
+
+          {   // deleted
           RunSQL(ForAction,format(
         'DELETE uea FROM ( SELECT e.Id as eid FROM  Emails e where e.[UserId] = ''%s'' ) ee INNER JOIN EmailAttachments uea ON ee.eid = uea.EmailId',
          [SystemUsers.Fields[0].AsString]));
@@ -1349,10 +1445,11 @@ begin
          RunSQL(ForAction,format('Delete from [Emails] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]));
 
          RunSQL(ForAction,format('Delete from [Faxes] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
+         }
       until not Systemusers.FindNext;
 
 
-      RunSQL(ForAction,format('Delete from [Users] where [Code] = ''%s''',[User.usCode]));
+      RunSQL(connection,ForAction,format('Delete from [Users] where [Code] = ''%s''',[User.usCode]), format('Delete User %s',[User.usCode]));
 
            //Exit; // Merge....
    end;
@@ -1444,8 +1541,9 @@ begin
       Exit;
    MyAction.Counter := 75;
 
-   TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
+   //TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
 
+   StartRetrieve(MyAction);
 
    MigrateSystem(MyAction);
 
@@ -1508,7 +1606,25 @@ begin
    end;
 end;
 
+function TSystemMigrater.StartRetrieve(ForAction: TMigrateAction): Boolean;
+var MyAction : TMigrateAction;
+begin
+   MyAction := ForAction.InsertAction('Start Retrieve task');
+   try
 
+
+      RunSQL(connection,ForAction,
+      'INSERT INTO dbo.ServerTaskScheduleInstances ( Id, RunAt, [ServerTaskInstanceId], [CreatedDateTime], [ScheduleTypeId],  [Processed], [InProgress] )' +
+	    'VALUES (NEWID(), NULL, ''EAC67CA6-C58A-4FE4-8CE8-D54EACCA3E0E'', GetDate(), ''5A3DD367-91F3-4509-9CE6-E74038F534EB'',  0, 0 )'
+          ,'Add ServerTaskScheduleInstances' );
+      MyAction.Status := Success;
+   except
+         on e: Exception do begin
+            MyAction.Exception(e);
+            result := false;
+         end;
+   end;
+end;
 
 
 function TSystemMigrater.MigrateDisklog(ForAction: TMigrateAction): Boolean;
@@ -1533,7 +1649,6 @@ procedure TSystemMigrater.SetClientMigrater(const Value: TMigrater);
 begin
   FClientMigrater := Value;
 end;
-
 
 
 procedure TSystemMigrater.SetSystem(const Value: TSystemObj);
@@ -1562,5 +1677,7 @@ begin
    Value.Size := GetFilesize(ArchiveFileName(pSystem_Bank_Account_Rec(Value.Data).sbLRN));
    Result := Value.Size;
 end;
+
+
 
 end.

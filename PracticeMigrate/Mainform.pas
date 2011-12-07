@@ -105,9 +105,12 @@ type
     // Test The source
     function TestSystem: Boolean;
     // Destination
-    function Connect(connection:TADOConnection; ASource,ACatalog,AUser,APW: string):Boolean;
+    function Connect(ForAction: TMigrateAction; connection:TADOConnection; ASource,ACatalog,AUser,APW: string):Boolean;
     function ConnectSystem(ForAction: TMigrateAction): Boolean;
     function ConnectClient(ForAction: TMigrateAction): Boolean;
+    procedure Disconnect(ForAction: TMigrateAction; connection:TADOConnection; ACatalog: string);
+    procedure DoDisconnects(ForAction: TMigrateAction);
+    function ClearPracticeLogs(ForAction: TMigrateAction): Boolean;
 
     // Connection properies
     procedure SetPW(const Value: string);
@@ -138,6 +141,9 @@ var
 implementation
 
 uses
+EnterPwdDlg,
+Migraters,
+ErrorLog,
 Progress,
 Upgrade,
 ReportTypes,
@@ -327,6 +333,7 @@ begin
    FTreeList.Tree.Clear;
    progress := Migrate;
    Action := NewAction('Clear All');
+   try
      if ConnectSystem(Action) then begin
         FSystemMigrater.ClearData(Action)
      end else
@@ -337,6 +344,11 @@ begin
      end else
          Action.Error := format('Could not connect to [%s]',[Destination]);
 
+     ClearPracticeLogs(Action);    
+     // Cleanup
+   finally
+     DoDisconnects(Action);
+   end;
    Action.Status := Success;
    progress := Done;
 end;
@@ -377,10 +389,46 @@ begin
     FSystemMigrater.DoUsers := cbUsers.Checked;
 end;
 
-function TformMain.Connect(connection: TADOConnection; ASource, ACatalog, AUser,
+function TformMain.ClearPracticeLogs(ForAction: TMigrateAction): Boolean;
+var Con : TADOConnection;
+    MyAction,ClearAction : TMigrateAction;
+begin
+   Con := TADOConnection.Create(nil);
+   Con.LoginPrompt := false;
+   Con.Provider := 'SQLNCLI10.1';
+   Con.CommandTimeout := 120;
+   MyAction := ForAction.NewAction('Clear Logs');
+   if Connect(MyAction, Con, Destination, 'PracticeLog', User, Pw) then begin
+
+      ClearAction := MyAction.NewAction('Clearing Logs');
+
+      TMigrater.RunSQL(con,ClearAction,
+
+   'IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N''[dbo].[FK_CategoryLog_Log]'') AND parent_object_id = OBJECT_ID(N''[dbo].[CategoryLogs]'')) ALTER TABLE [dbo].[CategoryLogs] DROP CONSTRAINT [FK_CategoryLog_Log]'
+               ,'Drop foreign keys' );
+      TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE categorylogs', 'Delete categorylogs');
+
+      TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE logs', 'Delete Logs');
+
+      TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs]  WITH CHECK ADD  CONSTRAINT [FK_CategoryLog_Log] FOREIGN KEY([LogID]) REFERENCES [dbo].[Logs] ([LogID])'
+      , 'Add foreign keys');
+
+      TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs] CHECK CONSTRAINT [FK_CategoryLog_Log]'
+      ,'Check Constraints');
+
+      TMigrater.RunSQL(con,ClearAction,'DBCC SHRINKFILE(''PracticeLog_Log'',1)', 'Shrink log');
+      ClearAction.Status := Success;
+
+      disconnect(MyAction,con,'PracticeLog');
+      MyAction.Status := Success;
+   end;
+   FreeAndNil(Con);
+end;
+
+function TformMain.Connect(ForAction: TMigrateAction; connection: TADOConnection; ASource, ACatalog, AUser,
   APW: string): Boolean;
 var ConnStr:TStringList;
-
+    MyAction: TMigrateAction;
     function BuildConnStr: string;
     var I: Integer;
     begin
@@ -394,6 +442,7 @@ begin
    Connection.Connected := False;
    if ASource = '' then
       Exit;
+   MyAction := ForAction.NewAction(format('Connecting %s',[ACatalog]));
 
    ConnStr := TStringList.Create;
    try
@@ -404,7 +453,7 @@ begin
       Connstr.add(format('Initial Catalog=%s',[ACatalog]));
       Connstr.add(format('Data Source=%s',[ASource]));
       //Connstr.add('Use Procedure for Prepare=1');
-
+     //Connstr.add('Use Encryption for Data=True');
 
       if (AUser = '')
       and (APW = '') then begin
@@ -420,6 +469,17 @@ begin
       Connection.ConnectionString := BuildConnStr;
 
       Connection.Connected := true;
+      try
+         //TMigrater.RunSQL(Connection,MyAction,'DBCC TRACEON (610)', 'Trace on');
+         TMigrater.RunSQL(Connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink Log');
+         TMigrater.RunSQL(Connection,MyAction,format('ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Single user');
+
+         MyAction.Status := Success;
+      except
+          on e: exception do
+             MyAction.Exception(E);
+      end;
+
 
       Result := Connection.Connected;
    finally
@@ -431,7 +491,7 @@ function TformMain.ConnectClient(ForAction: TMigrateAction): Boolean;
 begin
    Result := false;
    try
-      Result := Connect(FClientMigrater.Connection, Destination, 'PracticeClient', User, Pw);
+      Result := Connect(ForAction, FClientMigrater.Connection, Destination, 'PracticeClient', User, Pw);
    except
       on e: exception do
          ForAction.Exception(e,'Connect to Client Database');
@@ -442,11 +502,40 @@ function TformMain.ConnectSystem(ForAction: TMigrateAction): Boolean;
 begin
    Result := false;
    try
-      Result := Connect(FSystemMigrater.Connection, Destination, 'PracticeSystem', User, Pw);
+      Result := Connect(ForAction, FSystemMigrater.Connection, Destination, 'PracticeSystem', User, Pw);
    except
       on e: exception do
          ForAction.Exception(e,'Connect to Practice Database')
    end;
+end;
+
+
+
+procedure TformMain.Disconnect(ForAction: TMigrateAction; connection: TADOConnection; ACatalog: string);
+var MyAction :TMigrateAction;
+begin
+   if not assigned(connection) then
+      exit;
+   if connection.Connected then begin
+      try
+         MyAction := ForAction.NewAction(Format('Disconnect %s',[ACatalog]));
+         //TMigrater.RunSQL(connection,MyAction,'DBCC TRACEOFF (610)', 'Trace Off');
+         TMigrater.RunSQL(connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink log' );
+         TMigrater.RunSQL(connection,MyAction,format('ALTER DATABASE [%s] SET MULTI_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Multi User');
+         MyAction.Status := Success;
+      except
+             // Had a Go..
+      end;
+      connection.Connected := false;
+   end;
+end;
+
+procedure TformMain.DoDisconnects(ForAction: TMigrateAction);
+begin
+  if Assigned(FSystemMigrater) then
+     Disconnect(ForAction,FSystemMigrater.Connection,'PracticeSystem');
+  if Assigned(FClientMigrater) then
+     Disconnect(ForAction,FClientMigrater.Connection,'PracticeClient');
 end;
 
 procedure TformMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -476,6 +565,7 @@ end;
 procedure TformMain.FormCreate(Sender: TObject);
 var I: Integer;
 begin
+
    // Create the Global List...
    FTreeList := TMigrateList.Create(StatusTree);
    FTreeList.HookUp;
@@ -586,7 +676,7 @@ procedure TformMain.SetFromDir(const Value: string);
 begin
   Globals.DataDir := Value;
 
-
+  SysLog.LogPath            := Globals.DataDir;
   DownloadWorkDir           := DataDir + 'WORK\';
   DownloadOffsiteWorkDir    := DataDir + 'OffSiteWORK\';
   DownloadArchiveDir        := DataDir + 'ARCHIVE\';
@@ -848,6 +938,15 @@ begin
    ClearMigrationCanceled;
    FTreeList.Clear;
    FTreeList.Tree.Clear;
+
+ {$ifDef DEBUG}
+ {$Else}
+
+  if not EnterPassword('Migrate Data',TimeToStr(Now) + 'Migrate'  ,0, true, false) then
+     Exit;
+ {$EndIf}
+
+
    Myaction := NewAction('Migrate');
    progress := migrate;
    SystemCritical.IsCritical := true;
@@ -857,12 +956,14 @@ begin
 
          FSystemMigrater.ClearData(MyAction);
          FClientMigrater.ClearData(MyAction);
+         ClearPracticeLogs(MyAction);
                
          FSystemMigrater.ClientMigrater := FClientMigrater;
          //FSystemMigrater.System := Adminsystem; already done ??
 
          FSystemMigrater.Migrate(MyAction);
 
+         DoDisconnects(MyAction);
          MyAction.Status := Success;
 
       end else
@@ -870,6 +971,7 @@ begin
    finally
       progress := Done;
       SystemCritical.IsCritical := false;
+      DoDisconnects(MyAction);
    end;
 
 end;

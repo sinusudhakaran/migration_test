@@ -750,6 +750,10 @@ object formMain: TformMain
     object tsBrowse: TTabSheet
       Caption = 'tsBrowse'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         751
         385)
@@ -848,7 +852,7 @@ object formMain: TformMain
         Width = 722
         Height = 23
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 15
+        ItemHeight = 0
         TabOrder = 3
         OnDropDown = CbserversDropDown
         OnSelect = CbserversSelect
@@ -1189,7 +1193,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000840018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000940018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

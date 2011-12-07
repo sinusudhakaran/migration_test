@@ -27,7 +27,8 @@ public
                    SystemComments: string;
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
-                   Extra: pClientExtra_Rec): Boolean;
+                   Extra: pClientExtra_Rec;
+                   AClient: pClient_File_Rec): Boolean;
 
     function InsertProspect(MyId: TGuid;
                    UserID: TGuid;
@@ -378,7 +379,8 @@ function TClient_RecFieldsTable.Insert(MyId: TGuid;
                    SystemComments: string;
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
-                   Extra: pClientExtra_Rec): Boolean;
+                   Extra: pClientExtra_Rec;
+                   AClient: pClient_File_Rec): Boolean;
 
    function GetNotes: string;
    var I: Integer;
@@ -417,7 +419,7 @@ begin with Value^, Extra^, More^ do
 {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),ToSQL(WebExportFormat),ToSQL(clMobile_No)
               ,ToSQL(clFile_Read_Only),ToSQL(clSalutation),ToSQL(clExternal_ID)
 {12}       ,ToSQL( clForce_Offsite_Check_Out),ToSQL(clDisable_Offsite_Check_Out),ToSQL(clAlternate_Extract_ID),ToSQL(clUse_Alterate_ID_for_extract)
-{13}       ,DateToSQL(clLast_Use_Date),ToSQL(clUse_Basic_Chart),ToSQL(GroupID),ToSQL(TypeID)
+{13}       ,DateToSQL(AClient.cfDate_Last_Accessed),ToSQL(clUse_Basic_Chart),ToSQL(GroupID),ToSQL(TypeID)
               ,ToSQL(clAll_EditMode_CES),ToSQL(clAll_EditMode_DIS),ToSQL(clTFN)
 {14}       , ToSql(ceAllow_Client_Unlock_Entries),ToSQL(ceAllow_Client_Edit_Chart)
               ,ToSQL(ceBudget_Include_Quantities),ToSQL(Archived)
@@ -509,7 +511,7 @@ function TAccount_RecTable.Insert(MyID: TGuid;
         Result := null;
         if not assigned(map) then
            exit;
-        Result := ToSQL(map.amLast_Date_Printed);
+        Result := DateToSQL(map.amLast_Date_Printed);
     end;
 
 
@@ -1350,10 +1352,11 @@ function TReminderTable.Insert(
                    ByUser: TGuid;
                    ToDoItem: pClientToDoItem): Boolean;
 
+
 begin with ToDoItem^ do
    Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(tdDate_Entered, tdTime_Entered), ToSQL(ByUser),
                   ToSQL(tdDescription)
-             ,ToSQL(tdReminderDate), ToSQL((tdDate_Completed > 0) and (tdDate_Completed < maxint) ), DateToSQL( tdDate_Completed)],[]);
+             ,DateToSQL(tdReminderDate), ToSQL((tdDate_Completed > 0) and (tdDate_Completed < maxint) ), DateToSQL( tdDate_Completed)],[]);
 end;
 
 procedure TReminderTable.SetupTable;
