@@ -476,8 +476,10 @@ end;
 
 function TProductConfigService.LoadPracticeDetails: Boolean;
 var
+  i: integer;
   BlopiInterface: IBlopiServiceFacade;
   PracticeDetailResponse: MessageResponseOfPracticeMIdCYrSK;
+  Msg: string;
 begin
   Result := False;
   if not Assigned(AdminSystem) then
@@ -495,9 +497,18 @@ begin
         BlopiInterface := GetIBlopiServiceFacade;
         PracticeDetailResponse := BlopiInterface.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
         AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
-        if Assigned(PracticeDetailResponse) then
-          FPractice := PracticeDetailResponse.Result;
-        Result := Assigned(FPractice);
+        if Assigned(PracticeDetailResponse) then begin
+          Result := Assigned(PracticeDetailResponse.Result);
+          if Result then
+            FPractice := PracticeDetailResponse.Result
+          else begin
+            //Something went wrong
+            Msg := '';
+            for i := Low(PracticeDetailResponse.ErrorMessages) to High(PracticeDetailResponse.ErrorMessages) do
+              Msg := Msg + ServiceErrorMessage(PracticeDetailResponse.ErrorMessages[i]).Message_;
+            raise Exception(Msg);
+          end;
+        end;
       except
         on E: Exception do HelpfulErrorMsg('Error geting practice details from BankLink Online: ' + E.Message, 0);
       end;
