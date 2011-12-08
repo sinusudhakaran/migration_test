@@ -426,9 +426,57 @@ end;
 
 //******************************************************************************
 //
-//       COMMON BITS
+//       COMMON BITS I.E ParserDll and normal
 //
 //******************************************************************************
+
+
+
+function TClientObj.GetDataStreamFromZipStream(const FileCode: String;
+  const ZipStream: TBigMemoryStream): TIOstream;
+var
+   savFilename : string;
+   UnZipper : TVCLZip;
+   MemNeeded : Integer;
+   I: Integer;
+begin
+    Result := TIOStream.Create;
+
+    //unzip the zip stream
+    Result.Clear;
+    ZipStream.Position  := 0;
+    savFilename := FileCode + Sav_Extn;
+
+    try
+        UnZipper := TVCLZip.Create( nil);
+        try
+          UnZipper.ArchiveStream := ZipStream;
+          UnZipper.ReadZip;
+
+          //figure out how much memory is needed so we can pre allocate it
+          MemNeeded := 0;
+          for i := 0 to UnZipper.Count - 1 do
+            if UnZipper.Filename[ i] = SavFilename then
+              MemNeeded := UnZipper.UnCompressedSize[ i];
+
+          Result.Size := MemNeeded;
+          Result.Position := 0;
+
+          //store data stream size so we can use it to estimate the file size
+          //needed to save
+          clRawStreamSize := Result.Size;
+
+          Unzipper.UnzipToStream( Result, savFilename);
+        finally
+          UnZipper.Free;
+        end;
+      except
+        on e : exception do
+          raise ECompressionFailure.Create( 'Error decompressing from ' + FileCode + ' - ' +
+                                            E.Message + ' [' + E.Classname + ']');
+      end;
+
+end;
 
 procedure TClientObj.GetZipStreamFromFile(var Filename: String; const ZipStream: TBigMemoryStream);
 
@@ -445,7 +493,6 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure TClientObj.GetZipStreamFromStream(var Filename: String; const stream: TStream;
   const ZipStream: TBigMemoryStream);
 
@@ -533,27 +580,6 @@ begin
 
 end;
 
-{$IFNDEF ParserDll}
-procedure TClientObj.RefreshExchangeSource(DefaultGST: Boolean = True);
-var
-  LExchangeRates: TExchangeRateList;
-begin
-  //Refresh exchange rate source
-  if Assigned(AdminSystem) then begin
-    //Books Secure Client file exchange rates do not get updated
-    if HasForeignCurrencyAccounts and (clFields.clDownload_From = dlAdminSystem) then begin
-      LExchangeRates := GetExchangeRates;
-      try
-        ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
-        if DefaultGST then
-          ApplyDefaultGST(False);
-      finally
-        LExchangeRates.Free;
-      end;
-    end;
-  end;
-end;
-{$ENDIF}
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TClientObj.Open(FileCode, FileExtension : String);
@@ -619,6 +645,26 @@ begin
   LogDebugMsg( ThisMethodName + ' ends');
 end;
 
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TClientObj.LogDebugMsg(S: string; Error: Boolean = false);
+begin
+{$IFDEF ParserDll}
+   // We Dont realy use this, but stops me having to add so many switches...
+{$ELSE}
+  if Error then
+     LogUtil.LogMsg(lmError, Unitname, S)
+  else
+     if DebugMe then
+        LogUtil.LogMsg(lmDebug, Unitname, S);
+{$ENDIF}
+end;
+
+
+{$IFNDEF ParserDll}
+
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TClientObj.SimpleRead(FileCode: string; Stream: TStream);
 var
@@ -659,23 +705,6 @@ end;
 
 
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TClientObj.LogDebugMsg(S: string; Error: Boolean = false);
-begin
-{$IFDEF ParserDll}
-   // We Dont realy use this, but stops me having to add so many switches...
-{$ELSE}
-  if Error then
-     LogUtil.LogMsg(lmError, Unitname, S)
-  else
-     if DebugMe then
-        LogUtil.LogMsg(lmDebug, Unitname, S);
-{$ENDIF}
-end;
-
-
-{$IFNDEF ParserDll}
-
 function TClientObj.MoneyStr(const Amount: Money): String;
 begin
   Result := MoneyUtils.MoneyStr( Amount, clExtra.ceLocal_Currency_Code );
@@ -701,6 +730,13 @@ end;
 
 {$IFDEF ParserDll}
 
+//******************************************************************************
+//
+//       Parser DLL Only
+//
+//******************************************************************************
+
+
 // From WinUtils
 function BKFileExists(Filename: string): Boolean;
 begin
@@ -711,10 +747,30 @@ end;
 
 //******************************************************************************
 //
-//       'Normal' (NON Parser DLL) BITS
+//       'Normal Only ' (NON Parser DLL) BITS
 //
 //******************************************************************************
 
+
+procedure TClientObj.RefreshExchangeSource(DefaultGST: Boolean = True);
+var
+  LExchangeRates: TExchangeRateList;
+begin
+  //Refresh exchange rate source
+  if Assigned(AdminSystem) then begin
+    //Books Secure Client file exchange rates do not get updated
+    if HasForeignCurrencyAccounts and (clFields.clDownload_From = dlAdminSystem) then begin
+      LExchangeRates := GetExchangeRates;
+      try
+        ExchangeSource.Assign(LExchangeRates.FindSource('Master'));
+        if DefaultGST then
+          ApplyDefaultGST(False);
+      finally
+        LExchangeRates.Free;
+      end;
+    end;
+  end;
+end;
 
 
 procedure TClientObj.FillAccountingSystemList(Value: Tstrings);
@@ -764,7 +820,6 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure TClientObj.SaveToStream(var s:TIOStream);
 const
   ThisMethodName = 'TClientObj.SaveToStream';
@@ -790,6 +845,8 @@ begin
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TClientObj.SetAuditInfo(P1, P2: pClient_Rec; var AAuditInfo: TAuditInfo);
 var
   i: integer;
@@ -886,53 +943,7 @@ Begin
 end;
 
 
-
-function TClientObj.GetDataStreamFromZipStream(const FileCode: String;
-  const ZipStream: TBigMemoryStream): TIOstream;
-var
-   savFilename : string;
-   UnZipper : TVCLZip;
-   MemNeeded : Integer;
-   I: Integer;
-begin
-    Result := TIOStream.Create;
-
-    //unzip the zip stream
-    Result.Clear;
-    ZipStream.Position  := 0;
-    savFilename := FileCode + Sav_Extn;
-
-    try
-        UnZipper := TVCLZip.Create( nil);
-        try
-          UnZipper.ArchiveStream := ZipStream;
-          UnZipper.ReadZip;
-
-          //figure out how much memory is needed so we can pre allocate it
-          MemNeeded := 0;
-          for i := 0 to UnZipper.Count - 1 do
-            if UnZipper.Filename[ i] = SavFilename then
-              MemNeeded := UnZipper.UnCompressedSize[ i];
-
-          Result.Size := MemNeeded;
-          Result.Position := 0;
-
-          //store data stream size so we can use it to estimate the file size
-          //needed to save
-          clRawStreamSize := Result.Size;
-
-          Unzipper.UnzipToStream( Result, savFilename);
-        finally
-          UnZipper.Free;
-        end;
-      except
-        on e : exception do
-          raise ECompressionFailure.Create( 'Error decompressing from ' + FileCode + ' - ' +
-                                            E.Message + ' [' + E.Classname + ']');
-      end;
-
-end;
-
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TClientObj.GetForexISOCodeForContra(AContraCode: string): string;
   var
   i: integer;
