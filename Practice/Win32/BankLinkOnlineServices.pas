@@ -43,9 +43,9 @@ type
 
   TPracticeHelper = Class helper for Practice
   private
-    function GetUserRoleGuidFromPracUserType(aUstName : integer) : Guid;
+    function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer) : Guid;
   public
-    function GetRoleFromPracUserType(aUstName : integer) : Role;
+    function GetRoleFromPracUserType(aUstNameIndex : integer) : Role;
   End;
 
   TClientSummaryHelper = Class helper for BlopiServiceFacade.ClientSummary
@@ -106,7 +106,7 @@ type
                               const aEMail         : WideString;
                               const aFullName      : WideString;
                               const aUserCode      : WideString;
-                              const aUstName       : integer;
+                              const aUstNameIndex  : integer;
                               var   aIsUserCreated : Boolean ) : Boolean;
     function DeleteUser(AUserId : Guid): Boolean;
     function IsPrimaryUser(const AUserId : Guid = ''): Boolean;
@@ -902,6 +902,8 @@ var
 begin
   Result := False;
 
+  // Goes through passed through Practice users and finds the first one with either
+  // a matching Guid or Code
   for UserIndex := 0 to High(APractice.Users) do
   begin
     if (APractice.Users[UserIndex].Id       = AUserId)
@@ -917,7 +919,7 @@ function TProductConfigService.UpdateCreateUser(var   aUserId        : Guid;
                                                 const aEMail         : WideString;
                                                 const aFullName      : WideString;
                                                 const aUserCode      : WideString;
-                                                const aUstName       : integer;
+                                                const aUstNameIndex  : integer;
                                                 var   aIsUserCreated : Boolean ) : Boolean;
 var
   UpdateUser      : User;
@@ -942,11 +944,12 @@ begin
   PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
   try
+    // Does the User Already Exist on BankLink Online?
     CurrPractice := GetPractice;
     IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
 
     SetLength(RoleNames,1);
-    RoleNames[0] := CurrPractice.GetRoleFromPracUserType(aUstName).RoleName;
+    RoleNames[0] := CurrPractice.GetRoleFromPracUserType(aUstNameIndex).RoleName;
   except
     on E : Exception do
     begin
@@ -974,7 +977,7 @@ begin
         raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
       end;
     end;
-      
+
     Result := MsgResponce.Success;
     if not Result then
     begin
@@ -984,8 +987,7 @@ begin
                            MsgResponce.ErrorMessages[ErrIndex].Message_;
       if not (ErrMsg = '') then
         ErrMsg := #13 + ErrMsg;
-
-      LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running SavePracticeUser, Error Message : ' + ErrMsg);  
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running SavePracticeUser, Error Message : ' + ErrMsg);
       raise Exception.Create('BankLink Practice was unable to update ' + UpdateUser.FullName +
                              ' on BankLink Online. ' + ErrMsg );
     end;
@@ -1012,7 +1014,7 @@ begin
     end;
     Result  := MsgResponceGuid.Success;
     aUserId := MsgResponceGuid.Result;
-      
+
     if not Result then
     begin
       ErrMsg := '';
@@ -1115,15 +1117,15 @@ begin
   end;
 end;
 
-{ TUserHelper }
-function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstName: integer): Guid;
+{ TPracticeHelper }
+function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer): Guid;
 begin
   Result := '';
-  if (aUstName < ustMin)
-  or (aUstName > ustMax) then
+  if (aUstNameIndex < ustMin)
+  or (aUstNameIndex > ustMax) then
     raise Exception.Create('Practice User Type does not exist in the Admin System.');
 
-  case aUstName of
+  case aUstNameIndex of
                             // Accountant Practice Standard User
     ustRestricted : Result := '8C464F01-5071-4FC1-B257-0104D48D141B';
                             // Accountant Practice Standard User
@@ -1133,13 +1135,13 @@ begin
   end;
 end;
 
-function TPracticeHelper.GetRoleFromPracUserType(aUstName: integer): Role;
+function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer): Role;
 var
   RoleGuid : Guid;
   RoleIndex : integer;
 begin
   Result := Nil;
-  RoleGuid := GetUserRoleGuidFromPracUserType(aUstName);
+  RoleGuid := GetUserRoleGuidFromPracUserType(aUstNameIndex);
 
   for RoleIndex := 0 to High(Self.Roles) do
   begin
