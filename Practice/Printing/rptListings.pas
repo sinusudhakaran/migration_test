@@ -108,6 +108,7 @@ uses
 
 const
   NUMBER_FORMAT = '#,##0.00;(#,##0.00);-';
+  NUMBER_FORMAT_SIGNED = '#,##0.00;-#,##0.00;-';
   PERCENT_FORMAT = '#.####;(#.####);-';
 
   BAL_FORMAT = '#,##0.00 "OD ";#,##0.00 "IF "; ';
@@ -556,6 +557,10 @@ begin
       if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
       if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
       if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStrBrackets;
+//      if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStrBrackets;
+//      if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStrBrackets;
+//      if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStrBrackets;
 
       if ( Bank_Account.baFields.baAccount_Type = btBank) {and
          ( Mgr.SelectionCriteria = twAllEntries)} then
@@ -667,10 +672,14 @@ begin
       if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
       if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStr;
 
-      if ( CRAmountCol  <> NIL ) then  CRAmountCol .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
-      if ( DRAmountCol  <> NIL ) then  DRAmountCol .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
-      if ( AmountCol    <> NIL ) then  AmountCol   .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
-      if ( BalanceCol   <> NIL ) then  BalanceCol  .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
+      if ( CRAmountCol  <> NIL ) then  CRAmountCol .TotalFormat := Bank_Account.FmtMoneyStr;
+      if ( DRAmountCol  <> NIL ) then  DRAmountCol .TotalFormat := Bank_Account.FmtMoneyStr;
+      if ( AmountCol    <> NIL ) then  AmountCol   .TotalFormat := Bank_Account.FmtMoneyStr;
+      if ( BalanceCol   <> NIL ) then  BalanceCol  .TotalFormat := Bank_Account.FmtMoneyStr;
+//      if ( CRAmountCol  <> NIL ) then  CRAmountCol .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
+//      if ( DRAmountCol  <> NIL ) then  DRAmountCol .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
+//      if ( AmountCol    <> NIL ) then  AmountCol   .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
+//      if ( BalanceCol   <> NIL ) then  BalanceCol  .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
 
       RenderDetailSubTotal('');
 
@@ -1558,7 +1567,7 @@ begin
                       Job.AmountCol := AddFormatColAuto(Job,cleft,11.0 + Gcgap,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
 
                     if ShowJournalOnly then // Show GST for journals as per OZ
-                      Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,NUMBER_FORMAT,MONEY_FORMAT, true);
+                      Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,NUMBER_FORMAT_SIGNED,NUMBER_FORMAT_SIGNED, true);
 
                     if ShowOp then
                     begin
@@ -1570,7 +1579,6 @@ begin
 
                     if ShowBalance then
                       Job.BalanceCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Balance',jtRight,BAL_FORMAT,BAL_FORMAT,false);
-
                  end;
               whAustralia, whUK :
                  Begin
@@ -1592,7 +1600,7 @@ begin
                     else
                       Job.AmountCol := AddFormatColAuto(Job,cleft,11.0,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
 
-                    Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, Localise( clCountry, 'GST') , jtRight,NUMBER_FORMAT,MONEY_FORMAT, true);
+                    Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, Localise( clCountry, 'GST') , jtRight,NUMBER_FORMAT_SIGNED,NUMBER_FORMAT_SIGNED, true);
                     AddColAuto(Job,cLeft, 23.8 + ( 2 * ExtraWidth ),Gcgap, 'Narration',jtLeft);
 
                     if ShowBalance then
