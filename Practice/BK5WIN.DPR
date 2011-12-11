@@ -62,7 +62,8 @@ uses
   SysAccountsfme in 'Win32\SysAccountsfme.pas' {fmeSysAccounts: TFrame},
   peList32 in 'Win32\peList32.pas',
   BKAuditValues in 'Win32\BKAuditValues.pas',
-  BankLinkOnline in 'Win32\BankLinkOnline.pas';
+  BankLinkOnline in 'Win32\BankLinkOnline.pas',
+  BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings};
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

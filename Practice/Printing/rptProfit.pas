@@ -226,7 +226,7 @@ begin
    //Title := GetPRHeading(MyClient, phdProfit_And_Loss) + ' - Actual and Budget';
 
    if not GetFYearParameters(REPORT_LIST_NAMES[REPORT_PROFIT_ACTBUD],
-         lparam, BKH_Profit_Loss_Actual_and_budget, True, True, True) then exit;
+         lparam, BKH_Profit_Loss_Actual, True, True, True) then exit;
 
       case Lparam.RunBtn of
          BTN_PRINT : Destination := rdPrinter;
@@ -292,7 +292,7 @@ begin
       //Title := GetPRHeading(MyClient, phdProfit_And_Loss) + ' - Actual, Budget and Variance';
 
       if not GetFYearParameters(REPORT_LIST_NAMES[REPORT_PROFIT_ACTBUDVAR],
-          lparam, BKH_Profit_Loss_Actual_budget_and_variance, True,True, True) then exit;
+          lparam, BKH_Profit_Loss_Actual, True,True, True) then exit;
 
       case lparam.RunBtn of
          BTN_PRINT : Destination := rdPrinter;
@@ -355,7 +355,7 @@ begin
    //Title := GetPRHeading(MyClient, phdProfit_And_Loss) + ' - 12 Months Actual';
 
       if not GetFYearParameters( REPORT_LIST_NAMES[REPORT_PROFIT_12ACT]
-        ,lparam,BKH_Profit_Loss_12_months_actual, True ) then exit;
+        ,lparam,BKH_Profit_Loss_Actual, True ) then exit;
 
 
       case lParam.RunBtn of
@@ -417,7 +417,7 @@ begin
 
       if not GetFYearParameters( REPORT_LIST_NAMES[REPORT_PROFIT_12ACTBUD],
          lparam,
-         BKH_Profit_Loss_12_Months_actual_or_budget, True,True, True) then exit;
+         BKH_Profit_Loss_Actual, True,True, True) then exit;
 
 
       case lParam.RunBtn of
@@ -496,7 +496,7 @@ begin
         begin
           clFRS_Compare_Type                        := cflCompare_None;
           clFRS_Show_Variance                       := False;
-          clFRS_Show_YTD                            := False;
+          clFRS_Show_YTD                            := True;
           clFRS_Show_Quantity                       := False;
           //clFRS_Print_Chart_Codes  Set by Dialog
           clFRS_Reporting_Period_Type               := frpMonthly;

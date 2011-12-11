@@ -158,7 +158,7 @@ type
     PassGenCodeEntered : boolean;
     FViewNotes : Boolean;
     BanklinkOnlineSettings : TfrmBanklinkOnlineSettings;
-    OriginalEmail : string;
+    OriginalCode, OriginalEmail : string;
     FClient : Client;
     FEnableClientSettings : boolean;
     function  OkToPost : boolean;
@@ -233,6 +233,7 @@ begin
    grpBooks.Caption := BKBOOKSNAME + ' Clients';
 
    BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
+   OriginalCode := eCode.Text;
    OriginalEmail := eMail.Text;
 end;
 
@@ -243,6 +244,7 @@ var
   i, k, NumProducts : Integer;
   GUID1, GUID2: WideString;
   AClientID: WideString;
+  ClientSynced: boolean;
 begin
   PageControl1.ActivePage := tbsClient;
 
@@ -308,8 +310,9 @@ begin
   grpBOClients.Visible := Assigned(AdminSystem) and not CurrUser.HasRestrictedAccess;
   if grpBOClients.Visible then
   begin
-    lblClientBOProducts.Visible := AdminSystem.fdFields.fdUse_BankLink_Online;
-    btnClientSettings.Enabled := AdminSystem.fdFields.fdUse_BankLink_Online and FEnableClientSettings;
+    ClientSynced := AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number;
+    lblClientBOProducts.Visible := AdminSystem.fdFields.fdUse_BankLink_Online and ClientSynced;
+    btnClientSettings.Enabled := AdminSystem.fdFields.fdUse_BankLink_Online and ClientSynced;
 
     CatArray := ProductConfigService.Clients.Catalogue;
     AClientID := ProductConfigService.Clients.Clients[0].Id;
@@ -478,6 +481,12 @@ begin
 
    if okToPost then
    begin
+     // FClient.Code := eCode.Text;
+     if BanklinkOnlineSettings.chkUseClientDetails.Checked then
+     begin
+       // FClient.Contact_Name := eContact.Text;
+       // FClient.EmailAddress := eMail.Text;
+     end;
      okPressed := true;
      Close;
    end;

@@ -91,6 +91,7 @@ begin
    SortedTList := TSorted_Transaction_List.Create( ASort_Order );
    try
       //insert into sorted list
+      SortedTList.Duplicates := True;
       for i := 0 to Pred( ItemCount ) do
          SortedTList.Insert( Transaction_At(i));
       //empty current list, reset sequence no

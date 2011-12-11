@@ -253,6 +253,8 @@ Begin
 
             //clear any existing coding
             txAccount         := '';
+            txJob_Code        := '';
+            txPayee_Number    := 0;
             txCoded_By        := cbNotCoded;
             ClearGSTFields( Transaction);
             ClearSuperFundFields(Transaction);

@@ -292,6 +292,18 @@ var
   ALine : THeaderFooterLine;
   FSize : integer;
 begin
+   // Document header
+   with ExcelRange do
+   begin
+     Address := 'A'+ inttostr( CurrentLineNo);
+     FSize := 10;
+     AsRange.Font.Size := FSize;
+     AsRange.Font.Bold := true;
+     Value := Report.Sections[hf_HeaderAll].GetText;
+   end;
+   NewDetailLine;
+   NewDetailLine;
+
    for i := 0 to Pred(Report.Header.ItemCount) do begin
       aLine := Report.Header.HFLine_At(i);
       //Images
@@ -360,6 +372,17 @@ begin
        end;
      end;
    end;        { for }
+   NewDetailLine;
+
+   // Document footer
+   with ExcelRange do
+   begin
+     Address := 'A'+ inttostr( CurrentLineNo);
+     FSize := 10;
+     AsRange.Font.Size := FSize;
+     AsRange.Font.Bold := true;
+     Value := Report.Sections[hf_FooterAll].GetText;
+   end;
    NewDetailLine;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

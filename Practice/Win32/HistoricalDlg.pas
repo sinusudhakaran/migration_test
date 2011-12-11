@@ -449,8 +449,7 @@ uses
   Software,
   CountryUtils,
   PayeeObj, baUtils, EditBankDlg, TransactionUtils,ImportHistDlg, Finalise32,
-  AuditMgr, SYPEIO,
-  Files;
+  AuditMgr, SYPEIO;
 
 {$R *.DFM}
 
@@ -3729,7 +3728,7 @@ begin
          end
          else begin
             // update balance if this tx is after latest tx
-            if IsManual and (pT.txDate_Presented >= BankAccount.baTransaction_List.LastPresDate) then
+            if IsManual {and (pT.txDate_Presented >= BankAccount.baTransaction_List.LastPresDate)} then
             begin
               if BankAccount.baFields.baCurrent_Balance = unknown then
                 BankAccount.baFields.baCurrent_Balance := pT.txAmount
@@ -3739,7 +3738,7 @@ begin
             BankAccount.baTransaction_List.Insert_Transaction_Rec(pT);
 
             //Flag Audit for bank account
-            MyClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
+            MyClient.ClientAuditMgr.FlagAudit(atClientBankAccounts);
 
             Inc(i); //move onto next transaction is while loop
          end;
@@ -4371,14 +4370,12 @@ begin
     //store the active col field id for later use
     CurrentFieldId := ColumnFmtList.ColumnDefn_At(ActiveCol)^.cdFieldID;
     ColumnFmtList.SetToDefault;
-    // and reset visiblity and editability
+    // and reset visiblity
     for i := 0 to Pred( ColumnFmtList.ItemCount) do begin
      Col := ColumnFmtList.ColumnDefn_At( i);
      Col.cdHidden := Col.cdDefHidden;
      if Col.cdHidden and (Col.cdFieldID = CurrentFieldId) then
       CurrentFieldId := 0;
-     Col.cdEditMode[emRestrict] := Col.cdDefEditMode[emRestrict];
-     Col.cdEditMode[emGeneral] := Col.cdDefEditMode[emGeneral];
     end;
     //Rebuild the table
     BuildTableColumns;
@@ -4661,9 +4658,6 @@ begin
         // Run the dialog
         Result := ShowModal = mrOK;
 
-        //Audit historical data entry
-        if Result and (MyClient.clFields.clCountry = whUK) then
-          SaveClient;
       finally
          Free;
       end;
@@ -4740,9 +4734,6 @@ begin
 
       Result := ShowModal = mroK;
 
-      //Audit manual data entry
-      if Result and (MyClient.clFields.clCountry = whUK) then
-        SaveClient;
    finally
       Free;
    end;
@@ -4896,10 +4887,10 @@ var
         CloseFile(eFile);
      end;
       //*** Flag Audit ***
-     SystemAuditMgr.FlagAudit(arSystemBankAccounts);
+     SystemAuditMgr.FlagAudit(atSystemBankAccounts);
      //The following may need to be audited at a later date?
-     //SystemAuditMgr.FlagAudit(arPracticeSetup);
-     //SystemAuditMgr.FlagAudit(arAttachBankAccounts);
+     //SystemAuditMgr.FlagAudit(atPracticeSetup);
+     //SystemAuditMgr.FlagAudit(atAttachBankAccounts);
 
      SaveAdminSystem;
      Result := True;

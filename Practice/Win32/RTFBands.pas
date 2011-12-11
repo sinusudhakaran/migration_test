@@ -46,6 +46,7 @@ type
       function IsAvailable: Boolean;
       procedure SetPrintJob(Value: TBKPrintJob);
       procedure Load(FromText: string);
+      function GetText: string;
    end;
 
 
@@ -99,6 +100,15 @@ begin
    else
       FRTFLabel := GetDynamicRTF;
    Result := FRTFLabel;
+end;
+
+function TRTFBand.GetText: string;
+var
+  RichText: TWPRichText;
+begin
+  RichText := GetRTFLabel;
+  RichText.AsString := FText;
+  Result := RichText.AsANSIString;
 end;
 
 function TRTFBand.IsAvailable: Boolean;

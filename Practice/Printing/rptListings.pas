@@ -553,10 +553,14 @@ begin
 
       if Bank_Account.IsAForexAccount and ( TaxCol <> NIL ) then  TaxCol.FormatString := Client.FmtMoneyStr;
 
-      if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-      if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-      if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
-      if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStr;
+      if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStrBrackets;
+      if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStrBrackets;
+      if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStrBrackets;
+      if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStrBrackets;
 
       if ( Bank_Account.baFields.baAccount_Type = btBank) {and
          ( Mgr.SelectionCriteria = twAllEntries)} then
@@ -663,10 +667,14 @@ begin
 
       if not LE_HasTransactions(Fromdate, ToDate, Bank_Account) then exit;
 
-      if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-      if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
-      if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
-      if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStr;
+//      if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStr;
+      if ( CRAmountCol  <> NIL ) then  CRAmountCol .FormatString := Bank_Account.FmtMoneyStrBrackets;
+      if ( DRAmountCol  <> NIL ) then  DRAmountCol .FormatString := Bank_Account.FmtMoneyStrBrackets;
+      if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStrBrackets;
+      if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStrBrackets;
 
       if ( CRAmountCol  <> NIL ) then  CRAmountCol .TotalFormat := Bank_Account.FmtMoneyStr;
       if ( DRAmountCol  <> NIL ) then  DRAmountCol .TotalFormat := Bank_Account.FmtMoneyStr;
