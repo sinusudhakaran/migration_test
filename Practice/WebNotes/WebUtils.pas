@@ -31,6 +31,7 @@ procedure AddBooleanOption(var ToNode: IXMLNode; name: string; Value: Boolean);
 procedure SetTextAttr(var OnNode: IXMLNode; Name, Value: string);
 procedure SetSourceAttr(var OnNode: IXMLNode; Name: string;  Value: Integer);
 procedure SetMoneyAttr(var OnNode: IXMLNode; Name: string; Value: Money);
+procedure SetInt64Attr(var OnNode: IXMLNode; Name: string; Value: Money);
 procedure SetMoneyElement(var OnNode: IXMLNode; Name: string; Value: Money);
 procedure SetBoolAttr(var OnNode: IXMLNode; Name: string; Value: Boolean);
 procedure SetIntAttr(var OnNode: IXMLNode; Name: string; Value: Integer);
@@ -57,6 +58,7 @@ function GetTextAttr(FromNode: IXMLNode; Name : string): string;
 function GetUPIStateAttr(FromNode: IXMLNode; Name : string): Integer;
 function GetMoneyAttr(FromNode: IXMLNode; Name : string): Money;
 function GetMoneyElement(FromNode: IXMLNode; Name : string): Money;
+function GetInt64Attr(FromNode: IXMLNode; Name : string): Money;
 function GetQtyAttr(FromNode: IXMLNode; Name : string): Money;
 function GetQtyElement(FromNode: IXMLNode; Name : string): Money;
 function GetBoolAttr(FromNode: IXMLNode; Name : string): Boolean;
@@ -191,6 +193,15 @@ begin
   if Value <> 0 then
     OnNode.Attributes [Name] := (Value / 100);
 end;
+
+
+//------------------------------------------------------------------------------
+procedure SetInt64Attr(var OnNode: IXMLNode; Name: string; Value: Money);
+begin
+  if Value <> 0 then
+    OnNode.Attributes [Name] := (Value);
+end;
+
 
 //----------------------- Nullable ---------------------------------------------
 procedure SetMoneyElement(var OnNode: IXMLNode; Name: string; Value: Money);
@@ -498,6 +509,16 @@ begin
    Result := strToFloat(lNode.NodeValue) * 100;
 end;
 
+function GetInt64Attr(FromNode: IXMLNode; Name : string): Money;
+   var LNode:IXMLNode;
+begin
+   if Assigned(FromNode.AttributeNodes.FindNode(Name)) then
+  begin
+    Result := strToFloat(FromNode.Attributes[Name]);
+  end
+  else
+    Result := 0;
+end;
 //------------------------------------------------------------------------------
 function GetQtyAttr(FromNode: IXMLNode; Name : string): Money;
 begin
