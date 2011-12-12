@@ -171,6 +171,8 @@ var
    Stream : TBigMemoryStream;
 
 begin
+   Client := nil;
+   stream := nil;
    XMLHelper := TXML_Helper.Create;
    try
        try

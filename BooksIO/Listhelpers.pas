@@ -55,7 +55,10 @@ uses
     BKhdIO,
     BKdlIO,
     XMLDoc,
-    BK_XMLHelper;
+    BK_XMLHelper
+    //rexhelpers
+    //BK_XMLHelper
+    ;
 
 //-----------  DEbug Options --------------
 
@@ -243,6 +246,32 @@ end;
 
 
 //----------------------------  PTransaction_rec -----------------------------------
+
+function AddDissection(value: PTransaction_rec): pDissection_Rec;
+var
+  Seq : Integer;
+begin
+  Result := New_Dissection_Rec;
+  Seq := 0;
+  If value.txLast_Dissection <> nil then
+     Seq := value.txLast_Dissection^.dsSequence_No;
+  Inc(Seq);
+  with Result^ do
+  begin
+    dsTransaction  := value;
+    dsSequence_No  := Seq;
+    dsNext         := NIL;
+    dsClient       := value.txClient;
+    dsBank_Account := value.txBank_Account;
+  end;
+  if (value.txFirst_Dissection = nil) then
+     value.txFirst_Dissection := Result; // Im the first
+  if (value.txLast_Dissection <> nil) then
+     value.txLast_Dissection^.dsNext := Result; // Hook me in
+  value.txLast_Dissection := Result;// Im always the last
+end;
+
+
 procedure TXML_Helper.WriteToNode(value: PTransaction_rec; var Node :IXMLNode) overload;
 var
    Diss: PDissection_Rec;
@@ -271,9 +300,9 @@ begin
    if not assigned(lnode) then Exit;
    lnode := lnode.ChildNodes.First;
    while Assigned(lNode) do begin
-       new := new_Dissection_Rec;
+       new := AddDissection(value);
        new.ReadRecFromNode(LNode);
-       AppendDissection(value, new);
+       //pendDissection(value, new);
        LNode := LNode.NextSibling;
    end;
    lNode := nil;
@@ -306,8 +335,6 @@ var lNode : IXMLNode;
     new: pTransaction_Rec;
     NMem: Tmemorisation;
 begin
-    LogDebug('hkzhjdkdfkadf');
-    LogDebug(Node.xml );
 
    LNode := value.baFields.ReadRecFromNode(Node);
    if not assigned(lnode) then exit;
@@ -317,8 +344,9 @@ begin
       lnode := lnode.ChildNodes.First;
       while Assigned(lNode) do begin
          new := new_Transaction_Rec;
-         ReadFromNode(new, lNode);
          value.baTransaction_List.Insert_Transaction_Rec(new);
+         ReadFromNode(new, lNode);
+
          LNode := LNode.NextSibling;
       end;
    end;
