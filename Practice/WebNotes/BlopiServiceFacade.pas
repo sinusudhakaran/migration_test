@@ -1,17 +1,17 @@
 // ************************************************************************ //
 // The types declared in this file were generated from data read from the
 // WSDL File described below:
-// WSDL     : https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl
-//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0
-//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0>0
-//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd0
-//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd1
-//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd2
-//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd3
+// WSDL     : http://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl
+//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0
+//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0>0
+//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd0
+//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd1
+//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd2
+//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd3
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (7/12/2011 3:06:53 p.m. - - $Rev: 25127 $)
+// (14/12/2011 10:55:57 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -775,7 +775,7 @@ type
   // binding   : BasicHttpBinding_IBlopiServiceFacade
   // service   : BlopiServiceFacade
   // port      : BasicHttpBinding_IBlopiServiceFacade
-  // URL       : https://banklinkonline.com/Services/BlopiServiceFacade.svc
+  // URL       : http://banklinkonline.com/Services/BlopiServiceFacade.svc
   // ************************************************************************ //
   IBlopiServiceFacade = interface(IInvokable)
   ['{88E4B606-483E-CC24-1C42-418E3CD2E07E}']
@@ -803,8 +803,8 @@ implementation
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiServiceFacade;
 const
-  defWSDL = 'https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl';
-  defURL  = 'https://banklinkonline.com/Services/BlopiServiceFacade.svc';
+  defWSDL = 'http://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl';
+  defURL  = 'http://banklinkonline.com/Services/BlopiServiceFacade.svc';
   defSvc  = 'BlopiServiceFacade';
   defPrt  = 'BasicHttpBinding_IBlopiServiceFacade';
 var
