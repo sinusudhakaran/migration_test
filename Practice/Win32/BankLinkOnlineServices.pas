@@ -3,18 +3,20 @@ unit BankLinkOnlineServices;
 interface
 
 uses
-  BlopiServiceFacade,InvokeRegistry;
+  BlopiServiceFacade,
+  InvokeRegistry,
+  Windows,
+  XMLIntf;
 
 type
   TBanklinkOnlineStatus = (bosActive, bosSuspended, bosDeactivated);
 
-  Guid          =  BlopiServiceFacade.Guid;
-  ArrayOfString =  BlopiServiceFacade.ArrayOfString;
-
-  Practice = BlopiServiceFacade.Practice;
-  Client = BlopiServiceFacade.Client;
-  User = BlopiServiceFacade.User;
-  CatalogueEntry = BlopiServiceFacade.CatalogueEntry;
+  Guid                  = BlopiServiceFacade.Guid;
+  ArrayOfString         = BlopiServiceFacade.ArrayOfString;
+  Practice              = BlopiServiceFacade.Practice;
+  Client                = BlopiServiceFacade.Client;
+  User                  = BlopiServiceFacade.User;
+  CatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
   ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
 
   TClientHelper = Class helper for BlopiServiceFacade.Client
@@ -55,16 +57,24 @@ type
 
   TProductConfigService = class(TObject)
   private
+    fMethodName: string;
+    fSOAPRequest: InvString;
+
     FPractice, FPracticeCopy: Practice;
     FRegisteredForBankLinkOnline: boolean;
     FListOfClients: ClientList;
     FClient: Client;
+    FArrNameSpaceList : Array of TRemRegEntry;
+
     procedure LoadDummyPractice;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
     function IsUserCreatedOnBankLinkOnline(const APractice : Practice;
                                            const AUserId   : Guid   = '';
                                            const AUserCode : string = ''): Boolean;
+    function GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
+                             aExceptions    : ArrayOfExceptionDetails) : string;
+
     function GetUseBankLinkOnline: Boolean;
     procedure SetUseBankLinkOnline(const Value: Boolean);
     function RemotableObjectToXML(ARemotable: TRemotable): string;
@@ -78,6 +88,14 @@ type
     function Online: Boolean;
     function Registered: Boolean;
     function OnlineStatus: TBankLinkOnlineStatus;
+
+    procedure CreateXMLNamSpcList;
+    procedure AddXMLNStoArrays(aCurrNode : IXMLNode);
+    procedure DoBeforeExecute(const MethodName: string; var SOAPRequest: InvString);
+    procedure SetTimeOuts(ConnecTimeout : DWord ;
+                          SendTimeout   : DWord ;
+                          ReciveTimeout : DWord);
+    function GetServiceFacade : IBlopiServiceFacade;
   public
     constructor Create;
     destructor Destroy; override;
@@ -108,10 +126,13 @@ type
                               const aUserCode      : WideString;
                               const aUstNameIndex  : integer;
                               var   aIsUserCreated : Boolean ) : Boolean;
-    function DeleteUser(AUserId : Guid): Boolean;
-    function IsPrimaryUser(const AUserId : Guid = ''): Boolean;
-    function GetUserGuid(AUserCode: string): Guid;
-    function ChangeUserPassword(const aUserId      : Guid;
+    function DeleteUser(aUserCode: string;
+                        aPractice : Practice = nil): Boolean;
+    function IsPrimaryUser(aUserCode: string = '';
+                           aPractice : Practice = nil): Boolean;
+    function GetUserGuid(AUserCode: string;
+                         APractice : Practice): Guid;
+    function ChangeUserPassword(const aUserCode: string;
                                 const aOldPassword : string;
                                 const aNewPassword : string) : Boolean;
   end;
@@ -124,7 +145,6 @@ implementation
 uses
   Globals,
   SysUtils,
-  XMLIntf,
   XMLDoc,
   OPToSOAPDomConv,
   LogUtil,
@@ -134,7 +154,13 @@ uses
   WebUtils,
   stDate,
   IniFiles,
-  BkConst;
+  BkConst,
+  WinINet,
+  SOAPHTTPClient,
+  OpConvert,
+  strUtils,
+  WideStrUtils,
+  WSDLIntf;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -216,6 +242,8 @@ begin
   LoadPracticeDetails;
   //Create clients
   LoadDummyClientList;
+  // Create List of Name Spaces to use in Fix for Arrayof.... Delphi bug
+  CreateXMLNamSpcList;
 end;
 
 destructor TProductConfigService.Destroy;
@@ -282,17 +310,17 @@ begin
     Result := AdminSystem.fdFields.fdUse_BankLink_Online;
 end;
 
-function TProductConfigService.GetUserGuid(AUserCode: string): Guid;
+function TProductConfigService.GetUserGuid(AUserCode: string;
+                                           aPractice : Practice): Guid;
 var
   i: integer;
   TempUser: User;
 begin
   Result := '';
 
-  GetPractice;
-  for i := Low(FPracticeCopy.Users) to High(FPracticeCopy.Users) do
+  for i := Low(aPractice.Users) to High(aPractice.Users) do
   begin
-    TempUser := FPracticeCopy.Users[i];
+    TempUser := aPractice.Users[i];
     if TempUser.UserCode = AUserCode then begin
       Result := TempUser.Id;
       Break;
@@ -490,7 +518,7 @@ begin
     if AdminSystem.fdFields.fdLast_BankLink_Online_Update < (StDate.CurrentDate + 1) then begin
       //Live
       try
-        BlopiInterface := GetIBlopiServiceFacade;
+        BlopiInterface := GetServiceFacade;
         PracticeDetailResponse := BlopiInterface.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
         AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
         if Assigned(PracticeDetailResponse) then begin
@@ -558,7 +586,7 @@ var
   NodeRoot: IXMLNode;
   XMLDoc: IXMLDocument;
 begin
-  Converter:= TSOAPDomConv.Create(NIL);
+  Converter := TSOAPDomConv.Create(NIL);
   XMLDoc := NewXMLDocument;
   XMLDoc.LoadFromXML(XML);
   NodeRoot := XMLDoc.ChildNodes.FindNode('Root');
@@ -591,6 +619,125 @@ begin
   finally
     IniFile.Free;
   end;
+end;
+
+procedure TProductConfigService.CreateXMLNamSpcList;
+var
+  UriIndex : integer;
+begin
+  SetLength(FArrNameSpaceList,0);
+  for UriIndex := 0 to RemClassRegistry.GetURICount-1 do
+  begin
+    if (Uppercase(RemClassRegistry.GetURIMap(UriIndex).Name) = 'ARRAYOFSTRING')
+    or (Uppercase(RemClassRegistry.GetURIMap(UriIndex).Name) = 'ARRAYOFGUID')
+    or (Uppercase(RemClassRegistry.GetURIMap(UriIndex).Name) = 'ARRAYOFINTEGER') then
+    begin
+      SetLength(FArrNameSpaceList,high(FArrNameSpaceList)+2);
+      FArrNameSpaceList[high(FArrNameSpaceList)] := RemClassRegistry.GetURIMap(UriIndex);
+      FArrNameSpaceList[high(FArrNameSpaceList)].Name :=
+        RightStr(FArrNameSpaceList[high(FArrNameSpaceList)].Name,
+                 Length(FArrNameSpaceList[high(FArrNameSpaceList)].Name) - 7);
+    end;
+  end;
+end;
+
+procedure TProductConfigService.AddXMLNStoArrays(aCurrNode : IXMLNode);
+var
+  NodeIndex : integer;
+  CurrNode  : IXMLNode;
+  CollIndex : integer;
+  NamSpcIndex : integer;
+  NamSpcURI : WideString;
+  NamSpcPre : WideString;
+  NodeName  : String;
+  EditIndex : integer;
+  Values : Array of OleVariant;
+begin
+  if not Assigned(aCurrNode) then
+    Exit;
+
+  NamSpcURI := '';
+  NamSpcPre := '';
+  for NodeIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
+  begin
+    CurrNode := aCurrNode.ChildNodes.Nodes[NodeIndex];
+
+    if NodeIndex = 0 then
+    begin
+      for NamSpcIndex := 0 to high(FArrNameSpaceList) do
+      begin
+        if UpperCase(CurrNode.NodeName) = UpperCase(FArrNameSpaceList[NamSpcIndex].Name) then
+        begin
+          NodeName  := CurrNode.NodeName;
+          NamSpcURI := FArrNameSpaceList[NamSpcIndex].URI;
+          break;
+        end;
+      end;
+
+      if not (NamSpcURI = '') then
+      begin
+        NamSpcPre := 'D5P1';
+
+        SetLength(Values,aCurrNode.ChildNodes.Count);
+        for EditIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
+          Values[EditIndex] := aCurrNode.ChildNodes[EditIndex].NodeValue;
+
+        for EditIndex := aCurrNode.ChildNodes.Count - 1 downto 0 do
+          aCurrNode.ChildNodes.Delete(EditIndex);
+
+        aCurrNode.DeclareNamespace(NamSpcPre, NamSpcURI);
+
+        for EditIndex := 0 to High(Values) do
+          aCurrNode.AddChild(NamSpcPre + ':' + NodeName).NodeValue := Values[EditIndex];
+
+        SetLength(Values, 0);
+        Exit;
+      end;
+    end;
+
+    AddXMLNStoArrays(CurrNode);
+  end;
+end;
+
+procedure TProductConfigService.DoBeforeExecute(const MethodName: string;
+                                                var SOAPRequest: InvString);
+var
+  SOAPReq : WideString;
+  Document : IXMLDocument;
+begin
+  Document := NewXMLDocument;
+  try
+    Document.LoadFromXML(SOAPRequest);
+
+    if not Document.IsEmptyDoc then
+    begin
+      AddXMLNStoArrays(Document.DocumentElement);
+
+      Document.SaveToXML(SOAPRequest);
+
+      SOAPRequest := SOAPRequest;
+    end;
+  finally
+    Document := nil;
+  end;
+end;
+
+procedure TProductConfigService.SetTimeOuts(ConnecTimeout : DWord ;
+                                            SendTimeout   : DWord ;
+                                            ReciveTimeout : DWord);
+begin
+  InternetSetOption(nil, INTERNET_OPTION_CONNECT_TIMEOUT, Pointer(@ConnecTimeout), SizeOf(ConnecTimeout));
+  InternetSetOption(nil, INTERNET_OPTION_SEND_TIMEOUT, Pointer(@SendTimeout), SizeOf(SendTimeout));
+  InternetSetOption(nil, INTERNET_OPTION_RECEIVE_TIMEOUT, Pointer(@ReciveTimeout), SizeOf(ReciveTimeout));
+end;
+
+function TProductConfigService.GetServiceFacade: IBlopiServiceFacade;
+var
+  HTTPRIO: THTTPRIO;
+begin
+  HTTPRIO := THTTPRIO.Create(nil);
+  HTTPRIO.OnBeforeExecute   := DoBeforeExecute;
+  Result := GetIBlopiServiceFacade(False, '', HTTPRIO);
 end;
 
 function TProductConfigService.IsCICOEnabled: Boolean;
@@ -738,7 +885,7 @@ begin
     for i := Low(SubArray) to High(SubArray) do begin
       if AProductId = SubArray[i] then begin
         if (i < 0) or (i > High(SubArray)) then
-          Break; 
+          Break;
         for j := i to High(SubArray) - 1 do begin
           SubArray[j] := SubArray[j+1];
         end;
@@ -915,6 +1062,27 @@ begin
   end;
 end;
 
+function TProductConfigService.GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
+                                               aExceptions    : ArrayOfExceptionDetails ) : string;
+var
+  ErrIndex : integer;
+begin
+  Result := '';
+
+  for ErrIndex := 0 to high(aErrorMessages) do
+    Result := Result + #13 + aErrorMessages[ErrIndex].ErrorCode + ' : ' +
+                       aErrorMessages[ErrIndex].Message_;
+  if not (Result = '') then
+    Result := #13 + Result;
+
+  for ErrIndex := 0 to high(aExceptions) do
+    Result := Result + #13 + 'Message    : ' + aExceptions[ErrIndex].Message_ + #13 +
+                             'Source     : ' + aExceptions[ErrIndex].Source  + #13 +
+                             'StackTrace : ' + aExceptions[ErrIndex].StackTrace;
+  if not (Result = '') then
+    Result := #13 + Result;
+end;
+
 function TProductConfigService.UpdateCreateUser(var   aUserId        : Guid;
                                                 const aEMail         : WideString;
                                                 const aFullName      : WideString;
@@ -934,11 +1102,12 @@ var
   CurrPractice    : Practice;
   IsUserOnline    : Boolean;
   BlopiInterface  : IBlopiServiceFacade;
-  RoleNames       : ArrayOfstring;
+  RoleNames       : ArrayOfString;
+  Subscription    : ArrayOfGuid;
+  SubIndex        : integer;
 begin
   Result := false;
 
-  BlopiInterface := GetIBlopiServiceFacade;
   PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
   PracCode        := AdminSystem.fdFields.fdBankLink_Code;
   PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
@@ -946,6 +1115,10 @@ begin
   try
     // Does the User Already Exist on BankLink Online?
     CurrPractice := GetPractice;
+
+    setlength(Subscription, 1);
+    Subscription[0] := '6D700B31-DAEE-4847-8CB2-82C21328AC28';
+
     IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
 
     SetLength(RoleNames,1);
@@ -958,6 +1131,9 @@ begin
     end;
   end;
 
+  BlopiInterface := GetServiceFacade;
+  //SetTimeOuts(5000,5000,5000);
+
   if IsUserOnline then
   begin
     UpdateUser := User.Create;
@@ -965,7 +1141,7 @@ begin
     UpdateUser.FullName     := aFullName;
     UpdateUser.Id           := aUserId;
     UpdateUser.RoleNames    := RoleNames;
-    UpdateUser.Subscription := CurrPractice.Subscription;
+    UpdateUser.Subscription := Subscription; //CurrPractice.Subscription;
     UpdateUser.UserCode     := aUserCode;
 
     try
@@ -981,12 +1157,8 @@ begin
     Result := MsgResponce.Success;
     if not Result then
     begin
-      ErrMsg := '';
-      for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
-        ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
-                           MsgResponce.ErrorMessages[ErrIndex].Message_;
-      if not (ErrMsg = '') then
-        ErrMsg := #13 + ErrMsg;
+      ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
+
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running SavePracticeUser, Error Message : ' + ErrMsg);
       raise Exception.Create('BankLink Practice was unable to update ' + UpdateUser.FullName +
                              ' on BankLink Online. ' + ErrMsg );
@@ -1000,7 +1172,7 @@ begin
     CreateUser.EMail        := aEMail;
     CreateUser.FullName     := aFullName;
     CreateUser.RoleNames    := RoleNames;
-    CreateUser.Subscription := CurrPractice.Subscription;
+    CreateUser.Subscription := Subscription; //CurrPractice.Subscription;
     CreateUser.UserCode     := aUserCode;
 
     try
@@ -1017,12 +1189,7 @@ begin
 
     if not Result then
     begin
-      ErrMsg := '';
-      for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
-        ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
-                           MsgResponce.ErrorMessages[ErrIndex].Message_;
-      if not (ErrMsg = '') then
-        ErrMsg := #13 + ErrMsg;
+      ErrMsg := GetErrorMessage(MsgResponceGuid.ErrorMessages, MsgResponceGuid.Exceptions);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running CreatePracticeUser, Error Message : ' + ErrMsg);
       raise Exception.Create('BankLink Practice was unable to create ' + CreateUser.FullName +
@@ -1033,7 +1200,8 @@ begin
   end;
 end;
 
-function TProductConfigService.DeleteUser(AUserId: Guid) : Boolean;
+function TProductConfigService.DeleteUser(aUserCode : string;
+                                          aPractice : Practice) : Boolean;
 var
   PracCountryCode : WideString;
   PracCode        : WideString;
@@ -1042,16 +1210,21 @@ var
   ErrMsg          : String;
   ErrIndex        : integer;
   BlopiInterface  : IBlopiServiceFacade;
+  UserGuid        : Guid;
 begin
   Result := false;
 
-  BlopiInterface := GetIBlopiServiceFacade;
+  BlopiInterface  := GetServiceFacade;
   PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
   PracCode        := AdminSystem.fdFields.fdBankLink_Code;
   PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
   try
-    MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, AUserId);
+    if not Assigned(aPractice) then
+      aPractice := GetPractice;
+
+    UserGuid := GetUserGuid(aUserCode, aPractice);
+    MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
     Result := MsgResponce.Success;
   except
     on E : Exception do
@@ -1063,12 +1236,7 @@ begin
 
   if not Result then
   begin
-    ErrMsg := '';
-    for ErrIndex := 0 to high(MsgResponce.ErrorMessages) do
-      ErrMsg := ErrMsg + #13 + MsgResponce.ErrorMessages[ErrIndex].ErrorCode + ' : ' +
-                         MsgResponce.ErrorMessages[ErrIndex].Message_;
-    if not (ErrMsg = '') then
-      ErrMsg := #13 + ErrMsg;
+    ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
 
     LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running DeletePracticeUser, Error Message : ' + ErrMsg);
     raise Exception.Create('BankLink Practice was unable to delete user' +
@@ -1076,21 +1244,22 @@ begin
   end;
 end;
 
-function TProductConfigService.IsPrimaryUser(const AUserId : Guid): Boolean;
-var
-  currPractice : Practice;
+function TProductConfigService.IsPrimaryUser(aUserCode : string;
+                                             aPractice : Practice): Boolean;
 begin
-  if AUserId = '' then
+  if aUserCode = '' then
   begin
     Result := false;
     Exit;
   end;
 
-  currPractice := GetPractice;
-  Result := (AUserId = currPractice.DefaultAdminUserId);
+  if not Assigned(aPractice) then
+    aPractice := GetPractice;
+
+  Result := (GetUserGuid(aUserCode, aPractice) = aPractice.DefaultAdminUserId);
 end;
 
-function TProductConfigService.ChangeUserPassword(const aUserId      : Guid;
+function TProductConfigService.ChangeUserPassword(const aUserCode    : string;
                                                   const aOldPassword : string;
                                                   const aNewPassword : string) : Boolean;
 begin
@@ -1098,7 +1267,6 @@ begin
 end;
 
 { TClientSummaryHelper }
-
 procedure TClientSummaryHelper.AddSubscription(AProductID: guid);
 var
   SubArray: arrayofguid;

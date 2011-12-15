@@ -437,6 +437,11 @@ begin
                                                       fIsCreateUser);
       if Result then
       begin
+        {if chkLoggedIn.check then
+        begin
+          Result := ProductConfigService.ChangeUserPassword
+        end; }
+
         if IsCreateUser then
           MsgCreateorUpdate := 'created on'
         else
@@ -451,7 +456,7 @@ begin
       HelpfulErrorMsg(E.Message, 0);
       Result := False;
     end;
-  End;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -755,8 +760,7 @@ begin { TdlgEditUser.Execute }
     chkUsePracPassInOnline.Checked := User.usUse_Practice_Password_Online
                                   and fUserCanAccessBankLinkOnline;
 
-    UserGuid := ProductConfigService.GetUserGuid(User.usCode);
-    fIsPrimaryUser := ProductConfigService.IsPrimaryUser(UserGuid);
+    fIsPrimaryUser := ProductConfigService.IsPrimaryUser(User.usCode);
 
     if User.usWorkstation_Logged_In_At <> '' then
       chkLoggedIn.Caption := 'User is &Logged In  (on ' + User.usWorkstation_Logged_In_At +')';
@@ -810,6 +814,7 @@ Var
   pu          : pUser_Rec;
   WasLoggedIn : boolean;
   i           : integer;
+  Prac        : practice;
 begin { EditUser }
   Result := false;
 
@@ -820,6 +825,8 @@ begin { EditUser }
 
   MyDlg := TdlgEditUser.Create(Application);
   Try
+    Prac := ProductConfigService.GetPractice;
+    MyDlg.UserGuid := ProductConfigService.GetUserGuid(User_Code, Prac);
     MyDlg.IsCreateUser := False;
     BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
     if Assigned(CurrUser) Then

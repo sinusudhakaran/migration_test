@@ -145,6 +145,7 @@ var
   DelMsg : String;
   HasDelOnline : Boolean;
   Name : String;
+  aPractice : Practice;
 begin
   HasDelOnline := False;
   result := false;
@@ -175,10 +176,12 @@ begin
      (ProductConfigService.UseBankLinkOnline) then
   begin
     try
-      if ProductConfigService.IsPrimaryUser(ProductConfigService.GetUserGuid(User^.usCode)) then
-          PickPrimaryUser(ProductConfigService.GetUserGuid(User^.usCode));
+      aPractice := ProductConfigService.GetPractice;
 
-      HasDelOnline := ProductConfigService.DeleteUser(ProductConfigService.GetUserGuid(User^.usCode));
+      if ProductConfigService.IsPrimaryUser(User^.usCode, aPractice) then
+          PickPrimaryUser(User^.usCode, aPractice);
+
+      HasDelOnline := ProductConfigService.DeleteUser(User^.usCode, aPractice);
     except
       on E : Exception do
       begin
@@ -202,7 +205,7 @@ begin
       exit;
     end;
 
-    {delete from list}
+    //delete from list
     AdminSystem.fdSystem_File_Access_List.Delete_User( pu.usLRN );
     AdminSystem.fdSystem_User_List.DelFreeItem(pu);
 
@@ -297,7 +300,7 @@ begin
     begin
       if (User.usAllow_Banklink_Online) then
       begin
-        if ProductConfigService.IsPrimaryUser(ProductConfigService.GetUserGuid(User.usCode)) then
+        if ProductConfigService.IsPrimaryUser(User.usCode) then
           Online := ONLINE_YES_ADMIN
         else
           Online := ONLINE_YES;

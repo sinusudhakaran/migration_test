@@ -43,7 +43,8 @@ type
   public
   end;
 
-  function PickPrimaryUser(CurrentUser : Guid = '') : Boolean;
+  function PickPrimaryUser(aUserCode: string = '';
+                           aPractice : Practice = Nil) : Boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -56,7 +57,8 @@ uses
   WarningMoreFrm;
 
 //------------------------------------------------------------------------------
-function PickPrimaryUser(CurrentUser : Guid = '') : Boolean;
+function PickPrimaryUser(aUserCode : string = '';
+                         aPractice : Practice = Nil) : Boolean;
 var
   MyDlg        : TPickNewPrimaryUser;
   CurrPractice : Practice;
@@ -64,19 +66,20 @@ var
 begin
   Result := False;
   try
-    CurrPractice := ProductConfigService.GetPractice;
+    if not Assigned(aPractice) then
+      aPractice := ProductConfigService.GetPractice;
 
     MyDlg := TPickNewPrimaryUser.Create(Application);
     Try
       MyDlg.cmbPrimaryContact.Clear;
 
       // Go through users adding to Combo if not current user
-      for UserIndex := 0 to high(CurrPractice.Users) do
+      for UserIndex := 0 to high(aPractice.Users) do
       begin
-        if not (CurrPractice.Users[UserIndex].Id = CurrentUser) then
+        if not (aPractice.Users[UserIndex].Id = ProductConfigService.GetUserGuid(aUserCode, aPractice)) then
         begin
-          MyDlg.cmbPrimaryContact.AddItem(CurrPractice.Users[UserIndex].FullName,
-                                          CurrPractice.Users[UserIndex]);
+          MyDlg.cmbPrimaryContact.AddItem(aPractice.Users[UserIndex].FullName,
+                                          aPractice.Users[UserIndex]);
         end;
       end;
 
@@ -93,7 +96,7 @@ begin
       if MyDlg.ShowModal = mrYes then
       begin
         // Save Default Admin User
-        CurrPractice.DefaultAdminUserId := User(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
+        aPractice.DefaultAdminUserId := User(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
         ProductConfigService.SavePractice;
         Result := True;
       end;
