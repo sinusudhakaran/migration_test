@@ -246,6 +246,7 @@ var
   Count    : integer;
   i,j      : integer;
   Online   : String;
+  Prac     : Practice;
 begin
   lvUsers.Items.beginUpdate;
   try
@@ -260,6 +261,8 @@ begin
      lvUsers.Column[4].Width    := 0;
      lvUsers.Column[4].MaxWidth := 0;
    end;
+
+   Prac := ProductConfigService.GetPractice;
 
    with AdminSystem, fdSystem_User_List do
    for i := 0 to Pred(itemCount) do
@@ -300,7 +303,7 @@ begin
     begin
       if (User.usAllow_Banklink_Online) then
       begin
-        if ProductConfigService.IsPrimaryUser(User.usCode) then
+        if ProductConfigService.IsPrimaryUser(User.usCode, Prac) then
           Online := ONLINE_YES_ADMIN
         else
           Online := ONLINE_YES;

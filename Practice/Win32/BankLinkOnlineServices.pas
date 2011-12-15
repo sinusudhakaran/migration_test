@@ -632,7 +632,7 @@ begin
     or (Uppercase(RemClassRegistry.GetURIMap(UriIndex).Name) = 'ARRAYOFGUID')
     or (Uppercase(RemClassRegistry.GetURIMap(UriIndex).Name) = 'ARRAYOFINTEGER') then
     begin
-      SetLength(FArrNameSpaceList,high(FArrNameSpaceList)+2);
+      SetLength(FArrNameSpaceList,high(FArrNameSpaceList) + 2);
       FArrNameSpaceList[high(FArrNameSpaceList)] := RemClassRegistry.GetURIMap(UriIndex);
       FArrNameSpaceList[high(FArrNameSpaceList)].Name :=
         RightStr(FArrNameSpaceList[high(FArrNameSpaceList)].Name,
