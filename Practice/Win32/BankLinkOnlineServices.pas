@@ -63,7 +63,7 @@ type
     FPractice, FPracticeCopy: Practice;
     FRegisteredForBankLinkOnline: boolean;
     FListOfClients: ClientList;
-    FClient: Client;
+    FClient, FClientCopy: Client;
     FArrNameSpaceList : Array of TRemRegEntry;
 
     procedure LoadDummyPractice;
@@ -118,6 +118,7 @@ type
     //Client methods
     function AddClient: ClientSummary;
     function GetClientDetails(ClientID: WideString): Client;
+    function LoadClientDetails(ClientID: WideString): Boolean;
     property Clients: ClientList read FListOfClients;
     //User methods
     function UpdateCreateUser(var   aUserId        : Guid;
@@ -277,13 +278,73 @@ begin
   ClientArray := FListOfClients.Clients;
   for i := Low(ClientArray) to High(ClientArray) do
   begin
-    if (ClientArray[i].Id = ClientID) then
+    if (ClientID = ClientArray[i].Id) then
     begin
-      // Result := ClientArray[i];
-      // Do get client details using ClientArray[i].Id (replace below when Banklink Online is connected properly)
-      Result := FClient;
+      try
+        LoadClientDetails;
+        FClientCopy.Free;
+        FClientCopy := Client.Create;
+        CopyRemotableObject(FClient, FClientCopy);
+        Result := FClientCopy;
+      except
+        on E : Exception do
+          raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+      end;
       break;
     end;
+  end;
+end;
+
+function TProductConfigService.LoadClientDetails(ClientID: WideString): Boolean;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  ClientDetailResponse: MessageResponseOfClientMIdCYrSK;
+  i: integer;
+begin
+  Result := False;
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if not Registered then
+    Exit;
+
+  if UseBankLinkOnline then begin
+    //Reload from BankLink Online
+    if AdminSystem.fdFields.fdLast_BankLink_Online_Update < (StDate.CurrentDate + 1) then begin
+      // Live
+      try
+        BlopiInterface := GetServiceFacade;
+        ClientDetailResponse := BlopiInterface.GetClientDetail(CountryText(AdminSystem.fdFields.fdCountry),
+                                AdminSystem.fdFields.fdBankLink_Code,
+                                AdminSystem.fdFields.fdBankLink_Connect_Password, ClientID);
+        if Assigned(ClientDetailResponse) then begin
+          Result := Assigned(ClientDetailResponse.Result);
+          if Result then
+            FClient := ClientDetailResponse.Result
+          else begin
+            // Something went wrong
+            Msg := '';
+            for i := Low(ClientDetailResponse.ErrorMessages) to High(ClientDetailResponse.ErrorMessages) do
+              Msg := Msg + ServiceErrorMessage(ClientDetailResponse.ErrorMessages[i]).Message_;
+            raise Exception(Msg);
+          end;
+        end;
+      except
+        on E: Exception do HelpfulErrorMsg('Error geting practice details from BankLink Online: ' + E.Message, 0);
+      end;
+      if not Result  then
+        if LoadRemotableObjectFromFile(FClient) then begin //This represents FClient from BankLink Online
+          Result := True;
+      end;
+      //Load from System DB
+      if not Result then
+        Result := LoadPracticeDetailsfromSystemDB; //This is the local copy of FPractice
+      if not Result then begin
+        LoadDummyPractice; //This load FPractice with dummy data
+        Result := True;
+      end;
+    end else
+      Result := LoadPracticeDetailsfromSystemDB; //This is the local copy of FPractice
   end;
 end;
 
