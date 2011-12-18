@@ -281,7 +281,7 @@ begin
     if (ClientID = ClientArray[i].Id) then
     begin
       try
-        LoadClientDetails;
+        LoadClientDetails(ClientID);
         FClientCopy.Free;
         FClientCopy := Client.Create;
         CopyRemotableObject(FClient, FClientCopy);
@@ -300,6 +300,7 @@ var
   BlopiInterface: IBlopiServiceFacade;
   ClientDetailResponse: MessageResponseOfClientMIdCYrSK;
   i: integer;
+  Msg: string;
 begin
   Result := False;
   if not Assigned(AdminSystem) then
