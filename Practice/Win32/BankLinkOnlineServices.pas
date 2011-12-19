@@ -374,7 +374,8 @@ begin
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 50);
         FRegistered := True;
         try
-          Result := LoadPracticeDetailsfromSystemDB;
+          if LoadPracticeDetailsfromSystemDB then
+            Result := FPractice;
         finally
           FRegistered := False;
         end;
@@ -406,11 +407,6 @@ begin
               end else
                 raise Exception.Create(Msg);
             end;
-          end;
-          //Load cached details from System DB
-          if FRegistered and not Result then begin
-            Result := LoadPracticeDetailsfromSystemDB;
-            FRegistered := False;
           end;
         end;
       end;
