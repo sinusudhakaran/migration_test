@@ -90,8 +90,6 @@ type
     procedure LoadDummyClientList;
     procedure LoadClientList;
     function OnlineStatus: TBankLinkOnlineStatus;
-    function LoadPracticeDetails: Boolean;    
-
     procedure CreateXMLNamSpcList;
     procedure AddXMLNStoArrays(aCurrNode : IXMLNode);
     procedure DoBeforeExecute(const MethodName: string; var SOAPRequest: InvString);
@@ -247,7 +245,7 @@ begin
   //Create practice
   FPractice := Practice.Create;
   //Load Practice
-  LoadPracticeDetails;
+  GetPractice;
   //Create clients
   // LoadDummyClientList;
   LoadClientList;
@@ -653,75 +651,6 @@ begin
 
   //Set primary contact
   FPractice.DefaultAdminUserId := UserArray[1].Id;
-end;
-
-function TProductConfigService.LoadPracticeDetails: Boolean;
-var
-  i: integer;
-  BlopiInterface: IBlopiServiceFacade;
-  PracticeDetailResponse: MessageResponseOfPracticeMIdCYrSK;
-  Msg: string;
-begin
-  Result := False;
-  if not Assigned(AdminSystem) then
-    Exit;
-
-  Screen.Cursor := crHourGlass;
-  Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 40);
-  try
-    //Load practice details
-    FOnLine := False;
-    FRegistered := True;
-    if UseBankLinkOnline then begin
-      //Reload from BankLink Online
-      try
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 50);
-        BlopiInterface := GetServiceFacade;
-        PracticeDetailResponse := BlopiInterface.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
-        AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
-        if Assigned(PracticeDetailResponse) then begin
-          FOnLine := True;
-          Result := Assigned(PracticeDetailResponse.Result);
-          if Result then begin
-            AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
-            FPractice := PracticeDetailResponse.Result
-          end else begin
-            //Something went wrong
-            Msg := '';
-            for i := Low(PracticeDetailResponse.ErrorMessages) to High(PracticeDetailResponse.ErrorMessages) do
-              Msg := Msg + ServiceErrorMessage(PracticeDetailResponse.ErrorMessages[i]).Message_;
-            if Msg = 'Invalid BConnect Credentials' then begin
-              //Clear the cached practice details if not registered for this practice code
-              FPractice.Free;
-              FPractice := Practice.Create;
-              AdminSystem.fdFields.fdBankLink_Online_Config := '';
-              AdminSystem.fdFields.fdUse_BankLink_Online := False;
-              LoadPracticeDetailsfromSystemDB;
-              FRegistered := False;
-            end else
-              raise Exception.Create(Msg);
-          end;
-        end;
-      except
-        on E: Exception do HelpfulErrorMsg('BankLink Practice is unable to connect to BankLink Online: ' + E.Message, 0);
-      end;
-      //Load cached details from System DB
-      if FRegistered and not Result then begin
-        Result := LoadPracticeDetailsfromSystemDB;
-        FRegistered := False;
-      end;
-    end else begin
-      //Load cached details if they are registered or not
-      Result := LoadPracticeDetailsfromSystemDB;
-      FRegistered := False;
-    end;
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 100);
-  finally
-     Progress.StatusSilent := True;
-     Progress.ClearStatus;
-     Screen.Cursor := crDefault;
-  end;
 end;
 
 function TProductConfigService.LoadPracticeDetailsfromSystemDB: Boolean;
