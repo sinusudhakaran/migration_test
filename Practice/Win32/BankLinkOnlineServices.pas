@@ -88,6 +88,9 @@ type
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
     procedure LoadDummyClientList;
+    procedure LoadClientList;
+    function Online: Boolean;
+    function Registered: Boolean;
     function OnlineStatus: TBankLinkOnlineStatus;
     function LoadPracticeDetails: Boolean;    
 
@@ -136,8 +139,6 @@ type
     function ChangeUserPassword(const aUserCode: string;
                                 const aOldPassword : string;
                                 const aNewPassword : string) : Boolean;
-    property OnLine: Boolean read FOnLine;
-    property Registered: Boolean read FRegistered;
   end;
 
   //Product config singleton
@@ -240,13 +241,16 @@ begin
 end;
 
 constructor TProductConfigService.Create;
+var
+  BlopiClientList: MessageResponseOfClientListMIdCYrSK;
 begin
   //Create practice
   FPractice := Practice.Create;
   //Load Practice
   LoadPracticeDetails;
   //Create clients
-  LoadDummyClientList;
+  // LoadDummyClientList;
+  LoadClientList;
   // Create List of Name Spaces to use in Fix for Arrayof.... Delphi bug
   CreateXMLNamSpcList;
 end;
@@ -472,10 +476,41 @@ begin
   Result := FListOfClients.Clients[High(FListOfClients.Clients)];
 end;
 
+procedure TProductConfigService.LoadClientList;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  BlopiClientList: MessageResponseOfClientListMIdCYrSK;
+begin
+  if UseBankLinkOnline then begin
+		BlopiInterface := GetServiceFacade;
+    BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
+                                                    AdminSystem.fdFields.fdBankLink_Code,
+                                                    AdminSystem.fdFields.fdBankLink_Connect_Password);
+
+    FListOfClients := BlopiClientList.Result;
+    FListOfClients.Catalogue := FPractice.Catalogue;
+
+  //  AddClient;
+    if (High(FPractice.Subscription) <> - 1) then
+      if Assigned(FListOfClients.Clients[0]) then
+        ClientSummary(FListOfClients.Clients[0]).AddSubscription(FPractice.Subscription[0]);
+
+    FClient := Client.Create;
+    FClient.Id := FListOfClients.Clients[0].Id;
+    FClient.Catalogue := FPractice.Catalogue;
+    if (Length(FPractice.Subscription) > 0) then
+      FClient.AddSubscription(FPractice.Subscription[0]);
+
+    // add subscriptions to client
+  end;
+end;
+
 procedure TProductConfigService.LoadDummyClientList;
 begin
   FListOfClients := ClientList.Create;
   FListOfClients.Catalogue := FPractice.Catalogue;
+
+  // GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
 
   AddClient;
   if (High(FPractice.Subscription) <> - 1) then
