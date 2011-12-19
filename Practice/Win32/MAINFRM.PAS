@@ -727,6 +727,7 @@ type
     ProcessingDDECommand : Boolean;
     FLastActiveMDIChild: Forms.TForm;
     FLastActiveMDIChild2: Forms.TForm;
+    FAdminSystemFound: boolean;
     //DataThread: TDataThread;
 
     procedure ClientWndProc(var WinMsg: TMessage);
@@ -1165,7 +1166,7 @@ begin
   MenuCopyToPopUp( 'mnsGraph',  popGraph  );
   AddMenuItems( popGST, mnsGSTReports, popGST.Items );
 
-  SetupHelp;
+//  SetupHelp;
 
   //Setup Form size status etc from INI settings
   //default of -1 indicates value not present
@@ -1238,20 +1239,31 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.SetupHelp;
+var
+  AppName1, AppName2: string;
 begin
-   //standard buttons                              
+   //standard buttons
    tbOpen.Hint  :=
                 'Open Clients (Shift+F12)|'
                 +'Open Clients (Click the arrow for recently used files)';
    tbSave.Hint  :=
                 'Save Client File|'
                 +'Save the Client File you are working on';
+   if FAdminSystemFound then begin
+     //Practice
+     AppName1 := BKBOOKSNAME;
+     AppName2 := BKPRACTICENAME;
+   end else begin
+     //Books
+     AppName1 := BKPRACTICENAME;
+     AppName2 := BKBOOKSNAME;
+   end;
    tbGetClientFiles.Hint  :=
                 'Update a Client File|'
-                +'Update a Client File from another '+SHORTAPPNAME+' System or an Off-site Client';
+                +'Update a Client File from ' + AppName1 + ' or another '+ AppName2 + ' System';
    tbSendClientFiles.Hint :=
                 'Send a Client File|'
-                +'Send a Client File for coding by another '+SHORTAPPNAME+' System or an Off-site Client';
+                +'Send a Client File for coding by ' + AppName1 + ' or another ' + AppName2 + ' System';
 //   tbSendTo.Hint  :=
 //                'E-mail the Client File|'
 //                +'E-mail the Client File';
@@ -1384,13 +1396,15 @@ var
   NumUsersLoggedIn  : integer;
   i                 : integer;
   ArchiveLogNeeded  : boolean;
-  AdminSystemFound  : boolean;
   LogBackupDir      : string;
 {$IFDEF SmartLink}
   ShowSmartLinkHelp : boolean;
 {$ENDIF}
 begin
-  if AdminExists then
+  FAdminSystemFound := Assigned( AdminSystem) or AdminExists;
+  SetupHelp;
+
+  if FAdminSystemFound then
   begin
     DoClientManager(0, 0, 0, 0);
     Globals.Active_UI_Style := UIS_Standard;
@@ -1465,9 +1479,7 @@ begin
     begin
        //Self.Tag := 0; case 7071 - everything now goes screen center
 
-       AdminSystemFound := Assigned( AdminSystem) or AdminExists;
-
-       if AdminSystemFound then
+       if FAdminSystemFound then
          mniChangePassword.Visible := CurrUser.AllowBanklinkOnline
        else
          mniChangePassword.Visible := False;
@@ -1526,7 +1538,7 @@ begin
        else
           LogBackupDir := Globals.LogFileBackupDir;
 
-       if AdminSystemFound then begin
+       if FAdminSystemFound then begin
           //count no of users so can do single user operations
           NumUsersLoggedIn := 0;
           with AdminSystem.fdSystem_User_List do begin
@@ -1540,7 +1552,7 @@ begin
           NumUsersLoggedIn := 1;
        end;
 
-       if AdminSystemFound then begin
+       if FAdminSystemFound then begin
           //compress the log file
           //can be turned off in BK5PRAC.INI
           //   [Environment]
@@ -1614,7 +1626,7 @@ begin
       tmProcessStartupCmds.Enabled := true;
     end;
   end;
-  if AdminSystemFound then
+  if FAdminSystemFound then
     tmrReportRun.Enabled := true;
 
   //allow DDE commands to be processed

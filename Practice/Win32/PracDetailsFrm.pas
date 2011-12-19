@@ -240,6 +240,7 @@ begin
     eSave.Text := AdminSystem.fdFields.fdSave_Client_Files_To;
   end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.SetUpHelp;
 begin
@@ -449,9 +450,10 @@ procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
 begin
-  if ProductConfigService.RegisteredForBankLinkOnline then
-    LoadPracticeDetails
-  else begin
+  ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
+  FPrac := ProductConfigService.GetPractice;
+  LoadPracticeDetails;
+  if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine and not ProductConfigService.Registered then begin
     edtURL.Text := 'Not registered for BankLink Online';
     cbPrimaryContact.Enabled := False;
     ckUseBankLinkOnline.Checked := False;
@@ -462,11 +464,8 @@ begin
         RequestBankLinkOnlineregistration;
     end;
   end;
-  ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-  if Assigned(FPrac) then
-    for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-      tsBanklinkOnline.Controls[i].Enabled := (ProductConfigService.UseBankLinkOnline and
-                                               ProductConfigService.IsPracticeActive(False));
+  for i := 0 to tsBanklinkOnline.ControlCount - 1 do
+    tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.OnLine;
   ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
 end;
 
@@ -539,12 +538,8 @@ begin
     cmbSuperSystem.Clear;
     tsSuperFundSystem.TabVisible := (fdFields.fdCountry = whAustralia);
 
-
     //Use BankLink Online
-    //Only call this once!!!
-    FPrac := ProductConfigService.GetPractice;
     ckUseBankLinkOnline.Checked := ProductConfigService.UseBankLinkOnline;
-    ckUseBankLinkOnlineClick(Self);
 
     //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
@@ -991,15 +986,19 @@ begin
       vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
       vtProducts.NodeDataSize := SizeOf(TTreeData);
       vtProducts.Indent := 0;
-      ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
-      ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
-      for i := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do begin
-        Cat := CatalogueEntry(FPrac.Catalogue[i]);
-        if Cat.CatalogueType = 'Application' then
-          AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
-        else if Cat.CatalogueType = 'Service' then
-          AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
+
+      if Length(FPrac.Catalogue) > 0 then begin
+        ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
+        ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
+        for i := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do begin
+          Cat := CatalogueEntry(FPrac.Catalogue[i]);
+          if Cat.CatalogueType = 'Application' then
+            AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
+          else if Cat.CatalogueType = 'Service' then
+            AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
+        end;
       end;
+
       vtProducts.Expanded[ProductNode] := True;
       vtProducts.Expanded[ServiceNode] := True;
       vtProducts.ScrollIntoView(ProductNode, False);

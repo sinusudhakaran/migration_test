@@ -3,6 +3,7 @@ unit BankLinkOnlineServices;
 interface
 
 uses
+  Forms,
   BlopiServiceFacade,
   InvokeRegistry,
   Windows,
@@ -64,6 +65,8 @@ type
     FRegisteredForBankLinkOnline: boolean;
     FListOfClients: ClientList;
     FClient, FClientCopy: Client;
+    FOnLine: Boolean;
+    FRegistered: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
 
     procedure LoadDummyPractice;
@@ -85,9 +88,8 @@ type
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
     procedure LoadDummyClientList;
-    function Online: Boolean;
-    function Registered: Boolean;
     function OnlineStatus: TBankLinkOnlineStatus;
+    function LoadPracticeDetails: Boolean;    
 
     procedure CreateXMLNamSpcList;
     procedure AddXMLNStoArrays(aCurrNode : IXMLNode);
@@ -100,7 +102,6 @@ type
     constructor Create;
     destructor Destroy; override;
     //Practice methods
-    function LoadPracticeDetails: Boolean;
     function GetPractice: Practice;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
@@ -114,7 +115,6 @@ type
     procedure SelectAllProducts;
     procedure SetPrimaryContact(AUser: User);
     property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
-    property RegisteredForBankLinkOnline: Boolean read Registered;
     //Client methods
     function AddClient: ClientSummary;
     function GetClientDetails(ClientID: WideString): Client;
@@ -136,6 +136,8 @@ type
     function ChangeUserPassword(const aUserCode: string;
                                 const aOldPassword : string;
                                 const aNewPassword : string) : Boolean;
+    property OnLine: Boolean read FOnLine;
+    property Registered: Boolean read FRegistered;
   end;
 
   //Product config singleton
@@ -144,6 +146,7 @@ type
 implementation
 
 uses
+  Controls,
   Globals,
   SysUtils,
   XMLDoc,
@@ -155,6 +158,7 @@ uses
   WebUtils,
   stDate,
   IniFiles,
+  Progress,
   BkConst,
   WinINet,
   SOAPHTTPClient,
@@ -350,18 +354,77 @@ begin
 end;
 
 function TProductConfigService.GetPractice: Practice;
+var
+  i: integer;
+  BlopiInterface: IBlopiServiceFacade;
+  PracticeDetailResponse: MessageResponseOfPracticeMIdCYrSK;
+  Msg: string;
 begin
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 40);
   try
-    //Test - Reload
-    LoadPracticeDetails;
-    //Test - make a copy for editing
-    FPracticeCopy.Free;
-    FPracticeCopy := Practice.Create;
-    CopyRemotableObject(FPractice, FPracticeCopy);
-    Result := FPracticeCopy;
-  except
-    on E : Exception do
-      raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+    try
+      if Assigned(AdminSystem) then begin
+        //Load cached practice details if they are registered or not
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 50);
+        FRegistered := True;
+        try
+          Result := LoadPracticeDetailsfromSystemDB;
+        finally
+          FRegistered := False;
+        end;
+        //try to load practice details from BankLink Online
+        FOnLine := False;
+        if UseBankLinkOnline then begin
+          //Reload from BankLink Online
+          BlopiInterface := GetIBlopiServiceFacade;
+          PracticeDetailResponse := BlopiInterface.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
+          AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
+          if Assigned(PracticeDetailResponse) then begin
+            FOnLine := True;
+            if Assigned(PracticeDetailResponse.Result) then begin
+              AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
+              FPractice := PracticeDetailResponse.Result
+            end else begin
+              //Something went wrong
+              Msg := '';
+              for i := Low(PracticeDetailResponse.ErrorMessages) to High(PracticeDetailResponse.ErrorMessages) do
+                Msg := Msg + ServiceErrorMessage(PracticeDetailResponse.ErrorMessages[i]).Message_;
+              if Msg = 'Invalid BConnect Credentials' then begin
+                //Clear the cached practice details if not registered for this practice code
+                FPractice.Free;
+                FPractice := Practice.Create;
+                AdminSystem.fdFields.fdBankLink_Online_Config := '';
+                AdminSystem.fdFields.fdUse_BankLink_Online := False;
+                LoadPracticeDetailsfromSystemDB;
+                FRegistered := False;
+              end else
+                raise Exception.Create(Msg);
+            end;
+          end;
+          //Load cached details from System DB
+          if FRegistered and not Result then begin
+            Result := LoadPracticeDetailsfromSystemDB;
+            FRegistered := False;
+          end;
+        end;
+      end;
+      //Make a copy for editing
+      FreeAndNil(FPracticeCopy);
+      FPracticeCopy := Practice.Create;
+      CopyRemotableObject(FPractice, FPracticeCopy);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 100);
+      Result := FPracticeCopy;
+    except
+      on E: Exception do
+        HelpfulErrorMsg('BankLink Practice is unable to connect to BankLink ' +
+                        'Online: ' + #13#13 + E.Message, 0);
+    end;
+  finally
+     Progress.StatusSilent := True;
+     Progress.ClearStatus;
+     Screen.Cursor := crDefault;
   end;
 end;
 
@@ -571,47 +634,62 @@ begin
   if not Assigned(AdminSystem) then
     Exit;
 
-  if not Registered then
-    Exit;
-
-  //Load practice details
-  if UseBankLinkOnline then begin
-    //Reload from BankLink Online
-    if AdminSystem.fdFields.fdLast_BankLink_Online_Update < (StDate.CurrentDate + 1) then begin
-      //Live
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 40);
+  try
+    //Load practice details
+    FOnLine := False;
+    FRegistered := True;
+    if UseBankLinkOnline then begin
+      //Reload from BankLink Online
       try
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 50);
         BlopiInterface := GetServiceFacade;
         PracticeDetailResponse := BlopiInterface.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
         AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
         if Assigned(PracticeDetailResponse) then begin
+          FOnLine := True;
           Result := Assigned(PracticeDetailResponse.Result);
-          if Result then
+          if Result then begin
+            AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
             FPractice := PracticeDetailResponse.Result
-          else begin
+          end else begin
             //Something went wrong
             Msg := '';
             for i := Low(PracticeDetailResponse.ErrorMessages) to High(PracticeDetailResponse.ErrorMessages) do
               Msg := Msg + ServiceErrorMessage(PracticeDetailResponse.ErrorMessages[i]).Message_;
-            raise Exception(Msg);
+            if Msg = 'Invalid BConnect Credentials' then begin
+              //Clear the cached practice details if not registered for this practice code
+              FPractice.Free;
+              FPractice := Practice.Create;
+              AdminSystem.fdFields.fdBankLink_Online_Config := '';
+              AdminSystem.fdFields.fdUse_BankLink_Online := False;
+              LoadPracticeDetailsfromSystemDB;
+              FRegistered := False;
+            end else
+              raise Exception.Create(Msg);
           end;
         end;
       except
-        on E: Exception do HelpfulErrorMsg('Error geting practice details from BankLink Online: ' + E.Message, 0);
+        on E: Exception do HelpfulErrorMsg('BankLink Practice is unable to connect to BankLink Online: ' + E.Message, 0);
       end;
-      if not Result  then
-        if LoadRemotableObjectFromFile(FPractice) then begin //This represents FPractice from BankLink Online
-          Result := True;
+      //Load cached details from System DB
+      if FRegistered and not Result then begin
+        Result := LoadPracticeDetailsfromSystemDB;
+        FRegistered := False;
       end;
+    end else begin
+      //Load cached details if they are registered or not
+      Result := LoadPracticeDetailsfromSystemDB;
+      FRegistered := False;
     end;
-    //Load from System DB
-    if not Result then
-      Result := LoadPracticeDetailsfromSystemDB; //This is the local copy of FPractice
-    if not Result then begin
-      LoadDummyPractice; //This load FPractice with dummy data
-      Result := True;
-    end;
-  end else
-    Result := LoadPracticeDetailsfromSystemDB; //This is the local copy of FPractice
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 100);
+  finally
+     Progress.StatusSilent := True;
+     Progress.ClearStatus;
+     Screen.Cursor := crDefault;
+  end;
 end;
 
 function TProductConfigService.LoadPracticeDetailsfromSystemDB: Boolean;
@@ -655,19 +733,6 @@ begin
   NodeParent := NodeRoot.ChildNodes.FindNode('Parent');
   NodeObject := NodeParent.ChildNodes.FindNode('CopyObject');
   ARemotable.SOAPToObject(NodeRoot, NodeObject, Converter);
-end;
-
-function TProductConfigService.Online: Boolean;
-var
-  IniFile: TIniFile;
-begin
-  Result := False;
-  IniFile := TIniFile.Create(ExecDir + INIFILE_NAME);
-  try
-    Result := IniFile.ReadBool('Settings', 'Online', False);
-  finally
-    IniFile.Free;
-  end;
 end;
 
 function TProductConfigService.OnlineStatus: TBankLinkOnlineStatus;
@@ -872,19 +937,6 @@ begin
         Exit;
       end;
     end;
-  end;
-end;
-
-function TProductConfigService.Registered: Boolean;
-var
-  IniFile: TIniFile;
-begin
-  Result := False;
-  IniFile := TIniFile.Create(ExecDir + INIFILE_NAME);
-  try
-    Result := IniFile.ReadBool('Settings', 'Registered', False);
-  finally
-    IniFile.Free;
   end;
 end;
 

@@ -253,7 +253,8 @@ CONST
     BANKLINK_ONLINE_PASS_KEY = 'jucuene88d8uje9whdwjhi9dc!';
 
     // BankLink Books Default URL
-    BANKLINK_ONLINE_BOOKS_DEFAULT_URL = 'https://banklinkonline.com';
+//    BANKLINK_ONLINE_BOOKS_DEFAULT_URL = 'https://banklinkonline.com';
+    BANKLINK_ONLINE_BOOKS_DEFAULT_URL = 'https://www.banklinkonline.com';
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1552,6 +1552,7 @@ function SendBooksClient(Code: string; Path: string; ProgressFrm: TfrmChkProgres
 const
   ThisMethodName = 'SendBooksClient';
   NAME_EMAIL_SPACER = #9' ';
+  CANNOT_FLAG_READ_ONLY = 'Cannot mark client file %s as read-only because the option is disabled';
 var
   TempClient: TClientObj;
   LocalFileName: string;
@@ -1565,6 +1566,10 @@ begin
   //admin system does not exists so is an off-site client
   Result := False;
   TempClient := nil;
+
+  //FlagReadOnly is set by the user, but we need a local variable
+  //so we can override it depending on the client file settings.
+  //Note: Only use local variable form here on.
   SendCopy := (not FlagReadOnly);
 
   LocalFileName  := DATADIR + CODE + FILEEXTN;
@@ -1577,15 +1582,14 @@ begin
     if MyClient.clFields.clCustom_Contact_EMail_Address <> '' then
       AClientEmail := MyClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
                       MyClient.clFields.clCustom_Contact_EMail_Address;
-    SendCopy := (ASendMethod = ftmOnline) and (MyClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
-    FlagReadOnly := FlagReadOnly or (MyClient.clFields.clForce_Offsite_Check_Out);
-    if (not SendCopy) and MyClient.clFields.clDisable_Offsite_Check_Out then begin
-      Msg := 'Cannot mark client file ' + CODE +
-             ' as read-only because the option is disabled';
+    SendCopy := (SendCopy or MyClient.clFields.clDisable_Offsite_Check_Out) and
+                (not MyClient.clFields.clForce_Offsite_Check_Out);
+    if FlagReadOnly and MyClient.clFields.clDisable_Offsite_Check_Out then begin
+      //User has selected flag read-only but client file doesn't allow
+      Msg := Format(CANNOT_FLAG_READ_ONLY, [CODE]);
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-      ProgressFrm.mProgress.Lines.Add(Msg);
-      Exit;
-    end else if not CloseClient then begin
+    end;
+    if not CloseClient then begin
       Msg := 'Cannot close client file ' + CODE;
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
       ProgressFrm.mProgress.Lines.Add(Msg);
@@ -1594,15 +1598,12 @@ begin
   end else begin //is send disabled?
     OpenAClient( Code, TempClient, true, false, true);
     if Assigned( TempClient) then begin
-      SendCopy := (ASendMethod = ftmOnline) and (TempClient.clFields.clDisable_Offsite_Check_Out or (not FlagReadOnly));
-      FlagReadOnly := FlagReadOnly or (TempClient.clFields.clForce_Offsite_Check_Out);
-      if (not SendCopy) and TempClient.clFields.clDisable_Offsite_Check_Out then begin
-        CloseAClient(TempClient);
-        Msg := 'Cannot mark client file ' + CODE +
-               ' as read-only because the option is disabled';
+      SendCopy := (SendCopy or TempClient.clFields.clDisable_Offsite_Check_Out) and
+                  (not TempClient.clFields.clForce_Offsite_Check_Out);
+      if FlagReadOnly and TempClient.clFields.clDisable_Offsite_Check_Out then begin
+        //User has selected flag read-only but client file doesn't allow
+        Msg := Format(CANNOT_FLAG_READ_ONLY, [CODE]);
         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-        ProgressFrm.mProgress.Lines.Add(Msg);
-        Exit;
       end;
       AClientEmail := TempClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
                       TempClient.clFields.clPractice_EMail_Address;
@@ -1614,7 +1615,13 @@ begin
       //Need to get email for banklink online
       OpenAClientForRead( Code, TempClient);
       if Assigned( TempClient) then begin
-        FlagReadOnly := FlagReadOnly or (TempClient.clFields.clForce_Offsite_Check_Out);      
+        SendCopy := (SendCopy or TempClient.clFields.clDisable_Offsite_Check_Out) and
+                    (not TempClient.clFields.clForce_Offsite_Check_Out);
+        if FlagReadOnly and TempClient.clFields.clDisable_Offsite_Check_Out then begin
+          //User has selected flag read-only but client file doesn't allow
+          Msg := Format(CANNOT_FLAG_READ_ONLY, [CODE]);
+          LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
+        end;
         AClientEmail := TempClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
                         TempClient.clFields.clPractice_EMail_Address;
         if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
@@ -1695,24 +1702,22 @@ begin
   end;
 
   //Backup exists, remote file has been crc checked
-  if FlagReadOnly then begin
-    OpenAClient(Code, TempClient, true, false, true);
-    if Assigned(TempClient) then begin
-      if SendCopy then
-        //Copy sent to BankLink Online - do not mark as read-only!
-      else if not TempClient.clFields.clFile_Read_Only then begin
-        //Decrement the file save count so it matches the sent file
-        Dec(TempClient.clFields.clFile_Save_Count);
-        //Mark the local file as read only
-        TempClient.clFields.clFile_Read_Only := true;
-        //Force to save so that read only flag is saved
-        CloseAClient(TempClient, True);
-      end else
-        CloseAClient( TempClient);
+  OpenAClient(Code, TempClient, true, false, true);
+  if Assigned(TempClient) then begin
+    if SendCopy then
+      //Copy sent to BankLink Online - do not mark as read-only!
+    else if not TempClient.clFields.clFile_Read_Only then begin
+      //Decrement the file save count so it matches the sent file
+      Dec(TempClient.clFields.clFile_Save_Count);
+      //Mark the local file as read only
+      TempClient.clFields.clFile_Read_Only := true;
+      //Force to save so that read only flag is saved
+      CloseAClient(TempClient, True);
     end else
-      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' Could not mark ' +
-                                       Code + ' as read-only');
-  end;
+      CloseAClient( TempClient);
+  end else if not SendCopy then
+    LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' Could not mark ' +
+                                     Code + ' as read-only');
 
   Result := True;
   case ASendMethod of

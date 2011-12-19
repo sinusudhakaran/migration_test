@@ -181,7 +181,7 @@ type
     procedure UploadFile(AHttpAddress : string;
                          AFileName    : string);
 
-    // Server Responce Handling
+    // Server Response Handling
     function GetValueFromNode(AParentNode : IXMLNode;
                               ANodeName   : String) : String;
     procedure GetUpdateServerReply;
@@ -312,7 +312,7 @@ end;
 function TClientStatusItem.GetStatusDesc: string;
 begin
   case fStatusCode of
-    cfsNoFile             : Result := 'No File';
+    cfsNoFile             : Result := '';
     cfsUploadedPractice   : Result := 'Uploaded by PRACTICE';
     cfsDownloadedPractice : Result := 'Downloaded by PRACTICE';
     cfsUploadedBooks      : Result := 'Uploaded by BOOKS';
@@ -460,7 +460,7 @@ begin
       Hour := Hour + 12;
     Result := Result + EncodeTime(Hour, Minute, Second, 0);
   except
-    RaiseHttpError('Cico - Error in XML Server Responce! Last Change Date Invalid.', 303);
+    RaiseHttpError('Error in XML Server Response. Last Change Date Invalid.', 303);
   End;
 end;
 
@@ -776,7 +776,7 @@ begin
       on E : EWebHttpCiCoClientError do
       begin
         fServerResponce.Status       := InttoStr(E.ErrorCode);
-        fServerResponce.Description  := 'Server Responce Error';
+        fServerResponce.Description  := 'Server Response Error';
         fServerResponce.DetailedDesc := trim(E.Message);
         fServerClientStatusList.Clear;
 
@@ -798,18 +798,18 @@ var
 begin
   // Looks for the XML header value
   if pos('<' + XML_STATUS_HEADNAME + '>', fServerReply) = 0 then
-    RaiseHttpError('Cico - Error in XML Server Responce!', 303);
+    RaiseHttpError('Error in XML Server Response.', 303);
 
   XMLDoc := MakeXMLDoc(fServerReply);
   try
     CurrentNode := XMLDoc.DocumentElement;
     if CurrentNode.NodeName <> XML_STATUS_HEADNAME then
-      RaiseHttpError('Cico - Error in XML Server Responce!', 303);
+      RaiseHttpError('Error in XML Server Response.', 303);
 
     if XMLDoc.DocumentElement.ChildNodes.Count = 0 then
-      RaiseHttpError('Cico - Error in XML Server Responce!', 303);
+      RaiseHttpError('Error in XML Server Response.', 303);
 
-    // Fills the server responce
+    // Fills the server response
     fServerResponce.Status       := GetValueFromNode(CurrentNode, XML_STATUS_CODE);
     fServerResponce.Description  := GetValueFromNode(CurrentNode, XML_STATUS_DESC);
     fServerResponce.DetailedDesc := GetValueFromNode(CurrentNode, XML_STATUS_DETAIL_DESC);
@@ -852,7 +852,7 @@ begin
   LocalNode := ACurrentNode.ChildNodes.FindNode(XML_STATUS_CLIENT);
 
   if Not Assigned(LocalNode) then
-    RaiseHttpError('Cico - Error in XML Server Responce! No Status List.', 303);
+    RaiseHttpError('Error in XML Server Response. No Status List.', 303);
 
   while Assigned(LocalNode) do
   begin
@@ -867,10 +867,10 @@ begin
          (StatusInt <= ord(cfsDownloadedPractice)) then
         NewClientStatusItem.StatusCode := TClientFileStatus(StatusInt)
       else
-        RaiseHttpError('Cico - Error in XML Server Responce! Status Code Invalid.', 303);
+        RaiseHttpError('Error in XML Server Response. Status Code Invalid.', 303);
     end
     else
-      RaiseHttpError('Cico - Error in XML Server Responce! Status Code Invalid.', 303);
+      RaiseHttpError('Error in XML Server Response. Status Code Invalid.', 303);
 
     // Last Change Date
     if NewClientStatusItem.StatusCode = cfsNoFile  then
@@ -903,7 +903,7 @@ begin
     HttpRequester.DoEvents;
 
     if ((GetTickCount - StartTick) >= TimeOut ) then
-      RaiseHttpError('Cico - Operation timeout!', 301);
+      RaiseHttpError('Operation timeout.', 301);
   end;
 end;
 
@@ -1015,7 +1015,7 @@ end;
 //------------------------------------------------------------------------------
 // if AaSyncCall is not set the method will work like all the other service call
 // and only exit once done. If set to true it will call the server and exit and
-// you will need to use the Server Status call back event to get the responce
+// you will need to use the Server Status call back event to get the response
 procedure TWebCiCoClient.GetClientFileStatus(var AServerResponce   : TServerResponse;
                                              var AClientStatusList : TClientStatusList;
                                              AClientCode : string = '';
@@ -1068,7 +1068,7 @@ begin
 
     HttpSendRequest(HttpAddress);
 
-    // if AaSyncCall then it does not get the responce here and the Server Status
+    // if AaSyncCall then it does not get the response here and the Server Status
     // call back will need to be used
     if not AaSyncCall then
     begin
@@ -1190,7 +1190,7 @@ begin
     begin
       FileInfo(ATempBk5File, FileCrc, FileSize);
       if FServerCrc <> FileCrc then
-        RaiseHttpError('Cico - File CRC Error!', 304);
+        RaiseHttpError('File CRC Error.', 304);
     end;
 
     AServerResponce := fServerResponce;
@@ -1301,7 +1301,7 @@ begin
     begin
       FileInfo(ATempBk5File, FileCrc, FileSize);
       if FServerCrc <> FileCrc then
-        RaiseHttpError('Cico - File CRC Error!', 304);
+        RaiseHttpError('File CRC Error.', 304);
     end;
 
     AServerResponce := fServerResponce;

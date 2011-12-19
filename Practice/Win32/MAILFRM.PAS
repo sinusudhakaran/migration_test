@@ -794,7 +794,8 @@ begin
       IncUsage('Check Out Send');
       OpenAClient( Code, TempClient, true, false, true);
       if Assigned( TempClient) then begin
-        if TempClient.clFields.clDisable_Offsite_Check_Out then begin
+        if CheckoutClientFiles and TempClient.clFields.clDisable_Offsite_Check_Out then begin
+          //Falg as read-only is diabled for this Client
           CloseAClient(TempClient);
           if Msg <> '' then
             Msg := Msg + #13;
@@ -804,16 +805,24 @@ begin
                          ' as read-only because the option is disabled');
         end else if (CheckoutClientFiles and not TempClient.clFields.clFile_Read_Only) or
                     TempClient.clFields.clForce_Offsite_Check_Out then begin
-          //Close MyClient
-          if (TempClient.clFields.clCode = MyClient.clFields.clCode) then
-            CloseClient;
+          //Close MyClient so that file has to be opened again as read-only
+          if Assigned(MyClient) then
+            if (TempClient.clFields.clCode = MyClient.clFields.clCode) then
+              CloseClient;
           TempClient.clFields.clFile_Read_Only := true;
-          //force to save so that read only flag is saved
+          //Decrement the file save count so it matches the sent file
+          Dec(TempClient.clFields.clFile_Save_Count);
+          //Save the Client file so that read only flag is saved
           CloseAClient( TempClient, True);
-          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent. File marked as read-only');
+          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent via email. File marked as read-only');
         end else if CheckoutClientFiles or TempClient.clFields.clForce_Offsite_Check_Out then begin
+          //Client file already marked as read-only
           CloseAClient( TempClient);
-          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent. File marked as read-only');
+          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent via email. File marked as read-only');
+        end else begin
+          //Copy sent
+          CloseAClient( TempClient);
+          LogUtil.LogMsg( lmInfo, Unitname, Code + ' Sent copy via email');
         end;
       end else if CheckoutClientFiles then
         LogUtil.LogMsg(lmInfo,UnitName,' Could not mark ' + Code + ' as read-only');
@@ -1224,7 +1233,7 @@ begin
        par := par.SplitAt(0);
        // Set To 'Plain text'
        Editor.ERTF.WritingAttr.Clear;
-       Editor.ERTF.WritingAttr.SetFontName('Ariel');
+       Editor.ERTF.WritingAttr.SetFontName('Arial');
        Editor.ERTF.WritingAttr.SetFontSize(900);
        // Insert the text
        par.Insert(0, fBodyText.Text, Editor.ERTF.WritingAttr.CharAttr );
