@@ -89,8 +89,6 @@ type
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
     procedure LoadDummyClientList;
     procedure LoadClientList;
-    function Online: Boolean;
-    function Registered: Boolean;
     function OnlineStatus: TBankLinkOnlineStatus;
     function LoadPracticeDetails: Boolean;    
 
@@ -139,6 +137,8 @@ type
     function ChangeUserPassword(const aUserCode: string;
                                 const aOldPassword : string;
                                 const aNewPassword : string) : Boolean;
+    property OnLine: Boolean read FOnLine;
+    property Registered: Boolean read FRegistered;
   end;
 
   //Product config singleton
@@ -314,7 +314,7 @@ begin
   if not Assigned(AdminSystem) then
     Exit;
 
-  if not Registered then
+  if not FRegistered then
     Exit;
 
   if UseBankLinkOnline then begin
@@ -390,7 +390,8 @@ begin
             FOnLine := True;
             if Assigned(PracticeDetailResponse.Result) then begin
               AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
-              FPractice := PracticeDetailResponse.Result
+              FPractice := PracticeDetailResponse.Result;
+              FRegistered := True;
             end else begin
               //Something went wrong
               Msg := '';
@@ -1053,7 +1054,7 @@ begin
       FPractice := Practice.Create;
       CopyRemotableObject(FPracticeCopy, FPractice);
       //Save to the web service
-      if Online then begin
+      if FOnline then begin
         SaveRemotableObjectToFile(FPractice);
         //If save ok then save an offline copy to System DB
         SavePracticeDetailsToSystemDB;
