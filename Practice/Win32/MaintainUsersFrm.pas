@@ -260,9 +260,9 @@ begin
      lvUsers.Column[4].Caption  := '';
      lvUsers.Column[4].Width    := 0;
      lvUsers.Column[4].MaxWidth := 0;
-   end;
-
-   Prac := ProductConfigService.GetPractice;
+   end
+   else
+     Prac := ProductConfigService.GetPractice;
 
    with AdminSystem, fdSystem_User_List do
    for i := 0 to Pred(itemCount) do

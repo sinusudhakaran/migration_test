@@ -39,8 +39,8 @@ Const
   ProcessMessages_On = true;
 
 Var
-   StatusSilent : boolean = false;
-   OnUpdateMessageBar : TUpdateMessageBarEvent;
+  StatusSilent : boolean = true;
+  OnUpdateMessageBar : TUpdateMessageBarEvent;
 
 //This variable is set in the modalprocessordlg and allows us to make sure that
 //any routine which sets process messages to true was called from the
@@ -50,9 +50,9 @@ Var
 Implementation
 
 Uses
-   windows,
-   Forms,
-   StatusFrm;
+  windows,
+  Forms,
+  StatusFrm;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure UpdateMessageBar( aMsg : string; WaitCursor : boolean);
@@ -64,88 +64,88 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure UpdateAppStatus(sMsgLine1: string; sMsgLine2: string; dPercentage: double; ProcessMessages : Boolean = false);
 Begin
-   if StatusSilent then
-      Exit;
+  if StatusSilent then
+    Exit;
 
-   if Assigned(frmStatus) then begin
-      frmStatus.pbarAppStatus.Visible := ( dPercentage >= 0);
-      frmStatus.UpdateFrmStatus(sMsgLine1, sMsgLine2, dPercentage, true);
-      UpdateMessageBar( sMsgLine1, true);
-      frmStatus.Invalidate;
-      frmStatus.Refresh;
+  if Assigned(frmStatus) then begin
+    frmStatus.pbarAppStatus.Visible := ( dPercentage >= 0);
+    frmStatus.UpdateFrmStatus(sMsgLine1, sMsgLine2, dPercentage, true);
+    UpdateMessageBar( sMsgLine1, true);
+    frmStatus.Invalidate;
+    frmStatus.Refresh;
 
-      if ProcessMessages then
-        Application.ProcessMessages;
-   End ;
+    if ProcessMessages then
+      Application.ProcessMessages;
+  End ;
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure UpdateAppStatusLine2(Msg: string; ProcessMessages : Boolean = false);
 Begin
-   If StatusSilent Then
-     Exit;
+  If StatusSilent Then
+    Exit;
 
-   If Assigned(frmStatus) Then
-   Begin
-      frmStatus.lblLine2.caption := Msg;
+  If Assigned(frmStatus) Then
+  Begin
+    frmStatus.lblLine2.caption := Msg;
+    frmStatus.lblLine2.Invalidate;
+    frmStatus.lblLine2.Refresh;
 
-      frmStatus.lblLine2.Invalidate;
-      frmStatus.lblLine2.Refresh;
-
-      if ProcessMessages then
-        Application.ProcessMessages;
-   End;
+    if ProcessMessages then
+      Application.ProcessMessages;
+  End;
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure UpdateAppStatusPerc(dPercentage: double; ProcessMessages : Boolean = false);
 Begin { UpdateAppStatusPerc }
-   If StatusSilent Then
-     Exit;
+  If StatusSilent Then
+    Exit;
 
-   If Assigned( frmStatus ) then
-   begin
-     if ( dPercentage >= 0 ) and ( dPercentage <= 100 ) then
-     begin
-       frmStatus.pbarAppStatus.Percent := round(dPercentage);
-       frmStatus.pbarAppStatus.Refresh;
+  If Assigned( frmStatus ) then
+  begin
+    if ( dPercentage >= 0 ) and ( dPercentage <= 100 ) then
+    begin
+      frmStatus.pbarAppStatus.Percent := round(dPercentage);
+      frmStatus.pbarAppStatus.Refresh;
 
-       if ProcessMessages then
+      if ProcessMessages then
         Application.ProcessMessages;
-     end;
-   end;
+    end;
+  end;
 End;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure UpdateAppStatusPerc_NR(dPercentage: double; ProcessMessages : Boolean = false);
 //update the progress bar but dont call refresh, this is to avoid flicker
 Begin
-   If StatusSilent Then
-     Exit;
+  If StatusSilent Then
+    Exit;
 
-   If Assigned( frmStatus) and ( dPercentage >= 0 ) and ( dPercentage <= 100 ) then
-   Begin
-      frmStatus.pbarAppStatus.Percent := round(dPercentage);
-   End;
+  If Assigned( frmStatus) and ( dPercentage >= 0 ) and ( dPercentage <= 100 ) then
+  Begin
+    frmStatus.pbarAppStatus.Percent := round(dPercentage);
+  End;
 
-   if ProcessMessages then
-     Application.ProcessMessages;
+  if ProcessMessages then
+    Application.ProcessMessages;
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Procedure ClearStatus(ProcessMessages : Boolean = false);
 Begin
-   Try
-      // Must process messages first otherwise status window may not hide itself (#1673)
-      if ProcessMessages then
-        Application.ProcessMessages;
-      If Assigned(frmStatus) Then
-      Begin
-         frmStatus.UpdateFrmStatus('', '', 0, false)
-      End;
-      UpdateMessageBar( '', false);
-   Except
-      ;
-   End;
+  Try
+    // Must process messages first otherwise status window may not hide itself (#1673)
+    if ProcessMessages then
+      Application.ProcessMessages;
+    If Assigned(frmStatus) Then
+    Begin
+      frmStatus.UpdateFrmStatus('', '', 0, false)
+    End;
+    UpdateMessageBar( '', false);
+  Except
+     ;
+  End;
 End;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

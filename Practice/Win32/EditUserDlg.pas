@@ -760,7 +760,10 @@ begin { TdlgEditUser.Execute }
     chkUsePracPassInOnline.Checked := User.usUse_Practice_Password_Online
                                   and fUserCanAccessBankLinkOnline;
 
-    fIsPrimaryUser := ProductConfigService.IsPrimaryUser(User.usCode);
+    if User.usAllow_Banklink_Online then
+      fIsPrimaryUser := ProductConfigService.IsPrimaryUser(User.usCode)
+    else
+      fIsPrimaryUser := False;
 
     if User.usWorkstation_Logged_In_At <> '' then
       chkLoggedIn.Caption := 'User is &Logged In  (on ' + User.usWorkstation_Logged_In_At +')';
@@ -825,15 +828,19 @@ begin { EditUser }
 
   MyDlg := TdlgEditUser.Create(Application);
   Try
-    Prac := ProductConfigService.GetPractice;
-    MyDlg.UserGuid := ProductConfigService.GetUserGuid(User_Code, Prac);
+    if eUser.usAllow_Banklink_Online then
+    begin
+      Prac := ProductConfigService.GetPractice;
+      MyDlg.UserGuid := ProductConfigService.GetUserGuid(User_Code, Prac);
+    end;
     MyDlg.IsCreateUser := False;
+
     BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
     if Assigned(CurrUser) Then
     begin
       if (CurrUser.LRN = eUser.usLRN) or (not eUser.usLogged_In) then
       begin
-        MyDlg.chkLoggedIn.Enabled    := false;
+        MyDlg.chkLoggedIn.Enabled   := false;
         MyDlg.cmbUserType.ItemIndex := ustNormal;
       end; { CurrUser.LRN = eUser.usLRN }
     end;
