@@ -19,6 +19,7 @@ type
   User                  = BlopiServiceFacade.User;
   CatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
   ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
+  ArrayOfGuid           = BlopiServiceFacade.ArrayOfguid;
 
   TClientHelper = Class helper for BlopiServiceFacade.Client
   private
@@ -31,6 +32,7 @@ type
     function GetUseClientDetails: boolean;
     function GetUserName: string;
     function GetEmailAddress: string;
+    function GetSuspended: boolean;
   public
     procedure AddSubscription(AProductID: guid);
     property Deactivated: boolean read GetDeactivated;
@@ -42,6 +44,7 @@ type
     property UseClientDetails: boolean read GetUseClientDetails;
     property UserName: string read GetUserName;
     property EmailAddress: string read GetEmailAddress;
+    property Suspended: boolean read GetSuspended;
   End;
 
   TPracticeHelper = Class helper for Practice
@@ -63,7 +66,7 @@ type
 
     FPractice, FPracticeCopy: Practice;
     FRegisteredForBankLinkOnline: boolean;
-    FListOfClients: ClientList;
+    FClientList: ClientList;
     FClient, FClientCopy: Client;
     FOnLine: Boolean;
     FRegistered: Boolean;
@@ -118,7 +121,7 @@ type
     function AddClient: ClientSummary;
     function GetClientDetails(ClientID: WideString): Client;
     function LoadClientDetails(ClientID: WideString): Boolean;
-    property Clients: ClientList read FListOfClients;
+    property Clients: ClientList read FClientList;
     //User methods
     function UpdateCreateUser(var   aUserId        : Guid;
                               const aEMail         : WideString;
@@ -248,6 +251,7 @@ begin
   GetPractice;
   //Create clients
   // LoadDummyClientList;
+  FClientList := ClientList.Create;
   LoadClientList;
   // Create List of Name Spaces to use in Fix for Arrayof.... Delphi bug
   CreateXMLNamSpcList;
@@ -281,7 +285,7 @@ var
   ClientArray: ArrayOfClientSummary;
 begin
   Result := nil;
-  ClientArray := FListOfClients.Clients;
+  ClientArray := FClientList.Clients;
   for i := Low(ClientArray) to High(ClientArray) do
   begin
     if (ClientID = ClientArray[i].Id) then
@@ -458,7 +462,7 @@ var
   Guid1: TGuid;
   ClientArray: ArrayOfClientSummary;
 begin
-  ClientArray := FListOfClients.Clients;
+  ClientArray := FClientList.Clients;
   try
     SetLength(ClientArray, Length(ClientArray) + 1);
     ClientArray[High(ClientArray)] := ClientSummary.Create;
@@ -466,54 +470,55 @@ begin
     ClientArray[High(ClientArray)].Id := GuidToString(Guid1);
     // ClientArray[High(ClientArray)].Subscription := SubArray;
   finally
-     FListOfClients.Clients := ClientArray;
+     FClientList.Clients := ClientArray;
   end;
-  Result := FListOfClients.Clients[High(FListOfClients.Clients)];
+  Result := FClientList.Clients[High(FClientList.Clients)];
 end;
 
 procedure TProductConfigService.LoadClientList;
 var
   BlopiInterface: IBlopiServiceFacade;
   BlopiClientList: MessageResponseOfClientListMIdCYrSK;
+  Msg: string;
+  i: integer;
 begin
+  FClientList.Free;
+  FClientList := ClientList.Create;
   if UseBankLinkOnline then begin
 		BlopiInterface := GetServiceFacade;
     BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
                                                     AdminSystem.fdFields.fdBankLink_Code,
                                                     AdminSystem.fdFields.fdBankLink_Connect_Password);
-
-    FListOfClients := BlopiClientList.Result;
-    FListOfClients.Catalogue := FPractice.Catalogue;
-
-  //  AddClient;
-    if (High(FPractice.Subscription) <> - 1) then
-      if Assigned(FListOfClients.Clients[0]) then
-        ClientSummary(FListOfClients.Clients[0]).AddSubscription(FPractice.Subscription[0]);
-
-    FClient := Client.Create;
-    FClient.Id := FListOfClients.Clients[0].Id;
-    FClient.Catalogue := FPractice.Catalogue;
-    if (Length(FPractice.Subscription) > 0) then
-      FClient.AddSubscription(FPractice.Subscription[0]);
-
-    // add subscriptions to client
+    if Assigned(BlopiClientList) then
+    begin
+      FClientList := BlopiClientList.Result;
+    end else
+    begin
+      //Something went wrong
+      FClientList.Free;
+      FClientList := ClientList.Create;
+      Msg := '';
+      for i := Low(BlopiClientList.ErrorMessages) to High(BlopiClientList.ErrorMessages) do
+        Msg := Msg + ServiceErrorMessage(BlopiClientList.ErrorMessages[i]).Message_;
+      HelpfulErrorMsg(Msg, 0);
+    end;
   end;
 end;
 
 procedure TProductConfigService.LoadDummyClientList;
 begin
-  FListOfClients := ClientList.Create;
-  FListOfClients.Catalogue := FPractice.Catalogue;
+  FClientList := ClientList.Create;
+  FClientList.Catalogue := FPractice.Catalogue;
 
   // GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
 
   AddClient;
   if (High(FPractice.Subscription) <> - 1) then
-    if Assigned(FListOfClients.Clients[0]) then
-      ClientSummary(FListOfClients.Clients[0]).AddSubscription(FPractice.Subscription[0]);
+    if Assigned(FClientList.Clients[0]) then
+      ClientSummary(FClientList.Clients[0]).AddSubscription(FPractice.Subscription[0]);
 
   FClient := Client.Create;
-  FClient.Id := FListOfClients.Clients[0].Id;
+  FClient.Id := FClientList.Clients[0].Id;
   FClient.Catalogue := FPractice.Catalogue;
   if (Length(FPractice.Subscription) > 0) then
     FClient.AddSubscription(FPractice.Subscription[0]);
@@ -936,7 +941,7 @@ var
 begin
   ClientsUsingProduct := 1;
   //Check if any clients are using the product
-//  for i := Low(FListOfClients.Clients) to Low(FListOfClients.Clients) do begin
+//  for i := Low(FClientList.Clients) to Low(FClientList.Clients) do begin
 //    for j := Low(Client.SubList) to High(Client.SubList) do begin
 //      if AProductId = Client.SubList[j] then
 //        Inc(ClientsUsingProduct);
@@ -1071,6 +1076,11 @@ end;
 function TClientHelper.GetFreeTrialEndDate: TDateTime;
 begin
   Result := StrToDate('31/12/2011');
+end;
+
+function TClientHelper.GetSuspended: boolean;
+begin
+  Result := (Self.Status = BlopiServiceFacade.Suspended);
 end;
 
 function TClientHelper.GetUseClientDetails: boolean;
