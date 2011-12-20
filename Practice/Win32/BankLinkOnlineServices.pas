@@ -7,7 +7,9 @@ uses
   BlopiServiceFacade,
   InvokeRegistry,
   Windows,
-  XMLIntf;
+  XMLIntf,
+  TypInfo,
+  Classes;
 
 type
   TBanklinkOnlineStatus = (bosActive, bosSuspended, bosDeactivated);
@@ -20,6 +22,13 @@ type
   CatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
   ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
   ArrayOfGuid           = BlopiServiceFacade.ArrayOfguid;
+  
+  TVarTypeData = record
+    Name     : String;
+    TypeInfo : PTypeInfo;
+  end;
+
+  TArrVarTypeData = Array of TVarTypeData;
 
   TClientHelper = Class helper for BlopiServiceFacade.Client
   private
@@ -93,13 +102,23 @@ type
     procedure LoadDummyClientList;
     procedure LoadClientList;
     function OnlineStatus: TBankLinkOnlineStatus;
-    procedure CreateXMLNamSpcList;
-    procedure AddXMLNStoArrays(aCurrNode : IXMLNode);
-    procedure DoBeforeExecute(const MethodName: string; var SOAPRequest: InvString);
+    function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
+                              aName : String) : integer;
+    procedure AddTypeItem(var aDataArray : TArrVarTypeData;
+                          var aDataItem  : TVarTypeData);
+    procedure AddToXMLTypeNameList(aName : String;
+                                   aTypeInfo : PTypeInfo;
+                                   var aNameList : TArrVarTypeData);
+    procedure FindXMLTypeNamesToModify(aMethodName : String;
+                                       var aNameList : TArrVarTypeData);
+    procedure AddXMLNStoArrays(aCurrNode : IXMLNode;
+                               var aNameList : TArrVarTypeData);
+    procedure DoBeforeExecute(const MethodName: string;
+                              var SOAPRequest: InvString);
     procedure SetTimeOuts(ConnecTimeout : DWord ;
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
-    function GetServiceFacade : IBlopiServiceFacade;
+    function GetServiceFacade : IBlopiServiceFacade;  
   public
     constructor Create;
     destructor Destroy; override;
@@ -167,7 +186,9 @@ uses
   OpConvert,
   strUtils,
   WideStrUtils,
-  WSDLIntf;
+  WSDLIntf,
+  IntfInfo,
+  ObjAuto;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -253,8 +274,6 @@ begin
   // LoadDummyClientList;
   FClientList := ClientList.Create;
   LoadClientList;
-  // Create List of Name Spaces to use in Fix for Arrayof.... Delphi bug
-  CreateXMLNamSpcList;
 end;
 
 destructor TProductConfigService.Destroy;
@@ -714,101 +733,164 @@ begin
   end;
 end;
 
-procedure TProductConfigService.CreateXMLNamSpcList;
+function TProductConfigService.GetTypeItemIndex(var aDataArray: TArrVarTypeData;
+                                                aName : String) : integer;
 var
-  UriIndex : integer;
+  Index : integer;
 begin
-  SetLength(FArrNameSpaceList,0);
-  for UriIndex := 0 to RemClassRegistry.GetURICount-1 do
+  Result := -1;
+  for Index := 0 to high(aDataArray) do
   begin
-    if (Uppercase(RemClassRegistry.GetURIMap(UriIndex).Name) = 'ARRAYOFSTRING')
-    or (Uppercase(RemClassRegistry.GetURIMap(UriIndex).Name) = 'ARRAYOFGUID')
-    or (Uppercase(RemClassRegistry.GetURIMap(UriIndex).Name) = 'ARRAYOFINTEGER') then
+    if UpperCase(aDataArray[Index].Name) = UpperCase(aName) then
     begin
-      SetLength(FArrNameSpaceList,high(FArrNameSpaceList) + 2);
-      FArrNameSpaceList[high(FArrNameSpaceList)] := RemClassRegistry.GetURIMap(UriIndex);
-      FArrNameSpaceList[high(FArrNameSpaceList)].Name :=
-        RightStr(FArrNameSpaceList[high(FArrNameSpaceList)].Name,
-                 Length(FArrNameSpaceList[high(FArrNameSpaceList)].Name) - 7);
+      Result := Index;
+      Exit;
     end;
   end;
 end;
 
-procedure TProductConfigService.AddXMLNStoArrays(aCurrNode : IXMLNode);
+procedure TProductConfigService.AddTypeItem(var aDataArray: TArrVarTypeData;
+                                            var aDataItem: TVarTypeData);
+begin
+  SetLength(aDataArray, High(aDataArray) + 2);
+  aDataArray[High(aDataArray)] := aDataItem;
+end;
+
+procedure TProductConfigService.AddToXMLTypeNameList(aName : String;
+                                                     aTypeInfo : PTypeInfo;
+                                                     var aNameList : TArrVarTypeData);
+var
+  TypeData : PTypeData;
+  PropList : PPropList;
+  Index    : integer;
+  NewItem  : TVarTypeData;
+begin
+  TypeData := GetTypeData(aTypeInfo);
+
+  case aTypeInfo.Kind of
+    tkClass : begin
+      TypeData := GetTypeData(aTypeInfo);
+      if TypeData.PropCount > 0 then
+      begin
+        new(PropList);
+
+        GetPropInfos(aTypeInfo, PropList);
+        for Index := 0 to TypeData.PropCount-1 do
+        begin
+          AddToXMLTypeNameList(PropList[Index].Name, PropList[Index].PropType^, aNameList)
+        end;
+
+        Dispose(PropList)
+      end
+    end;
+    tkDynArray : begin
+      if TypeData.elType2^.Kind in
+        [tkInteger, tkChar, tkFloat, tkString, tkWChar, tkLString, tkWString, tkVariant, tkInt64] then
+      begin
+        NewItem.Name     := aName;
+        NewItem.TypeInfo := aTypeInfo;
+        AddTypeItem(aNameList, NewItem);
+      end
+      else
+      begin
+        AddToXMLTypeNameList('Array', TypeData.elType2^, aNameList);
+      end;
+    end;
+  end;
+end;
+
+procedure TProductConfigService.FindXMLTypeNamesToModify(aMethodName : String;
+                                                         var aNameList : TArrVarTypeData);
+var
+  InterfaceMetaData : TIntfMetaData;
+  InterfaceIndex    : integer;
+  ParamIndex        : integer;
+begin
+  GetIntfMetaData(TypeInfo(IBlopiServiceFacade), InterfaceMetaData);
+
+  for InterfaceIndex := 0 to high(InterfaceMetaData.MDA) do
+  begin
+    if InterfaceMetaData.MDA[InterfaceIndex].Name = aMethodName then
+    begin
+      for ParamIndex := 0 to InterfaceMetaData.MDA[InterfaceIndex].ParamCount - 1 do
+      begin
+        AddToXMLTypeNameList(InterfaceMetaData.MDA[InterfaceIndex].Params[ParamIndex].Name,
+                             InterfaceMetaData.MDA[InterfaceIndex].Params[ParamIndex].Info,
+                             aNameList);
+      end;
+    end;
+  end;
+end;
+
+procedure TProductConfigService.AddXMLNStoArrays(aCurrNode : IXMLNode;
+                                                 var aNameList : TArrVarTypeData);
 var
   NodeIndex : integer;
-  CurrNode  : IXMLNode;
-  CollIndex : integer;
-  NamSpcIndex : integer;
   NamSpcURI : WideString;
   NamSpcPre : WideString;
+  ClassName : WideString;
   NodeName  : String;
   EditIndex : integer;
+  FindIndex : integer;
   Values : Array of OleVariant;
+  IsScalar : Boolean;
 begin
   if not Assigned(aCurrNode) then
     Exit;
 
-  NamSpcURI := '';
-  NamSpcPre := '';
-  for NodeIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
+  FindIndex := GetTypeItemIndex(aNameList, aCurrNode.LocalName);
+  if FindIndex > -1 then
   begin
-    CurrNode := aCurrNode.ChildNodes.Nodes[NodeIndex];
-
-    if NodeIndex = 0 then
+    if aCurrNode.ChildNodes.Count > 0 then
     begin
-      for NamSpcIndex := 0 to high(FArrNameSpaceList) do
-      begin
-        if UpperCase(CurrNode.NodeName) = UpperCase(FArrNameSpaceList[NamSpcIndex].Name) then
-        begin
-          NodeName  := CurrNode.NodeName;
-          NamSpcURI := FArrNameSpaceList[NamSpcIndex].URI;
-          break;
-        end;
-      end;
+      NamSpcPre := 'D5P1';
+      RemClassRegistry.InfoToURI(aNameList[FindIndex].TypeInfo, NamSpcURI, ClassName, IsScalar);
+      NodeName := aCurrNode.ChildNodes[0].NodeName;
 
-      if not (NamSpcURI = '') then
-      begin
-        NamSpcPre := 'D5P1';
+      SetLength(Values, aCurrNode.ChildNodes.Count);
+      for EditIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
+        Values[EditIndex] := aCurrNode.ChildNodes[EditIndex].NodeValue;
 
-        SetLength(Values,aCurrNode.ChildNodes.Count);
-        for EditIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
-          Values[EditIndex] := aCurrNode.ChildNodes[EditIndex].NodeValue;
+      for EditIndex := aCurrNode.ChildNodes.Count - 1 downto 0 do
+        aCurrNode.ChildNodes.Delete(EditIndex);
 
-        for EditIndex := aCurrNode.ChildNodes.Count - 1 downto 0 do
-          aCurrNode.ChildNodes.Delete(EditIndex);
+      aCurrNode.DeclareNamespace(NamSpcPre, NamSpcURI);
 
-        aCurrNode.DeclareNamespace(NamSpcPre, NamSpcURI);
+      for EditIndex := 0 to High(Values) do
+        aCurrNode.AddChild(NamSpcPre + ':' + NodeName).NodeValue := Values[EditIndex];
 
-        for EditIndex := 0 to High(Values) do
-          aCurrNode.AddChild(NamSpcPre + ':' + NodeName).NodeValue := Values[EditIndex];
-
-        SetLength(Values, 0);
-        Exit;
-      end;
+      SetLength(Values, 0);
     end;
-
-    AddXMLNStoArrays(CurrNode);
+  end
+  else
+  begin
+    for NodeIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
+      AddXMLNStoArrays(aCurrNode.ChildNodes.Nodes[NodeIndex], aNameList);
   end;
 end;
 
 procedure TProductConfigService.DoBeforeExecute(const MethodName: string;
                                                 var SOAPRequest: InvString);
 var
-  SOAPReq : WideString;
   Document : IXMLDocument;
+  NameList : TArrVarTypeData;
 begin
+  FindXMLTypeNamesToModify(MethodName, NameList);
+
+  if high(NameList) = -1 then
+    Exit;
+
   Document := NewXMLDocument;
   try
     Document.LoadFromXML(SOAPRequest);
 
     if not Document.IsEmptyDoc then
     begin
-      AddXMLNStoArrays(Document.DocumentElement);
+      AddXMLNStoArrays(Document.DocumentElement, NameList);
 
       Document.SaveToXML(SOAPRequest);
 
-      SOAPRequest := SOAPRequest;
+      //SOAPRequest := SOAPRequest;
     end;
   finally
     Document := nil;
@@ -1183,13 +1265,11 @@ var
   MsgResponce     : MessageResponse;
   MsgResponceGuid : MessageResponseOfguid;
   ErrMsg          : String;
-  ErrIndex        : integer;
   CurrPractice    : Practice;
   IsUserOnline    : Boolean;
   BlopiInterface  : IBlopiServiceFacade;
   RoleNames       : ArrayOfString;
   Subscription    : ArrayOfGuid;
-  SubIndex        : integer;
 begin
   Result := false;
 
@@ -1293,7 +1373,6 @@ var
   PracPassHash    : WideString;
   MsgResponce     : MessageResponse;
   ErrMsg          : String;
-  ErrIndex        : integer;
   BlopiInterface  : IBlopiServiceFacade;
   UserGuid        : Guid;
 begin
