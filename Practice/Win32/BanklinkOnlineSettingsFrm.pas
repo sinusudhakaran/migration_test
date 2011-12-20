@@ -4,8 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, CheckLst, BankLinkOnlineServices, BlopiServiceFacade,
-  OSFont;
+  Dialogs, StdCtrls, ExtCtrls, CheckLst, BankLinkOnlineServices, OSFont;
 
 type
 
@@ -53,6 +52,9 @@ type
     procedure SetEmailAddress(Value: string);
   end;
 
+  // function to create BanklinkOnlineSettingsFrm goes here
+  function EditBanklinkOnlineSettings: boolean;
+
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
 
@@ -65,6 +67,13 @@ implementation
 uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm;
 
 {$R *.dfm}
+
+function EditBanklinkOnlineSettings: boolean;
+var
+  BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
+begin
+  BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
+end;
 
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 var
@@ -208,11 +217,22 @@ var
 begin
   if AdminSystem.fdFields.fdUse_BankLink_Online then
   begin
+    //ClientGUID = ProductConfigService.GetClientGUID(MyClient.Code);
+    //if ClientGUID <> '' then
+    //  FClient := ProductConfigService.GetClient(ClientGUID )
+    //else
+    //  FClient := Client.Create;
+    //  FClient.ClientCode :=  MyClient.Code;
+    //  FClient.Email :=  MyClient.Email;
+    //  FClient.Name :=  MyClient.Name;    
+    //  FClient.Catalogue :=  ProductConfigService.Clients.Catalogue
+
+
     AClientID := ProductConfigService.Clients.Clients[0].Id;
     FClient := ProductConfigService.GetClientDetails(AClientID);
 
     rbActive.Checked := true; // may be overriden by one of the two lines below
-    rbSuspended.Checked := FClient.Status = Suspended;
+    rbSuspended.Checked := FClient.Suspended;
     rbDeactivated.Checked := FClient.Deactivated;
     cmbConnectDays.Text := FClient.ClientConnectDays;
     chkUseClientDetails.Checked := FClient.UseClientDetails;

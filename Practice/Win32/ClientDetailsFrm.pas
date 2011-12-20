@@ -443,7 +443,9 @@ procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
 var
   ErrorMsg: string;
 begin
-  if not Assigned(BanklinkOnlineSettings) then 
+  if not Assigned(BanklinkOnlineSettings) then
+    // Don't create directly here, call function (that you have to make)
+    // in BanklinkOnlineSettingsFrm which creates it
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
   if not BanklinkOnlineConnected then
   begin
