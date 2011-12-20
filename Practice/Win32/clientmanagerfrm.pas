@@ -904,19 +904,21 @@ begin
 
         if (BanklinkOnlineConnected and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
-          if not Assigned(FClient) then
-          begin
-            AClientID := ProductConfigService.Clients.Clients[0].Id;
-        		FClient := ProductConfigService.GetClientDetails(AClientID);
-          end;
-        	for i := 0 to High(FClient.Catalogue) do
-        		AddCustomColumn( FClient.Catalogue[i].Description, 75, 12 + i, cluBOProduct);
-          NumColumns := 13 + High(FClient.Catalogue);
+          if Assigned(FClient) then begin
+            if not Assigned(FClient) then
+            begin
+//              AClientID := ProductConfigService.Clients.Clients[0].Id;
+              FClient := ProductConfigService.GetClientDetails(AClientID);
+            end;
+            for i := 0 to High(FClient.Catalogue) do
+              AddCustomColumn( FClient.Catalogue[i].Description, 75, 12 + i, cluBOProduct);
+            NumColumns := 13 + High(FClient.Catalogue);
 
-          AddCustomColumn( 'Billing Frequency', 75, NumColumns, cluBOBillingFrequency);
-          AddCustomColumn( 'User Admin', 75, NumColumns + 1, cluBOUserAdmin);
-          AddCustomColumn( 'Suspended', 75, NumColumns + 2, cluBOSuspended);
-          AddCustomColumn( 'Deactivated', 75, NumColumns + 3, cluBODeactivated);
+            AddCustomColumn( 'Billing Frequency', 75, NumColumns, cluBOBillingFrequency);
+            AddCustomColumn( 'User Admin', 75, NumColumns + 1, cluBOUserAdmin);
+            AddCustomColumn( 'Suspended', 75, NumColumns + 2, cluBOSuspended);
+            AddCustomColumn( 'Deactivated', 75, NumColumns + 3, cluBODeactivated);
+          end;
         end;
 
         BuildGrid( cluCode);
@@ -1819,31 +1821,31 @@ begin
       // Todo: add relevant error codes/reasons
       Exit;
     end;
-    AClientID := ProductConfigService.Clients.Clients[0].Id;
-    FClient := ProductConfigService.GetClientDetails(AClientID);
 
-    ProductList := TStringList.Create;
-    try
-      for i := 0 to High(FClient.Catalogue) do begin
-        for k := 0 to High(FClient.Subscription) do begin
-          GUID1 := FClient.Subscription[k];
-          GUID2 := FClient.Catalogue[i].Id;
-          if (GUID1 = GUID2) then
-          begin
-            ProductList.Add(FClient.Catalogue[i].Description);
-            inc(NumProducts);
-            break;
-          end;
-        end;
-      end;
-      if (ProductList.Count > 0)
-        then DeleteStr := DeleteStr + 'Deleting this client will also, ' +
-                          'permanently remove ALL CLIENT DATA & ACCESS ' +
-                          'for the following products:' + #13#13 +
-                          ProductList.Text + #13;
-    finally
-      ProductList.Free;
-    end;
+//    AClientID := ProductConfigService.Clients.Clients[0].Id;
+//    FClient := ProductConfigService.GetClientDetails(AClientID);
+//    ProductList := TStringList.Create;
+//    try
+//      for i := 0 to High(FClient.Catalogue) do begin
+//        for k := 0 to High(FClient.Subscription) do begin
+//          GUID1 := FClient.Subscription[k];
+//          GUID2 := FClient.Catalogue[i].Id;
+//          if (GUID1 = GUID2) then
+//          begin
+//            ProductList.Add(FClient.Catalogue[i].Description);
+//            inc(NumProducts);
+//            break;
+//          end;
+//        end;
+//      end;
+//      if (ProductList.Count > 0)
+//        then DeleteStr := DeleteStr + 'Deleting this client will also, ' +
+//                          'permanently remove ALL CLIENT DATA & ACCESS ' +
+//                          'for the following products:' + #13#13 +
+//                          ProductList.Text + #13;
+//    finally
+//      ProductList.Free;
+//    end;
   end;
 
   if DeleteClientFile(ClientLookup.FirstSelectedCode, DeleteStr) then

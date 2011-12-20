@@ -40,7 +40,6 @@ type
     procedure rbActiveClick(Sender: TObject);
     procedure rbDeactivatedClick(Sender: TObject);
     procedure chkUseClientDetailsClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure FillClientDetails;
     procedure FormShow(Sender: TObject);
   private
@@ -50,10 +49,11 @@ type
   public
     procedure SetContactName(Value: string);
     procedure SetEmailAddress(Value: string);
+    function Execute(AClient: Client): boolean;
   end;
 
   // function to create BanklinkOnlineSettingsFrm goes here
-  function EditBanklinkOnlineSettings: boolean;
+  function EditBanklinkOnlineSettings(AClient: Client): boolean;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -68,11 +68,19 @@ uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm;
 
 {$R *.dfm}
 
-function EditBanklinkOnlineSettings: boolean;
+function EditBanklinkOnlineSettings(AClient: Client): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
 begin
-  BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
+  if AdminSystem.fdFields.fdUse_BankLink_Online then
+  begin
+    BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
+    try
+      Result := BanklinkOnlineSettings.Execute(AClient);
+    finally
+      BanklinkOnlineSettings.Free;
+    end;
+  end;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
@@ -183,6 +191,50 @@ begin
   FillClientDetails;
 end;
 
+function TfrmBanklinkOnlineSettings.Execute(AClient: Client): boolean;
+var
+  i, k: integer;
+  CatArray: ArrayOfCatalogueEntry;
+  GUID1, GUID2: WideString;
+  AClientID: WideString;
+begin
+  //ClientGUID = ProductConfigService.GetClientGUID(MyClient.Code);
+  //if ClientGUID <> '' then
+  //  FClient := ProductConfigService.GetClient(ClientGUID )
+  //else
+  //  FClient := Client.Create;
+  //  FClient.ClientCode :=  MyClient.Code;
+  //  FClient.Email :=  MyClient.Email;
+  //  FClient.Name :=  MyClient.Name;
+  //  FClient.Catalogue :=  ProductConfigService.Clients.Catalogue
+
+//    AClientID := ProductConfigService.Clients.Clients[0].Id;
+    Result := False;
+    if Assigned(AClient) then begin
+      FClient := AClient;
+      rbActive.Checked := true; // may be overriden by one of the two lines below
+      rbSuspended.Checked := FClient.Suspended;
+      rbDeactivated.Checked := FClient.Deactivated;
+      cmbConnectDays.Text := FClient.ClientConnectDays;
+      chkUseClientDetails.Checked := FClient.UseClientDetails;
+      CatArray := ProductConfigService.Clients.Catalogue;
+      for i := Low(CatArray) to High(CatArray) do
+        chklistProducts.AddItem(CatArray[i].Description, TObject(CatArray[i].Id));
+
+      for i := 0 to chklistProducts.Items.Count - 1 do begin
+        for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
+          GUID1 := FClient.Subscription[k];
+          GUID2 := WideString(chklistProducts.Items.Objects[i]);
+          chklistProducts.Checked[i] := (GUID1 = GUID2);
+          if chklistProducts.Checked[i] then break;
+        end;
+      end;
+    end;
+
+    if ShowModal = mrOk then
+      Result := True;
+end;
+
 procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
 var
   i: integer;
@@ -206,49 +258,6 @@ procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TClo
 begin
 //  ListOfClients.Free;
   chklistProducts.Clear;
-end;
-
-procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
-var
-  CatArray: ArrayOfCatalogueEntry;
-  i, k: integer;
-  GUID1, GUID2: WideString;
-  AClientID: WideString;
-begin
-  if AdminSystem.fdFields.fdUse_BankLink_Online then
-  begin
-    //ClientGUID = ProductConfigService.GetClientGUID(MyClient.Code);
-    //if ClientGUID <> '' then
-    //  FClient := ProductConfigService.GetClient(ClientGUID )
-    //else
-    //  FClient := Client.Create;
-    //  FClient.ClientCode :=  MyClient.Code;
-    //  FClient.Email :=  MyClient.Email;
-    //  FClient.Name :=  MyClient.Name;    
-    //  FClient.Catalogue :=  ProductConfigService.Clients.Catalogue
-
-
-    AClientID := ProductConfigService.Clients.Clients[0].Id;
-    FClient := ProductConfigService.GetClientDetails(AClientID);
-
-    rbActive.Checked := true; // may be overriden by one of the two lines below
-    rbSuspended.Checked := FClient.Suspended;
-    rbDeactivated.Checked := FClient.Deactivated;
-    cmbConnectDays.Text := FClient.ClientConnectDays;
-    chkUseClientDetails.Checked := FClient.UseClientDetails;
-    CatArray := ProductConfigService.Clients.Catalogue;
-    for i := Low(CatArray) to High(CatArray) do
-      chklistProducts.AddItem(CatArray[i].Description, TObject(CatArray[i].Id));
-
-    for i := 0 to chklistProducts.Items.Count - 1 do begin
-      for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
-        GUID1 := FClient.Subscription[k];
-        GUID2 := WideString(chklistProducts.Items.Objects[i]);
-        chklistProducts.Checked[i] := (GUID1 = GUID2);
-        if chklistProducts.Checked[i] then break;
-      end;
-    end;
-  end;
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);

@@ -157,15 +157,13 @@ type
     ChangingDiskID : boolean;
     PassGenCodeEntered : boolean;
     FViewNotes : Boolean;
-    BanklinkOnlineSettings : TfrmBanklinkOnlineSettings;
     OriginalCode, OriginalEmail : string;
     FClient : Client;
     FEnableClientSettings : boolean;
+    FUseClientDetailsForBankLinkOnline: Boolean;
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
-
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
-    procedure ShowBanklinkOnlineSettings;
   public
     { Public declarations }
     function Execute(PCode: string = '') : boolean;
@@ -232,7 +230,6 @@ begin
    ChangingDiskID := false;
    grpBooks.Caption := BKBOOKSNAME + ' Clients';
 
-   BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
    OriginalCode := eCode.Text;
    OriginalEmail := eMail.Text;
 end;
@@ -243,7 +240,7 @@ var
   CatArray: ArrayOfCatalogueEntry;
   i, k, NumProducts : Integer;
   GUID1, GUID2: WideString;
-  AClientID: WideString;
+//  AClientID: WideString;
   ClientSynced: boolean;
 begin
   PageControl1.ActivePage := tbsClient;
@@ -315,20 +312,21 @@ begin
     btnClientSettings.Enabled := AdminSystem.fdFields.fdUse_BankLink_Online and ClientSynced;
 
     CatArray := ProductConfigService.Clients.Catalogue;
-    AClientID := ProductConfigService.Clients.Clients[0].Id;
-    FClient := ProductConfigService.GetClientDetails(AClientID);
-    NumProducts := 0;
-    for i := 0 to High(CatArray) do begin
-      for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
-        GUID1 := FClient.Subscription[k];
-        GUID2 := CatArray[i].Id;
-        if (GUID1 = GUID2) then
-        begin
-          inc(NumProducts);
-          break;
-        end;
-      end;
-    end;
+
+//    AClientID := ProductConfigService.Clients.Clients[0].Id;
+//    FClient := ProductConfigService.GetClientDetails(AClientID);
+//    NumProducts := 0;
+//    for i := 0 to High(CatArray) do begin
+//      for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
+//        GUID1 := FClient.Subscription[k];
+//        GUID2 := CatArray[i].Id;
+//        if (GUID1 = GUID2) then
+//        begin
+//          inc(NumProducts);
+//          break;
+//        end;
+//      end;
+//    end;
 
     if not FEnableClientSettings then
       lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
@@ -441,57 +439,61 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
 var
-  ErrorMsg: string;
+  IsNewClient: Boolean;
+  MyNewClient: NewClient;
+  MyNewClientGuid: Guid;
 begin
-  if not Assigned(BanklinkOnlineSettings) then
-    // Don't create directly here, call function (that you have to make)
-    // in BanklinkOnlineSettingsFrm which creates it
-    BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
-  if not BanklinkOnlineConnected then
-  begin
-    ErrorMsg := 'Banklink Practice is unable to connect to Banklink Online';
-    ShowMessage(ErrorMsg);
-    LogUtil.LogMsg(lmError, UnitName, ErrorMsg);
-    Exit;
+  IsNewClient := False;
+  FClient := ProductConfigService.GetClientDetails(MyClient.clFields.clCode);
+  if not Assigned(FClient) then begin
+    IsNewClient := True;
+    MyNewClient := NewClient.Create;
+    MyNewClient.ClientCode := MyClient.clFields.clCode;
+    MyNewClient.Name_ := MyClient.clFields.clName;
+    MyNewClientGuid := ProductConfigService.CreateNewClient(MyNewClient);
+    ProductConfigService.LoadClientList;
+    FClient := ProductConfigService.GetClientDetails(MyNewClientGuid);
   end;
 
-  BanklinkOnlineSettings.SetContactName(eContact.Text);
-  BanklinkOnlineSettings.SetEmailAddress(eMail.Text);
-  ShowBanklinkOnlineSettings;
+  if Assigned(FClient) then begin
+    if EditBanklinkOnlineSettings(FClient) then begin
+      ProductConfigService.SaveClient(FClient);
+    end;
+  end;
 end;
 
 procedure TfrmClientDetails.btnOkClick(Sender: TObject);
 var
   buttonSelected: integer;
 begin
-   if (OriginalEmail <> eMail.Text) and BanklinkOnlineSettings.chkUseClientDetails.Checked then
-   begin
-     buttonSelected := MessageDlg('You have changed the Email Address for this client. Do you ' +
-                                  'want the Banklink Online Default Client Administrator to be ' +
-                                  'updated to this Email Address?', mtConfirmation,
-                                  [mbYes, mbNo, mbCancel], 0);
-     if buttonSelected = mrYes then
-     begin
-     end else
-     if buttonSelected = mrNo then
-     begin
-       BanklinkOnlineSettings.chkUseClientDetails.Checked := false;
-       // BanklinkOnlineSettings.Client1.SetUseClientDetails(false);
-     end else
-       btnCancelClick(Sender);
-   end;
+  if Assigned(FClient) then begin
+    if (OriginalEmail <> eMail.Text) and FClient.UseClientDetails then
+    begin
+      buttonSelected := MessageDlg('You have changed the Email Address for this client. Do you ' +
+                                   'want the Banklink Online Default Client Administrator to be ' +
+                                   'updated to this Email Address?', mtConfirmation,
+                                   [mbYes, mbNo, mbCancel], 0);
+      case buttonSelected of
+        mrYes: ;
+        mrNo: ; //FClient.UseClientDetails := False;
+        mrCancel: btnCancelClick(Sender);
+      end;
+    end;
+  end;
 
-   if okToPost then
-   begin
-     // FClient.Code := eCode.Text;
-     if BanklinkOnlineSettings.chkUseClientDetails.Checked then
-     begin
-       // FClient.Contact_Name := eContact.Text;
-       // FClient.EmailAddress := eMail.Text;
+  if okToPost then
+  begin
+     if Assigned(FClient) then begin
+       //FClient.ClientCode := eCode.Text;
+       if FClient.UseClientDetails then
+       begin
+         //FClient.UserName := eContact.Text;
+         //FClient.EmailAddress := eMail.Text;
+       end;
      end;
      okPressed := true;
      Close;
-   end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1285,16 +1287,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmClientDetails.ShowBanklinkOnlineSettings;
-begin
-  try
-    BanklinkOnlineSettings.ShowModal;
-  finally
-    BanklinkOnlineSettings.Free;
-    BanklinkOnlineSettings := nil;    
-  end;
-end;
-
 procedure TfrmClientDetails.ShowPracticeContactDetails(ReadOnly : Boolean);
 begin
   if (ReadOnly) then

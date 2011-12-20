@@ -18,6 +18,7 @@ type
   ArrayOfString         = BlopiServiceFacade.ArrayOfString;
   Practice              = BlopiServiceFacade.Practice;
   Client                = BlopiServiceFacade.Client;
+  NewClient             = BlopiServiceFacade.NewClient;  
   User                  = BlopiServiceFacade.User;
   CatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
   ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
@@ -100,7 +101,6 @@ type
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
     procedure LoadDummyClientList;
-    procedure LoadClientList;
     function OnlineStatus: TBankLinkOnlineStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
                               aName : String) : integer;
@@ -118,7 +118,8 @@ type
     procedure SetTimeOuts(ConnecTimeout : DWord ;
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
-    function GetServiceFacade : IBlopiServiceFacade;  
+    function GetServiceFacade : IBlopiServiceFacade;
+    function GetClientGuid(AClientCode: string): WideString;
   public
     constructor Create;
     destructor Destroy; override;
@@ -137,9 +138,12 @@ type
     procedure SetPrimaryContact(AUser: User);
     property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
     //Client methods
+    procedure LoadClientList;
     function AddClient: ClientSummary;
-    function GetClientDetails(ClientID: WideString): Client;
-    function LoadClientDetails(ClientID: WideString): Boolean;
+    function GetClientDetails(AClientCode: string): Client; overload;
+    function GetClientDetails(AClientGuid: Guid): Client; overload;
+    function CreateNewClient(ANewClient: NewClient): Guid;
+    function SaveClient(AClient: Client): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
     function UpdateCreateUser(var   aUserId        : Guid;
@@ -270,10 +274,46 @@ begin
   FPractice := Practice.Create;
   //Load Practice
   GetPractice;
-  //Create clients
-  // LoadDummyClientList;
+  //Create client list
   FClientList := ClientList.Create;
+  //Load client list
   LoadClientList;
+end;
+
+function TProductConfigService.CreateNewClient(ANewClient: NewClient): Guid;
+var
+  i: integer;
+  Msg: string;
+  BlopiInterface: IBlopiServiceFacade;
+  MsgResponse: MessageResponseOfGuid;
+begin
+  Result := '';
+
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if not FRegistered then
+    Exit;
+
+  try
+    BlopiInterface :=  GetIBlopiServiceFacade;
+    MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                               AdminSystem.fdFields.fdBankLink_Code,
+                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                               ANewClient);
+   if Assigned(MsgResponse) then
+     if (Length(MsgResponse.ErrorMessages) = 0) then
+       Result := MsgResponse.Result
+     else begin
+       //Something went wrong
+       for i := Low(MsgResponse.ErrorMessages) to High(MsgResponse.ErrorMessages) do
+         Msg := Msg + ServiceErrorMessage(MsgResponse.ErrorMessages[i]).Message_;
+       raise Exception(Msg);
+     end;
+  except
+    on E: Exception do
+      HelpfulErrorMsg(Msg, 0);
+  end;
 end;
 
 destructor TProductConfigService.Destroy;
@@ -298,84 +338,79 @@ begin
   end;
 end;
 
-function TProductConfigService.GetClientDetails(ClientID: WideString): Client;
+function TProductConfigService.GetClientDetails(AClientCode: string): Client;
 var
-  i: integer;
-  ClientArray: ArrayOfClientSummary;
+  ClientGuid: WideString;
 begin
   Result := nil;
-  ClientArray := FClientList.Clients;
-  for i := Low(ClientArray) to High(ClientArray) do
-  begin
-    if (ClientID = ClientArray[i].Id) then
-    begin
-      try
-        LoadClientDetails(ClientID);
-        FClientCopy.Free;
-        FClientCopy := Client.Create;
-        CopyRemotableObject(FClient, FClientCopy);
-        Result := FClientCopy;
-      except
-        on E : Exception do
-          raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
-      end;
-      break;
-    end;
-  end;
-end;
+  FClient := nil;
+  FClientCopy.Free;
+  FClientCopy := Client.Create;
 
-function TProductConfigService.LoadClientDetails(ClientID: WideString): Boolean;
-var
-  BlopiInterface: IBlopiServiceFacade;
-  ClientDetailResponse: MessageResponseOfClientMIdCYrSK;
-  i: integer;
-  Msg: string;
-begin
-  Result := False;
   if not Assigned(AdminSystem) then
     Exit;
 
   if not FRegistered then
     Exit;
 
-  if UseBankLinkOnline then begin
-    //Reload from BankLink Online
-    if AdminSystem.fdFields.fdLast_BankLink_Online_Update < (StDate.CurrentDate + 1) then begin
-      // Live
-      try
-        BlopiInterface := GetServiceFacade;
-        ClientDetailResponse := BlopiInterface.GetClientDetail(CountryText(AdminSystem.fdFields.fdCountry),
-                                AdminSystem.fdFields.fdBankLink_Code,
-                                AdminSystem.fdFields.fdBankLink_Connect_Password, ClientID);
-        if Assigned(ClientDetailResponse) then begin
-          Result := Assigned(ClientDetailResponse.Result);
-          if Result then
-            FClient := ClientDetailResponse.Result
-          else begin
-            // Something went wrong
-            Msg := '';
-            for i := Low(ClientDetailResponse.ErrorMessages) to High(ClientDetailResponse.ErrorMessages) do
-              Msg := Msg + ServiceErrorMessage(ClientDetailResponse.ErrorMessages[i]).Message_;
-            raise Exception(Msg);
-          end;
-        end;
-      except
-        on E: Exception do HelpfulErrorMsg('Error geting practice details from BankLink Online: ' + E.Message, 0);
-      end;
-      if not Result  then
-        if LoadRemotableObjectFromFile(FClient) then begin //This represents FClient from BankLink Online
-          Result := True;
-      end;
-      //Load from System DB
-      if not Result then
-        Result := LoadPracticeDetailsfromSystemDB; //This is the local copy of FPractice
-      if not Result then begin
-        LoadDummyPractice; //This load FPractice with dummy data
-        Result := True;
-      end;
-    end else
-      Result := LoadPracticeDetailsfromSystemDB; //This is the local copy of FPractice
+  //Find client code in the client list
+  ClientGuid := GetClientGuid(AClientCode);
+  if (ClientGuid <> '') then
+    Result := GetClientDetails(ClientGuid);
+end;
+
+function TProductConfigService.GetClientDetails(AClientGuid: Guid): Client;
+var
+  i, j: integer;
+  BlopiInterface: IBlopiServiceFacade;
+  ClientDetailResponse: MessageResponseOfClientMIdCYrSK;
+  Msg: string;
+begin
+  Result := nil;
+
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if not FRegistered then
+    Exit;
+
+  try
+    BlopiInterface :=  GetIBlopiServiceFacade;
+    //Get the client from BankLink Online
+    ClientDetailResponse := BlopiInterface.GetClientDetail(CountryText(AdminSystem.fdFields.fdCountry),
+                                                           AdminSystem.fdFields.fdBankLink_Code,
+                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                           AClientGuid);
+    if Assigned(ClientDetailResponse) then begin
+      //Client exists on BankLink Online
+      FClient := ClientDetailResponse.Result;
+      Result := FClient;
+    end else begin
+      //Something went wrong
+      Msg := '';
+      for j := Low(ClientDetailResponse.ErrorMessages) to High(ClientDetailResponse.ErrorMessages) do
+        Msg := Msg + ServiceErrorMessage(ClientDetailResponse.ErrorMessages[i]).Message_;
+      raise Exception(Msg);
+    end;
+    CopyRemotableObject(FClient, FClientCopy);
+    Result := FClientCopy;
+  except
+    on E : Exception do
+      raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
   end;
+end;
+
+function TProductConfigService.GetClientGuid(AClientCode: string): WideString;
+var
+  i: integer;
+begin
+  Result := '';
+  if Assigned(FClientList) then
+    for i := Low(FClientList.Clients) to High(FClientList.Clients) do
+      if (AClientCode = FClientList.Clients[i].ClientCode) then begin
+        Result := FClientList.Clients[i].Id;
+        Break;
+      end;
 end;
 
 function TProductConfigService.GetPractice: Practice;
@@ -1058,6 +1093,54 @@ begin
     end;
   finally
     FPracticeCopy.Subscription := SubArray;
+  end;
+end;
+
+function TProductConfigService.SaveClient(AClient: Client): Boolean;
+var
+  i: integer;
+  Msg: string;
+  BlopiInterface: IBlopiServiceFacade;
+  MsgResponse: MessageResponse;
+  MyClientSummary: ClientSummary;
+begin
+  Result := False;
+
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if not FRegistered then
+    Exit;
+
+  try
+    MyClientSummary := ClientSummary.Create;
+    try
+      MyClientSummary.Id := AClient.Id;
+      MyClientSummary.ClientCode := AClient.ClientCode;
+      MyClientSummary.Name_ := AClient.Name_;
+      MyClientSummary.Status := AClient.Status;
+      MyClientSummary.Subscription := AClient.Subscription;
+
+      BlopiInterface :=  GetIBlopiServiceFacade;
+      MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                               AdminSystem.fdFields.fdBankLink_Code,
+                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                               MyClientSummary);
+    finally
+      MyClientSummary.Free;
+    end;
+   if Assigned(MsgResponse) then
+     if (Length(MsgResponse.ErrorMessages) = 0) then
+       Result := True
+     else begin
+       //Something went wrong
+       for i := Low(MsgResponse.ErrorMessages) to High(MsgResponse.ErrorMessages) do
+         Msg := Msg + ServiceErrorMessage(MsgResponse.ErrorMessages[i]).Message_;
+       raise Exception(Msg);
+     end;
+  except
+    on E: Exception do
+      HelpfulErrorMsg(Msg, 0);
   end;
 end;
 
