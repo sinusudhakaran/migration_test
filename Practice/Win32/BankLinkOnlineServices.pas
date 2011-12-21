@@ -1,5 +1,6 @@
 unit BankLinkOnlineServices;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
@@ -103,15 +104,15 @@ type
     procedure LoadDummyClientList;
     function OnlineStatus: TBankLinkOnlineStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
-                              aName : String) : integer;
+                              const aName : String) : integer;
     procedure AddTypeItem(var aDataArray : TArrVarTypeData;
                           var aDataItem  : TVarTypeData);
-    procedure AddToXMLTypeNameList(aName : String;
+    procedure AddToXMLTypeNameList(const aName : String;
                                    aTypeInfo : PTypeInfo;
                                    var aNameList : TArrVarTypeData);
-    procedure FindXMLTypeNamesToModify(aMethodName : String;
+    procedure FindXMLTypeNamesToModify(const aMethodName : String;
                                        var aNameList : TArrVarTypeData);
-    procedure AddXMLNStoArrays(aCurrNode : IXMLNode;
+    procedure AddXMLNStoArrays(const aCurrNode : IXMLNode;
                                var aNameList : TArrVarTypeData);
     procedure DoBeforeExecute(const MethodName: string;
                               var SOAPRequest: InvString);
@@ -119,7 +120,7 @@ type
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
     function GetServiceFacade : IBlopiServiceFacade;
-    function GetClientGuid(AClientCode: string): WideString;
+    function GetClientGuid(const aClientCode: string): WideString;
   public
     constructor Create;
     destructor Destroy; override;
@@ -152,11 +153,11 @@ type
                               const aUserCode      : WideString;
                               const aUstNameIndex  : integer;
                               var   aIsUserCreated : Boolean ) : Boolean;
-    function DeleteUser(aUserCode : string;
+    function DeleteUser(const aUserCode : string;
                         aPractice : Practice = nil): Boolean;
-    function IsPrimaryUser(aUserCode : string = '';
+    function IsPrimaryUser(const aUserCode : string = '';
                            aPractice : Practice = nil): Boolean;
-    function GetUserGuid(aUserCode : string;
+    function GetUserGuid(const aUserCode : string;
                          aPractice : Practice): Guid;
     function ChangeUserPassword(const aUserCode: string;
                                 const aOldPassword : string;
@@ -168,6 +169,7 @@ type
   //Product config singleton
   function ProductConfigService: TProductConfigService;
 
+//------------------------------------------------------------------------------
 implementation
 
 uses
@@ -202,6 +204,7 @@ var
   __BankLinkOnlineServiceMgr: TProductConfigService;
   DebugMe : Boolean = False;
 
+//------------------------------------------------------------------------------
 function ProductConfigService: TProductConfigService;
 begin
   if not Assigned(__BankLinkOnlineServiceMgr) then
@@ -210,7 +213,7 @@ begin
 end;
 
 { TProductConfigService }
-
+//------------------------------------------------------------------------------
 procedure TProductConfigService.AddProduct(AProductId: Guid);
 var
   i: integer;
@@ -230,6 +233,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.ClearAllProducts;
 var
   i: integer;
@@ -247,6 +251,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.CopyRemotableObject(ASource,
   ATarget: TRemotable);
 var
@@ -267,6 +272,7 @@ begin
   ATarget.SOAPToObject(NodeRoot, NodeObject, Converter);
 end;
 
+//------------------------------------------------------------------------------
 constructor TProductConfigService.Create;
 var
   BlopiClientList: MessageResponseOfClientListMIdCYrSK;
@@ -281,6 +287,7 @@ begin
   LoadClientList;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.CreateNewClient(ANewClient: NewClient): Guid;
 var
   i: integer;
@@ -317,6 +324,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 destructor TProductConfigService.Destroy;
 begin
   //Clear all created objects etc???
@@ -325,6 +333,7 @@ begin
   inherited;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetCatalogueEntry(
   AProductId: Guid): CatalogueEntry;
 var
@@ -339,6 +348,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetClientDetails(AClientCode: string): Client;
 var
   ClientGuid: WideString;
@@ -360,6 +370,7 @@ begin
     Result := GetClientDetails(ClientGuid);
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetClientDetails(AClientGuid: Guid): Client;
 var
   i, j: integer;
@@ -401,7 +412,8 @@ begin
   end;
 end;
 
-function TProductConfigService.GetClientGuid(AClientCode: string): WideString;
+//------------------------------------------------------------------------------
+function TProductConfigService.GetClientGuid(const aClientCode: string): WideString;
 var
   i: integer;
 begin
@@ -414,6 +426,7 @@ begin
       end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetPractice: Practice;
 var
   i: integer;
@@ -502,6 +515,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetUseBankLinkOnline: Boolean;
 begin
   Result := False;
@@ -509,24 +523,7 @@ begin
     Result := AdminSystem.fdFields.fdUse_BankLink_Online;
 end;
 
-function TProductConfigService.GetUserGuid(aUserCode : string;
-                                           aPractice : Practice): Guid;
-var
-  i: integer;
-  TempUser: User;
-begin
-  Result := '';
-
-  for i := Low(aPractice.Users) to High(aPractice.Users) do
-  begin
-    TempUser := aPractice.Users[i];
-    if TempUser.UserCode = AUserCode then begin
-      Result := TempUser.Id;
-      Break;
-    end;
-  end;
-end;
-
+//------------------------------------------------------------------------------
 function TProductConfigService.AddClient: ClientSummary;
 var
   SubArray: ArrayOfGuid;
@@ -546,6 +543,7 @@ begin
   Result := FClientList.Clients[High(FClientList.Clients)];
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.LoadClientList;
 var
   BlopiInterface: IBlopiServiceFacade;
@@ -576,6 +574,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.LoadDummyClientList;
 begin
   FClientList := ClientList.Create;
@@ -597,6 +596,7 @@ begin
   // add subscriptions to client
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.LoadDummyPractice;
 var
   Cat: CatalogueEntry;
@@ -729,6 +729,7 @@ begin
   FPractice.DefaultAdminUserId := UserArray[1].Id;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.LoadPracticeDetailsfromSystemDB: Boolean;
 begin
   Result := False;
@@ -741,6 +742,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
 var
   XMLDoc: IXMLDocument;
@@ -754,6 +756,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.LoadRemotableObjectFromXML(const XML: string;
   ARemotable: TRemotable);
 var
@@ -772,6 +775,7 @@ begin
   ARemotable.SOAPToObject(NodeRoot, NodeObject, Converter);
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.OnlineStatus: TBankLinkOnlineStatus;
 var
   IniFile: TIniFile;
@@ -785,8 +789,9 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetTypeItemIndex(var aDataArray: TArrVarTypeData;
-                                                aName : String) : integer;
+                                                const aName : String) : integer;
 var
   Index : integer;
 begin
@@ -801,6 +806,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.AddTypeItem(var aDataArray: TArrVarTypeData;
                                             var aDataItem: TVarTypeData);
 begin
@@ -808,7 +814,8 @@ begin
   aDataArray[High(aDataArray)] := aDataItem;
 end;
 
-procedure TProductConfigService.AddToXMLTypeNameList(aName : String;
+//------------------------------------------------------------------------------
+procedure TProductConfigService.AddToXMLTypeNameList(const aName : String;
                                                      aTypeInfo : PTypeInfo;
                                                      var aNameList : TArrVarTypeData);
 var
@@ -821,14 +828,15 @@ begin
 
   case aTypeInfo.Kind of
     tkClass : begin
-      TypeData := GetTypeData(aTypeInfo);
       if TypeData.PropCount > 0 then
       begin
+        // Loops through all published properties of the class
         new(PropList);
 
         GetPropInfos(aTypeInfo, PropList);
         for Index := 0 to TypeData.PropCount-1 do
         begin
+          // Recursive call for published class properties
           AddToXMLTypeNameList(PropList[Index].Name, PropList[Index].PropType^, aNameList)
         end;
 
@@ -839,27 +847,32 @@ begin
       if TypeData.elType2^.Kind in
         [tkInteger, tkChar, tkFloat, tkString, tkWChar, tkLString, tkWString, tkVariant, tkInt64] then
       begin
+        //Adds the name and TypeInfo to the Name List
         NewItem.Name     := aName;
         NewItem.TypeInfo := aTypeInfo;
         AddTypeItem(aNameList, NewItem);
       end
       else
       begin
+        // Recursive call for array Element Type
         AddToXMLTypeNameList('Array', TypeData.elType2^, aNameList);
       end;
     end;
   end;
 end;
 
-procedure TProductConfigService.FindXMLTypeNamesToModify(aMethodName : String;
+//------------------------------------------------------------------------------
+procedure TProductConfigService.FindXMLTypeNamesToModify(const aMethodName : String;
                                                          var aNameList : TArrVarTypeData);
 var
   InterfaceMetaData : TIntfMetaData;
   InterfaceIndex    : integer;
   ParamIndex        : integer;
 begin
+  // Gets the RTTI info for the the Interface
   GetIntfMetaData(TypeInfo(IBlopiServiceFacade), InterfaceMetaData);
 
+  // Searches for the passed method name in the Info List
   for InterfaceIndex := 0 to high(InterfaceMetaData.MDA) do
   begin
     if InterfaceMetaData.MDA[InterfaceIndex].Name = aMethodName then
@@ -874,7 +887,8 @@ begin
   end;
 end;
 
-procedure TProductConfigService.AddXMLNStoArrays(aCurrNode : IXMLNode;
+//------------------------------------------------------------------------------
+procedure TProductConfigService.AddXMLNStoArrays(const aCurrNode : IXMLNode;
                                                  var aNameList : TArrVarTypeData);
 var
   NodeIndex : integer;
@@ -890,24 +904,32 @@ begin
   if not Assigned(aCurrNode) then
     Exit;
 
+  // Searches for the Node Name in the passed Name List
   FindIndex := GetTypeItemIndex(aNameList, aCurrNode.LocalName);
   if FindIndex > -1 then
   begin
     if aCurrNode.ChildNodes.Count > 0 then
     begin
       NamSpcPre := 'D5P1';
+      // Gets the Name Space URI from the RemClassRegistry, this is added in the
+      // Service Facade by the Auto generated code
       RemClassRegistry.InfoToURI(aNameList[FindIndex].TypeInfo, NamSpcURI, ClassName, IsScalar);
+      // since it is only fixing arrays it uses the first element name as the node name
       NodeName := aCurrNode.ChildNodes[0].NodeName;
 
+      // Saves values
       SetLength(Values, aCurrNode.ChildNodes.Count);
       for EditIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
         Values[EditIndex] := aCurrNode.ChildNodes[EditIndex].NodeValue;
 
+      // removes all child nodes
       for EditIndex := aCurrNode.ChildNodes.Count - 1 downto 0 do
         aCurrNode.ChildNodes.Delete(EditIndex);
 
+      // Adds the Names Space to the Array Node
       aCurrNode.DeclareNamespace(NamSpcPre, NamSpcURI);
 
+      // ReAdds the Child nodes adding the Name Space Alias
       for EditIndex := 0 to High(Values) do
         aCurrNode.AddChild(NamSpcPre + ':' + NodeName).NodeValue := Values[EditIndex];
 
@@ -916,11 +938,13 @@ begin
   end
   else
   begin
+    // Recursive call for child nodes
     for NodeIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
       AddXMLNStoArrays(aCurrNode.ChildNodes.Nodes[NodeIndex], aNameList);
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.DoBeforeExecute(const MethodName: string;
                                                 var SOAPRequest: InvString);
 var
@@ -928,28 +952,34 @@ var
   NameList : TArrVarTypeData;
   LogXmlFile : String;
 begin
+  // Fills the passed Name List Array with all the XML Node Names and thier
+  // TypeInfo that are arrays and need thier xml name spaces added
   FindXMLTypeNamesToModify(MethodName, NameList);
 
-  //if high(NameList) = -1 then
-  //  Exit;
+  if (high(NameList) = -1) and
+     (not DebugMe) then
+    Exit;
 
+  // Loads the SoapRequest into a XML Document
   Document := NewXMLDocument;
   try
     Document.LoadFromXML(SOAPRequest);
 
     if not Document.IsEmptyDoc then
     begin
+      // Searchs in the XML for the Node Name in the passed NameList and adds
+      // the relavant namespace to the node and all elements
       AddXMLNStoArrays(Document.DocumentElement, NameList);
 
       Document.SaveToXML(SOAPRequest);
 
-      //if DebugMe then
-      //begin
+      if DebugMe then
+      begin
         LogXmlFile := Globals.DataDir + 'Blopi_' + MethodName + '_' +
                       FormatDateTime('yyyy-mm-dd hh-mm-ss zzz', Now) + '.xml';
 
         Document.SaveToFile(LogXmlFile);
-      //end;
+      end;
 
     end;
   finally
@@ -957,6 +987,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.SetTimeOuts(ConnecTimeout : DWord ;
                                             SendTimeout   : DWord ;
                                             ReciveTimeout : DWord);
@@ -966,6 +997,7 @@ begin
   InternetSetOption(nil, INTERNET_OPTION_RECEIVE_TIMEOUT, Pointer(@ReciveTimeout), SizeOf(ReciveTimeout));
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetServiceFacade: IBlopiServiceFacade;
 var
   HTTPRIO: THTTPRIO;
@@ -975,6 +1007,7 @@ begin
   Result := GetIBlopiServiceFacade(False, '', HTTPRIO);
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.IsCICOEnabled: Boolean;
 var
   i, j: integer;
@@ -997,6 +1030,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.IsNotesOnlineEnabled: Boolean;
 var
   i, j: integer;
@@ -1018,6 +1052,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.IsPracticeActive(ShowWarning: Boolean): Boolean;
 begin
   Result := not (OnlineStatus in [bosSuspended, bosDeactivated]);
@@ -1032,6 +1067,7 @@ begin
     end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.IsPracticeProductEnabled(
   AProductId: Guid): Boolean;
 var
@@ -1048,6 +1084,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.RemotableObjectToXML(
   ARemotable: TRemotable): string;
 var
@@ -1073,6 +1110,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.RemoveProduct(AProductId: Guid);
 var
   i, j: integer;
@@ -1121,6 +1159,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.SaveClient(AClient: Client): Boolean;
 var
   i: integer;
@@ -1169,6 +1208,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.SavePractice: Boolean;
 begin
   Result := False;
@@ -1194,6 +1234,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.SavePracticeDetailsToSystemDB;
 begin
   if not Assigned(AdminSystem) then
@@ -1202,6 +1243,7 @@ begin
   AdminSystem.fdFields.fdBankLink_Online_Config := RemotableObjectToXML(FPractice);
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.SaveRemotableObjectToFile(ARemotable: TRemotable);
 var
   XMLDoc: IXMLDocument;
@@ -1211,6 +1253,7 @@ begin
   XMLDoc.SaveToFile(ARemotable.ClassName + '.xml');
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.SelectAllProducts;
 var
   i: integer;
@@ -1229,17 +1272,20 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.SetPrimaryContact(AUser: User);
 begin
   FPracticeCopy.DefaultAdminUserId := AUser.Id;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.SetRegisteredForBankLinkOnline(
   const Value: Boolean);
 begin
   FRegisteredForBankLinkOnline := Value;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.SetUseBankLinkOnline(const Value: Boolean);
 begin
   if Assigned(AdminSystem) then
@@ -1247,47 +1293,55 @@ begin
 end;              
 
 { TClientHelper }
-
+//------------------------------------------------------------------------------
 function TClientHelper.GetClientConnectDays: string;
 begin
   Result := '90';
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetDeactivated: boolean;
 begin
   Result := true;
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetEmailAddress: string;
 begin
   Result := 'someone@somewhere.com';
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetFreeTrialEndDate: TDateTime;
 begin
   Result := StrToDate('31/12/2011');
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetSuspended: boolean;
 begin
   Result := (Self.Status = BlopiServiceFacade.Suspended);
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetUseClientDetails: boolean;
 begin
   Result := true;
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetUserName: string;
 begin
   Result := 'Joe Bloggs';
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetUserOnTrial: boolean;
 begin
   Result := false;
 end;
 
+//------------------------------------------------------------------------------
 procedure TClientHelper.AddSubscription(AProductID: guid);
 var
   SubArray: arrayofguid;
@@ -1306,16 +1360,19 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetBillingEndDate: TDateTime;
 begin
   Result := StrToDate('31/12/2011');
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetBillingFrequency: string;
 begin
   Result := 'Monthly';
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : Practice;
                                                              const AUserId   : Guid   = '';
                                                              const AUserCode : string = '') : Boolean;
@@ -1337,11 +1394,13 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
                                                aExceptions    : ArrayOfExceptionDetails ) : string;
 var
   ErrIndex : integer;
 
+  //-----------------------------------------
   procedure AddLine(var   aErrStr  : String;
                     const aName    : String;
                     const aMessage : String);
@@ -1374,6 +1433,7 @@ begin
     Result := #13 + Result;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.UpdateCreateUser(var   aUserId        : Guid;
                                                 const aEMail         : WideString;
                                                 const aFullName      : WideString;
@@ -1499,7 +1559,8 @@ begin
   end;
 end;
 
-function TProductConfigService.DeleteUser(aUserCode : string;
+//------------------------------------------------------------------------------
+function TProductConfigService.DeleteUser(const aUserCode : string;
                                           aPractice : Practice) : Boolean;
 var
   PracCountryCode : WideString;
@@ -1542,7 +1603,8 @@ begin
   end;
 end;
 
-function TProductConfigService.IsPrimaryUser(aUserCode : string;
+//------------------------------------------------------------------------------
+function TProductConfigService.IsPrimaryUser(const aUserCode : string;
                                              aPractice : Practice): Boolean;
 begin
   if aUserCode = '' then
@@ -1557,6 +1619,26 @@ begin
   Result := (GetUserGuid(aUserCode, aPractice) = aPractice.DefaultAdminUserId);
 end;
 
+//------------------------------------------------------------------------------
+function TProductConfigService.GetUserGuid(const aUserCode : string;
+                                           aPractice : Practice): Guid;
+var
+  i: integer;
+  TempUser: User;
+begin
+  Result := '';
+
+  for i := Low(aPractice.Users) to High(aPractice.Users) do
+  begin
+    TempUser := aPractice.Users[i];
+    if TempUser.UserCode = AUserCode then begin
+      Result := TempUser.Id;
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.ChangeUserPassword(const aUserCode    : string;
                                                   const aOldPassword : string;
                                                   const aNewPassword : string) : Boolean;
@@ -1565,6 +1647,7 @@ begin
 end;
 
 { TClientSummaryHelper }
+//------------------------------------------------------------------------------
 procedure TClientSummaryHelper.AddSubscription(AProductID: guid);
 var
   SubArray: arrayofguid;
@@ -1584,6 +1667,7 @@ begin
 end;
 
 { TPracticeHelper }
+//------------------------------------------------------------------------------
 function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer): Guid;
 begin
   Result := '';
@@ -1601,6 +1685,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer): Role;
 var
   RoleGuid : Guid;
