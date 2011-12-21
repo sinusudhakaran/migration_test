@@ -135,7 +135,8 @@ uses
   WarningMoreFrm,
   YesNoDlg,
   RegExprUtils,
-  PickNewPrimaryUser;
+  PickNewPrimaryUser,
+  progress;
 
 Const
   UNITNAME = 'EDITUSERDLG';
@@ -701,6 +702,7 @@ Const
 Var
   i : Integer;
   NewLVItem : TListItem;
+  Prac : Practice;
 begin { TdlgEditUser.Execute }
   lvFiles.Items.Clear;
 
@@ -761,9 +763,28 @@ begin { TdlgEditUser.Execute }
                                   and fUserCanAccessBankLinkOnline;
 
     if User.usAllow_Banklink_Online then
-      fIsPrimaryUser := ProductConfigService.IsPrimaryUser(User.usCode)
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+
+      try
+        Prac := ProductConfigService.GetPractice;
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
+        UserGuid := ProductConfigService.GetUserGuid(User.usCode, Prac);
+        fIsPrimaryUser := ProductConfigService.IsPrimaryUser(User.usCode, Prac);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+      finally
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end
     else
+    begin
+      UserGuid := '';
       fIsPrimaryUser := False;
+    end;
 
     if User.usWorkstation_Logged_In_At <> '' then
       chkLoggedIn.Caption := 'User is &Logged In  (on ' + User.usWorkstation_Logged_In_At +')';
@@ -828,11 +849,6 @@ begin { EditUser }
 
   MyDlg := TdlgEditUser.Create(Application);
   Try
-    if eUser.usAllow_Banklink_Online then
-    begin
-      Prac := ProductConfigService.GetPractice;
-      MyDlg.UserGuid := ProductConfigService.GetUserGuid(User_Code, Prac);
-    end;
     MyDlg.IsCreateUser := False;
 
     BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);

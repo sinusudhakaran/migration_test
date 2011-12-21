@@ -385,10 +385,10 @@ begin
   try
     BlopiInterface :=  GetServiceFacade;
     //Get the client from BankLink Online
-    ClientDetailResponse := BlopiInterface.GetClientDetail(CountryText(AdminSystem.fdFields.fdCountry),
-                                                           AdminSystem.fdFields.fdBankLink_Code,
-                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                           AClientGuid);
+    ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                     AdminSystem.fdFields.fdBankLink_Code,
+                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                     AClientGuid);
     if Assigned(ClientDetailResponse) then begin
       //Client exists on BankLink Online
       Result := ClientDetailResponse.Result;
@@ -457,7 +457,7 @@ begin
         if UseBankLinkOnline then begin
           //Reload from BankLink Online
           BlopiInterface := GetServiceFacade;
-          PracticeDetailResponse := BlopiInterface.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
+          PracticeDetailResponse := BlopiInterface.GetPractice(CountryText(AdminSystem.fdFields.fdCountry),
           AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
           if Assigned(PracticeDetailResponse) then begin
             FOnLine := True;
@@ -1449,33 +1449,47 @@ var
 begin
   Result := false;
 
-  BlopiInterface  := GetServiceFacade;
-  PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-  PracCode        := AdminSystem.fdFields.fdBankLink_Code;
-  PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
   try
-    if not Assigned(aPractice) then
-      aPractice := GetPractice;
+    BlopiInterface  := GetServiceFacade;
+    PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+    PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+    PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
-    UserGuid := GetUserGuid(aUserCode, aPractice);
-    MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
-    Result := MsgResponce.Success;
-  except
-    on E : Exception do
-    begin
-      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracticeUser, Error Message : ' + E.Message);
-      raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+    try
+      if not Assigned(aPractice) then
+        aPractice := GetPractice;
+
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
+
+      UserGuid := GetUserGuid(aUserCode, aPractice);
+      MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
+      Result := MsgResponce.Success;
+
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+    except
+      on E : Exception do
+      begin
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracticeUser, Error Message : ' + E.Message);
+        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+      end;
     end;
-  end;
 
-  if not Result then
-  begin
-    ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
+    if not Result then
+    begin
+      ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
 
-    LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running DeletePracticeUser, Error Message : ' + ErrMsg);
-    raise Exception.Create(BKPRACTICENAME + ' was unable to delete user' +
-                           ' from ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg );
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running DeletePracticeUser, Error Message : ' + ErrMsg);
+      raise Exception.Create(BKPRACTICENAME + ' was unable to delete user' +
+                             ' from ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg );
+    end;
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
   end;
 end;
 
