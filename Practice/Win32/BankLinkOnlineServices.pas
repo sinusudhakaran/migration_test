@@ -526,23 +526,29 @@ var
 begin
   FClientList.Free;
   FClientList := ClientList.Create;
-  if UseBankLinkOnline then begin
-		BlopiInterface := GetServiceFacade;
-    BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
-                                                    AdminSystem.fdFields.fdBankLink_Code,
-                                                    AdminSystem.fdFields.fdBankLink_Connect_Password);
-    if Assigned(BlopiClientList) then
-    begin
-      if Assigned(BlopiClientList.Result) then
-        FClientList := BlopiClientList.Result
-      else begin
-        //Something went wrong
-        Msg := '';
-        for i := Low(BlopiClientList.ErrorMessages) to High(BlopiClientList.ErrorMessages) do
-          Msg := Msg + ServiceErrorMessage(BlopiClientList.ErrorMessages[i]).Message_;
-        HelpfulErrorMsg(Msg, 0);
+  try
+    if UseBankLinkOnline then begin
+      BlopiInterface := GetServiceFacade;
+      BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
+                                                      AdminSystem.fdFields.fdBankLink_Code,
+                                                      AdminSystem.fdFields.fdBankLink_Connect_Password);
+      if Assigned(BlopiClientList) then
+      begin
+        if Assigned(BlopiClientList.Result) then
+          FClientList := BlopiClientList.Result
+        else begin
+          //Something went wrong
+          Msg := '';
+          for i := Low(BlopiClientList.ErrorMessages) to High(BlopiClientList.ErrorMessages) do
+            Msg := Msg + ServiceErrorMessage(BlopiClientList.ErrorMessages[i]).Message_;
+          raise Exception.Create(msg);
+        end;
       end;
     end;
+  except
+    on E: Exception do
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
+                     '.' + #13#13 + E.Message, 0);
   end;
 end;
 
