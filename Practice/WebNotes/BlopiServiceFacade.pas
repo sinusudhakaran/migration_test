@@ -1,17 +1,17 @@
 // ************************************************************************ //
 // The types declared in this file were generated from data read from the
 // WSDL File described below:
-// WSDL     : http://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl
-//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0
-//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0>0
-//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd0
-//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd1
-//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd2
-//  >Import : http://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd3
+// WSDL     : https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl
+//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0
+//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0>0
+//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd0
+//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd2
+//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd1
+//  >Import : https://banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd3
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (14/12/2011 10:55:57 a.m. - - $Rev: 25127 $)
+// (22/12/2011 10:28:46 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -56,13 +56,13 @@ type
   MessageResponseOfClientListMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfClientMIdCYrSK2 = class;     { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   CatalogueEntry       = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  Client               = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   Practice             = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   Role                 = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   User                 = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   NewUser              = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientList           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientSummary        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  Client               = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   NewClient            = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   CatalogueEntry2      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   Practice2            = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
@@ -75,9 +75,11 @@ type
   NewClient2           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
 
   { "http://www.banklinkonline.com/2011/11/Blopi"[GblSmpl] }
-  ClientStatus = (Active, Suspended);
+  Status = (Active, Suspended, Deactivated);
 
   guid            =  type WideString;      { "http://schemas.microsoft.com/2003/10/Serialization/"[GblSmpl] }
+  ArrayOfstring = array of WideString;          { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
+  ArrayOfguid = array of guid;                  { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
   ArrayOfCatalogueEntry = array of CatalogueEntry;   { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ArrayOfServiceErrorMessage = array of ServiceErrorMessage;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   ArrayOfExceptionDetails = array of ExceptionDetails;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
@@ -332,8 +334,6 @@ type
   published
   end;
 
-  ArrayOfguid = array of guid;                  { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
-  ArrayOfstring = array of WideString;          { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
 
 
   // ************************************************************************ //
@@ -365,6 +365,59 @@ type
 
 
   // ************************************************************************ //
+  // XML       : Client, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  Client = class(TRemotable)
+  private
+    FCatalogue: ArrayOfCatalogueEntry;
+    FCatalogue_Specified: boolean;
+    FClientCode: WideString;
+    FClientCode_Specified: boolean;
+    FId: guid;
+    FId_Specified: boolean;
+    FName_: WideString;
+    FName__Specified: boolean;
+    FRoles: ArrayOfRole;
+    FRoles_Specified: boolean;
+    FStatus: Status;
+    FStatus_Specified: boolean;
+    FSubscription: ArrayOfguid;
+    FSubscription_Specified: boolean;
+    FUsers: ArrayOfUser;
+    FUsers_Specified: boolean;
+    procedure SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
+    function  Catalogue_Specified(Index: Integer): boolean;
+    procedure SetClientCode(Index: Integer; const AWideString: WideString);
+    function  ClientCode_Specified(Index: Integer): boolean;
+    procedure SetId(Index: Integer; const Aguid: guid);
+    function  Id_Specified(Index: Integer): boolean;
+    procedure SetName_(Index: Integer; const AWideString: WideString);
+    function  Name__Specified(Index: Integer): boolean;
+    procedure SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
+    function  Roles_Specified(Index: Integer): boolean;
+    procedure SetStatus(Index: Integer; const AStatus: Status);
+    function  Status_Specified(Index: Integer): boolean;
+    procedure SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
+    function  Subscription_Specified(Index: Integer): boolean;
+    procedure SetUsers(Index: Integer; const AArrayOfUser: ArrayOfUser);
+    function  Users_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Catalogue:    ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FCatalogue write SetCatalogue stored Catalogue_Specified;
+    property ClientCode:   WideString             Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
+    property Id:           guid                   Index (IS_OPTN) read FId write SetId stored Id_Specified;
+    property Name_:        WideString             Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
+    property Roles:        ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
+    property Status:       Status                 Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
+    property Subscription: ArrayOfguid            Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
+    property Users:        ArrayOfUser            Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
   // XML       : Practice, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
@@ -386,6 +439,8 @@ type
     FPhone_Specified: boolean;
     FRoles: ArrayOfRole;
     FRoles_Specified: boolean;
+    FStatus: Status;
+    FStatus_Specified: boolean;
     FSubscription: ArrayOfguid;
     FSubscription_Specified: boolean;
     FUsers: ArrayOfUser;
@@ -406,6 +461,8 @@ type
     function  Phone_Specified(Index: Integer): boolean;
     procedure SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
     function  Roles_Specified(Index: Integer): boolean;
+    procedure SetStatus(Index: Integer; const AStatus: Status);
+    function  Status_Specified(Index: Integer): boolean;
     procedure SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
     function  Subscription_Specified(Index: Integer): boolean;
     procedure SetUsers(Index: Integer; const AArrayOfUser: ArrayOfUser);
@@ -421,6 +478,7 @@ type
     property Id:                 guid                   Index (IS_OPTN) read FId write SetId stored Id_Specified;
     property Phone:              WideString             Index (IS_OPTN or IS_NLBL) read FPhone write SetPhone stored Phone_Specified;
     property Roles:              ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
+    property Status:             Status                 Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
     property Subscription:       ArrayOfguid            Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
     property Users:              ArrayOfUser            Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
   end;
@@ -566,7 +624,7 @@ type
     FId_Specified: boolean;
     FName_: WideString;
     FName__Specified: boolean;
-    FStatus: ClientStatus;
+    FStatus: Status;
     FStatus_Specified: boolean;
     FSubscription: ArrayOfguid;
     FSubscription_Specified: boolean;
@@ -576,69 +634,16 @@ type
     function  Id_Specified(Index: Integer): boolean;
     procedure SetName_(Index: Integer; const AWideString: WideString);
     function  Name__Specified(Index: Integer): boolean;
-    procedure SetStatus(Index: Integer; const AClientStatus: ClientStatus);
+    procedure SetStatus(Index: Integer; const AStatus: Status);
     function  Status_Specified(Index: Integer): boolean;
     procedure SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
     function  Subscription_Specified(Index: Integer): boolean;
   published
-    property ClientCode:   WideString    Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
-    property Id:           guid          Index (IS_OPTN) read FId write SetId stored Id_Specified;
-    property Name_:        WideString    Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
-    property Status:       ClientStatus  Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
-    property Subscription: ArrayOfguid   Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
-  end;
-
-
-
-  // ************************************************************************ //
-  // XML       : Client, global, <complexType>
-  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
-  // ************************************************************************ //
-  Client = class(TRemotable)
-  private
-    FCatalogue: ArrayOfCatalogueEntry;
-    FCatalogue_Specified: boolean;
-    FClientCode: WideString;
-    FClientCode_Specified: boolean;
-    FId: guid;
-    FId_Specified: boolean;
-    FName_: WideString;
-    FName__Specified: boolean;
-    FRoles: ArrayOfRole;
-    FRoles_Specified: boolean;
-    FStatus: ClientStatus;
-    FStatus_Specified: boolean;
-    FSubscription: ArrayOfguid;
-    FSubscription_Specified: boolean;
-    FUsers: ArrayOfUser;
-    FUsers_Specified: boolean;
-    procedure SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
-    function  Catalogue_Specified(Index: Integer): boolean;
-    procedure SetClientCode(Index: Integer; const AWideString: WideString);
-    function  ClientCode_Specified(Index: Integer): boolean;
-    procedure SetId(Index: Integer; const Aguid: guid);
-    function  Id_Specified(Index: Integer): boolean;
-    procedure SetName_(Index: Integer; const AWideString: WideString);
-    function  Name__Specified(Index: Integer): boolean;
-    procedure SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
-    function  Roles_Specified(Index: Integer): boolean;
-    procedure SetStatus(Index: Integer; const AClientStatus: ClientStatus);
-    function  Status_Specified(Index: Integer): boolean;
-    procedure SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
-    function  Subscription_Specified(Index: Integer): boolean;
-    procedure SetUsers(Index: Integer; const AArrayOfUser: ArrayOfUser);
-    function  Users_Specified(Index: Integer): boolean;
-  public
-    destructor Destroy; override;
-  published
-    property Catalogue:    ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FCatalogue write SetCatalogue stored Catalogue_Specified;
-    property ClientCode:   WideString             Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
-    property Id:           guid                   Index (IS_OPTN) read FId write SetId stored Id_Specified;
-    property Name_:        WideString             Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
-    property Roles:        ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
-    property Status:       ClientStatus           Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
-    property Subscription: ArrayOfguid            Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
-    property Users:        ArrayOfUser            Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
+    property ClientCode:   WideString   Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
+    property Id:           guid         Index (IS_OPTN) read FId write SetId stored Id_Specified;
+    property Name_:        WideString   Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
+    property Status:       Status       Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
+    property Subscription: ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
   end;
 
 
@@ -775,24 +780,26 @@ type
   // binding   : BasicHttpBinding_IBlopiServiceFacade
   // service   : BlopiServiceFacade
   // port      : BasicHttpBinding_IBlopiServiceFacade
-  // URL       : http://banklinkonline.com/Services/BlopiServiceFacade.svc
+  // URL       : https://banklinkonline.com/Services/BlopiServiceFacade.svc
   // ************************************************************************ //
   IBlopiServiceFacade = interface(IInvokable)
   ['{88E4B606-483E-CC24-1C42-418E3CD2E07E}']
     function  Echo(const aString: WideString): WideString; stdcall;
+    function  EchoArrayOfstring(const strings: ArrayOfstring): WideString; stdcall;
     function  GetPracticeCatalogue(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetSmeCatalogue(const countryCode: WideString; const practiceCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetUserCatalogue(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
-    function  GetPracticeDetail(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeMIdCYrSK; stdcall;
+    function  GetPractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeMIdCYrSK; stdcall;
+    function  SavePractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const practice: Practice): MessageResponse; stdcall;
     function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const newUser: NewUser): MessageResponseOfguid; stdcall;
     function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: User): MessageResponse; stdcall;
     function  DeletePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
     function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
-    function  GetClientDetail(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientMIdCYrSK; stdcall;
+    function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientMIdCYrSK; stdcall;
     function  CreateClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const newClient: NewClient): MessageResponseOfguid; stdcall;
     function  SaveClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const client: ClientSummary): MessageResponse; stdcall;
     function  CreateClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const newUser: NewUser): MessageResponseOfguid; stdcall;
-    function  SaveclientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: User): MessageResponse; stdcall;
+    function  SaveClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: User): MessageResponse; stdcall;
   end;
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
@@ -803,8 +810,8 @@ implementation
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiServiceFacade;
 const
-  defWSDL = 'http://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl';
-  defURL  = 'http://banklinkonline.com/Services/BlopiServiceFacade.svc';
+  defWSDL = 'https://banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl';
+  defURL  = 'https://banklinkonline.com/Services/BlopiServiceFacade.svc';
   defSvc  = 'BlopiServiceFacade';
   defPrt  = 'BasicHttpBinding_IBlopiServiceFacade';
 var
@@ -1055,6 +1062,110 @@ begin
   Result := FId_Specified;
 end;
 
+destructor Client.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to System.Length(FCatalogue)-1 do
+    SysUtils.FreeAndNil(FCatalogue[I]);
+  System.SetLength(FCatalogue, 0);
+  for I := 0 to System.Length(FRoles)-1 do
+    SysUtils.FreeAndNil(FRoles[I]);
+  System.SetLength(FRoles, 0);
+  for I := 0 to System.Length(FUsers)-1 do
+    SysUtils.FreeAndNil(FUsers[I]);
+  System.SetLength(FUsers, 0);
+  inherited Destroy;
+end;
+
+procedure Client.SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
+begin
+  FCatalogue := AArrayOfCatalogueEntry;
+  FCatalogue_Specified := True;
+end;
+
+function Client.Catalogue_Specified(Index: Integer): boolean;
+begin
+  Result := FCatalogue_Specified;
+end;
+
+procedure Client.SetClientCode(Index: Integer; const AWideString: WideString);
+begin
+  FClientCode := AWideString;
+  FClientCode_Specified := True;
+end;
+
+function Client.ClientCode_Specified(Index: Integer): boolean;
+begin
+  Result := FClientCode_Specified;
+end;
+
+procedure Client.SetId(Index: Integer; const Aguid: guid);
+begin
+  FId := Aguid;
+  FId_Specified := True;
+end;
+
+function Client.Id_Specified(Index: Integer): boolean;
+begin
+  Result := FId_Specified;
+end;
+
+procedure Client.SetName_(Index: Integer; const AWideString: WideString);
+begin
+  FName_ := AWideString;
+  FName__Specified := True;
+end;
+
+function Client.Name__Specified(Index: Integer): boolean;
+begin
+  Result := FName__Specified;
+end;
+
+procedure Client.SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
+begin
+  FRoles := AArrayOfRole;
+  FRoles_Specified := True;
+end;
+
+function Client.Roles_Specified(Index: Integer): boolean;
+begin
+  Result := FRoles_Specified;
+end;
+
+procedure Client.SetStatus(Index: Integer; const AStatus: Status);
+begin
+  FStatus := AStatus;
+  FStatus_Specified := True;
+end;
+
+function Client.Status_Specified(Index: Integer): boolean;
+begin
+  Result := FStatus_Specified;
+end;
+
+procedure Client.SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
+begin
+  FSubscription := AArrayOfguid;
+  FSubscription_Specified := True;
+end;
+
+function Client.Subscription_Specified(Index: Integer): boolean;
+begin
+  Result := FSubscription_Specified;
+end;
+
+procedure Client.SetUsers(Index: Integer; const AArrayOfUser: ArrayOfUser);
+begin
+  FUsers := AArrayOfUser;
+  FUsers_Specified := True;
+end;
+
+function Client.Users_Specified(Index: Integer): boolean;
+begin
+  Result := FUsers_Specified;
+end;
+
 destructor Practice.Destroy;
 var
   I: Integer;
@@ -1157,6 +1268,17 @@ end;
 function Practice.Roles_Specified(Index: Integer): boolean;
 begin
   Result := FRoles_Specified;
+end;
+
+procedure Practice.SetStatus(Index: Integer; const AStatus: Status);
+begin
+  FStatus := AStatus;
+  FStatus_Specified := True;
+end;
+
+function Practice.Status_Specified(Index: Integer): boolean;
+begin
+  Result := FStatus_Specified;
 end;
 
 procedure Practice.SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
@@ -1403,9 +1525,9 @@ begin
   Result := FName__Specified;
 end;
 
-procedure ClientSummary.SetStatus(Index: Integer; const AClientStatus: ClientStatus);
+procedure ClientSummary.SetStatus(Index: Integer; const AStatus: Status);
 begin
-  FStatus := AClientStatus;
+  FStatus := AStatus;
   FStatus_Specified := True;
 end;
 
@@ -1423,110 +1545,6 @@ end;
 function ClientSummary.Subscription_Specified(Index: Integer): boolean;
 begin
   Result := FSubscription_Specified;
-end;
-
-destructor Client.Destroy;
-var
-  I: Integer;
-begin
-  for I := 0 to System.Length(FCatalogue)-1 do
-    SysUtils.FreeAndNil(FCatalogue[I]);
-  System.SetLength(FCatalogue, 0);
-  for I := 0 to System.Length(FRoles)-1 do
-    SysUtils.FreeAndNil(FRoles[I]);
-  System.SetLength(FRoles, 0);
-  for I := 0 to System.Length(FUsers)-1 do
-    SysUtils.FreeAndNil(FUsers[I]);
-  System.SetLength(FUsers, 0);
-  inherited Destroy;
-end;
-
-procedure Client.SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
-begin
-  FCatalogue := AArrayOfCatalogueEntry;
-  FCatalogue_Specified := True;
-end;
-
-function Client.Catalogue_Specified(Index: Integer): boolean;
-begin
-  Result := FCatalogue_Specified;
-end;
-
-procedure Client.SetClientCode(Index: Integer; const AWideString: WideString);
-begin
-  FClientCode := AWideString;
-  FClientCode_Specified := True;
-end;
-
-function Client.ClientCode_Specified(Index: Integer): boolean;
-begin
-  Result := FClientCode_Specified;
-end;
-
-procedure Client.SetId(Index: Integer; const Aguid: guid);
-begin
-  FId := Aguid;
-  FId_Specified := True;
-end;
-
-function Client.Id_Specified(Index: Integer): boolean;
-begin
-  Result := FId_Specified;
-end;
-
-procedure Client.SetName_(Index: Integer; const AWideString: WideString);
-begin
-  FName_ := AWideString;
-  FName__Specified := True;
-end;
-
-function Client.Name__Specified(Index: Integer): boolean;
-begin
-  Result := FName__Specified;
-end;
-
-procedure Client.SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
-begin
-  FRoles := AArrayOfRole;
-  FRoles_Specified := True;
-end;
-
-function Client.Roles_Specified(Index: Integer): boolean;
-begin
-  Result := FRoles_Specified;
-end;
-
-procedure Client.SetStatus(Index: Integer; const AClientStatus: ClientStatus);
-begin
-  FStatus := AClientStatus;
-  FStatus_Specified := True;
-end;
-
-function Client.Status_Specified(Index: Integer): boolean;
-begin
-  Result := FStatus_Specified;
-end;
-
-procedure Client.SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
-begin
-  FSubscription := AArrayOfguid;
-  FSubscription_Specified := True;
-end;
-
-function Client.Subscription_Specified(Index: Integer): boolean;
-begin
-  Result := FSubscription_Specified;
-end;
-
-procedure Client.SetUsers(Index: Integer; const AArrayOfUser: ArrayOfUser);
-begin
-  FUsers := AArrayOfUser;
-  FUsers_Specified := True;
-end;
-
-function Client.Users_Specified(Index: Integer): boolean;
-begin
-  Result := FUsers_Specified;
 end;
 
 procedure NewClient.SetClientCode(Index: Integer; const AWideString: WideString);
@@ -1567,6 +1585,8 @@ initialization
   InvRegistry.RegisterDefaultSOAPAction(TypeInfo(IBlopiServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi/IBlopiServiceFacade/%operationName%');
   InvRegistry.RegisterInvokeOptions(TypeInfo(IBlopiServiceFacade), ioDocument);
   RemClassRegistry.RegisterXSInfo(TypeInfo(guid), 'http://schemas.microsoft.com/2003/10/Serialization/', 'guid');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfstring), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfstring');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfguid), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfguid');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfCatalogueEntry), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfCatalogueEntry');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfServiceErrorMessage), 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ArrayOfServiceErrorMessage');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfExceptionDetails), 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ArrayOfExceptionDetails');
@@ -1588,22 +1608,20 @@ initialization
   RemClassRegistry.RegisterXSClass(MessageResponseOfguid2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfguid2', 'MessageResponseOfguid');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientListMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientListMIdCYrSK2', 'MessageResponseOfClientListMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientMIdCYrSK2', 'MessageResponseOfClientMIdCYrSK');
-  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfguid), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfguid');
-  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfstring), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfstring');
   RemClassRegistry.RegisterXSClass(CatalogueEntry, 'http://www.banklinkonline.com/2011/11/Blopi', 'CatalogueEntry');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfRole), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfRole');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(Status), 'http://www.banklinkonline.com/2011/11/Blopi', 'Status');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfUser), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfUser');
+  RemClassRegistry.RegisterXSClass(Client, 'http://www.banklinkonline.com/2011/11/Blopi', 'Client');
+  RemClassRegistry.RegisterExternalPropName(TypeInfo(Client), 'Name_', 'Name');
   RemClassRegistry.RegisterXSClass(Practice, 'http://www.banklinkonline.com/2011/11/Blopi', 'Practice');
   RemClassRegistry.RegisterXSClass(Role, 'http://www.banklinkonline.com/2011/11/Blopi', 'Role');
   RemClassRegistry.RegisterXSClass(User, 'http://www.banklinkonline.com/2011/11/Blopi', 'User');
   RemClassRegistry.RegisterXSClass(NewUser, 'http://www.banklinkonline.com/2011/11/Blopi', 'NewUser');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfClientSummary), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfClientSummary');
   RemClassRegistry.RegisterXSClass(ClientList, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientList');
-  RemClassRegistry.RegisterXSInfo(TypeInfo(ClientStatus), 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientStatus');
   RemClassRegistry.RegisterXSClass(ClientSummary, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientSummary');
   RemClassRegistry.RegisterExternalPropName(TypeInfo(ClientSummary), 'Name_', 'Name');
-  RemClassRegistry.RegisterXSClass(Client, 'http://www.banklinkonline.com/2011/11/Blopi', 'Client');
-  RemClassRegistry.RegisterExternalPropName(TypeInfo(Client), 'Name_', 'Name');
   RemClassRegistry.RegisterXSClass(NewClient, 'http://www.banklinkonline.com/2011/11/Blopi', 'NewClient');
   RemClassRegistry.RegisterExternalPropName(TypeInfo(NewClient), 'Name_', 'Name');
   RemClassRegistry.RegisterXSClass(CatalogueEntry2, 'http://www.banklinkonline.com/2011/11/Blopi', 'CatalogueEntry2', 'CatalogueEntry');
