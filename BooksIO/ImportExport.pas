@@ -6,7 +6,8 @@ uses
   IOStream,
   sysutils,
   classes,
-  ProcTypes;
+  ProcTypes,
+  LogUtil;
 
 
 procedure SetOutputFileProc (Value: OutputFile); stdcall;
@@ -41,6 +42,7 @@ const
 
   ConfigError = $00000001;
   DataError   = $00000002;
+  UnitName = 'ImportExport';
 
 
 var
@@ -50,36 +52,51 @@ var
 
 procedure SetOutputFileProc (Value: OutputFile);
 begin
+  LogMsg(lmInfo, UnitName, 'procedure SetOutputFileProc beginning');
   OutputFileProc := Value;
+
+  LogMsg(lmInfo, UnitName, 'procedure SetOutputFileProc complete');
 end;
 
 
 procedure SetErrorProc (Value: OutputError);
 begin
+  LogMsg(lmInfo, UnitName, 'procedure SetErrorProc beginning');
   ErrorProc := Value;
+
+  LogMsg(lmInfo, UnitName, 'procedure SetErrorProc complete');
 end;
 
 
 procedure DoError(Error: Integer; ErrorText: pChar);
 begin
+  LogMsg(lmInfo, UnitName, 'procedure DoError beginning');
   if Assigned(ErrorProc) then
       ErrorProc(Error, ErrorText);
+
+  LogMsg(lmInfo, UnitName, 'procedure DoError complete');
 end;
 
 procedure DoException(E: Exception; Action : string);
 begin
+   LogMsg(lmInfo, UnitName, 'procedure DoException beginning');
    DoError(DataError ,pchar(format('Error: %s'#13#10'While: %s',[E.Message, action])));
+
+   LogMsg(lmInfo, UnitName, 'procedure DoException complete');
 end;
 
 
 procedure DoOutputData(FileType: Integer; Filename: pChar; Data: PChar);
 begin
+   LogMsg(lmInfo, UnitName, 'procedure DoOutputData beginning');
    if Assigned(OutputFileProc) then
       // Got somthing to do..
       OutputFileProc(FileType, Filename, Data)
    else
       // Not that likely to work then....
       DoError(ConfigError,'OutputFileProc not set');
+
+   LogMsg(lmInfo, UnitName, 'procedure DoOutputData complete');
 end;
 
 
@@ -96,12 +113,15 @@ begin
    finally
       FreeandNil(Instream);
    end;
+
+   LogMsg(lmInfo, UnitName, 'procedure DeCodetext complete');
 end;
 
 function EnCodetext(Value: Tstream): string;
 var
     OutStream: TStringStream;
 begin
+  LogMsg(lmInfo, UnitName, 'function EnCodetext beginning');
   Result := '';
   OutStream := TStringStream.Create('');
   try
@@ -111,6 +131,8 @@ begin
   finally
      FreeandNil(Outstream);
   end;
+
+  LogMsg(lmInfo, UnitName, 'function EnCodetext complete');
 end;
 
 
@@ -123,6 +145,7 @@ var
    Client: TClientObj;
    XML:  TXML_Helper;
 begin
+   LogMsg(lmInfo, UnitName, 'procedure ImportBooksFile beginning');
    ClientStream := nil;
    Client := nil;
    XML := nil;
@@ -142,6 +165,9 @@ begin
       except
          on E: exception do  DoException(E,'Reading Client file');
       end;
+      if not Assigned(Client) then
+         LogMsg(lmInfo, UnitName, 'procedure ImportBooksFile: Client is nil');
+       LogMsg(lmInfo, UnitName, 'procedure ImportBooksFile: reading client');
       // Conserve Mem
       FreeAndNil(clientStream);
 
@@ -153,6 +179,7 @@ begin
       except
          on E: exception do  DoException(E,'Serialising XML');
       end;
+      LogMsg(lmInfo, UnitName, 'procedure ImportBooksFile: serialising client');
 
    finally
       // Clean up
@@ -161,6 +188,7 @@ begin
       FreeAndNil(XML);
    end;
 
+   LogMsg(lmInfo, UnitName, 'procedure ImportBooksFile complete');
 end;
 
 procedure ExportBooksFile(Code: pChar; Blob: Pchar);
@@ -169,38 +197,52 @@ var
    XMLHelper:  TXML_Helper;
    Client: TClientObj;
    Stream : TBigMemoryStream;
-
 begin
-   Client := nil;
-   stream := nil;
+//   LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile beginning');
+
+//   Client := nil;
+//   stream := nil;
+
    XMLHelper := TXML_Helper.Create;
+//   LogMsg(lmInfo, UnitName, '3');
    try
        try
          Client := XMLHelper.ReadClient(string(Blob));
+//         LogMsg(lmInfo, UnitName, '4');
        except
          on E: exception do  DoException(E,'Deserializing XML');
        end;
+//       LogMsg(lmInfo, UnitName, '5');
+//       if not Assigned(Client) then
+//         LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile: Client is nil');
+//       LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile: reading client');
 
        try
+//         LogMsg(lmInfo, UnitName, '6');
          stream := Client.SaveClientToStream;
        except
          on E: exception do  DoException(E,'Saving Client file');
        end;
+//       LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile: saving client file');
 
        try
+//          LogMsg(lmInfo, UnitName, '7');
           DoOutputData(BK5File,pChar(string(Client.clFields.clCode)),pChar(EnCodetext(stream)) );
+   //       Stream.SaveToFile(pChar(string(Client.clFields.clCode)) + '.bk5');
        except
          on E: exception do  DoException(E,'Encoding Client file');
        end;
+//       LogMsg(lmInfo, UnitName, '8');
+//       LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile: encoding client file');
 
    finally
       FreeAndNil(Client);
       FreeAndNil(XMLHelper);
       FreeAndNil(stream);
    end;
+
+//   LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile complete');
 end;
-
-
 
 end.
 
