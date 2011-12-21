@@ -45,10 +45,10 @@ type
   private
     SubArray: ArrayOfGuid;
     FClient: Client;
-    FContactName, FEmailAddress: string;
+//    FContactName, FEmailAddress: string;
   public
-    procedure SetContactName(Value: string);
-    procedure SetEmailAddress(Value: string);
+//    procedure SetContactName(Value: string);
+//    procedure SetEmailAddress(Value: string);
     function Execute(AClient: Client): boolean;
   end;
 
@@ -70,13 +70,26 @@ uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm;
 
 function EditBanklinkOnlineSettings(AClient: Client): boolean;
 var
+  i: integer;
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
 begin
   if AdminSystem.fdFields.fdUse_BankLink_Online then
   begin
+    ProductConfigService.LoadClientList;
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
       Result := BanklinkOnlineSettings.Execute(AClient);
+      if Result then begin
+        //Update access
+        //Update subscriptions
+        for i := 0 to BanklinkOnlineSettings.chklistProducts.Count - 1 do
+          if BanklinkOnlineSettings.chklistProducts.Checked[i] then
+            AClient.AddSubscription(WideString(BanklinkOnlineSettings.chklistProducts.Items.Objects[i]));
+        //Update billing frequency
+        //Update admin user
+        AClient.UpdateAdminUser(BanklinkOnlineSettings.edtUserName.Text,
+                                BanklinkOnlineSettings.edtEmailAddress.Text);
+      end;
     finally
       BanklinkOnlineSettings.Free;
     end;
@@ -114,7 +127,10 @@ begin
     Exit;
   end;
 
-  EmailChanged := (edtEmailAddress.Text <> FClient.EmailAddress);
+  EmailChanged := False;
+  if Length(FClient.Users) > 0 then
+    EmailChanged := (edtEmailAddress.Text <> User(FClient.Users[0]).EMail);
+
   NewProducts := TStringList.Create;
   for i := 0 to chklistProducts.Count - 1 do
   begin
@@ -152,7 +168,7 @@ begin
   else if (EmailChanged or ProductsChanged or BillingFrequencyChanged) then // will reach and trigger this if two or more have changed
   begin
     PromptMessage := 'Are you sure you want to update the following for ' +
-                     FClient.UserName + ':';
+                     User(FClient.Users[0]).FullName + ':';
     if ProductsChanged then
       PromptMessage := PromptMessage + #13#10#10 + 'Activate the following products:' +
                        #13#10 + Trim(NewProducts.Text);
@@ -217,10 +233,14 @@ begin
       rbDeactivated.Checked := FClient.Deactivated;
       cmbConnectDays.Text := FClient.ClientConnectDays;
       chkUseClientDetails.Checked := FClient.UseClientDetails;
-      CatArray := ProductConfigService.Clients.Catalogue;
-      for i := Low(CatArray) to High(CatArray) do
-        chklistProducts.AddItem(CatArray[i].Description, TObject(CatArray[i].Id));
-
+      //Load products
+      chklistProducts.Clear;
+      if Assigned(ProductConfigService.CachedPractice) then begin
+        CatArray := ProductConfigService.CachedPractice.Catalogue;
+        for i := Low(CatArray) to High(CatArray) do
+          chklistProducts.AddItem(CatArray[i].Description, TObject(CatArray[i].Id));
+      end;
+      //Check products that client subscrides to 
       for i := 0 to chklistProducts.Items.Count - 1 do begin
         for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
           GUID1 := FClient.Subscription[k];
@@ -247,8 +267,10 @@ procedure TfrmBanklinkOnlineSettings.FillClientDetails;
 begin
   if chkUseClientDetails.Checked then
   begin
-    edtUserName.Text := FContactName;
-    edtEmailAddress.Text  := FEmailAddress;
+//    edtUserName.Text := FContactName;
+//    edtEmailAddress.Text  := FEmailAddress;
+    edtUserName.Text := MyClient.clFields.clContact_Name;
+    edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
   end;
   edtUserName.Enabled := not chkUseClientDetails.Checked;
   edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
@@ -257,7 +279,7 @@ end;
 procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 //  ListOfClients.Free;
-  chklistProducts.Clear;
+//  chklistProducts.Clear;
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
@@ -280,14 +302,14 @@ begin
   CheckClientConnectControls;
 end;   
 
-procedure TfrmBanklinkOnlineSettings.SetContactName(Value: string);
-begin
-  FContactName := Value;
-end;
+//procedure TfrmBanklinkOnlineSettings.SetContactName(Value: string);
+//begin
+//  FContactName := Value;
+//end;
 
-procedure TfrmBanklinkOnlineSettings.SetEmailAddress(Value: string);
-begin
-  FEmailAddress := Value;
-end;
+//procedure TfrmBanklinkOnlineSettings.SetEmailAddress(Value: string);
+//begin
+//  FEmailAddress := Value;
+//end;
 
 end.

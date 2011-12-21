@@ -19,12 +19,12 @@ type
   ArrayOfString         = BlopiServiceFacade.ArrayOfString;
   Practice              = BlopiServiceFacade.Practice;
   Client                = BlopiServiceFacade.Client;
-  NewClient             = BlopiServiceFacade.NewClient;  
+  NewClient             = BlopiServiceFacade.NewClient;
   User                  = BlopiServiceFacade.User;
   CatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
   ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
   ArrayOfGuid           = BlopiServiceFacade.ArrayOfguid;
-  
+
   TVarTypeData = record
     Name     : String;
     TypeInfo : PTypeInfo;
@@ -41,10 +41,9 @@ type
     function GetUserOnTrial: boolean;
     function GetBillingFrequency: string;
     function GetUseClientDetails: boolean;
-    function GetUserName: string;
-    function GetEmailAddress: string;
     function GetSuspended: boolean;
   public
+    procedure UpdateAdminUser(AUserName, AEmail: WideString);
     procedure AddSubscription(AProductID: guid);
     property Deactivated: boolean read GetDeactivated;
     property ClientConnectDays: string read GetClientConnectDays; // 0 if client must always be online
@@ -53,8 +52,6 @@ type
     property UserOnTrial: boolean read GetUserOnTrial;
     property BillingFrequency: string read GetBillingFrequency;
     property UseClientDetails: boolean read GetUseClientDetails;
-    property UserName: string read GetUserName;
-    property EmailAddress: string read GetEmailAddress;
     property Suspended: boolean read GetSuspended;
   End;
 
@@ -78,12 +75,9 @@ type
     FPractice, FPracticeCopy: Practice;
     FRegisteredForBankLinkOnline: boolean;
     FClientList: ClientList;
-    FClient, FClientCopy: Client;
     FOnLine: Boolean;
     FRegistered: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
-
-    procedure LoadDummyPractice;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
     function IsUserCreatedOnBankLinkOnline(const APractice : Practice;
@@ -101,7 +95,7 @@ type
     procedure SavePracticeDetailsToSystemDB;
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
-    procedure LoadDummyClientList;
+//    procedure LoadDummyClientList;
     function OnlineStatus: TBankLinkOnlineStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
                               const aName : String) : integer;
@@ -120,7 +114,8 @@ type
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
     function GetServiceFacade : IBlopiServiceFacade;
-    function GetClientGuid(const aClientCode: string): WideString;
+    function GetClientGuid(const AClientCode: string): WideString;
+    function GetCachedPractice: Practice;
   public
     constructor Create;
     destructor Destroy; override;
@@ -138,9 +133,9 @@ type
     procedure SelectAllProducts;
     procedure SetPrimaryContact(AUser: User);
     property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
+    property CachedPractice: Practice read GetCachedPractice;
     //Client methods
     procedure LoadClientList;
-    function AddClient: ClientSummary;
     function GetClientDetails(AClientCode: string): Client; overload;
     function GetClientDetails(AClientGuid: Guid): Client; overload;
     function CreateNewClient(ANewClient: NewClient): Guid;
@@ -304,7 +299,7 @@ begin
     Exit;
 
   try
-    BlopiInterface :=  GetIBlopiServiceFacade;
+    BlopiInterface :=  GetServiceFacade;
     MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -333,7 +328,11 @@ begin
   inherited;
 end;
 
-//------------------------------------------------------------------------------
+function TProductConfigService.GetCachedPractice: Practice;
+begin
+  Result := FPractice;
+end;
+
 function TProductConfigService.GetCatalogueEntry(
   AProductId: Guid): CatalogueEntry;
 var
@@ -354,9 +353,6 @@ var
   ClientGuid: WideString;
 begin
   Result := nil;
-  FClient := nil;
-  FClientCopy.Free;
-  FClientCopy := Client.Create;
 
   if not Assigned(AdminSystem) then
     Exit;
@@ -387,7 +383,7 @@ begin
     Exit;
 
   try
-    BlopiInterface :=  GetIBlopiServiceFacade;
+    BlopiInterface :=  GetServiceFacade;
     //Get the client from BankLink Online
     ClientDetailResponse := BlopiInterface.GetClientDetail(CountryText(AdminSystem.fdFields.fdCountry),
                                                            AdminSystem.fdFields.fdBankLink_Code,
@@ -395,8 +391,7 @@ begin
                                                            AClientGuid);
     if Assigned(ClientDetailResponse) then begin
       //Client exists on BankLink Online
-      FClient := ClientDetailResponse.Result;
-      Result := FClient;
+      Result := ClientDetailResponse.Result;
     end else begin
       //Something went wrong
       Msg := '';
@@ -404,8 +399,6 @@ begin
         Msg := Msg + ServiceErrorMessage(ClientDetailResponse.ErrorMessages[i]).Message_;
       raise Exception(Msg);
     end;
-    CopyRemotableObject(FClient, FClientCopy);
-    Result := FClientCopy;
   except
     on E : Exception do
       raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
@@ -463,7 +456,7 @@ begin
         FOnLine := False;
         if UseBankLinkOnline then begin
           //Reload from BankLink Online
-          BlopiInterface := GetIBlopiServiceFacade;
+          BlopiInterface := GetServiceFacade;
           PracticeDetailResponse := BlopiInterface.GetPracticeDetail(CountryText(AdminSystem.fdFields.fdCountry),
           AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
           if Assigned(PracticeDetailResponse) then begin
@@ -524,26 +517,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.AddClient: ClientSummary;
-var
-  SubArray: ArrayOfGuid;
-  Guid1: TGuid;
-  ClientArray: ArrayOfClientSummary;
-begin
-  ClientArray := FClientList.Clients;
-  try
-    SetLength(ClientArray, Length(ClientArray) + 1);
-    ClientArray[High(ClientArray)] := ClientSummary.Create;
-    CreateGUID(Guid1);
-    ClientArray[High(ClientArray)].Id := GuidToString(Guid1);
-    // ClientArray[High(ClientArray)].Subscription := SubArray;
-  finally
-     FClientList.Clients := ClientArray;
-  end;
-  Result := FClientList.Clients[High(FClientList.Clients)];
-end;
-
-//------------------------------------------------------------------------------
 procedure TProductConfigService.LoadClientList;
 var
   BlopiInterface: IBlopiServiceFacade;
@@ -560,173 +533,17 @@ begin
                                                     AdminSystem.fdFields.fdBankLink_Connect_Password);
     if Assigned(BlopiClientList) then
     begin
-      FClientList := BlopiClientList.Result;
-    end else
-    begin
-      //Something went wrong
-      FClientList.Free;
-      FClientList := ClientList.Create;
-      Msg := '';
-      for i := Low(BlopiClientList.ErrorMessages) to High(BlopiClientList.ErrorMessages) do
-        Msg := Msg + ServiceErrorMessage(BlopiClientList.ErrorMessages[i]).Message_;
-      HelpfulErrorMsg(Msg, 0);
+      if Assigned(BlopiClientList.Result) then
+        FClientList := BlopiClientList.Result
+      else begin
+        //Something went wrong
+        Msg := '';
+        for i := Low(BlopiClientList.ErrorMessages) to High(BlopiClientList.ErrorMessages) do
+          Msg := Msg + ServiceErrorMessage(BlopiClientList.ErrorMessages[i]).Message_;
+        HelpfulErrorMsg(Msg, 0);
+      end;
     end;
   end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TProductConfigService.LoadDummyClientList;
-begin
-  FClientList := ClientList.Create;
-  FClientList.Catalogue := FPractice.Catalogue;
-
-  // GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
-
-  AddClient;
-  if (High(FPractice.Subscription) <> - 1) then
-    if Assigned(FClientList.Clients[0]) then
-      ClientSummary(FClientList.Clients[0]).AddSubscription(FPractice.Subscription[0]);
-
-  FClient := Client.Create;
-  FClient.Id := FClientList.Clients[0].Id;
-  FClient.Catalogue := FPractice.Catalogue;
-  if (Length(FPractice.Subscription) > 0) then
-    FClient.AddSubscription(FPractice.Subscription[0]);
-
-  // add subscriptions to client
-end;
-
-//------------------------------------------------------------------------------
-procedure TProductConfigService.LoadDummyPractice;
-var
-  Cat: CatalogueEntry;
-  CatArray: ArrayOfCatalogueEntry;
-  UserArray: ArrayOfUser;
-  SubArray: ArrayOfGuid;
-  GUID: TGuid;
-  AdminUser: User;
-begin
-  FPractice.DisplayName := 'practice';
-  FPractice.DomainName := 'Domain';
-  FPractice.EMail := 'scott.wilson@banklink.co.nz';
-  FPractice.Phone := '555 5555';
-
-  //Products and sevices
-  CatArray := FPractice.Catalogue;
-  try
-    SetLength(CatArray, 11);
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Product';
-    Cat.Description := 'WagesPlus';
-    CatArray[0] := Cat;
-
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Product';
-    Cat.Description := 'InvoicePlus';
-    CatArray[1] := Cat;
-
-    //Auto Subscribe to these services
-    SubArray := FPractice.Subscription;
-    try
-      CreateGUID(GUID);
-      Cat := CatalogueEntry.Create;
-      Cat.Id := GuidToString(GUID);
-      Cat.CatalogueType := 'Service';
-      Cat.Description := 'BankLink Notes Online';
-      CatArray[2] := Cat;
-      SetLength(SubArray, Length(SubArray) + 1);
-      SubArray[High(SubArray)] := Cat.Id;
-
-      CreateGUID(GUID);
-      Cat := CatalogueEntry.Create;
-      Cat.Id := GuidToString(GUID);
-      Cat.CatalogueType := 'Service';
-      Cat.Description := 'Send and Receive Client Files';
-      CatArray[3] := Cat;
-      SetLength(SubArray, Length(SubArray) + 1);
-      SubArray[High(SubArray)] := Cat.Id;
-    finally
-      FPractice.Subscription := SubArray;
-    end;
-
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[4] := Cat;
-
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[5] := Cat;
-
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[6] := Cat;
-
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[7] := Cat;
-
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[8] := Cat;
-
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[9] := Cat;
-
-    CreateGUID(GUID);
-    Cat := CatalogueEntry.Create;
-    Cat.Id := GuidToString(GUID);
-    Cat.CatalogueType := 'Service';
-    Cat.Description := 'BankLink Online';
-    CatArray[10] := Cat;
-  finally
-    FPractice.Catalogue := CatArray;
-  end;
-
-  //Practice users
-  UserArray := FPractice.Users;
-  try
-    SetLength(UserArray, 2);
-
-    CreateGUID(GUID);
-    AdminUser := User.Create;
-    AdminUser.Id := GuidToString(GUID);
-    AdminUser.FullName := 'Andrew Will';
-    UserArray[0] := AdminUser;
-
-    CreateGUID(GUID);
-    AdminUser := User.Create;
-    AdminUser.Id := GuidToString(GUID);
-    AdminUser.FullName := 'Scott Wilson';
-    UserArray[1] := AdminUser;
-  finally
-    FPractice.Users := UserArray;
-  end;
-
-  //Set primary contact
-  FPractice.DefaultAdminUserId := UserArray[1].Id;
 end;
 
 //------------------------------------------------------------------------------
@@ -1167,6 +984,20 @@ var
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponse;
   MyClientSummary: ClientSummary;
+  MyNewUser: NewUser;
+
+  function MessageResponseHasError(AMesageresponse: MessageResponse): Boolean;
+  begin
+    Result := False;
+    if Assigned(AMesageresponse) then begin
+      if not AMesageresponse.Success then begin
+        Msg := GetErrorMessage(AMesageresponse.ErrorMessages, AMesageresponse.Exceptions);
+        HelpfulErrorMsg(Msg, 0);
+        Result := True;
+      end;
+    end;
+  end;
+
 begin
   Result := False;
 
@@ -1179,29 +1010,50 @@ begin
   try
     MyClientSummary := ClientSummary.Create;
     try
-      MyClientSummary.Id := AClient.Id;
+      //Save client
+      MyClientSummary.Id := UpperCase(AClient.Id);
       MyClientSummary.ClientCode := AClient.ClientCode;
       MyClientSummary.Name_ := AClient.Name_;
       MyClientSummary.Status := AClient.Status;
       MyClientSummary.Subscription := AClient.Subscription;
 
-      BlopiInterface :=  GetIBlopiServiceFacade;
+      BlopiInterface := GetServiceFacade;
       MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                MyClientSummary);
+      MessageResponseHasError(MsgResponse);
+      //Save client admin user
+      if (Length(AClient.Users) > 0) then begin
+        if User(AClient.Users[0]).Id = '' then begin
+          //Create new client admin user
+          MyNewUser := NewUser.Create;
+          try
+            MyNewUser.FullName := User(AClient.Users[0]).FullName;
+            MyNewUser.EMail := User(AClient.Users[0]).EMail;
+            MyNewUser.RoleNames := User(AClient.Users[0]).RoleNames;
+            MyNewUser.UserCode := User(AClient.Users[0]).UserCode;
+            MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                           AdminSystem.fdFields.fdBankLink_Code,
+                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                           AClient.Id, MyNewUser);
+            MessageResponseHasError(MsgResponse);            
+          finally
+            MyNewUser.Free;
+          end;
+        end else begin
+          //Update existing client admin user
+          MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       User(AClient.Users[0]).Id, User(AClient.Users[0]));
+          MessageResponseHasError(MsgResponse);
+        end;
+      end;
     finally
       MyClientSummary.Free;
     end;
-   if Assigned(MsgResponse) then
-     if (Length(MsgResponse.ErrorMessages) = 0) then
-       Result := True
-     else begin
-       //Something went wrong
-       for i := Low(MsgResponse.ErrorMessages) to High(MsgResponse.ErrorMessages) do
-         Msg := Msg + ServiceErrorMessage(MsgResponse.ErrorMessages[i]).Message_;
-       raise Exception(Msg);
-     end;
+    Result := True;
   except
     on E: Exception do
       HelpfulErrorMsg(Msg, 0);
@@ -1306,12 +1158,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TClientHelper.GetEmailAddress: string;
-begin
-  Result := 'someone@somewhere.com';
-end;
-
-//------------------------------------------------------------------------------
 function TClientHelper.GetFreeTrialEndDate: TDateTime;
 begin
   Result := StrToDate('31/12/2011');
@@ -1330,18 +1176,42 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TClientHelper.GetUserName: string;
-begin
-  Result := 'Joe Bloggs';
-end;
-
-//------------------------------------------------------------------------------
 function TClientHelper.GetUserOnTrial: boolean;
 begin
   Result := false;
 end;
 
-//------------------------------------------------------------------------------
+procedure TClientHelper.UpdateAdminUser(AUserName, AEmail: WideString);
+var
+  UserArray: ArrayOfUser;
+  RoleArray: ArrayOfString;
+  NewUser: User;
+begin
+  //Should only be one client admin user
+  if Length(Self.Users) = 0 then begin
+    //Add
+    NewUser := User.Create;
+    UserArray := Self.Users;
+    try
+      SetLength(UserArray, Length(Self.Users) + 1);
+      Self.Users := UserArray;
+      Self.Users[0] := NewUser;
+      RoleArray := NewUser.RoleNames;
+      try
+        SetLength(RoleArray, Length(NewUser.RoleNames) + 1);
+        RoleArray[0] := 'Client Administrator';
+      finally
+        NewUser.RoleNames := RoleArray;
+      end;
+    finally
+      Self.Users := UserArray;
+    end;
+  end;
+  //Update
+  User(Self.Users[0]).FullName := AUserName;
+  User(Self.Users[0]).EMail := AEmail;
+end;
+
 procedure TClientHelper.AddSubscription(AProductID: guid);
 var
   SubArray: arrayofguid;
@@ -1354,7 +1224,7 @@ begin
   SubArray := Subscription;
   try
     SetLength(SubArray, Length(SubArray) + 1);
-    SubArray[High(SubArray)] := AProductId;
+    SubArray[High(SubArray)] := UpperCase(AProductId);
   finally
     Subscription := SubArray;
   end;
