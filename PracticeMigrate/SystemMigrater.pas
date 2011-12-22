@@ -191,7 +191,8 @@ uses
    ClientMigrater,
    winutils,
    SyHelpers,
-   SysUtils;
+   SysUtils,
+   LogUtil;
 
 { TSystemMigrater }
 
@@ -320,6 +321,33 @@ function TSystemMigrater.AddClientFile(ForAction: TMigrateAction;
 var
    Clients: TClientMigrater;
    Clientrec: pClient_File_Rec;
+
+   function GetUserID: WideString;
+   var
+    User: pUser_Rec;
+    UserCode: string;
+    Query: TADOQuery;
+    CheckedOutToStr: WideString;
+   begin
+     if Assigned(AdminSystem) then
+     begin
+       User := AdminSystem.fdSystem_User_List.FindLRN(Clientrec.cfCurrent_User);
+       if Assigned(User) then
+       begin
+         Query := TADOQuery.Create(nil);
+         try
+           Query.Connection := Connection;
+           UserCode := User.usCode;
+           Query.SQL.Add(Format('SELECT Id FROM PracticeSystem.dbo.Users WHERE Code = ''%0:s''', [UserCode]));
+           Query.Open;
+           Result := Query.FieldByName('Id').AsWideString;
+           Query.Close;
+         finally
+           Query.Free;
+         end;
+       end;
+     end;
+   end;
 begin
 
    Result := false;
@@ -343,6 +371,7 @@ begin
                             ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN),
                             Fsystem.fdFields.fdMagic_Number,
                             Fsystem.fdFields.fdCountry,
+                            GetUserID,
                             Clientrec
                        );
    end;
@@ -731,6 +760,7 @@ begin
 
       Connection.Execute( 'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"');
       try
+      DeleteTable(MyAction,'UserOpenClients');
       DeleteTable(MyAction,'UserClients');
       ClearUserViewConfigurations;
       DeleteTable(MyAction,'UserPrintSettings');

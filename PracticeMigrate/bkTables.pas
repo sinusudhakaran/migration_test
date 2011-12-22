@@ -8,7 +8,9 @@ uses
    ToDoListUnit,
    ClientDetailCacheobj,
    syDefs, //  pClient_File_Rec
-   bkDefs;
+   bkDefs,
+   globals,
+   LogUtil;
 
 type
 
@@ -28,7 +30,8 @@ public
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec;
-                   AClient: pClient_File_Rec): Boolean;
+                   AClient: pClient_File_Rec;
+                   CheckedOutTo: widestring): Boolean;
 
     function InsertProspect(MyId: TGuid;
                    UserID: TGuid;
@@ -131,7 +134,8 @@ public
    function Insert(MyID: TGuid;
                    AccountID: TGuid;
                    MatchedItemID: TGuid;
-                   Value: PTransaction_Rec): Boolean;
+                   Value: PTransaction_Rec;
+                   IsSplitPayee, IsDissected, IsSplitJob, IsPayeeOverridden, IsJobOverridden: boolean): Boolean;
 end;
 
 
@@ -380,7 +384,10 @@ function TClient_RecFieldsTable.Insert(MyId: TGuid;
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec;
-                   AClient: pClient_File_Rec): Boolean;
+                   AClient: pClient_File_Rec;
+                   CheckedOutTo: widestring): Boolean;
+var
+   CheckedOutToGuid: TGuid;
 
    function GetNotes: string;
    var I: Integer;
@@ -400,33 +407,36 @@ function TClient_RecFieldsTable.Insert(MyId: TGuid;
          Result := Unknown;
    end;
 
-begin with Value^, Extra^, More^ do
-  Result := RunValues([ToSQL(MyId),ToSQL(clCode),ToSQL(clName),ToSQL(clAddress_L1),ToSQL(clAddress_L2),ToSQL(clAddress_L3)
-               ,ToSQL(clContact_Name),ToSQL(clPhone_No),ToSQL(clFax_No),ToSQL(clClient_EMail_Address)
-{2}        ,ToSQL(clCountry),ToSQL(clBankLink_Connect_Password),ToSQL(clPIN_Number),DateToSQL(clFinancial_Year_Starts)
-{3}        ,ToSQL(clGST_Number),ToSQL(clGST_Period),ToSQL(clGST_Start_Month),ToSQL(clGST_Basis)
-              ,ToSQL(clGST_on_Presentation_Date),ToSQL(clGST_Excludes_Accruals),ToSQL(clGST_Inclusive_Cashflow)
-{4}        ,ToSQL(AccountingSystemID),ToSQL(clAccount_Code_Mask),ToSQL(clLoad_Client_Files_From),ToSQL(clSave_Client_Files_To)
-               ,ToSQL(clChart_Is_Locked),DateToSQL(clChart_Last_Updated)
-{5}        ,ToSQL(clMagic_Number),ToSQL(clException_Options),DateToSQL(clPeriod_Start_Date),DateToSQL(clPeriod_End_Date),ToSQL(clBankLink_Code)
-{6}        ,ToSQL(clDisk_Sequence_No),ToSQL(UserID),ToSQL(clSuppress_Check_for_New_TXns),ToSQL(clDownload_From),ToSQL(clLast_Batch_Number)
-{7}        ,ToSQL(clTax_Ledger_Code),ToSQL(clCheques_Expire_When),ToSQL(clShow_Notes_On_Open)
-{8}        ,ToSQL(clCflw_Cash_On_Hand_Style), DateToSQL(clLast_Financial_Year_Start),ToSQL(TaxSystemID),ToSQL(clSave_Tax_Files_To)
-              ,ToSQL(clJournal_Processing_Period),ToSQL(clLast_Disk_Image_Version)
-{9}        ,ToSQL(clWeb_Site_Login_URL),ToSQL(clContact_Details_To_Show),ToSQL(clCustom_Contact_Name)
-              ,ToSQL(clCustom_Contact_EMail_Address),ToSQL(clCustom_Contact_Phone)
-{10}       ,ToSQL(clHighest_Manual_Account_No),ToSQL(clCopy_Narration_Dissection),ToSQL(SystemComments)
-{11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),ToSQL(WebExportFormat),ToSQL(clMobile_No)
-              ,ToSQL(clFile_Read_Only),ToSQL(clSalutation),ToSQL(clExternal_ID)
-{12}       ,ToSQL( clForce_Offsite_Check_Out),ToSQL(clDisable_Offsite_Check_Out),ToSQL(clAlternate_Extract_ID),ToSQL(clUse_Alterate_ID_for_extract)
-{13}       ,DateToSQL(AClient.cfDate_Last_Accessed),ToSQL(clUse_Basic_Chart),ToSQL(GroupID),ToSQL(TypeID)
-              ,ToSQL(clAll_EditMode_CES),ToSQL(clAll_EditMode_DIS),ToSQL(clTFN)
-{14}       , ToSql(ceAllow_Client_Unlock_Entries),ToSQL(ceAllow_Client_Edit_Chart)
-              ,ToSQL(ceBudget_Include_Quantities),ToSQL(Archived)
-{16}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
-              ,ToSql(clBAS_Field_Number[bfGSTProvisional] = GSTRatio),PercentToSQL(GetGSTRatio)
-{17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems)
-              ,ToSQL(ComputePWHash(clFile_Password,MyId)),ToSQL(False)],[]);
+begin
+  if (CheckedOutTo <> '') then
+    CheckedOutToGuid := StringToGUID(CheckedOutTo);
+  with Value^, Extra^, More^ do
+    Result := RunValues([ToSQL(MyId),ToSQL(clCode),ToSQL(clName),ToSQL(clAddress_L1),ToSQL(clAddress_L2),ToSQL(clAddress_L3)
+                 ,ToSQL(clContact_Name),ToSQL(clPhone_No),ToSQL(clFax_No),ToSQL(clClient_EMail_Address)
+  {2}        ,ToSQL(clCountry),ToSQL(clBankLink_Connect_Password),ToSQL(clPIN_Number),DateToSQL(clFinancial_Year_Starts)
+  {3}        ,ToSQL(clGST_Number),ToSQL(clGST_Period),ToSQL(clGST_Start_Month),ToSQL(clGST_Basis)
+                ,ToSQL(clGST_on_Presentation_Date),ToSQL(clGST_Excludes_Accruals),ToSQL(clGST_Inclusive_Cashflow)
+  {4}        ,ToSQL(AccountingSystemID),ToSQL(clAccount_Code_Mask),ToSQL(clLoad_Client_Files_From),ToSQL(clSave_Client_Files_To)
+                 ,ToSQL(clChart_Is_Locked),DateToSQL(clChart_Last_Updated)
+  {5}        ,ToSQL(clMagic_Number),ToSQL(clException_Options),DateToSQL(clPeriod_Start_Date),DateToSQL(clPeriod_End_Date),ToSQL(clBankLink_Code)
+  {6}        ,ToSQL(clDisk_Sequence_No),ToSQL(UserID),ToSQL(clSuppress_Check_for_New_TXns),ToSQL(clDownload_From),ToSQL(clLast_Batch_Number)
+  {7}        ,ToSQL(clTax_Ledger_Code),ToSQL(clCheques_Expire_When),ToSQL(clShow_Notes_On_Open)
+  {8}        ,ToSQL(clCflw_Cash_On_Hand_Style), DateToSQL(clLast_Financial_Year_Start),ToSQL(TaxSystemID),ToSQL(clSave_Tax_Files_To)
+                ,ToSQL(clJournal_Processing_Period),ToSQL(clLast_Disk_Image_Version)
+  {9}        ,ToSQL(clWeb_Site_Login_URL),ToSQL(clContact_Details_To_Show),ToSQL(clCustom_Contact_Name)
+                ,ToSQL(clCustom_Contact_EMail_Address),ToSQL(clCustom_Contact_Phone)
+  {10}       ,ToSQL(clHighest_Manual_Account_No),ToSQL(clCopy_Narration_Dissection),ToSQL(SystemComments)
+  {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),ToSQL(WebExportFormat),ToSQL(clMobile_No)
+                ,ToSQL(clFile_Read_Only),ToSQL(clSalutation),ToSQL(clExternal_ID)
+  {12}       ,ToSQL( clForce_Offsite_Check_Out),ToSQL(clDisable_Offsite_Check_Out),ToSQL(clAlternate_Extract_ID),ToSQL(clUse_Alterate_ID_for_extract)
+  {13}       ,DateToSQL(AClient.cfDate_Last_Accessed),ToSQL(clUse_Basic_Chart),ToSQL(GroupID),ToSQL(TypeID)
+                ,ToSQL(clAll_EditMode_CES),ToSQL(clAll_EditMode_DIS),ToSQL(clTFN)
+  {14}       , ToSql(ceAllow_Client_Unlock_Entries),ToSQL(ceAllow_Client_Edit_Chart)
+                ,ToSQL(ceBudget_Include_Quantities),ToSQL(Archived)
+  {16}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
+                ,ToSql(clBAS_Field_Number[bfGSTProvisional] = GSTRatio),PercentToSQL(GetGSTRatio)
+  {17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems)
+                ,ToSQL(ComputePWHash(clFile_Password,MyId)),ToSQL(False),ToSQL(CheckedOutToGuid)],[]);
 end;
 
 function TClient_RecFieldsTable.InsertProspect(
@@ -490,7 +500,7 @@ begin
 {13}    ,'LastUseDate','UseBasicChart','ClientGroupId','ClientTypeId','AllEditModeCES','AllEditModeDIS','TFN'
 {14}    ,'AllowClientUnlockEntries','AllowClientEditChart','BudgetIncludeQuantities','Archived'
 {15}    ,'JournalProcessingDuration','GSTIncludeProvisionalTax','GSTUseRatioOption','GSTRatio'
-{16}    ,'Comments','GenerateFinancialReports','EditMemorisations','Password','IsProspect'],[]);
+{16}    ,'Comments','GenerateFinancialReports','EditMemorisations','Password','IsProspect','CheckedOutTo'],[]);
 
 end;
 
@@ -550,7 +560,8 @@ end;
 { TTransaction_RecTable }
 
 function TTransaction_RecTable.Insert(MyID, AccountID,MatchedItemID: TGuid;
-  Value: PTransaction_Rec): Boolean;
+  Value: PTransaction_Rec; IsSplitPayee, IsDissected, IsSplitJob, IsPayeeOverridden,
+  IsJobOverridden: boolean): Boolean;
 begin  with Value^ do
   Result := RunValues([ ToSQL(MyId),ToSQL(AccountID),ToSQL(txSequence_No)
                   ,ToSQL(txType),ToSQL(txSource),DateToSQL(txDate_Presented),DateToSQL(txDate_Effective)
@@ -565,7 +576,7 @@ begin  with Value^ do
 {6}       ,ToSQL(txECoding_Transaction_UID), ToSQL(txGL_Narration), ToSQL(txStatement_Details), ToSQL(txTax_Invoice_Available)
 {7}       ,ToSQL(txExternal_GUID),ToSQl(txDocument_Title),ToSQL(txJob_Code)
 {8}       ,ToSQL(txDocument_Status_Update_Required),ToSQL(txBankLink_UID),ToSQL(txNotes_Read),ToSQL(txImport_Notes_Read)
-
+{9}       ,ToSQL(IsDissected),ToSQL(IsSplitPayee),ToSQL(IsSplitJob),ToSQL(IsPayeeOverridden),ToSQL(IsJobOverridden)
           ],[
 
 {1}       ToSQL(value.txSF_Super_Fields_Edited ), ToSQL(txSF_Franked),ToSQL(txSF_UnFranked),
@@ -587,7 +598,6 @@ begin  with Value^ do
 {8}       DateToSQl(txSF_CGT_Date), ToSQL(txSF_Capital_Gains_Fraction_Half)
 
 ]);
-
 end;
 
 procedure TTransaction_RecTable.SetupTable;
@@ -598,10 +608,10 @@ begin
 {3}       ,'Reference','Particulars','Analysis','OrigBB','OtherParty','ChartCode','CodedBy'
 {4}       ,'PayeeNumber','Locked','BankLinkID','GSTHasBeenEdited','MatchedItemID','UPIState','OriginalReference'
 {5}       ,'OriginalSource','OriginalType','OriginalChequeNumber','OriginalAmount','Notes','ECodingImportNotes'
-{6}       ,'ECodingTransactionUID','GLNarration','StatementDetails' ,'TaxInvoiceAvailable'
+{6}       ,'ECodingTransactionUID','GLNarration','StatementDetails' ,'TaxInvoiceAvailable1'
 {7}       ,'ExternalGUID','DocumentTitle','JobCode'
 {8}       ,'DocumentStatusUpdateRequired','BankLinkUID','NotesRead','ImportNotesRead'
-
+{9}       ,'IsDissected','IsSplitPayee','IsPayeeOverridden'
           ],SFLineFields);
 
 

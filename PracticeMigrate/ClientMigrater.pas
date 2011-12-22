@@ -72,7 +72,7 @@ TClientMigrater = class (TMigrater)
     procedure AddSubGroups(ForAction: TMigrateAction);
     procedure AddReminders(ForAction: TMigrateAction);
     procedure MigrateDiskLog(ForAction: TMigrateAction);
-  
+
 
     // List iteration functions
     function AddTransaction(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
@@ -142,6 +142,7 @@ TClientMigrater = class (TMigrater)
                     ATypeID: TGuid;
                     AMagicNumber,
                     ACountry: Integer;
+                    CheckedOutUserID: WideString;
                     AClient: pClient_File_Rec = nil): Boolean;
 
 
@@ -219,7 +220,9 @@ uses
    baObj32,
    Software,
    files,
-   Sysutils;
+   Sysutils,
+   logutil,
+   Globals;
 
 { TClientMigrater }
 
@@ -649,13 +652,98 @@ begin
 end;
 
 
-function TClientMigrater.AddTransaction(ForAction: TMigrateAction;
-  Value: TGuidObject): Boolean;
-
+function TClientMigrater.AddTransaction(ForAction: TMigrateAction; Value: TGuidObject): Boolean;        
 var
    Diss: PDissection_Rec;
    Transaction: PTransaction_Rec;
    GST: money;
+
+   function GetSplitPayee: boolean;
+   var
+     Query: TADOQuery;
+   begin
+     Query := TADOQuery.Create(nil);
+     try
+       Query.Connection := Connection;
+       Query.SQL.Clear;
+       Query.SQL.Add(Format('SELECT COUNT(*) FROM [PracticeClient].[dbo].[Payees] P, ' +
+                            '[PracticeClient].[dbo].[PayeeLines] PL ' +
+                            'WHERE P.Client_Id = ''%0:s''' + 'AND P.Number = ''%1:s''' +
+                            'AND P.id = PL.Payee_id',
+                            [GuidToString(self.FClientID), IntToStr(Transaction.txPayee_Number)]));
+       Query.Open;
+       Result := (Query.FieldCount > 1);
+     finally
+       Query.Free;
+     end;
+   end;
+
+   function IsDissected: boolean;
+   begin
+     Result := Assigned(Transaction.txFirst_Dissection);
+   end;
+
+   function IsSplitJob: boolean;
+   var
+     Dissection: PDissection_Rec;
+     JobCode: string;
+   begin
+    Result := false;
+    Dissection := PDissection_Rec(Transaction.txFirst_Dissection);
+    while Assigned(Dissection) do
+    begin
+      if (JobCode = '') then
+        JobCode := Dissection.dsJob_Code
+      else
+      begin
+        if (Dissection.dsJob_Code <> '') and (Dissection.dsJob_Code <> JobCode) then
+        begin
+          Result := true;
+          break;
+        end;
+      end;
+      Dissection := Dissection.dsNext;
+    end;
+   end;
+
+   function IsPayeeOverridden: boolean;
+   var
+     Query: TADOQuery;
+   begin
+     Query := TADOQuery.Create(nil);
+     try
+       Query.Connection := Connection;
+       Query.SQL.Clear;
+       Query.SQL.Add(Format('SELECT COUNT(DISTINCT(D.PayeeNumber)) FROM [PracticeClient].[dbo].[Transactions] T, [PracticeClient].[dbo].[Dissections] D ' +
+                            'WHERE T.Id = ''%0:s'' AND T.PayeeNumber <> D.PayeeNumber',
+                            [GuidToString(Value.GuidID)]));
+       Query.Open;
+       Query.First;
+       Result := (Query.FieldCount > 1);
+     finally
+       Query.Free;
+     end;
+   end;
+
+   function IsJobOverridden: boolean;
+   var
+     Query: TADOQuery;
+   begin
+     Query := TADOQuery.Create(nil);
+     try
+       Query.Connection := Connection;
+       Query.SQL.Clear;
+       Query.SQL.Add(Format('SELECT COUNT(DISTINCT(D.JobCode)) FROM [PracticeClient].[dbo].[Transactions] T, [PracticeClient].[dbo].[Dissections] D ' +
+                            'WHERE T.Id = ''%0:s'' AND T.JobCode <> D.JobCode',
+                            [GuidToString(Value.GuidID)]));
+       Query.Open;
+       Query.First;
+       Result := (Query.FieldCount > 1);
+     finally
+       Query.Free;
+     end;
+   end;
+
 begin
    Transaction := PTransaction_Rec(Value.Data);
 
@@ -673,7 +761,11 @@ begin
                             Value.GuidID,
                             ForAction.Item.GuidID,
                             MatchIDList.GetIDGuid(Transaction.txMatched_Item_ID),
-                            Transaction
+                            Transaction,
+                            GetSplitPayee,
+                            IsDissected,
+                            IsSplitJob,
+                            IsPayeeOverridden
                        );
 
    Diss := Transaction.txFirst_Dissection;
@@ -781,7 +873,7 @@ begin
       DeleteTable(MyAction,'Dissections', True);
 
       KeepTime := Connection.CommandTimeout;
-      Connection.CommandTimeout := 10 * 60;
+      Connection.CommandTimeout := 20 * 60;
       DeleteTable(MyAction,'Transactions');
       Connection.CommandTimeout := KeepTime;
 
@@ -1203,6 +1295,7 @@ function TClientMigrater.Migrate(ForAction:TMigrateAction;
                     ATypeID: TGuid;
                     AMagicNumber,
                     ACountry: Integer;
+                    CheckedOutUserID: WideString;
                     AClient: pClient_File_Rec = nil): Boolean;
 
 
@@ -1226,17 +1319,16 @@ var
        else
           result := false;
    end;
+
 begin
    Result := False;
    Reset;
    // set some global bits
    Code := ACode;
-   ClientID := AClientID;
-
-
-
+   ClientID := AClientID;  
    GuidList := nil;
    MyAction := ForAction.InsertAction(Code);
+   MyAction.LogMessage('TClientMigrater.Migrate Start');
 
    try try
       if Assigned(AClient) then begin
@@ -1294,7 +1386,8 @@ begin
                       @FClient.clFields,
                       @FClient.clMoreFields,
                       @FClient.clExtra ,
-                      AClient
+                      AClient,
+                      CheckedOutUserID
                     );
 
 

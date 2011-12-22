@@ -128,7 +128,7 @@ result := '[Id],[Code],[Name],[AddressL1],[AddressL2],[AddressL3],[ContactName],
 {14}    + ',[LastUseDate],[UseBasicChart],[ClientGroupId],[ClientTypeId],[AllEditModeCES],[AllEditModeDIS],[TFN]'
 {15}    + ',[AllowClientUnlockEntries],[AllowClientEditChart],[ScheduledCustomCRXML],[BudgetIncludeQuantities],[ScheduledCRColumnLine],[Archived]'
 {16}    + ',[JournalProcessingDuration],[GSTIncludeProvisionalTax],[GSTUseRatioOption],[GSTRatio]'
-{17}    + ',[Comments],[GenerateFinancialReports],[EditMemorisations],[Password]'
+{17}    + ',[Comments],[GenerateFinancialReports],[EditMemorisations],[Password],[IsCheckedOut]'
 end;
 
 

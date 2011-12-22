@@ -173,7 +173,8 @@ files,
 SQLHelpers,
 bthelpers,
 bkHelpers,
-syhelpers;
+syhelpers,
+LogUtil;
 
 {$R *.dfm}
 
@@ -392,35 +393,43 @@ end;
 function TformMain.ClearPracticeLogs(ForAction: TMigrateAction): Boolean;
 var Con : TADOConnection;
     MyAction,ClearAction : TMigrateAction;
+    CallStack: TStringList;
 begin
    Con := TADOConnection.Create(nil);
    Con.LoginPrompt := false;
    Con.Provider := 'SQLNCLI10.1';
    Con.CommandTimeout := 120;
    MyAction := ForAction.NewAction('Clear Logs');
-   if Connect(MyAction, Con, Destination, 'PracticeLog', User, Pw) then begin
+   try
+     if Connect(MyAction, Con, Destination, 'PracticeLog', User, Pw) then begin
 
-      ClearAction := MyAction.NewAction('Clearing Logs');
+        ClearAction := MyAction.NewAction('Clearing Logs');
 
-      TMigrater.RunSQL(con,ClearAction,
+        TMigrater.RunSQL(con,ClearAction,
 
-   'IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N''[dbo].[FK_CategoryLog_Log]'') AND parent_object_id = OBJECT_ID(N''[dbo].[CategoryLogs]'')) ALTER TABLE [dbo].[CategoryLogs] DROP CONSTRAINT [FK_CategoryLog_Log]'
-               ,'Drop foreign keys' );
-      TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE categorylogs', 'Delete categorylogs');
+     'IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N''[dbo].[FK_CategoryLog_Log]'') AND parent_object_id = OBJECT_ID(N''[dbo].[CategoryLogs]'')) ALTER TABLE [dbo].[CategoryLogs] DROP CONSTRAINT [FK_CategoryLog_Log]'
+                 ,'Drop foreign keys' );
+        TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE categorylogs', 'Delete categorylogs');
 
-      TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE logs', 'Delete Logs');
+        TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE logs', 'Delete Logs');
 
-      TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs]  WITH CHECK ADD  CONSTRAINT [FK_CategoryLog_Log] FOREIGN KEY([LogID]) REFERENCES [dbo].[Logs] ([LogID])'
-      , 'Add foreign keys');
+        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs]  WITH CHECK ADD  CONSTRAINT [FK_CategoryLog_Log] FOREIGN KEY([LogID]) REFERENCES [dbo].[Logs] ([LogID])'
+        , 'Add foreign keys');
 
-      TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs] CHECK CONSTRAINT [FK_CategoryLog_Log]'
-      ,'Check Constraints');
+        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs] CHECK CONSTRAINT [FK_CategoryLog_Log]'
+        ,'Check Constraints');
 
-      TMigrater.RunSQL(con,ClearAction,'DBCC SHRINKFILE(''PracticeLog_Log'',1)', 'Shrink log');
-      ClearAction.Status := Success;
+        TMigrater.RunSQL(con,ClearAction,'DBCC SHRINKFILE(''PracticeLog_Log'',1)', 'Shrink log');
+        ClearAction.Status := Success;
 
-      disconnect(MyAction,con,'PracticeLog');
-      MyAction.Status := Success;
+        disconnect(MyAction,con,'PracticeLog');
+        MyAction.Status := Success;
+     end;
+   except
+     on E : Exception do
+     LogUtil.LogMsg(lmInfo, 'MainForm', 'ClearPracticeLogs - ' + MyAction.Title + ', ' +
+                    Con.ConnectionString + ', ' + Destination + ', ' + User + ', ' + Pw);
+
    end;
    FreeAndNil(Con);
 end;
