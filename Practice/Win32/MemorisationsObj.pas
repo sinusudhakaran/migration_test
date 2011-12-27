@@ -87,7 +87,7 @@ type
       constructor Create(AAuditMgr: TAuditManager); overload;
       constructor Create; overload;
       function Compare(Item1,Item2 : Pointer): Integer; override;
-//      procedure Insert(Item : Pointer); override;
+      procedure Insert(Item : Pointer); override;
       procedure FreeAll; override;
       procedure Insert_Memorisation(m : TMemorisation; NewAuditID: boolean = True); virtual;
       function  Memorisation_At(Index : longint) : TMemorisation;
@@ -693,16 +693,16 @@ begin
   result := CRC;
 end;
 
-//procedure TMemorisations_List.Insert(Item: Pointer);
-//const
-//  ThisMethodName = 'TMemorisations_List.Insert';
-//var
-//  Msg : string;
-//begin
-//  Msg := Format( '%s : Called Direct', [ ThisMethodName] );
-//  LogUtil.LogMsg(lmError, UnitName, Msg );
-//  raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
-//end;
+procedure TMemorisations_List.Insert(Item: Pointer);
+const
+  ThisMethodName = 'TMemorisations_List.Insert';
+var
+  Msg : string;
+begin
+  Msg := Format( '%s : Called Direct', [ ThisMethodName] );
+  LogUtil.LogMsg(lmError, UnitName, Msg );
+  raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+end;
 
 procedure TMemorisations_List.Insert_Memorisation(m : TMemorisation; NewAuditID: boolean = True);
 begin
