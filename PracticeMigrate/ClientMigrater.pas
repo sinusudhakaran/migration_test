@@ -765,7 +765,8 @@ begin
                             GetSplitPayee,
                             IsDissected,
                             IsSplitJob,
-                            IsPayeeOverridden
+                            IsPayeeOverridden,
+                            IsJobOverridden
                        );
 
    Diss := Transaction.txFirst_Dissection;
