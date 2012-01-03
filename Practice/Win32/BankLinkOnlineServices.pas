@@ -311,7 +311,7 @@ begin
        //Something went wrong
        for i := Low(MsgResponse.ErrorMessages) to High(MsgResponse.ErrorMessages) do
          Msg := Msg + ServiceErrorMessage(MsgResponse.ErrorMessages[i]).Message_;
-       raise Exception(Msg);
+       raise Exception.Create(Msg);
      end;
   except
     on E: Exception do
@@ -397,11 +397,12 @@ begin
       Msg := '';
       for j := Low(ClientDetailResponse.ErrorMessages) to High(ClientDetailResponse.ErrorMessages) do
         Msg := Msg + ServiceErrorMessage(ClientDetailResponse.ErrorMessages[i]).Message_;
-      raise Exception(Msg);
+      raise Exception.Create(Msg);
     end;
   except
     on E : Exception do
-      raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
+                        '.' + #13#13 + E.Message, 0);
   end;
 end;
 
