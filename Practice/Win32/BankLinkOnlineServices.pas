@@ -1368,6 +1368,9 @@ begin
 
     if IsUserOnline then
     begin
+      if aUserId = '' then
+        aUserId := GetUserGuid(aUserCode, CurrPractice);
+
       UpdateUser := User.Create;
       UpdateUser.EMail        := aEMail;
       UpdateUser.FullName     := aFullName;
