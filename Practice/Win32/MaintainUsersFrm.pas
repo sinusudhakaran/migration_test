@@ -181,7 +181,7 @@ begin
       if ProductConfigService.IsPrimaryUser(User^.usCode, aPractice) then
           PickPrimaryUser(User^.usCode, aPractice);
 
-      HasDelOnline := ProductConfigService.DeleteUser(User^.usCode, aPractice);
+      HasDelOnline := ProductConfigService.DeleteUser(User^.usCode, '', aPractice);
     except
       on E : Exception do
       begin

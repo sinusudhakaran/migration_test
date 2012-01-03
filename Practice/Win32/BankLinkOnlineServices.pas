@@ -120,7 +120,7 @@ type
     constructor Create;
     destructor Destroy; override;
     //Practice methods
-    function GetPractice: Practice;
+    function GetPractice(aForceOnline : Boolean = False): Practice;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
     function IsPracticeProductEnabled(AProductId: Guid): Boolean;
@@ -149,6 +149,7 @@ type
                               const aUstNameIndex  : integer;
                               var   aIsUserCreated : Boolean ) : Boolean;
     function DeleteUser(const aUserCode : string;
+                        const aUserGuid : string;
                         aPractice : Practice = nil): Boolean;
     function IsPrimaryUser(const aUserCode : string = '';
                            aPractice : Practice = nil): Boolean;
@@ -421,7 +422,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice: Practice;
+function TProductConfigService.GetPractice(aForceOnline : Boolean): Practice;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -455,7 +456,9 @@ begin
         end;
         //try to load practice details from BankLink Online
         FOnLine := False;
-        if UseBankLinkOnline then begin
+        if (UseBankLinkOnline)
+        or (aForceOnline) then
+        begin
           //Reload from BankLink Online
           BlopiInterface := GetServiceFacade;
           PracticeDetailResponse := BlopiInterface.GetPractice(CountryText(AdminSystem.fdFields.fdCountry),
@@ -1345,7 +1348,7 @@ begin
     try
       // Does the User Already Exist on BankLink Online?
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Recieving Data from ' + BANKLINK_ONLINE_NAME, 33);
-      CurrPractice := GetPractice;
+      CurrPractice := GetPractice(true);
 
       IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
 
@@ -1438,6 +1441,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.DeleteUser(const aUserCode : string;
+                                          const aUserGuid : string;
                                           aPractice : Practice) : Boolean;
 var
   PracCountryCode : WideString;
@@ -1462,11 +1466,15 @@ begin
 
     try
       if not Assigned(aPractice) then
-        aPractice := GetPractice;
+        aPractice := GetPractice(true);
 
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
 
-      UserGuid := GetUserGuid(aUserCode, aPractice);
+      if aUserCode = '' then
+        UserGuid := aUserGuid
+      else
+        UserGuid := GetUserGuid(aUserCode, aPractice);
+
       MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
       Result := MsgResponce.Success;
 
@@ -1505,7 +1513,7 @@ begin
   end;
 
   if not Assigned(aPractice) then
-    aPractice := GetPractice;
+    aPractice := GetPractice(true);
 
   Result := (GetUserGuid(aUserCode, aPractice) = aPractice.DefaultAdminUserId);
 end;

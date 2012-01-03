@@ -252,7 +252,8 @@ end;
 //------------------------------------------------------------------------------
 Procedure TdlgEditUser.OnlineControlSetup;
 begin
-  chkCanAccessBankLinkOnline.Visible := ProductConfigService.UseBankLinkOnline;
+  chkCanAccessBankLinkOnline.Visible := ProductConfigService.UseBankLinkOnline or
+                                        chkCanAccessBankLinkOnline.Checked;
   if not chkCanAccessBankLinkOnline.Visible then
   begin
     pcMain.Height  := pcMain.Height  - COMP_VERT_DIFF;
@@ -421,14 +422,17 @@ begin
       begin
         Result := PickPrimaryUser(UserGuid);
         if Result then
-          Result := ProductConfigService.DeleteUser(UserGuid);
-      end;
+          Result := ProductConfigService.DeleteUser('', UserGuid);
+      end
+      else
+        Result := ProductConfigService.DeleteUser('', UserGuid);
 
       if Result then
         HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 );
     end;
 
-    if IsBankLinkOnlineUser then
+    if  (chkCanAccessBankLinkOnline.Checked)
+    and (chkCanAccessBankLinkOnline.Visible) then
     begin
       Result := ProductConfigService.UpdateCreateUser(fUserGuid,
                                                       eMail.Text,
@@ -769,7 +773,7 @@ begin { TdlgEditUser.Execute }
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
       try
-        Prac := ProductConfigService.GetPractice;
+        Prac := ProductConfigService.GetPractice(true);
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
         UserGuid := ProductConfigService.GetUserGuid(User.usCode, Prac);
         fIsPrimaryUser := ProductConfigService.IsPrimaryUser(User.usCode, Prac);
