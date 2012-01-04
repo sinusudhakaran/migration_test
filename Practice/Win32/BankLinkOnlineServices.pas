@@ -865,12 +865,12 @@ var
   Cat: CatalogueEntry;
 begin
   Result := False;
-  if Assigned(FPractice) then begin
-    for i := Low(FPractice.Catalogue) to High(FPractice.Catalogue) do begin
-      Cat := FPractice.Catalogue[i];
+  if Assigned(FPracticeCopy) then begin
+    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
+      Cat := FPracticeCopy.Catalogue[i];
       if Cat.Description = 'Send and Receive Client Files' then begin
-        for j := Low(FPractice.Subscription) to High(FPractice.Subscription) do begin
-          if FPractice.Subscription[j] = Cat.Id then begin
+        for j := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
+          if FPracticeCopy.Subscription[j] = Cat.Id then begin
             Result := True;
             Break;
           end;
@@ -889,11 +889,11 @@ var
 begin
   Result := False;
   if Assigned(FPractice) then begin
-    for i := Low(FPractice.Catalogue) to High(FPractice.Catalogue) do begin
-      Cat := FPractice.Catalogue[i];
-      if Cat.Description = 'BankLink Notes Online' then begin
-        for j := Low(FPractice.Subscription) to High(FPractice.Subscription) do begin
-          if FPractice.Subscription[j] = Cat.Id then begin
+    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
+      Cat := FPracticeCopy.Catalogue[i];
+      if Cat.Description = 'Notes Online' then begin
+        for j := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
+          if FPracticeCopy.Subscription[j] = Cat.Id then begin
             Result := True;
             Break;
           end;
