@@ -1371,7 +1371,6 @@ begin
 
     Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 66);
     BlopiInterface := GetServiceFacade;
-    //SetTimeOuts(5000,5000,5000);
 
     if IsUserOnline then
     begin
@@ -1403,7 +1402,7 @@ begin
       CreateUser.UserCode     := aUserCode;
 
       MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
-      if not MessageResponseHasError(MsgResponce, 'create practice user on') then begin
+      if not MessageResponseHasError(MessageResponse(MsgResponceGuid), 'create practice user on') then begin
         Result  := MsgResponceGuid.Success;
         aUserId := MsgResponceGuid.Result;
         aIsUserCreated := True;
