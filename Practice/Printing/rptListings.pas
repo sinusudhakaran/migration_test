@@ -676,10 +676,10 @@ begin
       if ( AmountCol    <> NIL ) then  AmountCol   .FormatString := Bank_Account.FmtMoneyStrBrackets;
       if ( BalanceCol   <> NIL ) then  BalanceCol  .FormatString := Bank_Account.FmtMoneyStrBrackets;
 
-      if ( CRAmountCol  <> NIL ) then  CRAmountCol .TotalFormat := Bank_Account.FmtMoneyStr;
-      if ( DRAmountCol  <> NIL ) then  DRAmountCol .TotalFormat := Bank_Account.FmtMoneyStr;
-      if ( AmountCol    <> NIL ) then  AmountCol   .TotalFormat := Bank_Account.FmtMoneyStr;
-      if ( BalanceCol   <> NIL ) then  BalanceCol  .TotalFormat := Bank_Account.FmtMoneyStr;
+      if ( CRAmountCol  <> NIL ) then  CRAmountCol .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
+      if ( DRAmountCol  <> NIL ) then  DRAmountCol .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
+      if ( AmountCol    <> NIL ) then  AmountCol   .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
+      if ( BalanceCol   <> NIL ) then  BalanceCol  .TotalFormat := Bank_Account.FmtMoneyStrBrackets;
 
       RenderDetailSubTotal('');
 
