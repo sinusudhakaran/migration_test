@@ -1234,6 +1234,7 @@ begin
   Result := false;
 end;
 
+//------------------------------------------------------------------------------
 procedure TClientHelper.UpdateAdminUser(AUserName, AEmail: WideString);
 var
   UserArray: ArrayOfUser;
@@ -1265,6 +1266,7 @@ begin
   User(Self.Users[0]).EMail := AEmail;
 end;
 
+//------------------------------------------------------------------------------
 procedure TClientHelper.AddSubscription(AProductID: guid);
 var
   SubArray: arrayofguid;
@@ -1316,46 +1318,6 @@ begin
     end;
   end;
 end;
-
-//------------------------------------------------------------------------------
-//function TProductConfigService.GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
-//                                               aExceptions    : ArrayOfExceptionDetails ) : string;
-//var
-//  ErrIndex : integer;
-//
-//  //-----------------------------------------
-//  procedure AddLine(var   aErrStr  : String;
-//                    const aName    : String;
-//                    const aMessage : String);
-//  begin
-//    if aMessage = '' then
-//      Exit;
-//
-//    aErrStr := aErrStr + aName + ':' + #10 + aMessage + #10;
-//  end;
-//
-//begin
-//  Result := '';
-//
-//  for ErrIndex := 0 to high(aErrorMessages) do
-//  begin
-//    AddLine(Result, 'Code', aErrorMessages[ErrIndex].ErrorCode);
-//    Result := Result + #10;
-//    AddLine(Result, 'Message', aErrorMessages[ErrIndex].Message_);
-//  end;
-//
-//  if not (Result = '') then
-//    Result := #10 + Result;
-//
-//  for ErrIndex := 0 to high(aExceptions) do
-//  begin
-//    AddLine(Result, 'Message', aExceptions[ErrIndex].Message_);
-//    Result := Result + #10;
-//    AddLine(Result, 'Source', aExceptions[ErrIndex].Source);
-//    Result := Result + #10;
-//    AddLine(Result, 'StackTrace', aExceptions[ErrIndex].StackTrace);
-//  end;
-//end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.UpdateCreateUser(var   aUserId        : Guid;
@@ -1424,29 +1386,12 @@ begin
       UpdateUser.Subscription := CurrPractice.Subscription;
       UpdateUser.UserCode     := aUserCode;
 
-//      try
-//        MsgResponce := BlopiInterface.SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
-//      except
-//        on E : Exception do
-//        begin
-//          LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running SavePracticeUser, Error Message : ' + E.Message);
-//          raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
-//        end;
-//      end;
-//
-//      Result := MsgResponce.Success;
-//      if not Result then
-//      begin
-//        ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
-//
-//        LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running SavePracticeUser, Error Message : ' + ErrMsg);
-//        raise Exception.Create(BKPRACTICENAME + ' was unable to update ' + UpdateUser.FullName +
-//                               ' on ' + BANKLINK_ONLINE_NAME + '.' + ErrMsg );
-//      end;
-
       MsgResponce := BlopiInterface.SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
       if not MessageResponseHasError(MsgResponce, 'update practice user on') then
+      begin
+        Result := MsgResponce.Success;
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+      end;
     end
     else
     begin
@@ -1456,27 +1401,6 @@ begin
       CreateUser.RoleNames    := RoleNames;
       CreateUser.Subscription := CurrPractice.Subscription;
       CreateUser.UserCode     := aUserCode;
-
-//      try
-//        MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
-//      except
-//        on E : Exception do
-//        begin
-//          LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreatePracticeUser, Error Message : ' + E.Message);
-//          raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
-//        end;
-//      end;
-//      Result  := MsgResponceGuid.Success;
-//      aUserId := MsgResponceGuid.Result;
-//
-//      if not Result then
-//      begin
-//        ErrMsg := GetErrorMessage(MsgResponceGuid.ErrorMessages, MsgResponceGuid.Exceptions);
-//
-//        LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running CreatePracticeUser, Error Message : ' + ErrMsg);
-//        raise Exception.Create(BKPRACTICENAME + ' was unable to create ' + CreateUser.FullName +
-//                               ' on ' + BANKLINK_ONLINE_NAME + '.' + ErrMsg );
-//      end;
 
       MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
       if not MessageResponseHasError(MsgResponce, 'create practice user on') then begin
@@ -1533,22 +1457,7 @@ begin
       Result := MsgResponce.Success;
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
     end;
-//    except
-//      on E : Exception do
-//      begin
-//        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracticeUser, Error Message : ' + E.Message);
-//        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
-//      end;
-//    end;
 
-//    if not Result then
-//    begin
-//      ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
-//
-//      LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running DeletePracticeUser, Error Message : ' + ErrMsg);
-//      raise Exception.Create(BKPRACTICENAME + ' was unable to delete user' +
-//                             ' from ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg );
-//    end;
   finally
     Progress.StatusSilent := True;
     Progress.ClearStatus;
