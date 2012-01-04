@@ -53,6 +53,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     TabOrder = 0
     object tbsDetails: TTabSheet
       Caption = 'Details'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         609
         359)

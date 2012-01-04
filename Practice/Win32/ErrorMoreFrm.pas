@@ -12,6 +12,8 @@ type
     lblText: TLabel;
     btnOK: TButton;
     Image1: TImage;
+    memDetails: TMemo;
+    lblDetails: TLabel;
     procedure btnOKClick(Sender: TObject);
     procedure btnMoreClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -22,7 +24,9 @@ type
     { Public declarations }
   end;
 
-  procedure HelpfulErrorMsg(DispMsg : string; HelpCtx : Word; UpdateLog : boolean = true );
+  procedure HelpfulErrorMsg(DispMsg : string; HelpCtx : Word;
+                            UpdateLog : boolean = true; Details: string = '';
+                            ShowDetails: Boolean = False);
 
 implementation
 
@@ -31,10 +35,13 @@ implementation
 uses
   bkXPThemes, Globals, ImagesFrm, LogUtil;
 
-const MAX_WIDTH = 500;
-      MIN_WIDTH = 300;
+const
+  MAX_WIDTH = 500;
+  MIN_WIDTH = 300;
+  MIN_HEIGHT = 130;
 
-procedure HelpfulErrorMsg(DispMsg : string; HelpCtx : Word; UpdateLog : boolean = true );
+procedure HelpfulErrorMsg(DispMsg : string; HelpCtx : Word; UpdateLog : boolean = true;
+  Details: string = ''; ShowDetails: Boolean = False);
 const
   MARGIN = 10;
 var
@@ -60,7 +67,6 @@ begin
         MinHeight := lblText.ClientHeight+2*Margin;
 
       Height     := CapHeight+ MinHeight + btnOK.Height + 2*Margin;
-      btnOK.Top := MinHeight+Margin;
 
       //set width
       dlgWidth := lblText.left + lblText.ClientWidth+2*Margin;
@@ -69,6 +75,17 @@ begin
       if dlgWidth > MAX_WIDTH then dlgWidth := MAX_WIDTH;
 
       Width := dlgWidth;
+
+      //Details
+      if ShowDetails then begin
+        Width := MAX_WIDTH;
+        lblDetails.Left := lblText.Left;
+        memDetails.Left := lblDetails.Left;
+        Height := Height + (memDetails.Top + memDetails.Height + 2*Margin) - lblDetails.Top;
+        memDetails.Text := Details;
+        memDetails.Visible := True;
+        lblDetails.Visible := True;
+      end;
 
       //center the ok button
       btnok.Left := (ClientWidth - btnOK.Width) div 2;
@@ -99,6 +116,7 @@ begin
   Image1.Picture := AppImages.ErrorBmp.Picture;
   lblText.width := 425;
   Self.width    := MAX_WIDTH;
+  Self.Height   := MIN_HEIGHT;
 end;
 
 end.

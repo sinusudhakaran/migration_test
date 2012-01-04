@@ -83,8 +83,8 @@ type
     function IsUserCreatedOnBankLinkOnline(const APractice : Practice;
                                            const AUserId   : Guid   = '';
                                            const AUserCode : string = ''): Boolean;
-    function GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
-                             aExceptions    : ArrayOfExceptionDetails) : string;
+//    function GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
+//                             aExceptions    : ArrayOfExceptionDetails) : string;
 
     function GetUseBankLinkOnline: Boolean;
     procedure SetUseBankLinkOnline(const Value: Boolean);
@@ -116,6 +116,7 @@ type
     function GetServiceFacade : IBlopiServiceFacade;
     function GetClientGuid(const AClientCode: string): WideString;
     function GetCachedPractice: Practice;
+    function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -383,28 +384,14 @@ begin
   if not FRegistered then
     Exit;
 
-  try
-    BlopiInterface :=  GetServiceFacade;
-    //Get the client from BankLink Online
-    ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                     AdminSystem.fdFields.fdBankLink_Code,
-                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                     AClientGuid);
-    if Assigned(ClientDetailResponse) then begin
-      //Client exists on BankLink Online
-      Result := ClientDetailResponse.Result;
-    end else begin
-      //Something went wrong
-      Msg := '';
-      for j := Low(ClientDetailResponse.ErrorMessages) to High(ClientDetailResponse.ErrorMessages) do
-        Msg := Msg + ServiceErrorMessage(ClientDetailResponse.ErrorMessages[i]).Message_;
-      raise Exception.Create(Msg);
-    end;
-  except
-    on E : Exception do
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
-                        '.' + #13#13 + E.Message, 0);
-  end;
+  BlopiInterface :=  GetServiceFacade;
+  //Get the client from BankLink Online
+  ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                   AClientGuid);
+  if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
+    Result := ClientDetailResponse.Result;
 end;
 
 //------------------------------------------------------------------------------
@@ -530,29 +517,14 @@ var
 begin
   FClientList.Free;
   FClientList := ClientList.Create;
-  try
-    if UseBankLinkOnline then begin
-      BlopiInterface := GetServiceFacade;
-      BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
-                                                      AdminSystem.fdFields.fdBankLink_Code,
-                                                      AdminSystem.fdFields.fdBankLink_Connect_Password);
-      if Assigned(BlopiClientList) then
-      begin
-        if Assigned(BlopiClientList.Result) then
-          FClientList := BlopiClientList.Result
-        else begin
-          //Something went wrong
-          Msg := '';
-          for i := Low(BlopiClientList.ErrorMessages) to High(BlopiClientList.ErrorMessages) do
-            Msg := Msg + ServiceErrorMessage(BlopiClientList.ErrorMessages[i]).Message_;
-          raise Exception.Create(msg);
-        end;
-      end;
-    end;
-  except
-    on E: Exception do
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
-                     '.' + #13#13 + E.Message, 0);
+  if UseBankLinkOnline then begin
+    BlopiInterface := GetServiceFacade;
+    BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
+                                                    AdminSystem.fdFields.fdBankLink_Code,
+                                                    AdminSystem.fdFields.fdBankLink_Connect_Password);
+    if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
+      if Assigned(BlopiClientList.Result) then
+        FClientList := BlopiClientList.Result;
   end;
 end;
 
@@ -600,6 +572,58 @@ begin
   NodeParent := NodeRoot.ChildNodes.FindNode('Parent');
   NodeObject := NodeParent.ChildNodes.FindNode('CopyObject');
   ARemotable.SOAPToObject(NodeRoot, NodeObject, Converter);
+end;
+
+function TProductConfigService.MessageResponseHasError(
+  AMesageresponse: MessageResponse; ErrorText: string): Boolean;
+const
+  MAIN_ERROR_MESSAGE = BKPRACTICENAME + ' is unable to %s ' + BANKLINK_ONLINE_NAME + '.';
+var
+  ErrorMessage: string;
+  ErrIndex : integer;
+  Details: TStringList;
+
+  procedure AddLine(const aName: string; const aMessage: string);
+  begin
+    if aMessage = '' then
+      Exit;
+    if Assigned(Details) then begin
+      if Details.Count > 0 then
+        Details.add('');
+      Details.Add(aName + ': ' + aMessage);
+    end;
+  end;
+
+begin
+  Result := False;
+  if Assigned(AMesageresponse) then begin
+    if not AMesageresponse.Success then begin
+      //Error message returned by BankLink Online
+      Result := True;
+      ErrorMessage := Format(MAIN_ERROR_MESSAGE, [ErrorText]);
+      Details := TStringList.Create;
+      try
+        for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
+        begin
+          AddLine('Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
+          AddLine('Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
+        end;
+        for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
+        begin
+          AddLine('Message', AMesageresponse.Exceptions[ErrIndex].Message_);
+          AddLine('Source', AMesageresponse.Exceptions[ErrIndex].Source);
+          AddLine('StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
+        end;
+        HelpfulErrorMsg(ErrorMessage, 0, True, Details.Text, True);
+      finally
+        Details.Free;
+      end;
+    end;
+  end else begin
+    //No response from BankLink Online
+    ErrorMessage := Format(MAIN_ERROR_MESSAGE, ['connect to']);
+    HelpfulErrorMsg(ErrorMessage, 0);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -995,19 +1019,6 @@ var
   MsgResponse: MessageResponse;
   MyClientSummary: ClientSummary;
   MyNewUser: NewUser;
-
-  function MessageResponseHasError(AMesageresponse: MessageResponse): Boolean;
-  begin
-    Result := False;
-    if Assigned(AMesageresponse) then begin
-      if not AMesageresponse.Success then begin
-        Msg := GetErrorMessage(AMesageresponse.ErrorMessages, AMesageresponse.Exceptions);
-        HelpfulErrorMsg(Msg, 0);
-        Result := True;
-      end;
-    end;
-  end;
-
 begin
   Result := False;
 
@@ -1032,38 +1043,39 @@ begin
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                MyClientSummary);
-      MessageResponseHasError(MsgResponse);
-      //Save client admin user
-      if (Length(AClient.Users) > 0) then begin
-        if User(AClient.Users[0]).Id = '' then begin
-          //Create new client admin user
-          MyNewUser := NewUser.Create;
-          try
-            MyNewUser.FullName := User(AClient.Users[0]).FullName;
-            MyNewUser.EMail := User(AClient.Users[0]).EMail;
-            MyNewUser.RoleNames := User(AClient.Users[0]).RoleNames;
-            MyNewUser.UserCode := User(AClient.Users[0]).UserCode;
-            MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                           AdminSystem.fdFields.fdBankLink_Code,
-                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                           AClient.Id, MyNewUser);
-            MessageResponseHasError(MsgResponse);            
-          finally
-            MyNewUser.Free;
+      if not MessageResponseHasError(MsgResponse, 'update this client''s settings on') then begin
+        //Save client admin user
+        if (Length(AClient.Users) > 0) then begin
+          if User(AClient.Users[0]).Id = '' then begin
+            //Create new client admin user
+            MyNewUser := NewUser.Create;
+            try
+              MyNewUser.FullName := User(AClient.Users[0]).FullName;
+              MyNewUser.EMail := User(AClient.Users[0]).EMail;
+              MyNewUser.RoleNames := User(AClient.Users[0]).RoleNames;
+              MyNewUser.UserCode := User(AClient.Users[0]).UserCode;
+              MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                             AdminSystem.fdFields.fdBankLink_Code,
+                                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                             AClient.Id, MyNewUser);
+              MessageResponseHasError(MsgResponse, 'create the client user on');
+            finally
+              MyNewUser.Free;
+            end;
+          end else begin
+            //Update existing client admin user
+            MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                         AdminSystem.fdFields.fdBankLink_Code,
+                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                         User(AClient.Users[0]).Id, User(AClient.Users[0]));
+            MessageResponseHasError(MsgResponse, 'update this client user on');
           end;
-        end else begin
-          //Update existing client admin user
-          MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
-                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                       User(AClient.Users[0]).Id, User(AClient.Users[0]));
-          MessageResponseHasError(MsgResponse);
         end;
+        Result := True;
       end;
     finally
       MyClientSummary.Free;
     end;
-    Result := True;
   except
     on E: Exception do
       HelpfulErrorMsg(Msg, 0);
@@ -1275,43 +1287,44 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
-                                               aExceptions    : ArrayOfExceptionDetails ) : string;
-var
-  ErrIndex : integer;
-
-  //-----------------------------------------
-  procedure AddLine(var   aErrStr  : String;
-                    const aName    : String;
-                    const aMessage : String);
-  begin
-    if aMessage = '' then
-      Exit;
-
-    aErrStr := aErrStr + aName + ': ' + aMessage + #13#10;
-  end;
-
-begin
-  Result := '';
-
-  for ErrIndex := 0 to high(aErrorMessages) do
-  begin
-    AddLine(Result, 'Code', aErrorMessages[ErrIndex].ErrorCode);
-    AddLine(Result, 'Message', aErrorMessages[ErrIndex].Message_);
-  end;
-
-  if not (Result = '') then
-    Result := #13#10 + Result;
-
-  for ErrIndex := 0 to high(aExceptions) do
-  begin
-    AddLine(Result, 'Message', aExceptions[ErrIndex].Message_);
-    AddLine(Result, 'Source', aExceptions[ErrIndex].Source);
-    AddLine(Result, 'StackTrace', aExceptions[ErrIndex].StackTrace);
-  end;
-  if not (Result = '') then
-    Result := #13 + Result;
-end;
+//function TProductConfigService.GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
+//                                               aExceptions    : ArrayOfExceptionDetails ) : string;
+//var
+//  ErrIndex : integer;
+//
+//  //-----------------------------------------
+//  procedure AddLine(var   aErrStr  : String;
+//                    const aName    : String;
+//                    const aMessage : String);
+//  begin
+//    if aMessage = '' then
+//      Exit;
+//
+//    aErrStr := aErrStr + aName + ':' + #10 + aMessage + #10;
+//  end;
+//
+//begin
+//  Result := '';
+//
+//  for ErrIndex := 0 to high(aErrorMessages) do
+//  begin
+//    AddLine(Result, 'Code', aErrorMessages[ErrIndex].ErrorCode);
+//    Result := Result + #10;
+//    AddLine(Result, 'Message', aErrorMessages[ErrIndex].Message_);
+//  end;
+//
+//  if not (Result = '') then
+//    Result := #10 + Result;
+//
+//  for ErrIndex := 0 to high(aExceptions) do
+//  begin
+//    AddLine(Result, 'Message', aExceptions[ErrIndex].Message_);
+//    Result := Result + #10;
+//    AddLine(Result, 'Source', aExceptions[ErrIndex].Source);
+//    Result := Result + #10;
+//    AddLine(Result, 'StackTrace', aExceptions[ErrIndex].StackTrace);
+//  end;
+//end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.UpdateCreateUser(var   aUserId        : Guid;
@@ -1336,6 +1349,7 @@ var
 begin
   Result := false;
 
+  aIsUserCreated := false;  
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
@@ -1379,28 +1393,29 @@ begin
       UpdateUser.Subscription := CurrPractice.Subscription;
       UpdateUser.UserCode     := aUserCode;
 
-      try
-        MsgResponce := BlopiInterface.SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
-      except
-        on E : Exception do
-        begin
-          LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running SavePracticeUser, Error Message : ' + E.Message);
-          raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
-        end;
-      end;
+//      try
+//        MsgResponce := BlopiInterface.SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
+//      except
+//        on E : Exception do
+//        begin
+//          LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running SavePracticeUser, Error Message : ' + E.Message);
+//          raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+//        end;
+//      end;
+//
+//      Result := MsgResponce.Success;
+//      if not Result then
+//      begin
+//        ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
+//
+//        LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running SavePracticeUser, Error Message : ' + ErrMsg);
+//        raise Exception.Create(BKPRACTICENAME + ' was unable to update ' + UpdateUser.FullName +
+//                               ' on ' + BANKLINK_ONLINE_NAME + '.' + ErrMsg );
+//      end;
 
-      Result := MsgResponce.Success;
-      if not Result then
-      begin
-        ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
-
-        LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running SavePracticeUser, Error Message : ' + ErrMsg);
-        raise Exception.Create(BKPRACTICENAME + ' was unable to update ' + UpdateUser.FullName +
-                               ' on ' + BANKLINK_ONLINE_NAME + '.' + ErrMsg );
-      end;
-
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
-      aIsUserCreated := false;
+      MsgResponce := BlopiInterface.SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
+      if not MessageResponseHasError(MsgResponce, 'update practice user on') then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
     end
     else
     begin
@@ -1411,29 +1426,34 @@ begin
       CreateUser.Subscription := CurrPractice.Subscription;
       CreateUser.UserCode     := aUserCode;
 
-      try
-        MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
-      except
-        on E : Exception do
-        begin
-          LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreatePracticeUser, Error Message : ' + E.Message);
-          raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
-        end;
+//      try
+//        MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
+//      except
+//        on E : Exception do
+//        begin
+//          LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreatePracticeUser, Error Message : ' + E.Message);
+//          raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+//        end;
+//      end;
+//      Result  := MsgResponceGuid.Success;
+//      aUserId := MsgResponceGuid.Result;
+//
+//      if not Result then
+//      begin
+//        ErrMsg := GetErrorMessage(MsgResponceGuid.ErrorMessages, MsgResponceGuid.Exceptions);
+//
+//        LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running CreatePracticeUser, Error Message : ' + ErrMsg);
+//        raise Exception.Create(BKPRACTICENAME + ' was unable to create ' + CreateUser.FullName +
+//                               ' on ' + BANKLINK_ONLINE_NAME + '.' + ErrMsg );
+//      end;
+
+      MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
+      if not MessageResponseHasError(MsgResponce, 'create practice user on') then begin
+        Result  := MsgResponceGuid.Success;
+        aUserId := MsgResponceGuid.Result;
+        aIsUserCreated := True;
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
       end;
-      Result  := MsgResponceGuid.Success;
-      aUserId := MsgResponceGuid.Result;
-
-      if not Result then
-      begin
-        ErrMsg := GetErrorMessage(MsgResponceGuid.ErrorMessages, MsgResponceGuid.Exceptions);
-
-        LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running CreatePracticeUser, Error Message : ' + ErrMsg);
-        raise Exception.Create(BKPRACTICENAME + ' was unable to create ' + CreateUser.FullName +
-                               ' on ' + BANKLINK_ONLINE_NAME + '.' + ErrMsg );
-      end;
-
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
-      aIsUserCreated := True;
     end;
   finally
     Progress.StatusSilent := True;
@@ -1467,37 +1487,37 @@ begin
     PracCode        := AdminSystem.fdFields.fdBankLink_Code;
     PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
-    try
-      if not Assigned(aPractice) then
-        aPractice := GetPractice(true);
+//    try
+    if not Assigned(aPractice) then
+      aPractice := GetPractice;
 
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
+    if aUserCode = '' then
+      UserGuid := aUserGuid
+    else
+    UserGuid := GetUserGuid(aUserCode, aPractice);
+    MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
 
-      if aUserCode = '' then
-        UserGuid := aUserGuid
-      else
-        UserGuid := GetUserGuid(aUserCode, aPractice);
-
-      MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
+    if not MessageResponseHasError(MsgResponce, 'delete practice user on') then begin
       Result := MsgResponce.Success;
-
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
-    except
-      on E : Exception do
-      begin
-        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracticeUser, Error Message : ' + E.Message);
-        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
-      end;
     end;
+//    except
+//      on E : Exception do
+//      begin
+//        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracticeUser, Error Message : ' + E.Message);
+//        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+//      end;
+//    end;
 
-    if not Result then
-    begin
-      ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
-
-      LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running DeletePracticeUser, Error Message : ' + ErrMsg);
-      raise Exception.Create(BKPRACTICENAME + ' was unable to delete user' +
-                             ' from ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg );
-    end;
+//    if not Result then
+//    begin
+//      ErrMsg := GetErrorMessage(MsgResponce.ErrorMessages, MsgResponce.Exceptions);
+//
+//      LogUtil.LogMsg(lmError, UNIT_NAME, 'Server Error running DeletePracticeUser, Error Message : ' + ErrMsg);
+//      raise Exception.Create(BKPRACTICENAME + ' was unable to delete user' +
+//                             ' from ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg );
+//    end;
   finally
     Progress.StatusSilent := True;
     Progress.ClearStatus;

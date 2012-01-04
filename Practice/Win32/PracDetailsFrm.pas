@@ -969,7 +969,7 @@ begin
     if Assigned(FPrac) then begin
       //URL
       edtURL.Text := 'https://' + FPrac.DomainName + '.' +
-                     Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 9 ,
+                     Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 13 ,
                           Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
       //Primary Contacts
       cbPrimaryContact.Enabled := True;
