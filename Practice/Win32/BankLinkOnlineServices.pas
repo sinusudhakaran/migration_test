@@ -1084,6 +1084,12 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.SavePractice: Boolean;
+var
+  BlopiInterface : IBlopiServiceFacade;
+  PracCountryCode : WideString;
+  PracCode        : WideString;
+  PracPassHash    : WideString;
+  MsgResponce     : MessageResponse;
 begin
   Result := False;
   if UseBankLinkOnline then begin
@@ -1093,10 +1099,35 @@ begin
       CopyRemotableObject(FPracticeCopy, FPractice);
       //Save to the web service
       if FOnline then begin
-        SaveRemotableObjectToFile(FPractice);
-        //If save ok then save an offline copy to System DB
-        SavePracticeDetailsToSystemDB;
-        Result := True;
+
+        Screen.Cursor := crHourGlass;
+        Progress.StatusSilent := False;
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+        try
+          PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+          PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+          PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+
+          BlopiInterface := GetServiceFacade;
+
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to ' + BANKLINK_ONLINE_NAME, 33);
+
+          MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, FPractice);
+          if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
+          begin
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to System Database', 66);
+
+            //If save ok then save an offline copy to System DB
+            SavePracticeDetailsToSystemDB;
+            Result := True;
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Completed', 100);
+          end;
+        finally
+          Progress.StatusSilent := True;
+          Progress.ClearStatus;
+          Screen.Cursor := crDefault;
+        end;
+
       end else begin
         HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
       end;
