@@ -78,6 +78,7 @@ type
     FOnLine: Boolean;
     FRegistered: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
+    FUseBankLinkOnline: Boolean;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
     function IsUserCreatedOnBankLinkOnline(const APractice : Practice;
@@ -121,7 +122,7 @@ type
     constructor Create;
     destructor Destroy; override;
     //Practice methods
-    function GetPractice(aForceOnline : Boolean = False): Practice;
+    function GetPractice(aForceOnline : Boolean = False; aUpdateUseOnline: Boolean = True): Practice;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
     function IsPracticeProductEnabled(AProductId: Guid): Boolean;
@@ -300,25 +301,13 @@ begin
   if not FRegistered then
     Exit;
 
-  try
-    BlopiInterface :=  GetServiceFacade;
-    MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                               AdminSystem.fdFields.fdBankLink_Code,
-                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                               ANewClient);
-   if Assigned(MsgResponse) then
-     if (Length(MsgResponse.ErrorMessages) = 0) then
-       Result := MsgResponse.Result
-     else begin
-       //Something went wrong
-       for i := Low(MsgResponse.ErrorMessages) to High(MsgResponse.ErrorMessages) do
-         Msg := Msg + ServiceErrorMessage(MsgResponse.ErrorMessages[i]).Message_;
-       raise Exception.Create(Msg);
-     end;
-  except
-    on E: Exception do
-      HelpfulErrorMsg(Msg, 0);
-  end;
+  BlopiInterface :=  GetServiceFacade;
+  MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                             AdminSystem.fdFields.fdBankLink_Code,
+                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                             ANewClient);
+ if not MessageResponseHasError(MsgResponse, 'create client on') then
+   Result := MsgResponse.Result
 end;
 
 //------------------------------------------------------------------------------
@@ -377,21 +366,24 @@ var
   Msg: string;
 begin
   Result := nil;
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
 
-  if not Assigned(AdminSystem) then
-    Exit;
+    if not FRegistered then
+      Exit;
 
-  if not FRegistered then
-    Exit;
-
-  BlopiInterface :=  GetServiceFacade;
-  //Get the client from BankLink Online
-  ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                   AdminSystem.fdFields.fdBankLink_Code,
-                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                   AClientGuid);
-  if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
-    Result := ClientDetailResponse.Result;
+    BlopiInterface :=  GetServiceFacade;
+    //Get the client from BankLink Online
+    ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                     AdminSystem.fdFields.fdBankLink_Code,
+                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                     AClientGuid);
+    if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
+      Result := ClientDetailResponse.Result;
+  except
+    on E:Exception do HelpfulErrorMsg('Error getting client settings: ' + E.Message, 0);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -409,7 +401,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice(aForceOnline : Boolean): Practice;
+function TProductConfigService.GetPractice(aForceOnline : Boolean; aUpdateUseOnline: Boolean): Practice;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -443,6 +435,8 @@ begin
         end;
         //try to load practice details from BankLink Online
         FOnLine := False;
+        if aUpdateUseOnline then
+          FUseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
         if (UseBankLinkOnline)
         or (aForceOnline) then
         begin
@@ -466,7 +460,8 @@ begin
                 FPractice.Free;
                 FPractice := Practice.Create;
                 AdminSystem.fdFields.fdBankLink_Online_Config := '';
-                AdminSystem.fdFields.fdUse_BankLink_Online := False;
+//                AdminSystem.fdFields.fdUse_BankLink_Online := False;
+                FUseBankLinkOnline := False;
                 LoadPracticeDetailsfromSystemDB;
                 FRegistered := False;
               end else
@@ -502,9 +497,10 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.GetUseBankLinkOnline: Boolean;
 begin
-  Result := False;
-  if Assigned(AdminSystem) then
-    Result := AdminSystem.fdFields.fdUse_BankLink_Online;
+//  Result := False;
+//  if Assigned(AdminSystem) then
+//    Result := AdminSystem.fdFields.fdUse_BankLink_Online;
+  Result := FUseBankLinkOnline;
 end;
 
 //------------------------------------------------------------------------------
@@ -1098,7 +1094,7 @@ begin
       FPractice := Practice.Create;
       CopyRemotableObject(FPracticeCopy, FPractice);
       //Save to the web service
-      if FOnline then begin
+//      if FOnline then begin
 
         Screen.Cursor := crHourGlass;
         Progress.StatusSilent := False;
@@ -1128,9 +1124,9 @@ begin
           Screen.Cursor := crDefault;
         end;
 
-      end else begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
-      end;
+//      end else begin
+//        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+//      end;
     end;
   end else begin
     //Settings are only saved locally if not using BankLink Online
@@ -1193,8 +1189,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TProductConfigService.SetUseBankLinkOnline(const Value: Boolean);
 begin
-  if Assigned(AdminSystem) then
-    AdminSystem.fdFields.fdUse_BankLink_Online := Value;
+//  if Assigned(AdminSystem) then
+//    AdminSystem.fdFields.fdUse_BankLink_Online := Value;
+  FUseBankLinkOnline := Value;
 end;              
 
 { TClientHelper }
@@ -1441,7 +1438,6 @@ begin
     PracCode        := AdminSystem.fdFields.fdBankLink_Code;
     PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
-//    try
     if not Assigned(aPractice) then
       aPractice := GetPractice;
 
@@ -1449,7 +1445,7 @@ begin
     if aUserCode = '' then
       UserGuid := aUserGuid
     else
-    UserGuid := GetUserGuid(aUserCode, aPractice);
+      UserGuid := GetUserGuid(aUserCode, aPractice);
     MsgResponce := BlopiInterface.DeletePracticeUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
 
     if not MessageResponseHasError(MsgResponce, 'delete practice user on') then begin

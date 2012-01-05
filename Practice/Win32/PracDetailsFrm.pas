@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, OvcBase, OvcEF, OvcPB, OvcNF, Buttons, ExtCtrls, ExtDlgs,
   ComCtrls, BankLinkOnlineServices,
-  OSFont, VirtualTrees;
+  OSFont, VirtualTrees, ActnList;
 
 type
   TfrmPracticeDetails = class(TForm)
@@ -84,6 +84,9 @@ type
     vtProducts: TVirtualStringTree;
     btnSelectAll: TButton;
     btnClearAll: TButton;
+    ActionList1: TActionList;
+    actSelectAllProducts: TAction;
+    actClearAllProducts: TAction;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -108,14 +111,20 @@ type
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
     procedure ckUseBankLinkOnlineClick(Sender: TObject);
     procedure vtProductsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure btnSelectAllClick(Sender: TObject);
-    procedure btnClearAllClick(Sender: TObject);
     procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure tbsInterfacesShow(Sender: TObject);
     procedure cbPrimaryContactClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure tsBankLinkOnlineShow(Sender: TObject);
+    procedure TreeCompare(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
+    var Result: Integer);
+    procedure actSelectAllProductsExecute(Sender: TObject);
+    procedure actClearAllProductsExecute(Sender: TObject);
+    procedure btnClearAllClick(Sender: TObject);
+    procedure edtURLChange(Sender: TObject);
+    procedure cbPrimaryContactChange(Sender: TObject);
+    procedure vtProductsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
     okPressed : boolean;
@@ -123,11 +132,13 @@ type
     ChangingDiskID : boolean;
     InSetup: Boolean;
     FPrac: Practice;
+    FOnlineSettingsChanged: Boolean;
+    FUpdateUseOnline: Boolean;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
                                AObject: TObject): PVirtualNode;
-    function  VerifyForm : boolean;
+    function VerifyForm: boolean;
     procedure ReloadLogo;
     procedure SetUpAccounting(const AccountingSystem: Byte);
     procedure SetUpSuper(const SuperfundSystem: Byte);
@@ -373,11 +384,7 @@ end;
 
 procedure TfrmPracticeDetails.btnClearAllClick(Sender: TObject);
 begin
-  ProductConfigService.ClearAllProducts;
-  vtProducts.Invalidate;
-  Refresh;
-  if vtProducts.CanFocus then
-    vtProducts.SetFocus;
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -406,15 +413,6 @@ begin
     eSave.Text := test;
 end;
 
-procedure TfrmPracticeDetails.btnSelectAllClick(Sender: TObject);
-begin
-  ProductConfigService.SelectAllProducts;
-  vtProducts.Invalidate;
-  Refresh;
-  if vtProducts.CanFocus then
-    vtProducts.SetFocus;
-end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnSuperLoadFolderClick(Sender: TObject);
 var
@@ -437,6 +435,11 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmPracticeDetails.cbPrimaryContactChange(Sender: TObject);
+begin
+  FOnlineSettingsChanged := True;
+end;
+
 procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
 var
   TempUser: User;
@@ -450,9 +453,15 @@ procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
 begin
-  ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-  FPrac := ProductConfigService.GetPractice;
-  LoadPracticeDetails;
+  if ckUseBankLinkOnline.Checked then begin
+    FPrac := ProductConfigService.GetPractice(FOnlineSettingsChanged, FUpdateUseOnline);
+    FUpdateUseOnline := False;
+    ProductConfigService.UseBankLinkOnline := True;
+    LoadPracticeDetails;
+  end else
+    ProductConfigService.UseBankLinkOnline := False;
+
+  FOnlineSettingsChanged := True;
   if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine and not ProductConfigService.Registered then begin
     edtURL.Text := 'Not registered for BankLink Online';
     cbPrimaryContact.Enabled := False;
@@ -465,7 +474,7 @@ begin
     end;
   end;
   for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-    tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.OnLine;
+    tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
   ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
 end;
 
@@ -539,6 +548,7 @@ begin
     tsSuperFundSystem.TabVisible := (fdFields.fdCountry = whAustralia);
 
     //Use BankLink Online
+    FUpdateUseOnline := True;
     ckUseBankLinkOnline.Checked := ProductConfigService.UseBankLinkOnline;
 
     //Web export format
@@ -644,6 +654,7 @@ begin
     end else
        PageControl1.ActivePage := tbsDetails;
 
+    FOnlineSettingsChanged := False;       
  end; {with}
  InSetup := False;
 //**************
@@ -704,9 +715,10 @@ begin
            fdSave_Tax_Files_To       := AddSlash( Trim( edtSaveTaxTo.Text));
 
          //Save BankLink Online settings
-         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-         ProductConfigService.SavePractice;
-
+         //Saved to BankLink Online in VerifyForm - form can't be closed unless online changes are saved
+//         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
+          AdminSystem.fdFields.fdUse_BankLink_Online := ProductConfigService.UseBankLinkOnline;
+         
          //Web
          fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
          if (wfNames[fdWeb_Export_Format] = WebNotesName) and
@@ -811,9 +823,10 @@ begin
 
   //Save BankLink Online settings
   ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-  if not ProductConfigService.SavePractice then begin
-    Exit;
-  end;
+  if not ProductConfigService.SavePractice then
+    //Don't exit dialog if online settings were not updated
+    if ProductConfigService.UseBankLinkOnline and FOnlineSettingsChanged then
+      Exit; 
 
   Result := True;
 end;
@@ -839,6 +852,12 @@ begin
     DrawText(TargetCanvas.Handle, PChar(NodeCaption), StrLen(PChar(NodeCaption)),
              ItemRect, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
   end;
+end;
+
+procedure TfrmPracticeDetails.vtProductsChange(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+begin
+  FOnlineSettingsChanged := True;
 end;
 
 procedure TfrmPracticeDetails.vtProductsChecked(Sender: TBaseVirtualTree;
@@ -981,7 +1000,7 @@ begin
       end;
       if (cbPrimaryContact.Items.Count >= AdminId) then
         cbPrimaryContact.ItemIndex := AdminId;
-    
+
       //Products and Service
       vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
       vtProducts.NodeDataSize := SizeOf(TTreeData);
@@ -1002,6 +1021,9 @@ begin
       vtProducts.Expanded[ProductNode] := True;
       vtProducts.Expanded[ServiceNode] := True;
       vtProducts.ScrollIntoView(ProductNode, False);
+
+      vtProducts.OnCompareNodes := TreeCompare;
+      vtProducts.SortTree(0, sdAscending);
     end;
   except
     on E: Exception do begin
@@ -1011,6 +1033,30 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmPracticeDetails.actClearAllProductsExecute(Sender: TObject);
+begin
+  FOnlineSettingsChanged := True;
+  ProductConfigService.ClearAllProducts;
+  vtProducts.Invalidate;
+  Refresh;
+  if vtProducts.CanFocus then
+    vtProducts.SetFocus;
+  if btnClearAll.CanFocus then
+    btnClearAll.SetFocus;
+end;
+
+procedure TfrmPracticeDetails.actSelectAllProductsExecute(Sender: TObject);
+begin
+  FOnlineSettingsChanged := True;
+  ProductConfigService.SelectAllProducts;
+  vtProducts.Invalidate;
+  Refresh;
+  if vtProducts.CanFocus then
+    vtProducts.SetFocus;
+  if btnSelectAll.CanFocus then
+    btnSelectAll.SetFocus;
+end;
+
 function TfrmPracticeDetails.AddTreeNode(AVST: TCustomVirtualStringTree;
   ANode: PVirtualNode; ACaption: widestring; AObject: TObject): PVirtualNode;
 var
@@ -1111,6 +1157,11 @@ begin
   edtLogoBitmapFilename.Hint := edtLogoBitmapFilename.Text;
 end;
 
+procedure TfrmPracticeDetails.edtURLChange(Sender: TObject);
+begin
+  FOnlineSettingsChanged := True;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.tbsInterfacesShow(Sender: TObject);
 begin
@@ -1118,6 +1169,24 @@ begin
     SetUpWebExport(Byte(cmbWebFormats.Items.Objects[cmbWebFormats.ItemIndex]))
   else
     SetUpWebExport(wfDefault);
+end;
+
+procedure TfrmPracticeDetails.TreeCompare(Sender: TBaseVirtualTree; Node1,
+  Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
+var
+  Data1, Data2: pTreeData;
+begin
+  Data1 := Sender.GetNodeData(Node1);
+  Data2 := Sender.GetNodeData(Node2);
+  // folder are always before files
+  if (Data1.tdObject = nil) and (Data2.tdObject <> nil) then begin
+    // one is a folder the other a file
+    if (Data1.tdObject = nil) then
+      Result := -1
+    else
+      Result := 1;
+  end else // both are of same type (folder or file)
+    Result := CompareText(Data1.tdCaption, Data2.tdCaption);
 end;
 
 procedure TfrmPracticeDetails.tsBankLinkOnlineShow(Sender: TObject);
