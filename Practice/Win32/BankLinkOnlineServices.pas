@@ -92,7 +92,7 @@ type
     function RemotableObjectToXML(ARemotable: TRemotable): string;
     procedure LoadRemotableObjectFromXML(const XML: string; ARemotable: TRemotable);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
-    function LoadPracticeDetailsfromSystemDB: Boolean;
+//    function LoadPracticeDetailsfromSystemDB: Boolean;
     procedure SavePracticeDetailsToSystemDB;
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
@@ -409,41 +409,61 @@ var
   Msg: string;
   ShowProgress : Boolean;
 begin
-  ShowProgress := Progress.StatusSilent;
+  if not Assigned(AdminSystem) then
+     Exit;
 
-  if ShowProgress then
-  begin
-    Screen.Cursor := crHourGlass;
-    Progress.StatusSilent := False;
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 40);
+  //Check that BConnect secure code has been assigned
+  if AdminSystem.fdFields.fdBankLink_Connect_Password = '' then begin
+    HelpfulErrorMsg('The BankLink Secure Code for this practice has not been set. ' +
+                    'Please set this before attempting to use ' + BANKLINK_ONLINE_NAME +
+                    '.', 0);
+    Exit;
   end;
 
+  //Initialise
+  FOnLine := False;
+  FRegistered := False;
+  //FUseBankLinkOnline is updated by the user when the practice details
+  //dialog is open - so dont't reset it.
+  if aUpdateUseOnline then
+    FUseBankLinkOnline := False;
+  FreeAndNil(FPractice);
+  FPractice := Practice.Create;
+  FreeAndNil(FPracticeCopy);
+  FPracticeCopy := Practice.Create;
   try
-    try
-      if Assigned(AdminSystem) then begin
-        //Load cached practice details if they are registered or not
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 40);
+    end;
 
+    try
+      try
         if ShowProgress then
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 50);
 
-        FRegistered := True;
-        try
-          if LoadPracticeDetailsfromSystemDB then
-            Result := FPractice;
-        finally
-          FRegistered := False;
-        end;
-        //try to load practice details from BankLink Online
-        FOnLine := False;
+        //Load cached practice details if they are registered or not
+        if AdminSystem.fdFields.fdBankLink_Online_Config <> '' then
+          LoadRemotableObjectFromXML(AdminSystem.fdFields.fdBankLink_Online_Config, FPractice);
+
+        //FUseBankLinkOnline is updated by the user when the practice details
+        //dialog is open - so dont't reload it from the system db.
         if aUpdateUseOnline then
           FUseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
+
+        //Try to load practice details from BankLink Online
+        FOnLine := False;
         if (UseBankLinkOnline)
         or (aForceOnline) then
         begin
           //Reload from BankLink Online
           BlopiInterface := GetServiceFacade;
           PracticeDetailResponse := BlopiInterface.GetPractice(CountryText(AdminSystem.fdFields.fdCountry),
-          AdminSystem.fdFields.fdBankLink_Code, AdminSystem.fdFields.fdBankLink_Connect_Password);
+                                                               AdminSystem.fdFields.fdBankLink_Code,
+                                                               AdminSystem.fdFields.fdBankLink_Connect_Password);
           if Assigned(PracticeDetailResponse) then begin
             FOnLine := True;
             if Assigned(PracticeDetailResponse.Result) then begin
@@ -455,42 +475,34 @@ begin
               Msg := '';
               for i := Low(PracticeDetailResponse.ErrorMessages) to High(PracticeDetailResponse.ErrorMessages) do
                 Msg := Msg + ServiceErrorMessage(PracticeDetailResponse.ErrorMessages[i]).Message_;
-              if Msg = 'Invalid BConnect Credentials' then begin
+              if Msg = 'Invalid BConnect Credentials' then
                 //Clear the cached practice details if not registered for this practice code
-                FPractice.Free;
-                FPractice := Practice.Create;
-                AdminSystem.fdFields.fdBankLink_Online_Config := '';
-//                AdminSystem.fdFields.fdUse_BankLink_Online := False;
-                FUseBankLinkOnline := False;
-                LoadPracticeDetailsfromSystemDB;
-                FRegistered := False;
-              end else
+                AdminSystem.fdFields.fdBankLink_Online_Config := ''
+              else
                 raise Exception.Create(Msg);
             end;
           end;
         end;
+        if ShowProgress then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 100);
+      except
+        on E: Exception do
+          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
+                          '.' + #13#13 + E.Message, 0);
       end;
-      //Make a copy for editing
-      FreeAndNil(FPracticeCopy);
-      FPracticeCopy := Practice.Create;
-      CopyRemotableObject(FPractice, FPracticeCopy);
-
+    finally
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 100);
-
-      Result := FPracticeCopy;
-    except
-      on E: Exception do
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
-                        '.' + #13#13 + E.Message, 0);
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
     end;
   finally
-    if ShowProgress then
-    begin
-      Progress.StatusSilent := True;
-      Progress.ClearStatus;
-      Screen.Cursor := crDefault;
-    end;
+    //Make a copy for editing
+    if FPractice <> nil then
+      CopyRemotableObject(FPractice, FPracticeCopy);
+    Result := FPracticeCopy;    
   end;
 end;
 
@@ -525,17 +537,17 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.LoadPracticeDetailsfromSystemDB: Boolean;
-begin
-  Result := False;
-  if not Assigned(AdminSystem) then
-    Exit;
-
-  if AdminSystem.fdFields.fdBankLink_Online_Config <> '' then begin
-    LoadRemotableObjectFromXML(AdminSystem.fdFields.fdBankLink_Online_Config, FPractice);
-    Result := True;
-  end;
-end;
+//function TProductConfigService.LoadPracticeDetailsfromSystemDB: Boolean;
+//begin
+//  Result := False;
+//  if not Assigned(AdminSystem) then
+//    Exit;
+//
+//  if AdminSystem.fdFields.fdBankLink_Online_Config <> '' then begin
+//    LoadRemotableObjectFromXML(AdminSystem.fdFields.fdBankLink_Online_Config, FPractice);
+//    Result := True;
+//  end;
+//end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;

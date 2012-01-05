@@ -133,7 +133,6 @@ type
     InSetup: Boolean;
     FPrac: Practice;
     FOnlineSettingsChanged: Boolean;
-    FUpdateUseOnline: Boolean;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -454,9 +453,8 @@ var
   i: integer;
 begin
   if ckUseBankLinkOnline.Checked then begin
-    FPrac := ProductConfigService.GetPractice(FOnlineSettingsChanged, FUpdateUseOnline);
-    FUpdateUseOnline := False;
     ProductConfigService.UseBankLinkOnline := True;
+    FPrac := ProductConfigService.GetPractice(FOnlineSettingsChanged, False);
     LoadPracticeDetails;
   end else
     ProductConfigService.UseBankLinkOnline := False;
@@ -548,8 +546,11 @@ begin
     tsSuperFundSystem.TabVisible := (fdFields.fdCountry = whAustralia);
 
     //Use BankLink Online
-    FUpdateUseOnline := True;
-    ckUseBankLinkOnline.Checked := ProductConfigService.UseBankLinkOnline;
+    ProductConfigService.UseBankLinkOnline := Adminsystem.fdFields.fdUse_BankLink_Online;
+    ckUseBankLinkOnline.Checked := Adminsystem.fdFields.fdUse_BankLink_Online;
+    for i := 0 to tsBanklinkOnline.ControlCount - 1 do
+      tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
+    ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
 
     //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
