@@ -405,19 +405,19 @@ begin
 
         ClearAction := MyAction.NewAction('Clearing Logs');
 
-        TMigrater.RunSQL(con,ClearAction,
+//        TMigrater.RunSQL(con,ClearAction,
 
-     'IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N''[dbo].[FK_CategoryLog_Log]'') AND parent_object_id = OBJECT_ID(N''[dbo].[CategoryLogs]'')) ALTER TABLE [dbo].[CategoryLogs] DROP CONSTRAINT [FK_CategoryLog_Log]'
-                 ,'Drop foreign keys' );
-        TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE categorylogs', 'Delete categorylogs');
+//     'IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N''[dbo].[FK_CategoryLog_Log]'') AND parent_object_id = OBJECT_ID(N''[dbo].[CategoryLogs]'')) ALTER TABLE [dbo].[CategoryLogs] DROP CONSTRAINT [FK_CategoryLog_Log]'
+//                 ,'Drop foreign keys' );
+//        TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE categorylogs', 'Delete categorylogs');
 
         TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE logs', 'Delete Logs');
 
-        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs]  WITH CHECK ADD  CONSTRAINT [FK_CategoryLog_Log] FOREIGN KEY([LogID]) REFERENCES [dbo].[Logs] ([LogID])'
-        , 'Add foreign keys');
+//        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs]  WITH CHECK ADD  CONSTRAINT [FK_CategoryLog_Log] FOREIGN KEY([LogID]) REFERENCES [dbo].[Logs] ([LogID])'
+//        , 'Add foreign keys');
 
-        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs] CHECK CONSTRAINT [FK_CategoryLog_Log]'
-        ,'Check Constraints');
+//        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs] CHECK CONSTRAINT [FK_CategoryLog_Log]'
+//        ,'Check Constraints');
 
         TMigrater.RunSQL(con,ClearAction,'DBCC SHRINKFILE(''PracticeLog_Log'',1)', 'Shrink log');
         ClearAction.Status := Success;

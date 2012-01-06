@@ -1440,6 +1440,7 @@ function TSystemMigrater.MergeUser(ForAction: TMigrateAction;
 var User: PUser_rec;
     Restricted: Boolean;
     I : Integer;
+    RecordNum: integer;
 begin
 
    User := PUser_rec(Value.Data);
@@ -1448,10 +1449,11 @@ begin
    Systemusers.Active := false;
    Systemusers.Parameters.ParamValues['Code']:= User.usCode;
    Systemusers.Active := True;
+   RecordNum := 0;
    if Systemusers.RecordCount > 0 then begin
 
       repeat
-
+          inc(RecordNum);
           RunSQL(connection,ForAction,format('Delete from [UserClients] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]),
               format('Delete User Clients for %s ',[User.usCode]));
 
@@ -1476,6 +1478,8 @@ begin
 
          RunSQL(ForAction,format('Delete from [Faxes] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
          }
+         if RecordNum >= SystemUsers.RecordCount then
+           break;
       until not Systemusers.FindNext;
 
 

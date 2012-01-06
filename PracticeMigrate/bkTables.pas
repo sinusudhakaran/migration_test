@@ -595,7 +595,8 @@ begin  with Value^ do
 
 {7}       ToSQL(txSF_Capital_Gains_Other), ToSQL(txSF_Capital_Gains_Foreign_Disc), ToSQL(txSF_Foreign_Capital_Gains_Credit),
 
-{8}       DateToSQl(txSF_CGT_Date), ToSQL(txSF_Capital_Gains_Fraction_Half)
+{8}       DateToSQl(txSF_CGT_Date), ToSQL(txSF_Capital_Gains_Fraction_Half),
+{9}       ToSQL(IsDissected),ToSQL(IsSplitPayee),ToSQL(IsSplitJob),ToSQL(IsPayeeOverridden),ToSQL(IsJobOverridden)
 
 ]);
 end;
@@ -608,10 +609,10 @@ begin
 {3}       ,'Reference','Particulars','Analysis','OrigBB','OtherParty','ChartCode','CodedBy'
 {4}       ,'PayeeNumber','Locked','BankLinkID','GSTHasBeenEdited','MatchedItemID','UPIState','OriginalReference'
 {5}       ,'OriginalSource','OriginalType','OriginalChequeNumber','OriginalAmount','Notes','ECodingImportNotes'
-{6}       ,'ECodingTransactionUID','GLNarration','StatementDetails' ,'TaxInvoiceAvailable1'
+{6}       ,'ECodingTransactionUID','GLNarration','StatementDetails' ,'TaxInvoiceAvailable'
 {7}       ,'ExternalGUID','DocumentTitle','JobCode'
 {8}       ,'DocumentStatusUpdateRequired','BankLinkUID','NotesRead','ImportNotesRead'
-{9}       ,'IsDissected','IsSplitPayee','IsPayeeOverridden'
+{9}       ,'IsDissected','IsSplitPayee','IsSplitJob','IsPayeeOverridden','IsJobOverridden'
           ],SFLineFields);
 
 
