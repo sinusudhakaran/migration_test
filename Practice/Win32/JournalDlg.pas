@@ -3151,7 +3151,7 @@ begin
 
          //Audit journal edit for UK
          if (MyClient.clFields.clCountry = whUK) then
-           SaveClient;
+           SaveClient(false);
       finally
          if ModalResult in [mrOK, mrCancel, mrYes] then
             Free;

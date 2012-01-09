@@ -200,7 +200,7 @@ begin
               MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
               MyClient.ClientAuditMgr.FlagAudit(arPayees);
 
-              SaveClient;
+              SaveClient(false);
            end;
            if Assigned(MyClient) then
             RefreshClientManager(MyClient.clFields.clCode);

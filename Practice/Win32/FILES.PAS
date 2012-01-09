@@ -11,7 +11,7 @@ uses
   {$IFNDEF TESTLOCKING}
   procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
   function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
-  procedure SaveClient;
+  procedure SaveClient(CopyWarning: boolean);
   function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
   procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0;
                             AFirstUpload: boolean = False; AFlagReadOnly: boolean = False;
@@ -1285,7 +1285,7 @@ begin
    Result := WasAbandoned;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure SaveClient;
+procedure SaveClient(CopyWarning: boolean);
 {save the global client, but dont close}
 const
   ThisMethodName = 'SaveClient';
@@ -1296,7 +1296,7 @@ begin
     //Check the status of the client file. Don't save if it has been openned Read Only
     if (not MyClient.clFields.clFile_Read_Only) then
     begin
-      if BanklinkOnlineConnected then
+      if BanklinkOnlineConnected and CopyWarning then
         ShowMessage('BankLink Practice will not copy the BankLink Online settings for ' +
                     'this client. To set BankLink Online access, please click ‘Other ' +
                     'Functions | Client Details | Client Settings’');
@@ -2820,7 +2820,7 @@ begin
       begin
          Code := MyClient.clFields.clCode;
          pCF := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
-                                            
+
          If not Assigned( pCF ) then begin
             Msg := Format( 'Could not find CF Record for %s',[Code]);
             LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
@@ -2836,7 +2836,7 @@ begin
            cfFile_Type           := pCf^.cfFile_Type;
            if (MyClient.clFields.clFile_Read_Only) then
              cfFile_Status       := fsOpen
-           else                                          
+           else
              cfFile_Status       := pCf^.cfFile_Status;
            cfDate_Last_Accessed  := pcf^.cfDate_Last_Accessed;
            cfFile_Save_Count     := pCf^.cfFile_Save_Count;
@@ -2916,7 +2916,7 @@ begin
         clUse_Alterate_ID_for_extract := false;  //default back to client code to avoid duplicates
       end;
 
-      SaveClient;
+      SaveClient(OldFileName <> NewFileName);
 
       //delete the autosave file if it exists
       DeleteFile(OldFileName + AUTOSAVEEXTN);
@@ -2935,7 +2935,7 @@ begin
         clUse_Alterate_ID_for_extract := false;  //default back to client code to avoid duplicates
       end;
 
-      SaveClient;
+      SaveClient(OldFileName <> NewFileName);
 
       //delete the autosave file if it exists
       DeleteFile(OldFileName + AUTOSAVEEXTN);

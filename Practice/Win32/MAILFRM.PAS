@@ -1087,7 +1087,7 @@ begin
            ClientWasOpen := MyClient.clFields.clCode;
            CloseClientHomePage;
         end else
-           SaveClient;
+           SaveClient(false);
      end;
 
      //Get available transactions for each client file

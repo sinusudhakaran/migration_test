@@ -1122,7 +1122,7 @@ begin
         if FileRenamed then begin //force a save immediately
            //Flag Audit
            MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
-           SaveClient;
+           SaveClient(false);
         end;
      end;   // if okPressed
    end;  //with MyClient

@@ -1713,7 +1713,7 @@ begin
 
             //Audit journal add for UK
             if (JA > 0) and (MyClient.clFields.clCountry = whUK) then
-              SaveClient;
+              SaveClient(false);
          end;
       end;
    end;
@@ -3134,7 +3134,7 @@ begin
 
    //Audit journal delete for UK
    if (MyClient.clFields.clCountry = whUK) then
-     SaveClient;
+     SaveClient(false);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.LoadWorkTranList;
@@ -6731,7 +6731,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.SaveFileClick(Sender: TObject);
 begin
-   SaveClient;
+   SaveClient(false);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.ToggleModeClick(Sender: TObject);

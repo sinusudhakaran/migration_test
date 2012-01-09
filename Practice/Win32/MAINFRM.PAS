@@ -2648,7 +2648,7 @@ begin
    if ECodingUtils.ExportECodingFileToFile( MyClient, Dest) then
    begin
       //force a save of the client file, otherwise could lose ecoding ID's
-      SaveClient;
+      SaveClient(false);
       SendCmdToAllCodingWindows( ecRecodeTrans);
    end;
 end;
@@ -3980,7 +3980,7 @@ begin
   Begin
     MyClient.clFields.clCountry := whUK;
     MyClient.clFields.clAccounting_System_Used := 0;
-    SaveClient;
+    SaveClient(false);
   End;
 
   if AdminExists then
@@ -4321,7 +4321,7 @@ begin
                          end;
         mf_mcNewFile : CreateClient(true);
         mf_mcOpenFromMRU : DoOpenFromMRU( Sender);
-        mf_mcSave : SaveClient;
+        mf_mcSave : SaveClient(false);
         mf_mcSaveAs : SaveAs;
         mf_mcCheckIn         : Files.CheckIn(ftmFile);
         mf_mcGetOnline       : Files.CheckIn(ftmOnline);
@@ -4572,7 +4572,7 @@ procedure TfrmMain.ForceOffsiteBackup;
 begin
   if Assigned( MyClient) then
   begin
-    SaveClient;
+    SaveClient(false);
     DoOffsiteBackup( MyClient.clFields.clCode, True);
     if Globals.mfModalCommandResult = 1 then
     begin
