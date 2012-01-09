@@ -118,6 +118,8 @@ type
     function GetClientGuid(const AClientCode: string): WideString;
     function GetCachedPractice: Practice;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
+
+    function GetProducts : ArrayOfGuid;
   public
     constructor Create;
     destructor Destroy; override;
@@ -125,7 +127,9 @@ type
     function GetPractice(aForceOnline : Boolean = False; aUpdateUseOnline: Boolean = True): Practice;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
-    function IsPracticeProductEnabled(AProductId: Guid): Boolean;
+    function IsPracticeProductEnabled(AProductId: Guid; AUsePracCopy : Boolean): Boolean;
+    function HasProductJustBeenUnTicked(AProductId: Guid): Boolean;
+    function NumOfClientsUsingProduct(AProductId: Guid): Integer;
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
     function SavePractice: Boolean;
@@ -162,6 +166,7 @@ type
                                 const aNewPassword : string) : Boolean;
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read FRegistered;
+    property ProductList : ArrayOfguid read GetProducts;
   end;
 
   //Product config singleton
@@ -504,6 +509,13 @@ begin
       CopyRemotableObject(FPractice, FPracticeCopy);
     Result := FPracticeCopy;    
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetProducts: ArrayOfGuid;
+begin
+  if Assigned(FPracticeCopy) then
+    Result := FPracticeCopy.Subscription;
 end;
 
 //------------------------------------------------------------------------------
@@ -927,17 +939,56 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.IsPracticeProductEnabled(
-  AProductId: Guid): Boolean;
+function TProductConfigService.IsPracticeProductEnabled(AProductId: Guid; AUsePracCopy : Boolean): Boolean;
 var
   i: integer;
+  Prac : Practice;
 begin
+  if AUsePracCopy then
+    Prac := FPracticeCopy
+  else
+    Prac := FPractice;
+
   Result := False;
-  if Assigned(FPracticeCopy) then begin
-    for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
-      if FPracticeCopy.Subscription[i] = AProductID then begin
+  if Assigned(Prac) then begin
+    for i := Low(Prac.Subscription) to High(Prac.Subscription) do begin
+      if Prac.Subscription[i] = AProductID then begin
         Result := True;
         Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.HasProductJustBeenUnTicked(AProductId: Guid): Boolean;
+begin
+  // Was the Product Ticked and is it currently unticked
+  Result := (IsPracticeProductEnabled(AProductId, False)) and
+            (not IsPracticeProductEnabled(AProductId, True));
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.NumOfClientsUsingProduct(AProductId: Guid): Integer;
+var
+  ClientIndex : integer;
+  SubIndex : integer;
+  ClientSum : ClientSummary;
+begin
+  Result := 0;
+  if Assigned(FPracticeCopy) then
+  begin
+    for ClientIndex := Low(FClientList.Clients) to High(FClientList.Clients) do
+    begin
+      ClientSum := FClientList.Clients[ClientIndex];
+
+      for SubIndex := Low(ClientSum.Subscription) to High(ClientSum.Subscription) do
+      begin
+        if ClientSum.Subscription[SubIndex] = AProductId then
+        begin
+          Inc(Result);
+          break;
+        end;
       end;
     end;
   end;
@@ -1108,37 +1159,36 @@ begin
       //Save to the web service
 //      if FOnline then begin
 
-        Screen.Cursor := crHourGlass;
-        Progress.StatusSilent := False;
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
-        try
-          PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-          PracCode        := AdminSystem.fdFields.fdBankLink_Code;
-          PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      try
+        PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+        PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+        PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
-          BlopiInterface := GetServiceFacade;
+        BlopiInterface := GetServiceFacade;
 
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to ' + BANKLINK_ONLINE_NAME, 33);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to ' + BANKLINK_ONLINE_NAME, 33);
 
-          MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, FPractice);
-          if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
-          begin
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to System Database', 66);
+        MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, FPractice);
+        if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
+        begin
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to System Database', 66);
 
-            //If save ok then save an offline copy to System DB
-            SavePracticeDetailsToSystemDB;
-            Result := True;
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Completed', 100);
-          end;
-        finally
-          Progress.StatusSilent := True;
-          Progress.ClearStatus;
-          Screen.Cursor := crDefault;
+          //If save ok then save an offline copy to System DB
+          SavePracticeDetailsToSystemDB;
+          Result := True;
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Completed', 100);
         end;
+      finally
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
 
-//      end else begin
-//        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
-//      end;
+      if not Result then
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
     end;
   end else begin
     //Settings are only saved locally if not using BankLink Online
