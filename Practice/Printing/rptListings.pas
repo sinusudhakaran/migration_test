@@ -1567,7 +1567,8 @@ begin
                       Job.AmountCol := AddFormatColAuto(Job,cleft,11.0 + Gcgap,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
 
                     if ShowJournalOnly then // Show GST for journals as per OZ
-                      Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,NUMBER_FORMAT_SIGNED,NUMBER_FORMAT_SIGNED, true);
+                      Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,NUMBER_FORMAT,NUMBER_FORMAT, true);
+//                      Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,NUMBER_FORMAT_SIGNED,NUMBER_FORMAT_SIGNED, true);
 
                     if ShowOp then
                     begin
