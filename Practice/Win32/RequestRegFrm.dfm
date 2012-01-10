@@ -170,7 +170,7 @@ object RequestregForm: TRequestregForm
     Width = 369
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
+    ItemHeight = 0
     TabOrder = 6
     OnChange = cbAdminNameChange
   end

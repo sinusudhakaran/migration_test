@@ -1,10 +1,22 @@
 unit RequestRegFrm;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls, ImagesFrm, OSFont;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ExtCtrls,
+  StdCtrls,
+  ImagesFrm,
+  OSFont;
 
 type
   TRequestregForm = class(TForm)
@@ -41,6 +53,7 @@ type
 
   function RequestBankLinkOnlineregistration: Boolean;
 
+//------------------------------------------------------------------------------
 implementation
 
 uses
@@ -50,7 +63,7 @@ uses
   MailFrm;
 
 {$R *.dfm}
-
+//------------------------------------------------------------------------------
 function RequestBankLinkOnlineregistration: Boolean;
 var
   RequestRegForm: TRequestregForm;
@@ -64,6 +77,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TRequestregForm.cbAdminNameChange(Sender: TObject);
 begin
   //Practice user selected
@@ -76,6 +90,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TRequestregForm.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -88,12 +103,14 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TRequestregForm.FormShow(Sender: TObject);
 begin
   if edtPracticeName.CanFocus then
     edtPracticeName.SetFocus;
 end;
 
+//------------------------------------------------------------------------------
 procedure TRequestregForm.SendEmail;
 const
   ONE_LINE = #10;
@@ -119,6 +136,7 @@ begin
              'BankLink Online Registration', Msg);
 end;
 
+//------------------------------------------------------------------------------
 procedure TRequestregForm.SetupForm;
 var
   i: integer;
@@ -143,6 +161,7 @@ begin
   cbAdminName.ItemIndex := 0;
 end;
 
+//------------------------------------------------------------------------------
 function TRequestregForm.VerifyForm: Boolean;
 begin
   Result := False;
@@ -165,8 +184,17 @@ begin
     Exit;
   end;
 
+  //Telephone
+  if (Trim(edtPh.Text) = '') then begin
+    if edtPh.CanFocus then
+      edtPh.SetFocus;
+    HelpfulWarningMsg('A valid administrator phone number is required for this request. '  +
+                      'Please try again.',0);
+    Exit;
+  end;
+
   //Email
-  if edtEmail.Enabled and (Trim(edtEmail.Text) = '') then begin
+  if (Trim(edtEmail.Text) = '') then begin
     if edtEmail.CanFocus then
       edtEmail.SetFocus;
     HelpfulWarningMsg('A valid administrator email address is required for this request. '  +
