@@ -18,7 +18,7 @@ procedure SetErrorProc (Value: OutputError); stdcall;
 
 procedure ImportBooksFile(Code: PChar; Blob: pchar)stdcall;
 
-procedure ExportBooksFile(Code: pChar; Blob: Pchar)stdcall;
+procedure ExportBooksFile(Blob: Pchar; Len: integer)stdcall;
 
 
 
@@ -30,7 +30,7 @@ implementation
 uses
     listHelpers,
     CLObj32,
-
+    Dialogs,
     OmniXMLUtils;
 
 
@@ -191,57 +191,71 @@ begin
    LogMsg(lmInfo, UnitName, 'procedure ImportBooksFile complete');
 end;
 
-procedure ExportBooksFile(Code: pChar; Blob: Pchar);
+procedure ExportBooksFile(Blob: Pchar; Len: integer);
 // The incomming blob is expected to be the XML stream
 var
    XMLHelper:  TXML_Helper;
    Client: TClientObj;
    Stream : TBigMemoryStream;
+   EncodedBK5: string;
+//   BuffSize: Integer;
+   TempStr: string;
+   pCopy: pchar;
 begin
-//   LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile beginning');
-
-//   Client := nil;
-//   stream := nil;
-
-   XMLHelper := TXML_Helper.Create;
-//   LogMsg(lmInfo, UnitName, '3');
+   GetMem(pCopy, Len + 1);
    try
-       try
-         Client := XMLHelper.ReadClient(string(Blob));
-//         LogMsg(lmInfo, UnitName, '4');
-       except
-         on E: exception do  DoException(E,'Deserializing XML');
-       end;
-//       LogMsg(lmInfo, UnitName, '5');
-//       if not Assigned(Client) then
-//         LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile: Client is nil');
-//       LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile: reading client');
+     FillChar(pCopy^, Len + 1, 0);
+     Move(Blob^, pCopy^, Len);
+     TempStr := Blob;
+     ShowMessage('Input PChar size: ' + IntToStr(Length(TempStr)) + #10 +
+                 'Input Len: ' + IntToStr(Len));
 
-       try
-//         LogMsg(lmInfo, UnitName, '6');
-         stream := Client.SaveClientToStream;
-       except
-         on E: exception do  DoException(E,'Saving Client file');
-       end;
-//       LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile: saving client file');
+     Client := nil;
+     Stream := nil;
 
-       try
-//          LogMsg(lmInfo, UnitName, '7');
-          DoOutputData(BK5File,pChar(string(Client.clFields.clCode)),pChar(EnCodetext(stream)) );
-   //       Stream.SaveToFile(pChar(string(Client.clFields.clCode)) + '.bk5');
-       except
-         on E: exception do  DoException(E,'Encoding Client file');
-       end;
-//       LogMsg(lmInfo, UnitName, '8');
-//       LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile: encoding client file');
+   //Take a copy of the XML - the Blob parameter seems to get corrupted
+   //when calling the dll from a C# app running in VS Debug.
+//   TempStr := string(Blob);
+//   BuffSize := SizeOf(Char)*(Length(TempStr)+1);//+1 for null-terminator
+//   GetMem(pCopy, BuffSize);
+//   try
+//     FillChar(pCopy^, BuffSize, 0);
+//     Move(PChar(TempStr)^, pCopy^, BuffSize);
 
+     XMLHelper := TXML_Helper.Create;
+     try
+        try
+  //         Client := XMLHelper.ReadClient(string(Blob));
+           Client := XMLHelper.ReadClient(string(pCopy));
+           try
+              try
+                 Stream := Client.SaveClientToStream;
+                 try
+                    //Stream.SaveToFile(pChar(Client.clFields.clCode) + '.bk5');
+                    try
+                      EncodedBK5 := EnCodetext(Stream);
+                    except
+                       on E: exception do  DoException(E,'Encoding Client file');
+                    end;
+                    DoOutputData(BK5File, PChar(string(Client.clFields.clCode)), PChar(EncodedBK5));
+                 finally
+                   FreeAndNil(Stream);
+                 end;
+              except
+                on E: exception do  DoException(E,'Saving Client file');
+              end;
+           finally
+              FreeAndNil(Client);
+           end;
+        except
+          on E: exception do  DoException(E,'Deserializing XML');
+        end;
+     finally
+        FreeAndNil(XMLHelper);
+     end;
    finally
-      FreeAndNil(Client);
-      FreeAndNil(XMLHelper);
-      FreeAndNil(stream);
+     FreeMem(pCopy);
    end;
-
-//   LogMsg(lmInfo, UnitName, 'procedure ExportBooksFile complete');
 end;
 
 end.

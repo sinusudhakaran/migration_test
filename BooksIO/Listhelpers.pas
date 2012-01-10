@@ -139,6 +139,11 @@ begin
 
 end;
 
+function BankAccountCompare(Item1,Item2:Pointer):integer;
+begin
+   result := CompareStr(TBank_Account(Item1).baFields.baBank_Account_Number,TBank_Account(Item2).baFields.baBank_Account_Number);
+end;
+
 procedure TXML_Helper.ReadFromNode(var value: TClientObj; Node: IXMLNode);
 var
    lNode: IXMLNode;
@@ -156,26 +161,18 @@ begin
    value.clMoreFields.ReadRecFromNode(Node);
 
    lNode := Node.ChildNodes.FindNode('BankAccounts');
+   value.clBank_Account_List.DeleteAll;
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
       while Assigned(lNode) do begin
          nAccount := TBank_Account.Create(value);
-         ReadFromNode(nAccount,LNode);
+         nAccount.baFields.baCurrency_Code := 'XXX'; // default value
          value.clBank_Account_List.Insert(nAccount);
+         ReadFromNode(nAccount,LNode);
          lNode := lNode.NextSibling;
       end;
    end;
-
-   lNode := Node.ChildNodes.FindNode('Chart');
-   if Assigned(LNode) then begin
-      lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
-         nChart := new_Account_Rec;
-         nChart.ReadRecFromNode(lNode);
-         value.clChart.Insert(nChart);
-         lNode := lNode.NextSibling;
-      end
-   end;
+   value.clBank_Account_List.Sort(BankAccountCompare);
 
    lNode := Node.ChildNodes.FindNode('Payees');
    if Assigned(LNode) then begin
@@ -183,7 +180,7 @@ begin
       while Assigned(lNode) do begin
          nPayee := tPayee.Create;
          ReadFromNode(nPayee,LNode);
-         value.clChart.Insert(nPayee);
+         value.clPayee_List.Insert(nPayee);
          lNode := lNode.NextSibling;
       end
    end;
@@ -198,6 +195,7 @@ begin
          lNode := lNode.NextSibling;
       end
    end;
+   
    lNode := Node.ChildNodes.FindNode('Budgets');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
@@ -357,7 +355,7 @@ begin
       while Assigned(lNode) do begin
          NMem := Tmemorisation.Create(nil);
          ReadFromNode(NMem,LNode);
-         value.baMemorisations_List.Insert_Memorisation(nil);
+         value.baMemorisations_List.Insert_Memorisation(NMem, False);
          LNode := LNode.NextSibling;
       end;
    end;

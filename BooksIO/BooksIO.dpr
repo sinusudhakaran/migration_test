@@ -1,12 +1,5 @@
+library BooksIO;
 
-{$IFDEF DEBUG}
-        program BooksIO;
-        {$APPTYPE CONSOLE}
-
-{$ELSE }
-       library BooksIO;
-
-{$ENDIF}
 { Important note about DLL memory management: ShareMem must be the
   first unit in your library's USES clause AND your project's (select
   Project-View Source) USES clause if your DLL exports any procedures or
@@ -18,6 +11,11 @@
   using PChar or ShortString parameters. }
 
 uses
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
   SysUtils,
   Classes,
   ImportExport in 'ImportExport.pas',
