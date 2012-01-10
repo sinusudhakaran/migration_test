@@ -153,6 +153,7 @@ object RequestregForm: TRequestregForm
     Top = 192
     Width = 369
     Height = 21
+    MaxLength = 20
     TabOrder = 4
   end
   object edtEmail: TEdit
@@ -160,6 +161,7 @@ object RequestregForm: TRequestregForm
     Top = 227
     Width = 369
     Height = 21
+    MaxLength = 80
     TabOrder = 5
   end
   object cbAdminName: TComboBox
