@@ -122,7 +122,6 @@ object RequestregForm: TRequestregForm
     Default = True
     ModalResult = 1
     TabOrder = 0
-    OnClick = btnSubmitClick
   end
   object btnCancel: TButton
     Left = 454
@@ -169,7 +168,7 @@ object RequestregForm: TRequestregForm
     Width = 369
     Height = 21
     Style = csDropDownList
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 6
     OnChange = cbAdminNameChange
   end

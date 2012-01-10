@@ -30,11 +30,11 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure cbAdminNameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure btnSubmitClick(Sender: TObject);
   private
     { Private declarations }
     function VerifyForm: Boolean;
     procedure SetupForm;
+    procedure SendEmail;
   public
     { Public declarations }
   end;
@@ -64,7 +64,38 @@ begin
   end;
 end;
 
-procedure TRequestregForm.btnSubmitClick(Sender: TObject);
+procedure TRequestregForm.cbAdminNameChange(Sender: TObject);
+begin
+  //Practice user selected
+  edtPh.Text := '';
+  edtEmail.Text := '';
+  if (cbAdminName.ItemIndex > 0) then begin
+    if (Trim(edtPh.Text) = '') and (Trim(edtEmail.Text) = '') then begin
+      edtPh.Text := pUser_Rec(cbAdminName.Items.Objects[cbAdminName.ItemIndex]).usDirect_Dial;
+      edtEmail.Text := pUser_Rec(cbAdminName.Items.Objects[cbAdminName.ItemIndex]).usEMail_Address;
+    end;
+  end;
+end;
+
+procedure TRequestregForm.FormCloseQuery(Sender: TObject;
+  var CanClose: Boolean);
+begin
+  CanClose := True;
+  if (ModalResult = mrOk) then
+  begin
+    CanClose := VerifyForm;
+    if CanClose then
+      SendEmail;
+  end;
+end;
+
+procedure TRequestregForm.FormShow(Sender: TObject);
+begin
+  if edtPracticeName.CanFocus then
+    edtPracticeName.SetFocus;
+end;
+
+procedure TRequestregForm.SendEmail;
 const
   ONE_LINE = #10;
   TWO_LINES = #10#10;
@@ -87,33 +118,6 @@ begin
 
   SendMailTo('BankLink Online Registration', GetSupportEmailAddress,
              'BankLink Online Registration', Msg);
-end;
-
-procedure TRequestregForm.cbAdminNameChange(Sender: TObject);
-begin
-  //Practice user selected
-  edtPh.Text := '';
-  edtEmail.Text := '';
-  if (cbAdminName.ItemIndex > 0) then begin
-    if (Trim(edtPh.Text) = '') and (Trim(edtEmail.Text) = '') then begin
-      edtPh.Text := pUser_Rec(cbAdminName.Items.Objects[cbAdminName.ItemIndex]).usDirect_Dial;
-      edtEmail.Text := pUser_Rec(cbAdminName.Items.Objects[cbAdminName.ItemIndex]).usEMail_Address;
-    end;
-  end;
-end;
-
-procedure TRequestregForm.FormCloseQuery(Sender: TObject;
-  var CanClose: Boolean);
-begin
-  CanClose := True;
-  if (ModalResult = mrOk) then
-    CanClose := VerifyForm;
-end;
-
-procedure TRequestregForm.FormShow(Sender: TObject);
-begin
-  if edtPracticeName.CanFocus then
-    edtPracticeName.SetFocus;
 end;
 
 procedure TRequestregForm.SetupForm;
