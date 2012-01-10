@@ -126,7 +126,7 @@ begin
   //Practice details
   if Trim(AdminSystem.fdFields.fdPractice_Name_for_Reports) <> '' then begin
     edtPracticeName.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-    lblPracticeName.Enabled := False;
+    edtPracticeName.Enabled := False;
   end;
   edtSecureCode.Text := AdminSystem.fdFields.fdBankLink_Code;
   edtSecureCode.Enabled := False;
