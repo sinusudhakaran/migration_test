@@ -11,7 +11,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (22/12/2011 10:28:46 a.m. - - $Rev: 25127 $)
+// (10/01/2012 3:46:17 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -562,6 +562,8 @@ type
     FEMail_Specified: boolean;
     FFullName: WideString;
     FFullName_Specified: boolean;
+    FPassword: WideString;
+    FPassword_Specified: boolean;
     FRoleNames: ArrayOfstring;
     FRoleNames_Specified: boolean;
     FSubscription: ArrayOfguid;
@@ -572,6 +574,8 @@ type
     function  EMail_Specified(Index: Integer): boolean;
     procedure SetFullName(Index: Integer; const AWideString: WideString);
     function  FullName_Specified(Index: Integer): boolean;
+    procedure SetPassword(Index: Integer; const AWideString: WideString);
+    function  Password_Specified(Index: Integer): boolean;
     procedure SetRoleNames(Index: Integer; const AArrayOfstring: ArrayOfstring);
     function  RoleNames_Specified(Index: Integer): boolean;
     procedure SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
@@ -581,6 +585,7 @@ type
   published
     property EMail:        WideString     Index (IS_OPTN or IS_NLBL) read FEMail write SetEMail stored EMail_Specified;
     property FullName:     WideString     Index (IS_OPTN or IS_NLBL) read FFullName write SetFullName stored FullName_Specified;
+    property Password:     WideString     Index (IS_OPTN or IS_NLBL) read FPassword write SetPassword stored Password_Specified;
     property RoleNames:    ArrayOfstring  Index (IS_OPTN or IS_NLBL) read FRoleNames write SetRoleNames stored RoleNames_Specified;
     property Subscription: ArrayOfguid    Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
     property UserCode:     WideString     Index (IS_OPTN or IS_NLBL) read FUserCode write SetUserCode stored UserCode_Specified;
@@ -793,6 +798,7 @@ type
     function  SavePractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const practice: Practice): MessageResponse; stdcall;
     function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const newUser: NewUser): MessageResponseOfguid; stdcall;
     function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: User): MessageResponse; stdcall;
+    function  SetPracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const newPassword: WideString): MessageResponse; stdcall;
     function  DeletePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
     function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
     function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientMIdCYrSK; stdcall;
@@ -1422,6 +1428,17 @@ end;
 function NewUser.FullName_Specified(Index: Integer): boolean;
 begin
   Result := FFullName_Specified;
+end;
+
+procedure NewUser.SetPassword(Index: Integer; const AWideString: WideString);
+begin
+  FPassword := AWideString;
+  FPassword_Specified := True;
+end;
+
+function NewUser.Password_Specified(Index: Integer): boolean;
+begin
+  Result := FPassword_Specified;
 end;
 
 procedure NewUser.SetRoleNames(Index: Integer; const AArrayOfstring: ArrayOfstring);
