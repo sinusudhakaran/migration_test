@@ -414,8 +414,9 @@ var
   Msg: string;
   ShowProgress : Boolean;
 begin
+  Result := Nil;
   if not Assigned(AdminSystem) then
-     Exit;
+    Exit;
 
   //Check that BConnect secure code has been assigned
   if AdminSystem.fdFields.fdBankLink_Connect_Password = '' then begin

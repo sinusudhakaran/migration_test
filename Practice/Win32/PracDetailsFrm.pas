@@ -452,29 +452,43 @@ end;
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
+  EventHolder : TNotifyEvent;
 begin
-  if ckUseBankLinkOnline.Checked then begin
-    ProductConfigService.UseBankLinkOnline := True;
-    FPrac := ProductConfigService.GetPractice(FOnlineSettingsChanged, False);
-    LoadPracticeDetails;
-  end else
-    ProductConfigService.UseBankLinkOnline := False;
+  EventHolder := ckUseBankLinkOnline.OnClick;
+  ckUseBankLinkOnline.OnClick := nil;
 
-  FOnlineSettingsChanged := True;
-  if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine and not ProductConfigService.Registered then begin
-    edtURL.Text := 'Not registered for BankLink Online';
-    cbPrimaryContact.Enabled := False;
-    ckUseBankLinkOnline.Checked := False;
-    if Visible then begin
-      if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
-                           'You are not currently registered for BankLink Online. ' +
-                           'Would you like to register now?', dlg_no, 0) = DLG_YES then
-        RequestBankLinkOnlineRegistration;
+  try
+    if ckUseBankLinkOnline.Checked then begin
+      ProductConfigService.UseBankLinkOnline := True;
+      FPrac := ProductConfigService.GetPractice(FOnlineSettingsChanged, False);
+      if Assigned(FPrac) then
+        LoadPracticeDetails
+      else
+      begin
+        ckUseBankLinkOnline.Checked := False;
+        Exit;
+      end;
+    end else
+      ProductConfigService.UseBankLinkOnline := False;
+
+    FOnlineSettingsChanged := True;
+    if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine and not ProductConfigService.Registered then begin
+      edtURL.Text := 'Not registered for BankLink Online';
+      cbPrimaryContact.Enabled := False;
+      ckUseBankLinkOnline.Checked := False;
+      if Visible then begin
+        if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
+                             'You are not currently registered for BankLink Online. ' +
+                             'Would you like to register now?', dlg_no, 0) = DLG_YES then
+          RequestBankLinkOnlineRegistration;
+      end;
     end;
+    for i := 0 to tsBanklinkOnline.ControlCount - 1 do
+      tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
+    ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
+  finally
+    ckUseBankLinkOnline.OnClick := EventHolder;
   end;
-  for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-    tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
-  ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
 end;
 
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
