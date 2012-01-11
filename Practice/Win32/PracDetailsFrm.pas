@@ -1061,6 +1061,8 @@ var
   Cat: CatalogueEntry;
   TreeColumn: TVirtualTreeColumn;
   ProductNode, ServiceNode: PVirtualNode;
+  RoleIndex : integer;
+  AdminRollName : WideString;
 begin
   //Clear
   edtURL.Text := '';
@@ -1084,11 +1086,25 @@ begin
       //Primary Contacts
       cbPrimaryContact.Enabled := True;
       AdminId := -1;
-      for i := Low(FPrac.Users) to High(FPrac.Users) do begin
-        cbPrimaryContact.Items.AddObject(FPrac.Users[i].FullName, TObject(FPrac.Users[i]));
-        if (FPrac.Users[i].Id = FPrac.DefaultAdminUserId) then
-          AdminId := i;
+      AdminRollName := FPrac.GetRoleFromPracUserType(ustSystem).RoleName;
+
+      for i := Low(FPrac.Users) to High(FPrac.Users) do
+      begin
+        for RoleIndex := Low(FPrac.Users[i].RoleNames) to High(FPrac.Users[i].RoleNames) do
+        begin
+          // Add only Admin User Types
+          if FPrac.Users[i].RoleNames[RoleIndex] = AdminRollName then
+          begin
+            cbPrimaryContact.Items.AddObject(FPrac.Users[i].FullName, TObject(FPrac.Users[i]));
+
+            if (FPrac.Users[i].Id = FPrac.DefaultAdminUserId) then
+              AdminId := i;
+
+            break;
+          end;
+        end;
       end;
+
       if (cbPrimaryContact.Items.Count >= AdminId) then
         cbPrimaryContact.ItemIndex := AdminId;
 
