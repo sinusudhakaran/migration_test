@@ -893,7 +893,7 @@ begin
   if Assigned(FPracticeCopy) then begin
     for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
       Cat := FPracticeCopy.Catalogue[i];
-      if Cat.Description = 'Send and Receive Client Files' then begin
+      if Cat.Description = 'CICO' then begin
         for j := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
           if FPracticeCopy.Subscription[j] = Cat.Id then begin
             Result := True;
