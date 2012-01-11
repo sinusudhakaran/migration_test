@@ -472,19 +472,27 @@ begin
       ProductConfigService.UseBankLinkOnline := False;
 
     FOnlineSettingsChanged := True;
-    if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine and not ProductConfigService.Registered then begin
+    if  ckUseBankLinkOnline.Checked
+    and ProductConfigService.OnLine
+    and not ProductConfigService.Registered then
+    begin
       edtURL.Text := 'Not registered for BankLink Online';
       cbPrimaryContact.Enabled := False;
       ckUseBankLinkOnline.Checked := False;
-      if Visible then begin
+      if Visible then
+      begin
         if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
                              'You are not currently registered for BankLink Online. ' +
                              'Would you like to register now?', dlg_no, 0) = DLG_YES then
+        begin
           RequestBankLinkOnlineRegistration;
+        end;
       end;
     end;
+
     for i := 0 to tsBanklinkOnline.ControlCount - 1 do
       tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
+
     ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
   finally
     ckUseBankLinkOnline.OnClick := EventHolder;

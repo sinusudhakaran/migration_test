@@ -439,14 +439,11 @@ begin
                                                       eFullName.Text,
                                                       GetCurrentCode,
                                                       cmbUserType.ItemIndex,
-                                                      fIsCreateUser);
+                                                      fIsCreateUser,
+                                                      chkUsePracPassInOnline.Checked,
+                                                      ePass.Text);
       if Result then
       begin
-        {if chkLoggedIn.check then
-        begin
-          Result := ProductConfigService.ChangeUserPassword
-        end; }
-
         if IsCreateUser then
           MsgCreateorUpdate := 'created on'
         else

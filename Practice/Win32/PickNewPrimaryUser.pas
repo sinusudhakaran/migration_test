@@ -54,20 +54,25 @@ implementation
 uses
   bkXPThemes,
   imagesfrm,
-  WarningMoreFrm;
+  WarningMoreFrm,
+  BkConst;
 
 //------------------------------------------------------------------------------
 function PickPrimaryUser(aUserCode : string = '';
                          aPractice : Practice = Nil) : Boolean;
 var
-  MyDlg        : TPickNewPrimaryUser;
-  CurrPractice : Practice;
-  UserIndex    : integer;
+  MyDlg         : TPickNewPrimaryUser;
+  CurrPractice  : Practice;
+  UserIndex     : integer;
+  AdminRollName : Widestring;
+  RoleIndex     : integer;
 begin
   Result := False;
   try
     if not Assigned(aPractice) then
       aPractice := ProductConfigService.GetPractice;
+
+    AdminRollName := aPractice.GetRoleFromPracUserType(ustSystem).RoleName;
 
     MyDlg := TPickNewPrimaryUser.Create(Application);
     Try
@@ -78,8 +83,17 @@ begin
       begin
         if not (aPractice.Users[UserIndex].Id = ProductConfigService.GetUserGuid(aUserCode, aPractice)) then
         begin
-          MyDlg.cmbPrimaryContact.AddItem(aPractice.Users[UserIndex].FullName,
+          for RoleIndex := Low(aPractice.Users[UserIndex].RoleNames) to
+                          High(aPractice.Users[UserIndex].RoleNames) do
+          begin
+            // Add only Admin User Types
+            if aPractice.Users[UserIndex].RoleNames[RoleIndex] = AdminRollName then
+            begin
+              MyDlg.cmbPrimaryContact.AddItem(aPractice.Users[UserIndex].FullName,
                                           aPractice.Users[UserIndex]);
+              break;
+            end;
+          end;
         end;
       end;
 
@@ -97,8 +111,7 @@ begin
       begin
         // Save Default Admin User
         aPractice.DefaultAdminUserId := User(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
-        ProductConfigService.SavePractice;
-        Result := True;
+        Result := ProductConfigService.SavePractice;
       end;
 
     Finally

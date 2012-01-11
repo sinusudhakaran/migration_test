@@ -62,6 +62,7 @@ object EditUserPassword: TEditUserPassword
     Width = 245
     Height = 21
     CharCase = ecUpperCase
+    MaxLength = 12
     PasswordChar = #376
     TabOrder = 0
   end
@@ -71,6 +72,7 @@ object EditUserPassword: TEditUserPassword
     Width = 244
     Height = 21
     CharCase = ecUpperCase
+    MaxLength = 12
     PasswordChar = #376
     TabOrder = 1
   end
@@ -113,6 +115,7 @@ object EditUserPassword: TEditUserPassword
     Width = 245
     Height = 21
     CharCase = ecUpperCase
+    MaxLength = 12
     PasswordChar = #376
     TabOrder = 2
   end

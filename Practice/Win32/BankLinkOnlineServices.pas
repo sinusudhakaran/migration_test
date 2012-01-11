@@ -148,12 +148,14 @@ type
     function SaveClient(AClient: Client): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
-    function UpdateCreateUser(var   aUserId        : Guid;
-                              const aEMail         : WideString;
-                              const aFullName      : WideString;
-                              const aUserCode      : WideString;
-                              const aUstNameIndex  : integer;
-                              var   aIsUserCreated : Boolean ) : Boolean;
+    function UpdateCreateUser(var   aUserId         : Guid;
+                              const aEMail          : WideString;
+                              const aFullName       : WideString;
+                              const aUserCode       : WideString;
+                              const aUstNameIndex   : integer;
+                              var   aIsUserCreated  : Boolean;
+                              const aChangePassword : Boolean;
+                              const aPassword       : WideString ) : Boolean;
     function DeleteUser(const aUserCode : string;
                         const aUserGuid : string;
                         aPractice : Practice = nil): Boolean;
@@ -161,9 +163,9 @@ type
                            aPractice : Practice = nil): Boolean;
     function GetUserGuid(const aUserCode : string;
                          aPractice : Practice): Guid;
-    function ChangeUserPassword(const aUserCode: string;
-                                const aOldPassword : string;
-                                const aNewPassword : string) : Boolean;
+    function ChangeUserPassword(const aUserCode : WideString;
+                                const aPassword : WideString;
+                                aPractice : Practice = nil) : Boolean;
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read FRegistered;
     property ProductList : ArrayOfguid read GetProducts;
@@ -324,11 +326,13 @@ begin
   inherited;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetCachedPractice: Practice;
 begin
   Result := FPractice;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetCatalogueEntry(
   AProductId: Guid): CatalogueEntry;
 var
@@ -1380,12 +1384,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.UpdateCreateUser(var   aUserId        : Guid;
-                                                const aEMail         : WideString;
-                                                const aFullName      : WideString;
-                                                const aUserCode      : WideString;
-                                                const aUstNameIndex  : integer;
-                                                var   aIsUserCreated : Boolean ) : Boolean;
+function TProductConfigService.UpdateCreateUser(var   aUserId         : Guid;
+                                                const aEMail          : WideString;
+                                                const aFullName       : WideString;
+                                                const aUserCode       : WideString;
+                                                const aUstNameIndex   : integer;
+                                                var   aIsUserCreated  : Boolean;
+                                                const aChangePassword : Boolean;
+                                                const aPassword       : WideString) : Boolean;
 var
   UpdateUser      : User;
   CreateUser      : NewUser;
@@ -1402,7 +1408,7 @@ var
 begin
   Result := false;
 
-  aIsUserCreated := false;  
+  aIsUserCreated := false;
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
@@ -1449,6 +1455,13 @@ begin
       if not MessageResponseHasError(MsgResponce, 'update practice user on') then
       begin
         Result := MsgResponce.Success;
+      
+        if aChangePassword then
+        begin
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 88);
+          Result := ChangeUserPassword(aUserCode, aPassword, CurrPractice);
+        end;
+      
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
       end;
     end
@@ -1460,6 +1473,11 @@ begin
       CreateUser.RoleNames    := RoleNames;
       CreateUser.Subscription := CurrPractice.Subscription;
       CreateUser.UserCode     := aUserCode;
+
+      if aChangePassword then
+        CreateUser.Password := aPassword
+      else
+        CreateUser.Password := '';
 
       MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
       if not MessageResponseHasError(MessageResponse(MsgResponceGuid), 'create practice user on') then begin
@@ -1559,11 +1577,61 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.ChangeUserPassword(const aUserCode    : string;
-                                                  const aOldPassword : string;
-                                                  const aNewPassword : string) : Boolean;
+function TProductConfigService.ChangeUserPassword(const aUserCode : WideString;
+                                                  const aPassword : WideString;
+                                                  aPractice : Practice) : Boolean;
+var
+  MsgResponce     : MessageResponse;
+  UserGuid        : WideString;
+  BlopiInterface  : IBlopiServiceFacade;
+  PracCountryCode : WideString;
+  PracCode        : WideString;
+  PracPassHash    : WideString;
+  ShowProgress    : Boolean;
 begin
-  Result := True;
+  Result := false;
+
+  ShowProgress := Progress.StatusSilent;
+  if ShowProgress then
+  begin
+    Screen.Cursor := crHourGlass;
+    Progress.StatusSilent := False;
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  end;
+
+  try
+    BlopiInterface  := GetServiceFacade;
+    PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+    PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+    PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+
+    if not Assigned(aPractice) then
+    begin
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 40);
+      aPractice := GetPractice;
+    end;
+
+    if ShowProgress then
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 60);
+
+    UserGuid := GetUserGuid(aUserCode, aPractice);
+    MsgResponce := BlopiInterface.SetPracticeUserPassword(PracCountryCode, PracCode, PracPassHash, UserGuid, aPassword);
+
+    if not MessageResponseHasError(MsgResponce, 'change practice user password on') then begin
+      Result := MsgResponce.Success;
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+    end;
+
+  finally
+    if ShowProgress then
+    begin
+      Progress.StatusSilent := True;
+      Progress.ClearStatus;
+      Screen.Cursor := crDefault;
+    end;
+  end;
 end;
 
 { TClientSummaryHelper }

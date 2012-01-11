@@ -137,7 +137,7 @@ end;
 //------------------------------------------------------------------------------
 function TfrmMaintainUsers.DeleteUser(User: PUser_Rec): boolean;
 const
-   ThisMethodName = 'TfrmMaintainUsers.DeleteUser';
+  ThisMethodName = 'TfrmMaintainUsers.DeleteUser';
 var
   Code : string;
   StoredLRN : integer;
@@ -148,7 +148,7 @@ var
   aPractice : Practice;
 begin
   HasDelOnline := False;
-  result := false;
+  Result := False;
 
   if User^.usCode = GlobalCache.cache_Current_Username then
   begin
@@ -177,11 +177,19 @@ begin
   begin
     try
       aPractice := ProductConfigService.GetPractice;
+      if not Assigned(aPractice) then
+        exit;
 
       if ProductConfigService.IsPrimaryUser(User^.usCode, aPractice) then
-          PickPrimaryUser(User^.usCode, aPractice);
+      begin
+        if not PickPrimaryUser(User^.usCode, aPractice) then
+          exit;
+      end;
 
-      HasDelOnline := ProductConfigService.DeleteUser(User^.usCode, '', aPractice);
+      if not ProductConfigService.DeleteUser(User^.usCode, '', aPractice) then
+        exit;
+
+      HasDelOnline := True;
     except
       on E : Exception do
       begin
