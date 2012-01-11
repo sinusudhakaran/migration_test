@@ -485,7 +485,16 @@ begin
                              'You are not currently registered for BankLink Online. ' +
                              'Would you like to register now?', dlg_no, 0) = DLG_YES then
         begin
-          RequestBankLinkOnlineRegistration;
+          if not RequestBankLinkOnlineRegistration then
+          begin
+            ckUseBankLinkOnline.Checked := False;
+            Exit;
+          end;
+        end
+        else
+        begin
+          ckUseBankLinkOnline.Checked := False;
+          Exit;
         end;
       end;
     end;

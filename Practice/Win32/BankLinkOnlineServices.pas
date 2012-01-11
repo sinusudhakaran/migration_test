@@ -84,8 +84,6 @@ type
     function IsUserCreatedOnBankLinkOnline(const APractice : Practice;
                                            const AUserId   : Guid   = '';
                                            const AUserCode : string = ''): Boolean;
-//    function GetErrorMessage(aErrorMessages : ArrayOfServiceErrorMessage;
-//                             aExceptions    : ArrayOfExceptionDetails) : string;
 
     function GetUseBankLinkOnline: Boolean;
     procedure SetUseBankLinkOnline(const Value: Boolean);
