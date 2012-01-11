@@ -1408,7 +1408,6 @@ var
 begin
   Result := false;
 
-  aIsUserCreated := false;
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
@@ -1461,8 +1460,12 @@ begin
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 88);
           Result := ChangeUserPassword(aUserCode, aPassword, CurrPractice);
         end;
-      
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+
+        if Result then
+        begin
+          aIsUserCreated := false;
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+        end;
       end;
     end
     else
@@ -1481,7 +1484,7 @@ begin
 
       MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
       if not MessageResponseHasError(MessageResponse(MsgResponceGuid), 'create practice user on') then begin
-        Result  := MsgResponceGuid.Success;
+        Result  := True;
         aUserId := MsgResponceGuid.Result;
         aIsUserCreated := True;
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
