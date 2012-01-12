@@ -196,7 +196,8 @@ uses
    bkConst,
    BKDEFS,
    ClientUtils,
-   AuditMgr;
+   AuditMgr,
+   BlopiServiceFacade;
 
 {$R *.DFM}
 
@@ -238,10 +239,12 @@ end;
 procedure TfrmClientDetails.FormShow(Sender: TObject);
 var
   CatArray: ArrayOfCatalogueEntry;
-  i, k, NumProducts : Integer;
+  i, k : Integer;
   GUID1, GUID2: WideString;
 //  AClientID: WideString;
   ClientSynced: boolean;
+  MyNewClient: NewClient;
+  MyNewClientGuid: Guid;
 begin
   PageControl1.ActivePage := tbsClient;
 
@@ -313,6 +316,16 @@ begin
 
     CatArray := ProductConfigService.Clients.Catalogue;
 
+    FClient := ProductConfigService.GetClientDetails(MyClient.clFields.clCode);
+    if not Assigned(FClient) then begin
+      MyNewClient := NewClient.Create;
+      MyNewClient.ClientCode := MyClient.clFields.clCode;
+      MyNewClient.Name_ := MyClient.clFields.clName;
+      MyNewClientGuid := ProductConfigService.CreateNewClient(MyNewClient);
+      ProductConfigService.LoadClientList;
+      FClient := ProductConfigService.GetClientDetails(MyNewClientGuid);
+    end;
+
 //    AClientID := ProductConfigService.Clients.Clients[0].Id;
 //    FClient := ProductConfigService.GetClientDetails(AClientID);
 //    NumProducts := 0;
@@ -328,14 +341,18 @@ begin
 //      end;
 //    end;
 
-    if not FEnableClientSettings then
-      lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
-    else if (Length(CatArray) > 0) then
-      lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                          IntToStr(NumProducts) +
-                                          ' Banklink Online product(s)'
-    else
-      lblClientBOProducts.Caption := '';
+    lblClientBOProducts.Visible := ClientSynced;
+    if lblClientBOProducts.Visible  then
+    begin
+      if not FEnableClientSettings then
+        lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
+      else if (Length(CatArray) > 0) then
+        lblClientBOProducts.Caption := 'This client currently has access to ' +
+                                            IntToStr(Length(ProductConfigService.ProductList)) +
+                                            ' Banklink Online product(s)'
+      else
+        lblClientBOProducts.Caption := '';
+    end;
   end;
 end;
 
@@ -438,24 +455,13 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
-var
-  IsNewClient: Boolean;
-  MyNewClient: NewClient;
-  MyNewClientGuid: Guid;
 begin
-  IsNewClient := False;
-  FClient := ProductConfigService.GetClientDetails(MyClient.clFields.clCode);
-  if not Assigned(FClient) then begin
-    IsNewClient := True;
-    MyNewClient := NewClient.Create;
-    MyNewClient.ClientCode := MyClient.clFields.clCode;
-    MyNewClient.Name_ := MyClient.clFields.clName;
-    MyNewClientGuid := ProductConfigService.CreateNewClient(MyNewClient);
-    ProductConfigService.LoadClientList;
-    FClient := ProductConfigService.GetClientDetails(MyNewClientGuid);
-  end;
-
   if Assigned(FClient) then begin
+    // These need to be updated immediately so that the user name and email address in
+    // the Banklink Online Settings form will be populated correctly when 'Use Client
+    // Details' is ticked
+    MyClient.clFields.clContact_name := econtact.text;
+    MyClient.clFields.clClient_EMail_Address := eMail.text;
     if EditBanklinkOnlineSettings(FClient) then begin
       ProductConfigService.SaveClient(FClient);
     end;

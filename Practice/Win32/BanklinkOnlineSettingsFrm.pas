@@ -236,9 +236,14 @@ begin
       //Load products
       chklistProducts.Clear;
       if Assigned(ProductConfigService.CachedPractice) then begin
+        for i := 0 to High(ProductConfigService.ProductList) do
+          chklistProducts.AddItem(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[i]).Description,
+                                  TObject(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[i]).Id));
+        {
         CatArray := ProductConfigService.CachedPractice.Catalogue;
         for i := Low(CatArray) to High(CatArray) do
           chklistProducts.AddItem(CatArray[i].Description, TObject(CatArray[i].Id));
+        }
       end;
       //Check products that client subscrides to 
       for i := 0 to chklistProducts.Items.Count - 1 do begin
@@ -265,15 +270,15 @@ end;
 
 procedure TfrmBanklinkOnlineSettings.FillClientDetails;
 begin
-  if chkUseClientDetails.Checked then
+  if (chkUseClientDetails.Checked) then
   begin
-//    edtUserName.Text := FContactName;
-//    edtEmailAddress.Text  := FEmailAddress;
     edtUserName.Text := MyClient.clFields.clContact_Name;
     edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
   end;
   edtUserName.Enabled := not chkUseClientDetails.Checked;
   edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
+
+
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TCloseAction);

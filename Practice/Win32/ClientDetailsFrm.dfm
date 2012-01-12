@@ -51,10 +51,6 @@ object frmClientDetails: TfrmClientDetails
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         522)
@@ -372,10 +368,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object chkNewTrx: TCheckBox
         Left = 16
         Top = 27
@@ -431,7 +423,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 209
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
         end
         object txtLastDiskID: TEdit
@@ -559,10 +551,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsAdmin: TTabSheet
       Caption = 'Administration'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label14: TLabel
         Left = 92
         Top = 208
@@ -615,7 +603,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 0
         OnChange = cmbResponsibleChange
@@ -821,7 +809,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 3
         OnChange = cmbResponsibleChange
@@ -833,7 +821,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 4
         OnChange = cmbResponsibleChange
@@ -842,10 +830,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsNotes: TTabSheet
       Caption = 'Notes'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         522)
@@ -876,10 +860,6 @@ object frmClientDetails: TfrmClientDetails
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label19: TLabel
         Left = 16
         Top = 16

@@ -985,6 +985,7 @@ begin
     begin
       ClientSum := FClientList.Clients[ClientIndex];
 
+
       for SubIndex := Low(ClientSum.Subscription) to High(ClientSum.Subscription) do
       begin
         if ClientSum.Subscription[SubIndex] = AProductId then
@@ -1129,7 +1130,7 @@ begin
             MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                         User(AClient.Users[0]).Id, User(AClient.Users[0]));
+                                                         AClient.Id, User(AClient.Users[0]));
             MessageResponseHasError(MsgResponse, 'update this client user on');
           end;
         end;
