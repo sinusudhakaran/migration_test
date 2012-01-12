@@ -81,12 +81,13 @@ end;
 procedure TRequestregForm.cbAdminNameChange(Sender: TObject);
 begin
   //Practice user selected
-  if (cbAdminName.ItemIndex > 0) then begin
-    if (Trim(edtPh.Text) = '') and (Trim(edtEmail.Text) = '') then
-    begin
+  if (cbAdminName.ItemIndex > 0) then
+  begin
+    if (Trim(edtPh.Text) = '') then
       edtPh.Text := pUser_Rec(cbAdminName.Items.Objects[cbAdminName.ItemIndex]).usDirect_Dial;
+
+    if (Trim(edtEmail.Text) = '') then
       edtEmail.Text := pUser_Rec(cbAdminName.Items.Objects[cbAdminName.ItemIndex]).usEMail_Address;
-    end;
   end;
 end;
 
