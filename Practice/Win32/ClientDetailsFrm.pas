@@ -462,7 +462,7 @@ begin
     // Details' is ticked
     MyClient.clFields.clContact_name := econtact.text;
     MyClient.clFields.clClient_EMail_Address := eMail.text;
-    if EditBanklinkOnlineSettings(FClient) then begin
+    if EditBanklinkOnlineSettings(FClient) and (eCode.Text <> '') and (eMail.Text <> '') then begin
       ProductConfigService.SaveClient(FClient);
     end;
   end;
@@ -471,7 +471,9 @@ end;
 procedure TfrmClientDetails.btnOkClick(Sender: TObject);
 var
   buttonSelected: integer;
+  UpdateBO: boolean;
 begin
+  UpdateBO := AdminSystem.fdFields.fdUse_BankLink_Online;
   if Assigned(FClient) then begin
     if (OriginalEmail <> eMail.Text) and FClient.UseClientDetails then
     begin
@@ -480,7 +482,9 @@ begin
                                    'updated to this Email Address?', mtConfirmation,
                                    [mbYes, mbNo, mbCancel], 0);
       case buttonSelected of
-        mrYes: ;
+        mrYes:
+          if Assigned(FClient) and UpdateBO
+            then FClient.UpdateAdminUser(eContact.Text, eMail.Text);
         mrNo: ; //FClient.UseClientDetails := False;
         mrCancel: btnCancelClick(Sender);
       end;
@@ -489,14 +493,15 @@ begin
 
   if okToPost then
   begin
-     if Assigned(FClient) then begin
-       //FClient.ClientCode := eCode.Text;
+     if Assigned(FClient) and UpdateBO then begin
+       FClient.ClientCode := eCode.Text;
        if FClient.UseClientDetails then
        begin
          //FClient.UserName := eContact.Text;
          //FClient.EmailAddress := eMail.Text;
        end;
      end;
+     ProductConfigService.SaveClient(FClient);
      okPressed := true;
      Close;
   end;

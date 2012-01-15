@@ -64,7 +64,7 @@ var
 
 implementation
 
-uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm;
+uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm, BlopiServiceFacade;
 
 {$R *.dfm}
 
@@ -72,6 +72,9 @@ function EditBanklinkOnlineSettings(AClient: Client): boolean;
 var
   i: integer;
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
+  SuccessMessage: string;
+const
+  ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
   if AdminSystem.fdFields.fdUse_BankLink_Online then
   begin
@@ -81,7 +84,14 @@ begin
       Result := BanklinkOnlineSettings.Execute(AClient);
       if Result then begin
         //Update access
+        if BanklinkOnlineSettings.rbActive.Checked
+          then AClient.Status := BlopiServiceFacade.Status(0)
+        else if BanklinkOnlineSettings.rbSuspended.Checked
+          then AClient.Status := BlopiServiceFacade.Status(1)
+        else AClient.Status := BlopiServiceFacade.Status(2); // Deactivated             
+        
         //Update subscriptions
+        AClient.Subscription := nil;
         for i := 0 to BanklinkOnlineSettings.chklistProducts.Count - 1 do
           if BanklinkOnlineSettings.chklistProducts.Checked[i] then
             AClient.AddSubscription(WideString(BanklinkOnlineSettings.chklistProducts.Items.Objects[i]));
@@ -89,6 +99,10 @@ begin
         //Update admin user
         AClient.UpdateAdminUser(BanklinkOnlineSettings.edtUserName.Text,
                                 BanklinkOnlineSettings.edtEmailAddress.Text);
+        SuccessMessage := 'Settings for ' + AClient.ClientCode +
+                          'have been successfully updated to Banklink Online';
+        ShowMessage(SuccessMessage);
+        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + SuccessMessage);
       end;
     finally
       BanklinkOnlineSettings.Free;
@@ -160,7 +174,9 @@ begin
                 'Are you sure you want to continue?', mtConfirmation, [mbYes, mbNo], 0)
   else if ProductsChanged and not (EmailChanged or BillingFrequencyChanged) then
     ButtonPressed := MessageDlg('Are you sure you want to activate the following products:' + #13#10 +
-                NewProducts.Text, mtConfirmation, [mbYes, mbNo], 0)
+                NewProducts.Text + #13#10#10 +
+                'By clicking ''OK'' you are confirming that you wish to activate these products ' +
+                'for ' + edtUserName.Text, mtConfirmation, [mbYes, mbNo], 0)
   else if BillingFrequencyChanged and not (ProductsChanged or EmailChanged) then
     ButtonPressed := MessageDlg('You have changed this Client''s billing frequency. Your next ' +
                 'invoice for this Client will be for the period...', // fill in later
@@ -214,17 +230,6 @@ var
   GUID1, GUID2: WideString;
   AClientID: WideString;
 begin
-  //ClientGUID = ProductConfigService.GetClientGUID(MyClient.Code);
-  //if ClientGUID <> '' then
-  //  FClient := ProductConfigService.GetClient(ClientGUID )
-  //else
-  //  FClient := Client.Create;
-  //  FClient.ClientCode :=  MyClient.Code;
-  //  FClient.Email :=  MyClient.Email;
-  //  FClient.Name :=  MyClient.Name;
-  //  FClient.Catalogue :=  ProductConfigService.Clients.Catalogue
-
-//    AClientID := ProductConfigService.Clients.Clients[0].Id;
     Result := False;
     if Assigned(AClient) then begin
       FClient := AClient;
@@ -239,13 +244,8 @@ begin
         for i := 0 to High(ProductConfigService.ProductList) do
           chklistProducts.AddItem(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[i]).Description,
                                   TObject(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[i]).Id));
-        {
-        CatArray := ProductConfigService.CachedPractice.Catalogue;
-        for i := Low(CatArray) to High(CatArray) do
-          chklistProducts.AddItem(CatArray[i].Description, TObject(CatArray[i].Id));
-        }
       end;
-      //Check products that client subscrides to 
+      //Check products that client subscribes to 
       for i := 0 to chklistProducts.Items.Count - 1 do begin
         for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
           GUID1 := FClient.Subscription[k];
