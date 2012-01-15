@@ -229,7 +229,7 @@ type
     StartFocus        : Boolean;
     FUserSet: Boolean;
     InModal: Boolean;
-    FClient: Client;
+    FClient: ClientDetail;
     BankLinkOnlineSettings : TfrmBanklinkOnlineSettings;
     procedure FillClientDetails;
     procedure ShowSelectedNo( Count : integer);

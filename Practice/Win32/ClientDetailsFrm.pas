@@ -158,7 +158,7 @@ type
     PassGenCodeEntered : boolean;
     FViewNotes : Boolean;
     OriginalCode, OriginalEmail : string;
-    FClient : Client;
+    FClient : ClientDetail;
     FEnableClientSettings : boolean;
     FUseClientDetailsForBankLinkOnline: Boolean;
     function  OkToPost : boolean;
@@ -243,7 +243,7 @@ var
   GUID1, GUID2: WideString;
 //  AClientID: WideString;
   ClientSynced: boolean;
-  MyNewClient: NewClient;
+  MyNewClient: ClientNew;
   MyNewClientGuid: Guid;
 begin
   PageControl1.ActivePage := tbsClient;
@@ -318,7 +318,7 @@ begin
 
     FClient := ProductConfigService.GetClientDetails(MyClient.clFields.clCode);
     if not Assigned(FClient) then begin
-      MyNewClient := NewClient.Create;
+      MyNewClient := ClientNew.Create;
       MyNewClient.ClientCode := MyClient.clFields.clCode;
       MyNewClient.Name_ := MyClient.clFields.clName;
       MyNewClientGuid := ProductConfigService.CreateNewClient(MyNewClient);

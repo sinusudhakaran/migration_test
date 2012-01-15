@@ -44,16 +44,16 @@ type
     procedure FormShow(Sender: TObject);
   private
     SubArray: ArrayOfGuid;
-    FClient: Client;
+    FClient: ClientDetail;
 //    FContactName, FEmailAddress: string;
   public
 //    procedure SetContactName(Value: string);
 //    procedure SetEmailAddress(Value: string);
-    function Execute(AClient: Client): boolean;
+    function Execute(AClient: ClientDetail): boolean;
   end;
 
   // function to create BanklinkOnlineSettingsFrm goes here
-  function EditBanklinkOnlineSettings(AClient: Client): boolean;
+  function EditBanklinkOnlineSettings(AClient: ClientDetail): boolean;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -68,7 +68,7 @@ uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm, BlopiServiceFacade;
 
 {$R *.dfm}
 
-function EditBanklinkOnlineSettings(AClient: Client): boolean;
+function EditBanklinkOnlineSettings(AClient: ClientDetail): boolean;
 var
   i: integer;
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
@@ -143,7 +143,7 @@ begin
 
   EmailChanged := False;
   if Length(FClient.Users) > 0 then
-    EmailChanged := (edtEmailAddress.Text <> User(FClient.Users[0]).EMail);
+    EmailChanged := (edtEmailAddress.Text <> UserDetail(FClient.Users[0]).EMail);
 
   NewProducts := TStringList.Create;
   for i := 0 to chklistProducts.Count - 1 do
@@ -184,7 +184,7 @@ begin
   else if (EmailChanged or ProductsChanged or BillingFrequencyChanged) then // will reach and trigger this if two or more have changed
   begin
     PromptMessage := 'Are you sure you want to update the following for ' +
-                     User(FClient.Users[0]).FullName + ':';
+                     UserDetail(FClient.Users[0]).FullName + ':';
     if ProductsChanged then
       PromptMessage := PromptMessage + #13#10#10 + 'Activate the following products:' +
                        #13#10 + Trim(NewProducts.Text);
@@ -223,7 +223,7 @@ begin
   FillClientDetails;
 end;
 
-function TfrmBanklinkOnlineSettings.Execute(AClient: Client): boolean;
+function TfrmBanklinkOnlineSettings.Execute(AClient: ClientDetail): boolean;
 var
   i, k: integer;
   CatArray: ArrayOfCatalogueEntry;

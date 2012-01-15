@@ -131,7 +131,7 @@ type
     PassGenCodeEntered : boolean;
     ChangingDiskID : boolean;
     InSetup: Boolean;
-    FPrac: Practice;
+    FPrac: PracticeDetail;
     FOnlineSettingsChanged: Boolean;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
@@ -442,10 +442,10 @@ end;
 
 procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
 var
-  TempUser: User;
+  TempUser: UserPractice;
 begin
   //Set primary contact
-  TempUser := User(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
+  TempUser := UserPractice(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
   ProductConfigService.SetPrimaryContact(TempUser);
 end;
 

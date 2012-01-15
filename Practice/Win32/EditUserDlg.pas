@@ -703,7 +703,7 @@ Const
 Var
   i : Integer;
   NewLVItem : TListItem;
-  Prac : Practice;
+  Prac : PracticeDetail;
 begin { TdlgEditUser.Execute }
   lvFiles.Items.Clear;
 
@@ -839,7 +839,7 @@ Var
   pu          : pUser_Rec;
   WasLoggedIn : boolean;
   i           : integer;
-  Prac        : practice;
+  Prac        : PracticeDetail;
 begin { EditUser }
   Result := false;
 
