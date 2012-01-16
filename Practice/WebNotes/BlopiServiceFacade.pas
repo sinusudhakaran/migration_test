@@ -11,7 +11,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (17/01/2012 10:05:17 a.m. - - $Rev: 25127 $)
+// (17/01/2012 11:53:56 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -598,8 +598,8 @@ type
     FBillingFrequency_Specified: boolean;
     FClientCode: WideString;
     FClientCode_Specified: boolean;
-    FMaxInactiveDays: Integer;
-    FMaxInactiveDays_Specified: boolean;
+    FMaxOfflineDays: Integer;
+    FMaxOfflineDays_Specified: boolean;
     FName_: WideString;
     FName__Specified: boolean;
     FStatus: Status;
@@ -610,8 +610,8 @@ type
     function  BillingFrequency_Specified(Index: Integer): boolean;
     procedure SetClientCode(Index: Integer; const AWideString: WideString);
     function  ClientCode_Specified(Index: Integer): boolean;
-    procedure SetMaxInactiveDays(Index: Integer; const AInteger: Integer);
-    function  MaxInactiveDays_Specified(Index: Integer): boolean;
+    procedure SetMaxOfflineDays(Index: Integer; const AInteger: Integer);
+    function  MaxOfflineDays_Specified(Index: Integer): boolean;
     procedure SetName_(Index: Integer; const AWideString: WideString);
     function  Name__Specified(Index: Integer): boolean;
     procedure SetStatus(Index: Integer; const AStatus: Status);
@@ -621,7 +621,7 @@ type
   published
     property BillingFrequency: WideString   Index (IS_OPTN or IS_NLBL) read FBillingFrequency write SetBillingFrequency stored BillingFrequency_Specified;
     property ClientCode:       WideString   Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
-    property MaxInactiveDays:  Integer      Index (IS_OPTN) read FMaxInactiveDays write SetMaxInactiveDays stored MaxInactiveDays_Specified;
+    property MaxOfflineDays:   Integer      Index (IS_OPTN) read FMaxOfflineDays write SetMaxOfflineDays stored MaxOfflineDays_Specified;
     property Name_:            WideString   Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
     property Status:           Status       Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
     property Subscription:     ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
@@ -1529,15 +1529,15 @@ begin
   Result := FClientCode_Specified;
 end;
 
-procedure Client.SetMaxInactiveDays(Index: Integer; const AInteger: Integer);
+procedure Client.SetMaxOfflineDays(Index: Integer; const AInteger: Integer);
 begin
-  FMaxInactiveDays := AInteger;
-  FMaxInactiveDays_Specified := True;
+  FMaxOfflineDays := AInteger;
+  FMaxOfflineDays_Specified := True;
 end;
 
-function Client.MaxInactiveDays_Specified(Index: Integer): boolean;
+function Client.MaxOfflineDays_Specified(Index: Integer): boolean;
 begin
-  Result := FMaxInactiveDays_Specified;
+  Result := FMaxOfflineDays_Specified;
 end;
 
 procedure Client.SetName_(Index: Integer; const AWideString: WideString);
