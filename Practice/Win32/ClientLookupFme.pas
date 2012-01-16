@@ -215,7 +215,7 @@ type
     FOnUpdateCount: TNotifyEvent;
     FSeverResponce : TServerResponse;
     FNoOnlineConnection: boolean;
-    FClient: ClientDetail;
+//    FClient: Client;
     FFrameUseMode: TFrameUseMode;
     FServerResponse: TServerResponse;
     FClientStatusList: TClientStatusList;

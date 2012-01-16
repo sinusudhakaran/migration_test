@@ -88,7 +88,7 @@ begin
           then AClient.Status := BlopiServiceFacade.Status(0)
         else if BanklinkOnlineSettings.rbSuspended.Checked
           then AClient.Status := BlopiServiceFacade.Status(1)
-        else AClient.Status := BlopiServiceFacade.Status(2); // Deactivated             
+        else AClient.Status := BlopiServiceFacade.Status(2); // Deactivated
         
         //Update subscriptions
         AClient.Subscription := nil;
@@ -141,67 +141,85 @@ begin
     Exit;
   end;
 
-  EmailChanged := False;
-  if Length(FClient.Users) > 0 then
-    EmailChanged := (edtEmailAddress.Text <> UserDetail(FClient.Users[0]).EMail);
-
-  NewProducts := TStringList.Create;
-  for i := 0 to chklistProducts.Count - 1 do
+  ButtonPressed := mrOk;
+  if (FClient.Status = BlopiServiceFacade.Status(0)) and not rbActive.Checked
+    then ButtonPressed := MessageDlg('You are about to resume/re-active this Client on ' +
+                     'Banklink Online. They will be able to access BankLink Online as per ' +
+                     'normal.' + #13#10#10 + 'Are you sure you want to continue?',
+                     mtConfirmation, [mbYes, mbNo], 0)
+  else if (FClient.Status = BlopiServiceFacade.Status(1)) and not rbSuspended.Checked
+    then ButtonPressed := MessageDlg('You are about to suspend this Client from BankLink ' +
+                     'Online. They will be able to access BankLink Online in read-only mode.' +
+                     #13#10#10 + 'Are you sure you want to continue?',
+                     mtConfirmation, [mbYes, mbNo], 0)
+  else if (FClient.Status = BlopiServiceFacade.Status(2)) and not rbDeactivated.Checked
+    then ButtonPressed := MessageDlg('You are about to deactivate this Client from BankLink ' +
+                     'Online. All user log-ins will be disabled.' + #13#10#10 +
+                     'Are you sure you want to continue?',
+                     mtConfirmation, [mbYes, mbNo], 0)
+  else
   begin
-    if chklistProducts.Checked[i] then
+    EmailChanged := False;
+    if Length(FClient.Users) > 0 then
+      EmailChanged := (edtEmailAddress.Text <> UserDetail(FClient.Users[0]).EMail);
+
+    NewProducts := TStringList.Create;
+    for i := 0 to chklistProducts.Count - 1 do
     begin
-      ProductFound := false;
-      for j := 0 to High(SubArray) do
+      if chklistProducts.Checked[i] then
       begin
-        if (WideString(chklistProducts.Items.Objects[i]) = SubArray[j]) then
+        ProductFound := false;
+        for j := 0 to High(SubArray) do
         begin
-          ProductFound := true;
-          break
+          if (WideString(chklistProducts.Items.Objects[i]) = SubArray[j]) then
+          begin
+            ProductFound := true;
+            break
+          end;
         end;
+        if not ProductFound then
+          NewProducts.Add(chklistProducts.Items[i]);
       end;
-      if not ProductFound then
-        NewProducts.Add(chklistProducts.Items[i]);
+    end;
+
+    ProductsChanged := NewProducts.Count > 0;
+    BillingFrequencyChanged := cmbBillingFrequency.Text <> FClient.BillingFrequency;
+
+    if EmailChanged and not (ProductsChanged or BillingFrequencyChanged) then
+      ButtonPressed := MessageDlg('You have changed the Default Client Administrator Email Address. ' +
+                  'The new Default Client Administrator will be set to ' +
+                  '‘' + edtEmailAddress.Text + '’.' + #10 + #10 +
+                  'Are you sure you want to continue?', mtConfirmation, [mbYes, mbNo], 0)
+    else if ProductsChanged and not (EmailChanged or BillingFrequencyChanged) then
+      ButtonPressed := MessageDlg('Are you sure you want to activate the following products:' + #13#10 +
+                  NewProducts.Text + #13#10#10 +
+                  'By clicking ''OK'' you are confirming that you wish to activate these products ' +
+                  'for ' + edtUserName.Text, mtConfirmation, [mbYes, mbNo], 0)
+    else if BillingFrequencyChanged and not (ProductsChanged or EmailChanged) then
+      ButtonPressed := MessageDlg('You have changed this Client''s billing frequency. Your next ' +
+                  'invoice for this Client will be for the period...', // fill in later
+                  mtConfirmation, [mbYes, mbNo], 0)
+    else if (EmailChanged or ProductsChanged or BillingFrequencyChanged) then // will reach and trigger this if two or more have changed
+    begin
+      PromptMessage := 'Are you sure you want to update the following for ' +
+                       UserDetail(FClient.Users[0]).FullName + ':';
+      if ProductsChanged then
+        PromptMessage := PromptMessage + #13#10#10 + 'Activate the following products:' +
+                         #13#10 + Trim(NewProducts.Text);
+      if BillingFrequencyChanged then
+        PromptMessage := PromptMessage + #13#10#10 + 'Change this Client''s billing ' +
+                         'frequency. Your next invoice for this Client will be for ' +
+                         'the period...'; // fill in later
+      if EmailChanged then
+        PromptMessage := PromptMessage + #13#10#10 + 'Change the Default Client ' +
+                         'Administrator Email Address. The new Default Client ' +
+                         'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
+      ButtonPressed := MessageDlg(PromptMessage, mtConfirmation, [mbYes, mbNo], 0);
     end;
   end;
-  ProductsChanged := NewProducts.Count > 0;
-  BillingFrequencyChanged := cmbBillingFrequency.Text <> FClient.BillingFrequency;
-
-  ButtonPressed := mrOk;
-  if EmailChanged and not (ProductsChanged or BillingFrequencyChanged) then
-    ButtonPressed := MessageDlg('You have changed the Default Client Administrator Email Address. ' +
-                'The new Default Client Administrator will be set to ' +
-                '‘' + edtEmailAddress.Text + '’.' + #10 + #10 +
-                'Are you sure you want to continue?', mtConfirmation, [mbYes, mbNo], 0)
-  else if ProductsChanged and not (EmailChanged or BillingFrequencyChanged) then
-    ButtonPressed := MessageDlg('Are you sure you want to activate the following products:' + #13#10 +
-                NewProducts.Text + #13#10#10 +
-                'By clicking ''OK'' you are confirming that you wish to activate these products ' +
-                'for ' + edtUserName.Text, mtConfirmation, [mbYes, mbNo], 0)
-  else if BillingFrequencyChanged and not (ProductsChanged or EmailChanged) then
-    ButtonPressed := MessageDlg('You have changed this Client''s billing frequency. Your next ' +
-                'invoice for this Client will be for the period...', // fill in later
-                mtConfirmation, [mbYes, mbNo], 0)
-  else if (EmailChanged or ProductsChanged or BillingFrequencyChanged) then // will reach and trigger this if two or more have changed
-  begin
-    PromptMessage := 'Are you sure you want to update the following for ' +
-                     UserDetail(FClient.Users[0]).FullName + ':';
-    if ProductsChanged then
-      PromptMessage := PromptMessage + #13#10#10 + 'Activate the following products:' +
-                       #13#10 + Trim(NewProducts.Text);
-    if BillingFrequencyChanged then
-      PromptMessage := PromptMessage + #13#10#10 + 'Change this Client''s billing ' +
-                       'frequency. Your next invoice for this Client will be for ' +
-                       'the period...'; // fill in later
-    if EmailChanged then
-      PromptMessage := PromptMessage + #13#10#10 + 'Change the Default Client ' +
-                       'Administrator Email Address. The new Default Client ' +
-                       'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
-    ButtonPressed := MessageDlg(PromptMessage, mtConfirmation, [mbYes, mbNo], 0);
-  end;
-
   if ButtonPressed = mrNo
-      then ModalResult := mrNone
-      else ModalResult := mrOk;
+    then ModalResult := mrNone
+    else ModalResult := mrOk;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
@@ -277,8 +295,6 @@ begin
   end;
   edtUserName.Enabled := not chkUseClientDetails.Checked;
   edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
-
-
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TCloseAction);
