@@ -89,9 +89,11 @@ type
 
   //----------------------------------------------------------------------------
   TServerResponse = record
-    Status : String;
-    Description : String;
+    Status       : String;
+    Description  : String;
     DetailedDesc : String;
+    ContentType  : String;
+    ServerReply  : String;
   end;
 
   TByteArr20 = Array[0..19] of Byte;
@@ -762,6 +764,9 @@ begin
       fServerResponce.Status       := '';
       fServerResponce.Description  := '';
       fServerResponce.DetailedDesc := '';
+      fServerResponce.ContentType  := fContentType;
+      fServerResponce.ServerReply  := fServerReply;
+
       fServerClientStatusList.Clear;
 
       if fContentType = SERVER_CONTENT_TYPE_XML then
@@ -771,6 +776,13 @@ begin
         fServerResponce.Status       := '200';
         fServerResponce.Description  := 'File Downloaded';
         fServerResponce.DetailedDesc := 'BK5 File Downloaded';
+      end
+      else
+      begin
+        fServerResponce.Status       := '500';
+        fServerResponce.Description  := 'Internal Server Error';
+        fServerResponce.DetailedDesc := 'Unexpected content type';
+        RaiseHttpError('Internal Server Error', 500);
       end;
     Except
       on E : EWebHttpCiCoClientError do
