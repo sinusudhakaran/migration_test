@@ -1800,7 +1800,7 @@ end;
 procedure TfrmClientManager.DoDeleteFile;
 var
   ScrollPos, NumProducts, i, k: Integer;
-  StringCodeToSelect, DeleteStr, NoProductsStr: string;
+  StringCodeToSelect, DeleteStr, NoProductsStr, ErrMsg, EmailAddress: string;
   AClientID, GUID1, GUID2: WideString;
   ProductList: TStringList;
 begin
@@ -1817,11 +1817,11 @@ begin
   begin
     if not BanklinkOnlineConnected then
     begin
-      ShowMessage('BankLink Practice is unable to connect to BankLink Online');
-      // Todo: add relevant error codes/reasons
+      ErrMsg := 'BankLink Practice is unable to connect to BankLink Online';
+      ShowMessage(ErrMsg);
+      LogUtil.LogMsg(lmError, UnitName, ErrMsg);
       Exit;
-    end;
-
+    end;  
   end;
 
   if DeleteClientFile(ClientLookup.FirstSelectedCode, DeleteStr) then
