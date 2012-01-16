@@ -142,19 +142,24 @@ begin
   end;
 
   ButtonPressed := mrOk;
-  if (FClient.Status = BlopiServiceFacade.Status(0)) and not rbActive.Checked
-    then ButtonPressed := MessageDlg('You are about to resume/re-active this Client on ' +
+  if (FClient.Status = BlopiServiceFacade.Status(1)) and not rbSuspended.Checked
+    then ButtonPressed := MessageDlg('You are about to resume this Client on ' +
                      'Banklink Online. They will be able to access BankLink Online as per ' +
                      'normal.' + #13#10#10 + 'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
-  else if (FClient.Status = BlopiServiceFacade.Status(1)) and not rbSuspended.Checked
+  else if (FClient.Status <> BlopiServiceFacade.Status(1)) and rbSuspended.Checked
     then ButtonPressed := MessageDlg('You are about to suspend this Client from BankLink ' +
                      'Online. They will be able to access BankLink Online in read-only mode.' +
                      #13#10#10 + 'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
-  else if (FClient.Status = BlopiServiceFacade.Status(2)) and not rbDeactivated.Checked
+  else if (FClient.Status <> BlopiServiceFacade.Status(2)) and rbDeactivated.Checked
     then ButtonPressed := MessageDlg('You are about to deactivate this Client from BankLink ' +
                      'Online. All user log-ins will be disabled.' + #13#10#10 +
+                     'Are you sure you want to continue?',
+                     mtConfirmation, [mbYes, mbNo], 0)
+  else if (FClient.Status = BlopiServiceFacade.Status(2)) and not rbDeactivated.Checked
+    then ButtonPressed := MessageDlg('You are about to re-activate this Client from BankLink ' +
+                     'Online. All user log-ins will be enabled.' + #13#10#10 +
                      'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
   else
