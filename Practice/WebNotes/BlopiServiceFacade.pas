@@ -11,7 +11,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (17/01/2012 9:36:17 a.m. - - $Rev: 25127 $)
+// (17/01/2012 10:05:17 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -700,18 +700,16 @@ type
     FEmail_Specified: boolean;
     FFax: WideString;
     FFax_Specified: boolean;
-    FGstNo: WideString;
-    FGstNo_Specified: boolean;
     FMobile: WideString;
     FMobile_Specified: boolean;
     FPhone: WideString;
     FPhone_Specified: boolean;
     FSalutation: WideString;
     FSalutation_Specified: boolean;
+    FTaxNumber: WideString;
+    FTaxNumber_Specified: boolean;
     FTfn: WideString;
     FTfn_Specified: boolean;
-    FVatNo: WideString;
-    FVatNo_Specified: boolean;
     procedure SetAbn(Index: Integer; const AWideString: WideString);
     function  Abn_Specified(Index: Integer): boolean;
     procedure SetAddress1(Index: Integer; const AWideString: WideString);
@@ -728,18 +726,16 @@ type
     function  Email_Specified(Index: Integer): boolean;
     procedure SetFax(Index: Integer; const AWideString: WideString);
     function  Fax_Specified(Index: Integer): boolean;
-    procedure SetGstNo(Index: Integer; const AWideString: WideString);
-    function  GstNo_Specified(Index: Integer): boolean;
     procedure SetMobile(Index: Integer; const AWideString: WideString);
     function  Mobile_Specified(Index: Integer): boolean;
     procedure SetPhone(Index: Integer; const AWideString: WideString);
     function  Phone_Specified(Index: Integer): boolean;
     procedure SetSalutation(Index: Integer; const AWideString: WideString);
     function  Salutation_Specified(Index: Integer): boolean;
+    procedure SetTaxNumber(Index: Integer; const AWideString: WideString);
+    function  TaxNumber_Specified(Index: Integer): boolean;
     procedure SetTfn(Index: Integer; const AWideString: WideString);
     function  Tfn_Specified(Index: Integer): boolean;
-    procedure SetVatNo(Index: Integer; const AWideString: WideString);
-    function  VatNo_Specified(Index: Integer): boolean;
   published
     property Abn:            WideString  Index (IS_OPTN or IS_NLBL) read FAbn write SetAbn stored Abn_Specified;
     property Address1:       WideString  Index (IS_OPTN or IS_NLBL) read FAddress1 write SetAddress1 stored Address1_Specified;
@@ -749,12 +745,11 @@ type
     property CountryCode:    WideString  Index (IS_OPTN or IS_NLBL) read FCountryCode write SetCountryCode stored CountryCode_Specified;
     property Email:          WideString  Index (IS_OPTN or IS_NLBL) read FEmail write SetEmail stored Email_Specified;
     property Fax:            WideString  Index (IS_OPTN or IS_NLBL) read FFax write SetFax stored Fax_Specified;
-    property GstNo:          WideString  Index (IS_OPTN or IS_NLBL) read FGstNo write SetGstNo stored GstNo_Specified;
     property Mobile:         WideString  Index (IS_OPTN or IS_NLBL) read FMobile write SetMobile stored Mobile_Specified;
     property Phone:          WideString  Index (IS_OPTN or IS_NLBL) read FPhone write SetPhone stored Phone_Specified;
     property Salutation:     WideString  Index (IS_OPTN or IS_NLBL) read FSalutation write SetSalutation stored Salutation_Specified;
+    property TaxNumber:      WideString  Index (IS_OPTN or IS_NLBL) read FTaxNumber write SetTaxNumber stored TaxNumber_Specified;
     property Tfn:            WideString  Index (IS_OPTN or IS_NLBL) read FTfn write SetTfn stored Tfn_Specified;
-    property VatNo:          WideString  Index (IS_OPTN or IS_NLBL) read FVatNo write SetVatNo stored VatNo_Specified;
   end;
 
 
@@ -1737,17 +1732,6 @@ begin
   Result := FFax_Specified;
 end;
 
-procedure ClientNew.SetGstNo(Index: Integer; const AWideString: WideString);
-begin
-  FGstNo := AWideString;
-  FGstNo_Specified := True;
-end;
-
-function ClientNew.GstNo_Specified(Index: Integer): boolean;
-begin
-  Result := FGstNo_Specified;
-end;
-
 procedure ClientNew.SetMobile(Index: Integer; const AWideString: WideString);
 begin
   FMobile := AWideString;
@@ -1781,6 +1765,17 @@ begin
   Result := FSalutation_Specified;
 end;
 
+procedure ClientNew.SetTaxNumber(Index: Integer; const AWideString: WideString);
+begin
+  FTaxNumber := AWideString;
+  FTaxNumber_Specified := True;
+end;
+
+function ClientNew.TaxNumber_Specified(Index: Integer): boolean;
+begin
+  Result := FTaxNumber_Specified;
+end;
+
 procedure ClientNew.SetTfn(Index: Integer; const AWideString: WideString);
 begin
   FTfn := AWideString;
@@ -1790,17 +1785,6 @@ end;
 function ClientNew.Tfn_Specified(Index: Integer): boolean;
 begin
   Result := FTfn_Specified;
-end;
-
-procedure ClientNew.SetVatNo(Index: Integer; const AWideString: WideString);
-begin
-  FVatNo := AWideString;
-  FVatNo_Specified := True;
-end;
-
-function ClientNew.VatNo_Specified(Index: Integer): boolean;
-begin
-  Result := FVatNo_Specified;
 end;
 
 procedure ClientUpdate.SetPrimaryContactUserId(Index: Integer; const Aguid: guid);
