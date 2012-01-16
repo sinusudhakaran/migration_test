@@ -496,8 +496,11 @@ begin
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 100);
       except
         on E: Exception do
-          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
-                          '.' + #13#13 + E.Message, 0);
+//          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
+//                          '.' + #13#13 + E.Message, 0);
+          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
+                          0, True, E.Message, True);
+
       end;
     finally
       if ShowProgress then
@@ -539,16 +542,22 @@ var
   Msg: string;
   i: integer;
 begin
-  FClientList.Free;
-  FClientList := ClientList.Create;
-  if UseBankLinkOnline then begin
-    BlopiInterface := GetServiceFacade;
-    BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
-                                                    AdminSystem.fdFields.fdBankLink_Code,
-                                                    AdminSystem.fdFields.fdBankLink_Connect_Password);
-    if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
-      if Assigned(BlopiClientList.Result) then
-        FClientList := BlopiClientList.Result;
+  try
+    FClientList.Free;
+    FClientList := ClientList.Create;
+    if UseBankLinkOnline then begin
+      BlopiInterface := GetServiceFacade;
+      BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
+                                                      AdminSystem.fdFields.fdBankLink_Code,
+                                                      AdminSystem.fdFields.fdBankLink_Connect_Password);
+      if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
+        if Assigned(BlopiClientList.Result) then
+          FClientList := BlopiClientList.Result;
+    end;
+  except
+    on E:Exception do
+      HelpfulErrorMsg('Error getting client list from ' + BANKLINK_ONLINE_NAME + '.',
+                      0, True, E.Message, True);
   end;
 end;
 
