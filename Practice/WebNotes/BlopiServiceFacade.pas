@@ -11,7 +11,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (16/01/2012 9:56:58 a.m. - - $Rev: 25127 $)
+// (17/01/2012 9:36:17 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -692,6 +692,10 @@ type
     FAddress2_Specified: boolean;
     FAddress3: WideString;
     FAddress3_Specified: boolean;
+    FAddressCountry: WideString;
+    FAddressCountry_Specified: boolean;
+    FCountryCode: WideString;
+    FCountryCode_Specified: boolean;
     FEmail: WideString;
     FEmail_Specified: boolean;
     FFax: WideString;
@@ -716,6 +720,10 @@ type
     function  Address2_Specified(Index: Integer): boolean;
     procedure SetAddress3(Index: Integer; const AWideString: WideString);
     function  Address3_Specified(Index: Integer): boolean;
+    procedure SetAddressCountry(Index: Integer; const AWideString: WideString);
+    function  AddressCountry_Specified(Index: Integer): boolean;
+    procedure SetCountryCode(Index: Integer; const AWideString: WideString);
+    function  CountryCode_Specified(Index: Integer): boolean;
     procedure SetEmail(Index: Integer; const AWideString: WideString);
     function  Email_Specified(Index: Integer): boolean;
     procedure SetFax(Index: Integer; const AWideString: WideString);
@@ -733,18 +741,20 @@ type
     procedure SetVatNo(Index: Integer; const AWideString: WideString);
     function  VatNo_Specified(Index: Integer): boolean;
   published
-    property Abn:        WideString  Index (IS_OPTN or IS_NLBL) read FAbn write SetAbn stored Abn_Specified;
-    property Address1:   WideString  Index (IS_OPTN or IS_NLBL) read FAddress1 write SetAddress1 stored Address1_Specified;
-    property Address2:   WideString  Index (IS_OPTN or IS_NLBL) read FAddress2 write SetAddress2 stored Address2_Specified;
-    property Address3:   WideString  Index (IS_OPTN or IS_NLBL) read FAddress3 write SetAddress3 stored Address3_Specified;
-    property Email:      WideString  Index (IS_OPTN or IS_NLBL) read FEmail write SetEmail stored Email_Specified;
-    property Fax:        WideString  Index (IS_OPTN or IS_NLBL) read FFax write SetFax stored Fax_Specified;
-    property GstNo:      WideString  Index (IS_OPTN or IS_NLBL) read FGstNo write SetGstNo stored GstNo_Specified;
-    property Mobile:     WideString  Index (IS_OPTN or IS_NLBL) read FMobile write SetMobile stored Mobile_Specified;
-    property Phone:      WideString  Index (IS_OPTN or IS_NLBL) read FPhone write SetPhone stored Phone_Specified;
-    property Salutation: WideString  Index (IS_OPTN or IS_NLBL) read FSalutation write SetSalutation stored Salutation_Specified;
-    property Tfn:        WideString  Index (IS_OPTN or IS_NLBL) read FTfn write SetTfn stored Tfn_Specified;
-    property VatNo:      WideString  Index (IS_OPTN or IS_NLBL) read FVatNo write SetVatNo stored VatNo_Specified;
+    property Abn:            WideString  Index (IS_OPTN or IS_NLBL) read FAbn write SetAbn stored Abn_Specified;
+    property Address1:       WideString  Index (IS_OPTN or IS_NLBL) read FAddress1 write SetAddress1 stored Address1_Specified;
+    property Address2:       WideString  Index (IS_OPTN or IS_NLBL) read FAddress2 write SetAddress2 stored Address2_Specified;
+    property Address3:       WideString  Index (IS_OPTN or IS_NLBL) read FAddress3 write SetAddress3 stored Address3_Specified;
+    property AddressCountry: WideString  Index (IS_OPTN or IS_NLBL) read FAddressCountry write SetAddressCountry stored AddressCountry_Specified;
+    property CountryCode:    WideString  Index (IS_OPTN or IS_NLBL) read FCountryCode write SetCountryCode stored CountryCode_Specified;
+    property Email:          WideString  Index (IS_OPTN or IS_NLBL) read FEmail write SetEmail stored Email_Specified;
+    property Fax:            WideString  Index (IS_OPTN or IS_NLBL) read FFax write SetFax stored Fax_Specified;
+    property GstNo:          WideString  Index (IS_OPTN or IS_NLBL) read FGstNo write SetGstNo stored GstNo_Specified;
+    property Mobile:         WideString  Index (IS_OPTN or IS_NLBL) read FMobile write SetMobile stored Mobile_Specified;
+    property Phone:          WideString  Index (IS_OPTN or IS_NLBL) read FPhone write SetPhone stored Phone_Specified;
+    property Salutation:     WideString  Index (IS_OPTN or IS_NLBL) read FSalutation write SetSalutation stored Salutation_Specified;
+    property Tfn:            WideString  Index (IS_OPTN or IS_NLBL) read FTfn write SetTfn stored Tfn_Specified;
+    property VatNo:          WideString  Index (IS_OPTN or IS_NLBL) read FVatNo write SetVatNo stored VatNo_Specified;
   end;
 
 
@@ -937,7 +947,7 @@ type
     function  GetUserCatalogue(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetPractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeDetailMIdCYrSK; stdcall;
     function  SavePractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const practice: PracticeDetail): MessageResponse; stdcall;
-    function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const use: UserPracticeNew): MessageResponseOfguid; stdcall;
+    function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserPracticeNew): MessageResponseOfguid; stdcall;
     function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserPractice): MessageResponse; stdcall;
     function  SetPracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const newPassword: WideString): MessageResponse; stdcall;
     function  DeleteUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
@@ -1681,6 +1691,28 @@ end;
 function ClientNew.Address3_Specified(Index: Integer): boolean;
 begin
   Result := FAddress3_Specified;
+end;
+
+procedure ClientNew.SetAddressCountry(Index: Integer; const AWideString: WideString);
+begin
+  FAddressCountry := AWideString;
+  FAddressCountry_Specified := True;
+end;
+
+function ClientNew.AddressCountry_Specified(Index: Integer): boolean;
+begin
+  Result := FAddressCountry_Specified;
+end;
+
+procedure ClientNew.SetCountryCode(Index: Integer; const AWideString: WideString);
+begin
+  FCountryCode := AWideString;
+  FCountryCode_Specified := True;
+end;
+
+function ClientNew.CountryCode_Specified(Index: Integer): boolean;
+begin
+  Result := FCountryCode_Specified;
 end;
 
 procedure ClientNew.SetEmail(Index: Integer; const AWideString: WideString);
