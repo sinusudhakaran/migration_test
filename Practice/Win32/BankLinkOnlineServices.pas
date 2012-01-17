@@ -422,7 +422,7 @@ begin
     Exit;
 
   //Check that BConnect secure code has been assigned
-  if AdminSystem.fdFields.fdBankLink_Connect_Password = '' then begin
+  if AdminSystem.fdFields.fdBankLink_Code = '' then begin
     HelpfulErrorMsg('The BankLink Secure Code for this practice has not been set. ' +
                     'Please set this before attempting to use ' + BANKLINK_ONLINE_NAME +
                     '.', 0);
