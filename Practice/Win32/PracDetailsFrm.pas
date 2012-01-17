@@ -1012,8 +1012,14 @@ end;
 procedure TfrmPracticeDetails.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
-  if OKPressed then
-    CanClose := VerifyForm;
+  if OKPressed then begin
+    Screen.Cursor := crHourGlass;
+    try
+      CanClose := VerifyForm;
+    finally
+      Screen.Cursor := crDefault;
+    end;
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnTaxFolderClick(Sender: TObject);
