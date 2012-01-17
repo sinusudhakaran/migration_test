@@ -793,6 +793,7 @@ type
     procedure SetLastActiveMDIChild(const Value: Forms.TForm);
     property LastActiveMDIChild :Forms.TForm read FLastActiveMDIChild write SetLastActiveMDIChild;
     procedure RunGSTReport (Value: REPORT_LIST_TYPE);
+    procedure RefreshUserControls;
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
     procedure UpdateActions; override;
@@ -1479,10 +1480,7 @@ begin
     begin
        //Self.Tag := 0; case 7071 - everything now goes screen center
 
-       if FAdminSystemFound then
-         mniChangePassword.Visible := CurrUser.AllowBanklinkOnline
-       else
-         mniChangePassword.Visible := False;
+       RefreshUserControls;
 
        ReloadCustomLogo;
 
@@ -2542,6 +2540,9 @@ end;
 procedure TfrmMain.mniSystemUsersClick(Sender: TObject);
 begin
   MaintainUsers;
+
+  RefreshUserControls;
+
   RefreshClientManager;
   if Assigned( MyClient) then
     Merge32.SyncClientToAdmin( MyClient, false, false);
@@ -3855,6 +3856,12 @@ begin
    if Assigned (ActiveMDIChild) then
      Restore := (ActiveMDIChild is TfrmClientManager);
   ClientManagerFrm.RefreshClientManager('',Restore);
+end;
+
+procedure TfrmMain.RefreshUserControls;
+begin
+  mniChangePassword.Visible := (CurrUser.AllowBanklinkOnline
+                           and FAdminSystemFound);
 end;
 
 procedure TfrmMain.ReloadCustomLogo;

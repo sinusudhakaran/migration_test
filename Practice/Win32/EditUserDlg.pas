@@ -982,6 +982,7 @@ begin { EditUser }
               CurrUser.CanMemoriseToMaster := pu.usMASTER_Access;
               CurrUser.FullName := pu.usName;
               CurrUser.ShowPrinterDialog := pu.usShow_Printer_Choice;
+              CurrUser.AllowBanklinkOnline := pu.usAllow_Banklink_Online;
             End; { CurrUser.LRN = pu.usLRN }
           End;
         End { LoadAdminSystem(true) }
