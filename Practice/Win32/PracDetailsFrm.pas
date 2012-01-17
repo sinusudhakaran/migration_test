@@ -123,8 +123,6 @@ type
     procedure actClearAllProductsExecute(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure edtURLChange(Sender: TObject);
-    procedure cbPrimaryContactChange(Sender: TObject);
-    procedure vtProductsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
     okPressed : boolean;
@@ -132,7 +130,6 @@ type
     ChangingDiskID : boolean;
     InSetup: Boolean;
     FPrac: PracticeDetail;
-    FOnlineSettingsChanged: Boolean;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -435,11 +432,6 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmPracticeDetails.cbPrimaryContactChange(Sender: TObject);
-begin
-  FOnlineSettingsChanged := True;
-end;
-
 procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
 var
   TempUser: UserPractice;
@@ -460,7 +452,7 @@ begin
   try
     if ckUseBankLinkOnline.Checked then begin
       ProductConfigService.UseBankLinkOnline := True;
-      FPrac := ProductConfigService.GetPractice(FOnlineSettingsChanged, False);
+      FPrac := ProductConfigService.GetPractice(False);
       if Assigned(FPrac) then
         LoadPracticeDetails
       else
@@ -471,7 +463,6 @@ begin
     end else
       ProductConfigService.UseBankLinkOnline := False;
 
-    FOnlineSettingsChanged := True;
     if  ckUseBankLinkOnline.Checked
     and ProductConfigService.OnLine
     and not ProductConfigService.Registered then
@@ -687,7 +678,6 @@ begin
     end else
        PageControl1.ActivePage := tbsDetails;
 
-    FOnlineSettingsChanged := False;       
  end; {with}
  InSetup := False;
 //**************
@@ -860,7 +850,7 @@ begin
   //Save BankLink Online settings
   ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
 
-  if ProductConfigService.UseBankLinkOnline then
+  if ProductConfigService.UseBankLinkOnline and ProductConfigService.PracticeChanged then
   begin
     ProductConfigService.LoadClientList;
     ProductList := ProductConfigService.ProductList;
@@ -903,29 +893,26 @@ begin
       Exit;
     end;
 
-    if FOnlineSettingsChanged then
-    begin
-      aMsg := 'Changing the BankLink Online products and services that are available ' +
-              'for this practice will affect how client files can be individually setup ' +
-              'for these products and services. Such products and services may incur ' +
-              'charges per client use.' + #13#10 + #13#10 +
-              'Please contact BankLink Client Services if you require further charges ' +
-              'information.' + #13#10 + #13#10 +
-              'Are you sure you want to continue?';
+    aMsg := 'Changing the BankLink Online products and services that are available ' +
+            'for this practice will affect how client files can be individually setup ' +
+            'for these products and services. Such products and services may incur ' +
+            'charges per client use.' + #13#10 + #13#10 +
+            'Please contact BankLink Client Services if you require further charges ' +
+            'information.' + #13#10 + #13#10 +
+            'Are you sure you want to continue?';
 
-      if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
-        Exit;
-    end;
-  end;
-
-  if not ProductConfigService.SavePractice then
-  begin
-    //Don't exit dialog if online settings were not updated
-    if ProductConfigService.UseBankLinkOnline and FOnlineSettingsChanged then
+    if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
       Exit;
-  end
-  else
-    HelpfulInfoMsg('Practice settings have been successfully updated to BankLink Online.', 0 );
+
+    if not ProductConfigService.SavePractice then
+    begin
+      //Don't exit dialog if online settings were not updated
+      if ProductConfigService.UseBankLinkOnline then
+        Exit;
+    end
+    else
+      HelpfulInfoMsg('Practice settings have been successfully updated to BankLink Online.', 0 );
+  end;
 
   Result := True;
 end;
@@ -953,19 +940,12 @@ begin
   end;
 end;
 
-procedure TfrmPracticeDetails.vtProductsChange(Sender: TBaseVirtualTree;
-  Node: PVirtualNode);
-begin
-  FOnlineSettingsChanged := True;
-end;
-
 procedure TfrmPracticeDetails.vtProductsChecked(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
   Data: PTreeData;
   Cat: CatalogueEntry;
 begin
-  FOnlineSettingsChanged := True;
   vtProducts.BeginUpdate;
   try
     Data := vtProducts.GetNodeData(Node);
@@ -1066,7 +1046,7 @@ end;
 
 procedure TfrmPracticeDetails.LoadPracticeDetails;
 var
-  i, AdminId: integer;
+  i: integer;
   Cat: CatalogueEntry;
   TreeColumn: TVirtualTreeColumn;
   ProductNode, ServiceNode: PVirtualNode;
@@ -1094,7 +1074,6 @@ begin
                           Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
       //Primary Contacts
       cbPrimaryContact.Enabled := True;
-      AdminId := -1;
       AdminRollName := FPrac.GetRoleFromPracUserType(ustSystem).RoleName;
 
       for i := Low(FPrac.Users) to High(FPrac.Users) do
@@ -1105,17 +1084,16 @@ begin
           if FPrac.Users[i].RoleNames[RoleIndex] = AdminRollName then
           begin
             cbPrimaryContact.Items.AddObject(FPrac.Users[i].FullName, TObject(FPrac.Users[i]));
-
-            if (FPrac.Users[i].Id = FPrac.DefaultAdminUserId) then
-              AdminId := i;
-
             break;
           end;
         end;
       end;
 
-      if (cbPrimaryContact.Items.Count >= AdminId) then
-        cbPrimaryContact.ItemIndex := AdminId;
+      //Select default admin
+      cbPrimaryContact.ItemIndex := -1;
+      for i := 0 to cbPrimaryContact.Items.Count - 1 do
+        if UserPractice(cbPrimaryContact.Items.Objects[i]).Id = FPrac.DefaultAdminUserId then
+          cbPrimaryContact.ItemIndex := i;
 
       //Products and Service
       vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
@@ -1151,7 +1129,6 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.actClearAllProductsExecute(Sender: TObject);
 begin
-  FOnlineSettingsChanged := True;
   ProductConfigService.ClearAllProducts;
   vtProducts.Invalidate;
   Refresh;
@@ -1163,7 +1140,6 @@ end;
 
 procedure TfrmPracticeDetails.actSelectAllProductsExecute(Sender: TObject);
 begin
-  FOnlineSettingsChanged := True;
   ProductConfigService.SelectAllProducts;
   vtProducts.Invalidate;
   Refresh;
@@ -1275,7 +1251,7 @@ end;
 
 procedure TfrmPracticeDetails.edtURLChange(Sender: TObject);
 begin
-  FOnlineSettingsChanged := True;
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

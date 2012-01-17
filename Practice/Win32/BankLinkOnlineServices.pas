@@ -61,6 +61,7 @@ type
     function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer) : Guid;
   public
     function GetRoleFromPracUserType(aUstNameIndex : integer) : Role;
+    function IsEqual(Instance: Practice): Boolean;    
   End;
 
   TClientSummaryHelper = Class helper for BlopiServiceFacade.ClientUpdate
@@ -91,11 +92,9 @@ type
     function RemotableObjectToXML(ARemotable: TRemotable): string;
     procedure LoadRemotableObjectFromXML(const XML: string; ARemotable: TRemotable);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
-//    function LoadPracticeDetailsfromSystemDB: Boolean;
     procedure SavePracticeDetailsToSystemDB;
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
-//    procedure LoadDummyClientList;
     function OnlineStatus: TBankLinkOnlineStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
                               const aName : String) : integer;
@@ -123,7 +122,7 @@ type
     constructor Create;
     destructor Destroy; override;
     //Practice methods
-    function GetPractice(aForceOnline : Boolean = False; aUpdateUseOnline: Boolean = True): PracticeDetail;
+    function GetPractice(aUpdateUseOnline: Boolean = True): PracticeDetail;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
     function IsPracticeProductEnabled(AProductId: Guid; AUsePracCopy : Boolean): Boolean;
@@ -132,6 +131,7 @@ type
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
     function SavePractice: Boolean;
+    function PracticeChanged: Boolean;
     procedure AddProduct(AProductId: Guid);
     procedure ClearAllProducts;
     procedure RemoveProduct(AProductId: Guid);
@@ -409,7 +409,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice(aForceOnline : Boolean; aUpdateUseOnline: Boolean): PracticeDetail;
+function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean): PracticeDetail;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -466,7 +466,7 @@ begin
         //Try to load practice details from BankLink Online
         FOnLine := False;
         if (UseBankLinkOnline)
-        or (aForceOnline) then
+        or not FPractice.IsEqual(FPracticeCopy) then
         begin
           //Reload from BankLink Online
           BlopiInterface := GetServiceFacade;
@@ -496,8 +496,6 @@ begin
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 100);
       except
         on E: Exception do
-//          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME +
-//                          '.' + #13#13 + E.Message, 0);
           HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
                           0, True, E.Message, True);
 
@@ -528,9 +526,6 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.GetUseBankLinkOnline: Boolean;
 begin
-//  Result := False;
-//  if Assigned(AdminSystem) then
-//    Result := AdminSystem.fdFields.fdUse_BankLink_Online;
   Result := FUseBankLinkOnline;
 end;
 
@@ -560,19 +555,6 @@ begin
                       0, True, E.Message, True);
   end;
 end;
-
-//------------------------------------------------------------------------------
-//function TProductConfigService.LoadPracticeDetailsfromSystemDB: Boolean;
-//begin
-//  Result := False;
-//  if not Assigned(AdminSystem) then
-//    Exit;
-//
-//  if AdminSystem.fdFields.fdBankLink_Online_Config <> '' then begin
-//    LoadRemotableObjectFromXML(AdminSystem.fdFields.fdBankLink_Online_Config, FPractice);
-//    Result := True;
-//  end;
-//end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
@@ -671,6 +653,14 @@ begin
   finally
     IniFile.Free;
   end;
+end;
+
+function TProductConfigService.PracticeChanged: Boolean;
+begin
+  if not Assigned(FPracticeCopy) then
+    Result := True
+  else
+    Result := not FPracticeCopy.IsEqual(FPractice);
 end;
 
 //------------------------------------------------------------------------------
@@ -1686,6 +1676,63 @@ begin
     ustNormal     : Result := '8C464F01-5071-4FC1-B257-0104D48D141B';
                             // Accountant Practice Administrator
     ustSystem     : Result := '8C464F01-5071-4FC1-B257-0104D48D1418';
+  end;
+end;
+
+function TPracticeHelper.IsEqual(Instance: Practice): Boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  if not Assigned(Instance) then Exit;
+
+  Result :=
+    (DefaultAdminUserId = Instance.DefaultAdminUserId) and
+    (DisplayName = Instance.DisplayName) and
+    (DomainName = Instance.DomainName) and
+    (EMail = Instance.EMail) and
+    (Phone = Instance.Phone) and
+    (Status = Instance.Status);
+
+  //Compare users (shouldn't change)
+  if Result then begin
+    Result := (High(Users) = High(Instance.Users));
+    if Result then begin
+      for i := Low(Users) to High(Users) do begin
+        if Users[i].Id <> Instance.Users[i].Id then begin
+          Result := False;
+          Break;
+        end;
+      end;
+    end;
+  end;
+
+  //Catalogue can't be changed so no need to compare
+
+  //Compare Roles
+  if Result then begin
+    Result := (High(Roles) = High(Instance.Roles));
+    if Result then begin
+      for i := Low(Roles) to High(Roles) do begin
+        if Roles[i].Id <> Instance.Roles[i].Id then begin
+          Result := False;
+          Break;
+        end;
+      end;
+    end;
+  end;
+
+  //Compare subscriptions
+  if Result then begin
+    Result := (High(Subscription) = High(Instance.Subscription));
+    if Result then begin
+      for i := Low(Subscription) to High(Subscription) do begin
+        if Subscription[i] <> Instance.Subscription[i] then begin
+          Result := False;
+          Break;
+        end;
+      end;
+    end;
   end;
 end;
 
