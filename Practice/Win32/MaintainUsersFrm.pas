@@ -311,7 +311,8 @@ begin
     begin
       if (User.usAllow_Banklink_Online) then
       begin
-        if ProductConfigService.IsPrimaryUser(User.usCode, Prac) then
+        if (ProductConfigService.OnLine) and
+           (ProductConfigService.IsPrimaryUser(User.usCode, Prac)) then
           Online := ONLINE_YES_ADMIN
         else
           Online := ONLINE_YES;
