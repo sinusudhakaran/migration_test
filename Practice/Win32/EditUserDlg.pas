@@ -430,10 +430,10 @@ begin
         end
         else
           Result := ProductConfigService.DeleteUser('', UserGuid);
-
-        if Result then
-          HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 );
       end;
+
+      if Result then
+        HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 );
     end;
 
     if  (chkCanAccessBankLinkOnline.Checked)

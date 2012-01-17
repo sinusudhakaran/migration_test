@@ -1533,12 +1533,19 @@ begin
       UserGuid := aUserGuid
     else
       UserGuid := GetUserGuid(aUserCode, aPractice);
-    MsgResponce := BlopiInterface.DeleteUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
 
-    if not MessageResponseHasError(MsgResponce, 'delete practice user on') then begin
-      Result := MsgResponce.Success;
+    if not (UserGuid = '') then
+    begin
+      MsgResponce := BlopiInterface.DeleteUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
+
+      if not MessageResponseHasError(MsgResponce, 'delete practice user on') then
+        Result := MsgResponce.Success;
+    end
+    else
+      Result := True;
+
+    if Result then
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
-    end;
 
   finally
     Progress.StatusSilent := True;
