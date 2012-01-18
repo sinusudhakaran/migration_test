@@ -8,6 +8,7 @@ object dlgYesNoWithList: TdlgYesNoWithList
   Color = clWindow
   DefaultMonitor = dmMainForm
   ParentFont = True
+  FormStyle = fsStayOnTop
   OldCreateOrder = False
   Position = poOwnerFormCenter
   Scaled = False
