@@ -32,6 +32,21 @@ Uses
   BankLinkOnlineServices;
 
 Type
+  TUserValues = record
+    FullName : String;
+    Email : String;
+    DirectDial : String;
+    Password : String;
+    CanCreateEditMasterMems : Boolean;
+    ShowPrinter : Boolean;
+    SuppressHeaderFooter : Boolean;
+    ShowPracticeLogo : Boolean;
+    CanAccessBankLinkOnline : Boolean;
+    UsePracPassInOnline : Boolean;
+    UserType : Integer;
+  end;
+
+
   TdlgEditUser = Class(TForm)
     btnOK        : TButton;
     btnCancel    : TButton;
@@ -88,14 +103,17 @@ Type
     procedure cmbUserTypeSelect(Sender: TObject);
     procedure chkCanAccessBankLinkOnlineClick(Sender: TObject);
   Private
+    fOldValues : TUserValues;
+
     fUserGuid     : Guid;
     fIsCreateUser : boolean;
-    fUserCanAccessBankLinkOnline : Boolean;
     fIsPrimaryUser : Boolean;
     fokPressed  : boolean;
     fformLoaded : boolean;
     fEditChk    : boolean;
 
+    procedure StoreOldValues;
+    function HasUserValueChanged : Boolean;
     function GetCurrentCode : string;
     procedure OnlineControlSetup;
     Function OKtoPost : boolean;
@@ -232,6 +250,17 @@ Procedure TdlgEditUser.btnOKClick(Sender: TObject);
 begin { TdlgEditUser.btnOKClick }
   If OKtoPost Then
   begin
+
+    if (HasUserValueChanged) and
+       ((fOldValues.CanAccessBankLinkOnline = true) or
+       (chkCanAccessBankLinkOnline.Checked = true)) then
+    begin
+      If AskYesNo('User Details Changed', 'The details for this user have changed ' +
+                  'and will be updated to BankLink Online.' + #13#10 + #13#10 +
+                  'Are you sure you want to continue?', DLG_NO, 0) <> DLG_YES Then
+        Exit;
+    end;
+
     if not PosttoBankLinkOnline then
       Exit;
 
@@ -239,6 +268,37 @@ begin { TdlgEditUser.btnOKClick }
     Close;
   End { OKtoPost };
 End; { TdlgEditUser.btnOKClick }
+
+//------------------------------------------------------------------------------
+procedure TdlgEditUser.StoreOldValues;
+begin
+  fOldValues.FullName                := eFullName.text;
+  fOldValues.Email                   := eMail.text;
+  fOldValues.DirectDial              := eDirectDial.Text;
+  fOldValues.Password                := ePass.text;
+  fOldValues.ShowPrinter             := cbPrintDialogOption.Checked;
+  fOldValues.SuppressHeaderFooter    := CBSuppressHeaderFooter.Checked;
+  fOldValues.ShowPracticeLogo        := chkShowPracticeLogo.Checked;
+  fOldValues.CanAccessBankLinkOnline := chkCanAccessBankLinkOnline.Checked;
+  fOldValues.UsePracPassInOnline     := chkUsePracPassInOnline.Checked;
+  fOldValues.UserType                := cmbUserType.ItemIndex;
+end;
+
+//------------------------------------------------------------------------------
+function TdlgEditUser.HasUserValueChanged: Boolean;
+begin
+  Result := not((fOldValues.FullName                = eFullName.text) and
+                (fOldValues.Email                   = eMail.text) and
+                (fOldValues.DirectDial              = eDirectDial.Text) and
+                (fOldValues.Password                = ePass.text) and
+                (fOldValues.CanCreateEditMasterMems = chkMaster.Checked) and
+                (fOldValues.ShowPrinter             = cbPrintDialogOption.Checked) and
+                (fOldValues.SuppressHeaderFooter    = CBSuppressHeaderFooter.Checked) and
+                (fOldValues.ShowPracticeLogo        = chkShowPracticeLogo.Checked) and
+                (fOldValues.CanAccessBankLinkOnline = chkCanAccessBankLinkOnline.Checked) and
+                (fOldValues.UsePracPassInOnline     = chkUsePracPassInOnline.Checked) and
+                (fOldValues.UserType                = cmbUserType.ItemIndex));
+end;
 
 //------------------------------------------------------------------------------
 function TdlgEditUser.GetCurrentCode: string;
@@ -415,7 +475,7 @@ begin
 
   // if User was on Banklink Online and now is removed delete user on Banklink online
   Try
-    if  (fUserCanAccessBankLinkOnline = True)
+    if  (fOldValues.CanAccessBankLinkOnline = True)
     and (chkCanAccessBankLinkOnline.Checked = False) then
     begin
       if UserGuid = '' then
@@ -475,7 +535,7 @@ begin
   If formLoaded Then
   begin
     If (not chkCanAccessBankLinkOnline.Checked)
-    and (fUserCanAccessBankLinkOnline) then
+    and (fOldValues.CanAccessBankLinkOnline) then
     begin
       If AskYesNo('Deleted BankLink User', 'This user will be Deleted on BankLink Online.' + #13
                 + 'Are you sure you want to continue?', DLG_NO, 0) <>
@@ -485,7 +545,7 @@ begin
       End;
     end
     else If (chkCanAccessBankLinkOnline.Checked)
-        and not (fUserCanAccessBankLinkOnline) then
+        and not (fOldValues.CanAccessBankLinkOnline) then
     begin
       if IsCreateUser then
       begin
@@ -764,9 +824,8 @@ begin { TdlgEditUser.Execute }
     cbSuppressHeaderFooter.Checked := (User.usSuppress_HF = shfChecked);
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
-    fUserCanAccessBankLinkOnline := User.usAllow_Banklink_Online;
     chkUsePracPassInOnline.Checked := User.usUse_Practice_Password_Online
-                                  and fUserCanAccessBankLinkOnline;
+                                  and User.usAllow_Banklink_Online;
 
     if User.usAllow_Banklink_Online then
     begin
@@ -817,10 +876,10 @@ begin { TdlgEditUser.Execute }
     rbAllFiles.Checked := true;
     chkCanAccessBankLinkOnline.Checked := false;
     UserGuid := '';
-    fUserCanAccessBankLinkOnline := false;
     chkUsePracPassInOnline.Checked := false;
   end { not (Assigned(User)) };
 
+  StoreOldValues;
   OnlineControlSetup;
 
   pnlSelected.Visible := rbSelectedFiles.Checked;
