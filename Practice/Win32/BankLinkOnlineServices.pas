@@ -19,7 +19,7 @@ type
   ArrayOfString         = BlopiServiceFacade.ArrayOfString;
   PracticeDetail        = BlopiServiceFacade.PracticeDetail;
   ClientDetail          = BlopiServiceFacade.ClientDetail;
-  ClientNew             = BlopiServiceFacade.ClientNew;
+  TClientNew             = BlopiServiceFacade.ClientNew;
   UserPractice          = BlopiServiceFacade.UserPractice;
   CatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
   ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
@@ -45,6 +45,7 @@ type
     function GetSuspended: boolean;
   public
     procedure UpdateAdminUser(AUserName, AEmail: WideString);
+
     procedure AddSubscription(AProductID: guid);
     property Deactivated: boolean read GetDeactivated;
     property ClientConnectDays: string read GetClientConnectDays; // 0 if client must always be online
@@ -116,7 +117,6 @@ type
     function GetClientGuid(const AClientCode: string): WideString;
     function GetCachedPractice: PracticeDetail;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
-
     function GetProducts : ArrayOfGuid;
   public
     constructor Create;
@@ -141,9 +141,10 @@ type
     property CachedPractice: PracticeDetail read GetCachedPractice;
     //Client methods
     procedure LoadClientList;
-    function GetClientDetails(AClientCode: string): ClientDetail; overload;
-    function GetClientDetails(AClientGuid: Guid): ClientDetail; overload;
-    function CreateNewClient(ANewClient: ClientNew): Guid;
+    function GetClientDetailsWithCode(AClientCode: string): ClientDetail;
+    function GetClientDetailsWithGUID(AClientGuid: Guid): ClientDetail;
+    function CreateNewClient(ANewClient: TClientNew): Guid;
+//    procedure CopyPracticeClient(APracticeClient: TClientObj; ANewClient: ClientNew);
     function SaveClient(AClient: ClientDetail): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
@@ -255,7 +256,15 @@ begin
   end;
 end;
 
+{
 //------------------------------------------------------------------------------
+procedure TProductConfigService.CopyPracticeClient(APracticeClient: TClientObj;
+  ANewClient: ClientNew);
+begin
+//  ANewClient.CountryCode := APracticeClient.
+end;
+}
+
 procedure TProductConfigService.CopyRemotableObject(ASource,
   ATarget: TRemotable);
 var
@@ -292,7 +301,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.CreateNewClient(ANewClient: ClientNew): Guid;
+function TProductConfigService.CreateNewClient(ANewClient: TClientNew): Guid;
 var
   i: integer;
   Msg: string;
@@ -315,6 +324,8 @@ begin
  if not MessageResponseHasError(MsgResponse, 'create client on') then
    Result := MsgResponse.Result
 end;
+
+
 
 //------------------------------------------------------------------------------
 destructor TProductConfigService.Destroy;
@@ -347,7 +358,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientDetails(AClientCode: string): ClientDetail;
+function TProductConfigService.GetClientDetailsWithCode(AClientCode: string): ClientDetail;
 var
   ClientGuid: WideString;
 begin
@@ -362,11 +373,11 @@ begin
   //Find client code in the client list
   ClientGuid := GetClientGuid(AClientCode);
   if (ClientGuid <> '') then
-    Result := GetClientDetails(ClientGuid);
+    Result := GetClientDetailsWithGUID(ClientGuid);
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientDetails(AClientGuid: Guid): ClientDetail;
+function TProductConfigService.GetClientDetailsWithGUID(AClientGuid: Guid): ClientDetail;
 var
   i, j: integer;
   BlopiInterface: IBlopiServiceFacade;

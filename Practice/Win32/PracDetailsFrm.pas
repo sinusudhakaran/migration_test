@@ -130,6 +130,8 @@ type
     ChangingDiskID : boolean;
     InSetup: Boolean;
     FPrac: PracticeDetail;
+    FOnlineSettingsChanged: Boolean;
+    OriginalProductCheckStates: array of TCheckState;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -350,6 +352,7 @@ end;
 procedure TfrmPracticeDetails.btnOKClick(Sender: TObject);
 var
   i: integer;
+  Msg: string;
 begin
   // Make sure we have an accounting System
   if (GetComboCurrentIntObject(cmbSuperSystem,asNone) = asNone)
@@ -369,8 +372,15 @@ begin
     end;
   end;
 
-  okPressed := true;
-  Close;
+  {
+  okPressed := true;  
+  Msg := '';
+  // Send email to support if products have changed
+  for I := 0 to List.Count - 1 do
+    if (vtProducts.CheckState[i] <> OriginalProductCheckStates[i]) then
+  }
+  
+  Close;  
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnCancelClick(Sender: TObject);
@@ -923,6 +933,7 @@ procedure TfrmPracticeDetails.vtProductsBeforeItemPaint(
 var
   NodeData: pTreeData;
   NodeCaption: string;
+  i: integer;
 begin
   NodeData := Sender.GetNodeData(Node);
   if (NodeData.tdObject = nil) then begin
@@ -1290,8 +1301,19 @@ end;
 procedure TfrmPracticeDetails.tsBankLinkOnlineShow(Sender: TObject);
 var
   i: integer;
+  Node: PVirtualNode;
 begin
   ProductConfigService.IsPracticeActive;
+
+  SetLength(OriginalProductCheckStates, vtProducts.TotalCount);
+  for i := 0 to vtProducts.TotalCount - 1 do
+  begin
+    if (i = 0)
+      then Node := vtProducts.GetFirst
+      else Node := vtProducts.GetNext(Node);
+    
+    OriginalProductCheckStates[i] := vtProducts.CheckState[Node];
+  end;
 end;
 
 procedure TfrmPracticeDetails.txtLastDiskIDChange(Sender: TObject);

@@ -201,6 +201,7 @@ begin
               MyClient.ClientAuditMgr.FlagAudit(arPayees);
 
               SaveClient(false);
+
            end;
            if Assigned(MyClient) then
             RefreshClientManager(MyClient.clFields.clCode);

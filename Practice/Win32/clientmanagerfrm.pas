@@ -229,7 +229,7 @@ type
     StartFocus        : Boolean;
     FUserSet: Boolean;
     InModal: Boolean;
-    FClient: ClientDetail;
+//    FClient: ClientDetail;
     BankLinkOnlineSettings : TfrmBanklinkOnlineSettings;
     procedure FillClientDetails;
     procedure ShowSelectedNo( Count : integer);
@@ -904,20 +904,18 @@ begin
 
         if (BanklinkOnlineConnected and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
-          if Assigned(FClient) then begin
-            if not Assigned(FClient) then
-            begin
-//              AClientID := ProductConfigService.Clients.Clients[0].Id;
-              FClient := ProductConfigService.GetClientDetails(AClientID);
-            end;
-            for i := 0 to High(FClient.Catalogue) do
-              AddCustomColumn( FClient.Catalogue[i].Description, 75, 12 + i, cluBOProduct);
-            NumColumns := 13 + High(FClient.Catalogue);
+          if Assigned(MyClient) then begin
+            if Assigned(MyClient.BlopiClientDetail) then begin
+              for i := 0 to High(MyClient.BlopiClientDetail.Catalogue) do
+                AddCustomColumn( MyClient.BlopiClientDetail.Catalogue[i].Description, 75, 12 + i, cluBOProduct);
+              NumColumns := 13 + High(MyClient.BlopiClientDetail.Catalogue);
 
-            AddCustomColumn( 'Billing Frequency', 75, NumColumns, cluBOBillingFrequency);
-            AddCustomColumn( 'User Admin', 75, NumColumns + 1, cluBOUserAdmin);
-            AddCustomColumn( 'Suspended', 75, NumColumns + 2, cluBOSuspended);
-            AddCustomColumn( 'Deactivated', 75, NumColumns + 3, cluBODeactivated);
+              AddCustomColumn( 'Billing Frequency', 75, NumColumns, cluBOBillingFrequency);
+              AddCustomColumn( 'User Admin', 75, NumColumns + 1, cluBOUserAdmin);
+              AddCustomColumn( 'Suspended', 75, NumColumns + 2, cluBOSuspended);
+              AddCustomColumn( 'Deactivated', 75, NumColumns + 3, cluBODeactivated);
+            end;// else
+//              MyClient.BlopiClientDetail := ProductConfigService.GetClientDetails(AClientID);
           end;
         end;
 
@@ -1836,7 +1834,8 @@ begin
     NoProductsStr := '';
     if (NumProducts = 0) then
       NoProductsStr := 'and Banklink Online';
-    ShowMessage('Client ' + FClient.ClientCode + ': ' + FClient.Name_ +
+    ShowMessage('Client ' + MyClient.BlopiClientDetail.ClientCode + ': ' +
+                MyClient.BlopiClientDetail.Name_ +
                 ' has been removed from BankLink Practice ' + NoProductsStr + '.');
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoDeleteFile');

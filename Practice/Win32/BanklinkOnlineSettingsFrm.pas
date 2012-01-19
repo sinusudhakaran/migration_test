@@ -222,9 +222,14 @@ begin
       ButtonPressed := MessageDlg(PromptMessage, mtConfirmation, [mbYes, mbNo], 0);
     end;
   end;
-  if ButtonPressed = mrNo
-    then ModalResult := mrNone
-    else ModalResult := mrOk;
+  if ButtonPressed = mrNo then
+    ModalResult := mrNone
+  else
+  begin
+    // Update client with data from fields
+
+    ModalResult := mrOk;
+  end;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
@@ -257,8 +262,8 @@ begin
     if Assigned(AClient) then begin
       FClient := AClient;
       rbActive.Checked := true; // may be overriden by one of the two lines below
-      rbSuspended.Checked := FClient.Suspended;
-      rbDeactivated.Checked := FClient.Deactivated;
+      rbSuspended.Checked := (FClient.Status = BlopiServiceFacade.Status(1));
+      rbDeactivated.Checked := (FClient.Status = BlopiServiceFacade.Status(2));
       cmbConnectDays.Text := FClient.ClientConnectDays;
       chkUseClientDetails.Checked := FClient.UseClientDetails;
       //Load products
@@ -276,6 +281,18 @@ begin
           chklistProducts.Checked[i] := (GUID1 = GUID2);
           if chklistProducts.Checked[i] then break;
         end;
+      end;
+
+      // Default user
+      chkUseClientDetails.Checked := FClient.UseClientDetails;
+      if not (chkUseClientDetails.Checked) then
+      begin
+        edtUserName.Text := UserDetail(FClient.Users[0]).FullName;
+        edtEmailAddress.Text := UserDetail(FClient.Users[0]).Email;
+      end else
+      begin
+        edtUserName.Text := MyClient.clFields.clContact_Name;
+        edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
       end;
     end;
 

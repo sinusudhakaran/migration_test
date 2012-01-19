@@ -14,6 +14,7 @@ uses
    buList32, blList32, jobobj,
    PayeeObj,
    CustomHeadingsListObj, ExchangeRateList, mcDefs, AuditMgr,
+   BankLinkOnlineServices, BlopiClient,
 {$ENDIF}
    sysutils, MoneyDef;
 
@@ -47,6 +48,7 @@ type
     FExchangeSource: TExchangeSource;
     FLastAuditRecordID: integer;
     FClientCopy: TClientObj;
+    FBlopiClient: TBlopiClient;
 {$ENDIF}
     procedure LoadFromStream( var s:TIOStream);
     procedure GetZipStreamFromFile(var Filename : String; const ZipStream : TBigMemoryStream);
@@ -68,6 +70,11 @@ type
     procedure SetAuditInfo(P1, P2: pClient_Rec; var AAuditInfo: TAuditInfo);
     procedure SetExtraAuditInfo(P1, P2: pClientExtra_Rec; var AAuditInfo: TAuditInfo;
                                 NewClient: boolean = false);
+    procedure SetBlopiClientDetail(const Value: ClientDetail);
+    procedure SetBlopiClientNew(const Value: TClientNew);
+    function GetBlopiClientDetail: ClientDetail;
+    function GetBlopiClientNew: TClientNew;
+    function CopyPracticeClientNew: boolean;
 {$ENDIF}
   public
     procedure Open(FileCode, FileExtension : String);
@@ -128,9 +135,12 @@ type
     function NextAuditRecordID: integer;
     procedure DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
     procedure ClientCopyReset;
+    function RefreshBlopiClient: boolean;
     property AuditTable: TAuditTable read FAuditTable;
     property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
     property ClientCopy: TClientObj read GetClientCopy;
+    property BlopiClientDetail: ClientDetail read GetBlopiClientDetail write SetBlopiClientDetail;
+    property BlopiClientNew: TClientNew read GetBlopiClientNew write SetBlopiClientNew;
 {$ENDIF}
   end;
 
@@ -177,6 +187,7 @@ uses
    StStrS,
    ForexHelpers,
    GSTUTIL32,
+   WebUtils,
 {$ENDIF}
    bk5Except,
    VclZip;
@@ -238,6 +249,8 @@ begin
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;
+   // Creating Blopi client
+   FBlopiClient := TBlopiClient.Create;
 {$ENDIF}
    LogDebugMsg(ThisMethodName + ' Ends');
 end;
@@ -268,6 +281,7 @@ begin
    BKCLIO.Free_Client_Rec_Dynamic_Fields( clFields);
 {$IFDEF ParserDll}
 {$ELSE}
+   FreeAndNil(FBlopiClient);
    FreeAndNil(FExchangeSource);
 
    clBank_Account_List.Free;
@@ -642,6 +656,10 @@ begin
     FreeAndNil( ZipStream);
     FreeAndNil( DataStream);
   end;
+
+  if ProductConfigService.UseBankLinkOnline then
+    GetBlopiClientDetail;  
+
   LogDebugMsg( ThisMethodName + ' ends');
 end;
 
@@ -751,6 +769,14 @@ end;
 //
 //******************************************************************************
 
+
+function TClientObj.RefreshBlopiClient: boolean;
+begin
+  Result := False;
+  FBlopiClient.ClientDetail := nil;
+  if ProductConfigService.UseBankLinkOnline then
+    FBlopiClient.ClientDetail := FBlopiClient.GetClientDetail(clFields.clCode);
+end;
 
 procedure TClientObj.RefreshExchangeSource(DefaultGST: Boolean = True);
 var
@@ -870,6 +896,16 @@ begin
     AAuditInfo.AuditParentID := -1; //No parent
     AAuditInfo.AuditRecordType := tkBegin_Client;
   end;
+end;
+
+procedure TClientObj.SetBlopiClientDetail(const Value: ClientDetail);
+begin
+  FBlopiClient.ClientDetail := Value;
+end;
+
+procedure TClientObj.SetBlopiClientNew(const Value: TClientNew);
+begin
+  FBlopiClient.ClientNew := Value;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1475,6 +1511,28 @@ begin
   LogDebugMsg( ThisMethodName + ' Ends');
 end;
 
+function TClientObj.CopyPracticeClientNew: boolean;
+begin
+  FBlopiClient.ClientNew.Abn := '';
+  FBlopiClient.ClientNew.Address1 := clFields.clAddress_L1;
+  FBlopiClient.ClientNew.Address2 := clFields.clAddress_L2;
+  FBlopiClient.ClientNew.Address3 := clFields.clAddress_L3;
+  FBlopiClient.ClientNew.AddressCountry := '';
+  FBlopiClient.ClientNew.ClientCode := clFields.clCode;
+  FBlopiClient.ClientNew.CountryCode := CountryText(clFields.clCountry);
+  FBlopiClient.ClientNew.Email := clFields.clClient_EMail_Address;
+  FBlopiClient.ClientNew.Fax := clFields.clFax_No;
+  FBlopiClient.ClientNew.Mobile := clFields.clMobile_No;
+  FBlopiClient.ClientNew.Phone := clFields.clPhone_No;
+  FBlopiClient.ClientNew.Salutation := clFields.clSalutation;
+  FBlopiClient.ClientNew.TaxNumber := clFields.clTax_Ledger_Code;
+  FBlopiClient.ClientNew.Tfn := clFields.clTFN;
+  FBlopiClient.ClientNew.BillingFrequency := 'M'; // default to monthly billing
+  FBlopiClient.ClientNew.MaxOfflineDays := 30; // default to 'must connect every 30 days'
+  FBlopiClient.ClientNew.Name_ := clFields.clName;
+  FBlopiClient.ClientNew.Subscription := nil;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TClientObj.Save;
@@ -1490,6 +1548,19 @@ begin
   Self.clFields.clFile_Save_Required := false;
   Self.clFields.clCurrent_CRC        := GetCurrentCRC;
   Self.ClFields.clCRC_at_Last_Save   := Self.clFields.clCurrent_CRC;
+
+  if ProductConfigService.UseBankLinkOnline then
+  begin
+    if Assigned(BlopiClientDetail) then
+      ProductConfigService.SaveClient(BlopiClientDetail)
+    else
+    begin
+      CopyPracticeClientNew;
+      ProductConfigService.CreateNewClient(BlopiClientNew);
+      ProductConfigService.LoadClientList;
+      BlopiClientDetail := ProductConfigService.GetClientDetailsWithCode(BlopiClientNew.ClientCode);
+    end;
+  end;
 
   LogDebugMsg( ThisMethodName + ' Ends');
 end;
@@ -1553,6 +1624,16 @@ begin
         result := suNames[ clFields.clAccounting_System_Used];
     end;
   end;
+end;
+
+function TClientObj.GetBlopiClientDetail: ClientDetail;
+begin
+  Result := FBlopiClient.ClientDetail
+end;
+
+function TClientObj.GetBlopiClientNew: TClientNew;
+begin
+  Result := FBlopiClient.ClientNew;
 end;
 
 {$ENDIF}

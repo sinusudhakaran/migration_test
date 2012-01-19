@@ -158,7 +158,7 @@ type
     PassGenCodeEntered : boolean;
     FViewNotes : Boolean;
     OriginalCode, OriginalEmail : string;
-    FClient : ClientDetail;
+//    FClient : ClientDetail;
     FEnableClientSettings : boolean;
     FUseClientDetailsForBankLinkOnline: Boolean;
     function  OkToPost : boolean;
@@ -316,30 +316,8 @@ begin
 
     CatArray := ProductConfigService.Clients.Catalogue;
 
-    FClient := ProductConfigService.GetClientDetails(MyClient.clFields.clCode);
-    if not Assigned(FClient) then begin
-      MyNewClient := ClientNew.Create;
-      MyNewClient.ClientCode := MyClient.clFields.clCode;
-      MyNewClient.Name_ := MyClient.clFields.clName;
-      MyNewClientGuid := ProductConfigService.CreateNewClient(MyNewClient);
-      ProductConfigService.LoadClientList;
-      FClient := ProductConfigService.GetClientDetails(MyNewClientGuid);
-    end;
-
-//    AClientID := ProductConfigService.Clients.Clients[0].Id;
-//    FClient := ProductConfigService.GetClientDetails(AClientID);
-//    NumProducts := 0;
-//    for i := 0 to High(CatArray) do begin
-//      for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
-//        GUID1 := FClient.Subscription[k];
-//        GUID2 := CatArray[i].Id;
-//        if (GUID1 = GUID2) then
-//        begin
-//          inc(NumProducts);
-//          break;
-//        end;
-//      end;
-//    end;
+    //Get BLOPI details
+    MyClient.RefreshBlopiClient;
 
     lblClientBOProducts.Visible := ClientSynced;
     if lblClientBOProducts.Visible  then
@@ -456,14 +434,14 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
 begin
-  if Assigned(FClient) then begin
+  if Assigned(MyClient.BlopiClientDetail) then begin
     // These need to be updated immediately so that the user name and email address in
     // the Banklink Online Settings form will be populated correctly when 'Use Client
     // Details' is ticked
     MyClient.clFields.clContact_name := econtact.text;
     MyClient.clFields.clClient_EMail_Address := eMail.text;
-    if EditBanklinkOnlineSettings(FClient) and (eCode.Text <> '') and (eMail.Text <> '') then begin
-      ProductConfigService.SaveClient(FClient);
+    if EditBanklinkOnlineSettings(MyClient.BlopiClientDetail) and (eCode.Text <> '') and (eMail.Text <> '') then begin
+      ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
     end;
   end;
 end;
@@ -474,8 +452,8 @@ var
   UpdateBO: boolean;
 begin
   UpdateBO := AdminSystem.fdFields.fdUse_BankLink_Online;
-  if Assigned(FClient) then begin
-    if (OriginalEmail <> eMail.Text) and FClient.UseClientDetails then
+  if Assigned(MyClient.BlopiClientDetail) then begin
+    if (OriginalEmail <> eMail.Text) and MyClient.BlopiClientDetail.UseClientDetails then
     begin
       buttonSelected := MessageDlg('You have changed the Email Address for this client. Do you ' +
                                    'want the Banklink Online Default Client Administrator to be ' +
@@ -483,8 +461,8 @@ begin
                                    [mbYes, mbNo, mbCancel], 0);
       case buttonSelected of
         mrYes:
-          if Assigned(FClient) and UpdateBO
-            then FClient.UpdateAdminUser(eContact.Text, eMail.Text);
+          if Assigned(MyClient.BlopiClientDetail) and UpdateBO
+            then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
         mrNo: ; //FClient.UseClientDetails := False;
         mrCancel: btnCancelClick(Sender);
       end;
@@ -493,15 +471,14 @@ begin
 
   if okToPost then
   begin
-     if Assigned(FClient) and UpdateBO then begin
-       FClient.ClientCode := eCode.Text;
-       if FClient.UseClientDetails then
+     if Assigned(MyClient.BlopiClientDetail) and UpdateBO then begin
+       MyClient.BlopiClientDetail.ClientCode := eCode.Text;
+       if MyClient.BlopiClientDetail.UseClientDetails then
        begin
          //FClient.UserName := eContact.Text;
          //FClient.EmailAddress := eMail.Text;
        end;
      end;
-     ProductConfigService.SaveClient(FClient);
      okPressed := true;
      Close;
   end;
@@ -1182,6 +1159,7 @@ begin
         BKHelpSetUp(ClientDetails, BKH_Step_1_Client_Details);
         CreatingClient := true;
         Result := Execute(PCode);
+
      finally
         Free;
      end;
