@@ -349,7 +349,8 @@ uses
   ClientUtils, WinUtils, ShellAPI, stdate, bkdateutils, BK5Except,
   AuthorityUtils, CAFfrm, rptCAF, TPAfrm, rptTPA, ReportDefs, ovcDate,
   rptClientManager, CMFilterForm, bkBranding, ClientHomePageFrm, Merge32,
-  rptAdmin, MainFrm, CheckInOutFrm, Clipbrd, BanklinkOnlineServices;
+  rptAdmin, MainFrm, CheckInOutFrm, Clipbrd, BanklinkOnlineServices,
+  YesNoDlg;
 
 {$R *.dfm}
 
@@ -1798,48 +1799,102 @@ end;
 procedure TfrmClientManager.DoDeleteFile;
 var
   ScrollPos, NumProducts, i, k: Integer;
-  StringCodeToSelect, DeleteStr, NoProductsStr, ErrMsg, EmailAddress: string;
-  AClientID, GUID1, GUID2: WideString;
+  StringCodeToSelect, DeleteMsgStr, NoProductsStr, ErrMsg, EmailAddress: string;
+  ClientID, GUID1, GUID2: WideString;
   ProductList: TStringList;
+  ClientDet : ClientDetail;
+  ClientCode : String;
+  ClientName : String;
 begin
+  ClientCode := ClientLookup.FirstSelectedCode;
+  ClientName := ClientLookup.FirstSelectedName;
+
   NumProducts := 0;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoDeleteFile');
   //act upon a single client only
   ScrollPos := ClientLookup.LastScrollPosition;
   StringCodeToSelect := ClientLookup.GetCodeBelowSelection;
 
-  DeleteStr := 'Deleting this client will remove ALL TRANSACTIONS in the ' +
-               'client file and will REMOVE the client file from the ' +
-               'Administration System.' + #13#13;
-  if AdminSystem.fdFields.fdUse_BankLink_Online then
-  begin
-    if not BanklinkOnlineConnected then
+  try
+    ClientID := '';
+    if ProductConfigService.UseBankLinkOnline then
     begin
-      ErrMsg := 'BankLink Practice is unable to connect to BankLink Online';
-      ShowMessage(ErrMsg);
-      LogUtil.LogMsg(lmError, UnitName, ErrMsg);
+      ProductConfigService.LoadClientList;
+      ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
+      if Assigned(ClientDet) then
+        ClientID := ClientDet.Id;
+    end;
+
+    DeleteMsgStr := 'Deleting this client will remove ALL TRANSACTIONS in the ' +
+                      'client file and will REMOVE the client file from the ' +
+                      'Administration System.' + #13#10 + #13#10;
+
+    if not(ClientID = '') and
+      (high(ClientDet.Subscription) > -1) then
+    begin
+      DeleteMsgStr := DeleteMsgStr + 'Deleting this client will also, permanently ' +
+                      'remove ALL CLIENT DATA & ACCESS for the following products: ' +
+                      #13#10 + #13#10;
+
+      for i := low(ClientDet.Subscription) to high(ClientDet.Subscription) do
+      begin
+        DeleteMsgStr := DeleteMsgStr + '  ' +
+          ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]).Description +
+          #13#10;
+
+        if i = high(ClientDet.Subscription) then
+          DeleteMsgStr := DeleteMsgStr + #13#10;
+      end;
+    end;
+
+    DeleteMsgStr := DeleteMsgStr + 'Are you sure you want to delete Client (' +
+                    ClientCode + ' : ' + ClientName + ')';
+    if not(ClientID = '') then
+      DeleteMsgStr := DeleteMsgStr + ' from BankLink Pratice';
+    DeleteMsgStr := DeleteMsgStr + '?';
+
+    if (AskYesNo('Delete Client', DeleteMsgStr, DLG_NO, 0) <> DLG_YES) then
       Exit;
-    end;  
+
+    if not(ClientID = '') and
+      (high(ClientDet.Subscription) > -1) then
+    begin
+      if not ProductConfigService.DeleteClient(ClientID) then
+      begin
+        HelpfulErrorMsg('Unable to Connect to BankLink Online.', 0);
+        Exit;
+      end;
+    end;
+
+  except
+    on E : Exception do
+    begin
+      HelpfulErrorMsg(E.Message, 0);
+      Exit;
+    end;
   end;
 
-  if DeleteClientFile(ClientLookup.FirstSelectedCode, DeleteStr) then
+  if DeleteClientFile(ClientCode) then
   begin
     RefreshLookup(StringCodeToSelect);
     UpdateFilter(Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]));
     ClientLookup.ScrollBy(0, ScrollPos);
-  end;
+  end
+  else
+    Exit;
 
-  if AdminSystem.fdFields.fdUse_BankLink_Online then
-  begin
-    NoProductsStr := '';
-    if (NumProducts = 0) then
-      NoProductsStr := 'and Banklink Online';
-    ShowMessage('Client ' + MyClient.BlopiClientDetail.ClientCode + ': ' +
-                MyClient.BlopiClientDetail.Name_ +
-                ' has been removed from BankLink Practice ' + NoProductsStr + '.');
-  end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoDeleteFile');
+  DeleteMsgStr := 'Client (' + ClientCode + ' : ' + ClientName + ') has been ' +
+                  'removed from Banklink Practice';
+  if not(ClientID = '') and
+    (high(ClientDet.Subscription) > -1) then
+    DeleteMsgStr := DeleteMsgStr + ' and BankLink Online';
 
+  DeleteMsgStr := DeleteMsgStr + '.';
+
+  HelpfulInfoMsg(DeleteMsgStr, 0 );
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,UnitName,'Exit DoDeleteFile');
 end;
 
 procedure TfrmClientManager.ProcessModalCommand(cID: byte);

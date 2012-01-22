@@ -137,6 +137,8 @@ type
     procedure RemoveProduct(AProductId: Guid);
     procedure SelectAllProducts;
     procedure SetPrimaryContact(AUser: UserPractice);
+    function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
+
     property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
     property CachedPractice: PracticeDetail read GetCachedPractice;
     //Client methods
@@ -146,6 +148,7 @@ type
     function CreateNewClient(ANewClient: TClientNew): Guid;
 //    procedure CopyPracticeClient(APracticeClient: TClientObj; ANewClient: ClientNew);
     function SaveClient(AClient: ClientDetail): Boolean;
+    function DeleteClient(AClientGuid: Guid): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
     function AddEditPracUser(var   aUserId         : Guid;
@@ -893,6 +896,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
+var
+  i, j: integer;
+begin
+  Result := Nil;
+  if Assigned(FPracticeCopy) then begin
+    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
+      if FPracticeCopy.Catalogue[i].id = aSubGuid then
+      begin
+        Result := FPracticeCopy.Catalogue[i];
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.IsCICOEnabled: Boolean;
 var
   i, j: integer;
@@ -1157,6 +1177,30 @@ begin
   except
     on E: Exception do
       HelpfulErrorMsg(Msg, 0);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.DeleteClient(AClientGuid: Guid): Boolean;
+var
+  BlopiInterface: IBlopiServiceFacade;
+begin
+  Result := false;
+
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+
+  try
+    //BlopiInterface := GetServiceFacade;
+
+    Result := True;
+
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
   end;
 end;
 

@@ -248,6 +248,7 @@ type
     function GetSysClientRec(Sender: TBaseVirtualTree; Node: PVirtualNode): pClient_File_Rec;
     procedure SetSelectedCodes(const Value: string);
     function GetFirstSelectedCode: string;
+    function GetFirstSelectedName: string;
     procedure SetOnSortChanged(const Value: TNotifyEvent);
     function GetColumnCount: integer;
     procedure SetOnKeyPress(const Value: TKeyPressEvent);
@@ -327,6 +328,7 @@ type
 
     property SelectedCodes : string read GetSelectedCodes write SetSelectedCodes;
     property FirstSelectedCode : string read GetFirstSelectedCode;
+    property FirstSelectedName : string read GetFirstSelectedName;
     property OnSelectionChanged: TNotifyEvent read FOnSelectionChanged write SetOnSelectionChanged;
     property OnGridDblClick : TNotifyEvent read GetOnGridDblClick write SetOnGridDblClick;
     property OnGridColumnMoved : TVTHeaderDraggedEvent read GetOnGridColumnMoved write SetOnGridColumnMoved;
@@ -2804,6 +2806,27 @@ begin
     end;
   end;
 end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TfmeClientLookup.GetFirstSelectedName: string;
+var
+  aNode : pVirtualNode;
+  NodeData : pTreeData;
+  pIDRec : pIntermediateDataRec;
+begin
+  result := '';
+  aNode    := vtClients.GetFirstSelected;
+  if Assigned( aNode) then
+  begin
+    NodeData := vtClients.GetNodeData( aNode);
+    if NodeData.tdNodeType = ntClient then
+    begin
+      pIDRec := GetIntermediateDataFromNode( aNode);
+      result := pIDRec.imName;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfmeClientLookup.GetSelectedCodes: string;
 //returns a list of codes in a string
