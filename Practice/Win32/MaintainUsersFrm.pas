@@ -180,13 +180,13 @@ begin
       if not Assigned(aPractice) then
         exit;
 
-      if ProductConfigService.IsPrimaryUser(User^.usCode, aPractice) then
+      if ProductConfigService.IsPrimPracUser(User^.usCode, aPractice) then
       begin
         if not PickPrimaryUser(User^.usCode, aPractice) then
           exit;
       end;
 
-      if not ProductConfigService.DeleteUser(User^.usCode, '', aPractice) then
+      if not ProductConfigService.DeletePracUser(User^.usCode, '', aPractice) then
         exit;
 
       HasDelOnline := True;
@@ -312,7 +312,7 @@ begin
       if (User.usAllow_Banklink_Online) then
       begin
         if (ProductConfigService.OnLine) and
-           (ProductConfigService.IsPrimaryUser(User.usCode, Prac)) then
+           (ProductConfigService.IsPrimPracUser(User.usCode, Prac)) then
           Online := ONLINE_YES_ADMIN
         else
           Online := ONLINE_YES;

@@ -479,17 +479,17 @@ begin
     and (chkCanAccessBankLinkOnline.Checked = False) then
     begin
       if UserGuid = '' then
-        Result := ProductConfigService.DeleteUser(GetCurrentCode, '')
+        Result := ProductConfigService.DeletePracUser(GetCurrentCode, '')
       else
       begin
         if fIsPrimaryUser then
         begin
           Result := PickPrimaryUser(UserGuid);
           if Result then
-            Result := ProductConfigService.DeleteUser('', UserGuid);
+            Result := ProductConfigService.DeletePracUser('', UserGuid);
         end
         else
-          Result := ProductConfigService.DeleteUser('', UserGuid);
+          Result := ProductConfigService.DeletePracUser('', UserGuid);
       end;
 
       if Result then
@@ -499,14 +499,14 @@ begin
     if  (chkCanAccessBankLinkOnline.Checked)
     and (chkCanAccessBankLinkOnline.Visible) then
     begin
-      Result := ProductConfigService.UpdateCreateUser(fUserGuid,
-                                                      eMail.Text,
-                                                      eFullName.Text,
-                                                      GetCurrentCode,
-                                                      cmbUserType.ItemIndex,
-                                                      fIsCreateUser,
-                                                      chkUsePracPassInOnline.Checked,
-                                                      ePass.Text);
+      Result := ProductConfigService.AddEditPracUser(fUserGuid,
+                                                     eMail.Text,
+                                                     eFullName.Text,
+                                                     GetCurrentCode,
+                                                     cmbUserType.ItemIndex,
+                                                     fIsCreateUser,
+                                                     chkUsePracPassInOnline.Checked,
+                                                     ePass.Text);
       if Result then
       begin
         if IsCreateUser then
@@ -836,8 +836,8 @@ begin { TdlgEditUser.Execute }
       try
         Prac := ProductConfigService.GetPractice(true);
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
-        UserGuid := ProductConfigService.GetUserGuid(User.usCode, Prac);
-        fIsPrimaryUser := ProductConfigService.IsPrimaryUser(User.usCode, Prac);
+        UserGuid := ProductConfigService.GetPracUserGuid(User.usCode, Prac);
+        fIsPrimaryUser := ProductConfigService.IsPrimPracUser(User.usCode, Prac);
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
       finally
         Progress.StatusSilent := True;

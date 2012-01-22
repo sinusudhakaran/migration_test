@@ -182,7 +182,7 @@ function TEditUserPassword.UpdateOnline: Boolean;
 begin
   Result := False;
   try
-    if ProductConfigService.ChangeUserPassword(fUser_Rec.usCode,
+    if ProductConfigService.ChangePracUserPass(fUser_Rec.usCode,
                                                Trim(Uppercase(edtNewPassword.text))) then
     begin
       Result := True;

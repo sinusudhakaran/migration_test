@@ -148,22 +148,22 @@ type
     function SaveClient(AClient: ClientDetail): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
-    function UpdateCreateUser(var   aUserId         : Guid;
-                              const aEMail          : WideString;
-                              const aFullName       : WideString;
-                              const aUserCode       : WideString;
-                              const aUstNameIndex   : integer;
-                              var   aIsUserCreated  : Boolean;
-                              const aChangePassword : Boolean;
-                              const aPassword       : WideString ) : Boolean;
-    function DeleteUser(const aUserCode : string;
-                        const aUserGuid : string;
-                        aPractice : PracticeDetail = nil): Boolean;
-    function IsPrimaryUser(const aUserCode : string = '';
-                           aPractice : PracticeDetail = nil): Boolean;
-    function GetUserGuid(const aUserCode : string;
-                         aPractice : PracticeDetail): Guid;
-    function ChangeUserPassword(const aUserCode : WideString;
+    function AddEditPracUser(var   aUserId         : Guid;
+                             const aEMail          : WideString;
+                             const aFullName       : WideString;
+                             const aUserCode       : WideString;
+                             const aUstNameIndex   : integer;
+                             var   aIsUserCreated  : Boolean;
+                             const aChangePassword : Boolean;
+                             const aPassword       : WideString ) : Boolean;
+    function DeletePracUser(const aUserCode : string;
+                            const aUserGuid : string;
+                            aPractice : PracticeDetail = nil): Boolean;
+    function IsPrimPracUser(const aUserCode : string = '';
+                            aPractice : PracticeDetail = nil): Boolean;
+    function GetPracUserGuid(const aUserCode : string;
+                             aPractice : PracticeDetail): Guid;
+    function ChangePracUserPass(const aUserCode : WideString;
                                 const aPassword : WideString;
                                 aPractice : PracticeDetail = nil) : Boolean;
     property OnLine: Boolean read FOnLine;
@@ -1398,14 +1398,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.UpdateCreateUser(var   aUserId         : Guid;
-                                                const aEMail          : WideString;
-                                                const aFullName       : WideString;
-                                                const aUserCode       : WideString;
-                                                const aUstNameIndex   : integer;
-                                                var   aIsUserCreated  : Boolean;
-                                                const aChangePassword : Boolean;
-                                                const aPassword       : WideString) : Boolean;
+function TProductConfigService.AddEditPracUser(var   aUserId         : Guid;
+                                               const aEMail          : WideString;
+                                               const aFullName       : WideString;
+                                               const aUserCode       : WideString;
+                                               const aUstNameIndex   : integer;
+                                               var   aIsUserCreated  : Boolean;
+                                               const aChangePassword : Boolean;
+                                               const aPassword       : WideString) : Boolean;
 var
   UpdateUser      : UserPractice;
   CreateUser      : UserPracticeNew;
@@ -1454,7 +1454,7 @@ begin
     if IsUserOnline then
     begin
       if aUserId = '' then
-        aUserId := GetUserGuid(aUserCode, CurrPractice);
+        aUserId := GetPracUserGuid(aUserCode, CurrPractice);
 
       UpdateUser := UserPractice.Create;
       UpdateUser.EMail        := aEMail;
@@ -1468,11 +1468,11 @@ begin
       if not MessageResponseHasError(MsgResponce, 'update practice user on') then
       begin
         Result := MsgResponce.Success;
-      
+
         if aChangePassword then
         begin
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 88);
-          Result := ChangeUserPassword(aUserCode, aPassword, CurrPractice);
+          Result := ChangePracUserPass(aUserCode, aPassword, CurrPractice);
         end;
 
         if Result then
@@ -1512,9 +1512,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.DeleteUser(const aUserCode : string;
-                                          const aUserGuid : string;
-                                          aPractice : PracticeDetail) : Boolean;
+function TProductConfigService.DeletePracUser(const aUserCode : string;
+                                              const aUserGuid : string;
+                                              aPractice : PracticeDetail) : Boolean;
 var
   PracCountryCode : WideString;
   PracCode        : WideString;
@@ -1543,7 +1543,7 @@ begin
     if aUserCode = '' then
       UserGuid := aUserGuid
     else
-      UserGuid := GetUserGuid(aUserCode, aPractice);
+      UserGuid := GetPracUserGuid(aUserCode, aPractice);
 
     if not (UserGuid = '') then
     begin
@@ -1566,8 +1566,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.IsPrimaryUser(const aUserCode : string;
-                                             aPractice : PracticeDetail): Boolean;
+function TProductConfigService.IsPrimPracUser(const aUserCode : string;
+                                              aPractice : PracticeDetail): Boolean;
 begin
   if aUserCode = '' then
   begin
@@ -1578,12 +1578,12 @@ begin
   if not Assigned(aPractice) then
     aPractice := GetPractice(true);
 
-  Result := (GetUserGuid(aUserCode, aPractice) = aPractice.DefaultAdminUserId);
+  Result := (GetPracUserGuid(aUserCode, aPractice) = aPractice.DefaultAdminUserId);
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetUserGuid(const aUserCode : string;
-                                           aPractice : PracticeDetail): Guid;
+function TProductConfigService.GetPracUserGuid(const aUserCode : string;
+                                               aPractice : PracticeDetail): Guid;
 var
   i: integer;
   TempUser: UserDetail;
@@ -1601,7 +1601,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.ChangeUserPassword(const aUserCode : WideString;
+function TProductConfigService.ChangePracUserPass(const aUserCode : WideString;
                                                   const aPassword : WideString;
                                                   aPractice : PracticeDetail) : Boolean;
 var
@@ -1639,7 +1639,7 @@ begin
     if ShowProgress then
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 60);
 
-    UserGuid := GetUserGuid(aUserCode, aPractice);
+    UserGuid := GetPracUserGuid(aUserCode, aPractice);
     MsgResponce := BlopiInterface.SetPracticeUserPassword(PracCountryCode, PracCode, PracPassHash, UserGuid, aPassword);
 
     if not MessageResponseHasError(MsgResponce, 'change practice user password on') then begin

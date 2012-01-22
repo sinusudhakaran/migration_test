@@ -81,7 +81,7 @@ begin
       // Go through users adding to Combo if not current user
       for UserIndex := 0 to high(aPractice.Users) do
       begin
-        if not (aPractice.Users[UserIndex].Id = ProductConfigService.GetUserGuid(aUserCode, aPractice)) then
+        if not (aPractice.Users[UserIndex].Id = ProductConfigService.GetPracUserGuid(aUserCode, aPractice)) then
         begin
           for RoleIndex := Low(aPractice.Users[UserIndex].RoleNames) to
                           High(aPractice.Users[UserIndex].RoleNames) do
