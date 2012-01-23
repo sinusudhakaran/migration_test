@@ -675,7 +675,8 @@ begin
     //Practice Management System
     for i := xcMin to xcMax do begin
       if not ((fdFields.fdCountry = whNewZealand) and (i = xcHandi)) then
-        cmbPracticeManagementSystem.items.AddObject(xcNames[i], TObject( i ) );
+        if not ((fdFields.fdCountry = whUK) and not (i in [xcNA, xcOther])) then // Fix for bug 25375
+          cmbPracticeManagementSystem.items.AddObject(xcNames[i], TObject( i ) );
     end;
     //Temp - use practice mgmt setting from System.db
     ComboUtils.SetComboIndexByIntObject( fdFields.fdPractice_Management_System, cmbPracticeManagementSystem);
