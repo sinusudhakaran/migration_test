@@ -873,7 +873,7 @@ procedure UpdateSortByMenu;
      frmMain.tbMemorise.Visible := Value
                    and ( Assigned(AdminSystem) or (not  MyClient.clExtra.ceBlock_Client_Edit_Mems));
      frmMain.tbUPI.Visible := Value;
-     frmMain.tbQuery.Visible := Value;
+     frmMain.tbQuery.Visible := (Value and AdminExists);  
 
      if Value then begin
         frmMain.tbDissect.Caption := 'Dissect';
