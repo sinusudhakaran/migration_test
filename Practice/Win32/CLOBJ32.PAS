@@ -657,8 +657,10 @@ begin
     FreeAndNil( DataStream);
   end;
 
+{$IFNDEF ParserDll}
   if ProductConfigService.UseBankLinkOnline then
-    GetBlopiClientDetail;  
+    GetBlopiClientDetail;
+{$ENDIF}
 
   LogDebugMsg( ThisMethodName + ' ends');
 end;
@@ -774,8 +776,10 @@ function TClientObj.RefreshBlopiClient: boolean;
 begin
   Result := False;
   FBlopiClient.ClientDetail := nil;
+
   if ProductConfigService.UseBankLinkOnline then
     FBlopiClient.ClientDetail := FBlopiClient.GetClientDetail(clFields.clCode);
+
 end;
 
 procedure TClientObj.RefreshExchangeSource(DefaultGST: Boolean = True);
