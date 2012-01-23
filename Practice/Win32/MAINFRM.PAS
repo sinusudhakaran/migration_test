@@ -56,9 +56,7 @@ type
     mniSeparator: TMenuItem;
     mniFileSave: TMenuItem;
     NA2: TMenuItem;
-    mniFileSendTo: TMenuItem;
-    NA3: TMenuItem;
-    mniFileCheckOut: TMenuItem;
+    mniSendClientFiles: TMenuItem;
     mniFileCheckIn: TMenuItem;
     NA4: TMenuItem;
     mniFileAbandonChanges: TMenuItem;
@@ -295,9 +293,8 @@ type
     rztFile: TRzToolbar;
     tbOpen: TRzToolButton;
     tbSave: TRzToolButton;
-    tbSendTo: TRzToolButton;
-    tbCheckIn: TRzToolButton;
-    tbCheckOut: TRzToolButton;
+    tbGetClientFiles: TRzToolButton;
+    tbSendClientFiles: TRzToolButton;
     rztClient: TRzToolbar;
     tbCoding: TRzToolButton;
     tbBudget: TRzToolButton;
@@ -416,6 +413,24 @@ type
     mniFileExchangeRates: TMenuItem;
     N45: TMenuItem;
     mniSystemAuditReport: TMenuItem;
+    PopGetClients: TPopupMenu;
+    PopSendClients: TPopupMenu;
+    fromFolder1: TMenuItem;
+    fromBankLinkOnline1: TMenuItem;
+    toFile1: TMenuItem;
+    viaEmail1: TMenuItem;
+    viaBankLinkOnline1: TMenuItem;
+    actSendToFile: TAction;
+    actSendViaEmail: TAction;
+    actSendViaOnline: TAction;
+    oFile1: TMenuItem;
+    viaEmail2: TMenuItem;
+    viaBankLinkOnline2: TMenuItem;
+    fromFile1: TMenuItem;
+    viaBankLinkOnline3: TMenuItem;
+    actGetFromFolder: TAction;
+    actGetFromOnline: TAction;
+    mniChangePassword: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -502,7 +517,7 @@ type
     procedure mniSystemNewAccountsClick(Sender: TObject);
     procedure mniSystemBankLinkConnectClick(Sender: TObject);
     procedure mniSystemDownloadfromFloppyClick(Sender: TObject);
-    procedure mniFileCheckOutClick(Sender: TObject);
+    procedure mniSendClientFilesClick(Sender: TObject);
     procedure mniFileCheckInClick(Sender: TObject);
     procedure mniOFRefreshChartClick(Sender: TObject);
     procedure mniOFExtractDataClick(Sender: TObject);
@@ -617,8 +632,6 @@ type
     procedure rzToolbarsResize(Sender: TObject);
     procedure mniExportWebXClick(Sender: TObject);
     procedure mniImportWebXClick(Sender: TObject);
-    procedure tbSendToClick(Sender: TObject);
-    procedure mniFileSendToClick(Sender: TObject);
     procedure bk5winExecuteMacro(Sender: TObject; Msg: TStrings);
     procedure DdeStatusPokeData(Sender: TObject);
     procedure mniInstallCheckInExtnClick(Sender: TObject);
@@ -690,6 +703,13 @@ type
     procedure mniFileExchangeRatesClick(Sender: TObject);
     procedure mniSystemAuditReportClick(Sender: TObject);
     procedure AUDITREPORTTEST1Click(Sender: TObject);
+    procedure viaBankLinkOnline1Click(Sender: TObject);
+    procedure actSendToFileExecute(Sender: TObject);
+    procedure actSendViaEmailExecute(Sender: TObject);
+    procedure actSendViaOnlineExecute(Sender: TObject);
+    procedure actGetFromFolderExecute(Sender: TObject);
+    procedure actGetFromOnlineExecute(Sender: TObject);
+    procedure mniChangePasswordClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -707,6 +727,7 @@ type
     ProcessingDDECommand : Boolean;
     FLastActiveMDIChild: Forms.TForm;
     FLastActiveMDIChild2: Forms.TForm;
+    FAdminSystemFound: boolean;
     //DataThread: TDataThread;
 
     procedure ClientWndProc(var WinMsg: TMessage);
@@ -772,6 +793,7 @@ type
     procedure SetLastActiveMDIChild(const Value: Forms.TForm);
     property LastActiveMDIChild :Forms.TForm read FLastActiveMDIChild write SetLastActiveMDIChild;
     procedure RunGSTReport (Value: REPORT_LIST_TYPE);
+    procedure RefreshUserControls;
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
     procedure UpdateActions; override;
@@ -814,7 +836,7 @@ const
   mf_mcCloseFile               = 2;
   mf_mcNewFile                 = 3;
   mf_mcCheckIn                 = 4;
-  mf_mcCheckOut                = 5;
+  mf_mcSendClientFiles         = 5;
   mf_mcAbandon                 = 6;
   mf_mcSave                    = 7;
   mf_mcSaveAs                  = 8;
@@ -885,6 +907,8 @@ const
   mf_mcViewCashJournals        = 73;
   mf_mcViewAccrualJournals     = 74;
   mf_mcExchangeRates           = 75;
+  mf_mcSendOnline              = 76;
+  mf_mcGetOnline               = 77;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -1012,7 +1036,9 @@ uses
   ListChargesDlg,
   CountryUtils, HSBCDemo,
   CustomDocEditorFrm,
-  frmExchangeRates;
+  frmExchangeRates,
+  BankLinkOnlineServices,
+  EditUserPassword;
   //StockBalancesDlg;
 
 const
@@ -1051,7 +1077,7 @@ type
   end;
 
 {$R *.DFM}
-  
+
 var
   DebugMe : boolean = false;
 
@@ -1061,9 +1087,9 @@ var
 
 procedure TfrmMain.WMQueryEndSession(var Msg : TWMQueryEndSession);
 begin
-   LogUtil.LogMsg(lmInfo, UnitName, 'Windows is shutting down from main screen');
-   Close;
-   Msg.Result := 1;
+  LogUtil.LogMsg(lmInfo, UnitName, 'Windows is shutting down from main screen');
+  Close;
+  Msg.Result := 1;
 end;
 
 {procedure TfrmMain.WMSyscommand(var Message: TWmSysCommand);
@@ -1141,7 +1167,7 @@ begin
   MenuCopyToPopUp( 'mnsGraph',  popGraph  );
   AddMenuItems( popGST, mnsGSTReports, popGST.Items );
 
-  SetupHelp;
+//  SetupHelp;
 
   //Setup Form size status etc from INI settings
   //default of -1 indicates value not present
@@ -1178,9 +1204,24 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.actGetFromFolderExecute(Sender: TObject);
+begin
+  IncUsage('Check In');
+  DoMainFormCommand( mf_mcCheckIn);
+end;
+
+procedure TfrmMain.actGetFromOnlineExecute(Sender: TObject);
+begin
+  if not ProductConfigService.IsPracticeActive then
+    Exit;
+
+  //From BankLink Online
+  DoMainFormCommand( mf_mcGetOnline);
+end;
+
 procedure TfrmMain.ActHomePageExecute(Sender: TObject);
 begin
-   RefreshHomepage([HRP_Init]);
+  RefreshHomepage([HRP_Init]);
 end;
 
 procedure TfrmMain.ActivateApplication(Sender: TObject);
@@ -1199,23 +1240,34 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.SetupHelp;
+var
+  AppName1, AppName2: string;
 begin
-   //standard buttons                              
+   //standard buttons
    tbOpen.Hint  :=
                 'Open Clients (Shift+F12)|'
                 +'Open Clients (Click the arrow for recently used files)';
    tbSave.Hint  :=
                 'Save Client File|'
                 +'Save the Client File you are working on';
-   tbCheckIn.Hint  :=
-                'Check in a Client File|'
-                +'Check in a Client File from another '+SHORTAPPNAME+' System or an Off-site Client';
-   tbCheckout.Hint  :=
-                'Check out a Client File|'
-                +'Check out a Client File for coding by another '+SHORTAPPNAME+' System or an Off-site Client';
-   tbSendTo.Hint  :=
-                'E-mail the Client File|'
-                +'E-mail the Client File';
+   if FAdminSystemFound then begin
+     //Practice
+     AppName1 := BKBOOKSNAME;
+     AppName2 := BKPRACTICENAME;
+   end else begin
+     //Books
+     AppName1 := BKPRACTICENAME;
+     AppName2 := BKBOOKSNAME;
+   end;
+   tbGetClientFiles.Hint  :=
+                'Update a Client File|'
+                +'Update a Client File from ' + AppName1 + ' or another '+ AppName2 + ' System';
+   tbSendClientFiles.Hint :=
+                'Send a Client File|'
+                +'Send a Client File for coding by ' + AppName1 + ' or another ' + AppName2 + ' System';
+//   tbSendTo.Hint  :=
+//                'E-mail the Client File|'
+//                +'E-mail the Client File';
 
    //Open client toolbar
    tbCoding.Hint  :=
@@ -1345,13 +1397,15 @@ var
   NumUsersLoggedIn  : integer;
   i                 : integer;
   ArchiveLogNeeded  : boolean;
-  AdminSystemFound  : boolean;
   LogBackupDir      : string;
 {$IFDEF SmartLink}
   ShowSmartLinkHelp : boolean;
 {$ENDIF}
 begin
-  if AdminExists then
+  FAdminSystemFound := Assigned( AdminSystem) or AdminExists;
+  SetupHelp;
+
+  if FAdminSystemFound then
   begin
     DoClientManager(0, 0, 0, 0);
     Globals.Active_UI_Style := UIS_Standard;
@@ -1426,7 +1480,7 @@ begin
     begin
        //Self.Tag := 0; case 7071 - everything now goes screen center
 
-       AdminSystemFound := Assigned( AdminSystem) or AdminExists;
+       RefreshUserControls;
 
        ReloadCustomLogo;
 
@@ -1482,7 +1536,7 @@ begin
        else
           LogBackupDir := Globals.LogFileBackupDir;
 
-       if AdminSystemFound then begin
+       if FAdminSystemFound then begin
           //count no of users so can do single user operations
           NumUsersLoggedIn := 0;
           with AdminSystem.fdSystem_User_List do begin
@@ -1496,7 +1550,7 @@ begin
           NumUsersLoggedIn := 1;
        end;
 
-       if AdminSystemFound then begin
+       if FAdminSystemFound then begin
           //compress the log file
           //can be turned off in BK5PRAC.INI
           //   [Environment]
@@ -1570,7 +1624,7 @@ begin
       tmProcessStartupCmds.Enabled := true;
     end;
   end;
-  if AdminSystemFound then
+  if FAdminSystemFound then
     tmrReportRun.Enabled := true;
 
   //allow DDE commands to be processed
@@ -1981,6 +2035,13 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.SetToolBarCaptionState( CaptionOn: boolean);
 begin
+   //Get and Send buttons need minimum width to display the caption correctly
+   tbGetClientFiles.Constraints.MinWidth := 0;
+   tbSendClientFiles.Constraints.MinWidth := 0;
+   if CaptionOn then begin
+     tbGetClientFiles.Constraints.MinWidth := 145;
+     tbSendClientFiles.Constraints.MinWidth := 145;
+   end;
    //resize all of the buttons and turn captions on if needed
    SetCaptionState( rztFile, CaptionOn);
    SetCaptionState( rztClient, CaptionOn);
@@ -2234,18 +2295,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniFileCheckInClick(Sender: TObject);
 begin
-  IncUsage('Check In');
-  DoMainFormCommand( mf_mcCheckIn);
+
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmMain.mniFileCheckOutClick(Sender: TObject);
+
+procedure TfrmMain.mniSendClientFilesClick(Sender: TObject);
 begin
-  IncUsage('Check Out');
-  if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
-    ClientManagerCheckOut
-  else
-    DoMainFormCommand( mf_mcCheckOut);
+
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniFileExitClick(Sender: TObject);
 begin
@@ -2482,6 +2540,9 @@ end;
 procedure TfrmMain.mniSystemUsersClick(Sender: TObject);
 begin
   MaintainUsers;
+
+  RefreshUserControls;
+
   RefreshClientManager;
   if Assigned( MyClient) then
     Merge32.SyncClientToAdmin( MyClient, false, false);
@@ -2588,7 +2649,7 @@ begin
    if ECodingUtils.ExportECodingFileToFile( MyClient, Dest) then
    begin
       //force a save of the client file, otherwise could lose ecoding ID's
-      SaveClient;
+      SaveClient(false);
       SendCmdToAllCodingWindows( ecRecodeTrans);
    end;
 end;
@@ -3797,6 +3858,12 @@ begin
   ClientManagerFrm.RefreshClientManager('',Restore);
 end;
 
+procedure TfrmMain.RefreshUserControls;
+begin
+  mniChangePassword.Visible := (CurrUser.AllowBanklinkOnline
+                           and FAdminSystemFound);
+end;
+
 procedure TfrmMain.ReloadCustomLogo;
 //loads the correct logo, or makes it invisible
 //load the practice logo if admin system is present
@@ -3920,7 +3987,7 @@ begin
   Begin
     MyClient.clFields.clCountry := whUK;
     MyClient.clFields.clAccounting_System_Used := 0;
-    SaveClient;
+    SaveClient(false);
   End;
 
   if AdminExists then
@@ -4046,7 +4113,6 @@ begin
      if Assigned(FLastActiveMDIChild) then
         if FLastActiveMDIChild is TfrmCoding then begin
            rztCoding.Visible := True;
-           tbQuery.Visible := AdminExists;
            rztBudget.Visible := False;
            UpdateMF.UpdateSortByMenu;
         end else if FLastActiveMDIChild is tfrmBudget then begin
@@ -4074,6 +4140,11 @@ begin
         FLastActiveMDIChild.Invalidate; // repaint it..
      end;
   end;
+end;
+
+procedure TfrmMain.viaBankLinkOnline1Click(Sender: TObject);
+begin
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -4257,10 +4328,12 @@ begin
                          end;
         mf_mcNewFile : CreateClient(true);
         mf_mcOpenFromMRU : DoOpenFromMRU( Sender);
-        mf_mcSave : SaveClient;
+        mf_mcSave : SaveClient(false);
         mf_mcSaveAs : SaveAs;
-        mf_mcCheckIn : CheckIn;
-        mf_mcCheckOut : CheckOut;
+        mf_mcCheckIn         : Files.CheckIn(ftmFile);
+        mf_mcGetOnline       : Files.CheckIn(ftmOnline);
+        mf_mcSendClientFiles : Files.SendClientFiles('', ftmFile);
+        mf_mcSendOnline      : Files.SendClientFiles('', ftmOnline);
         mf_mcAbandon : AbandonChanges(true);
         mf_mcExchangeRates: MaintainExchangeRates;
         mf_mcCoding : DoCoding;
@@ -4383,6 +4456,35 @@ begin
     ToDoHandler.MaintainToDoItems( MyClient.clFields.clCode, false);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.actSendToFileExecute(Sender: TObject);
+begin
+  IncUsage('Check Out');
+  if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
+    ClientManagerCheckOut
+  else
+    DoMainFormCommand( mf_mcSendClientFiles);
+end;
+
+procedure TfrmMain.actSendViaEmailExecute(Sender: TObject);
+begin
+  if (ActiveMDIChild is TfrmClientManager) and SendFilesEnabled then
+    ClientManagerSend
+  else
+    SendClientFileTo('');
+end;
+
+procedure TfrmMain.actSendViaOnlineExecute(Sender: TObject);
+begin
+  if not ProductConfigService.IsPracticeActive then
+    Exit;
+
+  IncUsage('Check Out');
+  if (ActiveMDIChild is TfrmClientManager) and CheckOutEnabled then
+    ClientManagerSendOnline
+  else
+    DoMainFormCommand( mf_mcSendOnline);
+end;
+
 procedure TfrmMain.actTasksExecute(Sender: TObject);
 begin
   DoMainFormCommand( mf_mcDoTasks);
@@ -4477,7 +4579,7 @@ procedure TfrmMain.ForceOffsiteBackup;
 begin
   if Assigned( MyClient) then
   begin
-    SaveClient;
+    SaveClient(false);
     DoOffsiteBackup( MyClient.clFields.clCode, True);
     if Globals.mfModalCommandResult = 1 then
     begin
@@ -4707,19 +4809,6 @@ begin
   DoMainFormCommand( mf_mcImportWebX);
 end;
 
-procedure TfrmMain.tbSendToClick(Sender: TObject);
-begin
-  if (ActiveMDIChild is TfrmClientManager) and SendFilesEnabled then
-    ClientManagerSend
-  else
-    SendClientFileTo('');
-end;
-
-procedure TfrmMain.mniFileSendToClick(Sender: TObject);
-begin
-  tbSendToClick(Sender);
-end;
-
 procedure TfrmMain.mniFindandReplaceClick(Sender: TObject);
 begin
   IncUsage('Find and Replace');
@@ -4847,7 +4936,7 @@ begin
       begin
         UPDATEMF.UpdateMenus;
         UPDATEMF.UpdateSystemMenus;
-        HelpfulErrorMsg( 'You do not have sufficient rights to Check In a file,' + #13 +
+        HelpfulErrorMsg( 'You do not have sufficient rights to Update a file,' + #13 +
          'please see your BankLink Administrator.',0);
         if Assigned(AdminSystem) then
           DoClientManager(0,0,0,0);
@@ -5016,7 +5105,7 @@ begin
   if FileExists( filename) then
     ShellExecute(Handle,nil,pChar( filename), nil ,nil,SW_SHOWNORMAL)
   else
-    HelpfulWarningMsg( 'Check-in Extension setup not found.',0);
+    HelpfulWarningMsg( 'Client File Handler setup not found.',0);
 end;
 
 procedure TfrmMain.mniJobsClick(Sender: TObject);
@@ -5190,6 +5279,11 @@ end;
 procedure TfrmMain.mniUPIAddInitDepClick(Sender: TObject);
 begin
    DoCodingTBarCommand(ecAddInitDep);
+end;
+
+procedure TfrmMain.mniChangePasswordClick(Sender: TObject);
+begin
+  ChangeUserPassword;
 end;
 
 procedure TfrmMain.mniCheckForUpdatesClick(Sender: TObject);

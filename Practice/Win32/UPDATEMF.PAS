@@ -102,7 +102,8 @@ uses
    CountryUtils,
    ReportDefs,
    SimpleUIOpenPageFrm,
-   CFHead;
+   CFHead,
+   BankLinkOnlineServices;
 
 var
   ClosingAllMDIForms : boolean = false;
@@ -308,15 +309,15 @@ begin
     //check in/out send to
     if Assigned(AdminSystem) then
     begin
-      mniFileCheckOut.enabled := CheckInOutAllowed;
-      tbCheckOut.enabled := CheckInOutAllowed;
+      mniSendClientFiles.enabled := CheckInOutAllowed;
+      tbSendClientFiles.enabled := CheckInOutAllowed;
     end else
     begin
-      mniFileCheckOut.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
-      tbCheckOut.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
+      mniSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
+      tbSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
     end;
     mniFileCheckIn.enabled       := CheckInOutAllowed;
-    tbCheckIn.enabled            := CheckInOutAllowed;
+    tbGetClientFiles.enabled            := CheckInOutAllowed;
 
     //Purge Entries - Client
     mniOFPurgeOldEntries.enabled := UserHasAdminAccess or IsOffsiteClient;
@@ -340,11 +341,10 @@ begin
     mniFileNew.Visible              := NotRestrictedUser;
     mniFileSaveAs.Visible           := NotRestrictedUser;
     NA2.Visible                     := NotRestrictedUser;
-    mniFileSendTo.Visible           := NotRestrictedUser;
+//    mniFileSendTo.Visible           := NotRestrictedUser;
     NA4.Visible                     := NotRestrictedUser;
-    mniFileCheckOut.Visible         := NotRestrictedUser;
+    mniSendClientFiles.Visible      := NotRestrictedUser;
     mniFileCheckIn.Visible          := NotRestrictedUser;
-    mniFileExchangeRates.Visible    := IsOffsiteClient and (not UsingAdmin);
 
     //Reports Menu
     mniReportSchedule.Visible       := NotRestrictedUser and UsingAdmin;
@@ -378,9 +378,9 @@ begin
 
 
     //File Toolbar
-    tbCheckIn.Visible               := NotRestrictedUser;
-    tbCheckOut.Visible              := NotRestrictedUser;
-    tbSendTo.Visible                := NotRestrictedUser;
+    tbGetClientFiles.Visible        := NotRestrictedUser;
+    tbSendClientFiles.Visible       := NotRestrictedUser;
+//    tbSendTo.Visible                := NotRestrictedUser;
 
     actClientManager.Visible        := UsingAdmin;
     actClientManager.Enabled        := actClientManager.Visible;
@@ -426,8 +426,8 @@ begin
     if Active_UI_Style = UIS_Simple then
     begin
       //disable items on main toolbar
-      tbcheckin.visible := false;
-      tbcheckout.visible := false;
+      tbGetClientFiles.visible := false;
+      tbSendClientFiles.visible := false;
       tbOnline.Visible := false;
       tbQuery.Visible := false;
 
@@ -539,9 +539,18 @@ begin
      mniFileSaveAs.Enabled           := ClientFileOpen;
      mniFileInformation.Enabled      := ClientFileOpen;
      mniFileAbandonChanges.Enabled   := ClientFileOpen;
-     mniFileExchangeRates.Enabled    := ClientFileOpen;
-    if (not UsingAdmin) and ClientFileOpen then
-       mniFileExchangeRates.Visible  := (MyClient.clFields.clDownload_From <> dlAdminSystem);
+
+     //Hide abandon changes for UK
+     mniFileExchangeRates.Visible    := False;
+     mniFileAbandonChanges.Visible   := True;
+     if Assigned(AdminSystem) then
+       mniFileAbandonChanges.Visible   := (AdminSystem.fdFields.fdCountry <> whUK)
+     else if Assigned(MyClient) then begin
+       mniFileAbandonChanges.Visible   := (MyClient.clFields.clCountry <> whUK);
+       //Only show exchange rates menu option for Books if UK and is offsite client
+       mniFileExchangeRates.Visible  := (MyClient.clFields.clCountry = whUK) and
+                                        (MyClient.clFields.clDownload_From <> dlAdminSystem);
+     end;
 
      if ClientFileOpen and ( MyClient.clFields.clFile_Read_Only) then
      begin
@@ -685,7 +694,7 @@ begin
 
      if (not UsingAdmin) then
      begin
-       mniFileCheckOut.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
+       mniSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
      end;
 
      //only show if an admin system exists and allow flag is set
@@ -790,6 +799,19 @@ begin
         frmMain.tbSuper.Visible := Software.CanUseSuperFundFields( MyClient.clFields.clCountry,
                                                                    MyClient.clFields.clAccounting_System_Used);
 
+     //Get and send client file menu options
+     actSendViaEmail.Enabled := True;
+     actSendToFile.Enabled := True;
+     actSendViaOnline.Enabled := True;
+     if UsingAdmin then begin
+       actSendViaOnline.Visible := ProductConfigService.IsCICOEnabled;
+       actGetFromOnline.Visible := ProductConfigService.IsCICOEnabled;
+     end else if ClientFileOpen then begin
+       actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
+       actSendViaEmail.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
+       actSendViaOnline.Enabled := (MyClient.clExtra.ceFile_Transfer_Method = ftmOnline);
+     end;
+
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
      frmMain.MenuCopyToPopUp('mnsReport', popReport);
   end;
@@ -851,7 +873,7 @@ procedure UpdateSortByMenu;
      frmMain.tbMemorise.Visible := Value
                    and ( Assigned(AdminSystem) or (not  MyClient.clExtra.ceBlock_Client_Edit_Mems));
      frmMain.tbUPI.Visible := Value;
-     frmMain.tbQuery.Visible := (Value and AdminExists);
+     frmMain.tbQuery.Visible := Value;
 
      if Value then begin
         frmMain.tbDissect.Caption := 'Dissect';
