@@ -116,7 +116,6 @@ type
     procedure cbPrimaryContactClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure tsBankLinkOnlineShow(Sender: TObject);
     procedure TreeCompare(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
     procedure actSelectAllProductsExecute(Sender: TObject);
@@ -131,7 +130,6 @@ type
     InSetup: Boolean;
     FPrac: PracticeDetail;
     FOnlineSettingsChanged: Boolean;
-    OriginalProductCheckStates: array of TCheckState;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -334,25 +332,25 @@ begin
   cmbWebFormats.Clear;
   for i := wfMin to wfMax do
     if (wfNames[i] = WebNotesName) then begin
-      if (ProductConfigService.UseBankLinkOnline) and
-         (ProductConfigService.IsNotesOnlineEnabled) then
-        cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+      if (UseBankLinkOnline) then
+        if (ProductConfigService.IsNotesOnlineEnabled) then
+          cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
     end else
       cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
 
   //Set to default if currently Notes Online and Notes Online is disabled
-  if ((not ProductConfigService.UseBankLinkOnline) or (not ProductConfigService.IsNotesOnlineEnabled)) and
-     (wfNames[WebExportFormat] = WebNotesName)  then
-    ComboUtils.SetComboIndexByIntObject(wfDefault, cmbWebFormats)
-  else
-    ComboUtils.SetComboIndexByIntObject(WebExportFormat, cmbWebFormats);
+  ComboUtils.SetComboIndexByIntObject(WebExportFormat, cmbWebFormats);
+  if UseBankLinkOnline then begin
+    //If web export format currently WebNotes and product not enabled then set to None
+    if (wfNames[WebExportFormat] = WebNotesName) and (not ProductConfigService.IsNotesOnlineEnabled) then
+      ComboUtils.SetComboIndexByIntObject(wfDefault, cmbWebFormats);
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnOKClick(Sender: TObject);
 var
   i: integer;
-  Msg: string;
 begin
   // Make sure we have an accounting System
   if (GetComboCurrentIntObject(cmbSuperSystem,asNone) = asNone)
@@ -372,14 +370,8 @@ begin
     end;
   end;
 
-  {
-  okPressed := true;  
-  Msg := '';
-  // Send email to support if products have changed
-  for I := 0 to List.Count - 1 do
-    if (vtProducts.CheckState[i] <> OriginalProductCheckStates[i]) then
-  }
-  
+  okPressed := true;
+
   Close;  
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -461,7 +453,7 @@ begin
 
   try
     if ckUseBankLinkOnline.Checked then begin
-      ProductConfigService.UseBankLinkOnline := True;
+      UseBankLinkOnline := True;
       FPrac := ProductConfigService.GetPractice(False);
       if Assigned(FPrac) then
         LoadPracticeDetails
@@ -471,7 +463,7 @@ begin
         Exit;
       end;
     end else
-      ProductConfigService.UseBankLinkOnline := False;
+      UseBankLinkOnline := False;
 
     if  ckUseBankLinkOnline.Checked
     and ProductConfigService.OnLine
@@ -501,7 +493,7 @@ begin
     end;
 
     for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-      tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
+      tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline;
 
     ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
   finally
@@ -579,11 +571,13 @@ begin
     tsSuperFundSystem.TabVisible := (fdFields.fdCountry = whAustralia);
 
     //Use BankLink Online
-    ProductConfigService.UseBankLinkOnline := Adminsystem.fdFields.fdUse_BankLink_Online;
+    UseBankLinkOnline := Adminsystem.fdFields.fdUse_BankLink_Online;
     ckUseBankLinkOnline.Checked := Adminsystem.fdFields.fdUse_BankLink_Online;
     for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-      tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
-    ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
+      tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline;
+    ckUseBankLinkOnline.Enabled := True;
+    if UseBankLinkOnline then
+      ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
 
     //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
@@ -750,8 +744,7 @@ begin
 
          //Save BankLink Online settings
          //Saved to BankLink Online in VerifyForm - form can't be closed unless online changes are saved
-//         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-          AdminSystem.fdFields.fdUse_BankLink_Online := ProductConfigService.UseBankLinkOnline;
+         AdminSystem.fdFields.fdUse_BankLink_Online := UseBankLinkOnline;
          
          //Web
          fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
@@ -859,9 +852,9 @@ begin
   end;
 
   //Save BankLink Online settings
-  ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
+  UseBankLinkOnline := ckUseBankLinkOnline.Checked;
 
-  if ProductConfigService.UseBankLinkOnline and ProductConfigService.PracticeChanged then
+  if UseBankLinkOnline and ProductConfigService.PracticeChanged then
   begin
     ProductConfigService.LoadClientList;
     ProductList := ProductConfigService.ProductList;
@@ -918,7 +911,7 @@ begin
     if not ProductConfigService.SavePractice then
     begin
       //Don't exit dialog if online settings were not updated
-      if ProductConfigService.UseBankLinkOnline then
+      if UseBankLinkOnline then
         Exit;
     end
     else
@@ -1297,24 +1290,6 @@ begin
       Result := 1;
   end else // both are of same type (folder or file)
     Result := CompareText(Data1.tdCaption, Data2.tdCaption);
-end;
-
-procedure TfrmPracticeDetails.tsBankLinkOnlineShow(Sender: TObject);
-var
-  i: integer;
-  Node: PVirtualNode;
-begin
-  ProductConfigService.IsPracticeActive;
-
-  SetLength(OriginalProductCheckStates, vtProducts.TotalCount);
-  for i := 0 to vtProducts.TotalCount - 1 do
-  begin
-    if (i = 0)
-      then Node := vtProducts.GetFirst
-      else Node := vtProducts.GetNext(Node);
-    
-    OriginalProductCheckStates[i] := vtProducts.CheckState[Node];
-  end;
 end;
 
 procedure TfrmPracticeDetails.txtLastDiskIDChange(Sender: TObject);

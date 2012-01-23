@@ -13,8 +13,7 @@ uses
   Classes;
 
 type
-  TBanklinkOnlineStatus = (bosActive, bosSuspended, bosDeactivated);
-
+  TStatus               = BlopiServiceFacade.Status;
   Guid                  = BlopiServiceFacade.Guid;
   ArrayOfString         = BlopiServiceFacade.ArrayOfString;
   PracticeDetail        = BlopiServiceFacade.PracticeDetail;
@@ -81,22 +80,22 @@ type
     FOnLine: Boolean;
     FRegistered: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
-    FUseBankLinkOnline: Boolean;
+//    FUseBankLinkOnline: Boolean;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
     function IsUserCreatedOnBankLinkOnline(const APractice : PracticeDetail;
                                            const AUserId   : Guid   = '';
                                            const AUserCode : string = ''): Boolean;
 
-    function GetUseBankLinkOnline: Boolean;
-    procedure SetUseBankLinkOnline(const Value: Boolean);
+//    function GetUseBankLinkOnline: Boolean;
+//    procedure SetUseBankLinkOnline(const Value: Boolean);
     function RemotableObjectToXML(ARemotable: TRemotable): string;
     procedure LoadRemotableObjectFromXML(const XML: string; ARemotable: TRemotable);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
     procedure SavePracticeDetailsToSystemDB;
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
-    function OnlineStatus: TBankLinkOnlineStatus;
+    function OnlineStatus: TStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
                               const aName : String) : integer;
     procedure AddTypeItem(var aDataArray : TArrVarTypeData;
@@ -139,7 +138,7 @@ type
     procedure SetPrimaryContact(AUser: UserPractice);
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
 
-    property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
+//    property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
     property CachedPractice: PracticeDetail read GetCachedPractice;
     //Client methods
     procedure LoadClientList;
@@ -296,11 +295,11 @@ begin
   //Create practice
   FPractice := PracticeDetail.Create;
   //Load Practice
-  GetPractice;
+//  GetPractice;
   //Create client list
   FClientList := ClientList.Create;
   //Load client list
-  LoadClientList;
+//  LoadClientList;
 end;
 
 //------------------------------------------------------------------------------
@@ -446,10 +445,10 @@ begin
   //Initialise
   FOnLine := False;
   FRegistered := False;
-  //FUseBankLinkOnline is updated by the user when the practice details
+  //UseBankLinkOnline is updated by the user when the practice details
   //dialog is open - so dont't reset it.
   if aUpdateUseOnline then
-    FUseBankLinkOnline := False;
+    UseBankLinkOnline := False;
   FreeAndNil(FPractice);
   FPractice := PracticeDetail.Create;
   FreeAndNil(FPracticeCopy);
@@ -472,10 +471,10 @@ begin
         if AdminSystem.fdFields.fdBankLink_Online_Config <> '' then
           LoadRemotableObjectFromXML(AdminSystem.fdFields.fdBankLink_Online_Config, FPractice);
 
-        //FUseBankLinkOnline is updated by the user when the practice details
+        //UseBankLinkOnline is updated by the user when the practice details
         //dialog is open - so dont't reload it from the system db.
         if aUpdateUseOnline then
-          FUseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
+          UseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
 
         //Try to load practice details from BankLink Online
         FOnLine := False;
@@ -538,10 +537,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetUseBankLinkOnline: Boolean;
-begin
-  Result := FUseBankLinkOnline;
-end;
+//function TProductConfigService.GetUseBankLinkOnline: Boolean;
+//begin
+//  Result := FUseBankLinkOnline;
+//end;
 
 //------------------------------------------------------------------------------
 procedure TProductConfigService.LoadClientList;
@@ -656,17 +655,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.OnlineStatus: TBankLinkOnlineStatus;
-var
-  IniFile: TIniFile;
+function TProductConfigService.OnlineStatus: TStatus;
 begin
-  Result := bosActive;
-  IniFile := TIniFile.Create(ExecDir + INIFILE_NAME);
-  try
-    Result := TBankLinkOnlineStatus(IniFile.ReadInteger('Settings', 'Status', 0));
-  finally
-    IniFile.Free;
-  end;
+  Result := Active;
+  if Assigned(FPractice) then
+    Result := FPractice.Status;
 end;
 
 function TProductConfigService.PracticeChanged: Boolean;
@@ -960,15 +953,15 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.IsPracticeActive(ShowWarning: Boolean): Boolean;
 begin
-  Result := not (OnlineStatus in [bosSuspended, bosDeactivated]);
+  Result := not (OnlineStatus in [Suspended, Deactivated]);
   if ShowWarning then
     case OnlineStatus of
-      bosSuspended: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently in suspended ' +
-                                      '(read-only) mode. Please contact BankLink ' +
-                                      'Support for further assistance.', 0);
-      bosDeactivated: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently deactivated. ' +
-                                        'Please contact BankLink Support for further ' +
-                                        'assistance.', 0);
+      Suspended: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently in suspended ' +
+                                   '(read-only) mode. Please contact BankLink ' +
+                                   'Support for further assistance.', 0);
+      Deactivated: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently deactivated. ' +
+                                     'Please contact BankLink Support for further ' +
+                                     'assistance.', 0);
     end;
 end;
 
@@ -1317,12 +1310,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.SetUseBankLinkOnline(const Value: Boolean);
-begin
+//procedure TProductConfigService.SetUseBankLinkOnline(const Value: Boolean);
+//begin
 //  if Assigned(AdminSystem) then
 //    AdminSystem.fdFields.fdUse_BankLink_Online := Value;
-  FUseBankLinkOnline := Value;
-end;              
+//  FUseBankLinkOnline := Value;
+//end;
 
 { TClientHelper }
 //------------------------------------------------------------------------------

@@ -661,7 +661,7 @@ begin
   end;
 
 {$IFNDEF ParserDll}
-  if ProductConfigService.UseBankLinkOnline then
+  if UseBankLinkOnline then
     GetBlopiClientDetail;
 {$ENDIF}
 
@@ -778,7 +778,7 @@ end;
 function TClientObj.RefreshBlopiClient: boolean;
 begin
   Result := False;
-  if ProductConfigService.UseBankLinkOnline then
+  if UseBankLinkOnline then
     FBlopiClient.ClientDetail := FBlopiClient.GetClientDetail(clFields.clCode);
   Result := Assigned(FBlopiClient.ClientDetail);
 end;
@@ -1559,7 +1559,7 @@ begin
   Self.clFields.clCurrent_CRC        := GetCurrentCRC;
   Self.ClFields.clCRC_at_Last_Save   := Self.clFields.clCurrent_CRC;
 
-  if ProductConfigService.UseBankLinkOnline then
+  if UseBankLinkOnline then
   begin
     if Assigned(BlopiClientNew) then
     begin

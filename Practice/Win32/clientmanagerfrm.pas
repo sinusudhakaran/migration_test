@@ -1817,7 +1817,7 @@ begin
 
   try
     ClientID := '';
-    if ProductConfigService.UseBankLinkOnline then
+    if UseBankLinkOnline then
     begin
       ProductConfigService.LoadClientList;
       ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);

@@ -619,7 +619,8 @@ var
     Email_Subject: string = '';
     Email_Checkout_File: Boolean = False;
 
-
+    //BankLink Online - Pracice global setting
+    UseBankLinkOnline: Boolean = False;
 
 //******************************************************************************
 implementation

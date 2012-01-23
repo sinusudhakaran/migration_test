@@ -235,7 +235,7 @@ End;
 //------------------------------------------------------------------------------
 function TdlgEditUser.IsBankLinkOnlineUser: Boolean;
 begin
-  Result := (ProductConfigService.UseBankLinkOnline and chkCanAccessBankLinkOnline.Checked);
+  Result := (UseBankLinkOnline and chkCanAccessBankLinkOnline.Checked);
 end;
 
 //------------------------------------------------------------------------------
@@ -312,7 +312,7 @@ end;
 //------------------------------------------------------------------------------
 Procedure TdlgEditUser.OnlineControlSetup;
 begin
-  chkCanAccessBankLinkOnline.Visible := ProductConfigService.UseBankLinkOnline or
+  chkCanAccessBankLinkOnline.Visible := UseBankLinkOnline or
                                         chkCanAccessBankLinkOnline.Checked;
   if not chkCanAccessBankLinkOnline.Visible then
   begin

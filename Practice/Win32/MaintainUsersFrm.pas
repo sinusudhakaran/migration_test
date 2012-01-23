@@ -164,7 +164,7 @@ begin
 
   DelMsg := '';
   if (User^.usAllow_Banklink_Online) and
-     (ProductConfigService.UseBankLinkOnline) then
+     (UseBankLinkOnline) then
     DelMsg := 'This user will be deleted from both Banklink Practice and Banklink Online.' + #13;
 
   DelMsg := DelMsg + 'OK to Delete User %s ?';
@@ -173,7 +173,7 @@ begin
     exit;
 
   if (User^.usAllow_Banklink_Online) and
-     (ProductConfigService.UseBankLinkOnline) then
+     (UseBankLinkOnline) then
   begin
     try
       aPractice := ProductConfigService.GetPractice;
@@ -263,7 +263,7 @@ begin
    if not RefreshAdmin then
      exit;
 
-   if (not ProductConfigService.UseBankLinkOnline) then
+   if (not UseBankLinkOnline) then
    begin
      lvUsers.Column[4].Caption  := '';
      lvUsers.Column[4].Width    := 0;
@@ -307,7 +307,7 @@ begin
     end;
 
     Online := '';
-    if ProductConfigService.UseBankLinkOnline then
+    if UseBankLinkOnline then
     begin
       if (User.usAllow_Banklink_Online) then
       begin
@@ -413,7 +413,7 @@ var
   useOnline : Boolean;
 begin
   if (not assigned(Item)) or
-    (not ProductConfigService.UseBankLinkOnline) then
+    (not UseBankLinkOnline) then
     Exit;
 
   SubItemIndex := SubItem-1;

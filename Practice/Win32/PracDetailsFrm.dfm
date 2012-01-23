@@ -589,7 +589,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 4
-      OnShow = tsBankLinkOnlineShow
       ExplicitLeft = 0
       ExplicitTop = 0
       ExplicitWidth = 0
