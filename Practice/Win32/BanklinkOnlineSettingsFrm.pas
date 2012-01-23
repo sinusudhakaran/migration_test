@@ -229,7 +229,7 @@ begin
       PromptMessage := 'Are you sure you want to update the following for ' +
                        UserDetail(FClient.Users[0]).FullName + ':';
       if ProductsChanged then
-        PromptMessage := PromptMessage + #13#10#10 + 'Activate the following products:' +
+        PromptMessage := PromptMessage + #13#10#10 + 'Activate the following products & services:' +
                          #13#10 + Trim(NewProducts.Text);
       if BillingFrequencyChanged then
         PromptMessage := PromptMessage + #13#10#10 + 'Change this Client''s billing ' +
@@ -259,8 +259,8 @@ begin
     begin
       // Send email to support
       MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
-      MailSubject := 'Banklink Online Product Updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
-      MailBody := 'This practice has changed its Banklink Online Product settings' + #13#10#10 +
+      MailSubject := 'Banklink Online product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
+      MailBody := 'This practice has changed its Banklink Online product and service settings' + #13#10#10 +
                   'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #13#10 +
                   'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #13#10#10 +
                   'The BankLink Online Administrator (Primary Contact) for the practice' + #13#10 +
@@ -273,7 +273,7 @@ begin
       for i := 0 to ProductsRemoved.Count - 1 do
         MailBody := MailBody + ProductsRemoved[i] + ' is now disabled' + #13#10;
       MailBody := MailBody + #10 +
-                     'Product settings:' + #13#10;
+                     'Product and service settings:' + #13#10;
       for i := 0 to chklistProducts.Count - 1 do
       begin
         MailBody := MailBody + chklistProducts.Items[i] + ' - ';
