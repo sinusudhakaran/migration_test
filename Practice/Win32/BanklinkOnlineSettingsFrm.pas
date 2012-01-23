@@ -64,7 +64,7 @@ var
 
 implementation
 
-uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm, BlopiServiceFacade;
+uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm, BlopiServiceFacade, bkConst, MailFrm;
 
 {$R *.dfm}
 
@@ -76,6 +76,7 @@ var
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
+  Result := False;
   if AdminSystem.fdFields.fdUse_BankLink_Online then
   begin
     ProductConfigService.LoadClientList;
@@ -113,10 +114,14 @@ end;
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 var
   EmailChanged, ProductsChanged, BillingFrequencyChanged, ProductFound: boolean;
-  NewProducts: TStringList;
-  PromptMessage, ErrorMsg: string;
+  NewProducts, ProductsRemoved: TStringList;
+  PromptMessage, ErrorMsg, NewUserName, NewEmail, MailTo, MailSubject, MailBody: string;
   i, j, ButtonPressed: integer;
 begin
+  EmailChanged := False;
+  ProductsChanged := False;
+  BillingFrequencyChanged := False;
+
   if (Trim(edtUserName.Text) = '') then
   begin
     ShowMessage('You must enter a user name. Please try again');
@@ -164,16 +169,30 @@ begin
                      mtConfirmation, [mbYes, mbNo], 0)
   else
   begin
-    EmailChanged := False;
     if Length(FClient.Users) > 0 then
       EmailChanged := (edtEmailAddress.Text <> UserDetail(FClient.Users[0]).EMail);
 
     NewProducts := TStringList.Create;
+    ProductsRemoved := TStringList.Create;
     for i := 0 to chklistProducts.Count - 1 do
     begin
+      ProductFound := false;
+      for j := 0 to High(SubArray) do
+      begin
+        if (WideString(chklistProducts.Items.Objects[i]) = SubArray[j]) then
+        begin
+          ProductFound := true;
+          break
+        end;
+      end;
+      if (chklistProducts.Checked[i] = true) and not ProductFound then
+        NewProducts.Add(chklistProducts.Items[i])
+      else if (chklistProducts.Checked[i] = false) and ProductFound then
+        ProductsRemoved.Add(chklistProducts.Items[i]);
+
+      {
       if chklistProducts.Checked[i] then
       begin
-        ProductFound := false;
         for j := 0 to High(SubArray) do
         begin
           if (WideString(chklistProducts.Items.Objects[i]) = SubArray[j]) then
@@ -185,6 +204,7 @@ begin
         if not ProductFound then
           NewProducts.Add(chklistProducts.Items[i]);
       end;
+      }
     end;
 
     ProductsChanged := NewProducts.Count > 0;
@@ -227,6 +247,43 @@ begin
   else
   begin
     // Update client with data from fields
+//    UserDetail(FClient.Users[0]).FullName := edtUserName.Text;
+//    UserDetail(FClient.Users[0]).EMail := edtEmailAddress.Text;
+
+    NewUserName := edtUserName.Text;
+    NewEmail := edtEmailAddress.Text;
+    MyClient.BlopiClientDetail.UpdateAdminUser(NewUserName, NewEmail);
+    // MyClient.BlopiClientDetail.UseClientDetails := chkUseClientDetails.Checked;
+
+    if ProductsChanged then
+    begin
+      // Send email to support
+      MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
+      MailSubject := 'Banklink Online Product Updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
+      MailBody := 'This practice has changed its Banklink Online Product settings' + #13#10#10 +
+                  'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #13#10 +
+                  'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #13#10#10 +
+                  'The BankLink Online Administrator (Primary Contact) for the practice' + #13#10 +
+                  'Name: ' + FClient.Users[0].FullName + #13#10 +
+                  // Can't find phone number... do we have this at all for the practice administrator?
+                  'Email Address: ' + FClient.Users[0].EMail + #13#10#10 +
+                  'Updated settings:' + #13#10;
+      for i := 0 to NewProducts.Count - 1 do
+        MailBody := MailBody + NewProducts[i] + ' is now enabled' + #13#10;
+      for i := 0 to ProductsRemoved.Count - 1 do
+        MailBody := MailBody + ProductsRemoved[i] + ' is now disabled' + #13#10;
+      MailBody := MailBody + #10 +
+                     'Product settings:' + #13#10;
+      for i := 0 to chklistProducts.Count - 1 do
+      begin
+        MailBody := MailBody + chklistProducts.Items[i] + ' - ';
+        if chklistProducts.Checked[i] then
+          MailBody := MailBody + 'enabled' + #13#10
+        else
+          MailBody := MailBody + 'disabled' + #13#10;
+      end;
+    end;
+    SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
 
     ModalResult := mrOk;
   end;
@@ -265,7 +322,7 @@ begin
       rbSuspended.Checked := (FClient.Status = BlopiServiceFacade.Status(1));
       rbDeactivated.Checked := (FClient.Status = BlopiServiceFacade.Status(2));
       cmbConnectDays.Text := FClient.ClientConnectDays;
-      chkUseClientDetails.Checked := FClient.UseClientDetails;
+      // chkUseClientDetails.Checked := FClient.UseClientDetails;
       //Load products
       chklistProducts.Clear;
       if Assigned(ProductConfigService.CachedPractice) then begin
@@ -284,7 +341,7 @@ begin
       end;
 
       // Default user
-      chkUseClientDetails.Checked := FClient.UseClientDetails;
+      // chkUseClientDetails.Checked := FClient.UseClientDetails;
       if not (chkUseClientDetails.Checked) then
       begin
         edtUserName.Text := UserDetail(FClient.Users[0]).FullName;
