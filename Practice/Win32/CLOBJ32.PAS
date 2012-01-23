@@ -75,6 +75,8 @@ type
     function GetBlopiClientDetail: ClientDetail;
     function GetBlopiClientNew: TClientNew;
     function CopyPracticeClientNew: boolean;
+    procedure SetBlopiClientChanged(const Value: Boolean);
+    function GetBlopiClientChanged: Boolean;
 {$ENDIF}
   public
     procedure Open(FileCode, FileExtension : String);
@@ -141,6 +143,7 @@ type
     property ClientCopy: TClientObj read GetClientCopy;
     property BlopiClientDetail: ClientDetail read GetBlopiClientDetail write SetBlopiClientDetail;
     property BlopiClientNew: TClientNew read GetBlopiClientNew write SetBlopiClientNew;
+    property BlopiClientChanged: Boolean read GetBlopiClientChanged write SetBlopiClientChanged;
 {$ENDIF}
   end;
 
@@ -775,11 +778,9 @@ end;
 function TClientObj.RefreshBlopiClient: boolean;
 begin
   Result := False;
-  FBlopiClient.ClientDetail := nil;
-
   if ProductConfigService.UseBankLinkOnline then
     FBlopiClient.ClientDetail := FBlopiClient.GetClientDetail(clFields.clCode);
-
+  Result := Assigned(FBlopiClient.ClientDetail);
 end;
 
 procedure TClientObj.RefreshExchangeSource(DefaultGST: Boolean = True);
@@ -900,6 +901,11 @@ begin
     AAuditInfo.AuditParentID := -1; //No parent
     AAuditInfo.AuditRecordType := tkBegin_Client;
   end;
+end;
+
+procedure TClientObj.SetBlopiClientChanged(const Value: Boolean);
+begin
+  FBlopiClient.IsEdited := Value;
 end;
 
 procedure TClientObj.SetBlopiClientDetail(const Value: ClientDetail);
@@ -1555,14 +1561,15 @@ begin
 
   if ProductConfigService.UseBankLinkOnline then
   begin
-    if Assigned(BlopiClientDetail) then
-      ProductConfigService.SaveClient(BlopiClientDetail)
-    else
+    if Assigned(BlopiClientNew) then
     begin
       CopyPracticeClientNew;
       ProductConfigService.CreateNewClient(BlopiClientNew);
       ProductConfigService.LoadClientList;
       BlopiClientDetail := ProductConfigService.GetClientDetailsWithCode(BlopiClientNew.ClientCode);
+    end else begin
+      if FBlopiClient.IsEdited then
+        ProductConfigService.SaveClient(BlopiClientDetail);
     end;
   end;
 
@@ -1628,6 +1635,11 @@ begin
         result := suNames[ clFields.clAccounting_System_Used];
     end;
   end;
+end;
+
+function TClientObj.GetBlopiClientChanged: Boolean;
+begin
+  Result := FBlopiClient.IsEdited;
 end;
 
 function TClientObj.GetBlopiClientDetail: ClientDetail;

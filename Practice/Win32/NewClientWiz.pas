@@ -77,7 +77,7 @@ uses
   sycfIO, sydefs, bkconst, ovcDate, warningMoreFrm, ErrorMoreFrm, bkdefs,
   MaintainBankFrm, imagesfrm, Import32, glConst, LogUtil, baobj32,
   ClientReportScheduleDlg, ClientDetailCacheObj, GlobalClientSetupRoutines,
-  ToDoHandler, ToDoListUnit, syamio, ClientManagerFrm;
+  ToDoHandler, ToDoListUnit, syamio, ClientManagerFrm, BankLinkOnlineServices;
 
 {$R *.DFM}
 
@@ -200,8 +200,8 @@ begin
               MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
               MyClient.ClientAuditMgr.FlagAudit(arPayees);
 
+              MyClient.BlopiClientNew := TClientNew.Create;
               SaveClient(false);
-
            end;
            if Assigned(MyClient) then
             RefreshClientManager(MyClient.clFields.clCode);

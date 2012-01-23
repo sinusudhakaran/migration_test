@@ -317,7 +317,8 @@ begin
     CatArray := ProductConfigService.Clients.Catalogue;
 
     //Get BLOPI details
-    MyClient.RefreshBlopiClient;
+    if not MyClient.RefreshBlopiClient then
+      btnClientSettings.Enabled := False;
 
     lblClientBOProducts.Visible := ClientSynced;
     if lblClientBOProducts.Visible  then
@@ -440,8 +441,9 @@ begin
     // Details' is ticked
     MyClient.clFields.clContact_name := econtact.text;
     MyClient.clFields.clClient_EMail_Address := eMail.text;
-    if EditBanklinkOnlineSettings(MyClient.BlopiClientDetail) and (eCode.Text <> '') and (eMail.Text <> '') then begin
-      ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
+    if EditBanklinkOnlineSettings(MyClient.BlopiClientDetail) then begin
+//      ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
+      MyClient.BlopiClientChanged := True;
     end;
   end;
 end;
@@ -453,16 +455,16 @@ var
 begin
   UpdateBO := AdminSystem.fdFields.fdUse_BankLink_Online;
   if Assigned(MyClient.BlopiClientDetail) then begin
-    if (OriginalEmail <> eMail.Text) and MyClient.BlopiClientDetail.UseClientDetails then
+    if (OriginalEmail <> eMail.Text) {and MyClient.BlopiClientDetail.UseClientDetails} then
     begin
       buttonSelected := MessageDlg('You have changed the Email Address for this client. Do you ' +
                                    'want the Banklink Online Default Client Administrator to be ' +
                                    'updated to this Email Address?', mtConfirmation,
                                    [mbYes, mbNo, mbCancel], 0);
       case buttonSelected of
-        mrYes:
-          if Assigned(MyClient.BlopiClientDetail) and UpdateBO
-            then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
+        mrYes: ;
+//          if Assigned(MyClient.BlopiClientDetail) and UpdateBO
+//            then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
         mrNo: ; //FClient.UseClientDetails := False;
         mrCancel: btnCancelClick(Sender);
       end;
@@ -473,11 +475,13 @@ begin
   begin
      if Assigned(MyClient.BlopiClientDetail) and UpdateBO then begin
        MyClient.BlopiClientDetail.ClientCode := eCode.Text;
+       {
        if MyClient.BlopiClientDetail.UseClientDetails then
        begin
          //FClient.UserName := eContact.Text;
          //FClient.EmailAddress := eMail.Text;
        end;
+       }
      end;
      okPressed := true;
      Close;

@@ -11,8 +11,10 @@ type
   private
     FClientDetail: ClientDetail;
     FClientNew: TClientNew;
+    FIsEdited: Boolean;
     procedure SetClientDetail(const Value: ClientDetail);
     procedure SetClientNew(const Value: TClientNew);
+    procedure SetIsEdited(const Value: Boolean);
   public
     constructor create;
     destructor destroy; override;
@@ -21,6 +23,7 @@ type
     function GetClientDetail(const AClientCode: string): ClientDetail;
     property ClientDetail: ClientDetail read FClientDetail write SetClientDetail;
     property ClientNew: TClientNew read FClientNew write SetClientNew;
+    property IsEdited: Boolean read FIsEdited write SetIsEdited;
   End;
 
 implementation
@@ -30,7 +33,7 @@ implementation
 constructor TBlopiClient.create;
 begin
   FClientDetail := nil;
-  FClientNew := TClientNew.Create;
+  FClientNew := nil
 end;
 
 destructor TBlopiClient.destroy;
@@ -65,5 +68,10 @@ begin
   FClientNew := Value;
 end;
 
+
+procedure TBlopiClient.SetIsEdited(const Value: Boolean);
+begin
+  FIsEdited := Value;
+end;
 
 end.

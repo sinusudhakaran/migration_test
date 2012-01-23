@@ -41,8 +41,8 @@ type
     function GetBillingEndDate: TDateTime;
     function GetUserOnTrial: boolean;
     function GetBillingFrequency: string;
-    function GetUseClientDetails: boolean;
     function GetSuspended: boolean;
+//    procedure SetUseClientDetails(const Value: boolean);
   public
     procedure UpdateAdminUser(AUserName, AEmail: WideString);
 
@@ -53,7 +53,7 @@ type
     property BillingEndDate: TDateTime read GetBillingEndDate;
     property UserOnTrial: boolean read GetUserOnTrial;
     property BillingFrequency: string read GetBillingFrequency;
-    property UseClientDetails: boolean read GetUseClientDetails;
+//    property UseClientDetails: boolean read FUseClientDetails write SetUseClientDetails;
     property Suspended: boolean read GetSuspended;
   End;
 
@@ -1132,45 +1132,50 @@ begin
       MyClientSummary.Name_ := AClient.Name_;
       MyClientSummary.Status := AClient.Status;
       MyClientSummary.Subscription := AClient.Subscription;
+      MyClientSummary.BillingFrequency := AClient.BillingFrequency;
+      MyClientSummary.MaxOfflineDays := AClient.MaxOfflineDays;
+      MyClientSummary.PrimaryContactUserId := AClient.PrimaryContactUserId;
 
       BlopiInterface := GetServiceFacade;
+
+      //Save client admin user
+      if (Length(AClient.Users) > 0) then begin
+        MyUserDetail := AClient.Users[0];
+        if MyUserDetail.Id = '' then begin
+          //Create new client admin user
+          MyNewUser := User.Create;
+          try
+            MyNewUser.FullName := MyUserDetail.FullName;
+            MyNewUser.EMail := MyUserDetail.EMail;
+            MyNewUser.RoleNames := MyUserDetail.RoleNames;
+            MyNewUser.UserCode := MyUserDetail.UserCode;
+            MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                           AdminSystem.fdFields.fdBankLink_Code,
+                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                           AClient.Id,
+                                                           MyNewUser);
+            MessageResponseHasError(MsgResponse, 'create the client user on');
+          finally
+            MyNewUser.Free;
+          end;
+        end else begin
+          //Update existing client admin user
+          MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       AClient.Id,
+                                                       MyUserDetail);
+          MessageResponseHasError(MsgResponse, 'update this client user on');
+        end;
+      end;
+
       MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                MyClientSummary);
-      if not MessageResponseHasError(MsgResponse, 'update this client''s settings on') then begin
-        //Save client admin user
-        if (Length(AClient.Users) > 0) then begin
-          MyUserDetail := AClient.Users[0];
-          if MyUserDetail.Id = '' then begin
-            //Create new client admin user
-            MyNewUser := User.Create;
-            try
-              MyNewUser.FullName := MyUserDetail.FullName;
-              MyNewUser.EMail := MyUserDetail.EMail;
-              MyNewUser.RoleNames := MyUserDetail.RoleNames;
-              MyNewUser.UserCode := MyUserDetail.UserCode;
-              MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                             AdminSystem.fdFields.fdBankLink_Code,
-                                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                             AClient.Id,
-                                                             MyNewUser);
-              MessageResponseHasError(MsgResponse, 'create the client user on');
-            finally
-              MyNewUser.Free;
-            end;
-          end else begin
-            //Update existing client admin user
-            MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                         AdminSystem.fdFields.fdBankLink_Code,
-                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                         AClient.Id,
-                                                         MyUserDetail);
-            MessageResponseHasError(MsgResponse, 'update this client user on');
-          end;
-        end;
-        Result := True;
-      end;
+      MessageResponseHasError(MsgResponse, 'update this client''s settings on');
+      Result := True;
+
     finally
       MyClientSummary.Free;
     end;
@@ -1345,16 +1350,17 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TClientHelper.GetUseClientDetails: boolean;
-begin
-  Result := true;
-end;
-
-//------------------------------------------------------------------------------
 function TClientHelper.GetUserOnTrial: boolean;
 begin
   Result := false;
 end;
+
+{
+procedure TClientHelper.SetUseClientDetails(const Value: boolean);
+begin
+  FUseClientDetails := Value;
+end;
+}
 
 //------------------------------------------------------------------------------
 procedure TClientHelper.UpdateAdminUser(AUserName, AEmail: WideString);
