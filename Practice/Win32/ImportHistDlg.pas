@@ -1144,7 +1144,7 @@ end;
 function TImportHist.IsAmount(const Value: string): AmountType;
 begin
    try
-      if StrToCurr(Value) < 0 then
+      if (StrToCurr(Value) < 0) then
          Result := AmountWithSign
       else
          Result := Amount
@@ -1166,6 +1166,10 @@ begin
       if StrliComp(V,'debit',l) = 0 then
          Exit;
       if StrliComp(V,'credit',l) = 0 then
+         Exit;
+      if StrliComp(V,'DR',l) = 0 then
+         Exit;
+      if StrliComp(V,'CR',l) = 0 then
          Exit;
       if StrliComp(V,'m',l) = 0 then
          Exit;

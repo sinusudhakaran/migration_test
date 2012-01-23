@@ -53,33 +53,26 @@ var
    EntriesAfterThisYear : boolean;
    AllCoded : boolean;
    i : integer;
-   MonthEnd, YearEnd, Day, Month, Year : integer;
+   YearStart, YearEnd : integer;
 begin
-   result := false;
+   Result := false;
 
    if not Assigned( MyClient) then Exit;
 
-   MonthEnd := GetLastDayOfMonth(MyClient.clFields.clTemp_FRS_To_Date);
-   YearEnd := GetYearEndDate(MyClient.clFields.clFinancial_Year_Starts);
-   StDatetoDMY( YearEnd, Day, Month, Year ) ;
-   if (YearEnd <> MonthEnd) then
-   begin
-     ShowMessage('Cannot complete end of year, as the last month of the financial year (' +
-                 MonthToString(Month) + ' ' + IntToStr(Year) + ') has not been coded.');
-     Exit;
-   end;
+   YearStart := MyClient.clFields.clFinancial_Year_Starts;
+   YearEnd := GetYearEndDate(YearStart);
 
    f := TfrmSimpleEOY.Create(Application.MainForm);
    try
      //init fields
-     f.lblHeaderText.caption := 'Completing the Year End Process will update your Financial Year Start Date to ' +
-                                bkDate2Str(GetYearEndDate( MyClient.clFields.clFinancial_Year_Starts)+1);
+     f.lblHeaderText.caption := 'Completing the Year End Process will update ' +
+                                'your Financial Year Start Date to ' +
+                                bkDate2Str(YearEnd+1);
 
      if MyClient.clFields.clLast_Financial_Year_Start = 0 then
-       MyClient.clFields.clLast_Financial_Year_Start := GetPrevYearStartDate( MyClient.clFields.clFinancial_Year_Starts);
+       MyClient.clFields.clLast_Financial_Year_Start := GetPrevYearStartDate(YearStart);
 
-     f.lblFinYearStart.Caption :=  bkDate2Str( MyClient.clFields.clFinancial_Year_Starts) + ' - ' +
-          bkDate2Str(GetYearEndDate( MyClient.clFields.clFinancial_Year_Starts));
+     f.lblFinYearStart.Caption :=  bkDate2Str(YearStart) + ' - ' + bkDate2Str(YearEnd);
 
      f.lblCurrentPeriod.Caption := bkDate2Str( MyClient.clExtra.ceSUI_Period_Start) + ' - ' +
                                    bkDate2Str( MyClient.clExtra.ceSUI_Period_End);
@@ -87,11 +80,12 @@ begin
      balancesForward.SetupParameters( MyClient);
 
      //check there are no uncoded or invalidly coded entries
-     PeriodUtils.LoadPeriodDetailsIntoArray( MyClient, MyClient.clFields.clTemp_FRS_From_Date,
-                                          MyClient.clFields.clTemp_FRS_To_Date,
-                                          false,
-                                          frpMonthly,
-                                          MyClient.clFields.clTemp_Period_Details_This_Year);
+     PeriodUtils.LoadPeriodDetailsIntoArray( MyClient,
+                                             YearStart,
+                                             YearEnd,
+                                             false,
+                                             frpMonthly,
+                                             MyClient.clFields.clTemp_Period_Details_This_Year);
 
      AllCoded := true;
      EntriesThisYear := false;
@@ -105,10 +99,11 @@ begin
 
      //check to see if have transaction in the last period
      EntriesInLastPeriod := MyClient.clFields.clTemp_Period_Details_This_Year[ 12].HasData;
-     EntriesAfterThisYear :=  EBankData(MyClient) > MyClient.clFields.clTemp_Period_Details_This_Year[ 12].Period_End_Date;
+     EntriesAfterThisYear :=  EBankData(MyClient) >
+                              MyClient.clFields.clTemp_Period_Details_This_Year[ 12].Period_End_Date;
 
      //show warnings
-     f.lblFullYearWarning.Visible := not (EntriesThisYear and ( EntriesInLastPeriod or EntriesAfterThisYear));
+     f.lblFullYearWarning.Visible := not(EntriesThisYear and (EntriesInLastPeriod or EntriesAfterThisYear));
      if EntriesInLastPeriod then
        f.lblLastPeriodDownloaded.caption := 'Yes'
      else
@@ -120,10 +115,9 @@ begin
      else
        f.lblCodedYesNo.caption := 'No';
 
-
      f.btnProceed.enabled := (EntriesInLastPeriod and AllCoded);
 
-     result := f.showModal = mrOK;
+     Result := (f.showModal = mrOK);
    finally
      f.Free;
    end;

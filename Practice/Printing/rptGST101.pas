@@ -789,6 +789,8 @@ begin
       RenderText('using the ratio',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft);
       NewLine;
       RenderText('option',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft);
+      NewLine;NewLine;NewLine;NewLine;NewLine;NewLine;NewLine;NewLine;NewLine;NewLine;NewLine; 
+      RenderText('Ratio = ' + FloatToStr(GSTForm.Figures^.rpt_Ratio) + '%',Rect(ColLeftText,CurrYPos,ColBoxRight,CurrYPos+CurrLineSize),jtLeft); // Fix for bug 25323
 
       CurrYPos := 230;
       myCanvas.Font.Style := [];

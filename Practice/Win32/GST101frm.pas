@@ -754,7 +754,9 @@ begin
     //Provisional tax
     if DoPart2 then begin
        // Have a ratio and its a compulsory period
-       td := FormA.rBox_5 + FormB.rBox_5;
+       td := FormA.rBox_5;
+       if (LSmall1B.Caption <> 'GST 103B') then
+         td := td + FormB.rBox_5;
        lbl16.Caption := FormatFloat('#,##0.00',td);
        td := td + rpt_LastMonthIncome;
        lbl18.Caption := FormatFloat('#,##0.00',td);

@@ -641,6 +641,7 @@ end;
 
 procedure TfrmClientHomePage.FormActivate(Sender: TObject);
 begin
+  frmMain.mniFileExchangeRates.Visible := TheClient.HasForeignCurrencyAccounts;
    if not FClosing then
        RefreshRequest := [HPR_Coding];
   EnableMenuItem( GetSystemMenu( handle, False ),
@@ -940,9 +941,7 @@ begin //called when the client details change
             else
                S := 'Business Product'
          end else if clCheckOut_Scheduled_Reports then
-            S := 'E-Mail and flag as Read-only'
-         else if FtheClient.clExtra.ceOnline_Scheduled_Reports then
-            S := 'Send to ' + BANKLINK_ONLINE_NAME
+            S := 'Check Out and E-Mail'
          else if clEmail_Scheduled_Reports then begin
             if clEmail_Report_Format in [rfMin.. rfMax] then
                S := 'E-Mail ' + rfNames[clEmail_Report_Format]
@@ -1382,10 +1381,8 @@ end;
 procedure TfrmClientHomePage.acClientEmailExecute(Sender: TObject);
 var
   unused: Boolean;
-  CanSelectClients: Boolean;
 begin
-  CanSelectClients := CurrUser.CanAccessAdmin or (not PRACINI_OSAdminOnly);
-  MailFrm.SendFileTo( 'Send Mail', acClientEmail.Caption, '', '', unused, CanSelectClients);
+  MailFrm.SendFileTo( 'Send Mail', acClientEmail.Caption, '', '', unused);
 end;
 
 procedure TfrmClientHomePage.acEditClientDetailsExecute(Sender: TObject);

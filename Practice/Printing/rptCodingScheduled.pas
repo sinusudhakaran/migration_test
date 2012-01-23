@@ -99,7 +99,9 @@ uses
   NewReportUtils,
   sydefs, ClientUtils,
   ToDoHandler,
-  Admin32;
+  Admin32,
+  RenderEngineObj,
+  RptCoding;
 
 const
   TaxInvBoxEmpty = '[  ]';
@@ -430,7 +432,9 @@ var
   entry: TStringList;
   NotesCol, NarrationCol: Integer;
   lNotes: string;
+  Params: TCodingReportSettings;
 begin
+   Params := TCodingReportSettings.Create(ord(REPORT_CODING), MyClient, nil);
    Mgr := TTravManagerWithNewReport(Sender);
    With MyClient, MyClient.clFields, Mgr, Mgr.ReportJob, Mgr.Bank_Account, Mgr.Transaction^ do
    Begin
@@ -665,6 +669,9 @@ begin
 //         CRTotal := CRTotal + txAmount;
          CRTotal := CRTotal + txTemp_Base_Amount;
 
+      if Params.RuleLineBetweenColumns then
+        RenderAllVerticalColumnLines; //detail line          
+      
       RenderDetailLine;
       For i := 1 to clScheduled_Coding_Report_Blank_Lines do RenderTextLine( '');
    end; {with}
@@ -804,10 +811,8 @@ begin
               SendBy             := rdNone;
               UserResponsible    := 0;
               Completed          := False;
-              TxLastMonth        := (MyClient.clFields.clReporting_Period = roSendEveryMonth) and
-                                    (Mgr.FirstEntryDate < TScheduledCodingReport( Mgr.ReportJob).ScheduledRptParams.srDisplayFromDate) and
-                                    (not MyClient.clFields.clCheckOut_Scheduled_Reports) and
-                                    (not MyClient.clExtra.ceOnline_Scheduled_Reports);
+              TxLastMonth        := (MyClient.clFields.clReporting_Period = roSendEveryMonth) and (Mgr.FirstEntryDate < TScheduledCodingReport( Mgr.ReportJob).ScheduledRptParams.srDisplayFromDate) and
+               (not MyClient.clFields.clCheckOut_Scheduled_Reports);
            end;
            Mgr.ScheduledRptParams.srSummaryInfoList.Add( NewSummaryRec);
            //store a pointer to the first record so that we can update it with the
@@ -1166,6 +1171,7 @@ begin
    //Create Report
    Job := TScheduledCodingReport.Create(ReportTypes.RptCoding);
    Params := TCodingReportSettings.Create(ord(REPORT_CODING), MyClient, nil);
+
    try
      with MyClient, MyClient.clFields do begin
        Params.Scheduled := True;

@@ -471,7 +471,6 @@ begin
            //Add Footers
          AddCommonFooter(Job);
 
-
          Job.Generate(Destination, CRSettings);
 
          //will cause reload of admin system
@@ -619,6 +618,11 @@ var
 begin
    Mgr := TTravManagerWithNewReport(Sender);
    Job := TCodingReport (Mgr.ReportJob);
+
+   if (Job.Settings.Include = esUncodedOnly) and (Mgr.Dissection^.dsAccount <> '') and
+      (Mgr.Bank_Account.IsAJournalAccount) then
+     Exit;
+
    With  Mgr, Job, Settings, Mgr.Bank_Account, Mgr.Transaction^, Mgr.Dissection^ do
    Begin
      PrintingEntry := False;
@@ -1357,8 +1361,8 @@ begin
          j := 0;
          repeat
            TR := BA.baTransaction_List.Transaction_At(j);
-           if (TR^.txDate_Effective >= Settings.FromDate) and (TR^.txDate_Effective <= Settings.ToDate) then
-             Empty := False;
+             if (TR^.txDate_Effective >= Settings.FromDate) and (TR^.txDate_Effective <= Settings.ToDate) then
+               Empty := False;
            Inc(j);
          until (j >= BA.baTransaction_List.ItemCount) or (not Empty);
          if (not Empty) then

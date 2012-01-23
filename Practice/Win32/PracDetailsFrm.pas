@@ -5,8 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, OvcBase, OvcEF, OvcPB, OvcNF, Buttons, ExtCtrls, ExtDlgs,
-  ComCtrls, BankLinkOnlineServices,
-  OSFont, VirtualTrees, ActnList;
+  ComCtrls,
+  OSFont;
 
 type
   TfrmPracticeDetails = class(TForm)
@@ -74,19 +74,6 @@ type
     cmbPracticeManagementSystem: TComboBox;
     Label2: TLabel;
     btnEdit: TButton;
-    tsBankLinkOnline: TTabSheet;
-    ckUseBankLinkOnline: TCheckBox;
-    lblURL: TLabel;
-    edtURL: TEdit;
-    lblPrimaryContact: TLabel;
-    cbPrimaryContact: TComboBox;
-    lblSelectProducts: TLabel;
-    vtProducts: TVirtualStringTree;
-    btnSelectAll: TButton;
-    btnClearAll: TButton;
-    ActionList1: TActionList;
-    actSelectAllProducts: TAction;
-    actClearAllProducts: TAction;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -104,25 +91,6 @@ type
     procedure btnSuperSaveFolderClick(Sender: TObject);
     procedure cmbSuperSystemChange(Sender: TObject);
     procedure btnEditClick(Sender: TObject);
-    procedure vtProductsBeforeItemPaint(Sender: TBaseVirtualTree;
-      TargetCanvas: TCanvas; Node: PVirtualNode; ItemRect: TRect;
-      var CustomDraw: Boolean);
-    procedure vtProductsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
-    procedure ckUseBankLinkOnlineClick(Sender: TObject);
-    procedure vtProductsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure tbsInterfacesShow(Sender: TObject);
-    procedure cbPrimaryContactClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
-    procedure tsBankLinkOnlineShow(Sender: TObject);
-    procedure TreeCompare(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
-    var Result: Integer);
-    procedure actSelectAllProductsExecute(Sender: TObject);
-    procedure actClearAllProductsExecute(Sender: TObject);
-    procedure btnClearAllClick(Sender: TObject);
-    procedure edtURLChange(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -133,25 +101,14 @@ type
     FOnlineSettingsChanged: Boolean;
     OriginalProductCheckStates: array of TCheckState;
     procedure SetUpHelp;
-    function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
-                               PVirtualNode; ACaption: widestring;
-                               AObject: TObject): PVirtualNode;
-    function VerifyForm: boolean;
+
+    function  VerifyForm : boolean;
     procedure ReloadLogo;
     procedure SetUpAccounting(const AccountingSystem: Byte);
     procedure SetUpSuper(const SuperfundSystem: Byte);
-    procedure SetUpWebExport(const WebExportFormat: Byte);
-    procedure LoadPracticeDetails;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
-  end;
-
-  //Node data record
-  PTreeData = ^TTreeData;
-  TTreeData = record
-    tdCaption: widestring;
-    tdObject: TObject;
   end;
 
   function EditPracticeDetails (SelPracticeMan: Boolean = False): boolean;
@@ -171,7 +128,6 @@ uses
   LogUtil,
   ErrorMoreFrm,
   WarningMoreFrm,
-  InfoMoreFrm,
   imagesfrm,
   Software,
   ShellUtils,
@@ -182,9 +138,7 @@ uses
   WinUtils,
   YesNoDlg, SYDEFS,
   UsageUtils,
-  AuditMgr,
-  RequestRegFrm,
-  UpdateMF;
+  AuditMgr;
 
 {$R *.DFM}
 
@@ -192,7 +146,6 @@ const
   UnitName = 'PRACDETAILSFRM';
 var
   DebugMe : boolean = false;
-  BanklinkOnlineConnected : boolean = true;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.FormCreate(Sender: TObject);
@@ -213,12 +166,6 @@ begin
    btnSuperLoadFolder.Glyph := btnLoadFolder.Glyph;
    ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
 end;
-
-procedure TfrmPracticeDetails.FormShow(Sender: TObject);
-begin
-  
-end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.SetUpAccounting(const AccountingSystem: Byte);
 var
@@ -250,7 +197,6 @@ begin
     eSave.Text := AdminSystem.fdFields.fdSave_Client_Files_To;
   end;
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.SetUpHelp;
 begin
@@ -325,29 +271,6 @@ begin
     eSuperSave.Text := AdminSystem.fdFields.fdSave_Client_Super_Files_To;
   end;
 end;
-
-procedure TfrmPracticeDetails.SetUpWebExport(const WebExportFormat: Byte);
-var
-  i: integer;
-begin
-  //Notes online option is dependant on the service being enabled
-  cmbWebFormats.Clear;
-  for i := wfMin to wfMax do
-    if (wfNames[i] = WebNotesName) then begin
-      if (ProductConfigService.UseBankLinkOnline) and
-         (ProductConfigService.IsNotesOnlineEnabled) then
-        cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
-    end else
-      cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
-
-  //Set to default if currently Notes Online and Notes Online is disabled
-  if ((not ProductConfigService.UseBankLinkOnline) or (not ProductConfigService.IsNotesOnlineEnabled)) and
-     (wfNames[WebExportFormat] = WebNotesName)  then
-    ComboUtils.SetComboIndexByIntObject(wfDefault, cmbWebFormats)
-  else
-    ComboUtils.SetComboIndexByIntObject(WebExportFormat, cmbWebFormats);
-end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnOKClick(Sender: TObject);
 var
@@ -381,6 +304,8 @@ begin
   }
   
   Close;  
+  okPressed := true;
+  Close;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnCancelClick(Sender: TObject);
@@ -388,12 +313,6 @@ begin
   OkPressed := False;
   close;
 end;
-
-procedure TfrmPracticeDetails.btnClearAllClick(Sender: TObject);
-begin
-
-end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnEditClick(Sender: TObject);
 begin
@@ -419,7 +338,6 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for Saving Entries To' ) then
     eSave.Text := test;
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnSuperLoadFolderClick(Sender: TObject);
 var
@@ -440,75 +358,7 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for Saving Entries To' ) then
     eSuperSave.Text := test;
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
-var
-  TempUser: UserPractice;
-begin
-  //Set primary contact
-  TempUser := UserPractice(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
-  ProductConfigService.SetPrimaryContact(TempUser);
-end;
-
-procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
-var
-  i: integer;
-  EventHolder : TNotifyEvent;
-begin
-  EventHolder := ckUseBankLinkOnline.OnClick;
-  ckUseBankLinkOnline.OnClick := nil;
-
-  try
-    if ckUseBankLinkOnline.Checked then begin
-      ProductConfigService.UseBankLinkOnline := True;
-      FPrac := ProductConfigService.GetPractice(False);
-      if Assigned(FPrac) then
-        LoadPracticeDetails
-      else
-      begin
-        ckUseBankLinkOnline.Checked := False;
-        Exit;
-      end;
-    end else
-      ProductConfigService.UseBankLinkOnline := False;
-
-    if  ckUseBankLinkOnline.Checked
-    and ProductConfigService.OnLine
-    and not ProductConfigService.Registered then
-    begin
-      edtURL.Text := 'Not registered for BankLink Online';
-      cbPrimaryContact.Enabled := False;
-      ckUseBankLinkOnline.Checked := False;
-      if Visible then
-      begin
-        if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
-                             'You are not currently registered for BankLink Online. ' +
-                             'Would you like to register now?', dlg_no, 0) = DLG_YES then
-        begin
-          if not RequestBankLinkOnlineRegistration then
-          begin
-            ckUseBankLinkOnline.Checked := False;
-            Exit;
-          end;
-        end
-        else
-        begin
-          ckUseBankLinkOnline.Checked := False;
-          Exit;
-        end;
-      end;
-    end;
-
-    for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-      tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
-
-    ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
-  finally
-    ckUseBankLinkOnline.OnClick := EventHolder;
-  end;
-end;
-
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
 var
    CurrentSuperSystem: Byte;
@@ -578,17 +428,14 @@ begin
     cmbSuperSystem.Clear;
     tsSuperFundSystem.TabVisible := (fdFields.fdCountry = whAustralia);
 
-    //Use BankLink Online
-    ProductConfigService.UseBankLinkOnline := Adminsystem.fdFields.fdUse_BankLink_Online;
-    ckUseBankLinkOnline.Checked := Adminsystem.fdFields.fdUse_BankLink_Online;
-    for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-      tsBanklinkOnline.Controls[i].Enabled := ProductConfigService.UseBankLinkOnline;
-    ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
+    cmbWebFormats.Clear;
+    for i := wfMin to wfMax do
+      cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
 
-    //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
        fdFields.fdWeb_Export_Format := wfDefault;
-    SetUpWebExport(fdFields.fdWeb_Export_Format);
+
+    ComboUtils.SetComboIndexByIntObject( fdFields.fdWeb_Export_Format, cmbWebFormats);
 
     lblCountry.caption := whShortNames[ fdFields.fdCountry ];
     case fdFields.fdCountry of
@@ -675,7 +522,8 @@ begin
     //Practice Management System
     for i := xcMin to xcMax do begin
       if not ((fdFields.fdCountry = whNewZealand) and (i = xcHandi)) then
-        cmbPracticeManagementSystem.items.AddObject(xcNames[i], TObject( i ) );
+        if not ((fdFields.fdCountry = whUK) and not (i in [xcNA, xcOther])) then // Fix for bug 25375
+          cmbPracticeManagementSystem.items.AddObject(xcNames[i], TObject( i ) );
     end;
     //Temp - use practice mgmt setting from System.db
     ComboUtils.SetComboIndexByIntObject( fdFields.fdPractice_Management_System, cmbPracticeManagementSystem);
@@ -747,25 +595,16 @@ begin
          else
            fdSave_Tax_Files_To       := AddSlash( Trim( edtSaveTaxTo.Text));
 
-         //Save BankLink Online settings
-         //Saved to BankLink Online in VerifyForm - form can't be closed unless online changes are saved
-//         ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-          AdminSystem.fdFields.fdUse_BankLink_Online := ProductConfigService.UseBankLinkOnline;
-         
-         //Web
+         //Web  
          fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
-         if (wfNames[fdWeb_Export_Format] = WebNotesName) and
-            (not ProductConfigService.IsNotesOnlineEnabled) then
-           fdWeb_Export_Format := wfDefault; 
 
          //Practice Management System
          fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
 
          //*** Flag Audit ***
-         SystemAuditMgr.FlagAudit(arPracticeSetup);
+         SystemAuditMgr.FlagAudit(atPracticeSetup);
 
          SaveAdminSystem;
-         UpdateMenus;
 
          if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Update Practice Details Completed');
       end
@@ -800,10 +639,6 @@ var
   aMsg : string;
   Path : string;
   CurrType : integer;
-  ProdIndex : integer;
-  NumOfClients : integer;
-  MsgArr : Array of String;
-  ProductList : ArrayOfguid;
 begin
   result := false;
 
@@ -826,6 +661,7 @@ begin
     HelpfulWarningMsg( aMSg, 0);
     Exit;
   end;
+
 
   //tax interface directory
   CurrType := ComboUtils.GetComboCurrentIntObject( cmbTaxInterface);
@@ -855,73 +691,6 @@ begin
         Exit;
       end;
     end;
-  end;
-
-  //Save BankLink Online settings
-  ProductConfigService.UseBankLinkOnline := ckUseBankLinkOnline.Checked;
-
-  if ProductConfigService.UseBankLinkOnline and ProductConfigService.PracticeChanged then
-  begin
-    ProductConfigService.LoadClientList;
-    ProductList := ProductConfigService.ProductList;
-
-    SetLength(MsgArr, 0);
-    for ProdIndex := Low(ProductList) to High(ProductList) do
-    begin
-      if ProductConfigService.HasProductJustBeenUnTicked(ProductList[ProdIndex]) then
-      begin
-        NumOfClients := ProductConfigService.NumOfClientsUsingProduct(ProductList[ProdIndex]);
-        if NumOfClients > 0 then
-        begin
-          SetLength(MsgArr, length(MsgArr) + 1);
-          MsgArr[high(MsgArr)] := IntToStr(NumOfClients) + ' Clients using ''' +
-            ProductConfigService.GetCatalogueEntry(ProductList[ProdIndex]).Description + '''';
-        end;
-      end;
-    end;
-
-    if length(MsgArr) > 0 then
-    begin
-      if length(MsgArr) = 1 then
-      begin
-        aMsg := 'There are currently ' + MsgArr[0] + '. Please remove access for ' +
-                'these clients from this product before disabling it.';
-      end
-      else
-      begin
-        aMsg := 'There are currently :' + #13#10 + #13#10;
-        for ProdIndex := Low(MsgArr) to High(MsgArr) do
-        begin
-          aMsg := aMsg + MsgArr[ProdIndex] + #13#10;
-        end;
-        aMsg := aMsg + #13#10 + 'Please remove access for these clients from these '  +
-                'products before disabling them.';
-      end;
-
-      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' - ' + aMsg );
-      HelpfulWarningMsg(aMsg, 0);
-      Exit;
-    end;
-
-    aMsg := 'Changing the BankLink Online products and services that are available ' +
-            'for this practice will affect how client files can be individually setup ' +
-            'for these products and services. Such products and services may incur ' +
-            'charges per client use.' + #13#10 + #13#10 +
-            'Please contact BankLink Client Services if you require further charges ' +
-            'information.' + #13#10 + #13#10 +
-            'Are you sure you want to continue?';
-
-    if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
-      Exit;
-
-    if not ProductConfigService.SavePractice then
-    begin
-      //Don't exit dialog if online settings were not updated
-      if ProductConfigService.UseBankLinkOnline then
-        Exit;
-    end
-    else
-      HelpfulInfoMsg('Practice settings have been successfully updated to BankLink Online.', 0 );
   end;
 
   Result := True;
@@ -1015,22 +784,11 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmPracticeDetails.FormActivate(Sender: TObject);
-begin
-//  ckUseBankLinkOnline.Enabled := BanklinkOnlineConnected;
-end;
-
 procedure TfrmPracticeDetails.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
-  if OKPressed then begin
-    Screen.Cursor := crHourGlass;
-    try
-      CanClose := VerifyForm;
-    finally
-      Screen.Cursor := crDefault;
-    end;
-  end;
+  if OKPressed then
+    CanClose := VerifyForm;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnTaxFolderClick(Sender: TObject);
@@ -1042,7 +800,6 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for exporting Tax File to' ) then
     edtSaveTaxTo.Text := test;
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.cmbTaxInterfaceChange(Sender: TObject);
 //set the default directory if the directory is currently blank
@@ -1060,126 +817,7 @@ begin
     edtSaveTaxTo.Text := '';
   end;
 end;
-
-procedure TfrmPracticeDetails.LoadPracticeDetails;
-var
-  i: integer;
-  Cat: CatalogueEntry;
-  TreeColumn: TVirtualTreeColumn;
-  ProductNode, ServiceNode: PVirtualNode;
-  RoleIndex : integer;
-  AdminRollName : WideString;
-begin
-  //Clear
-  edtURL.Text := '';
-  cbPrimaryContact.Clear;
-  vtProducts.Header.Columns.Clear;
-  vtProducts.Clear;
-  try
-    //Setup Columns
-    TreeColumn := vtProducts.Header.Columns.Add;
-    TreeColumn.Text := 'TestCol1';
-    TreeColumn.Width := 20;
-    TreeColumn := vtProducts.Header.Columns.Add;
-    TreeColumn.Text := 'TestCol2';
-    TreeColumn.Width := 200;
-
-    if Assigned(FPrac) then begin
-      //URL
-      edtURL.Text := 'https://' + FPrac.DomainName + '.' +
-                     Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 13 ,
-                          Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
-      //Primary Contacts
-      cbPrimaryContact.Enabled := True;
-      AdminRollName := FPrac.GetRoleFromPracUserType(ustSystem).RoleName;
-
-      for i := Low(FPrac.Users) to High(FPrac.Users) do
-      begin
-        for RoleIndex := Low(FPrac.Users[i].RoleNames) to High(FPrac.Users[i].RoleNames) do
-        begin
-          // Add only Admin User Types
-          if FPrac.Users[i].RoleNames[RoleIndex] = AdminRollName then
-          begin
-            cbPrimaryContact.Items.AddObject(FPrac.Users[i].FullName, TObject(FPrac.Users[i]));
-            break;
-          end;
-        end;
-      end;
-
-      //Select default admin
-      cbPrimaryContact.ItemIndex := -1;
-      for i := 0 to cbPrimaryContact.Items.Count - 1 do
-        if UserPractice(cbPrimaryContact.Items.Objects[i]).Id = FPrac.DefaultAdminUserId then
-          cbPrimaryContact.ItemIndex := i;
-
-      //Products and Service
-      vtProducts.TreeOptions.PaintOptions := (vtProducts.TreeOptions.PaintOptions - [toShowTreeLines, toShowButtons]);
-      vtProducts.NodeDataSize := SizeOf(TTreeData);
-      vtProducts.Indent := 0;
-
-      if Length(FPrac.Catalogue) > 0 then begin
-        ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
-        ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
-        for i := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do begin
-          Cat := CatalogueEntry(FPrac.Catalogue[i]);
-          if Cat.CatalogueType = 'Application' then
-            AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
-          else if Cat.CatalogueType = 'Service' then
-            AddTreeNode(vtProducts, ServiceNode, Cat.Description, Cat)  ;
-        end;
-      end;
-
-      vtProducts.Expanded[ProductNode] := True;
-      vtProducts.Expanded[ServiceNode] := True;
-      vtProducts.ScrollIntoView(ProductNode, False);
-
-      vtProducts.OnCompareNodes := TreeCompare;
-      vtProducts.SortTree(0, sdAscending);
-    end;
-  except
-    on E: Exception do begin
-      HelpfulErrorMsg(E.Message ,0);
-    end;
-  end;
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmPracticeDetails.actClearAllProductsExecute(Sender: TObject);
-begin
-  ProductConfigService.ClearAllProducts;
-  vtProducts.Invalidate;
-  Refresh;
-  if vtProducts.CanFocus then
-    vtProducts.SetFocus;
-  if btnClearAll.CanFocus then
-    btnClearAll.SetFocus;
-end;
-
-procedure TfrmPracticeDetails.actSelectAllProductsExecute(Sender: TObject);
-begin
-  ProductConfigService.SelectAllProducts;
-  vtProducts.Invalidate;
-  Refresh;
-  if vtProducts.CanFocus then
-    vtProducts.SetFocus;
-  if btnSelectAll.CanFocus then
-    btnSelectAll.SetFocus;
-end;
-
-function TfrmPracticeDetails.AddTreeNode(AVST: TCustomVirtualStringTree;
-  ANode: PVirtualNode; ACaption: widestring; AObject: TObject): PVirtualNode;
-var
-  Data: PTreeData;
-begin
-  Result := AVST.AddChild(ANode);
-  AVST.ValidateNode(Result, False);
-  Data := AVST.GetNodeData(Result);
-  Data^.tdCaption := ACaption;
-  Data^.tdObject := AObject;
-  if (AObject <> nil) then
-    Result.CheckType := ctCheckBox;
-end;
-
+ // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.btnBrowseLogoBitmapClick(Sender: TObject);
 const
   RecommendedMaxSize = 100000;   //100K
@@ -1258,19 +896,12 @@ begin
     SetUsage('Practice Logo', 0);
   end;
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.edtLogoBitmapFilenameChange(Sender: TObject);
 begin
   ReloadLogo;
   edtLogoBitmapFilename.Hint := edtLogoBitmapFilename.Text;
 end;
-
-procedure TfrmPracticeDetails.edtURLChange(Sender: TObject);
-begin
-
-end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.tbsInterfacesShow(Sender: TObject);
 begin
