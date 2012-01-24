@@ -80,7 +80,7 @@ type
   function GetWinVer: string;
   function IsWin2000_or_later: boolean;
   function IsWindowsVista: Boolean;
-  function ReadComputerName : string;
+  function ReadComputerName(AllowBlankClient: bool = true): string;
   function ReadUserName : string;
   function RegisterOCX(FileName: string): Boolean;
   function SetGlobalEnvironment(const Name, Value: string;
@@ -323,7 +323,9 @@ begin
   end
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function ReadComputerName : string;
+function ReadComputerName(AllowBlankClient: bool = true): string;
+// Originally it would allow for Blank Client, because  UsingTerminalServices is always true (Since XP)
+// If you Dont want that pass in false.. and it will only show the client if there is one...
 var
   pCompName : Array [0..MAX_COMPUTERNAME_LENGTH + 1] Of Char;
   pSize     : DWORD;
@@ -334,9 +336,10 @@ begin
     Result := SysUtils.StrPas( pCompName );
 
   if (TSUtils.UsingTerminalServices) then
-  begin
-    Result := Result + ' [' + TSClientName + ']';
-  end;
+     if AllowBlankClient
+     or (TSClientName > '') then begin
+        Result := Result + ' [' + TSClientName + ']';
+     end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetTicksSince(StartTick : LongWord) : Integer;
