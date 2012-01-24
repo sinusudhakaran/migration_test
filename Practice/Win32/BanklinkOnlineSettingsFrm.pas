@@ -1,10 +1,23 @@
 unit BanklinkOnlineSettingsFrm;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, CheckLst, BankLinkOnlineServices, OSFont;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ExtCtrls,
+  CheckLst,
+  OSFont,
+  BankLinkOnlineServices;
 
 type
 
@@ -45,15 +58,31 @@ type
   private
     SubArray: ArrayOfGuid;
     FClient: ClientDetail;
+  protected
+    procedure SetStatus(aStatus : TStatus);
+    function GetStatus : TStatus;
 //    FContactName, FEmailAddress: string;
   public
 //    procedure SetContactName(Value: string);
 //    procedure SetEmailAddress(Value: string);
     function Execute(AClient: ClientDetail): boolean;
+
+    property Status : TStatus read GetStatus write SetStatus;
   end;
 
   // function to create BanklinkOnlineSettingsFrm goes here
   function EditBanklinkOnlineSettings(AClient: ClientDetail): boolean;
+
+//------------------------------------------------------------------------------
+implementation
+{$R *.dfm}
+
+uses
+  Globals,
+  LogUtil,
+  RegExprUtils,
+  BkConst,
+  MailFrm;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -62,12 +91,7 @@ var
   frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
   BanklinkOnlineConnected : boolean = true;
 
-implementation
-
-uses Globals, LogUtil, RegExprUtils, ClientDetailsFrm, BlopiServiceFacade, bkConst, MailFrm;
-
-{$R *.dfm}
-
+//------------------------------------------------------------------------------
 function EditBanklinkOnlineSettings(AClient: ClientDetail): boolean;
 var
   i: integer;
@@ -85,12 +109,8 @@ begin
       Result := BanklinkOnlineSettings.Execute(AClient);
       if Result then begin
         //Update access
-        if BanklinkOnlineSettings.rbActive.Checked
-          then AClient.Status := BlopiServiceFacade.Status(0)
-        else if BanklinkOnlineSettings.rbSuspended.Checked
-          then AClient.Status := BlopiServiceFacade.Status(1)
-        else AClient.Status := BlopiServiceFacade.Status(2); // Deactivated
-        
+        AClient.Status := BanklinkOnlineSettings.Status;
+
         //Update subscriptions
         AClient.Subscription := nil;
         for i := 0 to BanklinkOnlineSettings.chklistProducts.Count - 1 do
@@ -111,6 +131,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 var
   EmailChanged, ProductsChanged, BillingFrequencyChanged, ProductFound: boolean;
@@ -147,22 +168,22 @@ begin
   end;
 
   ButtonPressed := mrOk;
-  if (FClient.Status = BlopiServiceFacade.Status(1)) and not rbSuspended.Checked
+  if (FClient.Status = staSuspended) and not rbSuspended.Checked
     then ButtonPressed := MessageDlg('You are about to resume this Client on ' +
                      'Banklink Online. They will be able to access BankLink Online as per ' +
                      'normal.' + #13#10#10 + 'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
-  else if (FClient.Status <> BlopiServiceFacade.Status(1)) and rbSuspended.Checked
+  else if (FClient.Status <> staSuspended) and rbSuspended.Checked
     then ButtonPressed := MessageDlg('You are about to suspend this Client from BankLink ' +
                      'Online. They will be able to access BankLink Online in read-only mode.' +
                      #13#10#10 + 'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
-  else if (FClient.Status <> BlopiServiceFacade.Status(2)) and rbDeactivated.Checked
+  else if (FClient.Status <> staDeactivated) and rbDeactivated.Checked
     then ButtonPressed := MessageDlg('You are about to deactivate this Client from BankLink ' +
                      'Online. All user log-ins will be disabled.' + #13#10#10 +
                      'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
-  else if (FClient.Status = BlopiServiceFacade.Status(2)) and not rbDeactivated.Checked
+  else if (FClient.Status = staDeactivated) and not rbDeactivated.Checked
     then ButtonPressed := MessageDlg('You are about to re-activate this Client from BankLink ' +
                      'Online. All user log-ins will be enabled.' + #13#10#10 +
                      'Are you sure you want to continue?',
@@ -190,8 +211,8 @@ begin
       else if (chklistProducts.Checked[i] = false) and ProductFound then
         ProductsRemoved.Add(chklistProducts.Items[i]);
 
-      {
-      if chklistProducts.Checked[i] then
+
+      {if chklistProducts.Checked[i] then
       begin
         for j := 0 to High(SubArray) do
         begin
@@ -203,8 +224,8 @@ begin
         end;
         if not ProductFound then
           NewProducts.Add(chklistProducts.Items[i]);
-      end;
-      }
+      end; }
+
     end;
 
     ProductsChanged := NewProducts.Count > 0;
@@ -289,6 +310,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
 var
   i: integer;
@@ -297,17 +319,41 @@ begin
     chkListProducts.Checked[i] := true;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.CheckClientConnectControls;
 begin
   lblClientConnect.Enabled := rbActive.Checked;
   cmbConnectDays.Enabled := rbActive.Checked;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.chkUseClientDetailsClick(Sender: TObject);
 begin
   FillClientDetails;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.SetStatus(aStatus : TStatus);
+begin
+  case aStatus of
+    staActive      : rbActive.Checked := true;
+    staSuspended   : rbSuspended.Checked := true;
+    staDeactivated : rbDeactivated.Checked := true;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmBanklinkOnlineSettings.GetStatus : TStatus;
+begin
+  if rbActive.Checked then
+    Result := staActive
+  else if rbSuspended.Checked then
+    Result := staSuspended
+  else if rbDeactivated.Checked then
+    Result := staDeactivated
+end;
+
+//------------------------------------------------------------------------------
 function TfrmBanklinkOnlineSettings.Execute(AClient: ClientDetail): boolean;
 var
   i, k: integer;
@@ -318,10 +364,9 @@ begin
     Result := False;
     if Assigned(AClient) then begin
       FClient := AClient;
-      rbActive.Checked := true; // may be overriden by one of the two lines below
-      rbSuspended.Checked := (FClient.Status = BlopiServiceFacade.Status(1));
-      rbDeactivated.Checked := (FClient.Status = BlopiServiceFacade.Status(2));
-      cmbConnectDays.Text := FClient.ClientConnectDays;
+
+      Status := fClient.Status;
+
       // chkUseClientDetails.Checked := FClient.UseClientDetails;
       //Load products
       chklistProducts.Clear;
@@ -357,6 +402,7 @@ begin
       Result := True;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
 var
   i: integer;
@@ -365,6 +411,7 @@ begin
     chkListProducts.Checked[i] := false;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.FillClientDetails;
 begin
   if (chkUseClientDetails.Checked) then
@@ -376,27 +423,32 @@ begin
   edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 //  ListOfClients.Free;
 //  chklistProducts.Clear;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
 begin
   FillClientDetails;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.rbActiveClick(Sender: TObject);
 begin
   CheckClientConnectControls;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.rbDeactivatedClick(Sender: TObject);
 begin
   CheckClientConnectControls;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.rbSuspendedClick(Sender: TObject);
 begin
   CheckClientConnectControls;

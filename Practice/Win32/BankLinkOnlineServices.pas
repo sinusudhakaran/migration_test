@@ -173,6 +173,11 @@ type
     property ProductList : ArrayOfguid read GetProducts;
   end;
 
+Const
+  staActive      = Active;
+  staSuspended   = Suspended;
+  staDeactivated = Deactivated;
+
   //Product config singleton
   function ProductConfigService: TProductConfigService;
 
