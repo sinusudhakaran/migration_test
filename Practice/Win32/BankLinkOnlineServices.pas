@@ -286,6 +286,7 @@ var
   Msg: string;
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponseOfGuid;
+  ShowProgress : Boolean;
 begin
   Result := '';
 
@@ -295,13 +296,41 @@ begin
   if not Registered then
     Exit;
 
-  BlopiInterface :=  GetServiceFacade;
-  MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                             AdminSystem.fdFields.fdBankLink_Code,
-                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                             ANewClient);
- if not MessageResponseHasError(MsgResponse, 'create client on') then
-   Result := MsgResponse.Result
+  try
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+      MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                 AdminSystem.fdFields.fdBankLink_Code,
+                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                 ANewClient);
+      if not MessageResponseHasError(MsgResponse, 'create client on') then
+        Result := MsgResponse.Result;
+
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do HelpfulErrorMsg('Error creating a new client on ' +
+                                      BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
+  end;
 end;
 
 
@@ -363,6 +392,7 @@ var
   BlopiInterface: IBlopiServiceFacade;
   ClientDetailResponse: MessageResponseOfClientDetailMIdCYrSK;
   Msg: string;
+  ShowProgress : Boolean;
 begin
   Result := nil;
   try
@@ -372,14 +402,37 @@ begin
     if not Registered then
       Exit;
 
-    BlopiInterface :=  GetServiceFacade;
-    //Get the client from BankLink Online
-    ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                     AdminSystem.fdFields.fdBankLink_Code,
-                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                     AClientGuid);
-    if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
-      Result := ClientDetailResponse.Result;
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client Details', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+      //Get the client from BankLink Online
+      ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       AClientGuid);
+      if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
+        Result := ClientDetailResponse.Result;
+
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
   except
     on E:Exception do HelpfulErrorMsg('Error getting client settings: ' + E.Message, 0);
   end;
@@ -437,7 +490,7 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 40);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
     end;
 
     try
@@ -484,7 +537,7 @@ begin
           end;
         end;
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 100);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
       except
         on E: Exception do
           HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
@@ -528,18 +581,41 @@ var
   BlopiClientList: MessageResponseOfClientListMIdCYrSK;
   Msg: string;
   i: integer;
+  ShowProgress : Boolean;
 begin
   try
-    FreeAndNil(FClientList);
-    FClientList := ClientList.Create;
-    if UseBankLinkOnline then begin
-      BlopiInterface := GetServiceFacade;
-      BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
-                                                      AdminSystem.fdFields.fdBankLink_Code,
-                                                      AdminSystem.fdFields.fdBankLink_Connect_Password);
-      if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
-        if Assigned(BlopiClientList.Result) then
-          FClientList := BlopiClientList.Result;
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+    try
+      FreeAndNil(FClientList);
+      FClientList := ClientList.Create;
+      if UseBankLinkOnline then begin
+        if ShowProgress then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client Details', 50);
+
+        BlopiInterface := GetServiceFacade;
+        BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
+                                                        AdminSystem.fdFields.fdBankLink_Code,
+                                                        AdminSystem.fdFields.fdBankLink_Connect_Password);
+        if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
+          if Assigned(BlopiClientList.Result) then
+            FClientList := BlopiClientList.Result;
+
+        if ShowProgress then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+      end;
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
     end;
   except
     on E:Exception do
@@ -1089,6 +1165,7 @@ var
   MyClientSummary: ClientUpdate;
   MyNewUser: User;
   MyUserDetail : UserDetail;
+  ShowProgress : Boolean;  
 begin
   Result := False;
 
@@ -1099,60 +1176,84 @@ begin
     Exit;
 
   try
-    MyClientSummary := ClientUpdate.Create;
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
     try
-      //Save client
-      MyClientSummary.Id := UpperCase(AClient.Id);
-      MyClientSummary.ClientCode := AClient.ClientCode;
-      MyClientSummary.Name_ := AClient.Name_;
-      MyClientSummary.Status := AClient.Status;
-      MyClientSummary.Subscription := AClient.Subscription;
-      MyClientSummary.BillingFrequency := AClient.BillingFrequency;
-      MyClientSummary.MaxOfflineDays := AClient.MaxOfflineDays;
-      MyClientSummary.PrimaryContactUserId := AClient.Users[0].Id;
+      MyClientSummary := ClientUpdate.Create;
+      try
+        //Save client
+        MyClientSummary.Id := UpperCase(AClient.Id);
+        MyClientSummary.ClientCode := AClient.ClientCode;
+        MyClientSummary.Name_ := AClient.Name_;
+        MyClientSummary.Status := AClient.Status;
+        MyClientSummary.Subscription := AClient.Subscription;
+        MyClientSummary.BillingFrequency := AClient.BillingFrequency;
+        MyClientSummary.MaxOfflineDays := AClient.MaxOfflineDays;
+        MyClientSummary.PrimaryContactUserId := AClient.Users[0].Id;
 
-      BlopiInterface := GetServiceFacade;
+        BlopiInterface := GetServiceFacade;
 
-      //Save client admin user
-      if (Length(AClient.Users) > 0) then begin
-        MyUserDetail := AClient.Users[0];
-        if MyUserDetail.Id = '' then begin
-          //Create new client admin user
-          MyNewUser := User.Create;
-          try
-            MyNewUser.FullName := MyUserDetail.FullName;
-            MyNewUser.EMail := MyUserDetail.EMail;
-            MyNewUser.RoleNames := MyUserDetail.RoleNames;
-            MyNewUser.UserCode := MyUserDetail.UserCode;
-            MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                           AdminSystem.fdFields.fdBankLink_Code,
-                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                           AClient.Id,
-                                                           MyNewUser);
-            MessageResponseHasError(MsgResponse, 'create the client user on');
-          finally
-            MyNewUser.Free;
+        //Save client admin user
+        if (Length(AClient.Users) > 0) then begin
+          MyUserDetail := AClient.Users[0];
+          if MyUserDetail.Id = '' then begin
+            //Create new client admin user
+            MyNewUser := User.Create;
+            try
+              MyNewUser.FullName := MyUserDetail.FullName;
+              MyNewUser.EMail := MyUserDetail.EMail;
+              MyNewUser.RoleNames := MyUserDetail.RoleNames;
+              MyNewUser.UserCode := MyUserDetail.UserCode;
+              if ShowProgress then
+                Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client User', 30);
+              MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                             AdminSystem.fdFields.fdBankLink_Code,
+                                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                             AClient.Id,
+                                                             MyNewUser);
+              MessageResponseHasError(MsgResponse, 'create the client user on');
+            finally
+              MyNewUser.Free;
+            end;
+          end else begin
+            //Update existing client admin user
+            if ShowProgress then
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client User', 30);
+            MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                         AdminSystem.fdFields.fdBankLink_Code,
+                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                         AClient.Id,
+                                                         MyUserDetail);
+            MessageResponseHasError(MsgResponse, 'update this client user on');
           end;
-        end else begin
-          //Update existing client admin user
-          MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
-                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                       AClient.Id,
-                                                       MyUserDetail);
-          MessageResponseHasError(MsgResponse, 'update this client user on');
         end;
+        if ShowProgress then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 50);
+        MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                 AdminSystem.fdFields.fdBankLink_Code,
+                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                 MyClientSummary);
+        MessageResponseHasError(MsgResponse, 'update this client''s settings on');
+        Result := True;
+
+        if ShowProgress then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+      finally
+        MyClientSummary.Free;
       end;
-
-      MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                               AdminSystem.fdFields.fdBankLink_Code,
-                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                               MyClientSummary);
-      MessageResponseHasError(MsgResponse, 'update this client''s settings on');
-      Result := True;
-
     finally
-      MyClientSummary.Free;
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
     end;
   except
     on E: Exception do
@@ -1164,16 +1265,24 @@ end;
 function TProductConfigService.DeleteClient(AClientGuid: Guid): Boolean;
 var
   BlopiInterface: IBlopiServiceFacade;
+  ShowProgress : Boolean;
 begin
   Result := false;
 
-  Screen.Cursor := crHourGlass;
-  Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  ShowProgress := Progress.StatusSilent;
+  if ShowProgress then
+  begin
+    Screen.Cursor := crHourGlass;
+    Progress.StatusSilent := False;
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  end;
 
   try
     //BlopiInterface := GetServiceFacade;
+    if ShowProgress then
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Deleting ' + BANKLINK_ONLINE_NAME + ' Client User', 50);
 
+    //BlopiInterface.DeleteClientUser()
     Result := True;
 
     Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
@@ -1210,7 +1319,7 @@ begin
 
         BlopiInterface := GetServiceFacade;
 
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to ' + BANKLINK_ONLINE_NAME, 33);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details', 33);
 
         MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, FPractice);
         if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
@@ -1220,7 +1329,7 @@ begin
           //If save ok then save an offline copy to System DB
           SavePracticeDetailsToSystemDB;
           Result := True;
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Completed', 100);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
         end;
       finally
         Progress.StatusSilent := True;
@@ -1434,7 +1543,7 @@ begin
 
     try
       // Does the User Already Exist on BankLink Online?
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Recieving Data from ' + BANKLINK_ONLINE_NAME, 33);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Recieving Data', 33);
       CurrPractice := GetPractice(true);
 
       IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
@@ -1449,7 +1558,7 @@ begin
       end;
     end;
 
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 66);
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 66);
     BlopiInterface := GetServiceFacade;
 
     if IsUserOnline then
@@ -1472,7 +1581,7 @@ begin
 
         if aChangePassword then
         begin
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 88);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
           Result := ChangePracUserPass(aUserCode, aPassword, CurrPractice);
         end;
 
@@ -1540,7 +1649,7 @@ begin
     if not Assigned(aPractice) then
       aPractice := GetPractice;
 
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 50);
     if aUserCode = '' then
       UserGuid := aUserGuid
     else
@@ -1633,12 +1742,12 @@ begin
     if not Assigned(aPractice) then
     begin
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 40);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 40);
       aPractice := GetPractice;
     end;
 
     if ShowProgress then
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 60);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 60);
 
     UserGuid := GetPracUserGuid(aUserCode, aPractice);
     MsgResponce := BlopiInterface.SetPracticeUserPassword(PracCountryCode, PracCode, PracPassHash, UserGuid, aPassword);
