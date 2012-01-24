@@ -307,30 +307,36 @@ begin
   tsSmartLink.TabVisible := false;
 {$ENDIF}
 
+  //BankLink Online
+  lblClientBOProducts.Visible := False;
+  btnClientSettings.Enabled := False;
   grpBOClients.Visible := Assigned(AdminSystem) and not CurrUser.HasRestrictedAccess;
   if grpBOClients.Visible then
   begin
     ClientSynced := AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number;
-    lblClientBOProducts.Visible := AdminSystem.fdFields.fdUse_BankLink_Online and ClientSynced;
-    btnClientSettings.Enabled := AdminSystem.fdFields.fdUse_BankLink_Online and ClientSynced;
 
-    CatArray := ProductConfigService.Clients.Catalogue;
+    if UseBankLinkOnline then begin
+      lblClientBOProducts.Visible := ClientSynced;
+      btnClientSettings.Enabled := ClientSynced;
 
-    //Get BLOPI details
-    if not MyClient.RefreshBlopiClient then
-      btnClientSettings.Enabled := False;
+      ProductConfigService.LoadClientList;
+      CatArray := ProductConfigService.Clients.Catalogue;
 
-    lblClientBOProducts.Visible := ClientSynced;
-    if lblClientBOProducts.Visible  then
-    begin
-      if not FEnableClientSettings then
-        lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
-      else if (Length(CatArray) > 0) then
-        lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                            IntToStr(Length(ProductConfigService.ProductList)) +
-                                            ' Banklink Online product(s)'
-      else
-        lblClientBOProducts.Caption := '';
+      //Get BLOPI details
+      if not MyClient.RefreshBlopiClient then
+        btnClientSettings.Enabled := False;
+
+      if lblClientBOProducts.Visible  then
+      begin
+        if not FEnableClientSettings then
+          lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
+        else if (Length(CatArray) > 0) then
+          lblClientBOProducts.Caption := 'This client currently has access to ' +
+                                              IntToStr(Length(ProductConfigService.ProductList)) +
+                                              ' Banklink Online product(s)'
+        else
+          lblClientBOProducts.Caption := '';
+      end;
     end;
   end;
 end;

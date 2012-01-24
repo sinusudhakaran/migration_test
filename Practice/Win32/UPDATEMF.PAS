@@ -804,10 +804,12 @@ begin
      actSendToFile.Enabled := True;
      actSendViaOnline.Enabled := True;
      if UsingAdmin then begin
+       actSendViaOnline.Visible := False;
+       actGetFromOnline.Visible := False;
        UseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
-       if UseBankLinkOnline then begin
-         actSendViaOnline.Visible := ProductConfigService.IsCICOEnabled;
-         actGetFromOnline.Visible := ProductConfigService.IsCICOEnabled;
+       if UseBankLinkOnline and ProductConfigService.IsCICOEnabled then begin
+         actSendViaOnline.Visible := True;
+         actGetFromOnline.Visible := True;
        end;
      end else if ClientFileOpen then begin
        actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);

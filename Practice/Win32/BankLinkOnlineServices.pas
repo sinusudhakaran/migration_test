@@ -41,10 +41,8 @@ type
     function GetUserOnTrial: boolean;
     function GetBillingFrequency: string;
     function GetSuspended: boolean;
-//    procedure SetUseClientDetails(const Value: boolean);
   public
     procedure UpdateAdminUser(AUserName, AEmail: WideString);
-
     procedure AddSubscription(AProductID: guid);
     property Deactivated: boolean read GetDeactivated;
     property ClientConnectDays: string read GetClientConnectDays; // 0 if client must always be online
@@ -52,7 +50,6 @@ type
     property BillingEndDate: TDateTime read GetBillingEndDate;
     property UserOnTrial: boolean read GetUserOnTrial;
     property BillingFrequency: string read GetBillingFrequency;
-//    property UseClientDetails: boolean read FUseClientDetails write SetUseClientDetails;
     property Suspended: boolean read GetSuspended;
   End;
 
@@ -61,7 +58,7 @@ type
     function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer) : Guid;
   public
     function GetRoleFromPracUserType(aUstNameIndex : integer) : Role;
-    function IsEqual(Instance: Practice): Boolean;    
+    function IsEqual(Instance: Practice): Boolean;
   End;
 
   TClientSummaryHelper = Class helper for BlopiServiceFacade.ClientUpdate
@@ -75,26 +72,21 @@ type
     fSOAPRequest: InvString;
 
     FPractice, FPracticeCopy: PracticeDetail;
-    FRegisteredForBankLinkOnline: boolean;
     FClientList: ClientList;
     FOnLine: Boolean;
     FRegistered: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
-//    FUseBankLinkOnline: Boolean;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
     function IsUserCreatedOnBankLinkOnline(const APractice : PracticeDetail;
                                            const AUserId   : Guid   = '';
                                            const AUserCode : string = ''): Boolean;
 
-//    function GetUseBankLinkOnline: Boolean;
-//    procedure SetUseBankLinkOnline(const Value: Boolean);
     function RemotableObjectToXML(ARemotable: TRemotable): string;
     procedure LoadRemotableObjectFromXML(const XML: string; ARemotable: TRemotable);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
     procedure SavePracticeDetailsToSystemDB;
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
-    procedure SetRegisteredForBankLinkOnline(const Value: Boolean);
     function OnlineStatus: TStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
                               const aName : String) : integer;
@@ -117,8 +109,8 @@ type
     function GetCachedPractice: PracticeDetail;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
     function GetProducts : ArrayOfGuid;
+    function GetRegistered: Boolean;
   public
-    constructor Create;
     destructor Destroy; override;
     //Practice methods
     function GetPractice(aUpdateUseOnline: Boolean = True): PracticeDetail;
@@ -137,15 +129,12 @@ type
     procedure SelectAllProducts;
     procedure SetPrimaryContact(AUser: UserPractice);
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
-
-//    property UseBankLinkOnline: Boolean read GetUseBankLinkOnline write SetUseBankLinkOnline;
     property CachedPractice: PracticeDetail read GetCachedPractice;
     //Client methods
     procedure LoadClientList;
     function GetClientDetailsWithCode(AClientCode: string): ClientDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid): ClientDetail;
     function CreateNewClient(ANewClient: TClientNew): Guid;
-//    procedure CopyPracticeClient(APracticeClient: TClientObj; ANewClient: ClientNew);
     function SaveClient(AClient: ClientDetail): Boolean;
     function DeleteClient(AClientGuid: Guid): Boolean;
     property Clients: ClientList read FClientList;
@@ -169,7 +158,7 @@ type
                                 const aPassword : WideString;
                                 aPractice : PracticeDetail = nil) : Boolean;
     property OnLine: Boolean read FOnLine;
-    property Registered: Boolean read FRegistered;
+    property Registered: Boolean read GetRegistered;
     property ProductList : ArrayOfguid read GetProducts;
   end;
 
@@ -263,15 +252,8 @@ begin
   end;
 end;
 
-{
-//------------------------------------------------------------------------------
-procedure TProductConfigService.CopyPracticeClient(APracticeClient: TClientObj;
-  ANewClient: ClientNew);
-begin
-//  ANewClient.CountryCode := APracticeClient.
-end;
-}
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.CopyRemotableObject(ASource,
   ATarget: TRemotable);
 var
@@ -293,21 +275,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-constructor TProductConfigService.Create;
-var
-  BlopiClientList: MessageResponseOfClientListMIdCYrSK;
-begin
-  //Create practice
-  FPractice := PracticeDetail.Create;
-  //Load Practice
-//  GetPractice;
-  //Create client list
-  FClientList := ClientList.Create;
-  //Load client list
-//  LoadClientList;
-end;
-
-//------------------------------------------------------------------------------
 function TProductConfigService.CreateNewClient(ANewClient: TClientNew): Guid;
 var
   i: integer;
@@ -320,7 +287,7 @@ begin
   if not Assigned(AdminSystem) then
     Exit;
 
-  if not FRegistered then
+  if not Registered then
     Exit;
 
   BlopiInterface :=  GetServiceFacade;
@@ -338,8 +305,9 @@ end;
 destructor TProductConfigService.Destroy;
 begin
   //Clear all created objects etc???
-  FPracticeCopy.Free;
-  FPractice.Free;
+  FreeAndNil(FPracticeCopy);
+  FreeAndNil(FPractice);
+  FreeAndNil(FClientList);
   inherited;
 end;
 
@@ -374,7 +342,7 @@ begin
   if not Assigned(AdminSystem) then
     Exit;
 
-  if not FRegistered then
+  if not Registered then
     Exit;
 
   //Find client code in the client list
@@ -396,7 +364,7 @@ begin
     if not Assigned(AdminSystem) then
       Exit;
 
-    if not FRegistered then
+    if not Registered then
       Exit;
 
     BlopiInterface :=  GetServiceFacade;
@@ -541,11 +509,12 @@ begin
     Result := FPracticeCopy.Subscription;
 end;
 
-//------------------------------------------------------------------------------
-//function TProductConfigService.GetUseBankLinkOnline: Boolean;
-//begin
-//  Result := FUseBankLinkOnline;
-//end;
+function TProductConfigService.GetRegistered: Boolean;
+begin
+  if not Assigned(FPractice) then
+    GetPractice;
+  Result := FRegistered;  
+end;
 
 //------------------------------------------------------------------------------
 procedure TProductConfigService.LoadClientList;
@@ -556,7 +525,7 @@ var
   i: integer;
 begin
   try
-    FClientList.Free;
+    FreeAndNil(FClientList);
     FClientList := ClientList.Create;
     if UseBankLinkOnline then begin
       BlopiInterface := GetServiceFacade;
@@ -917,12 +886,15 @@ var
   Cat: CatalogueEntry;
 begin
   Result := False;
-  if Assigned(FPracticeCopy) then begin
-    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
-      Cat := FPracticeCopy.Catalogue[i];
+  if not Assigned(FPractice) then
+    GetPractice;
+
+  if Assigned(FPractice) then begin
+    for i := Low(FPractice.Catalogue) to High(FPractice.Catalogue) do begin
+      Cat := FPractice.Catalogue[i];
       if Cat.Description = 'CICO' then begin
-        for j := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
-          if FPracticeCopy.Subscription[j] = Cat.Id then begin
+        for j := Low(FPractice.Subscription) to High(FPractice.Subscription) do begin
+          if FPractice.Subscription[j] = Cat.Id then begin
             Result := True;
             Break;
           end;
@@ -1118,7 +1090,7 @@ begin
   if not Assigned(AdminSystem) then
     Exit;
 
-  if not FRegistered then
+  if not Registered then
     Exit;
 
   try
@@ -1132,7 +1104,7 @@ begin
       MyClientSummary.Subscription := AClient.Subscription;
       MyClientSummary.BillingFrequency := AClient.BillingFrequency;
       MyClientSummary.MaxOfflineDays := AClient.MaxOfflineDays;
-      MyClientSummary.PrimaryContactUserId := AClient.PrimaryContactUserId;
+      MyClientSummary.PrimaryContactUserId := AClient.Users[0].Id;
 
       BlopiInterface := GetServiceFacade;
 
@@ -1223,8 +1195,6 @@ begin
       FPractice := PracticeDetail.Create;
       CopyRemotableObject(FPracticeCopy, FPractice);
       //Save to the web service
-//      if FOnline then begin
-
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
@@ -1307,21 +1277,6 @@ begin
   FPracticeCopy.DefaultAdminUserId := AUser.Id;
 end;
 
-//------------------------------------------------------------------------------
-procedure TProductConfigService.SetRegisteredForBankLinkOnline(
-  const Value: Boolean);
-begin
-  FRegisteredForBankLinkOnline := Value;
-end;
-
-//------------------------------------------------------------------------------
-//procedure TProductConfigService.SetUseBankLinkOnline(const Value: Boolean);
-//begin
-//  if Assigned(AdminSystem) then
-//    AdminSystem.fdFields.fdUse_BankLink_Online := Value;
-//  FUseBankLinkOnline := Value;
-//end;
-
 { TClientHelper }
 //------------------------------------------------------------------------------
 function TClientHelper.GetClientConnectDays: string;
@@ -1352,13 +1307,6 @@ function TClientHelper.GetUserOnTrial: boolean;
 begin
   Result := false;
 end;
-
-{
-procedure TClientHelper.SetUseClientDetails(const Value: boolean);
-begin
-  FUseClientDetails := Value;
-end;
-}
 
 //------------------------------------------------------------------------------
 procedure TClientHelper.UpdateAdminUser(AUserName, AEmail: WideString);
