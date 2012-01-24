@@ -412,7 +412,7 @@ begin
                       High(MyClient.BlopiClientDetail.Subscription) do
       begin
         ClientSubGuid := MyClient.BlopiClientDetail.Subscription[SubIndex];
-        ProductGuid   := WideString(chklistProducts.Items.Objects[ProdIndex]);
+        ProductGuid   := CatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
 
         chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
 
@@ -421,7 +421,8 @@ begin
       end;
     end;
 
-    if not (chkUseClientDetails.Checked) then
+    if (not (chkUseClientDetails.Checked)) and
+       (high(MyClient.BlopiClientDetail.Users) > -1) then
     begin
       edtUserName.Text := UserDetail(MyClient.BlopiClientDetail.Users[0]).FullName;
       edtEmailAddress.Text := UserDetail(MyClient.BlopiClientDetail.Users[0]).Email;

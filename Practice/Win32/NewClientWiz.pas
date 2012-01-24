@@ -200,7 +200,6 @@ begin
               MyClient.ClientAuditMgr.FlagAudit(arChartOfAccounts);
               MyClient.ClientAuditMgr.FlagAudit(arPayees);
 
-              MyClient.BlopiClientNew := TClientNew.Create;
               SaveClient(false);
            end;
            if Assigned(MyClient) then
@@ -591,8 +590,13 @@ var
    i,j : integer;
 begin
    BatchReports.XMLString := '';
+
    MyClient := TClientObj.Create;
-   if not assigned(MyClient) then Close;
+   if not assigned(MyClient) then
+     Close;
+
+   if ProductConfigService.OnLine then
+     MyClient.BlopiClientNew := TClientNew.Create;
 
    {now load default settings from admin system}
    with AdminSystem.fdFields, MyClient, clFields do
