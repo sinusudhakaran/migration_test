@@ -447,7 +447,7 @@ begin
     // Details' is ticked
     MyClient.clFields.clContact_name := econtact.text;
     MyClient.clFields.clClient_EMail_Address := eMail.text;
-    if EditBanklinkOnlineSettings(MyClient.BlopiClientDetail) then begin
+    if EditBanklinkOnlineSettings then begin
 //      ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
       MyClient.BlopiClientChanged := True;
     end;

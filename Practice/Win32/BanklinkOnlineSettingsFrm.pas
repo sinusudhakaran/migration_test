@@ -6,8 +6,6 @@ interface
 uses
   Windows,
   Messages,
-  SysUtils,
-  Variants,
   Classes,
   Graphics,
   Controls,
@@ -53,25 +51,27 @@ type
     procedure rbActiveClick(Sender: TObject);
     procedure rbDeactivatedClick(Sender: TObject);
     procedure chkUseClientDetailsClick(Sender: TObject);
-    procedure FillClientDetails;
     procedure FormShow(Sender: TObject);
   private
     SubArray: ArrayOfGuid;
-    FClient: ClientDetail;
   protected
+    procedure FillClientDetails;
+
     procedure SetStatus(aStatus : TStatus);
     function GetStatus : TStatus;
 //    FContactName, FEmailAddress: string;
   public
 //    procedure SetContactName(Value: string);
 //    procedure SetEmailAddress(Value: string);
-    function Execute(AClient: ClientDetail): boolean;
+    function Execute : boolean;
 
+    procedure LoadClientInfo;
+    procedure SaveClientInfo;
     property Status : TStatus read GetStatus write SetStatus;
   end;
 
   // function to create BanklinkOnlineSettingsFrm goes here
-  function EditBanklinkOnlineSettings(AClient: ClientDetail): boolean;
+  function EditBanklinkOnlineSettings : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -82,6 +82,8 @@ uses
   LogUtil,
   RegExprUtils,
   BkConst,
+  SysUtils,
+  Variants,
   MailFrm;
 
 const
@@ -92,7 +94,7 @@ var
   BanklinkOnlineConnected : boolean = true;
 
 //------------------------------------------------------------------------------
-function EditBanklinkOnlineSettings(AClient: ClientDetail): boolean;
+function EditBanklinkOnlineSettings : boolean;
 var
   i: integer;
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
@@ -106,21 +108,12 @@ begin
     ProductConfigService.LoadClientList;
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
-      Result := BanklinkOnlineSettings.Execute(AClient);
+      Result := BanklinkOnlineSettings.Execute;
       if Result then begin
         //Update access
-        AClient.Status := BanklinkOnlineSettings.Status;
+        BanklinkOnlineSettings.SaveClientInfo;
 
-        //Update subscriptions
-        AClient.Subscription := nil;
-        for i := 0 to BanklinkOnlineSettings.chklistProducts.Count - 1 do
-          if BanklinkOnlineSettings.chklistProducts.Checked[i] then
-            AClient.AddSubscription(WideString(BanklinkOnlineSettings.chklistProducts.Items.Objects[i]));
-        //Update billing frequency
-        //Update admin user
-        AClient.UpdateAdminUser(BanklinkOnlineSettings.edtUserName.Text,
-                                BanklinkOnlineSettings.edtEmailAddress.Text);
-        SuccessMessage := 'Settings for ' + AClient.ClientCode +
+        SuccessMessage := 'Settings for ' + MyClient.clFields.clCode +
                           'have been successfully updated to Banklink Online';
         ShowMessage(SuccessMessage);
         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + SuccessMessage);
@@ -138,6 +131,9 @@ var
   NewProducts, ProductsRemoved: TStringList;
   PromptMessage, ErrorMsg, NewUserName, NewEmail, MailTo, MailSubject, MailBody: string;
   i, j, ButtonPressed: integer;
+
+  ClientStatus : TStatus;
+  BillingFrequency : WideString;
 begin
   EmailChanged := False;
   ProductsChanged := False;
@@ -168,30 +164,37 @@ begin
   end;
 
   ButtonPressed := mrOk;
-  if (FClient.Status = staSuspended) and not rbSuspended.Checked
+
+  if Assigned(MyClient.BlopiClientDetail) then
+    ClientStatus := MyClient.BlopiClientDetail.Status
+  else if Assigned(MyClient.BlopiClientNew) then
+    ClientStatus := MyClient.BlopiClientNew.Status;
+
+  if (ClientStatus = staSuspended) and not rbSuspended.Checked
     then ButtonPressed := MessageDlg('You are about to resume this Client on ' +
                      'Banklink Online. They will be able to access BankLink Online as per ' +
                      'normal.' + #13#10#10 + 'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
-  else if (FClient.Status <> staSuspended) and rbSuspended.Checked
+  else if (ClientStatus <> staSuspended) and rbSuspended.Checked
     then ButtonPressed := MessageDlg('You are about to suspend this Client from BankLink ' +
                      'Online. They will be able to access BankLink Online in read-only mode.' +
                      #13#10#10 + 'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
-  else if (FClient.Status <> staDeactivated) and rbDeactivated.Checked
+  else if (ClientStatus <> staDeactivated) and rbDeactivated.Checked
     then ButtonPressed := MessageDlg('You are about to deactivate this Client from BankLink ' +
                      'Online. All user log-ins will be disabled.' + #13#10#10 +
                      'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
-  else if (FClient.Status = staDeactivated) and not rbDeactivated.Checked
+  else if (ClientStatus = staDeactivated) and not rbDeactivated.Checked
     then ButtonPressed := MessageDlg('You are about to re-activate this Client from BankLink ' +
                      'Online. All user log-ins will be enabled.' + #13#10#10 +
                      'Are you sure you want to continue?',
                      mtConfirmation, [mbYes, mbNo], 0)
   else
   begin
-    if Length(FClient.Users) > 0 then
-      EmailChanged := (edtEmailAddress.Text <> UserDetail(FClient.Users[0]).EMail);
+    if Assigned(MyClient.BlopiClientDetail) then
+      if Length(MyClient.BlopiClientDetail.Users) > 0 then
+        EmailChanged := (edtEmailAddress.Text <> UserDetail(MyClient.BlopiClientDetail.Users[0]).EMail);
 
     NewProducts := TStringList.Create;
     ProductsRemoved := TStringList.Create;
@@ -228,8 +231,13 @@ begin
 
     end;
 
+    if Assigned(MyClient.BlopiClientDetail) then
+      BillingFrequency := MyClient.BlopiClientDetail.BillingFrequency
+    else if Assigned(MyClient.BlopiClientNew) then
+      BillingFrequency := MyClient.BlopiClientNew.BillingFrequency;
+
     ProductsChanged := NewProducts.Count > 0;
-    BillingFrequencyChanged := cmbBillingFrequency.Text <> FClient.BillingFrequency;
+    BillingFrequencyChanged := cmbBillingFrequency.Text <> BillingFrequency;
 
     if EmailChanged and not (ProductsChanged or BillingFrequencyChanged) then
       ButtonPressed := MessageDlg('You have changed the Default Client Administrator Email Address. ' +
@@ -354,52 +362,118 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmBanklinkOnlineSettings.Execute(AClient: ClientDetail): boolean;
-var
-  i, k: integer;
-  CatArray: ArrayOfCatalogueEntry;
-  GUID1, GUID2: WideString;
-  AClientID: WideString;
+function TfrmBanklinkOnlineSettings.Execute : boolean;
 begin
-    Result := False;
-    if Assigned(AClient) then begin
-      FClient := AClient;
+  Result := False;
 
-      Status := fClient.Status;
+  LoadClientInfo;
 
-      // chkUseClientDetails.Checked := FClient.UseClientDetails;
-      //Load products
-      chklistProducts.Clear;
-      if Assigned(ProductConfigService.CachedPractice) then begin
-        for i := 0 to High(ProductConfigService.ProductList) do
-          chklistProducts.AddItem(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[i]).Description,
-                                  TObject(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[i]).Id));
-      end;
-      //Check products that client subscribes to 
-      for i := 0 to chklistProducts.Items.Count - 1 do begin
-        for k := Low(FClient.Subscription) to High(FClient.Subscription) do begin
-          GUID1 := FClient.Subscription[k];
-          GUID2 := WideString(chklistProducts.Items.Objects[i]);
-          chklistProducts.Checked[i] := (GUID1 = GUID2);
-          if chklistProducts.Checked[i] then break;
-        end;
-      end;
+  if ShowModal = mrOk then
+    Result := True;
+end;
 
-      // Default user
-      // chkUseClientDetails.Checked := FClient.UseClientDetails;
-      if not (chkUseClientDetails.Checked) then
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.LoadClientInfo;
+var
+  ProdIndex     : integer;
+  SubIndex      : integer;
+  PracDetail    : PracticeDetail;
+  ProductGuid   : Guid;
+  ClientSubGuid : Guid;
+  CatEntry      : CatalogueEntry;
+begin
+  //Load products
+  PracDetail := ProductConfigService.GetPractice;
+  if Not Assigned(PracDetail) then
+    Exit;
+
+  chklistProducts.Clear;
+  // Adds the Subscriptions/Products for the Practice to the List
+  for ProdIndex := Low(ProductConfigService.ProductList) to High(ProductConfigService.ProductList) do
+  begin
+    ProductGuid := ProductConfigService.ProductList[ProdIndex];
+    CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
+
+    chklistProducts.AddItem(CatEntry.Description, CatEntry);
+  end;
+
+  // Existing Client
+  if Assigned(MyClient.BlopiClientDetail) then
+  begin
+    Status := MyClient.BlopiClientDetail.Status;
+    cmbConnectDays.Text := MyClient.BlopiClientDetail.ClientConnectDays;
+    //chkUseClientDetails.Checked := MyClient.BlopiClientDetail.UseClientDetails;
+    chkUseClientDetails.Checked := false;
+
+    // Checks the Products that Client Subscribes to
+    for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
+    begin
+      for SubIndex := Low(FClient.Subscription) to High(FClient.Subscription) do
       begin
-        edtUserName.Text := UserDetail(FClient.Users[0]).FullName;
-        edtEmailAddress.Text := UserDetail(FClient.Users[0]).Email;
-      end else
-      begin
-        edtUserName.Text := MyClient.clFields.clContact_Name;
-        edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+        ClientSubGuid := FClient.Subscription[SubIndex];
+        ProductGuid   := WideString(chklistProducts.Items.Objects[ProdIndex]);
+
+        chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
+
+        if chklistProducts.Checked[ProdIndex] then
+          break;
       end;
     end;
+  end
+  // New Client
+  else if Assigned(MyClient.BlopiClientNew) then
+  begin
+    Status := MyClient.BlopiClientNew.Status;
+    cmbConnectDays.Text := '0';
+    chkUseClientDetails.Checked := False;
 
-    if ShowModal = mrOk then
-      Result := True;
+    // Checks the Products that Client Subscribes to
+    for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
+    begin
+      chklistProducts.Checked[ProdIndex] := True;
+    end;
+  end;
+
+  if not (chkUseClientDetails.Checked) then
+  begin
+    edtUserName.Text := UserDetail(FClient.Users[0]).FullName;
+    edtEmailAddress.Text := UserDetail(FClient.Users[0]).Email;
+  end else
+  begin
+    edtUserName.Text := MyClient.clFields.clContact_Name;
+    edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.SaveClientInfo;
+var
+  ProdIndex : integer;
+begin
+  if Assigned(MyClient.BlopiClientDetail) then
+  begin
+    MyClient.BlopiClientDetail.Status := Status;
+    MyClient.BlopiClientDetail.Subscription := Nil;
+
+    for ProdIndex := 0 to chklistProducts.Count - 1 do
+      if chklistProducts.Checked[ProdIndex] then
+        MyClient.BlopiClientDetail.AddSubscription(WideString(chklistProducts.Items.Objects[ProdIndex]));
+
+    MyClient.BlopiClientDetail.UpdateAdminUser(edtUserName.Text,
+                                               edtEmailAddress.Text);
+  end
+  else if Assigned(MyClient.BlopiClientNew) then
+  begin
+    MyClient.BlopiClientNew.Status := Status;
+    MyClient.BlopiClientDetail.Subscription := Nil;
+
+    for ProdIndex := 0 to chklistProducts.Count - 1 do
+      if chklistProducts.Checked[ProdIndex] then
+        MyClient.BlopiClientNew.AddSubscription(WideString(chklistProducts.Items.Objects[ProdIndex]));
+
+    MyClient.BlopiClientDetail.UpdateAdminUser(edtUserName.Text,
+                                               edtEmailAddress.Text);
+  end;
 end;
 
 //------------------------------------------------------------------------------

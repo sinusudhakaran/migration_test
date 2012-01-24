@@ -32,6 +32,10 @@ type
 
   TArrVarTypeData = Array of TVarTypeData;
 
+  TClientBaseHelper = class helper for BlopiServiceFacade.Client
+  public
+    procedure AddSubscription(AProductID: guid);
+  end;
   TClientHelper = Class helper for BlopiServiceFacade.ClientDetail
   private
     function GetDeactivated: boolean;
@@ -43,7 +47,7 @@ type
     function GetSuspended: boolean;
   public
     procedure UpdateAdminUser(AUserName, AEmail: WideString);
-    procedure AddSubscription(AProductID: guid);
+
     property Deactivated: boolean read GetDeactivated;
     property ClientConnectDays: string read GetClientConnectDays; // 0 if client must always be online
     property FreeTrialEndDate: TDateTime read GetFreeTrialEndDate;
@@ -163,9 +167,9 @@ type
   end;
 
 Const
-  staActive      = Active;
-  staSuspended   = Suspended;
-  staDeactivated = Deactivated;
+  staActive      = BlopiServiceFacade.Active;
+  staSuspended   = BlopiServiceFacade.Suspended;
+  staDeactivated = BlopiServiceFacade.Deactivated;
 
   //Product config singleton
   function ProductConfigService: TProductConfigService;
@@ -1341,7 +1345,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TClientHelper.AddSubscription(AProductID: guid);
+procedure TClientBaseHelper.AddSubscription(AProductID: guid);
 var
   SubArray: arrayofguid;
   i: integer;
