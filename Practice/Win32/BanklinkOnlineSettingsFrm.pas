@@ -281,7 +281,9 @@ begin
 
     NewUserName := edtUserName.Text;
     NewEmail := edtEmailAddress.Text;
-    MyClient.BlopiClientDetail.UpdateAdminUser(NewUserName, NewEmail);
+
+    if Assigned(MyClient.BlopiClientDetail) then
+      MyClient.BlopiClientDetail.UpdateAdminUser(NewUserName, NewEmail);
     // MyClient.BlopiClientDetail.UseClientDetails := chkUseClientDetails.Checked;
 
     if ProductsChanged then
@@ -454,30 +456,40 @@ end;
 procedure TfrmBanklinkOnlineSettings.SaveClientInfo;
 var
   ProdIndex : integer;
+  CatEntry  : CatalogueEntry;
 begin
+  // Existing Client
   if Assigned(MyClient.BlopiClientDetail) then
   begin
     MyClient.BlopiClientDetail.Status := Status;
     MyClient.BlopiClientDetail.Subscription := Nil;
 
     for ProdIndex := 0 to chklistProducts.Count - 1 do
+    begin
       if chklistProducts.Checked[ProdIndex] then
-        MyClient.BlopiClientDetail.AddSubscription(WideString(chklistProducts.Items.Objects[ProdIndex]));
+      begin
+        CatEntry := CatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
+        MyClient.BlopiClientDetail.AddSubscription(CatEntry.id);
+      end;
+    end;
 
     MyClient.BlopiClientDetail.UpdateAdminUser(edtUserName.Text,
                                                edtEmailAddress.Text);
   end
+  // New Client
   else if Assigned(MyClient.BlopiClientNew) then
   begin
     MyClient.BlopiClientNew.Status := Status;
-    MyClient.BlopiClientDetail.Subscription := Nil;
+    MyClient.BlopiClientNew.Subscription := Nil;
 
     for ProdIndex := 0 to chklistProducts.Count - 1 do
+    begin
       if chklistProducts.Checked[ProdIndex] then
-        MyClient.BlopiClientNew.AddSubscription(WideString(chklistProducts.Items.Objects[ProdIndex]));
-
-    MyClient.BlopiClientDetail.UpdateAdminUser(edtUserName.Text,
-                                               edtEmailAddress.Text);
+      begin
+        CatEntry := CatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
+        MyClient.BlopiClientNew.AddSubscription(CatEntry.id);
+      end;
+    end;
   end;
 end;
 

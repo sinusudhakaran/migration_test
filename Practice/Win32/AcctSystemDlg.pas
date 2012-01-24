@@ -739,8 +739,10 @@ begin
   if OkPressed then
   begin
     CanClose := VerifyForm;
+
     // Check WebNotes
-    if (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) and
+    if (CanClose) and
+       (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) and
        (Assigned(MyClient.BlopiClientNew)) then
     begin
       CanClose := EditBanklinkOnlineSettings;
