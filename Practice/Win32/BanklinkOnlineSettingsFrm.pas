@@ -256,7 +256,7 @@ begin
     else if (EmailChanged or ProductsChanged or BillingFrequencyChanged) then // will reach and trigger this if two or more have changed
     begin
       PromptMessage := 'Are you sure you want to update the following for ' +
-                       UserDetail(FClient.Users[0]).FullName + ':';
+                       edtUserName.text + ':';
       if ProductsChanged then
         PromptMessage := PromptMessage + #13#10#10 + 'Activate the following products & services:' +
                          #13#10 + Trim(NewProducts.Text);
@@ -293,9 +293,9 @@ begin
                   'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #13#10 +
                   'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #13#10#10 +
                   'The BankLink Online Administrator (Primary Contact) for the practice' + #13#10 +
-                  'Name: ' + FClient.Users[0].FullName + #13#10 +
+                  'Name: ' + edtUserName.text + #13#10 +
                   // Can't find phone number... do we have this at all for the practice administrator?
-                  'Email Address: ' + FClient.Users[0].EMail + #13#10#10 +
+                  'Email Address: ' + edtEmailAddress.text + #13#10#10 +
                   'Updated settings:' + #13#10;
       for i := 0 to NewProducts.Count - 1 do
         MailBody := MailBody + NewProducts[i] + ' is now enabled' + #13#10;
@@ -408,9 +408,10 @@ begin
     // Checks the Products that Client Subscribes to
     for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
     begin
-      for SubIndex := Low(FClient.Subscription) to High(FClient.Subscription) do
+      for SubIndex := Low(MyClient.BlopiClientDetail.Subscription) to
+                      High(MyClient.BlopiClientDetail.Subscription) do
       begin
-        ClientSubGuid := FClient.Subscription[SubIndex];
+        ClientSubGuid := MyClient.BlopiClientDetail.Subscription[SubIndex];
         ProductGuid   := WideString(chklistProducts.Items.Objects[ProdIndex]);
 
         chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
@@ -418,6 +419,16 @@ begin
         if chklistProducts.Checked[ProdIndex] then
           break;
       end;
+    end;
+
+    if not (chkUseClientDetails.Checked) then
+    begin
+      edtUserName.Text := UserDetail(MyClient.BlopiClientDetail.Users[0]).FullName;
+      edtEmailAddress.Text := UserDetail(MyClient.BlopiClientDetail.Users[0]).Email;
+    end else
+    begin
+      edtUserName.Text := MyClient.clFields.clContact_Name;
+      edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
     end;
   end
   // New Client
@@ -432,14 +443,7 @@ begin
     begin
       chklistProducts.Checked[ProdIndex] := True;
     end;
-  end;
 
-  if not (chkUseClientDetails.Checked) then
-  begin
-    edtUserName.Text := UserDetail(FClient.Users[0]).FullName;
-    edtEmailAddress.Text := UserDetail(FClient.Users[0]).Email;
-  end else
-  begin
     edtUserName.Text := MyClient.clFields.clContact_Name;
     edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
   end;

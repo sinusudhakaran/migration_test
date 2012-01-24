@@ -394,6 +394,7 @@ object dlgAcctSystem: TdlgAcctSystem
       ItemHeight = 13
       Sorted = True
       TabOrder = 0
+      OnChange = cmbWebFormatsChange
     end
   end
   object btndefault: TButton

@@ -18,7 +18,7 @@ type
   ArrayOfString         = BlopiServiceFacade.ArrayOfString;
   PracticeDetail        = BlopiServiceFacade.PracticeDetail;
   ClientDetail          = BlopiServiceFacade.ClientDetail;
-  TClientNew             = BlopiServiceFacade.ClientNew;
+  TClientNew            = BlopiServiceFacade.ClientNew;
   UserPractice          = BlopiServiceFacade.UserPractice;
   CatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
   ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
@@ -36,6 +36,7 @@ type
   public
     procedure AddSubscription(AProductID: guid);
   end;
+
   TClientHelper = Class helper for BlopiServiceFacade.ClientDetail
   private
     function GetDeactivated: boolean;

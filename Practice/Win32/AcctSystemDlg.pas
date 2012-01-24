@@ -79,6 +79,7 @@ type
     procedure rbAccountingClick(Sender: TObject);
     procedure btndefaultClick(Sender: TObject);
     procedure ckExtractClick(Sender: TObject);
+    procedure cmbWebFormatsChange(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -129,7 +130,9 @@ uses
   BKDEFS,
   clObj32,
   WinUtils,
-  DesktopSuper_Utils;
+  DesktopSuper_Utils,
+  BanklinkOnlineSettingsFrm,
+  BankLinkOnlineServices;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -447,7 +450,14 @@ begin
       Insetup := true;
       cmbWebFormats.Clear;
       for i := wfMin to wfMax do
-        cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+      begin
+        if (wfNames[i] = WebNotesName) then begin
+          if (ProductConfigService.OnLine) and
+             (ProductConfigService.IsNotesOnlineEnabled) then
+            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+        end else
+          cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+      end;
 
       if clWeb_Export_Format = 255 then
          clWeb_Export_Format := wfDefault;
@@ -669,6 +679,25 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TdlgAcctSystem.cmbWebFormatsChange(Sender: TObject);
+var
+  aMsg : String;
+begin
+  if (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) then
+  begin
+    if (Assigned(MyClient.BlopiClientNew)) then
+    begin
+      aMsg := 'You have selected to use BankLink Notes Online for this client. ' +
+              'Please confirm the BankLink Online details for this client. ' +
+              #13#10 + #13#10 +
+              'Selecting OK will also display the BankLink Online settings for ' +
+              'this client';
+      HelpfulInfoMsg(aMsg, 0);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FillSystemList;
 var
   i: Integer;
@@ -708,7 +737,15 @@ procedure TdlgAcctSystem.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
   if OkPressed then
+  begin
     CanClose := VerifyForm;
+    // Check WebNotes
+    if (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) and
+       (Assigned(MyClient.BlopiClientNew)) then
+    begin
+      CanClose := EditBanklinkOnlineSettings;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -773,14 +810,16 @@ begin
   end;
 
   // Check WebNotes
-  if (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) then begin
+  if (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) then
+  begin
     if (MyClient.clFields.clClient_EMail_Address = '')
-    or (MyClient.clFields.clContact_Name = '') then  begin
-        aMsg := Format( 'Web export to %s requires both an Email address and a ' +
-                        'contact name'#13#10'Please update the Client Details before selecting this option',
-            [WebNotesName]);
-        HelpfulWarningMsg(aMsg, 0);
-        Exit;
+    or (MyClient.clFields.clContact_Name = '') then
+    begin
+      aMsg := Format( 'Web export to %s requires both an Email address and a contact name' +
+                      #13#10 + 'Please update the Client Details before selecting this option',
+                      [WebNotesName]);
+      HelpfulWarningMsg(aMsg, 0);
+      Exit;
     end;
   end;
 
