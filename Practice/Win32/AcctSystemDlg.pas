@@ -1,10 +1,21 @@
 unit AcctSystemDlg;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, Software, ExtCtrls,
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  Buttons,
+  Software,
+  ExtCtrls,
   OsFont;
 
 type
@@ -84,37 +95,41 @@ type
   end;
 
 function EditAccountingSystem(var AutoRefreshDone : Boolean; ContextID : Integer) : boolean;
-//******************************************************************************
+
+//------------------------------------------------------------------------------
 implementation
 
 {$R *.DFM}
 
 uses
-   BulkExtractFrm,
-   Admin32,
-   ComObj,
-   ComboUtils,
-   BKHelp,
-   globals,
-   glConst,
-   bkconst,
-   imagesfrm,
-   LogUtil,
-   updatemf,
-   InfoMoreFrm,
-   WarningMoreFrm,
-   ErrorMoreFrm,
-   YesNoDlg,
-   SyDefs,
-   Import32,
-   bkXPThemes,
-   ShellUtils,
-   XPAUtils,
-   Sol6_Const,
-   Select_Mas_GlFrm,
-   Registry,
-   myobao_utils, BKDEFS, clObj32,
-   WinUtils, DesktopSuper_Utils;
+  BulkExtractFrm,
+  Admin32,
+  ComObj,
+  ComboUtils,
+  BKHelp,
+  globals,
+  glConst,
+  bkconst,
+  imagesfrm,
+  LogUtil,
+  updatemf,
+  InfoMoreFrm,
+  WarningMoreFrm,
+  ErrorMoreFrm,
+  YesNoDlg,
+  SyDefs,
+  Import32,
+  bkXPThemes,
+  ShellUtils,
+  XPAUtils,
+  Sol6_Const,
+  Select_Mas_GlFrm,
+  Registry,
+  myobao_utils,
+  BKDEFS,
+  clObj32,
+  WinUtils,
+  DesktopSuper_Utils;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -137,12 +152,15 @@ begin
 
    SetUpHelp;
 end;
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FormShow(Sender: TObject);
 begin
   if cmbSystem.CanFocus then
     cmbSystem.SetFocus;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.rbAccountingClick(Sender: TObject);
 begin
    if not assigned(AdminSystem) then
@@ -159,7 +177,7 @@ begin
    cmbSystemChange(nil);
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.SetUpHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
@@ -184,7 +202,7 @@ begin
                     'Enter the Tax Ledger Code used by your Account System for this Client';
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.UpdateActions;
 begin
   inherited;
@@ -197,12 +215,15 @@ begin
   okPressed := true;
   close;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btnCancelClick(Sender: TObject);
 begin
   OkPressed := false;
   close;
 end;
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btnFromFolderClick(Sender: TObject);
 var
   Path : string;
@@ -292,7 +313,8 @@ begin
   if BrowseFolder( Path, 'Select the Folder to Load Chart From' ) then
      eFrom.Text := Path;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btnToFolderClick(Sender: TObject);
 var
   Path : string;
@@ -326,6 +348,7 @@ begin
   if BrowseFolder( Path, 'Select the Folder to Save Entries To' ) then
      eTo.Text := Path;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.cmbSystemChange(Sender: TObject);
 var
@@ -386,7 +409,8 @@ begin
      end;
    end;
  end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function TdlgAcctSystem.Execute(var AutoRefreshDone : Boolean) : boolean;
 var
   i : integer;
@@ -607,6 +631,7 @@ begin
    end;
    result := okPressed;
 end;
+
 //------------------------------------------------------------------------------
 function EditAccountingSystem(var AutoRefreshDone: Boolean; ContextID : Integer) : boolean;
 var
@@ -621,6 +646,7 @@ begin
       Mydlg.Free;
    end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.cmbTaxInterfaceChange(Sender: TObject);
 //set the default directory if the directory is currently blank
@@ -631,48 +657,53 @@ begin
 
   case CurrType of
     tsBAS_XML, tsBAS_MYOB, tsBAS_HANDI,
-    tsElite_XML,
-    tsBAS_APS_XML : edtSaveTaxTo.Text := 'XML\';
-    tsBAS_Sol6ELS : edtSaveTaxTo.Text := 'ELS\';
+    tsElite_XML, tsBAS_APS_XML :
+      edtSaveTaxTo.Text := 'XML\';
+    tsBAS_Sol6ELS :
+      edtSaveTaxTo.Text := 'ELS\';
   else
     edtSaveTaxTo.Text := '';
   end;
   eTaxLedger.Visible := CurrType = tsBAS_Sol6ELS;
   lblTaxLedger.Visible := CurrType = tsBAS_Sol6ELS;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FillSystemList;
-var i: Integer;
+var
+  i: Integer;
 begin
-    cmbSystem.items.Clear;
+  cmbSystem.items.Clear;
 
-    with MyClient.clFields do begin
-       case clCountry of
-          whNewZealand : begin
-             for i := snMin to snMax do begin
-              if (not Software.ExcludeFromAccSysList( clCountry, i)) or ( i = claccounting_system_used) then
-                 cmbSystem.items.AddObject(snNames[i], TObject( i ) );
-            end;
-          end;
+  with MyClient.clFields do
+  begin
+    case clCountry of
+      whNewZealand : begin
+         for i := snMin to snMax do begin
+          if (not Software.ExcludeFromAccSysList( clCountry, i)) or ( i = claccounting_system_used) then
+             cmbSystem.items.AddObject(snNames[i], TObject( i ) );
+        end;
+      end;
 
-          whAustralia : begin
-            if GBType.Visible then begin
-               for i := saMin to saMax do begin
-                  if ((not Software.ExcludeFromAccSysList(clCountry, i)) or ( i = claccounting_system_used))
-                  and (Software.IsSuperFund(whAustralia,I) = RBSuper.Checked )then
-                    cmbSystem.items.AddObject(saNames[i], TObject( i ) );
-               end;
-            end else begin
-               for i := saMin to saMax do begin
-                  if (not Software.ExcludeFromAccSysList(clCountry, i)) or ( i = claccounting_system_used) then
-                    cmbSystem.items.AddObject(saNames[i], TObject( i ) );
-               end;
-            end;
+      whAustralia : begin
+        if GBType.Visible then begin
+          for i := saMin to saMax do begin
+             if ((not Software.ExcludeFromAccSysList(clCountry, i)) or ( i = claccounting_system_used))
+             and (Software.IsSuperFund(whAustralia,I) = RBSuper.Checked )then
+               cmbSystem.items.AddObject(saNames[i], TObject( i ) );
           end;
-       end;
+        end else begin
+          for i := saMin to saMax do begin
+             if (not Software.ExcludeFromAccSysList(clCountry, i)) or ( i = claccounting_system_used) then
+               cmbSystem.items.AddObject(saNames[i], TObject( i ) );
+          end;
+        end;
+      end;
     end;
+  end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -680,6 +711,7 @@ begin
     CanClose := VerifyForm;
 end;
 
+//------------------------------------------------------------------------------
 function TdlgAcctSystem.VerifyForm: boolean;
 const
   ThisMethodName = 'VerifyForm';
@@ -742,18 +774,20 @@ begin
 
   // Check WebNotes
   if (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) then begin
-      if (MyClient.clFields.clClient_EMail_Address = '')
-      or (MyClient.clFields.clContact_Name = '') then  begin
-          aMsg := Format( 'Web export to %s requires both an Email address and a contact name'#13#10'Please update the Client Details before selecting this option',
-              [WebNotesName]);
-          HelpfulWarningMsg(aMsg, 0);
-          Exit;
-      end;
+    if (MyClient.clFields.clClient_EMail_Address = '')
+    or (MyClient.clFields.clContact_Name = '') then  begin
+        aMsg := Format( 'Web export to %s requires both an Email address and a ' +
+                        'contact name'#13#10'Please update the Client Details before selecting this option',
+            [WebNotesName]);
+        HelpfulWarningMsg(aMsg, 0);
+        Exit;
+    end;
   end;
 
   Result := True;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btnTaxFolderClick(Sender: TObject);
 var
   test : string;
@@ -763,7 +797,8 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for exporting Tax File to' ) then
     edtSaveTaxTo.Text := test;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btnCheckBankManIDClick(Sender: TObject);
 //check that the bank man id in the save to field is set
 var
@@ -772,55 +807,63 @@ begin
   Ledger := Trim( ExtractFileName( ExcludeTrailingBackslash(eFrom.Text)));
   myobao_utils.CheckBankManID( Ledger, MyClient.clFields.clCode);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btndefaultClick(Sender: TObject);
-   procedure LoadSuper;
-   begin
-      cmbSystem.ItemIndex := cmbSystem.Items.IndexOfObject(TObject(AdminSystem.fdFields.fdSuperfund_System));
-      eMask.Text := AdminSystem.fdFields.fdSuperfund_Code_Mask;
-      eFrom.Text := AdminSystem.fdFields.fdLoad_Client_Super_Files_From;
-      eTo.Text   := AdminSystem.fdFields.fdSave_Client_Super_Files_To;
-   end;
-   procedure LoadAccounting;
-   begin
-      cmbSystem.ItemIndex := cmbSystem.Items.IndexOfObject(TObject(AdminSystem.fdFields.fdAccounting_System_Used));
-      eMask.Text := AdminSystem.fdFields.fdAccount_Code_Mask;
-      eFrom.Text := AdminSystem.fdFields.fdLoad_Client_Files_From;
-      eTo.Text   := AdminSystem.fdFields.fdSave_Client_Files_To;
-   end;
+  //-------------------------
+  procedure LoadSuper;
+  begin
+    cmbSystem.ItemIndex := cmbSystem.Items.IndexOfObject(TObject(AdminSystem.fdFields.fdSuperfund_System));
+    eMask.Text := AdminSystem.fdFields.fdSuperfund_Code_Mask;
+    eFrom.Text := AdminSystem.fdFields.fdLoad_Client_Super_Files_From;
+    eTo.Text   := AdminSystem.fdFields.fdSave_Client_Super_Files_To;
+  end;
+  //-------------------------
+  procedure LoadAccounting;
+  begin
+    cmbSystem.ItemIndex := cmbSystem.Items.IndexOfObject(TObject(AdminSystem.fdFields.fdAccounting_System_Used));
+    eMask.Text := AdminSystem.fdFields.fdAccount_Code_Mask;
+    eFrom.Text := AdminSystem.fdFields.fdLoad_Client_Files_From;
+    eTo.Text   := AdminSystem.fdFields.fdSave_Client_Files_To;
+  end;
+
 begin
-   if not Assigned(AdminSystem) then
-      Exit;
-   if InSetup then
-      Exit;
+  if not Assigned(AdminSystem) then
+    Exit;
+  if InSetup then
+    Exit;
 
-   if gbType.Visible then begin
-      // Have a Dual system
-      if rbSuper.Checked then
-         LoadSuper
-      else
-         LoadAccounting
-   end else begin
-      if AdminSystem.fdFields.fdAccounting_System_Used = asNone then
-         loadsuper
-      else
-         LoadAccounting
-   end;
+  if gbType.Visible then begin
+    // Have a Dual system
+    if rbSuper.Checked then
+      LoadSuper
+    else
+      LoadAccounting
+  end else begin
+    if AdminSystem.fdFields.fdAccounting_System_Used = asNone then
+      loadsuper
+    else
+      LoadAccounting
+  end;
 
-   if CanBulkExtract then
-   if AdminSystem.fdFields.fdBulk_Export_Code > '' then
+  if CanBulkExtract then
+  begin
+    if AdminSystem.fdFields.fdBulk_Export_Code > '' then
       ckExtract.Checked := BulkExtractFrm.SelectExtractor(AdminSystem.fdFields.fdBulk_Export_Code,cbExtract)
-   else
+    else
       ckExtract.Checked := False;
+  end;
 
-   cmbSystemChange(nil);
+  cmbSystemChange(nil);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.eFromChange(Sender: TObject);
 begin
   btnCheckBankManID.Enabled := (Trim(eFrom.Text) <> '');
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.chkUseCustomLedgerCodeClick(Sender: TObject);
 begin
   edtExtractID.Enabled := chkUseCustomLedgerCode.Checked;
@@ -835,20 +878,22 @@ begin
     edtExtractID.Text := FAlternateID;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.ckExtractClick(Sender: TObject);
 begin
-   if ckExtract.Checked then
-      if cbExtract.ItemIndex < 0 then begin
-         if AdminSystem.fdFields.fdBulk_Export_Code > '' then
-            BulkExtractFrm.SelectExtractor(AdminSystem.fdFields.fdBulk_Export_Code,cbExtract)
-         else
-            cbExtract.ItemIndex := 0;
-      end;
-
+  if ckExtract.Checked then
+  begin
+    if cbExtract.ItemIndex < 0 then
+    begin
+      if AdminSystem.fdFields.fdBulk_Export_Code > '' then
+        BulkExtractFrm.SelectExtractor(AdminSystem.fdFields.fdBulk_Export_Code,cbExtract)
+      else
+        cbExtract.ItemIndex := 0;
+    end;
+  end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btnMasLedgerCodeClick(Sender: TObject);
 var
   LedgerCode : string;
@@ -877,7 +922,8 @@ begin
     end;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btnSetBankpathClick(Sender: TObject);
 begin
   MYOBAO_Utils.SetBankPath;
