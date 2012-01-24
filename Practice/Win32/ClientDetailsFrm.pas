@@ -322,20 +322,26 @@ begin
       ProductConfigService.LoadClientList;
       CatArray := ProductConfigService.Clients.Catalogue;
 
-      //Get BLOPI details
-      if not MyClient.RefreshBlopiClient then
+      lblClientBOProducts.Visible := ClientSynced;      
+       //Get BLOPI details
+       if not MyClient.RefreshBlopiClient then
         btnClientSettings.Enabled := False;
 
-      if lblClientBOProducts.Visible  then
-      begin
-        if not FEnableClientSettings then
-          lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
-        else if (Length(CatArray) > 0) then
-          lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                              IntToStr(Length(ProductConfigService.ProductList)) +
-                                              ' Banklink Online product(s)'
-        else
-          lblClientBOProducts.Caption := '';
+       if lblClientBOProducts.Visible  then
+       begin
+         if not FEnableClientSettings then
+           lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
+         else if (Length(CatArray) > 0) then
+        begin
+          if btnClientSettings.Enabled then
+            lblClientBOProducts.Caption := 'This client currently has access to ' +
+                                             IntToStr(Length(ProductConfigService.ProductList)) +
+                                             ' Banklink Online product(s)'
+          else
+            lblClientBOProducts.Caption := 'Cannot connect to Banklink Online';
+         end
+          else
+            lblClientBOProducts.Caption := '';
       end;
     end;
   end;

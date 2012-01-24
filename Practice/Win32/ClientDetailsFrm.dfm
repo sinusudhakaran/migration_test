@@ -51,10 +51,6 @@ object frmClientDetails: TfrmClientDetails
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         522)
@@ -559,10 +555,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsAdmin: TTabSheet
       Caption = 'Administration'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label14: TLabel
         Left = 92
         Top = 208
@@ -842,10 +834,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsNotes: TTabSheet
       Caption = 'Notes'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         522)
