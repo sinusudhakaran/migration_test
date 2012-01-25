@@ -36,6 +36,7 @@ type
   public
     function AddSubscription(AProductID: guid) : Boolean;
     function RemoveSubscription(AProductID: guid) : Boolean;
+    function HasSubscription(AProductID: guid) : Boolean;
   end;
 
   TClientHelper = Class helper for BlopiServiceFacade.ClientDetail
@@ -1503,6 +1504,8 @@ var
   SubArray: arrayofguid;
   i: integer;
 begin
+  AProductID := UpperCase(AProductId);
+
   Result := False;
   for i := Low(Subscription) to High(Subscription) do
     if (Subscription[i] = AProductID) then
@@ -1511,7 +1514,7 @@ begin
   SubArray := Subscription;
   try
     SetLength(SubArray, Length(SubArray) + 1);
-    SubArray[High(SubArray)] := UpperCase(AProductId);
+    SubArray[High(SubArray)] := AProductId;
     Result := True;
   finally
     Subscription := SubArray;
@@ -1525,6 +1528,8 @@ var
   i: integer;
   FoundIndex : integer;
 begin
+  AProductID := UpperCase(AProductId);
+
   Result := False;
   FoundIndex := -1;
   // Try Find Product to Remove
@@ -1548,6 +1553,24 @@ begin
     Result := True;
 
     Subscription := SubArray;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TClientBaseHelper.HasSubscription(AProductID: guid) : Boolean;
+var
+  i : Integer;
+begin
+  AProductID := UpperCase(AProductId);
+
+  Result := False;
+  for i := Low(Subscription) to High(Subscription) do
+  begin
+    if (Subscription[i] = AProductID) then
+    begin
+      Result := True;
+      Exit;
+    end;
   end;
 end;
 

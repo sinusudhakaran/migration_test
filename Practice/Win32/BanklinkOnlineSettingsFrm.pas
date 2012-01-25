@@ -58,6 +58,7 @@ type
 
     procedure SetStatus(aStatus : TStatus);
     function GetStatus : TStatus;
+    procedure UpdateClientWebFormat;
 //    FContactName, FEmailAddress: string;
   public
 //    procedure SetContactName(Value: string);
@@ -128,6 +129,7 @@ var
 
   ClientStatus : TStatus;
   BillingFrequency : WideString;
+  NotesId : Guid;
 begin
   EmailChanged := False;
   ProductsChanged := False;
@@ -351,6 +353,27 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.UpdateClientWebFormat;
+var
+  NotesId : Guid;
+begin
+  if not assigned(MyClient.BlopiClientDetail) then
+    Exit;
+
+  NotesId := ProductConfigService.GetNotesId;
+  if MyClient.BlopiClientDetail.HasSubscription(NotesId) then
+  begin
+    if MyClient.clFields.clWeb_Export_Format <> wfWebNotes then
+      MyClient.clFields.clWeb_Export_Format := wfWebNotes;
+  end
+  else
+  begin
+    if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
+      MyClient.clFields.clWeb_Export_Format := wfNone;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TfrmBanklinkOnlineSettings.GetStatus : TStatus;
 begin
   if rbActive.Checked then
@@ -491,6 +514,8 @@ begin
       end;
     end;
   end;
+
+  UpdateClientWebFormat;
 end;
 
 //------------------------------------------------------------------------------

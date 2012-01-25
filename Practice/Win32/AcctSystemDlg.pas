@@ -602,21 +602,24 @@ begin
            clLoad_Client_Files_From := '';
         end;
 
-        clTax_Interface_Used       := ComboUtils.GetComboCurrentIntObject( cmbTaxInterface);
+        clTax_Interface_Used := ComboUtils.GetComboCurrentIntObject( cmbTaxInterface);
 
-        clWeb_Export_Format        := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
-
-        MyClient.RefreshBlopiClient;
-        if Assigned(MyClient.BlopiClientDetail) then
+        if clWeb_Export_Format <> ComboUtils.GetComboCurrentIntObject(cmbWebFormats) then
         begin
-          NotesId := ProductConfigService.GetNotesId;
+          clWeb_Export_Format := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
 
-          if clWeb_Export_Format = wfWebNotes then
-            ClientChanged := MyClient.BlopiClientDetail.AddSubscription(NotesId)
-          else
-            ClientChanged := MyClient.BlopiClientDetail.RemoveSubscription(NotesId);
+          MyClient.RefreshBlopiClient;
+          if Assigned(MyClient.BlopiClientDetail) then
+          begin
+            NotesId := ProductConfigService.GetNotesId;
 
-          MyClient.BlopiClientChanged := ClientChanged;
+            if clWeb_Export_Format = wfWebNotes then
+              ClientChanged := MyClient.BlopiClientDetail.AddSubscription(NotesId)
+            else
+              ClientChanged := MyClient.BlopiClientDetail.RemoveSubscription(NotesId);
+
+            MyClient.BlopiClientChanged := ClientChanged;
+          end;
         end;
 
         S := Trim( edtSaveTaxTo.Text);
