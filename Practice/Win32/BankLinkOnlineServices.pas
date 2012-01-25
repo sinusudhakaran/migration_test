@@ -34,7 +34,8 @@ type
 
   TClientBaseHelper = class helper for BlopiServiceFacade.Client
   public
-    procedure AddSubscription(AProductID: guid);
+    function AddSubscription(AProductID: guid) : Boolean;
+    function RemoveSubscription(AProductID: guid) : Boolean;
   end;
 
   TClientHelper = Class helper for BlopiServiceFacade.ClientDetail
@@ -64,11 +65,6 @@ type
   public
     function GetRoleFromPracUserType(aUstNameIndex : integer) : Role;
     function IsEqual(Instance: Practice): Boolean;
-  End;
-
-  TClientSummaryHelper = Class helper for BlopiServiceFacade.ClientUpdate
-  public
-    procedure AddSubscription(AProductID: guid);
   End;
 
   TProductConfigService = class(TObject)
@@ -124,6 +120,7 @@ type
     function IsPracticeProductEnabled(AProductId: Guid; AUsePracCopy : Boolean): Boolean;
     function HasProductJustBeenUnTicked(AProductId: Guid): Boolean;
     function NumOfClientsUsingProduct(AProductId: Guid): Integer;
+    function GetNotesId : Guid;
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
     function SavePractice: Boolean;
@@ -988,22 +985,43 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetNotesId : Guid;
+var
+  i   : integer;
+  Cat : CatalogueEntry;
+begin
+  Result := '';
+  if Assigned(FPractice) then
+  begin
+    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do
+    begin
+      Cat := FPracticeCopy.Catalogue[i];
+      if Cat.Description = 'Notes Online' then
+      begin
+        Result := Cat.Id;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.IsNotesOnlineEnabled: Boolean;
 var
-  i, j: integer;
-  Cat: CatalogueEntry;
+  i       : integer;
+  NotesId : Guid;
 begin
   Result := False;
-  if Assigned(FPractice) then begin
-    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
-      Cat := FPracticeCopy.Catalogue[i];
-      if Cat.Description = 'Notes Online' then begin
-        for j := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
-          if FPracticeCopy.Subscription[j] = Cat.Id then begin
-            Result := True;
-            Break;
-          end;
-        end;
+
+  NotesId := GetNotesId;
+  if not(NotesId = '') then
+  begin
+    for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do
+    begin
+      if FPracticeCopy.Subscription[i] = NotesId then
+      begin
+        Result := True;
+        Break;
       end;
     end;
   end;
@@ -1480,11 +1498,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TClientBaseHelper.AddSubscription(AProductID: guid);
+function TClientBaseHelper.AddSubscription(AProductID: guid) : Boolean;
 var
   SubArray: arrayofguid;
   i: integer;
 begin
+  Result := False;
   for i := Low(Subscription) to High(Subscription) do
     if (Subscription[i] = AProductID) then
       Exit;
@@ -1493,7 +1512,41 @@ begin
   try
     SetLength(SubArray, Length(SubArray) + 1);
     SubArray[High(SubArray)] := UpperCase(AProductId);
+    Result := True;
   finally
+    Subscription := SubArray;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TClientBaseHelper.RemoveSubscription(AProductID: guid) : Boolean;
+var
+  SubArray: arrayofguid;
+  i: integer;
+  FoundIndex : integer;
+begin
+  Result := False;
+  FoundIndex := -1;
+  // Try Find Product to Remove
+  for i := Low(Subscription) to High(Subscription) do
+    if (Subscription[i] = AProductID) then
+      FoundIndex := i;
+
+  if FoundIndex > -1 then
+  begin
+    SubArray := Subscription;
+
+    // Move Items after Found Item all one back
+    if FoundIndex < High(SubArray) then
+    begin
+      for i := (FoundIndex+1) to High(SubArray) do
+        SubArray[i-1] := SubArray[i];
+    end;
+
+    // Remove Last item
+    SetLength(SubArray, Length(SubArray) - 1);
+    Result := True;
+
     Subscription := SubArray;
   end;
 end;
@@ -1790,26 +1843,6 @@ begin
       Progress.ClearStatus;
       Screen.Cursor := crDefault;
     end;
-  end;
-end;
-
-{ TClientSummaryHelper }
-//------------------------------------------------------------------------------
-procedure TClientSummaryHelper.AddSubscription(AProductID: guid);
-var
-  SubArray: arrayofguid;
-  i: integer;
-begin
-  for i := Low(Subscription) to High(Subscription) do
-    if (Subscription[i] = AProductID) then
-      Exit;
-
-  SubArray := Subscription;
-  try
-    SetLength(SubArray, Length(SubArray) + 1);
-    SubArray[High(SubArray)] := AProductId;
-  finally
-    Subscription := SubArray;
   end;
 end;
 

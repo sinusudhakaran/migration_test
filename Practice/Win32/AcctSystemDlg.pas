@@ -420,6 +420,8 @@ var
   OldLoadFrom : String;
   S : String;
   LCLRec: pClient_File_Rec;
+  NotesId : Guid;
+  ClientChanged : Boolean;
 begin
    okPressed := false;
    AutoRefreshFlag := False;
@@ -603,6 +605,19 @@ begin
         clTax_Interface_Used       := ComboUtils.GetComboCurrentIntObject( cmbTaxInterface);
 
         clWeb_Export_Format        := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
+
+        MyClient.RefreshBlopiClient;
+        if Assigned(MyClient.BlopiClientDetail) then
+        begin
+          NotesId := ProductConfigService.GetNotesId;
+
+          if clWeb_Export_Format = wfWebNotes then
+            ClientChanged := MyClient.BlopiClientDetail.AddSubscription(NotesId)
+          else
+            ClientChanged := MyClient.BlopiClientDetail.RemoveSubscription(NotesId);
+
+          MyClient.BlopiClientChanged := ClientChanged;
+        end;
 
         S := Trim( edtSaveTaxTo.Text);
         if ( clTax_Interface_Used = tsNone) or ( S = '') then
