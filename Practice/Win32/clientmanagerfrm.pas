@@ -462,7 +462,6 @@ begin
 
   imgLogo.Picture := AppImages.ImgLogo.Picture;
 
-
   imgRight.Transparent := True;
   imgRight.Picture := bkBranding.CodingBanner;
   PnlLogo.Height := bkBranding.CodingBanner.Height;
@@ -855,6 +854,7 @@ var
   ClientManager : TfrmClientManager;
   i, NumColumns: Integer;
   AClientID: WideString;
+  ColumnName: string;
 const
    Offset = 30;
 begin
@@ -863,9 +863,7 @@ begin
   ClientManager := TfrmClientMaint.Create(Application.MainForm);
   with ClientManager do
   begin
-    try
-
-
+    try          
       BKHelpSetUp(ClientManager, BKH_Maintain_Clients);
       //load a snapshot of the admin system
       Admin32.ReloadAdminAndTakeSnapshot( ClientLookup.AdminSnapshot);
@@ -903,21 +901,32 @@ begin
         AddCustomColumn( 'Financial Year Starts', 75, 10, cluFinYearStarts);
         AddCustomColumn( 'Practice Contact', 75, 11, cluContactType);
 
+        // ShowMessage(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[0]).Description);
+
         if (BanklinkOnlineConnected and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
+        {
           if Assigned(MyClient) then begin
             if Assigned(MyClient.BlopiClientDetail) then begin
               for i := 0 to High(MyClient.BlopiClientDetail.Catalogue) do
                 AddCustomColumn( MyClient.BlopiClientDetail.Catalogue[i].Description, 75, 12 + i, cluBOProduct);
               NumColumns := 13 + High(MyClient.BlopiClientDetail.Catalogue);
+        }
+              ProductConfigService.LoadClientList;
+              for i := 0 to High(ProductConfigService.Clients.Catalogue) do
+              begin
+                ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
+                AddCustomColumn(ColumnName, 75, 12 + i, cluBOProduct);
+              end;
 
               AddCustomColumn( 'Billing Frequency', 75, NumColumns, cluBOBillingFrequency);
               AddCustomColumn( 'User Admin', 75, NumColumns + 1, cluBOUserAdmin);
               AddCustomColumn( 'Suspended', 75, NumColumns + 2, cluBOSuspended);
               AddCustomColumn( 'Deactivated', 75, NumColumns + 3, cluBODeactivated);
-            end;// else
+
+//            end;// else
 //              MyClient.BlopiClientDetail := ProductConfigService.GetClientDetails(AClientID);
-          end;
+//          end;
         end;
 
         BuildGrid( cluCode);
@@ -1972,6 +1981,9 @@ end;
 
 procedure TfrmClientManager.EditBOSettings;
 begin
+  if EditBanklinkOnlineSettings then
+    MyClient.BlopiClientChanged := True;
+  {
   if not Assigned(BanklinkOnlineSettings) then
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
 
@@ -1981,6 +1993,7 @@ begin
     BanklinkOnlineSettings.Free;
     BanklinkOnlineSettings := nil;
   end;
+    }
 end;
 
 procedure TfrmClientManager.EnableForm(LooseFocus: Boolean);
