@@ -53,7 +53,6 @@ type
     procedure chkUseClientDetailsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
-    SubArray: ArrayOfGuid;
   protected
     procedure FillClientDetails;
 
@@ -201,12 +200,16 @@ begin
     for i := 0 to chklistProducts.Count - 1 do
     begin
       ProductFound := false;
-      for j := 0 to High(SubArray) do
+      if Assigned(MyClient.BlopiClientDetail) then
       begin
-        if (WideString(chklistProducts.Items.Objects[i]) = SubArray[j]) then
+        for j := 0 to High(MyClient.BlopiClientDetail.Subscription) do
         begin
-          ProductFound := true;
-          break
+          // if (WideString(chklistProducts.Items.Objects[i]) = MyClient.BlopiClientDetail.Subscription[j]) then
+          if (CatalogueEntry(chklistProducts.Items.Objects[i]).Id = MyClient.BlopiClientDetail.Subscription[j]) then
+          begin
+            ProductFound := true;
+            break
+          end;
         end;
       end;
       if (chklistProducts.Checked[i] = true) and not ProductFound then
