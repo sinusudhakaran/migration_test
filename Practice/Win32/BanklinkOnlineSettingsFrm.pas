@@ -111,11 +111,6 @@ begin
       if Result then begin
         //Update access
         BanklinkOnlineSettings.SaveClientInfo;
-
-        SuccessMessage := 'Settings for ' + MyClient.clFields.clCode +
-                          ' have been successfully updated to Banklink Online';
-        ShowMessage(SuccessMessage);
-        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + SuccessMessage);
       end;
     finally
       BanklinkOnlineSettings.Free;

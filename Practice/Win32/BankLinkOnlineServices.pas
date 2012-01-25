@@ -187,6 +187,7 @@ uses
   LogUtil,
   WarningMoreFrm,
   ErrorMoreFrm,
+  InfoMoreFrm,
   IniSettings,
   WebUtils,
   stDate,
@@ -1263,6 +1264,11 @@ begin
 
         if ShowProgress then
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+
+        Msg := Format('Settings for %s have been successfully updated to ' +
+                      '%s.',[AClient.ClientCode, BANKLINK_ONLINE_NAME]);
+        HelpfulInfoMsg(Msg, 0);
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, Msg);
       finally
         MyClientSummary.Free;
       end;
