@@ -474,9 +474,9 @@ begin
                                    'updated to this Email Address?', mtConfirmation,
                                    [mbYes, mbNo, mbCancel], 0);
       case buttonSelected of
-        mrYes: ;
-//          if Assigned(MyClient.BlopiClientDetail) and UpdateBO
-//            then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
+        mrYes: 
+          if Assigned(MyClient.BlopiClientDetail) and UpdateBO
+            then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
         mrNo: ; //FClient.UseClientDetails := False;
         mrCancel: btnCancelClick(Sender);
       end;

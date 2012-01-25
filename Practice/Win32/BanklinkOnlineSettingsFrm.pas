@@ -114,7 +114,7 @@ begin
         BanklinkOnlineSettings.SaveClientInfo;
 
         SuccessMessage := 'Settings for ' + MyClient.clFields.clCode +
-                          'have been successfully updated to Banklink Online';
+                          ' have been successfully updated to Banklink Online';
         ShowMessage(SuccessMessage);
         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + SuccessMessage);
       end;
@@ -313,8 +313,8 @@ begin
         else
           MailBody := MailBody + 'disabled' + #13#10;
       end;
-    end;
-    SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
+      SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
+    end;                                                            
 
     ModalResult := mrOk;
   end;
@@ -424,15 +424,17 @@ begin
     end;
 
     if (not (chkUseClientDetails.Checked)) and
-       (high(MyClient.BlopiClientDetail.Users) > -1) then
+       (Length(MyClient.BlopiClientDetail.Users) > 0) then
     begin
       edtUserName.Text := UserDetail(MyClient.BlopiClientDetail.Users[0]).FullName;
       edtEmailAddress.Text := UserDetail(MyClient.BlopiClientDetail.Users[0]).Email;
     end else
+    if chkUseClientDetails.Checked then    
     begin
       edtUserName.Text := MyClient.clFields.clContact_Name;
       edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
     end;
+
   end
   // New Client
   else if Assigned(MyClient.BlopiClientNew) then
