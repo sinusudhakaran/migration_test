@@ -10,7 +10,8 @@ uses
   Windows,
   XMLIntf,
   TypInfo,
-  Classes;
+  Classes,
+  ComCtrls;
 
 type
   TStatus               = BlopiServiceFacade.Status;
@@ -133,6 +134,7 @@ type
     procedure SetPrimaryContact(AUser: UserPractice);
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
     property CachedPractice: PracticeDetail read GetCachedPractice;
+    procedure GetServiceAgreement(ARichEdit: TRichEdit);    
     //Client methods
     procedure LoadClientList;
     function GetClientDetailsWithCode(AClientCode: string): ClientDetail;
@@ -933,6 +935,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TProductConfigService.GetServiceAgreement(ARichEdit: TRichEdit);
+begin
+  ARichEdit.Text := 'Service agreement is not available.';
+  if FileExists('BK5_EULA.rtf') then
+    ARichEdit.Lines.LoadFromFile('BK5_EULA.rtf');
+end;
+
 function TProductConfigService.GetServiceFacade: IBlopiServiceFacade;
 var
   HTTPRIO: THTTPRIO;

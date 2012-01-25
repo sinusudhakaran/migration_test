@@ -628,8 +628,8 @@ object frmPracticeDetails: TfrmPracticeDetails
         OnClick = cbPrimaryContactClick
       end
       object vtProducts: TVirtualStringTree
-        Left = 16
-        Top = 152
+        Left = 20
+        Top = 157
         Width = 496
         Height = 191
         Header.AutoSizeIndex = 0

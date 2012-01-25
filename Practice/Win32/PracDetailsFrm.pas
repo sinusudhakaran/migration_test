@@ -182,6 +182,7 @@ uses
   UsageUtils,
   AuditMgr,
   RequestRegFrm,
+  ServiceAgreementDlg,
   UpdateMF;
 
 {$R *.DFM}
@@ -455,10 +456,15 @@ begin
     if ckUseBankLinkOnline.Checked then begin
       UseBankLinkOnline := True;
       FPrac := ProductConfigService.GetPractice(False);
-      ProductConfigService.LoadClientList;
-      if Assigned(FPrac) then
-        LoadPracticeDetails
-      else
+      if Assigned(FPrac) then begin
+        if ProductConfigService.Registered  then begin
+          //Need the client list for checking if clients are using products before
+          //they are removed. Only load if practice details have been received
+          //from BankLink Online (not from cache).
+          ProductConfigService.LoadClientList;
+          LoadPracticeDetails
+        end;
+      end else
       begin
         ckUseBankLinkOnline.Checked := False;
         Exit;
@@ -479,11 +485,12 @@ begin
                              'You are not currently registered for BankLink Online. ' +
                              'Would you like to register now?', dlg_no, 0) = DLG_YES then
         begin
-          if not RequestBankLinkOnlineRegistration then
-          begin
-            ckUseBankLinkOnline.Checked := False;
-            Exit;
-          end;
+          if ServiceAgreementAccepted then
+            if not RequestBankLinkOnlineRegistration then
+            begin
+              ckUseBankLinkOnline.Checked := False;
+              Exit;
+            end;
         end
         else
         begin
