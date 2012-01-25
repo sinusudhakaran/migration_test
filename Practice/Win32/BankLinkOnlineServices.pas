@@ -593,7 +593,6 @@ begin
     end;
     try
       FreeAndNil(FClientList);
-      FClientList := ClientList.Create;
       if UseBankLinkOnline then begin
         if ShowProgress then
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client Details', 50);
@@ -618,9 +617,10 @@ begin
       end;
     end;
   except
-    on E:Exception do
+    on E:Exception do begin
       HelpfulErrorMsg('Error getting client list from ' + BANKLINK_ONLINE_NAME + '.',
                       0, True, E.Message, True);
+    end;
   end;
 end;
 
@@ -1115,43 +1115,62 @@ var
   Msg: string;
   TempCatalogueEntry: CatalogueEntry;
 begin
-  ClientsUsingProduct := 1;
-  //Check if any clients are using the product
-//  for i := Low(FClientList.Clients) to Low(FClientList.Clients) do begin
-//    for j := Low(Client.SubList) to High(Client.SubList) do begin
-//      if AProductId = Client.SubList[j] then
-//        Inc(ClientsUsingProduct);
-//    end;
-//  end;
-
-//  TempCatalogueEntry := GetCatalogueEntry(AProductId);
-//  if Assigned(TempCatalogueEntry) then begin
-//    if ClientsUsingProduct > 0 then begin
-//      Msg := Format('There are currently %d clients using %s. Please remove ' +
-//                    'access for these clients from this product before ' +
-//                    'disabling it',
-//                    [ClientsUsingProduct, TempCatalogueEntry.Description]);
-//      HelpfulWarningMsg(MSg, 0);
-//      Exit;
-//    end;
-//  end;
-
-  SubArray := FPracticeCopy.Subscription;
   try
-    for i := Low(SubArray) to High(SubArray) do begin
-      if AProductId = SubArray[i] then begin
-        if (i < 0) or (i > High(SubArray)) then
-          Break;
-        for j := i to High(SubArray) - 1 do begin
-          SubArray[j] := SubArray[j+1];
-        end;
-        SubArray[High(SubArray)] := '';
-        SetLength(SubArray, Length(SubArray) - 1);
-        Break;
+    if not Assigned(FClientList) then
+      LoadClientList;
+
+    if not Assigned(FClientList) then
+      raise Exception.Create('Error getting client detials from ' + BANKLINK_ONLINE_NAME);
+
+    ClientsUsingProduct := 0;
+    //Check if any clients are using the product
+    for i := Low(FClientList.Clients) to High(FClientList.Clients) do begin
+      for j := Low(FClientList.Clients[i].Subscription) to High(FClientList.Clients[i].Subscription) do begin
+        if AProductId = FClientList.Clients[i].Subscription[j] then
+          Inc(ClientsUsingProduct);
       end;
     end;
-  finally
-    FPracticeCopy.Subscription := SubArray;
+
+    TempCatalogueEntry := GetCatalogueEntry(AProductId);
+    if Assigned(TempCatalogueEntry) then begin
+      if ClientsUsingProduct > 0 then begin
+        if ClientsUsingProduct = 1 then
+          Msg := Format('There is currently 1 client using %s. Please remove ' +
+                        'access for this clients from this product before ' +
+                        'disabling it',
+                        [TempCatalogueEntry.Description])
+        else
+          Msg := Format('There are currently %d clients using %s. Please remove ' +
+                        'access for these clients from this product before ' +
+                        'disabling it',
+                        [ClientsUsingProduct, TempCatalogueEntry.Description]);
+        HelpfulWarningMsg(MSg, 0);
+        Exit;
+      end;
+    end;
+
+    SubArray := FPracticeCopy.Subscription;
+    try
+      for i := Low(SubArray) to High(SubArray) do begin
+        if AProductId = SubArray[i] then begin
+          if (i < 0) or (i > High(SubArray)) then
+            Break;
+          for j := i to High(SubArray) - 1 do begin
+            SubArray[j] := SubArray[j+1];
+          end;
+          SubArray[High(SubArray)] := '';
+          SetLength(SubArray, Length(SubArray) - 1);
+          Break;
+        end;
+      end;
+    finally
+      FPracticeCopy.Subscription := SubArray;
+    end;
+  except
+    on E: Exception do begin
+      HelpfulErrorMsg('Product could not be removed: ' + E.Message, 0);
+      Exit;
+    end;
   end;
 end;
 

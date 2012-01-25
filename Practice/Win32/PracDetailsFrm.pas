@@ -455,6 +455,7 @@ begin
     if ckUseBankLinkOnline.Checked then begin
       UseBankLinkOnline := True;
       FPrac := ProductConfigService.GetPractice(False);
+      ProductConfigService.LoadClientList;
       if Assigned(FPrac) then
         LoadPracticeDetails
       else
@@ -794,10 +795,6 @@ var
   aMsg : string;
   Path : string;
   CurrType : integer;
-  ProdIndex : integer;
-  NumOfClients : integer;
-  MsgArr : Array of String;
-  ProductList : ArrayOfguid;
 begin
   result := false;
 
@@ -856,47 +853,6 @@ begin
 
   if UseBankLinkOnline and ProductConfigService.PracticeChanged then
   begin
-    ProductConfigService.LoadClientList;
-    ProductList := ProductConfigService.ProductList;
-
-    SetLength(MsgArr, 0);
-    for ProdIndex := Low(ProductList) to High(ProductList) do
-    begin
-      if ProductConfigService.HasProductJustBeenUnTicked(ProductList[ProdIndex]) then
-      begin
-        NumOfClients := ProductConfigService.NumOfClientsUsingProduct(ProductList[ProdIndex]);
-        if NumOfClients > 0 then
-        begin
-          SetLength(MsgArr, length(MsgArr) + 1);
-          MsgArr[high(MsgArr)] := IntToStr(NumOfClients) + ' Clients using ''' +
-            ProductConfigService.GetCatalogueEntry(ProductList[ProdIndex]).Description + '''';
-        end;
-      end;
-    end;
-
-    if length(MsgArr) > 0 then
-    begin
-      if length(MsgArr) = 1 then
-      begin
-        aMsg := 'There are currently ' + MsgArr[0] + '. Please remove access for ' +
-                'these clients from this product before disabling it.';
-      end
-      else
-      begin
-        aMsg := 'There are currently :' + #13#10 + #13#10;
-        for ProdIndex := Low(MsgArr) to High(MsgArr) do
-        begin
-          aMsg := aMsg + MsgArr[ProdIndex] + #13#10;
-        end;
-        aMsg := aMsg + #13#10 + 'Please remove access for these clients from these '  +
-                'products before disabling them.';
-      end;
-
-      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' - ' + aMsg );
-      HelpfulWarningMsg(aMsg, 0);
-      Exit;
-    end;
-
     aMsg := 'Changing the BankLink Online products and services that are available ' +
             'for this practice will affect how client files can be individually setup ' +
             'for these products and services. Such products and services may incur ' +
