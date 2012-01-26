@@ -114,14 +114,13 @@ type
     procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure tbsInterfacesShow(Sender: TObject);
     procedure cbPrimaryContactClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
     procedure TreeCompare(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
     procedure actSelectAllProductsExecute(Sender: TObject);
     procedure actClearAllProductsExecute(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure edtURLChange(Sender: TObject);
+    procedure tsBankLinkOnlineShow(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -211,11 +210,6 @@ begin
 
    btnSuperLoadFolder.Glyph := btnLoadFolder.Glyph;
    ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
-end;
-
-procedure TfrmPracticeDetails.FormShow(Sender: TObject);
-begin
-  
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -451,7 +445,6 @@ var
 begin
   EventHolder := ckUseBankLinkOnline.OnClick;
   ckUseBankLinkOnline.OnClick := nil;
-
   try
     if ckUseBankLinkOnline.Checked then begin
       UseBankLinkOnline := True;
@@ -501,9 +494,9 @@ begin
     end;
 
     for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-      tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline;
-
-    ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
+      tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline and
+                                              ProductConfigService.IsPracticeActive(False);
+    ckUseBankLinkOnline.Enabled := True;
   finally
     ckUseBankLinkOnline.OnClick := EventHolder;
   end;
@@ -582,10 +575,9 @@ begin
     UseBankLinkOnline := Adminsystem.fdFields.fdUse_BankLink_Online;
     ckUseBankLinkOnline.Checked := Adminsystem.fdFields.fdUse_BankLink_Online;
     for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-      tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline;
+      tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline and
+                                              ProductConfigService.IsPracticeActive(False);
     ckUseBankLinkOnline.Enabled := True;
-    if UseBankLinkOnline then
-      ckUseBankLinkOnline.Enabled := ProductConfigService.IsPracticeActive(False);
 
     //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
@@ -972,11 +964,6 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmPracticeDetails.FormActivate(Sender: TObject);
-begin
-//  ckUseBankLinkOnline.Enabled := BanklinkOnlineConnected;
-end;
-
 procedure TfrmPracticeDetails.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -1253,6 +1240,11 @@ begin
       Result := 1;
   end else // both are of same type (folder or file)
     Result := CompareText(Data1.tdCaption, Data2.tdCaption);
+end;
+
+procedure TfrmPracticeDetails.tsBankLinkOnlineShow(Sender: TObject);
+begin
+  ProductConfigService.IsPracticeActive;
 end;
 
 procedure TfrmPracticeDetails.txtLastDiskIDChange(Sender: TObject);

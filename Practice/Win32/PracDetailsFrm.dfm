@@ -13,10 +13,8 @@ object frmPracticeDetails: TfrmPracticeDetails
   Position = poScreenCenter
   Scaled = False
   ShowHint = True
-  OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  OnShow = FormShow
   DesignSize = (
     632
     431)
@@ -573,6 +571,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 4
+      OnShow = tsBankLinkOnlineShow
       object lblURL: TLabel
         Left = 16
         Top = 51
