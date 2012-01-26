@@ -47,7 +47,6 @@ type
     function GetFreeTrialEndDate: TDateTime;
     function GetBillingEndDate: TDateTime;
     function GetUserOnTrial: boolean;
-    function GetBillingFrequency: string;
     function GetSuspended: boolean;
   public
     procedure UpdateAdminUser(AUserName, AEmail: WideString);
@@ -57,7 +56,6 @@ type
     property FreeTrialEndDate: TDateTime read GetFreeTrialEndDate;
     property BillingEndDate: TDateTime read GetBillingEndDate;
     property UserOnTrial: boolean read GetUserOnTrial;
-    property BillingFrequency: string read GetBillingFrequency;
     property Suspended: boolean read GetSuspended;
   End;
 
@@ -1584,12 +1582,6 @@ end;
 function TClientHelper.GetBillingEndDate: TDateTime;
 begin
   Result := StrToDate('31/12/2011');
-end;
-
-//------------------------------------------------------------------------------
-function TClientHelper.GetBillingFrequency: string;
-begin
-  Result := 'Monthly';
 end;
 
 //------------------------------------------------------------------------------
