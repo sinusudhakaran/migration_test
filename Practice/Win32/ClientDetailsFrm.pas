@@ -197,7 +197,6 @@ uses
    BKDEFS,
    ClientUtils,
    AuditMgr,
-   BlopiServiceFacade,
    InfoMoreFrm;
 
 {$R *.DFM}
@@ -239,13 +238,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormShow(Sender: TObject);
 var
-  CatArray: ArrayOfCatalogueEntry;
   i, k : Integer;
   GUID1, GUID2: WideString;
-//  AClientID: WideString;
   ClientSynced: boolean;
-  MyNewClient: ClientNew;
+  MyNewClient: TClientNew;
   MyNewClientGuid: Guid;
+  CachedPracticeDetail: PracticeDetail;
 begin
   PageControl1.ActivePage := tbsClient;
 
@@ -319,30 +317,16 @@ begin
     if UseBankLinkOnline then begin
       lblClientBOProducts.Visible := ClientSynced;
       btnClientSettings.Enabled := ClientSynced;
-
-      ProductConfigService.LoadClientList;
-      CatArray := ProductConfigService.Clients.Catalogue;
-
-      lblClientBOProducts.Visible := ClientSynced;      
-       //Get BLOPI details
-       if not MyClient.RefreshBlopiClient then
-        btnClientSettings.Enabled := False;
-
-       if lblClientBOProducts.Visible  then
-       begin
-         if not FEnableClientSettings then
-           lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings'
-         else if (Length(CatArray) > 0) then
-        begin
-          if btnClientSettings.Enabled then
+      lblClientBOProducts.Visible := ClientSynced;
+      if lblClientBOProducts.Visible  then
+      begin
+        if not FEnableClientSettings then
+          lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings';
+          lblClientBOProducts.Caption := '';          CachedPracticeDetail := ProductConfigService.CachedPractice;
+          if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
             lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                             IntToStr(Length(ProductConfigService.ProductList)) +
-                                             ' Banklink Online product(s)'
-          else
-            lblClientBOProducts.Caption := 'Cannot connect to Banklink Online';
-        end
-        else
-          lblClientBOProducts.Caption := '';
+                                           IntToStr(Length(CachedPracticeDetail.Subscription)) +
+                                           ' Banklink Online product(s)'
       end;
     end;
   end;
@@ -448,6 +432,15 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
 begin
+  //Get Practice details (so we can load the list of available products)
+  ProductConfigService.GetPractice;
+  if not Assigned(ProductConfigService.CachedPractice) then
+    Exit;
+  //Get client list (so that we can lookup the client code)
+  ProductConfigService.LoadClientList;
+  //Get client details
+  if not MyClient.RefreshBlopiClient then
+    Exit;
   if Assigned(MyClient.BlopiClientDetail) then begin
     // These need to be updated immediately so that the user name and email address in
     // the Banklink Online Settings form will be populated correctly when 'Use Client
@@ -455,7 +448,6 @@ begin
     MyClient.clFields.clContact_name := econtact.text;
     MyClient.clFields.clClient_EMail_Address := eMail.text;
     if EditBanklinkOnlineSettings then begin
-//      ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
       MyClient.BlopiClientChanged := True;
     end;
   end;

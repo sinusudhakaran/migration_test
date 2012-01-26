@@ -106,7 +106,6 @@ begin
   Result := False;
   if AdminSystem.fdFields.fdUse_BankLink_Online then
   begin
-    ProductConfigService.LoadClientList;
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
       Result := BanklinkOnlineSettings.Execute;
@@ -417,10 +416,6 @@ var
   CatEntry      : CatalogueEntry;
 begin
   //Load products
-  PracDetail := ProductConfigService.GetPractice;
-  if Not Assigned(PracDetail) then
-    Exit;
-
   chklistProducts.Clear;
   // Adds the Subscriptions/Products for the Practice to the List
   for ProdIndex := Low(ProductConfigService.ProductList) to High(ProductConfigService.ProductList) do

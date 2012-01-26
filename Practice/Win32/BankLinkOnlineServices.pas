@@ -591,7 +591,7 @@ begin
       FreeAndNil(FClientList);
       if UseBankLinkOnline then begin
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client Details', 50);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client List', 50);
 
         BlopiInterface := GetServiceFacade;
         BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
