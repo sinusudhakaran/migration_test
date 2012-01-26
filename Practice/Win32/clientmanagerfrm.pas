@@ -218,6 +218,9 @@ type
     procedure actBOSettingsExecute(Sender: TObject);
     procedure mniEditBOSettingsClick(Sender: TObject);
     procedure EditBOSettings;
+    procedure ClientLookupvtClientsGetText(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+      var CellText: WideString);
 
   private
 
@@ -659,9 +662,16 @@ end;
 procedure TfrmClientManager.CheckBOConnection(var message: TMessage);
 begin
   // todo: Check if Banklink Online is connected
-  actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and BanklinkOnlineConnected);
   imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not BanklinkOnlineConnected);
   lblCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not BanklinkOnlineConnected);
+end;
+
+procedure TfrmClientManager.ClientLookupvtClientsGetText(
+  Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType; var CellText: WideString);
+begin
+  ClientLookup.vtClientsGetText(Sender, Node, Column, TextType, CellText);
+
 end;
 
 procedure TfrmClientManager.ResetIniColumnDefaults;
@@ -1008,6 +1018,8 @@ begin
   gbClientmanager.BeginUpdateLayout;
   try
     ClientLookup.GetSelectionTypes(ProspectSelected, ActiveSelected, UnsyncSelected);
+    actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and BanklinkOnlineConnected and
+                             (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected));
     actScheduled.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actPracticeContact.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actFinancialYear.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
@@ -1381,7 +1393,13 @@ begin
   ProcessModalCommand( cm_mcAssignTo);
 end;
 procedure TfrmClientManager.actBOSettingsExecute(Sender: TObject);
+var
+  CodeNode: PVirtualNode;
+  NodeText: WideString;
 begin
+  CodeNode := ClientLookup.vtClients.FocusedNode;
+  ClientLookup.vtClientsGetText(ClientLookup.vtClients, CodeNode, 1, ttNormal, NodeText);
+  OpenClient(NodeText,False);
   EditBOSettings;
 end;
 

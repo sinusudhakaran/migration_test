@@ -339,9 +339,9 @@ begin
                                              ' Banklink Online product(s)'
           else
             lblClientBOProducts.Caption := 'Cannot connect to Banklink Online';
-         end
-          else
-            lblClientBOProducts.Caption := '';
+        end
+        else
+          lblClientBOProducts.Caption := '';
       end;
     end;
   end;

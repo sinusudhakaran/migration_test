@@ -297,12 +297,13 @@ object frmClientHomePage: TfrmClientHomePage
         Left = 30
         Top = 2
         Width = 39
-        Height = 13
+        Height = 23
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
         Caption = 'Legend:'
         Layout = tlCenter
+        ExplicitHeight = 13
       end
       object tbtnClose: TRzToolButton
         Left = 2
@@ -405,8 +406,8 @@ object frmClientHomePage: TfrmClientHomePage
     object lblClientName: TLabel
       Left = 134
       Top = 0
-      Width = 95
-      Height = 21
+      Width = 725
+      Height = 31
       Margins.Left = 0
       Margins.Top = 0
       Margins.Right = 0
@@ -426,6 +427,8 @@ object frmClientHomePage: TfrmClientHomePage
       Transparent = True
       Layout = tlCenter
       WordWrap = True
+      ExplicitWidth = 95
+      ExplicitHeight = 21
     end
     object imgRight: TImage
       Left = 859
