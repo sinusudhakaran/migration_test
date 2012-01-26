@@ -84,7 +84,8 @@ uses
   BkConst,
   SysUtils,
   Variants,
-  MailFrm;
+  MailFrm,
+  YesNoDlg;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -167,25 +168,29 @@ begin
     ClientStatus := MyClient.BlopiClientNew.Status;
 
   if (ClientStatus = staSuspended) and not rbSuspended.Checked
-    then ButtonPressed := MessageDlg('You are about to resume this Client on ' +
-                     'Banklink Online. They will be able to access BankLink Online as per ' +
-                     'normal.' + #13#10#10 + 'Are you sure you want to continue?',
-                     mtConfirmation, [mbYes, mbNo], 0)
+    then ButtonPressed := AskYesNo('Resuming client',
+                                   'You are about to resume this Client on ' +
+                                   'Banklink Online. They will be able to access BankLink Online as per ' +
+                                   'normal.' + #10#10 + 'Are you sure you want to continue?',
+                                   DLG_YES, 0, false)
   else if (ClientStatus <> staSuspended) and rbSuspended.Checked
-    then ButtonPressed := MessageDlg('You are about to suspend this Client from BankLink ' +
-                     'Online. They will be able to access BankLink Online in read-only mode.' +
-                     #13#10#10 + 'Are you sure you want to continue?',
-                     mtConfirmation, [mbYes, mbNo], 0)
+    then ButtonPressed := AskYesNo('Suspending client',
+                                   'You are about to suspend this Client from BankLink ' +
+                                   'Online. They will be able to access BankLink Online in read-only mode.' +
+                                   #10#10 + 'Are you sure you want to continue?',
+                                   DLG_YES, 0, false)
   else if (ClientStatus <> staDeactivated) and rbDeactivated.Checked
-    then ButtonPressed := MessageDlg('You are about to deactivate this Client from BankLink ' +
-                     'Online. All user log-ins will be disabled.' + #13#10#10 +
-                     'Are you sure you want to continue?',
-                     mtConfirmation, [mbYes, mbNo], 0)
+    then ButtonPressed := AskYesNo('Deactivating client',
+                                   'You are about to deactivate this Client from BankLink ' +
+                                   'Online. All user log-ins will be disabled.' + #10#10 +
+                                   'Are you sure you want to continue?',
+                                   DLG_YES, 0, false)
   else if (ClientStatus = staDeactivated) and not rbDeactivated.Checked
-    then ButtonPressed := MessageDlg('You are about to re-activate this Client from BankLink ' +
-                     'Online. All user log-ins will be enabled.' + #13#10#10 +
-                     'Are you sure you want to continue?',
-                     mtConfirmation, [mbYes, mbNo], 0)
+    then ButtonPressed := AskYesNo('Reactivating client',
+                                   'You are about to re-activate this Client from BankLink ' +
+                                   'Online. All user log-ins will be enabled.' + #10#10 +
+                                   'Are you sure you want to continue?',
+                                   DLG_YES, 0, false)
   else
   begin
     if Assigned(MyClient.BlopiClientDetail) then
@@ -240,35 +245,41 @@ begin
     BillingFrequencyChanged := cmbBillingFrequency.Text <> BillingFrequency;
 
     if EmailChanged and not (ProductsChanged or BillingFrequencyChanged) then
-      ButtonPressed := MessageDlg('You have changed the Default Client Administrator Email Address. ' +
-                  'The new Default Client Administrator will be set to ' +
-                  '‘' + edtEmailAddress.Text + '’.' + #10 + #10 +
-                  'Are you sure you want to continue?', mtConfirmation, [mbYes, mbNo], 0)
+      ButtonPressed := AskYesNo('Changing Default Administrator Address',
+                                'You have changed the Default Client Administrator Email Address. ' +
+                                'The new Default Client Administrator will be set to ' +
+                                '‘' + edtEmailAddress.Text + '’.' + #10 + #10 +
+                                'Are you sure you want to continue?',
+                                DLG_YES, 0, false)
     else if ProductsChanged and not (EmailChanged or BillingFrequencyChanged) then
-      ButtonPressed := MessageDlg('Are you sure you want to activate the following products:' + #13#10 +
-                  NewProducts.Text + #13#10#10 +
-                  'By clicking ''OK'' you are confirming that you wish to activate these products ' +
-                  'for ' + edtUserName.Text, mtConfirmation, [mbYes, mbNo], 0)
+      ButtonPressed := AskYesNo('Reactiving products',
+                                'Are you sure you want to activate the following products:' + #10#10 +
+                                NewProducts.Text + #10 +
+                                'By clicking ''OK'' you are confirming that you wish to activate these products ' +
+                                'for ' + edtUserName.Text,
+                                DLG_YES, 0, false)
     else if BillingFrequencyChanged and not (ProductsChanged or EmailChanged) then
-      ButtonPressed := MessageDlg('You have changed this Client''s billing frequency. Your next ' +
-                  'invoice for this Client will be for the period...', // fill in later
-                  mtConfirmation, [mbYes, mbNo], 0)
+      ButtonPressed := AskYesNo('Changing client billing frequency',
+                                'You have changed this Client''s billing frequency. Your next ' +
+                                'invoice for this Client will be for the period...', // fill in later
+                                DLG_YES, 0, false)
     else if (EmailChanged or ProductsChanged or BillingFrequencyChanged) then // will reach and trigger this if two or more have changed
     begin
       PromptMessage := 'Are you sure you want to update the following for ' +
                        edtUserName.text + ':';
       if ProductsChanged then
-        PromptMessage := PromptMessage + #13#10#10 + 'Activate the following products & services:' +
-                         #13#10 + Trim(NewProducts.Text);
+        PromptMessage := PromptMessage + #10#10 + 'Activate the following products & services:' +
+                         #10 + Trim(NewProducts.Text);
       if BillingFrequencyChanged then
-        PromptMessage := PromptMessage + #13#10#10 + 'Change this Client''s billing ' +
+        PromptMessage := PromptMessage + #10#10 + 'Change this Client''s billing ' +
                          'frequency. Your next invoice for this Client will be for ' +
                          'the period...'; // fill in later
       if EmailChanged then
-        PromptMessage := PromptMessage + #13#10#10 + 'Change the Default Client ' +
+        PromptMessage := PromptMessage + #10#10 + 'Change the Default Client ' +
                          'Administrator Email Address. The new Default Client ' +
                          'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
-      ButtonPressed := MessageDlg(PromptMessage, mtConfirmation, [mbYes, mbNo], 0);
+      ButtonPressed := AskYesNo('Changing client details',
+                                PromptMessage, DLG_YES, 0, false);
     end;
   end;
   if ButtonPressed = mrNo then
@@ -291,27 +302,27 @@ begin
       // Send email to support
       MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
       MailSubject := 'Banklink Online product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
-      MailBody := 'This practice has changed its Banklink Online product and service settings' + #13#10#10 +
-                  'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #13#10 +
-                  'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #13#10#10 +
-                  'The BankLink Online Administrator (Primary Contact) for the practice' + #13#10 +
-                  'Name: ' + edtUserName.text + #13#10 +
+      MailBody := 'This practice has changed its Banklink Online product and service settings' + #10#10 +
+                  'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #10 +
+                  'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #10#10 +
+                  'The BankLink Online Administrator (Primary Contact) for the practice' + #10 +
+                  'Name: ' + edtUserName.text + #10 +
                   // Can't find phone number... do we have this at all for the practice administrator?
-                  'Email Address: ' + edtEmailAddress.text + #13#10#10 +
-                  'Updated settings:' + #13#10;
+                  'Email Address: ' + edtEmailAddress.text + #10#10 +
+                  'Updated settings:' + #10;
       for i := 0 to NewProducts.Count - 1 do
-        MailBody := MailBody + NewProducts[i] + ' is now enabled' + #13#10;
+        MailBody := MailBody + NewProducts[i] + ' is now enabled' + #10;
       for i := 0 to ProductsRemoved.Count - 1 do
-        MailBody := MailBody + ProductsRemoved[i] + ' is now disabled' + #13#10;
+        MailBody := MailBody + ProductsRemoved[i] + ' is now disabled' + #10;
       MailBody := MailBody + #10 +
-                     'Product and service settings:' + #13#10;
+                     'Product and service settings:' + #10;
       for i := 0 to chklistProducts.Count - 1 do
       begin
         MailBody := MailBody + chklistProducts.Items[i] + ' - ';
         if chklistProducts.Checked[i] then
-          MailBody := MailBody + 'enabled' + #13#10
+          MailBody := MailBody + 'enabled' + #10
         else
-          MailBody := MailBody + 'disabled' + #13#10;
+          MailBody := MailBody + 'disabled' + #10;
       end;
       SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
     end;                                                            
@@ -425,6 +436,7 @@ begin
   begin
     Status := MyClient.BlopiClientDetail.Status;
     cmbConnectDays.Text := MyClient.BlopiClientDetail.ClientConnectDays;
+    cmbBillingFrequency.Text := MyClient.BlopiClientDetail.BillingFrequency;
     //chkUseClientDetails.Checked := MyClient.BlopiClientDetail.UseClientDetails;
     chkUseClientDetails.Checked := false;
 
@@ -485,6 +497,7 @@ begin
   if Assigned(MyClient.BlopiClientDetail) then
   begin
     MyClient.BlopiClientDetail.Status := Status;
+    MyClient.BlopiClientDetail.BillingFrequency := cmbBillingFrequency.Text;
     MyClient.BlopiClientDetail.Subscription := Nil;
 
     for ProdIndex := 0 to chklistProducts.Count - 1 do

@@ -197,7 +197,8 @@ uses
    BKDEFS,
    ClientUtils,
    AuditMgr,
-   BlopiServiceFacade;
+   BlopiServiceFacade,
+   InfoMoreFrm;
 
 {$R *.DFM}
 
@@ -469,16 +470,15 @@ begin
   if Assigned(MyClient.BlopiClientDetail) then begin
     if (OriginalEmail <> eMail.Text) {and MyClient.BlopiClientDetail.UseClientDetails} then
     begin
-      buttonSelected := MessageDlg('You have changed the Email Address for this client. Do you ' +
-                                   'want the Banklink Online Default Client Administrator to be ' +
-                                   'updated to this Email Address?', mtConfirmation,
-                                   [mbYes, mbNo, mbCancel], 0);
+      buttonSelected := AskYesNo('Email address changed',
+                                 'You have changed the Email Address for this client. Do you ' +
+                                 'want the Banklink Online Default Client Administrator to be ' +
+                                 'updated to this Email Address?', DLG_YES, 0, false);
       case buttonSelected of
-        mrYes: 
+        mrYes:
           if Assigned(MyClient.BlopiClientDetail) and UpdateBO
             then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
-        mrNo: ; //FClient.UseClientDetails := False;
-        mrCancel: btnCancelClick(Sender);
+        mrNo: Exit; //FClient.UseClientDetails := False;
       end;
     end;
   end;
