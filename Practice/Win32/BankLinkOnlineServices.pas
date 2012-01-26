@@ -246,16 +246,13 @@ var
   i: integer;
   SubArray: ArrayOfGUID;
 begin
-  SubArray := FPracticeCopy.Subscription;
-  try
-    //Free subscription GUID's
-    for i := Low(SubArray) to High(SubArray) do
-      //Make sure no memory is left allocated
-      SubArray[i] := '';
-    SetLength(SubArray, 0);
-  finally
-    FPracticeCopy.Subscription := SubArray;
-  end;
+  //Copy the subscription array
+  SetLength(SubArray, Length(FPracticeCopy.Subscription));
+  for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do
+    SubArray[i] := FPracticeCopy.Subscription[i];
+  //Try to remove product  
+  for i := Low(SubArray) to High(SubArray) do
+    RemoveProduct(SubArray[i]);
 end;
 
 
