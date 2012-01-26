@@ -253,7 +253,6 @@ CONST
     BANKLINK_ONLINE_PASS_KEY = 'jucuene88d8uje9whdwjhi9dc!';
 
     // BankLink Books Default URL
-//    BANKLINK_ONLINE_BOOKS_DEFAULT_URL = 'https://banklinkonline.com';
     BANKLINK_ONLINE_BOOKS_DEFAULT_URL = 'https://www.banklinkonline.com';
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -608,6 +607,7 @@ var
 
     //BankLink Online Books URL
     PRACINI_BankLink_Online_Books_URL  : string = BANKLINK_ONLINE_BOOKS_DEFAULT_URL;
+    PRACINI_BankLink_Online_BLOPI_URL  : string;
 
     // Remember email details in case it fails
     Email_Saved: Boolean = False;

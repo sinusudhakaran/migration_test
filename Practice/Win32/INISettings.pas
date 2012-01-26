@@ -637,6 +637,8 @@ begin
 
         //Overwrite BankLink Online URL
         PRACINI_BankLink_Online_Books_URL := ReadString( GrpPracEnv, 'BankLinkOnlineBooksURL', BANKLINK_ONLINE_BOOKS_DEFAULT_URL);
+        //Overwrite BankLink Online BLOPI URL
+        PRACINI_BankLink_Online_BLOPI_URL := ReadString( GrpPracEnv, 'BankLinkOnlineBlopiUrl', '');
 
         if Orig_Version < PRAC_INI_VERSION then begin
           // moved to db

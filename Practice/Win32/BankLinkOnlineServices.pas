@@ -948,7 +948,7 @@ var
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
-  Result := GetIBlopiServiceFacade(False, '', HTTPRIO);
+  Result := GetIBlopiServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL, HTTPRIO);
 end;
 
 //------------------------------------------------------------------------------
