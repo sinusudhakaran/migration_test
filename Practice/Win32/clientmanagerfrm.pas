@@ -11,14 +11,39 @@ unit ClientManagerFrm;
 
 }
 //------------------------------------------------------------------------------
-
 interface
                                              
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, RzGroupBar, RzCommon, ExtCtrls, ClientLookupFme, ImgList, ActnList,
-  StdCtrls, Menus, OpShared, OpWrdXP, OpWord, jpeg, VirtualTrees, RzButton, Grids, RzPanel,
-  OSFont,ImportProspectsDlg, dxGDIPlusClasses, Globals, BanklinkOnlineSettingsFrm,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  RzGroupBar,
+  RzCommon,
+  ExtCtrls,
+  ClientLookupFme,
+  ImgList,
+  ActnList,
+  StdCtrls,
+  Menus,
+  OpShared,
+  OpWrdXP,
+  OpWord,
+  jpeg,
+  VirtualTrees,
+  RzButton,
+  Grids,
+  RzPanel,
+  OSFont,
+  ImportProspectsDlg,
+  dxGDIPlusClasses,
+  Globals,
+  BanklinkOnlineSettingsFrm,
   BlopiServiceFacade;
 
 type
@@ -307,7 +332,7 @@ type
    constructor Create(AOwner: tComponent); override;
  end;
 
-
+//------------------------------------------------------------------------------
 function DoClientManager(L, T, H, W: Integer) : boolean;
 procedure CloseClientManager(ProcessMessage: Boolean = True);
 function DoGlobalClientSetup(L, T, H, W: Integer) : boolean;
@@ -322,7 +347,7 @@ procedure UpdateClientManagerCaption(Title: string);
 function CheckOutEnabled: Boolean;
 function SendFilesEnabled: Boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
 
 uses
@@ -346,13 +371,38 @@ uses
   MailFrm,
   logutil,
   ModalProcessorDlg,
-  syDefs, SysObj32, clObj32, cfList32,
-  MailMergeDlg, EMailMergeDlg, CreateMergeDocDlg, {threadData,}
-  ComCtrls, UpdateClientDetailsDlg,
-  ClientUtils, WinUtils, ShellAPI, stdate, bkdateutils, BK5Except,
-  AuthorityUtils, CAFfrm, rptCAF, TPAfrm, rptTPA, ReportDefs, ovcDate,
-  rptClientManager, CMFilterForm, bkBranding, ClientHomePageFrm, Merge32,
-  rptAdmin, MainFrm, CheckInOutFrm, Clipbrd, BanklinkOnlineServices,
+  syDefs,
+  SysObj32,
+  clObj32,
+  cfList32,
+  MailMergeDlg,
+  EMailMergeDlg,
+  CreateMergeDocDlg, {threadData,}
+  ComCtrls,
+  UpdateClientDetailsDlg,
+  ClientUtils,
+  WinUtils,
+  ShellAPI,
+  stdate,
+  bkdateutils,
+  BK5Except,
+  AuthorityUtils,
+  CAFfrm,
+  rptCAF,
+  TPAfrm,
+  rptTPA,
+  ReportDefs,
+  ovcDate,
+  rptClientManager,
+  CMFilterForm,
+  bkBranding,
+  ClientHomePageFrm,
+  Merge32,
+  rptAdmin,
+  MainFrm,
+  CheckInOutFrm,
+  Clipbrd,
+  BanklinkOnlineServices,
   YesNoDlg;
 
 {$R *.dfm}
@@ -394,12 +444,16 @@ const
 
   UnitName = 'CLIENTMANAGER';
 
+  // Mail merge word document
+  OfficeFialed = '"MS Office" options not installed, not available or encountered a problem';
+
 var
   GLClientManager: TfrmClientManager;
   DebugMe : boolean = false;
   BanklinkOnlineConnected : boolean = true;
+  GlfrmClientManagerUp : Boolean;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormActivate(Sender: TObject);
    procedure UpdateActions(CanDo: Boolean);
       procedure SetAction(Value: tAction; Count: Integer; Caption: string);
@@ -436,6 +490,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
@@ -453,6 +508,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormCreate(Sender: TObject);
 
 begin
@@ -500,13 +556,14 @@ begin
     LogUtil.LogMsg(lmError, UnitName, 'Cannot connect to Banklink Online');
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormDeactivate(Sender: TObject);
 begin
   //ActiveControl := nil;
   tmrUpdateClientDetails.Enabled := False;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdateINI;
 begin
   if not IsGlobal then begin
@@ -539,6 +596,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormDestroy(Sender: TObject);
 begin
   UpdateINI;
@@ -552,7 +610,7 @@ begin
      FreeAndnil(FCurrentClientTypeFilter);
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormShow(Sender: TObject);
 begin
   actUpdateProcessing.Visible := False;
@@ -566,7 +624,8 @@ begin
 
   SendMessage(Self.Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function TfrmClientManager.GetINI_ID( aFieldID : TClientLookupCol ) : integer;
 begin
   case aFieldID of
@@ -589,14 +648,15 @@ begin
     Result := -1;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.AddCustomColumn( aCaption : string; aDefWidth, aDefPos : integer; aFieldID : TClientLookupCol; aColObject : TObject);
 var
   UserPos, UserWidth : integer;
   IniColumnID : integer;
   UserVisible: Boolean;
 begin
-  
+
   UserPos := -1;  //-1 inidicates no info for this column
   UserWidth := aDefWidth; // #1665 - don't ever use zero as the default
   UserVisible := True;
@@ -625,7 +685,8 @@ begin
 
   ClientLookup.AddColumnEx( aFieldID, aCaption, aDefWidth, aDefPos, UserWidth, UserPos, UserVisible, aColObject);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdateColumnINISettings;
 var
   i : integer;
@@ -659,6 +720,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.CheckBOConnection(var message: TMessage);
 begin
   // todo: Check if Banklink Online is connected
@@ -666,6 +728,7 @@ begin
   lblCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not BanklinkOnlineConnected);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.ClientLookupvtClientsGetText(
   Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType; var CellText: WideString);
@@ -674,6 +737,7 @@ begin
 
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.ResetIniColumnDefaults;
 { #1665 - if its somehow got to here without reading the ini file
   then its possible all the column settings could be zero which is invalid data
@@ -710,8 +774,8 @@ begin
       UserINI_GS_Column_Widths[ i] := -1;
     end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.BuildHeaderContextMenu;
 var
   it: TMenuItem;
@@ -742,22 +806,14 @@ begin
     end;
 end;
 
-
-
-
-
-
-
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.btnFindClick(Sender: TObject);
 begin
   EBFind.Text := '';
   SearchTimerTimer(nil);
 end;
 
-var
-  GlfrmClientManagerUp : Boolean;
-
-
+//------------------------------------------------------------------------------
 procedure CloseClientManager(ProcessMessage: Boolean = True);
 begin
    if assigned (GLClientManager) then
@@ -768,6 +824,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 function DoClientManager(L, T, H, W: Integer) : boolean;
 const
    NoSelection : TGridRect = (Left:-1; Top:-1; Right:-1; Bottom:-1 );
@@ -858,7 +915,8 @@ begin
       GlfrmClientManagerUp := False;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function DoGlobalClientSetup(L, T, H, W: Integer) : boolean;
 var
   ClientManager : TfrmClientManager;
@@ -993,13 +1051,15 @@ begin
   if frmMain.ActiveMDIChild is TfrmClientManager then
     RefreshClientManager;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.SearchTimerTimer(Sender: TObject);
 begin
    SearchTimer.Enabled := False;
    ClientLookup.SearchText := EBFind.Text;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.SelectionChanged(Sender: TObject);
 var
   Count : integer;
@@ -1102,7 +1162,8 @@ begin
      gbClientManager.EndUpdateLayout
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdateClientDetails( Count : integer);
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter UpdateClientDetails');
@@ -1127,7 +1188,8 @@ begin
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit UpdateClientDetails');
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdateMultiTasks;
 var
   Item: TRzGroupItem;
@@ -1138,6 +1200,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdatePrintTasks;
 var
   Item: TRzGroupItem;
@@ -1147,7 +1210,8 @@ begin
      Item.Action := actPrintTasks;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdateTasksPending
 ;
 var
@@ -1169,7 +1233,8 @@ begin
   Item := rzgDetails.Items.Add;
   Item.Action := actTasks;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FillClientDetails;
 var
   S : string;
@@ -1284,7 +1349,8 @@ begin
      gbClientManager.ScrollPosition := gbClientManager.ScrollPosition + ( rzgFileTasks.Top - LastTop);
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit FillClientDetails');
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.ShowSelectedNo(Count : integer);
 var
   S : string;
@@ -1305,13 +1371,14 @@ begin
      rzgDetails.Items.EndUpdate;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.btnCancelClick(Sender: TObject);
 begin
   Modalresult := Mrcancel;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.BeginUpdate;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Begin Update');
@@ -1323,7 +1390,8 @@ begin
   end;
   Inc( FScreenLockCount);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.EndUpdate;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'End Update');
@@ -1335,7 +1403,8 @@ begin
     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Unlock Update');
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.RefreshLookup(CodeToSelect: string);
 begin
   //reload list
@@ -1350,22 +1419,26 @@ begin
     EndUpdate;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actOpenExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcOpen);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actNewFileExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcNew);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actCheckInExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcCheckIn);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actCheckOutExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcCheckOut);
@@ -1375,25 +1448,31 @@ end;
 // assign a staff member
 //
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actShowLegendExecute(Sender: TObject);
 begin
   ShowLegend := not ShowLegend;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actArchiveExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcArchive);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actAssignBulkExportExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcAssignBulkExport);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actAssignToExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcAssignTo);
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actBOSettingsExecute(Sender: TObject);
 var
   CodeNode: PVirtualNode;
@@ -1405,7 +1484,7 @@ begin
   EditBOSettings;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 //
 // set up report schedule
 //
@@ -1413,7 +1492,8 @@ procedure TfrmClientManager.actScheduledExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcSetupSchedule);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actClientEmailExecute(Sender: TObject);
 var
   unused: Boolean;
@@ -1422,17 +1502,20 @@ begin
   CanSelectClients := CurrUser.CanAccessAdmin or (not PRACINI_OSAdminOnly);
   MailFrm.SendFileTo( 'Send Mail', actClientEmail.Caption, '', '', unused, CanSelectClients);
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actClientTypeExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcAssignClientType);
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actEditClientDetailsExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcEditClientDetails);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.tmrUpdateClientDetailsTimer(Sender: TObject);
 begin
 
@@ -1448,13 +1531,14 @@ begin
    except
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actTasksExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcTasks);
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 //
 // apply coding screen layouts
 //
@@ -1462,7 +1546,8 @@ procedure TfrmClientManager.actCodingScreenLayoutExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcLoadLayout);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 //
 // assign practice contact
 //
@@ -1471,15 +1556,14 @@ begin
   ProcessModalCommand( cm_mcAssignContact);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actPrintExecute(Sender: TObject);
 begin
 
   DoClientManagerReport(rdAsk, ClientLookup, btnFilter.Hint);
 end;
 
-
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 //
 // Change Financial Year
 //
@@ -1511,11 +1595,13 @@ begin
   frmMain.DoMainFormCommand(mf_mcSys_AttachAccounts);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actUnlockFileExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcUnlockFile);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actUpdateProcessingExecute(Sender: TObject);
 begin
   Self.Enabled := False;
@@ -1525,11 +1611,13 @@ begin
   RefreshClientManager;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actTrackTasksExecute(Sender: TObject);
 begin
   UpdateClientManagerOptions;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoOpen;
 var
   Code: string;
@@ -1549,11 +1637,13 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoOpen');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoNew;
 begin
   frmMain.DoMainFormCommand( mf_mcNewFile);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoUnlock;
 var
   Codes : string;
@@ -1567,6 +1657,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoUnlock');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoCheckIn;
 var
   Codes : string;
@@ -1580,6 +1671,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoCheckIn');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoSendToFile;
 var
   Codes : string;
@@ -1602,6 +1694,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendClientFiles');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoAssignTo;
 var
   Codes         : String;
@@ -1621,6 +1714,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignTo');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoAssignGroup;
 var
   Codes         : String;
@@ -1640,6 +1734,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignGroup');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoAssignBulkExport;
 var
   Codes: String;
@@ -1659,6 +1754,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignBulkExport');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoAssignClientType;
 var
   Codes         : String;
@@ -1678,6 +1774,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignClientType');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoSetupSchedule;
 var
   Codes : String;
@@ -1696,6 +1793,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSetupSchedule');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoAssignContact;
 var
   Codes : String;
@@ -1714,6 +1812,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignContact');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoChangeFinYear;
 var
   Codes : String;
@@ -1732,6 +1831,7 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoChangeFinYear');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoLayout;
 var
   Codes : String;
@@ -1750,6 +1850,7 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoLayout');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoArchive;
 var
   Codes : String;
@@ -1768,6 +1869,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoArchive');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoPrintAllTasks;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoPrintAllTasks');
@@ -1775,6 +1877,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoPrintAllTasks');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoMultipleAddTasks;
 var
   ClientsSelected : TStringList;
@@ -1801,6 +1904,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoMultipleAddTasks');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoTasks;
 var
   Code : String;
@@ -1812,6 +1916,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoTasks');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoEditClientDetails;
 var
   Code : String;
@@ -1825,6 +1930,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoEditClientDetails');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoDeleteFile;
 var
   ScrollPos, NumProducts, i, k: Integer;
@@ -1926,6 +2032,7 @@ begin
     LogUtil.LogMsg(lmDebug,UnitName,'Exit DoDeleteFile');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.ProcessModalCommand(cID: byte);
 var
   LoseFocus: Boolean;
@@ -1979,6 +2086,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit Modal Command');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DisableForm;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Disable Form');
@@ -1987,18 +2095,21 @@ begin
   pnlFilter.Enabled := False;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.EBFindChange(Sender: TObject);
 begin
   SearchTimer.Enabled := False;
   SearchTimer.Enabled := True;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.EBFindKeyPress(Sender: TObject; var Key: Char);
 begin
   if Ord(Key)=VK_RETURN then
       SearchTimerTimer(nil);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.EditBOSettings;
 begin
   if EditBanklinkOnlineSettings then
@@ -2016,6 +2127,7 @@ begin
     }
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.EnableForm(LooseFocus: Boolean);
 begin
   gbClientManager.Enabled := true;
@@ -2028,11 +2140,11 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enable Form');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FrameDblClick(Sender: TObject);
 var
   Prospect, Active, Unsync: Boolean;
 begin
-
   ClientLookup.GetSelectionTypes(Prospect, Active, Unsync);
   if Prospect then
   begin
@@ -2043,6 +2155,7 @@ begin
     actOpen.Execute;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FrameNotesClick(Sender: TObject);
 var
   Code         : String;
@@ -2052,7 +2165,7 @@ begin
   RefreshLookup( Code);
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
@@ -2081,6 +2194,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormResize(Sender: TObject);
 begin
   if not FIsGlobal then
@@ -2103,16 +2217,19 @@ begin
     *)
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.mniEditBOSettingsClick(Sender: TObject);
 begin
   EditBOSettings;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.mniFilterClick(Sender: TObject);
 begin
   DoNewFilter(True);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.mniResetFilterClick(Sender: TObject);
 begin
   btnFilter.Hint := FILTER_ALL;
@@ -2123,6 +2240,7 @@ begin
   DoNewFilter(False);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.mniRestoreColumnsClick(Sender: TObject);
 begin
   ClientLookup.vtClients.OnHeaderMouseUp := nil;
@@ -2151,6 +2269,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.mniShowHideColumnsClick(Sender: TObject);
 var
   mi: TMenuItem;
@@ -2161,91 +2280,100 @@ begin
   UpdateINI;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.pnlCloseResize(Sender: TObject);
 begin
-   //
    if pnlClose.Height > 1  then
       btnClose.Left :=  pnlClose.Width - 85;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actHelpExecute(Sender: TObject);
 begin
   BKHelpShow(Self);
 end;
 
+//------------------------------------------------------------------------------
 // === Practice Management Actions ===
-
 procedure TfrmClientManager.actMergeDocExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcMergeDoc);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actMergeEmailExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcMergeEMail);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actMultiTasksExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcAddMultipleTasks);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actPrintTasksExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcPrintAllTasks);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actCreateDocExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcCreateMergeDoc);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actImportClientsExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcImportClients);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actImportProspectsExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcImportProspects);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actInActiveExecute(Sender: TObject);
 begin
    MaintainPracticeBankAccounts(mpba_Inactive);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actNewProspectExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcNewProspect);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actDeleteProspectExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcDeleteProspect);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actDownloadExecute(Sender: TObject);
 begin
   ModalProcessorDlg.DoModalCommand( mpcDoDownloadFromBConnect);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actDataAvailableExecute(Sender: TObject);
 begin
   ModalProcessorDlg.DoModalCommand( mpcDoDownloadFromBConnect);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actConvertToBKExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcConvertToBK);
 end;
 
-
+//------------------------------------------------------------------------------
 // === Practice Management Methods ===
-
-// Mail merge word document
-const
-  OfficeFialed = '"MS Office" options not installed, not available or encountered a problem';
 procedure TfrmClientManager.DoMergeDoc;
 var
   Codes: string;
@@ -2268,6 +2396,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 // Mail merge email
 procedure TfrmClientManager.DoMergeEMail;
 var
@@ -2291,6 +2420,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 // Create a new mail merge document
 procedure TfrmClientManager.DoCreateDoc(var LoseFocus: Boolean);
 var
@@ -2314,6 +2444,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 // Add a new prospect - re-use the update contact details form
 procedure TfrmClientManager.DoNewProspect;
 var
@@ -2355,6 +2486,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoDeleteProspect;
 var
   Codes         : String;
@@ -2379,6 +2511,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 // Bulk Insert Prospects or Bulk Update Client Details
 procedure TfrmClientManager.DoImportClientsProspects(ImportType: EImportType);
 var
@@ -2397,6 +2530,7 @@ begin
     end;
 end;
 
+//------------------------------------------------------------------------------
 // Create an active client based on prospect details
 procedure TfrmClientManager.DoConvertToBK;
 var
@@ -2414,8 +2548,8 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 // Filter has changed - update GUI as required
-
 procedure TfrmClientManager.UpdateFilter(Id: Integer);
 var
   SearchFor: Byte;
@@ -2529,6 +2663,7 @@ begin
   UpdateINI;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.cmbFilterChange(Sender: TObject);
 begin
   UpdateFilter(Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]));
@@ -2540,11 +2675,13 @@ begin
     end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.btnFilterClick(Sender: TObject);
 begin
   DoNewFilter(True);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoNewFilter(ShowForm: Boolean);
 var
   p: TPoint;
@@ -2603,6 +2740,7 @@ begin
 
 end;
 
+//------------------------------------------------------------------------------
 // Set the user status for opening CM on opening BK5
 procedure TfrmClientManager.SetShowLegend(const Value: Boolean);
 begin
@@ -2622,6 +2760,7 @@ begin
    pnlLegend.Visible := FShowLegend;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.SetUser;
 var CanSendFilesOffsite : boolean;
   i, p: Integer;
@@ -2748,41 +2887,13 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit SetUser');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.SetUserSet(const Value: Boolean);
 begin
   FUserSet := Value;
 end;
 
-(*
-procedure TfrmClientManager.SetUserCMStatus(const Value: Boolean);
-var
-  pUser : pUser_Rec;
-begin
- if LoadAdminSystem(true, 'TfrmClientManager.SetUserCMStatus' ) then
- begin
-  FShowCM := Value;
-  pUser := AdminSystem.fdSystem_User_List.FindCode( CurrUser.Code);
-  if Assigned( pUser) then
-  begin
-    pUser^.usShow_CM_on_open := Value;
-    SaveAdminSystem;
-    if Value then
-    begin
-      actShowCM.ImageIndex := 21;
-      rzgOptions.Items[1].ImageIndex := 21;
-    end
-    else
-    begin
-      actShowCM.ImageIndex := 22;
-      rzgOptions.Items[1].ImageIndex := 22;
-    end;
-  end;
- end
- else
-  HelpfulErrorMsg('Unable to Update Client Manager Settings.  Admin System cannot be loaded',0);
-end;
-*)
-
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.sgLegendDrawCell(Sender: TObject; ACol,
   ARow: Integer; Rect: TRect; State: TGridDrawState);
 
@@ -2823,22 +2934,14 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.sgLegendSelectCell(Sender: TObject; ACol,
   ARow: Integer; var CanSelect: Boolean);
 begin
   ClientLookup.SetFocusToGrid;
 end;
 
-{function TfrmClientManager.GetUserCMStatus: Boolean;
-var
-  pUser : pUser_Rec;
-begin
-  Result := False;
-  pUser := AdminSystem.fdSystem_User_List.FindCode( CurrUser.Code);
-  if Assigned( pUser) then
-    Result := pUser^.usShow_CM_on_open;
-end;}
-
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.FormShortCut(var Msg: TWMKey;
   var Handled: Boolean);
 var
@@ -2866,16 +2969,19 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actSendExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcSend);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actSendOnlineExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcSendOnline);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.ActShowInstitutionsExecute(Sender: TObject);
 var link: String;
 begin
@@ -2889,6 +2995,7 @@ begin
   ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoSendViaEmail;
 var
   Code, Codes, Recipient : string;
@@ -2913,6 +3020,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.DoSendViaOnline;
 var
   Codes : string;
@@ -2932,6 +3040,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendOnline');
 end;
 
+//------------------------------------------------------------------------------
 function TfrmClientManager.GetSelectedEmail: string;
 var
   SysClientRec : pClient_File_Rec;
@@ -2948,6 +3057,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actCAFExecute(Sender: TObject);
 var
   aForm: TfrmCAF;
@@ -2984,6 +3094,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.actTPAExecute(Sender: TObject);
 var
   aForm: TfrmTPA;
@@ -3020,11 +3131,13 @@ begin
   end;                                           
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.ColumnMoved(Sender: TVTHeader; Column: TColumnIndex; OldPosition: Integer);
 begin
   BuildHeaderContextMenu;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdateActions;
 begin
   inherited;
@@ -3039,6 +3152,7 @@ begin
    btnFind.Enabled := ebFind.Text > '';
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdateClientCountLabel;
 begin
 
@@ -3048,6 +3162,7 @@ begin
     lblCount.Caption := IntToStr(ClientLookup.ClientCount) + ' Clients Listed';
 end;
 
+//------------------------------------------------------------------------------
 procedure RefreshClientManager(Code: string = ''; Restore: Boolean = True);
 begin
 
@@ -3067,6 +3182,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure DisableClientManager;
 begin
   if Assigned(GLCLientManager) then
@@ -3078,6 +3194,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure EnableClientManager;
 begin
   if Assigned(GLClientManager) then
@@ -3089,6 +3206,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.wmsyscommand(var msg: TWMSyscommand);
 begin
   if (not FIsGlobal) and (((msg.CmdType and $FFF0) = SC_MINIMIZE) or
@@ -3098,23 +3216,27 @@ begin
     inherited;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.vtClientsHeaderMouseUp(Sender: TVTHeader; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   UpdateINI;
 end;
 
+//------------------------------------------------------------------------------
 procedure ClientManagerCheckout;
 begin
   if Assigned(GLClientManager) then
     GLClientManager.actCheckOutExecute(GLClientManager);
 end;
 
+//------------------------------------------------------------------------------
 procedure ClientManagerSendOnline;
 begin
   if Assigned(GLClientManager) then
     GLClientManager.actSendOnlineExecute(GLClientManager);
 end;
 
+//------------------------------------------------------------------------------
 procedure ClientManagerSend;
 begin
   if Assigned(GLClientManager) then
@@ -3124,6 +3246,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure SetDownloadAvailability(Status: Byte);
 begin
   (*
@@ -3140,12 +3263,14 @@ begin
   *)
 end;
 
+//------------------------------------------------------------------------------
 procedure UpdateClientManagerCaption(Title: string);
 begin
   if Assigned(GLClientManager) then
     GLClientManager.Caption := Title + ' Clients';
 end;
 
+//------------------------------------------------------------------------------
 function CheckOutEnabled: Boolean;
 begin
   Result := False;
@@ -3153,6 +3278,7 @@ begin
     Result := GLClientManager.actCheckOut.Enabled;
 end;
 
+//------------------------------------------------------------------------------
 function SendFilesEnabled: Boolean;
 begin
   Result := False;
@@ -3160,11 +3286,10 @@ begin
     Result := GLClientManager.actsend.Enabled;
 end;
 
+//------------------------------------------------------------------------------
 { TfrmClientMaint }
-
 constructor TfrmClientMaint.Create(AOwner: tComponent);
 begin
-
    FormStyle := forms.fsNormal;
    Visible := false;
    inherited;
@@ -3176,6 +3301,7 @@ begin
    actAssignBulkExport.Visible := BulkExtractFrm.CanBulkExtract;
 end;
 
+//------------------------------------------------------------------------------
 initialization
   DebugMe := DebugUnit(UnitName);
   GlfrmClientManagerUp := False;
