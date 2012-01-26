@@ -272,7 +272,7 @@ type
     procedure DoDeleteFile;
     procedure DoUnlock;
     procedure AddCustomColumn(aCaption: string; aDefWidth,
-      aDefPos: integer; aFieldID: TClientLookupCol);
+      aDefPos: integer; aFieldID: TClientLookupCol; aColObject : TObject = Nil);
     function GetINI_ID(aFieldID: TClientLookupCol): integer;
     procedure UpdateColumnINISettings;
     procedure ResetIniColumnDefaults;
@@ -590,7 +590,7 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmClientManager.AddCustomColumn( aCaption : string; aDefWidth, aDefPos : integer; aFieldID : TClientLookupCol);
+procedure TfrmClientManager.AddCustomColumn( aCaption : string; aDefWidth, aDefPos : integer; aFieldID : TClientLookupCol; aColObject : TObject);
 var
   UserPos, UserWidth : integer;
   IniColumnID : integer;
@@ -623,7 +623,7 @@ begin
     end;
   end;
 
-  ClientLookup.AddColumnEx( aFieldID, aCaption, aDefWidth, aDefPos, UserWidth, UserPos, UserVisible);
+  ClientLookup.AddColumnEx( aFieldID, aCaption, aDefWidth, aDefPos, UserWidth, UserPos, UserVisible, aColObject);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmClientManager.UpdateColumnINISettings;
@@ -911,32 +911,34 @@ begin
         AddCustomColumn( 'Financial Year Starts', 75, 10, cluFinYearStarts);
         AddCustomColumn( 'Practice Contact', 75, 11, cluContactType);
 
+        NumColumns := 12;
         // ShowMessage(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[0]).Description);
 
         if (BanklinkOnlineConnected and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
-        {
-          if Assigned(MyClient) then begin
-            if Assigned(MyClient.BlopiClientDetail) then begin
-              for i := 0 to High(MyClient.BlopiClientDetail.Catalogue) do
-                AddCustomColumn( MyClient.BlopiClientDetail.Catalogue[i].Description, 75, 12 + i, cluBOProduct);
-              NumColumns := 13 + High(MyClient.BlopiClientDetail.Catalogue);
-        }
-              ProductConfigService.LoadClientList;
-              for i := 0 to High(ProductConfigService.Clients.Catalogue) do
-              begin
-                ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
-                AddCustomColumn(ColumnName, 75, 12 + i, cluBOProduct);
-              end;
 
-              AddCustomColumn( 'Billing Frequency', 75, NumColumns, cluBOBillingFrequency);
-              AddCustomColumn( 'User Admin', 75, NumColumns + 1, cluBOUserAdmin);
-              AddCustomColumn( 'Suspended', 75, NumColumns + 2, cluBOSuspended);
-              AddCustomColumn( 'Deactivated', 75, NumColumns + 3, cluBODeactivated);
+          ProductConfigService.LoadClientList;
+          for i := 0 to High(ProductConfigService.Clients.Catalogue) do
+          begin
+            ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
 
-//            end;// else
-//              MyClient.BlopiClientDetail := ProductConfigService.GetClientDetails(AClientID);
-//          end;
+            AddCustomColumn(trim(ColumnName),
+                            trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
+                            NumColumns,
+                            cluBOProduct,
+                            ProductConfigService.Clients.Catalogue[i]);
+
+            inc(NumColumns);
+          end;
+
+          AddCustomColumn( 'Billing Frequency',
+            trunc(vtClients.Canvas.TextWidth(trim('Billing Frequency')) * 2), NumColumns, cluBOBillingFrequency);
+          AddCustomColumn( 'User Admin',
+            trunc(vtClients.Canvas.TextWidth(trim('User Admin')) * 2), NumColumns + 1, cluBOUserAdmin);
+          AddCustomColumn( 'Suspended',
+            trunc(vtClients.Canvas.TextWidth(trim('Suspended')) * 2), NumColumns + 2, cluBOSuspended);
+          AddCustomColumn( 'Deactivated',
+            trunc(vtClients.Canvas.TextWidth(trim('Deactivated')) * 2), NumColumns + 3, cluBODeactivated);
         end;
 
         BuildGrid( cluCode);

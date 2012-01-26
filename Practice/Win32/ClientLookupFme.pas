@@ -70,6 +70,7 @@ type
     DisplayWidth  : integer;
     Visible       : Boolean;
     Color         : TColor;
+    ColObject     : TObject;
   end;
 
   TCluColumnList = class( TList)
@@ -288,7 +289,8 @@ type
     function AddColumn( aCaption : string; aDefaultWidth : integer; aFieldID : TClientLookupCol) : TCluColumnDefn;
     function AddColumnEx( aFieldID : TClientLookupCol; aCaption : string;
                           aDefaultWidth : integer; aDefaultPos : integer;
-                          aUserWidth : integer; aUserPos : integer; visible: Boolean): TCluColumnDefn;
+                          aUserWidth : integer; aUserPos : integer; visible: Boolean;
+                          aColObject : TObject = Nil): TCluColumnDefn;
     procedure BuildGrid( const SelectColumn : TClientLookupCol; const SortDirection: TSortDirection = sdAscending);
     procedure LocateCode( aCode : string);
     procedure SetFocusToGrid;
@@ -549,6 +551,7 @@ begin
   NewColumn.DisplayPos      := NewColumn.DefaultPos;
   NewColumn.DisplayWidth    := NewColumn.DefaultWidth;
   NewColumn.Visible         := True;
+  NewColumn.ColObject       := Nil;
   //add columns
   FColumns.Add( NewColumn);
   result := NewColumn;
@@ -557,7 +560,9 @@ end;
 function TfmeClientLookup.AddColumnEx( aFieldID: TClientLookupCol;
                                        aCaption: string;
                                        aDefaultWidth, aDefaultPos, aUserWidth,
-                                       aUserPos: integer; visible: Boolean): TCluColumnDefn;
+                                       aUserPos: integer;
+                                       visible: Boolean;
+                                       aColObject : TObject): TCluColumnDefn;
 //extended version of AddColumn that allows customizable column position and
 //width
 //passing -1 as the default width will set that column to be auto-sizing
@@ -571,6 +576,7 @@ begin
   NewColumn.DefaultWidth    := aDefaultWidth;
   NewColumn.DefaultPos      := aDefaultPos;
   NewColumn.Visible         := visible;
+  NewColumn.ColObject       := aColObject;
   //set custom settings if specified
   if aUserPos = -1 then
   begin
@@ -1902,6 +1908,9 @@ var
   pClientType    : pClient_Type_Rec;
   i: Integer;
   Period, CD, M, MM, EM, Y, D: Integer;
+  FoundIndex : integer;
+  CatEntry : CatalogueEntry;
+  ClientCode : String;
 begin
   CellText := '';
 
@@ -2161,7 +2170,30 @@ begin
 
           cluBOProduct :
           begin
-            CellText := #10004; // tick
+            CellText := '';
+            if (Assigned(FColumns.ColumnDefn_At(Column).ColObject)) and
+               (FColumns.ColumnDefn_At(Column).ColObject is CatalogueEntry) then
+            begin
+              CatEntry := CatalogueEntry(FColumns.ColumnDefn_At(Column).ColObject);
+
+              FoundIndex := -1;
+              for i := low(ProductConfigService.Clients.Clients) to
+                       high(ProductConfigService.Clients.Clients) do
+              begin
+                ClientCode := ProductConfigService.Clients.Clients[i].ClientCode;
+                if ClientCode = sysClientRec^.cfFile_Code then
+                begin
+                  FoundIndex := i;
+                  break;
+                end;
+              end;
+
+              if (FoundIndex > -1) then
+              begin
+                if ProductConfigService.Clients.Clients[FoundIndex].HasSubscription(CatEntry.Id) then
+                  CellText := #10004;
+              end;
+            end;
           end;
         end;
       end;

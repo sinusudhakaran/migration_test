@@ -1231,7 +1231,7 @@ begin
       MyClientSummary := ClientUpdate.Create;
       try
         //Save client
-        MyClientSummary.Id := UpperCase(AClient.Id);
+        MyClientSummary.Id := AClient.Id;
         MyClientSummary.ClientCode := AClient.ClientCode;
         MyClientSummary.Name_ := AClient.Name_;
         MyClientSummary.Status := AClient.Status;
@@ -1508,8 +1508,6 @@ var
   SubArray: arrayofguid;
   i: integer;
 begin
-  AProductID := UpperCase(AProductId);
-
   Result := False;
   for i := Low(Subscription) to High(Subscription) do
     if (Subscription[i] = AProductID) then
@@ -1532,8 +1530,6 @@ var
   i: integer;
   FoundIndex : integer;
 begin
-  AProductID := UpperCase(AProductId);
-
   Result := False;
   FoundIndex := -1;
   // Try Find Product to Remove
@@ -1565,8 +1561,6 @@ function TClientBaseHelper.HasSubscription(AProductID: guid) : Boolean;
 var
   i : Integer;
 begin
-  AProductID := UpperCase(AProductId);
-
   Result := False;
   for i := Low(Subscription) to High(Subscription) do
   begin
@@ -1954,7 +1948,7 @@ begin
 
   for RoleIndex := 0 to High(Self.Roles) do
   begin
-    if (UpperCase(Self.Roles[RoleIndex].Id) = RoleGuid) then
+    if (Self.Roles[RoleIndex].Id = RoleGuid) then
     begin
       Result := Self.Roles[RoleIndex];
       Exit;
