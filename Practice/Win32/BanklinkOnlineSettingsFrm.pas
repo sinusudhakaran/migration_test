@@ -104,8 +104,18 @@ const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
   Result := False;
-  if AdminSystem.fdFields.fdUse_BankLink_Online then
-  begin
+  if not Assigned(MyClient) then
+    Exit;
+  //Get Practice details (so we can load the list of available products)
+  ProductConfigService.GetPractice;
+  if not Assigned(ProductConfigService.CachedPractice) then
+    Exit;
+  //Get client list (so that we can lookup the client code)
+  ProductConfigService.LoadClientList;
+  //Get client details
+  if not MyClient.RefreshBlopiClient then
+    Exit;
+  if Assigned(MyClient.BlopiClientDetail) then begin
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
       Result := BanklinkOnlineSettings.Execute;

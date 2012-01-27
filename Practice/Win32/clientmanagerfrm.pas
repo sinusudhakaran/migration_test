@@ -12,7 +12,7 @@ unit ClientManagerFrm;
 }
 //------------------------------------------------------------------------------
 interface
-                                             
+
 uses
   Windows,
   Messages,
@@ -241,8 +241,6 @@ type
     procedure actInActiveExecute(Sender: TObject);
     procedure actSendOnlineExecute(Sender: TObject);
     procedure actBOSettingsExecute(Sender: TObject);
-    procedure mniEditBOSettingsClick(Sender: TObject);
-    procedure EditBOSettings;
     procedure ClientLookupvtClientsGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
       var CellText: WideString);
@@ -1475,13 +1473,25 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.actBOSettingsExecute(Sender: TObject);
 var
-  CodeNode: PVirtualNode;
-  NodeText: WideString;
+  ClientCode: string;
 begin
-  CodeNode := ClientLookup.vtClients.FocusedNode;
-  ClientLookup.vtClientsGetText(ClientLookup.vtClients, CodeNode, 1, ttNormal, NodeText);
-  OpenClient(NodeText,False);
-  EditBOSettings;
+  ClientLookup.vtClients.BeginUpdate;
+  try
+    ClientCode := ClientLookup.FirstSelectedCode;
+    OpenClient(ClientCode);
+    try
+      if Assigned(MyClient) then
+        if EditBanklinkOnlineSettings then
+          MyClient.BlopiClientChanged := True;
+    finally
+      if Assigned(MyClient) then begin
+        CloseClientHomepage;
+        RefreshLookup(ClientCode);        
+      end;
+    end;
+  finally
+    ClientLookup.vtClients.EndUpdate;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1628,7 +1638,7 @@ begin
 
      if Assigned(MyClient) then
       CloseClientHomePage;
-      
+
      Files.OpenClient(Code);
      RefreshLookup(Code);
   end;
@@ -2109,25 +2119,6 @@ begin
       SearchTimerTimer(nil);
 end;
 
-//------------------------------------------------------------------------------
-procedure TfrmClientManager.EditBOSettings;
-begin
-  if EditBanklinkOnlineSettings then
-    MyClient.BlopiClientChanged := True;
-  {
-  if not Assigned(BanklinkOnlineSettings) then
-    BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
-
-  try
-    BanklinkOnlineSettings.ShowModal;
-  finally
-    BanklinkOnlineSettings.Free;
-    BanklinkOnlineSettings := nil;
-  end;
-    }
-end;
-
-//------------------------------------------------------------------------------
 procedure TfrmClientManager.EnableForm(LooseFocus: Boolean);
 begin
   gbClientManager.Enabled := true;
@@ -2217,13 +2208,6 @@ begin
     *)
 end;
 
-//------------------------------------------------------------------------------
-procedure TfrmClientManager.mniEditBOSettingsClick(Sender: TObject);
-begin
-  EditBOSettings;
-end;
-
-//------------------------------------------------------------------------------
 procedure TfrmClientManager.mniFilterClick(Sender: TObject);
 begin
   DoNewFilter(True);

@@ -432,24 +432,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
 begin
-  //Get Practice details (so we can load the list of available products)
-  ProductConfigService.GetPractice;
-  if not Assigned(ProductConfigService.CachedPractice) then
-    Exit;
-  //Get client list (so that we can lookup the client code)
-  ProductConfigService.LoadClientList;
-  //Get client details
-  if not MyClient.RefreshBlopiClient then
-    Exit;
-  if Assigned(MyClient.BlopiClientDetail) then begin
-    // These need to be updated immediately so that the user name and email address in
-    // the Banklink Online Settings form will be populated correctly when 'Use Client
-    // Details' is ticked
-    MyClient.clFields.clContact_name := econtact.text;
-    MyClient.clFields.clClient_EMail_Address := eMail.text;
-    if EditBanklinkOnlineSettings then begin
-      MyClient.BlopiClientChanged := True;
-    end;
+  // These need to be updated immediately so that the user name and email address in
+  // the Banklink Online Settings form will be populated correctly when 'Use Client
+  // Details' is ticked
+  MyClient.clFields.clContact_name := econtact.text;
+  MyClient.clFields.clClient_EMail_Address := eMail.text;
+  if EditBanklinkOnlineSettings then begin
+    MyClient.BlopiClientChanged := True;
   end;
 end;
 
