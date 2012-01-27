@@ -1872,11 +1872,11 @@ begin
 
   case aUstNameIndex of
                             // Accountant Practice Standard User
-    ustRestricted : Result := '8C464F01-5071-4FC1-B257-0104D48D141B';
+    ustRestricted : Result := '8c464f01-5071-4fc1-b257-0104d48d141b';
                             // Accountant Practice Standard User
-    ustNormal     : Result := '8C464F01-5071-4FC1-B257-0104D48D141B';
+    ustNormal     : Result := '8c464f01-5071-4fc1-b257-0104d48d141b';
                             // Accountant Practice Administrator
-    ustSystem     : Result := '8C464F01-5071-4FC1-B257-0104D48D1418';
+    ustSystem     : Result := '8c464f01-5071-4fc1-b257-0104d48d1418';
   end;
 end;
 
