@@ -449,7 +449,7 @@ var
 begin
   UpdateBO := AdminSystem.fdFields.fdUse_BankLink_Online;
   if Assigned(MyClient.BlopiClientDetail) then begin
-    if (OriginalEmail <> eMail.Text) {and MyClient.BlopiClientDetail.UseClientDetails} then
+    if (OriginalEmail <> eMail.Text) then
     begin
       buttonSelected := AskYesNo('Email address changed',
                                  'You have changed the Email Address for this client. Do you ' +
@@ -459,23 +459,15 @@ begin
         mrYes:
           if Assigned(MyClient.BlopiClientDetail) and UpdateBO
             then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
-        mrNo: Exit; //FClient.UseClientDetails := False;
+        mrNo: Exit;
       end;
     end;
   end;
 
   if okToPost then
   begin
-     if Assigned(MyClient.BlopiClientDetail) and UpdateBO then begin
+     if Assigned(MyClient.BlopiClientDetail) and UpdateBO then
        MyClient.BlopiClientDetail.ClientCode := eCode.Text;
-       {
-       if MyClient.BlopiClientDetail.UseClientDetails then
-       begin
-         //FClient.UserName := eContact.Text;
-         //FClient.EmailAddress := eMail.Text;
-       end;
-       }
-     end;
      okPressed := true;
      Close;
   end;

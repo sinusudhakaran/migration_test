@@ -59,10 +59,7 @@ type
     procedure SetStatus(aStatus : TStatus);
     function GetStatus : TStatus;
     procedure UpdateClientWebFormat;
-//    FContactName, FEmailAddress: string;
   public
-//    procedure SetContactName(Value: string);
-//    procedure SetEmailAddress(Value: string);
     function Execute : boolean;
 
     procedure LoadClientInfo;
@@ -70,7 +67,6 @@ type
     property Status : TStatus read GetStatus write SetStatus;
   end;
 
-  // function to create BanklinkOnlineSettingsFrm goes here
   function EditBanklinkOnlineSettings : boolean;
 
 //------------------------------------------------------------------------------
@@ -220,7 +216,6 @@ begin
       begin
         for j := 0 to High(MyClient.BlopiClientDetail.Subscription) do
         begin
-          // if (WideString(chklistProducts.Items.Objects[i]) = MyClient.BlopiClientDetail.Subscription[j]) then
           if (CatalogueEntry(chklistProducts.Items.Objects[i]).Id = MyClient.BlopiClientDetail.Subscription[j]) then
           begin
             ProductFound := true;
@@ -232,22 +227,6 @@ begin
         NewProducts.Add(chklistProducts.Items[i])
       else if (chklistProducts.Checked[i] = false) and ProductFound then
         ProductsRemoved.Add(chklistProducts.Items[i]);
-
-
-      {if chklistProducts.Checked[i] then
-      begin
-        for j := 0 to High(SubArray) do
-        begin
-          if (WideString(chklistProducts.Items.Objects[i]) = SubArray[j]) then
-          begin
-            ProductFound := true;
-            break
-          end;
-        end;
-        if not ProductFound then
-          NewProducts.Add(chklistProducts.Items[i]);
-      end; }
-
     end;
 
     if Assigned(MyClient.BlopiClientDetail) then
@@ -306,16 +285,10 @@ begin
     ModalResult := mrNone
   else
   begin
-    // Update client with data from fields
-//    UserDetail(FClient.Users[0]).FullName := edtUserName.Text;
-//    UserDetail(FClient.Users[0]).EMail := edtEmailAddress.Text;
-
     NewUserName := edtUserName.Text;
     NewEmail := edtEmailAddress.Text;
-
     if Assigned(MyClient.BlopiClientDetail) then
       MyClient.BlopiClientDetail.UpdateAdminUser(NewUserName, NewEmail);
-    // MyClient.BlopiClientDetail.UseClientDetails := chkUseClientDetails.Checked;
 
     if ProductsChanged then
     begin
@@ -601,16 +574,6 @@ end;
 procedure TfrmBanklinkOnlineSettings.rbSuspendedClick(Sender: TObject);
 begin
   CheckClientConnectControls;
-end;   
-
-//procedure TfrmBanklinkOnlineSettings.SetContactName(Value: string);
-//begin
-//  FContactName := Value;
-//end;
-
-//procedure TfrmBanklinkOnlineSettings.SetEmailAddress(Value: string);
-//begin
-//  FEmailAddress := Value;
-//end;
+end;
 
 end.
