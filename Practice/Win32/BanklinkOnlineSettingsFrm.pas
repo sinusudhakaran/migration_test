@@ -106,15 +106,19 @@ begin
   Result := False;
   if not Assigned(MyClient) then
     Exit;
-  //Get Practice details (so we can load the list of available products)
-  ProductConfigService.GetPractice;
-  if not Assigned(ProductConfigService.CachedPractice) then
-    Exit;
-  //Get client list (so that we can lookup the client code)
-  ProductConfigService.LoadClientList;
-  //Get client details
-  if not MyClient.RefreshBlopiClient then
-    Exit;
+
+  if not MyClient.BlopiClientChanged then begin
+    //Get Practice details (so we can load the list of available products)
+    ProductConfigService.GetPractice;
+    if not Assigned(ProductConfigService.CachedPractice) then
+      Exit;
+    //Get client list (so that we can lookup the client code)
+    ProductConfigService.LoadClientList;
+    //Get client details
+    if not MyClient.RefreshBlopiClient then
+      Exit;
+  end;
+
   if Assigned(MyClient.BlopiClientDetail) then begin
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
@@ -138,6 +142,7 @@ var
   i, j, ButtonPressed: integer;
 
   ClientStatus : TStatus;
+  MaxOfflineDays : String;
   BillingFrequency : WideString;
   NotesId : Guid;
 begin
@@ -246,9 +251,15 @@ begin
     end;
 
     if Assigned(MyClient.BlopiClientDetail) then
-      BillingFrequency := MyClient.BlopiClientDetail.BillingFrequency
+    begin
+      BillingFrequency := MyClient.BlopiClientDetail.BillingFrequency;
+      MaxOfflineDays := IntToStr(MyClient.BlopiClientDetail.MaxOfflineDays);
+    end
     else if Assigned(MyClient.BlopiClientNew) then
+    begin
       BillingFrequency := MyClient.BlopiClientNew.BillingFrequency;
+      MaxOfflineDays := IntToStr(MyClient.BlopiClientNew.MaxOfflineDays);
+    end;
 
     ProductsChanged := NewProducts.Count > 0;
     BillingFrequencyChanged := cmbBillingFrequency.Text <> BillingFrequency;
@@ -440,9 +451,11 @@ begin
   if Assigned(MyClient.BlopiClientDetail) then
   begin
     Status := MyClient.BlopiClientDetail.Status;
-    cmbConnectDays.Text := MyClient.BlopiClientDetail.ClientConnectDays;
+    if (MyClient.BlopiClientDetail.MaxOfflineDays = 0) then
+      cmbConnectDays.Text := 'Always'
+    else
+      cmbConnectDays.Text := IntToStr(MyClient.BlopiClientDetail.MaxOfflineDays) + ' days';
     cmbBillingFrequency.Text := MyClient.BlopiClientDetail.BillingFrequency;
-    //chkUseClientDetails.Checked := MyClient.BlopiClientDetail.UseClientDetails;
     chkUseClientDetails.Checked := false;
 
     // Checks the Products that Client Subscribes to
@@ -497,12 +510,16 @@ procedure TfrmBanklinkOnlineSettings.SaveClientInfo;
 var
   ProdIndex : integer;
   CatEntry  : CatalogueEntry;
+  ConnectDays : string;
 begin
   // Existing Client
   if Assigned(MyClient.BlopiClientDetail) then
   begin
     MyClient.BlopiClientDetail.Status := Status;
     MyClient.BlopiClientDetail.BillingFrequency := cmbBillingFrequency.Text;
+    ConnectDays := StringReplace(cmbConnectDays.Text, 'Always', '0', [rfReplaceAll]);
+    ConnectDays := StringReplace(ConnectDays, ' days', '', [rfReplaceAll]);
+    MyClient.BlopiClientDetail.MaxOfflineDays := StrToInt(ConnectDays);
     MyClient.BlopiClientDetail.Subscription := Nil;
 
     for ProdIndex := 0 to chklistProducts.Count - 1 do
@@ -560,8 +577,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-//  ListOfClients.Free;
-//  chklistProducts.Clear;
 end;
 
 //------------------------------------------------------------------------------
