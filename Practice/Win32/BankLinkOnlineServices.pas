@@ -314,7 +314,7 @@ begin
         Result := MsgResponse.Result;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -420,7 +420,7 @@ begin
         Result := ClientDetailResponse.Result;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -533,7 +533,7 @@ begin
           end;
         end;
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       except
         on E: Exception do
           HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
@@ -602,7 +602,7 @@ begin
             FClientList := BlopiClientList.Result;
 
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       end;
     finally
       if ShowProgress then
@@ -1286,7 +1286,7 @@ begin
         Result := True;
 
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
 
         Msg := Format('Settings for %s have been successfully updated to ' +
                       '%s.',[AClient.ClientCode, BANKLINK_ONLINE_NAME]);
@@ -1333,7 +1333,7 @@ begin
     //BlopiInterface.DeleteClientUser()
     Result := True;
 
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
   finally
     Progress.StatusSilent := True;
     Progress.ClearStatus;
@@ -1377,7 +1377,7 @@ begin
           //If save ok then save an offline copy to System DB
           SavePracticeDetailsToSystemDB;
           Result := True;
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
         end;
       finally
         Progress.StatusSilent := True;
@@ -1681,7 +1681,7 @@ begin
         if Result then
         begin
           aIsUserCreated := false;
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
         end;
       end;
     end
@@ -1704,7 +1704,7 @@ begin
         Result  := True;
         aUserId := MsgResponceGuid.Result;
         aIsUserCreated := True;
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       end;
     end;
   finally
@@ -1759,7 +1759,7 @@ begin
       Result := True;
 
     if Result then
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
 
   finally
     Progress.StatusSilent := True;
@@ -1848,7 +1848,7 @@ begin
     if not MessageResponseHasError(MsgResponce, 'change practice user password on') then begin
       Result := MsgResponce.Success;
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
     end;
 
   finally
