@@ -72,7 +72,7 @@ begin
     if not Assigned(aPractice) then
       aPractice := ProductConfigService.GetPractice;
 
-    AdminRollName := aPractice.GetRoleFromPracUserType(ustSystem).RoleName;
+    AdminRollName := aPractice.GetRoleFromPracUserType(ustSystem, aPractice).RoleName;
 
     MyDlg := TPickNewPrimaryUser.Create(Application);
     Try

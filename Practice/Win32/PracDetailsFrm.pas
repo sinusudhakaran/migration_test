@@ -1035,7 +1035,7 @@ begin
                           Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
       //Primary Contacts
       cbPrimaryContact.Enabled := True;
-      AdminRollName := FPrac.GetRoleFromPracUserType(ustSystem).RoleName;
+      AdminRollName := FPrac.GetRoleFromPracUserType(ustSystem, FPrac).RoleName;
 
       for i := Low(FPrac.Users) to High(FPrac.Users) do
       begin

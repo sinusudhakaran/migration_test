@@ -61,9 +61,11 @@ type
 
   TPracticeHelper = Class helper for Practice
   private
-    function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer) : Guid;
+    function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer;
+                                             aInstance: Practice) : Guid;
   public
-    function GetRoleFromPracUserType(aUstNameIndex : integer) : Role;
+    function GetRoleFromPracUserType(aUstNameIndex : integer;
+                                     aInstance: Practice) : Role;
     function IsEqual(Instance: Practice): Boolean;
   End;
 
@@ -1642,7 +1644,7 @@ begin
       IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
 
       SetLength(RoleNames,1);
-      RoleNames[0] := CurrPractice.GetRoleFromPracUserType(aUstNameIndex).RoleName;
+      RoleNames[0] := CurrPractice.GetRoleFromPracUserType(aUstNameIndex, CurrPractice).RoleName;
     except
       on E : Exception do
       begin
@@ -1863,7 +1865,8 @@ end;
 
 { TPracticeHelper }
 //------------------------------------------------------------------------------
-function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer): Guid;
+function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer;
+                                                         aInstance: Practice): Guid;
 begin
   Result := '';
   if (aUstNameIndex < ustMin)
@@ -1872,14 +1875,15 @@ begin
 
   case aUstNameIndex of
                             // Accountant Practice Standard User
-    ustRestricted : Result := '8c464f01-5071-4fc1-b257-0104d48d141b';
+    ustRestricted : Result := aInstance.Roles[0].id;
                             // Accountant Practice Standard User
-    ustNormal     : Result := '8c464f01-5071-4fc1-b257-0104d48d141b';
+    ustNormal     : Result := aInstance.Roles[0].id;
                             // Accountant Practice Administrator
-    ustSystem     : Result := '8c464f01-5071-4fc1-b257-0104d48d1418';
+    ustSystem     : Result := aInstance.Roles[1].id;
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TPracticeHelper.IsEqual(Instance: Practice): Boolean;
 var
   i: integer;
@@ -1938,13 +1942,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer): Role;
+function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer;
+                                                 aInstance: Practice): Role;
 var
   RoleGuid : Guid;
   RoleIndex : integer;
 begin
   Result := Nil;
-  RoleGuid := GetUserRoleGuidFromPracUserType(aUstNameIndex);
+  RoleGuid := GetUserRoleGuidFromPracUserType(aUstNameIndex, aInstance);
 
   for RoleIndex := 0 to High(Self.Roles) do
   begin
