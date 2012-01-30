@@ -2003,7 +2003,9 @@ begin
     if not(ClientID = '') and
       (high(ClientDet.Subscription) > -1) then
     begin
-      if not ProductConfigService.DeleteClient(ClientID) then
+      ClientDet.Status := staDeactivated;
+
+      if not ProductConfigService.SaveClient(ClientDet) then
       begin
         HelpfulErrorMsg('Unable to Connect to BankLink Online.', 0);
         Exit;

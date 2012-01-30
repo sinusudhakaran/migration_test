@@ -134,14 +134,13 @@ type
     procedure SetPrimaryContact(AUser: UserPractice);
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
     property CachedPractice: PracticeDetail read GetCachedPractice;
-    procedure GetServiceAgreement(ARichEdit: TRichEdit);    
+    procedure GetServiceAgreement(ARichEdit: TRichEdit);
     //Client methods
     procedure LoadClientList;
     function GetClientDetailsWithCode(AClientCode: string): ClientDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid): ClientDetail;
     function CreateNewClient(ANewClient: TClientNew): Guid;
     function SaveClient(AClient: ClientDetail): Boolean;
-    function DeleteClient(AClientGuid: Guid): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
     function AddEditPracUser(var   aUserId         : Guid;
@@ -1207,7 +1206,7 @@ var
   Msg: string;
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponse;
-  MyClientSummary: ClientUpdate;
+  MyClientUpdate: ClientUpdate;
   MyNewUser: User;
   MyUserDetail : UserDetail;
   ShowProgress : Boolean;  
@@ -1230,17 +1229,17 @@ begin
     end;
 
     try
-      MyClientSummary := ClientUpdate.Create;
+      MyClientUpdate := ClientUpdate.Create;
       try
         //Save client
-        MyClientSummary.Id := AClient.Id;
-        MyClientSummary.ClientCode := AClient.ClientCode;
-        MyClientSummary.Name_ := AClient.Name_;
-        MyClientSummary.Status := AClient.Status;
-        MyClientSummary.Subscription := AClient.Subscription;
-        MyClientSummary.BillingFrequency := AClient.BillingFrequency;
-        MyClientSummary.MaxOfflineDays := AClient.MaxOfflineDays;
-        MyClientSummary.PrimaryContactUserId := AClient.Users[0].Id;
+        MyClientUpdate.Id := AClient.Id;
+        MyClientUpdate.ClientCode := AClient.ClientCode;
+        MyClientUpdate.Name_ := AClient.Name_;
+        MyClientUpdate.Status := AClient.Status;
+        MyClientUpdate.Subscription := AClient.Subscription;
+        MyClientUpdate.BillingFrequency := AClient.BillingFrequency;
+        MyClientUpdate.MaxOfflineDays := AClient.MaxOfflineDays;
+        MyClientUpdate.PrimaryContactUserId := AClient.Users[0].Id;
 
         BlopiInterface := GetServiceFacade;
 
@@ -1283,7 +1282,7 @@ begin
         MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                  AdminSystem.fdFields.fdBankLink_Code,
                                                  AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                 MyClientSummary);
+                                                 MyClientUpdate);
         MessageResponseHasError(MsgResponse, 'update this client''s settings on');
         Result := True;
 
@@ -1295,7 +1294,7 @@ begin
         HelpfulInfoMsg(Msg, 0);
         LogUtil.LogMsg(lmInfo, UNIT_NAME, Msg);
       finally
-        MyClientSummary.Free;
+        FreeAndNil(MyClientUpdate);
       end;
     finally
       if ShowProgress then
@@ -1308,38 +1307,6 @@ begin
   except
     on E: Exception do
       HelpfulErrorMsg(Msg, 0);
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TProductConfigService.DeleteClient(AClientGuid: Guid): Boolean;
-var
-  BlopiInterface: IBlopiServiceFacade;
-  ShowProgress : Boolean;
-begin
-  Result := false;
-
-  ShowProgress := Progress.StatusSilent;
-  if ShowProgress then
-  begin
-    Screen.Cursor := crHourGlass;
-    Progress.StatusSilent := False;
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
-  end;
-
-  try
-    //BlopiInterface := GetServiceFacade;
-    if ShowProgress then
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Deleting ' + BANKLINK_ONLINE_NAME + ' Client User', 50);
-
-    //BlopiInterface.DeleteClientUser()
-    Result := True;
-
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-  finally
-    Progress.StatusSilent := True;
-    Progress.ClearStatus;
-    Screen.Cursor := crDefault;
   end;
 end;
 
