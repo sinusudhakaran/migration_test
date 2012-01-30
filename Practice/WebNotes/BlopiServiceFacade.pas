@@ -11,7 +11,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (31/01/2012 10:02:36 a.m. - - $Rev: 25127 $)
+// (31/01/2012 11:44:19 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -960,7 +960,7 @@ type
   // binding   : BasicHttpBinding_IBlopiServiceFacade
   // service   : BlopiServiceFacade
   // port      : BasicHttpBinding_IBlopiServiceFacade
-  // URL       : http://www.banklinkonline.com/Services/BlopiServiceFacade.svc
+  // URL       : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc
   // ************************************************************************ //
   IBlopiServiceFacade = interface(IInvokable)
   ['{88E4B606-483E-CC24-1C42-418E3CD2E07E}']
