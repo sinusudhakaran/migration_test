@@ -59,14 +59,14 @@ type
     property Suspended: boolean read GetSuspended;
   End;
 
-  TPracticeHelper = Class helper for Practice
+  TPracticeHelper = Class helper for PracticeDetail
   private
     function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer;
-                                             aInstance: Practice) : Guid;
+                                             aInstance: PracticeDetail) : Guid;
   public
     function GetRoleFromPracUserType(aUstNameIndex : integer;
-                                     aInstance: Practice) : Role;
-    function IsEqual(Instance: Practice): Boolean;
+                                     aInstance: PracticeDetail) : Role;
+    function IsEqual(Instance: PracticeDetail): Boolean;
   End;
 
   TProductConfigService = class(TObject)
@@ -1866,7 +1866,7 @@ end;
 { TPracticeHelper }
 //------------------------------------------------------------------------------
 function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer;
-                                                         aInstance: Practice): Guid;
+                                                         aInstance: PracticeDetail): Guid;
 begin
   Result := '';
   if (aUstNameIndex < ustMin)
@@ -1884,7 +1884,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TPracticeHelper.IsEqual(Instance: Practice): Boolean;
+function TPracticeHelper.IsEqual(Instance: PracticeDetail): Boolean;
 var
   i: integer;
 begin
@@ -1943,7 +1943,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer;
-                                                 aInstance: Practice): Role;
+                                                 aInstance: PracticeDetail): Role;
 var
   RoleGuid : Guid;
   RoleIndex : integer;
