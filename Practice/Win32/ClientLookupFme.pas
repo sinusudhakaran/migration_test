@@ -1936,7 +1936,7 @@ var
   i: Integer;
   Period, CD, M, MM, EM, Y, D: Integer;
   FoundIndex : integer;
-  CatEntry : CatalogueEntry;
+  CatEntry : TBloCatalogueEntry;
   ClientCode : String;
 begin
   CellText := '';
@@ -2198,7 +2198,7 @@ begin
           cluBOProduct :
           begin
             CellText := '';
-            CatEntry := CatalogueEntry(FColumns.ColumnDefn_At(Column).ColObject);
+            CatEntry := TBloCatalogueEntry(FColumns.ColumnDefn_At(Column).ColObject);
 
             FoundIndex := -1;
             for i := low(ProductConfigService.Clients.Clients) to

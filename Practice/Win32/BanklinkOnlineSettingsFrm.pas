@@ -56,15 +56,15 @@ type
   protected
     procedure FillClientDetails;
 
-    procedure SetStatus(aStatus : TStatus);
-    function GetStatus : TStatus;
+    procedure SetStatus(aStatus : TBloStatus);
+    function GetStatus : TBloStatus;
     procedure UpdateClientWebFormat;
   public
     function Execute : boolean;
 
     procedure LoadClientInfo;
     procedure SaveClientInfo;
-    property Status : TStatus read GetStatus write SetStatus;
+    property Status : TBloStatus read GetStatus write SetStatus;
   end;
 
   function EditBanklinkOnlineSettings : boolean;
@@ -137,10 +137,10 @@ var
   PromptMessage, ErrorMsg, NewUserName, NewEmail, MailTo, MailSubject, MailBody: string;
   i, j, ButtonPressed: integer;
 
-  ClientStatus : TStatus;
+  ClientStatus : TBloStatus;
   MaxOfflineDays : String;
   BillingFrequency : WideString;
-  NotesId : Guid;
+  NotesId : TBloGuid;
 begin
   EmailChanged := False;
   ProductsChanged := False;
@@ -205,7 +205,7 @@ begin
   begin
     if Assigned(MyClient.BlopiClientDetail) then
       if Length(MyClient.BlopiClientDetail.Users) > 0 then
-        EmailChanged := (edtEmailAddress.Text <> UserDetail(MyClient.BlopiClientDetail.Users[0]).EMail);
+        EmailChanged := (edtEmailAddress.Text <> TBloUserDetail(MyClient.BlopiClientDetail.Users[0]).EMail);
 
     NewProducts := TStringList.Create;
     ProductsRemoved := TStringList.Create;
@@ -216,7 +216,7 @@ begin
       begin
         for j := 0 to High(MyClient.BlopiClientDetail.Subscription) do
         begin
-          if (CatalogueEntry(chklistProducts.Items.Objects[i]).Id = MyClient.BlopiClientDetail.Subscription[j]) then
+          if (TBloCatalogueEntry(chklistProducts.Items.Objects[i]).Id = MyClient.BlopiClientDetail.Subscription[j]) then
           begin
             ProductFound := true;
             break
@@ -347,7 +347,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.SetStatus(aStatus : TStatus);
+procedure TfrmBanklinkOnlineSettings.SetStatus(aStatus : TBloStatus);
 begin
   case aStatus of
     staActive      : rbActive.Checked := true;
@@ -359,7 +359,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.UpdateClientWebFormat;
 var
-  NotesId : Guid;
+  NotesId : TBloGuid;
 begin
   if not assigned(MyClient.BlopiClientDetail) then
     Exit;
@@ -378,7 +378,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmBanklinkOnlineSettings.GetStatus : TStatus;
+function TfrmBanklinkOnlineSettings.GetStatus : TBloStatus;
 begin
   if rbActive.Checked then
     Result := staActive
@@ -404,10 +404,10 @@ procedure TfrmBanklinkOnlineSettings.LoadClientInfo;
 var
   ProdIndex     : integer;
   SubIndex      : integer;
-  PracDetail    : PracticeDetail;
-  ProductGuid   : Guid;
-  ClientSubGuid : Guid;
-  CatEntry      : CatalogueEntry;
+  PracDetail    : TBloPracticeDetail;
+  ProductGuid   : TBloGuid;
+  ClientSubGuid : TBloGuid;
+  CatEntry      : TBloCatalogueEntry;
 begin
   //Load products
   chklistProducts.Clear;
@@ -438,7 +438,7 @@ begin
                       High(MyClient.BlopiClientDetail.Subscription) do
       begin
         ClientSubGuid := MyClient.BlopiClientDetail.Subscription[SubIndex];
-        ProductGuid   := CatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
+        ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
 
         chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
 
@@ -450,8 +450,8 @@ begin
     if (not (chkUseClientDetails.Checked)) and
        (Length(MyClient.BlopiClientDetail.Users) > 0) then
     begin
-      edtUserName.Text := UserDetail(MyClient.BlopiClientDetail.Users[0]).FullName;
-      edtEmailAddress.Text := UserDetail(MyClient.BlopiClientDetail.Users[0]).Email;
+      edtUserName.Text := TBloUserDetail(MyClient.BlopiClientDetail.Users[0]).FullName;
+      edtEmailAddress.Text := TBloUserDetail(MyClient.BlopiClientDetail.Users[0]).Email;
     end else
     if chkUseClientDetails.Checked then    
     begin
@@ -482,7 +482,7 @@ end;
 procedure TfrmBanklinkOnlineSettings.SaveClientInfo;
 var
   ProdIndex : integer;
-  CatEntry  : CatalogueEntry;
+  CatEntry  : TBloCatalogueEntry;
   ConnectDays : string;
 begin
   // Existing Client
@@ -499,7 +499,7 @@ begin
     begin
       if chklistProducts.Checked[ProdIndex] then
       begin
-        CatEntry := CatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
+        CatEntry := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
         MyClient.BlopiClientDetail.AddSubscription(CatEntry.id);
       end;
     end;
@@ -517,7 +517,7 @@ begin
     begin
       if chklistProducts.Checked[ProdIndex] then
       begin
-        CatEntry := CatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
+        CatEntry := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
         MyClient.BlopiClientNew.AddSubscription(CatEntry.id);
       end;
     end;

@@ -105,7 +105,7 @@ Type
   Private
     fOldValues : TUserValues;
 
-    fUserGuid     : Guid;
+    fUserGuid     : TBloGuid;
     fIsCreateUser : boolean;
     fIsPrimaryUser : Boolean;
     fokPressed  : boolean;
@@ -127,7 +127,7 @@ Type
   Public
     Function Execute(User: pUser_Rec) : boolean;
 
-    property UserGuid     : Guid    read fUserGuid     write fUserGuid;
+    property UserGuid     : TBloGuid    read fUserGuid     write fUserGuid;
     property IsCreateUser : boolean read fIsCreateUser write fIsCreateUser;
   End;
 
@@ -467,7 +467,7 @@ End; { TdlgEditUser.OKtoPost }
 //------------------------------------------------------------------------------
 Function TdlgEditUser.PosttoBankLinkOnline : Boolean;
 var
-  RoleNames         : ArrayOfstring;
+  RoleNames         : TBloArrayOfstring;
   MsgCreateorUpdate : string;
 
 begin
@@ -768,7 +768,7 @@ Const
 Var
   i : Integer;
   NewLVItem : TListItem;
-  Prac : PracticeDetail;
+  Prac : TBloPracticeDetail;
 begin { TdlgEditUser.Execute }
   lvFiles.Items.Clear;
 
@@ -903,7 +903,7 @@ Var
   pu          : pUser_Rec;
   WasLoggedIn : boolean;
   i           : integer;
-  Prac        : PracticeDetail;
+  Prac        : TBloPracticeDetail;
 begin { EditUser }
   Result := false;
 

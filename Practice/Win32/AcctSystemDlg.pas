@@ -420,7 +420,7 @@ var
   OldLoadFrom : String;
   S : String;
   LCLRec: pClient_File_Rec;
-  NotesId : Guid;
+  NotesId : TBloGuid;
   ClientChanged : Boolean;
 begin
    okPressed := false;

@@ -993,7 +993,7 @@ implementation
 function GetIBlopiServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiServiceFacade;
 const
   defWSDL = 'https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl';
-  defURL  = 'http://www.banklinkonline.com/Services/BlopiServiceFacade.svc';
+  defURL  = 'https://www.banklinkonline.com/Services/BlopiServiceFacade.svc';
   defSvc  = 'BlopiServiceFacade';
   defPrt  = 'BasicHttpBinding_IBlopiServiceFacade';
 var

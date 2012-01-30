@@ -44,7 +44,7 @@ type
   end;
 
   function PickPrimaryUser(aUserCode: string = '';
-                           aPractice : PracticeDetail = Nil) : Boolean;
+                           aPractice : TBloPracticeDetail = Nil) : Boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -59,10 +59,10 @@ uses
 
 //------------------------------------------------------------------------------
 function PickPrimaryUser(aUserCode : string = '';
-                         aPractice : PracticeDetail = Nil) : Boolean;
+                         aPractice : TBloPracticeDetail = Nil) : Boolean;
 var
   MyDlg         : TPickNewPrimaryUser;
-  CurrPractice  : PracticeDetail;
+  CurrPractice  : TBloPracticeDetail;
   UserIndex     : integer;
   AdminRollName : Widestring;
   RoleIndex     : integer;
@@ -110,7 +110,7 @@ begin
       if MyDlg.ShowModal = mrYes then
       begin
         // Save Default Admin User
-        aPractice.DefaultAdminUserId := UserPractice(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
+        aPractice.DefaultAdminUserId := TBloUserPractice(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
         Result := ProductConfigService.SavePractice;
       end;
 

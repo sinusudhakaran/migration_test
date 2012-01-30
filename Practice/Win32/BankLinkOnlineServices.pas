@@ -14,17 +14,17 @@ uses
   ComCtrls;
 
 type
-  TStatus               = BlopiServiceFacade.Status;
-  Guid                  = BlopiServiceFacade.Guid;
-  ArrayOfString         = BlopiServiceFacade.ArrayOfString;
-  PracticeDetail        = BlopiServiceFacade.PracticeDetail;
-  ClientDetail          = BlopiServiceFacade.ClientDetail;
-  TClientNew            = BlopiServiceFacade.ClientNew;
-  UserPractice          = BlopiServiceFacade.UserPractice;
-  CatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
-  ArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
-  ArrayOfGuid           = BlopiServiceFacade.ArrayOfguid;
-  UserDetail            = BlopiServiceFacade.UserDetail;
+  TBloStatus                = BlopiServiceFacade.Status;
+  TBloGuid                  = BlopiServiceFacade.Guid;
+  TBloArrayOfString         = BlopiServiceFacade.ArrayOfString;
+  TBloPracticeDetail        = BlopiServiceFacade.PracticeDetail;
+  TBloClientDetail          = BlopiServiceFacade.ClientDetail;
+  TBloClientNew             = BlopiServiceFacade.ClientNew;
+  TBloUserPractice          = BlopiServiceFacade.UserPractice;
+  TBloCatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
+  TBloArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
+  TBloArrayOfGuid           = BlopiServiceFacade.ArrayOfGuid;
+  TBloUserDetail            = BlopiServiceFacade.UserDetail;
 
   TVarTypeData = record
     Name     : String;
@@ -35,9 +35,9 @@ type
 
   TClientBaseHelper = class helper for BlopiServiceFacade.Client
   public
-    function AddSubscription(AProductID: guid) : Boolean;
-    function RemoveSubscription(AProductID: guid) : Boolean;
-    function HasSubscription(AProductID: guid) : Boolean;
+    function AddSubscription(AProductID: TBloGuid) : Boolean;
+    function RemoveSubscription(AProductID: TBloGuid) : Boolean;
+    function HasSubscription(AProductID: TBloGuid) : Boolean;
   end;
 
   TClientHelper = Class helper for BlopiServiceFacade.ClientDetail
@@ -74,15 +74,15 @@ type
     fMethodName: string;
     fSOAPRequest: InvString;
 
-    FPractice, FPracticeCopy: PracticeDetail;
+    FPractice, FPracticeCopy: TBloPracticeDetail;
     FClientList: ClientList;
     FOnLine: Boolean;
     FRegistered: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
-    function IsUserCreatedOnBankLinkOnline(const APractice : PracticeDetail;
-                                           const AUserId   : Guid   = '';
+    function IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeDetail;
+                                           const AUserId   : TBloGuid   = '';
                                            const AUserCode : string = ''): Boolean;
 
     function RemotableObjectToXML(ARemotable: TRemotable): string;
@@ -90,7 +90,7 @@ type
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
     procedure SavePracticeDetailsToSystemDB;
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
-    function OnlineStatus: TStatus;
+    function OnlineStatus: TBloStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
                               const aName : String) : integer;
     procedure AddTypeItem(var aDataArray : TArrVarTypeData;
@@ -109,27 +109,27 @@ type
                           ReciveTimeout : DWord);
     function GetServiceFacade : IBlopiServiceFacade;
     function GetClientGuid(const AClientCode: string): WideString;
-    function GetCachedPractice: PracticeDetail;
+    function GetCachedPractice: TBloPracticeDetail;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
-    function GetProducts : ArrayOfGuid;
+    function GetProducts : TBloArrayOfGuid;
     function GetRegistered: Boolean;
   public
     destructor Destroy; override;
     //Practice methods
-    function GetPractice(aUpdateUseOnline: Boolean = True): PracticeDetail;
+    function GetPractice(aUpdateUseOnline: Boolean = True): TBloPracticeDetail;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
-    function GetCatalogueEntry(AProductId: Guid): CatalogueEntry;
-    function IsPracticeProductEnabled(AProductId: Guid; AUsePracCopy : Boolean): Boolean;
-    function HasProductJustBeenUnTicked(AProductId: Guid): Boolean;
-    function NumOfClientsUsingProduct(AProductId: Guid): Integer;
-    function GetNotesId : Guid;
+    function GetCatalogueEntry(AProductId: TBloGuid): TBloCatalogueEntry;
+    function IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
+    function HasProductJustBeenUnTicked(AProductId: TBloGuid): Boolean;
+    function NumOfClientsUsingProduct(AProductId: TBloGuid): Integer;
+    function GetNotesId : TBloGuid;
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
     function SavePractice: Boolean;
     function PracticeChanged: Boolean;
-    procedure AddProduct(AProductId: Guid);
+    procedure AddProduct(AProductId: TBloGuid);
     procedure ClearAllProducts;
-    procedure RemoveProduct(AProductId: Guid);
+    procedure RemoveProduct(AProductId: TBloGuid);
     procedure SelectAllProducts;
     procedure SetPrimaryContact(AUser: UserPractice);
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
@@ -139,11 +139,11 @@ type
     procedure LoadClientList;
     function GetClientDetailsWithCode(AClientCode: string): ClientDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid): ClientDetail;
-    function CreateNewClient(ANewClient: TClientNew): Guid;
+    function CreateNewClient(ANewClient: TBloClientNew): Guid;
     function SaveClient(AClient: ClientDetail): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
-    function AddEditPracUser(var   aUserId         : Guid;
+    function AddEditPracUser(var   aUserId         : TBloGuid;
                              const aEMail          : WideString;
                              const aFullName       : WideString;
                              const aUserCode       : WideString;
@@ -153,17 +153,17 @@ type
                              const aPassword       : WideString ) : Boolean;
     function DeletePracUser(const aUserCode : string;
                             const aUserGuid : string;
-                            aPractice : PracticeDetail = nil): Boolean;
+                            aPractice : TBloPracticeDetail = nil): Boolean;
     function IsPrimPracUser(const aUserCode : string = '';
-                            aPractice : PracticeDetail = nil): Boolean;
+                            aPractice : TBloPracticeDetail = nil): Boolean;
     function GetPracUserGuid(const aUserCode : string;
-                             aPractice : PracticeDetail): Guid;
+                             aPractice : TBloPracticeDetail): TBloGuid;
     function ChangePracUserPass(const aUserCode : WideString;
                                 const aPassword : WideString;
-                                aPractice : PracticeDetail = nil) : Boolean;
+                                aPractice : TBloPracticeDetail = nil) : Boolean;
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
-    property ProductList : ArrayOfguid read GetProducts;
+    property ProductList : TBloArrayOfGuid read GetProducts;
   end;
 
 Const
@@ -220,10 +220,10 @@ end;
 
 { TProductConfigService }
 //------------------------------------------------------------------------------
-procedure TProductConfigService.AddProduct(AProductId: Guid);
+procedure TProductConfigService.AddProduct(AProductId: TBloGuid);
 var
   i: integer;
-  SubArray: ArrayOfGuid;
+  SubArray:  TBloArrayOfGuid;
 begin
   //Add product
   for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do
@@ -243,7 +243,7 @@ end;
 procedure TProductConfigService.ClearAllProducts;
 var
   i: integer;
-  SubArray: ArrayOfGUID;
+  SubArray: TBloArrayOfGuid;
 begin
   //Copy the subscription array
   SetLength(SubArray, Length(FPracticeCopy.Subscription));
@@ -277,7 +277,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.CreateNewClient(ANewClient: TClientNew): Guid;
+function TProductConfigService.CreateNewClient(ANewClient: TBloClientNew): TBloGuid;
 var
   i: integer;
   Msg: string;
@@ -343,14 +343,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetCachedPractice: PracticeDetail;
+function TProductConfigService.GetCachedPractice: TBloPracticeDetail;
 begin
   Result := FPractice;
 end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.GetCatalogueEntry(
-  AProductId: Guid): CatalogueEntry;
+  AProductId: TBloGuid): TBloCatalogueEntry;
 var
   i: integer;
 begin
@@ -364,7 +364,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientDetailsWithCode(AClientCode: string): ClientDetail;
+function TProductConfigService.GetClientDetailsWithCode(AClientCode: string): TBloClientDetail;
 var
   ClientGuid: WideString;
 begin
@@ -379,11 +379,11 @@ begin
   //Find client code in the client list
   ClientGuid := GetClientGuid(AClientCode);
   if (ClientGuid <> '') then
-    Result := GetClientDetailsWithGUID(ClientGuid);
+    Result := GetClientDetailsWithGuid(ClientGuid);
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientDetailsWithGUID(AClientGuid: Guid): ClientDetail;
+function TProductConfigService.GetClientDetailsWithGuid(AClientGuid: TBloGuid): TBloClientDetail;
 var
   i, j: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -450,7 +450,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean): PracticeDetail;
+function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean): TBloPracticeDetail;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -478,9 +478,9 @@ begin
   if aUpdateUseOnline then
     UseBankLinkOnline := False;
   FreeAndNil(FPractice);
-  FPractice := PracticeDetail.Create;
+  FPractice := TBloPracticeDetail.Create;
   FreeAndNil(FPracticeCopy);
-  FPracticeCopy := PracticeDetail.Create;
+  FPracticeCopy := TBloPracticeDetail.Create;
   try
     ShowProgress := Progress.StatusSilent;
     if ShowProgress then
@@ -558,7 +558,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetProducts: ArrayOfGuid;
+function TProductConfigService.GetProducts: TBloArrayOfGuid;
 begin
   if Assigned(FPracticeCopy) then
     Result := FPracticeCopy.Subscription;
@@ -707,7 +707,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.OnlineStatus: TStatus;
+function TProductConfigService.OnlineStatus: TBloStatus;
 begin
   Result := Active;
   if Assigned(FPractice) then
@@ -948,7 +948,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
+function TProductConfigService.GetCatFromSub(aSubGuid : TBloGuid): TBloCatalogueEntry;
 var
   i, j: integer;
 begin
@@ -968,7 +968,7 @@ end;
 function TProductConfigService.IsCICOEnabled: Boolean;
 var
   i, j: integer;
-  Cat: CatalogueEntry;
+  Cat: TBloCatalogueEntry;
 begin
   Result := False;
   if not Assigned(FPractice) then
@@ -991,10 +991,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetNotesId : Guid;
+function TProductConfigService.GetNotesId : TBloGuid;
 var
   i   : integer;
-  Cat : CatalogueEntry;
+  Cat : TBloCatalogueEntry;
 begin
   Result := '';
   if Assigned(FPractice) then
@@ -1015,7 +1015,7 @@ end;
 function TProductConfigService.IsNotesOnlineEnabled: Boolean;
 var
   i       : integer;
-  NotesId : Guid;
+  NotesId : TBloGuid;
 begin
   Result := False;
 
@@ -1049,10 +1049,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.IsPracticeProductEnabled(AProductId: Guid; AUsePracCopy : Boolean): Boolean;
+function TProductConfigService.IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
 var
   i: integer;
-  Prac : PracticeDetail;
+  Prac : TBloPracticeDetail;
 begin
   if AUsePracCopy then
     Prac := FPracticeCopy
@@ -1071,7 +1071,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.HasProductJustBeenUnTicked(AProductId: Guid): Boolean;
+function TProductConfigService.HasProductJustBeenUnTicked(AProductId: TBloGuid): Boolean;
 begin
   // Was the Product Ticked and is it currently unticked
   Result := (IsPracticeProductEnabled(AProductId, False)) and
@@ -1079,7 +1079,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.NumOfClientsUsingProduct(AProductId: Guid): Integer;
+function TProductConfigService.NumOfClientsUsingProduct(AProductId: TBloGuid): Integer;
 var
   ClientIndex : integer;
   SubIndex : integer;
@@ -1132,13 +1132,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.RemoveProduct(AProductId: Guid);
+procedure TProductConfigService.RemoveProduct(AProductId: TBloGuid);
 var
   i, j: integer;
-  SubArray: ArrayOfGuid;
+  SubArray: TBloArrayOfGuid;
   ClientsUsingProduct: integer;
   Msg: string;
-  TempCatalogueEntry: CatalogueEntry;
+  TempCatalogueEntry: TBloCatalogueEntry;
 begin
   try
     if not Assigned(FClientList) then
@@ -1200,7 +1200,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.SaveClient(AClient: ClientDetail): Boolean;
+function TProductConfigService.SaveClient(AClient: TBloClientDetail): Boolean;
 var
   i: integer;
   Msg: string;
@@ -1208,7 +1208,7 @@ var
   MsgResponse: MessageResponse;
   MyClientUpdate: ClientUpdate;
   MyNewUser: User;
-  MyUserDetail : UserDetail;
+  MyUserDetail : TBloUserDetail;
   ShowProgress : Boolean;  
 begin
   Result := False;
@@ -1398,8 +1398,8 @@ end;
 procedure TProductConfigService.SelectAllProducts;
 var
   i: integer;
-  Cat: CatalogueEntry;
-  SubArray: ArrayOfGUID;
+  Cat: TBloCatalogueEntry;
+  SubArray: TBloArrayOfGuid;
 begin
   SubArray := FPracticeCopy.Subscription;
   try
@@ -1414,7 +1414,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.SetPrimaryContact(AUser: UserPractice);
+procedure TProductConfigService.SetPrimaryContact(AUser: TBloUserPractice);
 begin
   FPracticeCopy.DefaultAdminUserId := AUser.Id;
 end;
@@ -1454,13 +1454,13 @@ end;
 procedure TClientHelper.UpdateAdminUser(AUserName, AEmail: WideString);
 var
   UserArray: ArrayOfUserDetail;
-  RoleArray: ArrayOfString;
-  NewUser: UserDetail;
+  RoleArray: TBloArrayOfString;
+  NewUser: TBloUserDetail;
 begin
   //Should only be one client admin user
   if Length(Self.Users) = 0 then begin
     //Add
-    NewUser := UserDetail.Create;
+    NewUser := TBloUserDetail.Create;
     UserArray := Self.Users;
     try
       SetLength(UserArray, Length(Self.Users) + 1);
@@ -1483,9 +1483,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TClientBaseHelper.AddSubscription(AProductID: guid) : Boolean;
+function TClientBaseHelper.AddSubscription(AProductID: TBloGuid) : Boolean;
 var
-  SubArray: arrayofguid;
+  SubArray: TBloArrayOfGuid;
   i: integer;
 begin
   Result := False;
@@ -1504,9 +1504,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TClientBaseHelper.RemoveSubscription(AProductID: guid) : Boolean;
+function TClientBaseHelper.RemoveSubscription(AProductID: TBloGuid) : Boolean;
 var
-  SubArray: arrayofguid;
+  SubArray: TBloArrayOfGuid;
   i: integer;
   FoundIndex : integer;
 begin
@@ -1537,7 +1537,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TClientBaseHelper.HasSubscription(AProductID: guid) : Boolean;
+function TClientBaseHelper.HasSubscription(AProductID: TBloGuid) : Boolean;
 var
   i : Integer;
 begin
@@ -1559,8 +1559,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : PracticeDetail;
-                                                             const AUserId   : Guid   = '';
+function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeDetail;
+                                                             const AUserId   : TBloGuid   = '';
                                                              const AUserCode : string = '') : Boolean;
 var
   UserIndex : Integer;
@@ -1568,7 +1568,7 @@ begin
   Result := False;
 
   // Goes through passed through Practice users and finds the first one with either
-  // a matching Guid or Code
+  // a matching TBloGuid or Code
   for UserIndex := 0 to High(APractice.Users) do
   begin
     if (APractice.Users[UserIndex].Id       = AUserId)
@@ -1581,7 +1581,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.AddEditPracUser(var   aUserId         : Guid;
+function TProductConfigService.AddEditPracUser(var   aUserId         : TBloGuid;
                                                const aEMail          : WideString;
                                                const aFullName       : WideString;
                                                const aUserCode       : WideString;
@@ -1590,18 +1590,18 @@ function TProductConfigService.AddEditPracUser(var   aUserId         : Guid;
                                                const aChangePassword : Boolean;
                                                const aPassword       : WideString) : Boolean;
 var
-  UpdateUser      : UserPractice;
+  UpdateUser      : TBloUserPractice;
   CreateUser      : UserPracticeNew;
   PracCountryCode : WideString;
   PracCode        : WideString;
   PracPassHash    : WideString;
   MsgResponce     : MessageResponse;
-  MsgResponceGuid : MessageResponseOfguid;
+  MsgResponceGuid : MessageResponseOfGuid;
   ErrMsg          : String;
-  CurrPractice    : PracticeDetail;
+  CurrPractice    : TBloPracticeDetail;
   IsUserOnline    : Boolean;
   BlopiInterface  : IBlopiServiceFacade;
-  RoleNames       : ArrayOfString;
+  RoleNames       : TBloArrayOfString;
 begin
   Result := false;
 
@@ -1639,7 +1639,7 @@ begin
       if aUserId = '' then
         aUserId := GetPracUserGuid(aUserCode, CurrPractice);
 
-      UpdateUser := UserPractice.Create;
+      UpdateUser := TBloUserPractice.Create;
       UpdateUser.EMail        := aEMail;
       UpdateUser.FullName     := aFullName;
       UpdateUser.Id           := aUserId;
@@ -1697,7 +1697,7 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.DeletePracUser(const aUserCode : string;
                                               const aUserGuid : string;
-                                              aPractice : PracticeDetail) : Boolean;
+                                              aPractice : TBloPracticeDetail) : Boolean;
 var
   PracCountryCode : WideString;
   PracCode        : WideString;
@@ -1705,7 +1705,7 @@ var
   MsgResponce     : MessageResponse;
   ErrMsg          : String;
   BlopiInterface  : IBlopiServiceFacade;
-  UserGuid        : Guid;
+  UserGuid        : TBloGuid;
 begin
   Result := false;
 
@@ -1750,7 +1750,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.IsPrimPracUser(const aUserCode : string;
-                                              aPractice : PracticeDetail): Boolean;
+                                              aPractice : TBloPracticeDetail): Boolean;
 begin
   if aUserCode = '' then
   begin
@@ -1766,10 +1766,10 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.GetPracUserGuid(const aUserCode : string;
-                                               aPractice : PracticeDetail): Guid;
+                                               aPractice : TBloPracticeDetail): TBloGuid;
 var
   i: integer;
-  TempUser: UserDetail;
+  TempUser: TBloUserDetail;
 begin
   Result := '';
 
@@ -1786,7 +1786,7 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.ChangePracUserPass(const aUserCode : WideString;
                                                   const aPassword : WideString;
-                                                  aPractice : PracticeDetail) : Boolean;
+                                                  aPractice : TBloPracticeDetail) : Boolean;
 var
   MsgResponce     : MessageResponse;
   UserGuid        : WideString;
@@ -1923,7 +1923,7 @@ end;
 function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer;
                                                  aInstance: PracticeDetail): Role;
 var
-  RoleGuid : Guid;
+  RoleGuid : TBloGuid;
   RoleIndex : integer;
 begin
   Result := Nil;

@@ -241,9 +241,9 @@ var
   i, k : Integer;
   GUID1, GUID2: WideString;
   ClientSynced: boolean;
-  MyNewClient: TClientNew;
-  MyNewClientGuid: Guid;
-  CachedPracticeDetail: PracticeDetail;
+  MyNewClient: TBloClientNew;
+  MyNewClientGuid: TBloGuid;
+  CachedPracticeDetail: TBloPracticeDetail;
 begin
   PageControl1.ActivePage := tbsClient;
 

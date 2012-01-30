@@ -127,7 +127,7 @@ type
     PassGenCodeEntered : boolean;
     ChangingDiskID : boolean;
     InSetup: Boolean;
-    FPrac: PracticeDetail;
+    FPrac: TBloPracticeDetail;
     FOnlineSettingsChanged: Boolean;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
@@ -431,10 +431,10 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
 var
-  TempUser: UserPractice;
+  TempUser: TBloUserPractice;
 begin
   //Set primary contact
-  TempUser := UserPractice(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
+  TempUser := TBloUserPractice(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
   ProductConfigService.SetPrimaryContact(TempUser);
 end;
 
@@ -904,13 +904,13 @@ procedure TfrmPracticeDetails.vtProductsChecked(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
   Data: PTreeData;
-  Cat: CatalogueEntry;
+  Cat: TBloCatalogueEntry;
 begin
   vtProducts.BeginUpdate;
   try
     Data := vtProducts.GetNodeData(Node);
     if Assigned(Data.tdObject) then begin
-      Cat := CatalogueEntry(Data.tdObject);
+      Cat := TBloCatalogueEntry(Data.tdObject);
       if Node.CheckState = csCheckedNormal then begin
         //Add product
         ProductConfigService.AddProduct(Cat.Id);
@@ -943,7 +943,7 @@ procedure TfrmPracticeDetails.vtProductsGetText(Sender: TBaseVirtualTree;
   var CellText: WideString);
 var
   Data: PTreeData;
-  Cat: CatalogueEntry;
+  Cat: TBloCatalogueEntry;
 begin
   Data := vtProducts.GetNodeData(Node);
   if (Data.tdObject <> nil) then begin
@@ -951,7 +951,7 @@ begin
       0: begin
            if not (Assigned(Data.tdObject)) and DebugMe then
              LogUtil.LogMsg(lmDebug, UnitName, 'No Node Data!!');
-           Cat := CatalogueEntry(Data.tdObject);
+           Cat := TBloCatalogueEntry(Data.tdObject);
            if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Start set product check state:' + Cat.Id);
            Node.CheckState := csUncheckedNormal;
            if ProductConfigService.IsPracticeProductEnabled(Cat.Id, True) then
@@ -1008,7 +1008,7 @@ end;
 procedure TfrmPracticeDetails.LoadPracticeDetails;
 var
   i: integer;
-  Cat: CatalogueEntry;
+  Cat: TBloCatalogueEntry;
   TreeColumn: TVirtualTreeColumn;
   ProductNode, ServiceNode: PVirtualNode;
   RoleIndex : integer;
@@ -1053,7 +1053,7 @@ begin
       //Select default admin
       cbPrimaryContact.ItemIndex := -1;
       for i := 0 to cbPrimaryContact.Items.Count - 1 do
-        if UserPractice(cbPrimaryContact.Items.Objects[i]).Id = FPrac.DefaultAdminUserId then
+        if TBloUserPractice(cbPrimaryContact.Items.Objects[i]).Id = FPrac.DefaultAdminUserId then
           cbPrimaryContact.ItemIndex := i;
 
       //Products and Service
@@ -1065,7 +1065,7 @@ begin
         ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
         ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
         for i := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do begin
-          Cat := CatalogueEntry(FPrac.Catalogue[i]);
+          Cat := TBloCatalogueEntry(FPrac.Catalogue[i]);
           if Cat.CatalogueType = 'Application' then
             AddTreeNode(vtProducts, ProductNode, Cat.Description, Cat)
           else if Cat.CatalogueType = 'Service' then

@@ -70,10 +70,10 @@ type
     procedure SetAuditInfo(P1, P2: pClient_Rec; var AAuditInfo: TAuditInfo);
     procedure SetExtraAuditInfo(P1, P2: pClientExtra_Rec; var AAuditInfo: TAuditInfo;
                                 NewClient: boolean = false);
-    procedure SetBlopiClientDetail(const Value: ClientDetail);
-    procedure SetBlopiClientNew(const Value: TClientNew);
-    function GetBlopiClientDetail: ClientDetail;
-    function GetBlopiClientNew: TClientNew;
+    procedure SetBlopiClientDetail(const Value: TBloClientDetail);
+    procedure SetBlopiClientNew(const Value: TBloClientNew);
+    function GetBlopiClientDetail: TBloClientDetail;
+    function GetBlopiClientNew: TBloClientNew;
     function CopyPracticeClientNew: boolean;
     procedure SetBlopiClientChanged(const Value: Boolean);
     function GetBlopiClientChanged: Boolean;
@@ -141,8 +141,8 @@ type
     property AuditTable: TAuditTable read FAuditTable;
     property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
     property ClientCopy: TClientObj read GetClientCopy;
-    property BlopiClientDetail: ClientDetail read GetBlopiClientDetail write SetBlopiClientDetail;
-    property BlopiClientNew: TClientNew read GetBlopiClientNew write SetBlopiClientNew;
+    property BlopiClientDetail: TBloClientDetail read GetBlopiClientDetail write SetBlopiClientDetail;
+    property BlopiClientNew: TBloClientNew read GetBlopiClientNew write SetBlopiClientNew;
     property BlopiClientChanged: Boolean read GetBlopiClientChanged write SetBlopiClientChanged;
 {$ENDIF}
   end;
@@ -908,12 +908,12 @@ begin
   FBlopiClient.IsEdited := Value;
 end;
 
-procedure TClientObj.SetBlopiClientDetail(const Value: ClientDetail);
+procedure TClientObj.SetBlopiClientDetail(const Value: TBloClientDetail);
 begin
   FBlopiClient.ClientDetail := Value;
 end;
 
-procedure TClientObj.SetBlopiClientNew(const Value: TClientNew);
+procedure TClientObj.SetBlopiClientNew(const Value: TBloClientNew);
 begin
   FBlopiClient.ClientNew := Value;
 end;
@@ -1642,12 +1642,12 @@ begin
   Result := FBlopiClient.IsEdited;
 end;
 
-function TClientObj.GetBlopiClientDetail: ClientDetail;
+function TClientObj.GetBlopiClientDetail: TBloClientDetail;
 begin
   Result := FBlopiClient.ClientDetail
 end;
 
-function TClientObj.GetBlopiClientNew: TClientNew;
+function TClientObj.GetBlopiClientNew: TBloClientNew;
 begin
   Result := FBlopiClient.ClientNew;
 end;

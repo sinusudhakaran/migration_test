@@ -9,20 +9,20 @@ uses
 type
   TBlopiClient = Class
   private
-    FClientDetail: ClientDetail;
-    FClientNew: TClientNew;
+    FClientDetail: TBloClientDetail;
+    FClientNew: TBloClientNew;
     FIsEdited: Boolean;
-    procedure SetClientDetail(const Value: ClientDetail);
-    procedure SetClientNew(const Value: TClientNew);
+    procedure SetClientDetail(const Value: TBloClientDetail);
+    procedure SetClientNew(const Value: TBloClientNew);
     procedure SetIsEdited(const Value: Boolean);
   public
     constructor create;
     destructor destroy; override;
     function SaveClientDetail: boolean;
     function SaveClientNew: boolean;
-    function GetClientDetail(const AClientCode: string): ClientDetail;
-    property ClientDetail: ClientDetail read FClientDetail write SetClientDetail;
-    property ClientNew: TClientNew read FClientNew write SetClientNew;
+    function GetClientDetail(const AClientCode: string): TBloClientDetail;
+    property ClientDetail: TBloClientDetail read FClientDetail write SetClientDetail;
+    property ClientNew: TBloClientNew read FClientNew write SetClientNew;
     property IsEdited: Boolean read FIsEdited write SetIsEdited;
   End;
 
@@ -43,7 +43,7 @@ begin
   inherited;
 end;
 
-function TBlopiClient.GetClientDetail(const AClientCode: string): ClientDetail;
+function TBlopiClient.GetClientDetail(const AClientCode: string): TBloClientDetail;
 begin
   Result := ProductConfigService.GetClientDetailsWithCode(AClientCode);
 end;
@@ -58,12 +58,12 @@ begin
 
 end;
 
-procedure TBlopiClient.SetClientDetail(const Value: ClientDetail);
+procedure TBlopiClient.SetClientDetail(const Value: TBloClientDetail);
 begin
   FClientDetail := Value;
 end;
 
-procedure TBlopiClient.SetClientNew(const Value: TClientNew);
+procedure TBlopiClient.SetClientNew(const Value: TBloClientNew);
 begin
   FClientNew := Value;
 end;
