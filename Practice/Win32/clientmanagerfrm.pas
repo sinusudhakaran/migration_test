@@ -981,8 +981,7 @@ begin
             AddCustomColumn(trim(ColumnName),
                             trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
                             NumColumns,
-                            cluBOProduct,
-                            ProductConfigService.Clients.Catalogue[i]);
+                            cluBOProduct);
 
             inc(NumColumns);
           end;
