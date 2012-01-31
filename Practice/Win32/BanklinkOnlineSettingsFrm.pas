@@ -428,10 +428,12 @@ begin
       cmbConnectDays.Text := 'Always'
     else
       cmbConnectDays.Text := IntToStr(MyClient.BlopiClientDetail.MaxOfflineDays) + ' days';
+    cmbConnectDays.SelLength := 0;
     if MyClient.BlopiClientDetail.BillingFrequency = 'M' then
       cmbBillingFrequency.Text := 'Monthly'
     else if MyClient.BlopiClientDetail.BillingFrequency = 'A' then        
       cmbBillingFrequency.Text := 'Annually';
+    cmbBillingFrequency.SelLength := 0;
     chkUseClientDetails.Checked := false;
 
     // Checks the Products that Client Subscribes to
