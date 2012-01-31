@@ -13,30 +13,15 @@ unit ClientLookupFme;
                 and for admin system clients
 }
 //------------------------------------------------------------------------------
+
 interface
 
 uses
-  Windows,
-  Messages,
-  SysUtils,
-  Classes,
-  Graphics,
-  Controls,
-  Forms,
-  Dialogs,
-  StdCtrls,
-  VirtualTrees,
-  cfList32,
-  eCollect,
-  syDefs,
-  sysObj32,
-  bkconst,
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, VirtualTrees, cfList32, eCollect, syDefs, sysObj32, bkconst,
   StDate,
-  ClientCodingStatistics,
-  BankLinkOnlineServices,
-  Menus,
-  ExtCtrls,
-  WebCiCoClient;
+  ClientCodingStatistics, BankLinkOnlineServices,
+  Menus, ExtCtrls, WebCiCoClient;
 
 type
 //  TBankLinkOnlineMode = (bomNone, bomGetFile, bomSendFile);
@@ -384,9 +369,8 @@ type
     MinProcOffset = 0;
     MaxProcOffset = 24;
 
-//------------------------------------------------------------------------------
-implementation
 
+implementation
 uses
   bkDateUtils,
   GenUtils,
@@ -398,23 +382,12 @@ uses
   StStrs,
   syCFIO,
   Themes,
-  rzGrafx,
-  rzCommon,
-  Math,
-  Types,
-  WinUtils,
-  YesNoDlg,
-  ErrorMoreFrm,
-  ClientDetailCacheObj,
-  stDateSt,
-  bkBranding,
-  PDDATES32,
-  progress,
-  formPassword,
-  BankLinkConnect,
-  Admin32,
-  ChangePasswordFrm,
-  INISettings;
+  rzGrafx, rzCommon,
+  Math, Types,
+  WinUtils, YesNoDlg, ErrorMoreFrm,  ClientDetailCacheObj,
+  stDateSt, bkBranding, PDDATES32,
+  progress, formPassword, BankLinkConnect, Admin32,
+  ChangePasswordFrm, INISettings;
 
 {$R *.dfm}
 
@@ -2198,32 +2171,27 @@ begin
           cluBOProduct :
           begin
             CellText := '';
-            CatEntry := TBloCatalogueEntry(FColumns.ColumnDefn_At(Column).ColObject);
-
-            FoundIndex := -1;
-            for i := low(ProductConfigService.Clients.Clients) to
-                     high(ProductConfigService.Clients.Clients) do
+            if (Assigned(FColumns.ColumnDefn_At(Column).ColObject)) and
+               (FColumns.ColumnDefn_At(Column).ColObject is TBloCatalogueEntry) then
             begin
-              ClientCode := ProductConfigService.Clients.Clients[i].ClientCode;
-              if ClientCode = sysClientRec^.cfFile_Code then
-              begin
-                FoundIndex := i;
-                break;
-              end;
-            end;
+              CatEntry := TBloCatalogueEntry(FColumns.ColumnDefn_At(Column).ColObject);
 
-            if (FoundIndex > -1) then
-            begin
-              for i := low(ProductConfigService.Clients.Catalogue) to
-                       high(ProductConfigService.Clients.Catalogue) do
+              FoundIndex := -1;
+              for i := low(ProductConfigService.Clients.Clients) to
+                       high(ProductConfigService.Clients.Clients) do
               begin
-                if ProductConfigService.Clients.Catalogue[i].Description = FColumns.ColumnDefn_At(Column).Caption then
+                ClientCode := ProductConfigService.Clients.Clients[i].ClientCode;
+                if ClientCode = sysClientRec^.cfFile_Code then
                 begin
-                  if ProductConfigService.Clients.Clients[FoundIndex].HasSubscription(ProductConfigService.Clients.Catalogue[i].id) then
-                    CellText := #10004;
-
+                  FoundIndex := i;
                   break;
                 end;
+              end;
+
+              if (FoundIndex > -1) then
+              begin
+                if ProductConfigService.Clients.Clients[FoundIndex].HasSubscription(CatEntry.Id) then
+                  CellText := #10004;
               end;
             end;
           end;
