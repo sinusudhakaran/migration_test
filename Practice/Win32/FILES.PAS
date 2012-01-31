@@ -1023,7 +1023,8 @@ begin
     end;
 
     //OpenAClient handles the admin system
-    OpenAClient(OpenCode,MyClient,false, True, False, IsDDE);  //allow read only
+    if CloseClient then
+      OpenAClient(OpenCode,MyClient,false, True, False, IsDDE);  //allow read only
 
     if Assigned(MyClient) then
     begin
