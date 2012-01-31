@@ -1853,11 +1853,11 @@ begin
 
   case aUstNameIndex of
                             // Accountant Practice Standard User
-    ustRestricted : Result := aInstance.Roles[0].id;
+    ustRestricted : Result := aInstance.Roles[1].id;
                             // Accountant Practice Standard User
-    ustNormal     : Result := aInstance.Roles[0].id;
+    ustNormal     : Result := aInstance.Roles[1].id;
                             // Accountant Practice Administrator
-    ustSystem     : Result := aInstance.Roles[1].id;
+    ustSystem     : Result := aInstance.Roles[0].id;
   end;
 end;
 
